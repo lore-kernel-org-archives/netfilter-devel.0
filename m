@@ -1,98 +1,222 @@
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="iFgdljrd"
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A2DA1B5
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Dec 2023 22:47:50 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1701845269;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=RDaOyt2M6YWxTWcFQSbS5hRazoMbCTQ2YR+tClNrD48=;
-	b=iFgdljrdGXR3/BhLWUX9hGJTzWLsJgddWopfq++RCvxULeTU57FVaQIJ85jGvgehNT5n/u
-	n4tT3jhNfpH/vQM73lusG9q2baFLY+JU5JPvAtlKiEU98MajjWxGMiTyE6chlJDOM837sz
-	5xR+VznjiDQsGeO7RLLNWEwYPgXU5ZA=
-Received: from mail-ed1-f69.google.com (mail-ed1-f69.google.com
- [209.85.208.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-377-7bU2iTPiMPu_cLt1Cz5f_Q-1; Wed, 06 Dec 2023 01:47:47 -0500
-X-MC-Unique: 7bU2iTPiMPu_cLt1Cz5f_Q-1
-Received: by mail-ed1-f69.google.com with SMTP id 4fb4d7f45d1cf-5450c83aa5dso834413a12.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 05 Dec 2023 22:47:46 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1701845266; x=1702450066;
-        h=mime-version:user-agent:content-transfer-encoding:autocrypt
-         :references:in-reply-to:date:cc:to:from:subject:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=RDaOyt2M6YWxTWcFQSbS5hRazoMbCTQ2YR+tClNrD48=;
-        b=qSotxtpxWeUfjPegUsqR4UmkTIOY2ANjwkjGV8UqkcZRJjisrorezMPharULzv8DBz
-         v4hi9sHDeUbU17KTJTyUo/w0IEDz7/67nV9L+Jlp7xY3VXWw5nmThBUi6PNgUQTQ/ttb
-         HIlPCaOxAi+qwssNM0r0dchkWe+4fuVsV6p89dgp6T/yGtybCXoLCmAJBLB06T9Ma1YE
-         E+J09/WJi0dEI15t4qmxGAFqBYmHPAnhCqbBMJKbdF1maYcePhsIo6BY6KGG/gqerey6
-         TPUxMGPDu1gmxZ9FCnrVf564yOSArv4Yp4W6YxKdlGlOJT4A/NjdbihOPGu6UsJ0u5N/
-         gCzQ==
-X-Gm-Message-State: AOJu0Yz97ugeqXom98V5h7uI6R9ugCB1KyTeoxIfF/XDSa6dY33/exEr
-	bbAa4uX9AQBWl06IQktsNPSuhzdXATyuThoOUgdMGvqHTRKCCkdgV0+pg+qb4pCnncgL9VlPzNK
-	dnj4dwcTUjwxCjUwp4vZyokrKyLXu
-X-Received: by 2002:a17:906:a38b:b0:a1c:7661:d603 with SMTP id k11-20020a170906a38b00b00a1c7661d603mr497842ejz.4.1701845265914;
-        Tue, 05 Dec 2023 22:47:45 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IFlH7Lqy0vDO86raaWUmjvr20t0nteJlH2rgjhNS1Sd4jc/bM0uEOeaSTDGwlfeje+bd9YA8Q==
-X-Received: by 2002:a17:906:a38b:b0:a1c:7661:d603 with SMTP id k11-20020a170906a38b00b00a1c7661d603mr497824ejz.4.1701845265588;
-        Tue, 05 Dec 2023 22:47:45 -0800 (PST)
-Received: from [10.0.0.196] ([37.186.166.196])
-        by smtp.gmail.com with ESMTPSA id y20-20020a17090668d400b00982a92a849asm7792678ejr.91.2023.12.05.22.47.44
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 05 Dec 2023 22:47:45 -0800 (PST)
-Message-ID: <80b4cbbb54cf17a83ccbadaa3cd194790f87f67f.camel@redhat.com>
-Subject: Re: [PATCH nft] tests: shell: flush ruleset with -U after feature
- probing
-From: Thomas Haller <thaller@redhat.com>
-To: Florian Westphal <fw@strlen.de>, Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Date: Wed, 06 Dec 2023 07:47:44 +0100
-In-Reply-To: <20231205192929.GB8352@breakpoint.cc>
-References: <20231205154306.154220-1-pablo@netfilter.org>
-	 <20231205192929.GB8352@breakpoint.cc>
-Autocrypt: addr=thaller@redhat.com; prefer-encrypt=mutual; keydata=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
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.50.1 (3.50.1-1.fc39) 
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F21F110C9
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Dec 2023 23:43:44 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1rAmZK-0005xe-HO; Wed, 06 Dec 2023 08:43:42 +0100
+Date: Wed, 6 Dec 2023 08:43:42 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+	netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] initial support for the afl++ (american fuzzy lop++)
+ fuzzer
+Message-ID: <20231206074342.GC8352@breakpoint.cc>
+References: <20231201154307.13622-1-fw@strlen.de>
+ <ZW/YVpeUtn5dfcmA@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZW/YVpeUtn5dfcmA@orbyte.nwl.cc>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-On Tue, 2023-12-05 at 20:29 +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > feature probe script leave a ruleset in place, flush it once
-> > probing is
-> > complete.
->=20
-> Perhaps change feature_probe() to always use 'unshare -n'?
+Phil Sutter <phil@nwl.cc> wrote:
+> > +__AFL_FUZZ_INIT();
+> > +/* this get passed via afl-cc, declares prototypes
+> > + * depending on the afl-cc flavor.
+> > + */
+>
+> This comment seems out of place?
 
-feature_probe already uses unshare, unless the caller opts out of it.
-Maybe don't do that.=C2=A0
+I wanted to add some explanation as to where this
+macro is defined/coming from.
 
-> Some scripts also create netdevices.
+> > +	len = strlen(buf);
+> > +
+> > +	rv = write(fd, buf, len);
+> 
+> So this sets input->fname to name and writes into the opened fd, but
+> what if savebuf() noticed buf fits into input->buffer and thus set
+> input->use_filename = false?
 
-Some tests also create netdevices and may not clean them up properly.
-It's even desirable that tests don't clean them up, because it removes
-boilerplate from tests. But more importantly: not deleting those
-devices leaves a certain state after the test, that can be checked by
-`.nft`/`.json-nft` dumps.
+What about it?  The idea is to have an on-disk copy in case afl or the
+vm its running in crashes.
 
+> > +#if defined(HAVE_FUZZER_BUILD)
+> > +	if (rc && nft->afl_ctx_stage == NFT_AFL_FUZZER_PARSER) {
+> > +		list_for_each_entry_safe(cmd, next, &cmds, list) {
+> > +			list_del(&cmd->list);
+> > +			cmd_free(cmd);
+> > +		}
+> > +		if (nft->scanner) {
+> > +			scanner_destroy(nft);
+> > +			nft->scanner = NULL;
+> > +		}
+> > +		free(nlbuf);
+> > +		return rc;
+> > +	}
+> > +#endif
+> 
+> You want to keep nft->cache and thus don't make this just 'goto err',
+> right?
 
-The mode without unshare exists for historic reasons, as unshare was
-added initially. At this point, what is the use of supporting or using
-that?
+Yes, idea was to exercise cache too.  Its reset on each new fuzzer input
+round already.
 
+> > diff --git a/src/main.c b/src/main.c
+> > index 9485b193cd34..51bdf6deb86e 100644
+> > --- a/src/main.c
+> > +++ b/src/main.c
+> > @@ -21,6 +21,7 @@
+> >  #include <nftables/libnftables.h>
+> >  #include <utils.h>
+> >  #include <cli.h>
+> > +#include <afl++.h>
+> >  
+> >  static struct nft_ctx *nft;
+> >  
+> > @@ -55,6 +56,9 @@ enum opt_indices {
+> >          IDX_ECHO,
+> >  #define IDX_CMD_OUTPUT_START	IDX_ECHO
+> >          IDX_JSON,
+> > +#ifdef HAVE_FUZZER_BUILD
+> > +        IDX_FUZZER,
+> > +#endif
+> >          IDX_DEBUG,
+> >  #define IDX_CMD_OUTPUT_END	IDX_DEBUG
+> >  };
+> > @@ -83,6 +87,11 @@ enum opt_vals {
+> >  	OPT_TERSE		= 't',
+> >  	OPT_OPTIMIZE		= 'o',
+> >  	OPT_INVALID		= '?',
+> > +
+> > +#ifdef HAVE_FUZZER_BUILD
+> > +	/* keep last */
+> > +        OPT_FUZZER		= 0x254
+> > +#endif
+> >  };
+> >  
+> >  struct nft_opt {
+> > @@ -140,6 +149,10 @@ static const struct nft_opt nft_options[] = {
+> >  				     "Specify debugging level (scanner, parser, eval, netlink, mnl, proto-ctx, segtree, all)"),
+> >  	[IDX_OPTIMIZE]	    = NFT_OPT("optimize",		OPT_OPTIMIZE,		NULL,
+> >  				     "Optimize ruleset"),
+> > +#ifdef HAVE_FUZZER_BUILD
+> > +	[IDX_FUZZER]	    = NFT_OPT("fuzzer",			OPT_FUZZER,		"stage",
+> > +				      "fuzzer stage to run (parser, eval, netlink-ro, netlink-write)"),
+> > +#endif
+> >  };
+> >  
+> >  #define NR_NFT_OPTIONS (sizeof(nft_options) / sizeof(nft_options[0]))
+> > @@ -230,6 +243,7 @@ static void show_help(const char *name)
+> >  		print_option(&nft_options[i]);
+> >  
+> >  	fputs("\n", stdout);
+> > +	nft_afl_print_build_info(stdout);
+> >  }
+> >  
+> >  static void show_version(void)
+> > @@ -271,6 +285,8 @@ static void show_version(void)
+> >  	       "  libxtables:	%s\n",
+> >  	       PACKAGE_NAME, PACKAGE_VERSION, RELEASE_NAME,
+> >  	       cli, json, minigmp, xt);
+> > +
+> > +	nft_afl_print_build_info(stdout);
+> >  }
+> >  
+> >  static const struct {
+> > @@ -311,6 +327,38 @@ static const struct {
+> >  	},
+> >  };
+> >  
+> > +#if defined(HAVE_FUZZER_BUILD)
+> > +static const struct {
+> > +	const char			*name;
+> > +	enum nft_afl_fuzzer_stage	stage;
+> > +} fuzzer_stage_param[] = {
+> > +	{
+> > +		.name		= "parser",
+> > +		.stage		= NFT_AFL_FUZZER_PARSER,
+> > +	},
+> > +	{
+> > +		.name		= "eval",
+> > +		.stage		= NFT_AFL_FUZZER_EVALUATION,
+> > +	},
+> > +	{
+> > +		.name		= "netlink-ro",
+> > +		.stage		= NFT_AFL_FUZZER_NETLINK_RO,
+> > +	},
+> > +	{
+> > +		.name		= "netlink-write",
+> > +		.stage		= NFT_AFL_FUZZER_NETLINK_WR,
+> > +	},
+> > +};
+> > +static void afl_exit(const char *err)
+> > +{
+> > +	fprintf(stderr, "Error: fuzzer: %s\n", err);
+> > +	sleep(60);	/* assume we're running under afl-fuzz and would be restarted right away */
+> > +	exit(EXIT_FAILURE);
+> > +}
+> > +#else
+> > +static inline void afl_exit(const char *err) { }
+> > +#endif
+> > +
+> >  static void nft_options_error(int argc, char * const argv[], int pos)
+> >  {
+> >  	int i;
+> > @@ -344,6 +392,10 @@ static bool nft_options_check(int argc, char * const argv[])
+> >  				   !strcmp(argv[i], "--debug") ||
+> >  				   !strcmp(argv[i], "--includepath") ||
+> >  				   !strcmp(argv[i], "--define") ||
+> > +				   !strcmp(argv[i], "--define") ||
+> > +#if defined(HAVE_FUZZER_BUILD)
+> > +				   !strcmp(argv[i], "--fuzzer") ||
+> > +#endif
+> >  				   !strcmp(argv[i], "--file")) {
+> >  				skip = true;
+> >  				continue;
+> 
+> If my series ([nft PATCH 0/2] Review nft_options_check()) is applied
+> before this one, the above change is not needed anymore.
 
-Thomas
+I already applied your series, I will toss this part.
 
+> > +--fuzzer supports hook scripts, see the examples in tests/afl++/hooks/
+> > +Remove or copy the scripts and remove the '-sample' suffix.  Scripts need to be executable.
+> 
+> s/\.$/, root-owned and not writable by others./
+> 
+> Also, I don't see any detection of the '-sample' suffix and this patch
+> doesn't create such files.
+
+Yes, this is a left-over from old version, I'll remove this.
+
+> > @@ -0,0 +1,6 @@
+> > +Fuzzing is sometimes VERY slow, this happens when current inputs contain
+> > +"host names".  Either --fuzzer could set NFT_CTX_INPUT_NO_DNS to avoid this,
+> > +or nft needs a new command line option so both (dns and no dns) can be combined.
+> 
+> Overriding nsswitch.conf's hosts-entry would be neat, but seems not
+> supported by glibc.
+
+I'll auto set NO_DNS flag.
+
+> > diff --git a/tests/afl++/hooks/init b/tests/afl++/hooks/init
+> > new file mode 100755
+> > index 000000000000..503257afa2f1
+> > --- /dev/null
+> > +++ b/tests/afl++/hooks/init
+> 
+> Is this supposed to run by default? I guess unless one clones the tree
+> as root, nft_exec_hookscript() will reject it because sb.st_uid != 0,
+> right? Not sure if the check is sensible given the circumstances.
+> Otherwise just document the need to chown in the README?
+
+Can do.  Its supposed to be run by default, yes, but it doesn't do
+much except on debug kernels atm.
+
+Thanks for your review, I will try to follow and fix as much as I can.
