@@ -1,40 +1,26 @@
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="K+ZzeoHJ"
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3900519A
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Dec 2023 01:14:05 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1701940444;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=OGlrQG/8OV9D5zSfnwERutepzPe0ulDtXv7EhQ0pMIY=;
-	b=K+ZzeoHJI+Z4Bf8BlXK20qtvUU6II33YHgqp3RJHUw68y2PjyRBzhxLmtAgwVWeXqU232m
-	r82pMJsamkIaBRMhXdiK1YaAxmhJxe/pIiYReIQiU9JPidZcBAN36DiE4a8LrPcRqVfUpy
-	/G1VV8DqiZlUU8fnpiMUTV2h1xo87EU=
-Received: from mimecast-mx02.redhat.com (mx-ext.redhat.com [66.187.233.73])
- by relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-444-R2aMp2dBPF2I3n--0lwwhg-1; Thu,
- 07 Dec 2023 04:14:02 -0500
-X-MC-Unique: R2aMp2dBPF2I3n--0lwwhg-1
-Received: from smtp.corp.redhat.com (int-mx09.intmail.prod.int.rdu2.redhat.com [10.11.54.9])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 7B3941C0BB41
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Dec 2023 09:14:02 +0000 (UTC)
-Received: from localhost.localdomain (unknown [10.39.194.114])
-	by smtp.corp.redhat.com (Postfix) with ESMTPS id EFE95492BC6;
-	Thu,  7 Dec 2023 09:14:01 +0000 (UTC)
-From: Thomas Haller <thaller@redhat.com>
-To: NetFilter <netfilter-devel@vger.kernel.org>
-Cc: Thomas Haller <thaller@redhat.com>
-Subject: [PATCH nft 2/2 v2] tests/shell: have .json-nft dumps prettified to wrap lines
-Date: Thu,  7 Dec 2023 10:08:50 +0100
-Message-ID: <20231207091226.562439-1-thaller@redhat.com>
-In-Reply-To: <20231124124759.3269219-3-thaller@redhat.com>
-References: <20231124124759.3269219-3-thaller@redhat.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9E214B5B4;
+	Thu,  7 Dec 2023 18:00:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="H4sAwZ4F"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 2AEECC433C9;
+	Thu,  7 Dec 2023 18:00:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1701972027;
+	bh=BNgG2XcLw8MDkFfa2rSgbI3xP88YKF1v7QhBayKpcPo=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=H4sAwZ4FeEtxNan7Jo1Rq3udgJdxS8Ps5UqsPC0AfcFrmxRkuSYDO1zqCyCuNBQSR
+	 UQqKdaYMrj2fXB4kd5ysZG+UDNYQ3plGf2zGn2DbDHEJdcOWKxPp0wi+bylp0zIFYq
+	 TTVt63AUrRYksiWu4nT5RJ9zLeFiksSFsDG7tXgiCdbxWMLnI9SNeuuM0tggVi8hvu
+	 JGFdpdRYFjCdv5++WjVm6oEB4OqQOW4B+zBPWaksHtZ4Rx/2jZ75i6JzBYqd7akkmt
+	 uAPEjRjojVTjL3B9QBRBItb4Ou5dbPMnMCpOllMCEDZyq9F42nXyNpcJkXp+prH7Lv
+	 xeJBF/+kB3K8Q==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 10891C43170;
+	Thu,  7 Dec 2023 18:00:27 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -42,184 +28,51 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.9
+Subject: Re: [PATCH net 1/6] netfilter: bpf: fix bad registration on nf_defrag
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <170197202706.7796.7312229960355473959.git-patchwork-notify@kernel.org>
+Date: Thu, 07 Dec 2023 18:00:27 +0000
+References: <20231206180357.959930-2-pablo@netfilter.org>
+In-Reply-To: <20231206180357.959930-2-pablo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, fw@strlen.de
 
-Previously, the .json-nft file in git contains the output of `nft -j
-list ruleset`. This is one long line and makes diffs harder to review.
+Hello:
 
-Instead, have the prettified .json-nft file committed to git.
+This series was applied to netdev/net.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-- the diff now operates on the prettified version. That means, it
-  compares essentially
+On Wed,  6 Dec 2023 19:03:52 +0100 you wrote:
+> From: "D. Wythe" <alibuda@linux.alibaba.com>
+> 
+> We should pass a pointer to global_hook to the get_proto_defrag_hook()
+> instead of its value, since the passed value won't be updated even if
+> the request module was loaded successfully.
+> 
+> Log:
+> 
+> [...]
 
-     - `nft -j list ruleset | json-sanitize-ruleset.sh | json-pretty.sh`
-     - `cat "$TEST.json-nft" | json-pretty.sh`
+Here is the summary with links:
+  - [net,1/6] netfilter: bpf: fix bad registration on nf_defrag
+    https://git.kernel.org/netdev/net/c/1834d62ae885
+  - [net,2/6] netfilter: nft_set_pipapo: skip inactive elements during set walk
+    https://git.kernel.org/netdev/net/c/317eb9685095
+  - [net,3/6] netfilter: nf_tables: fix 'exist' matching on bigendian arches
+    https://git.kernel.org/netdev/net/c/63331e37fb22
+  - [net,4/6] netfilter: nf_tables: bail out on mismatching dynset and set expressions
+    https://git.kernel.org/netdev/net/c/3701cd390fd7
+  - [net,5/6] netfilter: nf_tables: validate family when identifying table via handle
+    https://git.kernel.org/netdev/net/c/f6e1532a2697
+  - [net,6/6] netfilter: xt_owner: Fix for unsafe access of sk->sk_socket
+    https://git.kernel.org/netdev/net/c/7ae836a3d630
 
-  The script "json-diff-pretty.sh" is no longer used. It is kept
-  however, because it might be a useful for manual comparing files.
-
-  Note that "json-sanitize-ruleset.sh" and "json-pretty.sh" are still
-  two separate scripts and called at different times. They also do
-  something different. The former mangles the JSON to account for changes
-  that are not stable (in the JSON data itself), while the latter only
-  pretty prints it.
-
-- when generating a new .json-nft dump file, the file will be updated to
-  use the new, prettified format, unless the file is in the old format
-  and needs no update. This means, with DUMPGEN=y, old style is preserved
-  unless an update becomes necessary.
-
-This requires "json-pretty.sh" having stable output, as those files are
-committed to git. This is probably fine.
-
-Signed-off-by: Thomas Haller <thaller@redhat.com>
----
-
-Changes compared to v1:
-- fix bug to use "$JDUMPFILE2" in diff command.
-
-Still open question:
-- whether to just re-generate/prettify all .json-nft files once. The
-  current patch allows the files on disk to be in either form, and a
-  DUMPGEN=y will only update the file, when necessary. Alternative
-  would be to merge this patch, followed by regenerating all .json-nft
-  files. In that case, this patch could be slightly simplified to not
-  supporting the "mixed-mode".
-
- tests/shell/helpers/json-pretty.sh  | 27 ++++++++++++++-----
- tests/shell/helpers/test-wrapper.sh | 41 +++++++++++++++++++++++------
- 2 files changed, 53 insertions(+), 15 deletions(-)
-
-diff --git a/tests/shell/helpers/json-pretty.sh b/tests/shell/helpers/json-pretty.sh
-index 0d6972b81e2f..5407a8420058 100755
---- a/tests/shell/helpers/json-pretty.sh
-+++ b/tests/shell/helpers/json-pretty.sh
-@@ -1,17 +1,30 @@
- #!/bin/bash -e
- 
--# WARNING: the output is not guaranteed to be stable.
-+exec_pretty() {
-+	# The output of this command must be stable (and `jq` and python
-+	# fallback must generate the same output.
- 
--if command -v jq &>/dev/null ; then
--	# If we have, use `jq`
--	exec jq
--fi
-+	if command -v jq &>/dev/null ; then
-+		# If we have, use `jq`
-+		exec jq
-+	fi
- 
--# Fallback to python.
--exec python -c '
-+	# Fallback to python.
-+	exec python -c '
- import json
- import sys
- 
- parsed = json.load(sys.stdin)
- print(json.dumps(parsed, indent=2))
- '
-+}
-+
-+[ "$#" -le 1 ] || { echo "At most one argument supported" ; exit 1 ; }
-+
-+if [ "$#" -eq 1 ] ; then
-+	# One argument passed. This must be a JSON file.
-+	[ -f "$1" ] || { echo "File \"$1\" does not exist" ; exit 1 ; }
-+	exec_pretty < "$1"
-+fi
-+
-+exec_pretty
-diff --git a/tests/shell/helpers/test-wrapper.sh b/tests/shell/helpers/test-wrapper.sh
-index f0170d763291..f1f33991b454 100755
---- a/tests/shell/helpers/test-wrapper.sh
-+++ b/tests/shell/helpers/test-wrapper.sh
-@@ -25,6 +25,10 @@ show_file() {
- 	printf "<<<<\n"
- }
- 
-+json_pretty() {
-+	"$NFT_TEST_BASEDIR/helpers/json-pretty.sh" "$@" 2>&1 || :
-+}
-+
- TEST="$1"
- TESTBASE="$(basename "$TEST")"
- TESTDIR="$(dirname "$TEST")"
-@@ -140,6 +144,7 @@ if [ "$NFT_TEST_HAVE_json" != n ] ; then
- 	fi
- 	# JSON output needs normalization/sanitization, otherwise it's not stable.
- 	"$NFT_TEST_BASEDIR/helpers/json-sanitize-ruleset.sh" "$NFT_TEST_TESTTMPDIR/ruleset-after.json"
-+	json_pretty "$NFT_TEST_TESTTMPDIR/ruleset-after.json" > "$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty"
- fi
- 
- read tainted_after < /proc/sys/kernel/tainted
-@@ -186,7 +191,12 @@ if [ "$rc_test" -eq 0 -a '(' "$DUMPGEN" = all -o "$DUMPGEN" = y ')' ] ; then
- 		cat "$NFT_TEST_TESTTMPDIR/ruleset-after" > "$DUMPFILE"
- 	fi
- 	if [ "$NFT_TEST_HAVE_json" != n -a "$gen_jdumpfile" = y ] ; then
--		cat "$NFT_TEST_TESTTMPDIR/ruleset-after.json" > "$JDUMPFILE"
-+		if cmp "$NFT_TEST_TESTTMPDIR/ruleset-after.json" "$JDUMPFILE" &>/dev/null ; then
-+			# The .json-nft file is still the non-pretty variant. Keep it.
-+			:
-+		else
-+			cat "$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty" > "$JDUMPFILE"
-+		fi
- 	fi
- fi
- 
-@@ -201,12 +211,16 @@ if [ "$rc_test" -ne 77 -a "$dump_written" != y ] ; then
- 		fi
- 	fi
- 	if [ "$NFT_TEST_HAVE_json" != n -a -f "$JDUMPFILE" ] ; then
--		if ! $DIFF -u "$JDUMPFILE" "$NFT_TEST_TESTTMPDIR/ruleset-after.json" &> "$NFT_TEST_TESTTMPDIR/ruleset-diff.json" ; then
--			"$NFT_TEST_BASEDIR/helpers/json-diff-pretty.sh" \
--				"$JDUMPFILE" \
--				"$NFT_TEST_TESTTMPDIR/ruleset-after.json" \
--				2>&1 > "$NFT_TEST_TESTTMPDIR/ruleset-diff.json.pretty"
--			show_file "$NFT_TEST_TESTTMPDIR/ruleset-diff.json" "Failed \`$DIFF -u \"$JDUMPFILE\" \"$NFT_TEST_TESTTMPDIR/ruleset-after.json\"\`" >> "$NFT_TEST_TESTTMPDIR/rc-failed-dump"
-+		JDUMPFILE2="$NFT_TEST_TESTTMPDIR/json-nft-pretty"
-+		json_pretty "$JDUMPFILE" > "$JDUMPFILE2"
-+		if cmp "$JDUMPFILE" "$JDUMPFILE2" &>/dev/null ; then
-+			# The .json-nft file is already prettified. We can use
-+			# it directly.
-+			rm -rf "$JDUMPFILE2"
-+			JDUMPFILE2="$JDUMPFILE"
-+		fi
-+		if ! $DIFF -u "$JDUMPFILE2" "$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty" &> "$NFT_TEST_TESTTMPDIR/ruleset-diff.json" ; then
-+			show_file "$NFT_TEST_TESTTMPDIR/ruleset-diff.json" "Failed \`$DIFF -u \"$JDUMPFILE2\" \"$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty\"\`" >> "$NFT_TEST_TESTTMPDIR/rc-failed-dump"
- 			rc_dump=1
- 		else
- 			rm -f "$NFT_TEST_TESTTMPDIR/ruleset-diff.json"
-@@ -245,6 +259,7 @@ if [ "$NFT_TEST_HAVE_json" != n ] ; then
- 		# This should be fixed, every test should have a .json-nft
- 		# file, and this workaround removed.
- 		$NFT -j --check -f "$NFT_TEST_TESTTMPDIR/ruleset-after.json" &>/dev/null || :
-+		$NFT -j --check -f "$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty" &>/dev/null || :
- 	else
- 		fail=n
- 		$NFT -j --check -f "$NFT_TEST_TESTTMPDIR/ruleset-after.json" &> "$NFT_TEST_TESTTMPDIR/chkdump" || fail=y
-@@ -253,8 +268,18 @@ if [ "$NFT_TEST_HAVE_json" != n ] ; then
- 			show_file "$NFT_TEST_TESTTMPDIR/chkdump" "Command \`$NFT -j --check -f \"$NFT_TEST_TESTTMPDIR/ruleset-after.json\"\` failed" >> "$NFT_TEST_TESTTMPDIR/rc-failed-chkdump"
- 			rc_chkdump=1
- 		fi
-+		fail=n
-+		$NFT -j --check -f "$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty" &> "$NFT_TEST_TESTTMPDIR/chkdump" || fail=y
-+		test -s "$NFT_TEST_TESTTMPDIR/chkdump" && fail=y
-+		if [ "$fail" = y ] ; then
-+			show_file "$NFT_TEST_TESTTMPDIR/chkdump" "Command \`$NFT -j --check -f \"$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty\"\` failed" >> "$NFT_TEST_TESTTMPDIR/rc-failed-chkdump"
-+			rc_chkdump=1
-+		fi
- 	fi
--	if [ -f "$JDUMPFILE" ] && ! cmp "$JDUMPFILE" "$NFT_TEST_TESTTMPDIR/ruleset-after.json" &>/dev/null ; then
-+	if [ -f "$JDUMPFILE" ] \
-+	     && ! cmp "$JDUMPFILE" "$NFT_TEST_TESTTMPDIR/ruleset-after.json" &>/dev/null \
-+	     && ! cmp "$JDUMPFILE" "$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty" &>/dev/null ; \
-+	then
- 		$NFT -j --check -f "$JDUMPFILE" &>/dev/null || :
- 	fi
- fi
+You are awesome, thank you!
 -- 
-2.43.0
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
