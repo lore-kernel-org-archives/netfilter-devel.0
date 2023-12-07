@@ -1,240 +1,225 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="bpj3YbNL"
-Received: from mail-wr1-x42b.google.com (mail-wr1-x42b.google.com [IPv6:2a00:1450:4864:20::42b])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 90BBED44
-	for <netfilter-devel@vger.kernel.org>; Wed,  6 Dec 2023 21:33:35 -0800 (PST)
-Received: by mail-wr1-x42b.google.com with SMTP id ffacd0b85a97d-33339d843b9so570040f8f.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 06 Dec 2023 21:33:35 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1701927214; x=1702532014; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:message-id:subject:cc
-         :to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=aDh5Ha6meMpNT5PZvdiFsf/a/63SoEjRN6VfIgk3fbs=;
-        b=bpj3YbNLkvzoxEw3xr0u3agkAhCoIuowOElrV/CTMzye8qwEDGvkm7uR0/cuL/ftIt
-         jRquYrxsKhkgv5IE3W4Znm0vKoMxtiibCYaq3PHsXZHiRDE69BXKRvyHra6UJrZOb0yx
-         5oP0oV9Xp+4qIJPjAS4YsUSOoFJLslTrFGhysjrsJRHyvoSBWDBqECcOzT8ZGY4J7FRs
-         FWr8T0YXHfsJoKZ1LEotF/Rto6mU37c+Q6Ovedu0tLngsP9f7fodtv1C90zMwhcIY2Z7
-         ejn6BqFG2uqY7p1NT4CzU3pGdrQ9EcLj/fTLkh8OPizFM0+96H/D4NemDC7T3p/JMVTD
-         N6Wg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1701927214; x=1702532014;
-        h=in-reply-to:content-disposition:mime-version:message-id:subject:cc
-         :to:from:date:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=aDh5Ha6meMpNT5PZvdiFsf/a/63SoEjRN6VfIgk3fbs=;
-        b=ByEEAunKWzfdMQyZH3agOH/itl7tYRO5E1S3PWQtXIC9N+89tO2Dz2nw6DlMacqVJb
-         YKc/6zPYOlKFwUe6JB8i/sDPqObXE/NFOMllZfBJ7SmH4TNkIathIHxRDhNw2BiRi0Pe
-         cnJLUd0bVCCwHp7/Rq1bj06RHhqY4QgZoy1xQEQLqXOOmNKs5yD1/1c5HMqZNXH9wZAi
-         2Ix5kjx7Bggw1jcE6YEsZ42aEzlLXGAe16yeFOQ9CSZUOM9kNo9Cwe75w9MDjKn8eNTj
-         KstFdod3K4VE0qrh0wq4rtqtHGSjpW/3vseIjEJDaU5S167i+whSBNUqI5IQjOSCvMvB
-         gGBQ==
-X-Gm-Message-State: AOJu0Yx72QTZx2aytpKMx1THAX0ZRwn4RNrP10ymVtMfAnCRMCNkOJps
-	KnJEU6rIluns2GPlZ5zfI5MJYe/jCxFLKJaIbzU=
-X-Google-Smtp-Source: AGHT+IGRMzw6ole/sY4x+aWmyT5JGTFS7U8esyxKHbhMcm0/ifnMUpQvK3RimMuKBvFeDdeF9e+gqQ==
-X-Received: by 2002:a7b:c4c9:0:b0:40b:5e21:dd2b with SMTP id g9-20020a7bc4c9000000b0040b5e21dd2bmr1280861wmk.89.1701927213762;
-        Wed, 06 Dec 2023 21:33:33 -0800 (PST)
-Received: from localhost ([102.36.222.112])
-        by smtp.gmail.com with ESMTPSA id z17-20020a5d4c91000000b003333abf3edfsm459345wrs.47.2023.12.06.21.33.32
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 06 Dec 2023 21:33:33 -0800 (PST)
-Date: Thu, 7 Dec 2023 08:33:30 +0300
-From: Dan Carpenter <dan.carpenter@linaro.org>
-To: oe-kbuild@lists.linux.dev, Lev Pantiukhin <kndrvt@yandex-team.ru>
-Cc: lkp@intel.com, oe-kbuild-all@lists.linux.dev, mitradir@yandex-team.ru,
-	Lev Pantiukhin <kndrvt@yandex-team.ru>,
-	Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
-	David Ahern <dsahern@kernel.org>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: [PATCH] ipvs: add a stateless type of service and a stateless
- Maglev hashing scheduler
-Message-ID: <db2f0650-6e23-457f-bc5c-f9da0047f37d@suswa.mountain>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="K+ZzeoHJ"
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3900519A
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Dec 2023 01:14:05 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1701940444;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=OGlrQG/8OV9D5zSfnwERutepzPe0ulDtXv7EhQ0pMIY=;
+	b=K+ZzeoHJI+Z4Bf8BlXK20qtvUU6II33YHgqp3RJHUw68y2PjyRBzhxLmtAgwVWeXqU232m
+	r82pMJsamkIaBRMhXdiK1YaAxmhJxe/pIiYReIQiU9JPidZcBAN36DiE4a8LrPcRqVfUpy
+	/G1VV8DqiZlUU8fnpiMUTV2h1xo87EU=
+Received: from mimecast-mx02.redhat.com (mx-ext.redhat.com [66.187.233.73])
+ by relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-444-R2aMp2dBPF2I3n--0lwwhg-1; Thu,
+ 07 Dec 2023 04:14:02 -0500
+X-MC-Unique: R2aMp2dBPF2I3n--0lwwhg-1
+Received: from smtp.corp.redhat.com (int-mx09.intmail.prod.int.rdu2.redhat.com [10.11.54.9])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 7B3941C0BB41
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Dec 2023 09:14:02 +0000 (UTC)
+Received: from localhost.localdomain (unknown [10.39.194.114])
+	by smtp.corp.redhat.com (Postfix) with ESMTPS id EFE95492BC6;
+	Thu,  7 Dec 2023 09:14:01 +0000 (UTC)
+From: Thomas Haller <thaller@redhat.com>
+To: NetFilter <netfilter-devel@vger.kernel.org>
+Cc: Thomas Haller <thaller@redhat.com>
+Subject: [PATCH nft 2/2 v2] tests/shell: have .json-nft dumps prettified to wrap lines
+Date: Thu,  7 Dec 2023 10:08:50 +0100
+Message-ID: <20231207091226.562439-1-thaller@redhat.com>
+In-Reply-To: <20231124124759.3269219-3-thaller@redhat.com>
+References: <20231124124759.3269219-3-thaller@redhat.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20231204152020.472247-1-kndrvt@yandex-team.ru>
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.9
 
-Hi Lev,
+Previously, the .json-nft file in git contains the output of `nft -j
+list ruleset`. This is one long line and makes diffs harder to review.
 
-kernel test robot noticed the following build warnings:
+Instead, have the prettified .json-nft file committed to git.
 
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+- the diff now operates on the prettified version. That means, it
+  compares essentially
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Lev-Pantiukhin/ipvs-add-a-stateless-type-of-service-and-a-stateless-Maglev-hashing-scheduler/20231204-232344
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git master
-patch link:    https://lore.kernel.org/r/20231204152020.472247-1-kndrvt%40yandex-team.ru
-patch subject: [PATCH] ipvs: add a stateless type of service and a stateless Maglev hashing scheduler
-config: i386-randconfig-141-20231207 (https://download.01.org/0day-ci/archive/20231207/202312070849.i9gwwSH0-lkp@intel.com/config)
-compiler: gcc-11 (Debian 11.3.0-12) 11.3.0
-reproduce: (https://download.01.org/0day-ci/archive/20231207/202312070849.i9gwwSH0-lkp@intel.com/reproduce)
+     - `nft -j list ruleset | json-sanitize-ruleset.sh | json-pretty.sh`
+     - `cat "$TEST.json-nft" | json-pretty.sh`
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
-| Closes: https://lore.kernel.org/r/202312070849.i9gwwSH0-lkp@intel.com/
+  The script "json-diff-pretty.sh" is no longer used. It is kept
+  however, because it might be a useful for manual comparing files.
 
-New smatch warnings:
-net/netfilter/ipvs/ip_vs_core.c:545 ip_vs_schedule() error: uninitialized symbol 'need_state'.
+  Note that "json-sanitize-ruleset.sh" and "json-pretty.sh" are still
+  two separate scripts and called at different times. They also do
+  something different. The former mangles the JSON to account for changes
+  that are not stable (in the JSON data itself), while the latter only
+  pretty prints it.
 
-vim +/need_state +545 net/netfilter/ipvs/ip_vs_core.c
+- when generating a new .json-nft dump file, the file will be updated to
+  use the new, prettified format, unless the file is in the old format
+  and needs no update. This means, with DUMPGEN=y, old style is preserved
+  unless an update becomes necessary.
 
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  440  struct ip_vs_conn *
-190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  441  ip_vs_schedule(struct ip_vs_service *svc, struct sk_buff *skb,
-d4383f04d145cc net/netfilter/ipvs/ip_vs_core.c Jesper Dangaard Brouer 2012-09-26  442  	       struct ip_vs_proto_data *pd, int *ignored,
-d4383f04d145cc net/netfilter/ipvs/ip_vs_core.c Jesper Dangaard Brouer 2012-09-26  443  	       struct ip_vs_iphdr *iph)
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  444  {
-9330419d9aa4f9 net/netfilter/ipvs/ip_vs_core.c Hans Schillstrom       2011-01-03  445  	struct ip_vs_protocol *pp = pd->pp;
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  446  	struct ip_vs_conn *cp = NULL;
-ceec4c38168184 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2013-03-22  447  	struct ip_vs_scheduler *sched;
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  448  	struct ip_vs_dest *dest;
-ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  449  	__be16 _ports[2], *pptr, cport, vport;
-ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  450  	const void *caddr, *vaddr;
-3575792e005dc9 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-09-17  451  	unsigned int flags;
-b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04  452  	bool need_state;
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  453  
-190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  454  	*ignored = 1;
-2f74713d1436b7 net/netfilter/ipvs/ip_vs_core.c Jesper Dangaard Brouer 2012-09-26  455  	/*
-2f74713d1436b7 net/netfilter/ipvs/ip_vs_core.c Jesper Dangaard Brouer 2012-09-26  456  	 * IPv6 frags, only the first hit here.
-2f74713d1436b7 net/netfilter/ipvs/ip_vs_core.c Jesper Dangaard Brouer 2012-09-26  457  	 */
-6b3d933000cbe5 net/netfilter/ipvs/ip_vs_core.c Gao Feng               2017-11-13  458  	pptr = frag_safe_skb_hp(skb, iph->len, sizeof(_ports), _ports);
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  459  	if (pptr == NULL)
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  460  		return NULL;
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  461  
-ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  462  	if (likely(!ip_vs_iph_inverse(iph))) {
-ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  463  		cport = pptr[0];
-ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  464  		caddr = &iph->saddr;
-ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  465  		vport = pptr[1];
-ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  466  		vaddr = &iph->daddr;
-ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  467  	} else {
-ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  468  		cport = pptr[1];
-ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  469  		caddr = &iph->daddr;
-ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  470  		vport = pptr[0];
-ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  471  		vaddr = &iph->saddr;
-ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  472  	}
-ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  473  
-190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  474  	/*
-190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  475  	 * FTPDATA needs this check when using local real server.
-190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  476  	 * Never schedule Active FTPDATA connections from real server.
-190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  477  	 * For LVS-NAT they must be already created. For other methods
-190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  478  	 * with persistence the connection is created on SYN+ACK.
-190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  479  	 */
-ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  480  	if (cport == FTPDATA) {
-b0e010c527de74 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  481  		IP_VS_DBG_PKT(12, svc->af, pp, skb, iph->off,
-0d79641a96d612 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  482  			      "Not scheduling FTPDATA");
-190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  483  		return NULL;
-190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  484  	}
-190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  485  
-190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  486  	/*
-a5959d53d6048a net/netfilter/ipvs/ip_vs_core.c Hans Schillstrom       2010-11-19  487  	 *    Do not schedule replies from local real server.
-190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  488  	 */
-802c41adcf3be6 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  489  	if ((!skb->dev || skb->dev->flags & IFF_LOOPBACK)) {
-802c41adcf3be6 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  490  		iph->hdr_flags ^= IP_VS_HDR_INVERSE;
-6ecd754883daff net/netfilter/ipvs/ip_vs_core.c Matteo Croce           2019-01-19  491  		cp = INDIRECT_CALL_1(pp->conn_in_get,
-6ecd754883daff net/netfilter/ipvs/ip_vs_core.c Matteo Croce           2019-01-19  492  				     ip_vs_conn_in_get_proto, svc->ipvs,
-6ecd754883daff net/netfilter/ipvs/ip_vs_core.c Matteo Croce           2019-01-19  493  				     svc->af, skb, iph);
-802c41adcf3be6 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  494  		iph->hdr_flags ^= IP_VS_HDR_INVERSE;
-802c41adcf3be6 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  495  
-802c41adcf3be6 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  496  		if (cp) {
-b0e010c527de74 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  497  			IP_VS_DBG_PKT(12, svc->af, pp, skb, iph->off,
-802c41adcf3be6 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  498  				      "Not scheduling reply for existing"
-802c41adcf3be6 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  499  				      " connection");
-190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  500  			__ip_vs_conn_put(cp);
-190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  501  			return NULL;
-190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  502  		}
-802c41adcf3be6 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  503  	}
-190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  504  
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  505  	/*
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  506  	 *    Persistent service
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  507  	 */
-a5959d53d6048a net/netfilter/ipvs/ip_vs_core.c Hans Schillstrom       2010-11-19  508  	if (svc->flags & IP_VS_SVC_F_PERSISTENT)
-ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  509  		return ip_vs_sched_persist(svc, skb, cport, vport, ignored,
-d4383f04d145cc net/netfilter/ipvs/ip_vs_core.c Jesper Dangaard Brouer 2012-09-26  510  					   iph);
-a5959d53d6048a net/netfilter/ipvs/ip_vs_core.c Hans Schillstrom       2010-11-19  511  
-190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  512  	*ignored = 0;
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  513  
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  514  	/*
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  515  	 *    Non-persistent service
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  516  	 */
-ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  517  	if (!svc->fwmark && vport != svc->port) {
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  518  		if (!svc->port)
-1e3e238e9c4bf9 net/netfilter/ipvs/ip_vs_core.c Hannes Eder            2009-08-02  519  			pr_err("Schedule: port zero only supported "
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  520  			       "in persistent services, "
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  521  			       "check your ipvs configuration\n");
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  522  		return NULL;
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  523  	}
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  524  
-ceec4c38168184 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2013-03-22  525  	sched = rcu_dereference(svc->scheduler);
-05f00505a89acd net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2015-06-29  526  	if (sched) {
-05f00505a89acd net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2015-06-29  527  		/* read svc->sched_data after svc->scheduler */
-05f00505a89acd net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2015-06-29  528  		smp_rmb();
-b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04  529  		/* we use distinct handler for stateless service */
-b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04  530  		if (svc->flags & IP_VS_SVC_F_STATELESS)
-b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04  531  			dest = sched->schedule_sl(svc, skb, iph, &need_state);
-b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04  532  		else
-bba54de5bdd107 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2013-06-16  533  			dest = sched->schedule(svc, skb, iph);
+This requires "json-pretty.sh" having stable output, as those files are
+committed to git. This is probably fine.
 
-need_state not initialized on this path
+Signed-off-by: Thomas Haller <thaller@redhat.com>
+---
 
-05f00505a89acd net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2015-06-29  534  	} else {
-05f00505a89acd net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2015-06-29  535  		dest = NULL;
-05f00505a89acd net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2015-06-29  536  	}
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  537  	if (dest == NULL) {
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  538  		IP_VS_DBG(1, "Schedule: no dest found.\n");
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  539  		return NULL;
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  540  	}
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  541  
-b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04  542  	/* We use IP_VS_SVC_F_ONEPACKET flag to create no state */
-b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04  543  	flags = ((svc->flags & IP_VS_SVC_F_ONEPACKET &&
-b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04  544  		  iph->protocol == IPPROTO_UDP) ||
-b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04 @545  		 (svc->flags & IP_VS_SVC_F_STATELESS && !need_state))
-                                                                                                                                         ^^^^^^^^^^
+Changes compared to v1:
+- fix bug to use "$JDUMPFILE2" in diff command.
 
-b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04  546  		? IP_VS_CONN_F_ONE_PACKET : 0;
-26ec037f9841e4 net/netfilter/ipvs/ip_vs_core.c Nick Chalk             2010-06-22  547  
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  548  	/*
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  549  	 *    Create a connection entry.
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  550  	 */
-f11017ec2d1859 net/netfilter/ipvs/ip_vs_core.c Simon Horman           2010-08-22  551  	{
-f11017ec2d1859 net/netfilter/ipvs/ip_vs_core.c Simon Horman           2010-08-22  552  		struct ip_vs_conn_param p;
-6e67e586e7289c net/netfilter/ipvs/ip_vs_core.c Hans Schillstrom       2011-01-03  553  
-3109d2f2d1fe06 net/netfilter/ipvs/ip_vs_core.c Eric W. Biederman      2015-09-21  554  		ip_vs_conn_fill_param(svc->ipvs, svc->af, iph->protocol,
-ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  555  				      caddr, cport, vaddr, vport, &p);
-ba38528aae6ee2 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2014-09-09  556  		cp = ip_vs_conn_new(&p, dest->af, &dest->addr,
-ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  557  				    dest->port ? dest->port : vport,
-0e051e683ba4ac net/netfilter/ipvs/ip_vs_core.c Hans Schillstrom       2010-11-19  558  				    flags, dest, skb->mark);
-a5959d53d6048a net/netfilter/ipvs/ip_vs_core.c Hans Schillstrom       2010-11-19  559  		if (!cp) {
-a5959d53d6048a net/netfilter/ipvs/ip_vs_core.c Hans Schillstrom       2010-11-19  560  			*ignored = -1;
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  561  			return NULL;
-f11017ec2d1859 net/netfilter/ipvs/ip_vs_core.c Simon Horman           2010-08-22  562  		}
-a5959d53d6048a net/netfilter/ipvs/ip_vs_core.c Hans Schillstrom       2010-11-19  563  	}
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  564  
-cd17f9ed099ed2 net/ipv4/ipvs/ip_vs_core.c      Julius Volz            2008-09-02  565  	IP_VS_DBG_BUF(6, "Schedule fwd:%c c:%s:%u v:%s:%u "
-cd17f9ed099ed2 net/ipv4/ipvs/ip_vs_core.c      Julius Volz            2008-09-02  566  		      "d:%s:%u conn->flags:%X conn->refcnt:%d\n",
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  567  		      ip_vs_fwd_tag(cp),
-f18ae7206eaebf net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2014-09-09  568  		      IP_VS_DBG_ADDR(cp->af, &cp->caddr), ntohs(cp->cport),
-f18ae7206eaebf net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2014-09-09  569  		      IP_VS_DBG_ADDR(cp->af, &cp->vaddr), ntohs(cp->vport),
-f18ae7206eaebf net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2014-09-09  570  		      IP_VS_DBG_ADDR(cp->daf, &cp->daddr), ntohs(cp->dport),
-b54ab92b84b616 net/netfilter/ipvs/ip_vs_core.c Reshetova, Elena       2017-03-16  571  		      cp->flags, refcount_read(&cp->refcnt));
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  572  
-b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04  573  	if (!(svc->flags & IP_VS_SVC_F_STATELESS) ||
-b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04  574  	    (svc->flags & IP_VS_SVC_F_STATELESS && need_state)) {
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  575  		ip_vs_conn_stats(cp, svc);
-b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04  576  	}
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  577  	return cp;
-^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  578  }
+Still open question:
+- whether to just re-generate/prettify all .json-nft files once. The
+  current patch allows the files on disk to be in either form, and a
+  DUMPGEN=y will only update the file, when necessary. Alternative
+  would be to merge this patch, followed by regenerating all .json-nft
+  files. In that case, this patch could be slightly simplified to not
+  supporting the "mixed-mode".
 
+ tests/shell/helpers/json-pretty.sh  | 27 ++++++++++++++-----
+ tests/shell/helpers/test-wrapper.sh | 41 +++++++++++++++++++++++------
+ 2 files changed, 53 insertions(+), 15 deletions(-)
+
+diff --git a/tests/shell/helpers/json-pretty.sh b/tests/shell/helpers/json-pretty.sh
+index 0d6972b81e2f..5407a8420058 100755
+--- a/tests/shell/helpers/json-pretty.sh
++++ b/tests/shell/helpers/json-pretty.sh
+@@ -1,17 +1,30 @@
+ #!/bin/bash -e
+ 
+-# WARNING: the output is not guaranteed to be stable.
++exec_pretty() {
++	# The output of this command must be stable (and `jq` and python
++	# fallback must generate the same output.
+ 
+-if command -v jq &>/dev/null ; then
+-	# If we have, use `jq`
+-	exec jq
+-fi
++	if command -v jq &>/dev/null ; then
++		# If we have, use `jq`
++		exec jq
++	fi
+ 
+-# Fallback to python.
+-exec python -c '
++	# Fallback to python.
++	exec python -c '
+ import json
+ import sys
+ 
+ parsed = json.load(sys.stdin)
+ print(json.dumps(parsed, indent=2))
+ '
++}
++
++[ "$#" -le 1 ] || { echo "At most one argument supported" ; exit 1 ; }
++
++if [ "$#" -eq 1 ] ; then
++	# One argument passed. This must be a JSON file.
++	[ -f "$1" ] || { echo "File \"$1\" does not exist" ; exit 1 ; }
++	exec_pretty < "$1"
++fi
++
++exec_pretty
+diff --git a/tests/shell/helpers/test-wrapper.sh b/tests/shell/helpers/test-wrapper.sh
+index f0170d763291..f1f33991b454 100755
+--- a/tests/shell/helpers/test-wrapper.sh
++++ b/tests/shell/helpers/test-wrapper.sh
+@@ -25,6 +25,10 @@ show_file() {
+ 	printf "<<<<\n"
+ }
+ 
++json_pretty() {
++	"$NFT_TEST_BASEDIR/helpers/json-pretty.sh" "$@" 2>&1 || :
++}
++
+ TEST="$1"
+ TESTBASE="$(basename "$TEST")"
+ TESTDIR="$(dirname "$TEST")"
+@@ -140,6 +144,7 @@ if [ "$NFT_TEST_HAVE_json" != n ] ; then
+ 	fi
+ 	# JSON output needs normalization/sanitization, otherwise it's not stable.
+ 	"$NFT_TEST_BASEDIR/helpers/json-sanitize-ruleset.sh" "$NFT_TEST_TESTTMPDIR/ruleset-after.json"
++	json_pretty "$NFT_TEST_TESTTMPDIR/ruleset-after.json" > "$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty"
+ fi
+ 
+ read tainted_after < /proc/sys/kernel/tainted
+@@ -186,7 +191,12 @@ if [ "$rc_test" -eq 0 -a '(' "$DUMPGEN" = all -o "$DUMPGEN" = y ')' ] ; then
+ 		cat "$NFT_TEST_TESTTMPDIR/ruleset-after" > "$DUMPFILE"
+ 	fi
+ 	if [ "$NFT_TEST_HAVE_json" != n -a "$gen_jdumpfile" = y ] ; then
+-		cat "$NFT_TEST_TESTTMPDIR/ruleset-after.json" > "$JDUMPFILE"
++		if cmp "$NFT_TEST_TESTTMPDIR/ruleset-after.json" "$JDUMPFILE" &>/dev/null ; then
++			# The .json-nft file is still the non-pretty variant. Keep it.
++			:
++		else
++			cat "$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty" > "$JDUMPFILE"
++		fi
+ 	fi
+ fi
+ 
+@@ -201,12 +211,16 @@ if [ "$rc_test" -ne 77 -a "$dump_written" != y ] ; then
+ 		fi
+ 	fi
+ 	if [ "$NFT_TEST_HAVE_json" != n -a -f "$JDUMPFILE" ] ; then
+-		if ! $DIFF -u "$JDUMPFILE" "$NFT_TEST_TESTTMPDIR/ruleset-after.json" &> "$NFT_TEST_TESTTMPDIR/ruleset-diff.json" ; then
+-			"$NFT_TEST_BASEDIR/helpers/json-diff-pretty.sh" \
+-				"$JDUMPFILE" \
+-				"$NFT_TEST_TESTTMPDIR/ruleset-after.json" \
+-				2>&1 > "$NFT_TEST_TESTTMPDIR/ruleset-diff.json.pretty"
+-			show_file "$NFT_TEST_TESTTMPDIR/ruleset-diff.json" "Failed \`$DIFF -u \"$JDUMPFILE\" \"$NFT_TEST_TESTTMPDIR/ruleset-after.json\"\`" >> "$NFT_TEST_TESTTMPDIR/rc-failed-dump"
++		JDUMPFILE2="$NFT_TEST_TESTTMPDIR/json-nft-pretty"
++		json_pretty "$JDUMPFILE" > "$JDUMPFILE2"
++		if cmp "$JDUMPFILE" "$JDUMPFILE2" &>/dev/null ; then
++			# The .json-nft file is already prettified. We can use
++			# it directly.
++			rm -rf "$JDUMPFILE2"
++			JDUMPFILE2="$JDUMPFILE"
++		fi
++		if ! $DIFF -u "$JDUMPFILE2" "$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty" &> "$NFT_TEST_TESTTMPDIR/ruleset-diff.json" ; then
++			show_file "$NFT_TEST_TESTTMPDIR/ruleset-diff.json" "Failed \`$DIFF -u \"$JDUMPFILE2\" \"$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty\"\`" >> "$NFT_TEST_TESTTMPDIR/rc-failed-dump"
+ 			rc_dump=1
+ 		else
+ 			rm -f "$NFT_TEST_TESTTMPDIR/ruleset-diff.json"
+@@ -245,6 +259,7 @@ if [ "$NFT_TEST_HAVE_json" != n ] ; then
+ 		# This should be fixed, every test should have a .json-nft
+ 		# file, and this workaround removed.
+ 		$NFT -j --check -f "$NFT_TEST_TESTTMPDIR/ruleset-after.json" &>/dev/null || :
++		$NFT -j --check -f "$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty" &>/dev/null || :
+ 	else
+ 		fail=n
+ 		$NFT -j --check -f "$NFT_TEST_TESTTMPDIR/ruleset-after.json" &> "$NFT_TEST_TESTTMPDIR/chkdump" || fail=y
+@@ -253,8 +268,18 @@ if [ "$NFT_TEST_HAVE_json" != n ] ; then
+ 			show_file "$NFT_TEST_TESTTMPDIR/chkdump" "Command \`$NFT -j --check -f \"$NFT_TEST_TESTTMPDIR/ruleset-after.json\"\` failed" >> "$NFT_TEST_TESTTMPDIR/rc-failed-chkdump"
+ 			rc_chkdump=1
+ 		fi
++		fail=n
++		$NFT -j --check -f "$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty" &> "$NFT_TEST_TESTTMPDIR/chkdump" || fail=y
++		test -s "$NFT_TEST_TESTTMPDIR/chkdump" && fail=y
++		if [ "$fail" = y ] ; then
++			show_file "$NFT_TEST_TESTTMPDIR/chkdump" "Command \`$NFT -j --check -f \"$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty\"\` failed" >> "$NFT_TEST_TESTTMPDIR/rc-failed-chkdump"
++			rc_chkdump=1
++		fi
+ 	fi
+-	if [ -f "$JDUMPFILE" ] && ! cmp "$JDUMPFILE" "$NFT_TEST_TESTTMPDIR/ruleset-after.json" &>/dev/null ; then
++	if [ -f "$JDUMPFILE" ] \
++	     && ! cmp "$JDUMPFILE" "$NFT_TEST_TESTTMPDIR/ruleset-after.json" &>/dev/null \
++	     && ! cmp "$JDUMPFILE" "$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty" &>/dev/null ; \
++	then
+ 		$NFT -j --check -f "$JDUMPFILE" &>/dev/null || :
+ 	fi
+ fi
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+2.43.0
 
