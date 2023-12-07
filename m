@@ -1,122 +1,240 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="xA6JrMKK"
-Received: from mail-ed1-x530.google.com (mail-ed1-x530.google.com [IPv6:2a00:1450:4864:20::530])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B16DD5B
-	for <netfilter-devel@vger.kernel.org>; Wed,  6 Dec 2023 13:02:42 -0800 (PST)
-Received: by mail-ed1-x530.google.com with SMTP id 4fb4d7f45d1cf-54c77d011acso418a12.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 06 Dec 2023 13:02:42 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="bpj3YbNL"
+Received: from mail-wr1-x42b.google.com (mail-wr1-x42b.google.com [IPv6:2a00:1450:4864:20::42b])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 90BBED44
+	for <netfilter-devel@vger.kernel.org>; Wed,  6 Dec 2023 21:33:35 -0800 (PST)
+Received: by mail-wr1-x42b.google.com with SMTP id ffacd0b85a97d-33339d843b9so570040f8f.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 06 Dec 2023 21:33:35 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1701896561; x=1702501361; darn=vger.kernel.org;
-        h=content-transfer-encoding:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Z+uaQdQz6QrhFhwF1BGDVo3HvtsF0av/JrsCNPWP0H8=;
-        b=xA6JrMKK7zq5t7NH0UhLIEyiI/WUR5uZQNJY5T7XDC3iR77qkbVZXgbn8VaVtKzGiH
-         9PrKVtVZdUrIDLfASfqYgYXsB2Q12BgcFnm+dOWmW4LSOWnejnN57gitRSfmKTNX5baB
-         lhDPriynQtfAADCa1Dohny7W8ToV0ZVUZwRprq8l+amgVkRxcnvLRUvib+dcj5LRjLTs
-         DzMUUcH0Puc1XuZxsm48ywpEh8aCJXwgPUew1iTZ7Ga9tEQ+VJefFoHFQTcheJOWbBQ0
-         OtS6DNLHudhbxb4dc+PoW4C5dlLeW2rAC5BauAvd4wD3H7F7ySifEpCaoxLBnv26bPx/
-         Iosg==
+        d=linaro.org; s=google; t=1701927214; x=1702532014; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:message-id:subject:cc
+         :to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=aDh5Ha6meMpNT5PZvdiFsf/a/63SoEjRN6VfIgk3fbs=;
+        b=bpj3YbNLkvzoxEw3xr0u3agkAhCoIuowOElrV/CTMzye8qwEDGvkm7uR0/cuL/ftIt
+         jRquYrxsKhkgv5IE3W4Znm0vKoMxtiibCYaq3PHsXZHiRDE69BXKRvyHra6UJrZOb0yx
+         5oP0oV9Xp+4qIJPjAS4YsUSOoFJLslTrFGhysjrsJRHyvoSBWDBqECcOzT8ZGY4J7FRs
+         FWr8T0YXHfsJoKZ1LEotF/Rto6mU37c+Q6Ovedu0tLngsP9f7fodtv1C90zMwhcIY2Z7
+         ejn6BqFG2uqY7p1NT4CzU3pGdrQ9EcLj/fTLkh8OPizFM0+96H/D4NemDC7T3p/JMVTD
+         N6Wg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1701896561; x=1702501361;
-        h=content-transfer-encoding:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Z+uaQdQz6QrhFhwF1BGDVo3HvtsF0av/JrsCNPWP0H8=;
-        b=wnsyAETxLBW4KmHzxc/RwXh1ftwkssoTOVbeCgAuLMLtIhpr+at1WveQz0YDzBwR9u
-         hbwEU/uKHejAM/nnLu4Go9ETqDqjY70c1p+IlGcKCtgvfFQsNr9Mwz35bxsqQxQRNq5+
-         EZ1cRQ27TB37vVNsp55mGDCFfmWDDBx9QrgXxTTzNkr95uarZbJQ9884h5Yf+h4q5sgK
-         ogd99NOwP9Yaaf14eQ8XIQE7W5nnKz0jpCK8qiZI0gRPTlNf0SXauMjk2T9Tc/VBXi8z
-         5kBZesIwTotoRTq5o2NZMFpPKY7klTd9IbTlxWeTWzXHbPwayPvqDX9YDmc8abtsatw3
-         QKdA==
-X-Gm-Message-State: AOJu0Yyxs1aiDubKzHmxbjt1ZXunZ7UWHDob0+mviMjYVBYjNKosjYij
-	zOhhAw64rLFTrqEAi96SnvOwC/dBYFT42CgydW9QiA==
-X-Google-Smtp-Source: AGHT+IGaFpPeOUa5pJ8acL4jNk8ba2S6zn80/0RY0+ToikBAjDYwgKXjIIG+inhLt+24e/6pD2aIRpWsch8xjOOWqFw=
-X-Received: by 2002:a50:baae:0:b0:545:279:d075 with SMTP id
- x43-20020a50baae000000b005450279d075mr115598ede.1.1701896560601; Wed, 06 Dec
- 2023 13:02:40 -0800 (PST)
+        d=1e100.net; s=20230601; t=1701927214; x=1702532014;
+        h=in-reply-to:content-disposition:mime-version:message-id:subject:cc
+         :to:from:date:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=aDh5Ha6meMpNT5PZvdiFsf/a/63SoEjRN6VfIgk3fbs=;
+        b=ByEEAunKWzfdMQyZH3agOH/itl7tYRO5E1S3PWQtXIC9N+89tO2Dz2nw6DlMacqVJb
+         YKc/6zPYOlKFwUe6JB8i/sDPqObXE/NFOMllZfBJ7SmH4TNkIathIHxRDhNw2BiRi0Pe
+         cnJLUd0bVCCwHp7/Rq1bj06RHhqY4QgZoy1xQEQLqXOOmNKs5yD1/1c5HMqZNXH9wZAi
+         2Ix5kjx7Bggw1jcE6YEsZ42aEzlLXGAe16yeFOQ9CSZUOM9kNo9Cwe75w9MDjKn8eNTj
+         KstFdod3K4VE0qrh0wq4rtqtHGSjpW/3vseIjEJDaU5S167i+whSBNUqI5IQjOSCvMvB
+         gGBQ==
+X-Gm-Message-State: AOJu0Yx72QTZx2aytpKMx1THAX0ZRwn4RNrP10ymVtMfAnCRMCNkOJps
+	KnJEU6rIluns2GPlZ5zfI5MJYe/jCxFLKJaIbzU=
+X-Google-Smtp-Source: AGHT+IGRMzw6ole/sY4x+aWmyT5JGTFS7U8esyxKHbhMcm0/ifnMUpQvK3RimMuKBvFeDdeF9e+gqQ==
+X-Received: by 2002:a7b:c4c9:0:b0:40b:5e21:dd2b with SMTP id g9-20020a7bc4c9000000b0040b5e21dd2bmr1280861wmk.89.1701927213762;
+        Wed, 06 Dec 2023 21:33:33 -0800 (PST)
+Received: from localhost ([102.36.222.112])
+        by smtp.gmail.com with ESMTPSA id z17-20020a5d4c91000000b003333abf3edfsm459345wrs.47.2023.12.06.21.33.32
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 06 Dec 2023 21:33:33 -0800 (PST)
+Date: Thu, 7 Dec 2023 08:33:30 +0300
+From: Dan Carpenter <dan.carpenter@linaro.org>
+To: oe-kbuild@lists.linux.dev, Lev Pantiukhin <kndrvt@yandex-team.ru>
+Cc: lkp@intel.com, oe-kbuild-all@lists.linux.dev, mitradir@yandex-team.ru,
+	Lev Pantiukhin <kndrvt@yandex-team.ru>,
+	Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
+	David Ahern <dsahern@kernel.org>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [PATCH] ipvs: add a stateless type of service and a stateless
+ Maglev hashing scheduler
+Message-ID: <db2f0650-6e23-457f-bc5c-f9da0047f37d@suswa.mountain>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAG48ez0TfTAkaRWFCTb44x=TWP_sDZVx-5U2hvfQSFOhghNrCA@mail.gmail.com>
- <CAG48ez1hXk_cffp3dy-bYMcoyCCj-EySYR5SzYrNiRHGD=hOUg@mail.gmail.com>
- <ZW+Yv6TR+EMBp03f@orbyte.nwl.cc> <CAG48ez2G4q-50242WRE01iaKfAhd0D+XT9Ry0uS767ceHEzHXA@mail.gmail.com>
- <ZXDctabBrEFMVxg2@orbyte.nwl.cc>
-In-Reply-To: <ZXDctabBrEFMVxg2@orbyte.nwl.cc>
-From: Jann Horn <jannh@google.com>
-Date: Wed, 6 Dec 2023 22:02:04 +0100
-Message-ID: <CAG48ez1ixOapt330sDoCfhnVhN0VmO=i9H8cSQontGkvi_NT7A@mail.gmail.com>
-Subject: Re: Is xt_owner's owner_mt() racy with sock_orphan()? [worse with new
- TYPESAFE_BY_RCU file lifetime?]
-To: Phil Sutter <phil@nwl.cc>, Jann Horn <jannh@google.com>, 
-	Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>, 
-	Florian Westphal <fw@strlen.de>, netfilter-devel <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org, 
-	Christian Brauner <brauner@kernel.org>, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	Network Development <netdev@vger.kernel.org>, kernel list <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20231204152020.472247-1-kndrvt@yandex-team.ru>
 
-On Wed, Dec 6, 2023 at 9:42=E2=80=AFPM Phil Sutter <phil@nwl.cc> wrote:
->
-> On Wed, Dec 06, 2023 at 05:28:44PM +0100, Jann Horn wrote:
-> > On Tue, Dec 5, 2023 at 10:40=E2=80=AFPM Phil Sutter <phil@nwl.cc> wrote=
-:
-> > > On Tue, Dec 05, 2023 at 06:08:29PM +0100, Jann Horn wrote:
-> > > > On Tue, Dec 5, 2023 at 5:40=E2=80=AFPM Jann Horn <jannh@google.com>=
- wrote:
-> > > > >
-> > > > > Hi!
-> > > > >
-> > > > > I think this code is racy, but testing that seems like a pain...
-> > > > >
-> > > > > owner_mt() in xt_owner runs in context of a NF_INET_LOCAL_OUT or
-> > > > > NF_INET_POST_ROUTING hook. It first checks that sk->sk_socket is
-> > > > > non-NULL, then checks that sk->sk_socket->file is non-NULL, then
-> > > > > accesses the ->f_cred of that file.
-> > > > >
-> > > > > I don't see anything that protects this against a concurrent
-> > > > > sock_orphan(), which NULLs out the sk->sk_socket pointer, if we'r=
-e in
-> > > >
-> > > > Ah, and all the other users of ->sk_socket in net/netfilter/ do it
-> > > > under the sk_callback_lock... so I guess the fix would be to add th=
-e
-> > > > same in owner_mt?
-> > >
-> > > Sounds reasonable, although I wonder how likely a socket is to
-> > > orphan while netfilter is processing a packet it just sent.
-> > >
-> > > How about the attached patch? Not sure what hash to put into a Fixes:
-> > > tag given this is a day 1 bug and ipt_owner/ip6t_owner predate git.
-> >
-> > Looks mostly reasonable to me; though I guess it's a bit weird to have
-> > two separate bailout paths for checking whether sk->sk_socket is NULL,
-> > where the first check can race, and the second check uses different
-> > logic for determining the return value; I don't know whether that
-> > actually matters semantically. But I'm not sure how to make it look
-> > nicer either.
->
-> I find the code pretty confusing since it combines three matches (socket
-> UID, socket GID and socket existence) via binary ops. The second bail
-> disregards socket existence bits, I assumed it was deliberate and thus
-> decided to leave the first part as-is.
->
-> > I guess you could add a READ_ONCE() around the first read to signal
-> > that that's a potentially racy read, but I don't feel strongly about
-> > that.
->
-> Is this just annotation or do you see a practical effect of using
-> READ_ONCE() there?
+Hi Lev,
 
-I mostly just meant that as an annotation. My understanding is that in
-theory, racy reads can cause the compiler to do some terrible things
-to your code (https://lore.kernel.org/all/CAG48ez2nFks+yN1Kp4TZisso+rjvv_4U=
-W0FTo8iFUd4Qyq1qDw@mail.gmail.com/),
-but that's almost certainly not going to happen here.
+kernel test robot noticed the following build warnings:
 
-(Well, I guess doing a READ_ONCE() at one side without doing
-WRITE_ONCE() on the other side is also unclean...)
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
+
+url:    https://github.com/intel-lab-lkp/linux/commits/Lev-Pantiukhin/ipvs-add-a-stateless-type-of-service-and-a-stateless-Maglev-hashing-scheduler/20231204-232344
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git master
+patch link:    https://lore.kernel.org/r/20231204152020.472247-1-kndrvt%40yandex-team.ru
+patch subject: [PATCH] ipvs: add a stateless type of service and a stateless Maglev hashing scheduler
+config: i386-randconfig-141-20231207 (https://download.01.org/0day-ci/archive/20231207/202312070849.i9gwwSH0-lkp@intel.com/config)
+compiler: gcc-11 (Debian 11.3.0-12) 11.3.0
+reproduce: (https://download.01.org/0day-ci/archive/20231207/202312070849.i9gwwSH0-lkp@intel.com/reproduce)
+
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
+| Closes: https://lore.kernel.org/r/202312070849.i9gwwSH0-lkp@intel.com/
+
+New smatch warnings:
+net/netfilter/ipvs/ip_vs_core.c:545 ip_vs_schedule() error: uninitialized symbol 'need_state'.
+
+vim +/need_state +545 net/netfilter/ipvs/ip_vs_core.c
+
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  440  struct ip_vs_conn *
+190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  441  ip_vs_schedule(struct ip_vs_service *svc, struct sk_buff *skb,
+d4383f04d145cc net/netfilter/ipvs/ip_vs_core.c Jesper Dangaard Brouer 2012-09-26  442  	       struct ip_vs_proto_data *pd, int *ignored,
+d4383f04d145cc net/netfilter/ipvs/ip_vs_core.c Jesper Dangaard Brouer 2012-09-26  443  	       struct ip_vs_iphdr *iph)
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  444  {
+9330419d9aa4f9 net/netfilter/ipvs/ip_vs_core.c Hans Schillstrom       2011-01-03  445  	struct ip_vs_protocol *pp = pd->pp;
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  446  	struct ip_vs_conn *cp = NULL;
+ceec4c38168184 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2013-03-22  447  	struct ip_vs_scheduler *sched;
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  448  	struct ip_vs_dest *dest;
+ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  449  	__be16 _ports[2], *pptr, cport, vport;
+ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  450  	const void *caddr, *vaddr;
+3575792e005dc9 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-09-17  451  	unsigned int flags;
+b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04  452  	bool need_state;
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  453  
+190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  454  	*ignored = 1;
+2f74713d1436b7 net/netfilter/ipvs/ip_vs_core.c Jesper Dangaard Brouer 2012-09-26  455  	/*
+2f74713d1436b7 net/netfilter/ipvs/ip_vs_core.c Jesper Dangaard Brouer 2012-09-26  456  	 * IPv6 frags, only the first hit here.
+2f74713d1436b7 net/netfilter/ipvs/ip_vs_core.c Jesper Dangaard Brouer 2012-09-26  457  	 */
+6b3d933000cbe5 net/netfilter/ipvs/ip_vs_core.c Gao Feng               2017-11-13  458  	pptr = frag_safe_skb_hp(skb, iph->len, sizeof(_ports), _ports);
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  459  	if (pptr == NULL)
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  460  		return NULL;
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  461  
+ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  462  	if (likely(!ip_vs_iph_inverse(iph))) {
+ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  463  		cport = pptr[0];
+ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  464  		caddr = &iph->saddr;
+ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  465  		vport = pptr[1];
+ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  466  		vaddr = &iph->daddr;
+ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  467  	} else {
+ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  468  		cport = pptr[1];
+ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  469  		caddr = &iph->daddr;
+ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  470  		vport = pptr[0];
+ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  471  		vaddr = &iph->saddr;
+ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  472  	}
+ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  473  
+190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  474  	/*
+190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  475  	 * FTPDATA needs this check when using local real server.
+190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  476  	 * Never schedule Active FTPDATA connections from real server.
+190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  477  	 * For LVS-NAT they must be already created. For other methods
+190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  478  	 * with persistence the connection is created on SYN+ACK.
+190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  479  	 */
+ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  480  	if (cport == FTPDATA) {
+b0e010c527de74 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  481  		IP_VS_DBG_PKT(12, svc->af, pp, skb, iph->off,
+0d79641a96d612 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  482  			      "Not scheduling FTPDATA");
+190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  483  		return NULL;
+190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  484  	}
+190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  485  
+190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  486  	/*
+a5959d53d6048a net/netfilter/ipvs/ip_vs_core.c Hans Schillstrom       2010-11-19  487  	 *    Do not schedule replies from local real server.
+190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  488  	 */
+802c41adcf3be6 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  489  	if ((!skb->dev || skb->dev->flags & IFF_LOOPBACK)) {
+802c41adcf3be6 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  490  		iph->hdr_flags ^= IP_VS_HDR_INVERSE;
+6ecd754883daff net/netfilter/ipvs/ip_vs_core.c Matteo Croce           2019-01-19  491  		cp = INDIRECT_CALL_1(pp->conn_in_get,
+6ecd754883daff net/netfilter/ipvs/ip_vs_core.c Matteo Croce           2019-01-19  492  				     ip_vs_conn_in_get_proto, svc->ipvs,
+6ecd754883daff net/netfilter/ipvs/ip_vs_core.c Matteo Croce           2019-01-19  493  				     svc->af, skb, iph);
+802c41adcf3be6 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  494  		iph->hdr_flags ^= IP_VS_HDR_INVERSE;
+802c41adcf3be6 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  495  
+802c41adcf3be6 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  496  		if (cp) {
+b0e010c527de74 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  497  			IP_VS_DBG_PKT(12, svc->af, pp, skb, iph->off,
+802c41adcf3be6 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  498  				      "Not scheduling reply for existing"
+802c41adcf3be6 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  499  				      " connection");
+190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  500  			__ip_vs_conn_put(cp);
+190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  501  			return NULL;
+190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  502  		}
+802c41adcf3be6 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  503  	}
+190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  504  
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  505  	/*
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  506  	 *    Persistent service
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  507  	 */
+a5959d53d6048a net/netfilter/ipvs/ip_vs_core.c Hans Schillstrom       2010-11-19  508  	if (svc->flags & IP_VS_SVC_F_PERSISTENT)
+ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  509  		return ip_vs_sched_persist(svc, skb, cport, vport, ignored,
+d4383f04d145cc net/netfilter/ipvs/ip_vs_core.c Jesper Dangaard Brouer 2012-09-26  510  					   iph);
+a5959d53d6048a net/netfilter/ipvs/ip_vs_core.c Hans Schillstrom       2010-11-19  511  
+190ecd27cd7294 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2010-10-17  512  	*ignored = 0;
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  513  
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  514  	/*
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  515  	 *    Non-persistent service
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  516  	 */
+ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  517  	if (!svc->fwmark && vport != svc->port) {
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  518  		if (!svc->port)
+1e3e238e9c4bf9 net/netfilter/ipvs/ip_vs_core.c Hannes Eder            2009-08-02  519  			pr_err("Schedule: port zero only supported "
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  520  			       "in persistent services, "
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  521  			       "check your ipvs configuration\n");
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  522  		return NULL;
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  523  	}
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  524  
+ceec4c38168184 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2013-03-22  525  	sched = rcu_dereference(svc->scheduler);
+05f00505a89acd net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2015-06-29  526  	if (sched) {
+05f00505a89acd net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2015-06-29  527  		/* read svc->sched_data after svc->scheduler */
+05f00505a89acd net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2015-06-29  528  		smp_rmb();
+b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04  529  		/* we use distinct handler for stateless service */
+b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04  530  		if (svc->flags & IP_VS_SVC_F_STATELESS)
+b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04  531  			dest = sched->schedule_sl(svc, skb, iph, &need_state);
+b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04  532  		else
+bba54de5bdd107 net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2013-06-16  533  			dest = sched->schedule(svc, skb, iph);
+
+need_state not initialized on this path
+
+05f00505a89acd net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2015-06-29  534  	} else {
+05f00505a89acd net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2015-06-29  535  		dest = NULL;
+05f00505a89acd net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2015-06-29  536  	}
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  537  	if (dest == NULL) {
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  538  		IP_VS_DBG(1, "Schedule: no dest found.\n");
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  539  		return NULL;
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  540  	}
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  541  
+b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04  542  	/* We use IP_VS_SVC_F_ONEPACKET flag to create no state */
+b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04  543  	flags = ((svc->flags & IP_VS_SVC_F_ONEPACKET &&
+b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04  544  		  iph->protocol == IPPROTO_UDP) ||
+b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04 @545  		 (svc->flags & IP_VS_SVC_F_STATELESS && !need_state))
+                                                                                                                                         ^^^^^^^^^^
+
+b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04  546  		? IP_VS_CONN_F_ONE_PACKET : 0;
+26ec037f9841e4 net/netfilter/ipvs/ip_vs_core.c Nick Chalk             2010-06-22  547  
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  548  	/*
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  549  	 *    Create a connection entry.
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  550  	 */
+f11017ec2d1859 net/netfilter/ipvs/ip_vs_core.c Simon Horman           2010-08-22  551  	{
+f11017ec2d1859 net/netfilter/ipvs/ip_vs_core.c Simon Horman           2010-08-22  552  		struct ip_vs_conn_param p;
+6e67e586e7289c net/netfilter/ipvs/ip_vs_core.c Hans Schillstrom       2011-01-03  553  
+3109d2f2d1fe06 net/netfilter/ipvs/ip_vs_core.c Eric W. Biederman      2015-09-21  554  		ip_vs_conn_fill_param(svc->ipvs, svc->af, iph->protocol,
+ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  555  				      caddr, cport, vaddr, vport, &p);
+ba38528aae6ee2 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2014-09-09  556  		cp = ip_vs_conn_new(&p, dest->af, &dest->addr,
+ee78378f976488 net/netfilter/ipvs/ip_vs_core.c Alex Gartrell          2015-08-26  557  				    dest->port ? dest->port : vport,
+0e051e683ba4ac net/netfilter/ipvs/ip_vs_core.c Hans Schillstrom       2010-11-19  558  				    flags, dest, skb->mark);
+a5959d53d6048a net/netfilter/ipvs/ip_vs_core.c Hans Schillstrom       2010-11-19  559  		if (!cp) {
+a5959d53d6048a net/netfilter/ipvs/ip_vs_core.c Hans Schillstrom       2010-11-19  560  			*ignored = -1;
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  561  			return NULL;
+f11017ec2d1859 net/netfilter/ipvs/ip_vs_core.c Simon Horman           2010-08-22  562  		}
+a5959d53d6048a net/netfilter/ipvs/ip_vs_core.c Hans Schillstrom       2010-11-19  563  	}
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  564  
+cd17f9ed099ed2 net/ipv4/ipvs/ip_vs_core.c      Julius Volz            2008-09-02  565  	IP_VS_DBG_BUF(6, "Schedule fwd:%c c:%s:%u v:%s:%u "
+cd17f9ed099ed2 net/ipv4/ipvs/ip_vs_core.c      Julius Volz            2008-09-02  566  		      "d:%s:%u conn->flags:%X conn->refcnt:%d\n",
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  567  		      ip_vs_fwd_tag(cp),
+f18ae7206eaebf net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2014-09-09  568  		      IP_VS_DBG_ADDR(cp->af, &cp->caddr), ntohs(cp->cport),
+f18ae7206eaebf net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2014-09-09  569  		      IP_VS_DBG_ADDR(cp->af, &cp->vaddr), ntohs(cp->vport),
+f18ae7206eaebf net/netfilter/ipvs/ip_vs_core.c Julian Anastasov       2014-09-09  570  		      IP_VS_DBG_ADDR(cp->daf, &cp->daddr), ntohs(cp->dport),
+b54ab92b84b616 net/netfilter/ipvs/ip_vs_core.c Reshetova, Elena       2017-03-16  571  		      cp->flags, refcount_read(&cp->refcnt));
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  572  
+b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04  573  	if (!(svc->flags & IP_VS_SVC_F_STATELESS) ||
+b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04  574  	    (svc->flags & IP_VS_SVC_F_STATELESS && need_state)) {
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  575  		ip_vs_conn_stats(cp, svc);
+b276d504bee439 net/netfilter/ipvs/ip_vs_core.c Lev Pantiukhin         2023-12-04  576  	}
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  577  	return cp;
+^1da177e4c3f41 net/ipv4/ipvs/ip_vs_core.c      Linus Torvalds         2005-04-16  578  }
+
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
+
