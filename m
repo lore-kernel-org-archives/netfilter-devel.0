@@ -1,15 +1,15 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F043C121
-	for <netfilter-devel@vger.kernel.org>; Fri,  8 Dec 2023 10:41:51 -0800 (PST)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 894D210E0
+	for <netfilter-devel@vger.kernel.org>; Fri,  8 Dec 2023 15:37:23 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1rBfnK-0000uJ-KZ; Fri, 08 Dec 2023 19:41:50 +0100
+	id 1rBkPJ-0002KG-Ah; Sat, 09 Dec 2023 00:37:21 +0100
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 nft] parser_bison: fix objref statement corruption
-Date: Fri,  8 Dec 2023 19:41:39 +0100
-Message-ID: <20231208184143.21593-1-fw@strlen.de>
+Subject: [PATCH nft] evaluate: validate chain max length
+Date: Sat,  9 Dec 2023 00:37:09 +0100
+Message-ID: <20231208233714.14316-1-fw@strlen.de>
 X-Mailer: git-send-email 2.41.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -19,260 +19,101 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Consider this:
+The includes test files cause:
+BUG: chain is too large (257, 256 max)nft: netlink.c:418: netlink_gen_chain: Assertion `0' failed.
 
-counter_stmt            :       counter_stmt_alloc
-                        |       counter_stmt_alloc      counter_args
+Error out in evaluation step instead.
 
-counter_stmt_alloc      :       COUNTER { $$ = counter_stmt_alloc(&@$); }
-                        |       COUNTER         NAME    stmt_expr
-                        {
-                                $$ = objref_stmt_alloc(&@$);
-                                $$->objref.type = NFT_OBJECT_COUNTER;
-                                $$->objref.expr = $3;
-                        }
-                        ;
-
-counter_args            :       counter_arg { $<stmt>$        = $<stmt>0; }
-                        |       counter_args    counter_arg
-                        ;
-
-counter_arg             :       PACKETS NUM { $<stmt>0->counter.packets = $2; }
-
-[..]
-
-This has 'counter_stmt_alloc' EITHER return counter or objref statement.
-Both are the same structure but with different (union'd) trailer content.
-
-counter_stmt permits the 'packet' and 'byte' argument.
-
-But the 'counter_arg' directive only works with a statement
-coming from counter_stmt_alloc().
-
-afl++ came up with following input:
-
-table inet x {
-        chain y {
-                counter name ip saddr bytes 1.1.1. 1024
-        }
-}
-
-This clobbers $<stmt>->objref.expr pointer, we then crash when
-calling expr_evaluate() on it.
-
-Split the objref related statements into their own directive.
-
-After this, the input will fail with:
-"syntax error, unexpected bytes, expecting newline or semicolon".
-
-Also split most of the other objref statements into their own blocks.
-synproxy seems to have same problem, limit and quota appeared to be ok.
-
-v1 added objref_stmt to stateful_stmt list, this is wrong, we will
-assert when generating the 'counter' statement.
-Place it in the normal statement list so netlink_gen_stmt_stateful_assert
-throws the expected parser error.
-
-Fixes: dccab4f646b4 ("parser_bison: consolidate stmt_expr rule")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
+ src/evaluate.c                                | 34 ++++++++++++++++++-
+ .../bogons/nft-f/huge_chain_name_assert       |  5 +++
+ .../nft-f/huge_chain_name_define_assert       |  7 ++++
+ 3 files changed, 45 insertions(+), 1 deletion(-)
+ create mode 100644 tests/shell/testcases/bogons/nft-f/huge_chain_name_assert
+ create mode 100644 tests/shell/testcases/bogons/nft-f/huge_chain_name_define_assert
 
-src/parser_bison.y                            | 97 ++++++++++++-------
- .../bogons/nft-f/counter_objref_crash         |  5 +
- .../nft-f/netlink_gen_stmt_stateful_assert    |  6 ++
- 3 files changed, 71 insertions(+), 37 deletions(-)
- create mode 100644 tests/shell/testcases/bogons/nft-f/counter_objref_crash
- create mode 100644 tests/shell/testcases/bogons/nft-f/netlink_gen_stmt_stateful_assert
-
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 1a3d64f794cb..64946a43f93e 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -744,6 +744,9 @@ int nft_lex(void *, void *, void *);
- %destructor { stmt_free($$); }	stmt match_stmt verdict_stmt set_elem_stmt
- %type <stmt>			counter_stmt counter_stmt_alloc stateful_stmt last_stmt
- %destructor { stmt_free($$); }	counter_stmt counter_stmt_alloc stateful_stmt last_stmt
-+%type <stmt>			objref_stmt objref_stmt_counter objref_stmt_limit objref_stmt_quota objref_stmt_ct objref_stmt_synproxy
-+%destructor { stmt_free($$); }	objref_stmt objref_stmt_counter objref_stmt_limit objref_stmt_quota objref_stmt_ct objref_stmt_synproxy
-+
- %type <stmt>			payload_stmt
- %destructor { stmt_free($$); }	payload_stmt
- %type <stmt>			ct_stmt
-@@ -3051,6 +3054,60 @@ stateful_stmt_list	:	stateful_stmt
- 			}
- 			;
+diff --git a/src/evaluate.c b/src/evaluate.c
+index e3e0c00eb635..1b3e8097454d 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -2738,6 +2738,35 @@ static int expr_evaluate_flagcmp(struct eval_ctx *ctx, struct expr **exprp)
+ 	return expr_evaluate(ctx, exprp);
+ }
  
-+objref_stmt_counter	:	COUNTER		NAME	stmt_expr	close_scope_counter
-+			{
-+				$$ = objref_stmt_alloc(&@$);
-+				$$->objref.type = NFT_OBJECT_COUNTER;
-+				$$->objref.expr = $3;
-+			}
-+			;
++static int verdict_validate_chainlen(struct eval_ctx *ctx,
++				     struct expr *chain)
++{
++	if (chain->len > NFT_CHAIN_MAXNAMELEN * BITS_PER_BYTE)
++		return expr_error(ctx->msgs, chain,
++				  "chain name too long (%u, max %u)",
++				  chain->len / BITS_PER_BYTE,
++				  NFT_CHAIN_MAXNAMELEN);
 +
-+objref_stmt_limit	: 	LIMIT	NAME	stmt_expr	close_scope_limit
-+			{
-+				$$ = objref_stmt_alloc(&@$);
-+				$$->objref.type = NFT_OBJECT_LIMIT;
-+				$$->objref.expr = $3;
-+			}
-+			;
++	return 0;
++}
 +
-+objref_stmt_quota	:	QUOTA	NAME	stmt_expr	close_scope_quota
-+			{
-+				$$ = objref_stmt_alloc(&@$);
-+				$$->objref.type = NFT_OBJECT_QUOTA;
-+				$$->objref.expr = $3;
-+			}
-+			;
++static int expr_evaluate_verdict(struct eval_ctx *ctx, struct expr **exprp)
++{
++	struct expr *expr = *exprp;
 +
-+objref_stmt_synproxy	: 	SYNPROXY	NAME	stmt_expr close_scope_synproxy
-+			{
-+				$$ = objref_stmt_alloc(&@$);
-+				$$->objref.type = NFT_OBJECT_SYNPROXY;
-+				$$->objref.expr = $3;
-+			}
-+			;
++	switch (expr->verdict) {
++	case NFT_GOTO:
++	case NFT_JUMP:
++		if (expr->chain->etype == EXPR_VALUE &&
++		    verdict_validate_chainlen(ctx, expr->chain))
++			return -1;
 +
-+objref_stmt_ct		:	CT	TIMEOUT		SET	stmt_expr	close_scope_ct
-+			{
-+				$$ = objref_stmt_alloc(&@$);
-+				$$->objref.type = NFT_OBJECT_CT_TIMEOUT;
-+				$$->objref.expr = $4;
++		break;
++	}
 +
-+			}
-+			|	CT	EXPECTATION	SET	stmt_expr	close_scope_ct
-+			{
-+				$$ = objref_stmt_alloc(&@$);
-+				$$->objref.type = NFT_OBJECT_CT_EXPECT;
-+				$$->objref.expr = $4;
-+			}
-+			;
++	return expr_evaluate_primary(ctx, exprp);
++}
 +
-+objref_stmt		:	objref_stmt_counter
-+			|	objref_stmt_limit
-+			|	objref_stmt_quota
-+			|	objref_stmt_synproxy
-+			|	objref_stmt_ct
-+			;
+ static int expr_evaluate(struct eval_ctx *ctx, struct expr **expr)
+ {
+ 	if (ctx->nft->debug_mask & NFT_DEBUG_EVALUATION) {
+@@ -2763,7 +2792,7 @@ static int expr_evaluate(struct eval_ctx *ctx, struct expr **expr)
+ 	case EXPR_EXTHDR:
+ 		return expr_evaluate_exthdr(ctx, expr);
+ 	case EXPR_VERDICT:
+-		return expr_evaluate_primary(ctx, expr);
++		return expr_evaluate_verdict(ctx, expr);
+ 	case EXPR_META:
+ 		return expr_evaluate_meta(ctx, expr);
+ 	case EXPR_SOCKET:
+@@ -2964,6 +2993,9 @@ static int stmt_evaluate_verdict(struct eval_ctx *ctx, struct stmt *stmt)
+ 				return expr_error(ctx->msgs, stmt->expr->chain,
+ 						  "not a value expression");
+ 			}
 +
- stateful_stmt		:	counter_stmt	close_scope_counter
- 			|	limit_stmt
- 			|	quota_stmt
-@@ -3080,6 +3137,7 @@ stmt			:	verdict_stmt
- 			|	chain_stmt
- 			|	optstrip_stmt
- 			|	xt_stmt		close_scope_xt
-+			|	objref_stmt
- 			;
- 
- xt_stmt			:	XT	STRING	string
-@@ -3169,12 +3227,6 @@ counter_stmt_alloc	:	COUNTER
- 			{
- 				$$ = counter_stmt_alloc(&@$);
- 			}
--			|	COUNTER		NAME	stmt_expr
--			{
--				$$ = objref_stmt_alloc(&@$);
--				$$->objref.type = NFT_OBJECT_COUNTER;
--				$$->objref.expr = $3;
--			}
- 			;
- 
- counter_args		:	counter_arg
-@@ -3186,10 +3238,12 @@ counter_args		:	counter_arg
- 
- counter_arg		:	PACKETS			NUM
- 			{
-+				assert($<stmt>0->ops->type == STMT_COUNTER);
- 				$<stmt>0->counter.packets = $2;
- 			}
- 			|	BYTES			NUM
- 			{
-+				assert($<stmt>0->ops->type == STMT_COUNTER);
- 				$<stmt>0->counter.bytes	 = $2;
- 			}
- 			;
-@@ -3470,12 +3524,6 @@ limit_stmt		:	LIMIT	RATE	limit_mode	limit_rate_pkts	limit_burst_pkts	close_scope
- 				$$->limit.type	= NFT_LIMIT_PKT_BYTES;
- 				$$->limit.flags = $3;
- 			}
--			|	LIMIT	NAME	stmt_expr	close_scope_limit
--			{
--				$$ = objref_stmt_alloc(&@$);
--				$$->objref.type = NFT_OBJECT_LIMIT;
--				$$->objref.expr = $3;
--			}
- 			;
- 
- quota_mode		:	OVER		{ $$ = NFT_QUOTA_F_INV; }
-@@ -3519,12 +3567,6 @@ quota_stmt		:	QUOTA	quota_mode NUM quota_unit quota_used	close_scope_quota
- 				$$->quota.used = $5;
- 				$$->quota.flags	= $2;
- 			}
--			|	QUOTA	NAME	stmt_expr	close_scope_quota
--			{
--				$$ = objref_stmt_alloc(&@$);
--				$$->objref.type = NFT_OBJECT_QUOTA;
--				$$->objref.expr = $3;
--			}
- 			;
- 
- limit_mode		:	OVER				{ $$ = NFT_LIMIT_F_INV; }
-@@ -3715,12 +3757,6 @@ synproxy_stmt_alloc	:	SYNPROXY
- 			{
- 				$$ = synproxy_stmt_alloc(&@$);
- 			}
--			|	SYNPROXY	NAME	stmt_expr
--			{
--				$$ = objref_stmt_alloc(&@$);
--				$$->objref.type = NFT_OBJECT_SYNPROXY;
--				$$->objref.expr = $3;
--			}
- 			;
- 
- synproxy_args		:	synproxy_arg
-@@ -5533,19 +5569,6 @@ ct_stmt			:	CT	ct_key		SET	stmt_expr	close_scope_ct
- 					break;
- 				}
- 			}
--			|	CT	TIMEOUT		SET	stmt_expr	close_scope_ct
--			{
--				$$ = objref_stmt_alloc(&@$);
--				$$->objref.type = NFT_OBJECT_CT_TIMEOUT;
--				$$->objref.expr = $4;
--
--			}
--			|	CT	EXPECTATION	SET	stmt_expr	close_scope_ct
--			{
--				$$ = objref_stmt_alloc(&@$);
--				$$->objref.type = NFT_OBJECT_CT_EXPECT;
--				$$->objref.expr = $4;
--			}
- 			|	CT	ct_dir	ct_key_dir_optional SET	stmt_expr	close_scope_ct
- 			{
- 				$$ = ct_stmt_alloc(&@$, $3, $2, $5);
-diff --git a/tests/shell/testcases/bogons/nft-f/counter_objref_crash b/tests/shell/testcases/bogons/nft-f/counter_objref_crash
++			if (verdict_validate_chainlen(ctx, stmt->expr->chain))
++				return -1;
+ 		}
+ 		break;
+ 	case EXPR_MAP:
+diff --git a/tests/shell/testcases/bogons/nft-f/huge_chain_name_assert b/tests/shell/testcases/bogons/nft-f/huge_chain_name_assert
 new file mode 100644
-index 000000000000..3a4b981be63c
+index 000000000000..161f867dce60
 --- /dev/null
-+++ b/tests/shell/testcases/bogons/nft-f/counter_objref_crash
++++ b/tests/shell/testcases/bogons/nft-f/huge_chain_name_assert
 @@ -0,0 +1,5 @@
 +table inet x {
-+        chain y {
-+                counter name ip saddr bytes 1.1.1. 1024
++        chain c {
++                udp length vmap { 1 : goto rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr }
 +        }
 +}
-diff --git a/tests/shell/testcases/bogons/nft-f/netlink_gen_stmt_stateful_assert b/tests/shell/testcases/bogons/nft-f/netlink_gen_stmt_stateful_assert
+diff --git a/tests/shell/testcases/bogons/nft-f/huge_chain_name_define_assert b/tests/shell/testcases/bogons/nft-f/huge_chain_name_define_assert
 new file mode 100644
-index 000000000000..547b937f1459
+index 000000000000..3c2c0d3e3a93
 --- /dev/null
-+++ b/tests/shell/testcases/bogons/nft-f/netlink_gen_stmt_stateful_assert
-@@ -0,0 +1,6 @@
-+table ip x {
-+	map sctm_o1 {
-+		type mark : counter
-+		counter name meta mark
++++ b/tests/shell/testcases/bogons/nft-f/huge_chain_name_define_assert
+@@ -0,0 +1,7 @@
++define huge = rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
++
++table t {
++	chain d {
++		jump $huge
 +	}
 +}
 -- 
