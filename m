@@ -1,53 +1,34 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RscdmSRk"
-Received: from mail-oo1-xc36.google.com (mail-oo1-xc36.google.com [IPv6:2607:f8b0:4864:20::c36])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 325A5EB
-	for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2023 16:56:43 -0800 (PST)
-Received: by mail-oo1-xc36.google.com with SMTP id 006d021491bc7-58de42d0ff7so2042623eaf.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2023 16:56:43 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1702256202; x=1702861002; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=xyQ6noDAtbK4FWBfT5LBGmNFMwx9PdALU0cZBanl/L4=;
-        b=RscdmSRkEXAGPZsA6ZiqEYquf3zrATjTP1P4bzD/VajDmeV/uN9+70Bil+6fNiiZT2
-         gs2SwAKYMpWpsM1QFUqjnwOKuhm4NTOi5ZTJOSKvxaBUkyE0Dg2IRbi1zW/OObuh7lAS
-         WLKDgv4AkfB+2ABHaUXutRZ4gUoYIWP2DyNZ/Jn5sFMGzJs2NFb6LLKiQMREOkbLU2Wz
-         Tik4MWVTLAAyKz+Hy8GgV1FTKz5zHdPsqQ4oirTWqFJ3plkwI1vr1Zff/x4NzcwxcTbx
-         l3kR0307ywbv9v524rExVuHaY46qjG98sv7S9GnnviovEhPqJKmFCdyKvlSgHL0NcdBz
-         1OMA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1702256202; x=1702861002;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:sender:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=xyQ6noDAtbK4FWBfT5LBGmNFMwx9PdALU0cZBanl/L4=;
-        b=GtZ5SfK2AI56JDUYoR11e+LL4wE3Qr9W0SEMllszDO2r2lwZATSp97QCaHhgfCRL3/
-         Ny2WDZl9YQZrNtSKKPoasuY5zWpW7yebW+QbMWOE2q49uHAbSl1052Gq6extUKL3dy//
-         bKtt5wRuxU/212RBnwJbwiBX6QqUWzf7AK4eufn/STky83WrkaVCA36d3kcmP82RBzW+
-         BrP/nUDTjaYdFO5Ma17d2Bj42GpZ7Tl157lWj0sXE4OI0Ej0r7qngIuMSgdMCGe6pQC8
-         eALAVGvdg9yu+U5VFVvm7hzGRz+Wo9QiXb15sk8qSnssNwTgk1Zyq+h22wSVe7HXJZhl
-         h9Cg==
-X-Gm-Message-State: AOJu0YxUrDwb0JAb1X/3UsnJHAyemKtlsKr+DLvQ7VxUFyyzSBeVYWab
-	Q4wflDTmonKLWZEyCllettwMQ0aP/hM=
-X-Google-Smtp-Source: AGHT+IEp+32KYOzAXvJ5Yy09hp06VKzuQcyJ94K5/k0BWAJFZrsF8HzbsTOWeHmVys4JTXoQ0MZwWg==
-X-Received: by 2002:a05:6808:114f:b0:3b8:b063:5d69 with SMTP id u15-20020a056808114f00b003b8b0635d69mr4237223oiu.80.1702256202287;
-        Sun, 10 Dec 2023 16:56:42 -0800 (PST)
-Received: from slk15.local.net (n58-108-90-185.meb1.vic.optusnet.com.au. [58.108.90.185])
-        by smtp.gmail.com with ESMTPSA id z20-20020aa785d4000000b006cbb83adc1bsm5063767pfn.44.2023.12.10.16.56.40
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 10 Dec 2023 16:56:42 -0800 (PST)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From: Duncan Roe <duncan_roe@optusnet.com.au>
-To: pablo@netfilter.org
-Cc: netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_queue 1/1] src: add nfq_socket_sendto() - send config request and check response
-Date: Mon, 11 Dec 2023 11:56:35 +1100
-Message-Id: <20231211005635.7566-2-duncan_roe@optusnet.com.au>
-X-Mailer: git-send-email 2.35.8
-In-Reply-To: <20231211005635.7566-1-duncan_roe@optusnet.com.au>
-References: <20231211005635.7566-1-duncan_roe@optusnet.com.au>
+	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="IjAjiozX"
+X-Greylist: delayed 1153 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 11 Dec 2023 06:28:11 PST
+Received: from azazel.net (unknown [IPv6:2a05:d01c:431:aa03:b7e1:333d:ea2a:b14e])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3457BFF
+	for <netfilter-devel@vger.kernel.org>; Mon, 11 Dec 2023 06:28:11 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+	s=20220717; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=sND4kHHBAEML1ys4/NsSQ9wmw7OIjgtiOmY7WvWJcNg=; b=IjAjiozXXtx1PLM35IAzqSXQ9S
+	bP0pKmcKXjp9G5sMjLtWqp1mVhBaxrRVCM8GxUI/R4ySLmG+ZYNlL9zwV+QWhiNVY7zAFJetLF48Z
+	7SV283mfIVoHozPU+KRE+6ZZoncTNE3cDUYlWPTkeC258PhZHSvzjM4GHd4BHVHeTFvt4FQzK8ORF
+	EmhoskfGUNlNVnEp2dUBXYyMCmQxM10ntRP//KPlRghdoeb2bADbFRqePwVSuBt7xSkDxkNXC3dxi
+	WticbuOiyR6mXc88ymeYUDy7v3yspn2FmzEcQt2at2aqhEvftqAxHn5+ILBX8f/7oM6Kx2VQF4YOf
+	fPD0Z9ig==;
+Received: from [2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608] (helo=ulthar.dreamlands)
+	by taras.nevrast.org with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.96)
+	(envelope-from <jeremy@azazel.net>)
+	id 1rCgxs-0001Qd-19
+	for netfilter-devel@vger.kernel.org;
+	Mon, 11 Dec 2023 14:08:56 +0000
+From: Jeremy Sowden <jeremy@azazel.net>
+To: Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH iptables] Fix spelling mistakes
+Date: Mon, 11 Dec 2023 14:08:48 +0000
+Message-ID: <20231211140848.2960686-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.42.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -55,115 +36,159 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 
-Classic convenience function to complement nfq_nlmsg_put2().
+Corrections for several spelling mistakes, typo's and non-native usages in
+man-pages and error-messages.
 
-Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- .../libnetfilter_queue/libnetfilter_queue.h   |  2 +
- src/nlmsg.c                                   | 54 +++++++++++++------
- 2 files changed, 41 insertions(+), 15 deletions(-)
+ extensions/libxt_DNAT.man     | 2 +-
+ extensions/libxt_TOS.man      | 2 +-
+ extensions/libxt_multiport.c  | 2 +-
+ extensions/libxt_set.h        | 4 ++--
+ iptables/arptables-nft.8      | 2 +-
+ iptables/ebtables-nft.8       | 4 ++--
+ iptables/nft-arp.c            | 2 +-
+ iptables/xtables-monitor.8.in | 2 +-
+ utils/nfnl_osf.8.in           | 2 +-
+ 9 files changed, 11 insertions(+), 11 deletions(-)
 
-diff --git a/include/libnetfilter_queue/libnetfilter_queue.h b/include/libnetfilter_queue/libnetfilter_queue.h
-index f7e68d8..724789a 100644
---- a/include/libnetfilter_queue/libnetfilter_queue.h
-+++ b/include/libnetfilter_queue/libnetfilter_queue.h
-@@ -15,6 +15,7 @@
- 
- #include <sys/time.h>
- #include <libnfnetlink/libnfnetlink.h>
-+#include <libmnl/libmnl.h>
- 
- #include <libnetfilter_queue/linux_nfnetlink_queue.h>
- 
-@@ -152,6 +153,7 @@ void nfq_nlmsg_verdict_put_pkt(struct nlmsghdr *nlh, const void *pkt, uint32_t p
- int nfq_nlmsg_parse(const struct nlmsghdr *nlh, struct nlattr **attr);
- struct nlmsghdr *nfq_nlmsg_put(char *buf, int type, uint32_t queue_num);
- struct nlmsghdr *nfq_nlmsg_put2(char *buf, int type, uint32_t queue_num, uint16_t flags);
-+int nfq_socket_sendto(struct mnl_socket *nl, struct nlmsghdr *nlh, char *buf, unsigned int portid);
- 
- #ifdef __cplusplus
- } /* extern "C" */
-diff --git a/src/nlmsg.c b/src/nlmsg.c
-index 39fd12d..d605da8 100644
---- a/src/nlmsg.c
-+++ b/src/nlmsg.c
-@@ -336,29 +336,16 @@ struct nlmsghdr *nfq_nlmsg_put(char *buf, int type, uint32_t queue_num)
-  * \n
-  * This code snippet demonstrates reading these responses:
-  * \verbatim
--	char buf[MNL_SOCKET_BUFFER_SIZE];
--
- 	nlh = nfq_nlmsg_put2(buf, NFQNL_MSG_CONFIG, queue_num,
- 			     NLM_F_ACK);
- 	mnl_attr_put_u32(nlh, NFQA_CFG_FLAGS, NFQA_CFG_F_SECCTX);
- 	mnl_attr_put_u32(nlh, NFQA_CFG_MASK, NFQA_CFG_F_SECCTX);
- 
--	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
--		perror("mnl_socket_send");
--		exit(EXIT_FAILURE);
--	}
--
--	ret = mnl_socket_recvfrom(nl, buf, sizeof buf);
--	if (ret == -1) {
--		perror("mnl_socket_recvfrom");
--		exit(EXIT_FAILURE);
--	}
--
--	ret = mnl_cb_run(buf, ret, 0, portid, NULL, NULL);
--	if (ret == -1)
-+	if (nfq_socket_sendto(nl, nlh, buf, portid == -1)
- 		fprintf(stderr, "This kernel version does not allow to "
- 				"retrieve security context.\n");
- \endverbatim
-+ * \sa __nfq_socket_sendto__(3)
-  *
-  */
- 
-@@ -377,6 +364,43 @@ struct nlmsghdr *nfq_nlmsg_put2(char *buf, int type, uint32_t queue_num,
- 
- 	return nlh;
+diff --git a/extensions/libxt_DNAT.man b/extensions/libxt_DNAT.man
+index af9a3f06f6aa..090ecb42c02a 100644
+--- a/extensions/libxt_DNAT.man
++++ b/extensions/libxt_DNAT.man
+@@ -19,7 +19,7 @@ If no port range is specified, then the destination port will never be
+ modified. If no IP address is specified then only the destination port
+ will be modified.
+ If \fBbaseport\fP is given, the difference of the original destination port and
+-its value is used as offset into the mapping port range. This allows to create
++its value is used as offset into the mapping port range. This allows one to create
+ shifted portmap ranges and is available since kernel version 4.18.
+ For a single port or \fIbaseport\fP, a service name as listed in
+ \fB/etc/services\fP may be used.
+diff --git a/extensions/libxt_TOS.man b/extensions/libxt_TOS.man
+index de2d22dc5a92..2c8d46940df3 100644
+--- a/extensions/libxt_TOS.man
++++ b/extensions/libxt_TOS.man
+@@ -32,5 +32,5 @@ longterm releases 2.6.32 (>=.42), 2.6.33 (>=.15), and 2.6.35 (>=.14), there is
+ a bug whereby IPv6 TOS mangling does not behave as documented and differs from
+ the IPv4 version. The TOS mask indicates the bits one wants to zero out, so it
+ needs to be inverted before applying it to the original TOS field. However, the
+-aformentioned kernels forgo the inversion which breaks \-\-set\-tos and its
++aforementioned kernels forgo the inversion which breaks \-\-set\-tos and its
+ mnemonics.
+diff --git a/extensions/libxt_multiport.c b/extensions/libxt_multiport.c
+index f3136d8a1ff5..813a35553e2e 100644
+--- a/extensions/libxt_multiport.c
++++ b/extensions/libxt_multiport.c
+@@ -248,7 +248,7 @@ static void multiport_parse6_v1(struct xt_option_call *cb)
+ static void multiport_check(struct xt_fcheck_call *cb)
+ {
+ 	if (cb->xflags == 0)
+-		xtables_error(PARAMETER_PROBLEM, "multiport expection an option");
++		xtables_error(PARAMETER_PROBLEM, "no ports specified");
  }
-+/**
-+ * nfq_socket_sendto - send a netlink message and read response from kernel
-+ * \param nl Netlink socket obtained via \b mnl_socket_open()
-+ * \param nlh Pointer to Netlink message to be sent
-+ * \param buf Pointer to memory buffer of at least MNL_SOCKET_BUFFER_SIZE bytes
-+ * \param portid Netlink PortID that we expect to receive
-+ * \note \b nlh and \b buf may refer to the same memory location.
-+ *
-+ * Use nfq_socket_sendto() instead of \b mnl_socket_sendto() after
-+ * nfq_nlmsg_put2() has set the NLM_F_ACK flag in *<b>nlh</b>.
-+ *
-+ * \return 0 or -1 on failure with \b errno set
-+ * \par Errors
-+ * __EOPNOTSUPP__ the kernel cannot action a facility requested by an
-+ * NFQA_CFG_F_-prefixed flag.
-+ * If there were several such flags, none have been actioned.
-+ * \par
-+ * Other errors from underlying libmnl calls are possible.
-+ *
-+ * \sa __nfq_nlmsg_put2__(3), __mnl_socket_sendto__(3),
-+ * __mnl_socket_recvfrom__(3), __mnl_cb_run__(3)
-+ *
-+ */
-+
-+EXPORT_SYMBOL
-+int nfq_socket_sendto(struct mnl_socket *nl, struct nlmsghdr *nlh, char *buf,
-+		      unsigned int portid)
-+{
-+	int ret;
-+
-+	ret = mnl_socket_sendto(nl, nlh, nlh->nlmsg_len);
-+	if (ret != -1)
-+		ret = mnl_socket_recvfrom(nl, buf, MNL_SOCKET_BUFFER_SIZE);
-+	if (ret != -1)
-+		ret = mnl_cb_run(buf, ret, 0, portid, NULL, NULL);
-+	return ret == -1 ? -1 : 0;
-+}
  
- /**
-  * @}
+ static const char *
+diff --git a/extensions/libxt_set.h b/extensions/libxt_set.h
+index 685bfab95559..b7de4cc48393 100644
+--- a/extensions/libxt_set.h
++++ b/extensions/libxt_set.h
+@@ -146,7 +146,7 @@ parse_dirs_v0(const char *opt_arg, struct xt_set_info_v0 *info)
+ 			info->u.flags[i++] |= IPSET_DST;
+ 		else
+ 			xtables_error(PARAMETER_PROBLEM,
+-				"You must spefify (the comma separated list of) 'src' or 'dst'.");
++				"You must specify (the comma separated list of) 'src' or 'dst'.");
+ 	}
+ 
+ 	if (tmp)
+@@ -170,7 +170,7 @@ parse_dirs(const char *opt_arg, struct xt_set_info *info)
+ 			info->flags |= (1 << info->dim);
+ 		else if (strncmp(ptr, "dst", 3) != 0)
+ 			xtables_error(PARAMETER_PROBLEM,
+-				"You must spefify (the comma separated list of) 'src' or 'dst'.");
++				"You must specify (the comma separated list of) 'src' or 'dst'.");
+ 	}
+ 
+ 	if (tmp)
+diff --git a/iptables/arptables-nft.8 b/iptables/arptables-nft.8
+index 2bee9f2b37d2..c48a2cc2286b 100644
+--- a/iptables/arptables-nft.8
++++ b/iptables/arptables-nft.8
+@@ -209,7 +209,7 @@ of the
+ .B arptables
+ kernel table.
+ 
+-.SS MISCELLANOUS COMMANDS
++.SS MISCELLANEOUS COMMANDS
+ .TP
+ .B "\-V, \-\-version"
+ Show the version of the arptables userspace program.
+diff --git a/iptables/ebtables-nft.8 b/iptables/ebtables-nft.8
+index 60cf2d61793e..301f2f1f9178 100644
+--- a/iptables/ebtables-nft.8
++++ b/iptables/ebtables-nft.8
+@@ -321,7 +321,7 @@ of the ebtables kernel table.
+ .TP
+ .B "--init-table"
+ Replace the current table data by the initial table data.
+-.SS MISCELLANOUS COMMANDS
++.SS MISCELLANEOUS COMMANDS
+ .TP
+ .B "-v, --verbose"
+ Verbose mode.
+@@ -812,7 +812,7 @@ The log watcher writes descriptive data about a frame to the syslog.
+ .TP
+ .B "--log"
+ .br
+-Log with the default loggin options: log-level=
++Log with the default logging options: log-level=
+ .IR info ,
+ log-prefix="", no ip logging, no arp logging.
+ .TP
+diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
+index 6011620cf52a..5d66e271720e 100644
+--- a/iptables/nft-arp.c
++++ b/iptables/nft-arp.c
+@@ -529,7 +529,7 @@ static void nft_arp_post_parse(int command,
+ 
+ 		if (cs->arp.arp.arhln != 6)
+ 			xtables_error(PARAMETER_PROBLEM,
+-				      "Only harware address length of 6 is supported currently.");
++				      "Only hardware address length of 6 is supported currently.");
+ 	}
+ 	if (args->arp_opcode) {
+ 		if (get16_and_mask(args->arp_opcode, &cs->arp.arp.arpop,
+diff --git a/iptables/xtables-monitor.8.in b/iptables/xtables-monitor.8.in
+index a7f22c0d8c08..ed2c5fb4f9d1 100644
+--- a/iptables/xtables-monitor.8.in
++++ b/iptables/xtables-monitor.8.in
+@@ -43,7 +43,7 @@ Restrict output to IPv6.
+ .PP
+ The first line shows a packet entering rule set evaluation.
+ The protocol number is shown (AF_INET in this case), then a packet
+-identifier number that allows to correlate messages coming from rule set evaluation of
++identifier number that allows one to correlate messages coming from rule set evaluation of
+ this packet.  After this, the rule that was matched by the packet is shown.
+ This is the TRACE rule that turns on tracing events for this packet.
+ 
+diff --git a/utils/nfnl_osf.8.in b/utils/nfnl_osf.8.in
+index 7ade705a1658..1ef0c3873308 100644
+--- a/utils/nfnl_osf.8.in
++++ b/utils/nfnl_osf.8.in
+@@ -16,7 +16,7 @@ nfnl_osf \(em OS fingerprint loader utility
+ .SH DESCRIPTION
+ The
+ .B nfnl_osf
+-utility allows to load a set of operating system signatures into the kernel for
++utility allows one to load a set of operating system signatures into the kernel for
+ later matching against using iptables'
+ .B osf
+ match.
 -- 
-2.35.8
+2.42.0
 
