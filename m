@@ -1,59 +1,47 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1B3CD9
-	for <netfilter-devel@vger.kernel.org>; Tue, 12 Dec 2023 01:44:45 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1rCzJk-0006mu-LD; Tue, 12 Dec 2023 10:44:44 +0100
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] parser_bison: make sure obj_free releases timeout policies
-Date: Tue, 12 Dec 2023 10:44:35 +0100
-Message-ID: <20231212094438.26063-1-fw@strlen.de>
-X-Mailer: git-send-email 2.41.0
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="bo+6I8u8"
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 24E0BF5
+	for <netfilter-devel@vger.kernel.org>; Tue, 12 Dec 2023 02:55:18 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=+kZ3/OLH/RFn9BxbjAmOBqrbXhrGVOtTQYJPu4NAz0I=; b=bo+6I8u8qvtj/0pDVj19h35kCf
+	XNaHNvnnt5vQQsYUfp/Ig3NMa0VkPlWxi0wVBTlc2FPjHLNmUIyeQabJJ5ftljN7hDZQPVP7ovDG1
+	N//JKJW/5W+UWu1zXhEg6TlK1gq1lEUMmlHaCkmODd2VlMtH29IyWRSrQTSA8fZWNHz9Ny4AJReWf
+	Wjs4BFOPAPxLLHc0zHeMWyIJ77cQAdOFt1rHLEwdG0bvikGdNO7b40ZxhqR4JjGc7qMgWrlSOJXH4
+	t1O72GI8eMbsMwCEH3ciQ4PIvcAaileIJkNxMUdj0LijyYjpCRD9uvyEJQGz8N03GijXeM0MsvUgf
+	WLvmLa5g==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1rD0Q0-0004Kl-JN; Tue, 12 Dec 2023 11:55:16 +0100
+Date: Tue, 12 Dec 2023 11:55:16 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Jeremy Sowden <jeremy@azazel.net>
+Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH iptables] Fix spelling mistakes
+Message-ID: <ZXg8FK5Zui7Vvkg2@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Jeremy Sowden <jeremy@azazel.net>,
+	Netfilter Devel <netfilter-devel@vger.kernel.org>
+References: <20231211140848.2960686-1-jeremy@azazel.net>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20231211140848.2960686-1-jeremy@azazel.net>
 
-obj_free() won't release them because ->type is still 0 at this
-point.
+On Mon, Dec 11, 2023 at 02:08:48PM +0000, Jeremy Sowden wrote:
+> Corrections for several spelling mistakes, typo's and non-native usages in
+> man-pages and error-messages.
+> 
+> Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 
-Init this to CT_TIMEOUT.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- src/parser_bison.y                                           | 1 +
- .../shell/testcases/bogons/nft-f/ct_timeout_memleak_objfree  | 5 +++++
- 2 files changed, 6 insertions(+)
- create mode 100644 tests/shell/testcases/bogons/nft-f/ct_timeout_memleak_objfree
-
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 91c4d263dc73..ce80bcd917c3 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -2513,6 +2513,7 @@ ct_timeout_block	:	/*empty */
- 			{
- 				$$ = $<obj>-1;
- 				init_list_head(&$$->ct_timeout.timeout_list);
-+				$$->type = NFT_OBJECT_CT_TIMEOUT;
- 			}
- 			|	ct_timeout_block     common_block
- 			|	ct_timeout_block     stmt_separator
-diff --git a/tests/shell/testcases/bogons/nft-f/ct_timeout_memleak_objfree b/tests/shell/testcases/bogons/nft-f/ct_timeout_memleak_objfree
-new file mode 100644
-index 000000000000..28b1a211de0c
---- /dev/null
-+++ b/tests/shell/testcases/bogons/nft-f/ct_timeout_memleak_objfree
-@@ -0,0 +1,5 @@
-+table ip filter {
-+	ct timeout cttime {
-+		protocol tcp
-+		l3proto ip
-+		policy = { close : 12s }
--- 
-2.41.0
-
+Patch applied, thanks!
