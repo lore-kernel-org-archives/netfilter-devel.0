@@ -1,68 +1,110 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73FD7EB
-	for <netfilter-devel@vger.kernel.org>; Tue, 12 Dec 2023 07:45:23 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1rD4wj-0000nV-3o; Tue, 12 Dec 2023 16:45:21 +0100
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] evaluate: error out if concat expression becomes too large
-Date: Tue, 12 Dec 2023 16:45:12 +0100
-Message-ID: <20231212154516.21144-1-fw@strlen.de>
-X-Mailer: git-send-email 2.41.0
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="X0/wHSjo"
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C3018AD
+	for <netfilter-devel@vger.kernel.org>; Tue, 12 Dec 2023 08:23:05 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=/jO/S38Qoh49xOQC6mBcBDn6L+HsmYY3hgY6l1YflMo=; b=X0/wHSjogeUUxNejkW+XCFg2yZ
+	HTrcKPzYJkRjnQleQg59wUCt70ZT5cmKjdnft1vq/aKy/XDlZPkpe0c8Oam1hiQCdhvkET4RO+Du7
+	GW9/nchUCewDdGoGabQC0npSBIIaPrjnxp+XT9Dw2LWDWAmIeHoGb0TyKaAzq77mgJ8jlxaHE7OKv
+	dT6zvshKOV+E3Ec5Wqr1RMFSyj8pE1CZIAx3YUP3Ti1QqgcOnl3yXgSVmhiEBVi+PB12X3BeBjmAt
+	/ccoCVlnOoyE6SqLTD49lrV7QIvdL5OEwyEl11iL34c4O4892SX00dc1e9W9pH1ucoITILnzm27gL
+	q/mVie1Q==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1rD5XD-0000RR-4q; Tue, 12 Dec 2023 17:23:03 +0100
+Date: Tue, 12 Dec 2023 17:23:03 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+	Eric Garver <e@erig.me>
+Subject: Re: [nf-next PATCH] netfilter: nf_tables: Support updating table's
+ owner flag
+Message-ID: <ZXiI58QCVek1rWiF@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+	Eric Garver <e@erig.me>
+References: <20231208130103.26931-1-phil@nwl.cc>
+ <ZXhbYs4vQMWX/q+d@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZXhbYs4vQMWX/q+d@calendula>
 
-Before:
-BUG: nld buffer overflow: want to copy 132, max 64
+Hi Pablo,
 
-After:
-Error: Concatenation of size 544 exceeds maximum size of 512
-udp length . @th,0,512 . @th,512,512 { 47-63 . 0xe373135363130 . 0x33131303735353203 }
-                             ^^^^^^^^^
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Pablo, I can merge this with
- "[nft] parser_bison: reject large raw payload expressions" if you
- prefer.
+On Tue, Dec 12, 2023 at 02:08:50PM +0100, Pablo Neira Ayuso wrote:
+> On Fri, Dec 08, 2023 at 02:01:03PM +0100, Phil Sutter wrote:
+> > A process may take ownership of an existing table not owned yet or free
+> > a table it owns already.
+> > 
+> > A practical use-case is Firewalld's CleanupOnExit=no option: If it
+> > starts creating its own tables with owner flag, dropping that flag upon
+> > program exit is the easiest solution to make the ruleset survive.
+> 
+> I can think of a package update as use-case for this feature?
+> Meanwhile, package is being updated the ruleset remains in place.
 
- src/evaluate.c                                               | 4 ++++
- .../bogons/nft-f/stack_overflow_via_large_concat_expr        | 5 +++++
- 2 files changed, 9 insertions(+)
- create mode 100644 tests/shell/testcases/bogons/nft-f/stack_overflow_via_large_concat_expr
+Usually (with the distros I am familiar with at least), the daemon just
+keeps running while its package is updated. The run-time change then
+happens after reboot (or explicit restart). RHEL/Fedora support
+'%systemd_postun_with_restart' macro to request restart of the service
+upon package update, but it runs after the actual update process, so
+the time-window in between old service and new one is short (in theory).
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index c7191e8cad08..e2d9a320587e 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1591,6 +1591,10 @@ static int expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr)
- 		}
- 
- 		ctx->inner_desc = NULL;
-+
-+		if (size > NFT_REG32_COUNT * sizeof(uint32_t) * BITS_PER_BYTE)
-+			return expr_error(ctx->msgs, i, "Concatenation of size %u exceeds maximum size of %u",
-+					  size, NFT_REG32_COUNT * sizeof(uint32_t) * BITS_PER_BYTE);
- 	}
- 
- 	(*expr)->flags |= flags;
-diff --git a/tests/shell/testcases/bogons/nft-f/stack_overflow_via_large_concat_expr b/tests/shell/testcases/bogons/nft-f/stack_overflow_via_large_concat_expr
-new file mode 100644
-index 000000000000..8b0d27444c22
---- /dev/null
-+++ b/tests/shell/testcases/bogons/nft-f/stack_overflow_via_large_concat_expr
-@@ -0,0 +1,5 @@
-+table t {
-+	chain c {
-+		udp length . @th,0,512 . @th,512,512 { 47-63 . 0xe373135363130 . 0x33131303735353203 }
-+	}
-+}
--- 
-2.41.0
+Unless I'm mistaken, firewalld service restart is internally just "stop
+&& start", not a distinct action. Temporarily changing the config to
+make firewalld not clean up in that case to reduce/eliminate the
+downtime is a nice idea, though. Eric, WDYT?
 
+> Is there any more scenario are you having in mind for this?
+
+No, it was basically just that. When discussing with Eric whether using
+'flags owner' is good (to avoid clashes with other nf_tables users) or
+bad (ruleset is lost upon (unexpected) program exit), I thought of a
+switchable owner flag as a nice alternative to dropping and recreating
+the owned tables without owner flag before exiting.
+
+BTW: A known limitation is that crashing firewalld will leave the system
+without ruleset. I could think of a second flag, "persist" or so, which
+makes nft_rcv_nl_event() just drop the owner flag from the table instead
+of deleting it. What do you think?
+
+> > Mostly for consistency, this patch enables taking ownership of an
+> > existing table, too. This would allow firewalld to retake the ruleset it
+> > has previously left.
+> 
+> Isn't it better to start from scratch? Basically, flush previous the
+> table that you know it was there and reload the ruleset.
+
+Yes, this is what firewalld currently does. Looking at the package
+update scenario you mentioned, a starting daemon can't really expect the
+existing table to be in shape and should better just recreate it from
+scratch.
+
+> Maybe also goal in this case is to keep counters (and other stateful
+> objects) around?
+
+Yes, this is a nice side-effect, too.
+
+In my opinion, support for owner flag update (both add and remove) is
+simple enough to maintain in code and relatively straightforward
+regarding security (if owned tables may only be changed by the owner) so
+there is not much reason to not provide it for whoever may find use in
+it.
+
+For firewalld on the other hand, I think introducing this "persist" flag
+would be a full replacement to the proposed owner flag update.
+
+Cheers, Phil
