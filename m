@@ -1,41 +1,18 @@
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Sz1Cznxh"
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 001DBE3
-	for <netfilter-devel@vger.kernel.org>; Wed, 13 Dec 2023 06:08:19 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1702476499;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=+NO7O5VDdWK2dEhEEAPSKsTHCWSFCqqoJTZDmUKn05k=;
-	b=Sz1CznxhzIV+6rzYTvnMa5xcc+reuejGcwJM+X4I22//YXy3WHdORj0qSsrVZtJBDdBWWZ
-	mDhbwKf1/gw8+juaradiXgavrCGj+wT4EDNjKuow4VkvO338k5lMMJi0R6dnQ2zrThetln
-	Mal/aNqoTiMm5c+I4cQADFrxazHyK7E=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-680-0RhHlYB6PD2E_nhaeTyo-A-1; Wed, 13 Dec 2023 09:08:16 -0500
-X-MC-Unique: 0RhHlYB6PD2E_nhaeTyo-A-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.rdu2.redhat.com [10.11.54.4])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 849CD88CDD5;
-	Wed, 13 Dec 2023 14:08:14 +0000 (UTC)
-Received: from localhost (unknown [10.22.10.1])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 39E002026D66;
-	Wed, 13 Dec 2023 14:08:13 +0000 (UTC)
-Date: Wed, 13 Dec 2023 09:08:12 -0500
-From: Eric Garver <eric@garver.life>
-To: Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>,
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E1E1EB
+	for <netfilter-devel@vger.kernel.org>; Wed, 13 Dec 2023 07:15:56 -0800 (PST)
+Received: from [78.30.43.141] (port=46086 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1rDQxj-004Snu-1K; Wed, 13 Dec 2023 16:15:53 +0100
+Date: Wed, 13 Dec 2023 16:15:50 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>, Eric Garver <eric@garver.life>,
 	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
 Subject: Re: [nf-next PATCH] netfilter: nf_tables: Support updating table's
  owner flag
-Message-ID: <ZXm6zI16aVSwvEDB@egarver-mac>
-Mail-Followup-To: Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+Message-ID: <ZXnKpoMQnsoTK6sA@calendula>
 References: <20231208130103.26931-1-phil@nwl.cc>
  <ZXhbYs4vQMWX/q+d@calendula>
  <ZXiI58QCVek1rWiF@orbyte.nwl.cc>
@@ -47,10 +24,10 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 In-Reply-To: <ZXmgAu3u2w+Xjh8+@orbyte.nwl.cc>
-X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.4
+X-Spam-Score: -1.9 (-)
 
 On Wed, Dec 13, 2023 at 01:13:54PM +0100, Phil Sutter wrote:
 > Hi,
@@ -63,12 +40,38 @@ On Wed, Dec 13, 2023 at 01:13:54PM +0100, Phil Sutter wrote:
 > The problem with crashes is tables with owner flag set will vanish,
 > leaving the system without a firewall.
 
-I'd rather see the daemon be automatically restarted. After a crash you
-still have a flush + re-apply on daemon restart. Avoiding the cleanup
-due to table owner flag only shortens the window.
+So it does currently in a normal process exit.
 
-I think we're getting off topic for this list. Let's discuss off list if
-you want. :)
+Reading all this, a few choices:
 
-[..]
+- add an 'orphan' flag that gets set on if the owner process goes
+  away, so only ruleset with such flag can be retaken. This is to
+  avoid allowing a process to take any other ruleset in place.
 
+- add another flag to keep the ruleset around when the owner process
+  goes away.
+
+Probably it can be the same flag for both cases.
+
+I remember we discussed these superficially at the time that the
+'owner' flag was introduced, but there were not many use-cases in
+place already, and the goal for the 'owner' flag is to prevent an
+accidental zapping of the ruleset via 'nft flush ruleset' by another
+process.
+
+> [...]
+> > > For firewalld on the other hand, I think introducing this "persist" flag
+> > > would be a full replacement to the proposed owner flag update.
+> > 
+> > I don't think we need a persist flag. If we want it to persist then
+> > we'll just avoid setting the owner flag entirely.
+> 
+> The benefit of using it is to avoid interference from other users
+> calling 'nft flush ruleset'. Introducing a "persist" flag would enable
+> this while avoiding the restart/crash downtime.
+
+I think this 'persist' flag provides semantics the described above,
+that is:
+
+- keep it in place if process goes away.
+- allow to retake ownership.
