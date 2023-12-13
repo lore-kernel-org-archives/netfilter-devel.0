@@ -1,18 +1,34 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96B35B7
-	for <netfilter-devel@vger.kernel.org>; Wed, 13 Dec 2023 09:07:09 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1rDShQ-0001Yp-8i; Wed, 13 Dec 2023 18:07:08 +0100
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 3/3] evaluate: don't assert if set->data is NULL
-Date: Wed, 13 Dec 2023 18:06:45 +0100
-Message-ID: <20231213170650.13451-4-fw@strlen.de>
-X-Mailer: git-send-email 2.41.0
-In-Reply-To: <20231213170650.13451-1-fw@strlen.de>
-References: <20231213170650.13451-1-fw@strlen.de>
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="Qbwq54MR"
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D2F9910A
+	for <netfilter-devel@vger.kernel.org>; Wed, 13 Dec 2023 11:02:29 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=ldwi0LbYMG0Xj2Xp/yTISQqkbRkNFDdXXO7Go+y0KKw=; b=Qbwq54MRRiDPRKi6owsrPk1iEO
+	9UCQDzeiEP3+wgWpKF+2BsCc7JbvT43WuoieWKZO356EGGV6yRzwvmzTsd8DKiB2dtOCOQhNc/hLP
+	nes/ADOFXVG4sPN3yPjtKZPN/g8Fa2FZq3ryaUtRph/9O/6kT9De+wUR/TAtY3MBLHBg6F8VGj3e8
+	ELNGK4ywoiEkaBGTI9K9Y1sbn/l6gdIzDlTRp8j77T+NSd7FiDG7YQBwWyRKVVBE5haoZpeq70RV6
+	Gk0aSOyu/ZM2pL7jMSyszV8VSZPQse8f1pOY5J6oXYkWxxtXoI6vDXj0/n3/0BW+C8ZnChSQNcybn
+	40y73XsA==;
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1rDUV2-0006PF-2A; Wed, 13 Dec 2023 20:02:28 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+Subject: [libnftnl RFC 2/2] expr: Introduce struct expr_ops::attr_policy
+Date: Wed, 13 Dec 2023 20:02:22 +0100
+Message-ID: <20231213190222.3681-2-phil@nwl.cc>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20231213190222.3681-1-phil@nwl.cc>
+References: <20231213190222.3681-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -21,77 +37,133 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-For the objref map case, set->data is only non-null if set evaluation
-completed successfully.
+Similar to kernel's nla_policy, enable expressions to inform about
+restrictions on attribute use. This allows the generic expression code
+to perform sanity checks before dispatching to expression ops.
 
-Before:
-nft: src/evaluate.c:2115: expr_evaluate_mapping: Assertion `set->data != NULL' failed.
+For now, this holds only the maximum data len which may be passed to
+nftnl_expr_set().
 
-After:
-expr_evaluate_mapping_no_data_assert:1:5-5: Error: No such file or directory
-map m p {
-    ^
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/evaluate.c                                      | 13 ++++++++++++-
- .../nft-f/expr_evaluate_mapping_no_data_assert      |  4 ++++
- 2 files changed, 16 insertions(+), 1 deletion(-)
- create mode 100644 tests/shell/testcases/bogons/nft-f/expr_evaluate_mapping_no_data_assert
+ include/expr_ops.h   |  5 +++++
+ src/expr.c           |  6 ++++++
+ src/expr/bitwise.c   | 11 +++++++++++
+ src/expr/byteorder.c |  9 +++++++++
+ src/expr/immediate.c |  9 +++++++++
+ 5 files changed, 40 insertions(+)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 39296f8226db..89b84cd03864 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -2104,6 +2104,10 @@ static int expr_evaluate_mapping(struct eval_ctx *ctx, struct expr **expr)
- 	if (!set_is_map(set->flags))
- 		return set_error(ctx, set, "set is not a map");
+diff --git a/include/expr_ops.h b/include/expr_ops.h
+index 51b221483552c..6c95297bfcd58 100644
+--- a/include/expr_ops.h
++++ b/include/expr_ops.h
+@@ -8,10 +8,15 @@ struct nlattr;
+ struct nlmsghdr;
+ struct nftnl_expr;
  
-+	/* set already has more known issues, do not evaluate further */
-+	if (set->errors)
-+		return -1;
++struct attr_policy {
++	size_t maxlen;
++};
 +
- 	expr_set_context(&ctx->ectx, set->key->dtype, set->key->len);
- 	if (expr_evaluate(ctx, &mapping->left) < 0)
- 		return -1;
-@@ -5325,12 +5329,17 @@ static int table_evaluate(struct eval_ctx *ctx, struct table *table)
- 
- static int cmd_evaluate_add(struct eval_ctx *ctx, struct cmd *cmd)
- {
-+	int err = -1;
-+
- 	switch (cmd->obj) {
- 	case CMD_OBJ_ELEMENTS:
- 		return setelem_evaluate(ctx, cmd);
- 	case CMD_OBJ_SET:
- 		handle_merge(&cmd->set->handle, &cmd->handle);
--		return set_evaluate(ctx, cmd->set);
-+		err = set_evaluate(ctx, cmd->set);
-+		if (err)
-+			cmd->set->errors = true;
-+		break;
- 	case CMD_OBJ_SETELEMS:
- 		return elems_evaluate(ctx, cmd->set);
- 	case CMD_OBJ_RULE:
-@@ -5356,6 +5365,8 @@ static int cmd_evaluate_add(struct eval_ctx *ctx, struct cmd *cmd)
+ struct expr_ops {
+ 	const char *name;
+ 	uint32_t alloc_len;
+ 	int	nftnl_max_attr;
++	struct attr_policy *attr_policy;
+ 	void	(*init)(const struct nftnl_expr *e);
+ 	void	(*free)(const struct nftnl_expr *e);
+ 	int	(*set)(struct nftnl_expr *e, uint16_t type, const void *data, uint32_t data_len);
+diff --git a/src/expr.c b/src/expr.c
+index b4581f1a79ff6..3e06c48aeb5f3 100644
+--- a/src/expr.c
++++ b/src/expr.c
+@@ -71,6 +71,12 @@ int nftnl_expr_set(struct nftnl_expr *expr, uint16_t type,
+ 	case NFTNL_EXPR_NAME:	/* cannot be modified */
+ 		return 0;
  	default:
- 		BUG("invalid command object type %u\n", cmd->obj);
- 	}
++		if (expr->ops->attr_policy &&
++		    type <= expr->ops->nftnl_max_attr &&
++		    expr->ops->attr_policy[type].maxlen &&
++		    expr->ops->attr_policy[type].maxlen < data_len)
++			return -1;
 +
-+	return err;
+ 		if (expr->ops->set(expr, type, data, data_len) < 0)
+ 			return -1;
+ 	}
+diff --git a/src/expr/bitwise.c b/src/expr/bitwise.c
+index d11272fbd37b0..0a881eb3545dd 100644
+--- a/src/expr/bitwise.c
++++ b/src/expr/bitwise.c
+@@ -274,10 +274,21 @@ nftnl_expr_bitwise_snprintf(char *buf, size_t size,
+ 	return err;
  }
  
- static void table_del_cache(struct eval_ctx *ctx, struct cmd *cmd)
-diff --git a/tests/shell/testcases/bogons/nft-f/expr_evaluate_mapping_no_data_assert b/tests/shell/testcases/bogons/nft-f/expr_evaluate_mapping_no_data_assert
-new file mode 100644
-index 000000000000..34d3df61f334
---- /dev/null
-+++ b/tests/shell/testcases/bogons/nft-f/expr_evaluate_mapping_no_data_assert
-@@ -0,0 +1,4 @@
-+map m p {
-+	type ipv4_addr : counter
-+	elements = { 1.2.3.4 : 1, }
-+}
++static struct attr_policy bitwise_attr_policy[__NFTNL_EXPR_BITWISE_MAX] = {
++	[NFTNL_EXPR_BITWISE_SREG] = { .maxlen = sizeof(enum nft_registers) },
++	[NFTNL_EXPR_BITWISE_DREG] = { .maxlen = sizeof(enum nft_registers) },
++	[NFTNL_EXPR_BITWISE_LEN] = { .maxlen = sizeof(uint8_t) },
++	[NFTNL_EXPR_BITWISE_MASK] = { .maxlen = NFT_DATA_VALUE_MAXLEN },
++	[NFTNL_EXPR_BITWISE_XOR] = { .maxlen = NFT_DATA_VALUE_MAXLEN },
++	[NFTNL_EXPR_BITWISE_OP] = { .maxlen = sizeof(enum nft_bitwise_ops) },
++	[NFTNL_EXPR_BITWISE_DATA] = { .maxlen = NFT_DATA_VALUE_MAXLEN },
++};
++
+ struct expr_ops expr_ops_bitwise = {
+ 	.name		= "bitwise",
+ 	.alloc_len	= sizeof(struct nftnl_expr_bitwise),
+ 	.nftnl_max_attr	= __NFTNL_EXPR_BITWISE_MAX - 1,
++	.attr_policy	= bitwise_attr_policy,
+ 	.set		= nftnl_expr_bitwise_set,
+ 	.get		= nftnl_expr_bitwise_get,
+ 	.parse		= nftnl_expr_bitwise_parse,
+diff --git a/src/expr/byteorder.c b/src/expr/byteorder.c
+index f05ae59b688eb..6d085197b40c7 100644
+--- a/src/expr/byteorder.c
++++ b/src/expr/byteorder.c
+@@ -212,10 +212,19 @@ nftnl_expr_byteorder_snprintf(char *buf, size_t remain,
+ 	return offset;
+ }
+ 
++static struct attr_policy byteorder_attr_policy[__NFTNL_EXPR_BYTEORDER_MAX] = {
++	[NFTNL_EXPR_BYTEORDER_DREG] = { .maxlen = sizeof(enum nft_registers) },
++	[NFTNL_EXPR_BYTEORDER_SREG] = { .maxlen = sizeof(enum nft_registers) },
++	[NFTNL_EXPR_BYTEORDER_OP] = { .maxlen = sizeof(enum nft_byteorder_ops) },
++	[NFTNL_EXPR_BYTEORDER_LEN] = { .maxlen = sizeof(uint8_t) },
++	[NFTNL_EXPR_BYTEORDER_SIZE] = { .maxlen = sizeof(uint8_t) },
++};
++
+ struct expr_ops expr_ops_byteorder = {
+ 	.name		= "byteorder",
+ 	.alloc_len	= sizeof(struct nftnl_expr_byteorder),
+ 	.nftnl_max_attr	= __NFTNL_EXPR_BYTEORDER_MAX - 1,
++	.attr_policy	= byteorder_attr_policy,
+ 	.set		= nftnl_expr_byteorder_set,
+ 	.get		= nftnl_expr_byteorder_get,
+ 	.parse		= nftnl_expr_byteorder_parse,
+diff --git a/src/expr/immediate.c b/src/expr/immediate.c
+index 2ffa0c5e9ebc3..774ed3dcfea7e 100644
+--- a/src/expr/immediate.c
++++ b/src/expr/immediate.c
+@@ -220,10 +220,19 @@ static void nftnl_expr_immediate_free(const struct nftnl_expr *e)
+ 		nftnl_free_verdict(&imm->data);
+ }
+ 
++static struct attr_policy immediate_attr_policy[__NFTNL_EXPR_IMM_MAX] = {
++	[NFTNL_EXPR_IMM_DREG] = { .maxlen = sizeof(enum nft_registers) },
++	[NFTNL_EXPR_IMM_DATA] = { .maxlen = NFT_DATA_VALUE_MAXLEN },
++	[NFTNL_EXPR_IMM_VERDICT] = { .maxlen = sizeof(uint32_t) },
++	/*[NFTNL_EXPR_IMM_CHAIN] = { .maxlen = NFT_CHAIN_MAXNAMELEN },*/
++	[NFTNL_EXPR_IMM_CHAIN_ID] = { .maxlen = sizeof(uint32_t) },
++};
++
+ struct expr_ops expr_ops_immediate = {
+ 	.name		= "immediate",
+ 	.alloc_len	= sizeof(struct nftnl_expr_immediate),
+ 	.nftnl_max_attr	= __NFTNL_EXPR_IMM_MAX - 1,
++	.attr_policy	= immediate_attr_policy,
+ 	.free		= nftnl_expr_immediate_free,
+ 	.set		= nftnl_expr_immediate_set,
+ 	.get		= nftnl_expr_immediate_get,
 -- 
-2.41.0
+2.43.0
 
