@@ -1,94 +1,187 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7261783
-	for <netfilter-devel@vger.kernel.org>; Wed, 13 Dec 2023 02:18:20 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1rDMJn-00077v-3L; Wed, 13 Dec 2023 11:18:19 +0100
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] parser_bison: fix memory leaks on hookspec error processing
-Date: Wed, 13 Dec 2023 11:18:06 +0100
-Message-ID: <20231213101810.12316-1-fw@strlen.de>
-X-Mailer: git-send-email 2.41.0
+Received: from pepin.polanet.pl (pepin.polanet.pl [193.34.52.2])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 398CAA5
+	for <netfilter-devel@vger.kernel.org>; Wed, 13 Dec 2023 03:29:52 -0800 (PST)
+Date: Wed, 13 Dec 2023 12:29:50 +0100
+From: Tomasz Pala <gotar@polanet.pl>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH ulogd] log NAT events using IPFIX
+Message-ID: <20231213112949.GB18912@polanet.pl>
+References: <20231210201705.GA16025@polanet.pl>
+ <ZXhkbfE9ju7uiFNN@calendula>
+ <20231212184413.GA2168@polanet.pl>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="yEPQxsgoJgBvi8ip"
+Content-Disposition: inline
+In-Reply-To: <20231212184413.GA2168@polanet.pl>
+User-Agent: Mutt/1.5.20 (2009-06-14)
 
-prio_spec may contain an embedded expression, release it.
-We also need to release the device expr and the hook string.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- src/parser_bison.y                            |  7 +++++++
- .../bogons/nft-f/memleak_on_hookspec_error    | 21 +++++++++++++++++++
- 2 files changed, 28 insertions(+)
- create mode 100644 tests/shell/testcases/bogons/nft-f/memleak_on_hookspec_error
+--yEPQxsgoJgBvi8ip
+Content-Type: text/plain; charset=iso-8859-2
+Content-Disposition: inline
 
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 2796e4387e03..e1addc26d20d 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -727,6 +727,8 @@ int nft_lex(void *, void *, void *);
- %type <val>			family_spec family_spec_explicit
- %type <val32>			int_num	chain_policy
- %type <prio_spec>		extended_prio_spec prio_spec
-+%destructor { expr_free($$.expr); } extended_prio_spec prio_spec
-+
- %type <string>			extended_prio_name quota_unit	basehook_device_name
- %destructor { free_const($$); }	extended_prio_name quota_unit	basehook_device_name
- 
-@@ -2636,6 +2638,9 @@ hook_spec		:	TYPE		close_scope_type	STRING		HOOK		STRING		dev_spec	prio_spec
- 					erec_queue(error(&@3, "unknown chain type"),
- 						   state->msgs);
- 					free_const($3);
-+					free_const($5);
-+					expr_free($6);
-+					expr_free($7.expr);
- 					YYERROR;
- 				}
- 				$<chain>0->type.loc = @3;
-@@ -2649,6 +2654,8 @@ hook_spec		:	TYPE		close_scope_type	STRING		HOOK		STRING		dev_spec	prio_spec
- 					erec_queue(error(&@5, "unknown chain hook"),
- 						   state->msgs);
- 					free_const($5);
-+					expr_free($6);
-+					expr_free($7.expr);
- 					YYERROR;
- 				}
- 				free_const($5);
-diff --git a/tests/shell/testcases/bogons/nft-f/memleak_on_hookspec_error b/tests/shell/testcases/bogons/nft-f/memleak_on_hookspec_error
-new file mode 100644
-index 000000000000..6f52658fb986
---- /dev/null
-+++ b/tests/shell/testcases/bogons/nft-f/memleak_on_hookspec_error
-@@ -0,0 +1,21 @@
-+table ip filter {
-+	ct expectation ctexpect {
-+		protocol tcp
-+		size 12
-+		l3proto ip
-+	} . inet_proto : mark
-+		flags interval,timeout
-+	}
-+
-+	chain output {
-+		type gilter hook output priori
-+
-+	chain c {
-+		cttable inet filter {
-+	map test {
-+		type mark . inet_service . inet_proto : mark
-+		flags interval,timeout
-+	}
-+
-+	chain output {
-+		type gilter hook output priority filuer; policy 
-\ No newline at end of file
+Export conntract event type via IPFIX.
+
+While conntrack doesn't imply using NAT, the natEvent
+is handled by nfdump, so prefer it over firewallEvent.
+
+
+
+BTW - NF_NETLINK_CONNTRACK_UPDATE events are somehow ignored, output is
+empty with:
+
+event_mask=2
+
+while conntrack -E -e update dumps a lot of them.
+
 -- 
-2.41.0
+Tomasz Pala <gotar@pld-linux.org>
 
+--yEPQxsgoJgBvi8ip
+Content-Type: text/plain; charset=iso-8859-2
+Content-Disposition: attachment; filename="ulogd2-event_type.patch"
+
+diff --git a/include/ulogd/ipfix_protocol.h b/include/ulogd/ipfix_protocol.h
+index a34ee92..b7a61f4 100644
+--- a/include/ulogd/ipfix_protocol.h
++++ b/include/ulogd/ipfix_protocol.h
+@@ -222,6 +222,8 @@ enum {
+ 	IPFIX_postNATDestinationIPv4Address	= 226,
+ 	IPFIX_postNAPTSourceTransportPort	= 227,
+ 	IPFIX_postNAPTDestinationTransportPort	= 228,
++	IPFIX_natEvent			= 230,
++	IPFIX_firewallEvent		= 233,
+ };
+ 
+ /* Information elements of the netfilter vendor id */
+diff --git a/input/flow/ulogd_inpflow_NFCT.c b/input/flow/ulogd_inpflow_NFCT.c
+index 93c8844..614ae70 100644
+--- a/input/flow/ulogd_inpflow_NFCT.c
++++ b/input/flow/ulogd_inpflow_NFCT.c
+@@ -364,7 +362,7 @@ static struct ulogd_key nfct_okeys[] = {
+ 		.type	= ULOGD_RET_UINT32,
+ 		.flags	= ULOGD_RETF_NONE,
+ 		.name	= "ct.event",
+-	},
++	},	/* remapped to uint8 IPFIX_firewallEvent/IPFIX_natEvent */
+ 
+ 	{
+ 		.type 	= ULOGD_RET_UINT32,
+diff --git a/output/ipfix/ipfix.c b/output/ipfix/ipfix.c
+index 0ad34ec..785d35d 100644
+--- a/output/ipfix/ipfix.c
++++ b/output/ipfix/ipfix.c
+@@ -26,7 +26,7 @@ struct ipfix_templ {
+ 
+ /* Template fields modeled after vy_ipfix_data */
+ static const struct ipfix_templ template = {
+-	.num_templ_elements = 14,
++	.num_templ_elements = 15,
+ 	.templ_elements = {
+ 		{
+ 			.id = IPFIX_sourceIPv4Address,
+@@ -83,7 +83,11 @@ static const struct ipfix_templ template = {
+ 		{
+ 			.id = IPFIX_applicationId,
+ 			.len = sizeof(uint32_t)
+-		},
++		},	/* CT mark */
++		{
++			.id = IPFIX_natEvent,
++			.len = sizeof(uint8_t)
++		},	/* note: this could be IPFIX_firewallEvent, but it'is not handled by nfdump */
+ 	}
+ };
+ 
+diff --git a/output/ipfix/ipfix.h b/output/ipfix/ipfix.h
+index f671ea6..853a256 100644
+--- a/output/ipfix/ipfix.h
++++ b/output/ipfix/ipfix.h
+@@ -70,7 +70,8 @@ struct vy_ipfix_data {
+ 	uint16_t tsport;
+ 	uint16_t tdport;
+ 	uint8_t l4_proto;
+-	uint32_t aid;				/* Application ID */
++	uint32_t aid;				/* Application ID; used for CT mark */
++	uint8_t event;
+ } __attribute__((packed));
+ 
+ #define VY_IPFIX_SID		256
+diff --git a/output/ipfix/ulogd_output_IPFIX.c b/output/ipfix/ulogd_output_IPFIX.c
+index 167ee9a..712ec4f 100644
+--- a/output/ipfix/ulogd_output_IPFIX.c
++++ b/output/ipfix/ulogd_output_IPFIX.c
+@@ -24,6 +24,8 @@
+ #include <ulogd/ulogd.h>
+ #include <ulogd/common.h>
+ 
++#include <libnetfilter_conntrack/libnetfilter_conntrack.h>
++
+ #include "ipfix.h"
+ 
+ #define DEFAULT_MTU		512 /* RFC 5101, 10.3.3 */
+@@ -112,7 +114,8 @@ enum {
+ 	InL4TSPort,
+ 	InL4TDPort,
+ 	InIpProto,
+-	InCtMark
++	InCtMark,
++	InCtEvent,
+ };
+ 
+ static struct ulogd_key ipfix_in_keys[] = {
+@@ -187,7 +190,11 @@ static struct ulogd_key ipfix_in_keys[] = {
+ 		[InCtMark] = {
+ 			.type = ULOGD_RET_UINT32,
+ 			.name = "ct.mark"
+-		}
++		},
++		[InCtEvent] = {
++			.type = ULOGD_RET_UINT32
++			.name = "ct.event"
++		},
+ };
+ 
+ /* do some polishing and enqueue it */
+@@ -441,6 +526,7 @@ static int ipfix_interp(struct ulogd_pluginstance *pi)
+ {
+ 	char saddr[16],tsaddr[16], daddr[16],tdaddr[16], *send_template;
+ 	uint64_t start, end;
++	uint32_t event_type;
+ 	struct vy_ipfix_data *data;
+ 	int oid, mtu, ret;
+ 
+@@ -496,11 +589,24 @@ again:
+ 		data->tdport = htons(ikey_get_u16(&pi->input.keys[InL4TDPort]));
+ 	}
+ 
++	data->l4_proto = ikey_get_u8(&pi->input.keys[InIpProto]);
++
+ 	data->aid = 0;
+ 	if (GET_FLAGS(pi->input.keys, InCtMark) & ULOGD_RETF_VALID)
+ 		data->aid = htonl(ikey_get_u32(&pi->input.keys[InCtMark]));
+ 
+-	data->l4_proto = ikey_get_u8(&pi->input.keys[InIpProto]);
++	data->event = 255;	/* Unassigned */
++	event_type = ikey_get_u32(&pi->input.keys[InCtEvent]);
++	switch (event_type) {
++										/* IPFIX_natEvent [230] */
++		case NF_NETLINK_CONNTRACK_NEW:		data->event = 4; break;	/* NAT44 session create */
++		case NF_NETLINK_CONNTRACK_UPDATE:	data->event = 4; break;	/* NAT44 session create */
++		case NF_NETLINK_CONNTRACK_DESTROY:	data->event = 5; break;	/* NAT44 session delete */
++										// IPFIX_firewallEvent [233]
++	//	case NF_NETLINK_CONNTRACK_NEW:		data->event = 1; break;	/* Flow Created */
++	//	case NF_NETLINK_CONNTRACK_UPDATE:	data->event = 5; break;	/* Flow Update */
++	//	case NF_NETLINK_CONNTRACK_DESTROY:	data->event = 2; break;	/* Flow Deleted */
++	}
+ 
+ 	ulogd_log(ULOGD_DEBUG, "Got new packet (packets = %u, bytes = %u, flow = (%u:%u, %u:%u), saddr = %s/%s, daddr = %s/%s, sport = %u/%u, dport = %u/%u)\n",
+ 		  ntohl(data->packets), ntohl(data->bytes), ntohl(data->start_high),ntohl(data->start_low), ntohl(data->end_high),ntohl(data->end_low),
+
+--yEPQxsgoJgBvi8ip--
