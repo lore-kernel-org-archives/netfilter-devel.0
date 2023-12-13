@@ -1,66 +1,151 @@
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="pXcdsPN5"
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A2C8CD
-	for <netfilter-devel@vger.kernel.org>; Wed, 13 Dec 2023 04:13:58 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:To:From:Date:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=4n6lPryiSt7C4GtgRgllN2ZCA4qdxfkIg28RlIxAEvM=; b=pXcdsPN5KlA87XHWAhhkn9X2zH
-	ZLHJYO48UyS1SU4nycrTOoL7ScKRFLYf8nyGK3bWhzcp39BBP4DiP4BbbKoo8kAQkWSRJ38wbHf5W
-	d7gmmxqomqgpMEFj5L/gTnGNpPFoSKIUytymNOQbAqBk6oKu9Il0+F/J4P2YqJafOVhYkxdOk8hat
-	FDXn0wqnFkJHQlh3Va3aTNDLCbixWtG8NzMR6/2O9bXDGGrmlLLcdm6vPO4UzdX5u69lJiFkPpwyy
-	kt+cHytvmIBMZnfd2etcMvEthILsonWEpvfFWQUO3eUeiZvlwUPAsJR9HbBgdxQxgyiS1uhcwNrRU
-	txOaQKew==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1rDO7e-0000My-IY; Wed, 13 Dec 2023 13:13:54 +0100
-Date: Wed, 13 Dec 2023 13:13:54 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Eric Garver <eric@garver.life>, Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-Subject: Re: [nf-next PATCH] netfilter: nf_tables: Support updating table's
- owner flag
-Message-ID: <ZXmgAu3u2w+Xjh8+@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>, Eric Garver <eric@garver.life>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-References: <20231208130103.26931-1-phil@nwl.cc>
- <ZXhbYs4vQMWX/q+d@calendula>
- <ZXiI58QCVek1rWiF@orbyte.nwl.cc>
- <ZXji-iRbse7yiGte@egarver-mac>
+Received: from pepin.polanet.pl (pepin.polanet.pl [193.34.52.2])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A1B0E4
+	for <netfilter-devel@vger.kernel.org>; Wed, 13 Dec 2023 04:27:10 -0800 (PST)
+Date: Wed, 13 Dec 2023 13:27:08 +0100
+From: Tomasz Pala <gotar@polanet.pl>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH ulogd] log NAT events using IPFIX
+Message-ID: <20231213122708.GD18912@polanet.pl>
+References: <20231210201705.GA16025@polanet.pl>
+ <ZXhkbfE9ju7uiFNN@calendula>
+ <20231212184413.GA2168@polanet.pl>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="Km1U/tdNT/EmXiR1"
 Content-Disposition: inline
-In-Reply-To: <ZXji-iRbse7yiGte@egarver-mac>
+In-Reply-To: <20231212184413.GA2168@polanet.pl>
+User-Agent: Mutt/1.5.20 (2009-06-14)
 
-Hi,
 
-On Tue, Dec 12, 2023 at 05:47:22PM -0500, Eric Garver wrote:
-> I'm not concerned with optimizing for the crash case. We wouldn't be
-> able to make any assumptions about the state of nftables. The only safe
-> option is to flush and reload all the rules.
+--Km1U/tdNT/EmXiR1
+Content-Type: text/plain; charset=iso-8859-2
+Content-Disposition: inline
 
-The problem with crashes is tables with owner flag set will vanish,
-leaving the system without a firewall.
+The flow.end field for NEW connections has a value of 0.
+However it seems that the flowEnd* IPFIX are commonly interpreted as
+"last seen" timestamps.
 
-[...]
-> > For firewalld on the other hand, I think introducing this "persist" flag
-> > would be a full replacement to the proposed owner flag update.
-> 
-> I don't think we need a persist flag. If we want it to persist then
-> we'll just avoid setting the owner flag entirely.
+From https://www.iana.org/assignments/ipfix/ipfix.xhtml:
+153	flowEndMilliseconds	The absolute timestamp of the last packet of this Flow.
 
-The benefit of using it is to avoid interference from other users
-calling 'nft flush ruleset'. Introducing a "persist" flag would enable
-this while avoiding the restart/crash downtime.
+It's not clear whether "last packet" should be read as "final/closing packet",
+but with this field carrying a value of 0 the nfdump doesn't handle the
+flowStartMilliseconds value as well.
 
-Cheers, Phil
+Moreover, NF_NETLINK_CONNTRACK_UPDATE events also set flow.end to
+timestamp of last packet _seen_, with the connection being still
+established (UPDATEd connection is on-going per-se, until DESTROY).
+
+The actual state of the flow, i.e. it's termination, should be read
+directly from event type (firewallEvent/natEvent fields), not derived
+from flowEnd* having non-zero value.
+
+Therefore, when flow.end is not set, make it equal to flow.start, as
+initiating packet and the last one are the same.
+
+
+As this change is only 1 line, I've left the remaining notes and comments here.
+
+-- 
+Tomasz Pala <gotar@pld-linux.org>
+
+--Km1U/tdNT/EmXiR1
+Content-Type: text/plain; charset=iso-8859-2
+Content-Disposition: attachment; filename="ulogd2-last_seen.patch"
+
+diff --color '--palette=ad=1;38;5;155:de=1;38;5;205:hd=1;36:ln=35;1;3' -U5 -ru ddd/ulogd2/input/flow/ulogd_inpflow_NFCT.c ./input/flow/ulogd_inpflow_NFCT.c
+--- ddd/input/flow/ulogd_inpflow_NFCT.c	2023-12-13 12:14:03.137497479 +0100
++++ aaa/input/flow/ulogd_inpflow_NFCT.c	2023-12-13 10:12:46.267523061 +0100
+@@ -244,21 +244,20 @@
+ 		.flags	= ULOGD_RETF_NONE,
+ 		.name	= "orig.raw.pktlen",
+ 		.ipfix	= {
+ 			.vendor 	= IPFIX_VENDOR_IETF,
+ 			.field_id 	= IPFIX_octetTotalCount,
+-			/* FIXME: this could also be octetDeltaCount */
+ 		},
+ 	},
+ 	{
+ 		.type	= ULOGD_RET_UINT64,
+ 		.flags	= ULOGD_RETF_NONE,
+ 		.name	= "orig.raw.pktcount",
+ 		.ipfix	= {
+ 			.vendor 	= IPFIX_VENDOR_IETF,
+ 			.field_id 	= IPFIX_packetTotalCount,
+-			/* FIXME: this could also be packetDeltaCount */
++			/* FIXME: this could also be egressUnicastPacketTotalCount */
+ 		},
+ 	},
+ 	{
+ 		.type 	= ULOGD_RET_IPADDR,
+ 		.flags 	= ULOGD_RETF_NONE,
+@@ -309,21 +308,20 @@
+ 		.flags	= ULOGD_RETF_NONE,
+ 		.name	= "reply.raw.pktlen",
+ 		.ipfix	= {
+ 			.vendor 	= IPFIX_VENDOR_IETF,
+ 			.field_id 	= IPFIX_octetTotalCount,
+-			/* FIXME: this could also be octetDeltaCount */
+ 		},
+ 	},
+ 	{
+ 		.type	= ULOGD_RET_UINT64,
+ 		.flags	= ULOGD_RETF_NONE,
+ 		.name	= "reply.raw.pktcount",
+ 		.ipfix	= {
+ 			.vendor 	= IPFIX_VENDOR_IETF,
+ 			.field_id 	= IPFIX_packetTotalCount,
+-			/* FIXME: this could also be packetDeltaCount */
++			/* FIXME: this could also be ingressUnicastPacketTotalCount */
+ 		},
+ 	},
+ 	{
+ 		.type	= ULOGD_RET_UINT8,
+ 		.flags	= ULOGD_RETF_NONE,
+diff --color '--palette=ad=1;38;5;155:de=1;38;5;205:hd=1;36:ln=35;1;3' -U5 -ru ddd/ulogd2/output/ipfix/ulogd_output_IPFIX.c ./output/ipfix/ulogd_output_IPFIX.c
+--- ddd/output/ipfix/ulogd_output_IPFIX.c	2023-12-13 12:14:03.137497479 +0100
++++ aaa/output/ipfix/ulogd_output_IPFIX.c	2023-12-13 11:59:52.652179788 +0100
+@@ -488,19 +566,21 @@
+ 	data->saddr.s_addr = ikey_get_u32(&pi->input.keys[InIpSaddr]);
+ 	data->daddr.s_addr = ikey_get_u32(&pi->input.keys[InIpDaddr]);
+ 	data->tsaddr.s_addr = ikey_get_u32(&pi->input.keys[InTIpSaddr]);
+ 	data->tdaddr.s_addr = ikey_get_u32(&pi->input.keys[InTIpDaddr]);
+ 
++	/* TODO: send full uint64_t */
+ 	data->packets = htonl((uint32_t) (ikey_get_u64(&pi->input.keys[InRawInPktCount])
+ 						+ ikey_get_u64(&pi->input.keys[InRawOutPktCount])));
+ 	data->bytes = htonl((uint32_t) (ikey_get_u64(&pi->input.keys[InRawInPktLen])
+ 						+ ikey_get_u64(&pi->input.keys[InRawOutPktLen])));
+ 
+ 	start = (uint64_t)ikey_get_u32(&pi->input.keys[InFlowStartSec]) *1000 + ikey_get_u32(&pi->input.keys[InFlowStartUsec])/1000;
+ 	end   = (uint64_t)ikey_get_u32(&pi->input.keys[InFlowEndSec])   *1000 + ikey_get_u32(&pi->input.keys[InFlowEndUsec])/1000;
+ 	data->start_low = htonl((uint32_t)(start & 0xFFFFFFFFUL));
+ 	data->start_high = htonl(start >> 32);
++	if (!end) end = start;	/* end timestamp seems to be commonly read as "last seen" timestamp */
+ 	data->end_low = htonl((uint32_t)(end & 0xFFFFFFFFUL));
+ 	data->end_high = htonl(end >> 32);
+ 
+ 	if (GET_FLAGS(pi->input.keys, InL4SPort) & ULOGD_RETF_VALID) {
+ 		data->sport = htons(ikey_get_u16(&pi->input.keys[InL4SPort]));
+diff --color '--palette=ad=1;38;5;155:de=1;38;5;205:hd=1;36:ln=35;1;3' -U5 -ru ddd/ulogd2/README ./README
+--- ddd/README	2023-12-13 12:10:38.503561734 +0100
++++ aaa/README	2023-12-10 19:58:55.735776260 +0100
+@@ -1,9 +1,9 @@
+ Userspace logging daemon for netfilter/iptables
+ 
+-Project Homepage: http://www.gnumonks.org/projects/ulogd
+-Mailinglist: http://lists.gnumonks.org/mailman/listinfo/ulogd/
++Project Homepage: https://www.netfilter.org/projects/ulogd/
++Mailinglist: https://marc.info/?l=netfilter
+ 
+ This is just a short README, pleaes see the more extensive documentation
+ in the doc/ subdirectory.
+ 
+ ===> IDEA
+
+--Km1U/tdNT/EmXiR1--
