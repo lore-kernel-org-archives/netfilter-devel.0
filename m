@@ -1,15 +1,15 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1666F91
-	for <netfilter-devel@vger.kernel.org>; Wed, 13 Dec 2023 08:00:50 -0800 (PST)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA728124
+	for <netfilter-devel@vger.kernel.org>; Wed, 13 Dec 2023 08:30:03 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1rDRfE-00015a-Ni; Wed, 13 Dec 2023 17:00:48 +0100
+	id 1rDS7V-0001HJ-D6; Wed, 13 Dec 2023 17:30:01 +0100
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] evaluate: stmt_nat: set reference must point to a map
-Date: Wed, 13 Dec 2023 17:00:37 +0100
-Message-ID: <20231213160043.2081-1-fw@strlen.de>
+Subject: [PATCH nft] evaluate: error out when existing set has incompatible key
+Date: Wed, 13 Dec 2023 17:29:50 +0100
+Message-ID: <20231213162954.10145-1-fw@strlen.de>
 X-Mailer: git-send-email 2.41.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -19,61 +19,54 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-nat_concat_map() requires a datamap, else we crash:
-set->data is dereferenced.
+Before:
+BUG: invalid range expression type symbol
+nft: expression.c:1494: range_expr_value_high: Assertion `0' failed.
 
-Also update expr_evaluate_map() so that EXPR_SET_REF is checked there
-too.
+After:
+range_expr_value_high_assert:5:20-27: Error: Could not resolve protocol name
+                elements = { 100-11.0.0.0, }
+                                 ^^^^^^^^
+range_expr_value_high_assert:7:6-7: Error: set definition has conflicting key (ipv4_addr vs inet_proto)
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/evaluate.c                                         |  9 +++++++++
- .../bogons/nft-f/nat_stmt_with_set_instead_of_map      | 10 ++++++++++
- 2 files changed, 19 insertions(+)
- create mode 100644 tests/shell/testcases/bogons/nft-f/nat_stmt_with_set_instead_of_map
+ src/evaluate.c                                       |  3 +++
+ .../bogons/nft-f/range_expr_value_high_assert        | 12 ++++++++++++
+ 2 files changed, 15 insertions(+)
+ create mode 100644 tests/shell/testcases/bogons/nft-f/range_expr_value_high_assert
 
 diff --git a/src/evaluate.c b/src/evaluate.c
-index 1b3e8097454d..da382912ea71 100644
+index dd1c0b44c278..27adbf7f51ee 100644
 --- a/src/evaluate.c
 +++ b/src/evaluate.c
-@@ -2041,6 +2041,9 @@ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
- 		break;
- 	case EXPR_SET_REF:
- 		/* symbol has been already evaluated to set reference */
-+		if (!set_is_map(mappings->set->flags))
-+			return expr_error(ctx->msgs, map->mappings,
-+					  "Expression is not a map");
- 		break;
- 	default:
- 		return expr_binary_error(ctx->msgs, map->mappings, map->map,
-@@ -3969,6 +3972,12 @@ static bool nat_concat_map(struct eval_ctx *ctx, struct stmt *stmt)
- 		if (expr_evaluate(ctx, &stmt->nat.addr->mappings))
- 			return false;
+@@ -4769,6 +4769,9 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
+ 		existing_set = set_cache_find(table, set->handle.set.name);
+ 		if (!existing_set)
+ 			set_cache_add(set_get(set), table);
++		else if (!datatype_equal(existing_set->key->dtype, set->key->dtype))
++			return set_error(ctx, set, "%s definition has conflicting key (%s vs %s)\n",
++					 type, set->key->dtype->name, existing_set->key->dtype->name);
  
-+		if (!set_is_datamap(stmt->nat.addr->mappings->set->flags)) {
-+			expr_error(ctx->msgs, stmt->nat.addr->mappings,
-+					  "Expression is not a map");
-+			return false;
-+		}
-+
- 		if (stmt->nat.addr->mappings->set->data->etype == EXPR_CONCAT ||
- 		    stmt->nat.addr->mappings->set->data->dtype->subtypes) {
- 			stmt->nat.type_flags |= STMT_NAT_F_CONCAT;
-diff --git a/tests/shell/testcases/bogons/nft-f/nat_stmt_with_set_instead_of_map b/tests/shell/testcases/bogons/nft-f/nat_stmt_with_set_instead_of_map
+ 		if (existing_set && existing_set->flags & NFT_SET_EVAL) {
+ 			uint32_t existing_flags = existing_set->flags & ~NFT_SET_EVAL;
+diff --git a/tests/shell/testcases/bogons/nft-f/range_expr_value_high_assert b/tests/shell/testcases/bogons/nft-f/range_expr_value_high_assert
 new file mode 100644
-index 000000000000..b1302278cc9b
+index 000000000000..a25ac028bb9b
 --- /dev/null
-+++ b/tests/shell/testcases/bogons/nft-f/nat_stmt_with_set_instead_of_map
-@@ -0,0 +1,10 @@
-+table inet x {
-+        set y {
-+                type ipv4_addr
-+                elements = { 2.2.2.2, 3.3.3.3 }
-+        }
-+
-+        chain y {
-+                snat ip to ip saddr map @y
-+        }
++++ b/tests/shell/testcases/bogons/nft-f/range_expr_value_high_assert
+@@ -0,0 +1,12 @@
++table inet t {
++	set s3 {
++		type inet_proto
++		flags interval
++		elements = { 100-11.0.0.0, }
++	}
++	set s3 {
++		type ipv4_addr
++		flags interval
++		elements = { 100-11.0.0.0, }
++	}
 +}
 -- 
 2.41.0
