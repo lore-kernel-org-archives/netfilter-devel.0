@@ -1,185 +1,66 @@
-Received: from pepin.polanet.pl (pepin.polanet.pl [193.34.52.2])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B57EEAF
-	for <netfilter-devel@vger.kernel.org>; Wed, 13 Dec 2023 03:49:37 -0800 (PST)
-Date: Wed, 13 Dec 2023 12:49:35 +0100
-From: Tomasz Pala <gotar@polanet.pl>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH ulogd] log NAT events using IPFIX
-Message-ID: <20231213114934.GC18912@polanet.pl>
-References: <20231210201705.GA16025@polanet.pl>
- <ZXhkbfE9ju7uiFNN@calendula>
- <20231212184413.GA2168@polanet.pl>
- <20231212200859.GA18912@polanet.pl>
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="pXcdsPN5"
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A2C8CD
+	for <netfilter-devel@vger.kernel.org>; Wed, 13 Dec 2023 04:13:58 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:To:From:Date:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=4n6lPryiSt7C4GtgRgllN2ZCA4qdxfkIg28RlIxAEvM=; b=pXcdsPN5KlA87XHWAhhkn9X2zH
+	ZLHJYO48UyS1SU4nycrTOoL7ScKRFLYf8nyGK3bWhzcp39BBP4DiP4BbbKoo8kAQkWSRJ38wbHf5W
+	d7gmmxqomqgpMEFj5L/gTnGNpPFoSKIUytymNOQbAqBk6oKu9Il0+F/J4P2YqJafOVhYkxdOk8hat
+	FDXn0wqnFkJHQlh3Va3aTNDLCbixWtG8NzMR6/2O9bXDGGrmlLLcdm6vPO4UzdX5u69lJiFkPpwyy
+	kt+cHytvmIBMZnfd2etcMvEthILsonWEpvfFWQUO3eUeiZvlwUPAsJR9HbBgdxQxgyiS1uhcwNrRU
+	txOaQKew==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1rDO7e-0000My-IY; Wed, 13 Dec 2023 13:13:54 +0100
+Date: Wed, 13 Dec 2023 13:13:54 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Eric Garver <eric@garver.life>, Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+Subject: Re: [nf-next PATCH] netfilter: nf_tables: Support updating table's
+ owner flag
+Message-ID: <ZXmgAu3u2w+Xjh8+@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>, Eric Garver <eric@garver.life>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+References: <20231208130103.26931-1-phil@nwl.cc>
+ <ZXhbYs4vQMWX/q+d@calendula>
+ <ZXiI58QCVek1rWiF@orbyte.nwl.cc>
+ <ZXji-iRbse7yiGte@egarver-mac>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="qjNfmADvan18RZcF"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20231212200859.GA18912@polanet.pl>
-User-Agent: Mutt/1.5.20 (2009-06-14)
+In-Reply-To: <ZXji-iRbse7yiGte@egarver-mac>
 
+Hi,
 
---qjNfmADvan18RZcF
-Content-Type: text/plain; charset=iso-8859-2
-Content-Disposition: inline
+On Tue, Dec 12, 2023 at 05:47:22PM -0500, Eric Garver wrote:
+> I'm not concerned with optimizing for the crash case. We wouldn't be
+> able to make any assumptions about the state of nftables. The only safe
+> option is to flush and reload all the rules.
 
-Change IPFIX output plugin event timestamps from:
+The problem with crashes is tables with owner flag set will vanish,
+leaving the system without a firewall.
 
-IPFIX_flowStartSeconds	150
-IPFIX_flowEndSeconds	151
+[...]
+> > For firewalld on the other hand, I think introducing this "persist" flag
+> > would be a full replacement to the proposed owner flag update.
+> 
+> I don't think we need a persist flag. If we want it to persist then
+> we'll just avoid setting the owner flag entirely.
 
-to:
+The benefit of using it is to avoid interference from other users
+calling 'nft flush ruleset'. Introducing a "persist" flag would enable
+this while avoiding the restart/crash downtime.
 
-IPFIX_flowStartMilliSeconds	152
-IPFIX_flowEndMilliSeconds	153
-
-While there are other entities with larger precision, namely *Micro* and
-*Nano*seconds, this choice has the advantage of being handled by nfdump.
-
-> diff --git a/input/flow/ulogd_inpflow_NFCT.c b/input/flow/ulogd_inpflow_NFCT.c
-> index 93c8844..f4b737b 100644
-> --- a/input/flow/ulogd_inpflow_NFCT.c
-> +++ b/input/flow/ulogd_inpflow_NFCT.c
->  		.type 	= ULOGD_RET_UINT32,
->  		.flags 	= ULOGD_RETF_NONE,
->  		.name	= "flow.start.usec",
-> -		.ipfix	= {
-> -			.vendor		= IPFIX_VENDOR_IETF,
-> -			.field_id	= IPFIX_flowStartMicroSeconds,
-> -		},
-> +		.ipfix	= { },
-> +		/* note that this is only fractional part of the second of flow.start,
-> +		   while IPFIX_flowStartMicroSeconds expects full timestamp */
->  	},
->  	{
->  		.type	= ULOGD_RET_UINT32,
-
-Oops, this chunk is missing it's line pointers, resending...
-
--- 
-Tomasz Pala <gotar@pld-linux.org>
-
---qjNfmADvan18RZcF
-Content-Type: text/plain; charset=iso-8859-2
-Content-Disposition: attachment; filename="ulogd2-ts_resolution2.patch"
-
-diff --git a/input/flow/ulogd_inpflow_NFCT.c b/input/flow/ulogd_inpflow_NFCT.c
-index 93c8844..f4b737b 100644
---- a/input/flow/ulogd_inpflow_NFCT.c
-+++ b/input/flow/ulogd_inpflow_NFCT.c
-@@ -379,10 +377,9 @@ static struct ulogd_key nfct_okeys[] = {
- 		.type 	= ULOGD_RET_UINT32,
- 		.flags 	= ULOGD_RETF_NONE,
- 		.name	= "flow.start.usec",
--		.ipfix	= {
--			.vendor		= IPFIX_VENDOR_IETF,
--			.field_id	= IPFIX_flowStartMicroSeconds,
--		},
-+		.ipfix	= { },
-+		/* note that this is only fractional part of the second of flow.start,
-+		   while IPFIX_flowStartMicroSeconds expects full timestamp */
- 	},
- 	{
- 		.type	= ULOGD_RET_UINT32,
-@@ -397,10 +394,9 @@ static struct ulogd_key nfct_okeys[] = {
- 		.type	= ULOGD_RET_UINT32,
- 		.flags	= ULOGD_RETF_NONE,
- 		.name	= "flow.end.usec",
--		.ipfix	= {
--			.vendor		= IPFIX_VENDOR_IETF,
--			.field_id	= IPFIX_flowEndSeconds,
--		},
-+		.ipfix	= { },
-+		/* note that this is only fractional part of the second of flow.end,
-+		   while IPFIX_flowEndMicroSeconds expects full timestamp */
- 	},
- 	{
- 		.type	= ULOGD_RET_UINT8,
-diff --git a/output/ipfix/ipfix.c b/output/ipfix/ipfix.c
-index 0ad34ec..c2a6c6b 100644
---- a/output/ipfix/ipfix.c
-+++ b/output/ipfix/ipfix.c
-@@ -53,12 +53,12 @@ static const struct ipfix_templ template = {
- 			.len = sizeof(uint32_t)
- 		},
- 		{
--			.id = IPFIX_flowStartSeconds,
--			.len = sizeof(uint32_t)
-+			.id = IPFIX_flowStartMilliSeconds,
-+			.len = sizeof(uint64_t)
- 		},
- 		{
--			.id = IPFIX_flowEndSeconds,
--			.len = sizeof(uint32_t)
-+			.id = IPFIX_flowEndMilliSeconds,
-+			.len = sizeof(uint64_t)
- 		},
- 		{
- 			.id = IPFIX_sourceTransportPort,
-diff --git a/output/ipfix/ipfix.h b/output/ipfix/ipfix.h
-index f671ea6..2de9572 100644
---- a/output/ipfix/ipfix.h
-+++ b/output/ipfix/ipfix.h
-@@ -63,8 +63,10 @@ struct vy_ipfix_data {
- 	struct in_addr tdaddr;
- 	uint32_t packets;
- 	uint32_t bytes;
--	uint32_t start;				/* Unix time */
--	uint32_t end;				/* Unix time */
-+	uint32_t start_high;			/* Unix time * 1000 */
-+	uint32_t start_low;
-+	uint32_t end_high;
-+	uint32_t end_low;
- 	uint16_t sport;
- 	uint16_t dport;
- 	uint16_t tsport;
-diff --git a/output/ipfix/ulogd_output_IPFIX.c b/output/ipfix/ulogd_output_IPFIX.c
-index 167ee9a..8f1dde3 100644
---- a/output/ipfix/ulogd_output_IPFIX.c
-+++ b/output/ipfix/ulogd_output_IPFIX.c
-@@ -440,6 +440,7 @@ static int ipfix_interp(struct ulogd_pluginstance *pi)
- {
- 	struct ipfix_priv *priv = (struct ipfix_priv *) &pi->private;
- 	char saddr[16],tsaddr[16], daddr[16],tdaddr[16], *send_template;
-+	uint64_t start, end;
- 	struct vy_ipfix_data *data;
- 	int oid, mtu, ret;
- 
-@@ -486,8 +487,12 @@ again:
- 	data->bytes = htonl((uint32_t) (ikey_get_u64(&pi->input.keys[InRawInPktLen])
- 						+ ikey_get_u64(&pi->input.keys[InRawOutPktLen])));
- 
--	data->start = htonl(ikey_get_u32(&pi->input.keys[InFlowStartSec]));
--	data->end = htonl(ikey_get_u32(&pi->input.keys[InFlowEndSec]));
-+	start = (uint64_t)ikey_get_u32(&pi->input.keys[InFlowStartSec]) *1000 + ikey_get_u32(&pi->input.keys[InFlowStartUsec])/1000;
-+	end   = (uint64_t)ikey_get_u32(&pi->input.keys[InFlowEndSec])   *1000 + ikey_get_u32(&pi->input.keys[InFlowEndUsec])/1000;
-+	data->start_low = htonl((uint32_t)(start & 0xFFFFFFFFUL));
-+	data->start_high = htonl(start >> 32);
-+	data->end_low = htonl((uint32_t)(end & 0xFFFFFFFFUL));
-+	data->end_high = htonl(end >> 32);
- 
- 	if (GET_FLAGS(pi->input.keys, InL4SPort) & ULOGD_RETF_VALID) {
- 		data->sport = htons(ikey_get_u16(&pi->input.keys[InL4SPort]));
-@@ -502,11 +508,13 @@ again:
- 
- 	data->l4_proto = ikey_get_u8(&pi->input.keys[InIpProto]);
- 
--	ulogd_log(ULOGD_DEBUG, "Got new packet (packets = %u, bytes = %u, flow = (%u, %u), saddr = %s, daddr = %s, sport = %u, dport = %u)\n",
--		  ntohl(data->packets), ntohl(data->bytes), ntohl(data->start), ntohl(data->end),
-+	ulogd_log(ULOGD_DEBUG, "Got new packet (packets = %u, bytes = %u, flow = (%u:%u, %u:%u), saddr = %s/%s, daddr = %s/%s, sport = %u/%u, dport = %u/%u)\n",
-+		  ntohl(data->packets), ntohl(data->bytes), ntohl(data->start_high),ntohl(data->start_low), ntohl(data->end_high),ntohl(data->end_low),
- 		  inet_ntop(AF_INET, &data->saddr.s_addr, saddr, sizeof(saddr)),
-+		  inet_ntop(AF_INET, &data->tsaddr.s_addr, tsaddr, sizeof(tsaddr)),
- 		  inet_ntop(AF_INET, &data->daddr.s_addr, daddr, sizeof(daddr)),
--		  ntohs(data->sport), ntohs(data->dport));
-+		  inet_ntop(AF_INET, &data->tdaddr.s_addr, tdaddr, sizeof(tdaddr)),
-+		  ntohs(data->sport),ntohs(data->tsport), ntohs(data->dport),ntohs(data->tdport));
- 
- 	if ((ret = send_msgs(pi)) < 0)
- 		return ret;
-
---qjNfmADvan18RZcF--
+Cheers, Phil
