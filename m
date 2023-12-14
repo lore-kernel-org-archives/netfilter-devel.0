@@ -1,168 +1,132 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F2C5B10E
-	for <netfilter-devel@vger.kernel.org>; Thu, 14 Dec 2023 06:39:38 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1rDmsD-000196-26; Thu, 14 Dec 2023 15:39:37 +0100
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] netlink: don't crash if prefix for < byte is requested
-Date: Thu, 14 Dec 2023 15:39:27 +0100
-Message-ID: <20231214143931.19225-1-fw@strlen.de>
-X-Mailer: git-send-email 2.41.0
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="SG/H8uCI"
+Received: from azazel.net (unknown [IPv6:2a05:d01c:431:aa03:b7e1:333d:ea2a:b14e])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 550CF91
+	for <netfilter-devel@vger.kernel.org>; Thu, 14 Dec 2023 06:44:56 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+	s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:To:From:Date:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=Uz9QxRyLjcWdj2XW8UVguKw/Kyfhb461O67Ym2rI5h8=; b=SG/H8uCIwdomEhJx3WbKRpvjNU
+	0wJm1oaZf/fa96R+BHIEvtR8rn/14qeDCyaKZCaLReOe0IxtGT99YGv00ONaoJcxi2h+YJKWZ5Cwo
+	byR4ZVKEoTHc+C+xuzxpNae93khp+JKgsEaKOG/a+so19jNNykEbpa0gCdLsGPO+fgQmKYs/LIrXe
+	r4OohoEPBbbUsXvnazlC/BGuLprX/NMDD9M4VAI3m8IlDnRI4VMsElxM7pmFJuvLzwZkOcBDVhQwd
+	d2f+NzrnUwAHhAbeMn2jkwbg1f2sngOvuOUpzIIGm0TejwIPle2OVYwAhLe6MLU1n8Z8+75Lpyboi
+	XKaIzxgg==;
+Received: from celephais.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] helo=celephais.dreamlands)
+	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.96)
+	(envelope-from <jeremy@azazel.net>)
+	id 1rDmxK-0035pJ-2p
+	for netfilter-devel@vger.kernel.org;
+	Thu, 14 Dec 2023 14:44:54 +0000
+Date: Thu, 14 Dec 2023 14:44:53 +0000
+From: Jeremy Sowden <jeremy@azazel.net>
+To: Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH iptables 6/7] build: replace `echo -e` with `printf`
+Message-ID: <20231214144453.GL1120209@celephais.dreamlands>
+References: <20231214125927.925993-1-jeremy@azazel.net>
+ <20231214125927.925993-7-jeremy@azazel.net>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="ZWpzfLVIJMjiiMQ/"
+Content-Disposition: inline
+In-Reply-To: <20231214125927.925993-7-jeremy@azazel.net>
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 
-If prefix is used with a datatype that has less than 8 bits an
-assertion is triggered:
 
-src/netlink.c:243: netlink_gen_raw_data: Assertion `len > 0' failed.
+--ZWpzfLVIJMjiiMQ/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This is esoteric, the alternative would be to restrict prefixes
-to ipv4/ipv6 addresses.
+On 2023-12-14, at 12:59:21 +0000, Jeremy Sowden wrote:
+> `echo -e` is not portable and we can end up with:
+>=20
+>       GEN      matches.man
+>     -e      + ./libxt_addrtype.man
+>     -e      + ./libip6t_ah.man
+>     -e      + ./libipt_ah.man
+>     -e      + ./libxt_bpf.man
+>     -e      + ./libxt_cgroup.man
+>     -e      + ./libxt_cluster.man
+>     -e      + ./libxt_comment.man
+>     -e      + ./libxt_connbytes.man
+>     -e      + ./libxt_connlabel.man
+>     -e      + ./libxt_connlimit.man
+>     -e      + ./libxt_connmark.man
+>     -e      + ./libxt_conntrack.man
+>     [...]
+>=20
+> Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+> ---
+>  extensions/GNUmakefile.in | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+>=20
+> diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
+> index dfa58c3b9e8b..f41af7c1420d 100644
+> --- a/extensions/GNUmakefile.in
+> +++ b/extensions/GNUmakefile.in
+> @@ -228,19 +228,19 @@ man_run    =3D \
+>  	for ext in $(sort ${1}); do \
+>  		f=3D"${srcdir}/libxt_$$ext.man"; \
+>  		if [ -f "$$f" ]; then \
+> -			echo -e "\t+ $$f" >&2; \
+> +			printf "\t+ $$f" >&2; \
+>  			echo ".SS $$ext"; \
+>  			cat "$$f" || exit $$?; \
+>  		fi; \
+>  		f=3D"${srcdir}/libip6t_$$ext.man"; \
+>  		if [ -f "$$f" ]; then \
+> -			echo -e "\t+ $$f" >&2; \
+> +			printf "\t+ $$f" >&2; \
+>  			echo ".SS $$ext (IPv6-specific)"; \
+>  			cat "$$f" || exit $$?; \
+>  		fi; \
+>  		f=3D"${srcdir}/libipt_$$ext.man"; \
+>  		if [ -f "$$f" ]; then \
+> -			echo -e "\t+ $$f" >&2; \
+> +			printf "\t+ $$f" >&2; \
+>  			echo ".SS $$ext (IPv4-specific)"; \
+>  			cat "$$f" || exit $$?; \
+>  		fi; \
+> --=20
+> 2.43.0
+>=20
+>=20
 
-Simpler fix is to use round_up instead of divide.
+Just noticed that there should be newlines in the printf commands.  Will
+resend.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- src/netlink_linearize.c         |  3 ++-
- tests/py/ip/ip.t                |  2 ++
- tests/py/ip/ip.t.json           | 21 +++++++++++++++++++++
- tests/py/ip/ip.t.payload        |  8 ++++++++
- tests/py/ip/ip.t.payload.bridge | 10 ++++++++++
- tests/py/ip/ip.t.payload.inet   | 10 ++++++++++
- tests/py/ip/ip.t.payload.netdev | 10 ++++++++++
- 7 files changed, 63 insertions(+), 1 deletion(-)
+J.
 
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index 61828eb9f295..d8b41a088948 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -460,7 +460,8 @@ static struct expr *netlink_gen_prefix(struct netlink_linearize_ctx *ctx,
- 	mpz_init(mask);
- 	mpz_prefixmask(mask, expr->right->len, expr->right->prefix_len);
- 	netlink_gen_raw_data(mask, expr->right->byteorder,
--			     expr->right->len / BITS_PER_BYTE, &nld);
-+			     div_round_up(expr->right->len, BITS_PER_BYTE),
-+			     &nld);
- 	mpz_clear(mask);
- 
- 	zero.len = nld.len;
-diff --git a/tests/py/ip/ip.t b/tests/py/ip/ip.t
-index 720d9ae92b60..e6999c29478b 100644
---- a/tests/py/ip/ip.t
-+++ b/tests/py/ip/ip.t
-@@ -133,3 +133,5 @@ ip saddr . ip daddr vmap { 192.168.5.1-192.168.5.128 . 192.168.6.1-192.168.6.128
- 
- ip saddr 1.2.3.4 ip daddr 3.4.5.6;ok
- ip saddr 1.2.3.4 counter ip daddr 3.4.5.6;ok
-+
-+ip dscp 1/6;ok;ip dscp & 0x3f == lephb
-diff --git a/tests/py/ip/ip.t.json b/tests/py/ip/ip.t.json
-index 882c94eb4e15..a170e5c15965 100644
---- a/tests/py/ip/ip.t.json
-+++ b/tests/py/ip/ip.t.json
-@@ -1809,3 +1809,24 @@
-         }
-     }
- ]
-+
-+# ip dscp 1/6
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "&": [
-+                    {
-+                        "payload": {
-+                            "field": "dscp",
-+                            "protocol": "ip"
-+                        }
-+                    },
-+                    63
-+                ]
-+            },
-+            "op": "==",
-+            "right": "lephb"
-+        }
-+    }
-+]
-diff --git a/tests/py/ip/ip.t.payload b/tests/py/ip/ip.t.payload
-index 43605a361a7a..d7ddf7be0c3b 100644
---- a/tests/py/ip/ip.t.payload
-+++ b/tests/py/ip/ip.t.payload
-@@ -556,3 +556,11 @@ ip test-ip4 input
-   [ counter pkts 0 bytes 0 ]
-   [ payload load 4b @ network header + 16 => reg 1 ]
-   [ cmp eq reg 1 0x06050403 ]
-+
-+# ip dscp 1/6
-+ip test-ip4 input
-+  [ payload load 1b @ network header + 1 => reg 1 ]
-+  [ bitwise reg 1 = ( reg 1 & 0x000000fc ) ^ 0x00000000 ]
-+  [ bitwise reg 1 = ( reg 1 >> 0x00000002 ) ]
-+  [ bitwise reg 1 = ( reg 1 & 0x0000003f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000001 ]
-diff --git a/tests/py/ip/ip.t.payload.bridge b/tests/py/ip/ip.t.payload.bridge
-index e506f300c947..53f881d336df 100644
---- a/tests/py/ip/ip.t.payload.bridge
-+++ b/tests/py/ip/ip.t.payload.bridge
-@@ -726,3 +726,13 @@ bridge test-bridge input
-   [ counter pkts 0 bytes 0 ]
-   [ payload load 4b @ network header + 16 => reg 1 ]
-   [ cmp eq reg 1 0x06050403 ]
-+
-+# ip dscp 1/6
-+bridge test-bridge input
-+  [ meta load protocol => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+  [ payload load 1b @ network header + 1 => reg 1 ]
-+  [ bitwise reg 1 = ( reg 1 & 0x000000fc ) ^ 0x00000000 ]
-+  [ bitwise reg 1 = ( reg 1 >> 0x00000002 ) ]
-+  [ bitwise reg 1 = ( reg 1 & 0x0000003f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000001 ]
-diff --git a/tests/py/ip/ip.t.payload.inet b/tests/py/ip/ip.t.payload.inet
-index a7fa0faffba3..08674c98e022 100644
---- a/tests/py/ip/ip.t.payload.inet
-+++ b/tests/py/ip/ip.t.payload.inet
-@@ -726,3 +726,13 @@ inet test-inet input
-   [ counter pkts 0 bytes 0 ]
-   [ payload load 4b @ network header + 16 => reg 1 ]
-   [ cmp eq reg 1 0x06050403 ]
-+
-+# ip dscp 1/6
-+inet test-inet input
-+  [ meta load nfproto => reg 1 ]
-+  [ cmp eq reg 1 0x00000002 ]
-+  [ payload load 1b @ network header + 1 => reg 1 ]
-+  [ bitwise reg 1 = ( reg 1 & 0x000000fc ) ^ 0x00000000 ]
-+  [ bitwise reg 1 = ( reg 1 >> 0x00000002 ) ]
-+  [ bitwise reg 1 = ( reg 1 & 0x0000003f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000001 ]
-diff --git a/tests/py/ip/ip.t.payload.netdev b/tests/py/ip/ip.t.payload.netdev
-index aebd9d64c8e3..8220b05d11c1 100644
---- a/tests/py/ip/ip.t.payload.netdev
-+++ b/tests/py/ip/ip.t.payload.netdev
-@@ -726,3 +726,13 @@ netdev test-netdev ingress
-   [ counter pkts 0 bytes 0 ]
-   [ payload load 4b @ network header + 16 => reg 1 ]
-   [ cmp eq reg 1 0x06050403 ]
-+
-+# ip dscp 1/6
-+netdev test-netdev ingress
-+  [ meta load protocol => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+  [ payload load 1b @ network header + 1 => reg 1 ]
-+  [ bitwise reg 1 = ( reg 1 & 0x000000fc ) ^ 0x00000000 ]
-+  [ bitwise reg 1 = ( reg 1 >> 0x00000002 ) ]
-+  [ bitwise reg 1 = ( reg 1 & 0x0000003f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000001 ]
--- 
-2.41.0
+--ZWpzfLVIJMjiiMQ/
+Content-Type: application/pgp-signature; name="signature.asc"
 
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmV7FNQACgkQKYasCr3x
+BA1WfhAAxNNFLuVJv7gvKt/WHPplVODcEWg9mPZHt5QcZPxBvmJwbzdE/U1ILyqR
+wrBdZQOJhSltVQVkG5nlj5jWm2O5e8sNdE6REOiqlmeBw0trrt9UlTnajPcNJ6uz
+veAotkOsQllIRAro4P6vRZQ2MWOkO8h49E5c6XefR4Ly1dCAGdqdtGbOuEJlt6DB
+mlcTSezOjPBhDZkdPiqhEOemr+pxLQujiVlknJlFsK/KXkk5uRmT6fcR/qGr5D3W
+c4O/OeH1xHCNR4KZxfTPSAjMhc9+aqLmL5HE9RVjeqj2AfztjGq2v2ERxOdYTn23
+BPVF75WywsUiEoQF6woLPxEyXxkPfsgLxq8/udIR9kLf3XrT1/pqUzX+6eJEVUFZ
+LsOw4wSvH12uPeAituoy2+8Ng/cF9vccwmJOxKKjDEcWJ5DJQy9DsyLhQTyN6bZQ
+bn1dQfbiEcnLdgnI7jb7UmfvWq8kPukT3vKgfsXhbluMXrN4ljBPP5AkrxLALv4i
+9XOHHoHdz/ehR2DTmbePiBG+vgy3LuvW6PSk5EoF1jPk8gwcrD/tAJ3IEO4tB7nE
+s3eyB6tm521BXa3x2G7PcgOBaAu4XBrFcbLM9YSUyNiqXfDoZPNJWti85lusM1+/
+nLwdzdqFKFcbjnzsbgSwKmdsGSKYl/7qBkn4THMIADoklrKXGhQ=
+=ABdE
+-----END PGP SIGNATURE-----
+
+--ZWpzfLVIJMjiiMQ/--
