@@ -1,35 +1,16 @@
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="VrZ+arIK"
-Received: from azazel.net (unknown [IPv6:2a05:d01c:431:aa03:b7e1:333d:ea2a:b14e])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CABF5114
-	for <netfilter-devel@vger.kernel.org>; Thu, 14 Dec 2023 08:44:18 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-	s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=upReZHkA5rxf9OVI1F0LW/69k6j+8yjL8deHHMN3N1w=; b=VrZ+arIKbYtobbYGLlKAyNlrx2
-	vC55Nj12e661JZ8YtbFckqiQvoThY31fjU/4IW8QFtbRbgUpYVI490MAbd6bVwTwr3MWIQl3PRZ7G
-	b4jBEr43CzvVbcGMREexG7ynZBIIzqws31ImcRfOD0YAcOdp9OOtuI4HxWOWTgN+w6phIdFOGpXjd
-	sxHC6EKUHqbvT2LiOKWlEmxTnXvJEeyNQcn2Lj6EBS92PkdJsZwE+aNiwW/vG58ZO+FI9AYstmnUb
-	ar8f4jwWzw0KC32xlYxWSkC+YH/Xj4nLB2PZbNr63mG4wHqyoawVLIEpa9VbH+eXlbc72xDEtmhTK
-	YVx+qU1g==;
-Received: from [2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608] (helo=ulthar.dreamlands)
-	by taras.nevrast.org with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.96)
-	(envelope-from <jeremy@azazel.net>)
-	id 1rDoor-0038UN-1u
-	for netfilter-devel@vger.kernel.org;
-	Thu, 14 Dec 2023 16:44:17 +0000
-From: Jeremy Sowden <jeremy@azazel.net>
-To: Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH iptables v2 2/6] build: remove obsolete `AM_LIBTOOL_SILENT` variable
-Date: Thu, 14 Dec 2023 16:44:01 +0000
-Message-ID: <20231214164408.1001721-3-jeremy@azazel.net>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20231214164408.1001721-1-jeremy@azazel.net>
-References: <20231214164408.1001721-1-jeremy@azazel.net>
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F153F114
+	for <netfilter-devel@vger.kernel.org>; Thu, 14 Dec 2023 08:57:09 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1rDp1H-0002Qa-MK; Thu, 14 Dec 2023 17:57:07 +0100
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] evaluate: exthdr: statement arg must be not be a range
+Date: Thu, 14 Dec 2023 17:56:59 +0100
+Message-ID: <20231214165703.12520-1-fw@strlen.de>
+X-Mailer: git-send-email 2.41.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,29 +18,60 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 
-It doesn't do anything, so get rid of it.
+Else we get:
+BUG: unknown expression type range
+nft: src/netlink_linearize.c:909: netlink_gen_expr: Assertion `0' failed.
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- extensions/GNUmakefile.in | 1 -
- 1 file changed, 1 deletion(-)
+ src/evaluate.c                                | 19 ++++++++++++++++---
+ .../bogons/nft-f/exthdr_with_range_bug        |  1 +
+ 2 files changed, 17 insertions(+), 3 deletions(-)
+ create mode 100644 tests/shell/testcases/bogons/nft-f/exthdr_with_range_bug
 
-diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
-index 40bcec7999ae..53011fc8c2bb 100644
---- a/extensions/GNUmakefile.in
-+++ b/extensions/GNUmakefile.in
-@@ -35,7 +35,6 @@ AM_DEPFLAGS     = -Wp,-MMD,$(@D)/.$(@F).d,-MT,$@
- AM_LDFLAGS      = @noundef_LDFLAGS@ @regular_LDFLAGS@
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 70d80eb48556..1c5078d67c13 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -3024,14 +3024,27 @@ static bool stmt_evaluate_payload_need_csum(const struct expr *payload)
+ static int stmt_evaluate_exthdr(struct eval_ctx *ctx, struct stmt *stmt)
+ {
+ 	struct expr *exthdr;
++	int ret;
  
- ifeq (${V},)
--AM_LIBTOOL_SILENT = --silent
- AM_VERBOSE_CC     = @echo "  CC      " $@;
- AM_VERBOSE_CCLD   = @echo "  CCLD    " $@;
- AM_VERBOSE_CXX    = @echo "  CXX     " $@;
+ 	if (__expr_evaluate_exthdr(ctx, &stmt->exthdr.expr) < 0)
+ 		return -1;
+ 
+ 	exthdr = stmt->exthdr.expr;
+-	return stmt_evaluate_arg(ctx, stmt, exthdr->dtype, exthdr->len,
+-				 BYTEORDER_BIG_ENDIAN,
+-				 &stmt->exthdr.val);
++	ret = stmt_evaluate_arg(ctx, stmt, exthdr->dtype, exthdr->len,
++				BYTEORDER_BIG_ENDIAN,
++				&stmt->exthdr.val);
++	if (ret < 0)
++		return ret;
++
++	switch (stmt->exthdr.val->etype) {
++	case EXPR_RANGE:
++		return expr_error(ctx->msgs, stmt->exthdr.val,
++				   "cannot be a range");
++	default:
++		break;
++	}
++
++	return 0;
+ }
+ 
+ static int stmt_evaluate_payload(struct eval_ctx *ctx, struct stmt *stmt)
+diff --git a/tests/shell/testcases/bogons/nft-f/exthdr_with_range_bug b/tests/shell/testcases/bogons/nft-f/exthdr_with_range_bug
+new file mode 100644
+index 000000000000..e307e7cc5482
+--- /dev/null
++++ b/tests/shell/testcases/bogons/nft-f/exthdr_with_range_bug
+@@ -0,0 +1 @@
++add rule t c ip option ra set 0-1
 -- 
-2.43.0
+2.41.0
 
