@@ -1,68 +1,60 @@
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HokT50fZ"
-Received: from mail-wm1-x329.google.com (mail-wm1-x329.google.com [IPv6:2a00:1450:4864:20::329])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F063CBD;
-	Wed, 13 Dec 2023 21:50:43 -0800 (PST)
-Received: by mail-wm1-x329.google.com with SMTP id 5b1f17b1804b1-40c19f5f822so1072255e9.1;
-        Wed, 13 Dec 2023 21:50:43 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1702533042; x=1703137842; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Gv2LMH04lN7pN5hZISqbYob6Kor2oYpqw6+JDkjEriQ=;
-        b=HokT50fZc9RVfykcVNPB7MAMiIfFslOIq+/7xkMeoYnRyHEUSAOprgImDyVV0D+tRH
-         s/j2/iHWnicQY0JdgWy9xrfISNNJPfB7AA2D5xnt9paIdCDsiXfbJvYtj5sCpRN3F1yV
-         yuKgOcCiFVJu1kzGBsHX3C4S+p9NYjoKdPHHUc9PmoumoiicIv+vh01EsOlGsE29/Lie
-         4om1HMaPN+3a/gnbjj0oqOmDKI7P0j4Ymyh3hT8spP3+/NgT89LtC7Fc4UMQu2pkWzgl
-         bIBdp+PrvChkDYNY3FFbrMStL6sGOuhIkL1Ut4nhG1yuCMz5hVEHGE71QiHt1X5s9h5U
-         mD9Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1702533042; x=1703137842;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Gv2LMH04lN7pN5hZISqbYob6Kor2oYpqw6+JDkjEriQ=;
-        b=DJB78LHTNAa3xsdg5etBLSvAkhcEk7yFkE5NabO7TjkziVWvUQbc/xisZtn7wA7qUa
-         4H20yFwclFE2LvypG94YkmSeO1QqvEPyik+7m4Ww3tUAbGEmis6raxdj5cPbuKE5nz0K
-         /TEzSzkvISYkz47IF6BqWBNO5tnS4Bzm9SqbI18ED/7JmsQwOoKT68GhAo3pTPTZaxYt
-         SUHg2Be5VDnCca26GFPqjNiFMsAhigccBTCLdifWFiOYLdt7ItchfvFpCAa863QWynoa
-         HBQYFnGzHRvm2RT6iWLa6qdCPbBXXAZu+JVdlC0SiD2N/tltYscQxGqk7QigUTbA4Grp
-         aA6A==
-X-Gm-Message-State: AOJu0YwZAnZNlK1zHwuYpBCs+shSTs9alNfBSqwzcB6j4XjD1+YH0NAq
-	oS5DACzHAtpj2XB/9FLcID2ejS6Gzqb8MaUR7Gs=
-X-Google-Smtp-Source: AGHT+IG8HTlkBLhPbgrHweb+oxh/HFdECRuBkFiUukTeyqSmIqt3mDI0jXGTMa2gff001mk6v1A6Y271QBqB28KxA7s=
-X-Received: by 2002:a05:600c:3784:b0:40b:5e4a:235a with SMTP id
- o4-20020a05600c378400b0040b5e4a235amr4169222wmr.92.1702533042008; Wed, 13 Dec
- 2023 21:50:42 -0800 (PST)
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1EF010A
+	for <netfilter-devel@vger.kernel.org>; Thu, 14 Dec 2023 00:39:23 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1rDhFZ-00070Y-Nd; Thu, 14 Dec 2023 09:39:21 +0100
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] evaluate: fix gmp assertion with too-large reject code
+Date: Thu, 14 Dec 2023 09:39:13 +0100
+Message-ID: <20231214083917.2430-1-fw@strlen.de>
+X-Mailer: git-send-email 2.41.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <1702467945-38866-1-git-send-email-alibuda@linux.alibaba.com>
- <1702467945-38866-2-git-send-email-alibuda@linux.alibaba.com>
- <20231213222415.GA13818@breakpoint.cc> <0e94149a-05f1-3f98-3f75-ca74f364a45b@linux.alibaba.com>
-In-Reply-To: <0e94149a-05f1-3f98-3f75-ca74f364a45b@linux.alibaba.com>
-From: Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Date: Wed, 13 Dec 2023 21:50:30 -0800
-Message-ID: <CAADnVQJx7j_kB6PVJN7cwGn5ETjcSs2Y0SuBS0+9qJRFpMNv-w@mail.gmail.com>
-Subject: Re: [RFC nf-next 1/2] netfilter: bpf: support prog update
-To: "D. Wythe" <alibuda@linux.alibaba.com>
-Cc: Florian Westphal <fw@strlen.de>, Pablo Neira Ayuso <pablo@netfilter.org>, 
-	Jozsef Kadlecsik <kadlec@netfilter.org>, bpf <bpf@vger.kernel.org>, 
-	LKML <linux-kernel@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, 
-	coreteam@netfilter.org, netfilter-devel <netfilter-devel@vger.kernel.org>, 
-	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Alexei Starovoitov <ast@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Wed, Dec 13, 2023 at 9:31=E2=80=AFPM D. Wythe <alibuda@linux.alibaba.com=
-> wrote:
->
-> I will address those issues you mentioned in the next version.
+Before:
+nft: gmputil.c:77: mpz_get_uint8: Assertion `cnt <= 1' failed.
+After: Error: reject code must be integer in range 0-255
 
-Don't. There is no need for the next version.
-None of these changes are necessary.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/evaluate.c                                             | 7 +++++++
+ .../testcases/bogons/nft-f/icmp_reject_type_uint8_assert   | 1 +
+ 2 files changed, 8 insertions(+)
+ create mode 100644 tests/shell/testcases/bogons/nft-f/icmp_reject_type_uint8_assert
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index c78cfd7a1d6e..89b84cd03864 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -3598,6 +3598,13 @@ static int stmt_evaluate_reject_icmp(struct eval_ctx *ctx, struct stmt *stmt)
+ 		erec_queue(erec, ctx->msgs);
+ 		return -1;
+ 	}
++
++	if (mpz_cmp_ui(code->value, 255) > 0) {
++		expr_free(code);
++		return expr_error(ctx->msgs, stmt->reject.expr,
++				  "reject code must be integer in range 0-255");
++	}
++
+ 	stmt->reject.icmp_code = mpz_get_uint8(code->value);
+ 	expr_free(code);
+ 
+diff --git a/tests/shell/testcases/bogons/nft-f/icmp_reject_type_uint8_assert b/tests/shell/testcases/bogons/nft-f/icmp_reject_type_uint8_assert
+new file mode 100644
+index 000000000000..1fc85b2938cc
+--- /dev/null
++++ b/tests/shell/testcases/bogons/nft-f/icmp_reject_type_uint8_assert
+@@ -0,0 +1 @@
++rule t c reject with icmp 512
+-- 
+2.41.0
+
