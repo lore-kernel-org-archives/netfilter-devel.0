@@ -1,53 +1,73 @@
-Received: from out30-130.freemail.mail.aliyun.com (out30-130.freemail.mail.aliyun.com [115.124.30.130])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58AED1A7;
-	Thu, 14 Dec 2023 08:10:29 -0800 (PST)
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R171e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045176;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=14;SR=0;TI=SMTPD_---0VyUntPm_1702570225;
-Received: from 192.168.50.70(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VyUntPm_1702570225)
-          by smtp.aliyun-inc.com;
-          Fri, 15 Dec 2023 00:10:26 +0800
-Message-ID: <f79c3b4c-4c3a-8bc1-6396-4cbba17136dc@linux.alibaba.com>
-Date: Fri, 15 Dec 2023 00:10:24 +0800
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="sCfpfZS+"
+Received: from azazel.net (unknown [IPv6:2a05:d01c:431:aa03:b7e1:333d:ea2a:b14e])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C7B3810F
+	for <netfilter-devel@vger.kernel.org>; Thu, 14 Dec 2023 08:44:18 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+	s=20220717; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=ojcdrKre1+cMsd8RNAYxdif4uurn6CHtSrfM0usovGI=; b=sCfpfZS+eei+08RqN3ZNpeWK7X
+	7ZXWb3WrJv7SZwFPqv/8En3r7JnbhiEZP1FIIBs1zc7IG9oK7ycOHRoUltu8DOki60z5/PxyJEpOk
+	7Kmgs15+KbYeLVklUBnN2UoMwF76YmR0oGvEz3i8wNXwFyYe6v1Bt8Tso2uN1XZDXslib/eNBmbOg
+	0hNDIv2dkMTCNrSFK04pZpdkhxu0vXz80rGmBs5NyqDu7ryseQG9S8uQFMqauLUneBNdlKRFVcg15
+	1HMzMJQDcmIzUzGdeh6Z50I4QglshLur/WA8MjneRCiHFdgyVOWcbwCh6lCrud27mOWTyWa3oNXkB
+	SwunGciA==;
+Received: from [2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608] (helo=ulthar.dreamlands)
+	by taras.nevrast.org with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.96)
+	(envelope-from <jeremy@azazel.net>)
+	id 1rDoor-0038UN-1c
+	for netfilter-devel@vger.kernel.org;
+	Thu, 14 Dec 2023 16:44:17 +0000
+From: Jeremy Sowden <jeremy@azazel.net>
+To: Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH iptables v2 0/6] Autoools silent-rules fixes
+Date: Thu, 14 Dec 2023 16:43:59 +0000
+Message-ID: <20231214164408.1001721-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
- Gecko/20100101 Thunderbird/102.15.1
-Subject: Re: [RFC nf-next 1/2] netfilter: bpf: support prog update
-Content-Language: en-US
-To: Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Cc: Florian Westphal <fw@strlen.de>, Pablo Neira Ayuso <pablo@netfilter.org>,
- Jozsef Kadlecsik <kadlec@netfilter.org>, bpf <bpf@vger.kernel.org>,
- LKML <linux-kernel@vger.kernel.org>,
- Network Development <netdev@vger.kernel.org>, coreteam@netfilter.org,
- netfilter-devel <netfilter-devel@vger.kernel.org>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Alexei Starovoitov <ast@kernel.org>
-References: <1702467945-38866-1-git-send-email-alibuda@linux.alibaba.com>
- <1702467945-38866-2-git-send-email-alibuda@linux.alibaba.com>
- <20231213222415.GA13818@breakpoint.cc>
- <0e94149a-05f1-3f98-3f75-ca74f364a45b@linux.alibaba.com>
- <CAADnVQJx7j_kB6PVJN7cwGn5ETjcSs2Y0SuBS0+9qJRFpMNv-w@mail.gmail.com>
- <e6d9b59f-9c98-53a1-4947-720095e0c37e@linux.alibaba.com>
- <CAADnVQK5JP3D+BrugP61whZX1r1zHp7M_VLSkDmCKF9y96=79A@mail.gmail.com>
- <3c1f3b68-f1fc-495c-5430-ba7bc7339619@linux.alibaba.com>
- <CAADnVQLJ3XkZMQDdMGOcKUqK8xuFHcc1+74o6RrzfzeZo7v28A@mail.gmail.com>
-From: "D. Wythe" <alibuda@linux.alibaba.com>
-In-Reply-To: <CAADnVQLJ3XkZMQDdMGOcKUqK8xuFHcc1+74o6RrzfzeZo7v28A@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 
+The build system defines variables similar to the ones automake provides
+to control the verbosity of the build.  However, the iptables implemen-
+tation is only partially effective and was written fifteen years ago.
+This patch-set brings the variable definitions in line with the current
+automake recommendations and fixes some bugs.
 
+Patch 1 contains some unrelated formatting changes.
+Patches 2 & 3 remove some unused variables.
+Patch 4 brings the remaining ones in line with automake.
+Patch 5 adds a new variable for `ln`.
+Patch 6 fixes a problem with the man-page rules.
 
-On 12/15/23 12:02 AM, Alexei Starovoitov wrote:
-> I see. The commit log didn't make it clear.
-> Yes. That would be good to support.
+Changes since v1
 
-That's my bad. I will make the commit log more clear in the next version.
-In any case, thanks very much for your feedback.
+  * Patch 6: missing newlines added
+  * Patch 7: dropped after feedback from Jan Engelhardt
 
-Besh wishes,
-D. Wythe
+Jeremy Sowden (6):
+  build: format `AM_CPPFLAGS` variables
+  build: remove obsolete `AM_LIBTOOL_SILENT` variable
+  build: remove unused `AM_VERBOSE_CXX*` variables
+  build: use standard automake verbosity variables
+  build: add an automake verbosity variable for `ln`
+  build: replace `echo -e` with `printf`
+
+ extensions/GNUmakefile.in | 75 +++++++++++++++++++++++----------------
+ iptables/Makefile.am      | 15 +++++---
+ 2 files changed, 56 insertions(+), 34 deletions(-)
+
+-- 
+2.43.0
+
