@@ -1,38 +1,38 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=weblib.eu header.i=@weblib.eu header.b="APO5q1JX"
-Received: from mail-lf1-x134.google.com (mail-lf1-x134.google.com [IPv6:2a00:1450:4864:20::134])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0117FA0
-	for <netfilter-devel@vger.kernel.org>; Thu, 14 Dec 2023 09:10:29 -0800 (PST)
-Received: by mail-lf1-x134.google.com with SMTP id 2adb3069b0e04-50bffb64178so9857392e87.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 14 Dec 2023 09:10:29 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=weblib.eu header.i=@weblib.eu header.b="lNXOtlRm"
+Received: from mail-lj1-x231.google.com (mail-lj1-x231.google.com [IPv6:2a00:1450:4864:20::231])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A59C410A
+	for <netfilter-devel@vger.kernel.org>; Thu, 14 Dec 2023 09:52:24 -0800 (PST)
+Received: by mail-lj1-x231.google.com with SMTP id 38308e7fff4ca-2cc49101044so5527681fa.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 14 Dec 2023 09:52:24 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=weblib.eu; s=google; t=1702573828; x=1703178628; darn=vger.kernel.org;
+        d=weblib.eu; s=google; t=1702576342; x=1703181142; darn=vger.kernel.org;
         h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=ypONQvRdAJNNWttIzBjLbVCQ2NR26CJaSbwReWTGte8=;
-        b=APO5q1JXSO/oC8k6AY1L6WGrf5w2yUFn+IngJzr0baQzhKL570EQJlCyFSxqfMC8jo
-         6zCjVTblc1KPuVGDDZl10MeSpDfWoUhfuH17pDJdhZ9sx40soQGUOUfKuDnxqD9ZpuLm
-         6idJkf1XoSJN1J05QJpavtse3z9CXv0d204bnIa2JmjH4wawcG/s+A5WE2/Y747DivM0
-         79j4svSFhcmUusrEZNfSjwt5iJW98oIvnuMxBM7xfvEWn1RnODI6ziaNfLivsA4cSndC
-         +dC4W9h83/yyvwVn30vjpBS76XJz4SUh4GuW+p+XS0JwfVfKHf2Ph671UCC46l2Su6hQ
-         x7cA==
+        bh=BfHbuPnwUDC8TtVbPO8ONYMuT9tPnt+O41UrkiC1HI8=;
+        b=lNXOtlRmOnynnbQ7sJC1/ZML4XoUqpZ/FWj/t1e2JWkyDU287TRcTGKverXxVVI/T1
+         RACFTrwHJtF0o8KSrKf1SACXcxCJc3S+jtFekvLDCipca0MyymWlJ1Sp/0P2wKah4T7S
+         WQLiQy7SGiS18TKHKIZxs9RxB1cb1Rd3Qu3MuP8mGXMlGgNrnE5u0n7ZC9Oi1biVesEx
+         6FDa0Kus25UipouG2o/EZerNLroTbkDPQhGtqi3ymhUSgh8WbG+2qIEaOxkBmqa+FHuM
+         N52Qm2ByDZQUr4vB3fbOImRPQYBqpg5r9JgFJItaSlG5AiLQUseFl/aAbC+NQ/3fYUdi
+         ciJw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1702573828; x=1703178628;
+        d=1e100.net; s=20230601; t=1702576342; x=1703181142;
         h=to:subject:message-id:date:from:mime-version:x-gm-message-state
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=ypONQvRdAJNNWttIzBjLbVCQ2NR26CJaSbwReWTGte8=;
-        b=HPlYhACofFIr4sqjIGlxlUZuGIfQFWAa7+eR+Tel2Ko5vZLIaUlepbqXxZmp5eeBSH
-         wwWKrFQoQFnzt/zywVqP2WhF9MqLQzPi/YzgTMLT7l67DTONMtiWL9Z3e4V5ogrkNrSd
-         5cvWDotXXRaJtxU6a/ZkeqRbMiCf0zoCygvU0fsrIjf+FiGqDvOFeIOKOBCq0wX/lL1I
-         UXLvhXIlbODDKLZFUQV7j+scsxnS5wmS2q3DE8qwSHc0s1L2uWCv89/eGdDpr734amMd
-         wC26sgeab4soseVNcy6qt+7v0BWEckzwp+CJXgOZKfH9/vVdGa6tsQ9aQCBP+YufUOTQ
-         iiWg==
-X-Gm-Message-State: AOJu0Yxd+MoYJAOjQA7i+Xyoe7Sj8yNqNDRrQey/awlK9vFSWMEBditb
-	DFPU4oJAAbr+R/CJnOmZgg/tgDXt2jfcGZuPHYG7RZgehxPQFwa4
-X-Google-Smtp-Source: AGHT+IF/u+VWHv9HmJxXtceM/dnvGmru1IKG1W1S2ZetBtdglDwSJ9pmJfMW0nZj3zhzbHGU22avbWBKGRW5xw15MZo=
-X-Received: by 2002:a05:6512:3e1a:b0:50e:1412:57e7 with SMTP id
- i26-20020a0565123e1a00b0050e141257e7mr1433255lfv.8.1702573827713; Thu, 14 Dec
- 2023 09:10:27 -0800 (PST)
+        bh=BfHbuPnwUDC8TtVbPO8ONYMuT9tPnt+O41UrkiC1HI8=;
+        b=mqhxipxiP1J+rEicACgHGE0cpKWPijxgRX6ImlD2AueaHgpklKD3W4ckqFQtRZMMye
+         9ZCxIyXlyolrxMi30ANE4CoiV/azJIBrkBoDx4AIJBpqCwNledtTqVLecPOmllg9NwmO
+         veqy39QIhhB6ZFKF1EEVUsqDHEjQYiozBY/YByoOA1em/XJeNrkzoUmzZZGzr9wWR9I2
+         M8d5sjLl3Du6YvKMWeN4S06YGGDgbCrhw6yPYL5wwjn0zvH3SdB0wNDHPbbfzahQeGYq
+         QpSkPZf6Yyhe8Y5huMeurnuWuzULJz48KOU5MczvMD9EuVfrw1G1Gogp3xhSX0haa3e+
+         B9cg==
+X-Gm-Message-State: AOJu0Yx8T4Zqh0xqB0GHThKCEDA0N5R6BD5UTnRgo8GlbySimHHj25mx
+	ECextb4eUPqtAL+VX0R0jPL0AyrQNJwg4kQZ9BfHrXMWVbvWEW1/
+X-Google-Smtp-Source: AGHT+IEKz7B+xGVrJySegmzivoO6Zitdjm+R8vPwbrYB0VdmtxIS952IpXBmIrLpJcG6N6ZUEd9HcKZmdxv2MkZ0Xgg=
+X-Received: by 2002:ac2:5589:0:b0:50b:fb07:ccde with SMTP id
+ v9-20020ac25589000000b0050bfb07ccdemr2014318lfg.51.1702576342280; Thu, 14 Dec
+ 2023 09:52:22 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -40,67 +40,74 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 From: =?UTF-8?Q?G=C3=A9rald_Colangelo?= <gerald.colangelo@weblib.eu>
-Date: Thu, 14 Dec 2023 18:10:16 +0100
-Message-ID: <CAEqktHuJ7T8R6CmYd-R7tufUPdLBT22S6G3_-_PG9s9c_4t5EA@mail.gmail.com>
-Subject: Bug in ulogd2 when destroying a stack that failed to start (with fix attached)
+Date: Thu, 14 Dec 2023 18:52:10 +0100
+Message-ID: <CAEqktHujVnjWhdvttjmQWMSHb8mXwhV=Fz2en-6amijbHHR0pw@mail.gmail.com>
+Subject: ulogd / JSON output / enhancement proposal
 To: netfilter-devel@vger.kernel.org
-Content-Type: multipart/mixed; boundary="00000000000034957c060c7b5cd8"
+Content-Type: multipart/mixed; boundary="00000000000015df11060c7bf278"
 
---00000000000034957c060c7b5cd8
+--00000000000015df11060c7bf278
 Content-Type: text/plain; charset="UTF-8"
 
 Hello everyone,
 
-While working on a ulogd2 deployment, i built a stack that consists in:
-  - A "home-made" INPUT plugin that launchs a pcap capture upon
-start() and passes a fd to ulogd2.
-  - Some regular ulogd2 filters
-  - JSON output plugin that writes to a Unix socket.
-
-Everything works fine, except if unix socket is not available.
-In that case, when the stack is started at launch, the JSON output
-start() function returns -1 and  ulogd.c consider that it fails
-starting the stack and then destroy it.
-Unfortunately, ulogd.c only free() the stack context without calling
-stop() functions on plugins that were correctly start()-ed.
-In my case, it results in my pcap input triggering the stack even if
-it was destroyed.
-This ends with a segmentation fault for the ulogd process.
-
-I think we should consider calling stop() functions before destroying the stack.
-A patch implementing this is attached (for version 2.0.7, but this
-part of the code didn't changed on latest).
+To complete my previous message, here is a patch for
+ulogd_output_JSON.c (latest version) that implements a "softfail"
+configuration option.
+If set to 1, error while connecting to unix socket are ignored during
+startup and plugin will attempt to connect next time it will be
+triggered.
+This may be helpful when the software that must listen on unix socket
+takes too long to launch.
 
 Best regards,
-
 -- 
 Gerald Colangelo
 
---00000000000034957c060c7b5cd8
+--00000000000015df11060c7bf278
 Content-Type: text/x-patch; charset="US-ASCII"; 
-	name="ulogd2_stop_plugins_before_destroying_stack.patch"
+	name="ulogd_output_JSON_softfail_option.patch"
 Content-Disposition: attachment; 
-	filename="ulogd2_stop_plugins_before_destroying_stack.patch"
+	filename="ulogd_output_JSON_softfail_option.patch"
 Content-Transfer-Encoding: base64
-Content-ID: <f_lq5gc63f0>
-X-Attachment-Id: f_lq5gc63f0
+Content-ID: <f_lq5hy6mn0>
+X-Attachment-Id: f_lq5hy6mn0
 
-LS0tIHVsb2dkMi0yLjAuNy9zcmMvdWxvZ2QuYwkyMDE4LTA0LTI3IDAxOjEwOjQyLjMxNjg3MjAz
-NCArMDIwMAorKysgdWxvZ2QyLTIuMC43LXBhdGNoZWQvc3JjL3Vsb2dkLmMJMjAyMy0xMi0xNCAx
-ODowNDowNi45OTQ2NjE3MjIgKzAxMDAKQEAgLTkzMSw3ICs5MzEsNyBAQAogc3RhdGljIGludCBj
-cmVhdGVfc3RhY2tfc3RhcnRfaW5zdGFuY2VzKHN0cnVjdCB1bG9nZF9wbHVnaW5zdGFuY2Vfc3Rh
-Y2sgKnN0YWNrKQogewogCWludCByZXQ7Ci0Jc3RydWN0IHVsb2dkX3BsdWdpbnN0YW5jZSAqcGk7
-CisJc3RydWN0IHVsb2dkX3BsdWdpbnN0YW5jZSAqcGksICpzdG9wOwogCiAJLyogc3RhcnQgZnJv
-bSBpbnB1dCB0byBvdXRwdXQgcGx1Z2luICovCiAJbGxpc3RfZm9yX2VhY2hfZW50cnkocGksICZz
-dGFjay0+bGlzdCwgbGlzdCkgewpAQCAtOTQ1LDExICs5NDUsMjcgQEAKIAkJCQl1bG9nZF9sb2co
-VUxPR0RfRVJST1IsIAogCQkJCQkgICJlcnJvciBzdGFydGluZyBgJXMnXG4iLAogCQkJCQkgIHBp
-LT5pZCk7Ci0JCQkJcmV0dXJuIHJldDsKKwkJCQlnb3RvIGNsZWFudXBfZmFpbDsKIAkJCX0KIAkJ
-fQogCX0KIAlyZXR1cm4gMDsKK2NsZWFudXBfZmFpbDoKKwlzdG9wID0gcGk7CisJbGxpc3RfZm9y
-X2VhY2hfZW50cnkocGksICZzdGFjay0+bGlzdCwgbGlzdCkgeworCQlpZiAocGkgPT0gc3RvcCkK
-KwkJCS8qIHRoZSBvbmUgdGhhdCBmYWlsZWQsIHN0b3BzIHRoZSBjbGVhbnVwIGhlcmUgKi8KKwkJ
-CWJyZWFrOworCQlpZiAoIXBpLT5wbHVnaW4tPnN0b3ApIAorCQkJY29udGludWU7CisJCXJldCA9
-IHBpLT5wbHVnaW4tPnN0b3AocGkpOworCQlpZiAocmV0IDwgMCkgeworCQkJdWxvZ2RfbG9nKFVM
-T0dEX0VSUk9SLAorCQkJImVycm9yIHN0b3BwaW5nIGAlcydcbiIsCisJCQlwaS0+aWQpOworCQl9
-CisJfQorCXJldHVybiAtMTsKIH0KIAogLyogY3JlYXRlIGEgbmV3IHN0YWNrIG9mIHBsdWdpbnMg
-Ki8K
---00000000000034957c060c7b5cd8--
+NTFhNTIKPiAjZGVmaW5lIHNvZnRmYWlsX2NlKHgpICAgKHgtPmNlc1tKU09OX0NPTkZfU09GVEZB
+SUxdKQo1M2E1NSw1Nwo+IAo+IHN0YXRpYyBpbnQganNvbl9pbml0X2Nvbm5lY3Qoc3RydWN0IHVs
+b2dkX3BsdWdpbnN0YW5jZSAqdXBpKTsKPiAKNjFhNjYsNjcKPiAJaW50IHN0YXJ0ZWQ7Cj4gCWlu
+dCBzb2Z0ZmFpbDsKODFjODcsODgKPCAJSlNPTl9DT05GX01BWAotLS0KPiAJSlNPTl9DT05GX1NP
+RlRGQUlMLAo+IAlKU09OX0NPTkZfTUFYLAoxNDBhMTQ4LDE1Mwo+IAkJW0pTT05fQ09ORl9TT0ZU
+RkFJTF0gPSB7Cj4gCQkJLmtleSA9ICJzb2Z0ZmFpbCIsCj4gCQkJLnR5cGUgPSBDT05GSUdfVFlQ
+RV9JTlQsCj4gCQkJLm9wdGlvbnMgPSBDT05GSUdfT1BUX05PTkUsCj4gCQkJLnUgPSB7IC52YWx1
+ZSA9IDAgfSwKPiAJCX0sCjI4M2EyOTcsMzEzCj4gCWlmIChvcGktPnNvZnRmYWlsID09IDEgJiYg
+b3BpLT5zdGFydGVkID09IDApIHsKPiAJCWludCBzdGF0ZTsKPiAJCXN0YXRlID0ganNvbl9pbml0
+X2Nvbm5lY3QodXBpKTsKPiAJCS8qIE5vdCBjb25uZWN0ZWQgYnV0IHNvZnRmYWlsLCBza2lwIHBh
+Y2tldCAqLwo+IAkJaWYgKHN0YXRlID09IDEpIHsKPiAJCQl1bG9nZF9sb2coVUxPR0RfREVCVUcs
+ICJ1bmFibGUgdG8gY29ubmVjdCB0byBqc29uIGJ1dCBzb2Z0YWlsPTEsIHBhY2tldCB3aWxsIGJl
+IGlnbm9yZWQuXG4iKTsKPiAJCQlyZXR1cm4gVUxPR0RfSVJFVF9PSzsKPiAJCX0KPiAJCWVsc2Ug
+aWYgKHN0YXRlID09IDApIHsKPiAJCQl1bG9nZF9sb2coVUxPR0RfREVCVUcsICJzdWNjZXNzZnVs
+bHkgY29ubmVjdGVkIGpzb24gZW5kcG9pbnQhXG4iKTsKPiAJCX0KPiAJCWVsc2Ugewo+IAkJCXVs
+b2dkX2xvZyhVTE9HRF9GQVRBTCwgIm5vdCBzdXBwb3NlZCB0byBoYXBwZW4gIVxuIik7Cj4gCQkJ
+cmV0dXJuIFVMT0dEX0lSRVRfU1RPUDsKPiAJCX0KPiAJfQo+IAo1MDBhNTMxLDUzNQo+IAlpZiAo
+IHNvZnRmYWlsX2NlKHVwaS0+Y29uZmlnX2tzZXQpLnUudmFsdWUgIT0gMCApCj4gCQlvcC0+c29m
+dGZhaWwgPSAxOwo+IAllbHNlCj4gCQlvcC0+c29mdGZhaWwgPSAwOwo+IAo1NDJhNTc4LDYwOQo+
+IAo+IC8qCj4gICAgcmV0dXJuIHZhbHVlOgo+ICAgICAwOiBjb25uZWN0aW9uIGlzIE9LLgo+ICAg
+ICAxOiBjb25uZWN0aW9uIGlzIEtPIGJ1dCBzb2Z0ZmFpbD0xIChyZXRyeSBsYXRlcikuCj4gICAg
+IC0xOiBjb25uZWN0aW9uIGlzIEtPIGFuZCBzb2Z0ZmFpbD0wIChmYWlsKS4KPiAqLwo+IHN0YXRp
+YyBpbnQganNvbl9pbml0X2Nvbm5lY3Qoc3RydWN0IHVsb2dkX3BsdWdpbnN0YW5jZSAqdXBpKQo+
+IHsKPiAJc3RydWN0IGpzb25fcHJpdiAqb3AgPSAoc3RydWN0IGpzb25fcHJpdiAqKSAmdXBpLT5w
+cml2YXRlOwo+IAlpbnQgcmV0Owo+IAlyZXQgPSAwOwo+IAlpZiAob3AtPm1vZGUgPT0gSlNPTl9N
+T0RFX0ZJTEUpCj4gCQlyZXQgPSBqc29uX2luaXRfZmlsZSh1cGkpOwo+IAllbHNlCj4gCQlyZXQg
+PSBqc29uX2luaXRfc29ja2V0KHVwaSk7Cj4gCj4gCS8qIGZhaWxlZCBzdGFydGluZyBhbmQgc29m
+dGZhaWxfc3RhcnQgIT0gMCAqLwo+IAlpZiAocmV0ICE9IDApIHsKPiAJCWlmKG9wLT5zb2Z0ZmFp
+bCA9PSAxKSB7Cj4gCQkJdWxvZ2RfbG9nKFVMT0dEX0lORk8sICJjYW4ndCBpbml0IG91dHB1dCwg
+YnV0IHNvZnRmYWlsPTEuIFdpbGwgcmV0cnkgbGF0ZXIuXG4iKTsKPiAJCQlvcC0+c3RhcnRlZCA9
+IDA7Cj4gCQkJcmV0dXJuIDE7Cj4gCQl9IGVsc2Ugewo+IAkJCXVsb2dkX2xvZyhVTE9HRF9GQVRB
+TCwgImNhbid0IGNvbm5lY3QgYW5kIHNvZnRmYWlsPTAsIGZhdGFsIGVycm9yLlxuIik7Cj4gCQkJ
+cmV0dXJuIC0xOwo+IAkJfQo+IAl9Cj4gCW9wLT5zdGFydGVkID0gMTsKPiAJcmV0dXJuIDA7Cj4g
+fQo+IAo1NjEsNTY0YzYyOAo8IAlpZiAob3AtPm1vZGUgPT0gSlNPTl9NT0RFX0ZJTEUpCjwgCQly
+ZXR1cm4ganNvbl9pbml0X2ZpbGUodXBpKTsKPCAJZWxzZQo8IAkJcmV0dXJuIGpzb25faW5pdF9z
+b2NrZXQodXBpKTsKLS0tCj4gICAgIHJldHVybiBqc29uX2luaXRfY29ubmVjdCh1cGkpID09IC0x
+ID8gLTEgOiAwOwo=
+--00000000000015df11060c7bf278--
