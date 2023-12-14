@@ -1,13 +1,13 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 6AA857494
-	for <netfilter-devel@vger.kernel.org>; Thu, 14 Dec 2023 21:03:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 591F06DCFF
+	for <netfilter-devel@vger.kernel.org>; Thu, 14 Dec 2023 21:43:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf] netfilter: nf_tables: set transport offset from mac header for netdev/egress
-Date: Thu, 14 Dec 2023 21:56:50 +0100
-Message-Id: <20231214205650.1571-1-pablo@netfilter.org>
+Subject: [PATCH nf-next] netfilter: nf_tables: validate chain type update if available
+Date: Thu, 14 Dec 2023 22:43:22 +0100
+Message-Id: <20231214214322.137555-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -17,70 +17,59 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Before this patch, transport offset (pkt->thoff) provides an offset
-relative to the network header. This is fine for the inet families
-because skb->data points to the network header in such case. However,
-from netdev/egress, skb->data points to the mac header (if available),
-thus, pkt->thoff is missing the mac header length.
+Parse netlink attribute containing the chain type in this update, to
+bail out if this is different from the existing type.
 
-Add skb_network_offset() to the transport offset (pkt->thoff) for
-netdev, so transport header mangling works as expected. Adjust payload
-fast eval function to use skb->data now that pkt->thoff provides an
-absolute offset. This explains why users report that matching on
-egress/netdev works but payload mangling does not.
+Otherwise, it is possible to define a chain with the same name, hook and
+priority but different type, which is silently ignored.
 
-This patch implicitly fixes payload mangling for IPv4 packets in
-netdev/egress given skb_store_bits() requires an offset from skb->data
-to reach the transport header.
-
-I suspect that nft_exthdr and the trace infra were also broken from
-netdev/egress because they also take skb->data as start, and pkt->thoff
-was not correct.
-
-Note that IPv6 is fine because ipv6_find_hdr() already provides a
-transport offset starting from skb->data, which includes
-skb_network_offset().
-
-The bridge family also uses nft_set_pktinfo_ipv4_validate(), but there
-skb_network_offset() is zero, so the update in this patch does not alter
-the existing behaviour.
-
-Fixes: 42df6e1d221d ("netfilter: Introduce egress hook")
+Fixes: 96518518cc41 ("netfilter: add nftables")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-I still have to look around to extend an existing test that can cover this,
-else add a new one.
+This is catch this sequence:
 
- include/net/netfilter/nf_tables_ipv4.h | 2 +-
- net/netfilter/nf_tables_core.c         | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+table ip x {
+	chain y {
+		type filter hook output priority 0;
+	}
+}
 
-diff --git a/include/net/netfilter/nf_tables_ipv4.h b/include/net/netfilter/nf_tables_ipv4.h
-index 947973623dc7..60a7d0ce3080 100644
---- a/include/net/netfilter/nf_tables_ipv4.h
-+++ b/include/net/netfilter/nf_tables_ipv4.h
-@@ -30,7 +30,7 @@ static inline int __nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt)
- 		return -1;
+then:
+
+table ip x {
+	chain y {
+		type route hook output priority 0;
+	}
+}
+
+this is currently ignored, bail out instead if user tries to redefine
+an existing chain with different type.
+
+ net/netfilter/nf_tables_api.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index c5c17c6e80ed..ec092f2f0b64 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2261,7 +2261,16 @@ static int nft_chain_parse_hook(struct net *net,
+ 				return -EOPNOTSUPP;
+ 		}
  
- 	len = iph_totlen(pkt->skb, iph);
--	thoff = iph->ihl * 4;
-+	thoff = skb_network_offset(pkt->skb) + (iph->ihl * 4);
- 	if (pkt->skb->len < len)
- 		return -1;
- 	else if (len < thoff)
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index 8b536d7ef6c2..c3e635364701 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -158,7 +158,7 @@ static bool nft_payload_fast_eval(const struct nft_expr *expr,
- 	else {
- 		if (!(pkt->flags & NFT_PKTINFO_L4PROTO))
- 			return false;
--		ptr = skb_network_header(skb) + nft_thoff(pkt);
-+		ptr = skb->data + nft_thoff(pkt);
+-		type = basechain->type;
++		if (nla[NFTA_CHAIN_TYPE]) {
++			type = __nf_tables_chain_type_lookup(nla[NFTA_CHAIN_TYPE],
++							     family);
++			if (!type) {
++				NL_SET_BAD_ATTR(extack, nla[NFTA_CHAIN_TYPE]);
++				return -ENOENT;
++			}
++		} else {
++			type = basechain->type;
++		}
  	}
  
- 	ptr += priv->offset;
+ 	if (!try_module_get(type->owner)) {
 -- 
 2.30.2
 
