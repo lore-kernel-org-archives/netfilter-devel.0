@@ -1,60 +1,168 @@
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 410A6A7
-	for <netfilter-devel@vger.kernel.org>; Thu, 14 Dec 2023 06:32:28 -0800 (PST)
-Received: by a3.inai.de (Postfix, from userid 25121)
-	id 8F19058729D9D; Thu, 14 Dec 2023 15:32:26 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-	by a3.inai.de (Postfix) with ESMTP id 8CE0360E0CC21;
-	Thu, 14 Dec 2023 15:32:26 +0100 (CET)
-Date: Thu, 14 Dec 2023 15:32:26 +0100 (CET)
-From: Jan Engelhardt <jengelh@inai.de>
-To: Jeremy Sowden <jeremy@azazel.net>
-cc: Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH iptables 7/7] build: suppress man-page listing in silent
- rules
-In-Reply-To: <20231214125927.925993-8-jeremy@azazel.net>
-Message-ID: <20oqpp22-0p61-rs3r-65rp-r8s595on98o2@vanv.qr>
-References: <20231214125927.925993-1-jeremy@azazel.net> <20231214125927.925993-8-jeremy@azazel.net>
-User-Agent: Alpine 2.26 (LSU 649 2022-06-02)
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F2C5B10E
+	for <netfilter-devel@vger.kernel.org>; Thu, 14 Dec 2023 06:39:38 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1rDmsD-000196-26; Thu, 14 Dec 2023 15:39:37 +0100
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] netlink: don't crash if prefix for < byte is requested
+Date: Thu, 14 Dec 2023 15:39:27 +0100
+Message-ID: <20231214143931.19225-1-fw@strlen.de>
+X-Mailer: git-send-email 2.41.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 
+If prefix is used with a datatype that has less than 8 bits an
+assertion is triggered:
 
-On Thursday 2023-12-14 13:59, Jeremy Sowden wrote:
+src/netlink.c:243: netlink_gen_raw_data: Assertion `len > 0' failed.
 
->Add an `AM_V_PRINTF` variable to control whether `printf` is called.
->
->Normally `AM_V_*` variables work by prepending
->
->  @echo blah;
->
->to a whole rule to replace the usual output with something briefer.
->Since, in this case, the aim is to suppress `printf` commands _within_ a
->rule, `AM_V_PRINTF` works be prepending `:` to the `printf` command.
+This is esoteric, the alternative would be to restrict prefixes
+to ipv4/ipv6 addresses.
 
->@@ -228,19 +232,19 @@ man_run    = \
-> 	for ext in $(sort ${1}); do \
-> 		f="${srcdir}/libxt_$$ext.man"; \
-> 		if [ -f "$$f" ]; then \
->-			printf "\t+ $$f" >&2; \
->+			${AM_V_PRINTF} printf "\t+ $$f" >&2; \
+Simpler fix is to use round_up instead of divide.
 
-I believe I was the author of this "for" block.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/netlink_linearize.c         |  3 ++-
+ tests/py/ip/ip.t                |  2 ++
+ tests/py/ip/ip.t.json           | 21 +++++++++++++++++++++
+ tests/py/ip/ip.t.payload        |  8 ++++++++
+ tests/py/ip/ip.t.payload.bridge | 10 ++++++++++
+ tests/py/ip/ip.t.payload.inet   | 10 ++++++++++
+ tests/py/ip/ip.t.payload.netdev | 10 ++++++++++
+ 7 files changed, 63 insertions(+), 1 deletion(-)
 
-The intent of V=0 is to hide long build commands and show only the
-output name. That works for most people most of the time. It did not
-for me in this very build step. ${1}, i.e. the sections, are
-dependent on configure options like --disable-ipv4/--disable-ipv6, so
-I felt it made sense not only to print the output name (as V=0 does)
-but also the source names—but still not the verbose build command.
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index 61828eb9f295..d8b41a088948 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -460,7 +460,8 @@ static struct expr *netlink_gen_prefix(struct netlink_linearize_ctx *ctx,
+ 	mpz_init(mask);
+ 	mpz_prefixmask(mask, expr->right->len, expr->right->prefix_len);
+ 	netlink_gen_raw_data(mask, expr->right->byteorder,
+-			     expr->right->len / BITS_PER_BYTE, &nld);
++			     div_round_up(expr->right->len, BITS_PER_BYTE),
++			     &nld);
+ 	mpz_clear(mask);
+ 
+ 	zero.len = nld.len;
+diff --git a/tests/py/ip/ip.t b/tests/py/ip/ip.t
+index 720d9ae92b60..e6999c29478b 100644
+--- a/tests/py/ip/ip.t
++++ b/tests/py/ip/ip.t
+@@ -133,3 +133,5 @@ ip saddr . ip daddr vmap { 192.168.5.1-192.168.5.128 . 192.168.6.1-192.168.6.128
+ 
+ ip saddr 1.2.3.4 ip daddr 3.4.5.6;ok
+ ip saddr 1.2.3.4 counter ip daddr 3.4.5.6;ok
++
++ip dscp 1/6;ok;ip dscp & 0x3f == lephb
+diff --git a/tests/py/ip/ip.t.json b/tests/py/ip/ip.t.json
+index 882c94eb4e15..a170e5c15965 100644
+--- a/tests/py/ip/ip.t.json
++++ b/tests/py/ip/ip.t.json
+@@ -1809,3 +1809,24 @@
+         }
+     }
+ ]
++
++# ip dscp 1/6
++[
++    {
++        "match": {
++            "left": {
++                "&": [
++                    {
++                        "payload": {
++                            "field": "dscp",
++                            "protocol": "ip"
++                        }
++                    },
++                    63
++                ]
++            },
++            "op": "==",
++            "right": "lephb"
++        }
++    }
++]
+diff --git a/tests/py/ip/ip.t.payload b/tests/py/ip/ip.t.payload
+index 43605a361a7a..d7ddf7be0c3b 100644
+--- a/tests/py/ip/ip.t.payload
++++ b/tests/py/ip/ip.t.payload
+@@ -556,3 +556,11 @@ ip test-ip4 input
+   [ counter pkts 0 bytes 0 ]
+   [ payload load 4b @ network header + 16 => reg 1 ]
+   [ cmp eq reg 1 0x06050403 ]
++
++# ip dscp 1/6
++ip test-ip4 input
++  [ payload load 1b @ network header + 1 => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0x000000fc ) ^ 0x00000000 ]
++  [ bitwise reg 1 = ( reg 1 >> 0x00000002 ) ]
++  [ bitwise reg 1 = ( reg 1 & 0x0000003f ) ^ 0x00000000 ]
++  [ cmp eq reg 1 0x00000001 ]
+diff --git a/tests/py/ip/ip.t.payload.bridge b/tests/py/ip/ip.t.payload.bridge
+index e506f300c947..53f881d336df 100644
+--- a/tests/py/ip/ip.t.payload.bridge
++++ b/tests/py/ip/ip.t.payload.bridge
+@@ -726,3 +726,13 @@ bridge test-bridge input
+   [ counter pkts 0 bytes 0 ]
+   [ payload load 4b @ network header + 16 => reg 1 ]
+   [ cmp eq reg 1 0x06050403 ]
++
++# ip dscp 1/6
++bridge test-bridge input
++  [ meta load protocol => reg 1 ]
++  [ cmp eq reg 1 0x00000008 ]
++  [ payload load 1b @ network header + 1 => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0x000000fc ) ^ 0x00000000 ]
++  [ bitwise reg 1 = ( reg 1 >> 0x00000002 ) ]
++  [ bitwise reg 1 = ( reg 1 & 0x0000003f ) ^ 0x00000000 ]
++  [ cmp eq reg 1 0x00000001 ]
+diff --git a/tests/py/ip/ip.t.payload.inet b/tests/py/ip/ip.t.payload.inet
+index a7fa0faffba3..08674c98e022 100644
+--- a/tests/py/ip/ip.t.payload.inet
++++ b/tests/py/ip/ip.t.payload.inet
+@@ -726,3 +726,13 @@ inet test-inet input
+   [ counter pkts 0 bytes 0 ]
+   [ payload load 4b @ network header + 16 => reg 1 ]
+   [ cmp eq reg 1 0x06050403 ]
++
++# ip dscp 1/6
++inet test-inet input
++  [ meta load nfproto => reg 1 ]
++  [ cmp eq reg 1 0x00000002 ]
++  [ payload load 1b @ network header + 1 => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0x000000fc ) ^ 0x00000000 ]
++  [ bitwise reg 1 = ( reg 1 >> 0x00000002 ) ]
++  [ bitwise reg 1 = ( reg 1 & 0x0000003f ) ^ 0x00000000 ]
++  [ cmp eq reg 1 0x00000001 ]
+diff --git a/tests/py/ip/ip.t.payload.netdev b/tests/py/ip/ip.t.payload.netdev
+index aebd9d64c8e3..8220b05d11c1 100644
+--- a/tests/py/ip/ip.t.payload.netdev
++++ b/tests/py/ip/ip.t.payload.netdev
+@@ -726,3 +726,13 @@ netdev test-netdev ingress
+   [ counter pkts 0 bytes 0 ]
+   [ payload load 4b @ network header + 16 => reg 1 ]
+   [ cmp eq reg 1 0x06050403 ]
++
++# ip dscp 1/6
++netdev test-netdev ingress
++  [ meta load protocol => reg 1 ]
++  [ cmp eq reg 1 0x00000008 ]
++  [ payload load 1b @ network header + 1 => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0x000000fc ) ^ 0x00000000 ]
++  [ bitwise reg 1 = ( reg 1 >> 0x00000002 ) ]
++  [ bitwise reg 1 = ( reg 1 & 0x0000003f ) ^ 0x00000000 ]
++  [ cmp eq reg 1 0x00000001 ]
+-- 
+2.41.0
 
-With that original goal in mind, silencing echo/printf inside this
-recipe, for the usecase of V=0, is incorrect.
-
-[Patches 1 to 6 are fine by me.]
