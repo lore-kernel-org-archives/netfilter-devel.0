@@ -1,35 +1,35 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB46B4B15A
-	for <netfilter-devel@vger.kernel.org>; Fri, 15 Dec 2023 21:53:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98A4C4B14D
+	for <netfilter-devel@vger.kernel.org>; Fri, 15 Dec 2023 21:53:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="FLgybAcs"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="k3rZRhxn"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=yJKzURw4enrGvIFCNeWeq9javdfDU/o7bbsWwV1oGIY=; b=FLgybAcsJxTv1eckjGE07gad+R
-	mIKPQO85MaVltLn2e0tEjPolaZki/ZPUyXS41BDiRen3WvVhk9p6cCUcoH+OwZkitHZ12fVVCHLnn
-	L4Nz8VpnLl+I5IP0cW9VNqnuo6KUwHRZ+4Gc21QgmagTavW9TbMFhK20+9IB35HlHEsMXn7TqhsmO
-	FkOfuh++ygTdBQLPiyoMVeuJwoAM1gSK6f2SM13AMxExJ32cAmznB1WzViQzexKW+zyAl1ozcROvQ
-	jnUpcn+y3RYOKo2uqAyu0ISFVXBqyfsYSw8C5vwnADnrOIpZPFFOVbt9pNYE9Mri2vf89Q3h2vY6a
-	S92iQCkg==;
+	bh=75no8moss2lYpK0KUWiWEvlDit5UjlCLP9JBg40H36k=; b=k3rZRhxn7Ph0OzH8TYhu8iqik6
+	cpKbuST6aN1sAVVJO5RQIpBurrKbpfrPSms50VS26uRRN3+BMjttcJujVnENM0G/MTOvds+mkJ+A1
+	LTUxr73TyMzjm3zcTPijUlyVdAIF363gibVcsQYrhLJ3MgNd8MC1uApUhne6zLhLtmcik4JMAuaxo
+	06u3QbYBIv+CFC4ItgrORCMenAGuomPCbAX+An4LdlALSFG+fAFOO9r3qc2OgbAZ/b6CUDQkCA4AM
+	7Fjr8KTyV+0o7HD+uK7EiGiUpNLigwL0wCmkhsiJVehErsSWLX8sX05OSM+a75Wly/oR7wgFywV1C
+	zSu/DD/w==;
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.94.2)
 	(envelope-from <phil@nwl.cc>)
-	id 1rEG83-0001Zp-WB; Fri, 15 Dec 2023 22:53:56 +0100
+	id 1rEG82-0001ZV-FD; Fri, 15 Dec 2023 22:53:54 +0100
 From: Phil Sutter <phil@nwl.cc>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org,
 	Florian Westphal <fw@strlen.de>
-Subject: [libnftnl PATCH 2/6] expr: Repurpose struct expr_ops::max_attr field
-Date: Fri, 15 Dec 2023 22:53:46 +0100
-Message-ID: <20231215215350.17691-3-phil@nwl.cc>
+Subject: [libnftnl PATCH 5/6] expr: Introduce struct expr_ops::attr_policy
+Date: Fri, 15 Dec 2023 22:53:49 +0100
+Message-ID: <20231215215350.17691-6-phil@nwl.cc>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20231215215350.17691-1-phil@nwl.cc>
 References: <20231215215350.17691-1-phil@nwl.cc>
@@ -41,859 +41,976 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Instead of holding the maximum kernel space (NFTA_*) attribute value,
-use it to hold the maximum expression attribute (NFTNL_EXPR_*) value
-instead. This will be used for index boundary checks in an attribute
-policy array later.
+Similar to kernel's nla_policy, enable expressions to inform about
+restrictions on attribute use. This allows the generic expression code
+to perform sanity checks before dispatching to expression ops.
+
+For now, this holds only the maximum data len which may be passed to
+nftnl_expr_set().
+
+While one may debate whether accepting e.g. uint32_t for sreg/dreg
+attributes is correct, it is necessary to not break nftables.
+
+Note that this introduces artificial restrictions on name lengths which
+were caught by the kernel (if nftables didn't).
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- include/expr_ops.h      |  2 +-
- include/libnftnl/expr.h | 39 +++++++++++++++++++++++++++++++++++++++
- src/expr/bitwise.c      |  2 +-
- src/expr/byteorder.c    |  2 +-
- src/expr/cmp.c          |  2 +-
- src/expr/connlimit.c    |  2 +-
- src/expr/counter.c      |  2 +-
- src/expr/ct.c           |  2 +-
- src/expr/dup.c          |  2 +-
- src/expr/dynset.c       |  2 +-
- src/expr/exthdr.c       |  2 +-
- src/expr/fib.c          |  2 +-
- src/expr/flow_offload.c |  2 +-
- src/expr/fwd.c          |  2 +-
- src/expr/hash.c         |  2 +-
- src/expr/immediate.c    |  2 +-
- src/expr/inner.c        |  2 +-
- src/expr/last.c         |  2 +-
- src/expr/limit.c        |  2 +-
- src/expr/log.c          |  2 +-
- src/expr/lookup.c       |  2 +-
- src/expr/masq.c         |  2 +-
- src/expr/match.c        |  2 +-
- src/expr/meta.c         |  2 +-
- src/expr/nat.c          |  2 +-
- src/expr/numgen.c       |  2 +-
- src/expr/objref.c       |  2 +-
- src/expr/osf.c          |  2 +-
- src/expr/payload.c      |  2 +-
- src/expr/queue.c        |  2 +-
- src/expr/quota.c        |  2 +-
- src/expr/range.c        |  2 +-
- src/expr/redir.c        |  2 +-
- src/expr/reject.c       |  2 +-
- src/expr/rt.c           |  2 +-
- src/expr/socket.c       |  2 +-
- src/expr/synproxy.c     |  2 +-
- src/expr/target.c       |  2 +-
- src/expr/tproxy.c       |  2 +-
- src/expr/tunnel.c       |  2 +-
- src/expr/xfrm.c         |  2 +-
- 41 files changed, 79 insertions(+), 40 deletions(-)
+ include/expr_ops.h      |  5 +++++
+ src/expr/bitwise.c      | 11 +++++++++++
+ src/expr/byteorder.c    |  9 +++++++++
+ src/expr/cmp.c          |  7 +++++++
+ src/expr/connlimit.c    |  6 ++++++
+ src/expr/counter.c      |  6 ++++++
+ src/expr/ct.c           |  8 ++++++++
+ src/expr/dup.c          |  6 ++++++
+ src/expr/dynset.c       | 13 +++++++++++++
+ src/expr/exthdr.c       | 11 +++++++++++
+ src/expr/fib.c          |  7 +++++++
+ src/expr/flow_offload.c |  5 +++++
+ src/expr/fwd.c          |  7 +++++++
+ src/expr/hash.c         | 11 +++++++++++
+ src/expr/immediate.c    |  9 +++++++++
+ src/expr/inner.c        |  8 ++++++++
+ src/expr/last.c         |  6 ++++++
+ src/expr/limit.c        |  9 +++++++++
+ src/expr/log.c          | 10 ++++++++++
+ src/expr/lookup.c       |  9 +++++++++
+ src/expr/masq.c         |  7 +++++++
+ src/expr/match.c        |  7 +++++++
+ src/expr/meta.c         |  7 +++++++
+ src/expr/nat.c          | 11 +++++++++++
+ src/expr/numgen.c       |  8 ++++++++
+ src/expr/objref.c       |  9 +++++++++
+ src/expr/osf.c          |  7 +++++++
+ src/expr/payload.c      | 12 ++++++++++++
+ src/expr/queue.c        |  8 ++++++++
+ src/expr/quota.c        |  7 +++++++
+ src/expr/range.c        |  8 ++++++++
+ src/expr/redir.c        |  7 +++++++
+ src/expr/reject.c       |  6 ++++++
+ src/expr/rt.c           |  6 ++++++
+ src/expr/socket.c       |  7 +++++++
+ src/expr/synproxy.c     |  7 +++++++
+ src/expr/target.c       |  7 +++++++
+ src/expr/tproxy.c       |  7 +++++++
+ src/expr/tunnel.c       |  6 ++++++
+ src/expr/xfrm.c         |  9 +++++++++
+ 40 files changed, 316 insertions(+)
 
 diff --git a/include/expr_ops.h b/include/expr_ops.h
-index a7d747a2568a0..51b221483552c 100644
+index 51b221483552c..6cfb3b5832083 100644
 --- a/include/expr_ops.h
 +++ b/include/expr_ops.h
-@@ -11,7 +11,7 @@ struct nftnl_expr;
+@@ -8,10 +8,15 @@ struct nlattr;
+ struct nlmsghdr;
+ struct nftnl_expr;
+ 
++struct attr_policy {
++	uint32_t maxlen;
++};
++
  struct expr_ops {
  	const char *name;
  	uint32_t alloc_len;
--	int	max_attr;
-+	int	nftnl_max_attr;
+ 	int	nftnl_max_attr;
++	struct attr_policy *attr_policy;
  	void	(*init)(const struct nftnl_expr *e);
  	void	(*free)(const struct nftnl_expr *e);
  	int	(*set)(struct nftnl_expr *e, uint16_t type, const void *data, uint32_t data_len);
-diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
-index 9873228dd794a..fba1210622440 100644
---- a/include/libnftnl/expr.h
-+++ b/include/libnftnl/expr.h
-@@ -56,6 +56,7 @@ enum {
- 	NFTNL_EXPR_PAYLOAD_CSUM_TYPE,
- 	NFTNL_EXPR_PAYLOAD_CSUM_OFFSET,
- 	NFTNL_EXPR_PAYLOAD_FLAGS,
-+	__NFTNL_EXPR_PAYLOAD_MAX
- };
- 
- enum {
-@@ -65,34 +66,40 @@ enum {
- 	NFTNL_EXPR_NG_OFFSET,
- 	NFTNL_EXPR_NG_SET_NAME,		/* deprecated */
- 	NFTNL_EXPR_NG_SET_ID,		/* deprecated */
-+	__NFTNL_EXPR_NG_MAX
- };
- 
- enum {
- 	NFTNL_EXPR_META_KEY	= NFTNL_EXPR_BASE,
- 	NFTNL_EXPR_META_DREG,
- 	NFTNL_EXPR_META_SREG,
-+	__NFTNL_EXPR_META_MAX
- };
- 
- enum {
- 	NFTNL_EXPR_RT_KEY	= NFTNL_EXPR_BASE,
- 	NFTNL_EXPR_RT_DREG,
-+	__NFTNL_EXPR_RT_MAX
- };
- 
- enum {
- 	NFTNL_EXPR_SOCKET_KEY	= NFTNL_EXPR_BASE,
- 	NFTNL_EXPR_SOCKET_DREG,
- 	NFTNL_EXPR_SOCKET_LEVEL,
-+	__NFTNL_EXPR_SOCKET_MAX
- };
- 
- enum {
- 	NFTNL_EXPR_TUNNEL_KEY	= NFTNL_EXPR_BASE,
- 	NFTNL_EXPR_TUNNEL_DREG,
-+	__NFTNL_EXPR_TUNNEL_MAX
- };
- 
- enum {
- 	NFTNL_EXPR_CMP_SREG	= NFTNL_EXPR_BASE,
- 	NFTNL_EXPR_CMP_OP,
- 	NFTNL_EXPR_CMP_DATA,
-+	__NFTNL_EXPR_CMP_MAX
- };
- 
- enum {
-@@ -100,6 +107,7 @@ enum {
- 	NFTNL_EXPR_RANGE_OP,
- 	NFTNL_EXPR_RANGE_FROM_DATA,
- 	NFTNL_EXPR_RANGE_TO_DATA,
-+	__NFTNL_EXPR_RANGE_MAX
- };
- 
- enum {
-@@ -108,16 +116,19 @@ enum {
- 	NFTNL_EXPR_IMM_VERDICT,
- 	NFTNL_EXPR_IMM_CHAIN,
- 	NFTNL_EXPR_IMM_CHAIN_ID,
-+	__NFTNL_EXPR_IMM_MAX
- };
- 
- enum {
- 	NFTNL_EXPR_CTR_PACKETS	= NFTNL_EXPR_BASE,
- 	NFTNL_EXPR_CTR_BYTES,
-+	__NFTNL_EXPR_CTR_MAX
- };
- 
- enum {
- 	NFTNL_EXPR_CONNLIMIT_COUNT = NFTNL_EXPR_BASE,
- 	NFTNL_EXPR_CONNLIMIT_FLAGS,
-+	__NFTNL_EXPR_CONNLIMIT_MAX
- };
- 
- enum {
-@@ -128,18 +139,21 @@ enum {
- 	NFTNL_EXPR_BITWISE_XOR,
- 	NFTNL_EXPR_BITWISE_OP,
- 	NFTNL_EXPR_BITWISE_DATA,
-+	__NFTNL_EXPR_BITWISE_MAX
- };
- 
- enum {
- 	NFTNL_EXPR_TG_NAME	= NFTNL_EXPR_BASE,
- 	NFTNL_EXPR_TG_REV,
- 	NFTNL_EXPR_TG_INFO,
-+	__NFTNL_EXPR_TG_MAX
- };
- 
- enum {
- 	NFTNL_EXPR_MT_NAME	= NFTNL_EXPR_BASE,
- 	NFTNL_EXPR_MT_REV,
- 	NFTNL_EXPR_MT_INFO,
-+	__NFTNL_EXPR_MT_MAX
- };
- 
- enum {
-@@ -150,12 +164,14 @@ enum {
- 	NFTNL_EXPR_NAT_REG_PROTO_MIN,
- 	NFTNL_EXPR_NAT_REG_PROTO_MAX,
- 	NFTNL_EXPR_NAT_FLAGS,
-+	__NFTNL_EXPR_NAT_MAX
- };
- 
- enum {
- 	NFTNL_EXPR_TPROXY_FAMILY	= NFTNL_EXPR_BASE,
- 	NFTNL_EXPR_TPROXY_REG_ADDR,
- 	NFTNL_EXPR_TPROXY_REG_PORT,
-+	__NFTNL_EXPR_TPROXY_MAX
- };
- 
- enum {
-@@ -164,6 +180,7 @@ enum {
- 	NFTNL_EXPR_LOOKUP_SET,
- 	NFTNL_EXPR_LOOKUP_SET_ID,
- 	NFTNL_EXPR_LOOKUP_FLAGS,
-+	__NFTNL_EXPR_LOOKUP_MAX
- };
- 
- enum {
-@@ -176,6 +193,7 @@ enum {
- 	NFTNL_EXPR_DYNSET_EXPR,
- 	NFTNL_EXPR_DYNSET_EXPRESSIONS,
- 	NFTNL_EXPR_DYNSET_FLAGS,
-+	__NFTNL_EXPR_DYNSET_MAX
- };
- 
- enum {
-@@ -185,6 +203,7 @@ enum {
- 	NFTNL_EXPR_LOG_QTHRESHOLD,
- 	NFTNL_EXPR_LOG_LEVEL,
- 	NFTNL_EXPR_LOG_FLAGS,
-+	__NFTNL_EXPR_LOG_MAX
- };
- 
- enum {
-@@ -195,6 +214,7 @@ enum {
- 	NFTNL_EXPR_EXTHDR_FLAGS,
- 	NFTNL_EXPR_EXTHDR_OP,
- 	NFTNL_EXPR_EXTHDR_SREG,
-+	__NFTNL_EXPR_EXTHDR_MAX
- };
- 
- enum {
-@@ -202,6 +222,7 @@ enum {
- 	NFTNL_EXPR_CT_KEY,
- 	NFTNL_EXPR_CT_DIR,
- 	NFTNL_EXPR_CT_SREG,
-+	__NFTNL_EXPR_CT_MAX
- };
- 
- enum {
-@@ -210,6 +231,7 @@ enum {
- 	NFTNL_EXPR_BYTEORDER_OP,
- 	NFTNL_EXPR_BYTEORDER_LEN,
- 	NFTNL_EXPR_BYTEORDER_SIZE,
-+	__NFTNL_EXPR_BYTEORDER_MAX
- };
- 
- enum {
-@@ -218,11 +240,13 @@ enum {
- 	NFTNL_EXPR_LIMIT_BURST,
- 	NFTNL_EXPR_LIMIT_TYPE,
- 	NFTNL_EXPR_LIMIT_FLAGS,
-+	__NFTNL_EXPR_LIMIT_MAX
- };
- 
- enum {
- 	NFTNL_EXPR_REJECT_TYPE	= NFTNL_EXPR_BASE,
- 	NFTNL_EXPR_REJECT_CODE,
-+	__NFTNL_EXPR_REJECT_MAX
- };
- 
- enum {
-@@ -230,39 +254,46 @@ enum {
- 	NFTNL_EXPR_QUEUE_TOTAL,
- 	NFTNL_EXPR_QUEUE_FLAGS,
- 	NFTNL_EXPR_QUEUE_SREG_QNUM,
-+	__NFTNL_EXPR_QUEUE_MAX
- };
- 
- enum {
- 	NFTNL_EXPR_QUOTA_BYTES	= NFTNL_EXPR_BASE,
- 	NFTNL_EXPR_QUOTA_FLAGS,
- 	NFTNL_EXPR_QUOTA_CONSUMED,
-+	__NFTNL_EXPR_QUOTA_MAX
- };
- 
- enum {
- 	NFTNL_EXPR_MASQ_FLAGS		= NFTNL_EXPR_BASE,
- 	NFTNL_EXPR_MASQ_REG_PROTO_MIN,
- 	NFTNL_EXPR_MASQ_REG_PROTO_MAX,
-+	__NFTNL_EXPR_MASQ_MAX
- };
- 
- enum {
- 	NFTNL_EXPR_REDIR_REG_PROTO_MIN	= NFTNL_EXPR_BASE,
- 	NFTNL_EXPR_REDIR_REG_PROTO_MAX,
- 	NFTNL_EXPR_REDIR_FLAGS,
-+	__NFTNL_EXPR_REDIR_MAX
- };
- 
- enum {
- 	NFTNL_EXPR_DUP_SREG_ADDR = NFTNL_EXPR_BASE,
- 	NFTNL_EXPR_DUP_SREG_DEV,
-+	__NFTNL_EXPR_DUP_MAX
- };
- 
- enum {
- 	NFTNL_EXPR_FLOW_TABLE_NAME = NFTNL_EXPR_BASE,
-+	__NFTNL_EXPR_FLOW_MAX
- };
- 
- enum {
- 	NFTNL_EXPR_FWD_SREG_DEV = NFTNL_EXPR_BASE,
- 	NFTNL_EXPR_FWD_SREG_ADDR,
- 	NFTNL_EXPR_FWD_NFPROTO,
-+	__NFTNL_EXPR_FWD_MAX
- };
- 
- enum {
-@@ -275,12 +306,14 @@ enum {
- 	NFTNL_EXPR_HASH_TYPE,
- 	NFTNL_EXPR_HASH_SET_NAME,	/* deprecated */
- 	NFTNL_EXPR_HASH_SET_ID,		/* deprecated */
-+	__NFTNL_EXPR_HASH_MAX
- };
- 
- enum {
- 	NFTNL_EXPR_FIB_DREG	= NFTNL_EXPR_BASE,
- 	NFTNL_EXPR_FIB_RESULT,
- 	NFTNL_EXPR_FIB_FLAGS,
-+	__NFTNL_EXPR_FIB_MAX
- };
- 
- enum {
-@@ -289,12 +322,14 @@ enum {
- 	NFTNL_EXPR_OBJREF_SET_SREG,
- 	NFTNL_EXPR_OBJREF_SET_NAME,
- 	NFTNL_EXPR_OBJREF_SET_ID,
-+	__NFTNL_EXPR_OBJREF_MAX
- };
- 
- enum {
- 	NFTNL_EXPR_OSF_DREG	= NFTNL_EXPR_BASE,
- 	NFTNL_EXPR_OSF_TTL,
- 	NFTNL_EXPR_OSF_FLAGS,
-+	__NFTNL_EXPR_OSF_MAX
- };
- 
- enum {
-@@ -303,17 +338,20 @@ enum {
- 	NFTNL_EXPR_XFRM_KEY,
- 	NFTNL_EXPR_XFRM_DIR,
- 	NFTNL_EXPR_XFRM_SPNUM,
-+	__NFTNL_EXPR_XFRM_MAX
- };
- 
- enum {
- 	NFTNL_EXPR_SYNPROXY_MSS	= NFTNL_EXPR_BASE,
- 	NFTNL_EXPR_SYNPROXY_WSCALE,
- 	NFTNL_EXPR_SYNPROXY_FLAGS,
-+	__NFTNL_EXPR_SYNPROXY_MAX
- };
- 
- enum {
- 	NFTNL_EXPR_LAST_MSECS = NFTNL_EXPR_BASE,
- 	NFTNL_EXPR_LAST_SET,
-+	__NFTNL_EXPR_LAST_MAX
- };
- 
- enum {
-@@ -321,6 +359,7 @@ enum {
- 	NFTNL_EXPR_INNER_FLAGS,
- 	NFTNL_EXPR_INNER_HDRSIZE,
- 	NFTNL_EXPR_INNER_EXPR,
-+	__NFTNL_EXPR_INNER_MAX
- };
- 
- #ifdef __cplusplus
 diff --git a/src/expr/bitwise.c b/src/expr/bitwise.c
-index e5dba827f3d93..69efe1d7e868f 100644
+index e219d49a5f440..dab1690707ec6 100644
 --- a/src/expr/bitwise.c
 +++ b/src/expr/bitwise.c
-@@ -271,7 +271,7 @@ nftnl_expr_bitwise_snprintf(char *buf, size_t size,
+@@ -266,10 +266,21 @@ nftnl_expr_bitwise_snprintf(char *buf, size_t size,
+ 	return err;
+ }
+ 
++static struct attr_policy bitwise_attr_policy[__NFTNL_EXPR_BITWISE_MAX] = {
++	[NFTNL_EXPR_BITWISE_SREG] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_BITWISE_DREG] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_BITWISE_LEN]  = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_BITWISE_MASK] = { .maxlen = NFT_DATA_VALUE_MAXLEN },
++	[NFTNL_EXPR_BITWISE_XOR]  = { .maxlen = NFT_DATA_VALUE_MAXLEN },
++	[NFTNL_EXPR_BITWISE_OP]   = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_BITWISE_DATA] = { .maxlen = NFT_DATA_VALUE_MAXLEN },
++};
++
  struct expr_ops expr_ops_bitwise = {
  	.name		= "bitwise",
  	.alloc_len	= sizeof(struct nftnl_expr_bitwise),
--	.max_attr	= NFTA_BITWISE_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_BITWISE_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_BITWISE_MAX - 1,
++	.attr_policy	= bitwise_attr_policy,
  	.set		= nftnl_expr_bitwise_set,
  	.get		= nftnl_expr_bitwise_get,
  	.parse		= nftnl_expr_bitwise_parse,
 diff --git a/src/expr/byteorder.c b/src/expr/byteorder.c
-index 89ed0a8232af1..f05ae59b688eb 100644
+index 8c7661fcc45ce..d4e85a8dacfc0 100644
 --- a/src/expr/byteorder.c
 +++ b/src/expr/byteorder.c
-@@ -215,7 +215,7 @@ nftnl_expr_byteorder_snprintf(char *buf, size_t remain,
+@@ -210,10 +210,19 @@ nftnl_expr_byteorder_snprintf(char *buf, size_t remain,
+ 	return offset;
+ }
+ 
++static struct attr_policy byteorder_attr_policy[__NFTNL_EXPR_BYTEORDER_MAX] = {
++	[NFTNL_EXPR_BYTEORDER_DREG] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_BYTEORDER_SREG] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_BYTEORDER_OP]   = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_BYTEORDER_LEN]  = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_BYTEORDER_SIZE] = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_byteorder = {
  	.name		= "byteorder",
  	.alloc_len	= sizeof(struct nftnl_expr_byteorder),
--	.max_attr	= NFTA_BYTEORDER_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_BYTEORDER_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_BYTEORDER_MAX - 1,
++	.attr_policy	= byteorder_attr_policy,
  	.set		= nftnl_expr_byteorder_set,
  	.get		= nftnl_expr_byteorder_get,
  	.parse		= nftnl_expr_byteorder_parse,
 diff --git a/src/expr/cmp.c b/src/expr/cmp.c
-index 1d396e83411ab..40431fad56f3e 100644
+index fe6f5997a0f3a..2937d7e63a18e 100644
 --- a/src/expr/cmp.c
 +++ b/src/expr/cmp.c
-@@ -195,7 +195,7 @@ nftnl_expr_cmp_snprintf(char *buf, size_t remain,
+@@ -190,10 +190,17 @@ nftnl_expr_cmp_snprintf(char *buf, size_t remain,
+ 	return offset;
+ }
+ 
++static struct attr_policy cmp_attr_policy[__NFTNL_EXPR_CMP_MAX] = {
++	[NFTNL_EXPR_CMP_SREG] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_CMP_OP]   = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_CMP_DATA] = { .maxlen = NFT_DATA_VALUE_MAXLEN }
++};
++
  struct expr_ops expr_ops_cmp = {
  	.name		= "cmp",
  	.alloc_len	= sizeof(struct nftnl_expr_cmp),
--	.max_attr	= NFTA_CMP_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_CMP_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_CMP_MAX - 1,
++	.attr_policy	= cmp_attr_policy,
  	.set		= nftnl_expr_cmp_set,
  	.get		= nftnl_expr_cmp_get,
  	.parse		= nftnl_expr_cmp_parse,
 diff --git a/src/expr/connlimit.c b/src/expr/connlimit.c
-index 549417bf31e6b..3b6c36c490636 100644
+index 90613f2241ded..1c78c7113f0e9 100644
 --- a/src/expr/connlimit.c
 +++ b/src/expr/connlimit.c
-@@ -130,7 +130,7 @@ static int nftnl_expr_connlimit_snprintf(char *buf, size_t len,
+@@ -125,10 +125,16 @@ static int nftnl_expr_connlimit_snprintf(char *buf, size_t len,
+ 			connlimit->count, connlimit->flags);
+ }
+ 
++static struct attr_policy connlimit_attr_policy[__NFTNL_EXPR_CONNLIMIT_MAX] = {
++	[NFTNL_EXPR_CONNLIMIT_COUNT] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_CONNLIMIT_FLAGS] = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_connlimit = {
  	.name		= "connlimit",
  	.alloc_len	= sizeof(struct nftnl_expr_connlimit),
--	.max_attr	= NFTA_CONNLIMIT_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_CONNLIMIT_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_CONNLIMIT_MAX - 1,
++	.attr_policy	= connlimit_attr_policy,
  	.set		= nftnl_expr_connlimit_set,
  	.get		= nftnl_expr_connlimit_get,
  	.parse		= nftnl_expr_connlimit_parse,
 diff --git a/src/expr/counter.c b/src/expr/counter.c
-index d139a5f758a0b..0595d505eb2fc 100644
+index a003e24c6a68d..2c6f2a7a820ac 100644
 --- a/src/expr/counter.c
 +++ b/src/expr/counter.c
-@@ -128,7 +128,7 @@ static int nftnl_expr_counter_snprintf(char *buf, size_t len,
+@@ -123,10 +123,16 @@ static int nftnl_expr_counter_snprintf(char *buf, size_t len,
+ 			ctr->pkts, ctr->bytes);
+ }
+ 
++static struct attr_policy counter_attr_policy[__NFTNL_EXPR_CTR_MAX] = {
++	[NFTNL_EXPR_CTR_PACKETS] = { .maxlen = sizeof(uint64_t) },
++	[NFTNL_EXPR_CTR_BYTES]   = { .maxlen = sizeof(uint64_t) },
++};
++
  struct expr_ops expr_ops_counter = {
  	.name		= "counter",
  	.alloc_len	= sizeof(struct nftnl_expr_counter),
--	.max_attr	= NFTA_COUNTER_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_CTR_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_CTR_MAX - 1,
++	.attr_policy	= counter_attr_policy,
  	.set		= nftnl_expr_counter_set,
  	.get		= nftnl_expr_counter_get,
  	.parse		= nftnl_expr_counter_parse,
 diff --git a/src/expr/ct.c b/src/expr/ct.c
-index f4a2aeaf31acc..36b61fdeaaf26 100644
+index 197454e547784..f7dd40d54799a 100644
 --- a/src/expr/ct.c
 +++ b/src/expr/ct.c
-@@ -253,7 +253,7 @@ nftnl_expr_ct_snprintf(char *buf, size_t remain,
+@@ -248,10 +248,18 @@ nftnl_expr_ct_snprintf(char *buf, size_t remain,
+ 	return offset;
+ }
+ 
++static struct attr_policy ct_attr_policy[__NFTNL_EXPR_CT_MAX] = {
++	[NFTNL_EXPR_CT_DREG] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_CT_KEY]  = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_CT_DIR]  = { .maxlen = sizeof(uint8_t) },
++	[NFTNL_EXPR_CT_SREG] = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_ct = {
  	.name		= "ct",
  	.alloc_len	= sizeof(struct nftnl_expr_ct),
--	.max_attr	= NFTA_CT_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_CT_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_CT_MAX - 1,
++	.attr_policy	= ct_attr_policy,
  	.set		= nftnl_expr_ct_set,
  	.get		= nftnl_expr_ct_get,
  	.parse		= nftnl_expr_ct_parse,
 diff --git a/src/expr/dup.c b/src/expr/dup.c
-index a239ff35640a6..33731cc29b165 100644
+index 20100abf8b3c3..6a5e4cae93b1c 100644
 --- a/src/expr/dup.c
 +++ b/src/expr/dup.c
-@@ -133,7 +133,7 @@ static int nftnl_expr_dup_snprintf(char *buf, size_t remain,
+@@ -128,10 +128,16 @@ static int nftnl_expr_dup_snprintf(char *buf, size_t remain,
+ 	return offset;
+ }
+ 
++static struct attr_policy dup_attr_policy[__NFTNL_EXPR_DUP_MAX] = {
++	[NFTNL_EXPR_DUP_SREG_ADDR] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_DUP_SREG_DEV]  = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_dup = {
  	.name		= "dup",
  	.alloc_len	= sizeof(struct nftnl_expr_dup),
--	.max_attr	= NFTA_DUP_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_DUP_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_DUP_MAX - 1,
++	.attr_policy	= dup_attr_policy,
  	.set		= nftnl_expr_dup_set,
  	.get		= nftnl_expr_dup_get,
  	.parse		= nftnl_expr_dup_parse,
 diff --git a/src/expr/dynset.c b/src/expr/dynset.c
-index 5bcf1c6f8b060..ee6ce1ec71563 100644
+index ee6ce1ec71563..c1f79b5741cd4 100644
 --- a/src/expr/dynset.c
 +++ b/src/expr/dynset.c
-@@ -366,7 +366,7 @@ static void nftnl_expr_dynset_free(const struct nftnl_expr *e)
+@@ -363,10 +363,23 @@ static void nftnl_expr_dynset_free(const struct nftnl_expr *e)
+ 		nftnl_expr_free(expr);
+ }
+ 
++static struct attr_policy dynset_attr_policy[__NFTNL_EXPR_DYNSET_MAX] = {
++	[NFTNL_EXPR_DYNSET_SREG_KEY]    = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_DYNSET_SREG_DATA]   = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_DYNSET_OP]          = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_DYNSET_TIMEOUT]     = { .maxlen = sizeof(uint64_t) },
++	[NFTNL_EXPR_DYNSET_SET_NAME]    = { .maxlen = NFT_SET_MAXNAMELEN },
++	[NFTNL_EXPR_DYNSET_SET_ID]      = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_DYNSET_EXPR]        = { .maxlen = 0 },
++	[NFTNL_EXPR_DYNSET_EXPRESSIONS] = { .maxlen = 0 },
++	[NFTNL_EXPR_DYNSET_FLAGS]       = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_dynset = {
  	.name		= "dynset",
  	.alloc_len	= sizeof(struct nftnl_expr_dynset),
--	.max_attr	= NFTA_DYNSET_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_DYNSET_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_DYNSET_MAX - 1,
++	.attr_policy	= dynset_attr_policy,
  	.init		= nftnl_expr_dynset_init,
  	.free		= nftnl_expr_dynset_free,
  	.set		= nftnl_expr_dynset_set,
 diff --git a/src/expr/exthdr.c b/src/expr/exthdr.c
-index 739c7ff2179f9..a1227a6cb4509 100644
+index 77ff7dba37d83..93b75216031b6 100644
 --- a/src/expr/exthdr.c
 +++ b/src/expr/exthdr.c
-@@ -262,7 +262,7 @@ nftnl_expr_exthdr_snprintf(char *buf, size_t len,
+@@ -257,10 +257,21 @@ nftnl_expr_exthdr_snprintf(char *buf, size_t len,
+ 
+ }
+ 
++static struct attr_policy exthdr_attr_policy[__NFTNL_EXPR_EXTHDR_MAX] = {
++	[NFTNL_EXPR_EXTHDR_DREG]   = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_EXTHDR_TYPE]   = { .maxlen = sizeof(uint8_t) },
++	[NFTNL_EXPR_EXTHDR_OFFSET] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_EXTHDR_LEN]    = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_EXTHDR_FLAGS]  = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_EXTHDR_OP]     = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_EXTHDR_SREG]   = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_exthdr = {
  	.name		= "exthdr",
  	.alloc_len	= sizeof(struct nftnl_expr_exthdr),
--	.max_attr	= NFTA_EXTHDR_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_EXTHDR_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_EXTHDR_MAX - 1,
++	.attr_policy	= exthdr_attr_policy,
  	.set		= nftnl_expr_exthdr_set,
  	.get		= nftnl_expr_exthdr_get,
  	.parse		= nftnl_expr_exthdr_parse,
 diff --git a/src/expr/fib.c b/src/expr/fib.c
-index 957f929ea912e..36637bd74f056 100644
+index 5d2303f9ebe83..5f7bef43be89a 100644
 --- a/src/expr/fib.c
 +++ b/src/expr/fib.c
-@@ -193,7 +193,7 @@ nftnl_expr_fib_snprintf(char *buf, size_t remain,
+@@ -188,10 +188,17 @@ nftnl_expr_fib_snprintf(char *buf, size_t remain,
+ 	return offset;
+ }
+ 
++static struct attr_policy fib_attr_policy[__NFTNL_EXPR_FIB_MAX] = {
++	[NFTNL_EXPR_FIB_DREG]   = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_FIB_RESULT] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_FIB_FLAGS]  = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_fib = {
  	.name		= "fib",
  	.alloc_len	= sizeof(struct nftnl_expr_fib),
--	.max_attr	= NFTA_FIB_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_FIB_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_FIB_MAX - 1,
++	.attr_policy	= fib_attr_policy,
  	.set		= nftnl_expr_fib_set,
  	.get		= nftnl_expr_fib_get,
  	.parse		= nftnl_expr_fib_parse,
 diff --git a/src/expr/flow_offload.c b/src/expr/flow_offload.c
-index 4fc0563bfb537..f60471240cc40 100644
+index 9ab068d29adaa..5f209a63fa960 100644
 --- a/src/expr/flow_offload.c
 +++ b/src/expr/flow_offload.c
-@@ -114,7 +114,7 @@ static void nftnl_expr_flow_free(const struct nftnl_expr *e)
+@@ -109,10 +109,15 @@ static void nftnl_expr_flow_free(const struct nftnl_expr *e)
+ 	xfree(flow->table_name);
+ }
+ 
++static struct attr_policy flow_offload_attr_policy[__NFTNL_EXPR_FLOW_MAX] = {
++	[NFTNL_EXPR_FLOW_TABLE_NAME] = { .maxlen = NFT_NAME_MAXLEN },
++};
++
  struct expr_ops expr_ops_flow = {
  	.name		= "flow_offload",
  	.alloc_len	= sizeof(struct nftnl_expr_flow),
--	.max_attr	= NFTA_FLOW_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_FLOW_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_FLOW_MAX - 1,
++	.attr_policy	= flow_offload_attr_policy,
  	.free		= nftnl_expr_flow_free,
  	.set		= nftnl_expr_flow_set,
  	.get		= nftnl_expr_flow_get,
 diff --git a/src/expr/fwd.c b/src/expr/fwd.c
-index 51f661258900f..3aaf328313cd9 100644
+index bd1b1d81eb2ad..566d6f495f1e3 100644
 --- a/src/expr/fwd.c
 +++ b/src/expr/fwd.c
-@@ -153,7 +153,7 @@ static int nftnl_expr_fwd_snprintf(char *buf, size_t remain,
+@@ -148,10 +148,17 @@ static int nftnl_expr_fwd_snprintf(char *buf, size_t remain,
+ 	return offset;
+ }
+ 
++static struct attr_policy fwd_attr_policy[__NFTNL_EXPR_FWD_MAX] = {
++	[NFTNL_EXPR_FWD_SREG_DEV]  = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_FWD_SREG_ADDR] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_FWD_NFPROTO]   = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_fwd = {
  	.name		= "fwd",
  	.alloc_len	= sizeof(struct nftnl_expr_fwd),
--	.max_attr	= NFTA_FWD_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_FWD_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_FWD_MAX - 1,
++	.attr_policy	= fwd_attr_policy,
  	.set		= nftnl_expr_fwd_set,
  	.get		= nftnl_expr_fwd_get,
  	.parse		= nftnl_expr_fwd_parse,
 diff --git a/src/expr/hash.c b/src/expr/hash.c
-index 6e2dd197fa708..1fc72ec331a3d 100644
+index 1fc72ec331a3d..4cd9006c9b29b 100644
 --- a/src/expr/hash.c
 +++ b/src/expr/hash.c
-@@ -221,7 +221,7 @@ nftnl_expr_hash_snprintf(char *buf, size_t remain,
+@@ -218,10 +218,21 @@ nftnl_expr_hash_snprintf(char *buf, size_t remain,
+ 	return offset;
+ }
+ 
++static struct attr_policy hash_attr_policy[__NFTNL_EXPR_HASH_MAX] = {
++	[NFTNL_EXPR_HASH_SREG]    = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_HASH_DREG]    = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_HASH_LEN]     = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_HASH_MODULUS] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_HASH_SEED]    = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_HASH_OFFSET]  = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_HASH_TYPE]    = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_hash = {
  	.name		= "hash",
  	.alloc_len	= sizeof(struct nftnl_expr_hash),
--	.max_attr	= NFTA_HASH_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_HASH_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_HASH_MAX - 1,
++	.attr_policy	= hash_attr_policy,
  	.set		= nftnl_expr_hash_set,
  	.get		= nftnl_expr_hash_get,
  	.parse		= nftnl_expr_hash_parse,
 diff --git a/src/expr/immediate.c b/src/expr/immediate.c
-index f56aa8fd69997..d60ca32400f18 100644
+index 6ab84171b159d..8645ab3e7827e 100644
 --- a/src/expr/immediate.c
 +++ b/src/expr/immediate.c
-@@ -221,7 +221,7 @@ static void nftnl_expr_immediate_free(const struct nftnl_expr *e)
+@@ -216,10 +216,19 @@ static void nftnl_expr_immediate_free(const struct nftnl_expr *e)
+ 		nftnl_free_verdict(&imm->data);
+ }
+ 
++static struct attr_policy immediate_attr_policy[__NFTNL_EXPR_IMM_MAX] = {
++	[NFTNL_EXPR_IMM_DREG]     = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_IMM_DATA]     = { .maxlen = NFT_DATA_VALUE_MAXLEN },
++	[NFTNL_EXPR_IMM_VERDICT]  = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_IMM_CHAIN]    = { .maxlen = NFT_CHAIN_MAXNAMELEN },
++	[NFTNL_EXPR_IMM_CHAIN_ID] = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_immediate = {
  	.name		= "immediate",
  	.alloc_len	= sizeof(struct nftnl_expr_immediate),
--	.max_attr	= NFTA_IMMEDIATE_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_IMM_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_IMM_MAX - 1,
++	.attr_policy	= immediate_attr_policy,
  	.free		= nftnl_expr_immediate_free,
  	.set		= nftnl_expr_immediate_set,
  	.get		= nftnl_expr_immediate_get,
 diff --git a/src/expr/inner.c b/src/expr/inner.c
-index 7daae4f36adb0..cb6f607138ce3 100644
+index 515f68d7b9d72..45ef4fb6208d8 100644
 --- a/src/expr/inner.c
 +++ b/src/expr/inner.c
-@@ -204,7 +204,7 @@ nftnl_expr_inner_snprintf(char *buf, size_t remain, uint32_t flags,
+@@ -199,10 +199,18 @@ nftnl_expr_inner_snprintf(char *buf, size_t remain, uint32_t flags,
+ 	return offset;
+ }
+ 
++static struct attr_policy inner_attr_policy[__NFTNL_EXPR_INNER_MAX] = {
++	[NFTNL_EXPR_INNER_TYPE]    = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_INNER_FLAGS]   = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_INNER_HDRSIZE] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_INNER_EXPR]    = { .maxlen = 0 },
++};
++
  struct expr_ops expr_ops_inner = {
  	.name		= "inner",
  	.alloc_len	= sizeof(struct nftnl_expr_inner),
--	.max_attr	= NFTA_INNER_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_INNER_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_INNER_MAX - 1,
++	.attr_policy	= inner_attr_policy,
  	.free		= nftnl_expr_inner_free,
  	.set		= nftnl_expr_inner_set,
  	.get		= nftnl_expr_inner_get,
 diff --git a/src/expr/last.c b/src/expr/last.c
-index 641b713fca66f..273aaa1e14a85 100644
+index 8aa772c615345..074f463811459 100644
 --- a/src/expr/last.c
 +++ b/src/expr/last.c
-@@ -129,7 +129,7 @@ static int nftnl_expr_last_snprintf(char *buf, size_t len,
+@@ -124,10 +124,16 @@ static int nftnl_expr_last_snprintf(char *buf, size_t len,
+ 	return snprintf(buf, len, "%"PRIu64" ", last->msecs);
+ }
+ 
++static struct attr_policy last_attr_policy[__NFTNL_EXPR_LAST_MAX] = {
++	[NFTNL_EXPR_LAST_MSECS] = { .maxlen = sizeof(uint64_t) },
++	[NFTNL_EXPR_LAST_SET]   = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_last = {
  	.name		= "last",
  	.alloc_len	= sizeof(struct nftnl_expr_last),
--	.max_attr	= NFTA_LAST_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_LAST_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_LAST_MAX - 1,
++	.attr_policy	= last_attr_policy,
  	.set		= nftnl_expr_last_set,
  	.get		= nftnl_expr_last_get,
  	.parse		= nftnl_expr_last_parse,
 diff --git a/src/expr/limit.c b/src/expr/limit.c
-index 1870e0e473a90..a1f9eac390d91 100644
+index 355d46acca4e5..935d449d046df 100644
 --- a/src/expr/limit.c
 +++ b/src/expr/limit.c
-@@ -197,7 +197,7 @@ nftnl_expr_limit_snprintf(char *buf, size_t len,
+@@ -192,10 +192,19 @@ nftnl_expr_limit_snprintf(char *buf, size_t len,
+ 			limit_to_type(limit->type), limit->flags);
+ }
+ 
++static struct attr_policy limit_attr_policy[__NFTNL_EXPR_LIMIT_MAX] = {
++	[NFTNL_EXPR_LIMIT_RATE]  = { .maxlen = sizeof(uint64_t) },
++	[NFTNL_EXPR_LIMIT_UNIT]  = { .maxlen = sizeof(uint64_t) },
++	[NFTNL_EXPR_LIMIT_BURST] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_LIMIT_TYPE]  = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_LIMIT_FLAGS] = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_limit = {
  	.name		= "limit",
  	.alloc_len	= sizeof(struct nftnl_expr_limit),
--	.max_attr	= NFTA_LIMIT_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_LIMIT_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_LIMIT_MAX - 1,
++	.attr_policy	= limit_attr_policy,
  	.set		= nftnl_expr_limit_set,
  	.get		= nftnl_expr_limit_get,
  	.parse		= nftnl_expr_limit_parse,
 diff --git a/src/expr/log.c b/src/expr/log.c
-index 180d83973d706..6df030d83fcd2 100644
+index 868da61d95795..d6d6910ca9201 100644
 --- a/src/expr/log.c
 +++ b/src/expr/log.c
-@@ -247,7 +247,7 @@ static void nftnl_expr_log_free(const struct nftnl_expr *e)
+@@ -242,10 +242,20 @@ static void nftnl_expr_log_free(const struct nftnl_expr *e)
+ 	xfree(log->prefix);
+ }
+ 
++static struct attr_policy log_attr_policy[__NFTNL_EXPR_LOG_MAX] = {
++	[NFTNL_EXPR_LOG_PREFIX]     = { .maxlen = NF_LOG_PREFIXLEN },
++	[NFTNL_EXPR_LOG_GROUP]      = { .maxlen = sizeof(uint16_t) },
++	[NFTNL_EXPR_LOG_SNAPLEN]    = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_LOG_QTHRESHOLD] = { .maxlen = sizeof(uint16_t) },
++	[NFTNL_EXPR_LOG_LEVEL]      = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_LOG_FLAGS]      = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_log = {
  	.name		= "log",
  	.alloc_len	= sizeof(struct nftnl_expr_log),
--	.max_attr	= NFTA_LOG_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_LOG_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_LOG_MAX - 1,
++	.attr_policy	= log_attr_policy,
  	.free		= nftnl_expr_log_free,
  	.set		= nftnl_expr_log_set,
  	.get		= nftnl_expr_log_get,
 diff --git a/src/expr/lookup.c b/src/expr/lookup.c
-index a06c3385411ac..8b230818c1bed 100644
+index ca58a38855734..be045286eb13e 100644
 --- a/src/expr/lookup.c
 +++ b/src/expr/lookup.c
-@@ -200,7 +200,7 @@ static void nftnl_expr_lookup_free(const struct nftnl_expr *e)
+@@ -195,10 +195,19 @@ static void nftnl_expr_lookup_free(const struct nftnl_expr *e)
+ 	xfree(lookup->set_name);
+ }
+ 
++static struct attr_policy lookup_attr_policy[__NFTNL_EXPR_LOOKUP_MAX] = {
++	[NFTNL_EXPR_LOOKUP_SREG]   = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_LOOKUP_DREG]   = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_LOOKUP_SET]    = { .maxlen = NFT_SET_MAXNAMELEN },
++	[NFTNL_EXPR_LOOKUP_SET_ID] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_LOOKUP_FLAGS]  = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_lookup = {
  	.name		= "lookup",
  	.alloc_len	= sizeof(struct nftnl_expr_lookup),
--	.max_attr	= NFTA_LOOKUP_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_LOOKUP_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_LOOKUP_MAX - 1,
++	.attr_policy	= lookup_attr_policy,
  	.free		= nftnl_expr_lookup_free,
  	.set		= nftnl_expr_lookup_set,
  	.get		= nftnl_expr_lookup_get,
 diff --git a/src/expr/masq.c b/src/expr/masq.c
-index e6e528d9acca8..a103cc33e23f7 100644
+index fa2f4afe2c600..4be5a9c18ed11 100644
 --- a/src/expr/masq.c
 +++ b/src/expr/masq.c
-@@ -158,7 +158,7 @@ static int nftnl_expr_masq_snprintf(char *buf, size_t remain,
+@@ -153,10 +153,17 @@ static int nftnl_expr_masq_snprintf(char *buf, size_t remain,
+ 	return offset;
+ }
+ 
++static struct attr_policy masq_attr_policy[__NFTNL_EXPR_MASQ_MAX] = {
++	[NFTNL_EXPR_MASQ_FLAGS]         = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_MASQ_REG_PROTO_MIN] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_MASQ_REG_PROTO_MAX] = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_masq = {
  	.name		= "masq",
  	.alloc_len	= sizeof(struct nftnl_expr_masq),
--	.max_attr	= NFTA_MASQ_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_MASQ_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_MASQ_MAX - 1,
++	.attr_policy	= masq_attr_policy,
  	.set		= nftnl_expr_masq_set,
  	.get		= nftnl_expr_masq_get,
  	.parse		= nftnl_expr_masq_parse,
 diff --git a/src/expr/match.c b/src/expr/match.c
-index f472add1cbc8e..eed85db4d40d1 100644
+index 16e73673df325..68288dc4349e9 100644
 --- a/src/expr/match.c
 +++ b/src/expr/match.c
-@@ -183,7 +183,7 @@ static void nftnl_expr_match_free(const struct nftnl_expr *e)
+@@ -178,10 +178,17 @@ static void nftnl_expr_match_free(const struct nftnl_expr *e)
+ 	xfree(match->data);
+ }
+ 
++static struct attr_policy match_attr_policy[__NFTNL_EXPR_MT_MAX] = {
++	[NFTNL_EXPR_MT_NAME] = { .maxlen = XT_EXTENSION_MAXNAMELEN },
++	[NFTNL_EXPR_MT_REV]  = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_MT_INFO] = { .maxlen = 0 },
++};
++
  struct expr_ops expr_ops_match = {
  	.name		= "match",
  	.alloc_len	= sizeof(struct nftnl_expr_match),
--	.max_attr	= NFTA_MATCH_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_MT_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_MT_MAX - 1,
++	.attr_policy	= match_attr_policy,
  	.free		= nftnl_expr_match_free,
  	.set		= nftnl_expr_match_set,
  	.get		= nftnl_expr_match_get,
 diff --git a/src/expr/meta.c b/src/expr/meta.c
-index 183f4412da218..f86fdffd3f14e 100644
+index 1db2c19e21342..cd49c341a3d6f 100644
 --- a/src/expr/meta.c
 +++ b/src/expr/meta.c
-@@ -212,7 +212,7 @@ nftnl_expr_meta_snprintf(char *buf, size_t len,
+@@ -207,10 +207,17 @@ nftnl_expr_meta_snprintf(char *buf, size_t len,
+ 	return 0;
+ }
+ 
++static struct attr_policy meta_attr_policy[__NFTNL_EXPR_META_MAX] = {
++	[NFTNL_EXPR_META_KEY]  = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_META_DREG] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_META_SREG] = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_meta = {
  	.name		= "meta",
  	.alloc_len	= sizeof(struct nftnl_expr_meta),
--	.max_attr	= NFTA_META_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_META_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_META_MAX - 1,
++	.attr_policy	= meta_attr_policy,
  	.set		= nftnl_expr_meta_set,
  	.get		= nftnl_expr_meta_get,
  	.parse		= nftnl_expr_meta_parse,
 diff --git a/src/expr/nat.c b/src/expr/nat.c
-index ca727be0cda63..1d10bc1c5442d 100644
+index 724894a2097d4..f3f8644ffdd52 100644
 --- a/src/expr/nat.c
 +++ b/src/expr/nat.c
-@@ -269,7 +269,7 @@ nftnl_expr_nat_snprintf(char *buf, size_t remain,
+@@ -264,10 +264,21 @@ nftnl_expr_nat_snprintf(char *buf, size_t remain,
+ 	return offset;
+ }
+ 
++static struct attr_policy nat_attr_policy[__NFTNL_EXPR_NAT_MAX] = {
++	[NFTNL_EXPR_NAT_TYPE]          = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_NAT_FAMILY]        = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_NAT_REG_ADDR_MIN]  = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_NAT_REG_ADDR_MAX]  = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_NAT_REG_PROTO_MIN] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_NAT_REG_PROTO_MAX] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_NAT_FLAGS]         = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_nat = {
  	.name		= "nat",
  	.alloc_len	= sizeof(struct nftnl_expr_nat),
--	.max_attr	= NFTA_NAT_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_NAT_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_NAT_MAX - 1,
++	.attr_policy	= nat_attr_policy,
  	.set		= nftnl_expr_nat_set,
  	.get		= nftnl_expr_nat_get,
  	.parse		= nftnl_expr_nat_parse,
 diff --git a/src/expr/numgen.c b/src/expr/numgen.c
-index d4020a6978e0c..3e83e05f2e3e0 100644
+index 3e83e05f2e3e0..c5e8772d22957 100644
 --- a/src/expr/numgen.c
 +++ b/src/expr/numgen.c
-@@ -175,7 +175,7 @@ nftnl_expr_ng_snprintf(char *buf, size_t remain,
+@@ -172,10 +172,18 @@ nftnl_expr_ng_snprintf(char *buf, size_t remain,
+ 	return offset;
+ }
+ 
++static struct attr_policy numgen_attr_policy[__NFTNL_EXPR_NG_MAX] = {
++	[NFTNL_EXPR_NG_DREG]    = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_NG_MODULUS] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_NG_TYPE]    = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_NG_OFFSET]  = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_ng = {
  	.name		= "numgen",
  	.alloc_len	= sizeof(struct nftnl_expr_ng),
--	.max_attr	= NFTA_NG_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_NG_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_NG_MAX - 1,
++	.attr_policy	= numgen_attr_policy,
  	.set		= nftnl_expr_ng_set,
  	.get		= nftnl_expr_ng_get,
  	.parse		= nftnl_expr_ng_parse,
 diff --git a/src/expr/objref.c b/src/expr/objref.c
-index ad0688f46ec62..e96bd6977e93a 100644
+index 28cd2cc025b40..59e1dddcb5f6d 100644
 --- a/src/expr/objref.c
 +++ b/src/expr/objref.c
-@@ -199,7 +199,7 @@ static void nftnl_expr_objref_free(const struct nftnl_expr *e)
+@@ -194,10 +194,19 @@ static void nftnl_expr_objref_free(const struct nftnl_expr *e)
+ 	xfree(objref->set.name);
+ }
+ 
++static struct attr_policy objref_attr_policy[__NFTNL_EXPR_OBJREF_MAX] = {
++	[NFTNL_EXPR_OBJREF_IMM_TYPE] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_OBJREF_IMM_NAME] = { .maxlen = NFT_NAME_MAXLEN },
++	[NFTNL_EXPR_OBJREF_SET_SREG] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_OBJREF_SET_NAME] = { .maxlen = NFT_NAME_MAXLEN },
++	[NFTNL_EXPR_OBJREF_SET_ID]   = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_objref = {
  	.name		= "objref",
  	.alloc_len	= sizeof(struct nftnl_expr_objref),
--	.max_attr	= NFTA_OBJREF_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_OBJREF_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_OBJREF_MAX - 1,
++	.attr_policy	= objref_attr_policy,
  	.free		= nftnl_expr_objref_free,
  	.set		= nftnl_expr_objref_set,
  	.get		= nftnl_expr_objref_get,
 diff --git a/src/expr/osf.c b/src/expr/osf.c
-index f15a722233830..3838af72debeb 100644
+index 3838af72debeb..1e4ceb02e3a04 100644
 --- a/src/expr/osf.c
 +++ b/src/expr/osf.c
-@@ -142,7 +142,7 @@ nftnl_expr_osf_snprintf(char *buf, size_t len,
+@@ -139,10 +139,17 @@ nftnl_expr_osf_snprintf(char *buf, size_t len,
+ 	return offset;
+ }
+ 
++static struct attr_policy osf_attr_policy[__NFTNL_EXPR_OSF_MAX] = {
++	[NFTNL_EXPR_OSF_DREG]  = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_OSF_TTL]   = { .maxlen = sizeof(uint8_t) },
++	[NFTNL_EXPR_OSF_FLAGS] = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_osf = {
  	.name		= "osf",
  	.alloc_len	= sizeof(struct nftnl_expr_osf),
--	.max_attr	= NFTA_OSF_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_OSF_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_OSF_MAX - 1,
++	.attr_policy	= osf_attr_policy,
  	.set		= nftnl_expr_osf_set,
  	.get		= nftnl_expr_osf_get,
  	.parse		= nftnl_expr_osf_parse,
 diff --git a/src/expr/payload.c b/src/expr/payload.c
-index c633e33bedd3e..f603662ac8da7 100644
+index 73cb188736839..76d38f7ede112 100644
 --- a/src/expr/payload.c
 +++ b/src/expr/payload.c
-@@ -241,7 +241,7 @@ nftnl_expr_payload_snprintf(char *buf, size_t len,
+@@ -236,10 +236,22 @@ nftnl_expr_payload_snprintf(char *buf, size_t len,
+ 				payload->offset, payload->dreg);
+ }
+ 
++static struct attr_policy payload_attr_policy[__NFTNL_EXPR_PAYLOAD_MAX] = {
++	[NFTNL_EXPR_PAYLOAD_DREG]        = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_PAYLOAD_BASE]        = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_PAYLOAD_OFFSET]      = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_PAYLOAD_LEN]         = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_PAYLOAD_SREG]        = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_PAYLOAD_CSUM_TYPE]   = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_PAYLOAD_CSUM_OFFSET] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_PAYLOAD_FLAGS]       = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_payload = {
  	.name		= "payload",
  	.alloc_len	= sizeof(struct nftnl_expr_payload),
--	.max_attr	= NFTA_PAYLOAD_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_PAYLOAD_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_PAYLOAD_MAX - 1,
++	.attr_policy	= payload_attr_policy,
  	.set		= nftnl_expr_payload_set,
  	.get		= nftnl_expr_payload_get,
  	.parse		= nftnl_expr_payload_parse,
 diff --git a/src/expr/queue.c b/src/expr/queue.c
-index de287f245d9a9..fba65d1003b31 100644
+index 3343dd47665e4..54792ef009474 100644
 --- a/src/expr/queue.c
 +++ b/src/expr/queue.c
-@@ -188,7 +188,7 @@ nftnl_expr_queue_snprintf(char *buf, size_t remain,
+@@ -183,10 +183,18 @@ nftnl_expr_queue_snprintf(char *buf, size_t remain,
+ 	return offset;
+ }
+ 
++static struct attr_policy queue_attr_policy[__NFTNL_EXPR_QUEUE_MAX] = {
++	[NFTNL_EXPR_QUEUE_NUM]       = { .maxlen = sizeof(uint16_t) },
++	[NFTNL_EXPR_QUEUE_TOTAL]     = { .maxlen = sizeof(uint16_t) },
++	[NFTNL_EXPR_QUEUE_FLAGS]     = { .maxlen = sizeof(uint16_t) },
++	[NFTNL_EXPR_QUEUE_SREG_QNUM] = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_queue = {
  	.name		= "queue",
  	.alloc_len	= sizeof(struct nftnl_expr_queue),
--	.max_attr	= NFTA_QUEUE_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_QUEUE_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_QUEUE_MAX - 1,
++	.attr_policy	= queue_attr_policy,
  	.set		= nftnl_expr_queue_set,
  	.get		= nftnl_expr_queue_get,
  	.parse		= nftnl_expr_queue_parse,
 diff --git a/src/expr/quota.c b/src/expr/quota.c
-index 835729ceac17b..d3923f3197900 100644
+index 2a3a05a82d6a2..60631febcd220 100644
 --- a/src/expr/quota.c
 +++ b/src/expr/quota.c
-@@ -142,7 +142,7 @@ static int nftnl_expr_quota_snprintf(char *buf, size_t len,
+@@ -137,10 +137,17 @@ static int nftnl_expr_quota_snprintf(char *buf, size_t len,
+ 			quota->bytes, quota->consumed, quota->flags);
+ }
+ 
++static struct attr_policy quota_attr_policy[__NFTNL_EXPR_QUOTA_MAX] = {
++	[NFTNL_EXPR_QUOTA_BYTES]    = { .maxlen = sizeof(uint64_t) },
++	[NFTNL_EXPR_QUOTA_FLAGS]    = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_QUOTA_CONSUMED] = { .maxlen = sizeof(uint64_t) },
++};
++
  struct expr_ops expr_ops_quota = {
  	.name		= "quota",
  	.alloc_len	= sizeof(struct nftnl_expr_quota),
--	.max_attr	= NFTA_QUOTA_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_QUOTA_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_QUOTA_MAX - 1,
++	.attr_policy	= quota_attr_policy,
  	.set		= nftnl_expr_quota_set,
  	.get		= nftnl_expr_quota_get,
  	.parse		= nftnl_expr_quota_parse,
 diff --git a/src/expr/range.c b/src/expr/range.c
-index 5a30e48fde928..cb3708c8a003d 100644
+index d0c52b9a71938..6310b79d0a02b 100644
 --- a/src/expr/range.c
 +++ b/src/expr/range.c
-@@ -204,7 +204,7 @@ static int nftnl_expr_range_snprintf(char *buf, size_t remain,
+@@ -199,10 +199,18 @@ static int nftnl_expr_range_snprintf(char *buf, size_t remain,
+ 	return offset;
+ }
+ 
++static struct attr_policy range_attr_policy[__NFTNL_EXPR_RANGE_MAX] = {
++	[NFTNL_EXPR_RANGE_SREG]      = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_RANGE_OP]        = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_RANGE_FROM_DATA] = { .maxlen = NFT_DATA_VALUE_MAXLEN },
++	[NFTNL_EXPR_RANGE_TO_DATA]   = { .maxlen = NFT_DATA_VALUE_MAXLEN },
++};
++
  struct expr_ops expr_ops_range = {
  	.name		= "range",
  	.alloc_len	= sizeof(struct nftnl_expr_range),
--	.max_attr	= NFTA_RANGE_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_RANGE_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_RANGE_MAX - 1,
++	.attr_policy	= range_attr_policy,
  	.set		= nftnl_expr_range_set,
  	.get		= nftnl_expr_range_get,
  	.parse		= nftnl_expr_range_parse,
 diff --git a/src/expr/redir.c b/src/expr/redir.c
-index 87c2accb923fa..eca8bfe1abd4c 100644
+index a5a5e7d5677f9..69095bde094c1 100644
 --- a/src/expr/redir.c
 +++ b/src/expr/redir.c
-@@ -162,7 +162,7 @@ nftnl_expr_redir_snprintf(char *buf, size_t remain,
+@@ -157,10 +157,17 @@ nftnl_expr_redir_snprintf(char *buf, size_t remain,
+ 	return offset;
+ }
+ 
++static struct attr_policy redir_attr_policy[__NFTNL_EXPR_REDIR_MAX] = {
++	[NFTNL_EXPR_REDIR_REG_PROTO_MIN] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_REDIR_REG_PROTO_MAX] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_REDIR_FLAGS]         = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_redir = {
  	.name		= "redir",
  	.alloc_len	= sizeof(struct nftnl_expr_redir),
--	.max_attr	= NFTA_REDIR_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_REDIR_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_REDIR_MAX - 1,
++	.attr_policy	= redir_attr_policy,
  	.set		= nftnl_expr_redir_set,
  	.get		= nftnl_expr_redir_get,
  	.parse		= nftnl_expr_redir_parse,
 diff --git a/src/expr/reject.c b/src/expr/reject.c
-index c7c944124ca39..6b923adf5e569 100644
+index 8a0653d0f674c..f97011a704663 100644
 --- a/src/expr/reject.c
 +++ b/src/expr/reject.c
-@@ -129,7 +129,7 @@ nftnl_expr_reject_snprintf(char *buf, size_t len,
+@@ -124,10 +124,16 @@ nftnl_expr_reject_snprintf(char *buf, size_t len,
+ 			reject->type, reject->icmp_code);
+ }
+ 
++static struct attr_policy reject_attr_policy[__NFTNL_EXPR_REJECT_MAX] = {
++	[NFTNL_EXPR_REJECT_TYPE] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_REJECT_CODE] = { .maxlen = sizeof(uint8_t) },
++};
++
  struct expr_ops expr_ops_reject = {
  	.name		= "reject",
  	.alloc_len	= sizeof(struct nftnl_expr_reject),
--	.max_attr	= NFTA_REJECT_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_REJECT_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_REJECT_MAX - 1,
++	.attr_policy	= reject_attr_policy,
  	.set		= nftnl_expr_reject_set,
  	.get		= nftnl_expr_reject_get,
  	.parse		= nftnl_expr_reject_parse,
 diff --git a/src/expr/rt.c b/src/expr/rt.c
-index 695a6589b5c84..aaec43025011b 100644
+index de2bd2f1f90a5..0ab255609632f 100644
 --- a/src/expr/rt.c
 +++ b/src/expr/rt.c
-@@ -157,7 +157,7 @@ nftnl_expr_rt_snprintf(char *buf, size_t len,
+@@ -152,10 +152,16 @@ nftnl_expr_rt_snprintf(char *buf, size_t len,
+ 	return 0;
+ }
+ 
++static struct attr_policy rt_attr_policy[__NFTNL_EXPR_RT_MAX] = {
++	[NFTNL_EXPR_RT_KEY]  = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_RT_DREG] = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_rt = {
  	.name		= "rt",
  	.alloc_len	= sizeof(struct nftnl_expr_rt),
--	.max_attr	= NFTA_RT_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_RT_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_RT_MAX - 1,
++	.attr_policy	= rt_attr_policy,
  	.set		= nftnl_expr_rt_set,
  	.get		= nftnl_expr_rt_get,
  	.parse		= nftnl_expr_rt_parse,
 diff --git a/src/expr/socket.c b/src/expr/socket.c
-index 83045c075fb5b..ef299c456cdd1 100644
+index 9b6c3ea3ebb50..d0d8e236c688a 100644
 --- a/src/expr/socket.c
 +++ b/src/expr/socket.c
-@@ -160,7 +160,7 @@ nftnl_expr_socket_snprintf(char *buf, size_t len,
+@@ -155,10 +155,17 @@ nftnl_expr_socket_snprintf(char *buf, size_t len,
+ 	return 0;
+ }
+ 
++static struct attr_policy socket_attr_policy[__NFTNL_EXPR_SOCKET_MAX] = {
++	[NFTNL_EXPR_SOCKET_KEY]   = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_SOCKET_DREG]  = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_SOCKET_LEVEL] = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_socket = {
  	.name		= "socket",
  	.alloc_len	= sizeof(struct nftnl_expr_socket),
--	.max_attr	= NFTA_SOCKET_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_SOCKET_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_SOCKET_MAX - 1,
++	.attr_policy	= socket_attr_policy,
  	.set		= nftnl_expr_socket_set,
  	.get		= nftnl_expr_socket_get,
  	.parse		= nftnl_expr_socket_parse,
 diff --git a/src/expr/synproxy.c b/src/expr/synproxy.c
-index 47fcaefb23b1b..dc25962c00d81 100644
+index dc25962c00d81..898d292f7116d 100644
 --- a/src/expr/synproxy.c
 +++ b/src/expr/synproxy.c
-@@ -147,7 +147,7 @@ nftnl_expr_synproxy_snprintf(char *buf, size_t len,
+@@ -144,10 +144,17 @@ nftnl_expr_synproxy_snprintf(char *buf, size_t len,
+ 	return offset;
+ }
+ 
++static struct attr_policy synproxy_attr_policy[__NFTNL_EXPR_SYNPROXY_MAX] = {
++	[NFTNL_EXPR_SYNPROXY_MSS]    = { .maxlen = sizeof(uint16_t) },
++	[NFTNL_EXPR_SYNPROXY_WSCALE] = { .maxlen = sizeof(uint8_t) },
++	[NFTNL_EXPR_SYNPROXY_FLAGS]  = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_synproxy = {
  	.name		= "synproxy",
  	.alloc_len	= sizeof(struct nftnl_expr_synproxy),
--	.max_attr	= NFTA_SYNPROXY_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_SYNPROXY_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_SYNPROXY_MAX - 1,
++	.attr_policy	= synproxy_attr_policy,
  	.set		= nftnl_expr_synproxy_set,
  	.get		= nftnl_expr_synproxy_get,
  	.parse		= nftnl_expr_synproxy_parse,
 diff --git a/src/expr/target.c b/src/expr/target.c
-index 2a3fe8ae1020d..ebc48bafb06cc 100644
+index cc0566c1d4b8f..9bfd25bdd5654 100644
 --- a/src/expr/target.c
 +++ b/src/expr/target.c
-@@ -183,7 +183,7 @@ static void nftnl_expr_target_free(const struct nftnl_expr *e)
+@@ -178,10 +178,17 @@ static void nftnl_expr_target_free(const struct nftnl_expr *e)
+ 	xfree(target->data);
+ }
+ 
++static struct attr_policy target_attr_policy[__NFTNL_EXPR_TG_MAX] = {
++	[NFTNL_EXPR_TG_NAME] = { .maxlen = XT_EXTENSION_MAXNAMELEN },
++	[NFTNL_EXPR_TG_REV]  = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_TG_INFO] = { .maxlen = 0 },
++};
++
  struct expr_ops expr_ops_target = {
  	.name		= "target",
  	.alloc_len	= sizeof(struct nftnl_expr_target),
--	.max_attr	= NFTA_TARGET_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_TG_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_TG_MAX - 1,
++	.attr_policy	= target_attr_policy,
  	.free		= nftnl_expr_target_free,
  	.set		= nftnl_expr_target_set,
  	.get		= nftnl_expr_target_get,
 diff --git a/src/expr/tproxy.c b/src/expr/tproxy.c
-index bd5ffbf1d93ee..ac5419b1f3405 100644
+index c6ed888161918..49483921df139 100644
 --- a/src/expr/tproxy.c
 +++ b/src/expr/tproxy.c
-@@ -165,7 +165,7 @@ nftnl_expr_tproxy_snprintf(char *buf, size_t remain,
+@@ -160,10 +160,17 @@ nftnl_expr_tproxy_snprintf(char *buf, size_t remain,
+ 	return offset;
+ }
+ 
++static struct attr_policy tproxy_attr_policy[__NFTNL_EXPR_TPROXY_MAX] = {
++	[NFTNL_EXPR_TPROXY_FAMILY]   = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_TPROXY_REG_ADDR] = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_TPROXY_REG_PORT] = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_tproxy = {
  	.name		= "tproxy",
  	.alloc_len	= sizeof(struct nftnl_expr_tproxy),
--	.max_attr	= NFTA_TPROXY_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_TPROXY_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_TPROXY_MAX - 1,
++	.attr_policy	= tproxy_attr_policy,
  	.set		= nftnl_expr_tproxy_set,
  	.get		= nftnl_expr_tproxy_get,
  	.parse		= nftnl_expr_tproxy_parse,
 diff --git a/src/expr/tunnel.c b/src/expr/tunnel.c
-index a00f620fa471a..e381994707fe9 100644
+index e59744b070f50..8089d0b585435 100644
 --- a/src/expr/tunnel.c
 +++ b/src/expr/tunnel.c
-@@ -140,7 +140,7 @@ nftnl_expr_tunnel_snprintf(char *buf, size_t len,
+@@ -135,10 +135,16 @@ nftnl_expr_tunnel_snprintf(char *buf, size_t len,
+ 	return 0;
+ }
+ 
++static struct attr_policy tunnel_attr_policy[__NFTNL_EXPR_TUNNEL_MAX] = {
++	[NFTNL_EXPR_TUNNEL_KEY]  = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_TUNNEL_DREG] = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_tunnel = {
  	.name		= "tunnel",
  	.alloc_len	= sizeof(struct nftnl_expr_tunnel),
--	.max_attr	= NFTA_TUNNEL_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_TUNNEL_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_TUNNEL_MAX - 1,
++	.attr_policy	= tunnel_attr_policy,
  	.set		= nftnl_expr_tunnel_set,
  	.get		= nftnl_expr_tunnel_get,
  	.parse		= nftnl_expr_tunnel_parse,
 diff --git a/src/expr/xfrm.c b/src/expr/xfrm.c
-index 2db00d50a158a..3f4cb0a91762e 100644
+index 3f4cb0a91762e..dc867a24f78b4 100644
 --- a/src/expr/xfrm.c
 +++ b/src/expr/xfrm.c
-@@ -191,7 +191,7 @@ nftnl_expr_xfrm_snprintf(char *buf, size_t remain,
+@@ -188,10 +188,19 @@ nftnl_expr_xfrm_snprintf(char *buf, size_t remain,
+ 	return offset;
+ }
+ 
++static struct attr_policy xfrm_attr_policy[__NFTNL_EXPR_XFRM_MAX] = {
++	[NFTNL_EXPR_XFRM_DREG]  = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_XFRM_SREG]  = { .maxlen = 0 },
++	[NFTNL_EXPR_XFRM_KEY]   = { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_XFRM_DIR]   = { .maxlen = sizeof(uint8_t) },
++	[NFTNL_EXPR_XFRM_SPNUM] = { .maxlen = sizeof(uint32_t) },
++};
++
  struct expr_ops expr_ops_xfrm = {
  	.name		= "xfrm",
  	.alloc_len	= sizeof(struct nftnl_expr_xfrm),
--	.max_attr	= NFTA_XFRM_MAX,
-+	.nftnl_max_attr	= __NFTNL_EXPR_XFRM_MAX - 1,
+ 	.nftnl_max_attr	= __NFTNL_EXPR_XFRM_MAX - 1,
++	.attr_policy	= xfrm_attr_policy,
  	.set		= nftnl_expr_xfrm_set,
  	.get		= nftnl_expr_xfrm_get,
  	.parse		= nftnl_expr_xfrm_parse,
