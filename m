@@ -1,52 +1,63 @@
-Received: from out30-110.freemail.mail.aliyun.com (out30-110.freemail.mail.aliyun.com [115.124.30.110])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from pepin.polanet.pl (pepin.polanet.pl [193.34.52.2])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0280B6FA2;
-	Mon, 18 Dec 2023 06:26:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R151e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046059;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0VygYz0X_1702880804;
-Received: from 30.221.148.252(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VygYz0X_1702880804)
-          by smtp.aliyun-inc.com;
-          Mon, 18 Dec 2023 14:26:45 +0800
-Message-ID: <e616c2ac-e68b-3814-eac3-304e49eb39b8@linux.alibaba.com>
-Date: Mon, 18 Dec 2023 14:26:43 +0800
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E027129EF9
+	for <netfilter-devel@vger.kernel.org>; Mon, 18 Dec 2023 13:59:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=polanet.pl
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=polanet.pl
+Date: Mon, 18 Dec 2023 14:29:28 +0100
+From: Tomasz Pala <gotar@polanet.pl>
+To: Samuel Marks <samuelmarks@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: PATCH [netfilter] Remove old case sensitive variants of
+ lowercase .c and .h files
+Message-ID: <20231218132928.GA5123@polanet.pl>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
- Gecko/20100101 Thunderbird/102.15.1
-Content-Language: en-US
-From: "D. Wythe" <alibuda@linux.alibaba.com>
-Subject: =?UTF-8?Q?Can_netfilter-ebpf_modify_packets_=ef=bc=9f?=
-To: pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
- coreteam@netfilter.org, pabeni@redhat.com, ast@kernel.org,
- netfilter-devel@vger.kernel.org, bpf@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
+Content-Disposition: inline
+User-Agent: Mutt/1.5.20 (2009-06-14)
 
+The net/netfilter/Makefile is also case-sensitive and obsoleted,
+is there any reason you've left it not cleaned up?
 
-Hello everyone,
+On Sat, Dec 16, 2023 at 19:22:46 +0000, Samuel Marks wrote:
 
-I've noticed that it's not possible to modify packets via netfilter-ebpf 
-right now. I'm curious if this is by design.
+> ---
+> `git clone` fails on case-insensitive file systems, e.g., on Windows,
+> MSYS, Cygwin due to case sensitive files. All but one are in
+> netfilter, and they seem to be old code that isn't necessary.
+> 
+>  include/uapi/linux/netfilter/xt_CONNMARK.h  |   7 -
+>  include/uapi/linux/netfilter/xt_DSCP.h      |  27 --
+>  include/uapi/linux/netfilter/xt_MARK.h      |   7 -
+>  include/uapi/linux/netfilter/xt_RATEEST.h   |  17 -
+>  include/uapi/linux/netfilter/xt_TCPMSS.h    |  13 -
+>  include/uapi/linux/netfilter_ipv4/ipt_ECN.h |  34 --
+>  include/uapi/linux/netfilter_ipv4/ipt_TTL.h |  24 --
+>  include/uapi/linux/netfilter_ipv6/ip6t_HL.h |  25 --
+>  net/netfilter/Makefile                      |   4 -
+>  net/netfilter/xt_DSCP.c                     | 161 ---------
+>  net/netfilter/xt_HL.c                       | 159 ---------
+>  net/netfilter/xt_RATEEST.c                  | 233 -------------
+>  net/netfilter/xt_TCPMSS.c                   | 345 --------------------
+>  13 files changed, 1056 deletions(-)
+>  delete mode 100644 include/uapi/linux/netfilter/xt_CONNMARK.h
+>  delete mode 100644 include/uapi/linux/netfilter/xt_DSCP.h
+>  delete mode 100644 include/uapi/linux/netfilter/xt_MARK.h
+>  delete mode 100644 include/uapi/linux/netfilter/xt_RATEEST.h
+>  delete mode 100644 include/uapi/linux/netfilter/xt_TCPMSS.h
+>  delete mode 100644 include/uapi/linux/netfilter_ipv4/ipt_ECN.h
+>  delete mode 100644 include/uapi/linux/netfilter_ipv4/ipt_TTL.h
+>  delete mode 100644 include/uapi/linux/netfilter_ipv6/ip6t_HL.h
+>  delete mode 100644 net/netfilter/xt_DSCP.c
+>  delete mode 100644 net/netfilter/xt_HL.c
+>  delete mode 100644 net/netfilter/xt_RATEEST.c
+>  delete mode 100644 net/netfilter/xt_TCPMSS.c
 
-Currently, I've observed some issues, such as:
-
-1. The dynptr obtained through bpf_dynptr_from_skb in the netfilter-ebpf 
-prog is read-only.
-2. In addition to modification, applications may also need to delete or 
-append some data in the skb, which dynptr_write cannot meet.
-3. Modifying packets involves recalculating csum, or updating 
-transparent header, etc.
-4. The BPF_PROG_TYPE_SCHED_ACT provides a large number of helpers that 
-can meet various packet modification scenarios. However, due to arg_type 
-type checks(ARG_PTR_TO_CTX), we cannot use them directly in netfilter yet.
-
-Looking forward to any feedback.
-
-Best wishes,
-D. Wythe
+-- 
+Tomasz Pala <gotar@pld-linux.org>
