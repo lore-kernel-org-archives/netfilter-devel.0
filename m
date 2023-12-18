@@ -1,67 +1,52 @@
-Received: from out30-113.freemail.mail.aliyun.com (out30-113.freemail.mail.aliyun.com [115.124.30.113])
+Received: from out30-110.freemail.mail.aliyun.com (out30-110.freemail.mail.aliyun.com [115.124.30.110])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2A8763A8;
-	Mon, 18 Dec 2023 04:23:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0280B6FA2;
+	Mon, 18 Dec 2023 06:26:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R111e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046049;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=13;SR=0;TI=SMTPD_---0Vye8nUn_1702873102;
-Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0Vye8nUn_1702873102)
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R151e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046059;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0VygYz0X_1702880804;
+Received: from 30.221.148.252(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VygYz0X_1702880804)
           by smtp.aliyun-inc.com;
-          Mon, 18 Dec 2023 12:18:27 +0800
-From: "D. Wythe" <alibuda@linux.alibaba.com>
-To: pablo@netfilter.org,
-	kadlec@netfilter.org,
-	fw@strlen.de
-Cc: bpf@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org,
-	coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	ast@kernel.org
-Subject: [RFC nf-next v2 0/2] netfilter: bpf: support prog update
-Date: Mon, 18 Dec 2023 12:18:19 +0800
-Message-Id: <1702873101-77522-1-git-send-email-alibuda@linux.alibaba.com>
-X-Mailer: git-send-email 1.8.3.1
+          Mon, 18 Dec 2023 14:26:45 +0800
+Message-ID: <e616c2ac-e68b-3814-eac3-304e49eb39b8@linux.alibaba.com>
+Date: Mon, 18 Dec 2023 14:26:43 +0800
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
+ Gecko/20100101 Thunderbird/102.15.1
+Content-Language: en-US
 From: "D. Wythe" <alibuda@linux.alibaba.com>
+Subject: =?UTF-8?Q?Can_netfilter-ebpf_modify_packets_=ef=bc=9f?=
+To: pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+ coreteam@netfilter.org, pabeni@redhat.com, ast@kernel.org,
+ netfilter-devel@vger.kernel.org, bpf@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-This patches attempt to implements updating of progs within
-bpf netfilter link, allowing user update their ebpf netfilter
-prog in hot update manner.
 
-Besides, a corresponding test case has been added to verify
-whether the update works.
+Hello everyone,
 
---
-v1:
-1. remove unnecessary context, access the prog directly via rcu.
-2. remove synchronize_rcu(), dealloc the nf_link via kfree_rcu.
-3. check the dead flag during the update.
---
-v1->v2:
-1. remove unnecessary nf_prog, accessing nf_link->link.prog in direct.
+I've noticed that it's not possible to modify packets via netfilter-ebpf 
+right now. I'm curious if this is by design.
 
-D. Wythe (2):
-  netfilter: bpf: support prog update
-  selftests/bpf: Add netfilter link prog update test
+Currently, I've observed some issues, such as:
 
- net/netfilter/nf_bpf_link.c                        | 63 ++++++++++++----
- .../bpf/prog_tests/netfilter_link_update_prog.c    | 83 ++++++++++++++++++++++
- .../bpf/progs/test_netfilter_link_update_prog.c    | 24 +++++++
- 3 files changed, 155 insertions(+), 15 deletions(-)
- create mode 100644 tools/testing/selftests/bpf/prog_tests/netfilter_link_update_prog.c
- create mode 100644 tools/testing/selftests/bpf/progs/test_netfilter_link_update_prog.c
+1. The dynptr obtained through bpf_dynptr_from_skb in the netfilter-ebpf 
+prog is read-only.
+2. In addition to modification, applications may also need to delete or 
+append some data in the skb, which dynptr_write cannot meet.
+3. Modifying packets involves recalculating csum, or updating 
+transparent header, etc.
+4. The BPF_PROG_TYPE_SCHED_ACT provides a large number of helpers that 
+can meet various packet modification scenarios. However, due to arg_type 
+type checks(ARG_PTR_TO_CTX), we cannot use them directly in netfilter yet.
 
--- 
-1.8.3.1
+Looking forward to any feedback.
 
+Best wishes,
+D. Wythe
