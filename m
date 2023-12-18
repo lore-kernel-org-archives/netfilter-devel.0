@@ -1,62 +1,61 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from out30-98.freemail.mail.aliyun.com (out30-98.freemail.mail.aliyun.com [115.124.30.98])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A736344C6D;
-	Sun, 17 Dec 2023 14:19:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="i/IT2APc"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=KLcgIgfOC/I8L1esnfcT/awnqV649hEG4n1S1QAUSes=; b=i/IT2APcnpOPsb+x/qrwIwg1Si
-	WzwEwhmfd0VEUpuHfnFLMVDZ6PhnpfYbNH9aHNyJST+xNyy8WN5C/aTJXNGXogOSIeshQWS4D4X0l
-	bjGp0Xw0BfKsjSoD0WXZaF1NsduNFzoJvpuXKaaqDNX3m6N0LIOIAmAUHOlkvPO6pyh8ToghSXcs8
-	GtQlzPBSAi1swxXK8JxbfSy+ACP80s0sqFoVRh24XkTRFCKmZEnWfMfBDvdB+LcDGmtZUWTo4yPvk
-	sHsxTtO0SffSI5h5OJKb7uEPNPd1yhX0jOzQrrm13HhBupBOKvHEhd7svykVT9Wh+5FzJB2fyu9KL
-	f5iBZeNA==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1rEryq-0006nM-Lh; Sun, 17 Dec 2023 15:18:56 +0100
-Date: Sun, 17 Dec 2023 15:18:56 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Samuel Marks <samuelmarks@gmail.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org
-Subject: Re: [netfilter-core] PATCH [netfilter] Remove old case sensitive
- variants of lowercase .c and .h files
-Message-ID: <ZX8DUNj3Dn/bSvgt@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Samuel Marks <samuelmarks@gmail.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org
-References: <CAMfPbcbUD_29FihCpePpKOdJUAAw5XE_ciDAb6Lf_XcDU0JKRQ@mail.gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFE0F3C0D;
+	Mon, 18 Dec 2023 03:07:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R571e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046051;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=13;SR=0;TI=SMTPD_---0Vydujm._1702868817;
+Received: from 30.221.148.252(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0Vydujm._1702868817)
+          by smtp.aliyun-inc.com;
+          Mon, 18 Dec 2023 11:06:59 +0800
+Message-ID: <82c74693-db42-2491-868e-b6cb1cead4ec@linux.alibaba.com>
+Date: Mon, 18 Dec 2023 11:06:56 +0800
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAMfPbcbUD_29FihCpePpKOdJUAAw5XE_ciDAb6Lf_XcDU0JKRQ@mail.gmail.com>
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
+ Gecko/20100101 Thunderbird/102.15.1
+Subject: Re: [RFC nf-next v1 1/2] netfilter: bpf: support prog update
+Content-Language: en-US
+To: Florian Westphal <fw@strlen.de>
+Cc: pablo@netfilter.org, kadlec@netfilter.org, bpf@vger.kernel.org,
+ linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+ coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
+ davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+ pabeni@redhat.com, ast@kernel.org
+References: <1702609653-45835-1-git-send-email-alibuda@linux.alibaba.com>
+ <1702609653-45835-2-git-send-email-alibuda@linux.alibaba.com>
+ <20231215141712.GA17065@breakpoint.cc>
+From: "D. Wythe" <alibuda@linux.alibaba.com>
+In-Reply-To: <20231215141712.GA17065@breakpoint.cc>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Hi,
 
-On Sat, Dec 16, 2023 at 02:22:46PM -0500, Samuel Marks wrote:
-> ---
-> `git clone` fails on case-insensitive file systems, e.g., on Windows,
-> MSYS, Cygwin due to case sensitive files. All but one are in
-> netfilter, and they seem to be old code that isn't necessary.
 
-A good one, sadly 105 days too early. ;)
+On 12/15/23 10:17 PM, Florian Westphal wrote:
+> D. Wythe <alibuda@linux.alibaba.com> wrote:
+>>   	const struct nf_defrag_hook *defrag_hook;
+>> +	const struct bpf_prog __rcu *nf_prog;
+> Hmm, why do we need this pointer?
+> Can't you just re-use bpf_nf_link->link.prog?
+Accessing nf_link->link.prog directly is a bit strange because it is not 
+marked as __rcu, which will generate a compilation warning,
+thus we need to perform a type conversion.
 
-Cheers, Phil
+But I do not intend to insist on it. I will remove it in the next version.
+
+Best wishes,
+D. Wythe
+>
+>> +	rcu_assign_pointer(nf_link->nf_prog, new_prog);
+>> +	old_prog = xchg(&link->prog, new_prog);
+> This looks redundant, I think you can remove the nf_prog
+> pointer again.
+>
+> Rest LGTM.
+
