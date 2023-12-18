@@ -1,61 +1,177 @@
-Received: from out30-98.freemail.mail.aliyun.com (out30-98.freemail.mail.aliyun.com [115.124.30.98])
+Received: from out30-101.freemail.mail.aliyun.com (out30-101.freemail.mail.aliyun.com [115.124.30.101])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFE0F3C0D;
-	Mon, 18 Dec 2023 03:07:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE0365396;
+	Mon, 18 Dec 2023 04:18:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R571e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046051;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=13;SR=0;TI=SMTPD_---0Vydujm._1702868817;
-Received: from 30.221.148.252(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0Vydujm._1702868817)
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R761e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046050;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=13;SR=0;TI=SMTPD_---0Vye8nWi_1702873108;
+Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0Vye8nWi_1702873108)
           by smtp.aliyun-inc.com;
-          Mon, 18 Dec 2023 11:06:59 +0800
-Message-ID: <82c74693-db42-2491-868e-b6cb1cead4ec@linux.alibaba.com>
-Date: Mon, 18 Dec 2023 11:06:56 +0800
+          Mon, 18 Dec 2023 12:18:28 +0800
+From: "D. Wythe" <alibuda@linux.alibaba.com>
+To: pablo@netfilter.org,
+	kadlec@netfilter.org,
+	fw@strlen.de
+Cc: bpf@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	coreteam@netfilter.org,
+	netfilter-devel@vger.kernel.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	ast@kernel.org
+Subject: [RFC nf-next v2 2/2] selftests/bpf: Add netfilter link prog update test
+Date: Mon, 18 Dec 2023 12:18:21 +0800
+Message-Id: <1702873101-77522-3-git-send-email-alibuda@linux.alibaba.com>
+X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1702873101-77522-1-git-send-email-alibuda@linux.alibaba.com>
+References: <1702873101-77522-1-git-send-email-alibuda@linux.alibaba.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
- Gecko/20100101 Thunderbird/102.15.1
-Subject: Re: [RFC nf-next v1 1/2] netfilter: bpf: support prog update
-Content-Language: en-US
-To: Florian Westphal <fw@strlen.de>
-Cc: pablo@netfilter.org, kadlec@netfilter.org, bpf@vger.kernel.org,
- linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
- coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
- davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
- pabeni@redhat.com, ast@kernel.org
-References: <1702609653-45835-1-git-send-email-alibuda@linux.alibaba.com>
- <1702609653-45835-2-git-send-email-alibuda@linux.alibaba.com>
- <20231215141712.GA17065@breakpoint.cc>
+
 From: "D. Wythe" <alibuda@linux.alibaba.com>
-In-Reply-To: <20231215141712.GA17065@breakpoint.cc>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
 
+Update prog for active links and verify whether
+the prog has been successfully replaced.
 
+Expected output:
 
-On 12/15/23 10:17 PM, Florian Westphal wrote:
-> D. Wythe <alibuda@linux.alibaba.com> wrote:
->>   	const struct nf_defrag_hook *defrag_hook;
->> +	const struct bpf_prog __rcu *nf_prog;
-> Hmm, why do we need this pointer?
-> Can't you just re-use bpf_nf_link->link.prog?
-Accessing nf_link->link.prog directly is a bit strange because it is not 
-marked as __rcu, which will generate a compilation warning,
-thus we need to perform a type conversion.
+./test_progs -t netfilter_link_update_prog
+Summary: 1/0 PASSED, 0 SKIPPED, 0 FAILED
 
-But I do not intend to insist on it. I will remove it in the next version.
+Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+---
+ .../bpf/prog_tests/netfilter_link_update_prog.c    | 83 ++++++++++++++++++++++
+ .../bpf/progs/test_netfilter_link_update_prog.c    | 24 +++++++
+ 2 files changed, 107 insertions(+)
+ create mode 100644 tools/testing/selftests/bpf/prog_tests/netfilter_link_update_prog.c
+ create mode 100644 tools/testing/selftests/bpf/progs/test_netfilter_link_update_prog.c
 
-Best wishes,
-D. Wythe
->
->> +	rcu_assign_pointer(nf_link->nf_prog, new_prog);
->> +	old_prog = xchg(&link->prog, new_prog);
-> This looks redundant, I think you can remove the nf_prog
-> pointer again.
->
-> Rest LGTM.
+diff --git a/tools/testing/selftests/bpf/prog_tests/netfilter_link_update_prog.c b/tools/testing/selftests/bpf/prog_tests/netfilter_link_update_prog.c
+new file mode 100644
+index 00000000..d23b544
+--- /dev/null
++++ b/tools/testing/selftests/bpf/prog_tests/netfilter_link_update_prog.c
+@@ -0,0 +1,83 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++
++#include <test_progs.h>
++#include <linux/netfilter.h>
++#include <network_helpers.h>
++#include "test_netfilter_link_update_prog.skel.h"
++
++#define SERVER_ADDR "127.0.0.1"
++#define SERVER_PORT 12345
++
++static const char dummy_message[] = "A dummy message";
++
++static int send_dummy(int client_fd)
++{
++	struct sockaddr_storage saddr;
++	struct sockaddr *saddr_p;
++	socklen_t saddr_len;
++	int err;
++
++	saddr_p = (struct sockaddr *)&saddr;
++	err = make_sockaddr(AF_INET, SERVER_ADDR, SERVER_PORT, &saddr, &saddr_len);
++	if (!ASSERT_OK(err, "make_sockaddr"))
++		return -1;
++
++	err = sendto(client_fd, dummy_message, sizeof(dummy_message) - 1, 0, saddr_p, saddr_len);
++	if (!ASSERT_GE(err, 0, "sendto"))
++		return -1;
++
++	return 0;
++}
++
++void test_netfilter_link_update_prog(void)
++{
++	LIBBPF_OPTS(bpf_netfilter_opts, opts,
++		.pf = NFPROTO_IPV4,
++		.hooknum = NF_INET_LOCAL_OUT,
++		.priority = 100);
++	struct test_netfilter_link_update_prog *skel;
++	struct bpf_program *prog;
++	int server_fd, client_fd;
++	int err;
++
++	skel = test_netfilter_link_update_prog__open_and_load();
++	if (!ASSERT_OK_PTR(skel, "test_netfilter_link_update_prog__open_and_load"))
++		goto out;
++
++	prog = skel->progs.nf_link_prog;
++
++	if (!ASSERT_OK_PTR(prog, "load program"))
++		goto out;
++
++	skel->links.nf_link_prog = bpf_program__attach_netfilter(prog, &opts);
++	if (!ASSERT_OK_PTR(skel->links.nf_link_prog, "attach netfilter program"))
++		goto out;
++
++	server_fd = start_server(AF_INET, SOCK_DGRAM, SERVER_ADDR, SERVER_PORT, 0);
++	if (!ASSERT_GE(server_fd, 0, "start_server"))
++		goto out;
++
++	client_fd = connect_to_fd(server_fd, 0);
++	if (!ASSERT_GE(client_fd, 0, "connect_to_fd"))
++		goto out;
++
++	send_dummy(client_fd);
++
++	ASSERT_EQ(skel->bss->counter, 0, "counter should be zero");
++
++	err = bpf_link__update_program(skel->links.nf_link_prog, skel->progs.nf_link_prog_new);
++	if (!ASSERT_OK(err, "bpf_link__update_program"))
++		goto out;
++
++	send_dummy(client_fd);
++	ASSERT_GE(skel->bss->counter, 0, "counter should be greater than zero");
++out:
++	if (client_fd > 0)
++		close(client_fd);
++	if (server_fd > 0)
++		close(server_fd);
++
++	test_netfilter_link_update_prog__destroy(skel);
++}
++
++
+diff --git a/tools/testing/selftests/bpf/progs/test_netfilter_link_update_prog.c b/tools/testing/selftests/bpf/progs/test_netfilter_link_update_prog.c
+new file mode 100644
+index 00000000..42ae332
+--- /dev/null
++++ b/tools/testing/selftests/bpf/progs/test_netfilter_link_update_prog.c
+@@ -0,0 +1,24 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++
++#include "vmlinux.h"
++#include <bpf/bpf_helpers.h>
++
++#define NF_ACCEPT 1
++
++SEC("netfilter")
++int nf_link_prog(struct bpf_nf_ctx *ctx)
++{
++	return NF_ACCEPT;
++}
++
++u64 counter = 0;
++
++SEC("netfilter")
++int nf_link_prog_new(struct bpf_nf_ctx *ctx)
++{
++	counter++;
++	return NF_ACCEPT;
++}
++
++char _license[] SEC("license") = "GPL";
++
+-- 
+1.8.3.1
 
