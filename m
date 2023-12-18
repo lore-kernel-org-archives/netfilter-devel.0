@@ -1,63 +1,89 @@
-Received: from pepin.polanet.pl (pepin.polanet.pl [193.34.52.2])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E027129EF9
-	for <netfilter-devel@vger.kernel.org>; Mon, 18 Dec 2023 13:59:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=polanet.pl
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=polanet.pl
-Date: Mon, 18 Dec 2023 14:29:28 +0100
-From: Tomasz Pala <gotar@polanet.pl>
-To: Samuel Marks <samuelmarks@gmail.com>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: PATCH [netfilter] Remove old case sensitive variants of
- lowercase .c and .h files
-Message-ID: <20231218132928.GA5123@polanet.pl>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7D0B53BF;
+	Mon, 18 Dec 2023 19:06:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="r5YqmWcH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2AB9C433CA;
+	Mon, 18 Dec 2023 19:06:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1702926406;
+	bh=Oj7Gm/7pBuv1oprC+a4gyIhGSXnfXjSzl+Q2UzH9PfU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=r5YqmWcHA0EErYG+wdUrVMo+G3NRUlAHHAaq8OYyMC+0aX3HzBieTQD+saJYkuXz8
+	 8tVeyb80ImB6jhtI/nCc/Z9kQn/N2mRN7e1vDE5LoljMmYoR69+vqAXN1l42F15tJv
+	 a8k2+RplvA3gsK98gcp0wfob+x0GP2P5SzBFh9Z+IYLdNg9RRtq2wmqwaOSQBPQXr0
+	 6aWyqySgDEBIot96WJUo8TFNS+PW1e7qTruMg+rlru7oGH0qU8CsY51PH95b3w4QJA
+	 md8wKk/oWSDg770HWrBq6f79Fd0ArFWxcevlh1fKJbMVseMl2yto9fneZ6aWJD194T
+	 SIuvC5hdmrtMA==
+Date: Mon, 18 Dec 2023 19:06:40 +0000
+From: Simon Horman <horms@kernel.org>
+To: "D. Wythe" <alibuda@linux.alibaba.com>
+Cc: pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+	bpf@vger.kernel.org, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, coreteam@netfilter.org,
+	netfilter-devel@vger.kernel.org, davem@davemloft.net,
+	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+	ast@kernel.org
+Subject: Re: [RFC nf-next v2 1/2] netfilter: bpf: support prog update
+Message-ID: <20231218190640.GJ6288@kernel.org>
+References: <1702873101-77522-1-git-send-email-alibuda@linux.alibaba.com>
+ <1702873101-77522-2-git-send-email-alibuda@linux.alibaba.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-User-Agent: Mutt/1.5.20 (2009-06-14)
+In-Reply-To: <1702873101-77522-2-git-send-email-alibuda@linux.alibaba.com>
 
-The net/netfilter/Makefile is also case-sensitive and obsoleted,
-is there any reason you've left it not cleaned up?
-
-On Sat, Dec 16, 2023 at 19:22:46 +0000, Samuel Marks wrote:
-
-> ---
-> `git clone` fails on case-insensitive file systems, e.g., on Windows,
-> MSYS, Cygwin due to case sensitive files. All but one are in
-> netfilter, and they seem to be old code that isn't necessary.
+On Mon, Dec 18, 2023 at 12:18:20PM +0800, D. Wythe wrote:
+> From: "D. Wythe" <alibuda@linux.alibaba.com>
 > 
->  include/uapi/linux/netfilter/xt_CONNMARK.h  |   7 -
->  include/uapi/linux/netfilter/xt_DSCP.h      |  27 --
->  include/uapi/linux/netfilter/xt_MARK.h      |   7 -
->  include/uapi/linux/netfilter/xt_RATEEST.h   |  17 -
->  include/uapi/linux/netfilter/xt_TCPMSS.h    |  13 -
->  include/uapi/linux/netfilter_ipv4/ipt_ECN.h |  34 --
->  include/uapi/linux/netfilter_ipv4/ipt_TTL.h |  24 --
->  include/uapi/linux/netfilter_ipv6/ip6t_HL.h |  25 --
->  net/netfilter/Makefile                      |   4 -
->  net/netfilter/xt_DSCP.c                     | 161 ---------
->  net/netfilter/xt_HL.c                       | 159 ---------
->  net/netfilter/xt_RATEEST.c                  | 233 -------------
->  net/netfilter/xt_TCPMSS.c                   | 345 --------------------
->  13 files changed, 1056 deletions(-)
->  delete mode 100644 include/uapi/linux/netfilter/xt_CONNMARK.h
->  delete mode 100644 include/uapi/linux/netfilter/xt_DSCP.h
->  delete mode 100644 include/uapi/linux/netfilter/xt_MARK.h
->  delete mode 100644 include/uapi/linux/netfilter/xt_RATEEST.h
->  delete mode 100644 include/uapi/linux/netfilter/xt_TCPMSS.h
->  delete mode 100644 include/uapi/linux/netfilter_ipv4/ipt_ECN.h
->  delete mode 100644 include/uapi/linux/netfilter_ipv4/ipt_TTL.h
->  delete mode 100644 include/uapi/linux/netfilter_ipv6/ip6t_HL.h
->  delete mode 100644 net/netfilter/xt_DSCP.c
->  delete mode 100644 net/netfilter/xt_HL.c
->  delete mode 100644 net/netfilter/xt_RATEEST.c
->  delete mode 100644 net/netfilter/xt_TCPMSS.c
+> To support the prog update, we need to ensure that the prog seen
+> within the hook is always valid. Considering that hooks are always
+> protected by rcu_read_lock(), which provide us the ability to
+> access the prog under rcu.
+> 
+> Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
 
--- 
-Tomasz Pala <gotar@pld-linux.org>
+...
+
+> @@ -26,8 +17,20 @@ struct bpf_nf_link {
+>  	struct net *net;
+>  	u32 dead;
+>  	const struct nf_defrag_hook *defrag_hook;
+> +	struct rcu_head head;
+>  };
+>  
+> +static unsigned int nf_hook_run_bpf(void *bpf_link, struct sk_buff *skb,
+> +				    const struct nf_hook_state *s)
+> +{
+> +	const struct bpf_nf_link *nf_link = bpf_link;
+> +	struct bpf_nf_ctx ctx = {
+> +		.state = s,
+> +		.skb = skb,
+> +	};
+> +	return bpf_prog_run(rcu_dereference(nf_link->link.prog), &ctx);
+
+Hi,
+
+AFAICT nf_link->link.prog isn't annotated as __rcu,
+so perhaps rcu_dereference() is not correct here?
+
+In any case, sparse seems a bit unhappy:
+
+  .../nf_bpf_link.c:31:29: error: incompatible types in comparison expression (different address spaces):
+  .../nf_bpf_link.c:31:29:    struct bpf_prog [noderef] __rcu *
+  .../nf_bpf_link.c:31:29:    struct bpf_prog *
+
+> +}
+> +
+>  #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4) || IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
+>  static const struct nf_defrag_hook *
+>  get_proto_defrag_hook(struct bpf_nf_link *link,
+
+...
