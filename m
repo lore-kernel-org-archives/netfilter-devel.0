@@ -1,2064 +1,1554 @@
-Received: from madrid.collaboradmins.com (madrid.collaboradmins.com [46.235.227.194])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58B8F15AE3;
-	Tue, 19 Dec 2023 10:39:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=collabora.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=collabora.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=collabora.com header.i=@collabora.com header.b="XF4x44lK"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=collabora.com;
-	s=mail; t=1702982343;
-	bh=QLKD7IdsBVSJhcer+VC7VsFKpywRKiYVG1djDvSZqwM=;
-	h=Date:Cc:Subject:To:References:From:In-Reply-To:From;
-	b=XF4x44lKVZcGiem45wy42jPC6RW0TLQqZgS3mEcDsyM8JvgAVGujSm3chV7FzRmGR
-	 qXTp6KVxdp66zyTdcXk57WS9zBIpVmZznQhxiZ4fSTbhzMXC1fz9lBXEJJQ9HjTmpd
-	 T33Nyazd1dTgouBKb7bU+x9f9BW3IF8BwwFoWoIGLgpJkSpGN/BqaFnxVZPWann4ak
-	 vTT2rU0fFt3M0uFUfy4QyiGBCeX2yzEDWyjHhOc/9RvHEOiody3gdHmzUWN0y8pk5i
-	 nSDmnzuqkT0Daf0pwPpOllcQJ5od394/f8IafLtV8tq0rZXHzEACn+QSHr5peTzhv1
-	 pLedfDIIUbIug==
-Received: from [100.96.234.34] (cola.collaboradmins.com [195.201.22.229])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: usama.anjum)
-	by madrid.collaboradmins.com (Postfix) with ESMTPSA id 9B7FF3781476;
-	Tue, 19 Dec 2023 10:38:59 +0000 (UTC)
-Message-ID: <0584f91c-537c-4188-9e4f-04f192565667@collabora.com>
-Date: Tue, 19 Dec 2023 15:38:55 +0500
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7415014F79
+	for <netfilter-devel@vger.kernel.org>; Tue, 19 Dec 2023 11:12:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1rFY1B-0002yi-Tj; Tue, 19 Dec 2023 12:12:09 +0100
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v3 nft] support for afl++ (american fuzzy lop++) fuzzer
+Date: Tue, 19 Dec 2023 12:12:01 +0100
+Message-ID: <20231219111204.12338-1-fw@strlen.de>
+X-Mailer: git-send-email 2.41.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>,
- willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com,
- linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
- netfilter-devel@vger.kernel.org, yusongping@huawei.com,
- artem.kuzin@huawei.com,
- "open list : KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>
-Subject: Re: [PATCH v14 10/12] selftests/landlock: Add network tests
-To: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>, mic@digikod.net
-References: <20231026014751.414649-1-konstantin.meskhidze@huawei.com>
- <20231026014751.414649-11-konstantin.meskhidze@huawei.com>
-Content-Language: en-US
-From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-In-Reply-To: <20231026014751.414649-11-konstantin.meskhidze@huawei.com>
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Hi Konstantin,
+afl comes with a compiler frontend that can add instrumentation suitable
+for running nftables via the "afl-fuzz" fuzzer.
 
-There are some errors being reported in KernelCI:
-https://linux.kernelci.org/test/plan/id/657ab2240c761c0bd1e134ee/
+This change adds a "--with-fuzzer" option to configure script and enables
+specific handling in nftables and libnftables to speed up the fuzzing process.
+It also adds the "--fuzzer" command line option.
 
-The following sub-tests are failing:
-landlock_net_test_protocol_no_sandbox_with_ipv6_tcp_bind_unspec
-landlock_net_test_protocol_no_sandbox_with_ipv6_udp_bind_unspec
-landlock_net_test_protocol_tcp_sandbox_with_ipv6_udp_bind_unspec
+afl-fuzz initialisation gets delayed until after the netlink context is set up
+and symbol tables such as (e.g. route marks) have been parsed.
 
-From my initial investigation, I can see that these failures are coming
-from just finding the wrong return error code (-97 instead of -22). It may
-be test's issue or the kernel's, not sure yet.
+When afl-fuzz restarts the process with a new input round, it will
+resume *after* this point (see __AFL_INIT macro in main.c).
 
-Thanks,
-Usama
+With --fuzzer <stage>, nft will perform multiple fuzzing rounds per
+invocation: this increases processing rate by an order of magnitude.
 
-On 10/26/23 6:47 AM, Konstantin Meskhidze wrote:
-> Add 82 test suites to check edge cases related to bind() and connect()
-> actions. They are defined with 6 fixtures and their variants:
-> 
-> The "protocol" fixture is extended with 12 variants defined as a matrix
-> of: sandboxed/not-sandboxed, IPv4/IPv6/unix network domain, and
-> stream/datagram socket. 4 related tests suites are defined:
-> * bind: Tests with non-landlocked/landlocked ipv4, ipv6 and unix sockets.
-> * connect: Tests with non-landlocked/landlocked ipv4, ipv6 and unix
-> sockets.
-> * bind_unspec: Tests with non-landlocked/landlocked restrictions
-> for bind action with AF_UNSPEC socket family.
-> * connect_unspec: Tests with non-landlocked/landlocked restrictions
-> for connect action with AF_UNSPEC socket family.
-> 
-> The "ipv4" fixture is extended with 4 variants defined as a matrix
-> of: sandboxed/not-sandboxed, IPv4/unix network domain, and
-> stream/datagram socket. 1 related test suite is defined:
-> * from_unix_to_inet: Tests to make sure unix sockets' actions are not
-> restricted by Landlock rules applied to TCP ones.
-> 
-> The "tcp_layers" fixture is extended with 8 variants defined as a matrix
-> of: IPv4/IPv6 network domain, and different number of landlock rule layers.
-> 2 related tests suites are defined:
-> * ruleset_overlap.
-> * ruleset_expand.
-> 
-> In the "mini" fixture 4 tests suites are defined:
-> * network_access_rights: Tests with legitimate access values.
-> * unknown_access_rights: Tests with invalid attributes, out of access
->   range.
-> * inval:
->   - unhandled allowed access.
->   - zero access value.
-> * tcp_port_overflow: Tests with wrong port values more than U16_MAX.
-> 
-> In the "ipv4_tcp" fixture supports IPv4 network domain, stream socket.
-> 2 tests suites are defined:
-> * port_endianness: Tests with big/little endian port formats.
-> * with_fs: Tests with network bind() socket action within
-> filesystem directory access test.
-> 
-> The "port_specific" fixture is extended with 4 variants defined
-> as a matrix of: sandboxed/not-sandboxed, IPv4/IPv6 network domain,
-> and stream socket. 2 related tests suites are defined:
-> * bind_connect_zero: Tests with port 0 value.
-> * bind_connect_1023: Tests with port 1023 value.
-> 
-> Test coverage for security/landlock is 94.5% of 932 lines according to
-> gcc/gcov-9.
-> 
-> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-> Co-developed-by: Mickaël Salaün <mic@digikod.net>
-> Signed-off-by: Mickaël Salaün <mic@digikod.net>
-> ---
-> 
-> Changes since v13:
-> * Refactors "port_specific" test fixture:
->     - Deletes useless if .. else.
->     - Deletes repeating bind to port 0.
->     - Deletes useless lines.
->     - Adds 2 file descriptors per socket.
->     - Updates get_binded helper.
->     - Split test suite to bind_connect_zero
->       and bind_connect_1023.
-> * Adds CAP_NET_BIND_SERVICE to set_cap(); it helps
-> in bind_connect_1023 test.
-> * Moves with_net test from fs_test.c.
-> * Renames with_net test to with_fs.
-> * Refactors with_fs test by adding different
-> rule types per one ruleset layer.
-> * Minor fixes.
-> * Refactors commit message.
-> 
-> Changes since v12:
-> * Renames port_zero to port_specific fixture.
-> * Refactors port_specific test:
->     - Adds set_port() and get_binded_port() helpers.
->     - Adds checks for port 0, allowed by Landlock in this version.
->     - Adds checks for port 1023.
-> * Refactors commit message.
-> 
-> Changes since v11:
-> * Adds ipv4.from_unix_to_tcp test suite to check that socket family is
->   the same between a socket and a sockaddr by trying to connect/bind on
->   a unix socket (stream or dgram) using an inet family.  Landlock should
->   not change the error code.  This found a bug (which needs to be fixed)
->   with the TCP restriction.
-> * Revamps the inet.{bind,connect} tests into protocol.{bind,connect}:
->   - Merge bind_connect_unix_dgram_socket, bind_connect_unix_dgram_socket
->     and bind_connect_inval_addrlen into it: add a full test matrix of
->     IPv4/TCP, IPv6/TCP, IPv4/UDP, IPv6/UDP, unix/stream, unix/dgram, all
->     of them with or without sandboxing. This improve coverage and it
->     enables to check that a TCP restriction work as expected but doesn't
->     restrict other stream or datagram protocols. This also enables to
->     check consistency of the network stack with or without Landlock.
->     We now have 76 test suites for the network.
->   - Add full send/recv checks.
->   - Make a generic framework that will be ready for future
->     protocol supports.
-> * Replaces most ASSERT with EXPECT according to the criticity of an
->   action: if we can get more meaningful information with following
->   checks.  For instance, failure to create a kernel object (e.g.
->   socket(), accept() or fork() call) is critical if it is used by
->   following checks. For Landlock ruleset building, the following checks
->   don't make sense if the sandbox is not complete.  However, it doesn't
->   make sense to continue a FIXTURE_SETUP() if any check failed.
-> * Adds a new unspec fixture to replace inet.bind_afunspec with
->   unspec.bind and inet.connect_afunspec with unspec.connect, factoring
->   and simplifying code.
-> * Replaces inet.bind_afunspec with protocol.bind_unspec, and
->   inet.connect_afunspec with protocol.connect_unspec.  Extend these
->   tests with the matrix of all "protocol" variants.  Don't test connect
->   with the same socket which is already binded/listening (I guess this
->   was an copy-paste error).  The protocol.bind_unspec tests found a bug
->   (which needs to be fixed).
-> * Add* and use set_service() and setup_loopback() helpers to configure
->   network services.  Add and use and test_bind_and_connect() to factor
->   out a lot of checks.
-> * Adds new types (protocol_variant, service_fixture) and update related
->   helpers to get more generic test code.
-> * Replaces static (port) arrays with service_fixture variables.
-> * Adds new helpers: {bind,connect}_variant_addrlen() and get_addrlen() to
->   cover all protocols with previous bind_connect_inval_addrlen tests.
->   Make them return -errno in case of error.
-> * Switchs from a unix socket path address to an abstract one. This
->   enables to avoid file cleanup in test teardowns.
-> * Closes all rulesets after enforcement.
-> * Removes the duplicate "empty access" test.
-> * Replaces inet.ruleset_overlay with tcp_layers.ruleset_overlap and
->   simplify test:
->   - Always run sandbox tests because test were always run sandboxed and
->     it doesn't give more guarantees to do it not sandboxed.
->   - Rewrite test with variant->num_layers to make it simpler and
->     configurable.
->   - Add another test layer to tcp_layers used for ruleset_overlap and
->     test without sandbox.
->   - Leverage test_bind_and_connect() and avoid using SO_REUSEADDR
->     because the socket was not listened to, and don't use the same
->     socket/FD for server and client.
->   - Replace inet.ruleset_expanding with tcp_layers.ruleset_expand.
-> * Drops capabilities in all FIXTURE_SETUP().
-> * Changes test ports to cover more ranges.
-> * Adds "mini" tests:
->   - Replace the invalid ruleset attribute test from port.inval with
->     mini.unknow_access_rights.
->   - Simplify port.inval and move some code to other mini.* tests.
->   - Add new mini.network_access_rights test.
-> * Rewrites inet.inval_port_format into mini.tcp_port_overflow:
->   - Remove useless is_sandbox checks.
->   - Extend tests with bind/connect checks.
->   - Interleave valid requests with invalid ones.
-> * Adds two_srv.port_endianness test, extracted and extended from
->   inet.inval_port_format .
-> * Adds Microsoft copyright.
-> * Rename some variables to make them easier to read.
-> * Constifies variables.
-> * Adds minimal logs to help debug test failures.
-> * Renames inet test to ipv4 and deletes is_sandboxed and prot vars from
->   FIXTURE_VARIANT.
-> * Adds port_zero tests.
-> * Renames all "net_service" to "net_port".
-> 
-> Changes since v10:
-> * Replaces FIXTURE_VARIANT() with struct _fixture_variant_ .
-> * Changes tests names socket -> inet, standalone -> port.
-> * Gets rid of some DEFINEs.
-> * Changes names and groups tests' variables.
-> * Changes create_socket_variant() helper name to socket_variant().
-> * Refactors FIXTURE_SETUP(port) logic.
-> * Changes TEST_F_FORK -> TEST_F since there no teardown.
-> * Refactors some tests' logic.
-> * Minor fixes.
-> * Refactors commit message.
-> 
-> Changes since v9:
-> * Fixes mixing code declaration and code.
-> * Refactors FIXTURE_TEARDOWN() with clang-format.
-> * Replaces struct _fixture_variant_socket with
-> FIXTURE_VARIANT(socket).
-> * Deletes useless condition if (variant->is_sandboxed)
-> in multiple locations.
-> * Deletes zero_size argument in bind_variant() and
-> connect_variant().
-> * Adds tests for port values exceeding U16_MAX.
-> 
-> Changes since v8:
-> * Adds is_sandboxed const for FIXTURE_VARIANT(socket).
-> * Refactors AF_UNSPEC tests.
-> * Adds address length checking tests.
-> * Convert ports in all tests to __be16.
-> * Adds invalid port values tests.
-> * Minor fixes.
-> 
-> Changes since v7:
-> * Squashes all selftest commits.
-> * Adds fs test with network bind() socket action.
-> * Minor fixes.
-> 
-> ---
->  tools/testing/selftests/landlock/common.h   |    3 +
->  tools/testing/selftests/landlock/config     |    4 +
->  tools/testing/selftests/landlock/net_test.c | 1744 +++++++++++++++++++
->  3 files changed, 1751 insertions(+)
->  create mode 100644 tools/testing/selftests/landlock/net_test.c
-> 
-> diff --git a/tools/testing/selftests/landlock/common.h b/tools/testing/selftests/landlock/common.h
-> index 0fd6c4cf5e6f..5b79758cae62 100644
-> --- a/tools/testing/selftests/landlock/common.h
-> +++ b/tools/testing/selftests/landlock/common.h
-> @@ -112,10 +112,13 @@ static void _init_caps(struct __test_metadata *const _metadata, bool drop_all)
->  	cap_t cap_p;
->  	/* Only these three capabilities are useful for the tests. */
->  	const cap_value_t caps[] = {
-> +		/* clang-format off */
->  		CAP_DAC_OVERRIDE,
->  		CAP_MKNOD,
->  		CAP_SYS_ADMIN,
->  		CAP_SYS_CHROOT,
-> +		CAP_NET_BIND_SERVICE,
-> +		/* clang-format on */
->  	};
-> 
->  	cap_p = cap_get_proc();
-> diff --git a/tools/testing/selftests/landlock/config b/tools/testing/selftests/landlock/config
-> index 3dc9e438eab1..0086efaa7b68 100644
-> --- a/tools/testing/selftests/landlock/config
-> +++ b/tools/testing/selftests/landlock/config
-> @@ -1,5 +1,9 @@
->  CONFIG_CGROUPS=y
->  CONFIG_CGROUP_SCHED=y
-> +CONFIG_INET=y
-> +CONFIG_IPV6=y
-> +CONFIG_NET=y
-> +CONFIG_NET_NS=y
->  CONFIG_OVERLAY_FS=y
->  CONFIG_PROC_FS=y
->  CONFIG_SECURITY=y
-> diff --git a/tools/testing/selftests/landlock/net_test.c b/tools/testing/selftests/landlock/net_test.c
-> new file mode 100644
-> index 000000000000..3c0a10f9811a
-> --- /dev/null
-> +++ b/tools/testing/selftests/landlock/net_test.c
-> @@ -0,0 +1,1744 @@
-> +// SPDX-License-Identifier: GPL-2.0-only
-> +/*
-> + * Landlock tests - Network
-> + *
-> + * Copyright © 2022-2023 Huawei Tech. Co., Ltd.
-> + * Copyright © 2023 Microsoft Corporation
-> + */
-> +
-> +#define _GNU_SOURCE
-> +#include <arpa/inet.h>
-> +#include <errno.h>
-> +#include <fcntl.h>
-> +#include <linux/landlock.h>
-> +#include <linux/in.h>
-> +#include <sched.h>
-> +#include <stdint.h>
-> +#include <string.h>
-> +#include <sys/prctl.h>
-> +#include <sys/socket.h>
-> +#include <sys/un.h>
-> +
-> +#include "common.h"
-> +
-> +const short sock_port_start = (1 << 10);
-> +
-> +static const char loopback_ipv4[] = "127.0.0.1";
-> +static const char loopback_ipv6[] = "::1";
-> +
-> +/* Number pending connections queue to be hold. */
-> +const short backlog = 10;
-> +
-> +enum sandbox_type {
-> +	NO_SANDBOX,
-> +	/* This may be used to test rules that allow *and* deny accesses. */
-> +	TCP_SANDBOX,
-> +};
-> +
-> +struct protocol_variant {
-> +	int domain;
-> +	int type;
-> +};
-> +
-> +struct service_fixture {
-> +	struct protocol_variant protocol;
-> +	/* port is also stored in ipv4_addr.sin_port or ipv6_addr.sin6_port */
-> +	unsigned short port;
-> +	union {
-> +		struct sockaddr_in ipv4_addr;
-> +		struct sockaddr_in6 ipv6_addr;
-> +		struct {
-> +			struct sockaddr_un unix_addr;
-> +			socklen_t unix_addr_len;
-> +		};
-> +	};
-> +};
-> +
-> +static int set_service(struct service_fixture *const srv,
-> +		       const struct protocol_variant prot,
-> +		       const unsigned short index)
-> +{
-> +	memset(srv, 0, sizeof(*srv));
-> +
-> +	/*
-> +	 * Copies all protocol properties in case of the variant only contains
-> +	 * a subset of them.
-> +	 */
-> +	srv->protocol = prot;
-> +
-> +	/* Checks for port overflow. */
-> +	if (index > 2)
-> +		return 1;
-> +	srv->port = sock_port_start << (2 * index);
-> +
-> +	switch (prot.domain) {
-> +	case AF_UNSPEC:
-> +	case AF_INET:
-> +		srv->ipv4_addr.sin_family = prot.domain;
-> +		srv->ipv4_addr.sin_port = htons(srv->port);
-> +		srv->ipv4_addr.sin_addr.s_addr = inet_addr(loopback_ipv4);
-> +		return 0;
-> +
-> +	case AF_INET6:
-> +		srv->ipv6_addr.sin6_family = prot.domain;
-> +		srv->ipv6_addr.sin6_port = htons(srv->port);
-> +		inet_pton(AF_INET6, loopback_ipv6, &srv->ipv6_addr.sin6_addr);
-> +		return 0;
-> +
-> +	case AF_UNIX:
-> +		srv->unix_addr.sun_family = prot.domain;
-> +		sprintf(srv->unix_addr.sun_path,
-> +			"_selftests-landlock-net-tid%d-index%d", gettid(),
-> +			index);
-> +		srv->unix_addr_len = SUN_LEN(&srv->unix_addr);
-> +		srv->unix_addr.sun_path[0] = '\0';
-> +		return 0;
-> +	}
-> +	return 1;
-> +}
-> +
-> +static void setup_loopback(struct __test_metadata *const _metadata)
-> +{
-> +	set_cap(_metadata, CAP_SYS_ADMIN);
-> +	ASSERT_EQ(0, unshare(CLONE_NEWNET));
-> +	ASSERT_EQ(0, system("ip link set dev lo up"));
-> +	clear_cap(_metadata, CAP_SYS_ADMIN);
-> +}
-> +
-> +static bool is_restricted(const struct protocol_variant *const prot,
-> +			  const enum sandbox_type sandbox)
-> +{
-> +	switch (prot->domain) {
-> +	case AF_INET:
-> +	case AF_INET6:
-> +		switch (prot->type) {
-> +		case SOCK_STREAM:
-> +			return sandbox == TCP_SANDBOX;
-> +		}
-> +		break;
-> +	}
-> +	return false;
-> +}
-> +
-> +static int socket_variant(const struct service_fixture *const srv)
-> +{
-> +	int ret;
-> +
-> +	ret = socket(srv->protocol.domain, srv->protocol.type | SOCK_CLOEXEC,
-> +		     0);
-> +	if (ret < 0)
-> +		return -errno;
-> +	return ret;
-> +}
-> +
-> +#ifndef SIN6_LEN_RFC2133
-> +#define SIN6_LEN_RFC2133 24
-> +#endif
-> +
-> +static socklen_t get_addrlen(const struct service_fixture *const srv,
-> +			     const bool minimal)
-> +{
-> +	switch (srv->protocol.domain) {
-> +	case AF_UNSPEC:
-> +	case AF_INET:
-> +		return sizeof(srv->ipv4_addr);
-> +
-> +	case AF_INET6:
-> +		if (minimal)
-> +			return SIN6_LEN_RFC2133;
-> +		return sizeof(srv->ipv6_addr);
-> +
-> +	case AF_UNIX:
-> +		if (minimal)
-> +			return sizeof(srv->unix_addr) -
-> +			       sizeof(srv->unix_addr.sun_path);
-> +		return srv->unix_addr_len;
-> +
-> +	default:
-> +		return 0;
-> +	}
-> +}
-> +
-> +static void set_port(struct service_fixture *const srv, uint16_t port)
-> +{
-> +	switch (srv->protocol.domain) {
-> +	case AF_UNSPEC:
-> +	case AF_INET:
-> +		srv->ipv4_addr.sin_port = htons(port);
-> +		return;
-> +
-> +	case AF_INET6:
-> +		srv->ipv6_addr.sin6_port = htons(port);
-> +		return;
-> +
-> +	default:
-> +		return;
-> +	}
-> +}
-> +
-> +static uint16_t get_binded_port(int socket_fd,
-> +				const struct protocol_variant *const prot)
-> +{
-> +	struct sockaddr_in ipv4_addr;
-> +	struct sockaddr_in6 ipv6_addr;
-> +	socklen_t ipv4_addr_len, ipv6_addr_len;
-> +
-> +	/* Gets binded port. */
-> +	switch (prot->domain) {
-> +	case AF_UNSPEC:
-> +	case AF_INET:
-> +		ipv4_addr_len = sizeof(ipv4_addr);
-> +		getsockname(socket_fd, &ipv4_addr, &ipv4_addr_len);
-> +		return ntohs(ipv4_addr.sin_port);
-> +
-> +	case AF_INET6:
-> +		ipv6_addr_len = sizeof(ipv6_addr);
-> +		getsockname(socket_fd, &ipv6_addr, &ipv6_addr_len);
-> +		return ntohs(ipv6_addr.sin6_port);
-> +
-> +	default:
-> +		return 0;
-> +	}
-> +}
-> +
-> +static int bind_variant_addrlen(const int sock_fd,
-> +				const struct service_fixture *const srv,
-> +				const socklen_t addrlen)
-> +{
-> +	int ret;
-> +
-> +	switch (srv->protocol.domain) {
-> +	case AF_UNSPEC:
-> +	case AF_INET:
-> +		ret = bind(sock_fd, &srv->ipv4_addr, addrlen);
-> +		break;
-> +
-> +	case AF_INET6:
-> +		ret = bind(sock_fd, &srv->ipv6_addr, addrlen);
-> +		break;
-> +
-> +	case AF_UNIX:
-> +		ret = bind(sock_fd, &srv->unix_addr, addrlen);
-> +		break;
-> +
-> +	default:
-> +		errno = EAFNOSUPPORT;
-> +		return -errno;
-> +	}
-> +
-> +	if (ret < 0)
-> +		return -errno;
-> +	return ret;
-> +}
-> +
-> +static int bind_variant(const int sock_fd,
-> +			const struct service_fixture *const srv)
-> +{
-> +	return bind_variant_addrlen(sock_fd, srv, get_addrlen(srv, false));
-> +}
-> +
-> +static int connect_variant_addrlen(const int sock_fd,
-> +				   const struct service_fixture *const srv,
-> +				   const socklen_t addrlen)
-> +{
-> +	int ret;
-> +
-> +	switch (srv->protocol.domain) {
-> +	case AF_UNSPEC:
-> +	case AF_INET:
-> +		ret = connect(sock_fd, &srv->ipv4_addr, addrlen);
-> +		break;
-> +
-> +	case AF_INET6:
-> +		ret = connect(sock_fd, &srv->ipv6_addr, addrlen);
-> +		break;
-> +
-> +	case AF_UNIX:
-> +		ret = connect(sock_fd, &srv->unix_addr, addrlen);
-> +		break;
-> +
-> +	default:
-> +		errno = -EAFNOSUPPORT;
-> +		return -errno;
-> +	}
-> +
-> +	if (ret < 0)
-> +		return -errno;
-> +	return ret;
-> +}
-> +
-> +static int connect_variant(const int sock_fd,
-> +			   const struct service_fixture *const srv)
-> +{
-> +	return connect_variant_addrlen(sock_fd, srv, get_addrlen(srv, false));
-> +}
-> +
-> +FIXTURE(protocol)
-> +{
-> +	struct service_fixture srv0, srv1, srv2, unspec_any0, unspec_srv0;
-> +};
-> +
-> +FIXTURE_VARIANT(protocol)
-> +{
-> +	const enum sandbox_type sandbox;
-> +	const struct protocol_variant prot;
-> +};
-> +
-> +FIXTURE_SETUP(protocol)
-> +{
-> +	const struct protocol_variant prot_unspec = {
-> +		.domain = AF_UNSPEC,
-> +		.type = SOCK_STREAM,
-> +	};
-> +
-> +	disable_caps(_metadata);
-> +
-> +	ASSERT_EQ(0, set_service(&self->srv0, variant->prot, 0));
-> +	ASSERT_EQ(0, set_service(&self->srv1, variant->prot, 1));
-> +	ASSERT_EQ(0, set_service(&self->srv2, variant->prot, 2));
-> +
-> +	ASSERT_EQ(0, set_service(&self->unspec_srv0, prot_unspec, 0));
-> +
-> +	ASSERT_EQ(0, set_service(&self->unspec_any0, prot_unspec, 0));
-> +	self->unspec_any0.ipv4_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-> +
-> +	setup_loopback(_metadata);
-> +};
-> +
-> +FIXTURE_TEARDOWN(protocol)
-> +{
-> +}
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(protocol, no_sandbox_with_ipv4_tcp) {
-> +	/* clang-format on */
-> +	.sandbox = NO_SANDBOX,
-> +	.prot = {
-> +		.domain = AF_INET,
-> +		.type = SOCK_STREAM,
-> +	},
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(protocol, no_sandbox_with_ipv6_tcp) {
-> +	/* clang-format on */
-> +	.sandbox = NO_SANDBOX,
-> +	.prot = {
-> +		.domain = AF_INET6,
-> +		.type = SOCK_STREAM,
-> +	},
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(protocol, no_sandbox_with_ipv4_udp) {
-> +	/* clang-format on */
-> +	.sandbox = NO_SANDBOX,
-> +	.prot = {
-> +		.domain = AF_INET,
-> +		.type = SOCK_DGRAM,
-> +	},
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(protocol, no_sandbox_with_ipv6_udp) {
-> +	/* clang-format on */
-> +	.sandbox = NO_SANDBOX,
-> +	.prot = {
-> +		.domain = AF_INET6,
-> +		.type = SOCK_DGRAM,
-> +	},
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(protocol, no_sandbox_with_unix_stream) {
-> +	/* clang-format on */
-> +	.sandbox = NO_SANDBOX,
-> +	.prot = {
-> +		.domain = AF_UNIX,
-> +		.type = SOCK_STREAM,
-> +	},
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(protocol, no_sandbox_with_unix_datagram) {
-> +	/* clang-format on */
-> +	.sandbox = NO_SANDBOX,
-> +	.prot = {
-> +		.domain = AF_UNIX,
-> +		.type = SOCK_DGRAM,
-> +	},
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(protocol, tcp_sandbox_with_ipv4_tcp) {
-> +	/* clang-format on */
-> +	.sandbox = TCP_SANDBOX,
-> +	.prot = {
-> +		.domain = AF_INET,
-> +		.type = SOCK_STREAM,
-> +	},
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(protocol, tcp_sandbox_with_ipv6_tcp) {
-> +	/* clang-format on */
-> +	.sandbox = TCP_SANDBOX,
-> +	.prot = {
-> +		.domain = AF_INET6,
-> +		.type = SOCK_STREAM,
-> +	},
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(protocol, tcp_sandbox_with_ipv4_udp) {
-> +	/* clang-format on */
-> +	.sandbox = TCP_SANDBOX,
-> +	.prot = {
-> +		.domain = AF_INET,
-> +		.type = SOCK_DGRAM,
-> +	},
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(protocol, tcp_sandbox_with_ipv6_udp) {
-> +	/* clang-format on */
-> +	.sandbox = TCP_SANDBOX,
-> +	.prot = {
-> +		.domain = AF_INET6,
-> +		.type = SOCK_DGRAM,
-> +	},
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(protocol, tcp_sandbox_with_unix_stream) {
-> +	/* clang-format on */
-> +	.sandbox = TCP_SANDBOX,
-> +	.prot = {
-> +		.domain = AF_UNIX,
-> +		.type = SOCK_STREAM,
-> +	},
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(protocol, tcp_sandbox_with_unix_datagram) {
-> +	/* clang-format on */
-> +	.sandbox = TCP_SANDBOX,
-> +	.prot = {
-> +		.domain = AF_UNIX,
-> +		.type = SOCK_DGRAM,
-> +	},
-> +};
-> +
-> +static void test_bind_and_connect(struct __test_metadata *const _metadata,
-> +				  const struct service_fixture *const srv,
-> +				  const bool deny_bind, const bool deny_connect)
-> +{
-> +	char buf = '\0';
-> +	int inval_fd, bind_fd, client_fd, status, ret;
-> +	pid_t child;
-> +
-> +	/* Starts invalid addrlen tests with bind. */
-> +	inval_fd = socket_variant(srv);
-> +	ASSERT_LE(0, inval_fd)
-> +	{
-> +		TH_LOG("Failed to create socket: %s", strerror(errno));
-> +	}
-> +
-> +	/* Tries to bind with zero as addrlen. */
-> +	EXPECT_EQ(-EINVAL, bind_variant_addrlen(inval_fd, srv, 0));
-> +
-> +	/* Tries to bind with too small addrlen. */
-> +	EXPECT_EQ(-EINVAL, bind_variant_addrlen(inval_fd, srv,
-> +						get_addrlen(srv, true) - 1));
-> +
-> +	/* Tries to bind with minimal addrlen. */
-> +	ret = bind_variant_addrlen(inval_fd, srv, get_addrlen(srv, true));
-> +	if (deny_bind) {
-> +		EXPECT_EQ(-EACCES, ret);
-> +	} else {
-> +		EXPECT_EQ(0, ret)
-> +		{
-> +			TH_LOG("Failed to bind to socket: %s", strerror(errno));
-> +		}
-> +	}
-> +	EXPECT_EQ(0, close(inval_fd));
-> +
-> +	/* Starts invalid addrlen tests with connect. */
-> +	inval_fd = socket_variant(srv);
-> +	ASSERT_LE(0, inval_fd);
-> +
-> +	/* Tries to connect with zero as addrlen. */
-> +	EXPECT_EQ(-EINVAL, connect_variant_addrlen(inval_fd, srv, 0));
-> +
-> +	/* Tries to connect with too small addrlen. */
-> +	EXPECT_EQ(-EINVAL, connect_variant_addrlen(inval_fd, srv,
-> +						   get_addrlen(srv, true) - 1));
-> +
-> +	/* Tries to connect with minimal addrlen. */
-> +	ret = connect_variant_addrlen(inval_fd, srv, get_addrlen(srv, true));
-> +	if (srv->protocol.domain == AF_UNIX) {
-> +		EXPECT_EQ(-EINVAL, ret);
-> +	} else if (deny_connect) {
-> +		EXPECT_EQ(-EACCES, ret);
-> +	} else if (srv->protocol.type == SOCK_STREAM) {
-> +		/* No listening server, whatever the value of deny_bind. */
-> +		EXPECT_EQ(-ECONNREFUSED, ret);
-> +	} else {
-> +		EXPECT_EQ(0, ret)
-> +		{
-> +			TH_LOG("Failed to connect to socket: %s",
-> +			       strerror(errno));
-> +		}
-> +	}
-> +	EXPECT_EQ(0, close(inval_fd));
-> +
-> +	/* Starts connection tests. */
-> +	bind_fd = socket_variant(srv);
-> +	ASSERT_LE(0, bind_fd);
-> +
-> +	ret = bind_variant(bind_fd, srv);
-> +	if (deny_bind) {
-> +		EXPECT_EQ(-EACCES, ret);
-> +	} else {
-> +		EXPECT_EQ(0, ret);
-> +
-> +		/* Creates a listening socket. */
-> +		if (srv->protocol.type == SOCK_STREAM)
-> +			EXPECT_EQ(0, listen(bind_fd, backlog));
-> +	}
-> +
-> +	child = fork();
-> +	ASSERT_LE(0, child);
-> +	if (child == 0) {
-> +		int connect_fd, ret;
-> +
-> +		/* Closes listening socket for the child. */
-> +		EXPECT_EQ(0, close(bind_fd));
-> +
-> +		/* Starts connection tests. */
-> +		connect_fd = socket_variant(srv);
-> +		ASSERT_LE(0, connect_fd);
-> +		ret = connect_variant(connect_fd, srv);
-> +		if (deny_connect) {
-> +			EXPECT_EQ(-EACCES, ret);
-> +		} else if (deny_bind) {
-> +			/* No listening server. */
-> +			EXPECT_EQ(-ECONNREFUSED, ret);
-> +		} else {
-> +			EXPECT_EQ(0, ret);
-> +			EXPECT_EQ(1, write(connect_fd, ".", 1));
-> +		}
-> +
-> +		EXPECT_EQ(0, close(connect_fd));
-> +		_exit(_metadata->passed ? EXIT_SUCCESS : EXIT_FAILURE);
-> +		return;
-> +	}
-> +
-> +	/* Accepts connection from the child. */
-> +	client_fd = bind_fd;
-> +	if (!deny_bind && !deny_connect) {
-> +		if (srv->protocol.type == SOCK_STREAM) {
-> +			client_fd = accept(bind_fd, NULL, 0);
-> +			ASSERT_LE(0, client_fd);
-> +		}
-> +
-> +		EXPECT_EQ(1, read(client_fd, &buf, 1));
-> +		EXPECT_EQ('.', buf);
-> +	}
-> +
-> +	EXPECT_EQ(child, waitpid(child, &status, 0));
-> +	EXPECT_EQ(1, WIFEXITED(status));
-> +	EXPECT_EQ(EXIT_SUCCESS, WEXITSTATUS(status));
-> +
-> +	/* Closes connection, if any. */
-> +	if (client_fd != bind_fd)
-> +		EXPECT_LE(0, close(client_fd));
-> +
-> +	/* Closes listening socket. */
-> +	EXPECT_EQ(0, close(bind_fd));
-> +}
-> +
-> +TEST_F(protocol, bind)
-> +{
-> +	if (variant->sandbox == TCP_SANDBOX) {
-> +		const struct landlock_ruleset_attr ruleset_attr = {
-> +			.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +					      LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +		};
-> +		const struct landlock_net_port_attr tcp_bind_connect_p0 = {
-> +			.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +					  LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +			.port = self->srv0.port,
-> +		};
-> +		const struct landlock_net_port_attr tcp_connect_p1 = {
-> +			.allowed_access = LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +			.port = self->srv1.port,
-> +		};
-> +		int ruleset_fd;
-> +
-> +		ruleset_fd = landlock_create_ruleset(&ruleset_attr,
-> +						     sizeof(ruleset_attr), 0);
-> +		ASSERT_LE(0, ruleset_fd);
-> +
-> +		/* Allows connect and bind for the first port.  */
-> +		ASSERT_EQ(0,
-> +			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +					    &tcp_bind_connect_p0, 0));
-> +
-> +		/* Allows connect and denies bind for the second port. */
-> +		ASSERT_EQ(0,
-> +			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +					    &tcp_connect_p1, 0));
-> +
-> +		enforce_ruleset(_metadata, ruleset_fd);
-> +		EXPECT_EQ(0, close(ruleset_fd));
-> +	}
-> +
-> +	/* Binds a socket to the first port. */
-> +	test_bind_and_connect(_metadata, &self->srv0, false, false);
-> +
-> +	/* Binds a socket to the second port. */
-> +	test_bind_and_connect(_metadata, &self->srv1,
-> +			      is_restricted(&variant->prot, variant->sandbox),
-> +			      false);
-> +
-> +	/* Binds a socket to the third port. */
-> +	test_bind_and_connect(_metadata, &self->srv2,
-> +			      is_restricted(&variant->prot, variant->sandbox),
-> +			      is_restricted(&variant->prot, variant->sandbox));
-> +}
-> +
-> +TEST_F(protocol, connect)
-> +{
-> +	if (variant->sandbox == TCP_SANDBOX) {
-> +		const struct landlock_ruleset_attr ruleset_attr = {
-> +			.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +					      LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +		};
-> +		const struct landlock_net_port_attr tcp_bind_connect_p0 = {
-> +			.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +					  LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +			.port = self->srv0.port,
-> +		};
-> +		const struct landlock_net_port_attr tcp_bind_p1 = {
-> +			.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-> +			.port = self->srv1.port,
-> +		};
-> +		int ruleset_fd;
-> +
-> +		ruleset_fd = landlock_create_ruleset(&ruleset_attr,
-> +						     sizeof(ruleset_attr), 0);
-> +		ASSERT_LE(0, ruleset_fd);
-> +
-> +		/* Allows connect and bind for the first port. */
-> +		ASSERT_EQ(0,
-> +			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +					    &tcp_bind_connect_p0, 0));
-> +
-> +		/* Allows bind and denies connect for the second port. */
-> +		ASSERT_EQ(0,
-> +			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +					    &tcp_bind_p1, 0));
-> +
-> +		enforce_ruleset(_metadata, ruleset_fd);
-> +		EXPECT_EQ(0, close(ruleset_fd));
-> +	}
-> +
-> +	test_bind_and_connect(_metadata, &self->srv0, false, false);
-> +
-> +	test_bind_and_connect(_metadata, &self->srv1, false,
-> +			      is_restricted(&variant->prot, variant->sandbox));
-> +
-> +	test_bind_and_connect(_metadata, &self->srv2,
-> +			      is_restricted(&variant->prot, variant->sandbox),
-> +			      is_restricted(&variant->prot, variant->sandbox));
-> +}
-> +
-> +TEST_F(protocol, bind_unspec)
-> +{
-> +	const struct landlock_ruleset_attr ruleset_attr = {
-> +		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP,
-> +	};
-> +	const struct landlock_net_port_attr tcp_bind = {
-> +		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-> +		.port = self->srv0.port,
-> +	};
-> +	int bind_fd, ret;
-> +
-> +	if (variant->sandbox == TCP_SANDBOX) {
-> +		const int ruleset_fd = landlock_create_ruleset(
-> +			&ruleset_attr, sizeof(ruleset_attr), 0);
-> +		ASSERT_LE(0, ruleset_fd);
-> +
-> +		/* Allows bind. */
-> +		ASSERT_EQ(0,
-> +			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +					    &tcp_bind, 0));
-> +		enforce_ruleset(_metadata, ruleset_fd);
-> +		EXPECT_EQ(0, close(ruleset_fd));
-> +	}
-> +
-> +	bind_fd = socket_variant(&self->srv0);
-> +	ASSERT_LE(0, bind_fd);
-> +
-> +	/* Allowed bind on AF_UNSPEC/INADDR_ANY. */
-> +	ret = bind_variant(bind_fd, &self->unspec_any0);
-> +	if (variant->prot.domain == AF_INET) {
-> +		EXPECT_EQ(0, ret)
-> +		{
-> +			TH_LOG("Failed to bind to unspec/any socket: %s",
-> +			       strerror(errno));
-> +		}
-> +	} else {
-> +		EXPECT_EQ(-EINVAL, ret);
-> +	}
-> +	EXPECT_EQ(0, close(bind_fd));
-> +
-> +	if (variant->sandbox == TCP_SANDBOX) {
-> +		const int ruleset_fd = landlock_create_ruleset(
-> +			&ruleset_attr, sizeof(ruleset_attr), 0);
-> +		ASSERT_LE(0, ruleset_fd);
-> +
-> +		/* Denies bind. */
-> +		enforce_ruleset(_metadata, ruleset_fd);
-> +		EXPECT_EQ(0, close(ruleset_fd));
-> +	}
-> +
-> +	bind_fd = socket_variant(&self->srv0);
-> +	ASSERT_LE(0, bind_fd);
-> +
-> +	/* Denied bind on AF_UNSPEC/INADDR_ANY. */
-> +	ret = bind_variant(bind_fd, &self->unspec_any0);
-> +	if (variant->prot.domain == AF_INET) {
-> +		if (is_restricted(&variant->prot, variant->sandbox)) {
-> +			EXPECT_EQ(-EACCES, ret);
-> +		} else {
-> +			EXPECT_EQ(0, ret);
-> +		}
-> +	} else {
-> +		EXPECT_EQ(-EINVAL, ret);
-> +	}
-> +	EXPECT_EQ(0, close(bind_fd));
-> +
-> +	/* Checks bind with AF_UNSPEC and the loopback address. */
-> +	bind_fd = socket_variant(&self->srv0);
-> +	ASSERT_LE(0, bind_fd);
-> +	ret = bind_variant(bind_fd, &self->unspec_srv0);
-> +	if (variant->prot.domain == AF_INET) {
-> +		EXPECT_EQ(-EAFNOSUPPORT, ret);
-> +	} else {
-> +		EXPECT_EQ(-EINVAL, ret)
-> +		{
-> +			TH_LOG("Wrong bind error: %s", strerror(errno));
-> +		}
-> +	}
-> +	EXPECT_EQ(0, close(bind_fd));
-> +}
-> +
-> +TEST_F(protocol, connect_unspec)
-> +{
-> +	const struct landlock_ruleset_attr ruleset_attr = {
-> +		.handled_access_net = LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +	};
-> +	const struct landlock_net_port_attr tcp_connect = {
-> +		.allowed_access = LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +		.port = self->srv0.port,
-> +	};
-> +	int bind_fd, client_fd, status;
-> +	pid_t child;
-> +
-> +	/* Specific connection tests. */
-> +	bind_fd = socket_variant(&self->srv0);
-> +	ASSERT_LE(0, bind_fd);
-> +	EXPECT_EQ(0, bind_variant(bind_fd, &self->srv0));
-> +	if (self->srv0.protocol.type == SOCK_STREAM)
-> +		EXPECT_EQ(0, listen(bind_fd, backlog));
-> +
-> +	child = fork();
-> +	ASSERT_LE(0, child);
-> +	if (child == 0) {
-> +		int connect_fd, ret;
-> +
-> +		/* Closes listening socket for the child. */
-> +		EXPECT_EQ(0, close(bind_fd));
-> +
-> +		connect_fd = socket_variant(&self->srv0);
-> +		ASSERT_LE(0, connect_fd);
-> +		EXPECT_EQ(0, connect_variant(connect_fd, &self->srv0));
-> +
-> +		/* Tries to connect again, or set peer. */
-> +		ret = connect_variant(connect_fd, &self->srv0);
-> +		if (self->srv0.protocol.type == SOCK_STREAM) {
-> +			EXPECT_EQ(-EISCONN, ret);
-> +		} else {
-> +			EXPECT_EQ(0, ret);
-> +		}
-> +
-> +		if (variant->sandbox == TCP_SANDBOX) {
-> +			const int ruleset_fd = landlock_create_ruleset(
-> +				&ruleset_attr, sizeof(ruleset_attr), 0);
-> +			ASSERT_LE(0, ruleset_fd);
-> +
-> +			/* Allows connect. */
-> +			ASSERT_EQ(0, landlock_add_rule(ruleset_fd,
-> +						       LANDLOCK_RULE_NET_PORT,
-> +						       &tcp_connect, 0));
-> +			enforce_ruleset(_metadata, ruleset_fd);
-> +			EXPECT_EQ(0, close(ruleset_fd));
-> +		}
-> +
-> +		/* Disconnects already connected socket, or set peer. */
-> +		ret = connect_variant(connect_fd, &self->unspec_any0);
-> +		if (self->srv0.protocol.domain == AF_UNIX &&
-> +		    self->srv0.protocol.type == SOCK_STREAM) {
-> +			EXPECT_EQ(-EINVAL, ret);
-> +		} else {
-> +			EXPECT_EQ(0, ret);
-> +		}
-> +
-> +		/* Tries to reconnect, or set peer. */
-> +		ret = connect_variant(connect_fd, &self->srv0);
-> +		if (self->srv0.protocol.domain == AF_UNIX &&
-> +		    self->srv0.protocol.type == SOCK_STREAM) {
-> +			EXPECT_EQ(-EISCONN, ret);
-> +		} else {
-> +			EXPECT_EQ(0, ret);
-> +		}
-> +
-> +		if (variant->sandbox == TCP_SANDBOX) {
-> +			const int ruleset_fd = landlock_create_ruleset(
-> +				&ruleset_attr, sizeof(ruleset_attr), 0);
-> +			ASSERT_LE(0, ruleset_fd);
-> +
-> +			/* Denies connect. */
-> +			enforce_ruleset(_metadata, ruleset_fd);
-> +			EXPECT_EQ(0, close(ruleset_fd));
-> +		}
-> +
-> +		ret = connect_variant(connect_fd, &self->unspec_any0);
-> +		if (self->srv0.protocol.domain == AF_UNIX &&
-> +		    self->srv0.protocol.type == SOCK_STREAM) {
-> +			EXPECT_EQ(-EINVAL, ret);
-> +		} else {
-> +			/* Always allowed to disconnect. */
-> +			EXPECT_EQ(0, ret);
-> +		}
-> +
-> +		EXPECT_EQ(0, close(connect_fd));
-> +		_exit(_metadata->passed ? EXIT_SUCCESS : EXIT_FAILURE);
-> +		return;
-> +	}
-> +
-> +	client_fd = bind_fd;
-> +	if (self->srv0.protocol.type == SOCK_STREAM) {
-> +		client_fd = accept(bind_fd, NULL, 0);
-> +		ASSERT_LE(0, client_fd);
-> +	}
-> +
-> +	EXPECT_EQ(child, waitpid(child, &status, 0));
-> +	EXPECT_EQ(1, WIFEXITED(status));
-> +	EXPECT_EQ(EXIT_SUCCESS, WEXITSTATUS(status));
-> +
-> +	/* Closes connection, if any. */
-> +	if (client_fd != bind_fd)
-> +		EXPECT_LE(0, close(client_fd));
-> +
-> +	/* Closes listening socket. */
-> +	EXPECT_EQ(0, close(bind_fd));
-> +}
-> +
-> +FIXTURE(ipv4)
-> +{
-> +	struct service_fixture srv0, srv1;
-> +};
-> +
-> +FIXTURE_VARIANT(ipv4)
-> +{
-> +	const enum sandbox_type sandbox;
-> +	const int type;
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(ipv4, no_sandbox_with_tcp) {
-> +	/* clang-format on */
-> +	.sandbox = NO_SANDBOX,
-> +	.type = SOCK_STREAM,
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(ipv4, tcp_sandbox_with_tcp) {
-> +	/* clang-format on */
-> +	.sandbox = TCP_SANDBOX,
-> +	.type = SOCK_STREAM,
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(ipv4, no_sandbox_with_udp) {
-> +	/* clang-format on */
-> +	.sandbox = NO_SANDBOX,
-> +	.type = SOCK_DGRAM,
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(ipv4, tcp_sandbox_with_udp) {
-> +	/* clang-format on */
-> +	.sandbox = TCP_SANDBOX,
-> +	.type = SOCK_DGRAM,
-> +};
-> +
-> +FIXTURE_SETUP(ipv4)
-> +{
-> +	const struct protocol_variant prot = {
-> +		.domain = AF_INET,
-> +		.type = variant->type,
-> +	};
-> +
-> +	disable_caps(_metadata);
-> +
-> +	set_service(&self->srv0, prot, 0);
-> +	set_service(&self->srv1, prot, 1);
-> +
-> +	setup_loopback(_metadata);
-> +};
-> +
-> +FIXTURE_TEARDOWN(ipv4)
-> +{
-> +}
-> +
-> +TEST_F(ipv4, from_unix_to_inet)
-> +{
-> +	int unix_stream_fd, unix_dgram_fd;
-> +
-> +	if (variant->sandbox == TCP_SANDBOX) {
-> +		const struct landlock_ruleset_attr ruleset_attr = {
-> +			.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +					      LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +		};
-> +		const struct landlock_net_port_attr tcp_bind_connect_p0 = {
-> +			.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +					  LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +			.port = self->srv0.port,
-> +		};
-> +		int ruleset_fd;
-> +
-> +		/* Denies connect and bind to check errno value. */
-> +		ruleset_fd = landlock_create_ruleset(&ruleset_attr,
-> +						     sizeof(ruleset_attr), 0);
-> +		ASSERT_LE(0, ruleset_fd);
-> +
-> +		/* Allows connect and bind for srv0.  */
-> +		ASSERT_EQ(0,
-> +			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +					    &tcp_bind_connect_p0, 0));
-> +
-> +		enforce_ruleset(_metadata, ruleset_fd);
-> +		EXPECT_EQ(0, close(ruleset_fd));
-> +	}
-> +
-> +	unix_stream_fd = socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
-> +	ASSERT_LE(0, unix_stream_fd);
-> +
-> +	unix_dgram_fd = socket(AF_UNIX, SOCK_DGRAM | SOCK_CLOEXEC, 0);
-> +	ASSERT_LE(0, unix_dgram_fd);
-> +
-> +	/* Checks unix stream bind and connect for srv0. */
-> +	EXPECT_EQ(-EINVAL, bind_variant(unix_stream_fd, &self->srv0));
-> +	EXPECT_EQ(-EINVAL, connect_variant(unix_stream_fd, &self->srv0));
-> +
-> +	/* Checks unix stream bind and connect for srv1. */
-> +	EXPECT_EQ(-EINVAL, bind_variant(unix_stream_fd, &self->srv1))
-> +	{
-> +		TH_LOG("Wrong bind error: %s", strerror(errno));
-> +	}
-> +	EXPECT_EQ(-EINVAL, connect_variant(unix_stream_fd, &self->srv1));
-> +
-> +	/* Checks unix datagram bind and connect for srv0. */
-> +	EXPECT_EQ(-EINVAL, bind_variant(unix_dgram_fd, &self->srv0));
-> +	EXPECT_EQ(-EINVAL, connect_variant(unix_dgram_fd, &self->srv0));
-> +
-> +	/* Checks unix datagram bind and connect for srv1. */
-> +	EXPECT_EQ(-EINVAL, bind_variant(unix_dgram_fd, &self->srv1));
-> +	EXPECT_EQ(-EINVAL, connect_variant(unix_dgram_fd, &self->srv1));
-> +}
-> +
-> +FIXTURE(tcp_layers)
-> +{
-> +	struct service_fixture srv0, srv1;
-> +};
-> +
-> +FIXTURE_VARIANT(tcp_layers)
-> +{
-> +	const size_t num_layers;
-> +	const int domain;
-> +};
-> +
-> +FIXTURE_SETUP(tcp_layers)
-> +{
-> +	const struct protocol_variant prot = {
-> +		.domain = variant->domain,
-> +		.type = SOCK_STREAM,
-> +	};
-> +
-> +	disable_caps(_metadata);
-> +
-> +	ASSERT_EQ(0, set_service(&self->srv0, prot, 0));
-> +	ASSERT_EQ(0, set_service(&self->srv1, prot, 1));
-> +
-> +	setup_loopback(_metadata);
-> +};
-> +
-> +FIXTURE_TEARDOWN(tcp_layers)
-> +{
-> +}
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(tcp_layers, no_sandbox_with_ipv4) {
-> +	/* clang-format on */
-> +	.domain = AF_INET,
-> +	.num_layers = 0,
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(tcp_layers, one_sandbox_with_ipv4) {
-> +	/* clang-format on */
-> +	.domain = AF_INET,
-> +	.num_layers = 1,
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(tcp_layers, two_sandboxes_with_ipv4) {
-> +	/* clang-format on */
-> +	.domain = AF_INET,
-> +	.num_layers = 2,
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(tcp_layers, three_sandboxes_with_ipv4) {
-> +	/* clang-format on */
-> +	.domain = AF_INET,
-> +	.num_layers = 3,
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(tcp_layers, no_sandbox_with_ipv6) {
-> +	/* clang-format on */
-> +	.domain = AF_INET6,
-> +	.num_layers = 0,
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(tcp_layers, one_sandbox_with_ipv6) {
-> +	/* clang-format on */
-> +	.domain = AF_INET6,
-> +	.num_layers = 1,
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(tcp_layers, two_sandboxes_with_ipv6) {
-> +	/* clang-format on */
-> +	.domain = AF_INET6,
-> +	.num_layers = 2,
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(tcp_layers, three_sandboxes_with_ipv6) {
-> +	/* clang-format on */
-> +	.domain = AF_INET6,
-> +	.num_layers = 3,
-> +};
-> +
-> +TEST_F(tcp_layers, ruleset_overlap)
-> +{
-> +	const struct landlock_ruleset_attr ruleset_attr = {
-> +		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +	};
-> +	const struct landlock_net_port_attr tcp_bind = {
-> +		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-> +		.port = self->srv0.port,
-> +	};
-> +	const struct landlock_net_port_attr tcp_bind_connect = {
-> +		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +				  LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +		.port = self->srv0.port,
-> +	};
-> +
-> +	if (variant->num_layers >= 1) {
-> +		int ruleset_fd;
-> +
-> +		ruleset_fd = landlock_create_ruleset(&ruleset_attr,
-> +						     sizeof(ruleset_attr), 0);
-> +		ASSERT_LE(0, ruleset_fd);
-> +
-> +		/* Allows bind. */
-> +		ASSERT_EQ(0,
-> +			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +					    &tcp_bind, 0));
-> +		/* Also allows bind, but allows connect too. */
-> +		ASSERT_EQ(0,
-> +			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +					    &tcp_bind_connect, 0));
-> +		enforce_ruleset(_metadata, ruleset_fd);
-> +		EXPECT_EQ(0, close(ruleset_fd));
-> +	}
-> +
-> +	if (variant->num_layers >= 2) {
-> +		int ruleset_fd;
-> +
-> +		/* Creates another ruleset layer. */
-> +		ruleset_fd = landlock_create_ruleset(&ruleset_attr,
-> +						     sizeof(ruleset_attr), 0);
-> +		ASSERT_LE(0, ruleset_fd);
-> +
-> +		/* Only allows bind. */
-> +		ASSERT_EQ(0,
-> +			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +					    &tcp_bind, 0));
-> +		enforce_ruleset(_metadata, ruleset_fd);
-> +		EXPECT_EQ(0, close(ruleset_fd));
-> +	}
-> +
-> +	if (variant->num_layers >= 3) {
-> +		int ruleset_fd;
-> +
-> +		/* Creates another ruleset layer. */
-> +		ruleset_fd = landlock_create_ruleset(&ruleset_attr,
-> +						     sizeof(ruleset_attr), 0);
-> +		ASSERT_LE(0, ruleset_fd);
-> +
-> +		/* Try to allow bind and connect. */
-> +		ASSERT_EQ(0,
-> +			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +					    &tcp_bind_connect, 0));
-> +		enforce_ruleset(_metadata, ruleset_fd);
-> +		EXPECT_EQ(0, close(ruleset_fd));
-> +	}
-> +
-> +	/*
-> +	 * Forbids to connect to the socket because only one ruleset layer
-> +	 * allows connect.
-> +	 */
-> +	test_bind_and_connect(_metadata, &self->srv0, false,
-> +			      variant->num_layers >= 2);
-> +}
-> +
-> +TEST_F(tcp_layers, ruleset_expand)
-> +{
-> +	if (variant->num_layers >= 1) {
-> +		const struct landlock_ruleset_attr ruleset_attr = {
-> +			.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP,
-> +		};
-> +		/* Allows bind for srv0. */
-> +		const struct landlock_net_port_attr bind_srv0 = {
-> +			.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-> +			.port = self->srv0.port,
-> +		};
-> +		int ruleset_fd;
-> +
-> +		ruleset_fd = landlock_create_ruleset(&ruleset_attr,
-> +						     sizeof(ruleset_attr), 0);
-> +		ASSERT_LE(0, ruleset_fd);
-> +		ASSERT_EQ(0,
-> +			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +					    &bind_srv0, 0));
-> +		enforce_ruleset(_metadata, ruleset_fd);
-> +		EXPECT_EQ(0, close(ruleset_fd));
-> +	}
-> +
-> +	if (variant->num_layers >= 2) {
-> +		/* Expands network mask with connect action. */
-> +		const struct landlock_ruleset_attr ruleset_attr = {
-> +			.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +					      LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +		};
-> +		/* Allows bind for srv0 and connect to srv0. */
-> +		const struct landlock_net_port_attr tcp_bind_connect_p0 = {
-> +			.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +					  LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +			.port = self->srv0.port,
-> +		};
-> +		/* Try to allow bind for srv1. */
-> +		const struct landlock_net_port_attr tcp_bind_p1 = {
-> +			.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-> +			.port = self->srv1.port,
-> +		};
-> +		int ruleset_fd;
-> +
-> +		ruleset_fd = landlock_create_ruleset(&ruleset_attr,
-> +						     sizeof(ruleset_attr), 0);
-> +		ASSERT_LE(0, ruleset_fd);
-> +		ASSERT_EQ(0,
-> +			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +					    &tcp_bind_connect_p0, 0));
-> +		ASSERT_EQ(0,
-> +			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +					    &tcp_bind_p1, 0));
-> +		enforce_ruleset(_metadata, ruleset_fd);
-> +		EXPECT_EQ(0, close(ruleset_fd));
-> +	}
-> +
-> +	if (variant->num_layers >= 3) {
-> +		const struct landlock_ruleset_attr ruleset_attr = {
-> +			.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +					      LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +		};
-> +		/* Allows connect to srv0, without bind rule. */
-> +		const struct landlock_net_port_attr tcp_bind_p0 = {
-> +			.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-> +			.port = self->srv0.port,
-> +		};
-> +		int ruleset_fd;
-> +
-> +		ruleset_fd = landlock_create_ruleset(&ruleset_attr,
-> +						     sizeof(ruleset_attr), 0);
-> +		ASSERT_LE(0, ruleset_fd);
-> +		ASSERT_EQ(0,
-> +			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +					    &tcp_bind_p0, 0));
-> +		enforce_ruleset(_metadata, ruleset_fd);
-> +		EXPECT_EQ(0, close(ruleset_fd));
-> +	}
-> +
-> +	test_bind_and_connect(_metadata, &self->srv0, false,
-> +			      variant->num_layers >= 3);
-> +
-> +	test_bind_and_connect(_metadata, &self->srv1, variant->num_layers >= 1,
-> +			      variant->num_layers >= 2);
-> +}
-> +
-> +/* clang-format off */
-> +FIXTURE(mini) {};
-> +/* clang-format on */
-> +
-> +FIXTURE_SETUP(mini)
-> +{
-> +	disable_caps(_metadata);
-> +
-> +	setup_loopback(_metadata);
-> +};
-> +
-> +FIXTURE_TEARDOWN(mini)
-> +{
-> +}
-> +
-> +/* clang-format off */
-> +
-> +#define ACCESS_LAST LANDLOCK_ACCESS_NET_CONNECT_TCP
-> +
-> +#define ACCESS_ALL ( \
-> +	LANDLOCK_ACCESS_NET_BIND_TCP | \
-> +	LANDLOCK_ACCESS_NET_CONNECT_TCP)
-> +
-> +/* clang-format on */
-> +
-> +TEST_F(mini, network_access_rights)
-> +{
-> +	const struct landlock_ruleset_attr ruleset_attr = {
-> +		.handled_access_net = ACCESS_ALL,
-> +	};
-> +	struct landlock_net_port_attr net_port = {
-> +		.port = sock_port_start,
-> +	};
-> +	int ruleset_fd;
-> +	__u64 access;
-> +
-> +	ruleset_fd =
-> +		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
-> +	ASSERT_LE(0, ruleset_fd);
-> +
-> +	for (access = 1; access <= ACCESS_LAST; access <<= 1) {
-> +		net_port.allowed_access = access;
-> +		EXPECT_EQ(0,
-> +			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +					    &net_port, 0))
-> +		{
-> +			TH_LOG("Failed to add rule with access 0x%llx: %s",
-> +			       access, strerror(errno));
-> +		}
-> +	}
-> +	EXPECT_EQ(0, close(ruleset_fd));
-> +}
-> +
-> +/* Checks invalid attribute, out of landlock network access range. */
-> +TEST_F(mini, unknown_access_rights)
-> +{
-> +	__u64 access_mask;
-> +
-> +	for (access_mask = 1ULL << 63; access_mask != ACCESS_LAST;
-> +	     access_mask >>= 1) {
-> +		const struct landlock_ruleset_attr ruleset_attr = {
-> +			.handled_access_net = access_mask,
-> +		};
-> +
-> +		EXPECT_EQ(-1, landlock_create_ruleset(&ruleset_attr,
-> +						      sizeof(ruleset_attr), 0));
-> +		EXPECT_EQ(EINVAL, errno);
-> +	}
-> +}
-> +
-> +TEST_F(mini, inval)
-> +{
-> +	const struct landlock_ruleset_attr ruleset_attr = {
-> +		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP
-> +	};
-> +	const struct landlock_net_port_attr tcp_bind_connect = {
-> +		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +				  LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +		.port = sock_port_start,
-> +	};
-> +	const struct landlock_net_port_attr tcp_denied = {
-> +		.allowed_access = 0,
-> +		.port = sock_port_start,
-> +	};
-> +	const struct landlock_net_port_attr tcp_bind = {
-> +		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-> +		.port = sock_port_start,
-> +	};
-> +	int ruleset_fd;
-> +
-> +	ruleset_fd =
-> +		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
-> +	ASSERT_LE(0, ruleset_fd);
-> +
-> +	/* Checks unhandled allowed_access. */
-> +	EXPECT_EQ(-1, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +					&tcp_bind_connect, 0));
-> +	EXPECT_EQ(EINVAL, errno);
-> +
-> +	/* Checks zero access value. */
-> +	EXPECT_EQ(-1, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +					&tcp_denied, 0));
-> +	EXPECT_EQ(ENOMSG, errno);
-> +
-> +	/* Adds with legitimate values. */
-> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +				       &tcp_bind, 0));
-> +}
-> +
-> +TEST_F(mini, tcp_port_overflow)
-> +{
-> +	const struct landlock_ruleset_attr ruleset_attr = {
-> +		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +	};
-> +	const struct landlock_net_port_attr port_max_bind = {
-> +		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-> +		.port = UINT16_MAX,
-> +	};
-> +	const struct landlock_net_port_attr port_max_connect = {
-> +		.allowed_access = LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +		.port = UINT16_MAX,
-> +	};
-> +	const struct landlock_net_port_attr port_overflow1 = {
-> +		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-> +		.port = UINT16_MAX + 1,
-> +	};
-> +	const struct landlock_net_port_attr port_overflow2 = {
-> +		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-> +		.port = UINT16_MAX + 2,
-> +	};
-> +	const struct landlock_net_port_attr port_overflow3 = {
-> +		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-> +		.port = UINT32_MAX + 1UL,
-> +	};
-> +	const struct landlock_net_port_attr port_overflow4 = {
-> +		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-> +		.port = UINT32_MAX + 2UL,
-> +	};
-> +	const struct protocol_variant ipv4_tcp = {
-> +		.domain = AF_INET,
-> +		.type = SOCK_STREAM,
-> +	};
-> +	struct service_fixture srv_denied, srv_max_allowed;
-> +	int ruleset_fd;
-> +
-> +	ASSERT_EQ(0, set_service(&srv_denied, ipv4_tcp, 0));
-> +
-> +	/* Be careful to avoid port inconsistencies. */
-> +	srv_max_allowed = srv_denied;
-> +	srv_max_allowed.port = port_max_bind.port;
-> +	srv_max_allowed.ipv4_addr.sin_port = htons(port_max_bind.port);
-> +
-> +	ruleset_fd =
-> +		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
-> +	ASSERT_LE(0, ruleset_fd);
-> +
-> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +				       &port_max_bind, 0));
-> +
-> +	EXPECT_EQ(-1, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +					&port_overflow1, 0));
-> +	EXPECT_EQ(EINVAL, errno);
-> +
-> +	EXPECT_EQ(-1, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +					&port_overflow2, 0));
-> +	EXPECT_EQ(EINVAL, errno);
-> +
-> +	EXPECT_EQ(-1, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +					&port_overflow3, 0));
-> +	EXPECT_EQ(EINVAL, errno);
-> +
-> +	/* Interleaves with invalid rule additions. */
-> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +				       &port_max_connect, 0));
-> +
-> +	EXPECT_EQ(-1, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +					&port_overflow4, 0));
-> +	EXPECT_EQ(EINVAL, errno);
-> +
-> +	enforce_ruleset(_metadata, ruleset_fd);
-> +
-> +	test_bind_and_connect(_metadata, &srv_denied, true, true);
-> +	test_bind_and_connect(_metadata, &srv_max_allowed, false, false);
-> +}
-> +
-> +FIXTURE(ipv4_tcp)
-> +{
-> +	struct service_fixture srv0, srv1;
-> +};
-> +
-> +FIXTURE_SETUP(ipv4_tcp)
-> +{
-> +	const struct protocol_variant ipv4_tcp = {
-> +		.domain = AF_INET,
-> +		.type = SOCK_STREAM,
-> +	};
-> +
-> +	disable_caps(_metadata);
-> +
-> +	ASSERT_EQ(0, set_service(&self->srv0, ipv4_tcp, 0));
-> +	ASSERT_EQ(0, set_service(&self->srv1, ipv4_tcp, 1));
-> +
-> +	setup_loopback(_metadata);
-> +};
-> +
-> +FIXTURE_TEARDOWN(ipv4_tcp)
-> +{
-> +}
-> +
-> +TEST_F(ipv4_tcp, port_endianness)
-> +{
-> +	const struct landlock_ruleset_attr ruleset_attr = {
-> +		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +	};
-> +	const struct landlock_net_port_attr bind_host_endian_p0 = {
-> +		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-> +		/* Host port format. */
-> +		.port = self->srv0.port,
-> +	};
-> +	const struct landlock_net_port_attr connect_big_endian_p0 = {
-> +		.allowed_access = LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +		/* Big endian port format. */
-> +		.port = htons(self->srv0.port),
-> +	};
-> +	const struct landlock_net_port_attr bind_connect_host_endian_p1 = {
-> +		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +				  LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +		/* Host port format. */
-> +		.port = self->srv1.port,
-> +	};
-> +	const unsigned int one = 1;
-> +	const char little_endian = *(const char *)&one;
-> +	int ruleset_fd;
-> +
-> +	ruleset_fd =
-> +		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
-> +	ASSERT_LE(0, ruleset_fd);
-> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +				       &bind_host_endian_p0, 0));
-> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +				       &connect_big_endian_p0, 0));
-> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +				       &bind_connect_host_endian_p1, 0));
-> +	enforce_ruleset(_metadata, ruleset_fd);
-> +
-> +	/* No restriction for big endinan CPU. */
-> +	test_bind_and_connect(_metadata, &self->srv0, false, little_endian);
-> +
-> +	/* No restriction for any CPU. */
-> +	test_bind_and_connect(_metadata, &self->srv1, false, false);
-> +}
-> +
-> +TEST_F_FORK(ipv4_tcp, with_fs)
-> +{
-> +	const struct landlock_ruleset_attr ruleset_attr_fs_net = {
-> +		.handled_access_fs = LANDLOCK_ACCESS_FS_READ_DIR,
-> +		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP,
-> +	};
-> +	struct landlock_path_beneath_attr path_beneath = {
-> +		.allowed_access = LANDLOCK_ACCESS_FS_READ_DIR,
-> +		.parent_fd = -1,
-> +	};
-> +	struct landlock_net_port_attr tcp_bind = {
-> +		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-> +		.port = sock_port_start,
-> +	};
-> +	int sockfd, ruleset_fd, dirfd, open_dir1, open_dir2;
-> +	struct sockaddr_in addr4;
-> +
-> +	dirfd = open("/dev", O_PATH | O_DIRECTORY | O_CLOEXEC);
-> +	ASSERT_LE(0, dirfd);
-> +	path_beneath.parent_fd = dirfd;
-> +
-> +	addr4.sin_family = AF_INET;
-> +	addr4.sin_port = htons(sock_port_start);
-> +	addr4.sin_addr.s_addr = inet_addr(loopback_ipv4);
-> +	memset(&addr4.sin_zero, '\0', 8);
-> +
-> +	/* Creates ruleset both for filesystem and network access. */
-> +	ruleset_fd = landlock_create_ruleset(&ruleset_attr_fs_net,
-> +					     sizeof(ruleset_attr_fs_net), 0);
-> +	ASSERT_LE(0, ruleset_fd);
-> +
-> +	/* Adds a filesystem rule. */
-> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_PATH_BENEATH,
-> +				       &path_beneath, 0));
-> +	/* Adds a network rule. */
-> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +				       &tcp_bind, 0));
-> +
-> +	enforce_ruleset(_metadata, ruleset_fd);
-> +	ASSERT_EQ(0, close(ruleset_fd));
-> +
-> +	/* Tests on a directories with the network rule loaded. */
-> +	open_dir1 = open("/dev", O_RDONLY);
-> +	ASSERT_LE(0, open_dir1);
-> +	ASSERT_EQ(0, close(open_dir1));
-> +
-> +	open_dir2 = open("/", O_RDONLY);
-> +	/* Denied by Landlock. */
-> +	ASSERT_EQ(-1, open_dir2);
-> +	EXPECT_EQ(EACCES, errno);
-> +
-> +	sockfd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
-> +	ASSERT_LE(0, sockfd);
-> +	/* Binds a socket to port 1024. */
-> +	ASSERT_EQ(0, bind(sockfd, &addr4, sizeof(addr4)));
-> +
-> +	/* Closes bounded socket. */
-> +	ASSERT_EQ(0, close(sockfd));
-> +}
-> +
-> +FIXTURE(port_specific)
-> +{
-> +	struct service_fixture srv0;
-> +};
-> +
-> +FIXTURE_VARIANT(port_specific)
-> +{
-> +	const enum sandbox_type sandbox;
-> +	const struct protocol_variant prot;
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(port_specific, no_sandbox_with_ipv4) {
-> +	/* clang-format on */
-> +	.sandbox = NO_SANDBOX,
-> +	.prot = {
-> +		.domain = AF_INET,
-> +		.type = SOCK_STREAM,
-> +	},
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(port_specific, sandbox_with_ipv4) {
-> +	/* clang-format on */
-> +	.sandbox = TCP_SANDBOX,
-> +	.prot = {
-> +		.domain = AF_INET,
-> +		.type = SOCK_STREAM,
-> +	},
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(port_specific, no_sandbox_with_ipv6) {
-> +	/* clang-format on */
-> +	.sandbox = NO_SANDBOX,
-> +	.prot = {
-> +		.domain = AF_INET6,
-> +		.type = SOCK_STREAM,
-> +	},
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(port_specific, sandbox_with_ipv6) {
-> +	/* clang-format on */
-> +	.sandbox = TCP_SANDBOX,
-> +	.prot = {
-> +		.domain = AF_INET6,
-> +		.type = SOCK_STREAM,
-> +	},
-> +};
-> +
-> +FIXTURE_SETUP(port_specific)
-> +{
-> +	disable_caps(_metadata);
-> +
-> +	ASSERT_EQ(0, set_service(&self->srv0, variant->prot, 0));
-> +
-> +	setup_loopback(_metadata);
-> +};
-> +
-> +FIXTURE_TEARDOWN(port_specific)
-> +{
-> +}
-> +
-> +TEST_F(port_specific, bind_connect_zero)
-> +{
-> +	int bind_fd, connect_fd, ret;
-> +	uint16_t port;
-> +
-> +	/* Adds a rule layer with bind and connect actions. */
-> +	if (variant->sandbox == TCP_SANDBOX) {
-> +		const struct landlock_ruleset_attr ruleset_attr = {
-> +			.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +					      LANDLOCK_ACCESS_NET_CONNECT_TCP
-> +		};
-> +		const struct landlock_net_port_attr tcp_bind_connect_zero = {
-> +			.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +					  LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +			.port = 0,
-> +		};
-> +		int ruleset_fd;
-> +
-> +		ruleset_fd = landlock_create_ruleset(&ruleset_attr,
-> +						     sizeof(ruleset_attr), 0);
-> +		ASSERT_LE(0, ruleset_fd);
-> +
-> +		/* Checks zero port value on bind and connect actions. */
-> +		EXPECT_EQ(0,
-> +			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +					    &tcp_bind_connect_zero, 0));
-> +
-> +		enforce_ruleset(_metadata, ruleset_fd);
-> +		EXPECT_EQ(0, close(ruleset_fd));
-> +	}
-> +
-> +	bind_fd = socket_variant(&self->srv0);
-> +	ASSERT_LE(0, bind_fd);
-> +
-> +	connect_fd = socket_variant(&self->srv0);
-> +	ASSERT_LE(0, connect_fd);
-> +
-> +	/* Sets address port to 0 for both protocol families. */
-> +	set_port(&self->srv0, 0);
-> +	/*
-> +	 * Binds on port 0, which selects a random port within
-> +	 * ip_local_port_range.
-> +	 */
-> +	ret = bind_variant(bind_fd, &self->srv0);
-> +	EXPECT_EQ(0, ret);
-> +
-> +	EXPECT_EQ(0, listen(bind_fd, backlog));
-> +
-> +	/* Connects on port 0. */
-> +	ret = connect_variant(connect_fd, &self->srv0);
-> +	EXPECT_EQ(-ECONNREFUSED, ret);
-> +
-> +	/* Sets binded port for both protocol families. */
-> +	port = get_binded_port(bind_fd, &variant->prot);
-> +	EXPECT_NE(0, port);
-> +	set_port(&self->srv0, port);
-> +	/* Connects on the binded port. */
-> +	ret = connect_variant(connect_fd, &self->srv0);
-> +	if (is_restricted(&variant->prot, variant->sandbox)) {
-> +		/* Denied by Landlock. */
-> +		EXPECT_EQ(-EACCES, ret);
-> +	} else {
-> +		EXPECT_EQ(0, ret);
-> +	}
-> +
-> +	EXPECT_EQ(0, close(connect_fd));
-> +	EXPECT_EQ(0, close(bind_fd));
-> +}
-> +
-> +TEST_F(port_specific, bind_connect_1023)
-> +{
-> +	int bind_fd, connect_fd, ret;
-> +
-> +	/* Adds a rule layer with bind and connect actions. */
-> +	if (variant->sandbox == TCP_SANDBOX) {
-> +		const struct landlock_ruleset_attr ruleset_attr = {
-> +			.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +					      LANDLOCK_ACCESS_NET_CONNECT_TCP
-> +		};
-> +		/* A rule with port value less than 1024. */
-> +		const struct landlock_net_port_attr tcp_bind_connect_low_range = {
-> +			.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +					  LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +			.port = 1023,
-> +		};
-> +		/* A rule with 1024 port. */
-> +		const struct landlock_net_port_attr tcp_bind_connect = {
-> +			.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
-> +					  LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +			.port = 1024,
-> +		};
-> +		int ruleset_fd;
-> +
-> +		ruleset_fd = landlock_create_ruleset(&ruleset_attr,
-> +						     sizeof(ruleset_attr), 0);
-> +		ASSERT_LE(0, ruleset_fd);
-> +
-> +		ASSERT_EQ(0,
-> +			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +					    &tcp_bind_connect_low_range, 0));
-> +		ASSERT_EQ(0,
-> +			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-> +					    &tcp_bind_connect, 0));
-> +
-> +		enforce_ruleset(_metadata, ruleset_fd);
-> +		EXPECT_EQ(0, close(ruleset_fd));
-> +	}
-> +
-> +	bind_fd = socket_variant(&self->srv0);
-> +	ASSERT_LE(0, bind_fd);
-> +
-> +	connect_fd = socket_variant(&self->srv0);
-> +	ASSERT_LE(0, connect_fd);
-> +
-> +	/* Sets address port to 1023 for both protocol families. */
-> +	set_port(&self->srv0, 1023);
-> +	/* Binds on port 1023. */
-> +	ret = bind_variant(bind_fd, &self->srv0);
-> +	/* Denied by the system. */
-> +	EXPECT_EQ(-EACCES, ret);
-> +
-> +	set_cap(_metadata, CAP_NET_BIND_SERVICE);
-> +	/* Binds on port 1023. */
-> +	ret = bind_variant(bind_fd, &self->srv0);
-> +	EXPECT_EQ(0, ret);
-> +	EXPECT_EQ(0, listen(bind_fd, backlog));
-> +	clear_cap(_metadata, CAP_NET_BIND_SERVICE);
-> +
-> +	/* Connects on the binded port 1023. */
-> +	ret = connect_variant(connect_fd, &self->srv0);
-> +	EXPECT_EQ(0, ret);
-> +
-> +	EXPECT_EQ(0, close(connect_fd));
-> +	EXPECT_EQ(0, close(bind_fd));
-> +
-> +	bind_fd = socket_variant(&self->srv0);
-> +	ASSERT_LE(0, bind_fd);
-> +
-> +	connect_fd = socket_variant(&self->srv0);
-> +	ASSERT_LE(0, connect_fd);
-> +
-> +	/* Sets address port to 1024 for both protocol families. */
-> +	set_port(&self->srv0, 1024);
-> +	/* Binds on port 1024. */
-> +	ret = bind_variant(bind_fd, &self->srv0);
-> +	EXPECT_EQ(0, ret);
-> +	EXPECT_EQ(0, listen(bind_fd, backlog));
-> +	clear_cap(_metadata, CAP_NET_BIND_SERVICE);
-> +
-> +	/* Connects on the binded port 1024. */
-> +	ret = connect_variant(connect_fd, &self->srv0);
-> +	EXPECT_EQ(0, ret);
-> +
-> +	EXPECT_EQ(0, close(connect_fd));
-> +	EXPECT_EQ(0, close(bind_fd));
-> +}
-> +
-> +TEST_HARNESS_MAIN
-> --
-> 2.25.1
-> 
-> 
+Each new input passes through the following processing stages:
 
+1: 'parser':
+    Only run flex/bison parser and quit instantly if that fails,
+    without evaluation of the generated AST (No need to generate
+    error messages for the user).
+
+2: 'eval': pass the input through the evaluation phase as well.
+    This attempts to build a complete ruleset in memory, does
+    symbol resolution, adds needed shift/masks to payload instructions
+    etc.
+
+3: 'netlink-ro' or 'netlink-rw'.
+    'netlink-ro' builds the netlink buffer to send to the kernel,
+    without actually doing so.
+    With 'write', the generated command/ruleset will be passed to the
+    kernel.
+
+The argument to '--fuzzer' specifies the last stage to run.
+
+Use 'netlink-ro' if you want to prevent nft from ever submitting any
+changes to the kernel.
+
+You can combine '--fuzzer netlink-rw' with the '--check' option to send
+data to the kernel but without actually committing any changes.
+
+This could still end up triggering a kernel crash if there are bugs in the
+valiation / transaction / abort phases.
+
+Before sending a command to the kernel, the input is stored in temporary
+files (named [0-255]/[0-255] in the "tests/afl++/nft-afl-work" directory.
+
+In case a splat is detected, the fuzzing process stops and all further
+fuzzer attemps are blocked until reboot.
+
+nft-afl-work/log logs when a "talk to kernel" phase begins or when a
+kernel crash/warning splat was detected.
+
+Check "tests/afl++/hooks" for script hooks, those allow to customize the
+fuzzing process by making regular snapshots of the ruleset, deleting old
+temporary files, flushing rules, checking KASAN, etc.
+
+The default hook scripts will enable fault injection for the nft process
+being fuzzed, i.e. kernel memory allocations will randomly fail.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ .gitignore                     |   6 +
+ Makefile.am                    |   5 +
+ configure.ac                   |  17 +
+ include/afl++.h                |  48 +++
+ include/nftables.h             |   3 +
+ src/afl++.c                    | 728 +++++++++++++++++++++++++++++++++
+ src/libnftables.c              |  23 +-
+ src/main.c                     | 101 +++++
+ tests/afl++/README             | 126 ++++++
+ tests/afl++/TODO               |   6 +
+ tests/afl++/afl-sysctl.cfg     |   5 +
+ tests/afl++/hooks/init         |  54 +++
+ tests/afl++/hooks/post-commit  |   8 +
+ tests/afl++/hooks/post-restart |   8 +
+ tests/afl++/hooks/pre-commit   |   6 +
+ tests/afl++/hooks/pre-restart  |  12 +
+ tests/afl++/run-afl.sh         |  43 ++
+ 17 files changed, 1198 insertions(+), 1 deletion(-)
+ create mode 100644 include/afl++.h
+ create mode 100644 src/afl++.c
+ create mode 100644 tests/afl++/README
+ create mode 100644 tests/afl++/TODO
+ create mode 100644 tests/afl++/afl-sysctl.cfg
+ create mode 100755 tests/afl++/hooks/init
+ create mode 100755 tests/afl++/hooks/post-commit
+ create mode 100755 tests/afl++/hooks/post-restart
+ create mode 100755 tests/afl++/hooks/pre-commit
+ create mode 100755 tests/afl++/hooks/pre-restart
+ create mode 100755 tests/afl++/run-afl.sh
+
+diff --git a/.gitignore b/.gitignore
+index a62e31f31c6b..1d9eb9c22a70 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -22,6 +22,12 @@ libtool
+ *.payload.got
+ tests/build/tests.log
+ 
++# generated by run-afl.sh
++tests/afl++/in/
++tests/afl++/nft.dict
++tests/afl++/out/
++tests/afl++/nft-afl-work/
++
+ # Debian package build temporary files
+ build-stamp
+ 
+diff --git a/Makefile.am b/Makefile.am
+index 0ed831a19e95..21c01e712010 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -63,6 +63,7 @@ noinst_HEADERS = \
+ 	include/linux/netfilter_ipv6.h \
+ 	include/linux/netfilter_ipv6/ip6_tables.h \
+ 	\
++	include/afl++.h	\
+ 	include/cache.h \
+ 	include/cli.h \
+ 	include/cmd.h \
+@@ -284,6 +285,10 @@ sbin_PROGRAMS += src/nft
+ 
+ src_nft_SOURCES = src/main.c
+ 
++if BUILD_AFL
++src_nft_SOURCES += src/afl++.c
++endif
++
+ if BUILD_CLI
+ src_nft_SOURCES += src/cli.c
+ endif
+diff --git a/configure.ac b/configure.ac
+index 724a4ae726c1..98ba62851c8e 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -91,6 +91,18 @@ AC_MSG_ERROR([unexpected CLI value: $with_cli])
+ ])
+ AM_CONDITIONAL([BUILD_CLI], [test "x$with_cli" != xno])
+ 
++AC_ARG_ENABLE([fuzzer],
++	      AS_HELP_STRING([--enable-fuzzer], [Enable fuzzer support.  NEVER use this unless you work on nftables project]),
++	      [enable_fuzzer=yes], [enable_fuzzer=no])
++
++AM_CONDITIONAL([BUILD_AFL], [test "x$enable_fuzzer" = xyes])
++
++HAVE_FUZZER_BUILD=0
++AS_IF([test "x$enable_fuzzer" != xno], [
++	HAVE_FUZZER_BUILD=1
++])
++AC_DEFINE_UNQUOTED([HAVE_FUZZER_BUILD], [$HAVE_FUZZER_BUILD], [Whether to build with fuzzer support])
++
+ AC_ARG_WITH([xtables], [AS_HELP_STRING([--with-xtables],
+             [Use libxtables for iptables interaction])],
+ 	    [], [with_xtables=no])
+@@ -128,3 +140,8 @@ nft configuration:
+   enable man page:              ${enable_man_doc}
+   libxtables support:		${with_xtables}
+   json output support:          ${with_json}"
++
++# Do not print "fuzzer support:		no", this is development-only.
++AS_IF([test "x$enable_fuzzer" = xyes ], [
++	echo "  fuzzer support:		yes"
++	], [ ])
+diff --git a/include/afl++.h b/include/afl++.h
+new file mode 100644
+index 000000000000..25d23ac9eb57
+--- /dev/null
++++ b/include/afl++.h
+@@ -0,0 +1,48 @@
++#ifndef _NFT_AFLPLUSPLUS_H_
++#define _NFT_AFLPLUSPLUS_H_
++
++#include <nftables/libnftables.h>
++
++/*
++ * enum nft_afl_fuzzer_stage - current fuzzer stage
++ *
++ * @NFT_AFL_FUZZER_DISABLED: running without --fuzzer
++ * @NFT_AFL_FUZZER_PARSER: only fuzz the parser, do not run eval step.
++ * @NFT_AFL_FUZZER_EVALUATION: continue to evaluation step, if possible.
++ * @NFT_AFL_FUZZER_NETLINK_RO: convert internal representation to netlink buffer but don't send any changes to the kernel.
++ * @NFT_AFL_FUZZER_NETLINK_RW: send the netlink message to kernel for processing.
++ */
++enum nft_afl_fuzzer_stage {
++	NFT_AFL_FUZZER_DISABLED,
++	NFT_AFL_FUZZER_PARSER,
++	NFT_AFL_FUZZER_EVALUATION,
++	NFT_AFL_FUZZER_NETLINK_RO,
++	NFT_AFL_FUZZER_NETLINK_RW,
++};
++
++static inline void nft_afl_print_build_info(FILE *fp)
++{
++#if defined(HAVE_FUZZER_BUILD) && defined(FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION)
++	fprintf(fp, "\nWARNING: BUILT WITH FUZZER SUPPORT AND AFL INSTRUMENTATION\n");
++#elif defined(FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION)
++	fprintf(fp, "\nWARNING: BUILT WITH AFL INSTRUMENTATION\n");
++#elif defined(HAVE_FUZZER_BUILD)
++	fprintf(fp, "\nWARNING: BUILT WITH FUZZER SUPPORT BUT NO AFL INSTRUMENTATION\n");
++#endif
++}
++
++#if HAVE_FUZZER_BUILD
++extern int nft_afl_init(enum nft_afl_fuzzer_stage s);
++extern int nft_afl_main(struct nft_ctx *nft);
++#else
++static inline int nft_afl_main(struct nft_ctx *ctx)
++{
++        return -1;
++}
++static inline int nft_afl_init(enum nft_afl_fuzzer_stage s){ return -1; }
++#endif
++
++#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
++#define __AFL_INIT() do { } while (0)
++#endif
++#endif
+diff --git a/include/nftables.h b/include/nftables.h
+index 4b7c335928da..fe733afcc335 100644
+--- a/include/nftables.h
++++ b/include/nftables.h
+@@ -144,6 +144,9 @@ struct nft_ctx {
+ 	void			*json_root;
+ 	json_t			*json_echo;
+ 	const char		*stdin_buf;
++#if HAVE_FUZZER_BUILD
++	int			afl_ctx_stage;
++#endif
+ };
+ 
+ enum nftables_exit_codes {
+diff --git a/src/afl++.c b/src/afl++.c
+new file mode 100644
+index 000000000000..b1ed6bb70d65
+--- /dev/null
++++ b/src/afl++.c
+@@ -0,0 +1,728 @@
++/*
++ * Copyright (c) Red Hat GmbH.	Author: Florian Westphal <fw@strlen.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 (or any
++ * later) as published by the Free Software Foundation.
++ */
++
++#define _GNU_SOURCE
++#include <nft.h>
++#include <stdio.h>
++
++#include <errno.h>
++#include <ctype.h>
++#include <limits.h>
++#include <fcntl.h>
++#include <unistd.h>
++#include <time.h>
++
++#include <sys/stat.h>
++#include <sys/wait.h>
++
++#include <afl++.h>
++#include <nftables.h>
++
++static const char nft_afl_hookdirname[] = "tests/afl++/hooks";
++static const char nft_afl_workdirname[] = "tests/afl++/nft-afl-work";
++static const char self_fault_inject_file[] = "/proc/self/make-it-fail";
++
++#ifdef __AFL_FUZZ_TESTCASE_LEN
++/* the below macro gets passed via afl-cc, declares prototypes
++ * depending on the afl-cc flavor.
++ */
++__AFL_FUZZ_INIT();
++#else
++/* this lets the source compile without afl-clang-fast/lto */
++static unsigned char fuzz_buf[4096];
++static ssize_t fuzz_len;
++
++#define __AFL_FUZZ_TESTCASE_LEN fuzz_len
++#define __AFL_FUZZ_TESTCASE_BUF fuzz_buf
++#define __AFL_FUZZ_INIT() do { } while (0)
++#define __AFL_LOOP(x) \
++   ((fuzz_len = read(0, fuzz_buf, sizeof(fuzz_buf))) > 0 ? 1 : 0)
++#endif
++
++#define NFT_AFL_GC_TIME		30
++#define NFT_AFL_FB_SIZE	1024
++#define NFT_AFL_FNAME_SIZE	(strlen(nft_afl_workdirname) + sizeof("/255/255"))
++#define NFT_AFL_HDIR_SIZE	(strlen(nft_afl_hookdirname) + sizeof("/hooks/"))
++
++struct nft_afl_input {
++	unsigned int failcount;
++	char *buffer;
++	char *fname;
++	int retval;
++	bool use_filename;
++};
++
++/* we store 256 test cases in 256 dirs */
++struct nft_afl_level {
++	struct nft_afl_input inputs[256];
++	uint8_t next;
++};
++
++enum nft_afl_state_enum {
++	NFT_AFL_STATE_NORMAL,
++	NFT_AFL_STATE_TAINTED,
++};
++
++struct nft_afl_state {
++	unsigned int candidates;
++	struct nft_afl_level level[256];
++	uint8_t levelcount;
++	enum nft_afl_fuzzer_stage stage_max;
++	enum nft_afl_state_enum state;
++	FILE *log;
++	FILE *make_it_fail_fp;
++};
++
++static struct nft_afl_state state;
++
++static char *preprocess(unsigned char *input, ssize_t len)
++{
++	/* shortest state-change command i could think of */
++	static const ssize_t minlen = (ssize_t)sizeof("add set s");
++	unsigned int i;
++	char *real_in;
++
++	if (len < minlen)
++		return NULL;
++
++	/* skip whitespace, and check minlen again.
++	 * This is to speed things up by avoiding
++	 * more costly libnftables parser for junk
++	 * inputs.
++	 */
++	real_in = (char *)input;
++	for (; len > 0; real_in++, len--) {
++		switch (*real_in) {
++		case ' ':
++		case '\t':
++		case '\n':
++			break;
++		case 0:
++			/* pure whitespace? reject. */
++			return NULL;
++		default:
++			/* non-whitespace, truncate at earliest opportunity */
++			for (i = 0; i < len; i++) {
++				/* don't bother: parser rejects it. */
++				if (!isascii(real_in[i])) {
++					len = i;
++					goto done;
++				}
++			}
++
++			/* no '\0' found in input, truncate. */
++			if (i == len) {
++				if (len)
++					real_in[--len] = 0;
++				goto done;
++			}
++		}
++	}
++done:
++	if (len < minlen)
++		return NULL;
++
++	return real_in;
++}
++
++static struct nft_afl_input *savebuf(struct nft_afl_level *level, const char *buf)
++{
++	struct nft_afl_input *input = &level->inputs[level->next];
++	char *fast_buf = input->buffer;
++	int r;
++
++	r = snprintf(fast_buf, NFT_AFL_FB_SIZE, "%s", buf);
++	if (r >= NFT_AFL_FB_SIZE) {
++		input->use_filename = true;
++		fast_buf[0] = 0;
++	} else {
++		input->use_filename = false;
++	}
++
++	return input;
++}
++
++static int opencandidate(const char *name)
++{
++	return open(name, O_WRONLY | O_CLOEXEC | O_CREAT | O_TRUNC, 0644);
++}
++
++static void mark_tainted(struct nft_afl_state *s)
++{
++	char taintname[512];
++	FILE *fp;
++
++	snprintf(taintname, sizeof(taintname), "%s/TAINT", nft_afl_workdirname);
++
++	/* mark it tainted, no more fuzzer runs until this file gets deleted. */
++	fp = fopen(taintname, "w");
++	if (fp)
++		fclose(fp);
++
++	s->state = NFT_AFL_STATE_TAINTED;
++}
++
++static void nft_afl_state_log_str(const struct nft_afl_state *s, const char *message)
++{
++	FILE *fp = fopen("/proc/uptime", "r");
++	char buf[256];
++	char *nl;
++
++	if (!fp)
++		return;
++
++	if (!fgets(buf, sizeof(buf), fp))
++		snprintf(buf, sizeof(buf), "error reading uptime: %s", strerror(errno));
++
++	fclose(fp);
++
++	nl = strchr(buf, '\n');
++	if (nl)
++		*nl = 0;
++
++	fprintf(s->log, "%s: %s\n", buf, message);
++	fflush(s->log);
++}
++
++__attribute__((format(printf, 2, 3)))
++static void nft_afl_state_logf(const struct nft_afl_state *s, const char *fmt, ... )
++{
++	char buffer[512];
++	va_list ap;
++
++	va_start(ap, fmt);
++	vsnprintf(buffer, sizeof(buffer), fmt, ap);
++	va_end(ap);
++
++	nft_afl_state_log_str(s, buffer);
++}
++
++static bool kernel_is_tainted(const struct nft_afl_state *s)
++{
++	FILE *fp = fopen("/proc/sys/kernel/tainted", "r");
++	unsigned int taint;
++	bool ret = false;
++
++	if (fp && fscanf(fp, "%u", &taint) == 1 && taint) {
++		nft_afl_state_logf(s, "Kernel is tainted: 0x%x\n", taint);
++		ret = true;
++	}
++
++	fclose(fp);
++	return ret;
++}
++
++static void fault_inject_write(FILE *fp, unsigned int v)
++{
++	rewind(fp);
++	fprintf(fp, "%u\n", v);
++	fflush(fp);
++}
++
++static void fault_inject_enable(const struct nft_afl_state *state)
++{
++	if (state->make_it_fail_fp)
++		fault_inject_write(state->make_it_fail_fp, 1);
++}
++
++static void fault_inject_disable(const struct nft_afl_state *state)
++{
++	if (state->make_it_fail_fp)
++		fault_inject_write(state->make_it_fail_fp, 0);
++}
++
++/* NB: splats can happen even after return to userspace,
++ * or even when the kernel returned an error from
++ * nft_run_cmd_from_buffer/filename.
++ *
++ * This is due to delayed destruction in kernel
++ * and cleanup/error unwind semantics.
++ */
++static void log_splat_seen(struct nft_afl_state *state, const struct nft_afl_input *r)
++{
++	nft_afl_state_logf(state, "tainted, last run: %s", r->fname);
++
++	mark_tainted(state);
++}
++
++static bool nft_afl_run_cmd(struct nft_afl_state *s, struct nft_ctx *ctx, struct nft_afl_input *run)
++{
++	if (kernel_is_tainted(s))
++		goto splat;
++
++	switch (s->stage_max) {
++	case NFT_AFL_FUZZER_DISABLED:
++		/* silences warning wrt. unhandled enum in switch */
++		BUG("Fuzzer disabled but in fuzzer loop");
++	case NFT_AFL_FUZZER_PARSER:
++	case NFT_AFL_FUZZER_EVALUATION:
++		return true;
++	case NFT_AFL_FUZZER_NETLINK_RO:
++	case NFT_AFL_FUZZER_NETLINK_RW:
++		ctx->afl_ctx_stage = s->stage_max;
++		break;
++	}
++
++	fault_inject_enable(s);
++
++	if (run->use_filename)
++		nft_run_cmd_from_filename(ctx, run->fname);
++	else
++		nft_run_cmd_from_buffer(ctx, run->buffer);
++
++	fault_inject_disable(s);
++
++	if (kernel_is_tainted(s))
++		goto splat;
++
++	return true;
++splat:
++	log_splat_seen(s, run);
++	return false;
++}
++
++static struct nft_afl_input *
++save_candidate(struct nft_afl_state *state, const char *buf)
++{
++	unsigned int next, lc = state->levelcount;
++	char levelname[512], name[NFT_AFL_FNAME_SIZE];
++	struct nft_afl_level *level;
++	struct nft_afl_input *input;
++	int len, err, fd;
++	ssize_t rv;
++
++	/* no need to save in a file, kernel won't see any data */
++	if (state->stage_max <= NFT_AFL_FUZZER_NETLINK_RO) {
++		level = &state->level[lc];
++		next = level->next;
++
++		input = savebuf(level, buf);
++
++		if (input->use_filename)
++			goto save_now;
++
++		return input;
++	}
++
++	for (; lc < array_size(state->level); lc++) {
++		level = &state->level[lc];
++
++		for (next = level->next; next < array_size(level->inputs); next++) {
++			input = &level->inputs[next];
++
++			if (!input->use_filename) {
++				level->next = next;
++				state->levelcount = lc;
++				goto save_now;
++			}
++		}
++	}
++
++save_now:
++	snprintf(levelname, sizeof(levelname), "%s/%03d", nft_afl_workdirname, lc);
++
++	err = mkdir(levelname, 0755);
++	if (err && errno != EEXIST) {
++		nft_afl_state_logf(state, "%s: mkdir failed: %s",
++				   name, strerror(errno));
++		return NULL;
++	}
++
++	snprintf(name, sizeof(name), "%s/%03d/%03d", nft_afl_workdirname, lc, next);
++	fd = opencandidate(name);
++	if (fd < 0) {
++		nft_afl_state_logf(state, "%s: create failed: %s",
++				   name, strerror(errno));
++		return NULL;
++	}
++
++	input = savebuf(level, buf);
++	snprintf(input->fname, NFT_AFL_FNAME_SIZE, "%s", name);
++	len = strlen(buf);
++
++	rv = write(fd, buf, len);
++	if (rv != len) {
++		close(fd);
++		mark_tainted(state);
++		nft_afl_state_logf(state, "%s: write %u bytes, got %ld: %s",
++				   name, len, (long)rv, strerror(errno));
++		return NULL;
++	}
++
++	++next;
++	level->next = next;
++
++	if (next == array_size(level->inputs) - 1) {
++		lc++;
++
++		if (lc < array_size(state->level))
++			state->levelcount = lc;
++
++	}
++
++	close(fd);
++
++	return input;
++}
++
++static bool nft_afl_level_init(struct nft_afl_level *level)
++{
++	struct nft_afl_input *input;
++	unsigned int i;
++
++	for (i = 0; i < array_size(level->inputs); i++) {
++		input = &level->inputs[i];
++
++		input->buffer = malloc(NFT_AFL_FB_SIZE);
++		input->fname = malloc(NFT_AFL_FNAME_SIZE);
++
++		if (!input->buffer || !input->fname)
++			return false;
++	}
++
++	return true;
++}
++
++static FILE *fault_inject_open(void)
++{
++	return fopen(self_fault_inject_file, "r+");
++}
++
++static bool nft_afl_state_init(struct nft_afl_state *state, enum nft_afl_fuzzer_stage max)
++{
++	char logname[512];
++	unsigned int i;
++	int err;
++
++	memset(state, 0, sizeof(*state));
++
++	for (i = 0; i < array_size(state->level); i++) {
++		if (!nft_afl_level_init(&state->level[i]))
++			return false;
++	}
++
++	snprintf(logname, sizeof(logname), "%s/log", nft_afl_workdirname);
++
++	err = mkdir(nft_afl_workdirname, 0755);
++	if (err && errno != EEXIST) {
++		fprintf(stderr, "create %s: %s\n", nft_afl_workdirname, strerror(errno));
++		return false;
++	}
++
++	state->log = fopen(logname, "a");
++	if (!state->log) {
++		fprintf(stderr, "open %s: %s\n", logname, strerror(errno));
++		return false;
++	}
++
++	state->stage_max = max;
++	state->make_it_fail_fp = fault_inject_open();
++	return true;
++}
++
++static bool is_tainted(void)
++{
++	char taintname[512];
++	FILE *fp;
++
++	snprintf(taintname, sizeof(taintname), "%s/TAINT", nft_afl_workdirname);
++
++	fp = fopen(taintname, "r");
++	if (fp) {
++		fclose(fp);
++		sleep(60);	/* don't burn cycles, no more fuzzing */
++		return true;
++	}
++
++	return false;
++}
++
++static void forkandexec(struct nft_afl_state *state, char *name)
++{
++	char * const argv[] = { name, NULL };
++	int ret, wstatus;
++	pid_t p = fork();
++
++	if (p < 0) {
++		nft_afl_state_logf(state, "Cannot fork %s: %s", name, strerror(errno));
++		return;
++	}
++
++	if (p == 0) {
++		execve(name, argv, environ);
++		nft_afl_state_logf(state, "Cannot execve %s: %s", name, strerror(errno));
++		exit(EXIT_FAILURE);
++	}
++
++	ret = waitpid(p, &wstatus, 0);
++	if (ret < 0) {
++		nft_afl_state_logf(state, "waitpid %ld %s: %s", (long)p, name, strerror(errno));
++		return;
++	}
++
++	if (WIFEXITED(wstatus)) {
++		if (WEXITSTATUS(wstatus) == 0)
++			return;
++
++		nft_afl_state_logf(state, "waitpid %s: exited with %d", name, WEXITSTATUS(wstatus));
++		return;
++	}
++
++	if (WIFSIGNALED(wstatus)) {
++		nft_afl_state_logf(state, "waitpid %s: exited with signal %d", name, WTERMSIG(wstatus));
++		return;
++	}
++
++	nft_afl_state_logf(state, "waitpid %s: exited with unexpected result", name);
++}
++
++static void nft_exec_hookscript(struct nft_afl_state *state, const char *sname)
++{
++	char name[NFT_AFL_HDIR_SIZE + sizeof("post-commit")]; /* largest possible script name */
++	struct stat sb;
++	int ret;
++
++	snprintf(name, sizeof(name), "%s/%s", nft_afl_hookdirname, sname);
++
++	ret = lstat(name, &sb);
++	if (ret != 0) {
++		if (errno == ENOENT)
++			return;
++
++		nft_afl_state_logf(state, "Cannot stat %s: %s", name, strerror(errno));
++		return;
++	}
++
++	if (sb.st_uid != 0 && geteuid() == 0) {
++		nft_afl_state_logf(state, "ignore %s: owner != uid 0", name);
++		return;
++	}
++
++	if (sb.st_mode & 0002) {
++		nft_afl_state_logf(state, "ignore %s: writeable by anyone", name);
++		return;
++	}
++
++	if ((sb.st_mode & 0700) == 0)
++		return;
++
++	forkandexec(state, name);
++}
++
++static bool nft_afl_read_existing_candidates(struct nft_afl_state *state,
++					     struct nft_ctx *ctx)
++{
++	char name[NFT_AFL_FNAME_SIZE];
++	time_t now = time(NULL);
++	unsigned int found = 0;
++	unsigned int gc = 0;
++	unsigned int i, j;
++
++	nft_exec_hookscript(state, "pre-restart");
++
++	for (i = 0; i < array_size(state->level); i++) {
++		struct nft_afl_level *level = &state->level[i];
++		struct stat sb;
++		int ret;
++
++		snprintf(name, sizeof(name), "%s/%03d", nft_afl_workdirname, i);
++		ret = lstat(name, &sb);
++		if (ret != 0) {
++			if (errno == ENOENT)
++				continue;
++
++			nft_afl_state_logf(state, "stat dir %s: %s", name, strerror(errno));
++			return false;
++		}
++
++		if ((sb.st_mode & S_IFMT) != S_IFDIR) {
++			nft_afl_state_logf(state, "stat dir %s: not a directory", name);
++			return false;
++		}
++
++		for (j = 0; j < array_size(level->inputs); j++) {
++			struct nft_afl_input *in = &level->inputs[i];
++
++			snprintf(name, sizeof(name), "%s/%03d/%03d", nft_afl_workdirname, i, j);
++
++			ret = lstat(name, &sb);
++			if (ret == 0) {
++				if (sb.st_mtime + NFT_AFL_GC_TIME < now) {
++					++gc;
++					continue;
++				}
++
++				if (sb.st_size > 0) {
++					state->candidates++;
++					in->use_filename = true;
++					snprintf(in->buffer, NFT_AFL_FB_SIZE, "%s", name);
++					found++;
++					continue;
++				}
++
++				continue;
++			} else {
++				if (errno == ENOENT)
++					continue;
++
++				nft_afl_state_logf(state, "stat file %s: %s", name, strerror(errno));
++				return false;
++			}
++		}
++
++		state->levelcount++;
++	}
++
++	if (gc) {
++		state->levelcount = 0;
++		state->level[0].next = 0;
++	}
++
++	nft_afl_state_logf(state, "start with %u existing test cases from %s/*/* (%u marked expired)", found, nft_afl_workdirname, gc);
++
++	nft_exec_hookscript(state, "post-restart");
++
++	return true;
++}
++
++static bool nft_afl_switch_to_next_stage(const struct nft_afl_state *state, struct nft_ctx *ctx, enum nft_afl_fuzzer_stage next_stage)
++{
++	if (next_stage <= state->stage_max) {
++		ctx->afl_ctx_stage = next_stage;
++		return true;
++	}
++
++	return false;
++}
++
++int nft_afl_init(enum nft_afl_fuzzer_stage stage)
++{
++#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
++	const char instrumented[] = "afl instrumented";
++#else
++	const char instrumented[] = "no afl instrumentation";
++#endif
++	char *workdir = NULL;
++	int ret;
++
++	nft_afl_print_build_info(stderr);
++
++	if (!nft_afl_state_init(&state, stage))
++		return -1;
++
++	ret = asprintf(&workdir, "NFT_AFL_WORKDIR=%s", nft_afl_workdirname);
++	if (ret < 0 || !workdir || putenv(workdir) != 0) {
++		nft_afl_state_logf(&state, "Out of memory");
++		return -1;
++	}
++
++	nft_exec_hookscript(&state, "init");
++
++	if (state.make_it_fail_fp) {
++		unsigned int value;
++		int ret;
++
++		rewind(state.make_it_fail_fp);
++		ret = fscanf(state.make_it_fail_fp, "%u", &value);
++		if (ret != 1 || value != 1) {
++			fclose(state.make_it_fail_fp);
++			state.make_it_fail_fp = NULL;
++		}
++
++		/* if its enabled, disable and then re-enable ONLY
++		 * when submitting data to the kernel.
++		 *
++		 * Otherwise even hook scripts will cause fault injections,
++		 * which is not what we want.
++		 */
++		fault_inject_disable(&state);
++	}
++
++	nft_afl_state_logf(&state, "starting (%s, %s fault injection)", instrumented,
++			   state.make_it_fail_fp ? "with" : "no");
++	return 0;
++}
++
++int nft_afl_main(struct nft_ctx *ctx)
++{
++	unsigned int new_additions = 0;
++	bool last_run = false;
++	unsigned char *buf;
++	ssize_t len;
++	int rc;
++
++	if (is_tainted()) {
++		nft_afl_state_logf(&state,
++				  "No more fuzzer runs: TAINT file exists, reboot and remove %s/TAINT",
++				  nft_afl_workdirname);
++		return -1;
++	}
++
++	if (state.make_it_fail_fp) {
++		FILE *fp = fault_inject_open();
++
++		/* reopen is needed because /proc/self is a symlink, i.e.
++		 * fp refers to parent process, not "us".
++		 */
++		if (!fp) {
++			nft_afl_state_logf(&state, "Could not reopen %s: %s", self_fault_inject_file, strerror(errno));
++			return -1;
++		}
++		fclose(state.make_it_fail_fp);
++		state.make_it_fail_fp = fp;
++	}
++
++	rc = nft_afl_read_existing_candidates(&state, ctx);
++	if (rc <= 0)
++		return rc;
++
++	buf = __AFL_FUZZ_TESTCASE_BUF;
++
++	while (__AFL_LOOP(UINT_MAX)) {
++		struct nft_afl_input *cmd_to_run;
++		char *input;
++
++		len = __AFL_FUZZ_TESTCASE_LEN;  // do not use the macro directly in a call!
++
++		input = preprocess(buf, len);
++		if (!input)
++			continue;
++
++		/* buf has minimum length and is null terminated at this point */
++		ctx->afl_ctx_stage = NFT_AFL_FUZZER_PARSER;
++		rc = nft_run_cmd_from_buffer(ctx, input);
++		if (rc < 0) /* rejected at parsing stage */
++			continue;
++
++		if (!nft_afl_switch_to_next_stage(&state, ctx, NFT_AFL_FUZZER_EVALUATION))
++			continue;
++
++		rc = nft_run_cmd_from_buffer(ctx, input);
++		if (rc < 0) /* rejected at eval stage */
++			continue;
++
++		cmd_to_run = save_candidate(&state, input);
++		if (!cmd_to_run)
++			break;
++
++		nft_exec_hookscript(&state, "pre-commit");
++
++		if (!nft_afl_run_cmd(&state, ctx, cmd_to_run))
++			continue;
++
++		nft_exec_hookscript(&state, "post-commit");
++
++		if (++new_additions > 1024 || last_run)
++			break;
++
++		last_run = (state.levelcount == (array_size(state.level) - 1)) && state.level[array_size(state.level) - 1].next;
++	}
++
++	/* afl-fuzz will restart us. */
++	return 0;
++}
+diff --git a/src/libnftables.c b/src/libnftables.c
+index 0dee1bacb0db..972010351c2e 100644
+--- a/src/libnftables.c
++++ b/src/libnftables.c
+@@ -9,6 +9,7 @@
+ #include <nft.h>
+ 
+ #include <nftables/libnftables.h>
++#include <afl++.h>
+ #include <erec.h>
+ #include <mnl.h>
+ #include <parser.h>
+@@ -18,6 +19,17 @@
+ #include <errno.h>
+ #include <sys/stat.h>
+ 
++static int do_mnl_batch_talk(struct netlink_ctx *ctx, struct list_head *err_list,
++			     uint32_t num_cmds)
++{
++#if HAVE_FUZZER_BUILD
++	if (ctx->nft->afl_ctx_stage &&
++	    ctx->nft->afl_ctx_stage < NFT_AFL_FUZZER_NETLINK_RW)
++		return 0;
++#endif
++	return mnl_batch_talk(ctx, err_list, num_cmds);
++}
++
+ static int nft_netlink(struct nft_ctx *nft,
+ 		       struct list_head *cmds, struct list_head *msgs)
+ {
+@@ -36,6 +48,11 @@ static int nft_netlink(struct nft_ctx *nft,
+ 	if (list_empty(cmds))
+ 		goto out;
+ 
++#if HAVE_FUZZER_BUILD
++	if (nft->afl_ctx_stage &&
++	    nft->afl_ctx_stage <= NFT_AFL_FUZZER_EVALUATION)
++		goto out;
++#endif
+ 	batch_seqnum = mnl_batch_begin(ctx.batch, mnl_seqnum_alloc(&seqnum));
+ 	list_for_each_entry(cmd, cmds, list) {
+ 		ctx.seqnum = cmd->seqnum = mnl_seqnum_alloc(&seqnum);
+@@ -54,7 +71,7 @@ static int nft_netlink(struct nft_ctx *nft,
+ 	if (!mnl_batch_ready(ctx.batch))
+ 		goto out;
+ 
+-	ret = mnl_batch_talk(&ctx, &err_list, num_cmds);
++	ret = do_mnl_batch_talk(&ctx, &err_list, num_cmds);
+ 	if (ret < 0) {
+ 		if (ctx.maybe_emsgsize && errno == EMSGSIZE) {
+ 			netlink_io_error(&ctx, NULL,
+@@ -579,6 +596,10 @@ int nft_run_cmd_from_buffer(struct nft_ctx *nft, const char *buf)
+ 		rc = nft_parse_bison_buffer(nft, nlbuf, &msgs, &cmds,
+ 					    &indesc_cmdline);
+ 
++#if HAVE_FUZZER_BUILD
++	if (nft->afl_ctx_stage == NFT_AFL_FUZZER_PARSER)
++		goto err;
++#endif
+ 	parser_rc = rc;
+ 
+ 	rc = nft_evaluate(nft, &msgs, &cmds);
+diff --git a/src/main.c b/src/main.c
+index d3491cda7f8d..48ae048daae1 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -21,6 +21,7 @@
+ #include <nftables/libnftables.h>
+ #include <utils.h>
+ #include <cli.h>
++#include <afl++.h>
+ 
+ static struct nft_ctx *nft;
+ 
+@@ -55,6 +56,9 @@ enum opt_indices {
+         IDX_ECHO,
+ #define IDX_CMD_OUTPUT_START	IDX_ECHO
+         IDX_JSON,
++#ifdef HAVE_FUZZER_BUILD
++        IDX_FUZZER,
++#endif
+         IDX_DEBUG,
+ #define IDX_CMD_OUTPUT_END	IDX_DEBUG
+ };
+@@ -83,6 +87,11 @@ enum opt_vals {
+ 	OPT_TERSE		= 't',
+ 	OPT_OPTIMIZE		= 'o',
+ 	OPT_INVALID		= '?',
++
++#ifdef HAVE_FUZZER_BUILD
++	/* keep last */
++        OPT_FUZZER		= 254
++#endif
+ };
+ 
+ struct nft_opt {
+@@ -140,6 +149,10 @@ static const struct nft_opt nft_options[] = {
+ 				     "Specify debugging level (scanner, parser, eval, netlink, mnl, proto-ctx, segtree, all)"),
+ 	[IDX_OPTIMIZE]	    = NFT_OPT("optimize",		OPT_OPTIMIZE,		NULL,
+ 				     "Optimize ruleset"),
++#ifdef HAVE_FUZZER_BUILD
++	[IDX_FUZZER]	    = NFT_OPT("fuzzer",			OPT_FUZZER,		"stage",
++				      "fuzzer stage to run (parser, eval, netlink-ro, netlink-rw)"),
++#endif
+ };
+ 
+ #define NR_NFT_OPTIONS (sizeof(nft_options) / sizeof(nft_options[0]))
+@@ -230,6 +243,7 @@ static void show_help(const char *name)
+ 		print_option(&nft_options[i]);
+ 
+ 	fputs("\n", stdout);
++	nft_afl_print_build_info(stdout);
+ }
+ 
+ static void show_version(void)
+@@ -271,6 +285,8 @@ static void show_version(void)
+ 	       "  libxtables:	%s\n",
+ 	       PACKAGE_NAME, PACKAGE_VERSION, RELEASE_NAME,
+ 	       cli, json, minigmp, xt);
++
++	nft_afl_print_build_info(stdout);
+ }
+ 
+ static const struct {
+@@ -311,6 +327,38 @@ static const struct {
+ 	},
+ };
+ 
++#if HAVE_FUZZER_BUILD
++static const struct {
++	const char			*name;
++	enum nft_afl_fuzzer_stage	stage;
++} fuzzer_stage_param[] = {
++	{
++		.name		= "parser",
++		.stage		= NFT_AFL_FUZZER_PARSER,
++	},
++	{
++		.name		= "eval",
++		.stage		= NFT_AFL_FUZZER_EVALUATION,
++	},
++	{
++		.name		= "netlink-ro",
++		.stage		= NFT_AFL_FUZZER_NETLINK_RO,
++	},
++	{
++		.name		= "netlink-rw",
++		.stage		= NFT_AFL_FUZZER_NETLINK_RW,
++	},
++};
++static void afl_exit(const char *err)
++{
++	fprintf(stderr, "Error: fuzzer: %s\n", err);
++	sleep(60);	/* assume we're running under afl-fuzz and would be restarted right away */
++	exit(EXIT_FAILURE);
++}
++#else
++static inline void afl_exit(const char *err) { }
++#endif
++
+ static void nft_options_error(int argc, char * const argv[], int pos)
+ {
+ 	int i;
+@@ -359,6 +407,7 @@ static bool nft_options_check(int argc, char * const argv[])
+ int main(int argc, char * const *argv)
+ {
+ 	const struct option *options = get_options();
++	enum nft_afl_fuzzer_stage fuzzer_stage = 0;
+ 	bool interactive = false, define = false;
+ 	const char *optstring = get_optstring();
+ 	unsigned int output_flags = 0;
+@@ -501,6 +550,26 @@ int main(int argc, char * const *argv)
+ 		case OPT_OPTIMIZE:
+ 			nft_ctx_set_optimize(nft, 0x1);
+ 			break;
++#if HAVE_FUZZER_BUILD
++		case OPT_FUZZER:
++			{
++				unsigned int i;
++
++				for (i = 0; i < array_size(fuzzer_stage_param); i++) {
++					if (strcmp(fuzzer_stage_param[i].name, optarg))
++						continue;
++					fuzzer_stage = fuzzer_stage_param[i].stage;
++					break;
++				}
++
++				if (i == array_size(fuzzer_stage_param)) {
++					fprintf(stderr, "invalid fuzzer stage `%s'\n",
++						optarg);
++					goto out_fail;
++				}
++			}
++			break;
++#endif
+ 		case OPT_INVALID:
+ 			goto out_fail;
+ 		}
+@@ -513,6 +582,38 @@ int main(int argc, char * const *argv)
+ 
+ 	nft_ctx_output_set_flags(nft, output_flags);
+ 
++	if (fuzzer_stage) {
++		unsigned int input_flags;
++
++		if (filename || define || interactive)
++			afl_exit("-D/--define, -f/--filename and -i/--interactive are incompatible options");
++
++		rc = nft_afl_init(fuzzer_stage);
++		if (rc != 0)
++			afl_exit("cannot initialize");
++
++		input_flags = nft_ctx_input_get_flags(nft);
++
++		/* DNS lookups can result in severe fuzzer slowdown */
++		input_flags |= NFT_CTX_INPUT_NO_DNS;
++		nft_ctx_input_set_flags(nft, input_flags);
++
++		if (fuzzer_stage < NFT_AFL_FUZZER_NETLINK_RW)
++			nft_ctx_set_dry_run(nft, true);
++
++		fprintf(stderr, "Awaiting fuzzer-generated inputs\n");
++	}
++
++	__AFL_INIT();
++
++	if (fuzzer_stage) {
++		rc = nft_afl_main(nft);
++		if (rc != 0)
++			afl_exit("fatal error");
++
++		return EXIT_SUCCESS;
++	}
++
+ 	if (optind != argc) {
+ 		char *buf;
+ 
+diff --git a/tests/afl++/README b/tests/afl++/README
+new file mode 100644
+index 000000000000..92fdb95e01df
+--- /dev/null
++++ b/tests/afl++/README
+@@ -0,0 +1,126 @@
++First you need to install afl++.  If your distro doesn't package it, you can
++get it from https://github.com/AFLplusplus/AFLplusplus
++
++Next build and install afl++, this needs llvm/clang installed.
++
++Nftables configue + compile steps:
++
++To get the best results, build nftables with the following options:
++
++CC=afl-clang-lto LD=afl-clang-lto CFLAGS+=-fsanitize=address ./configure \
++   --disable-shared --with-json --without-xtables \
++   --with-cli=readline --enable-fuzzer
++
++[ you might want to enable xtables or use a different cli, your choice ].
++
++Important options are:
++--disable-shared, so that libnftables is instrumented too.
++--enable-fuzzer
++
++--enable-fuzzer is not strictly required, you can run normal nft builds under
++afl-fuzz too.  But the execution speed will be much slower.
++
++--enable-fuzzer also provides the nft --fuzzer command line option that allows
++more fine-grained control over what code paths should be covered by the fuzzing
++process.
++
++Most importantly, it collects the pseudo-generated rules/commands it sends
++to the kernel and saves them in the 'nft-afl-work' directory for later
++debugging.
++
++When fuzzing in this mode, then each new input passes through the following
++processing stages:
++
++1: 'parser':
++    Only run flex/bison parser and quit instantly if that fails,
++    without evaluation of the generated (partial) AST: No need to
++    generate error messages for the user.
++
++2: 'eval': pass the input through the evaluation phase as well.
++    This attempts to build a complete ruleset in memory.
++
++3: 'netlink-ro' or 'netlink-rw'.
++   'netlink-ro' builds the netlink buffer to send to the kernel,
++   without actually doing so.
++   'netlink-rw' will send the buffer to the kernel.
++
++The argument to '--fuzzer' specifies the last stage to run, so e.g.
++'parser' will only exercise flex/bison code paths.
++
++Use 'netlink-ro' if you want to prevent the fuzzing from ever
++submitting any changes to the kernel.
++
++You can use "--fuzzer netlink-rw --check" to send the ruleset to the
++kernel, but have the transaction be aborted before committing any changes.
++
++Note that "--fuzzer netlink-rw --check" can trigger a kernel crash if
++there are bugs in the kernel validation / transaction / abort phases,
++so '--check --fuzzer netlink-rw' is not the same thing as 'netlink-ro'.
++
++All --fuzzer modes EXCEPT 'netlink-rw' imply --check, these modes never
++alter state in the kernel.
++
++Before sending a command to the kernel, the input is stored in temporary
++files (named [0-255]/[0-255] in the "nft-afl-work" directory.
++
++After each input, fuzzer mode will check the kernel taint status.
++
++If kernel is tainted, the file nft-afl-work/TAINT is created.
++The fuzzer is stopped. You need to reboot and manually remove the TAINT file.
++
++To execute nftables with afl++, run nftables like this:
++
++unshare -n \
++  afl-fuzz -g 16 -G 2000 -t 5000 -i tests/afl++/in -o tests/afl++/out \
++  -- src/nft --fuzzer <arg>
++
++arg should be either "netlink-ro" (if you only want to exercise nft userspace)
++or "netlink-rw" (if you want to test kernel code paths too).
++
++See nft --help for a list of valid stages to fuzz.
++
++Its also a good idea to do this from tmux/screen so you can disconnect/reattach
++later.  You can also spawn multiple instances.
++In that case, add the '-M' option to afl-fuzz for the first instance you start,
++and '-S' for subsequent secondary instances.
++
++This expects a unique directory name as argument, so interesting findings 
++from the different instances are cleary separated.
++
++With above default options, outputs will be in 'tests/afl++/out/<variantname>'.
++Please see the afl++ docs for more information about this.
++
++You can use tests/afl++/run-afl.sh script to autogenerate an initial set of valid
++inputs that the fuzzer can start from.
++
++Use
++
++sysctl -f tests/afl++/afl-sysctl.cfg
++
++to enable some fuzzer-beneficial sysctl options.
++
++--fuzzer supports hook scripts, see the provided skeletons in tests/afl++/hooks/
++Remove or copy the scripts and remove the '-sample' suffix.
++Scripts need to be executable, owned by root and not writeable by others.
++
++The environment variable NFT_AFL_WORKDIR will be set before running a hook
++script, it contains the relative pathname to the nft-afl work directory.
++
++Kernel config:
++Best to use a debug kernel with at least
++
++# CONFIG_NOTIFIER_ERROR_INJECTION is not set
++CONFIG_KASAN=y
++CONFIG_KASAN_INLINE=y
++CONFIG_DEBUG_ATOMIC_SLEEP=y
++CONFIG_DEBUG_LOCKDEP=y
++CONFIG_FAULT_INJECTION=y
++CONFIG_FAILSLAB=y
++CONFIG_DEBUG_KMEMLEAK=y
++
++If you want to sample test coverage, then set
++CONFIG_GCOV_KERNEL=y
++
++echo GCOV_PROFILE := y > net/netfilter/Makefile
++
++or enable CONFIG_GCOV_PROFILE_ALL=y
+diff --git a/tests/afl++/TODO b/tests/afl++/TODO
+new file mode 100644
+index 000000000000..d31ba71d2364
+--- /dev/null
++++ b/tests/afl++/TODO
+@@ -0,0 +1,6 @@
++Fuzzing is sometimes VERY slow, this happens when current inputs contain
++"host names".  Either --fuzzer could set NFT_CTX_INPUT_NO_DNS to avoid this,
++or nft needs a new command line option so both (dns and no dns) can be combined.
++
++Investigate custom mutator for afl to further improve the fuzzing rate.
++This would likely allow to get rid of the pre-validation in src/afl++.c.
+diff --git a/tests/afl++/afl-sysctl.cfg b/tests/afl++/afl-sysctl.cfg
+new file mode 100644
+index 000000000000..490e62b00094
+--- /dev/null
++++ b/tests/afl++/afl-sysctl.cfg
+@@ -0,0 +1,5 @@
++kernel.core_pattern=core
++fs.suid_dumpable=1
++kernel.core_uses_pid=0
++kernel.randomize_va_space=0
++kernel.sched_autogroup_enabled=1
+diff --git a/tests/afl++/hooks/init b/tests/afl++/hooks/init
+new file mode 100755
+index 000000000000..503257afa2f1
+--- /dev/null
++++ b/tests/afl++/hooks/init
+@@ -0,0 +1,54 @@
++#!/bin/bash
++
++# This script is run only once, when "nft --fuzzer" is started.
++# It doesn't run again when afl-fuzz auto-restarts with a new
++# input round, you need to CTRL-C and re-invoke afl.
++
++rm -f $NFT_AFL_WORKDIR/[0-255][0-255][0-255]/[0-255][0-255][0-255]
++
++# clean state
++nft flush ruleset
++
++set_fails() {
++	FAILTYPE=$1
++
++	test -d /sys/kernel/debug/$FAILTYPE/ || return
++
++	# We want failures when the fuzzed nft talks to kernel, this
++	# pairs with the post-restart script which has to do
++	#  echo 1 > /proc/$PPID/make-it-fail
++	echo Y > /sys/kernel/debug/$FAILTYPE/task-filter
++
++	# 10% failure rate, this is a lot as nft transactions
++	# allocate a lot of temporary transaction objects.
++	echo 1 > /sys/kernel/debug/$FAILTYPE/probability
++
++	# interval where fault inject is suppressed
++	echo 100 > /sys/kernel/debug/$FAILTYPE/interval
++
++	# unlimited failslab errors.
++	echo -1 > /sys/kernel/debug/$FAILTYPE/times
++
++	# no initial budget, i.e. fails are allowed instantly
++	echo 0 > /sys/kernel/debug/$FAILTYPE/space
++
++	# 0: no messages, 1: one line, 2: backtrace for each injected error
++	echo 0 > /sys/kernel/debug/$FAILTYPE/verbose
++
++	# also fail GFP_KERNEL allocations.
++	# Most allocations nf_tables control plane performs
++	# can sleep. We want to maximise error path coverage so
++	# we want allocation failures for those as well.
++	echo N > /sys/kernel/debug/$FAILTYPE/ignore-gfp-wait
++}
++
++set_fails "failslab"
++set_fails "fail_page_alloc"
++
++# Enable fault injection on kernel side for all transactions.
++# NB: nft --fuzzer will auto-disable this immediately and then
++# re-enable it just for the final fuzzer stage, when data is sent
++# to kernel.  Otherwise, even hook scripts and parser/evaluation
++# stage fuzzing would be subject to fault injections.
++nftpid=$PPID
++test -f /proc/$nftpid/make-it-fail && echo 1 > /proc/$nftpid/make-it-fail
+diff --git a/tests/afl++/hooks/post-commit b/tests/afl++/hooks/post-commit
+new file mode 100755
+index 000000000000..be81ce6747b4
+--- /dev/null
++++ b/tests/afl++/hooks/post-commit
+@@ -0,0 +1,8 @@
++#!/bin/bash
++
++# This script is run right after "nft --fuzzer" has committed a
++# fuzzer-generated ruleset to the kernel.
++
++test -f $NFT_AFL_WORKDIR/TAINT || exit 0
++
++exec nft list ruleset > $NFT_AFL_WORKDIR/post_taint_ruleset
+diff --git a/tests/afl++/hooks/post-restart b/tests/afl++/hooks/post-restart
+new file mode 100755
+index 000000000000..1848709a4ea1
+--- /dev/null
++++ b/tests/afl++/hooks/post-restart
+@@ -0,0 +1,8 @@
++#!/bin/bash
++
++# This script is run when afl-fuzz has re-started nft with a new fuzzer
++# input round and after "nft --fuzzer" has read the existing input files
++# from its workdir ($NFT_AFL_WORKDIR).
++
++# start each round with a clean kernel state
++nft flush ruleset
+diff --git a/tests/afl++/hooks/pre-commit b/tests/afl++/hooks/pre-commit
+new file mode 100755
+index 000000000000..c89167475907
+--- /dev/null
++++ b/tests/afl++/hooks/pre-commit
+@@ -0,0 +1,6 @@
++#!/bin/bash
++
++# This script is run right before "nft --fuzzer" is going to submit a new
++# fuzzer-generated ruleset to the kernel.
++
++nft list ruleset > $NFT_AFL_WORKDIR/last_precommit_ruleset
+diff --git a/tests/afl++/hooks/pre-restart b/tests/afl++/hooks/pre-restart
+new file mode 100755
+index 000000000000..4595dfb05889
+--- /dev/null
++++ b/tests/afl++/hooks/pre-restart
+@@ -0,0 +1,12 @@
++#!/bin/bash
++
++# This script is run when afl-fuzz has re-started nft with a new fuzzer
++# input round and before "nft --fuzzer" has read the existing input files
++# from its workdir ($NFT_AFL_WORKDIR).
++
++test -f /sys/kernel/debug/kmemleak && echo "scan" > /sys/kernel/debug/kmemleak &
++
++# house-cleaning: delete old inputs
++find $NFT_AFL_WORKDIR/*/ -type f -mmin +15 -exec rm -f {} + &
++
++nft list ruleset > $NFT_AFL_WORKDIR/current_ruleset
+diff --git a/tests/afl++/run-afl.sh b/tests/afl++/run-afl.sh
+new file mode 100755
+index 000000000000..7bec254c4a81
+--- /dev/null
++++ b/tests/afl++/run-afl.sh
+@@ -0,0 +1,43 @@
++#!/bin/bash
++
++set -e
++
++ME=$(dirname $0)
++SRC_NFT="$(dirname $0)/../../src/nft"
++
++cd $ME/../..
++
++echo "# nft tokens and common strings, autogenerated via $0" >  tests/afl++/nft.dict
++grep %token src/parser_bison.y | while read token comment value; do
++	echo $value
++done | grep -v "[A-Z]" | sort | cut -f 1 -d " " |  grep '^"' >> tests/afl++/nft.dict
++
++cat >> tests/afl++/nft.dict <<EOF
++"\"quoted\""
++"{"
++"}"
++"["
++"]"
++";"
++":"
++","
++"."
++"192.168.0.1"
++"65535"
++";;"
++"\x09"
++"\x0d\x0a"
++"\x0a"
++EOF
++
++for d in "tests/afl++/in/" "tests/afl++/out/" "tests/afl++/nft-afl-work/"; do
++	test -d "$d" || mkdir "$d"
++done
++
++find tests/shell/testcases -type f -name '*.nft' | while read filename; do
++	install -m 644 $filename "tests/afl++/in/"$(echo $filename | tr / _)
++done
++
++echo "built initial set of inputs to fuzz from shell test case dump files."
++echo "sample invocation:"
++echo "unshare -n afl-fuzz -g 16 -G 2000 -t 5000 -i tests/afl++/in -o tests/afl++/out -- src/nft --fuzzer netlink-ro"
 -- 
-BR,
-Muhammad Usama Anjum
+2.41.0
+
