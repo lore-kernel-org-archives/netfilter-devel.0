@@ -1,77 +1,127 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from out30-118.freemail.mail.aliyun.com (out30-118.freemail.mail.aliyun.com [115.124.30.118])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A7DC17741
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 Dec 2023 11:14:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1rFY3h-00031g-JP; Tue, 19 Dec 2023 12:14:45 +0100
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] intervals: BUG on prefix expressions without value
-Date: Tue, 19 Dec 2023 12:14:37 +0100
-Message-ID: <20231219111440.12564-1-fw@strlen.de>
-X-Mailer: git-send-email 2.41.0
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F6EA1862E;
+	Tue, 19 Dec 2023 12:50:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R121e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045176;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=14;SR=0;TI=SMTPD_---0VyqyhQ6_1702990206;
+Received: from 30.221.149.49(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VyqyhQ6_1702990206)
+          by smtp.aliyun-inc.com;
+          Tue, 19 Dec 2023 20:50:08 +0800
+Message-ID: <2fd4fb88-8aaa-b22d-d048-776a6c19d9a6@linux.alibaba.com>
+Date: Tue, 19 Dec 2023 20:50:06 +0800
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
+ Gecko/20100101 Thunderbird/102.15.1
+Subject: Re: [RFC nf-next v2 1/2] netfilter: bpf: support prog update
+Content-Language: en-US
+To: Simon Horman <horms@kernel.org>
+Cc: pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+ bpf@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+ coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
+ davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+ pabeni@redhat.com, ast@kernel.org
+References: <1702873101-77522-1-git-send-email-alibuda@linux.alibaba.com>
+ <1702873101-77522-2-git-send-email-alibuda@linux.alibaba.com>
+ <20231218190640.GJ6288@kernel.org>
+From: "D. Wythe" <alibuda@linux.alibaba.com>
+In-Reply-To: <20231218190640.GJ6288@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
-Its possible to end up with prefix expressions that have
-a symbolic expression, e.g.:
 
-table t {
-        set s {
-                type inet_service
-                flags interval
-                elements = { 0-1024, 8080-8082, 10000-40000 }
-                elements = { 172.16.0.0/16 }
-        }
 
-        set s {
-                type inet_service
-                flags interval
-                elements = { 0-1024, 8080-8082, 10000-40000 }
-        }
-}
+On 12/19/23 3:06 AM, Simon Horman wrote:
+> On Mon, Dec 18, 2023 at 12:18:20PM +0800, D. Wythe wrote:
+>> From: "D. Wythe" <alibuda@linux.alibaba.com>
+>>
+>> To support the prog update, we need to ensure that the prog seen
+>> within the hook is always valid. Considering that hooks are always
+>> protected by rcu_read_lock(), which provide us the ability to
+>> access the prog under rcu.
+>>
+>> Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+> ...
+>
+>> @@ -26,8 +17,20 @@ struct bpf_nf_link {
+>>   	struct net *net;
+>>   	u32 dead;
+>>   	const struct nf_defrag_hook *defrag_hook;
+>> +	struct rcu_head head;
+>>   };
+>>   
+>> +static unsigned int nf_hook_run_bpf(void *bpf_link, struct sk_buff *skb,
+>> +				    const struct nf_hook_state *s)
+>> +{
+>> +	const struct bpf_nf_link *nf_link = bpf_link;
+>> +	struct bpf_nf_ctx ctx = {
+>> +		.state = s,
+>> +		.skb = skb,
+>> +	};
+>> +	return bpf_prog_run(rcu_dereference(nf_link->link.prog), &ctx);
+> Hi,
+>
+> AFAICT nf_link->link.prog isn't annotated as __rcu,
+> so perhaps rcu_dereference() is not correct here?
+>
+> In any case, sparse seems a bit unhappy:
+>
+>    .../nf_bpf_link.c:31:29: error: incompatible types in comparison expression (different address spaces):
+>    .../nf_bpf_link.c:31:29:    struct bpf_prog [noderef] __rcu *
+>    .../nf_bpf_link.c:31:29:    struct bpf_prog *
 
-Without this change, nft will crash.  We end up in setelem_expr_to_range()
-with prefix "/16" for the symbolic expression "172.16.0.0".
+Hi Simon,
 
-We than pass invalid mpz_t pointer into libgmp.
+thanks for the reporting.
 
-This isn't the right fix (see next patch), but instead of blindly assuming
-that the attached expression has a gmp value die with at least some info.
+Yes, I had anticipated that sparse would report an error. I tried to 
+cast the type,
+but it would compile an error likes that:
 
-Its possible there are more ways than one to feed such
-"symbol-with-prefix" down into the interval code, so also add this
-assertion.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- src/intervals.c | 3 +++
- 1 file changed, 3 insertions(+)
+net/netfilter/nf_bpf_link.c: In function ‘nf_hook_run_bpf’:
+./include/asm-generic/rwonce.h:44:70: error: lvalue required as unary 
+‘&’ operand
+    44 | #define __READ_ONCE(x) (*(const volatile 
+__unqual_scalar_typeof(x) *)&(x))
+| ^
+./include/asm-generic/rwonce.h:50:2: note: in expansion of macro 
+‘__READ_ONCE’
+    50 |  __READ_ONCE(x);       \
+       |  ^~~~~~~~~~~
+./include/linux/rcupdate.h:436:43: note: in expansion of macro ‘READ_ONCE’
+   436 |  typeof(*p) *local = (typeof(*p) *__force)READ_ONCE(p); \
+       |                                           ^~~~~~~~~
+./include/linux/rcupdate.h:584:2: note: in expansion of macro 
+‘__rcu_dereference_check’
+   584 |  __rcu_dereference_check((p), __UNIQUE_ID(rcu), \
+       |  ^~~~~~~~~~~~~~~~~~~~~~~
+./include/linux/rcupdate.h:656:28: note: in expansion of macro 
+‘rcu_dereference_check’
+   656 | #define rcu_dereference(p) rcu_dereference_check(p, 0)
+       |                            ^~~~~~~~~~~~~~~~~~~~~
+net/netfilter/nf_bpf_link.c:31:22: note: in expansion of macro 
+‘rcu_dereference’
+    31 |  return bpf_prog_run(rcu_dereference((const struct bpf_prog 
+__rcu *)nf_link->link.prog), &ctx);
+       |                      ^~~~~~~~~~~~~~~
 
-diff --git a/src/intervals.c b/src/intervals.c
-index e535fc34afda..5a88a8eb20bd 100644
---- a/src/intervals.c
-+++ b/src/intervals.c
-@@ -28,6 +28,9 @@ static void setelem_expr_to_range(struct expr *expr)
- 	case EXPR_RANGE:
- 		break;
- 	case EXPR_PREFIX:
-+		if (expr->key->prefix->etype != EXPR_VALUE)
-+			BUG("Prefix for unexpected type %d", expr->key->prefix->etype);
-+
- 		mpz_init(rop);
- 		mpz_bitmask(rop, expr->key->len - expr->key->prefix_len);
- 		if (expr_basetype(expr)->type == TYPE_STRING)
--- 
-2.41.0
+So, I think we might need to go back to version 1.
+
+@ Florian , what do you think ?
+
+D. Wythe
+
+>> +}
+>> +
+>>   #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4) || IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
+>>   static const struct nf_defrag_hook *
+>>   get_proto_defrag_hook(struct bpf_nf_link *link,
+> ...
 
