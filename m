@@ -1,34 +1,34 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04336482EA
-	for <netfilter-devel@vger.kernel.org>; Wed, 20 Dec 2023 16:06:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5580A4175E
+	for <netfilter-devel@vger.kernel.org>; Wed, 20 Dec 2023 16:06:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="A2MCvl/1"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="ii5+ohQH"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=NwqnKsVeW+XpML0fFO2dz/fpeI6aiEb3WnQruls1zo8=; b=A2MCvl/1f7Bli3+js36YxorT2x
-	9GswGhTo8L9FbFjuyUfpHmVT6qRKRd00v0WVQTDQiAeI4Abno3PYYGpyih+Dge1XqVtomcPllX/EZ
-	l9Pf0vzp+n5p50KHGvmTEoxAS0JdF4Ad93OHodNgP9BWG3r+fzS5qwea8aI/Sie9u92Q7ZdiW55KV
-	cDFjwInEOQwzInJQZY8ZdaCTTXKuq7Xz/uKATeJMGbEri8v4ghvJVLrZJ5ZHti7vffisGwr/FVDXr
-	i/Fc2vdTqry6r2Anx7Wa20WSC+XAHRyWBEUz1JSdRVccQfm/kVrefacJZJcMxOj/bvk34DTnrOXdK
-	lbSTcdPw==;
+	bh=KN8244QfmMpeHf16RmxDx8A+zp87CpphPoy3OJ7/Z4w=; b=ii5+ohQHK2fWCWvhyg1sVng77x
+	6UEGtE1OBhlRc0I5qZdKKM7wFaP+62wSpv49hGR5I8tDGFy7iYdaTK/+y6r0eTHFdnJtGawbCxGbP
+	M3bpbSXWHqBWTVuhlqqze80wmSFZAmBq9afwzCji+F5zmxekPvFiNnpsC3eT1k/D11XTGMhIgbwUP
+	rJdCmntskmPw81JJ0cZcBPGxZgPQh10SVaJniCcsP3IYXh261UImeotG9pLjY12R61CYXrU51uBq+
+	u67W3LVlQtl64F1Y1TMf7ucN/UJQ0IE/WnACQVCnhMmCYEJvxyRzr2vLoYMncsklMyuJgBUGgqa5d
+	gs6zfr8Q==;
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.94.2)
 	(envelope-from <phil@nwl.cc>)
-	id 1rFz5r-0004Lb-IW
+	id 1rFz5r-0004Lg-Tm
 	for netfilter-devel@vger.kernel.org; Wed, 20 Dec 2023 17:06:47 +0100
 From: Phil Sutter <phil@nwl.cc>
 To: netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 21/23] extensions: libebt_pkttype: Use guided option parser
-Date: Wed, 20 Dec 2023 17:06:34 +0100
-Message-ID: <20231220160636.11778-22-phil@nwl.cc>
+Subject: [iptables PATCH 02/23] libxtables: xtoptions: Support XTOPT_NBO with XTTYPE_UINT*
+Date: Wed, 20 Dec 2023 17:06:15 +0100
+Message-ID: <20231220160636.11778-3-phil@nwl.cc>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20231220160636.11778-1-phil@nwl.cc>
 References: <20231220160636.11778-1-phil@nwl.cc>
@@ -40,109 +40,89 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Not much to gain here. Maybe implement number parsing with fallback to
-get rid of that part from extension parsers?
+Value conversion into Big Endian byteorder is pretty straightforward,
+merely needed a small helper for uint64.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- extensions/libebt_pkttype.c | 45 +++++++++++++++++++------------------
- 1 file changed, 23 insertions(+), 22 deletions(-)
+ libxtables/xtoptions.c | 40 +++++++++++++++++++++++++++++++---------
+ 1 file changed, 31 insertions(+), 9 deletions(-)
 
-diff --git a/extensions/libebt_pkttype.c b/extensions/libebt_pkttype.c
-index 4e2d19de7983b..b01b83a1f1f45 100644
---- a/extensions/libebt_pkttype.c
-+++ b/extensions/libebt_pkttype.c
-@@ -9,7 +9,6 @@
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
--#include <getopt.h>
- #include <netdb.h>
- #include <xtables.h>
- #include <linux/if_packet.h>
-@@ -25,10 +24,14 @@ static const char *classes[] = {
- 	"fastroute",
- };
- 
--static const struct option brpkttype_opts[] =
--{
--	{ "pkttype-type"        , required_argument, 0, '1' },
--	{ 0 }
-+enum {
-+	O_TYPE,
-+};
-+
-+static const struct xt_option_entry brpkttype_opts[] = {
-+	{ .name = "pkttype-type", .id = O_TYPE, .type = XTTYPE_STRING,
-+	  .flags = XTOPT_INVERT },
-+	XTOPT_TABLEEND,
- };
- 
- static void brpkttype_print_help(void)
-@@ -40,37 +43,35 @@ static void brpkttype_print_help(void)
- }
- 
- 
--static int brpkttype_parse(int c, char **argv, int invert, unsigned int *flags,
--			   const void *entry, struct xt_entry_match **match)
-+static void brpkttype_parse(struct xt_option_call *cb)
- {
--	struct ebt_pkttype_info *ptinfo = (struct ebt_pkttype_info *)(*match)->data;
--	char *end;
-+	struct ebt_pkttype_info *ptinfo = cb->data;
- 	long int i;
-+	char *end;
-+
-+	xtables_option_parse(cb);
- 
--	switch (c) {
--	case '1':
--		if (invert)
--			ptinfo->invert = 1;
--		i = strtol(optarg, &end, 16);
-+	switch (cb->entry->id) {
-+	case O_TYPE:
-+		ptinfo->invert = cb->invert;
-+		i = strtol(cb->arg, &end, 16);
- 		if (*end != '\0') {
- 			for (i = 0; i < ARRAY_SIZE(classes); i++) {
--				if (!strcasecmp(optarg, classes[i]))
-+				if (!strcasecmp(cb->arg, classes[i]))
- 					break;
- 			}
- 			if (i >= ARRAY_SIZE(classes))
--				xtables_error(PARAMETER_PROBLEM, "Could not parse class '%s'", optarg);
-+				xtables_error(PARAMETER_PROBLEM,
-+					      "Could not parse class '%s'",
-+					      cb->arg);
- 		}
- 		if (i < 0 || i > 255)
- 			xtables_error(PARAMETER_PROBLEM, "Problem with specified pkttype class");
- 		ptinfo->pkt_type = (uint8_t)i;
- 		break;
--	default:
--		return 0;
+diff --git a/libxtables/xtoptions.c b/libxtables/xtoptions.c
+index 9694639188006..3973c807ded0e 100644
+--- a/libxtables/xtoptions.c
++++ b/libxtables/xtoptions.c
+@@ -147,6 +147,14 @@ static size_t xtopt_esize_by_type(enum xt_option_type type)
  	}
--	return 1;
  }
  
--
- static void brpkttype_print(const void *ip, const struct xt_entry_match *match, int numeric)
++static uint64_t htonll(uint64_t val)
++{
++	uint32_t high = val >> 32;
++	uint32_t low = val & UINT32_MAX;
++
++	return (uint64_t)htonl(low) << 32 | htonl(high);
++}
++
+ /**
+  * Require a simple integer.
+  */
+@@ -174,14 +182,20 @@ static void xtopt_parse_int(struct xt_option_call *cb)
+ 			*(uint8_t *)XTOPT_MKPTR(cb) = cb->val.u8;
+ 	} else if (entry->type == XTTYPE_UINT16) {
+ 		cb->val.u16 = value;
++		if (entry->flags & XTOPT_NBO)
++			cb->val.u16 = htons(cb->val.u16);
+ 		if (entry->flags & XTOPT_PUT)
+ 			*(uint16_t *)XTOPT_MKPTR(cb) = cb->val.u16;
+ 	} else if (entry->type == XTTYPE_UINT32) {
+ 		cb->val.u32 = value;
++		if (entry->flags & XTOPT_NBO)
++			cb->val.u32 = htonl(cb->val.u32);
+ 		if (entry->flags & XTOPT_PUT)
+ 			*(uint32_t *)XTOPT_MKPTR(cb) = cb->val.u32;
+ 	} else if (entry->type == XTTYPE_UINT64) {
+ 		cb->val.u64 = value;
++		if (entry->flags & XTOPT_NBO)
++			cb->val.u64 = htonll(cb->val.u64);
+ 		if (entry->flags & XTOPT_PUT)
+ 			*(uint64_t *)XTOPT_MKPTR(cb) = cb->val.u64;
+ 	}
+@@ -216,17 +230,25 @@ static void xtopt_parse_float(struct xt_option_call *cb)
+ static void xtopt_mint_value_to_cb(struct xt_option_call *cb, uintmax_t value)
  {
- 	struct ebt_pkttype_info *pt = (struct ebt_pkttype_info *)match->data;
-@@ -107,10 +108,10 @@ static struct xtables_match brpkttype_match = {
- 	.size		= XT_ALIGN(sizeof(struct ebt_pkttype_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct ebt_pkttype_info)),
- 	.help		= brpkttype_print_help,
--	.parse		= brpkttype_parse,
-+	.x6_parse	= brpkttype_parse,
- 	.print		= brpkttype_print,
- 	.xlate		= brpkttype_xlate,
--	.extra_opts	= brpkttype_opts,
-+	.x6_options	= brpkttype_opts,
- };
+ 	const struct xt_option_entry *entry = cb->entry;
++	int i = cb->nvals;
  
- void _init(void)
+-	if (cb->nvals >= ARRAY_SIZE(cb->val.u32_range))
++	if (i >= ARRAY_SIZE(cb->val.u32_range))
+ 		return;
+-	if (entry->type == XTTYPE_UINT8RC)
+-		cb->val.u8_range[cb->nvals] = value;
+-	else if (entry->type == XTTYPE_UINT16RC)
+-		cb->val.u16_range[cb->nvals] = value;
+-	else if (entry->type == XTTYPE_UINT32RC)
+-		cb->val.u32_range[cb->nvals] = value;
+-	else if (entry->type == XTTYPE_UINT64RC)
+-		cb->val.u64_range[cb->nvals] = value;
++	if (entry->type == XTTYPE_UINT8RC) {
++		cb->val.u8_range[i] = value;
++	} else if (entry->type == XTTYPE_UINT16RC) {
++		cb->val.u16_range[i] = value;
++		if (entry->flags & XTOPT_NBO)
++			cb->val.u16_range[i] = htons(cb->val.u16_range[i]);
++	} else if (entry->type == XTTYPE_UINT32RC) {
++		cb->val.u32_range[i] = value;
++		if (entry->flags & XTOPT_NBO)
++			cb->val.u32_range[i] = htonl(cb->val.u32_range[i]);
++	} else if (entry->type == XTTYPE_UINT64RC) {
++		cb->val.u64_range[i] = value;
++		if (entry->flags & XTOPT_NBO)
++			cb->val.u64_range[i] = htonll(cb->val.u64_range[i]);
++	}
+ }
+ 
+ /**
 -- 
 2.43.0
 
