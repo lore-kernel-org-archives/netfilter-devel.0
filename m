@@ -1,34 +1,34 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1262482E3
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04336482EA
 	for <netfilter-devel@vger.kernel.org>; Wed, 20 Dec 2023 16:06:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="kaRfMdfz"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="A2MCvl/1"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=KtYgZxlHs5cr7Jo+Hk4dnMzUOqna7/XJ+m7QSyWxsiE=; b=kaRfMdfzaLF152Ad54M0M+/PwF
-	xIHjhwV9xUrC3SD3ZiNji6u/2ef0BP9rS3H71KiOmDU3rMeQtfZ3aps5YF2/fL0yUuJR6lX2zW9n0
-	OuVD/RB7jKIahQ/c0u/wt4YpXnCIgEIew8CA17S7fNhRiZuBc2ydEPCVrskPHLTbIlOqOm5hr6NiW
-	wzUBlyt8zGLzfadU88U1VkjnPHJaDFteCxHEnEwMVlkQzirO23+JAquBmj2xJXabrAvGNSn8sqRDB
-	PM6+J8PyZ+8jlDDirJ+X//A+pZ3ucT48oMoQPU7EecVTPaqI/Zwxv+xTFNnGcONEQPasz4QLOkXY3
-	nit24rwg==;
+	bh=NwqnKsVeW+XpML0fFO2dz/fpeI6aiEb3WnQruls1zo8=; b=A2MCvl/1f7Bli3+js36YxorT2x
+	9GswGhTo8L9FbFjuyUfpHmVT6qRKRd00v0WVQTDQiAeI4Abno3PYYGpyih+Dge1XqVtomcPllX/EZ
+	l9Pf0vzp+n5p50KHGvmTEoxAS0JdF4Ad93OHodNgP9BWG3r+fzS5qwea8aI/Sie9u92Q7ZdiW55KV
+	cDFjwInEOQwzInJQZY8ZdaCTTXKuq7Xz/uKATeJMGbEri8v4ghvJVLrZJ5ZHti7vffisGwr/FVDXr
+	i/Fc2vdTqry6r2Anx7Wa20WSC+XAHRyWBEUz1JSdRVccQfm/kVrefacJZJcMxOj/bvk34DTnrOXdK
+	lbSTcdPw==;
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.94.2)
 	(envelope-from <phil@nwl.cc>)
-	id 1rFz5r-0004LW-7X
+	id 1rFz5r-0004Lb-IW
 	for netfilter-devel@vger.kernel.org; Wed, 20 Dec 2023 17:06:47 +0100
 From: Phil Sutter <phil@nwl.cc>
 To: netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 03/23] libxtables: xtoptions: Implement XTTYPE_ETHERMACMASK
-Date: Wed, 20 Dec 2023 17:06:16 +0100
-Message-ID: <20231220160636.11778-4-phil@nwl.cc>
+Subject: [iptables PATCH 21/23] extensions: libebt_pkttype: Use guided option parser
+Date: Wed, 20 Dec 2023 17:06:34 +0100
+Message-ID: <20231220160636.11778-22-phil@nwl.cc>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20231220160636.11778-1-phil@nwl.cc>
 References: <20231220160636.11778-1-phil@nwl.cc>
@@ -40,83 +40,109 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Accept an Ethernet MAC address with optional mask in the format
-xtables_parse_mac_and_mask() expects it. Does not support XTOPT_PUT (for
-now) due to the lack of defined data structure.
+Not much to gain here. Maybe implement number parsing with fallback to
+get rid of that part from extension parsers?
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- include/xtables.h      |  7 ++++++-
- libxtables/xtoptions.c | 10 ++++++++++
- 2 files changed, 16 insertions(+), 1 deletion(-)
+ extensions/libebt_pkttype.c | 45 +++++++++++++++++++------------------
+ 1 file changed, 23 insertions(+), 22 deletions(-)
 
-diff --git a/include/xtables.h b/include/xtables.h
-index db7c492a9556e..ab856ebc426ac 100644
---- a/include/xtables.h
-+++ b/include/xtables.h
-@@ -12,6 +12,7 @@
- #include <stdbool.h>
- #include <stddef.h>
- #include <stdint.h>
-+#include <netinet/ether.h>
- #include <netinet/in.h>
- #include <net/if.h>
- #include <linux/types.h>
-@@ -68,6 +69,7 @@ struct in_addr;
-  * %XTTYPE_PLEN:	prefix length
-  * %XTTYPE_PLENMASK:	prefix length (ptr: union nf_inet_addr)
-  * %XTTYPE_ETHERMAC:	Ethernet MAC address in hex form
-+ * %XTTYPE_ETHERMACMASK: Ethernet MAC address in hex form with optional mask
-  */
- enum xt_option_type {
- 	XTTYPE_NONE,
-@@ -92,6 +94,7 @@ enum xt_option_type {
- 	XTTYPE_PLEN,
- 	XTTYPE_PLENMASK,
- 	XTTYPE_ETHERMAC,
-+	XTTYPE_ETHERMACMASK,
+diff --git a/extensions/libebt_pkttype.c b/extensions/libebt_pkttype.c
+index 4e2d19de7983b..b01b83a1f1f45 100644
+--- a/extensions/libebt_pkttype.c
++++ b/extensions/libebt_pkttype.c
+@@ -9,7 +9,6 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+-#include <getopt.h>
+ #include <netdb.h>
+ #include <xtables.h>
+ #include <linux/if_packet.h>
+@@ -25,10 +24,14 @@ static const char *classes[] = {
+ 	"fastroute",
  };
  
- /**
-@@ -167,7 +170,9 @@ struct xt_option_call {
- 		struct {
- 			uint32_t mark, mask;
- 		};
--		uint8_t ethermac[6];
-+		struct {
-+			uint8_t ethermac[ETH_ALEN], ethermacmask[ETH_ALEN];
-+		};
- 	} val;
- 	/* Wished for a world where the ones below were gone: */
- 	union {
-diff --git a/libxtables/xtoptions.c b/libxtables/xtoptions.c
-index 3973c807ded0e..9377e1641f28c 100644
---- a/libxtables/xtoptions.c
-+++ b/libxtables/xtoptions.c
-@@ -791,6 +791,15 @@ static void xtopt_parse_ethermac(struct xt_option_call *cb)
- 	xt_params->exit_err(PARAMETER_PROBLEM, "Invalid MAC address specified.");
+-static const struct option brpkttype_opts[] =
+-{
+-	{ "pkttype-type"        , required_argument, 0, '1' },
+-	{ 0 }
++enum {
++	O_TYPE,
++};
++
++static const struct xt_option_entry brpkttype_opts[] = {
++	{ .name = "pkttype-type", .id = O_TYPE, .type = XTTYPE_STRING,
++	  .flags = XTOPT_INVERT },
++	XTOPT_TABLEEND,
+ };
+ 
+ static void brpkttype_print_help(void)
+@@ -40,37 +43,35 @@ static void brpkttype_print_help(void)
  }
  
-+static void xtopt_parse_ethermacmask(struct xt_option_call *cb)
-+{
-+	memset(cb->val.ethermacmask, 0xff, ETH_ALEN);
-+	if (xtables_parse_mac_and_mask(cb->arg, cb->val.ethermac,
-+				       cb->val.ethermacmask))
-+		xt_params->exit_err(PARAMETER_PROBLEM,
-+				    "Invalid MAC/mask address specified.");
-+}
+ 
+-static int brpkttype_parse(int c, char **argv, int invert, unsigned int *flags,
+-			   const void *entry, struct xt_entry_match **match)
++static void brpkttype_parse(struct xt_option_call *cb)
+ {
+-	struct ebt_pkttype_info *ptinfo = (struct ebt_pkttype_info *)(*match)->data;
+-	char *end;
++	struct ebt_pkttype_info *ptinfo = cb->data;
+ 	long int i;
++	char *end;
 +
- static void (*const xtopt_subparse[])(struct xt_option_call *) = {
- 	[XTTYPE_UINT8]       = xtopt_parse_int,
- 	[XTTYPE_UINT16]      = xtopt_parse_int,
-@@ -813,6 +822,7 @@ static void (*const xtopt_subparse[])(struct xt_option_call *) = {
- 	[XTTYPE_PLEN]        = xtopt_parse_plen,
- 	[XTTYPE_PLENMASK]    = xtopt_parse_plenmask,
- 	[XTTYPE_ETHERMAC]    = xtopt_parse_ethermac,
-+	[XTTYPE_ETHERMACMASK]= xtopt_parse_ethermacmask,
++	xtables_option_parse(cb);
+ 
+-	switch (c) {
+-	case '1':
+-		if (invert)
+-			ptinfo->invert = 1;
+-		i = strtol(optarg, &end, 16);
++	switch (cb->entry->id) {
++	case O_TYPE:
++		ptinfo->invert = cb->invert;
++		i = strtol(cb->arg, &end, 16);
+ 		if (*end != '\0') {
+ 			for (i = 0; i < ARRAY_SIZE(classes); i++) {
+-				if (!strcasecmp(optarg, classes[i]))
++				if (!strcasecmp(cb->arg, classes[i]))
+ 					break;
+ 			}
+ 			if (i >= ARRAY_SIZE(classes))
+-				xtables_error(PARAMETER_PROBLEM, "Could not parse class '%s'", optarg);
++				xtables_error(PARAMETER_PROBLEM,
++					      "Could not parse class '%s'",
++					      cb->arg);
+ 		}
+ 		if (i < 0 || i > 255)
+ 			xtables_error(PARAMETER_PROBLEM, "Problem with specified pkttype class");
+ 		ptinfo->pkt_type = (uint8_t)i;
+ 		break;
+-	default:
+-		return 0;
+ 	}
+-	return 1;
+ }
+ 
+-
+ static void brpkttype_print(const void *ip, const struct xt_entry_match *match, int numeric)
+ {
+ 	struct ebt_pkttype_info *pt = (struct ebt_pkttype_info *)match->data;
+@@ -107,10 +108,10 @@ static struct xtables_match brpkttype_match = {
+ 	.size		= XT_ALIGN(sizeof(struct ebt_pkttype_info)),
+ 	.userspacesize	= XT_ALIGN(sizeof(struct ebt_pkttype_info)),
+ 	.help		= brpkttype_print_help,
+-	.parse		= brpkttype_parse,
++	.x6_parse	= brpkttype_parse,
+ 	.print		= brpkttype_print,
+ 	.xlate		= brpkttype_xlate,
+-	.extra_opts	= brpkttype_opts,
++	.x6_options	= brpkttype_opts,
  };
  
- /**
+ void _init(void)
 -- 
 2.43.0
 
