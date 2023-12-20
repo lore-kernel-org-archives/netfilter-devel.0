@@ -1,20 +1,35 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED6B33B1B0
-	for <netfilter-devel@vger.kernel.org>; Wed, 20 Dec 2023 14:41:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1rFxks-0000fF-3U; Wed, 20 Dec 2023 15:41:02 +0100
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] netlink: fix stack overflow due to erroneous rounding
-Date: Wed, 20 Dec 2023 15:40:54 +0100
-Message-ID: <20231220144057.10616-1-fw@strlen.de>
-X-Mailer: git-send-email 2.41.0
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 986983F8CD
+	for <netfilter-devel@vger.kernel.org>; Wed, 20 Dec 2023 15:14:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="lmTyfdh7"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=ued2f0Pb0mlZndb+nx/J1N25Rnqt06LLKVOZ/D1a8Ec=; b=lmTyfdh7D5bk5vyWTZO4LWILEN
+	C1zvidmsOjt6kX/6yynV0HmYFrJ3vZQFD+PYiCjF+MC8R2ufVaaRSbV1ZNmAv5RkNjXvM5sxh0rdc
+	reNsoy42EqFAE06Rluim1ayNtebzeaQScTrJnIf3RNMyndS7+2aaxF3N7WdGWKdzA+3z/XaX2z1X4
+	vgXwkmaMJytzuIdR/u+wIrd2p5QD/Wetv3LX0JYWv3tyQYcn1VB5+G3ySWE93or8YDAMO507YE3eG
+	zYUTv4YLAjSJmadPdWFTSJuSuSClSXYgRER/OPu/GbRcUovRXMOyNIiEpajqoe4zECBzEBPA2XaT7
+	x0IGav1A==;
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1rFyGj-0003ZL-DE
+	for netfilter-devel@vger.kernel.org; Wed, 20 Dec 2023 16:13:57 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH] tests: iptables-test: Use difflib if dumps differ
+Date: Wed, 20 Dec 2023 16:13:53 +0100
+Message-ID: <20231220151353.25210-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -23,71 +38,44 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Byteorder switch in this function may undersize the conversion
-buffer by one byte, this needs to use div_round_up().
+Improve log readability by printing a unified diff of the expected vs.
+actual iptables-save output.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/netlink.c                                         | 11 ++++++++---
- .../bogons/nft-f/byteorder_switch_stack_overflow      |  6 ++++++
- 2 files changed, 14 insertions(+), 3 deletions(-)
- create mode 100644 tests/shell/testcases/bogons/nft-f/byteorder_switch_stack_overflow
+ iptables-test.py | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff --git a/src/netlink.c b/src/netlink.c
-index 32b189952aa3..3d685b575e64 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -254,6 +254,11 @@ static int netlink_export_pad(unsigned char *data, const mpz_t v,
- 	return netlink_padded_len(i->len) / BITS_PER_BYTE;
- }
+diff --git a/iptables-test.py b/iptables-test.py
+index 6f63cdbeda9af..179e366e02961 100755
+--- a/iptables-test.py
++++ b/iptables-test.py
+@@ -15,6 +15,7 @@ import sys
+ import os
+ import subprocess
+ import argparse
++from difflib import unified_diff
  
-+static void byteorder_switch_expr_value(mpz_t v, const struct expr *e)
-+{
-+	mpz_switch_byteorder(v, div_round_up(e->len, BITS_PER_BYTE));
-+}
-+
- static int __netlink_gen_concat_key(uint32_t flags, const struct expr *i,
- 				    unsigned char *data)
- {
-@@ -268,7 +273,7 @@ static int __netlink_gen_concat_key(uint32_t flags, const struct expr *i,
+ IPTABLES = "iptables"
+ IP6TABLES = "ip6tables"
+@@ -367,11 +368,12 @@ STDERR_IS_TTY = sys.stderr.isatty()
  
- 		if (expr_basetype(expr)->type == TYPE_INTEGER &&
- 		    expr->byteorder == BYTEORDER_HOST_ENDIAN)
--			mpz_switch_byteorder(expr->value, expr->len / BITS_PER_BYTE);
-+			byteorder_switch_expr_value(expr->value, expr);
+     out = out.decode('utf-8').rstrip()
+     if out.find(out_expect) < 0:
+-        msg = ["dumps differ!"]
+-        msg.extend(["expect: " + l for l in out_expect.split("\n")])
+-        msg.extend(["got: " + l for l in out.split("\n")
+-                                if not l[0] in ['*', ':', '#']])
+-        print("\n".join(msg), file=log_file)
++        print("dumps differ!", file=log_file)
++        out_clean = [ l for l in out.split("\n")
++                        if not l[0] in ['*', ':', '#']]
++        diff = unified_diff(out_expect.split("\n"), out_clean,
++                            fromfile="expect", tofile="got", lineterm='')
++        print("\n".join(diff), file=log_file)
+         return -1
  
- 		i = expr;
- 		break;
-@@ -280,7 +285,7 @@ static int __netlink_gen_concat_key(uint32_t flags, const struct expr *i,
- 			mpz_init_bitmask(v, i->len - i->prefix_len);
- 
- 			if (i->byteorder == BYTEORDER_HOST_ENDIAN)
--				mpz_switch_byteorder(v, i->len / BITS_PER_BYTE);
-+				byteorder_switch_expr_value(v, i);
- 
- 			mpz_add(v, i->prefix->value, v);
- 			count = netlink_export_pad(data, v, i);
-@@ -298,7 +303,7 @@ static int __netlink_gen_concat_key(uint32_t flags, const struct expr *i,
- 		expr = (struct expr *)i;
- 		if (expr_basetype(expr)->type == TYPE_INTEGER &&
- 		    expr->byteorder == BYTEORDER_HOST_ENDIAN)
--			mpz_switch_byteorder(expr->value, expr->len / BITS_PER_BYTE);
-+			byteorder_switch_expr_value(expr->value, expr);
- 		break;
- 	default:
- 		BUG("invalid expression type '%s' in set", expr_ops(i)->name);
-diff --git a/tests/shell/testcases/bogons/nft-f/byteorder_switch_stack_overflow b/tests/shell/testcases/bogons/nft-f/byteorder_switch_stack_overflow
-new file mode 100644
-index 000000000000..0164052877b7
---- /dev/null
-+++ b/tests/shell/testcases/bogons/nft-f/byteorder_switch_stack_overflow
-@@ -0,0 +1,6 @@
-+table inet x {
-+	chain nat_dns_acme {
-+		udp length . @th,260,118 vmap { 47-63 . 0xe373135363130333131303735353203 : goto nat_dns_dnstc, }
-+		drop
-+	}
-+}
+     return tests
 -- 
-2.41.0
+2.43.0
 
