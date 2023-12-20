@@ -1,6 +1,6 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7AADA48CEA;
-	Wed, 20 Dec 2023 15:15:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 99DD94120B;
+	Wed, 20 Dec 2023 15:15:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 From: Pablo Neira Ayuso <pablo@netfilter.org>
@@ -11,10 +11,12 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 0/2] Netfilter fixes for net
-Date: Wed, 20 Dec 2023 16:15:42 +0100
-Message-Id: <20231220151544.270214-1-pablo@netfilter.org>
+Subject: [PATCH net 2/2] netfilter: nf_tables: skip set commit for deleted/destroyed sets
+Date: Wed, 20 Dec 2023 16:15:44 +0100
+Message-Id: <20231220151544.270214-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20231220151544.270214-1-pablo@netfilter.org>
+References: <20231220151544.270214-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -23,47 +25,31 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+NFT_MSG_DELSET deactivates all elements in the set, skip
+set->ops->commit() to avoid the unnecessary clone (for the pipapo case)
+as well as the sync GC cycle, which could deactivate again expired
+elements in such set.
 
-The following patchset contains Netfilter fixes for net:
+Fixes: 5f68718b34a5 ("netfilter: nf_tables: GC transaction API to avoid race with control plane")
+Reported-by: Kevin Rich <kevinrich1337@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-1) Skip set commit for deleted/destroyed sets, this might trigger
-   double deactivation of expired elements.
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index c5c17c6e80ed..be04af433988 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -9887,7 +9887,7 @@ static void nft_set_commit_update(struct list_head *set_update_list)
+ 	list_for_each_entry_safe(set, next, set_update_list, pending_update) {
+ 		list_del_init(&set->pending_update);
+ 
+-		if (!set->ops->commit)
++		if (!set->ops->commit || set->dead)
+ 			continue;
+ 
+ 		set->ops->commit(set);
+-- 
+2.30.2
 
-2) Fix packet mangling from egress, set transport offset from
-   mac header for netdev/egress.
-
-Both fixes address bugs already present in several releases.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-23-12-20
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 8353c2abc02cf8302d5e6177b706c1879e7b833c:
-
-  Merge branch 'check-vlan-filter-feature-in-vlan_vids_add_by_dev-and-vlan_vids_del_by_dev' (2023-12-19 13:13:59 +0100)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-23-12-20
-
-for you to fetch changes up to 7315dc1e122c85ffdfc8defffbb8f8b616c2eb1a:
-
-  netfilter: nf_tables: skip set commit for deleted/destroyed sets (2023-12-20 13:48:00 +0100)
-
-----------------------------------------------------------------
-netfilter pull request 23-12-20
-
-----------------------------------------------------------------
-Pablo Neira Ayuso (2):
-      netfilter: nf_tables: set transport offset from mac header for netdev/egress
-      netfilter: nf_tables: skip set commit for deleted/destroyed sets
-
- include/net/netfilter/nf_tables_ipv4.h | 2 +-
- net/netfilter/nf_tables_api.c          | 2 +-
- net/netfilter/nf_tables_core.c         | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
