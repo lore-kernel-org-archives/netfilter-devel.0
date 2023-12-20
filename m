@@ -1,156 +1,93 @@
-Received: from out30-112.freemail.mail.aliyun.com (out30-112.freemail.mail.aliyun.com [115.124.30.112])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 329CD3A29D;
-	Wed, 20 Dec 2023 14:09:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R181e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046049;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=13;SR=0;TI=SMTPD_---0VyumN3b_1703081361;
-Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VyumN3b_1703081361)
-          by smtp.aliyun-inc.com;
-          Wed, 20 Dec 2023 22:09:21 +0800
-From: "D. Wythe" <alibuda@linux.alibaba.com>
-To: pablo@netfilter.org,
-	kadlec@netfilter.org,
-	fw@strlen.de
-Cc: bpf@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org,
-	coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	ast@kernel.org
-Subject: [RFC nf-next v3 1/2] netfilter: bpf: support prog update
-Date: Wed, 20 Dec 2023 22:09:10 +0800
-Message-Id: <1703081351-85579-2-git-send-email-alibuda@linux.alibaba.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1703081351-85579-1-git-send-email-alibuda@linux.alibaba.com>
-References: <1703081351-85579-1-git-send-email-alibuda@linux.alibaba.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED6B33B1B0
+	for <netfilter-devel@vger.kernel.org>; Wed, 20 Dec 2023 14:41:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1rFxks-0000fF-3U; Wed, 20 Dec 2023 15:41:02 +0100
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] netlink: fix stack overflow due to erroneous rounding
+Date: Wed, 20 Dec 2023 15:40:54 +0100
+Message-ID: <20231220144057.10616-1-fw@strlen.de>
+X-Mailer: git-send-email 2.41.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-From: "D. Wythe" <alibuda@linux.alibaba.com>
+Byteorder switch in this function may undersize the conversion
+buffer by one byte, this needs to use div_round_up().
 
-To support the prog update, we need to ensure that the prog seen
-within the hook is always valid. Considering that hooks are always
-protected by rcu_read_lock(), which provide us the ability to
-access the prog under rcu.
-
-Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_bpf_link.c | 63 ++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 48 insertions(+), 15 deletions(-)
+ src/netlink.c                                         | 11 ++++++++---
+ .../bogons/nft-f/byteorder_switch_stack_overflow      |  6 ++++++
+ 2 files changed, 14 insertions(+), 3 deletions(-)
+ create mode 100644 tests/shell/testcases/bogons/nft-f/byteorder_switch_stack_overflow
 
-diff --git a/net/netfilter/nf_bpf_link.c b/net/netfilter/nf_bpf_link.c
-index e502ec0..9bc91d1 100644
---- a/net/netfilter/nf_bpf_link.c
-+++ b/net/netfilter/nf_bpf_link.c
-@@ -8,17 +8,8 @@
- #include <net/netfilter/nf_bpf_link.h>
- #include <uapi/linux/netfilter_ipv4.h>
+diff --git a/src/netlink.c b/src/netlink.c
+index 32b189952aa3..3d685b575e64 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -254,6 +254,11 @@ static int netlink_export_pad(unsigned char *data, const mpz_t v,
+ 	return netlink_padded_len(i->len) / BITS_PER_BYTE;
+ }
  
--static unsigned int nf_hook_run_bpf(void *bpf_prog, struct sk_buff *skb,
--				    const struct nf_hook_state *s)
--{
--	const struct bpf_prog *prog = bpf_prog;
--	struct bpf_nf_ctx ctx = {
--		.state = s,
--		.skb = skb,
--	};
--
--	return bpf_prog_run(prog, &ctx);
--}
-+/* protect link update in parallel */
-+static DEFINE_MUTEX(bpf_nf_mutex);
- 
- struct bpf_nf_link {
- 	struct bpf_link link;
-@@ -26,8 +17,20 @@ struct bpf_nf_link {
- 	struct net *net;
- 	u32 dead;
- 	const struct nf_defrag_hook *defrag_hook;
-+	struct rcu_head head;
- };
- 
-+static unsigned int nf_hook_run_bpf(void *bpf_link, struct sk_buff *skb,
-+				    const struct nf_hook_state *s)
++static void byteorder_switch_expr_value(mpz_t v, const struct expr *e)
 +{
-+	const struct bpf_nf_link *nf_link = bpf_link;
-+	struct bpf_nf_ctx ctx = {
-+		.state = s,
-+		.skb = skb,
-+	};
-+	return bpf_prog_run(rcu_dereference_raw(nf_link->link.prog), &ctx);
++	mpz_switch_byteorder(v, div_round_up(e->len, BITS_PER_BYTE));
 +}
 +
- #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4) || IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
- static const struct nf_defrag_hook *
- get_proto_defrag_hook(struct bpf_nf_link *link,
-@@ -126,8 +129,7 @@ static void bpf_nf_link_release(struct bpf_link *link)
- static void bpf_nf_link_dealloc(struct bpf_link *link)
+ static int __netlink_gen_concat_key(uint32_t flags, const struct expr *i,
+ 				    unsigned char *data)
  {
- 	struct bpf_nf_link *nf_link = container_of(link, struct bpf_nf_link, link);
--
--	kfree(nf_link);
-+	kfree_rcu(nf_link, head);
- }
+@@ -268,7 +273,7 @@ static int __netlink_gen_concat_key(uint32_t flags, const struct expr *i,
  
- static int bpf_nf_link_detach(struct bpf_link *link)
-@@ -162,7 +164,34 @@ static int bpf_nf_link_fill_link_info(const struct bpf_link *link,
- static int bpf_nf_link_update(struct bpf_link *link, struct bpf_prog *new_prog,
- 			      struct bpf_prog *old_prog)
- {
--	return -EOPNOTSUPP;
-+	struct bpf_nf_link *nf_link = container_of(link, struct bpf_nf_link, link);
-+	int err = 0;
-+
-+	mutex_lock(&bpf_nf_mutex);
-+
-+	if (nf_link->dead) {
-+		err = -EPERM;
-+		goto out;
+ 		if (expr_basetype(expr)->type == TYPE_INTEGER &&
+ 		    expr->byteorder == BYTEORDER_HOST_ENDIAN)
+-			mpz_switch_byteorder(expr->value, expr->len / BITS_PER_BYTE);
++			byteorder_switch_expr_value(expr->value, expr);
+ 
+ 		i = expr;
+ 		break;
+@@ -280,7 +285,7 @@ static int __netlink_gen_concat_key(uint32_t flags, const struct expr *i,
+ 			mpz_init_bitmask(v, i->len - i->prefix_len);
+ 
+ 			if (i->byteorder == BYTEORDER_HOST_ENDIAN)
+-				mpz_switch_byteorder(v, i->len / BITS_PER_BYTE);
++				byteorder_switch_expr_value(v, i);
+ 
+ 			mpz_add(v, i->prefix->value, v);
+ 			count = netlink_export_pad(data, v, i);
+@@ -298,7 +303,7 @@ static int __netlink_gen_concat_key(uint32_t flags, const struct expr *i,
+ 		expr = (struct expr *)i;
+ 		if (expr_basetype(expr)->type == TYPE_INTEGER &&
+ 		    expr->byteorder == BYTEORDER_HOST_ENDIAN)
+-			mpz_switch_byteorder(expr->value, expr->len / BITS_PER_BYTE);
++			byteorder_switch_expr_value(expr->value, expr);
+ 		break;
+ 	default:
+ 		BUG("invalid expression type '%s' in set", expr_ops(i)->name);
+diff --git a/tests/shell/testcases/bogons/nft-f/byteorder_switch_stack_overflow b/tests/shell/testcases/bogons/nft-f/byteorder_switch_stack_overflow
+new file mode 100644
+index 000000000000..0164052877b7
+--- /dev/null
++++ b/tests/shell/testcases/bogons/nft-f/byteorder_switch_stack_overflow
+@@ -0,0 +1,6 @@
++table inet x {
++	chain nat_dns_acme {
++		udp length . @th,260,118 vmap { 47-63 . 0xe373135363130333131303735353203 : goto nat_dns_dnstc, }
++		drop
 +	}
-+
-+	/* target old_prog mismatch */
-+	if (old_prog && link->prog != old_prog) {
-+		err = -EPERM;
-+		goto out;
-+	}
-+
-+	old_prog = link->prog;
-+	if (old_prog == new_prog) {
-+		/* don't need update */
-+		bpf_prog_put(new_prog);
-+		goto out;
-+	}
-+
-+	old_prog = xchg(&link->prog, new_prog);
-+	bpf_prog_put(old_prog);
-+out:
-+	mutex_unlock(&bpf_nf_mutex);
-+	return err;
- }
- 
- static const struct bpf_link_ops bpf_nf_link_lops = {
-@@ -226,7 +255,11 @@ int bpf_nf_link_attach(const union bpf_attr *attr, struct bpf_prog *prog)
- 
- 	link->hook_ops.hook = nf_hook_run_bpf;
- 	link->hook_ops.hook_ops_type = NF_HOOK_OP_BPF;
--	link->hook_ops.priv = prog;
-+
-+	/* bpf_nf_link_release & bpf_nf_link_dealloc() can ensures that link remains
-+	 * valid at all times within nf_hook_run_bpf().
-+	 */
-+	link->hook_ops.priv = link;
- 
- 	link->hook_ops.pf = attr->link_create.netfilter.pf;
- 	link->hook_ops.priority = attr->link_create.netfilter.priority;
++}
 -- 
-1.8.3.1
+2.41.0
 
