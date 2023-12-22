@@ -1,82 +1,210 @@
-Received: from smtp.forwardemail.net (smtp.forwardemail.net [149.28.215.223])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out30-133.freemail.mail.aliyun.com (out30-133.freemail.mail.aliyun.com [115.124.30.133])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4032E78E90;
-	Thu, 21 Dec 2023 23:05:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=faucet.nz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fe-bounces.faucet.nz
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=faucet.nz header.i=@faucet.nz header.b="m5FWgqV9"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=faucet.nz;
- h=Content-Transfer-Encoding: MIME-Version: Message-Id: Date: Subject: Cc:
- To: From; q=dns/txt; s=fe-4ed8c67516; t=1703199957;
- bh=l60SR+53LmctJjdJT6+f0RpMxenYz9binUoltgUVMmE=;
- b=m5FWgqV9zNfPV+auhA9mYWbBFfs0BokrE6vja+oSSKrmOZZwdE73azw1L4uhNf7VE6rLuGDdl
- PV2UhMDM1hIcpABWJPrKyOfJJ0Q1rh/nX5M2KTU2rLsn/8/q8j4tTsJUtCAQZfdIB+zRfLFzvXN
- DAnLpwunFyVGkJIs5XGdj6A=
-From: Brad Cowie <brad@faucet.nz>
-To: netdev@vger.kernel.org
-Cc: pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
- davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
- pabeni@redhat.com, netfilter-devel@vger.kernel.org,
- linux-kernel@vger.kernel.org, pshelar@ovn.org, dev@openvswitch.org, Brad
- Cowie <brad@faucet.nz>
-Subject: [PATCH net] netfilter: nf_nat: fix action not being set for all ct states
-Date: Fri, 22 Dec 2023 11:43:11 +1300
-Message-Id: <20231221224311.130319-1-brad@faucet.nz>
-X-Mailer: git-send-email 2.34.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1E47C8C8;
+	Fri, 22 Dec 2023 07:06:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R121e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046060;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=14;SR=0;TI=SMTPD_---0Vz-25.h_1703228777;
+Received: from 30.221.148.239(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0Vz-25.h_1703228777)
+          by smtp.aliyun-inc.com;
+          Fri, 22 Dec 2023 15:06:19 +0800
+Message-ID: <1d3cb7fc-c1dc-a779-8952-cdbaaf696ce3@linux.alibaba.com>
+Date: Fri, 22 Dec 2023 15:06:17 +0800
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
+ Gecko/20100101 Thunderbird/102.15.1
+Subject: Re: [RFC nf-next v3 1/2] netfilter: bpf: support prog update
+Content-Language: en-US
+To: Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+ Jozsef Kadlecsik <kadlec@netfilter.org>, Florian Westphal <fw@strlen.de>,
+ bpf <bpf@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>,
+ Network Development <netdev@vger.kernel.org>, coreteam@netfilter.org,
+ netfilter-devel <netfilter-devel@vger.kernel.org>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Alexei Starovoitov <ast@kernel.org>
+References: <1703081351-85579-1-git-send-email-alibuda@linux.alibaba.com>
+ <1703081351-85579-2-git-send-email-alibuda@linux.alibaba.com>
+ <CAADnVQK3Wk+pKbvc5_7jgaQ=qFq3y0ozgnn+dbW56DaHL2ExWQ@mail.gmail.com>
+From: "D. Wythe" <alibuda@linux.alibaba.com>
+In-Reply-To: <CAADnVQK3Wk+pKbvc5_7jgaQ=qFq3y0ozgnn+dbW56DaHL2ExWQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Report-Abuse-To: abuse@forwardemail.net
-X-Report-Abuse: abuse@forwardemail.net
-X-Complaints-To: abuse@forwardemail.net
-X-ForwardEmail-Version: 0.4.40
-X-ForwardEmail-Sender: rfc822; brad@faucet.nz, smtp.forwardemail.net,
- 149.28.215.223
-X-ForwardEmail-ID: 6584c00e068c01ef26868e78
 
-This fixes openvswitch's handling of nat packets in the related state.
 
-In nf_ct_nat_execute(), which is called from nf_ct_nat(), ICMP/ICMPv6
-packets in the IP_CT_RELATED or IP_CT_RELATED_REPLY state, which have
-not been dropped, will follow the goto, however the placement of the
-goto label means that updating the action bit field will be bypassed.
 
-This causes ovs_nat_update_key() to not be called from ovs_ct_nat()
-which means the openvswitch match key for the ICMP/ICMPv6 packet is not
-updated and the pre-nat value will be retained for the key, which will
-result in the wrong openflow rule being matched for that packet.
+On 12/21/23 5:11 AM, Alexei Starovoitov wrote:
+> On Wed, Dec 20, 2023 at 6:09 AM D. Wythe <alibuda@linux.alibaba.com> wrote:
+>> From: "D. Wythe" <alibuda@linux.alibaba.com>
+>>
+>> To support the prog update, we need to ensure that the prog seen
+>> within the hook is always valid. Considering that hooks are always
+>> protected by rcu_read_lock(), which provide us the ability to
+>> access the prog under rcu.
+>>
+>> Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+>> ---
+>>   net/netfilter/nf_bpf_link.c | 63 ++++++++++++++++++++++++++++++++++-----------
+>>   1 file changed, 48 insertions(+), 15 deletions(-)
+>>
+>> diff --git a/net/netfilter/nf_bpf_link.c b/net/netfilter/nf_bpf_link.c
+>> index e502ec0..9bc91d1 100644
+>> --- a/net/netfilter/nf_bpf_link.c
+>> +++ b/net/netfilter/nf_bpf_link.c
+>> @@ -8,17 +8,8 @@
+>>   #include <net/netfilter/nf_bpf_link.h>
+>>   #include <uapi/linux/netfilter_ipv4.h>
+>>
+>> -static unsigned int nf_hook_run_bpf(void *bpf_prog, struct sk_buff *skb,
+>> -                                   const struct nf_hook_state *s)
+>> -{
+>> -       const struct bpf_prog *prog = bpf_prog;
+>> -       struct bpf_nf_ctx ctx = {
+>> -               .state = s,
+>> -               .skb = skb,
+>> -       };
+>> -
+>> -       return bpf_prog_run(prog, &ctx);
+>> -}
+>> +/* protect link update in parallel */
+>> +static DEFINE_MUTEX(bpf_nf_mutex);
+>>
+>>   struct bpf_nf_link {
+>>          struct bpf_link link;
+>> @@ -26,8 +17,20 @@ struct bpf_nf_link {
+>>          struct net *net;
+>>          u32 dead;
+>>          const struct nf_defrag_hook *defrag_hook;
+>> +       struct rcu_head head;
+> I have to point out the same issues as before, but
+> will ask them differently...
+>
+> Why do you think above rcu_head is necessary?
+>
+>>   };
+>>
+>> +static unsigned int nf_hook_run_bpf(void *bpf_link, struct sk_buff *skb,
+>> +                                   const struct nf_hook_state *s)
+>> +{
+>> +       const struct bpf_nf_link *nf_link = bpf_link;
+>> +       struct bpf_nf_ctx ctx = {
+>> +               .state = s,
+>> +               .skb = skb,
+>> +       };
+>> +       return bpf_prog_run(rcu_dereference_raw(nf_link->link.prog), &ctx);
+>> +}
+>> +
+>>   #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4) || IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
+>>   static const struct nf_defrag_hook *
+>>   get_proto_defrag_hook(struct bpf_nf_link *link,
+>> @@ -126,8 +129,7 @@ static void bpf_nf_link_release(struct bpf_link *link)
+>>   static void bpf_nf_link_dealloc(struct bpf_link *link)
+>>   {
+>>          struct bpf_nf_link *nf_link = container_of(link, struct bpf_nf_link, link);
+>> -
+>> -       kfree(nf_link);
+>> +       kfree_rcu(nf_link, head);
+> Why is this needed ?
+> Have you looked at tcx_link_lops ?
 
-Move the goto label above where the action bit field is being set so
-that it is updated in all cases where the packet is accepted.
+Introducing rcu_head/kfree_rcu is to address the situation where the 
+netfilter hooks might
+still access the link after bpf_nf_link_dealloc.
 
-Fixes: ebddb1404900 ("net: move the nat function to nf_nat_ovs for ovs and tc")
-Signed-off-by: Brad Cowie <brad@faucet.nz>
----
- net/netfilter/nf_nat_ovs.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+                                                      nf_hook_run_bpf
+                                                      const struct 
+bpf_nf_link *nf_link = bpf_link;
 
-diff --git a/net/netfilter/nf_nat_ovs.c b/net/netfilter/nf_nat_ovs.c
-index 551abd2da614..0f9a559f6207 100644
---- a/net/netfilter/nf_nat_ovs.c
-+++ b/net/netfilter/nf_nat_ovs.c
-@@ -75,9 +75,10 @@ static int nf_ct_nat_execute(struct sk_buff *skb, struct nf_conn *ct,
- 	}
- 
- 	err = nf_nat_packet(ct, ctinfo, hooknum, skb);
-+out:
- 	if (err == NF_ACCEPT)
- 		*action |= BIT(maniptype);
--out:
-+
- 	return err;
- }
- 
--- 
-2.34.1
+bpf_nf_link_release
+     nf_unregister_net_hook(nf_link->net, &nf_link->hook_ops);
+
+bpf_nf_link_dealloc
+     free(link)
+bpf_prog_run(link->prog);
+
+
+I had checked the tcx_link_lops ,it's seems it use the synchronize_rcu() 
+to solve the
+same problem, which is also the way we used in the first version.
+
+https://lore.kernel.org/bpf/1702467945-38866-1-git-send-email-alibuda@linux.alibaba.com/
+
+However, we have received some opposing views, believing that this is a 
+bit overkill,
+so we decided to use kfree_rcu.
+
+https://lore.kernel.org/bpf/20231213222415.GA13818@breakpoint.cc/
+
+>>   }
+>>
+>>   static int bpf_nf_link_detach(struct bpf_link *link)
+>> @@ -162,7 +164,34 @@ static int bpf_nf_link_fill_link_info(const struct bpf_link *link,
+>>   static int bpf_nf_link_update(struct bpf_link *link, struct bpf_prog *new_prog,
+>>                                struct bpf_prog *old_prog)
+>>   {
+>> -       return -EOPNOTSUPP;
+>> +       struct bpf_nf_link *nf_link = container_of(link, struct bpf_nf_link, link);
+>> +       int err = 0;
+>> +
+>> +       mutex_lock(&bpf_nf_mutex);
+> Why do you need this mutex?
+> What race does it solve?
+
+To avoid user update a link with differ prog at the same time. I noticed 
+that sys_bpf()
+doesn't seem to prevent being invoked by user at the same time. Have I 
+missed something?
+
+Best wishes,
+D. Wythe
+>> +
+>> +       if (nf_link->dead) {
+>> +               err = -EPERM;
+>> +               goto out;
+>> +       }
+>> +
+>> +       /* target old_prog mismatch */
+>> +       if (old_prog && link->prog != old_prog) {
+>> +               err = -EPERM;
+>> +               goto out;
+>> +       }
+>> +
+>> +       old_prog = link->prog;
+>> +       if (old_prog == new_prog) {
+>> +               /* don't need update */
+>> +               bpf_prog_put(new_prog);
+>> +               goto out;
+>> +       }
+>> +
+>> +       old_prog = xchg(&link->prog, new_prog);
+>> +       bpf_prog_put(old_prog);
+>> +out:
+>> +       mutex_unlock(&bpf_nf_mutex);
+>> +       return err;
+>>   }
+>>
+>>   static const struct bpf_link_ops bpf_nf_link_lops = {
+>> @@ -226,7 +255,11 @@ int bpf_nf_link_attach(const union bpf_attr *attr, struct bpf_prog *prog)
+>>
+>>          link->hook_ops.hook = nf_hook_run_bpf;
+>>          link->hook_ops.hook_ops_type = NF_HOOK_OP_BPF;
+>> -       link->hook_ops.priv = prog;
+>> +
+>> +       /* bpf_nf_link_release & bpf_nf_link_dealloc() can ensures that link remains
+>> +        * valid at all times within nf_hook_run_bpf().
+>> +        */
+>> +       link->hook_ops.priv = link;
+>>
+>>          link->hook_ops.pf = attr->link_create.netfilter.pf;
+>>          link->hook_ops.priority = attr->link_create.netfilter.priority;
+>> --
+>> 1.8.3.1
+>>
 
