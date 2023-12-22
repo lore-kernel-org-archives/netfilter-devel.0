@@ -1,6 +1,6 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id EB4DD18044;
-	Fri, 22 Dec 2023 11:57:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id CFA3218047;
+	Fri, 22 Dec 2023 11:57:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 From: Pablo Neira Ayuso <pablo@netfilter.org>
@@ -11,10 +11,12 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net-next 0/8] Netfilter updates for net-next
-Date: Fri, 22 Dec 2023 12:57:06 +0100
-Message-Id: <20231222115714.364393-1-pablo@netfilter.org>
+Subject: [PATCH net-next 1/8] netfilter: nf_tables: Pass const set to nft_get_set_elem
+Date: Fri, 22 Dec 2023 12:57:07 +0100
+Message-Id: <20231222115714.364393-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20231222115714.364393-1-pablo@netfilter.org>
+References: <20231222115714.364393-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -23,73 +25,49 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Phil Sutter <phil@nwl.cc>
 
-The following patchset contains Netfilter updates for net-next:
+The function is not supposed to alter the set, passing the pointer as
+const is fine and merely requires to adjust signatures of two called
+functions as well.
 
-1) Add locking for NFT_MSG_GETSETELEM_RESET requests, to address a
-   race scenario with two concurrent processes running a dump-and-reset
-   which exposes negative counters to userspace, from Phil Sutter.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-2) Use GFP_KERNEL in pipapo GC, from Florian Westphal.
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index c5c17c6e80ed..775b70a62140 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5910,7 +5910,7 @@ static int nft_setelem_parse_flags(const struct nft_set *set,
+ 	return 0;
+ }
+ 
+-static int nft_setelem_parse_key(struct nft_ctx *ctx, struct nft_set *set,
++static int nft_setelem_parse_key(struct nft_ctx *ctx, const struct nft_set *set,
+ 				 struct nft_data *key, struct nlattr *attr)
+ {
+ 	struct nft_data_desc desc = {
+@@ -5963,7 +5963,7 @@ static void *nft_setelem_catchall_get(const struct net *net,
+ 	return priv;
+ }
+ 
+-static int nft_setelem_get(struct nft_ctx *ctx, struct nft_set *set,
++static int nft_setelem_get(struct nft_ctx *ctx, const struct nft_set *set,
+ 			   struct nft_set_elem *elem, u32 flags)
+ {
+ 	void *priv;
+@@ -5982,7 +5982,7 @@ static int nft_setelem_get(struct nft_ctx *ctx, struct nft_set *set,
+ 	return 0;
+ }
+ 
+-static int nft_get_set_elem(struct nft_ctx *ctx, struct nft_set *set,
++static int nft_get_set_elem(struct nft_ctx *ctx, const struct nft_set *set,
+ 			    const struct nlattr *attr, bool reset)
+ {
+ 	struct nlattr *nla[NFTA_SET_ELEM_MAX + 1];
+-- 
+2.30.2
 
-3) Reorder nf_flowtable struct members, place the read-mostly parts
-   accessed by the datapath first. From Florian Westphal.
-
-4) Set on dead flag for NFT_MSG_NEWSET in abort path,
-   from Florian Westphal.
-
-5) Support filtering zone in ctnetlink, from Felix Huettner.
-
-6) Bail out if user tries to redefine an existing chain with different
-   type in nf_tables.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-23-12-22
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 56794e5358542b7c652f202946e53bfd2373b5e0:
-
-  Merge git://git.kernel.org/pub/scm/linux/kernel/git/netdev/net (2023-12-21 22:17:23 +0100)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-23-12-22
-
-for you to fetch changes up to aaba7ddc8507f4ad5bbd07988573967632bc2385:
-
-  netfilter: nf_tables: validate chain type update if available (2023-12-22 12:15:28 +0100)
-
-----------------------------------------------------------------
-netfilter pull request 23-12-22
-
-----------------------------------------------------------------
-Felix Huettner (1):
-      netfilter: ctnetlink: support filtering by zone
-
-Florian Westphal (3):
-      netfilter: nft_set_pipapo: prefer gfp_kernel allocation
-      netfilter: flowtable: reorder nf_flowtable struct members
-      netfilter: nf_tables: mark newset as dead on transaction abort
-
-Pablo Neira Ayuso (1):
-      netfilter: nf_tables: validate chain type update if available
-
-Phil Sutter (3):
-      netfilter: nf_tables: Pass const set to nft_get_set_elem
-      netfilter: nf_tables: Introduce nft_set_dump_ctx_init()
-      netfilter: nf_tables: Add locking for NFT_MSG_GETSETELEM_RESET requests
-
- include/net/netfilter/nf_flow_table.h              |   9 +-
- net/netfilter/nf_conntrack_netlink.c               |  12 +-
- net/netfilter/nf_tables_api.c                      | 147 +++++--
- net/netfilter/nft_set_pipapo.c                     |   2 +-
- tools/testing/selftests/netfilter/.gitignore       |   2 +
- tools/testing/selftests/netfilter/Makefile         |   3 +-
- .../selftests/netfilter/conntrack_dump_flush.c     | 430 +++++++++++++++++++++
- 7 files changed, 567 insertions(+), 38 deletions(-)
- create mode 100644 tools/testing/selftests/netfilter/conntrack_dump_flush.c
