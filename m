@@ -1,21 +1,22 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D3D34156D0;
-	Fri, 22 Dec 2023 10:42:16 +0000 (UTC)
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A1971426C;
+	Fri, 22 Dec 2023 10:49:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.43.141] (port=43930 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1rGd5c-005cXN-IK; Fri, 22 Dec 2023 11:49:14 +0100
+Date: Fri, 22 Dec 2023 11:49:11 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	fw@strlen.de
-Subject: [PATCH net 1/2] netfilter: nf_tables: set transport offset from mac header for netdev/egress
-Date: Fri, 22 Dec 2023 11:42:04 +0100
-Message-Id: <20231222104205.354606-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20231222104205.354606-1-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+	pabeni@redhat.com, edumazet@google.com, fw@strlen.de
+Subject: Re: [PATCH net 0/2] Netfilter fixes for net
+Message-ID: <ZYVppydK2qxJz9lc@calendula>
 References: <20231222104205.354606-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -23,69 +24,61 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20231222104205.354606-1-pablo@netfilter.org>
+X-Spam-Score: -1.9 (-)
 
-Before this patch, transport offset (pkt->thoff) provides an offset
-relative to the network header. This is fine for the inet families
-because skb->data points to the network header in such case. However,
-from netdev/egress, skb->data points to the mac header (if available),
-thus, pkt->thoff is missing the mac header length.
+On Fri, Dec 22, 2023 at 11:42:03AM +0100, Pablo Neira Ayuso wrote:
+> [ resent, apparently this was only posted to netfilter-devel@vger.kernel.org,
+>   not to netdev@vger.kernel.org ]
 
-Add skb_network_offset() to the transport offset (pkt->thoff) for
-netdev, so transport header mangling works as expected. Adjust payload
-fast eval function to use skb->data now that pkt->thoff provides an
-absolute offset. This explains why users report that matching on
-egress/netdev works but payload mangling does not.
+For the record, previous is still in patchwork:
 
-This patch implicitly fixes payload mangling for IPv4 packets in
-netdev/egress given skb_store_bits() requires an offset from skb->data
-to reach the transport header.
+https://patchwork.kernel.org/project/netdevbpf/patch/20231220151544.270214-1-pablo@netfilter.org/
 
-I suspect that nft_exthdr and the trace infra were also broken from
-netdev/egress because they also take skb->data as start, and pkt->thoff
-was not correct.
-
-Note that IPv6 is fine because ipv6_find_hdr() already provides a
-transport offset starting from skb->data, which includes
-skb_network_offset().
-
-The bridge family also uses nft_set_pktinfo_ipv4_validate(), but there
-skb_network_offset() is zero, so the update in this patch does not alter
-the existing behaviour.
-
-Fixes: 42df6e1d221d ("netfilter: Introduce egress hook")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_tables_ipv4.h | 2 +-
- net/netfilter/nf_tables_core.c         | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables_ipv4.h b/include/net/netfilter/nf_tables_ipv4.h
-index 947973623dc7..60a7d0ce3080 100644
---- a/include/net/netfilter/nf_tables_ipv4.h
-+++ b/include/net/netfilter/nf_tables_ipv4.h
-@@ -30,7 +30,7 @@ static inline int __nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt)
- 		return -1;
- 
- 	len = iph_totlen(pkt->skb, iph);
--	thoff = iph->ihl * 4;
-+	thoff = skb_network_offset(pkt->skb) + (iph->ihl * 4);
- 	if (pkt->skb->len < len)
- 		return -1;
- 	else if (len < thoff)
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index 8b536d7ef6c2..c3e635364701 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -158,7 +158,7 @@ static bool nft_payload_fast_eval(const struct nft_expr *expr,
- 	else {
- 		if (!(pkt->flags & NFT_PKTINFO_L4PROTO))
- 			return false;
--		ptr = skb_network_header(skb) + nft_thoff(pkt);
-+		ptr = skb->data + nft_thoff(pkt);
- 	}
- 
- 	ptr += priv->offset;
--- 
-2.30.2
-
+> Hi,
+> 
+> The following patchset contains Netfilter fixes for net:
+> 
+> 1) Skip set commit for deleted/destroyed sets, this might trigger
+>    double deactivation of expired elements.
+> 
+> 2) Fix packet mangling from egress, set transport offset from
+>    mac header for netdev/egress.
+> 
+> Both fixes address bugs already present in several releases.
+> 
+> Please, pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-23-12-20
+> 
+> Thanks.
+> 
+> ----------------------------------------------------------------
+> 
+> The following changes since commit 8353c2abc02cf8302d5e6177b706c1879e7b833c:
+> 
+>   Merge branch 'check-vlan-filter-feature-in-vlan_vids_add_by_dev-and-vlan_vids_del_by_dev' (2023-12-19 13:13:59 +0100)
+> 
+> are available in the Git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-23-12-20
+> 
+> for you to fetch changes up to 7315dc1e122c85ffdfc8defffbb8f8b616c2eb1a:
+> 
+>   netfilter: nf_tables: skip set commit for deleted/destroyed sets (2023-12-20 13:48:00 +0100)
+> 
+> ----------------------------------------------------------------
+> netfilter pull request 23-12-20
+> 
+> ----------------------------------------------------------------
+> Pablo Neira Ayuso (2):
+>       netfilter: nf_tables: set transport offset from mac header for netdev/egress
+>       netfilter: nf_tables: skip set commit for deleted/destroyed sets
+> 
+>  include/net/netfilter/nf_tables_ipv4.h | 2 +-
+>  net/netfilter/nf_tables_api.c          | 2 +-
+>  net/netfilter/nf_tables_core.c         | 2 +-
+>  3 files changed, 3 insertions(+), 3 deletions(-)
+> 
