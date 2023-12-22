@@ -1,6 +1,6 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 083CF156C6;
-	Fri, 22 Dec 2023 10:42:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D3D34156D0;
+	Fri, 22 Dec 2023 10:42:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 From: Pablo Neira Ayuso <pablo@netfilter.org>
@@ -11,9 +11,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 2/2] netfilter: nf_tables: skip set commit for deleted/destroyed sets
-Date: Fri, 22 Dec 2023 11:42:05 +0100
-Message-Id: <20231222104205.354606-3-pablo@netfilter.org>
+Subject: [PATCH net 1/2] netfilter: nf_tables: set transport offset from mac header for netdev/egress
+Date: Fri, 22 Dec 2023 11:42:04 +0100
+Message-Id: <20231222104205.354606-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20231222104205.354606-1-pablo@netfilter.org>
 References: <20231222104205.354606-1-pablo@netfilter.org>
@@ -25,31 +25,67 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-NFT_MSG_DELSET deactivates all elements in the set, skip
-set->ops->commit() to avoid the unnecessary clone (for the pipapo case)
-as well as the sync GC cycle, which could deactivate again expired
-elements in such set.
+Before this patch, transport offset (pkt->thoff) provides an offset
+relative to the network header. This is fine for the inet families
+because skb->data points to the network header in such case. However,
+from netdev/egress, skb->data points to the mac header (if available),
+thus, pkt->thoff is missing the mac header length.
 
-Fixes: 5f68718b34a5 ("netfilter: nf_tables: GC transaction API to avoid race with control plane")
-Reported-by: Kevin Rich <kevinrich1337@gmail.com>
+Add skb_network_offset() to the transport offset (pkt->thoff) for
+netdev, so transport header mangling works as expected. Adjust payload
+fast eval function to use skb->data now that pkt->thoff provides an
+absolute offset. This explains why users report that matching on
+egress/netdev works but payload mangling does not.
+
+This patch implicitly fixes payload mangling for IPv4 packets in
+netdev/egress given skb_store_bits() requires an offset from skb->data
+to reach the transport header.
+
+I suspect that nft_exthdr and the trace infra were also broken from
+netdev/egress because they also take skb->data as start, and pkt->thoff
+was not correct.
+
+Note that IPv6 is fine because ipv6_find_hdr() already provides a
+transport offset starting from skb->data, which includes
+skb_network_offset().
+
+The bridge family also uses nft_set_pktinfo_ipv4_validate(), but there
+skb_network_offset() is zero, so the update in this patch does not alter
+the existing behaviour.
+
+Fixes: 42df6e1d221d ("netfilter: Introduce egress hook")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/net/netfilter/nf_tables_ipv4.h | 2 +-
+ net/netfilter/nf_tables_core.c         | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index c5c17c6e80ed..be04af433988 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -9887,7 +9887,7 @@ static void nft_set_commit_update(struct list_head *set_update_list)
- 	list_for_each_entry_safe(set, next, set_update_list, pending_update) {
- 		list_del_init(&set->pending_update);
+diff --git a/include/net/netfilter/nf_tables_ipv4.h b/include/net/netfilter/nf_tables_ipv4.h
+index 947973623dc7..60a7d0ce3080 100644
+--- a/include/net/netfilter/nf_tables_ipv4.h
++++ b/include/net/netfilter/nf_tables_ipv4.h
+@@ -30,7 +30,7 @@ static inline int __nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt)
+ 		return -1;
  
--		if (!set->ops->commit)
-+		if (!set->ops->commit || set->dead)
- 			continue;
+ 	len = iph_totlen(pkt->skb, iph);
+-	thoff = iph->ihl * 4;
++	thoff = skb_network_offset(pkt->skb) + (iph->ihl * 4);
+ 	if (pkt->skb->len < len)
+ 		return -1;
+ 	else if (len < thoff)
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index 8b536d7ef6c2..c3e635364701 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -158,7 +158,7 @@ static bool nft_payload_fast_eval(const struct nft_expr *expr,
+ 	else {
+ 		if (!(pkt->flags & NFT_PKTINFO_L4PROTO))
+ 			return false;
+-		ptr = skb_network_header(skb) + nft_thoff(pkt);
++		ptr = skb->data + nft_thoff(pkt);
+ 	}
  
- 		set->ops->commit(set);
+ 	ptr += priv->offset;
 -- 
 2.30.2
 
