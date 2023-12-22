@@ -1,200 +1,214 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f53.google.com (mail-wr1-f53.google.com [209.85.221.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA97C241E9
-	for <netfilter-devel@vger.kernel.org>; Fri, 22 Dec 2023 16:18:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F97C2F841;
+	Fri, 22 Dec 2023 22:23:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="hI0YOjdN"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=heo6x1FC8eEkYwkVusqoFR3edS7wFZzJm/RZH/L4MHE=; b=hI0YOjdNWjqETbuu+j1XyGyYTG
-	VOF23SZGGqpWsIncJdopNb1v3KR2/fLtYhcT0eHY80c/gvMUvHdvC0NcaEWeatXbFPQknqltc2HOB
-	QfMhHvLt9Y7ZFzCU7p2sW6sOiEQs21BfhPJPFbkReqKyc0JPsn1NbpOPC7XkAtBx7vCXwRXD7CvxH
-	x/CZ1Vi2MSKL3p4QdUQThKZ8ELaUFSqNQvcQMy+O9iI4CIZ6pBW5qSNiJskhRbk2xEiQs+KH6jdYF
-	SaDEPH78zb6CwkgzSYfn4x4ZP3nYO/Nqp54wEQZW58e1UilN/iKS5xSzXCIrdvvwiGUz/aj/Zr+ls
-	GoifERfw==;
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1rGiDk-0002fW-S6; Fri, 22 Dec 2023 17:17:56 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 2/2] datatype: Describe rt symbol tables
-Date: Fri, 22 Dec 2023 17:17:47 +0100
-Message-ID: <20231222161747.29265-2-phil@nwl.cc>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20231222161747.29265-1-phil@nwl.cc>
-References: <ZYV8YnXhwKoDD/o2@calendula>
- <20231222161747.29265-1-phil@nwl.cc>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Ulfp/KWv"
+Received: by mail-wr1-f53.google.com with SMTP id ffacd0b85a97d-33687627ad0so1874917f8f.2;
+        Fri, 22 Dec 2023 14:23:56 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1703283835; x=1703888635; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=k2tp8ZC0eCMI9N8BD25jpBQaJ34ePmriVNS2iAQ9Mo8=;
+        b=Ulfp/KWvyKevKS/w4XAsAgTE8nl/OBZr3xzRFs/+zyaK2Q2ZwcEAHRmUJaWCaMoX0d
+         381SwZZL/YjNK3PyDW7HvtXmSW7m1dAl9XgvH3s/lmC3LncM7Sh3E5hB7D0U2LAuizpf
+         3zkhl/ZKnvuGkIuZtXA2k/WiKb+BzaXHY3qZOMaFER1Zw8Dy+QKLfC9HAxbM9uziU3LP
+         0YecXRBf+DmvVmVfNIdPi1RuJ08kpbi8ytVTOBJl2DHrXqmngsC/2XNScBL5kg+2F+A5
+         6yUQuhIk9zJowcuzci2L6Rjww06coVXNtOnTtGW+HQbg9yZc+xmgtSkfjszc0lZkJQpV
+         qd8w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1703283835; x=1703888635;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=k2tp8ZC0eCMI9N8BD25jpBQaJ34ePmriVNS2iAQ9Mo8=;
+        b=sFgXpIMO0mwOu+on71YDIhXKbDr5pec5wR1qvJ8LUtEq5NvpFxPj1M4BKDbf8haZTF
+         LnrOVGDX8w+nzc0qBG4I56LU7YumCNsgu0B3TLSkhJN4rIJH9iYIpkijn9dSoWX+Em5G
+         C7TCaiLIAc+0jPb88SPCt7xF+y506FRvuRE+DNkINS6xPRFQ4n7zDeniy8kzy5H2F+gs
+         nCVgZf2HSXog2M66Dgzw0fGGEwoIz/hYFxsChNH2wG2cCp8gmmac3uxi552fUI5Bpk5r
+         btHJT0utkMRdlc4ERCymKm15msny91fbwfemi/c/c34pdDCRFeaVeJfOODT8jRg3QeIC
+         e3qQ==
+X-Gm-Message-State: AOJu0YxpUXF6+BwOQDTuOQviZD5/kUY8H30q3R3WxK11XVCJ9Kec7qjL
+	hrKPjtR5Vr8reoTfYPl+MqJFVidyoC30kx9mVo8=
+X-Google-Smtp-Source: AGHT+IH6rf1CX7wOZUO7SEoZEEDKsMXA/e1ab7kZtfh8E8POCY6CxcL3woHHxqlc1Lv4fmeFjEGSER89PGWLBgR1B14=
+X-Received: by 2002:adf:e851:0:b0:336:7657:98cc with SMTP id
+ d17-20020adfe851000000b00336765798ccmr993015wrn.122.1703283835114; Fri, 22
+ Dec 2023 14:23:55 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <1703081351-85579-1-git-send-email-alibuda@linux.alibaba.com>
+ <1703081351-85579-2-git-send-email-alibuda@linux.alibaba.com>
+ <CAADnVQK3Wk+pKbvc5_7jgaQ=qFq3y0ozgnn+dbW56DaHL2ExWQ@mail.gmail.com> <1d3cb7fc-c1dc-a779-8952-cdbaaf696ce3@linux.alibaba.com>
+In-Reply-To: <1d3cb7fc-c1dc-a779-8952-cdbaaf696ce3@linux.alibaba.com>
+From: Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Date: Fri, 22 Dec 2023 14:23:43 -0800
+Message-ID: <CAADnVQJEUEo3g7knXtkD0CNjazTpQKcjrAaZLJ4utk962bjmvw@mail.gmail.com>
+Subject: Re: [RFC nf-next v3 1/2] netfilter: bpf: support prog update
+To: "D. Wythe" <alibuda@linux.alibaba.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>, 
+	Florian Westphal <fw@strlen.de>, bpf <bpf@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, 
+	Network Development <netdev@vger.kernel.org>, coreteam@netfilter.org, 
+	netfilter-devel <netfilter-devel@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, 
+	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+	Alexei Starovoitov <ast@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Implement a symbol_table_print() wrapper for the run-time populated
-rt_symbol_tables which formats output similar to expr_describe() and
-includes the data source.
+On Thu, Dec 21, 2023 at 11:06=E2=80=AFPM D. Wythe <alibuda@linux.alibaba.co=
+m> wrote:
+>
+>
+>
+> On 12/21/23 5:11 AM, Alexei Starovoitov wrote:
+> > On Wed, Dec 20, 2023 at 6:09=E2=80=AFAM D. Wythe <alibuda@linux.alibaba=
+.com> wrote:
+> >> From: "D. Wythe" <alibuda@linux.alibaba.com>
+> >>
+> >> To support the prog update, we need to ensure that the prog seen
+> >> within the hook is always valid. Considering that hooks are always
+> >> protected by rcu_read_lock(), which provide us the ability to
+> >> access the prog under rcu.
+> >>
+> >> Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+> >> ---
+> >>   net/netfilter/nf_bpf_link.c | 63 ++++++++++++++++++++++++++++++++++-=
+----------
+> >>   1 file changed, 48 insertions(+), 15 deletions(-)
+> >>
+> >> diff --git a/net/netfilter/nf_bpf_link.c b/net/netfilter/nf_bpf_link.c
+> >> index e502ec0..9bc91d1 100644
+> >> --- a/net/netfilter/nf_bpf_link.c
+> >> +++ b/net/netfilter/nf_bpf_link.c
+> >> @@ -8,17 +8,8 @@
+> >>   #include <net/netfilter/nf_bpf_link.h>
+> >>   #include <uapi/linux/netfilter_ipv4.h>
+> >>
+> >> -static unsigned int nf_hook_run_bpf(void *bpf_prog, struct sk_buff *s=
+kb,
+> >> -                                   const struct nf_hook_state *s)
+> >> -{
+> >> -       const struct bpf_prog *prog =3D bpf_prog;
+> >> -       struct bpf_nf_ctx ctx =3D {
+> >> -               .state =3D s,
+> >> -               .skb =3D skb,
+> >> -       };
+> >> -
+> >> -       return bpf_prog_run(prog, &ctx);
+> >> -}
+> >> +/* protect link update in parallel */
+> >> +static DEFINE_MUTEX(bpf_nf_mutex);
+> >>
+> >>   struct bpf_nf_link {
+> >>          struct bpf_link link;
+> >> @@ -26,8 +17,20 @@ struct bpf_nf_link {
+> >>          struct net *net;
+> >>          u32 dead;
+> >>          const struct nf_defrag_hook *defrag_hook;
+> >> +       struct rcu_head head;
+> > I have to point out the same issues as before, but
+> > will ask them differently...
+> >
+> > Why do you think above rcu_head is necessary?
+> >
+> >>   };
+> >>
+> >> +static unsigned int nf_hook_run_bpf(void *bpf_link, struct sk_buff *s=
+kb,
+> >> +                                   const struct nf_hook_state *s)
+> >> +{
+> >> +       const struct bpf_nf_link *nf_link =3D bpf_link;
+> >> +       struct bpf_nf_ctx ctx =3D {
+> >> +               .state =3D s,
+> >> +               .skb =3D skb,
+> >> +       };
+> >> +       return bpf_prog_run(rcu_dereference_raw(nf_link->link.prog), &=
+ctx);
+> >> +}
+> >> +
+> >>   #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4) || IS_ENABLED(CONFIG_NF_DEFRAG=
+_IPV6)
+> >>   static const struct nf_defrag_hook *
+> >>   get_proto_defrag_hook(struct bpf_nf_link *link,
+> >> @@ -126,8 +129,7 @@ static void bpf_nf_link_release(struct bpf_link *l=
+ink)
+> >>   static void bpf_nf_link_dealloc(struct bpf_link *link)
+> >>   {
+> >>          struct bpf_nf_link *nf_link =3D container_of(link, struct bpf=
+_nf_link, link);
+> >> -
+> >> -       kfree(nf_link);
+> >> +       kfree_rcu(nf_link, head);
+> > Why is this needed ?
+> > Have you looked at tcx_link_lops ?
+>
+> Introducing rcu_head/kfree_rcu is to address the situation where the
+> netfilter hooks might
+> still access the link after bpf_nf_link_dealloc.
 
-Since these tables reside in struct output_ctx there is no implicit
-connection between data type and therefore providing callbacks for
-relevant datat types which feed the data into said wrapper is a simpler
-solution than extending expr_describe() itself.
+Why do you think so?
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- include/datatype.h |  3 +++
- src/ct.c           |  7 +++++++
- src/datatype.c     | 34 ++++++++++++++++++++++++++++++++++
- src/meta.c         |  7 +++++++
- src/rt.c           |  7 +++++++
- 5 files changed, 58 insertions(+)
+>
+>                                                       nf_hook_run_bpf
+>                                                       const struct
+> bpf_nf_link *nf_link =3D bpf_link;
+>
+> bpf_nf_link_release
+>      nf_unregister_net_hook(nf_link->net, &nf_link->hook_ops);
+>
+> bpf_nf_link_dealloc
+>      free(link)
+> bpf_prog_run(link->prog);
+>
+>
+> I had checked the tcx_link_lops ,it's seems it use the synchronize_rcu()
+> to solve the
 
-diff --git a/include/datatype.h b/include/datatype.h
-index 09a7894567e4d..c4d6282d6f591 100644
---- a/include/datatype.h
-+++ b/include/datatype.h
-@@ -252,6 +252,9 @@ extern void symbol_table_print(const struct symbol_table *tbl,
- 
- extern struct symbol_table *rt_symbol_table_init(const char *filename);
- extern void rt_symbol_table_free(const struct symbol_table *tbl);
-+extern void rt_symbol_table_describe(struct output_ctx *octx, const char *name,
-+				     const struct symbol_table *tbl,
-+				     const struct datatype *type);
- 
- extern const struct datatype invalid_type;
- extern const struct datatype verdict_type;
-diff --git a/src/ct.c b/src/ct.c
-index ebfd90a1ab0d3..6793464859cad 100644
---- a/src/ct.c
-+++ b/src/ct.c
-@@ -216,10 +216,17 @@ static struct error_record *ct_label_type_parse(struct parse_ctx *ctx,
- 	return NULL;
- }
- 
-+static void ct_label_type_describe(struct output_ctx *octx)
-+{
-+	rt_symbol_table_describe(octx, CONNLABEL_CONF,
-+				 octx->tbl.ct_label, &ct_label_type);
-+}
-+
- const struct datatype ct_label_type = {
- 	.type		= TYPE_CT_LABEL,
- 	.name		= "ct_label",
- 	.desc		= "conntrack label",
-+	.describe	= ct_label_type_describe,
- 	.byteorder	= BYTEORDER_HOST_ENDIAN,
- 	.size		= CT_LABEL_BIT_SIZE,
- 	.basetype	= &bitmask_type,
-diff --git a/src/datatype.c b/src/datatype.c
-index 4d867798222be..3b19ae8ef52d8 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -946,6 +946,33 @@ void rt_symbol_table_free(const struct symbol_table *tbl)
- 	free_const(tbl);
- }
- 
-+void rt_symbol_table_describe(struct output_ctx *octx, const char *name,
-+			      const struct symbol_table *tbl,
-+			      const struct datatype *type)
-+{
-+	char *path = NULL;
-+	FILE *f;
-+
-+	if (!tbl || !tbl->symbols[0].identifier)
-+		return;
-+
-+	f = open_iproute2_db(name, &path);
-+	if (f)
-+		fclose(f);
-+	if (!path && asprintf(&path, "%s%s",
-+			      name[0] == '/' ? "" : "unknown location of ",
-+			      name) < 0)
-+		return;
-+
-+	nft_print(octx, "\npre-defined symbolic constants from %s ", path);
-+	if (tbl->base == BASE_DECIMAL)
-+		nft_print(octx, "(in decimal):\n");
-+	else
-+		nft_print(octx, "(in hexadecimal):\n");
-+	symbol_table_print(tbl, type, type->byteorder, octx);
-+	free(path);
-+}
-+
- void mark_table_init(struct nft_ctx *ctx)
- {
- 	ctx->output.tbl.mark = rt_symbol_table_init("rt_marks");
-@@ -968,10 +995,17 @@ static struct error_record *mark_type_parse(struct parse_ctx *ctx,
- 	return symbolic_constant_parse(ctx, sym, ctx->tbl->mark, res);
- }
- 
-+static void mark_type_describe(struct output_ctx *octx)
-+{
-+	rt_symbol_table_describe(octx, "rt_marks",
-+				 octx->tbl.mark, &mark_type);
-+}
-+
- const struct datatype mark_type = {
- 	.type		= TYPE_MARK,
- 	.name		= "mark",
- 	.desc		= "packet mark",
-+	.describe	= mark_type_describe,
- 	.size		= 4 * BITS_PER_BYTE,
- 	.byteorder	= BYTEORDER_HOST_ENDIAN,
- 	.basetype	= &integer_type,
-diff --git a/src/meta.c b/src/meta.c
-index 6f76f0033a630..eca8dac72098a 100644
---- a/src/meta.c
-+++ b/src/meta.c
-@@ -346,10 +346,17 @@ static struct error_record *devgroup_type_parse(struct parse_ctx *ctx,
- 	return symbolic_constant_parse(ctx, sym, ctx->tbl->devgroup, res);
- }
- 
-+static void devgroup_type_describe(struct output_ctx *octx)
-+{
-+	rt_symbol_table_describe(octx, "group",
-+				 octx->tbl.devgroup, &devgroup_type);
-+}
-+
- const struct datatype devgroup_type = {
- 	.type		= TYPE_DEVGROUP,
- 	.name		= "devgroup",
- 	.desc		= "devgroup name",
-+	.describe	= devgroup_type_describe,
- 	.byteorder	= BYTEORDER_HOST_ENDIAN,
- 	.size		= 4 * BITS_PER_BYTE,
- 	.basetype	= &integer_type,
-diff --git a/src/rt.c b/src/rt.c
-index 3ee710ddc05b5..d8f3352f4b4a7 100644
---- a/src/rt.c
-+++ b/src/rt.c
-@@ -45,10 +45,17 @@ static struct error_record *realm_type_parse(struct parse_ctx *ctx,
- 	return symbolic_constant_parse(ctx, sym, ctx->tbl->realm, res);
- }
- 
-+static void realm_type_describe(struct output_ctx *octx)
-+{
-+	rt_symbol_table_describe(octx, "rt_realms",
-+				 octx->tbl.realm, &realm_type);
-+}
-+
- const struct datatype realm_type = {
- 	.type		= TYPE_REALM,
- 	.name		= "realm",
- 	.desc		= "routing realm",
-+	.describe	= realm_type_describe,
- 	.byteorder	= BYTEORDER_HOST_ENDIAN,
- 	.size		= 4 * BITS_PER_BYTE,
- 	.basetype	= &integer_type,
--- 
-2.43.0
+Where do you see such code in tcx_link_lops ?
 
+> same problem, which is also the way we used in the first version.
+>
+> https://lore.kernel.org/bpf/1702467945-38866-1-git-send-email-alibuda@lin=
+ux.alibaba.com/
+>
+> However, we have received some opposing views, believing that this is a
+> bit overkill,
+> so we decided to use kfree_rcu.
+>
+> https://lore.kernel.org/bpf/20231213222415.GA13818@breakpoint.cc/
+>
+> >>   }
+> >>
+> >>   static int bpf_nf_link_detach(struct bpf_link *link)
+> >> @@ -162,7 +164,34 @@ static int bpf_nf_link_fill_link_info(const struc=
+t bpf_link *link,
+> >>   static int bpf_nf_link_update(struct bpf_link *link, struct bpf_prog=
+ *new_prog,
+> >>                                struct bpf_prog *old_prog)
+> >>   {
+> >> -       return -EOPNOTSUPP;
+> >> +       struct bpf_nf_link *nf_link =3D container_of(link, struct bpf_=
+nf_link, link);
+> >> +       int err =3D 0;
+> >> +
+> >> +       mutex_lock(&bpf_nf_mutex);
+> > Why do you need this mutex?
+> > What race does it solve?
+>
+> To avoid user update a link with differ prog at the same time. I noticed
+> that sys_bpf()
+> doesn't seem to prevent being invoked by user at the same time. Have I
+> missed something?
+
+You're correct that sys_bpf() doesn't lock anything.
+But what are you serializing in this bpf_nf_link_update() ?
+What will happen if multiple bpf_nf_link_update()
+without mutex run on different CPUs in parallel ?
