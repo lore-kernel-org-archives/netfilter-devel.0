@@ -1,105 +1,76 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp.forwardemail.net (smtp.forwardemail.net [149.28.215.223])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F466171A7;
-	Sat, 23 Dec 2023 21:13:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F09E809;
+	Sun, 24 Dec 2023 02:49:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=faucet.nz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fe-bounces.faucet.nz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MXsO3swr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1896C433C7;
-	Sat, 23 Dec 2023 21:13:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1703365992;
-	bh=eS/NNuZs+uOixwQlUIyReqblSnwjefK/9VvHHvHlqSg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=MXsO3swrJ93l572Jy066m5YHVhMaZHJtrpERQsudltVi+PY0qP/mbxhFCHy31XP8A
-	 RAPeblZ3kpeq2YECDLYZHXh8AvJe5aWl0cZGzpbftDubvJwJBhRLGBFJy3QIDJUIZb
-	 /8nMPThkBRXuaMvR7cBYb5oc3+TMfHVLdsc2u/M8cJ6StX32JTx8Uq/QY+njQ0ULRk
-	 vzYdLkA3nq33W1USIamUafyNeRhPlXmGD+tITdVkksvuPQnYmn4lP4zydgJqTjZsJG
-	 E1JYTWZV2ynH0Oobz9tnVG8sS6YROLG6QzsG162xYFNCApoujlWNekRBH16Lmz3aMM
-	 OImY4pFCB0KyQ==
-Date: Sat, 23 Dec 2023 21:13:06 +0000
-From: Simon Horman <horms@kernel.org>
-To: Brad Cowie <brad@faucet.nz>
-Cc: netdev@vger.kernel.org, dev@openvswitch.org, fw@strlen.de,
-	linux-kernel@vger.kernel.org, kadlec@netfilter.org,
-	edumazet@google.com, netfilter-devel@vger.kernel.org,
-	kuba@kernel.org, pabeni@redhat.com, davem@davemloft.net,
-	pablo@netfilter.org, Xin Long <lucien.xin@gmail.com>,
-	Aaron Conole <aconole@redhat.com>, coreteam@netfilter.org
-Subject: Re: [PATCH net] netfilter: nf_nat: fix action not being set for all
- ct states
-Message-ID: <20231223211306.GA215659@kernel.org>
-References: <20231221224311.130319-1-brad@faucet.nz>
+	dkim=pass (1024-bit key) header.d=faucet.nz header.i=@faucet.nz header.b="wInof650"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=faucet.nz;
+ h=Content-Transfer-Encoding: MIME-Version: References: In-Reply-To:
+ Message-Id: Date: Subject: Cc: To: From; q=dns/txt; s=fe-4ed8c67516;
+ t=1703386128; bh=F8jSH+IjG8VuuDuvNGsnUR0Q70IsR9+kyvZL2HMi7f0=;
+ b=wInof650V9xQy4r9+GiKQaGua1nHUoYFNZ0j1A7IpkM8wAQxnd6A8FGIiqmmYTNueb2U+wxwF
+ zxCxxVS3QhoIEqPA5cTeSDmYTUB5cjiwv4gYZmnjxh7V1VxXYqbiVIadaNaxV9XQCA+IGl8KTQb
+ iH/g8q/IOzowSvqn2aYW4lc=
+From: Brad Cowie <brad@faucet.nz>
+To: horms@kernel.org
+Cc: aconole@redhat.com, brad@faucet.nz, coreteam@netfilter.org,
+ davem@davemloft.net, dev@openvswitch.org, edumazet@google.com,
+ fw@strlen.de, kadlec@netfilter.org, kuba@kernel.org,
+ linux-kernel@vger.kernel.org, lucien.xin@gmail.com,
+ netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ pabeni@redhat.com, pablo@netfilter.org
+Subject: Re: [PATCH net] netfilter: nf_nat: fix action not being set for all ct states
+Date: Sun, 24 Dec 2023 15:47:25 +1300
+Message-Id: <20231224024725.80516-1-brad@faucet.nz>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20231223211306.GA215659@kernel.org>
+References: <20231223211306.GA215659@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20231221224311.130319-1-brad@faucet.nz>
+Content-Transfer-Encoding: 8bit
+X-Report-Abuse-To: abuse@forwardemail.net
+X-Report-Abuse: abuse@forwardemail.net
+X-Complaints-To: abuse@forwardemail.net
+X-ForwardEmail-Version: 0.4.40
+X-ForwardEmail-Sender: rfc822; brad@faucet.nz, smtp.forwardemail.net,
+ 149.28.215.223
+X-ForwardEmail-ID: 65879c1085a9bad88417ac0b
 
-+ Xin Long <lucien.xin@gmail.com>
-  Aaron Conole <aconole@redhat.com>
-  coreteam@netfilter.org
+On Sun, 24 Dec 2023 at 10:13, Simon Horman <horms@kernel.org> wrote:
+> Thanks Brad,
+>
+> I agree with your analysis and that the problem appears to
+> have been introduced by the cited commit.
 
-On Fri, Dec 22, 2023 at 11:43:11AM +1300, Brad Cowie wrote:
-> This fixes openvswitch's handling of nat packets in the related state.
-> 
-> In nf_ct_nat_execute(), which is called from nf_ct_nat(), ICMP/ICMPv6
-> packets in the IP_CT_RELATED or IP_CT_RELATED_REPLY state, which have
-> not been dropped, will follow the goto, however the placement of the
-> goto label means that updating the action bit field will be bypassed.
-> 
-> This causes ovs_nat_update_key() to not be called from ovs_ct_nat()
-> which means the openvswitch match key for the ICMP/ICMPv6 packet is not
-> updated and the pre-nat value will be retained for the key, which will
-> result in the wrong openflow rule being matched for that packet.
-> 
-> Move the goto label above where the action bit field is being set so
-> that it is updated in all cases where the packet is accepted.
-> 
-> Fixes: ebddb1404900 ("net: move the nat function to nf_nat_ovs for ovs and tc")
-> Signed-off-by: Brad Cowie <brad@faucet.nz>
+Thanks for the review Simon.
 
-Thanks Brad,
+> I am curious to know what use case triggers this /
+> why it when unnoticed for a year.
 
-I agree with your analysis and that the problem appears to
-have been introduced by the cited commit.
+We encountered this issue while upgrading some routers from
+linux 5.15 to 6.2. The dataplane on these routers is provided
+by an openvswitch bridge which is controlled via openflow by
+faucet. These routers are also performing SNAT on all traffic
+to/from the wan interface via openvswitch conntrack openflow
+rules.
 
-I am curious to know what use case triggers this /
-why it when unnoticed for a year.
+We noticed that after upgrading the linux kernel, traceroute/mtr
+no longer worked when run from clients behind the router.
+We eventually discovered the reason for this is that the
+ICMP time exceeded messages elicited by traceroute were
+matching openflow rules with the incorrect destination ip,
+despite there being an openflow rule to undo the nat.
+Other packets in the established or new state matched the
+expected openflow rules.
 
-But in any case, this fix looks good to me.
-
-Reviewed-by: Simon Horman <horms@kernel.org>
-
-> ---
->  net/netfilter/nf_nat_ovs.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/nf_nat_ovs.c b/net/netfilter/nf_nat_ovs.c
-> index 551abd2da614..0f9a559f6207 100644
-> --- a/net/netfilter/nf_nat_ovs.c
-> +++ b/net/netfilter/nf_nat_ovs.c
-> @@ -75,9 +75,10 @@ static int nf_ct_nat_execute(struct sk_buff *skb, struct nf_conn *ct,
->  	}
->  
->  	err = nf_nat_packet(ct, ctinfo, hooknum, skb);
-> +out:
->  	if (err == NF_ACCEPT)
->  		*action |= BIT(maniptype);
-> -out:
-> +
->  	return err;
->  }
->  
-> -- 
-> 2.34.1
-> 
-> _______________________________________________
-> dev mailing list
-> dev@openvswitch.org
-> https://mail.openvswitch.org/mailman/listinfo/ovs-dev
-> 
+A git bisect between 5.15 and 6.2 showed that this change in
+behaviour was introduced by commit ebddb1404900. After the
+above patch is applied our routers perform nat correctly
+again for traceroute/mtr.
