@@ -1,59 +1,246 @@
-Received: from mail-0301.mail-europe.com (mail-0301.mail-europe.com [188.165.51.139])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f172.google.com (mail-qt1-f172.google.com [209.85.160.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EE8B524C4
-	for <netfilter-devel@vger.kernel.org>; Mon, 25 Dec 2023 15:26:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8E8452F6C
+	for <netfilter-devel@vger.kernel.org>; Mon, 25 Dec 2023 17:32:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="HJyd9Eg0"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
-	s=protonmail3; t=1703517988; x=1703777188;
-	bh=XE0RGXzi7SC+kE8ggyFgj5ePPG5WZgpIAXE6wYhBZ0g=;
-	h=Date:To:From:Cc:Subject:Message-ID:Feedback-ID:From:To:Cc:Date:
-	 Subject:Reply-To:Feedback-ID:Message-ID:BIMI-Selector;
-	b=HJyd9Eg0y/Xhlcst1raEzRv/+3/TkI2R3v5KA//wCFzZLmv07GVz+LKG556ua1GnI
-	 nYd06+pN4Wp5lHpNnWVh+1LtUJdGJc6uXiQy+rGh8ODCGoWU+hRcdQ077sxeLuh2pX
-	 yFbzKZJsoD+soJm8oi2dZBOthmwMhRpMUXfqtHb/yHUc9tPpAJMFYuJtZ6xFW4vSAs
-	 KJvs520WbWMz7ig1Cz5XAayDCtAQM5xsNeOw5bzECVX4o5LMSOyzRlgkIneFNIUF6f
-	 Xg05xFXe+pnS3XJZcXkg+wfIrh3nr9QNhbEEhZ8TBYEW+r5yypMGL10Pm+b8IW+nlG
-	 ngbvodmpRDFhw==
-Date: Mon, 25 Dec 2023 15:26:13 +0000
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-From: Turritopsis Dohrnii Teo En Ming <teo.en.ming@protonmail.com>
-Cc: "ceo@teo-en-ming-corp.com" <ceo@teo-en-ming-corp.com>
-Subject: GUI Frontend for iptables and nftables Linux firewalls
-Message-ID: <F2UgPsJY77kOox0aLlaT8ezVQQdgsDcsP95OPo5wyKzn230KLtlp1R_NHDRcM2FzpUByrp72jC2s1qu-7aV6kNmig0Rxn1Bly-ci51RE7t4=@protonmail.com>
-Feedback-ID: 39510961:user:proton
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hY+Sauog"
+Received: by mail-qt1-f172.google.com with SMTP id d75a77b69052e-427b1bf1896so26194591cf.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Dec 2023 09:32:52 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1703525571; x=1704130371; darn=vger.kernel.org;
+        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=3EkRPOVY5W4uHqcjVdowvwHSkXQ7n4UR70DwP3SjxS8=;
+        b=hY+Sauogbqoc7h1pVz31Bz7ZfE/ZSr38WslDjbn5wPCd5t9kG6MlRjmXJzmlfRqXsZ
+         Oa7my4+q7/RWHDJ8fn6sHE6aIViKA+AKhRI1fIwzaK0kWn9zNUemarIJN3dx8sBD/qsG
+         7LgDli7q98GgPGmPQGeExhYPCs9zdZYg0FbNw0oQeo5N20xyEynhN9li5FbC/NVyjtMx
+         IsNj66H0obLQozKpI4pgj/5KgZ/xDjQDACyp5pRM6fLcP5QEunRka0lFZ0A00/T+CcmI
+         wTh84z/76VhMUo5mQRwuclXEItCHm3FT5EwzJnPtt5QLrfBNOaA4aGpVYGDHDGKXSRDI
+         8ALA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1703525571; x=1704130371;
+        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=3EkRPOVY5W4uHqcjVdowvwHSkXQ7n4UR70DwP3SjxS8=;
+        b=MltLkTyFENAuGr3wRN8y17zegjL9oroL+bqBoQ20cE4gT9IuRFX4+TfcfS5T2ixm61
+         dOIyGQ6PnK3CpB99IYQ/BDoCjf3RJfIIvoPPNHF/z6z7SUJy3IsqIqzhXENGKDmQOXd8
+         +0daAlZXm8T2f2r4AwmyTVSU9CMn7tws2b/phGKWlo4aEVAcHxzK0l783htBGLpDnzVm
+         oghG0QkNtsC8BWFU1kx7jIP/RMBrrZLg8ntpd/O02Ehv+jcYECKX7P8WOE6J7lG7mqQl
+         j/v0/EWwlNgTn2Wc09ag+ql6DuxcBRVR3uBgIUFO3neL5ZpNv3taA8+DQQcHYBss5/AI
+         blXw==
+X-Gm-Message-State: AOJu0Yy2MBuRKauBEu36rT1u1vwEbv4VPzZBU09ICJQFnEEOPQlnFe3a
+	+pEwp2Jpr/h9MdWTBTpSOvqQD9R2QuU496vkdDM82LvieTs=
+X-Google-Smtp-Source: AGHT+IEWtJkYrvr/R0nxWCa/z4glDbZS94XWBbv7XVDGfBKAktUSlOp0Jf09SGrVyUIMikWOoIK3/g50hs3pUV1192c=
+X-Received: by 2002:ac8:5a8b:0:b0:425:4043:5f41 with SMTP id
+ c11-20020ac85a8b000000b0042540435f41mr8621368qtc.127.1703525571338; Mon, 25
+ Dec 2023 09:32:51 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+From: P K <pkopensrc@gmail.com>
+Date: Mon, 25 Dec 2023 23:02:40 +0530
+Message-ID: <CAL0j0DG26=dxHysHajcFkS+Aac8e9rnM3Rsy8drBZMns=eynOQ@mail.gmail.com>
+Subject: Kprobe for nf_nat is broken in Latest Debian 6.1.66-1
+To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-Subject: GUI Frontend for iptables and nftables Linux firewalls
+Hi,
 
-Good day from Singapore,
+In recent debian kernel 6.1.66-1 kprobe to nf_nat_ipv4_manip_pkt or
+any nf_nat function is not working. It was working fine on 6.1.55-1
+kfunc is working fine.
 
-Besides Webmin, are there any other good GUI frontends for iptables and nft=
-ables?
+Any suggestions on how to fix this?
 
-The GUI frontend needs to allow complex firewall configurations. I think We=
-bmin only allows simple firewall configurations.
+Below are logs:
 
-Please advise.
+Not working :
 
-Thank you.
+/ # bpftrace --info
+System
+  OS: Linux 6.1.0-15-cloud-amd64 #1 SMP PREEMPT_DYNAMIC Debian
+6.1.66-1 (2023-12-09)
+  Arch: x86_64
 
-Regards,
+Build
+  version: v0.17.1
+  LLVM: 16.0.3
+  unsafe uprobe: no
+  bfd: yes
+  libdw (DWARF support): yes
 
-Mr. Turritopsis Dohrnii Teo En Ming
-Targeted Individual in Singapore
+Kernel helpers
+  probe_read: yes
+  probe_read_str: yes
+  probe_read_user: yes
+  probe_read_user_str: yes
+  probe_read_kernel: yes
+  probe_read_kernel_str: yes
+  get_current_cgroup_id: yes
+  send_signal: yes
+  override_return: no
+  get_boot_ns: yes
+  dpath: yes
+  skboutput: no
+
+Kernel features
+  Instruction limit: 1000000
+  Loop support: yes
+  btf: yes
+  map batch: yes
+  uprobe refcount (depends on Build:bcc bpf_attach_uprobe refcount): yes
+
+Map types
+  hash: yes
+  percpu hash: yes
+  array: yes
+  percpu array: yes
+  stack_trace: yes
+  perf_event_array: yes
+
+Probe types
+  kprobe: yes
+  tracepoint: yes
+  perf_event: yes
+  kfunc: yes
+  iter:task: yes
+  iter:task_file: yes
+  kprobe_multi: no
+  raw_tp_special: yes
+
+/ #
+
+$ sudo bpftrace -l | grep "manip"
+kfunc:nf_nat:l4proto_manip_pkt
+kfunc:nf_nat:nf_nat_ipv4_manip_pkt
+kfunc:nf_nat:nf_nat_ipv6_manip_pkt
+kfunc:nf_nat:nf_nat_manip_pkt
+kprobe:l4proto_manip_pkt
+kprobe:nf_nat_ipv4_manip_pkt
+kprobe:nf_nat_ipv6_manip_pkt
+kprobe:nf_nat_manip_pkt
 
 
+/ # bpftrace -e 'kprobe:nf_nat_ipv4_manip_pkt { printf("func called\n"); }'
+Attaching 1 probe...
+cannot attach kprobe, probe entry may not exist
+ERROR: Error attaching probe: 'kprobe:nf_nat_ipv4_manip_pkt'
 
 
+/ # bpftrace -e 'kfunc:nf_nat:nf_nat_ipv4_manip_pkt { printf("func
+called\n"); }'
+Attaching 1 probe...
 
+func called
+func called
+func called
+func called
+func called
+func called
+func called
+func called
+func called
+func called
+func called
+func called
+^C
+
+/ #
+
+
+Working:
+/ # bpftrace --info
+System
+  OS: Linux 6.1.0-13-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.55-1 (2023-09-29)
+  Arch: x86_64
+
+Build
+  version: v0.17.1
+  LLVM: 16.0.3
+  unsafe uprobe: no
+  bfd: yes
+  libdw (DWARF support): yes
+
+Kernel helpers
+  probe_read: yes
+  probe_read_str: yes
+  probe_read_user: yes
+  probe_read_user_str: yes
+  probe_read_kernel: yes
+  probe_read_kernel_str: yes
+  get_current_cgroup_id: yes
+  send_signal: yes
+  override_return: no
+  get_boot_ns: yes
+  dpath: yes
+  skboutput: no
+
+Kernel features
+  Instruction limit: 1000000
+  Loop support: yes
+  btf: yes
+  map batch: yes
+  uprobe refcount (depends on Build:bcc bpf_attach_uprobe refcount): yes
+
+Map types
+  hash: yes
+  percpu hash: yes
+  array: yes
+  percpu array: yes
+  stack_trace: yes
+  perf_event_array: yes
+
+Probe types
+  kprobe: yes
+  tracepoint: yes
+  perf_event: yes
+  kfunc: yes
+  iter:task: yes
+  iter:task_file: yes
+  kprobe_multi: no
+  raw_tp_special: yes
+
+
+/ # bpftrace -l | grep "manip"
+kprobe:l4proto_manip_pkt
+kprobe:nf_nat_ipv4_manip_pkt
+kprobe:nf_nat_ipv6_manip_pkt
+kprobe:nf_nat_manip_pkt
+/ #
+
+
+/ # bpftrace --version
+bpftrace v0.17.1
+/ # bpftrace -e 'kprobe:nf_nat_ipv4_manip_pkt { printf("func called\n"); }'
+Attaching 1 probe...
+func called
+func called
+func called
+func called
+func called
+func called
+func called
+func called
+^C
+
+/ # bpftrace -e 'kfunc:nf_nat:nf_nat_ipv4_manip_pkt { printf("func
+called\n"); }'
+Attaching 1 probe...
+func called
+func called
+func called
+func called
+func called
+func called
+func called
+func called
+func called
+
+^C
+/ #
