@@ -1,23 +1,23 @@
-Received: from out-174.mta1.migadu.com (out-174.mta1.migadu.com [95.215.58.174])
+Received: from out-176.mta1.migadu.com (out-176.mta1.migadu.com [95.215.58.176])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59C1253E3D
-	for <netfilter-devel@vger.kernel.org>; Tue, 26 Dec 2023 09:44:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B0455467E
+	for <netfilter-devel@vger.kernel.org>; Tue, 26 Dec 2023 09:44:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="C0sepe7v"
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="jcZJD8fA"
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1703583867;
+	t=1703583872;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=hp/0/EtTdpMsUAddj6nOU9DQyFHJ3X7EwlFVc6kkPQM=;
-	b=C0sepe7vQ9c5pa4c+/WXMOeWpUbZkmkRIj+cyjmF00LtSuB7V9z7cSw2LMSb+Em/YHM9CT
-	IFz5sFodVtvDBEur4UMSEJUbpsarcaS0JPz2ZX9gdLjZR/X1IrDxX3Gcn6JM2RCE25g87g
-	eSvxnxwHjZRmJr3+wbyF5zesOdpHijw=
+	bh=OLqrcEqlQDuXOmtMoD41DhPaHHKeGyUrjqKv3FgY7JM=;
+	b=jcZJD8fASaNXDquW+AXlv17kgtzk/MAMMST3c01jyYwDTPW8vbVbKmgeGdMg27PVJRqwtP
+	3L7K7OkWooSRnOOQRZmfjzSLtgoP171Jz4oAVdj8a3cMfSZiybw7tSmIvhlEnaCGvLRogf
+	BEvSqJzM3OTW/loYXqjAca5eRT7TysE=
 From: George Guo <dongtai.guo@linux.dev>
 To: horms@kernel.org,
 	pablo@netfilter.org,
@@ -32,9 +32,9 @@ Cc: netfilter-devel@vger.kernel.org,
 	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	George Guo <guodongtai@kylinos.cn>
-Subject: [PATCH 13/14] netfilter: cleanup struct nft_object_ops
-Date: Tue, 26 Dec 2023 17:42:54 +0800
-Message-Id: <20231226094255.77911-13-dongtai.guo@linux.dev>
+Subject: [PATCH 14/14] netfilter: cleanup struct nft_flowtable
+Date: Tue, 26 Dec 2023 17:42:55 +0800
+Message-Id: <20231226094255.77911-14-dongtai.guo@linux.dev>
 In-Reply-To: <20231226094255.77911-1-dongtai.guo@linux.dev>
 References: <20231226094255.77911-1-dongtai.guo@linux.dev>
 Precedence: bulk
@@ -48,25 +48,29 @@ X-Migadu-Flow: FLOW_OUT
 
 From: George Guo <guodongtai@kylinos.cn>
 
-Add comment for type in struct nft_object_ops.
+Add comment for hook_list in struct nft_flowtable, and remove comments
+for dev_name and ops which are not members of struct nft_flowtable.
 
 Signed-off-by: George Guo <guodongtai@kylinos.cn>
 ---
- include/net/netfilter/nf_tables.h | 1 +
- 1 file changed, 1 insertion(+)
+ include/net/netfilter/nf_tables.h | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index dab1727f3487..505128d10073 100644
+index 505128d10073..a880e9439cc2 100644
 --- a/include/net/netfilter/nf_tables.h
 +++ b/include/net/netfilter/nf_tables.h
-@@ -1373,6 +1373,7 @@ struct nft_object_type {
-  *	@destroy: release existing stateful object
-  *	@dump: netlink dump stateful object
-  *	@update: update stateful object
-+ *	@type: pointer to object type
+@@ -1409,9 +1409,8 @@ void nft_unregister_obj(struct nft_object_type *obj_type);
+  *	@genmask: generation mask
+  *	@use: number of references to this flow table
+  * 	@handle: unique object handle
+- *	@dev_name: array of device names
++ *	@hook_list: hook list for hooks per net_device in flowtables
+  *	@data: rhashtable and garbage collector
+- * 	@ops: array of hooks
   */
- struct nft_object_ops {
- 	void				(*eval)(struct nft_object *obj,
+ struct nft_flowtable {
+ 	struct list_head		list;
 -- 
 2.39.2
 
