@@ -1,132 +1,98 @@
-Received: from out30-101.freemail.mail.aliyun.com (out30-101.freemail.mail.aliyun.com [115.124.30.101])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f176.google.com (mail-yw1-f176.google.com [209.85.128.176])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB5336AAC;
-	Thu, 28 Dec 2023 11:06:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R981e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045176;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=14;SR=0;TI=SMTPD_---0VzOK8oQ_1703761600;
-Received: from 30.221.146.89(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VzOK8oQ_1703761600)
-          by smtp.aliyun-inc.com;
-          Thu, 28 Dec 2023 19:06:41 +0800
-Message-ID: <5f8ee6e1-8a3c-457c-bbda-5b003e726a7c@linux.alibaba.com>
-Date: Thu, 28 Dec 2023 19:06:39 +0800
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD91CF4E1;
+	Thu, 28 Dec 2023 15:59:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Ppv5Kc72"
+Received: by mail-yw1-f176.google.com with SMTP id 00721157ae682-5d05ff42db0so53085917b3.2;
+        Thu, 28 Dec 2023 07:59:33 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1703779173; x=1704383973; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=fVlq7DVtkYMFVcKQ9OTWr3F0Se96zgvlu8hOUc93pE0=;
+        b=Ppv5Kc72raExgjl4dWjiAMXrTKbo05mwvorlbWy3EUvWf71Rbh7uR/Xb/f+bDSLPz4
+         6DntvnFPmTXjbqPWC3ASphZv+rYyO/KAUoqL7yiy8dcbk4innNbx/jHt0xSfijgbn0gG
+         lhxxBiTQM/B/KyAy06+/WK5H8ywbB2cm/UsPX6+7jbKiNgLbmjxiz7vfaQuruEJn467k
+         G9Tq0X7UZK05P0GIMPYBQ/5ywpQhrG785vHYkcxdWfPOwKHpzTq5pSoM/pR111o+1K7X
+         vwrQkr46aqQchFSGwCkgSEEIKEO1A51y7it4DKPiZSzxai98U1+pzVrbXGp9AtT0VdAu
+         SJZA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1703779173; x=1704383973;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=fVlq7DVtkYMFVcKQ9OTWr3F0Se96zgvlu8hOUc93pE0=;
+        b=CaoFbpe0qW8Idn9DNfiu4xHXoosKJMTICU+a0emDlwMPoTbEGTGwS1RZqRkXq9mZbd
+         4yPoh9Bm6poJmXFxbsaejzz6qi45Bma7yIj6CRRhKw1C2F4IKM6jUAUkKvKw18bQs6Pr
+         BHm+NcVb/9PSjsa3EdDiqiik5RHmLxYpRrQFya6DPox61j0InbEkUa4HWRGaaHzsLZGf
+         Ta8nZvoHAcS0xAzA/W2CgZECAPe35ffxIHXWx5NndeQVvT/BxPLC+NdjvA5fi4t8AsTU
+         9aq7GZerZ6PHDVUDrwpnL/GylZ95bTZTa1RMqfrm58OTEHWeSHxuiEmoHsk6ahd43YeD
+         /Sdw==
+X-Gm-Message-State: AOJu0YxWodtQQwQsjmDeFyXVnJYX304i5sWhYyNJ9Ue+EJ2DEes0pXMY
+	Zq/ANbQEQeMl98s+/i18OcKoIZxrcJds92JHfLg=
+X-Google-Smtp-Source: AGHT+IE8n3oYZ5R2LDPhAOxhummRKsaEwA2M8Gn8AOHI0pVTdFih5TII33+bSs8PWE58xsJQY/7+ZN1T3Juaxa/x/sE=
+X-Received: by 2002:a0d:c983:0:b0:5d7:1941:2c33 with SMTP id
+ l125-20020a0dc983000000b005d719412c33mr6505582ywd.96.1703779172672; Thu, 28
+ Dec 2023 07:59:32 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC nf-next v3 1/2] netfilter: bpf: support prog update
-Content-Language: en-US
-To: Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
- Jozsef Kadlecsik <kadlec@netfilter.org>, Florian Westphal <fw@strlen.de>,
- bpf <bpf@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>,
- Network Development <netdev@vger.kernel.org>, coreteam@netfilter.org,
- netfilter-devel <netfilter-devel@vger.kernel.org>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Alexei Starovoitov <ast@kernel.org>
-References: <1703081351-85579-1-git-send-email-alibuda@linux.alibaba.com>
- <1703081351-85579-2-git-send-email-alibuda@linux.alibaba.com>
- <CAADnVQK3Wk+pKbvc5_7jgaQ=qFq3y0ozgnn+dbW56DaHL2ExWQ@mail.gmail.com>
- <1d3cb7fc-c1dc-a779-8952-cdbaaf696ce3@linux.alibaba.com>
- <CAADnVQJEUEo3g7knXtkD0CNjazTpQKcjrAaZLJ4utk962bjmvw@mail.gmail.com>
- <d5879c57-634f-4973-b52d-4994d0929de6@linux.alibaba.com>
- <CAADnVQJZsJujDH=YAoZ6ieQQ2pVo0wvc-ppwRC7y2X=ggibsEw@mail.gmail.com>
-From: "D. Wythe" <alibuda@linux.alibaba.com>
-In-Reply-To: <CAADnVQJZsJujDH=YAoZ6ieQQ2pVo0wvc-ppwRC7y2X=ggibsEw@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+References: <20231223211306.GA215659@kernel.org> <20231224024725.80516-1-brad@faucet.nz>
+In-Reply-To: <20231224024725.80516-1-brad@faucet.nz>
+From: Xin Long <lucien.xin@gmail.com>
+Date: Thu, 28 Dec 2023 10:59:21 -0500
+Message-ID: <CADvbK_dpD+rTPr4acbvmHu91OHtgynzJ4Ru3+d+rw7njmOPeww@mail.gmail.com>
+Subject: Re: [PATCH net] netfilter: nf_nat: fix action not being set for all
+ ct states
+To: Brad Cowie <brad@faucet.nz>
+Cc: horms@kernel.org, aconole@redhat.com, coreteam@netfilter.org, 
+	davem@davemloft.net, dev@openvswitch.org, edumazet@google.com, fw@strlen.de, 
+	kadlec@netfilter.org, kuba@kernel.org, linux-kernel@vger.kernel.org, 
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pabeni@redhat.com, 
+	pablo@netfilter.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-
-
-On 12/28/23 3:00 AM, Alexei Starovoitov wrote:
-> On Wed, Dec 27, 2023 at 12:20 AM D. Wythe <alibuda@linux.alibaba.com> wrote:
->>
->> Hi Alexei,
->>
->>
->> IMMO, nf_unregister_net_hook does not wait for the completion of the
->> execution of the hook that is being removed,
->> instead, it allocates a new array without the very hook to replace the
->> old arrayvia rcu_assign_pointer() (in __nf_hook_entries_try_shrink),
->> then it use call_rcu() to release the old one.
->>
->> You can find more details in commit
->> 8c873e2199700c2de7dbd5eedb9d90d5f109462b.
->>
->> In other words, when nf_unregister_net_hook returns, there may still be
->> contexts executing hooks on the
->> old array, which means that the `link` may still be accessed after
->> nf_unregister_net_hook returns.
->>
->> And that's the reason why we use kfree_rcu() to release the `link`.
->>>>                                                         nf_hook_run_bpf
->>>>                                                         const struct
->>>> bpf_nf_link *nf_link = bpf_link;
->>>>
->>>> bpf_nf_link_release
->>>>        nf_unregister_net_hook(nf_link->net, &nf_link->hook_ops);
->>>>
->>>> bpf_nf_link_dealloc
->>>>        free(link)
->>>> bpf_prog_run(link->prog);
-> Got it.
-> Sounds like it's an existing bug. If so it should be an independent
-> patch with Fixes tag.
+On Sat, Dec 23, 2023 at 9:48=E2=80=AFPM Brad Cowie <brad@faucet.nz> wrote:
 >
-> Also please craft a test case to demonstrate UAF.
+> On Sun, 24 Dec 2023 at 10:13, Simon Horman <horms@kernel.org> wrote:
+> > Thanks Brad,
+> >
+> > I agree with your analysis and that the problem appears to
+> > have been introduced by the cited commit.
 >
-
-It is not an existing bug... Accessing the link within the hook was 
-something I introduced here
-to support updates😉, as previously there was no access to the link 
-within the hook.
->> I must admit that it is indeed feasible if we eliminate the mutex and
->> use cmpxchg to swap the prog (we need to ensure that there is only one
->> bpf_prog_put() on the old prog).
->> However, when cmpxchg fails, it means that this context has not
->> outcompeted the other one, and we have to return a failure. Maybe
->> something like this:
->>
->> if (!cmpxchg(&link->prog, old_prog, new_prog)) {
->>       /* already replaced by another link_update */
->>       return -xxx;
->> }
->>
->> As a comparison, The version with the mutex wouldn't encounter this
->> error, every update would succeed. I think that it's too harsh for the
->> user to receive a failure
->> in that case since they haven't done anything wrong.
-> Disagree. The mutex doesn't prevent this issue.
-> There is always a race.
-> It happens when link_update.old_prog_fd and BPF_F_REPLACE
-> were specified.
-> One user space passes an FD of the old prog and
-> another user space doing the same. They both race and one of them
-> gets
-> if (old_prog && link->prog != old_prog) {
->                 err = -EPERM;
+> Thanks for the review Simon.
 >
-> it's no different with dropping the mutex and doing:
-> if (old_prog) {
->      if (!cmpxchg(&link->prog, old_prog, new_prog))
->        -EPERM
-> } else {
->     old_prog = xchg(&link->prog, new_prog);
-> }
+> > I am curious to know what use case triggers this /
+> > why it when unnoticed for a year.
+>
+> We encountered this issue while upgrading some routers from
+> linux 5.15 to 6.2. The dataplane on these routers is provided
+> by an openvswitch bridge which is controlled via openflow by
+> faucet. These routers are also performing SNAT on all traffic
+> to/from the wan interface via openvswitch conntrack openflow
+> rules.
+>
+> We noticed that after upgrading the linux kernel, traceroute/mtr
+> no longer worked when run from clients behind the router.
+> We eventually discovered the reason for this is that the
+> ICMP time exceeded messages elicited by traceroute were
+> matching openflow rules with the incorrect destination ip,
+> despite there being an openflow rule to undo the nat.
+> Other packets in the established or new state matched the
+> expected openflow rules.
+>
+> A git bisect between 5.15 and 6.2 showed that this change in
+> behaviour was introduced by commit ebddb1404900. After the
+> above patch is applied our routers perform nat correctly
+> again for traceroute/mtr.
 
-Got it!  It's very helpful, Thanks very much! I will modify my patch 
-accordingly.
-
-
-Best wishes,
-D. Wythe
-
-
-
-
-
+Acked-by: Xin Long <lucien.xin@gmail.com>
