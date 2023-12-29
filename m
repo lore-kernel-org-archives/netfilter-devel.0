@@ -1,75 +1,146 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from out30-100.freemail.mail.aliyun.com (out30-100.freemail.mail.aliyun.com [115.124.30.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6482D746A;
-	Fri, 29 Dec 2023 08:00:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="i0MNrwGI"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id DA97BC433C9;
-	Fri, 29 Dec 2023 08:00:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1703836825;
-	bh=C1DVgPbHvBriNYsQuGAjsQx3wtajfxYgTBxjJSiXu8A=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=i0MNrwGIlj4rlB5EbkaXtlTss128MjNxneRw0YtOUoR8hEJ9HbaRa4dy0gEqQhQ6z
-	 9Ax42dpnzaRQj3NYk7X3lYQKgUfsRsP88CEKlpgvX+4rVaqfHTDWX+KT187pjrn31z
-	 nQO+PaG/m0GGOJHHjsPeWf10N5fIl5H8JQJxikq7fweC5rWiCpn4cp4Y/4u8GFewS7
-	 +rZIoGsjPIYXAiVX9NX7jnowPvitUNV+iNmNdYw5Srfg2b8Zf/huhbdZoEUTvXc8xZ
-	 FfezUs4MviGIk0Rq9c3rGWm31Ox5PPIbBCsQEAFSn5dhT1N+exIIRLdVDnNRBOP9wd
-	 psk1w/WGLTcnA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id C54ABE333D8;
-	Fri, 29 Dec 2023 08:00:25 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A5308BE7;
+	Fri, 29 Dec 2023 08:03:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R201e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046060;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=13;SR=0;TI=SMTPD_---0VzQtt.u_1703837012;
+Received: from 30.221.145.217(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VzQtt.u_1703837012)
+          by smtp.aliyun-inc.com;
+          Fri, 29 Dec 2023 16:03:33 +0800
+Message-ID: <00d390f3-1d92-43e5-adec-b7d0b8885fdc@linux.alibaba.com>
+Date: Fri, 29 Dec 2023 16:03:31 +0800
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/2] netfilter: nf_tables: set transport offset from mac
- header for netdev/egress
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <170383682580.6676.16830645380063126929.git-patchwork-notify@kernel.org>
-Date: Fri, 29 Dec 2023 08:00:25 +0000
-References: <20231222104205.354606-2-pablo@netfilter.org>
-In-Reply-To: <20231222104205.354606-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC nf-next v4 1/2] netfilter: bpf: support prog update
+Content-Language: en-US
+From: "D. Wythe" <alibuda@linux.alibaba.com>
+To: pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de
+Cc: bpf@vger.kernel.org, linux-kernel@vger.kernel.org,
+ netdev@vger.kernel.org, coreteam@netfilter.org,
+ netfilter-devel@vger.kernel.org, davem@davemloft.net, edumazet@google.com,
+ kuba@kernel.org, pabeni@redhat.com, ast@kernel.org
+References: <1703836449-88705-1-git-send-email-alibuda@linux.alibaba.com>
+ <1703836449-88705-2-git-send-email-alibuda@linux.alibaba.com>
+In-Reply-To: <1703836449-88705-2-git-send-email-alibuda@linux.alibaba.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Hello:
 
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-On Fri, 22 Dec 2023 11:42:04 +0100 you wrote:
-> Before this patch, transport offset (pkt->thoff) provides an offset
-> relative to the network header. This is fine for the inet families
-> because skb->data points to the network header in such case. However,
-> from netdev/egress, skb->data points to the mac header (if available),
-> thus, pkt->thoff is missing the mac header length.
-> 
-> Add skb_network_offset() to the transport offset (pkt->thoff) for
-> netdev, so transport header mangling works as expected. Adjust payload
-> fast eval function to use skb->data now that pkt->thoff provides an
-> absolute offset. This explains why users report that matching on
-> egress/netdev works but payload mangling does not.
-> 
-> [...]
+On 12/29/23 3:54 PM, D. Wythe wrote:
+> From: "D. Wythe" <alibuda@linux.alibaba.com>
+>
+> To support the prog update, we need to ensure that the prog seen
+> within the hook is always valid. Considering that hooks are always
+> protected by rcu_read_lock(), which provide us the ability to
+> access the prog under rcu.
+>
+> Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+> ---
+>   net/netfilter/nf_bpf_link.c | 50 ++++++++++++++++++++++++++++++---------------
+>   1 file changed, 34 insertions(+), 16 deletions(-)
+>
+> diff --git a/net/netfilter/nf_bpf_link.c b/net/netfilter/nf_bpf_link.c
+> index e502ec0..7c32ccb 100644
+> --- a/net/netfilter/nf_bpf_link.c
+> +++ b/net/netfilter/nf_bpf_link.c
+> @@ -8,26 +8,26 @@
+>   #include <net/netfilter/nf_bpf_link.h>
+>   #include <uapi/linux/netfilter_ipv4.h>
+>   
+> -static unsigned int nf_hook_run_bpf(void *bpf_prog, struct sk_buff *skb,
+> -				    const struct nf_hook_state *s)
+> -{
+> -	const struct bpf_prog *prog = bpf_prog;
+> -	struct bpf_nf_ctx ctx = {
+> -		.state = s,
+> -		.skb = skb,
+> -	};
+> -
+> -	return bpf_prog_run(prog, &ctx);
+> -}
+> -
+>   struct bpf_nf_link {
+>   	struct bpf_link link;
+>   	struct nf_hook_ops hook_ops;
+>   	struct net *net;
+>   	u32 dead;
+>   	const struct nf_defrag_hook *defrag_hook;
+> +	struct rcu_head head;
+>   };
+>   
+> +static unsigned int nf_hook_run_bpf(void *bpf_link, struct sk_buff *skb,
+> +				    const struct nf_hook_state *s)
+> +{
+> +	const struct bpf_nf_link *nf_link = bpf_link;
+> +	struct bpf_nf_ctx ctx = {
+> +		.state = s,
+> +		.skb = skb,
+> +	};
+> +	return bpf_prog_run(rcu_dereference_raw(nf_link->link.prog), &ctx);
+> +}
+> +
+>   #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4) || IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
+>   static const struct nf_defrag_hook *
+>   get_proto_defrag_hook(struct bpf_nf_link *link,
+> @@ -126,8 +126,7 @@ static void bpf_nf_link_release(struct bpf_link *link)
+>   static void bpf_nf_link_dealloc(struct bpf_link *link)
+>   {
+>   	struct bpf_nf_link *nf_link = container_of(link, struct bpf_nf_link, link);
+> -
+> -	kfree(nf_link);
+> +	kfree_rcu(nf_link, head);
+>   }
+>   
+>   static int bpf_nf_link_detach(struct bpf_link *link)
+> @@ -162,7 +161,22 @@ static int bpf_nf_link_fill_link_info(const struct bpf_link *link,
+>   static int bpf_nf_link_update(struct bpf_link *link, struct bpf_prog *new_prog,
+>   			      struct bpf_prog *old_prog)
+>   {
+> -	return -EOPNOTSUPP;
+> +	struct bpf_nf_link *nf_link = container_of(link, struct bpf_nf_link, link);
+> +	int err = 0;
+> +
+> +	if (nf_link->dead)
+> +		return -EPERM;
+> +
+> +	if (old_prog) {
+> +		/* target old_prog mismatch */
+> +		if (!cmpxchg(&link->prog, old_prog, new_prog))
+> +			return -EPERM;
+> +	} else {
+> +		old_prog = xchg(&link->prog, new_prog);
+> +	}
+> +
+> +	bpf_prog_put(old_prog);
+> +	return err;
+>   }
 
-Here is the summary with links:
-  - [net,1/2] netfilter: nf_tables: set transport offset from mac header for netdev/egress
-    https://git.kernel.org/netdev/net/c/0ae8e4cca787
-  - [net,2/2] netfilter: nf_tables: skip set commit for deleted/destroyed sets
-    https://git.kernel.org/netdev/net/c/7315dc1e122c
+I made a mistake here, and I will fix it in the next version.
+Sorry for that.
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+D. Wythe
 
+>   
+>   static const struct bpf_link_ops bpf_nf_link_lops = {
+> @@ -226,7 +240,11 @@ int bpf_nf_link_attach(const union bpf_attr *attr, struct bpf_prog *prog)
+>   
+>   	link->hook_ops.hook = nf_hook_run_bpf;
+>   	link->hook_ops.hook_ops_type = NF_HOOK_OP_BPF;
+> -	link->hook_ops.priv = prog;
+> +
+> +	/* bpf_nf_link_release & bpf_nf_link_dealloc() can ensures that link remains
+> +	 * valid at all times within nf_hook_run_bpf().
+> +	 */
+> +	link->hook_ops.priv = link;
+>   
+>   	link->hook_ops.pf = attr->link_create.netfilter.pf;
+>   	link->hook_ops.priority = attr->link_create.netfilter.priority;
 
