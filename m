@@ -1,146 +1,75 @@
-Received: from out30-100.freemail.mail.aliyun.com (out30-100.freemail.mail.aliyun.com [115.124.30.100])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-f181.google.com (mail-oi1-f181.google.com [209.85.167.181])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A5308BE7;
-	Fri, 29 Dec 2023 08:03:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R201e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046060;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=13;SR=0;TI=SMTPD_---0VzQtt.u_1703837012;
-Received: from 30.221.145.217(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VzQtt.u_1703837012)
-          by smtp.aliyun-inc.com;
-          Fri, 29 Dec 2023 16:03:33 +0800
-Message-ID: <00d390f3-1d92-43e5-adec-b7d0b8885fdc@linux.alibaba.com>
-Date: Fri, 29 Dec 2023 16:03:31 +0800
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48FB02561
+	for <netfilter-devel@vger.kernel.org>; Sat, 30 Dec 2023 10:33:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FMk4ttba"
+Received: by mail-oi1-f181.google.com with SMTP id 5614622812f47-3bbbf5a59b7so3043292b6e.3
+        for <netfilter-devel@vger.kernel.org>; Sat, 30 Dec 2023 02:33:10 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1703932389; x=1704537189; darn=vger.kernel.org;
+        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=nrWtgCp3dapajb2ZHlJCibmgxgwUZ+UVqguVnQ2XS6k=;
+        b=FMk4ttba1+rZnFoCnXzQVTxerQhAaNnroWbY4IBZG7SLVJvII94jDrkcN4LR9ZS6Cv
+         hk0Whn62OArbfcLXhzNjdgmJ/R5tXN3plRmKSpzaeAObT1t2qVa+4fh17bhvOsCnl2XJ
+         KXyaeh5zdR7FmYX23HuDNxaXDuKS/zvfkzlIMMMphsdeWKHBDpxa0W2+fZtHwIV02THb
+         WK1Lc2ozHss2LV09/sDFY+3xPR7ioSQEnXyshjjN3c8aFDTYrMXtTuXDxZAN6lMluL+V
+         fZ6DhrogUPBJ5jttoXraPqrDKpEvdtCbTpIWEIRabq9sDKBquYjR9mkxBZuOPhEZw5hG
+         xCHQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1703932389; x=1704537189;
+        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=nrWtgCp3dapajb2ZHlJCibmgxgwUZ+UVqguVnQ2XS6k=;
+        b=IocYYQ0EpKMvWCrImVENxm5u8VSuC3hpuO7UyDJTy9HoPl8++GQNPWUz5J+LY8ce2K
+         RfPlHekJ66zv4sZv3EJdYmiwWbzCERAHB+3NDmviIgiQfae2FsJSiynlooGSdsgBiG8F
+         +N8CKyZUVnAJwVNqvox/qDOrcjgf6/FDtSJ2m5DyXxIw657Vq65uzj7LLQR0MfT/d0g6
+         J4kjr9o4rZsiENom2O/VFd4697sJbptvTeHtPQ5WVDiozgON/e8nefuF7GsvHLCG9LcM
+         JcRPiNcYV9WdIe7SEmXlJ1xIunJ8tjiWerliIMKj6z7XznRigYIY38uUctHRCcsevnMj
+         PWsw==
+X-Gm-Message-State: AOJu0Yz4xWTAXFGaRCJlmeqV+4Fjo8WcEJ7RPqwGYbK/2cyAvohZwAXd
+	e5icK3opkfsSgP5JSGC9S77w7RnV/GgcpavFs0+c/IOhd1U=
+X-Google-Smtp-Source: AGHT+IE7+U/wbv4ZM8EkmdRLDa9OReAU2mH/ikJH9UKx8mez9+tAsIHl7sJlSwXT+1872iV5i/7Ij3BF7TeEwpn57eM=
+X-Received: by 2002:a05:6808:f89:b0:3bb:f8c2:d56e with SMTP id
+ o9-20020a0568080f8900b003bbf8c2d56emr62598oiw.81.1703932388840; Sat, 30 Dec
+ 2023 02:33:08 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC nf-next v4 1/2] netfilter: bpf: support prog update
-Content-Language: en-US
-From: "D. Wythe" <alibuda@linux.alibaba.com>
-To: pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de
-Cc: bpf@vger.kernel.org, linux-kernel@vger.kernel.org,
- netdev@vger.kernel.org, coreteam@netfilter.org,
- netfilter-devel@vger.kernel.org, davem@davemloft.net, edumazet@google.com,
- kuba@kernel.org, pabeni@redhat.com, ast@kernel.org
-References: <1703836449-88705-1-git-send-email-alibuda@linux.alibaba.com>
- <1703836449-88705-2-git-send-email-alibuda@linux.alibaba.com>
-In-Reply-To: <1703836449-88705-2-git-send-email-alibuda@linux.alibaba.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Han Boetes <hboetes@gmail.com>
+Date: Sat, 30 Dec 2023 11:32:57 +0100
+Message-ID: <CAOzo9e7yoiiTLvMj0_wFaSvdf0XpsymqUVb8nUMAuj96nPM5ww@mail.gmail.com>
+Subject: feature request: list elements of table for scripting
+To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+
+Hi there,
+
+for the purpose of a brute-forcers script, I'd like to get a list of
+elements of a table.
+
+The best I get so far is: "nft list set sshd_blacklist sshd_blacklist"
+
+Which produces the whole table, with entries like
+"xxx.xxx.103.115-xxx.xxx.103.116, xxx.xxx.103.118/31" which are very nice
+for human readability, but rather clumsy for scripting.
+
+Therefore, my feature request: please add an option to produce the elements
+of a list one by one. Something like:
+
+nft -e list set sshd_blacklist sshd_blacklist
+xxx.xxx.103.115
+xxx.xxx.103.116
+xxx.xxx.103.118
+xxx.xxx.103.119
 
 
-
-On 12/29/23 3:54 PM, D. Wythe wrote:
-> From: "D. Wythe" <alibuda@linux.alibaba.com>
->
-> To support the prog update, we need to ensure that the prog seen
-> within the hook is always valid. Considering that hooks are always
-> protected by rcu_read_lock(), which provide us the ability to
-> access the prog under rcu.
->
-> Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
-> ---
->   net/netfilter/nf_bpf_link.c | 50 ++++++++++++++++++++++++++++++---------------
->   1 file changed, 34 insertions(+), 16 deletions(-)
->
-> diff --git a/net/netfilter/nf_bpf_link.c b/net/netfilter/nf_bpf_link.c
-> index e502ec0..7c32ccb 100644
-> --- a/net/netfilter/nf_bpf_link.c
-> +++ b/net/netfilter/nf_bpf_link.c
-> @@ -8,26 +8,26 @@
->   #include <net/netfilter/nf_bpf_link.h>
->   #include <uapi/linux/netfilter_ipv4.h>
->   
-> -static unsigned int nf_hook_run_bpf(void *bpf_prog, struct sk_buff *skb,
-> -				    const struct nf_hook_state *s)
-> -{
-> -	const struct bpf_prog *prog = bpf_prog;
-> -	struct bpf_nf_ctx ctx = {
-> -		.state = s,
-> -		.skb = skb,
-> -	};
-> -
-> -	return bpf_prog_run(prog, &ctx);
-> -}
-> -
->   struct bpf_nf_link {
->   	struct bpf_link link;
->   	struct nf_hook_ops hook_ops;
->   	struct net *net;
->   	u32 dead;
->   	const struct nf_defrag_hook *defrag_hook;
-> +	struct rcu_head head;
->   };
->   
-> +static unsigned int nf_hook_run_bpf(void *bpf_link, struct sk_buff *skb,
-> +				    const struct nf_hook_state *s)
-> +{
-> +	const struct bpf_nf_link *nf_link = bpf_link;
-> +	struct bpf_nf_ctx ctx = {
-> +		.state = s,
-> +		.skb = skb,
-> +	};
-> +	return bpf_prog_run(rcu_dereference_raw(nf_link->link.prog), &ctx);
-> +}
-> +
->   #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4) || IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
->   static const struct nf_defrag_hook *
->   get_proto_defrag_hook(struct bpf_nf_link *link,
-> @@ -126,8 +126,7 @@ static void bpf_nf_link_release(struct bpf_link *link)
->   static void bpf_nf_link_dealloc(struct bpf_link *link)
->   {
->   	struct bpf_nf_link *nf_link = container_of(link, struct bpf_nf_link, link);
-> -
-> -	kfree(nf_link);
-> +	kfree_rcu(nf_link, head);
->   }
->   
->   static int bpf_nf_link_detach(struct bpf_link *link)
-> @@ -162,7 +161,22 @@ static int bpf_nf_link_fill_link_info(const struct bpf_link *link,
->   static int bpf_nf_link_update(struct bpf_link *link, struct bpf_prog *new_prog,
->   			      struct bpf_prog *old_prog)
->   {
-> -	return -EOPNOTSUPP;
-> +	struct bpf_nf_link *nf_link = container_of(link, struct bpf_nf_link, link);
-> +	int err = 0;
-> +
-> +	if (nf_link->dead)
-> +		return -EPERM;
-> +
-> +	if (old_prog) {
-> +		/* target old_prog mismatch */
-> +		if (!cmpxchg(&link->prog, old_prog, new_prog))
-> +			return -EPERM;
-> +	} else {
-> +		old_prog = xchg(&link->prog, new_prog);
-> +	}
-> +
-> +	bpf_prog_put(old_prog);
-> +	return err;
->   }
-
-I made a mistake here, and I will fix it in the next version.
-Sorry for that.
-
-D. Wythe
-
->   
->   static const struct bpf_link_ops bpf_nf_link_lops = {
-> @@ -226,7 +240,11 @@ int bpf_nf_link_attach(const union bpf_attr *attr, struct bpf_prog *prog)
->   
->   	link->hook_ops.hook = nf_hook_run_bpf;
->   	link->hook_ops.hook_ops_type = NF_HOOK_OP_BPF;
-> -	link->hook_ops.priv = prog;
-> +
-> +	/* bpf_nf_link_release & bpf_nf_link_dealloc() can ensures that link remains
-> +	 * valid at all times within nf_hook_run_bpf().
-> +	 */
-> +	link->hook_ops.priv = link;
->   
->   	link->hook_ops.pf = attr->link_create.netfilter.pf;
->   	link->hook_ops.priority = attr->link_create.netfilter.priority;
-
+Thanks
+Han
