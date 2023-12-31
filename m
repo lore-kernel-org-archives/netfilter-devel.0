@@ -1,75 +1,90 @@
-Received: from mail-oi1-f181.google.com (mail-oi1-f181.google.com [209.85.167.181])
+Received: from mail-oi1-f172.google.com (mail-oi1-f172.google.com [209.85.167.172])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48FB02561
-	for <netfilter-devel@vger.kernel.org>; Sat, 30 Dec 2023 10:33:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36380184C
+	for <netfilter-devel@vger.kernel.org>; Sun, 31 Dec 2023 09:19:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FMk4ttba"
-Received: by mail-oi1-f181.google.com with SMTP id 5614622812f47-3bbbf5a59b7so3043292b6e.3
-        for <netfilter-devel@vger.kernel.org>; Sat, 30 Dec 2023 02:33:10 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TJlHQwn5"
+Received: by mail-oi1-f172.google.com with SMTP id 5614622812f47-3bbb4806f67so4025907b6e.3
+        for <netfilter-devel@vger.kernel.org>; Sun, 31 Dec 2023 01:19:05 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1703932389; x=1704537189; darn=vger.kernel.org;
-        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=nrWtgCp3dapajb2ZHlJCibmgxgwUZ+UVqguVnQ2XS6k=;
-        b=FMk4ttba1+rZnFoCnXzQVTxerQhAaNnroWbY4IBZG7SLVJvII94jDrkcN4LR9ZS6Cv
-         hk0Whn62OArbfcLXhzNjdgmJ/R5tXN3plRmKSpzaeAObT1t2qVa+4fh17bhvOsCnl2XJ
-         KXyaeh5zdR7FmYX23HuDNxaXDuKS/zvfkzlIMMMphsdeWKHBDpxa0W2+fZtHwIV02THb
-         WK1Lc2ozHss2LV09/sDFY+3xPR7ioSQEnXyshjjN3c8aFDTYrMXtTuXDxZAN6lMluL+V
-         fZ6DhrogUPBJ5jttoXraPqrDKpEvdtCbTpIWEIRabq9sDKBquYjR9mkxBZuOPhEZw5hG
-         xCHQ==
+        d=gmail.com; s=20230601; t=1704014345; x=1704619145; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:sender:from:to:cc:subject:date:message-id:reply-to;
+        bh=RGsmiILdEoX/G0y4NlUV96ZepTlUb5kGckq4pt9sPWs=;
+        b=TJlHQwn5VVvrOZ/kLN1kIuixgDhQxUqhVoXG45E43jG6MtAa/aF0fKRAcmU3zg2uKk
+         mppF+D2tqduW7rcCobJvPZSxppyHQytpR13jZOo2IfVcxOmcerWYcTTygE759mD/+521
+         xVOUDPEFqzp84CIKNE0O+sqSwcHmjilYIPIgS30rAE5Be6TeQoXLfzq3fmeMHu3uqdPQ
+         fFR3dQqXWsGEdS2LILccHX5vESKxZj2lXfjC/j7E0yqmgi9A2LqUOd3Fpi3H3huM2fAT
+         5FTGDq462/Xg8fL7yxp+8y/wQllw9qDPz5yhk6z6EsVfatWatIwG+PWcriJpuM8/rEWa
+         ndBg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1703932389; x=1704537189;
-        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=nrWtgCp3dapajb2ZHlJCibmgxgwUZ+UVqguVnQ2XS6k=;
-        b=IocYYQ0EpKMvWCrImVENxm5u8VSuC3hpuO7UyDJTy9HoPl8++GQNPWUz5J+LY8ce2K
-         RfPlHekJ66zv4sZv3EJdYmiwWbzCERAHB+3NDmviIgiQfae2FsJSiynlooGSdsgBiG8F
-         +N8CKyZUVnAJwVNqvox/qDOrcjgf6/FDtSJ2m5DyXxIw657Vq65uzj7LLQR0MfT/d0g6
-         J4kjr9o4rZsiENom2O/VFd4697sJbptvTeHtPQ5WVDiozgON/e8nefuF7GsvHLCG9LcM
-         JcRPiNcYV9WdIe7SEmXlJ1xIunJ8tjiWerliIMKj6z7XznRigYIY38uUctHRCcsevnMj
-         PWsw==
-X-Gm-Message-State: AOJu0Yz4xWTAXFGaRCJlmeqV+4Fjo8WcEJ7RPqwGYbK/2cyAvohZwAXd
-	e5icK3opkfsSgP5JSGC9S77w7RnV/GgcpavFs0+c/IOhd1U=
-X-Google-Smtp-Source: AGHT+IE7+U/wbv4ZM8EkmdRLDa9OReAU2mH/ikJH9UKx8mez9+tAsIHl7sJlSwXT+1872iV5i/7Ij3BF7TeEwpn57eM=
-X-Received: by 2002:a05:6808:f89:b0:3bb:f8c2:d56e with SMTP id
- o9-20020a0568080f8900b003bbf8c2d56emr62598oiw.81.1703932388840; Sat, 30 Dec
- 2023 02:33:08 -0800 (PST)
+        d=1e100.net; s=20230601; t=1704014345; x=1704619145;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:sender:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=RGsmiILdEoX/G0y4NlUV96ZepTlUb5kGckq4pt9sPWs=;
+        b=hRloC3PN4Cij1/fRmrLM3QDl3l4pCqZT/SNO7OrFsAujSy8EgIKSLJcxZMX5NycV8p
+         bV4VRzsycGXTSQMYPmGYjSIRtO0SwN0CZnMWtm8wnBals0315qyD+RSEKVrmRA1SDjVQ
+         1pdOz7yF89SN7ctPE/6tWwqBVrDs3Plq7D/fFEgBq02gJqCNGSl/zzwZ8iKk01FodfSD
+         iPoYzop9vKOthFZwhm1yzyp+EINIgkC+e8OwU+6KYirJJ/gp/cuMMLtSWH8I1CJdKEE7
+         3fW/+vvA32eavN5kn3lYKzMrSh2UU0/BL5cFeGT9wpskCKZKgQpmoPdrCYywr3ZzS/8b
+         NUzQ==
+X-Gm-Message-State: AOJu0Yww+odu/RtDgi1tzivTO14+a+FTUwt9KhTBEbYGOyrbprPtWFzR
+	ylkvqaWYF3q1Je2pNc5BcvNF2B3xDQ8=
+X-Google-Smtp-Source: AGHT+IHhtUf5GPGP6WW0EQlzp+wsV4lsNFLbtf49mHsLu6NXtM46X7i9HNQuVw2jBVXU1PagBJk6gQ==
+X-Received: by 2002:a05:6808:189d:b0:3b8:b063:9b52 with SMTP id bi29-20020a056808189d00b003b8b0639b52mr17646015oib.68.1704014345075;
+        Sun, 31 Dec 2023 01:19:05 -0800 (PST)
+Received: from slk15.local.net (n58-108-90-185.meb1.vic.optusnet.com.au. [58.108.90.185])
+        by smtp.gmail.com with ESMTPSA id l66-20020a633e45000000b005cd86cd9055sm14284999pga.1.2023.12.31.01.19.03
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 31 Dec 2023 01:19:04 -0800 (PST)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From: Duncan Roe <duncan_roe@optusnet.com.au>
+To: pablo@netfilter.org
+Cc: netfilter-devel@vger.kernel.org
+Subject: [PATCH RFC libnetfilter_queue 0/1] libnfnetlink dependency elimination
+Date: Sun, 31 Dec 2023 20:18:59 +1100
+Message-Id: <20231231091900.27714-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.35.8
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: Han Boetes <hboetes@gmail.com>
-Date: Sat, 30 Dec 2023 11:32:57 +0100
-Message-ID: <CAOzo9e7yoiiTLvMj0_wFaSvdf0XpsymqUVb8nUMAuj96nPM5ww@mail.gmail.com>
-Subject: feature request: list elements of table for scripting
-To: netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-Hi there,
+Hi Pablo (and everybody else),
 
-for the purpose of a brute-forcers script, I'd like to get a list of
-elements of a table.
+This patch replaces most of the libnfnetlink calls with libmnl calls in
+libnetfilter_queue.
+Please comment on all aspects of this patch that you think could be
+improved.
 
-The best I get so far is: "nft list set sshd_blacklist sshd_blacklist"
+Do you agree the libmnl is the right place for nfnl_build_nfa_iovec and
+nfnl_sendiov replacement functions?
 
-Which produces the whole table, with entries like
-"xxx.xxx.103.115-xxx.xxx.103.116, xxx.xxx.103.118/31" which are very nice
-for human readability, but rather clumsy for scripting.
+This patch does not include an updated main page - I'm still working on
+that.
 
-Therefore, my feature request: please add an option to produce the elements
-of a list one by one. Something like:
+Cheers ... Duncan.
 
-nft -e list set sshd_blacklist sshd_blacklist
-xxx.xxx.103.115
-xxx.xxx.103.116
-xxx.xxx.103.118
-xxx.xxx.103.119
+Duncan Roe (1):
+  utils/nfqnl_test runs without libnfnetlink
 
+ Make_global.am                                |   2 +-
+ configure.ac                                  |   1 -
+ doxygen/doxygen.cfg.in                        |   1 +
+ .../libnetfilter_queue/libnetfilter_queue.h   |  12 +-
+ libnetfilter_queue.pc.in                      |   1 -
+ src/Makefile.am                               |   2 +-
+ src/libnetfilter_queue.c                      | 453 ++++++++++--------
+ utils/Makefile.am                             |   2 +-
+ 8 files changed, 271 insertions(+), 203 deletions(-)
 
-Thanks
-Han
+-- 
+2.35.8
+
