@@ -1,72 +1,68 @@
-Received: from mail-oa1-f43.google.com (mail-oa1-f43.google.com [209.85.160.43])
+Received: from mail-pf1-f176.google.com (mail-pf1-f176.google.com [209.85.210.176])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5ACC8156C3
-	for <netfilter-devel@vger.kernel.org>; Tue,  2 Jan 2024 17:51:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8272E168A5
+	for <netfilter-devel@vger.kernel.org>; Tue,  2 Jan 2024 21:24:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cV3nnp9W"
-Received: by mail-oa1-f43.google.com with SMTP id 586e51a60fabf-204f50f305cso3099397fac.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 02 Jan 2024 09:51:01 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NGdfZgqV"
+Received: by mail-pf1-f176.google.com with SMTP id d2e1a72fcca58-6d98f6e8de1so3046263b3a.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 02 Jan 2024 13:24:26 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1704217860; x=1704822660; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Ek5NK3MU0vhhYJ0KKhWMvD4nX+kkA9szRj/pxp1Ya5s=;
-        b=cV3nnp9WNpnHpIKU4fPGFZd4b5fNfFwzVPcL5Y8q090ojwlgx3jv1ikrnXOV1P2HaZ
-         A/u5RGfmU0OFW/st37EwqCtcaLndWVsilvXs7A5FDj4Sjwf6o0Gp4RVXeo12dSI4nsTp
-         B7OG99UsJUyAxTXZP58JOYUew57KC/kTkX++olPLLsZi57mCV12A36yPJ7e9zoVwLq4t
-         rPpZ8kD3EuCWtdPt1EiSz10FcEu3tvcabOludgnNCGOl9ZR9ks6gdVsZ5eF0UTPV9HJC
-         L1pV5SFUzLV+HmNi/bFe7cIFDowrhFRJfZjTsKUnw8mk7+9Oi7xhs9Kt2rS2N+9o6wV6
-         SOWA==
+        d=gmail.com; s=20230601; t=1704230666; x=1704835466; darn=vger.kernel.org;
+        h=to:subject:message-id:date:from:in-reply-to:references:mime-version
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=4aH1+fO0toimBzLjj8TzmKM1YZO7gqr2QtyizGir9Jg=;
+        b=NGdfZgqVq9ZKVHN24G8UHChz7wLTLd0UG0oy4Ccwe/KS9ENzJYcSPTfAbcKwrSfCpf
+         BHiYbXKiut6QMy1VJuhkL2788vYfOOpMLPn68eVJU7foUjqCfNzE2JhpdbBnZrwVHKXk
+         4BPr/RHa+paseZU/3qN1Zv9nAZwRyLKvrgNujlLtVhtuJLyIjtNbAS28cEOJGK8aTNwj
+         NwlSmlZ7LXzx2amqsVNTsJESGES6u0fHMNrZJnD9K/VW5Rwdw1WnjUFafWEWwB0tRB8z
+         E+6eE1Uqx0JbGwT7yq3PfvGIAywyZDrdnAeXjWuulnuNqKcnmCklm6wg8DNYcc64eLpP
+         5KEw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1704217860; x=1704822660;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Ek5NK3MU0vhhYJ0KKhWMvD4nX+kkA9szRj/pxp1Ya5s=;
-        b=UwqCElOPsJ0DTfhlDg+Ob3AE6qYVyZjAHGv5Yg3wt/HHxJntkXFdUsVRLTkTlupeIq
-         ZAyrdt11/hRkwey3tjKOs3QfOlKVkP4xCzpqZ1Bb3DG+ej+feGJi33T3w3Cuh359RZsy
-         rP0Hb6JMkInSnU4QrKrs8BfsELzDUHusxuQQbsgkAbJ7GEPqxsftfhwNEu9Ggg9RE+mS
-         Vu5UV/Ud+OxKb3WFTE/4TKm8dEl/MMXZwCNJ1vLAOaG3bjo2+L0OI/EKM8fE3V1X20Em
-         J9vYo2ELI7gjg/u071uYa/DAPdHTd7Hb626GzNVUuJ/mXcz1toGgObMEKSyb/lH3QxIX
-         ff/w==
-X-Gm-Message-State: AOJu0YxWQSp4gBlNVh/6vrr7TnjXHP3e/bh2Lhx8T9gFjBaQmJi1Z+Qf
-	rjmXUmnQYiLsksiRux/8Qdm4ozHnE3s=
-X-Google-Smtp-Source: AGHT+IGzxAajnvpUDzqmy4RajVIj5zUIFs8LCsXW1HXOkuZoMWlY2B208lS/YBbdFs2eD8lCtdS5cw==
-X-Received: by 2002:a05:6870:4190:b0:204:4c00:e9e9 with SMTP id y16-20020a056870419000b002044c00e9e9mr20451718oac.10.1704217860244;
-        Tue, 02 Jan 2024 09:51:00 -0800 (PST)
-Received: from localhost.localdomain ([2602:47:d950:3e00:e8fe:1b15:70d1:8f48])
-        by smtp.googlemail.com with ESMTPSA id dy51-20020a05620a60f300b00781b99ab724sm2003656qkb.108.2024.01.02.09.50.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 02 Jan 2024 09:50:59 -0800 (PST)
-From: Nicholas Vinson <nvinson234@gmail.com>
-To: pablo@netfilter.org
-Cc: netfilter-devel@vger.kernel.org,
-	nvinson234@gmail.com
-Subject: Re: [PATCH libnftnl] object: define nftnl_obj_unset()
-Date: Tue,  2 Jan 2024 12:50:58 -0500
-Message-ID: <20240102175058.24570-1-nvinson234@gmail.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20240102132540.31391-1-pablo@netfilter.org>
-References: <20240102132540.31391-1-pablo@netfilter.org>
+        d=1e100.net; s=20230601; t=1704230666; x=1704835466;
+        h=to:subject:message-id:date:from:in-reply-to:references:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=4aH1+fO0toimBzLjj8TzmKM1YZO7gqr2QtyizGir9Jg=;
+        b=C0gw6aVGNLyKTiHcKWzaxlwybl9/Q3cwlp3CEfsu2Rtuhi7HzfPeOJI50bBvgYOTfx
+         frfdAuTP1d5nObH/6RpM634bmd3Y4HWfk4CQ3OS1fj0TcxSDPzqI1z4sMeQ5gj0svIFH
+         WNW9apBceSDlG/j/eo5BoAxIYaGcp/EXekLOiaH++wn416pVGU4WVI5crjj48D1LRCDJ
+         NifkCU25H6uKdsIzTWA6U5T1uLSCfx6C+OBXpj3tMcR8zqbi7qIsKMVRtoO3UwK7cGhc
+         WBy3O9nUfDHD2dWp0UAfguI6QVc1jKMQGQR+yBk4i3Htax33oHzWzmRElxxdPajcfi3k
+         1wAQ==
+X-Gm-Message-State: AOJu0YxHAV6YuKSsTtUq0v6CDXxXj7yFfJnMk3l5G669gyP0kM8nlbKd
+	zjRMepHTtFlDzwkPGouY0rfxVKNBYgIvMMW5zKE=
+X-Google-Smtp-Source: AGHT+IHdjk0ZlGxL4jMILOf5GL28rMhkEN8eV0+pC/K1PoImAP8zcqs5AP1DLrLdH8sJi/2YhVURfdQXAheg5zIAOyA=
+X-Received: by 2002:a05:6a20:258c:b0:197:1900:5f4d with SMTP id
+ k12-20020a056a20258c00b0019719005f4dmr1456037pzd.39.1704230665753; Tue, 02
+ Jan 2024 13:24:25 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <CAOzo9e7yoiiTLvMj0_wFaSvdf0XpsymqUVb8nUMAuj96nPM5ww@mail.gmail.com>
+ <ZZNuZBK5AwmGi0Kx@orbyte.nwl.cc> <CAOzo9e4o3ac0xTY4U3Yq0cgrwcaK+gYoyA3UH7xZEqQ6Ju7UYg@mail.gmail.com>
+ <ZZRG_yBt8nf-cqxs@orbyte.nwl.cc>
+In-Reply-To: <ZZRG_yBt8nf-cqxs@orbyte.nwl.cc>
+From: Han Boetes <hboetes@gmail.com>
+Date: Tue, 2 Jan 2024 22:24:14 +0100
+Message-ID: <CAOzo9e6GvnSs5XY+DY8qW3b7OHNaYk_QjcDSMRS6tCntkhzHFA@mail.gmail.com>
+Subject: Re: feature request: list elements of table for scripting
+To: Phil Sutter <phil@nwl.cc>, Han Boetes <hboetes@gmail.com>, netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-I manually applied this patch and got the following build error:
+Hello Phil,
 
-    error: use of undeclared identifier 'nftnl_obj_unset'; did you mean
-    'nftnl_obj_set'
+Don't worry, I'm used to people not actually reading what I write.
+I already wrote some working, albeit ugly, code that converts ranges
+and CIDR to individual IP-addresses. But I think if nft would have the
+option to simply produce the individual addresses belonging to the
+set/table, it would make the whole script a lot simpler and more
+logical.
 
-I think a declaration for nftnl_obj_unset() needs to be added to
-include/libnftnl/object.h. Other than that, this patch looks OK to me.
 
-Regards,
-Nicholas Vinson
+Have a nice day,
+Han
