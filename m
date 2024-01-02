@@ -1,135 +1,60 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B72012E7B
-	for <netfilter-devel@vger.kernel.org>; Tue,  2 Jan 2024 15:10:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 676AB156C1
+	for <netfilter-devel@vger.kernel.org>; Tue,  2 Jan 2024 17:25:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="gbaKQEvx"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1704208223;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=ZHtqiuFv0NX2cWrksYXkoFkjpAn1pYFyXkkX4b7K2+g=;
-	b=gbaKQEvxQ4Aj8Wu1To4I29MQVyuNfuLWlKPi1qMFOvJtsXpMwQ8oxRKxYPTncl8hjjHCPR
-	+mfk/giIbivEEiyFMlOOgg/x4VJDd0/BMJAuTSOkm5bsuT51tCdb532YsUm0nNh/KoD/nu
-	geYMgJbo04ZeW9Jz7wxwSsTZaWTR8zM=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-310-ZI4YbdCQOISs_CZvDVPhjg-1; Tue, 02 Jan 2024 10:10:18 -0500
-X-MC-Unique: ZI4YbdCQOISs_CZvDVPhjg-1
-Received: from smtp.corp.redhat.com (int-mx09.intmail.prod.int.rdu2.redhat.com [10.11.54.9])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 3F839832EDA;
-	Tue,  2 Jan 2024 15:10:17 +0000 (UTC)
-Received: from RHTPC1VM0NT (unknown [10.22.16.200])
-	by smtp.corp.redhat.com (Postfix) with ESMTPS id B97BF492BC6;
-	Tue,  2 Jan 2024 15:10:15 +0000 (UTC)
-From: Aaron Conole <aconole@redhat.com>
-To: Simon Horman <horms@kernel.org>
-Cc: Brad Cowie <brad@faucet.nz>,  netdev@vger.kernel.org,
-  dev@openvswitch.org,  fw@strlen.de,  linux-kernel@vger.kernel.org,
-  kadlec@netfilter.org,  edumazet@google.com,
-  netfilter-devel@vger.kernel.org,  kuba@kernel.org,  pabeni@redhat.com,
-  davem@davemloft.net,  pablo@netfilter.org,  Xin Long
- <lucien.xin@gmail.com>,  coreteam@netfilter.org
-Subject: Re: [PATCH net] netfilter: nf_nat: fix action not being set for all
- ct states
-References: <20231221224311.130319-1-brad@faucet.nz>
-	<20231223211306.GA215659@kernel.org>
-Date: Tue, 02 Jan 2024 10:10:15 -0500
-In-Reply-To: <20231223211306.GA215659@kernel.org> (Simon Horman's message of
-	"Sat, 23 Dec 2023 21:13:06 +0000")
-Message-ID: <f7tle97eppk.fsf@redhat.com>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/28.3 (gnu/linux)
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="HewRsICH"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=uw/1Ofw6/IfEbhUf4RmVYM+y7Ek20CdCGiO5C1IR9kM=; b=HewRsICHZWib+C+jsSxAKyPr6x
+	JvHnXDY0/WITemfb43V5/9tTfxVRtIYRZsV4jgueWCOofnzdHUIQWkVfxTG86rNWT2TRH/24YW+2M
+	VwMXoSmSaBUFlrgNoBrLJM1Pw6l6Mt03A4n7BkTaSz7Fvu/hk56cNdhWINiL8bGTsKg93kwyodhFp
+	ug6PLNyZlmg+d3vxgMWmRIgpKCW8NvJWvLDjEmUyrS44/4p8Q25HtqUAVD1dFGsczA05WDrPvMQ7F
+	8zea4RDICyTKWNgFSFh+SYk7IFj+7N2qQMiagYJ/HfBlfVgAq7Us138QiYz1rc6z6SeGNAacf+XxQ
+	W2tZGEAw==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97)
+	(envelope-from <phil@nwl.cc>)
+	id 1rKiW0-000000004sk-03od;
+	Tue, 02 Jan 2024 18:25:20 +0100
+Date: Tue, 2 Jan 2024 18:25:19 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Han Boetes <hboetes@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: feature request: list elements of table for scripting
+Message-ID: <ZZRG_yBt8nf-cqxs@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>, Han Boetes <hboetes@gmail.com>,
+	netfilter-devel@vger.kernel.org
+References: <CAOzo9e7yoiiTLvMj0_wFaSvdf0XpsymqUVb8nUMAuj96nPM5ww@mail.gmail.com>
+ <ZZNuZBK5AwmGi0Kx@orbyte.nwl.cc>
+ <CAOzo9e4o3ac0xTY4U3Yq0cgrwcaK+gYoyA3UH7xZEqQ6Ju7UYg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.9
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOzo9e4o3ac0xTY4U3Yq0cgrwcaK+gYoyA3UH7xZEqQ6Ju7UYg@mail.gmail.com>
 
-Simon Horman <horms@kernel.org> writes:
+On Tue, Jan 02, 2024 at 12:34:11PM +0100, Han Boetes wrote:
+> Thanks for your reply.
+> 
+> How does your reply help me produce a list of IP-addresses? How does
+> it expand the CIDR IP ranges (xxx.xxx.103.118/31)? How does it expand
+> the dash ranges (xxx.xxx.103.115-xxx.xxx.103.116)?
+> 
+> I don't see how your reply helps. Please enlighten me.
 
-> + Xin Long <lucien.xin@gmail.com>
->   Aaron Conole <aconole@redhat.com>
->   coreteam@netfilter.org
->
-> On Fri, Dec 22, 2023 at 11:43:11AM +1300, Brad Cowie wrote:
->> This fixes openvswitch's handling of nat packets in the related state.
->> 
->> In nf_ct_nat_execute(), which is called from nf_ct_nat(), ICMP/ICMPv6
->> packets in the IP_CT_RELATED or IP_CT_RELATED_REPLY state, which have
->> not been dropped, will follow the goto, however the placement of the
->> goto label means that updating the action bit field will be bypassed.
->> 
->> This causes ovs_nat_update_key() to not be called from ovs_ct_nat()
->> which means the openvswitch match key for the ICMP/ICMPv6 packet is not
->> updated and the pre-nat value will be retained for the key, which will
->> result in the wrong openflow rule being matched for that packet.
->> 
->> Move the goto label above where the action bit field is being set so
->> that it is updated in all cases where the packet is accepted.
->> 
->> Fixes: ebddb1404900 ("net: move the nat function to nf_nat_ovs for ovs and tc")
->> Signed-off-by: Brad Cowie <brad@faucet.nz>
->
-> Thanks Brad,
->
-> I agree with your analysis and that the problem appears to
-> have been introduced by the cited commit.
->
-> I am curious to know what use case triggers this /
-> why it when unnoticed for a year.
->
-> But in any case, this fix looks good to me.
->
-> Reviewed-by: Simon Horman <horms@kernel.org>
->
->> ---
+I wasn't aware your problem was expanding the ranges/prefixes. Given my
+sample, you should at least be able to feed individual elements into a
+script which does that.
 
-LGTM.  I guess we should try to codify the specific flows that were used
-to flag this into the ovs selftest - we clearly have a missing case
-after NAT lookup.
-
-I'll add it to my (ever growing) list.
-
-Meanwhile,
-
-Acked-by: Aaron Conole <aconole@redhat.com>
-
->>  net/netfilter/nf_nat_ovs.c | 3 ++-
->>  1 file changed, 2 insertions(+), 1 deletion(-)
->> 
->> diff --git a/net/netfilter/nf_nat_ovs.c b/net/netfilter/nf_nat_ovs.c
->> index 551abd2da614..0f9a559f6207 100644
->> --- a/net/netfilter/nf_nat_ovs.c
->> +++ b/net/netfilter/nf_nat_ovs.c
->> @@ -75,9 +75,10 @@ static int nf_ct_nat_execute(struct sk_buff *skb, struct nf_conn *ct,
->>  	}
->>  
->>  	err = nf_nat_packet(ct, ctinfo, hooknum, skb);
->> +out:
->>  	if (err == NF_ACCEPT)
->>  		*action |= BIT(maniptype);
->> -out:
->> +
->>  	return err;
->>  }
->>  
->> -- 
->> 2.34.1
->> 
->> _______________________________________________
->> dev mailing list
->> dev@openvswitch.org
->> https://mail.openvswitch.org/mailman/listinfo/ovs-dev
->> 
-
+Cheers, Phil
