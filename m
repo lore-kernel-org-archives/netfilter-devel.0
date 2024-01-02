@@ -1,50 +1,135 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5D95FBE7
-	for <netfilter-devel@vger.kernel.org>; Tue,  2 Jan 2024 13:31:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.41.52] (port=50924 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1rKenc-007xg4-F9; Tue, 02 Jan 2024 14:27:18 +0100
-Date: Tue, 2 Jan 2024 14:27:15 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Nicholas Vinson <nvinson234@gmail.com>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [libnftnl] chain: Removed non-defined functions
-Message-ID: <ZZQPM7YeHRO7q349@calendula>
-References: <f5b5ce9e42b038cb43064764385813fedd556bf1.1703646281.git.nvinson234@gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B72012E7B
+	for <netfilter-devel@vger.kernel.org>; Tue,  2 Jan 2024 15:10:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="gbaKQEvx"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1704208223;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ZHtqiuFv0NX2cWrksYXkoFkjpAn1pYFyXkkX4b7K2+g=;
+	b=gbaKQEvxQ4Aj8Wu1To4I29MQVyuNfuLWlKPi1qMFOvJtsXpMwQ8oxRKxYPTncl8hjjHCPR
+	+mfk/giIbivEEiyFMlOOgg/x4VJDd0/BMJAuTSOkm5bsuT51tCdb532YsUm0nNh/KoD/nu
+	geYMgJbo04ZeW9Jz7wxwSsTZaWTR8zM=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-310-ZI4YbdCQOISs_CZvDVPhjg-1; Tue, 02 Jan 2024 10:10:18 -0500
+X-MC-Unique: ZI4YbdCQOISs_CZvDVPhjg-1
+Received: from smtp.corp.redhat.com (int-mx09.intmail.prod.int.rdu2.redhat.com [10.11.54.9])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 3F839832EDA;
+	Tue,  2 Jan 2024 15:10:17 +0000 (UTC)
+Received: from RHTPC1VM0NT (unknown [10.22.16.200])
+	by smtp.corp.redhat.com (Postfix) with ESMTPS id B97BF492BC6;
+	Tue,  2 Jan 2024 15:10:15 +0000 (UTC)
+From: Aaron Conole <aconole@redhat.com>
+To: Simon Horman <horms@kernel.org>
+Cc: Brad Cowie <brad@faucet.nz>,  netdev@vger.kernel.org,
+  dev@openvswitch.org,  fw@strlen.de,  linux-kernel@vger.kernel.org,
+  kadlec@netfilter.org,  edumazet@google.com,
+  netfilter-devel@vger.kernel.org,  kuba@kernel.org,  pabeni@redhat.com,
+  davem@davemloft.net,  pablo@netfilter.org,  Xin Long
+ <lucien.xin@gmail.com>,  coreteam@netfilter.org
+Subject: Re: [PATCH net] netfilter: nf_nat: fix action not being set for all
+ ct states
+References: <20231221224311.130319-1-brad@faucet.nz>
+	<20231223211306.GA215659@kernel.org>
+Date: Tue, 02 Jan 2024 10:10:15 -0500
+In-Reply-To: <20231223211306.GA215659@kernel.org> (Simon Horman's message of
+	"Sat, 23 Dec 2023 21:13:06 +0000")
+Message-ID: <f7tle97eppk.fsf@redhat.com>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/28.3 (gnu/linux)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <f5b5ce9e42b038cb43064764385813fedd556bf1.1703646281.git.nvinson234@gmail.com>
-X-Spam-Score: -1.9 (-)
+Content-Type: text/plain
+X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.9
 
-On Tue, Dec 26, 2023 at 10:05:17PM -0500, Nicholas Vinson wrote:
-> The functions nftnl_chain_parse(), nftnl_chain_parse_file(),
-> nftnl_set_elems_foreach(), and nftnl_obj_unset() are no longer defined
-> and removed from the code.
-> 
-> The functions nftnl_chain_parse(), nftnl_chain_parse_file() were removed
-> with commit 80077787f8f21da1efd8dc27a4c5767ab47a1df6.
-> 
-> The function nftnl_set_elems_foreach() does not appear to have ever been
-> defined.
-> 
-> The function nftnl_obj_unset() does not appear to have ever been
-> defined, but declared within commit
-> 5573d0146c1ae71ac5b3e4ba6a12c00585646a1a
+Simon Horman <horms@kernel.org> writes:
 
-I have provided a patch to support nftnl_obj_unset() for consistency
-with other existing objects.
+> + Xin Long <lucien.xin@gmail.com>
+>   Aaron Conole <aconole@redhat.com>
+>   coreteam@netfilter.org
+>
+> On Fri, Dec 22, 2023 at 11:43:11AM +1300, Brad Cowie wrote:
+>> This fixes openvswitch's handling of nat packets in the related state.
+>> 
+>> In nf_ct_nat_execute(), which is called from nf_ct_nat(), ICMP/ICMPv6
+>> packets in the IP_CT_RELATED or IP_CT_RELATED_REPLY state, which have
+>> not been dropped, will follow the goto, however the placement of the
+>> goto label means that updating the action bit field will be bypassed.
+>> 
+>> This causes ovs_nat_update_key() to not be called from ovs_ct_nat()
+>> which means the openvswitch match key for the ICMP/ICMPv6 packet is not
+>> updated and the pre-nat value will be retained for the key, which will
+>> result in the wrong openflow rule being matched for that packet.
+>> 
+>> Move the goto label above where the action bit field is being set so
+>> that it is updated in all cases where the packet is accepted.
+>> 
+>> Fixes: ebddb1404900 ("net: move the nat function to nf_nat_ovs for ovs and tc")
+>> Signed-off-by: Brad Cowie <brad@faucet.nz>
+>
+> Thanks Brad,
+>
+> I agree with your analysis and that the problem appears to
+> have been introduced by the cited commit.
+>
+> I am curious to know what use case triggers this /
+> why it when unnoticed for a year.
+>
+> But in any case, this fix looks good to me.
+>
+> Reviewed-by: Simon Horman <horms@kernel.org>
+>
+>> ---
 
-Unless anyone says otherwise, I'll apply this with minor updates
-(stripping of the nftnl_obj_unset() update), thanks.
+LGTM.  I guess we should try to codify the specific flows that were used
+to flag this into the ovs selftest - we clearly have a missing case
+after NAT lookup.
+
+I'll add it to my (ever growing) list.
+
+Meanwhile,
+
+Acked-by: Aaron Conole <aconole@redhat.com>
+
+>>  net/netfilter/nf_nat_ovs.c | 3 ++-
+>>  1 file changed, 2 insertions(+), 1 deletion(-)
+>> 
+>> diff --git a/net/netfilter/nf_nat_ovs.c b/net/netfilter/nf_nat_ovs.c
+>> index 551abd2da614..0f9a559f6207 100644
+>> --- a/net/netfilter/nf_nat_ovs.c
+>> +++ b/net/netfilter/nf_nat_ovs.c
+>> @@ -75,9 +75,10 @@ static int nf_ct_nat_execute(struct sk_buff *skb, struct nf_conn *ct,
+>>  	}
+>>  
+>>  	err = nf_nat_packet(ct, ctinfo, hooknum, skb);
+>> +out:
+>>  	if (err == NF_ACCEPT)
+>>  		*action |= BIT(maniptype);
+>> -out:
+>> +
+>>  	return err;
+>>  }
+>>  
+>> -- 
+>> 2.34.1
+>> 
+>> _______________________________________________
+>> dev mailing list
+>> dev@openvswitch.org
+>> https://mail.openvswitch.org/mailman/listinfo/ovs-dev
+>> 
+
