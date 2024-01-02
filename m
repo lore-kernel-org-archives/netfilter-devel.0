@@ -1,177 +1,70 @@
-Received: from out30-112.freemail.mail.aliyun.com (out30-112.freemail.mail.aliyun.com [115.124.30.112])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 016A753A7;
-	Tue,  2 Jan 2024 06:11:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R471e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046060;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=13;SR=0;TI=SMTPD_---0VzmJOFK_1704175882;
-Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VzmJOFK_1704175882)
-          by smtp.aliyun-inc.com;
-          Tue, 02 Jan 2024 14:11:22 +0800
-From: "D. Wythe" <alibuda@linux.alibaba.com>
-To: pablo@netfilter.org,
-	kadlec@netfilter.org,
-	fw@strlen.de
-Cc: bpf@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org,
-	coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	ast@kernel.org
-Subject: [RFC nf-next v5 2/2] selftests/bpf: Add netfilter link prog update test
-Date: Tue,  2 Jan 2024 14:11:17 +0800
-Message-Id: <1704175877-28298-3-git-send-email-alibuda@linux.alibaba.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1704175877-28298-1-git-send-email-alibuda@linux.alibaba.com>
-References: <1704175877-28298-1-git-send-email-alibuda@linux.alibaba.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37BE4F4E2
+	for <netfilter-devel@vger.kernel.org>; Tue,  2 Jan 2024 11:34:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YIjI7bmd"
+Received: by mail-pj1-f51.google.com with SMTP id 98e67ed59e1d1-28c0536806fso6786817a91.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 02 Jan 2024 03:34:22 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1704195262; x=1704800062; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=Aoe95m25lG5GyL+nMwNC6SAg/ypGavgT/1S1Yjvbw3o=;
+        b=YIjI7bmdvmSjKVVsz7DNyVGuIBJebTAkXIczfEnzKaTvqWHRgL0IfcbYocO89bL+/4
+         q3qVefffSp+5uUcdB5JyH6jQf3Uyz1qrK1gZvXrh+fdcOztQaG90vOb/0nB9XxgfPMBG
+         eYdDp5hTEGUq92yrVe1zJv+JTJHGumGExYTQFomvbaWQYgVjs17Ho2IlC/l6DKZq5aFg
+         ZNimLuNeJU1jhY58Q0eyl+ckRqRrXEWhUYK9lphr2wJecOcYAjQyvx8ye046Wo10dYJw
+         Bi36D+U9Bxga8iG2IVEjwWx4HF2UlVxeG3OXeWeAvGbXJlXlLNAruvp+QaOBdaPxFt4P
+         bHqw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1704195262; x=1704800062;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=Aoe95m25lG5GyL+nMwNC6SAg/ypGavgT/1S1Yjvbw3o=;
+        b=owGF0gU0UOCDQdpsIRcQYP9rX+3/lwrYYJLPwhP89Aa63lnu1k+e93OPHtZEutB+DM
+         dn6BaXHkpPUtrfSXqP/ndgOUafqMsMwgvEAWmQ+qz792AxKMQrcMspgyC5Rls1U9kfXw
+         sqg44iQBGISiHp1Nk7zJBnTIaGJJxVQ4yf2xJtx+tLhyzNi4tKLJKsBrXr8rQF2QvKe6
+         L6gVGu3cUBAZxdx6u0fexrjDOfvMA6O1dahd22gfLDP5CE68UsHW16l5Fod6NskWsyBP
+         tOA99ML1o4ZLrWB0/GVrO5hIEXKxjssWXjqrsxFgf0WNvIGBR2K9KOmX1WTD4XiyLNI5
+         3PTQ==
+X-Gm-Message-State: AOJu0YwWz0dgJLpuG+tvDBIkJdzM4+aa0ZG+g16pHlE/NDdZ2alaESTs
+	3dnX6cWnIg7yjs/lPEsOoaFk/6tjKLYg2qSitOdIIoiTKAc=
+X-Google-Smtp-Source: AGHT+IFJv7D2tFfsu+Yn2eBPIRiQ0hyOPf4j54vrPqAM26I1LP+A2FyLGpRJ6f5LXhB9Nd8HScTkToljaAgMu0i5oPg=
+X-Received: by 2002:a17:90a:aa0f:b0:28b:dd93:a2ee with SMTP id
+ k15-20020a17090aaa0f00b0028bdd93a2eemr9069368pjq.95.1704195262341; Tue, 02
+ Jan 2024 03:34:22 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <CAOzo9e7yoiiTLvMj0_wFaSvdf0XpsymqUVb8nUMAuj96nPM5ww@mail.gmail.com>
+ <ZZNuZBK5AwmGi0Kx@orbyte.nwl.cc>
+In-Reply-To: <ZZNuZBK5AwmGi0Kx@orbyte.nwl.cc>
+From: Han Boetes <hboetes@gmail.com>
+Date: Tue, 2 Jan 2024 12:34:11 +0100
+Message-ID: <CAOzo9e4o3ac0xTY4U3Yq0cgrwcaK+gYoyA3UH7xZEqQ6Ju7UYg@mail.gmail.com>
+Subject: Re: feature request: list elements of table for scripting
+To: Phil Sutter <phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-From: "D. Wythe" <alibuda@linux.alibaba.com>
+Dear Phil,
 
-Update prog for active links and verify whether
-the prog has been successfully replaced.
+Thanks for your reply.
 
-Expected output:
+How does your reply help me produce a list of IP-addresses? How does
+it expand the CIDR IP ranges (xxx.xxx.103.118/31)? How does it expand
+the dash ranges (xxx.xxx.103.115-xxx.xxx.103.116)?
 
-./test_progs -t netfilter_link_update_prog
-Summary: 1/0 PASSED, 0 SKIPPED, 0 FAILED
+I don't see how your reply helps. Please enlighten me.
 
-Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
----
- .../bpf/prog_tests/netfilter_link_update_prog.c    | 83 ++++++++++++++++++++++
- .../bpf/progs/test_netfilter_link_update_prog.c    | 24 +++++++
- 2 files changed, 107 insertions(+)
- create mode 100644 tools/testing/selftests/bpf/prog_tests/netfilter_link_update_prog.c
- create mode 100644 tools/testing/selftests/bpf/progs/test_netfilter_link_update_prog.c
 
-diff --git a/tools/testing/selftests/bpf/prog_tests/netfilter_link_update_prog.c b/tools/testing/selftests/bpf/prog_tests/netfilter_link_update_prog.c
-new file mode 100644
-index 00000000..d23b544
---- /dev/null
-+++ b/tools/testing/selftests/bpf/prog_tests/netfilter_link_update_prog.c
-@@ -0,0 +1,83 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+
-+#include <test_progs.h>
-+#include <linux/netfilter.h>
-+#include <network_helpers.h>
-+#include "test_netfilter_link_update_prog.skel.h"
-+
-+#define SERVER_ADDR "127.0.0.1"
-+#define SERVER_PORT 12345
-+
-+static const char dummy_message[] = "A dummy message";
-+
-+static int send_dummy(int client_fd)
-+{
-+	struct sockaddr_storage saddr;
-+	struct sockaddr *saddr_p;
-+	socklen_t saddr_len;
-+	int err;
-+
-+	saddr_p = (struct sockaddr *)&saddr;
-+	err = make_sockaddr(AF_INET, SERVER_ADDR, SERVER_PORT, &saddr, &saddr_len);
-+	if (!ASSERT_OK(err, "make_sockaddr"))
-+		return -1;
-+
-+	err = sendto(client_fd, dummy_message, sizeof(dummy_message) - 1, 0, saddr_p, saddr_len);
-+	if (!ASSERT_GE(err, 0, "sendto"))
-+		return -1;
-+
-+	return 0;
-+}
-+
-+void test_netfilter_link_update_prog(void)
-+{
-+	LIBBPF_OPTS(bpf_netfilter_opts, opts,
-+		.pf = NFPROTO_IPV4,
-+		.hooknum = NF_INET_LOCAL_OUT,
-+		.priority = 100);
-+	struct test_netfilter_link_update_prog *skel;
-+	struct bpf_program *prog;
-+	int server_fd, client_fd;
-+	int err;
-+
-+	skel = test_netfilter_link_update_prog__open_and_load();
-+	if (!ASSERT_OK_PTR(skel, "test_netfilter_link_update_prog__open_and_load"))
-+		goto out;
-+
-+	prog = skel->progs.nf_link_prog;
-+
-+	if (!ASSERT_OK_PTR(prog, "load program"))
-+		goto out;
-+
-+	skel->links.nf_link_prog = bpf_program__attach_netfilter(prog, &opts);
-+	if (!ASSERT_OK_PTR(skel->links.nf_link_prog, "attach netfilter program"))
-+		goto out;
-+
-+	server_fd = start_server(AF_INET, SOCK_DGRAM, SERVER_ADDR, SERVER_PORT, 0);
-+	if (!ASSERT_GE(server_fd, 0, "start_server"))
-+		goto out;
-+
-+	client_fd = connect_to_fd(server_fd, 0);
-+	if (!ASSERT_GE(client_fd, 0, "connect_to_fd"))
-+		goto out;
-+
-+	send_dummy(client_fd);
-+
-+	ASSERT_EQ(skel->bss->counter, 0, "counter should be zero");
-+
-+	err = bpf_link__update_program(skel->links.nf_link_prog, skel->progs.nf_link_prog_new);
-+	if (!ASSERT_OK(err, "bpf_link__update_program"))
-+		goto out;
-+
-+	send_dummy(client_fd);
-+	ASSERT_GE(skel->bss->counter, 0, "counter should be greater than zero");
-+out:
-+	if (client_fd > 0)
-+		close(client_fd);
-+	if (server_fd > 0)
-+		close(server_fd);
-+
-+	test_netfilter_link_update_prog__destroy(skel);
-+}
-+
-+
-diff --git a/tools/testing/selftests/bpf/progs/test_netfilter_link_update_prog.c b/tools/testing/selftests/bpf/progs/test_netfilter_link_update_prog.c
-new file mode 100644
-index 00000000..42ae332
---- /dev/null
-+++ b/tools/testing/selftests/bpf/progs/test_netfilter_link_update_prog.c
-@@ -0,0 +1,24 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+
-+#include "vmlinux.h"
-+#include <bpf/bpf_helpers.h>
-+
-+#define NF_ACCEPT 1
-+
-+SEC("netfilter")
-+int nf_link_prog(struct bpf_nf_ctx *ctx)
-+{
-+	return NF_ACCEPT;
-+}
-+
-+u64 counter = 0;
-+
-+SEC("netfilter")
-+int nf_link_prog_new(struct bpf_nf_ctx *ctx)
-+{
-+	counter++;
-+	return NF_ACCEPT;
-+}
-+
-+char _license[] SEC("license") = "GPL";
-+
--- 
-1.8.3.1
-
+With kind regards,
+Han
