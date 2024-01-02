@@ -1,67 +1,76 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from out30-133.freemail.mail.aliyun.com (out30-133.freemail.mail.aliyun.com [115.124.30.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC12CA38
-	for <netfilter-devel@vger.kernel.org>; Tue,  2 Jan 2024 02:09:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="S/1j9Ayd"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=jaskImS5nZtmr0YDAMzjFr1/FDukznoEBqrKjLZgdR0=; b=S/1j9AydOeoIH4V1b0WK1fv0VH
-	FgqXs9yeL9mNbJdHZVoQPLFLueRoFNR4ujS9ujBZX2iG1qU2mxnxW6LIoMA6oYTXp8Frq6svqOUvc
-	LZR0AhdK2c4rJLnC4iPVxT0z33nN1jQ1RSLP1YZXgT5JjOnHtLMWA3CF4HlbqmCp7Ai/s9D481Xu3
-	i5LEMz/r1dU9G2iKu2Rez6a+8o/SyKkw8vMHgqzgw/pN3tGkZVy+SenIUR+4ALqQGAshGVY2aJYY1
-	GML6nCiPLJScCjV+0LrW6ixIJXcYufsoOXJ28jRlMVgpslTE3UYUQM7yVC6AkJmGuVzKrDWewv4dk
-	VjwwNx/A==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97)
-	(envelope-from <phil@nwl.cc>)
-	id 1rKUDs-000000005H2-2hQh;
-	Tue, 02 Jan 2024 03:09:40 +0100
-Date: Tue, 2 Jan 2024 03:09:40 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Turritopsis Dohrnii Teo En Ming <teo.en.ming@protonmail.com>
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"ceo@teo-en-ming-corp.com" <ceo@teo-en-ming-corp.com>
-Subject: Re: GUI Frontend for iptables and nftables Linux firewalls
-Message-ID: <ZZNwZEZtspTDLglp@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Turritopsis Dohrnii Teo En Ming <teo.en.ming@protonmail.com>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"ceo@teo-en-ming-corp.com" <ceo@teo-en-ming-corp.com>
-References: <F2UgPsJY77kOox0aLlaT8ezVQQdgsDcsP95OPo5wyKzn230KLtlp1R_NHDRcM2FzpUByrp72jC2s1qu-7aV6kNmig0Rxn1Bly-ci51RE7t4=@protonmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FCB94431;
+	Tue,  2 Jan 2024 06:11:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R141e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045176;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=13;SR=0;TI=SMTPD_---0VzmJOCt_1704175877;
+Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VzmJOCt_1704175877)
+          by smtp.aliyun-inc.com;
+          Tue, 02 Jan 2024 14:11:21 +0800
+From: "D. Wythe" <alibuda@linux.alibaba.com>
+To: pablo@netfilter.org,
+	kadlec@netfilter.org,
+	fw@strlen.de
+Cc: bpf@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	coreteam@netfilter.org,
+	netfilter-devel@vger.kernel.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	ast@kernel.org
+Subject: [RFC nf-next v5 0/2] netfilter: bpf: support prog update
+Date: Tue,  2 Jan 2024 14:11:15 +0800
+Message-Id: <1704175877-28298-1-git-send-email-alibuda@linux.alibaba.com>
+X-Mailer: git-send-email 1.8.3.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <F2UgPsJY77kOox0aLlaT8ezVQQdgsDcsP95OPo5wyKzn230KLtlp1R_NHDRcM2FzpUByrp72jC2s1qu-7aV6kNmig0Rxn1Bly-ci51RE7t4=@protonmail.com>
 
-Hi,
+From: "D. Wythe" <alibuda@linux.alibaba.com>
 
-On Mon, Dec 25, 2023 at 03:26:13PM +0000, Turritopsis Dohrnii Teo En Ming wrote:
-> Subject: GUI Frontend for iptables and nftables Linux firewalls
-> 
-> Good day from Singapore,
-> 
-> Besides Webmin, are there any other good GUI frontends for iptables and nftables?
+This patches attempt to implements updating of progs within
+bpf netfilter link, allowing user update their ebpf netfilter
+prog in hot update manner.
 
-This is a question better asked on netfilter@vger.kernel.org.
+Besides, a corresponding test case has been added to verify
+whether the update works.
+--
+v1:
+1. remove unnecessary context, access the prog directly via rcu.
+2. remove synchronize_rcu(), dealloc the nf_link via kfree_rcu.
+3. check the dead flag during the update.
+--
+v1->v2:
+1. remove unnecessary nf_prog, accessing nf_link->link.prog in direct.
+--
+v2->v3:
+1. access nf_link->link.prog via rcu_dereference_raw to avoid warning.
+--
+v3->v4:
+1. remove mutex for link update, as it is unnecessary and can be replaced
+by atomic operations.
+--
+v4->v5:
+1. fix error retval check on cmpxhcg
 
-> The GUI frontend needs to allow complex firewall configurations. I think Webmin only allows simple firewall configurations.
+D. Wythe (2):
+  netfilter: bpf: support prog update
+  selftests/bpf: Add netfilter link prog update test
 
-I was once told fwbuilder[1] is a nice tool for that purpose but I never
-really used it and it seems dead ("Last Update: 2013-07-03", if sf.net
-is to be trusted).
+ net/netfilter/nf_bpf_link.c                        | 50 ++++++++-----
+ .../bpf/prog_tests/netfilter_link_update_prog.c    | 83 ++++++++++++++++++++++
+ .../bpf/progs/test_netfilter_link_update_prog.c    | 24 +++++++
+ 3 files changed, 141 insertions(+), 16 deletions(-)
+ create mode 100644 tools/testing/selftests/bpf/prog_tests/netfilter_link_update_prog.c
+ create mode 100644 tools/testing/selftests/bpf/progs/test_netfilter_link_update_prog.c
 
-Cheers, Phil
+-- 
+1.8.3.1
 
-[1] https://fwbuilder.sourceforge.net/
