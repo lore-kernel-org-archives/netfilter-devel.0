@@ -1,54 +1,74 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-il1-f200.google.com (mail-il1-f200.google.com [209.85.166.200])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BB7518C07
-	for <netfilter-devel@vger.kernel.org>; Wed,  3 Jan 2024 10:32:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.41.52] (port=54550 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1rKyY5-009RWm-4J; Wed, 03 Jan 2024 11:32:35 +0100
-Date: Wed, 3 Jan 2024 11:32:32 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Nicholas Vinson <nvinson234@gmail.com>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH libnftnl] object: define nftnl_obj_unset()
-Message-ID: <ZZU3wJKLfQdmatV3@calendula>
-References: <20240102132540.31391-1-pablo@netfilter.org>
- <20240102175058.24570-1-nvinson234@gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 633A718E0C
+	for <netfilter-devel@vger.kernel.org>; Wed,  3 Jan 2024 10:47:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-il1-f200.google.com with SMTP id e9e14a558f8ab-3604ae9e876so21646645ab.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 03 Jan 2024 02:47:21 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1704278840; x=1704883640;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=0v9D0U8zoD0RGhtvTYl+RE9AdMXmXMXGPURFx26hzEc=;
+        b=MNEhCt21Fx2H80Sgw4TzbBiycqhGaiUaFIpkMiBdJ7ktHhHl+bM6PwFN5r0Syl2oyr
+         0P7aLEJATwqduFhEi5uF5SmjM+Wqdf/I62hB781gRfuPmyXKvsFW2k4N/Bw4XEPCFSxC
+         9HFLUS2nUEJABx/dgOHVQiyHb8cG9SyHY8nXBbH9N4jVx7PGPe2S15nGYWotxjbeKIwQ
+         jMe4pxTi1pWG2ACznqo/8NiTYoxa1smbGDMw7ZLQLbRnQ/E2jSTHLNLJEDeVURDQyTjI
+         O4weO4E0bRLi/AzFGfnR+UVa8s8H2y434U1+Mu7QrFQdZXijXNmo0+a1RgojRKLd7/1p
+         WSUA==
+X-Gm-Message-State: AOJu0YzyyfeCBi+d7YlN0RLhMg3s7ArBI85re37QdmWAN8kPPp2OGr9f
+	Y07fdv4Ux4OmCbCWbKHcX3a5iu+nqsljhBirXDUJ/tLWKcJ0
+X-Google-Smtp-Source: AGHT+IHPMOHUuANNnM1elvc/yjK02zS6unpcxlMnJzKrWI5oJcqSTfD9XHwCw4aJDuQD+tdEErrea3dBmzyFR9+hk79RPGOseu0A
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20240102175058.24570-1-nvinson234@gmail.com>
-X-Spam-Score: -1.9 (-)
+X-Received: by 2002:a05:6e02:1d18:b0:35f:f01e:bb32 with SMTP id
+ i24-20020a056e021d1800b0035ff01ebb32mr2389137ila.4.1704278840626; Wed, 03 Jan
+ 2024 02:47:20 -0800 (PST)
+Date: Wed, 03 Jan 2024 02:47:20 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000e4d49f060e08565a@google.com>
+Subject: [syzbot] Monthly netfilter report (Jan 2024)
+From: syzbot <syzbot+listc06dd9c5e64ea358a383@syzkaller.appspotmail.com>
+To: fw@strlen.de, kadlec@netfilter.org, linux-kernel@vger.kernel.org, 
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pablo@netfilter.org, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-Hi Nicholas,
+Hello netfilter maintainers/developers,
 
-On Tue, Jan 02, 2024 at 12:50:58PM -0500, Nicholas Vinson wrote:
-> I manually applied this patch and got the following build error:
-> 
->     error: use of undeclared identifier 'nftnl_obj_unset'; did you mean
->     'nftnl_obj_set'
-> 
-> I think a declaration for nftnl_obj_unset() needs to be added to
-> include/libnftnl/object.h. Other than that, this patch looks OK to me.
+This is a 31-day syzbot report for the netfilter subsystem.
+All related reports/information can be found at:
+https://syzkaller.appspot.com/upstream/s/netfilter
 
-$ git grep nftnl_obj_unset
-include/libnftnl/object.h:void nftnl_obj_unset(struct nftnl_obj *ne, uint16_t attr);
-src/libnftnl.map:  nftnl_obj_unset;
-src/object.c:EXPORT_SYMBOL(nftnl_obj_unset);
-src/object.c:void nftnl_obj_unset(struct nftnl_obj *obj, uint16_t attr
+During the period, 0 new issues were detected and 0 were fixed.
+In total, 4 issues are still open and 157 have been fixed so far.
 
-the header file already has a declaration for this (which was part of
-5573d0146c1a ("src: support for stateful objects").
+Some of the still happening issues:
 
-What is missing then?
+Ref Crashes Repro Title
+<1> 45      Yes   INFO: rcu detected stall in gc_worker (3)
+                  https://syzkaller.appspot.com/bug?extid=eec403943a2a2455adaa
+<2> 4       Yes   INFO: rcu detected stall in tcp_setsockopt
+                  https://syzkaller.appspot.com/bug?extid=1a11c39caf29450eac9f
+<3> 2       Yes   WARNING in __nf_unregister_net_hook (6)
+                  https://syzkaller.appspot.com/bug?extid=de4025c006ec68ac56fc
 
-Thanks.
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+To disable reminders for individual bugs, reply with the following command:
+#syz set <Ref> no-reminders
+
+To change bug's subsystems, reply with:
+#syz set <Ref> subsystems: new-subsystem
+
+You may send multiple commands in a single email message.
