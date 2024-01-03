@@ -1,96 +1,126 @@
-Received: from mail-oi1-f179.google.com (mail-oi1-f179.google.com [209.85.167.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from wout4-smtp.messagingengine.com (wout4-smtp.messagingengine.com [64.147.123.20])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E97361A706
-	for <netfilter-devel@vger.kernel.org>; Wed,  3 Jan 2024 14:53:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 557D81F607;
+	Wed,  3 Jan 2024 23:32:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=dxuuu.xyz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=dxuuu.xyz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EyNUSSbt"
-Received: by mail-oi1-f179.google.com with SMTP id 5614622812f47-3bc09844f29so1976128b6e.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 03 Jan 2024 06:53:27 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1704293607; x=1704898407; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=OvKtOTQla9gbESEeJYUao/mK1wkd/4OrX88uqdJgpjE=;
-        b=EyNUSSbtt4Be5Clyo8p25xgWp4zFQnV0H2v8UeD/dFn73Zo8QPbrajacowLg6WFUxR
-         yEfEPFtjQi4PTUwgdmqDYGrMuRUe1QkefZ8tRaSVj/pTMTY6fmtO8iU8+Fdcr1k3sfOj
-         MHn1WSEYghJTFOq4ZShYEFGnnxpPmZZSuNrag45HbX3LmIY/hAB8UIVjmTCjXJWK0AkZ
-         zXy7GodNL68fLIIW9tIe1GS7Dm0r2FUnebMoK70HwUXVcLg/zks9QdINVmSVtUI2v5nk
-         to52DBsuyAFi6TipOGquq60Wx0nk98SA5R5UvnYVSnUpKkxY1XMwaYEqNxVvo3z3Kzie
-         eYYw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1704293607; x=1704898407;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=OvKtOTQla9gbESEeJYUao/mK1wkd/4OrX88uqdJgpjE=;
-        b=GNFa7ITDs9reaNJbmeA5V9njNtJDdQddqyMb6WMSG3nzk8hUrlR1RrTGMgTJjCb2PT
-         h/zTrCbOBOXMF8Uhdk4yVoixQoq+Grk5hkJnNlXl7RGxNHHlVv+cy8/eXtI/YKqzKoFQ
-         164ws3Jg+W97WynK78cVRvhTONNInGrYNIKJCu/Do9yyz7spNz9DegCgXnoj5fBxFYrD
-         tFvX16cdz6OJoaHKMCQqSekmMhVW+I/8ReKes8eb3wYpwuDcvUcP0vuPDdMimnPBRNly
-         DliTo65KOfzmzdP+DFLvdJSoPGRyGbbaGrbVSkhm7q5/kV4qnL2fl4zJkCkjNnuQRb+i
-         eJgg==
-X-Gm-Message-State: AOJu0Yz5sbybvs3ph1d+ZDtnL5hXxPZ5mM6vr5iKlL+yrZuOk9L0VnhI
-	f7wTtTcFuXnctuj0T8MsnWX3glUABOs=
-X-Google-Smtp-Source: AGHT+IEzPMLlJm5KuMwFikKO8TPBngbFDCOCnRUX6iCQqoSz0y1lX836j32FBwjdMkeR/sO+T4f5Wg==
-X-Received: by 2002:a05:6358:27a6:b0:175:5890:d283 with SMTP id l38-20020a05635827a600b001755890d283mr1154443rwb.27.1704293606645;
-        Wed, 03 Jan 2024 06:53:26 -0800 (PST)
-Received: from ?IPV6:2602:47:d950:3e00:e895:751c:cca6:f658? ([2602:47:d950:3e00:e895:751c:cca6:f658])
-        by smtp.gmail.com with ESMTPSA id u11-20020ac8750b000000b00419732075b4sm14037744qtq.84.2024.01.03.06.53.25
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 03 Jan 2024 06:53:26 -0800 (PST)
-Message-ID: <25d59855-3604-489c-b2d2-2b68e0bd72e7@gmail.com>
-Date: Wed, 3 Jan 2024 09:53:24 -0500
+	dkim=pass (2048-bit key) header.d=dxuuu.xyz header.i=@dxuuu.xyz header.b="lJYbtwRp";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="bkEYNB6m"
+Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
+	by mailout.west.internal (Postfix) with ESMTP id 127D03200A61;
+	Wed,  3 Jan 2024 18:32:09 -0500 (EST)
+Received: from mailfrontend2 ([10.202.2.163])
+  by compute6.internal (MEProxy); Wed, 03 Jan 2024 18:32:11 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
+	:content-transfer-encoding:content-type:date:date:from:from
+	:in-reply-to:message-id:mime-version:reply-to:subject:subject:to
+	:to; s=fm1; t=1704324729; x=1704411129; bh=fBlTY1O1StgZyteJRwSj0
+	WOCCgegue7fpMlq4tQR6pE=; b=lJYbtwRpU+dVyyJzJZGCzGN92FAzyXisdOTyA
+	hga+Tz/oNJxJ3/vh/ENWw6VHA+9HerOrPM2yWKDSKa04HVB3afWClfUwTaAtFILW
+	OOVdYMb3RS7WYs0cPfNNo/UZh0rAW6MwxJFDMOxHBIHXACpAM3WNV/bs0rxvDBBj
+	GGHGGty44rb3NCzCrLoYZRXL72lVlXj0gf3g6rWQUy1UjZo3Ifu4q9QhgmHzssry
+	WN/qaTsiffEf1EDV1rHDW/plzF8viJ497gnxWhdrOnnKviF3QxnTaFMD8DHcWi4j
+	+0GbOI3AcpHRe4idSw13HwvflHAZYyOVVWd+rhnaTiuXyjVvg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:content-transfer-encoding:content-type
+	:date:date:feedback-id:feedback-id:from:from:in-reply-to
+	:message-id:mime-version:reply-to:subject:subject:to:to
+	:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
+	fm2; t=1704324729; x=1704411129; bh=fBlTY1O1StgZyteJRwSj0WOCCgeg
+	ue7fpMlq4tQR6pE=; b=bkEYNB6mF2hRhn3oPBkxEv4MTis76LQX6kxIG4Z0a6O8
+	23WlTBLrL4m/EbFGIxviTL79olTDxMSHWoK7u5IxthjrQXU02MP8fVR8cEHO+s3z
+	h8von97bCIEtyKs9dVGqsTso2HX2723lGaEJ4DG9E3VuEupuwDZ9ImKTyv6mHiqP
+	wuOuteLGQc8bzh+zQfHLyBvqgY03UkxiOnIeaQST+5haxhjaEnRa2cWZ0ZH2VtaB
+	xJAiTBX7cdldtYW6XK3hKhIJwA2WtWLJps3e0b9RRiYcZfCwinXmUFCGzKY9UGcZ
+	iRKgeAvxv5v7eXLQegka4wpUNzFHNkzVJlpd+Y9hfw==
+X-ME-Sender: <xms:ee6VZb7nVEguWYMYGcsHeDfQzGSOkMaR910F5h5_TmodHTwiD3gTCw>
+    <xme:ee6VZQ58ecOlJDLxO9xUG2RyHUBjmzzDeyXxPFYSsl0hQYEbGH4rsOw9xQlLBnzuT
+    vvXCum2bPsN3CBkhA>
+X-ME-Received: <xmr:ee6VZSe-dtivdRXsviJeY6ng4lQHZMCRz8IWSabTPNAqBqnMe4LBurFOoNG8A-3AhFklujKA1fjO7IkhP1LAuxJY96RzHZw2HFvb1CmYlV_Q4Q>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvkedrvdegiedguddtucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucgfrhhlucfvnfffucdljedtmdenucfjughrpefhvf
+    fufffkofgggfestdekredtredttdenucfhrhhomhepffgrnhhivghlucgiuhcuoegugihu
+    segugihuuhhurdighiiiqeenucggtffrrghtthgvrhhnpeeifffgledvffeitdeljedvte
+    effeeivdefheeiveevjeduieeigfetieevieffffenucevlhhushhtvghrufhiiigvpedt
+    necurfgrrhgrmhepmhgrihhlfhhrohhmpegugihusegugihuuhhurdighiii
+X-ME-Proxy: <xmx:ee6VZcJsPTwIypaABAx54mLUiDqR-eW4GzwFx7VZtovUCBL5U1HhmQ>
+    <xmx:ee6VZfJe-ZA9i8lcfVslhcroQyOjo5igaaU6c31UT9YGkk1qQl0hXA>
+    <xmx:ee6VZVx1eanecM8vnOIT199ezlrPTsbYNWWHs1kGu3CorWW_CdOwMg>
+    <xmx:ee6VZQ5hX2kthjEX-X3ufwYaJnC9ulEG6gmoMS1iN5eth7eiyZ1LQQ>
+Feedback-ID: i6a694271:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Wed,
+ 3 Jan 2024 18:32:07 -0500 (EST)
+From: Daniel Xu <dxu@dxuuu.xyz>
+To: coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	cgroups@vger.kernel.org,
+	linux-input@vger.kernel.org,
+	linux-trace-kernel@vger.kernel.org,
+	linux-stm32@st-md-mailman.stormreply.com,
+	linux-kselftest@vger.kernel.org,
+	fsverity@lists.linux.dev,
+	netfilter-devel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	bpf@vger.kernel.org,
+	alexei.starovoitov@gmail.com,
+	olsajiri@gmail.com,
+	quentin@isovalent.com,
+	alan.maguire@oracle.com,
+	memxor@gmail.com
+Subject: [PATCH bpf-next 0/2] Annotate kfuncs in .BTF_ids section
+Date: Wed,  3 Jan 2024 16:31:54 -0700
+Message-ID: <cover.1704324602.git.dxu@dxuuu.xyz>
+X-Mailer: git-send-email 2.42.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH libnftnl] object: define nftnl_obj_unset()
-Content-Language: en-US
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-References: <20240102132540.31391-1-pablo@netfilter.org>
- <20240102175058.24570-1-nvinson234@gmail.com> <ZZU3wJKLfQdmatV3@calendula>
-From: Nicholas Vinson <nvinson234@gmail.com>
-In-Reply-To: <ZZU3wJKLfQdmatV3@calendula>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 1/3/24 05:32, Pablo Neira Ayuso wrote:
+This is a bpf-treewide change that annotates all kfuncs as such inside
+.BTF_ids. This annotation eventually allows us to automatically generate
+kfunc prototypes from bpftool.
 
-> Hi Nicholas,
->
-> On Tue, Jan 02, 2024 at 12:50:58PM -0500, Nicholas Vinson wrote:
->> I manually applied this patch and got the following build error:
->>
->>      error: use of undeclared identifier 'nftnl_obj_unset'; did you mean
->>      'nftnl_obj_set'
->>
->> I think a declaration for nftnl_obj_unset() needs to be added to
->> include/libnftnl/object.h. Other than that, this patch looks OK to me.
-> $ git grep nftnl_obj_unset
-> include/libnftnl/object.h:void nftnl_obj_unset(struct nftnl_obj *ne, uint16_t attr);
-> src/libnftnl.map:  nftnl_obj_unset;
-> src/object.c:EXPORT_SYMBOL(nftnl_obj_unset);
-> src/object.c:void nftnl_obj_unset(struct nftnl_obj *obj, uint16_t attr
->
-> the header file already has a declaration for this (which was part of
-> 5573d0146c1a ("src: support for stateful objects").
->
-> What is missing then?
+We store this metadata inside a yet-unused flags field inside struct
+btf_id_set8 (thanks Kumar!). pahole will be taught where to look.
 
-A mistake on my part. I failed to revert to properly revert my patch 
-before testing this change.
+More details about the full chain of events are available in commit 2's
+description.
 
-Everything looks good to me.
+Daniel Xu (2):
+  bpf: btf: Support optional flags for BTF_SET8 sets
+  bpf: treewide: Annotate BPF kfuncs in BTF
 
-Thanks.
+ drivers/hid/bpf/hid_bpf_dispatch.c              |  4 ++--
+ fs/verity/measure.c                             |  2 +-
+ include/linux/btf_ids.h                         | 17 ++++++++++++-----
+ kernel/bpf/btf.c                                |  3 +++
+ kernel/bpf/cpumask.c                            |  2 +-
+ kernel/bpf/helpers.c                            |  4 ++--
+ kernel/bpf/map_iter.c                           |  2 +-
+ kernel/cgroup/rstat.c                           |  2 +-
+ kernel/trace/bpf_trace.c                        |  4 ++--
+ net/bpf/test_run.c                              |  4 ++--
+ net/core/filter.c                               |  8 ++++----
+ net/core/xdp.c                                  |  2 +-
+ net/ipv4/bpf_tcp_ca.c                           |  2 +-
+ net/ipv4/fou_bpf.c                              |  2 +-
+ net/ipv4/tcp_bbr.c                              |  2 +-
+ net/ipv4/tcp_cubic.c                            |  2 +-
+ net/ipv4/tcp_dctcp.c                            |  2 +-
+ net/netfilter/nf_conntrack_bpf.c                |  2 +-
+ net/netfilter/nf_nat_bpf.c                      |  2 +-
+ net/xfrm/xfrm_interface_bpf.c                   |  2 +-
+ net/xfrm/xfrm_state_bpf.c                       |  2 +-
+ .../selftests/bpf/bpf_testmod/bpf_testmod.c     |  2 +-
+ 22 files changed, 42 insertions(+), 32 deletions(-)
 
->
-> Thanks.
+-- 
+2.42.1
+
