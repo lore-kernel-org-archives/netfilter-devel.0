@@ -1,6 +1,6 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E01D518EA0;
-	Wed,  3 Jan 2024 11:30:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D1DCB18EA6;
+	Wed,  3 Jan 2024 11:30:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 From: Pablo Neira Ayuso <pablo@netfilter.org>
@@ -11,10 +11,12 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 0/2] Netfilter fixes for net
-Date: Wed,  3 Jan 2024 12:29:59 +0100
-Message-Id: <20240103113001.137936-1-pablo@netfilter.org>
+Subject: [PATCH net 1/2] netfilter: nf_nat: fix action not being set for all ct states
+Date: Wed,  3 Jan 2024 12:30:00 +0100
+Message-Id: <20240103113001.137936-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20240103113001.137936-1-pablo@netfilter.org>
+References: <20240103113001.137936-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -23,45 +25,49 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Brad Cowie <brad@faucet.nz>
 
-The following patchset contains Netfilter fixes for net:
+This fixes openvswitch's handling of nat packets in the related state.
 
-1) Fix nat packets in the related state in OVS, from Brad Cowie.
+In nf_ct_nat_execute(), which is called from nf_ct_nat(), ICMP/ICMPv6
+packets in the IP_CT_RELATED or IP_CT_RELATED_REPLY state, which have
+not been dropped, will follow the goto, however the placement of the
+goto label means that updating the action bit field will be bypassed.
 
-2) Drop chain reference counter on error path in case chain binding
-   fails.
+This causes ovs_nat_update_key() to not be called from ovs_ct_nat()
+which means the openvswitch match key for the ICMP/ICMPv6 packet is not
+updated and the pre-nat value will be retained for the key, which will
+result in the wrong openflow rule being matched for that packet.
 
-Please, pull these changes from:
+Move the goto label above where the action bit field is being set so
+that it is updated in all cases where the packet is accepted.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-24-01-03
+Fixes: ebddb1404900 ("net: move the nat function to nf_nat_ovs for ovs and tc")
+Signed-off-by: Brad Cowie <brad@faucet.nz>
+Reviewed-by: Simon Horman <horms@kernel.org>
+Acked-by: Xin Long <lucien.xin@gmail.com>
+Acked-by: Aaron Conole <aconole@redhat.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_nat_ovs.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Thanks.
+diff --git a/net/netfilter/nf_nat_ovs.c b/net/netfilter/nf_nat_ovs.c
+index 551abd2da614..0f9a559f6207 100644
+--- a/net/netfilter/nf_nat_ovs.c
++++ b/net/netfilter/nf_nat_ovs.c
+@@ -75,9 +75,10 @@ static int nf_ct_nat_execute(struct sk_buff *skb, struct nf_conn *ct,
+ 	}
+ 
+ 	err = nf_nat_packet(ct, ctinfo, hooknum, skb);
++out:
+ 	if (err == NF_ACCEPT)
+ 		*action |= BIT(maniptype);
+-out:
++
+ 	return err;
+ }
+ 
+-- 
+2.30.2
 
-----------------------------------------------------------------
-
-The following changes since commit 9bf2e9165f90dc9f416af53c902be7e33930f728:
-
-  net: qrtr: ns: Return 0 if server port is not present (2024-01-01 18:41:29 +0000)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-24-01-03
-
-for you to fetch changes up to b29be0ca8e816119ccdf95cc7d7c7be9bde005f1:
-
-  netfilter: nft_immediate: drop chain reference counter on error (2024-01-03 11:17:17 +0100)
-
-----------------------------------------------------------------
-netfilter pull request 24-01-03
-
-----------------------------------------------------------------
-Brad Cowie (1):
-      netfilter: nf_nat: fix action not being set for all ct states
-
-Pablo Neira Ayuso (1):
-      netfilter: nft_immediate: drop chain reference counter on error
-
- net/netfilter/nf_nat_ovs.c    | 3 ++-
- net/netfilter/nft_immediate.c | 2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
