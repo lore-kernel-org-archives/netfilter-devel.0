@@ -1,54 +1,26 @@
-Received: from mail-pl1-f181.google.com (mail-pl1-f181.google.com [209.85.214.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34E89200AD
-	for <netfilter-devel@vger.kernel.org>; Wed,  3 Jan 2024 23:37:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1810C1FA4;
+	Thu,  4 Jan 2024 02:10:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FizICBUu"
-Received: by mail-pl1-f181.google.com with SMTP id d9443c01a7336-1d3e8a51e6bso81042015ad.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 03 Jan 2024 15:37:38 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1704325057; x=1704929857; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:sender:from:to:cc:subject:date:message-id:reply-to;
-        bh=oSSAVjsvP9sdSPjOdkYdcVz4+nhD3PRIaO32yOtU9Ys=;
-        b=FizICBUudkubm/mBFQTWPxH1Jv7lukxp1tiQpmdbaKIXFfJRyx51Ne97Gvo/Z9HzSF
-         oIYS0psrDPl4JOql/nfwlmxrUwLXiN1U4EnUe5tNaDlshejL+yvnOtkQkE3LafGEv4G5
-         oBbS8HnUJtIAwlScen+XXOIW+2QceFAx2YhcKzmfqQ8VV9eIcMzhk79MLfDbQvBp4GIS
-         XuzZf2lNnODL6oA+7uw08pPFPfVr3hKCnAmmefOSCeuLbsLWZiAvUqN1S8GBGO7Gmp1x
-         z3GFYPg5U+aJxTv7c37YwcEW1/LJHpM3qQd+E3DMBRJSVrHf3+X6MUjENHbgBMWgA7TJ
-         HZwA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1704325057; x=1704929857;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:sender:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=oSSAVjsvP9sdSPjOdkYdcVz4+nhD3PRIaO32yOtU9Ys=;
-        b=Dst/InvC2yU1jD+b1SVzA7KTczLXpu8GjSehC4StN7OaJTua5MpNkYFFLLi1ElqLhM
-         qq130C99h8/kmW4vMQh3daJ3CwI0pZ/+cSfaAvYWzjJnd5kAjjiHNYrY8QwwzlwfV7dV
-         bEQQ47x2Yzk6w0Yk5hGcYBSYBxcsaZQ+e8N76NPSJqEXsInc33NPS3tW/qdUeCYbjZXs
-         8FEVsmnMNJmrdlF84pGwAlhPt+xvaQ/mesQBrOY7m5KbgSD4Odivxly/+2GaJ3sZBmQs
-         pcSmsMEZEJpPlrR87V2o85RtqD5tPL9i2dSPptR4Ec2r/6s2MtErGPf0BbV1N4HBetrQ
-         b3Xw==
-X-Gm-Message-State: AOJu0YyKleNwCDsjum4bMgLme87gjyWiYBLMW9dTKrFl8PxH40H8RzXZ
-	Vph7MoBBkpkIvjQg6QkmTSJC36wW5w8=
-X-Google-Smtp-Source: AGHT+IHQugd+FcJzwClUrtmP9yMpRLBWsZYHl8G86zJi7pvXkznf1CCUosxR4Dv0Ft8fSO6k7ToKmw==
-X-Received: by 2002:a17:902:e892:b0:1d3:fe01:17ec with SMTP id w18-20020a170902e89200b001d3fe0117ecmr27876163plg.18.1704325057346;
-        Wed, 03 Jan 2024 15:37:37 -0800 (PST)
-Received: from slk15.local.net (n58-108-90-185.meb1.vic.optusnet.com.au. [58.108.90.185])
-        by smtp.gmail.com with ESMTPSA id iw6-20020a170903044600b001d0c151d325sm24261777plb.209.2024.01.03.15.37.35
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 03 Jan 2024 15:37:36 -0800 (PST)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From: Duncan Roe <duncan_roe@optusnet.com.au>
-To: pablo@netfilter.org
-Cc: netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_queue] include: pktbuff.h needs stdbool.h
-Date: Thu,  4 Jan 2024 10:37:32 +1100
-Message-Id: <20240103233732.31299-1-duncan_roe@optusnet.com.au>
-X-Mailer: git-send-email 2.35.8
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mJrWaxKI"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 691A6C433C8;
+	Thu,  4 Jan 2024 02:10:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1704334225;
+	bh=PPazzLB1rEZxd54FDz5nDQDpsED9Bs/qUuR9PT+80Nw=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=mJrWaxKIUgaFMCxyn+bwFu3DVdQvn0Ubh19QPdTaUY3epzMVFONYPW5tYBdvn8jUs
+	 KDqvBXdkukpWfhOZC3m2PCKdCN/s5KWNNtHi5fLZJuMUTC0oBeuDdrhQ4xz1Y1DZ+l
+	 0EsJ9U6x7Wv9UsT/sNgo04lsiaiDTi+nHTTtyn6Bq7DNrSQELHj51bAiEK1f5VLvxC
+	 zWZRBYldGHceQuDLU2yvk9RKrp1VlpCKBLNhZ6i/bkQtmOr/ox670fEGue31A7+sc4
+	 tifqnlb5tLNSkjOl2Y4Q6wwRb0aYZ1lKFV1e/GevIggCsl2jNr0443YbYYOD7e07rO
+	 e+Ml7BXAuhMsg==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 4E0B1C395C5;
+	Thu,  4 Jan 2024 02:10:25 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -56,29 +28,45 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/2] netfilter: nf_nat: fix action not being set for all
+ ct states
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <170433422531.9915.14111159023443400877.git-patchwork-notify@kernel.org>
+Date: Thu, 04 Jan 2024 02:10:25 +0000
+References: <20240103113001.137936-2-pablo@netfilter.org>
+In-Reply-To: <20240103113001.137936-2-pablo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, fw@strlen.de
 
-Without #include <stdbool.h>, compilation will fail if pktbuff.h is
-included early enough.
+Hello:
 
-Fixes: ffa83b5968b5 ("add mangle functions for IPv4/TCP and IPv4/UDP")
-Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
----
- include/libnetfilter_queue/pktbuff.h | 2 ++
- 1 file changed, 2 insertions(+)
+This series was applied to netdev/net.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-diff --git a/include/libnetfilter_queue/pktbuff.h b/include/libnetfilter_queue/pktbuff.h
-index a4cc2a1..d3588c7 100644
---- a/include/libnetfilter_queue/pktbuff.h
-+++ b/include/libnetfilter_queue/pktbuff.h
-@@ -1,6 +1,8 @@
- #ifndef _PKTBUFF_H_
- #define _PKTBUFF_H_
- 
-+#include <stdbool.h>
-+
- struct pkt_buff;
- 
- struct pkt_buff *pktb_alloc(int family, void *data, size_t len, size_t extra);
+On Wed,  3 Jan 2024 12:30:00 +0100 you wrote:
+> From: Brad Cowie <brad@faucet.nz>
+> 
+> This fixes openvswitch's handling of nat packets in the related state.
+> 
+> In nf_ct_nat_execute(), which is called from nf_ct_nat(), ICMP/ICMPv6
+> packets in the IP_CT_RELATED or IP_CT_RELATED_REPLY state, which have
+> not been dropped, will follow the goto, however the placement of the
+> goto label means that updating the action bit field will be bypassed.
+> 
+> [...]
+
+Here is the summary with links:
+  - [net,1/2] netfilter: nf_nat: fix action not being set for all ct states
+    https://git.kernel.org/netdev/net/c/e6345d2824a3
+  - [net,2/2] netfilter: nft_immediate: drop chain reference counter on error
+    https://git.kernel.org/netdev/net/c/b29be0ca8e81
+
+You are awesome, thank you!
 -- 
-2.35.8
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
