@@ -1,79 +1,113 @@
-Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B728B12E44
-	for <netfilter-devel@vger.kernel.org>; Mon,  8 Jan 2024 09:15:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=isovalent.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=isovalent.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=isovalent.com header.i=@isovalent.com header.b="MzNX37sC"
-Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-a28f66dc7ffso449397566b.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 08 Jan 2024 01:15:57 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=isovalent.com; s=google; t=1704705356; x=1705310156; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=TQw0PBv7H3F9npAXhHpc/yO+0aZTdw3iW7XYRioBY9M=;
-        b=MzNX37sCftG06J7zDqRoVr0ASbCiDMbrmnnww9QwIfjHn6v305+3yC4sf5ZhItJ/P9
-         dWgD/FpnTIJwHE4ksSWe0LyKUd6OfMRRTu2GsW3LrzyYIlk1hIm1lWPPTQTB7KlqL7yN
-         TZ4o5IaKMtV94FWQY6kwJIi2YrmviStlCIrez+Ok7YKHBE61mw9794RlBmRCxk8r8RUL
-         VrdvaM3wBX128iDc7clv/XxbWwBql1tdTSo4hEdAuX6o0HA2yEC1qaVMYbdyxbkpNlPz
-         Usmp583j3JFO42mG5KGuZPz8LDrv6DbVyXe7CC8l1Vt6gXrWdave70ArygI0WAZ/X/pQ
-         wOmg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1704705356; x=1705310156;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=TQw0PBv7H3F9npAXhHpc/yO+0aZTdw3iW7XYRioBY9M=;
-        b=FRWlblUOQApp7/xEafHoXmHJhEEJ9rOt8Gf2FTU2uneICvvpUqC3lcz4qQ1QfmRY/W
-         BagjvTxoXCWa5Z6LYLR9wgA14Bg0etoUE2nqy8oaHlAWHaDZX0AeZoozBvdcRzHbvBc5
-         FZzvSjukyLFqgUFSMlR9LfSBy7IOBBazPr5Fhf1qGEpY7R5gtJFYattOoc093l3N0UCM
-         N/ud8DTYy6x5Ce9kcvOAK8c3bpDQI6wJZaM97JD7EdCuKPrhkXk3dq+4yEwS+PysuLda
-         HkW3jlmScKAV+NvXi6jWHFFmbgNQ9cE6RGAr8IZgq+XCksHvdJHNT1EHgu/97VrJidLr
-         WV+A==
-X-Gm-Message-State: AOJu0Yy9J7I5uoqBSQ3xHT3HnuWMva2PKoUAtNNoiTeaCkuWu8CVKpsS
-	NlwCvZKlYKTwPCV0dIg8qYqpLQ0KaX5RZl1BpEH/y3NjDJL6ug==
-X-Google-Smtp-Source: AGHT+IF5FdPBR02bei/X14Ub000OcoVXRo17m86hQ2MPBeQuC7hWG3H6v1jptH9g+ATyuoxWlGDUexOGIPMl6jmv1Ns=
-X-Received: by 2002:a17:906:1797:b0:a28:bd9c:8363 with SMTP id
- t23-20020a170906179700b00a28bd9c8363mr3034170eje.57.1704705356043; Mon, 08
- Jan 2024 01:15:56 -0800 (PST)
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5EBAE3FE46
+	for <netfilter-devel@vger.kernel.org>; Mon,  8 Jan 2024 12:14:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] tests: shell: extend coverage for netdevice removal
+Date: Mon,  8 Jan 2024 13:14:45 +0100
+Message-Id: <20240108121445.149895-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <cover.1704565248.git.dxu@dxuuu.xyz>
-In-Reply-To: <cover.1704565248.git.dxu@dxuuu.xyz>
-From: Lorenz Bauer <lorenz.bauer@isovalent.com>
-Date: Mon, 8 Jan 2024 10:15:45 +0100
-Message-ID: <CAN+4W8gPeQ2OjoYLKXsNPyhSVTB+vcSaS3Xzw=-M9Rf5MXfKPg@mail.gmail.com>
-Subject: Re: [PATCH bpf-next v3 0/3] Annotate kfuncs in .BTF_ids section
-To: Daniel Xu <dxu@dxuuu.xyz>
-Cc: linux-input@vger.kernel.org, coreteam@netfilter.org, 
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, linux-kselftest@vger.kernel.org, 
-	linux-trace-kernel@vger.kernel.org, fsverity@lists.linux.dev, 
-	bpf@vger.kernel.org, netdev@vger.kernel.org, 
-	linux-stm32@st-md-mailman.stormreply.com, cgroups@vger.kernel.org, 
-	alexei.starovoitov@gmail.com, olsajiri@gmail.com, quentin@isovalent.com, 
-	alan.maguire@oracle.com, memxor@gmail.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Sat, Jan 6, 2024 at 7:25=E2=80=AFPM Daniel Xu <dxu@dxuuu.xyz> wrote:
->
-> =3D=3D=3D Description =3D=3D=3D
->
-> This is a bpf-treewide change that annotates all kfuncs as such inside
-> .BTF_ids. This annotation eventually allows us to automatically generate
-> kfunc prototypes from bpftool.
->
-> We store this metadata inside a yet-unused flags field inside struct
-> btf_id_set8 (thanks Kumar!). pahole will be taught where to look.
+Add two extra tests to exercise netdevice removal path.
 
-This is great, thanks for tackling this. With yout patches we can
-figure out the full set of kfuncs. Is there a way to extend it so that
-we can tell which program context a kfunc can be called from?
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ .../chains/dumps/netdev_chain_dev_gone.nodump |  0
+ .../dumps/netdev_chain_multidev_gone.nodump   |  0
+ .../testcases/chains/netdev_chain_dev_gone    | 25 ++++++++++++++
+ .../chains/netdev_chain_multidev_gone         | 34 +++++++++++++++++++
+ 4 files changed, 59 insertions(+)
+ create mode 100644 tests/shell/testcases/chains/dumps/netdev_chain_dev_gone.nodump
+ create mode 100644 tests/shell/testcases/chains/dumps/netdev_chain_multidev_gone.nodump
+ create mode 100755 tests/shell/testcases/chains/netdev_chain_dev_gone
+ create mode 100755 tests/shell/testcases/chains/netdev_chain_multidev_gone
+
+diff --git a/tests/shell/testcases/chains/dumps/netdev_chain_dev_gone.nodump b/tests/shell/testcases/chains/dumps/netdev_chain_dev_gone.nodump
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/chains/dumps/netdev_chain_multidev_gone.nodump b/tests/shell/testcases/chains/dumps/netdev_chain_multidev_gone.nodump
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/chains/netdev_chain_dev_gone b/tests/shell/testcases/chains/netdev_chain_dev_gone
+new file mode 100755
+index 000000000000..02dacffb7a03
+--- /dev/null
++++ b/tests/shell/testcases/chains/netdev_chain_dev_gone
+@@ -0,0 +1,25 @@
++#!/bin/bash
++
++set -e
++
++iface_cleanup() {
++        ip link del d0 &>/dev/null || :
++}
++trap 'iface_cleanup' EXIT
++
++ip link add d0 type dummy
++
++# Test auto-removal of chain hook on device removal
++RULESET="table netdev x {
++	chain x {}
++	chain w {
++		ip daddr 8.7.6.0/24 jump x
++	}
++	chain y {
++		type filter hook ingress device \"d0\" priority 0;
++		ip saddr { 1.2.3.4, 2.3.4.5 } counter
++		ip daddr vmap { 5.4.3.0/24 : jump w, 8.9.0.0/24 : jump x }
++	}
++}"
++
++$NFT -f - <<< $RULESET
+diff --git a/tests/shell/testcases/chains/netdev_chain_multidev_gone b/tests/shell/testcases/chains/netdev_chain_multidev_gone
+new file mode 100755
+index 000000000000..bc5ca7d04bbe
+--- /dev/null
++++ b/tests/shell/testcases/chains/netdev_chain_multidev_gone
+@@ -0,0 +1,34 @@
++#!/bin/bash
++
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_chain_binding)
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_netdev_chain_multidevice)
++
++set -e
++
++iface_cleanup() {
++        ip link del d0 &>/dev/null || :
++        ip link del d1 &>/dev/null || :
++        ip link del d2 &>/dev/null || :
++}
++trap 'iface_cleanup' EXIT
++
++ip link add d0 type dummy
++ip link add d1 type dummy
++ip link add d2 type dummy
++
++# Test auto-removal of chain hook on device removal
++RULESET="table netdev x {
++	chain x {}
++	chain w {
++		ip daddr 8.7.6.0/24 jump {
++			ip daddr vmap { 8.7.6.3 : jump x, 8.7.6.4 : jump x }
++		}
++	}
++	chain y {
++		type filter hook ingress devices = { d0, d1, d2 } priority 0;
++		ip saddr { 1.2.3.4, 2.3.4.5 } counter
++		ip daddr vmap { 5.4.3.0/24 : jump w, 8.9.0.0/24 : jump x }
++	}
++}"
++
++$NFT -f - <<< $RULESET
+-- 
+2.30.2
+
