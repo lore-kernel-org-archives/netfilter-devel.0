@@ -1,62 +1,60 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id A95D84E1BF
-	for <netfilter-devel@vger.kernel.org>; Wed, 10 Jan 2024 19:42:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0E174F892
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Jan 2024 22:34:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="S7IgxBih"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=SOYUc49zD5Agmz0GDII1IgIeEnjcMvfun3XTTr5Y5Pg=; b=S7IgxBihJgFT63i7sNN2/5YJic
+	mhq/J3pgUbP6KSu1Tx06c5/p2Me+TpxiGlRuXys4SARHx6q1nzgu5GtU/rc0T2WBsLdG1iSSnfB0/
+	ar98vGWbjYCTje5E3U9CHsRrLBTE3U3Enl9F+s9ouVTDbZJF84428L53R0psddxGSXnQCdufjsrVm
+	OJW9TnSLq2o3RHt5MvuEhqRyGc9sKiiLLHgey3wh+GyYl3AaN0BBv/GNANWtGjoTGC525MyIyknLG
+	KXh+QgJbCSxCl/yH2HoCTteZ1eB4dlzsdIK8gEdM/Qp+PWkm7gSeLYCD0ma/Y//3bydWKmSPfuvx5
+	2Vkprhjg==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97)
+	(envelope-from <phil@nwl.cc>)
+	id 1rNh9X-000000005Ml-38Wr;
+	Wed, 10 Jan 2024 23:34:27 +0100
+Date: Wed, 10 Jan 2024 23:34:27 +0100
+From: Phil Sutter <phil@nwl.cc>
 To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de
-Subject: [PATCH nft 4/4] Revert "datatype: do not assert when value exceeds expected width"
-Date: Wed, 10 Jan 2024 20:42:17 +0100
-Message-Id: <20240110194217.484064-5-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20240110194217.484064-1-pablo@netfilter.org>
-References: <20240110194217.484064-1-pablo@netfilter.org>
+Cc: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [iptables PATCH v2] ebtables: Default to extrapositioned
+ negations
+Message-ID: <ZZ8bc2RQ5N1EBvvQ@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	netfilter-devel@vger.kernel.org, Jan Engelhardt <jengelh@inai.de>
+References: <20231221133940.959-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20231221133940.959-1-phil@nwl.cc>
 
- # nft -f ruleset.nft
- ruleset.nft:3:28-35: Error: expression is not a concatenation
-                ip protocol . th dport { tcp / 22,  }
-                                         ^^^^^^^^
+On Thu, Dec 21, 2023 at 02:38:52PM +0100, Phil Sutter wrote:
+> ebtables-nft has always supported both intra- and extrapositioned
+> negations but defaulted to intrapositioned when printing/saving rules.
+> 
+> With commit 58d364c7120b5 ("ebtables: Use do_parse() from xshared")
+> though, it started to warn about intrapositioned negations. So change
+> the default to avoid mandatory warnings when e.g. loading previously
+> dumped rulesets.
+> 
+> Also adjust test cases, help texts and ebtables-nft.8 accordingly.
+> 
+> Cc: Jan Engelhardt <jengelh@inai.de>
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
 
-Therefore, a852022d719e ("datatype: do not assert when value exceeds
-expected width") not needed anymore after two previous fixes.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/datatype.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
-
-diff --git a/src/datatype.c b/src/datatype.c
-index 099e7580bd6c..3b19ae8ef52d 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -715,8 +715,7 @@ const struct datatype ip6addr_type = {
- static void inet_protocol_type_print(const struct expr *expr,
- 				      struct output_ctx *octx)
- {
--	if (!nft_output_numeric_proto(octx) &&
--	    mpz_cmp_ui(expr->value, UINT8_MAX) <= 0) {
-+	if (!nft_output_numeric_proto(octx)) {
- 		char name[NFT_PROTONAME_MAXSIZE];
- 
- 		if (nft_getprotobynumber(mpz_get_uint8(expr->value), name, sizeof(name))) {
-@@ -797,8 +796,7 @@ static void inet_service_print(const struct expr *expr, struct output_ctx *octx)
- 
- void inet_service_type_print(const struct expr *expr, struct output_ctx *octx)
- {
--	if (nft_output_service(octx) &&
--	    mpz_cmp_ui(expr->value, UINT16_MAX) <= 0) {
-+	if (nft_output_service(octx)) {
- 		inet_service_print(expr, octx);
- 		return;
- 	}
--- 
-2.30.2
-
+Patch applied.
