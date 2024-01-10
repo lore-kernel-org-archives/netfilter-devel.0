@@ -1,68 +1,108 @@
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5439340C04;
-	Wed, 10 Jan 2024 10:43:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Received: from localhost (localhost [127.0.0.1])
-	by smtp2.kfki.hu (Postfix) with ESMTP id 8270ECC02D2;
-	Wed, 10 Jan 2024 11:35:05 +0100 (CET)
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-	by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-	with ESMTP; Wed, 10 Jan 2024 11:35:03 +0100 (CET)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-	by smtp2.kfki.hu (Postfix) with ESMTP id 1B3FCCC02D1;
-	Wed, 10 Jan 2024 11:35:02 +0100 (CET)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-	id 148BA343167; Wed, 10 Jan 2024 11:35:02 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-	by blackhole.kfki.hu (Postfix) with ESMTP id 12BD3343166;
-	Wed, 10 Jan 2024 11:35:02 +0100 (CET)
-Date: Wed, 10 Jan 2024 11:35:02 +0100 (CET)
-From: Jozsef Kadlecsik <kadlec@netfilter.org>
-To: David Wang <00107082@163.com>
-cc: ale.crismani@automattic.com, xiaolinkui@kylinos.cn, pablo@netfilter.org, 
-    linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Received: from m15.mail.163.com (m15.mail.163.com [45.254.50.220])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A5AFF47783;
+	Wed, 10 Jan 2024 11:05:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=163.com header.i=@163.com header.b="U1l3qcfN"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=Date:From:Subject:Content-Type:MIME-Version:
+	Message-ID; bh=YHPHa6lI7ulwF/VQxtQSdh+CgpP4GiUJm8wJujo0FgA=; b=U
+	1l3qcfN6y2ClwuQ5jJRBm8XKgLjCfMKhSGMs7jfHOdSLc7aJKnf/YKcmVKmNDm0F
+	IKpXk+3zaK6fET03h58lwsZaeAxeIDC+A8FkCi79d1coFbvyh724HYKS1c5c6GEQ
+	tGM69xHlXiO9ySlGrHqOaEx+Bu8sk0evRvYj4MRdys=
+Received: from 00107082$163.com ( [111.35.187.31] ) by
+ ajax-webmail-wmsvr-40-111 (Coremail) ; Wed, 10 Jan 2024 19:05:18 +0800
+ (CST)
+Date: Wed, 10 Jan 2024 19:05:18 +0800 (CST)
+From: "David Wang" <00107082@163.com>
+To: "Jozsef Kadlecsik" <kadlec@netfilter.org>
+Cc: ale.crismani@automattic.com, xiaolinkui@kylinos.cn, pablo@netfilter.org, 
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
 Subject: Re: Performance regression in ip_set_swap on 6.1.69
-In-Reply-To: <20240110102342.4978-1-00107082@163.com>
-Message-ID: <a4dfc3d9-f028-7ab4-c3a7-11dcbb12e377@netfilter.org>
-References: <C0829B10-EAA6-4809-874E-E1E9C05A8D84@automattic.com> <20240110102342.4978-1-00107082@163.com>
+X-Priority: 3
+X-Mailer: Coremail Webmail Server Version XT5.0.14 build 20230109(dcb5de15)
+ Copyright (c) 2002-2024 www.mailtech.cn 163com
+In-Reply-To: <a4dfc3d9-f028-7ab4-c3a7-11dcbb12e377@netfilter.org>
+References: <C0829B10-EAA6-4809-874E-E1E9C05A8D84@automattic.com>
+ <20240110102342.4978-1-00107082@163.com>
+ <a4dfc3d9-f028-7ab4-c3a7-11dcbb12e377@netfilter.org>
+X-NTES-SC: AL_Qu2bBvSTu08q7iGcZ+kXn0oTju85XMCzuv8j3YJeN500oCTM9h4wYWNDD1XMwcyXEC2urASTcwRc5sJZXbRYT7I/mqXA/s1P7vyBZXIpuFBy
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=GBK
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Message-ID: <661cb613.7974.18cf30c4a42.Coremail.00107082@163.com>
+X-Coremail-Locale: zh_CN
+X-CM-TRANSID:_____wD3_zLveZ5l6msmAA--.17544W
+X-CM-SenderInfo: qqqrilqqysqiywtou0bp/1tbiqAJhqmVOBjN97AAEsq
+X-Coremail-Antispam: 1U5529EdanIXcx71UUUUU7vcSsGvfC2KfnxnUU==
 
-On Wed, 10 Jan 2024, David Wang wrote:
-
-> I confirmed this on 6.7 that this was introduced by commit 
-> 28628fa952fefc7f2072ce6e8016968cc452b1ba with following changes:
-> 
-> 	 static inline void
-> 	@@ -1397,6 +1394,9 @@ static int ip_set_swap(struct sk_buff *skb, const struct nfnl_info *info,
-> 		ip_set(inst, to_id) = from;
-> 		write_unlock_bh(&ip_set_ref_lock);
-> 	 
-> 	+       /* Make sure all readers of the old set pointers are completed. */
-> 	+       synchronize_rcu();
-> 	+
-> 		return 0;
-> 	 }
-> 
-> synchronize_rcu causes the delay, and its usage here is very confusing, 
-> there is no reclaimer code after it.
-
-As I'm seeing just the end of the discussion, please send a full report of 
-the problem and how to reproduce it.
-
-Best regards,
-Jozsef
--- 
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+CgpBdCAyMDI0LTAxLTEwIDE4OjM1OjAyLCAiSm96c2VmIEthZGxlY3NpayIgPGthZGxlY0BuZXRm
+aWx0ZXIub3JnPiB3cm90ZToKPk9uIFdlZCwgMTAgSmFuIDIwMjQsIERhdmlkIFdhbmcgd3JvdGU6
+Cj4KPj4gSSBjb25maXJtZWQgdGhpcyBvbiA2LjcgdGhhdCB0aGlzIHdhcyBpbnRyb2R1Y2VkIGJ5
+IGNvbW1pdCAKPj4gMjg2MjhmYTk1MmZlZmM3ZjIwNzJjZTZlODAxNjk2OGNjNDUyYjFiYSB3aXRo
+IGZvbGxvd2luZyBjaGFuZ2VzOgo+PiAKPj4gCSBzdGF0aWMgaW5saW5lIHZvaWQKPj4gCUBAIC0x
+Mzk3LDYgKzEzOTQsOSBAQCBzdGF0aWMgaW50IGlwX3NldF9zd2FwKHN0cnVjdCBza19idWZmICpz
+a2IsIGNvbnN0IHN0cnVjdCBuZm5sX2luZm8gKmluZm8sCj4+IAkJaXBfc2V0KGluc3QsIHRvX2lk
+KSA9IGZyb207Cj4+IAkJd3JpdGVfdW5sb2NrX2JoKCZpcF9zZXRfcmVmX2xvY2spOwo+PiAJIAo+
+PiAJKyAgICAgICAvKiBNYWtlIHN1cmUgYWxsIHJlYWRlcnMgb2YgdGhlIG9sZCBzZXQgcG9pbnRl
+cnMgYXJlIGNvbXBsZXRlZC4gKi8KPj4gCSsgICAgICAgc3luY2hyb25pemVfcmN1KCk7Cj4+IAkr
+Cj4+IAkJcmV0dXJuIDA7Cj4+IAkgfQo+PiAKPj4gc3luY2hyb25pemVfcmN1IGNhdXNlcyB0aGUg
+ZGVsYXksIGFuZCBpdHMgdXNhZ2UgaGVyZSBpcyB2ZXJ5IGNvbmZ1c2luZywgCj4+IHRoZXJlIGlz
+IG5vIHJlY2xhaW1lciBjb2RlIGFmdGVyIGl0Lgo+Cj5BcyBJJ20gc2VlaW5nIGp1c3QgdGhlIGVu
+ZCBvZiB0aGUgZGlzY3Vzc2lvbiwgcGxlYXNlIHNlbmQgYSBmdWxsIHJlcG9ydCBvZiAKPnRoZSBw
+cm9ibGVtIGFuZCBob3cgdG8gcmVwcm9kdWNlIGl0Lgo+CgpUaGlzIHdhcyByZXBvcnRlZCBpbiBo
+dHRwczovL2xvcmUua2VybmVsLm9yZy9sa21sL0MwODI5QjEwLUVBQTYtNDgwOS04NzRFLUUxRTlD
+MDVBOEQ4NEBhdXRvbWF0dGljLmNvbS8gYnkgYWxlLmNyaXNtYW5pQGF1dG9tYXR0aWMuY29tCkp1
+c3Qgb3V0IG9mIGludGVyZXN0IG9mIHBlcmZvcm1hbmNlIGlzc3VlcywgIEkgdHJpZWQgdG8gcmVw
+cm9kdWNlIGl0IHdpdGggYSB0ZXN0IHN0cmVzc2luZyBpcHNldF9zd2FwOgoKTXkgdGVzdCBjb2Rl
+IGlzIGFzIGZvbGxvd2luZywgaXQgd291bGQgc3RyZXNzIHN3YXBwaW5nIGlwc2V0ICdmb28nIHdp
+dGggJ2Jhcic7IChmb28vYmFyIGlwc2V0IG5lZWRzIHRvIGJlIGNyZWF0ZWQgYmVmb3JlIHRoZSB0
+ZXN0LikKV2l0aCBsYXRlc3QgNi43LCB0aGUgc3RyZXNzIHdvdWxkIHRha2UgYWJvdXQgMTgwIHNl
+Y29uZHMgdG8gZmluaXNoLCBidXQgd2l0aCBgc3luY2hyb25pemVfcmN1YCByZW1vdmVkLCBpdCBv
+bmx5IHRvb2sgM3NlY29uZHMuCgoKYGBgCnVuc2lnbmVkIGNoYXIgbWJ1ZmZlcls0MDk2XTsKaW50
+IG1haW4oKSB7CglpbnQgZXJyOwoJaW50IHNvY2sgPSBzb2NrZXQoQUZfTkVUTElOSywgU09DS19S
+QVcsIE5FVExJTktfTkVURklMVEVSKTsKCWlmIChzb2NrPDApIHsKCQlwZXJyb3IoIkZhaWwgdG8g
+Y3JlYXRlIHNvY2tldCIpOwoJCXJldHVybiAxOwoJfQoJc3RydWN0IHNvY2thZGRyX25sIGFkZHIg
+PSB7CgkJLm5sX2ZhbWlseSA9IEFGX05FVExJTkssCgkJLm5sX3BhZCA9IDAsCgkJLm5sX3BpZCA9
+IDAsCgkJLm5sX2dyb3VwcyA9IDAKCX07CglzdHJ1Y3Qgc29ja2FkZHIgcmFkZHIgPSB7MH07Cglz
+b2NrbGVuX3QgcnNpemU7CglpbnQgc2VxID0gMHgxMjM0NTY3ODsKCWVyciA9IGJpbmQoc29jaywg
+KHN0cnVjdCBzb2NrYWRkciopJmFkZHIsIHNpemVvZihhZGRyKSk7CglpZiAoZXJyKSB7CgkJcGVy
+cm9yKCJGYWlsIHRvIGJpbmQiKTsKCQlyZXR1cm4gMTsKCX0KCWVyciA9IGdldHNvY2tuYW1lKHNv
+Y2ssICZyYWRkciwgJnJzaXplKTsKCWlmIChlcnIpIHsKCQlwZXJyb3IoIkZhaWwgdG8gZ2V0c29j
+a25hbWUiKTsKCQlyZXR1cm4gMTsKCX0KCXVuc2lnbmVkIGNoYXIgYnVmWzY0XTsKCXN0cnVjdCBu
+bG1zZ2hkciAqcGhkcjsKCXN0cnVjdCBuZmdlbm1zZyAqcG5mZzsKCXN0cnVjdCBubGF0dHIgKnBu
+bGE7Cgl1bnNpZ25lZCBpbnQgdG90YWw7Cglzc2l6ZV90IHJ6OwoJc3RydWN0IGlvdmVjIGlvdnM7
+Cglpb3ZzLmlvdl9iYXNlID0gbWJ1ZmZlcjsKCWlvdnMuaW92X2xlbiA9IHNpemVvZihtYnVmZmVy
+KTsKCXN0cnVjdCBtc2doZHIgbXNnID0gezB9OwoJbXNnLm1zZ19uYW1lID0gJmFkZHI7Cgltc2cu
+bXNnX25hbWVsZW4gPSBzaXplb2YoYWRkcik7Cgltc2cubXNnX2lvdiA9ICZpb3ZzOwoJbXNnLm1z
+Z19pb3ZsZW4gPSAxOwoKCW1lbXNldChidWYsIDAsIHNpemVvZihidWYpKTsKCXRvdGFsID0gMDsK
+CXBoZHIgPSAoc3RydWN0IG5sbXNnaGRyKikoYnVmK3RvdGFsKTsKCXRvdGFsICs9IHNpemVvZihz
+dHJ1Y3Qgbmxtc2doZHIpOwoJcGhkci0+bmxtc2dfdHlwZT1ORk5MX1NVQlNZU19JUFNFVDw8OHxJ
+UFNFVF9DTURfUFJPVE9DT0w7CglwaGRyLT5ubG1zZ19zZXEgPSBzZXE7CglwaGRyLT5ubG1zZ19m
+bGFncyA9IE5MTV9GX1JFUVVFU1Q7CglwbmZnID0gKHN0cnVjdCBuZmdlbm1zZyopKGJ1Zit0b3Rh
+bCk7Cgl0b3RhbCArPSBzaXplb2Yoc3RydWN0IG5mZ2VubXNnKTsKCXBuZmctPm5mZ2VuX2ZhbWls
+eT1BRl9JTkVUOwogICAgCXBuZmctPnZlcnNpb249IE5GTkVUTElOS19WMDsKCXBuZmctPnJlc19p
+ZD1odG9ucygwKTsKCXBubGEgPSAoc3RydWN0IG5sYXR0ciAqKShidWYrdG90YWwpOwoJcG5sYS0+
+bmxhX2xlbiA9IDU7CglwbmxhLT5ubGFfdHlwZSA9IDE7CglidWZbdG90YWwrc2l6ZW9mKHN0cnVj
+dCBubGF0dHIpXT0weDA2OwoJdG90YWwrPTg7CglwaGRyLT5ubG1zZ19sZW4gPSB0b3RhbDsKCXJ6
+ID0gc2VuZHRvKHNvY2ssIGJ1ZiwgdG90YWwsIDAsIChzdHJ1Y3Qgc29ja2FkZHIqKSZhZGRyLCBz
+aXplb2YoYWRkcikpOwoJcnogPSByZWN2bXNnKHNvY2ssICZtc2csIDApOwoKCXBubGEgPSAoc3Ry
+dWN0IG5sYXR0ciAqKShidWYrdG90YWwpOwoJcG5sYS0+bmxhX2xlbiA9IDg7CglwbmxhLT5ubGFf
+dHlwZSA9IDI7CgljaGFyICpwID0gYnVmKyh0b3RhbCtzaXplb2Yoc3RydWN0IG5sYXR0cikpOwoJ
+cFswXT0nZic7IHBbMV09J28nOyBwWzJdPSdvJzsgcFszXT0wOwoJdG90YWwrPTg7CglwbmxhID0g
+KHN0cnVjdCBubGF0dHIgKikoYnVmK3RvdGFsKTsKCXBubGEtPm5sYV9sZW4gPSA4OwoJcG5sYS0+
+bmxhX3R5cGUgPSAzOwoJcCA9IGJ1ZisodG90YWwrc2l6ZW9mKHN0cnVjdCBubGF0dHIpKTsKCXBb
+MF09J2InOyBwWzFdPSdhJzsgcFsyXT0ncic7IHBbM109MDsKCXRvdGFsKz04OwoJcGhkci0+bmxt
+c2dfdHlwZSA9IE5GTkxfU1VCU1lTX0lQU0VUPDw4fElQU0VUX0NNRF9TV0FQOwoJcGhkci0+bmxt
+c2dfZmxhZ3MgPSBOTE1fRl9SRVFVRVNUfE5MTV9GX0FDSzsKCXBoZHItPm5sbXNnX2xlbiA9IHRv
+dGFsOwoKCQoJZm9yIChpbnQgaT0wOyBpPDEwMDAwOyBpKyspIHsKCQkvLyBzdHJlc3Mgc3dhcCBm
+b28gYmFyCgkJcGhkci0+bmxtc2dfc2VxKys7CgkJc2VuZHRvKHNvY2ssIGJ1ZiwgdG90YWwsIDAs
+IChzdHJ1Y3Qgc29ja2FkZHIqKSZhZGRyLCBzaXplb2YoYWRkcikpOwoJCXJlY3Ztc2coc29jaywg
+Jm1zZywgMCk7Cgl9CgoJY2xvc2Uoc29jayk7CglyZXR1cm4gMDsKfQpgYGAKCj5CZXN0IHJlZ2Fy
+ZHMsCj5Kb3pzZWYKCkRhdmlkCg==
