@@ -1,54 +1,20 @@
-Received: from mail-ot1-f48.google.com (mail-ot1-f48.google.com [209.85.210.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B656B6AA0
-	for <netfilter-devel@vger.kernel.org>; Wed, 10 Jan 2024 04:31:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FbzsVM2g"
-Received: by mail-ot1-f48.google.com with SMTP id 46e09a7af769-6ddf05b1922so227043a34.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 09 Jan 2024 20:31:46 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1704861105; x=1705465905; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=PfkQizZpqzaTGfzq1I3a6ujDMYZM6y4+QqIBc2s7r0Q=;
-        b=FbzsVM2gQxd+XA/Qc8hN33bBD6S6IeXkx874q6GBqrCKni/acHmet/0ACdDzI314pX
-         muTmPT+BYlrPJtCuTdWQhmIz91eBgPe1jSZQRaH4pVkow0VfdThpEq2rUHZIYca8jh1W
-         ZXx9YjC9Lab44JTOPU+JHlryz+MQQldLNGTVh2LgYWRi6uj4R4VQ4OxYAiOTCJmk4ule
-         IhGTh+338pLSzcEeSAHJ2AMxkbnKfBSRgYTtVXnO9/bMKKYY8p2HchVwjGFgvdwxWGqM
-         sC4H7e4x5oiU3n+ICZKA0ca53HjwVxvK8/+eOIIS/Ls/bpu+w/qehYXHWZu05eCZL0xY
-         fYlA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1704861105; x=1705465905;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=PfkQizZpqzaTGfzq1I3a6ujDMYZM6y4+QqIBc2s7r0Q=;
-        b=PsZGpepWLxTqicn3bF5dF5NQNdxaNHiijarmyhhjXUZJBPLlSFIsJSn6j4KcTnBIVM
-         FtY5MJz/3UjlaRdKhXhSTqSCG6MmQgk89TxwGiCSOo9X7Hcm29rHUZuBS6X7/x936XXq
-         Zwf+HP8lVP+6YPRP04Pj/+zMGlCe0L7K1+QN/Lr3288G5BVHXH13GuJ6unvpLS5bRWId
-         Ma03ne2uqZyK6SItoWgZyoLGDmtjEG5ZdShF5zQdopLdPIyTM3u2ZhO6ZuexAsFO7fsx
-         f5UtJ3zuNYehj/btVVGE3oByGNMWIzv5GhQseW5lb4v7TTJElSp8fEqUdQ2+lbR1JwhW
-         arkw==
-X-Gm-Message-State: AOJu0Yyow1rbxiIJFJ4BMFl0MrIYKqkPBEihTQCoquefQVl6QJDsFfjJ
-	q4v7Tvl4RlehFT/19MSaFG1VotAH9QShpg4+X0A=
-X-Google-Smtp-Source: AGHT+IGHd7xtuKYL9eSlZOxMuvVHwShWklNCKgbdM5b8BRs2I86i64FAaOAZ5qLIU3TXPyz9eGrq0A==
-X-Received: by 2002:a05:6830:168d:b0:6dc:6fe8:45d9 with SMTP id k13-20020a056830168d00b006dc6fe845d9mr152578otr.17.1704861104871;
-        Tue, 09 Jan 2024 20:31:44 -0800 (PST)
-Received: from bm02.eng.vmware.com ([66.170.99.2])
-        by smtp.gmail.com with ESMTPSA id o8-20020a056a001b4800b006d977f70cd5sm2470068pfv.23.2024.01.09.20.31.43
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 09 Jan 2024 20:31:44 -0800 (PST)
-From: Quan Tian <tianquan23@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Cc: Quan Tian <tianquan23@gmail.com>,
-	Dan Winship <danwinship@redhat.com>
-Subject: [PATCH nftables] doc: clarify reject is supported at prerouting stage
-Date: Wed, 10 Jan 2024 04:30:59 +0000
-Message-ID: <20240110043059.2977387-1-tianquan23@gmail.com>
-X-Mailer: git-send-email 2.42.0
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4FDF3E494
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Jan 2024 08:27:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1rNTvS-0006q8-A5; Wed, 10 Jan 2024 09:27:02 +0100
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2 nft 0/3] set related parser fixes
+Date: Wed, 10 Jan 2024 09:26:51 +0100
+Message-ID: <20240110082657.1967-1-fw@strlen.de>
+X-Mailer: git-send-email 2.41.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -57,28 +23,28 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-It's supported since kernel commit f53b9b0bdc59 ("netfilter: introduce
-support for reject at prerouting stage").
+This patchset makes parsing and evaluation of sets and
+set elements more robust.
 
-Reported-by: Dan Winship <danwinship@redhat.com>
-Signed-off-by: Quan Tian <tianquan23@gmail.com>
----
- doc/statements.txt | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+See individual patches and the included bogus-input-tests
+for details.
 
-diff --git a/doc/statements.txt b/doc/statements.txt
-index 19672805..ae6442b0 100644
---- a/doc/statements.txt
-+++ b/doc/statements.txt
-@@ -180,7 +180,7 @@ ____
- A reject statement is used to send back an error packet in response to the
- matched packet otherwise it is equivalent to drop so it is a terminating
- statement, ending rule traversal. This statement is only valid in base chains
--using the *input*,
-+using the *prerouting*, *input*,
- *forward* or *output* hooks, and user-defined chains which are only called from
- those chains.
- 
+Florian Westphal (3):
+  intervals: allow low-level interval code to return errors
+  src: do not merge a set with a erroneous one
+  evaluate: don't assert if set->data is NULL
+
+ include/rule.h                                |  2 +
+ src/evaluate.c                                | 31 +++++++++-
+ src/intervals.c                               | 62 ++++++++++++++-----
+ .../expr_evaluate_mapping_no_data_assert      |  4 ++
+ .../nft-f/invalid_range_expr_type_binop       | 12 ++++
+ .../bogons/nft-f/unhandled_key_type_13_assert |  5 ++
+ 6 files changed, 99 insertions(+), 17 deletions(-)
+ create mode 100644 tests/shell/testcases/bogons/nft-f/expr_evaluate_mapping_no_data_assert
+ create mode 100644 tests/shell/testcases/bogons/nft-f/invalid_range_expr_type_binop
+ create mode 100644 tests/shell/testcases/bogons/nft-f/unhandled_key_type_13_assert
+
 -- 
-2.38.0
+2.41.0
 
