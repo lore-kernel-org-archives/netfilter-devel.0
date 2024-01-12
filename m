@@ -1,41 +1,61 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f47.google.com (mail-lf1-f47.google.com [209.85.167.47])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E040859B41
-	for <netfilter-devel@vger.kernel.org>; Fri, 12 Jan 2024 12:39:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A313745CD;
+	Fri, 12 Jan 2024 16:20:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="Q42NAGYk"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=PWWJ9YVm4tYtEN20O/cOxzvs2Y6AEeK3/1KDqpeRFo8=; b=Q42NAGYkeH1As1WiBRpLXwbtRH
-	pBWwYHhn0pa3usWmTAxcvjD4/bw3BovH6yTMENMbepAVaCaXa0Jr9tpNWckBAPbH7ycLP99ckOTA7
-	6G+xz0wM4VOqCIZeC1rmEAzAGYC8dumX6irWFVVCWZaKdQmQLCCUCddkg9LSibentacw5Y3u1hihe
-	WUmpcUCqfyy28xKPaEGfDi2+xu8JK/NA4vC/H4myXCMyPTBHv3B8+EQVKG/OCP3XP7jEscFtKNSp8
-	LR1wzueCisnrfBXIGLPgLU2qdWBAEjPbDFndzUTsH3gMG6iTK9z5+K9Ocab9sBiEocUlL0hh6IP4/
-	jxKSpSbw==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97)
-	(envelope-from <phil@nwl.cc>)
-	id 1rOGoQ-000000000Lh-0LsR;
-	Fri, 12 Jan 2024 13:39:02 +0100
-Date: Fri, 12 Jan 2024 13:39:02 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH libnftnl] set: buffer overflow in NFTNL_SET_DESC_CONCAT
- setter
-Message-ID: <ZaEy5uMXwpAzrVBb@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-References: <20240111222527.4591-1-pablo@netfilter.org>
- <ZaElewsMUNPLiDSu@orbyte.nwl.cc>
- <ZaEriPoMQCKqu3/H@calendula>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YQi3GsuP"
+Received: by mail-lf1-f47.google.com with SMTP id 2adb3069b0e04-50e835800adso7049324e87.0;
+        Fri, 12 Jan 2024 08:20:45 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1705076443; x=1705681243; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=AXoDO1itquPIC9RJIHRuZv9xrGW2cJyAPsZoJpPFw+4=;
+        b=YQi3GsuPQdbaK3cuDViE97rOjQGoVKF8vp0RpTh+OmhXDyXd+w4Y46pzWIoWyLgbUF
+         wQOxuIMrXSTgmAjqcJ8GLeQ6WjBU67yNYk4uwz3RpUP/9Z1fMujV+e7o7uN/xz3vsARk
+         3exFKktnqZzr9NVzmap4CGlLj1OXI2N0DO67D10CNE3VIZ21zTURG8ahjjv4Tmw6oEo2
+         jq1LPdDP4alq1oWPCOrJT/JeJffsdx7Rvznu3JYVx83hzo162yy+l8y9uM3MZocBsw99
+         XzOWAZZvx1n2Wrkpeg085sAFb6C0y6Si5AmTa5DJCe76jqighGIqDPIt83+6Gl7FDdTA
+         NtRg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1705076443; x=1705681243;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=AXoDO1itquPIC9RJIHRuZv9xrGW2cJyAPsZoJpPFw+4=;
+        b=nc8+nyT1HcqqyIDZLpsv2gWLrnx8OHiwqLgS1eiICTicwsVOj9YYAqX/BGbzKFec0C
+         plgwpHljb/qgJ9MHVQDhL9WOu9vDhdMYC4QT29TUpeQav6Nn5H3mzOcVR+O34Ea+o0vU
+         4ECp5RYLeTGNZR1IG9J4UsgL3U9QObMF/s7vo299hJ+vYk0qbM8GRQRVK/S+UXVqo62j
+         qINQs/EZvPuQOZTikokrWBvQqvdEFyWH+jHwrye8IOppVt1+tIs/Zk4uf93ShfDp2rC+
+         lDb6ncl5gKvZBz8qu/7R+cVy1b+Got8YMcFToK7injFEzYVtz4MKTjx74r5MuUNBjmwW
+         1erg==
+X-Gm-Message-State: AOJu0YxuMV3vPqvnDGPHhtG0P7sHKBK1jatNLUQKtj/nOgB/sCXYNe5y
+	bNmyUn88onWsOiNEQfsanbc=
+X-Google-Smtp-Source: AGHT+IE54+pPKK6YhmHg0iM9e5UupkHUdB/tKeoGr8eQ2XZMM3dBdNGnw8BrNqPksBRiLQFF6ydb5Q==
+X-Received: by 2002:a05:6512:128d:b0:50e:7b9c:8b1a with SMTP id u13-20020a056512128d00b0050e7b9c8b1amr697559lfs.95.1705076443029;
+        Fri, 12 Jan 2024 08:20:43 -0800 (PST)
+Received: from krava (ip-94-113-247-30.net.vodafone.cz. [94.113.247.30])
+        by smtp.gmail.com with ESMTPSA id w26-20020a17090652da00b00a1c7b20e9e6sm1931682ejn.32.2024.01.12.08.20.41
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 12 Jan 2024 08:20:42 -0800 (PST)
+From: Jiri Olsa <olsajiri@gmail.com>
+X-Google-Original-From: Jiri Olsa <jolsa@kernel.org>
+Date: Fri, 12 Jan 2024 17:20:39 +0100
+To: Daniel Xu <dxu@dxuuu.xyz>
+Cc: linux-input@vger.kernel.org, coreteam@netfilter.org,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, linux-kselftest@vger.kernel.org,
+	linux-trace-kernel@vger.kernel.org, fsverity@lists.linux.dev,
+	bpf@vger.kernel.org, netdev@vger.kernel.org,
+	linux-stm32@st-md-mailman.stormreply.com, cgroups@vger.kernel.org,
+	alexei.starovoitov@gmail.com, olsajiri@gmail.com,
+	quentin@isovalent.com, alan.maguire@oracle.com, memxor@gmail.com
+Subject: Re: [PATCH bpf-next v3 0/3] Annotate kfuncs in .BTF_ids section
+Message-ID: <ZaFm13GyXUukcnkm@krava>
+References: <cover.1704565248.git.dxu@dxuuu.xyz>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -44,51 +64,72 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ZaEriPoMQCKqu3/H@calendula>
+In-Reply-To: <cover.1704565248.git.dxu@dxuuu.xyz>
 
-On Fri, Jan 12, 2024 at 01:07:36PM +0100, Pablo Neira Ayuso wrote:
-> On Fri, Jan 12, 2024 at 12:41:47PM +0100, Phil Sutter wrote:
-> > On Thu, Jan 11, 2024 at 11:25:27PM +0100, Pablo Neira Ayuso wrote:
-> > > Allow to set a maximum limit of sizeof(s->desc.field_len) which is 16
-> > > bytes, otherwise, bail out. Ensure s->desc.field_count does not go over
-> > > the array boundary.
-> > > 
-> > > Fixes: 7cd41b5387ac ("set: Add support for NFTA_SET_DESC_CONCAT attributes")
-> > > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > > ---
-> > >  src/set.c | 8 +++++++-
-> > >  1 file changed, 7 insertions(+), 1 deletion(-)
-> > > 
-> > > diff --git a/src/set.c b/src/set.c
-> > > index 719e59616e97..b51ff9e0ba64 100644
-> > > --- a/src/set.c
-> > > +++ b/src/set.c
-> > > @@ -194,8 +194,14 @@ int nftnl_set_set_data(struct nftnl_set *s, uint16_t attr, const void *data,
-> > >  		memcpy(&s->desc.size, data, sizeof(s->desc.size));
-> > >  		break;
-> > >  	case NFTNL_SET_DESC_CONCAT:
-> > > +		if (data_len > sizeof(s->desc.field_len))
-> > > +			return -1;
-> > > +
-> > >  		memcpy(&s->desc.field_len, data, data_len);
-> > > -		while (s->desc.field_len[++s->desc.field_count]);
-> > > +		while (s->desc.field_len[++s->desc.field_count]) {
-> > > +			if (s->desc.field_count >= NFT_REG32_COUNT)
-> > > +				break;
-> > > +		}
-> > 
-> > Isn't the second check redundant if you adjust the first one like so:
-> > 
-> > | if (data_len >= sizeof(s->desc.field_len))
-> >
-> > Or more explicit:
-> > 
-> > | if (data_len > sizeof(s->desc.field_len) -
-> > |                sizeof(s->desc.field_len[0]))
+On Sat, Jan 06, 2024 at 11:24:07AM -0700, Daniel Xu wrote:
+> === Description ===
 > 
-> I see, you suggest to ensure last item in the array is always zero.
+> This is a bpf-treewide change that annotates all kfuncs as such inside
+> .BTF_ids. This annotation eventually allows us to automatically generate
+> kfunc prototypes from bpftool.
+> 
+> We store this metadata inside a yet-unused flags field inside struct
+> btf_id_set8 (thanks Kumar!). pahole will be taught where to look.
+> 
+> More details about the full chain of events are available in commit 3's
+> description.
+> 
+> The accompanying pahole changes (still needs some cleanup) can be viewed
+> here on this "frozen" branch [0].
 
-This is what's required by the while loop in the original form, I don't
-see a real reason for it, though.
+so the plan is to have bpftool support to generate header file
+with detected kfuncs?
 
-Cheers, Phil
+jirka
+
+> 
+> [0]: https://github.com/danobi/pahole/tree/kfunc_btf-mailed
+> 
+> === Changelog ===
+> 
+> Changes from v2:
+> * Only WARN() for vmlinux kfuncs
+> 
+> Changes from v1:
+> * Move WARN_ON() up a call level
+> * Also return error when kfunc set is not properly tagged
+> * Use BTF_KFUNCS_START/END instead of flags
+> * Rename BTF_SET8_KFUNC to BTF_SET8_KFUNCS
+> 
+> Daniel Xu (3):
+>   bpf: btf: Support flags for BTF_SET8 sets
+>   bpf: btf: Add BTF_KFUNCS_START/END macro pair
+>   bpf: treewide: Annotate BPF kfuncs in BTF
+> 
+>  drivers/hid/bpf/hid_bpf_dispatch.c            |  8 +++----
+>  fs/verity/measure.c                           |  4 ++--
+>  include/linux/btf_ids.h                       | 21 +++++++++++++++----
+>  kernel/bpf/btf.c                              |  8 +++++++
+>  kernel/bpf/cpumask.c                          |  4 ++--
+>  kernel/bpf/helpers.c                          |  8 +++----
+>  kernel/bpf/map_iter.c                         |  4 ++--
+>  kernel/cgroup/rstat.c                         |  4 ++--
+>  kernel/trace/bpf_trace.c                      |  8 +++----
+>  net/bpf/test_run.c                            |  8 +++----
+>  net/core/filter.c                             | 16 +++++++-------
+>  net/core/xdp.c                                |  4 ++--
+>  net/ipv4/bpf_tcp_ca.c                         |  4 ++--
+>  net/ipv4/fou_bpf.c                            |  4 ++--
+>  net/ipv4/tcp_bbr.c                            |  4 ++--
+>  net/ipv4/tcp_cubic.c                          |  4 ++--
+>  net/ipv4/tcp_dctcp.c                          |  4 ++--
+>  net/netfilter/nf_conntrack_bpf.c              |  4 ++--
+>  net/netfilter/nf_nat_bpf.c                    |  4 ++--
+>  net/xfrm/xfrm_interface_bpf.c                 |  4 ++--
+>  net/xfrm/xfrm_state_bpf.c                     |  4 ++--
+>  .../selftests/bpf/bpf_testmod/bpf_testmod.c   |  8 +++----
+>  22 files changed, 81 insertions(+), 60 deletions(-)
+> 
+> -- 
+> 2.42.1
+> 
