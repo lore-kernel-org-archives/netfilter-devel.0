@@ -1,60 +1,85 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 24FA82628C
-	for <netfilter-devel@vger.kernel.org>; Fri, 12 Jan 2024 11:36:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH libnftnl] set_elem: use nftnl_data_cpy() in NFTNL_SET_ELEM_{KEY,KEY_END,DATA}
-Date: Fri, 12 Jan 2024 12:36:45 +0100
-Message-Id: <20240112113645.18107-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED02967E8F
+	for <netfilter-devel@vger.kernel.org>; Fri, 12 Jan 2024 11:41:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="qqjrDeD6"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=EwzA9HgJnWI5sD83mJ2Bv3O5cVZ00wFXHPHI1NUySRU=; b=qqjrDeD64LWusPMOUa8g3aO0Ca
+	K0rjiYpZvCen7hN5+oCdelN07FQTI2D5Smi+nHLgMtozNaFrZEnKIEtkn82m/urhhjA/txmIgD5Aw
+	C3FgpWMOHWQvsgkKA0BOPmQhY7HNw3wckM1RJ7hedj8bRK3G0Kk4qwNE1RBfZhx5WwlLToEkcNYM2
+	m5d9fSBtnPu/XfXHGhyhvydRgkHEfPn8wGe+wKsL90llz4iI0kJxQKKJBqiXmTjwaEptXl9EHSPg+
+	q2H7DY1ZmbfRH1kvgfRs81IUKg0BWKqtaqkmE/XFJuKNMz3uPjmDhUkdLiEYfLI5A9SgZejIcuQu1
+	LT0z2iHg==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97)
+	(envelope-from <phil@nwl.cc>)
+	id 1rOFv1-000000007ue-3vl9;
+	Fri, 12 Jan 2024 12:41:48 +0100
+Date: Fri, 12 Jan 2024 12:41:47 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH libnftnl] set: buffer overflow in NFTNL_SET_DESC_CONCAT
+ setter
+Message-ID: <ZaElewsMUNPLiDSu@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+References: <20240111222527.4591-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240111222527.4591-1-pablo@netfilter.org>
 
-Use safe nftnl_data_cpy() to copy key into union nftnl_data_reg.
+On Thu, Jan 11, 2024 at 11:25:27PM +0100, Pablo Neira Ayuso wrote:
+> Allow to set a maximum limit of sizeof(s->desc.field_len) which is 16
+> bytes, otherwise, bail out. Ensure s->desc.field_count does not go over
+> the array boundary.
+> 
+> Fixes: 7cd41b5387ac ("set: Add support for NFTA_SET_DESC_CONCAT attributes")
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  src/set.c | 8 +++++++-
+>  1 file changed, 7 insertions(+), 1 deletion(-)
+> 
+> diff --git a/src/set.c b/src/set.c
+> index 719e59616e97..b51ff9e0ba64 100644
+> --- a/src/set.c
+> +++ b/src/set.c
+> @@ -194,8 +194,14 @@ int nftnl_set_set_data(struct nftnl_set *s, uint16_t attr, const void *data,
+>  		memcpy(&s->desc.size, data, sizeof(s->desc.size));
+>  		break;
+>  	case NFTNL_SET_DESC_CONCAT:
+> +		if (data_len > sizeof(s->desc.field_len))
+> +			return -1;
+> +
+>  		memcpy(&s->desc.field_len, data, data_len);
+> -		while (s->desc.field_len[++s->desc.field_count]);
+> +		while (s->desc.field_len[++s->desc.field_count]) {
+> +			if (s->desc.field_count >= NFT_REG32_COUNT)
+> +				break;
+> +		}
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/set_elem.c | 12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+Isn't the second check redundant if you adjust the first one like so:
 
-diff --git a/src/set_elem.c b/src/set_elem.c
-index 884faff432a9..34258d24e85f 100644
---- a/src/set_elem.c
-+++ b/src/set_elem.c
-@@ -126,13 +126,9 @@ int nftnl_set_elem_set(struct nftnl_set_elem *s, uint16_t attr,
- 		memcpy(&s->set_elem_flags, data, sizeof(s->set_elem_flags));
- 		break;
- 	case NFTNL_SET_ELEM_KEY:	/* NFTA_SET_ELEM_KEY */
--		memcpy(&s->key.val, data, data_len);
--		s->key.len = data_len;
--		break;
-+		return nftnl_data_cpy(&s->key, data, data_len);
- 	case NFTNL_SET_ELEM_KEY_END:	/* NFTA_SET_ELEM_KEY_END */
--		memcpy(&s->key_end.val, data, data_len);
--		s->key_end.len = data_len;
--		break;
-+		return nftnl_data_cpy(&s->key_end, data, data_len);
- 	case NFTNL_SET_ELEM_VERDICT:	/* NFTA_SET_ELEM_DATA */
- 		memcpy(&s->data.verdict, data, sizeof(s->data.verdict));
- 		break;
-@@ -145,9 +141,7 @@ int nftnl_set_elem_set(struct nftnl_set_elem *s, uint16_t attr,
- 			return -1;
- 		break;
- 	case NFTNL_SET_ELEM_DATA:	/* NFTA_SET_ELEM_DATA */
--		memcpy(s->data.val, data, data_len);
--		s->data.len = data_len;
--		break;
-+		return nftnl_data_cpy(&s->data, data, data_len);
- 	case NFTNL_SET_ELEM_TIMEOUT:	/* NFTA_SET_ELEM_TIMEOUT */
- 		memcpy(&s->timeout, data, sizeof(s->timeout));
- 		break;
--- 
-2.30.2
+| if (data_len >= sizeof(s->desc.field_len))
 
+Or more explicit:
+
+| if (data_len > sizeof(s->desc.field_len) -
+|                sizeof(s->desc.field_len[0]))
+
+Cheers, Phil
