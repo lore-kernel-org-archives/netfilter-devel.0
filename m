@@ -1,123 +1,63 @@
-Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAE6B63CB;
-	Sat, 13 Jan 2024 19:49:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.3])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 913077E;
+	Sun, 14 Jan 2024 05:31:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WwoW5vCB"
-Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-40e72d26a40so474075e9.2;
-        Sat, 13 Jan 2024 11:49:18 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1705175357; x=1705780157; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=1HammmbmKVZr2MOKZbNt/I1t0w3fHw/pSzTd2SPHXwE=;
-        b=WwoW5vCBL3h7lbECyKBVHtgbzwX8+k72jbjt8QU74bmUO1szbPbgdDO2fFvvSTRwk5
-         h2rVvPFaFrRji/ACDztJZT5LswOYqwPWe8wymYmtiIWMiK+NI/aSeLx1y8hdURHAnvrb
-         FNmxXQkmTwrvuiZhz/iieE7npT6qYW6fOoSFUga/2xaVHx0Jy+mG+6Sk32CvFn0DzxvF
-         XJ1ecKOR4SVW3wlwtBD28G8pzpZ3fKy64CA8Sro3Xd0/AA/lHFNzS2juL7lXIrW1T0VK
-         A6ast1EpGUSHvWqPhB0lC7A0ggroAGkpv+dWgIGji1BPEy2gZP3WgPy4GiIxi28Ta3xv
-         jHaQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1705175357; x=1705780157;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=1HammmbmKVZr2MOKZbNt/I1t0w3fHw/pSzTd2SPHXwE=;
-        b=k9BaPTk8SaUyxVLcXhcaz6fRsC4/v34K2injmUrbNu9EJQBoJpqVsKOb76IrcaGAGy
-         xswuPk8J37Ja8CHreJF/hJyNs8TBq6vcGQbgpbodVaH66bGmL/WDCgFAkV6aa2ZxtWNu
-         RRwTrBgp6AQcY4gZt4VPnfITL4JSmJisPe1D1dBpp+LbJ0aGxutsX6W0PKfG3UWGtPjT
-         JvKHxTATIIiROoPCwvgLmKkY2HVJLcAu3i6b7LJQz3MaO8aT/65qtgXGO2UuTZTvJswH
-         GoBPiybL/B7n3mL+NfpR8BumsCEhNmAUKaMepUvjNwm2M0qQN+HJNLv/OC5txvKmsHq+
-         Qw0A==
-X-Gm-Message-State: AOJu0YzNTQ6x55Nk4ZEfkwC1BlhUPnX+k7juvmXuM9Z4qXIUVs9nNF3b
-	WyQ8+3c5l6pFHsKpkCcWTvQ=
-X-Google-Smtp-Source: AGHT+IGB6b1STgkpJhSgj3KuApjLbo2cpOqH+Lo8IF+ZLe2NNqtVVUnWy/HbRsbdtahuuLtgdZIrFQ==
-X-Received: by 2002:a1c:7510:0:b0:40e:50e9:9b0c with SMTP id o16-20020a1c7510000000b0040e50e99b0cmr1665802wmc.181.1705175356706;
-        Sat, 13 Jan 2024 11:49:16 -0800 (PST)
-Received: from krava (ip-94-113-247-30.net.vodafone.cz. [94.113.247.30])
-        by smtp.gmail.com with ESMTPSA id a22-20020a05600c349600b0040d83ab2ecdsm10412099wmq.21.2024.01.13.11.49.15
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 13 Jan 2024 11:49:16 -0800 (PST)
-From: Jiri Olsa <olsajiri@gmail.com>
-X-Google-Original-From: Jiri Olsa <jolsa@kernel.org>
-Date: Sat, 13 Jan 2024 20:49:14 +0100
-To: Daniel Xu <dxu@dxuuu.xyz>
-Cc: Jiri Olsa <olsajiri@gmail.com>, linux-input@vger.kernel.org,
-	coreteam@netfilter.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	linux-kselftest@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
-	fsverity@lists.linux.dev, bpf@vger.kernel.org,
-	netdev@vger.kernel.org, linux-stm32@st-md-mailman.stormreply.com,
-	cgroups@vger.kernel.org, alexei.starovoitov@gmail.com,
-	quentin@isovalent.com, alan.maguire@oracle.com, memxor@gmail.com
-Subject: Re: [PATCH bpf-next v3 0/3] Annotate kfuncs in .BTF_ids section
-Message-ID: <ZaLpOoi9qu1f-u5B@krava>
-References: <cover.1704565248.git.dxu@dxuuu.xyz>
- <ZaFm13GyXUukcnkm@krava>
- <2dhmwvfnnqnlrui2qcr5fob54gdsuse5caievct42trvvia6qe@p24nymz3uttv>
- <ZaKW1AghwUnVz_c4@krava>
- <nhpt647n2djmthtdkqzrfbpeuqkhfy567rt7qyqtymxejncbgr@4tpiyxy2sbcm>
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=163.com header.i=@163.com header.b="N8LnvvTb"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=Date:From:Subject:Content-Type:MIME-Version:
+	Message-ID; bh=mnX4TlYD1IAE/ynrPPGqCTpsWWnb3+9QkFs/jH0hltg=; b=N
+	8LnvvTbUIE1Ra9PG54OVVx8RIlQnXE3ejcgv0KbFpiKQ31SKdPkpGoRH5Jjn7Z6B
+	yolLSsfxH8wfSCi29wwnLotRbBmPiuNAy3FZna54Pv3VjubV9u8EvNg6e/wpIodZ
+	7TpRJ6laMl7M201agJXjA1ZGoGky5dlY19i19RcUXE=
+Received: from 00107082$163.com ( [111.35.185.31] ) by
+ ajax-webmail-wmsvr-40-120 (Coremail) ; Sun, 14 Jan 2024 13:30:37 +0800
+ (CST)
+Date: Sun, 14 Jan 2024 13:30:37 +0800 (CST)
+From: "David Wang" <00107082@163.com>
+To: "Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu>, ale.crismani@automattic.com
+Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+	"Pablo Neira Ayuso" <pablo@netfilter.org>, xiaolinkui@kylinos.cn
+Subject: Re:Performance regression in ip_set_swap on 6.7.0
+X-Priority: 3
+X-Mailer: Coremail Webmail Server Version XT5.0.14 build 20230109(dcb5de15)
+ Copyright (c) 2002-2024 www.mailtech.cn 163com
+In-Reply-To: <d5c24887-b2d4-bcc-f5a4-bd3d2670d16@blackhole.kfki.hu>
+References: <b333bc85-83ea-8869-ccf7-374c9456d93c@blackhole.kfki.hu>
+ <20240111145330.18474-1-00107082@163.com>
+ <d5c24887-b2d4-bcc-f5a4-bd3d2670d16@blackhole.kfki.hu>
+X-NTES-SC: AL_Qu2bB/6av0oo4SCcbOkXn0oTju85XMCzuv8j3YJeN500qiTVwCIGRUdABVf16++IFB+wiCCHVgdS1udTd4hbeo9FUoS7lNBbr/tiiWi+//4h
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=GBK
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <nhpt647n2djmthtdkqzrfbpeuqkhfy567rt7qyqtymxejncbgr@4tpiyxy2sbcm>
+Message-ID: <41662e12.d59.18d0673507e.Coremail.00107082@163.com>
+X-Coremail-Locale: zh_CN
+X-CM-TRANSID:_____wDXf3F+caNlq7s9AA--.27681W
+X-CM-SenderInfo: qqqrilqqysqiywtou0bp/1tbiqAllqmVOBpjcjQADsJ
+X-Coremail-Antispam: 1U5529EdanIXcx71UUUUU7vcSsGvfC2KfnxnUU==
 
-On Sat, Jan 13, 2024 at 09:17:44AM -0700, Daniel Xu wrote:
-> Hi Jiri,
-> 
-> On Sat, Jan 13, 2024 at 02:57:40PM +0100, Jiri Olsa wrote:
-> > On Fri, Jan 12, 2024 at 01:03:59PM -0700, Daniel Xu wrote:
-> > > On Fri, Jan 12, 2024 at 05:20:39PM +0100, Jiri Olsa wrote:
-> > > > On Sat, Jan 06, 2024 at 11:24:07AM -0700, Daniel Xu wrote:
-> > > > > === Description ===
-> > > > > 
-> > > > > This is a bpf-treewide change that annotates all kfuncs as such inside
-> > > > > .BTF_ids. This annotation eventually allows us to automatically generate
-> > > > > kfunc prototypes from bpftool.
-> > > > > 
-> > > > > We store this metadata inside a yet-unused flags field inside struct
-> > > > > btf_id_set8 (thanks Kumar!). pahole will be taught where to look.
-> > > > > 
-> > > > > More details about the full chain of events are available in commit 3's
-> > > > > description.
-> > > > > 
-> > > > > The accompanying pahole changes (still needs some cleanup) can be viewed
-> > > > > here on this "frozen" branch [0].
-> > > > 
-> > > > so the plan is to have bpftool support to generate header file
-> > > > with detected kfuncs?
-> > > 
-> > > Yep, that's the major use case. But I see other use cases as well like
-> > 
-> > ok, any chance you could already include it in the patchset?
-> > would be a great way to test this.. maybe we could change
-> > selftests to use that
-> 
-> I haven't start working on that code yet, but I can.
-> 
-> Here is my plan FWIW:
-> 
-> 1. Bump minimum required pahole version up. Or feature probe for
->    kfunc decl tag support. Whatever is the standard practice here.
-> 
-> 2. Teach bpftool to dump kfunc prototypes, guarded behind a flag.
-> 
-> 3. Flip bpftool flag on in selftest build and remove all manual kfunc
->    prototypes atomically in 1 commit.
-> 
-> I thought it'd be nicer to do it incrementally given all the moving
-> pieces. But if we want to land it all at once that is ok by me too.
-
-I think it'd be best to try the whole thing before we merge the change
-to pahole.. I guess the tests changes can come later, but would be great
-to try the kfunc dump and make sure it works as expected
-
-jirka
+CkF0IDIwMjQtMDEtMTQgMDI6MjQ6MDcsICJKb3pzZWYgS2FkbGVjc2lrIiA8a2FkbGVjQGJsYWNr
+aG9sZS5rZmtpLmh1PiB3cm90ZToKPk9uIFRodSwgMTEgSmFuIDIwMjQsIERhdmlkIFdhbmcgd3Jv
+dGU6Cj4KPj4gSSB0ZXN0ZWQgdGhlIHBhdGNoIHdpdGggY29kZSBzdHJlc3Npbmcgc3dhcC0+ZGVz
+dHJveS0+Y3JlYXRlLT5hZGQgMTAwMDAgCj4+IHRpbWVzLCB0aGUgcGVyZm9ybWFuY2UgcmVncmVz
+c2lvbiBzdGlsbCBoYXBwZW5zLCBhbmQgbm93IGl0IGlzIAo+PiBpcF9zZXRfZGVzdHJveS4gKEkg
+cGFzdGVkIHRoZSB0ZXN0IGNvZGUgYXQgdGhlIGVuZCBvZiB0aGlzIG1haWwpCgo+PiAKPj4gVGhl
+eSBhbGwgY2FsbCB3YWl0X2Zvcl9jb21wbGV0aW9uLCB3aGljaCBtYXkgc2xlZXAgb24gc29tZXRo
+aW5nIG9uIAo+PiBwdXJwb3NlLCBJIGd1ZXNzLi4uCj4KPlRoYXQncyBPSyBiZWNhdXNlIGlwX3Nl
+dF9kZXN0cm95KCkgY2FsbHMgcmN1X2JhcnJpZXIoKSB3aGljaCBpcyBuZWVkZWQgdG8gCj5oYW5k
+bGUgZmx1c2ggaW4gbGlzdCB0eXBlIG9mIHNldHMuCj4KPkhvd2V2ZXIsIHJjdV9iYXJyaWVyKCkg
+d2l0aCBjYWxsX3JjdSgpIHRvZ2V0aGVyIG1ha2VzIG11bHRpcGxlIGRlc3Ryb3lzIAo+b25lIGFm
+dGVyIGFub3RoZXIgc2xvdy4gQnV0IHJjdV9iYXJyaWVyKCkgaXMgbmVlZGVkIGZvciBsaXN0IHR5
+cGUgb2Ygc2V0cyAKPm9ubHkgYW5kIHRoYXQgY2FuIGJlIGhhbmRsZWQgc2VwYXJhdGVseS4gU28g
+Y291bGQgeW91IHRlc3QgdGhlIHBhdGNoIAo+YmVsb3c/IEFjY29yZGluZyB0byBteSB0ZXN0cyBp
+dCBpcyBldmVuIGEgbGl0dGxlIGJpdCBmYXN0ZXIgdGhhbiB0aGUgCj5vcmlnaW5hbCBjb2RlIGJl
+Zm9yZSBzeW5jaHJvbml6ZV9yY3UoKSB3YXMgYWRkZWQgdG8gc3dhcC4KCkNvbmZpcm1lZH4hIFRo
+aXMgcGF0Y2ggZG9lcyBmaXggdGhlIHBlcmZvcm1hbmNlIHJlZ3Jlc3Npb24gaW4gbXkgY2FzZS4K
+CkhvcGUgaXQgY2FuIGZpeCBhbGUuY3Jpc21hbmlAYXV0b21hdHRpYy5jb20ncyBvcmlnaW5hbCBp
+c3N1ZS4KCgoKVGhhbmtzfgpEYXZpZA==
