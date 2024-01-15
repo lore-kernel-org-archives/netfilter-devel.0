@@ -1,57 +1,59 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9FA61B805;
-	Mon, 15 Jan 2024 10:52:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HhKyMAZ3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C7F3C433C7;
-	Mon, 15 Jan 2024 10:52:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1705315952;
-	bh=RFaulRgL6X5vCPqvRQjmHpBtz1DdcxcvExPxt1UW5fk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=HhKyMAZ3ztc5BvVHdPsEvp9MjjR+nORDfzw00YT6eyQmQhw6KH2PPvGcWXxjYvqmZ
-	 yyYo7Z2xSjXS+dou4KXfUJ0s65npVFKhd+pAsiErA621XxFO17CMPc1JrNzaryoDAL
-	 NLCnrKOy5Xs0HsHnFGv2k3CFrq+BeVA7N/r4tt94kyziszrcBGhK3BZH8eP5CEzXAP
-	 Dokv2zoWd3wd4gDGZ6Y1ugWgCu8j1SVi7x+yToE8BFfc8PqEtKinCO4PW2nmwHvU8H
-	 fWL7jMlVg22cgYrmD8Lbk5btb3S/u/qzADIh47QcHynNgTLlOd5CWQg+Tz7G5nCph4
-	 obC+LNkSjDOvQ==
-Date: Mon, 15 Jan 2024 10:52:26 +0000
-From: Simon Horman <horms@kernel.org>
-To: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Florian Westphal <fw@strlen.de>, David Ahern <dsahern@kernel.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Kees Cook <keescook@chromium.org>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Roopa Prabhu <roopa@nvidia.com>, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, bridge@lists.linux.dev, kernel@openvz.org
-Subject: Re: [PATCH v3 3/4] netfilter: propagate net to
- nf_bridge_get_physindev
-Message-ID: <20240115105226.GQ392144@kernel.org>
-References: <20240111150645.85637-1-ptikhomirov@virtuozzo.com>
- <20240111150645.85637-4-ptikhomirov@virtuozzo.com>
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7797910EF
+	for <netfilter-devel@vger.kernel.org>; Mon, 15 Jan 2024 13:07:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf] netfilter: nf_tables: do not allow mismatch field size and set key length
+Date: Mon, 15 Jan 2024 14:07:48 +0100
+Message-Id: <20240115130748.140056-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240111150645.85637-4-ptikhomirov@virtuozzo.com>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Jan 11, 2024 at 11:06:39PM +0800, Pavel Tikhomirov wrote:
-> This is a preparation patch for replacing physindev with physinif on
-> nf_bridge_info structure. We will use dev_get_by_index_rcu to resolve
-> device, when needed, and it requires net to be available.
-> 
-> Signed-off-by: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+The set description provides the size of each field in the set whose sum
+should not mismatch the set key length, bail out otherwise.
 
-Reviewed-by: Simon Horman <horms@kernel.org>
+I did not manage to crash nft_set_pipapo with mismatch fields and set key
+length so far, but this is UB which must be disallowed.
+
+Fixes: f3a2181e16f1 ("netfilter: nf_tables: Support for sets with multiple ranged fields")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index cc4ad2c34867..d67f5504b2d6 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4804,8 +4804,8 @@ static int nft_set_desc_concat_parse(const struct nlattr *attr,
+ static int nft_set_desc_concat(struct nft_set_desc *desc,
+ 			       const struct nlattr *nla)
+ {
++	u32 num_regs = 0, key_num_regs = 0;
+ 	struct nlattr *attr;
+-	u32 num_regs = 0;
+ 	int rem, err, i;
+ 
+ 	nla_for_each_nested(attr, nla, rem) {
+@@ -4820,6 +4820,10 @@ static int nft_set_desc_concat(struct nft_set_desc *desc,
+ 	for (i = 0; i < desc->field_count; i++)
+ 		num_regs += DIV_ROUND_UP(desc->field_len[i], sizeof(u32));
+ 
++	key_num_regs = DIV_ROUND_UP(desc->klen, sizeof(u32));
++	if (key_num_regs != num_regs)
++		return -EINVAL;
++
+ 	if (num_regs > NFT_REG32_COUNT)
+ 		return -E2BIG;
+ 
+-- 
+2.30.2
 
