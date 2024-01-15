@@ -1,19 +1,19 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EFFA171BC
-	for <netfilter-devel@vger.kernel.org>; Mon, 15 Jan 2024 13:11:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0477C17544
+	for <netfilter-devel@vger.kernel.org>; Mon, 15 Jan 2024 13:27:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1rPMkZ-0005sN-Cs; Mon, 15 Jan 2024 14:11:35 +0100
+	id 1rPMzr-0006Aa-9M; Mon, 15 Jan 2024 14:27:23 +0100
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] evaluate: error out when store needs more than one 128bit register of align fixup
-Date: Mon, 15 Jan 2024 14:11:17 +0100
-Message-ID: <20240115131120.2007-1-fw@strlen.de>
+Subject: [PATCH nft] rule: fix sym refcount assertion
+Date: Mon, 15 Jan 2024 14:27:15 +0100
+Message-ID: <20240115132718.24150-1-fw@strlen.de>
 X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -23,51 +23,54 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Else this gives:
-nft: evaluate.c:2983: stmt_evaluate_payload: Assertion `sizeof(data) * BITS_PER_BYTE >= masklen' failed.
+Scope release must happen last.
+afl provided a reproducer where policy is a define, because
+scope is released too early we get:
+nft: src/rule.c:559: scope_release: Assertion `sym->refcnt == 1' failed.
 
-For loads, this is already prevented via expr_evaluate_bits() which has:
+... because chain->policy is EXPR_SYMBOL.
 
-  if (masklen > NFT_REG_SIZE * BITS_PER_BYTE)
-      return expr_error(ctx->msgs, expr, "mask length %u exceeds allowed maximum of %u\n",
-                        masklen, NFT_REG_SIZE * BITS_PER_BYTE);
-
-But for the store path this isn't called.
-The reproducer asks to store a 128 bit integer at bit offset 1, i.e.
-17 bytes would need to be munged, but we can only handle up to 16 bytes
-(one pseudo-register).
-
-Fixes: 78936d50f306 ("evaluate: add support to set IPv6 non-byte header fields")
+Fixes: 627c451b2351 ("src: allow variables in the chain priority specification")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/evaluate.c                                               | 5 +++++
- .../testcases/bogons/nft-f/payload_expr_unaligned_store      | 1 +
- 2 files changed, 6 insertions(+)
- create mode 100644 tests/shell/testcases/bogons/nft-f/payload_expr_unaligned_store
+ src/rule.c                                              | 6 +++++-
+ tests/shell/testcases/bogons/nft-f/define_policy_assert | 3 +++
+ 2 files changed, 8 insertions(+), 1 deletion(-)
+ create mode 100644 tests/shell/testcases/bogons/nft-f/define_policy_assert
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 5576b56ece67..1adec037b04b 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -3188,6 +3188,11 @@ static int stmt_evaluate_payload(struct eval_ctx *ctx, struct stmt *stmt)
- 	payload_byte_size = div_round_up(payload->len + extra_len,
- 					 BITS_PER_BYTE);
- 
-+	if (payload_byte_size > sizeof(data))
-+		return expr_error(ctx->msgs, stmt->payload.expr,
-+				  "uneven load cannot span more than %u bytes, got %u",
-+				  sizeof(data), payload_byte_size);
+diff --git a/src/rule.c b/src/rule.c
+index 4138c21b81bc..68b19c211b8a 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -729,7 +729,6 @@ void chain_free(struct chain *chain)
+ 	list_for_each_entry_safe(rule, next, &chain->rules, list)
+ 		rule_free(rule);
+ 	handle_free(&chain->handle);
+-	scope_release(&chain->scope);
+ 	free_const(chain->type.str);
+ 	expr_free(chain->dev_expr);
+ 	for (i = 0; i < chain->dev_array_len; i++)
+@@ -738,6 +737,11 @@ void chain_free(struct chain *chain)
+ 	expr_free(chain->priority.expr);
+ 	expr_free(chain->policy);
+ 	free_const(chain->comment);
 +
- 	if (need_csum && payload_byte_size & 1) {
- 		payload_byte_size++;
++	/* MUST be released after all expressions, they could
++	 * hold refcounts.
++	 */
++	scope_release(&chain->scope);
+ 	free(chain);
+ }
  
-diff --git a/tests/shell/testcases/bogons/nft-f/payload_expr_unaligned_store b/tests/shell/testcases/bogons/nft-f/payload_expr_unaligned_store
+diff --git a/tests/shell/testcases/bogons/nft-f/define_policy_assert b/tests/shell/testcases/bogons/nft-f/define_policy_assert
 new file mode 100644
-index 000000000000..c1358df45e93
+index 000000000000..f1e58b551304
 --- /dev/null
-+++ b/tests/shell/testcases/bogons/nft-f/payload_expr_unaligned_store
-@@ -0,0 +1 @@
-+add rule f i @th,1,128 set 1
++++ b/tests/shell/testcases/bogons/nft-f/define_policy_assert
+@@ -0,0 +1,3 @@
++chain y x { priority filter
++define p = foo
++policy $p
 -- 
 2.43.0
 
