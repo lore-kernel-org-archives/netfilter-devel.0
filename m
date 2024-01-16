@@ -1,139 +1,81 @@
-Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
+Received: from out30-100.freemail.mail.aliyun.com (out30-100.freemail.mail.aliyun.com [115.124.30.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D78B1B7F3;
-	Tue, 16 Jan 2024 11:19:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="wnFGUlym"
-Received: from mg.bb.i.ssi.bg (localhost [127.0.0.1])
-	by mg.bb.i.ssi.bg (Proxmox) with ESMTP id BEE3424590;
-	Tue, 16 Jan 2024 13:12:06 +0200 (EET)
-Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
-	by mg.bb.i.ssi.bg (Proxmox) with ESMTPS id A020424588;
-	Tue, 16 Jan 2024 13:12:06 +0200 (EET)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by ink.ssi.bg (Postfix) with ESMTPSA id 413883C043D;
-	Tue, 16 Jan 2024 13:11:59 +0200 (EET)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=ssi.bg; s=ink;
-	t=1705403520; bh=UxqN8goLJo6H6a7nMjf8r0aorH2j0H/0oPA9ij7vGs8=;
-	h=Date:From:To:cc:Subject:In-Reply-To:References;
-	b=wnFGUlymIz1ag50Nx7oh8FaocUejgNj/GfPnORiHfTvVAwGn2G8y+kBE1JnNnpmtT
-	 iY5ALZ8AHHmg63lIQOHsfp/f6Rf5e7bUeXsixbVP917ZXCUnTEoObTYuxl0ntcUNnK
-	 UJIsB5lHZJhvSC2feK1i5LAxAwtfTNSW1G7tgMrE=
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.17.1/8.17.1) with ESMTP id 40GBBn3L041664;
-	Tue, 16 Jan 2024 13:11:50 +0200
-Date: Tue, 16 Jan 2024 13:11:49 +0200 (EET)
-From: Julian Anastasov <ja@ssi.bg>
-To: Fedor Pchelkin <pchelkin@ispras.ru>
-cc: Simon Horman <horms@verge.net.au>, Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Dwip Banerjee <dwip@linux.vnet.ibm.com>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-        Alexey Khoroshilov <khoroshilov@ispras.ru>,
-        lvc-project@linuxtesting.org
-Subject: Re: [PATCH net] net: ipvs: avoid stat macros calls from preemptible
- context
-In-Reply-To: <20240115143923.31243-1-pchelkin@ispras.ru>
-Message-ID: <3964ec81-c8d2-c4c6-8ca8-2e2b50dc4240@ssi.bg>
-References: <20240115143923.31243-1-pchelkin@ispras.ru>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 033711B944;
+	Tue, 16 Jan 2024 13:46:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R141e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045168;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=13;SR=0;TI=SMTPD_---0W-mKldk_1705412774;
+Received: from 30.221.145.228(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0W-mKldk_1705412774)
+          by smtp.aliyun-inc.com;
+          Tue, 16 Jan 2024 21:46:15 +0800
+Message-ID: <3a82adb1-c839-4e82-834f-a63f9910b28d@linux.alibaba.com>
+Date: Tue, 16 Jan 2024 21:46:14 +0800
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC nf-next v5 0/2] netfilter: bpf: support prog update
+Content-Language: en-US
+From: "D. Wythe" <alibuda@linux.alibaba.com>
+To: pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de
+Cc: bpf@vger.kernel.org, linux-kernel@vger.kernel.org,
+ netdev@vger.kernel.org, coreteam@netfilter.org,
+ netfilter-devel@vger.kernel.org, davem@davemloft.net, edumazet@google.com,
+ kuba@kernel.org, pabeni@redhat.com, ast@kernel.org
+References: <1704175877-28298-1-git-send-email-alibuda@linux.alibaba.com>
+In-Reply-To: <1704175877-28298-1-git-send-email-alibuda@linux.alibaba.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
 
-	Hello,
 
-On Mon, 15 Jan 2024, Fedor Pchelkin wrote:
+Just a reminder to avoid forgetting this patch by everyone. 🙂
 
-> Inside decrement_ttl() upon discovering that the packet ttl has exceeded,
-> __IP_INC_STATS and __IP6_INC_STATS macros can be called from preemptible
-> context having the following backtrace:
-> 
-> check_preemption_disabled: 48 callbacks suppressed
-> BUG: using __this_cpu_add() in preemptible [00000000] code: curl/1177
-> caller is decrement_ttl+0x217/0x830
-> CPU: 5 PID: 1177 Comm: curl Not tainted 6.7.0+ #34
-> Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 04/01/2014
-> Call Trace:
->  <TASK>
->  dump_stack_lvl+0xbd/0xe0
->  check_preemption_disabled+0xd1/0xe0
->  decrement_ttl+0x217/0x830
->  __ip_vs_get_out_rt+0x4e0/0x1ef0
->  ip_vs_nat_xmit+0x205/0xcd0
->  ip_vs_in_hook+0x9b1/0x26a0
->  nf_hook_slow+0xc2/0x210
->  nf_hook+0x1fb/0x770
->  __ip_local_out+0x33b/0x640
->  ip_local_out+0x2a/0x490
->  __ip_queue_xmit+0x990/0x1d10
->  __tcp_transmit_skb+0x288b/0x3d10
->  tcp_connect+0x3466/0x5180
->  tcp_v4_connect+0x1535/0x1bb0
->  __inet_stream_connect+0x40d/0x1040
->  inet_stream_connect+0x57/0xa0
->  __sys_connect_file+0x162/0x1a0
->  __sys_connect+0x137/0x160
->  __x64_sys_connect+0x72/0xb0
->  do_syscall_64+0x6f/0x140
->  entry_SYSCALL_64_after_hwframe+0x6e/0x76
-> RIP: 0033:0x7fe6dbbc34e0
-> 
-> Use the corresponding preemption-aware variants: IP_INC_STATS and
-> IP6_INC_STATS.
-> 
-> Found by Linux Verification Center (linuxtesting.org).
-> 
-> Fixes: 8d8e20e2d7bb ("ipvs: Decrement ttl")
-> Signed-off-by: Fedor Pchelkin <pchelkin@ispras.ru>
+Best wishes,
+D. Wythe
 
-	Looks good to me, thanks!
 
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
-> ---
->  net/netfilter/ipvs/ip_vs_xmit.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-> index 9193e109e6b3..65e0259178da 100644
-> --- a/net/netfilter/ipvs/ip_vs_xmit.c
-> +++ b/net/netfilter/ipvs/ip_vs_xmit.c
-> @@ -271,7 +271,7 @@ static inline bool decrement_ttl(struct netns_ipvs *ipvs,
->  			skb->dev = dst->dev;
->  			icmpv6_send(skb, ICMPV6_TIME_EXCEED,
->  				    ICMPV6_EXC_HOPLIMIT, 0);
-> -			__IP6_INC_STATS(net, idev, IPSTATS_MIB_INHDRERRORS);
-> +			IP6_INC_STATS(net, idev, IPSTATS_MIB_INHDRERRORS);
->  
->  			return false;
->  		}
-> @@ -286,7 +286,7 @@ static inline bool decrement_ttl(struct netns_ipvs *ipvs,
->  	{
->  		if (ip_hdr(skb)->ttl <= 1) {
->  			/* Tell the sender its packet died... */
-> -			__IP_INC_STATS(net, IPSTATS_MIB_INHDRERRORS);
-> +			IP_INC_STATS(net, IPSTATS_MIB_INHDRERRORS);
->  			icmp_send(skb, ICMP_TIME_EXCEEDED, ICMP_EXC_TTL, 0);
->  			return false;
->  		}
-> -- 
-> 2.43.0
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+On 1/2/24 2:11 PM, D. Wythe wrote:
+> From: "D. Wythe" <alibuda@linux.alibaba.com>
+>
+> This patches attempt to implements updating of progs within
+> bpf netfilter link, allowing user update their ebpf netfilter
+> prog in hot update manner.
+>
+> Besides, a corresponding test case has been added to verify
+> whether the update works.
+> --
+> v1:
+> 1. remove unnecessary context, access the prog directly via rcu.
+> 2. remove synchronize_rcu(), dealloc the nf_link via kfree_rcu.
+> 3. check the dead flag during the update.
+> --
+> v1->v2:
+> 1. remove unnecessary nf_prog, accessing nf_link->link.prog in direct.
+> --
+> v2->v3:
+> 1. access nf_link->link.prog via rcu_dereference_raw to avoid warning.
+> --
+> v3->v4:
+> 1. remove mutex for link update, as it is unnecessary and can be replaced
+> by atomic operations.
+> --
+> v4->v5:
+> 1. fix error retval check on cmpxhcg
+>
+> D. Wythe (2):
+>    netfilter: bpf: support prog update
+>    selftests/bpf: Add netfilter link prog update test
+>
+>   net/netfilter/nf_bpf_link.c                        | 50 ++++++++-----
+>   .../bpf/prog_tests/netfilter_link_update_prog.c    | 83 ++++++++++++++++++++++
+>   .../bpf/progs/test_netfilter_link_update_prog.c    | 24 +++++++
+>   3 files changed, 141 insertions(+), 16 deletions(-)
+>   create mode 100644 tools/testing/selftests/bpf/prog_tests/netfilter_link_update_prog.c
+>   create mode 100644 tools/testing/selftests/bpf/progs/test_netfilter_link_update_prog.c
+>
 
