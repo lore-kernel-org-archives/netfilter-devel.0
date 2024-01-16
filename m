@@ -1,193 +1,92 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCB581BF20
-	for <netfilter-devel@vger.kernel.org>; Tue, 16 Jan 2024 14:21:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1rPkJQ-0004wq-73; Tue, 16 Jan 2024 15:21:08 +0100
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] evaluate: don't assert on net/transport header conflict
-Date: Tue, 16 Jan 2024 15:21:00 +0100
-Message-ID: <20240116142103.20569-1-fw@strlen.de>
-X-Mailer: git-send-email 2.43.0
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACBA11CD05;
+	Tue, 16 Jan 2024 16:03:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="clg/3LK8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5383C433F1;
+	Tue, 16 Jan 2024 16:03:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1705421015;
+	bh=bHzyF8LGYsF06hfUsvNFRxL+Xu1Z5AeKaWGruhCzQhk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=clg/3LK86toiisIJI8OXUvyzpZk5vrEkPjyHd19PwvuGKwe5KUZxipo9cvRq9ayXw
+	 j21BDeja9CGey3UR4r2hGGMwS7sICpdxn1MwLKORq0EHdpmb8Gr3r+gFMeXlw9FLEA
+	 p522/2VNSbBCFW5A+XTpwtl9IoVnnH+jP6Zx7V2w+VeIyj565UppFza2Uz47TY92/l
+	 82L1Ju9QzX4Z4vYj8QdBYGdW0TD/jJlVxnawkaml4daCZfQ1yQiJrPleCUQL5EzGP1
+	 OandjRepUw6aG52NaXZISoMeOmjUm+IJkYicg0dTN/e2SQLfkO543sdlBGvleYgcRh
+	 eP2qzAn01YGPw==
+Date: Tue, 16 Jan 2024 16:03:29 +0000
+From: Simon Horman <horms@kernel.org>
+To: Fedor Pchelkin <pchelkin@ispras.ru>
+Cc: Julian Anastasov <ja@ssi.bg>, Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Dwip Banerjee <dwip@linux.vnet.ibm.com>, netdev@vger.kernel.org,
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
+	Alexey Khoroshilov <khoroshilov@ispras.ru>,
+	lvc-project@linuxtesting.org
+Subject: Re: [PATCH net] net: ipvs: avoid stat macros calls from preemptible
+ context
+Message-ID: <20240116160329.GB588419@kernel.org>
+References: <20240115143923.31243-1-pchelkin@ispras.ru>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240115143923.31243-1-pchelkin@ispras.ru>
 
-before:
-nft: evaluate.c:467: conflict_resolution_gen_dependency: Assertion `expr->payload.base == PROTO_BASE_LL_HDR' failed.
-Aborted (core dumped)
+On Mon, Jan 15, 2024 at 05:39:22PM +0300, Fedor Pchelkin wrote:
+> Inside decrement_ttl() upon discovering that the packet ttl has exceeded,
+> __IP_INC_STATS and __IP6_INC_STATS macros can be called from preemptible
+> context having the following backtrace:
+> 
+> check_preemption_disabled: 48 callbacks suppressed
+> BUG: using __this_cpu_add() in preemptible [00000000] code: curl/1177
+> caller is decrement_ttl+0x217/0x830
+> CPU: 5 PID: 1177 Comm: curl Not tainted 6.7.0+ #34
+> Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 04/01/2014
+> Call Trace:
+>  <TASK>
+>  dump_stack_lvl+0xbd/0xe0
+>  check_preemption_disabled+0xd1/0xe0
+>  decrement_ttl+0x217/0x830
+>  __ip_vs_get_out_rt+0x4e0/0x1ef0
+>  ip_vs_nat_xmit+0x205/0xcd0
+>  ip_vs_in_hook+0x9b1/0x26a0
+>  nf_hook_slow+0xc2/0x210
+>  nf_hook+0x1fb/0x770
+>  __ip_local_out+0x33b/0x640
+>  ip_local_out+0x2a/0x490
+>  __ip_queue_xmit+0x990/0x1d10
+>  __tcp_transmit_skb+0x288b/0x3d10
+>  tcp_connect+0x3466/0x5180
+>  tcp_v4_connect+0x1535/0x1bb0
+>  __inet_stream_connect+0x40d/0x1040
+>  inet_stream_connect+0x57/0xa0
+>  __sys_connect_file+0x162/0x1a0
+>  __sys_connect+0x137/0x160
+>  __x64_sys_connect+0x72/0xb0
+>  do_syscall_64+0x6f/0x140
+>  entry_SYSCALL_64_after_hwframe+0x6e/0x76
+> RIP: 0033:0x7fe6dbbc34e0
+> 
+> Use the corresponding preemption-aware variants: IP_INC_STATS and
+> IP6_INC_STATS.
+> 
+> Found by Linux Verification Center (linuxtesting.org).
+> 
+> Fixes: 8d8e20e2d7bb ("ipvs: Decrement ttl")
+> Signed-off-by: Fedor Pchelkin <pchelkin@ispras.ru>
 
-conflict_resolution_gen_dependency() can only handle linklayer
-conflicts, hence the assert.
-
-Rename it accordingly.  Also rename resolve_protocol_conflict, it doesn't
-do anything for != PROTO_BASE_LL_HDR and extend the assertion to that
-function too.
-
-Callers now enforce PROTO_BASE_LL_HDR prerequisite.
-
-after:
-Error: conflicting transport layer protocols specified: comp vs. udp
- ip6 nexthdr comp udp dport 4789
-                  ^^^^^^^^^
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- src/evaluate.c                                | 69 +++++++++----------
- ...solution_gen_dependency_base_ll_hdr_assert |  5 ++
- 2 files changed, 38 insertions(+), 36 deletions(-)
- create mode 100644 tests/shell/testcases/bogons/nft-f/evaluate_conflict_resolution_gen_dependency_base_ll_hdr_assert
-
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 1adec037b04b..5a25916506fc 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -499,9 +499,9 @@ int stmt_dependency_evaluate(struct eval_ctx *ctx, struct stmt *stmt)
- }
- 
- static int
--conflict_resolution_gen_dependency(struct eval_ctx *ctx, int protocol,
--				   const struct expr *expr,
--				   struct stmt **res)
-+ll_conflict_resolution_gen_dependency(struct eval_ctx *ctx, int protocol,
-+				      const struct expr *expr,
-+				      struct stmt **res)
- {
- 	enum proto_bases base = expr->payload.base;
- 	const struct proto_hdr_template *tmpl;
-@@ -764,56 +764,52 @@ static bool proto_is_dummy(const struct proto_desc *desc)
- 	return desc == &proto_inet || desc == &proto_netdev;
- }
- 
--static int resolve_protocol_conflict(struct eval_ctx *ctx,
--				     const struct proto_desc *desc,
--				     struct expr *payload)
-+static int resolve_ll_protocol_conflict(struct eval_ctx *ctx,
-+				        const struct proto_desc *desc,
-+					struct expr *payload)
- {
- 	enum proto_bases base = payload->payload.base;
- 	struct stmt *nstmt = NULL;
- 	struct proto_ctx *pctx;
-+	unsigned int i;
- 	int link, err;
- 
-+	assert(base == PROTO_BASE_LL_HDR);
-+
- 	pctx = eval_proto_ctx(ctx);
- 
--	if (payload->payload.base == PROTO_BASE_LL_HDR) {
--		if (proto_is_dummy(desc)) {
--			if (ctx->inner_desc) {
--		                proto_ctx_update(pctx, PROTO_BASE_LL_HDR, &payload->location, &proto_eth);
--			} else {
--				err = meta_iiftype_gen_dependency(ctx, payload, &nstmt);
--				if (err < 0)
--					return err;
--
--				desc = payload->payload.desc;
--				rule_stmt_insert_at(ctx->rule, nstmt, ctx->stmt);
--			}
-+	if (proto_is_dummy(desc)) {
-+		if (ctx->inner_desc) {
-+	                proto_ctx_update(pctx, PROTO_BASE_LL_HDR, &payload->location, &proto_eth);
- 		} else {
--			unsigned int i;
-+			err = meta_iiftype_gen_dependency(ctx, payload, &nstmt);
-+			if (err < 0)
-+				return err;
- 
--			/* payload desc stored in the L2 header stack? No conflict. */
--			for (i = 0; i < pctx->stacked_ll_count; i++) {
--				if (pctx->stacked_ll[i] == payload->payload.desc)
--					return 0;
--			}
-+			desc = payload->payload.desc;
-+			rule_stmt_insert_at(ctx->rule, nstmt, ctx->stmt);
-+		}
-+	} else {
-+		unsigned int i;
-+
-+		/* payload desc stored in the L2 header stack? No conflict. */
-+		for (i = 0; i < pctx->stacked_ll_count; i++) {
-+			if (pctx->stacked_ll[i] == payload->payload.desc)
-+				return 0;
- 		}
- 	}
- 
--	assert(base <= PROTO_BASE_MAX);
- 	/* This payload and the existing context don't match, conflict. */
- 	if (pctx->protocol[base + 1].desc != NULL)
- 		return 1;
- 
- 	link = proto_find_num(desc, payload->payload.desc);
- 	if (link < 0 ||
--	    conflict_resolution_gen_dependency(ctx, link, payload, &nstmt) < 0)
-+	    ll_conflict_resolution_gen_dependency(ctx, link, payload, &nstmt) < 0)
- 		return 1;
- 
--	if (base == PROTO_BASE_LL_HDR) {
--		unsigned int i;
--
--		for (i = 0; i < pctx->stacked_ll_count; i++)
--			payload->payload.offset += pctx->stacked_ll[i]->length;
--	}
-+	for (i = 0; i < pctx->stacked_ll_count; i++)
-+		payload->payload.offset += pctx->stacked_ll[i]->length;
- 
- 	rule_stmt_insert_at(ctx->rule, nstmt, ctx->stmt);
- 
-@@ -855,7 +851,7 @@ static int __expr_evaluate_payload(struct eval_ctx *ctx, struct expr *expr)
- 
- 			link = proto_find_num(desc, payload->payload.desc);
- 			if (link < 0 ||
--			    conflict_resolution_gen_dependency(ctx, link, payload, &nstmt) < 0)
-+			    ll_conflict_resolution_gen_dependency(ctx, link, payload, &nstmt) < 0)
- 				return expr_error(ctx->msgs, payload,
- 						  "conflicting protocols specified: %s vs. %s",
- 						  desc->name,
-@@ -912,8 +908,8 @@ check_icmp:
- 	/* If we already have context and this payload is on the same
- 	 * base, try to resolve the protocol conflict.
- 	 */
--	if (payload->payload.base == desc->base) {
--		err = resolve_protocol_conflict(ctx, desc, payload);
-+	if (base == PROTO_BASE_LL_HDR) {
-+		err = resolve_ll_protocol_conflict(ctx, desc, payload);
- 		if (err <= 0)
- 			return err;
- 
-@@ -922,7 +918,8 @@ check_icmp:
- 			return 0;
- 	}
- 	return expr_error(ctx->msgs, payload,
--			  "conflicting protocols specified: %s vs. %s",
-+			  "conflicting %s protocols specified: %s vs. %s",
-+			  proto_base_names[base],
- 			  pctx->protocol[base].desc->name,
- 			  payload->payload.desc->name);
- }
-diff --git a/tests/shell/testcases/bogons/nft-f/evaluate_conflict_resolution_gen_dependency_base_ll_hdr_assert b/tests/shell/testcases/bogons/nft-f/evaluate_conflict_resolution_gen_dependency_base_ll_hdr_assert
-new file mode 100644
-index 000000000000..43d72c4d97e5
---- /dev/null
-+++ b/tests/shell/testcases/bogons/nft-f/evaluate_conflict_resolution_gen_dependency_base_ll_hdr_assert
-@@ -0,0 +1,5 @@
-+table ip6 t {
-+	chain c {
-+		ip6 nexthdr comp udp dport 4789
-+	}
-+}
--- 
-2.43.0
+Acked-by: Simon Horman <horms@kernel.org>
 
