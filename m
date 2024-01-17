@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D1F6822338;
-	Wed, 17 Jan 2024 16:00:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5DC53224CB;
+	Wed, 17 Jan 2024 16:00:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705507251; cv=none; b=bv4zXFc0tYJM8grVvO8boPk9c3Hx12WOxcFe0oX3mqFiwV58wfvn2VqQ1wvCxxtqkRfmirj+FyA8lseLC3+oePWYpSCSksY29UZtlMjXpLm3dzdqOk8FZu9De3V8Yb6FPjPn8m/e2/U0WgrNwU97FV5WgayfA3W5W7iDnObUaAk=
+	t=1705507251; cv=none; b=I95oLG6iNF4FO320zPM53gXROOOZwGc4lsu2PG6yW+MHYvdQDLKK1mmP0HQQpVBvYyoHzw2/5tuLbsjT5mCYBhEgwJ9M0JXHK41JOxiD5KgK1DfIue9NDWA7Q9wmDvWE+kzCwdbs7bfdwh56QR4eSPD74K4pqLSJ160vJe4kW5k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1705507251; c=relaxed/simple;
-	bh=2I1vQzHJQUXyyPMZKx1yia1lgZBpH20Y4zLo/dOpCqc=;
+	bh=tGr+luaDgF7e2pLgh9DOzxCxy4MKxq6l0MI3qnlteSE=;
 	h=From:To:Cc:Subject:Date:Message-Id:X-Mailer:In-Reply-To:
-	 References:MIME-Version:Content-Transfer-Encoding; b=cvscnO3IEr9F5A0AH7i4PQzHsxl4xjO9+wLAbQBj4B68MnNB9CM4EggPMZhe6Bw9RGf2ZbxEQvO9lAXZtkuN0Fk0KkfvmOvCmRTL8s0upHczZhMG4bMe3NthbT+8lQuTryW/Gn3xBC7dCapi9iscoYcghwt/3lUSZ8Wqj3LeASE=
+	 References:MIME-Version:Content-Transfer-Encoding; b=Z3PmpC9U22W6PVYQ18lh2RXCdPAPh8bo9ylxzSwGiMw1mWRFc73egELZL7BGB39FxHxccU+11gib6IXHJLt7VN1d1SO35C6OAmHSLeH045z29Nl5cL49hG51C6Y9qnJgXeL64jfdS5prQd4IC6B9+XsEX6xKkiXjLNK66jRoV30=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 05/14] netfilter: nfnetlink_log: use proper helper for fetching physinif
-Date: Wed, 17 Jan 2024 17:00:21 +0100
-Message-Id: <20240117160030.140264-6-pablo@netfilter.org>
+Subject: [PATCH net 09/14] netfilter: nf_tables: check if catch-all set element is active in next generation
+Date: Wed, 17 Jan 2024 17:00:25 +0100
+Message-Id: <20240117160030.140264-10-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240117160030.140264-1-pablo@netfilter.org>
 References: <20240117160030.140264-1-pablo@netfilter.org>
@@ -34,46 +34,33 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+When deactivating the catch-all set element, check the state in the next
+generation that represents this transaction.
 
-We don't use physindev in __build_packet_message except for getting
-physinif from it. So let's switch to nf_bridge_get_physinif to get what
-we want directly.
+This bug uncovered after the recent removal of the element busy mark
+a2dd0233cbc4 ("netfilter: nf_tables: remove busy mark and gc batch API").
 
-Signed-off-by: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
-Reviewed-by: Simon Horman <horms@kernel.org>
+Fixes: aaa31047a6d2 ("netfilter: nftables: add catch-all set element support")
+Cc: stable@vger.kernel.org
+Reported-by: lonial con <kongln9170@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_log.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ net/netfilter/nf_tables_api.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index f03f4d4d7d88..134e05d31061 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -508,7 +508,7 @@ __build_packet_message(struct nfnl_log_net *log,
- 					 htonl(br_port_get_rcu(indev)->br->dev->ifindex)))
- 				goto nla_put_failure;
- 		} else {
--			struct net_device *physindev;
-+			int physinif;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index b3db97440db1..50b595ef6389 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -6578,7 +6578,7 @@ static int nft_setelem_catchall_deactivate(const struct net *net,
  
- 			/* Case 2: indev is bridge group, we need to look for
- 			 * physical device (when called from ipv4) */
-@@ -516,10 +516,10 @@ __build_packet_message(struct nfnl_log_net *log,
- 					 htonl(indev->ifindex)))
- 				goto nla_put_failure;
+ 	list_for_each_entry(catchall, &set->catchall_list, list) {
+ 		ext = nft_set_elem_ext(set, catchall->elem);
+-		if (!nft_is_active(net, ext))
++		if (!nft_is_active_next(net, ext))
+ 			continue;
  
--			physindev = nf_bridge_get_physindev(skb);
--			if (physindev &&
-+			physinif = nf_bridge_get_physinif(skb);
-+			if (physinif &&
- 			    nla_put_be32(inst->skb, NFULA_IFINDEX_PHYSINDEV,
--					 htonl(physindev->ifindex)))
-+					 htonl(physinif)))
- 				goto nla_put_failure;
- 		}
- #endif
+ 		kfree(elem->priv);
 -- 
 2.30.2
 
