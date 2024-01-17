@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id ECC5D219F6;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id ECC9821A16;
 	Wed, 17 Jan 2024 16:00:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705507249; cv=none; b=lys8vs0vgkYlAFutZZs+oPxr8IkD0yX6o1ThLGr2THol43AgYXww7KTg9ah26kCB8GOatUytFIvTpRda8UF3rqbJTyB/pRIPcBmjrDo1y+dgXZqUiasxL4940Rc475yY+uE/GwLb3GIuzlGesjXVOsiYL/wlcLNzY1Tp8X1zTr8=
+	t=1705507250; cv=none; b=W+0GLNqQ6Yy5JmaSGn3X/yUzEbTzxZpBO9Ddx5dPiMCyzy8IhNHYrVuYvCH79qq7VT2HcEUboo/d0x9JTiKoFoPGOpMXwCqjXHe04wTHjuEQknMaKHvGVlcVqFXTiLTi2iZ5t9aVZWaPLMkJGITRGPGIR6zhFzohuE697jnPTcE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705507249; c=relaxed/simple;
-	bh=v8brMQ+HpLj3Ea+P/82A97oHOrS/84rOO69N/UNUBUw=;
+	s=arc-20240116; t=1705507250; c=relaxed/simple;
+	bh=10+mbyFzIQMLfraP8AqZ3UUcWireIRhnyTNXOUnzibg=;
 	h=From:To:Cc:Subject:Date:Message-Id:X-Mailer:In-Reply-To:
-	 References:MIME-Version:Content-Transfer-Encoding; b=FlYaQ3ZTx4JgoGuz4BPcS5YqNPwlEVyIy+YTqIWx//ZWP2IHtPh75H3ZjLjHoCg/PlPKB6cEvu2LNlcmpQO6i7Xc77zrrlEkl3hqXE/5WGbaA03Y3fGAezzKX/cYVEiX/EIqNEYsuBiiIjoHk7UlDE6s+S0Hvsb2bv6gEFGI2Wg=
+	 References:MIME-Version:Content-Transfer-Encoding; b=Dw46+euxl6USamMB7DamdJRrB7/DKgLxz5gEtc0Qi19iUVvn/7NkKWNek9CqhkAewmVfyvkdUoZTsN8kDS0QzOYuR2fOhbr9GQWEnpvxl1Xf74KaBxnwyLOc/4DJ97jURChTnu0InrXAKuCN9D4f2gN1eVft72aIz3/pNsZzamY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 02/14] netfilter: nf_tables: validate .maxattr at expression registration
-Date: Wed, 17 Jan 2024 17:00:18 +0100
-Message-Id: <20240117160030.140264-3-pablo@netfilter.org>
+Subject: [PATCH net 03/14] netfilter: nf_tables: bail out if stateful expression provides no .clone
+Date: Wed, 17 Jan 2024 17:00:19 +0100
+Message-Id: <20240117160030.140264-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240117160030.140264-1-pablo@netfilter.org>
 References: <20240117160030.140264-1-pablo@netfilter.org>
@@ -34,32 +34,41 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-struct nft_expr_info allows to store up to NFT_EXPR_MAXATTR (16)
-attributes when parsing netlink attributes.
-
-Rise a warning in case there is ever a nft expression whose .maxattr
-goes beyond this number of expressions, in such case, struct nft_expr_info
-needs to be updated.
+All existing NFT_EXPR_STATEFUL provide a .clone interface, remove
+fallback to copy content of stateful expression since this is never
+exercised and bail out if .clone interface is not defined.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 3 +++
- 1 file changed, 3 insertions(+)
+ net/netfilter/nf_tables_api.c | 15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index a90a364f5be5..2548d7d56408 100644
+index 2548d7d56408..b3db97440db1 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -2977,6 +2977,9 @@ static int nf_tables_delchain(struct sk_buff *skb, const struct nfnl_info *info,
-  */
- int nft_register_expr(struct nft_expr_type *type)
+@@ -3274,14 +3274,13 @@ int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src)
  {
-+	if (WARN_ON_ONCE(type->maxattr > NFT_EXPR_MAXATTR))
-+		return -ENOMEM;
+ 	int err;
+ 
+-	if (src->ops->clone) {
+-		dst->ops = src->ops;
+-		err = src->ops->clone(dst, src);
+-		if (err < 0)
+-			return err;
+-	} else {
+-		memcpy(dst, src, src->ops->size);
+-	}
++	if (WARN_ON_ONCE(!src->ops->clone))
++		return -EINVAL;
 +
- 	nfnl_lock(NFNL_SUBSYS_NFTABLES);
- 	if (type->family == NFPROTO_UNSPEC)
- 		list_add_tail_rcu(&type->list, &nf_tables_expressions);
++	dst->ops = src->ops;
++	err = src->ops->clone(dst, src);
++	if (err < 0)
++		return err;
+ 
+ 	__module_get(src->ops->type->owner);
+ 
 -- 
 2.30.2
 
