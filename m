@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E0EB121343;
-	Wed, 17 Jan 2024 16:00:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id ECC5D219F6;
+	Wed, 17 Jan 2024 16:00:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705507249; cv=none; b=XXQg7sfYAHUVzExW9UQdnWNWP0pvN4TmFX6F5HWwDpZHpod2AGY9ryMzo7uIgrdmxP0Zq8aAl8Se36hR+ylN8wqlJ1X7zlvRdlU4QzMj1qlJLqM7PA5wWPd/OiNYdbZZZ+r9jCrDHBWaT5+2LbewYpmz1FFqic5DAaBm9OL2CLo=
+	t=1705507249; cv=none; b=lys8vs0vgkYlAFutZZs+oPxr8IkD0yX6o1ThLGr2THol43AgYXww7KTg9ah26kCB8GOatUytFIvTpRda8UF3rqbJTyB/pRIPcBmjrDo1y+dgXZqUiasxL4940Rc475yY+uE/GwLb3GIuzlGesjXVOsiYL/wlcLNzY1Tp8X1zTr8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1705507249; c=relaxed/simple;
-	bh=m4VeRz3aCUPlhzMWpHbZ+htqsl/7a4Cmez1+3l76l/g=;
+	bh=v8brMQ+HpLj3Ea+P/82A97oHOrS/84rOO69N/UNUBUw=;
 	h=From:To:Cc:Subject:Date:Message-Id:X-Mailer:In-Reply-To:
-	 References:MIME-Version:Content-Transfer-Encoding; b=oxFKh3QsQK4QL/BpVTjARJdQ+I/iSaZSz1aT27XRJ2zcraMfn6p/8fnfsbYi9/MWphDkfc/x329xy5Oo3v9v9zyYSx1E+qNCCyJztK5AG620oNope+HH5SGnU7UHNptDKlgs/kGjmoV5vJqw/pQG2FwYL3IL9KAWjbq5KVybUIk=
+	 References:MIME-Version:Content-Transfer-Encoding; b=FlYaQ3ZTx4JgoGuz4BPcS5YqNPwlEVyIy+YTqIWx//ZWP2IHtPh75H3ZjLjHoCg/PlPKB6cEvu2LNlcmpQO6i7Xc77zrrlEkl3hqXE/5WGbaA03Y3fGAezzKX/cYVEiX/EIqNEYsuBiiIjoHk7UlDE6s+S0Hvsb2bv6gEFGI2Wg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 01/14] netfilter: nf_tables: reject invalid set policy
-Date: Wed, 17 Jan 2024 17:00:17 +0100
-Message-Id: <20240117160030.140264-2-pablo@netfilter.org>
+Subject: [PATCH net 02/14] netfilter: nf_tables: validate .maxattr at expression registration
+Date: Wed, 17 Jan 2024 17:00:18 +0100
+Message-Id: <20240117160030.140264-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240117160030.140264-1-pablo@netfilter.org>
 References: <20240117160030.140264-1-pablo@netfilter.org>
@@ -34,37 +34,32 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Report -EINVAL in case userspace provides a unsupported set backend
-policy.
+struct nft_expr_info allows to store up to NFT_EXPR_MAXATTR (16)
+attributes when parsing netlink attributes.
 
-Fixes: c50b960ccc59 ("netfilter: nf_tables: implement proper set selection")
+Rise a warning in case there is ever a nft expression whose .maxattr
+goes beyond this number of expressions, in such case, struct nft_expr_info
+needs to be updated.
+
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ net/netfilter/nf_tables_api.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 8438a8922e4a..a90a364f5be5 100644
+index a90a364f5be5..2548d7d56408 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -5048,8 +5048,16 @@ static int nf_tables_newset(struct sk_buff *skb, const struct nfnl_info *info,
- 	}
- 
- 	desc.policy = NFT_SET_POL_PERFORMANCE;
--	if (nla[NFTA_SET_POLICY] != NULL)
-+	if (nla[NFTA_SET_POLICY] != NULL) {
- 		desc.policy = ntohl(nla_get_be32(nla[NFTA_SET_POLICY]));
-+		switch (desc.policy) {
-+		case NFT_SET_POL_PERFORMANCE:
-+		case NFT_SET_POL_MEMORY:
-+			break;
-+		default:
-+			return -EOPNOTSUPP;
-+		}
-+	}
- 
- 	if (nla[NFTA_SET_DESC] != NULL) {
- 		err = nf_tables_set_desc_parse(&desc, nla[NFTA_SET_DESC]);
+@@ -2977,6 +2977,9 @@ static int nf_tables_delchain(struct sk_buff *skb, const struct nfnl_info *info,
+  */
+ int nft_register_expr(struct nft_expr_type *type)
+ {
++	if (WARN_ON_ONCE(type->maxattr > NFT_EXPR_MAXATTR))
++		return -ENOMEM;
++
+ 	nfnl_lock(NFNL_SUBSYS_NFTABLES);
+ 	if (type->family == NFPROTO_UNSPEC)
+ 		list_add_tail_rcu(&type->list, &nf_tables_expressions);
 -- 
 2.30.2
 
