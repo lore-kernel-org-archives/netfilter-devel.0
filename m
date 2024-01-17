@@ -1,42 +1,43 @@
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2D8B1DFE6;
-	Wed, 17 Jan 2024 12:44:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC6BE637;
+	Wed, 17 Jan 2024 12:44:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705495446; cv=none; b=I03z3ochrIAiUzd8ocqUcRbGGsFUL0BbrH0wUDzvbQFkf9b5Qx97ibwogW1FlrQwXkU/KwDthleqiKGl4o4wFGOAmx9EVkrWhNXibqRE7KIZPBmSLQfrm9MEiAMPxusFUk1LVszK9toH4abjmyLBT/qZhNmCNWxIZJou/k8Nc3A=
+	t=1705495467; cv=none; b=IV1tg02pN3ipAL6wHmPthXvUDYxKd3wuIUQb92VRn8ikdhBt4HhUaXTTQfIDVk92N7oTrfi3MsY2wdYdecElqbRbseSA8nkYm89HupfaUw8LGQ/Ou12oaAFY/nX9KdBLiuGGqmaz3KW9Y4C59uvzZsAhPU5z5tIouTuqSIvygM4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705495446; c=relaxed/simple;
-	bh=giAza7e6lB0scwLEi7BWSLsTb0Ii7ZIpXI4+tJX8w1o=;
+	s=arc-20240116; t=1705495467; c=relaxed/simple;
+	bh=KoXalv3CDMgZHjdkgvPU6xGKSYFCIOANzZIRheAObrg=;
 	h=Received:Date:From:To:Cc:Subject:Message-ID:References:
 	 MIME-Version:Content-Type:Content-Disposition:In-Reply-To:
-	 X-Spam-Score; b=OR/MHIhr3ujF3esGy0kGO1rF5qDoPv5LaorJSrHGvjbX3FfAzl/9K4SOoZ6nKxU9hTn+xrS8IzH6Y70vJPHkBHK+eACAydxtYjlz2Oq/c0f3tMcsOPpd9Sr43v9J8zVcyH8mzacge5oJ5cGsBmbaloac5dPEjpUDDZEzloe9sTQ=
+	 X-Spam-Score; b=HX73OBww9I13jMvEnUf/t1T6wKe8wVAzQzGXQCJbm570rB9yHNA6Tinxz6/owf8/iT+Q0kCT9F1BDp76qoVmawHdd4FU/rJZRwxZDw7Y8eRNWJTyArwmEQkFvXtonZV3k4wUmhtesOxKv3JQwSQXWtAnwTZryMhcMtYpEoidxE4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.41.52] (port=34294 helo=gnumonks.org)
+Received: from [78.30.41.52] (port=34296 helo=gnumonks.org)
 	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <pablo@gnumonks.org>)
-	id 1rQ5Gn-00DsBF-Fq; Wed, 17 Jan 2024 13:43:51 +0100
-Date: Wed, 17 Jan 2024 13:43:48 +0100
+	id 1rQ5HH-00DsEM-LJ; Wed, 17 Jan 2024 13:44:21 +0100
+Date: Wed, 17 Jan 2024 13:44:18 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
+To: Fedor Pchelkin <pchelkin@ispras.ru>
+Cc: Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	"David S. Miller" <davem@davemloft.net>,
 	Eric Dumazet <edumazet@google.com>,
 	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Florian Westphal <fw@strlen.de>, David Ahern <dsahern@kernel.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Kees Cook <keescook@chromium.org>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Roopa Prabhu <roopa@nvidia.com>, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, bridge@lists.linux.dev, kernel@openvz.org
-Subject: Re: [PATCH v3 0/4] netlink: bridge: fix nf_bridge->physindev use
- after free
-Message-ID: <ZafLhL9U3f/i07BU@calendula>
-References: <20240111150645.85637-1-ptikhomirov@virtuozzo.com>
+	Dwip Banerjee <dwip@linux.vnet.ibm.com>, netdev@vger.kernel.org,
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
+	Alexey Khoroshilov <khoroshilov@ispras.ru>,
+	lvc-project@linuxtesting.org
+Subject: Re: [PATCH net] net: ipvs: avoid stat macros calls from preemptible
+ context
+Message-ID: <ZafLoqDyHxuah5Hi@calendula>
+References: <20240115143923.31243-1-pchelkin@ispras.ru>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -45,26 +46,16 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20240111150645.85637-1-ptikhomirov@virtuozzo.com>
+In-Reply-To: <20240115143923.31243-1-pchelkin@ispras.ru>
 X-Spam-Score: -1.9 (-)
 
-On Thu, Jan 11, 2024 at 11:06:36PM +0800, Pavel Tikhomirov wrote:
-> Code processing skb from neigh->arp_queue can access its
-> nf_bridge->physindev, which can already be freed, leading to crash.
+On Mon, Jan 15, 2024 at 05:39:22PM +0300, Fedor Pchelkin wrote:
+> Inside decrement_ttl() upon discovering that the packet ttl has exceeded,
+> __IP_INC_STATS and __IP6_INC_STATS macros can be called from preemptible
+> context having the following backtrace:
 > 
-> So, as Florian suggests, we can put physinif on nf_bridge and peek into
-> the original device with dev_get_by_index_rcu(), so that we can be sure
-> that device is not freed under us.
-> 
-> This is a second attempt to fix this issue, first attempt:
-> 
-> "neighbour: purge nf_bridged skb from foreign device neigh"
-> https://lore.kernel.org/netdev/20240108085232.95437-1-ptikhomirov@virtuozzo.com/
+> check_preemption_disabled: 48 callbacks suppressed
+> BUG: using __this_cpu_add() in preemptible [00000000] code: curl/1177
+> caller is decrement_ttl+0x217/0x830
 
-I have applied this series to nf.git
-
-I have added a Fixed: tag sufficiently old to the patch fix so it can
-reach -stable at some point.
-
-My understanding is that this problem has been always there for
-br_netfilter.
+Applied to nf.git, thanks
