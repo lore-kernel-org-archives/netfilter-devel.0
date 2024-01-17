@@ -1,43 +1,68 @@
-Received: from smtp2-kfki.kfki.hu (smtp2-kfki.kfki.hu [148.6.0.51])
+Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEC251C6B2
-	for <netfilter-devel@vger.kernel.org>; Tue, 16 Jan 2024 16:30:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="kzc8rk1j"
-Received: from localhost (localhost [127.0.0.1])
-	by smtp2.kfki.hu (Postfix) with ESMTP id 9A3ECCC02BD;
-	Tue, 16 Jan 2024 17:29:59 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	blackhole.kfki.hu; h=mime-version:references:in-reply-to
-	:x-mailer:message-id:date:date:from:from:received:received
-	:received; s=20151130; t=1705422597; x=1707236998; bh=IbGVm/lpJP
-	RUdM7jSX5ETZqulT0Z5QSO2EAhy7m3Z3Q=; b=kzc8rk1jLZaM3kLu44o0vmQq/i
-	H8/zIXFr1D0fc/dPtMhm1Fk0y56FykDVgep0lCviFb4CyKFvoP44yDkfwInh15xZ
-	4lEFaqb1MX7idYODgtkbB+/CiZOef1Igte1+6C+4piiQMk5c/E6XxG3Y+STjEIfH
-	Le4H8VsVWroIfvvQQ=
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-	by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-	with ESMTP; Tue, 16 Jan 2024 17:29:57 +0100 (CET)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-	by smtp2.kfki.hu (Postfix) with ESMTP id 0E232CC02BE;
-	Tue, 16 Jan 2024 17:29:57 +0100 (CET)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-	id 083E0343168; Tue, 16 Jan 2024 17:29:57 +0100 (CET)
-From: Jozsef Kadlecsik <kadlec@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Ale Crismani <ale.crismani@automattic.com>,
-	David Wang <00107082@163.com>
-Subject: [PATCH 1/1] netfilter: ipset: fix performance regression in swap operation
-Date: Tue, 16 Jan 2024 17:29:56 +0100
-Message-Id: <20240116162956.2517197-2-kadlec@netfilter.org>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FB2D8F65;
+	Wed, 17 Jan 2024 07:21:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=124.126.103.232
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1705476101; cv=none; b=UGpwCkpseiDOI036cgDUWJ2I6O23BB6K6oFCn5iEuoJQeAjmvHmj5SyHXlATxbRykX6s+NlEaS5+uYFb1UJ0KZ05Pp4ANjlhhmVe+lHsrF72IQ8gHg9BnG8bkYN6+fMdV9uoMSQF619y5Xb8jQviZo2Ao+Nx0bkp8IPcjhI3Gsg=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1705476101; c=relaxed/simple;
+	bh=O85UiwYAkF07o9wiQzUPQRXlOapOHteQzq9bjUp60XQ=;
+	h=X-UUID:X-CID-P-RULE:X-CID-O-INFO:X-CID-INFO:X-CID-META:X-CID-BVR:
+	 X-CID-BAS:X-CID-FACTOR:X-UUID:Received:Received:X-ns-mid:Received:
+	 From:To:Cc:Subject:Date:Message-Id:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding; b=Rwf0tNtcY5iDKf12P6e0fJnZJCHfxqLn4BhU3Eqol39LINr9iJDIpi9XWjSQAbhc53h3nTDMyrMI1NYqQrZmEFSLcHxVpWhKb4/oh6fHYzCgitbNLpemkTwlz45RtCbIlgdM6BleWhq4MHO5VgsJA1bQowPgDGBi6MbpPdULH1E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=kylinos.cn; arc=none smtp.client-ip=124.126.103.232
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
+X-UUID: 2a46221058924310b9c594314f2c70d8-20240117
+X-CID-P-RULE: Release_Ham
+X-CID-O-INFO: VERSION:1.1.35,REQID:e7c0f8e5-df89-401e-9dd4-769b4832632e,IP:10,
+	URL:0,TC:0,Content:0,EDM:25,RT:0,SF:-15,FILE:0,BULK:0,RULE:Release_Ham,ACT
+	ION:release,TS:20
+X-CID-INFO: VERSION:1.1.35,REQID:e7c0f8e5-df89-401e-9dd4-769b4832632e,IP:10,UR
+	L:0,TC:0,Content:0,EDM:25,RT:0,SF:-15,FILE:0,BULK:0,RULE:Release_Ham,ACTIO
+	N:release,TS:20
+X-CID-META: VersionHash:5d391d7,CLOUDID:9f08422f-1ab8-4133-9780-81938111c800,B
+	ulkID:240117152134M9ZOJKSL,BulkQuantity:0,Recheck:0,SF:38|24|17|19|44|66|1
+	02,TC:nil,Content:0,EDM:5,IP:-2,URL:0,File:nil,Bulk:nil,QS:nil,BEC:nil,COL
+	:0,OSI:0,OSA:0,AV:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0
+X-CID-BVR: 0,NGT
+X-CID-BAS: 0,NGT,0,_
+X-CID-FACTOR: TF_CID_SPAM_FSD,TF_CID_SPAM_FSI,TF_CID_SPAM_SNR,TF_CID_SPAM_FAS
+X-UUID: 2a46221058924310b9c594314f2c70d8-20240117
+Received: from mail.kylinos.cn [(39.156.73.10)] by mailgw
+	(envelope-from <chentao@kylinos.cn>)
+	(Generic MTA)
+	with ESMTP id 697907986; Wed, 17 Jan 2024 15:21:33 +0800
+Received: from mail.kylinos.cn (localhost [127.0.0.1])
+	by mail.kylinos.cn (NSMail) with SMTP id 7AFCAE000EB9;
+	Wed, 17 Jan 2024 15:21:33 +0800 (CST)
+X-ns-mid: postfix-65A77FFD-295721259
+Received: from kernel.. (unknown [172.20.15.234])
+	by mail.kylinos.cn (NSMail) with ESMTPA id B043EE000EB9;
+	Wed, 17 Jan 2024 15:21:28 +0800 (CST)
+From: Kunwu Chan <chentao@kylinos.cn>
+To: horms@verge.net.au,
+	ja@ssi.bg,
+	pablo@netfilter.org,
+	kadlec@netfilter.org,
+	fw@strlen.de,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com
+Cc: netdev@vger.kernel.org,
+	lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	linux-kernel@vger.kernel.org,
+	Kunwu Chan <chentao@kylinos.cn>
+Subject: [PATCH net] ipvs: Simplify the allocation of ip_vs_conn slab caches
+Date: Wed, 17 Jan 2024 15:20:45 +0800
+Message-Id: <20240117072045.142215-1-chentao@kylinos.cn>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20240116162956.2517197-1-kadlec@netfilter.org>
-References: <20240116162956.2517197-1-kadlec@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -46,135 +71,30 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 
-The patch "netfilter: ipset: fix race condition between swap/destroy
-and kernel side add/del/test", commit 28628fa9 fixes a race condition.
-But the synchronize_rcu() added to the swap function unnecessarily slows
-it down: it can safely be moved to destroy and use call_rcu() instead.
-Thus we can get back the same performance and preventing the race conditi=
-on
-at the same time.
+Use the new KMEM_CACHE() macro instead of direct kmem_cache_create
+to simplify the creation of SLAB caches.
 
-Link: https://lore.kernel.org/lkml/C0829B10-EAA6-4809-874E-E1E9C05A8D84@a=
-utomattic.com/
-Reported-by: Ale Crismani <ale.crismani@automattic.com>
-Reported-by: David Wang <00107082@163.com
-Tested-by: Ale Crismani <ale.crismani@automattic.com>
-Tested-by: David Wang <00107082@163.com
-Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+Signed-off-by: Kunwu Chan <chentao@kylinos.cn>
 ---
- include/linux/netfilter/ipset/ip_set.h |  2 ++
- net/netfilter/ipset/ip_set_core.c      | 31 +++++++++++++++++++-------
- 2 files changed, 25 insertions(+), 8 deletions(-)
+ net/netfilter/ipvs/ip_vs_conn.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfi=
-lter/ipset/ip_set.h
-index e8c350a3ade1..912f750d0bea 100644
---- a/include/linux/netfilter/ipset/ip_set.h
-+++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -242,6 +242,8 @@ extern void ip_set_type_unregister(struct ip_set_type=
- *set_type);
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_c=
+onn.c
+index a743db073887..98d7dbe3d787 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -1511,9 +1511,7 @@ int __init ip_vs_conn_init(void)
+ 		return -ENOMEM;
 =20
- /* A generic IP set */
- struct ip_set {
-+	/* For call_cru in destroy */
-+	struct rcu_head rcu;
- 	/* The name of the set */
- 	char name[IPSET_MAXNAMELEN];
- 	/* Lock protecting the set data */
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_s=
-et_core.c
-index 4c133e06be1d..3bf9bb345809 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -1182,6 +1182,14 @@ ip_set_destroy_set(struct ip_set *set)
- 	kfree(set);
- }
-=20
-+static void
-+ip_set_destroy_set_rcu(struct rcu_head *head)
-+{
-+	struct ip_set *set =3D container_of(head, struct ip_set, rcu);
-+
-+	ip_set_destroy_set(set);
-+}
-+
- static int ip_set_destroy(struct sk_buff *skb, const struct nfnl_info *i=
-nfo,
- 			  const struct nlattr * const attr[])
- {
-@@ -1193,8 +1201,6 @@ static int ip_set_destroy(struct sk_buff *skb, cons=
-t struct nfnl_info *info,
- 	if (unlikely(protocol_min_failed(attr)))
- 		return -IPSET_ERR_PROTOCOL;
-=20
--	/* Must wait for flush to be really finished in list:set */
--	rcu_barrier();
-=20
- 	/* Commands are serialized and references are
- 	 * protected by the ip_set_ref_lock.
-@@ -1206,8 +1212,10 @@ static int ip_set_destroy(struct sk_buff *skb, con=
-st struct nfnl_info *info,
- 	 * counter, so if it's already zero, we can proceed
- 	 * without holding the lock.
- 	 */
--	read_lock_bh(&ip_set_ref_lock);
- 	if (!attr[IPSET_ATTR_SETNAME]) {
-+		/* Must wait for flush to be really finished in list:set */
-+		rcu_barrier();
-+		read_lock_bh(&ip_set_ref_lock);
- 		for (i =3D 0; i < inst->ip_set_max; i++) {
- 			s =3D ip_set(inst, i);
- 			if (s && (s->ref || s->ref_netlink)) {
-@@ -1228,6 +1236,9 @@ static int ip_set_destroy(struct sk_buff *skb, cons=
-t struct nfnl_info *info,
- 		inst->is_destroyed =3D false;
- 	} else {
- 		u32 flags =3D flag_exist(info->nlh);
-+		u16 features =3D 0;
-+
-+		read_lock_bh(&ip_set_ref_lock);
- 		s =3D find_set_and_id(inst, nla_data(attr[IPSET_ATTR_SETNAME]),
- 				    &i);
- 		if (!s) {
-@@ -1238,10 +1249,14 @@ static int ip_set_destroy(struct sk_buff *skb, co=
-nst struct nfnl_info *info,
- 			ret =3D -IPSET_ERR_BUSY;
- 			goto out;
- 		}
-+		features =3D s->type->features;
- 		ip_set(inst, i) =3D NULL;
- 		read_unlock_bh(&ip_set_ref_lock);
--
--		ip_set_destroy_set(s);
-+		if (features & IPSET_TYPE_NAME) {
-+			/* Must wait for flush to be really finished  */
-+			rcu_barrier();
-+		}
-+		call_rcu(&s->rcu, ip_set_destroy_set_rcu);
- 	}
- 	return 0;
- out:
-@@ -1394,9 +1409,6 @@ static int ip_set_swap(struct sk_buff *skb, const s=
-truct nfnl_info *info,
- 	ip_set(inst, to_id) =3D from;
- 	write_unlock_bh(&ip_set_ref_lock);
-=20
--	/* Make sure all readers of the old set pointers are completed. */
--	synchronize_rcu();
--
- 	return 0;
- }
-=20
-@@ -2357,6 +2369,9 @@ ip_set_net_exit(struct net *net)
-=20
- 	inst->is_deleted =3D true; /* flag for ip_set_nfnl_put */
-=20
-+	/* Wait for call_rcu() in destroy */
-+	rcu_barrier();
-+
- 	nfnl_lock(NFNL_SUBSYS_IPSET);
- 	for (i =3D 0; i < inst->ip_set_max; i++) {
- 		set =3D ip_set(inst, i);
+ 	/* Allocate ip_vs_conn slab cache */
+-	ip_vs_conn_cachep =3D kmem_cache_create("ip_vs_conn",
+-					      sizeof(struct ip_vs_conn), 0,
+-					      SLAB_HWCACHE_ALIGN, NULL);
++	ip_vs_conn_cachep =3D KMEM_CACHE(ip_vs_conn, SLAB_HWCACHE_ALIGN);
+ 	if (!ip_vs_conn_cachep) {
+ 		kvfree(ip_vs_conn_tab);
+ 		return -ENOMEM;
 --=20
 2.39.2
 
