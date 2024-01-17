@@ -1,111 +1,108 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 640BC2230A;
-	Wed, 17 Jan 2024 16:00:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com [209.85.208.47])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51FDA22308
+	for <netfilter-devel@vger.kernel.org>; Wed, 17 Jan 2024 16:08:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705507253; cv=none; b=J2buaU0YO2wdpbzEGIV6oBJl99T9FsvG4U+AevsN9fP90Ct97Va85aMrEX5dwrTpGb/6jjKJxJVfFt/yF4n1qZ6OTK4+4qAhJfHcAaPrjsFA1bOzecojLqa7d5Jy21ovjjeCSVYZad5UMMK4XTGxqJSz0sFHMmMamk0uqMzdwHQ=
+	t=1705507710; cv=none; b=o3f4AU7y2WtAnifPratm5bT24TGg4hIlau6Y0CP6cRcoS8csw5P8U4tofUnj9yHmrQI+rM9954r6it3C3T+tlyJS++qo/ZttWJnhIAw4vFI94nxFSXNfd4m3u1KYEyjl3F6BZRMoZExjNpKHN4Cw0xomZigMncq5XxVpCtvo39U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705507253; c=relaxed/simple;
-	bh=i+g1c9MzBrdk6gCX13L1vqVGvEmrX/fbeR/nfR4gh10=;
-	h=From:To:Cc:Subject:Date:Message-Id:X-Mailer:In-Reply-To:
-	 References:MIME-Version:Content-Transfer-Encoding; b=egEhKwdGluUWHNlJZYrALR2Qn/YUI/1D240z4sUKVuhOKe2xm9rw2xbhps2ZyTT1mG7W9tKd/SSqCFwUF4mwqwiZnEfVquw+7s7TNlxvDX8vWjQY36sW8INxOcKDTvNwGd7q8iPJgcnnUepgXhLGmJBew4JnWuA0RS+Yccu+smQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	fw@strlen.de
-Subject: [PATCH net 13/14] ipvs: avoid stat macros calls from preemptible context
-Date: Wed, 17 Jan 2024 17:00:29 +0100
-Message-Id: <20240117160030.140264-14-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20240117160030.140264-1-pablo@netfilter.org>
-References: <20240117160030.140264-1-pablo@netfilter.org>
+	s=arc-20240116; t=1705507710; c=relaxed/simple;
+	bh=H6F34XKiq3lLfPvqxg6QnsQlOx+GScvSZqxl2/wrgLw=;
+	h=Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Gm-Message-State:X-Google-Smtp-Source:X-Received:MIME-Version:
+	 References:In-Reply-To:From:Date:Message-ID:Subject:To:Cc:
+	 Content-Type:Content-Transfer-Encoding; b=A4ezaj56teV+yCzcH7LS3rwSedaldoBZF/hG94v6h3SUwp1IYz7lZoPx5u8bU8vh5ysZiXg6jpn90OMsxDevH3Ob+p994vLlaGWPQRYSOYZ3ar9osNfyM9Whnj8zL+/+DWlgYIgjR0AU3byXFTgvg2vbK/OCLYsI/K/+jJgR7YE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=i0+yau41; arc=none smtp.client-ip=209.85.208.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="i0+yau41"
+Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-55818b7053eso16409a12.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 17 Jan 2024 08:08:27 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1705507705; x=1706112505; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=9gVsnehQLkD3XfpuYGLfg/mVGzgx+4d4kVL88pDZKO8=;
+        b=i0+yau41+mbU2kcA5muH70nQo4Lnr3KeL+qLwgKRhMxny1ucBVI+IYcD+iz6yUVtlA
+         r53MkzKjXTH9oVxgfevwcq52x3/DUTdmv2ZvxePC3hPvvf7nhiHI6y+vj4VHVn35J7P5
+         cNybkeoKB1DrLZEP4LhJogk3r59+BZP+oAXketEzaQ0QE1XRZnz78d00WBIkQo2AZleo
+         DvZmJDKAYBiOoHncMb61xYm1UXKegDVhKrH8jLalHc/cxFnuvTETj4A90Xk8ustLsyVk
+         IB+nWA75kunvsIiOLaWADe3Ej/yLFzGmwuYxmZ/8F78KH1ldLc701WwwAQbblm2yo9I3
+         Ch5g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1705507705; x=1706112505;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=9gVsnehQLkD3XfpuYGLfg/mVGzgx+4d4kVL88pDZKO8=;
+        b=Im4wxSwByPYroM8k6SvdjHuxTwuXGjxqxM8w11ZBNN5Sd+Lc5+ApQqt3mQb/Qkb1gI
+         I5wwqfnyH4JtbS+TdX2WrYJrMpyHQ3Ee2M4bt7TVM1sWBkAnzSwtkM7SJRHz5nYnR/vi
+         +HzhaU53TDXiyUGp1lYFs9HV2erzKZA9s06kTYpmJZDTu6XoSgiUseDdDkAHj/qEMWDn
+         bLtr2ASa2u9h2ZWWBsTtPVx9BvTJk7xWC4hJTOKFWcdpRbDEvZvehsLkXseVH+1mWjAH
+         EDKUDo9FsyiEBBOo//30xS/eetNTxkfTTASK8jAbhe5/yFjUarAs1NhhK1A6zPiSCu6Y
+         NqSg==
+X-Gm-Message-State: AOJu0YwuPtzliGCO/vb9Q8toEWWCV4w8BU4vx4ZNzHKC53QPT++jNMyT
+	em7ZCaPpJkhVWNaqXDKRDLzMx9Ecb4xixdjVkWx9RlwXCNur1mci+A+YIx9iPzfAlRky3VnGr9k
+	kEgY4Zp+AJVHapP8wSk6OBTK6CHk1OV8C6LJc
+X-Google-Smtp-Source: AGHT+IGefZFkdb+yUuXFJw40KsJN6J5lh2G3F74Tw88Y/QrsC2fSpvReuos/PQMsWgAB8l0jtdPITqSKn/v0k/hdP9o=
+X-Received: by 2002:a05:6402:3551:b0:557:15d:b784 with SMTP id
+ f17-20020a056402355100b00557015db784mr219578edd.2.1705507705227; Wed, 17 Jan
+ 2024 08:08:25 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20240117160030.140264-1-pablo@netfilter.org> <20240117160030.140264-15-pablo@netfilter.org>
+In-Reply-To: <20240117160030.140264-15-pablo@netfilter.org>
+From: Eric Dumazet <edumazet@google.com>
+Date: Wed, 17 Jan 2024 17:08:11 +0100
+Message-ID: <CANn89i+jS11sC6cXXFA+_ZVr9Oy6Hn1e3_5P_d4kSR2fWtisBA@mail.gmail.com>
+Subject: Re: [PATCH net 14/14] netfilter: ipset: fix performance regression in
+ swap operation
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net, 
+	netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com, fw@strlen.de
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-From: Fedor Pchelkin <pchelkin@ispras.ru>
+On Wed, Jan 17, 2024 at 5:00=E2=80=AFPM Pablo Neira Ayuso <pablo@netfilter.=
+org> wrote:
+>
+> From: Jozsef Kadlecsik <kadlec@netfilter.org>
+>
+> The patch "netfilter: ipset: fix race condition between swap/destroy
+> and kernel side add/del/test", commit 28628fa9 fixes a race condition.
+> But the synchronize_rcu() added to the swap function unnecessarily slows
+> it down: it can safely be moved to destroy and use call_rcu() instead.
+> Thus we can get back the same performance and preventing the race conditi=
+on
+> at the same time.
 
-Inside decrement_ttl() upon discovering that the packet ttl has exceeded,
-__IP_INC_STATS and __IP6_INC_STATS macros can be called from preemptible
-context having the following backtrace:
+...
 
-check_preemption_disabled: 48 callbacks suppressed
-BUG: using __this_cpu_add() in preemptible [00000000] code: curl/1177
-caller is decrement_ttl+0x217/0x830
-CPU: 5 PID: 1177 Comm: curl Not tainted 6.7.0+ #34
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 04/01/2014
-Call Trace:
- <TASK>
- dump_stack_lvl+0xbd/0xe0
- check_preemption_disabled+0xd1/0xe0
- decrement_ttl+0x217/0x830
- __ip_vs_get_out_rt+0x4e0/0x1ef0
- ip_vs_nat_xmit+0x205/0xcd0
- ip_vs_in_hook+0x9b1/0x26a0
- nf_hook_slow+0xc2/0x210
- nf_hook+0x1fb/0x770
- __ip_local_out+0x33b/0x640
- ip_local_out+0x2a/0x490
- __ip_queue_xmit+0x990/0x1d10
- __tcp_transmit_skb+0x288b/0x3d10
- tcp_connect+0x3466/0x5180
- tcp_v4_connect+0x1535/0x1bb0
- __inet_stream_connect+0x40d/0x1040
- inet_stream_connect+0x57/0xa0
- __sys_connect_file+0x162/0x1a0
- __sys_connect+0x137/0x160
- __x64_sys_connect+0x72/0xb0
- do_syscall_64+0x6f/0x140
- entry_SYSCALL_64_after_hwframe+0x6e/0x76
-RIP: 0033:0x7fe6dbbc34e0
+>
+> @@ -2357,6 +2369,9 @@ ip_set_net_exit(struct net *net)
+>
+>         inst->is_deleted =3D true; /* flag for ip_set_nfnl_put */
+>
+> +       /* Wait for call_rcu() in destroy */
+> +       rcu_barrier();
+> +
+>         nfnl_lock(NFNL_SUBSYS_IPSET);
+>         for (i =3D 0; i < inst->ip_set_max; i++) {
+>                 set =3D ip_set(inst, i);
+> --
+> 2.30.2
+>
 
-Use the corresponding preemption-aware variants: IP_INC_STATS and
-IP6_INC_STATS.
+If I am reading this right, time for netns dismantles will increase,
+even for netns not using ipset
 
-Found by Linux Verification Center (linuxtesting.org).
-
-Fixes: 8d8e20e2d7bb ("ipvs: Decrement ttl")
-Signed-off-by: Fedor Pchelkin <pchelkin@ispras.ru>
-Acked-by: Julian Anastasov <ja@ssi.bg>
-Acked-by: Simon Horman <horms@kernel.org>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/ipvs/ip_vs_xmit.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-index 9193e109e6b3..65e0259178da 100644
---- a/net/netfilter/ipvs/ip_vs_xmit.c
-+++ b/net/netfilter/ipvs/ip_vs_xmit.c
-@@ -271,7 +271,7 @@ static inline bool decrement_ttl(struct netns_ipvs *ipvs,
- 			skb->dev = dst->dev;
- 			icmpv6_send(skb, ICMPV6_TIME_EXCEED,
- 				    ICMPV6_EXC_HOPLIMIT, 0);
--			__IP6_INC_STATS(net, idev, IPSTATS_MIB_INHDRERRORS);
-+			IP6_INC_STATS(net, idev, IPSTATS_MIB_INHDRERRORS);
- 
- 			return false;
- 		}
-@@ -286,7 +286,7 @@ static inline bool decrement_ttl(struct netns_ipvs *ipvs,
- 	{
- 		if (ip_hdr(skb)->ttl <= 1) {
- 			/* Tell the sender its packet died... */
--			__IP_INC_STATS(net, IPSTATS_MIB_INHDRERRORS);
-+			IP_INC_STATS(net, IPSTATS_MIB_INHDRERRORS);
- 			icmp_send(skb, ICMP_TIME_EXCEEDED, ICMP_EXC_TTL, 0);
- 			return false;
- 		}
--- 
-2.30.2
-
+If there is no other option, please convert "struct pernet_operations
+ip_set_net_ops".exit to an exit_batch() handler,
+to at least have a factorized  rcu_barrier();
