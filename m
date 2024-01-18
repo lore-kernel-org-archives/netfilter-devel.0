@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 34A2B28E0B;
-	Thu, 18 Jan 2024 16:17:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id C94312942A;
+	Thu, 18 Jan 2024 16:17:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705594662; cv=none; b=SWdgmbc0Wg7S82hGzJZHVcfIgCjVCtDwcKMSeJCmuObPLdxzRyPf1XnzulTSrzxtXr6EWApazwuEtZrjqunm9u4r4WTJUVRUE3XtcrrmWmMZ5a2EGOxl+Dy4j+VZ2wvF8vx6VszAdqcBTr+TrJ+yw9UjM7DoMa4i7YBM2g1DE9Q=
+	t=1705594663; cv=none; b=dDqNyCMhNVlZV7XNHlQ3/RxCZHL/Ucl8zxi17XkmPllAxJfU/TlWRs+wSgzn66ZvDt6l9jKItPAL19qhXlMDmkq+E6F7aV6QkZ04VUW/nxvXwP/0EaKlFRzj13RldYHL/VZhFKmlFczrwMDO/EfaXSS88vjmsH9k5y1/+5BVF4Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705594662; c=relaxed/simple;
-	bh=m4VeRz3aCUPlhzMWpHbZ+htqsl/7a4Cmez1+3l76l/g=;
+	s=arc-20240116; t=1705594663; c=relaxed/simple;
+	bh=10+mbyFzIQMLfraP8AqZ3UUcWireIRhnyTNXOUnzibg=;
 	h=From:To:Cc:Subject:Date:Message-Id:X-Mailer:In-Reply-To:
-	 References:MIME-Version:Content-Transfer-Encoding; b=LBDpK9+SvYsyXYFitoxDW+DKKSYuPhZzUtylhGTmCz2zvPDeV6DOnH6SFC6VxP3BCwvb/cmerFVtjmEUF1WQdd7sd6o+GDBe04zHnmIl+mTGqGJQhSGseRC1VTXVkUL5QcBK9avSKcJuUl7yf5l4SLCVy9nnHRnR8qgHu7LsOSg=
+	 References:MIME-Version:Content-Transfer-Encoding; b=XGd2T92RGKZIWlJ2uaHYdXC5SymNBpG2Cd+4rywF1SxbqRNNPuZppyhDJowaF5ufyESsocl9Hgd+Ccpd0oqEyAD/AQMzZdtCbe127fuvlhF+flHYalZYOfUfRTygj/AyfgG2p620dlPyCNlr/XCRicDCMURS0XJbTFTi9OOBW8w=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 01/13] netfilter: nf_tables: reject invalid set policy
-Date: Thu, 18 Jan 2024 17:17:14 +0100
-Message-Id: <20240118161726.14838-2-pablo@netfilter.org>
+Subject: [PATCH net 03/13] netfilter: nf_tables: bail out if stateful expression provides no .clone
+Date: Thu, 18 Jan 2024 17:17:16 +0100
+Message-Id: <20240118161726.14838-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240118161726.14838-1-pablo@netfilter.org>
 References: <20240118161726.14838-1-pablo@netfilter.org>
@@ -34,37 +34,41 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Report -EINVAL in case userspace provides a unsupported set backend
-policy.
+All existing NFT_EXPR_STATEFUL provide a .clone interface, remove
+fallback to copy content of stateful expression since this is never
+exercised and bail out if .clone interface is not defined.
 
-Fixes: c50b960ccc59 ("netfilter: nf_tables: implement proper set selection")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ net/netfilter/nf_tables_api.c | 15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 8438a8922e4a..a90a364f5be5 100644
+index 2548d7d56408..b3db97440db1 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -5048,8 +5048,16 @@ static int nf_tables_newset(struct sk_buff *skb, const struct nfnl_info *info,
- 	}
+@@ -3274,14 +3274,13 @@ int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src)
+ {
+ 	int err;
  
- 	desc.policy = NFT_SET_POL_PERFORMANCE;
--	if (nla[NFTA_SET_POLICY] != NULL)
-+	if (nla[NFTA_SET_POLICY] != NULL) {
- 		desc.policy = ntohl(nla_get_be32(nla[NFTA_SET_POLICY]));
-+		switch (desc.policy) {
-+		case NFT_SET_POL_PERFORMANCE:
-+		case NFT_SET_POL_MEMORY:
-+			break;
-+		default:
-+			return -EOPNOTSUPP;
-+		}
-+	}
+-	if (src->ops->clone) {
+-		dst->ops = src->ops;
+-		err = src->ops->clone(dst, src);
+-		if (err < 0)
+-			return err;
+-	} else {
+-		memcpy(dst, src, src->ops->size);
+-	}
++	if (WARN_ON_ONCE(!src->ops->clone))
++		return -EINVAL;
++
++	dst->ops = src->ops;
++	err = src->ops->clone(dst, src);
++	if (err < 0)
++		return err;
  
- 	if (nla[NFTA_SET_DESC] != NULL) {
- 		err = nf_tables_set_desc_parse(&desc, nla[NFTA_SET_DESC]);
+ 	__module_get(src->ops->type->owner);
+ 
 -- 
 2.30.2
 
