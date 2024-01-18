@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D5C752C842;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3DAAC2C6A3;
 	Thu, 18 Jan 2024 16:17:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705594665; cv=none; b=ZzG1iUqlzmBtujL1eiplZnvRpi5jXd+llY0I3/uTRI8Ydqt1ZICbw2bwBXDAu2nqq89jFjgMp3e5A7oqraW8jQm6Jj4MCR40yj9Hrj05eEYKM/XniWfbm6CTXfhe2lq6VfOvNtRTyGUMFsvCiJdPigP+cLsVej3KSaGC0AeHf4w=
+	t=1705594665; cv=none; b=cyUN0nOMYUF+ShexPbPvIdo9EDfnh9xe8Aku9USh3P85W+avkug8rNZvRrAoHIpqVE+5IHFIAxaXacATQOZd1gzIocjayj4tbewEC99J3b/L6//FIWCCvBlHEzoxHc/JMBsnef45fgdLDxghueoHD3Nqlq2I4MOnTh0FDn9bUNg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1705594665; c=relaxed/simple;
-	bh=0uOq3O0vrcPvSyLetUXeAUlNFT6UKkWK3KxVl0vRjJY=;
+	bh=Yeywi/BF+jVrBpU8KHRO80VHtM1cc6uWlS/9uaeIhDs=;
 	h=From:To:Cc:Subject:Date:Message-Id:X-Mailer:In-Reply-To:
-	 References:MIME-Version:Content-Transfer-Encoding; b=iXX0AiZGAxXZoPyZ8buIx/gC6ppGSHMeqGbPk8uTMZ5NuHaUm9u9Ua6TnjJvdiIQYowDmZ1AlWN6saWfhTCAlefB18qYEBvdTjvxVGpTgKXiIcgM7jG8aiFrn6Psl5BuxlTKTSNPWj4vvdbVHjhcV7jMa0kfLkRs2NXr1nHnu6U=
+	 References:MIME-Version:Content-Transfer-Encoding; b=mIz0r2WIY/J7zlxsP3AUwEbJOM5RmnHWBl+TJqD7IkVos50mAB6me4Ze8tDhiHmE9qYWAXuBaqBopEwuSKQcuKaOyfJ33MktPIzjIJznMLUDXZT4jwIkyE73KCo1NNS39ef31mNS5iaYEtO8OndMzjIbvNzg/VHV6joarhYWX4I=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 12/13] netfilter: nf_tables: reject NFT_SET_CONCAT with not field length description
-Date: Thu, 18 Jan 2024 17:17:25 +0100
-Message-Id: <20240118161726.14838-13-pablo@netfilter.org>
+Subject: [PATCH net 06/13] netfilter: nf_queue: remove excess nf_bridge variable
+Date: Thu, 18 Jan 2024 17:17:19 +0100
+Message-Id: <20240118161726.14838-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240118161726.14838-1-pablo@netfilter.org>
 References: <20240118161726.14838-1-pablo@netfilter.org>
@@ -34,33 +34,35 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-It is still possible to set on the NFT_SET_CONCAT flag by specifying a
-set size and no field description, report EINVAL in such case.
+From: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
 
-Fixes: 1b6345d4160e ("netfilter: nf_tables: check NFT_SET_CONCAT flag if field_count is specified")
+We don't really need nf_bridge variable here. And nf_bridge_info_exists
+is better replacement for nf_bridge_info_get in case we are only
+checking for existence.
+
+Signed-off-by: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+Reviewed-by: Simon Horman <horms@kernel.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ net/netfilter/nf_queue.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 88a6a858383b..4b55533ce5ca 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5070,8 +5070,12 @@ static int nf_tables_newset(struct sk_buff *skb, const struct nfnl_info *info,
- 		if (err < 0)
- 			return err;
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index 63d1516816b1..3dfcb3ac5cb4 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -82,10 +82,8 @@ static void __nf_queue_entry_init_physdevs(struct nf_queue_entry *entry)
+ {
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+ 	const struct sk_buff *skb = entry->skb;
+-	struct nf_bridge_info *nf_bridge;
  
--		if (desc.field_count > 1 && !(flags & NFT_SET_CONCAT))
-+		if (desc.field_count > 1) {
-+			if (!(flags & NFT_SET_CONCAT))
-+				return -EINVAL;
-+		} else if (flags & NFT_SET_CONCAT) {
- 			return -EINVAL;
-+		}
- 	} else if (flags & NFT_SET_CONCAT) {
- 		return -EINVAL;
- 	}
+-	nf_bridge = nf_bridge_info_get(skb);
+-	if (nf_bridge) {
++	if (nf_bridge_info_exists(skb)) {
+ 		entry->physin = nf_bridge_get_physindev(skb);
+ 		entry->physout = nf_bridge_get_physoutdev(skb);
+ 	} else {
 -- 
 2.30.2
 
