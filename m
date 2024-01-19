@@ -1,27 +1,27 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B09BD31A61
-	for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2024 12:34:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 877414F1E3
+	for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2024 12:47:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705667691; cv=none; b=hLt+PavtHfGIvfjxOerb7agYZGkFxnxKNvRXkufUGwcLueD2ybk65GC5OlvzbR99DaZ9ZyRw5xovwIth6A/8eI7hH+BJFB7j5AsYP220oxbPbCZXe6mVYTXhBBRmbbDh4S7MCjAa7fU8kbbdb1rd2P0RyiWIGd18QpOMszWMeOc=
+	t=1705668442; cv=none; b=Sdt6xkFep83b/c9tWHM/PDm8/6XuU9jO3jkYFk8rkpBu+0Iu/6Jajg+PKiCrcH7VgSVWcEWJ0bk8ROnhUxiV+8JdytBnylqLuMY9RXkuFkgKGiFtzEBtLAuDA5dJNLVcelDa7hYUlrfv/BNQJNB0GVktUZ1yr+z6EKnL/Jor4aU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705667691; c=relaxed/simple;
-	bh=dCRdB2XG05EaEhUtDKM7V3CSknc7Ky9QIYmfhEaV190=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=sB0RjlxtkWV/TIB1QSqxzOK2qhRlD0MpOnKh4y9slNt4vvUvoMKh8gJKECONqErfTGwMI0+0j0FTP7HFbiPOH8PAHsajSuOH4X+eA6vJZ44Pr4gY2nGmzctvSNR8Yi+pjd0f/331ft5a0EcEA73XJ+NGvpxbnxy9o0tyBXPKJto=
+	s=arc-20240116; t=1705668442; c=relaxed/simple;
+	bh=wsAnMZ+8aRAgcl8/4vDNbiCwIJFWq7Qq6PrNAsPX6WA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Nu21Qpgv4Z/rOC8DtZ8OqFURngwjjv3qPo2Hu2aJU1aA0hvPENXNVJymAMe6CQRDcRLfxWORM2TiKxGHDKuehjeNsSPhhQbdxG/Xw6jgTWWXQtBxJWDIl7vQmaCPw0cM4yrNFJXxMfVRuDXoLVvdtKVkGuJaFGOMxwqrrI9/Z/M=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1rQo54-0007yf-9V; Fri, 19 Jan 2024 13:34:42 +0100
+	id 1rQoHG-00083P-E2; Fri, 19 Jan 2024 13:47:18 +0100
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: nf_tables: restrict anonymous set and map names to 16 bytes
-Date: Fri, 19 Jan 2024 13:34:32 +0100
-Message-ID: <20240119123437.5745-1-fw@strlen.de>
+Subject: [PATCH nft 0/2] fix host-endian constant values in set lookup keys
+Date: Fri, 19 Jan 2024 13:47:07 +0100
+Message-ID: <20240119124713.6506-1-fw@strlen.de>
 X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -31,50 +31,35 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-nftables has two types of sets/maps, one where userspace defines the
-name, and anonymous sets/maps, where userspace defines a template name.
+commit b422b07ab2f96436001f33dfdfd937238033c799
+("src: permit use of constant values in set lookup keys") allows to do
+something like this:
 
-For the latter, kernel requires presence of exactly one "%d".
-nftables uses "__set%d" and "__map%d" for this.  The kernel will
-expand the format specifier and replaces it with the smallest unused
-number.
+set s { type ipv4_addr . ipv4_addr . inet_service .. } something
+add rule ip saddr . 1.2.3.4 . 80 @s goto c1
 
-As-is, userspace could define a template name that allows to move
-the set name past the 256 bytes upperlimit (post-expansion).
+However, it turns out that this only works if the constant(s)
+(1.2.3.4 and 80) have BYTEORDER_BIG_ENDIAN type.
 
-I don't see how this could be a problem, but I would prefer if userspace
-cannot do this, so add a limit of 16 bytes for the '%d' template name.
+Combining a fixed value with a key portion of HOST type results in
+a crash (assertion).
 
-16 bytes is the old total upper limit for set names that existed when
-nf_tables was merged initially.
+First patch is a refactor, second patch adds needed byteorder
+conversions to deal with this problem.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_tables_api.c | 4 ++++
- 1 file changed, 4 insertions(+)
+Florian Westphal (2):
+  netlink_delinearize: move concat and value postprocessing to helpers
+  evaluate: permit use of host-endian constant values in set lookup keys
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 4b55533ce5ca..02f45424644b 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -24,6 +24,7 @@
- #include <net/sock.h>
- 
- #define NFT_MODULE_AUTOLOAD_LIMIT (MODULE_NAME_LEN - sizeof("nft-expr-255-"))
-+#define NFT_SET_MAX_ANONLEN 16
- 
- unsigned int nf_tables_net_id __read_mostly;
- 
-@@ -4413,6 +4414,9 @@ static int nf_tables_set_alloc_name(struct nft_ctx *ctx, struct nft_set *set,
- 		if (p[1] != 'd' || strchr(p + 2, '%'))
- 			return -EINVAL;
- 
-+		if (strnlen(name, NFT_SET_MAX_ANONLEN) >= NFT_SET_MAX_ANONLEN)
-+			return -EINVAL;
-+
- 		inuse = (unsigned long *)get_zeroed_page(GFP_KERNEL);
- 		if (inuse == NULL)
- 			return -ENOMEM;
+ src/evaluate.c                                | 65 +++++++------
+ src/netlink_delinearize.c                     | 97 ++++++++++++-------
+ .../packetpath/dumps/set_lookups.nft          | 51 ++++++++++
+ tests/shell/testcases/packetpath/set_lookups  | 64 ++++++++++++
+ .../sets/dumps/typeof_sets_concat.nft         | 11 +++
+ 5 files changed, 221 insertions(+), 67 deletions(-)
+ create mode 100644 tests/shell/testcases/packetpath/dumps/set_lookups.nft
+ create mode 100755 tests/shell/testcases/packetpath/set_lookups
+
 -- 
 2.43.0
 
