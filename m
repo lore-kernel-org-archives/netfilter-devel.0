@@ -1,146 +1,155 @@
-Received: from smtp-fw-6001.amazon.com (smtp-fw-6001.amazon.com [52.95.48.154])
+Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A519C1E49E
-	for <netfilter-devel@vger.kernel.org>; Sun, 21 Jan 2024 21:51:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=52.95.48.154
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE3EDFBE1;
+	Mon, 22 Jan 2024 07:35:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=124.126.103.232
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705873913; cv=none; b=QW6My99dIU8gj0ot7dLrG31BTq4zuGE0vttnbqvIe1A6lnVzzGi8kuq/hGRdL5Re7c35y8+nHbRLc+A3i50wgigGKhGcUrRakYv/jH9qR0Ej/bvQlJhUWTU/0TthQPzzQwrkVxFIkW6ANqvUDG5Fh7BgpIIMqizsgc6N4ETqMSc=
+	t=1705908951; cv=none; b=pHciYUmO6k8qxhnBkVZ7w6GlM6P6o5iMbGRv2Sis6PHTeMHwRPf9C5rTsh/h8Ykee6KRGetGSms08WAz5YFhxSmFb855cLWjWAJmVcHdYiAsYdx0YZbtuoaPD+l1o8yCVMiLU1u8Uvn5f9F8S32bT/UjBPw/glUof2Q4IA81E48=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705873913; c=relaxed/simple;
-	bh=Rs4fAbwQ2hCiPsvrtafjoZMAEhfXaMYBh6MczN6tTD8=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=J741JRszxaMmRnD1c95sf1FWPXWOyIhePb/14gC7qZYsROANacF6go72Tdxalxn+oQLwa9J02eB5rdkJ5sRgvJqxWBowLqDQlPuwpTNQnMh6sAZQwpvh8qIetziks/yEe9GMJym7xcCPuvuaoigdkpe3+C4MqzFyb66O26jqy0o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b=tqa/cScA; arc=none smtp.client-ip=52.95.48.154
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="tqa/cScA"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1705873912; x=1737409912;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=Db8r+gFY3uEo3n+DmkYKs4HXLkYIEXiWqTDzDfASlC0=;
-  b=tqa/cScAdzoaY+7iYJmLMqAhJVLcZXbJIsEuqxOsSoeO8hFMhVc2oyS+
-   a1l9mRiAjKlkZNzrOulW1sPSjplAEf7uCUWjcEhkshUIeNYRzNEc8tRYe
-   uwUR/zAqRvskRrEhtNq3qTx83xcmdwCWZ+Tpq5atPaVSxJFywwNyAOSz2
-   U=;
-X-IronPort-AV: E=Sophos;i="6.05,211,1701129600"; 
-   d="scan'208";a="383682457"
-Received: from iad12-co-svc-p1-lb1-vlan2.amazon.com (HELO email-inbound-relay-pdx-2c-m6i4x-b1c0e1d0.us-west-2.amazon.com) ([10.43.8.2])
-  by smtp-border-fw-6001.iad6.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jan 2024 21:51:51 +0000
-Received: from smtpout.prod.us-east-1.prod.farcaster.email.amazon.dev (pdx2-ws-svc-p26-lb5-vlan3.pdx.amazon.com [10.39.38.70])
-	by email-inbound-relay-pdx-2c-m6i4x-b1c0e1d0.us-west-2.amazon.com (Postfix) with ESMTPS id 51A6F8862D;
-	Sun, 21 Jan 2024 21:51:49 +0000 (UTC)
-Received: from EX19MTAUEB001.ant.amazon.com [10.0.0.204:33935]
- by smtpin.naws.us-east-1.prod.farcaster.email.amazon.dev [10.0.22.37:2525] with esmtp (Farcaster)
- id 9325948d-de07-4056-be49-c52d16390682; Sun, 21 Jan 2024 21:51:48 +0000 (UTC)
-X-Farcaster-Flow-ID: 9325948d-de07-4056-be49-c52d16390682
-Received: from EX19D008UEA004.ant.amazon.com (10.252.134.191) by
- EX19MTAUEB001.ant.amazon.com (10.252.135.108) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1118.40; Sun, 21 Jan 2024 21:51:47 +0000
-Received: from EX19MTAUEC001.ant.amazon.com (10.252.135.222) by
- EX19D008UEA004.ant.amazon.com (10.252.134.191) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1118.40; Sun, 21 Jan 2024 21:51:46 +0000
-Received: from dev-dsk-ryanschf-2c-9e13bc03.us-west-2.amazon.com
- (172.16.241.251) by mail-relay.amazon.com (10.252.135.200) with Microsoft
- SMTP Server id 15.2.1118.40 via Frontend Transport; Sun, 21 Jan 2024 21:51:46
- +0000
-Received: by dev-dsk-ryanschf-2c-9e13bc03.us-west-2.amazon.com (Postfix, from userid 9150357)
-	id 981791280; Sun, 21 Jan 2024 21:51:46 +0000 (UTC)
-From: Ryan Schaefer <ryanschf@amazon.com>
-To: <fw@strlen.de>, <kadlec@netfilter.org>, <pablo@netfilter.org>
-CC: <schuyler@amazon.com>, <dwmw@amazon.com>, <coreteam@netfilter.org>,
-	<netfilter-devel@vger.kernel.org>, Ryan Schaefer <ryanschf@amazon.com>
-Subject: [PATCH] netfilter: conntrack: correct window scaling with retransmitted SYN
-Date: Sun, 21 Jan 2024 21:51:44 +0000
-Message-ID: <20240121215144.37329-1-ryanschf@amazon.com>
-X-Mailer: git-send-email 2.40.1
-In-Reply-To: <f01c0673e95f190074d0747b4ecfbc3f817e463e.camel@amazon.com>
-References: <f01c0673e95f190074d0747b4ecfbc3f817e463e.camel@amazon.com>
+	s=arc-20240116; t=1705908951; c=relaxed/simple;
+	bh=a84Ae00L5X+yF+jz93N/QgllxGAF2cgD93WBqZxUQnU=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=LW10TVcIURohqx0bQ/7rHrNYFQAJtJUqYCvOAsl2stf/CPvb0akMTZGBAAJJMUvwFAumovSfF+NZphS/s+bS5/+WJU7mET2YxifqrUfys/5/4eOkqeGxd0OPlj3ux4Ix7tPk8mvyBWZYfqmdEceEZ7Edyfz7V54K9j6RbyGWnGk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=kylinos.cn; arc=none smtp.client-ip=124.126.103.232
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
+X-UUID: 89f05498b4a1435a833053f4f2fd8887-20240122
+X-CID-P-RULE: Release_Ham
+X-CID-O-INFO: VERSION:1.1.35,REQID:f3d5e596-f7c8-4dbd-b751-633a1d132f37,IP:20,
+	URL:0,TC:0,Content:0,EDM:0,RT:0,SF:-15,FILE:0,BULK:0,RULE:Release_Ham,ACTI
+	ON:release,TS:5
+X-CID-INFO: VERSION:1.1.35,REQID:f3d5e596-f7c8-4dbd-b751-633a1d132f37,IP:20,UR
+	L:0,TC:0,Content:0,EDM:0,RT:0,SF:-15,FILE:0,BULK:0,RULE:Release_Ham,ACTION
+	:release,TS:5
+X-CID-META: VersionHash:5d391d7,CLOUDID:af3d1c83-8d4f-477b-89d2-1e3bdbef96d1,B
+	ulkID:240119232059I7ZFFJYE,BulkQuantity:6,Recheck:0,SF:44|64|66|24|17|19|1
+	02,TC:nil,Content:0,EDM:-3,IP:-2,URL:11|1,File:nil,Bulk:40,QS:nil,BEC:nil,
+	COL:0,OSI:0,OSA:0,AV:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0
+X-CID-BVR: 0,NGT
+X-CID-BAS: 0,NGT,0,_
+X-CID-FACTOR: TF_CID_SPAM_FSI,TF_CID_SPAM_ULN,TF_CID_SPAM_SNR,TF_CID_SPAM_FAS,
+	TF_CID_SPAM_FSD
+X-UUID: 89f05498b4a1435a833053f4f2fd8887-20240122
+Received: from mail.kylinos.cn [(39.156.73.10)] by mailgw
+	(envelope-from <chentao@kylinos.cn>)
+	(Generic MTA)
+	with ESMTP id 1749565469; Mon, 22 Jan 2024 15:35:30 +0800
+Received: from mail.kylinos.cn (localhost [127.0.0.1])
+	by mail.kylinos.cn (NSMail) with SMTP id E9923E000EB9;
+	Mon, 22 Jan 2024 15:35:29 +0800 (CST)
+X-ns-mid: postfix-65AE1AC1-869568164
+Received: from [172.20.15.234] (unknown [172.20.15.234])
+	by mail.kylinos.cn (NSMail) with ESMTPA id 810BFE000EB9;
+	Mon, 22 Jan 2024 15:35:23 +0800 (CST)
+Message-ID: <cf3668f1-cf86-49ff-83f4-47ed8a039d0d@kylinos.cn>
+Date: Mon, 22 Jan 2024 15:35:22 +0800
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-Precedence: Bulk
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net] ipvs: Simplify the allocation of ip_vs_conn slab
+ caches
+Content-Language: en-US
+To: Simon Horman <horms@kernel.org>
+Cc: ja@ssi.bg, pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+ davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+ pabeni@redhat.com, netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ linux-kernel@vger.kernel.org
+References: <20240117072045.142215-1-chentao@kylinos.cn>
+ <20240117092928.GA618956@kernel.org>
+ <ba5b4e70-365f-476a-9969-6f9a891221a7@kylinos.cn>
+ <20240119152039.GC89683@kernel.org>
+From: Kunwu Chan <chentao@kylinos.cn>
+In-Reply-To: <20240119152039.GC89683@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-commit c7aab4f17021 ("netfilter: nf_conntrack_tcp: re-init for syn packets
-only") introduces a bug where SYNs in ORIGINAL direction on reused 5-tuple
-result in incorrect window scale negotiation. This commit merged the SYN
-re-initialization and simultaneous open or SYN retransmits cases. Merging
-this block added the logic in tcp_init_sender() that performed window scale
-negotiation to the retransmitted syn case. Previously. this would only
-result in updating the sender's scale and flags. After the merge the
-additional logic results in improperly clearing the scale in ORIGINAL
-direction before any packets in the REPLY direction are received. This
-results in packets incorrectly being marked invalid for being
-out-of-window.
+On 2024/1/19 23:20, Simon Horman wrote:
+> On Thu, Jan 18, 2024 at 10:22:05AM +0800, Kunwu Chan wrote:
+>> Hi Simon,
+>>
+>> Thanks for your reply.
+>>
+>> On 2024/1/17 17:29, Simon Horman wrote:
+>>> On Wed, Jan 17, 2024 at 03:20:45PM +0800, Kunwu Chan wrote:
+>>>> Use the new KMEM_CACHE() macro instead of direct kmem_cache_create
+>>>> to simplify the creation of SLAB caches.
+>>>>
+>>>> Signed-off-by: Kunwu Chan <chentao@kylinos.cn>
+>>>
+>>> Hi Kunwu Chan,
+>>>
+>>> I think this is more of a cleanup than a fix,
+>>> so it should probably be targeted at 'nf-next' rather than 'net'.
+>> Thanks, I'm confused about when to use "nf-next" or "net" or "net-next".
+>> "nf-next" means fixing errors for linux-next.git and linux-stable.git, while
+>> "nf" or "next" just means linux-next.git?
+> 
+> Hi Kunwu,
+> 
+> nf is for fixes for Netfilter (which includes IPVS). The target tree is nf.git
+> nf-next is for non-fixes for Netfilter. The target tree if nf-next.git
+> 
+> net is for fixes for Networking code, which does not have a more specific
+> tree (as is the case for Netfilter). The target tree is net.git.
+> Liikewise, net-next is for non-fixes for Networking code.
+> The target tree is net-next.git
+> 
+Hi Simon,
 
-This can be reproduced with the following trace:
+Thank you very much for your detailed guidance.
+In the future, I will carefully follow the rules you introduced to set 
+the appropriate subject for the patch.
 
-Packet Sequence:
-> Flags [S], seq 1687765604, win 62727, options [.. wscale 7], length 0
-> Flags [S], seq 1944817196, win 62727, options [.. wscale 7], length 0
 
-In order to fix the issue, only evaluate window negotiation for packets
-in the REPLY direction. This was tested with simultaneous open, fast
-open, and the above reproduction.
+> The MAINTAINERS file, and get_maintainers.pl script are useful here.
+> 
+> nf is merged into net on request from the Netfilter maintainers,
+> this is it's path to released kernels.
+> Likewise, nf-next is merged into net-next.
+> 
+Before send the patch, I'll read the MAINTAINERS file, and search in 
+email-list to confirm the correct subject.
 
-Fixes: c7aab4f17021 ("netfilter: nf_conntrack_tcp: re-init for syn packets only")
-Signed-off-by: Ryan Schaefer <ryanschf@amazon.com>
----
- net/netfilter/nf_conntrack_proto_tcp.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index e573be5afde7..ae493599a3ef 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -457,7 +457,8 @@ static void tcp_init_sender(struct ip_ct_tcp_state *sender,
- 			    const struct sk_buff *skb,
- 			    unsigned int dataoff,
- 			    const struct tcphdr *tcph,
--			    u32 end, u32 win)
-+			    u32 end, u32 win,
-+			    enum ip_conntrack_dir dir)
- {
- 	/* SYN-ACK in reply to a SYN
- 	 * or SYN from reply direction in simultaneous open.
-@@ -471,7 +472,8 @@ static void tcp_init_sender(struct ip_ct_tcp_state *sender,
- 	 * Both sides must send the Window Scale option
- 	 * to enable window scaling in either direction.
- 	 */
--	if (!(sender->flags & IP_CT_TCP_FLAG_WINDOW_SCALE &&
-+	if (dir == IP_CT_DIR_REPLY &&
-+	    !(sender->flags & IP_CT_TCP_FLAG_WINDOW_SCALE &&
- 	      receiver->flags & IP_CT_TCP_FLAG_WINDOW_SCALE)) {
- 		sender->td_scale = 0;
- 		receiver->td_scale = 0;
-@@ -542,7 +544,7 @@ tcp_in_window(struct nf_conn *ct, enum ip_conntrack_dir dir,
- 		if (tcph->syn) {
- 			tcp_init_sender(sender, receiver,
- 					skb, dataoff, tcph,
--					end, win);
-+					end, win, dir);
- 			if (!tcph->ack)
- 				/* Simultaneous open */
- 				return NFCT_TCP_ACCEPT;
-@@ -585,7 +587,7 @@ tcp_in_window(struct nf_conn *ct, enum ip_conntrack_dir dir,
- 		 */
- 		tcp_init_sender(sender, receiver,
- 				skb, dataoff, tcph,
--				end, win);
-+				end, win, dir);
- 
- 		if (dir == IP_CT_DIR_REPLY && !tcph->ack)
- 			return NFCT_TCP_ACCEPT;
+And if need a new subject patch, i could resend a new one.
+>>
+>>>
+>>> If it is a fix, then I would suggest targeting it at 'nf'
+>>> and providing a Fixes tag.
+>> I'll keep it in mind in the future.
+>>>
+>>> The above notwithstanding, this looks good to me.
+>>>
+>>> Acked-by: Simon Horman <horms@kernel.org>
+>>>
+>>>> ---
+>>>>    net/netfilter/ipvs/ip_vs_conn.c | 4 +---
+>>>>    1 file changed, 1 insertion(+), 3 deletions(-)
+>>>>
+>>>> diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+>>>> index a743db073887..98d7dbe3d787 100644
+>>>> --- a/net/netfilter/ipvs/ip_vs_conn.c
+>>>> +++ b/net/netfilter/ipvs/ip_vs_conn.c
+>>>> @@ -1511,9 +1511,7 @@ int __init ip_vs_conn_init(void)
+>>>>    		return -ENOMEM;
+>>>>    	/* Allocate ip_vs_conn slab cache */
+>>>> -	ip_vs_conn_cachep = kmem_cache_create("ip_vs_conn",
+>>>> -					      sizeof(struct ip_vs_conn), 0,
+>>>> -					      SLAB_HWCACHE_ALIGN, NULL);
+>>>> +	ip_vs_conn_cachep = KMEM_CACHE(ip_vs_conn, SLAB_HWCACHE_ALIGN);
+>>>>    	if (!ip_vs_conn_cachep) {
+>>>>    		kvfree(ip_vs_conn_tab);
+>>>>    		return -ENOMEM;
+>> -- 
+>> Thanks,
+>>    Kunwu
+>>
 -- 
-2.40.1
+Thanks,
+   Kunwu
 
