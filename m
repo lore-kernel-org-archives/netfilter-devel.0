@@ -1,101 +1,92 @@
-Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 069B4374;
-	Tue, 23 Jan 2024 02:46:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=124.126.103.232
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95BE2A47
+	for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2024 03:27:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705978008; cv=none; b=phRw/aHvUmARoZFX4aMo/1JLqEpJK0UmzrWl8tFcB2nC/9EN3Kq1FrMPJZdpA8VzJs3Q7nuEwJwTuVqYdJBhzkQJYnHCT7qcvyzcUtcpvern3eHIO8vmpbUXmJM9GqPz0bYh5j7qXpTULUkdtzPdX8VyYEslkVataX5cnczDVG4=
+	t=1705980440; cv=none; b=s2vHLCZ9OJ4/qUPONZ2QRLboSxbkcDArZwdzL1YCiIUZ1+C+T23f/uGVOYmwbHYnfqWoQPxpy4LCb8vRBp8CYbJ8ie08YSkNdO8jqEhldpkXYNLx2HyoNIRtvFGfu0LTLxKVU3vvVHhcewXwNr80GFLzQfnhHUJPNQf4vdECSrs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705978008; c=relaxed/simple;
-	bh=DgpW2TYFY7FMhpYd9iFluKaHz62UIxRSWXxq6QZHrPQ=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=KFU1CkJkbishRyIWFdTJlBqaVEomazu8obgyR2uJwehuir/E0eQSGs0c923EnSz7n0DmxcthNNTiRrtnAfJj0kZsS8Oozybj8eG5w8dvSNcQittmkOKDhiyvt/j3zFHgxQ1oMWIZuqsRDsr5N6oYypiKl6F/ChxKv1a5OER/oyg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=kylinos.cn; arc=none smtp.client-ip=124.126.103.232
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
-X-UUID: 5d505d236484480a9e29728173f68199-20240123
-X-CID-P-RULE: Release_Ham
-X-CID-O-INFO: VERSION:1.1.35,REQID:3ae40562-b553-4881-b1b2-749a43e648c9,IP:10,
-	URL:0,TC:0,Content:0,EDM:0,RT:0,SF:-15,FILE:0,BULK:0,RULE:Release_Ham,ACTI
-	ON:release,TS:-5
-X-CID-INFO: VERSION:1.1.35,REQID:3ae40562-b553-4881-b1b2-749a43e648c9,IP:10,UR
-	L:0,TC:0,Content:0,EDM:0,RT:0,SF:-15,FILE:0,BULK:0,RULE:Release_Ham,ACTION
-	:release,TS:-5
-X-CID-META: VersionHash:5d391d7,CLOUDID:457fa47f-4f93-4875-95e7-8c66ea833d57,B
-	ulkID:240123104638C5ZVN90J,BulkQuantity:0,Recheck:0,SF:44|66|38|24|17|19|1
-	02,TC:nil,Content:0,EDM:-3,IP:-2,URL:0,File:nil,Bulk:nil,QS:nil,BEC:nil,CO
-	L:0,OSI:0,OSA:0,AV:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0
-X-CID-BVR: 0,NGT
-X-CID-BAS: 0,NGT,0,_
-X-CID-FACTOR: TF_CID_SPAM_FAS,TF_CID_SPAM_FSD,TF_CID_SPAM_FSI,TF_CID_SPAM_SNR
-X-UUID: 5d505d236484480a9e29728173f68199-20240123
-Received: from mail.kylinos.cn [(39.156.73.10)] by mailgw
-	(envelope-from <chentao@kylinos.cn>)
-	(Generic MTA)
-	with ESMTP id 2008426615; Tue, 23 Jan 2024 10:46:37 +0800
-Received: from mail.kylinos.cn (localhost [127.0.0.1])
-	by mail.kylinos.cn (NSMail) with SMTP id 100C8E000EB9;
-	Tue, 23 Jan 2024 10:46:37 +0800 (CST)
-X-ns-mid: postfix-65AF288C-825111420
-Received: from kernel.. (unknown [172.20.15.234])
-	by mail.kylinos.cn (NSMail) with ESMTPA id 379ACE000EB9;
-	Tue, 23 Jan 2024 10:46:33 +0800 (CST)
-From: Kunwu Chan <chentao@kylinos.cn>
-To: pablo@netfilter.org,
-	kadlec@netfilter.org,
-	fw@strlen.de,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com
-Cc: horms@kernel.org,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Kunwu Chan <chentao@kylinos.cn>
-Subject: [PATCH nf-next] netfilter: nf_conncount: Use KMEM_CACHE instead of kmem_cache_create()
-Date: Tue, 23 Jan 2024 10:46:31 +0800
-Message-Id: <20240123024631.396631-1-chentao@kylinos.cn>
-X-Mailer: git-send-email 2.39.2
+	s=arc-20240116; t=1705980440; c=relaxed/simple;
+	bh=wlHEdCNTk6+NcGmeF3jsbxeG7NdPWeitikNW8IlWtCo=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=bF1Wxmj0KGr0Vssy5lypBDhaKKUEfPtN2gdp52eo+IbKYOg8vIyFg4LcM6q2T11mLPmHtdQaQK8qp+5u2NBtxkqwwTUqwqNLLLkWaKW3jZ5JJyyIJlC/MMxtoKIkFKsAgEOGBCeH60JBsUiGlL1hGZtRH/h9LCl1YxkT+lnqBVM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=La0+w9LY; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="La0+w9LY"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1705980437;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=F0nQeAiUhDEkZZ9fTqjn2KHETQU/ymAd0zKfMrlWKgw=;
+	b=La0+w9LY48w65rnObix1sqCInwLlcULLTfePfVcuDROFsZc6M4W5xbacSw5+EhZ+qzvokf
+	TK+wfA4bEm1PS6a6+ZUgOoazb/oYLycGjBhIONCmCnxAuA/0b2iB87uh5whWy1kLyDqzJN
+	whnoVS9rgWd9GLZwPyZHtWfAPwMHcXc=
+Received: from mail-qk1-f199.google.com (mail-qk1-f199.google.com
+ [209.85.222.199]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-37-Ae2800tBOfqK5ZTMK1uRMA-1; Mon, 22 Jan 2024 22:27:15 -0500
+X-MC-Unique: Ae2800tBOfqK5ZTMK1uRMA-1
+Received: by mail-qk1-f199.google.com with SMTP id af79cd13be357-7816e45f957so629774785a.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Jan 2024 19:27:15 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1705980434; x=1706585234;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=F0nQeAiUhDEkZZ9fTqjn2KHETQU/ymAd0zKfMrlWKgw=;
+        b=M+BZqI0L7KbpN8ja07G32X8XLHLhzYSFxpOv80t+8vOV3cJu2aXy9GkRwzZlW4ZZoA
+         sjNEbp8OTGasTvN4eJuKO7NQMMjvjyAhyyPMoWIYj7nGJLmqu+ErhLCsQjNsU9pvumUb
+         ttGGVehh48Lo8aearNganAC0Gwx+b/ykFl/PlHfcVXime8AN2F4zSQDMcXZw3Xi8NOdj
+         DxE1HMElJQIvmISrG75n7ku1dBbs8/gdQsGjZz3kPgKQPMsXDV5rPkZTh0xBqudVvqwj
+         4rgVQR9Ok3CG10yn33EHA2+YOPx7YbzUHr16lptqTVgNQ1AoQdt+r2Z28od47gQmvZzc
+         l5BA==
+X-Gm-Message-State: AOJu0YxLRkQ63CcbkOCrsdsZUdO0maLb4xd71X3Y5rj6vG3wgZRpyuYh
+	TP4kHoxuMcPc8Wsa4eiDZBC4NPcBzb0xORWguSp3f7s7MNvFOH2kKaH/U0RJ9iu3Khp2zjE+dt/
+	LH9vmKkY55JPdbSU3hpvHqI1PGtgD+/FYF2WeYnFUSH+okV+B3saqDffjVhOVNZ1QcUnZAhXb0A
+	dspzKVKAAS4BSFiw7yhOBiTKG981d856j6XVdT66g7mzBkSEebaou4/w==
+X-Received: by 2002:a05:620a:c07:b0:783:339b:2c37 with SMTP id l7-20020a05620a0c0700b00783339b2c37mr4859445qki.116.1705980434566;
+        Mon, 22 Jan 2024 19:27:14 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IHvPK2o5MKZyAyIsYQ7eN+dA7fgAesFyfzULCBsRwDlOiXUqV55kjb4taWAApnk8xwywRnoSfM/xI3GvwDdwns=
+X-Received: by 2002:a05:620a:c07:b0:783:339b:2c37 with SMTP id
+ l7-20020a05620a0c0700b00783339b2c37mr4859433qki.116.1705980434197; Mon, 22
+ Jan 2024 19:27:14 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+References: <20240122162640.6374-1-yiche@redhat.com> <Za6vFpJZCHVw1LrV@calendula>
+ <20240122212623.GA29630@breakpoint.cc> <CAJsUoE34NyBPm=bBOhsvDh80g6L1BzHOm-m2nLNQDWDsMY8V4g@mail.gmail.com>
+In-Reply-To: <CAJsUoE34NyBPm=bBOhsvDh80g6L1BzHOm-m2nLNQDWDsMY8V4g@mail.gmail.com>
+From: Yi Chen <yiche@redhat.com>
+Date: Tue, 23 Jan 2024 11:26:47 +0800
+Message-ID: <CAJsUoE1bQz0cGXFgvhRU8xJGxTLdsX_fAeFKL9QC5FXT=iQs7g@mail.gmail.com>
+Subject: Re: [PATCH] tests: shell: add test to cover ct offload by using nft
+ flowtables To cover kernel patch ("netfilter: nf_tables: set transport offset
+ from mac header for netdev/egress").
+To: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter-devel@vger.kernel.org, fw@netfilter.org
+Content-Type: text/plain; charset="UTF-8"
 
-Use the new KMEM_CACHE() macro instead of direct kmem_cache_create
-to simplify the creation of SLAB caches.
+> Hi,
+>
+> This test reports:
+>
+> I: [OK]         1/1 testcases/packetpath/flowtables
+>
+> or did you see any issue on your end?
+Yes, on the latest rhel-9 kernel 5.14.0-408.el9 which hasn't involved
+this patch:
+a67db600fd38e08 netfilter: nf_tables: set transport offset from mac
+header for netdev/egress
 
-Signed-off-by: Kunwu Chan <chentao@kylinos.cn>
----
- net/netfilter/nf_conncount.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ it report:
+W: [FAILED]     1/1 testcases/packetpath/flowtables
 
-diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index 5d8ed6c90b7e..8715617b02fe 100644
---- a/net/netfilter/nf_conncount.c
-+++ b/net/netfilter/nf_conncount.c
-@@ -605,15 +605,11 @@ static int __init nf_conncount_modinit(void)
- 	for (i =3D 0; i < CONNCOUNT_SLOTS; ++i)
- 		spin_lock_init(&nf_conncount_locks[i]);
-=20
--	conncount_conn_cachep =3D kmem_cache_create("nf_conncount_tuple",
--					   sizeof(struct nf_conncount_tuple),
--					   0, 0, NULL);
-+	conncount_conn_cachep =3D KMEM_CACHE(nf_conncount_tuple, 0);
- 	if (!conncount_conn_cachep)
- 		return -ENOMEM;
-=20
--	conncount_rb_cachep =3D kmem_cache_create("nf_conncount_rb",
--					   sizeof(struct nf_conncount_rb),
--					   0, 0, NULL);
-+	conncount_rb_cachep =3D KMEM_CACHE(nf_conncount_rb, 0);
- 	if (!conncount_rb_cachep) {
- 		kmem_cache_destroy(conncount_conn_cachep);
- 		return -ENOMEM;
---=20
-2.39.2
+This test case existed before and caught this issue.
 
