@@ -1,63 +1,86 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0B137FBB1
-	for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2024 16:49:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F6667F7F0
+	for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2024 17:10:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706028585; cv=none; b=eYkckZkqGSFOZfWuZQIb3A0NdY7YG/bivaE7cU19FEMvkR+QdFs2m0Ls2csiyiylHGjGiYZIWMr4Z28q+OjVMLamCfv3jqF/PO0dTm5U2xZ6Q8vB70GAoMfoUOVF4LcznJqeQArA5Yc4VQgXFDEnSW9Z+7TrinOKWQPGSy/GCpw=
+	t=1706029825; cv=none; b=G2s3vqIQiJELAbMJyAu61c7nT1Ok2T1W9Rznkpxhj5dLhqCXSRouyYCFYjZWywstFb78Jh3Cr9M7eLjTt6IfcIi/+j2GDmv3y4KIU/00XNUjoyBNApOMugoXYipbzUPhz3LP9u8anIW+vasPLrkRRDX1UVmp/8m9UMh6FLit84c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706028585; c=relaxed/simple;
-	bh=jPNVlhi3pE+gTEIwTJCDJkTlxQliU6zDB+vxytuCKtg=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=UrYGMKg/xSi4IDPUngMQx+MRZEx+nDx8vPkU9cpWbPRjFNa6tjCzzNMzu5FXEGc2k2+k2dq76TYYcgpLVuyZzHFYWw6Birao96KK9Ywa9B2DFuJJnkIbOZ0D0tYof82RWA2Iqgaaqe8cxtR4fqLJOg0WMAn3p4DQEgmr55jwh+M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+	s=arc-20240116; t=1706029825; c=relaxed/simple;
+	bh=uoXk9a4YSw2Mof6UGbmt5i+C6dr81hrrg8AvR531GNk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=B6TvtGAy7rj59puoNmhpWkuBeGV2VBJs8fuF+1ieBz+woVb+jORO0RPuR+jmc7LguxxjAQp6YZp1jD9FosntskAcymeqB6gOg3rzfpkmLPlOzKKtGDSA9cnONxWqWONYm4PgDy8H8Q7xVD+e4AplJTVddEJQyaKocYvyg9iidoQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1rSJy0-0001uP-Q6; Tue, 23 Jan 2024 17:49:40 +0100
+	(envelope-from <fw@strlen.de>)
+	id 1rSKI1-0002Id-Qv; Tue, 23 Jan 2024 18:10:21 +0100
+Date: Tue, 23 Jan 2024 18:10:21 +0100
 From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH iptables] extensions: libebt_stp: fix range checking
-Date: Tue, 23 Jan 2024 17:49:33 +0100
-Message-ID: <20240123164936.14403-1-fw@strlen.de>
-X-Mailer: git-send-email 2.43.0
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: nf_tables: validate
+ NFPROTO_{IPV4,IPV6,INET} family
+Message-ID: <20240123171021.GA31645@breakpoint.cc>
+References: <20240123161333.39189-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240123161333.39189-1-pablo@netfilter.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-This has to either consider ->nvals > 1 or check the values
-post-no-range-fixup:
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Several expressions explicitly refer to NF_INET_* hook definitions
+> from expr->ops->validate, however, family is not validated.
+> 
+> Bail out with EOPNOTSUPP in case they are used from unsupported
+> families.
+> 
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+> This is v1:
+> 
+> NF_INET_* and NF_NETDEV_* hook definitions overlap, and .validate refers to
+> hooks only in several expressions, not families.
+> 
+> - synproxy refers to NFPROTO_BRIDGE from eval path, however, .validate does
+>   not refer to bridge hooks.
 
-./iptables-test.py  extensions/libebt_stp.t
-extensions/libebt_stp.t: ERROR: line 12 (cannot load: ebtables -A INPUT --stp-root-cost 1)
+Probably those NFPROTO_BRIDGE should be removed then.
 
-(it tests 0 < 1 and fails, but test should be 1 < 1).
+> diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+> index 5284cd2ad532..61f5498b73ef 100644
+> --- a/net/netfilter/nft_compat.c
+> +++ b/net/netfilter/nft_compat.c
+> @@ -350,6 +350,11 @@ static int nft_target_validate(const struct nft_ctx *ctx,
+>  	unsigned int hook_mask = 0;
+>  	int ret;
+>  
+> +	if (ctx->family != NFPROTO_IPV4 &&
+> +	    ctx->family != NFPROTO_IPV6 &&
+> +	    ctx->family != NFPROTO_BRIDGE)
+> +		return -EOPNOTSUPP;
+> +
+>  	if (nft_is_base_chain(ctx->chain)) {
+>  		const struct nft_base_chain *basechain =
+>  						nft_base_chain(ctx->chain);
+> @@ -595,6 +600,11 @@ static int nft_match_validate(const struct nft_ctx *ctx,
+>  	unsigned int hook_mask = 0;
+>  	int ret;
+>  
+> +	if (ctx->family != NFPROTO_IPV4 &&
+> +	    ctx->family != NFPROTO_IPV6 &&
+> +	    ctx->family != NFPROTO_BRIDGE)
+> +		return -EOPNOTSUPP;
+> +
 
-Fixes: dc6efcfeac38 ("extensions: libebt_stp: Use guided option parser")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- extensions/libebt_stp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Both need to permit NFPROTO_ARP too.
 
-diff --git a/extensions/libebt_stp.c b/extensions/libebt_stp.c
-index 81054b26c1f0..371fa04c870f 100644
---- a/extensions/libebt_stp.c
-+++ b/extensions/libebt_stp.c
-@@ -142,7 +142,7 @@ static void brstp_parse(struct xt_option_call *cb)
- #define RANGE_ASSIGN(name, fname, val) {				    \
- 		stpinfo->config.fname##l = val[0];			    \
- 		stpinfo->config.fname##u = cb->nvals > 1 ? val[1] : val[0]; \
--		if (val[1] < val[0])					    \
-+		if (stpinfo->config.fname##u < stpinfo->config.fname##l)    \
- 			xtables_error(PARAMETER_PROBLEM,		    \
- 				      "Bad --stp-" name " range");	    \
- }
--- 
-2.43.0
-
+LGTM otherwise.
