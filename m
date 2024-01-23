@@ -1,86 +1,79 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F6667F7F0
-	for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2024 17:10:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93C7A80036;
+	Tue, 23 Jan 2024 17:46:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706029825; cv=none; b=G2s3vqIQiJELAbMJyAu61c7nT1Ok2T1W9Rznkpxhj5dLhqCXSRouyYCFYjZWywstFb78Jh3Cr9M7eLjTt6IfcIi/+j2GDmv3y4KIU/00XNUjoyBNApOMugoXYipbzUPhz3LP9u8anIW+vasPLrkRRDX1UVmp/8m9UMh6FLit84c=
+	t=1706031991; cv=none; b=OKdYVlCEjBmVEh/z/rel16DO5v1bWwAcraETZ3MMHfDP7H4YAxS+PACmNdGAWb622U0wGvG9NfUgRALhwl67pDN1dT/xJbVMDhS46gWgn0nnFRNxz64VOrFpx1XX/CWADoxGyomvrF+vdMwm8Mjby4z61IS2PRe6531o1urpUyo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706029825; c=relaxed/simple;
-	bh=uoXk9a4YSw2Mof6UGbmt5i+C6dr81hrrg8AvR531GNk=;
+	s=arc-20240116; t=1706031991; c=relaxed/simple;
+	bh=NkHE5jAGeam0OhUX55X+rbk7tkRtqWrCjQ1f8FdelE8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=B6TvtGAy7rj59puoNmhpWkuBeGV2VBJs8fuF+1ieBz+woVb+jORO0RPuR+jmc7LguxxjAQp6YZp1jD9FosntskAcymeqB6gOg3rzfpkmLPlOzKKtGDSA9cnONxWqWONYm4PgDy8H8Q7xVD+e4AplJTVddEJQyaKocYvyg9iidoQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1rSKI1-0002Id-Qv; Tue, 23 Jan 2024 18:10:21 +0100
-Date: Tue, 23 Jan 2024 18:10:21 +0100
-From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: nf_tables: validate
- NFPROTO_{IPV4,IPV6,INET} family
-Message-ID: <20240123171021.GA31645@breakpoint.cc>
-References: <20240123161333.39189-1-pablo@netfilter.org>
+	 Content-Type:Content-Disposition:In-Reply-To; b=VxPyIRA/JMmGA7zZgCwjwNltP8cUvZ95dXdKEQ7+t+yIDTfBY82Ngvt7QIXAu5KM9PoS/E7MkOWwgzKl0yv7QhQIHJRhvd+6ajDhdS+ou3zRAVpD9HPJu3QSV/T1BoslJ8RNqzItjG1DclyT8yUXqZccbi8K/4UU13IlRmNt0ZA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=O64Q2j7k; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="O64Q2j7k"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E11DC433C7;
+	Tue, 23 Jan 2024 17:46:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1706031991;
+	bh=NkHE5jAGeam0OhUX55X+rbk7tkRtqWrCjQ1f8FdelE8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=O64Q2j7kI6EdmKZ7mFXyWaeNIyGfxeOZHcYsgupC8JpBdUjQ4uxSzkGM7iy2OlXAI
+	 tFClav5O4lFK1QzAHICJ3RCsYSqD3vtwnLiplM30pqZG9HwAj5K7nSJXu/3b5hqOQ0
+	 O6AMpTl9P6mQr5X7RBSN+aKEThtUtQHIq1u2u8XPrRbGpahBnKi29VSmCYV273ZcwD
+	 BASyCD/EeAPIgp29JskMQW9/3YS/LWGUt1C2W82IDPNVkX3DhrpJ+kn2Na36hCstIQ
+	 xO4igiLh62T87z4Xw6Z8rRAexLfoL02cWha+ZRkjV+IXP4fzvuwLx2q+4BDCYS3vde
+	 mTOUkFOeNenWw==
+Date: Tue, 23 Jan 2024 17:46:25 +0000
+From: Simon Horman <horms@kernel.org>
+To: Markus Elfring <Markus.Elfring@web.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, kernel-janitors@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>, Florian Westphal <fw@strlen.de>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Paolo Abeni <pabeni@redhat.com>, Phil Sutter <phil@nwl.cc>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Kunwu Chan <chentao@kylinos.cn>
+Subject: Re: [PATCH] netfilter: nf_tables: Add a null pointer check in two
+ functions
+Message-ID: <20240123174625.GO254773@kernel.org>
+References: <c49c716a-e070-4ad5-9a90-896537bcd1b5@web.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20240123161333.39189-1-pablo@netfilter.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <c49c716a-e070-4ad5-9a90-896537bcd1b5@web.de>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> Several expressions explicitly refer to NF_INET_* hook definitions
-> from expr->ops->validate, however, family is not validated.
+On Tue, Jan 23, 2024 at 02:45:12PM +0100, Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Tue, 23 Jan 2024 14:28:31 +0100
 > 
-> Bail out with EOPNOTSUPP in case they are used from unsupported
-> families.
+> The result from a call of the function “kasprintf” was passed to
+> a subsequent function call without checking for a null pointer before
+> (according to a memory allocation failure).
+> This issue was detected by using the Coccinelle software.
 > 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> This is v1:
+> Thus add a null pointer check and a jump target in affected functions.
 > 
-> NF_INET_* and NF_NETDEV_* hook definitions overlap, and .validate refers to
-> hooks only in several expressions, not families.
-> 
-> - synproxy refers to NFPROTO_BRIDGE from eval path, however, .validate does
->   not refer to bridge hooks.
+> Fixes: 8877393029e76 ("netfilter: nf_tables: Open-code audit log call in nf_tables_getrule()")
+> Fixes: 0854db2aaef3f ("netfilter: nf_tables: use net_generic infra for transaction data")
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 
-Probably those NFPROTO_BRIDGE should be removed then.
+For the record:
 
-> diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-> index 5284cd2ad532..61f5498b73ef 100644
-> --- a/net/netfilter/nft_compat.c
-> +++ b/net/netfilter/nft_compat.c
-> @@ -350,6 +350,11 @@ static int nft_target_validate(const struct nft_ctx *ctx,
->  	unsigned int hook_mask = 0;
->  	int ret;
->  
-> +	if (ctx->family != NFPROTO_IPV4 &&
-> +	    ctx->family != NFPROTO_IPV6 &&
-> +	    ctx->family != NFPROTO_BRIDGE)
-> +		return -EOPNOTSUPP;
-> +
->  	if (nft_is_base_chain(ctx->chain)) {
->  		const struct nft_base_chain *basechain =
->  						nft_base_chain(ctx->chain);
-> @@ -595,6 +600,11 @@ static int nft_match_validate(const struct nft_ctx *ctx,
->  	unsigned int hook_mask = 0;
->  	int ret;
->  
-> +	if (ctx->family != NFPROTO_IPV4 &&
-> +	    ctx->family != NFPROTO_IPV6 &&
-> +	    ctx->family != NFPROTO_BRIDGE)
-> +		return -EOPNOTSUPP;
-> +
+Markus has posed patches of this nature many times over the past weeks
+and months. They are not fixing bugs - there is no user visible problem.
+And moreover they move the code away from the preferred style -
+avoiding unnecessary checks around code that can handle NULL values.
 
-Both need to permit NFPROTO_ARP too.
-
-LGTM otherwise.
+Markus, please stop posting patches of this nature.
