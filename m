@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 636C5132C04;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id C2492132C10;
 	Wed, 24 Jan 2024 19:12:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706123579; cv=none; b=OoVXW1MYQWDUQ8wv9qmxf7k75nNd9GjR8UJPZP1VrYUe9ixdHzaEEr6FWzPaDY7M8/oHFG1g8ynE0A22cPNnXeh2kpsVU+V6OV4Gq6OP6GkfkHaqnK582mB+SDiLvAVzttoA5/2LknWY6DlKHHJ8RTYRYjydpm7dJfKQboQ2dSM=
+	t=1706123579; cv=none; b=at8bPGD6FIf0bcqG3EmbZe4Bz6wUJAhKdtbJ7kYIhafGTDjT9KEW1NxFHVYQzbAJ2DKmjW93AXxFxSP5nTcC5nzbUxQ99rpy/MvTDgQemWLogDOO7qKMaNpewQvPJwJ7syPYD+ULrjXAn/oVDRsf219GXNzfiviQ8gc91Lcw+Vk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1706123579; c=relaxed/simple;
-	bh=a9RJaQcXDE2ki+6h0E8TsoXaM2cfkPsCs0FQbPPOCQ4=;
+	bh=WL5tGIwU6oaPtagTXFU0CYWlH+uOCIWUgqsE+PPyLz0=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=gAUKj9G1VkmX8QUh2FKiaE96Nsk0jlOJ1AlwY24CSK+FSQvpWdITqwv8HDWWXKI1QxQsytnZoiINvcJVqMLvfAEPNTknOf/PcLZ/FhxUbL0ueje0i5q9DyjK/N6AJ5ZopFdd6zzk1FIYG3hk2QGkTh19WsBGb5pOHm5rFOVkFrM=
+	 MIME-Version; b=FdXmnmOBW8yv1QZuSQj1aoCERrZaVwBBD5E0DnY/AguqQzYj9rz/79Ug/f7qJ5W1vgI1rF1MHSz5CAB5NDypOlcZWaFWjvQkHQfryjf65nWHN20RFOA4NO0DmFuxMLbS96zCOzZPSziRvYneW6Inc3L0Me5Q2/3et9A/S1doDNo=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 5/6] netfilter: nf_tables: reject QUEUE/DROP verdict parameters
-Date: Wed, 24 Jan 2024 20:12:47 +0100
-Message-Id: <20240124191248.75463-6-pablo@netfilter.org>
+Subject: [PATCH net 6/6] netfilter: nf_tables: validate NFPROTO_* family
+Date: Wed, 24 Jan 2024 20:12:48 +0100
+Message-Id: <20240124191248.75463-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240124191248.75463-1-pablo@netfilter.org>
 References: <20240124191248.75463-1-pablo@netfilter.org>
@@ -34,69 +34,189 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+Several expressions explicitly refer to NF_INET_* hook definitions
+from expr->ops->validate, however, family is not validated.
 
-This reverts commit e0abdadcc6e1.
+Bail out with EOPNOTSUPP in case they are used from unsupported
+families.
 
-core.c:nf_hook_slow assumes that the upper 16 bits of NF_DROP
-verdicts contain a valid errno, i.e. -EPERM, -EHOSTUNREACH or similar,
-or 0.
-
-Due to the reverted commit, its possible to provide a positive
-value, e.g. NF_ACCEPT (1), which results in use-after-free.
-
-Its not clear to me why this commit was made.
-
-NF_QUEUE is not used by nftables; "queue" rules in nftables
-will result in use of "nft_queue" expression.
-
-If we later need to allow specifiying errno values from userspace
-(do not know why), this has to call NF_DROP_GETERR and check that
-"err <= 0" holds true.
-
-Fixes: e0abdadcc6e1 ("netfilter: nf_tables: accept QUEUE/DROP verdict parameters")
-Cc: stable@vger.kernel.org
-Reported-by: Notselwyn <notselwyn@pwning.tech>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 0ca743a55991 ("netfilter: nf_tables: add compatibility layer for x_tables")
+Fixes: a3c90f7a2323 ("netfilter: nf_tables: flow offload expression")
+Fixes: 2fa841938c64 ("netfilter: nf_tables: introduce routing expression")
+Fixes: 554ced0a6e29 ("netfilter: nf_tables: add support for native socket matching")
+Fixes: ad49d86e07a4 ("netfilter: nf_tables: Add synproxy support")
+Fixes: 4ed8eb6570a4 ("netfilter: nf_tables: Add native tproxy support")
+Fixes: 6c47260250fc ("netfilter: nf_tables: add xfrm expression")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ net/netfilter/nft_compat.c       | 12 ++++++++++++
+ net/netfilter/nft_flow_offload.c |  5 +++++
+ net/netfilter/nft_nat.c          |  5 +++++
+ net/netfilter/nft_rt.c           |  5 +++++
+ net/netfilter/nft_socket.c       |  5 +++++
+ net/netfilter/nft_synproxy.c     |  7 +++++--
+ net/netfilter/nft_tproxy.c       |  5 +++++
+ net/netfilter/nft_xfrm.c         |  5 +++++
+ 8 files changed, 47 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 02f45424644b..c537104411e7 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -10992,16 +10992,10 @@ static int nft_verdict_init(const struct nft_ctx *ctx, struct nft_data *data,
- 	data->verdict.code = ntohl(nla_get_be32(tb[NFTA_VERDICT_CODE]));
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index 5284cd2ad532..f0eeda97bfcd 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -350,6 +350,12 @@ static int nft_target_validate(const struct nft_ctx *ctx,
+ 	unsigned int hook_mask = 0;
+ 	int ret;
  
- 	switch (data->verdict.code) {
--	default:
--		switch (data->verdict.code & NF_VERDICT_MASK) {
--		case NF_ACCEPT:
--		case NF_DROP:
--		case NF_QUEUE:
--			break;
--		default:
--			return -EINVAL;
--		}
--		fallthrough;
-+	case NF_ACCEPT:
-+	case NF_DROP:
-+	case NF_QUEUE:
-+		break;
- 	case NFT_CONTINUE:
- 	case NFT_BREAK:
- 	case NFT_RETURN:
-@@ -11036,6 +11030,8 @@ static int nft_verdict_init(const struct nft_ctx *ctx, struct nft_data *data,
++	if (ctx->family != NFPROTO_IPV4 &&
++	    ctx->family != NFPROTO_IPV6 &&
++	    ctx->family != NFPROTO_BRIDGE &&
++	    ctx->family != NFPROTO_ARP)
++		return -EOPNOTSUPP;
++
+ 	if (nft_is_base_chain(ctx->chain)) {
+ 		const struct nft_base_chain *basechain =
+ 						nft_base_chain(ctx->chain);
+@@ -595,6 +601,12 @@ static int nft_match_validate(const struct nft_ctx *ctx,
+ 	unsigned int hook_mask = 0;
+ 	int ret;
  
- 		data->verdict.chain = chain;
++	if (ctx->family != NFPROTO_IPV4 &&
++	    ctx->family != NFPROTO_IPV6 &&
++	    ctx->family != NFPROTO_BRIDGE &&
++	    ctx->family != NFPROTO_ARP)
++		return -EOPNOTSUPP;
++
+ 	if (nft_is_base_chain(ctx->chain)) {
+ 		const struct nft_base_chain *basechain =
+ 						nft_base_chain(ctx->chain);
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index ab3362c483b4..397351fa4d5f 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -384,6 +384,11 @@ static int nft_flow_offload_validate(const struct nft_ctx *ctx,
+ {
+ 	unsigned int hook_mask = (1 << NF_INET_FORWARD);
+ 
++	if (ctx->family != NFPROTO_IPV4 &&
++	    ctx->family != NFPROTO_IPV6 &&
++	    ctx->family != NFPROTO_INET)
++		return -EOPNOTSUPP;
++
+ 	return nft_chain_validate_hooks(ctx->chain, hook_mask);
+ }
+ 
+diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
+index 583885ce7232..808f5802c270 100644
+--- a/net/netfilter/nft_nat.c
++++ b/net/netfilter/nft_nat.c
+@@ -143,6 +143,11 @@ static int nft_nat_validate(const struct nft_ctx *ctx,
+ 	struct nft_nat *priv = nft_expr_priv(expr);
+ 	int err;
+ 
++	if (ctx->family != NFPROTO_IPV4 &&
++	    ctx->family != NFPROTO_IPV6 &&
++	    ctx->family != NFPROTO_INET)
++		return -EOPNOTSUPP;
++
+ 	err = nft_chain_validate_dependency(ctx->chain, NFT_CHAIN_T_NAT);
+ 	if (err < 0)
+ 		return err;
+diff --git a/net/netfilter/nft_rt.c b/net/netfilter/nft_rt.c
+index 35a2c28caa60..24d977138572 100644
+--- a/net/netfilter/nft_rt.c
++++ b/net/netfilter/nft_rt.c
+@@ -166,6 +166,11 @@ static int nft_rt_validate(const struct nft_ctx *ctx, const struct nft_expr *exp
+ 	const struct nft_rt *priv = nft_expr_priv(expr);
+ 	unsigned int hooks;
+ 
++	if (ctx->family != NFPROTO_IPV4 &&
++	    ctx->family != NFPROTO_IPV6 &&
++	    ctx->family != NFPROTO_INET)
++		return -EOPNOTSUPP;
++
+ 	switch (priv->key) {
+ 	case NFT_RT_NEXTHOP4:
+ 	case NFT_RT_NEXTHOP6:
+diff --git a/net/netfilter/nft_socket.c b/net/netfilter/nft_socket.c
+index 9ed85be79452..f30163e2ca62 100644
+--- a/net/netfilter/nft_socket.c
++++ b/net/netfilter/nft_socket.c
+@@ -242,6 +242,11 @@ static int nft_socket_validate(const struct nft_ctx *ctx,
+ 			       const struct nft_expr *expr,
+ 			       const struct nft_data **data)
+ {
++	if (ctx->family != NFPROTO_IPV4 &&
++	    ctx->family != NFPROTO_IPV6 &&
++	    ctx->family != NFPROTO_INET)
++		return -EOPNOTSUPP;
++
+ 	return nft_chain_validate_hooks(ctx->chain,
+ 					(1 << NF_INET_PRE_ROUTING) |
+ 					(1 << NF_INET_LOCAL_IN) |
+diff --git a/net/netfilter/nft_synproxy.c b/net/netfilter/nft_synproxy.c
+index 13da882669a4..1d737f89dfc1 100644
+--- a/net/netfilter/nft_synproxy.c
++++ b/net/netfilter/nft_synproxy.c
+@@ -186,7 +186,6 @@ static int nft_synproxy_do_init(const struct nft_ctx *ctx,
  		break;
-+	default:
-+		return -EINVAL;
- 	}
+ #endif
+ 	case NFPROTO_INET:
+-	case NFPROTO_BRIDGE:
+ 		err = nf_synproxy_ipv4_init(snet, ctx->net);
+ 		if (err)
+ 			goto nf_ct_failure;
+@@ -219,7 +218,6 @@ static void nft_synproxy_do_destroy(const struct nft_ctx *ctx)
+ 		break;
+ #endif
+ 	case NFPROTO_INET:
+-	case NFPROTO_BRIDGE:
+ 		nf_synproxy_ipv4_fini(snet, ctx->net);
+ 		nf_synproxy_ipv6_fini(snet, ctx->net);
+ 		break;
+@@ -253,6 +251,11 @@ static int nft_synproxy_validate(const struct nft_ctx *ctx,
+ 				 const struct nft_expr *expr,
+ 				 const struct nft_data **data)
+ {
++	if (ctx->family != NFPROTO_IPV4 &&
++	    ctx->family != NFPROTO_IPV6 &&
++	    ctx->family != NFPROTO_INET)
++		return -EOPNOTSUPP;
++
+ 	return nft_chain_validate_hooks(ctx->chain, (1 << NF_INET_LOCAL_IN) |
+ 						    (1 << NF_INET_FORWARD));
+ }
+diff --git a/net/netfilter/nft_tproxy.c b/net/netfilter/nft_tproxy.c
+index ae15cd693f0e..71412adb73d4 100644
+--- a/net/netfilter/nft_tproxy.c
++++ b/net/netfilter/nft_tproxy.c
+@@ -316,6 +316,11 @@ static int nft_tproxy_validate(const struct nft_ctx *ctx,
+ 			       const struct nft_expr *expr,
+ 			       const struct nft_data **data)
+ {
++	if (ctx->family != NFPROTO_IPV4 &&
++	    ctx->family != NFPROTO_IPV6 &&
++	    ctx->family != NFPROTO_INET)
++		return -EOPNOTSUPP;
++
+ 	return nft_chain_validate_hooks(ctx->chain, 1 << NF_INET_PRE_ROUTING);
+ }
  
- 	desc->len = sizeof(data->verdict);
+diff --git a/net/netfilter/nft_xfrm.c b/net/netfilter/nft_xfrm.c
+index 452f8587adda..1c866757db55 100644
+--- a/net/netfilter/nft_xfrm.c
++++ b/net/netfilter/nft_xfrm.c
+@@ -235,6 +235,11 @@ static int nft_xfrm_validate(const struct nft_ctx *ctx, const struct nft_expr *e
+ 	const struct nft_xfrm *priv = nft_expr_priv(expr);
+ 	unsigned int hooks;
+ 
++	if (ctx->family != NFPROTO_IPV4 &&
++	    ctx->family != NFPROTO_IPV6 &&
++	    ctx->family != NFPROTO_INET)
++		return -EOPNOTSUPP;
++
+ 	switch (priv->dir) {
+ 	case XFRM_POLICY_IN:
+ 		hooks = (1 << NF_INET_FORWARD) |
 -- 
 2.30.2
 
