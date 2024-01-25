@@ -1,117 +1,67 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29A3446BF
-	for <netfilter-devel@vger.kernel.org>; Thu, 25 Jan 2024 14:44:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E2836EB5D;
+	Thu, 25 Jan 2024 17:30:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706193872; cv=none; b=AWGTAPhCZDkoNLPm9J33xrrNctKErmrs4JWC0eRE9UqNHkx1aJjQkT6Xh72jmrzO9aSPe5mIeqUcVETTkJfpgKlMrkP0DrWit4ykliFRYVT6DQUDyScWDBFR4s2x63o2KeJ3C7MeU/AmC5awcW77558Qhguw6hg1tQinariRFQU=
+	t=1706203832; cv=none; b=g8izpSh7PJXiv7uPvDBiOSoYCi/plMU8LKR2GgXBPjxx76HavTuBA/HU+83b6PYG3r/es9sKAFQ8DxH1pHWWYVEe1mJqCesCyVwK8T9GHQgNug+Vt7JIhfPcvGJjRNMKdZeX7ktPjJiL9XKj66b9hl/2qBbrO8xsZJlDRBOP6/U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706193872; c=relaxed/simple;
-	bh=JuHPehpBjo4D1urG3jveecZHSCpvvcXYmFHTeoAm//0=;
-	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=DeRHsAEQNxDLgEWChnAXUCJmZfQM4vvIj5L/5tklhi9j52fp0weBJtWxAdo+ZPyJhtUxQJKP8fuNOD25PlhO30BjhBDhGxzwksFdMWnnpw8C6H1A0jXIGs2P61BoIipI8vcZEaFnu0wQuEAhY18kXP9TSWGlyAY4zFH69RTz++Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=S0GtFAcV; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1706203832; c=relaxed/simple;
+	bh=sxao1mMAR/lachUSI6p4a5rorm1U/xZcUATSUQ2sBAA=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=fnwIJ7t/3q3ZrZY2QQZVR2TQATcU5zfsU9UcUlnUifSgJaeVe/90HFm0gbJrquaASMsjqA/Pv5QiTzxs7IIvw2R0b28z7FOsthB7blpeswI2KepijblP51EeIy/VxJOQ9Uq6fIZtcUp1Mu1VduDdhBHNtH+yB54g6ESC2nkMvho=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=t8CnpT0l; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="S0GtFAcV"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:To:From:Date:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=Nwszglpv3LDXJMkWZXm5Gd2lomOWM3Fw3CKxtkxVwAM=; b=S0GtFAcVSnp/F4c7gt44x7ctqz
-	VBcW/amwIXxF77yWMGs00BjHXvNtxZQKuMC9WE5KfX2qfrmmxc9UgVkrUgh/LcJlzU6XFHjYZxRZD
-	d1/mBMqWK+VH7Btoo+8ictVrcxH+F66Z+5wXbiUPZ0QK/1U5vwHiKJ06dFbBWvp9H+VEEK95rZjoc
-	7esAKVrPejASzCkLRgcL7WKlBwai32CZ/FdoZV1/5RIteExtgDGRr6a5vDLdUtbqqreJ7foL9zVgy
-	oMGW+xAGXg5PeW5EHxy6zlUkHnxTVBizV6jkgp2Ajg32qZSi7MAVR5ThZXU0HMASNSHooSeHJlp22
-	qNkUHeTQ==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97)
-	(envelope-from <phil@nwl.cc>)
-	id 1rT0xp-000000001xj-2S6A;
-	Thu, 25 Jan 2024 15:44:21 +0100
-Date: Thu, 25 Jan 2024 15:44:21 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH iptables] extensions: libebt_stp: fix range checking
-Message-ID: <ZbJzxRvG7afyu4e8@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-References: <20240123164936.14403-1-fw@strlen.de>
- <ZbEYDliDhUrO73eu@orbyte.nwl.cc>
- <20240124143757.GC31645@breakpoint.cc>
- <ZbElUwojpsHjxnGO@orbyte.nwl.cc>
- <20240124154216.GD31645@breakpoint.cc>
- <ZbE3OUiDlnf7A7kI@orbyte.nwl.cc>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="t8CnpT0l"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BE6BC433C7;
+	Thu, 25 Jan 2024 17:30:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1706203831;
+	bh=sxao1mMAR/lachUSI6p4a5rorm1U/xZcUATSUQ2sBAA=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=t8CnpT0lv8FfBlYxTreAwclfTmAc8Y+T4M2Zsd/MTx+CtPDNjt63B0W4+FZCIqdUG
+	 898h79YFchGCBmBEA7pEcAUySwFkzqz2KhhDK1TGoR2R0m3o6/btP7ij62WJQTWxCg
+	 5i7H/tLbSSdzGmBuKtzsbSPs9+V12oI977pA5paDvNuxY8GricyIbaDfdK2s4jt+Qh
+	 9cN8ZRjNvSklSgiNRO99/5PfBOjT8Y3wp4y6pYLe+KckCH77/8RPiV8CD3U8HahsHg
+	 g4gEdS2l1s6W0EjkPegZWZV67F+YDxtkUvFJfqQ5yS1lMm/t1CgLBAgAOzg/OYQUq7
+	 ABiuCedDrLMWg==
+Date: Thu, 25 Jan 2024 09:30:30 -0800
+From: Jakub Kicinski <kuba@kernel.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Willem de Bruijn
+ <willemdebruijn.kernel@gmail.com>, "netdev@vger.kernel.org"
+ <netdev@vger.kernel.org>, David Ahern <dsahern@kernel.org>,
+ coreteam@netfilter.org, "netdev-driver-reviewers@vger.kernel.org"
+ <netdev-driver-reviewers@vger.kernel.org>, Hangbin Liu
+ <liuhangbin@gmail.com>, netfilter-devel@vger.kernel.org
+Subject: Re: [netfilter-core] [ANN] net-next is OPEN
+Message-ID: <20240125093030.1ced969e@kernel.org>
+In-Reply-To: <20240125085211.GE31645@breakpoint.cc>
+References: <20240123072010.7be8fb83@kernel.org>
+	<d0e28c67-51ad-4da1-a6df-7ebdbd45cd2b@kernel.org>
+	<65b133e83f53e_225ba129414@willemb.c.googlers.com.notmuch>
+	<20240124082255.7c8f7c55@kernel.org>
+	<20240124090123.32672a5b@kernel.org>
+	<ZbFiF2HzyWHAyH00@calendula>
+	<20240124114057.1ca95198@kernel.org>
+	<ZbFsyEfMRt8S+ef1@calendula>
+	<20240124121343.6ce76eff@kernel.org>
+	<20240124210724.2b0e08ff@kernel.org>
+	<20240125085211.GE31645@breakpoint.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZbE3OUiDlnf7A7kI@orbyte.nwl.cc>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Wed, Jan 24, 2024 at 05:13:45PM +0100, Phil Sutter wrote:
-> On Wed, Jan 24, 2024 at 04:42:16PM +0100, Florian Westphal wrote:
-> > Phil Sutter <phil@nwl.cc> wrote:
-> > > While you correctly hate the game instead of its player, you probably
-> > > hate the wrong game: The code above indeed is confusing. Maybe one
-> > > should move that monotonicity check into libxtables which should
-> > > simplify it quite a bit. I'll have a look. :)
-> > 
-> > Something IS broken.  Still not working on FC 39 test machine
-> > even after fresh clone.
-> > 
-> > On a "working" VM:
-> > export XTABLES_LIBDIR=$(pwd)/extensions
-> > iptables/xtables-nft-multi ebtables -A INPUT --stp-root-cost 1
-> > have 1 32765
-> > 
-> > @@ -150,7 +151,9 @@ static void brstp_parse(struct xt_option_call *cb)
-> >                 RANGE_ASSIGN("root-prio", root_prio, cb->val.u16_range);
-> >                 break;
-> >         case O_RCOST:
-> > +               fprintf(stderr, "have %u %u\n", cb->val.u32_range[0], cb->val.u32_range[1]);
-> > 
-> > I can't even figure out where the correct max value is supposed to be set.
-> > 
-> > Varying the input:
-> > 
-> > xtables-nft-multi ebtables -A INPUT --stp-root-cost 1
-> > have 1 32764
-> > 
-> > Looks to me as if the upper value is undefined.
-> > 
-> > Other users of *RC versions handle it in .parse, e.g. libxt_length.
-> > No idea how this is working.
+On Thu, 25 Jan 2024 09:52:11 +0100 Florian Westphal wrote:
+> > NFT_COMPAT fixed a lot! One remaining warning comes from using 
+> > -m length. Which NFT config do we need for that one?  
 > 
-> In xtopt_parse_mint(), there is:
-> 
-> | const uintmax_t lmax = xtopt_max_by_type(entry->type);
-> | [...]
-> | if (*arg == '\0' || *arg == sep) {
-> |         /* Default range components when field not spec'd. */
-> |         end = (char *)arg;
-> |         value = (cb->nvals == 1) ? lmax : 0;
-> 
-> But that branch appears to be dead code. So this is indeed a bug and a
-> specific build may or may not hit it as your experience shows. I'll see
-> how xtopt_parse_mint() can be fixed.
+> CONFIG_NETFILTER_XT_MATCH_LENGTH=m|y
 
-The big elucidation was the code is called only for ranges and somehow I
-managed to miss the point that your sample command doesn't contain a
-range in the first place.
-
-So while I still think it makes sense to have the 'low <= high' check
-done by the parser, I applied your patch for now as it indeed fixes that
-bug in libebt_stp extension parser. Sorry for all the confusion I must
-have caused. :(
-
-Meanwhile I've added test cases for ranges in various formats which
-uncovered quite a few things to fix.
-
-Thanks, Phil
+Thank you, that seems to solve the remaining problem!
