@@ -1,75 +1,134 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-f177.google.com (mail-oi1-f177.google.com [209.85.167.177])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 703FA79C7;
-	Thu, 25 Jan 2024 17:34:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AF4613B787;
+	Thu, 25 Jan 2024 22:29:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706204050; cv=none; b=kW/dY2jPbEDwZYylYLiO9ioL1jAFxOfGIbWGAvr2P4jGWehr/RXQ9Ox0gAiITZohpYV/hNe63V7ka3dOmNfWEDgsw8LefRUmW5/HLu4Uf7l7Ranz/PdR4OPZch4EANoCG7MdUtd3kgayMwsmiNvb4tSSa88xc0x9fatMzLjhLjE=
+	t=1706221791; cv=none; b=dYQNTxR2/axnnpdfbNELM525hy4l8OOdmvUXXyK4OWdPKXC24djbSp/fFNCawdiTGSB5Bo2plTVNCxAhMQ457SVytMyWdmuatcYkXf1WCSy94jOpTXdH65YUrQAglsIP04LjHFK5DOAgW6ZSzfA+VdoDd1PZ7JTIU5zhS2WSWPc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706204050; c=relaxed/simple;
-	bh=flQDoBICzx4xLkb8iZUYGlijqQR95FEGMh21Q5BpQqY=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=CFZEY15nCbmvqe+10DCn2uNP2SN8jJOm6VUa9x/JWXQ4hKS/ktKaxsVmTet411NbTfYf3bAbwTTHXXLh2gEjZXLYzVUBS4H0Z3NNZl/DwbW3RB50hSOT/yQIFoZElHCiEMwSZEpLvMT8JuoqEm/ZX0zvr8zieYP7LRMCFbsfmwc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SqslmzuJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706221791; c=relaxed/simple;
+	bh=teWxaZbkvWhb0PCw6q28RFREAnhb+f1N7VXEo2/etKQ=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=UbEqSe+dPSd83w4ESOlgBAevgJYLFUVI3vzR4pAaCFeEwrafkJpUeXVj2zT48y7hZ510xGSrXxBf47Xg/AjTTMAIWsqaIH70sdognumCiBm3dzzuVqzsl2YcEH8zqtFuT2FNqVYNITH81ELd3d7dw2HKUyKm7JUcb0I5fUWZbtY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=dEFfkSx1; arc=none smtp.client-ip=209.85.167.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SqslmzuJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CDAAC433F1;
-	Thu, 25 Jan 2024 17:34:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1706204050;
-	bh=flQDoBICzx4xLkb8iZUYGlijqQR95FEGMh21Q5BpQqY=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=SqslmzuJaY7dnxixUN/BpMTjyBtTdD5a4Rs6eKUZVOLigk2uv4Utl81FwQk6h7BEf
-	 BlsBAGlBJM3orsxrEYrSzG1SOFalHdZ/rkKN8BawTlDERTe+97E2qJTcT8mPN3XFaY
-	 HPLTV/KF4/wmHOkuQ+hhdfG9SrG0svBPtWCLEUOK0cnf96TcFRw88/MU2Ut4rl1S+X
-	 gdnUV1+QqRxiO38ykosp5Yq+KKcrLO0AGEIDiijQ+3ncx5fZS6TpXgiQ6DE8ogwzOd
-	 /aCilOZmGXhQFB2hgQ7ih42yqiYVVsA2VUtCOnor+kOOV6xPUakYVBYIcP5SgxJbzW
-	 qfHNJOjdpkNoQ==
-Date: Thu, 25 Jan 2024 09:34:08 -0800
-From: Jakub Kicinski <kuba@kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
- "netdev@vger.kernel.org" <netdev@vger.kernel.org>, David Ahern
- <dsahern@kernel.org>, coreteam@netfilter.org,
- "netdev-driver-reviewers@vger.kernel.org"
- <netdev-driver-reviewers@vger.kernel.org>, Hangbin Liu
- <liuhangbin@gmail.com>, netfilter-devel@vger.kernel.org
-Subject: Re: [netfilter-core] [ANN] net-next is OPEN
-Message-ID: <20240125093408.793d8121@kernel.org>
-In-Reply-To: <ZbIqBU9I009KVqZT@calendula>
-References: <20240123072010.7be8fb83@kernel.org>
-	<d0e28c67-51ad-4da1-a6df-7ebdbd45cd2b@kernel.org>
-	<65b133e83f53e_225ba129414@willemb.c.googlers.com.notmuch>
-	<20240124082255.7c8f7c55@kernel.org>
-	<20240124090123.32672a5b@kernel.org>
-	<ZbFiF2HzyWHAyH00@calendula>
-	<20240124114057.1ca95198@kernel.org>
-	<ZbFsyEfMRt8S+ef1@calendula>
-	<20240124121343.6ce76eff@kernel.org>
-	<20240124210724.2b0e08ff@kernel.org>
-	<ZbIqBU9I009KVqZT@calendula>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dEFfkSx1"
+Received: by mail-oi1-f177.google.com with SMTP id 5614622812f47-3bbbc6bcc78so19895b6e.1;
+        Thu, 25 Jan 2024 14:29:49 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1706221788; x=1706826588; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=ouPYgv6jvx+UEBYd2b28+Blg8/f1MS+BmmcDzg8dExg=;
+        b=dEFfkSx1lM12Ws+RFdttte2hsT36bVG58tYR62eE888DGz43Tpfp6+NVnMSefeB3ni
+         DSgVEsj0eYg5XTb2yPcd/iqon4Cmsy1/zRsgE1IAMELxVD+n84XmiWPDHltpsW6WFcJP
+         9+exS6pl3lPHV0dbbt73ls2jICrdi1lFlpUpqE/ZXQjFl+fROJ0HyAvDUuRkTU8Em2Aw
+         nxDEYhwhnPptXzWRtZp23czP/FT+YaHZ/MHbKkTWDKP9Qw+LlpKTEfr7lJ8SZPntcsjh
+         TA0Kv6SYaxuDLDg/VrKZ0J52Q62l7A8QBYHTzLaC+2ixYcTWgwd1IobpSY6cTKVvxYWn
+         rpfA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1706221788; x=1706826588;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=ouPYgv6jvx+UEBYd2b28+Blg8/f1MS+BmmcDzg8dExg=;
+        b=CSy2rCapOGhHcVGaDQVwAC4/5AJP/+FOIimb6NsSfrwynL6YXijSthqBo9cOnLqwoM
+         2YNopA675mIdxjs0zEjXBM3u73qA1apE0FsZ8doZwfW0fNahApr6jGaRzkV5CucBVBkI
+         1PTAa+mwlKC7MjNVKz27kJQQq3Y9YmYP59WXe1zkv3O+C66miAxdi2JqNOTabKIA56MJ
+         EJEl3BRpveTIf6yAoci3Eb6V7DKPXYjqxVQPAqfjttoNj8k8ujr7LCr7mi2N8f830fku
+         A0BLzLHuHkM2gn0L0hRhQwpEu4KP5Gw6wt+/ERGm+V/C+uzR8/jB/xJ7DXEIduEm943m
+         7keg==
+X-Gm-Message-State: AOJu0Yy06Ng15C4KxLsmf1EXfkyfTz2ovLC3gCJVCzp5WIVPm4u2/sQd
+	dFLmp8sINy4fX6uL3Umwe//fEipIdlXqsyQpH2MnvzXIwDIU8N7W43VvzrhQ
+X-Google-Smtp-Source: AGHT+IG2/VOSv7+PKEiOE3BXtYPlBdE7raA2v7l8QZn0/Wb+nptsL1ZfejajXmKefyekueVTU6waZg==
+X-Received: by 2002:a05:6808:2024:b0:3bd:d8d4:5706 with SMTP id q36-20020a056808202400b003bdd8d45706mr541354oiw.12.1706221788293;
+        Thu, 25 Jan 2024 14:29:48 -0800 (PST)
+Received: from wsfd-netdev15.ntdv.lab.eng.bos.redhat.com (nat-pool-bos-t.redhat.com. [66.187.233.206])
+        by smtp.gmail.com with ESMTPSA id b26-20020a05620a04fa00b007836720b96asm5448924qkh.24.2024.01.25.14.29.47
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 25 Jan 2024 14:29:47 -0800 (PST)
+From: Xin Long <lucien.xin@gmail.com>
+To: network dev <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	linux-sctp@vger.kernel.org
+Cc: davem@davemloft.net,
+	kuba@kernel.org,
+	Eric Dumazet <edumazet@google.com>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Subject: [PATCH nf] netfilter: check SCTP_CID_SHUTDOWN_ACK for vtag setting in sctp_new
+Date: Thu, 25 Jan 2024 17:29:46 -0500
+Message-Id: <28d65b0749b8c1a8ae369eec6021248659ba810c.1706221786.git.lucien.xin@gmail.com>
+X-Mailer: git-send-email 2.39.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On Thu, 25 Jan 2024 10:29:41 +0100 Pablo Neira Ayuso wrote:
-> > NFT_COMPAT fixed a lot! One remaining warning comes from using 
-> > -m length. Which NFT config do we need for that one?  
-> 
-> May I have a look at the logs? How does the error look like?
+The annotation says in sctp_new(): "If it is a shutdown ack OOTB packet, we
+expect a return shutdown complete, otherwise an ABORT Sec 8.4 (5) and (8)".
+However, it does not check SCTP_CID_SHUTDOWN_ACK before setting vtag[REPLY]
+in the conntrack entry(ct).
 
-With the config pointed out by Florian in addition to NFT_COMPAT
-all the iptables errors in the logs are gone, without switching
-to legacy. Thank you for the help!
+Because of that, if the ct in Router disappears for some reason in [1]
+with the packet sequence like below:
 
-Also LMK if you guys want us to try running netfilter tests.
-I'm guessing we're unlikely to regress anything in net-next,
-and you have running netfilter tests covered - but if it's 
-not too hard we can try to hook them up to net-next, too!
-(Or you can run them on our branch and report back :))
+   Client > Server: sctp (1) [INIT] [init tag: 3201533963]
+   Server > Client: sctp (1) [INIT ACK] [init tag: 972498433]
+   Client > Server: sctp (1) [COOKIE ECHO]
+   Server > Client: sctp (1) [COOKIE ACK]
+   Client > Server: sctp (1) [DATA] (B)(E) [TSN: 3075057809]
+   Server > Client: sctp (1) [SACK] [cum ack 3075057809]
+   Server > Client: sctp (1) [HB REQ]
+   (the ct in Router disappears somehow)  <-------- [1]
+   Client > Server: sctp (1) [HB ACK]
+   Client > Server: sctp (1) [DATA] (B)(E) [TSN: 3075057810]
+   Client > Server: sctp (1) [DATA] (B)(E) [TSN: 3075057810]
+   Client > Server: sctp (1) [HB REQ]
+   Client > Server: sctp (1) [DATA] (B)(E) [TSN: 3075057810]
+   Client > Server: sctp (1) [HB REQ]
+   Client > Server: sctp (1) [ABORT]
+
+when processing HB ACK packet in Router it calls sctp_new() to initialize
+the new ct with vtag[REPLY] set to HB_ACK packet's vtag.
+
+Later when sending DATA from Client, all the SACKs from Server will get
+dropped in Router, as the SACK packet's vtag does not match vtag[REPLY]
+in the ct. The worst thing is the vtag in this ct will never get fixed
+by the upcoming packets from Server.
+
+This patch fixes it by checking SCTP_CID_SHUTDOWN_ACK before setting
+vtag[REPLY] in the ct in sctp_new() as the annotation says. With this
+fix, it will leave vtag[REPLY] in ct to 0 in the case above, and the
+next HB REQ/ACK from Server is able to fix the vtag as its value is 0
+in nf_conntrack_sctp_packet().
+
+Signed-off-by: Xin Long <lucien.xin@gmail.com>
+---
+ net/netfilter/nf_conntrack_proto_sctp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index c6bd533983c1..4cc97f971264 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -283,7 +283,7 @@ sctp_new(struct nf_conn *ct, const struct sk_buff *skb,
+ 			pr_debug("Setting vtag %x for secondary conntrack\n",
+ 				 sh->vtag);
+ 			ct->proto.sctp.vtag[IP_CT_DIR_ORIGINAL] = sh->vtag;
+-		} else {
++		} else if (sch->type == SCTP_CID_SHUTDOWN_ACK) {
+ 		/* If it is a shutdown ack OOTB packet, we expect a return
+ 		   shutdown complete, otherwise an ABORT Sec 8.4 (5) and (8) */
+ 			pr_debug("Setting vtag %x for new conn OOTB\n",
+-- 
+2.39.1
+
