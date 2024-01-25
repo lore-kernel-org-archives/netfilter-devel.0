@@ -1,86 +1,67 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AD948826;
-	Thu, 25 Jan 2024 05:10:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 857AC1B948;
+	Thu, 25 Jan 2024 08:52:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706159427; cv=none; b=p1uXLYxsSLCRJJk9CDNPnS4hOjVVeMUXjjk4tHghmIKMtcaDqPXOlarIFnkbo2as0Anf1XjAc2PseFd+HN7Ived4MKGlpImUTZhDnwSzCnGP3k0t6B2mII8EWPUfp1qPOzlIbKqrdlGGDHu3uvCCtXvxgTTXs4etApLKqfTmboo=
+	t=1706172738; cv=none; b=tFCXsypiXjrW2HnPUwjb/DBgBOXgWr+Tk9835AXENwsL478I4aJfqi9CB8bv8NmR+MLI80pLIrkdFbrA7x28mE3TsKJkBXc0yCRQvnWXcygvIv7nEdqGIllz3ap8Q4PFB3BhWVAENHDRs+a3u1oBCss+V19vwvsOKXxZNMXy610=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706159427; c=relaxed/simple;
-	bh=QC0301SrHzJHW9DYLg53H0SRvTyQVG4kPx+tfSccbSg=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=Nn+DIN3ShMuSVvCLCxQVxwuhdgqtoSP61rCVGWdpeqVbz8u/rN0EMCATrV9Q/T451JfzWK2VLJaErlmWHRnqMcYn9vC+yMhEkHGjSY6+zEf6TLxOzulc6ziQfvlWQvnRY8ehJXvnvHFQh+T0hH7QcwVNXN9YRPchwL9w1++9z/A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fvGKlbKi; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fvGKlbKi"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id A6F67C43394;
-	Thu, 25 Jan 2024 05:10:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1706159426;
-	bh=QC0301SrHzJHW9DYLg53H0SRvTyQVG4kPx+tfSccbSg=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=fvGKlbKiyg/FMD5GZu6CON467TGlU4YfeNcohtxx8tM90qWYiBwBZElpQT1AR1azq
-	 /0bI/FFoSVqkBce6+Oz5EdDJSm5iCn/jc1H40t4AgZ5aBTBEZHCn5t4NvI8dBdD7Oj
-	 m7iwltY+vmQ6GQ3N5wJZxNyjioYkhr4gW+wq4pzk+iW2zJuzYEdIe5sR4OYLlVy2fh
-	 QBxevNvTuqfg8tUB2HtrwoAtSpKjFR1njYsehbPfD9zwh5pbXQC5Juj3qb57X/DA1B
-	 dvayIZJh436OJYPpZzESilCkX+FEbiV1mtEHh+aA8/rqDKcUdcWCZjULClx+9GJsRz
-	 l+ph35EsZbbzA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 8FB83DFF767;
-	Thu, 25 Jan 2024 05:10:26 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=arc-20240116; t=1706172738; c=relaxed/simple;
+	bh=TRrpOceO1ObHuQDpipuLsskP8G7fTPallXu16th2v2w=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=iTzAJjq/BkCq8mBy+763jvJOnuVLjbr2Z+Wtg4caSvKMz6E8xwz0ACDIunw8szJUine7RT0hpg2jXvvXtoOSbPb/xKQKPKdTwlEeZsiBJ3WHv/wh/Vc9diwZbWTqDR+tyET7yd5ItcV1D2cCfHCDvV94mNdStwIabJvUifAGz94=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1rSvT1-0006uz-Mm; Thu, 25 Jan 2024 09:52:11 +0100
+Date: Thu, 25 Jan 2024 09:52:11 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	David Ahern <dsahern@kernel.org>, coreteam@netfilter.org,
+	"netdev-driver-reviewers@vger.kernel.org" <netdev-driver-reviewers@vger.kernel.org>,
+	Hangbin Liu <liuhangbin@gmail.com>, netfilter-devel@vger.kernel.org
+Subject: Re: [netfilter-core] [ANN] net-next is OPEN
+Message-ID: <20240125085211.GE31645@breakpoint.cc>
+References: <20240123072010.7be8fb83@kernel.org>
+ <d0e28c67-51ad-4da1-a6df-7ebdbd45cd2b@kernel.org>
+ <65b133e83f53e_225ba129414@willemb.c.googlers.com.notmuch>
+ <20240124082255.7c8f7c55@kernel.org>
+ <20240124090123.32672a5b@kernel.org>
+ <ZbFiF2HzyWHAyH00@calendula>
+ <20240124114057.1ca95198@kernel.org>
+ <ZbFsyEfMRt8S+ef1@calendula>
+ <20240124121343.6ce76eff@kernel.org>
+ <20240124210724.2b0e08ff@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/6] netfilter: nf_tables: cleanup documentation
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <170615942658.29950.2948954213736733610.git-patchwork-notify@kernel.org>
-Date: Thu, 25 Jan 2024 05:10:26 +0000
-References: <20240124191248.75463-2-pablo@netfilter.org>
-In-Reply-To: <20240124191248.75463-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240124210724.2b0e08ff@kernel.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-Hello:
-
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
-
-On Wed, 24 Jan 2024 20:12:43 +0100 you wrote:
-> From: George Guo <guodongtai@kylinos.cn>
+Jakub Kicinski <kuba@kernel.org> wrote:
+> On Wed, 24 Jan 2024 12:13:43 -0800 Jakub Kicinski wrote:
+> > > if that is the nftables backend, it might be also that .config is
+> > > missing CONFIG_NF_TABLES and CONFIG_NFT_COMPAT there, among other
+> > > options.  
+> > 
+> > FWIW full config:
+> > 
+> > https://netdev-2.bots.linux.dev/vmksft-net-mp/results/435321/config
+> > 
+> > CONFIG_NFT_COMPAT was indeed missing! Let's see how it fares with it enabled.
 > 
-> - Correct comments for nlpid, family, udlen and udata in struct nft_table,
->   and afinfo is no longer a member of enum nft_set_class.
-> 
-> - Add comment for data in struct nft_set_elem.
-> 
-> [...]
+> NFT_COMPAT fixed a lot! One remaining warning comes from using 
+> -m length. Which NFT config do we need for that one?
 
-Here is the summary with links:
-  - [net,1/6] netfilter: nf_tables: cleanup documentation
-    https://git.kernel.org/netdev/net/c/b253d87fd78b
-  - [net,2/6] netfilter: nft_chain_filter: handle NETDEV_UNREGISTER for inet/ingress basechain
-    https://git.kernel.org/netdev/net/c/01acb2e8666a
-  - [net,3/6] netfilter: nft_limit: reject configurations that cause integer overflow
-    https://git.kernel.org/netdev/net/c/c9d9eb9c53d3
-  - [net,4/6] netfilter: nf_tables: restrict anonymous set and map names to 16 bytes
-    https://git.kernel.org/netdev/net/c/b462579b2b86
-  - [net,5/6] netfilter: nf_tables: reject QUEUE/DROP verdict parameters
-    https://git.kernel.org/netdev/net/c/f342de4e2f33
-  - [net,6/6] netfilter: nf_tables: validate NFPROTO_* family
-    https://git.kernel.org/netdev/net/c/d0009effa886
-
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+CONFIG_NETFILTER_XT_MATCH_LENGTH=m|y
