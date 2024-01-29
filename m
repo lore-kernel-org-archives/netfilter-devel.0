@@ -1,89 +1,160 @@
-Received: from mout.web.de (mout.web.de [212.227.15.14])
+Received: from wout1-smtp.messagingengine.com (wout1-smtp.messagingengine.com [64.147.123.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0A6D11CBA;
-	Sat, 27 Jan 2024 10:35:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.15.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 056A0D515;
+	Mon, 29 Jan 2024 01:24:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=64.147.123.24
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706351740; cv=none; b=htL31F0p0Mkm9jDUHTp+ifAZeLucSzxt2VrSHNIZtccPi446EQ+Hs72soobEjWZSuajeEyovm8wYZqd4FM3t85bkeP3K86u4QELBrXjEQ85SMuY2Nk9yuM2ftAghuiVdSfEvSzF1pHPp9Jb9OEq4g0X+G90b1emaoR/D6Itb5Vk=
+	t=1706491464; cv=none; b=k7nF5f0u5nzgQc4LyZsEGJ0r62sZaaPT6e04HS1OQEP0xoCS1OCgJhCCM43IkXVmWHNt+qDt5z0g4URljhVjn8dwM0kxgBEqzU1Yg8O4Lg1fqHBO7Nrk9FWwB865n09YrOaBZiYVvZyGZtowuwj/U/n/Bj1TnorL4M8UEAiVLg8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706351740; c=relaxed/simple;
-	bh=bBw75j9IqFgnIbLcow/2PLqrMy0+1Vb6FnaPfM8nBGU=;
-	h=Message-ID:Date:MIME-Version:To:References:Subject:From:Cc:
-	 In-Reply-To:Content-Type; b=ZEF3ETJmoUlFg7+pS4F1cHq6h0EALDtRf7aZYsTxgRiEnN9FBKq4F36nAJNPDJiYU0+OXU0A+vc/NYT5p730Sxq9Qdtoxoc4E13A5FsBLxyG55BOXzpjk6vxs/G/uwSFsHIwz8hjUSNgh908FJ2HCcJGNXXYNmtmyzVRbAcSyaQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de; spf=pass smtp.mailfrom=web.de; dkim=pass (2048-bit key) header.d=web.de header.i=markus.elfring@web.de header.b=R8gHkGqw; arc=none smtp.client-ip=212.227.15.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=web.de
+	s=arc-20240116; t=1706491464; c=relaxed/simple;
+	bh=kQEe3sxHRS25R01Huae1wLO1VdyUa7hma2vI+TmJQuw=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=exqo8w9XMcTruA7bYtaIu9paCGKyTt8AILpdfuy4KCx/c1TKaqn/3151u44By+F2Jc5rM+IQbQ7gU+HZHVDhAVhfaMep8Rq6YmN9KM0qi4BQ+fUHTKxBEOckf7uD7NoqtuA1KiEN6+STIyWhCBKebAsmhLArA8IUCA61Qv/uYKE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=dxuuu.xyz; spf=pass smtp.mailfrom=dxuuu.xyz; dkim=pass (2048-bit key) header.d=dxuuu.xyz header.i=@dxuuu.xyz header.b=Sp/P9ZFJ; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=toSTS5fI; arc=none smtp.client-ip=64.147.123.24
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=dxuuu.xyz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=dxuuu.xyz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=web.de header.i=markus.elfring@web.de header.b="R8gHkGqw"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=web.de; s=s29768273;
-	t=1706351703; x=1706956503; i=markus.elfring@web.de;
-	bh=bBw75j9IqFgnIbLcow/2PLqrMy0+1Vb6FnaPfM8nBGU=;
-	h=X-UI-Sender-Class:Date:To:References:Subject:From:Cc:
-	 In-Reply-To;
-	b=R8gHkGqwm3Vw6BI9+PPK3bU00tIc5S/VlKUKmRx+VVchrkvx30esPB5/bcTj81z/
-	 NiVtb1w8C24Yvjn/3aHwCIZFKLxF0tstKi0I6WpW6rdWpJazIWAbXVyTmTM512dKY
-	 aluzYKK/HO5yxK4zYxrQOvr4fq5uSsfbm8hJaW6dlqhHhlc/OEMLqg3rNuzpgCw16
-	 VX/ExCsYxqGM204aGGhw7Q8nSBxDMuEOc0pdbaaOBReScXIQGmySyRcz2OSgq9aOI
-	 WTwUl0dglHzYh9fFS+iWY6ekrNAeuY86SWZTi5BhmZpw5JCrRQ939V5GnJLp2/xzB
-	 WlJ4LhV7zqhlohqn4Q==
-X-UI-Sender-Class: 814a7b36-bfc1-4dae-8640-3722d8ec6cd6
-Received: from [192.168.178.21] ([94.31.81.95]) by smtp.web.de (mrweb006
- [213.165.67.108]) with ESMTPSA (Nemesis) id 1MT7WN-1reMC81YnH-00Uaiv; Sat, 27
- Jan 2024 11:35:03 +0100
-Message-ID: <72f6297c-99ea-4f92-b049-1a33fa864cf5@web.de>
-Date: Sat, 27 Jan 2024 11:34:59 +0100
+	dkim=pass (2048-bit key) header.d=dxuuu.xyz header.i=@dxuuu.xyz header.b="Sp/P9ZFJ";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="toSTS5fI"
+Received: from compute2.internal (compute2.nyi.internal [10.202.2.46])
+	by mailout.west.internal (Postfix) with ESMTP id 9954E3200ABB;
+	Sun, 28 Jan 2024 20:24:19 -0500 (EST)
+Received: from mailfrontend1 ([10.202.2.162])
+  by compute2.internal (MEProxy); Sun, 28 Jan 2024 20:24:21 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
+	:content-transfer-encoding:content-type:date:date:from:from
+	:in-reply-to:message-id:mime-version:reply-to:subject:subject:to
+	:to; s=fm2; t=1706491459; x=1706577859; bh=UASoXhX4PTY3QDklhg97M
+	HiJ1GxNYruI0l1hSTsM1IQ=; b=Sp/P9ZFJkQIEHfcvNH4pxlWQcJTVOu3NARJrb
+	QU0vlJmpM4nohk3iDeQEo/Uuk1NtXdRe9TzUPuLVLZwihZ2nMpR1SaHdOFYdPeJr
+	zyyOLJHWmQv7wFfiklp11U0lm+k97FGE2W734EFNtr2HA1l0VDW6mjxCvSRt+cv2
+	Jz2l6Sncb1dytEyLi2GEvXGQ8aodcH4vddVYUfcqlyPdggq74hiSUGoZkM9NARAL
+	grjLqJgJe/RfIVPH+Fxq0yr0PsDuKjMfahjqvFerrDmJPT3klD1YJQ4f8hx5H2my
+	hiIvvxRm3KeWyQfKVuh8g6GeiEUxoxvfTxyklE1gB/WGbzKRA==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:content-transfer-encoding:content-type
+	:date:date:feedback-id:feedback-id:from:from:in-reply-to
+	:message-id:mime-version:reply-to:subject:subject:to:to
+	:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
+	fm3; t=1706491459; x=1706577859; bh=UASoXhX4PTY3QDklhg97MHiJ1GxN
+	YruI0l1hSTsM1IQ=; b=toSTS5fIeqME+j6fCgQl7sXWi2TbaNbgcEYAv/FUpQCi
+	ojINcUtIFRCemYQFFUCw9KMt6lbUje5JxS9ppMq3UONrtbV910ynaSb71OoD+HR9
+	MskHaANtEDpX/5ZHaX0tU+6v3twRjwEl6fh9aWg3iJaQzjt41KBNs7OnsV5nkZUf
+	9Gf8uMy5g2kYfJaAOtwMMELWFbjTIAF79KrHS0lZ5rR+jWV+YW/iswh8WhA3oYi3
+	iEncy2kWOFdpaGrtvFoMJ0nG9xynxVzhhwcsP7Sl9yD5qe/JLLH1f5gG1Q8jBSZK
+	VLY7S7aDF71kp6q6/qfmcapQgHbU65dYB5oHy/DKQw==
+X-ME-Sender: <xms:Qv62ZdjsQSYWbTlKTLSEqMzzeUVWsCelA_UpwRQPxO1pbHXMb9VtDw>
+    <xme:Qv62ZSAE8nNVyjnQSVjZrXsWge5dcgOFoP5891x2RYn4LJanvbYpqiM9jdLBQJ1P_
+    62DAc7xuFK7DVJxvA>
+X-ME-Received: <xmr:Qv62ZdHZoFIBgCnLzmLD3S7ZxEXX2DyqstxMiOMW2vy6EYK23Jj0mlqAdYVy07CZeSgvbkqi47Kp8joEaorqp0d-f4OR9TxCKAtWAHu_Fqg1hA>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvkedrfedtfedgfeefucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucgfrhhlucfvnfffucdlfeehmdenucfjughrpefhvf
+    fufffkofgggfestdekredtredttdenucfhrhhomhepffgrnhhivghlucgiuhcuoegugihu
+    segugihuuhhurdighiiiqeenucggtffrrghtthgvrhhnpeffffegjeduheelgfdtudekie
+    ejgfegheehjefgieejveevteeiveeukefgheekjeenucffohhmrghinhepghhithhhuhgs
+    rdgtohhmnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomh
+    epugiguhesugiguhhuuhdrgiihii
+X-ME-Proxy: <xmx:Qv62ZSTwvQHw03v-B2f1Bae6pN4fJB-3Qs8pCTG6pZi9wB0IlqrCtg>
+    <xmx:Qv62ZaxbEzm0olNmw8XT6u5Hgp2K4DFcOrRD_Mo1YqOS2_wuDmHRhA>
+    <xmx:Qv62ZY4sEd0MomoUDEp5-KW2l923PFpKcPYCM2P57eJmietEO2dsGA>
+    <xmx:Q_62Zfhc89QQ1-UiKEW_sidKxkm0BIiyi8TNBF-Dz_bCocdzYVhFcg>
+Feedback-ID: i6a694271:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Sun,
+ 28 Jan 2024 20:24:17 -0500 (EST)
+From: Daniel Xu <dxu@dxuuu.xyz>
+To: linux-trace-kernel@vger.kernel.org,
+	coreteam@netfilter.org,
+	bpf@vger.kernel.org,
+	linux-input@vger.kernel.org,
+	cgroups@vger.kernel.org,
+	netdev@vger.kernel.org,
+	linux-stm32@st-md-mailman.stormreply.com,
+	linux-kselftest@vger.kernel.org,
+	linux-doc@vger.kernel.org,
+	fsverity@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	netfilter-devel@vger.kernel.org,
+	alexei.starovoitov@gmail.com,
+	olsajiri@gmail.com,
+	quentin@isovalent.com,
+	alan.maguire@oracle.com,
+	memxor@gmail.com
+Subject: [PATCH bpf-next v4 0/3] Annotate kfuncs in .BTF_ids section
+Date: Sun, 28 Jan 2024 18:24:05 -0700
+Message-ID: <cover.1706491398.git.dxu@dxuuu.xyz>
+X-Mailer: git-send-email 2.42.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-To: Kunwu Chan <chentao@kylinos.cn>, coreteam@netfilter.org,
- netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
- kernel-janitors@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@google.com>, Florian Westphal <fw@strlen.de>,
- Jakub Kicinski <kuba@kernel.org>, Jozsef Kadlecsik <kadlec@netfilter.org>,
- Pablo Neira Ayuso <pablo@netfilter.org>, Paolo Abeni <pabeni@redhat.com>
-References: <20240123024631.396631-1-chentao@kylinos.cn>
-Subject: Re: [PATCH nf-next] netfilter: nf_conncount: Use KMEM_CACHE() instead
- of kmem_cache_create()
-Content-Language: en-GB
-From: Markus Elfring <Markus.Elfring@web.de>
-Cc: LKML <linux-kernel@vger.kernel.org>, Simon Horman <horms@kernel.org>
-In-Reply-To: <20240123024631.396631-1-chentao@kylinos.cn>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:9pUtgJwNPHO1FUc7Q6gwWDK324oGPWcIa8GDBsiT0bDwz8Q57ch
- 48FajJ83+dQzUMagRk8tTnNdyGCXarlXje2J8EQXwCfqVTGUm5OyLfgx28Rm52yTuCwoYqR
- kOLSqYFweLsEyi1dc/8vfrncn2FIMw9Y0/XCgDJGbcrzPdPcTI8k58dgWTsqHWcJTitX7hQ
- /Q0e86go0eCnPeNBfO04A==
-X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:fbPKtf/JPZY=;sgJWmdXtWZFvN7UxGJ2XVWET5uf
- 0rjAClmMxvbIQhxLMWsgG9If2ddardVD1W5qH8kFq5elE+jt2ESUlAxd0/16LNJkahxamOpHM
- rBFOayVIBCSE7penEwQopZZIZxWAqO8uRle454OGP8G5GfEGXDAmaWtld8NDWrVA394lwe4kJ
- +goe2b3rOZ5g5HPEyt9n3bO1larbB1mAGQr1EZeZnV0tr6fArRU20tqvWy7mZ/puC9EI3YhE9
- GsJBDSNiP2hi9OCJeNSjI78UBHYYhfloZ3ndVNT1W1x2F59X0HKHivp/HtNIBq24/5ElRUvx6
- 7bXKNIiZY5Cjqnd2Kx9ylpFVV4OFCOyuE0Da2pLlevE+yawJgJfItmzCaAqECzOj92wGbetrE
- BcmqanflwVvoM5IYqkZblx2POmitvm5bbngGqvF6UqrbaNzmVq4SAzoKduXnbmbVI103Weibn
- NRLqyQXan0zsiDHR9Z26xeRUXsIoBqTDpZ1B0K2OblQwDjZkFVypsBvuiREQirP2qdL5muvjJ
- sJWdPoyExdgorIqH2ZfOmdy4I7+dYMrwS9LqvdJoYlgW8esT6qZkcmqGITZaTNRZ5A2q+UQXv
- MvhShA+G9zFEqsYMPvoCYnQVUZaAAjeDoEeMzu9j9+VBYLaBp0ucA+6+/7meIs1URUrRion69
- CAiMwOtHjZjqKbIA0vsxR5atMQqbfcofJHLYNX+ZOsvtZy+RGZ7BOE/n23Ebn0R6mq5Ogl7rm
- is6ITHQP2x4Tf1TUUJotyGCHWh3T9faJwTs0iwh6qhjOy5HL0PbVKluAd2DYWv+yGMK1ZyMZO
- j2602NkPUGPIV0IUWqMGcAmTjoH1GVt2OJnCh1a28ZhBV6MA8Q0V4MpBDec/Gln3svwYROLeK
- ApHoM467gZG/m8dR2DVChHp2F4ih4qWWIfw6GNGnLEUq/oxkkTz6LoKDg3JHahUTSLWqxbdL5
- ZdSUSw==
+Content-Transfer-Encoding: 8bit
 
-> Use the new KMEM_CACHE() macro instead of direct kmem_cache_create
-> to simplify the creation of SLAB caches.
+=== Description ===
 
-I suggest to replace the word =E2=80=9Cnew=E2=80=9D by a reference to the =
-commit 8eb8284b412906181357c2b0110d879d5af95e52
-("usercopy: Prepare for usercopy whitelisting").
+This is a bpf-treewide change that annotates all kfuncs as such inside
+.BTF_ids. This annotation eventually allows us to automatically generate
+kfunc prototypes from bpftool.
 
-See also related background information from 2017-06-10.
+We store this metadata inside a yet-unused flags field inside struct
+btf_id_set8 (thanks Kumar!). pahole will be taught where to look.
 
-Regards,
-Markus
+More details about the full chain of events are available in commit 3's
+description.
+
+The accompanying pahole and bpftool changes can be viewed
+here on these "frozen" branches [0][1].
+
+[0]: https://github.com/danobi/pahole/tree/kfunc_btf-v3-mailed
+[1]: https://github.com/danobi/linux/tree/kfunc_bpftool-mailed
+
+=== Changelog ===
+
+Changes from v3:
+* Rebase to bpf-next and add missing annotation on new kfunc
+
+Changes from v2:
+* Only WARN() for vmlinux kfuncs
+
+Changes from v1:
+* Move WARN_ON() up a call level
+* Also return error when kfunc set is not properly tagged
+* Use BTF_KFUNCS_START/END instead of flags
+* Rename BTF_SET8_KFUNC to BTF_SET8_KFUNCS
+
+Daniel Xu (3):
+  bpf: btf: Support flags for BTF_SET8 sets
+  bpf: btf: Add BTF_KFUNCS_START/END macro pair
+  bpf: treewide: Annotate BPF kfuncs in BTF
+
+ Documentation/bpf/kfuncs.rst                  |  8 +++----
+ drivers/hid/bpf/hid_bpf_dispatch.c            |  8 +++----
+ fs/verity/measure.c                           |  4 ++--
+ include/linux/btf_ids.h                       | 21 +++++++++++++++----
+ kernel/bpf/btf.c                              |  8 +++++++
+ kernel/bpf/cpumask.c                          |  4 ++--
+ kernel/bpf/helpers.c                          |  8 +++----
+ kernel/bpf/map_iter.c                         |  4 ++--
+ kernel/cgroup/rstat.c                         |  4 ++--
+ kernel/trace/bpf_trace.c                      |  8 +++----
+ net/bpf/test_run.c                            |  8 +++----
+ net/core/filter.c                             | 20 +++++++++---------
+ net/core/xdp.c                                |  4 ++--
+ net/ipv4/bpf_tcp_ca.c                         |  4 ++--
+ net/ipv4/fou_bpf.c                            |  4 ++--
+ net/ipv4/tcp_bbr.c                            |  4 ++--
+ net/ipv4/tcp_cubic.c                          |  4 ++--
+ net/ipv4/tcp_dctcp.c                          |  4 ++--
+ net/netfilter/nf_conntrack_bpf.c              |  4 ++--
+ net/netfilter/nf_nat_bpf.c                    |  4 ++--
+ net/xfrm/xfrm_interface_bpf.c                 |  4 ++--
+ net/xfrm/xfrm_state_bpf.c                     |  4 ++--
+ .../selftests/bpf/bpf_testmod/bpf_testmod.c   |  8 +++----
+ 23 files changed, 87 insertions(+), 66 deletions(-)
+
+-- 
+2.42.1
+
