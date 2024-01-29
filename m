@@ -1,21 +1,21 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3F0B664CEF
-	for <netfilter-devel@vger.kernel.org>; Mon, 29 Jan 2024 13:40:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 06A4B152DE7
+	for <netfilter-devel@vger.kernel.org>; Mon, 29 Jan 2024 14:51:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706535627; cv=none; b=s37WhREvtjD7wE6w43PLcmSUfxJtJNjwbA/ZbJbYqPxXoxqc0UNNHjU2FwgfdCr5S3/wnvGoMM97R47XSAUG0DTUDd0FmTMGSoVV/TVxeMp7hCVdoHTov+YRfxkW4ltBIQRBY8WEJGQjKm6RVZORhnl17dql106xnZdpxphVsyU=
+	t=1706539908; cv=none; b=VAgr1C5rjpHx8F2a5ihSzH0TLDwVKJ8295gahX6qHeL0+EpQ7UH8lhuhwFnF+LyhBwS6x9Q+3L0l9A161YfgyjulDWP9mOBe7pFmc2A21VzwFjPk6S9gEyP1KS02qXeNecww3T0UlHFs6YjRqQsXYheIucptyMCy5v69aps3/D4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706535627; c=relaxed/simple;
-	bh=zNOGC3WXKsQO0lRHDmEbxC2K3190DPbbDCAEI/CaBog=;
-	h=From:To:Subject:Date:Message-Id:MIME-Version; b=Cb0wegrLEaOA/vF1OGd0c+F7mr6JUz1zhY4uv34AkZpLLnnHvXtixUrdc9S2+GRgtvBFyFdfeWjDDmva4fMOX7ZX+UW5dBRqUPCLW+VY3/l2JuoWHFago4M0xdOP9+l1+pr42FMfOub4TElpBEiGpZfL9j5YhAW4xTUvvLJLGLg=
+	s=arc-20240116; t=1706539908; c=relaxed/simple;
+	bh=lAtOdTUTMsdPPHs3RsMXV+Clfm1w2DoEBbArAIWmf2I=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=rcMo4Ns9KsqqMVmb4KioYA6rzlZyW5tmm4ZiXQAxEf/wSZ7FqIa3++M1ixmF3CKZV2QzeTIDc5PTltA75zqIeViUsSbZOb9kjudQIA6GPopmp96nJl9L5MxPcBFZ2RGofTaddl2T/5GfgaOFkBG/PFB2MNx5Rjm3dGvuOMEOSr0=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v2] netfilter: nf_tables: restrict tunnel object to NFPROTO_NETDEV
-Date: Mon, 29 Jan 2024 14:40:18 +0100
-Message-Id: <20240129134018.16542-1-pablo@netfilter.org>
+Subject: [PATCH nft] datatype: display 0s time datatype
+Date: Mon, 29 Jan 2024 15:51:38 +0100
+Message-Id: <20240129145138.139214-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -25,104 +25,60 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Bail out on using the tunnel dst template from other than netdev family.
-Add the infrastructure to check for the family in objects.
+Otherwise, nothing is printed in case that time is 0 seconds.
 
-Fixes: af308b94a2a4 ("netfilter: nf_tables: add tunnel support")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: fix compilation, I sent the wrong patch version.
+ src/datatype.c | 24 +++++++++++++++++++-----
+ 1 file changed, 19 insertions(+), 5 deletions(-)
 
- include/net/netfilter/nf_tables.h |  2 ++
- net/netfilter/nf_tables_api.c     | 14 +++++++++-----
- net/netfilter/nft_tunnel.c        |  1 +
- 3 files changed, 12 insertions(+), 5 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 4e1ea18eb5f0..001226c34621 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1351,6 +1351,7 @@ void nft_obj_notify(struct net *net, const struct nft_table *table,
-  *	@type: stateful object numeric type
-  *	@owner: module owner
-  *	@maxattr: maximum netlink attribute
-+ *	@family: address family for AF-specific object types
-  *	@policy: netlink attribute policy
-  */
- struct nft_object_type {
-@@ -1360,6 +1361,7 @@ struct nft_object_type {
- 	struct list_head		list;
- 	u32				type;
- 	unsigned int                    maxattr;
-+	u8				family;
- 	struct module			*owner;
- 	const struct nla_policy		*policy;
- };
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index c537104411e7..fc016befb46f 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -7551,11 +7551,15 @@ static int nft_object_dump(struct sk_buff *skb, unsigned int attr,
- 	return -1;
- }
- 
--static const struct nft_object_type *__nft_obj_type_get(u32 objtype)
-+static const struct nft_object_type *__nft_obj_type_get(u32 objtype, u8 family)
+diff --git a/src/datatype.c b/src/datatype.c
+index 099e7580bd6c..3205b214197f 100644
+--- a/src/datatype.c
++++ b/src/datatype.c
+@@ -1090,6 +1090,7 @@ const struct datatype icmpx_code_type = {
+ void time_print(uint64_t ms, struct output_ctx *octx)
  {
- 	const struct nft_object_type *type;
+ 	uint64_t days, hours, minutes, seconds;
++	bool printed = false;
  
- 	list_for_each_entry(type, &nf_tables_objects, list) {
-+		if (type->family != NFPROTO_UNSPEC &&
-+		    type->family != family)
-+			continue;
+ 	if (nft_output_seconds(octx)) {
+ 		nft_print(octx, "%" PRIu64 "s", ms / 1000);
+@@ -1108,16 +1109,29 @@ void time_print(uint64_t ms, struct output_ctx *octx)
+ 	seconds = ms / 1000;
+ 	ms %= 1000;
+ 
+-	if (days > 0)
++	if (days > 0) {
+ 		nft_print(octx, "%" PRIu64 "d", days);
+-	if (hours > 0)
++		printed = true;
++	}
++	if (hours > 0) {
+ 		nft_print(octx, "%" PRIu64 "h", hours);
+-	if (minutes > 0)
++		printed = true;
++	}
++	if (minutes > 0) {
+ 		nft_print(octx, "%" PRIu64 "m", minutes);
+-	if (seconds > 0)
++		printed = true;
++	}
++	if (seconds > 0) {
+ 		nft_print(octx, "%" PRIu64 "s", seconds);
+-	if (ms > 0)
++		printed = true;
++	}
++	if (ms > 0) {
+ 		nft_print(octx, "%" PRIu64 "ms", ms);
++		printed = true;
++	}
 +
- 		if (objtype == type->type)
- 			return type;
- 	}
-@@ -7563,11 +7567,11 @@ static const struct nft_object_type *__nft_obj_type_get(u32 objtype)
++	if (!printed)
++		nft_print(octx, "0s");
  }
  
- static const struct nft_object_type *
--nft_obj_type_get(struct net *net, u32 objtype)
-+nft_obj_type_get(struct net *net, u32 objtype, u8 family)
- {
- 	const struct nft_object_type *type;
- 
--	type = __nft_obj_type_get(objtype);
-+	type = __nft_obj_type_get(objtype, family);
- 	if (type != NULL && try_module_get(type->owner))
- 		return type;
- 
-@@ -7660,7 +7664,7 @@ static int nf_tables_newobj(struct sk_buff *skb, const struct nfnl_info *info,
- 		if (info->nlh->nlmsg_flags & NLM_F_REPLACE)
- 			return -EOPNOTSUPP;
- 
--		type = __nft_obj_type_get(objtype);
-+		type = __nft_obj_type_get(objtype, family);
- 		if (WARN_ON_ONCE(!type))
- 			return -ENOENT;
- 
-@@ -7674,7 +7678,7 @@ static int nf_tables_newobj(struct sk_buff *skb, const struct nfnl_info *info,
- 	if (!nft_use_inc(&table->use))
- 		return -EMFILE;
- 
--	type = nft_obj_type_get(net, objtype);
-+	type = nft_obj_type_get(net, objtype, family);
- 	if (IS_ERR(type)) {
- 		err = PTR_ERR(type);
- 		goto err_type;
-diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
-index 9f21953c7433..f735d79d8be5 100644
---- a/net/netfilter/nft_tunnel.c
-+++ b/net/netfilter/nft_tunnel.c
-@@ -713,6 +713,7 @@ static const struct nft_object_ops nft_tunnel_obj_ops = {
- 
- static struct nft_object_type nft_tunnel_obj_type __read_mostly = {
- 	.type		= NFT_OBJECT_TUNNEL,
-+	.family		= NFPROTO_NETDEV,
- 	.ops		= &nft_tunnel_obj_ops,
- 	.maxattr	= NFTA_TUNNEL_KEY_MAX,
- 	.policy		= nft_tunnel_key_policy,
+ enum {
 -- 
 2.30.2
 
