@@ -1,32 +1,36 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B86415350B;
-	Mon, 29 Jan 2024 15:31:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC7E7153BCC;
+	Mon, 29 Jan 2024 15:31:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706542286; cv=none; b=J3s2yypdQIn/gKD2y0UrthnXykNVusesou4RSVrXZqyUVAMmhWDi79BRMf8gMvsvniogtkyE3rh0+xeBTizUgh3fGnTaxzR3+9xGBXS7rvUj0JOYpQ/junNNpvmR02g/X4sVFZEXyb8LQzyET3vIVi1UtHvcFDyCinfuhm/4agU=
+	t=1706542289; cv=none; b=IGXvnFEdU6di3/da9qXcFbpOJhE4NwOFPsCUXdo/lsK2RQ+6ozfrT+QyZr2u2KKS21Xiv17HHJ+ntags176mjURPEcP2n7Ps4AhisMFWalUPKc9dUUjpUec1ym3IDjXgEggAfjNFtL6F/MWJw5COIGPy6ECubGiLCSLeQJUm9kw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706542286; c=relaxed/simple;
-	bh=KtHCazO5WCZP+EbAzh4CTZmajC4s+AwCkWZlEHJHXlE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=WcsFAE4H/F8EWFAuXc0ogrYH62EcWeEfNg4oKUvdNNQKIj8YYXIq/3Z0/akbaQzF5vrZ7r45GbTRGL9a7lOotBuriVCnnnreAMLflQ7BYvfccRt1B7nHncKzHzCItXKADh77C4VHfjxAPJHfixupm84Yxvh9pOnrXK+nRHZoxbg=
+	s=arc-20240116; t=1706542289; c=relaxed/simple;
+	bh=dKulQXqXWVw9DRzCSEiv2mw41rZBp4VyGqqm5mopIN4=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=S0sJw2E9FVRNTk4lbaYKa3sJv1FAQSYkNFnM9X2lKaKaBvoKa+li3mXNh1+OnxaBVmI6x6ccUWPU0tv5uh8koD9W1BM5x+eh6gy6FvHqFBsfS5y+ifOurC6vo9S1vzdIQsFX3m1AwJkSD3crWAwb3BATBxXZhtToDr0/ndLGmgE=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1rUTbN-0001zb-GZ; Mon, 29 Jan 2024 16:31:13 +0100
+	id 1rUTbU-00020T-Bv; Mon, 29 Jan 2024 16:31:20 +0100
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
 	"David S. Miller" <davem@davemloft.net>,
 	Eric Dumazet <edumazet@google.com>,
 	Jakub Kicinski <kuba@kernel.org>,
-	<netfilter-devel@vger.kernel.org>
-Subject: [PATCH nf-next 0/9] netfilter updates for -next
-Date: Mon, 29 Jan 2024 15:57:50 +0100
-Message-ID: <20240129145807.8773-1-fw@strlen.de>
+	<netfilter-devel@vger.kernel.org>,
+	Phil Sutter <phil@nwl.cc>
+Subject: [PATCH nf-next 3/9] netfilter: nf_tables: Implement table adoption support
+Date: Mon, 29 Jan 2024 15:57:53 +0100
+Message-ID: <20240129145807.8773-4-fw@strlen.de>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20240129145807.8773-1-fw@strlen.de>
+References: <20240129145807.8773-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -35,74 +39,98 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hello,
+From: Phil Sutter <phil@nwl.cc>
 
-This batch contains updates for your *next* tree.
+Allow a new process to take ownership of a previously owned table,
+useful mostly for firewall management services restarting or suspending
+when idle.
 
-First three changes, from Phil Sutter, allow userspace to define
-a table that is exclusively owned by a daemon (via netlink socket
-aliveness) without auto-removing this table when the userspace program
-exits.  Such table gets marked as orphaned and a restarting management
-daemon may re-attach/reassume ownership.
+By extending __NFT_TABLE_F_UPDATE, the on/off/on check in
+nf_tables_updtable() also covers table adoption, although it is actually
+not needed: Table adoption is irreversible because nf_tables_updtable()
+rejects attempts to drop NFT_TABLE_F_OWNER so table->nlpid setting can
+happen just once within the transaction.
 
-Next patch, from Pablo, passes already-validated flags variable around
-rather than having called code re-fetch it from netlnik message.
+If the transaction commences, table's nlpid and flags fields are already
+set and no further action is required. If it aborts, the table returns
+to orphaned state.
 
-Patches 5 and 6 update ipvs and nf_conncount to use the recently
-introduced KMEM_CACHE() macro.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ include/net/netfilter/nf_tables.h |  6 ++++++
+ net/netfilter/nf_tables_api.c     | 19 ++++++++++++++++---
+ 2 files changed, 22 insertions(+), 3 deletions(-)
 
-Last three patches, from myself, tweak kconfig logic a little to
-permit a kernel configuration that can run iptables-over-nftables
-but not classic (setsockopt) iptables.
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 4e1ea18eb5f0..ac7c94d3648e 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1271,6 +1271,12 @@ static inline bool nft_table_has_owner(const struct nft_table *table)
+ 	return table->flags & NFT_TABLE_F_OWNER;
+ }
+ 
++static inline bool nft_table_is_orphan(const struct nft_table *table)
++{
++	return (table->flags & (NFT_TABLE_F_OWNER | NFT_TABLE_F_PERSIST)) ==
++			NFT_TABLE_F_PERSIST;
++}
++
+ static inline bool nft_base_chain_netdev(int family, u32 hooknum)
+ {
+ 	return family == NFPROTO_NETDEV ||
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 6a96f0003faa..b0e0d039897e 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1194,8 +1194,10 @@ static void nf_tables_table_disable(struct net *net, struct nft_table *table)
+ #define __NFT_TABLE_F_INTERNAL		(NFT_TABLE_F_MASK + 1)
+ #define __NFT_TABLE_F_WAS_DORMANT	(__NFT_TABLE_F_INTERNAL << 0)
+ #define __NFT_TABLE_F_WAS_AWAKEN	(__NFT_TABLE_F_INTERNAL << 1)
++#define __NFT_TABLE_F_WAS_ORPHAN	(__NFT_TABLE_F_INTERNAL << 2)
+ #define __NFT_TABLE_F_UPDATE		(__NFT_TABLE_F_WAS_DORMANT | \
+-					 __NFT_TABLE_F_WAS_AWAKEN)
++					 __NFT_TABLE_F_WAS_AWAKEN | \
++					 __NFT_TABLE_F_WAS_ORPHAN)
+ 
+ static int nf_tables_updtable(struct nft_ctx *ctx)
+ {
+@@ -1215,8 +1217,8 @@ static int nf_tables_updtable(struct nft_ctx *ctx)
+ 
+ 	if ((nft_table_has_owner(ctx->table) &&
+ 	     !(flags & NFT_TABLE_F_OWNER)) ||
+-	    (!nft_table_has_owner(ctx->table) &&
+-	     flags & NFT_TABLE_F_OWNER))
++	    (flags & NFT_TABLE_F_OWNER &&
++	     !nft_table_is_orphan(ctx->table)))
+ 		return -EOPNOTSUPP;
+ 
+ 	if ((flags ^ ctx->table->flags) & NFT_TABLE_F_PERSIST)
+@@ -1248,6 +1250,13 @@ static int nf_tables_updtable(struct nft_ctx *ctx)
+ 		}
+ 	}
+ 
++	if ((flags & NFT_TABLE_F_OWNER) &&
++	    !nft_table_has_owner(ctx->table)) {
++		ctx->table->nlpid = ctx->portid;
++		ctx->table->flags |= NFT_TABLE_F_OWNER |
++				     __NFT_TABLE_F_WAS_ORPHAN;
++	}
++
+ 	nft_trans_table_update(trans) = true;
+ 	nft_trans_commit_list_add_tail(ctx->net, trans);
+ 
+@@ -10423,6 +10432,10 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 				} else if (trans->ctx.table->flags & __NFT_TABLE_F_WAS_AWAKEN) {
+ 					trans->ctx.table->flags &= ~NFT_TABLE_F_DORMANT;
+ 				}
++				if (trans->ctx.table->flags & __NFT_TABLE_F_WAS_ORPHAN) {
++					trans->ctx.table->flags &= ~NFT_TABLE_F_OWNER;
++					trans->ctx.table->nlpid = 0;
++				}
+ 				trans->ctx.table->flags &= ~__NFT_TABLE_F_UPDATE;
+ 				nft_trans_destroy(trans);
+ 			} else {
+-- 
+2.43.0
 
-Such builds lack the builtin-filter/mangle/raw/nat/security tables,
-the set/getsockopt interface and the "old blob format"
-interpreter/traverser.  For now, this is 'oldconfig friendly', users
-need to manually deselect existing config options for this.
-
-The following changes since commit 723de3ebef03bc14bd72531f00f9094337654009:
-
-  net: free altname using an RCU callback (2024-01-29 14:40:38 +0000)
-
-are available in the Git repository at:
-
-  https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-24-01-29
-
-for you to fetch changes up to 7ad269787b6615ca56bb161063331991fce51abf:
-
-  netfilter: ebtables: allow xtables-nft only builds (2024-01-29 15:43:21 +0100)
-
-----------------------------------------------------------------
-nf-next pr 2024-01-29
-
-----------------------------------------------------------------
-Florian Westphal (3):
-      netfilter: arptables: allow xtables-nft only builds
-      netfilter: xtables: allow xtables-nft only builds
-      netfilter: ebtables: allow xtables-nft only builds
-
-Kunwu Chan (2):
-      netfilter: nf_conncount: Use KMEM_CACHE instead of kmem_cache_create()
-      ipvs: Simplify the allocation of ip_vs_conn slab caches
-
-Pablo Neira Ayuso (1):
-      netfilter: nf_tables: pass flags to set backend selection routine
-
-Phil Sutter (3):
-      netfilter: uapi: Document NFT_TABLE_F_OWNER flag
-      netfilter: nf_tables: Introduce NFT_TABLE_F_PERSIST
-      netfilter: nf_tables: Implement table adoption support
-
- include/net/netfilter/nf_tables.h        |  6 +++++
- include/uapi/linux/netfilter/nf_tables.h |  6 ++++-
- net/bridge/netfilter/Kconfig             |  7 ++++++
- net/bridge/netfilter/Makefile            |  2 +-
- net/ipv4/netfilter/Kconfig               | 43 +++++++++++++++++++-------------
- net/ipv4/netfilter/Makefile              |  2 +-
- net/ipv6/netfilter/Kconfig               | 20 ++++++++++-----
- net/ipv6/netfilter/Makefile              |  2 +-
- net/netfilter/Kconfig                    | 12 ++++-----
- net/netfilter/ipvs/ip_vs_conn.c          |  4 +--
- net/netfilter/nf_conncount.c             |  8 ++----
- net/netfilter/nf_tables_api.c            | 35 ++++++++++++++++++--------
- 12 files changed, 94 insertions(+), 53 deletions(-)
