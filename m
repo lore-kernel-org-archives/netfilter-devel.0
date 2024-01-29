@@ -1,22 +1,22 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 038C3153BE9;
-	Mon, 29 Jan 2024 15:31:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0638154435;
+	Mon, 29 Jan 2024 15:31:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706542290; cv=none; b=VxbzlHDSeHu7wKpZZqkDTEF0TKi3ykN1jpPfut21KXz+Gtts2tIJ+CnIGduImeewnBd2vyxhGbVQW9+xtEWzR9NgT2VIp08kf87QO3NVbG3qnPim9y7kYQ397nozCbR/8LnZOEOVB2eMAo7Y4Hu5EfKckaAc8Td0mcNacOgvXHE=
+	t=1706542291; cv=none; b=qULo991BYmvsQFimktV01RtdTpv95Xy+9FRfX9J7DyP6SpyCbxoNgyfpCzO/upqjf5lyc8NHlig7/AAz21J8ReAxTJ9nLmhMxOPJL1YRpnoRNK8hGrA6KAgCCvTf8fmpuGeYYP2F2d4956NIy8CdGdugBMzxc+PMR6+d2PyZW0c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706542290; c=relaxed/simple;
-	bh=LBRN5RjKnpPANTwMylVrsyh1S34feeBe8TEBNC37QIA=;
+	s=arc-20240116; t=1706542291; c=relaxed/simple;
+	bh=9A/Cff5I6/+gIYHxG2x4jBKoi4a9spUgoqphgBujnpM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=s4YRIE6bJAoxwniPmPs+uuqAmzYPhTModB153heKOwX/7+C1DIT9G3aBDKM4i5DKumy0zR6194tvBx798bnlLSymF0yFohA2VCbJ2lPIkqoflw0sber/rPFlouir5MXahsW3ZAPyblFEDf5G3SlrZ2ma7JNqlcAaaiJ7vcaq+mI=
+	 MIME-Version; b=uiKIafi9xj7dEHfBpT+eNMNC91F8VqI5jZIo5kJVvolJmjPtyRBJCY7znH8TIoOc/OIlRv4dQLxXZAqoIUtwRtfkaWLETBsD9NTkleEJj7kI6tvm2lHFyZkNHHfma+PKN1J9Jlc3zn4nfxj/27iIo7EdGXGE8wRSx+E0ivsublU=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1rUTbV-00020r-Lb; Mon, 29 Jan 2024 16:31:21 +0100
+	id 1rUTbR-0001zv-Pe; Mon, 29 Jan 2024 16:31:17 +0100
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,10 +24,10 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Eric Dumazet <edumazet@google.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 4/9] netfilter: nf_tables: pass flags to set backend selection routine
-Date: Mon, 29 Jan 2024 15:57:54 +0100
-Message-ID: <20240129145807.8773-5-fw@strlen.de>
+	Phil Sutter <phil@nwl.cc>
+Subject: [PATCH nf-next 1/9] netfilter: uapi: Document NFT_TABLE_F_OWNER flag
+Date: Mon, 29 Jan 2024 15:57:51 +0100
+Message-ID: <20240129145807.8773-2-fw@strlen.de>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20240129145807.8773-1-fw@strlen.de>
 References: <20240129145807.8773-1-fw@strlen.de>
@@ -39,55 +39,29 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Phil Sutter <phil@nwl.cc>
 
-No need to refetch the flag from the netlink attribute, pass the
-existing flags variable which already provide validated flags.
+Add at least this one-liner describing the obvious.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: 6001a930ce03 ("netfilter: nftables: introduce table ownership")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_tables_api.c | 9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ include/uapi/linux/netfilter/nf_tables.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index b0e0d039897e..7f25a04e4b81 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4247,23 +4247,18 @@ static bool nft_set_ops_candidate(const struct nft_set_type *type, u32 flags)
-  * given, in that case the amount of memory per element is used.
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index ca30232b7bc8..fbce238abdc1 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -179,6 +179,7 @@ enum nft_hook_attributes {
+  * enum nft_table_flags - nf_tables table flags
+  *
+  * @NFT_TABLE_F_DORMANT: this table is not active
++ * @NFT_TABLE_F_OWNER:   this table is owned by a process
   */
- static const struct nft_set_ops *
--nft_select_set_ops(const struct nft_ctx *ctx,
--		   const struct nlattr * const nla[],
-+nft_select_set_ops(const struct nft_ctx *ctx, u32 flags,
- 		   const struct nft_set_desc *desc)
- {
- 	struct nftables_pernet *nft_net = nft_pernet(ctx->net);
- 	const struct nft_set_ops *ops, *bops;
- 	struct nft_set_estimate est, best;
- 	const struct nft_set_type *type;
--	u32 flags = 0;
- 	int i;
- 
- 	lockdep_assert_held(&nft_net->commit_mutex);
- 	lockdep_nfnl_nft_mutex_not_held();
- 
--	if (nla[NFTA_SET_FLAGS] != NULL)
--		flags = ntohl(nla_get_be32(nla[NFTA_SET_FLAGS]));
--
- 	bops	    = NULL;
- 	best.size   = ~0;
- 	best.lookup = ~0;
-@@ -5149,7 +5144,7 @@ static int nf_tables_newset(struct sk_buff *skb, const struct nfnl_info *info,
- 	if (!(info->nlh->nlmsg_flags & NLM_F_CREATE))
- 		return -ENOENT;
- 
--	ops = nft_select_set_ops(&ctx, nla, &desc);
-+	ops = nft_select_set_ops(&ctx, flags, &desc);
- 	if (IS_ERR(ops))
- 		return PTR_ERR(ops);
- 
+ enum nft_table_flags {
+ 	NFT_TABLE_F_DORMANT	= 0x1,
 -- 
 2.43.0
 
