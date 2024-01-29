@@ -1,35 +1,23 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5FA3155A45;
-	Mon, 29 Jan 2024 15:31:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id DF7DB24B57
+	for <netfilter-devel@vger.kernel.org>; Mon, 29 Jan 2024 19:05:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706542305; cv=none; b=aiw2df9Da5NxclKbFjTigDICAimsGhDRp8SpnPZV/Esqd0M9aPahJeCOWumtAesoVBTkHnyDeRv8tXMoI2WJ5qND242ZAB9kTkjc+ecCi17X6DVCNd0oSiRy5ymA6ykkdhQYuSxD3CeSo+Z0dn89tYD0HvmaPsRpDztAnm+ZgA4=
+	t=1706555148; cv=none; b=FStcSlyoUuG43/i+6xsrq5Tjy2LWwj37RPHIzDFL7MFkzy/AMnSvtjIWNxdF3wR6c8VSoxKFyTRx7BsyJoQd/dZr6Cb2ZrV6KhdfueOswWPEonUxtaZbm2BaFGyA01ODPMTdLnckFrD39lxaafeXSDOMxYJ9G6CuRjeRe05Ygwc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706542305; c=relaxed/simple;
-	bh=yCKnN89h3GjeQEzFuBHbviWCTxPpsN9xIg3fXEnNoQU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=I1Pt2psi7x37YAdiM4q0CyHxzouvBUFX9jmfrDYCKTxn3B/hrglvyGHW9jdIrHKJ2deivvCeZkjt5ISDt6eYCd0DiPo3bIFTEP3WFbr+yhc6/nUrp9+z8HQj+JBs+lJjG+QB8hChJExfMZ1ffarTyvRwhifkpLH8e6DrxyWqrJc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1rUTbl-00023R-6t; Mon, 29 Jan 2024 16:31:37 +0100
-From: Florian Westphal <fw@strlen.de>
-To: <netdev@vger.kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	<netfilter-devel@vger.kernel.org>
-Subject: [PATCH nf-next 9/9] netfilter: ebtables: allow xtables-nft only builds
-Date: Mon, 29 Jan 2024 15:57:59 +0100
-Message-ID: <20240129145807.8773-10-fw@strlen.de>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20240129145807.8773-1-fw@strlen.de>
-References: <20240129145807.8773-1-fw@strlen.de>
+	s=arc-20240116; t=1706555148; c=relaxed/simple;
+	bh=cH7jq5GvRT6X5v+HRP6H6WEeAi9Inh2m1L+NtIUOdus=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=a9SLYjehPL+mPeZF0hUwaDeD86oi9PqusmtuoA5SWrB1wovCeG0HLYJzBRyuoW58Hl4Jff5KbBVHPzjr10/hCkSJ3RvmvxVrIMCas8R8+gTyzyEcYlqOEYLykmEE0wknuHXsqKW3yR9FUXY9uZ74KLNbv3/Kc897F1W0Nn6iyf8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de
+Subject: [PATCH nf] netfilter: nft_ct: bail out if helper is not found for NFPROTO_{IPV4,IPV6}
+Date: Mon, 29 Jan 2024 20:05:38 +0100
+Message-Id: <20240129190538.147822-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -38,76 +26,56 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Same patch as previous one, but for ebtables.
+Otherwise, this assigns the NULL helper. Bail out from control plane path
+if the kernel does not provide this helper.
 
-To build a kernel that only supports ebtables-nft, the builtin tables
-need to be disabled, i.e.:
-
-CONFIG_BRIDGE_EBT_BROUTE=n
-CONFIG_BRIDGE_EBT_T_FILTER=n
-CONFIG_BRIDGE_EBT_T_NAT=n
-
-The ebtables specific extensions can then be used nftables'
-NFT_COMPAT interface.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 1a64edf54f55 ("netfilter: nft_ct: add helper set support")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/bridge/netfilter/Kconfig  | 7 +++++++
- net/bridge/netfilter/Makefile | 2 +-
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ net/netfilter/nft_ct.c | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
-index 7f304a19ac1b..104c0125e32e 100644
---- a/net/bridge/netfilter/Kconfig
-+++ b/net/bridge/netfilter/Kconfig
-@@ -39,6 +39,10 @@ config NF_CONNTRACK_BRIDGE
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 715a154f243c..6f7e49752bfa 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -1077,6 +1077,8 @@ static int nft_ct_helper_obj_init(const struct nft_ctx *ctx,
  
- 	  To compile it as a module, choose M here.  If unsure, say N.
+ 		help4 = nf_conntrack_helper_try_module_get(name, family,
+ 							   priv->l4proto);
++		if (!help4)
++			return -ENOENT;
+ 		break;
+ 	case NFPROTO_IPV6:
+ 		if (ctx->family == NFPROTO_IPV4)
+@@ -1084,6 +1086,8 @@ static int nft_ct_helper_obj_init(const struct nft_ctx *ctx,
  
-+# old sockopt interface and eval loop
-+config BRIDGE_NF_EBTABLES_LEGACY
-+	tristate
-+
- menuconfig BRIDGE_NF_EBTABLES
- 	tristate "Ethernet Bridge tables (ebtables) support"
- 	depends on BRIDGE && NETFILTER && NETFILTER_XTABLES
-@@ -55,6 +59,7 @@ if BRIDGE_NF_EBTABLES
- #
- config BRIDGE_EBT_BROUTE
- 	tristate "ebt: broute table support"
-+	select BRIDGE_NF_EBTABLES_LEGACY
- 	help
- 	  The ebtables broute table is used to define rules that decide between
- 	  bridging and routing frames, giving Linux the functionality of a
-@@ -65,6 +70,7 @@ config BRIDGE_EBT_BROUTE
+ 		help6 = nf_conntrack_helper_try_module_get(name, family,
+ 							   priv->l4proto);
++		if (!help6)
++			return -ENOENT;
+ 		break;
+ 	case NFPROTO_NETDEV:
+ 	case NFPROTO_BRIDGE:
+@@ -1092,15 +1096,14 @@ static int nft_ct_helper_obj_init(const struct nft_ctx *ctx,
+ 							   priv->l4proto);
+ 		help6 = nf_conntrack_helper_try_module_get(name, NFPROTO_IPV6,
+ 							   priv->l4proto);
++		/* && is intentional; only error if INET found neither ipv4 or ipv6 */
++		if (!help4 && !help6)
++			return -ENOENT;
+ 		break;
+ 	default:
+ 		return -EAFNOSUPPORT;
+ 	}
  
- config BRIDGE_EBT_T_FILTER
- 	tristate "ebt: filter table support"
-+	select BRIDGE_NF_EBTABLES_LEGACY
- 	help
- 	  The ebtables filter table is used to define frame filtering rules at
- 	  local input, forwarding and local output. See the man page for
-@@ -74,6 +80,7 @@ config BRIDGE_EBT_T_FILTER
+-	/* && is intentional; only error if INET found neither ipv4 or ipv6 */
+-	if (!help4 && !help6)
+-		return -ENOENT;
+-
+ 	priv->helper4 = help4;
+ 	priv->helper6 = help6;
  
- config BRIDGE_EBT_T_NAT
- 	tristate "ebt: nat table support"
-+	select BRIDGE_NF_EBTABLES_LEGACY
- 	help
- 	  The ebtables nat table is used to define rules that alter the MAC
- 	  source address (MAC SNAT) or the MAC destination address (MAC DNAT).
-diff --git a/net/bridge/netfilter/Makefile b/net/bridge/netfilter/Makefile
-index 1c9ce49ab651..b9a1303da977 100644
---- a/net/bridge/netfilter/Makefile
-+++ b/net/bridge/netfilter/Makefile
-@@ -9,7 +9,7 @@ obj-$(CONFIG_NFT_BRIDGE_REJECT)  += nft_reject_bridge.o
- # connection tracking
- obj-$(CONFIG_NF_CONNTRACK_BRIDGE) += nf_conntrack_bridge.o
- 
--obj-$(CONFIG_BRIDGE_NF_EBTABLES) += ebtables.o
-+obj-$(CONFIG_BRIDGE_NF_EBTABLES_LEGACY) += ebtables.o
- 
- # tables
- obj-$(CONFIG_BRIDGE_EBT_BROUTE) += ebtable_broute.o
 -- 
-2.43.0
+2.30.2
 
