@@ -1,61 +1,87 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B9FC12BF0E
-	for <netfilter-devel@vger.kernel.org>; Wed, 31 Jan 2024 17:02:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 900B73FB1E;
+	Wed, 31 Jan 2024 20:20:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706720544; cv=none; b=I5lcqA35s4mVMvQzIvryCgSD2N4UzdPrVQ+BIWQv6LcxbcVItwCNt967TnlkJk93Ys8v92EFkaRp4PfO/d+s1hlJ50q8MAJm7DeifTsG8ow0Vs56xhrSWGFabm2DOWvWn4K7qsa/COWD6UYNNeJphMtx4fYJEDvvCaZr2jYYhBA=
+	t=1706732429; cv=none; b=kxmt7KKeMn0gxIgfhcXzC9wmyQ1+V/Vcjx2z19LcoRJ/RkQTrD7rGWxTTfrhwhjieI1DeuS6Zvso8vInLFe5AgPR/dR91vL+wDuiHgEY39fp3/G9el7KZ49dNN2tl9fTz4NX6cZ195R3nuGnojHAyce2VTt+gqkaFIrNVV894qM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706720544; c=relaxed/simple;
-	bh=0EjKDtpNghb8Nr3ijSJttYTadUBUMyunwy+f9nWJGbg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ADq/TDhUjCU5XEmWkBaoVsKl82kggpD4aFoYK/pdYEAwLQEaIdB9Ey4cVeyEACJKm6rUz/ufDqqlBZopNmyFbMvi4skRbXRAHY79erj4GgRqxgjMSCCVHHfBEXqbh/oazDl9PTpoUZpqw/yflvh+VmRAQvLZSFkLcSi7IpWh24Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=C/qXhUlB; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1706732429; c=relaxed/simple;
+	bh=5n2GPaqqGywO7Qry4eYZWTM4oFGQUDmGZmFT4fN7rrA=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=V5tk5twx4UxIbCwcBA7Dtjb6dijhsYCcR6BOXxpBk74eKp1vPXTq55COUdt2Vv3sQJ29/ijPYfm/d/4EnZ/XZHyob+wsuSGj6GtEHq82HCpGz/L/uQ5G4tUQhq3XdOj4lB4SN+YNpsJWMzFqBwP+yVnKr0ZUlfZFNipfpvn9flY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=j2uVbYHm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="C/qXhUlB"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=p9a1efk2BLGs8uf6+yuVx4QnUX3PjzZtG074Xpw+n3w=; b=C/qXhUlBYaTHfzj4iWto7Abuu8
-	HSYWBIvexQDnCLmy/DdrRqjbDhB9Ktjcr6ySMRqx5uMylYw6+RM4LauqIep4bjLjXA3dmqazuj5JW
-	tIAJXrw7HBfKUFgPqvqqEuaJpcteo+n8aqMy3cJ/qhUgvruEGJQjn60PMtQUSzWMvHDPCXeaRaWsa
-	usJBaIIogStwYcoU7GlNLdB8TCh2kqnwXlrgp7qRTs5HXKxY8PGu/bQ/eIFuB3A4EHCuT7JilXAAg
-	xRwLXyHtKIo4ua8qOl4Nyh/p/FtJhj997u9m08CZrR5QeLI7nnEPIW5x4DAR+MPVij9WiP3U+0jRB
-	V6Q2wmqA==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97)
-	(envelope-from <phil@nwl.cc>)
-	id 1rVDye-0000000005n-2HsW;
-	Wed, 31 Jan 2024 18:02:20 +0100
-Date: Wed, 31 Jan 2024 18:02:20 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH] json: Support sets' auto-merge option
-Message-ID: <Zbp9HHYkbqNXqALm@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-References: <20240131164120.5208-1-phil@nwl.cc>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="j2uVbYHm"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 1644BC43399;
+	Wed, 31 Jan 2024 20:20:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1706732429;
+	bh=5n2GPaqqGywO7Qry4eYZWTM4oFGQUDmGZmFT4fN7rrA=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=j2uVbYHmJ0BNlBHTdgUBgToOHPf+Qp4+Unj1DhM4x0CdZn1Tp36nyKi13zJ4NsBIr
+	 //0kQJg6fwsnmWQYfnR2CZSUXvSIpo3/iGgYh/XaFnVL1jU0DTgM8QBNto5qWBWVDS
+	 vcqbDp7/vd0zLOGyh5KfD4vVhxPymWXNSaVHEQnaHcADHr+VtdaF38ZzDPzu6o8zPU
+	 fWEGnzHYcE7+2/JhZaS3ZIov8rGKSfUD63SwZdSAHH3lFpglQsA/0G3nIPMWrFeXm3
+	 9frtgxX17A8LyAlpcuY9DlRurZmEwHMKebMLzPTzZHfIKjiacmWjriWBzUTbkx54sG
+	 53m66RsqvuGaQ==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id F2F56DC99E4;
+	Wed, 31 Jan 2024 20:20:28 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240131164120.5208-1-phil@nwl.cc>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH bpf-next v4 0/3] Annotate kfuncs in .BTF_ids section
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <170673242899.4502.6917209613478941432.git-patchwork-notify@kernel.org>
+Date: Wed, 31 Jan 2024 20:20:28 +0000
+References: <cover.1706491398.git.dxu@dxuuu.xyz>
+In-Reply-To: <cover.1706491398.git.dxu@dxuuu.xyz>
+To: Daniel Xu <dxu@dxuuu.xyz>
+Cc: linux-trace-kernel@vger.kernel.org, coreteam@netfilter.org,
+ bpf@vger.kernel.org, linux-input@vger.kernel.org, cgroups@vger.kernel.org,
+ netdev@vger.kernel.org, linux-stm32@st-md-mailman.stormreply.com,
+ linux-kselftest@vger.kernel.org, linux-doc@vger.kernel.org,
+ fsverity@lists.linux.dev, linux-kernel@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, netfilter-devel@vger.kernel.org,
+ alexei.starovoitov@gmail.com, olsajiri@gmail.com, quentin@isovalent.com,
+ alan.maguire@oracle.com, memxor@gmail.com
 
-On Wed, Jan 31, 2024 at 05:41:20PM +0100, Phil Sutter wrote:
-> If enabled, list the option as additional attribute with boolean value.
+Hello:
+
+This series was applied to bpf/bpf-next.git (master)
+by Alexei Starovoitov <ast@kernel.org>:
+
+On Sun, 28 Jan 2024 18:24:05 -0700 you wrote:
+> === Description ===
 > 
-> Fixes: e70354f53e9f6 ("libnftables: Implement JSON output support")
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> This is a bpf-treewide change that annotates all kfuncs as such inside
+> .BTF_ids. This annotation eventually allows us to automatically generate
+> kfunc prototypes from bpftool.
+> 
+> We store this metadata inside a yet-unused flags field inside struct
+> btf_id_set8 (thanks Kumar!). pahole will be taught where to look.
+> 
+> [...]
 
-Patch applied after adding the missing nfbz link.
+Here is the summary with links:
+  - [bpf-next,v4,1/3] bpf: btf: Support flags for BTF_SET8 sets
+    https://git.kernel.org/bpf/bpf-next/c/79b47344bbc5
+  - [bpf-next,v4,2/3] bpf: btf: Add BTF_KFUNCS_START/END macro pair
+    https://git.kernel.org/bpf/bpf-next/c/2747e0ee57c2
+  - [bpf-next,v4,3/3] bpf: treewide: Annotate BPF kfuncs in BTF
+    https://git.kernel.org/bpf/bpf-next/c/6e7769e6419f
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
