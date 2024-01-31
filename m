@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 947FF3A29A;
-	Wed, 31 Jan 2024 22:59:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2938B3A8DA;
+	Wed, 31 Jan 2024 22:59:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706741996; cv=none; b=pJB6ZP2TtIXqdOPeeBJIkf8NvLVVVoglR5hW8uMJ6wCeSZXMFMlaCyWLUY06JuGUNunsnRdax0nIp4OkEu1o88meJKs4KffYff2Fy0lUqV1UIDKFv/9x8WiRky3Rv21ijc4cP70PcSVjZ2w/Ad6KHhDRgY13X5cjSQWceYFktuo=
+	t=1706741997; cv=none; b=E7SxLmebuVcpyKsh20whaN3UVyl6gyi8tmH2s+jcwUCOlw0KAUf7zLeTrKa1PZRfiHYOGtpZbsPfNGXx6UAERjOFelwI2BwHX0k8tt9l4KxzY7ErIyIE3R/Qs7Qo2srJjrldaP4waa3q8+WnxpGrSMJpJEvnE2EeZPrmkT/RCnk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706741996; c=relaxed/simple;
-	bh=n02mJWTwgOIsnqxBb4P+laHCDaYVU+bwTl0OfH+qFHs=;
+	s=arc-20240116; t=1706741997; c=relaxed/simple;
+	bh=b7fixYkzE2lXdQJngFeyItEAJCaaCBK8CNL217RZvvs=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=CvbXq1/fxwVegnB5K/3Z+pOC85GTOWcznOznVVLSOKkQdS7GThhEiFB23pVU7fqQa6QgSV8e8zYidSud5au5BlzWv8t5/RTy7xr1nCpk/4UaSHCa8piIjwP/3XwdkC/CoqnqsIQgM7DzMxe3vgAWTjua9sXCDcjhNJigAPg7ufY=
+	 MIME-Version; b=o6DH9LRf6fT7pVgcMc+U0UzOJQZvloL0DPYPhi1LiKSkzmUsifsTvzvK80/c+zjHbNumGx/+a6zt+KUHzirc3jWrJq8O5imVhFaf9WsyX/PrbQl1lkUZR4TDXQ5hinnD5FbacETvoOg2BRcfLDkBsi5gO0N6aT0nGAzpQGtZ1bw=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 1/6] netfilter: conntrack: correct window scaling with retransmitted SYN
-Date: Wed, 31 Jan 2024 23:59:38 +0100
-Message-Id: <20240131225943.7536-2-pablo@netfilter.org>
+Subject: [PATCH net 6/6] netfilter: nft_ct: sanitize layer 3 and 4 protocol number in custom expectations
+Date: Wed, 31 Jan 2024 23:59:43 +0100
+Message-Id: <20240131225943.7536-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240131225943.7536-1-pablo@netfilter.org>
 References: <20240131225943.7536-1-pablo@netfilter.org>
@@ -34,79 +34,52 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Ryan Schaefer <ryanschf@amazon.com>
+- Disallow families other than NFPROTO_{IPV4,IPV6,INET}.
+- Disallow layer 4 protocol with no ports, since destination port is a
+  mandatory attribute for this object.
 
-commit c7aab4f17021 ("netfilter: nf_conntrack_tcp: re-init for syn packets
-only") introduces a bug where SYNs in ORIGINAL direction on reused 5-tuple
-result in incorrect window scale negotiation. This commit merged the SYN
-re-initialization and simultaneous open or SYN retransmits cases. Merging
-this block added the logic in tcp_init_sender() that performed window scale
-negotiation to the retransmitted syn case. Previously. this would only
-result in updating the sender's scale and flags. After the merge the
-additional logic results in improperly clearing the scale in ORIGINAL
-direction before any packets in the REPLY direction are received. This
-results in packets incorrectly being marked invalid for being
-out-of-window.
-
-This can be reproduced with the following trace:
-
-Packet Sequence:
-> Flags [S], seq 1687765604, win 62727, options [.. wscale 7], length 0
-> Flags [S], seq 1944817196, win 62727, options [.. wscale 7], length 0
-
-In order to fix the issue, only evaluate window negotiation for packets
-in the REPLY direction. This was tested with simultaneous open, fast
-open, and the above reproduction.
-
-Fixes: c7aab4f17021 ("netfilter: nf_conntrack_tcp: re-init for syn packets only")
-Signed-off-by: Ryan Schaefer <ryanschf@amazon.com>
+Fixes: 857b46027d6f ("netfilter: nft_ct: add ct expectations support")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_proto_tcp.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ net/netfilter/nft_ct.c | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index e573be5afde7..ae493599a3ef 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -457,7 +457,8 @@ static void tcp_init_sender(struct ip_ct_tcp_state *sender,
- 			    const struct sk_buff *skb,
- 			    unsigned int dataoff,
- 			    const struct tcphdr *tcph,
--			    u32 end, u32 win)
-+			    u32 end, u32 win,
-+			    enum ip_conntrack_dir dir)
- {
- 	/* SYN-ACK in reply to a SYN
- 	 * or SYN from reply direction in simultaneous open.
-@@ -471,7 +472,8 @@ static void tcp_init_sender(struct ip_ct_tcp_state *sender,
- 	 * Both sides must send the Window Scale option
- 	 * to enable window scaling in either direction.
- 	 */
--	if (!(sender->flags & IP_CT_TCP_FLAG_WINDOW_SCALE &&
-+	if (dir == IP_CT_DIR_REPLY &&
-+	    !(sender->flags & IP_CT_TCP_FLAG_WINDOW_SCALE &&
- 	      receiver->flags & IP_CT_TCP_FLAG_WINDOW_SCALE)) {
- 		sender->td_scale = 0;
- 		receiver->td_scale = 0;
-@@ -542,7 +544,7 @@ tcp_in_window(struct nf_conn *ct, enum ip_conntrack_dir dir,
- 		if (tcph->syn) {
- 			tcp_init_sender(sender, receiver,
- 					skb, dataoff, tcph,
--					end, win);
-+					end, win, dir);
- 			if (!tcph->ack)
- 				/* Simultaneous open */
- 				return NFCT_TCP_ACCEPT;
-@@ -585,7 +587,7 @@ tcp_in_window(struct nf_conn *ct, enum ip_conntrack_dir dir,
- 		 */
- 		tcp_init_sender(sender, receiver,
- 				skb, dataoff, tcph,
--				end, win);
-+				end, win, dir);
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 86bb9d7797d9..aac98a3c966e 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -1250,7 +1250,31 @@ static int nft_ct_expect_obj_init(const struct nft_ctx *ctx,
+ 	if (tb[NFTA_CT_EXPECT_L3PROTO])
+ 		priv->l3num = ntohs(nla_get_be16(tb[NFTA_CT_EXPECT_L3PROTO]));
  
- 		if (dir == IP_CT_DIR_REPLY && !tcph->ack)
- 			return NFCT_TCP_ACCEPT;
++	switch (priv->l3num) {
++	case NFPROTO_IPV4:
++	case NFPROTO_IPV6:
++		if (priv->l3num != ctx->family)
++			return -EINVAL;
++
++		fallthrough;
++	case NFPROTO_INET:
++		break;
++	default:
++		return -EOPNOTSUPP;
++	}
++
+ 	priv->l4proto = nla_get_u8(tb[NFTA_CT_EXPECT_L4PROTO]);
++	switch (priv->l4proto) {
++	case IPPROTO_TCP:
++	case IPPROTO_UDP:
++	case IPPROTO_UDPLITE:
++	case IPPROTO_DCCP:
++	case IPPROTO_SCTP:
++		break;
++	default:
++		return -EOPNOTSUPP;
++	}
++
+ 	priv->dport = nla_get_be16(tb[NFTA_CT_EXPECT_DPORT]);
+ 	priv->timeout = nla_get_u32(tb[NFTA_CT_EXPECT_TIMEOUT]);
+ 	priv->size = nla_get_u8(tb[NFTA_CT_EXPECT_SIZE]);
 -- 
 2.30.2
 
