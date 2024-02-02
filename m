@@ -1,44 +1,44 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CBDE4779C
-	for <netfilter-devel@vger.kernel.org>; Fri,  2 Feb 2024 13:53:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 499AC47A4C
+	for <netfilter-devel@vger.kernel.org>; Fri,  2 Feb 2024 13:53:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706881998; cv=none; b=MwrVQaPBRBJAmN7twGOf44bjfc+lWkDaNw/TklWWB4jSpwD1M0XkcKx4OXezjMfLsgoHZGp7VOSgP26OF8UXYNplpOUP3/ftM9XqbMVEmir0yZOKptAcgQ3goo2ZJ78naZ3yBHuPh9q2n01ZsvQ3+3ZpDqGf0YxYeYCDrHhHve0=
+	t=1706881999; cv=none; b=nl9P7DuIiSeK51CHVlh4Dmly05p4RUiz3BIoG7oRjieogd4yu+hTSmthOb3CLwiOsPdeLbMkCyuiphu+1GpSPifTqH6wl1iDCgVDDfmO0ZW4BhlJ/tEWMuaXohnKG3PVdFh5Yb/yxUrbGcp1857DLYxJdCoZ/STFG1OQ5WCM02w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706881998; c=relaxed/simple;
-	bh=k4mZA8xK8/PT/L+JrHBYXxP7soBzL32rEk9yIRFqcv4=;
+	s=arc-20240116; t=1706881999; c=relaxed/simple;
+	bh=T66u9flDxSHzypb1uBh1ccZEVQy7uz+uwMndQ5lxyEs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=da54ENsglxJFDgyz2dK7J6YrroioNaYZrVE/Vh23r50kXxxN+ysSuZX/VQkyXNIho/Jd+T5fVNmn7kH641WTZCcnzaIpEEHv9SuQzLBdEtp85hKoD+eT3ZaOnNxA6QB2S3YpncOoACMFE3z4cYvY2fp7zWqBOX52Vb8xjR1dOUY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=LTHYs9RI; arc=none smtp.client-ip=151.80.46.58
+	 MIME-Version; b=jg1EpJzwj06u9mVbWykK9klrlQ5MauiWpdtbpw5pZE5oN3nVY0FyxWvvnqgHsR0qWEyj7PSOO8BceMTGM7OcEAvhSLEcHz9+v7tdPkrbJIm1Rwi0MvT285KruoMftk8joMijqeByAfe0dKNsrG1k3e6kEEkVWiPAcMDdV4PvFb0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=EBwhO9Eg; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="LTHYs9RI"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="EBwhO9Eg"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=slmBxg7IT+jpN9T5Q4fjaFI+q2WmZb9AMpdH7IbUae0=; b=LTHYs9RIbg1CLGur2spMyTvG1r
-	snOMF7yG1E/uA1xQhEy0b4WmXSwup3ZF6vslcyMuEBX96EC2OOMluUn4/uMwAkB0rOvgF2KVg7hlJ
-	9qF8SPwzmTrQ/51EtpXLyvTr+ZVXCh9SheS+sU30Zn/5zzOboDebH5lNdSqsDu6BnwWlx7sXZ4a+4
-	gM48WV4Z782gLMljOqcoHMCdw++JmJmKAsKxoI4qorF8He2PdGVP8eNJP/GF4sTqyAOm64/JtBP08
-	nx+kB2TH5SLc55wQmfvYJfsY/6swmL9a0F7JCMeIPvyjzyd/YZEPTs+Xnbj42kKjJ7Gam09JUKnjn
-	TAWkqVpQ==;
+	bh=CpLoSQVzMGi7hxZcl319SntBYAKRO7qQe0bV/qo0nOY=; b=EBwhO9EgH4erAnZkSQJ6nbvY0K
+	NaSVjWZDKlD4pKra8Eb+OccLBC+E5dX1cTfkbyNYIB1RHBQMpVCQlg6PuEe8kib+J5rIKRTX6rV/L
+	itDp3EATWzum0M1sBTGHgH9HYr2lcKSmrtJata7Z1ubhvdt46TUja428Wxp7C42Um2BCp/W1KrUkQ
+	gCBy+iaP3NPhPpYql3M7TQVlQ0w+W6s5lrNUfsjxZaBWEBfRF4v82RtoKt3DpUrZM/X5JIVJdXsVc
+	IAVv7Adm16VByyPB9BOaM8v5lsa3zjsULGqDY3vURibYPeApFAiL/gJq/19PWjb6AW7beet+uu4B6
+	W5uvCeeQ==;
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.97)
 	(envelope-from <phil@nwl.cc>)
-	id 1rVtyl-000000003CE-1Q8i;
-	Fri, 02 Feb 2024 14:53:15 +0100
+	id 1rVtyf-000000003BU-3z6v;
+	Fri, 02 Feb 2024 14:53:10 +0100
 From: Phil Sutter <phil@nwl.cc>
 To: netfilter-devel@vger.kernel.org
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [iptables PATCH 06/12] extensions: mh: Save/xlate inverted full ranges
-Date: Fri,  2 Feb 2024 14:53:01 +0100
-Message-ID: <20240202135307.25331-7-phil@nwl.cc>
+Subject: [iptables PATCH 07/12] extensions: rt: Save/xlate inverted full ranges
+Date: Fri,  2 Feb 2024 14:53:02 +0100
+Message-ID: <20240202135307.25331-8-phil@nwl.cc>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20240202135307.25331-1-phil@nwl.cc>
 References: <20240202135307.25331-1-phil@nwl.cc>
@@ -50,106 +50,126 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Also translate '-m mh' into an exthdr exists match unless '-p mh' is
-also present. The latter is converted into 'meta l4proto mh' which might
-need fixing itself at a later point.
+Also translate plain '-m rt' match into an exthdr exists one.
 
-Fixes: 6d4b93485055a ("extensions: libip6t_mh: Add translation to nft")
+Fixes: 9dbb616c2f0c3 ("extensions: libip6t_rt.c: Add translation to nft")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- extensions/libip6t_mh.c      | 20 ++++++++++++++++----
- extensions/libip6t_mh.t      |  2 +-
- extensions/libip6t_mh.txlate |  4 ++--
- 3 files changed, 19 insertions(+), 7 deletions(-)
+ extensions/libip6t_rt.c      | 28 ++++++++++++++++++++--------
+ extensions/libip6t_rt.t      |  2 +-
+ extensions/libip6t_rt.txlate |  4 ++--
+ 3 files changed, 23 insertions(+), 11 deletions(-)
 
-diff --git a/extensions/libip6t_mh.c b/extensions/libip6t_mh.c
-index 1410d324b5d42..3f80e28ec94c8 100644
---- a/extensions/libip6t_mh.c
-+++ b/extensions/libip6t_mh.c
-@@ -17,6 +17,7 @@
- #include <stdlib.h>
- #include <xtables.h>
- #include <linux/netfilter_ipv6/ip6t_mh.h>
-+#include <linux/netfilter_ipv6/ip6_tables.h>
- 
- enum {
- 	O_MH_TYPE = 0,
-@@ -154,11 +155,16 @@ static void print_type(uint8_t type, int numeric)
- 		printf("%s", name);
+diff --git a/extensions/libip6t_rt.c b/extensions/libip6t_rt.c
+index d5b0458bb397e..6db09f0b2cdc8 100644
+--- a/extensions/libip6t_rt.c
++++ b/extensions/libip6t_rt.c
+@@ -152,13 +152,18 @@ static void rt_parse(struct xt_option_call *cb)
+ 	}
  }
  
-+static bool skip_types_match(uint8_t min, uint8_t max, bool inv)
++static bool skip_segsleft_match(uint32_t min, uint32_t max, bool inv)
 +{
-+	return min == 0 && max == UINT8_MAX && !inv;
++	return min == 0 && max == UINT32_MAX && !inv;
 +}
 +
- static void print_types(uint8_t min, uint8_t max, int invert, int numeric)
+ static void
+ print_nums(const char *name, uint32_t min, uint32_t max,
+ 	    int invert)
  {
  	const char *inv = invert ? "!" : "";
  
--	if (min != 0 || max != 0xFF || invert) {
-+	if (!skip_types_match(min, max, invert)) {
- 		printf(" ");
+-	if (min != 0 || max != 0xFFFFFFFF || invert) {
++	if (!skip_segsleft_match(min, max, invert)) {
+ 		printf(" %s", name);
  		if (min == max) {
- 			printf("%s", inv);
-@@ -189,11 +195,12 @@ static void mh_print(const void *ip, const struct xt_entry_match *match,
- static void mh_save(const void *ip, const struct xt_entry_match *match)
+ 			printf(":%s", inv);
+@@ -210,6 +215,7 @@ static void rt_print(const void *ip, const struct xt_entry_match *match,
+ static void rt_save(const void *ip, const struct xt_entry_match *match)
  {
- 	const struct ip6t_mh *mhinfo = (struct ip6t_mh *)match->data;
-+	bool inv_type = mhinfo->invflags & IP6T_MH_INV_TYPE;
+ 	const struct ip6t_rt *rtinfo = (struct ip6t_rt *)match->data;
++	bool inv_sgs = rtinfo->invflags & IP6T_RT_INV_SGS;
  
--	if (mhinfo->types[0] == 0 && mhinfo->types[1] == 0xFF)
-+	if (skip_types_match(mhinfo->types[0], mhinfo->types[1], inv_type))
- 		return;
+ 	if (rtinfo->flags & IP6T_RT_TYP) {
+ 		printf("%s --rt-type %u",
+@@ -217,10 +223,9 @@ static void rt_save(const void *ip, const struct xt_entry_match *match)
+ 			rtinfo->rt_type);
+ 	}
  
--	if (mhinfo->invflags & IP6T_MH_INV_TYPE)
-+	if (inv_type)
- 		printf(" !");
+-	if (!(rtinfo->segsleft[0] == 0
+-	    && rtinfo->segsleft[1] == 0xFFFFFFFF)) {
+-		printf("%s --rt-segsleft ",
+-			(rtinfo->invflags & IP6T_RT_INV_SGS) ? " !" : "");
++	if (!skip_segsleft_match(rtinfo->segsleft[0],
++				 rtinfo->segsleft[1], inv_sgs)) {
++		printf("%s --rt-segsleft ", inv_sgs ? " !" : "");
+ 		if (rtinfo->segsleft[0]
+ 		    != rtinfo->segsleft[1])
+ 			printf("%u:%u",
+@@ -244,10 +249,14 @@ static void rt_save(const void *ip, const struct xt_entry_match *match)
  
- 	if (mhinfo->types[0] != mhinfo->types[1])
-@@ -206,9 +213,14 @@ static int mh_xlate(struct xt_xlate *xl,
+ }
+ 
++#define XLATE_FLAGS (IP6T_RT_TYP | IP6T_RT_LEN | \
++		     IP6T_RT_RES | IP6T_RT_FST | IP6T_RT_FST_NSTRICT)
++
+ static int rt_xlate(struct xt_xlate *xl,
  		    const struct xt_xlate_mt_params *params)
  {
- 	const struct ip6t_mh *mhinfo = (struct ip6t_mh *)params->match->data;
-+	bool inv_type = mhinfo->invflags & IP6T_MH_INV_TYPE;
-+	uint8_t proto = ((const struct ip6t_ip6 *)params->ip)->proto;
+ 	const struct ip6t_rt *rtinfo = (struct ip6t_rt *)params->match->data;
++	bool inv_sgs = rtinfo->invflags & IP6T_RT_INV_SGS;
  
--	if (mhinfo->types[0] == 0 && mhinfo->types[1] == 0xff)
-+	if (skip_types_match(mhinfo->types[0], mhinfo->types[1], inv_type)) {
-+		if (proto != IPPROTO_MH)
-+			xt_xlate_add(xl, "exthdr mh exists");
- 		return 1;
-+	}
+ 	if (rtinfo->flags & IP6T_RT_TYP) {
+ 		xt_xlate_add(xl, "rt type%s %u",
+@@ -255,15 +264,18 @@ static int rt_xlate(struct xt_xlate *xl,
+ 			      rtinfo->rt_type);
+ 	}
  
- 	if (mhinfo->types[0] != mhinfo->types[1])
- 		xt_xlate_add(xl, "mh type %s%u-%u",
-diff --git a/extensions/libip6t_mh.t b/extensions/libip6t_mh.t
-index 151eabe631f58..b628e9e33fd3e 100644
---- a/extensions/libip6t_mh.t
-+++ b/extensions/libip6t_mh.t
-@@ -5,7 +5,7 @@
- -p mobility-header -m mh ! --mh-type 4;=;OK
- -p mobility-header -m mh --mh-type 4:123;=;OK
- -p mobility-header -m mh --mh-type :;-p mobility-header -m mh;OK
---p mobility-header -m mh ! --mh-type :;-p mobility-header -m mh;OK
-+-p mobility-header -m mh ! --mh-type :;-p mobility-header -m mh ! --mh-type 0:255;OK
- -p mobility-header -m mh --mh-type :3;-p mobility-header -m mh --mh-type 0:3;OK
- -p mobility-header -m mh --mh-type 3:;-p mobility-header -m mh --mh-type 3:255;OK
- -p mobility-header -m mh --mh-type 3:3;-p mobility-header -m mh --mh-type 3;OK
-diff --git a/extensions/libip6t_mh.txlate b/extensions/libip6t_mh.txlate
-index 825c956905c22..3364ce574468f 100644
---- a/extensions/libip6t_mh.txlate
-+++ b/extensions/libip6t_mh.txlate
-@@ -8,7 +8,7 @@ ip6tables-translate -A INPUT -p mh --mh-type 0:255 -j ACCEPT
- nft 'add rule ip6 filter INPUT meta l4proto mobility-header counter accept'
+-	if (!(rtinfo->segsleft[0] == 0 && rtinfo->segsleft[1] == 0xFFFFFFFF)) {
+-		xt_xlate_add(xl, "rt seg-left%s ",
+-			     (rtinfo->invflags & IP6T_RT_INV_SGS) ? " !=" : "");
++	if (!skip_segsleft_match(rtinfo->segsleft[0],
++				 rtinfo->segsleft[1], inv_sgs)) {
++		xt_xlate_add(xl, "rt seg-left%s ", inv_sgs ? " !=" : "");
  
- ip6tables-translate -A INPUT -m mh --mh-type 0:255 -j ACCEPT
+ 		if (rtinfo->segsleft[0] != rtinfo->segsleft[1])
+ 			xt_xlate_add(xl, "%u-%u", rtinfo->segsleft[0],
+ 					rtinfo->segsleft[1]);
+ 		else
+ 			xt_xlate_add(xl, "%u", rtinfo->segsleft[0]);
++	} else if (!(rtinfo->flags & XLATE_FLAGS)) {
++		xt_xlate_add(xl, "exthdr rt exists");
++		return 1;
+ 	}
+ 
+ 	if (rtinfo->flags & IP6T_RT_LEN) {
+diff --git a/extensions/libip6t_rt.t b/extensions/libip6t_rt.t
+index 56c8b077267ce..1c219d664bff7 100644
+--- a/extensions/libip6t_rt.t
++++ b/extensions/libip6t_rt.t
+@@ -4,7 +4,7 @@
+ -m rt ! --rt-type 1 ! --rt-segsleft 12:23 ! --rt-len 42;=;OK
+ -m rt;=;OK
+ -m rt --rt-segsleft :;-m rt;OK
+--m rt ! --rt-segsleft :;-m rt;OK
++-m rt ! --rt-segsleft :;-m rt ! --rt-segsleft 0:4294967295;OK
+ -m rt --rt-segsleft :3;-m rt --rt-segsleft 0:3;OK
+ -m rt --rt-segsleft 3:;-m rt --rt-segsleft 3:4294967295;OK
+ -m rt --rt-segsleft 3:3;-m rt --rt-segsleft 3;OK
+diff --git a/extensions/libip6t_rt.txlate b/extensions/libip6t_rt.txlate
+index 67d88d07732cc..1c2f74a588750 100644
+--- a/extensions/libip6t_rt.txlate
++++ b/extensions/libip6t_rt.txlate
+@@ -17,7 +17,7 @@ ip6tables-translate -A INPUT -m rt --rt-segsleft 13:42 -j ACCEPT
+ nft 'add rule ip6 filter INPUT rt seg-left 13-42 counter accept'
+ 
+ ip6tables-translate -A INPUT -m rt --rt-segsleft 0:4294967295 -j ACCEPT
 -nft 'add rule ip6 filter INPUT counter accept'
-+nft 'add rule ip6 filter INPUT exthdr mh exists counter accept'
++nft 'add rule ip6 filter INPUT exthdr rt exists counter accept'
  
- ip6tables-translate -A INPUT -p mh ! --mh-type 0:255 -j ACCEPT
--nft 'add rule ip6 filter INPUT meta l4proto mobility-header counter accept'
-+nft 'add rule ip6 filter INPUT meta l4proto mobility-header mh type != 0-255 counter accept'
+ ip6tables-translate -A INPUT -m rt ! --rt-segsleft 0:4294967295 -j ACCEPT
+-nft 'add rule ip6 filter INPUT counter accept'
++nft 'add rule ip6 filter INPUT rt seg-left != 0-4294967295 counter accept'
 -- 
 2.43.0
 
