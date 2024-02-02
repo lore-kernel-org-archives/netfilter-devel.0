@@ -1,110 +1,146 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=23.128.96.19
+Received: from mail-io1-f71.google.com (mail-io1-f71.google.com [209.85.166.71])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CB3746A1
+	for <netfilter-devel@vger.kernel.org>; Fri,  2 Feb 2024 12:53:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.71
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706876651; cv=none; b=Y17LKBAM0Feokj9RhxoPkpKPlJH7om2hy16pBHjq8u/RDM4hr6Zn81qXbmgTNt8XSkaMtjK/h0XNlMi72fkJz7bq308/W6GN05OhkROpFTuoyndMU/DvZdnY0mFGLKJ6TYsRyvhns9ZessLLs4hz0nQfwVVhQgD2fTv08IXoNqA=
+	t=1706878406; cv=none; b=quOvHnxjwTffP1CwuQ9SbZvFmmnYp5SiwfRNkDiCqkjNw8+obmfeIKjU2hHrITK3I78f87/rmuphZgRniJpnZHQmCubpTFbAup4Y+lVzE8nQCIb5QlBDtFHcCYu+SaHE7+PXRG75thHtxqYlfKBqxTE/4bvECZNPYjQhDIodkAU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706876651; c=relaxed/simple;
-	bh=m8mtqnWI7hjKWBDfyKsbopyfLerJiS3T9hkaNbjWoX8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=coYabtE/ct7GKowzm5coJ1YpnzTBbffXLX9+KJvFpV67MH+1uQvKaujwjUJRz/hQZnoZcZbzbPqwLWrEBGg1MyCs3uW77tWVLRBTVwjujyIEO9l8mxIpoNA3qFHT0PPvrRhDcaVzHAHYoouT6SFZAySe1+/DslsadYNpg+/w3ZU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=23.128.96.19
-X-Greylist: delayed 64 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 02 Feb 2024 04:24:03 PST
-Received: from mail22.mail.schwarz (mail22.mail.schwarz [185.124.192.54])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9EC5E97;
-	Fri,  2 Feb 2024 04:24:03 -0800 (PST)
-X-SCHWARZ-TO: coreteam@netfilter.org, linux-kernel@vger.kernel.org, pabeni@redhat.com,
- i.maximets@ovn.org, kadlec@netfilter.org, davem@davemloft.net,
- netfilter-devel@vger.kernel.org, fw@strlen.de, netdev@vger.kernel.org,
- edumazet@google.com, pablo@netfilter.org, linux-kselftest@vger.kernel.org,
- horms@ovn.org, shuah@kernel.org
-X-SCHWARZ-ENVELOPEFROM: felix.huettner@mail.schwarz
-Received: from felix.runs.onstackit.cloud ([45.129.43.133])
-  by mail22.mail.schwarz with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Feb 2024 12:22:56 +0000
-Date: Fri, 2 Feb 2024 12:22:55 +0000
-From: Felix Huettner <felix.huettner@mail.schwarz>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Ilya Maximets <i.maximets@ovn.org>, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kselftest@vger.kernel.org,
-	kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
-	edumazet@google.com, pabeni@redhat.com, shuah@kernel.org,
-	luca.czesla@mail.schwarz, max.lamprecht@mail.schwarz,
-	Simon Horman <horms@ovn.org>
-Subject: Re: [PATCH net-next v2] net: ctnetlink: support filtering by zone
-Message-ID: <Zbzen36ahZaiR+qp@felix.runs.onstackit.cloud>
-References: <ZWSCPKtDuYRG1XWt@kernel-bug-kernel-bug>
- <ZYV6hgP35k6Bwk+H@calendula>
- <2032238f-31ac-4106-8f22-522e76df5a12@ovn.org>
- <ZbzOA1D1IGYX2oxS@calendula>
+	s=arc-20240116; t=1706878406; c=relaxed/simple;
+	bh=NhDd+Tjrs3zecVWZWAokSyfo++GFjqSQ5meR7L0p6H8=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=dyZe5x/RDcvEIsywuE4DCZ+p/KaIoCisWHo9fEmrZIHM5VMqQx66syStZ0WsQY8/D2jSWAX8OwSV/CLYtDGj1ygbXBofDczhrBRSl1vMuCHcbopxQSBfHVCQpDaiXrSaPN4AUx7cOQ4FaeC50U9ZmftYIB9xW4BtGdNuDr1xaEU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.71
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-io1-f71.google.com with SMTP id ca18e2360f4ac-7bf36117dfbso276747039f.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 02 Feb 2024 04:53:24 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1706878403; x=1707483203;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=JfyqUo/5cFyOU63RLdmNc5ZFT+mIllhFxuedyQIjzEo=;
+        b=kR9zZbeeifNUKQHtdmFWXwFbdhbQbIi+Puy+8/zd3EP+UoJzkzIF/EbufwuT/8ke1F
+         Tfmm4Xr/HvRC9ZqzI4ILrLLyEQdEGoy5cOAfc6Bh7ON776mC35TV84I/inqp8OgBWk/H
+         ylRxYzV+dFAOpx8+kwFDr9Rhtw8n9HjylHcJBaGSUKLagolSh9G0p7RDKjgSzh/KRVRw
+         BBtb1v2wJgtPO9cStdsIdxn3X6/El6JTuBCr7ydipwH8DMR0VOMwMyKGK4XHy0jwalGK
+         OSDGDATpqBhAEZARZTZyDeElnD11m/nLXsb8ulddRywlr1NwJKAgJhprmbOzttMUhKM0
+         6fLg==
+X-Gm-Message-State: AOJu0YzsAAqTlHlTZ6YEqZkPxwWXp+YwQZxg0JnT5beBsIfJVodQpkXN
+	QoQLwag1sCch4EFCiNTlsea3rCQsu9l1O0m/SW0oZAixwPYnlR2Bik/1q6fTYTuQ7rs4y2bLQdq
+	Vw7hA1APji4OW66QrRh7awVXjw5Na0Po49FK0xwBwGB6z3QQTDul0xus=
+X-Google-Smtp-Source: AGHT+IHmOpnUMmBm28DUostXD8510BC4d6i1vxfAp9miDSNPMhWBVcztynrUCGZJgCptqlVMFstwgFiFvi+B4/tdWNyBn8gDUjmJ
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZbzOA1D1IGYX2oxS@calendula>
+X-Received: by 2002:a05:6e02:154f:b0:363:9252:ed47 with SMTP id
+ j15-20020a056e02154f00b003639252ed47mr180263ilu.1.1706878403651; Fri, 02 Feb
+ 2024 04:53:23 -0800 (PST)
+Date: Fri, 02 Feb 2024 04:53:23 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000ecb4750610659876@google.com>
+Subject: [syzbot] [netfilter?] WARNING: ODEBUG bug in hash_netiface4_destroy
+From: syzbot <syzbot+52bbc0ad036f6f0d4a25@syzkaller.appspotmail.com>
+To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
+	fw@strlen.de, kadlec@netfilter.org, kuba@kernel.org, 
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-On Fri, Feb 02, 2024 at 12:12:03PM +0100, Pablo Neira Ayuso wrote:
-> On Fri, Feb 02, 2024 at 12:04:35PM +0100, Ilya Maximets wrote:
-> > On 12/22/23 13:01, Pablo Neira Ayuso wrote:
-> > > On Mon, Nov 27, 2023 at 11:49:16AM +0000, Felix Huettner wrote:
-> > >> conntrack zones are heavily used by tools like openvswitch to run
-> > >> multiple virtual "routers" on a single machine. In this context each
-> > >> conntrack zone matches to a single router, thereby preventing
-> > >> overlapping IPs from becoming issues.
-> > >> In these systems it is common to operate on all conntrack entries of a
-> > >> given zone, e.g. to delete them when a router is deleted. Previously this
-> > >> required these tools to dump the full conntrack table and filter out the
-> > >> relevant entries in userspace potentially causing performance issues.
-> > >>
-> > >> To do this we reuse the existing CTA_ZONE attribute. This was previous
-> > >> parsed but not used during dump and flush requests. Now if CTA_ZONE is
-> > >> set we filter these operations based on the provided zone.
-> > >> However this means that users that previously passed CTA_ZONE will
-> > >> experience a difference in functionality.
-> > >>
-> > >> Alternatively CTA_FILTER could have been used for the same
-> > >> functionality. However it is not yet supported during flush requests and
-> > >> is only available when using AF_INET or AF_INET6.
-> > > 
-> > > For the record, this is applied to nf-next.
-> > 
-> > Hi, Felix and Pablo.
-> > 
-> > I was looking through the code and the following part is bothering me:
-> > 
-> >  diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-> >  index fb0ae15e96df..4e9133f61251 100644
-> >  --- a/net/netfilter/nf_conntrack_netlink.c
-> >  +++ b/net/netfilter/nf_conntrack_netlink.c
-> >  @@ -1148,6 +1149,10 @@ static int ctnetlink_filter_match(struct nf_conn *ct, void *data)
-> >          if (filter->family && nf_ct_l3num(ct) != filter->family)
-> >                  goto ignore_entry;
-> >  
-> >  +       if (filter->zone.id != NF_CT_DEFAULT_ZONE_ID &&
-> >  +           !nf_ct_zone_equal_any(ct, &filter->zone))
-> >  +               goto ignore_entry;
-> >  +
-> >          if (filter->orig_flags) {
-> >                  tuple = nf_ct_tuple(ct, IP_CT_DIR_ORIGINAL);
-> >                  if (!ctnetlink_filter_match_tuple(&filter->orig, tuple,
-> > 
-> > If I'm reading that right, the default zone is always flushed, even if the
-> > user requested to flush a different zone.  I.e. the entry is never ignored
-> > for a default zone.  Is that correct or am I reading that wrong?
-> > 
-> > If my observation is correct, then I don't think this functionality can
-> > actually be used by applications as it does something unexpected.
-> 
-> This needs a fix, the NF_CT_DEFAULT_ZONE_ID is used as a marker to
-> indicate if the filtering by zone needs to happen or not.
-> 
-> I'd suggest to add a boolean flag that specifies that zone filtering
-> is set on.
+Hello,
 
-Hi Pablo and Ilya,
+syzbot found the following issue on:
 
-thanks for finding that.
-i will build a fix for that.
+HEAD commit:    021533194476 Kconfig: Disable -Wstringop-overflow for GCC ..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=16f8fe7be80000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=b60b985eda147877
+dashboard link: https://syzkaller.appspot.com/bug?extid=52bbc0ad036f6f0d4a25
+compiler:       gcc (Debian 12.2.0-14) 12.2.0, GNU ld (GNU Binutils for Debian) 2.40
 
+Unfortunately, I don't have any reproducer for this issue yet.
+
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/3d076fc4bbcb/disk-02153319.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/90a9389ef418/vmlinux-02153319.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/72fe9fbafdc0/bzImage-02153319.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+52bbc0ad036f6f0d4a25@syzkaller.appspotmail.com
+
+------------[ cut here ]------------
+ODEBUG: free active (active state 0) object: ffff8880157e3050 object type: timer_list hint: hash_netiface4_gc+0x0/0x470 net/netfilter/ipset/ip_set_hash_gen.h:537
+WARNING: CPU: 1 PID: 8549 at lib/debugobjects.c:514 debug_print_object+0x1a3/0x2b0 lib/debugobjects.c:514
+Modules linked in:
+CPU: 1 PID: 8549 Comm: syz-executor.4 Not tainted 6.8.0-rc2-syzkaller-00199-g021533194476 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/25/2024
+RIP: 0010:debug_print_object+0x1a3/0x2b0 lib/debugobjects.c:514
+Code: fc ff df 48 89 fa 48 c1 ea 03 80 3c 02 00 75 54 48 8b 14 dd 80 cc 6e 8b 41 56 4c 89 e6 48 c7 c7 e0 bf 6e 8b e8 be 4b d6 fc 90 <0f> 0b 90 90 58 83 05 a5 f6 23 0b 01 48 83 c4 18 5b 5d 41 5c 41 5d
+RSP: 0018:ffffc9000437f038 EFLAGS: 00010286
+RAX: 0000000000000000 RBX: 0000000000000003 RCX: ffffc9000a19f000
+RDX: 0000000000040000 RSI: ffffffff81509966 RDI: 0000000000000001
+RBP: 0000000000000001 R08: 0000000000000001 R09: 0000000000000000
+R10: 0000000000000001 R11: 0000000000000001 R12: ffffffff8b6ec680
+R13: ffffffff8b0f3480 R14: ffffffff891a9740 R15: ffffc9000437f148
+FS:  00007f587a19c6c0(0000) GS:ffff8880b9500000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f8d9cf81378 CR3: 0000000074178000 CR4: 0000000000350ef0
+Call Trace:
+ <TASK>
+ __debug_check_no_obj_freed lib/debugobjects.c:989 [inline]
+ debug_check_no_obj_freed+0x4b8/0x600 lib/debugobjects.c:1019
+ slab_free_hook mm/slub.c:2093 [inline]
+ slab_free mm/slub.c:4299 [inline]
+ kfree+0x252/0x370 mm/slub.c:4409
+ hash_netiface4_destroy+0x204/0x3a0 net/netfilter/ipset/ip_set_hash_gen.h:460
+ ip_set_create+0xda2/0x1360 net/netfilter/ipset/ip_set_core.c:1157
+ nfnetlink_rcv_msg+0x9c6/0x11e0 net/netfilter/nfnetlink.c:302
+ netlink_rcv_skb+0x16e/0x440 net/netlink/af_netlink.c:2543
+ nfnetlink_rcv+0x1b4/0x430 net/netfilter/nfnetlink.c:659
+ netlink_unicast_kernel net/netlink/af_netlink.c:1341 [inline]
+ netlink_unicast+0x545/0x820 net/netlink/af_netlink.c:1367
+ netlink_sendmsg+0x8bb/0xd70 net/netlink/af_netlink.c:1908
+ sock_sendmsg_nosec net/socket.c:730 [inline]
+ __sock_sendmsg net/socket.c:745 [inline]
+ ____sys_sendmsg+0xab8/0xc90 net/socket.c:2584
+ ___sys_sendmsg+0x135/0x1e0 net/socket.c:2638
+ __sys_sendmsg+0x117/0x1f0 net/socket.c:2667
+ do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+ do_syscall_64+0xd8/0x270 arch/x86/entry/common.c:83
+ entry_SYSCALL_64_after_hwframe+0x6f/0x77
+RIP: 0033:0x7f587947dda9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 e1 20 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f587a19c0c8 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00007f58795abf80 RCX: 00007f587947dda9
+RDX: 0000000000000000 RSI: 0000000020000040 RDI: 0000000000000004
+RBP: 00007f58794ca47a R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 000000000000000b R14: 00007f58795abf80 R15: 00007ffc5fbdd0c8
+ </TASK>
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
