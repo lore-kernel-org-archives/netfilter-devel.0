@@ -1,218 +1,129 @@
-Received: from out1-smtp.messagingengine.com (out1-smtp.messagingengine.com [66.111.4.25])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-io1-f71.google.com (mail-io1-f71.google.com [209.85.166.71])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 843125232;
-	Sat,  3 Feb 2024 01:34:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=66.111.4.25
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6558479C6
+	for <netfilter-devel@vger.kernel.org>; Sat,  3 Feb 2024 03:12:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.71
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706924087; cv=none; b=fTLflSK3BNzRjl82ZCltFuHpshr4DX5LoA5pUFIkNPYSh2MHUGbVrwBhEoWaIq9vBBp3hamlf99jGbp0VmcHfqbnHvtc0ZGO6d5OVvE1SnX5XQh0gC/gIcnRa8NLnshzOxgGl05cvQxCHesgxkpeinkLd9PUxogxTJHjjHO/3IE=
+	t=1706929947; cv=none; b=NiqnVA/kn2G6xUqAtZbpqv+xNXw0DJVP/p9savqClQKJfQypoqwd0EPXXjgNudQeHUfyEftlqOrQSCJuvDIKIqDqRRA7jXTdttMZj3aN57bzl6/BP2thMG+uMif4yQo1sMUAKD5pAmHEN3mX0TZZNWFBdSSi9x5d+GfUEVkK4Vk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706924087; c=relaxed/simple;
-	bh=X0Ojwdr7D0Pc16RpTgvTbb5pPVX5ib05jZoeLOX6oAM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=u0BMwMeOW6pT3Ayq8KGupckDNnUeKstZmyyewGsWmAfAqEVByXWp0ht9orWQrSCmEnuk/3MlSpwlRCSNxUUqF1BZfS0P7CC1+CpI/4gKPGwHTi8VJD6ziW+R5+LXeEZuiqJ3KkL82eH3Izo7tRHzwpE3j1Qw0LMQixeGQiYcaFk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=dxuuu.xyz; spf=pass smtp.mailfrom=dxuuu.xyz; dkim=pass (2048-bit key) header.d=dxuuu.xyz header.i=@dxuuu.xyz header.b=MFj+jqKB; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=T9nM7Hgl; arc=none smtp.client-ip=66.111.4.25
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=dxuuu.xyz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=dxuuu.xyz
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=dxuuu.xyz header.i=@dxuuu.xyz header.b="MFj+jqKB";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="T9nM7Hgl"
-Received: from compute3.internal (compute3.nyi.internal [10.202.2.43])
-	by mailout.nyi.internal (Postfix) with ESMTP id 68EE95C0050;
-	Fri,  2 Feb 2024 20:34:43 -0500 (EST)
-Received: from mailfrontend2 ([10.202.2.163])
-  by compute3.internal (MEProxy); Fri, 02 Feb 2024 20:34:43 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
-	:cc:content-type:content-type:date:date:from:from:in-reply-to
-	:in-reply-to:message-id:mime-version:references:reply-to:subject
-	:subject:to:to; s=fm2; t=1706924083; x=1707010483; bh=NnnIMmc9MZ
-	3IASFiC5hqBjgW0tly7YEQAd6Bpm7OEMI=; b=MFj+jqKBnhouCKmuAELuyDh+rJ
-	jjWg9fl6r38OJwM0JajDa19hxTMqhi96t3TnnPaYGdfmgNWhYY3LsvK10Ukp3II7
-	YNUGkCfMkfhY/kT4TFXH2vcmxai3Y1BBxFe38eq/IlAUxeRT7gMDdb75kIfdZqYM
-	veuS70k5okuJnl2gi5hvk1jZORe2UnrADy7GQA0g2LrfO6Rnx0q0OqTZb8SszW5f
-	fclWJVdCzlx1cBeSRwcZn0og3LYu0jPbegzVLQwrKvHMQU4nHoZ52fx822mhBhei
-	9jZrUJMlIwmznZImKPxo1m6+ZbYzLPJ7uzN01xOEN7fJpbzmXKtJxdYuRcvw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-type:content-type:date:date
-	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-	:message-id:mime-version:references:reply-to:subject:subject:to
-	:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
-	fm3; t=1706924083; x=1707010483; bh=NnnIMmc9MZ3IASFiC5hqBjgW0tly
-	7YEQAd6Bpm7OEMI=; b=T9nM7Hgled/XXm0WO8ytjfKSfgvTMNqwCAdHrZCKieNE
-	ZdTXViyMt3xFNfdTQClCr8YvYCWDxTGW10izkQcRraa5Fqv/9KazkyXYKQbb4ArD
-	pQS3a3ngwFZKj3eIFu3j050thBZaZRjrueMX/vOJ9eA/zbRUA6+7WH2TGSYencPK
-	Vrj3dXNYtrUc56bqd4iSkyaEWlVtijxpzM6u0IE/lSDQXOk+eEquQljN5OwShxVi
-	438zZyXh+dLUiBclUWI/EAkOIXP4aIrfgzGn6OQryQNzJuGl9If6JihcfdnPDBpZ
-	19JVKlpfjZQrZZ1LCdmnA5qubEMUh5Kku68u/9kdxQ==
-X-ME-Sender: <xms:Mpi9ZZ_HORM30B-rZD9-PypTMISUhuaWob6e5Wr0Gy6zQmE3lAR-Fg>
-    <xme:Mpi9Zdv0fEmt8gWlYrSjAyqq1te_2_HCGned0HkOJ7RZc4xfuZILeij_wuZrNxxWv
-    arBz5iyY-q5FXHEfg>
-X-ME-Received: <xmr:Mpi9ZXBbdSkULMNSJ7-MNs28J3bgwT1SfJ5sK7gPjUiarKu_M-KZPWdpC-GAyptHOz-WH8xm8IpOwJbTCimuziKtGzvuclg1y4Lhooc>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvkedrfeduhedgfeejucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucgfrhhlucfvnfffucdlvdefmdenucfjughrpeffhf
-    fvvefukfhfgggtuggjsehttdfstddttddvnecuhfhrohhmpeffrghnihgvlhcuighuuceo
-    ugiguhesugiguhhuuhdrgiihiieqnecuggftrfgrthhtvghrnhepieffjedujeehtdduhe
-    ffgeeiveehleevffdvudethfdugedtleduhffhhfejfffgnecuffhomhgrihhnpehgihht
-    hhhusgdrtghomhdpjhgvmhgrrhgthhdrnhgvthenucevlhhushhtvghrufhiiigvpedtne
-    curfgrrhgrmhepmhgrihhlfhhrohhmpegugihusegugihuuhhurdighiii
-X-ME-Proxy: <xmx:M5i9Zdf6QcdOMMRg-j-oLkZ4PFYKCR7jHEcrxzNZru59PuTTDVbMiQ>
-    <xmx:M5i9ZeO77Ara2IObUaPffrjYy0QFmjbxP1SobyzzVW4sr3vvWnWagg>
-    <xmx:M5i9ZfmNxOeGwxBxjy5unm-E-9gBhW7ppyYukJwATDjRczPVMGUlFQ>
-    <xmx:M5i9ZZFLO67t1PQsu3Ogmj-PHiCAuqCf6Ncak8C10MmIgpjIZlhIMw>
-Feedback-ID: i6a694271:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Fri,
- 2 Feb 2024 20:34:41 -0500 (EST)
-Date: Fri, 2 Feb 2024 18:34:40 -0700
-From: Daniel Xu <dxu@dxuuu.xyz>
-To: Manu Bretelle <chantr4@gmail.com>
-Cc: linux-trace-kernel@vger.kernel.org, coreteam@netfilter.org, 
-	bpf@vger.kernel.org, linux-input@vger.kernel.org, cgroups@vger.kernel.org, 
-	netdev@vger.kernel.org, linux-stm32@st-md-mailman.stormreply.com, 
-	linux-kselftest@vger.kernel.org, linux-doc@vger.kernel.org, fsverity@lists.linux.dev, 
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	netfilter-devel@vger.kernel.org, alexei.starovoitov@gmail.com, olsajiri@gmail.com, 
-	quentin@isovalent.com, alan.maguire@oracle.com, memxor@gmail.com, vmalik@redhat.com
-Subject: Re: [PATCH bpf-next v4 0/3] Annotate kfuncs in .BTF_ids section
-Message-ID: <fq7iecmqkibtexsbgvv5gyu5nva6ig7gcww56oskk2rvmoxfno@uohfy2x57tch>
-References: <cover.1706491398.git.dxu@dxuuu.xyz>
- <Zb12EZt0BAKOPBk/@surya>
+	s=arc-20240116; t=1706929947; c=relaxed/simple;
+	bh=dxGXXVhs/4dgRo9jmAIcF+obGB4BDOna/EY2wTBjvoM=;
+	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
+	 Content-Type; b=IQTvP/g1WC/A39eh0JemvjXUL1C2FASooRJNpmc+GUmy1734uQUFioggyeBdCm8irN/AMYN5SMR2r1Gq9Sj3hUZVWvgSi6MOZVGJ2pufRN2lBQKvA9NG3uC7e4ypvoBCVHDmbHTqqlAs9Su6xmqAQ7muegKTk9+z/fg8+TfwfKY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.71
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-io1-f71.google.com with SMTP id ca18e2360f4ac-7becfc75cd4so219338439f.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 02 Feb 2024 19:12:26 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1706929945; x=1707534745;
+        h=to:from:subject:message-id:in-reply-to:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=9boHSuibTSW8wHdrZL4yEexUDDVYmeyGpHIKOqzrahY=;
+        b=OinhobCKyuUBfvBLfz6jgFnPfBJyArGgz9olbZ4nYvwkHkpctDeNQRRfGRP7sKDAYu
+         HSewbtUHCZzCnE/tEwqXOtTGgGZMOwV4xxVylpURVzkZEHshcnFZKMzjWI8pvNOkKXrb
+         ES11Mit56dlHYw0aP0PAfnJNFbT2zPl4OoDKjUjBEVcqS4nnPc7t4vLZ5064sQdfHU12
+         +IbSUWVrIg9lNjXP2c7RLbpvnDUo4MOzMc8dZRtplJuGJbol2NFBTCAcpEU2uMs+8yFb
+         Shn1G9szBVRKzRzgQuE3EmMoa/0cuAp1212edpYPyl0BfMEq9o7Blptz3smC6DnkDlJE
+         XoUg==
+X-Gm-Message-State: AOJu0YyBX5ibXegyES8s5bhHHRV8QHuijpHo8xDP0zVecRrYIFMi8r1x
+	ktuc4/QNOTPA1fiK8eEqt4n/uW1M3N5AcF79PeAAShlKFfWYSt8mgXaC3Xdl6SMqq7FHpKhP0w5
+	bNnZdueF33GEiesJ9y5qIaCdjhX6BdhnJbasZgzUkMNKTSczd+0mmnMw=
+X-Google-Smtp-Source: AGHT+IFT6BW7LJ4oUZWETS5ReP1qbXAlR/uK/E1KrsLs9Sj2TMRPjN7FMgUJ5Ol3CTvKxDAU87hEmbyQhBOG7fJLxHHxyAfobcCZ
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Zb12EZt0BAKOPBk/@surya>
+X-Received: by 2002:a6b:ec08:0:b0:7bf:cd7e:6a74 with SMTP id
+ c8-20020a6bec08000000b007bfcd7e6a74mr26773ioh.1.1706929945452; Fri, 02 Feb
+ 2024 19:12:25 -0800 (PST)
+Date: Fri, 02 Feb 2024 19:12:25 -0800
+In-Reply-To: <000000000000ecb4750610659876@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <0000000000000e28060610719994@google.com>
+Subject: Re: [syzbot] [netfilter?] WARNING: ODEBUG bug in hash_netiface4_destroy
+From: syzbot <syzbot+52bbc0ad036f6f0d4a25@syzkaller.appspotmail.com>
+To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
+	fw@strlen.de, kadlec@netfilter.org, kuba@kernel.org, 
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-Hi Manu,
+syzbot has found a reproducer for the following issue on:
 
-On Fri, Feb 02, 2024 at 03:09:05PM -0800, Manu Bretelle wrote:
-> On Sun, Jan 28, 2024 at 06:24:05PM -0700, Daniel Xu wrote:
-> > === Description ===
-> > 
-> > This is a bpf-treewide change that annotates all kfuncs as such inside
-> > .BTF_ids. This annotation eventually allows us to automatically generate
-> > kfunc prototypes from bpftool.
-> > 
-> > We store this metadata inside a yet-unused flags field inside struct
-> > btf_id_set8 (thanks Kumar!). pahole will be taught where to look.
-> > 
-> > More details about the full chain of events are available in commit 3's
-> > description.
-> > 
-> > The accompanying pahole and bpftool changes can be viewed
-> > here on these "frozen" branches [0][1].
-> > 
-> > [0]: https://github.com/danobi/pahole/tree/kfunc_btf-v3-mailed
-> > [1]: https://github.com/danobi/linux/tree/kfunc_bpftool-mailed
-> 
-> 
-> I hit a similar issue to [0] on master
-> 943b043aeecc ("selftests/bpf: Fix bench runner SIGSEGV")
->  when cross-compiling on x86_64 (LE) to s390x (BE).
-> I do have CONFIG_DEBUG_INFO_BTF enable and the issue would not trigger if
-> I disabled CONFIG_DEBUG_INFO_BTF (and with the fix mentioned in [0]).
-> 
-> What seems to happen is that `tools/resolve_btfids` is ran in the context of the
-> host endianess and if I printk before the WARN_ON:
-> diff --git a/kernel/bpf/btf.c b/kernel/bpf/btf.c
-> index ef380e546952..a9ed7a1a4936 100644
->   --- a/kernel/bpf/btf.c
->   +++ b/kernel/bpf/btf.c
->   @@ -8128,6 +8128,7 @@ int register_btf_kfunc_id_set(enum bpf_prog_type prog_type,
->            * WARN() for initcall registrations that do not check errors.
->            */
->           if (!(kset->set->flags & BTF_SET8_KFUNCS)) {
->   +        printk("Flag 0x%08X, expected 0x%08X\n", kset->set->flags, BTF_SET8_KFUNCS);
->                   WARN_ON(!kset->owner);
->                   return -EINVAL;
->           }
-> 
-> the boot logs would show:
->   Flag 0x01000000, expected 0x00000001
-> 
-> The issue did not happen prior to
-> 6f3189f38a3e ("bpf: treewide: Annotate BPF kfuncs in BTF")
-> has only 0 was written before.
-> 
-> It seems [1] will be addressing cross-compilation, but it did not fix it as is
-> by just applying on top of master, so probably some of the changes will also need
-> to be ported to `tools/include/linux/btf_ids.h`?
-> 
-> A hacky workaround to cross-compilation I have is to apply:
-> 
->   diff --git a/tools/bpf/resolve_btfids/Makefile b/tools/bpf/resolve_btfids/Makefile
->   index 4b8079f294f6..b706e7ab066f 100644
->   --- a/tools/bpf/resolve_btfids/Makefile
->   +++ b/tools/bpf/resolve_btfids/Makefile
->   @@ -22,10 +22,10 @@ HOST_OVERRIDES := AR="$(HOSTAR)" CC="$(HOSTCC)" LD="$(HOSTLD)" ARCH="$(HOSTARCH)
->                     CROSS_COMPILE="" EXTRA_CFLAGS="$(HOSTCFLAGS)"
->    RM      ?= rm
->   -HOSTCC  ?= gcc
->   -HOSTLD  ?= ld
->   -HOSTAR  ?= ar
->   -CROSS_COMPILE =
->   +HOSTCC  = $(CC)
->   +HOSTLD  = $(LD)
->   +HOSTAR  = $(AR)
->   +#CROSS_COMPILE =
->    OUTPUT ?= $(srctree)/tools/bpf/resolve_btfids/
->   @@ -56,16 +56,16 @@ $(OUTPUT) $(OUTPUT)/libsubcmd $(LIBBPF_OUT):
->    $(SUBCMDOBJ): fixdep FORCE | $(OUTPUT)/libsubcmd
->           $(Q)$(MAKE) -C $(SUBCMD_SRC) OUTPUT=$(SUBCMD_OUT) \
->   -                   DESTDIR=$(SUBCMD_DESTDIR) $(HOST_OVERRIDES) prefix= subdir= \
->   +                   DESTDIR=$(SUBCMD_DESTDIR) prefix= subdir= \
->                       $(abspath $@) install_headers
->    $(BPFOBJ): $(wildcard $(LIBBPF_SRC)/*.[ch] $(LIBBPF_SRC)/Makefile) | $(LIBBPF_OUT)
->           $(Q)$(MAKE) $(submake_extras) -C $(LIBBPF_SRC) OUTPUT=$(LIBBPF_OUT)    \
->   -                   DESTDIR=$(LIBBPF_DESTDIR) $(HOST_OVERRIDES) prefix= subdir= \
->   +                   DESTDIR=$(LIBBPF_DESTDIR) prefix= subdir= \
->                       $(abspath $@) install_headers
->   -LIBELF_FLAGS := $(shell $(HOSTPKG_CONFIG) libelf --cflags 2>/dev/null)
->   -LIBELF_LIBS  := $(shell $(HOSTPKG_CONFIG) libelf --libs 2>/dev/null || echo -lelf)
->   +LIBELF_FLAGS := $(shell $(PKG_CONFIG) libelf --cflags 2>/dev/null)
->   +LIBELF_LIBS  := $(shell $(PKG_CONFIG) libelf --libs 2>/dev/null || echo -lelf)
->    HOSTCFLAGS_resolve_btfids += -g \
->              -I$(srctree)/tools/include \
->   @@ -84,7 +84,7 @@ $(BINARY_IN): fixdep FORCE prepare | $(OUTPUT)
->    $(BINARY): $(BPFOBJ) $(SUBCMDOBJ) $(BINARY_IN)
->           $(call msg,LINK,$@)
->   -       $(Q)$(HOSTCC) $(BINARY_IN) $(KBUILD_HOSTLDFLAGS) -o $@ $(BPFOBJ) $(SUBCMDOBJ) $(LIBS)
->   +       $(Q)$(CC) $(BINARY_IN) $(KBUILD_HOSTLDFLAGS) -o $@ $(BPFOBJ) $(SUBCMDOBJ) $(LIBS)
->    clean_objects := $(wildcard $(OUTPUT)/*.o                \
->                                $(OUTPUT)/.*.o.cmd           \
->   diff --git a/tools/testing/selftests/bpf/Makefile b/tools/testing/selftests/bpf/Makefile
->   index a38a3001527c..5cd193c04448 100644
->   --- a/tools/testing/selftests/bpf/Makefile
->   +++ b/tools/testing/selftests/bpf/Makefile
->   @@ -171,7 +171,7 @@ INCLUDE_DIR := $(SCRATCH_DIR)/include
->    BPFOBJ := $(BUILD_DIR)/libbpf/libbpf.a
->    ifneq ($(CROSS_COMPILE),)
->    HOST_BUILD_DIR         := $(BUILD_DIR)/host
->   -HOST_SCRATCH_DIR       := $(OUTPUT)/host-tools
->   +HOST_SCRATCH_DIR       := $(SCRATCH_DIR)
->    HOST_INCLUDE_DIR       := $(HOST_SCRATCH_DIR)/include
->    else
->    HOST_BUILD_DIR         := $(BUILD_DIR)
-> 
-> This causes `resolve_btfids` to be compiled in the target endianess and gets
-> magically run provided that the hosts has `qemu-s390x-static` and a functional
-> binfmt_misc [2] on the host, but having this using host architecture per [1]
-> is likely better.
+HEAD commit:    6897cea71837 Merge tag 'for-6.8/dm-fixes' of git://git.ker..
+git tree:       upstream
+console+strace: https://syzkaller.appspot.com/x/log.txt?x=1181d4ffe80000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=457249c250b93697
+dashboard link: https://syzkaller.appspot.com/bug?extid=52bbc0ad036f6f0d4a25
+compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=174bd5d3e80000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=16fcf5b0180000
 
-This is kinda surprising to me. I don't recall seeing any code inside
-resolve_btfids that touches the set8 flags field -- only the ids in the
-flexible array member. Would be interested to see what the value of the
-set8 flags field is before resolve_btfids is run.
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/002e2c38dde7/disk-6897cea7.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/316b28b8e4a4/vmlinux-6897cea7.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/35f7067d9e3f/bzImage-6897cea7.xz
 
-I'm a bit busy until Sunday afternoon but I'll try to take a look around
-then. Might be a good opportunity to play with poke [0].
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+52bbc0ad036f6f0d4a25@syzkaller.appspotmail.com
 
-Thanks,
-Daniel
+------------[ cut here ]------------
+ODEBUG: free active (active state 0) object: ffff888018aee050 object type: timer_list hint: hash_netiface4_gc+0x0/0x570 net/netfilter/ipset/ip_set_hash_gen.h:445
+WARNING: CPU: 1 PID: 5074 at lib/debugobjects.c:517 debug_print_object+0x17a/0x1f0 lib/debugobjects.c:514
+Modules linked in:
+CPU: 1 PID: 5074 Comm: syz-executor696 Not tainted 6.8.0-rc2-syzkaller-00251-g6897cea71837 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/25/2024
+RIP: 0010:debug_print_object+0x17a/0x1f0 lib/debugobjects.c:514
+Code: e8 fb 03 4e fd 4c 8b 0b 48 c7 c7 a0 71 fe 8b 48 8b 74 24 08 48 89 ea 44 89 e1 4d 89 f8 ff 34 24 e8 9b f8 af fc 48 83 c4 08 90 <0f> 0b 90 90 ff 05 2c 09 de 0a 48 83 c4 10 5b 41 5c 41 5d 41 5e 41
+RSP: 0018:ffffc900040cead8 EFLAGS: 00010286
+RAX: 92d7284228c9b100 RBX: ffffffff8bac9720 RCX: ffff888026548000
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: ffffffff8bfe7320 R08: ffffffff81577992 R09: 1ffff92000819cac
+R10: dffffc0000000000 R11: fffff52000819cad R12: 0000000000000000
+R13: ffffffff8bfe7238 R14: dffffc0000000000 R15: ffff888018aee050
+FS:  0000555555926380(0000) GS:ffff8880b9500000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000504 CR3: 000000002386a000 CR4: 0000000000350ef0
+Call Trace:
+ <TASK>
+ __debug_check_no_obj_freed lib/debugobjects.c:989 [inline]
+ debug_check_no_obj_freed+0x45b/0x580 lib/debugobjects.c:1019
+ slab_free_hook mm/slub.c:2093 [inline]
+ slab_free mm/slub.c:4299 [inline]
+ kfree+0x110/0x380 mm/slub.c:4409
+ hash_netiface4_destroy+0x297/0x2c0 net/netfilter/ipset/ip_set_hash_gen.h:460
+ ip_set_create+0x13b6/0x1780 net/netfilter/ipset/ip_set_core.c:1157
+ nfnetlink_rcv_msg+0xbee/0x1190 net/netfilter/nfnetlink.c:302
+ netlink_rcv_skb+0x1e5/0x430 net/netlink/af_netlink.c:2543
+ nfnetlink_rcv+0x294/0x2650 net/netfilter/nfnetlink.c:659
+ netlink_unicast_kernel net/netlink/af_netlink.c:1341 [inline]
+ netlink_unicast+0x7ec/0x980 net/netlink/af_netlink.c:1367
+ netlink_sendmsg+0xa3b/0xd70 net/netlink/af_netlink.c:1908
+ sock_sendmsg_nosec net/socket.c:730 [inline]
+ __sock_sendmsg+0x223/0x270 net/socket.c:745
+ ____sys_sendmsg+0x525/0x7d0 net/socket.c:2584
+ ___sys_sendmsg net/socket.c:2638 [inline]
+ __sys_sendmsg+0x2b0/0x3a0 net/socket.c:2667
+ do_syscall_64+0xfb/0x240
+ entry_SYSCALL_64_after_hwframe+0x6f/0x77
+RIP: 0033:0x7f7cfc8b0bb9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 c1 17 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffd4de24948 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f7cfc8b0bb9
+RDX: 0000000000000000 RSI: 0000000020000040 RDI: 0000000000000004
+RBP: 0000000000012024 R08: 0000000000000006 R09: 0000000000000006
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007ffd4de2495c
+R13: 431bde82d7b634db R14: 0000000000000001 R15: 0000000000000001
+ </TASK>
 
 
-[0]: http://www.jemarch.net/poke
+---
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
