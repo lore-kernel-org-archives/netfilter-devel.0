@@ -1,129 +1,157 @@
-Received: from mail-io1-f71.google.com (mail-io1-f71.google.com [209.85.166.71])
+Received: from mail-ej1-f50.google.com (mail-ej1-f50.google.com [209.85.218.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6558479C6
-	for <netfilter-devel@vger.kernel.org>; Sat,  3 Feb 2024 03:12:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.71
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBF035F55C;
+	Sat,  3 Feb 2024 14:40:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706929947; cv=none; b=NiqnVA/kn2G6xUqAtZbpqv+xNXw0DJVP/p9savqClQKJfQypoqwd0EPXXjgNudQeHUfyEftlqOrQSCJuvDIKIqDqRRA7jXTdttMZj3aN57bzl6/BP2thMG+uMif4yQo1sMUAKD5pAmHEN3mX0TZZNWFBdSSi9x5d+GfUEVkK4Vk=
+	t=1706971230; cv=none; b=U7kaa7B4Dyip/gSSl7CgGvchlKMRjAY30AC3wTTcvkH7Ji66rIbKe9ybQYxnDkpjoTBLhLFRfCPywgENXKckqCYGqDt78Pdf2bjsjp8awhCaP7yLfhNAtxUK4lDpc4o52ZgUPPEXw8LaGqbuZn8EQ0N3U8x0S20j3/N/9kilg7M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706929947; c=relaxed/simple;
-	bh=dxGXXVhs/4dgRo9jmAIcF+obGB4BDOna/EY2wTBjvoM=;
-	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
-	 Content-Type; b=IQTvP/g1WC/A39eh0JemvjXUL1C2FASooRJNpmc+GUmy1734uQUFioggyeBdCm8irN/AMYN5SMR2r1Gq9Sj3hUZVWvgSi6MOZVGJ2pufRN2lBQKvA9NG3uC7e4ypvoBCVHDmbHTqqlAs9Su6xmqAQ7muegKTk9+z/fg8+TfwfKY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.71
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-io1-f71.google.com with SMTP id ca18e2360f4ac-7becfc75cd4so219338439f.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 02 Feb 2024 19:12:26 -0800 (PST)
+	s=arc-20240116; t=1706971230; c=relaxed/simple;
+	bh=SPKOQmi1SsVFGhL9v4LuEf82ltj3tIdZn1v6O9SXQyc=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=kFSkTJN6UMQtgszv+b6HBOYanUw2XngxjgzwM8cIPH4PBNbo2V95LWnQ+fnYGrklbMXkSLMs4eYH2z3HiJy+Gsz8uk9BzOPI9LNkkl1hyjNbliisvrWIZmQSM0de2tk7LicF27gyM0rG+wStdG90SVAR+ausO2uyc0bo5I5zqHU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=HdJTbwmV; arc=none smtp.client-ip=209.85.218.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HdJTbwmV"
+Received: by mail-ej1-f50.google.com with SMTP id a640c23a62f3a-a30f7c9574eso420592866b.0;
+        Sat, 03 Feb 2024 06:40:28 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1706971227; x=1707576027; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=DCI9UWtJp+usKJeSEd4tLIOfQSn4XLwL0p08Rua3AYo=;
+        b=HdJTbwmVjENi+eBC/1qFrA8kSje9zC6whzwqwZGaJqq9CSBaiONb3tr1PP5+Fu+TW3
+         Vgrba7L/P0G19NSK1TAH1Pa5cbyqeW4u/3v6B6L6HbG7XvXoBexO2UcdAv/qI2DDlvxN
+         82w7ilHFJe64G1sZDnV04gFpqFVIXpjd50568SWBlDReqa8bE6Mky3ZKWhkp40dRSC8M
+         Sf+7XhWozMaKvS/ur1g7/JgyLUdQrX3Y6fls8C+3WbPMh4BvlUja36LKfBWLi+p3bsEo
+         WufBi/p4AUu62hZlPIZ6upXZbWz/6JrNs8ycUfivvC2pSZT1/7Y+9rCUVg9zpjg+D4py
+         +XIw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1706929945; x=1707534745;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=9boHSuibTSW8wHdrZL4yEexUDDVYmeyGpHIKOqzrahY=;
-        b=OinhobCKyuUBfvBLfz6jgFnPfBJyArGgz9olbZ4nYvwkHkpctDeNQRRfGRP7sKDAYu
-         HSewbtUHCZzCnE/tEwqXOtTGgGZMOwV4xxVylpURVzkZEHshcnFZKMzjWI8pvNOkKXrb
-         ES11Mit56dlHYw0aP0PAfnJNFbT2zPl4OoDKjUjBEVcqS4nnPc7t4vLZ5064sQdfHU12
-         +IbSUWVrIg9lNjXP2c7RLbpvnDUo4MOzMc8dZRtplJuGJbol2NFBTCAcpEU2uMs+8yFb
-         Shn1G9szBVRKzRzgQuE3EmMoa/0cuAp1212edpYPyl0BfMEq9o7Blptz3smC6DnkDlJE
-         XoUg==
-X-Gm-Message-State: AOJu0YyBX5ibXegyES8s5bhHHRV8QHuijpHo8xDP0zVecRrYIFMi8r1x
-	ktuc4/QNOTPA1fiK8eEqt4n/uW1M3N5AcF79PeAAShlKFfWYSt8mgXaC3Xdl6SMqq7FHpKhP0w5
-	bNnZdueF33GEiesJ9y5qIaCdjhX6BdhnJbasZgzUkMNKTSczd+0mmnMw=
-X-Google-Smtp-Source: AGHT+IFT6BW7LJ4oUZWETS5ReP1qbXAlR/uK/E1KrsLs9Sj2TMRPjN7FMgUJ5Ol3CTvKxDAU87hEmbyQhBOG7fJLxHHxyAfobcCZ
+        d=1e100.net; s=20230601; t=1706971227; x=1707576027;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=DCI9UWtJp+usKJeSEd4tLIOfQSn4XLwL0p08Rua3AYo=;
+        b=q70CIwH8tKnRa78T9dIz8U5j33kEWX2/kgQHNLN18i3X3hCDSykf7l2dca2y81xrfE
+         h8Bsyf2Y3R3VLKCG35BT2LL2EHsYmm8O3fM86TCqoz/c0xDPqnAp6Ckz+qG58RQ/7dbi
+         G2zQNz4q8cJVSrh2ZeOjabgK4LsqlaTu7y7QRbqDFIxfBvR4ONBwkzuYJ77Kwibk9j0w
+         X/KlYJZ70G0VaaFEBIyZKtQo9Qdts5ZE/PB53W8z2FjoASRNU4I5RWg6c/52biXfkFja
+         IaHIkwEvrAV+LccIxNUVn14MfAjaxj7YpJRuxaPDn/NeWdYrUHaE7NLGEuvXP1i4Fgd+
+         ZG+w==
+X-Gm-Message-State: AOJu0YxCUognZOCRh5rMDgZhXOlcM3nor4ZW0nmeM4DOkGOpmOrDoNbN
+	Z9eFkdcWXxKNALec7PGumby0E7YSfvfSVXkfJyws0DrjHg/ykQdLx2aWpI2Ftxs=
+X-Google-Smtp-Source: AGHT+IEfOssooYznIaR2j16FsW2he+A402wuOVjq8GOI1Sazb6h644eVgsUtw+TPqcVbkCVfbhPGQA==
+X-Received: by 2002:a17:906:354a:b0:a31:13ce:d64f with SMTP id s10-20020a170906354a00b00a3113ced64fmr5985082eja.55.1706971226841;
+        Sat, 03 Feb 2024 06:40:26 -0800 (PST)
+X-Forwarded-Encrypted: i=0; AJvYcCW7p53u42FKalV0Q8kOQDCNk7cTeLg/1cDc8Cl36yTh9GgvqcIr7fJ1NjvQ9ua0CqgYnxR364aNQxpFyOm6CIQ0gb9ekMkZLMnjtffuGBFh7/SwbH8A2V4Cto4Z9t7SqkmhNtnZmDkok1c2qd1RfFQDOV150RgiWxpx8rW8jY5HLX59sjRzhCf0WZbk8j3VHdC4Sk5wajn+aECyMMWAsCXsV0KXGT9nWKLpndPx21SX0bgrfqsTNDIPc/iWNxlXMe/DNTkkaJcZjDrROOhF8GBSmYltznkX/eFhz02CpOi/clBOZqQ2m7tq4HA+58OgX9RRJh+QxZkjkG1leXs9iMcJoOKpvzfAKZxDkrG3th72183EyPHJBq6CNncj849pVaX5+wJ93GXZQcSm5ct9Dek5rZgTh6Ss5o1FzRDuRwoi3fovr7rKMbJKbB327QFLO2b/nbpZPWDmDzvujZLA5i4ncjCgM6tUbMGXZl+68sXucayOr2hT4jmrSx53tV0CYc6As03CrbYkckRd85cXsKMzDz+dAJELylyLaMfykRuH8inh+RjSqtvUsHgRfElsOAJb14rOVfNvZsO0dGP79zCSO3eJlpMEb8wd1VKU3N6H4PiYLsoSqmFiRXTWbU+BuJlXrn6MnPpb5AI5MkVhkEx2ncNcJTGLK32JV16SYsg6cHrjz7ZucNA/U8hIVvKytd/DSE0QRQhZKktMiJbC2gVMDDLn0pVu1FPtuswFLZWasa+yhutDIWOpmg==
+Received: from krava ([83.240.62.96])
+        by smtp.gmail.com with ESMTPSA id ty5-20020a170907c70500b00a3628e91119sm2039491ejc.180.2024.02.03.06.40.25
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 03 Feb 2024 06:40:26 -0800 (PST)
+From: Jiri Olsa <olsajiri@gmail.com>
+X-Google-Original-From: Jiri Olsa <jolsa@kernel.org>
+Date: Sat, 3 Feb 2024 15:40:24 +0100
+To: Manu Bretelle <chantr4@gmail.com>, vmalik@redhat.com
+Cc: Daniel Xu <dxu@dxuuu.xyz>, linux-trace-kernel@vger.kernel.org,
+	coreteam@netfilter.org, bpf@vger.kernel.org,
+	linux-input@vger.kernel.org, cgroups@vger.kernel.org,
+	netdev@vger.kernel.org, linux-stm32@st-md-mailman.stormreply.com,
+	linux-kselftest@vger.kernel.org, linux-doc@vger.kernel.org,
+	fsverity@lists.linux.dev, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	netfilter-devel@vger.kernel.org, alexei.starovoitov@gmail.com,
+	olsajiri@gmail.com, quentin@isovalent.com, alan.maguire@oracle.com,
+	memxor@gmail.com
+Subject: Re: [PATCH bpf-next v4 0/3] Annotate kfuncs in .BTF_ids section
+Message-ID: <Zb5QWCw3Tg26_MDa@krava>
+References: <cover.1706491398.git.dxu@dxuuu.xyz>
+ <Zb12EZt0BAKOPBk/@surya>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a6b:ec08:0:b0:7bf:cd7e:6a74 with SMTP id
- c8-20020a6bec08000000b007bfcd7e6a74mr26773ioh.1.1706929945452; Fri, 02 Feb
- 2024 19:12:25 -0800 (PST)
-Date: Fri, 02 Feb 2024 19:12:25 -0800
-In-Reply-To: <000000000000ecb4750610659876@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000000e28060610719994@google.com>
-Subject: Re: [syzbot] [netfilter?] WARNING: ODEBUG bug in hash_netiface4_destroy
-From: syzbot <syzbot+52bbc0ad036f6f0d4a25@syzkaller.appspotmail.com>
-To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
-	fw@strlen.de, kadlec@netfilter.org, kuba@kernel.org, 
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Zb12EZt0BAKOPBk/@surya>
 
-syzbot has found a reproducer for the following issue on:
+On Fri, Feb 02, 2024 at 03:09:05PM -0800, Manu Bretelle wrote:
+> On Sun, Jan 28, 2024 at 06:24:05PM -0700, Daniel Xu wrote:
+> > === Description ===
+> > 
+> > This is a bpf-treewide change that annotates all kfuncs as such inside
+> > .BTF_ids. This annotation eventually allows us to automatically generate
+> > kfunc prototypes from bpftool.
+> > 
+> > We store this metadata inside a yet-unused flags field inside struct
+> > btf_id_set8 (thanks Kumar!). pahole will be taught where to look.
+> > 
+> > More details about the full chain of events are available in commit 3's
+> > description.
+> > 
+> > The accompanying pahole and bpftool changes can be viewed
+> > here on these "frozen" branches [0][1].
+> > 
+> > [0]: https://github.com/danobi/pahole/tree/kfunc_btf-v3-mailed
+> > [1]: https://github.com/danobi/linux/tree/kfunc_bpftool-mailed
+> 
+> 
+> I hit a similar issue to [0] on master
+> 943b043aeecc ("selftests/bpf: Fix bench runner SIGSEGV")
+>  when cross-compiling on x86_64 (LE) to s390x (BE).
+> I do have CONFIG_DEBUG_INFO_BTF enable and the issue would not trigger if
+> I disabled CONFIG_DEBUG_INFO_BTF (and with the fix mentioned in [0]).
+> 
+> What seems to happen is that `tools/resolve_btfids` is ran in the context of the
+> host endianess and if I printk before the WARN_ON:
+> diff --git a/kernel/bpf/btf.c b/kernel/bpf/btf.c
+> index ef380e546952..a9ed7a1a4936 100644
+>   --- a/kernel/bpf/btf.c
+>   +++ b/kernel/bpf/btf.c
+>   @@ -8128,6 +8128,7 @@ int register_btf_kfunc_id_set(enum bpf_prog_type prog_type,
+>            * WARN() for initcall registrations that do not check errors.
+>            */
+>           if (!(kset->set->flags & BTF_SET8_KFUNCS)) {
+>   +        printk("Flag 0x%08X, expected 0x%08X\n", kset->set->flags, BTF_SET8_KFUNCS);
+>                   WARN_ON(!kset->owner);
+>                   return -EINVAL;
+>           }
+> 
+> the boot logs would show:
+>   Flag 0x01000000, expected 0x00000001
+> 
+> The issue did not happen prior to
+> 6f3189f38a3e ("bpf: treewide: Annotate BPF kfuncs in BTF")
+> has only 0 was written before.
+> 
+> It seems [1] will be addressing cross-compilation, but it did not fix it as is
+> by just applying on top of master, so probably some of the changes will also need
+> to be ported to `tools/include/linux/btf_ids.h`?
 
-HEAD commit:    6897cea71837 Merge tag 'for-6.8/dm-fixes' of git://git.ker..
-git tree:       upstream
-console+strace: https://syzkaller.appspot.com/x/log.txt?x=1181d4ffe80000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=457249c250b93697
-dashboard link: https://syzkaller.appspot.com/bug?extid=52bbc0ad036f6f0d4a25
-compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=174bd5d3e80000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=16fcf5b0180000
+the fix in [1] is fixing flags in set8's pairs, but not the global flags
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/002e2c38dde7/disk-6897cea7.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/316b28b8e4a4/vmlinux-6897cea7.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/35f7067d9e3f/bzImage-6897cea7.xz
+it looks like Viktor's fix should now also swap that as well? like in the
+change below on top of Viktor's changes (untested)
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+52bbc0ad036f6f0d4a25@syzkaller.appspotmail.com
-
-------------[ cut here ]------------
-ODEBUG: free active (active state 0) object: ffff888018aee050 object type: timer_list hint: hash_netiface4_gc+0x0/0x570 net/netfilter/ipset/ip_set_hash_gen.h:445
-WARNING: CPU: 1 PID: 5074 at lib/debugobjects.c:517 debug_print_object+0x17a/0x1f0 lib/debugobjects.c:514
-Modules linked in:
-CPU: 1 PID: 5074 Comm: syz-executor696 Not tainted 6.8.0-rc2-syzkaller-00251-g6897cea71837 #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/25/2024
-RIP: 0010:debug_print_object+0x17a/0x1f0 lib/debugobjects.c:514
-Code: e8 fb 03 4e fd 4c 8b 0b 48 c7 c7 a0 71 fe 8b 48 8b 74 24 08 48 89 ea 44 89 e1 4d 89 f8 ff 34 24 e8 9b f8 af fc 48 83 c4 08 90 <0f> 0b 90 90 ff 05 2c 09 de 0a 48 83 c4 10 5b 41 5c 41 5d 41 5e 41
-RSP: 0018:ffffc900040cead8 EFLAGS: 00010286
-RAX: 92d7284228c9b100 RBX: ffffffff8bac9720 RCX: ffff888026548000
-RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
-RBP: ffffffff8bfe7320 R08: ffffffff81577992 R09: 1ffff92000819cac
-R10: dffffc0000000000 R11: fffff52000819cad R12: 0000000000000000
-R13: ffffffff8bfe7238 R14: dffffc0000000000 R15: ffff888018aee050
-FS:  0000555555926380(0000) GS:ffff8880b9500000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000020000504 CR3: 000000002386a000 CR4: 0000000000350ef0
-Call Trace:
- <TASK>
- __debug_check_no_obj_freed lib/debugobjects.c:989 [inline]
- debug_check_no_obj_freed+0x45b/0x580 lib/debugobjects.c:1019
- slab_free_hook mm/slub.c:2093 [inline]
- slab_free mm/slub.c:4299 [inline]
- kfree+0x110/0x380 mm/slub.c:4409
- hash_netiface4_destroy+0x297/0x2c0 net/netfilter/ipset/ip_set_hash_gen.h:460
- ip_set_create+0x13b6/0x1780 net/netfilter/ipset/ip_set_core.c:1157
- nfnetlink_rcv_msg+0xbee/0x1190 net/netfilter/nfnetlink.c:302
- netlink_rcv_skb+0x1e5/0x430 net/netlink/af_netlink.c:2543
- nfnetlink_rcv+0x294/0x2650 net/netfilter/nfnetlink.c:659
- netlink_unicast_kernel net/netlink/af_netlink.c:1341 [inline]
- netlink_unicast+0x7ec/0x980 net/netlink/af_netlink.c:1367
- netlink_sendmsg+0xa3b/0xd70 net/netlink/af_netlink.c:1908
- sock_sendmsg_nosec net/socket.c:730 [inline]
- __sock_sendmsg+0x223/0x270 net/socket.c:745
- ____sys_sendmsg+0x525/0x7d0 net/socket.c:2584
- ___sys_sendmsg net/socket.c:2638 [inline]
- __sys_sendmsg+0x2b0/0x3a0 net/socket.c:2667
- do_syscall_64+0xfb/0x240
- entry_SYSCALL_64_after_hwframe+0x6f/0x77
-RIP: 0033:0x7f7cfc8b0bb9
-Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 c1 17 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007ffd4de24948 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
-RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f7cfc8b0bb9
-RDX: 0000000000000000 RSI: 0000000020000040 RDI: 0000000000000004
-RBP: 0000000000012024 R08: 0000000000000006 R09: 0000000000000006
-R10: 0000000000000000 R11: 0000000000000246 R12: 00007ffd4de2495c
-R13: 431bde82d7b634db R14: 0000000000000001 R15: 0000000000000001
- </TASK>
+jirka
 
 
 ---
-If you want syzbot to run the reproducer, reply with:
-#syz test: git://repo/address.git branch-or-commit-hash
-If you attach or paste a git patch, syzbot will apply it before testing.
+diff --git a/tools/bpf/resolve_btfids/main.c b/tools/bpf/resolve_btfids/main.c
+index d01603ef6283..c44d57fec390 100644
+--- a/tools/bpf/resolve_btfids/main.c
++++ b/tools/bpf/resolve_btfids/main.c
+@@ -706,6 +706,8 @@ static int sets_patch(struct object *obj)
+ 			 * correctly translate everything.
+ 			 */
+ 			if (need_bswap) {
++				set8->flags = bswap_32(set8->flags);
++
+ 				for (i = 0; i < cnt; i++) {
+ 					set8->pairs[i].flags =
+ 						bswap_32(set8->pairs[i].flags);
+
