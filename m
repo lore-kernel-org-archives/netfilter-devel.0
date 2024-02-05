@@ -1,92 +1,130 @@
-Received: from mail-pj1-f49.google.com (mail-pj1-f49.google.com [209.85.216.49])
+Received: from mail-ot1-f50.google.com (mail-ot1-f50.google.com [209.85.210.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 897659470
-	for <netfilter-devel@vger.kernel.org>; Mon,  5 Feb 2024 04:21:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA71DB642
+	for <netfilter-devel@vger.kernel.org>; Mon,  5 Feb 2024 04:45:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707106878; cv=none; b=ZAz8jdbZ6gNTxIziuMg/QaPfM2z4dzPxRlCUF2Uf0xTkNUcxGiVM48+N7dyBnleohdbSdGDrsfyYBAhRMxs3ubRuxb/H5cMI3vdGfpfWUE0UABLCQ3Guq3eJ/t8/2DvPvB2OvUStEIDyNpkrpplfZ1rW2Vmx/8Gt5H8D0DSFreU=
+	t=1707108330; cv=none; b=e1CK8bCwEFxNZB534UlJg0TxfmFpRl1bTszPr0MxEu6E6ugxbF/I3waPmFwgtGVf8VpEKh3l0fOxrrYJXrVi05yYdoGG4uyEXBr+KKua9zwUqm03fL/XtBCT1h3HaHzZLeX1/pdaxMnf1VskhPQWHijDb5ncqOr9n6sbSeF3NNE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707106878; c=relaxed/simple;
-	bh=lsvYUXNZ6+SssRRvc/1/OP4bOzM8N+kBCnH68ahAHJA=;
-	h=From:Date:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=IA/yyt3noP+KFin+0+8NbWG3Nknr44r8R8EnJpf6Lkk5HWy3btS/+7poCMwJRpSY+6DgF8pfpieVEnj3024YEu4dGJG5qqLtRXTCDpGrGfFwYt7/tJxB28FWTpmmx/XdGu3YaUQiL2NwsiU/jkC8v3kU60ZMorIquFkRWNC+FDg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=dH+mygAT; arc=none smtp.client-ip=209.85.216.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1707108330; c=relaxed/simple;
+	bh=C3RFITXrVbMMXRyWOgvAlGjMpXLEn7kRJ/T5LQ+Dwo0=;
+	h=From:To:Cc:Subject:Date:Message-Id; b=ChUwQGTx+oONlTiro5z7x3XQ/GIOV56Y3SWlAnqu1CCAN2ntnAhyQGm7HJVnis3EYXmaRX7xgoiPQ1gty9CYmN2TZ6Sa3xMpiSwazczYUtBU3PhOLLAP80PTWvzv87yrgj69H2fhthMGmuIF0zND/DX6ApSfYwG7Su6m5Q+VUIo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=WaiputF8; arc=none smtp.client-ip=209.85.210.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=broadcom.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dH+mygAT"
-Received: by mail-pj1-f49.google.com with SMTP id 98e67ed59e1d1-296a02b7104so311619a91.2
-        for <netfilter-devel@vger.kernel.org>; Sun, 04 Feb 2024 20:21:16 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="WaiputF8"
+Received: by mail-ot1-f50.google.com with SMTP id 46e09a7af769-6e117eec348so2603404a34.2
+        for <netfilter-devel@vger.kernel.org>; Sun, 04 Feb 2024 20:45:28 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1707106876; x=1707711676; darn=vger.kernel.org;
-        h=content-disposition:mime-version:mail-followup-to:reply-to
-         :message-id:subject:cc:to:date:from:sender:from:to:cc:subject:date
+        d=broadcom.com; s=google; t=1707108328; x=1707713128; darn=vger.kernel.org;
+        h=message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=lsvYUXNZ6+SssRRvc/1/OP4bOzM8N+kBCnH68ahAHJA=;
-        b=dH+mygATMhIoHDnY1X5kstsJLqOZoihpu4cXPcvDOCSAAK3tpIaj++Eq8Li7QtPCg3
-         QxUTWj3UmqawMplQS6o5lbxB3Y8HzQncD0vGNLXqGcx43wvGOzXQRKA0WsBs4u2voW1F
-         YO9P5VwH1c6Pp6kIIQcZpb/QvOrt9Y73up4MNypgLVqohi1dRya8O+26v6MiRn/0Peiz
-         /ICRqoZHE+QokSacofv9ZTqGU5IUvBAg8jCJ3KAup3Jk3kQf51irNJpQBWgnv9e9/pIJ
-         SuCJ2J/2JsyBrPPojKEnAUrq1BNsrtfJmQNhD204a6+UxuEnVgZhkqUNVtziX2jV3Coh
-         81Vg==
+        bh=fFHhMPLHf/PHf1gbdd9RUwHvdq1MmSrUv9OUUxHJPew=;
+        b=WaiputF8vd4U0kfeYN/ht+9dmNVvtoLGkn6tO/aNgNVvBtRt61kLewQ0/y76sW6ozQ
+         KA9K6k3MLDxHn47/PRK+yIGi/lwn1j0q0TolL7cSPZLHsDrGMXi2P1KLIZxg4GKAbTiq
+         sjsopiQe9FdMoQjpHzMSrXZd3U7A/BuvgNBkA=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1707106876; x=1707711676;
-        h=content-disposition:mime-version:mail-followup-to:reply-to
-         :message-id:subject:cc:to:date:from:sender:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=lsvYUXNZ6+SssRRvc/1/OP4bOzM8N+kBCnH68ahAHJA=;
-        b=jveFSQxl4xnD0cLTBYGW/YwhN+CuLVrzAcNhRZS4JrZGHJioKaB1qr0R+pXWPxSfdR
-         qAl9IHUUQdcoSHjVlnXgKWSXnmAlbkMqCJCghDxdM2apJkVF+VKmwotfBB9mpdeB90Bv
-         ECtyryNy5I5GIPnpSedEh+Kx335Uoqaz5jgfRJQ0XF3PdKR3NxjN9UzUWoRFISiNjWPN
-         +Ikxm/lf1Z2Gze0oxW98yt8fOhL24XFF386cGi1IWhoCp6G7FnzbGMJkOIBbP81lnj1s
-         UzY83QULJF+p8pWm9G4++SfTEuGu42KPiijj8TePEzjY/EFF2XO6OtwwNqEY/lkaRSVq
-         Fmyw==
-X-Gm-Message-State: AOJu0Yx0CrmfqmyOom9MWAudlFkjTbPjppr+lJ/jrLZ94MBrfqpWN4eB
-	v3PAeSYEo9gec0yT+3g/CsTidZVDbdrg93BVLlc3OMHQDC2AUSZNHUDNS2iI
-X-Google-Smtp-Source: AGHT+IHElY8J2kgBd9MB+Xavm1bqHsAesLRRHtkJ0UaNguiW9a2H9JDEMajbxnHs02Vg4h91rZo5WA==
-X-Received: by 2002:a17:90a:12c3:b0:296:33bc:5ed6 with SMTP id b3-20020a17090a12c300b0029633bc5ed6mr9958230pjg.32.1707106874937;
-        Sun, 04 Feb 2024 20:21:14 -0800 (PST)
-Received: from slk15.local.net (n58-108-84-186.meb1.vic.optusnet.com.au. [58.108.84.186])
-        by smtp.gmail.com with ESMTPSA id u1-20020a17090ae00100b002964fa287b6sm4053472pjy.51.2024.02.04.20.21.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 04 Feb 2024 20:21:14 -0800 (PST)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From: Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
-Date: Mon, 5 Feb 2024 15:21:11 +1100
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: libnetfilter_queue patch ping
-Message-ID: <ZcBiN+OA/5BSXu06@slk15.local.net>
-Reply-To: duncan_roe@optusnet.com.au
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development <netfilter-devel@vger.kernel.org>
+        d=1e100.net; s=20230601; t=1707108328; x=1707713128;
+        h=message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=fFHhMPLHf/PHf1gbdd9RUwHvdq1MmSrUv9OUUxHJPew=;
+        b=RtFNPzK5JnBnA+lutlB6I95J3759phtqu4OW0nJI2omfOSOwE6vOBERiHe8L9QNV4v
+         AXoFWaG4mGT5Bjtxaqk6B5W0v1zXRwJijaxgQ5w+D49NwnOLSOGY/Lr6sAIZJFLrxmTz
+         AdNcSTe5C/0skrvzSiU5FtG9MbifqXgcB5bEcKxHJWr5tnCgvVWwK5rfnZXJ7oBbfZHf
+         GhlJCuuj+bSZ74XYwktHhsFWhnBIsTK6zHcp6UAY9xgpAPZFklNg71R6dKUpbOq+fQRv
+         doRkzOO4TpSA2dzQnx5TguZqzay02nfW4nKUOPBUQGRt3CSo6mdGtpyuzKKnCgnCMO0I
+         +Xgw==
+X-Gm-Message-State: AOJu0Yx43AJjy21OGrX0FSUWWMjrK10zIBBlqW8qgq3vK6RkQOrrNYXC
+	I9bLLCNUgr3UQFnq64ITrUWi00eUBPwqXQHR8zr8oKkBgSCavT/jynJrHCgpyA==
+X-Google-Smtp-Source: AGHT+IEeow1gZHkiO9dO07aro34d2nGh7UFwtbunFPEaLK9acEtkUz+jqRl//y27TNHArCGQgN03pw==
+X-Received: by 2002:a05:6358:6f9c:b0:176:4d01:22af with SMTP id s28-20020a0563586f9c00b001764d0122afmr15640958rwn.4.1707108327825;
+        Sun, 04 Feb 2024 20:45:27 -0800 (PST)
+X-Forwarded-Encrypted: i=0; AJvYcCWSs66Oq85yGtSLJxv6+8pzpNbVa3ZXxjh/OmBQ2BKZK+SA11XTL8J0LVDMWQBaAhsxtbQZjhkwrZZU6uqBJlVN3CqB3M96uRYUbYwgREloZ8xJ0UBMhP17tepemkj7G3clddifVS60IlEvho6kH/+heAVWvtuU0Yxy89vMaXqWfxp0Poe/9qEmImyduq7WEb9vdaQbYTbVvtnLncsbWzCCjBro3Pdv4LJThOPK2OJbrTWt27Oihzf4YXI1P9QbVCsli/lUMX+lcrtyUdSddk3jWFi9S7EawSmsiRvrImwCX63omLSMvM2N3SiMJgLlDOFqlOuqjcCVvIyUH30jfOTwHOKtHMtKOhqodCSwyekMQkq9XfRDsI9lFEzNN95SUfX83N0u09K2ajrW6KoDE59e0J9ugdrcdSpgxbTf+nP1i8E+NjksQK0SXrEMq2vMSQpsV0mP7qIa2sFDbLvOK3FjlLSR8l1w9vHVn/lFQUj1glLg4RGAy7STvndwRNqN8GFQktdimCeBcxTDsOf328veer2+vfA=
+Received: from akaher-virtual-machine.eng.vmware.com ([66.170.99.2])
+        by smtp.gmail.com with ESMTPSA id bn23-20020a056a00325700b006dbda7bcf3csm5629859pfb.83.2024.02.04.20.45.25
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Sun, 04 Feb 2024 20:45:27 -0800 (PST)
+From: Ajay Kaher <ajay.kaher@broadcom.com>
+To: stable@vger.kernel.org,
+	gregkh@linuxfoundation.org
+Cc: pablo@netfilter.org,
+	kadlec@netfilter.org,
+	fw@strlen.de,
+	davem@davemloft.net,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	alexey.makhalov@broadcom.com,
+	florian.fainelli@broadcom.com,
+	vasavi.sirnapalli@broadcom.com,
+	Ajay Kaher <ajay.kaher@broadcom.com>,
+	Dan Carpenter <dan.carpenter@linaro.org>,
+	Sasha Levin <sashal@kernel.org>
+Subject: [PATCH v4.19.y] netfilter: nf_tables: fix pointer math issue in  nft_byteorder_eval()
+Date: Mon,  5 Feb 2024 10:14:52 +0530
+Message-Id: <1707108293-1004-1-git-send-email-ajay.kaher@broadcom.com>
+X-Mailer: git-send-email 2.7.4
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-Hi Pablo,
+From: Dan Carpenter <dan.carpenter@linaro.org>
 
-There is a libnetfilter_queue patch of mine from December 2023 to add
-nfq_socket_sendto() that is still under review in Patchwork:
+commit c301f0981fdd3fd1ffac6836b423c4d7a8e0eb63 upstream.
 
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20231211005635.7566-2-duncan_roe@optusnet.com.au/
+The problem is in nft_byteorder_eval() where we are iterating through a
+loop and writing to dst[0], dst[1], dst[2] and so on...  On each
+iteration we are writing 8 bytes.  But dst[] is an array of u32 so each
+element only has space for 4 bytes.  That means that every iteration
+overwrites part of the previous element.
 
-Would you prefer a v2 with the code snippet actually verifying that errno is
-EOPNOTSUPP?
+I spotted this bug while reviewing commit caf3ef7468f7 ("netfilter:
+nf_tables: prevent OOB access in nft_byteorder_eval") which is a related
+issue.  I think that the reason we have not detected this bug in testing
+is that most of time we only write one element.
 
-Alternatively would you prefer to keep using mnl_socket_sendto() and have a
-supplementary call (e.g. nfq_socket_query()) to check the result? (i.e. after
-nfq_nlmsg_put2() with NLM_F_ACK). That's how I'm doing it in the libmnl-only
-libnetfilter_queue enhancement (I only thought of the nfq_socket_sendto()
-composite later).
+Fixes: ce1e7989d989 ("netfilter: nft_byteorder: provide 64bit le/be conversion")
+Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+[Ajay: Modified to apply on v4.19.y]
+Signed-off-by: Ajay Kaher <ajay.kaher@broadcom.com>
+---
+ net/netfilter/nft_byteorder.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-It would be nice to get a yes / no / please do xxx.
+diff --git a/net/netfilter/nft_byteorder.c b/net/netfilter/nft_byteorder.c
+index dba1612..8c4ee49 100644
+--- a/net/netfilter/nft_byteorder.c
++++ b/net/netfilter/nft_byteorder.c
+@@ -41,19 +41,20 @@ static void nft_byteorder_eval(const struct nft_expr *expr,
+ 
+ 	switch (priv->size) {
+ 	case 8: {
++		u64 *dst64 = (void *)dst;
+ 		u64 src64;
+ 
+ 		switch (priv->op) {
+ 		case NFT_BYTEORDER_NTOH:
+ 			for (i = 0; i < priv->len / 8; i++) {
+ 				src64 = get_unaligned((u64 *)&src[i]);
+-				put_unaligned_be64(src64, &dst[i]);
++				put_unaligned_be64(src64, &dst64[i]);
+ 			}
+ 			break;
+ 		case NFT_BYTEORDER_HTON:
+ 			for (i = 0; i < priv->len / 8; i++) {
+ 				src64 = get_unaligned_be64(&src[i]);
+-				put_unaligned(src64, (u64 *)&dst[i]);
++				put_unaligned(src64, &dst64[i]);
+ 			}
+ 			break;
+ 		}
+-- 
+2.7.4
 
-Cheers ... Duncan.
