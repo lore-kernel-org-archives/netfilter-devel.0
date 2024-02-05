@@ -1,334 +1,188 @@
-Received: from mail-lf1-f52.google.com (mail-lf1-f52.google.com [209.85.167.52])
+Received: from mail-il1-f197.google.com (mail-il1-f197.google.com [209.85.166.197])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87AD64EB38
-	for <netfilter-devel@vger.kernel.org>; Mon,  5 Feb 2024 19:28:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42DE64F5FA
+	for <netfilter-devel@vger.kernel.org>; Mon,  5 Feb 2024 23:40:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.197
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707161313; cv=none; b=n72oWBtQWuBT7uy9Lc3Lu4BIgPRynWjAVSAlr8ScSDb3VgU86SAWH87b9Gk+eZX0IgkcafJRl5LyvMJkQdeAPW49fjxgdXhmDrBwCGcUBuROnx7ENsT5ftiTPLbGBv4eRMON5cPlensBHb6RQcjnktDw0sachV+krUfAHxNdcow=
+	t=1707176431; cv=none; b=m5bTkNJsR80kyDrdCL751QUo0DNPXvTWCLaOG3PK/w00wiCQhYVdhVY/etGRVGVJIRtlOvDuvTbrn2h3Q1Nzvbv/o9cqx29CN6ELUim4NYVsDLLUUZR56p6YJxc+lmUf2eiSqOyRwYurc0WdodTAJx+W60x5EPs54uSt5y/ybu8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707161313; c=relaxed/simple;
-	bh=vkvgGRo1pSFs/GOYpJ8ezRcamKPDuI51v3yzsw9Qwac=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=btayK5+rGYKlZq28uRSzlg6gnvMBjY7WPNVFXoYjW0G6Ywb7qk+qS//PDxdpVvvGIGLQU6OpVrW8n8n/zJuhNKc7dfRPGOtioFHddUPkJL54pFd6F3zdKygwnduScFPUZsrDQaOOwVXM+1ZHDPAzXbKKilQz3YN9QVIjzfI/qqg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cloudflare.com; spf=pass smtp.mailfrom=cloudflare.com; dkim=pass (2048-bit key) header.d=cloudflare.com header.i=@cloudflare.com header.b=LBp2c3VH; arc=none smtp.client-ip=209.85.167.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cloudflare.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cloudflare.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloudflare.com header.i=@cloudflare.com header.b="LBp2c3VH"
-Received: by mail-lf1-f52.google.com with SMTP id 2adb3069b0e04-5114b2b3b73so1957311e87.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 05 Feb 2024 11:28:31 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloudflare.com; s=google09082023; t=1707161309; x=1707766109; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=uM9bfvnNjJ5wIVcYSWt719eXiAyrV1V8o/Z3/l9SYpM=;
-        b=LBp2c3VHHL1YK4Oxc5b705aSeKaiBIwyfHjyd7F+EThOeMgN0+VBBvQsvkvmQX07K5
-         HiPkUjCKmXHNRZA3kViwaLIqASCMKlpExnEohVqXF0P6xQ784L6ntCHd/VjvnbHVo2s2
-         WftY9A1Y75hp6upOLq4OBLAYNNvUmUxky5fRQLhuAR3EyTYEMDw6CZAH+5kEL9/sfEdg
-         gOBcCPdClxhjEcF8hHNtg4duIyPIrSBegcj0uhkJfqXInsRE4QSPoauMhq1MCfKUOVGU
-         D1xrzhet5hm/AkgUc69BsNbjCnnH8v98u7WdxxclIdP5N1EFD0XHV3MinHbnJcT5a1hr
-         EOSw==
+	s=arc-20240116; t=1707176431; c=relaxed/simple;
+	bh=/l/BbcOUP7bWr5jYI8yoNu18RrCE0pxiWCQZSl+HmC8=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=rLGDKdl5J81Egx1PbknZKHfzNq9zM+GwV/m9BG1iZ/dxvEaZ6yBYI3HDH4TaNCcep6+SIzJnzE3219H9v+n+qLXFD+7R7rzeHZWQ79j2ttQUqzGO1JmfSQAHpSOl2hQWnmWcA8wRB4G4y9TU/boS533WqwdCaaHNV8UAIDrVPS0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.197
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-il1-f197.google.com with SMTP id e9e14a558f8ab-363abe44869so35796835ab.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 05 Feb 2024 15:40:29 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1707161309; x=1707766109;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=uM9bfvnNjJ5wIVcYSWt719eXiAyrV1V8o/Z3/l9SYpM=;
-        b=hlWP4w53JeDdYNkz0aKoJR1QlqeYclMJ3uvgl7yg2y06t8MSVDRaOklI7J4yrZFocs
-         +0Jmpze6qh61jAWtqePLw3S2OgOuTxpYxBLLNBT7BP0tyy76X+ZlyuHNKFscucj2eJ1U
-         QRaPrmOAw4o6RBWqvIQE/C5+RC267imSSAV2/euQpVsA1E6gh6fV8/QrglEoSfvbwtaD
-         fzD2zkdqaqG5MwKP5ZudKhHHPe7++S58F0aH5afNhOdBZKaD5ySbuxfB7j9bjKcnegLV
-         SDz6Z9SoPa7iMsTUjvnZXP516laGWi0zxjzkIgAw+9K15Nc6jyXEkDOGqkGT0XeTGx6T
-         1P3Q==
-X-Gm-Message-State: AOJu0Yy7cxEQjog32Girq7rpm0WGJAdzuc8kyMPo4Qs2jVfLCJfOLDl2
-	6bXrgwCDHqKX6ng+EwTpRQYfAWDAQgx/++BXa3iS9XMr2H2RCHKYfEPfhXMrTQM=
-X-Google-Smtp-Source: AGHT+IGtNsCzgbhU7U/ubyiUXO0/4h3AjbKmSAxr3VReZ6e/awosLCDhPMapn4/j6qdpSw70rfhlSg==
-X-Received: by 2002:a19:6753:0:b0:511:4a38:351e with SMTP id e19-20020a196753000000b005114a38351emr101251lfj.34.1707161309397;
-        Mon, 05 Feb 2024 11:28:29 -0800 (PST)
-X-Forwarded-Encrypted: i=0; AJvYcCXsAQtz5Pk/+R4pz2JZD65pSIrfPg0vPLZ6EKyQkFS/am1zueK/tYgKlQQdanEqbX8E+FnkX/9M6vMIzJiUkdNO+d1Jcp6BCTofP18/A0jZPbesj9jYQ80jGRtok1mtOcbzUB4nQTfElpugpGtGHrWEQ4TsNysMHojCQzpffQgnlio/peznpu+qMNQdkXiV/zFZnCiZV8fR3URWmRCf1F26Xg+bExkBFJNJkswr0ubUN1Tkj6/9
-Received: from localhost ([2a09:bac5:4e26:15c3::22b:3a])
-        by smtp.gmail.com with ESMTPSA id se1-20020a170906ce4100b00a3743142429sm173161ejb.39.2024.02.05.11.28.29
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 05 Feb 2024 11:28:29 -0800 (PST)
-From: Terin Stock <terin@cloudflare.com>
-To: horms@verge.net.au,
-	ja@ssi.bg
-Cc: pablo@netfilter.org,
-	kadlec@netfilter.org,
-	fw@strlen.de,
-	netfilter-devel@vger.kernel.org,
-	lvs-devel@vger.kernel.org,
-	kernel-team@cloudflare.com
-Subject: [PATCH] ipvs: generic netlink multicast event group
-Date: Mon,  5 Feb 2024 19:28:28 +0000
-Message-ID: <20240205192828.187494-1-terin@cloudflare.com>
-X-Mailer: git-send-email 2.43.0
+        d=1e100.net; s=20230601; t=1707176428; x=1707781228;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=/ngrkC+Ev5kse1bjFQ2pRxP1v852GqG+2VMvhIKcpOs=;
+        b=LwJ0xzsW0zl3NWs9gQ/mi3zbTtgeuLlYhUpTLorklD2fAqBnpnsvgSm4K2yuF63dJT
+         Vy9FdobW3zoKstPzgNPsQqhKPZfhL4Ch9wKimdBi832q8sbBT+yuzIEc210EgMqSRR3U
+         9x7FXNIy/CP1DYIAFO3KpsW0jCd9f5VOhDZkhNHLuz/C8JLn7hYgn/grgqtNbAyuvOEq
+         dxWBk5kdVEIJ/W9FZNRJ+FXvURAvQSkG8Lkw77Sv5sXA1TrjrpqoqfQC9FeKwhN4oMf8
+         nW12t7GuhjUrK8l8O3ct4wLKHQWN6S7k0jiv/FlmfB14aSjzAy86Y+htGRLuTKdHUw8R
+         h+3w==
+X-Gm-Message-State: AOJu0YxN8RA4/6lEQ9VpKg/owZxHQNFeQ7TfuujrILF0skqispK/Nz0N
+	gV6rtbaj24ETJ8UTmD/DcWrOxIWAp/C4kzvYr2bnpp2eSr/d+fR717Jc5Smgk+J6d7B9wdix0pR
+	/16j3Yb/DjVrrkTa/QLXPdxPg/2LrbSBZddiZ8XVpnrR2q63GuY5Rx/Q=
+X-Google-Smtp-Source: AGHT+IFEPa59otgEiS/TUoOMi9OMKmjSD0/Jbb+a85mDrxwfB6enbNsW0h2YRNaVdnPOxr/obL1YCHDE2GtJ77CNHM3Iol/0TImu
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Received: by 2002:a05:6e02:221d:b0:363:819c:926d with SMTP id
+ j29-20020a056e02221d00b00363819c926dmr80890ilf.1.1707176428457; Mon, 05 Feb
+ 2024 15:40:28 -0800 (PST)
+Date: Mon, 05 Feb 2024 15:40:28 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <0000000000009655270610aafce1@google.com>
+Subject: [syzbot] [netfilter?] WARNING: suspicious RCU usage in hash_netportnet6_destroy
+From: syzbot <syzbot+bcd44ebc3cd2db18f26c@syzkaller.appspotmail.com>
+To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
+	fw@strlen.de, kadlec@netfilter.org, kuba@kernel.org, 
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-The IPVS subsystem allows for configuration from userspace programs
-using the generic netlink interface. However, the program is currently
-unable to react to changes in the configuration of services or
-destinations made on the system without polling over all configuration
-in IPVS.
+Hello,
 
-Adds an "events" multicast group for the IPVS generic netlink family,
-allowing for userspace programs to monitor changes made by any other
-netlink client (or legacy tools using the IPVS socket options). As
-service and destination statistics are separate from configuration,
-those netlink attributes are excluded in events.
+syzbot found the following issue on:
 
-Signed-off-by: Terin Stock <terin@cloudflare.com>
+HEAD commit:    021533194476 Kconfig: Disable -Wstringop-overflow for GCC ..
+git tree:       upstream
+console+strace: https://syzkaller.appspot.com/x/log.txt?x=144caa38180000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=f204e0b6490f4419
+dashboard link: https://syzkaller.appspot.com/bug?extid=bcd44ebc3cd2db18f26c
+compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=16329057e80000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=15b8fe7be80000
+
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/0fcac44f7d25/disk-02153319.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/ec3e3d0e222c/vmlinux-02153319.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/11bfd95eb918/bzImage-02153319.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+bcd44ebc3cd2db18f26c@syzkaller.appspotmail.com
+
+=============================
+WARNING: suspicious RCU usage
+6.8.0-rc2-syzkaller-00199-g021533194476 #0 Not tainted
+-----------------------------
+net/netfilter/ipset/ip_set_hash_gen.h:455 suspicious rcu_dereference_protected() usage!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+1 lock held by swapper/0/0:
+ #0: ffffffff8e130ba0 (rcu_callback){....}-{0:0}, at: rcu_lock_acquire include/linux/rcupdate.h:298 [inline]
+ #0: ffffffff8e130ba0 (rcu_callback){....}-{0:0}, at: rcu_do_batch kernel/rcu/tree.c:2184 [inline]
+ #0: ffffffff8e130ba0 (rcu_callback){....}-{0:0}, at: rcu_core+0xcfc/0x1810 kernel/rcu/tree.c:2465
+
+stack backtrace:
+CPU: 0 PID: 0 Comm: swapper/0 Not tainted 6.8.0-rc2-syzkaller-00199-g021533194476 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/25/2024
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e7/0x2e0 lib/dump_stack.c:106
+ lockdep_rcu_suspicious+0x220/0x340 kernel/locking/lockdep.c:6712
+ hash_netportnet6_destroy+0xf0/0x2c0 net/netfilter/ipset/ip_set_hash_gen.h:455
+ ip_set_destroy_set net/netfilter/ipset/ip_set_core.c:1180 [inline]
+ ip_set_destroy_set_rcu+0x6a/0xe0 net/netfilter/ipset/ip_set_core.c:1190
+ rcu_do_batch kernel/rcu/tree.c:2190 [inline]
+ rcu_core+0xd76/0x1810 kernel/rcu/tree.c:2465
+ __do_softirq+0x2bb/0x942 kernel/softirq.c:553
+ invoke_softirq kernel/softirq.c:427 [inline]
+ __irq_exit_rcu+0xf1/0x1c0 kernel/softirq.c:632
+ irq_exit_rcu+0x9/0x30 kernel/softirq.c:644
+ sysvec_apic_timer_interrupt+0x97/0xb0 arch/x86/kernel/apic/apic.c:1076
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x1a/0x20 arch/x86/include/asm/idtentry.h:649
+RIP: 0010:native_irq_disable arch/x86/include/asm/irqflags.h:37 [inline]
+RIP: 0010:arch_local_irq_disable arch/x86/include/asm/irqflags.h:72 [inline]
+RIP: 0010:acpi_safe_halt+0x20/0x30 drivers/acpi/processor_idle.c:113
+Code: 90 90 90 90 90 90 90 90 90 90 65 48 8b 05 58 ea a5 74 48 f7 00 08 00 00 00 75 10 66 90 0f 00 2d c6 5c a9 00 f3 0f 1e fa fb f4 <fa> c3 cc cc cc cc 66 2e 0f 1f 84 00 00 00 00 00 90 90 90 90 90 90
+RSP: 0018:ffffffff8de07ca8 EFLAGS: 00000246
+RAX: ffffffff8de94680 RBX: ffff88801628e864 RCX: 00000000000148c9
+RDX: 0000000000000001 RSI: ffff88801628e800 RDI: ffff88801628e864
+RBP: 0000000000038f78 R08: ffff8880b9436d8b R09: 1ffff11017286db1
+R10: dffffc0000000000 R11: ffffffff8b5dd030 R12: ffff888015b47000
+R13: 0000000000000000 R14: 0000000000000001 R15: ffffffff8e885a20
+ acpi_idle_enter+0xe4/0x140 drivers/acpi/processor_idle.c:707
+ cpuidle_enter_state+0x118/0x490 drivers/cpuidle/cpuidle.c:267
+ cpuidle_enter+0x5d/0xa0 drivers/cpuidle/cpuidle.c:388
+ call_cpuidle kernel/sched/idle.c:134 [inline]
+ cpuidle_idle_call kernel/sched/idle.c:215 [inline]
+ do_idle+0x374/0x5d0 kernel/sched/idle.c:312
+----------------
+Code disassembly (best guess):
+   0:	90                   	nop
+   1:	90                   	nop
+   2:	90                   	nop
+   3:	90                   	nop
+   4:	90                   	nop
+   5:	90                   	nop
+   6:	90                   	nop
+   7:	90                   	nop
+   8:	90                   	nop
+   9:	90                   	nop
+   a:	65 48 8b 05 58 ea a5 	mov    %gs:0x74a5ea58(%rip),%rax        # 0x74a5ea6a
+  11:	74
+  12:	48 f7 00 08 00 00 00 	testq  $0x8,(%rax)
+  19:	75 10                	jne    0x2b
+  1b:	66 90                	xchg   %ax,%ax
+  1d:	0f 00 2d c6 5c a9 00 	verw   0xa95cc6(%rip)        # 0xa95cea
+  24:	f3 0f 1e fa          	endbr64
+  28:	fb                   	sti
+  29:	f4                   	hlt
+* 2a:	fa                   	cli <-- trapping instruction
+  2b:	c3                   	ret
+  2c:	cc                   	int3
+  2d:	cc                   	int3
+  2e:	cc                   	int3
+  2f:	cc                   	int3
+  30:	66 2e 0f 1f 84 00 00 	cs nopw 0x0(%rax,%rax,1)
+  37:	00 00 00
+  3a:	90                   	nop
+  3b:	90                   	nop
+  3c:	90                   	nop
+  3d:	90                   	nop
+  3e:	90                   	nop
+  3f:	90                   	nop
+
+
 ---
- include/uapi/linux/ip_vs.h     |   2 +
- net/netfilter/ipvs/ip_vs_ctl.c | 107 +++++++++++++++++++++++++++++----
- 2 files changed, 96 insertions(+), 13 deletions(-)
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/include/uapi/linux/ip_vs.h b/include/uapi/linux/ip_vs.h
-index 1ed234e7f251..0aa119ebaf85 100644
---- a/include/uapi/linux/ip_vs.h
-+++ b/include/uapi/linux/ip_vs.h
-@@ -299,6 +299,8 @@ struct ip_vs_daemon_user {
- #define IPVS_GENL_NAME		"IPVS"
- #define IPVS_GENL_VERSION	0x1
- 
-+#define IPVS_GENL_MCAST_EVENT_NAME "events"
-+
- struct ip_vs_flags {
- 	__u32 flags;
- 	__u32 mask;
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 143a341bbc0a..ced232361d02 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -64,6 +64,11 @@ int ip_vs_get_debug_level(void)
- 
- 
- /*  Protos */
-+static struct genl_family ip_vs_genl_family;
-+static int ip_vs_genl_fill_service(struct sk_buff *skb,
-+				   struct ip_vs_service *svc, bool stats);
-+static int ip_vs_genl_fill_dest(struct sk_buff *skb, struct ip_vs_dest *dest,
-+				bool stats);
- static void __ip_vs_del_service(struct ip_vs_service *svc, bool cleanup);
- 
- 
-@@ -960,6 +965,62 @@ void ip_vs_stats_free(struct ip_vs_stats *stats)
- 	}
- }
- 
-+static int ip_vs_genl_service_event(u8 event, struct ip_vs_service *svc)
-+{
-+	struct sk_buff *msg;
-+	void *hdr;
-+
-+	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_ATOMIC);
-+	if (!msg)
-+		return -ENOMEM;
-+
-+	hdr = genlmsg_put(msg, 0, 0, &ip_vs_genl_family, 0, event);
-+	if (!hdr)
-+		goto free_msg;
-+
-+	if (ip_vs_genl_fill_service(msg, svc, false))
-+		goto free_msg;
-+
-+	genlmsg_end(msg, hdr);
-+	genlmsg_multicast(&ip_vs_genl_family, msg, 0, 0, GFP_ATOMIC);
-+
-+	return 0;
-+
-+free_msg:
-+	nlmsg_free(msg);
-+	return -EMSGSIZE;
-+}
-+
-+static int ip_vs_genl_dest_event(u8 event, struct ip_vs_service *svc,
-+				 struct ip_vs_dest *dest)
-+{
-+	struct sk_buff *msg;
-+	void *hdr;
-+
-+	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_ATOMIC);
-+	if (!msg)
-+		return -ENOMEM;
-+
-+	hdr = genlmsg_put(msg, 0, 0, &ip_vs_genl_family, 0, event);
-+	if (!hdr)
-+		goto free_msg;
-+
-+	if (ip_vs_genl_fill_service(msg, svc, false))
-+		goto free_msg;
-+
-+	if (ip_vs_genl_fill_dest(msg, dest, false))
-+		goto free_msg;
-+
-+	genlmsg_end(msg, hdr);
-+	genlmsg_multicast(&ip_vs_genl_family, msg, 0, 0, GFP_ATOMIC);
-+
-+	return 0;
-+
-+free_msg:
-+	nlmsg_free(msg);
-+	return -EMSGSIZE;
-+}
-+
- /*
-  *	Update a destination in the given service
-  */
-@@ -1043,10 +1104,12 @@ __ip_vs_update_dest(struct ip_vs_service *svc, struct ip_vs_dest *dest,
- 		sched = rcu_dereference_protected(svc->scheduler, 1);
- 		if (sched && sched->add_dest)
- 			sched->add_dest(svc, dest);
-+		ip_vs_genl_dest_event(IPVS_CMD_NEW_DEST, svc, dest);
- 	} else {
- 		sched = rcu_dereference_protected(svc->scheduler, 1);
- 		if (sched && sched->upd_dest)
- 			sched->upd_dest(svc, dest);
-+		ip_vs_genl_dest_event(IPVS_CMD_SET_DEST, svc, dest);
- 	}
- }
- 
-@@ -1316,6 +1379,7 @@ ip_vs_del_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
- 		return -ENOENT;
- 	}
- 
-+	ip_vs_genl_dest_event(IPVS_CMD_DEL_DEST, svc, dest);
- 	/*
- 	 *	Unlink dest from the service
- 	 */
-@@ -1480,6 +1544,8 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
- 	/* Hash the service into the service table */
- 	ip_vs_svc_hash(svc);
- 
-+	ip_vs_genl_service_event(IPVS_CMD_NEW_SERVICE, svc);
-+
- 	*svc_p = svc;
- 
- 	if (!ipvs->enable) {
-@@ -1593,6 +1659,8 @@ ip_vs_edit_service(struct ip_vs_service *svc, struct ip_vs_service_user_kern *u)
- 			atomic_dec(&svc->ipvs->conn_out_counter);
- 	}
- 
-+	ip_vs_genl_service_event(IPVS_CMD_SET_SERVICE, svc);
-+
- out:
- 	ip_vs_scheduler_put(old_sched);
- 	ip_vs_pe_put(old_pe);
-@@ -1667,6 +1735,8 @@ static void ip_vs_unlink_service(struct ip_vs_service *svc, bool cleanup)
- 	ip_vs_unregister_conntrack(svc);
- 	/* Hold svc to avoid double release from dest_trash */
- 	atomic_inc(&svc->refcnt);
-+
-+	ip_vs_genl_service_event(IPVS_CMD_DEL_SERVICE, svc);
- 	/*
- 	 * Unhash it from the service table
- 	 */
-@@ -3313,7 +3383,7 @@ static int ip_vs_genl_fill_stats64(struct sk_buff *skb, int container_type,
- }
- 
- static int ip_vs_genl_fill_service(struct sk_buff *skb,
--				   struct ip_vs_service *svc)
-+				   struct ip_vs_service *svc, bool stats)
- {
- 	struct ip_vs_scheduler *sched;
- 	struct ip_vs_pe *pe;
-@@ -3349,10 +3419,12 @@ static int ip_vs_genl_fill_service(struct sk_buff *skb,
- 	    nla_put_be32(skb, IPVS_SVC_ATTR_NETMASK, svc->netmask))
- 		goto nla_put_failure;
- 	ip_vs_copy_stats(&kstats, &svc->stats);
--	if (ip_vs_genl_fill_stats(skb, IPVS_SVC_ATTR_STATS, &kstats))
--		goto nla_put_failure;
--	if (ip_vs_genl_fill_stats64(skb, IPVS_SVC_ATTR_STATS64, &kstats))
--		goto nla_put_failure;
-+	if (stats) {
-+		if (ip_vs_genl_fill_stats(skb, IPVS_SVC_ATTR_STATS, &kstats))
-+			goto nla_put_failure;
-+		if (ip_vs_genl_fill_stats64(skb, IPVS_SVC_ATTR_STATS64, &kstats))
-+			goto nla_put_failure;
-+	}
- 
- 	nla_nest_end(skb, nl_service);
- 
-@@ -3375,7 +3447,7 @@ static int ip_vs_genl_dump_service(struct sk_buff *skb,
- 	if (!hdr)
- 		return -EMSGSIZE;
- 
--	if (ip_vs_genl_fill_service(skb, svc) < 0)
-+	if (ip_vs_genl_fill_service(skb, svc, true) < 0)
- 		goto nla_put_failure;
- 
- 	genlmsg_end(skb, hdr);
-@@ -3528,7 +3600,8 @@ static struct ip_vs_service *ip_vs_genl_find_service(struct netns_ipvs *ipvs,
- 	return ret ? ERR_PTR(ret) : svc;
- }
- 
--static int ip_vs_genl_fill_dest(struct sk_buff *skb, struct ip_vs_dest *dest)
-+static int ip_vs_genl_fill_dest(struct sk_buff *skb, struct ip_vs_dest *dest,
-+				bool stats)
- {
- 	struct nlattr *nl_dest;
- 	struct ip_vs_kstats kstats;
-@@ -3561,10 +3634,12 @@ static int ip_vs_genl_fill_dest(struct sk_buff *skb, struct ip_vs_dest *dest)
- 	    nla_put_u16(skb, IPVS_DEST_ATTR_ADDR_FAMILY, dest->af))
- 		goto nla_put_failure;
- 	ip_vs_copy_stats(&kstats, &dest->stats);
--	if (ip_vs_genl_fill_stats(skb, IPVS_DEST_ATTR_STATS, &kstats))
--		goto nla_put_failure;
--	if (ip_vs_genl_fill_stats64(skb, IPVS_DEST_ATTR_STATS64, &kstats))
--		goto nla_put_failure;
-+	if (stats) {
-+		if (ip_vs_genl_fill_stats(skb, IPVS_DEST_ATTR_STATS, &kstats))
-+			goto nla_put_failure;
-+		if (ip_vs_genl_fill_stats64(skb, IPVS_DEST_ATTR_STATS64, &kstats))
-+			goto nla_put_failure;
-+	}
- 
- 	nla_nest_end(skb, nl_dest);
- 
-@@ -3586,7 +3661,7 @@ static int ip_vs_genl_dump_dest(struct sk_buff *skb, struct ip_vs_dest *dest,
- 	if (!hdr)
- 		return -EMSGSIZE;
- 
--	if (ip_vs_genl_fill_dest(skb, dest) < 0)
-+	if (ip_vs_genl_fill_dest(skb, dest, true) < 0)
- 		goto nla_put_failure;
- 
- 	genlmsg_end(skb, hdr);
-@@ -4078,7 +4153,7 @@ static int ip_vs_genl_get_cmd(struct sk_buff *skb, struct genl_info *info)
- 			ret = PTR_ERR(svc);
- 			goto out_err;
- 		} else if (svc) {
--			ret = ip_vs_genl_fill_service(msg, svc);
-+			ret = ip_vs_genl_fill_service(msg, svc, true);
- 			if (ret)
- 				goto nla_put_failure;
- 		} else {
-@@ -4235,6 +4310,10 @@ static const struct genl_small_ops ip_vs_genl_ops[] = {
- 	},
- };
- 
-+static const struct genl_multicast_group ip_vs_genl_mcgrps[] = {
-+	{ .name = IPVS_GENL_MCAST_EVENT_NAME },
-+};
-+
- static struct genl_family ip_vs_genl_family __ro_after_init = {
- 	.hdrsize	= 0,
- 	.name		= IPVS_GENL_NAME,
-@@ -4246,6 +4325,8 @@ static struct genl_family ip_vs_genl_family __ro_after_init = {
- 	.small_ops	= ip_vs_genl_ops,
- 	.n_small_ops	= ARRAY_SIZE(ip_vs_genl_ops),
- 	.resv_start_op	= IPVS_CMD_FLUSH + 1,
-+	.mcgrps = ip_vs_genl_mcgrps,
-+	.n_mcgrps = ARRAY_SIZE(ip_vs_genl_mcgrps),
- };
- 
- static int __init ip_vs_genl_register(void)
--- 
-2.43.0
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
 
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
