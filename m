@@ -1,80 +1,67 @@
-Received: from mail-il1-f198.google.com (mail-il1-f198.google.com [209.85.166.198])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E05DA1CAA5
-	for <netfilter-devel@vger.kernel.org>; Tue,  6 Feb 2024 23:24:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.198
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D7881CD17
+	for <netfilter-devel@vger.kernel.org>; Tue,  6 Feb 2024 23:25:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707261847; cv=none; b=MEYODlXLXUCuvgHuAHtj55SGxIZ47e9J0pD3bMiPaFplhrgXiV5UxkO876ONJe4rfoqX37BKLd73qjPJgf5UiojP/8wlCHXU9zqesxbEf3aYt4QwW2uKkWyBqsLw1+S5vJ6dBjg0ehgKrad8CGODy4uWJ3Paifcp+cXk6Ro6XVw=
+	t=1707261951; cv=none; b=qNImc3OAPTjsGSjQl/rVt8W7U7nwj+jjk1/EwneHWMmXEUMx5tNLUl3cD+wa4NpzPKhsV95CYWxtQMFy9IWfXDoXXVUwSakPFDmtMOMTmRYaMifapj+gvjH6Qo9elkc4Fr5TULx+xXz7opYzpGUu5K8CCNU/hyH2ukqu1sZEQwQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707261847; c=relaxed/simple;
-	bh=avaOUcgWWADF6KLGwzoW9QsC+X9ueBhEDEJuX1SutnY=;
-	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
-	 Content-Type; b=YEdDfY44y7Q4IyTQZEGgDPwi1A96EXkWDYb6ms0Ho7mjZqZecQbDh9EXygjWXwVYXQ/v0qE7zz5EyAXis7LgvbPh4zoF8Un05FwKeK0F/Ef5ebJ1r9viQykQynjZOIXeDYpoHeOa6402hI42sk8EmJc475V1HUjPBeq+jYgD6qY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.198
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-il1-f198.google.com with SMTP id e9e14a558f8ab-363da08fc19so181015ab.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 06 Feb 2024 15:24:05 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1707261845; x=1707866645;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=dyU9aBXxURAl9A5KuV1JqmHm0E55rA4SNAlAUuaADxs=;
-        b=hzUoJYKfTlEqh6T3LLeJe0Q0LuLkPn6OAHHVLVircuufCtwZN0jr1WSBh0QZ/gimfW
-         N+DCQlUFHFfC8nSGnhFOMVjJ879t4Jslg2amr/AEBRVGRz6Y173erKJrjM0VjE3CFIH2
-         7I5wbQN+CzxgBB9PazyZEeVgYRxIoF+njJGz0wLIBia0Rd9MDSzRcPXh98/hzr9oirCU
-         CEt0MfKUIk1ooMboGWDtYGtxiyeXqZ/9JwUkluIqv6t/MLoVJoo01p5bDQsejXjAJGce
-         W+ZDDHGUGnTkV4I/fxXLiUH8UPaypRn2G3/sgrmgpCYNrYIA6mCH/vsgHO5ffXAPxh4R
-         7v8A==
-X-Forwarded-Encrypted: i=1; AJvYcCVnL9lLASJ+zmBsx3eBvxC9Lq4tVP9LXvrM3wE/5eIK5JxArb5fZz7yZhP8dmv5faMfyQzui7aPTm//dFd5z9WMqVhFXYmWjkrF4NtRj++p
-X-Gm-Message-State: AOJu0YwVQsAYafIt/3QlT0c1MARuSp59rjBkf9x5vGLN17TY8yPFDMtp
-	Xf3QgEugNioZ79OfuKUyisR8JYPMHfK9b828F8yk3qiDS4xZjUuRk7T3ayZ47Ts9J26CgyF210E
-	biaVYI9Ywgs7kqIRIk8W2kG0vLfsMicRoRS8GoRJsWJrXmFZhZLonf8s=
-X-Google-Smtp-Source: AGHT+IGSXSHoJP49btDMUUbQR8POUN20RhhYPv9Heu/t1qcOYXiDcq7JQgRofse+fmN8ylccOMewqdmAQJFGKKPWHm8kVCz6GLrK
+	s=arc-20240116; t=1707261951; c=relaxed/simple;
+	bh=OS+SNm6rQEisE0AwhakX9S4t/3uVV2WaoSbUmyGm3SE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Hi7bwQ1LBPCtdVbGjC3+hRr53KtDZHaybxxQk2b8E8DuaYfK5f93DwS6PbD0Gy7q7i62TSYovbpmKGNei4fIAWVcAurxp/ji05oKVdsD2DXUgNMSPjWD8Uy137qowhNjxUkZ0TlkApPXPiCMBDnPPBWgVZkN+wEHPHJhA0g8acU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=YLUVsu/2; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="YLUVsu/2"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=zi27l3uUGDW4tEC7JDjCj2H3D4WkVP4Jqp46EGZy/wk=; b=YLUVsu/2fI6gdOhnvq2E5Vz7S0
+	bHJQu9DMLBHwcJUJfd5I1lj+IMdrJRV1ZSZTZK4vfIMsMP0xTuZuhFxvLnSFgxmCst3K7dzRk6Hpa
+	G5KxOnsg7DMyfjf8bAjRckZSyTFosLwV5zQdKNcvlyHuk6saDc8NypDGqCHH8mj+uEPCvHsVHO2mg
+	XIvo/ybyy1+Fm3n2C3TyJWmdO1lQnCN8P8Ma8t9qNhg4gkV6TDko9ihRUVMiFR3SxZl8btm6wA/9n
+	3uI48hh622pGda8ZPVVkRGZHCA0lmT/+1EensPPNFhvQ3SdYvFAQbrWtBtTQIFp5DxLQUb04we+cq
+	A57u0Xkw==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97)
+	(envelope-from <phil@nwl.cc>)
+	id 1rXUp1-000000004F2-1Auc;
+	Wed, 07 Feb 2024 00:25:47 +0100
+Date: Wed, 7 Feb 2024 00:25:47 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: netfilter-devel@vger.kernel.org
+Cc: Florian Westphal <fw@strlen.de>
+Subject: Re: [iptables PATCH v2 0/3] iptables-save: Avoid /etc/protocols
+ lookups
+Message-ID: <ZcK_-zo6mVQN4liC@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+References: <20240110224136.11211-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:1d9e:b0:363:ca65:7d12 with SMTP id
- h30-20020a056e021d9e00b00363ca657d12mr207768ila.6.1707261845064; Tue, 06 Feb
- 2024 15:24:05 -0800 (PST)
-Date: Tue, 06 Feb 2024 15:24:05 -0800
-In-Reply-To: <0000000000009655270610aafce1@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000d053f20610bedf3b@google.com>
-Subject: Re: [syzbot] [netfilter?] WARNING: suspicious RCU usage in hash_netportnet6_destroy
-From: syzbot <syzbot+bcd44ebc3cd2db18f26c@syzkaller.appspotmail.com>
-To: 00107082@163.com, coreteam@netfilter.org, davem@davemloft.net, 
-	edumazet@google.com, fw@strlen.de, justinstitt@google.com, 
-	kadlec@netfilter.org, kuba@kernel.org, kuniyu@amazon.com, 
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240110224136.11211-1-phil@nwl.cc>
 
-syzbot has bisected this issue to:
+On Wed, Jan 10, 2024 at 11:41:33PM +0100, Phil Sutter wrote:
+> V1 was a tad too simple: The revert is fine, but the (now) third patch
+> changes iptables-save output and thus potentially breaks test cases. To
+> avoid that, add patch 2 which enables "dccp" and "ipcomp" protocol names
+> in output. Apart from that, a single shell test case expected '-p gre'
+> in the dump. Replace the actually printed '-p 47' using sed in there.
+> 
+> Phil Sutter (3):
+>   Revert "xshared: Print protocol numbers if --numeric was given"
+>   libxtables: Add dccp and ipcomp to xtables_chain_protos
+>   iptables-save: Avoid /etc/protocols lookups
 
-commit 97f7cf1cd80eeed3b7c808b7c12463295c751001
-Author: Jozsef Kadlecsik <kadlec@netfilter.org>
-Date:   Mon Jan 29 09:57:01 2024 +0000
-
-    netfilter: ipset: fix performance regression in swap operation
-
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=15790a38180000
-start commit:   021533194476 Kconfig: Disable -Wstringop-overflow for GCC ..
-git tree:       upstream
-final oops:     https://syzkaller.appspot.com/x/report.txt?x=17790a38180000
-console output: https://syzkaller.appspot.com/x/log.txt?x=13790a38180000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=f204e0b6490f4419
-dashboard link: https://syzkaller.appspot.com/bug?extid=bcd44ebc3cd2db18f26c
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=16329057e80000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=15b8fe7be80000
-
-Reported-by: syzbot+bcd44ebc3cd2db18f26c@syzkaller.appspotmail.com
-Fixes: 97f7cf1cd80e ("netfilter: ipset: fix performance regression in swap operation")
-
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+Series applied.
