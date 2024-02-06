@@ -1,83 +1,264 @@
-Received: from out162-62-58-211.mail.qq.com (out162-62-58-211.mail.qq.com [162.62.58.211])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90C0539AD5
-	for <netfilter-devel@vger.kernel.org>; Tue,  6 Feb 2024 08:00:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.62.58.211
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE5031EA7D;
+	Tue,  6 Feb 2024 10:43:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707206442; cv=none; b=o9uUez3fdPfSTpHhQ9PvkTpLe/dFMNVg39GChFJ8s7MNid2PJDQM1oqae3YS3tO4lv/vGRSWCeP/IUdz5+Lp7cKzJ5eLuK1fNKKOrNtKZv1eX3mCwWO6s3Tr1gJugbYtV9bnKduWAK67bfThLEIWJUdBtJC1ohm2SeIdCjcqqOU=
+	t=1707216220; cv=none; b=LyeckqmWV5yd7GXNXCh353UjzWfUoKE+OCV38g7E7YfrpBVAWy3durIk+AK4gY8ezRhWv80PFJJQuGZSDS9A5Hp+uBjat5PTlR91Rql4zOV+3WfIVWd07/ou7ctdKUeaWh5GAOONYEi4C0ZWempJLFQ/9QEEyagGydUUQLRljKo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707206442; c=relaxed/simple;
-	bh=RMbQI4+hPIuYrwIdYeib6e0lZG5DvtVtP0wag5Fz6NM=;
-	h=Message-ID:From:To:Cc:Subject:Date:MIME-Version:Content-Type; b=LIAeXfZ45SpqYFPeAKOFX28T4rLKOPPBhM4rPDmFtkQmY+pgcG/ppgIrP/VTz/sdmwFZGWmF05Qedf7TxAwvS7/5KAgCFP47exYhcWNHKmejx8zdDkrsKjwMAqlyuoHE1ALjbjEyAFPuuwoGD2LMVL6NOUwHfF3WsMYpfqzHITg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=Red54.com; spf=pass smtp.mailfrom=red54.com; dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b=QQGlaBWT; arc=none smtp.client-ip=162.62.58.211
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=Red54.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=red54.com
+	s=arc-20240116; t=1707216220; c=relaxed/simple;
+	bh=eLDBoAWHndMbGf27s8TgD2Jw68rJIJDhNz9sDl9B2dc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=V9Gu6aBGIfpMwoLxX0Af7yDvzeD3JPZCZg2Q6Iucv3GAJY0A3tHBysixfOQveh/r78AHPK2p+MfW7lPGxyElmB7XMyCBH/SLcJut2CJcBjdZTpZJy1DMm/fZ2d0MuCBedJyzGWG7oq+BAVtWz6D/L7b4mxl3Kl5jqgo8b9ZBUsw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=bqx/HFnG; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=DdqX2+OR; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=dMNap4FK; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=ITzOJ/hM; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b="QQGlaBWT"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
-	t=1707206428; bh=qlIBbiH/8kqeiOBSHS7mTLIsx53GukbXv36RMKntQYg=;
-	h=From:To:Cc:Subject:Date;
-	b=QQGlaBWTMS1kzsu5s1MmQEdqRo/hszurjR3UCLVb4ZBD0Gey2JbFgN/BHpigkDIO9
-	 bUAAMmFMGZl12q4bzdXWqGxzYfRfhbekJia9lEvlyehQNGdFTQC5EbLqSV9ZsC5gVz
-	 MPAcZHyGtzikOuc+nvVNH3pKe8ytRKdCam2tR2w0=
-Received: from mail.red54.com ([2a09:bac5:80ce:18be::277:44])
-	by newxmesmtplogicsvrszc5-2.qq.com (NewEsmtp) with SMTP
-	id 15114E6; Tue, 06 Feb 2024 16:00:21 +0800
-X-QQ-mid: xmsmtpt1707206421tujcs40bp
-Message-ID: <tencent_EF81CEB49C3DFFD67C7F9FCFEDED323F1008@qq.com>
-X-QQ-XMAILINFO: M7uElAZZZMmFgjhZ8GTJzWw/qRiWQ8+JO+yJ4//zy1LKVzxf1YZzPK6+pf+cCv
-	 wtHQ8PAyDsEpZoyyk66l/utSzL6ggUmqpe7g5ztYaYbUxFCR6hHTC+r/iH2ewsHH+n5VDfYtrq+f
-	 fS141xxlQES7kPOBpEovWj7YtL57r31KFwSqtI2V5nqTcg38k2G81EOGRSh3ptps0btSfAzhCfvB
-	 H5P4ZRtXT7eb5JYa8sj6KxcY/vqLmF7wY41zjbL6r10OZHzhbmqbtmZ/uXRvDooPTLVyDrAi+y2/
-	 PNmgYD+tvRXv1LXrZWLAeEeQ3eDBNvA8bAnflO9ZyjIt0DHoR0GHgw6RRwfJdP/9GzukSzMoOISu
-	 lcnEE2Q9E0HI+BJHNlPprqQHUSEZkJ+3uOKlesFmn+Kf/Jm7y22+gS3jo79C8h/jmH6w7xc6Cfx2
-	 w2mHkouTXOlHzMZ7jFOqcJ20kD98TUrhv9hf1V/ZafsgVqPfMgBnGMnzcWE9H5J+epNrLUviyAaK
-	 6OFcNI1Tweh8Pzhfm43tqry11Crj6pJJ5gR4D27KF+FPDOdtcM5oeX7lpU8qglV2gz2ww+M4s0Sm
-	 f6fF8C+4yjACXBAiQXi79zFxFRIibH2iV2sy7ZDPVRmXtdcwx7sFn1pIjVA8rtxrZCRP8gNNexSf
-	 Hlwcg3eK/IdmGXSDLmIkgZHNjqa8Ghk8WdE32Rw9hUKcUmeiaQSo4UQ7ffZN+zmc47nc1QUqIp4i
-	 igev4DgpJGNh14VjhdGLGcqAGs2uLeElOtRfJLbNmDRz7b2ID79F3mcOZyJfIQl1YlM22BH1zlnG
-	 FVAOv2m8MBG7pRwj4BbyQWlieS/iMsPBDA7FoTsOcYMV/ogpvo+7NzZ/OV2/BefK8Onz2NqWLAL3
-	 FVETTHhY4Mb8qt4UnQqLjpAUzfWCcQ0u3wuxkOyRF2U45a070DGzaFc6eGf5zxc72wZdtpDTnVyL
-	 o7edTrboj97z7PomGVUhA6lSWsoX8cwhW3/kSFf0U/gjD2o4HGHWd5e7TFhFfiMwlSK2G3LObI59
-	 C76HT3uX5ZDb0NqPqvqdCLUql3pChByRPat5YAODkeWDUmpkYK1qpN8Heno7bg99/x1LtB0Q==
-X-QQ-XMRINFO: NS+P29fieYNw95Bth2bWPxk=
-Sender: yeking@red54.com
-From: =?UTF-8?q?=E8=B0=A2=E8=87=B4=E9=82=A6=20=28XIE=20Zhibang=29?= <Yeking@Red54.com>
-To: netfilter-devel@vger.kernel.org
-Cc: =?UTF-8?q?=E8=B0=A2=E8=87=B4=E9=82=A6=20=28XIE=20Zhibang=29?= <Yeking@Red54.com>
-Subject: [PATCH] evaluate: fix check for unknown in cmd_op_to_name
-Date: Tue,  6 Feb 2024 08:00:14 +0000
-X-OQ-MSGID: <20240206080014.58080-1-Yeking@Red54.com>
-X-Mailer: git-send-email 2.34.1
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="bqx/HFnG";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="DdqX2+OR";
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="dMNap4FK";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="ITzOJ/hM"
+Received: from lion.mk-sys.cz (unknown [10.100.225.114])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id E009A220EC;
+	Tue,  6 Feb 2024 10:43:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1707216217; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=e29oyO37i95pTLMkje0Wsv+5pthrbUWw/AkjX6REjE4=;
+	b=bqx/HFnGa6rFB+PJh/7nh88ao1vE8d2/4JQbltclyvqL1JVzOeiuoWz7r2JJb4NK9XGYPq
+	ADXe6qA+gj33RudVy1C+3PbbWajtItxY3DJPnjd+RZSKpItAAm5BfKA892ChLc+JhvvV2l
+	CZs5Nmkqb4MooGGB44+bSI2AGM+QH5M=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1707216217;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=e29oyO37i95pTLMkje0Wsv+5pthrbUWw/AkjX6REjE4=;
+	b=DdqX2+ORP3cG6Wgm8M7yiImK3L28QrCZcuzObqHfThMsvUPcCeLICFTyFdCAhGrpeze5WG
+	uBYtS3P5neXt5fDg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1707216216; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=e29oyO37i95pTLMkje0Wsv+5pthrbUWw/AkjX6REjE4=;
+	b=dMNap4FKk/3n47Zg49pbHUVQTGj88ZGC3b6fbWkvwJnmDAyLhm/aNbw/e9rypNAZ27u1kg
+	ft726zjNqRzVjRkAJQv6KSJCAuPsamOrW4YcpTYYBjciRwhyy0Gk4mZHgDOAIJoj1WMdLr
+	cDcou/LeOTYjbWd/1eIHuLq48VsQTuM=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1707216216;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=e29oyO37i95pTLMkje0Wsv+5pthrbUWw/AkjX6REjE4=;
+	b=ITzOJ/hMNM9ANK132FE87xw5jJujEq96OXlg7Av//nN6JH+JmeNW7ygoQ3n7ochGRJAYCn
+	tprx7S7MbvpPk2CA==
+Received: by lion.mk-sys.cz (Postfix, from userid 1000)
+	id CAD0820147; Tue,  6 Feb 2024 11:43:36 +0100 (CET)
+Date: Tue, 6 Feb 2024 11:43:36 +0100
+From: Michal Kubecek <mkubecek@suse.cz>
+To: Dan Carpenter <dan.carpenter@linaro.org>
+Cc: Florian Westphal <fw@strlen.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org, andrea.mattiazzo@suse.com
+Subject: Re: [PATCH net] netfilter: nf_tables: fix pointer math issue in
+ nft_byteorder_eval()
+Message-ID: <20240206104336.ctigqpkunom2ufmn@lion.mk-sys.cz>
+References: <15fdceb5-2de5-4453-98b3-cfa9d486e8da@moroto.mountain>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="vuphuwffpatba3uh"
+Content-Disposition: inline
+In-Reply-To: <15fdceb5-2de5-4453-98b3-cfa9d486e8da@moroto.mountain>
+Authentication-Results: smtp-out1.suse.de;
+	none
+X-Spamd-Result: default: False [2.90 / 50.00];
+	 ARC_NA(0.00)[];
+	 BAYES_SPAM(5.10)[100.00%];
+	 FROM_HAS_DN(0.00)[];
+	 TO_DN_SOME(0.00)[];
+	 TO_MATCH_ENVRCPT_ALL(0.00)[];
+	 MIME_GOOD(-0.20)[multipart/signed,text/plain];
+	 DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	 RCPT_COUNT_TWELVE(0.00)[14];
+	 SIGNED_PGP(-2.00)[];
+	 FUZZY_BLOCKED(0.00)[rspamd.com];
+	 RCVD_COUNT_ZERO(0.00)[0];
+	 FROM_EQ_ENVFROM(0.00)[];
+	 MIME_TRACE(0.00)[0:+,1:+,2:~]
+X-Spam-Level: **
+X-Spam-Score: 2.90
+X-Spam-Flag: NO
 
-Fixes: e1dfd5cc4c46 ("src: add support to command "destroy"")
-Signed-off-by: 谢致邦 (XIE Zhibang) <Yeking@Red54.com>
+
+--vuphuwffpatba3uh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, Nov 03, 2023 at 09:42:51AM +0300, Dan Carpenter wrote:
+> The problem is in nft_byteorder_eval() where we are iterating through a
+> loop and writing to dst[0], dst[1], dst[2] and so on...  On each
+> iteration we are writing 8 bytes.  But dst[] is an array of u32 so each
+> element only has space for 4 bytes.  That means that every iteration
+> overwrites part of the previous element.
+>=20
+> I spotted this bug while reviewing commit caf3ef7468f7 ("netfilter:
+> nf_tables: prevent OOB access in nft_byteorder_eval") which is a related
+> issue.  I think that the reason we have not detected this bug in testing
+> is that most of time we only write one element.
+>=20
+> Fixes: ce1e7989d989 ("netfilter: nft_byteorder: provide 64bit le/be conve=
+rsion")
+> Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
+> ---
+>  include/net/netfilter/nf_tables.h | 4 ++--
+>  net/netfilter/nft_byteorder.c     | 5 +++--
+>  net/netfilter/nft_meta.c          | 2 +-
+>  3 files changed, 6 insertions(+), 5 deletions(-)
+>=20
+> diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf=
+_tables.h
+> index 3bbd13ab1ecf..b157c5cafd14 100644
+> --- a/include/net/netfilter/nf_tables.h
+> +++ b/include/net/netfilter/nf_tables.h
+> @@ -178,9 +178,9 @@ static inline __be32 nft_reg_load_be32(const u32 *sre=
+g)
+>  	return *(__force __be32 *)sreg;
+>  }
+> =20
+> -static inline void nft_reg_store64(u32 *dreg, u64 val)
+> +static inline void nft_reg_store64(u64 *dreg, u64 val)
+>  {
+> -	put_unaligned(val, (u64 *)dreg);
+> +	put_unaligned(val, dreg);
+>  }
+> =20
+>  static inline u64 nft_reg_load64(const u32 *sreg)
+> diff --git a/net/netfilter/nft_byteorder.c b/net/netfilter/nft_byteorder.c
+> index e596d1a842f7..f6e791a68101 100644
+> --- a/net/netfilter/nft_byteorder.c
+> +++ b/net/netfilter/nft_byteorder.c
+> @@ -38,13 +38,14 @@ void nft_byteorder_eval(const struct nft_expr *expr,
+> =20
+>  	switch (priv->size) {
+>  	case 8: {
+> +		u64 *dst64 =3D (void *)dst;
+>  		u64 src64;
+> =20
+>  		switch (priv->op) {
+>  		case NFT_BYTEORDER_NTOH:
+>  			for (i =3D 0; i < priv->len / 8; i++) {
+>  				src64 =3D nft_reg_load64(&src[i]);
+> -				nft_reg_store64(&dst[i],
+> +				nft_reg_store64(&dst64[i],
+>  						be64_to_cpu((__force __be64)src64));
+>  			}
+>  			break;
+> @@ -52,7 +53,7 @@ void nft_byteorder_eval(const struct nft_expr *expr,
+>  			for (i =3D 0; i < priv->len / 8; i++) {
+>  				src64 =3D (__force __u64)
+>  					cpu_to_be64(nft_reg_load64(&src[i]));
+> -				nft_reg_store64(&dst[i], src64);
+> +				nft_reg_store64(&dst64[i], src64);
+>  			}
+>  			break;
+>  		}
+
+I stumbled upon this when the issue got a CVE id (sigh) and I share
+Andrea's (Cc-ed) concern that the fix is incomplete. While the fix,
+commit c301f0981fdd ("netfilter: nf_tables: fix pointer math issue in
+nft_byteorder_eval()") now, fixes the destination side, src is still
+a pointer to u32, i.e. we are reading 64-bit values with relative
+offsets which are multiples of 32 bits.
+
+Shouldn't we fix this as well, e.g. like indicated below?
+
+Michal
+
+---------------------------------------------------------------------------=
 ---
- src/evaluate.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 68cfd7765381..57da4044e8c0 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -6048,7 +6048,7 @@ static const char * const cmd_op_name[] = {
- 
- static const char *cmd_op_to_name(enum cmd_ops op)
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_t=
+ables.h
+index 001226c34621..bb4b83ea2908 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -183,9 +183,9 @@ static inline void nft_reg_store64(u64 *dreg, u64 val)
+ 	put_unaligned(val, dreg);
+ }
+=20
+-static inline u64 nft_reg_load64(const u32 *sreg)
++static inline u64 nft_reg_load64(const u64 *sreg)
  {
--	if (op > CMD_DESCRIBE)
-+	if (op > CMD_DESTROY)
- 		return "unknown";
- 
- 	return cmd_op_name[op];
--- 
-2.43.0
+-	return get_unaligned((u64 *)sreg);
++	return get_unaligned(sreg);
+ }
+=20
+ static inline void nft_data_copy(u32 *dst, const struct nft_data *src,
+diff --git a/net/netfilter/nft_byteorder.c b/net/netfilter/nft_byteorder.c
+index f6e791a68101..2a64c69ed507 100644
+--- a/net/netfilter/nft_byteorder.c
++++ b/net/netfilter/nft_byteorder.c
+@@ -39,21 +39,22 @@ void nft_byteorder_eval(const struct nft_expr *expr,
+ 	switch (priv->size) {
+ 	case 8: {
+ 		u64 *dst64 =3D (void *)dst;
+-		u64 src64;
++		u64 *src64 =3D (void *)src;
++		u64 val64;
+=20
+ 		switch (priv->op) {
+ 		case NFT_BYTEORDER_NTOH:
+ 			for (i =3D 0; i < priv->len / 8; i++) {
+-				src64 =3D nft_reg_load64(&src[i]);
++				val64 =3D nft_reg_load64(&src64[i]);
+ 				nft_reg_store64(&dst64[i],
+-						be64_to_cpu((__force __be64)src64));
++						be64_to_cpu((__force __be64)val64));
+ 			}
+ 			break;
+ 		case NFT_BYTEORDER_HTON:
+ 			for (i =3D 0; i < priv->len / 8; i++) {
+-				src64 =3D (__force __u64)
+-					cpu_to_be64(nft_reg_load64(&src[i]));
+-				nft_reg_store64(&dst64[i], src64);
++				val64 =3D (__force __u64)
++					cpu_to_be64(nft_reg_load64(&src64[i]));
++				nft_reg_store64(&dst64[i], val64);
+ 			}
+ 			break;
+ 		}
+---------------------------------------------------------------------------=
+---
 
+--vuphuwffpatba3uh
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEWN3j3bieVmp26mKO538sG/LRdpUFAmXCDVMACgkQ538sG/LR
+dpVLYwf/SKJnMxraCQMxRMfJwRCMRFwIdmxy7ROUbMnL2jE+tTYbGSuezhnRDq5v
+nws0SeWQtoztU+s9Uq15xeaBf25S0bAVcJluXL+8rz2cka4Rr/T9C+ZkyoqDg3va
+Nd4f5l6GGSP3HhnQpD5XBH/H1UUyj+I3o1sFsyo7FSTEBD4BvjkMy4qGExuTVNgy
+En42gfsDykiLAQJ+Sopw8uk1A4e6FWSg6mkP9qn+gN328MFTQya/VossxCE9w5fn
+L80MUqY54jsgiNGOtDMGxWOdxk44WYa4CYGmGuRslrAMS476Bu0+Ulsq+d15uGvh
+XTCUggn8Bi7DttIMf2jUoC7y8TsqKw==
+=YriJ
+-----END PGP SIGNATURE-----
+
+--vuphuwffpatba3uh--
