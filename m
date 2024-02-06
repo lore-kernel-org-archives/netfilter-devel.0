@@ -1,147 +1,62 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C56612F36F;
-	Tue,  6 Feb 2024 11:31:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BD3A12A163
+	for <netfilter-devel@vger.kernel.org>; Tue,  6 Feb 2024 12:29:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707219066; cv=none; b=UY5Vh07zBi2vOTUwQb0YgWPTc15iZKCvsJeqdLhalitrGxBApJCZBC7AZMJs7soGVF9jyLq3t85WzgKBB7sKrni3MEORwKmYLTo/pc8iH0mfWcVU5lsAUk9TpxfHngQiDesfqtHjEeRQC9lcu4wWoLY9sA68qGuun/MKnS/1hGQ=
+	t=1707222575; cv=none; b=LTZD9WMTsrYZk0iDcqlrZbG72edcVGuFV2+oedKVSmD33z0guVPXGlKP6DYH34ONVMIwgpbmztd7bqcTGwD4E8v8QQ+gp9ZAEd43ThB1Cv1tzTs7oZsrOSY0nNYdbARB5YqemXH5pLUbPTZN97D3JIALm8wSozAF3j45RDkji2o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707219066; c=relaxed/simple;
-	bh=+MTWjKiA01gPdqf6LJaUl2DaLuwkdSKtzW+xOsth/nE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=VlaDvA08wDMRitlZyqYGRqdCTDFQlRJ1s7tuI78A8G8RjnYgFLbgLjs0KBKtsyhsgAibmO66wpFlDPz6fCVsQeM51Gr494JHgXWz3iwp1KRuw2GZ0GIsngQAVfbqxrM6UooFwiU40zjXEx4gKzn2www8rLFuaoZhqML/I6myB78=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.41.52] (port=57368 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1rXJfH-007LIN-HQ; Tue, 06 Feb 2024 12:31:01 +0100
-Date: Tue, 6 Feb 2024 12:30:58 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: Michal Kubecek <mkubecek@suse.cz>, andrea.mattiazzo@suse.com,
-	netdev@vger.kernel.org, kernel-janitors@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Eric Dumazet <edumazet@google.com>, coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org, Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Dan Carpenter <dan.carpenter@linaro.org>
-Subject: Re: [netfilter-core] [PATCH net] netfilter: nf_tables: fix pointer
- math issue in nft_byteorder_eval()
-Message-ID: <ZcIYcqjcFDqjvRZ3@calendula>
-References: <15fdceb5-2de5-4453-98b3-cfa9d486e8da@moroto.mountain>
- <20240206104336.ctigqpkunom2ufmn@lion.mk-sys.cz>
- <20240206111112.GD17626@breakpoint.cc>
- <ZcIYL3Z/rx+/iJg0@calendula>
+	s=arc-20240116; t=1707222575; c=relaxed/simple;
+	bh=RuzIOHaojC46vQBaccqSzKSsyjthnkXZ90l3HD3ZCXg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=YSFrx4HRdheYWe+FoeF2XXj709E0TmQ+lFqWaycnGv/KT1QvP9ElXQz4MFBlIuRW+yjwPVy6vowoPlRZCS8o0n63HQ/Cq4broLAQuYvC/WK63vsYjc4JO1Hf9LcaMtpDeodTH/uOUqoV/atx5LBj7il55VeMUtzyH3PrzwbM8Sw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1rXKZu-0002AA-Nr; Tue, 06 Feb 2024 13:29:30 +0100
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: sbrivio@redhat.com,
+	Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf 0/3] netfilter: nft_set_pipapo: map_index must be per set
+Date: Tue,  6 Feb 2024 13:23:05 +0100
+Message-ID: <20240206122531.21972-1-fw@strlen.de>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <ZcIYL3Z/rx+/iJg0@calendula>
-X-Spam-Score: -1.9 (-)
+Content-Transfer-Encoding: 8bit
 
-On Tue, Feb 06, 2024 at 12:29:51PM +0100, Pablo Neira Ayuso wrote:
-> On Tue, Feb 06, 2024 at 12:11:12PM +0100, Florian Westphal wrote:
-> > Michal Kubecek <mkubecek@suse.cz> wrote:
-> > > I stumbled upon this when the issue got a CVE id (sigh) and I share
-> > > Andrea's (Cc-ed) concern that the fix is incomplete. While the fix,
-> > > commit c301f0981fdd ("netfilter: nf_tables: fix pointer math issue in
-> > > nft_byteorder_eval()") now, fixes the destination side, src is still
-> > > a pointer to u32, i.e. we are reading 64-bit values with relative
-> > > offsets which are multiples of 32 bits.
-> > > 
-> > > Shouldn't we fix this as well, e.g. like indicated below?
-> > 
-> > No, please remove multi-elem support instead, nothing uses this feature.
-> 
-> See attached patch.
-> 
-> I posted this:
-> 
-> https://patchwork.ozlabs.org/project/netfilter-devel/patch/20240202120602.5122-1-pablo@netfilter.org/
-> 
-> I can replace it by the attached patch if you prefer. This can only
-> help in the future to microoptimize some set configurations, where
-> several byteorder can be coalesced into one single expression.
+While working on speeding up pipapo rule insertions I found that the
+map_index needs to be percpu and per-set, not just percpu.
 
-I have to replace those index 'i' by simply dst instead, this is
-obviosly incomplete.
+At this time its possible for a pipapo set to fill the all-zero part
+with ones and take the 'might have bits set' as 'start-from-zero' area.
 
-> diff --git a/net/netfilter/nft_byteorder.c b/net/netfilter/nft_byteorder.c
-> index 8cf91e47fd7a..af3412602869 100644
-> --- a/net/netfilter/nft_byteorder.c
-> +++ b/net/netfilter/nft_byteorder.c
-> @@ -43,18 +43,14 @@ void nft_byteorder_eval(const struct nft_expr *expr,
->  
->  		switch (priv->op) {
->  		case NFT_BYTEORDER_NTOH:
-> -			for (i = 0; i < priv->len / 8; i++) {
-> -				src64 = nft_reg_load64(&src[i]);
-> -				nft_reg_store64(&dst64[i],
-> -						be64_to_cpu((__force __be64)src64));
-> -			}
-> +			src64 = nft_reg_load64(&src[i]);
-> +			nft_reg_store64(&dst64[i],
-> +					be64_to_cpu((__force __be64)src64));
->  			break;
->  		case NFT_BYTEORDER_HTON:
-> -			for (i = 0; i < priv->len / 8; i++) {
-> -				src64 = (__force __u64)
-> -					cpu_to_be64(nft_reg_load64(&src[i]));
-> -				nft_reg_store64(&dst64[i], src64);
-> -			}
-> +			src64 = (__force __u64)
-> +				cpu_to_be64(nft_reg_load64(&src[i]));
-> +			nft_reg_store64(&dst64[i], src64);
->  			break;
->  		}
->  		break;
-> @@ -62,24 +58,20 @@ void nft_byteorder_eval(const struct nft_expr *expr,
->  	case 4:
->  		switch (priv->op) {
->  		case NFT_BYTEORDER_NTOH:
-> -			for (i = 0; i < priv->len / 4; i++)
-> -				dst[i] = ntohl((__force __be32)src[i]);
-> +			dst[i] = ntohl((__force __be32)src[i]);
->  			break;
->  		case NFT_BYTEORDER_HTON:
-> -			for (i = 0; i < priv->len / 4; i++)
-> -				dst[i] = (__force __u32)htonl(src[i]);
-> +			dst[i] = (__force __u32)htonl(src[i]);
->  			break;
->  		}
->  		break;
->  	case 2:
->  		switch (priv->op) {
->  		case NFT_BYTEORDER_NTOH:
-> -			for (i = 0; i < priv->len / 2; i++)
-> -				d16[i] = ntohs((__force __be16)s16[i]);
-> +			d16[i] = ntohs((__force __be16)s16[i]);
->  			break;
->  		case NFT_BYTEORDER_HTON:
-> -			for (i = 0; i < priv->len / 2; i++)
-> -				d16[i] = (__force __u16)htons(s16[i]);
-> +			d16[i] = (__force __u16)htons(s16[i]);
->  			break;
->  		}
->  		break;
-> @@ -137,6 +129,9 @@ static int nft_byteorder_init(const struct nft_ctx *ctx,
->  	if (err < 0)
->  		return err;
->  
-> +	if (priv->size != len)
-> +		return -EINVAL;
-> +
->  	priv->len = len;
->  
->  	if (len % size != 0)
+First patch changes scratchpad area to a structure that provides
+space for a per-set-and-cpu toggle and uses it of the percpu one.
+
+Second patch prepares for patch 3, adds a new free helper.
+
+Third patch removes the scratch_aligned pointer and makes AVX2
+implementation use the exact same memory addresses for read/store of
+the matching state.
+
+Florian Westphal (3):
+  netfilter: nft_set_pipapo: store index in scratch maps
+  netfilter: nft_set_pipapo: add helper to release pcpu scratch area
+  netfilter: nft_set_pipapo: remove scratch_aligned pointer
+
+ net/netfilter/nft_set_pipapo.c      | 96 +++++++++++++----------------
+ net/netfilter/nft_set_pipapo.h      | 18 ++++--
+ net/netfilter/nft_set_pipapo_avx2.c | 17 +++--
+ 3 files changed, 63 insertions(+), 68 deletions(-)
+
+-- 
+2.43.0
 
