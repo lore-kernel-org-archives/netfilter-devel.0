@@ -1,59 +1,67 @@
-Received: from mail-ej1-f53.google.com (mail-ej1-f53.google.com [209.85.218.53])
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 553B812F384
-	for <netfilter-devel@vger.kernel.org>; Tue,  6 Feb 2024 11:04:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68A1212F5A7;
+	Tue,  6 Feb 2024 11:09:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707217458; cv=none; b=urXbzssGkygOaEcIXTBUcTywSASHCjQ5nDM4AJYYj+mKSyMtuqbYoSlzugPqJiEVeOT0t3t22Vko+49k1JzvH2zWJaqUjnuJw4c9yQ3Zjpybg/rmYQxphuMdIZ4Jub5iQNciy3B1Yc/5c+wFTSSc5h+fwdS/0StIC9bqMgLGo8A=
+	t=1707217749; cv=none; b=PgE4XQTpaQQZFkUGytM7xA1TL0zAWYnx0juu8KzzaZd24JCzrRp9XReR2K315pGdeJ9+vcak1C2xGcUHLkPCI6j+R9Fg2ea9TxVV3vOsiu0r7VKLYFlUU1uGH6x31Jd4N5PYIYXCumd+1oru1Q+/zm5XUueP3KKmyTQocyW2Sk0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707217458; c=relaxed/simple;
-	bh=x0pbIQk1qP8nN3+ZGiA3qhVlXb3liKdO9iZ/xJXSuMM=;
+	s=arc-20240116; t=1707217749; c=relaxed/simple;
+	bh=JobQ2CoI/T2II61TjDEzXR1IyAwC4J3VElbAVa6K1nw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Cbl2vmfIzD60fTrTrB3UDss1aE+1TWF9tJ9Qn/tY8z79noeMDFJJsTu0nqkY4F6GUbIn8EgcCatTsr/Qr7yfYBywxr8461czbAAMStIMx6Nbjk2rXTBkPGO6y+2utoQMJ3lSp3xkUyZG45mmOoFPIigUW9onQxjUPIpDrHyRgk4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=hVWQbIC7; arc=none smtp.client-ip=209.85.218.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=oS0e1jXlLpyk9QNYHpBRQOgpdWyh1DmYJuyqQT710toJkbZfBb+Z2batJp2czDAt/soZlKBrgySFCd5KO3cg4bGF6siKZJwaXNjbh5XIOsOhJu+zDgSxx/O/qnYuXVWfnzUfOpQ7FBREmETwvMDPKAjoY/KTKcSCOQd33YUZwLI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=uH8brE24; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=lpmpijBp; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=uH8brE24; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=lpmpijBp; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="hVWQbIC7"
-Received: by mail-ej1-f53.google.com with SMTP id a640c23a62f3a-a384a7e6103so1088066b.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 06 Feb 2024 03:04:16 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1707217454; x=1707822254; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=txJ4UfEaHG02zODZo80UumZhELeKYRvUYcjtXa7HnRM=;
-        b=hVWQbIC7T6puE1VFjp9sEN9nnaS886cp5T1KAHNeQJHGHe10dnd+9YiVHbNDvjD/jE
-         E0BxVBiwfpvkzuo2rTCOucLSL8/oCg3gOJ1wiZzBSuj63ElAOj3HiHjHNeYbi1r10nLy
-         N4jhCjp2ZPt5MkWnMTGOo5NrZXqNqnbC8nRYz1Bhu24xyKaOwrXF/vLLUX5hhilICiCQ
-         z84DBWNEnbsM/gNFEFjgGqemqslP2++gQYEng6ahu8YAm8hmSLcssqsGbc1nlopV+4Kq
-         Mn6nm3sgaP4Q367S43cRxs1pO4a8Z7SqoKtMsVxKwMXA2iEcPyPzIX0EXcpvz0QrtBOk
-         iV8A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1707217454; x=1707822254;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=txJ4UfEaHG02zODZo80UumZhELeKYRvUYcjtXa7HnRM=;
-        b=NA4TnT+gFvhn6vnu4CbZmbRf5RPMCA99/kzJTzQfQjfvCK5qA89TAF8o+1SIgfD94j
-         c1ZPKW9hg+3ylxsrx+T60Kl9Jvxe8Rj354aJim4SkDhRs26ZAoJV7Bos3Qpow5VgfazK
-         jkRUbaAXA2Dzhm1qHDK4RTumpq4a7jFe+Z/Uy09Eg9m0LfA6ivtxHs7BeQb1iUF7tzF0
-         Yty0CzfsBk7hM98TZ9ykMRwF85DKCIuRkKl5LhXV6XDrtejZLcFDc653iryrGaTefTGz
-         zhqrakC9c51RfZXSMjP5fMJpOoEG9Ck2yU7kNSgiL2hN4qsumd6fR3l699bGSOCPGAXT
-         0/+A==
-X-Gm-Message-State: AOJu0YzgtOKnvLDV5nIDcgH2bYXYgEcMeimpLfum6Eff36S51q3UR8Il
-	AnUNuWkmRbw2ax6zPCUcHqHSF+bJrTMg6iLnbJZq/hDQ+TwRA+WCMczUPGo3MoI=
-X-Google-Smtp-Source: AGHT+IFFAR2gf7m60D9sS1D4EdhTLyYgZOu7Cfqa7RjFOFppqcibynNTRpxTea0HEnrawmpmS83y8Q==
-X-Received: by 2002:a17:906:5ac8:b0:a36:917f:556e with SMTP id x8-20020a1709065ac800b00a36917f556emr1519178ejs.15.1707217454596;
-        Tue, 06 Feb 2024 03:04:14 -0800 (PST)
-X-Forwarded-Encrypted: i=0; AJvYcCW+eTU1hVRe+dDWI0m3fgkor2XU3vpZXvDha5qQUKJtKz8d5lIw/sHS4Gxbk+qMN2jP9BT4hjHyGqC0lbjHI36V9FSBhKhURsIkoNoxKSYHcN9JYIhD+V6W+EMs9Ot60yde0RsBOWaG0V/Ol27awVPUWuCgmkXQxSPZvTWjomcxSOePUkKetQ6t1L85qdFge5egX4yjR2Gb4rpBt0YAHyTtTVbUbiQwHuXRjwo6j4tXAEQdkcOAvIZItmn6+NE3FCBGfJyQ9nn9F1TXRLTKXECQeQZoT4NH1jPMCv+ARxnqs5cDhCYwgemV1uS5RSlaojgEjHT1Tqq78HeLk7sshVIfaYgHFzkGdv8kngGvICfXAlsQiEUUXlNQV4QHdWwf7mUIg7TtSDkHeQh16qF8UNCGTu7BZXmUqIxzoObLMXLWd+Q+aXoEckx7KK4Xdxa4u9B5tm+c+83qkWA8s0ZkQTHQad5OOxt9QCY6+UKf
-Received: from localhost ([102.222.70.76])
-        by smtp.gmail.com with ESMTPSA id vb7-20020a170907d04700b00a354bb5f69csm998982ejc.220.2024.02.06.03.04.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 06 Feb 2024 03:04:14 -0800 (PST)
-Date: Tue, 6 Feb 2024 14:04:10 +0300
-From: Dan Carpenter <dan.carpenter@linaro.org>
-To: Michal Kubecek <mkubecek@suse.cz>
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="uH8brE24";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="lpmpijBp";
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="uH8brE24";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="lpmpijBp"
+Received: from lion.mk-sys.cz (unknown [10.100.225.114])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits))
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 66EA5220E4;
+	Tue,  6 Feb 2024 11:09:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1707217745; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=6OT4WYVPWB8v21SxhnQOwkhxXC/BXklZ/lKe1YRVr9A=;
+	b=uH8brE24jrrN27ewLBBwxFEoWwm8k+2jtNJdZ3iGI5JqIoSbYyDY2tWJgBllFNX6+yNDiA
+	dVVQw32FtJ+MxF1+n3boiMNXBQpzDSiVhpLYoR6sUG9Gkikn2csf8Ig+SGbumpZMQjJ1aT
+	1jX4w/a52YA3ACPS6sC0BrpaPHYjA0k=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1707217745;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=6OT4WYVPWB8v21SxhnQOwkhxXC/BXklZ/lKe1YRVr9A=;
+	b=lpmpijBpuVV0Nb/HzsCBUOKupzpkFp5k1j6sPiWaXNYEVj0gDKQr4o9W5Dam6K9r0+o0oc
+	M3vWhxeb/NQ3h2BA==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1707217745; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=6OT4WYVPWB8v21SxhnQOwkhxXC/BXklZ/lKe1YRVr9A=;
+	b=uH8brE24jrrN27ewLBBwxFEoWwm8k+2jtNJdZ3iGI5JqIoSbYyDY2tWJgBllFNX6+yNDiA
+	dVVQw32FtJ+MxF1+n3boiMNXBQpzDSiVhpLYoR6sUG9Gkikn2csf8Ig+SGbumpZMQjJ1aT
+	1jX4w/a52YA3ACPS6sC0BrpaPHYjA0k=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1707217745;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=6OT4WYVPWB8v21SxhnQOwkhxXC/BXklZ/lKe1YRVr9A=;
+	b=lpmpijBpuVV0Nb/HzsCBUOKupzpkFp5k1j6sPiWaXNYEVj0gDKQr4o9W5Dam6K9r0+o0oc
+	M3vWhxeb/NQ3h2BA==
+Received: by lion.mk-sys.cz (Postfix, from userid 1000)
+	id 4B1C220147; Tue,  6 Feb 2024 12:09:05 +0100 (CET)
+Date: Tue, 6 Feb 2024 12:09:05 +0100
+From: Michal Kubecek <mkubecek@suse.cz>
+To: Dan Carpenter <dan.carpenter@linaro.org>
 Cc: Florian Westphal <fw@strlen.de>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Jozsef Kadlecsik <kadlec@netfilter.org>,
@@ -65,33 +73,78 @@ Cc: Florian Westphal <fw@strlen.de>,
 	kernel-janitors@vger.kernel.org, andrea.mattiazzo@suse.com
 Subject: Re: [PATCH net] netfilter: nf_tables: fix pointer math issue in
  nft_byteorder_eval()
-Message-ID: <032e2c72-c2a1-4b8b-96da-b0da73473648@moroto.mountain>
+Message-ID: <20240206110905.ydxjbhiciiyuoq3m@lion.mk-sys.cz>
 References: <15fdceb5-2de5-4453-98b3-cfa9d486e8da@moroto.mountain>
  <20240206104336.ctigqpkunom2ufmn@lion.mk-sys.cz>
+ <032e2c72-c2a1-4b8b-96da-b0da73473648@moroto.mountain>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="7ezp3d6y6tx5uysi"
+Content-Disposition: inline
+In-Reply-To: <032e2c72-c2a1-4b8b-96da-b0da73473648@moroto.mountain>
+Authentication-Results: smtp-out1.suse.de;
+	none
+X-Spamd-Result: default: False [-2.37 / 50.00];
+	 ARC_NA(0.00)[];
+	 FROM_HAS_DN(0.00)[];
+	 TO_DN_SOME(0.00)[];
+	 TO_MATCH_ENVRCPT_ALL(0.00)[];
+	 MIME_GOOD(-0.20)[multipart/signed,text/plain];
+	 DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	 RCPT_COUNT_TWELVE(0.00)[14];
+	 SIGNED_PGP(-2.00)[];
+	 FUZZY_BLOCKED(0.00)[rspamd.com];
+	 RCVD_COUNT_ZERO(0.00)[0];
+	 FROM_EQ_ENVFROM(0.00)[];
+	 MIME_TRACE(0.00)[0:+,1:+,2:~];
+	 BAYES_HAM(-0.17)[69.99%]
+X-Spam-Level: 
+X-Spam-Flag: NO
+X-Spam-Score: -2.37
+
+
+--7ezp3d6y6tx5uysi
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240206104336.ctigqpkunom2ufmn@lion.mk-sys.cz>
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Feb 06, 2024 at 11:43:36AM +0100, Michal Kubecek wrote:
-> 
-> I stumbled upon this when the issue got a CVE id (sigh) and I share
-> Andrea's (Cc-ed) concern that the fix is incomplete. While the fix,
-> commit c301f0981fdd ("netfilter: nf_tables: fix pointer math issue in
-> nft_byteorder_eval()") now, fixes the destination side, src is still
-> a pointer to u32, i.e. we are reading 64-bit values with relative
-> offsets which are multiples of 32 bits.
-> 
-> Shouldn't we fix this as well, e.g. like indicated below?
-> 
+On Tue, Feb 06, 2024 at 02:04:10PM +0300, Dan Carpenter wrote:
+> On Tue, Feb 06, 2024 at 11:43:36AM +0100, Michal Kubecek wrote:
+> >=20
+> > I stumbled upon this when the issue got a CVE id (sigh) and I share
+> > Andrea's (Cc-ed) concern that the fix is incomplete. While the fix,
+> > commit c301f0981fdd ("netfilter: nf_tables: fix pointer math issue in
+> > nft_byteorder_eval()") now, fixes the destination side, src is still
+> > a pointer to u32, i.e. we are reading 64-bit values with relative
+> > offsets which are multiples of 32 bits.
+> >=20
+> > Shouldn't we fix this as well, e.g. like indicated below?
+> >=20
+>=20
+> Yep.  You're right.  Could you send that as a patch.
 
-Yep.  You're right.  Could you send that as a patch.
+Thank you for checking. I'll send a patch in a moment.
 
-regards,
-dan carpenter
+Michal
 
+--7ezp3d6y6tx5uysi
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEWN3j3bieVmp26mKO538sG/LRdpUFAmXCE00ACgkQ538sG/LR
+dpXa3Qf9EFBC4n7Zbu8vkttkV1PhDpvlxZbiBTX2d4ss2GthPDKjJhOjVXmgc0v6
+2ctb+Aglx15NnbMm4bGL9G7XWSIpS+8XkmW0jNJN2b944SdGSjEngAZTSiXRC3Ee
+QZqzbgmkimjv/ZQtFVIIEbAhOfUlxoCKcgHLog5i8SlQGnpgMLSGRzU+Fd+Ef+TE
+qTI2U5hNvxBoBki9Z7UYGcReFz6oP8IfEzQnv7Qk+l6cmQJnmVBPTRfA7/LMXJS6
+aMW/C7rkq4+0cZntN+WDM/EBHW1+ymiL+sHAflA7dmDesRHyH8FVWdlnAowW7uMw
+XXjB3y1kSE6pPnkcXCRM8hRfVRKDig==
+=iE/Q
+-----END PGP SIGNATURE-----
+
+--7ezp3d6y6tx5uysi--
