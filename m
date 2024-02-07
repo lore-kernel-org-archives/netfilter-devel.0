@@ -1,79 +1,91 @@
-Received: from mail-io1-f70.google.com (mail-io1-f70.google.com [209.85.166.70])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF3CE1CD2C
-	for <netfilter-devel@vger.kernel.org>; Wed,  7 Feb 2024 06:50:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.70
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18BF825566;
+	Wed,  7 Feb 2024 09:49:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707288607; cv=none; b=NXcqzjvFXcHI5PCKCBxCNCLb+NmAy5tPpQokYnVYuFrKqJ8LY+mxgEy0CbEn68XeYadXT6uq8mGW5ecnF7mvUCWyfB/ZWo8ELVpJKAZBZ2PbMkgRT5p5SeZVvYDfFMzHbfbk7j2c5+/Rf3XS/bfr8t4MoHU4RWOIRWWv8xxOirE=
+	t=1707299400; cv=none; b=h35NCT1TCMB/3iEjhm23je6b85NJ535RGvKJA5wnC4g3yXgSzPlGM4pnLXx9DAVMBWiRYfwqTRPAzocokDrWISdLRTQGhvtQrpZgCPKe8PIgOIaA7n1sH8bfgY20ofyakRSPFB2H+NfBI2dJ7DdV3BTBBKmY7dJYk42dX8sElqQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707288607; c=relaxed/simple;
-	bh=txwgru8ukqwseSHIc0ZyhJJEtXFoGOV/G4cX6j4bgyc=;
-	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
-	 Content-Type; b=s9ohrTGbBAXcSvYXQ5mBN+FSu12L67ZciE4xGFm7gWaRZYXEwQFPSzMCF+9+/CrtaB81GZIpqGg8dZAx8LW1E1p6dgaLfCa/gQso5o+VIimLGPCF5fd0AfV28KD9hurODB8oTIIeD9Ys2DDOIdX1MCCBGH1pgfVZayeTONE/4Fs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.70
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-io1-f70.google.com with SMTP id ca18e2360f4ac-7bef5e512b6so30283339f.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 06 Feb 2024 22:50:05 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1707288605; x=1707893405;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=JJp9PiIxbgAEsE0ISqJs+jF6VAx9STrKEpa7F04AncM=;
-        b=LnE4ZWQPEKkaGAO4SYaSrHLmfWdSuxUSpwn/6Ik+xDrPYXXkcnXJCkaSLBSWtH9cA4
-         E+kSHId5oDsqm74Lx0ylKCYd1S2ahHAxG0RLFjpGK4u+O5SSc8FmSkEdy/doJ0GwEa8+
-         TCypLys+E5dawxUM94Cq80R9/h+qr5/W33CEundyshdxvyO639iRhMTvPk4vrTm//9pE
-         lxqt1a3UCTzZEv5LlYQCD6hNLyzLiKe7v37bG7GEWPKWZM8/lDnD8Ipiycnns7ViNTI+
-         7czxr4o3Z07Yxyey6BazkXae3TI0L5B6KkPX45v2hTJ87z+FBmQDkJl4qHiBiuCAsYIf
-         AHAA==
-X-Gm-Message-State: AOJu0YznqM6JWzkm574ivGuCoSgeS3iTaxX2sZ7/ltoOSR2msfV+06Al
-	cGC8TsyjhL/vncIxZbqZdauAdbKcnmtJ+BrA5KaB9ZSux2k5m84SjsEnSEeHqv+MFjxe/a0fdMj
-	CjlJbX9+rZguvmlqB5H+0oYJjbmceTcEwe4lhZ6jbS6qVOY58KsGbd6k=
-X-Google-Smtp-Source: AGHT+IHIQD5e5Ra5jnAc0Lil23mYT3rezE8/io/0zI23XRimBC6ndhE/lGbLe2e9vRJfEQFrO/zPDUHLra9PuBS5SabQnmstnc37
+	s=arc-20240116; t=1707299400; c=relaxed/simple;
+	bh=wt4ZprwlP8v6zV9OXc1Z0Lh35uAg28FnADGaGyUzur8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=B0xj5i459YcSenx46FFJv6B9hNx5QhDnukKmPIH8KFPKDrCXOKHmpM9G3D9rzhbdrbcBsuhvg16yrhrBMNKTGT3rjrNa+tv1wb6H0ZAlQ9B1rwJVSa4HBVxOo06aRm6NG0cAacioFo4cL6wBIScP9ANUdMwU/iWhUfmCa9orfBQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.41.52] (port=48492 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1rXeYx-008edM-3s; Wed, 07 Feb 2024 10:49:53 +0100
+Date: Wed, 7 Feb 2024 10:49:50 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Matthieu Baerts <matttbe@kernel.org>
+Cc: Jakub Kicinski <kuba@kernel.org>,
+	Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
+	netdev@vger.kernel.org, David Ahern <dsahern@kernel.org>,
+	coreteam@netfilter.org, netdev-driver-reviewers@vger.kernel.org,
+	Hangbin Liu <liuhangbin@gmail.com>, netfilter-devel@vger.kernel.org
+Subject: Re: [netfilter-core] [ANN] net-next is OPEN
+Message-ID: <ZcNSPoqQkMBenwue@calendula>
+References: <20240122091612.3f1a3e3d@kernel.org>
+ <Za98C_rCH8iO_yaK@Laptop-X1>
+ <20240123072010.7be8fb83@kernel.org>
+ <d0e28c67-51ad-4da1-a6df-7ebdbd45cd2b@kernel.org>
+ <65b133e83f53e_225ba129414@willemb.c.googlers.com.notmuch>
+ <20240124082255.7c8f7c55@kernel.org>
+ <20240124090123.32672a5b@kernel.org>
+ <26616300-dc28-47d1-88bb-1c7247d1699d@kernel.org>
+ <ZbFiixyMFpQnxzCH@calendula>
+ <7a1014ee-7e1d-4be4-bab2-07ddde8a84b7@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:160d:b0:363:ab40:78c7 with SMTP id
- t13-20020a056e02160d00b00363ab4078c7mr314018ilu.6.1707288605030; Tue, 06 Feb
- 2024 22:50:05 -0800 (PST)
-Date: Tue, 06 Feb 2024 22:50:05 -0800
-In-Reply-To: <000000000000ecb4750610659876@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000d5018e0610c51a8e@google.com>
-Subject: Re: [syzbot] [netfilter?] WARNING: ODEBUG bug in hash_netiface4_destroy
-From: syzbot <syzbot+52bbc0ad036f6f0d4a25@syzkaller.appspotmail.com>
-To: 00107082@163.com, coreteam@netfilter.org, davem@davemloft.net, 
-	edumazet@google.com, fw@strlen.de, hdanton@sina.com, justinstitt@google.com, 
-	kadlec@netfilter.org, kuba@kernel.org, kuniyu@amazon.com, 
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <7a1014ee-7e1d-4be4-bab2-07ddde8a84b7@kernel.org>
+X-Spam-Score: -1.9 (-)
 
-syzbot has bisected this issue to:
+Hi Matthieu,
 
-commit 97f7cf1cd80eeed3b7c808b7c12463295c751001
-Author: Jozsef Kadlecsik <kadlec@netfilter.org>
-Date:   Mon Jan 29 09:57:01 2024 +0000
+On Tue, Feb 06, 2024 at 07:31:44PM +0100, Matthieu Baerts wrote:
+[...]
+> Good point, I understand it sounds better to use 'iptables-nft' in new
+> kselftests. I should have added a bit of background and not just a link
+> to this commit: at that time (around ~v6.4), we didn't need to force
+> using 'iptables-legacy' on -net or net-next tree. But we needed that
+> when testing kernels <= v5.15.
+> 
+> When validating (old) stable kernels, the recommended practice is
+> apparently [1] to use the kselftests from the last stable version, e.g.
+> using the kselftests from v6.7.4 when validating kernel v5.15.148. The
+> kselftests are then supposed to support older kernels, e.g. by skipping
+> some parts if a feature is not available. I didn't know about that
+> before, and I don't know if all kselftests devs know about that.
 
-    netfilter: ipset: fix performance regression in swap operation
+We are sending backports to stable kernels, if one stable kernel
+fails, then we have to fix it.
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=179ff138180000
-start commit:   6897cea71837 Merge tag 'for-6.8/dm-fixes' of git://git.ker..
-git tree:       upstream
-final oops:     https://syzkaller.appspot.com/x/report.txt?x=145ff138180000
-console output: https://syzkaller.appspot.com/x/log.txt?x=105ff138180000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=457249c250b93697
-dashboard link: https://syzkaller.appspot.com/bug?extid=52bbc0ad036f6f0d4a25
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=174bd5d3e80000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=16fcf5b0180000
+> I don't think that's easy to support old kernels, especially in the
+> networking area, where some features/behaviours are not directly exposed
+> to the userspace. Some MPTCP kselftests have to look at /proc/kallsyms
+> or use other (ugly?) workarounds [2] to predict what we are supposed to
+> have, depending on the kernel that is being used. But something has to
+> be done, not to have big kselftests, with many different subtests,
+> always marked as "failed" when validating new stable releases.
 
-Reported-by: syzbot+52bbc0ad036f6f0d4a25@syzkaller.appspotmail.com
-Fixes: 97f7cf1cd80e ("netfilter: ipset: fix performance regression in swap operation")
+iptables-nft is supported in all of the existing stable kernels.
 
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+> Back to the modification to use 'iptables-legacy', maybe a kernel config
+> was missing, but the same kselftest, with the same list of kconfig to
+> add, was not working with the v5.15 kernel, while everything was OK with
+> a v6.4 one. With 'iptables-legacy', the test was running fine on both. I
+> will check if maybe an old kconfig option was not missing.
+
+I suspect this is most likely kernel config missing, as it happened to Jakub.
+
+Thanks.
