@@ -1,151 +1,69 @@
-Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE0A67F492;
-	Wed,  7 Feb 2024 16:50:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.37
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33E741E532
+	for <netfilter-devel@vger.kernel.org>; Wed,  7 Feb 2024 17:06:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707324617; cv=none; b=ngXbdTwUOr5qQQrD5AN8J1WNaH1aoUKuOxBH3i9TqtbDMG0tSOlmGjVFPkzsjnveeHvVgdTh1BwizYHWRvWRsGLnFAQggw7YQOc/JqQHMyKladJraOWpqF3ViGXjgqVmU0EiGexEpFqNl8442RY4pCRXndVwEpf2GNcOJst7gsI=
+	t=1707325600; cv=none; b=eiGz9QAbZJfPiyMzbvWtmqC9nfIMYTf7Q6WMv2PCaftyF0POyFNzj38QNNi8byXgHr38pYLqrxdV7CZ6fNdntpx8bq9C94oaSNPHZmjW+t+mvtqtl01bEBIOlPQJvknmQ3BaOWPD37HS51zB6GrXK+OFum+TUadgG7a6/5Xwasw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707324617; c=relaxed/simple;
-	bh=OFVP8pF7G0eP/zz4gskd3eFJyGQRgHMQFKJwru0hMPU=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=iF1VykzXunaIQPP4I6o74W54NtFLBtiaT7hnlRUE/fTpKgzPq+wJ/+haMguz+H4crqfXCLQFtDNAasLoDGMlVVz2pA/zfncWIdLQCpcLTqdIE2UOM7x6RDCNBwKFls5fKIkeNkmNepKZR7qF0WPtQlCp5dRyuaTeXQaUYntJs04=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (1024-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=BUrYHaXJ; arc=none smtp.client-ip=193.238.174.37
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	s=arc-20240116; t=1707325600; c=relaxed/simple;
+	bh=Vomkg/9E+xflwe1TKPYBMmgCBIqvYkNvoHrFspYPC0s=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=OY7C1BrtYBKWh/iIDcGoyYz+e0oz1Ab16fhTID+VsvXomDOrV31X7KfBq2c/LjGYMg4y/4C8c+HT68wZSI5qXoo4UPVvvbcDDjYgM9/JsuU7V7MEPV64Btymih+G+Lgesb2c3ATosHRj/dbAPj4s9Bf8iyRDZAj+hgi0yXErJTQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=pTWEUVhu; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="BUrYHaXJ"
-Received: from mg.bb.i.ssi.bg (localhost [127.0.0.1])
-	by mg.bb.i.ssi.bg (Proxmox) with ESMTP id C4AE121BB1;
-	Wed,  7 Feb 2024 18:45:00 +0200 (EET)
-Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
-	by mg.bb.i.ssi.bg (Proxmox) with ESMTPS id AD02221BAD;
-	Wed,  7 Feb 2024 18:45:00 +0200 (EET)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by ink.ssi.bg (Postfix) with ESMTPSA id 1BA623C07CD;
-	Wed,  7 Feb 2024 18:44:58 +0200 (EET)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=ssi.bg; s=ink;
-	t=1707324298; bh=OFVP8pF7G0eP/zz4gskd3eFJyGQRgHMQFKJwru0hMPU=;
-	h=Date:From:To:cc:Subject:In-Reply-To:References;
-	b=BUrYHaXJmhZVsWK0e/03CQXzsjtpiNxhpJnNNUJLgrdDreTIx3s0c8a16cda2lXqY
-	 nUKdQHU+dZVOkfcFBpYHM50xdJx06MMgionraCx2tct0Cv/i8lDgK0igYo4gaWTDLh
-	 +HcrsuyYaMssDWIk0oA52E5OL0tMzCYoJe2jwR7o=
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.17.1/8.17.1) with ESMTP id 417Gimco077712;
-	Wed, 7 Feb 2024 18:44:49 +0200
-Date: Wed, 7 Feb 2024 18:44:48 +0200 (EET)
-From: Julian Anastasov <ja@ssi.bg>
-To: Terin Stock <terin@cloudflare.com>
-cc: horms@verge.net.au, pablo@netfilter.org, kadlec@netfilter.org,
-        fw@strlen.de, netfilter-devel@vger.kernel.org,
-        lvs-devel@vger.kernel.org, kernel-team@cloudflare.com
-Subject: Re: [PATCH] ipvs: generic netlink multicast event group
-In-Reply-To: <20240205192828.187494-1-terin@cloudflare.com>
-Message-ID: <51c680c7-660a-329f-8c55-31b91c8357fd@ssi.bg>
-References: <20240205192828.187494-1-terin@cloudflare.com>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="pTWEUVhu"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Transfer-Encoding:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=vHagVUYAX/DUVAiuDUCmLCPh4Ysa5cSFTHTqVGi6+zg=; b=pTWEUVhuZ/6KkUNyt4HpWdsRhv
+	zw90AaXvqLJIbC80AaYSvTFaG9Cd4C0IPAu92bFX1mJ5sXGTqLEsDLytH77qAlRKM3wOfEA7Ny1+U
+	IBZYFX16KuCYQe+K9BJoCJbbK6UCvT568Ui3J1v2zluV71Dyj+pqXhc/FKki0GWxfMVkw8S9YHLJ0
+	/xv9iKXuxoVo7acSpQdSK9zokrNQ1g9OGlvCfezyB4Fc0WBvb/R6oYL6aTgasepPX95xP0eHiYwwF
+	VLx4JbvOfp5hvnmi8ibpi17tSVsNVXrD98WMbp616RcNUUwVUhx7RApIu0cDkE5x9YEVKPR00URPK
+	KEURoG6Q==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97)
+	(envelope-from <phil@nwl.cc>)
+	id 1rXlNZ-000000006hV-034u;
+	Wed, 07 Feb 2024 18:06:33 +0100
+Date: Wed, 7 Feb 2024 18:06:32 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: =?utf-8?B?6LCi6Ie06YKmIChYSUUgWmhpYmFuZyk=?= <Yeking@Red54.com>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH v3] evaluate: fix check for unknown in cmd_op_to_name
+Message-ID: <ZcO4mPIjziQFSfHZ@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	=?utf-8?B?6LCi6Ie06YKmIChYSUUgWmhpYmFuZyk=?= <Yeking@Red54.com>,
+	netfilter-devel@vger.kernel.org
+References: <tencent_FC8F6CE01EED438FA435FB1FD8337B3BCD06@qq.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <tencent_FC8F6CE01EED438FA435FB1FD8337B3BCD06@qq.com>
 
-
-	Hello,
-
-On Mon, 5 Feb 2024, Terin Stock wrote:
-
-> The IPVS subsystem allows for configuration from userspace programs
-> using the generic netlink interface. However, the program is currently
-> unable to react to changes in the configuration of services or
-> destinations made on the system without polling over all configuration
-> in IPVS.
+On Wed, Feb 07, 2024 at 03:10:20PM +0000, 谢致邦 (XIE Zhibang) wrote:
+> Example:
+> nft --debug=all destroy table ip missingtable
 > 
-> Adds an "events" multicast group for the IPVS generic netlink family,
-> allowing for userspace programs to monitor changes made by any other
-> netlink client (or legacy tools using the IPVS socket options). As
-> service and destination statistics are separate from configuration,
-> those netlink attributes are excluded in events.
+> Before:
+> Evaluate unknown
 > 
-> Signed-off-by: Terin Stock <terin@cloudflare.com>
-> ---
->  include/uapi/linux/ip_vs.h     |   2 +
->  net/netfilter/ipvs/ip_vs_ctl.c | 107 +++++++++++++++++++++++++++++----
->  2 files changed, 96 insertions(+), 13 deletions(-)
+> After:
+> Evaluate destroy
 > 
-> diff --git a/include/uapi/linux/ip_vs.h b/include/uapi/linux/ip_vs.h
-> index 1ed234e7f251..0aa119ebaf85 100644
-> --- a/include/uapi/linux/ip_vs.h
-> +++ b/include/uapi/linux/ip_vs.h
-> @@ -299,6 +299,8 @@ struct ip_vs_daemon_user {
->  #define IPVS_GENL_NAME		"IPVS"
->  #define IPVS_GENL_VERSION	0x1
->  
-> +#define IPVS_GENL_MCAST_EVENT_NAME "events"
-> +
->  struct ip_vs_flags {
->  	__u32 flags;
->  	__u32 mask;
-> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index 143a341bbc0a..ced232361d02 100644
-> --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> @@ -64,6 +64,11 @@ int ip_vs_get_debug_level(void)
->  
->  
->  /*  Protos */
-> +static struct genl_family ip_vs_genl_family;
-> +static int ip_vs_genl_fill_service(struct sk_buff *skb,
-> +				   struct ip_vs_service *svc, bool stats);
-> +static int ip_vs_genl_fill_dest(struct sk_buff *skb, struct ip_vs_dest *dest,
-> +				bool stats);
->  static void __ip_vs_del_service(struct ip_vs_service *svc, bool cleanup);
->  
->  
-> @@ -960,6 +965,62 @@ void ip_vs_stats_free(struct ip_vs_stats *stats)
->  	}
->  }
->  
-> +static int ip_vs_genl_service_event(u8 event, struct ip_vs_service *svc)
-> +{
-> +	struct sk_buff *msg;
-> +	void *hdr;
-> +
-> +	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_ATOMIC);
-> +	if (!msg)
-> +		return -ENOMEM;
-> +
-> +	hdr = genlmsg_put(msg, 0, 0, &ip_vs_genl_family, 0, event);
-> +	if (!hdr)
-> +		goto free_msg;
-> +
-> +	if (ip_vs_genl_fill_service(msg, svc, false))
-> +		goto free_msg;
-> +
-> +	genlmsg_end(msg, hdr);
-> +	genlmsg_multicast(&ip_vs_genl_family, msg, 0, 0, GFP_ATOMIC);
+> Fixes: e1dfd5cc4c46 ("src: add support to command "destroy"")
+> Signed-off-by: 谢致邦 (XIE Zhibang) <Yeking@Red54.com>
 
-	May be genlmsg_multicast_netns because the rules are per netns?
-As result, may be on net cleanup such events should not be generated,
-see 'bool cleanup'.
-
-	And to use GFP_KERNEL because all configuration happens in process
-context? On module removal, ip_vs_unregister_nl_ioctl() is called before 
-the rules are flushed, not sure if we should add some check or it is not
-fatal to post events for unregistered genl family?
-
-	Also, IP_VS_SO_SET_FLUSH can flush rules and now it will not be 
-reported.
-
-	I also worry that such events slowdown the configuration
-process for setups with many rules which do not use listeners.
-Should we enable it with some sysctl var? Currently, many CPU cycles are 
-spent before we notice that there are no listeners.
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
-
+Patch applied, thanks!
