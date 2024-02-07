@@ -1,87 +1,96 @@
-Received: from mout.kundenserver.de (mout.kundenserver.de [212.227.126.133])
+Received: from out203-205-221-239.mail.qq.com (out203-205-221-239.mail.qq.com [203.205.221.239])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE0AB24208
-	for <netfilter-devel@vger.kernel.org>; Wed,  7 Feb 2024 14:50:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.126.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38B7D7F7D4
+	for <netfilter-devel@vger.kernel.org>; Wed,  7 Feb 2024 15:11:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.205.221.239
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707317431; cv=none; b=AW2Gbks5ue1XqdxZ6ZGdqOoL2oEm/wASBxQRnkAJ+cFdGrqYCd1uSPt8NGN7GnBeAiAgpTo89rJt5K9P0/5xolRcSsvdQgRCxcfruwGr4RlmbLWmFiQjOAHcSOPMunsGhSDWADt8qL8XbylrS6fwAJbx29ALDB/1bTnfBljgpTY=
+	t=1707318680; cv=none; b=iuD/omROlNrFeTCa0nDQjklrJcSgcgDtZLJN7/mSP6d8+uK4cMdlxiU5qGpzMFOPmzuHcAS1nc49gCaW8IZns4iIerU/pKClty+jccah7sCARbAM2BTEttAX48DGeUI3q1PHkk7/aLGdsUxcvlJzLWS3F8XV+wA/HzD3/PtRmtw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707317431; c=relaxed/simple;
-	bh=z7vOH20uxyDHn3JCapkbk8U8szhYMBeXxG8tKYeyxLs=;
-	h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=gYyHLyqcNdxQzmWEEDY6NJh9l02t1O/46HJ5uYS5clTDKSuwfe97UYx4A851GhbASV0yR4p1FA2PHGs2bBOJP3NUovTPXVzFsGSyaeoB3aoCDJ+s90/MAH+EJl0ULOkbPZ4MEorBR/Jr+2Pm9jFE3mcOcPjRG1UrfxqKoM8B4p4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=green-communications.fr; spf=pass smtp.mailfrom=green-communications.fr; arc=none smtp.client-ip=212.227.126.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=green-communications.fr
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=green-communications.fr
-Received: from mail.qult.net ([78.193.33.39]) by mrelayeu.kundenserver.de
- (mreue009 [213.165.67.103]) with ESMTPSA (Nemesis) id
- 1MPooN-1rJlB00Bfv-00Mwnd for <netfilter-devel@vger.kernel.org>; Wed, 07 Feb
- 2024 15:50:21 +0100
-Received: from zenon.in.qult.net ([192.168.64.1])
-	by mail.qult.net with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
-	(Exim 4.90_1)
-	(envelope-from <ignacy.gawedzki@green-communications.fr>)
-	id 1rXjFk-0005xX-JA
-	for netfilter-devel@vger.kernel.org; Wed, 07 Feb 2024 15:50:20 +0100
-Received: from ig by zenon.in.qult.net with local (Exim 4.96)
-	(envelope-from <ignacy.gawedzki@green-communications.fr>)
-	id 1rXjFd-00HPst-1B
-	for netfilter-devel@vger.kernel.org;
-	Wed, 07 Feb 2024 15:50:13 +0100
-Date: Wed, 7 Feb 2024 15:50:13 +0100
-From: Ignacy =?utf-8?B?R2F3xJlkemtp?= <ignacy.gawedzki@green-communications.fr>
+	s=arc-20240116; t=1707318680; c=relaxed/simple;
+	bh=d+Wl13n505wLNh/+NaqjzHf7XZ4MTU9lK4v2CU54lQA=;
+	h=Message-ID:From:To:Cc:Subject:Date:MIME-Version:Content-Type; b=H/Bkij3Dz44xhfzmw5lCdPDh+gJ5KSha/jfKKT4w3t24+QWgI1lICUn/Pd4fmiez2qFafo99lg++Jyfow2Q6ltqysWfwbL0kDSnUu6EQhSibBMBr7eb58QjnA+iV6+5KSQz6km6S7pXGKUpiFx03GYqMe5MQlGRYMn21ETVbyDQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=Red54.com; spf=pass smtp.mailfrom=red54.com; dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b=aTfCo+aq; arc=none smtp.client-ip=203.205.221.239
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=Red54.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=red54.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b="aTfCo+aq"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
+	t=1707318675; bh=YLe8v0Wc8OdU1JU7khGCXTr1AeNz2Lb+MgwS/o9/kDM=;
+	h=From:To:Cc:Subject:Date;
+	b=aTfCo+aqXZRrjYY/593m3JpV/DQ8Jr8aX1QpKgcFXTVEmMv4rTL2lRMe+aBVEFa7a
+	 0OENICGNb47uB3MYFEVZR0VHFUirGWk7di7wlbJCadK5TBgFANgNR78R5m7yFR4b1k
+	 oYGIF38fCVibATb5AtP8+2SHTmY5wrQfU0T5PLFg=
+Received: from mail.red54.com ([2a09:bac5:a6c1:15f::23:3eb])
+	by newxmesmtplogicsvrszb6-0.qq.com (NewEsmtp) with SMTP
+	id 2BB358AF; Wed, 07 Feb 2024 23:10:59 +0800
+X-QQ-mid: xmsmtpt1707318659tsscrvhea
+Message-ID: <tencent_FC8F6CE01EED438FA435FB1FD8337B3BCD06@qq.com>
+X-QQ-XMAILINFO: OZZSS56D9fAjhxYV/uk0Bx25lg3x2k2lwTSOOJZ+0d5o+cllqu3BlfeZeRABsg
+	 lgQiOwiyePjL07Da/C8WiT+k5Mgtv+y9NNQoS7tWI1nWxiZiVAhSaVdCAvR6bqg5a3Q++8faYTsc
+	 tLjF022I5Cv2rpXyz/1YrlR76UDvNw8PtguagHW5yUmB1ezHnfqMBj7j1kkGeWCr/KVdr++EnK+R
+	 wTTErMBzG865X0vBIR7X9BQ6Xkvb/ltvY2GVBa3FLmflxaIkbsii6BkO2wizik90oD5VOpAc1lWX
+	 icOM6hTm9vToAJX/uwM1f9Won9lbVNkeGkN/1M8Wyxswu1ju/3JARyYyjJzZnhEINE93MrwUBRcJ
+	 LpkX4Q3HhNV18bMD+MfUSoUu/szUIn/bdscixy3BRUg3GYiDj7FQH34cIHNjcouNQeVKMqDq1I73
+	 +1AFLBziuxOI7cGch1PkZxwznHtGZ2iL8yFD3p4uLf+7cwaQuPEmi1SDc2vQyg6GoCRxQrzvsG2A
+	 xbsY9gWqtI8+OaGgtE6p36z/ehk2dwq/6nPCExSPG4nMNbirKSA7Y9t3BDyQGTILvC+bHHoKRWg9
+	 cMmZa8cz9RylkKgHyZZk/AoHzoVHhUmNItRz6bFCNdWYKyceCjYcERpF+duUyd++8TcUv14OaL/w
+	 06vRQb+CM6fMV41gKp+Owyw3+P5lmzivNsr98og1WeYXAlmUMb5dn2ufqwci5UPn0TCPKO7Yj0YO
+	 2UazLkMj/JU2WlKcKRqPD66p5N6pk25bIjf1US9Ohj0dkZguVTAzy6trZQb4xTfoQCyWSofkzz86
+	 4LTSWbLLVhh/zJxJFmIqYDeJm264p1RPFuq9QjfOdW5QI145wH3YCCQ5EsEk1tK47ANJ/vI3ero8
+	 yLcNJ++ywI7tNZqmE9td41zsgrT1NwdBwX3GIVKRxdvjLJWny5rRJNIQyIU+wA3wOKH7neL6lmhr
+	 kj0Z0BoX9iczMwDZojsMs9HpzzdN2Z59opUV8jLbukrlPfOKU/DHZdSyRk3btAXjSrjpsaDL6kEf
+	 MIcLGtoMZyn4TLYV5OAoomzlZXRf6SRPw5Q1Z6k8/BUMrn5V+M6mmDAF5NvDsB+7qQb7V7UQ==
+X-QQ-XMRINFO: MSVp+SPm3vtS1Vd6Y4Mggwc=
+Sender: yeking@red54.com
+From: =?UTF-8?q?=E8=B0=A2=E8=87=B4=E9=82=A6=20=28XIE=20Zhibang=29?= <Yeking@Red54.com>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH conntrack] conntrack: don't print [USERSPACE] information in
- case of XML output
-Message-ID: <20240207145013.xzdc6kudqwinzdbt@zenon.in.qult.net>
+Cc: phil@nwl.cc,
+	=?UTF-8?q?=E8=B0=A2=E8=87=B4=E9=82=A6=20=28XIE=20Zhibang=29?= <Yeking@Red54.com>
+Subject: [nft PATCH v3] evaluate: fix check for unknown in cmd_op_to_name
+Date: Wed,  7 Feb 2024 15:10:20 +0000
+X-OQ-MSGID: <20240207151020.6173-1-Yeking@Red54.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-Provags-ID: V03:K1:ux6QimwUndIQXe3hKoyx/OHpWovvZHxvcOp1BdBCHRBEAGBDkv3
- O4irPCSRxSd5mch8WjxwOO34kYphH3KfQf4CgV+G/i2EHz/dvKZa9g+uC2EPae/oddCS0eM
- 7lMTQYW2KNxjzC1qwHN0tbINQXIQybdUDSYf8KySgISknPO2B0vlclnriwU9nMPHPo8wmI8
- DSMaoPvG9tZbqbNjBPqQQ==
-X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:ZOky/kESXck=;DxQR6hVdAi8r8B7wDrwi8Lj3fcQ
- EvQo4WNNtirBTOf5iJoGHMQewinmUUhDC3KotgYSOfsx745w87YrYCYwGFac+BV8c+aUFaYz2
- vwCbBBIi1WGW17VEoY4Qdd/VjwrcFvHrqIc2q4W3fr9TZeo/Evr89hKus08JnsKZ+c2/HO3lb
- 3akt5Sl5ecEINcn1gH1kqQEOJOWU40YChRjWhKOKsMNEHsDRWIE/XMrZzzq4HnofU8K2Y9IRP
- 8VgEsAzKHc1jjpU06R1foQQEblO/lgWYfxyg/QUQUA7X87rBFrKfcUNDglB+ucyZRuM89Qqrc
- zURhKAk+iUqle0pvprvsAfzSVDfeTOE5/OQfA84WbXmB8cgynpVcFafW8eaGJbrRg6nw19WnH
- ZbtrfcqaDb5SM3EE3riFX3fE+770YfTGRpmT/9CqxTOWEAMij4PbldgkgEbR0XLrNyOnxTej4
- N/fc/PQf+r3EvA1e0BH1rFYFWWmTXo9iRDi2dFcwuHFy5G/Z1LgUAd+0F+h9aGlUKYvLUREJa
- bgN29o1YcD7xD5W9kjtZCJjW9bcjCsESe/rgSzJ7vJ+ne4wugUWt9BKTETWmUNL+kH01jOpQD
- bJuJItItQTnalRZQc414OWe4pYz7HeX2t4vr0Ewc3jk/Dq0bCDhuRyO05jbGLzEQ28ksjx27b
- NlAcAth8DKTg7CwtwfPuz6mEIdjvo+CdzNWeU3Py0M44jWiMcESQ0H3quQgdzFZShX1MIYvuQ
- Y7VDsUGQRk9qUBTVFG3AYjr+5gHwdxFyIu3NGjlBjF1TQiLf2kb9rU=
 
-In case XML output is requested, refrain from appending "[USERSPACE]"
-and details to the output.
+Example:
+nft --debug=all destroy table ip missingtable
 
-Signed-off-by: Ignacy Gaw�dzki <ignacy.gawedzki@green-communications.fr>
+Before:
+Evaluate unknown
+
+After:
+Evaluate destroy
+
+Fixes: e1dfd5cc4c46 ("src: add support to command "destroy"")
+Signed-off-by: 谢致邦 (XIE Zhibang) <Yeking@Red54.com>
 ---
- src/conntrack.c | 2 +-
+V2 -> V3: Use array_size as suggested by Phil Sutter
+V1 -> V2: Update subject and message
+
+ src/evaluate.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/conntrack.c b/src/conntrack.c
-index c1551ca..0d71352 100644
---- a/src/conntrack.c
-+++ b/src/conntrack.c
-@@ -1944,7 +1944,7 @@ static int event_cb(const struct nlmsghdr *nlh, void *data)
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 68cfd7765381..57da4044e8c0 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -6048,7 +6048,7 @@ static const char * const cmd_op_name[] = {
  
- 	nfct_snprintf_labels(buf, sizeof(buf), ct, type, op_type, op_flags, labelmap);
- done:
--	if (nlh->nlmsg_pid) {
-+	if (nlh->nlmsg_pid && !(output_mask & _O_XML)) {
- 		char *prog = get_progname(nlh->nlmsg_pid);
+ static const char *cmd_op_to_name(enum cmd_ops op)
+ {
+-	if (op > CMD_DESCRIBE)
++	if (op >= array_size(cmd_op_name))
+ 		return "unknown";
  
- 		if (prog)
+ 	return cmd_op_name[op];
 -- 
-2.40.1
+2.43.0
+
