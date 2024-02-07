@@ -1,102 +1,68 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4B3B82865
-	for <netfilter-devel@vger.kernel.org>; Wed,  7 Feb 2024 17:30:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D3F654645
+	for <netfilter-devel@vger.kernel.org>; Wed,  7 Feb 2024 18:20:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707327010; cv=none; b=id1cdj64J9C3UXHHI3TItUe+iCiUpbSbhnK0Mqo8ALfyXUYpKZ2YZdiYWZ95SPDXKiHRL1Lw05PdQLqP9uFrBW2W/v9CH4KmrmVKo7sW/cnNJib6XMmEh6yAvoYMqJC3Vpxk71AVVTsq5BrYMUGVcQPRd4lIhR5u7E8Z7li0g8I=
+	t=1707330021; cv=none; b=Jv6ifGIQsBcGqy/biV4WY0WqiR8DIXddpeNp4TVdTKawOzKVNWG7vcBFOKFtD0c9ZTqAI9jTRxk3NuPY5/VPOzZcdEZgBH5JGdcFKAjIr6oxHX9Zcm3kF9dCKB2K7q2etk3+k1qKD6dAqyA0shZi06Hulu2Y7NYOrR98Q+KGZBU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707327010; c=relaxed/simple;
-	bh=IvEgQYoyfKlosa1h7nW3/qqieg51jcMlbdoiZ1GJeZc=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=TJsFUk1bNxCe7Xo77zWdViMflMy+/kjNxP6r+ULDbzPvKkpu/6BOc93IWzDQ4x5j3SZjohih++eBLcrqiFB3G0rlfNq6T90lGdqfjvDNWFIhlW1T75oIBF0TEIGOwQH/xohlRiT5WgHENNj9l2f+0TzBjyrVyPMgFkS1hTSKb2g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=ShDxJ0lQ; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1707330021; c=relaxed/simple;
+	bh=U+ckHoylHEi08KPv0AZ+caJGLmp4FCUtcpW0unU4zhs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=pRV03o6yVmKsQ+D5zFmFt/talHYeii7qsuyJ97ylyNd3rSx8NbQ0vJalkWschguKh/vpmJ9gZo25MF8qJkWV3+5heWIekRLMLvT8E499fuI1VTXDGz7k2Ib9Gjpa8jU5M+ulqLdNlvFnNYbcA3OyY3SHJbnd6IaZmL80rXOOaRE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=bLEO5dzp; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ShDxJ0lQ"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1707327006;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=P1DSVo4An4kWpl4fdV9Q8OrYwJJvyrL1FDjSIapAm60=;
-	b=ShDxJ0lQGlwNGi7izx94YMW9MsWzboMv84ESTW9h1Le6W0/KwpQjDS4IcDIt098cBgpSHZ
-	QFM+SDPHXmsw5Ukx4juikVAGrwBI6ZvVxzKU2i/aWjrEHNf+5d9oQLp/uE4GzdzY83FvDV
-	KxZ5bT1O3bePCFLKcnKIzJ6lO2T6sSg=
-Received: from mail-lf1-f72.google.com (mail-lf1-f72.google.com
- [209.85.167.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-463-H2pbbEFVMVqlS_aGvRBTPQ-1; Wed, 07 Feb 2024 12:30:04 -0500
-X-MC-Unique: H2pbbEFVMVqlS_aGvRBTPQ-1
-Received: by mail-lf1-f72.google.com with SMTP id 2adb3069b0e04-50e91f9d422so1150593e87.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 07 Feb 2024 09:30:04 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1707327002; x=1707931802;
-        h=content-transfer-encoding:mime-version:organization:references
-         :in-reply-to:message-id:subject:cc:to:from:date:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=P1DSVo4An4kWpl4fdV9Q8OrYwJJvyrL1FDjSIapAm60=;
-        b=V4CBOLIPTj/dY6F5Nw19S+GLqbLYpaltbN6TdTOgUSGQuLL3Jux9ZeoS4J0lB1zlc4
-         wg5zQqPZ/SCDMypOTfptss85jD8GHNAvDe5VLQhOn0v8pAcipVhF6x1VLlhgb1e/Ww1b
-         SKEoms2TmZCpno2BGp0ll+weNdsGaQc7UdHw6qbkx3mlsMfEucuWLN8SCsOBtfWZoSJ8
-         6dGbYRuzM2W5uTv1evPMTo2QrMwl+oJ0gqIoDv6tvADdWOrQ8RvAwuUNRkg7t2qBBFIq
-         YWNmYOPCZU+/ppy9ijDB/wYnqgOaY80ZWfmRSRYBgurHv5k4GuJ6tScK1sjm37nOBrud
-         OtOQ==
-X-Gm-Message-State: AOJu0YxVGjUbq+f1QbWri12/ttCY2UvODwDPod/lMvrZYbfAoyvChsfg
-	knVKf4Kf09Duhz1CxYhUJj66QLK/yPRuooJOo56FHU3NpgzK4qL2HJrvjU38ydo9/dZZ0t4b4u5
-	4IyChP1+gT+nmPOdeeH1eaYrB72W5c/qJCoyLg5PSaWEQYGlHm1QZ9JUrca3tyY9P3qY6v+RjWp
-	Ab
-X-Received: by 2002:a19:c505:0:b0:511:4ff0:5328 with SMTP id w5-20020a19c505000000b005114ff05328mr4286668lfe.32.1707327002562;
-        Wed, 07 Feb 2024 09:30:02 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IH/yjyY16oO4D4O7b+Cf0u1xTgI7cl3fVFvIVwwGGxC1N7ooUyX37xuVHlVrPi6gS3gQZtPFw==
-X-Received: by 2002:a19:c505:0:b0:511:4ff0:5328 with SMTP id w5-20020a19c505000000b005114ff05328mr4286656lfe.32.1707327002282;
-        Wed, 07 Feb 2024 09:30:02 -0800 (PST)
-Received: from maya.cloud.tilaa.com (maya.cloud.tilaa.com. [164.138.29.33])
-        by smtp.gmail.com with ESMTPSA id w24-20020a17090652d800b00a3738c18c9csm974322ejn.178.2024.02.07.09.30.01
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 07 Feb 2024 09:30:01 -0800 (PST)
-Date: Wed, 7 Feb 2024 18:29:27 +0100
-From: Stefano Brivio <sbrivio@redhat.com>
-To: Florian Westphal <fw@strlen.de>
-Cc: <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nf 3/3] netfilter: nft_set_pipapo: remove
- scratch_aligned pointer
-Message-ID: <20240207182927.5bebba55@elisabeth>
-In-Reply-To: <20240206122531.21972-4-fw@strlen.de>
-References: <20240206122531.21972-1-fw@strlen.de>
-	<20240206122531.21972-4-fw@strlen.de>
-Organization: Red Hat
-X-Mailer: Claws Mail 4.1.1 (GTK 3.24.36; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="bLEO5dzp"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=hd/AxDWxT1PH08vr3vZBCyl5j6Qby+CkvNM2KlOm6oQ=; b=bLEO5dzpWeh5fiEhBtH/1/tM/c
+	mqqv1uX61hMC75wAUOlg9C5G0my/oi3QKSddr/TdsVtE7lsgYzKLMw5f2ZErHjRZ5hxfZgwXLc5+k
+	niEz8J9gBoef/ntTOXEM/VVIle5YbqhDXqTjoSIg0QpLCpbfa313hBfLOJGQvEY7Pv/mq2p72DKxt
+	YCLEtJdaO9oiivCY1pwt8aDHqC9Pt3c9pK9TjlE1i994w78pQGv7DlS8/AWu3SnVTzQpbUQajd6hj
+	75Sax/1k6sHEmp++YnoKYPplI+W05DEYdz5xiepoeidTT1FAR19wg/ABbalicq8hgh/NmOBSukhqd
+	CNLzKR8w==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97)
+	(envelope-from <phil@nwl.cc>)
+	id 1rXmWu-000000007Y3-1BeW;
+	Wed, 07 Feb 2024 19:20:16 +0100
+Date: Wed, 7 Feb 2024 19:20:16 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, anton.khazan@gmail.com
+Subject: Re: [nft PATCH] cache: Optimize caching for 'list tables' command
+Message-ID: <ZcPJ4PFxG3-Biumc@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, anton.khazan@gmail.com
+References: <20240207164835.32723-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240207164835.32723-1-phil@nwl.cc>
 
-On Tue,  6 Feb 2024 13:23:08 +0100
-Florian Westphal <fw@strlen.de> wrote:
-
-> use ->scratch for both avx2 and the generic implementation.
+On Wed, Feb 07, 2024 at 05:48:35PM +0100, Phil Sutter wrote:
+> No point in fetching anything other than existing tables from kernel:
+> 'list tables' merely prints existing table names, no contents.
 > 
-> After previous change the scratch->map member is always aligned properly
-> for AVX2, so we can just use scratch->map in AVX2 too.
+> Also populate filter's family field to reduce overhead when listing
+> tables in one family with many tables in another one. It works without
+> further adjustments because nftnl_nlmsg_build_hdr() will use the value
+> for nfgen_family.
 > 
-> The alignoff delta is stored in the scratchpad so we can reconstruct
-> the correct address to free the area again.
+> Reported-by: anton.khazan@gmail.com
+> Link: https://bugzilla.netfilter.org/show_bug.cgi?id=1735
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
 
-That's a nice simplification, thanks.
-
-> Fixes: 7400b063969b ("nft_set_pipapo: Introduce AVX2-based lookup implementation")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-
-Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
-
--- 
-Stefano
-
+Patch applied.
