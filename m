@@ -1,47 +1,34 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D3F654645
-	for <netfilter-devel@vger.kernel.org>; Wed,  7 Feb 2024 18:20:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 740538565B
+	for <netfilter-devel@vger.kernel.org>; Wed,  7 Feb 2024 19:24:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707330021; cv=none; b=Jv6ifGIQsBcGqy/biV4WY0WqiR8DIXddpeNp4TVdTKawOzKVNWG7vcBFOKFtD0c9ZTqAI9jTRxk3NuPY5/VPOzZcdEZgBH5JGdcFKAjIr6oxHX9Zcm3kF9dCKB2K7q2etk3+k1qKD6dAqyA0shZi06Hulu2Y7NYOrR98Q+KGZBU=
+	t=1707333895; cv=none; b=WzTURMLcSNSSWJE5GLzRe+yRuOjS7pIFQhwABaFj6J1K47phhPXZ1b2S7qGgOvlbAb0isGh5dji/w6KrRouorHKe/la8o2au3eXgJAshNRmYBAsSLuPxYDSEpj33x0VmrQgbk9V0goxR/1YYEDMLrspTOBLo9XO78K9YQxmnTxY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707330021; c=relaxed/simple;
-	bh=U+ckHoylHEi08KPv0AZ+caJGLmp4FCUtcpW0unU4zhs=;
+	s=arc-20240116; t=1707333895; c=relaxed/simple;
+	bh=T0TsdXN+Z5Pnz1K534AY0xyD757hn1v8/RZRjE6Rl0M=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=pRV03o6yVmKsQ+D5zFmFt/talHYeii7qsuyJ97ylyNd3rSx8NbQ0vJalkWschguKh/vpmJ9gZo25MF8qJkWV3+5heWIekRLMLvT8E499fuI1VTXDGz7k2Ib9Gjpa8jU5M+ulqLdNlvFnNYbcA3OyY3SHJbnd6IaZmL80rXOOaRE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=bLEO5dzp; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="bLEO5dzp"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=hd/AxDWxT1PH08vr3vZBCyl5j6Qby+CkvNM2KlOm6oQ=; b=bLEO5dzpWeh5fiEhBtH/1/tM/c
-	mqqv1uX61hMC75wAUOlg9C5G0my/oi3QKSddr/TdsVtE7lsgYzKLMw5f2ZErHjRZ5hxfZgwXLc5+k
-	niEz8J9gBoef/ntTOXEM/VVIle5YbqhDXqTjoSIg0QpLCpbfa313hBfLOJGQvEY7Pv/mq2p72DKxt
-	YCLEtJdaO9oiivCY1pwt8aDHqC9Pt3c9pK9TjlE1i994w78pQGv7DlS8/AWu3SnVTzQpbUQajd6hj
-	75Sax/1k6sHEmp++YnoKYPplI+W05DEYdz5xiepoeidTT1FAR19wg/ABbalicq8hgh/NmOBSukhqd
-	CNLzKR8w==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97)
-	(envelope-from <phil@nwl.cc>)
-	id 1rXmWu-000000007Y3-1BeW;
-	Wed, 07 Feb 2024 19:20:16 +0100
-Date: Wed, 7 Feb 2024 19:20:16 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, anton.khazan@gmail.com
-Subject: Re: [nft PATCH] cache: Optimize caching for 'list tables' command
-Message-ID: <ZcPJ4PFxG3-Biumc@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, anton.khazan@gmail.com
-References: <20240207164835.32723-1-phil@nwl.cc>
+	 Content-Type:Content-Disposition:In-Reply-To; b=s30MMDcjH45shBgCZDZuRjIgM8aMqW4lYGewm5xtBvogX7mlF/D5cPhE6ccWqWmsH0rsTk5DVKt7wB7H8poTC1IENXosDZpE6N27NxOXNYIU1AmWBohBWcP4vcIb6eq62oFinc46GeVrPNT3DVa+Rk0NFKcXW2EZrLJ1uABn+JA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1rXnXN-0005AX-Of; Wed, 07 Feb 2024 20:24:49 +0100
+Date: Wed, 7 Feb 2024 20:24:49 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Stefano Brivio <sbrivio@redhat.com>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf 1/3] netfilter: nft_set_pipapo: store index in scratch
+ maps
+Message-ID: <20240207192449.GB14600@breakpoint.cc>
+References: <20240206122531.21972-1-fw@strlen.de>
+ <20240206122531.21972-2-fw@strlen.de>
+ <20240207151514.790c6cf3@elisabeth>
+ <20240207152328.GA11077@breakpoint.cc>
+ <20240207182751.6ed0dd1d@elisabeth>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -50,19 +37,33 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240207164835.32723-1-phil@nwl.cc>
+In-Reply-To: <20240207182751.6ed0dd1d@elisabeth>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-On Wed, Feb 07, 2024 at 05:48:35PM +0100, Phil Sutter wrote:
-> No point in fetching anything other than existing tables from kernel:
-> 'list tables' merely prints existing table names, no contents.
+Stefano Brivio <sbrivio@redhat.com> wrote:
+> > In new code, k+4 is the perfect "already-aligned" address where we would
+> > 'no-op' the address on a ARCH_KMALLOC_MINALIGN == 4 system.
 > 
-> Also populate filter's family field to reduce overhead when listing
-> tables in one family with many tables in another one. It works without
-> further adjustments because nftnl_nlmsg_build_hdr() will use the value
-> for nfgen_family.
-> 
-> Reported-by: anton.khazan@gmail.com
-> Link: https://bugzilla.netfilter.org/show_bug.cgi?id=1735
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> Isn't the already aligned-address k - 4, that is, k + 28? With k + 4,
+> we would have &scratch->map[0] at k + 8. But anyway:
 
-Patch applied.
+Yes, k-4 (k+28).
+
+[..]
+
+> > Maybe thats what you were saying.  I could try to add/expand the
+> > comments here for the alignment calculations.
+> 
+> ...yes, the rest is exactly what I meant. I'm not really satisfied of
+> the paragraph below but maybe something on the lines of:
+> 
+> 	/* Align &scratch->map (not the struct itself): the extra
+> 	 * %NFT_PIPAPO_ALIGN_HEADROOM bytes passed to kzalloc_node() above
+> 	 * guarantee we can waste up to those bytes in order to align the map
+> 	 * field regardless of its offset within the struct.
+> 	 */
+
+Thanks, thats good, I'll use that.
+
+I think I'll also add a BUILD_BUG_ON to assert map
+offset <= NFT_PIPAPO_ALIGN_HEADROOM, just in case.
