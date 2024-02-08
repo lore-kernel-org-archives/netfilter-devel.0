@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 6751D6F51E;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D04826EB75;
 	Thu,  8 Feb 2024 11:28:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707391724; cv=none; b=SVB1ldYi0yrgrISuFyVvmBRTjPNOnJcTbvWW4oi4WdDVqydX1phUXgV2f8LGfBkOXv5UsPdZAJUm3F6lTpFwNMaHKAp/8o7NAL0d15XqTe4oxBH6blTnSuj8huifle3H/WhEJmEvc9NuFOJbshSC/39PKAwuzGdTPe9/IXJYAbA=
+	t=1707391725; cv=none; b=roezVz4D0u6Bbj7E586Sch8ex1uVN+HuGC4nghi8BoeLOSLCSMCiomvv6RiKr8HkT4+6W+zPBXzQZ+svtwOaLn/QZ9NYEfxw2flXvt+mJiY2AdurIsUMeNSB8pj+v8VYadZPvC91vitlJ4lYmLq+x4glscXdV9wFAzstRwfW75U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707391724; c=relaxed/simple;
-	bh=W1cSlmedix7odalk76TDIL1G+Kw9LBCOiQIAcgAngq0=;
+	s=arc-20240116; t=1707391725; c=relaxed/simple;
+	bh=Iju1WJ9Ap8eJGChNGn1Xu+0Td4lpNM4WNCJCL29T/Ws=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=tmIizZMtCjOu9FWffBozFmHJkfTAv6uwPmV+/6NPoRnLtIN8xOm4XrOKiknQ7lTuaaQqK7TDlVJ1hSbbul7Ua9HAbJYCFpIycD/Rm9eYwhO2VzFTsc6MUl03aVNtJfTwqpz6jSTdhI5KusTxZTQmR+nTUW0FqDy8wuzA1dDW5b4=
+	 MIME-Version; b=dr+G97VQM2Do67CWWQRU3OtE2Qj6S4GTjsrjdGRP8zUJuvZ7IBbeDY75fwjecCD/KuzGHZXawateWF9aKK48ZKnFhrQold6AsDd3zEY2J0lHsBd2b0HT8mo31hfC0htm0hwTo8rTwORP6uariMc8wElvRhT7TiHEvwkacsjGcro=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -21,9 +21,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	kadlec@netfilter.org
-Subject: [PATCH net 05/13] netfilter: ipset: Missing gc cancellations fixed
-Date: Thu,  8 Feb 2024 12:28:26 +0100
-Message-Id: <20240208112834.1433-6-pablo@netfilter.org>
+Subject: [PATCH net 07/13] netfilter: nft_ct: reject direction for ct id
+Date: Thu,  8 Feb 2024 12:28:28 +0100
+Message-Id: <20240208112834.1433-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240208112834.1433-1-pablo@netfilter.org>
 References: <20240208112834.1433-1-pablo@netfilter.org>
@@ -33,74 +33,31 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Jozsef Kadlecsik <kadlec@netfilter.org>
+Direction attribute is ignored, reject it in case this ever needs to be
+supported
 
-The patch fdb8e12cc2cc ("netfilter: ipset: fix performance regression
-in swap operation") missed to add the calls to gc cancellations
-at the error path of create operations and at module unload. Also,
-because the half of the destroy operations now executed by a
-function registered by call_rcu(), neither NFNL_SUBSYS_IPSET mutex
-or rcu read lock is held and therefore the checking of them results
-false warnings.
-
-Fixes: 97f7cf1cd80e ("netfilter: ipset: fix performance regression in swap operation")
-Reported-by: syzbot+52bbc0ad036f6f0d4a25@syzkaller.appspotmail.com
-Reported-by: Brad Spengler <spender@grsecurity.net>
-Reported-by: Стас Ничипорович <stasn77@gmail.com>
-Tested-by: Brad Spengler <spender@grsecurity.net>
-Tested-by: Стас Ничипорович <stasn77@gmail.com>
-Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+Fixes: 3087c3f7c23b ("netfilter: nft_ct: Add ct id support")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_core.c     | 2 ++
- net/netfilter/ipset/ip_set_hash_gen.h | 4 ++--
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ net/netfilter/nft_ct.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index bcaad9c009fe..3184cc6be4c9 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -1154,6 +1154,7 @@ static int ip_set_create(struct sk_buff *skb, const struct nfnl_info *info,
- 	return ret;
- 
- cleanup:
-+	set->variant->cancel_gc(set);
- 	set->variant->destroy(set);
- put_out:
- 	module_put(set->type->me);
-@@ -2378,6 +2379,7 @@ ip_set_net_exit(struct net *net)
- 		set = ip_set(inst, i);
- 		if (set) {
- 			ip_set(inst, i) = NULL;
-+			set->variant->cancel_gc(set);
- 			ip_set_destroy_set(set);
- 		}
- 	}
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 1136510521a8..cf3ce72c3de6 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -432,7 +432,7 @@ mtype_ahash_destroy(struct ip_set *set, struct htable *t, bool ext_destroy)
- 	u32 i;
- 
- 	for (i = 0; i < jhash_size(t->htable_bits); i++) {
--		n = __ipset_dereference(hbucket(t, i));
-+		n = (__force struct hbucket *)hbucket(t, i);
- 		if (!n)
- 			continue;
- 		if (set->extensions & IPSET_EXT_DESTROY && ext_destroy)
-@@ -452,7 +452,7 @@ mtype_destroy(struct ip_set *set)
- 	struct htype *h = set->data;
- 	struct list_head *l, *lt;
- 
--	mtype_ahash_destroy(set, ipset_dereference_nfnl(h->table), true);
-+	mtype_ahash_destroy(set, (__force struct htable *)h->table, true);
- 	list_for_each_safe(l, lt, &h->ad) {
- 		list_del(l);
- 		kfree(l);
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index aac98a3c966e..bfd3e5a14dab 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -476,6 +476,9 @@ static int nft_ct_get_init(const struct nft_ctx *ctx,
+ 		break;
+ #endif
+ 	case NFT_CT_ID:
++		if (tb[NFTA_CT_DIRECTION])
++			return -EINVAL;
++
+ 		len = sizeof(u32);
+ 		break;
+ 	default:
 -- 
 2.30.2
 
