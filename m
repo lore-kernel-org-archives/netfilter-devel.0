@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1759271B43;
-	Thu,  8 Feb 2024 11:28:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id AFD4973182;
+	Thu,  8 Feb 2024 11:28:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707391726; cv=none; b=b1REOOiA0N4YzaklJwGenDxntM190FUwbglhGlo7vS3WGfHmBStdwUTNZsoOMGENUIhyLkAkARE00R5q8ZtjpifnY0R3sajZwzNa5mEM1GsDGVefxQ/62HU0dvZ6SaObU2EF9ms/xl+v/mUq8E3tUg+WbgJg9zhaTrY4XGm5bSE=
+	t=1707391727; cv=none; b=KDUYWzf24QoNe7jX0EFkNv37OxDrU56iFbZL//AVHpJlXgfji0YLRfWOWWvSpNdX1D8p/nwgHf2x2pSA1vuegJCgNu00cF/X4St6p+gXikqv6sQEYxIXQf7tjmmr1HOZNy9eVLqoOpF3b+NXSQRbHY7cap2Bb1kTqqlrSLDnYh0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707391726; c=relaxed/simple;
-	bh=2vGFEgm+Odw4iJi28aG6VmDYDdwp/Qn2xVdSKfnEG9Q=;
+	s=arc-20240116; t=1707391727; c=relaxed/simple;
+	bh=cPeYWK4EosRjOppdC99VE/DsVaGgSBiEn8k33p4EeL0=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=lkH8ADcKxoWrgGe9CK3U6DUO0ay8VQ9MwH2J7orxrsx8vjJntQWEpqr3VqYw8Cy/i/qfa3K0AvVCjf77+I9Cs/wRY8JXDaVfcXq5/8KSjJd9dy5HauB15mIb0KsljuMOF/UxlKwnnghYRbtwE9msCQIF8VSbZgQfvrsPBDhCcEA=
+	 MIME-Version; b=mxaQsMHbDcf8iEC9mcA6xEjG1W+pWgOACJwPylh/rhAJ2my6VsrqIzQUHHd/55bV8P5Y1DUMxw+dGVUCbiegnvHSVAkj1hMoTiHbM6JjZsKz+z9ISqBM9o7wspJm3KWWsng4CvPORKXxoNblnJBOXTJnUysafpQ8J5fjMDN6eeM=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -21,9 +21,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	kadlec@netfilter.org
-Subject: [PATCH net 09/13] netfilter: nfnetlink_queue: un-break NF_REPEAT
-Date: Thu,  8 Feb 2024 12:28:30 +0100
-Message-Id: <20240208112834.1433-10-pablo@netfilter.org>
+Subject: [PATCH net 10/13] netfilter: nft_set_rbtree: skip end interval element from gc
+Date: Thu,  8 Feb 2024 12:28:31 +0100
+Message-Id: <20240208112834.1433-11-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240208112834.1433-1-pablo@netfilter.org>
 References: <20240208112834.1433-1-pablo@netfilter.org>
@@ -35,55 +35,49 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+rbtree lazy gc on insert might collect an end interval element that has
+been just added in this transactions, skip end interval elements that
+are not yet active.
 
-Only override userspace verdict if the ct hook returns something
-other than ACCEPT.
-
-Else, this replaces NF_REPEAT (run all hooks again) with NF_ACCEPT
-(move to next hook).
-
-Fixes: 6291b3a67ad5 ("netfilter: conntrack: convert nf_conntrack_update to netfilter verdicts")
-Reported-by: l.6diay@passmail.com
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: f718863aca46 ("netfilter: nft_set_rbtree: fix overlap expiration walk")
+Cc: stable@vger.kernel.org
+Reported-by: lonial con <kongln9170@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_queue.c | 13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ net/netfilter/nft_set_rbtree.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 171d1f52d3dd..5cf38fc0a366 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -232,18 +232,25 @@ static void nfqnl_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 	if (verdict == NF_ACCEPT ||
- 	    verdict == NF_REPEAT ||
- 	    verdict == NF_STOP) {
-+		unsigned int ct_verdict = verdict;
-+
- 		rcu_read_lock();
- 		ct_hook = rcu_dereference(nf_ct_hook);
- 		if (ct_hook)
--			verdict = ct_hook->update(entry->state.net, entry->skb);
-+			ct_verdict = ct_hook->update(entry->state.net, entry->skb);
- 		rcu_read_unlock();
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 5fd74f993988..9944fe479e53 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -234,7 +234,7 @@ static void nft_rbtree_gc_elem_remove(struct net *net, struct nft_set *set,
  
--		switch (verdict & NF_VERDICT_MASK) {
-+		switch (ct_verdict & NF_VERDICT_MASK) {
-+		case NF_ACCEPT:
-+			/* follow userspace verdict, could be REPEAT */
-+			break;
- 		case NF_STOLEN:
- 			nf_queue_entry_free(entry);
- 			return;
-+		default:
-+			verdict = ct_verdict & NF_VERDICT_MASK;
-+			break;
- 		}
--
- 	}
- 	nf_reinject(entry, verdict);
- }
+ static const struct nft_rbtree_elem *
+ nft_rbtree_gc_elem(const struct nft_set *__set, struct nft_rbtree *priv,
+-		   struct nft_rbtree_elem *rbe, u8 genmask)
++		   struct nft_rbtree_elem *rbe)
+ {
+ 	struct nft_set *set = (struct nft_set *)__set;
+ 	struct rb_node *prev = rb_prev(&rbe->node);
+@@ -253,7 +253,7 @@ nft_rbtree_gc_elem(const struct nft_set *__set, struct nft_rbtree *priv,
+ 	while (prev) {
+ 		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
+ 		if (nft_rbtree_interval_end(rbe_prev) &&
+-		    nft_set_elem_active(&rbe_prev->ext, genmask))
++		    nft_set_elem_active(&rbe_prev->ext, NFT_GENMASK_ANY))
+ 			break;
+ 
+ 		prev = rb_prev(prev);
+@@ -365,7 +365,7 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 		    nft_set_elem_active(&rbe->ext, cur_genmask)) {
+ 			const struct nft_rbtree_elem *removed_end;
+ 
+-			removed_end = nft_rbtree_gc_elem(set, priv, rbe, genmask);
++			removed_end = nft_rbtree_gc_elem(set, priv, rbe);
+ 			if (IS_ERR(removed_end))
+ 				return PTR_ERR(removed_end);
+ 
 -- 
 2.30.2
 
