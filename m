@@ -1,32 +1,35 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 126E26F06D;
-	Thu,  8 Feb 2024 11:28:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DDF11B7F6;
+	Thu,  8 Feb 2024 12:30:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707391728; cv=none; b=QCzviQtzZSCQzNxWx5VRJsobD+b+ijVDamNVAZG6m2c0NWS2KzcnX9TqB4IPbXilPlfXBAyhaDbHAz/+qCp6RZXpLHWZ42o8cCuma+dsU7837sJaaiZLZoY4T+tD26YOy4qrjLrvd6j6xhG5TXHq/3elpK3b1zkhRlQuyse+u1k=
+	t=1707395430; cv=none; b=GhcT+z4N+yw7Rgpu81hM1um2exV+dEk0ytDpJaw1oP6DC57+rKjNONL+Wy9P1vot22D84IEKdZ1O/8AypeE7FMqbLaLDO2eTlTf49cGAB81eAOq7z+xaLAqbnO2aCT11j+1dC4YS75xyVY22DXloC6SXFwRnwJiFk1xFfMbWp+E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707391728; c=relaxed/simple;
-	bh=sepE7rWRcjqCYI9qcLXp+BfMQFk4Rr0lyu7eYYWtZ+Q=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=mdZU3WaNvirByjLPIQQ5rcj9lYfFjLnL+B08ryofJDqGqyoy3GHT5ZJ9/8kH3HPxjuqZLxlXYAvsawDfjjD5s20bZp3r/2gtHv3IbnFw/M/CX82Yu4MNjPKj3Do/8BrH8eB0ONTzFX9Pw8yozwodaa4DbhC3iDZArpH050F7JAY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	fw@strlen.de,
-	kadlec@netfilter.org
-Subject: [PATCH net 13/13] netfilter: nft_set_pipapo: remove scratch_aligned pointer
-Date: Thu,  8 Feb 2024 12:28:34 +0100
-Message-Id: <20240208112834.1433-14-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20240208112834.1433-1-pablo@netfilter.org>
-References: <20240208112834.1433-1-pablo@netfilter.org>
+	s=arc-20240116; t=1707395430; c=relaxed/simple;
+	bh=RTaUdoh+BAG+eyTkiOwrqSe1WubALAkCc+XbhNrFSAs=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=guKPeNMc+2Y8xTb1KhW3spVpO9RpGhZ5HXa4bsRNJSaIptvCP9UaCEFnGYiEn8jf/WOOoDBNbpCG1SJqXY/hynoac2/LLaQh4H+JrxUe+T8sJxpbzgN73qkDv1wC0zQRdcUBhNFVxbgWJiD+wKR8TPp7L/Z8y0aiVNhNwVxeeEk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SszNSoTF; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SszNSoTF"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id BE07DC433F1;
+	Thu,  8 Feb 2024 12:30:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1707395429;
+	bh=RTaUdoh+BAG+eyTkiOwrqSe1WubALAkCc+XbhNrFSAs=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=SszNSoTFn039KPGvS1ht3yRqiaBx60akO0qsy1zE8ZFymfv2J62HSBDsqk9zSz8JG
+	 39/hXSwhS/gdPwGPAeu4oP2BzeDjYfXI474fvxAdOVYaOhjK6t1k7KliqurXeQXIFK
+	 84OVC8DF0aQOXffqIJU2wWONflCsaAnC1vT/dcZLtF0WJejBJFM0wu7NcEWs9QR4ER
+	 2Fw0JoR4Tgk+DR+Racd+TJIWjgbc05I9Nfx4dLnT7rjohgz9JTRRCMpwwtSsT+sStn
+	 ABOuZJQphH167rgDD/6YdZrv3F7ObuPj6YD739xtmuDff+pKAfWbPKlJsKQKw3bljr
+	 jzvct/CA4d0TQ==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id A4AD6E2F2F9;
+	Thu,  8 Feb 2024 12:30:29 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -34,198 +37,64 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 01/13] netfilter: nft_compat: narrow down revision to
+ unsigned 8-bits
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <170739542966.30179.12730184449437976359.git-patchwork-notify@kernel.org>
+Date: Thu, 08 Feb 2024 12:30:29 +0000
+References: <20240208112834.1433-2-pablo@netfilter.org>
+In-Reply-To: <20240208112834.1433-2-pablo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, fw@strlen.de, kadlec@netfilter.org
 
-From: Florian Westphal <fw@strlen.de>
+Hello:
 
-use ->scratch for both avx2 and the generic implementation.
+This series was applied to netdev/net.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-After previous change the scratch->map member is always aligned properly
-for AVX2, so we can just use scratch->map in AVX2 too.
+On Thu,  8 Feb 2024 12:28:22 +0100 you wrote:
+> xt_find_revision() expects u8, restrict it to this datatype.
+> 
+> Fixes: 0ca743a55991 ("netfilter: nf_tables: add compatibility layer for x_tables")
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  net/netfilter/nft_compat.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
 
-The alignoff delta is stored in the scratchpad so we can reconstruct
-the correct address to free the area again.
+Here is the summary with links:
+  - [net,01/13] netfilter: nft_compat: narrow down revision to unsigned 8-bits
+    https://git.kernel.org/netdev/net/c/36fa8d697132
+  - [net,02/13] netfilter: nft_compat: reject unused compat flag
+    https://git.kernel.org/netdev/net/c/292781c3c548
+  - [net,03/13] netfilter: nft_compat: restrict match/target protocol to u16
+    https://git.kernel.org/netdev/net/c/d694b754894c
+  - [net,04/13] netfilter: nft_set_pipapo: remove static in nft_pipapo_get()
+    https://git.kernel.org/netdev/net/c/ab0beafd52b9
+  - [net,05/13] netfilter: ipset: Missing gc cancellations fixed
+    https://git.kernel.org/netdev/net/c/27c5a095e251
+  - [net,06/13] netfilter: ctnetlink: fix filtering for zone 0
+    https://git.kernel.org/netdev/net/c/fa173a1b4e3f
+  - [net,07/13] netfilter: nft_ct: reject direction for ct id
+    https://git.kernel.org/netdev/net/c/38ed1c7062ad
+  - [net,08/13] netfilter: nf_tables: use timestamp to check for set element timeout
+    https://git.kernel.org/netdev/net/c/7395dfacfff6
+  - [net,09/13] netfilter: nfnetlink_queue: un-break NF_REPEAT
+    https://git.kernel.org/netdev/net/c/f82777e8ce6c
+  - [net,10/13] netfilter: nft_set_rbtree: skip end interval element from gc
+    https://git.kernel.org/netdev/net/c/60c0c230c6f0
+  - [net,11/13] netfilter: nft_set_pipapo: store index in scratch maps
+    https://git.kernel.org/netdev/net/c/76313d1a4aa9
+  - [net,12/13] netfilter: nft_set_pipapo: add helper to release pcpu scratch area
+    https://git.kernel.org/netdev/net/c/47b1c03c3c1a
+  - [net,13/13] netfilter: nft_set_pipapo: remove scratch_aligned pointer
+    https://git.kernel.org/netdev/net/c/5a8cdf6fd860
 
-Fixes: 7400b063969b ("nft_set_pipapo: Introduce AVX2-based lookup implementation")
-Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_set_pipapo.c      | 41 +++++------------------------
- net/netfilter/nft_set_pipapo.h      |  6 ++---
- net/netfilter/nft_set_pipapo_avx2.c |  2 +-
- 3 files changed, 10 insertions(+), 39 deletions(-)
-
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index 5094d4c439c3..aa1d9e93a9a0 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -1125,6 +1125,7 @@ static void pipapo_free_scratch(const struct nft_pipapo_match *m, unsigned int c
- 		return;
- 
- 	mem = s;
-+	mem -= s->align_off;
- 	kfree(mem);
- }
- 
-@@ -1144,6 +1145,7 @@ static int pipapo_realloc_scratch(struct nft_pipapo_match *clone,
- 		struct nft_pipapo_scratch *scratch;
- #ifdef NFT_PIPAPO_ALIGN
- 		void *scratch_aligned;
-+		u32 align_off;
- #endif
- 		scratch = kzalloc_node(struct_size(scratch, map,
- 						   bsize_max * 2) +
-@@ -1162,8 +1164,6 @@ static int pipapo_realloc_scratch(struct nft_pipapo_match *clone,
- 
- 		pipapo_free_scratch(clone, i);
- 
--		*per_cpu_ptr(clone->scratch, i) = scratch;
--
- #ifdef NFT_PIPAPO_ALIGN
- 		/* Align &scratch->map (not the struct itself): the extra
- 		 * %NFT_PIPAPO_ALIGN_HEADROOM bytes passed to kzalloc_node()
-@@ -1175,8 +1175,12 @@ static int pipapo_realloc_scratch(struct nft_pipapo_match *clone,
- 
- 		scratch_aligned = NFT_PIPAPO_LT_ALIGN(&scratch->map);
- 		scratch_aligned -= offsetof(struct nft_pipapo_scratch, map);
--		*per_cpu_ptr(clone->scratch_aligned, i) = scratch_aligned;
-+		align_off = scratch_aligned - (void *)scratch;
-+
-+		scratch = scratch_aligned;
-+		scratch->align_off = align_off;
- #endif
-+		*per_cpu_ptr(clone->scratch, i) = scratch;
- 	}
- 
- 	return 0;
-@@ -1331,11 +1335,6 @@ static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old)
- 	if (!new->scratch)
- 		goto out_scratch;
- 
--#ifdef NFT_PIPAPO_ALIGN
--	new->scratch_aligned = alloc_percpu(*new->scratch_aligned);
--	if (!new->scratch_aligned)
--		goto out_scratch;
--#endif
- 	for_each_possible_cpu(i)
- 		*per_cpu_ptr(new->scratch, i) = NULL;
- 
-@@ -1388,9 +1387,6 @@ static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old)
- out_scratch_realloc:
- 	for_each_possible_cpu(i)
- 		pipapo_free_scratch(new, i);
--#ifdef NFT_PIPAPO_ALIGN
--	free_percpu(new->scratch_aligned);
--#endif
- out_scratch:
- 	free_percpu(new->scratch);
- 	kfree(new);
-@@ -1673,11 +1669,7 @@ static void pipapo_free_match(struct nft_pipapo_match *m)
- 	for_each_possible_cpu(i)
- 		pipapo_free_scratch(m, i);
- 
--#ifdef NFT_PIPAPO_ALIGN
--	free_percpu(m->scratch_aligned);
--#endif
- 	free_percpu(m->scratch);
--
- 	pipapo_free_fields(m);
- 
- 	kfree(m);
-@@ -2171,16 +2163,6 @@ static int nft_pipapo_init(const struct nft_set *set,
- 	for_each_possible_cpu(i)
- 		*per_cpu_ptr(m->scratch, i) = NULL;
- 
--#ifdef NFT_PIPAPO_ALIGN
--	m->scratch_aligned = alloc_percpu(struct nft_pipapo_scratch *);
--	if (!m->scratch_aligned) {
--		err = -ENOMEM;
--		goto out_free;
--	}
--	for_each_possible_cpu(i)
--		*per_cpu_ptr(m->scratch_aligned, i) = NULL;
--#endif
--
- 	rcu_head_init(&m->rcu);
- 
- 	nft_pipapo_for_each_field(f, i, m) {
-@@ -2211,9 +2193,6 @@ static int nft_pipapo_init(const struct nft_set *set,
- 	return 0;
- 
- out_free:
--#ifdef NFT_PIPAPO_ALIGN
--	free_percpu(m->scratch_aligned);
--#endif
- 	free_percpu(m->scratch);
- out_scratch:
- 	kfree(m);
-@@ -2267,9 +2246,6 @@ static void nft_pipapo_destroy(const struct nft_ctx *ctx,
- 
- 		nft_set_pipapo_match_destroy(ctx, set, m);
- 
--#ifdef NFT_PIPAPO_ALIGN
--		free_percpu(m->scratch_aligned);
--#endif
- 		for_each_possible_cpu(cpu)
- 			pipapo_free_scratch(m, cpu);
- 		free_percpu(m->scratch);
-@@ -2284,9 +2260,6 @@ static void nft_pipapo_destroy(const struct nft_ctx *ctx,
- 		if (priv->dirty)
- 			nft_set_pipapo_match_destroy(ctx, set, m);
- 
--#ifdef NFT_PIPAPO_ALIGN
--		free_percpu(priv->clone->scratch_aligned);
--#endif
- 		for_each_possible_cpu(cpu)
- 			pipapo_free_scratch(priv->clone, cpu);
- 		free_percpu(priv->clone->scratch);
-diff --git a/net/netfilter/nft_set_pipapo.h b/net/netfilter/nft_set_pipapo.h
-index d3bc1551694f..f59a0cd81105 100644
---- a/net/netfilter/nft_set_pipapo.h
-+++ b/net/netfilter/nft_set_pipapo.h
-@@ -133,10 +133,12 @@ struct nft_pipapo_field {
- /**
-  * struct nft_pipapo_scratch - percpu data used for lookup and matching
-  * @map_index:	Current working bitmap index, toggled between field matches
-+ * @align_off:	Offset to get the originally allocated address
-  * @map:	store partial matching results during lookup
-  */
- struct nft_pipapo_scratch {
- 	u8 map_index;
-+	u32 align_off;
- 	unsigned long map[];
- };
- 
-@@ -144,16 +146,12 @@ struct nft_pipapo_scratch {
-  * struct nft_pipapo_match - Data used for lookup and matching
-  * @field_count		Amount of fields in set
-  * @scratch:		Preallocated per-CPU maps for partial matching results
-- * @scratch_aligned:	Version of @scratch aligned to NFT_PIPAPO_ALIGN bytes
-  * @bsize_max:		Maximum lookup table bucket size of all fields, in longs
-  * @rcu			Matching data is swapped on commits
-  * @f:			Fields, with lookup and mapping tables
-  */
- struct nft_pipapo_match {
- 	int field_count;
--#ifdef NFT_PIPAPO_ALIGN
--	struct nft_pipapo_scratch * __percpu *scratch_aligned;
--#endif
- 	struct nft_pipapo_scratch * __percpu *scratch;
- 	size_t bsize_max;
- 	struct rcu_head rcu;
-diff --git a/net/netfilter/nft_set_pipapo_avx2.c b/net/netfilter/nft_set_pipapo_avx2.c
-index 78213c73af2e..90e275bb3e5d 100644
---- a/net/netfilter/nft_set_pipapo_avx2.c
-+++ b/net/netfilter/nft_set_pipapo_avx2.c
-@@ -1139,7 +1139,7 @@ bool nft_pipapo_avx2_lookup(const struct net *net, const struct nft_set *set,
- 	 */
- 	kernel_fpu_begin_mask(0);
- 
--	scratch = *raw_cpu_ptr(m->scratch_aligned);
-+	scratch = *raw_cpu_ptr(m->scratch);
- 	if (unlikely(!scratch)) {
- 		kernel_fpu_end();
- 		return false;
+You are awesome, thank you!
 -- 
-2.30.2
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
