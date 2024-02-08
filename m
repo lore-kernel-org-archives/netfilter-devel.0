@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 55B2E6BFA7;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id CD2C66EB73;
 	Thu,  8 Feb 2024 11:28:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707391723; cv=none; b=bjGjiY4R85vcTydUrN33RzcJUENK/wpJ0R7Gx+Zb2ewh+j5LF2V6C+i6bw0EtPOPXZ7JmEi2GcM2YM7WxDU8SISRnvTUeC7yE5ZOdsLbHDudzaBAA7YklghPJu6NHvnBkCOInt5Xdqwz8FMfb5FkF0uOeJPN96qeAmVzv3pvyR0=
+	t=1707391723; cv=none; b=UU2hkSLtnDc+w7zFg/N1ROILREugbHX+bcCZur1i5/v+r8Omfj0cLFfMYfZbw89B/pVEhh49ZnyNFBa0wkjpNYczd9iaXoz8j2pkFU1rxburjYcd5XsP+KpnNRWHBZhJHWUX/7g1iKhZwYNMnyvFqm9fvWeaAQzTIdOC6rDmOlQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1707391723; c=relaxed/simple;
-	bh=dA3bahxcGvS1L3trOq3bDjnN17P1qV1m4b4l7mV4cvE=;
+	bh=u+nUvuRzQDGFtm1iYQtfjCZm5QnX9kkio2LKDuE+Hzk=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=qis5/jcPjADIylRueBkO4o2quazwxPn2zFqYXG7NCQ7CxG+z7Qp8RP4fsY3l7rlis18V/+I6uEXwRnz34gV9SJRICC1hioiAIj3EmE9dsonLeer2dy2IHPBV7Aho/EK3cZCdZjnfzrQjV4U2Q5j/lXDMFSPK/hSmyF329WlUe2E=
+	 MIME-Version; b=U4+T6PgyuZuWOdCL6JvTcbeaYH2HdkG7Wzq2fgO3/WtWTLwDZSZYDPEPHhVvdBQJV2RDwDnnQrf6KYspKjHnhIDNGgIp5Mrq7asHANxphUjDTgikjIoAtrduvRzyP+UFig/OwLsdsm7GP1EihuV4egtP6fkVmIilDBmH6Kjf3EQ=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -21,9 +21,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	kadlec@netfilter.org
-Subject: [PATCH net 03/13] netfilter: nft_compat: restrict match/target protocol to u16
-Date: Thu,  8 Feb 2024 12:28:24 +0100
-Message-Id: <20240208112834.1433-4-pablo@netfilter.org>
+Subject: [PATCH net 04/13] netfilter: nft_set_pipapo: remove static in nft_pipapo_get()
+Date: Thu,  8 Feb 2024 12:28:25 +0100
+Message-Id: <20240208112834.1433-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240208112834.1433-1-pablo@netfilter.org>
 References: <20240208112834.1433-1-pablo@netfilter.org>
@@ -35,44 +35,29 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-xt_check_{match,target} expects u16, but NFTA_RULE_COMPAT_PROTO is u32.
+This has slipped through when reducing memory footprint for set
+elements, remove it.
 
-NLA_POLICY_MAX(NLA_BE32, 65535) cannot be used because .max in
-nla_policy is s16, see 3e48be05f3c7 ("netlink: add attribute range
-validation to policy").
-
-Fixes: 0ca743a55991 ("netfilter: nf_tables: add compatibility layer for x_tables")
+Fixes: 9dad402b89e8 ("netfilter: nf_tables: expose opaque set element as struct nft_elem_priv")
+Reported-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_compat.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ net/netfilter/nft_set_pipapo.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index ed71d5ecbe0a..1f9474fefe84 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -200,6 +200,7 @@ static const struct nla_policy nft_rule_compat_policy[NFTA_RULE_COMPAT_MAX + 1]
- static int nft_parse_compat(const struct nlattr *attr, u16 *proto, bool *inv)
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index efd523496be4..f24ecdaa1c1e 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -603,7 +603,7 @@ static struct nft_elem_priv *
+ nft_pipapo_get(const struct net *net, const struct nft_set *set,
+ 	       const struct nft_set_elem *elem, unsigned int flags)
  {
- 	struct nlattr *tb[NFTA_RULE_COMPAT_MAX+1];
-+	u32 l4proto;
- 	u32 flags;
- 	int err;
+-	static struct nft_pipapo_elem *e;
++	struct nft_pipapo_elem *e;
  
-@@ -218,7 +219,12 @@ static int nft_parse_compat(const struct nlattr *attr, u16 *proto, bool *inv)
- 	if (flags & NFT_RULE_COMPAT_F_INV)
- 		*inv = true;
- 
--	*proto = ntohl(nla_get_be32(tb[NFTA_RULE_COMPAT_PROTO]));
-+	l4proto = ntohl(nla_get_be32(tb[NFTA_RULE_COMPAT_PROTO]));
-+	if (l4proto > U16_MAX)
-+		return -EINVAL;
-+
-+	*proto = l4proto;
-+
- 	return 0;
- }
- 
+ 	e = pipapo_get(net, set, (const u8 *)elem->key.val.data,
+ 		       nft_genmask_cur(net));
 -- 
 2.30.2
 
