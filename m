@@ -1,84 +1,105 @@
-Received: from mail-il1-f199.google.com (mail-il1-f199.google.com [209.85.166.199])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DB1831A79
-	for <netfilter-devel@vger.kernel.org>; Fri,  9 Feb 2024 08:36:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.199
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A105D4689
+	for <netfilter-devel@vger.kernel.org>; Fri,  9 Feb 2024 12:12:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707467786; cv=none; b=C53dmJBEemukcMjRBMdobQbD67tm8K9EcFbsBo35qy2tSpcKqv1z/FoMpS28FDCqC/mOgUukwkl6fcr5GtNHt5l/d7mCOYhbAx4gxwyUq+KUUxQ7gI0uC6eVX8dQH6Qi6RXm5ID4mx6aLGXLIT/q3xGYhzmJ8aVcjAWf9rn6NvU=
+	t=1707480727; cv=none; b=kn9PXhOjBgYBPCptEeihEOxMEZxsfCzPvC2ttutt6/RUekNrXoJ6YSCOf9Wod4h7UCxaIaiYjxs5aH/oaTUnhTldh45IgYoNtRQwRO4RzAmsDRId6Gy7VDJSATofcf5YXZoKe7P2cpesa/TEulRGKgl8j+0usYa0l/TDJmT++8A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707467786; c=relaxed/simple;
-	bh=Zck6MFVSsVoeJrJI9g41GzXMVLesXH2u0cKmmnlZ1JI=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=nYNp2eRnmqDmwN6rvBYfDwste59G5b12q6R8CRx5aExwD39HTbA5jFHVp4JQHmkdHzTdFZfXckVR906x1zSV11dYZFpdvEG9n792oiFUd0r4nE4paYE4lc+DANPvhmzL/xz1GwP/pHj3GZsPD93jQBaUzvuHuECDFbmB2nCFdG0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.199
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-il1-f199.google.com with SMTP id e9e14a558f8ab-363c3eb46e3so5796355ab.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 09 Feb 2024 00:36:24 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1707467783; x=1708072583;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=24Yrgnnur9ND4ExOfD7XjN9zPiPpVt+LDVK8jBNwB24=;
-        b=oHiaUeG6ozXTNJ3DwQExvP90YNBsBJE8in/PpZLd+F+Vsv/OhfcJfxtKF1BSj6tC3t
-         a30JSo/rLNtrqZK/n2p8ZIFnwT6p2W6Bm3jaEGbbfZmIcGeHc75gUZAcRvATlqIlIheO
-         ERuTTBRAFlHKj02KAOSS5/etBPNqkYIfhhm+Rg6PxEpciubQQv+9P4riKpDb01o5Ql6K
-         O6WPqUuPXon2xSJz7nWDuxrcv9yayv55z6rL9Cq5oHzrAUFVJs23hQX+3pp7W41cmQ61
-         7+66fplkjG17E6fGDEKirDQkAGNLYlwDauNX50lOP1Z8BLIjNpt+6WTy6YBmikwKB+Zm
-         tooA==
-X-Forwarded-Encrypted: i=1; AJvYcCWjdM3tniQNUrIeiuvb7eaFwI81C0t19F2KlVVn8eq7gfB3DC46jwuqjtHyUpuQPU8lGunIfhmmKSFEmdZSHubqt9Uk3nxTi0rIImq4fStT
-X-Gm-Message-State: AOJu0Yzv1oTxWycGEvUuyAEGdRQ4t008CFUR5DtmRP1x/QVTtsr/D9kl
-	l6XQdqnxBYYE3DdYpz8Qg0u3bl5ASFOqCZ9Jjz4/vsRGYNbwgODt4wA3/3orPp2gjygoL8a198U
-	3wbLMNSTwnIp0spcI5XlAFWQ1iniBV/RHCXuVVc7UEGnFUKbUQH8V+rY=
-X-Google-Smtp-Source: AGHT+IHBJbYxhXRQMd9Rfmr15cbvFKFPUBuW/TZQdWNmRozZQaLQJqA9PD+aJwrcavFgPhXueA01XHrWSDiqo/QuAICTYy1825Nx
+	s=arc-20240116; t=1707480727; c=relaxed/simple;
+	bh=hbVYQkhlgWIJD1BvJRqU45Xk+4CpJwUNrclGNQte/GY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=rl+Vm1YpB17YAdaKPjmlt5hwbz+1KBntV2pqz2Cc9YRwUXdfe2IrDFHKj1Rw1g61L85PkrfK2GoW5OoTQYbRbqa+f3ass5FQiQqzESNw3mCMGL2H9JDoOvj6Eg2OF8pza3FQLdE+vi7ArRphPcl9k1votZgS/DLbAP18pCzajmo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=AEYewaJC; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="AEYewaJC"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1707480720;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=x9PT3Y0vMnAWZW3M66DZzZveLiboYRAcPjbWcE9zhTk=;
+	b=AEYewaJCvoK/iNAsQqyBSl/tChzj0dCrIH26UrQebm2U/yfZ9kJApgNe/u4bJg99sleM+w
+	yJ+lArqtoj7RxMyE8YBsytDdtxvwwwjqFIC4yLR/8jSipefvXaK9pyOfhrg78Q4hqpx5rU
+	1dNhuyjDMycjCxrJKEPI1jY1E9urmHc=
+Received: from mimecast-mx02.redhat.com (mx-ext.redhat.com [66.187.233.73])
+ by relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-455-2XRiCE0dN76j5yNcl7XcfA-1; Fri,
+ 09 Feb 2024 07:11:58 -0500
+X-MC-Unique: 2XRiCE0dN76j5yNcl7XcfA-1
+Received: from smtp.corp.redhat.com (int-mx09.intmail.prod.int.rdu2.redhat.com [10.11.54.9])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 969911C05129
+	for <netfilter-devel@vger.kernel.org>; Fri,  9 Feb 2024 12:11:58 +0000 (UTC)
+Received: from localhost.localdomain (unknown [10.39.192.59])
+	by smtp.corp.redhat.com (Postfix) with ESMTPS id 17F4A492BC6;
+	Fri,  9 Feb 2024 12:11:57 +0000 (UTC)
+From: Thomas Haller <thaller@redhat.com>
+To: NetFilter <netfilter-devel@vger.kernel.org>
+Cc: Thomas Haller <thaller@redhat.com>
+Subject: [PATCH 1/1] tests/shell: no longer support unprettified ".json-nft" files
+Date: Fri,  9 Feb 2024 13:10:39 +0100
+Message-ID: <20240209121147.2294486-1-thaller@redhat.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:1a07:b0:363:ca65:7d12 with SMTP id
- s7-20020a056e021a0700b00363ca657d12mr58589ild.6.1707467783730; Fri, 09 Feb
- 2024 00:36:23 -0800 (PST)
-Date: Fri, 09 Feb 2024 00:36:23 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000b700a70610eed280@google.com>
-Subject: [syzbot] Monthly netfilter report (Feb 2024)
-From: syzbot <syzbot+list54bd6dcf58b0a6cd42fd@syzkaller.appspotmail.com>
-To: fw@strlen.de, kadlec@netfilter.org, linux-kernel@vger.kernel.org, 
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pablo@netfilter.org, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.9
 
-Hello netfilter maintainers/developers,
+By now, all ".json-nft" files are prettified and will be generated in
+that form.
 
-This is a 31-day syzbot report for the netfilter subsystem.
-All related reports/information can be found at:
-https://syzkaller.appspot.com/upstream/s/netfilter
+Drop the fallback code that accepts them in the previous form.
 
-During the period, 2 new issues were detected and 1 were fixed.
-In total, 7 issues are still open and 158 have been fixed so far.
-
-Some of the still happening issues:
-
-Ref Crashes Repro Title
-<1> 47      Yes   INFO: rcu detected stall in gc_worker (3)
-                  https://syzkaller.appspot.com/bug?extid=eec403943a2a2455adaa
-<2> 38      Yes   INFO: rcu detected stall in worker_thread (9)
-                  https://syzkaller.appspot.com/bug?extid=225bfad78b079744fd5e
-<3> 29      Yes   WARNING: suspicious RCU usage in hash_netportnet6_destroy
-                  https://syzkaller.appspot.com/bug?extid=bcd44ebc3cd2db18f26c
-
+Signed-off-by: Thomas Haller <thaller@redhat.com>
 ---
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+ tests/shell/helpers/test-wrapper.sh | 19 +++----------------
+ 1 file changed, 3 insertions(+), 16 deletions(-)
 
-To disable reminders for individual bugs, reply with the following command:
-#syz set <Ref> no-reminders
+diff --git a/tests/shell/helpers/test-wrapper.sh b/tests/shell/helpers/test-wrapper.sh
+index f1f33991b454..c016e0ce1d39 100755
+--- a/tests/shell/helpers/test-wrapper.sh
++++ b/tests/shell/helpers/test-wrapper.sh
+@@ -191,12 +191,7 @@ if [ "$rc_test" -eq 0 -a '(' "$DUMPGEN" = all -o "$DUMPGEN" = y ')' ] ; then
+ 		cat "$NFT_TEST_TESTTMPDIR/ruleset-after" > "$DUMPFILE"
+ 	fi
+ 	if [ "$NFT_TEST_HAVE_json" != n -a "$gen_jdumpfile" = y ] ; then
+-		if cmp "$NFT_TEST_TESTTMPDIR/ruleset-after.json" "$JDUMPFILE" &>/dev/null ; then
+-			# The .json-nft file is still the non-pretty variant. Keep it.
+-			:
+-		else
+-			cat "$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty" > "$JDUMPFILE"
+-		fi
++		cat "$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty" > "$JDUMPFILE"
+ 	fi
+ fi
+ 
+@@ -211,16 +206,8 @@ if [ "$rc_test" -ne 77 -a "$dump_written" != y ] ; then
+ 		fi
+ 	fi
+ 	if [ "$NFT_TEST_HAVE_json" != n -a -f "$JDUMPFILE" ] ; then
+-		JDUMPFILE2="$NFT_TEST_TESTTMPDIR/json-nft-pretty"
+-		json_pretty "$JDUMPFILE" > "$JDUMPFILE2"
+-		if cmp "$JDUMPFILE" "$JDUMPFILE2" &>/dev/null ; then
+-			# The .json-nft file is already prettified. We can use
+-			# it directly.
+-			rm -rf "$JDUMPFILE2"
+-			JDUMPFILE2="$JDUMPFILE"
+-		fi
+-		if ! $DIFF -u "$JDUMPFILE2" "$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty" &> "$NFT_TEST_TESTTMPDIR/ruleset-diff.json" ; then
+-			show_file "$NFT_TEST_TESTTMPDIR/ruleset-diff.json" "Failed \`$DIFF -u \"$JDUMPFILE2\" \"$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty\"\`" >> "$NFT_TEST_TESTTMPDIR/rc-failed-dump"
++		if ! $DIFF -u "$JDUMPFILE" "$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty" &> "$NFT_TEST_TESTTMPDIR/ruleset-diff.json" ; then
++			show_file "$NFT_TEST_TESTTMPDIR/ruleset-diff.json" "Failed \`$DIFF -u \"$JDUMPFILE\" \"$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty\"\`" >> "$NFT_TEST_TESTTMPDIR/rc-failed-dump"
+ 			rc_dump=1
+ 		else
+ 			rm -f "$NFT_TEST_TESTTMPDIR/ruleset-diff.json"
+-- 
+2.43.0
 
-To change bug's subsystems, reply with:
-#syz set <Ref> subsystems: new-subsystem
-
-You may send multiple commands in a single email message.
