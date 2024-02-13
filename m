@@ -1,271 +1,106 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BCD65A7B7
-	for <netfilter-devel@vger.kernel.org>; Tue, 13 Feb 2024 14:42:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FA055EE87
+	for <netfilter-devel@vger.kernel.org>; Tue, 13 Feb 2024 16:08:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707835358; cv=none; b=ABxYjaH+QTvTkyIj5PXzhaU6HWEP7kPRKOHA1cRStldGhhDTnww7VGzAYwnxGFGu4gC1hksZejjeDnaWtcjEfpDYluUiZu61Tni3r9QlLUFDJoot8Eydxz+8xwjHDVpdST6yuN/UBLS/bSGQ8qDk9OID/v5Ag7qtCIb24e8QagI=
+	t=1707840520; cv=none; b=m9QDV4ywUxxOiwRRCgu8E/bVAyYO9jpJHCHu6jS/18znuXH1x6xnpuJVP81+dUZ++z7CsfCU50cMpQRfkxqSuEHuynGfofgheyBASORPgCWXqae8XoXjX8/9T/V/4gD+r80hYe+ORauErVsplKiX0gMaf98HMBcNiBfEgdlXNtI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707835358; c=relaxed/simple;
-	bh=6HZU1Y+ZEmZmUL+E7TSa/AR4OfRD09hi7pqeXrIvAkA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=f8xjqOIbstl1eJdPm+luDA0WyrD/I+ghJayiE75pymws/JJzsKrRMz1VyJC0f3Q185gIcM4QqMp4clJoh91GgJqXFXts4/PdWa4c1Y+2fMM7re3uRi0Dwzw2lqk+wTo07X2u29XSOqeL15ONaoQmoRxWC9iK0WwbwwkIDxBwKFw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1rZtzX-0000Ll-AE; Tue, 13 Feb 2024 15:42:35 +0100
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: sbrivio@redhat.com,
-	Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 nf-next 4/4] netfilter: nft_set_pipapo: speed up bulk element insertions
-Date: Tue, 13 Feb 2024 16:23:40 +0100
-Message-ID: <20240213152345.10590-5-fw@strlen.de>
-X-Mailer: git-send-email 2.43.0
+	s=arc-20240116; t=1707840520; c=relaxed/simple;
+	bh=a4XHzphfiia0OmZjZ8M1cSewAFBFBq+VkGifxgjHl9o=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=JWxzHoX30Iutqy2XAUxsgEAf4axrl1sD1+2+6+DCfuT98fzHlqB3qIt9q3kuB+fABE9DfDkvodEMfQGlICLtAO7DheG2Zw/XoXf5daLcipHhFa35Ga4uL7aBmGyXWlgci9de+447rDQrh6OhfbHMnr5i4HhB+zxd5DbaMIODJcQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=GnpeDI8E; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="GnpeDI8E"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1707840517;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=klBzpgXNOi4B1h8h5wdLTFKd+DvOvQKvLHMC8RLmEk8=;
+	b=GnpeDI8EK8qYmPU/L4kmjqukjoEFXxDVFi+403RsKDZkJCOQK+ZE9nyWeuAdIppY9srTVk
+	gjlJqa6ooMCKLY+Ck7q28VeDIAK3jOCC7dtAg2zRKdLJ1/1HaFm9kHcVhO6yGh82IYCqOm
+	gi/lBxWDb35NtIdxBkYPtRU2SqZg3Zs=
+Received: from mail-ed1-f70.google.com (mail-ed1-f70.google.com
+ [209.85.208.70]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-572-w3CNGVQAMBKk9TF_G8h-ow-1; Tue, 13 Feb 2024 11:08:35 -0500
+X-MC-Unique: w3CNGVQAMBKk9TF_G8h-ow-1
+Received: by mail-ed1-f70.google.com with SMTP id 4fb4d7f45d1cf-55ffc81c768so2441220a12.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 Feb 2024 08:08:35 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1707840514; x=1708445314;
+        h=content-transfer-encoding:mime-version:organization:references
+         :in-reply-to:message-id:subject:cc:to:from:date:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=klBzpgXNOi4B1h8h5wdLTFKd+DvOvQKvLHMC8RLmEk8=;
+        b=trQasCMa4JjDC9LeZH7me8kYKLWFn5IBL7RDb3ZdeB+A3OA+imVQ0QL/TF1YywsP2w
+         Yv/Ybfp5P0Uei43vkVbdqvbC68NZPUNDXXKdOeFho0QT28tNyis3oeMk2E8zpcdTcNye
+         fjWbhmJ6hw6Cmddo3Be3NM2YUQ1Fna6gyXZMhz41Nvu/gVZZZAegRzSnTBDztntmOqMZ
+         fhKC5OkO/+C5jkPCR+fVbtSajYvp5rTxpyKQdIWgocm3AiajA4x0I6sLPvgsjP4S0igp
+         o6ARa7pTh3v6igo06XCzv8T43Qa/F/StHZVAOl0qs8AqDkJ4DGawDAt8MVolAvfPvTYv
+         uIAQ==
+X-Gm-Message-State: AOJu0YycKg+j9PXGPnAyHBJz8yI+dPO6zJN5E/ZbTFd/LjhezO8SGn8A
+	8I4eiftSm8a5zsPCjwmYYJux5rFrvfYSlEDDeLf18+BhFGB5qPAgE3cfAD2FinCr+ZFHje2uulm
+	jnVK6kNv9AdSHoRzpWCqBHP0YgODF4K9npRk7tA8wcZyMRKdaB94wUrWT9RJRvsaVkg==
+X-Received: by 2002:aa7:c49a:0:b0:562:149c:d2b3 with SMTP id m26-20020aa7c49a000000b00562149cd2b3mr71019edq.34.1707840514478;
+        Tue, 13 Feb 2024 08:08:34 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IEeItkUTKA5EJeB8zPqfmEhPu1BYKkpBAs+SxvLfqlYtrhxsKaCX1oJrLQGLa3+gQLvDdoxAg==
+X-Received: by 2002:aa7:c49a:0:b0:562:149c:d2b3 with SMTP id m26-20020aa7c49a000000b00562149cd2b3mr71011edq.34.1707840514234;
+        Tue, 13 Feb 2024 08:08:34 -0800 (PST)
+Received: from maya.cloud.tilaa.com (maya.cloud.tilaa.com. [164.138.29.33])
+        by smtp.gmail.com with ESMTPSA id t22-20020a50d716000000b0055fe55441cbsm4043655edi.40.2024.02.13.08.08.33
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 13 Feb 2024 08:08:33 -0800 (PST)
+Date: Tue, 13 Feb 2024 17:07:59 +0100
+From: Stefano Brivio <sbrivio@redhat.com>
+To: Florian Westphal <fw@strlen.de>
+Cc: <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH v2 nf-next 0/4] netfilter: nft_set_pipapo: speed up bulk
+ element insertions
+Message-ID: <20240213170759.6c3a9f60@elisabeth>
 In-Reply-To: <20240213152345.10590-1-fw@strlen.de>
 References: <20240213152345.10590-1-fw@strlen.de>
+Organization: Red Hat
+X-Mailer: Claws Mail 4.1.1 (GTK 3.24.36; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Insertions into the set are slow when we try to add many elements.
-For 800k elements I get:
+On Tue, 13 Feb 2024 16:23:36 +0100
+Florian Westphal <fw@strlen.de> wrote:
 
-time nft -f pipapo_800k
-real    19m34.849s
-user    0m2.390s
-sys     19m12.828s
+> v2: addressed comments from Stefano, see patches for details.
+> 
+> Bulk insertions into pipapo set type take a very long time, each new
+> element allocates space for elem+1 elements, then copies all existing
+> elements and appends the new element.
+> 
+> Alloc extra slack space to reduce the realloc overhead to speed this up.
+> 
+> While at it, shrink a few data structures, in may cases a much smaller
+> type can be used.
+> 
+> Florian Westphal (4):
+>   netfilter: nft_set_pipapo: constify lookup fn args where possible
+>   netfilter: nft_set_pipapo: do not rely on ZERO_SIZE_PTR
+>   netfilter: nft_set_pipapo: shrink data structures
+>   netfilter: nft_set_pipapo: speed up bulk element insertions
 
-perf stats:
- --95.39%--nft_pipapo_insert
-     |--76.60%--pipapo_insert
-     |           --76.37%--pipapo_resize
-     |                     |--72.87%--memcpy_orig
-     |                     |--1.88%--__free_pages_ok
-     |                     |          --0.89%--free_tail_page_prepare
-     |                      --1.38%--kvmalloc_node
-     ..
-     --18.56%--pipapo_get.isra.0
-     |--13.91%--__bitmap_and
-     |--3.01%--pipapo_refill
-     |--0.81%--__kmalloc
-     |           --0.74%--__kmalloc_large_node
-     |                      --0.66%--__alloc_pages
-     ..
-     --0.52%--memset_orig
+For the series,
 
-So lots of time is spent in copying exising elements to make space for
-the next one.
+Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
 
-Instead of allocating to the exact size of the new rule count, allocate
-extra slack to reduce alloc/copy/free overhead.
-
-After:
-time nft -f pipapo_800k
-real    1m54.110s
-user    0m2.515s
-sys     1m51.377s
-
- --80.46%--nft_pipapo_insert
-     |--73.45%--pipapo_get.isra.0
-     |--57.63%--__bitmap_and
-     |          |--8.52%--pipapo_refill
-     |--3.45%--__kmalloc
-     |           --3.05%--__kmalloc_large_node
-     |                      --2.58%--__alloc_pages
-     --2.59%--memset_orig
-     |--6.51%--pipapo_insert
-            --5.96%--pipapo_resize
-                     |--3.63%--memcpy_orig
-                     --2.13%--kvmalloc_node
-
-The new @rules_alloc fills a hole, so struct size doesn't go up.
-Also make it so rule removal doesn't shrink unless the free/extra space
-exceeds two pages.  This should be safe as well:
-
-When a rule gets removed, the attempt to lower the allocated size is
-already allowed to fail.
-
-Exception: do exact allocations as long as set is very small (less
-than one page needed).
-
-v2: address comments from Stefano:
-    kdoc comment
-    formatting changes
-    remove redundant assignment
-    switch back to PAGE_SIZE
-
-Link: https://lore.kernel.org/netfilter-devel/20240213141753.17ef27a6@elisabeth/
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nft_set_pipapo.c | 83 +++++++++++++++++++++++++++-------
- net/netfilter/nft_set_pipapo.h |  2 +
- 2 files changed, 69 insertions(+), 16 deletions(-)
-
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index aa438b656484..bb7cb9bda579 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -621,6 +621,65 @@ nft_pipapo_get(const struct net *net, const struct nft_set *set,
- 	return &e->priv;
- }
- 
-+/**
-+ * pipapo_realloc_mt() - Reallocate mapping table if needed upon resize
-+ * @f:		Field containing mapping table
-+ * @old_rules:	Amount of existing mapped rules
-+ * @rules:	Amount of new rules to map
-+ *
-+ * Return: 0 on success, negative error code on failure.
-+ */
-+static int pipapo_realloc_mt(struct nft_pipapo_field *f,
-+			     unsigned int old_rules, unsigned int rules)
-+{
-+	union nft_pipapo_map_bucket *new_mt = NULL, *old_mt = f->mt;
-+	const unsigned int extra = PAGE_SIZE / sizeof(*new_mt);
-+	unsigned int rules_alloc = rules;
-+
-+	might_sleep();
-+
-+	if (unlikely(rules == 0))
-+		goto out_free;
-+
-+	/* growing and enough space left, no action needed */
-+	if (rules > old_rules && f->rules_alloc > rules)
-+		return 0;
-+
-+	/* downsize and extra slack has not grown too large */
-+	if (rules < old_rules) {
-+		unsigned int remove = f->rules_alloc - rules;
-+
-+		if (remove < (2u * extra))
-+			return 0;
-+	}
-+
-+	/* If set needs more than one page of memory for rules then
-+	 * allocate another extra page to avoid frequent reallocation.
-+	 */
-+	if (rules > extra &&
-+	    check_add_overflow(rules, extra, &rules_alloc))
-+		return -EOVERFLOW;
-+
-+	new_mt = kvmalloc_array(rules_alloc, sizeof(*new_mt), GFP_KERNEL);
-+	if (!new_mt)
-+		return -ENOMEM;
-+
-+	if (old_mt)
-+		memcpy(new_mt, old_mt, min(old_rules, rules) * sizeof(*new_mt));
-+
-+	if (rules > old_rules) {
-+		memset(new_mt + old_rules, 0,
-+		       (rules - old_rules) * sizeof(*new_mt));
-+	}
-+out_free:
-+	f->rules_alloc = rules_alloc;
-+	f->mt = new_mt;
-+
-+	kvfree(old_mt);
-+
-+	return 0;
-+}
-+
- /**
-  * pipapo_resize() - Resize lookup or mapping table, or both
-  * @f:		Field containing lookup and mapping tables
-@@ -637,9 +696,8 @@ static int pipapo_resize(struct nft_pipapo_field *f,
- 			 unsigned int old_rules, unsigned int rules)
- {
- 	long *new_lt = NULL, *new_p, *old_lt = f->lt, *old_p;
--	union nft_pipapo_map_bucket *new_mt, *old_mt = f->mt;
- 	unsigned int new_bucket_size, copy;
--	int group, bucket;
-+	int group, bucket, err;
- 
- 	if (rules >= NFT_PIPAPO_RULE0_MAX)
- 		return -ENOSPC;
-@@ -682,16 +740,10 @@ static int pipapo_resize(struct nft_pipapo_field *f,
- 	}
- 
- mt:
--	new_mt = kvmalloc(rules * sizeof(*new_mt), GFP_KERNEL);
--	if (!new_mt) {
-+	err = pipapo_realloc_mt(f, old_rules, rules);
-+	if (err) {
- 		kvfree(new_lt);
--		return -ENOMEM;
--	}
--
--	memcpy(new_mt, f->mt, min(old_rules, rules) * sizeof(*new_mt));
--	if (rules > old_rules) {
--		memset(new_mt + old_rules, 0,
--		       (rules - old_rules) * sizeof(*new_mt));
-+		return err;
- 	}
- 
- 	if (new_lt) {
-@@ -700,9 +752,6 @@ static int pipapo_resize(struct nft_pipapo_field *f,
- 		kvfree(old_lt);
- 	}
- 
--	f->mt = new_mt;
--	kvfree(old_mt);
--
- 	return 0;
- }
- 
-@@ -1382,14 +1431,15 @@ static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old)
- 		       src->groups * NFT_PIPAPO_BUCKETS(src->bb));
- 
- 		if (src->rules > 0) {
--			dst->mt = kvmalloc_array(src->rules, sizeof(*src->mt),
--						 GFP_KERNEL);
-+			dst->mt = kvmalloc_array(src->rules_alloc,
-+						 sizeof(*src->mt), GFP_KERNEL);
- 			if (!dst->mt)
- 				goto out_mt;
- 
- 			memcpy(dst->mt, src->mt, src->rules * sizeof(*src->mt));
- 		} else {
- 			dst->mt = NULL;
-+			dst->rules_alloc = 0;
- 		}
- 
- 		src++;
-@@ -2205,6 +2255,7 @@ static int nft_pipapo_init(const struct nft_set *set,
- 
- 		f->bsize = 0;
- 		f->rules = 0;
-+		f->rules_alloc = 0;
- 		f->lt = NULL;
- 		f->mt = NULL;
- 	}
-diff --git a/net/netfilter/nft_set_pipapo.h b/net/netfilter/nft_set_pipapo.h
-index 8d9486ae0c01..bbcac2b38167 100644
---- a/net/netfilter/nft_set_pipapo.h
-+++ b/net/netfilter/nft_set_pipapo.h
-@@ -106,6 +106,7 @@ union nft_pipapo_map_bucket {
-  * struct nft_pipapo_field - Lookup, mapping tables and related data for a field
-  * @rules:	Number of inserted rules
-  * @bsize:	Size of each bucket in lookup table, in longs
-+ * @rules_alloc Number of allocated rules, always >= rules
-  * @groups:	Amount of bit groups
-  * @bb:		Number of bits grouped together in lookup table buckets
-  * @lt:		Lookup table: 'groups' rows of buckets
-@@ -114,6 +115,7 @@ union nft_pipapo_map_bucket {
- struct nft_pipapo_field {
- 	unsigned int rules;
- 	unsigned int bsize;
-+	unsigned int rules_alloc;
- 	u8 groups;
- 	u8 bb;
- 	unsigned long *lt;
 -- 
-2.43.0
+Stefano
 
