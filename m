@@ -1,48 +1,32 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17F322572
-	for <netfilter-devel@vger.kernel.org>; Tue, 13 Feb 2024 11:04:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A5DA2C696
+	for <netfilter-devel@vger.kernel.org>; Tue, 13 Feb 2024 11:09:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707822276; cv=none; b=fIT8KBO9aVK2RbwMKGn/QnReCs+kTn0Rzw5R2YKkzVw5v8spHXSRbTlXcgbERwLeMjH0AqkAuhKL0qCzltwpjUbpyQt7QqiahA2rcF0fsioN8qO2cQjR1A6r2/3tc/ailgHe+Jq+pk26rlR9PHMt2j5jRpY9lhFp5nQgA9VPHYY=
+	t=1707822572; cv=none; b=Kb9nJvdX04lpkQt7lLaawmEczJLSP5IJVV9Qyx6x7CGDqLkY8ifaFSmRgI8+wowfueyt7ibJMAMU7bgBCQVZo37VhJtZbt6nZnAqEEm82FLwhe0V57v4UwN9WtH8vadK/yUigjMqgrrW2pvicXODrt+7PKP596CCtX5TpKrfWvQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707822276; c=relaxed/simple;
-	bh=lXS1a0iHiU8iqVh54dpxaLIAgpIudeJqoy8578ktYUQ=;
+	s=arc-20240116; t=1707822572; c=relaxed/simple;
+	bh=HDispnH19owpY3w38E0cR5pQ3cvomfFfYSEu0s9ASo4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Ugy4yp6eJbj0WAcmvuZu9uBFWYNrqyoDq7eMoLvj+QPNVRKbgF2Lg/Di9dGVPzvu7LNtW03V4+0+/M8UvTaW4IrihfE+VKpUvRop5d/c216jwUcAnhrNWfqU0ytsQ+tP8uKfp/Q3ZudZLmC8RKYLbzCQSi/Te66DcRLt4JgH5GQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=FY58jEoY; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="FY58jEoY"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=zK45diUsbLMQEsk2q5HSfQt45/snxgZ7YTYJm4Lg39Q=; b=FY58jEoYgDcSGIMNr/5P5DRBlT
-	FZuBsZePdZNk0ndQNKU9iL04KMt4fVBgLrxSC6pyDGATTAD3ECk+HUJuqJg3YzW9uui04KLCcV/yV
-	aeWZhVTGRuEOJUhTJhf2HkjTAU4sgeEjtPWwV2w0JV/OcJ4eN6SaUtqALJthDZZO68FALAzIwihnF
-	kL2iuEmb3WtgjzhZYcEPP4xCPQWggkr6ymX71AnmiAgXiNhXq5q/cxT70n6eiMtbR68xNQDqdWDqX
-	jZAzWK2MN91HZ7eAoz+UhbI8CXvqm4NPWXaVskqxWbTijsudTrbh7cJVO0kTpeLh85T/Eo1m3iZZe
-	/4uL4UaQ==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1rZqaP-00000000423-2qcq;
-	Tue, 13 Feb 2024 12:04:25 +0100
-Date: Tue, 13 Feb 2024 12:04:25 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, anton.khazan@gmail.com
-Subject: Re: [nft PATCH] cache: Always set NFT_CACHE_TERSE for list cmd with
- --terse
-Message-ID: <ZctMudRsOO96pNGg@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, anton.khazan@gmail.com
-References: <20240208130859.17970-1-phil@nwl.cc>
+	 Content-Type:Content-Disposition:In-Reply-To; b=G/xYuzK2ZoEil5l9MbcwQGl+Mig0T6m8/jBKhQCkFFK7baJfF9qajEpnedQvw2/JgnYpkHKyIgxATKXmSE29IJs9jziiMub6o7V91NgAgJStUe2vshjT9aH1C2io0P4bhY//+HoOzJPFsQCAuAvGgAy/58va+VW15CWM4QBRO20=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1rZqfB-0007FG-T8; Tue, 13 Feb 2024 12:09:21 +0100
+Date: Tue, 13 Feb 2024 12:09:21 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Stefano Brivio <sbrivio@redhat.com>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next 2/4] netfilter: nft_set_pipapo: do not rely on
+ ZERO_SIZE_PTR
+Message-ID: <20240213110921.GB5775@breakpoint.cc>
+References: <20240212100202.10116-1-fw@strlen.de>
+ <20240212100202.10116-3-fw@strlen.de>
+ <20240213082007.3f4e689d@elisabeth>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -51,19 +35,34 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240208130859.17970-1-phil@nwl.cc>
+In-Reply-To: <20240213082007.3f4e689d@elisabeth>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-On Thu, Feb 08, 2024 at 02:08:59PM +0100, Phil Sutter wrote:
-> This fixes at least 'nft -t list table ...' and 'nft -t list set ...'.
+Stefano Brivio <sbrivio@redhat.com> wrote:
+> > -	fill_map = kcalloc(m->bsize_max, sizeof(*res_map), GFP_ATOMIC);
+> > +	fill_map = kcalloc(m->bsize_max, sizeof(*res_map), GFP_KERNEL);
 > 
-> Note how --terse handling for 'list sets/maps' remains in place since
-> setting NFT_CACHE_TERSE does not fully undo NFT_CACHE_SETELEM: setting
-> both enables fetching of anonymous sets which is pointless for that
-> command.
-> 
-> Reported-by: anton.khazan@gmail.com
-> Link: https://bugzilla.netfilter.org/show_bug.cgi?id=1735
-> Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> I haven't re-checked the whole logic, but can't nft_pipapo_deactivate()
+> (hence pipapo_deactivate() and pipapo_get()) be called from the data
+> path for some reason?
 
-Patch applied.
+Not that I know.  Deactivate turns off an element in the next generation
+and that concept is tied to the transaction, and that needs the nft
+mutex.
+
+> If I recall correctly that's why I used GFP_ATOMIC here, but I'm not
+> sure anymore and I guess you know better.
+
+I'll have a look at original version to see if there was a reason
+for this, if so I'll update commit message or move this to its own
+change.
+
+> > +		if (src->rules > 0) {
+> > +			dst->mt = kvmalloc_array(src->rules, sizeof(*src->mt), GFP_KERNEL);
+> 
+> Nit: equally readable within 80 columns:
+> 
+> 			dst->mt = kvmalloc_array(src->rules, sizeof(*src->mt),
+> 						 GFP_KERNEL);
+
+OK. I'll reformat.
