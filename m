@@ -1,205 +1,243 @@
-Received: from smtp2-kfki.kfki.hu (smtp2-kfki.kfki.hu [148.6.0.51])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 309A879C0;
-	Wed, 14 Feb 2024 08:58:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1579E12B6A
+	for <netfilter-devel@vger.kernel.org>; Wed, 14 Feb 2024 09:24:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707901105; cv=none; b=aAT8pSzdl767TYnzFBhMcd1c0FKrfrCCx77iF84EjIWKAzYeSq9Iikk1qswrrZNDX7QwDwiMbrV6NK/XyoxqDvwClaO28bqG8t/uT4pBOeHFCbTm8C0txigVkC17vb2bU5JzT7Fpd+0HLGIV30eMlla3xgxPnKbVu63V2pTlKWo=
+	t=1707902667; cv=none; b=jzKHSTR8tbnXTBbZOgRCxz9JnGRkLHERwb4/ygzVeWy7B/9UGGMCUO26lKNMI49Jrf51plR2AORtfgFOYMZHy7K5BwZQddzOVjkW3WKaWvvYR2aA9vYOBx2avqhI7EDjOc2h4wknmXOiMy4NQsaQQ2/AqHipE/qQqYenvAj8w40=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707901105; c=relaxed/simple;
-	bh=uaqZUg8mZx1t6VSWIkjz1N51L+Li3egJ+H+n1pJ1lmw=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=OnmXc9M8z42fvsBtrSyy9b9QCsK/KmUFdxpfXKMysUHvhco9EC+UygE9Vnl8Tu6XfHo4opL7v1IKNzd9ygLihXyUuOA+nqd9gOGVpCb+s/wWL9azLbe+N81Ur788o1ClBIgE+Sbpe6F+zt0J6yA/xZVN0o/K24rRWNx1yjD8DCQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=148.6.0.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Received: from localhost (localhost [127.0.0.1])
-	by smtp2.kfki.hu (Postfix) with ESMTP id 4F61CCC02CF;
-	Wed, 14 Feb 2024 09:58:12 +0100 (CET)
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-	by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-	with ESMTP; Wed, 14 Feb 2024 09:58:10 +0100 (CET)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-	by smtp2.kfki.hu (Postfix) with ESMTP id C6C2FCC02CD;
-	Wed, 14 Feb 2024 09:58:09 +0100 (CET)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-	id 78020343167; Wed, 14 Feb 2024 09:58:09 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-	by blackhole.kfki.hu (Postfix) with ESMTP id 76565343166;
-	Wed, 14 Feb 2024 09:58:09 +0100 (CET)
-Date: Wed, 14 Feb 2024 09:58:09 +0100 (CET)
-From: Jozsef Kadlecsik <kadlec@netfilter.org>
-To: coreteam@netfilter.org
-cc: David Miller <davem@davemloft.net>, edumazet@google.com, 
-    Florian Westphal <fw@strlen.de>, kuba@kernel.org, 
-    linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
-    netfilter-devel@vger.kernel.org, pabeni@redhat.com, 
-    Pablo Neira Ayuso <pablo@netfilter.org>, syzkaller-bugs@googlegroups.com
-Subject: Re: [syzbot] [netfilter?] WARNING: ODEBUG bug in ip_set_free
-In-Reply-To: <000000000000d42dae0611477922@google.com>
-Message-ID: <b1d20932-19c1-6cc7-2203-eff38953ad5a@netfilter.org>
-References: <000000000000d42dae0611477922@google.com>
+	s=arc-20240116; t=1707902667; c=relaxed/simple;
+	bh=Jljw/aGND/j7iX+4QzPhpziay2jM/T2aFzJ++AkREHo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=NEM682pt8e5oqORIHQu0lCex32GUMiaqvqW7YSiX1oucO6F6/NPVS7EvaXVR99gBqd+slP2dzpawcsGqEtzotwmTqMGWVTvjAEX5glIg8LhkOcsnJmQLwoVMcfSoVoxYocxuhPNSVhiu4uHkSibE8TI5sg4Xay2vrjRRFWStTmM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1raBV8-00077Y-OD; Wed, 14 Feb 2024 10:24:22 +0100
+From: Florian Westphal <fw@strlen.de>
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>,
+	Michal Kubecek <mkubecek@suse.cz>
+Subject: [PATCH nf-next] netfilter: nft_byteorder: remove multi-register support
+Date: Wed, 14 Feb 2024 10:23:56 +0100
+Message-ID: <20240214092402.25583-1-fw@strlen.de>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 
-Hi,
+64bit byteorder conversion is broken when several registers need to be
+converted because the source register array advances in steps for 4 bytes
+instead of 8:
 
-It seems this is an old bug uncovered now: the bitmap type of sets still
-use del_timer_sync() to cancel the garbage collecors. However
-del_timer_sync() does not prevent rearming, which is triggered by syzbot.
-The proper way to solve the issue is a one-liner:
+  for (i = ...
+      src64 = nft_reg_load64(&src[i]);
+                             ~~~~~ u32 *src
+      nft_reg_store64(&dst64[i],
 
-diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
-index cb48a2b9cb9f..60f5e29ac8fd 100644
---- a/net/netfilter/ipset/ip_set_bitmap_gen.h
-+++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
-@@ -294,7 +294,7 @@ mtype_cancel_gc(struct ip_set *set)
-        struct mtype *map = set->data;
+Remove the multi-register support, it has other issues as well:
 
-        if (SET_WITH_TIMEOUT(set))
--               del_timer_sync(&map->gc);
-+               timer_shutdown_sync(&map->gc);
+Pablo points out that commit
+caf3ef7468f7 ("netfilter: nf_tables: prevent OOB access in nft_byteorder_eval")
+alters semantics: before the loop operated on registers, i.e.
+ for ( ... )
+   dst32[i] = htons((u16)src32[i])
+
+ .. but after the patch it will operate on bytes, which makes this
+ useless to convert e.g. concatenations, which store each compound
+ in its own register.
+
+Multi-convert of u32 has one theoretical application:
+
+ct mark . meta mark . tcp dport @intervalset
+
+Because ct mark and meta mark are host byte order, use with
+intervals has to convert the byteorder for ct/meta mark value
+to network byte order (bigendian).
+
+nftables emits this:
+ [ meta load mark => reg 1 ]
+ [ byteorder reg 1 = hton(reg 1, 4, 4) ]
+ [ ct load mark => reg 9 ]
+ [ byteorder reg 9 = hton(reg 9, 4, 4) ]
+ ...
+
+I.e. two separate calls.  Theoretically it could be changed to do:
+ [ meta load mark => reg 1 ]
+ [ ct load mark => reg 9 ]
+ [ byteorder reg 1 = htonl(reg 1, 4, 8) ]
+ ...
+
+But then all it would take to change the set to
+meta mark . tcp dport . ct mark
+
+... and we'd be back to two "byteorder" calls. IOW, support to
+convert a range of registers is both dysfunctional and dubious.
+
+Simplify this: remove the feature.
+
+Fixes: c301f0981fdd ("netfilter: nf_tables: fix pointer math issue in nft_byteorder_eval()")
+Reported-by: Michal Kubecek <mkubecek@suse.cz>
+Link: https://lore.kernel.org/netfilter-devel/20240206104336.ctigqpkunom2ufmn@lion.mk-sys.cz/
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nft_byteorder.c | 65 +++++++++++++++--------------------
+ 1 file changed, 27 insertions(+), 38 deletions(-)
+
+diff --git a/net/netfilter/nft_byteorder.c b/net/netfilter/nft_byteorder.c
+index f6e791a68101..c87dde78806f 100644
+--- a/net/netfilter/nft_byteorder.c
++++ b/net/netfilter/nft_byteorder.c
+@@ -19,7 +19,6 @@ struct nft_byteorder {
+ 	u8			sreg;
+ 	u8			dreg;
+ 	enum nft_byteorder_ops	op:8;
+-	u8			len;
+ 	u8			size;
+ };
+ 
+@@ -28,33 +27,23 @@ void nft_byteorder_eval(const struct nft_expr *expr,
+ 			const struct nft_pktinfo *pkt)
+ {
+ 	const struct nft_byteorder *priv = nft_expr_priv(expr);
+-	u32 *src = &regs->data[priv->sreg];
++	const u32 *src = &regs->data[priv->sreg];
+ 	u32 *dst = &regs->data[priv->dreg];
+-	u16 *s16, *d16;
+-	unsigned int i;
+-
+-	s16 = (void *)src;
+-	d16 = (void *)dst;
+ 
+ 	switch (priv->size) {
+ 	case 8: {
+-		u64 *dst64 = (void *)dst;
+-		u64 src64;
++		u64 tmp64, *dst64 = (void *)dst;
+ 
+ 		switch (priv->op) {
+ 		case NFT_BYTEORDER_NTOH:
+-			for (i = 0; i < priv->len / 8; i++) {
+-				src64 = nft_reg_load64(&src[i]);
+-				nft_reg_store64(&dst64[i],
+-						be64_to_cpu((__force __be64)src64));
+-			}
++			tmp64 = nft_reg_load64(src);
++
++			nft_reg_store64(dst64, be64_to_cpu((__force __be64)tmp64));
+ 			break;
+ 		case NFT_BYTEORDER_HTON:
+-			for (i = 0; i < priv->len / 8; i++) {
+-				src64 = (__force __u64)
+-					cpu_to_be64(nft_reg_load64(&src[i]));
+-				nft_reg_store64(&dst64[i], src64);
+-			}
++			tmp64 = (__force __u64)cpu_to_be64(nft_reg_load64(src));
++
++			nft_reg_store64(dst64, tmp64);
+ 			break;
+ 		}
+ 		break;
+@@ -62,24 +51,20 @@ void nft_byteorder_eval(const struct nft_expr *expr,
+ 	case 4:
+ 		switch (priv->op) {
+ 		case NFT_BYTEORDER_NTOH:
+-			for (i = 0; i < priv->len / 4; i++)
+-				dst[i] = ntohl((__force __be32)src[i]);
++			*dst = ntohl((__force __be32)*src);
+ 			break;
+ 		case NFT_BYTEORDER_HTON:
+-			for (i = 0; i < priv->len / 4; i++)
+-				dst[i] = (__force __u32)htonl(src[i]);
++			*dst = (__force __u32)htonl(*src);
+ 			break;
+ 		}
+ 		break;
+ 	case 2:
+ 		switch (priv->op) {
+ 		case NFT_BYTEORDER_NTOH:
+-			for (i = 0; i < priv->len / 2; i++)
+-				d16[i] = ntohs((__force __be16)s16[i]);
++			nft_reg_store16(dst, ntohs(nft_reg_load_be16(src)));
+ 			break;
+ 		case NFT_BYTEORDER_HTON:
+-			for (i = 0; i < priv->len / 2; i++)
+-				d16[i] = (__force __u16)htons(s16[i]);
++			nft_reg_store_be16(dst, htons(nft_reg_load16(src)));
+ 			break;
+ 		}
+ 		break;
+@@ -122,9 +107,11 @@ static int nft_byteorder_init(const struct nft_ctx *ctx,
+ 	if (err < 0)
+ 		return err;
+ 
+-	priv->size = size;
++	err = nft_parse_u32_check(tb[NFTA_BYTEORDER_LEN], U8_MAX, &len);
++	if (err < 0)
++		return err;
+ 
+-	switch (priv->size) {
++	switch (size) {
+ 	case 2:
+ 	case 4:
+ 	case 8:
+@@ -133,20 +120,20 @@ static int nft_byteorder_init(const struct nft_ctx *ctx,
+ 		return -EINVAL;
+ 	}
+ 
+-	err = nft_parse_u32_check(tb[NFTA_BYTEORDER_LEN], U8_MAX, &len);
+-	if (err < 0)
+-		return err;
++	/* no longer support multi-reg conversions */
++	if (len != size)
++		return -EINVAL;
+ 
+-	priv->len = len;
++	priv->size = size;
+ 
+ 	err = nft_parse_register_load(tb[NFTA_BYTEORDER_SREG], &priv->sreg,
+-				      priv->len);
++				      len);
+ 	if (err < 0)
+ 		return err;
+ 
+ 	return nft_parse_register_store(ctx, tb[NFTA_BYTEORDER_DREG],
+ 					&priv->dreg, NULL, NFT_DATA_VALUE,
+-					priv->len);
++					len);
  }
-
- static const struct ip_set_type_variant mtype = {
-
-(There are no other set types in ipset where del_timer_sync() is used.)
-
-I'll need time for testing then if it fixes the bug, then I'll submit the 
-patch.
-
-Best regards,
-Jozsef
-
-On Tue, 13 Feb 2024, syzbot wrote:
-
-> Hello,
-> 
-> syzbot found the following issue on:
-> 
-> HEAD commit:    f735966ee23c Merge branches 'for-next/reorg-va-space' and ..
-> git tree:       git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git for-kernelci
-> console output: https://syzkaller.appspot.com/x/log.txt?x=168b6592180000
-> kernel config:  https://syzkaller.appspot.com/x/.config?x=d47605a39da2cf06
-> dashboard link: https://syzkaller.appspot.com/bug?extid=ebbab3e04c88fa141e6b
-> compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
-> userspace arch: arm64
-> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1000ede0180000
-> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=161a6ba2180000
-> 
-> Downloadable assets:
-> disk image: https://storage.googleapis.com/syzbot-assets/bdea2316c4db/disk-f735966e.raw.xz
-> vmlinux: https://storage.googleapis.com/syzbot-assets/75ba7806a91c/vmlinux-f735966e.xz
-> kernel image: https://storage.googleapis.com/syzbot-assets/208f119d45ed/Image-f735966e.gz.xz
-> 
-> IMPORTANT: if you fix the issue, please add the following tag to the commit:
-> Reported-by: syzbot+ebbab3e04c88fa141e6b@syzkaller.appspotmail.com
-> 
-> ------------[ cut here ]------------
-> ODEBUG: free active (active state 0) object: 00000000310f7442 object type: timer_list hint: bitmap_port_gc+0x0/0x4dc net/netfilter/ipset/ip_set_bitmap_port.c:282
-> WARNING: CPU: 1 PID: 6165 at lib/debugobjects.c:517 debug_print_object lib/debugobjects.c:514 [inline]
-> WARNING: CPU: 1 PID: 6165 at lib/debugobjects.c:517 __debug_check_no_obj_freed lib/debugobjects.c:989 [inline]
-> WARNING: CPU: 1 PID: 6165 at lib/debugobjects.c:517 debug_check_no_obj_freed+0x398/0x47c lib/debugobjects.c:1019
-> Modules linked in:
-> CPU: 1 PID: 6165 Comm: syz-executor468 Not tainted 6.8.0-rc3-syzkaller-gf735966ee23c #0
-> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 11/17/2023
-> pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
-> pc : debug_print_object lib/debugobjects.c:514 [inline]
-> pc : __debug_check_no_obj_freed lib/debugobjects.c:989 [inline]
-> pc : debug_check_no_obj_freed+0x398/0x47c lib/debugobjects.c:1019
-> lr : debug_print_object lib/debugobjects.c:514 [inline]
-> lr : __debug_check_no_obj_freed lib/debugobjects.c:989 [inline]
-> lr : debug_check_no_obj_freed+0x398/0x47c lib/debugobjects.c:1019
-> sp : ffff800097886950
-> x29: ffff800097886990 x28: 0000000000000000 x27: ffff80008aeec3c0
-> x26: ffff0000d051c718 x25: dfff800000000000 x24: 0000000000000000
-> x23: ffff80009365bb10 x22: ffff0000d051c000 x21: 0000000000000000
-> x20: ffff8000894dfe30 x19: ffff0000d051c700 x18: ffff800097885e20
-> x17: 626f203234343766 x16: ffff80008aca1180 x15: 0000000000000001
-> x14: 1ffff00012f10c44 x13: 0000000000000000 x12: 0000000000000000
-> x11: 0000000000000002 x10: 0000000000ff0100 x9 : f70d4eacec590700
-> x8 : f70d4eacec590700 x7 : 0000000000000001 x6 : 0000000000000001
-> x5 : ffff800097886238 x4 : ffff80008ed517e0 x3 : ffff80008036df60
-> x2 : 0000000000000001 x1 : 0000000100000000 x0 : 0000000000000000
-> Call trace:
->  debug_print_object lib/debugobjects.c:514 [inline]
->  __debug_check_no_obj_freed lib/debugobjects.c:989 [inline]
->  debug_check_no_obj_freed+0x398/0x47c lib/debugobjects.c:1019
->  slab_free_hook mm/slub.c:2093 [inline]
->  slab_free mm/slub.c:4299 [inline]
->  kfree+0x114/0x3cc mm/slub.c:4409
->  kvfree+0x40/0x50 mm/util.c:663
->  ip_set_free+0x28/0x7c net/netfilter/ipset/ip_set_core.c:264
->  bitmap_port_destroy+0xe4/0x324 net/netfilter/ipset/ip_set_bitmap_gen.h:66
->  ip_set_create+0x904/0xf48 net/netfilter/ipset/ip_set_core.c:1157
->  nfnetlink_rcv_msg+0xa78/0xf80 net/netfilter/nfnetlink.c:302
->  netlink_rcv_skb+0x214/0x3c4 net/netlink/af_netlink.c:2543
->  nfnetlink_rcv+0x21c/0x1ed0 net/netfilter/nfnetlink.c:659
->  netlink_unicast_kernel net/netlink/af_netlink.c:1341 [inline]
->  netlink_unicast+0x65c/0x898 net/netlink/af_netlink.c:1367
->  netlink_sendmsg+0x83c/0xb20 net/netlink/af_netlink.c:1908
->  sock_sendmsg_nosec net/socket.c:730 [inline]
->  __sock_sendmsg net/socket.c:745 [inline]
->  ____sys_sendmsg+0x56c/0x840 net/socket.c:2584
->  ___sys_sendmsg net/socket.c:2638 [inline]
->  __sys_sendmsg+0x26c/0x33c net/socket.c:2667
->  __do_sys_sendmsg net/socket.c:2676 [inline]
->  __se_sys_sendmsg net/socket.c:2674 [inline]
->  __arm64_sys_sendmsg+0x80/0x94 net/socket.c:2674
->  __invoke_syscall arch/arm64/kernel/syscall.c:37 [inline]
->  invoke_syscall+0x98/0x2b8 arch/arm64/kernel/syscall.c:51
->  el0_svc_common+0x130/0x23c arch/arm64/kernel/syscall.c:136
->  do_el0_svc+0x48/0x58 arch/arm64/kernel/syscall.c:155
->  el0_svc+0x54/0x158 arch/arm64/kernel/entry-common.c:678
->  el0t_64_sync_handler+0x84/0xfc arch/arm64/kernel/entry-common.c:696
->  el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:598
-> irq event stamp: 524
-> hardirqs last  enabled at (523): [<ffff80008035f104>] __up_console_sem kernel/printk/printk.c:341 [inline]
-> hardirqs last  enabled at (523): [<ffff80008035f104>] __console_unlock kernel/printk/printk.c:2706 [inline]
-> hardirqs last  enabled at (523): [<ffff80008035f104>] console_unlock+0x17c/0x3d4 kernel/printk/printk.c:3038
-> hardirqs last disabled at (524): [<ffff80008ad60eac>] el1_dbg+0x24/0x80 arch/arm64/kernel/entry-common.c:436
-> softirqs last  enabled at (518): [<ffff80008002189c>] softirq_handle_end kernel/softirq.c:399 [inline]
-> softirqs last  enabled at (518): [<ffff80008002189c>] __do_softirq+0xac8/0xce4 kernel/softirq.c:582
-> softirqs last disabled at (507): [<ffff80008002ab48>] ____do_softirq+0x14/0x20 arch/arm64/kernel/irq.c:81
-> ---[ end trace 0000000000000000 ]---
-> 
-> 
-> ---
-> This report is generated by a bot. It may contain errors.
-> See https://goo.gl/tpsmEJ for more information about syzbot.
-> syzbot engineers can be reached at syzkaller@googlegroups.com.
-> 
-> syzbot will keep track of this issue. See:
-> https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-> 
-> If the report is already addressed, let syzbot know by replying with:
-> #syz fix: exact-commit-title
-> 
-> If you want syzbot to run the reproducer, reply with:
-> #syz test: git://repo/address.git branch-or-commit-hash
-> If you attach or paste a git patch, syzbot will apply it before testing.
-> 
-> If you want to overwrite report's subsystems, reply with:
-> #syz set subsystems: new-subsystem
-> (See the list of subsystem names on the web dashboard)
-> 
-> If the report is a duplicate of another one, reply with:
-> #syz dup: exact-subject-of-another-report
-> 
-> If you want to undo deduplication, reply with:
-> #syz undup
-> 
-> 
-
+ 
+ static int nft_byteorder_dump(struct sk_buff *skb,
+@@ -160,10 +147,11 @@ static int nft_byteorder_dump(struct sk_buff *skb,
+ 		goto nla_put_failure;
+ 	if (nla_put_be32(skb, NFTA_BYTEORDER_OP, htonl(priv->op)))
+ 		goto nla_put_failure;
+-	if (nla_put_be32(skb, NFTA_BYTEORDER_LEN, htonl(priv->len)))
+-		goto nla_put_failure;
+ 	if (nla_put_be32(skb, NFTA_BYTEORDER_SIZE, htonl(priv->size)))
+ 		goto nla_put_failure;
++	/* compatibility for old userspace which permitted size != len */
++	if (nla_put_be32(skb, NFTA_BYTEORDER_LEN, htonl(priv->size)))
++		goto nla_put_failure;
+ 	return 0;
+ 
+ nla_put_failure:
+@@ -175,7 +163,8 @@ static bool nft_byteorder_reduce(struct nft_regs_track *track,
+ {
+ 	struct nft_byteorder *priv = nft_expr_priv(expr);
+ 
+-	nft_reg_track_cancel(track, priv->dreg, priv->len);
++	/* warning: relies on NFTA_BYTEORDER_SIZE == BYTEORDER_LEN */
++	nft_reg_track_cancel(track, priv->dreg, priv->size);
+ 
+ 	return false;
+ }
 -- 
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+2.43.0
+
