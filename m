@@ -1,27 +1,51 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from nbd.name (nbd.name [46.4.11.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AEE67499
-	for <netfilter-devel@vger.kernel.org>; Wed, 14 Feb 2024 13:42:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6311F1CA80;
+	Wed, 14 Feb 2024 14:42:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.4.11.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707918164; cv=none; b=W1SY57hWbJB6JcALx1FmmeCULz+2IzG3KPW429Ps+lEuGfaMOJeBTgVbqWbNqxbqpqtwrqOK3sRDNKQahDcnutT0GWBYxMV0lFVIdrkYNDP5z5QKJagSfcFIyXdpORu2JN9AlKilHgWo4/0LUmohxep9wdK2EJ9dbIqoA8DkaSg=
+	t=1707921780; cv=none; b=HL7NSpIwhzvtf/yLWOAoJhPOSrot+ShN8ckTK2pH1ZEXm5RA+LskjtKsXPbq/swThwMLLdsmjipHbVqabBTv14ENBtdg0B57D6WgLfsa9p1n3q6gNKFH5KAaS63wc3oUM6aIPTMdWnAjw+SRm/jTRydqBBKRZeGiIQHa0SkbemM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707918164; c=relaxed/simple;
-	bh=94Mxvnna4qsjj5XckeQn2gZ3quN6puUPOeMf2rLtbtY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=H6wEhvNzDEuZTmudQrJZkNp0HM4ba7+vPylBD9H3iEdB+MV5mLJ3l+rcX5ZuUkfnXv78WWeITe3w0GI0k6A8emiQ8qTnl/YLWVk4hSvBWYPIDQ3p3rHr/IEtlzzafW0zjdLviYCNIwLDXaM9pDuOOJd2SVpaHckjiyYYYQPxMQQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1raFWz-0000AU-Qd; Wed, 14 Feb 2024 14:42:33 +0100
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: move nf_reinject into nfnetlink_queue modules
-Date: Wed, 14 Feb 2024 14:41:02 +0100
-Message-ID: <20240214134106.6986-1-fw@strlen.de>
+	s=arc-20240116; t=1707921780; c=relaxed/simple;
+	bh=4kfKQXMjrSswVfEs9TFm2VCVbnaJe/UZ/yq2Vn1p9nU=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=qiNicJXrQUXfLRxGUNWokD+7C5Qar9UMDIqhJU1/AHboosyJbT72V6sackLB+iIeKLhoGJTdfVi3AHgHMjxD1T23MB7CHazafu0XiSh6Q6jbP1BNgVXhPhgWMbIu/hkFxohjJl3Zg0EnqZfeAIy/yUbo/fn8woPLxfA4lWv7ykU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=nbd.name; spf=none smtp.mailfrom=nbd.name; dkim=pass (1024-bit key) header.d=nbd.name header.i=@nbd.name header.b=OYlFujES; arc=none smtp.client-ip=46.4.11.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=nbd.name
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=nbd.name
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=nbd.name header.i=@nbd.name header.b="OYlFujES"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nbd.name;
+	s=20160729; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=rvZNAKQ9eQwBSXPdNcyqhFwbwKHStEKZIKN+cfFuE3Q=; b=OYlFujESUs6qcMYm3TB0qsFgH1
+	4qwjrAoWPYH/dciAjcE6Hn6fX9jwiXsP4sUOf48wlY6/jsjHulI23+vBNjLybhqQWx1/weYpDoIav
+	DoWZJukCKVywIlASoeoUj0CX+z2WznqrOnb/UfFyqJYsBRfGW7VaVXYEmT1Nj/UE5Kk0=;
+Received: from p54ae9e7b.dip0.t-ipconnect.de ([84.174.158.123] helo=localhost.localdomain)
+	by ds12 with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+	(Exim 4.94.2)
+	(envelope-from <nbd@nbd.name>)
+	id 1raGT6-00DWlk-Ky; Wed, 14 Feb 2024 15:42:36 +0100
+From: Felix Fietkau <nbd@nbd.name>
+To: netdev@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Vlad Buslov <vladbu@nvidia.com>
+Cc: Daniel Golle <daniel@makrotopia.org>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH net] netfilter: nf_tables: fix bidirectional offload regression
+Date: Wed, 14 Feb 2024 15:42:35 +0100
+Message-ID: <20240214144235.70341-1-nbd@nbd.name>
 X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -31,357 +55,31 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-No need to keep this in the core, move it to the nfnetlink_queue module.
-nf_reroute is moved too, there were no other callers.
+Commit 8f84780b84d6 ("netfilter: flowtable: allow unidirectional rules")
+made unidirectional flow offload possible, while completely ignoring (and
+breaking) bidirectional flow offload for nftables.
+Add the missing flag that was left out as an exercise for the reader :)
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Cc: Vlad Buslov <vladbu@nvidia.com>
+Fixes: 8f84780b84d6 ("netfilter: flowtable: allow unidirectional rules")
+Reported-by: Daniel Golle <daniel@makrotopia.org>
+Signed-off-by: Felix Fietkau <nbd@nbd.name>
 ---
- include/linux/netfilter.h        |   1 -
- include/net/netfilter/nf_queue.h |   1 -
- net/netfilter/nf_queue.c         | 106 -----------------------
- net/netfilter/nfnetlink_queue.c  | 142 +++++++++++++++++++++++++++++++
- net/netfilter/utils.c            |  37 --------
- 5 files changed, 142 insertions(+), 145 deletions(-)
+ net/netfilter/nft_flow_offload.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 80900d910992..ffb5e0297eb5 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -370,7 +370,6 @@ __sum16 nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
- 			    u_int8_t protocol, unsigned short family);
- int nf_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
- 	     bool strict, unsigned short family);
--int nf_reroute(struct sk_buff *skb, struct nf_queue_entry *entry);
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index 397351fa4d5f..ab9576098701 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -361,6 +361,7 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 		ct->proto.tcp.seen[1].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
+ 	}
  
- #include <net/flow.h>
- 
-diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
-index c81021ab07aa..4aeffddb7586 100644
---- a/include/net/netfilter/nf_queue.h
-+++ b/include/net/netfilter/nf_queue.h
-@@ -35,7 +35,6 @@ struct nf_queue_handler {
- 
- void nf_register_queue_handler(const struct nf_queue_handler *qh);
- void nf_unregister_queue_handler(void);
--void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict);
- 
- bool nf_queue_entry_get_refs(struct nf_queue_entry *entry);
- void nf_queue_entry_free(struct nf_queue_entry *entry);
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index e2f334f70281..7f12e56e6e52 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -248,109 +248,3 @@ int nf_queue(struct sk_buff *skb, struct nf_hook_state *state,
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(nf_queue);
--
--static unsigned int nf_iterate(struct sk_buff *skb,
--			       struct nf_hook_state *state,
--			       const struct nf_hook_entries *hooks,
--			       unsigned int *index)
--{
--	const struct nf_hook_entry *hook;
--	unsigned int verdict, i = *index;
--
--	while (i < hooks->num_hook_entries) {
--		hook = &hooks->hooks[i];
--repeat:
--		verdict = nf_hook_entry_hookfn(hook, skb, state);
--		if (verdict != NF_ACCEPT) {
--			*index = i;
--			if (verdict != NF_REPEAT)
--				return verdict;
--			goto repeat;
--		}
--		i++;
--	}
--
--	*index = i;
--	return NF_ACCEPT;
--}
--
--static struct nf_hook_entries *nf_hook_entries_head(const struct net *net, u8 pf, u8 hooknum)
--{
--	switch (pf) {
--#ifdef CONFIG_NETFILTER_FAMILY_BRIDGE
--	case NFPROTO_BRIDGE:
--		return rcu_dereference(net->nf.hooks_bridge[hooknum]);
--#endif
--	case NFPROTO_IPV4:
--		return rcu_dereference(net->nf.hooks_ipv4[hooknum]);
--	case NFPROTO_IPV6:
--		return rcu_dereference(net->nf.hooks_ipv6[hooknum]);
--	default:
--		WARN_ON_ONCE(1);
--		return NULL;
--	}
--
--	return NULL;
--}
--
--/* Caller must hold rcu read-side lock */
--void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
--{
--	const struct nf_hook_entry *hook_entry;
--	const struct nf_hook_entries *hooks;
--	struct sk_buff *skb = entry->skb;
--	const struct net *net;
--	unsigned int i;
--	int err;
--	u8 pf;
--
--	net = entry->state.net;
--	pf = entry->state.pf;
--
--	hooks = nf_hook_entries_head(net, pf, entry->state.hook);
--
--	i = entry->hook_index;
--	if (WARN_ON_ONCE(!hooks || i >= hooks->num_hook_entries)) {
--		kfree_skb(skb);
--		nf_queue_entry_free(entry);
--		return;
--	}
--
--	hook_entry = &hooks->hooks[i];
--
--	/* Continue traversal iff userspace said ok... */
--	if (verdict == NF_REPEAT)
--		verdict = nf_hook_entry_hookfn(hook_entry, skb, &entry->state);
--
--	if (verdict == NF_ACCEPT) {
--		if (nf_reroute(skb, entry) < 0)
--			verdict = NF_DROP;
--	}
--
--	if (verdict == NF_ACCEPT) {
--next_hook:
--		++i;
--		verdict = nf_iterate(skb, &entry->state, hooks, &i);
--	}
--
--	switch (verdict & NF_VERDICT_MASK) {
--	case NF_ACCEPT:
--	case NF_STOP:
--		local_bh_disable();
--		entry->state.okfn(entry->state.net, entry->state.sk, skb);
--		local_bh_enable();
--		break;
--	case NF_QUEUE:
--		err = nf_queue(skb, &entry->state, i, verdict);
--		if (err == 1)
--			goto next_hook;
--		break;
--	case NF_STOLEN:
--		break;
--	default:
--		kfree_skb(skb);
--	}
--
--	nf_queue_entry_free(entry);
--}
--EXPORT_SYMBOL(nf_reinject);
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 5cf38fc0a366..00f4bd21c59b 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -225,6 +225,148 @@ find_dequeue_entry(struct nfqnl_instance *queue, unsigned int id)
- 	return entry;
- }
- 
-+static unsigned int nf_iterate(struct sk_buff *skb,
-+			       struct nf_hook_state *state,
-+			       const struct nf_hook_entries *hooks,
-+			       unsigned int *index)
-+{
-+	const struct nf_hook_entry *hook;
-+	unsigned int verdict, i = *index;
-+
-+	while (i < hooks->num_hook_entries) {
-+		hook = &hooks->hooks[i];
-+repeat:
-+		verdict = nf_hook_entry_hookfn(hook, skb, state);
-+		if (verdict != NF_ACCEPT) {
-+			*index = i;
-+			if (verdict != NF_REPEAT)
-+				return verdict;
-+			goto repeat;
-+		}
-+		i++;
-+	}
-+
-+	*index = i;
-+	return NF_ACCEPT;
-+}
-+
-+static struct nf_hook_entries *nf_hook_entries_head(const struct net *net, u8 pf, u8 hooknum)
-+{
-+	switch (pf) {
-+#ifdef CONFIG_NETFILTER_FAMILY_BRIDGE
-+	case NFPROTO_BRIDGE:
-+		return rcu_dereference(net->nf.hooks_bridge[hooknum]);
-+#endif
-+	case NFPROTO_IPV4:
-+		return rcu_dereference(net->nf.hooks_ipv4[hooknum]);
-+	case NFPROTO_IPV6:
-+		return rcu_dereference(net->nf.hooks_ipv6[hooknum]);
-+	default:
-+		WARN_ON_ONCE(1);
-+		return NULL;
-+	}
-+
-+	return NULL;
-+}
-+
-+static int nf_ip_reroute(struct sk_buff *skb, const struct nf_queue_entry *entry)
-+{
-+#ifdef CONFIG_INET
-+	const struct ip_rt_info *rt_info = nf_queue_entry_reroute(entry);
-+
-+	if (entry->state.hook == NF_INET_LOCAL_OUT) {
-+		const struct iphdr *iph = ip_hdr(skb);
-+
-+		if (!(iph->tos == rt_info->tos &&
-+		      skb->mark == rt_info->mark &&
-+		      iph->daddr == rt_info->daddr &&
-+		      iph->saddr == rt_info->saddr))
-+			return ip_route_me_harder(entry->state.net, entry->state.sk,
-+						  skb, RTN_UNSPEC);
-+	}
-+#endif
-+	return 0;
-+}
-+
-+static int nf_reroute(struct sk_buff *skb, struct nf_queue_entry *entry)
-+{
-+	const struct nf_ipv6_ops *v6ops;
-+	int ret = 0;
-+
-+	switch (entry->state.pf) {
-+	case AF_INET:
-+		ret = nf_ip_reroute(skb, entry);
-+		break;
-+	case AF_INET6:
-+		v6ops = rcu_dereference(nf_ipv6_ops);
-+		if (v6ops)
-+			ret = v6ops->reroute(skb, entry);
-+		break;
-+	}
-+	return ret;
-+}
-+
-+/* caller must hold rcu read-side lock */
-+static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
-+{
-+	const struct nf_hook_entry *hook_entry;
-+	const struct nf_hook_entries *hooks;
-+	struct sk_buff *skb = entry->skb;
-+	const struct net *net;
-+	unsigned int i;
-+	int err;
-+	u8 pf;
-+
-+	net = entry->state.net;
-+	pf = entry->state.pf;
-+
-+	hooks = nf_hook_entries_head(net, pf, entry->state.hook);
-+
-+	i = entry->hook_index;
-+	if (WARN_ON_ONCE(!hooks || i >= hooks->num_hook_entries)) {
-+		kfree_skb_reason(skb, SKB_DROP_REASON_NETFILTER_DROP);
-+		nf_queue_entry_free(entry);
-+		return;
-+	}
-+
-+	hook_entry = &hooks->hooks[i];
-+
-+	/* Continue traversal iff userspace said ok... */
-+	if (verdict == NF_REPEAT)
-+		verdict = nf_hook_entry_hookfn(hook_entry, skb, &entry->state);
-+
-+	if (verdict == NF_ACCEPT) {
-+		if (nf_reroute(skb, entry) < 0)
-+			verdict = NF_DROP;
-+	}
-+
-+	if (verdict == NF_ACCEPT) {
-+next_hook:
-+		++i;
-+		verdict = nf_iterate(skb, &entry->state, hooks, &i);
-+	}
-+
-+	switch (verdict & NF_VERDICT_MASK) {
-+	case NF_ACCEPT:
-+	case NF_STOP:
-+		local_bh_disable();
-+		entry->state.okfn(entry->state.net, entry->state.sk, skb);
-+		local_bh_enable();
-+		break;
-+	case NF_QUEUE:
-+		err = nf_queue(skb, &entry->state, i, verdict);
-+		if (err == 1)
-+			goto next_hook;
-+		break;
-+	case NF_STOLEN:
-+		break;
-+	default:
-+		kfree_skb(skb);
-+	}
-+
-+	nf_queue_entry_free(entry);
-+}
-+
- static void nfqnl_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- {
- 	const struct nf_ct_hook *ct_hook;
-diff --git a/net/netfilter/utils.c b/net/netfilter/utils.c
-index acef4155f0da..008419db815a 100644
---- a/net/netfilter/utils.c
-+++ b/net/netfilter/utils.c
-@@ -179,43 +179,6 @@ int nf_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
- }
- EXPORT_SYMBOL_GPL(nf_route);
- 
--static int nf_ip_reroute(struct sk_buff *skb, const struct nf_queue_entry *entry)
--{
--#ifdef CONFIG_INET
--	const struct ip_rt_info *rt_info = nf_queue_entry_reroute(entry);
--
--	if (entry->state.hook == NF_INET_LOCAL_OUT) {
--		const struct iphdr *iph = ip_hdr(skb);
--
--		if (!(iph->tos == rt_info->tos &&
--		      skb->mark == rt_info->mark &&
--		      iph->daddr == rt_info->daddr &&
--		      iph->saddr == rt_info->saddr))
--			return ip_route_me_harder(entry->state.net, entry->state.sk,
--						  skb, RTN_UNSPEC);
--	}
--#endif
--	return 0;
--}
--
--int nf_reroute(struct sk_buff *skb, struct nf_queue_entry *entry)
--{
--	const struct nf_ipv6_ops *v6ops;
--	int ret = 0;
--
--	switch (entry->state.pf) {
--	case AF_INET:
--		ret = nf_ip_reroute(skb, entry);
--		break;
--	case AF_INET6:
--		v6ops = rcu_dereference(nf_ipv6_ops);
--		if (v6ops)
--			ret = v6ops->reroute(skb, entry);
--		break;
--	}
--	return ret;
--}
--
- /* Only get and check the lengths, not do any hop-by-hop stuff. */
- int nf_ip6_check_hbh_len(struct sk_buff *skb, u32 *plen)
- {
++	__set_bit(NF_FLOW_HW_BIDIRECTIONAL, &flow->flags);
+ 	ret = flow_offload_add(flowtable, flow);
+ 	if (ret < 0)
+ 		goto err_flow_add;
 -- 
 2.43.0
 
