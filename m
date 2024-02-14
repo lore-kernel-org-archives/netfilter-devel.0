@@ -1,82 +1,60 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7213A1420A8;
-	Wed, 14 Feb 2024 23:38:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE276604DD
+	for <netfilter-devel@vger.kernel.org>; Wed, 14 Feb 2024 23:40:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707953915; cv=none; b=gYAH9D3GZej1gI5zz9Jn4qfm3nwsn4AvcoJB9dhGIMbwMARi9GLWb4u6Z4TOaq7FzuO9jvfMP4d1vSbjw6fD1XwYQ1slAtT3DjdAl3nuBZ+itIQ/t/BJcb2aovpvU3RR9nTd6gbOEBzn1t9jRlCr/84Te0y0SJBA7a0SoTiR4sg=
+	t=1707954055; cv=none; b=pmqeIr8LwBSW+K7ND7AWZagOlMa5UxNeWtmsoHOOiezIdQznnYMLYQpmgTuOyyQboQS1mtVoGJMKqot5qOobvHBr2/n1hJzFxl2nFLjuZ/iyOxMWUAfjUMACpKOkQ4GwfVNLkMG6xVZwSuG57ucszepb42UqZQrulPBByv5rwNY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707953915; c=relaxed/simple;
-	bh=tJt8SP09ijno4lcsU6XvzjqhMYa+yWFgZ90muBMXhBg=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=gi6T7dRlcYzWW/beVmHUUgRdFfGDKbMJnTx2AWyUOyYgVBgrVZAeUYNJZn6j2391Z+IFP8JOE66EeFK2IH479LokulSejSt9SiojfgmpcYG8v+3xEwRUkY1A4GmSgec2t6v9VVoygy74hTRqgbsRx4RNtwo8n8AepL4kTXjpULs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+	s=arc-20240116; t=1707954055; c=relaxed/simple;
+	bh=wvBUSkZk9Lajn8UR9GN3NeJKg9lnTRa1HnoxAhm+95w=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=h5NAWoSTlK+ejl+s7IRia7haGSYq0nB9IvdXkNPI92gLokjWkmGkkL/IXJGHiOTxr1JZd8TNpjPQc7WuUgcIyxQYowTvPu9nhDsuqCEA5kc/tgBomPeMfLWBVibAUfBxIVw44yJ91JuGr2N7B3eBmKO8GeZXQ2jEqzKlqI//34w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.41.52] (port=55310 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1raOru-001mYK-Nx; Thu, 15 Feb 2024 00:40:48 +0100
+Date: Thu, 15 Feb 2024 00:40:46 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	fw@strlen.de
-Subject: [PATCH net 2/3] netfilter: nat: restore default DNAT behavior
-Date: Thu, 15 Feb 2024 00:38:17 +0100
-Message-Id: <20240214233818.7946-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20240214233818.7946-1-pablo@netfilter.org>
-References: <20240214233818.7946-1-pablo@netfilter.org>
+To: Ignat Korchagin <ignat@cloudflare.com>
+Cc: kadlec@netfilter.org, fw@strlen.de, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, kernel-team@cloudflare.com,
+	jgriege@cloudflare.com
+Subject: Re: [PATCH] netfilter: nf_tables: allow NFPROTO_INET in
+ nft_(match/target)_validate()
+Message-ID: <Zc1PfoWN38UuFJRI@calendula>
+References: <20240209121954.81223-1-ignat@cloudflare.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20240209121954.81223-1-ignat@cloudflare.com>
+X-Spam-Score: -1.9 (-)
 
-From: Kyle Swenson <kyle.swenson@est.tech>
+Hi Ignat,
 
-When a DNAT rule is configured via iptables with different port ranges,
+On Fri, Feb 09, 2024 at 12:19:54PM +0000, Ignat Korchagin wrote:
+> diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+> index 1f9474fefe84..beea8c447e7a 100644
+> --- a/net/netfilter/nft_compat.c
+> +++ b/net/netfilter/nft_compat.c
+> @@ -359,6 +359,7 @@ static int nft_target_validate(const struct nft_ctx *ctx,
+>  
+>  	if (ctx->family != NFPROTO_IPV4 &&
+>  	    ctx->family != NFPROTO_IPV6 &&
+> +	    ctx->family != NFPROTO_INET &&
 
-iptables -t nat -A PREROUTING -p tcp -d 10.0.0.2 -m tcp --dport 32000:32010
--j DNAT --to-destination 192.168.0.10:21000-21010
+Please send a v2 restricting this to hooks prerouting, input, forward,
+output and postrouting which are the classic hooks, so ingress is not
+allowed, both for matches and targets.
 
-we seem to be DNATing to some random port on the LAN side. While this is
-expected if --random is passed to the iptables command, it is not
-expected without passing --random.  The expected behavior (and the
-observed behavior prior to the commit in the "Fixes" tag) is the traffic
-will be DNAT'd to 192.168.0.10:21000 unless there is a tuple collision
-with that destination.  In that case, we expect the traffic to be
-instead DNAT'd to 192.168.0.10:21001, so on so forth until the end of
-the range.
-
-This patch intends to restore the behavior observed prior to the "Fixes"
-tag.
-
-Fixes: 6ed5943f8735 ("netfilter: nat: remove l4 protocol port rovers")
-Signed-off-by: Kyle Swenson <kyle.swenson@est.tech>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_nat_core.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index c3d7ecbc777c..016c816d91cb 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -551,8 +551,11 @@ static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
- find_free_id:
- 	if (range->flags & NF_NAT_RANGE_PROTO_OFFSET)
- 		off = (ntohs(*keyptr) - ntohs(range->base_proto.all));
--	else
-+	else if ((range->flags & NF_NAT_RANGE_PROTO_RANDOM_ALL) ||
-+		 maniptype != NF_NAT_MANIP_DST)
- 		off = get_random_u16();
-+	else
-+		off = 0;
- 
- 	attempts = range_size;
- 	if (attempts > NF_NAT_MAX_ATTEMPTS)
--- 
-2.30.2
-
+Thanks
