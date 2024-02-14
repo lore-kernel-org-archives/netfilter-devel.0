@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 720F61419A0;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7213A1420A8;
 	Wed, 14 Feb 2024 23:38:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707953914; cv=none; b=Ac+nCK8O0JgY4uX5mK7/aoQfzxvhTdlL06Mzq45oR0kt6d+yqQlT0UrCzSxl2V5waMpSB/w3R2D9TDdOSHdzQ6mFD6XL5NnHDpqMDJsVTbiq0gLoaDwCphcWCBzWFCeF/un+ntpv61ATmkakmjDNc12LDtuo1+E+0CpusVN8kcc=
+	t=1707953915; cv=none; b=gYAH9D3GZej1gI5zz9Jn4qfm3nwsn4AvcoJB9dhGIMbwMARi9GLWb4u6Z4TOaq7FzuO9jvfMP4d1vSbjw6fD1XwYQ1slAtT3DjdAl3nuBZ+itIQ/t/BJcb2aovpvU3RR9nTd6gbOEBzn1t9jRlCr/84Te0y0SJBA7a0SoTiR4sg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707953914; c=relaxed/simple;
-	bh=cusHiibxw7scG0b928hwhY4fmI5SGcnm2+HPyqulOhQ=;
+	s=arc-20240116; t=1707953915; c=relaxed/simple;
+	bh=tJt8SP09ijno4lcsU6XvzjqhMYa+yWFgZ90muBMXhBg=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=o9Hbk1yv7hkkf1mHQ9y7iv77ty7OvUnItnixxCvWQYWKVkgQjx353cqtUxpG54hwq7/KBh08pIwtKxg/lXuAzeR5zFIKx0658qsw+IdLf03UWwyQ6X5QZUcxxKwfdunzFS4yy1fYT+32hvGnBG+dYRrO+2gTnKVlLFQrQFj5tTc=
+	 MIME-Version; b=gi6T7dRlcYzWW/beVmHUUgRdFfGDKbMJnTx2AWyUOyYgVBgrVZAeUYNJZn6j2391Z+IFP8JOE66EeFK2IH479LokulSejSt9SiojfgmpcYG8v+3xEwRUkY1A4GmSgec2t6v9VVoygy74hTRqgbsRx4RNtwo8n8AepL4kTXjpULs=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 3/3] netfilter: nf_tables: fix bidirectional offload regression
-Date: Thu, 15 Feb 2024 00:38:18 +0100
-Message-Id: <20240214233818.7946-4-pablo@netfilter.org>
+Subject: [PATCH net 2/3] netfilter: nat: restore default DNAT behavior
+Date: Thu, 15 Feb 2024 00:38:17 +0100
+Message-Id: <20240214233818.7946-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240214233818.7946-1-pablo@netfilter.org>
 References: <20240214233818.7946-1-pablo@netfilter.org>
@@ -34,34 +34,49 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Felix Fietkau <nbd@nbd.name>
+From: Kyle Swenson <kyle.swenson@est.tech>
 
-Commit 8f84780b84d6 ("netfilter: flowtable: allow unidirectional rules")
-made unidirectional flow offload possible, while completely ignoring (and
-breaking) bidirectional flow offload for nftables.
-Add the missing flag that was left out as an exercise for the reader :)
+When a DNAT rule is configured via iptables with different port ranges,
 
-Cc: Vlad Buslov <vladbu@nvidia.com>
-Fixes: 8f84780b84d6 ("netfilter: flowtable: allow unidirectional rules")
-Reported-by: Daniel Golle <daniel@makrotopia.org>
-Signed-off-by: Felix Fietkau <nbd@nbd.name>
+iptables -t nat -A PREROUTING -p tcp -d 10.0.0.2 -m tcp --dport 32000:32010
+-j DNAT --to-destination 192.168.0.10:21000-21010
+
+we seem to be DNATing to some random port on the LAN side. While this is
+expected if --random is passed to the iptables command, it is not
+expected without passing --random.  The expected behavior (and the
+observed behavior prior to the commit in the "Fixes" tag) is the traffic
+will be DNAT'd to 192.168.0.10:21000 unless there is a tuple collision
+with that destination.  In that case, we expect the traffic to be
+instead DNAT'd to 192.168.0.10:21001, so on so forth until the end of
+the range.
+
+This patch intends to restore the behavior observed prior to the "Fixes"
+tag.
+
+Fixes: 6ed5943f8735 ("netfilter: nat: remove l4 protocol port rovers")
+Signed-off-by: Kyle Swenson <kyle.swenson@est.tech>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_flow_offload.c | 1 +
- 1 file changed, 1 insertion(+)
+ net/netfilter/nf_nat_core.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index 397351fa4d5f..ab9576098701 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -361,6 +361,7 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
- 		ct->proto.tcp.seen[1].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
- 	}
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index c3d7ecbc777c..016c816d91cb 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -551,8 +551,11 @@ static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
+ find_free_id:
+ 	if (range->flags & NF_NAT_RANGE_PROTO_OFFSET)
+ 		off = (ntohs(*keyptr) - ntohs(range->base_proto.all));
+-	else
++	else if ((range->flags & NF_NAT_RANGE_PROTO_RANDOM_ALL) ||
++		 maniptype != NF_NAT_MANIP_DST)
+ 		off = get_random_u16();
++	else
++		off = 0;
  
-+	__set_bit(NF_FLOW_HW_BIDIRECTIONAL, &flow->flags);
- 	ret = flow_offload_add(flowtable, flow);
- 	if (ret < 0)
- 		goto err_flow_add;
+ 	attempts = range_size;
+ 	if (attempts > NF_NAT_MAX_ATTEMPTS)
 -- 
 2.30.2
 
