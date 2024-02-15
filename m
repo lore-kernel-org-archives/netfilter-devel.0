@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C2A7127B41;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6396D12B159;
 	Thu, 15 Feb 2024 12:00:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707998430; cv=none; b=TV0sL9ksLwPjQMEtaF8XYbLG2PrN84se4BhJlJh4R36S9DijwKehfliRTsSWHxLzwYeUo0+vRr1CsvS7nxxOdCFt8ITKmpXMQIlCSM+goILEZXRJ5vMI8s/Gp8pkgEW2Lnbe/0+ppqAez6DG6HEAnbxiiaaHWWtfK/aR2Ho57uQ=
+	t=1707998430; cv=none; b=GCTmfi2Od0VsR2I7pMt7d4bdyDBXF2rTxoMm2zf788WHW2AtfD4Est9BPlwT1XG1R/8UF4RNrU9t5VjDUMqpqTCasIij4HwXabDONVG5sRKV/ErxNSOPxB+E+7izNSB76X85o1ReW9DGsHLxOLxoP2nwGe7B7U4Wm4XKgIWQUzs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1707998430; c=relaxed/simple;
-	bh=DHW3C+64jmmSfZFOE/8Y4iLv3jCq13zqC85tH3raEyg=;
+	bh=n7XWVlJ30ROtgD2ce2nB0n1n7+WuFhGySXrc2eCuDwc=;
 	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=cQmEEcIPq7C4687RkTecMaPSD114Y9cmYa8eUiP2z7JFzIu2Rf7jk9N13t5Ovp5cFo7h+69bHnb3WQ3h7w6spuEo+gVdF3EA3Z5XMmpqd9DGxQWMOKcbGPJ7pqvGN93UZlRbHskSJUm+ixvzn0VjAHtlD8eXKuV8tE2G29wgrcg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NkWBCSxI; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=bQ3jplqn0bilf1Z9pkgxd64FDH9RtN1bpk1Zm8BLV+3t7OWROsA3p6tdeqvF6lhHTwNwlnx2gf1ZBIbKRDN9l/Z4OgNxfPTInu3Rdgodr79BT0OjJ9IEM7FTY0nImU+ZnXrOJBPKiWHrGks/8gpJed/xGRX0SnYAQSS6nu7vNek=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aPfJK27N; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NkWBCSxI"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 0F3BFC43394;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aPfJK27N"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 095AFC433F1;
 	Thu, 15 Feb 2024 12:00:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1707998430;
-	bh=DHW3C+64jmmSfZFOE/8Y4iLv3jCq13zqC85tH3raEyg=;
+	bh=n7XWVlJ30ROtgD2ce2nB0n1n7+WuFhGySXrc2eCuDwc=;
 	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=NkWBCSxIhhzUIjJwDqXNSWq03CneWMtDFpcZ3njLZe/K6B+VpBGHdX2tyrt+hMf14
-	 nc4SBG//IAuTTxs72vQ/YQWIxPBoIxhYbza0buV9eSLYzqgMzpqTZwBC0bJIzy8GnP
-	 ZG8E6pfWGVqIyiiMJFtYzUNCQz+A4lQI256U6VudgoF2NUax4Rwt0XoE41KZEzx2hS
-	 8Buhz/5NUh59r7accEJtKUkRaQ83OQJ6fZeEKvIQbx2oqMTZWZbFlugNW393kUps6o
-	 O25cPywXUI3GSgvgBYgqGjVs8NmoELBhwtn9ecDv6OcKPnLrCFCr+v9NQUcHuihD4C
-	 Xhfj8sRbVqvRQ==
+	b=aPfJK27N7/LuJtcxSb1IGzZkX85PiArJBWeiXgksYHoWNAhDcn+r39mV34kknw6B5
+	 XeoKMtlwueLoOMq4RWXGuoSX+Mf+WX81c80vZPPaAiMYSTHw3KMz7SbmckxrZ9zBBJ
+	 8iQ8G44ytveEa5g4bNL6N92M4TmnsAqfo0PsM3P8j2IrjTNQMxB1CQldYoaE6C2MAN
+	 KZpdngqRuJpRAs/Su8EGuro9HX6iLV+2VGUVwOOlKLVHkD7LayocUizUw12wruXqcR
+	 X3pn7nYqpaqVC9bdTYjQhWHDzLrb+CT+daFFrr9N7wZ7pQ36fS6MwWVi22DiYpDyJu
+	 Oj5f3uZU795MQ==
 Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id EAD52DC9A04;
+	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id E0C6DD8C978;
 	Thu, 15 Feb 2024 12:00:29 +0000 (UTC)
 Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
@@ -37,39 +37,41 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/3] netfilter: nft_set_pipapo: fix missing : in kdoc
+Subject: Re: [PATCH net] netfilter: nf_tables: fix bidirectional offload
+ regression
 From: patchwork-bot+netdevbpf@kernel.org
 Message-Id: 
- <170799842995.25035.6533883181787398770.git-patchwork-notify@kernel.org>
+ <170799842991.25035.16009895415680000513.git-patchwork-notify@kernel.org>
 Date: Thu, 15 Feb 2024 12:00:29 +0000
-References: <20240214233818.7946-2-pablo@netfilter.org>
-In-Reply-To: <20240214233818.7946-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de
+References: <20240214144235.70341-1-nbd@nbd.name>
+In-Reply-To: <20240214144235.70341-1-nbd@nbd.name>
+To: Felix Fietkau <nbd@nbd.name>
+Cc: netdev@vger.kernel.org, pablo@netfilter.org, kadlec@netfilter.org,
+ fw@strlen.de, davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+ pabeni@redhat.com, vladbu@nvidia.com, daniel@makrotopia.org,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ linux-kernel@vger.kernel.org
 
 Hello:
 
-This series was applied to netdev/net.git (main)
+This patch was applied to netdev/net.git (main)
 by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-On Thu, 15 Feb 2024 00:38:16 +0100 you wrote:
-> Add missing : in kdoc field names.
+On Wed, 14 Feb 2024 15:42:35 +0100 you wrote:
+> Commit 8f84780b84d6 ("netfilter: flowtable: allow unidirectional rules")
+> made unidirectional flow offload possible, while completely ignoring (and
+> breaking) bidirectional flow offload for nftables.
+> Add the missing flag that was left out as an exercise for the reader :)
 > 
-> Fixes: 8683f4b9950d ("nft_set_pipapo: Prepare for vectorised implementation: helpers")
-> Reported-by: Paolo Abeni <pabeni@redhat.com>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  net/netfilter/nft_set_pipapo.h | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+> Cc: Vlad Buslov <vladbu@nvidia.com>
+> Fixes: 8f84780b84d6 ("netfilter: flowtable: allow unidirectional rules")
+> Reported-by: Daniel Golle <daniel@makrotopia.org>
+> Signed-off-by: Felix Fietkau <nbd@nbd.name>
+> 
+> [...]
 
 Here is the summary with links:
-  - [net,1/3] netfilter: nft_set_pipapo: fix missing : in kdoc
-    https://git.kernel.org/netdev/net/c/f6374a82fc85
-  - [net,2/3] netfilter: nat: restore default DNAT behavior
-    https://git.kernel.org/netdev/net/c/0f1ae2821fa4
-  - [net,3/3] netfilter: nf_tables: fix bidirectional offload regression
+  - [net] netfilter: nf_tables: fix bidirectional offload regression
     https://git.kernel.org/netdev/net/c/84443741faab
 
 You are awesome, thank you!
