@@ -1,125 +1,59 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00CBD13FEB
-	for <netfilter-devel@vger.kernel.org>; Thu, 15 Feb 2024 08:35:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA21A11183
+	for <netfilter-devel@vger.kernel.org>; Thu, 15 Feb 2024 08:38:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707986125; cv=none; b=olYoaIUuTvuCFnBziaSDbVCVpLPoSFwYhdnUa7z9oeI6l15Bzo1MYRoEsDdAaUtZYqpOhT62J+IoYvoPnXLVgMjSnrImveWjHaI8IzXogTuI98MiGzgHRAeHu+k+ecpOpKOEtHcNMWmJZ0ev6RQiZpwCR+nJ1H6rrwekCDSxSxk=
+	t=1707986302; cv=none; b=YBFtnCg66jTpdE7qDHCl6WCW1SEMJQb2l/WZVY5cwvZW8WadxVY6dPXj3p+GQhbocNLeuQuRm+yDB8aIeFs8Znu0zwUHvdztTePLlGz7f/BRlvC0YMDukP7yCsm6Co9LE32u22qgT38T2Ew0AFwPjO34NIqKNVUOTEMGe8rHer0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707986125; c=relaxed/simple;
-	bh=51gPRq1HfrR4plLEhUTgOYDdOUzBRcIj6h717BXCT/o=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=EmT9xND8T8mbSpe+ORSUKdEHBE8PqVkarX++q5aUxctCztpiXy8Qokd+Pxr6HyiP0yU7D61653LNiwhqpWdPSaPZA0uGeU/ZkcxTwEwbLkTCZVrVYlgVK5WHeL6Sr8AciMX+VTlvp1Jy4iz/0t0dYprNWNL/5XMX7nGFsdcgGVM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+	s=arc-20240116; t=1707986302; c=relaxed/simple;
+	bh=M7X6YK6X2E92H99JZPezWnY/1U5rh5yIgh70AyOycIM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Gi/JWFXrRwr9ho/AqnRAM/c4Wzy9TOwkEXQplIjwbTKUBpAo+jdk5May1JpSMgS0j+k22GN6GF5nHvUL3HfEE6gi3uTsEf0egNy/Rq45wS1ZNpn9Hlva5LKuthrXrfROHy9q0eyxRt6xvoDQ1zns9Xi6/Xk7G9y+dqBl6y+1G/M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1raXDE-0006rv-RP; Thu, 15 Feb 2024 09:35:20 +0100
+	(envelope-from <fw@strlen.de>)
+	id 1raXG6-0006sx-Hm; Thu, 15 Feb 2024 09:38:18 +0100
+Date: Thu, 15 Feb 2024 09:38:18 +0100
 From: Florian Westphal <fw@strlen.de>
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next] netfilter: nft_set_pipapo: use GFP_KERNEL for insertions
-Date: Thu, 15 Feb 2024 09:35:11 +0100
-Message-ID: <20240215083516.54083-1-fw@strlen.de>
-X-Mailer: git-send-email 2.43.0
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, sbrivio@redhat.com
+Subject: Re: [PATCH v2 nf-next 2/4] netfilter: nft_set_pipapo: do not rely on
+ ZERO_SIZE_PTR
+Message-ID: <20240215083818.GA25716@breakpoint.cc>
+References: <20240213152345.10590-1-fw@strlen.de>
+ <20240213152345.10590-3-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240213152345.10590-3-fw@strlen.de>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-An earlier attempt changed this to GFP_KERNEL, but the get helper is
-also called for get requests from userspace, which uses rcu.
+Florian Westphal <fw@strlen.de> wrote:
+> pipapo relies on kmalloc(0) returning ZERO_SIZE_PTR (i.e., not NULL
+> but pointer is invalid).
+> 
+> Rework this to not call slab allocator when we'd request a 0-byte
+> allocation.
+> 
+> While at it, also use GFP_KERNEL allocations here, this is only called
+> from control plane.
 
-Let the caller pass in the kmalloc flags to allow insertions
-to schedule if needed.
+For the record, Pablo points out this is incorrect, as "nft get element"
+holds rcu read lock and not the transaction mutex.
 
-Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nft_set_pipapo.c | 18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+Existing nftables shell tests trigger sleeping-while-atomic splat here.
 
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index 6118e4bba2ef..12ec44a6e115 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -507,6 +507,7 @@ bool nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
-  * @data:	Key data to be matched against existing elements
-  * @genmask:	If set, check that element is active in given genmask
-  * @tstamp:	timestamp to check for expired elements
-+ * @gfp:	the type of memory to allocate (see kmalloc).
-  *
-  * This is essentially the same as the lookup function, except that it matches
-  * key data against the uncommitted copy and doesn't use preallocated maps for
-@@ -517,7 +518,7 @@ bool nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
- static struct nft_pipapo_elem *pipapo_get(const struct net *net,
- 					  const struct nft_set *set,
- 					  const u8 *data, u8 genmask,
--					  u64 tstamp)
-+					  u64 tstamp, gfp_t gfp)
- {
- 	struct nft_pipapo_elem *ret = ERR_PTR(-ENOENT);
- 	struct nft_pipapo *priv = nft_set_priv(set);
-@@ -530,13 +531,13 @@ static struct nft_pipapo_elem *pipapo_get(const struct net *net,
- 	if (m->bsize_max == 0)
- 		return ret;
- 
--	res_map = kmalloc_array(m->bsize_max, sizeof(*res_map), GFP_ATOMIC);
-+	res_map = kmalloc_array(m->bsize_max, sizeof(*res_map), gfp);
- 	if (!res_map) {
- 		ret = ERR_PTR(-ENOMEM);
- 		goto out;
- 	}
- 
--	fill_map = kcalloc(m->bsize_max, sizeof(*res_map), GFP_ATOMIC);
-+	fill_map = kcalloc(m->bsize_max, sizeof(*res_map), gfp);
- 	if (!fill_map) {
- 		ret = ERR_PTR(-ENOMEM);
- 		goto out;
-@@ -614,7 +615,8 @@ nft_pipapo_get(const struct net *net, const struct nft_set *set,
- 	struct nft_pipapo_elem *e;
- 
- 	e = pipapo_get(net, set, (const u8 *)elem->key.val.data,
--		       nft_genmask_cur(net), get_jiffies_64());
-+		       nft_genmask_cur(net), get_jiffies_64(),
-+		       GFP_ATOMIC);
- 	if (IS_ERR(e))
- 		return ERR_CAST(e);
- 
-@@ -1275,7 +1277,7 @@ static int nft_pipapo_insert(const struct net *net, const struct nft_set *set,
- 	else
- 		end = start;
- 
--	dup = pipapo_get(net, set, start, genmask, tstamp);
-+	dup = pipapo_get(net, set, start, genmask, tstamp, GFP_KERNEL);
- 	if (!IS_ERR(dup)) {
- 		/* Check if we already have the same exact entry */
- 		const struct nft_data *dup_key, *dup_end;
-@@ -1297,7 +1299,8 @@ static int nft_pipapo_insert(const struct net *net, const struct nft_set *set,
- 
- 	if (PTR_ERR(dup) == -ENOENT) {
- 		/* Look for partially overlapping entries */
--		dup = pipapo_get(net, set, end, nft_genmask_next(net), tstamp);
-+		dup = pipapo_get(net, set, end, nft_genmask_next(net), tstamp,
-+				 GFP_KERNEL);
- 	}
- 
- 	if (PTR_ERR(dup) != -ENOENT) {
-@@ -1865,7 +1868,8 @@ static void *pipapo_deactivate(const struct net *net, const struct nft_set *set,
- {
- 	struct nft_pipapo_elem *e;
- 
--	e = pipapo_get(net, set, data, nft_genmask_next(net), nft_net_tstamp(net));
-+	e = pipapo_get(net, set, data, nft_genmask_next(net),
-+			nft_net_tstamp(net), GFP_KERNEL);
- 	if (IS_ERR(e))
- 		return NULL;
- 
--- 
-2.43.0
+> -	res_map = kmalloc_array(m->bsize_max, sizeof(*res_map), GFP_ATOMIC);
+> +	res_map = kmalloc_array(m->bsize_max, sizeof(*res_map), GFP_KERNEL);
 
+I've applied the patch without the GFP_KERNEL replacement, no other
+changes, shell tests pass after this.
