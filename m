@@ -1,193 +1,133 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B73871BDD8;
-	Fri, 16 Feb 2024 15:51:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8096279DA5
+	for <netfilter-devel@vger.kernel.org>; Fri, 16 Feb 2024 23:31:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708098681; cv=none; b=a20zS+amo3jaj/AixEeNY87o2D8+XGcvK6QGc29KvRJc4ungFET4NLZDJ55N6UygWyI3WVwxNXxvzkiDWmPgeg9HLdSxVjpcbB0lQEwU+10jDy1tSxzQkjxX5k3f5RHeHF6OBwdZSvXEK+uVGTt8r/wq2y5BAU49SWV1H5pePPk=
+	t=1708126296; cv=none; b=qk4RkhURfWVoHIfxIuDWqhPSN455aLZiS4gGV6eeAQyQ+gWneXfJyA3nAiLkhfuWpcx+mlvFaz/hqafhO4mDLFfRVcOGY2Jn7g6dNJJnn2lYC4BsnxpKsYC0C+zk0q3V9o3Kot1EseP1Tk3fOblPxEmJ20pU4VTf57hoa4YSKgA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708098681; c=relaxed/simple;
-	bh=ImiIy5Evv3Nxyd/izcaMTZ8MPvfs/HsZyGwb33wT+Ks=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=avfx3Y9r9/waCS62ioxGdGMZoSeylTMcmbBQPlpWevuOOhg5QrlCwJ/byCBHi6T8YjgzXk+uL8iCLrnLyTHbI4kDEvRxJ8mVLE8JD8NX7FDVxGnNMDUcfr8Ai4uCWh0Pmxm23+E3lvPdvsjFFbnZsewTvECGwbUxTVhkpG/ijtA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=pnncX3/Z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708126296; c=relaxed/simple;
+	bh=jOdQW5rW0KnYyOq1p/yDKH9PCkLL/4PmnhZS1DjdHKg=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=PXrq23pk5jGFMNd+97YoYLEtRqCiRt20Iw/+56iwdWALH3wjDhIP23CEFCYHk+Sd08zYoqu30H2lukbQognsny3BjcZud3sAvM1S8cCA/mMHmUG5D/XjPpEMHyymba1yfLKd6bLBL9d8JJDFbwGE7fLPm8i6kk/a92gwhhajaWE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=i6xb+ltJ; arc=none smtp.client-ip=209.85.214.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="pnncX3/Z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2782DC433F1;
-	Fri, 16 Feb 2024 15:51:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1708098681;
-	bh=ImiIy5Evv3Nxyd/izcaMTZ8MPvfs/HsZyGwb33wT+Ks=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=pnncX3/Za2GREO7aY1WTmfj55hE+A8jKqaDG8LvtWgtMKQVu1mf2J9b6T64fxqoKb
-	 B4HoLMSvfbOR5xVe4svweYAMt/KNDVz3SGwThQmxfXjMJThc5db0HSBHuKIZEDUB/P
-	 KL6CGqV6yqa5JjteoBue4q3Z0b5r39tONhVL6CeuCo4aPCEDKlk45MZYbgqbp4BEJT
-	 P3beH9qOOt8I58ZeacQvDXP6k16TsLv3J4nTcIP5+14C631Z4Ie6jh/z7NFE9r+CLJ
-	 mN/blqGgKXED2KhIyTj1wnQoGkHE4kpqW5qqrj9xv8NyHvFys1By1vjxaNhvkIJi65
-	 S254SMYtiel4w==
-Message-ID: <36253726-50ad-4d98-bf08-ee9fdb9a6fb1@kernel.org>
-Date: Fri, 16 Feb 2024 16:51:17 +0100
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="i6xb+ltJ"
+Received: by mail-pl1-f179.google.com with SMTP id d9443c01a7336-1d932f6ccfaso23170205ad.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 16 Feb 2024 15:31:34 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1708126294; x=1708731094; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=uN4qOGv2a6E3MQcDzEdcHEHjdiL8tvE8cOZTYxiPwL4=;
+        b=i6xb+ltJvOyyeoUSgcEbRjqGbQ+I+3C7PIufIW08s02wpB7G0GMPPlH7kA8ygfcKuK
+         TLz4Oa37GcJ8EOdxnOqqXixJHu4t/3W/OszBTnwRbhO6OqAVnaf5gXUroPb/Ed5VbmNP
+         5E+6nezOOxuFn9TEGvO9Qb2k9lKMu3FXn52v4=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1708126294; x=1708731094;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=uN4qOGv2a6E3MQcDzEdcHEHjdiL8tvE8cOZTYxiPwL4=;
+        b=N9Q1WR3/ijJAhnxsGodtQYzu+XYs2U0XU80S5R8VyOJwHDiJR3d+KRNeh7EOsRy/bE
+         45+LJ5uEA0kzph+sheNCgG7HR+O6ZOxXF1u1K3uf6B6nH4aIJOYutj/ACOlpeBDDTeRi
+         pI0kI4aw9GqmodFYligKLFvHqDE6wdB/mNUQFucbdthxX4WCAZpRbbMO5F3G2Y53PXk/
+         TC9aP5LCJtSCKI+75NMSfXEwqKyMo9lkOHz3tKkK0GQLle9Ssk4PmKWfesPUxf+8BKFQ
+         HskUS8HwTfMVGu5jGxFXxeZD9Whu1Ow1EH1O/h5cXBCn/pGcImPPtN04X0Cz+OYpzB3x
+         VnZg==
+X-Forwarded-Encrypted: i=1; AJvYcCVoEI6NWJ5e53X0DG8H4pJbrGWj2PNIQm7Lo1SZ+Dolb8B8Nsits4yba3qR7J6fRsExshVJOttBjmBBdNY1AtMfHa5Uxp7AqJk6WYWLAzax
+X-Gm-Message-State: AOJu0YyEL07NfKLSPaGgPHqcW6A/7uLSzX8cXF7oIj3PHeTKAXmv9C2G
+	vLuHkDsoeCqomss6ClPIQbmlyOWQEhNg9zyD29ttHju/67cKcv59ihJXVrL/oQ==
+X-Google-Smtp-Source: AGHT+IHYCWfbnUZ5HuqCPPkKFAYJgYB1thSC9ROdHinB5aTKmF0kNsJglIf3SEJgNPB6vkQ1wKYPdg==
+X-Received: by 2002:a17:902:a987:b0:1db:9c20:5c91 with SMTP id bh7-20020a170902a98700b001db9c205c91mr4503197plb.26.1708126293947;
+        Fri, 16 Feb 2024 15:31:33 -0800 (PST)
+Received: from www.outflux.net ([198.0.35.241])
+        by smtp.gmail.com with ESMTPSA id kn14-20020a170903078e00b001d8f82c61cdsm371747plb.231.2024.02.16.15.31.33
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 16 Feb 2024 15:31:33 -0800 (PST)
+From: Kees Cook <keescook@chromium.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Kees Cook <keescook@chromium.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	"Gustavo A . R . Silva" <gustavo@embeddedor.com>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-hardening@vger.kernel.org
+Subject: [PATCH] netfilter: x_tables: Use unsafe_memcpy() for 0-sized destination
+Date: Fri, 16 Feb 2024 15:31:32 -0800
+Message-Id: <20240216233128.work.366-kees@kernel.org>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [netfilter-core] [ANN] net-next is OPEN
-Content-Language: en-GB, fr-BE
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jakub Kicinski <kuba@kernel.org>,
- Willem de Bruijn <willemdebruijn.kernel@gmail.com>, netdev@vger.kernel.org,
- David Ahern <dsahern@kernel.org>, coreteam@netfilter.org,
- netdev-driver-reviewers@vger.kernel.org, Hangbin Liu <liuhangbin@gmail.com>,
- netfilter-devel@vger.kernel.org
-References: <20240123072010.7be8fb83@kernel.org>
- <d0e28c67-51ad-4da1-a6df-7ebdbd45cd2b@kernel.org>
- <65b133e83f53e_225ba129414@willemb.c.googlers.com.notmuch>
- <20240124082255.7c8f7c55@kernel.org> <20240124090123.32672a5b@kernel.org>
- <26616300-dc28-47d1-88bb-1c7247d1699d@kernel.org>
- <ZbFiixyMFpQnxzCH@calendula>
- <7a1014ee-7e1d-4be4-bab2-07ddde8a84b7@kernel.org>
- <ZcNSPoqQkMBenwue@calendula>
- <51bdbaab-a611-4f4d-aa8c-e004102220f3@kernel.org>
- <Zc+BYmrv/0pRKY+w@calendula>
-From: Matthieu Baerts <matttbe@kernel.org>
-Autocrypt: addr=matttbe@kernel.org; keydata=
- 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
- lzVbFe7fduHbABmYz9cefQpO7wDE/Q==
-Organization: NGI0 Core
-In-Reply-To: <Zc+BYmrv/0pRKY+w@calendula>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1607; i=keescook@chromium.org;
+ h=from:subject:message-id; bh=jOdQW5rW0KnYyOq1p/yDKH9PCkLL/4PmnhZS1DjdHKg=;
+ b=owEBbQKS/ZANAwAKAYly9N/cbcAmAcsmYgBlz/BT+pya3GeMtcIriH/e+CPxrqjEAzWQnu8l0
+ 3unAX1y/EiJAjMEAAEKAB0WIQSlw/aPIp3WD3I+bhOJcvTf3G3AJgUCZc/wUwAKCRCJcvTf3G3A
+ JucjD/9S6378diNRxHdllYwRjhQFF55zpJBsrgb5CoQpz4g3967S3N/XRb9FUCJZ2741ghKLG8G
+ vhnAD1P4VsHm3e1EQXMeNvyEC7ktk8kg3m3S3SEYfkRqdB31Y9GDL3wIXuLI5LBsVgKiAYJ7IeE
+ 2fv265fAcWTklZIr4VNCtl4x/x3dUxnFtQFDqgv5W13Qq+tpIMSSbDlNB8Dr+UP+VtFPiyO9GiZ
+ w5FgIxyTBZav+LGMzKcYVW7c7e3pFCUblaI+CQZu4mswl/D9D12KxufIjRwygnbGGFsC6VLDhAa
+ EYAZhf9lgWuRBf5oJQh/QiImTntMQOSskI4Tnw4H4CrSeN5q5Vf0Sqyyejrpsvl/UEAN2+FwLuQ
+ bQO0Jm7GBXXRWzJGIWZ2MJXpfCyxvbn/lO3Yf/jv2d5UB0yvtzThfT1OMTHGujGhGYNT+mlmTVv
+ FTH5UgFzIQMOcAtT/Dk/NcoAi80rt2suzgxoH9K6CYWTOenO7+hRm6PmsxB61y04NFpDKcpJ+x/
+ UYlIX8n6PtqsL4aI/Oj/JeZ7jo/cPwRDd8TSE0LGpAQPpOpiktvkX74hurPk7E1uQ+0J1e/Uetj
+ dc5DhHQUArhyuNWCIbo6B9SuKk2nyGqrB42oRb/sGXMx/uUqH7bmNp2xRV8Vf3qB9i+cpUc/bS5
+ +IoRHOC wkGajx1g==
+X-Developer-Key: i=keescook@chromium.org; a=openpgp; fpr=A5C3F68F229DD60F723E6E138972F4DFDC6DC026
+Content-Transfer-Encoding: 8bit
 
-Hi Pablo,
+The struct xt_entry_target fake flexible array has not be converted to a
+true flexible array, which is mainly blocked by it being both UAPI and
+used in the middle of other structures. In order to properly check for
+0-sized destinations in memcpy(), an exception must be made for the one
+place where it is still a destination. Since memcpy() was already
+skipping checks for 0-sized destinations, using unsafe_memcpy() is no
+change in behavior.
 
-Thank you for your reply!
+Signed-off-by: Kees Cook <keescook@chromium.org>
+---
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Gustavo A. R. Silva <gustavo@embeddedor.com>
+Cc: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org
+Cc: netdev@vger.kernel.org
+---
+ net/netfilter/x_tables.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-On 16/02/2024 16:38, Pablo Neira Ayuso wrote:
-> Hi,
-> 
-> Sorry for taking a while.
-> 
-> On Wed, Feb 07, 2024 at 12:33:44PM +0100, Matthieu Baerts wrote:
->> Hi Pablo,
->>
->> Thank you for your reply!
->>
->> On 07/02/2024 10:49, Pablo Neira Ayuso wrote:
->>> Hi Matthieu,
->>>
->>> On Tue, Feb 06, 2024 at 07:31:44PM +0100, Matthieu Baerts wrote:
->>> [...]
->>>> Good point, I understand it sounds better to use 'iptables-nft' in new
->>>> kselftests. I should have added a bit of background and not just a link
->>>> to this commit: at that time (around ~v6.4), we didn't need to force
->>>> using 'iptables-legacy' on -net or net-next tree. But we needed that
->>>> when testing kernels <= v5.15.
->>>>
->>>> When validating (old) stable kernels, the recommended practice is
->>>> apparently [1] to use the kselftests from the last stable version, e.g.
->>>> using the kselftests from v6.7.4 when validating kernel v5.15.148. The
->>>> kselftests are then supposed to support older kernels, e.g. by skipping
->>>> some parts if a feature is not available. I didn't know about that
->>>> before, and I don't know if all kselftests devs know about that.
->>>
->>> We are sending backports to stable kernels, if one stable kernel
->>> fails, then we have to fix it.
->>
->> Do you validate stable kernels by running the kselftests from the same
->> version (e.g. both from v5.15.x) or by using the kselftests from the
->> last stable one (e.g. kernel v5.15.148 validated using the kselftests
->> from v6.7.4)?
-> 
-> We have kselftests, but nftables/tests/shell probe for kernel
-> capabilities then it runs tests according to what the kernel
-> supports, this includes packet and control plane path tests. For
-> iptables, there are iptables-tests.py for the control plane path.
-
-That's great! It is good to support all the different kernels.
-
->>>> I don't think that's easy to support old kernels, especially in the
->>>> networking area, where some features/behaviours are not directly exposed
->>>> to the userspace. Some MPTCP kselftests have to look at /proc/kallsyms
->>>> or use other (ugly?) workarounds [2] to predict what we are supposed to
->>>> have, depending on the kernel that is being used. But something has to
->>>> be done, not to have big kselftests, with many different subtests,
->>>> always marked as "failed" when validating new stable releases.
->>>
->>> iptables-nft is supported in all of the existing stable kernels.
->>
->> OK, then we should not have had the bug we had. I thought we were using
->> features that were not supported in v5.15.
-> 
-> I don't think so, iptables-nft supports the same features as
-> iptables-legacy.
-
-We were probably unlucky and hit a kernel/userspace bug that has been
-fixed in between, sorry for the noise!
-
->>>> Back to the modification to use 'iptables-legacy', maybe a kernel config
->>>> was missing, but the same kselftest, with the same list of kconfig to
->>>> add, was not working with the v5.15 kernel, while everything was OK with
->>>> a v6.4 one. With 'iptables-legacy', the test was running fine on both. I
->>>> will check if maybe an old kconfig option was not missing.
->>>
->>> I suspect this is most likely kernel config missing, as it happened to Jakub.
->>
->> Probably, yes. I just retried by testing a v5.15.148 kernel using the
->> kselftests from the net-next tree and forcing iptables-nft: I no longer
->> have the issue I had one year ago. Not sure why, we already had
->> NFT_COMPAT=m back then. Maybe because we recently added IP_NF_FILTER and
->> similar, because we noticed some CI didn't have them?
->> Anyway, I will then switch back to iptables-nft. Thanks for the suggestion!
-> 
-> Thanks. If you experience any issue, report back to netfilter-devel@
-
-Will do, thank you!
-
-Cheers,
-Matt
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 21624d68314f..da5d929c7c85 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1142,7 +1142,8 @@ void xt_compat_target_from_user(struct xt_entry_target *t, void **dstptr,
+ 	if (target->compat_from_user)
+ 		target->compat_from_user(t->data, ct->data);
+ 	else
+-		memcpy(t->data, ct->data, tsize - sizeof(*ct));
++		unsafe_memcpy(t->data, ct->data, tsize - sizeof(*ct),
++			      /* UAPI 0-sized destination */);
+ 
+ 	tsize += off;
+ 	t->u.user.target_size = tsize;
 -- 
-Sponsored by the NGI0 Core fund.
+2.34.1
+
