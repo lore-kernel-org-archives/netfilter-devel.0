@@ -1,100 +1,124 @@
-Received: from mail-pg1-f175.google.com (mail-pg1-f175.google.com [209.85.215.175])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 889FC125C1
-	for <netfilter-devel@vger.kernel.org>; Fri, 16 Feb 2024 01:41:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DA4C134751;
+	Fri, 16 Feb 2024 15:38:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708047702; cv=none; b=XvK6dI3md67nF7d0PlH8UdWXyeH9+TGupC82S2gwtQyPu/gFfW9wokomIn7XYs4n0jsaPWat2a7BFqx0pVkZwqTzkl1Eg5rgkmX10RjUyfPc4/NxJGMsRw1MJdKcodYbme4s8Vpyyl0kocWzNiGYC4OBKii2I6uVhOc+moHHxKA=
+	t=1708097904; cv=none; b=A4U/fUAZkwz8YlImfoiN3si/ucRBilQw6C+ePEb6he92vNpockkGuCwtJ4XDi+aabai3qT7cD04t5k4jL1GvJez83DUVgx6HQJl+2rxOM9HYkdXJV+Vbjv+neh8D1iG5Qfx2zZatTdohuFC02Hrr4MQCaBZGI6T0u8OtUOViVvE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708047702; c=relaxed/simple;
-	bh=D3cj0EChgj9OZf8mGLg0v7Xb24JtZc+4hGeZWPv2fmA=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=VnHIKxB0ZqLCgR82FZP2j+aBxRdljbmYaakWKK3f8F45e/KHsI82WWdjtl5advvaPKxPvDcHXuRkvsvlIhb8VmjO04pD7XYr5W5mPdco1lIPMEa24k+dX2MYSOB0qvye6i/ltlgdf1lQ8JPXsPvJxMhivqRBfiKs51N/j0Uc8ak=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=CJ7vhix4; arc=none smtp.client-ip=209.85.215.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CJ7vhix4"
-Received: by mail-pg1-f175.google.com with SMTP id 41be03b00d2f7-5dbcfa0eb5dso1418919a12.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Feb 2024 17:41:40 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1708047700; x=1708652500; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=my91kn751UWNWnwDukeAxrBgyCOwJRSWbR3JQ8gB+UY=;
-        b=CJ7vhix42FqYsfmUF7ommpIGeM3CDT0RGDHt0o8b7QcrYIIjlzMKk4hEdASehcVRGI
-         0Udqivututjye0FT1AfTIHEUjiajoYx6rnQNPF35Ph7k047JdVyfvwPvup8gfzS8r74t
-         cJb/jsHUzss2Er4AZMlRGOsoAilMDH54H+XvQNG0UlQe8YzK70pMIs/YvmCf0kOYBKqS
-         KHKYOzmqVKn4EfhRVWJfRGe2D60uGttlqgZOK7cfMs3PkXZmOnspNWTzKHFvx7IUhjN8
-         qZxnE+hsO0S5dxB2/TjxiV6sIj2so/4QjZaI2k7xuGXpVY+pkjeCLafdLzL7DPQjCABF
-         YmzQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1708047700; x=1708652500;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=my91kn751UWNWnwDukeAxrBgyCOwJRSWbR3JQ8gB+UY=;
-        b=HogNIgS/NVr+ZeR+I2Codsj1jyLSAOo1Dhn8rBAdz6LaCoxmxJGg2hZ214Q8s4Ahe4
-         vADkeePETdpgTNkjgm3Ls6DRBmblSbbwDb3FEEl6AL3VouoPZ47Rda/fP7X7YE+BLfOR
-         AP0oLtyvGwsIrho/VP6taQ8qV1Z1sSGHdANpEAHm1hYRAFdp0oB9UXOX4W+8GkjL94AB
-         lzH04YvwgzwPm+OeUABUcQGsQBuOr+iKTF1pOL/zc6HNIHgFl+aMjkeBxUINFu4VX/SI
-         8YC/QiKH46N720wNH3iY6weQlmbt7sc/MXCiTQyEkyeaa67B+Lx0YSfI0jV1qrpPUv9T
-         WDyQ==
-X-Gm-Message-State: AOJu0Yw9OcxLtUwsf5JITwyALJ+9SX4mkOObrsQSUAmrsz4sU173IWr/
-	SXOsuFTUvquhtQs+M2pwrMljJNQkTSl4HJTxkIp2ujBoF31ug4pxxhMuOp5N
-X-Google-Smtp-Source: AGHT+IEvc94WoMpAH/A87ra70LIjAJW54Fb6pgiqEd7o91jx/Kj2Zj2/Ggghp7zZSAyK77hDxSM65g==
-X-Received: by 2002:a05:6a21:1583:b0:19e:cae4:7c07 with SMTP id nr3-20020a056a21158300b0019ecae47c07mr4406610pzb.45.1708047699739;
-        Thu, 15 Feb 2024 17:41:39 -0800 (PST)
-Received: from slk15.local.net (n58-108-84-186.meb1.vic.optusnet.com.au. [58.108.84.186])
-        by smtp.gmail.com with ESMTPSA id l23-20020a17090a3f1700b00298f2ad430csm2333081pjc.0.2024.02.15.17.41.37
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 15 Feb 2024 17:41:39 -0800 (PST)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From: Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
-Date: Fri, 16 Feb 2024 12:41:35 +1100
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libnetfilter_queue 1/1] Convert libnetfilter_queue to use
- entirely libmnl functions
-Message-ID: <Zc69T21ekMhEbjZ1@slk15.local.net>
-Reply-To: duncan_roe@optusnet.com.au
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <20240213210706.4867-1-duncan_roe@optusnet.com.au>
- <20240213210706.4867-2-duncan_roe@optusnet.com.au>
- <ZcyaQvJ1SvnYgakf@calendula>
+	s=arc-20240116; t=1708097904; c=relaxed/simple;
+	bh=v/umiByrbo+UMHmoZPas/+iyEgbA76j9zUbPB2HafrE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=tEhMhNrSx0exhbPldMR0vmsMq7ZK9z4gjleFNQ/cEdMJ3U+/uxnylzto/0+0fMcHGC9ueU5dSn5eP2FayZJkCD0Fi9qjKFu9xgLptnPxjXDOAJcafv1FMBEiGCGbOJL302w1OQsgJrNsypq12WwGccJGuZQjoO6A1u7t3O/k2Sc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.41.52] (port=38106 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1rb0Hy-004Gjh-Uo; Fri, 16 Feb 2024 16:38:13 +0100
+Date: Fri, 16 Feb 2024 16:38:10 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Matthieu Baerts <matttbe@kernel.org>
+Cc: Jakub Kicinski <kuba@kernel.org>,
+	Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
+	netdev@vger.kernel.org, David Ahern <dsahern@kernel.org>,
+	coreteam@netfilter.org, netdev-driver-reviewers@vger.kernel.org,
+	Hangbin Liu <liuhangbin@gmail.com>, netfilter-devel@vger.kernel.org
+Subject: Re: [netfilter-core] [ANN] net-next is OPEN
+Message-ID: <Zc+BYmrv/0pRKY+w@calendula>
+References: <20240123072010.7be8fb83@kernel.org>
+ <d0e28c67-51ad-4da1-a6df-7ebdbd45cd2b@kernel.org>
+ <65b133e83f53e_225ba129414@willemb.c.googlers.com.notmuch>
+ <20240124082255.7c8f7c55@kernel.org>
+ <20240124090123.32672a5b@kernel.org>
+ <26616300-dc28-47d1-88bb-1c7247d1699d@kernel.org>
+ <ZbFiixyMFpQnxzCH@calendula>
+ <7a1014ee-7e1d-4be4-bab2-07ddde8a84b7@kernel.org>
+ <ZcNSPoqQkMBenwue@calendula>
+ <51bdbaab-a611-4f4d-aa8c-e004102220f3@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <ZcyaQvJ1SvnYgakf@calendula>
+In-Reply-To: <51bdbaab-a611-4f4d-aa8c-e004102220f3@kernel.org>
+X-Spam-Score: -1.9 (-)
 
-Hi Pablo,
+Hi,
 
-On Wed, Feb 14, 2024 at 11:47:30AM +0100, Pablo Neira Ayuso wrote:
-> Hi Duncan,
-[...]
-> because this conversion to libmnl _cannot_ break existing userspace
-> applications, that's the challenge.
->
-Absolutely. utils/nfqnl_test.c builds and runs, are there any other examples I
-could try?
+Sorry for taking a while.
 
-Userspace applications *will* break if they either
+On Wed, Feb 07, 2024 at 12:33:44PM +0100, Matthieu Baerts wrote:
+> Hi Pablo,
+> 
+> Thank you for your reply!
+> 
+> On 07/02/2024 10:49, Pablo Neira Ayuso wrote:
+> > Hi Matthieu,
+> > 
+> > On Tue, Feb 06, 2024 at 07:31:44PM +0100, Matthieu Baerts wrote:
+> > [...]
+> >> Good point, I understand it sounds better to use 'iptables-nft' in new
+> >> kselftests. I should have added a bit of background and not just a link
+> >> to this commit: at that time (around ~v6.4), we didn't need to force
+> >> using 'iptables-legacy' on -net or net-next tree. But we needed that
+> >> when testing kernels <= v5.15.
+> >>
+> >> When validating (old) stable kernels, the recommended practice is
+> >> apparently [1] to use the kselftests from the last stable version, e.g.
+> >> using the kselftests from v6.7.4 when validating kernel v5.15.148. The
+> >> kselftests are then supposed to support older kernels, e.g. by skipping
+> >> some parts if a feature is not available. I didn't know about that
+> >> before, and I don't know if all kselftests devs know about that.
+> > 
+> > We are sending backports to stable kernels, if one stable kernel
+> > fails, then we have to fix it.
+> 
+> Do you validate stable kernels by running the kselftests from the same
+> version (e.g. both from v5.15.x) or by using the kselftests from the
+> last stable one (e.g. kernel v5.15.148 validated using the kselftests
+> from v6.7.4)?
 
-1. Call libnfnetlink nfnl_* functions directly (other than nfnl_rcvbufsiz())
+We have kselftests, but nftables/tests/shell probe for kernel
+capabilities then it runs tests according to what the kernel
+supports, this includes packet and control plane path tests. For
+iptables, there are iptables-tests.py for the control plane path.
 
-  OR
+> >> I don't think that's easy to support old kernels, especially in the
+> >> networking area, where some features/behaviours are not directly exposed
+> >> to the userspace. Some MPTCP kselftests have to look at /proc/kallsyms
+> >> or use other (ugly?) workarounds [2] to predict what we are supposed to
+> >> have, depending on the kernel that is being used. But something has to
+> >> be done, not to have big kselftests, with many different subtests,
+> >> always marked as "failed" when validating new stable releases.
+> > 
+> > iptables-nft is supported in all of the existing stable kernels.
+> 
+> OK, then we should not have had the bug we had. I thought we were using
+> features that were not supported in v5.15.
 
-2. Call nfq_open_nfnl()
+I don't think so, iptables-nft supports the same features as
+iptables-legacy.
 
-Is that acceptable?
+> >> Back to the modification to use 'iptables-legacy', maybe a kernel config
+> >> was missing, but the same kselftest, with the same list of kconfig to
+> >> add, was not working with the v5.15 kernel, while everything was OK with
+> >> a v6.4 one. With 'iptables-legacy', the test was running fine on both. I
+> >> will check if maybe an old kconfig option was not missing.
+> > 
+> > I suspect this is most likely kernel config missing, as it happened to Jakub.
+> 
+> Probably, yes. I just retried by testing a v5.15.148 kernel using the
+> kselftests from the net-next tree and forcing iptables-nft: I no longer
+> have the issue I had one year ago. Not sure why, we already had
+> NFT_COMPAT=m back then. Maybe because we recently added IP_NF_FILTER and
+> similar, because we noticed some CI didn't have them?
+> Anyway, I will then switch back to iptables-nft. Thanks for the suggestion!
 
-Cheers ... Duncan.
+Thanks. If you experience any issue, report back to netfilter-devel@
