@@ -1,68 +1,86 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb1-f179.google.com (mail-yb1-f179.google.com [209.85.219.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55EE544C70;
-	Mon, 19 Feb 2024 17:19:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 164DA537E3
+	for <netfilter-devel@vger.kernel.org>; Mon, 19 Feb 2024 20:55:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708363161; cv=none; b=eI8G+beuqTaSr7ywlUakxTmBfKSg/WocIKeAA1ZnFNNSJKhb/kkFUEC7VhU/0lTZsCCP+LZA+J7nLF6J1UtiPcZ3iEgtOngtYvhuDedonzoTmQylXtecBoblrmB6CvOlzlaSKN8CvkUUWUfKeZ5Ov59sTKN1l8KpiWalPpIA9XM=
+	t=1708376102; cv=none; b=pp/FRWr1FBDsv/BqKLtFY6gSQwno6AxP8S3lkb0kLLSdMVcPxsEHomR6U07zQ0jsjylOdSqHqzEup8MrL8SkCnSAM8Gaod6mONaaqKUisRZ4l6dIxuZd9bdaaIW5IPJkbMVQYUPkLq93TXsa8aFK5wKFQaQgf1I95VpwFMyoO1s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708363161; c=relaxed/simple;
-	bh=6JXZWExM5zRAitroyxUGPwJV90fJfV2ON2sr9M8S0mU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=k3kMP4akg8P86imyCQys36Pa0FPbBeAn4iwtk8amBIlAGziw61DM4hCtPMrhdPWi9j35ms8h2N8QeWA274gsu2SgIcKdjcMoiG1DHyLK2R35ce24cpAcTcpJRQEpsRekP/D0IStzmF4vXP88ougmsEc43pzt0+oIHyYLqqVSiUc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=J6uvawix; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708376102; c=relaxed/simple;
+	bh=PRWFNSl5rdyh0LIam4lOCvZVzrH50yS0VHN/syfc6O0=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=QVaFOkKLFiYMIJ+Q/Tz6HyLWU6r06mBBotSaJXR8g62Qm+9qHJPhlXxzpvfKyziSq+PPjL/thK2cySPKOmSmpLJ089zipY+SNNyvJ5jn413eyzc6lEPbs/2WDdBhHuDjWdOaCwJPih/Dxv3T1I46d0i5svrUEw9U6m8LxF7kGW0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mojatatu.com; spf=none smtp.mailfrom=mojatatu.com; dkim=pass (2048-bit key) header.d=mojatatu-com.20230601.gappssmtp.com header.i=@mojatatu-com.20230601.gappssmtp.com header.b=wZQgpTdg; arc=none smtp.client-ip=209.85.219.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mojatatu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=mojatatu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="J6uvawix"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3647AC433F1;
-	Mon, 19 Feb 2024 17:19:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1708363161;
-	bh=6JXZWExM5zRAitroyxUGPwJV90fJfV2ON2sr9M8S0mU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=J6uvawixlaFBjUq1IQMwYzKZIjt9Eywp0GmxEDsidINoTfYEUVjIr9EzIjpE+89SP
-	 RtZPgnDEkAvt/hTOTObZHCYflata7pRnZVE7h8Rlk5HOexV2y5DM+DPv2VY2Q9IybC
-	 h/BOog0wGukp2bzI5CP1tyC5FZsD/F23zEJbocaWLzspbMQJcQL+fsgrAI4F0BQiWR
-	 7PPiPDtRGISQXd68efdyrXwQKdgR4TAwK3shDGi1wzulx5iIDeVhYg+WxlCK25iOpa
-	 O7VtgenW15VmCNXQ/zrQoRfZ957j9fySDZO3gSB4ZXEZMB+fizAJHHGr7y1RydbqgH
-	 xdanfUqYnhLHw==
-Date: Mon, 19 Feb 2024 17:17:46 +0000
-From: Simon Horman <horms@kernel.org>
-To: Kees Cook <keescook@chromium.org>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	"Gustavo A . R . Silva" <gustavo@embeddedor.com>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-hardening@vger.kernel.org
-Subject: Re: [PATCH] netfilter: x_tables: Use unsafe_memcpy() for 0-sized
- destination
-Message-ID: <20240219171746.GI40273@kernel.org>
-References: <20240216233128.work.366-kees@kernel.org>
+	dkim=pass (2048-bit key) header.d=mojatatu-com.20230601.gappssmtp.com header.i=@mojatatu-com.20230601.gappssmtp.com header.b="wZQgpTdg"
+Received: by mail-yb1-f179.google.com with SMTP id 3f1490d57ef6-d9b9adaf291so2960620276.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 19 Feb 2024 12:55:00 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=mojatatu-com.20230601.gappssmtp.com; s=20230601; t=1708376100; x=1708980900; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=PRWFNSl5rdyh0LIam4lOCvZVzrH50yS0VHN/syfc6O0=;
+        b=wZQgpTdg1IXJW+3pJz2pDeRelZJStxFfeYZwj1TCN3I9wndQLgPucomWofYrPaG3ye
+         +/i5OWWAQwr8w3FVbI4IQli6X+Y9dQ3lgZPko67X+9SlAG5U0R0Fa3g3zS5yVTkgRHc/
+         Sxa6Wj6TkMok77tlYPsMR6ptSswjiWksNxA/Bx879L2xSJDBetC2k2JeEbdptMOjbmh+
+         C2pVGUpE6qYSeOKe8OjSjNHGTc2EFqEOU1fJACWhjaWcM+vqfFpwm42cqDTvBitgmnZz
+         Rwlpb8/XaRaWmpJj5UX8gewFS0sfKbZO2WjGobr9/dMI0eshFakhNB9rDyc35HJA28po
+         YXiA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1708376100; x=1708980900;
+        h=cc:to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=PRWFNSl5rdyh0LIam4lOCvZVzrH50yS0VHN/syfc6O0=;
+        b=BZQ7ROWCTkRnayuaAdCxx5D5YhKt34BcqlG6vhcNRMy5EISBExDfbewGk0KWTQUBoM
+         nH7SnWBHhmG7V8l+7afi3u0zKl4Mr4s1/uA6kS8kiilEHsCWDeZM8/HKL7pk4XncvqYV
+         SKc4VPmiIOOXJUNmobDUSYZTqxeB363iuZ3hn7AhE+iRr/2V9iLrD5tTGOI+38xR6GHG
+         o/euwHi19zNLMGXxIDBSV2CjZEVUIDmh7iVHF2bioislVmyxpv2SjhzFwlF4Kw3rRZQK
+         3qDmVT7N61SpQ08sMo/Hv9ghhIRhx8Ys8/lrQAt2Q62iNTlNDTjbvUDVSpxYH+WQtcde
+         09CA==
+X-Forwarded-Encrypted: i=1; AJvYcCUWrvnJXsmy5mIyE0TfDG2I8Mgy2JSIkNCMoNtuF7ZIw9Erj9vSZ/4unZX6bboqTSjfp71JLA4Xm/79MsaXDawB5iE+WL5s5GDiD1HtjeyB
+X-Gm-Message-State: AOJu0YwufDvVfQ3VqU70K80Iwwo7FUppvadrlX5n+xwJvSj9vBDP3rt8
+	M/zi9eYY6IPcTp3QRe2NDOl0Hvv+2DiS/PPCxhhTMjZLamGDLwHHDzWQkpE04vzZn+R6x0lKIFx
+	QrTnipLo2lI6tyqlHsFVZxSuaee2jERe3laQk
+X-Google-Smtp-Source: AGHT+IEYs9O4Ab1yXvBQtfWhC5ZqPyatv9UEtkAwagoVjMYA+WQEKbhT/qSO3Lxx5Ueqx9uSy89tetRorYJ3R+zsRQo=
+X-Received: by 2002:a5b:18d:0:b0:dc6:e75d:d828 with SMTP id
+ r13-20020a5b018d000000b00dc6e75dd828mr10375199ybl.18.1708376100043; Mon, 19
+ Feb 2024 12:55:00 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240216233128.work.366-kees@kernel.org>
+From: Jamal Hadi Salim <jhs@mojatatu.com>
+Date: Mon, 19 Feb 2024 15:54:49 -0500
+Message-ID: <CAM0EoMm1Vff3hLrLEySnL=bfa6vr3BRJd7L+TjiN5zsAY_As1g@mail.gmail.com>
+Subject: CFS for Netdev Conf 0x18 open!
+To: people <people@netdevconf.info>
+Cc: Linux Kernel Network Developers <netdev@vger.kernel.org>, Christie Geldart <christie@ambedia.com>, 
+	Kimberley Jeffries <kimberleyjeffries@gmail.com>, lwn@lwn.net, 
+	Lael Santos <lael.santos@expertisesolutions.com.br>, 
+	"board@netdevconf.org" <board@netdevconf.info>, linux-wireless <linux-wireless@vger.kernel.org>, 
+	netfilter-devel@vger.kernel.org, lartc@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-On Fri, Feb 16, 2024 at 03:31:32PM -0800, Kees Cook wrote:
-> The struct xt_entry_target fake flexible array has not be converted to a
-> true flexible array, which is mainly blocked by it being both UAPI and
-> used in the middle of other structures. In order to properly check for
-> 0-sized destinations in memcpy(), an exception must be made for the one
-> place where it is still a destination. Since memcpy() was already
-> skipping checks for 0-sized destinations, using unsafe_memcpy() is no
-> change in behavior.
-> 
-> Signed-off-by: Kees Cook <keescook@chromium.org>
+We are pleased to announce the opening of Call For Submissions(CFS)
+for Netdev conf 0x18.
+Netdev conf 0x18 is going to be a hybrid conference with the physical
+component being in Silicon Valley, .ca.usa
 
-Reviewed-by: Simon Horman <horms@kernel.org>
+For overview of topics, submissions and requirements please visit:
+https://netdevconf.info/0x18/pages/submit-proposal.html
+For all submitted sessions, we employ a blind review process carried
+out by the Program Committee.
 
+Important dates:
+Closing of CFS: Mon, Apr 22nd, 2024.
+Notification by: Wed, May 1st, 2024.
+Conference dates: July 15th - 19th, 2024.
+
+Please take this opportunity to share your work and ideas with the community
+
+cheers,
+jamal (on behalf of the Netdev Society)
