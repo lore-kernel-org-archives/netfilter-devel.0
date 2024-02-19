@@ -1,65 +1,68 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3B7D3A1BF
-	for <netfilter-devel@vger.kernel.org>; Mon, 19 Feb 2024 15:59:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55EE544C70;
+	Mon, 19 Feb 2024 17:19:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708358347; cv=none; b=plYeIlnKyGBlqbUTmGpZum0m7LAHpTAl8XRG51KstDVwfNgG8x/m8IB2wo/ss388PrD78+ez7HYcbrDAahSA92HFts5TMQVuyOcGpbhs6l5cbfey8gZW4dATcYIqJUmX9K6/lOaGPMs4Z64Fjfr2OUTWiZzvJHBdIo20S7LwItI=
+	t=1708363161; cv=none; b=eI8G+beuqTaSr7ywlUakxTmBfKSg/WocIKeAA1ZnFNNSJKhb/kkFUEC7VhU/0lTZsCCP+LZA+J7nLF6J1UtiPcZ3iEgtOngtYvhuDedonzoTmQylXtecBoblrmB6CvOlzlaSKN8CvkUUWUfKeZ5Ov59sTKN1l8KpiWalPpIA9XM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708358347; c=relaxed/simple;
-	bh=tJpknELIUjGb3hTlK4222744anHl+ML3H/CQqxdtIso=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=iousil1Izu/3gpB0FwOV89o5ONcEwkgFbmfVzcUw33lf11ZEF+9NbQybCXybd5Cl1okXT19s1du9a0LUWc6qUXWKkQBEEwrZ0Cmij523ZKn/WO0ZmKU3yhotpdhjukUs2i/Wx2ts/SFi+W+BeqtcIImK7kjLo8foriFCa97n9tI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1rc62k-0005iI-C4; Mon, 19 Feb 2024 16:58:58 +0100
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	syzbot+de4025c006ec68ac56fc@syzkaller.appspotmail.com
-Subject: [PATCH nf] netfilter: nf_tables: set dormant flag on hook register failure
-Date: Mon, 19 Feb 2024 16:58:04 +0100
-Message-ID: <20240219155809.9651-1-fw@strlen.de>
-X-Mailer: git-send-email 2.43.0
+	s=arc-20240116; t=1708363161; c=relaxed/simple;
+	bh=6JXZWExM5zRAitroyxUGPwJV90fJfV2ON2sr9M8S0mU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=k3kMP4akg8P86imyCQys36Pa0FPbBeAn4iwtk8amBIlAGziw61DM4hCtPMrhdPWi9j35ms8h2N8QeWA274gsu2SgIcKdjcMoiG1DHyLK2R35ce24cpAcTcpJRQEpsRekP/D0IStzmF4vXP88ougmsEc43pzt0+oIHyYLqqVSiUc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=J6uvawix; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="J6uvawix"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3647AC433F1;
+	Mon, 19 Feb 2024 17:19:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1708363161;
+	bh=6JXZWExM5zRAitroyxUGPwJV90fJfV2ON2sr9M8S0mU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=J6uvawixlaFBjUq1IQMwYzKZIjt9Eywp0GmxEDsidINoTfYEUVjIr9EzIjpE+89SP
+	 RtZPgnDEkAvt/hTOTObZHCYflata7pRnZVE7h8Rlk5HOexV2y5DM+DPv2VY2Q9IybC
+	 h/BOog0wGukp2bzI5CP1tyC5FZsD/F23zEJbocaWLzspbMQJcQL+fsgrAI4F0BQiWR
+	 7PPiPDtRGISQXd68efdyrXwQKdgR4TAwK3shDGi1wzulx5iIDeVhYg+WxlCK25iOpa
+	 O7VtgenW15VmCNXQ/zrQoRfZ957j9fySDZO3gSB4ZXEZMB+fizAJHHGr7y1RydbqgH
+	 xdanfUqYnhLHw==
+Date: Mon, 19 Feb 2024 17:17:46 +0000
+From: Simon Horman <horms@kernel.org>
+To: Kees Cook <keescook@chromium.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	"Gustavo A . R . Silva" <gustavo@embeddedor.com>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-hardening@vger.kernel.org
+Subject: Re: [PATCH] netfilter: x_tables: Use unsafe_memcpy() for 0-sized
+ destination
+Message-ID: <20240219171746.GI40273@kernel.org>
+References: <20240216233128.work.366-kees@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240216233128.work.366-kees@kernel.org>
 
-We need to set the dormant flag again if we fail to register
-the hooks.
+On Fri, Feb 16, 2024 at 03:31:32PM -0800, Kees Cook wrote:
+> The struct xt_entry_target fake flexible array has not be converted to a
+> true flexible array, which is mainly blocked by it being both UAPI and
+> used in the middle of other structures. In order to properly check for
+> 0-sized destinations in memcpy(), an exception must be made for the one
+> place where it is still a destination. Since memcpy() was already
+> skipping checks for 0-sized destinations, using unsafe_memcpy() is no
+> change in behavior.
+> 
+> Signed-off-by: Kees Cook <keescook@chromium.org>
 
-During memory pressure hook registration can fail and we end up
-with a table marked as active but no registered hooks.
-
-On table/base chain deletion, nf_tables will attempt to unregister
-the hook again which yields a warn splat from the nftables core.
-
-Reported-and-tested-by: syzbot+de4025c006ec68ac56fc@syzkaller.appspotmail.com
-Fixes: 179d9ba5559a ("netfilter: nf_tables: fix table flag updates")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_tables_api.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index f8e3f70c35bd..90038d778f37 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1251,6 +1251,7 @@ static int nf_tables_updtable(struct nft_ctx *ctx)
- 	return 0;
- 
- err_register_hooks:
-+	ctx->table->flags |= NFT_TABLE_F_DORMANT;
- 	nft_trans_destroy(trans);
- 	return ret;
- }
--- 
-2.43.0
+Reviewed-by: Simon Horman <horms@kernel.org>
 
