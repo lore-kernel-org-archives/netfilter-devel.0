@@ -1,151 +1,339 @@
-Received: from mail-io1-f70.google.com (mail-io1-f70.google.com [209.85.166.70])
+Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F97F17554
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 Feb 2024 14:31:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.70
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0135E6D1D8
+	for <netfilter-devel@vger.kernel.org>; Tue, 20 Feb 2024 14:55:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708439483; cv=none; b=NVT9xwoedE7Y53XqYdzbALf1U3pCdkke1WgylV4bdN4eIKUvxex+fECflhDvS+tNPQSJghY7sd2uGKf/Ollr0FhfqFuFJcLK3MQ/UrCugH5j/lFKSlw3K0WAe/TlX26ww1KuPx1eewMOe92GjC+dRcYEc34buQ97U1bIkmdcGQg=
+	t=1708440922; cv=none; b=JlvCDKQgnBw+GTjJlaAgn89nQUl0cjQmif0aBSiI5m1J1uDMrgYmN88gLJ5Joj+zWLJ8gfHzpWkBh7mkM9iD1elbPzxDKDv9YPoI6nfnWgchhNtmhFnDN3QfgiCjwToXDsEnT7cloaLEg783ofKIb3/QgstoVsBRzGO44iFsEHk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708439483; c=relaxed/simple;
-	bh=1Ku617Ug3TIkXzoKRdJUDcauPiB6tB464nbm+/XGfiI=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=Cs7fdsHF55LYnjdmUOvzDxH7o7NXOKFz01a4jMnp1SC8VywTjAjEuRclf8NqD4coUWqkiuqcqmSVmEKRwgzks48KVAHSoGt6XzzlfHzXS+JmZIrIRmN53jf4vrUf//OSQtBgpkFlIDrvWvSVUp+PyOJJ8kpTUI8A257qarQ+f/I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.70
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-io1-f70.google.com with SMTP id ca18e2360f4ac-7c751a35e4dso150649239f.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Feb 2024 06:31:22 -0800 (PST)
+	s=arc-20240116; t=1708440922; c=relaxed/simple;
+	bh=fCCMZKYJIvIq+/E3Q8v8QEX4oT3yakpoJ2fzALmJviw=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Djn1ux3P6hUbxm1l+Ow++kULiN5Shbgnw4dC3qNn0RQs7cJ5OFiJPMA7TV8Qw4sVCBKgT6avsEu8Y19tRY7+g+g3sDW6PeFvm6zETNJvH5AjNSh4m0ogEAZf5WxbbxewVFqTIA8kNhf8hHaPkUiL++JOsWDj5HlCRa9e3dTEAmo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cloudflare.com; spf=pass smtp.mailfrom=cloudflare.com; dkim=pass (2048-bit key) header.d=cloudflare.com header.i=@cloudflare.com header.b=LNaifaVa; arc=none smtp.client-ip=209.85.128.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cloudflare.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cloudflare.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=cloudflare.com header.i=@cloudflare.com header.b="LNaifaVa"
+Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-4127190ad83so2195965e9.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Feb 2024 06:55:19 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=cloudflare.com; s=google09082023; t=1708440918; x=1709045718; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=xXwTlB1Mz8S0yvA31jmRT6vO0iTxRThf8HVp1JeFxNg=;
+        b=LNaifaVaIwXa4Rfbi3MBiaxqmF1oNEM9yQpYGYRBQvYd74p8Mx2nwBHq+VeN5np+NT
+         b+8KIC0ovhcQUuKt/B3/9vBwxW/z5yoFAP/Diy/fwSMbdslDBxC2FPINcPf+kDQsZ54u
+         wwfBx/Kd+Bz2cTaiAwyHmp5i2KPdrXEhzbUzEXY8Ex8dA1SR0SrOC8n8RD4fUBzJtGMI
+         FRufWDzuKPI69P6q+0xwBaQUP9ZNJu5qFQoEyteLyjTf7XfmrcqasHfTeVOl5qZG1z8P
+         hLnjEz/3vQ9E2Yapc40EKvtFT+5otUyf1R/ekGq7J8hPSNbunLluMvQHOGWvsRSrawAA
+         A8LQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1708439481; x=1709044281;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=rK+JD4sM6GkbtXUauvK2wy7q/mG6x0dPYQMJQoe+q9A=;
-        b=pZbZ0mZrC0zTOz3gS9ZTlOcxUCEbRqqV9V0XcmnldTwEXuwlt11vA3YYhbJo9rWhiB
-         2+uHXT+WRLtdoEwPCoOZRo44gQMSIMajsruuhSAj0i3BJG2r4Gn1lD72aQp86GWyXOnS
-         pQkserOErJr/X23eItvKvWCgxwi3wLpSc1JnwbvU8uKLnyNFuH9uFvYT5VZLhQ09qSoH
-         zrQsINfRFVCpxBQKxsfgUsxtDs85NYTDdy5mBgKL35B8JevNC/nhRodGjSjdK+cx7/iY
-         +TsgvD+Tv9/yFwfCNogrk8S8iQGnZIeLb5wti9Q+DrtEguCuWhYt78CpMcKyXFvP8dst
-         ybbA==
-X-Forwarded-Encrypted: i=1; AJvYcCUZOiKuDHqMxN7iDjtpu4GNFKdrmZTmcv4anp0coon9M41YT4CByn+WnXQSrWQYk1jUiKguAZb8DSEzZyjMYqHL3PNMQbdRlcS+TVMfTTga
-X-Gm-Message-State: AOJu0YwMk5D932yqJLCtTi/BoZAiybZZ0D/4NjlRjA+qVio8NSgE6aq+
-	THa8TlKwKeB4Xfe9HmH0sevd17ht+wTf2IS9KERId0L8eAaFjg8VzEaXKhbN9rEbdJFaC2/Rwiz
-	V0cgjxhnRIG3+Kdwpl/iwMwpeftJIQ0GswABOCBLomN2WiM7Kqi6zhO0=
-X-Google-Smtp-Source: AGHT+IF78DcUKnNEHE/PHVeiSh2vVF1cahGnv8yWxefMMlQtm0HPEhjwGlPPR/jtz2ThXvoCK8+95NwASrmw1mlSaPprqr8t94Fd
+        d=1e100.net; s=20230601; t=1708440918; x=1709045718;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=xXwTlB1Mz8S0yvA31jmRT6vO0iTxRThf8HVp1JeFxNg=;
+        b=MwbyRJidOcev1xgDmTpY0NDStdxSQi+q4QyraunqTXnIjDcgl3bvsBgTN5od3RZExk
+         WnQzcQAlMr12ios5WyEnqopjnsX7I1OHinhAZ0iAil3Zz3FdVaT7rl5fbSPjGbhh+j0q
+         1zS8kfHp/eAyG/VYHS18t9VYLuqmQDk9JedSUJYmrPZFgN1sFaIYmgxgzSeJQOzV1Q9q
+         spI+toT7fYvaRNBWhOSTYnDgAhztf09uJE2EdaoOBFgt/8hivHP/8IdcVT0oMqAwVOas
+         BsjYnfIbTQCNGLHjBaO8fXCsazyWUPRkjuJNM/uQRfBO8xm7gHqIlLaZlHR64TPicAgu
+         GiPw==
+X-Forwarded-Encrypted: i=1; AJvYcCX+IG8tKmrdGluZt9heF4WkB6TmJEg0gCPaqTfNpXgzoiiJh7LMrHocQuzslRSWKkA+30udmgSrMXTJAAhWdm6GTDec9kCDzljokJkXzTIT
+X-Gm-Message-State: AOJu0YzAN2soQzi8t3TylNW5sauAi1GrgkcgFHJheJqXB02yHikZAovA
+	EHjCxQHEtsATIHFOKQDinNg4SgCX55VvsCnsJ5s/1aV/0Cf4rNfSKOGO5NMhUrFk7fnMdCzOk08
+	ynMs=
+X-Google-Smtp-Source: AGHT+IHxG74xnVWjpnGPFEvJ70Mkcc8VuGshOoOYxTUFt3lXxuJx7WzwFkEuxQA2zb7lFxHEt9qf/Q==
+X-Received: by 2002:a05:6000:1813:b0:33d:70a8:457d with SMTP id m19-20020a056000181300b0033d70a8457dmr933352wrh.30.1708440918302;
+        Tue, 20 Feb 2024 06:55:18 -0800 (PST)
+Received: from localhost.localdomain ([104.28.158.165])
+        by smtp.gmail.com with ESMTPSA id e6-20020adffd06000000b0033cf60e268fsm13659907wrr.116.2024.02.20.06.55.17
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Tue, 20 Feb 2024 06:55:17 -0800 (PST)
+From: Ignat Korchagin <ignat@cloudflare.com>
+To: pablo@netfilter.org,
+	kadlec@netfilter.org,
+	fw@strlen.de,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org
+Cc: kernel-team@cloudflare.com,
+	jgriege@cloudflare.com,
+	Ignat Korchagin <ignat@cloudflare.com>
+Subject: [PATCH v2] netfilter: nf_tables: allow NFPROTO_INET in nft_(match/target)_validate()
+Date: Tue, 20 Feb 2024 14:55:09 +0000
+Message-Id: <20240220145509.53357-1-ignat@cloudflare.com>
+X-Mailer: git-send-email 2.39.3 (Apple Git-145)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6638:4708:b0:473:dcbe:bb58 with SMTP id
- cs8-20020a056638470800b00473dcbebb58mr302126jab.4.1708439481496; Tue, 20 Feb
- 2024 06:31:21 -0800 (PST)
-Date: Tue, 20 Feb 2024 06:31:21 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000006a393d0611d11073@google.com>
-Subject: [syzbot] [netfilter?] KMSAN: uninit-value in __nla_validate_parse (3)
-From: syzbot <syzbot+3f497b07aa3baf2fb4d0@syzkaller.appspotmail.com>
-To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
-	fw@strlen.de, kadlec@netfilter.org, kuba@kernel.org, 
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-Hello,
+Commit d0009effa886 ("netfilter: nf_tables: validate NFPROTO_* family") added
+some validation of NFPROTO_* families in the nft_compat module, but it broke
+the ability to use legacy iptables modules in dual-stack nftables.
 
-syzbot found the following issue on:
+While with legacy iptables one had to independently manage IPv4 and IPv6 tables,
+with nftables it is possible to have dual-stack tables sharing the rules.
+Moreover, it was possible to use rules based on legacy iptables match/target
+modules in dual-stack nftables. Consider the following program:
 
-HEAD commit:    c1ca10ceffbb Merge tag 'scsi-fixes' of git://git.kernel.or..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=1120c23c180000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=e3dd779fba027968
-dashboard link: https://syzkaller.appspot.com/bug?extid=3f497b07aa3baf2fb4d0
-compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
+```
 
-Unfortunately, I don't have any reproducer for this issue yet.
+/* #define TBL_FAMILY NFPROTO_IPV4 */
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/83d019f0ac47/disk-c1ca10ce.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/49e05dd7a23d/vmlinux-c1ca10ce.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/68ec9fa2d33d/bzImage-c1ca10ce.xz
+/*
+ * creates something like below
+ * table inet testfw {
+ *   chain input {
+ *     type filter hook prerouting priority filter; policy accept;
+ *     bytecode counter packets 0 bytes 0 accept
+ *   }
+ * }
+ *
+ * compile:
+ * cc -o nftbpf nftbpf.c -lnftnl -lmnl
+ */
+int main(void)
+{
+    uint8_t buf[MNL_SOCKET_BUFFER_SIZE];
+    uint32_t seq, rule_seq, portid;
+    struct mnl_nlmsg_batch *batch;
+	struct nlmsghdr *nlh;
+	struct mnl_socket *nl;
+	int ret;
+	struct xt_bpf_info_v1 *xt_bpf_info = malloc(sizeof(*xt_bpf_info));
+	struct nftnl_expr *m, *cnt, *im;
+	struct nftnl_rule *r;
+	struct nftnl_chain *c;
+    struct nftnl_table *t = nftnl_table_alloc();
+    if (t == NULL) {
+        perror("TABLE OOM");
+        exit(EXIT_FAILURE);
+    }
+    nftnl_table_set_u32(t, NFTNL_TABLE_FAMILY, TBL_FAMILY);
+	nftnl_table_set_str(t, NFTNL_TABLE_NAME, TBL_NAME);
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+3f497b07aa3baf2fb4d0@syzkaller.appspotmail.com
+	c = nftnl_chain_alloc();
+	if (c == NULL) {
+		perror("CHAIN OOM");
+		exit(EXIT_FAILURE);
+	}
+	nftnl_chain_set_str(c, NFTNL_CHAIN_TABLE, TBL_NAME);
+	nftnl_chain_set_str(c, NFTNL_CHAIN_NAME, CHAIN_NAME);
+	nftnl_chain_set_u32(c, NFTNL_CHAIN_HOOKNUM, NF_INET_PRE_ROUTING);
+	nftnl_chain_set_u32(c, NFTNL_CHAIN_PRIO, 0);
 
-=====================================================
-BUG: KMSAN: uninit-value in nla_validate_range_unsigned lib/nlattr.c:222 [inline]
-BUG: KMSAN: uninit-value in nla_validate_int_range lib/nlattr.c:336 [inline]
-BUG: KMSAN: uninit-value in validate_nla lib/nlattr.c:575 [inline]
-BUG: KMSAN: uninit-value in __nla_validate_parse+0x2e20/0x45c0 lib/nlattr.c:631
- nla_validate_range_unsigned lib/nlattr.c:222 [inline]
- nla_validate_int_range lib/nlattr.c:336 [inline]
- validate_nla lib/nlattr.c:575 [inline]
- __nla_validate_parse+0x2e20/0x45c0 lib/nlattr.c:631
- __nla_parse+0x5f/0x70 lib/nlattr.c:728
- nla_parse_deprecated include/net/netlink.h:703 [inline]
- nfnetlink_rcv_msg+0x723/0xde0 net/netfilter/nfnetlink.c:275
- netlink_rcv_skb+0x371/0x650 net/netlink/af_netlink.c:2543
- nfnetlink_rcv+0x372/0x4950 net/netfilter/nfnetlink.c:659
- netlink_unicast_kernel net/netlink/af_netlink.c:1341 [inline]
- netlink_unicast+0xf49/0x1250 net/netlink/af_netlink.c:1367
- netlink_sendmsg+0x1238/0x13d0 net/netlink/af_netlink.c:1908
- sock_sendmsg_nosec net/socket.c:730 [inline]
- __sock_sendmsg net/socket.c:745 [inline]
- ____sys_sendmsg+0x9c2/0xd60 net/socket.c:2584
- ___sys_sendmsg+0x28d/0x3c0 net/socket.c:2638
- __sys_sendmsg net/socket.c:2667 [inline]
- __do_sys_sendmsg net/socket.c:2676 [inline]
- __se_sys_sendmsg net/socket.c:2674 [inline]
- __x64_sys_sendmsg+0x307/0x490 net/socket.c:2674
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xcf/0x1e0 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x63/0x6b
+	r = nftnl_rule_alloc();
+	if (r == NULL) {
+		perror("RULE OOM");
+		exit(EXIT_FAILURE);
+	}
+	nftnl_rule_set_str(r, NFTNL_RULE_TABLE, TBL_NAME);
+	nftnl_rule_set_str(r, NFTNL_RULE_CHAIN, CHAIN_NAME);
+	nftnl_rule_set_u32(r, NFTNL_RULE_FAMILY, TBL_FAMILY);
 
-Uninit was created at:
- slab_post_alloc_hook mm/slub.c:3819 [inline]
- slab_alloc_node mm/slub.c:3860 [inline]
- kmem_cache_alloc_node+0x5cb/0xbc0 mm/slub.c:3903
- kmalloc_reserve+0x13d/0x4a0 net/core/skbuff.c:560
- __alloc_skb+0x352/0x790 net/core/skbuff.c:651
- alloc_skb include/linux/skbuff.h:1296 [inline]
- netlink_alloc_large_skb net/netlink/af_netlink.c:1213 [inline]
- netlink_sendmsg+0xb34/0x13d0 net/netlink/af_netlink.c:1883
- sock_sendmsg_nosec net/socket.c:730 [inline]
- __sock_sendmsg net/socket.c:745 [inline]
- ____sys_sendmsg+0x9c2/0xd60 net/socket.c:2584
- ___sys_sendmsg+0x28d/0x3c0 net/socket.c:2638
- __sys_sendmsg net/socket.c:2667 [inline]
- __do_sys_sendmsg net/socket.c:2676 [inline]
- __se_sys_sendmsg net/socket.c:2674 [inline]
- __x64_sys_sendmsg+0x307/0x490 net/socket.c:2674
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xcf/0x1e0 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x63/0x6b
+	m = nftnl_expr_alloc("match");
+	if (m == NULL) {
+		perror("MATCH OOM");
+		exit(EXIT_FAILURE);
+	}
+	nftnl_expr_set_str(m, NFTNL_EXPR_MT_NAME, "bpf");
+	nftnl_expr_set_u32(m, NFTNL_EXPR_MT_REV, 1);
 
-CPU: 1 PID: 6771 Comm: syz-executor.0 Not tainted 6.8.0-rc4-syzkaller-00331-gc1ca10ceffbb #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/25/2024
-=====================================================
+	if (xt_bpf_info == NULL) {
+		perror("XT_BPF OOM");
+		exit(EXIT_FAILURE);
+	}
 
+	/*
+	 * example from https://ipset.netfilter.org/iptables-extensions.man.html
+	 * should match TCP packets
+	 */
+	xt_bpf_info->mode = XT_BPF_MODE_BYTECODE;
+	xt_bpf_info->bpf_program_num_elem = 4;
 
+	xt_bpf_info->bpf_program[0].code = 48;
+	xt_bpf_info->bpf_program[0].jt = 0;
+	xt_bpf_info->bpf_program[0].jf = 0;
+	xt_bpf_info->bpf_program[0].k = 9;
+
+	xt_bpf_info->bpf_program[1].code = 21;
+	xt_bpf_info->bpf_program[1].jt = 0;
+	xt_bpf_info->bpf_program[1].jf = 1;
+	xt_bpf_info->bpf_program[1].k = 6;
+
+	xt_bpf_info->bpf_program[2].code = 6;
+	xt_bpf_info->bpf_program[2].jt = 0;
+	xt_bpf_info->bpf_program[2].jf = 0;
+	xt_bpf_info->bpf_program[2].k = 1;
+
+	xt_bpf_info->bpf_program[3].code = 6;
+	xt_bpf_info->bpf_program[3].jt = 0;
+	xt_bpf_info->bpf_program[3].jf = 0;
+	xt_bpf_info->bpf_program[3].k = 0;
+
+	nftnl_expr_set(m, NFTNL_EXPR_MT_INFO, xt_bpf_info, sizeof(*xt_bpf_info));
+	nftnl_rule_add_expr(r, m);
+
+	cnt = nftnl_expr_alloc("counter");
+	if (cnt == NULL) {
+		perror("COUNTER OOM");
+		exit(EXIT_FAILURE);
+	}
+	nftnl_expr_set_u64(cnt, NFTNL_EXPR_CTR_PACKETS, 0);
+	nftnl_expr_set_u64(cnt, NFTNL_EXPR_CTR_BYTES, 0);
+	nftnl_rule_add_expr(r, cnt);
+
+	im = nftnl_expr_alloc("immediate");
+	if (im == NULL) {
+		perror("IMMEDIATE OOM");
+		exit(EXIT_FAILURE);
+	}
+	nftnl_expr_set_u32(im, NFTNL_EXPR_IMM_DREG, 0);
+	nftnl_expr_set_u32(im, NFTNL_EXPR_IMM_VERDICT, 1);
+	nftnl_rule_add_expr(r, im);
+
+	seq = time(NULL);
+	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
+
+	nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
+	mnl_nlmsg_batch_next(batch);
+
+	nlh = nftnl_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
+				    NFT_MSG_NEWTABLE, TBL_FAMILY,
+				    NLM_F_CREATE, seq++);
+	nftnl_table_nlmsg_build_payload(nlh, t);
+	nftnl_table_free(t);
+	mnl_nlmsg_batch_next(batch);
+
+	nlh = nftnl_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
+				    NFT_MSG_NEWCHAIN, TBL_FAMILY,
+				    NLM_F_CREATE, seq++);
+	nftnl_chain_nlmsg_build_payload(nlh, c);
+	nftnl_chain_free(c);
+	mnl_nlmsg_batch_next(batch);
+
+	rule_seq = seq;
+	nlh = nftnl_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
+				    NFT_MSG_NEWRULE, TBL_FAMILY,
+				    NLM_F_APPEND | NLM_F_CREATE | NLM_F_ACK,
+				    seq++);
+	nftnl_rule_nlmsg_build_payload(nlh, r);
+	nftnl_rule_free(r);
+	mnl_nlmsg_batch_next(batch);
+
+	nftnl_batch_end(mnl_nlmsg_batch_current(batch), seq++);
+	mnl_nlmsg_batch_next(batch);
+
+	nftnl_batch_end(mnl_nlmsg_batch_current(batch), seq++);
+	mnl_nlmsg_batch_next(batch);
+
+	nl = mnl_socket_open(NETLINK_NETFILTER);
+	if (nl == NULL) {
+		perror("mnl_socket_open");
+		exit(EXIT_FAILURE);
+	}
+
+	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
+		perror("mnl_socket_bind");
+		exit(EXIT_FAILURE);
+	}
+	portid = mnl_socket_get_portid(nl);
+
+	if (mnl_socket_sendto(nl, mnl_nlmsg_batch_head(batch),
+			      mnl_nlmsg_batch_size(batch)) < 0) {
+		perror("mnl_socket_send");
+		exit(EXIT_FAILURE);
+	}
+
+	mnl_nlmsg_batch_stop(batch);
+
+	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
+	while (ret > 0) {
+		ret = mnl_cb_run(buf, ret, rule_seq, portid, NULL, NULL);
+		if (ret <= 0)
+			break;
+		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
+	}
+	if (ret == -1) {
+		perror("error");
+		exit(EXIT_FAILURE);
+	}
+	mnl_socket_close(nl);
+
+	return EXIT_SUCCESS;
+}
+```
+
+Above creates an INET dual-stack family table using xt_bpf based rule. After
+d0009effa886 ("netfilter: nf_tables: validate NFPROTO_* family") we get
+EOPNOTSUPP for the above configuration.
+
+Fix this by allowing NFPROTO_INET for nft_(match/target)_validate(), but also
+restrict the functions to classic iptables hooks.
+
+Changes in v2:
+  * restrict nft_(match/target)_validate() to classic iptables hooks
+  * rewrite example program to use unmodified libnftnl
+
+Fixes: d0009effa886 ("netfilter: nf_tables: validate NFPROTO_* family")
+Link: https://lore.kernel.org/all/Zc1PfoWN38UuFJRI@calendula/T/#mc947262582c90fec044c7a3398cc92fac7afea72
+Reported-by: Jordan Griege <jgriege@cloudflare.com>
+Signed-off-by: Ignat Korchagin <ignat@cloudflare.com>
 ---
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+ net/netfilter/nft_compat.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index 1f9474fefe84..d3d11dede545 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -359,10 +359,20 @@ static int nft_target_validate(const struct nft_ctx *ctx,
+ 
+ 	if (ctx->family != NFPROTO_IPV4 &&
+ 	    ctx->family != NFPROTO_IPV6 &&
++	    ctx->family != NFPROTO_INET &&
+ 	    ctx->family != NFPROTO_BRIDGE &&
+ 	    ctx->family != NFPROTO_ARP)
+ 		return -EOPNOTSUPP;
+ 
++	ret = nft_chain_validate_hooks(ctx->chain,
++				       (1 << NF_INET_PRE_ROUTING) |
++				       (1 << NF_INET_LOCAL_IN) |
++				       (1 << NF_INET_FORWARD) |
++				       (1 << NF_INET_LOCAL_OUT) |
++				       (1 << NF_INET_POST_ROUTING));
++	if (ret)
++		return ret;
++
+ 	if (nft_is_base_chain(ctx->chain)) {
+ 		const struct nft_base_chain *basechain =
+ 						nft_base_chain(ctx->chain);
+@@ -610,10 +620,20 @@ static int nft_match_validate(const struct nft_ctx *ctx,
+ 
+ 	if (ctx->family != NFPROTO_IPV4 &&
+ 	    ctx->family != NFPROTO_IPV6 &&
++	    ctx->family != NFPROTO_INET &&
+ 	    ctx->family != NFPROTO_BRIDGE &&
+ 	    ctx->family != NFPROTO_ARP)
+ 		return -EOPNOTSUPP;
+ 
++	ret = nft_chain_validate_hooks(ctx->chain,
++				       (1 << NF_INET_PRE_ROUTING) |
++				       (1 << NF_INET_LOCAL_IN) |
++				       (1 << NF_INET_FORWARD) |
++				       (1 << NF_INET_LOCAL_OUT) |
++				       (1 << NF_INET_POST_ROUTING));
++	if (ret)
++		return ret;
++
+ 	if (nft_is_base_chain(ctx->chain)) {
+ 		const struct nft_base_chain *basechain =
+ 						nft_base_chain(ctx->chain);
+-- 
+2.39.2
 
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
