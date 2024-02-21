@@ -1,77 +1,72 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72A903D3A1;
-	Wed, 21 Feb 2024 10:57:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A495D4120B;
+	Wed, 21 Feb 2024 11:29:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708513051; cv=none; b=L2r8flYGBxUPYjDrd/cyYPDQEVojOQcZI/yo18k8z9snYa/TxNmJ00bUUSXCVMntLd6q9+INqt62l3WFTwXO176FeuxESBGg4sJqRmqSngmPJ3y5jGprbq0lV8cGUJpZDl6gPWlOxS0d3bf0TYLtL1Vc6OSFfRmhc4sWK/G6PTM=
+	t=1708515000; cv=none; b=P1iJ5rVk5DmgzAmuppXhE20FxKrBYceG6npPFn0ETuq5lFpeTGCzCZRDqqWzZ/Sa+eXehklWEOt8FWB5Aztg1ryW7KUAJutnCZnAczEjyU6WQ/VEytD0bktYT2QHXwfdfHS5aV8pOVngUt5s0TbMjdDe7NFkBEmS4BGGPcvq/AA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708513051; c=relaxed/simple;
-	bh=C1Ipxz+S16Qg2MJDx5VYOE+RjL+OrQCdY2m3px6eY+g=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RlG92UWck5n0Uv2H/ytQDyCXuZaHVRCI3I7egm+FAh3+5rX0x+TgNl2G/0rg3SJREGERguLE7e/Bm+gnM6VsaMIYFyVIayp/7WDemcpOZXDJqwFJu/wohwVsFoB+uKtG9KKh4rms2Pt3UGZdAOP215hdpsjn2g7iq39WvU+f0Uc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=ZXXnSreM; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="ZXXnSreM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B933C433F1;
-	Wed, 21 Feb 2024 10:57:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1708513050;
-	bh=C1Ipxz+S16Qg2MJDx5VYOE+RjL+OrQCdY2m3px6eY+g=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=ZXXnSreMyEkh5WuKXE5riH1IWkbU/zmf9iF0XKW2PETpi4Pq2POrhKZmFwVyezSc+
-	 PTrRjWp9UDICUxawwlcTDzmyt6UxSbiCg7odez4qbnT9bKt6oANCqtF/NBcHHIAF9b
-	 SH0+Nfh55usNSP4O0UIi18Gh4eNAtC4qcNShuRZQ=
-Date: Wed, 21 Feb 2024 11:57:22 +0100
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Ajay Kaher <ajay.kaher@broadcom.com>
-Cc: stable@vger.kernel.org, pablo@netfilter.org, kadlec@netfilter.org,
-	fw@strlen.de, davem@davemloft.net, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, alexey.makhalov@broadcom.com,
-	florian.fainelli@broadcom.com, vasavi.sirnapalli@broadcom.com,
-	Dan Carpenter <dan.carpenter@linaro.org>,
-	Sasha Levin <sashal@kernel.org>
-Subject: Re: [PATCH v5.4.y] netfilter: nf_tables: fix pointer math issue in
- nft_byteorder_eval()
-Message-ID: <2024022115-vixen-brought-6058@gregkh>
-References: <1707108293-1004-1-git-send-email-ajay.kaher@broadcom.com>
- <1707108293-1004-2-git-send-email-ajay.kaher@broadcom.com>
+	s=arc-20240116; t=1708515000; c=relaxed/simple;
+	bh=xerHGnIMtR/q4LquwWbcJISmaHjquvhFpnEVsOK1DjE=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=unrVKFYBaYemF6LJ4Fwbh6iEAeWh9XVFpk98Qi2aWrntzZ5Mh/EpKTjJG3gAhlff/vNHFQmyj1SRVMU9kCdiVVOP3Zjrfvykoy1sKmJTUmjvBozT40fuuQZkv9JyTYkIQ/A/6JIAzrIsVn0leLdESTa2wnQDYBfT2oIKj4ePdpU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1rcknF-0003sC-SW; Wed, 21 Feb 2024 12:29:41 +0100
+From: Florian Westphal <fw@strlen.de>
+To: <netdev@vger.kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	<netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH net-next 02/12] netfilter: nf_log: consolidate check for NULL logger in lookup function
+Date: Wed, 21 Feb 2024 12:26:04 +0100
+Message-ID: <20240221112637.5396-3-fw@strlen.de>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20240221112637.5396-1-fw@strlen.de>
+References: <20240221112637.5396-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1707108293-1004-2-git-send-email-ajay.kaher@broadcom.com>
+Content-Transfer-Encoding: 8bit
 
-On Mon, Feb 05, 2024 at 10:14:53AM +0530, Ajay Kaher wrote:
-> From: Dan Carpenter <dan.carpenter@linaro.org>
-> 
-> commit c301f0981fdd3fd1ffac6836b423c4d7a8e0eb63 upstream.
-> 
-> The problem is in nft_byteorder_eval() where we are iterating through a
-> loop and writing to dst[0], dst[1], dst[2] and so on...  On each
-> iteration we are writing 8 bytes.  But dst[] is an array of u32 so each
-> element only has space for 4 bytes.  That means that every iteration
-> overwrites part of the previous element.
-> 
-> I spotted this bug while reviewing commit caf3ef7468f7 ("netfilter:
-> nf_tables: prevent OOB access in nft_byteorder_eval") which is a related
-> issue.  I think that the reason we have not detected this bug in testing
-> is that most of time we only write one element.
-> 
-> Fixes: ce1e7989d989 ("netfilter: nft_byteorder: provide 64bit le/be conversion")
-> Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> Signed-off-by: Sasha Levin <sashal@kernel.org>
-> [Ajay: Modified to apply on v5.4.y]
-> Signed-off-by: Ajay Kaher <ajay.kaher@broadcom.com>
-> ---
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-All now queued up, thanks.
+Consolidate pointer fetch to logger and check for NULL in
+__find_logger().
 
-greg k-h
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nf_log.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index e16f158388bb..e0bfeb75766f 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -31,10 +31,10 @@ static struct nf_logger *__find_logger(int pf, const char *str_logger)
+ 	int i;
+ 
+ 	for (i = 0; i < NF_LOG_TYPE_MAX; i++) {
+-		if (loggers[pf][i] == NULL)
++		log = nft_log_dereference(loggers[pf][i]);
++		if (!log)
+ 			continue;
+ 
+-		log = nft_log_dereference(loggers[pf][i]);
+ 		if (!strncasecmp(str_logger, log->name, strlen(log->name)))
+ 			return log;
+ 	}
+-- 
+2.43.0
+
