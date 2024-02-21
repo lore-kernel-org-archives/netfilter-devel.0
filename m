@@ -1,32 +1,34 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53C3F4596E;
-	Wed, 21 Feb 2024 11:30:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D01F46BA0;
+	Wed, 21 Feb 2024 11:30:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708515027; cv=none; b=u7UA8g5Vljt7ERQUFrSEtEgThbxt1a9U3YBWgYWlhHFpe+PPCHXCm/pHJNXfOy+p/sg7F2cKzYvtIHSRbe7Ezajgk21lIpR7AGkgb/MSmMfoHcEc3ZxAGryiwpFNJUP+SCrZ1krTcKCLhmEYSGoFDPzy9Pws6Nre5QiJlXixQ2g=
+	t=1708515028; cv=none; b=QiE+8xSXWgxdRxbge5a7iy35XG52ukWRvL9T0u+yrp98qcM5EgE2vJ0Ca8I9Ki7FAyRblWo0PzqLABd+njo10Q8SGV8sGHLAB7eE9cTSkE11QjG1JwjYbQvUSrR92SuCAS61SOSFE//iDeS1s5AQsTmiMAu5i6UdllxPoRo6Yjo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708515027; c=relaxed/simple;
-	bh=94Mxvnna4qsjj5XckeQn2gZ3quN6puUPOeMf2rLtbtY=;
+	s=arc-20240116; t=1708515028; c=relaxed/simple;
+	bh=kk/YmLYwpFj1XkvDyAbSSRxNFtibe4c4yxnIs0kOqjo=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=H3gNi+6UJKB1JpL3hKbq1rFOkcgKax37jmm1z7FH5IRRIVNHYY8ubeErXXJgswWto0fW3IjwNdaaHK+ZobgfgM0vfSK4Iwoodi9gc5SHzBSF97N4biFfj8BjSIkDm8tdV6cHTnY3lZOYdtGGV5W2eU7gREjhMZEhlOl2rbL+ApM=
+	 MIME-Version; b=JcUD8RaqqjX7WGxlQs1fxP12t2aI0dTUJYesLqgT3UShhCb3uwlYPoqURp0QG/cED92h/csv4ddeKleTffRCFFYjXBeX+9PxIHIsa+svk4b5peGMOlpaLxWBpftOQIxZOww3QqSfYEtJF/Azb3oR55U4gEhNLe2U5t3j3CruQaY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1rcknq-0003vA-OG; Wed, 21 Feb 2024 12:30:18 +0100
+	id 1rcknu-0003vi-RH; Wed, 21 Feb 2024 12:30:22 +0100
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
 	"David S. Miller" <davem@davemloft.net>,
 	Eric Dumazet <edumazet@google.com>,
 	Jakub Kicinski <kuba@kernel.org>,
-	<netfilter-devel@vger.kernel.org>
-Subject: [PATCH net-next 11/12] netfilter: move nf_reinject into nfnetlink_queue modules
-Date: Wed, 21 Feb 2024 12:26:13 +0100
-Message-ID: <20240221112637.5396-12-fw@strlen.de>
+	<netfilter-devel@vger.kernel.org>,
+	Kees Cook <keescook@chromium.org>,
+	Simon Horman <horms@kernel.org>
+Subject: [PATCH net-next 12/12] netfilter: x_tables: Use unsafe_memcpy() for 0-sized destination
+Date: Wed, 21 Feb 2024 12:26:14 +0100
+Message-ID: <20240221112637.5396-13-fw@strlen.de>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20240221112637.5396-1-fw@strlen.de>
 References: <20240221112637.5396-1-fw@strlen.de>
@@ -38,357 +40,37 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-No need to keep this in the core, move it to the nfnetlink_queue module.
-nf_reroute is moved too, there were no other callers.
+From: Kees Cook <keescook@chromium.org>
 
+The struct xt_entry_target fake flexible array has not be converted to a
+true flexible array, which is mainly blocked by it being both UAPI and
+used in the middle of other structures. In order to properly check for
+0-sized destinations in memcpy(), an exception must be made for the one
+place where it is still a destination. Since memcpy() was already
+skipping checks for 0-sized destinations, using unsafe_memcpy() is no
+change in behavior.
+
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Simon Horman <horms@kernel.org>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/linux/netfilter.h        |   1 -
- include/net/netfilter/nf_queue.h |   1 -
- net/netfilter/nf_queue.c         | 106 -----------------------
- net/netfilter/nfnetlink_queue.c  | 142 +++++++++++++++++++++++++++++++
- net/netfilter/utils.c            |  37 --------
- 5 files changed, 142 insertions(+), 145 deletions(-)
+ net/netfilter/x_tables.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 80900d910992..ffb5e0297eb5 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -370,7 +370,6 @@ __sum16 nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
- 			    u_int8_t protocol, unsigned short family);
- int nf_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
- 	     bool strict, unsigned short family);
--int nf_reroute(struct sk_buff *skb, struct nf_queue_entry *entry);
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 21624d68314f..da5d929c7c85 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1142,7 +1142,8 @@ void xt_compat_target_from_user(struct xt_entry_target *t, void **dstptr,
+ 	if (target->compat_from_user)
+ 		target->compat_from_user(t->data, ct->data);
+ 	else
+-		memcpy(t->data, ct->data, tsize - sizeof(*ct));
++		unsafe_memcpy(t->data, ct->data, tsize - sizeof(*ct),
++			      /* UAPI 0-sized destination */);
  
- #include <net/flow.h>
- 
-diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
-index c81021ab07aa..4aeffddb7586 100644
---- a/include/net/netfilter/nf_queue.h
-+++ b/include/net/netfilter/nf_queue.h
-@@ -35,7 +35,6 @@ struct nf_queue_handler {
- 
- void nf_register_queue_handler(const struct nf_queue_handler *qh);
- void nf_unregister_queue_handler(void);
--void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict);
- 
- bool nf_queue_entry_get_refs(struct nf_queue_entry *entry);
- void nf_queue_entry_free(struct nf_queue_entry *entry);
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index e2f334f70281..7f12e56e6e52 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -248,109 +248,3 @@ int nf_queue(struct sk_buff *skb, struct nf_hook_state *state,
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(nf_queue);
--
--static unsigned int nf_iterate(struct sk_buff *skb,
--			       struct nf_hook_state *state,
--			       const struct nf_hook_entries *hooks,
--			       unsigned int *index)
--{
--	const struct nf_hook_entry *hook;
--	unsigned int verdict, i = *index;
--
--	while (i < hooks->num_hook_entries) {
--		hook = &hooks->hooks[i];
--repeat:
--		verdict = nf_hook_entry_hookfn(hook, skb, state);
--		if (verdict != NF_ACCEPT) {
--			*index = i;
--			if (verdict != NF_REPEAT)
--				return verdict;
--			goto repeat;
--		}
--		i++;
--	}
--
--	*index = i;
--	return NF_ACCEPT;
--}
--
--static struct nf_hook_entries *nf_hook_entries_head(const struct net *net, u8 pf, u8 hooknum)
--{
--	switch (pf) {
--#ifdef CONFIG_NETFILTER_FAMILY_BRIDGE
--	case NFPROTO_BRIDGE:
--		return rcu_dereference(net->nf.hooks_bridge[hooknum]);
--#endif
--	case NFPROTO_IPV4:
--		return rcu_dereference(net->nf.hooks_ipv4[hooknum]);
--	case NFPROTO_IPV6:
--		return rcu_dereference(net->nf.hooks_ipv6[hooknum]);
--	default:
--		WARN_ON_ONCE(1);
--		return NULL;
--	}
--
--	return NULL;
--}
--
--/* Caller must hold rcu read-side lock */
--void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
--{
--	const struct nf_hook_entry *hook_entry;
--	const struct nf_hook_entries *hooks;
--	struct sk_buff *skb = entry->skb;
--	const struct net *net;
--	unsigned int i;
--	int err;
--	u8 pf;
--
--	net = entry->state.net;
--	pf = entry->state.pf;
--
--	hooks = nf_hook_entries_head(net, pf, entry->state.hook);
--
--	i = entry->hook_index;
--	if (WARN_ON_ONCE(!hooks || i >= hooks->num_hook_entries)) {
--		kfree_skb(skb);
--		nf_queue_entry_free(entry);
--		return;
--	}
--
--	hook_entry = &hooks->hooks[i];
--
--	/* Continue traversal iff userspace said ok... */
--	if (verdict == NF_REPEAT)
--		verdict = nf_hook_entry_hookfn(hook_entry, skb, &entry->state);
--
--	if (verdict == NF_ACCEPT) {
--		if (nf_reroute(skb, entry) < 0)
--			verdict = NF_DROP;
--	}
--
--	if (verdict == NF_ACCEPT) {
--next_hook:
--		++i;
--		verdict = nf_iterate(skb, &entry->state, hooks, &i);
--	}
--
--	switch (verdict & NF_VERDICT_MASK) {
--	case NF_ACCEPT:
--	case NF_STOP:
--		local_bh_disable();
--		entry->state.okfn(entry->state.net, entry->state.sk, skb);
--		local_bh_enable();
--		break;
--	case NF_QUEUE:
--		err = nf_queue(skb, &entry->state, i, verdict);
--		if (err == 1)
--			goto next_hook;
--		break;
--	case NF_STOLEN:
--		break;
--	default:
--		kfree_skb(skb);
--	}
--
--	nf_queue_entry_free(entry);
--}
--EXPORT_SYMBOL(nf_reinject);
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 5cf38fc0a366..00f4bd21c59b 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -225,6 +225,148 @@ find_dequeue_entry(struct nfqnl_instance *queue, unsigned int id)
- 	return entry;
- }
- 
-+static unsigned int nf_iterate(struct sk_buff *skb,
-+			       struct nf_hook_state *state,
-+			       const struct nf_hook_entries *hooks,
-+			       unsigned int *index)
-+{
-+	const struct nf_hook_entry *hook;
-+	unsigned int verdict, i = *index;
-+
-+	while (i < hooks->num_hook_entries) {
-+		hook = &hooks->hooks[i];
-+repeat:
-+		verdict = nf_hook_entry_hookfn(hook, skb, state);
-+		if (verdict != NF_ACCEPT) {
-+			*index = i;
-+			if (verdict != NF_REPEAT)
-+				return verdict;
-+			goto repeat;
-+		}
-+		i++;
-+	}
-+
-+	*index = i;
-+	return NF_ACCEPT;
-+}
-+
-+static struct nf_hook_entries *nf_hook_entries_head(const struct net *net, u8 pf, u8 hooknum)
-+{
-+	switch (pf) {
-+#ifdef CONFIG_NETFILTER_FAMILY_BRIDGE
-+	case NFPROTO_BRIDGE:
-+		return rcu_dereference(net->nf.hooks_bridge[hooknum]);
-+#endif
-+	case NFPROTO_IPV4:
-+		return rcu_dereference(net->nf.hooks_ipv4[hooknum]);
-+	case NFPROTO_IPV6:
-+		return rcu_dereference(net->nf.hooks_ipv6[hooknum]);
-+	default:
-+		WARN_ON_ONCE(1);
-+		return NULL;
-+	}
-+
-+	return NULL;
-+}
-+
-+static int nf_ip_reroute(struct sk_buff *skb, const struct nf_queue_entry *entry)
-+{
-+#ifdef CONFIG_INET
-+	const struct ip_rt_info *rt_info = nf_queue_entry_reroute(entry);
-+
-+	if (entry->state.hook == NF_INET_LOCAL_OUT) {
-+		const struct iphdr *iph = ip_hdr(skb);
-+
-+		if (!(iph->tos == rt_info->tos &&
-+		      skb->mark == rt_info->mark &&
-+		      iph->daddr == rt_info->daddr &&
-+		      iph->saddr == rt_info->saddr))
-+			return ip_route_me_harder(entry->state.net, entry->state.sk,
-+						  skb, RTN_UNSPEC);
-+	}
-+#endif
-+	return 0;
-+}
-+
-+static int nf_reroute(struct sk_buff *skb, struct nf_queue_entry *entry)
-+{
-+	const struct nf_ipv6_ops *v6ops;
-+	int ret = 0;
-+
-+	switch (entry->state.pf) {
-+	case AF_INET:
-+		ret = nf_ip_reroute(skb, entry);
-+		break;
-+	case AF_INET6:
-+		v6ops = rcu_dereference(nf_ipv6_ops);
-+		if (v6ops)
-+			ret = v6ops->reroute(skb, entry);
-+		break;
-+	}
-+	return ret;
-+}
-+
-+/* caller must hold rcu read-side lock */
-+static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
-+{
-+	const struct nf_hook_entry *hook_entry;
-+	const struct nf_hook_entries *hooks;
-+	struct sk_buff *skb = entry->skb;
-+	const struct net *net;
-+	unsigned int i;
-+	int err;
-+	u8 pf;
-+
-+	net = entry->state.net;
-+	pf = entry->state.pf;
-+
-+	hooks = nf_hook_entries_head(net, pf, entry->state.hook);
-+
-+	i = entry->hook_index;
-+	if (WARN_ON_ONCE(!hooks || i >= hooks->num_hook_entries)) {
-+		kfree_skb_reason(skb, SKB_DROP_REASON_NETFILTER_DROP);
-+		nf_queue_entry_free(entry);
-+		return;
-+	}
-+
-+	hook_entry = &hooks->hooks[i];
-+
-+	/* Continue traversal iff userspace said ok... */
-+	if (verdict == NF_REPEAT)
-+		verdict = nf_hook_entry_hookfn(hook_entry, skb, &entry->state);
-+
-+	if (verdict == NF_ACCEPT) {
-+		if (nf_reroute(skb, entry) < 0)
-+			verdict = NF_DROP;
-+	}
-+
-+	if (verdict == NF_ACCEPT) {
-+next_hook:
-+		++i;
-+		verdict = nf_iterate(skb, &entry->state, hooks, &i);
-+	}
-+
-+	switch (verdict & NF_VERDICT_MASK) {
-+	case NF_ACCEPT:
-+	case NF_STOP:
-+		local_bh_disable();
-+		entry->state.okfn(entry->state.net, entry->state.sk, skb);
-+		local_bh_enable();
-+		break;
-+	case NF_QUEUE:
-+		err = nf_queue(skb, &entry->state, i, verdict);
-+		if (err == 1)
-+			goto next_hook;
-+		break;
-+	case NF_STOLEN:
-+		break;
-+	default:
-+		kfree_skb(skb);
-+	}
-+
-+	nf_queue_entry_free(entry);
-+}
-+
- static void nfqnl_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- {
- 	const struct nf_ct_hook *ct_hook;
-diff --git a/net/netfilter/utils.c b/net/netfilter/utils.c
-index acef4155f0da..008419db815a 100644
---- a/net/netfilter/utils.c
-+++ b/net/netfilter/utils.c
-@@ -179,43 +179,6 @@ int nf_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
- }
- EXPORT_SYMBOL_GPL(nf_route);
- 
--static int nf_ip_reroute(struct sk_buff *skb, const struct nf_queue_entry *entry)
--{
--#ifdef CONFIG_INET
--	const struct ip_rt_info *rt_info = nf_queue_entry_reroute(entry);
--
--	if (entry->state.hook == NF_INET_LOCAL_OUT) {
--		const struct iphdr *iph = ip_hdr(skb);
--
--		if (!(iph->tos == rt_info->tos &&
--		      skb->mark == rt_info->mark &&
--		      iph->daddr == rt_info->daddr &&
--		      iph->saddr == rt_info->saddr))
--			return ip_route_me_harder(entry->state.net, entry->state.sk,
--						  skb, RTN_UNSPEC);
--	}
--#endif
--	return 0;
--}
--
--int nf_reroute(struct sk_buff *skb, struct nf_queue_entry *entry)
--{
--	const struct nf_ipv6_ops *v6ops;
--	int ret = 0;
--
--	switch (entry->state.pf) {
--	case AF_INET:
--		ret = nf_ip_reroute(skb, entry);
--		break;
--	case AF_INET6:
--		v6ops = rcu_dereference(nf_ipv6_ops);
--		if (v6ops)
--			ret = v6ops->reroute(skb, entry);
--		break;
--	}
--	return ret;
--}
--
- /* Only get and check the lengths, not do any hop-by-hop stuff. */
- int nf_ip6_check_hbh_len(struct sk_buff *skb, u32 *plen)
- {
+ 	tsize += off;
+ 	t->u.user.target_size = tsize;
 -- 
 2.43.0
 
