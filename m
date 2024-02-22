@@ -1,68 +1,91 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 69DF5AD5C;
-	Thu, 22 Feb 2024 00:08:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0C7780C
+	for <netfilter-devel@vger.kernel.org>; Thu, 22 Feb 2024 00:15:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560536; cv=none; b=oJ2FJICBGbzcqVoCR03C/5nZxbzpbcBRNGnUNIHqtyLax22Ulz/jsMKxhN8iMCQHJxzhnpEWCz147ejHFXQqDK3trHyGNnL+/g4VMXjeSeAjsJMeiElr3mJnYrlWEBPx4lRFVl636AjvaoohYPJYh+AnCWnv84/r8j8Kry0oZYE=
+	t=1708560937; cv=none; b=da8ghThhFcMRcQyi6VKOtVmMJ5m3CWkVqmSE/HocDMWsFi0yvfPuX03L3k/PZePC9RKWVqFgRjNt7XxzmKjrnZbBqPLRHO1FxIKe4xiTmVebl+pVclxL/AfEuKIoL1oeS+KlvFBH9scOquPIr09qgO4DQwTM9ghV8yypDjaZjcI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560536; c=relaxed/simple;
-	bh=UMYkwSuzqq0liqfMIHlSe8GklteBYpV1hDpoBt5D+yM=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=UawKlAns7kSzRo1fvqmBONS9U2ojJDokJOx8+DmuJb5Q8WZhdnfPqU+cxioQRHthe8OnpIALWtdOuWwP8mSjhvbjFeXOl2LoSVMAsNav9b5g2aXFYh85My5kdjApKUszxfkg8KmFEo1WT2zYjKv63w9vrDuUQWrYl1/g9gH/V1M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+	s=arc-20240116; t=1708560937; c=relaxed/simple;
+	bh=tWCdJXqyb5FRoGUukiOjgVRq9VZORym9raq79w/tXC4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=L/noBG8+Z6b3OAuU7rIIThh6pB8x71Fjip8lnPJf93rE8KWR4oFWJamq4SkMEp8vme/wbqVgMcOY0cfq16soz4aGHqzffzjzhToraKG0AU6xil18DxpjSuk4X6Mcg/QEZgADZbrmJEIgPpDtVldEZqRzqfz6q1kIiSVkslpMfn0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.41.52] (port=51020 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1rcwkM-00C8su-Ee; Thu, 22 Feb 2024 01:15:32 +0100
+Date: Thu, 22 Feb 2024 01:15:29 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	fw@strlen.de
-Subject: [PATCH net 5/5] netfilter: nf_tables: use kzalloc for hook allocation
-Date: Thu, 22 Feb 2024 01:08:43 +0100
-Message-Id: <20240222000843.146665-6-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20240222000843.146665-1-pablo@netfilter.org>
-References: <20240222000843.146665-1-pablo@netfilter.org>
+To: Ignat Korchagin <ignat@cloudflare.com>
+Cc: kadlec@netfilter.org, fw@strlen.de, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, kernel-team@cloudflare.com,
+	jgriege@cloudflare.com
+Subject: Re: [PATCH v2] netfilter: nf_tables: allow NFPROTO_INET in
+ nft_(match/target)_validate()
+Message-ID: <ZdaSIRv3HBcEUpy9@calendula>
+References: <20240220145509.53357-1-ignat@cloudflare.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20240220145509.53357-1-ignat@cloudflare.com>
+X-Spam-Score: -1.6 (-)
 
-From: Florian Westphal <fw@strlen.de>
+On Tue, Feb 20, 2024 at 02:55:09PM +0000, Ignat Korchagin wrote:
+> Commit d0009effa886 ("netfilter: nf_tables: validate NFPROTO_* family") added
+> some validation of NFPROTO_* families in the nft_compat module, but it broke
+> the ability to use legacy iptables modules in dual-stack nftables.
+> 
+> While with legacy iptables one had to independently manage IPv4 and IPv6 tables,
+> with nftables it is possible to have dual-stack tables sharing the rules.
+> Moreover, it was possible to use rules based on legacy iptables match/target
+> modules in dual-stack nftables. Consider the following program:
+> 
+> ```
+> 
+> /* #define TBL_FAMILY NFPROTO_IPV4 */
+> 
+> /*
+>  * creates something like below
+>  * table inet testfw {
+>  *   chain input {
+>  *     type filter hook prerouting priority filter; policy accept;
+>  *     bytecode counter packets 0 bytes 0 accept
 
-KMSAN reports unitialized variable when registering the hook,
-   reg->hook_ops_type == NF_HOOK_OP_BPF)
-        ~~~~~~~~~~~ undefined
+Upstream nft does not provides this. Please, clarify that this the
+output with the out-of-tree patch,
 
-This is a small structure, just use kzalloc to make sure this
-won't happen again when new fields get added to nf_hook_ops.
+>  *   }
+>  * }
+>  *
+>  * compile:
+>  * cc -o nftbpf nftbpf.c -lnftnl -lmnl
+>  */
+> int main(void)
 
-Fixes: 7b4b2fa37587 ("netfilter: annotate nf_tables base hook ops")
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Please, no program in the commit description, it makes it too long,
+I am not sure this is the good place to store this.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 485e047d5f98..7e938c7397dd 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2082,7 +2082,7 @@ static struct nft_hook *nft_netdev_hook_alloc(struct net *net,
- 	struct nft_hook *hook;
- 	int err;
- 
--	hook = kmalloc(sizeof(struct nft_hook), GFP_KERNEL_ACCOUNT);
-+	hook = kzalloc(sizeof(struct nft_hook), GFP_KERNEL_ACCOUNT);
- 	if (!hook) {
- 		err = -ENOMEM;
- 		goto err_hook_alloc;
--- 
-2.30.2
+> ```
+> 
+> Above creates an INET dual-stack family table using xt_bpf based rule. After
+> d0009effa886 ("netfilter: nf_tables: validate NFPROTO_* family") we get
+> EOPNOTSUPP for the above configuration.
+> 
+> Fix this by allowing NFPROTO_INET for nft_(match/target)_validate(), but also
+> restrict the functions to classic iptables hooks.
+> 
+> Changes in v2:
+>   * restrict nft_(match/target)_validate() to classic iptables hooks
+>   * rewrite example program to use unmodified libnftnl
 
+Thanks! Please send a v3 with updates.
