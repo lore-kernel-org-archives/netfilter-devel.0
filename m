@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 893CB15BF;
-	Thu, 22 Feb 2024 00:08:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 6E2B71854;
+	Thu, 22 Feb 2024 00:08:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560533; cv=none; b=FeBThRDdPSCCnQ89G4n09tM/hWV2LRpTjFqsp/K16f8EAkt9nhow5tKoFvtmz6RZT5SF1nta56ScmFMS5L0Rn0fTdJvFHhczbD/1JOXHaxzeaCu6oOSn87e/5n1FdYtUYni5iQnD9LU3SW9rAzq3evXGacFZ7gR4NXId0BlO0D8=
+	t=1708560534; cv=none; b=Pdfn8ybTus1vCPzcx7DK6yMlbHUhObFgBZBrEguIaOSVyj1BFpM7MfQSgP9tGlwp7l/ujhU+55ongECEN0/aEBNZNDB2LpFT3AdD6P9FErG05EIWKUcJR/lI4LIqWrn5PzbnZ8rlj5MPTsjBxeCmL3no8QSW8j9c17AxHwzu2GU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560533; c=relaxed/simple;
-	bh=fZYI1Wm9etnD2oj49LBXnVNWbYUn3Tis4ha0K+VZ/Gk=;
+	s=arc-20240116; t=1708560534; c=relaxed/simple;
+	bh=67o+Olb7r4rb0pPOqWTqglQuDVu3a9JoHfjJzKIGCXQ=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=Xg6ccZj/Z+crfokdzYx5VKn1Jn7hYcMyMbBCpdnV/BqV/rJHZlbQ2SdlV6V+eYDiRoVrVKm3nzzTAINrbZcT0IB264v/JZ5rCBjNfrNr2IXb2rdW23QfmparGz4bGA6R+rbVWKozqSkfKfQqSMXM0cAzx+osqLNyEzlOanQ+HzU=
+	 MIME-Version; b=TG+jHSY4RZHs2j8t0hlarMSuW+OS0Mwmr30gjeEcR2C7wBrmcjTIusYHEbLXnshJC++bRIP7ZeYjXWnaqkM03CqUkUqs45iUWb/BS8yccaL/K8ZtGptzoS0yOXu9s3Ue9KCAyDK8XGpcEiVlxFkf80boriveipXLHf6c2U+KJoU=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 2/5] netfilter: nft_flow_offload: reset dst in route object after setting up flow
-Date: Thu, 22 Feb 2024 01:08:40 +0100
-Message-Id: <20240222000843.146665-3-pablo@netfilter.org>
+Subject: [PATCH net 3/5] netfilter: nft_flow_offload: release dst in case direct xmit path is used
+Date: Thu, 22 Feb 2024 01:08:41 +0100
+Message-Id: <20240222000843.146665-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240222000843.146665-1-pablo@netfilter.org>
 References: <20240222000843.146665-1-pablo@netfilter.org>
@@ -34,68 +34,53 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-dst is transferred to the flow object, route object does not own it
-anymore.  Reset dst in route object, otherwise if flow_offload_add()
-fails, error path releases dst twice, leading to a refcount underflow.
+Direct xmit does not use it since it calls dev_queue_xmit() to send
+packets, hence it calls dst_release().
 
-Fixes: a3c90f7a2323 ("netfilter: nf_tables: flow offload expression")
+kmemleak reports:
+
+unreferenced object 0xffff88814f440900 (size 184):
+  comm "softirq", pid 0, jiffies 4294951896
+  hex dump (first 32 bytes):
+    00 60 5b 04 81 88 ff ff 00 e6 e8 82 ff ff ff ff  .`[.............
+    21 0b 50 82 ff ff ff ff 00 00 00 00 00 00 00 00  !.P.............
+  backtrace (crc cb2bf5d6):
+    [<000000003ee17107>] kmem_cache_alloc+0x286/0x340
+    [<0000000021a5de2c>] dst_alloc+0x43/0xb0
+    [<00000000f0671159>] rt_dst_alloc+0x2e/0x190
+    [<00000000fe5092c9>] __mkroute_output+0x244/0x980
+    [<000000005fb96fb0>] ip_route_output_flow+0xc0/0x160
+    [<0000000045367433>] nf_ip_route+0xf/0x30
+    [<0000000085da1d8e>] nf_route+0x2d/0x60
+    [<00000000d1ecd1cb>] nft_flow_route+0x171/0x6a0 [nft_flow_offload]
+    [<00000000d9b2fb60>] nft_flow_offload_eval+0x4e8/0x700 [nft_flow_offload]
+    [<000000009f447dbb>] expr_call_ops_eval+0x53/0x330 [nf_tables]
+    [<00000000072e1be6>] nft_do_chain+0x17c/0x840 [nf_tables]
+    [<00000000d0551029>] nft_do_chain_inet+0xa1/0x210 [nf_tables]
+    [<0000000097c9d5c6>] nf_hook_slow+0x5b/0x160
+    [<0000000005eccab1>] ip_forward+0x8b6/0x9b0
+    [<00000000553a269b>] ip_rcv+0x221/0x230
+    [<00000000412872e5>] __netif_receive_skb_one_core+0xfe/0x110
+
+Fixes: fa502c865666 ("netfilter: flowtable: simplify route logic")
+Reported-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_flow_table.h |  2 +-
- net/netfilter/nf_flow_table_core.c    | 16 +++++++++++++---
- 2 files changed, 14 insertions(+), 4 deletions(-)
+ net/netfilter/nf_flow_table_core.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index 956c752ceb31..a763dd327c6e 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -276,7 +276,7 @@ nf_flow_table_offload_del_cb(struct nf_flowtable *flow_table,
- }
- 
- void flow_offload_route_init(struct flow_offload *flow,
--			     const struct nf_flow_route *route);
-+			     struct nf_flow_route *route);
- 
- int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow);
- void flow_offload_refresh(struct nf_flowtable *flow_table,
 diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 920a5a29ae1d..7502d6d73a60 100644
+index 7502d6d73a60..a0571339239c 100644
 --- a/net/netfilter/nf_flow_table_core.c
 +++ b/net/netfilter/nf_flow_table_core.c
-@@ -87,12 +87,22 @@ static u32 flow_offload_dst_cookie(struct flow_offload_tuple *flow_tuple)
- 	return 0;
- }
- 
-+static struct dst_entry *nft_route_dst_fetch(struct nf_flow_route *route,
-+					     enum flow_offload_tuple_dir dir)
-+{
-+	struct dst_entry *dst = route->tuple[dir].dst;
-+
-+	route->tuple[dir].dst = NULL;
-+
-+	return dst;
-+}
-+
- static int flow_offload_fill_route(struct flow_offload *flow,
--				   const struct nf_flow_route *route,
-+				   struct nf_flow_route *route,
- 				   enum flow_offload_tuple_dir dir)
- {
- 	struct flow_offload_tuple *flow_tuple = &flow->tuplehash[dir].tuple;
--	struct dst_entry *dst = route->tuple[dir].dst;
-+	struct dst_entry *dst = nft_route_dst_fetch(route, dir);
- 	int i, j = 0;
- 
- 	switch (flow_tuple->l3proto) {
-@@ -146,7 +156,7 @@ static void nft_flow_dst_release(struct flow_offload *flow,
- }
- 
- void flow_offload_route_init(struct flow_offload *flow,
--			    const struct nf_flow_route *route)
-+			     struct nf_flow_route *route)
- {
- 	flow_offload_fill_route(flow, route, FLOW_OFFLOAD_DIR_ORIGINAL);
- 	flow_offload_fill_route(flow, route, FLOW_OFFLOAD_DIR_REPLY);
+@@ -132,6 +132,7 @@ static int flow_offload_fill_route(struct flow_offload *flow,
+ 		       ETH_ALEN);
+ 		flow_tuple->out.ifidx = route->tuple[dir].out.ifindex;
+ 		flow_tuple->out.hw_ifidx = route->tuple[dir].out.hw_ifindex;
++		dst_release(dst);
+ 		break;
+ 	case FLOW_OFFLOAD_XMIT_XFRM:
+ 	case FLOW_OFFLOAD_XMIT_NEIGH:
 -- 
 2.30.2
 
