@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4B55A10F1;
-	Thu, 22 Feb 2024 00:08:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 69DF5AD5C;
+	Thu, 22 Feb 2024 00:08:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708560535; cv=none; b=VpZi3F1NobQwQYGStGNFFw2giyyPoCfDU3y4wOLU0YPJ/xrsihlHDrvSGnhNBFRutTPRluMhWJUddcu7LZ8p5OD/a6Zhpu3VUk5lR1jgZQbG4poPJyWlJ2b+pHxvGADB1Ykwq8yqy1WKQuYyQvVeeJTn9HKn50rYhG8T3gJ6Oyg=
+	t=1708560536; cv=none; b=oJ2FJICBGbzcqVoCR03C/5nZxbzpbcBRNGnUNIHqtyLax22Ulz/jsMKxhN8iMCQHJxzhnpEWCz147ejHFXQqDK3trHyGNnL+/g4VMXjeSeAjsJMeiElr3mJnYrlWEBPx4lRFVl636AjvaoohYPJYh+AnCWnv84/r8j8Kry0oZYE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708560535; c=relaxed/simple;
-	bh=2n/mqBjXZQR/JNE569Eojei1VwcI4Xx5AmH4D6kwZr4=;
+	s=arc-20240116; t=1708560536; c=relaxed/simple;
+	bh=UMYkwSuzqq0liqfMIHlSe8GklteBYpV1hDpoBt5D+yM=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=rwYpbOTDabJbLR4iPx+2BIkDCISy0Og/cWxafOrnRX9BREcOyTm1pf63GaWL2M1rNOSeeeIttUT3iWXPX2QCqTbWP3BHUVUkrpkWLYdNNf0ok5sYjZITlYXWx5oCFQt9Q7bJSHs/s45KxYtgTeTe92mPqc94BPow0eqN1uhXsg8=
+	 MIME-Version; b=UawKlAns7kSzRo1fvqmBONS9U2ojJDokJOx8+DmuJb5Q8WZhdnfPqU+cxioQRHthe8OnpIALWtdOuWwP8mSjhvbjFeXOl2LoSVMAsNav9b5g2aXFYh85My5kdjApKUszxfkg8KmFEo1WT2zYjKv63w9vrDuUQWrYl1/g9gH/V1M=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 1/5] netfilter: nf_tables: set dormant flag on hook register failure
-Date: Thu, 22 Feb 2024 01:08:39 +0100
-Message-Id: <20240222000843.146665-2-pablo@netfilter.org>
+Subject: [PATCH net 5/5] netfilter: nf_tables: use kzalloc for hook allocation
+Date: Thu, 22 Feb 2024 01:08:43 +0100
+Message-Id: <20240222000843.146665-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240222000843.146665-1-pablo@netfilter.org>
 References: <20240222000843.146665-1-pablo@netfilter.org>
@@ -36,35 +36,33 @@ Content-Transfer-Encoding: 8bit
 
 From: Florian Westphal <fw@strlen.de>
 
-We need to set the dormant flag again if we fail to register
-the hooks.
+KMSAN reports unitialized variable when registering the hook,
+   reg->hook_ops_type == NF_HOOK_OP_BPF)
+        ~~~~~~~~~~~ undefined
 
-During memory pressure hook registration can fail and we end up
-with a table marked as active but no registered hooks.
+This is a small structure, just use kzalloc to make sure this
+won't happen again when new fields get added to nf_hook_ops.
 
-On table/base chain deletion, nf_tables will attempt to unregister
-the hook again which yields a warn splat from the nftables core.
-
-Reported-and-tested-by: syzbot+de4025c006ec68ac56fc@syzkaller.appspotmail.com
-Fixes: 179d9ba5559a ("netfilter: nf_tables: fix table flag updates")
+Fixes: 7b4b2fa37587 ("netfilter: annotate nf_tables base hook ops")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 1 +
- 1 file changed, 1 insertion(+)
+ net/netfilter/nf_tables_api.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index f8e3f70c35bd..90038d778f37 100644
+index 485e047d5f98..7e938c7397dd 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -1251,6 +1251,7 @@ static int nf_tables_updtable(struct nft_ctx *ctx)
- 	return 0;
+@@ -2082,7 +2082,7 @@ static struct nft_hook *nft_netdev_hook_alloc(struct net *net,
+ 	struct nft_hook *hook;
+ 	int err;
  
- err_register_hooks:
-+	ctx->table->flags |= NFT_TABLE_F_DORMANT;
- 	nft_trans_destroy(trans);
- 	return ret;
- }
+-	hook = kmalloc(sizeof(struct nft_hook), GFP_KERNEL_ACCOUNT);
++	hook = kzalloc(sizeof(struct nft_hook), GFP_KERNEL_ACCOUNT);
+ 	if (!hook) {
+ 		err = -ENOMEM;
+ 		goto err_hook_alloc;
 -- 
 2.30.2
 
