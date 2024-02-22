@@ -1,35 +1,68 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f47.google.com (mail-wr1-f47.google.com [209.85.221.47])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE5E6374CF;
-	Thu, 22 Feb 2024 09:30:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57CF7381A0
+	for <netfilter-devel@vger.kernel.org>; Thu, 22 Feb 2024 10:33:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708594228; cv=none; b=qz2aswFD6gDJBmzCjBJ9+DEL1iICqrgOqRCLooS6c8cY0NC8hrZBF6wAdomnZdZNJtBn1Dqfb4VNR65HumlqLZezUTKwBmL/NHsPBFIzZz/HKJPWVpX58eN7aJooa0KZqX7Tt1bed4wnfzUzrlgAIL9H908mY2vxcV+U0jhq1JU=
+	t=1708597996; cv=none; b=t2Z+HnwwxmIZCHLFdWtDD6SyTUbgLkAq5TXB1722iY94qVMk44HSHS5ScjtixlVthkBzA5T8guAGkCHD6E4w0Zmj/9BjvFanLHOaLMmck2wYJZP7oR83Gm9AJCL+uLk+NUUq5o8tQEonLwdyzgcDPo4fQdxi+UrmbmxJf7E0x3I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708594228; c=relaxed/simple;
-	bh=p+V+MJet+2kldWiWq/3IuJ5/SfiEHjoi9/OOnfUp4aU=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=kVRa+gnWjuVnIXK6E6D4LoNMhgXO98Vlh1tU9oAkYx2yAeTkqVrmi/YbYatA1n7iA2E1FAnBXY1DacJMg0geFTFPuqUWxC2LKN/Z6exX66mcSPiEFHWusHPxkU3ZKfrMCSYgJp7ql/1lKVb0Q9HC/Q/IiRR8Ac70mtP5CDT9esw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jIijsT0D; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708597996; c=relaxed/simple;
+	bh=nY1neliwHgpNmA+KT6eve3RMhr+FupLwc2JcbcnwQPk=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=eev1m8zs+/TnzwEFa8MBVUYmQHaRcq+78hvXIQnCx/gDbIUafCEHC8Kox8E6FkdmxHdECr6M1Tstrb5lArXsKXoB7Q1ecIrl4h3GgCgDY9ith5prfHT/Iy0T5OkcgjQdetYFEx9Eu131au6e0o8Fe486FTisaAndxdKB/OUyrpQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cloudflare.com; spf=pass smtp.mailfrom=cloudflare.com; dkim=pass (2048-bit key) header.d=cloudflare.com header.i=@cloudflare.com header.b=McPWnjwt; arc=none smtp.client-ip=209.85.221.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cloudflare.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cloudflare.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jIijsT0D"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 59D0FC433C7;
-	Thu, 22 Feb 2024 09:30:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1708594227;
-	bh=p+V+MJet+2kldWiWq/3IuJ5/SfiEHjoi9/OOnfUp4aU=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=jIijsT0DF2laR/8axLBrYUxiUHktNNP+RCSibCPwngX7SKfUGVzZ86VSLcVljocz0
-	 l1A01pFPhLMStcIwyyU8QzCBs5leZRv/iCn9L25DYEf7arIf9gXR0dQhDiQajMvgxf
-	 CVuPnfkg1ECUAroCLxwsEDdB1k11ptnjDuqmMRtKBg0uLReom2+BSCqPz1BFEF6bnM
-	 rA6Zvy/2NLHXpbY9f4C0DFsZzP011HQ5wQW8sTesPFwSSJdYXYLhAtsmyuYLOmcD+M
-	 bdQnQJTV1WVfvZWlhYhtlTQsVW5JGw8ldAJS2dGQzr9orVdCw3ZhblhzRQ04uWwdqj
-	 /HzVYR3kMVtOQ==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 43C96D84BBB;
-	Thu, 22 Feb 2024 09:30:27 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=cloudflare.com header.i=@cloudflare.com header.b="McPWnjwt"
+Received: by mail-wr1-f47.google.com with SMTP id ffacd0b85a97d-33d36736d4eso3415969f8f.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Feb 2024 02:33:14 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=cloudflare.com; s=google09082023; t=1708597992; x=1709202792; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=NgMLy4WcLKJUBpQbmpMpr0DB4cr8d0jy50+DMCwIoCg=;
+        b=McPWnjwtTGzzaVks3jwR9YWG6gZOM2D+sV9PiPV01pPRrBMeAVOBH7yu50QQPhKkl9
+         LTXbH3Wa/4gj6sm7R7xuB8IIuREO9x9X5Xneh/O5adaXGI5tWhXZvxFBdU9dYe6pLBsW
+         6kwiwyoP3iZwXcMBadtxoFQnsVTBfuskvWfG8piW6qeVu9LjLVEd/KVLMskw4wfVIJKc
+         81wMzLZOqJB6v0+5HH0tsN2YpLkVSnLv8DMu68M2pVRod8wKGLmNyGgAl/Au8aFKD42+
+         JqiJUZIW9hzwGki887Vpg4gOqfv16wqPcOJ5ZzWS252UUjPRfObOjlXAtfktqUSSOaWc
+         SfUQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1708597992; x=1709202792;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=NgMLy4WcLKJUBpQbmpMpr0DB4cr8d0jy50+DMCwIoCg=;
+        b=ruOEnTnUXInJcoIMzGkBMA+RLv8rlDv+5nVtJoFaWFNqx0GDu6PHZfw7p3w0fHaw87
+         sShwzY7e0UySzdEWyHHJavL0iijxggSG6Hp41BQmMbKmm4U8kEA3hev7/L5MmD6MlLdV
+         ipMxc6MkZ1KKpExphiC8ByCgB4heteuOTN1Iljj3MNxVlevCEafGe4A/bMh62BRmm6Gi
+         WwqDbQ9YSHnbHmtc8aipTWpG1s0rMtGbffAe+kX8geuDbek6UalLFPK0wTyLVrEGjvBa
+         986yG115ZSxCvnNfeAM5JWr5xRO8l09b7kj0rTvIwLqvkwUlg2iYD3G2fHJpBa/W41nP
+         O6bQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUtrL9Jh5K3zvFHVcK4uHgU6ENIqL2ERVtgeLTI+r7bMnc2tt8CBYROeFiVXE2tmPDTe308JEJAyS0Xnq7bCffUIHt1hdo2eCrOvp0B3JO4
+X-Gm-Message-State: AOJu0YzPRHVmKRpUxIHVZRhcnmg+H2vhC7BBhtJaGW1CuD48A6Gp3gr/
+	CB0A0aDUpqGBAbBSXZ/jSindxgLwLUhk8rjKtQnIn/VojdUNdA/hsOT5tQ+6vAE=
+X-Google-Smtp-Source: AGHT+IE/m/3wZ8x6vAGOKJF4LvO1xY/BcliQjuymscAQ/G6z0YMbyceFYPnUS194BAblKOGRNUnzGA==
+X-Received: by 2002:adf:f190:0:b0:33d:39de:630a with SMTP id h16-20020adff190000000b0033d39de630amr8851604wro.14.1708597992564;
+        Thu, 22 Feb 2024 02:33:12 -0800 (PST)
+Received: from localhost.localdomain ([87.74.207.91])
+        by smtp.gmail.com with ESMTPSA id v15-20020a5d610f000000b0033d4cf751b2sm13137283wrt.33.2024.02.22.02.33.11
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Thu, 22 Feb 2024 02:33:12 -0800 (PST)
+From: Ignat Korchagin <ignat@cloudflare.com>
+To: pablo@netfilter.org,
+	kadlec@netfilter.org,
+	fw@strlen.de,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org
+Cc: kernel-team@cloudflare.com,
+	jgriege@cloudflare.com,
+	Ignat Korchagin <ignat@cloudflare.com>
+Subject: [PATCH v3] netfilter: nf_tables: allow NFPROTO_INET in nft_(match/target)_validate()
+Date: Thu, 22 Feb 2024 10:33:08 +0000
+Message-Id: <20240222103308.7910-1-ignat@cloudflare.com>
+X-Mailer: git-send-email 2.39.3 (Apple Git-145)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,50 +70,100 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/5] netfilter: nf_tables: set dormant flag on hook
- register failure
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <170859422727.22324.12421215387235975352.git-patchwork-notify@kernel.org>
-Date: Thu, 22 Feb 2024 09:30:27 +0000
-References: <20240222000843.146665-2-pablo@netfilter.org>
-In-Reply-To: <20240222000843.146665-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de
 
-Hello:
+Commit d0009effa886 ("netfilter: nf_tables: validate NFPROTO_* family") added
+some validation of NFPROTO_* families in the nft_compat module, but it broke
+the ability to use legacy iptables modules in dual-stack nftables.
 
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+While with legacy iptables one had to independently manage IPv4 and IPv6
+tables, with nftables it is possible to have dual-stack tables sharing the
+rules. Moreover, it was possible to use rules based on legacy iptables
+match/target modules in dual-stack nftables.
 
-On Thu, 22 Feb 2024 01:08:39 +0100 you wrote:
-> From: Florian Westphal <fw@strlen.de>
-> 
-> We need to set the dormant flag again if we fail to register
-> the hooks.
-> 
-> During memory pressure hook registration can fail and we end up
-> with a table marked as active but no registered hooks.
-> 
-> [...]
+As an example, the program from [2] creates an INET dual-stack family table
+using an xt_bpf based rule, which looks like the following (the actual output
+was generated with a patched nft tool as the current nft tool does not parse
+dual stack tables with legacy match rules, so consider it for illustrative
+purposes only):
 
-Here is the summary with links:
-  - [net,1/5] netfilter: nf_tables: set dormant flag on hook register failure
-    https://git.kernel.org/netdev/net/c/bccebf647017
-  - [net,2/5] netfilter: nft_flow_offload: reset dst in route object after setting up flow
-    https://git.kernel.org/netdev/net/c/9e0f0430389b
-  - [net,3/5] netfilter: nft_flow_offload: release dst in case direct xmit path is used
-    https://git.kernel.org/netdev/net/c/8762785f459b
-  - [net,4/5] netfilter: nf_tables: register hooks last when adding new chain/flowtable
-    https://git.kernel.org/netdev/net/c/d472e9853d7b
-  - [net,5/5] netfilter: nf_tables: use kzalloc for hook allocation
-    https://git.kernel.org/netdev/net/c/195e5f88c2e4
+table inet testfw {
+  chain input {
+    type filter hook prerouting priority filter; policy accept;
+    bytecode counter packets 0 bytes 0 accept
+  }
+}
 
-You are awesome, thank you!
+After d0009effa886 ("netfilter: nf_tables: validate NFPROTO_* family") we get
+EOPNOTSUPP for the above program.
+
+Fix this by allowing NFPROTO_INET for nft_(match/target)_validate(), but also
+restrict the functions to classic iptables hooks.
+
+Changes in v3:
+  * clarify that upstream nft will not display such configuration properly and
+    that the output was generated with a patched nft tool
+  * remove example program from commit description and link to it instead
+  * no code changes otherwise
+
+Changes in v2:
+  * restrict nft_(match/target)_validate() to classic iptables hooks
+  * rewrite example program to use unmodified libnftnl
+
+Fixes: d0009effa886 ("netfilter: nf_tables: validate NFPROTO_* family")
+Link: https://lore.kernel.org/all/Zc1PfoWN38UuFJRI@calendula/T/#mc947262582c90fec044c7a3398cc92fac7afea72 [1]
+Link: https://lore.kernel.org/all/20240220145509.53357-1-ignat@cloudflare.com/ [2]
+Reported-by: Jordan Griege <jgriege@cloudflare.com>
+Signed-off-by: Ignat Korchagin <ignat@cloudflare.com>
+---
+ net/netfilter/nft_compat.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index 1f9474fefe84..d3d11dede545 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -359,10 +359,20 @@ static int nft_target_validate(const struct nft_ctx *ctx,
+ 
+ 	if (ctx->family != NFPROTO_IPV4 &&
+ 	    ctx->family != NFPROTO_IPV6 &&
++	    ctx->family != NFPROTO_INET &&
+ 	    ctx->family != NFPROTO_BRIDGE &&
+ 	    ctx->family != NFPROTO_ARP)
+ 		return -EOPNOTSUPP;
+ 
++	ret = nft_chain_validate_hooks(ctx->chain,
++				       (1 << NF_INET_PRE_ROUTING) |
++				       (1 << NF_INET_LOCAL_IN) |
++				       (1 << NF_INET_FORWARD) |
++				       (1 << NF_INET_LOCAL_OUT) |
++				       (1 << NF_INET_POST_ROUTING));
++	if (ret)
++		return ret;
++
+ 	if (nft_is_base_chain(ctx->chain)) {
+ 		const struct nft_base_chain *basechain =
+ 						nft_base_chain(ctx->chain);
+@@ -610,10 +620,20 @@ static int nft_match_validate(const struct nft_ctx *ctx,
+ 
+ 	if (ctx->family != NFPROTO_IPV4 &&
+ 	    ctx->family != NFPROTO_IPV6 &&
++	    ctx->family != NFPROTO_INET &&
+ 	    ctx->family != NFPROTO_BRIDGE &&
+ 	    ctx->family != NFPROTO_ARP)
+ 		return -EOPNOTSUPP;
+ 
++	ret = nft_chain_validate_hooks(ctx->chain,
++				       (1 << NF_INET_PRE_ROUTING) |
++				       (1 << NF_INET_LOCAL_IN) |
++				       (1 << NF_INET_FORWARD) |
++				       (1 << NF_INET_LOCAL_OUT) |
++				       (1 << NF_INET_POST_ROUTING));
++	if (ret)
++		return ret;
++
+ 	if (nft_is_base_chain(ctx->chain)) {
+ 		const struct nft_base_chain *basechain =
+ 						nft_base_chain(ctx->chain);
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.39.2
 
