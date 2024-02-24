@@ -1,86 +1,59 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90778250EA;
-	Sat, 24 Feb 2024 12:13:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2FD8125C3;
+	Sat, 24 Feb 2024 13:23:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708776816; cv=none; b=k7n6qiomz8wdgmlm+L9ewMgVrY/fKB32XF4xE2nhx+xLXpgXVez7rQwnmk8+TCQpTbJJCUECFB1YLFohAQhVJ5u1j5RP+viMZuYbimjhQZ5kbSeNnEzMKC86FfO1EWKx8tyRZptx3JpXzM41h95h9G1AoTtJURsjQIHjtMZ4CY8=
+	t=1708781010; cv=none; b=ttqWrZ6fFE8seEUh3Apc3DgG5HKSG7K7nEbypxmiTLUfWVylxvrzpxgaZqUjvSuxYontaT12xK4t1QDX9Y1Yhx5KhKt5nozJ9/UEdmqBT66iirpRGfI+LBLfJCOmaid1HBXKpkCaOUSXIy2rioBLDUXoFThxUMG/MXuwGhLyj80=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708776816; c=relaxed/simple;
-	bh=XuZaYULxt+QGAQ9Uunj4VVZWgUNRWuw89lnYQs72UaE=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=OocDjRbFzgmS/l11sIvoiXuEHShmIMQ8KHrfWgR7KhZZLOqUiS/wwcgVe1G6ie5YWzrzdy6Y3f5U+KQONPW+A+F+VcRImMV4OTTwsFh/zsSKmvvhCu4VVIct9Io/44/T1NQyuovRS6EPL6Em+eaP3KSqOMlfEZXRP4PUwmpxWRQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JBBbX1x8; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JBBbX1x8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F5F8C433C7;
-	Sat, 24 Feb 2024 12:13:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1708776816;
-	bh=XuZaYULxt+QGAQ9Uunj4VVZWgUNRWuw89lnYQs72UaE=;
-	h=From:To:Cc:Subject:Date:From;
-	b=JBBbX1x8mXKUnleDNXQBhFhFYeFJbRFjBjjYJTrUf9jotWBHCZANs+6ulYxs5u60B
-	 FuvoWL758zNYDzP/rlga/Z3DlOqtANpMKFbBng9LwIBORz88DS3N5oLTT2DjdaNhHv
-	 YhMQLfTibP4NVtubCa2jCcfB5bu6Z1c5QyIl2nFd1/SH3UeDX/KJmxW/bIdLpf/gaE
-	 r84yG8YdODU8ZFreixoKcE6nuDE3tUyDUECbPgQZQa0sIkJXIyJ5yzLdU8cld3US9p
-	 RmKPse8uLoH6MsC9mKy6/3nmfGS/87zixtpIZYVlWxHHibsIvJtgTkM7pLyClkcyAl
-	 P/eBrfdD7z0yw==
-From: Arnd Bergmann <arnd@kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	s=arc-20240116; t=1708781010; c=relaxed/simple;
+	bh=sOeZ7VjdJLtUTLoc52UIxXOs60Oaaq74itnIyOLQ3xs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=M9akinK1YbolN0tLgyZ5iGYP2JP32x9YOkMhe/hWPO0AtTiUhO/mV4fAbLNVkKWNeYjZn7WtOEo0SYlX6Fi3BYumWLZ6wUZcJsxRFpzw+Jq+XVpP2AmeHaZjuzrq7wsmbVYU8/YdBgRyUUCbsf/RScG9PBUWFUHQiwY1IMPXgHY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1rdrzh-0004nb-7z; Sat, 24 Feb 2024 14:23:09 +0100
+Date: Sat, 24 Feb 2024 14:23:09 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Arnd Bergmann <arnd@kernel.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>
-Cc: Arnd Bergmann <arnd@arndb.de>,
+	Florian Westphal <fw@strlen.de>, Arnd Bergmann <arnd@arndb.de>,
 	"David S. Miller" <davem@davemloft.net>,
 	David Ahern <dsahern@kernel.org>,
 	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] netfilter: xtables: fix IP6_NF_IPTABLES_LEGACY typo
-Date: Sat, 24 Feb 2024 13:13:13 +0100
-Message-Id: <20240224121330.1924338-1-arnd@kernel.org>
-X-Mailer: git-send-email 2.39.2
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] netfilter: xtables: fix IP6_NF_IPTABLES_LEGACY typo
+Message-ID: <20240224132309.GA27709@breakpoint.cc>
+References: <20240224121330.1924338-1-arnd@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240224121330.1924338-1-arnd@kernel.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-From: Arnd Bergmann <arnd@arndb.de>
+Arnd Bergmann <arnd@kernel.org> wrote:
+> From: Arnd Bergmann <arnd@arndb.de>
+> 
+> CONFIG_IP_NF_NAT accidentally selects the wrong NF_IPTABLES_LEGACY
+> symbol, which ends up causing a link failure in some configurations:
+> 
+> WARNING: unmet direct dependencies detected for IP6_NF_IPTABLES_LEGACY
+>   Depends on [n]: NET [=y] && INET [=y] && IPV6 [=n] && NETFILTER [=y]
+>   Selected by [m]:
+> 
+> Select IP_NF_IPTABLES_LEGACY instead of IP6_NF_IPTABLES_LEGACY.
 
-CONFIG_IP_NF_NAT accidentally selects the wrong NF_IPTABLES_LEGACY
-symbol, which ends up causing a link failure in some configurations:
-
-WARNING: unmet direct dependencies detected for IP6_NF_IPTABLES_LEGACY
-  Depends on [n]: NET [=y] && INET [=y] && IPV6 [=n] && NETFILTER [=y]
-  Selected by [m]:
-
-Select IP_NF_IPTABLES_LEGACY instead of IP6_NF_IPTABLES_LEGACY.
-
-Fixes: a9525c7f6219 ("netfilter: xtables: allow xtables-nft only builds")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- net/ipv4/netfilter/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index 87d890172809..8f6e950163a7 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -217,7 +217,7 @@ config IP_NF_NAT
- 	default m if NETFILTER_ADVANCED=n
- 	select NF_NAT
- 	select NETFILTER_XT_NAT
--	select IP6_NF_IPTABLES_LEGACY
-+	select IP_NF_IPTABLES_LEGACY
- 	help
- 	  This enables the `nat' table in iptables. This allows masquerading,
- 	  port forwarding and other forms of full Network Address Port
--- 
-2.39.2
-
+Patch is correct but this is already fixed via
+749d4ef0868c ("netfilter: xtables: fix up kconfig dependencies")
