@@ -1,121 +1,64 @@
-Received: from mail-ed1-f50.google.com (mail-ed1-f50.google.com [209.85.208.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 328E95A7B9
-	for <netfilter-devel@vger.kernel.org>; Mon, 26 Feb 2024 13:05:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C62C4C70
+	for <netfilter-devel@vger.kernel.org>; Mon, 26 Feb 2024 14:34:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708952710; cv=none; b=QU0arEDeFlcNOYdg+6M+04ahk8+8qsKtUkXUzsJuDZb9XF3eo5dOcKa4g+wHn9OjWRcVVd9JqOTxt7yItIj+k++Ca/xLK/W5hpI/ngIzD6tK+s5sd/WosRDEsWEjkFoLkygLxAyRhsQq5qG436KQ3PvgIhtmME+l2V5Qk7aavrQ=
+	t=1708958048; cv=none; b=lJx1zr6q7Ey8OYSd+NVHruVRTTBf9/dDl6cvfAxUrUU/Kn/0DVHgKYmn+pgMOcWM/Vbay/lBu2xEoTCCtcZaF1Req/asUMpfRh+ODxO0JBt/JyewWc2VPpt7YVDu8MpfHIpgTRGZcjm36MfgyOYtEdLzy+H59e23mVKsB2NonvY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708952710; c=relaxed/simple;
-	bh=TSU/7vhopuediqaMB29afnxjrkk5SfO2S1L2CO1wyA4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=a0JgWotBc1Sa6fU8nuTSInavLU/HaNA04GfIAT1UrUAlGIszCbFVl4ZyCx8b8V6OptX4KCoXlA09s6Cylq3XPGfy92e7eQ5U6iK9Oa5sRU3FOBja/rXFEyDDPnJmV7GthnbMXkaTshwJjp0py30EofoNLSOmFaTrXjbLV/PUnIw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=cUtB3ULY; arc=none smtp.client-ip=209.85.208.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="cUtB3ULY"
-Received: by mail-ed1-f50.google.com with SMTP id 4fb4d7f45d1cf-56619428c41so3096a12.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 26 Feb 2024 05:05:07 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1708952706; x=1709557506; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Zy6MKgUPkyetuB1Y1eJL9OxnWLY+8uMAQrEG8a3TiZc=;
-        b=cUtB3ULYfuD4wu/3vO/+EMNrEJQFpSEdwicV5GW1JRkokPnatObaalZUE5QO/VgX7Z
-         ljhxEnEjkWsRkDt33gI2mGG9EpaO6vHZq7YTkE5/HZZjGp3OFwdshoiRfGw+tMUDihpy
-         rl+yUsQAa2tLgk1zrBc1+tN4OOJ5fr8w5R+f8Nyl/b3P4olO9jgFnq8MOIJ7+UoGofcB
-         oMIw1NpKYynhEv79H7sEpKcVxLKSuVAOklw7AMtzMLAUnm2vIkf0sgcJ+HYEu/30glsE
-         Aqk2KOHLEddIUnvNB0H4HjXP5kDPAjPPMyaMhleZl9wgXZktS4QoM4v56sUbF+C83Bpp
-         QHBA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1708952706; x=1709557506;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Zy6MKgUPkyetuB1Y1eJL9OxnWLY+8uMAQrEG8a3TiZc=;
-        b=epmxq1FnVdrfannZj/6VtbgJVXgFHXvcLsXZzJqUWPXxwnjN2th27Hz492NZDqIEli
-         pllHasgYbt/eKirU+cU1nUsf9t7qd8Oco8lxzAvd0ZTkX85C806rFC+O4tGMC38cyN2i
-         CVqwvINte3AGnHPIVxZncubfWfspkQqD73cnRKb6F76bQ+BBm8qX1UQCapyVMSdK8cEM
-         qD0C5yqy8291Nw0Jo5/Nkevu+fGl32jjCRvFt1sSC6l05j1p7Z/lZTPgbK2bFJR4iDul
-         KS41p8q1yHjGjpPcDsrOn5Hv7z/YkQgMmdvC9u9+M8Ov3mkBVWQtFDVdW6ncKhvKrITo
-         TQtw==
-X-Forwarded-Encrypted: i=1; AJvYcCXidkQRQlks5tbpQExEX99zn/hC2LVojWxFxQMtikLMAX6rKweM/F3B0upXJYir2IDL/LE1Hhh28qVmZ0cwQRKUSkJqNcS9FYIK0RQk6pwe
-X-Gm-Message-State: AOJu0YzsJKnbrDvK5wolJiBevPXv8Ky39VbD1U2zianCMdKa3NwYRk8j
-	d82IXxOSkMaBb8W6GOagJ4EcYprGz7r1yAHIDI7tzSN5XjYRN8hO/YdGFwQ9MZdq+DFA9HepSRc
-	NM/UMm7KPabByPMxmz07xPcY3/75WH8somNOg
-X-Google-Smtp-Source: AGHT+IE9kaSYsBbM+tOsGzJDOXFjCoBfN0PchoTRkAb97i97cnXlO1P4tee2BSQu3/6t8WsOawF9VLsrsWuCV8jCdhI=
-X-Received: by 2002:a50:9b05:0:b0:560:1a1:eb8d with SMTP id
- o5-20020a509b05000000b0056001a1eb8dmr279013edi.7.1708952706186; Mon, 26 Feb
- 2024 05:05:06 -0800 (PST)
+	s=arc-20240116; t=1708958048; c=relaxed/simple;
+	bh=FvsKrQbR70xdBF39MXD/iqbNJtg5euwSj9MRWNPTNKE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=QX4fhGE2NYaKLhFK+SoqlJgx+IWxCrE3Sa6zaLZawFIZvmT8o3H3lFZVuabP/ygiYwYB49Ita8g6H7EvRUV9CO2yt2ez9NGChIZSbRQRZM9JgbiAj5eOgtDlNIfL9kY+8MGh+bg+5wKot35NXPquhbpNPlWu4e7KlvhbuloLNAI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1rec3P-00032d-9E; Mon, 26 Feb 2024 15:34:03 +0100
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH 0/2] netfilter: bridge_netfilter:
+Date: Mon, 26 Feb 2024 15:21:46 +0100
+Message-ID: <20240226142151.4670-1-fw@strlen.de>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240225225845.45555-1-pablo@netfilter.org>
-In-Reply-To: <20240225225845.45555-1-pablo@netfilter.org>
-From: Eric Dumazet <edumazet@google.com>
-Date: Mon, 26 Feb 2024 14:04:51 +0100
-Message-ID: <CANn89iKjemgfRL-Yy2AS8kQj4iEa3DGT+uq1GabFTTw6Mr5o4w@mail.gmail.com>
-Subject: Re: [PATCH net] netlink: validate length of NLA_{BE16,BE32} types
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
-	davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com, fw@strlen.de
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Sun, Feb 25, 2024 at 11:58=E2=80=AFPM Pablo Neira Ayuso <pablo@netfilter=
-.org> wrote:
->
-> syzbot reports:
->
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D
->
-...
+There is a day 0 bug in bridge netfilter when used with
+connection tracking.
 
-> After this update, kernel displays:
->
->   netlink: 'x': attribute type 2 has an invalid length.
->
-> in case that the attribute payload is too small and it reports -ERANGE
-> to userspace.
->
-> Fixes: ecaf75ffd5f5 ("netlink: introduce bigendian integer types")
-> Reported-by: syzbot+3f497b07aa3baf2fb4d0@syzkaller.appspotmail.com
-> Reported-by: xingwei lee <xrivendell7@gmail.com>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  lib/nlattr.c | 4 ++++
->  1 file changed, 4 insertions(+)
->
-> diff --git a/lib/nlattr.c b/lib/nlattr.c
-> index ed2ab43e1b22..be9c576b6e2d 100644
-> --- a/lib/nlattr.c
-> +++ b/lib/nlattr.c
-> @@ -30,6 +30,8 @@ static const u8 nla_attr_len[NLA_TYPE_MAX+1] =3D {
->         [NLA_S16]       =3D sizeof(s16),
->         [NLA_S32]       =3D sizeof(s32),
->         [NLA_S64]       =3D sizeof(s64),
-> +       [NLA_BE16]      =3D sizeof(__be16),
-> +       [NLA_BE32]      =3D sizeof(__be32),
->  };
->
->  static const u8 nla_attr_minlen[NLA_TYPE_MAX+1] =3D {
-> @@ -43,6 +45,8 @@ static const u8 nla_attr_minlen[NLA_TYPE_MAX+1] =3D {
->         [NLA_S16]       =3D sizeof(s16),
->         [NLA_S32]       =3D sizeof(s32),
->         [NLA_S64]       =3D sizeof(s64),
-> +       [NLA_BE16]      =3D sizeof(__be16),
-> +       [NLA_BE32]      =3D sizeof(__be32),
->  };
->
+Conntrack assumes that an nf_conn structure that is not
+yet added to hash table ("unconfirmed"), is only visible
+by the current cpu that is processing the sk_buff.
 
-Reviewed-by: Eric Dumazet <edumazet@google.com>
+For bridge this isn't true, sk_buff can get cloned in
+between, and clones can be processed in parallel on
+different cpu.
 
-Thanks.
+First patch disables NAT and conntrack helpers for multicast
+packets, second patch adds a test case for this problem.
+
+Florian Westphal (2):
+  netfilter: bridge: confirm multicast packets before passing them up
+    the stack
+  selftests: netfilter: add bridge conntrack + multicast test case
+
+ include/linux/netfilter.h                     |   1 +
+ net/bridge/br_netfilter_hooks.c               |  96 +++++++++
+ net/bridge/netfilter/nf_conntrack_bridge.c    |  26 +++
+ net/netfilter/nf_conntrack_core.c             |   1 +
+ tools/testing/selftests/netfilter/Makefile    |   3 +-
+ .../selftests/netfilter/bridge_netfilter.sh   | 187 ++++++++++++++++++
+ 6 files changed, 313 insertions(+), 1 deletion(-)
+ create mode 100644 tools/testing/selftests/netfilter/bridge_netfilter.sh
+
+-- 
+2.43.0
+
