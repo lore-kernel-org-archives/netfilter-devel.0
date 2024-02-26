@@ -1,29 +1,28 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21F9360DCB
-	for <netfilter-devel@vger.kernel.org>; Mon, 26 Feb 2024 14:34:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F72112AAC5
+	for <netfilter-devel@vger.kernel.org>; Mon, 26 Feb 2024 14:34:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708958051; cv=none; b=D+CjyMhjNMbs8+ZdtmnSpfqEXoeTUUQBA0W3ENvI2ybfZmga4uUWfhg4velThy9YcckmQHViZF9IO8zE7jfxRikKBXhVrjW+fBo3oAkG8EpEgOqumLj5bLZ2HtlsXJpTYZ6KSlgjFX4TY44LKhSAH3UoT48eN+s03Oku4CnPUgo=
+	t=1708958055; cv=none; b=TORVtpWGp41jdyOpKmjUidUHoe0ezd3EGYaY5CaBgGiOIXszyv6Whl0Uqkzdv7uVmtYNL33fuJIPvy7WCI44ewoH1KcYVL79cV+2nr9WgKe0T9miuCYuD/s8udbVLKedBmZ6kyGTC97eeN5R5J5IjK32cFCKsLlURjcJIxGCKuI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708958051; c=relaxed/simple;
-	bh=XEABNHPNme/foKP+qXQylsPSmHPTIa0IWDdJT/sAWMQ=;
+	s=arc-20240116; t=1708958055; c=relaxed/simple;
+	bh=h1i1YE6Ut1uXK2wkjS20RUF2YXYMsJlLRJ2rySFISdQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=aaYQwD9AZiVX0O3KEH4uCX9RWvn+vDPVPsIEfBXKz/AAJX29/8DF4oEaDsNGJopwidV7JkXpMAbhf7OjO3xzmhwdG1qH4FHs/ww+j+6kESXijl6g8qiUw9Z57l/zLnwpSFKClYFPGwG5YoDgM+3AgiJn8AN3ypyYMV8+yrNNlSs=
+	 MIME-Version; b=DIyuxKFVgISe1EDfYiJ+TVp2qYy/J8xVQlOOODMfeMzJAYy4egLkktRsCe93WS2xYLM+zqN19uJtAek+a2SipE0nNISJW3OBUfbDR5qIiTGiVHR/dlhGH/zyAaStlIKtOWHEKi3OmEFk0qwJ/Byy6wduINiBYm8fR6v10hK5Ii4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1rec3T-00032p-BK; Mon, 26 Feb 2024 15:34:07 +0100
+	id 1rec3X-000332-EU; Mon, 26 Feb 2024 15:34:11 +0100
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf 1/2] netfilter: bridge: confirm multicast packets before passing them up the stack
-Date: Mon, 26 Feb 2024 15:21:47 +0100
-Message-ID: <20240226142151.4670-2-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf 2/2] selftests: netfilter: add bridge conntrack + multicast test case
+Date: Mon, 26 Feb 2024 15:21:48 +0100
+Message-ID: <20240226142151.4670-3-fw@strlen.de>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20240226142151.4670-1-fw@strlen.de>
 References: <20240226142151.4670-1-fw@strlen.de>
@@ -35,256 +34,235 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-conntrack nf_confirm logic cannot handle cloned skbs referencing
-the same nf_conn entry, which will happen for multicast (broadcast)
-frames on bridges.
+Add test case for multicast packet confirm race.
+Without preceding patch, this should result in:
 
- Example:
-    macvlan0
-       |
-      br0
-     /  \
-  ethX    ethY
+ WARNING: CPU: 0 PID: 38 at net/netfilter/nf_conntrack_core.c:1198 __nf_conntrack_confirm+0x3ed/0x5f0
+ Workqueue: events_unbound macvlan_process_broadcast
+ RIP: 0010:__nf_conntrack_confirm+0x3ed/0x5f0
+  ? __nf_conntrack_confirm+0x3ed/0x5f0
+  nf_confirm+0x2ad/0x2d0
+  nf_hook_slow+0x36/0xd0
+  ip_local_deliver+0xce/0x110
+  __netif_receive_skb_one_core+0x4f/0x70
+  process_backlog+0x8c/0x130
+  [..]
 
- ethX (or Y) receives a L2 multicast or broadcast packet containing an IP
- packet, flow is not yet in conntrack table.
-
- 1. skb passes through bridge and fake-ip (br_netfilter)Prerouting.
-    -> skb->_nfct now references a unconfirmed entry
- 2. skb is broad/mcast packet. bridge now passes clones out on each bridge
-    interface.
- 3. skb gets passed up the stack.
- 4. In macvlan case, macvlan driver retains clone(s) of the mcast skb
-    and schedules a work queue to send them out on the lower devices.
-
-    The clone skb->_nfct is not a copy, it is the same entry as the
-    original skb.  The macvlan rx handler then returns RX_HANDLER_PASS.
- 5. Normal conntrack hooks (in NF_INET_LOCAL_IN) confirm the orig skb.
-
-The Macvlan broadcast worker and normal confirm path will race.
-
-This race will not happen if step 2 already confirmed a clone. In that
-case later steps perform skb_clone() with skb->_nfct already confirmed (in
-hash table).  This works fine.
-
-But such confirmation won't happen when eb/ip/nftables rules dropped the
-packets before they reached the nf_confirm step in postrouting.
-
-Work around this problem by explicit confirmation of the entry at LOCAL_IN
-time, before upper layer has a chance to clone the unconfirmed entry.
-
-The downside is that this disables NAT and conntrack helpers for such flows.
-
-Alternative fix would be to add locking to all code parts that deal with
-unconfirmed packets, but even if that could be done in a sane way this
-opens up other problems, for example:
-
--m physdev --physdev-out eth0 -j SNAT --snat-to 1.2.3.4
--m physdev --physdev-out eth1 -j SNAT --snat-to 1.2.3.5
-
-For multicast case, only one of such conflicting mappings can be
-handled, as conntrack can only deal with 1:1 NAT mappings.
-
-Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Closes: https://bugzilla.kernel.org/show_bug.cgi?id=217777
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/linux/netfilter.h                  |  1 +
- net/bridge/br_netfilter_hooks.c            | 96 ++++++++++++++++++++++
- net/bridge/netfilter/nf_conntrack_bridge.c | 26 ++++++
- net/netfilter/nf_conntrack_core.c          |  1 +
- 4 files changed, 124 insertions(+)
+ tools/testing/selftests/netfilter/Makefile    |   3 +-
+ .../selftests/netfilter/bridge_netfilter.sh   | 188 ++++++++++++++++++
+ 2 files changed, 190 insertions(+), 1 deletion(-)
+ create mode 100644 tools/testing/selftests/netfilter/bridge_netfilter.sh
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 80900d910992..ce660d51549b 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -474,6 +474,7 @@ struct nf_ct_hook {
- 			      const struct sk_buff *);
- 	void (*attach)(struct sk_buff *nskb, const struct sk_buff *skb);
- 	void (*set_closing)(struct nf_conntrack *nfct);
-+	int (*confirm)(struct sk_buff *skb);
- };
- extern const struct nf_ct_hook __rcu *nf_ct_hook;
+diff --git a/tools/testing/selftests/netfilter/Makefile b/tools/testing/selftests/netfilter/Makefile
+index db27153eb4a0..936c3085bb83 100644
+--- a/tools/testing/selftests/netfilter/Makefile
++++ b/tools/testing/selftests/netfilter/Makefile
+@@ -7,7 +7,8 @@ TEST_PROGS := nft_trans_stress.sh nft_fib.sh nft_nat.sh bridge_brouter.sh \
+ 	nft_queue.sh nft_meta.sh nf_nat_edemux.sh \
+ 	ipip-conntrack-mtu.sh conntrack_tcp_unreplied.sh \
+ 	conntrack_vrf.sh nft_synproxy.sh rpath.sh nft_audit.sh \
+-	conntrack_sctp_collision.sh xt_string.sh
++	conntrack_sctp_collision.sh xt_string.sh \
++	bridge_netfilter.sh
  
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index ed1720890757..ef0e9d386879 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -43,6 +43,10 @@
- #include <linux/sysctl.h>
- #endif
+ HOSTPKG_CONFIG := pkg-config
  
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+#include <net/netfilter/nf_conntrack_core.h>
-+#endif
+diff --git a/tools/testing/selftests/netfilter/bridge_netfilter.sh b/tools/testing/selftests/netfilter/bridge_netfilter.sh
+new file mode 100644
+index 000000000000..659b3ab02c8b
+--- /dev/null
++++ b/tools/testing/selftests/netfilter/bridge_netfilter.sh
+@@ -0,0 +1,188 @@
++#!/bin/bash
++# SPDX-License-Identifier: GPL-2.0
++#
++# Test bridge netfilter + conntrack, a combination that doesn't really work,
++# with multicast/broadcast packets racing for hash table insertion.
 +
- static unsigned int brnf_net_id __read_mostly;
- 
- struct brnf_net {
-@@ -553,6 +557,90 @@ static unsigned int br_nf_pre_routing(void *priv,
- 	return NF_STOLEN;
- }
- 
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+/* conntracks' nf_confirm logic cannot handle cloned skbs referencing
-+ * the same nf_conn entry, which will happen for multicast (broadcast)
-+ * Frames on bridges.
-+ *
-+ * Example:
-+ *      macvlan0
-+ *      br0
-+ *  ethX  ethY
-+ *
-+ * ethX (or Y) receives multicast or broadcast packet containing
-+ * an IP packet, not yet in conntrack table.
-+ *
-+ * 1. skb passes through bridge and fake-ip (br_netfilter)Prerouting.
-+ *    -> skb->_nfct now references a unconfirmed entry
-+ * 2. skb is broad/mcast packet. bridge now passes clones out on each bridge
-+ *    interface.
-+ * 3. skb gets passed up the stack.
-+ * 4. In macvlan case, macvlan driver retains clone(s) of the mcast skb
-+ *    and schedules a work queue to send them out on the lower devices.
-+ *
-+ *    The clone skb->_nfct is not a copy, it is the same entry as the
-+ *    original skb.  The macvlan rx handler then returns RX_HANDLER_PASS.
-+ * 5. Normal conntrack hooks (in NF_INET_LOCAL_IN) confirm the orig skb.
-+ *
-+ * The Macvlan broadcast worker and normal confirm path will race.
-+ *
-+ * This race will not happen if step 2 already confirmed a clone. In that
-+ * case later steps perform skb_clone() with skb->_nfct already confirmed (in
-+ * hash table).  This works fine.
-+ *
-+ * But such confirmation won't happen when eb/ip/nftables rules dropped the
-+ * packets before they reached the nf_confirm step in postrouting.
-+ *
-+ * Work around this problem by explicit confirmation of the entry at
-+ * LOCAL_IN time, before upper layer has a chance to clone the unconfirmed
-+ * entry.
-+ *
-+ */
-+static unsigned int br_nf_local_in(void *priv,
-+				   struct sk_buff *skb,
-+				   const struct nf_hook_state *state)
-+{
-+	struct nf_conntrack *nfct = skb_nfct(skb);
-+	const struct nf_ct_hook *ct_hook;
-+	struct nf_conn *ct;
-+	int ret;
++#           eth0    br0     eth0
++# setup is: ns1 <->,ns0 <-> ns3
++#           ns2 <-'    `'-> ns4
 +
-+	if (!nfct || skb->pkt_type == PACKET_HOST)
-+		return NF_ACCEPT;
++# Kselftest framework requirement - SKIP code is 4.
++ksft_skip=4
++ret=0
 +
-+	ct = container_of(nfct, struct nf_conn, ct_general);
-+	if (likely(nf_ct_is_confirmed(ct)))
-+		return NF_ACCEPT;
++sfx=$(mktemp -u "XXXXXXXX")
++ns0="ns0-$sfx"
++ns1="ns1-$sfx"
++ns2="ns2-$sfx"
++ns3="ns3-$sfx"
++ns4="ns4-$sfx"
 +
-+	WARN_ON_ONCE(skb_shared(skb));
-+	WARN_ON_ONCE(refcount_read(&nfct->use) != 1);
++ebtables -V > /dev/null 2>&1
++if [ $? -ne 0 ];then
++	echo "SKIP: Could not run test without ebtables"
++	exit $ksft_skip
++fi
 +
-+	/* We can't call nf_confirm here, it would create a dependency
-+	 * on nf_conntrack module.
-+	 */
-+	ct_hook = rcu_dereference(nf_ct_hook);
-+	if (!ct_hook) {
-+		skb->_nfct = 0ul;
-+		nf_conntrack_put(nfct);
-+		return NF_ACCEPT;
-+	}
++ip -Version > /dev/null 2>&1
++if [ $? -ne 0 ];then
++	echo "SKIP: Could not run test without ip tool"
++	exit $ksft_skip
++fi
 +
-+	nf_bridge_pull_encap_header(skb);
-+	ret = ct_hook->confirm(skb);
-+	switch (ret & NF_VERDICT_MASK) {
-+	case NF_STOLEN:
-+		return NF_STOLEN;
-+	default:
-+		nf_bridge_push_encap_header(skb);
-+		break;
-+	}
++for i in $(seq 0 4); do
++  eval ip netns add \$ns$i
++done
 +
-+	ct = container_of(nfct, struct nf_conn, ct_general);
-+	WARN_ON_ONCE(!nf_ct_is_confirmed(ct));
-+
-+	return ret;
-+}
-+#endif
- 
- /* PF_BRIDGE/FORWARD *************************************************/
- static int br_nf_forward_finish(struct net *net, struct sock *sk, struct sk_buff *skb)
-@@ -964,6 +1052,14 @@ static const struct nf_hook_ops br_nf_ops[] = {
- 		.hooknum = NF_BR_PRE_ROUTING,
- 		.priority = NF_BR_PRI_BRNF,
- 	},
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+	{
-+		.hook = br_nf_local_in,
-+		.pf = NFPROTO_BRIDGE,
-+		.hooknum = NF_BR_LOCAL_IN,
-+		.priority = NF_BR_PRI_LAST,
-+	},
-+#endif
- 	{
- 		.hook = br_nf_forward,
- 		.pf = NFPROTO_BRIDGE,
-diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
-index abb090f94ed2..380a1673d8ab 100644
---- a/net/bridge/netfilter/nf_conntrack_bridge.c
-+++ b/net/bridge/netfilter/nf_conntrack_bridge.c
-@@ -291,6 +291,26 @@ static unsigned int nf_ct_bridge_pre(void *priv, struct sk_buff *skb,
- 	return nf_conntrack_in(skb, &bridge_state);
- }
- 
-+static unsigned int nf_ct_bridge_in(void *priv, struct sk_buff *skb,
-+				    const struct nf_hook_state *state)
-+{
-+	enum ip_conntrack_info ctinfo;
-+	struct nf_conn *ct;
-+
-+	if (skb->pkt_type == PACKET_HOST)
-+		return NF_ACCEPT;
-+
-+	/* nf_conntrack_confirm() cannot handle concurrent clones,
-+	 * this happens for broad/multicast frames with e.g. macvlan on top
-+	 * of the bridge device.
-+	 */
-+	ct = nf_ct_get(skb, &ctinfo);
-+	if (!ct || nf_ct_is_confirmed(ct) || nf_ct_is_template(ct))
-+		return NF_ACCEPT;
-+
-+	return nf_conntrack_confirm(skb);
++cleanup() {
++  for i in $(seq 0 4); do eval ip netns del \$ns$i;done
 +}
 +
- static void nf_ct_bridge_frag_save(struct sk_buff *skb,
- 				   struct nf_bridge_frag_data *data)
- {
-@@ -385,6 +405,12 @@ static struct nf_hook_ops nf_ct_bridge_hook_ops[] __read_mostly = {
- 		.hooknum	= NF_BR_PRE_ROUTING,
- 		.priority	= NF_IP_PRI_CONNTRACK,
- 	},
-+	{
-+		.hook		= nf_ct_bridge_in,
-+		.pf		= NFPROTO_BRIDGE,
-+		.hooknum	= NF_BR_LOCAL_IN,
-+		.priority	= NF_IP_PRI_CONNTRACK_CONFIRM,
-+	},
- 	{
- 		.hook		= nf_ct_bridge_post,
- 		.pf		= NFPROTO_BRIDGE,
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 2e5f3864d353..5b876fa7f9af 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -2756,6 +2756,7 @@ static const struct nf_ct_hook nf_conntrack_hook = {
- 	.get_tuple_skb  = nf_conntrack_get_tuple_skb,
- 	.attach		= nf_conntrack_attach,
- 	.set_closing	= nf_conntrack_set_closing,
-+	.confirm	= __nf_conntrack_confirm,
- };
- 
- void nf_conntrack_init_end(void)
++trap cleanup EXIT
++
++do_ping()
++{
++	fromns="$1"
++	dstip="$2"
++
++	ip netns exec $fromns ping -c 1 -q $dstip > /dev/null
++	if [ $? -ne 0 ]; then
++		echo "ERROR: ping from $fromns to $dstip"
++		ip netns exec ${ns0} nft list ruleset
++		ret=1
++	fi
++}
++
++bcast_ping()
++{
++	fromns="$1"
++	dstip="$2"
++
++	for i in $(seq 1 1000); do
++		ip netns exec $fromns ping -q -f -b -c 1 -q $dstip > /dev/null 2>&1
++		if [ $? -ne 0 ]; then
++			echo "ERROR: ping -b from $fromns to $dstip"
++			ip netns exec ${ns0} nft list ruleset
++			fi
++	done
++}
++
++ip link add veth1 netns ${ns0} type veth peer name eth0 netns ${ns1}
++if [ $? -ne 0 ]; then
++	echo "SKIP: Can't create veth device"
++	exit $ksft_skip
++fi
++
++ip link add veth2 netns ${ns0} type veth peer name eth0 netns $ns2
++ip link add veth3 netns ${ns0} type veth peer name eth0 netns $ns3
++ip link add veth4 netns ${ns0} type veth peer name eth0 netns $ns4
++
++ip -net ${ns0} link set lo up
++
++for i in $(seq 1 4); do
++  ip -net ${ns0} link set veth$i up
++done
++
++ip -net ${ns0} link add br0 type bridge stp_state 0 forward_delay 0 nf_call_iptables 1 nf_call_ip6tables 1 nf_call_arptables 1
++if [ $? -ne 0 ]; then
++	echo "SKIP: Can't create bridge br0"
++	exit $ksft_skip
++fi
++
++# make veth0,1,2 part of bridge.
++for i in $(seq 1 3); do
++  ip -net ${ns0} link set veth$i master br0
++done
++
++# add a macvlan on top of the bridge.
++MACVLAN_ADDR=ba:f3:13:37:42:23
++ip -net ${ns0} link add link br0 name macvlan0 type macvlan mode private
++ip -net ${ns0} link set macvlan0 address ${MACVLAN_ADDR}
++ip -net ${ns0} link set macvlan0 up
++ip -net ${ns0} addr add 10.23.0.1/24 dev macvlan0
++
++# add a macvlan on top of veth4.
++MACVLAN_ADDR=ba:f3:13:37:42:24
++ip -net ${ns0} link add link veth4 name macvlan4 type macvlan mode vepa
++ip -net ${ns0} link set macvlan4 address ${MACVLAN_ADDR}
++ip -net ${ns0} link set macvlan4 up
++
++# make the macvlan part of the bridge.
++# veth4 is not a bridge port, only the macvlan on top of it.
++ip -net ${ns0} link set macvlan4 master br0
++
++ip -net ${ns0} link set br0 up
++ip -net ${ns0} addr add 10.0.0.1/24 dev br0
++ip netns exec ${ns0} sysctl -q net.bridge.bridge-nf-call-iptables=1
++ret=$?
++if [ $ret -ne 0 ] ; then
++	echo "SKIP: bridge netfilter not available"
++	ret=$ksft_skip
++fi
++
++# for testing, so namespaces will reply to ping -b probes.
++ip netns exec ${ns0} sysctl -q net.ipv4.icmp_echo_ignore_broadcasts=0
++
++# enable conntrack in ns0 and drop broadcast packets in forward to
++# avoid them from getting confirmed in the postrouting hook before
++# the cloned skb is passed up the stack.
++ip netns exec ${ns0} nft -f - <<EOF
++table ip filter {
++	chain input {
++		type filter hook input priority 1; policy accept
++		iifname br0 counter
++		ct state new accept
++	}
++}
++
++table bridge filter {
++	chain forward {
++		type filter hook forward priority 0; policy accept
++		meta pkttype broadcast ip protocol icmp counter drop
++	}
++}
++EOF
++
++# place 1, 2 & 3 in same subnet, connected via ns0:br0.
++# ns4 is placed in same subnet as well, but its not
++# part of the bridge: the corresponding veth4 is not
++# part of the bridge, only its macvlan interface.
++for i in $(seq 1 4); do
++  eval ip -net \$ns$i link set lo up
++  eval ip -net \$ns$i link set eth0 up
++done
++for i in $(seq 1 2); do
++  eval ip -net \$ns$i addr add 10.0.0.1$i/24 dev eth0
++done
++
++ip -net ${ns3} addr add 10.23.0.13/24 dev eth0
++ip -net ${ns4} addr add 10.23.0.14/24 dev eth0
++
++# test basic connectivity
++do_ping ${ns1} 10.0.0.12
++do_ping ${ns3} 10.23.0.1
++do_ping ${ns4} 10.23.0.1
++
++if [ $ret -eq 0 ];then
++	echo "PASS: netns connectivity: ns1 can reach ns2, ns3 and ns4 can reach ns0"
++fi
++
++bcast_ping ${ns1} 10.0.0.255
++
++# This should deliver broadcast to macvlan0, which is on top of ns0:br0.
++bcast_ping ${ns3} 10.23.0.255
++
++# same, this time via veth4:macvlan4.
++bcast_ping ${ns4} 10.23.0.255
++
++read t < /proc/sys/kernel/tainted
++
++if [ $t -eq 0 ];then
++	echo PASS: kernel not tainted
++else
++	echo ERROR: kernel is tainted
++	ret=1
++fi
++
++exit $ret
 -- 
 2.43.0
 
