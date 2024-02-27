@@ -1,28 +1,43 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05F1B145B37
-	for <netfilter-devel@vger.kernel.org>; Tue, 27 Feb 2024 15:40:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14AFD4E1CF
+	for <netfilter-devel@vger.kernel.org>; Tue, 27 Feb 2024 19:02:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709048460; cv=none; b=pxLtwgk5/2q87l//nFU8Sa3vhzy8c7cmlUGirSgW+TFESeAjkJZqQ/XXVxkG09SCWLD7iioI03mMdOSaCuMZTOTiqTbZivh3yncus0Uhs1nPvhCIXKR1aNOqjsPNUpRrlQiKM/rBYVtQm5S0qimd3bqOVnAvuqe2l2BG9S09U54=
+	t=1709060526; cv=none; b=uhsK2Z1fiTS9Pdf0/fYFBfUV/7wweFnXwEFxPqKLoDO3jUq5ZXQ9GdKEiA15MqibR6htFhtt4oYk4k44nSSfNwuAWFRxrGKUIiCmHiRS/1pDNaGoS9UWbwyp8BBJsT9bcuZNjSeZge36+2UHlwyuTHBhpunOA9tt1EXaj3U2s5Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709048460; c=relaxed/simple;
-	bh=ClwzSuSmHYMw1S4Rc+YAnxSDRbqukV0Sw9Tn+JhY69Y=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=mcOD08sOmkPMPHzI3PbCnOKqeE87n7NtWlIOnTYknVmK3t8TSQee3t1v5GCApL5wHD/WWAk3ZK59WrMNZcylieGmx5kBHJO2GePYeEfdh0JFXxsVosyHSKt6hz5+eRmvNJqTfB9BAPYU6tkFCZXKC/oFofGKT7RPDMdqhG/h4GI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1rezZg-0005XT-Ad; Tue, 27 Feb 2024 16:40:56 +0100
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH v2 nf] netfilter: bridge: confirm multicast packets before passing them up the stack
-Date: Tue, 27 Feb 2024 16:17:51 +0100
-Message-ID: <20240227151754.15409-1-fw@strlen.de>
+	s=arc-20240116; t=1709060526; c=relaxed/simple;
+	bh=sdXwrCz7CLBGP7Q0zkjCk8NcmBHQXR6WP1GQ1s0sp80=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=IK5YITFOK8GChptcrt2BPeH4UMjoZLd2RBrC0Pb73cCx91yAxD2O37HMW3H/z97AucgPOr90WirMtRgjLtWmTfYSvLCJ65UERIjuEHstANZ9+A3zBTyLVKSDWvxFvcaOYIMJYip2fekMg+sV3CMa5oXaZUyyY9l3rzQUWAyyhYw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=hOcNoSwg; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="hOcNoSwg"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=WRSXOiKmyowBLAwTxYfOy6P9fTIW/2SOCvtFTcaf5M0=; b=hOcNoSwgeO5Ku1a2HswPtzR0R7
+	xEQV53xJ8TDLFwk5WZuz9TEARbJe3MmgJVCdIP48l2QMT900Hi9sS9ogGV/YamTXzKX1ug6DM/GEm
+	zUjY/Q1efK/U11yl4T/4RWFlqAP/5KDtnUFavRHq28j46ZdapJPSAtEPUlHUs7KutN9ZVCtKOJ27x
+	EcTNy14o3UfZ8rXr3KLZbjjFlO5M3s7Ak5czASIm5P4m9oOKPCswndfKhW3pnhJop9ABqoksFd80u
+	mi4eSzW5/iEuBNhyEMOia5+AilHS28JQvVO3nCzJBcAv2vl2o9932QIBiJNbNzxdbQlGRYdYvGOmn
+	92ZiiGhg==;
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1rf2Nx-000000005Ph-0biF
+	for netfilter-devel@vger.kernel.org;
+	Tue, 27 Feb 2024 19:41:01 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH] nft: Fix for broken recover_rule_compat()
+Date: Tue, 27 Feb 2024 19:40:57 +0100
+Message-ID: <20240227184057.6017-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -32,276 +47,89 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-conntrack nf_confirm logic cannot handle cloned skbs referencing
-the same nf_conn entry, which will happen for multicast (broadcast)
-frames on bridges.
+When IPv4 rule generator was changed to emit payload instead of
+meta expressions for l4proto matches, the code reinserting
+NFTNL_RULE_COMPAT_* attributes into rules being reused for counter
+zeroing was broken by accident.
 
- Example:
-    macvlan0
-       |
-      br0
-     /  \
-  ethX    ethY
+Make rule compat recovery aware of the alternative match, basically
+reinstating the effect of commit 7a373f6683afb ("nft: Fix -Z for rules
+with NFTA_RULE_COMPAT") but add a test case this time to make sure
+things stay intact.
 
- ethX (or Y) receives a L2 multicast or broadcast packet containing
- an IP packet, flow is not yet in conntrack table.
-
- 1. skb passes through bridge and fake-ip (br_netfilter)Prerouting.
-    -> skb->_nfct now references a unconfirmed entry
- 2. skb is broad/mcast packet. bridge now passes clones out on each bridge
-    interface.
- 3. skb gets passed up the stack.
- 4. In macvlan case, macvlan driver retains clone(s) of the mcast skb
-    and schedules a work queue to send them out on the lower devices.
-
-    The clone skb->_nfct is not a copy, it is the same entry as the
-    original skb.  The macvlan rx handler then returns RX_HANDLER_PASS.
- 5. Normal conntrack hooks (in NF_INET_LOCAL_IN) confirm the orig skb.
-
-The Macvlan broadcast worker and normal confirm path will race.
-
-This race will not happen if step 2 already confirmed a clone. In that
-case later steps perform skb_clone() with skb->_nfct already confirmed (in
-hash table).  This works fine.
-
-But such confirmation won't happen when eb/ip/nftables rules dropped the
-packets before they reached the nf_confirm step in postrouting.
-
-Pablo points out that nf_conntrack_bridge doesn't allow use of stateful
-nat, so we can safely discard the nf_conn entry and let inet call
-conntrack again.
-
-This doesn't work for bridge netfilter: skb could have a nat
-transformation. Also bridge nf prevents re-invocation of inet prerouting
-via 'sabotage_in' hook.
-
-Work around this problem by explicit confirmation of the entry at LOCAL_IN
-time, before upper layer has a chance to clone the unconfirmed entry.
-
-The downside is that this disables NAT and conntrack helpers.
-
-Alternative fix would be to add locking to all code parts that deal with
-unconfirmed packets, but even if that could be done in a sane way this
-opens up other problems, for example:
-
--m physdev --physdev-out eth0 -j SNAT --snat-to 1.2.3.4
--m physdev --physdev-out eth1 -j SNAT --snat-to 1.2.3.5
-
-For multicast case, only one of such conflicting mappings will be
-created, conntrack only handles 1:1 NAT mappings.
-
-Users should set create a setup that explicitly marks such traffic
-NOTRACK (conntrack bypass) to avoid this, but we cannot auto-bypass
-them, ruleset might have accept rules for untracked traffic already,
-so user-visible behaviour would change.
-
-Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Closes: https://bugzilla.kernel.org/show_bug.cgi?id=217777
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 69278f9602b43 ("nft: use payload matching for layer 4 protocol")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- v2: let nf_conntrack_bridge discard the ct entry instead so
- inet prerouting can do another conntrack lookup after cloning.
+ iptables/nft.c                                | 27 ++++++++++++++++---
+ .../nft-only/0011-zero-needs-compat_0         | 12 +++++++++
+ 2 files changed, 35 insertions(+), 4 deletions(-)
+ create mode 100755 iptables/tests/shell/testcases/nft-only/0011-zero-needs-compat_0
 
- include/linux/netfilter.h                  |  1 +
- net/bridge/br_netfilter_hooks.c            | 96 ++++++++++++++++++++++
- net/bridge/netfilter/nf_conntrack_bridge.c | 30 +++++++
- net/netfilter/nf_conntrack_core.c          |  1 +
- 4 files changed, 128 insertions(+)
-
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 80900d910992..ce660d51549b 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -474,6 +474,7 @@ struct nf_ct_hook {
- 			      const struct sk_buff *);
- 	void (*attach)(struct sk_buff *nskb, const struct sk_buff *skb);
- 	void (*set_closing)(struct nf_conntrack *nfct);
-+	int (*confirm)(struct sk_buff *skb);
- };
- extern const struct nf_ct_hook __rcu *nf_ct_hook;
- 
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index ed1720890757..35e10c5a766d 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -43,6 +43,10 @@
- #include <linux/sysctl.h>
- #endif
- 
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+#include <net/netfilter/nf_conntrack_core.h>
-+#endif
-+
- static unsigned int brnf_net_id __read_mostly;
- 
- struct brnf_net {
-@@ -553,6 +557,90 @@ static unsigned int br_nf_pre_routing(void *priv,
- 	return NF_STOLEN;
+diff --git a/iptables/nft.c b/iptables/nft.c
+index dae6698d3234a..ee63c3dc42ed4 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -3750,6 +3750,27 @@ const char *nft_strerror(int err)
+ 	return strerror(err);
  }
  
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+/* conntracks' nf_confirm logic cannot handle cloned skbs referencing
-+ * the same nf_conn entry, which will happen for multicast (broadcast)
-+ * Frames on bridges.
-+ *
-+ * Example:
-+ *      macvlan0
-+ *      br0
-+ *  ethX  ethY
-+ *
-+ * ethX (or Y) receives multicast or broadcast packet containing
-+ * an IP packet, not yet in conntrack table.
-+ *
-+ * 1. skb passes through bridge and fake-ip (br_netfilter)Prerouting.
-+ *    -> skb->_nfct now references a unconfirmed entry
-+ * 2. skb is broad/mcast packet. bridge now passes clones out on each bridge
-+ *    interface.
-+ * 3. skb gets passed up the stack.
-+ * 4. In macvlan case, macvlan driver retains clone(s) of the mcast skb
-+ *    and schedules a work queue to send them out on the lower devices.
-+ *
-+ *    The clone skb->_nfct is not a copy, it is the same entry as the
-+ *    original skb.  The macvlan rx handler then returns RX_HANDLER_PASS.
-+ * 5. Normal conntrack hooks (in NF_INET_LOCAL_IN) confirm the orig skb.
-+ *
-+ * The Macvlan broadcast worker and normal confirm path will race.
-+ *
-+ * This race will not happen if step 2 already confirmed a clone. In that
-+ * case later steps perform skb_clone() with skb->_nfct already confirmed (in
-+ * hash table).  This works fine.
-+ *
-+ * But such confirmation won't happen when eb/ip/nftables rules dropped the
-+ * packets before they reached the nf_confirm step in postrouting.
-+ *
-+ * Work around this problem by explicit confirmation of the entry at
-+ * LOCAL_IN time, before upper layer has a chance to clone the unconfirmed
-+ * entry.
-+ *
-+ */
-+static unsigned int br_nf_local_in(void *priv,
-+				   struct sk_buff *skb,
-+				   const struct nf_hook_state *state)
++static int l4proto_expr_get_dreg(struct nftnl_expr *e, uint32_t *dregp)
 +{
-+	struct nf_conntrack *nfct = skb_nfct(skb);
-+	const struct nf_ct_hook *ct_hook;
-+	struct nf_conn *ct;
-+	int ret;
++	const char *name = nftnl_expr_get_str(e, NFTNL_EXPR_NAME);
++	uint32_t poff = offsetof(struct iphdr, protocol);
++	uint32_t pbase = NFT_PAYLOAD_NETWORK_HEADER;
 +
-+	if (!nfct || skb->pkt_type == PACKET_HOST)
-+		return NF_ACCEPT;
-+
-+	ct = container_of(nfct, struct nf_conn, ct_general);
-+	if (likely(nf_ct_is_confirmed(ct)))
-+		return NF_ACCEPT;
-+
-+	WARN_ON_ONCE(skb_shared(skb));
-+	WARN_ON_ONCE(refcount_read(&nfct->use) != 1);
-+
-+	/* We can't call nf_confirm here, it would create a dependency
-+	 * on nf_conntrack module.
-+	 */
-+	ct_hook = rcu_dereference(nf_ct_hook);
-+	if (!ct_hook) {
-+		skb->_nfct = 0ul;
-+		nf_conntrack_put(nfct);
-+		return NF_ACCEPT;
++	if (!strcmp(name, "payload") &&
++	    nftnl_expr_get_u32(e, NFTNL_EXPR_PAYLOAD_BASE) == pbase &&
++	    nftnl_expr_get_u32(e, NFTNL_EXPR_PAYLOAD_OFFSET) == poff &&
++	    nftnl_expr_get_u32(e, NFTNL_EXPR_PAYLOAD_LEN) == sizeof(uint8_t)) {
++		*dregp = nftnl_expr_get_u32(e, NFTNL_EXPR_PAYLOAD_DREG);
++		return 0;
 +	}
-+
-+	nf_bridge_pull_encap_header(skb);
-+	ret = ct_hook->confirm(skb);
-+	switch (ret & NF_VERDICT_MASK) {
-+	case NF_STOLEN:
-+		return NF_STOLEN;
-+	default:
-+		nf_bridge_push_encap_header(skb);
-+		break;
++	if (!strcmp(name, "meta") &&
++	    nftnl_expr_get_u32(e, NFTNL_EXPR_META_KEY) == NFT_META_L4PROTO) {
++		*dregp = nftnl_expr_get_u32(e, NFTNL_EXPR_META_DREG);
++		return 0;
 +	}
-+
-+	ct = container_of(nfct, struct nf_conn, ct_general);
-+	WARN_ON_ONCE(!nf_ct_is_confirmed(ct));
-+
-+	return ret;
-+}
-+#endif
- 
- /* PF_BRIDGE/FORWARD *************************************************/
- static int br_nf_forward_finish(struct net *net, struct sock *sk, struct sk_buff *skb)
-@@ -964,6 +1052,14 @@ static const struct nf_hook_ops br_nf_ops[] = {
- 		.hooknum = NF_BR_PRE_ROUTING,
- 		.priority = NF_BR_PRI_BRNF,
- 	},
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+	{
-+		.hook = br_nf_local_in,
-+		.pf = NFPROTO_BRIDGE,
-+		.hooknum = NF_BR_LOCAL_IN,
-+		.priority = NF_BR_PRI_LAST,
-+	},
-+#endif
- 	{
- 		.hook = br_nf_forward,
- 		.pf = NFPROTO_BRIDGE,
-diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
-index abb090f94ed2..6f877e31709b 100644
---- a/net/bridge/netfilter/nf_conntrack_bridge.c
-+++ b/net/bridge/netfilter/nf_conntrack_bridge.c
-@@ -291,6 +291,30 @@ static unsigned int nf_ct_bridge_pre(void *priv, struct sk_buff *skb,
- 	return nf_conntrack_in(skb, &bridge_state);
- }
- 
-+static unsigned int nf_ct_bridge_in(void *priv, struct sk_buff *skb,
-+				    const struct nf_hook_state *state)
-+{
-+	enum ip_conntrack_info ctinfo;
-+	struct nf_conn *ct;
-+
-+	if (skb->pkt_type == PACKET_HOST)
-+		return NF_ACCEPT;
-+
-+	/* nf_conntrack_confirm() cannot handle concurrent clones,
-+	 * this happens for broad/multicast frames with e.g. macvlan on top
-+	 * of the bridge device.
-+	 */
-+	ct = nf_ct_get(skb, &ctinfo);
-+	if (!ct || nf_ct_is_confirmed(ct) || nf_ct_is_template(ct))
-+		return NF_ACCEPT;
-+
-+	/* let inet prerouting call conntrack again */
-+	skb->_nfct = 0;
-+	nf_ct_put(ct);
-+
-+	return NF_ACCEPT;
++	return -1;
 +}
 +
- static void nf_ct_bridge_frag_save(struct sk_buff *skb,
- 				   struct nf_bridge_frag_data *data)
+ static int recover_rule_compat(struct nftnl_rule *r)
  {
-@@ -385,6 +409,12 @@ static struct nf_hook_ops nf_ct_bridge_hook_ops[] __read_mostly = {
- 		.hooknum	= NF_BR_PRE_ROUTING,
- 		.priority	= NF_IP_PRI_CONNTRACK,
- 	},
-+	{
-+		.hook		= nf_ct_bridge_in,
-+		.pf		= NFPROTO_BRIDGE,
-+		.hooknum	= NF_BR_LOCAL_IN,
-+		.priority	= NF_IP_PRI_CONNTRACK_CONFIRM,
-+	},
- 	{
- 		.hook		= nf_ct_bridge_post,
- 		.pf		= NFPROTO_BRIDGE,
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 2e5f3864d353..5b876fa7f9af 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -2756,6 +2756,7 @@ static const struct nf_ct_hook nf_conntrack_hook = {
- 	.get_tuple_skb  = nf_conntrack_get_tuple_skb,
- 	.attach		= nf_conntrack_attach,
- 	.set_closing	= nf_conntrack_set_closing,
-+	.confirm	= __nf_conntrack_confirm,
- };
+ 	struct nftnl_expr_iter *iter;
+@@ -3766,12 +3787,10 @@ static int recover_rule_compat(struct nftnl_rule *r)
+ 	if (!e)
+ 		goto out;
  
- void nf_conntrack_init_end(void)
+-	if (strcmp("meta", nftnl_expr_get_str(e, NFTNL_EXPR_NAME)) ||
+-	    nftnl_expr_get_u32(e, NFTNL_EXPR_META_KEY) != NFT_META_L4PROTO)
++	/* may be 'ip protocol' or 'meta l4proto' with identical RHS */
++	if (l4proto_expr_get_dreg(e, &reg) < 0)
+ 		goto next_expr;
+ 
+-	reg = nftnl_expr_get_u32(e, NFTNL_EXPR_META_DREG);
+-
+ 	e = nftnl_expr_iter_next(iter);
+ 	if (!e)
+ 		goto out;
+diff --git a/iptables/tests/shell/testcases/nft-only/0011-zero-needs-compat_0 b/iptables/tests/shell/testcases/nft-only/0011-zero-needs-compat_0
+new file mode 100755
+index 0000000000000..e276a953234cf
+--- /dev/null
++++ b/iptables/tests/shell/testcases/nft-only/0011-zero-needs-compat_0
+@@ -0,0 +1,12 @@
++#!/bin/bash
++
++[[ $XT_MULTI == *xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
++
++set -e
++
++rule="-p tcp -m tcp --dport 27374 -c 23 42 -j TPROXY --on-port 50080"
++for cmd in iptables ip6tables; do
++	$XT_MULTI $cmd -t mangle -A PREROUTING $rule
++	$XT_MULTI $cmd -t mangle -Z
++	$XT_MULTI $cmd -t mangle -v -S | grep -q -- "${rule/23 42/0 0}"
++done
 -- 
 2.43.0
 
