@@ -1,516 +1,112 @@
-Received: from mail-ay.bbox.fr (mail-ay.bbox.fr [194.158.98.9])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9774136651
-	for <netfilter-devel@vger.kernel.org>; Tue, 27 Feb 2024 09:26:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=194.158.98.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9B247A72E
+	for <netfilter-devel@vger.kernel.org>; Tue, 27 Feb 2024 15:13:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709025983; cv=none; b=IRvgB7B5DEC+Jn+bC9EtbYpG/pDRlQZOSYvQyNHSiw95NNG2LS5Bwy6AmoJ6SA+sEqTBEWwkqbxKVLo+4h66Kq5gKkVlGZvrw0YizuWb0mzTK2a6uOMmi5ad6+jZCBi/GL7X64Yei9AfqZk8bxVYs5lzbdev7F/TKr3oVMpbX0o=
+	t=1709046799; cv=none; b=ueOenCMuLt5ldHZjQMQsaytzdQnh6r2wH79is2L+N9MBaRqsPhjEk95ecAsHQAePugTKcpjFQjfcV7kuLykQXoZwYmbPPQmgCsJ0R6u0rioMYYrMNhGg9q4lCfj7efeoKOEA575I39POM+1xUItyAz18G4Lg85V+AIn12fXVTRY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709025983; c=relaxed/simple;
-	bh=pNWfoWORNpv0h5T/o1XrtDwO16cigXP0uEjgLxqSOzk=;
-	h=Message-ID:Date:MIME-Version:To:From:Subject:Content-Type; b=WCTijnebW4e+BwlWSQRv1E2kjeTLK6/C29fiXAqDztobqSyfZtroLqjxGQ6bMU1csMsmkfhZ4LAJcTXXaIjX8UPHEpcU+W4cZq/ZdrPwn1N955avW6wjn/yI6kHIyc2ElsvZ2BaTxu8BnxkS1esjp7r0GVeY/G6LTKKazZw5Rm8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=metivier.fr; spf=pass smtp.mailfrom=metivier.fr; dkim=pass (1024-bit key) header.d=metivier.fr header.i=@metivier.fr header.b=u0+xp11V; arc=none smtp.client-ip=194.158.98.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=metivier.fr
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=metivier.fr
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=metivier.fr header.i=@metivier.fr header.b="u0+xp11V"
-Received: from mx.metivier.fr (176-142-86-47.abo.bbox.fr [176.142.86.47])
-	by mail-ay.bbox.fr (Postfix) with ESMTP id 4C66B5E
-	for <netfilter-devel@vger.kernel.org>; Tue, 27 Feb 2024 10:26:17 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=metivier.fr; h=
-	content-transfer-encoding:content-type:content-type:subject
-	:subject:from:from:content-language:user-agent:mime-version:date
-	:date:message-id:received; s=dkim; t=1709025977; bh=pNWfoWORNpv0
-	h5T/o1XrtDwO16cigXP0uEjgLxqSOzk=; b=u0+xp11Vb6I7Yw8YE1Ctq2RkvEaX
-	yvmfATsKod8CP84ZgBj6cduTJa9Gn2yxByNJzsvB9/vYrSzUdYZtkkfqnvmS2vEk
-	kbSVcz5RhD1YRXzTRQhwVy7xmM+PWztUlTkr5nhjqm5YB2oPKXpvR3t1Xn6OpMdz
-	QwlebR6gJ/sW9MU=
-X-Virus-Scanned: amavisd-new at metivier.fr
-Received: from local network 
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: yves)
-	by mx.metivier.fr (Postfix) with ESMTPSA id E16B6240444
-	for <netfilter-devel@vger.kernel.org>; Tue, 27 Feb 2024 10:26:16 +0100 (CET)
-Message-ID: <8ece704d-145c-4d8c-bdbe-9586cb4b073f@metivier.fr>
-Date: Tue, 27 Feb 2024 10:26:16 +0100
+	s=arc-20240116; t=1709046799; c=relaxed/simple;
+	bh=YQUtbaK0Ty4X0F6uefzt3yWpHTRQaaACWfjdj2L84Nc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=NlXhsLdM/hNcm1PYtQ+fNQcwEd1TwWmH+CMiGLkJAOoyPH6rFUMk3NQQhbQ6KmyMUjDBLRSwaAe4YORKWKDuYtX0UqtHJy8k7DT99m6ST7IkNSSGJATyDtzXGfAd0aLUvbg2bc5TI175DddvZo78TmLx4nusVTTcrw3gxbwyP3M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1rez8n-0005KK-6p; Tue, 27 Feb 2024 16:13:09 +0100
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] parser: compact interval typeof rules
+Date: Tue, 27 Feb 2024 15:50:05 +0100
+Message-ID: <20240227145008.7256-1-fw@strlen.de>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Content-Language: fr
-To: netfilter-devel@vger.kernel.org
-From: Yves Metivier <yves@metivier.fr>
-Subject: Ulogd2 Mysql KO
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Antivirus: Avast (VPS 240226-2, 26/2/2024), Outbound message
-X-Antivirus-Status: Clean
-X-VADE-SPAMSTATE: clean
-X-VADE-SPAMSCORE: 0
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvledrgeeggddtgecutefuodetggdotefrodftvfcurfhrohhfihhlvgemuceuqfgfjgfifgfgufdpucfqfgfvpdcuggftfghnshhusghstghrihgsvgenuceurghilhhouhhtmecufedttdenucenucfjughrpefkffggfgfvhffutgfgsehtjeertddtvdejnecuhfhrohhmpegjvhgvshcuofgvthhivhhivghruceohihvvghssehmvghtihhvihgvrhdrfhhrqeenucggtffrrghtthgvrhhnpeevkeeggfetkeffieegveekjeefueeifedufeefvddtfedtueekieeljefhgfdvffenucfkphepudejiedrudegvddrkeeirdegjeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedujeeirddugedvrdekiedrgeejpdhhvghlohepmhigrdhmvghtihhvihgvrhdrfhhrpdhmrghilhhfrhhomhephihvvghssehmvghtihhvihgvrhdrfhhrpdhnsggprhgtphhtthhopedupdhrtghpthhtohepnhgvthhfihhlthgvrhdquggvvhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrgh
+Content-Transfer-Encoding: 8bit
 
-Hello,
+There are two nearly identical blocks for typeof maps:
+one with INTERVAL keyword present and one without.
 
-first I apologize for ma bad English (I am French, and old...:-)
+Compact this into a single block.
 
-I can't get ulogd2 and MYSQL to work, altough it works well with LOGEMU. 
-After initialization, there are no more messages in the ulogd.log Below 
-are ulogd.log, ulogd.conf and an extract of iptables rules : Ulogd.log 
-========= Mon Feb 26 23:41:31 2024 <5> ulogd.c:408 registering plugin 
-`NFLOG' Mon Feb 26 23:41:31 2024 <5> ulogd.c:408 registering plugin 
-`IFINDEX' Mon Feb 26 23:41:31 2024 <5> ulogd.c:408 registering plugin 
-`IP2BIN' Mon Feb 26 23:41:31 2024 <5> ulogd.c:408 registering plugin 
-`IP2STR' Mon Feb 26 23:41:31 2024 <5> ulogd.c:408 registering plugin 
-`HWHDR' Mon Feb 26 23:41:31 2024 <5> ulogd.c:408 registering plugin 
-`MYSQL' Mon Feb 26 23:41:31 2024 <5> ulogd.c:408 registering plugin 
-`BASE' Mon Feb 26 23:41:31 2024 <5> ulogd.c:408 registering plugin 
-`PRINTPKT' Mon Feb 26 23:41:31 2024 <5> ulogd.c:408 registering plugin 
-`LOGEMU' Mon Feb 26 23:41:31 2024 <5> ulogd.c:978 building new 
-pluginstance stack: 
-'log1:NFLOG,base1:BASE,ifi1:IFINDEX,ip2str1:IP2STR,print1:PRINTPKT,emu1:LOGEMU' 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:988 tok=`log1:NFLOG' Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:1025 pushing `NFLOG' on stack Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:988 tok=`base1:BASE' Mon Feb 26 23:41:31 2024 
-<1> ulogd.c:1025 pushing `BASE' on stack Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:988 tok=`ifi1:IFINDEX' Mon Feb 26 23:41:31 2024 <1> ulogd.c:1025 
-pushing `IFINDEX' on stack Mon Feb 26 23:41:31 2024 <1> ulogd.c:988 
-tok=`ip2str1:IP2STR' Mon Feb 26 23:41:31 2024 <1> ulogd.c:1025 pushing 
-`IP2STR' on stack Mon Feb 26 23:41:31 2024 <1> ulogd.c:988 
-tok=`print1:PRINTPKT' Mon Feb 26 23:41:31 2024 <1> ulogd.c:1025 pushing 
-`PRINTPKT' on stack Mon Feb 26 23:41:31 2024 <1> ulogd.c:988 
-tok=`emu1:LOGEMU' Mon Feb 26 23:41:31 2024 <1> ulogd.c:1025 pushing 
-`LOGEMU' on stack Mon Feb 26 23:41:31 2024 <1> ulogd.c:802 traversing 
-plugin `LOGEMU' Mon Feb 26 23:41:31 2024 <1> ulogd_output_LOGEMU.c:180 
-parsing config file section emu1 Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:802 traversing plugin `PRINTPKT' Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:802 traversing plugin `IP2STR' Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:802 traversing plugin `IFINDEX' Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:802 traversing plugin `BASE' Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:802 traversing plugin `NFLOG' Mon Feb 26 23:41:31 2024 <1> 
-ulogd_inppkt_NFLOG.c:557 parsing config file section `log1', plugin 
-`NFLOG' Mon Feb 26 23:41:31 2024 <1> ulogd.c:819 connecting input/output 
-keys of stack: Mon Feb 26 23:41:31 2024 <1> ulogd.c:826 traversing 
-plugin `LOGEMU' Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-print1(PRINTPKT) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`print(?)' as source for LOGEMU(print) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:783 log1(NFLOG) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 
-assigning `oob.time.sec(?)' as source for LOGEMU(oob.time.sec) Mon Feb 
-26 23:41:31 2024 <1> ulogd.c:826 traversing plugin `PRINTPKT' Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 log1(NFLOG) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `oob.family(?)' as source for PRINTPKT(oob.family) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 log1(NFLOG) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `oob.prefix(?)' as source for 
-PRINTPKT(oob.prefix) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-ifi1(IFINDEX) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`oob.in(?)' as source for PRINTPKT(oob.in) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:783 ifi1(IFINDEX) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 
-assigning `oob.out(?)' as source for PRINTPKT(oob.out) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 log1(NFLOG) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `oob.uid(?)' as source for PRINTPKT(oob.uid) Mon 
-Feb 26 23:41:31 2024 <1> ulogd.c:783 log1(NFLOG) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `oob.gid(?)' as source for 
-PRINTPKT(oob.gid) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 log1(NFLOG) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning `oob.mark(?)' as 
-source for PRINTPKT(oob.mark) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-log1(NFLOG) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`raw.mac(?)' as source for PRINTPKT(raw.mac) Mon Feb 26 23:41:31 2024 
-<1> ulogd.c:783 log1(NFLOG) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 
-assigning `raw.mac_len(?)' as source for PRINTPKT(raw.mac_len) Mon Feb 
-26 23:41:31 2024 <1> ulogd.c:783 ip2str1(IP2STR) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `ip.saddr.str(?)' as source for 
-PRINTPKT(ip.saddr.str) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-ip2str1(IP2STR) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`ip.daddr.str(?)' as source for PRINTPKT(ip.daddr.str) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `ip.totlen(?)' as source for PRINTPKT(ip.totlen) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `ip.tos(?)' as source for 
-PRINTPKT(ip.tos) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning `ip.ttl(?)' as source 
-for PRINTPKT(ip.ttl) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`ip.id(?)' as source for PRINTPKT(ip.id) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 
-assigning `ip.fragoff(?)' as source for PRINTPKT(ip.fragoff) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `ip.protocol(?)' as source for 
-PRINTPKT(ip.protocol) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`ip6.payloadlen(?)' as source for PRINTPKT(ip6.payloadlen) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `ip6.priority(?)' as source for 
-PRINTPKT(ip6.priority) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`ip6.hoplimit(?)' as source for PRINTPKT(ip6.hoplimit) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `ip6.flowlabel(?)' as source for 
-PRINTPKT(ip6.flowlabel) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`ip6.nexthdr(?)' as source for PRINTPKT(ip6.nexthdr) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `ip6.fragoff(?)' as source for 
-PRINTPKT(ip6.fragoff) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`ip6.fragid(?)' as source for PRINTPKT(ip6.fragid) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `tcp.sport(?)' as source for PRINTPKT(tcp.sport) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `tcp.dport(?)' as source for 
-PRINTPKT(tcp.dport) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning `tcp.seq(?)' as 
-source for PRINTPKT(tcp.seq) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`tcp.ackseq(?)' as source for PRINTPKT(tcp.ackseq) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `tcp.window(?)' as source for PRINTPKT(tcp.window) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `tcp.syn(?)' as source for 
-PRINTPKT(tcp.syn) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning `tcp.ack(?)' as 
-source for PRINTPKT(tcp.ack) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`tcp.psh(?)' as source for PRINTPKT(tcp.psh) Mon Feb 26 23:41:31 2024 
-<1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 
-assigning `tcp.rst(?)' as source for PRINTPKT(tcp.rst) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `tcp.fin(?)' as source for PRINTPKT(tcp.fin) Mon 
-Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `tcp.urg(?)' as source for 
-PRINTPKT(tcp.urg) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning `tcp.urgp(?)' as 
-source for PRINTPKT(tcp.urgp) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`udp.sport(?)' as source for PRINTPKT(udp.sport) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `udp.dport(?)' as source for PRINTPKT(udp.dport) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `udp.len(?)' as source for 
-PRINTPKT(udp.len) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning `icmp.type(?)' as 
-source for PRINTPKT(icmp.type) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`icmp.code(?)' as source for PRINTPKT(icmp.code) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `icmp.echoid(?)' as source for 
-PRINTPKT(icmp.echoid) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`icmp.echoseq(?)' as source for PRINTPKT(icmp.echoseq) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `icmp.gateway(?)' as source for 
-PRINTPKT(icmp.gateway) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`icmp.fragmtu(?)' as source for PRINTPKT(icmp.fragmtu) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `icmpv6.type(?)' as source for 
-PRINTPKT(icmpv6.type) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`icmpv6.code(?)' as source for PRINTPKT(icmpv6.code) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `icmpv6.echoid(?)' as source for 
-PRINTPKT(icmpv6.echoid) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`icmpv6.echoseq(?)' as source for PRINTPKT(icmpv6.echoseq) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `ahesp.spi(?)' as source for PRINTPKT(ahesp.spi) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `oob.protocol(?)' as source for 
-PRINTPKT(oob.protocol) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`arp.hwtype(?)' as source for PRINTPKT(arp.hwtype) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `arp.protocoltype(?)' as source for 
-PRINTPKT(arp.protocoltype) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`arp.operation(?)' as source for PRINTPKT(arp.operation) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `arp.shwaddr(?)' as source for 
-PRINTPKT(arp.shwaddr) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-ip2str1(IP2STR) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`arp.saddr.str(?)' as source for PRINTPKT(arp.saddr.str) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `arp.dhwaddr(?)' as source for 
-PRINTPKT(arp.dhwaddr) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-ip2str1(IP2STR) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`arp.daddr.str(?)' as source for PRINTPKT(arp.daddr.str) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `sctp.sport(?)' as source for PRINTPKT(sctp.sport) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `sctp.dport(?)' as source for 
-PRINTPKT(sctp.dport) Mon Feb 26 23:41:31 2024 <1> ulogd.c:826 traversing 
-plugin `IP2STR' Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 log1(NFLOG) Mon 
-Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning `oob.family(?)' as source 
-for IP2STR(oob.family) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`oob.protocol(?)' as source for IP2STR(oob.protocol) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `ip.saddr(?)' as source for IP2STR(ip.saddr) Mon 
-Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `ip.daddr(?)' as source for 
-IP2STR(ip.daddr) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning `arp.saddr(?)' as 
-source for IP2STR(arp.saddr) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`arp.daddr(?)' as source for IP2STR(arp.daddr) Mon Feb 26 23:41:31 2024 
-<1> ulogd.c:826 traversing plugin `IFINDEX' Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:783 log1(NFLOG) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 
-assigning `oob.ifindex_in(?)' as source for IFINDEX(oob.ifindex_in) Mon 
-Feb 26 23:41:31 2024 <1> ulogd.c:783 log1(NFLOG) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `oob.ifindex_out(?)' as source for 
-IFINDEX(oob.ifindex_out) Mon Feb 26 23:41:31 2024 <1> ulogd.c:826 
-traversing plugin `BASE' Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-log1(NFLOG) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`raw.pkt(?)' as source for BASE(raw.pkt) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:783 log1(NFLOG) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 
-assigning `raw.pktlen(?)' as source for BASE(raw.pktlen) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 log1(NFLOG) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `oob.family(?)' as source for BASE(oob.family) Mon 
-Feb 26 23:41:31 2024 <1> ulogd.c:783 log1(NFLOG) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `oob.protocol(?)' as source for 
-BASE(oob.protocol) Mon Feb 26 23:41:31 2024 <1> ulogd.c:826 traversing 
-plugin `NFLOG' Mon Feb 26 23:41:31 2024 <1> ulogd_inppkt_NFLOG.c:598 
-opening nfnetlink socket Mon Feb 26 23:41:31 2024 <5> 
-ulogd_inppkt_NFLOG.c:569 forcing unbind of existing log handler for 
-protocol 2 Mon Feb 26 23:41:31 2024 <1> ulogd_inppkt_NFLOG.c:580 binding 
-to protocol family 2 Mon Feb 26 23:41:31 2024 <5> 
-ulogd_inppkt_NFLOG.c:569 forcing unbind of existing log handler for 
-protocol 10 Mon Feb 26 23:41:31 2024 <1> ulogd_inppkt_NFLOG.c:580 
-binding to protocol family 10 Mon Feb 26 23:41:31 2024 <5> 
-ulogd_inppkt_NFLOG.c:569 forcing unbind of existing log handler for 
-protocol 7 Mon Feb 26 23:41:31 2024 <1> ulogd_inppkt_NFLOG.c:580 binding 
-to protocol family 7 Mon Feb 26 23:41:31 2024 <1> 
-ulogd_inppkt_NFLOG.c:614 binding to log group 0 Mon Feb 26 23:41:31 2024 
-<1> ulogd_output_LOGEMU.c:140 starting logemu Mon Feb 26 23:41:31 2024 
-<1> ulogd_output_LOGEMU.c:145 opening file: 
-/var/log/ulogd/ulogd_syslogemu.log Mon Feb 26 23:41:31 2024 <5> 
-ulogd.c:978 building new pluginstance stack: 
-'log2:NFLOG,base1:BASE,ifi1:IFINDEX,ip2bin1:IP2BIN,mac2str1:HWHDR,mysql1:MYSQL' 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:988 tok=`log2:NFLOG' Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:1025 pushing `NFLOG' on stack Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:988 tok=`base1:BASE' Mon Feb 26 23:41:31 2024 
-<1> ulogd.c:1025 pushing `BASE' on stack Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:988 tok=`ifi1:IFINDEX' Mon Feb 26 23:41:31 2024 <1> ulogd.c:1025 
-pushing `IFINDEX' on stack Mon Feb 26 23:41:31 2024 <1> ulogd.c:988 
-tok=`ip2bin1:IP2BIN' Mon Feb 26 23:41:31 2024 <1> ulogd.c:1025 pushing 
-`IP2BIN' on stack Mon Feb 26 23:41:31 2024 <1> ulogd.c:988 
-tok=`mac2str1:HWHDR' Mon Feb 26 23:41:31 2024 <1> ulogd.c:1025 pushing 
-`HWHDR' on stack Mon Feb 26 23:41:31 2024 <1> ulogd.c:988 
-tok=`mysql1:MYSQL' Mon Feb 26 23:41:31 2024 <1> ulogd.c:1025 pushing 
-`MYSQL' on stack Mon Feb 26 23:41:31 2024 <1> ulogd.c:802 traversing 
-plugin `MYSQL' Mon Feb 26 23:41:31 2024 <5> ../../util/db.c:153 
-(re)configuring Mon Feb 26 23:41:31 2024 <1> ulogd_output_MYSQL.c:129 57 
-fields in table Mon Feb 26 23:41:31 2024 <1> ulogd.c:802 traversing 
-plugin `HWHDR' Mon Feb 26 23:41:31 2024 <1> ulogd.c:802 traversing 
-plugin `IP2BIN' Mon Feb 26 23:41:31 2024 <1> ulogd.c:802 traversing 
-plugin `IFINDEX' Mon Feb 26 23:41:31 2024 <1> ulogd.c:802 traversing 
-plugin `BASE' Mon Feb 26 23:41:31 2024 <1> ulogd.c:802 traversing plugin 
-`NFLOG' Mon Feb 26 23:41:31 2024 <1> ulogd_inppkt_NFLOG.c:557 parsing 
-config file section `log2', plugin `NFLOG' Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:819 connecting input/output keys of stack: Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:826 traversing plugin `MYSQL' Mon Feb 26 23:41:31 2024 
-<1> ulogd.c:783 log2(NFLOG) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 
-assigning `oob.time.sec(?)' as source for MYSQL(oob.time.sec) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 log2(NFLOG) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `oob.time.usec(?)' as source for 
-MYSQL(oob.time.usec) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-log2(NFLOG) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`oob.prefix(?)' as source for MYSQL(oob.prefix) Mon Feb 26 23:41:31 2024 
-<1> ulogd.c:783 log2(NFLOG) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 
-assigning `oob.mark(?)' as source for MYSQL(oob.mark) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 ifi1(IFINDEX) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `oob.in(?)' as source for MYSQL(oob.in) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 ifi1(IFINDEX) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `oob.out(?)' as source for MYSQL(oob.out) Mon Feb 
-26 23:41:31 2024 <1> ulogd.c:783 log2(NFLOG) Mon Feb 26 23:41:31 2024 
-<1> ulogd.c:888 assigning `oob.family(?)' as source for 
-MYSQL(oob.family) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning `ip.saddr(?)' as 
-source for MYSQL(ip.saddr) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`ip.daddr(?)' as source for MYSQL(ip.daddr) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 
-assigning `ip.protocol(?)' as source for MYSQL(ip.protocol) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `ip.tos(?)' as source for MYSQL(ip.tos) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `ip.ttl(?)' as source for MYSQL(ip.ttl) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `ip.totlen(?)' as source for MYSQL(ip.totlen) Mon 
-Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `ip.ihl(?)' as source for MYSQL(ip.ihl) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `ip.id(?)' as source for MYSQL(ip.id) Mon 
-Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `ip.fragoff(?)' as source for 
-MYSQL(ip.fragoff) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning `ip.csum(?)' as 
-source for MYSQL(ip.csum) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`ip6.payloadlen(?)' as source for MYSQL(ip6.payloadlen) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `ip6.priority(?)' as source for 
-MYSQL(ip6.priority) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning `ip6.hoplimit(?)' as 
-source for MYSQL(ip6.hoplimit) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`ip6.flowlabel(?)' as source for MYSQL(ip6.flowlabel) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `ip6.fragoff(?)' as source for MYSQL(ip6.fragoff) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `ip6.fragid(?)' as source for 
-MYSQL(ip6.fragid) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning `tcp.sport(?)' as 
-source for MYSQL(tcp.sport) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`tcp.dport(?)' as source for MYSQL(tcp.dport) Mon Feb 26 23:41:31 2024 
-<1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 
-assigning `tcp.seq(?)' as source for MYSQL(tcp.seq) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `tcp.ackseq(?)' as source for MYSQL(tcp.ackseq) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `tcp.window(?)' as source for 
-MYSQL(tcp.window) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning `tcp.syn(?)' as 
-source for MYSQL(tcp.syn) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`tcp.ack(?)' as source for MYSQL(tcp.ack) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 
-assigning `tcp.fin(?)' as source for MYSQL(tcp.fin) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `tcp.rst(?)' as source for MYSQL(tcp.rst) Mon Feb 
-26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 
-<1> ulogd.c:888 assigning `tcp.psh(?)' as source for MYSQL(tcp.psh) Mon 
-Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `tcp.urg(?)' as source for MYSQL(tcp.urg) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `tcp.urgp(?)' as source for 
-MYSQL(tcp.urgp) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon 
-Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning `tcp.csum(?)' as source 
-for MYSQL(tcp.csum) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning `udp.sport(?)' as 
-source for MYSQL(udp.sport) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`udp.dport(?)' as source for MYSQL(udp.dport) Mon Feb 26 23:41:31 2024 
-<1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 
-assigning `udp.len(?)' as source for MYSQL(udp.len) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `udp.csum(?)' as source for MYSQL(udp.csum) Mon 
-Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `icmp.type(?)' as source for 
-MYSQL(icmp.type) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning `icmp.code(?)' as 
-source for MYSQL(icmp.code) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`icmp.echoid(?)' as source for MYSQL(icmp.echoid) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `icmp.echoseq(?)' as source for 
-MYSQL(icmp.echoseq) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning `icmp.gateway(?)' as 
-source for MYSQL(icmp.gateway) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`icmp.fragmtu(?)' as source for MYSQL(icmp.fragmtu) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `icmp.csum(?)' as source for MYSQL(icmp.csum) Mon 
-Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `icmpv6.type(?)' as source for 
-MYSQL(icmpv6.type) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning `icmpv6.code(?)' as 
-source for MYSQL(icmpv6.code) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`icmpv6.echoid(?)' as source for MYSQL(icmpv6.echoid) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `icmpv6.echoseq(?)' as source for 
-MYSQL(icmpv6.echoseq) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`icmpv6.csum(?)' as source for MYSQL(icmpv6.csum) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:783 mac2str1(HWHDR) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `mac.saddr.str(?)' as source for 
-MYSQL(mac.saddr.str) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-mac2str1(HWHDR) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`mac.daddr.str(?)' as source for MYSQL(mac.daddr.str) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 mac2str1(HWHDR) Mon Feb 26 23:41:31 2024 
-<1> ulogd.c:888 assigning `mac.str(?)' as source for MYSQL(mac.str) Mon 
-Feb 26 23:41:31 2024 <1> ulogd.c:783 mac2str1(HWHDR) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `oob.protocol(?)' as source for 
-MYSQL(oob.protocol) Mon Feb 26 23:41:31 2024 <1> ulogd.c:826 traversing 
-plugin `HWHDR' Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 log2(NFLOG) Mon 
-Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning `raw.type(?)' as source 
-for HWHDR(raw.type) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning `oob.protocol(?)' as 
-source for HWHDR(oob.protocol) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-log2(NFLOG) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`raw.mac(?)' as source for HWHDR(raw.mac) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:783 log2(NFLOG) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 
-assigning `raw.mac_len(?)' as source for HWHDR(raw.mac_len) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 log2(NFLOG) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `raw.mac.saddr(?)' as source for 
-HWHDR(raw.mac.saddr) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-log2(NFLOG) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`raw.mac.addrlen(?)' as source for HWHDR(raw.mac.addrlen) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:826 traversing plugin `IP2BIN' Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 log2(NFLOG) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `oob.family(?)' as source for IP2BIN(oob.family) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `oob.protocol(?)' as source for 
-IP2BIN(oob.protocol) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`ip.saddr(?)' as source for IP2BIN(ip.saddr) Mon Feb 26 23:41:31 2024 
-<1> ulogd.c:783 base1(BASE) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 
-assigning `ip.daddr(?)' as source for IP2BIN(ip.daddr) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:826 traversing plugin `IFINDEX' Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 log2(NFLOG) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `oob.ifindex_in(?)' as source for 
-IFINDEX(oob.ifindex_in) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 
-log2(NFLOG) Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning 
-`oob.ifindex_out(?)' as source for IFINDEX(oob.ifindex_out) Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:826 traversing plugin `BASE' Mon Feb 26 
-23:41:31 2024 <1> ulogd.c:783 log2(NFLOG) Mon Feb 26 23:41:31 2024 <1> 
-ulogd.c:888 assigning `raw.pkt(?)' as source for BASE(raw.pkt) Mon Feb 
-26 23:41:31 2024 <1> ulogd.c:783 log2(NFLOG) Mon Feb 26 23:41:31 2024 
-<1> ulogd.c:888 assigning `raw.pktlen(?)' as source for BASE(raw.pktlen) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 log2(NFLOG) Mon Feb 26 23:41:31 
-2024 <1> ulogd.c:888 assigning `oob.family(?)' as source for 
-BASE(oob.family) Mon Feb 26 23:41:31 2024 <1> ulogd.c:783 log2(NFLOG) 
-Mon Feb 26 23:41:31 2024 <1> ulogd.c:888 assigning `oob.protocol(?)' as 
-source for BASE(oob.protocol) Mon Feb 26 23:41:31 2024 <1> ulogd.c:826 
-traversing plugin `NFLOG' Mon Feb 26 23:41:31 2024 <1> 
-ulogd_inppkt_NFLOG.c:598 opening nfnetlink socket Mon Feb 26 23:41:31 
-2024 <1> ulogd_inppkt_NFLOG.c:614 binding to log group 1 Mon Feb 26 
-23:41:31 2024 <5> ../../util/db.c:208 starting Mon Feb 26 23:41:31 2024 
-<1> ../../util/db.c:86 allocating 6223 bytes for statement Mon Feb 26 
-23:41:31 2024 <1> ../../util/db.c:138 stmt='SELECT INSERT_PACKET_FULL(' 
-Mon Feb 26 23:41:31 2024 <3> ulogd.c:1645 initialization finished, 
-entering main loop ulogd.conf ========== [global] user="ulogd" 
-group="ulogd" logfile="/var/log/ulogd/ulogd.log" # loglevel: debug(1), 
-info(3), notice(5), error(7) or fatal(8) (default 5) loglevel=1 
-plugin="/usr/local/lib/ulogd/ulogd_inppkt_NFLOG.so" 
-plugin="/usr/local/lib/ulogd/ulogd_filter_IFINDEX.so" 
-plugin="/usr/local/lib/ulogd/ulogd_filter_IP2BIN.so" 
-plugin="/usr/local/lib/ulogd/ulogd_filter_IP2STR.so" 
-plugin="/usr/local/lib/ulogd/ulogd_filter_HWHDR.so" 
-plugin="/usr/local/lib/ulogd/ulogd_output_MYSQL.so" 
-plugin="/usr/local/lib/ulogd/ulogd_raw2packet_BASE.so" 
-plugin="/usr/local/lib/ulogd/ulogd_filter_PRINTPKT.so" 
-plugin="/usr/local/lib/ulogd/ulogd_output_LOGEMU.so" # this is a stack 
-for logging packet send by system via LOGEMU 
-stack=log1:NFLOG,base1:BASE,ifi1:IFINDEX,ip2str1:IP2STR,print1:PRINTPKT,emu1:LOGEMU 
-# this is a stack for logging packet to MySQL 
-stack=log2:NFLOG,base1:BASE,ifi1:IFINDEX,ip2bin1:IP2BIN,mac2str1:HWHDR,mysql1:MYSQL 
-[log1] group=0 [log2] group=1 # Group has to be different from the one 
-use in log1 #[log3] #group=2 [emu1] 
-file="/var/log/ulogd/ulogd_syslogemu.log" sync=1 [mysql1] db="ulogd" 
-host="localhost" user="ulogd" table="ulog2" pass="XXXXXXXX" 
-procedure="INSERT_PACKET_FULL" iptables rules ============== Chain 
-LOG_DROP (4 references) pkts bytes target prot opt in out source 
-destination 6464 294K DROP tcp -- * * 0.0.0.0/0 0.0.0.0/0 tcp 
-dpts:135:139 18631 917K DROP tcp -- * * 0.0.0.0/0 0.0.0.0/0 tcp dpt:445 
-2379 169K DROP udp -- * * 0.0.0.0/0 0.0.0.0/0 udp dpts:135:139 10881 
-1023K NFLOG all -- * * 0.0.0.0/0 0.0.0.0/0 nflog-group 1 nflog-threshold 
-1 10597 991K NFLOG all -- * * 0.0.0.0/0 0.0.0.0/0 nflog-threshold 1 115K 
-11M DROP all -- * * 0.0.0.0/0 0.0.0.0/0
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/parser_bison.y | 34 ++++++++++++++--------------------
+ 1 file changed, 14 insertions(+), 20 deletions(-)
+
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 17edaef8b0bc..2b4968280042 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -812,8 +812,8 @@ int nft_lex(void *, void *, void *);
+ 
+ %type <expr>			symbol_expr verdict_expr integer_expr variable_expr chain_expr policy_expr
+ %destructor { expr_free($$); }	symbol_expr verdict_expr integer_expr variable_expr chain_expr policy_expr
+-%type <expr>			primary_expr shift_expr and_expr typeof_expr typeof_data_expr
+-%destructor { expr_free($$); }	primary_expr shift_expr and_expr typeof_expr typeof_data_expr
++%type <expr>			primary_expr shift_expr and_expr typeof_expr typeof_data_expr typeof_verdict_expr
++%destructor { expr_free($$); }	primary_expr shift_expr and_expr typeof_expr typeof_data_expr typeof_verdict_expr
+ %type <expr>			exclusive_or_expr inclusive_or_expr
+ %destructor { expr_free($$); }	exclusive_or_expr inclusive_or_expr
+ %type <expr>			basic_expr
+@@ -2110,7 +2110,7 @@ subchain_block		:	/* empty */	{ $$ = $<chain>-1; }
+ 			}
+ 			;
+ 
+-typeof_data_expr	:	primary_expr
++typeof_verdict_expr	:	primary_expr
+ 			{
+ 				struct expr *e = $1;
+ 
+@@ -2142,6 +2142,17 @@ typeof_data_expr	:	primary_expr
+ 			}
+ 			;
+ 
++typeof_data_expr	:	INTERVAL	typeof_expr
++			{
++				$2->flags |= EXPR_F_INTERVAL;
++				$$ = $2;
++			}
++			|	typeof_verdict_expr
++			{
++				$$ = $1;
++			}
++			;
++
+ typeof_expr		:	primary_expr
+ 			{
+ 				if (expr_ops($1)->build_udata == NULL) {
+@@ -2321,23 +2332,6 @@ map_block		:	/* empty */	{ $$ = $<set>-1; }
+ 				$1->flags |= NFT_SET_MAP;
+ 				$$ = $1;
+ 			}
+-			|	map_block	TYPEOF
+-						typeof_expr	COLON	INTERVAL	typeof_expr
+-						stmt_separator
+-			{
+-				if (already_set($1->key, &@2, state)) {
+-					expr_free($3);
+-					expr_free($6);
+-					YYERROR;
+-				}
+-
+-				$1->key = $3;
+-				$1->data = $6;
+-				$1->data->flags |= EXPR_F_INTERVAL;
+-
+-				$1->flags |= NFT_SET_MAP;
+-				$$ = $1;
+-			}
+ 			|	map_block	TYPE
+ 						data_type_expr	COLON	map_block_obj_type
+ 						stmt_separator	close_scope_type
+-- 
+2.43.0
 
