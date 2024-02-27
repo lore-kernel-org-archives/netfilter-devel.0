@@ -1,135 +1,110 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14AFD4E1CF
-	for <netfilter-devel@vger.kernel.org>; Tue, 27 Feb 2024 19:02:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B3FC5646F
+	for <netfilter-devel@vger.kernel.org>; Tue, 27 Feb 2024 23:49:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709060526; cv=none; b=uhsK2Z1fiTS9Pdf0/fYFBfUV/7wweFnXwEFxPqKLoDO3jUq5ZXQ9GdKEiA15MqibR6htFhtt4oYk4k44nSSfNwuAWFRxrGKUIiCmHiRS/1pDNaGoS9UWbwyp8BBJsT9bcuZNjSeZge36+2UHlwyuTHBhpunOA9tt1EXaj3U2s5Y=
+	t=1709077787; cv=none; b=MFwOUZjDcZs8EA1xMdQFRM1os34AonH+SDKv1tLFr9sLtudWIo8DULatQEVigN2i46rvDc5nDhQTXuZdzvM+XUrqPwGL0hXTbuyCQnVt9jAJT3h+42yPa2miFYW3DA5UU03Wa3+B0PYclIhlG2mV/lRLBBd8n4E43XKBdMIr7nU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709060526; c=relaxed/simple;
-	bh=sdXwrCz7CLBGP7Q0zkjCk8NcmBHQXR6WP1GQ1s0sp80=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=IK5YITFOK8GChptcrt2BPeH4UMjoZLd2RBrC0Pb73cCx91yAxD2O37HMW3H/z97AucgPOr90WirMtRgjLtWmTfYSvLCJ65UERIjuEHstANZ9+A3zBTyLVKSDWvxFvcaOYIMJYip2fekMg+sV3CMa5oXaZUyyY9l3rzQUWAyyhYw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=hOcNoSwg; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="hOcNoSwg"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=WRSXOiKmyowBLAwTxYfOy6P9fTIW/2SOCvtFTcaf5M0=; b=hOcNoSwgeO5Ku1a2HswPtzR0R7
-	xEQV53xJ8TDLFwk5WZuz9TEARbJe3MmgJVCdIP48l2QMT900Hi9sS9ogGV/YamTXzKX1ug6DM/GEm
-	zUjY/Q1efK/U11yl4T/4RWFlqAP/5KDtnUFavRHq28j46ZdapJPSAtEPUlHUs7KutN9ZVCtKOJ27x
-	EcTNy14o3UfZ8rXr3KLZbjjFlO5M3s7Ak5czASIm5P4m9oOKPCswndfKhW3pnhJop9ABqoksFd80u
-	mi4eSzW5/iEuBNhyEMOia5+AilHS28JQvVO3nCzJBcAv2vl2o9932QIBiJNbNzxdbQlGRYdYvGOmn
-	92ZiiGhg==;
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1rf2Nx-000000005Ph-0biF
-	for netfilter-devel@vger.kernel.org;
-	Tue, 27 Feb 2024 19:41:01 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH] nft: Fix for broken recover_rule_compat()
-Date: Tue, 27 Feb 2024 19:40:57 +0100
-Message-ID: <20240227184057.6017-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.43.0
+	s=arc-20240116; t=1709077787; c=relaxed/simple;
+	bh=CPcctCg0bv8HQROlnsFZPx6VzrOpx2SOQ7cOuBhiKWE=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=PaeGLASq3FB7KVXeVKraHvobNCsu7n1xdXRJcWJbPYexxsmndawjRC/eVWHpVp53nWE0pGo91msatm6pkgNDpZFsQ8Cm5J0yf5EaGxZKAlT8Gf21pq8hCUkWKL/PNVss/yLsO+d9MBoD8RYBXcGQeM3mnvgNlpw7DVmPu7DW9tk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1rf7Cf-0000Qh-1y; Wed, 28 Feb 2024 00:49:41 +0100
+Date: Wed, 28 Feb 2024 00:20:46 +0100
+From: Florian Westphal <fw@strlen.de>
+To: lena wang <lena.wang@mediatek.com>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] Add protection for bmp length out of range
+Message-ID: <Zd5uTlqVBBFpyjMB@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-When IPv4 rule generator was changed to emit payload instead of
-meta expressions for l4proto matches, the code reinserting
-NFTNL_RULE_COMPAT_* attributes into rules being reused for counter
-zeroing was broken by accident.
+lena wang <lena.wang@mediatek.com> wrote:
+> UBSAN load reports an exception of BRK#5515 SHIFT_ISSUE:Bitwise shifts
+> that are out of bounds for their data type.
+> 
+> vmlinux   get_bitmap(b=75) + 712
+> <net/netfilter/nf_conntrack_h323_asn1.c:0>
+> vmlinux   decode_seq(bs=0xFFFFFFD008037000, f=0xFFFFFFD008037018,
+> level=134443100) + 1956
+> <net/netfilter/nf_conntrack_h323_asn1.c:592>
+> vmlinux   decode_choice(base=0xFFFFFFD0080370F0, level=23843636) + 1216
+> <net/netfilter/nf_conntrack_h323_asn1.c:814>
+> vmlinux   decode_seq(f=0xFFFFFFD0080371A8, level=134443500) + 812
+> <net/netfilter/nf_conntrack_h323_asn1.c:576>
+> vmlinux   decode_choice(base=0xFFFFFFD008037280, level=0) + 1216
+> <net/netfilter/nf_conntrack_h323_asn1.c:814>
+> vmlinux   DecodeRasMessage() + 304
+> <net/netfilter/nf_conntrack_h323_asn1.c:833>
+> vmlinux   ras_help() + 684
+> <net/netfilter/nf_conntrack_h323_main.c:1728>
+> vmlinux   nf_confirm() + 188
+> <net/netfilter/nf_conntrack_proto.c:137>
+> vmlinux   ipv4_confirm() + 204
+> <net/netfilter/nf_conntrack_proto.c:169>
+> vmlinux   nf_hook_entry_hookfn() + 56
+> <include/linux/netfilter.h:137>
+> vmlinux   nf_hook_slow(s=0) + 156
+> <net/netfilter/core.c:584>
+> vmlinux   nf_hook(pf=2, hook=1, sk=0, outdev=0) + 748
+> <include/linux/netfilter.h:254>
+> vmlinux   NF_HOOK(pf=2, hook=1, sk=0, out=0) + 748
+> <include/linux/netfilter.h:297>
+> vmlinux   ip_local_deliver() + 1072
+> <net/ipv4/ip_input.c:252>
+> vmlinux   dst_input() + 64
+> <include/net/dst.h:443>
+> vmlinux   ip_rcv_finish(sk=0) + 120
+> <net/ipv4/ip_input.c:435>
 
-Make rule compat recovery aware of the alternative match, basically
-reinstating the effect of commit 7a373f6683afb ("nft: Fix -Z for rules
-with NFTA_RULE_COMPAT") but add a test case this time to make sure
-things stay intact.
+Can you trim this a bit?  There is no need to have a full stacktrace
+in the changelog.
 
-Fixes: 69278f9602b43 ("nft: use payload matching for layer 4 protocol")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- iptables/nft.c                                | 27 ++++++++++++++++---
- .../nft-only/0011-zero-needs-compat_0         | 12 +++++++++
- 2 files changed, 35 insertions(+), 4 deletions(-)
- create mode 100755 iptables/tests/shell/testcases/nft-only/0011-zero-needs-compat_0
+> Due to abnormal data in skb->data, the extension bitmap length
+> exceeds 32 when decoding ras message then uses the length to make
+> a shift operation. It will change into negative after several loop.
+> UBSAN load could detect a negative shift as an undefined behaviour
+> and reports exception.
+> So we add the protection to avoid the length exceeding 32. Or else
+> it will return out of range error and stop decoding.
+> 
+> Signed-off-by: lena wang <lena.wang@mediatek.com>
+> ---
+>  net/netfilter/nf_conntrack_h323_asn1.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+>         if (base)
+> --
+> 2.18.0
+> 
+> diff --git a/net/netfilter/nf_conntrack_h323_asn1.c
+> b/net/netfilter/nf_conntrack_h323_asn1.c
+> index e697a824b001..85be1c589ef0 100644
+> --- a/net/netfilter/nf_conntrack_h323_asn1.c
+> +++ b/net/netfilter/nf_conntrack_h323_asn1.c
+> @@ -589,6 +589,8 @@ static int decode_seq(struct bitstr *bs, const
+> struct field_t *f,
+>         bmp2_len = get_bits(bs, 7) + 1;
+>         if (nf_h323_error_boundary(bs, 0, bmp2_len))
+>                 return H323_ERROR_BOUND;
+> +       if (bmp2_len > 32)
+> +               return H323_ERROR_RANGE;
+>         bmp2 = get_bitmap(bs, bmp2_len);
 
-diff --git a/iptables/nft.c b/iptables/nft.c
-index dae6698d3234a..ee63c3dc42ed4 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -3750,6 +3750,27 @@ const char *nft_strerror(int err)
- 	return strerror(err);
- }
- 
-+static int l4proto_expr_get_dreg(struct nftnl_expr *e, uint32_t *dregp)
-+{
-+	const char *name = nftnl_expr_get_str(e, NFTNL_EXPR_NAME);
-+	uint32_t poff = offsetof(struct iphdr, protocol);
-+	uint32_t pbase = NFT_PAYLOAD_NETWORK_HEADER;
-+
-+	if (!strcmp(name, "payload") &&
-+	    nftnl_expr_get_u32(e, NFTNL_EXPR_PAYLOAD_BASE) == pbase &&
-+	    nftnl_expr_get_u32(e, NFTNL_EXPR_PAYLOAD_OFFSET) == poff &&
-+	    nftnl_expr_get_u32(e, NFTNL_EXPR_PAYLOAD_LEN) == sizeof(uint8_t)) {
-+		*dregp = nftnl_expr_get_u32(e, NFTNL_EXPR_PAYLOAD_DREG);
-+		return 0;
-+	}
-+	if (!strcmp(name, "meta") &&
-+	    nftnl_expr_get_u32(e, NFTNL_EXPR_META_KEY) == NFT_META_L4PROTO) {
-+		*dregp = nftnl_expr_get_u32(e, NFTNL_EXPR_META_DREG);
-+		return 0;
-+	}
-+	return -1;
-+}
-+
- static int recover_rule_compat(struct nftnl_rule *r)
- {
- 	struct nftnl_expr_iter *iter;
-@@ -3766,12 +3787,10 @@ static int recover_rule_compat(struct nftnl_rule *r)
- 	if (!e)
- 		goto out;
- 
--	if (strcmp("meta", nftnl_expr_get_str(e, NFTNL_EXPR_NAME)) ||
--	    nftnl_expr_get_u32(e, NFTNL_EXPR_META_KEY) != NFT_META_L4PROTO)
-+	/* may be 'ip protocol' or 'meta l4proto' with identical RHS */
-+	if (l4proto_expr_get_dreg(e, &reg) < 0)
- 		goto next_expr;
- 
--	reg = nftnl_expr_get_u32(e, NFTNL_EXPR_META_DREG);
--
- 	e = nftnl_expr_iter_next(iter);
- 	if (!e)
- 		goto out;
-diff --git a/iptables/tests/shell/testcases/nft-only/0011-zero-needs-compat_0 b/iptables/tests/shell/testcases/nft-only/0011-zero-needs-compat_0
-new file mode 100755
-index 0000000000000..e276a953234cf
---- /dev/null
-+++ b/iptables/tests/shell/testcases/nft-only/0011-zero-needs-compat_0
-@@ -0,0 +1,12 @@
-+#!/bin/bash
-+
-+[[ $XT_MULTI == *xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
-+
-+set -e
-+
-+rule="-p tcp -m tcp --dport 27374 -c 23 42 -j TPROXY --on-port 50080"
-+for cmd in iptables ip6tables; do
-+	$XT_MULTI $cmd -t mangle -A PREROUTING $rule
-+	$XT_MULTI $cmd -t mangle -Z
-+	$XT_MULTI $cmd -t mangle -v -S | grep -q -- "${rule/23 42/0 0}"
-+done
--- 
-2.43.0
+There is another get_bitmap call earlier in this function, can
+you update that too and submit a v2?
 
+Thanks!
