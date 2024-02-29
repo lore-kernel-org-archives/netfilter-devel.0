@@ -1,514 +1,174 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C75737A714
-	for <netfilter-devel@vger.kernel.org>; Thu, 29 Feb 2024 10:45:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3F4764A9B
+	for <netfilter-devel@vger.kernel.org>; Thu, 29 Feb 2024 11:33:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709203521; cv=none; b=d8v5wvnmMdSSeLuGyl0FKeRepsoAXHhClxO23m6XvxY0Me6u2GYRaHL86qalowhdTxPu2IHssdu/BdhLhlmDjGMXmBneLo/Vv7QdRSZu7vomGRSFhBJNOrrs7udtpvP5GCQd9FEUqlc+sF/4QTHv0TOnFHaY/ZMmRawF8yxFWGE=
+	t=1709206394; cv=none; b=Zg4WAjYTxQVhiys4N/T4pfHGWQITFkFSRaiPicZRV4ORnSYxxiYs/2qPIzj5ogdhl33RFZcSdPH+GajKCCxqxIdHsUhy3jaz/WZks6/83u2M+dXrs0F4mh944LvP0dCTdMR4lqkrOKqHLJTV8q/ZoM5TNmQ6icvRki6QqlAAdGc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709203521; c=relaxed/simple;
-	bh=JcF6Fe4d3BQ33BqlBCmoqolAQvWWmI7b/FzyumHbA30=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=vBZ0UuIsLOyaTXbSJS6ca+MerUGxO7cV03w7bKliee5Yh2/d9QY308BVXok83edO9OpjF7ExldRNuOQ2CJnO8jmVhkv5wFyGgybVEM8ZmBSTXmpZYE7AR8yWZwM0SqroDyzAu1qbav0SsabwL502FuPSO6RTr5ffEPMBfsu/kuQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1rfduf-0007de-4K; Thu, 29 Feb 2024 11:45:17 +0100
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 3/3] tests: maps: add a test case for "limit" objref map
-Date: Thu, 29 Feb 2024 11:41:25 +0100
-Message-ID: <20240229104347.5156-4-fw@strlen.de>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20240229104347.5156-1-fw@strlen.de>
-References: <20240229104347.5156-1-fw@strlen.de>
+	s=arc-20240116; t=1709206394; c=relaxed/simple;
+	bh=EcEY2uWVmxlikgQ3wNAoycZhrnRP7aSBd+0g9digYOA=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=bHz74B/OxHsEXakL2yNKLJYIGmudoI9Segas0hextNfwGiT1MGmelEQnzP3bogI6HnFEVAV3vrB01PNXOxHu6pwuut76MShpqXOkgHZ1HOc/fQt/olReamfI5rIS00wAcIVTLEu7wHuab0lh9ToILArMNotKX/+d1Kn6ikRIE8k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=UytKaz99; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="UytKaz99"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1709206391;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=ZIRT7DyYzV+CIB6U1Vj3ZtXi2jn1T+sGogiV8Z6xrm4=;
+	b=UytKaz99qFIFOl0pejgffVaV2l72K7m3o+8sbDVjBZ0omqRUlc2qaPd9KEObflCCbB4pLr
+	HuIpXF2+9ltAWXIoUm+xG5O+W3c2ZLwGxXjRr5jBOzAE1vox1Cas+btjCvGJt+CcZoCCFS
+	hBgQhIzbDM1axrpFR7tPUgxwoRkR9GI=
+Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
+ [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-593-SePYn0CVMPWj9NPspMXq0w-1; Thu, 29 Feb 2024 06:33:10 -0500
+X-MC-Unique: SePYn0CVMPWj9NPspMXq0w-1
+Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-41293adf831so1170075e9.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 29 Feb 2024 03:33:10 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1709206389; x=1709811189;
+        h=mime-version:user-agent:content-transfer-encoding:autocrypt
+         :references:in-reply-to:date:cc:to:from:subject:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=ZIRT7DyYzV+CIB6U1Vj3ZtXi2jn1T+sGogiV8Z6xrm4=;
+        b=SZwyxyN+rDWpnOlo2nc4utmipgcakytOI3AI9mMWtp8Dw4FGpe1WFTv99vQQpKlVlW
+         fvoV7PXDRo3x730ZRRiKpgua7DrjRxyU9fs6r7jZSwLBdam67ZrhcnfWx+YTNQ+66A1e
+         Juv9Y+jCrnicuDaxavxM5tbbaeh/QVGEB/1AvkXG3apV1ch3IwmDRTskz62a1KsfwHUJ
+         0tJipUCrbyDK39VR4Vs8fN5hmpT2WTn/02mRCgR5F7Fc2AKt6MLptdfiPE7lnCHl0zlV
+         QhkAVEpWxfaWcnNc4I71SAFbndB1LHaRFerUqSJ/Ip813z5X2uMUvEEWkIh97HTqRSqo
+         k9Vg==
+X-Forwarded-Encrypted: i=1; AJvYcCU0zblxhT2Q+ulQ1FhrFW8IZduy4MG2zOGeP1u09863C3MhuL2S9AEYUdSG0mVPZ9G+ZijCCnI8tvCO6hqXTo1p7OgLGnPUKj0YWt0KBkjX
+X-Gm-Message-State: AOJu0Yw2pxewMh/QAeK5rDEZviT270wkfl0MH+lKM2HvkgA7w/efSS75
+	Y03tt6jHms6VNBEEsYIuOFjnnCJpSw8daI+75L0AlkiSZy78yIjpwS8OspczJrqYUSv5qXstNpX
+	EzWASmQKJvu9lJK8/dUiasc8XV1chhBKQT4TKJV1hYE4sZcjjDC4eO7p5Vr4dw/fpGw==
+X-Received: by 2002:a05:600c:358d:b0:412:a314:a9e4 with SMTP id p13-20020a05600c358d00b00412a314a9e4mr1510326wmq.4.1709206389386;
+        Thu, 29 Feb 2024 03:33:09 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IEPPhPaWD9Q+9gCmEBbpMr4rfWuI9pY4LF/OIkui1zgqQLLVPRsnnODz7KK5G8iFrkPZGHuWw==
+X-Received: by 2002:a05:600c:358d:b0:412:a314:a9e4 with SMTP id p13-20020a05600c358d00b00412a314a9e4mr1510308wmq.4.1709206388996;
+        Thu, 29 Feb 2024 03:33:08 -0800 (PST)
+Received: from gerbillo.redhat.com (146-241-250-174.dyn.eolo.it. [146.241.250.174])
+        by smtp.gmail.com with ESMTPSA id jw21-20020a05600c575500b004126afe04f6sm4955237wmb.32.2024.02.29.03.33.08
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 29 Feb 2024 03:33:08 -0800 (PST)
+Message-ID: <00685c09d316a9dc3b57e076054ab03961ee42a4.camel@redhat.com>
+Subject: Re: [PATCH net 3/3] selftests: netfilter: add bridge conntrack +
+ multicast test case
+From: Paolo Abeni <pabeni@redhat.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org, 
+	edumazet@google.com, fw@strlen.de
+Date: Thu, 29 Feb 2024 12:33:07 +0100
+In-Reply-To: <20240229000135.8780-4-pablo@netfilter.org>
+References: <20240229000135.8780-1-pablo@netfilter.org>
+	 <20240229000135.8780-4-pablo@netfilter.org>
+Autocrypt: addr=pabeni@redhat.com; prefer-encrypt=mutual; keydata=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
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.50.4 (3.50.4-1.fc39) 
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-check add, delete and removal operations for objref maps.
+Hi,
 
-Also check type vs. typeof declarations and use both
-interval and interval+concatenation (rbtree, pipapo).
+On Thu, 2024-02-29 at 01:01 +0100, Pablo Neira Ayuso wrote:
+> diff --git a/tools/testing/selftests/netfilter/bridge_netfilter.sh b/tool=
+s/testing/selftests/netfilter/bridge_netfilter.sh
+> new file mode 100644
+> index 000000000000..659b3ab02c8b
+> --- /dev/null
+> +++ b/tools/testing/selftests/netfilter/bridge_netfilter.sh
+> @@ -0,0 +1,188 @@
+> +#!/bin/bash
+> +# SPDX-License-Identifier: GPL-2.0
+> +#
+> +# Test bridge netfilter + conntrack, a combination that doesn't really w=
+ork,
+> +# with multicast/broadcast packets racing for hash table insertion.
+> +
+> +#           eth0    br0     eth0
+> +# setup is: ns1 <->,ns0 <-> ns3
+> +#           ns2 <-'    `'-> ns4
+> +
+> +# Kselftest framework requirement - SKIP code is 4.
+> +ksft_skip=3D4
+> +ret=3D0
+> +
+> +sfx=3D$(mktemp -u "XXXXXXXX")
+> +ns0=3D"ns0-$sfx"
+> +ns1=3D"ns1-$sfx"
+> +ns2=3D"ns2-$sfx"
+> +ns3=3D"ns3-$sfx"
+> +ns4=3D"ns4-$sfx"
+> +
+> +ebtables -V > /dev/null 2>&1
+> +if [ $? -ne 0 ];then
+> +	echo "SKIP: Could not run test without ebtables"
+> +	exit $ksft_skip
+> +fi
+> +
+> +ip -Version > /dev/null 2>&1
+> +if [ $? -ne 0 ];then
+> +	echo "SKIP: Could not run test without ip tool"
+> +	exit $ksft_skip
+> +fi
+> +
+> +for i in $(seq 0 4); do
+> +  eval ip netns add \$ns$i
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- .../maps/dumps/named_limits.json-nft          | 328 ++++++++++++++++++
- .../testcases/maps/dumps/named_limits.nft     |  55 +++
- tests/shell/testcases/maps/named_limits       |  59 ++++
- 3 files changed, 442 insertions(+)
- create mode 100644 tests/shell/testcases/maps/dumps/named_limits.json-nft
- create mode 100644 tests/shell/testcases/maps/dumps/named_limits.nft
- create mode 100755 tests/shell/testcases/maps/named_limits
+[Not intended to block this series] I thing this patch could use a
+'next' follow-up to clean-up the style a bit (e.g. indentation above
+and other places below...)
 
-diff --git a/tests/shell/testcases/maps/dumps/named_limits.json-nft b/tests/shell/testcases/maps/dumps/named_limits.json-nft
-new file mode 100644
-index 000000000000..28a92529c8d2
---- /dev/null
-+++ b/tests/shell/testcases/maps/dumps/named_limits.json-nft
-@@ -0,0 +1,328 @@
-+{
-+  "nftables": [
-+    {
-+      "metainfo": {
-+        "version": "VERSION",
-+        "release_name": "RELEASE_NAME",
-+        "json_schema_version": 1
-+      }
-+    },
-+    {
-+      "table": {
-+        "family": "inet",
-+        "name": "filter",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "limit": {
-+        "family": "inet",
-+        "name": "tarpit-pps",
-+        "table": "filter",
-+        "handle": 0,
-+        "rate": 1,
-+        "per": "second",
-+        "burst": 5
-+      }
-+    },
-+    {
-+      "limit": {
-+        "family": "inet",
-+        "name": "tarpit-bps",
-+        "table": "filter",
-+        "handle": 0,
-+        "rate": 1,
-+        "per": "second",
-+        "rate_unit": "kbytes"
-+      }
-+    },
-+    {
-+      "limit": {
-+        "family": "inet",
-+        "name": "http-bulk-rl-1m",
-+        "table": "filter",
-+        "handle": 0,
-+        "rate": 1,
-+        "per": "second",
-+        "rate_unit": "mbytes"
-+      }
-+    },
-+    {
-+      "limit": {
-+        "family": "inet",
-+        "name": "http-bulk-rl-10m",
-+        "table": "filter",
-+        "handle": 0,
-+        "rate": 10,
-+        "per": "second",
-+        "rate_unit": "mbytes"
-+      }
-+    },
-+    {
-+      "set": {
-+        "family": "inet",
-+        "name": "tarpit4",
-+        "table": "filter",
-+        "type": "ipv4_addr",
-+        "handle": 0,
-+        "size": 10000,
-+        "flags": [
-+          "timeout",
-+          "dynamic"
-+        ],
-+        "timeout": 60
-+      }
-+    },
-+    {
-+      "set": {
-+        "family": "inet",
-+        "name": "tarpit6",
-+        "table": "filter",
-+        "type": "ipv6_addr",
-+        "handle": 0,
-+        "size": 10000,
-+        "flags": [
-+          "timeout",
-+          "dynamic"
-+        ],
-+        "timeout": 60
-+      }
-+    },
-+    {
-+      "map": {
-+        "family": "inet",
-+        "name": "addr4limit",
-+        "table": "filter",
-+        "type": [
-+          "inet_proto",
-+          "ipv4_addr",
-+          "inet_service"
-+        ],
-+        "handle": 0,
-+        "map": "limit",
-+        "flags": [
-+          "interval"
-+        ],
-+        "elem": [
-+          [
-+            {
-+              "concat": [
-+                "tcp",
-+                {
-+                  "prefix": {
-+                    "addr": "192.168.0.0",
-+                    "len": 16
-+                  }
-+                },
-+                {
-+                  "range": [
-+                    1,
-+                    65535
-+                  ]
-+                }
-+              ]
-+            },
-+            "tarpit-bps"
-+          ],
-+          [
-+            {
-+              "concat": [
-+                "udp",
-+                {
-+                  "prefix": {
-+                    "addr": "192.168.0.0",
-+                    "len": 16
-+                  }
-+                },
-+                {
-+                  "range": [
-+                    1,
-+                    65535
-+                  ]
-+                }
-+              ]
-+            },
-+            "tarpit-pps"
-+          ],
-+          [
-+            {
-+              "concat": [
-+                "tcp",
-+                {
-+                  "range": [
-+                    "127.0.0.1",
-+                    "127.1.2.3"
-+                  ]
-+                },
-+                {
-+                  "range": [
-+                    1,
-+                    1024
-+                  ]
-+                }
-+              ]
-+            },
-+            "tarpit-pps"
-+          ],
-+          [
-+            {
-+              "concat": [
-+                "tcp",
-+                {
-+                  "range": [
-+                    "10.0.0.1",
-+                    "10.0.0.255"
-+                  ]
-+                },
-+                80
-+              ]
-+            },
-+            "http-bulk-rl-1m"
-+          ],
-+          [
-+            {
-+              "concat": [
-+                "tcp",
-+                {
-+                  "range": [
-+                    "10.0.0.1",
-+                    "10.0.0.255"
-+                  ]
-+                },
-+                443
-+              ]
-+            },
-+            "http-bulk-rl-1m"
-+          ],
-+          [
-+            {
-+              "concat": [
-+                "tcp",
-+                {
-+                  "prefix": {
-+                    "addr": "10.0.1.0",
-+                    "len": 24
-+                  }
-+                },
-+                {
-+                  "range": [
-+                    1024,
-+                    65535
-+                  ]
-+                }
-+              ]
-+            },
-+            "http-bulk-rl-10m"
-+          ],
-+          [
-+            {
-+              "concat": [
-+                "tcp",
-+                "10.0.2.1",
-+                22
-+              ]
-+            },
-+            "http-bulk-rl-10m"
-+          ]
-+        ]
-+      }
-+    },
-+    {
-+      "map": {
-+        "family": "inet",
-+        "name": "saddr6limit",
-+        "table": "filter",
-+        "type": "ipv6_addr",
-+        "handle": 0,
-+        "map": "limit",
-+        "flags": [
-+          "interval"
-+        ],
-+        "elem": [
-+          [
-+            {
-+              "range": [
-+                "dead::beef",
-+                "dead::1:aced"
-+              ]
-+            },
-+            "tarpit-pps"
-+          ]
-+        ]
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "inet",
-+        "table": "filter",
-+        "name": "input",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "input",
-+        "prio": 0,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "inet",
-+        "table": "filter",
-+        "chain": "input",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "limit": {
-+              "map": {
-+                "key": {
-+                  "concat": [
-+                    {
-+                      "meta": {
-+                        "key": "l4proto"
-+                      }
-+                    },
-+                    {
-+                      "payload": {
-+                        "protocol": "ip",
-+                        "field": "saddr"
-+                      }
-+                    },
-+                    {
-+                      "payload": {
-+                        "protocol": "th",
-+                        "field": "sport"
-+                      }
-+                    }
-+                  ]
-+                },
-+                "data": "@addr4limit"
-+              }
-+            }
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "inet",
-+        "table": "filter",
-+        "chain": "input",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "limit": {
-+              "map": {
-+                "key": {
-+                  "payload": {
-+                    "protocol": "ip6",
-+                    "field": "saddr"
-+                  }
-+                },
-+                "data": "@saddr6limit"
-+              }
-+            }
-+          }
-+        ]
-+      }
-+    }
-+  ]
-+}
-diff --git a/tests/shell/testcases/maps/dumps/named_limits.nft b/tests/shell/testcases/maps/dumps/named_limits.nft
-new file mode 100644
-index 000000000000..214df204b770
---- /dev/null
-+++ b/tests/shell/testcases/maps/dumps/named_limits.nft
-@@ -0,0 +1,55 @@
-+table inet filter {
-+	limit tarpit-pps {
-+		rate 1/second
-+	}
-+
-+	limit tarpit-bps {
-+		rate 1 kbytes/second
-+	}
-+
-+	limit http-bulk-rl-1m {
-+		rate 1 mbytes/second
-+	}
-+
-+	limit http-bulk-rl-10m {
-+		rate 10 mbytes/second
-+	}
-+
-+	set tarpit4 {
-+		typeof ip saddr
-+		size 10000
-+		flags dynamic,timeout
-+		timeout 1m
-+	}
-+
-+	set tarpit6 {
-+		typeof ip6 saddr
-+		size 10000
-+		flags dynamic,timeout
-+		timeout 1m
-+	}
-+
-+	map addr4limit {
-+		typeof meta l4proto . ip saddr . tcp sport : limit
-+		flags interval
-+		elements = { tcp . 192.168.0.0/16 . 1-65535 : "tarpit-bps",
-+			     udp . 192.168.0.0/16 . 1-65535 : "tarpit-pps",
-+			     tcp . 127.0.0.1-127.1.2.3 . 1-1024 : "tarpit-pps",
-+			     tcp . 10.0.0.1-10.0.0.255 . 80 : "http-bulk-rl-1m",
-+			     tcp . 10.0.0.1-10.0.0.255 . 443 : "http-bulk-rl-1m",
-+			     tcp . 10.0.1.0/24 . 1024-65535 : "http-bulk-rl-10m",
-+			     tcp . 10.0.2.1 . 22 : "http-bulk-rl-10m" }
-+	}
-+
-+	map saddr6limit {
-+		typeof ip6 saddr : limit
-+		flags interval
-+		elements = { dead::beef-dead::1:aced : "tarpit-pps" }
-+	}
-+
-+	chain input {
-+		type filter hook input priority filter; policy accept;
-+		limit name meta l4proto . ip saddr . th sport map @addr4limit
-+		limit name ip6 saddr map @saddr6limit
-+	}
-+}
-diff --git a/tests/shell/testcases/maps/named_limits b/tests/shell/testcases/maps/named_limits
-new file mode 100755
-index 000000000000..5604f6caeda6
---- /dev/null
-+++ b/tests/shell/testcases/maps/named_limits
-@@ -0,0 +1,59 @@
-+#!/bin/bash
-+
-+dumpfile=$(dirname $0)/dumps/$(basename $0).nft
-+
-+$NFT -f "$dumpfile" || exit 1
-+
-+add_add_then_create()
-+{
-+	cmd="$@"
-+
-+	$NFT "add element inet filter $cmd" || exit 2
-+
-+	# again, kernel should suppress -EEXIST
-+	$NFT "add element inet filter $cmd" || exit 3
-+
-+	# AGAIN, kernel should report -EEXIST
-+	$NFT "create element inet filter $cmd" && echo "$cmd worked" 1>&2 && exit 4
-+}
-+
-+add_create_dupe()
-+{
-+	cmd="$@"
-+
-+	$NFT "add element inet filter $cmd" && echo "$cmd worked" 1>&2 && exit 10
-+	$NFT "create element inet filter $cmd" && echo "$cmd worked" 1>&2 && exit 11
-+}
-+
-+delete()
-+{
-+	cmd="$@"
-+
-+	$NFT "delete element inet filter $cmd" || exit 30
-+	$NFT "delete element inet filter $cmd" && echo "$cmd worked" 1>&2 && exit 31
-+
-+	# destroy should NOT report an error
-+#	$NFT "destroy element inet filter $cmd" || exit 40
-+}
-+
-+add_add_then_create 'saddr6limit { fee1::dead : "tarpit-pps" }'
-+add_add_then_create 'saddr6limit { c01a::/64 : "tarpit-bps" }'
-+
-+# test same with a diffent set type (concat + interval)
-+add_add_then_create 'addr4limit { udp . 1.2.3.4 . 42 : "tarpit-pps", tcp . 1.2.3.4 . 42 : "tarpit-pps" }'
-+
-+# now test duplicate key with *DIFFERENT* limiter, should fail
-+add_create_dupe 'saddr6limit { fee1::dead : "tarpit-bps" }'
-+
-+add_create_dupe 'addr4limit { udp . 1.2.3.4 . 42 : "tarpit-pps", tcp . 1.2.3.4 . 42 : "http-bulk-rl-10m" }'
-+add_create_dupe 'addr4limit { udp . 1.2.3.4 . 43 : "tarpit-pps", tcp . 1.2.3.4 . 42 : "http-bulk-rl-10m" }'
-+add_create_dupe 'addr4limit { udp . 1.2.3.5 . 42 : "tarpit-pps", tcp . 1.2.3.4 . 42 : "http-bulk-rl-10m" }'
-+add_create_dupe 'addr4limit { udp . 1.2.3.4 . 42 : "tarpit-bps", tcp . 1.2.3.4 . 42 : "tarpit-pps" }'
-+
-+# delete keys again
-+delete 'addr4limit { udp . 1.2.3.4 . 42 : "tarpit-pps", tcp . 1.2.3.4 . 42 :"tarpit-pps" }'
-+
-+delete 'saddr6limit { fee1::dead : "tarpit-pps" }'
-+delete 'saddr6limit { c01a::/64 : "tarpit-bps" }'
-+
-+exit 0
--- 
-2.43.0
+Also I'm wondering if in the long term we could converge to use the
+same infra here and in 'net' self tests for netns setup.
+
+> +done
+> +
+> +cleanup() {
+> +  for i in $(seq 0 4); do eval ip netns del \$ns$i;done
+> +}
+> +
+> +trap cleanup EXIT
+> +
+> +do_ping()
+> +{
+> +	fromns=3D"$1"
+> +	dstip=3D"$2"
+> +
+> +	ip netns exec $fromns ping -c 1 -q $dstip > /dev/null
+> +	if [ $? -ne 0 ]; then
+> +		echo "ERROR: ping from $fromns to $dstip"
+> +		ip netns exec ${ns0} nft list ruleset
+> +		ret=3D1
+> +	fi
+> +}
+> +
+> +bcast_ping()
+> +{
+> +	fromns=3D"$1"
+> +	dstip=3D"$2"
+> +
+> +	for i in $(seq 1 1000); do
+> +		ip netns exec $fromns ping -q -f -b -c 1 -q $dstip > /dev/null 2>&1
+
+[Not intended to block this series] repeated '-q' argument here
+
+Cheers,
+
+Paolo
 
