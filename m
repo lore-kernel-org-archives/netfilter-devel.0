@@ -1,28 +1,28 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E105979DDD
-	for <netfilter-devel@vger.kernel.org>; Thu, 29 Feb 2024 10:45:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A2DC7A714
+	for <netfilter-devel@vger.kernel.org>; Thu, 29 Feb 2024 10:45:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709203516; cv=none; b=fB4NALHVdTBJrjB6icq04myev3H4HEcU3xmKYZA5yMekHHSMP98Dqx2dIm8FgW+mjlcPdNmwJnwToN1CfzURiVQLZNUu2yv0n6x6AxCgiwLJW92xuvzPshi3xmcVdwH6gK63r+wNis/Qr7r3Z/leD6Spzy8HFRmS6j+RyZygd6U=
+	t=1709203518; cv=none; b=gPi60xcXaXqGg3yX0oCQPE5yT1IzMa/0nYjo+sfLcwvCnuAAragRUg67k2Xd47VI1+j1PzhVvS9uNfOKP7j7McG8PlYyRdWKN8gYiGNXG4DbJHVsYhkzyhSjIToQ6tejSHSiBkEgxhVTT/MoEbE0/z94d2yMu5ExrVx/Beg9b7o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709203516; c=relaxed/simple;
-	bh=DY+eaAeI4bEq6K1rArlwUrnUKl+tITtXI+I+Eci8QoM=;
+	s=arc-20240116; t=1709203518; c=relaxed/simple;
+	bh=DfPgEWwY1a0JHV5G0IkxFZsnCWbA708Dng/iJ77jps4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=lCooLmFdOg4SVMf2lphYLNxYO5HBJ/oGTAJl0f2Zemq262gHYniKU+LpDIgLRnaD7dwhMr28rKd7AK3bQNATYJfR7IpGJcYm1LkR8/USy9xcOY+c3qhKPzOnwKPW3JiNQoT9Umx6Fi5v7c97lJ9o6Yvb7w/9DXXcQAxcBpAd5+E=
+	 MIME-Version; b=TeZH8hLORxTf9DTs6KG1HUebC7ougSeVwJxts9BqqIk7KgFVKhdEFT7Qw2lJXfOwsUlQEIr8rAMBvpipOPSJnn8+4PMbSHJMeKu0Y4BMzGiRaxww7t/NqeZ7mEVt5a6tF4A2lj40HU005iu9l/L5LblJ9XDzsIW1McwZeZD2hqE=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1rfdub-0007dU-2O; Thu, 29 Feb 2024 11:45:13 +0100
+	id 1rfduW-0007dM-VM; Thu, 29 Feb 2024 11:45:08 +0100
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 2/3] netlink: allow typeof keywords with objref maps during listing
-Date: Thu, 29 Feb 2024 11:41:24 +0100
-Message-ID: <20240229104347.5156-3-fw@strlen.de>
+Subject: [PATCH nft 1/3] parser: allow typeof in objref maps
+Date: Thu, 29 Feb 2024 11:41:23 +0100
+Message-ID: <20240229104347.5156-2-fw@strlen.de>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20240229104347.5156-1-fw@strlen.de>
 References: <20240229104347.5156-1-fw@strlen.de>
@@ -34,80 +34,45 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Without this,
+Its currently not possible to declare a map that
+stores object references with the "typeof" keyword, e.g.
 
-  typeof meta l4proto . ip saddr . tcp sport : limit
+map m {
+	type ipv4_addr : limit
 
-... is shown as
+will work, but
 
-  type inet_proto . ipv4_addr . inet_service : limit
+map m {
+	typeof ip saddr : limit
 
-The "data" element is a value (the object type number).
-It doesn't support userinfo data.
-
-There is no reason to add it, the value is the object type
-number that the object-reference map stores.
-
-So, if we have an objref map, DO NOT discard the key part,
-as we do for normal maps.
-
-For normal maps, we support either typeof notation, i.e.:
-
-  typeof meta l4proto . ip saddr . tcp sport : ip saddr
-
-or the data type version:
-  type inet_proto . ipv4_addr . inet_service : ipv4_addr
-
-... but not a mix, a hyptothetical
-
-  typeof meta l4proto . ip saddr . tcp sport : ipv4_addr
-
-... does not work.
-
-If nft finds no udata attached to the data element, for normal
-map case, it has to fall back to the "type" form.
-
-But for objref maps this is expected, udata for key but not for data.
-Hence, for objref case, keep the typeof part if its valid.
+will give a syntax error ("unexpected limit").
+Followup pach will add support for listing side too.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/netlink.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ src/parser_bison.y | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/src/netlink.c b/src/netlink.c
-index 3d685b575e64..0088b742d573 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -1044,6 +1044,8 @@ struct set *netlink_delinearize_set(struct netlink_ctx *ctx,
- 	}
- 	list_splice_tail(&set_parse_ctx.stmt_list, &set->stmt_list);
- 
-+	set->flags = nftnl_set_get_u32(nls, NFTNL_SET_FLAGS);
-+
- 	if (datatype) {
- 		uint32_t dlen;
- 
-@@ -1056,6 +1058,11 @@ struct set *netlink_delinearize_set(struct netlink_ctx *ctx,
- 			typeof_expr_data->len = klen;
- 			set->data = typeof_expr_data;
- 			typeof_expr_data = NULL;
-+		} else if (set->flags & NFT_SET_OBJECT) {
-+			set->data = constant_expr_alloc(&netlink_location,
-+							dtype2,
-+							databyteorder, klen,
-+							NULL);
- 		} else {
- 			set->data = constant_expr_alloc(&netlink_location,
- 							dtype2,
-@@ -1084,7 +1091,6 @@ struct set *netlink_delinearize_set(struct netlink_ctx *ctx,
- 					       NULL);
- 	}
- 
--	set->flags   = nftnl_set_get_u32(nls, NFTNL_SET_FLAGS);
- 	set->handle.handle.id = nftnl_set_get_u64(nls, NFTNL_SET_HANDLE);
- 
- 	set->objtype = objtype;
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index cba37c686f66..cd1dc658882d 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -2340,6 +2340,15 @@ map_block		:	/* empty */	{ $$ = $<set>-1; }
+ 				$1->flags  |= NFT_SET_OBJECT;
+ 				$$ = $1;
+ 			}
++			|	map_block	TYPEOF
++						typeof_expr 	COLON	map_block_obj_type
++						stmt_separator
++			{
++				$1->key = $3;
++				$1->objtype = $5;
++				$1->flags  |= NFT_SET_OBJECT;
++				$$ = $1;
++			}
+ 			|	map_block	FLAGS		set_flag_list	stmt_separator
+ 			{
+ 				$1->flags |= $3;
 -- 
 2.43.0
 
