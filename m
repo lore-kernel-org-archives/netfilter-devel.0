@@ -1,27 +1,27 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E79A91115
-	for <netfilter-devel@vger.kernel.org>; Fri,  1 Mar 2024 12:43:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94D204086C
+	for <netfilter-devel@vger.kernel.org>; Fri,  1 Mar 2024 13:04:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709297010; cv=none; b=l+totmJeNhMLijB2FaQ/xULWW3eBYpBitCfwuRM9m+17UauIQLBJ3QxINaa7ppI6P/XByIY2ZZDzbKnfNRTpaWufBbfAiLlxfOPA5Kq+OkUZ/2HMl6Nra3jUsxbph5wuzWcG0DPKFjGoV76ZRM82kJeoxt+8I1wbqoil7hSuCzA=
+	t=1709298277; cv=none; b=bc/EwhlxdgIhMQV5t/H0Jn9bk9YF+GJoE0CTkXAN8gn+E1QYHkqEchKLE0AO1vkWBYL+N20Fkke4JPdLxIcihj5o/JJFo5ZpNmeJwoD7nRVVSpbRpOGUVQAz61rUoewXA11APj7DnupLMGm/sho5XwnHH01RfUmg5ZKUiGW7jp4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709297010; c=relaxed/simple;
-	bh=ChJ14kvk+08oAEt5mgOaXBTpR2+D72mdj7hx24/eyKU=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=cQtW4a/cVZfGqVtFjO4y0Fm8fsxCQn9xNUVbf1JggsiBEhexMuHshqlLztgj9/qFsE1Q76IQS/Z/vXnMzqR/f/g0OR4L7FgHlWcHmiYq6xaaqH4k7SBeY0y5pPbvnB5EkNY42nNJlOiXQAgWF56RtZV0Y0fOQlJ3EI1HW40aZtw=
+	s=arc-20240116; t=1709298277; c=relaxed/simple;
+	bh=Mrt4Vo2NAjjDX0n6go+pjUaTYHZWCloB2kQFVZEppz0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=o96zwT1P2p4ih3M7ROtqSwyI04cFM7GQzzHNFvOngxjKiFkyQlM5bnt64xdbvxZ+oaLgP7j91MMI/A5XRl+wTsdwyvsqQZe5xRpGLdrRYjIk0DWoNns73az2OAG9EyO/Rm0rdk3a0LtskPe1iRtIGyegyrzoOO38GZUVQrG66zo=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1rg2EX-0002F2-Nn; Fri, 01 Mar 2024 13:43:25 +0100
+	id 1rg2Yz-0002Mi-DR; Fri, 01 Mar 2024 14:04:33 +0100
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf v2] netfilter: nft_ct: fix l3num expectations with inet pseudo family
-Date: Fri,  1 Mar 2024 13:38:15 +0100
-Message-ID: <20240301123820.17664-1-fw@strlen.de>
+Subject: [PATCH nft 0/3] parser: allow to define maps that contain ct objects
+Date: Fri,  1 Mar 2024 13:59:35 +0100
+Message-ID: <20240301125942.20170-1-fw@strlen.de>
 X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -31,56 +31,38 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Following is rejected but should be allowed:
+This allows to store ct object references in maps.
+This is a userspace only change.
 
-table inet t {
-        ct expectation exp1 {
-                [..]
-                l3proto ip
+The only kernel patch required to make the test case work on nf.git
+is netfilter: nft_ct: fix l3num expectations with inet pseudo family,
+else ct expectations in inet family get rejected.
 
-Valid combos are:
-table ip t, l3proto ip
-table ip6 t, l3proto ip6
-table inet t, l3proto ip OR l3proto ip6
+Note that the second patch is the opposite of what we agreed on at
+NFWS, this is also why its both separate and has a very large
+wall-of-text commit message.
 
-Disallow inet pseudeo family, the l3num must be a on-wire protocol known
-to conntrack.
+I did not find a way to solve this without kernel patches in a sane
+way.
 
-Retain NFPROTO_INET case to make it clear its rejected
-intentionally rather as oversight.
+I could still make it work with the new postfix keywords mentioned
+in patch 2 commit message, but it would need a lot of guesswork and
+special casing to figure out when to add the "right" postfix keyword.
 
-Fixes: 8059918a1377 ("netfilter: nft_ct: sanitize layer 3 and 4 protocol number in custom expectations")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- v2: prefer EAFNOSUPPORT (Pablo Neira)
+Please see patch 2 for details and rationale wrt. chosen solution.
 
- net/netfilter/nft_ct.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+Florian Westphal (3):
+  parser: allow to define maps that contain timeouts and expectations
+  parser: allow to define maps that contain ct helpers
+  tests: add test case for named ct objects
 
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index bfd3e5a14dab..255640013ab8 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -1256,14 +1256,13 @@ static int nft_ct_expect_obj_init(const struct nft_ctx *ctx,
- 	switch (priv->l3num) {
- 	case NFPROTO_IPV4:
- 	case NFPROTO_IPV6:
--		if (priv->l3num != ctx->family)
--			return -EINVAL;
-+		if (priv->l3num == ctx->family || ctx->family == NFPROTO_INET)
-+			break;
- 
--		fallthrough;
--	case NFPROTO_INET:
--		break;
-+		return -EINVAL;
-+	case NFPROTO_INET: /* tuple.src.l3num supports NFPROTO_IPV4/6 only */
- 	default:
--		return -EOPNOTSUPP;
-+		return -EAFNOSUPPORT;
- 	}
- 
- 	priv->l4proto = nla_get_u8(tb[NFTA_CT_EXPECT_L4PROTO]);
+ src/parser_bison.y                            | 25 ++++-
+ .../testcases/maps/dumps/named_ct_objects.nft | 71 ++++++++++++++
+ tests/shell/testcases/maps/named_ct_objects   | 94 +++++++++++++++++++
+ 3 files changed, 185 insertions(+), 5 deletions(-)
+ create mode 100644 tests/shell/testcases/maps/dumps/named_ct_objects.nft
+ create mode 100755 tests/shell/testcases/maps/named_ct_objects
+
 -- 
 2.43.0
 
