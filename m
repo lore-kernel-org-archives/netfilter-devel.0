@@ -1,62 +1,62 @@
-Received: from mail-qv1-f44.google.com (mail-qv1-f44.google.com [209.85.219.44])
+Received: from mail-qv1-f48.google.com (mail-qv1-f48.google.com [209.85.219.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB4454C73
-	for <netfilter-devel@vger.kernel.org>; Fri,  1 Mar 2024 17:07:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F796538B
+	for <netfilter-devel@vger.kernel.org>; Fri,  1 Mar 2024 17:07:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709312859; cv=none; b=sCziQa0MgOslDiPW7D80dGYyYDJbcbT66nW569/AKaM3f7BHzWDhW3Sb61wzsm979SGaFoY/Dlyh86L2LhAooK7Xzi4F6umSNOLNCHiAXNzgpwswKhVtPs76Ywj5XwbH+OYLRdyVNEyR5kBgzD3IFqQaE9/mjgWCLqRSTGKHqGM=
+	t=1709312860; cv=none; b=dTPLlkrYtkdE38vbve48oD7ZmQ09NJBpS9u/e8E9fs21YJhykVOksHxX62PeE6OdVU+oWp9n2J2X2KWYcGsa0ziEoIn8w8jVBHZAZRHm3p5HPypKaI/InB+71f58dYEZJtJl57OZDgw2G7O511SUZ0xzBlwUhOzUnVLla+o4WIE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709312859; c=relaxed/simple;
-	bh=qxycGf9cV+Fevieb640Yb4IK9R1rNs4Nwz9aFSUf54Q=;
+	s=arc-20240116; t=1709312860; c=relaxed/simple;
+	bh=Y6jvGeptn7yxcuCYkI2LAgFPC6SskbXTNBGdothdVu8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=lcArljzGQMyMeg763QdrPKksymta8nHB8zyaAUHtJAmjDRqymr+rzkcX48GfdszwMQyqeShB/mG1N9jEyu/deosCOoDmv2MubGN0P51IyyWK2/HM0g3M3a4zYOaVBRoXS5gwXh4u4n7T44CHUyxqNpCaSQzn+MUpcmzLTPMgNME=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ci6NcWJf; arc=none smtp.client-ip=209.85.219.44
+	 MIME-Version; b=ncfLbJT//rjEuMJdlG3oAJLI7d5YAg0uQCqD90TGtyysKHAqI5fls9qs2GMQjj9yvko7Rs3nm87mSc4+5+1ShOM29IgFxIbDjLTCA5e+NGyynf6O3WmUkjGuxITpafoADWBcX4MplL5xUYFpvC8Ma5NqszVUJIaYO3Sh441w5XI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KZ3iEOG9; arc=none smtp.client-ip=209.85.219.48
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ci6NcWJf"
-Received: by mail-qv1-f44.google.com with SMTP id 6a1803df08f44-68f748cdc8bso9186276d6.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 01 Mar 2024 09:07:37 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KZ3iEOG9"
+Received: by mail-qv1-f48.google.com with SMTP id 6a1803df08f44-68f901192afso9972006d6.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 01 Mar 2024 09:07:38 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1709312856; x=1709917656; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1709312857; x=1709917657; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=b2n++Gyc4lpvFWWf25Ciddk83tP1mkE19bu0c+xErAE=;
-        b=ci6NcWJf912wXE4YayCkyRzRtxRD0iD4ScqOBNwKHuthKyFZ0iXRt9toiW9ONUFWle
-         uJrEXy+C+5SqKu8AcLd4EIAPKnifKrYHP2afPaMB8oK9iRqCNE6xrjdNEfawVQpa1YEk
-         zVokJhw1WTuq343mG8UkjJ6oHBozMDiA2RktuT4sika7Rot4Q0gfMsqEgsfmGouKGD2R
-         HOcUJd18Za6iWlaoXG8/+w+tKU458/XSLHlc8+ycJufKZhR2okTg6YMJv6mFXd60OFBX
-         MuqA2xAcdM+1ARxpZFERxjIq0Faa+Cjhr2Qr0Ne6QM/2mDesub2xTTUdLxFQo7SgJYUj
-         /TbQ==
+        bh=r7FDDAQs7CyhL99MhjUm4iQ4lgVkaSlCRfPuDt5e4a4=;
+        b=KZ3iEOG9Ta0+AbjgzhhlrGA/wHJtzHivBw15VV1bOg5Qb3PBVX6W2Dx499cMi7xa3O
+         F3RSs3Xj6uJV0VCeaGfY11Kv4XzjZn/d9dZCNfpDPIcIjcvCghHZ2mk5MrFf8T55Nm1Z
+         fnjjqS1AuZlDh5hohIZUjpw94jPqtvN4E8rd2R+Vckbg2PnNp3kRP+CJjsfD3kadgHiL
+         KW9hBqbpa5ZK8nbrX22VycVdDNQ2r3W49JtnPvTUIQPFTi021NioEIuqUgAgANub/ATP
+         fwXRrbMv4yyccmcpOGPeXcj9T+ix2XENjrW1q0xryApdR3imSR6eEzPLb6YW5Qg9fb2c
+         zbiQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1709312856; x=1709917656;
+        d=1e100.net; s=20230601; t=1709312857; x=1709917657;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=b2n++Gyc4lpvFWWf25Ciddk83tP1mkE19bu0c+xErAE=;
-        b=MeILcQs+ricTHWCv+t/3h62Lft5BOSkhCNk9RIcmiVUD6R48YXyVodZwbkG5y/sSyN
-         WsQrxBGKeGFC8xjWSr1rUubqctbb9ZUVia2CoueXdYKX63MJOyhOJbFt9Hdt2kTVj1x0
-         okhBRcaz9x/ydv6oAvEqawqm/I94nBOqmPHCC0OnwTTppZDdU7F5dlqD8NibN5hQzzID
-         9p+A8wWK6vHiIG9SXi54JAoBah9mIkFVDBHXo4wkfFpSeP3sTcf1Xiyrzpxs2la6lrc8
-         mapsYnDqlW9nF2vYHzhQJxbpzFLOlb+pOnY4/W79kVlNqsWV+iG8fWhIGnl2HSPbevbJ
-         7+uw==
-X-Gm-Message-State: AOJu0Yxr7SnDaI67B76g2AjQngw84Ed748uTKCIHyI7NPwILg/YUYs9y
-	fB1OicH79dy1O3iq+DsQze/5rPFVyiMxqksrW9xSYE2zUIJyQvumHsMh+JDn
-X-Google-Smtp-Source: AGHT+IFIOfLp0X4ql7Zz+0PBKb0bT/YCiOen6SzUQ7FwAhoszR4igNTeSsA5rNDIlMm08JVl4/0VYg==
-X-Received: by 2002:a0c:e086:0:b0:690:5589:8348 with SMTP id l6-20020a0ce086000000b0069055898348mr2247939qvk.26.1709312856349;
-        Fri, 01 Mar 2024 09:07:36 -0800 (PST)
+        bh=r7FDDAQs7CyhL99MhjUm4iQ4lgVkaSlCRfPuDt5e4a4=;
+        b=hx5kwj8sruwE7v/O0yZlX/R86+7btWYagBVQrEQSZ1vc8h/NR27nPrLP2GaTTuBd5i
+         JmcQ8PV9I3l3jDfS0xA5TzfwFwBJxn05uVd3ocwaELGctXa7tjV07uYoO3MitvGKWYw9
+         mKYvObd1JUagGaiqxLbAVFRh+H4bkCqsyp6rUTlNuaKf0AlPHaYx1jIlWyda34u72tUq
+         p8DEDH6VARz2Z0buGt7k76ppqK0ZqsPbetErs9BQ0h1B1KnHOiPA6yCtBvc6f2kRSj3r
+         mmR/OnBaPmOXFlfU0RKd0eaRX46dWQN9usCBN94mZuof0QFqcGPmoHnII8oA6vRPMcRR
+         Lzrg==
+X-Gm-Message-State: AOJu0YzXr9bKYFBxZGU3EHaB1UzWuZnTsfbaPhbwALXsWmKnHvjwlQN9
+	78P3dVjnvrkPhwja9hK1xD1pDttLRyTQ2/r3mfx9+0DswJGy6YlPg5j3ZGgl
+X-Google-Smtp-Source: AGHT+IEomoH6SMUSFec5q/Z9Ack5Epg8D/shrkGca3e1Ju1i7nFn3pkgTQsB9IEaOY/fBy+jWCDjDw==
+X-Received: by 2002:a05:6214:16d:b0:690:4deb:3aa5 with SMTP id y13-20020a056214016d00b006904deb3aa5mr2314122qvs.42.1709312857199;
+        Fri, 01 Mar 2024 09:07:37 -0800 (PST)
 Received: from fedora.phub.net.cable.rogers.com ([2607:fea8:79d7:c400::557b])
-        by smtp.gmail.com with ESMTPSA id nz10-20020a0562143a8a00b006903af52cbfsm2067261qvb.40.2024.03.01.09.07.35
+        by smtp.gmail.com with ESMTPSA id nz10-20020a0562143a8a00b006903af52cbfsm2067261qvb.40.2024.03.01.09.07.36
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 01 Mar 2024 09:07:35 -0800 (PST)
+        Fri, 01 Mar 2024 09:07:36 -0800 (PST)
 From: Donald Yandt <donald.yandt@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Cc: Donald Yandt <donald.yandt@gmail.com>
-Subject: [PATCH conntrack-tools 1/3] conntrackd: prevent memory loss if reallocation fails
-Date: Fri,  1 Mar 2024 12:07:29 -0500
-Message-ID: <20240301170731.21657-2-donald.yandt@gmail.com>
+Subject: [PATCH conntrack-tools 2/3] conntrackd: use size_t for element indices
+Date: Fri,  1 Mar 2024 12:07:30 -0500
+Message-ID: <20240301170731.21657-3-donald.yandt@gmail.com>
 X-Mailer: git-send-email 2.44.0
 In-Reply-To: <20240301170731.21657-1-donald.yandt@gmail.com>
 References: <20240301170731.21657-1-donald.yandt@gmail.com>
@@ -70,28 +70,24 @@ Content-Transfer-Encoding: 8bit
 
 Signed-off-by: Donald Yandt <donald.yandt@gmail.com>
 ---
- src/vector.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ src/vector.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
 diff --git a/src/vector.c b/src/vector.c
-index c81e7ce..7f9bc3c 100644
+index 7f9bc3c..ac1f5d9 100644
 --- a/src/vector.c
 +++ b/src/vector.c
-@@ -62,11 +62,12 @@ int vector_add(struct vector *v, void *data)
- {
- 	if (v->cur_elems >= v->max_elems) {
- 		v->max_elems += DEFAULT_VECTOR_GROWTH;
--		v->data = realloc(v->data, v->max_elems * v->size);
--		if (v->data == NULL) {
-+		void *ptr = realloc(v->data, v->max_elems * v->size);
-+		if (ptr == NULL) {
- 			v->max_elems -= DEFAULT_VECTOR_GROWTH;
- 			return -1;
- 		}
-+		v->data = ptr;
- 	}
- 	memcpy(v->data + (v->size * v->cur_elems), data, v->size);
- 	v->cur_elems++;
+@@ -23,9 +23,7 @@
+ 
+ struct vector {
+ 	char *data;
+-	unsigned int cur_elems;
+-	unsigned int max_elems;
+-	size_t size;
++	size_t cur_elems, max_elems, size;
+ };
+ 
+ #define DEFAULT_VECTOR_MEMBERS	8
 -- 
 2.44.0
 
