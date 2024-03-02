@@ -1,101 +1,121 @@
-Received: from mail-qk1-f175.google.com (mail-qk1-f175.google.com [209.85.222.175])
+Received: from mail-io1-f46.google.com (mail-io1-f46.google.com [209.85.166.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4CFD1947E
-	for <netfilter-devel@vger.kernel.org>; Sat,  2 Mar 2024 16:08:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91B221B7F1
+	for <netfilter-devel@vger.kernel.org>; Sat,  2 Mar 2024 16:20:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709395691; cv=none; b=J71MjEA8eaHQNvfG2nvehA8D+Ec9z6RC4zXzc7WuOoxwo8oUBHZ1954TYeUH3a510LNXgxlUDyhgOID0SL8NxCsZjjJo63HKr8BKrp7e8xxKK0Oypt0xewrb09FW0UkK3Hbo5ttFlVDxmAye76HVlALLOIylSGcPvQoip8RuTMQ=
+	t=1709396452; cv=none; b=FlGJZ4MPVy70icooV6efaBPYA58wNkRBJQbZfzFcMfF8OXlUUCqCJhDNI4ofu1mKSYIwwp42Qmjxa2bSFyzF6QkmJlCo9/EHXfmat6mbirBm9tfeQlRmXDA4cemCDOVEJ2l9wO5JG/386fK+/Cro8Elc5wta05Kvko14E7Rkh3U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709395691; c=relaxed/simple;
-	bh=+s9x+3J/y670g4nj+D61f/mx8OaLWwtMIg7kk7fYNAs=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=JPLroFg+sjjXF8+OTqUrNPZ8Z+ATLWGJS0u3wOIqzoZMn7nwaWcJZ/4RkntAxvJrMXCR4o8QBsMkEsBdJ9wVN1bYiLfjOp3KJYPVYUybjWx90De7EcRsHfvFnEWx98NdhnyVtSExxczvCAbBfE46bEGtTfi2t/CL7g63fPGYB/A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=H6agzJgG; arc=none smtp.client-ip=209.85.222.175
+	s=arc-20240116; t=1709396452; c=relaxed/simple;
+	bh=mO2458eLhYpI5ep3V+/WRmHznWUSaljp0ND1z42Qfn0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=pcv1EhMgqaZ400A+Jg9hp3Az6S9zhhrU8gcbyGRWSQZQlI4/QxiJGzM95ZD20Cu8ZH2fpDDUIxD3CIPqBdmeWX0w6cueeSSnckdr30Ug/fZRa6WwDm/pVRX3YMfG9CpLDMyXQhiqdeG6TyMEUCi4nxTs/aimpRurGkZyuTIgsDw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=VZJft6hr; arc=none smtp.client-ip=209.85.166.46
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="H6agzJgG"
-Received: by mail-qk1-f175.google.com with SMTP id af79cd13be357-788201c344aso8765285a.0
-        for <netfilter-devel@vger.kernel.org>; Sat, 02 Mar 2024 08:08:09 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VZJft6hr"
+Received: by mail-io1-f46.google.com with SMTP id ca18e2360f4ac-7c7f3f66d17so150190739f.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 02 Mar 2024 08:20:50 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1709395688; x=1710000488; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+        d=gmail.com; s=20230601; t=1709396449; x=1710001249; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=+4Dp1aflshjG5qXMoiU/r/Blnmp7WCLl5SGk96BBnJw=;
-        b=H6agzJgGKKdZJL29vNhPjZuaNUtIqIwpgU0BbyGGZl5eD/kqEgcuH81r7dQ4JY6B+Q
-         ohXH8UfeEhiy1vomC76Um/4RZneau6L7wOVIkZhOtALhkbj55HpynxY2/xZi+JRqc7jv
-         TDFcoBKDc3qQcsNCQFAkNu2B5+uhpB0/aq5WY0AyLsjkWTNQr5hwhAVpFOHh1xbn4XpY
-         M1m++Z2rmtv5SdyxsjEXC88aXQ+jhkkrA8kb2P1Bg2d/wAXNs1YQiu/zNe1rl1g6AoIh
-         SYpW/0h4MeZk8eArdWWTPtGP4vNpKJfDh3OgdEpT5QFX0auseutXUps/9Ih9AUaOa57N
-         drnA==
+        bh=/0Obinm/Cx+XhpT5tnUS0FsKXIFncC85hmfsjXpiTG8=;
+        b=VZJft6hrDZp8Lz6MhvdjECYbgqINhgFICOabKINB0F8KBClAjhdU/yAPSEYvlVS1+p
+         Oz3iMV8scv8gM8laAyMY2/mJV1neKqbgft8cn+Fog3/uGGdpZ11BsT52eXELIwTkR/+y
+         ZjN9pFbueiaElauFi7rsXMQJkJAeS8PKp6gmOFVao/E5NEC5BN0C092jhTt8db2Tao71
+         SrIBJrnVovCtKs9GpvcjqaPFhS6K4k9geJgBeKNwBIWuRLMMwfHeMj21pZNJLsaW+6/H
+         aEE2ct0vuTK4rmHzATR8O4bbS6rjEqS0D6TZhitKmeXIyMBPZmheIMxbyAoFdVJ4yuRA
+         p93A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1709395688; x=1710000488;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+        d=1e100.net; s=20230601; t=1709396449; x=1710001249;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=+4Dp1aflshjG5qXMoiU/r/Blnmp7WCLl5SGk96BBnJw=;
-        b=rj4N7oPYXZ4uL7LjtPYbhK2Bkv3ozO2VsUbs63XdIw6XSFKdOLMSb+K9WHfsv5hUh4
-         6XtYXRbqFfaJxTHPYcDbu3SNPYuWkJx6aY0Dzh34tErjj78wntPPAeDhGeuJEi6lnf1u
-         7k/OSeGU07nTkgYwvmbnc70KAR+oiFW5/OcVuYE7H6QFbcGd26jdof3DVWX3buUSsgCF
-         Pr9qI+4eTScuFKCSaQmNu/5UQI3Jz7Ue5Qxdib4IHRuLbH670qKrMJLouQUupsY9XTJn
-         ANdeG9axtATe7JBrhQyenpDDgERqa2T48CVQzCdM5kOBCkspaJBNwmv+Cnj6woVMeq/2
-         HuFA==
-X-Gm-Message-State: AOJu0YzUsx6MmkwZLYKdWa4TiGrqGmUTVbOjS5b7zv4quKEzrEw0ymxH
-	1xuOPA8HN95Yg1qj7ef59lpldRWRjenhSeKT+XAsEzTqtxyOPfcsehhaqdv3
-X-Google-Smtp-Source: AGHT+IETTvR8bPGquFWvdPWgUKBD/fFN4EI7yuxJHUI92VoqeKmZwI76Q/vzkYdU8ts0F35x9mHxvA==
-X-Received: by 2002:a05:620a:ec2:b0:787:f16b:e4a with SMTP id x2-20020a05620a0ec200b00787f16b0e4amr4791053qkm.42.1709395688222;
-        Sat, 02 Mar 2024 08:08:08 -0800 (PST)
-Received: from fedora.phub.net.cable.rogers.com ([2607:fea8:79d7:c400::557b])
-        by smtp.gmail.com with ESMTPSA id k1-20020a05620a0b8100b00787c7c0a078sm2666118qkh.121.2024.03.02.08.08.07
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 02 Mar 2024 08:08:07 -0800 (PST)
-From: Donald Yandt <donald.yandt@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Cc: Donald Yandt <donald.yandt@gmail.com>
-Subject: [PATCH conntrack-tools v2 3/3] conntrackd: exit with failure status
-Date: Sat,  2 Mar 2024 11:08:02 -0500
-Message-ID: <20240302160802.7309-4-donald.yandt@gmail.com>
-X-Mailer: git-send-email 2.44.0
-In-Reply-To: <20240302160802.7309-1-donald.yandt@gmail.com>
-References: <20240302160802.7309-1-donald.yandt@gmail.com>
+        bh=/0Obinm/Cx+XhpT5tnUS0FsKXIFncC85hmfsjXpiTG8=;
+        b=sE9og1zZGENWMvvlm3W93dIZBhOqRNtbvKEdvM5ZjQICaGpjNleirXdt8MTeagnEnC
+         b8irXkuwZIqlGkex/rRYRBpazutY/KOjX0DcMFxHDc6s+3VJUl6V7mx0HhILtdOE0IeT
+         dIhTEzH7v35vTZH6bS2QTJbVWux/ND5FqqTgZjvNtm627sh5iXqGzpb9vm6dDwj3sSuF
+         KsxNcdRisM4upQn+4OHjEOGu5nDB9Z0JtbJm9/k6fyV2rrH3Y+M3q8K1R4vrbRZ86tEo
+         XWzji9+avFqH5f7yvply5ViGXLVPYEYUpjvk31kj5HMDO+/W3uyJOM90YQPC9MFKuL5r
+         IMnQ==
+X-Gm-Message-State: AOJu0YywDJoK+39YaIPKOjG6IbSSQDe8D9oYAthJG2+y1V/aowzCu8fY
+	+sALA8eGlWLfdvef4YTxPIkVNc1JhC9foxnowQIUIr598D+ccO8uSyykXvZy8RtgPy29rdCYSvX
+	hLsYfu14fimdwqpoxBg5RTJGrQbMGFrN52Cs=
+X-Google-Smtp-Source: AGHT+IGhitBOwbeyw/J9Z1MmWkfBBsXU6V2ufKVp3Qm0Hzcsz4NJQ5ZQV2LgEp+8zuxLYbsDIIDxJxZ01HO+YL/w2EU=
+X-Received: by 2002:a05:6e02:1e0b:b0:365:b29:3fda with SMTP id
+ g11-20020a056e021e0b00b003650b293fdamr6763730ila.24.1709396449705; Sat, 02
+ Mar 2024 08:20:49 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20240301170731.21657-1-donald.yandt@gmail.com>
+ <20240301170731.21657-3-donald.yandt@gmail.com> <ZeL3HJRhC3D8yMlR@calendula>
+In-Reply-To: <ZeL3HJRhC3D8yMlR@calendula>
+From: Donald Yandt <donald.yandt@gmail.com>
+Date: Sat, 2 Mar 2024 11:20:38 -0500
+Message-ID: <CADm=fg=TbKc8D-nzY7kA=NT7Fi_ZJ7ZLA3uJB-7+bK2-s5W3FQ@mail.gmail.com>
+Subject: Re: [PATCH conntrack-tools 2/3] conntrackd: use size_t for element indices
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Donald Yandt <donald.yandt@gmail.com>
----
- src/main.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+On Sat, Mar 2, 2024 at 4:53=E2=80=AFAM Pablo Neira Ayuso <pablo@netfilter.o=
+rg> wrote:
+>
+> Hi,
+>
+> Could you describe why these are needed?
+>
+> Thanks!
+>
 
-diff --git a/src/main.c b/src/main.c
-index de4773d..c6b2600 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
- 			}
- 			show_usage(argv[0]);
- 			dlog(LOG_ERR, "Missing config filename");
--			break;
-+			exit(EXIT_FAILURE);
- 		case 'F':
- 			set_operation_mode(&type, REQUEST, argv);
- 			i = set_action_by_table(i, argc, argv,
-@@ -309,8 +309,7 @@ int main(int argc, char *argv[])
- 		default:
- 			show_usage(argv[0]);
- 			dlog(LOG_ERR, "Unknown option: %s", argv[i]);
--			return 0;
--			break;
-+			exit(EXIT_FAILURE);
- 		}
- 	}
- 
--- 
-2.44.0
+Hi Pablo,
 
+I mentioned it briefly in the cover letter and explained why it should
+be used in the commit message for version 2.
+If you require any additional detail, please let me know.
+
+Thank you
+
+On Sat, Mar 2, 2024 at 4:53=E2=80=AFAM Pablo Neira Ayuso <pablo@netfilter.o=
+rg> wrote:
+>
+> Hi,
+>
+> Could you describe why these are needed?
+>
+> Thanks!
+>
+> On Fri, Mar 01, 2024 at 12:07:30PM -0500, Donald Yandt wrote:
+> > Signed-off-by: Donald Yandt <donald.yandt@gmail.com>
+> > ---
+> >  src/vector.c | 4 +---
+> >  1 file changed, 1 insertion(+), 3 deletions(-)
+> >
+> > diff --git a/src/vector.c b/src/vector.c
+> > index 7f9bc3c..ac1f5d9 100644
+> > --- a/src/vector.c
+> > +++ b/src/vector.c
+> > @@ -23,9 +23,7 @@
+> >
+> >  struct vector {
+> >       char *data;
+> > -     unsigned int cur_elems;
+> > -     unsigned int max_elems;
+> > -     size_t size;
+> > +     size_t cur_elems, max_elems, size;
+> >  };
+> >
+> >  #define DEFAULT_VECTOR_MEMBERS       8
+> > --
+> > 2.44.0
+> >
+> >
