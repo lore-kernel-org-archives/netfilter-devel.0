@@ -1,37 +1,33 @@
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 282D513FF1;
-	Sat,  2 Mar 2024 09:49:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EF0F79C8
+	for <netfilter-devel@vger.kernel.org>; Sat,  2 Mar 2024 09:53:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709372945; cv=none; b=DyLQbiaoWU9my1nDqiq9yFU3EFAS+5RBBuIuqGWm000hCNrPzex/g9RWOInCSl07a6ws8RmpLgHrKcu9fVWN/ckV7+V80Ljd2J2HyJSzviNrmy7N50KTlaP3x0mz6e3H2vS6q8g+bgBKJQSidCqZXz9e1ywISRm5F/GPY0ZRCYQ=
+	t=1709373222; cv=none; b=Dmd+TebhP0tjtnCsrvefYZtSG9v90KcCXkCmfHREFKiZP7z/3vm00E9PTwU3bbGHK6fGx94TObx6QR/+ew0PrEL9/JqHkYiHEcLS0xF2GXyBDKNL/Fo1CSDsJM+uTTVDtoE5sZjeGxG+FtswaikrI57R8IztA/6P3vvF+qFqUzE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709372945; c=relaxed/simple;
-	bh=25G4CnMZXN8FjED1jmnlV5PfqYFZXUzZOn0xZchUcf0=;
+	s=arc-20240116; t=1709373222; c=relaxed/simple;
+	bh=lc50YOTWQDJhmBKV0Z1anV+7Rq4JiOoJAEfXGV78ka4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=axpWTQ06GsJfn4cBBO75rJwADEFXtlfUzNbPWnQtC+U+lZUSdh3oS/09MmbEgr1NWscTQbUJVStIUy2oyGwJCSDVoGNX9dmJVkByUu1oKfht97qow+U2krP4H9BD1P8znMVGtPwjtgYztWbjifvnPqKl6rO4PvjlOHS7KY3+fVc=
+	 Content-Type:Content-Disposition:In-Reply-To; b=fS8ef50PGIEJrpAVQEdpeuY+BjOOuWZbwtnhvLsfhgkpJSLQTseTeV2TnrlVmyGQLMpz/iZfSIuAjjkunKo0Jmg6DbfDGGmYIAJ8RA0tezqCRMRYuxLgzUWNv/K1vW7g8HwhYnhwJLuYEes346sIALhcAeWB43H7a9cQL2vwJ2U=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.41.52] (port=40434 helo=gnumonks.org)
+Received: from [78.30.41.52] (port=37364 helo=gnumonks.org)
 	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <pablo@gnumonks.org>)
-	id 1rgLz7-008oxI-F4; Sat, 02 Mar 2024 10:48:51 +0100
-Date: Sat, 2 Mar 2024 10:48:47 +0100
+	id 1rgM3g-008pDf-T0; Sat, 02 Mar 2024 10:53:34 +0100
+Date: Sat, 2 Mar 2024 10:53:32 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Lena Wang =?utf-8?B?KOeOi+WonCk=?= <Lena.Wang@mediatek.com>
-Cc: "fw@strlen.de" <fw@strlen.de>,
-	"davem@davemloft.net" <davem@davemloft.net>,
-	"kadlec@netfilter.org" <kadlec@netfilter.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH net v2] netfilter: Add protection for bmp length out of
- range
-Message-ID: <ZeL1_-Pdq6Kw0NIO@calendula>
-References: <d2b63acc5cd76db46132eb6ebd106f159fc5132d.camel@mediatek.com>
+To: Donald Yandt <donald.yandt@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH conntrack-tools 2/3] conntrackd: use size_t for element
+ indices
+Message-ID: <ZeL3HJRhC3D8yMlR@calendula>
+References: <20240301170731.21657-1-donald.yandt@gmail.com>
+ <20240301170731.21657-3-donald.yandt@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -40,86 +36,37 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <d2b63acc5cd76db46132eb6ebd106f159fc5132d.camel@mediatek.com>
+In-Reply-To: <20240301170731.21657-3-donald.yandt@gmail.com>
 X-Spam-Score: -1.9 (-)
 
-On Fri, Mar 01, 2024 at 03:12:24PM +0000, Lena Wang (王娜) wrote:
-> From: Lena Wang <lena.wang@mediatek.com>
-> 
-> UBSAN load reports an exception of BRK#5515 SHIFT_ISSUE:Bitwise shifts
-> that are out of bounds for their data type.
-> 
-> vmlinux   get_bitmap(b=75) + 712
-> <net/netfilter/nf_conntrack_h323_asn1.c:0>
-> vmlinux   decode_seq(bs=0xFFFFFFD008037000, f=0xFFFFFFD008037018,
-> level=134443100) + 1956
-> <net/netfilter/nf_conntrack_h323_asn1.c:592>
-> vmlinux   decode_choice(base=0xFFFFFFD0080370F0, level=23843636) + 1216
-> <net/netfilter/nf_conntrack_h323_asn1.c:814>
-> vmlinux   decode_seq(f=0xFFFFFFD0080371A8, level=134443500) + 812
-> <net/netfilter/nf_conntrack_h323_asn1.c:576>
-> vmlinux   decode_choice(base=0xFFFFFFD008037280, level=0) + 1216
-> <net/netfilter/nf_conntrack_h323_asn1.c:814>
-> vmlinux   DecodeRasMessage() + 304
-> <net/netfilter/nf_conntrack_h323_asn1.c:833>
-> vmlinux   ras_help() + 684
-> <net/netfilter/nf_conntrack_h323_main.c:1728>
-> vmlinux   nf_confirm() + 188
-> <net/netfilter/nf_conntrack_proto.c:137>
-> 
-> Due to abnormal data in skb->data, the extension bitmap length
-> exceeds 32 when decoding ras message. Then get_bitmap uses the
-> length to make a shift operation. It will change into negative
-> after several loop.
-> 
-> UBSAN load can detect a negative shift as an undefined behaviour
-> and reports an exception.
-> 
-> So we should add the protection to avoid the length exceeding 32.
-> If it exceeds it will return out of range error and stop decoding
-> ras message.
-> 
-> Signed-off-by: Lena Wang <lena.wang@mediatek.com>
-> ---
-> v2:
->   - add length protecton for another get_bitmap call.
->   - update commit message to trim stacktrace.
-> ---
-> ---
->  net/netfilter/nf_conntrack_h323_asn1.c | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/net/netfilter/nf_conntrack_h323_asn1.c
-> b/net/netfilter/nf_conntrack_h323_asn1.c
-> index e697a824b001..540d97715bd2 100644
-> --- a/net/netfilter/nf_conntrack_h323_asn1.c
-> +++ b/net/netfilter/nf_conntrack_h323_asn1.c
-> @@ -533,6 +533,8 @@ static int decode_seq(struct bitstr *bs, const
-> struct field_t *f,
->  	/* Get fields bitmap */
->  	if (nf_h323_error_boundary(bs, 0, f->sz))
->  		return H323_ERROR_BOUND;
-> +	if (f->sz > 32)
-> +		return H323_ERROR_RANGE;
+Hi,
 
-Could you possibly place this in get_bitmap()? IIRC these are the only
-two calls to this function.
+Could you describe why these are needed?
 
-Thanks.
+Thanks!
 
->  	bmp = get_bitmap(bs, f->sz);
->  	if (base)
->  		*(unsigned int *)base = bmp;
-> @@ -589,6 +591,8 @@ static int decode_seq(struct bitstr *bs, const
-> struct field_t *f,
->  	bmp2_len = get_bits(bs, 7) + 1;
->  	if (nf_h323_error_boundary(bs, 0, bmp2_len))
->  		return H323_ERROR_BOUND;
-> +	if (bmp2_len > 32)
-> +		return H323_ERROR_RANGE;
->  	bmp2 = get_bitmap(bs, bmp2_len);
->  	bmp |= bmp2 >> f->sz;
->  	if (base)
+On Fri, Mar 01, 2024 at 12:07:30PM -0500, Donald Yandt wrote:
+> Signed-off-by: Donald Yandt <donald.yandt@gmail.com>
+> ---
+>  src/vector.c | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
+> 
+> diff --git a/src/vector.c b/src/vector.c
+> index 7f9bc3c..ac1f5d9 100644
+> --- a/src/vector.c
+> +++ b/src/vector.c
+> @@ -23,9 +23,7 @@
+>  
+>  struct vector {
+>  	char *data;
+> -	unsigned int cur_elems;
+> -	unsigned int max_elems;
+> -	size_t size;
+> +	size_t cur_elems, max_elems, size;
+>  };
+>  
+>  #define DEFAULT_VECTOR_MEMBERS	8
 > -- 
-> 2.18.0
+> 2.44.0
+> 
+> 
