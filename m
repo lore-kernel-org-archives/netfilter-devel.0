@@ -1,21 +1,21 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3173C50275
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Mar 2024 08:35:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id AA6F620323
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Mar 2024 08:38:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709627758; cv=none; b=VIPDKNLdbMNtfj8HY+S9EWAoQkBdbrDq5U0V3yLMxHxKwkEVVipiuceo2xOyAHKhzvf86Ini2kU+C6hXpww6nCqzd996+5LYm89lfEfGP2YR/WKej37d5VT52oC9lwa/bXYVbaBa2eu5Zda6Aj4740zZodISVGAdbq+7PXJayPE=
+	t=1709627891; cv=none; b=Obfk7isNdCuRHDd7plGB5cbeLnSjlOr6O5GV3bQjOCGE1Tr77jnmnWIPH4J7mjBcZdD0/doXI0u3w2NUI0YIIbtUXD/yaFFgbIK1ljHjdksTgIHE3eR7G/H+OJAKnUMo3uxezulabyy308+B9LvOq2aRJwsi+LnfZqFZV/Pke+U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709627758; c=relaxed/simple;
-	bh=WxlQcU+0XFR6COWFWjQk4o2gnylzOf9kQH07/grTHps=;
-	h=From:To:Subject:Date:Message-Id:MIME-Version; b=ix3UnumCd6rzhIG9eFvGGvwKh3ANo0IRH1EPMhYdybJLRC3QylnFfIujFVYAS5vDIBI8TWufA1lFU8TdQFD9Zl+m7wTv2xwE+iLNoU4f5aHxPm9WW/cILqp0RAajh6NV0CrnpAB/BzTgJFIvY1Vbqo0tyXT72svgHQwTmuLAKfY=
+	s=arc-20240116; t=1709627891; c=relaxed/simple;
+	bh=+zfB5EXU8KsNiWYSJcvBom1/UWvzekYlc3q7gAg1+8s=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=Gm3W3FQrR3NH8DJ9ENO8Bkv9sUZazPtCmgcJbFC40A8lO/kw2y8+9zusJ3XMtfdgGX7B5NsziqHTAPQkinbIQsMb5RVDTsNiIG1nLZ3Xh+QZqsz7Gg6rDVAkyBHSj3r4QPQLvLFmdEhWpWt6VVR1ThHPQ67F47E2jRxXgTYolvA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next] netfilter: nf_tables: skip transaction if update object is not implemented
-Date: Tue,  5 Mar 2024 09:35:48 +0100
-Message-Id: <20240305083548.184288-1-pablo@netfilter.org>
+Subject: [PATCH nf-next] netfilter: nf_tables: remove NETDEV_CHANGENAME from netdev chain event handler
+Date: Tue,  5 Mar 2024 09:38:04 +0100
+Message-Id: <20240305083804.184479-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -25,45 +25,38 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Turn update into noop as a follow up for:
-
-  9fedd894b4e1 ("netfilter: nf_tables: fix unexpected EOPNOTSUPP error")
-
-instead of adding a transaction object which is simply discarded at a
-later stage of the commit protocol.
+Originally, device name used to be stored in the basechain, but it is
+not the case anymore. Remove check for NETDEV_CHANGENAME.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ net/netfilter/nft_chain_filter.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 52d76cc937c9..2df62b3b21fd 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -7680,6 +7680,9 @@ static int nf_tables_newobj(struct sk_buff *skb, const struct nfnl_info *info,
- 		if (WARN_ON_ONCE(!type))
- 			return -ENOENT;
+diff --git a/net/netfilter/nft_chain_filter.c b/net/netfilter/nft_chain_filter.c
+index 274b6f7e6bb5..2e4ced64d503 100644
+--- a/net/netfilter/nft_chain_filter.c
++++ b/net/netfilter/nft_chain_filter.c
+@@ -325,9 +325,6 @@ static void nft_netdev_event(unsigned long event, struct net_device *dev,
+ 	struct nft_hook *hook, *found = NULL;
+ 	int n = 0;
  
-+		if (!obj->ops->update)
-+			return 0;
-+
- 		nft_ctx_init(&ctx, net, skb, info->nlh, family, table, NULL, nla);
+-	if (event != NETDEV_UNREGISTER)
+-		return;
+-
+ 	list_for_each_entry(hook, &basechain->hook_list, list) {
+ 		if (hook->ops.dev == dev)
+ 			found = hook;
+@@ -365,8 +362,7 @@ static int nf_tables_netdev_event(struct notifier_block *this,
+ 		.net	= dev_net(dev),
+ 	};
  
- 		return nf_tables_updobj(&ctx, type, nla[NFTA_OBJ_DATA], obj);
-@@ -9366,9 +9369,10 @@ static void nft_obj_commit_update(struct nft_trans *trans)
- 	obj = nft_trans_obj(trans);
- 	newobj = nft_trans_obj_newobj(trans);
+-	if (event != NETDEV_UNREGISTER &&
+-	    event != NETDEV_CHANGENAME)
++	if (event != NETDEV_UNREGISTER)
+ 		return NOTIFY_DONE;
  
--	if (obj->ops->update)
--		obj->ops->update(obj, newobj);
-+	if (WARN_ON_ONCE(!obj->ops->update))
-+		return;
- 
-+	obj->ops->update(obj, newobj);
- 	nft_obj_destroy(&trans->ctx, newobj);
- }
- 
+ 	nft_net = nft_pernet(ctx.net);
 -- 
 2.30.2
 
