@@ -1,72 +1,126 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f182.google.com (mail-pf1-f182.google.com [209.85.210.182])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C28151353E8
-	for <netfilter-devel@vger.kernel.org>; Wed,  6 Mar 2024 16:12:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACE8C13E7D8
+	for <netfilter-devel@vger.kernel.org>; Wed,  6 Mar 2024 17:24:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709741530; cv=none; b=YmEM+GxBPOXKQTMVRUNpRQQiGeVZvxKwAVyPLipoObSDcagT6lOQe2QIyRBYB/Hs08sJrYE86WCNqFdJ03++SxA2N/ccSRmuVTeXBMwZjnJj4WgaxnoXAKiErxLOix4tapu+ILpp8LCIwWCk2m6Q6HcNOiRLZppp7d54qFZeNNk=
+	t=1709745866; cv=none; b=aYsvwcj/bQOQJnUSYCiQ8lYQdW4PHqHvort6kC5BVtZ4gJWveFTCRONkBuLBqsXeg7aStkj9Q8EaX4qmyTEAbM/Ekz3KRggvGDaqrAdIQWg+obOl4I0omr5mmmUoXfnxJqz4T/JXqcvqr7NCHNpEb5H8WSUcs9X1Y4qeywyU/dU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709741530; c=relaxed/simple;
-	bh=aIFe/JuBoxqCu33T3fy+GF7rilPEpcA64Pe7Wt0oYps=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=iHPuNzjyK21w4TDq+QqlnI/4TWAdrLcDWfWx2c27s+jvdMeinzXAsGC9yl+g8LWKopyXc/eKKg+LEApQqxHKYV0JMU6zHQPZaESLg/vOsvfH2eRTo6PXtJrOqob+oRdBLwKsYd39Ici92WH6KQ9nyxo87n7TNvKlp7zrcSVSo5g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=DkWdbAIC; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1709745866; c=relaxed/simple;
+	bh=Nj0t00gmdOi16cHqYSLaqWjOOgFbe2TbjxWpdUEv81I=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=qo1ZWvnshxfYXjOuhNQw+zktkcINhe4GP04DAdnMyxisUaMahn6ib1flVQAQAsa8M/7unn0J+qbf1sSdTX8dJgRbRcEL/eJs4CCUEv/Hv8g7VhCwch2am42V2sU48nfp3gPCYVEE/B0aESJWi7p5SLg0+oRPb+1qI/VdWtzUJIY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=c2P4htRL; arc=none smtp.client-ip=209.85.210.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="DkWdbAIC"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=lOxcPmdzwJ/IS5Ik3UIvXGiGY9FN650zHDFbo+OOTA0=; b=DkWdbAICNMw96HMpD1A0zNqoBp
-	LCOsq298wEZQ4a1gvUvpZRuELN48a6Nu6ytcht6hJGH8ETckhZ+0aj9mTrdCLcnbMLX9k7Qp2lmv9
-	fKzy68W0h4SK/o9Yqn2qala/tOgHrcX2QeUMvxhxk2eOjAO26zT+4BcCmfPP5zHdZN0O0UfhhzyG2
-	g5R03o16O6Xc0UfpRJ8mwVLx4cbDcSasV5qCWql1oN/Gdi0+HLV6p1H6h3sDSSQBF7otCUvDCPcir
-	a7oTcsRVFv8NUwygS6ihHWuQ0As6uJd4Zr+nRXI6y8RPmiHnxSojALvhP/3UUXYgH5cxGxK/iwVYI
-	RqljwtoA==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1rhtsD-000000007PK-3zSi;
-	Wed, 06 Mar 2024 17:12:05 +0100
-Date: Wed, 6 Mar 2024 17:12:05 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH xtables-nft v2] extensions: xt_socket: add txlate support
- for socket match
-Message-ID: <ZeiV1RaT7Ld-KxXh@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Florian Westphal <fw@strlen.de>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-References: <20240306101132.55075-1-fw@strlen.de>
- <ZeiDKkam7FXpCbiU@orbyte.nwl.cc>
- <20240306154207.GD4420@breakpoint.cc>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="c2P4htRL"
+Received: by mail-pf1-f182.google.com with SMTP id d2e1a72fcca58-6e64997a934so1006015b3a.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 06 Mar 2024 09:24:24 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1709745863; x=1710350663; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=VS0x2IKk7gIVXL1nWoGzE9d19xhJdP60jy9ecxEa2us=;
+        b=c2P4htRLO/I4em9NQXWZueQSzETfPLOoGd+dCc+/AS1y9b/LmapIinzzVm4ldFL90F
+         ZesxjOZkjdbvVtG3ue7vYSNcdqK01NO7agCNFsBF6JMztz5bJO60dMrgti6aTJketjcX
+         1elcLVHNKnbQlI9PSGrLXTeURJWeW12EbHVkMZPRvIvKQ/I53VytX2Dtl/+DX7/CVYhs
+         XhwBmjiofcsCdvFelCFhRmXs24YB2+XWqtXI/iWoUNeuXygBFiDqgZjmFAi8HPj60bab
+         R5W+G3o46w5y6Hpg9N/TnQu/A+p7vv7XG8Mn5UK2SxGkphYyX/uB/4BGx+Otviy+fZFo
+         recg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1709745863; x=1710350663;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=VS0x2IKk7gIVXL1nWoGzE9d19xhJdP60jy9ecxEa2us=;
+        b=FZ7UksGNBXtWeyd9xq3B48m7J6oPYVH9IWlA7iFdW2hQUn0YPlZw09E5ykgchUYaDe
+         gfUd5fmGBa6pQRB97I62zeQnnU8NvDPvyJjgal/UkzsqJaLHvKKnTqIxaXUbTJ5PBomS
+         jJWs78nFcLFVwpUYgcTuhTp0Buy60D2JDJSwKPUCOMEbgqgJEBf4RhweQlAVGTShMBwV
+         Eqea4T5DJ4zfORmG7xcFaIsyGRHFKqcjgDDpmDO1jhgupG1/8QOiF3dvVyXEh3gChmvF
+         PBeY4Krt0xSufPw6pjIqhZ9mEai+XATv8viosf/yJ+M8jbL/cijOnLuTXbiVhpQwCf+C
+         6/sw==
+X-Gm-Message-State: AOJu0YxBw2N6ObH6rmRMWyKzHjKx4+Zcfqj6uD7igZGaoPEdNZqgHUcA
+	8Qcmrm57kwdz0bld3oMKzYQbE3MMPgdeopI8WFbjWIXdLEKIAYA7YwdTC9k8z4ZjhBVK
+X-Google-Smtp-Source: AGHT+IF6jbYyb9rj9hn1Ly9WfV+N1OIuhEF6h1SxgexwVwZurgCsBtELflOQoyZYf7GeCVol3m69nA==
+X-Received: by 2002:a05:6a20:7485:b0:1a1:6ceb:92fc with SMTP id p5-20020a056a20748500b001a16ceb92fcmr710233pzd.6.1709745862954;
+        Wed, 06 Mar 2024 09:24:22 -0800 (PST)
+Received: from localhost.localdomain (ec2-52-199-81-84.ap-northeast-1.compute.amazonaws.com. [52.199.81.84])
+        by smtp.gmail.com with ESMTPSA id q19-20020a170902e31300b001dc23e877c0sm12876730plc.255.2024.03.06.09.24.20
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 06 Mar 2024 09:24:22 -0800 (PST)
+From: Quan Tian <tianquan23@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Cc: Quan Tian <tianquan23@gmail.com>
+Subject: [PATCH net] netfilter: nf_tables: Fix a memory leak in nf_tables_updchain
+Date: Thu,  7 Mar 2024 01:24:02 +0800
+Message-Id: <20240306172402.11966-1-tianquan23@gmail.com>
+X-Mailer: git-send-email 2.39.3 (Apple Git-145)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240306154207.GD4420@breakpoint.cc>
+Content-Transfer-Encoding: 8bit
 
-On Wed, Mar 06, 2024 at 04:42:07PM +0100, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
-> > On Wed, Mar 06, 2024 at 11:11:25AM +0100, Florian Westphal wrote:
-> > > +static int socket_mt_xlate(struct xt_xlate *xl, const struct xt_xlate_mt_params *params)
-> > > +{
-> > > +	const struct xt_socket_mtinfo3 *info = (const void *)params->match->data;
-> > > +	const char *space = "";
-> > 
-> > The whole "leading space or not" handling is not necessary, I made
-> > xt_xlate_add() insert leading space automatically if the first
-> > character is alpha-numeric or a brace.
-> 
-> Perfect, I'll push this out after removing the extra handling.
+If nft_netdev_register_hooks() fails, the memory associated with
+nft_stats is not freed, causing a memory leak.
 
-Acked-by: Phil Sutter <phil@nwl.cc>
+This patch fixes it by moving nft_stats_alloc() down after
+nft_netdev_register_hooks() succeeds.
+
+Fixes: b9703ed44ffb ("netfilter: nf_tables: support for adding new devices to an existing netdev chain")
+Signed-off-by: Quan Tian <tianquan23@gmail.com>
+---
+ net/netfilter/nf_tables_api.c | 27 ++++++++++++++-------------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 7e938c7397dd..807ea8e4bcc6 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2619,19 +2619,6 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 		}
+ 	}
+ 
+-	if (nla[NFTA_CHAIN_COUNTERS]) {
+-		if (!nft_is_base_chain(chain)) {
+-			err = -EOPNOTSUPP;
+-			goto err_hooks;
+-		}
+-
+-		stats = nft_stats_alloc(nla[NFTA_CHAIN_COUNTERS]);
+-		if (IS_ERR(stats)) {
+-			err = PTR_ERR(stats);
+-			goto err_hooks;
+-		}
+-	}
+-
+ 	if (!(table->flags & NFT_TABLE_F_DORMANT) &&
+ 	    nft_is_base_chain(chain) &&
+ 	    !list_empty(&hook.list)) {
+@@ -2646,6 +2633,20 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 	}
+ 
+ 	unregister = true;
++
++	if (nla[NFTA_CHAIN_COUNTERS]) {
++		if (!nft_is_base_chain(chain)) {
++			err = -EOPNOTSUPP;
++			goto err_hooks;
++		}
++
++		stats = nft_stats_alloc(nla[NFTA_CHAIN_COUNTERS]);
++		if (IS_ERR(stats)) {
++			err = PTR_ERR(stats);
++			goto err_hooks;
++		}
++	}
++
+ 	err = -ENOMEM;
+ 	trans = nft_trans_alloc(ctx, NFT_MSG_NEWCHAIN,
+ 				sizeof(struct nft_trans_chain));
+-- 
+2.39.3 (Apple Git-145)
+
