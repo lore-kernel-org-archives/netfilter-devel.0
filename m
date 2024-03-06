@@ -1,104 +1,99 @@
-Received: from mail.aperture-lab.de (mail.aperture-lab.de [116.203.183.178])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A662F130ACE;
-	Wed,  6 Mar 2024 14:24:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=116.203.183.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DDE81DA53
+	for <netfilter-devel@vger.kernel.org>; Wed,  6 Mar 2024 14:43:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709735048; cv=none; b=Guk2MgXcmU7ZtFHIJTQ/mWqjyYbSEzXY3Uh0N5UVSn7Fc1m7f4pIFa0l5s7TbLFIrjdypI7AuzIFcPZfuZ5vXHobwkqJfZ2w6GiJqKYuX1BoHy7OfrlD1uINMUXhcG9du4LKdj5cTAf+MB+bfW+XQtE3oBl8A8JFOh6K/i4vNxA=
+	t=1709736216; cv=none; b=L+PeneOBsDKvT5eWC/iiShzTObD6MZQNsBDtTzrDc183s2zP2/ofUC8voBiKwKQiDfT4LluemeZNhzNShHXbBVF0EHPZV7rX9X3Fefw5IX53AUS5cGfup+YeMzSCSnvskXjaprH+D/CRXUerBoKoqpgiF9v8dI05G7hczUwErVs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709735048; c=relaxed/simple;
-	bh=qJ4gjt253xxum5utg91XBCGmUOduxiyObpAmLwXzzHw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=BTrZxFeRlaLEvdly3bgBGFv20KFzYmVNF/w90hdQ7PZnZFOp65brtGc8hxfngHEaq3tV3fqwkrJScmk0xaZtkzQj0vwLfu8RaHo//cXXe8gddJIF/mNI/kMwmMrvYPVbS1s0C6toNl9E5H6O7jLCbuWt74+PYskbX7sfDcYz4TE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=c0d3.blue; spf=pass smtp.mailfrom=c0d3.blue; arc=none smtp.client-ip=116.203.183.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=c0d3.blue
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=c0d3.blue
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id CC7DA419A4;
-	Wed,  6 Mar 2024 15:18:26 +0100 (CET)
-From: =?UTF-8?q?Linus=20L=C3=BCssing?= <linus.luessing@c0d3.blue>
-To: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
+	s=arc-20240116; t=1709736216; c=relaxed/simple;
+	bh=zYhDYI6NL04e3O3ARaBOJPqLj0vevRCNu9IUAG1xujY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=okgZAXMpcIvwl7Iip34D1QeBWihKhiXP/MwUZhR0mz5jG/EnCeoffYbqLQM4/kdEeUkwuAcGhPfaDsbDWOdYZMyUvXQ3EeQtkHAezVrOSu/NYXL5eGx2TsXOxhaqZpgNpb3VDkS5cJroYJ4fu0PAESK/YGyieOtmrqN0wv5NlNk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=jnNVvwnR; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="jnNVvwnR"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=eIJTPT/OHv3pV6jqkQ82VrPkQiyavd2GwxpKG9UxiyE=; b=jnNVvwnRFB4lMxGP99CydslSnI
+	+2auPTOs4I6VQGQfNh+zLi8tQ+WWMzkCdAnmHEZ9rk+Sa71p+EsLQ0YiWiqu/vBIL36zLiSo9TtE+
+	wXfdrJwr+VOP5BbmnlAKRgr5GqO1wos4p3r9mismRA4wUBuvEsWD2lRPt6uVSDoK2yF14B4dIuHx4
+	o0NHh+PCkBTKB7wo7qBm85sw3HP6olems56lqP21+BmChiR5SZo4BDYC/dYJApW1V7FuUYYjU2uZ/
+	vYAyAY5U+QRkMQmnFdC/oLRrYjOn9f9gYY4JDygjwBFWklZ+MpRnBmyxsDMLDvLuosY0xr7SbbYG1
+	27GSiXHQ==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1rhsUV-000000006L9-1u4w;
+	Wed, 06 Mar 2024 15:43:31 +0100
+Date: Wed, 6 Mar 2024 15:43:31 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+Subject: Re: [libnftnl PATCH 0/6] Attribute policies for expressions
+Message-ID: <ZeiBExEY08CTbvEI@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	"David S . Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Dietmar Maurer <dietmar@proxmox.com>,
-	Thomas Lamprecht <t.lamprecht@proxmox.com>,
-	Wolfgang Bumiller <w.bumiller@proxmox.com>,
-	Alexandre Derumier <aderumier@odiso.com>,
-	=?UTF-8?q?Linus=20L=C3=BCssing?= <linus.luessing@c0d3.blue>
-Subject: [PATCH net] netfilter: conntrack: fix ct-state for ICMPv6 Multicast Router Discovery
-Date: Wed,  6 Mar 2024 15:18:04 +0100
-Message-ID: <20240306141805.17679-1-linus.luessing@c0d3.blue>
-X-Mailer: git-send-email 2.42.0
+	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+References: <20231215215350.17691-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-Last-TLS-Session-Version: TLSv1.3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20231215215350.17691-1-phil@nwl.cc>
 
-So far Multicast Router Advertisements and Multicast Router
-Solicitations from the Multicast Router Discovery protocol (RFC4286)
-would be marked as INVALID for IPv6, even if they are in fact intact
-and adhering to RFC4286.
+On Fri, Dec 15, 2023 at 10:53:44PM +0100, Phil Sutter wrote:
+> This is the former RFC turned into a complete implementation including
+> Florian's suggested improvements.
+> 
+> Patch 1 is fallout, took me a while debugging the segfaulting test case
+> until I noticed it wasn't my fault! :)
+> 
+> Patch 2 is the same as in the RFC.
+> 
+> Patch 3 separates the type value checking from patch 2 and drops
+> expressions' default switch cases where all possible values are handled.
+> 
+> Patch 4 is prep work for patch 5.
+> 
+> Patch 5 adds the new struct expr_ops field and defines policies for all
+> expressions.
+> 
+> Patch 6 then enables policy checking.
+> 
+> Some remarks for consideration:
+> 
+> * This adds kernel-internal knowledge to libnftnl, namely in max name
+>   lengths. Maybe not ideal, but I found it more sensible than Florian's
+>   suggested alternative of using 65528 to just not exceed netlink
+>   limits.
+> 
+> * nftnl_expr_set_u*() setters start failing when they would happily
+>   overstep boundaries before. This is intentional, but getting the
+>   policy values right (at first I thought 'sizeof(enum nft_registers)'
+>   was a good idea) showed how hard to diagnose bugs in that area are. I
+>   think we should make the setters return success/fail like
+>   nftnl_expr_set_str does already, even if that breaks ABI (does it?).
+>   nftables probably benefits from setter wrappers which call
+>   netlink_abi_error() if the setter fails.
+> 
+> Phil Sutter (6):
+>   tests: Fix objref test case
+>   expr: Repurpose struct expr_ops::max_attr field
+>   expr: Call expr_ops::set with legal types only
+>   include: Sync nf_log.h with kernel headers
+>   expr: Introduce struct expr_ops::attr_policy
+>   expr: Enforce attr_policy compliance in nftnl_expr_set()
 
-This broke MRA reception and by that multicast reception on
-IPv6 multicast routers in a Proxmox managed setup, where Proxmox
-would install a rule like "-m conntrack --ctstate INVALID -j DROP"
-at the top of the FORWARD chain with br-nf-call-ip6tables enabled
-by default.
-
-Similar to as it's done for MLDv1, MLDv2 and IPv6 Neighbor Discovery
-already, fix this issue by excluding MRD from connection tracking
-handling as MRD always uses predefined multicast destinations
-for its messages, too. This changes the ct-state for ICMPv6 MRD messages
-from INVALID to UNTRACKED.
-
-This issue was found and fixed with the help of the mrdisc tool
-(https://github.com/troglobit/mrdisc).
-
-Signed-off-by: Linus Lüssing <linus.luessing@c0d3.blue>
----
- include/uapi/linux/icmpv6.h               | 1 +
- net/netfilter/nf_conntrack_proto_icmpv6.c | 4 +++-
- 2 files changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/include/uapi/linux/icmpv6.h b/include/uapi/linux/icmpv6.h
-index ecaece3af38d..4eaab89e2856 100644
---- a/include/uapi/linux/icmpv6.h
-+++ b/include/uapi/linux/icmpv6.h
-@@ -112,6 +112,7 @@ struct icmp6hdr {
- #define ICMPV6_MOBILE_PREFIX_ADV	147
- 
- #define ICMPV6_MRDISC_ADV		151
-+#define ICMPV6_MRDISC_SOL		152
- 
- #define ICMPV6_MSG_MAX          255
- 
-diff --git a/net/netfilter/nf_conntrack_proto_icmpv6.c b/net/netfilter/nf_conntrack_proto_icmpv6.c
-index 1020d67600a9..327b8059025d 100644
---- a/net/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -62,7 +62,9 @@ static const u_int8_t noct_valid_new[] = {
- 	[NDISC_ROUTER_ADVERTISEMENT - 130] = 1,
- 	[NDISC_NEIGHBOUR_SOLICITATION - 130] = 1,
- 	[NDISC_NEIGHBOUR_ADVERTISEMENT - 130] = 1,
--	[ICMPV6_MLD2_REPORT - 130] = 1
-+	[ICMPV6_MLD2_REPORT - 130] = 1,
-+	[ICMPV6_MRDISC_ADV - 130] = 1,
-+	[ICMPV6_MRDISC_SOL - 130] = 1
- };
- 
- bool nf_conntrack_invert_icmpv6_tuple(struct nf_conntrack_tuple *tuple,
--- 
-2.43.0
-
+Series applied after checking theres no effect on nftables' py testsuite
+results in different releases (v0.9.9, v1.0.6, v1.0.9).
