@@ -1,133 +1,104 @@
-Received: from mail-io1-f71.google.com (mail-io1-f71.google.com [209.85.166.71])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.aperture-lab.de (mail.aperture-lab.de [116.203.183.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 919F677A1A
-	for <netfilter-devel@vger.kernel.org>; Wed,  6 Mar 2024 10:57:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.71
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A662F130ACE;
+	Wed,  6 Mar 2024 14:24:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=116.203.183.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709722641; cv=none; b=qZmAIr3yOuSiRcDC5WjNur2vyOytpaKqQyqqQC/xmD+4mdDdbMlYNYWkeA94eu83wfanfLfZyqJSGT/GV1ZnzfhdW13pHHIczpGCGy4MHUIabO9uxmR0SAWP7JOifHEg4i4mWqqLMLyAgY1FA4pll7wqlds/2gv8EzjavL4gNAM=
+	t=1709735048; cv=none; b=Guk2MgXcmU7ZtFHIJTQ/mWqjyYbSEzXY3Uh0N5UVSn7Fc1m7f4pIFa0l5s7TbLFIrjdypI7AuzIFcPZfuZ5vXHobwkqJfZ2w6GiJqKYuX1BoHy7OfrlD1uINMUXhcG9du4LKdj5cTAf+MB+bfW+XQtE3oBl8A8JFOh6K/i4vNxA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709722641; c=relaxed/simple;
-	bh=XsLw6ackKx33O4QozjLGkHXzho6GlTehmojGjYysM3A=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=i+YxQXk9FJ54CXOC/7rv4F8eRC95koKeSrUY2AI69PZSKP7iTAiKzA8iwgsjuBX3dzn4NrEhEVBcYcLkBn7K1ku1MqfpxztQwKhw2kO2X41/Oeehxa/06blE2lgQ757gONAdoPdJ9NUW3x3cY4iIJHGA37HZ5SpP6cp3jcwf1uk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.71
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-io1-f71.google.com with SMTP id ca18e2360f4ac-7c83b729ba5so78799439f.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 06 Mar 2024 02:57:19 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1709722638; x=1710327438;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=cCr0TsSg56p14urXWsXr6XqDfXQJ+JrQT+/U6eWZWoU=;
-        b=bv3YOw75i9wdP2frxZ/ORiC0FmgkprzhN6jfj4cLPyfacMKtSTTcQVWZNNlphlTf4e
-         Bsf7PsWPGxKPjIPTZXEa8dRozEdkdBJzRi2ZEeAJmRLgYpKOFXUPzDlDXdUOX4T2sK7d
-         YXehiav+q0j8GfI2LBMdIw4zNO1BNXwiskZywt+SnDApW5WU9Gs5aNZ5Q+cqXRWSKtzW
-         FRor5oMzIxwJPrtFBrDT3sO+KBtgRVPh/WAJf9d4nRq9J6f3WsOCeOb8019vHClUYDH2
-         +sE26SR6LnQjsoKveakO7oacYOvTs2QbMwCKugmmdY28MIpsNr2PLm8/g2id9Oe1QY9X
-         bzOg==
-X-Forwarded-Encrypted: i=1; AJvYcCUpcjYq2IazjgQXyF/pNH3PUnpVLJvKF013JVY399oX+ORVpe8JjBxFa12Bd8mUnWSJ5QJzFu1jqY12tuUXFfab4p+O6e21hLfr6IEvdj0i
-X-Gm-Message-State: AOJu0YxiVDUZROs7aB3bL1YoOtxntm7sTWOIiMTNPoYTbLmwzkoPkL0E
-	W+mOnkz5/YMkYikBj7sidp0Yy2ih7+OK6fgdSWmaYXPmtRz8p6zr/7W9UzhG4wFud9awS5l/NL0
-	53wWpK8g5tbNJA57a4WUqrLfi3sqiHj2dYGrm+c0nUXaT76r6x+aipA4=
-X-Google-Smtp-Source: AGHT+IGujKW2GhxdCNQ+Pa5KCV/cUet5XpNsDkba1TrtXtNMS5JvOpNbY2oFFSHru0lhN+xwADASaEzKIqfHM3WdDRjqcBtD0+mh
+	s=arc-20240116; t=1709735048; c=relaxed/simple;
+	bh=qJ4gjt253xxum5utg91XBCGmUOduxiyObpAmLwXzzHw=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=BTrZxFeRlaLEvdly3bgBGFv20KFzYmVNF/w90hdQ7PZnZFOp65brtGc8hxfngHEaq3tV3fqwkrJScmk0xaZtkzQj0vwLfu8RaHo//cXXe8gddJIF/mNI/kMwmMrvYPVbS1s0C6toNl9E5H6O7jLCbuWt74+PYskbX7sfDcYz4TE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=c0d3.blue; spf=pass smtp.mailfrom=c0d3.blue; arc=none smtp.client-ip=116.203.183.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=c0d3.blue
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=c0d3.blue
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id CC7DA419A4;
+	Wed,  6 Mar 2024 15:18:26 +0100 (CET)
+From: =?UTF-8?q?Linus=20L=C3=BCssing?= <linus.luessing@c0d3.blue>
+To: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Dietmar Maurer <dietmar@proxmox.com>,
+	Thomas Lamprecht <t.lamprecht@proxmox.com>,
+	Wolfgang Bumiller <w.bumiller@proxmox.com>,
+	Alexandre Derumier <aderumier@odiso.com>,
+	=?UTF-8?q?Linus=20L=C3=BCssing?= <linus.luessing@c0d3.blue>
+Subject: [PATCH net] netfilter: conntrack: fix ct-state for ICMPv6 Multicast Router Discovery
+Date: Wed,  6 Mar 2024 15:18:04 +0100
+Message-ID: <20240306141805.17679-1-linus.luessing@c0d3.blue>
+X-Mailer: git-send-email 2.42.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6638:16ca:b0:474:b9df:7315 with SMTP id
- g10-20020a05663816ca00b00474b9df7315mr747827jat.2.1709722638714; Wed, 06 Mar
- 2024 02:57:18 -0800 (PST)
-Date: Wed, 06 Mar 2024 02:57:18 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000008b9c410612fbd266@google.com>
-Subject: [syzbot] [netfilter?] KASAN: slab-use-after-free Read in ip_skb_dst_mtu
-From: syzbot <syzbot+e5167d7144a62715044c@syzkaller.appspotmail.com>
-To: davem@davemloft.net, dsahern@kernel.org, edumazet@google.com, fw@strlen.de, 
-	kadlec@netfilter.org, kuba@kernel.org, linux-kernel@vger.kernel.org, 
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pabeni@redhat.com, 
-	pablo@netfilter.org, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Last-TLS-Session-Version: TLSv1.3
 
-Hello,
+So far Multicast Router Advertisements and Multicast Router
+Solicitations from the Multicast Router Discovery protocol (RFC4286)
+would be marked as INVALID for IPv6, even if they are in fact intact
+and adhering to RFC4286.
 
-syzbot found the following issue on:
+This broke MRA reception and by that multicast reception on
+IPv6 multicast routers in a Proxmox managed setup, where Proxmox
+would install a rule like "-m conntrack --ctstate INVALID -j DROP"
+at the top of the FORWARD chain with br-nf-call-ip6tables enabled
+by default.
 
-HEAD commit:    805d849d7c3c Merge tag 'acpi-6.8-rc7' of git://git.kernel...
-git tree:       upstream
-console+strace: https://syzkaller.appspot.com/x/log.txt?x=14e106ac180000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=fad652894fc96962
-dashboard link: https://syzkaller.appspot.com/bug?extid=e5167d7144a62715044c
-compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=16d490ca180000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1025fa6a180000
+Similar to as it's done for MLDv1, MLDv2 and IPv6 Neighbor Discovery
+already, fix this issue by excluding MRD from connection tracking
+handling as MRD always uses predefined multicast destinations
+for its messages, too. This changes the ct-state for ICMPv6 MRD messages
+from INVALID to UNTRACKED.
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/17c4652fa589/disk-805d849d.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/7fc3b5760ca4/vmlinux-805d849d.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/d88bfccc316a/bzImage-805d849d.xz
+This issue was found and fixed with the help of the mrdisc tool
+(https://github.com/troglobit/mrdisc).
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+e5167d7144a62715044c@syzkaller.appspotmail.com
-
-==================================================================
-BUG: KASAN: slab-use-after-free in sk_fullsock include/net/sock.h:2823 [inline]
-BUG: KASAN: slab-use-after-free in ip_skb_dst_mtu+0x830/0x9b0 include/net/ip.h:499
-Read of size 1 at addr ffff88802dc5a012 by task swapper/1/0
-
-CPU: 1 PID: 0 Comm: swapper/1 Not tainted 6.8.0-rc6-syzkaller-00037-g805d849d7c3c #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/25/2024
-Call Trace:
- <IRQ>
- __dump_stack lib/dump_stack.c:88 [inline]
- dump_stack_lvl+0x1e7/0x2e0 lib/dump_stack.c:106
- print_address_description mm/kasan/report.c:377 [inline]
- print_report+0x167/0x540 mm/kasan/report.c:488
- kasan_report+0x142/0x180 mm/kasan/report.c:601
- sk_fullsock include/net/sock.h:2823 [inline]
- ip_skb_dst_mtu+0x830/0x9b0 include/net/ip.h:499
- __ip_finish_output+0x12b/0x400 net/ipv4/ip_output.c:306
- ipvlan_process_v4_outbound+0x3ef/0x700 drivers/net/ipvlan/ipvlan_core.c:442
- ipvlan_process_outbound drivers/net/ipvlan/ipvlan_core.c:540 [inline]
- ipvlan_xmit_mode_l3 drivers/net/ipvlan/ipvlan_core.c:602 [inline]
- ipvlan_queue_xmit+0xaa2/0x11f0 drivers/net/ipvlan/ipvlan_core.c:668
- ipvlan_start_xmit+0x4a/0x150 drivers/net/ipvlan/ipvlan_main.c:222
- __netdev_start_xmit include/linux/netdevice.h:4989 [inline]
- netdev_start_xmit include/linux/netdevice.h:5003 [inline]
- xmit_one net/core/dev.c:3547 [inline]
- dev_hard_start_xmit+0x242/0x770 net/core/dev.c:3563
- sch_direct_xmit+0x2b6/0x5f0 net/sched/sch_generic.c:342
- qdisc_restart net/sched/sch_generic.c:407 [inline]
- __qdisc_run+0xbed/0x2150 net/sched/sch_generic.c:415
- qdisc_run+0xda/0x270 include/net/pkt_sched.h:125
- net_tx_action+0x877/0xa30 net/core/dev.c:5197
- __do_softirq+0x2bb/0x942 kernel/softirq.c:553
-
-
+Signed-off-by: Linus Lüssing <linus.luessing@c0d3.blue>
 ---
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+ include/uapi/linux/icmpv6.h               | 1 +
+ net/netfilter/nf_conntrack_proto_icmpv6.c | 4 +++-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+diff --git a/include/uapi/linux/icmpv6.h b/include/uapi/linux/icmpv6.h
+index ecaece3af38d..4eaab89e2856 100644
+--- a/include/uapi/linux/icmpv6.h
++++ b/include/uapi/linux/icmpv6.h
+@@ -112,6 +112,7 @@ struct icmp6hdr {
+ #define ICMPV6_MOBILE_PREFIX_ADV	147
+ 
+ #define ICMPV6_MRDISC_ADV		151
++#define ICMPV6_MRDISC_SOL		152
+ 
+ #define ICMPV6_MSG_MAX          255
+ 
+diff --git a/net/netfilter/nf_conntrack_proto_icmpv6.c b/net/netfilter/nf_conntrack_proto_icmpv6.c
+index 1020d67600a9..327b8059025d 100644
+--- a/net/netfilter/nf_conntrack_proto_icmpv6.c
++++ b/net/netfilter/nf_conntrack_proto_icmpv6.c
+@@ -62,7 +62,9 @@ static const u_int8_t noct_valid_new[] = {
+ 	[NDISC_ROUTER_ADVERTISEMENT - 130] = 1,
+ 	[NDISC_NEIGHBOUR_SOLICITATION - 130] = 1,
+ 	[NDISC_NEIGHBOUR_ADVERTISEMENT - 130] = 1,
+-	[ICMPV6_MLD2_REPORT - 130] = 1
++	[ICMPV6_MLD2_REPORT - 130] = 1,
++	[ICMPV6_MRDISC_ADV - 130] = 1,
++	[ICMPV6_MRDISC_SOL - 130] = 1
+ };
+ 
+ bool nf_conntrack_invert_icmpv6_tuple(struct nf_conntrack_tuple *tuple,
+-- 
+2.43.0
 
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want syzbot to run the reproducer, reply with:
-#syz test: git://repo/address.git branch-or-commit-hash
-If you attach or paste a git patch, syzbot will apply it before testing.
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
