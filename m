@@ -1,47 +1,28 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D561E14A99
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Mar 2024 17:11:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F09F5EE60
+	for <netfilter-devel@vger.kernel.org>; Wed,  6 Mar 2024 08:59:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709658668; cv=none; b=GSUgXVjgwrq9LFGh5TIWyOKsa27NoYI4iFFYWlKR1PizTs/nzQnW5GQ+46T7qC+hGLly59czUtWkbdT3+ZCjhQ+7M6QBsHkpmcs1shvJnbeGJTTFXdjqpqYJZXtLV5KjfC3aNANTB9DNuH5ry/4tLgA0+bjD9cPAjjzqQyBmltU=
+	t=1709715552; cv=none; b=I6q06gncvz4vt1QlTI8GOtOjZOZRFdQ4caR+N1Av7kSVcVgclYo0MBLR5VEVCZs7lcQF/KAyubDfMfGf7F6HtQkmhmJ9oQIaGUVcOOc9Qc7tJHzlsKAcIdhBN7MxcHCNELP0acOndQ1sdkvedfs/i3iJVJaal59mtAmEvmWv8Bo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709658668; c=relaxed/simple;
-	bh=NgtqRjl4DQBIyH7HlOXfwMVvlIDNoqQvRasKtg7aOsM=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=hIfd58a/Hp3LcAZDVAOHy0YEEmzR7fF9Jugy5COnJZzc8eBW+mqCDQzOJydZ/+2HzQLQf+WtrmDFSVP/gzyHaJOzqoeTO9mz7aDortTd65cZeoEklkq+PltA5EEwTIY0hrD4y5p+sIuLWJws+cQIZmCKe1bBXToJkQ7uGmsCNfA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=LplLaQBI; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="LplLaQBI"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=ZlrodjD7TmuSta8uguaQe3MnKLddeOvV7yKfVd4KyoU=; b=LplLaQBIk68gRaw9pXV2TpbXyn
-	WqsHxWs5cTCRAWdAWZVRxDVxFveqUOnSqgaHPT/89kMLcrJPuh0bQj0Lpinjz4bWn5sLoeXujHE++
-	sLCj/9Fqs57Fej/YQBitACJy1ijfddzyNqsCXZa5rMRP5PbWr4pe3UNzMwR94oPAMsa/idcaGwmPZ
-	cryYxCRhS2n3YCXk+eIFa8W3SCdiGNR6BXTPwC1sArkiNj5LnzeZwnZoJt9KaLcbRdYvx6KxfNPws
-	0xcYKMy8cSgtl6ghjIHX4sFiTF1jSPfwI8DdZPhq3D4UlK9PJvXosDLG4J9kOohuKOwB3zDxopouq
-	LcJlAV0g==;
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1rhYJk-000000008Q6-13VI
-	for netfilter-devel@vger.kernel.org;
-	Tue, 05 Mar 2024 18:11:04 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 2/2] xlate: libip6t_mh: Fix and simplify plain '-m mh' match
-Date: Tue,  5 Mar 2024 18:10:59 +0100
-Message-ID: <20240305171059.12795-2-phil@nwl.cc>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20240305171059.12795-1-phil@nwl.cc>
-References: <20240305171059.12795-1-phil@nwl.cc>
+	s=arc-20240116; t=1709715552; c=relaxed/simple;
+	bh=Ny/OCgNXzteFdtjxFyNT/OG/6Ou5G4zaXZ1zeGD4nRc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=k0GsnIs/tSCGf3cXTWH4YL+HfCNjzI32OKvIN0T7sjoPm4rQcb5IkqIr7K0IgBfBYbNOYkdeHiF4tp6l3LjAsmKIDXgB28EbBnN8t5+2VMbIxcWlRn9GsbTeUEW3QT8h9209IyNkW0Acg3H/7tBdsIrvUJaFCl+hd/gYcai0ekk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1rhn78-00056x-HM; Wed, 06 Mar 2024 09:59:02 +0100
+From: Florian Westphal <fw@strlen.de>
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH xtables-nft] extensions: xt_socket: add txlate support for sk match v3
+Date: Wed,  6 Mar 2024 09:58:49 +0100
+Message-ID: <20240306085854.39838-1-fw@strlen.de>
+X-Mailer: git-send-email 2.44.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -50,48 +31,86 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Since core xlate code now ignores '-p mh' if an mh extension is also
-present in the rule, mh extension has to emit the l4proto match itself.
-Therefore emit the exthdr match irrespective of '-p' argument value just
-like other IPv6 extension header matches do.
-
-Fixes: 83f60fb37d594 ("extensions: mh: Save/xlate inverted full ranges")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- extensions/libip6t_mh.c      | 4 +---
- extensions/libip6t_mh.txlate | 2 +-
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ extensions/libxt_socket.c      | 24 ++++++++++++++++++++++++
+ extensions/libxt_socket.txlate | 11 +++++++++++
+ 2 files changed, 35 insertions(+)
+ create mode 100644 extensions/libxt_socket.txlate
 
-diff --git a/extensions/libip6t_mh.c b/extensions/libip6t_mh.c
-index 3f80e28ec94c8..1a1cee832b584 100644
---- a/extensions/libip6t_mh.c
-+++ b/extensions/libip6t_mh.c
-@@ -214,11 +214,9 @@ static int mh_xlate(struct xt_xlate *xl,
- {
- 	const struct ip6t_mh *mhinfo = (struct ip6t_mh *)params->match->data;
- 	bool inv_type = mhinfo->invflags & IP6T_MH_INV_TYPE;
--	uint8_t proto = ((const struct ip6t_ip6 *)params->ip)->proto;
+diff --git a/extensions/libxt_socket.c b/extensions/libxt_socket.c
+index a99135cdfa0a..387e10ea0dea 100644
+--- a/extensions/libxt_socket.c
++++ b/extensions/libxt_socket.c
+@@ -159,6 +159,27 @@ socket_mt_print_v3(const void *ip, const struct xt_entry_match *match,
+ 	socket_mt_save_v3(ip, match);
+ }
  
- 	if (skip_types_match(mhinfo->types[0], mhinfo->types[1], inv_type)) {
--		if (proto != IPPROTO_MH)
--			xt_xlate_add(xl, "exthdr mh exists");
-+		xt_xlate_add(xl, "exthdr mh exists");
- 		return 1;
- 	}
++static int socket_mt_xlate(struct xt_xlate *xl, const struct xt_xlate_mt_params *params)
++{
++	const struct xt_socket_mtinfo3 *info = (const void *)params->match->data;
++	const char *space = "";
++
++	if (info->flags & XT_SOCKET_TRANSPARENT) {
++		xt_xlate_add(xl, "socket transparent 1");
++		space = " ";
++	}
++
++	if (info->flags & XT_SOCKET_NOWILDCARD) {
++		xt_xlate_add(xl, "%ssocket wildcard 0", space);
++		space = " ";
++	}
++
++	if (info->flags & XT_SOCKET_RESTORESKMARK)
++		xt_xlate_add(xl, "%smeta mark set socket mark", space);
++
++	return 1;
++}
++
+ static struct xtables_match socket_mt_reg[] = {
+ 	{
+ 		.name          = "socket",
+@@ -180,6 +201,7 @@ static struct xtables_match socket_mt_reg[] = {
+ 		.save          = socket_mt_save,
+ 		.x6_parse      = socket_mt_parse,
+ 		.x6_options    = socket_mt_opts,
++		.xlate	       = socket_mt_xlate,
+ 	},
+ 	{
+ 		.name          = "socket",
+@@ -193,6 +215,7 @@ static struct xtables_match socket_mt_reg[] = {
+ 		.save          = socket_mt_save_v2,
+ 		.x6_parse      = socket_mt_parse_v2,
+ 		.x6_options    = socket_mt_opts_v2,
++		.xlate	       = socket_mt_xlate,
+ 	},
+ 	{
+ 		.name          = "socket",
+@@ -206,6 +229,7 @@ static struct xtables_match socket_mt_reg[] = {
+ 		.save          = socket_mt_save_v3,
+ 		.x6_parse      = socket_mt_parse_v3,
+ 		.x6_options    = socket_mt_opts_v3,
++		.xlate	       = socket_mt_xlate,
+ 	},
+ };
  
-diff --git a/extensions/libip6t_mh.txlate b/extensions/libip6t_mh.txlate
-index cc194254951e9..13b4ba882c948 100644
---- a/extensions/libip6t_mh.txlate
-+++ b/extensions/libip6t_mh.txlate
-@@ -5,7 +5,7 @@ ip6tables-translate -A INPUT -p mh --mh-type 1:3 -j ACCEPT
- nft 'add rule ip6 filter INPUT mh type 1-3 counter accept'
- 
- ip6tables-translate -A INPUT -p mh --mh-type 0:255 -j ACCEPT
--nft 'add rule ip6 filter INPUT meta l4proto mobility-header counter accept'
-+nft 'add rule ip6 filter INPUT exthdr mh exists counter accept'
- 
- ip6tables-translate -A INPUT -m mh --mh-type 0:255 -j ACCEPT
- nft 'add rule ip6 filter INPUT exthdr mh exists counter accept'
+diff --git a/extensions/libxt_socket.txlate b/extensions/libxt_socket.txlate
+new file mode 100644
+index 000000000000..1fe73f9b510d
+--- /dev/null
++++ b/extensions/libxt_socket.txlate
+@@ -0,0 +1,11 @@
++iptables-translate -A INPUT -m socket --transparent
++nft 'add rule ip filter INPUT socket transparent 1 counter'
++
++iptables-translate -A INPUT -m socket --nowildcard
++nft 'add rule ip filter INPUT socket wildcard 0 counter'
++
++iptables-translate -A INPUT -m socket --restore-skmark
++nft 'add rule ip filter INPUT meta mark set socket mark counter'
++
++iptables-translate -A INPUT -m socket --transparent --nowildcard --restore-skmark
++nft 'add rule ip filter INPUT socket transparent 1 socket wildcard 0 meta mark set socket mark counter'
 -- 
-2.43.0
+2.44.0
 
