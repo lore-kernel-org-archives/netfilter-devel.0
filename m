@@ -1,92 +1,372 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D35F133425
-	for <netfilter-devel@vger.kernel.org>; Wed,  6 Mar 2024 18:18:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id F14AB140369
+	for <netfilter-devel@vger.kernel.org>; Wed,  6 Mar 2024 18:30:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709749092; cv=none; b=HMA/R5WCTbp6CJQ/0LzZpR3M7dIaoAARyHXUzINhuhyPQjPUVgEXliuoJR/RVzakZIs7HxynaaTYP2GSxISfmc5Abd3iSr3qKQnuxS59/M6ukLovhdGZ2zGP7B8iV4qvDMjpHlLitvwPZl658ArxRuHIu409X0fz73IV+YusBNY=
+	t=1709749855; cv=none; b=P3TvtA7lQBW3QY/+FjpS/JEt2fFbBXiUkirq9bBYuZAyxdZkEyQzIKI6xp25q465NIo0pod3YpzrssLMarhPqgqUVoiIpR5fCZ8A9d1kxferVtVF+W+ktR8ExVRWA4pNLLQdxaahuUi2OXZJCFq2SRjn1DfIBECB8oALbTGlR3Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709749092; c=relaxed/simple;
-	bh=vKNO2U2ICK+0EXnWf3d2aKjFjqsb1Ey+ZTFbTlgPAkM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=To+Vzf30nAxJCJypUUEuE04M9PwqmCbjKC4Eve6uWAGfDTZCnQW+vBZFFB9xyhhODp47mdwpNI0U86HhA5cLAMzTgtRvlFO3bhFFeREbPS1r3RLeoDJQRGoOv/xL4Z2SiuZw+GefpBmcoaqAl0sRsFdDKF2k13ZZt/ZJvoawRzA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+	s=arc-20240116; t=1709749855; c=relaxed/simple;
+	bh=8GsmDVUY1cAnPKyaBJIkiVX+k5Lqn/Wzo4SDroSk6hw=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=J4ESsuHucRDjAhT05A7BZ8D4dk3vZa3/uIO6ss3xjzBdX95srndLBtbvDg/GtzM1Ye4gqHlV6RyHEthVRlSoIDpEA0Zfs3Lf2rvHxbUYG/KIqvxk8P5tXmUGw6y12PZAd9ksguMc/ysQBkk6GUS8OYnuSS04D1I+0/fcY75wIOE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.33.11] (port=60586 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1rhvq0-00FnFL-N1; Wed, 06 Mar 2024 19:17:58 +0100
-Date: Wed, 6 Mar 2024 19:17:55 +0100
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Daniel Mack <daniel@zonque.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: Issues with netdev egress hooks
-Message-ID: <ZeizUwnSTfN3pkB-@calendula>
-References: <ba22c8bd-4fff-40e5-81c3-50538b8c70b5@zonque.org>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de
+Subject: [PATCH nft] evaluate: translate meter into dynamic set
+Date: Wed,  6 Mar 2024 19:30:39 +0100
+Message-Id: <20240306183039.177011-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <ba22c8bd-4fff-40e5-81c3-50538b8c70b5@zonque.org>
-X-Spam-Score: -1.9 (-)
+Content-Transfer-Encoding: 8bit
 
-Hi Daniel,
+[ See note below ]
 
-On Wed, Mar 06, 2024 at 04:43:02PM +0100, Daniel Mack wrote:
-> Hi,
-> 
-> I am using the NFT egress hook in a netdev table with 'set' statements
-> to adjust the source MAC and IP addresses before duplicating packets to
-> another interface:
-> 
-> table netdev dummy {
->   chain egress {
->     type filter hook egress device "dummy" priority 0;
->     ether type ip ether saddr set 01:02:03:04:05:06 ip saddr set 1.1.1.1
-> dup to "eth0"
->   }
-> }
+129f9d153279 ("nft: migrate man page examples with `meter` directive to
+sets") already replaced meters by dynamic sets.
 
-Is this a dummy device created via: ip link add dummy type dummy or
-just a coincidence?
+This patch removes NFT_SET_ANONYMOUS flag from the implicit set that is
+instantiated via meter, so the listing shows a dynamic set instead which
+is the recommended approach these days.
 
-> Does this rule look okay or am I holding it wrong?
+Therefore, a batch like this:
 
-Rule looks correct.
+ add table t
+ add chain t c
+ add rule t c tcp dport 80 meter m size 128 { ip saddr timeout 1s limit rate 10/second }
 
-> The modification of the sender's MAC address works fine. However, the
-> adjustment of the source IP is applied at the wrong offset. The octets
-> in the raw packet that are being modified are 13 and 14, which would be
-> the correct offset within an IP header, but it seems that the prefixed
-> Ethernet header is not taken into account.
-> 
-> For the same reason, attempting to filter based on any details beyond
-> the Ethernet header also fails. The following rule does not match any
-> packets, even though there is a significant amount of UDP traffic:
-> 
-> table netdev dummy {
->   chain egress {
->     type filter hook egress device "dummy" priority 0;
->     ether type ip ip protocol udp dup to "eth0"
->   }
-> }
-> 
-> At this point, I'm not sure where to start digging to be honest and
-> would appreciate any guidance on how to resolve this issue.
+gets translated to a dynamic set:
 
-I guess you are running a kernel with
+ table ip t {
+        set m {
+                type ipv4_addr
+                size 128
+                flags dynamic,timeout
+        }
 
-commit 0ae8e4cca78781401b17721bfb72718fdf7b4912
-Author: Pablo Neira Ayuso <pablo@netfilter.org>
-Date:   Thu Dec 14 11:50:12 2023 +0100
+        chain c {
+                tcp dport 80 update @m { ip saddr timeout 1s limit rate 10/second burst 5 packets }
+        }
+ }
 
-    netfilter: nf_tables: set transport offset from mac header for netdev/egress
+Check for NFT_SET_ANONYMOUS flag is also relaxed for list and flush
+meter commands:
 
-so this is a different bug?
+ # nft list meter ip t m
+ table ip t {
+        set m {
+                type ipv4_addr
+                size 128
+                flags dynamic,timeout
+        }
+ }
+ # nft flush meter ip t m
+
+this also allows to flush the dynamic set that was declared as a meter
+to retain backward compatibility.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+tests/shell still shows FAILED, I am looking at the folder that the tool
+says but I don't see an explaination of why they fail. I have accordingly
+updated dump files for .json-nft and .nft.
+
+ include/rule.h                                |  5 +++
+ src/evaluate.c                                | 23 +++++++-----
+ src/rule.c                                    |  2 +-
+ .../dumps/0022type_selective_flush_0.json-nft | 35 +++++++++++++------
+ .../sets/dumps/0022type_selective_flush_0.nft |  8 ++++-
+ .../sets/dumps/0038meter_list_0.json-nft      | 35 +++++++++++++------
+ .../testcases/sets/dumps/0038meter_list_0.nft |  8 ++++-
+ 7 files changed, 84 insertions(+), 32 deletions(-)
+
+diff --git a/include/rule.h b/include/rule.h
+index 6835fe069165..56a9495d46b0 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -409,6 +409,11 @@ static inline bool set_is_meter(uint32_t set_flags)
+ 	return set_is_anonymous(set_flags) && (set_flags & NFT_SET_EVAL);
+ }
+ 
++static inline bool set_is_meter_compat(uint32_t set_flags)
++{
++	return set_flags & NFT_SET_EVAL;
++}
++
+ static inline bool set_is_interval(uint32_t set_flags)
+ {
+ 	return set_flags & NFT_SET_INTERVAL;
+diff --git a/src/evaluate.c b/src/evaluate.c
+index f8b8530c4b32..bc8ddc040a58 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -116,7 +116,8 @@ static struct expr *implicit_set_declaration(struct eval_ctx *ctx,
+ 					     const char *name,
+ 					     struct expr *key,
+ 					     struct expr *data,
+-					     struct expr *expr)
++					     struct expr *expr,
++					     uint32_t flags)
+ {
+ 	struct cmd *cmd;
+ 	struct set *set;
+@@ -126,13 +127,15 @@ static struct expr *implicit_set_declaration(struct eval_ctx *ctx,
+ 		key_fix_dtype_byteorder(key);
+ 
+ 	set = set_alloc(&expr->location);
+-	set->flags	= NFT_SET_ANONYMOUS | expr->set_flags;
++	set->flags	= expr->set_flags | flags;
+ 	set->handle.set.name = xstrdup(name);
+ 	set->key	= key;
+ 	set->data	= data;
+ 	set->init	= expr;
+ 	set->automerge	= set->flags & NFT_SET_INTERVAL;
+ 
++	handle_merge(&set->handle, &ctx->cmd->handle);
++
+ 	if (set_evaluate(ctx, set) < 0) {
+ 		if (set->flags & NFT_SET_MAP)
+ 			set->init = NULL;
+@@ -143,7 +146,6 @@ static struct expr *implicit_set_declaration(struct eval_ctx *ctx,
+ 	if (ctx->table != NULL)
+ 		list_add_tail(&set->list, &ctx->table->sets);
+ 	else {
+-		handle_merge(&set->handle, &ctx->cmd->handle);
+ 		memset(&h, 0, sizeof(h));
+ 		handle_merge(&h, &set->handle);
+ 		h.set.location = expr->location;
+@@ -2088,7 +2090,8 @@ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
+ 
+ 		mappings = implicit_set_declaration(ctx, "__map%d",
+ 						    key, data,
+-						    mappings);
++						    mappings,
++						    NFT_SET_ANONYMOUS);
+ 		if (!mappings)
+ 			return -1;
+ 
+@@ -2661,7 +2664,8 @@ static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
+ 			right = rel->right =
+ 				implicit_set_declaration(ctx, "__set%d",
+ 							 expr_get(left), NULL,
+-							 right);
++							 right,
++							 NFT_SET_ANONYMOUS);
+ 			if (!right)
+ 				return -1;
+ 
+@@ -3311,7 +3315,7 @@ static int stmt_evaluate_meter(struct eval_ctx *ctx, struct stmt *stmt)
+ 		set->set_flags |= NFT_SET_TIMEOUT;
+ 
+ 	setref = implicit_set_declaration(ctx, stmt->meter.name,
+-					  expr_get(key), NULL, set);
++					  expr_get(key), NULL, set, 0);
+ 	if (!setref)
+ 		return -1;
+ 
+@@ -4579,7 +4583,8 @@ static int stmt_evaluate_objref_map(struct eval_ctx *ctx, struct stmt *stmt)
+ 					  ctx->ectx.len, NULL);
+ 
+ 		mappings = implicit_set_declaration(ctx, "__objmap%d",
+-						    key, NULL, mappings);
++						    key, NULL, mappings,
++						    NFT_SET_ANONYMOUS);
+ 		if (!mappings)
+ 			return -1;
+ 		mappings->set->objtype  = stmt->objref.type;
+@@ -5707,7 +5712,7 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
+ 					     ctx->cmd->handle.set.name);
+ 		if ((cmd->obj == CMD_OBJ_SET && !set_is_literal(set->flags)) ||
+ 		    (cmd->obj == CMD_OBJ_MAP && !map_is_literal(set->flags)) ||
+-		    (cmd->obj == CMD_OBJ_METER && !set_is_meter(set->flags)))
++		    (cmd->obj == CMD_OBJ_METER && !set_is_meter_compat(set->flags)))
+ 			return cmd_error(ctx, &ctx->cmd->handle.set.location,
+ 					 "%s", strerror(ENOENT));
+ 
+@@ -5886,7 +5891,7 @@ static int cmd_evaluate_flush(struct eval_ctx *ctx, struct cmd *cmd)
+ 		if (set == NULL)
+ 			return set_not_found(ctx, &ctx->cmd->handle.set.location,
+ 					     ctx->cmd->handle.set.name);
+-		else if (!set_is_meter(set->flags))
++		else if (!set_is_meter_compat(set->flags))
+ 			return cmd_error(ctx, &ctx->cmd->handle.set.location,
+ 					 "%s", strerror(ENOENT));
+ 
+diff --git a/src/rule.c b/src/rule.c
+index adab584e9a79..9e418d8c2f2f 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1613,7 +1613,7 @@ static int do_list_sets(struct netlink_ctx *ctx, struct cmd *cmd)
+ 			    !set_is_literal(set->flags))
+ 				continue;
+ 			if (cmd->obj == CMD_OBJ_METERS &&
+-			    !set_is_meter(set->flags))
++			    !set_is_meter_compat(set->flags))
+ 				continue;
+ 			if (cmd->obj == CMD_OBJ_MAPS &&
+ 			    !map_is_literal(set->flags))
+diff --git a/tests/shell/testcases/sets/dumps/0022type_selective_flush_0.json-nft b/tests/shell/testcases/sets/dumps/0022type_selective_flush_0.json-nft
+index c82c12a171a5..c6281ae86c39 100644
+--- a/tests/shell/testcases/sets/dumps/0022type_selective_flush_0.json-nft
++++ b/tests/shell/testcases/sets/dumps/0022type_selective_flush_0.json-nft
+@@ -33,6 +33,19 @@
+         "map": "inet_service"
+       }
+     },
++    {
++      "set": {
++        "family": "ip",
++        "name": "f",
++        "table": "t",
++        "type": "ipv4_addr",
++        "handle": 0,
++        "size": 1024,
++        "flags": [
++          "dynamic"
++        ]
++      }
++    },
+     {
+       "chain": {
+         "family": "ip",
+@@ -61,22 +74,24 @@
+             }
+           },
+           {
+-            "meter": {
+-              "key": {
++            "set": {
++              "op": "add",
++              "elem": {
+                 "payload": {
+                   "protocol": "ip",
+                   "field": "saddr"
+                 }
+               },
+-              "stmt": {
+-                "limit": {
+-                  "rate": 10,
+-                  "burst": 5,
+-                  "per": "second"
++              "set": "@f",
++              "stmt": [
++                {
++                  "limit": {
++                    "rate": 10,
++                    "burst": 5,
++                    "per": "second"
++                  }
+                 }
+-              },
+-              "size": 1024,
+-              "name": "f"
++              ]
+             }
+           }
+         ]
+diff --git a/tests/shell/testcases/sets/dumps/0022type_selective_flush_0.nft b/tests/shell/testcases/sets/dumps/0022type_selective_flush_0.nft
+index 0a4cb0a54d73..38987ded39e0 100644
+--- a/tests/shell/testcases/sets/dumps/0022type_selective_flush_0.nft
++++ b/tests/shell/testcases/sets/dumps/0022type_selective_flush_0.nft
+@@ -7,7 +7,13 @@ table ip t {
+ 		type ipv4_addr : inet_service
+ 	}
+ 
++	set f {
++		type ipv4_addr
++		size 1024
++		flags dynamic
++	}
++
+ 	chain c {
+-		tcp dport 80 meter f size 1024 { ip saddr limit rate 10/second burst 5 packets }
++		tcp dport 80 add @f { ip saddr limit rate 10/second burst 5 packets }
+ 	}
+ }
+diff --git a/tests/shell/testcases/sets/dumps/0038meter_list_0.json-nft b/tests/shell/testcases/sets/dumps/0038meter_list_0.json-nft
+index be24687c96d7..853fb5e35a14 100644
+--- a/tests/shell/testcases/sets/dumps/0038meter_list_0.json-nft
++++ b/tests/shell/testcases/sets/dumps/0038meter_list_0.json-nft
+@@ -28,6 +28,19 @@
+         ]
+       }
+     },
++    {
++      "set": {
++        "family": "ip",
++        "name": "m",
++        "table": "t",
++        "type": "ipv4_addr",
++        "handle": 0,
++        "size": 128,
++        "flags": [
++          "dynamic"
++        ]
++      }
++    },
+     {
+       "chain": {
+         "family": "ip",
+@@ -56,22 +69,24 @@
+             }
+           },
+           {
+-            "meter": {
+-              "key": {
++            "set": {
++              "op": "add",
++              "elem": {
+                 "payload": {
+                   "protocol": "ip",
+                   "field": "saddr"
+                 }
+               },
+-              "stmt": {
+-                "limit": {
+-                  "rate": 10,
+-                  "burst": 5,
+-                  "per": "second"
++              "set": "@m",
++              "stmt": [
++                {
++                  "limit": {
++                    "rate": 10,
++                    "burst": 5,
++                    "per": "second"
++                  }
+                 }
+-              },
+-              "size": 128,
+-              "name": "m"
++              ]
+             }
+           }
+         ]
+diff --git a/tests/shell/testcases/sets/dumps/0038meter_list_0.nft b/tests/shell/testcases/sets/dumps/0038meter_list_0.nft
+index f274086b5285..8037dfa502b4 100644
+--- a/tests/shell/testcases/sets/dumps/0038meter_list_0.nft
++++ b/tests/shell/testcases/sets/dumps/0038meter_list_0.nft
+@@ -5,7 +5,13 @@ table ip t {
+ 		flags dynamic,timeout
+ 	}
+ 
++	set m {
++		type ipv4_addr
++		size 128
++		flags dynamic
++	}
++
+ 	chain c {
+-		tcp dport 80 meter m size 128 { ip saddr limit rate 10/second burst 5 packets }
++		tcp dport 80 add @m { ip saddr limit rate 10/second burst 5 packets }
+ 	}
+ }
+-- 
+2.30.2
+
