@@ -1,47 +1,48 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DDE81DA53
-	for <netfilter-devel@vger.kernel.org>; Wed,  6 Mar 2024 14:43:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9933E73507
+	for <netfilter-devel@vger.kernel.org>; Wed,  6 Mar 2024 14:52:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709736216; cv=none; b=L+PeneOBsDKvT5eWC/iiShzTObD6MZQNsBDtTzrDc183s2zP2/ofUC8voBiKwKQiDfT4LluemeZNhzNShHXbBVF0EHPZV7rX9X3Fefw5IX53AUS5cGfup+YeMzSCSnvskXjaprH+D/CRXUerBoKoqpgiF9v8dI05G7hczUwErVs=
+	t=1709736751; cv=none; b=Ja8K3I+7yGVR4iUKOqxtZUq2wxARzEvPHG5OQoBCsDS3y09HpqV8fGYIXxKapk93r5DwPr0zFM/JsKIZ474qAUtc0X6BmjOeLpN23JPteiF8EEhrsYqSk9MBlC8YvFBlHTzcghT6EqQwm7LtQiYu9TdaBIXOde4xr3z1q0o69Oo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709736216; c=relaxed/simple;
-	bh=zYhDYI6NL04e3O3ARaBOJPqLj0vevRCNu9IUAG1xujY=;
+	s=arc-20240116; t=1709736751; c=relaxed/simple;
+	bh=DJ3YB1nORnWV+BAySpiEMtP2o/vaTMugph2kNMIDjs4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=okgZAXMpcIvwl7Iip34D1QeBWihKhiXP/MwUZhR0mz5jG/EnCeoffYbqLQM4/kdEeUkwuAcGhPfaDsbDWOdYZMyUvXQ3EeQtkHAezVrOSu/NYXL5eGx2TsXOxhaqZpgNpb3VDkS5cJroYJ4fu0PAESK/YGyieOtmrqN0wv5NlNk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=jnNVvwnR; arc=none smtp.client-ip=151.80.46.58
+	 Content-Type:Content-Disposition:In-Reply-To; b=F9+WbYqz6IMoC4DW89zv9m3rqEBSQzDG2zMI8pUKctPx4vAJdegAOHhZFTe0uwpo2NmjPYoNsgmb1690XGIo5EJyrlzQDROpUQQEhSjoLLqs/OPCL9Ao9qCodlKa52Pe4v3gvFTAIRqCFVxVTLqIl4nmhXMthOQGNCLiVCE01QU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=nmFOneuV; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="jnNVvwnR"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="nmFOneuV"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
 	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=eIJTPT/OHv3pV6jqkQ82VrPkQiyavd2GwxpKG9UxiyE=; b=jnNVvwnRFB4lMxGP99CydslSnI
-	+2auPTOs4I6VQGQfNh+zLi8tQ+WWMzkCdAnmHEZ9rk+Sa71p+EsLQ0YiWiqu/vBIL36zLiSo9TtE+
-	wXfdrJwr+VOP5BbmnlAKRgr5GqO1wos4p3r9mismRA4wUBuvEsWD2lRPt6uVSDoK2yF14B4dIuHx4
-	o0NHh+PCkBTKB7wo7qBm85sw3HP6olems56lqP21+BmChiR5SZo4BDYC/dYJApW1V7FuUYYjU2uZ/
-	vYAyAY5U+QRkMQmnFdC/oLRrYjOn9f9gYY4JDygjwBFWklZ+MpRnBmyxsDMLDvLuosY0xr7SbbYG1
-	27GSiXHQ==;
+	bh=IkRk52gMTH9gKlfZkDub7aI7+65oidkJoUSTxwruiWk=; b=nmFOneuV+QNyLgK4hyGlW6q/Dj
+	oT6oOjtMamFRFk3S0yD1xpVCmWR1zyh9eSKCXfV1kKJ+SD1TuYT5SAPYI5lR64MD46vFHdfU+m5Nk
+	nbtDp8yppxX1a78JRYrXCId6SCBd/9ofgAHC1CPp0e/guXKn28Ga5CRr1uEGdM3sLyC2yHJWnWyeP
+	gIZGSw/xpYN8SEjQuNOr1IJESnHqE0GJVBVZsX4FKzv3zYIQrNeOUmsu2rZLMAgBOSOS4gYk6pmml
+	paR/Jn27FJtviIzF2NhI4Ng28XeSwTYhHGvJg7l/sol4xF9fl3RK6n8ZH14tsvDOfWpfcnJo4wZ6X
+	Xyhrytrw==;
 Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1rhsUV-000000006L9-1u4w;
-	Wed, 06 Mar 2024 15:43:31 +0100
-Date: Wed, 6 Mar 2024 15:43:31 +0100
+	id 1rhsd8-000000006RW-3d99;
+	Wed, 06 Mar 2024 15:52:26 +0100
+Date: Wed, 6 Mar 2024 15:52:26 +0100
 From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-Subject: Re: [libnftnl PATCH 0/6] Attribute policies for expressions
-Message-ID: <ZeiBExEY08CTbvEI@orbyte.nwl.cc>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH xtables-nft v2] extensions: xt_socket: add txlate support
+ for socket match
+Message-ID: <ZeiDKkam7FXpCbiU@orbyte.nwl.cc>
 Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-References: <20231215215350.17691-1-phil@nwl.cc>
+	Florian Westphal <fw@strlen.de>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>
+References: <20240306101132.55075-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -50,50 +51,45 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20231215215350.17691-1-phil@nwl.cc>
+In-Reply-To: <20240306101132.55075-1-fw@strlen.de>
 
-On Fri, Dec 15, 2023 at 10:53:44PM +0100, Phil Sutter wrote:
-> This is the former RFC turned into a complete implementation including
-> Florian's suggested improvements.
+On Wed, Mar 06, 2024 at 11:11:25AM +0100, Florian Westphal wrote:
+> v2: document the match semantics of -m socket.
 > 
-> Patch 1 is fallout, took me a while debugging the segfaulting test case
-> until I noticed it wasn't my fault! :)
+> Ignore --nowildcard if used with other options when translating
+> and add "wildcard 0" if the option is missing.
 > 
-> Patch 2 is the same as in the RFC.
+> "-m socket" will ignore sockets bound to 0.0.0.0/:: by default,
+> unless --nowildcard is given.
 > 
-> Patch 3 separates the type value checking from patch 2 and drops
-> expressions' default switch cases where all possible values are handled.
+> So, xlate must always append "wildcard 0", can elide "wildcard"
+> if other options are present along with --nowildcard.
 > 
-> Patch 4 is prep work for patch 5.
+> To emulate "-m socket --nowildcard", check for "wildcard <= 1" to
+> get a "socket exists" type matching.
 > 
-> Patch 5 adds the new struct expr_ops field and defines policies for all
-> expressions.
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  extensions/libxt_socket.c      | 39 ++++++++++++++++++++++++++++++++++
+>  extensions/libxt_socket.txlate | 17 +++++++++++++++
+>  2 files changed, 56 insertions(+)
+>  create mode 100644 extensions/libxt_socket.txlate
 > 
-> Patch 6 then enables policy checking.
-> 
-> Some remarks for consideration:
-> 
-> * This adds kernel-internal knowledge to libnftnl, namely in max name
->   lengths. Maybe not ideal, but I found it more sensible than Florian's
->   suggested alternative of using 65528 to just not exceed netlink
->   limits.
-> 
-> * nftnl_expr_set_u*() setters start failing when they would happily
->   overstep boundaries before. This is intentional, but getting the
->   policy values right (at first I thought 'sizeof(enum nft_registers)'
->   was a good idea) showed how hard to diagnose bugs in that area are. I
->   think we should make the setters return success/fail like
->   nftnl_expr_set_str does already, even if that breaks ABI (does it?).
->   nftables probably benefits from setter wrappers which call
->   netlink_abi_error() if the setter fails.
-> 
-> Phil Sutter (6):
->   tests: Fix objref test case
->   expr: Repurpose struct expr_ops::max_attr field
->   expr: Call expr_ops::set with legal types only
->   include: Sync nf_log.h with kernel headers
->   expr: Introduce struct expr_ops::attr_policy
->   expr: Enforce attr_policy compliance in nftnl_expr_set()
+> diff --git a/extensions/libxt_socket.c b/extensions/libxt_socket.c
+> index a99135cdfa0a..016ea3435339 100644
+> --- a/extensions/libxt_socket.c
+> +++ b/extensions/libxt_socket.c
+> @@ -159,6 +159,42 @@ socket_mt_print_v3(const void *ip, const struct xt_entry_match *match,
+>  	socket_mt_save_v3(ip, match);
+>  }
+>  
+> +static int socket_mt_xlate(struct xt_xlate *xl, const struct xt_xlate_mt_params *params)
+> +{
+> +	const struct xt_socket_mtinfo3 *info = (const void *)params->match->data;
+> +	const char *space = "";
 
-Series applied after checking theres no effect on nftables' py testsuite
-results in different releases (v0.9.9, v1.0.6, v1.0.9).
+The whole "leading space or not" handling is not necessary, I made
+xt_xlate_add() insert leading space automatically if the first
+character is alpha-numeric or a brace.
+
+Thanks, Phil
