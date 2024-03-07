@@ -1,199 +1,140 @@
-Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3EC0161;
-	Thu,  7 Mar 2024 16:00:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5887A12EBF6
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Mar 2024 16:24:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709827236; cv=none; b=fn50NU21+v5q/3zvrlpwPm4uB7t+jR6IyINBTxgL0abmb5nt2Sbj+dRioanVNBedl1GpENCX+r1nsnLMwPKRXUOaLjoWdej8sewbmAapkvZqx9O9x/0G8MGRH5fsprPHQAL5yD88MWqsR21UR2lwF6lNNniD6FUO3xgrfpKAn/c=
+	t=1709828662; cv=none; b=YZJHj3FdO/XUTtXuQbGMe2K4rnbBq9ol/cG46O3zfMbuvnTQYMyBI9JLMV3iAPcda17BtQMh9GLC2CL/euW1xvjg58tXYJOiPpWzlZyrTGg0i4mLP4hDM5keUK052WqH2CqFTJB/14YGp9ETGxpplTWYHS+OKQxawHqoZYFRj+w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709827236; c=relaxed/simple;
-	bh=qe8BSrCz5XXGmf3v5WvUo+Fw8B8ga3FSQgDQWUFtz6Y=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Smy7gL5Kd1NoFxyYWW5dwqyrr1c1+jThPQHXZwaEqYOe42m29FOw4hcG0xDAGQgjgdSPsrQnmqKRPvKmY5W4wjOvmDARCkquOx5w5d6JMz4k6E02ZuZvjsNQQwpQAB10TlsOg1JBlbayWjsYqfYLpkTXwuQilrxXD4EZDxs2So4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Fz8Oyr3+; arc=none smtp.client-ip=209.85.218.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Fz8Oyr3+"
-Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-a458850dbddso170586066b.0;
-        Thu, 07 Mar 2024 08:00:33 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1709827232; x=1710432032; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=fzdZm9LzCEazFB4mtA9SWnfQKsF5JKfguLk4PVMknm4=;
-        b=Fz8Oyr3+Zmf0NutvUF3dPssVJkJa8YJ2yHJtz5r/ZvT93cl4s4jGPMmpHV1Unl8M6F
-         VoI/Sh6pUKAAm6QSGAJWEmp7aFTgQy0sAql42UwJ5DeVnq6hCY5X2/y9v+ogiRJU4Wz3
-         svMGpPO1haVVCEWvL2JxqiwLZdwVbAKNX2+QUszsqIbjcGQzuC5oncoP5k2DUYgb+Oxr
-         o7uYGjv265GXT7hxVCNQTf37368YXYfVPwEfXFN4lCHZTwxYKzo+T10eiyAxFeJfe2fe
-         FezbijVxGei/fFdvDfkQCokhszrgMmtHYRhAPIBwsamLnCgWI9dQk548px4aTNtUn8c/
-         g10g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1709827232; x=1710432032;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=fzdZm9LzCEazFB4mtA9SWnfQKsF5JKfguLk4PVMknm4=;
-        b=kzEckLt7L2JnveUy3jE8kFd77K63uwUhOF1kS7P0+ZzvuiumgpJsRX2NARqMhGKtxs
-         rkwyTTK4O6GnXyBrtEOu8zU/iuLD35T5oer+rwRL0cvvWIBD2CncH25JrFH3/p4AVtLT
-         /uHBBYuLm8iplhYKTpMDZF14guaIGtWR41q29cdgS70CimWpHKwN265uKlxXkFov8gPz
-         IaFZI058aqv3q9CKVNJoXZ7fmsPbhkP6Nd58oVzf4DKAkGkOKgGuutRfyRd4V/HZ7nzZ
-         /pLlC54c6tdJwFJfUYjp/2shEftMkE/O86mzLA0oXNlFbT/dCN76AVx2cuiC2LCWWUPU
-         NWNQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVlCBiMZQpqAEQDYcqTkmXiKOHvSreJQsk6iWtMAJSraGbLhKC6Z4MP4UrOb0yINVZtSw/EKMAG63SSv7urU9UsB8Hn/L/iLm7QBbO0owHFdjjJFmPSFOB/RvSf/UEOtFMg+1kf1qXr
-X-Gm-Message-State: AOJu0YzsNgTu6bW0kHo8teJ8IVm4OlQVsw/blm3QRGNTP+QS5YBgC9Dk
-	zeWZEtzk7ZcR2xnxRbVEUJGMGffE+GwfoYNVMk52a7fS9GoQ/kn6nHt49lUv5uF6FLbA0bQfMBw
-	HPbAYd7x8aXZn5n91om9OEOU2/tA=
-X-Google-Smtp-Source: AGHT+IEnCR04Td894IczOky1bILOy4CN0mJRACFz5M5xEIYh/EFx9JygT168R1nPWbzi/RpNQPB+nNZkji0sXATuz1U=
-X-Received: by 2002:a17:906:2448:b0:a45:3308:560d with SMTP id
- a8-20020a170906244800b00a453308560dmr8606229ejb.71.1709827231843; Thu, 07 Mar
- 2024 08:00:31 -0800 (PST)
+	s=arc-20240116; t=1709828662; c=relaxed/simple;
+	bh=v+v2KsExTzcbxjgeHCW9cTsfnqpGhd8OK/XNi5pqLJY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=BmblmmmooBiIWN/IRp6n/JSnzjA2Y8iLKkEWIH1lTSwU2DTcf8wUUmsM15UROWu6j8noaMtGrY9itnp/D6wxEzzmcrXuQVbbRfi4gjHoc+8oX5Xh5YoBHQMZFkPC8ANfCS5tOdJck3udlFoyvCpAZugFHxEx1MdGoEZKs0SHJFk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.33.11] (port=47140 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1riGXU-00HCEr-R9; Thu, 07 Mar 2024 17:24:14 +0100
+Date: Thu, 7 Mar 2024 17:24:11 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Daniel Mack <daniel@zonque.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: Issues with netdev egress hooks
+Message-ID: <ZenqK_1HBMutR10u@calendula>
+References: <ba22c8bd-4fff-40e5-81c3-50538b8c70b5@zonque.org>
+ <ZeizUwnSTfN3pkB-@calendula>
+ <07000633-1191-445d-b894-8a1d8b0c9044@zonque.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240307090732.56708-1-kerneljasonxing@gmail.com>
- <20240307093310.GI4420@breakpoint.cc> <CAL+tcoAPi+greENaD8X6Scc97Fnhiqa62eUSn+JS98kqY+VA6A@mail.gmail.com>
- <20240307120054.GK4420@breakpoint.cc> <CAL+tcoBqBaHxSU9NQqVxhRzzsaJr4=0=imtyCo4p8+DuXPL5AA@mail.gmail.com>
- <20240307141025.GL4420@breakpoint.cc> <CAL+tcoDUyFU9wT8gzOcDqW7hWfR-7Sg8Tky9QsY_b05gP4uZ1Q@mail.gmail.com>
- <1cf0cef4-c972-9f8d-7095-66516eafb85c@blackhole.kfki.hu>
-In-Reply-To: <1cf0cef4-c972-9f8d-7095-66516eafb85c@blackhole.kfki.hu>
-From: Jason Xing <kerneljasonxing@gmail.com>
-Date: Thu, 7 Mar 2024 23:59:55 +0800
-Message-ID: <CAL+tcoBwmnPO8y7zDvi3h0Y_QzKpj=fjnxiOuQYP_OBzoh=qEA@mail.gmail.com>
-Subject: Re: [PATCH net-next] netfilter: conntrack: avoid sending RST to reply
- out-of-window skb
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Cc: Florian Westphal <fw@strlen.de>, edumazet@google.com, 
-	Pablo Neira Ayuso <pablo@netfilter.org>, kuba@kernel.org, pabeni@redhat.com, 
-	David Miller <davem@davemloft.net>, netfilter-devel@vger.kernel.org, 
-	coreteam@netfilter.org, netdev@vger.kernel.org, 
-	Jason Xing <kernelxing@tencent.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <07000633-1191-445d-b894-8a1d8b0c9044@zonque.org>
+X-Spam-Score: -1.9 (-)
 
+Hi Daniel,
+
+On Thu, Mar 07, 2024 at 02:34:38PM +0100, Daniel Mack wrote:
+> On 3/6/24 19:17, Pablo Neira Ayuso wrote:
 [...]
-> > Allow me to finish the full sentence: my only purpose is not to let
-> > the TCP layer send strange RST to the _established_ socket due to
-> > receiving strange out-of-window skbs.
->
-> I don't understand why do you want to modify conntrack at all: conntrack
-> itself does not send RST packets. And the TCP layer don't send RST packets
-> to out of window ones either.
+> > I guess you are running a kernel with
+> > 
+> > commit 0ae8e4cca78781401b17721bfb72718fdf7b4912
+> > Author: Pablo Neira Ayuso <pablo@netfilter.org>
+> > Date:   Thu Dec 14 11:50:12 2023 +0100
+> > 
+> >     netfilter: nf_tables: set transport offset from mac header for netdev/egress
+> > 
+> > so this is a different bug?
+> 
+> Interesting, I did in fact run a 6.4 production kernel when I tried
+> this, and that didn't have that patch applied. Sorry for that oversight.
+> 
+> On 6.7, what I see is different but still broken:
 
-Thanks for your reply.
+I'm here with 6.8.0-rc6+:
 
-To normal TCP flow, you're right because the TCP layer doesn't send
-RST to out-of-window skbs.
+> This rules does the right thing and patches the source MAC correctly:
+> 
+> table netdev dummy {
+>   chain egress {
+>     type filter hook egress device dummy priority 0;
+>     ether saddr set 1:2:3:4:5:6 dup to eth0
+>   }
+> }
+> 
+> Whereas trying to patch the IP source addr leads to no packets being
+> forwarded at all anymore:
 
-But the DNAT policy on the server should have converted the port of
-incoming skb from A_port to B_port as my description in this patch
-said.
+My setup:
 
-It actually doesn't happen. The conntrack clears the skb->_nfct value
-after returning -NF_ACCEPT in nf_conntrack_tcp_packet() and then DNAT
-would not convert the A_port to B_port.
+# ip link set up dev dummy
+# ip a a 10.141.10.1/24 dev dummy
+# ip ro del local 10.141.10.1 dev dummy table local proto kernel scope host src 10.141.10.1
 
-So the TCP layer is not able to look up the correct socket (client_ip,
-client_port, server_ip, B_port) because A_port doesn't match B_port,
-then an RST would be sent to the client.
+testing with ping to 10.141.10.1
 
->
-> The only possibility I see for such packets is an iptables/nftables rule
-> which rejects packets classified as INVALID by conntrack.
->
-> As Florian suggested, why don't you change that rule?
+I need to remove the local route, otherwise packets go through
+loopback interface.
 
-As I said, just for the workaround method, only turning on that sysctl
-knob can solve the issue.
+> table netdev dummy {
+>   chain egress {
+>     type filter hook egress device dummy priority 0;
+>     ip saddr set 1.1.1.1 dup to eth0
+>   }
+> }
 
-Thanks,
-Jason
+1) tcpdump in dummy:
 
->
-> The conntrack states are not fine-grained to express different TCP states
-> which covered with INVALID. It was never a good idea to reject INVALID
-> packets or let them through (leaking internal addresses).
->
-> Best regards,
-> Jozsef
->
-> > > > Besides, resorting to turning on nf_conntrack_tcp_be_liberal sysctl
-> > > > knob seems odd to me though it can workaround :S
-> > >
-> > > I don't see a better alternative, other than -p tcp -m conntrack
-> > > --ctstate INVALID -j DROP rule, if you wish for tcp stack to not see
-> > > such packets.
-> > >
-> > > > I would like to prevent sending such an RST as default behaviour.
-> > >
-> > > I don't see a way to make this work out of the box, without possible
-> > > unwanted side effects.
-> > >
-> > > MAYBE we could drop IFF we check that the conntrack entry candidate
-> > > that fails sequence validation has NAT translation applied to it, and
-> > > thus the '-NF_ACCEPT' packet won't be translated.
-> > >
-> > > Not even compile tested:
-> > >
-> > > diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-> > > --- a/net/netfilter/nf_conntrack_proto_tcp.c
-> > > +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-> > > @@ -1256,10 +1256,14 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
-> > >         case NFCT_TCP_IGNORE:
-> > >                 spin_unlock_bh(&ct->lock);
-> > >                 return NF_ACCEPT;
-> > > -       case NFCT_TCP_INVALID:
-> > > +       case NFCT_TCP_INVALID: {
-> > > +               verdict = -NF_ACCEPT;
-> > > +               if (ct->status & IPS_NAT_MASK)
-> > > +                       res = NF_DROP; /* skb would miss nat transformation */
-> >
-> > Above line, I guess, should be 'verdict = NF_DROP'? Then this skb
-> > would be dropped in nf_hook_slow() eventually and would not be passed
-> > to the TCP layer.
-> >
-> > >                 nf_tcp_handle_invalid(ct, dir, index, skb, state);
-> > >                 spin_unlock_bh(&ct->lock);
-> > > -               return -NF_ACCEPT;
-> > > +               return verdict;
-> > > +       }
-> > >         case NFCT_TCP_ACCEPT:
-> > >                 break;
-> > >         }
-> >
-> > Great! I think your draft patch makes sense really, which takes NAT
-> > into consideration.
-> >
-> > >
-> > > But I don't really see the advantage compared to doing drop decision in
-> > > iptables/nftables ruleset.
-> >
-> > From our views, especially to kernel developers, you're right: we
-> > could easily turn on that knob or add a drop policy to prevent it
-> > happening. Actually I did this in production to prevent such a case.
-> > It surely works.
-> >
-> > But from the views of normal users and those who do not understand how
-> > it works in the kernel, it looks strange: people may ask why we get
-> > some unknown RSTs in flight?
-> >
-> > > I also have a hunch that someone will eventually complain about this
-> > > change in behavior.
-> >
-> > Well, I still think the patch you suggested is proper and don't know
-> > why people could complain about it.
-> >
-> > Thanks for your patience :)
-> >
-> > Thanks,
-> > Jason
-> >
->
-> --
-> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-> PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-> Address : Wigner Research Centre for Physics
->           H-1525 Budapest 114, POB. 49, Hungary
+17:14:42.939483 f2:20:1a:4c:c4:a1 > f2:20:1a:4c:c4:a1, ethertype IPv4 (0x0800), length 98: 1.1.1.1 > 10.141.10.1: ICMP echo request, id 46403, seq 1, length 64
+
+2) tcpdump in eth0:
+
+17:15:21.006853 f2:20:1a:4c:c4:a1 > f2:20:1a:4c:c4:a1, ethertype IPv4 (0x0800), length 98: 1.1.1.1 > 10.141.10.1: ICMP echo request, id 1087, seq 1, length 64
+
+> Interestingly, ether type filtering is also broken now, the following
+> also doesn't match any packets:
+> 
+> table netdev dummy {
+>   chain egress {
+>     type filter hook egress device dummy priority 0;
+>     ether type ip dup to eth0
+>   }
+> }
+
+1) tcpdump in dummy
+
+17:18:13.921128 f2:20:1a:4c:c4:a1 > f2:20:1a:4c:c4:a1, ethertype IPv4 (0x0800), length 98: 10.141.10.1 > 10.141.10.1: ICMP echo request, id 137, seq 1, length 64
+
+2) tcpdump in eth0:
+
+17:19:00.398882 f2:20:1a:4c:c4:a1 > f2:20:1a:4c:c4:a1, ethertype IPv4 (0x0800), length 98: 10.141.10.1 > 10.141.10.1: ICMP echo request, id 21186, seq 1, length 64
+
+> I browsed through the patches since 6.7 and couldn't find anything that
+> is related. Did I miss anything?
+
+I tried again this first example you posted:
+
+table netdev dummy {
+  chain egress {
+    type filter hook egress device "dummy" priority 0;
+    ether type ip ether saddr set 01:02:03:04:05:06 ip saddr set 1.1.1.1 dup to "eth0"
+  }
+}
+
+tcpdump dummy:
+
+17:22:08.390312 01:02:03:04:05:06 > f2:20:1a:4c:c4:a1, ethertype IPv4 (0x0800), length 98: 1.1.1.1 > 10.141.10.1: ICMP echo request, id 47168, seq 1, length 64
+
+tcpdump enps25:
+
+17:20:28.298524 01:02:03:04:05:06 > f2:20:1a:4c:c4:a1, ethertype IPv4 (0x0800), length 98: 1.1.1.1 > 10.141.10.1: ICMP echo request, id 15435, seq 1, length 64
+
+Maybe my setup is different?
