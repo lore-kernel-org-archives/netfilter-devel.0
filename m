@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id DC3024A29;
-	Thu,  7 Mar 2024 02:15:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B9AE55672;
+	Thu,  7 Mar 2024 02:15:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709777757; cv=none; b=dVaxWoYfb/NFZIBIyX0E9djFGHzp2N9jsdyg+BG7cKjUVfVd2cHjcBGcvIz8MuqpcDdELMXQjP5A0QuKArlqFYY/toOJl1A5yQmuba98gixPr50vmjqHtEkMcJueGMw1g+8kHD8hFL0V3aLbUQs7F6U+pnu5o4q7ogko9qVgwag=
+	t=1709777757; cv=none; b=GV2S9cERai2q0XQSIH1cmK4Pk1zmVdf5+60K4oJKfKDsLLtxu4vBGNQQFXjHCbmJOO2zgNhHy+0Nx8dvNjxIFc+GFrLNTP+obxUo7iHCiV0IfJIWGHIW/lqspiV1EI8KFYecEqJ0E7TyxLUojrysObT0lVR20X7jR5S0axjo47c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1709777757; c=relaxed/simple;
-	bh=O7kVmgaOjDTbKK37xzjEqaudYKRAJ4rqri8ZauDBfgg=;
+	bh=VxB1xRTgYnm1p/MZtBGL8PhiIL4pvQBvJMSuKwyrBPw=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=cRZVYhVFib73e2ARNiNVpNYI69KeB9bIbn8W9WV1jZ5r1EPxwZhLaHBcf8ZXtagUI/pEaEapw05bO2i1DLScq8KcABO/F/ro5B/djsrvRa8CpcspNxHmLLQELWy4KXhhr73G+NTpG+3vGkj5EnOLDCIS47Xcpa+3EUHM0WxFxUI=
+	 MIME-Version; b=SwJYQMO0xxm9SSMRrRjfbHt6rxFsrxlmipI6Y9UVLeYkhIMZZpIUBu+uKzcwntW3m5Sgd0RMYhO0Y5vGq2qCD1ZJZ2/PoOFl19j06j0mBwvx5OyJqoY28M+jMyZXaqQpFg0C9oorr+ZouGrn7Fe1sWXzGnbUUePv4CZeD+iZy/c=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 1/5] netfilter: nf_tables: disallow anonymous set with timeout flag
-Date: Thu,  7 Mar 2024 03:15:41 +0100
-Message-Id: <20240307021545.149386-2-pablo@netfilter.org>
+Subject: [PATCH net 2/5] netfilter: nf_tables: reject constant set with timeout
+Date: Thu,  7 Mar 2024 03:15:42 +0100
+Message-Id: <20240307021545.149386-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240307021545.149386-1-pablo@netfilter.org>
 References: <20240307021545.149386-1-pablo@netfilter.org>
@@ -34,27 +34,28 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Anonymous sets are never used with timeout from userspace, reject this.
-Exception to this rule is NFT_SET_EVAL to ensure legacy meters still work.
+This set combination is weird: it allows for elements to be
+added/deleted, but once bound to the rule it cannot be updated anymore.
+Eventually, all elements expire, leading to an empty set which cannot
+be updated anymore. Reject this flags combination.
 
 Cc: stable@vger.kernel.org
 Fixes: 761da2935d6e ("netfilter: nf_tables: add set timeout API support")
-Reported-by: lonial con <kongln9170@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
  net/netfilter/nf_tables_api.c | 3 +++
  1 file changed, 3 insertions(+)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 7e938c7397dd..bd21067f25cf 100644
+index bd21067f25cf..fb07455143a5 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -5001,6 +5001,9 @@ static int nf_tables_newset(struct sk_buff *skb, const struct nfnl_info *info,
- 		if ((flags & (NFT_SET_EVAL | NFT_SET_OBJECT)) ==
- 			     (NFT_SET_EVAL | NFT_SET_OBJECT))
+@@ -5004,6 +5004,9 @@ static int nf_tables_newset(struct sk_buff *skb, const struct nfnl_info *info,
+ 		if ((flags & (NFT_SET_ANONYMOUS | NFT_SET_TIMEOUT | NFT_SET_EVAL)) ==
+ 			     (NFT_SET_ANONYMOUS | NFT_SET_TIMEOUT))
  			return -EOPNOTSUPP;
-+		if ((flags & (NFT_SET_ANONYMOUS | NFT_SET_TIMEOUT | NFT_SET_EVAL)) ==
-+			     (NFT_SET_ANONYMOUS | NFT_SET_TIMEOUT))
++		if ((flags & (NFT_SET_CONSTANT | NFT_SET_TIMEOUT)) ==
++			     (NFT_SET_CONSTANT | NFT_SET_TIMEOUT))
 +			return -EOPNOTSUPP;
  	}
  
