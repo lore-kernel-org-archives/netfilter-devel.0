@@ -1,31 +1,72 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f179.google.com (mail-pf1-f179.google.com [209.85.210.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BCC582D67
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Mar 2024 08:47:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CB7982D8A;
+	Thu,  7 Mar 2024 09:07:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709801226; cv=none; b=bIokOTzIO9zRIvmO+i38DOphOfshWRntMWUWjtBqpy8HGL3RGUPRnji3yHG1Swq51m/bk9oOe0QeMg/OhU2rLD7x+HgV4o/XvMvK/nD3fOdevvSqguoJCyszcJNpK8nV99dBoedKcEdCZkhFibMCB0Q4pVMyhINYXfkGog6etTE=
+	t=1709802461; cv=none; b=vGbUMJzte4hgmy23dkDSSYxDQaEe1yh/bb9K9z8JA+nj/V24uEIqbF4GMRCGNWQBvqVTgSlNu6gMEPCpqdzV9IIepkZbiWS0SXfkk0ka60/eqv5/Lxm+GPQO8qwYBPq/7YVjEj6WBE37DTzh3KPraQvtDruFOLj640Tn2TH3OnE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709801226; c=relaxed/simple;
-	bh=S2vHc8sGdbDB77hxAkhbTsjgX4k4pbFeRWrgimXsmec=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=t07b/jBvQpBkL2CbKEIJ5SwqjZE4CxUFbSNH+Unl/s0VknlL5dSD5UwYFlCPd4AreyXYzVRSzdXti4oba8qI0gCwNl6S7YQwKfDrFfmoGWnDPnj4vxglHfUu8uhKfBXpCfCnjM4B+vPrlIU7HwvuFUJ0SDJMjXkFiI3UKmXJhnM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1ri9P4-0005N6-N3; Thu, 07 Mar 2024 09:47:02 +0100
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 9/9] netfilter: nf_tables: remove gc sequence counter
-Date: Thu,  7 Mar 2024 09:40:13 +0100
-Message-ID: <20240307084018.2219-10-fw@strlen.de>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20240307084018.2219-1-fw@strlen.de>
-References: <20240307084018.2219-1-fw@strlen.de>
+	s=arc-20240116; t=1709802461; c=relaxed/simple;
+	bh=UxIu790UMq7PyKH4TgWNvaWUuxd7iDUECHp+K7YlsQM=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=ZUWKbVv2qmj6Cy8ZiHplVFNOxCLqFAvgzCblCdt8fVuWS/7a7l61t5v9JYzWr8zhb/i03oAJtWNGFvVgqdt/kVRi3spzypw3gW0VrUJ9tDEUc3esIc46+3sfQEgjiplLU7QCGQ+0LG5rla70sZlBpQbLCcJOCwNk1WqNHCtZi8E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=cvbgPq1u; arc=none smtp.client-ip=209.85.210.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cvbgPq1u"
+Received: by mail-pf1-f179.google.com with SMTP id d2e1a72fcca58-6d9f94b9186so637992b3a.0;
+        Thu, 07 Mar 2024 01:07:40 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1709802459; x=1710407259; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=isBEE2Kbh/RsWZtSJL5JZIHo/Vm1CNmsxYb0aYwtQ1I=;
+        b=cvbgPq1uc8umrD3hP5Uvw4UE7598/ynoiJhVb0+WGUwdrC1ZNcduQXgFNmmf/uareP
+         rV4XDDNXDuzPcYeEQqEnKsj3LIA5H2CaUKW8HSq1R+FE2zvvf47T245b7VHgBFv3Rwas
+         noQI5oyWRCWInCCvC4KbonQ+vZ+kpoHAjQXRWqmo7pqO4nHOz4yhvWf67CN+PpECwobc
+         m9C5OqRFX9G2pC6MZUaxkCtinxp5GAtqYamNrED1MLmb9AtfiD/rdCMumlJeHN4Cgyax
+         qlnFgN60ODzetvWpfXZjw0ivjq68mkE6VD+ySiki2bcgZZt9kcKRicB85NpAgQpxtWN/
+         Wz2A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1709802459; x=1710407259;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=isBEE2Kbh/RsWZtSJL5JZIHo/Vm1CNmsxYb0aYwtQ1I=;
+        b=IZQLs7t06j3cPE4wuWDuohfqQuKD8J2wGIZcwInPuGVUcl1geYDMQpOLd8eBsSFmsM
+         sCe7jzjtj2XuZidWoThZEQ1vG+TG/YKnzMILrDljexYCFCoG7EhaGr6cShVkFFpVNMjH
+         bH4Fvb8UxDPxvEv7uzECcpzqRwlHkODjNpS7vdqHhyhwP+Pb6I4AF/Q62Ea0pE7aNVa/
+         qmvkDOPKqEhgmmP+GqAMG+2xMIk0uYGLtcFWd2TlfjW8pKEP0jwPcoTV4uEHPQKhWMkv
+         nyJFrA0vXsG0D17V+6T3d/Z9CuKBp3BrNxMUprm64hTwAptoMpg7GncNSnLzmvJqXptK
+         wTJA==
+X-Forwarded-Encrypted: i=1; AJvYcCUyII90YI9xGNo2EVXgfBxxyC+CHeSiOb94NRDfytfqDHpoZONWiKA34fDtaZqkADHXPB/bqNBb7dRh6gL1Gpx5ALJ5UNQ2
+X-Gm-Message-State: AOJu0YyECCRcGb749jy1pILpThTBkdR04Kkcu+lTLWC/ts8sM7ub41vw
+	yyZU6M7ygyC8SfgCkdcMnwTu/XGuCR1qd2SgLiEaKdXJWph/HGvHZrgFiB5i7V0=
+X-Google-Smtp-Source: AGHT+IHua3E3u+tEamOkSDuiSY4F6VeNjSO0W/xG2LJha5CaDkJLVJMO2nFcx0dV8eUkCIcXbKrPkg==
+X-Received: by 2002:a05:6a00:b81:b0:6e6:830:cd46 with SMTP id g1-20020a056a000b8100b006e60830cd46mr17395040pfj.5.1709802459443;
+        Thu, 07 Mar 2024 01:07:39 -0800 (PST)
+Received: from KERNELXING-MB0.tencent.com ([43.132.141.21])
+        by smtp.gmail.com with ESMTPSA id s16-20020a62e710000000b006e5a6e83f8esm11176108pfh.134.2024.03.07.01.07.36
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 07 Mar 2024 01:07:38 -0800 (PST)
+From: Jason Xing <kerneljasonxing@gmail.com>
+To: edumazet@google.com,
+	pablo@netfilter.org,
+	kadlec@netfilter.org,
+	fw@strlen.de,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	davem@davemloft.net
+Cc: netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	kerneljasonxing@gmail.com,
+	Jason Xing <kernelxing@tencent.com>
+Subject: [PATCH net-next] netfilter: conntrack: avoid sending RST to reply out-of-window skb
+Date: Thu,  7 Mar 2024 17:07:32 +0800
+Message-Id: <20240307090732.56708-1-kerneljasonxing@gmail.com>
+X-Mailer: git-send-email 2.33.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -34,349 +75,82 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Remove gc sequence counter, rely only on the DEAD lookup.
+From: Jason Xing <kernelxing@tencent.com>
 
-Concurrent set removal is fine, we still hold a reference to the set
-structure.
+Supposing we set DNAT policy converting a_port to b_port on the
+server at the beginning, the socket is set up by using 4-turple:
 
-netns can't go away, the trans_gc structure increments the
-netns refcount.
+client_ip:client_port <--> server_ip:b_port
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Then, some strange skbs from client or gateway, say, out-of-window
+skbs are sent to the server_ip:a_port (not b_port) due to DNAT
+clearing skb->_nfct value in nf_conntrack_in() function. Why?
+Because the tcp_in_window() considers the incoming skb as an
+invalid skb by returning NFCT_TCP_INVALID.
+
+At last, the TCP layer process the out-of-window
+skb (client_ip,client_port,server_ip,a_port) and try to look up
+such an socket in tcp_v4_rcv(), as we can see, it will fail for sure
+and send back an RST to the client.
+
+The detailed call graphs go like this:
+1)
+nf_conntrack_in()
+  -> nf_conntrack_handle_packet()
+    -> nf_conntrack_tcp_packet()
+      -> tcp_in_window() // tests if the skb is out-of-window
+      -> return -NF_ACCEPT;
+  -> skb->_nfct = 0; // if the above line returns a negative value
+2)
+tcp_v4_rcv()
+  -> __inet_lookup_skb() // fails, then jump to no_tcp_socket
+  -> tcp_v4_send_reset()
+
+The moment the client receives the RST, it will drop. So the RST
+skb doesn't hurt the client (maybe hurt some gateway which cancels
+the session when filtering the RST without validating
+the sequence because of performance reason). Well, it doesn't
+matter. However, we can see many RST in flight.
+
+The key reason why I wrote this patch is that I don't think
+the behaviour is expected because the RFC 793 defines this
+case:
+
+"If the connection is in a synchronized state (ESTABLISHED,
+ FIN-WAIT-1, FIN-WAIT-2, CLOSE-WAIT, CLOSING, LAST-ACK, TIME-WAIT),
+ any unacceptable segment (out of window sequence number or
+ unacceptible acknowledgment number) must elicit only an empty
+ acknowledgment segment containing the current send-sequence number
+ and an acknowledgment..."
+
+I think, even we have set DNAT policy, it would be better if the
+whole process/behaviour adheres to the original TCP behaviour.
+
+Signed-off-by: Jason Xing <kernelxing@tencent.com>
 ---
- include/net/netfilter/nf_tables.h | 13 ++------
- net/netfilter/nf_tables_api.c     | 55 +++++--------------------------
- net/netfilter/nft_set_hash.c      | 18 ++--------
- net/netfilter/nft_set_pipapo.c    |  2 +-
- net/netfilter/nft_set_rbtree.c    |  4 +--
- 5 files changed, 16 insertions(+), 76 deletions(-)
+ net/netfilter/nf_conntrack_proto_tcp.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index f0b85944e9eb..c8b8e2066f78 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -605,11 +605,6 @@ static inline void *nft_set_priv(const struct nft_set *set)
- 	return (void *)set->data;
- }
- 
--static inline bool nft_set_gc_is_pending(const struct nft_set *s)
--{
--	return refcount_read(&s->refs) != 1;
--}
--
- static inline struct nft_set *nft_set_container_of(const void *priv)
- {
- 	return (void *)priv - offsetof(struct nft_set, data);
-@@ -1744,18 +1739,15 @@ struct nft_trans_gc {
- 	struct list_head	list;
- 	struct net		*net;
- 	struct nft_set		*set;
--	u32			seq;
- 	u16			count;
- 	struct nft_trans_gc_key keys[NFT_TRANS_GC_BATCHCOUNT];
- 	struct rcu_head		rcu;
- };
- 
--struct nft_trans_gc *nft_trans_gc_alloc(struct nft_set *set,
--					unsigned int gc_seq, gfp_t gfp);
-+struct nft_trans_gc *nft_trans_gc_alloc(struct nft_set *set, gfp_t gfp);
- void nft_trans_gc_destroy(struct nft_trans_gc *trans);
- 
--struct nft_trans_gc *nft_trans_gc_queue_async(struct nft_trans_gc *gc,
--					      unsigned int gc_seq, gfp_t gfp);
-+struct nft_trans_gc *nft_trans_gc_queue_async(struct nft_trans_gc *gc, gfp_t gfp);
- void nft_trans_gc_queue_async_done(struct nft_trans_gc *gc);
- 
- struct nft_trans_gc *nft_trans_gc_queue_sync(struct nft_trans_gc *gc, gfp_t gfp);
-@@ -1797,7 +1789,6 @@ struct nftables_pernet {
- 	u64			table_handle;
- 	u64			tstamp;
- 	unsigned int		base_seq;
--	unsigned int		gc_seq;
- 	u8			validate_state;
- };
- 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 8accb8498479..7a438392977c 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -9767,7 +9767,7 @@ static void nft_trans_gc_catchall(struct nft_ctx *ctx, struct nft_set *set)
- 		if (!nft_set_elem_expired(ext))
- 			continue;
- 
--		gc = nft_trans_gc_alloc(set, 0, GFP_KERNEL);
-+		gc = nft_trans_gc_alloc(set, GFP_KERNEL);
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index ae493599a3ef..3f3e620f3969 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -1253,13 +1253,11 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
+ 	res = tcp_in_window(ct, dir, index,
+ 			    skb, dataoff, th, state);
+ 	switch (res) {
+-	case NFCT_TCP_IGNORE:
+-		spin_unlock_bh(&ct->lock);
+-		return NF_ACCEPT;
+ 	case NFCT_TCP_INVALID:
+ 		nf_tcp_handle_invalid(ct, dir, index, skb, state);
++	case NFCT_TCP_IGNORE:
+ 		spin_unlock_bh(&ct->lock);
+-		return -NF_ACCEPT;
++		return NF_ACCEPT;
+ 	case NFCT_TCP_ACCEPT:
  		break;
  	}
- 
-@@ -9803,12 +9803,10 @@ static bool nft_trans_gc_work_done(struct nft_trans_gc *trans)
- 
- 	mutex_lock(&nft_net->commit_mutex);
- 
--	/* Check for race with transaction, otherwise this batch refers to
--	 * stale objects that might not be there anymore. Skip transaction if
--	 * set has been destroyed from control plane transaction in case gc
--	 * worker loses race.
-+	/* Check for race with transaction.
-+	 * Set could have been destroyed from control plane.
- 	 */
--	if (READ_ONCE(nft_net->gc_seq) != trans->seq || trans->set->dead) {
-+	if (trans->set->dead) {
- 		mutex_unlock(&nft_net->commit_mutex);
- 		return false;
- 	}
-@@ -9842,8 +9840,7 @@ static void nft_trans_gc_work(struct work_struct *work)
- 	}
- }
- 
--struct nft_trans_gc *nft_trans_gc_alloc(struct nft_set *set,
--					unsigned int gc_seq, gfp_t gfp)
-+struct nft_trans_gc *nft_trans_gc_alloc(struct nft_set *set, gfp_t gfp)
- {
- 	struct net *net = read_pnet(&set->net);
- 	struct nft_trans_gc *trans;
-@@ -9860,7 +9857,6 @@ struct nft_trans_gc *nft_trans_gc_alloc(struct nft_set *set,
- 
- 	refcount_inc(&set->refs);
- 	trans->set = set;
--	trans->seq = gc_seq;
- 
- 	return trans;
- }
-@@ -9896,8 +9892,7 @@ static void nft_trans_gc_queue_work(struct nft_trans_gc *trans)
- 	schedule_work(&trans_gc_work);
- }
- 
--struct nft_trans_gc *nft_trans_gc_queue_async(struct nft_trans_gc *gc,
--					      unsigned int gc_seq, gfp_t gfp)
-+struct nft_trans_gc *nft_trans_gc_queue_async(struct nft_trans_gc *gc, gfp_t gfp)
- {
- 	struct nft_set *set;
- 
-@@ -9907,7 +9902,7 @@ struct nft_trans_gc *nft_trans_gc_queue_async(struct nft_trans_gc *gc,
- 	set = gc->set;
- 	nft_trans_gc_queue_work(gc);
- 
--	return nft_trans_gc_alloc(set, gc_seq, gfp);
-+	return nft_trans_gc_alloc(set, gfp);
- }
- 
- void nft_trans_gc_queue_async_done(struct nft_trans_gc *trans)
-@@ -9933,7 +9928,7 @@ struct nft_trans_gc *nft_trans_gc_queue_sync(struct nft_trans_gc *gc, gfp_t gfp)
- 	set = gc->set;
- 	call_rcu(&gc->rcu, nft_trans_gc_trans_free);
- 
--	return nft_trans_gc_alloc(set, 0, gfp);
-+	return nft_trans_gc_alloc(set, gfp);
- }
- 
- void nft_trans_gc_queue_sync_done(struct nft_trans_gc *trans)
-@@ -10116,31 +10111,15 @@ static void nft_set_commit_update(struct list_head *set_update_list)
- 	}
- }
- 
--static unsigned int nft_gc_seq_begin(struct nftables_pernet *nft_net)
--{
--	unsigned int gc_seq;
--
--	/* Bump gc counter, it becomes odd, this is the busy mark. */
--	gc_seq = READ_ONCE(nft_net->gc_seq);
--	WRITE_ONCE(nft_net->gc_seq, ++gc_seq);
--
--	return gc_seq;
--}
--
--static void nft_gc_seq_end(struct nftables_pernet *nft_net, unsigned int gc_seq)
--{
--	WRITE_ONCE(nft_net->gc_seq, ++gc_seq);
--}
--
- static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- {
- 	struct nftables_pernet *nft_net = nft_pernet(net);
- 	struct nft_trans *trans, *next;
--	unsigned int base_seq, gc_seq;
- 	LIST_HEAD(set_update_list);
- 	struct nft_trans_elem *te;
- 	struct nft_chain *chain;
- 	struct nft_table *table;
-+	unsigned int base_seq;
- 	LIST_HEAD(adl);
- 	int err;
- 
-@@ -10219,8 +10198,6 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 
- 	WRITE_ONCE(nft_net->base_seq, base_seq);
- 
--	gc_seq = nft_gc_seq_begin(nft_net);
--
- 	/* step 3. Start new generation, rules_gen_X now in use. */
- 	net->nft.gencursor = nft_gencursor_next(net);
- 
-@@ -10432,7 +10409,6 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 	nf_tables_gen_notify(net, skb, NFT_MSG_NEWGEN);
- 	nf_tables_commit_audit_log(&adl, nft_net->base_seq);
- 
--	nft_gc_seq_end(nft_net, gc_seq);
- 	nft_net->validate_state = NFT_VALIDATE_SKIP;
- 	nf_tables_commit_release(net);
- 
-@@ -10715,12 +10691,9 @@ static int nf_tables_abort(struct net *net, struct sk_buff *skb,
- 			   enum nfnl_abort_action action)
- {
- 	struct nftables_pernet *nft_net = nft_pernet(net);
--	unsigned int gc_seq;
- 	int ret;
- 
--	gc_seq = nft_gc_seq_begin(nft_net);
- 	ret = __nf_tables_abort(net, action);
--	nft_gc_seq_end(nft_net, gc_seq);
- 	mutex_unlock(&nft_net->commit_mutex);
- 
- 	return ret;
-@@ -11443,7 +11416,6 @@ static int nft_rcv_nl_event(struct notifier_block *this, unsigned long event,
- 	struct net *net = n->net;
- 	unsigned int deleted;
- 	bool restart = false;
--	unsigned int gc_seq;
- 
- 	if (event != NETLINK_URELEASE || n->protocol != NETLINK_NETFILTER)
- 		return NOTIFY_DONE;
-@@ -11452,8 +11424,6 @@ static int nft_rcv_nl_event(struct notifier_block *this, unsigned long event,
- 	deleted = 0;
- 	mutex_lock(&nft_net->commit_mutex);
- 
--	gc_seq = nft_gc_seq_begin(nft_net);
--
- 	if (!list_empty(&nf_tables_destroy_list))
- 		nf_tables_trans_destroy_flush_work();
- again:
-@@ -11480,7 +11450,6 @@ static int nft_rcv_nl_event(struct notifier_block *this, unsigned long event,
- 		if (restart)
- 			goto again;
- 	}
--	nft_gc_seq_end(nft_net, gc_seq);
- 
- 	mutex_unlock(&nft_net->commit_mutex);
- 
-@@ -11502,7 +11471,6 @@ static int __net_init nf_tables_init_net(struct net *net)
- 	INIT_LIST_HEAD(&nft_net->notify_list);
- 	mutex_init(&nft_net->commit_mutex);
- 	nft_net->base_seq = 1;
--	nft_net->gc_seq = 0;
- 	nft_net->validate_state = NFT_VALIDATE_SKIP;
- 
- 	return 0;
-@@ -11520,20 +11488,15 @@ static void __net_exit nf_tables_pre_exit_net(struct net *net)
- static void __net_exit nf_tables_exit_net(struct net *net)
- {
- 	struct nftables_pernet *nft_net = nft_pernet(net);
--	unsigned int gc_seq;
- 
- 	mutex_lock(&nft_net->commit_mutex);
- 
--	gc_seq = nft_gc_seq_begin(nft_net);
--
- 	if (!list_empty(&nft_net->commit_list) ||
- 	    !list_empty(&nft_net->module_list))
- 		__nf_tables_abort(net, NFNL_ABORT_NONE);
- 
- 	__nft_release_tables(net);
- 
--	nft_gc_seq_end(nft_net, gc_seq);
--
- 	mutex_unlock(&nft_net->commit_mutex);
- 	WARN_ON_ONCE(!list_empty(&nft_net->tables));
- 	WARN_ON_ONCE(!list_empty(&nft_net->module_list));
-diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index 4b3cc2e17784..c8210ed95c50 100644
---- a/net/netfilter/nft_set_hash.c
-+++ b/net/netfilter/nft_set_hash.c
-@@ -323,25 +323,18 @@ static bool nft_rhash_expr_needs_gc_run(const struct nft_set *set,
- 
- static void nft_rhash_gc(struct work_struct *work)
- {
--	struct nftables_pernet *nft_net;
- 	struct nft_set *set;
- 	struct nft_rhash_elem *he;
- 	struct nft_rhash *priv;
- 	struct rhashtable_iter hti;
- 	struct nft_trans_gc *gc;
- 	struct net *net;
--	u32 gc_seq;
- 
- 	priv = container_of(work, struct nft_rhash, gc_work.work);
- 	set  = nft_set_container_of(priv);
- 	net  = read_pnet(&set->net);
--	nft_net = nft_pernet(net);
--	gc_seq = READ_ONCE(nft_net->gc_seq);
- 
--	if (nft_set_gc_is_pending(set))
--		goto done;
--
--	gc = nft_trans_gc_alloc(set, gc_seq, GFP_KERNEL);
-+	gc = nft_trans_gc_alloc(set, GFP_KERNEL);
- 	if (!gc)
- 		goto done;
- 
-@@ -355,13 +348,6 @@ static void nft_rhash_gc(struct work_struct *work)
- 			goto try_later;
- 		}
- 
--		/* Ruleset has been updated, try later. */
--		if (READ_ONCE(nft_net->gc_seq) != gc_seq) {
--			nft_trans_gc_destroy(gc);
--			gc = NULL;
--			goto try_later;
--		}
--
- 		if (nft_set_elem_is_dead(&he->ext))
- 			goto dead_elem;
- 
-@@ -374,7 +360,7 @@ static void nft_rhash_gc(struct work_struct *work)
- needs_gc_run:
- 		nft_set_elem_dead(&he->ext);
- dead_elem:
--		gc = nft_trans_gc_queue_async(gc, gc_seq, GFP_ATOMIC);
-+		gc = nft_trans_gc_queue_async(gc, GFP_ATOMIC);
- 		if (!gc)
- 			goto try_later;
- 
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index 35308de428c6..0b7022e6a03c 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -1667,7 +1667,7 @@ static void pipapo_gc(struct nft_set *set, struct nft_pipapo_match *m)
- 	struct nft_pipapo_elem *e;
- 	struct nft_trans_gc *gc;
- 
--	gc = nft_trans_gc_alloc(set, 0, GFP_KERNEL);
-+	gc = nft_trans_gc_alloc(set, GFP_KERNEL);
- 	if (!gc)
- 		return;
- 
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index fc23fa76683a..ec03a6815790 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -242,7 +242,7 @@ nft_rbtree_gc_elem(const struct nft_set *__set, struct nft_rbtree *priv,
- 	struct nft_rbtree_elem *rbe_prev;
- 	struct nft_trans_gc *gc;
- 
--	gc = nft_trans_gc_alloc(set, 0, GFP_ATOMIC);
-+	gc = nft_trans_gc_alloc(set, GFP_ATOMIC);
- 	if (!gc)
- 		return ERR_PTR(-ENOMEM);
- 
-@@ -634,7 +634,7 @@ static void nft_rbtree_gc(struct nft_set *set)
- 	set  = nft_set_container_of(priv);
- 	net  = read_pnet(&set->net);
- 
--	gc = nft_trans_gc_alloc(set, 0, GFP_KERNEL);
-+	gc = nft_trans_gc_alloc(set, GFP_KERNEL);
- 	if (!gc)
- 		return;
- 
 -- 
-2.43.0
+2.37.3
 
