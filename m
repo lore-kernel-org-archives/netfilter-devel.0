@@ -1,152 +1,157 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E229512DD9F;
-	Thu,  7 Mar 2024 14:10:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6A2483CA7
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Mar 2024 14:11:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709820640; cv=none; b=hll+7dAAtUGeJur2kDcJ33E0oA2A+gTVj2jgXOb6clRTopNgIPx2VbBOiXNRH9v6r3Ru/ubPsoS2HS6+kIy0tAFjDqqN3pF95pDDHgmBU2IzMJ80ooEnEgs7qCRzpr6rkA4+gfZGzl74vdvibjEq0cedPGBEK0/UrebpFCa0cZU=
+	t=1709820693; cv=none; b=o/x0rq6wAwP4nOn+Rr+5JK3AEudAF73WCxVk56suIiloR8X0HNv+Ddn9tBWlt9ZqZs5RPqIyjcplnAjM5+sikyL8j7f0HXp7v2ixkCHHh2fketDsBKc8fjjvreO55yIqKXFM/iXk2ig5CEffxWjTuU0I7Gf+NQOLgaUaixeRPVc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709820640; c=relaxed/simple;
-	bh=IG5hBWgdvIQIXiIi6nwGfY6sqdPdDNVJbUfK9RDSYrI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=j6p9ZuyOHT7YjgFC5juYCpgCeKq3msB0guDGyEXsI9p5zGmJv4cEVoZ8fDqf6Uc63QRMuP/HiVuSD0YwqLxHg8PW5e3rXAb+5dvr8rIhBEaikVxb6en1K1de4VwmeZhQCAJh9o2g/F9LBJmHOaVLjJchCO4sR4ooVjzmk+vUbCw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+	s=arc-20240116; t=1709820693; c=relaxed/simple;
+	bh=lk5ocZG1OuvH33+ab5D4IFNzdGo2UJg1oU4we3bHedE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DFsAlDtKfRaLVFJWQAa7bjcf+FpkBBfG2aANMLYK2YjBWcLggmowXh1moh1bs4dVqj/DFsXExQvEU87uHtW8LXMxEolhwDYXcfkju9oQPM01Dd/GlkNpy1Is9utQXw9BmPq9YT86EltYgu0zkAhOLaNOiZyorvMNXxrS21tNlQg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1riES1-0007l6-Ki; Thu, 07 Mar 2024 15:10:25 +0100
-Date: Thu, 7 Mar 2024 15:10:25 +0100
+	(envelope-from <fw@breakpoint.cc>)
+	id 1riET3-0007mK-VS; Thu, 07 Mar 2024 15:11:29 +0100
 From: Florian Westphal <fw@strlen.de>
-To: Jason Xing <kerneljasonxing@gmail.com>
-Cc: Florian Westphal <fw@strlen.de>, edumazet@google.com,
-	pablo@netfilter.org, kadlec@netfilter.org, kuba@kernel.org,
-	pabeni@redhat.com, davem@davemloft.net,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, Jason Xing <kernelxing@tencent.com>
-Subject: Re: [PATCH net-next] netfilter: conntrack: avoid sending RST to
- reply out-of-window skb
-Message-ID: <20240307141025.GL4420@breakpoint.cc>
-References: <20240307090732.56708-1-kerneljasonxing@gmail.com>
- <20240307093310.GI4420@breakpoint.cc>
- <CAL+tcoAPi+greENaD8X6Scc97Fnhiqa62eUSn+JS98kqY+VA6A@mail.gmail.com>
- <20240307120054.GK4420@breakpoint.cc>
- <CAL+tcoBqBaHxSU9NQqVxhRzzsaJr4=0=imtyCo4p8+DuXPL5AA@mail.gmail.com>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH xtables] extensions: xt_TPROXY: add txlate support
+Date: Thu,  7 Mar 2024 15:05:28 +0100
+Message-ID: <20240307140531.9822-1-fw@strlen.de>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAL+tcoBqBaHxSU9NQqVxhRzzsaJr4=0=imtyCo4p8+DuXPL5AA@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
 
-Jason Xing <kerneljasonxing@gmail.com> wrote:
-> On Thu, Mar 7, 2024 at 8:00 PM Florian Westphal <fw@strlen.de> wrote:
-> >
-> > Jason Xing <kerneljasonxing@gmail.com> wrote:
-> > > > This change disables most of the tcp_in_window() test, this will
-> > > > pretend everything is fine even though tcp_in_window says otherwise.
-> > >
-> > > Thanks for the information. It does make sense.
-> > >
-> > > What I've done is quite similar to nf_conntrack_tcp_be_liberal sysctl
-> > > knob which you also pointed out. It also pretends to ignore those
-> > > out-of-window skbs.
-> > >
-> > > >
-> > > > You could:
-> > > >  - drop invalid tcp packets in input hook
-> > >
-> > > How about changing the return value only as below? Only two cases will
-> > > be handled:
-> > >
-> > > diff --git a/net/netfilter/nf_conntrack_proto_tcp.c
-> > > b/net/netfilter/nf_conntrack_proto_tcp.c
-> > > index ae493599a3ef..c88ce4cd041e 100644
-> > > --- a/net/netfilter/nf_conntrack_proto_tcp.c
-> > > +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-> > > @@ -1259,7 +1259,7 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
-> > >         case NFCT_TCP_INVALID:
-> > >                 nf_tcp_handle_invalid(ct, dir, index, skb, state);
-> > >                 spin_unlock_bh(&ct->lock);
-> > > -               return -NF_ACCEPT;
-> > > +               return -NF_DROP;
-> >
-> > Lets not do this.  conntrack should never drop packets and defer to ruleset
-> > whereever possible.
-> 
-> Hmm, sorry, it is against my understanding.
-> 
-> If we cannot return -NF_DROP, why have we already added some 'return
-> NF_DROP' in the nf_conntrack_handle_packet() function? And why does
-> this test statement exist?
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ extensions/libxt_TPROXY.c      | 59 ++++++++++++++++++++++++++++++++++
+ extensions/libxt_TPROXY.txlate | 17 ++++++++++
+ 2 files changed, 76 insertions(+)
+ create mode 100644 extensions/libxt_TPROXY.txlate
 
-Sure we can drop.  But we should only do it if there is no better
-alternative.
+diff --git a/extensions/libxt_TPROXY.c b/extensions/libxt_TPROXY.c
+index d13ec85f92d0..4d2d7961ca2c 100644
+--- a/extensions/libxt_TPROXY.c
++++ b/extensions/libxt_TPROXY.c
+@@ -147,6 +147,62 @@ static void tproxy_tg1_parse(struct xt_option_call *cb)
+ 	}
+ }
+ 
++static int tproxy_tg_xlate(struct xt_xlate *xl,
++			   const struct xt_tproxy_target_info_v1 *info)
++{
++	int family = xt_xlate_get_family(xl);
++	uint32_t mask = info->mark_mask;
++	bool port_mandatory = false;
++	char buf[INET6_ADDRSTRLEN];
++
++	xt_xlate_add(xl, "tproxy to");
++
++	inet_ntop(family, &info->laddr, buf, sizeof(buf));
++
++	if (family == AF_INET6 && !IN6_IS_ADDR_UNSPECIFIED(&info->laddr.in6))
++		xt_xlate_add(xl, "[%s]", buf);
++	else if (family == AF_INET && info->laddr.ip)
++		xt_xlate_add(xl, "%s", buf);
++	else
++		port_mandatory = true;
++
++	if (port_mandatory)
++		xt_xlate_add(xl, " :%d", ntohs(info->lport));
++	else if (info->lport)
++		xt_xlate_add(xl, ":%d", ntohs(info->lport));
++
++	/* xt_TPROXY.c does: skb->mark = (skb->mark & ~mark_mask) ^ mark_value */
++	if (mask == 0xffffffff)
++		xt_xlate_add(xl, "meta mark set 0x%x", info->mark_value);
++	else if (mask || info->mark_value)
++		xt_xlate_add(xl, "meta mark set meta mark & 0x%x or 0x%x",
++			     ~mask, info->mark_value);
++
++	return 1;
++}
++
++static int tproxy_tg_xlate_v1(struct xt_xlate *xl,
++			      const struct xt_xlate_tg_params *params)
++{
++	const struct xt_tproxy_target_info_v1 *data = (const void *)params->target->data;
++
++	return tproxy_tg_xlate(xl, data);
++}
++
++static int tproxy_tg_xlate_v0(struct xt_xlate *xl,
++			      const struct xt_xlate_tg_params *params)
++{
++	const struct xt_tproxy_target_info *info = (const void *)params->target->data;
++	struct xt_tproxy_target_info_v1 t = {
++		.mark_mask = info->mark_mask,
++		.mark_value = info->mark_value,
++		.laddr.ip = info->laddr,
++		.lport = info->lport,
++	};
++
++	return tproxy_tg_xlate(xl, &t);
++}
++
+ static struct xtables_target tproxy_tg_reg[] = {
+ 	{
+ 		.name          = "TPROXY",
+@@ -160,6 +216,7 @@ static struct xtables_target tproxy_tg_reg[] = {
+ 		.save          = tproxy_tg_save,
+ 		.x6_options    = tproxy_tg0_opts,
+ 		.x6_parse      = tproxy_tg0_parse,
++		.xlate	       = tproxy_tg_xlate_v0,
+ 	},
+ 	{
+ 		.name          = "TPROXY",
+@@ -173,6 +230,7 @@ static struct xtables_target tproxy_tg_reg[] = {
+ 		.save          = tproxy_tg_save4,
+ 		.x6_options    = tproxy_tg1_opts,
+ 		.x6_parse      = tproxy_tg1_parse,
++		.xlate	       = tproxy_tg_xlate_v1,
+ 	},
+ 	{
+ 		.name          = "TPROXY",
+@@ -186,6 +244,7 @@ static struct xtables_target tproxy_tg_reg[] = {
+ 		.save          = tproxy_tg_save6,
+ 		.x6_options    = tproxy_tg1_opts,
+ 		.x6_parse      = tproxy_tg1_parse,
++		.xlate	       = tproxy_tg_xlate_v1,
+ 	},
+ };
+ 
+diff --git a/extensions/libxt_TPROXY.txlate b/extensions/libxt_TPROXY.txlate
+new file mode 100644
+index 000000000000..0dfe3bbb430d
+--- /dev/null
++++ b/extensions/libxt_TPROXY.txlate
+@@ -0,0 +1,17 @@
++iptables-translate -t mangle -A PREROUTING -p tcp -j TPROXY --on-port 12345 --on-ip 10.0.0.1 --tproxy-mark 0x23/0xff
++nft 'add rule ip mangle PREROUTING ip protocol tcp counter tproxy to 10.0.0.1:12345 meta mark set meta mark & 0xffffff00 or 0x23'
++
++iptables-translate -t mangle -A PREROUTING -p udp -j TPROXY --on-port 12345 --on-ip 10.0.0.1 --tproxy-mark 0x23
++nft 'add rule ip mangle PREROUTING ip protocol udp counter tproxy to 10.0.0.1:12345 meta mark set 0x23'
++
++iptables-translate -t mangle -A PREROUTING -p udp -j TPROXY --on-port 12345 --on-ip 10.0.0.1
++nft 'add rule ip mangle PREROUTING ip protocol udp counter tproxy to 10.0.0.1:12345'
++
++iptables-translate -t mangle -A PREROUTING -p udp -j TPROXY --on-ip 10.0.0.1 --on-port 0
++nft 'add rule ip mangle PREROUTING ip protocol udp counter tproxy to 10.0.0.1'
++
++iptables-translate -t mangle -A PREROUTING -p tcp -j TPROXY --on-port 12345
++nft 'add rule ip mangle PREROUTING ip protocol tcp counter tproxy to :12345'
++
++iptables-translate -t mangle -A PREROUTING -p tcp -j TPROXY --on-port 0
++nft 'add rule ip mangle PREROUTING ip protocol tcp counter tproxy to :0'
+-- 
+2.43.0
 
-> nf_conntrack_in()
->   -> nf_conntrack_handle_packet()
->   -> if (ret <= 0) {
->          if (ret == -NF_DROP) NF_CT_STAT_INC_ATOMIC(state->net, drop);
-
-AFAICS this only happens when we receive syn for an existing conntrack
-that is being removed already so we'd expect next syn to create a new
-connection.  Feel free to send patches that replace drop with -accept
-where possible/where it makes sense, but I don't think the
-TCP_CONNTRACK_SYN_SENT one can reasonably be avoided.
-
-> My only purpose is not to let the TCP layer sending strange RST to the
-> right flow.
-
-AFAIU tcp layer is correct, no?  Out of the blue packet to some listener
-socket?
-
-> Besides, resorting to turning on nf_conntrack_tcp_be_liberal sysctl
-> knob seems odd to me though it can workaround :S
-
-I don't see a better alternative, other than -p tcp -m conntrack
---ctstate INVALID -j DROP rule, if you wish for tcp stack to not see
-such packets.
-
-> I would like to prevent sending such an RST as default behaviour.
-
-I don't see a way to make this work out of the box, without possible
-unwanted side effects.
-
-MAYBE we could drop IFF we check that the conntrack entry candidate
-that fails sequence validation has NAT translation applied to it, and
-thus the '-NF_ACCEPT' packet won't be translated.
-
-Not even compile tested:
-
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -1256,10 +1256,14 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
-        case NFCT_TCP_IGNORE:
-                spin_unlock_bh(&ct->lock);
-                return NF_ACCEPT;
--       case NFCT_TCP_INVALID:
-+       case NFCT_TCP_INVALID: {
-+               verdict = -NF_ACCEPT;
-+               if (ct->status & IPS_NAT_MASK)
-+                       res = NF_DROP; /* skb would miss nat transformation */
-                nf_tcp_handle_invalid(ct, dir, index, skb, state);
-                spin_unlock_bh(&ct->lock);
--               return -NF_ACCEPT;
-+               return verdict;
-+       }
-        case NFCT_TCP_ACCEPT:
-                break;
-        }
-
-But I don't really see the advantage compared to doing drop decision in
-iptables/nftables ruleset.
-
-I also have a hunch that someone will eventually complain about this
-change in behavior.
