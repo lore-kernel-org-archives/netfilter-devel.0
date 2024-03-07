@@ -1,28 +1,28 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78D7F8286B
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Mar 2024 08:46:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9718082D7A
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Mar 2024 08:46:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709801213; cv=none; b=QXhNfkLDm1fpAgSVsDKE1xmlswDhJATwjp4LoCLriWL8xDZlgYXSgmNE/FJn62G5kCbfmu157iggDwjDxkWcRuIAluDP+GFgGnvq24x8BXMS4FmOBYqTxp70hhIeVMYD0VJ5+o6pnCtvqxrdPa3XHmsAXR1S7JfHa3hSw3Wveeo=
+	t=1709801217; cv=none; b=U0m4ch8lI4hzdDAyxX0iJCHyPqyQ3shFU8lFqpVW3PE6kwZ+gJu+9a3JSZEwW69jfIDbUCbHP0k6Q4i2G3es/rKEknNDD39rZa7s1GSHFsisrWx0nu4F7O3oqsbV+zdXFqy+jyAcqZ7tYjMJc7ViARKlcmF4wMwCERwVRlQz+lE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709801213; c=relaxed/simple;
-	bh=mt1pNdi3FicBYl6gcaJVTqXqZ2X1XKCZeaq7spSo0gw=;
+	s=arc-20240116; t=1709801217; c=relaxed/simple;
+	bh=YmsMTE5Xn8lBYoe4nEM0bZH3Piqy2+41Vudy4UqprHw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=gbn/5CQKEqxP6IQMg7c4q63lIPndBmWXqefYGAixQeNsDB/O9MxIs80B5+mevp/QZsS7uUCYxFKZOFmOT8Ewd9xNwB2C+Un9aZRM+CgxEIRmKXG5yvvYhmc8ac5p8NixWt6HBN2S46vPojwmUshkombHzOgiD/ejpeH/GP9lSeg=
+	 MIME-Version; b=fR9AUTCEJb+u01iVJG4Q+fU/cXpESQIJIrllCsjjKvfZxUS45wrmdLfE74GEQMnXRIGe3GW51fO8xr+YdkrBd4fECBHCTAT5PmELLJQ4MfAeAcjLfACa0RkHCjkohA581k9aM9Sr5S9qVzF+wzVs4BhqGvE5OBCJOLgtx3f3D5Q=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1ri9Or-0005Lr-SK; Thu, 07 Mar 2024 09:46:49 +0100
+	id 1ri9Ow-0005MD-4f; Thu, 07 Mar 2024 09:46:54 +0100
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 6/9] netfilter: nf_tables: add in-kernel only query that will return expired/dead elements
-Date: Thu,  7 Mar 2024 09:40:10 +0100
-Message-ID: <20240307084018.2219-7-fw@strlen.de>
+Subject: [PATCH nf-next 7/9] netfilter: nf_tables: prepare for key-based deletion from workqueue
+Date: Thu,  7 Mar 2024 09:40:11 +0100
+Message-ID: <20240307084018.2219-8-fw@strlen.de>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20240307084018.2219-1-fw@strlen.de>
 References: <20240307084018.2219-1-fw@strlen.de>
@@ -34,129 +34,210 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Extend the rhashtable backend so that nf_tables core can lookup a dead
-or expired entry.
+At the moment async gc stores pointers to the to-be-removed
+elements, async workqueue removes and them.
 
-As-is, a set lookup will never return a matching entry that has expired,
-which is the desired behaviour.
+This works but has a few drawbacks:
+Care must be taken so no pointers is posted twice, else we get
+double-free.
 
-This has to be toggleable, else a dead element can shadow an alive one,
-or vice versa.
+This makes it necessary to skip a gc cycle if the work queue
+is still scheduled, even though the given set has no pending
+gc deletions.
 
-Add internal NFT_SET_ELEM_GET_DEAD: if set, return a dead/expired
-element, or null.
-This is used in a follow patch that will switch the current gc
-collection scheme from 'collect expired elements' to 'collect
-the keys of expired elements'.
+Because pointers are used, we also have to consider userspace
+transactions flushing/altering the set while gc is pending,
+for this reason we have to back out if userspace made some changes,
+even though the set might not have been affected at all and all
+queued element pointers are still valid.
 
-The difference is that in the former case, extra assurances are needed
-to prevent the collected pointers from being free'd, or (this is the
-current solution) a way to detect when the element pointers might have
-gone stale.
+Now that rhashtable backend is the only remaining async gc
+worker, lets simplify this.
 
-With this approach, we can just copy the key and then query those keys
-later: If the element got removed (or replaced!) in between, we just
-move on to the next candidate key.
+Instead of storing pointers, store a copy of the element keys
+that have expired.
+
+Then, from work queue with transaction mutex held, query
+the set for the given key.
+
+If its found and expired, remove it.
+
+IOW, the idea is to collect *candidates* to examine
+for expiration, not element pointers.
+
+If the element got removed, element lookup will return
+no match and key is skipped, same if the key isn't expired
+(i.e. userspace flushed and repopulated the set with
+ identical, active key).
+
+This is an intermediate step:
+We still store pointers and use them, but also store the keys.
+We then validate that lookup does returns the expected pointer.
+
+Use WARN()s, they are not expected to trigger because the
+gc sequence checks are still in place.
+
+Next patch can remove the gc sequence counter and only rely
+on the key lookup.
+
+The batchcount is lowered so that the nft_trans_gc allocations are
+taken from kmalloc-2k cache.
+
+"struct nft_trans_gc_key" could be "union nft_trans_gc_key", but
+this only provides space for 4 more keyslots per nft_trans_gc
+object, so this is probably not worth the extra risk from aliasing
+key and to_free stash pointer.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/uapi/linux/netfilter/nf_tables.h |  5 +++++
- net/netfilter/nf_tables_api.c            | 12 ++++++++++--
- net/netfilter/nft_set_hash.c             |  9 +++++++--
- 3 files changed, 22 insertions(+), 4 deletions(-)
+ include/net/netfilter/nf_tables.h | 10 ++++--
+ net/netfilter/nf_tables_api.c     | 58 +++++++++++++++++++++++++++----
+ net/netfilter/nft_set_hash.c      |  2 +-
+ 3 files changed, 61 insertions(+), 9 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index aa4094ca2444..ec16bae890d8 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -428,6 +428,11 @@ enum nft_set_attributes {
- enum nft_set_elem_flags {
- 	NFT_SET_ELEM_INTERVAL_END	= 0x1,
- 	NFT_SET_ELEM_CATCHALL		= 0x2,
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 12a1ded88182..6896279edb92 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1733,7 +1733,12 @@ struct nft_trans_flowtable {
+ #define nft_trans_flowtable_flags(trans)	\
+ 	(((struct nft_trans_flowtable *)trans->data)->flags)
+ 
+-#define NFT_TRANS_GC_BATCHCOUNT	256
++#define NFT_TRANS_GC_BATCHCOUNT	27
 +
-+#ifdef __KERNEL__
-+	/* not visisble to userspace, should be rejected if seen */
-+	NFT_SET_ELEM_GET_DEAD		= 0x80000000,
-+#endif
++struct nft_trans_gc_key {
++	u32 key[NFT_DATA_VALUE_MAXLEN / sizeof(u32)];
++	struct nft_elem_priv	*priv;
++};
+ 
+ struct nft_trans_gc {
+ 	struct list_head	list;
+@@ -1741,7 +1746,7 @@ struct nft_trans_gc {
+ 	struct nft_set		*set;
+ 	u32			seq;
+ 	u16			count;
+-	struct nft_elem_priv	*priv[NFT_TRANS_GC_BATCHCOUNT];
++	struct nft_trans_gc_key keys[NFT_TRANS_GC_BATCHCOUNT];
+ 	struct rcu_head		rcu;
  };
  
- /**
+@@ -1756,6 +1761,7 @@ void nft_trans_gc_queue_async_done(struct nft_trans_gc *gc);
+ struct nft_trans_gc *nft_trans_gc_queue_sync(struct nft_trans_gc *gc, gfp_t gfp);
+ void nft_trans_gc_queue_sync_done(struct nft_trans_gc *trans);
+ 
++void nft_async_gc_key_add(struct nft_trans_gc *gc, struct nft_elem_priv *priv);
+ void nft_trans_gc_elem_add(struct nft_trans_gc *gc, void *priv);
+ 
+ void nft_trans_gc_catchall_sync(const struct nft_trans_gc *gc);
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 5b69b3f9153c..c390ffec9b7b 100644
+index c390ffec9b7b..f1edbff734f6 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -6007,7 +6007,8 @@ static int nft_setelem_parse_data(struct nft_ctx *ctx, struct nft_set *set,
+@@ -1647,6 +1647,13 @@ static bool lockdep_commit_lock_is_held(const struct net *net)
+ #endif
  }
  
- static void *nft_setelem_catchall_get(const struct net *net,
--				      const struct nft_set *set)
-+				      const struct nft_set *set,
-+				      u32 flags)
++static void nft_commit_lock_not_held(const struct net *net)
++{
++	struct nftables_pernet *nft_net = nft_pernet(net);
++
++	lockdep_assert_not_held(&nft_net->commit_mutex);
++}
++
+ static struct nft_chain *nft_chain_lookup(struct net *net,
+ 					  struct nft_table *table,
+ 					  const struct nlattr *nla, u8 genmask)
+@@ -9663,13 +9670,34 @@ void nft_chain_del(struct nft_chain *chain)
+ static void nft_trans_gc_setelem_remove(struct nft_ctx *ctx,
+ 					struct nft_trans_gc *trans)
  {
- 	struct nft_set_elem_catchall *catchall;
- 	u8 genmask = nft_genmask_cur(net);
-@@ -6016,6 +6017,13 @@ static void *nft_setelem_catchall_get(const struct net *net,
+-	struct nft_elem_priv **priv = trans->priv;
+ 	unsigned int i;
  
- 	list_for_each_entry_rcu(catchall, &set->catchall_list, list) {
- 		ext = nft_set_elem_ext(set, catchall->elem);
++	rcu_read_lock();
 +
-+		if ((flags & NFT_SET_ELEM_GET_DEAD) &&
-+		    nft_set_elem_expired(ext)) {
-+			priv = catchall->elem;
-+			break;
+ 	for (i = 0; i < trans->count; i++) {
+-		nft_setelem_data_deactivate(ctx->net, trans->set, priv[i]);
+-		nft_setelem_remove(ctx->net, trans->set, priv[i]);
++		struct nft_trans_gc_key *key = &trans->keys[i];
++		const struct nft_set_ext *ext;
++		struct nft_set_elem elem;
++		int err;
++
++		memset(&elem, 0, sizeof(elem));
++
++		BUILD_BUG_ON(sizeof(elem.key) != sizeof(key->key));
++		memcpy(&elem.key, key->key, sizeof(elem.key));
++
++		err = nft_setelem_get(ctx, trans->set, &elem, NFT_SET_ELEM_GET_DEAD);
++		WARN_ON(err < 0);
++		WARN_ON(key->priv != elem.priv);
++
++		ext = nft_set_elem_ext(trans->set, elem.priv);
++		/* nft_dynset can mark non-expired as DEAD, remove those too */
++		if (nft_set_elem_expired(ext) || nft_set_elem_is_dead(ext)) {
++			nft_setelem_data_deactivate(ctx->net, trans->set, elem.priv);
++			nft_setelem_remove(ctx->net, trans->set, elem.priv);
 +		}
-+
- 		if (!nft_set_elem_active(ext, genmask) ||
- 		    nft_set_elem_expired(ext))
- 			continue;
-@@ -6037,7 +6045,7 @@ static int nft_setelem_get(struct nft_ctx *ctx, const struct nft_set *set,
- 		if (IS_ERR(priv))
- 			return PTR_ERR(priv);
- 	} else {
--		priv = nft_setelem_catchall_get(ctx->net, set);
-+		priv = nft_setelem_catchall_get(ctx->net, set, flags & NFT_SET_ELEM_GET_DEAD);
- 		if (!priv)
- 			return -ENOENT;
  	}
++
++	rcu_read_unlock();
+ }
+ 
+ void nft_trans_gc_destroy(struct nft_trans_gc *trans)
+@@ -9690,7 +9718,7 @@ static void nft_trans_gc_trans_free(struct rcu_head *rcu)
+ 	ctx.net	= read_pnet(&trans->set->net);
+ 
+ 	for (i = 0; i < trans->count; i++) {
+-		elem_priv = trans->priv[i];
++		elem_priv = trans->keys[i].priv;
+ 		if (!nft_setelem_is_catchall(trans->set, elem_priv))
+ 			atomic_dec(&trans->set->nelems);
+ 
+@@ -9818,9 +9846,27 @@ struct nft_trans_gc *nft_trans_gc_alloc(struct nft_set *set,
+ 	return trans;
+ }
+ 
+-void nft_trans_gc_elem_add(struct nft_trans_gc *trans, void *priv)
++void nft_trans_gc_elem_add(struct nft_trans_gc *gc, void *priv)
++{
++	WARN_ON_ONCE(!lockdep_commit_lock_is_held(gc->net));
++	gc->keys[gc->count].to_free = priv;
++	gc->count++;
++}
++
++void nft_async_gc_key_add(struct nft_trans_gc *gc, struct nft_elem_priv *priv)
+ {
+-	trans->priv[trans->count++] = priv;
++	const struct nft_set *set = gc->set;
++	const struct nft_set_ext *ext;
++
++	nft_commit_lock_not_held(gc->net);
++
++	memset(&gc->keys[gc->count], 0, sizeof(gc->keys[0]));
++
++	ext = nft_set_elem_ext(set, priv);
++	memcpy(gc->keys[gc->count].key, nft_set_ext_key(ext), set->klen);
++
++	gc->keys[gc->count].priv = priv;
++	gc->count++;
+ }
+ 
+ static void nft_trans_gc_queue_work(struct nft_trans_gc *trans)
 diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index 2e116b1e966e..6bf53c7eb8cf 100644
+index 6bf53c7eb8cf..4b3cc2e17784 100644
 --- a/net/netfilter/nft_set_hash.c
 +++ b/net/netfilter/nft_set_hash.c
-@@ -35,6 +35,7 @@ struct nft_rhash_elem {
- struct nft_rhash_cmp_arg {
- 	const struct nft_set		*set;
- 	const u32			*key;
-+	bool				dead;
- 	u8				genmask;
- 	u64				tstamp;
- };
-@@ -61,13 +62,16 @@ static inline int nft_rhash_cmp(struct rhashtable_compare_arg *arg,
+@@ -378,7 +378,7 @@ static void nft_rhash_gc(struct work_struct *work)
+ 		if (!gc)
+ 			goto try_later;
  
- 	if (memcmp(nft_set_ext_key(&he->ext), x->key, x->set->klen))
- 		return 1;
-+
- 	if (nft_set_elem_is_dead(&he->ext))
- 		return 1;
- 	if (__nft_set_elem_expired(&he->ext, x->tstamp))
--		return 1;
-+		return x->dead ? 0 : 1;
- 	if (!nft_set_elem_active(&he->ext, x->genmask))
- 		return 1;
--	return 0;
-+
-+	/* don't want valid element to shadow expired one */
-+	return x->dead ? 1 : 0;
- }
+-		nft_trans_gc_elem_add(gc, he);
++		nft_async_gc_key_add(gc, &he->priv);
+ 	}
  
- static const struct rhashtable_params nft_rhash_params = {
-@@ -109,6 +113,7 @@ nft_rhash_get(const struct net *net, const struct nft_set *set,
- 		.set	 = set,
- 		.key	 = elem->key.val.data,
- 		.tstamp  = get_jiffies_64(),
-+		.dead	 = flags & NFT_SET_ELEM_GET_DEAD,
- 	};
- 
- 	he = rhashtable_lookup(&priv->ht, &arg, nft_rhash_params);
+ try_later:
 -- 
 2.43.0
 
