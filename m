@@ -1,82 +1,95 @@
-Received: from mail-io1-f72.google.com (mail-io1-f72.google.com [209.85.166.72])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64D8A1B59D
-	for <netfilter-devel@vger.kernel.org>; Wed,  6 Mar 2024 22:38:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.72
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id E102746AF;
+	Thu,  7 Mar 2024 02:15:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709764685; cv=none; b=T5me7kqjZ5jRxh7D+nLVgy2fWcn1tgjQS2KriA9MkB20xVEy79NxM66iCEKz+kk2laEHJVEBUFbfSTySqywFq03F3K9q1V0Uhyg+EaxDK9WUJgfGXXoxLQOCfu55+gIV9ygkfnA2rINF5zZstKFN2whBKfvWtcVWFPYteZBYdmc=
+	t=1709777757; cv=none; b=n4eoV5hJQPowV3wTIjqL7Uaitl3dkw91lY8RVacJSco1oEbVBlL3WZOtVosqaPhRSOGTgyEB3Xdd3+pW6CLj39bwfuT3td4U+F47ZONUQ8SjAgDFZ4Mjetj3q/19PgLW1KmGz0F1gPHFrl5wCpIYXWul/7PE+qk0M+2a26XhbdY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709764685; c=relaxed/simple;
-	bh=aONfvMBLi+nGa8z5RQpjQsVQe9F1v8fIwL3IxZQZEyI=;
-	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
-	 Content-Type; b=FZniR6yFuXjR9Bjy4qlsiO3WQ9+Ie1t5aGgoe7ooE4pt8tM4B6hGOe0agJzXjMRwUmC0Chs/4nDQs8P0OsLzhhOgx85D7QQ0FI3XC+r6PY3Ovwd9McYVsXm5o24F4atkz6q0LeZUfSeiJ2Blf/Y2wA7yKr6hRF7XRLbywFyhdPU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.72
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-io1-f72.google.com with SMTP id ca18e2360f4ac-7c7e21711d0so29995639f.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 06 Mar 2024 14:38:03 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1709764682; x=1710369482;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=oQx8oyVkoBQfTgwpCDc5Joc1fA/0UhEcaF4wgBQJJZ8=;
-        b=NGItxLlfEgj0+F4gocvYdO8YB5lc8uEh/SruMkg4MimnhzIXUk0AggkdtYgMrxtsIz
-         JMMcSkog98y7vACeOVoA4lWH7OMQcfRQjOGolAuY2gKtUHfByQQ8qC+UIHQF16m4Nvke
-         B+WwqbrcFjnIs0cG6ByAa1l+yGr/V2eXolR6Ro4e08Db+Qgs3YSxBlH1/0g+0DtTftmM
-         YQ9CuCbgJ1ehTNclmndhC06y+2fX9XsKMZdefIH2ptBAtI2X6fmr11i4kew9Q2YLF3vc
-         qhAonXFeIwiRAN4xGsX2yvsKOelfrzUNmcyVkJ4OB6GeHRzA2lTr5c1uC3MPqge6Tc05
-         xvHA==
-X-Forwarded-Encrypted: i=1; AJvYcCVGoSlUVMr+SYvNVhHDoaveLG2Zicackdw/KSxk1IE07qOFBzW7OTS8ElT5QPEs7z5cUQv+rFO/qoCiVIt/wxaevagw2Q3orA8spgYhtesN
-X-Gm-Message-State: AOJu0YwKQhWnKIlO/LgFmYH3NVF6v/fYBADTRPFdD4ZCudB4OVk0rgo2
-	pOywZjR0psYhCnLQXDoAL5LSlaFfpA4dZieOzVf2ZarvveUI45sE82yKenSI7t16t7vmYeiZKLM
-	S0Vy6w3sLGcJKAfuP9pUKj+7FkHGDeZMcir8w9LazEIvwAbgO/S+7gVA=
-X-Google-Smtp-Source: AGHT+IGUeFlmZ563e7wj+Rf7wOdbVjqxtWnT0cqDf2LCScDa5TAdV8QLnpmJdPdM1DX82HvmD30tfAYPKrbIiXL+LIblSWlVilKs
+	s=arc-20240116; t=1709777757; c=relaxed/simple;
+	bh=FZqcn1dA7f+3ZLxYDvVxdA8KDkW0btHWz03tuAEgcsA=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=g0qybvEerLPqHJMMqVe6mFYVddiYnIWNCu2kP7AGu+3lT9OD8vXg2AaI3CoGct8wbxfH8uIX2Dgs1mSgqJOfA6KfQptLy4iDY2xd+tmiPb/tsXsOEFROhYseGIAVBBWuNkB1RVqty3J1raJNLih43JF7sZnuWCiBTVuV07aReis=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de
+Subject: [PATCH net 0/5] Netfilter fixes for net
+Date: Thu,  7 Mar 2024 03:15:40 +0100
+Message-Id: <20240307021545.149386-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6638:2181:b0:474:c5e2:384c with SMTP id
- s1-20020a056638218100b00474c5e2384cmr727865jaj.4.1709764682541; Wed, 06 Mar
- 2024 14:38:02 -0800 (PST)
-Date: Wed, 06 Mar 2024 14:38:02 -0800
-In-Reply-To: <0000000000000c439a05daa527cb@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000008d7cfe0613059c97@google.com>
-Subject: Re: [syzbot] [netfilter?] INFO: rcu detected stall in gc_worker (3)
-From: syzbot <syzbot+eec403943a2a2455adaa@syzkaller.appspotmail.com>
-To: bpf@vger.kernel.org, coreteam@netfilter.org, davem@davemloft.net, 
-	dvyukov@google.com, edumazet@google.com, fw@strlen.de, gautamramk@gmail.com, 
-	hdanton@sina.com, jhs@mojatatu.com, jiri@resnulli.us, kadlec@netfilter.org, 
-	kuba@kernel.org, lesliemonis@gmail.com, linux-kernel@vger.kernel.org, 
-	michal.kubiak@intel.com, mohitbhasi1998@gmail.com, netdev@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
-	paulmck@kernel.org, sdp.sachin@gmail.com, syzkaller-bugs@googlegroups.com, 
-	tahiliani@nitk.edu.in, tglx@linutronix.de, vsaicharan1998@gmail.com, 
-	xiyou.wangcong@gmail.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-syzbot suspects this issue was fixed by commit:
+Hi,
 
-commit 8c21ab1bae945686c602c5bfa4e3f3352c2452c5
-Author: Eric Dumazet <edumazet@google.com>
-Date:   Tue Aug 29 12:35:41 2023 +0000
+The following patchset contains fixes for net:
 
-    net/sched: fq_pie: avoid stalls in fq_pie_timer()
+Patch #1 disallows anonymous sets with timeout, except for dynamic sets.
+         Anonymous sets with timeouts using the pipapo set backend makes
+         no sense from userspace perspective.
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=1338df0e180000
-start commit:   d4a7ce642100 igc: Fix Kernel Panic during ndo_tx_timeout c..
-git tree:       net
-kernel config:  https://syzkaller.appspot.com/x/.config?x=77b9a3cf8f44c6da
-dashboard link: https://syzkaller.appspot.com/bug?extid=eec403943a2a2455adaa
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1504b511a80000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=137bf931a80000
+Patch #2 rejects constant sets with timeout which has no practical usecase.
+         This kind of set, once bound, contains elements that expire but
+         no new elements can be added.
 
-If the result looks correct, please mark the issue as fixed by replying with:
+Patch #3 restores custom conntrack expectations with NFPROTO_INET,
+         from Florian Westphal.
 
-#syz fix: net/sched: fq_pie: avoid stalls in fq_pie_timer()
+Patch #4 marks rhashtable anonymous set with timeout as dead from the
+         commit path to avoid that async GC collects these elements. Rules
+         that refers to the anonymous set get released with no mutex held
+         from the commit path.
 
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+Patch #5 fixes a UBSAN shift overflow in H.323 conntrack helper,
+         from Lena Wang.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-24-03-07
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit c055fc00c07be1f0df7375ab0036cebd1106ed38:
+
+  net/rds: fix WARNING in rds_conn_connect_if_down (2024-03-06 11:58:42 +0000)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-24-03-07
+
+for you to fetch changes up to 767146637efc528b5e3d31297df115e85a2fd362:
+
+  netfilter: nf_conntrack_h323: Add protection for bmp length out of range (2024-03-07 03:10:35 +0100)
+
+----------------------------------------------------------------
+netfilter pull request 24-03-07
+
+----------------------------------------------------------------
+Florian Westphal (1):
+      netfilter: nft_ct: fix l3num expectations with inet pseudo family
+
+Lena Wang (1):
+      netfilter: nf_conntrack_h323: Add protection for bmp length out of range
+
+Pablo Neira Ayuso (3):
+      netfilter: nf_tables: disallow anonymous set with timeout flag
+      netfilter: nf_tables: reject constant set with timeout
+      netfilter: nf_tables: mark set as dead when unbinding anonymous set with timeout
+
+ net/netfilter/nf_conntrack_h323_asn1.c |  4 ++++
+ net/netfilter/nf_tables_api.c          |  7 +++++++
+ net/netfilter/nft_ct.c                 | 11 +++++------
+ 3 files changed, 16 insertions(+), 6 deletions(-)
