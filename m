@@ -1,140 +1,86 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5887A12EBF6
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Mar 2024 16:24:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1ACC912FF74
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Mar 2024 16:44:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709828662; cv=none; b=YZJHj3FdO/XUTtXuQbGMe2K4rnbBq9ol/cG46O3zfMbuvnTQYMyBI9JLMV3iAPcda17BtQMh9GLC2CL/euW1xvjg58tXYJOiPpWzlZyrTGg0i4mLP4hDM5keUK052WqH2CqFTJB/14YGp9ETGxpplTWYHS+OKQxawHqoZYFRj+w=
+	t=1709829872; cv=none; b=WhZz8VCTZ74v7bb+ZALR6wmh3NXSe+BlwHDPWMhy2wO6pMmX2masFW2wXgrTypSrDoA3TC08p4IBAchZH6WKcosy2LJGF7q45ED6sb/FdZ40f4Pckv01g5DnGVx4ZSDrSRCYLnMNmp5VgyWVTnLx/adAXnHK8EFhshBbwvNUoRY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709828662; c=relaxed/simple;
-	bh=v+v2KsExTzcbxjgeHCW9cTsfnqpGhd8OK/XNi5pqLJY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BmblmmmooBiIWN/IRp6n/JSnzjA2Y8iLKkEWIH1lTSwU2DTcf8wUUmsM15UROWu6j8noaMtGrY9itnp/D6wxEzzmcrXuQVbbRfi4gjHoc+8oX5Xh5YoBHQMZFkPC8ANfCS5tOdJck3udlFoyvCpAZugFHxEx1MdGoEZKs0SHJFk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.33.11] (port=47140 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1riGXU-00HCEr-R9; Thu, 07 Mar 2024 17:24:14 +0100
-Date: Thu, 7 Mar 2024 17:24:11 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Daniel Mack <daniel@zonque.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: Issues with netdev egress hooks
-Message-ID: <ZenqK_1HBMutR10u@calendula>
-References: <ba22c8bd-4fff-40e5-81c3-50538b8c70b5@zonque.org>
- <ZeizUwnSTfN3pkB-@calendula>
- <07000633-1191-445d-b894-8a1d8b0c9044@zonque.org>
+	s=arc-20240116; t=1709829872; c=relaxed/simple;
+	bh=mlns9NU2Dne6s/socOBLacCBUbKHyesM6TedMyS6WYw=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=W2Ef9KxbnJL2NyW3fIfGx84gJ0F/kYXc6QZ9wkhxJ/iGC2eyISkAijJoThPAaR9u/Sasz+dxF0uyZIEloRTuqiyFAUaw3h1aE2Q3qMz4PURAog+2jKMQJSczu3gxnWwgbL+l7iMHwsVELKfrBby8ihjjMJiUrVqL7O3SRshfMuc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1riGr0-0000SI-Qa; Thu, 07 Mar 2024 17:44:22 +0100
+Date: Thu, 7 Mar 2024 17:44:22 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+	netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft 2/5] parser_json: move list_add into json_parse_cmd
+Message-ID: <20240307164422.GN4420@breakpoint.cc>
+References: <20240307122640.29507-1-fw@strlen.de>
+ <20240307122640.29507-3-fw@strlen.de>
+ <ZenP32bq9xtJglJQ@orbyte.nwl.cc>
+ <20240307151005.GM4420@breakpoint.cc>
+ <Zeni1X75HHJYpu_l@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <07000633-1191-445d-b894-8a1d8b0c9044@zonque.org>
-X-Spam-Score: -1.9 (-)
+In-Reply-To: <Zeni1X75HHJYpu_l@orbyte.nwl.cc>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-Hi Daniel,
+Phil Sutter <phil@nwl.cc> wrote:
+> So IIUC, JSON parser will now collapse all new ruleset items into a tree
+> and use the existing nft_cmd_expand() to split things up again. This may
+> impose significant overhead depending on input data (bogus/OpenShift use
+> cases involving many chains maybe) on one hand, on the other might allow
+> for overhead elimination in other cases (e.g. long lists of 'add
+> element' commands for different sets in alternating fashion).
+>
+> We may want to do this for standard syntax as well if the benefits
+> outweigh the downsides. Thus generalize the JSON-specific helpers you
+> wrote for use within bison parser, too?
 
-On Thu, Mar 07, 2024 at 02:34:38PM +0100, Daniel Mack wrote:
-> On 3/6/24 19:17, Pablo Neira Ayuso wrote:
-[...]
-> > I guess you are running a kernel with
-> > 
-> > commit 0ae8e4cca78781401b17721bfb72718fdf7b4912
-> > Author: Pablo Neira Ayuso <pablo@netfilter.org>
-> > Date:   Thu Dec 14 11:50:12 2023 +0100
-> > 
-> >     netfilter: nf_tables: set transport offset from mac header for netdev/egress
-> > 
-> > so this is a different bug?
-> 
-> Interesting, I did in fact run a 6.4 production kernel when I tried
-> this, and that didn't have that patch applied. Sorry for that oversight.
-> 
-> On 6.7, what I see is different but still broken:
+It tries to do same as bison parser when using nft -f with a standard
+'list ruleset' input.
 
-I'm here with 6.8.0-rc6+:
+A 'batch file' with sequential 'add table x', 'add chain x c' etc.
+does separate 'add' requests.  The json parser is supposed to follow
+this, i.e. 'ctx->in_ruleset' is only supoosed to be set when this
+is a json listing, not when some input daemon is feeding independent
+add requests.
 
-> This rules does the right thing and patches the source MAC correctly:
-> 
-> table netdev dummy {
->   chain egress {
->     type filter hook egress device dummy priority 0;
->     ether saddr set 1:2:3:4:5:6 dup to eth0
->   }
-> }
-> 
-> Whereas trying to patch the IP source addr leads to no packets being
-> forwarded at all anymore:
+> An alternative might be to reorder code in table_print_json_full(),
+> copying what nft_cmd_expand() does for CMD_OBJ_TABLE. AIUI, it should
+> solve the current issue of failing 'nft -j list ruleset | nft -j -f -'
+> for special cases.
 
-My setup:
+Its indeed possible to reorder things but I was not sure if there is
+a simple way to do this.
 
-# ip link set up dev dummy
-# ip a a 10.141.10.1/24 dev dummy
-# ip ro del local 10.141.10.1 dev dummy table local proto kernel scope host src 10.141.10.1
+One case is 'verdict map', where the elements need to be created
+after the chains.
 
-testing with ping to 10.141.10.1
+The other one is rules, those need to come after the chains.
 
-I need to remove the local route, otherwise packets go through
-loopback interface.
+So what could work is:
+1. tables
+2. chains (but not rules)
+3. flowtables
+4. objects
+5. maps and sets
+6. map/set elements
+7. rules (they could reference maps and sets or objects)
 
-> table netdev dummy {
->   chain egress {
->     type filter hook egress device dummy priority 0;
->     ip saddr set 1.1.1.1 dup to eth0
->   }
-> }
-
-1) tcpdump in dummy:
-
-17:14:42.939483 f2:20:1a:4c:c4:a1 > f2:20:1a:4c:c4:a1, ethertype IPv4 (0x0800), length 98: 1.1.1.1 > 10.141.10.1: ICMP echo request, id 46403, seq 1, length 64
-
-2) tcpdump in eth0:
-
-17:15:21.006853 f2:20:1a:4c:c4:a1 > f2:20:1a:4c:c4:a1, ethertype IPv4 (0x0800), length 98: 1.1.1.1 > 10.141.10.1: ICMP echo request, id 1087, seq 1, length 64
-
-> Interestingly, ether type filtering is also broken now, the following
-> also doesn't match any packets:
-> 
-> table netdev dummy {
->   chain egress {
->     type filter hook egress device dummy priority 0;
->     ether type ip dup to eth0
->   }
-> }
-
-1) tcpdump in dummy
-
-17:18:13.921128 f2:20:1a:4c:c4:a1 > f2:20:1a:4c:c4:a1, ethertype IPv4 (0x0800), length 98: 10.141.10.1 > 10.141.10.1: ICMP echo request, id 137, seq 1, length 64
-
-2) tcpdump in eth0:
-
-17:19:00.398882 f2:20:1a:4c:c4:a1 > f2:20:1a:4c:c4:a1, ethertype IPv4 (0x0800), length 98: 10.141.10.1 > 10.141.10.1: ICMP echo request, id 21186, seq 1, length 64
-
-> I browsed through the patches since 6.7 and couldn't find anything that
-> is related. Did I miss anything?
-
-I tried again this first example you posted:
-
-table netdev dummy {
-  chain egress {
-    type filter hook egress device "dummy" priority 0;
-    ether type ip ether saddr set 01:02:03:04:05:06 ip saddr set 1.1.1.1 dup to "eth0"
-  }
-}
-
-tcpdump dummy:
-
-17:22:08.390312 01:02:03:04:05:06 > f2:20:1a:4c:c4:a1, ethertype IPv4 (0x0800), length 98: 1.1.1.1 > 10.141.10.1: ICMP echo request, id 47168, seq 1, length 64
-
-tcpdump enps25:
-
-17:20:28.298524 01:02:03:04:05:06 > f2:20:1a:4c:c4:a1, ethertype IPv4 (0x0800), length 98: 1.1.1.1 > 10.141.10.1: ICMP echo request, id 15435, seq 1, length 64
-
-Maybe my setup is different?
+If you prefer to resolve it by sorting the output (input) as needed
+please let me know.
