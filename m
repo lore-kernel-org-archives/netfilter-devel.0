@@ -1,101 +1,199 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD8C31E878
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Mar 2024 15:52:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3EC0161;
+	Thu,  7 Mar 2024 16:00:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709826778; cv=none; b=Fv8bhOuTt+CkPZdMNf0rUD+yiUBQziLbDeMsW7pL0T8aMWhVKxXv9D5ANm+pd8eOa9njksjums7aSBIWDDxbrtZV51Sc8Kb3v36FH8571OJryVwjhGMN48x7481t64+7Cge6NqEuK9rrBNQ7QEf/v9Wu+k3WAx1sJPrsuTfCHDw=
+	t=1709827236; cv=none; b=fn50NU21+v5q/3zvrlpwPm4uB7t+jR6IyINBTxgL0abmb5nt2Sbj+dRioanVNBedl1GpENCX+r1nsnLMwPKRXUOaLjoWdej8sewbmAapkvZqx9O9x/0G8MGRH5fsprPHQAL5yD88MWqsR21UR2lwF6lNNniD6FUO3xgrfpKAn/c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709826778; c=relaxed/simple;
-	bh=cfTXgJtQFy0uYz9FUG6mbIWrosW13Loq3QD2zt7Xqok=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=g/NBUHZ1D4By4B2Ht6ZdJiPN2Uk5EdrDuoe3SXOz5RHjm5+xIGIUKqUnwZJSrH1JGrzxlr2KrzexCS3kqs26/h1fOgiJR7q2MUtkBhZCfE0f+ENuIHpCY9tFpfsVjLBRqce3UXz88TxRrrAcZBhoXskdhQ10eCn7CnGwMyOwCe0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=WHDT6EuD; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1709827236; c=relaxed/simple;
+	bh=qe8BSrCz5XXGmf3v5WvUo+Fw8B8ga3FSQgDQWUFtz6Y=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Smy7gL5Kd1NoFxyYWW5dwqyrr1c1+jThPQHXZwaEqYOe42m29FOw4hcG0xDAGQgjgdSPsrQnmqKRPvKmY5W4wjOvmDARCkquOx5w5d6JMz4k6E02ZuZvjsNQQwpQAB10TlsOg1JBlbayWjsYqfYLpkTXwuQilrxXD4EZDxs2So4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Fz8Oyr3+; arc=none smtp.client-ip=209.85.218.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="WHDT6EuD"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=+FR+Kim/LuolH/lUaSA0HKHvXziOYUNH3V1v4YFjRik=; b=WHDT6EuDNuKcrzErHAcexBhG4z
-	zZkn6Sj8morK4D4CxlU9Cu1AS8r5KaoEl7DKG6N1d7St+Nc/OVBvfoRK0sUQEKRGxwnPaXIWUm6H5
-	TlWWiUwKAGYEPgHgzMTsGpweTRh/bC1RjYu0Z53z9aKdNdnRXxcWnheyCYyUYkkh2+sYiut3lpAcZ
-	xI/g06/wkVlzcmKw1xh8m12HFAO30+MRBJ8s/U94+X38p7SRnx3O11LNp/pUGCBWBFJvkE80d4duY
-	FwwTuagYR8SdFsAFpjWLL8EGivkPi1pGE4twITF2A/vQHbR1i4lR3V41tb6KvwcsMC/fpPa0RZwh3
-	Qa1ut/TA==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1riG3B-0000000073S-3IGS;
-	Thu, 07 Mar 2024 16:52:53 +0100
-Date: Thu, 7 Mar 2024 16:52:53 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft 2/5] parser_json: move list_add into json_parse_cmd
-Message-ID: <Zeni1X75HHJYpu_l@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-References: <20240307122640.29507-1-fw@strlen.de>
- <20240307122640.29507-3-fw@strlen.de>
- <ZenP32bq9xtJglJQ@orbyte.nwl.cc>
- <20240307151005.GM4420@breakpoint.cc>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Fz8Oyr3+"
+Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-a458850dbddso170586066b.0;
+        Thu, 07 Mar 2024 08:00:33 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1709827232; x=1710432032; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=fzdZm9LzCEazFB4mtA9SWnfQKsF5JKfguLk4PVMknm4=;
+        b=Fz8Oyr3+Zmf0NutvUF3dPssVJkJa8YJ2yHJtz5r/ZvT93cl4s4jGPMmpHV1Unl8M6F
+         VoI/Sh6pUKAAm6QSGAJWEmp7aFTgQy0sAql42UwJ5DeVnq6hCY5X2/y9v+ogiRJU4Wz3
+         svMGpPO1haVVCEWvL2JxqiwLZdwVbAKNX2+QUszsqIbjcGQzuC5oncoP5k2DUYgb+Oxr
+         o7uYGjv265GXT7hxVCNQTf37368YXYfVPwEfXFN4lCHZTwxYKzo+T10eiyAxFeJfe2fe
+         FezbijVxGei/fFdvDfkQCokhszrgMmtHYRhAPIBwsamLnCgWI9dQk548px4aTNtUn8c/
+         g10g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1709827232; x=1710432032;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=fzdZm9LzCEazFB4mtA9SWnfQKsF5JKfguLk4PVMknm4=;
+        b=kzEckLt7L2JnveUy3jE8kFd77K63uwUhOF1kS7P0+ZzvuiumgpJsRX2NARqMhGKtxs
+         rkwyTTK4O6GnXyBrtEOu8zU/iuLD35T5oer+rwRL0cvvWIBD2CncH25JrFH3/p4AVtLT
+         /uHBBYuLm8iplhYKTpMDZF14guaIGtWR41q29cdgS70CimWpHKwN265uKlxXkFov8gPz
+         IaFZI058aqv3q9CKVNJoXZ7fmsPbhkP6Nd58oVzf4DKAkGkOKgGuutRfyRd4V/HZ7nzZ
+         /pLlC54c6tdJwFJfUYjp/2shEftMkE/O86mzLA0oXNlFbT/dCN76AVx2cuiC2LCWWUPU
+         NWNQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVlCBiMZQpqAEQDYcqTkmXiKOHvSreJQsk6iWtMAJSraGbLhKC6Z4MP4UrOb0yINVZtSw/EKMAG63SSv7urU9UsB8Hn/L/iLm7QBbO0owHFdjjJFmPSFOB/RvSf/UEOtFMg+1kf1qXr
+X-Gm-Message-State: AOJu0YzsNgTu6bW0kHo8teJ8IVm4OlQVsw/blm3QRGNTP+QS5YBgC9Dk
+	zeWZEtzk7ZcR2xnxRbVEUJGMGffE+GwfoYNVMk52a7fS9GoQ/kn6nHt49lUv5uF6FLbA0bQfMBw
+	HPbAYd7x8aXZn5n91om9OEOU2/tA=
+X-Google-Smtp-Source: AGHT+IEnCR04Td894IczOky1bILOy4CN0mJRACFz5M5xEIYh/EFx9JygT168R1nPWbzi/RpNQPB+nNZkji0sXATuz1U=
+X-Received: by 2002:a17:906:2448:b0:a45:3308:560d with SMTP id
+ a8-20020a170906244800b00a453308560dmr8606229ejb.71.1709827231843; Thu, 07 Mar
+ 2024 08:00:31 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240307151005.GM4420@breakpoint.cc>
+References: <20240307090732.56708-1-kerneljasonxing@gmail.com>
+ <20240307093310.GI4420@breakpoint.cc> <CAL+tcoAPi+greENaD8X6Scc97Fnhiqa62eUSn+JS98kqY+VA6A@mail.gmail.com>
+ <20240307120054.GK4420@breakpoint.cc> <CAL+tcoBqBaHxSU9NQqVxhRzzsaJr4=0=imtyCo4p8+DuXPL5AA@mail.gmail.com>
+ <20240307141025.GL4420@breakpoint.cc> <CAL+tcoDUyFU9wT8gzOcDqW7hWfR-7Sg8Tky9QsY_b05gP4uZ1Q@mail.gmail.com>
+ <1cf0cef4-c972-9f8d-7095-66516eafb85c@blackhole.kfki.hu>
+In-Reply-To: <1cf0cef4-c972-9f8d-7095-66516eafb85c@blackhole.kfki.hu>
+From: Jason Xing <kerneljasonxing@gmail.com>
+Date: Thu, 7 Mar 2024 23:59:55 +0800
+Message-ID: <CAL+tcoBwmnPO8y7zDvi3h0Y_QzKpj=fjnxiOuQYP_OBzoh=qEA@mail.gmail.com>
+Subject: Re: [PATCH net-next] netfilter: conntrack: avoid sending RST to reply
+ out-of-window skb
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: Florian Westphal <fw@strlen.de>, edumazet@google.com, 
+	Pablo Neira Ayuso <pablo@netfilter.org>, kuba@kernel.org, pabeni@redhat.com, 
+	David Miller <davem@davemloft.net>, netfilter-devel@vger.kernel.org, 
+	coreteam@netfilter.org, netdev@vger.kernel.org, 
+	Jason Xing <kernelxing@tencent.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On Thu, Mar 07, 2024 at 04:10:05PM +0100, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
-> > > Problem is that the json input parser does cmd_add at the earliest opportunity.
-> > > 
-> > > For a simple input file defining a table, set, set element and chain, we get
-> > > following transaction:
-> > >  * add table
-> > >  * add set
-> > >  * add setelem
-> > >  * add chain
-> > > 
-> > > This is rejected by the kernel, because the set element references a chain
-> > > that does (not yet) exist.
-> > > 
-> > > Normal input parser only allocates a CMD_ADD request for the table.
-> > > 
-> > > Rest of the transactional commands are created much later, via nft_cmd_expand(),
-> > > which walks "struct table" and then creates the needed CMD_ADD for the objects
-> > > owned by that table.
-> > 
-> > JSON parser simply does not support nested syntax, like, for instance:
-> 
-> You mean, WONTFIX? Fine with me.
+[...]
+> > Allow me to finish the full sentence: my only purpose is not to let
+> > the TCP layer send strange RST to the _established_ socket due to
+> > receiving strange out-of-window skbs.
+>
+> I don't understand why do you want to modify conntrack at all: conntrack
+> itself does not send RST packets. And the TCP layer don't send RST packets
+> to out of window ones either.
 
-Not quite, I see the problem you're trying to solve in patch 5. Sorting
-elements in the JSON "nftables" array properly for later insertion may
-become a non-trivial task given how maps and rules may refer to chains.
+Thanks for your reply.
 
-So IIUC, JSON parser will now collapse all new ruleset items into a tree
-and use the existing nft_cmd_expand() to split things up again. This may
-impose significant overhead depending on input data (bogus/OpenShift use
-cases involving many chains maybe) on one hand, on the other might allow
-for overhead elimination in other cases (e.g. long lists of 'add
-element' commands for different sets in alternating fashion).
+To normal TCP flow, you're right because the TCP layer doesn't send
+RST to out-of-window skbs.
 
-We may want to do this for standard syntax as well if the benefits
-outweigh the downsides. Thus generalize the JSON-specific helpers you
-wrote for use within bison parser, too?
+But the DNAT policy on the server should have converted the port of
+incoming skb from A_port to B_port as my description in this patch
+said.
 
-An alternative might be to reorder code in table_print_json_full(),
-copying what nft_cmd_expand() does for CMD_OBJ_TABLE. AIUI, it should
-solve the current issue of failing 'nft -j list ruleset | nft -j -f -'
-for special cases.
+It actually doesn't happen. The conntrack clears the skb->_nfct value
+after returning -NF_ACCEPT in nf_conntrack_tcp_packet() and then DNAT
+would not convert the A_port to B_port.
 
-Cheers, Phil
+So the TCP layer is not able to look up the correct socket (client_ip,
+client_port, server_ip, B_port) because A_port doesn't match B_port,
+then an RST would be sent to the client.
+
+>
+> The only possibility I see for such packets is an iptables/nftables rule
+> which rejects packets classified as INVALID by conntrack.
+>
+> As Florian suggested, why don't you change that rule?
+
+As I said, just for the workaround method, only turning on that sysctl
+knob can solve the issue.
+
+Thanks,
+Jason
+
+>
+> The conntrack states are not fine-grained to express different TCP states
+> which covered with INVALID. It was never a good idea to reject INVALID
+> packets or let them through (leaking internal addresses).
+>
+> Best regards,
+> Jozsef
+>
+> > > > Besides, resorting to turning on nf_conntrack_tcp_be_liberal sysctl
+> > > > knob seems odd to me though it can workaround :S
+> > >
+> > > I don't see a better alternative, other than -p tcp -m conntrack
+> > > --ctstate INVALID -j DROP rule, if you wish for tcp stack to not see
+> > > such packets.
+> > >
+> > > > I would like to prevent sending such an RST as default behaviour.
+> > >
+> > > I don't see a way to make this work out of the box, without possible
+> > > unwanted side effects.
+> > >
+> > > MAYBE we could drop IFF we check that the conntrack entry candidate
+> > > that fails sequence validation has NAT translation applied to it, and
+> > > thus the '-NF_ACCEPT' packet won't be translated.
+> > >
+> > > Not even compile tested:
+> > >
+> > > diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+> > > --- a/net/netfilter/nf_conntrack_proto_tcp.c
+> > > +++ b/net/netfilter/nf_conntrack_proto_tcp.c
+> > > @@ -1256,10 +1256,14 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
+> > >         case NFCT_TCP_IGNORE:
+> > >                 spin_unlock_bh(&ct->lock);
+> > >                 return NF_ACCEPT;
+> > > -       case NFCT_TCP_INVALID:
+> > > +       case NFCT_TCP_INVALID: {
+> > > +               verdict = -NF_ACCEPT;
+> > > +               if (ct->status & IPS_NAT_MASK)
+> > > +                       res = NF_DROP; /* skb would miss nat transformation */
+> >
+> > Above line, I guess, should be 'verdict = NF_DROP'? Then this skb
+> > would be dropped in nf_hook_slow() eventually and would not be passed
+> > to the TCP layer.
+> >
+> > >                 nf_tcp_handle_invalid(ct, dir, index, skb, state);
+> > >                 spin_unlock_bh(&ct->lock);
+> > > -               return -NF_ACCEPT;
+> > > +               return verdict;
+> > > +       }
+> > >         case NFCT_TCP_ACCEPT:
+> > >                 break;
+> > >         }
+> >
+> > Great! I think your draft patch makes sense really, which takes NAT
+> > into consideration.
+> >
+> > >
+> > > But I don't really see the advantage compared to doing drop decision in
+> > > iptables/nftables ruleset.
+> >
+> > From our views, especially to kernel developers, you're right: we
+> > could easily turn on that knob or add a drop policy to prevent it
+> > happening. Actually I did this in production to prevent such a case.
+> > It surely works.
+> >
+> > But from the views of normal users and those who do not understand how
+> > it works in the kernel, it looks strange: people may ask why we get
+> > some unknown RSTs in flight?
+> >
+> > > I also have a hunch that someone will eventually complain about this
+> > > change in behavior.
+> >
+> > Well, I still think the patch you suggested is proper and don't know
+> > why people could complain about it.
+> >
+> > Thanks for your patience :)
+> >
+> > Thanks,
+> > Jason
+> >
+>
+> --
+> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+> PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+> Address : Wigner Research Centre for Physics
+>           H-1525 Budapest 114, POB. 49, Hungary
