@@ -1,134 +1,152 @@
-Received: from mail.bugwerft.de (mail.bugwerft.de [46.23.86.59])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8ACCF128806
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Mar 2024 13:34:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.23.86.59
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E229512DD9F;
+	Thu,  7 Mar 2024 14:10:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709818482; cv=none; b=FiN7CggFDl9B4ADpPGIgITj5o1Y+qLVQmz+jLmJ4NOyoTX128qpUDhjtTwaefXRyMeSuWOjAXUWGMe+/k0Vg/iyPaTamWipkEC2FEGjGqVfPL4T21wIumYEL1wOkgKpE7JRrRvmXP0+hmXNvzVjJrzaIdWBSDGMvOI4fkdZ6fi4=
+	t=1709820640; cv=none; b=hll+7dAAtUGeJur2kDcJ33E0oA2A+gTVj2jgXOb6clRTopNgIPx2VbBOiXNRH9v6r3Ru/ubPsoS2HS6+kIy0tAFjDqqN3pF95pDDHgmBU2IzMJ80ooEnEgs7qCRzpr6rkA4+gfZGzl74vdvibjEq0cedPGBEK0/UrebpFCa0cZU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709818482; c=relaxed/simple;
-	bh=yRq1ox96SHfKuU111fdrrNG1Xo6sLpVgPDYNrCzkF0w=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=NUMu1A4noPYAErJTA1fiFWB6p0STzJ42rtxzxZ+O67pTWaBWAyqTK+hggxwZTgLqJp1440yJBNegKRChNhbk1Cbhrk2IZsZv+1C/6KnE+gt40qEPU1Sw2tZJwLnenm7swhKHNOIZbHtCzuv3IxKNtVC9MdVXHWhTKsZGVV6zLtc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zonque.org; spf=pass smtp.mailfrom=zonque.org; arc=none smtp.client-ip=46.23.86.59
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zonque.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zonque.org
-Received: from [192.168.100.26] (unknown [62.214.9.170])
-	by mail.bugwerft.de (Postfix) with ESMTPSA id 11EF2281561;
-	Thu,  7 Mar 2024 13:34:39 +0000 (UTC)
-Message-ID: <07000633-1191-445d-b894-8a1d8b0c9044@zonque.org>
-Date: Thu, 7 Mar 2024 14:34:38 +0100
+	s=arc-20240116; t=1709820640; c=relaxed/simple;
+	bh=IG5hBWgdvIQIXiIi6nwGfY6sqdPdDNVJbUfK9RDSYrI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=j6p9ZuyOHT7YjgFC5juYCpgCeKq3msB0guDGyEXsI9p5zGmJv4cEVoZ8fDqf6Uc63QRMuP/HiVuSD0YwqLxHg8PW5e3rXAb+5dvr8rIhBEaikVxb6en1K1de4VwmeZhQCAJh9o2g/F9LBJmHOaVLjJchCO4sR4ooVjzmk+vUbCw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1riES1-0007l6-Ki; Thu, 07 Mar 2024 15:10:25 +0100
+Date: Thu, 7 Mar 2024 15:10:25 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Jason Xing <kerneljasonxing@gmail.com>
+Cc: Florian Westphal <fw@strlen.de>, edumazet@google.com,
+	pablo@netfilter.org, kadlec@netfilter.org, kuba@kernel.org,
+	pabeni@redhat.com, davem@davemloft.net,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, Jason Xing <kernelxing@tencent.com>
+Subject: Re: [PATCH net-next] netfilter: conntrack: avoid sending RST to
+ reply out-of-window skb
+Message-ID: <20240307141025.GL4420@breakpoint.cc>
+References: <20240307090732.56708-1-kerneljasonxing@gmail.com>
+ <20240307093310.GI4420@breakpoint.cc>
+ <CAL+tcoAPi+greENaD8X6Scc97Fnhiqa62eUSn+JS98kqY+VA6A@mail.gmail.com>
+ <20240307120054.GK4420@breakpoint.cc>
+ <CAL+tcoBqBaHxSU9NQqVxhRzzsaJr4=0=imtyCo4p8+DuXPL5AA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: Issues with netdev egress hooks
-Content-Language: en-US
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-References: <ba22c8bd-4fff-40e5-81c3-50538b8c70b5@zonque.org>
- <ZeizUwnSTfN3pkB-@calendula>
-From: Daniel Mack <daniel@zonque.org>
-In-Reply-To: <ZeizUwnSTfN3pkB-@calendula>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAL+tcoBqBaHxSU9NQqVxhRzzsaJr4=0=imtyCo4p8+DuXPL5AA@mail.gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-Hi Pablo,
-
-Thanks a lot for your reply.
-
-On 3/6/24 19:17, Pablo Neira Ayuso wrote:
-> On Wed, Mar 06, 2024 at 04:43:02PM +0100, Daniel Mack wrote:
->> Hi,
->>
->> I am using the NFT egress hook in a netdev table with 'set' statements
->> to adjust the source MAC and IP addresses before duplicating packets to
->> another interface:
->>
->> table netdev dummy {
->>   chain egress {
->>     type filter hook egress device "dummy" priority 0;
->>     ether type ip ether saddr set 01:02:03:04:05:06 ip saddr set 1.1.1.1
->> dup to "eth0"
->>   }
->> }
+Jason Xing <kerneljasonxing@gmail.com> wrote:
+> On Thu, Mar 7, 2024 at 8:00 PM Florian Westphal <fw@strlen.de> wrote:
+> >
+> > Jason Xing <kerneljasonxing@gmail.com> wrote:
+> > > > This change disables most of the tcp_in_window() test, this will
+> > > > pretend everything is fine even though tcp_in_window says otherwise.
+> > >
+> > > Thanks for the information. It does make sense.
+> > >
+> > > What I've done is quite similar to nf_conntrack_tcp_be_liberal sysctl
+> > > knob which you also pointed out. It also pretends to ignore those
+> > > out-of-window skbs.
+> > >
+> > > >
+> > > > You could:
+> > > >  - drop invalid tcp packets in input hook
+> > >
+> > > How about changing the return value only as below? Only two cases will
+> > > be handled:
+> > >
+> > > diff --git a/net/netfilter/nf_conntrack_proto_tcp.c
+> > > b/net/netfilter/nf_conntrack_proto_tcp.c
+> > > index ae493599a3ef..c88ce4cd041e 100644
+> > > --- a/net/netfilter/nf_conntrack_proto_tcp.c
+> > > +++ b/net/netfilter/nf_conntrack_proto_tcp.c
+> > > @@ -1259,7 +1259,7 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
+> > >         case NFCT_TCP_INVALID:
+> > >                 nf_tcp_handle_invalid(ct, dir, index, skb, state);
+> > >                 spin_unlock_bh(&ct->lock);
+> > > -               return -NF_ACCEPT;
+> > > +               return -NF_DROP;
+> >
+> > Lets not do this.  conntrack should never drop packets and defer to ruleset
+> > whereever possible.
 > 
-> Is this a dummy device created via: ip link add dummy type dummy or
-> just a coincidence?
-
-Yes, it's a dummy device. I'm using the egress netdev hook here because
-it is executed before the device's .ndo_start_xmit() is called.
-
->> The modification of the sender's MAC address works fine. However, the
->> adjustment of the source IP is applied at the wrong offset. The octets
->> in the raw packet that are being modified are 13 and 14, which would be
->> the correct offset within an IP header, but it seems that the prefixed
->> Ethernet header is not taken into account.
->>
->> For the same reason, attempting to filter based on any details beyond
->> the Ethernet header also fails. The following rule does not match any
->> packets, even though there is a significant amount of UDP traffic:
->>
->> table netdev dummy {
->>   chain egress {
->>     type filter hook egress device "dummy" priority 0;
->>     ether type ip ip protocol udp dup to "eth0"
->>   }
->> }
->>
->> At this point, I'm not sure where to start digging to be honest and
->> would appreciate any guidance on how to resolve this issue.
+> Hmm, sorry, it is against my understanding.
 > 
-> I guess you are running a kernel with
-> 
-> commit 0ae8e4cca78781401b17721bfb72718fdf7b4912
-> Author: Pablo Neira Ayuso <pablo@netfilter.org>
-> Date:   Thu Dec 14 11:50:12 2023 +0100
-> 
->     netfilter: nf_tables: set transport offset from mac header for netdev/egress
-> 
-> so this is a different bug?
+> If we cannot return -NF_DROP, why have we already added some 'return
+> NF_DROP' in the nf_conntrack_handle_packet() function? And why does
+> this test statement exist?
 
-Interesting, I did in fact run a 6.4 production kernel when I tried
-this, and that didn't have that patch applied. Sorry for that oversight.
+Sure we can drop.  But we should only do it if there is no better
+alternative.
 
-On 6.7, what I see is different but still broken:
+> nf_conntrack_in()
+>   -> nf_conntrack_handle_packet()
+>   -> if (ret <= 0) {
+>          if (ret == -NF_DROP) NF_CT_STAT_INC_ATOMIC(state->net, drop);
 
-This rules does the right thing and patches the source MAC correctly:
+AFAICS this only happens when we receive syn for an existing conntrack
+that is being removed already so we'd expect next syn to create a new
+connection.  Feel free to send patches that replace drop with -accept
+where possible/where it makes sense, but I don't think the
+TCP_CONNTRACK_SYN_SENT one can reasonably be avoided.
 
-table netdev dummy {
-  chain egress {
-    type filter hook egress device dummy priority 0;
-    ether saddr set 1:2:3:4:5:6 dup to eth0
-  }
-}
+> My only purpose is not to let the TCP layer sending strange RST to the
+> right flow.
 
-Whereas trying to patch the IP source addr leads to no packets being
-forwarded at all anymore:
+AFAIU tcp layer is correct, no?  Out of the blue packet to some listener
+socket?
 
-table netdev dummy {
-  chain egress {
-    type filter hook egress device dummy priority 0;
-    ip saddr set 1.1.1.1 dup to eth0
-  }
-}
+> Besides, resorting to turning on nf_conntrack_tcp_be_liberal sysctl
+> knob seems odd to me though it can workaround :S
 
-Interestingly, ether type filtering is also broken now, the following
-also doesn't match any packets:
+I don't see a better alternative, other than -p tcp -m conntrack
+--ctstate INVALID -j DROP rule, if you wish for tcp stack to not see
+such packets.
 
-table netdev dummy {
-  chain egress {
-    type filter hook egress device dummy priority 0;
-    ether type ip dup to eth0
-  }
-}
+> I would like to prevent sending such an RST as default behaviour.
 
-I browsed through the patches since 6.7 and couldn't find anything that
-is related. Did I miss anything?
+I don't see a way to make this work out of the box, without possible
+unwanted side effects.
 
+MAYBE we could drop IFF we check that the conntrack entry candidate
+that fails sequence validation has NAT translation applied to it, and
+thus the '-NF_ACCEPT' packet won't be translated.
 
-Best regards,
-Daniel
+Not even compile tested:
 
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -1256,10 +1256,14 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
+        case NFCT_TCP_IGNORE:
+                spin_unlock_bh(&ct->lock);
+                return NF_ACCEPT;
+-       case NFCT_TCP_INVALID:
++       case NFCT_TCP_INVALID: {
++               verdict = -NF_ACCEPT;
++               if (ct->status & IPS_NAT_MASK)
++                       res = NF_DROP; /* skb would miss nat transformation */
+                nf_tcp_handle_invalid(ct, dir, index, skb, state);
+                spin_unlock_bh(&ct->lock);
+-               return -NF_ACCEPT;
++               return verdict;
++       }
+        case NFCT_TCP_ACCEPT:
+                break;
+        }
+
+But I don't really see the advantage compared to doing drop decision in
+iptables/nftables ruleset.
+
+I also have a hunch that someone will eventually complain about this
+change in behavior.
