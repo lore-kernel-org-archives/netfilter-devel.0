@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id EA06F5C89;
-	Thu,  7 Mar 2024 02:15:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4C19CEADA;
+	Thu,  7 Mar 2024 02:15:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709777758; cv=none; b=SONdkVLEhdQlD6qjqOOsPH1WahDMmdZRtoYguKrYt9SbJQsAwHq2Cfq7v3zPBJs27SUHsGXr3py4ZOkN3nWz+kWAS3/YP7ifurNjzskif84ugOzZbLm/httAjrLv8ALCUFW5jI9s5q8h9jYnhfpxDgdOLB/Q547vqccd5HI+ec8=
+	t=1709777760; cv=none; b=Hd/cdWGV8dnECHQXsELWMmE+igP3WjeQRroCAHJnldIZ6EWSxKwIf9yhVJZgmSYkD378cNaoukx6xxqbB4he+BcckouwvDKoPwaOlXq4dqXD2wwzwb/4eOOgNJvfZH7Yueo0r7BIyb6W+YYtN3r4kDQxJ8X652ShzswqmfgdP/o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709777758; c=relaxed/simple;
-	bh=PNDUis4QQMGC0/eLqbX+XfpeLGxTfJRW+vhXud0dZCM=;
+	s=arc-20240116; t=1709777760; c=relaxed/simple;
+	bh=wvhSu0XwaGGRsXWfDOypN5y0/NMuLc+Zdd3HHS+Xim4=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=k8UXem9ydl5j/w3S3zJwW/mOHobAPcdJiMewnJxFz+P4zkam2kX6UeR9C5AtktWzwJpzabf2GSyqBLHad0XnEE9XaAw28++FXWND/sdMffaOX2x/tQAD19RysADJEITHpJEfe59sqNQupVSswLWAwE+pNAfiHa3e1lD7WJ38mtA=
+	 MIME-Version; b=gotNryFMHmwx/0NmYIrvNt9MKiM0zSsVgixTeLl4r4E3gsLBZZgqk3HHKZD+3MogmcdkaurYd4gcaxgFBy9k740KdeOhKQJ3VMJrJ4yJgzJVX0T1JEIaL1wwlScwuD7NgrzRzHWR/4FmedjL1kXtbZ1XESIhDwJZLzNsAbMBvy0=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 4/5] netfilter: nf_tables: mark set as dead when unbinding anonymous set with timeout
-Date: Thu,  7 Mar 2024 03:15:44 +0100
-Message-Id: <20240307021545.149386-5-pablo@netfilter.org>
+Subject: [PATCH net 5/5] netfilter: nf_conntrack_h323: Add protection for bmp length out of range
+Date: Thu,  7 Mar 2024 03:15:45 +0100
+Message-Id: <20240307021545.149386-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240307021545.149386-1-pablo@netfilter.org>
 References: <20240307021545.149386-1-pablo@netfilter.org>
@@ -34,43 +34,65 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-While the rhashtable set gc runs asynchronously, a race allows it to
-collect elements from anonymous sets with timeouts while it is being
-released from the commit path.
+From: Lena Wang <lena.wang@mediatek.com>
 
-Mingi Cho originally reported this issue in a different path in 6.1.x
-with a pipapo set with low timeouts which is not possible upstream since
-7395dfacfff6 ("netfilter: nf_tables: use timestamp to check for set
-element timeout").
+UBSAN load reports an exception of BRK#5515 SHIFT_ISSUE:Bitwise shifts
+that are out of bounds for their data type.
 
-Fix this by setting on the dead flag for anonymous sets to skip async gc
-in this case.
+vmlinux   get_bitmap(b=75) + 712
+<net/netfilter/nf_conntrack_h323_asn1.c:0>
+vmlinux   decode_seq(bs=0xFFFFFFD008037000, f=0xFFFFFFD008037018, level=134443100) + 1956
+<net/netfilter/nf_conntrack_h323_asn1.c:592>
+vmlinux   decode_choice(base=0xFFFFFFD0080370F0, level=23843636) + 1216
+<net/netfilter/nf_conntrack_h323_asn1.c:814>
+vmlinux   decode_seq(f=0xFFFFFFD0080371A8, level=134443500) + 812
+<net/netfilter/nf_conntrack_h323_asn1.c:576>
+vmlinux   decode_choice(base=0xFFFFFFD008037280, level=0) + 1216
+<net/netfilter/nf_conntrack_h323_asn1.c:814>
+vmlinux   DecodeRasMessage() + 304
+<net/netfilter/nf_conntrack_h323_asn1.c:833>
+vmlinux   ras_help() + 684
+<net/netfilter/nf_conntrack_h323_main.c:1728>
+vmlinux   nf_confirm() + 188
+<net/netfilter/nf_conntrack_proto.c:137>
 
-According to 08e4c8c5919f ("netfilter: nf_tables: mark newset as dead on
-transaction abort"), Florian plans to accelerate abort path by releasing
-objects via workqueue, therefore, this sets on the dead flag for abort
-path too.
+Due to abnormal data in skb->data, the extension bitmap length
+exceeds 32 when decoding ras message then uses the length to make
+a shift operation. It will change into negative after several loop.
+UBSAN load could detect a negative shift as an undefined behaviour
+and reports exception.
+So we add the protection to avoid the length exceeding 32. Or else
+it will return out of range error and stop decoding.
 
-Cc: stable@vger.kernel.org
-Fixes: 5f68718b34a5 ("netfilter: nf_tables: GC transaction API to avoid race with control plane")
-Reported-by: Mingi Cho <mgcho.minic@gmail.com>
+Fixes: 5e35941d9901 ("[NETFILTER]: Add H.323 conntrack/NAT helper")
+Signed-off-by: Lena Wang <lena.wang@mediatek.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 1 +
- 1 file changed, 1 insertion(+)
+ net/netfilter/nf_conntrack_h323_asn1.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index fb07455143a5..1683dc196b59 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5430,6 +5430,7 @@ static void nf_tables_unbind_set(const struct nft_ctx *ctx, struct nft_set *set,
- 
- 	if (list_empty(&set->bindings) && nft_set_is_anonymous(set)) {
- 		list_del_rcu(&set->list);
-+		set->dead = 1;
- 		if (event)
- 			nf_tables_set_notify(ctx, set, NFT_MSG_DELSET,
- 					     GFP_KERNEL);
+diff --git a/net/netfilter/nf_conntrack_h323_asn1.c b/net/netfilter/nf_conntrack_h323_asn1.c
+index e697a824b001..540d97715bd2 100644
+--- a/net/netfilter/nf_conntrack_h323_asn1.c
++++ b/net/netfilter/nf_conntrack_h323_asn1.c
+@@ -533,6 +533,8 @@ static int decode_seq(struct bitstr *bs, const struct field_t *f,
+ 	/* Get fields bitmap */
+ 	if (nf_h323_error_boundary(bs, 0, f->sz))
+ 		return H323_ERROR_BOUND;
++	if (f->sz > 32)
++		return H323_ERROR_RANGE;
+ 	bmp = get_bitmap(bs, f->sz);
+ 	if (base)
+ 		*(unsigned int *)base = bmp;
+@@ -589,6 +591,8 @@ static int decode_seq(struct bitstr *bs, const struct field_t *f,
+ 	bmp2_len = get_bits(bs, 7) + 1;
+ 	if (nf_h323_error_boundary(bs, 0, bmp2_len))
+ 		return H323_ERROR_BOUND;
++	if (bmp2_len > 32)
++		return H323_ERROR_RANGE;
+ 	bmp2 = get_bitmap(bs, bmp2_len);
+ 	bmp |= bmp2 >> f->sz;
+ 	if (base)
 -- 
 2.30.2
 
