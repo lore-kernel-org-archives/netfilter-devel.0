@@ -1,48 +1,48 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F8BE548E8
-	for <netfilter-devel@vger.kernel.org>; Fri,  8 Mar 2024 11:30:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C50EB5646E
+	for <netfilter-devel@vger.kernel.org>; Fri,  8 Mar 2024 11:45:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709897455; cv=none; b=tAzuHcRA9zHkGqSgYpCgSZjMPYLOIYHzZQJb9wHFQZFfNQpChTEu7pn8ec44MrYpkOj78cZiCBQE7mkReDenpeOnyKXpxSZmkW6HDrrvrExsVn6YowcvFZmAuqwIQsVfIRJ3sKIPNvN1fKx1bN4jDQfigYFcfbw6GmTDsq6x7DI=
+	t=1709898305; cv=none; b=QZakAmcqweU9oM46UO8He4EMWGJ+UN/fYYucxKbETngXR1nAjV0+XDm/VA4mCJ8psRiSjYIvzfn4iaEwBUht8jf8oBkGj9IaOisRSe4JPIBULVECSp0MayMr290PhB2zuqWbkZ/RpUp3EXJ3Hh/+Gn0TOs6eYub31TL2GGEPhak=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709897455; c=relaxed/simple;
-	bh=Ouxo6lGr+b4DVr56KhZVaVy19SUQe1QJ4QScqsd6IcE=;
+	s=arc-20240116; t=1709898305; c=relaxed/simple;
+	bh=P92q2lrHjhTi3Jah/dDT5uWddYUNOtSkzbRSH17NbwQ=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=DjjfcnnfHCyk2cYfVkf5e64fdxMUoWhogdD0qSd1UPzUHHxMcfL7sjPTl+nfYMyo6GRNgm+a3vXCv34v9jnqxguftsH47vjDHa4SXbWTMqdLJq+GIU6LvJydijbBeIl4MbkhnUkFTht5UgiZR0Pg/Knpqi3unIUiTZDAFiWXsuo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=BSOT7n49; arc=none smtp.client-ip=151.80.46.58
+	 Content-Type:Content-Disposition:In-Reply-To; b=jjsd6LmmqHvItpnXEUZrR7Rx33vLPQsiMOcDgkHOIUHpoYM57GFwA7c8PxmTvHHkV0Ds1WpMCONt/plmqXPR+f1wiL/nBq7M2kyqTjKtAlDGcx035yeEFXczTYapdoT9edpDQDaa1Ec5GBEfkYqVNU1mFWOLVkLHxF7lEOiCeIQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=EMc8hX81; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="BSOT7n49"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="EMc8hX81"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
 	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=kR8IgUm6Cn3cOjRAeom74nMAvFaMJTc+Hg3nXchHP+E=; b=BSOT7n49xoXQTpH1q4EuFgRRjY
-	rKz1orSlWvfXoLl510ZbR3QDs/rjzUwIC7rW+d97KtQlUMwDIWArDmofKhEUHkecwV68lxE/cSZNw
-	KgPOMBVNLYguEQNcAcd8wAtxZzsweDVHnM7lL/CBSlvTScN8sYfckEgrWy+HY9RDma1kdYgy30heJ
-	NU/CEHFJu2HgH+9AKS6hix0ErrbfPhRZKaPSzgyfyW64H1rZM8fPYW+xON0KKx8b9NqvtS9ttAOJ+
-	dbgrmGEihZI7pm0Sq515TAcv6xpiBCUBjiHMITD9OBDqWN1TgUZsyREtBpM+8DxEf9SdMdV3WXji0
-	Cpqq3yAA==;
+	bh=FL1wt8EzEe5VGyuotaGABpcz+TUV6sHKCNovj/uOTvA=; b=EMc8hX811WnuIXl6gH/3N2RIOU
+	0ZGxesJ8D7CkbObpxtqXp/tCsqJvh7gGBNuXZuG5jcAmYn7B+kdcr4S+2CCgFuQS7OhFLl1ozuESx
+	L93sSnVOhAcHJWz4dyEQj/cMvWh+0R5yRG5OH3+4IgjEdoononR6N7TfKtlgz7ug7GZ0aSdgC++dP
+	40Ua2liIb/tjBD+yU4twOON6YnxJBlXa2sdzxFalBcI8m9Dhxk++6lzXSAaSBndojYF2ZIpVms62n
+	lWYzxxr8oN83DZrCLz3G9/70Z0Z7LZ1Rlo4ZtY+e5W7w7ZTPB6tQljL/EMUFDYk+lskUaPhyu3k40
+	KKFEwfGg==;
 Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1riYR5-000000001xq-1noA;
-	Fri, 08 Mar 2024 12:30:47 +0100
-Date: Fri, 8 Mar 2024 12:30:47 +0100
+	id 1riYeq-000000002Bt-2mrP;
+	Fri, 08 Mar 2024 12:45:00 +0100
+Date: Fri, 8 Mar 2024 12:45:00 +0100
 From: Phil Sutter <phil@nwl.cc>
-To: Sriram Rajagopalan <bglsriram@gmail.com>
+To: Neels Hofmeyr <nhofmeyr@sysmocom.de>
 Cc: netfilter-devel@vger.kernel.org
-Subject: Re: iptables-nft: Wrong payload merge of rule filter - "! --sport xx
- ! --dport xx"
-Message-ID: <Zer252IUJr07J_eX@orbyte.nwl.cc>
+Subject: Re: [RFC nftables PATCH]: fix a2x: ERROR: missing --destination-dir:
+ ./doc
+Message-ID: <Zer6PPF7baeTqT9-@orbyte.nwl.cc>
 Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Sriram Rajagopalan <bglsriram@gmail.com>,
+	Neels Hofmeyr <nhofmeyr@sysmocom.de>,
 	netfilter-devel@vger.kernel.org
-References: <CAPtndGDEJVWXcggRkw66YLjhu3QyUjJ5j4YEbvJLj-qbPkQaPg@mail.gmail.com>
+References: <ZepTs5Rj0bXqQvSo@my.box>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -51,62 +51,22 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAPtndGDEJVWXcggRkw66YLjhu3QyUjJ5j4YEbvJLj-qbPkQaPg@mail.gmail.com>
+In-Reply-To: <ZepTs5Rj0bXqQvSo@my.box>
 
-Hi Sriram,
-
-On Fri, Mar 08, 2024 at 02:49:38PM +0530, Sriram Rajagopalan wrote:
-> iptables-nft based on nftables has an issue with the way the rule
-> filter - "! --sport xx ! --dport xx" is wrongly merged and rendered.
-
-I agree with your analysis and the patches look fine. Could you please
-submit them formally?
-
-[...]
-> % export IPTABLES=/usr/local/sbin/iptables-legacy; sudo $IPTABLES -A
-> INPUT -p tcp ! --sport 22 ! --dport 22 -i vm2; echo -e "\n---- Before
-> data ----\n"; sudo $IPTABLES -L INPUT -vvvn; sudo python -c "from
-> scapy.all import *;
-> sendp(Ether(dst='9e:00:fa:a3:c9:48')/IP(src='1.1.1.1',
-> dst='2.2.2.2')/TCP(sport=23, dport=22), iface='vm1')"; echo -e "\n----
-> After data with either one of tcp sport/dport being 22 ----\n"; sudo
-> $IPTABLES -L INPUT -vn; sudo python -c "from scapy.all import *;
-> sendp(Ether(dst='9e:00:fa:a3:c9:48')/IP(src='1.1.1.1',
-> dst='2.2.2.2')/TCP(sport=23, dport=23), iface='vm1')"; echo -e "\n----
-> After data with neither one of tcp sport/dport being 22 ----\n"; sudo
-> $IPTABLES -L INPUT -vn; sudo $IPTABLES -D INPUT -p tcp ! --sport 22 !
-> --dport 22 -i vm2
+On Fri, Mar 08, 2024 at 12:54:27AM +0100, Neels Hofmeyr wrote:
+> Since recently, I'm getting this build error from nftables, quite definitely
+> because I am building in a separate directory, and not in the source tree
+> itself.
 > 
+> 	  GEN      doc/nft.8
+> 	  GEN      doc/libnftables-json.5
+> 	  GEN      doc/libnftables.3
+> 	a2x: ERROR: missing --destination-dir: ./doc
 > 
-> ---- Before data ----
+> 	make[2]: *** [Makefile:1922: doc/nft.8] Error 1
 > 
-> ip filter INPUT 41
->   [ meta load iifname => reg 1 ]
->   [ cmp eq reg 1 0x00326d76 ]
->   [ payload load 1b @ network header + 9 => reg 1 ]
->   [ cmp eq reg 1 0x00000006 ]
->   [ payload load 2b @ transport header + 0 => reg 1 ]
->   [ cmp neq reg 1 0x00001600 ]
->   [ payload load 2b @ transport header + 2 => reg 1 ]
->   [ cmp neq reg 1 0x00001600 ]
->   [ counter pkts 0 bytes 0 ]
+> May I suggest attached patch.
 
-You're fibbing here: That netlink debug output can't come from
-iptables-legacy. I suspect it actually comes from your patched
-iptables-nft or nft too. :)
-
-[...]
-> Author: Sriram Rajagopalan <bglsriram@gmail.com>
-> Date:   Fri Mar 07 20:09:38 2024 -0800
-> 
-> iptables: Fixed the issue with combining the payload in case of invert
-> filter for tcp src and dst ports
-> 
-> Signed-off-by: Sriram Rajagopalan <bglsriram@gmail.com>
-> Signed-off-by: Sriram Rajagopalan <sriramr@arista.com>
-
-Maybe avoid the double SoB? Apart from that:
-
-Acked-by: Phil Sutter <phil@nwl.cc>
+Patch applied after adding "Makefile:" prefix and your SoB.
 
 Thanks, Phil
