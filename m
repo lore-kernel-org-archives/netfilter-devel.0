@@ -1,263 +1,225 @@
-Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com [209.85.208.47])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mailgw02.mediatek.com (unknown [210.61.82.184])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BE927470;
-	Fri,  8 Mar 2024 00:42:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.47
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709858582; cv=none; b=pZERfqZDYj9HoXVtE2kgaz1wP3dlQk4/plKER33vPyIZnVg84/LMgdptPy4UWXXYdGMbikR7jrGELmtQR7FpGGO+Fsa2+81Dr9QM3X8hZX+WO655RBBcnupjS59x8bToiAwWBKyYQW+PrO5t6dDQ+dLmvcm/WZQfoWjnm59bRbA=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709858582; c=relaxed/simple;
-	bh=3NEG6TNj7KsFoTEvmnkdQHLT3ZPCDsEdozgYR6CjZtQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=MQ/WTxlUGyseRncgrs0PZC9we1Fov7sRQxGbLmPdTpzDFx9fsj3vR44weK3lfOyX2wAfGS+vhdJv3QLya3k19goB+oal7QiDi9/tDlwAugIQuJIcuK6/dOyWjtUd8eFj09xt0fn48lCQdLFMZKvpfuULEqBA7qhBPErJa7pfcd8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=h/QuucnA; arc=none smtp.client-ip=209.85.208.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24F0923B0;
+	Fri,  8 Mar 2024 01:24:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=210.61.82.184
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1709861078; cv=fail; b=dgY+wLRkM8Co5iTnsM16YzegERmLd6gZZ5++gqq66Ld7d3UxisTZ5EAwQ/FqxKAJG7qZpIed8xk4OQlfRD+VIiqxc0pdPZHPE3WKcfepqQXUeOI9XCBTIc/lcAw+PGgiapNtMvJ4/yEld6mnjSH5uXSAlgTV/E37M2guFDTFRpU=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1709861078; c=relaxed/simple;
+	bh=iejS9U0B2gz0zwGq8cK0hXNxrOif96FJRkNfWWEGGcs=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=AUYfSjuSf+X01uIo/mhjjeiOCIVn8907oBeKeTP8vivQiUBUrgP4m9I42Hl549qkCbT6udsUk1IyHv5/qDIx9SdKvWJS543zTBvfflTcx6IuQ+oBoLKB8MeGmVPjGR8ThSB4HwUWFbQOdANIYb6h3gtvbEjOLaTCSuXwe1a18Jo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=mediatek.com; spf=pass smtp.mailfrom=mediatek.com; dkim=pass (1024-bit key) header.d=mediatek.com header.i=@mediatek.com header.b=soqzusbb; dkim=pass (1024-bit key) header.d=mediateko365.onmicrosoft.com header.i=@mediateko365.onmicrosoft.com header.b=l5GbHh+8; arc=fail smtp.client-ip=210.61.82.184
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=mediatek.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mediatek.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="h/QuucnA"
-Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-567bac94719so322497a12.0;
-        Thu, 07 Mar 2024 16:42:59 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=mediatek.com header.i=@mediatek.com header.b="soqzusbb";
+	dkim=pass (1024-bit key) header.d=mediateko365.onmicrosoft.com header.i=@mediateko365.onmicrosoft.com header.b="l5GbHh+8"
+X-UUID: 9bcd0372dcea11ee935d6952f98a51a9-20240308
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=mediatek.com; s=dk;
+	h=MIME-Version:Content-Transfer-Encoding:Content-ID:Content-Type:In-Reply-To:References:Message-ID:Date:Subject:CC:To:From; bh=iejS9U0B2gz0zwGq8cK0hXNxrOif96FJRkNfWWEGGcs=;
+	b=soqzusbbmQ4fQDOHWjeFmC/eTdZXXEU582+5AzWOHKclmEytnp4VrT+ELB4sNYDA5H9p+NYvDpSCt47zHdKPuSHmmHzLCHeh5Renu/K6VpA2N2RGtGtk3/xyQq5i5eccGp5CPLbMiHFQp8G5qKAphP3s2bsPMudCBG4YYXsZdFs=;
+X-CID-P-RULE: Release_Ham
+X-CID-O-INFO: VERSION:1.1.37,REQID:efd77065-1107-4308-ae16-eebc99084e54,IP:0,U
+	RL:0,TC:0,Content:0,EDM:0,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_Ham,ACTION:
+	release,TS:0
+X-CID-META: VersionHash:6f543d0,CLOUDID:0fd92690-e2c0-40b0-a8fe-7c7e47299109,B
+	ulkID:nil,BulkQuantity:0,Recheck:0,SF:102,TC:nil,Content:0,EDM:-3,IP:nil,U
+	RL:11|1,File:nil,RT:nil,Bulk:nil,QS:nil,BEC:nil,COL:0,OSI:0,OSA:0,AV:0,LES
+	:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0
+X-CID-BVR: 0,NGT
+X-CID-BAS: 0,NGT,0,_
+X-CID-FACTOR: TF_CID_SPAM_ULN,TF_CID_SPAM_SNR
+X-UUID: 9bcd0372dcea11ee935d6952f98a51a9-20240308
+Received: from mtkmbs13n2.mediatek.inc [(172.21.101.108)] by mailgw02.mediatek.com
+	(envelope-from <lena.wang@mediatek.com>)
+	(Generic MTA with TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 256/256)
+	with ESMTP id 2064460330; Fri, 08 Mar 2024 09:24:28 +0800
+Received: from mtkmbs10n2.mediatek.inc (172.21.101.183) by
+ MTKMBS14N1.mediatek.inc (172.21.101.75) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1118.26; Fri, 8 Mar 2024 09:24:27 +0800
+Received: from APC01-TYZ-obe.outbound.protection.outlook.com (172.21.101.237)
+ by mtkmbs10n2.mediatek.inc (172.21.101.183) with Microsoft SMTP Server id
+ 15.2.1118.26 via Frontend Transport; Fri, 8 Mar 2024 09:24:27 +0800
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=i81h04t1WFeQCaXTJQQdI0r9IA8BpEfbM3z+/fpU9UeNpdRKqb31Ts2LjpZv55ekmdeMHxolO+X78Il+wTVqwq0WfoVuYSUPyIf5SeqGmGfqtdVLkw3a9yTyk/GExZvqnPHAz7O0mljS7M+OonGzQVMlOOvtO3uIgw8F3ChywlvdSjhayjqxd8RCyVjsBJ400+2qccsM5ibmxqM/gay1inmkdrGdpayWWcEzWz4kMhBz9bVjkoQrBxfFtj4BfE5KnY2vzog0Vsxqr/jL7N3fFoO0Nxwj/zZAr9L0hTJUl7XGxmsvUFm5F3CHLSUSFzdgYSNsHTyMvvZNZogkoAJlqg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=iejS9U0B2gz0zwGq8cK0hXNxrOif96FJRkNfWWEGGcs=;
+ b=TV88QoZ9JHp4M3DfhuV4Nwq3YUfchih8uQdI0fYsBnbZi/L3ABiu2yKDJPvxJSHOAUdechFP9oT54fpRPOFLSLnpeyoF82Qpmu8kLBkf9ErT5YfDw/6UffFRGQ4Zy6FT/H9vi0y//jM9BYW43tq9Jbi25N7OgscxI2uspSEh2FXkuQmLgp5wxZQgV7pr4tpXMPVzLGU+nDG2TF/keCCc8R8PAy8FN+tWsB+tgUX+Q4dDZviMTw9F2881S5AGQTiP3ajlbyXXzsgX1wFSikB+M8gXpxqmK4nZaO/WSGNhRSQp7ST9VBxmeCAX9UbuhUuOUUmgX428KeMvF+u7Rbg2RQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mediatek.com; dmarc=pass action=none header.from=mediatek.com;
+ dkim=pass header.d=mediatek.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1709858578; x=1710463378; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=wYvQtqEyJB+URroCRC8pQOSdeHppTkKZaU1WCC5rpUs=;
-        b=h/QuucnAbMcZBcUoCeKLMrmMcKxPty1oDpQKgWHqdHu0FX1wrd3lEjP6lf2SN0c8oz
-         mXmmJJibI3lrb9WL6+qUoywlfcM1DQGctlItnRF/Sto8Zh7de/1GzsELxEzZTK4W7kkv
-         vh4fmzMr1URIBuxCWvx9P7GqO2j0VZQw86oKHqllkVySQQny0siRMhpyW/hreHJvQN2y
-         JYPAYmdDZAtB8h4jySj088y/za6FeVCGSt8pF20roU8LLQsf3tjnZ/yPyQRAZ9XzwFzb
-         FvlAAY0nX4WD0LxyGaGa+lt/Q3qGoJSObN+rGBBq4E7BYzaQlIKOH2eDnLZtVCuOrL8t
-         GlhA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1709858578; x=1710463378;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=wYvQtqEyJB+URroCRC8pQOSdeHppTkKZaU1WCC5rpUs=;
-        b=I+B/qXDZ+jrkK3oliLRyxmP3p91955r615vwEtrfKpZpVHC6Tu9hF3wOhXA9lgcGJ2
-         g5YtwoTRrBVsrT1IWpGMCR9cNWeTY5F4noJ1NC1fGAadeZV87BYjFe/zJIAJIelnwd4m
-         6i0niZ0Sq0l/spnvjnlHjzNoBdx1z19aS9wdEnRv0NVt2vzZxrdjEGbUht4PRNrYt9Z2
-         0BJXGM8zV0GOzsfHsWdmwlYFSOTTNkM7M+/2k10gqkhhN0BQ4J5GRygdIBb7ctSPL25x
-         g6LxD2EOIIHJsgWVaVJeD5ixm5fjQhbdhEl2c8jqgvKjf02O/kjMZWPSIoBCYxFbX9dQ
-         DyLQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVtvZpTH02ksZJxa7AY6nhU9Mfq/RXv54biwuz6pzv1x4xG7MDVTzHXMEJDJLfRTvq9mW/2TH2mn1NQjlkXkQF7r9VdBguB/mIzYdMTU3/0eNG4gncb9GYCZeaA2qckJOzTwsVQY+LG
-X-Gm-Message-State: AOJu0Ywx6CjTRrtX/crEtVV6A9tZRJzSmpaWE/KGs07FilPmvy5BKdDL
-	h7hSMmAFR5Xj8TLaGZlCURGkHWjvUrG7BUR9km91Llki9WsXkRjWAzPJRJ2tC8f5aTwYM+dxi8d
-	uV7ufywne51y7TfIk9cEpBql9zmg=
-X-Google-Smtp-Source: AGHT+IFgPm3Vx3eCeRo828gl5p0zzcm1Y75zw1kGYKt2C6e5P0rt9hWDeKEXQwsMFV5wa7KzlxHqWsTkHaYTWwCz8aM=
-X-Received: by 2002:a17:906:3b81:b0:a43:86f3:af37 with SMTP id
- u1-20020a1709063b8100b00a4386f3af37mr13061731ejf.53.1709858577767; Thu, 07
- Mar 2024 16:42:57 -0800 (PST)
+ d=mediateko365.onmicrosoft.com; s=selector2-mediateko365-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=iejS9U0B2gz0zwGq8cK0hXNxrOif96FJRkNfWWEGGcs=;
+ b=l5GbHh+8Azpwph6Q4xBVkR3c/6MS5K0az/Yj76iLcwd+wKDzgmzBQDl/ayBHgyuPCxMDrPsJdqzhqBqIDJtH67eOtV0+cYnX2p4++s0dqzf6naa6AqOA/KzLLj6dUAyUXXbtEtsnUdKDS6aNHHvizgLN5AkrxGF1U0I+SfcNGTs=
+Received: from SI2PR03MB6463.apcprd03.prod.outlook.com (2603:1096:4:1a3::9) by
+ SG2PR03MB6480.apcprd03.prod.outlook.com (2603:1096:4:1c7::10) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.7362.24; Fri, 8 Mar 2024 01:24:25 +0000
+Received: from SI2PR03MB6463.apcprd03.prod.outlook.com
+ ([fe80::6091:6aa6:efd9:a3aa]) by SI2PR03MB6463.apcprd03.prod.outlook.com
+ ([fe80::6091:6aa6:efd9:a3aa%5]) with mapi id 15.20.7362.019; Fri, 8 Mar 2024
+ 01:24:25 +0000
+From: =?utf-8?B?TGVuYSBXYW5nICjnjovlqJwp?= <Lena.Wang@mediatek.com>
+To: "fw@strlen.de" <fw@strlen.de>, "davem@davemloft.net"
+	<davem@davemloft.net>, "pablo@netfilter.org" <pablo@netfilter.org>,
+	"kadlec@netfilter.org" <kadlec@netfilter.org>, "jiri@resnulli.us"
+	<jiri@resnulli.us>
+CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH net v3] netfilter: Add protection for bmp length out of
+ range
+Thread-Topic: [PATCH net v3] netfilter: Add protection for bmp length out of
+ range
+Thread-Index: AQHabvG0DZxC9eczF0uTSH6BuJVdS7EtDQGA
+Date: Fri, 8 Mar 2024 01:24:24 +0000
+Message-ID: <e1f1a2ebbbf95d6aa8d2a12811ce379f438ab21b.camel@mediatek.com>
+References: <571b3e3f7191b5f67792d1090fc537bf4045c522.camel@mediatek.com>
+In-Reply-To: <571b3e3f7191b5f67792d1090fc537bf4045c522.camel@mediatek.com>
+Accept-Language: zh-CN, en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=mediatek.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: SI2PR03MB6463:EE_|SG2PR03MB6480:EE_
+x-ms-office365-filtering-correlation-id: 4e44bd0f-757d-41a5-e349-08dc3f0e7da7
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: UODwQtq53tzOGPkfutprwA/Iv3z2g5qlmEhApoIrm0SQuQ/6eQfEPCcOclXdyAdmCrNdS6uqNsoLZuIIHugAMpz0U9pJ8o3SP2YIwMVMRwTCPiE2V2n6eopke3fsFcnYob4Ut7pmtE2XfclHAgdoT7Df8skDZfRvH4wdVwaZZRvaP1pWEnYXgDpcsPQhbxduVaQy8Sf3rIOlNsy3ZMCqmDrie+Kg4vnCmEX28AL1bvGGkqgVeZeRjw8I2mNXTHRPMJgpJoF+5ddLmYf//Sa1J0Id/EVqXcRlp5nc2SjGpUs99xj4aEWHc/i8X8a4vq+eR6oDNVxqRopXJLHvxgelRmm/iXXUldzzdqPCuZbEa/qKXVAik09b3j1AKNkPWAdfPOUoBz//TfHPn9jx+Yse+UkPpBd6zf1VQEexeDXNI+iCKZEnCa+pCFM9Rq0TO86JCHl0Ub2EkJO59/YcletqEsnqUqAJBbZSqQ14Z7dc36aF/mvmApusHpYCrvWI7Ccuibayt+2PT+ZhqtdiSZ/sWuupsBfyJwuFkYNfmSKydTBiOKFtgm5W+7Hfw7QvoqGtWIDLDbds0p+Y5EIOFTIU+seriHv9XObFFZe4PkDlcqwSHbqnNJCodlFsnKQ4AJor79FyGi1QYt6efDAnbNsc7SjvcVY5FWlXEa8GAyZat3NY3La9XzBZzg5avpM47oKcMD9Jr/54kwKXe0vH2hHuUzOiz+RAEK7Hs2eRCfsM4Q4=
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SI2PR03MB6463.apcprd03.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(376005)(1800799015)(38070700009);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?utf-8?B?cDZYWFByaE5HQTlWREEyRHkwQ3dRR3ZwTjIyRGlnVUlNVy8weU83bG0vNVdZ?=
+ =?utf-8?B?eHBPbHZJYTdJZnMrSDlrU3ByYjFCQXdWUllRVGZuQVVKT0x3eWgyeHNKanVx?=
+ =?utf-8?B?TkFhNjhEM2luSU9BejduQ0dnU29FZ1J3aWVDUVZ4SjNQRjNHakxmMmZZcW5F?=
+ =?utf-8?B?Y3ZHZnc5dnFhL282Z2JpZ2hGQW9WMEFnMm1ZdDhXbTJGQVdub3RVYmlxOXlJ?=
+ =?utf-8?B?bGlpeUphdW82WXRBY3I2OVI5Nmdrak5zclgya3pJZ01RVTNrcVhkcnNWNnhZ?=
+ =?utf-8?B?ZXNRQkQwaHJJNFlDU2ZsajNFRFVkQkpyU0gyTzJwSG1LTXFJL3JUclZpYWdn?=
+ =?utf-8?B?dVZaTzF5ZFhsNE9QZzNNSmNOQVlGdGpNTkkvNjRaUG41QnduK2Z1YjZlYXQz?=
+ =?utf-8?B?YmNBSGlYa3BNWFZJbjN5azI0RHQ2Ym1IT3FVWDVjNjhyS1hPYk0ydmFRN3Nz?=
+ =?utf-8?B?MFdqZjRhc1RIMjNCelNlMWN6T29tdzk0SkJOTjR2cityeVYySS9DcWRKYVNt?=
+ =?utf-8?B?ZkJhRk81NVgrYzJqa3ZQOFNuMjFjQ00xYmluUjBYTmVzMmdOdEY0MWVCK215?=
+ =?utf-8?B?K0VHeWdDd005clZCN2JPZW5CeGNRRy9kdXhuUm9MeFlJMTI2VVV4emFKZW9v?=
+ =?utf-8?B?TGFUbncxQ3RTNmM5QnFKSTIvcFI0aCtNNFJJNEN2VHFnNTFRTWtoeWxPU2Fu?=
+ =?utf-8?B?Y2NFc0tlOUV1ZVlGYm53QlVCcytrSlljMmdTbExCVFBaSVd5S05rWVNXdG9i?=
+ =?utf-8?B?R3UvQ0VRTWFsQkwvWGUvT2RjTjdiaGVMNzF3NGxSNGdFYlZIR24wMDRpSllx?=
+ =?utf-8?B?U2JjenNSY05PUUdTMkgzZHhuY2hOalByL1pJUDhobUt4S3crTExaNDl2SWJX?=
+ =?utf-8?B?UURNUjYxaGlQcTBMdVBPVnp1NW9CR0QyYWZua3Y3MDYwUE9CNzhYSjhOS0N5?=
+ =?utf-8?B?T0tOSTlYSkdQc0czUnRQSlM0YmZlb3I2WkV2N2RQVHdqY2dqZXBSTWx0QS8z?=
+ =?utf-8?B?V1k1YklEcWo2UldyTmxVY2swWVlzUDZLMmRQaVBvMVpKWWNBSm9INnlCTFk2?=
+ =?utf-8?B?RVJlOVY4aE9xTFNzdC8ySHJOMDVSQzEzSHVsZ2pPVXdOUE9jNm9xWitIL25R?=
+ =?utf-8?B?cVFMYWJpcEZscjBnQTVPN0g5NTVVNXM1Yzg2WmtCSXJ3R0ZybXFtNHZCVlVB?=
+ =?utf-8?B?RUs0bmdlMUJtQUx4RkdGbm05cDkya29iWU1xRTBsZmpkRnVFaVpRL3dMVi9G?=
+ =?utf-8?B?ZTJyVU9XaUwyV1lKcjVYL3FnZEFxVHN1K000VjQ0dUxXenZ1T1JocnVySXMv?=
+ =?utf-8?B?aU5PY1ZvNGhHSUxyLzRSTnR6a1RjQWJFQzIweWpqQVlJTjN6TkRiMkNvT25F?=
+ =?utf-8?B?T052NDRsa2RGaEFsdlBKclFESGt0eUplMndUOXdjNm4rcy80NzJzZmZOeXJE?=
+ =?utf-8?B?elN3SnVzR3lhNzdhd3ZlYVRONmRYOGs3UHhld09RK25jcHdmK3lBcTdsVDVv?=
+ =?utf-8?B?VXNHU2ppWlZLRG9pSXp4Q0FXOUkzTmE2T1pYVkt0S2ZTUnJPeFRPQnpIWWFF?=
+ =?utf-8?B?NEZtN3JUeGQvd3pVMFhTRE01dk4vZk1Zd0pWYklQVGZjaUgveXJ4SXJuUi8x?=
+ =?utf-8?B?NFdlRUE4ZXF0Z2ltZ0FsVzR3ZmNTU2VYcU0zN0pVdDBZZmtPNU9PU1VIOVVJ?=
+ =?utf-8?B?aWsydnFjZ2RxbUtrZ1RvdEFZT3FVRW5DK3Y3aVRsVmxpbWNFb0xHbERlRjR2?=
+ =?utf-8?B?c3F0Q3FMZDBxY2lZNndWSy9yTXFxN09Odk1pakQwMzNvbnk4dGRaUko3RFNN?=
+ =?utf-8?B?eUdyRE8wOStIVjV4UCs4LzluUElFMzYzakJEVURJa2tGVTl4cVNXbUp0TEU0?=
+ =?utf-8?B?TXlramJUUWFrUE1YYjZHWG5BVVo4OG02SWV6WWg2SXVHVEVaNktJTUJyMWhI?=
+ =?utf-8?B?c2RKRStMcVpXRkRPMVhHeGFzNDgyZVFGeUJUMVFIWW4xTEhaM0dtbTJQdExa?=
+ =?utf-8?B?QUtESGo4d2poQSt6ajN3WXNLcndtNFJDVFZIbTJFK1RBQVpKWHhUeXdpRW5G?=
+ =?utf-8?B?L1hNQWlaMHNjdFVCNnd1ZXArcjcxV2FTalFmeWdJZ1hmNUVzKzByeGhsS2hq?=
+ =?utf-8?B?WlF4dXBSaG92bGN4VEpURVJremVoOGRFRUtiQmVzSCtmSU4rZ1Fmdlpubkx1?=
+ =?utf-8?B?TGc9PQ==?=
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <9F822636415F794D8158A9A6A72FAE75@apcprd03.prod.outlook.com>
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240307090732.56708-1-kerneljasonxing@gmail.com>
- <20240307093310.GI4420@breakpoint.cc> <CAL+tcoAPi+greENaD8X6Scc97Fnhiqa62eUSn+JS98kqY+VA6A@mail.gmail.com>
- <20240307120054.GK4420@breakpoint.cc> <CAL+tcoBqBaHxSU9NQqVxhRzzsaJr4=0=imtyCo4p8+DuXPL5AA@mail.gmail.com>
- <20240307141025.GL4420@breakpoint.cc> <CAL+tcoDUyFU9wT8gzOcDqW7hWfR-7Sg8Tky9QsY_b05gP4uZ1Q@mail.gmail.com>
- <1cf0cef4-c972-9f8d-7095-66516eafb85c@blackhole.kfki.hu> <CAL+tcoBwmnPO8y7zDvi3h0Y_QzKpj=fjnxiOuQYP_OBzoh=qEA@mail.gmail.com>
- <55a00270-6750-ca72-f20c-4be84afa0c3b@blackhole.kfki.hu>
-In-Reply-To: <55a00270-6750-ca72-f20c-4be84afa0c3b@blackhole.kfki.hu>
-From: Jason Xing <kerneljasonxing@gmail.com>
-Date: Fri, 8 Mar 2024 08:42:20 +0800
-Message-ID: <CAL+tcoBWGEtirQXUKtQ7EnveXc_T3aOCydG_uGUmew4x56hifw@mail.gmail.com>
-Subject: Re: [PATCH net-next] netfilter: conntrack: avoid sending RST to reply
- out-of-window skb
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Cc: Florian Westphal <fw@strlen.de>, edumazet@google.com, 
-	Pablo Neira Ayuso <pablo@netfilter.org>, kuba@kernel.org, pabeni@redhat.com, 
-	David Miller <davem@davemloft.net>, netfilter-devel@vger.kernel.org, 
-	coreteam@netfilter.org, netdev@vger.kernel.org, 
-	Jason Xing <kernelxing@tencent.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: SI2PR03MB6463.apcprd03.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 4e44bd0f-757d-41a5-e349-08dc3f0e7da7
+X-MS-Exchange-CrossTenant-originalarrivaltime: 08 Mar 2024 01:24:24.9669
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a7687ede-7a6b-4ef6-bace-642f677fbe31
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: E2zdSwL5pj3dZAcm02a4TUTkoMlzAZPfDEiATi0oE9Od68WJfY/Vv1tuu33uW6/102ZWGuQrCERDAjZEfkv93w==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SG2PR03MB6480
+X-TM-AS-Product-Ver: SMEX-14.0.0.3152-9.1.1006-23728.005
+X-TM-AS-Result: No-10--13.784100-8.000000
+X-TMASE-MatchedRID: hls5oAVArl9BfGdIwmVjfCa1MaKuob8PC/ExpXrHizyPcd2jEAJg7b2+
+	Pt89anuu7s3FANKtoAUgNFIGSbJIXWFGJky2Zpt1QpxiLlDD9FWAfODDLypXmhjQD3m2MCf7JR7
+	lNPN0VZ9YOFrTWedzh6FhcHRcvXnavFOnPbNb4smUa50su1E7W0DwlkRNC6PCBUe+Zw5ql5T5WK
+	Feqf3EsfOHGdsHfPNBHhRlNXoVQjOqeo/H3QKcFawOh3D3JSTGCt4iaV1DkENGhLlz15UeamyXv
+	LQmhhlM69RbzlHiTFofZdczzDm/ukL9tcyTZdAsgxsfzkNRlfKx5amWK2anSPoLR4+zsDTtCx9q
+	oxmS2x0DYq8ppNVrgdbZqh0J0V5RWwUqLb3H3tA3RsY8jDZzSg==
+X-TM-AS-User-Approved-Sender: No
+X-TM-AS-User-Blocked-Sender: No
+X-TMASE-Result: 10--13.784100-8.000000
+X-TMASE-Version: SMEX-14.0.0.3152-9.1.1006-23728.005
+X-TM-SNTS-SMTP:
+	A5C3FA402CBF3267B90DE3631B224C68C53C48E3DC83F8F6C96F04F83A63B3B62000:8
 
-On Fri, Mar 8, 2024 at 3:00=E2=80=AFAM Jozsef Kadlecsik
-<kadlec@blackhole.kfki.hu> wrote:
->
-> On Thu, 7 Mar 2024, Jason Xing wrote:
->
-> > > > Allow me to finish the full sentence: my only purpose is not to let
-> > > > the TCP layer send strange RST to the _established_ socket due to
-> > > > receiving strange out-of-window skbs.
-> > >
-> > > I don't understand why do you want to modify conntrack at all: conntr=
-ack
-> > > itself does not send RST packets. And the TCP layer don't send RST pa=
-ckets
-> > > to out of window ones either.
-> >
-> > To normal TCP flow, you're right because the TCP layer doesn't send RST
-> > to out-of-window skbs.
-> >
-> > But the DNAT policy on the server should have converted the port of
-> > incoming skb from A_port to B_port as my description in this patch said=
-.
-> >
-> > It actually doesn't happen. The conntrack clears the skb->_nfct value
-> > after returning -NF_ACCEPT in nf_conntrack_tcp_packet() and then DNAT
-> > would not convert the A_port to B_port.
->
-> The packet is INVALID therefore it's not NATed. I don't think that could
-> simply be changed in netfilter.
-
-Well, what would you suggest ? :)
-
->
-> > So the TCP layer is not able to look up the correct socket (client_ip,
-> > client_port, server_ip, B_port) because A_port doesn't match B_port,
-> > then an RST would be sent to the client.
->
-> Yes, if you let the packet continue to traverse the stack.
-
-Yes!
-
->
-> > > The only possibility I see for such packets is an iptables/nftables r=
-ule
-> > > which rejects packets classified as INVALID by conntrack.
-> > >
-> > > As Florian suggested, why don't you change that rule?
-> >
-> > As I said, just for the workaround method, only turning on that sysctl
-> > knob can solve the issue.
->
-> Sorry, but why? If you drop the packet by a rule, then there's no need to
-> use the sysctl setting and there's no unwanted RST packets.
-
-Oh, I was trying to clarify that using some knob can work around which
-is not my original intention, but I don't seek a workaround method. I
-didn't use --cstate INVALID to drop those INVALID packets in
-production, which I feel should work.
-
-For this particular case, I feel it's not that good to ask
-users/customers to add more rules or turn on sysctl knob to prevent
-seeing such RSTs.
-
-Instead I thought we could naturally stop sending such RSTs as default
-without asking other people to change something. People shouldn't see
-the RSTs really. That's why I wrote this patch.
-
-I hope I'm right... :S
-
-Thanks,
-Jason
-
->
-> Best regards,
-> Jozsef
->
-> > > The conntrack states are not fine-grained to express different TCP st=
-ates
-> > > which covered with INVALID. It was never a good idea to reject INVALI=
-D
-> > > packets or let them through (leaking internal addresses).
-> > >
-> > > Best regards,
-> > > Jozsef
-> > >
-> > > > > > Besides, resorting to turning on nf_conntrack_tcp_be_liberal sy=
-sctl
-> > > > > > knob seems odd to me though it can workaround :S
-> > > > >
-> > > > > I don't see a better alternative, other than -p tcp -m conntrack
-> > > > > --ctstate INVALID -j DROP rule, if you wish for tcp stack to not =
-see
-> > > > > such packets.
-> > > > >
-> > > > > > I would like to prevent sending such an RST as default behaviou=
-r.
-> > > > >
-> > > > > I don't see a way to make this work out of the box, without possi=
-ble
-> > > > > unwanted side effects.
-> > > > >
-> > > > > MAYBE we could drop IFF we check that the conntrack entry candida=
-te
-> > > > > that fails sequence validation has NAT translation applied to it,=
- and
-> > > > > thus the '-NF_ACCEPT' packet won't be translated.
-> > > > >
-> > > > > Not even compile tested:
-> > > > >
-> > > > > diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilt=
-er/nf_conntrack_proto_tcp.c
-> > > > > --- a/net/netfilter/nf_conntrack_proto_tcp.c
-> > > > > +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-> > > > > @@ -1256,10 +1256,14 @@ int nf_conntrack_tcp_packet(struct nf_con=
-n *ct,
-> > > > >         case NFCT_TCP_IGNORE:
-> > > > >                 spin_unlock_bh(&ct->lock);
-> > > > >                 return NF_ACCEPT;
-> > > > > -       case NFCT_TCP_INVALID:
-> > > > > +       case NFCT_TCP_INVALID: {
-> > > > > +               verdict =3D -NF_ACCEPT;
-> > > > > +               if (ct->status & IPS_NAT_MASK)
-> > > > > +                       res =3D NF_DROP; /* skb would miss nat tr=
-ansformation */
-> > > >
-> > > > Above line, I guess, should be 'verdict =3D NF_DROP'? Then this skb
-> > > > would be dropped in nf_hook_slow() eventually and would not be pass=
-ed
-> > > > to the TCP layer.
-> > > >
-> > > > >                 nf_tcp_handle_invalid(ct, dir, index, skb, state)=
-;
-> > > > >                 spin_unlock_bh(&ct->lock);
-> > > > > -               return -NF_ACCEPT;
-> > > > > +               return verdict;
-> > > > > +       }
-> > > > >         case NFCT_TCP_ACCEPT:
-> > > > >                 break;
-> > > > >         }
-> > > >
-> > > > Great! I think your draft patch makes sense really, which takes NAT
-> > > > into consideration.
-> > > >
-> > > > >
-> > > > > But I don't really see the advantage compared to doing drop decis=
-ion in
-> > > > > iptables/nftables ruleset.
-> > > >
-> > > > From our views, especially to kernel developers, you're right: we
-> > > > could easily turn on that knob or add a drop policy to prevent it
-> > > > happening. Actually I did this in production to prevent such a case=
-.
-> > > > It surely works.
-> > > >
-> > > > But from the views of normal users and those who do not understand =
-how
-> > > > it works in the kernel, it looks strange: people may ask why we get
-> > > > some unknown RSTs in flight?
-> > > >
-> > > > > I also have a hunch that someone will eventually complain about t=
-his
-> > > > > change in behavior.
-> > > >
-> > > > Well, I still think the patch you suggested is proper and don't kno=
-w
-> > > > why people could complain about it.
-> > > >
-> > > > Thanks for your patience :)
-> > > >
-> > > > Thanks,
-> > > > Jason
-> > > >
-> > >
-> > > --
-> > > E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-> > > PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-> > > Address : Wigner Research Centre for Physics
-> > >           H-1525 Budapest 114, POB. 49, Hungary
-> >
->
-> --
-> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-> PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-> Address : Wigner Research Centre for Physics
->           H-1525 Budapest 114, POB. 49, Hungary
+T24gVHVlLCAyMDI0LTAzLTA1IGF0IDE5OjI1ICswODAwLCBsZW5hIHdhbmcgd3JvdGU6DQo+IEZy
+b206IExlbmEgV2FuZyA8bGVuYS53YW5nQG1lZGlhdGVrLmNvbT4NCj4gDQo+IFVCU0FOIGxvYWQg
+cmVwb3J0cyBhbiBleGNlcHRpb24gb2YgQlJLIzU1MTUgU0hJRlRfSVNTVUU6Qml0d2lzZQ0KPiBz
+aGlmdHMNCj4gdGhhdCBhcmUgb3V0IG9mIGJvdW5kcyBmb3IgdGhlaXIgZGF0YSB0eXBlLg0KPiAN
+Cj4gdm1saW51eCAgIGdldF9iaXRtYXAoYj03NSkgKyA3MTINCj4gPG5ldC9uZXRmaWx0ZXIvbmZf
+Y29ubnRyYWNrX2gzMjNfYXNuMS5jOjA+DQo+IHZtbGludXggICBkZWNvZGVfc2VxKGJzPTB4RkZG
+RkZGRDAwODAzNzAwMCwgZj0weEZGRkZGRkQwMDgwMzcwMTgsDQo+IGxldmVsPTEzNDQ0MzEwMCkg
+KyAxOTU2DQo+IDxuZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19oMzIzX2FzbjEuYzo1OTI+DQo+
+IHZtbGludXggICBkZWNvZGVfY2hvaWNlKGJhc2U9MHhGRkZGRkZEMDA4MDM3MEYwLCBsZXZlbD0y
+Mzg0MzYzNikgKw0KPiAxMjE2DQo+IDxuZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19oMzIzX2Fz
+bjEuYzo4MTQ+DQo+IHZtbGludXggICBkZWNvZGVfc2VxKGY9MHhGRkZGRkZEMDA4MDM3MUE4LCBs
+ZXZlbD0xMzQ0NDM1MDApICsgODEyDQo+IDxuZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19oMzIz
+X2FzbjEuYzo1NzY+DQo+IHZtbGludXggICBkZWNvZGVfY2hvaWNlKGJhc2U9MHhGRkZGRkZEMDA4
+MDM3MjgwLCBsZXZlbD0wKSArIDEyMTYNCj4gPG5ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2gz
+MjNfYXNuMS5jOjgxND4NCj4gdm1saW51eCAgIERlY29kZVJhc01lc3NhZ2UoKSArIDMwNA0KPiA8
+bmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfaDMyM19hc24xLmM6ODMzPg0KPiB2bWxpbnV4ICAg
+cmFzX2hlbHAoKSArIDY4NA0KPiA8bmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfaDMyM19tYWlu
+LmM6MTcyOD4NCj4gdm1saW51eCAgIG5mX2NvbmZpcm0oKSArIDE4OA0KPiA8bmV0L25ldGZpbHRl
+ci9uZl9jb25udHJhY2tfcHJvdG8uYzoxMzc+DQo+IA0KPiBEdWUgdG8gYWJub3JtYWwgZGF0YSBp
+biBza2ItPmRhdGEsIHRoZSBleHRlbnNpb24gYml0bWFwIGxlbmd0aA0KPiBleGNlZWRzIDMyIHdo
+ZW4gZGVjb2RpbmcgcmFzIG1lc3NhZ2UgdGhlbiB1c2VzIHRoZSBsZW5ndGggdG8gbWFrZQ0KPiBh
+IHNoaWZ0IG9wZXJhdGlvbi4gSXQgd2lsbCBjaGFuZ2UgaW50byBuZWdhdGl2ZSBhZnRlciBzZXZl
+cmFsIGxvb3AuDQo+IFVCU0FOIGxvYWQgY291bGQgZGV0ZWN0IGEgbmVnYXRpdmUgc2hpZnQgYXMg
+YW4gdW5kZWZpbmVkIGJlaGF2aW91cg0KPiBhbmQgcmVwb3J0cyBleGNlcHRpb24uDQo+IFNvIHdl
+IGFkZCB0aGUgcHJvdGVjdGlvbiB0byBhdm9pZCB0aGUgbGVuZ3RoIGV4Y2VlZGluZyAzMi4gT3Ig
+ZWxzZQ0KPiBpdCB3aWxsIHJldHVybiBvdXQgb2YgcmFuZ2UgZXJyb3IgYW5kIHN0b3AgZGVjb2Rp
+bmcuDQo+IA0KPiBGaXhlczogNWUzNTk0MWQ5OTAxICgiW05FVEZJTFRFUl06IEFkZCBILjMyMyBj
+b25udHJhY2svTkFUIGhlbHBlciIpDQo+IFNpZ25lZC1vZmYtYnk6IExlbmEgV2FuZyA8bGVuYS53
+YW5nQG1lZGlhdGVrLmNvbT4NCj4gLS0tDQo+IHYzOg0KPiAgIC0gYWRkICJGaXhlczoiIHRhZy4N
+Cj4gdjI6DQo+ICAgLSBhZGQgbGVuZ3RoIHByb3RlY3RvbiBmb3IgYW5vdGhlciBnZXRfYml0bWFw
+IGNhbGwuDQo+ICAgLSB1cGRhdGUgY29tbWl0IG1lc3NhZ2UgdG8gdHJpbSBzdGFja3RyYWNlLg0K
+PiAtLS0NCj4gLS0tDQo+ICBuZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19oMzIzX2FzbjEuYyB8
+IDQgKysrKw0KPiAgMSBmaWxlIGNoYW5nZWQsIDQgaW5zZXJ0aW9ucygrKQ0KPiANCj4gZGlmZiAt
+LWdpdCBhL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2gzMjNfYXNuMS5jDQo+IGIvbmV0L25l
+dGZpbHRlci9uZl9jb25udHJhY2tfaDMyM19hc24xLmMNCj4gaW5kZXggZTY5N2E4MjRiMDAxLi41
+NDBkOTc3MTViZDIgMTAwNjQ0DQo+IC0tLSBhL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2gz
+MjNfYXNuMS5jDQo+ICsrKyBiL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2gzMjNfYXNuMS5j
+DQo+IEBAIC01MzMsNiArNTMzLDggQEAgc3RhdGljIGludCBkZWNvZGVfc2VxKHN0cnVjdCBiaXRz
+dHIgKmJzLCBjb25zdA0KPiBzdHJ1Y3QgZmllbGRfdCAqZiwNCj4gIAkvKiBHZXQgZmllbGRzIGJp
+dG1hcCAqLw0KPiAgCWlmIChuZl9oMzIzX2Vycm9yX2JvdW5kYXJ5KGJzLCAwLCBmLT5zeikpDQo+
+ICAJCXJldHVybiBIMzIzX0VSUk9SX0JPVU5EOw0KPiArCWlmIChmLT5zeiA+IDMyKQ0KPiArCQly
+ZXR1cm4gSDMyM19FUlJPUl9SQU5HRTsNCj4gIAlibXAgPSBnZXRfYml0bWFwKGJzLCBmLT5zeik7
+DQo+ICAJaWYgKGJhc2UpDQo+ICAJCSoodW5zaWduZWQgaW50ICopYmFzZSA9IGJtcDsNCj4gQEAg
+LTU4OSw2ICs1OTEsOCBAQCBzdGF0aWMgaW50IGRlY29kZV9zZXEoc3RydWN0IGJpdHN0ciAqYnMs
+IGNvbnN0DQo+IHN0cnVjdCBmaWVsZF90ICpmLA0KPiAgCWJtcDJfbGVuID0gZ2V0X2JpdHMoYnMs
+IDcpICsgMTsNCj4gIAlpZiAobmZfaDMyM19lcnJvcl9ib3VuZGFyeShicywgMCwgYm1wMl9sZW4p
+KQ0KPiAgCQlyZXR1cm4gSDMyM19FUlJPUl9CT1VORDsNCj4gKwlpZiAoYm1wMl9sZW4gPiAzMikN
+Cj4gKwkJcmV0dXJuIEgzMjNfRVJST1JfUkFOR0U7DQo+ICAJYm1wMiA9IGdldF9iaXRtYXAoYnMs
+IGJtcDJfbGVuKTsNCj4gIAlibXAgfD0gYm1wMiA+PiBmLT5zejsNCj4gIAlpZiAoYmFzZSkNCg0K
+RGVhciBhbGwsDQp0aGUgcGF0Y2ggaXMgbm90IGFwcGxpZWQgYW5kIGl0IG1heSBiZSBkdWUgdG8g
+Zm9ybWF0IGVycm9yIHdpdGgNCmV2b2x1dGlvbi4gSSB3aWxsIHRyeSB0byByZXNlbmQgdjQgdmVy
+c2lvbiB3aXRoIGdpdCBzZW5kLW1haWwuDQoNCkNvdWxkIGFueW9uZSBoZWxwIHRvIGNoYW5nZSB0
+aGUgdjMgc3RhdGUgdG8gQ2hhbmdlIFJlcXVlc3RlZD8NCg0KVGhhbmtzDQpMZW5hDQo=
