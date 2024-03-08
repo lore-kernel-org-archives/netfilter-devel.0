@@ -1,292 +1,313 @@
-Received: from mail-ej1-f54.google.com (mail-ej1-f54.google.com [209.85.218.54])
+Received: from mail-qv1-f45.google.com (mail-qv1-f45.google.com [209.85.219.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77BE5524DE;
-	Fri,  8 Mar 2024 09:00:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EF4F53377
+	for <netfilter-devel@vger.kernel.org>; Fri,  8 Mar 2024 09:20:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709888419; cv=none; b=fI6yK55ruJOPtuxENgMwV5/vMjofeSm6lbcs0dkO4jN9gfeA9ahFT7L9iJp1qUgawvtCshpvfddAN6gbyOAt4C6V8bBfLtEjnkEiczBKDXTBVt2K8GOn46vRub0XRPUq/modiJAG54mH0bwZpF/0AEfJXft0sC5gyO7HfQamizo=
+	t=1709889607; cv=none; b=Ap3mC9R+mcfLTVpZhEaQGojRE3SxQhCH91oSSUNzbxjTLUW3jok1X5kIDwFPhCJSELw78iyIgehPEvOWyPUIg+XlXNdE2FobG5JpvX4sCxyk65mNlB2RQQGZDj/p02jmS4CNN1wxWUJvyV6K6GHt+jEmbkpUeJ7Tn4AaZ1cqsSs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709888419; c=relaxed/simple;
-	bh=dglt4wwjV0z/j+pYZw3MOq5INIFuX1awtLSIZ7HBBtg=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=TTH3D+KXH/93oH/N1/M0TA0QejfLztu0pGXD4uVbemuwZ/0sglgsv6NOWGH5IvTo7BDvbuZsgq7wnYDbbs/1jy8yGO7AZyS/n0AYYcn6w5ShoEokF32spNBbA5dLG9vQ4L2U3g3SjojpN3zCaW0fnauvey1+R8dmhuhiAWrrFp8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=WtI7stPu; arc=none smtp.client-ip=209.85.218.54
+	s=arc-20240116; t=1709889607; c=relaxed/simple;
+	bh=JSCvCMUToT6XqM2f8zZYnxnHnSPqnsUNX9bZTKmYQUA=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Content-Type; b=RBrq1Iep/TIZEARTUzHEg0iDhNfS+Q56rLHOQrCMmpoBQ+wcFnVWELicYYLFZa4b6AP9tpeIFUL2/32s3rD8IJPj+IXTlfaaL6mqazSNQH+BwUKfkxywWe0BLVVD9kK6ny4M3JVXlZg7oBl9A15VEBgYb5ycvdHinAJIXQcXzgQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=CIaqfn3V; arc=none smtp.client-ip=209.85.219.45
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WtI7stPu"
-Received: by mail-ej1-f54.google.com with SMTP id a640c23a62f3a-a3f893ad5f4so75683866b.2;
-        Fri, 08 Mar 2024 01:00:17 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CIaqfn3V"
+Received: by mail-qv1-f45.google.com with SMTP id 6a1803df08f44-690ae5ce241so5638826d6.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 08 Mar 2024 01:20:05 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1709888416; x=1710493216; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=PeV/BqFNEHreI7gG8xetgTnPdw+ArBtbuIdMkI18nMM=;
-        b=WtI7stPuWNcWNn6yl0/vBPaEO77PR6N/9ATI9GsI7RuvvuVGV4V1S41HpWkKfqAe84
-         QJ7sUDBpDT0/dVTFTebKhqBS+oI99nabVy3Qae15baG4qdy9Ml9TnilQYi+FiFRVmWr/
-         zlXnvZOF/UOwX8w4Xs2pN30wG0KbcOec4ZUymFpmVoUEADlckMH1N0DJM/+xvYccFm99
-         5y+YTXpVaVMe9DSAA3fw0cgdvvdvDWl+RSB2YNWtIoD3B9meftOjVw4kSp8xHcD6Q4xp
-         hoDi2cm3yzXkkT8ZN0lgmQoPYEW+HAou8hQf5W9rNtaEq35d8vfy0iSNRAIM76Bj3z0A
-         RXqA==
+        d=gmail.com; s=20230601; t=1709889604; x=1710494404; darn=vger.kernel.org;
+        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=L8a4ipKazHTClO7Ju1zYKotgNrFHt2kS4nUAhqW0gsw=;
+        b=CIaqfn3VyNBG1DW3jsk2jPmyvcOBZZ8BSwOnI2em2bnzovy3sW224yFPl1FaGnWTQC
+         0g/01UWeIwYGE/jZHeT2IlBo6eu1uK/5v19lsiJ98YC5HolbeVaSBkQHt9fVFRyg2yi0
+         JxJt4pG5a8WgI40645uNN4Z7FcYBC3HhvKKPBub5DkYHyDBw4sopwqwzpd373bRTfF2I
+         tGtvIt6Bbvygw93IZoomvLvUpkm6IvfZxmS7gPHGpm2GI0YoqSNzdGg8wixRKLFGNdO2
+         eQBSMtg8Mo+uVQhAZbxP0YMpoa4aVWu6glj7C0DBZfyg8xJME2t8h2FwOhK21jmyVcvn
+         Y+Rg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1709888416; x=1710493216;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=PeV/BqFNEHreI7gG8xetgTnPdw+ArBtbuIdMkI18nMM=;
-        b=NUFrYCwK2LqP/nVZKOHNpsJw/QHUQaqWwx77n3gevKSninU9BoZA8G/cFAzK2IHQQC
-         l72HaShNzezopVepnSmDLrxTwOcHbSy+oCVl5LgKt5fOgr9XuB7Mf7slQFWkq2HTNq4u
-         D7YXfPa/lQOL8ur/NZ2O+pHL0ub99ZtIaclxLyBWIBVDYeL2NYumQsuN1pDuS+7l5Vqq
-         JyQbLxpLaKdmR8Bww2aiqNx60psmV8W1tFLzy0nRJokm5TXAqeATLAjQ7rV6Y2m19LAr
-         K/uzyavWbuA8+vlRNe+kPfRn0MFps3WiCbZDcG5k3vAW4g3RGyJ3/1Hddp6o2Wd4be6q
-         UbXQ==
-X-Forwarded-Encrypted: i=1; AJvYcCXNI4P0D/HP6YrPbThx96mLHkM3PBiR9i3RhSdBJsInyz52r2HRXX6iWVJZ10lqybxd22k2+XkMrKi35BO90wp/lQbS+ZI+q9r5zk8URrRmCmTM+Z0c2vbyJsXDISDJ5kU9mLVOzfRg
-X-Gm-Message-State: AOJu0Yy47BdwUbhw2W6el4NlGHM0wvYkelG7BkMfx3mFDac8uyHA3Sub
-	rVD+N+DvIZlc/LmF78gKVPv3wOSS07kJYdnqZs4IvebQbjHM5q8X561eRx/zo1UMtML+2OvJrvr
-	3fYUXJS5lUF0i7aST77887CSpBR0=
-X-Google-Smtp-Source: AGHT+IHxd1Prdft65OHM6XjDEuBT1I+4d+f83ifR7RFmOD30QxwTnhcI/v+kd+0ofynTjSKXa3rdfGPLXfAj00fbuXs=
-X-Received: by 2002:a17:907:367:b0:a44:1ed2:64a3 with SMTP id
- rs7-20020a170907036700b00a441ed264a3mr14112838ejb.11.1709888415349; Fri, 08
- Mar 2024 01:00:15 -0800 (PST)
+        d=1e100.net; s=20230601; t=1709889604; x=1710494404;
+        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=L8a4ipKazHTClO7Ju1zYKotgNrFHt2kS4nUAhqW0gsw=;
+        b=AM0d85qUBClQ5C0Tb7Irg262lNKBkJgH0NPlSAmYj0XbJUGk9hu9Vk4PqPC4LE48Uc
+         2g4XjXX/a14o5FQYtyvaRhQUZfbPG4+5F1rtogd04hahMJ+g77/n4acYoK39qkkqpOA9
+         PE6+2K6M4j7TT+ezI1cDFyLyYS3wJMzvujyZh1CU1z7AWHxUzN6roKB7SaGtFG2kAp2L
+         J8AJqaQT8allDnZMSOU3lax08fzPTS3L/fZwUEyzceoNHoqKYj0LaFoNzYqjksDQ13Ys
+         S846tkqOKDcGUg0ZuYrJVvUgwZE35Q9TDg1yRDlPMHUM9KDi/HRpaYEGQNqHRUCVOQnY
+         CD1Q==
+X-Gm-Message-State: AOJu0YxImvUi+aAoM8iryluJDkFa1h7zYb9/e1N/7zFEYUu2pfpBe2oU
+	ZdX8AG2oGLG2De9+v/OmmSZbtn5KV6r66a9ikM0qWWMCZfMM9s7IWg5786cpXZUqKVLxvFylZMf
+	L7Nm7W+AbElCEPkyvaY13+VYyY5B7wgCP
+X-Google-Smtp-Source: AGHT+IH2n5PnZIEVePAIZ3jDi/6PYijxT9brz6Tlrx8ckwwRb5rMdCOQlgTS8jt914HhLKz4gveCbqCL6m2gWufAD6s=
+X-Received: by 2002:a05:6214:3288:b0:690:b098:1407 with SMTP id
+ mu8-20020a056214328800b00690b0981407mr2793624qvb.3.1709889603957; Fri, 08 Mar
+ 2024 01:20:03 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240307090732.56708-1-kerneljasonxing@gmail.com>
- <20240307093310.GI4420@breakpoint.cc> <CAL+tcoAPi+greENaD8X6Scc97Fnhiqa62eUSn+JS98kqY+VA6A@mail.gmail.com>
- <20240307120054.GK4420@breakpoint.cc> <CAL+tcoBqBaHxSU9NQqVxhRzzsaJr4=0=imtyCo4p8+DuXPL5AA@mail.gmail.com>
- <20240307141025.GL4420@breakpoint.cc> <CAL+tcoDUyFU9wT8gzOcDqW7hWfR-7Sg8Tky9QsY_b05gP4uZ1Q@mail.gmail.com>
-In-Reply-To: <CAL+tcoDUyFU9wT8gzOcDqW7hWfR-7Sg8Tky9QsY_b05gP4uZ1Q@mail.gmail.com>
-From: Jason Xing <kerneljasonxing@gmail.com>
-Date: Fri, 8 Mar 2024 16:59:38 +0800
-Message-ID: <CAL+tcoDo3=uLFjxnnKj6LnE+DBHb8UybXK1_HQHTtZVr-tBYUw@mail.gmail.com>
-Subject: Re: [PATCH net-next] netfilter: conntrack: avoid sending RST to reply
- out-of-window skb
-To: Florian Westphal <fw@strlen.de>
-Cc: edumazet@google.com, pablo@netfilter.org, kadlec@netfilter.org, 
-	kuba@kernel.org, pabeni@redhat.com, davem@davemloft.net, 
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	netdev@vger.kernel.org, Jason Xing <kernelxing@tencent.com>
+From: Sriram Rajagopalan <bglsriram@gmail.com>
+Date: Fri, 8 Mar 2024 14:49:38 +0530
+Message-ID: <CAPtndGDEJVWXcggRkw66YLjhu3QyUjJ5j4YEbvJLj-qbPkQaPg@mail.gmail.com>
+Subject: iptables-nft: Wrong payload merge of rule filter - "! --sport xx !
+ --dport xx"
+To: netfilter-devel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Mar 7, 2024 at 11:11=E2=80=AFPM Jason Xing <kerneljasonxing@gmail.c=
-om> wrote:
->
-> On Thu, Mar 7, 2024 at 10:10=E2=80=AFPM Florian Westphal <fw@strlen.de> w=
-rote:
-> >
-> > Jason Xing <kerneljasonxing@gmail.com> wrote:
-> > > On Thu, Mar 7, 2024 at 8:00=E2=80=AFPM Florian Westphal <fw@strlen.de=
-> wrote:
-> > > >
-> > > > Jason Xing <kerneljasonxing@gmail.com> wrote:
-> > > > > > This change disables most of the tcp_in_window() test, this wil=
-l
-> > > > > > pretend everything is fine even though tcp_in_window says other=
-wise.
-> > > > >
-> > > > > Thanks for the information. It does make sense.
-> > > > >
-> > > > > What I've done is quite similar to nf_conntrack_tcp_be_liberal sy=
-sctl
-> > > > > knob which you also pointed out. It also pretends to ignore those
-> > > > > out-of-window skbs.
-> > > > >
-> > > > > >
-> > > > > > You could:
-> > > > > >  - drop invalid tcp packets in input hook
-> > > > >
-> > > > > How about changing the return value only as below? Only two cases=
- will
-> > > > > be handled:
-> > > > >
-> > > > > diff --git a/net/netfilter/nf_conntrack_proto_tcp.c
-> > > > > b/net/netfilter/nf_conntrack_proto_tcp.c
-> > > > > index ae493599a3ef..c88ce4cd041e 100644
-> > > > > --- a/net/netfilter/nf_conntrack_proto_tcp.c
-> > > > > +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-> > > > > @@ -1259,7 +1259,7 @@ int nf_conntrack_tcp_packet(struct nf_conn =
-*ct,
-> > > > >         case NFCT_TCP_INVALID:
-> > > > >                 nf_tcp_handle_invalid(ct, dir, index, skb, state)=
-;
-> > > > >                 spin_unlock_bh(&ct->lock);
-> > > > > -               return -NF_ACCEPT;
-> > > > > +               return -NF_DROP;
-> > > >
-> > > > Lets not do this.  conntrack should never drop packets and defer to=
- ruleset
-> > > > whereever possible.
-> > >
-> > > Hmm, sorry, it is against my understanding.
-> > >
-> > > If we cannot return -NF_DROP, why have we already added some 'return
-> > > NF_DROP' in the nf_conntrack_handle_packet() function? And why does
-> > > this test statement exist?
-> >
-> > Sure we can drop.  But we should only do it if there is no better
-> > alternative.
-> >
-> > > nf_conntrack_in()
-> > >   -> nf_conntrack_handle_packet()
-> > >   -> if (ret <=3D 0) {
-> > >          if (ret =3D=3D -NF_DROP) NF_CT_STAT_INC_ATOMIC(state->net, d=
-rop);
-> >
-> > AFAICS this only happens when we receive syn for an existing conntrack
-> > that is being removed already so we'd expect next syn to create a new
->
-> Sorry, I've double-checked this part and found out there is no chance
-> to return '-NF_DROP' for nf_conntrack_handle_packet(). It might return
-> 'NF_DROP' (see link [1]) instead. The if-else statements seem like
-> dead code.
+Hi,
 
-My bad. My mind went blank last night, maybe it's too late. Well, It's
-not dead code because '-NF_DROP' which is still zero makes me
-misunderstand :(
+iptables-nft based on nftables has an issue with the way the rule
+filter - "! --sport xx ! --dport xx" is wrongly merged and rendered.
 
-I'll post a patch to change 'if (ret =3D=3D -NF_DROP)' to 'if (ret =3D=3D
-NF_DROP)' just for easy reading.
+This experiment below demonstrates the issue  -
+
+% ip -d addr show vm1; ip -d addr show vm2
+
+203: vm1@vm2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue
+state UP group default qlen 1000
+
+    link/ether 2a:a2:43:13:94:d7 brd ff:ff:ff:ff:ff:ff promiscuity 0
+minmtu 68 maxmtu 65535
+
+    veth numtxqueues 1 numrxqueues 1 gso_max_size 65536 gso_max_segs 65535
+
+    inet6 fe80::28a2:43ff:fe13:94d7/64 scope link
+
+       valid_lft forever preferred_lft forever
+
+202: vm2@vm1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue
+state UP group default qlen 1000
+
+    link/ether 9e:00:fa:a3:c9:48 brd ff:ff:ff:ff:ff:ff promiscuity 1
+minmtu 68 maxmtu 65535
+
+    veth numtxqueues 1 numrxqueues 1 gso_max_size 65536 gso_max_segs 65535
+
+    inet 2.2.2.2/32 scope global vm2
+
+       valid_lft forever preferred_lft forever
+
+    inet6 fe80::9c00:faff:fea3:c948/64 scope link
+
+       valid_lft forever preferred_lft forever
+
+% export IPTABLES=/usr/sbin/iptables-nft; sudo $IPTABLES -A INPUT -p
+tcp ! --sport 22 ! --dport 22 -i vm2; echo -e "\n---- Before data
+----\n"; sudo $IPTABLES -L INPUT -vvvn; sudo python -c "from scapy.all
+import *; sendp(Ether(dst='9e:00:fa:a3:c9:48')/IP(src='1.1.1.1',
+dst='2.2.2.2')/TCP(sport=23, dport=22), iface='vm1')"; echo -e "\n----
+After data with either one of tcp sport/dport being 22 ----\n"; sudo
+$IPTABLES -L INPUT -vn; sudo python -c "from scapy.all import *;
+sendp(Ether(dst='9e:00:fa:a3:c9:48')/IP(src='1.1.1.1',
+dst='2.2.2.2')/TCP(sport=23, dport=23), iface='vm1')"; echo -e "\n----
+After data with neither one of tcp sport/dport being 22 ----\n"; sudo
+$IPTABLES -L INPUT -vn; sudo $IPTABLES -D INPUT -p tcp ! --sport 22 !
+--dport 22 -i vm2
+
+---- Before data ----
+
+ip filter INPUT 39
+  [ meta load iifname => reg 1 ]
+  [ cmp eq reg 1 0x00326d76 ]
+  [ meta load l4proto => reg 1 ]
+  [ cmp eq reg 1 0x00000006 ]
+  [ payload load 4b @ transport header + 0 => reg 1 ]
+  [ cmp neq reg 1 0x16001600 ]
+  [ counter pkts 0 bytes 0 ]
+
+
+Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
+
+ pkts bytes target     prot opt in     out     source               destination
+
+    0     0            tcp  --  vm2    *       0.0.0.0/0
+0.0.0.0/0            tcp spt:!22 dpt:!22
+
+
+---- After data with either one of tcp sport/dport being 22 ----
+
+# Warning: iptables-legacy tables present, use iptables-legacy to see them
+
+Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
+
+ pkts bytes target     prot opt in     out     source               destination
+
+    1    46            tcp  --  vm2    *       0.0.0.0/0
+0.0.0.0/0            tcp spt:!22 dpt:!22
+
+
+---- After data with neither one of tcp sport/dport being 22 ----
+
+# Warning: iptables-legacy tables present, use iptables-legacy to see them
+
+Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
+
+ pkts bytes target     prot opt in     out     source               destination
+
+    2    92            tcp  --  vm2    *       0.0.0.0/0
+0.0.0.0/0            tcp spt:!22 dpt:!22
+
+
+% export IPTABLES=/usr/local/sbin/iptables-legacy; sudo $IPTABLES -A
+INPUT -p tcp ! --sport 22 ! --dport 22 -i vm2; echo -e "\n---- Before
+data ----\n"; sudo $IPTABLES -L INPUT -vvvn; sudo python -c "from
+scapy.all import *;
+sendp(Ether(dst='9e:00:fa:a3:c9:48')/IP(src='1.1.1.1',
+dst='2.2.2.2')/TCP(sport=23, dport=22), iface='vm1')"; echo -e "\n----
+After data with either one of tcp sport/dport being 22 ----\n"; sudo
+$IPTABLES -L INPUT -vn; sudo python -c "from scapy.all import *;
+sendp(Ether(dst='9e:00:fa:a3:c9:48')/IP(src='1.1.1.1',
+dst='2.2.2.2')/TCP(sport=23, dport=23), iface='vm1')"; echo -e "\n----
+After data with neither one of tcp sport/dport being 22 ----\n"; sudo
+$IPTABLES -L INPUT -vn; sudo $IPTABLES -D INPUT -p tcp ! --sport 22 !
+--dport 22 -i vm2
+
+
+---- Before data ----
+
+ip filter INPUT 41
+  [ meta load iifname => reg 1 ]
+  [ cmp eq reg 1 0x00326d76 ]
+  [ payload load 1b @ network header + 9 => reg 1 ]
+  [ cmp eq reg 1 0x00000006 ]
+  [ payload load 2b @ transport header + 0 => reg 1 ]
+  [ cmp neq reg 1 0x00001600 ]
+  [ payload load 2b @ transport header + 2 => reg 1 ]
+  [ cmp neq reg 1 0x00001600 ]
+  [ counter pkts 0 bytes 0 ]
+
+
+Chain INPUT (policy ACCEPT 13824 packets, 994K bytes)
+
+ pkts bytes target     prot opt in     out     source               destination
+
+    0     0            tcp  --  vm2    *       0.0.0.0/0
+0.0.0.0/0            tcp spt:!22 dpt:!22
+
+
+---- After data with either one of tcp sport/dport being 22 ----
+
+Chain INPUT (policy ACCEPT 13827 packets, 994K bytes)
+
+ pkts bytes target     prot opt in     out     source               destination
+
+    0     0            tcp  --  vm2    *       0.0.0.0/0
+0.0.0.0/0            tcp spt:!22 dpt:!22
+
+
+---- After data with neither one of tcp sport/dport being 22 ----
+
+Chain INPUT (policy ACCEPT 13831 packets, 994K bytes)
+
+ pkts bytes target     prot opt in     out     source               destination
+
+    1    46            tcp  --  vm2    *       0.0.0.0/0
+0.0.0.0/0            tcp spt:!22 dpt:!22
+
+With iptables-nft the logical AND of sport neq and dport neq is
+resulting the payload getting merged incorrectly -
+
+
+  [ payload load 4b @ transport header + 0 => reg 1 ]
+  [ cmp neq reg 1 0x16001600 ]
+
+
+v/s
+
+With iptables-legacy the logical AND of sport neq and dport neq is
+resulting in using separate payload matches correctly -
+
+  [ payload load 2b @ transport header + 0 => reg 1 ]
+  [ cmp neq reg 1 0x00001600 ]
+  [ payload load 2b @ transport header + 2 => reg 1 ]
+  [ cmp neq reg 1 0x00001600 ]
+
+The iptables-nft has the issue where either one of tcp sport/dport
+being 22 still matches the iptables rule - "tcp ! --sport 22 ! --dport
+22" while it should not have matched, whereas with the
+iptables-legacy, the packet with either one of tcp sport/dport being
+22 does not match the iptables rule - "tcp ! --sport 22 ! --dport 22".
+
+
+The below patch to iptables-nft fixes this issue -
+
+Author: Sriram Rajagopalan <bglsriram@gmail.com>
+Date:   Fri Mar 07 20:09:38 2024 -0800
+
+iptables: Fixed the issue with combining the payload in case of invert
+filter for tcp src and dst ports
+
+Signed-off-by: Sriram Rajagopalan <bglsriram@gmail.com>
+Signed-off-by: Sriram Rajagopalan <sriramr@arista.com>
+
+diff --git a/iptables/nft.c b/iptables/nft.c
+
+index dae6698d..38227d51 100644
+
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -1307,14 +1307,12 @@ static int add_nft_tcpudp(struct nft_handle
+*h,struct nftnl_rule *r,
+        uint8_t reg;
+        int ret;
+
+-       if (src[0] && src[0] == src[1] &&
++       if (!invert_src &&
++           src[0] && src[0] == src[1] &&
+            dst[0] && dst[0] == dst[1] &&
+            invert_src == invert_dst) {
+                uint32_t combined = dst[0] | (src[0] << 16);
+
+-               if (invert_src)
+-                       op = NFT_CMP_NEQ;
+-
+                expr = gen_payload(h, NFT_PAYLOAD_TRANSPORT_HEADER, 0, 4, &reg);
+                if (!expr)
+                        return -ENOMEM;
+
+This issue is also present with the nft
+tool(https://git.netfilter.org/nftables/) as well and the below patch
+fixes the issue with the nft tool -
+
+Author: Sriram Rajagopalan <bglsriram@gmail.com>
+Date:   Fri Mar 08 10:06:30 2024 -0800
+
+nftables: Fixed the issue with merging the payload in case of invert
+filter for tcp src and dst ports
+
+Signed-off-by: Sriram Rajagopalan <bglsriram@gmail.com>
+Signed-off-by: Sriram Rajagopalan <sriramr@arista.com>
+
+diff --git a/src/rule.c b/src/rule.c
+index 342c43fb..5def185d 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -2661,8 +2661,13 @@ static void payload_do_merge(struct stmt *sa[],
+unsigned int n)
+        for (j = 0, i = 1; i < n; i++) {
+                stmt = sa[i];
+                this = stmt->expr;
+-
+-               if (!payload_can_merge(last->left, this->left) ||
++               /* We should not be merging two OP_NEQs. For example -
++                * tcp sport != 22 tcp dport != 23 should not result in
++                * [ payload load 4b @ transport header + 0 => reg 1 ]
++                * [ cmp neq reg 1 0x17001600 ]
++                */
++               if (this->op == OP_NEQ ||
++                   !payload_can_merge(last->left, this->left) ||
+                    !relational_ops_match(last, this)) {
+                        last = this;
+                        j = i;
+
+Please review the patches above and provide your feedback. Please let
+me know of any questions/clarifications.
 
 Thanks,
-Jason
-
->
-> [1]: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/t=
-ree/net/netfilter/nf_conntrack_proto_tcp.c#:~:text=3D%2DNF_REPEAT%3B-,retur=
-n%20NF_DROP%3B,-%7D%0A%09%09fallthrough%3B
->
-> > connection.  Feel free to send patches that replace drop with -accept
-> > where possible/where it makes sense, but I don't think the
-> > TCP_CONNTRACK_SYN_SENT one can reasonably be avoided.
->
-> Oh, are you suggesting replacing NF_DROP with -NF_ACCEPT in
-> nf_conntrack_dccp_packet()?
->
-> There are three points where nf_conntrack_handle_packet() returns NF_DROP=
-:
-> 1) one (syn_sent case) exists in nf_conntrack_tcp_packet(). As you
-> said, it's not necessary to change.
-> 2) another two exist in nf_conntrack_dccp_packet() which should be the
-> same as nf_conntrack_tcp_packet() handles.
->
-> The patch goes like this:
-> diff --git a/net/netfilter/nf_conntrack_proto_dccp.c
-> b/net/netfilter/nf_conntrack_proto_dccp.c
-> index e2db1f4ec2df..ebc4f733bb2e 100644
-> --- a/net/netfilter/nf_conntrack_proto_dccp.c
-> +++ b/net/netfilter/nf_conntrack_proto_dccp.c
-> @@ -525,7 +525,7 @@ int nf_conntrack_dccp_packet(struct nf_conn *ct,
-> struct sk_buff *skb,
->
->         dh =3D skb_header_pointer(skb, dataoff, sizeof(*dh), &_dh.dh);
->         if (!dh)
-> -               return NF_DROP;
-> +               return -NF_ACCEPT;
->
->         if (dccp_error(dh, skb, dataoff, state))
->                 return -NF_ACCEPT;
-> @@ -533,7 +533,7 @@ int nf_conntrack_dccp_packet(struct nf_conn *ct,
-> struct sk_buff *skb,
->         /* pull again, including possible 48 bit sequences and subtype he=
-ader */
->         dh =3D dccp_header_pointer(skb, dataoff, dh, &_dh);
->         if (!dh)
-> -               return NF_DROP;
-> +               return -NF_ACCEPT;
->
->         type =3D dh->dccph_type;
->         if (!nf_ct_is_confirmed(ct) && !dccp_new(ct, skb, dh, state))
->
-> >
-> > > My only purpose is not to let the TCP layer sending strange RST to th=
-e
-> > > right flow.
-> >
-> > AFAIU tcp layer is correct, no?  Out of the blue packet to some listene=
-r
-> > socket?
->
-> Allow me to finish the full sentence: my only purpose is not to let
-> the TCP layer send strange RST to the _established_ socket due to
-> receiving strange out-of-window skbs.
->
-> >
-> > > Besides, resorting to turning on nf_conntrack_tcp_be_liberal sysctl
-> > > knob seems odd to me though it can workaround :S
-> >
-> > I don't see a better alternative, other than -p tcp -m conntrack
-> > --ctstate INVALID -j DROP rule, if you wish for tcp stack to not see
-> > such packets.
-> >
-> > > I would like to prevent sending such an RST as default behaviour.
-> >
-> > I don't see a way to make this work out of the box, without possible
-> > unwanted side effects.
-> >
-> > MAYBE we could drop IFF we check that the conntrack entry candidate
-> > that fails sequence validation has NAT translation applied to it, and
-> > thus the '-NF_ACCEPT' packet won't be translated.
-> >
-> > Not even compile tested:
-> >
-> > diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_=
-conntrack_proto_tcp.c
-> > --- a/net/netfilter/nf_conntrack_proto_tcp.c
-> > +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-> > @@ -1256,10 +1256,14 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
-> >         case NFCT_TCP_IGNORE:
-> >                 spin_unlock_bh(&ct->lock);
-> >                 return NF_ACCEPT;
-> > -       case NFCT_TCP_INVALID:
-> > +       case NFCT_TCP_INVALID: {
-> > +               verdict =3D -NF_ACCEPT;
-> > +               if (ct->status & IPS_NAT_MASK)
-> > +                       res =3D NF_DROP; /* skb would miss nat transfor=
-mation */
->
-> Above line, I guess, should be 'verdict =3D NF_DROP'? Then this skb
-> would be dropped in nf_hook_slow() eventually and would not be passed
-> to the TCP layer.
->
-> >                 nf_tcp_handle_invalid(ct, dir, index, skb, state);
-> >                 spin_unlock_bh(&ct->lock);
-> > -               return -NF_ACCEPT;
-> > +               return verdict;
-> > +       }
-> >         case NFCT_TCP_ACCEPT:
-> >                 break;
-> >         }
->
-> Great! I think your draft patch makes sense really, which takes NAT
-> into consideration.
->
-> >
-> > But I don't really see the advantage compared to doing drop decision in
-> > iptables/nftables ruleset.
->
-> From our views, especially to kernel developers, you're right: we
-> could easily turn on that knob or add a drop policy to prevent it
-> happening. Actually I did this in production to prevent such a case.
-> It surely works.
->
-> But from the views of normal users and those who do not understand how
-> it works in the kernel, it looks strange: people may ask why we get
-> some unknown RSTs in flight?
->
-> >
-> > I also have a hunch that someone will eventually complain about this
-> > change in behavior.
->
-> Well, I still think the patch you suggested is proper and don't know
-> why people could complain about it.
->
-> Thanks for your patience :)
->
-> Thanks,
-> Jason
+Sriram
