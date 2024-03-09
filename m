@@ -1,65 +1,120 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f48.google.com (mail-ej1-f48.google.com [209.85.218.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D358C2747F
-	for <netfilter-devel@vger.kernel.org>; Fri,  8 Mar 2024 23:04:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FABE627;
+	Sat,  9 Mar 2024 00:38:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709939086; cv=none; b=SbxB2SO3qciOP090Auus2ds6GDVaT/0UJD31OXE72F94OnGecpKcOEgmPmbfjAnOlMfvIoOPBk4qYMrGSpPJme5A1eQCwewXGRidJAgfFQpujJrIBHNQmZemw9hiUsD0itKoayorojGGsDiLQMIvAIEe8/zocjZTbhqdXpth5DI=
+	t=1709944720; cv=none; b=C4rAAbYrxOQ3E996sRms11D8DcNgXRlzQK3CgPzT4u4km940MetbGI+ATlHaGSfGFOGJT+ru/vwKJaBXkDDk8muii+m9ETTN/0e/+O5Ua4y1QKNjqlgah+CQn95ZpYJzq5QCqMf759NAnZElOxvF2pGy4HRhrqSFIXBGmjl5Oc8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709939086; c=relaxed/simple;
-	bh=SN0UvnrOyHJs1ehJcUqofUzqOy3TKXP1J3u9WbWuqYY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SClmWsuS/WHC4XYQoL4U3X4Iqd2kRK9yOHftaTKueXkI1mkruv5V/QgGtlbe2O5cJN7HU4utn8uZeP/cL+HdG6ligMGR7VPOHlWfrud2ncJyWldxyx2nj5PCOpBgkhJ9+Sc7ykHXFq63No2PBPq9k4+ck51Us34+W2iUdiXcf6c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=FdGDZz1b; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1709944720; c=relaxed/simple;
+	bh=7lbVqSoXTt3ZWFzGFPIOjaRutUv/QCs6THdS8lLjyNs=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=BDDAi+x2Ah199kus9j89euacz6YmFvzLskCX7u7e4lLxlSbNPPE068Sj5JLaJ1Ocfokcy9aBbKGzHuSzvdLohWNEBs5kIPVK5x0Il+PQ4pvntwV5G6Y+5A1tSEOCDEYBAO2kXBSWdna414KjJHsOO5KWg0EkWQr0wwAUrFHVw90=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=iX3euKuv; arc=none smtp.client-ip=209.85.218.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="FdGDZz1b"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=vPnmwPK8itWql2FYbCYcs2xropP6Rfbi8MMVad34hks=; b=FdGDZz1bt/hlMyb4sokGvIFutI
-	9OLoJL/E6dW5iXIrYK5iXQmQGhOAS3WAIPJWyc5PFNJ/dwyYhKVXAnyOHsvmkqHp99gEcxaMOdLJz
-	DKndrzLzOSwr1vwJH16z9CxO1gUKs6Juw7dlTnYuBNCkCfMMHUYpgT5JTlyzUWYpRUnqkfdaMDYAE
-	y0+RQVLq2bvXAHszdZl0NItgcJLkn8CPDfi9UJC/yawyLKW76YsMwIR+tzzza5FIDNoT2Tut5j2JO
-	4VscZV/2wsPj8r4AWsOnpv0aASIesEbFZGNI2fUDDveBNI+oeIB79skXkf/dXnw0Rf37JLqpXbLpe
-	MCRWj1Fg==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1rijGa-000000003mS-1azh;
-	Sat, 09 Mar 2024 00:04:40 +0100
-Date: Sat, 9 Mar 2024 00:04:40 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Jeremy Sowden <jeremy@azazel.net>
-Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH arptables] Fix a couple of spelling errors
-Message-ID: <ZeuZiCDOI8NoyfOF@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Jeremy Sowden <jeremy@azazel.net>,
-	Netfilter Devel <netfilter-devel@vger.kernel.org>
-References: <20240308221720.639060-1-jeremy@azazel.net>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="iX3euKuv"
+Received: by mail-ej1-f48.google.com with SMTP id a640c23a62f3a-a44e3176120so360043866b.1;
+        Fri, 08 Mar 2024 16:38:38 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1709944717; x=1710549517; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=72DcCZF4zzX57IzWh27ui3Nzppo1bro7gcZPjXVNA+s=;
+        b=iX3euKuvBFsuQTJcl3L91GVeXi3QsAMcpy+dPII5FbzUv9Dt/FQR5yKgsSGmTI4/W2
+         0QDBgcgqT6SHktVbVvQnJy8Wkrr9umnNidbas9+kkRDdLKstPA4TKaBcaf3aYnIx9vII
+         6beTTvJ6eD8fUQzcQHVC9tt/XajN3fCoMf/vLOPkErN4a4+1M+4TTsOrpTnWIkg9WWSj
+         E3gARDXGqEND+XmNXw3CXkscJDv1WU9p3HouaCodIBEVkF/kE/s4B9q5Cs7I2YVbT1a1
+         hxl3HVBG85XMuqrmxaXaL8taKTSLhaYUWJJUs1sxJG1sZGE/X+OrhGLvl3R/d1ztWv+Y
+         naDw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1709944717; x=1710549517;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=72DcCZF4zzX57IzWh27ui3Nzppo1bro7gcZPjXVNA+s=;
+        b=shzfuHxNjYBdb3xdieBw5/YNtKQDhAkT3Es8k6UlGsTDGiovCzYwCxTuedB5KukaUz
+         aSmfuWwIU+HwY7A7yovnTlVhjFKPcFZCzKFCeKwzT1LigQ5nI2lHUgcW+9Fd7FiWEF+T
+         ktUblacVNUpG5w6d8BoHLajNi0ia7bPWOUvx2Uua5ZdhkzCgjFGQB6sbj/RFGzYj2WeH
+         VJfRZzVwbsNmPu8nOybRGu94jbSsLZOJjQ+8LRcGioS/fa5DtUST6DRwkjnnvptHnxwj
+         rm5zwvV5edgu2HsUW5MZt5NJ0JyMtgsdx7j3uS/Eb+DquhD0kWHiV3TK29zg15fJNEvJ
+         2tvQ==
+X-Forwarded-Encrypted: i=1; AJvYcCV4ZJ0X0VGRfztiN+xDHi1cRSlPAc4FSYTdF+0uxic2vCM9hRrGyWJpxPpWcVJ/JKUXNmZrWJL2JgGmCfv4y+Cb+USJnCWMhEflArFlvMWDaLL6SmNZe+2mtrfTffSxAQ6J6Px4YPIo
+X-Gm-Message-State: AOJu0YycnoliYTksHUd8w36qm9/nYOePeSOQnyXeBt0HAb7unP9Fz20P
+	vaoOuI4Vq89rzStVQbH6yEkSIxZtpyFXEaA/GZVlKX0lfEJZW6LjVHYCR1cr5UCmShs9JJonBCM
+	N++zxLpiqCrPvKNjIbdZlQy2RHr9i37jy22Hgkg==
+X-Google-Smtp-Source: AGHT+IEv68BJOUuaGhqxVRkKxn+KfDlSUbKgIqshiPy4e7wU2I/4jkYErNIyGNgTBmrJ96YLJI5qj0LCOHE4JBxVLEQ=
+X-Received: by 2002:a17:906:d1db:b0:a43:fd9d:a64 with SMTP id
+ bs27-20020a170906d1db00b00a43fd9d0a64mr125290ejb.31.1709944716757; Fri, 08
+ Mar 2024 16:38:36 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240308221720.639060-1-jeremy@azazel.net>
+References: <20240307090732.56708-1-kerneljasonxing@gmail.com>
+ <20240307093310.GI4420@breakpoint.cc> <CAL+tcoAPi+greENaD8X6Scc97Fnhiqa62eUSn+JS98kqY+VA6A@mail.gmail.com>
+ <20240307120054.GK4420@breakpoint.cc> <CAL+tcoBqBaHxSU9NQqVxhRzzsaJr4=0=imtyCo4p8+DuXPL5AA@mail.gmail.com>
+ <20240307141025.GL4420@breakpoint.cc> <CAL+tcoDUyFU9wT8gzOcDqW7hWfR-7Sg8Tky9QsY_b05gP4uZ1Q@mail.gmail.com>
+ <20240308224657.GO4420@breakpoint.cc>
+In-Reply-To: <20240308224657.GO4420@breakpoint.cc>
+From: Jason Xing <kerneljasonxing@gmail.com>
+Date: Sat, 9 Mar 2024 08:37:59 +0800
+Message-ID: <CAL+tcoDv_tOAdjwpCCuBkgSCAn4rj4wnTWTB17DY0RpXnQ=p5w@mail.gmail.com>
+Subject: Re: [PATCH net-next] netfilter: conntrack: avoid sending RST to reply
+ out-of-window skb
+To: Florian Westphal <fw@strlen.de>
+Cc: edumazet@google.com, pablo@netfilter.org, kadlec@netfilter.org, 
+	kuba@kernel.org, pabeni@redhat.com, davem@davemloft.net, 
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+	netdev@vger.kernel.org, Jason Xing <kernelxing@tencent.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, Mar 08, 2024 at 10:17:20PM +0000, Jeremy Sowden wrote:
-> One mistake in a man-page, one in a warning.
-> 
-> Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+On Sat, Mar 9, 2024 at 6:47=E2=80=AFAM Florian Westphal <fw@strlen.de> wrot=
+e:
+>
+> Jason Xing <kerneljasonxing@gmail.com> wrote:
+> > > connection.  Feel free to send patches that replace drop with -accept
+> > > where possible/where it makes sense, but I don't think the
+> > > TCP_CONNTRACK_SYN_SENT one can reasonably be avoided.
+> >
+> > Oh, are you suggesting replacing NF_DROP with -NF_ACCEPT in
+> > nf_conntrack_dccp_packet()?
+>
+> It would be more consistent with what tcp and sctp trackers are
+> doing, but this should not matter in practice (the packet is malformed).
 
-Patch applied, thanks!
+Okay, I will take some time to check the sctp part. BTW, just like one
+of previous emails said, I noticed there are two points in DCCP part
+which is not consistent with TCP part, so I submitted one simple patch
+[1] to do it.
 
-Just please be aware that it's entirely unclear if/when a new
-arptables-legacy release will be made.
+[1]: https://lore.kernel.org/all/20240308092915.9751-1-kerneljasonxing@gmai=
+l.com/
 
-Cheers, Phil
+>
+> > > +       case NFCT_TCP_INVALID: {
+> > > +               verdict =3D -NF_ACCEPT;
+> > > +               if (ct->status & IPS_NAT_MASK)
+> > > +                       res =3D NF_DROP; /* skb would miss nat transf=
+ormation */
+> >
+> > Above line, I guess, should be 'verdict =3D NF_DROP'?
+>
+> Yes.
+>
+> > Great! I think your draft patch makes sense really, which takes NAT
+> > into consideration.
+>
+> You could submit this officially and we could give it a try and see if
+> anyone complains down the road.
+
+Great :)
+
+Thanks,
+Jason
