@@ -1,45 +1,45 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E792FEDD
-	for <netfilter-devel@vger.kernel.org>; Sat,  9 Mar 2024 11:35:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DF84364A8
+	for <netfilter-devel@vger.kernel.org>; Sat,  9 Mar 2024 11:35:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709984137; cv=none; b=KMVdX3/SI+4SkI9xRd2ASHXTvpxq7hTCpYOqYL2IgZhPgmNysX0agB8XlQTqANH0scRDJ7p5Opk7WUX+EI47W7YPCYEk9EzhG9a9z4qwXooHXciRqm6FfOUARq13sNtUpQyh1X2R2sPSDilVYrXcULDtAS/Nbt2DAQTOdpuPDuk=
+	t=1709984137; cv=none; b=bJUcUAh5BLtR3AJDcz7ButQTQ3QN5iHrZ9SXtr9pG4AUacpUUHOg7IqS0w1+IuRtnDsIHqzIffFDqUzFtDIDF25dAg4u5dqnAK26H+1IAnV08H09IvUVsbv8hhWTzRtyepftxgv0rVRUxnGnPZOTWShobTk8x+O6cnhEc7k7OH0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1709984137; c=relaxed/simple;
-	bh=Ev1mzNidUkI+oEiYi0GtWLXUFWnmVxAUz3qn3MlLajk=;
+	bh=QZaCRS9bVnWk/smub4KfW7SxoSeoMf5BXT4BVCP3Zgk=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=MsNmisU/dU45c9tq2to2v8WbbCAc26K2ox/BdPUCQsXyDWgCvLpdYQtxJfndWUXpIFMv1LZeRgOaYsF2vgqPE3nm1jp0/qVzhBkShND3cgR2QQQiZUIsxBTo+XIgxXp6Snafwb3+gkHk7KVp92O5PiQxw4pfImU3kP99/aiiS1Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=qNm5y8Do; arc=none smtp.client-ip=151.80.46.58
+	 MIME-Version; b=NCpIhKudCzSnS2yQb4UPqYgikJ+0zYJFMzDBIZAKHa9Mmv2z0bnDe4+HALncjAl5Edou3we+n2j/2gGHjYHnfPYXtEG/NOZnKcpo4oDafnefUssJ8tc8V5Gv6U4bGJog7brlc+89md1imvfbZ6gOG7b+spxL05GDWEs/OFYbfNY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=Y24wGmqB; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="qNm5y8Do"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="Y24wGmqB"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=4PRCPI8pluOOcXw+JlsLS4iq1gM48Jjr/j9hMqLTlbI=; b=qNm5y8DorUTzmIXkWdOPzUdS0H
-	PEfIk+Vk+DztfN6R7uU4oox5Y06u0YiDrWLGgHkJikce34553FbqrJwrTsrZOVEDM7Ifrg+329c3m
-	5g7p+A44We4B8kt6z89itHe+bBmjgryltppuqf9aMpNRaeYv8zEGRtzVbV9RKgXhSC7aqgHkFtwZu
-	b8efQrp88a0CoRszxnfYd4aZXvBSpq3REM3n3IZxagwtjFXPib9UgjD8QiX+j6ZKLHx4iC4QTfxIM
-	n6oVTRLslipa7lt2d448F2BihiSx30aNCsOiB5uU1hnVgNZfG0xIHariV+wwaSfsok2YKNXhLTXYt
-	8Urr4F8A==;
+	bh=fFcoqbUv2nOCsDixgeUFozx43v71PoUyHfayCgXuh6g=; b=Y24wGmqBIYPZWjvziG7By+4mqd
+	gbm1qRsZajd596OaR1re0PsHK0vk9bWtmmt+VWSNK+2z6PyfnQ38S49JWTruqYNVzMy6Uf6WiXXLN
+	EiG4QOFqhbf9SzPN3CpsAVlstV14VHSnv1b2HyydULp5NW1KRw94/UrGEZP1BlX7EJ18hGLDsB/cR
+	bEVUa+weEbQhXeJf7EZiDN9m4uVjMECmsQNdUWVwPloCGRWnrF/aG++byukYEKpkyJp+hUueNKQlW
+	POe3A+daxsGgdzCz+17x+0nnls34m+CwpjhHcjfK/4Z45vbE9Bm+W55BtO6ePKzrh9DOwhcMtRmqv
+	RppcTUIQ==;
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1riuzD-000000003h0-23xt;
-	Sat, 09 Mar 2024 12:35:31 +0100
+	id 1riuzF-000000003hJ-10bw;
+	Sat, 09 Mar 2024 12:35:33 +0100
 From: Phil Sutter <phil@nwl.cc>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org,
 	Florian Westphal <fw@strlen.de>
-Subject: [nft PATCH 5/7] json: Support maps with concatenated data
-Date: Sat,  9 Mar 2024 12:35:25 +0100
-Message-ID: <20240309113527.8723-6-phil@nwl.cc>
+Subject: [nft PATCH 1/7] tests: shell: maps/named_ct_objects: Fix for recent kernel
+Date: Sat,  9 Mar 2024 12:35:21 +0100
+Message-ID: <20240309113527.8723-2-phil@nwl.cc>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20240309113527.8723-1-phil@nwl.cc>
 References: <20240309113527.8723-1-phil@nwl.cc>
@@ -51,89 +51,59 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Dump such maps with an array of types in "map" property, make the parser
-aware of this.
+Since kernel commit 8059918a1377 ("netfilter: nft_ct: sanitize layer 3
+and 4 protocol number in custom expectations"), ct expectations
+specifying an l3proto which does not match the table family are
+rejected.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/json.c        | 10 +++++-----
- src/parser_json.c | 18 +++++++++---------
- 2 files changed, 14 insertions(+), 14 deletions(-)
+ tests/shell/testcases/maps/dumps/named_ct_objects.nft | 4 ++--
+ tests/shell/testcases/maps/named_ct_objects           | 2 --
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/src/json.c b/src/json.c
-index bb515164d2587..29fbd0cfdba28 100644
---- a/src/json.c
-+++ b/src/json.c
-@@ -130,15 +130,15 @@ static json_t *set_stmt_list_json(const struct list_head *stmt_list,
- 
- static json_t *set_print_json(struct output_ctx *octx, const struct set *set)
- {
--	json_t *root, *tmp;
--	const char *type, *datatype_ext = NULL;
-+	json_t *root, *tmp, *datatype_ext = NULL;
-+	const char *type;
- 
- 	if (set_is_datamap(set->flags)) {
- 		type = "map";
--		datatype_ext = set->data->dtype->name;
-+		datatype_ext = set_dtype_json(set->data);
- 	} else if (set_is_objmap(set->flags)) {
- 		type = "map";
--		datatype_ext = obj_type_name(set->objtype);
-+		datatype_ext = json_string(obj_type_name(set->objtype));
- 	} else if (set_is_meter(set->flags)) {
- 		type = "meter";
- 	} else {
-@@ -155,7 +155,7 @@ static json_t *set_print_json(struct output_ctx *octx, const struct set *set)
- 	if (set->comment)
- 		json_object_set_new(root, "comment", json_string(set->comment));
- 	if (datatype_ext)
--		json_object_set_new(root, "map", json_string(datatype_ext));
-+		json_object_set_new(root, "map", datatype_ext);
- 
- 	if (!(set->flags & (NFT_SET_CONSTANT))) {
- 		if (set->policy != NFT_SET_POL_PERFORMANCE) {
-diff --git a/src/parser_json.c b/src/parser_json.c
-index ff52423af4d7f..bb027448319c5 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -3255,7 +3255,7 @@ static struct cmd *json_parse_cmd_add_set(struct json_ctx *ctx, json_t *root,
- 					  enum cmd_ops op, enum cmd_obj obj)
- {
- 	struct handle h = { 0 };
--	const char *family = "", *policy, *dtype_ext = NULL;
-+	const char *family = "", *policy;
- 	json_t *tmp, *stmt_json;
- 	struct set *set;
- 
-@@ -3308,19 +3308,19 @@ static struct cmd *json_parse_cmd_add_set(struct json_ctx *ctx, json_t *root,
- 		return NULL;
+diff --git a/tests/shell/testcases/maps/dumps/named_ct_objects.nft b/tests/shell/testcases/maps/dumps/named_ct_objects.nft
+index 59f18932b28ad..457a08ebc32ca 100644
+--- a/tests/shell/testcases/maps/dumps/named_ct_objects.nft
++++ b/tests/shell/testcases/maps/dumps/named_ct_objects.nft
+@@ -4,7 +4,7 @@ table inet t {
+ 		dport 9876
+ 		timeout 1m
+ 		size 12
+-		l3proto ip
++		l3proto inet
  	}
  
--	if (!json_unpack(root, "{s:s}", "map", &dtype_ext)) {
--		const struct datatype *dtype;
-+	if (!json_unpack(root, "{s:o}", "map", &tmp)) {
-+		if (json_is_string(tmp)) {
-+			const char *s = json_string_value(tmp);
+ 	ct expectation exp2 {
+@@ -12,7 +12,7 @@ table inet t {
+ 		dport 9876
+ 		timeout 3s
+ 		size 13
+-		l3proto ip6
++		l3proto inet
+ 	}
  
--		set->objtype = string_to_nft_object(dtype_ext);
-+			set->objtype = string_to_nft_object(s);
-+		}
- 		if (set->objtype) {
- 			set->flags |= NFT_SET_OBJECT;
--		} else if ((dtype = datatype_lookup_byname(dtype_ext))) {
--			set->data = constant_expr_alloc(&netlink_location,
--							dtype, dtype->byteorder,
--							dtype->size, NULL);
-+		} else if ((set->data = json_parse_dtype_expr(ctx, tmp))) {
- 			set->flags |= NFT_SET_MAP;
- 		} else {
--			json_error(ctx, "Invalid map type '%s'.", dtype_ext);
-+			json_error(ctx, "Invalid map type '%s'.",
-+				   json_dumps(tmp, 0));
- 			set_free(set);
- 			handle_free(&h);
- 			return NULL;
+ 	ct helper myftp {
+diff --git a/tests/shell/testcases/maps/named_ct_objects b/tests/shell/testcases/maps/named_ct_objects
+index 61b87c1ab14a9..d0bf95012491c 100755
+--- a/tests/shell/testcases/maps/named_ct_objects
++++ b/tests/shell/testcases/maps/named_ct_objects
+@@ -9,7 +9,6 @@ table inet t {
+ 		dport 9876
+ 		timeout 1m
+ 		size 12
+-		l3proto ip
+ 	}
+ 
+ 	ct expectation exp2 {
+@@ -17,7 +16,6 @@ table inet t {
+ 		dport 9876
+ 		timeout 3s
+ 		size 13
+-		l3proto ip6
+ 	}
+ 
+ 	ct helper myftp {
 -- 
 2.43.0
 
