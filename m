@@ -1,113 +1,147 @@
-Received: from mail-pf1-f181.google.com (mail-pf1-f181.google.com [209.85.210.181])
+Received: from mail-pf1-f173.google.com (mail-pf1-f173.google.com [209.85.210.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FD5540BE2
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Mar 2024 14:13:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B0E83FB8E
+	for <netfilter-devel@vger.kernel.org>; Mon, 11 Mar 2024 14:15:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710166381; cv=none; b=p82TpBnkm1ox/D14ev5fEJzkd7Jz784kt+SYDr/QqIpxeJQsYvm3UpPHSBFkpXZsjJf7aWxST9lDqkNvpZ0YH6u9jvP1PmyEdjRiZHJZd0pK3HFD0jGfS+17bMlUxLriyUZWFpoU7B3UyHObuv6FNP01XR5Bf0NwNLYV3vjBQQg=
+	t=1710166516; cv=none; b=JKbGmVAFHd9iECGlC1WcZUg0W3/3LZT/4fcaZpmkE6NnaAKQjZb2RK9RwdlzmeLs6ncC0V7K6eAyB1XypcwSFs+PhlVZ0HdrwxZPFOWPElvE2c+8MWvj7na58NLij2Cz4ZUQxirMUcb/3/jFBLM9loCqWdt08rougOp0LejJv/I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710166381; c=relaxed/simple;
-	bh=H1FYnbVh4avzCb4o5LGsnRS7/3CPqynRBCOpw0ccCPg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=nbHifgvJHg/UH3RjJOB4fqnbEODrk9DVTU3AgMvrkaYTJXFmTzPuhdxW+gThB5GbEU8F/5UpkTjMtb4S/Lze5xNi2GqYIsaeOiJISft0nr/Jy8bPYy9HRiBOKdAIeCSr50NrIhgqrzpomsJXhSHpI1QvyzPZaIK1iBUqA7kzIrc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Olokc9PX; arc=none smtp.client-ip=209.85.210.181
+	s=arc-20240116; t=1710166516; c=relaxed/simple;
+	bh=M2iDWlFDVBBQKl4DRm6cpRs8S4lrKfo4CxXIXH1hvMY=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=aqd7tlHV/eLwK2sXuODumxtM03ILkOqnbsb3zGX/Mf0pmOoEPj3jKRqRcMCVrzyNMwbqhmCdlVhyvuBwf5piJ70h9mHs+HXLGk/HBo4ys/NFRnPS3yGJJfMay9TPmmkqs5A/EDiUTXtvPIkEftzYN85JNYiTwVnayPe8Uvl1+GI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=CGcp/XE5; arc=none smtp.client-ip=209.85.210.173
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Olokc9PX"
-Received: by mail-pf1-f181.google.com with SMTP id d2e1a72fcca58-6e5dddd3b95so3184632b3a.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 11 Mar 2024 07:13:00 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CGcp/XE5"
+Received: by mail-pf1-f173.google.com with SMTP id d2e1a72fcca58-6e64997a934so3403344b3a.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 11 Mar 2024 07:15:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1710166379; x=1710771179; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=dvvIahFluMLJHAzJifRcoktLcSWsgLsoBFuiNFgejw0=;
-        b=Olokc9PXVC+gjlsqPdexzL7MiQaTZfPSG6VFCGOK1/vJOl2tvqEo5+/yrqCx+ER4Qb
-         vBOzXjIxZBh38F5jFcbStjuT1QkBMLeYwqk1MwiDUqU4PN4vxGOBaPaD2fxO6IIO5vYV
-         HcWWR6ETsDe9YKaMhj6MhgTyNaNuj9ft5BvxgGQ1di3uRhVsn8btTlb1PEpsc1GgacI+
-         i+ehJR8ReBhEfZy71CZMwpW9V27E9FE0cg8tOKYJzMNEoeVHbpfbg498VlA/U6rJc3m9
-         +WIzSiY1AJzOajvQber1/aJgBGE4SYEtu2Szp9qTpO4tO7NHe5xNdbpI3TbZBjrV4dKp
-         T1tg==
+        d=gmail.com; s=20230601; t=1710166514; x=1710771314; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=O83dn/npEzg+4UFsPaFoOVIQju5+66C547b5i7OkLxw=;
+        b=CGcp/XE539ANOYi1DZ+R9g4R2P23qgqdkZBLckoU35sxC+dFRkpRde1JgMgSlwBKEc
+         m1AZAawzjWWGrHNOcpretNHv6lBDE9rgTE+lQCixqi2cWEoV9oD/CNB0y1rel60NlckF
+         NbR3np9/zB32OopJpYLzLuNnx6vVzWR/p7AD7lvMgC2ZPisH2EcZPMJiehiIsmeU0B6B
+         ypNuKWEx89F8DrPYEYX09Se/qjRFkpZ6uEwNpJ36AebWDTSfdM2m7flcFVoEr/oBmhtq
+         ZER8kg8/hKZ1clkSY076B8MYExQ4ia1wUKXFygEcV3zFAaQQ2P8VtfRCA8HfKXRuDo91
+         gdgg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1710166379; x=1710771179;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=dvvIahFluMLJHAzJifRcoktLcSWsgLsoBFuiNFgejw0=;
-        b=Jmtg1Wvne171j8WGCM7/yv5DOtxyoOfA3eMJrTQmky6R6OOIWzsxN5eEXWxmAIcjyn
-         uETgje3JkFk1DCVVJX0MNbqXXxRJ25GlaJwsTqVW+kNfKg5ws+0WIC+1P+avHbDTXoMD
-         gGnFUoRgCtkcRC27phOW3XJLoR5kfF42n7l1RXLTIBfiM5U8cxGGIvkcBnJmhvPQk+QX
-         WgjASlkOI2wzOOgrHDJKWcwAl/TkBSuVFtZydKQsKMXBlPcuQKLkiXN8Q9HXwFrp1jbw
-         jukf3VJaAccRAfVvWW2HzPNZGgDd7F3AovGl5HGvMs+vuVXZKvmrTypryv4PD6j/5Sqz
-         CM5w==
-X-Gm-Message-State: AOJu0YyY7PT6w1kwGJr/smuDBiOECJ51b3E5TmUK0sGFEjoIG5qJc4is
-	FRSNUjeOz8kSC2v2e2ylv1UKR6FMA8BfBo/pZLLMdGl5VpYlXYfRTGEFANfMItf/tEI9
-X-Google-Smtp-Source: AGHT+IEJ5HeKHddC3Sqbs5Vja9MGh1QXOJJSh/U7RxsVZ74lFaoAkH4xLy6SmG1cCaeSv0eyxQ9MxQ==
-X-Received: by 2002:a05:6a20:1589:b0:1a1:67c0:c751 with SMTP id h9-20020a056a20158900b001a167c0c751mr9201221pzj.17.1710166379427;
-        Mon, 11 Mar 2024 07:12:59 -0700 (PDT)
-Received: from ubuntu-1-2 (ec2-52-199-81-84.ap-northeast-1.compute.amazonaws.com. [52.199.81.84])
-        by smtp.gmail.com with ESMTPSA id v17-20020a056a00149100b006e69c942631sm604036pfu.108.2024.03.11.07.12.57
+        d=1e100.net; s=20230601; t=1710166514; x=1710771314;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=O83dn/npEzg+4UFsPaFoOVIQju5+66C547b5i7OkLxw=;
+        b=Hu0UWvfDRasv4dJX7js7GL1KjtISbGJGKu5297awNe6B1ljVHfIkDr4ZUFnx3QU9ye
+         kUCf07UWIelvXMAroxnL2wxr8ttMMo5fV0EFaPkO0EaIjmfMK8ht6/jox6Q4KsAHN6qE
+         DkBtmhjrzARZiNn7dmIAr54ViqH7CtkeF0PxGS9ubNtcWQ7GbjXeeiKbij795FXKtcsm
+         DNwGFpfXjhFb42T7ysijJHnGHlfjgzWPeEAq7rNQa649rqvllktWrQk6i/5cy3jm/Viy
+         /6NhDFftGLVn6tcVjR2IP3FQRl4+E5aWcu2xtxHaJVFWvc2Zw0sOWY0Yp1bwcW7XNJru
+         mBYA==
+X-Gm-Message-State: AOJu0YwSKJvqgnOflGl9ha5VXiRI3RuDUo5WX82cAzIshWyEDwuCy9jg
+	l3Exl4VY3VnvjwFjMBAffC929fcKZ73Pjgv53gaGg3Q2zg1/yD0K1dWLQMNAj6JBwZPE
+X-Google-Smtp-Source: AGHT+IGhrNShwLnOFLm+bSl8sPYYm982OY28Ly/SxI+t3lBTSkbCMoFP1iW6s5OSZgNPQ5D/5+yXlw==
+X-Received: by 2002:a05:6a20:da86:b0:1a1:3ecb:52ff with SMTP id iy6-20020a056a20da8600b001a13ecb52ffmr609869pzb.0.1710166513647;
+        Mon, 11 Mar 2024 07:15:13 -0700 (PDT)
+Received: from localhost.localdomain (ec2-52-199-81-84.ap-northeast-1.compute.amazonaws.com. [52.199.81.84])
+        by smtp.gmail.com with ESMTPSA id k12-20020aa7998c000000b006e632025bcdsm4378366pfh.138.2024.03.11.07.15.11
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 11 Mar 2024 07:12:58 -0700 (PDT)
-Date: Mon, 11 Mar 2024 22:12:48 +0800
+        Mon, 11 Mar 2024 07:15:13 -0700 (PDT)
 From: Quan Tian <tianquan23@gmail.com>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-	kadlec@netfilter.org, tianquan23@gmail.com
-Subject: Re: [PATCH v2 nf-next 2/2] netfilter: nf_tables: support updating
- userdata for nft_table
-Message-ID: <Ze8RYCbmSgISYCb5@ubuntu-1-2>
-References: <20240310172825.10582-1-tianquan23@gmail.com>
- <20240310172825.10582-2-tianquan23@gmail.com>
- <20240310174754.GA16724@breakpoint.cc>
+To: netfilter-devel@vger.kernel.org
+Cc: pablo@netfilter.org,
+	kadlec@netfilter.org,
+	fw@strlen.de,
+	Quan Tian <tianquan23@gmail.com>
+Subject: [PATCH v3 nf-next 1/2] netfilter: nf_tables: use struct nlattr * to store userdata for nft_table
+Date: Mon, 11 Mar 2024 22:14:53 +0800
+Message-Id: <20240311141454.31537-1-tianquan23@gmail.com>
+X-Mailer: git-send-email 2.39.3 (Apple Git-145)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240310174754.GA16724@breakpoint.cc>
+Content-Transfer-Encoding: 8bit
 
-Hi Florian,
+To prepare for the support for table comment updates, the patch changes
+to store userdata in struct nlattr *, which can be updated atomically on
+updates.
 
-Thanks a lot for your reviews.
+Signed-off-by: Quan Tian <tianquan23@gmail.com>
+---
+ v2: Change to store userdata in struct nlattr * to ensure atomical update
+ v3: Extract a helper function to duplicate userdata
 
-On Sun, Mar 10, 2024 at 06:47:54PM +0100, Florian Westphal wrote:
-> Quan Tian <tianquan23@gmail.com> wrote:
-> > @@ -10129,14 +10154,12 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
-> >  		switch (trans->msg_type) {
-> >  		case NFT_MSG_NEWTABLE:
-> >  			if (nft_trans_table_update(trans)) {
-> > -				if (!(trans->ctx.table->flags & __NFT_TABLE_F_UPDATE)) {
-> > -					nft_trans_destroy(trans);
-> > -					break;
-> > +				if (trans->ctx.table->flags & __NFT_TABLE_F_UPDATE) {
-> > +					if (trans->ctx.table->flags & NFT_TABLE_F_DORMANT)
-> > +						nf_tables_table_disable(net, trans->ctx.table);
-> > +					trans->ctx.table->flags &= ~__NFT_TABLE_F_UPDATE;
-> >  				}
-> > -				if (trans->ctx.table->flags & NFT_TABLE_F_DORMANT)
-> > -					nf_tables_table_disable(net, trans->ctx.table);
-> > -
-> > -				trans->ctx.table->flags &= ~__NFT_TABLE_F_UPDATE;
-> > +				swap(trans->ctx.table->udata, nft_trans_table_udata(trans));
-> >  			} else {
-> >  				nft_clear(net, trans->ctx.table);
-> >  			}
-> 
-> There is a call to nft_trans_destroy() below here.
-> You could add a "break" after the swap() to avoid it.
-> 
-> Otherwise kmemleak should report old udata being lost
-> on update.
+ include/net/netfilter/nf_tables.h |  4 +---
+ net/netfilter/nf_tables_api.c     | 13 +++++++++----
+ 2 files changed, 10 insertions(+), 7 deletions(-)
 
-Thanks for pointing it out. kmemleak indeed reported the leak.
-I found "break" after swap() would skip sending the table update event,
-so I changed to execute different code paths for the two branches in v3.
-Please let me know if it makes sense to you.
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index e27c28b612e4..144dc469ebf8 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1248,7 +1248,6 @@ static inline void nft_use_inc_restore(u32 *use)
+  *	@genmask: generation mask
+  *	@nlpid: netlink port ID
+  *	@name: name of the table
+- *	@udlen: length of the user data
+  *	@udata: user data
+  *	@validate_state: internal, set when transaction adds jumps
+  */
+@@ -1267,8 +1266,7 @@ struct nft_table {
+ 					genmask:2;
+ 	u32				nlpid;
+ 	char				*name;
+-	u16				udlen;
+-	u8				*udata;
++	struct nlattr			*udata;
+ 	u8				validate_state;
+ };
+ 
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 224e5fb6a916..85088297dd0d 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -183,6 +183,11 @@ static void nft_trans_destroy(struct nft_trans *trans)
+ 	kfree(trans);
+ }
+ 
++static struct nlattr *nft_userdata_dup(const struct nlattr *udata, gfp_t gfp)
++{
++	return kmemdup(udata, nla_total_size(nla_len(udata)), gfp);
++}
++
+ static void __nft_set_trans_bind(const struct nft_ctx *ctx, struct nft_set *set,
+ 				 bool bind)
+ {
+@@ -983,7 +988,8 @@ static int nf_tables_fill_table_info(struct sk_buff *skb, struct net *net,
+ 		goto nla_put_failure;
+ 
+ 	if (table->udata) {
+-		if (nla_put(skb, NFTA_TABLE_USERDATA, table->udlen, table->udata))
++		if (nla_put(skb, NFTA_TABLE_USERDATA, nla_len(table->udata),
++			    nla_data(table->udata)))
+ 			goto nla_put_failure;
+ 	}
+ 
+@@ -1398,11 +1404,10 @@ static int nf_tables_newtable(struct sk_buff *skb, const struct nfnl_info *info,
+ 		goto err_strdup;
+ 
+ 	if (nla[NFTA_TABLE_USERDATA]) {
+-		table->udata = nla_memdup(nla[NFTA_TABLE_USERDATA], GFP_KERNEL_ACCOUNT);
++		table->udata = nft_userdata_dup(nla[NFTA_TABLE_USERDATA],
++						GFP_KERNEL_ACCOUNT);
+ 		if (table->udata == NULL)
+ 			goto err_table_udata;
+-
+-		table->udlen = nla_len(nla[NFTA_TABLE_USERDATA]);
+ 	}
+ 
+ 	err = rhltable_init(&table->chains_ht, &nft_chain_ht_params);
+-- 
+2.39.3 (Apple Git-145)
 
-Thanks,
-Quan
