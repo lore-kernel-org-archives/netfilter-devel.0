@@ -1,112 +1,289 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9DEA81798C
-	for <netfilter-devel@vger.kernel.org>; Wed, 13 Mar 2024 09:40:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21E904205F
+	for <netfilter-devel@vger.kernel.org>; Wed, 13 Mar 2024 14:14:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710322814; cv=none; b=KaW8Qto/T/ePNILH1Mk8vhI1gVgN/RI7/c3l2OrvcWgbdYbblkMUFr/s8M/2H/Cnlc6XOGkOuNrAuz0mK0NwkSyzgDNVkmi3I2JLLuzvW+c9K1Hy/Hk5e/Zyd+uVyKROtrPyclAM7MbTP3iRFKmxzHcZwVjLUUYTZXxeRGigzxw=
+	t=1710339282; cv=none; b=UmaxzukdEb6Q9E1QmSVyA3TR9yCs+baF2YZT/R9KkCEMTTAWQWyvLDwFqoTaoKde5jvU+U4ErjWfVD8sT93oV1ONT0lQzBmKgOlDoTi5Sb6H37Nufp9QwPVPLoiHW5CVUEDu57XncUg4guhmTi01Yjewg4v2CFkBXdGZgX/TjIs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710322814; c=relaxed/simple;
-	bh=30xatZam48wpTSsHlzX7ubhzIs083odCkjivBGYjhxM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=soBtyaXSf0FSKWmZS/ELGyKpCPOQmr6AUDsn6LD/q1zSCsljlRK6LPMYKPkGB/VUwyhjeB9m4BET9lNOqGyEuX09umocyyhAPeK8ESjTWCN9klvsvirxpNggVAiNMCHK5CpwoSaKMBxLxZqG1wWRn0ZelcV3bbHRwP75b1e3JU4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Date: Wed, 13 Mar 2024 10:40:05 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Quan Tian <tianquan23@gmail.com>
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	kadlec@netfilter.org
-Subject: Re: [PATCH v3 nf-next 2/2] netfilter: nf_tables: support updating
- userdata for nft_table
-Message-ID: <ZfF0dQTCdg1z0-b5@calendula>
-References: <20240311141454.31537-1-tianquan23@gmail.com>
- <20240311141454.31537-2-tianquan23@gmail.com>
- <20240312122758.GB2899@breakpoint.cc>
- <ZfBO8JSzsdeDpLrR@calendula>
- <20240312130134.GC2899@breakpoint.cc>
- <ZfBmCbGamurxXE5U@ubuntu-1-2>
- <20240312143300.GF1529@breakpoint.cc>
- <ZfDV_AedKO-Si4-_@calendula>
- <ZfECzgo/mYkMvHXA@ubuntu-1-2>
+	s=arc-20240116; t=1710339282; c=relaxed/simple;
+	bh=7ECJfy7eSn3S+b4F0xEWnug/tFlHviESkX1iUw11viM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=qosXb9hcNs6KodkIsS75ChsQpLwvpqUJNVX/sw0TqAa4yjwQy0Zjm3oHuCF+HvkZGpsIqd41EIQNIVMjrYc9XlQ1QjGEBarkY7xei5Rb+y2XNlsrU2UFN20A23ckk3aBPwiEE+UhGUB5C3NDgtPlkLK3xcdYnRaque/s3XJlDgc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1rkPNI-00089j-7b; Wed, 13 Mar 2024 15:14:32 +0100
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] tests/py: remove flow table json test cases
+Date: Wed, 13 Mar 2024 15:13:22 +0100
+Message-ID: <20240313141325.12547-1-fw@strlen.de>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <ZfECzgo/mYkMvHXA@ubuntu-1-2>
 
-On Wed, Mar 13, 2024 at 09:35:10AM +0800, Quan Tian wrote:
-> On Tue, Mar 12, 2024 at 11:23:56PM +0100, Pablo Neira Ayuso wrote:
-[...]
-> > I don't have a use-case for this table userdata myself, this is
-> > currently only used to store comments by userspace, why someone would
-> > be willing to update such comment associated to a table, I don't know.
-> 
-> There was a use-case in kube-proxy that we wanted to use comment to
-> store version/compatibility information so we could know whether it
-> has to recreate the whole table when upgrading to a new version due to
-> incompatible chain/rule changes (e.g. a chain's hook and priority is
-> changed). The reason why we wanted to avoid recreating the whole table
-> when it doesn't have to is because deleting the table would also
-> destory the dynamic sets in the table, losing some data.
+ip(6)/flowtable.t tests fail both for normal and json mode.
 
-There is a generation number which gets bumped for each ruleset
-update which is currently global.
+WARNING: line 3: 'add rule ip test-ip input meter xyz size 8192 { ip saddr timeout 30s counter}': 'ip test-ip input' mismatches '[ payload load 4b @ network header + 12 => reg 1 ]'
+ip/lowtable.t.payload.got: WARNING: line 2: Wrote payload for rule meter xyz size 8192 { ip saddr timeout 30s counter}
+ip/flowtable.t: WARNING: line 5: 'add rule ip test-ip input meter xyz size 8192 { ip saddr timeout 30s counter}': 'meter xyz size 8192 { ip saddr timeout 30s counter}' mismatches 'update @xyz { ip saddr timeout 30s counter}'
+WARNING: line 3: 'add rule ip6 test-ip6 input meter acct_out size 4096 { meta iif . ip6 saddr timeout 600s counter }': 'ip6 test-ip6 input' mismatches '[ meta load iif => reg 1 ]'
+ip6/flowtable.t.payload.got: WARNING: line 2: Wrote payload for rule meter acct_out size 4096 { meta iif . ip6 saddr timeout 600s counter }
+ip6/flowtable.t: WARNING: line 5: 'add rule ip6 test-ip6 input meter acct_out size 4096 { meta iif . ip6 saddr timeout 600s counter }': 'meter acct_out size 4096 { iif . ip6 saddr timeout 10m counter }' mismatches 'update @acct_out { iif . ip6 saddr timeout 10m counter}'
+ip6/flowtable.t: ERROR: line 6: add rule ip6 test-ip6 input meter acct_out size 12345 { ip6 saddr . meta iif timeout 600s counter }: This rule should not have failed.
+ip6/flowtable.t: 2 unit tests, 2 error, 1 warning
 
-Would having such generation ID per table help or you need more
-flexibility in what needs to be stored in the userdata area?
+Fix at least the non-json mode, I do not know how to fix up -j
+or wheter the failure is actually correct.
 
-> Another minor reason is that the comments could be used to store
-> human-readable explanation for the objects. And they may be change when
-> the objects' functions change. It would be great if they could be
-> updated via the "add" operation, otherwise "delete+add" would always be
-> needed to keep comments up-to-date.
-> 
-> However, I don't know a use-case for back-to-back comment updates, I
-> will check which one is more complex and risky: rejecting it or
-> supporting it.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ tests/py/ip/flowtable.t              |  2 +-
+ tests/py/ip/flowtable.t.json         | 24 -----------
+ tests/py/ip/flowtable.t.payload      |  6 +--
+ tests/py/ip6/flowtable.t             |  4 +-
+ tests/py/ip6/flowtable.t.json        | 62 ----------------------------
+ tests/py/ip6/flowtable.t.json.output | 62 ----------------------------
+ tests/py/ip6/flowtable.t.payload     |  6 +--
+ 7 files changed, 7 insertions(+), 159 deletions(-)
+ delete mode 100644 tests/py/ip/flowtable.t.json
+ delete mode 100644 tests/py/ip6/flowtable.t.json
+ delete mode 100644 tests/py/ip6/flowtable.t.json.output
 
-We have these back-to-back update everywhere. The original idea was to
-allow for robots to place all commands in a batch and send it to the
-kernel, if the robot adds objects and then, while the same batch is
-being collected, another update on such object happens, including one
-that cancels the object that was just added, this is accepted since
-this nonsense is valid according to the transactional model.
+diff --git a/tests/py/ip/flowtable.t b/tests/py/ip/flowtable.t
+index 086c6cf6b449..f1541fdca158 100644
+--- a/tests/py/ip/flowtable.t
++++ b/tests/py/ip/flowtable.t
+@@ -2,4 +2,4 @@
+ 
+ *ip;test-ip;input
+ 
+-meter xyz size 8192 { ip saddr timeout 30s counter};ok
++meter xyz size 8192 { ip saddr timeout 30s counter};ok;update @xyz { ip saddr timeout 30s counter}
+diff --git a/tests/py/ip/flowtable.t.json b/tests/py/ip/flowtable.t.json
+deleted file mode 100644
+index a03cc9d79350..000000000000
+--- a/tests/py/ip/flowtable.t.json
++++ /dev/null
+@@ -1,24 +0,0 @@
+-# meter xyz size 8192 { ip saddr timeout 30s counter}
+-[
+-    {
+-        "meter": {
+-            "key": {
+-                "elem": {
+-                    "timeout": 30,
+-                    "val": {
+-                        "payload": {
+-                            "field": "saddr",
+-                            "protocol": "ip"
+-                        }
+-                    }
+-                }
+-            },
+-            "name": "xyz",
+-            "size": 8192,
+-            "stmt": {
+-                "counter": null
+-            }
+-        }
+-    }
+-]
+-
+diff --git a/tests/py/ip/flowtable.t.payload b/tests/py/ip/flowtable.t.payload
+index c0aad39ea193..3d18070b7217 100644
+--- a/tests/py/ip/flowtable.t.payload
++++ b/tests/py/ip/flowtable.t.payload
+@@ -1,7 +1,5 @@
+ # meter xyz size 8192 { ip saddr timeout 30s counter}
+-xyz test-ip 31
+-xyz test-ip 0
+-ip test-ip input 
++xyz test-ip 30 size 8192
++ip test-ip input
+   [ payload load 4b @ network header + 12 => reg 1 ]
+   [ dynset update reg_key 1 set xyz timeout 30000ms expr [ counter pkts 0 bytes 0 ] ]
+-
+diff --git a/tests/py/ip6/flowtable.t b/tests/py/ip6/flowtable.t
+index e58d51bb9b8e..f8994bce9382 100644
+--- a/tests/py/ip6/flowtable.t
++++ b/tests/py/ip6/flowtable.t
+@@ -2,5 +2,5 @@
+ 
+ *ip6;test-ip6;input
+ 
+-meter acct_out size 4096 { meta iif . ip6 saddr timeout 600s counter };ok;meter acct_out size 4096 { iif . ip6 saddr timeout 10m counter }
+-meter acct_out size 12345 { ip6 saddr . meta iif timeout 600s counter };ok;meter acct_out size 12345 { ip6 saddr . iif timeout 10m counter }
++meter acct_out size 4096 { meta iif . ip6 saddr timeout 600s counter };ok;update @acct_out { iif . ip6 saddr timeout 10m counter }
++meter acct_out2 size 12345 { ip6 saddr . meta iif timeout 600s counter };ok;update @acct_out2 { ip6 saddr . iif timeout 10m counter }
+diff --git a/tests/py/ip6/flowtable.t.json b/tests/py/ip6/flowtable.t.json
+deleted file mode 100644
+index d0b3a957f01b..000000000000
+--- a/tests/py/ip6/flowtable.t.json
++++ /dev/null
+@@ -1,62 +0,0 @@
+-# meter acct_out size 4096 { meta iif . ip6 saddr timeout 600s counter }
+-[
+-    {
+-        "meter": {
+-            "key": {
+-                "elem": {
+-                    "timeout": 600,
+-                    "val": {
+-                        "concat": [
+-                            {
+-                                "meta": { "key": "iif" }
+-                            },
+-                            {
+-                                "payload": {
+-                                    "field": "saddr",
+-                                    "protocol": "ip6"
+-                                }
+-                            }
+-                        ]
+-                    }
+-                }
+-            },
+-            "name": "acct_out",
+-            "size": 4096,
+-            "stmt": {
+-                "counter": null
+-            }
+-        }
+-    }
+-]
+-
+-# meter acct_out size 12345 { ip6 saddr . meta iif timeout 600s counter }
+-[
+-    {
+-        "meter": {
+-            "key": {
+-                "elem": {
+-                    "timeout": 600,
+-                    "val": {
+-                        "concat": [
+-                            {
+-                                "payload": {
+-                                    "field": "saddr",
+-                                    "protocol": "ip6"
+-                                }
+-                            },
+-                            {
+-                                "meta": { "key": "iif" }
+-                            }
+-                        ]
+-                    }
+-                }
+-            },
+-            "name": "acct_out",
+-            "size": 12345,
+-            "stmt": {
+-                "counter": null
+-            }
+-        }
+-    }
+-]
+-
+diff --git a/tests/py/ip6/flowtable.t.json.output b/tests/py/ip6/flowtable.t.json.output
+deleted file mode 100644
+index d0b3a957f01b..000000000000
+--- a/tests/py/ip6/flowtable.t.json.output
++++ /dev/null
+@@ -1,62 +0,0 @@
+-# meter acct_out size 4096 { meta iif . ip6 saddr timeout 600s counter }
+-[
+-    {
+-        "meter": {
+-            "key": {
+-                "elem": {
+-                    "timeout": 600,
+-                    "val": {
+-                        "concat": [
+-                            {
+-                                "meta": { "key": "iif" }
+-                            },
+-                            {
+-                                "payload": {
+-                                    "field": "saddr",
+-                                    "protocol": "ip6"
+-                                }
+-                            }
+-                        ]
+-                    }
+-                }
+-            },
+-            "name": "acct_out",
+-            "size": 4096,
+-            "stmt": {
+-                "counter": null
+-            }
+-        }
+-    }
+-]
+-
+-# meter acct_out size 12345 { ip6 saddr . meta iif timeout 600s counter }
+-[
+-    {
+-        "meter": {
+-            "key": {
+-                "elem": {
+-                    "timeout": 600,
+-                    "val": {
+-                        "concat": [
+-                            {
+-                                "payload": {
+-                                    "field": "saddr",
+-                                    "protocol": "ip6"
+-                                }
+-                            },
+-                            {
+-                                "meta": { "key": "iif" }
+-                            }
+-                        ]
+-                    }
+-                }
+-            },
+-            "name": "acct_out",
+-            "size": 12345,
+-            "stmt": {
+-                "counter": null
+-            }
+-        }
+-    }
+-]
+-
+diff --git a/tests/py/ip6/flowtable.t.payload b/tests/py/ip6/flowtable.t.payload
+index 559475f6d2c6..f251289d4b88 100644
+--- a/tests/py/ip6/flowtable.t.payload
++++ b/tests/py/ip6/flowtable.t.payload
+@@ -1,16 +1,14 @@
+ # meter acct_out size 4096 { meta iif . ip6 saddr timeout 600s counter }
+-acct_out test-ip6 31
+ acct_out test-ip6 0
+ ip6 test-ip6 input
+   [ meta load iif => reg 1 ]
+   [ payload load 16b @ network header + 8 => reg 9 ]
+   [ dynset update reg_key 1 set acct_out timeout 600000ms expr [ counter pkts 0 bytes 0 ] ]
+ 
+-# meter acct_out size 12345 { ip6 saddr . meta iif timeout 600s counter }
+-acct_out test-ip6 31
++# meter acct_out2 size 12345 { ip6 saddr . meta iif timeout 600s counter }
+ acct_out test-ip6 0
+ ip6 test-ip6 input
+   [ payload load 16b @ network header + 8 => reg 1 ]
+   [ meta load iif => reg 2 ]
+-  [ dynset update reg_key 1 set acct_out timeout 600000ms expr [ counter pkts 0 bytes 0 ] ]
++  [ dynset update reg_key 1 set acct_out2 timeout 600000ms expr [ counter pkts 0 bytes 0 ] ]
+ 
+-- 
+2.43.0
 
-In this transactional model, batch processing also continues on
-errors, rather than stopping on the first error, error unwinding is
-special in that sense because objects remain in place and are just
-marked are deleted. This allows for getting all errors to userspace at
-once.
-
-It is harder than classic netdev interfaces in the kernel.
-
-Florian has concerns on this transactional model as too hard because
-of the recent bug reports. If the direction is to tigthen this, then
-I think all should be revised, not just reject this userdata update
-while everything else still allows for back-to-back updates.
-
-This is of course not related to your patch.
-
-> > I would like to know if there are plans to submit similar patches for
-> > other objects. As for sets, this needs to be careful because userdata
-> > contains the set description.
-> 
-> As explained above, I think there is some value in supporting comment
-> update for other objects, especially when the objects contain dynamic
-> data. But I understand there are risks like you mentioned and it would
-> need to be more careful than tables. I would volunteer to take a try
-> for other objects, starting with objects similiar to tables first, if
-> it doesn’t sound bad to you. Please let me know if you feel it's not
-> worth.
-
-I am not saying it is not worth, and I am trying to understand your
-requirements in case there is a chance to provide an alternative path
-to using _USERDATA for this.
-
-Thanks for explaining.
