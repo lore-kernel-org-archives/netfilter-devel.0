@@ -1,80 +1,73 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D22886EB4E
-	for <netfilter-devel@vger.kernel.org>; Thu, 14 Mar 2024 11:17:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5B6B1E4A6
+	for <netfilter-devel@vger.kernel.org>; Thu, 14 Mar 2024 11:21:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710415080; cv=none; b=kITE8r/f0LwlIVPWDra8hPBU8LhBi5cCv/67VPoR6mNlTnUNcn/8d6PEidUXANCw7MSw3G21A1jKAKPzTapOi0DpUbstxmWItqC2WPF2P/odCR5raUwwnew+s5l3hCjUVj6rJB+2r1M4uXVTOHi9yxH1cdP2o8D0AqInJOJnh04=
+	t=1710415292; cv=none; b=sWubrSVGwYdX3Ax0Ll93R0EVQExHGdk96bJFLzIlrcAXWiZ2+cS9cRhC6GqV6SEuiE2FtG34pj1xAxhYNB23GRJ1mmXFchFSDfk0MZqevQTAmjpWH1w1/RRb0FMB7uf1upYjvYt/X9Xf8c4oeWDpXEVVSbw7nW3skygQO6tjAFQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710415080; c=relaxed/simple;
-	bh=b8fBw34yEJkArGwbv3xg6wAfXIdQ8rw2k47uo6fu1iw=;
+	s=arc-20240116; t=1710415292; c=relaxed/simple;
+	bh=C4rADEtaqf/QydS0fK8XuZoP0SZeeGU4zCjwyv6E84Q=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=NRf0zrGorANJz5NUnLhq95l1qOvgdOQLNNAtlZ1hRcwsXIEaMpZgFBa9nxJXkMHHKvZrTlEWJZZpr4BmSSmHi0yM/r4yuDHAvyEk6xUfsLQar6ZONkGNGrSifiRXJzTbEC7pd6cfyui9JRlP0bYkhZDyhP1YKFsIZ8hAZwxhv9U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Date: Thu, 14 Mar 2024 12:17:51 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+	 Content-Type:Content-Disposition:In-Reply-To; b=kwhP+RI+I3dm0qJB4R3uncKfdhjQO/azylweggBhQdyCJoLT6Jq8EM0eXZonO0aN5ACVDufqUm6HFzzCPTfCqc5vRTQbbELFUpHt2qppppZbzJAd1dMC98sBN1HK0vh9p05kmD6XupjCgz0pRR7YDt7o1HgeGYkyS0pS0OdK8Yg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1rkj9K-0006lb-1Q; Thu, 14 Mar 2024 12:21:26 +0100
+Date: Thu, 14 Mar 2024 12:21:26 +0100
+From: Florian Westphal <fw@strlen.de>
 To: Sven Auhagen <sven.auhagen@voleatech.de>
-Cc: netfilter-devel@vger.kernel.org
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	pablo@netfilter.org
 Subject: Re: Flowtable race condition error
-Message-ID: <ZfLc33WgQPKdv2vG@calendula>
+Message-ID: <20240314112126.GC1038@breakpoint.cc>
 References: <x6s4ukl7gfgkcap6b56o6wv6oqanyjx4u7fj5ldnjqna7yp6lu@2pxdntq2pe5f>
+ <20240313145557.GD2899@breakpoint.cc>
+ <20240313150203.GE2899@breakpoint.cc>
+ <yyi2e7vs4kojiadm7arndmxj5pzyrqqmjlge6j657nfr4hkv4y@einahmfi76rr>
+ <20240313152528.GF2899@breakpoint.cc>
+ <2rzv5gwtw3mp4hzndzb4sjtnibefs7sjcsychvm7vpoy5wetv2@ssrxj7cmi42b>
+ <20240314092541.GB1038@breakpoint.cc>
+ <3ku3nssbmgc7jn7mlslvag5rdn2mbqcszkm4mccnzd72uhbb3o@uwkhkhxg3msw>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <x6s4ukl7gfgkcap6b56o6wv6oqanyjx4u7fj5ldnjqna7yp6lu@2pxdntq2pe5f>
+In-Reply-To: <3ku3nssbmgc7jn7mlslvag5rdn2mbqcszkm4mccnzd72uhbb3o@uwkhkhxg3msw>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-Hi Sven,
+Sven Auhagen <sven.auhagen@voleatech.de> wrote:
+> I think you have a valid point with the not calling flow_offload_teardown but maybe
+> we need to do something else instead like lower the flowtable entry timeout to trigger a
+> faster gc for both udp and tcp.
 
-On Tue, Mar 12, 2024 at 05:29:45PM +0100, Sven Auhagen wrote:
-> Hi,
-> 
-> I have a race condition problem in the flowtable and could
-> use some hint where to start debugging.
-> 
-> Every now and then a TCP FIN is closing the flowtable with a call
-> to flow_offload_teardown.
-> 
-> Right after another packet from the reply direction is readding
-> the connection to the flowtable just before the FIN is actually
-> transitioning the state from ESTABLISHED to FIN WAIT.
-> Now the FIN WAIT connection is OFFLOADED.
+conntrack core should receive the fin/rst packet, and should switch the
+state entry accordingly, i.e. away from established.
 
-Are you restricting your ruleset to only offload new connections?
+I suspect that gc_worker() "repairs" the timeout to a hige value again
+because the OFFLOAD flag is left in place.
 
-Or is it conntrack creating a fresh connection that being offloaded
-for this terminating TCP traffic what you are observing?
+However, this change:
 
-> This by itself should work itself out at gc time but
-> the state is now deleted right away.
->
-> Any idea why the state is deleted right away?
+> >         if (nf_flow_has_expired(flow) ||
+> >             nf_ct_is_dying(flow->ct) ||
+> > +           !nf_conntrack_tcp_established(ct) ||
+> >             nf_flow_custom_gc(flow_table, flow))
+> >                 flow_offload_teardown(flow);
 
-It might be conntrack which is killing the connection, it would be
-good to have a nf_ct_kill_reason(). Last time we talk, NAT can also
-kill the conntrack in masquerade scenarios.
+(well, flow->ct, I did not test this at all).
 
-> Here is the output of the state messages:
-> 
->     [NEW] tcp      6 120 SYN_SENT src=192.168.97.23 dst=192.168.107.52 sport=63482 dport=443 [UNREPLIED] src=192.168.107.52 dst=192.168.97.23 sport=443 dport=63482 mark=92274785
->  [UPDATE] tcp      6 60 SYN_RECV src=192.168.97.23 dst=192.168.107.52 sport=63482 dport=443 src=192.168.107.52 dst=192.168.97.23 sport=443 dport=63482 mark=92274785
->  [UPDATE] tcp      6 432000 ESTABLISHED src=192.168.97.23 dst=192.168.107.52 sport=63482 dport=443 src=192.168.107.52 dst=192.168.97.23 sport=443 dport=63482 [OFFLOAD] mark=92274785
->  [UPDATE] tcp      6 86400 FIN_WAIT src=192.168.97.23 dst=192.168.107.52 sport=63482 dport=443 src=192.168.107.52 dst=192.168.97.23 sport=443 dport=63482 [OFFLOAD] mark=92274785
-> [DESTROY] tcp      6 FIN_WAIT src=192.168.97.23 dst=192.168.107.52 sport=63482 dport=443 packets=10 bytes=1415 src=192.168.107.52 dst=192.168.97.23 sport=443 dport=63482 packets=11 bytes=6343 [ASSURED] mark=92274785 delta-time=0
+should still make flowtable gc remove the entry.
 
-Is there a [NEW] event after this [DESTROY] in FIN_WAIT state to pick
-the terminating connection from the middle?
+I think if possible we should get rid of ct/flowtable
+entanglements where possible rather than adding more.
 
-b6f27d322a0a ("netfilter: nf_flow_table: tear down TCP flows if RST or
-FIN was seen") to let conntrack close the connection gracefully,
-otherwise flowtable becomes stateless and already finished connections
-remain in place which affects features such as connlimit.
-
-The intention in that patch is to remove the entry from the flowtable
-then hand over back the conntrack to the connection tracking system
-following slow path.
+F.e. early drop should probably not test or care about
+offload flag anymore.
