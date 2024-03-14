@@ -1,72 +1,90 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 61F8973178
-	for <netfilter-devel@vger.kernel.org>; Thu, 14 Mar 2024 20:16:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B1CC749A;
+	Thu, 14 Mar 2024 22:42:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710447377; cv=none; b=PXdnZXNC+PUMUgNChJEjyTrxd0eeBTwTNKRjcxVfaJTvOlXrErZuj6JbxrWGCs8Tdhx3oURN2cAQN9h4trSgJXU834+OjL/8Sps3Zy+P5bK8+lQ+VPJz1vWH+k5ujvSdhHjp7NbJQfXOQpiu58jo6hznyAQwwoJnB/a5nilvtxs=
+	t=1710456172; cv=none; b=BCmr6dyG1secgbl9WBjICf5FOnwuyjx+/oapXz4Z1IryDrUVNMBaDA7wXFzYjM+SLB5cxhlcjyXi1w20WG4Et5JsPIuV1cfosyhV3ezwklVPn7ROUy2A4iGUZ9cW7mLxzEIYRP9o2t/rELbNCDHg5cT5O0Ev9ES6DF0+4MJknvg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710447377; c=relaxed/simple;
-	bh=bA7JmZBCKNGKkyECEMBVkLTDzfLq1c7W5lOyl/Ru89M=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=CceU208ZoORX8gm+qWksWGyzR1vhpa3bh5nwnTLvuKyrazBvcoVfioQvMFUgbLh0Z5B4JpZqrKJaID1FHJQ+wibDPbs2dFHGKqMqc+Dih8idzitk6a2YHRr/nuy1jE83k1XWpqMDzCcHbaN3OrUVQgxiqgmRod7DXYVLSbmQMy0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de,
-	tianquan23@gmail.com
-Subject: [PATCH nf] netfilter: nf_tables: do not compare internal table flags on updates
-Date: Thu, 14 Mar 2024 21:16:02 +0100
-Message-Id: <20240314201602.5137-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+	s=arc-20240116; t=1710456172; c=relaxed/simple;
+	bh=U45zB3+40tmVIhF5iKt03Xdrdh8+Z7vW7QN+7y5B3f0=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=LB5Wb3hQ98+4qPYjE5RspExN3TQo+lo5Is+cx7p+cGooHVZO1SUVPRJclUMvpm+X1fpOHBTQCDRC5w4XkCLg+mbxnVpfQm4tYYUDJeQulI7J6E7RyHg0BlbvzBY1zbCud9RYe4CrhQMuIoZVu4tk7EdhxY4kqiC4mW+VwUqhOlI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TL1JK3Da; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TL1JK3Da"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F7C9C433C7;
+	Thu, 14 Mar 2024 22:42:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1710456171;
+	bh=U45zB3+40tmVIhF5iKt03Xdrdh8+Z7vW7QN+7y5B3f0=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=TL1JK3Dai/kz4OGSXOftYv022x+e7Q4s6+0rQaw50afW+buujjI7SqPnwHoAH/3aY
+	 mHTeNCNm02z8wXyaMCJODN+iXSFMO5ZqOrHw6II6qseUS3PXj/GAIKs2k3exN0FaMG
+	 lgbBhDkTmXnrCvS40pNbF3ZnvBEUlCKF1ne+k8VzuEVhYpEglNHD41xcRqtveNNHb0
+	 5zJFI9JPRdFPROEN46yi+IL95kRvDd7R2MZNGlrZ0+JIHP972CJ8zYnOHQCaTLhiDZ
+	 ouFccyuRjCmD0Wx7PCvr2x5nVuP6IV9lwMrD/Xt8W4JeMxTlXrcUrM0JHh/VAe2C68
+	 3WGbOwnNpaulg==
+Date: Thu, 14 Mar 2024 15:42:48 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Joel Granados via B4 Relay <devnull+j.granados.samsung.com@kernel.org>
+Cc: <j.granados@samsung.com>, "David S. Miller" <davem@davemloft.net>, Eric
+ Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>, Alexander
+ Aring <alex.aring@gmail.com>, Stefan Schmidt <stefan@datenfreihafen.org>,
+ Miquel Raynal <miquel.raynal@bootlin.com>, David Ahern
+ <dsahern@kernel.org>, Steffen Klassert <steffen.klassert@secunet.com>,
+ Herbert Xu <herbert@gondor.apana.org.au>, Matthieu Baerts
+ <matttbe@kernel.org>, Mat Martineau <martineau@kernel.org>, Geliang Tang
+ <geliang@kernel.org>, Ralf Baechle <ralf@linux-mips.org>, Remi
+ Denis-Courmont <courmisch@gmail.com>, Allison Henderson
+ <allison.henderson@oracle.com>, David Howells <dhowells@redhat.com>, Marc
+ Dionne <marc.dionne@auristor.com>, Marcelo Ricardo Leitner
+ <marcelo.leitner@gmail.com>, Xin Long <lucien.xin@gmail.com>, Wenjia Zhang
+ <wenjia@linux.ibm.com>, Jan Karcher <jaka@linux.ibm.com>, "D. Wythe"
+ <alibuda@linux.alibaba.com>, Tony Lu <tonylu@linux.alibaba.com>, Wen Gu
+ <guwen@linux.alibaba.com>, Trond Myklebust
+ <trond.myklebust@hammerspace.com>, Anna Schumaker <anna@kernel.org>, Chuck
+ Lever <chuck.lever@oracle.com>, Jeff Layton <jlayton@kernel.org>, Neil
+ Brown <neilb@suse.de>, Olga Kornievskaia <kolga@netapp.com>, Dai Ngo
+ <Dai.Ngo@oracle.com>, Tom Talpey <tom@talpey.com>, Jon Maloy
+ <jmaloy@redhat.com>, Ying Xue <ying.xue@windriver.com>, Martin Schiller
+ <ms@dev.tdt.de>, Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik
+ <kadlec@netfilter.org>, Florian Westphal <fw@strlen.de>, Roopa Prabhu
+ <roopa@nvidia.com>, Nikolay Aleksandrov <razor@blackwall.org>, Simon Horman
+ <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>, Joerg Reuter
+ <jreuter@yaina.de>, Luis Chamberlain <mcgrof@kernel.org>, Kees Cook
+ <keescook@chromium.org>, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, dccp@vger.kernel.org,
+ linux-wpan@vger.kernel.org, mptcp@lists.linux.dev,
+ linux-hams@vger.kernel.org, linux-rdma@vger.kernel.org,
+ rds-devel@oss.oracle.com, linux-afs@lists.infradead.org,
+ linux-sctp@vger.kernel.org, linux-s390@vger.kernel.org,
+ linux-nfs@vger.kernel.org, tipc-discussion@lists.sourceforge.net,
+ linux-x25@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, bridge@lists.linux.dev, lvs-devel@vger.kernel.org
+Subject: Re: [PATCH 0/4] sysctl: Remove sentinel elements from networking
+Message-ID: <20240314154248.155d96a4@kernel.org>
+In-Reply-To: <20240314-jag-sysctl_remset_net-v1-0-aa26b44d29d9@samsung.com>
+References: <20240314-jag-sysctl_remset_net-v1-0-aa26b44d29d9@samsung.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Restore skipping transaction if table update does not modify flags.
+On Thu, 14 Mar 2024 20:20:40 +0100 Joel Granados via B4 Relay wrote:
+> These commits remove the sentinel element (last empty element) from the
+> sysctl arrays of all the files under the "net/" directory that register
+> a sysctl array. The merging of the preparation patches [4] to mainline
+> allows us to just remove sentinel elements without changing behavior.
+> This is safe because the sysctl registration code (register_sysctl() and
+> friends) use the array size in addition to checking for a sentinel [1].
 
-Fixes: 179d9ba5559a ("netfilter: nf_tables: fix table flag updates")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-This restores:
-
-nft -f -<<EOF
-add table ip t { flags dormant ; }
-EOF
-
-nft -f -<<EOF
-add table ip t
-add chain ip t c1 { type filter hook input priority 1; }
-add table ip t
-add chain ip t c2 { type filter hook input priority 2; }
-EOF
-
-after c9bd26513b3a ("netfilter: nf_tables: disable toggling dormant
-table state more than once") which IMO is not the real issue.
-
-This provides an alternative fix for:
-[PATCH nf] netfilter: nf_tables: fix consistent table updates being rejected
-
- net/netfilter/nf_tables_api.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index fb319a3cd923..2d8828dbe980 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1211,7 +1211,7 @@ static int nf_tables_updtable(struct nft_ctx *ctx)
- 	if (flags & ~NFT_TABLE_F_MASK)
- 		return -EOPNOTSUPP;
- 
--	if (flags == ctx->table->flags)
-+	if (flags == (ctx->table->flags & NFT_TABLE_F_MASK))
- 		return 0;
- 
- 	if ((nft_table_has_owner(ctx->table) &&
+Thanks, but please resend after the merge window, we don't apply
+code to -next until -rc1 is cut.
 -- 
-2.30.2
-
+pw-bot: defer
