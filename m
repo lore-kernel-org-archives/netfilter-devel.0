@@ -1,176 +1,111 @@
-Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
+Received: from mail-pf1-f170.google.com (mail-pf1-f170.google.com [209.85.210.170])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DD9914A81
-	for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2024 07:34:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75BB01759F
+	for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2024 09:06:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710488090; cv=none; b=YJ0TIa8fioe1FrwxEFBNgHwdMKcYQ75d4U8ewiC8z2kMirUyK3GA0SHMtcZVtjAPyC5q+XHMyQFc8jfs9oC3j+WP3tKEKmkXvr0m64DdE0p+GI9yJuvASG/uO0e2hZaZ8LCcmI5WVTrZX/QShlu3gkfOLHsVuFU+ruecOX0MgtQ=
+	t=1710493611; cv=none; b=q4nititdNqdN3mXM5tTHDXnNsZf71R2HiJtIHKPQwK4BKAB+JVl5uIIyGAB2inrqJCatelaSFplcJc7u/zzeoPuwYEFCGj7vbWjNQDkUuKUPeyqHaf5iV9q5zcaGG76/KO/TBZH4IBSjbIl/9QAFXtghLl5tN56izhnk7Nwqu3s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710488090; c=relaxed/simple;
-	bh=DObN3FsSJ8ynGjhbhUwoQ3ha/4zGIs/SBM6IkDSzi/M=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=FyPXJmG/YzH0ceDK5Q4mP+aKFXdrq+GQnbBLdefqpXDS0r6BnBOl03LmKnyBvy1iuvAJkhnqJm91FqfaOFXz7kQXT8nUZtbvA9Puhu7CnjvSdjcRySrIKhGJMvkO0HUJKaS99Us5P9oOP1SXljAPhHOOzn9HDNs/Np2svCfk2oU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YpVDglhO; arc=none smtp.client-ip=209.85.214.180
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
+	s=arc-20240116; t=1710493611; c=relaxed/simple;
+	bh=K4dDHB74PXfvNCVLoYdLVA/VEx73fqWBIX8jIgvxpL8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=KH+911HUD0thiwfGYyEe4EJeedAhYbNiIzZiY89bimxppa1HMHNPDpp4PjG0JqHYZLPCz8pRCy1w8E0+1Qfj6ybvqYBeDVyUU6T8331j5MUD6lOQfgZ5MsBjNA1yWs+kRFxLAOW7wEq+cM6fdyFiKOQ3AezuLyApLBVFAR/VNh8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SFHIEsR0; arc=none smtp.client-ip=209.85.210.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YpVDglhO"
-Received: by mail-pl1-f180.google.com with SMTP id d9443c01a7336-1dc49b00bdbso13455535ad.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2024 00:34:48 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SFHIEsR0"
+Received: by mail-pf1-f170.google.com with SMTP id d2e1a72fcca58-6e6b5432439so1904762b3a.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2024 02:06:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1710488088; x=1711092888; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=DxfPXMcwIrL0QusDqACDPPEf8yzUhw67nqw49M7EU/I=;
-        b=YpVDglhOSBT8ZH5wvmCw+iyU90PLBcz0J1BxvmV79RIaI+2ORvT5tYmyofuAPGcQj6
-         +OvypqJY7ut9+qjKcSsir5+jd+XAl6wjGwqYwVWKKXdYbPSumo9XqZOQNHkd++gL9GPv
-         p9hRjwukT21KL53XtBAh9AJmKGMfATk+89PxjWm34DOSfw3YlfY7gZ1bkm0eijH3PNGk
-         KHTpB/LkG4tcRTl1kDBwK1PWUNORDDSWjry4MK5pcdFRc0UjWX1SkSR8K1oi9cXSBsuY
-         0DCan3kf2f+4ib+pBtvdqljd0S0X698FF8nYJwFa+ED+idoIz7drnvrWUCaIIvG+437l
-         rK3w==
+        d=gmail.com; s=20230601; t=1710493609; x=1711098409; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=quLYJEMYJ9VNe9qpO0Vx31fTORna1o2bb1uYBff+Eps=;
+        b=SFHIEsR0APqixqobQV2GSzGdgBbpKi2zlzRBRJvV5y7WeNRRNDkE3mB1oHSvgboLG7
+         r+FdwjKBdYyDS5HaGmWCDc0M+sZZYkkC1vGvuFx4l5XWEAIORIzn99ndFInPwC/oYCwe
+         NeyfLXXxCpWbGFMZNhTQw2EkFB/bmFMOynqsEX+ptwkLpPPob3znLCXkcqXprkAK3fiw
+         d3LxvZVFRcKlpdl+7hkncNzgUInqJwvPKbtg+68JrN+Zr40JZRCBtBeH4nsbOCJ6EBsr
+         BLlj4rXbCjti3FYO31WR2AACtn0YHX5u221QlDPUiSLjVbTdOUMw69N6LNu1nmS19enY
+         co8g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1710488088; x=1711092888;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:sender:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=DxfPXMcwIrL0QusDqACDPPEf8yzUhw67nqw49M7EU/I=;
-        b=wWkYM/zz27/DpGih2S2MC0SFu6NEgwTXRCLSwNHhGZPH6oDtfVw9iE4DGnew17K/Vc
-         eXp8wqc56tz0PUVle8YvRP5PiNP6eRbFrtNowTzUg9G3V/jTp+GL+W39VpuuEka26PPB
-         hNpu6R41vt4nBpNgtHZYOh1DChRTvXr6P4lW92GclZHWaW2Fss1GfsKTPst86ZIl4EBj
-         W/9FXNcNp8g1od3y0JMo0ETftlWEaEDZrC0DpSFFgJBOxZLmUAEnFQMfOpjPE7dAu7R+
-         8PDfstxqmnPSlfTZtFtQ2l1omjoUAdTBDP2rfuvdpHU+WLSusa7lyZbLMyAl7UuHwznD
-         iR3g==
-X-Gm-Message-State: AOJu0YzHO+murmEa0qnH22DdzUl2oJiNMRzy3lkAq9Hb8iC6ondYZO9R
-	RyUv5OYadB7qU+yXYy5aHxGZj+KFh7BAyMmYLd6cbwxjZ4d+hh0ZkYuK7GnT
-X-Google-Smtp-Source: AGHT+IGZ5Z4RBiHuEmZC3OIQ8gJbvAN93Gu2S4gK9vC3UkEVr1jukMeKphdOQ0NHrzfFv84GnZsO/Q==
-X-Received: by 2002:a17:902:efce:b0:1de:e4bd:73fc with SMTP id ja14-20020a170902efce00b001dee4bd73fcmr1875362plb.24.1710488088370;
-        Fri, 15 Mar 2024 00:34:48 -0700 (PDT)
-Received: from slk15.local.net (n58-108-84-186.meb1.vic.optusnet.com.au. [58.108.84.186])
-        by smtp.gmail.com with ESMTPSA id k18-20020a170902c41200b001dd75d4c78csm3049142plk.221.2024.03.15.00.34.47
+        d=1e100.net; s=20230601; t=1710493609; x=1711098409;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=quLYJEMYJ9VNe9qpO0Vx31fTORna1o2bb1uYBff+Eps=;
+        b=lhwGzepMshcuhjqtihPMfTecglCndcrxecQeSpo+U7rvJaQfyxXZ3xjw5Shwl6/CM6
+         D4mqy++TpniLcgGAw8m723tRf/Nd2qDX11AaW0vopcMBD5i1+94oJiOzH9u1CnAGtThv
+         apf8/aIiARuxC4DCxi0ssMt2uwi4PVIjZFBWBkreHNh3wOXM/SMv1pFLVSBKB9IMgky2
+         Q/kX8yhV4I8uqyU+/I9TnBIziUqm0+fks7aok9lH1KtwuDQAF1RIYEDC5jRvCD2PCPDq
+         OjsKltWR8RcAaX/2/EoQ8vUwISaSoW4nN0bvqOgaC0EUw7pdWeMVWLDMk1RE3gdxiX4U
+         PcmQ==
+X-Gm-Message-State: AOJu0YxcAZsr0xOzGOppqkBOCyRSK7FlqUAhkSfO12y5KCd2GuBJgzt2
+	otyWAa5NOVxY5d8/Pme0qi8L9xhHg+b4aFmvm37M0f7FRe0CqMD9
+X-Google-Smtp-Source: AGHT+IEzrXr38vpUl3Hh5vyqskbzNXvDVcdvWC7qYWZuRVmdqkcdVoG0XKO9GHfCIk9QdkIeVpyIgA==
+X-Received: by 2002:a05:6a00:234c:b0:6e6:ade7:acec with SMTP id j12-20020a056a00234c00b006e6ade7acecmr4786923pfj.31.1710493608603;
+        Fri, 15 Mar 2024 02:06:48 -0700 (PDT)
+Received: from dev01 ([43.243.14.10])
+        by smtp.gmail.com with ESMTPSA id fb12-20020a056a002d8c00b006e4f644dafbsm2879237pfb.129.2024.03.15.02.06.46
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 15 Mar 2024 00:34:48 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From: Duncan Roe <duncan_roe@optusnet.com.au>
-To: pablo@netfilter.org
-Cc: netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_queue 32/32] whitespace: Fix more checkpatch errors & warnings
-Date: Fri, 15 Mar 2024 18:33:47 +1100
-Message-Id: <20240315073347.22628-33-duncan_roe@optusnet.com.au>
-X-Mailer: git-send-email 2.35.8
-In-Reply-To: <ZcyaQvJ1SvnYgakf@calendula>
-References: <ZcyaQvJ1SvnYgakf@calendula>
+        Fri, 15 Mar 2024 02:06:48 -0700 (PDT)
+Date: Fri, 15 Mar 2024 09:06:42 +0000
+From: Quan Tian <tianquan23@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de, tianquan23@gmail.com
+Subject: Re: [PATCH nf] netfilter: nf_tables: do not compare internal table
+ flags on updates
+Message-ID: <ZfQPooVt0Ey+fIl9@dev01>
+References: <20240314201602.5137-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240314201602.5137-1-pablo@netfilter.org>
 
-Fix errors & warnings in the copies of linux_list.h & iftable.c.
-One possible false +ve:
- typeof(((type *)0)->member) *__mptr = (ptr);
-gets "need consistent spacing around '*' (ctx:WxV)"
+Hi Pablo,
 
-Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
----
- include/libnetfilter_queue/linux_list.h | 10 +++++-----
- src/iftable.c                           | 10 +++++-----
- 2 files changed, 10 insertions(+), 10 deletions(-)
+On Thu, Mar 14, 2024 at 09:16:02PM +0100, Pablo Neira Ayuso wrote:
+> Restore skipping transaction if table update does not modify flags.
+> 
+> Fixes: 179d9ba5559a ("netfilter: nf_tables: fix table flag updates")
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+> This restores:
+> 
+> nft -f -<<EOF
+> add table ip t { flags dormant ; }
+> EOF
+> 
+> nft -f -<<EOF
+> add table ip t
+> add chain ip t c1 { type filter hook input priority 1; }
+> add table ip t
+> add chain ip t c2 { type filter hook input priority 2; }
+> EOF
+> 
+> after c9bd26513b3a ("netfilter: nf_tables: disable toggling dormant
+> table state more than once") which IMO is not the real issue.
+> 
+> This provides an alternative fix for:
+> [PATCH nf] netfilter: nf_tables: fix consistent table updates being rejected
 
-diff --git a/include/libnetfilter_queue/linux_list.h b/include/libnetfilter_queue/linux_list.h
-index f687d20..738d834 100644
---- a/include/libnetfilter_queue/linux_list.h
-+++ b/include/libnetfilter_queue/linux_list.h
-@@ -51,8 +51,8 @@
-  *
-  */
- #define container_of(ptr, type, member) ({			\
--	typeof( ((type *)0)->member ) *__mptr = (ptr);	\
--	(type *)( (char *)__mptr - offsetof(type,member) );})
-+	typeof(((type *)0)->member) *__mptr = (ptr);	\
-+	(type *)((char *)__mptr - offsetof(type, member)); })
- 
- /*
-  * Circular doubly linked list implementation.
-@@ -122,7 +122,7 @@ static inline void list_add(struct list_head *new, struct list_head *head)
-  * This is only for internal list manipulation where we know
-  * the prev/next entries already!
-  */
--static inline void __list_del(struct list_head * prev, struct list_head * next)
-+static inline void __list_del(struct list_head *prev, struct list_head *next)
- {
- 	next->prev = prev;
- 	prev->next = next;
-@@ -169,7 +169,7 @@ static inline int list_empty(const struct list_head *head)
-  */
- #define list_for_each_entry(pos, head, member)				\
- 	for (pos = list_entry((head)->next, typeof(*pos), member);	\
--	     &pos->member != (head); 					\
-+	     &pos->member != (head);					\
- 	     pos = list_entry(pos->member.next, typeof(*pos), member))	\
- 
- /**
-@@ -182,7 +182,7 @@ static inline int list_empty(const struct list_head *head)
- #define list_for_each_entry_safe(pos, n, head, member)			\
- 	for (pos = list_entry((head)->next, typeof(*pos), member),	\
- 		n = list_entry(pos->member.next, typeof(*pos), member);	\
--	     &pos->member != (head); 					\
-+	     &pos->member != (head);					\
- 	     pos = n, n = list_entry(n->member.next, typeof(*n), member))
- 
- /**
-diff --git a/src/iftable.c b/src/iftable.c
-index 7eada24..322b18e 100644
---- a/src/iftable.c
-+++ b/src/iftable.c
-@@ -29,7 +29,7 @@
- 
- #define NUM_NLIF_BITS 4
- #define NUM_NLIF_ENTRIES (1 << NUM_NLIF_BITS)
--#define NLIF_ENTRY_MASK (NUM_NLIF_ENTRIES -1)
-+#define NLIF_ENTRY_MASK (NUM_NLIF_ENTRIES - 1)
- 
- static int data_cb(const struct nlmsghdr *nlh, void *data);
- 
-@@ -192,7 +192,7 @@ struct nlif_handle *nlif_open(void)
- 	if (h == NULL)
- 		goto err;
- 
--	for (i = NUM_NLIF_ENTRIES - 1; i>= 0; i--)
-+	for (i = NUM_NLIF_ENTRIES - 1; i >= 0; i--)
- 		INIT_LIST_HEAD(&h->ifindex_hash[i]);
- 
- 	h->nl = mnl_socket_open(NETLINK_ROUTE);
-@@ -226,7 +226,7 @@ void nlif_close(struct nlif_handle *h)
- 
- 	mnl_socket_close(h->nl);
- 
--	for (i = NUM_NLIF_ENTRIES - 1; i>= 0; i--) {
-+	for (i = NUM_NLIF_ENTRIES - 1; i >= 0; i--) {
- 		list_for_each_entry_safe(this, tmp, &h->ifindex_hash[i], head) {
- 			list_del((struct list_head *)this);
- 			free(this);
-@@ -256,7 +256,7 @@ int nlif_catch(struct nlif_handle *h)
- 	if (!h->nl)                /* The old library had this test */
- 		return -1;
- 
--	ret = mnl_socket_recvfrom(h->nl, buf, sizeof buf);
-+	ret = mnl_socket_recvfrom(h->nl, buf, sizeof(buf));
- 	if (ret == -1)
- 		return -1;
- 	return mnl_cb_run(buf, ret, 0, h->portid, data_cb, h) == -1 ? -1 : 0;
-@@ -303,7 +303,7 @@ int nlif_query(struct nlif_handle *h)
- EXPORT_SYMBOL
- int nlif_fd(struct nlif_handle *h)
- {
--	return h->nl? mnl_socket_get_fd(h->nl) : -1;
-+	return h->nl ? mnl_socket_get_fd(h->nl) : -1;
- }
- 
- /**
--- 
-2.35.8
+The alternative fix definitely makes sense. But I thought "[PATCH nf]
+netfilter: nf_tables: fix consistent table updates being rejected" also
+fixes the case that two individual updates updating different flags in
+a batch, for example:
 
+* The 1st update adopts an orphan table, NFT_TABLE_F_OWNER and
+__NFT_TABLE_F_WAS_ORPHAN were turned on.
+* The 2nd update activates/inactivates it, trying to turn off/on
+NFT_TABLE_F_DORMANT, which would be rejected currently if it only
+checks if any flag is set in __NFT_TABLE_F_UPDATE, I thought it's
+not the intention according to the code comments.
+
+Thanks,
+Quan
