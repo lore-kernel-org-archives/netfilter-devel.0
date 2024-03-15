@@ -1,63 +1,63 @@
-Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
+Received: from mail-pl1-f170.google.com (mail-pl1-f170.google.com [209.85.214.170])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E5BE14F61
-	for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2024 07:34:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 226A414A9D
+	for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2024 07:34:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710488081; cv=none; b=QT4SUrmmmyTUVb7O2XQbHy3r71vMjmWosDMVLeqT4BIfasCcOkPgLYNPelhGq0mCH079sTpRS6SHduIoKCaBoKjzjAJx1p7rBrCLKgaox0iDvrtXqTfKFNIANdYEBAZjfFGDQRSlCFy3+pPvJG9i8t0zDa2rsVpr/SUDrcOUeeU=
+	t=1710488083; cv=none; b=mUdj1SY35LctZa0COU43nxposM04Doaxa1/kdQ26meVicuw1k5aARdrH3x8pESrrKzqwM5v03OaDFh9bodarN6t3lANgE4xISMPlzrfHK/S8/SUdLGYio6ABfuPORn+PyBeKXowye54eWSB8/EswRrtTHo70VTSlJ5ZI/325kv4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710488081; c=relaxed/simple;
-	bh=JXHBbCUZ+AoZP8C5I0tcR8CwfTwdSwdxD5aYLAUzD8c=;
+	s=arc-20240116; t=1710488083; c=relaxed/simple;
+	bh=ZzppsJdlw43YNa+4e0bq79XMoeHC+RInrcL6Qx1yb/g=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=VNV6qyEq0cnWdlbelDK49WjNYWxnFLbuP28kKY3tDNyegR9UUZf+mA1NkSfWcnG5Gnc+6RNrYstxXbgbU90kE76etNzNFvp8Yx/c3t6mIgNdGGMKchWt7Lyj8NHvhOaOVcD4TeCKvibno6bgZiAWYUo/JR6+0ZC1WToMR3ffe6E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=PsC2si8c; arc=none smtp.client-ip=209.85.214.179
+	 MIME-Version; b=Yb3/jfC65HRUA/vQVJbgxZuQOpmMRSEfBYwq3BzH84CaazuNvLAgORSvWdyycLPeBluWnvmauwUNaNWqfYfh7sD4kuRJmt1hs8jxhjirPG+FN+yXIQ6dkvkXcCIbf9IjwFCJ/LPgVeqE1oWHS8X6EIL5IWeTIGO50mxJleEQVQ8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=WCEylvir; arc=none smtp.client-ip=209.85.214.170
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PsC2si8c"
-Received: by mail-pl1-f179.google.com with SMTP id d9443c01a7336-1dd9568fc51so16146875ad.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2024 00:34:40 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WCEylvir"
+Received: by mail-pl1-f170.google.com with SMTP id d9443c01a7336-1dddad37712so16706045ad.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2024 00:34:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1710488080; x=1711092880; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1710488081; x=1711092881; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=7mHDlg509KDotU9DY50+pnpa/oUeQ8zb706NWMFAFFg=;
-        b=PsC2si8cWenwoOU/u2BBSQIiUXF1bu8KpueLxXZez6w/g2h1ogdmbhRNuCfl7TIs0e
-         bzoyKrXO18PKSrIZVV0bf4iBwrymKD6FsrxZzziBgpIiPgxzqY3Ubw/8cvVIIVb+nFK4
-         9IAUlPL73h95jgaYCI4s38ZKY9FTVQqKIkSwddQfTKdSf9k98rE0IXBzl/qW+wiAN7Fn
-         VuO++Wt5zpxw9RpmqQ96IxMN1JjyhL5LdEDmP2WL203hU2WreATkNB9RdZl5tlczLefv
-         eeYfdDUtJSFWjUQrvMjW7JAds8byriWAoLuRMUxWLudXALoFdNqseY9DSY2K+686CNZy
-         Aw4w==
+        bh=kc2qOiTSMgfonc5p5qEQqqcSuuKBT0Z8T/iyp6xLPkk=;
+        b=WCEylvirXcbCNFYwiPhkob9mqoyH4GUmR9U2kg0ckuhRiFDrhpfCR5TMhBWbR72hHo
+         UBTBl7xD5Ay7EcYZRHB/F/ibc/vSjwT+WhWiqxqrSbTESZA0K8zptVZkZXmec2XrXD6J
+         70Xjs61EKiulaxXRsXlMXnlLKLgUy8VEhD7H9vwbWjTDfKhzo/feOu19SAFRJg/WO6pB
+         RqwtMIJciwOjwVa06HxZuuYnkgjerLICgue6kOS1KJYmkXLtRXI67q3IBruJ52QIn9kV
+         7f3ggfjdjWuG3RStXwEpX8G2/4Wb0czNbUgjcwJurtuU3Xl5F8r/MaSHGiGtQyHW//o3
+         phVA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1710488080; x=1711092880;
+        d=1e100.net; s=20230601; t=1710488081; x=1711092881;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=7mHDlg509KDotU9DY50+pnpa/oUeQ8zb706NWMFAFFg=;
-        b=ZKXxPnN+/vWp9E1kghEvqjzcRUyAqYB4mFyEIFCLM5qS69/sZff8h2eE/DoJ9riw1f
-         9j/MP8bZqbCPwv40KS8avx+NeB39Gn8mLWOvPhgeoI54WzomnCszPozxStbjzCqtTwZR
-         JJ8ednZRSznUtMJDFVIuzppf1pgg3kRyvpbivlFUhjrBA1bpXEkYC96oVORbxP9dSGF3
-         mCEHiCcZKf54K7f5+vy+M4yPdf47r+ggcooXMhZ7Y9uTdITWAFo/FVSKOH8ybr3zemeO
-         L02a2y01akU6lBX7Qd0kfmF8+p/dV3eAYEZxLfug2ZFDRkYZ9yH34NHq1mBCibOM3qeQ
-         17jg==
-X-Gm-Message-State: AOJu0YyKVLRfvH5zR7v6OLsCNB3fkJgZ+tvtH89SadgKNZTJjOkvvVXE
-	WP8zVw/krsSg3vprrUCBVGCGkOCZUNrzIdQzxolGo3QCMgdrRvdctwhgMnhQ
-X-Google-Smtp-Source: AGHT+IGBPiz04UzM72wRIhBTytzivDQwosT/RsR+vHBOx1Kgfk7WNSFgKGEwyv7Sa3q0ea/fdqc0lg==
-X-Received: by 2002:a17:902:e84d:b0:1dc:fcc4:b3a5 with SMTP id t13-20020a170902e84d00b001dcfcc4b3a5mr4598352plg.35.1710488079755;
-        Fri, 15 Mar 2024 00:34:39 -0700 (PDT)
+        bh=kc2qOiTSMgfonc5p5qEQqqcSuuKBT0Z8T/iyp6xLPkk=;
+        b=O6pzL/BX/X7TtgBYeeUjK10JJzXih2WuUzBXUkxKRZp7sghUjG+1uykA9u8M9gQwqZ
+         HZv/TO3kX3XrReCNWHtiRlBLHgMfRaZn87L2vJ10sLAoGT9qvLzKsyZNpfUmyyRHMoPv
+         cQLuynNAZUBe/nhGk0pQCstbQocqsS0W/9TEFemhlKLKyaX0QgjkcoeAD7eXMFuXL7Ad
+         UyDyEUuKCW/7Roelvh0lsEZIf8Paxo6ez+ZbPzjWpwXq40HqfCDptmH8D9ZAgolZte6B
+         xeJtXqeRPDxxpYz3ZYueG1RtC3zCdGTW55Rkqz2U6sef4P97d84CN8RY2bX8ZdEQgPpk
+         XKEQ==
+X-Gm-Message-State: AOJu0Ywa9EF+d5u1FxstrEczb4JDeKwFk4OgDHEAIEwla7IzxatHbyVW
+	H6ACBFkXEUVY4ZFJG4JY7pVNEGPQroR/04Vo+jkBZqJWIkXZVYjOweJS+G2r
+X-Google-Smtp-Source: AGHT+IFCXj77nfn+E6sQr+VGx8HAWIPbChG/WZQpuP/J1sagg2/UQYsSEaZv0WlFxjH0RIOEaRhdgQ==
+X-Received: by 2002:a17:902:e812:b0:1dd:7829:6a0a with SMTP id u18-20020a170902e81200b001dd78296a0amr4697160plg.2.1710488081596;
+        Fri, 15 Mar 2024 00:34:41 -0700 (PDT)
 Received: from slk15.local.net (n58-108-84-186.meb1.vic.optusnet.com.au. [58.108.84.186])
-        by smtp.gmail.com with ESMTPSA id k18-20020a170902c41200b001dd75d4c78csm3049142plk.221.2024.03.15.00.34.38
+        by smtp.gmail.com with ESMTPSA id k18-20020a170902c41200b001dd75d4c78csm3049142plk.221.2024.03.15.00.34.40
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 15 Mar 2024 00:34:39 -0700 (PDT)
+        Fri, 15 Mar 2024 00:34:41 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From: Duncan Roe <duncan_roe@optusnet.com.au>
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_queue 27/32] doc: Resolve most issues with man page generated from linux_list.h
-Date: Fri, 15 Mar 2024 18:33:42 +1100
-Message-Id: <20240315073347.22628-28-duncan_roe@optusnet.com.au>
+Subject: [PATCH libnetfilter_queue 28/32] build: Get real & user times back to what they were
+Date: Fri, 15 Mar 2024 18:33:43 +1100
+Message-Id: <20240315073347.22628-29-duncan_roe@optusnet.com.au>
 X-Mailer: git-send-email 2.35.8
 In-Reply-To: <ZcyaQvJ1SvnYgakf@calendula>
 References: <ZcyaQvJ1SvnYgakf@calendula>
@@ -69,52 +69,50 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-build_man.sh has extra logic to extract documented macros into the "Name"
-line.
-doxygen.cfg.in excludes the list_head structure.
-
-doxygen 1.10.0 has a bug which appends ".PP" to macro "Value:" headings.
-This is fixed in the latest snapshot and should be in the next release.
+In build_man.sh, mygrep becomes mygrep2 and
+all functions except fix_name_line use a new simpler mygrep.
 
 Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
 ---
- doxygen/build_man.sh   | 10 ++++++++++
- doxygen/doxygen.cfg.in |  1 +
- 2 files changed, 11 insertions(+)
+ doxygen/build_man.sh | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
 diff --git a/doxygen/build_man.sh b/doxygen/build_man.sh
-index 0590009..b3d1989 100755
+index b3d1989..5c1a019 100755
 --- a/doxygen/build_man.sh
 +++ b/doxygen/build_man.sh
-@@ -261,6 +261,16 @@ fix_name_line(){
-     [ -z "$all_funcs" ] && all_funcs=$func ||\
-       all_funcs="$all_funcs, $func"
-   done
+@@ -251,7 +251,7 @@ fix_name_line(){
+   head -n$linnum $target >$fileC
+ 
+   while :
+-  do mygrep ^\\.RI $fileC
++  do mygrep2 ^\\.RI $fileC
+     [ $linnum -ne 0 ] || break
+     # Discard this entry
+     tail -n+$(($linnum + 1)) $fileC >$fileB
+@@ -264,7 +264,7 @@ fix_name_line(){
+ 
+   # macros (if any) come after functions
+   while :
+-  do mygrep '^\.SS "#' $fileC
++  do mygrep2 '^\.SS "#' $fileC
+     [ $linnum -ne 0 ] || break
+     tail -n+$(($linnum + 1)) $fileC >$fileB
+     cp $fileB $fileC
+@@ -314,6 +314,13 @@ delete_lines(){
+ }
+ 
+ mygrep(){
++  linnum=$(grep -En "$1" $2 2>/dev/null | head -n1 | cut -f1 -d:)
++  [ $linnum ] || linnum=0
++}
 +
-+  # macros (if any) come after functions
-+  while :
-+  do mygrep '^\.SS "#' $fileC
-+    [ $linnum -ne 0 ] || break
-+    tail -n+$(($linnum + 1)) $fileC >$fileB
-+    cp $fileB $fileC
-+    func=$(cat $fileG | cut -f3 -d' ' | cut -f1 -d\()
-+    [ -z "$all_funcs" ] && all_funcs=$func || all_funcs="$all_funcs, $func"
-+  done
-   # For now, assume name is at line 5
-   head -n4 $target >$fileA
-   desc=$(head -n5 $target | tail -n1 | cut -f3- -d" ")
-diff --git a/doxygen/doxygen.cfg.in b/doxygen/doxygen.cfg.in
-index 601d4ab..ad83581 100644
---- a/doxygen/doxygen.cfg.in
-+++ b/doxygen/doxygen.cfg.in
-@@ -17,6 +17,7 @@ EXCLUDE_SYMBOLS        = EXPORT_SYMBOL \
-                          nfnl_subsys_handle \
-                          mnl_socket \
-                          ifindex_node \
-+                         list_head \
-                          nlif_handle \
-                          nfnl_callback2 \
-                          tcp_flag_word
++# mygrep2 copies found line to $fileG. Only fix_name_line() needs this.
++# Using mygrep everywhere else gives a measurable CPU saving.
++mygrep2(){
+   linnum=$(grep -En "$1" $2 2>/dev/null | head -n1 | tee $fileG | cut -f1 -d:)
+   [ $linnum ] || linnum=0
+ }
 -- 
 2.35.8
 
