@@ -1,63 +1,63 @@
-Received: from mail-pl1-f177.google.com (mail-pl1-f177.google.com [209.85.214.177])
+Received: from mail-pg1-f172.google.com (mail-pg1-f172.google.com [209.85.215.172])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 656741429B
-	for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2024 07:34:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6C6114A85
+	for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2024 07:34:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710488058; cv=none; b=ZQss8sHsUxNHzcukAJcfnP1IMpXfL+wWPguvpunwUOKoTbX/OiWZxFQWLgfJ3OZ5aCJBgFIsZfqZhh1ZrDYCFmL+GDhRBflYHiYKF/JRC92GSrlkEZrkkj7KrdTo3Qo6z/F9OWe/3AblTIEYPGSABPJFqD2FzCj7BeFUjg/lHac=
+	t=1710488059; cv=none; b=nr6DCgVRp3xzbOFF0426VnjB93cELtJ8THzHtgiZIC5TQdT3a2Jzp3kwO1YszCveHdHcaFb7LoxBCAxRMhPzyyl+HdC4t/g4xpAegUAj5UPzm33MSgrLQ2bF6VjmAUxTvByolUkpYBYiZ3llLKj7682hS0AS86QWhLE1v3QITIw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710488058; c=relaxed/simple;
-	bh=l+O8bTAGXtBkC2FR/no0Y3OHs24R5QZeUX/A6BAlp3Q=;
+	s=arc-20240116; t=1710488059; c=relaxed/simple;
+	bh=rIMYm9xmAf1FO7ba8I3Tr2uPcLoasnSbbBmmwj+LkHU=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=qZvs2fHPrOjZOoLTMg4ejuNMwGGp6ok3d5oRGFNiXpj+F7CA0E7X5E3tFc7By/Zu7GsqXqsD88DqlVFEo68A9EqVHltyC5q0P3NSjLkVVWSRkRfysEEF7CGLZ8Qi5SNEGkXQfDImcj2yl5J5qgmKPJukIvcKbcepVbs1W2gHwqQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=nLzulRpf; arc=none smtp.client-ip=209.85.214.177
+	 MIME-Version; b=MIW1SAGeAqo0tr5N57RE9TwWKt3nrInD507UFuSSjwVupso+QNPE1HGs4KlBNwuMAnTofh5W0+x9SzXTkMOOmG3VieRqtYzEMziQFpiKDLMIoj2HGF6K/GnrQRL1i0SYfziC+2k453d6x5MEIHnVDXmsIQmDSLyXAIOxggrYFm8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=bsWNgYzo; arc=none smtp.client-ip=209.85.215.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nLzulRpf"
-Received: by mail-pl1-f177.google.com with SMTP id d9443c01a7336-1def2a1aafaso1205315ad.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2024 00:34:16 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bsWNgYzo"
+Received: by mail-pg1-f172.google.com with SMTP id 41be03b00d2f7-5e4b775e1d6so1404746a12.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2024 00:34:17 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1710488056; x=1711092856; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1710488057; x=1711092857; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=gDNVRnv4nhULSeFVMVhozxtkThF010MskmYuYLkQqpE=;
-        b=nLzulRpfIQ3CpcyoBjitSBCXmvlteC0r+OAqt//ZIersoufqtDKx6SNgcqpJxfpA6x
-         Q7JE7nCveoAKkqOfWZ0lfRfQU4nYzNMeLMKf9dF8xkVAUjwi/eTe/SmzpBh0XjHYNUO4
-         qwOu1Odh/gjqXXBS9fKvGysp0w0Di7DTndzMD/4XIy40w05bVmJfCrVVOJOGA6sqkRcW
-         4u+QlGNQIJNz+XMtT5/D4a82mXFpuf/hNiH5FHt8d5F7SOwRlfah7iv7S+Um6WMquJar
-         jT+uUc3rSEH/6pACm2FqjSWchBgZwJbJHexSuzYiV2XFHghl7OLiPmCbCn8bRQojbo9X
-         uo6Q==
+        bh=ridKINc0EsoB1KENHztZ2H4kUEGBRS1Z/G3iJtoeFFU=;
+        b=bsWNgYzoptitSJmN8KSTuE7VQV/rGFgZkOxXGSKJ8TP9olYQOD9nlAIN17PSyv2uxh
+         DAhnq6SnaAHrF3Zkhg3+iuc7kVZnoLEboSQQoIBYhjljQK3xytyXISBsX2pEafLcvS8U
+         +KOY2LuoN22Ac7f7eOO7lwW9aZKtbr+/VGTANW6a1T3jikVdXCrIJRBAY7m4Y10P7WCx
+         wdFM8d1Ti1bZbjwWmBtf8xv8MPOttbXpEi1sGc5n9OOcKxQ0TkFXnI6DJz039zS70RlM
+         nK/qfdXsr/qGbp4O1zKkTjyFhXahhCXmzmGgCRBAbJVc0o8qMmWhnLM77AeJ20NkgwUw
+         Zqkg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1710488056; x=1711092856;
+        d=1e100.net; s=20230601; t=1710488057; x=1711092857;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=gDNVRnv4nhULSeFVMVhozxtkThF010MskmYuYLkQqpE=;
-        b=iqjJYfQz/ul/xzcS5/oN9yknY+W/KwEU7nqdHKlDRqtIwm8x+myzh7pzy2OzJRLlMB
-         gGVeyNqb8ceKNB3XwB/+RSDvM8SjEC6LzwJL/IzRltPyx7PdJIb3loacDq7Pxqsnbqsn
-         l0e+cEaP/f3pGVqDNNT5HOuK1vrqletnmpSAgltPzxXZ3ZEqnS7hfI1QKe3BSzeUapj5
-         9rGzvV9dbg6z/kkaEtcrJiTqx8Y7a9otvgEtWT+oRs0zkqvKDShTzVGjghRl1WhAnknH
-         x6HlEhpi0mIm/pRnSAJJEEWZtqVThwgW8sgERC64FWN0tXVA2zk/PITkN19mIOaa5tGV
-         nMuQ==
-X-Gm-Message-State: AOJu0YycTkjEgxfVlYpEIgyuHsh5Y4tI+r6gI5+oFPHiprBtqBgdggvo
-	QBX2dO3ghnaSlKJ0P94q5MK32+yARHuNer2DHDd13FKcfd0fDbGnzNx+6OEc
-X-Google-Smtp-Source: AGHT+IEViC3uMuNtQl9aX0lmB75ely9c/t3WooKifsXQRsFGjGZMqR6Fwqj+Bhea3NycDzXLf5iiEg==
-X-Received: by 2002:a17:903:248:b0:1dc:b73b:ec35 with SMTP id j8-20020a170903024800b001dcb73bec35mr2744218plh.4.1710488055392;
-        Fri, 15 Mar 2024 00:34:15 -0700 (PDT)
+        bh=ridKINc0EsoB1KENHztZ2H4kUEGBRS1Z/G3iJtoeFFU=;
+        b=Sa8DtozG0i25/2gu4ra7VHpIJpt7CRjhojwUcRldX4z0tHo3L4GD48JYLNQc9h5yPz
+         lw6do8vKmZGWUw5ITZgi7JeYI8ITjAPiPd57n0EnAojzwO0PTBChGt6RpzMddLss5cYJ
+         pdLCcBbEHxRC57iKOItxHe6s90JDIEZsU5YqEbwcnZg/4KRJXYkQRQtjYW/wCpVSw750
+         9WWFqjFDMd/JclOP62VLl7dCmMh1rtmMHvjK9DQRx6gxN40xmX9TQzs4K67TDZYNUJWp
+         sbInY8zYkzsaccfOoisrjqMxoxLBnw1eGVkz7Ua2wcrBLGHMEv1iOdyqFb6lDRNMFDII
+         xybA==
+X-Gm-Message-State: AOJu0Yy0lDpdpFP4HDKQSYJWltSKB53AVHLJDoDjDoNzE28bJJHMWgbb
+	qfcF+128SMkVLoaiSZKS4Oy0Aask1ZNxsDhyCdNB5/irhHiCWgM+7OudHEB/
+X-Google-Smtp-Source: AGHT+IFynxSvR3Sb/7ekijYuETjNCD5IqZHTrQzAspnzRtA90LRaFzN3ikVbxk1pWz7hYRAb0gq4Bg==
+X-Received: by 2002:a17:90b:3108:b0:29b:d747:f7ae with SMTP id gc8-20020a17090b310800b0029bd747f7aemr6164710pjb.14.1710488057111;
+        Fri, 15 Mar 2024 00:34:17 -0700 (PDT)
 Received: from slk15.local.net (n58-108-84-186.meb1.vic.optusnet.com.au. [58.108.84.186])
-        by smtp.gmail.com with ESMTPSA id k18-20020a170902c41200b001dd75d4c78csm3049142plk.221.2024.03.15.00.34.13
+        by smtp.gmail.com with ESMTPSA id k18-20020a170902c41200b001dd75d4c78csm3049142plk.221.2024.03.15.00.34.15
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 15 Mar 2024 00:34:15 -0700 (PDT)
+        Fri, 15 Mar 2024 00:34:16 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From: Duncan Roe <duncan_roe@optusnet.com.au>
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_queue 13/32] include: Cherry-pick macros and functions that nlif will need
-Date: Fri, 15 Mar 2024 18:33:28 +1100
-Message-Id: <20240315073347.22628-14-duncan_roe@optusnet.com.au>
+Subject: [PATCH libnetfilter_queue 14/32] doc: Add linux_list.h to the doxygen system
+Date: Fri, 15 Mar 2024 18:33:29 +1100
+Message-Id: <20240315073347.22628-15-duncan_roe@optusnet.com.au>
 X-Mailer: git-send-email 2.35.8
 In-Reply-To: <ZcyaQvJ1SvnYgakf@calendula>
 References: <ZcyaQvJ1SvnYgakf@calendula>
@@ -69,681 +69,190 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-linux_list.h has macros and functions that mnl-api programs may want to
-use. Will have to add linux_list.h to the doxygen system,
-so cut out stuff we don't need to document.
-Update libnetfilter_queue.h to include linux_list.h.
+Produce web and man pages for list_for_each_entry() and other macros.
+Mostly a straight conversion of the kerneldoc but also document
+struct list_head and macro INIT_LIST_HEAD.
 
 Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
 ---
- .../libnetfilter_queue/libnetfilter_queue.h   |   1 +
- include/libnetfilter_queue/linux_list.h       | 586 +-----------------
- 2 files changed, 7 insertions(+), 580 deletions(-)
+ doxygen/Makefile.am                     |  1 +
+ doxygen/build_man.sh                    |  7 ++-
+ doxygen/doxygen.cfg.in                  |  5 ++-
+ include/libnetfilter_queue/linux_list.h | 60 +++++++++++++++++--------
+ 4 files changed, 52 insertions(+), 21 deletions(-)
 
-diff --git a/include/libnetfilter_queue/libnetfilter_queue.h b/include/libnetfilter_queue/libnetfilter_queue.h
-index 9327f8c..9bd9c43 100644
---- a/include/libnetfilter_queue/libnetfilter_queue.h
-+++ b/include/libnetfilter_queue/libnetfilter_queue.h
-@@ -16,6 +16,7 @@
- #include <sys/time.h>
- #include <libnfnetlink/libnfnetlink.h>
+diff --git a/doxygen/Makefile.am b/doxygen/Makefile.am
+index 68be963..6135f25 100644
+--- a/doxygen/Makefile.am
++++ b/doxygen/Makefile.am
+@@ -8,6 +8,7 @@ doc_srcs = $(top_srcdir)/src/libnetfilter_queue.c\
+            $(top_srcdir)/src/extra/ipv6.c\
+            $(top_srcdir)/src/extra/tcp.c\
+            $(top_srcdir)/src/extra/udp.c\
++           $(top_srcdir)/include/libnetfilter_queue/linux_list.h\
+            $(top_srcdir)/src/extra/icmp.c
  
-+#include <libnetfilter_queue/linux_list.h>
- #include <libnetfilter_queue/linux_nfnetlink_queue.h>
+ doxyfile.stamp: $(doc_srcs) Makefile build_man.sh
+diff --git a/doxygen/build_man.sh b/doxygen/build_man.sh
+index 7eab8fa..643ad42 100755
+--- a/doxygen/build_man.sh
++++ b/doxygen/build_man.sh
+@@ -84,7 +84,12 @@ post_process(){
  
- #ifdef __cplusplus
+ make_man7(){
+   popd >/dev/null
+-  target=$(grep -Ew INPUT doxygen.cfg | rev | cut -f1 -d' ' | rev)/$2
++
++  # This grep command works for multiple directories on the INPUT line,
++  # as long as the directory containing the source with the main page
++  # comes first.
++  target=/$(grep -Ew INPUT doxygen.cfg | cut -f2- -d/ | cut -f1 -d' ')/$2
++
+   mypath=$(dirname $0)
+ 
+   # Build up temporary source in temp.c
+diff --git a/doxygen/doxygen.cfg.in b/doxygen/doxygen.cfg.in
+index fcfc045..e69dcd7 100644
+--- a/doxygen/doxygen.cfg.in
++++ b/doxygen/doxygen.cfg.in
+@@ -5,8 +5,9 @@ ABBREVIATE_BRIEF       =
+ FULL_PATH_NAMES        = NO
+ TAB_SIZE               = 8
+ OPTIMIZE_OUTPUT_FOR_C  = YES
+-INPUT                  = @abs_top_srcdir@/src
+-FILE_PATTERNS          = *.c
++INPUT                  = @abs_top_srcdir@/src \
++                         @abs_top_srcdir@/include/libnetfilter_queue
++FILE_PATTERNS          = *.c linux_list.h
+ RECURSIVE              = YES
+ EXCLUDE_SYMBOLS        = EXPORT_SYMBOL \
+                          tcp_word_hdr \
 diff --git a/include/libnetfilter_queue/linux_list.h b/include/libnetfilter_queue/linux_list.h
-index cf71837..eaa9c07 100644
+index eaa9c07..88ea386 100644
 --- a/include/libnetfilter_queue/linux_list.h
 +++ b/include/libnetfilter_queue/linux_list.h
-@@ -6,6 +6,12 @@
- #undef offsetof
- #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+@@ -12,17 +12,23 @@
+  * This file only contains what we use.
+  */
  
-+/*
-+ * This is a cut-down copy of libnfnetlink/include/linux_list.h which is itself
-+ * an old snapshot of linux/include/linux/list.h.
-+ * This file only contains what we use.
++/**
++ * \defgroup List Simple doubly linked list implementation
++ * @{
 + */
++
 +
  /**
   * container_of - cast a member of a structure out to the containing structure
   *
-@@ -18,24 +24,8 @@
-         typeof( ((type *)0)->member ) *__mptr = (ptr);	\
-         (type *)( (char *)__mptr - offsetof(type,member) );})
+- * @ptr:	the pointer to the member.
+- * @type:	the type of the container struct this is embedded in.
+- * @member:	the name of the member within the struct.
++ * \param ptr:	the pointer to the member.
++ * \param type:	the type of the container struct this is embedded in.
++ * \param member:	the name of the member within the struct.
+  *
+  */
+ #define container_of(ptr, type, member) ({			\
+-        typeof( ((type *)0)->member ) *__mptr = (ptr);	\
+-        (type *)( (char *)__mptr - offsetof(type,member) );})
++	typeof( ((type *)0)->member ) *__mptr = (ptr);	\
++	(type *)( (char *)__mptr - offsetof(type,member) );})
  
--/*
-- * Check at compile time that something is of a particular type.
-- * Always evaluates to 1 so you may use it easily in comparisons.
-- */
--#define typecheck(type,x) \
--({	type __dummy; \
--	typeof(x) __dummy2; \
--	(void)(&__dummy == &__dummy2); \
--	1; \
--})
--
  #define prefetch(x) ((void)0)
  
--/* empty define to make this work in userspace -HW */
--#ifndef smp_wmb
--#define smp_wmb()
--#endif
--
- /*
-  * These are non-NULL pointers that will result in page faults
-  * under normal circumstances, used to verify that nobody uses
-@@ -58,11 +48,6 @@ struct list_head {
+@@ -44,10 +50,24 @@
+  * using the generic single-entry routines.
+  */
+ 
++/**
++ * \struct list_head
++ * Link to adjacent members of the circular list
++ * \note Each member of a list must start with this structure
++ * (containing structures OK)
++ * \var list_head::next
++ * pointer to the next list member
++ * \var list_head::prev
++ * pointer to the previous list member
++ */
+ struct list_head {
  	struct list_head *next, *prev;
  };
  
--#define LIST_HEAD_INIT(name) { &(name), &(name) }
--
--#define LIST_HEAD(name) \
--	struct list_head name = LIST_HEAD_INIT(name)
--
++/**
++ * INIT_LIST_HEAD - Initialise first member of a new list
++ * \param ptr the &struct list_head pointer.
++ */
  #define INIT_LIST_HEAD(ptr) do { \
  	(ptr)->next = (ptr); (ptr)->prev = (ptr); \
  } while (0)
-@@ -96,78 +81,6 @@ static inline void list_add(struct list_head *new, struct list_head *head)
- 	__list_add(new, head, head->next);
- }
+@@ -70,8 +90,8 @@ static inline void __list_add(struct list_head *new,
  
--/**
-- * list_add_tail - add a new entry
-- * @new: new entry to be added
-- * @head: list head to add it before
-- *
-- * Insert a new entry before the specified head.
-- * This is useful for implementing queues.
-- */
--static inline void list_add_tail(struct list_head *new, struct list_head *head)
--{
--	__list_add(new, head->prev, head);
--}
--
--/*
-- * Insert a new entry between two known consecutive entries.
-- *
-- * This is only for internal list manipulation where we know
-- * the prev/next entries already!
-- */
--static inline void __list_add_rcu(struct list_head * new,
--		struct list_head * prev, struct list_head * next)
--{
--	new->next = next;
--	new->prev = prev;
--	smp_wmb();
--	next->prev = new;
--	prev->next = new;
--}
--
--/**
-- * list_add_rcu - add a new entry to rcu-protected list
+ /**
+  * list_add - add a new entry
 - * @new: new entry to be added
 - * @head: list head to add it after
-- *
-- * Insert a new entry after the specified head.
-- * This is good for implementing stacks.
-- *
-- * The caller must take whatever precautions are necessary
-- * (such as holding appropriate locks) to avoid racing
-- * with another list-mutation primitive, such as list_add_rcu()
-- * or list_del_rcu(), running on this same list.
-- * However, it is perfectly legal to run concurrently with
-- * the _rcu list-traversal primitives, such as
-- * list_for_each_entry_rcu().
-- */
--static inline void list_add_rcu(struct list_head *new, struct list_head *head)
--{
--	__list_add_rcu(new, head, head->next);
--}
--
--/**
-- * list_add_tail_rcu - add a new entry to rcu-protected list
-- * @new: new entry to be added
-- * @head: list head to add it before
-- *
-- * Insert a new entry before the specified head.
-- * This is useful for implementing queues.
-- *
-- * The caller must take whatever precautions are necessary
-- * (such as holding appropriate locks) to avoid racing
-- * with another list-mutation primitive, such as list_add_tail_rcu()
-- * or list_del_rcu(), running on this same list.
-- * However, it is perfectly legal to run concurrently with
-- * the _rcu list-traversal primitives, such as
-- * list_for_each_entry_rcu().
-- */
--static inline void list_add_tail_rcu(struct list_head *new,
--					struct list_head *head)
--{
--	__list_add_rcu(new, head->prev, head);
--}
--
- /*
-  * Delete a list entry by making the prev/next entries
-  * point to each other.
-@@ -194,69 +107,6 @@ static inline void list_del(struct list_head *entry)
- 	entry->prev = LIST_POISON2;
- }
++ * \param new: new entry to be added
++ * \param head: list head to add it after
+  *
+  * Insert a new entry after the specified head.
+  * This is good for implementing stacks.
+@@ -96,7 +116,7 @@ static inline void __list_del(struct list_head * prev, struct list_head * next)
  
--/**
-- * list_del_rcu - deletes entry from list without re-initialization
-- * @entry: the element to delete from the list.
-- *
-- * Note: list_empty on entry does not return true after this,
-- * the entry is in an undefined state. It is useful for RCU based
-- * lockfree traversal.
-- *
-- * In particular, it means that we can not poison the forward
-- * pointers that may still be used for walking the list.
-- *
-- * The caller must take whatever precautions are necessary
-- * (such as holding appropriate locks) to avoid racing
-- * with another list-mutation primitive, such as list_del_rcu()
-- * or list_add_rcu(), running on this same list.
-- * However, it is perfectly legal to run concurrently with
-- * the _rcu list-traversal primitives, such as
-- * list_for_each_entry_rcu().
-- *
-- * Note that the caller is not permitted to immediately free
-- * the newly deleted entry.  Instead, either synchronize_kernel()
-- * or call_rcu() must be used to defer freeing until an RCU
-- * grace period has elapsed.
-- */
--static inline void list_del_rcu(struct list_head *entry)
--{
--	__list_del(entry->prev, entry->next);
--	entry->prev = LIST_POISON2;
--}
--
--/**
-- * list_del_init - deletes entry from list and reinitialize it.
-- * @entry: the element to delete from the list.
-- */
--static inline void list_del_init(struct list_head *entry)
--{
--	__list_del(entry->prev, entry->next);
--	INIT_LIST_HEAD(entry);
--}
--
--/**
-- * list_move - delete from one list and add as another's head
-- * @list: the entry to move
-- * @head: the head that will precede our entry
-- */
--static inline void list_move(struct list_head *list, struct list_head *head)
--{
--        __list_del(list->prev, list->next);
--        list_add(list, head);
--}
--
--/**
-- * list_move_tail - delete from one list and add as another's tail
-- * @list: the entry to move
-- * @head: the head that will follow our entry
-- */
--static inline void list_move_tail(struct list_head *list,
--				  struct list_head *head)
--{
--        __list_del(list->prev, list->next);
--        list_add_tail(list, head);
--}
--
  /**
-  * list_empty - tests whether a list is empty
-  * @head: the list to test.
-@@ -265,66 +115,6 @@ static inline int list_empty(const struct list_head *head)
- {
- 	return head->next == head;
+  * list_del - deletes entry from list.
+- * @entry: the element to delete from the list.
++ * \param entry: the element to delete from the list.
+  * Note: list_empty on entry does not return true after this, the entry is
+  * in an undefined state.
+  */
+@@ -117,18 +137,18 @@ static inline int list_empty(const struct list_head *head)
  }
--
--/**
-- * list_empty_careful - tests whether a list is
-- * empty _and_ checks that no other CPU might be
-- * in the process of still modifying either member
-- *
-- * NOTE: using list_empty_careful() without synchronization
-- * can only be safe if the only activity that can happen
-- * to the list entry is list_del_init(). Eg. it cannot be used
-- * if another CPU could re-list_add() it.
-- *
-- * @head: the list to test.
-- */
--static inline int list_empty_careful(const struct list_head *head)
--{
--	struct list_head *next = head->next;
--	return (next == head) && (next == head->prev);
--}
--
--static inline void __list_splice(struct list_head *list,
--				 struct list_head *head)
--{
--	struct list_head *first = list->next;
--	struct list_head *last = list->prev;
--	struct list_head *at = head->next;
--
--	first->prev = head;
--	head->next = first;
--
--	last->next = at;
--	at->prev = last;
--}
--
--/**
-- * list_splice - join two lists
-- * @list: the new list to add.
-- * @head: the place to add it in the first list.
-- */
--static inline void list_splice(struct list_head *list, struct list_head *head)
--{
--	if (!list_empty(list))
--		__list_splice(list, head);
--}
--
--/**
-- * list_splice_init - join two lists and reinitialise the emptied list.
-- * @list: the new list to add.
-- * @head: the place to add it in the first list.
-- *
-- * The list at @list is reinitialised
-- */
--static inline void list_splice_init(struct list_head *list,
--				    struct list_head *head)
--{
--	if (!list_empty(list)) {
--		__list_splice(list, head);
--		INIT_LIST_HEAD(list);
--	}
--}
--
  /**
   * list_entry - get the struct for this entry
-  * @ptr:	the &struct list_head pointer.
-@@ -334,47 +124,6 @@ static inline void list_splice_init(struct list_head *list,
+- * @ptr:	the &struct list_head pointer.
+- * @type:	the type of the struct this is embedded in.
+- * @member:	the name of the list_struct within the struct.
++ * \param ptr:	the &struct list_head pointer.
++ * \param type:	the type of the struct this is embedded in.
++ * \param member:	the name of the list_struct within the struct.
+  */
  #define list_entry(ptr, type, member) \
  	container_of(ptr, type, member)
  
--/**
-- * list_for_each	-	iterate over a list
-- * @pos:	the &struct list_head to use as a loop counter.
-- * @head:	the head for your list.
-- */
--#define list_for_each(pos, head) \
--	for (pos = (head)->next, prefetch(pos->next); pos != (head); \
--        	pos = pos->next, prefetch(pos->next))
--
--/**
-- * __list_for_each	-	iterate over a list
-- * @pos:	the &struct list_head to use as a loop counter.
-- * @head:	the head for your list.
-- *
-- * This variant differs from list_for_each() in that it's the
-- * simplest possible list iteration code, no prefetching is done.
-- * Use this for code that knows the list to be very short (empty
-- * or 1 entry) most of the time.
-- */
--#define __list_for_each(pos, head) \
--	for (pos = (head)->next; pos != (head); pos = pos->next)
--
--/**
-- * list_for_each_prev	-	iterate over a list backwards
-- * @pos:	the &struct list_head to use as a loop counter.
-- * @head:	the head for your list.
-- */
--#define list_for_each_prev(pos, head) \
--	for (pos = (head)->prev, prefetch(pos->prev); pos != (head); \
--        	pos = pos->prev, prefetch(pos->prev))
--
--/**
-- * list_for_each_safe	-	iterate over a list safe against removal of list entry
-- * @pos:	the &struct list_head to use as a loop counter.
-- * @n:		another &struct list_head to use as temporary storage
-- * @head:	the head for your list.
-- */
--#define list_for_each_safe(pos, n, head) \
--	for (pos = (head)->next, n = pos->next; pos != (head); \
--		pos = n, n = pos->next)
--
  /**
   * list_for_each_entry	-	iterate over list of given type
-  * @pos:	the type * to use as a loop counter.
-@@ -388,43 +137,6 @@ static inline void list_splice_init(struct list_head *list,
- 	     pos = list_entry(pos->member.next, typeof(*pos), member),	\
- 		     prefetch(pos->member.next))
+- * @pos:	the type * to use as a loop counter.
+- * @head:	the head for your list.
+- * @member:	the name of the list_struct within the struct.
++ * \param pos:	the type * to use as a loop counter.
++ * \param head:	the head for your list.
++ * \param member:	the name of the list_struct within the struct.
+  */
+ #define list_for_each_entry(pos, head, member)				\
+ 	for (pos = list_entry((head)->next, typeof(*pos), member),	\
+@@ -139,10 +159,10 @@ static inline int list_empty(const struct list_head *head)
  
--/**
-- * list_for_each_entry_reverse - iterate backwards over list of given type.
-- * @pos:	the type * to use as a loop counter.
-- * @head:	the head for your list.
-- * @member:	the name of the list_struct within the struct.
-- */
--#define list_for_each_entry_reverse(pos, head, member)			\
--	for (pos = list_entry((head)->prev, typeof(*pos), member),	\
--		     prefetch(pos->member.prev);			\
--	     &pos->member != (head); 					\
--	     pos = list_entry(pos->member.prev, typeof(*pos), member),	\
--		     prefetch(pos->member.prev))
--
--/**
-- * list_prepare_entry - prepare a pos entry for use as a start point in
-- *			list_for_each_entry_continue
-- * @pos:	the type * to use as a start point
-- * @head:	the head of the list
-- * @member:	the name of the list_struct within the struct.
-- */
--#define list_prepare_entry(pos, head, member) \
--	((pos) ? : list_entry(head, typeof(*pos), member))
--
--/**
-- * list_for_each_entry_continue -	iterate over list of given type
-- *			continuing after existing point
-- * @pos:	the type * to use as a loop counter.
-- * @head:	the head for your list.
-- * @member:	the name of the list_struct within the struct.
-- */
--#define list_for_each_entry_continue(pos, head, member) 		\
--	for (pos = list_entry(pos->member.next, typeof(*pos), member),	\
--		     prefetch(pos->member.next);			\
--	     &pos->member != (head);					\
--	     pos = list_entry(pos->member.next, typeof(*pos), member),	\
--		     prefetch(pos->member.next))
--
  /**
   * list_for_each_entry_safe - iterate over list of given type safe against removal of list entry
-  * @pos:	the type * to use as a loop counter.
-@@ -438,290 +150,4 @@ static inline void list_splice_init(struct list_head *list,
+- * @pos:	the type * to use as a loop counter.
+- * @n:		another type * to use as temporary storage
+- * @head:	the head for your list.
+- * @member:	the name of the list_struct within the struct.
++ * \param pos:	the type * to use as a loop counter.
++ * \param n:		another type * to use as temporary storage
++ * \param head:	the head for your list.
++ * \param member:	the name of the list_struct within the struct.
+  */
+ #define list_for_each_entry_safe(pos, n, head, member)			\
+ 	for (pos = list_entry((head)->next, typeof(*pos), member),	\
+@@ -150,4 +170,8 @@ static inline int list_empty(const struct list_head *head)
  	     &pos->member != (head); 					\
  	     pos = n, n = list_entry(n->member.next, typeof(*n), member))
  
--/**
-- * list_for_each_rcu	-	iterate over an rcu-protected list
-- * @pos:	the &struct list_head to use as a loop counter.
-- * @head:	the head for your list.
-- *
-- * This list-traversal primitive may safely run concurrently with
-- * the _rcu list-mutation primitives such as list_add_rcu()
-- * as long as the traversal is guarded by rcu_read_lock().
-- */
--#define list_for_each_rcu(pos, head) \
--	for (pos = (head)->next, prefetch(pos->next); pos != (head); \
--        	pos = pos->next, ({ smp_read_barrier_depends(); 0;}), prefetch(pos->next))
--
--#define __list_for_each_rcu(pos, head) \
--	for (pos = (head)->next; pos != (head); \
--        	pos = pos->next, ({ smp_read_barrier_depends(); 0;}))
--
--/**
-- * list_for_each_safe_rcu	-	iterate over an rcu-protected list safe
-- *					against removal of list entry
-- * @pos:	the &struct list_head to use as a loop counter.
-- * @n:		another &struct list_head to use as temporary storage
-- * @head:	the head for your list.
-- *
-- * This list-traversal primitive may safely run concurrently with
-- * the _rcu list-mutation primitives such as list_add_rcu()
-- * as long as the traversal is guarded by rcu_read_lock().
-- */
--#define list_for_each_safe_rcu(pos, n, head) \
--	for (pos = (head)->next, n = pos->next; pos != (head); \
--		pos = n, ({ smp_read_barrier_depends(); 0;}), n = pos->next)
--
--/**
-- * list_for_each_entry_rcu	-	iterate over rcu list of given type
-- * @pos:	the type * to use as a loop counter.
-- * @head:	the head for your list.
-- * @member:	the name of the list_struct within the struct.
-- *
-- * This list-traversal primitive may safely run concurrently with
-- * the _rcu list-mutation primitives such as list_add_rcu()
-- * as long as the traversal is guarded by rcu_read_lock().
-- */
--#define list_for_each_entry_rcu(pos, head, member)			\
--	for (pos = list_entry((head)->next, typeof(*pos), member),	\
--		     prefetch(pos->member.next);			\
--	     &pos->member != (head); 					\
--	     pos = list_entry(pos->member.next, typeof(*pos), member),	\
--		     ({ smp_read_barrier_depends(); 0;}),		\
--		     prefetch(pos->member.next))
--
--
--/**
-- * list_for_each_continue_rcu	-	iterate over an rcu-protected list
-- *			continuing after existing point.
-- * @pos:	the &struct list_head to use as a loop counter.
-- * @head:	the head for your list.
-- *
-- * This list-traversal primitive may safely run concurrently with
-- * the _rcu list-mutation primitives such as list_add_rcu()
-- * as long as the traversal is guarded by rcu_read_lock().
-- */
--#define list_for_each_continue_rcu(pos, head) \
--	for ((pos) = (pos)->next, prefetch((pos)->next); (pos) != (head); \
--        	(pos) = (pos)->next, ({ smp_read_barrier_depends(); 0;}), prefetch((pos)->next))
--
--/*
-- * Double linked lists with a single pointer list head.
-- * Mostly useful for hash tables where the two pointer list head is
-- * too wasteful.
-- * You lose the ability to access the tail in O(1).
-- */
--
--struct hlist_head {
--	struct hlist_node *first;
--};
--
--struct hlist_node {
--	struct hlist_node *next, **pprev;
--};
--
--#define HLIST_HEAD_INIT { .first = NULL }
--#define HLIST_HEAD(name) struct hlist_head name = {  .first = NULL }
--#define INIT_HLIST_HEAD(ptr) ((ptr)->first = NULL)
--#define INIT_HLIST_NODE(ptr) ((ptr)->next = NULL, (ptr)->pprev = NULL)
--
--static inline int hlist_unhashed(const struct hlist_node *h)
--{
--	return !h->pprev;
--}
--
--static inline int hlist_empty(const struct hlist_head *h)
--{
--	return !h->first;
--}
--
--static inline void __hlist_del(struct hlist_node *n)
--{
--	struct hlist_node *next = n->next;
--	struct hlist_node **pprev = n->pprev;
--	*pprev = next;
--	if (next)
--		next->pprev = pprev;
--}
--
--static inline void hlist_del(struct hlist_node *n)
--{
--	__hlist_del(n);
--	n->next = LIST_POISON1;
--	n->pprev = LIST_POISON2;
--}
--
--/**
-- * hlist_del_rcu - deletes entry from hash list without re-initialization
-- * @n: the element to delete from the hash list.
-- *
-- * Note: list_unhashed() on entry does not return true after this,
-- * the entry is in an undefined state. It is useful for RCU based
-- * lockfree traversal.
-- *
-- * In particular, it means that we can not poison the forward
-- * pointers that may still be used for walking the hash list.
-- *
-- * The caller must take whatever precautions are necessary
-- * (such as holding appropriate locks) to avoid racing
-- * with another list-mutation primitive, such as hlist_add_head_rcu()
-- * or hlist_del_rcu(), running on this same list.
-- * However, it is perfectly legal to run concurrently with
-- * the _rcu list-traversal primitives, such as
-- * hlist_for_each_entry().
-- */
--static inline void hlist_del_rcu(struct hlist_node *n)
--{
--	__hlist_del(n);
--	n->pprev = LIST_POISON2;
--}
--
--static inline void hlist_del_init(struct hlist_node *n)
--{
--	if (n->pprev)  {
--		__hlist_del(n);
--		INIT_HLIST_NODE(n);
--	}
--}
--
--#define hlist_del_rcu_init hlist_del_init
--
--static inline void hlist_add_head(struct hlist_node *n, struct hlist_head *h)
--{
--	struct hlist_node *first = h->first;
--	n->next = first;
--	if (first)
--		first->pprev = &n->next;
--	h->first = n;
--	n->pprev = &h->first;
--}
--
--
--/**
-- * hlist_add_head_rcu - adds the specified element to the specified hlist,
-- * while permitting racing traversals.
-- * @n: the element to add to the hash list.
-- * @h: the list to add to.
-- *
-- * The caller must take whatever precautions are necessary
-- * (such as holding appropriate locks) to avoid racing
-- * with another list-mutation primitive, such as hlist_add_head_rcu()
-- * or hlist_del_rcu(), running on this same list.
-- * However, it is perfectly legal to run concurrently with
-- * the _rcu list-traversal primitives, such as
-- * hlist_for_each_entry(), but only if smp_read_barrier_depends()
-- * is used to prevent memory-consistency problems on Alpha CPUs.
-- * Regardless of the type of CPU, the list-traversal primitive
-- * must be guarded by rcu_read_lock().
-- *
-- * OK, so why don't we have an hlist_for_each_entry_rcu()???
-- */
--static inline void hlist_add_head_rcu(struct hlist_node *n,
--					struct hlist_head *h)
--{
--	struct hlist_node *first = h->first;
--	n->next = first;
--	n->pprev = &h->first;
--	smp_wmb();
--	if (first)
--		first->pprev = &n->next;
--	h->first = n;
--}
--
--/* next must be != NULL */
--static inline void hlist_add_before(struct hlist_node *n,
--					struct hlist_node *next)
--{
--	n->pprev = next->pprev;
--	n->next = next;
--	next->pprev = &n->next;
--	*(n->pprev) = n;
--}
--
--static inline void hlist_add_after(struct hlist_node *n,
--					struct hlist_node *next)
--{
--	next->next = n->next;
--	n->next = next;
--	next->pprev = &n->next;
--
--	if(next->next)
--		next->next->pprev  = &next->next;
--}
--
--#define hlist_entry(ptr, type, member) container_of(ptr,type,member)
--
--#define hlist_for_each(pos, head) \
--	for (pos = (head)->first; pos && ({ prefetch(pos->next); 1; }); \
--	     pos = pos->next)
--
--#define hlist_for_each_safe(pos, n, head) \
--	for (pos = (head)->first; pos && ({ n = pos->next; 1; }); \
--	     pos = n)
--
--/**
-- * hlist_for_each_entry	- iterate over list of given type
-- * @tpos:	the type * to use as a loop counter.
-- * @pos:	the &struct hlist_node to use as a loop counter.
-- * @head:	the head for your list.
-- * @member:	the name of the hlist_node within the struct.
-- */
--#define hlist_for_each_entry(tpos, pos, head, member)			 \
--	for (pos = (head)->first;					 \
--	     pos && ({ prefetch(pos->next); 1;}) &&			 \
--		({ tpos = hlist_entry(pos, typeof(*tpos), member); 1;}); \
--	     pos = pos->next)
--
--/**
-- * hlist_for_each_entry_continue - iterate over a hlist continuing after existing point
-- * @tpos:	the type * to use as a loop counter.
-- * @pos:	the &struct hlist_node to use as a loop counter.
-- * @member:	the name of the hlist_node within the struct.
-- */
--#define hlist_for_each_entry_continue(tpos, pos, member)		 \
--	for (pos = (pos)->next;						 \
--	     pos && ({ prefetch(pos->next); 1;}) &&			 \
--		({ tpos = hlist_entry(pos, typeof(*tpos), member); 1;}); \
--	     pos = pos->next)
--
--/**
-- * hlist_for_each_entry_from - iterate over a hlist continuing from existing point
-- * @tpos:	the type * to use as a loop counter.
-- * @pos:	the &struct hlist_node to use as a loop counter.
-- * @member:	the name of the hlist_node within the struct.
-- */
--#define hlist_for_each_entry_from(tpos, pos, member)			 \
--	for (; pos && ({ prefetch(pos->next); 1;}) &&			 \
--		({ tpos = hlist_entry(pos, typeof(*tpos), member); 1;}); \
--	     pos = pos->next)
--
--/**
-- * hlist_for_each_entry_safe - iterate over list of given type safe against removal of list entry
-- * @tpos:	the type * to use as a loop counter.
-- * @pos:	the &struct hlist_node to use as a loop counter.
-- * @n:		another &struct hlist_node to use as temporary storage
-- * @head:	the head for your list.
-- * @member:	the name of the hlist_node within the struct.
-- */
--#define hlist_for_each_entry_safe(tpos, pos, n, head, member) 		 \
--	for (pos = (head)->first;					 \
--	     pos && ({ n = pos->next; 1; }) && 				 \
--		({ tpos = hlist_entry(pos, typeof(*tpos), member); 1;}); \
--	     pos = n)
--
--/**
-- * hlist_for_each_entry_rcu - iterate over rcu list of given type
-- * @pos:	the type * to use as a loop counter.
-- * @pos:	the &struct hlist_node to use as a loop counter.
-- * @head:	the head for your list.
-- * @member:	the name of the hlist_node within the struct.
-- *
-- * This list-traversal primitive may safely run concurrently with
-- * the _rcu list-mutation primitives such as hlist_add_rcu()
-- * as long as the traversal is guarded by rcu_read_lock().
-- */
--#define hlist_for_each_entry_rcu(tpos, pos, head, member)		 \
--	for (pos = (head)->first;					 \
--	     pos && ({ prefetch(pos->next); 1;}) &&			 \
--		({ tpos = hlist_entry(pos, typeof(*tpos), member); 1;}); \
--	     pos = pos->next, ({ smp_read_barrier_depends(); 0; }) )
--
++/**
++ * @}
++ */
++
  #endif
 -- 
 2.35.8
