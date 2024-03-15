@@ -1,188 +1,204 @@
-Received: from EUR05-VI1-obe.outbound.protection.outlook.com (mail-vi1eur05on2096.outbound.protection.outlook.com [40.107.21.96])
+Received: from mailout2.w1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A2F024A13
-	for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2024 13:46:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.21.96
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710510397; cv=fail; b=ZgFU3T7ugMzeZnTFCjQvHDV0ckD7nhnMwXdN6T+xX8LQqjKkqK2oNk67BQPt5txRKCXvaOdyl3Piz4x+JLO6AJ1kfqEdEO30PZMH0Ifnt7sPt10L8COLFXV47e/kEFYdShakT6ATKct53Kf9LdpfqrCHjQsAHDazfOOn3zoGMl0=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710510397; c=relaxed/simple;
-	bh=llxD8Vpf8wIvPOwalic0QzoiXFu+LCAy7SLUUXGUvD4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=c5Yvah2lgUgPxiZ+TYKjEPumTu4ledDX3wUrTUaPIK1B4NDphtor5ooNjXBvQW4dh2BLnHZce436Jp0zCHNCBhtAVox8GGOUGGxV/HHYyAXOvJhJS/4OjZn7hUfipTarZphIaM92WZE0S69MQk29TMSCCaHHWpzIXjpPdFxm6PM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=voleatech.de; spf=pass smtp.mailfrom=voleatech.de; dkim=pass (1024-bit key) header.d=voleatech.de header.i=@voleatech.de header.b=Kb5uo5T4; arc=fail smtp.client-ip=40.107.21.96
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=voleatech.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=voleatech.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07ACB18EA8;
+	Fri, 15 Mar 2024 14:58:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.118.77.12
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1710514725; cv=none; b=rgcvH+phdQupfxIAKNfIgZEVHfc+63ITbRNWTlDrW/h5XfPwbdGHfL++T2HGxf0cD3P9fqAAYNi4J+EZbmFR7ovV3TNdl/ZhdyruPBP2HrHdukINBDDDJetG5XcYNQIgdchMFDu2b5K3tGJGsloVd+y5Z2CtlzxG6Z9Hp/Hvfdk=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1710514725; c=relaxed/simple;
+	bh=QkAlNJ9V9qppiro/zSbEdW694RBnZkoeHZrahCOadSs=;
+	h=Date:From:To:CC:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To:References; b=BRh1Vfp16onm/9TCZHDqNmwVEhfnt9VjudysgjwtNsCDRxMG9yI1nUMwPGN8pMc+K645N1c+4/dusrbtuZlGheZUg7RZgvwD0DVkM6oqi3IlvcXnM3LtnOFsXqjgvEEP2XnqdDcVncaQsFAaYQtr0GZU5WDuU9rNL4cD6+Zw2CE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=G2Tv4oet; arc=none smtp.client-ip=210.118.77.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=voleatech.de header.i=@voleatech.de header.b="Kb5uo5T4"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Bi89k7vnkosU8ToF24FOYPZ+YtUUPkn4gb5rv/V9YlzC8xAgKKTiBNh/emKeF2Sv3lveRmXMldDJ/Iah/oyq7J35Dkf34+snmFPHDjyw8ypXSgxsd5gZeSuLmGYnQxIA9l0ZDYdn5WQ8ptTbJ/6TP8pv5BJIihL/Z+Wialm5gzrL2DnNN2juSeoF+cwSTkHQ+AtNakewgqaT+7Hh1b3F/3WYgWgKuQbt4g7qP6OrYbnj2gPQDTQQcI9xL24LuBJ0GfgNXdVjpC6I1zpy/DsLL0csl57lOFVPLxd6PIozFn6FNXhTlkud1FO8b8H71KNAZ3ab55U9gbgNp62NMh1zXQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=/MUmwDNYFFkE+Ort5nn3Q7eFknHUtacL5qPPvgNQ7pw=;
- b=LCqYuuMUhas7kW1dKYqDaj3APFWaBJKjfj0JQgGEmeyurw1tMYi012OUYiCQEaN1sAshD1PrGgB67C7CUyTm8e916qddb0Ih4J04DR59Q5IRTA/TsvDmQDuGXBpS/nxHGtMnUy43IjAIjEyjWXb6F1++0UnJsbW+KGa/n3eDiEyNPGOTN7BhzgvsXe5fu9cGM+pDZg/n230RdZX49SIBQbVvcqVH10z028Rg1ABAHuW/8llmAketiO4/OfAmJh+jee9sMHTM7GB698p4dbNt/zWM6pIJIQ3WS6K2imuarraAu+SOF1FV1akYh+sTpFsdKurevI5q4MpDWhBWJJhjyw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=voleatech.de; dmarc=pass action=none header.from=voleatech.de;
- dkim=pass header.d=voleatech.de; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=voleatech.de;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=/MUmwDNYFFkE+Ort5nn3Q7eFknHUtacL5qPPvgNQ7pw=;
- b=Kb5uo5T43YZt5uu3efXpWaHhCtYapbwXftPpjbAVHTcxGFv7jlyUOQUBCJ25tO37aL/4ZEME7GTo7QZLnm4Q2BVs88JZv3cSg50BaNN+ahdhNcohfcJhr4RExxindXl5fGJIyYDyelO/Vx22sXwji6dhU5rhHJBjomXho9FpKzI=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=voleatech.de;
-Received: from GVXPR05MB11233.eurprd05.prod.outlook.com
- (2603:10a6:150:14e::13) by PAWPR05MB9870.eurprd05.prod.outlook.com
- (2603:10a6:102:333::13) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7386.21; Fri, 15 Mar
- 2024 13:46:30 +0000
-Received: from GVXPR05MB11233.eurprd05.prod.outlook.com
- ([fe80::9d0c:55e:de01:2a2b]) by GVXPR05MB11233.eurprd05.prod.outlook.com
- ([fe80::9d0c:55e:de01:2a2b%2]) with mapi id 15.20.7362.019; Fri, 15 Mar 2024
- 13:46:30 +0000
-Date: Fri, 15 Mar 2024 14:46:23 +0100
-From: Sven Auhagen <sven.auhagen@voleatech.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
-Subject: Re: Flowtable race condition error
-Message-ID: <36jf7ahr5msa345ugwgi6sf2oghlzlytxmjnp4me4hkuq4rymq@pbnvitdrxehl>
-References: <x6s4ukl7gfgkcap6b56o6wv6oqanyjx4u7fj5ldnjqna7yp6lu@2pxdntq2pe5f>
- <ZfLc33WgQPKdv2vG@calendula>
- <2lv2ycmvwqpzw2etorhz32oxxnzgnpmi7g7ykm3z5c2cnqcilk@zmixunfs4sjz>
- <ZfLv3iQk--ddRsk2@calendula>
- <4tq2bj2nylpqkkqep2v47dnb3nfismzbdzv42jj2ksdll4figl@scwfgkdwyuks>
- <ZfLz7NEwUnY_BEYZ@calendula>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZfLz7NEwUnY_BEYZ@calendula>
-X-ClientProxiedBy: FR5P281CA0033.DEUP281.PROD.OUTLOOK.COM
- (2603:10a6:d10:f3::10) To GVXPR05MB11233.eurprd05.prod.outlook.com
- (2603:10a6:150:14e::13)
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="G2Tv4oet"
+Received: from eucas1p1.samsung.com (unknown [182.198.249.206])
+	by mailout2.w1.samsung.com (KnoxPortal) with ESMTP id 20240315145834euoutp0208e17bee17510a43114d2abc73c66d9e~8_BH9XOku2978829788euoutp02f;
+	Fri, 15 Mar 2024 14:58:34 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.w1.samsung.com 20240315145834euoutp0208e17bee17510a43114d2abc73c66d9e~8_BH9XOku2978829788euoutp02f
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
+	s=mail20170921; t=1710514714;
+	bh=QkAlNJ9V9qppiro/zSbEdW694RBnZkoeHZrahCOadSs=;
+	h=Date:From:To:CC:Subject:In-Reply-To:References:From;
+	b=G2Tv4oet03CghGKOrgieijfEl82FvjQVZBL+NfoG15HFyo9VIUHcvPRvsG82TfUwJ
+	 dX7pxAXAb9YPyNG2TKDc8iEY570oeA5ZpY68L1+/6ZETCD+YW+AwjxiTIrcFxIsFOl
+	 Mk2mYfgH8Xod4xWY0H6rRKtWJgy98o37Oog1PoZk=
+Received: from eusmges1new.samsung.com (unknown [203.254.199.242]) by
+	eucas1p2.samsung.com (KnoxPortal) with ESMTP id
+	20240315145834eucas1p263d507b6e6b1b2347755a3b8a3d110c2~8_BHm31sC0659706597eucas1p2F;
+	Fri, 15 Mar 2024 14:58:34 +0000 (GMT)
+Received: from eucas1p2.samsung.com ( [182.198.249.207]) by
+	eusmges1new.samsung.com (EUCPMTA) with SMTP id 62.5F.09539.A1264F56; Fri, 15
+	Mar 2024 14:58:34 +0000 (GMT)
+Received: from eusmtrp1.samsung.com (unknown [182.198.249.138]) by
+	eucas1p2.samsung.com (KnoxPortal) with ESMTPA id
+	20240315145833eucas1p213fce847384eb45d99b496e63aeef842~8_BHARDUI1048010480eucas1p2_;
+	Fri, 15 Mar 2024 14:58:33 +0000 (GMT)
+Received: from eusmgms1.samsung.com (unknown [182.198.249.179]) by
+	eusmtrp1.samsung.com (KnoxPortal) with ESMTP id
+	20240315145833eusmtrp1d4283c4c3365474281127eb3980b7d32~8_BG_cMhB2583725837eusmtrp1-;
+	Fri, 15 Mar 2024 14:58:33 +0000 (GMT)
+X-AuditID: cbfec7f2-515ff70000002543-32-65f4621a921a
+Received: from eusmtip2.samsung.com ( [203.254.199.222]) by
+	eusmgms1.samsung.com (EUCPMTA) with SMTP id B2.BC.09146.91264F56; Fri, 15
+	Mar 2024 14:58:33 +0000 (GMT)
+Received: from CAMSVWEXC02.scsc.local (unknown [106.1.227.72]) by
+	eusmtip2.samsung.com (KnoxPortal) with ESMTPA id
+	20240315145833eusmtip25fac59b9345218f02603c4bc99e60c97~8_BGowIxW0792607926eusmtip2S;
+	Fri, 15 Mar 2024 14:58:33 +0000 (GMT)
+Received: from localhost (106.210.248.173) by CAMSVWEXC02.scsc.local
+	(2002:6a01:e348::6a01:e348) with Microsoft SMTP Server (TLS) id 15.0.1497.2;
+	Fri, 15 Mar 2024 14:58:32 +0000
+Date: Fri, 15 Mar 2024 15:58:30 +0100
+From: Joel Granados <j.granados@samsung.com>
+To: Jakub Kicinski <kuba@kernel.org>
+CC: Joel Granados via B4 Relay <devnull+j.granados.samsung.com@kernel.org>,
+	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+	Paolo Abeni <pabeni@redhat.com>, Alexander Aring <alex.aring@gmail.com>,
+	Stefan Schmidt <stefan@datenfreihafen.org>, Miquel Raynal
+	<miquel.raynal@bootlin.com>, David Ahern <dsahern@kernel.org>, "Steffen
+ Klassert" <steffen.klassert@secunet.com>, Herbert Xu
+	<herbert@gondor.apana.org.au>, Matthieu Baerts <matttbe@kernel.org>, "Mat
+ Martineau" <martineau@kernel.org>, Geliang Tang <geliang@kernel.org>, "Ralf
+ Baechle" <ralf@linux-mips.org>, Remi Denis-Courmont <courmisch@gmail.com>,
+	Allison Henderson <allison.henderson@oracle.com>, David Howells
+	<dhowells@redhat.com>, Marc Dionne <marc.dionne@auristor.com>, "Marcelo
+ Ricardo Leitner" <marcelo.leitner@gmail.com>, Xin Long
+	<lucien.xin@gmail.com>, Wenjia Zhang <wenjia@linux.ibm.com>, Jan Karcher
+	<jaka@linux.ibm.com>, "D. Wythe" <alibuda@linux.alibaba.com>, Tony Lu
+	<tonylu@linux.alibaba.com>, "Wen Gu" <guwen@linux.alibaba.com>, Trond
+	Myklebust <trond.myklebust@hammerspace.com>, Anna Schumaker
+	<anna@kernel.org>, "Chuck Lever" <chuck.lever@oracle.com>, Jeff Layton
+	<jlayton@kernel.org>, Neil Brown <neilb@suse.de>, Olga Kornievskaia
+	<kolga@netapp.com>, Dai Ngo <Dai.Ngo@oracle.com>, Tom Talpey
+	<tom@talpey.com>, Jon Maloy <jmaloy@redhat.com>, Ying Xue
+	<ying.xue@windriver.com>, Martin Schiller <ms@dev.tdt.de>, Pablo Neira Ayuso
+	<pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>, Florian
+	Westphal <fw@strlen.de>, Roopa Prabhu <roopa@nvidia.com>, Nikolay
+	Aleksandrov <razor@blackwall.org>, Simon Horman <horms@verge.net.au>, Julian
+	Anastasov <ja@ssi.bg>, Joerg Reuter <jreuter@yaina.de>, Luis Chamberlain
+	<mcgrof@kernel.org>, Kees Cook <keescook@chromium.org>,
+	<netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<dccp@vger.kernel.org>, <linux-wpan@vger.kernel.org>,
+	<mptcp@lists.linux.dev>, <linux-hams@vger.kernel.org>,
+	<linux-rdma@vger.kernel.org>, <rds-devel@oss.oracle.com>,
+	<linux-afs@lists.infradead.org>, <linux-sctp@vger.kernel.org>,
+	<linux-s390@vger.kernel.org>, <linux-nfs@vger.kernel.org>,
+	<tipc-discussion@lists.sourceforge.net>, <linux-x25@vger.kernel.org>,
+	<netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+	<bridge@lists.linux.dev>, <lvs-devel@vger.kernel.org>
+Subject: Re: [PATCH 0/4] sysctl: Remove sentinel elements from networking
+Message-ID: <20240315145830.e3sl57eytsosngeb@joelS2.panther.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: GVXPR05MB11233:EE_|PAWPR05MB9870:EE_
-X-MS-Office365-Filtering-Correlation-Id: 55b890d2-4ed8-4d90-294e-08dc44f6508d
-X-MS-Exchange-AtpMessageProperties: SA
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info:
-	jNWDhQvf2ts1GU2B15voa0ucOmkbRbeJ0qCTHm4gWJaA2qVKafogqcF2u43odkZ3Yd6xarJZPkrwcBbD+93BaPEJrJM47l8SylkghNH3VbxxWNxQKVGNVLWjVpzQ9srukQdgtoL9wjZ6nydInSO/YcBJYxEjcAOGQ7LNcyosL/KDkYHBwYaF3iKB2mLxb0/siBhYr3qLL2AGTOkUSZIDGzT9em4k9yxLdMiWIdxV0aApsWxuN5MlXhSx2Yvg2zEUvjv8Jo2z1zeQtkboqwcHH0zx31Fmhyzsn2uDDg4wjLi7tw1u3pvVFYaUIkKQA2Pieb0oMDdJ4zMjTdws23A2ga6XBEudfRNA92z2pDlTjFo2PS3ORxCTFY5GtCRfeU8VIwToLu2BzWnKu+SJilHdhfL4jqQ3bVxnpYDi74dKTYSsonsfmZjJVph7OMERIdubSvNgwYsJzm5Ag5/tlk/1YpVrke9pEZq5rrTGCMjNTs+ZEuG8JABizPcy3iiDuvogpEKrTqPVMBtsRO087btKxEM6/P1WLNdnPKQ+rHqe+3z55LjZc/clb8SWVWDj0PC2KiCnO7PrBgRT8tvfEcrkD8dQQJy1cq8gNYqYUHdc9H3LHT/pUHtw07tSk7AQ27Vve4qbDTDCsb/DtyNcnEI0SmX2x68akGP3F7H4++ExGYs=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:GVXPR05MB11233.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(366007)(1800799015)(376005);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?uzSMfe0SsafqMIwO2PDWFAzmkWtP/kkmKuJkZnzxeISjrq4+wFmVFMAqk1Vv?=
- =?us-ascii?Q?IAx5ztu/evgjOQ7S57BJ8EH+kPmmJE334oOTUMQoNpBgpgRZ2xGDtTvPqnso?=
- =?us-ascii?Q?oJiXGv/RvlZ9MpgxUhhslz40fsz/DMypvqKXzY9rhXxdfSBE1dEixCTNdlbL?=
- =?us-ascii?Q?hFqwcamGz2nwke8piSGnTVtkeM+BY5Q/uNoSobzJuSiT+AXjQJ3CBtnhZyCV?=
- =?us-ascii?Q?inJnE05Ha7KXKpojxm0cn75IT91vRknxvfVlVR/+tLxIRK9oymGiRf9SguDO?=
- =?us-ascii?Q?ZXqvueBD6xs/Wk6vOcRNE0qgjtdzxTNXnG707sL0V/V8kKHkpEdrvG428mew?=
- =?us-ascii?Q?iA8uoN/3OQ+Yonp4Ba+s84ex4/5/XeZ1FOORiSY0buf4MoGspFf2wIT/Y6rW?=
- =?us-ascii?Q?dH6jCs0LTidtqoxhB9z4DidWAxKAzYlSTNWImtRI+vyyiw1Qx5IbrBpiTPuS?=
- =?us-ascii?Q?ln0pdDB1Km3gKsqSedDAID8VUvxeUeiDphbQiPfP27ydVyzqWJSTnoVKWV8q?=
- =?us-ascii?Q?b57yyvhM0e0IpJ8XWPv775bzbC/GbOQe9rGvoFrIOLT/n+OgOwyX3EWuAzfW?=
- =?us-ascii?Q?xPPCRy1TLCCmAszEA2faXJFdgTps2kbxfzOTAFFRV9PRpaC6laaszLci8CDT?=
- =?us-ascii?Q?tuGQBtEPgqucSsAqY3gMOIBE2Bup4iUj3vlBoog9ErbPwGbWW7lhZBAYHjfW?=
- =?us-ascii?Q?NQvnmEDZj4c3SxwYfyvQpjwk6LK+ia8Ch5+QsLDtcZnOf5XN3TZ7yQM3b7oM?=
- =?us-ascii?Q?QbU1eBqa2ipPB5H8TvGC6JpWwW7UvrDq14n0bu9ymelCJxgZvKucpBNwtyqu?=
- =?us-ascii?Q?Bc5G5MWEx0tZ7oXdxISFrrv8Ci+5Jh105LrkAPnbVJR3OfrM7Nhg4HK9tmu4?=
- =?us-ascii?Q?9/qY6ndX6Ng6Eee4BmBUX6bBGtpoj94wO3pySkTYXOizHDuzbc2Mu5JeQaNv?=
- =?us-ascii?Q?kqa6rgGi/xdPSer4jy7/mK3L+gbMGWPlkDAqJ8/rh3wXGzmteIPjFyhjQZoa?=
- =?us-ascii?Q?hckcrHRD1o+RKFAfHgH4QActhsSDO/FnSQ+BiqBkrkvily7zbMs7oIU0sZcN?=
- =?us-ascii?Q?XBovKc1NlGJGRLegkjvVgEXjDEy6yGlfU7mHBONH/v3I5xhCDpPZvP407l6D?=
- =?us-ascii?Q?Lt+IHxNQl5k/JjR+3LdW+ZAB0TpzW7DZ4P3AU5747vjXOXlJdnR+eXtPWsc5?=
- =?us-ascii?Q?c0Wk7/F41aQEjft4oPzN5nsy9weJ5rV4hYFlc7Iu2zyiRrM7A/YuqWTmE8fm?=
- =?us-ascii?Q?06JtvbjHkBLWq46OKy7T2VCWCk4vZ1b6623armXjJZVD4a+y7wsvMGvLI6NN?=
- =?us-ascii?Q?/fPY2SnHl40HGIft12fzhZanclg9Z3enYkdI0o9eezc4Us+h+jmkaDvXAeom?=
- =?us-ascii?Q?RM3S2eWPTdsuhIU6Ln8c8GNZZMC8QQ31un/m1RU+i6DV2GusJ90KpSCwv9hM?=
- =?us-ascii?Q?WpL4cACgX3/yc7FIM+7Euip3eM39WVQ2Np0nzDOhOs6xMNqRDFV35EfF6G3G?=
- =?us-ascii?Q?m3xMjpUDhehKyJQZ1dBnFiYCK+hOwC+2FgF4hpgIN29pyRLsjHELnn3bV9SM?=
- =?us-ascii?Q?PUo/aF0Tbb7jEmK2Kv1dfOzj34cLWM9n8fL1t6ojm8ZAnAeaYjtv66sOUFes?=
- =?us-ascii?Q?+RjP1F3IWLyHDoKMs1SbMZpve9T6rO30mBzNbpxxX70iBoJT9m9mdwwvyZAj?=
- =?us-ascii?Q?1nOhhg=3D=3D?=
-X-OriginatorOrg: voleatech.de
-X-MS-Exchange-CrossTenant-Network-Message-Id: 55b890d2-4ed8-4d90-294e-08dc44f6508d
-X-MS-Exchange-CrossTenant-AuthSource: GVXPR05MB11233.eurprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Mar 2024 13:46:29.6089
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: b82a99f6-7981-4a72-9534-4d35298f847b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: hV2lE/nx029BZRhe4ABTKzQyPbsDvDB7VyxFaacPA/Y0t9Tc4Etas4ZZICU3yMyd7jbYFAOtAgH/QVYZiJsJvVHtoGpW5OQAqLVXPOH5/xQ=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PAWPR05MB9870
+Content-Type: multipart/signed; micalg="pgp-sha512";
+	protocol="application/pgp-signature"; boundary="onm3lc3zkynvura4"
+Content-Disposition: inline
+In-Reply-To: <20240314154248.155d96a4@kernel.org>
+X-ClientProxiedBy: CAMSVWEXC01.scsc.local (2002:6a01:e347::6a01:e347) To
+	CAMSVWEXC02.scsc.local (2002:6a01:e348::6a01:e348)
+X-Brightmail-Tracker: H4sIAAAAAAAAA2WTfVBUZRTGe+/XLuA610XhDcwSgSE1Ck09fmBSUbeZmpTKcWq01riCCOjs
+	QlqMhoAu7opsMEUiCoryLSCsu6wCyyCisAQoauQsEAuEISLyIQICsV4cnem/33me87zznD9e
+	MSn9Rewk3hkaxstDZcEujC2lqx5teMtp+xD/TrWKgcrIVdBeqqIhMuYwAYcMUxTo0tUETLV0
+	EzBhUJIw2N5NQ+qZYgZSGmIomPhTzUDTyU4C+qLGKci/dIiArmqLCHRxuQhyo8wU6LtHGFD3
+	zIfoi8MIOuMtNNzK6GdgNCNHBG3DFgpGj9nBcVU0AXXqEChp6aSgUXeMBk2tF9zRtxDQdCmF
+	gcYKEw3/VMZRoDkdTUJX2n0azIkZFFSUpSKwFDwkIDp1gITowQ4SxrKu0VAfN0VCcn4OCc2a
+	LgRXlOU01BVEieDxqesklKVGUlCd5gCa/FoKHpt6EST13ibhZqkr1A5NEVBfPEjDYIoHJGZp
+	Cbh85IkItA1BUDtWS0DHSDcDU83vwcE6nWiDD3fXMkxyffU1iDuVF8GdiLxBcWOjizlt9l8E
+	p67qITlDcouI01W4cWlF4dzTygsirijnCMNdzT5PcIb21ZzmTAXiis/+vHHh17br/PngnT/w
+	8rfXf2cb2PFb0B69ZJ/+zjAZicx2KmQjxuy7OGXsJrKylM1CWHlsmm2neQjhkjuDImEYRPhJ
+	Xir1PFGgN9KCkYmwOcr0YqtmZHwmfxHhk6UnGGuEYt1wlVr5jBl2KW7oNZNWnsu64pji45Q1
+	QLLXpfipcpS2GvbsJzinoGvaEIsl7AZ8pmGrVZawc3DN8c5nNUh2H76elUBYV0jWGWdOiq2y
+	DeuF9UkdpNB0ER5OeMQIvB/Xau8SAv8xC/dVuQj8IW4tUM5cZo97rmlFAs/HpsSjz6phNhFh
+	42S/SBhyEc44ODzz0locc6tzJuGDRyz1jLUQZmfj5gdzhJ6zcYIuiRRkCY49LBW23XFuay+l
+	QYuSX7os+aXLkl9cJshLcdrlAeZ/8hKccfo+KbA3zs9/SKUhUQ5y5MMVIQG8wiuU3+upkIUo
+	wkMDPL/fHVKEpn+qafLaQAk62fPIsxIRYlSJXKfDlsLcRuREhe4O5V3mSg4sfMRLJf6yH3/i
+	5bu/lYcH84pK5CymXBwlbv6v81I2QBbG7+L5Pbz8uUuIbZwiCY/R5VrvV20vvPLF765VfY5G
+	JutXS+Z2P/mQIcCkjgr76k33BdnEra4VqfZfGjtKgnTpBuf0RCm9nJuQObLJxTFbBoyb/MK5
+	He3G97VNu25/tODzbZMyh+7YVt3mFtXHTSY3Ol5VXn109TJfDds+79PY9XV22yqilPqVtI/m
+	wKTveY95BtIvre1G9Gf96uA1Rvc5sRExCsk5Tp6+Kvvq+AdTbaqbCfjfwHubrhSeDYswP4hD
+	Ra+Jt3bcSxxY672hcMJ3zUPub5clzfGxbxw9VXGo1+ebQim3ZSSwxr3cqWrd7L0bz93bPMt/
+	hyzunOZ+0rK2B3n0yvay/Q4rxv3N9avFy33sXChFoMxrMSlXyP4Di5z3OyQFAAA=
+X-Brightmail-Tracker: H4sIAAAAAAAAA2WTe0xTZxiH/c45Pa2XZmeU6bG6RDuYhmm1CPJ2Q4VM3XHZzJiJMTNGOz0r
+	OtqyXnTOzHETJhUsNhkBERC1AjoqLReroqRT1IqgUxlTGNLSEpHAEFAolw6oy0z235PfLV++
+	5OXhARe4Qt5upZZVK2VxInIGcWf85l9L5349wC5vuywEe0IEtF9J50BCSioGh2w+AqpO6THw
+	tXZiMGZLw6G/vZMDBUVWEvIaUwgY+0NPwoMTHRj0JI0QUHbpEAbuOicXqjLOITiX1EJAdecr
+	EvRd8yG5chBBx1EnBx6a/iZh2FTKhbZBJwHDmTMhJz0Zg3q9Ai62dhBwryqTAwaHBJqqWzF4
+	cCmPhHu1dzjgsWcQYDiZjIO78DkHWowmAmprChA4zb0YJBe8wCG534WDt/gmBxoyfDjklpXi
+	0GxwI/gt7SoH6s1JXHiZfwuHmoIEAuoKZ4OhzEHAyzvdCLK7H+Hw+5UgcAz4MGiw9nOgP28x
+	GIsrMLh8eIgLFY17wOF1YOB61UmCr3kNJNZXcaOimcfOQZzpabiNmPzzB5jjCfcJxjscwlSU
+	/Ikx+utdOGPLbeUyVbXBTKFFx4zay7mMpfQwydwo+RVjbO1SxlBUixjr6Z++WPiVOFKt0mnZ
+	BbEqjXaVaKsEQsUSKYhDw6RiyYqIbR+GhouWrY7cxcbt3suql63eIY496e7G4iv53xsfNuAJ
+	6PHMdDSdR1NhtLn6GicdzeAFUGcQ3Wsp4fiN+XT5wKPXLKBHm9JJf6gP0X2exNeNSkT/Ut42
+	lSKoYPq6Po2cZJJaQjd2t+CTHEgF0SnWHGKygFO3AuikorYpQ0BtoEvN7gmDx+NTUXRR4zb/
+	6A1Ej92yTY3yqbfp2zkdxCTj1F46c8AzlcepefTZcd6kPJ2S0NXZLtz/0vfowWN9pJ9/pPvH
+	PMiABLlvLOW+sZT735JfDqGbx59h/5M/oE0nn+N+XkWXlfUShYhbigJZnUYhV2gkYo1ModEp
+	5eKdKoUFTZxLVd2w9SLK7+oT2xHGQ3YUNNF0Xjh3DwkJpUrJigL5Bxf2sQH8XbL9P7Bq1Xa1
+	Lo7V2FH4xC9m4cJ3dqombk+p3S5ZuTxcErZSujxcunKFaA5/Q/zPsgBKLtOy37JsPKv+t4fx
+	pgsTMN3nnatEVv3GxIUPIuLyhmaHf5S7c9aWtft164zbhLOr4Um/iXc39eLwyPqz8/e8+hSP
+	NX4mtQW6qz01BwTyefsq2qcpVOKN9zcFyzN9YcINR7SVT2JuOt2K3hiyIvjMoHrt5vr3ZZuO
+	FC/xJZrKj+V1nWZjI87TcsGXxTrH5ewaQcEzeZbFK46qY08Y142hFTvmLJrxbNrTa963XKci
+	XUZXci05eiW6Ibrrquab7I+PtjszxvgxA0vnise1axK3Nm052BOWk53uZt5d01xuXhz2yQgz
+	EhgS+ij0Oxupbx2dtcw8tO9Gqq1t/wKLxjLPl695EbRpkTfr6fG7PM9mSjd+VURoYmWSEFyt
+	kf0DO6fsqMMEAAA=
+X-CMS-MailID: 20240315145833eucas1p213fce847384eb45d99b496e63aeef842
+X-Msg-Generator: CA
+X-RootMTR: 20240314224256eucas1p292b70c755674fe9311d190a8b50e1ce1
+X-EPHeader: CA
+CMS-TYPE: 201P
+X-CMS-RootMailID: 20240314224256eucas1p292b70c755674fe9311d190a8b50e1ce1
+References: <20240314-jag-sysctl_remset_net-v1-0-aa26b44d29d9@samsung.com>
+	<CGME20240314224256eucas1p292b70c755674fe9311d190a8b50e1ce1@eucas1p2.samsung.com>
+	<20240314154248.155d96a4@kernel.org>
 
-On Thu, Mar 14, 2024 at 01:56:12PM +0100, Pablo Neira Ayuso wrote:
-> On Thu, Mar 14, 2024 at 01:43:52PM +0100, Sven Auhagen wrote:
-> > On Thu, Mar 14, 2024 at 01:38:54PM +0100, Pablo Neira Ayuso wrote:
-> > > On Thu, Mar 14, 2024 at 12:30:30PM +0100, Sven Auhagen wrote:
-> [...]
-> > > > I found this out.
-> > > > The state is deleted in the end because the flow_offload_fixup_ct
-> > > > function is pulling the FIN_WAIT timeout and deducts the offload_timeout
-> > > > from it. This is 0 or very close to 0 and therefore ct gc is deleting the state
-> > > > more or less right away after the flow_offload_teardown is called
-> > > > (for the second time).
-> > > 
-> > > This used to be set to:
-> > > 
-> > >         timeout = tn->timeouts[TCP_CONNTRACK_ESTABLISHED];
-> > > 
-> > > but after:
-> > > 
-> > > commit e5eaac2beb54f0a16ff851125082d9faeb475572
-> > > Author: Pablo Neira Ayuso <pablo@netfilter.org>
-> > > Date:   Tue May 17 10:44:14 2022 +0200
-> > > 
-> > >     netfilter: flowtable: fix TCP flow teardown
-> > > 
-> > > it uses the current state.
-> > 
-> > Yes since the TCP state might not be established anymore at that time.
-> > Your patch will work but also give my TCP_FIN a very large timeout.
-> 
-> Is that still possible? My patch also fixes up conntrack _before_
-> the offload flag is cleared, so the packet in the reply direction
-> either sees the already fixed up conntrack or it follows flowtable
-> datapath.
-> 
-> > I have successfully tested this version today:
-> > 
-> > -	if (timeout < 0)
-> > -		timeout = 0;
-> > +	// Have at least some time left on the state
-> > +	if (timeout < NF_FLOW_TIMEOUT)
-> > +		timeout = NF_FLOW_TIMEOUT;
-> >
-> > This makes sure that the timeout is not so big like ESTABLISHED but still enough
-> > so the state does not time out right away.
-> 
-> This also seems sensible to me. Currently it is using the last conntrack
-> state that we have observed when conntrack handed over this flow to the
-> flowtable, which is inaccurate in any case, and which could still be low
-> depending on user-defined tcp conntrack timeouts (in case user decided
-> to tweaks them).
+--onm3lc3zkynvura4
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-If I take my patch and the part of your patch that moves up flow_offload_fixup_ct
-to the top of the function it works now.
-As expected, it still happens that a flow is ending up in FIN_WAIT OFFLOADED but
-the state is no longer deleted right away and is eventually removed from the flowoffload
-via gc and then goes on until the end.
+On Thu, Mar 14, 2024 at 03:42:48PM -0700, Jakub Kicinski wrote:
+> On Thu, 14 Mar 2024 20:20:40 +0100 Joel Granados via B4 Relay wrote:
+> > These commits remove the sentinel element (last empty element) from the
+> > sysctl arrays of all the files under the "net/" directory that register
+> > a sysctl array. The merging of the preparation patches [4] to mainline
+> > allows us to just remove sentinel elements without changing behavior.
+> > This is safe because the sysctl registration code (register_sysctl() and
+> > friends) use the array size in addition to checking for a sentinel [1].
+>=20
+> Thanks, but please resend after the merge window, we don't apply
+> code to -next until -rc1 is cut.
+of course. I'll resend after -rc1 hits kernel.org.
 
-    [NEW] tcp      6 120 SYN_SENT src=192.168.7.100 dst=17.248.209.132 sport=54774 dport=443 [UNREPLIED] src=17.248.209.132 dst=87.138.198.79 sport=443 dport=30121 mark=25165825
- [UPDATE] tcp      6 60 SYN_RECV src=192.168.7.100 dst=17.248.209.132 sport=54774 dport=443 src=17.248.209.132 dst=87.138.198.79 sport=443 dport=30121 mark=25165825
- [UPDATE] tcp      6 86400 ESTABLISHED src=192.168.7.100 dst=17.248.209.132 sport=54774 dport=443 src=17.248.209.132 dst=87.138.198.79 sport=443 dport=30121 [OFFLOAD] mark=25165825
-[DESTROY] tcp      6 TIME_WAIT src=192.168.4.81 dst=192.168.6.8 sport=54774 dport=8080 packets=6 bytes=1388 src=192.168.6.8 dst=192.168.4.81 sport=8080 dport=54774 packets=4 bytes=398 [ASSURED] mark=16777216 delta-time=120
- [UPDATE] tcp      6 120 FIN_WAIT src=192.168.7.100 dst=17.248.209.132 sport=54774 dport=443 src=17.248.209.132 dst=87.138.198.79 sport=443 dport=30121 [OFFLOAD] mark=25165825
- [UPDATE] tcp      6 30 LAST_ACK src=192.168.7.100 dst=17.248.209.132 sport=54774 dport=443 src=17.248.209.132 dst=87.138.198.79 sport=443 dport=30121 [OFFLOAD] mark=25165825
- [UPDATE] tcp      6 10 CLOSE src=192.168.7.100 dst=17.248.209.132 sport=54774 dport=443 src=17.248.209.132 dst=87.138.198.79 sport=443 dport=30121 [ASSURED] mark=25165825
-[DESTROY] tcp      6 CLOSE src=192.168.7.100 dst=17.248.209.132 sport=54774 dport=443 packets=31 bytes=5542 src=17.248.209.132 dst=87.138.198.79 sport=443 dport=30121 packets=35 bytes=8168 [ASSURED] mark=25165825 delta-time=50
+Best
 
+--=20
+
+Joel Granados
+
+--onm3lc3zkynvura4
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAABCgAdFiEErkcJVyXmMSXOyyeQupfNUreWQU8FAmX0YhUACgkQupfNUreW
+QU8cEAv+M1Ewqt08SIopWKdreIIqD2kzMZ3Ql+7uN752tp2sVtVbFjjrO8sKICiz
+g6Oiqw0mocBQd7wjnGLc5+VxeYK+5VG4geP6jecNsNgGRdSaXdEqSzqf60Ri+nq5
+etfLQbWjO306ZcZGEitSwDxTJhoG00IwTZdu1zXhsypcNAW46xVEnSuT1tdx3wB9
+7CoVy5hYg+KrYrLGfAPbG2g9iOOTG4jNFL3SjiiqNb/1qhknf4D0CL8f0v/5yYM8
+J0ple4a3xlyODh5hiN7PBuOveQd7hLZMeK3/WhByQn9QSe3sc5J7Ue5I40jtQ+1p
+14ahVOh5+Dh9bxxKdVzjnx2FXbG7MF6ZdOw9LarYon3W2xx++UfLA9SF4X9f+Z+C
+WwPzCt7Yk/WmShpqM1KCOVAUwcNtdF2Jttyk2vKqWDB//02sqhtO+ndueWvLNgti
+3H427shFf9/ctykv2dQmthRviho30MSC9eB3BcjmUL8SE5G6WwMb/csBkkV+DG3d
+0widvqRM
+=vtM5
+-----END PGP SIGNATURE-----
+
+--onm3lc3zkynvura4--
