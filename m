@@ -1,63 +1,63 @@
-Received: from mail-pl1-f171.google.com (mail-pl1-f171.google.com [209.85.214.171])
+Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B723C1426F
-	for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2024 07:34:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D0B814280
+	for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2024 07:34:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710488068; cv=none; b=R+YEtmuSofaixm457R55WHpKl2jeOcPGoGUKIRqUshYVK5JDe6x0R0fWLk7MYjU5ydDSzLiSJ3Iy3HUhfZYHt7+hNjwoCbmifv76Ft7jk7sWJOsUGRP+sL1S9APLQezQqnHB1GEO45826B5Nf9W0O6GaEmx83zJjy2b55aPnNMM=
+	t=1710488070; cv=none; b=OF6f/hy40Xz97Ig5YZo4vmwdjtKWFrkmEEbJ0VOBf2b+OaA4Nir5nKvyHCUceOyDe6aM/b7L4M+2IeWDuwmBq9AC7oaH+vGZ7HDK2Fj5Il6oLBdwm8kkGgPumMYtWznWrKefCe49jgy61+NBJ48yqo0zlXNokOu5HkWcGzO/Uq0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710488068; c=relaxed/simple;
-	bh=2uBMP6KIoHw1W+ELgCUGrCfVjcRyyXpElWrFwwlpaeo=;
+	s=arc-20240116; t=1710488070; c=relaxed/simple;
+	bh=ckKVNMrwmZ/g2k54KXhmbFRO5ut6Se73OlEu9OuM29g=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=Z0+LcFPRohC5rspZZyTjvbtT8f9LmxD6vUqkhsXDa0OiU9tqpO4YIcy8KB4CjtACTjX21mVRTHHE3hVjISXwJYkMDJvOlfLsRDwA7WxTXzrL9dbHLL1b3KqweLSyCtL23j7u6xt2ASzrxj70gcQsUMRDw1nWzJPbZ4231f9sqS0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=MVk6Hk3D; arc=none smtp.client-ip=209.85.214.171
+	 MIME-Version; b=oF1J7ixe/G17C+4ZYoKa1n4RGI1GLYRRjoi4HDHpkkPSx2yDDuOdpr/ivegNeZZAq4Qn/M9XU0QC5dfl7A6kQRUorbLIgAvEqCQD5uhuLjW/TuWvmAk4dBjVELpagtaMETOzjaD71bf1mlOYjVi6EXTfMSQTd8Eiz9V2vr4TozE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=OOOCHRXa; arc=none smtp.client-ip=209.85.214.179
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MVk6Hk3D"
-Received: by mail-pl1-f171.google.com with SMTP id d9443c01a7336-1dee5daa236so7421395ad.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2024 00:34:26 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OOOCHRXa"
+Received: by mail-pl1-f179.google.com with SMTP id d9443c01a7336-1dc29f1956cso12446995ad.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2024 00:34:28 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1710488066; x=1711092866; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1710488068; x=1711092868; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=rQt8z8ATwaqy4f9BqzMgFfr8NWb8vGaR1OAXN4VYnno=;
-        b=MVk6Hk3DXYSMg3DjAgb2xMRZetc2Rs9WadnMDXZmdLJ3FxKMfruYappkskZ50WiShn
-         uIizZtf3iL8I677vMlHJNgZ7qeX1UL5y/4JKF69PVdmGmEwWEH9iRcWP91hBOv+2VBET
-         GaZCBtaQa3Qn+JCkZKFdwjlexTw3pxG7y1lMagAj14qu1pYFPb30836/zzKS9tjCv3Qy
-         yuEzU+Xh94XNSBbOYCqS3ed2OqDY6CXpJf6aQGI7hFFzg7duzwX2qPm+o/4NAorU5nOU
-         HNFcvOzPSnBoW59HwRL3vB9bFIevrRGngfkQ5BItkr7yLqwSV6bC7Htge8F9qPkUKKHB
-         Q3Rg==
+        bh=warmzOFMCniHxy4s6tk6438UhHvqirjCdgxP+FmQs0A=;
+        b=OOOCHRXakuP4KjVfsKPt1TNafarn5iWj3AxH1KsBZ1/KPnSwWDdmPGuXWnohU9lUV2
+         VFBHYsvXLhGoXFyaMF+7ybrtNHzVvnCfyDJaXwLGpI/XBbEnvQMgIb+w5qsdhl0D9BGz
+         zF5er0mitiQhF/5nZxestF08TRCEYXdr84GQpvRq6L5bw4lrDJPpX5ZiwMi75wl7/xv1
+         QwGroLR8D8h8Ng9fS0MlNY1HyniHRut/1jyR5cjbfCon+uxpBC97ejX/nr1+vhXJuShS
+         Vj4mMT/A72VTHf0MmgsMGNBptgSAmpg+fbmeN5MIOlQQWX0EObgntHB80cB0dpfzTqsf
+         g4Wg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1710488066; x=1711092866;
+        d=1e100.net; s=20230601; t=1710488068; x=1711092868;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=rQt8z8ATwaqy4f9BqzMgFfr8NWb8vGaR1OAXN4VYnno=;
-        b=URoLfsfjrpqesmREdAWo47CBGCvbh5BnTeos7BuPY/E1/xNMeMfsn+eQADIKan4kFv
-         +vPlTYSux9sD+xCZJlvmEy+apxLl8R+cFdzP2zaz282bgSTs5WvwxDBZv5/D8FKdmk3i
-         cB9lXK0aDDTDZGljig+AnCLY5hNXnba8/WossAiIEQ6rqVPJ4f4xZEK8cZuIAwecoD98
-         ogy4Bxnp9DCiJjBO1OqIOw4/yJ4PDpsC/4eIVts6f11gCQgQ/8GmbLWQZLAhKVfx2c1W
-         WChzTEwwD8WmsXDLAx+hcgRpqBWdnIobKGOuYjxS+m9yh/msN0RIbp9FRDex8sx8k+X2
-         c1YA==
-X-Gm-Message-State: AOJu0YzWcu1adC5rDmF9+CmaxlfwO4/vJeYLeU2WMF75gz78scuuybLe
-	wJNwyb/3zMcpEspFJBM8+onBQcEE+fq9ZnZx8j4KNtkZ+P2wQ4VFCZlpJxjR
-X-Google-Smtp-Source: AGHT+IFa1BRsTK/VjCjnirCEThvcd4rtoWFY4mKKmXnpxCgEkpBb2cgdu3EZh8KFyJVfSjoJYuKOJw==
-X-Received: by 2002:a17:902:b78c:b0:1dd:9fef:67b3 with SMTP id e12-20020a170902b78c00b001dd9fef67b3mr2505491pls.13.1710488066149;
-        Fri, 15 Mar 2024 00:34:26 -0700 (PDT)
+        bh=warmzOFMCniHxy4s6tk6438UhHvqirjCdgxP+FmQs0A=;
+        b=bPAtZnMoSQcxW6IR9HLU49f4kWW0ZkzZPQBu/3KCL+nhTGMqpDmdVSl4FOMGxifoHB
+         +uUmEUcEQxpaHQtqWI8+fb88SFw1E8rBXaVEX7AWqkMNjBDa33ZuO22WKOgEBqm9u//x
+         T3LoDe0mJRCkSVEOmtx5LY3kUfhmr3v6FZkWwFuBhX1eed/3xch6HsfW9sVkheeFsdbe
+         TpW4DkWKQ8gu/G44l7xGXEfFUbT7NF4iO7/3xXEC0OXQXi4gJL2Fezy55wNoN6w7LI30
+         P/O6OMaCP7zF5TqASr4kVvTQktsA6wy3zetrhXdYkfCYXcyh51Jv8mpqKeY4zdxEqr0A
+         HCIA==
+X-Gm-Message-State: AOJu0Yy6OiF89Jcl65m3h2wuDVBmbH7bMOsLv5Do2MDAhEnJxuUgnYbc
+	6wUGZZx+Euizi5HDYZKE9ykELJT5Q5VNj/zYpaBSUiB2LUINMy6Z0FEY1fbC
+X-Google-Smtp-Source: AGHT+IGjALKzeS4yWvYQwm/5+3eEKNjmxchaLj3hHxeMz7ZoR+P9skRDpl0OrtrhtUNbMSJqZ/HIYA==
+X-Received: by 2002:a17:903:22cb:b0:1dd:66d1:a62b with SMTP id y11-20020a17090322cb00b001dd66d1a62bmr2660664plg.5.1710488067855;
+        Fri, 15 Mar 2024 00:34:27 -0700 (PDT)
 Received: from slk15.local.net (n58-108-84-186.meb1.vic.optusnet.com.au. [58.108.84.186])
-        by smtp.gmail.com with ESMTPSA id k18-20020a170902c41200b001dd75d4c78csm3049142plk.221.2024.03.15.00.34.24
+        by smtp.gmail.com with ESMTPSA id k18-20020a170902c41200b001dd75d4c78csm3049142plk.221.2024.03.15.00.34.26
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 15 Mar 2024 00:34:25 -0700 (PDT)
+        Fri, 15 Mar 2024 00:34:27 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From: Duncan Roe <duncan_roe@optusnet.com.au>
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_queue 19/32] src: Convert all nlif_* functions to use libmnl
-Date: Fri, 15 Mar 2024 18:33:34 +1100
-Message-Id: <20240315073347.22628-20-duncan_roe@optusnet.com.au>
+Subject: [PATCH libnetfilter_queue 20/32] src: Delete rtnl.c
+Date: Fri, 15 Mar 2024 18:33:35 +1100
+Message-Id: <20240315073347.22628-21-duncan_roe@optusnet.com.au>
 X-Mailer: git-send-email 2.35.8
 In-Reply-To: <ZcyaQvJ1SvnYgakf@calendula>
 References: <ZcyaQvJ1SvnYgakf@calendula>
@@ -69,460 +69,305 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-In iftable.c, replace calls to functions in rtnetlink.c with inline code
-(converted to use libmnl instead of libnfnetlink).
+rtnl.c was copied from libnfnetlink for reference: it has now served its
+purpose.
+Without rtnl.c, doxygen again runs warning-free.
 
 Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
 ---
- src/Makefile.am |   1 +
- src/iftable.c   | 304 ++++++++++++++++++++++--------------------------
- 2 files changed, 138 insertions(+), 167 deletions(-)
+ src/rtnl.c | 283 -----------------------------------------------------
+ 1 file changed, 283 deletions(-)
+ delete mode 100644 src/rtnl.c
 
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 079853e..a6813e8 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -30,6 +30,7 @@ libnetfilter_queue_la_LDFLAGS = -Wc,-nostartfiles \
- 				-version-info $(LIBVERSION)
- libnetfilter_queue_la_SOURCES = libnetfilter_queue.c	\
- 				nlmsg.c			\
-+				iftable.c		\
- 				extra/checksum.c	\
- 				extra/icmp.c		\
- 				extra/ipv6.c		\
-diff --git a/src/iftable.c b/src/iftable.c
-index 307acc1..76a6cad 100644
---- a/src/iftable.c
-+++ b/src/iftable.c
-@@ -11,19 +11,27 @@
- 
- #include <unistd.h>
- #include <stdlib.h>
-+#include <time.h>
- #include <stdio.h>
- #include <string.h>
- #include <sys/types.h>
- #include <netinet/in.h>
- #include <arpa/inet.h>
- #include <errno.h>
--#include <assert.h>
- 
- #include <linux/netdevice.h>
- 
--#include <libnfnetlink/libnfnetlink.h>
--#include "rtnl.h"
--#include "linux_list.h"
-+#include <linux/rtnetlink.h>
-+#include <linux/netfilter/nfnetlink_queue.h>
-+#include <libnetfilter_queue/libnetfilter_queue.h>
-+
-+#include "internal.h"
-+
-+#define NUM_NLIF_BITS 4
-+#define NUM_NLIF_ENTRIES (1 << NUM_NLIF_BITS)
-+#define NLIF_ENTRY_MASK (NUM_NLIF_ENTRIES -1)
-+
-+static int data_cb(const struct nlmsghdr *nlh, void *data);
- 
- /**
-  * \defgroup iftable Functions to manage a table of network interfaces
-@@ -42,116 +50,16 @@ struct ifindex_node {
- 
- 	uint32_t	index;
- 	uint32_t	type;
--	uint32_t	alen;
- 	uint32_t	flags;
--	char		addr[8];
--	char		name[16];
-+	char		name[IFNAMSIZ];
- };
- 
- struct nlif_handle {
--	struct list_head ifindex_hash[16];
--	struct rtnl_handle *rtnl_handle;
--	struct rtnl_handler ifadd_handler;
--	struct rtnl_handler ifdel_handler;
-+	struct list_head ifindex_hash[NUM_NLIF_ENTRIES];
-+	struct mnl_socket *nl;
-+	unsigned int portid;
- };
- 
--/* iftable_add - Add/Update an entry to/in the interface table
-- * \param n:	netlink message header of a RTM_NEWLINK message
-- * \param arg:	not used
+diff --git a/src/rtnl.c b/src/rtnl.c
+deleted file mode 100644
+index dff3bef..0000000
+--- a/src/rtnl.c
++++ /dev/null
+@@ -1,283 +0,0 @@
+-/* rtnl - rtnetlink utility functions
 - *
-- * This function adds/updates an entry in the intrface table.
-- * Returns -1 on error, 1 on success.
+- * (C) 2004 by Astaro AG, written by Harald Welte <hwelte@astaro.com>
+- *
+- * Adapted to nfnetlink by Eric Leblond <eric@inl.fr>
+- *
+- * This software is free software and licensed under GNU GPLv2+.
+- *
 - */
--static int iftable_add(struct nlmsghdr *n, void *arg)
+-
+-/* rtnetlink - routing table netlink interface */
+-
+-#include <unistd.h>
+-#include <stdlib.h>
+-#include <string.h>
+-#include <errno.h>
+-#include <time.h>
+-#include <sys/types.h>
+-#include <sys/uio.h>
+-
+-#include <netinet/in.h>
+-
+-#include <linux/types.h>
+-#include <sys/socket.h>
+-#include <linux/netlink.h>
+-#include <linux/rtnetlink.h>
+-
+-#include "rtnl.h"
+-
+-#define rtnl_log(x, ...)
+-
+-static inline struct rtnl_handler *
+-find_handler(struct rtnl_handle *rtnl_handle, uint16_t type)
 -{
--	unsigned int hash, found = 0;
--	struct ifinfomsg *ifi_msg = NLMSG_DATA(n);
--	struct ifindex_node *this;
--	struct rtattr *cb[IFLA_MAX+1];
--	struct nlif_handle *h = arg;
+-	struct rtnl_handler *h;
+-	for (h = rtnl_handle->handlers; h; h = h->next) {
+-		if (h->nlmsg_type == type)
+-			return h;
+-	}
+-	return NULL;
+-}
 -
--	if (n->nlmsg_type != RTM_NEWLINK)
--		return -1;
+-static int call_handler(struct rtnl_handle *rtnl_handle,
+-			uint16_t type,
+-			struct nlmsghdr *hdr)
+-{
+-	struct rtnl_handler *h = find_handler(rtnl_handle, type);
 -
--	if (n->nlmsg_len < NLMSG_LENGTH(sizeof(ifi_msg)))
--		return -1;
--
--	rtnl_parse_rtattr(cb, IFLA_MAX, IFLA_RTA(ifi_msg), IFLA_PAYLOAD(n));
--
--	if (!cb[IFLA_IFNAME])
--		return -1;
--
--	hash = ifi_msg->ifi_index & 0xF;
--	list_for_each_entry(this, &h->ifindex_hash[hash], head) {
--		if (this->index == ifi_msg->ifi_index) {
--			found = 1;
--			break;
--		}
+-	if (!h) {
+-		rtnl_log(LOG_DEBUG, "no registered handler for type %u", type);
+-		return 0;
 -	}
 -
--	if (!found) {
--		this = malloc(sizeof(*this));
--		if (!this)
--			return -1;
+-	return (h->handlefn)(hdr, h->arg);
+-}
 -
--		this->index = ifi_msg->ifi_index;
--	}
+-/**
+- * \defgroup rtnetlink Functions in rtnl.c [DEPRECATED]
+- * This documentation is provided for the benefit of maintainers of legacy code.
+- *
+- * New applications should use
+- * [libmnl](https://netfilter.org/projects/libmnl/doxygen/html/).
+- * @{
+- */
 -
--	this->type = ifi_msg->ifi_type;
--	this->flags = ifi_msg->ifi_flags;
--	if (cb[IFLA_ADDRESS]) {
--		unsigned int alen;
--		this->alen = alen = RTA_PAYLOAD(cb[IFLA_ADDRESS]);
--		if (alen > sizeof(this->addr))
--			alen = sizeof(this->addr);
--		memcpy(this->addr, RTA_DATA(cb[IFLA_ADDRESS]), alen);
--	} else {
--		this->alen = 0;
--		memset(this->addr, 0, sizeof(this->addr));
--	}
--	strcpy(this->name, RTA_DATA(cb[IFLA_IFNAME]));
--
--	if (!found)
--		list_add(&this->head, &h->ifindex_hash[hash]);
--
+-/**
+- * rtnl_handler_register - register handler for given nlmsg type
+- * \param: rtnl_handle: Handler ftom rtnl_open()
+- * \param: hdlr: callback handler structure
+- */
+-int rtnl_handler_register(struct rtnl_handle *rtnl_handle,
+-			  struct rtnl_handler *hdlr)
+-{
+-	rtnl_log(LOG_DEBUG, "registering handler for type %u",
+-		 hdlr->nlmsg_type);
+-	hdlr->next = rtnl_handle->handlers;
+-	rtnl_handle->handlers = hdlr;
 -	return 1;
 -}
 -
--/* iftable_del - Delete an entry from the interface table
-- * \param n:	netlink message header of a RTM_DELLINK nlmsg
-- * \param arg:	not used
-- *
-- * Delete an entry from the interface table.
-- * Returns -1 on error, 0 if no matching entry was found or 1 on success.
+-/**
+- * rtnl_handler_unregister - unregister handler for given nlmst type
+- * \param: hdlr: callback handler structure
+- * \param: hdlr:	handler structure
 - */
--static int iftable_del(struct nlmsghdr *n, void *arg)
+-int rtnl_handler_unregister(struct rtnl_handle *rtnl_handle,
+-			    struct rtnl_handler *hdlr)
 -{
--	struct ifinfomsg *ifi_msg = NLMSG_DATA(n);
--	struct rtattr *cb[IFLA_MAX+1];
--	struct nlif_handle *h = arg;
--	struct ifindex_node *this, *tmp;
--	unsigned int hash;
+-	struct rtnl_handler *h, *prev = NULL;
 -
--	if (n->nlmsg_type != RTM_DELLINK)
--		return -1;
+-	rtnl_log(LOG_DEBUG, "unregistering handler for type %u",
+-		 hdlr->nlmsg_type);
 -
--	if (n->nlmsg_len < NLMSG_LENGTH(sizeof(ifi_msg)))
--		return -1;
--
--	rtnl_parse_rtattr(cb, IFLA_MAX, IFLA_RTA(ifi_msg), IFLA_PAYLOAD(n));
--
--	hash = ifi_msg->ifi_index & 0xF;
--	list_for_each_entry_safe(this, tmp, &h->ifindex_hash[hash], head) {
--		if (this->index == ifi_msg->ifi_index) {
--			list_del(&this->head);
--			free(this);
+-	for (h = rtnl_handle->handlers; h; h = h->next) {
+-		if (h == hdlr) {
+-			if (prev)
+-				prev->next = h->next;
+-			else
+-				rtnl_handle->handlers = h->next;
 -			return 1;
 -		}
+-		prev = h;
 -	}
--
 -	return 0;
 -}
 -
- /**
-  * nlif_index2name - get the name for an ifindex
-  *
-@@ -160,6 +68,7 @@ static int iftable_del(struct nlmsghdr *n, void *arg)
-  * \param name interface name, pass a buffer of IFNAMSIZ size
-  * \return -1 on error, 1 on success
-  */
-+EXPORT_SYMBOL
- int nlif_index2name(struct nlif_handle *h,
- 		    unsigned int index,
- 		    char *name)
-@@ -167,9 +76,6 @@ int nlif_index2name(struct nlif_handle *h,
- 	unsigned int hash;
- 	struct ifindex_node *this;
- 
--	assert(h != NULL);
--	assert(name != NULL);
+-int rtnl_parse_rtattr(struct rtattr *tb[], int max, struct rtattr *rta, int len)
+-{
+-	memset(tb, 0, sizeof(struct rtattr *) * max);
 -
- 	if (index == 0) {
- 		strcpy(name, "*");
- 		return 1;
-@@ -195,6 +101,7 @@ int nlif_index2name(struct nlif_handle *h,
-  * \param flags pointer to variable used to store the interface flags
-  * \return -1 on error, 1 on success
-  */
-+EXPORT_SYMBOL
- int nlif_get_ifflags(const struct nlif_handle *h,
- 		     unsigned int index,
- 		     unsigned int *flags)
-@@ -202,9 +109,6 @@ int nlif_get_ifflags(const struct nlif_handle *h,
- 	unsigned int hash;
- 	struct ifindex_node *this;
- 
--	assert(h != NULL);
--	assert(flags != NULL);
--
- 	if (index == 0) {
- 		errno = ENOENT;
- 		return -1;
-@@ -224,11 +128,12 @@ int nlif_get_ifflags(const struct nlif_handle *h,
- /**
-  * nlif_open - initialize interface table
-  *
-- * Initialize rtnl interface and interface table
-+ * Open a netlink socket and initialize interface table
-  * Call this before any nlif_* function
-  *
-- * \return file descriptor to netlink socket
-+ * \return NULL on error, else valid pointer to an nlif_handle structure
-  */
-+EXPORT_SYMBOL
- struct nlif_handle *nlif_open(void)
- {
- 	int i;
-@@ -238,32 +143,22 @@ struct nlif_handle *nlif_open(void)
- 	if (h == NULL)
- 		goto err;
- 
--	for (i=0; i<16; i++)
-+	for (i=0; i < NUM_NLIF_ENTRIES; i++)
- 		INIT_LIST_HEAD(&h->ifindex_hash[i]);
- 
--	h->ifadd_handler.nlmsg_type = RTM_NEWLINK;
--	h->ifadd_handler.handlefn = iftable_add;
--	h->ifadd_handler.arg = h;
--	h->ifdel_handler.nlmsg_type = RTM_DELLINK;
--	h->ifdel_handler.handlefn = iftable_del;
--	h->ifdel_handler.arg = h;
-+	h->nl = mnl_socket_open(NETLINK_ROUTE);
-+	if (!h->nl)
-+		goto err_free;
- 
--	h->rtnl_handle = rtnl_open();
--	if (h->rtnl_handle == NULL)
--		goto err;
--
--	if (rtnl_handler_register(h->rtnl_handle, &h->ifadd_handler) < 0)
-+	if (mnl_socket_bind(h->nl, RTMGRP_LINK, MNL_SOCKET_AUTOPID) < 0)
- 		goto err_close;
--
--	if (rtnl_handler_register(h->rtnl_handle, &h->ifdel_handler) < 0)
--		goto err_unregister;
-+	h->portid = mnl_socket_get_portid(h->nl);
- 
- 	return h;
- 
--err_unregister:
--	rtnl_handler_unregister(h->rtnl_handle, &h->ifadd_handler);
- err_close:
--	rtnl_close(h->rtnl_handle);
-+	mnl_socket_close(h->nl);
-+err_free:
- 	free(h);
- err:
- 	return NULL;
-@@ -274,18 +169,15 @@ err:
-  *
-  * \param h pointer to nlif_handle created by nlif_open()
-  */
-+EXPORT_SYMBOL
- void nlif_close(struct nlif_handle *h)
- {
- 	int i;
- 	struct ifindex_node *this, *tmp;
- 
--	assert(h != NULL);
-+	mnl_socket_close(h->nl);
- 
--	rtnl_handler_unregister(h->rtnl_handle, &h->ifadd_handler);
--	rtnl_handler_unregister(h->rtnl_handle, &h->ifdel_handler);
--	rtnl_close(h->rtnl_handle);
--
--	for (i=0; i<16; i++) {
-+	for (i=0; i < NUM_NLIF_ENTRIES; i++) {
- 		list_for_each_entry_safe(this, tmp, &h->ifindex_hash[i], head) {
- 			list_del(&this->head);
- 			free(this);
-@@ -304,56 +196,134 @@ void nlif_close(struct nlif_handle *h)
-  * \param h pointer to nlif_handle created by nlif_open()
-  * \return 0 if OK
-  */
-+EXPORT_SYMBOL
- int nlif_catch(struct nlif_handle *h)
- {
--	assert(h != NULL);
--
--	if (h->rtnl_handle)
--		return rtnl_receive(h->rtnl_handle);
--
--	return -1;
+-	while (RTA_OK(rta, len)) {
+-		if (rta->rta_type <= max)
+-			tb[rta->rta_type] = rta;
+-		rta = RTA_NEXT(rta,len);
+-	}
+-	if (len)
+-		return -1;
+-	return 0;
 -}
 -
--static int nlif_catch_multi(struct nlif_handle *h)
+-/* rtnl_dump_type - ask rtnetlink to dump a specific table
+- * \param: type:	type of table to be dumped
+- */
+-int rtnl_dump_type(struct rtnl_handle *rtnl_handle, unsigned int type)
 -{
--	assert(h != NULL);
+-	struct {
+-		struct nlmsghdr nlh;
+-		struct rtgenmsg g;
+-	} req;
+-	struct sockaddr_nl nladdr;
 -
--	if (h->rtnl_handle)
--		return rtnl_receive_multi(h->rtnl_handle);
-+	/*
-+	 * Use MNL_SOCKET_BUFFER_SIZE instead of MNL_SOCKET_DUMP_SIZE
-+	 * to keep memory footprint same as it was.
-+	 */
-+	char buf[MNL_SOCKET_BUFFER_SIZE];
-+	int ret;
-+
-+	if (!h->nl)                /* The old library had this test */
-+		return -1;
- 
--	return -1;
-+	ret = mnl_socket_recvfrom(h->nl, buf, sizeof buf);
-+	if (ret == -1)
-+		return -1;
-+	return mnl_cb_run(buf, ret, 0, h->portid, data_cb, h) == -1 ? -1 : 0;
- }
- 
- /**
-  * nlif_query - request a dump of interfaces available in the system
-  * \param h: pointer to a valid nlif_handler
-+ * \return -1 on err with errno set, else >=0
-  */
-+EXPORT_SYMBOL
- int nlif_query(struct nlif_handle *h)
- {
--	assert(h != NULL);
+-	memset(&nladdr, 0, sizeof(nladdr));
+-	memset(&req, 0, sizeof(req));
+-	nladdr.nl_family = AF_NETLINK;
 -
--	if (rtnl_dump_type(h->rtnl_handle, RTM_GETLINK) < 0)
-+	char buf[MNL_SOCKET_BUFFER_SIZE];
-+	struct nlmsghdr *nlh;
-+	uint32_t seq;
-+	int ret;
-+	struct rtgenmsg *rt;
-+
-+	nlh = mnl_nlmsg_put_header(buf);
-+	nlh->nlmsg_type = RTM_GETLINK;
-+	nlh->nlmsg_flags = NLM_F_REQUEST | NLM_F_DUMP;
-+	nlh->nlmsg_seq = seq = time(NULL);
-+	rt = mnl_nlmsg_put_extra_header(nlh, sizeof(struct rtgenmsg));
-+	rt->rtgen_family = AF_PACKET;
-+	if (mnl_socket_sendto(h->nl, nlh, nlh->nlmsg_len) < 0)
- 		return -1;
+-	req.nlh.nlmsg_len = sizeof(req);
+-	req.nlh.nlmsg_type = type;
+-	req.nlh.nlmsg_flags = NLM_F_ROOT|NLM_F_MATCH|NLM_F_REQUEST;
+-	req.nlh.nlmsg_pid = 0;
+-	req.nlh.nlmsg_seq = rtnl_handle->rtnl_dump = ++(rtnl_handle->rtnl_seq);
+-	req.g.rtgen_family = AF_INET;
 -
--	return nlif_catch_multi(h);
-+	ret = mnl_socket_recvfrom(h->nl, buf, sizeof(buf));
-+	while (ret > 0) {
-+		ret = mnl_cb_run(buf, ret, seq, h->portid, data_cb, h);
-+		if (ret <= MNL_CB_STOP)
-+			break;
-+		ret = mnl_socket_recvfrom(h->nl, buf, sizeof(buf));
-+	}
-+	return ret;
- }
- 
- /**
-  * nlif_fd - get file descriptor for the netlink socket
-  *
-  * \param h pointer to nlif_handle created by nlif_open()
-- * \return The fd or -1 if there's an error
-+ * \return socket fd or -1 on error
-  */
-+EXPORT_SYMBOL
- int nlif_fd(struct nlif_handle *h)
- {
--	assert(h != NULL);
+-	return sendto(rtnl_handle->rtnl_fd, &req, sizeof(req), 0,
+-		      (struct sockaddr*)&nladdr, sizeof(nladdr));
+-}
 -
--	if (h->rtnl_handle)
--		return h->rtnl_handle->rtnl_fd;
+-/* rtnl_receive - receive netlink packets from rtnetlink socket */
+-int rtnl_receive(struct rtnl_handle *rtnl_handle)
+-{
+-	int status;
+-	char buf[8192];
+-	struct sockaddr_nl nladdr;
+-	struct iovec iov = { buf, sizeof(buf) };
+-	struct nlmsghdr *h;
 -
--	return -1;
-+	return h->nl? mnl_socket_get_fd(h->nl) : -1;
- }
- 
- /**
-  * @}
-  */
-+
-+/*
-+ * data_cb - callback for rtnetlink messages
-+ *           caller will put nlif_handle in data
-+ */
-+
-+static int data_cb(const struct nlmsghdr *nlh, void *data)
-+{
-+	struct ifinfomsg *ifi_msg = mnl_nlmsg_get_payload(nlh);
-+	struct nlif_handle *h = data;
-+	struct nlattr *attr;
-+	uint32_t hash;
-+	struct ifindex_node *this, *tmp;
-+
-+	if (nlh->nlmsg_type != RTM_NEWLINK && nlh->nlmsg_type != RTM_DELLINK) {
-+		errno = EPROTO;
-+		return MNL_CB_ERROR;
-+	}
-+	hash = ifi_msg->ifi_index & NLIF_ENTRY_MASK;
-+
-+	/* RTM_DELLINK is simple, do it first for less indenting */
-+	if (nlh->nlmsg_type == RTM_DELLINK) {
-+		/*
-+		 * The original code used list_for_each_entry_safe when deleting
-+		 * and list_for_each_entry when adding.
-+		 * The code is only ever going to delete one entry
-+		 * so what does the safe variant achieve?
-+		 * In a multi-threaded app,
-+		 * I'd suggest a pthread rwlock on all nlif accesses.
-+		 */
-+		list_for_each_entry_safe(this, tmp, &h->ifindex_hash[hash],
-+					 head) {
-+			if (this->index == ifi_msg->ifi_index) {
-+				list_del(&this->head);
-+				free(this);
-+			}
-+		}
-+	return MNL_CB_OK;
-+	}
-+
-+	list_for_each_entry(this, &h->ifindex_hash[hash], head) {
-+		if (this->index == ifi_msg->ifi_index)
-+			goto found;
-+	}
-+	this = calloc(1, sizeof(*this));
-+	if (!this)
-+		return MNL_CB_ERROR;
-+	this->index = ifi_msg->ifi_index;
-+	this->type = ifi_msg->ifi_type;
-+	this->flags = ifi_msg->ifi_flags;
-+	list_add(&this->head, &h->ifindex_hash[hash]);
-+found:
-+	mnl_attr_for_each(attr, nlh, sizeof(*ifi_msg)) {
-+		/* All we want is the interface name */
-+		if (mnl_attr_get_type(attr) == IFLA_IFNAME) {
-+			if (mnl_attr_validate(attr, MNL_TYPE_STRING) < 0) {
-+				perror("mnl_attr_validate");
-+				return MNL_CB_ERROR;
-+			}
-+			strcpy(this->name, mnl_attr_get_str(attr));
-+			break;
-+		}
-+	}
-+	return MNL_CB_OK;
-+}
+-	struct msghdr msg = {
+-		.msg_name    = &nladdr,
+-		.msg_namelen = sizeof(nladdr),
+-		.msg_iov     = &iov,
+-		.msg_iovlen  = 1,
+-	};
+-
+-	status = recvmsg(rtnl_handle->rtnl_fd, &msg, 0);
+-	if (status < 0) {
+-		if (errno == EINTR)
+-			return 0;
+-		rtnl_log(LOG_NOTICE, "OVERRUN on rtnl socket");
+-		return -1;
+-	}
+-	if (status == 0) {
+-		rtnl_log(LOG_ERROR, "EOF on rtnl socket");
+-		return -1;
+-	}
+-	if (msg.msg_namelen != sizeof(nladdr)) {
+-		rtnl_log(LOG_ERROR, "invalid address size");
+-		return -1;
+-	}
+-
+-	h = (struct nlmsghdr *) buf;
+-	while (NLMSG_OK(h, status)) {
+-#if 0
+-		if (h->nlmsg_pid != rtnl_local.nl_pid ||
+-		    h->nlmsg_seq != rtnl_dump) {
+-			goto skip;
+-		}
+-#endif
+-
+-		if (h->nlmsg_type == NLMSG_DONE) {
+-			rtnl_log(LOG_NOTICE, "NLMSG_DONE");
+-			return 0;
+-		}
+-		if (h->nlmsg_type == NLMSG_ERROR) {
+-			struct nlmsgerr *err = NLMSG_DATA(h);
+-			if (h->nlmsg_len>=NLMSG_LENGTH(sizeof(struct nlmsgerr)))
+-				errno = -err->error;
+-			rtnl_log(LOG_ERROR, "NLMSG_ERROR, errnp=%d",
+-				 errno);
+-			return -1;
+-		}
+-
+-		if (call_handler(rtnl_handle, h->nlmsg_type, h) == 0)
+-			rtnl_log(LOG_NOTICE, "unhandled nlmsg_type %u",
+-				 h->nlmsg_type);
+-		h = NLMSG_NEXT(h, status);
+-	}
+-	return 1;
+-}
+-
+-int rtnl_receive_multi(struct rtnl_handle *rtnl_handle)
+-{
+-	while (1) {
+-		if (rtnl_receive(rtnl_handle) <= 0)
+-			break;
+-	}
+-	return 1;
+-}
+-
+-/* rtnl_open - constructor of rtnetlink module */
+-struct rtnl_handle *rtnl_open(void)
+-{
+-	socklen_t addrlen;
+-	struct rtnl_handle *h;
+-
+-	h = calloc(1, sizeof(struct rtnl_handle));
+-	if (!h)
+-		return NULL;
+-
+-	addrlen = sizeof(h->rtnl_local);
+-
+-	h->rtnl_local.nl_pid = getpid();
+-	h->rtnl_fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
+-	if (h->rtnl_fd < 0) {
+-		rtnl_log(LOG_ERROR, "unable to create rtnetlink socket");
+-		goto err;
+-	}
+-
+-	memset(&h->rtnl_local, 0, sizeof(h->rtnl_local));
+-	h->rtnl_local.nl_family = AF_NETLINK;
+-	h->rtnl_local.nl_groups = RTMGRP_LINK;
+-	if (bind(h->rtnl_fd, (struct sockaddr *) &h->rtnl_local, addrlen) < 0) {
+-		rtnl_log(LOG_ERROR, "unable to bind rtnetlink socket");
+-		goto err_close;
+-	}
+-
+-	if (getsockname(h->rtnl_fd,
+-			(struct sockaddr *) &h->rtnl_local,
+-			&addrlen) < 0) {
+-		rtnl_log(LOG_ERROR, "cannot gescockname(rtnl_socket)");
+-		goto err_close;
+-	}
+-
+-	if (addrlen != sizeof(h->rtnl_local)) {
+-		rtnl_log(LOG_ERROR, "invalid address size %u", addr_len);
+-		goto err_close;
+-	}
+-
+-	if (h->rtnl_local.nl_family != AF_NETLINK) {
+-		rtnl_log(LOG_ERROR, "invalid AF %u", h->rtnl_local.nl_family);
+-		goto err_close;
+-	}
+-
+-	h->rtnl_seq = time(NULL);
+-
+-	return h;
+-
+-err_close:
+-	close(h->rtnl_fd);
+-err:
+-	free(h);
+-	return NULL;
+-}
+-
+-/* rtnl_close - destructor of rtnetlink module */
+-void rtnl_close(struct rtnl_handle *rtnl_handle)
+-{
+-	close(rtnl_handle->rtnl_fd);
+-	free(rtnl_handle);
+-	return;
+-}
+-
+-/**
+- * @}
+- */
 -- 
 2.35.8
 
