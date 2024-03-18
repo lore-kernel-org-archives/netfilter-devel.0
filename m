@@ -1,379 +1,164 @@
-Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com [209.85.214.175])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF0432907
-	for <netfilter-devel@vger.kernel.org>; Sat, 16 Mar 2024 02:52:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.175
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 85E982E62A
+	for <netfilter-devel@vger.kernel.org>; Mon, 18 Mar 2024 09:39:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710557577; cv=none; b=p1Oe2gLk4NO4ps5gn6jVY68BGbKECyfaleRohtj8hOZywL2QRyizx9dJCLJZPR8Gl4faKNGc539/jNj9XR3/Pw9VxscG85SwUzOpCMG2v0Mlw0cYx3TokKEc0+D+p0DHHY/b5rysWig0Ecf534xi4VnwBfGm3EZDdLR1+ROOEcM=
+	t=1710754771; cv=none; b=W4wnUmo80PHzOJrn/oeqZAb6iWMFzdrNwoNLLc9jWbzGouSMHer3GNrFla7lUItwT9dkAuSJW2c9zwoQmA+bqLxIzxMUsjmL1qwSLpXk00OAekXaYLyYKbq/PUPtobOLPs/xSwOYBvZPolLl5BoR9x71C5qHVadYtnJLe/cz12o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710557577; c=relaxed/simple;
-	bh=ONoYL4XYOrO/6V38FWRzOpd8quw8P9OYCw818URL5SI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=sXtySA/M/aI5NLcz73REx43XhUXDzc7aD/Ud76/guosUJbu9O/3688VvOCkenwy3AM1MVL1IMRHuWzoodJQmhaINsNuh7RqUh1Yz0KlfbMCeML0EWf2H1BN/XcwVv4ZYWzyUKD5I5lYYhj3JStbfXw2DGlY6ztj+qj+25nYjeQA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fromorbit.com; spf=pass smtp.mailfrom=fromorbit.com; dkim=pass (2048-bit key) header.d=fromorbit-com.20230601.gappssmtp.com header.i=@fromorbit-com.20230601.gappssmtp.com header.b=OS38TBQX; arc=none smtp.client-ip=209.85.214.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fromorbit.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fromorbit.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fromorbit-com.20230601.gappssmtp.com header.i=@fromorbit-com.20230601.gappssmtp.com header.b="OS38TBQX"
-Received: by mail-pl1-f175.google.com with SMTP id d9443c01a7336-1dd955753edso23822935ad.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2024 19:52:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=fromorbit-com.20230601.gappssmtp.com; s=20230601; t=1710557573; x=1711162373; darn=vger.kernel.org;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=bBoX08MQ+GnGsn3Ys1XDLWs0vSpU6QZ104y6JQ1iJRA=;
-        b=OS38TBQXdJvmCPcBqtVgseCBD92KPMKjZB5CNB1A04ssBRuxFtzhRPn1GciuiaZp/t
-         ZH5bJFCL/HpWMw666xaF9ceynO1+jhCFyauCWBZUGDOD1jkHbl+xoO/jG6Zp360GwjSj
-         i66QeBxSRG87tkQkjPc2WA1M6sUtCwvS7DgrAnPORxwYyGeQf+wuJHESEF51ACE4d88K
-         v4nAXQtE+CrgRNknVt8a/+cuKu8aypzYeDig59JPHUtRYsAH3lqkfrJopeugL+PkOFJP
-         r/+/nAs2w8rmwShkaEIQMuFTq7jUIHueDrkctHW9aB3EK7WEeQJ4EnyrT3UmzNQXv8kk
-         1a+A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1710557573; x=1711162373;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=bBoX08MQ+GnGsn3Ys1XDLWs0vSpU6QZ104y6JQ1iJRA=;
-        b=TTez6LFS87tNt+BIxcYZq4E2Lst/ge5YHOcbu5lidHbIIpCdf+mlisy5Wqzfx0Oewq
-         nr+W2jwL7sET6uSVKf/xTah9wib4Kj49D9kSNc0f9geUb6EZhtKNpAjFlJJCpkn9AoDP
-         AaSE8sERKsNXZcCNp3UcOzzLdlwYK49fvhEZ0V1LBa+U2DnfLCwZuT8jJKL6XXR+kG1Q
-         wFD2XYDgboUp3pnCYntWoDeBziA9yV38gF4hX0xRerj43YHw1MhplrmBDy0zrHzuUSDf
-         dJ/PZ2ifCjuUZDW911KIhBVtLnjGyaBooddIQKbRXckfx9rczzZzdFmUQOP+etrOkAG1
-         b1qA==
-X-Forwarded-Encrypted: i=1; AJvYcCUUizpIU5YaOQnoUey1/3hSZkIpgQsTRUYp2fIs9pxJyWPtl93MYTphtf4YytNHY3YR8ZunA5VZRMjQ23QFw2On3OgwHXPaZp+oYxPv/7sy
-X-Gm-Message-State: AOJu0YwuOpc4aS/YzzkhUJaUbKWhoGR7szlZTrnL1hC8gbsl1WBLLhDE
-	0PqZzT82WobT7XNv2AJ8G/Ef//UIuREKigGRUdciNja2JrXkw8irO/2u7vgFOKU=
-X-Google-Smtp-Source: AGHT+IF+mhHYlAObRzpfXYn3IGnPDczeVjZaH7QVUqvtIq9UdyOULCBCqzY79zAwu/GemLxZ182Fng==
-X-Received: by 2002:a17:903:2446:b0:1dd:9cb3:8f96 with SMTP id l6-20020a170903244600b001dd9cb38f96mr6055795pls.42.1710557572964;
-        Fri, 15 Mar 2024 19:52:52 -0700 (PDT)
-Received: from dread.disaster.area (pa49-180-185-123.pa.nsw.optusnet.com.au. [49.180.185.123])
-        by smtp.gmail.com with ESMTPSA id f5-20020a170902684500b001dddbb58d5esm4736209pln.109.2024.03.15.19.52.51
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 15 Mar 2024 19:52:52 -0700 (PDT)
-Received: from dave by dread.disaster.area with local (Exim 4.96)
-	(envelope-from <david@fromorbit.com>)
-	id 1rlKAC-002Wnj-2F;
-	Sat, 16 Mar 2024 13:52:48 +1100
-Date: Sat, 16 Mar 2024 13:52:48 +1100
-From: Dave Chinner <david@fromorbit.com>
-To: Thomas =?iso-8859-1?Q?Wei=DFschuh?= <linux@weissschuh.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Kees Cook <keescook@chromium.org>,
-	Alexei Starovoitov <ast@kernel.org>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	John Fastabend <john.fastabend@gmail.com>,
-	Andrii Nakryiko <andrii@kernel.org>,
-	Martin KaFai Lau <martin.lau@linux.dev>,
-	Eduard Zingerman <eddyz87@gmail.com>, Song Liu <song@kernel.org>,
-	Yonghong Song <yonghong.song@linux.dev>,
-	KP Singh <kpsingh@kernel.org>, Stanislav Fomichev <sdf@google.com>,
-	Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
-	Muchun Song <muchun.song@linux.dev>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	David Ahern <dsahern@kernel.org>, Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Luis Chamberlain <mcgrof@kernel.org>,
-	Joel Granados <j.granados@samsung.com>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>, Heiko Carstens <hca@linux.ibm.com>,
-	Vasily Gorbik <gor@linux.ibm.com>,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
-	Christian Borntraeger <borntraeger@linux.ibm.com>,
-	Sven Schnelle <svens@linux.ibm.com>,
-	Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>,
-	Phillip Potter <phil@philpotter.co.uk>,
-	Theodore Ts'o <tytso@mit.edu>,
-	"Jason A. Donenfeld" <Jason@zx2c4.com>,
-	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Atish Patra <atishp@atishpatra.org>,
-	Anup Patel <anup@brainfault.org>,
-	Paul Walmsley <paul.walmsley@sifive.com>,
-	Palmer Dabbelt <palmer@dabbelt.com>,
-	Albert Ou <aou@eecs.berkeley.edu>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
-	Eric Biederman <ebiederm@xmission.com>,
-	Chandan Babu R <chandan.babu@oracle.com>,
-	"Darrick J. Wong" <djwong@kernel.org>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Masami Hiramatsu <mhiramat@kernel.org>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Arnaldo Carvalho de Melo <acme@kernel.org>,
-	Namhyung Kim <namhyung@kernel.org>,
-	Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-	Ian Rogers <irogers@google.com>,
-	Adrian Hunter <adrian.hunter@intel.com>,
-	Balbir Singh <bsingharora@gmail.com>,
-	"Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
-	Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>,
-	Petr Mladek <pmladek@suse.com>,
-	John Ogness <john.ogness@linutronix.de>,
-	Sergey Senozhatsky <senozhatsky@chromium.org>,
-	Juri Lelli <juri.lelli@redhat.com>,
-	Vincent Guittot <vincent.guittot@linaro.org>,
-	Dietmar Eggemann <dietmar.eggemann@arm.com>,
-	Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>,
-	Daniel Bristot de Oliveira <bristot@redhat.com>,
-	Valentin Schneider <vschneid@redhat.com>,
-	Andy Lutomirski <luto@amacapital.net>,
-	Will Drewry <wad@chromium.org>, John Stultz <jstultz@google.com>,
-	Stephen Boyd <sboyd@kernel.org>,
-	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
-	"Matthew Wilcox (Oracle)" <willy@infradead.org>,
-	Roopa Prabhu <roopa@nvidia.com>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Remi Denis-Courmont <courmisch@gmail.com>,
-	Allison Henderson <allison.henderson@oracle.com>,
-	Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
-	Xin Long <lucien.xin@gmail.com>,
-	Chuck Lever <chuck.lever@oracle.com>,
-	Jeff Layton <jlayton@kernel.org>, Neil Brown <neilb@suse.de>,
-	Olga Kornievskaia <kolga@netapp.com>, Dai Ngo <Dai.Ngo@oracle.com>,
-	Tom Talpey <tom@talpey.com>,
-	Trond Myklebust <trond.myklebust@hammerspace.com>,
-	Anna Schumaker <anna@kernel.org>,
-	John Johansen <john.johansen@canonical.com>,
-	Paul Moore <paul@paul-moore.com>, James Morris <jmorris@namei.org>,
-	"Serge E. Hallyn" <serge@hallyn.com>,
-	Alexander Popov <alex.popov@linux.com>,
-	linux-hardening@vger.kernel.org, linux-kernel@vger.kernel.org,
-	bpf@vger.kernel.org, linux-mm@kvack.org, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, linux-fsdevel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-s390@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-	linux-xfs@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
-	linux-perf-users@vger.kernel.org, kexec@lists.infradead.org,
-	bridge@lists.linux.dev, linux-rdma@vger.kernel.org,
-	rds-devel@oss.oracle.com, linux-sctp@vger.kernel.org,
-	linux-nfs@vger.kernel.org, apparmor@lists.ubuntu.com,
-	linux-security-module@vger.kernel.org
-Subject: Re: [PATCH 11/11] sysctl: treewide: constify the ctl_table argument
- of handlers
-Message-ID: <ZfUJgML8tk6RWqOC@dread.disaster.area>
-References: <20240315-sysctl-const-handler-v1-0-1322ac7cb03d@weissschuh.net>
- <20240315-sysctl-const-handler-v1-11-1322ac7cb03d@weissschuh.net>
+	s=arc-20240116; t=1710754771; c=relaxed/simple;
+	bh=N1ceTfz1QOY++5XnfzyKYV/UqdfRQeApynZtJBPxpsQ=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=GT8s0b1GzgCzW90JhHu6f/kTEdODqeB+1PLWBxN+/KzPBgqdVYPXqnOkkMHRocVs68QOn3jJfzQQPx7BQlbcl2eqlr4iLkVIaOcWIqLqHLQFnf+DFzj0ACL2n/m+BN5aqzq5Y8WWbGe9iSXf3BmsuWhZsEWM58UQPguwFkXrpw8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: sven.auhagen@voleatech.de,
+	cratiu@nvidia.com,
+	ozsh@nvidia.com,
+	vladbu@nvidia.com,
+	gal@nvidia.com,
+	fw@strlen.de
+Subject: [PATCH nf] netfilter: flowtable: infer TCP state and timeout before flow teardown
+Date: Mon, 18 Mar 2024 10:39:15 +0100
+Message-Id: <20240318093915.10358-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20240315-sysctl-const-handler-v1-11-1322ac7cb03d@weissschuh.net>
 
-On Fri, Mar 15, 2024 at 09:48:09PM +0100, Thomas Weißschuh wrote:
-> Adapt the proc_hander function signature to make it clear that handlers
-> are not supposed to modify their ctl_table argument.
-> 
-> This is a prerequisite to moving the static ctl_table structs into
-> .rodata.
-> By migrating all handlers at once a lengthy transition can be avoided.
-> 
-> The patch was mostly generated by coccinelle with the following script:
-> 
->     @@
->     identifier func, ctl, write, buffer, lenp, ppos;
->     @@
-> 
->     int func(
->     - struct ctl_table *ctl,
->     + const struct ctl_table *ctl,
->       int write, void *buffer, size_t *lenp, loff_t *ppos)
->     { ... }
+In case that either FIN or RST packet is seen, infer current TCP state
+based on the TCP packet flags before setting the _TEARDOWN flag:
 
-Which seems to have screwed up the formatting of the XFS code...
+- FIN packets result in TCP_CONNTRACK_FIN_WAIT which uses a default
+  timeout of 2 minutes.
+- RST packets lead to tcp_state TCP_CONNTRACK_CLOSE of 10 seconds.
 
-> diff --git a/fs/xfs/xfs_sysctl.c b/fs/xfs/xfs_sysctl.c
-> index a191f6560f98..a3ca192eca79 100644
-> --- a/fs/xfs/xfs_sysctl.c
-> +++ b/fs/xfs/xfs_sysctl.c
-> @@ -10,12 +10,11 @@ static struct ctl_table_header *xfs_table_header;
->  
->  #ifdef CONFIG_PROC_FS
->  STATIC int
-> -xfs_stats_clear_proc_handler(
-> -	struct ctl_table	*ctl,
-> -	int			write,
-> -	void			*buffer,
-> -	size_t			*lenp,
-> -	loff_t			*ppos)
-> +xfs_stats_clear_proc_handler(const struct ctl_table *ctl,
-> +			     int			write,
-> +			     void			*buffer,
-> +			     size_t			*lenp,
-> +			     loff_t			*ppos)
+Therefore, TCP established state with a low timeout is not used anymore
+when handing over the flow to the classic conntrack path, otherwise a
+FIN packet coming in the reply direction could re-offload this flow
+again.
 
-... because this doesn't match any format I've ever seen in the
-kernel. The diff for this change shold be just:
+If flow teardown is required for other reasons, eg. no traffic seen
+after NF_FLOW_TIMEOUT, then use TCP established state but set timeout to
+TCP_CONNTRACK_UNACK state which is used in conntrack to pick up
+connections from the middle (default is 5 minutes).
 
-@@ -10,7 +10,7 @@ static struct ctl_table_header *xfs_table_header;
- #ifdef CONFIG_PROC_FS
- STATIC int
- xfs_stats_clear_proc_handler(
--	struct ctl_table	*ctl,
-+	const struct ctl_table	*ctl,
- 	int			write,
- 	void			*buffer,
- 	size_t			*lenp,
+Fixes: e5eaac2beb54 ("netfilter: flowtable: fix TCP flow teardown")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+Compile-tested only.
 
->  {
->  	int		ret, *valp = ctl->data;
->  
-> @@ -30,12 +29,11 @@ xfs_stats_clear_proc_handler(
->  }
->  
->  STATIC int
-> -xfs_panic_mask_proc_handler(
-> -	struct ctl_table	*ctl,
-> -	int			write,
-> -	void			*buffer,
-> -	size_t			*lenp,
-> -	loff_t			*ppos)
-> +xfs_panic_mask_proc_handler(const struct ctl_table *ctl,
-> +			    int			write,
-> +			    void			*buffer,
-> +			    size_t			*lenp,
-> +			    loff_t			*ppos)
->  {
->  	int		ret, *valp = ctl->data;
->  
-> @@ -51,12 +49,11 @@ xfs_panic_mask_proc_handler(
->  #endif /* CONFIG_PROC_FS */
->  
->  STATIC int
-> -xfs_deprecated_dointvec_minmax(
-> -	struct ctl_table	*ctl,
-> -	int			write,
-> -	void			*buffer,
-> -	size_t			*lenp,
-> -	loff_t			*ppos)
-> +xfs_deprecated_dointvec_minmax(const struct ctl_table *ctl,
-> +			       int			write,
-> +			       void			*buffer,
-> +			       size_t			*lenp,
-> +			       loff_t			*ppos)
->  {
->  	if (write) {
->  		printk_ratelimited(KERN_WARNING
+ include/net/netfilter/nf_flow_table.h |  1 +
+ net/netfilter/nf_flow_table_core.c    | 45 +++++++++++++++++++++------
+ net/netfilter/nf_flow_table_ip.c      |  2 +-
+ 3 files changed, 37 insertions(+), 11 deletions(-)
 
-And these need fixing as well.
-
-A further quick glance at the patch reveals that there are other
-similar screwed up conversions as well.
-
-> diff --git a/kernel/delayacct.c b/kernel/delayacct.c
-> index 6f0c358e73d8..513791ef573d 100644
-> --- a/kernel/delayacct.c
-> +++ b/kernel/delayacct.c
-> @@ -44,8 +44,9 @@ void delayacct_init(void)
->  }
->  
->  #ifdef CONFIG_PROC_SYSCTL
-> -static int sysctl_delayacct(struct ctl_table *table, int write, void *buffer,
-> -		     size_t *lenp, loff_t *ppos)
-> +static int sysctl_delayacct(const struct ctl_table *table, int write,
-> +			    void *buffer,
-> +			    size_t *lenp, loff_t *ppos)
->  {
->  	int state = delayacct_on;
->  	struct ctl_table t;
-
-Like this.
-
-> diff --git a/kernel/events/core.c b/kernel/events/core.c
-> index 724e6d7e128f..e2955e0d9f44 100644
-> --- a/kernel/events/core.c
-> +++ b/kernel/events/core.c
-> @@ -450,7 +450,8 @@ static void update_perf_cpu_limits(void)
->  
->  static bool perf_rotate_context(struct perf_cpu_pmu_context *cpc);
->  
-> -int perf_event_max_sample_rate_handler(struct ctl_table *table, int write,
-> +int perf_event_max_sample_rate_handler(const struct ctl_table *table,
-> +				       int write,
->  				       void *buffer, size_t *lenp, loff_t *ppos)
->  {
->  	int ret;
-
-And this.
-
-> @@ -474,8 +475,10 @@ int perf_event_max_sample_rate_handler(struct ctl_table *table, int write,
->  
->  int sysctl_perf_cpu_time_max_percent __read_mostly = DEFAULT_CPU_TIME_MAX_PERCENT;
->  
-> -int perf_cpu_time_max_percent_handler(struct ctl_table *table, int write,
-> -		void *buffer, size_t *lenp, loff_t *ppos)
-> +int perf_cpu_time_max_percent_handler(const struct ctl_table *table,
-> +				      int write,
-> +				      void *buffer, size_t *lenp,
-> +				      loff_t *ppos)
->  {
->  	int ret = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
->  
-
-And this.
-
-> diff --git a/kernel/hung_task.c b/kernel/hung_task.c
-> index b2fc2727d654..003f0f5cb111 100644
-> --- a/kernel/hung_task.c
-> +++ b/kernel/hung_task.c
-> @@ -239,9 +239,10 @@ static long hung_timeout_jiffies(unsigned long last_checked,
->  /*
->   * Process updating of timeout sysctl
->   */
-> -static int proc_dohung_task_timeout_secs(struct ctl_table *table, int write,
-> -				  void *buffer,
-> -				  size_t *lenp, loff_t *ppos)
-> +static int proc_dohung_task_timeout_secs(const struct ctl_table *table,
-> +					 int write,
-> +					 void *buffer,
-> +					 size_t *lenp, loff_t *ppos)
->  {
->  	int ret;
->  
-
-And this.
-
-> diff --git a/kernel/latencytop.c b/kernel/latencytop.c
-> index 781249098cb6..0a5c22b19821 100644
-> --- a/kernel/latencytop.c
-> +++ b/kernel/latencytop.c
-> @@ -65,8 +65,9 @@ static struct latency_record latency_record[MAXLR];
->  int latencytop_enabled;
->  
->  #ifdef CONFIG_SYSCTL
-> -static int sysctl_latencytop(struct ctl_table *table, int write, void *buffer,
-> -		size_t *lenp, loff_t *ppos)
-> +static int sysctl_latencytop(const struct ctl_table *table, int write,
-> +			     void *buffer,
-> +			     size_t *lenp, loff_t *ppos)
->  {
->  	int err;
->  
-
-And this.
-
-I could go on, but there are so many examples of this in the patch
-that I think that it needs to be toosed away and regenerated in a
-way that doesn't trash the existing function parameter formatting.
-
--Dave.
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index a763dd327c6e..924f3720143f 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -293,6 +293,7 @@ int nf_flow_table_init(struct nf_flowtable *flow_table);
+ void nf_flow_table_free(struct nf_flowtable *flow_table);
+ 
+ void flow_offload_teardown(struct flow_offload *flow);
++void flow_offload_teardown_tcp(struct flow_offload *flow, bool fin);
+ 
+ void nf_flow_snat_port(const struct flow_offload *flow,
+ 		       struct sk_buff *skb, unsigned int thoff,
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index a0571339239c..481fe3d96bbc 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -165,10 +165,22 @@ void flow_offload_route_init(struct flow_offload *flow,
+ }
+ EXPORT_SYMBOL_GPL(flow_offload_route_init);
+ 
+-static void flow_offload_fixup_tcp(struct ip_ct_tcp *tcp)
++static s32 flow_offload_fixup_tcp(struct net *net, struct nf_conn *ct,
++				  enum tcp_conntrack tcp_state)
+ {
+-	tcp->seen[0].td_maxwin = 0;
+-	tcp->seen[1].td_maxwin = 0;
++	struct nf_tcp_net *tn = nf_tcp_pernet(net);
++
++	ct->proto.tcp.state = tcp_state;
++	ct->proto.tcp.seen[0].td_maxwin = 0;
++	ct->proto.tcp.seen[1].td_maxwin = 0;
++
++	/* Similar to mid-connection pickup with loose=1.
++	 * Avoid large ESTABLISHED timeout.
++	 */
++	if (tcp_state == TCP_CONNTRACK_ESTABLISHED)
++		return tn->timeouts[TCP_CONNTRACK_UNACK];
++
++	return tn->timeouts[tcp_state];
+ }
+ 
+ static void flow_offload_fixup_ct(struct nf_conn *ct)
+@@ -178,12 +190,8 @@ static void flow_offload_fixup_ct(struct nf_conn *ct)
+ 	s32 timeout;
+ 
+ 	if (l4num == IPPROTO_TCP) {
+-		struct nf_tcp_net *tn = nf_tcp_pernet(net);
+-
+-		flow_offload_fixup_tcp(&ct->proto.tcp);
+-
+-		timeout = tn->timeouts[ct->proto.tcp.state];
+-		timeout -= tn->offload_timeout;
++		timeout = flow_offload_fixup_tcp(net, ct,
++						 TCP_CONNTRACK_ESTABLISHED);
+ 	} else if (l4num == IPPROTO_UDP) {
+ 		struct nf_udp_net *tn = nf_udp_pernet(net);
+ 		enum udp_conntrack state =
+@@ -346,12 +354,29 @@ static void flow_offload_del(struct nf_flowtable *flow_table,
+ 
+ void flow_offload_teardown(struct flow_offload *flow)
+ {
++	flow_offload_fixup_ct(flow->ct);
++	smp_mb__before_atomic();
+ 	clear_bit(IPS_OFFLOAD_BIT, &flow->ct->status);
+ 	set_bit(NF_FLOW_TEARDOWN, &flow->flags);
+-	flow_offload_fixup_ct(flow->ct);
+ }
+ EXPORT_SYMBOL_GPL(flow_offload_teardown);
+ 
++void flow_offload_teardown_tcp(struct flow_offload *flow, bool fin)
++{
++	enum tcp_conntrack tcp_state;
++
++	if (fin)
++		tcp_state = TCP_CONNTRACK_FIN_WAIT;
++	else /* rst */
++		tcp_state = TCP_CONNTRACK_CLOSE;
++
++	flow_offload_fixup_tcp(nf_ct_net(flow->ct), flow->ct, tcp_state);
++	smp_mb__before_atomic();
++	clear_bit(IPS_OFFLOAD_BIT, &flow->ct->status);
++	set_bit(NF_FLOW_TEARDOWN, &flow->flags);
++}
++EXPORT_SYMBOL_GPL(flow_offload_teardown_tcp);
++
+ struct flow_offload_tuple_rhash *
+ flow_offload_lookup(struct nf_flowtable *flow_table,
+ 		    struct flow_offload_tuple *tuple)
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index e45fade76409..13b6c453d8bc 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -29,7 +29,7 @@ static int nf_flow_state_check(struct flow_offload *flow, int proto,
+ 
+ 	tcph = (void *)(skb_network_header(skb) + thoff);
+ 	if (unlikely(tcph->fin || tcph->rst)) {
+-		flow_offload_teardown(flow);
++		flow_offload_teardown_tcp(flow, tcph->fin);
+ 		return -1;
+ 	}
+ 
 -- 
-Dave Chinner
-david@fromorbit.com
+2.30.2
+
