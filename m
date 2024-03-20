@@ -1,304 +1,239 @@
-Received: from EUR02-VI1-obe.outbound.protection.outlook.com (mail-vi1eur02on2103.outbound.protection.outlook.com [40.107.241.103])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f45.google.com (mail-ed1-f45.google.com [209.85.208.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E69DF2D79D
-	for <netfilter-devel@vger.kernel.org>; Wed, 20 Mar 2024 13:37:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.241.103
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710941883; cv=fail; b=r64UB+4L2AX/BkkM3ptLrNGxVD24YbK3FL1ftXhdh0tikAv4kZ5+rPpYOnd94IQc3fE7EMt/3vGonnrd3RfKbJt8tcNSf3ayzqUN/wcMZhzjwW+du4z9wpf+MwwWw66gnnQn1ar+3FenOmekevEajsKmgVpQnMMNnNYzpA3MiIU=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710941883; c=relaxed/simple;
-	bh=lxcZLHvKALPpiNVDvZJcyY1JOT84u3aJgI9EP17FXLY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=YzhFT33xRiVffi4HnZSsL/WuCeW/KYAQoH1L/rLrFdWxTcSInGz08/KfQFvf8YEFiUdozXxZRSzDbUV3oq2qoE43AGeLJB5msWFd4jfZo5JNYQiAi8cgYu4lh1P8ETckxF8t2JpTmzyP4GHV8Rl/VdYoDdME8VaBqpD1rivEZR0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=voleatech.de; spf=pass smtp.mailfrom=voleatech.de; dkim=pass (1024-bit key) header.d=voleatech.de header.i=@voleatech.de header.b=BhlRM42f; arc=fail smtp.client-ip=40.107.241.103
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=voleatech.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=voleatech.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AB8F42044
+	for <netfilter-devel@vger.kernel.org>; Wed, 20 Mar 2024 14:14:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.45
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1710944097; cv=none; b=Tk1mO/r7Reh5J057IwTge3R4eMGQo6Q55/ANmSp0DGVyo/WjmmdEDT9eZSInkhdU9q+Lnb3n9KnGKAMU4EeWGM+3TZNsrNKXnCoiEG20iGI1arAuYDPCMzsAQsLOVWgbO4q3UBkiwTgbPK8TteDdri9xj/FbOvOxDp3X68K0DPo=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1710944097; c=relaxed/simple;
+	bh=XRapKtc108/pbXuzQ1RvASghSkGRFTXgTzWiVgsKsbU=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=RhiepNvOGLT9YSSi9w919l5V1LxvjI+6VwL0TxcjEc0jYSDnA8NRJ/Nkh4b9c4vAt0IHOUL2Y/fUuHLPshtaE7yGgedvLZLljIc5sPoDxqZdX74YunVVYHJ9v7RUIpm0KqFcERxPlaGYwwF/dJ9z2rqsm3gUlb4vALBDQ1ZOx74=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=Z8Id/Iy6; arc=none smtp.client-ip=209.85.208.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=voleatech.de header.i=@voleatech.de header.b="BhlRM42f"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=iVXqqlyGECcSbYGv9K+9Q1c0pbHOONFU+d5C0H28IRnOQrioOiu7szKP9xhNZdO29oq4CrRE7NdwAZw/Jf+C2187NFVsWr8hn0FR8+utg+0pTQBWghPW2LFLyOCJx0ILj2ltb4sA20AfK+Z2F+yXgQOBtAsjS7OEPbPrWlGAGeXNLwgYxSwDbvTNkQ18uvwf7yv4OHgDm1Cw9lcR9AMY/RwZ2iIcgWjCdnRv/QxNzfYKy5Bzx5ITAAZhuiPN4P1eOOWHDqlyqDPUhpiw7IxvTibHCuVCV6uFVkrRVjeRuusx9+ts92ozm0OF2FyUBtRw7MVv9UkfH+XiiM7fHYSzOQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=yfEN8idPRxZwozgCGQA1jvWbsWEg+G4zgs+1f2W4eac=;
- b=GtuDdy1ibkKPahDuIvXoSIhghu678DgLY/XddtVUZ+dOldKxBQODCN+JRe0cHqBeDduqsf4ENjGzq9dg4OIobj2CZA+PR9ST4JKpa86dUkTSYfr27+S29H1gIFnnAY6nS7R34/SsC0zhBVQDdeeRIqH3flgqowegGvqthM1qmeR8N3iZuVHRkmPD8IoOMnMuWRpmnfshPL/eA3S35Lhr6hoW4yocjWKQF2stm/JH79Rw0Tn3X4EIUCSCrmBT99N6l1pa1N9erHsJW8VQ2kecoRlv9YgKLOfatfRSjodxzSbYpD88gqY4miXWrwHPhv/o4H2a4fOHm04V/gmu1bJpDw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=voleatech.de; dmarc=pass action=none header.from=voleatech.de;
- dkim=pass header.d=voleatech.de; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=voleatech.de;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=yfEN8idPRxZwozgCGQA1jvWbsWEg+G4zgs+1f2W4eac=;
- b=BhlRM42fUAZ6gP+aOD7pALS3TafJGUChzWfCvZdu+esMjxGm98swnAHO6fqZcUWRmCMoFijRR7/emojtujQMpNuM1zyF0BRs7d4TZ+FYtWDiEC2njyqxT90teej6jaFEgzQiNrND5iO3WtjEBXo4DwkGXj7IIE3vFBv70DzDFkE=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=voleatech.de;
-Received: from GVXPR05MB11233.eurprd05.prod.outlook.com
- (2603:10a6:150:14e::13) by AM8PR05MB7220.eurprd05.prod.outlook.com
- (2603:10a6:20b:1df::19) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7386.30; Wed, 20 Mar
- 2024 13:37:55 +0000
-Received: from GVXPR05MB11233.eurprd05.prod.outlook.com
- ([fe80::9d0c:55e:de01:2a2b]) by GVXPR05MB11233.eurprd05.prod.outlook.com
- ([fe80::9d0c:55e:de01:2a2b%2]) with mapi id 15.20.7362.019; Wed, 20 Mar 2024
- 13:37:55 +0000
-Date: Wed, 20 Mar 2024 14:37:50 +0100
-From: Sven Auhagen <sven.auhagen@voleatech.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, cratiu@nvidia.com, ozsh@nvidia.com, 
-	vladbu@nvidia.com, gal@nvidia.com, fw@strlen.de
-Subject: Re: [PATCH nf] netfilter: flowtable: infer TCP state and timeout
- before flow teardown
-Message-ID: <x6c7snfkq4yy2k5ih3igtov4g6yh6e7d24hpijtgesdyiykqwo@vaqyzp2uma3v>
-References: <lajzqkqbqptfa6m6ntyseutpmbnrrc4yb26x6lwjaxm3aldzvc@u33db2j37rtb>
- <ZfqnTJKyW1VSIOgY@calendula>
- <lderg42fd4jbcwsztkidn3lhnjhufj5yv3zsdu4dpsenzikkta@cya5vq3prnzf>
- <ZfqsAoSNA4DRsVga@calendula>
- <nvslglowbvxntlpftefkumbwn2gz72evwnfvv4q2qencte7wyn@3jejk23urzeg>
- <Zfqxq3HK_nsGRLhx@calendula>
- <xvnywodpmc3eui6k5kt6fnooq35533jsavkeha7af6c2fntxwm@u3bzj57ntong>
- <Zfq-1gES4VJg2zHe@calendula>
- <o7kxkadlzt2ux5bbdcsgxlfxnfedzxv4jlfd3xnhri6qpr5w3n@2vmkj5o3yrek>
- <ZfrYpvJFrrajPbHM@calendula>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZfrYpvJFrrajPbHM@calendula>
-X-ClientProxiedBy: FR2P281CA0121.DEUP281.PROD.OUTLOOK.COM
- (2603:10a6:d10:9d::12) To GVXPR05MB11233.eurprd05.prod.outlook.com
- (2603:10a6:150:14e::13)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="Z8Id/Iy6"
+Received: by mail-ed1-f45.google.com with SMTP id 4fb4d7f45d1cf-568c3888ad7so14924a12.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Mar 2024 07:14:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1710944094; x=1711548894; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ZE0o19ZPW4Q/J+OTjU7JW8PmpitVelX4zaEFtGnHi3c=;
+        b=Z8Id/Iy60LZs44BCxYP3Zt5qv8IhLV2OntSsV3wY0NG3wQ2DK6YBeO3RcCu1rZ5Rmd
+         MdXhBKtxcyxPHY8mX91+p3JmvD3z+GCI/KlDwTyDq22IUFAmQDeeK7QhnMyRORNavKDo
+         PT9pm4ZShS7i5swjNwc/yq/21K31w0uDjk2zWic/4XElikejHUYer1GApPKrDOCGqAJg
+         RWB+XVJxC803r6SColRcecYIMCvJ2uRBiAPXuEYOOk1q/K7Wy268mC2oOT/W/wHInw/T
+         2AkWPN27wc3dBzV5EpY3vbKoBXdeb/UK71NhzUYX8QKiS9Ac0llZWJfpFRsIu1UYf8fg
+         9OIg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1710944094; x=1711548894;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=ZE0o19ZPW4Q/J+OTjU7JW8PmpitVelX4zaEFtGnHi3c=;
+        b=t3PxKAXEsk4IIqqaOIjbz5CACcPtvx6dexxJRV9ruGaHGbZX2r3Ewy+Ceffk62IlGK
+         uFuhh4E7opGK7O999u4UrOmRyICdcS+UokFKUB/Hv3sph2pjN4XmqWOKUtj2Vi91P/w4
+         RR/5RAKZSLJqXu40ALM4w29Ti/sYZargrd6VMJd8CrUCibmJOU5wdnd6i48d3KpXTdYy
+         elBYQSfGDZJ8pTDAtawq0lPGohhd4CTFBy+GZe2na87ATienmWtMK8AkWzRvBESGO1we
+         7Nq51bDBCtcmFiLpuPyBhJE6pq7tNLSQo+kZJlMoaTtPoZOfsp82L/FGU/8wuXcOoBlu
+         JUrw==
+X-Forwarded-Encrypted: i=1; AJvYcCUQiS0YR7W4OsW6NTWg3eRaaBt2+qoMg7RhEoQWjI9jt5ZPM8YdujOEJqJ3fwXL9DoUS8zGs5WYvt9QOiyAY2uTSHmrz515oSv4Isgsx0p9
+X-Gm-Message-State: AOJu0YywtDtWLD4yrHwCPNF7i/yNk9+5wuTHqUAG6CyJQSP6ok+yROOU
+	QDWEJ7WIhFMNuNNLcTxntGDbekQdMa+rM/AbhKUEffiv17Xug5dtMhtn2Z90KJqGuwtOiMGp1c3
+	lueyymx/nSt/UiLA0gfz6BYW/M0Ah2ebnytLk
+X-Google-Smtp-Source: AGHT+IGf0RnNraDVYsG4wNxD4IMSs+QTaVw1IHmThYiPMNDH/bOviRgGHyFdKUlbI8k0p/2JQiZKnkIA61ighrrHDQw=
+X-Received: by 2002:aa7:d4cf:0:b0:56b:b856:7eb6 with SMTP id
+ t15-20020aa7d4cf000000b0056bb8567eb6mr58115edr.6.1710944093653; Wed, 20 Mar
+ 2024 07:14:53 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: GVXPR05MB11233:EE_|AM8PR05MB7220:EE_
-X-MS-Office365-Filtering-Correlation-Id: 467a458b-813e-4335-f87d-08dc48e2f293
-X-MS-Exchange-AtpMessageProperties: SA
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info:
-	dQ0JulK+yItcYwQVRg4npc+w/9g0VrlqgXXOfOEIlQoiqjBDhDeDV3WGzvBwJR+EANWsGMY9dRZdRibGi0TvHIeCUPfh2wYPlOKVTFVE9FzvY0hle/BpzPXQSeGlhxvdRWyJ9aRd8NpM/WILKpBMMcq2VDGc5gpk2KDo7ZyJA/rTTrn1Zho4bpRX0zS4/rWfS/O/YIPrDi6lWpZ0u5+lBGsfww97BAu+I2zwFcMiM08jy9BtAaHy1EazvkaZ/PlFXMj2LW9a+Hhz3mVo/Mizg6oV51xAKt3nQ0SDC0xru+c5eA4h0iKqIHqyBGGbxyBdDGojnmrX2Ldms/jisT2+Hx68+KDg7AeZDf5j9fyhh5zIkxYs/jWqTkS+NogvHKHvjdau7q3lD8x/YV2OXCB0vTbBP1YkYOgLZb1OHuGWcOKSOB8JTzrK7pW2SVd5yHXsVuNV+qRb2zzvsINvJm1RUqZST193Nt7woXybWnFw4jE3sRKRdPMGUUjT1u5hyyhkF5y997XPFjxpEh1y2AQrjnr6rLUUIYoVz8jZ/NxzAveHCIZI9ikq2URRFg511AU4Z2SRgdWOIMK5Fnps8JJujUtULBc5HoYC+0o+q1lwhRzre/Lw8etTibgt+ENvlY5Fl9ppvVQZF64Vul4QVAWxbZmVa10+FnSvkq47v/Z5/1A=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:GVXPR05MB11233.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(366007)(1800799015)(376005);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?gqhBTVgQwSsn4NtcC+uPjpwMRC0bvlb+DIBMO9PQtBQ/5VEpSOicfgpqyE8h?=
- =?us-ascii?Q?j3L6KYst94xstIv/1hx5WuYKsMsUneuBZMpibilq95TxRl+CSgNpBecgkxGI?=
- =?us-ascii?Q?mr7uqOxkkGDqru5mRdtCDgvGH+fjYJAMjlQZloQuNXWKUn0IdDfHxCBklqMC?=
- =?us-ascii?Q?CsIKznV15pvH0viV882rFKmUHgn/cyj8mY6xPXxTWD+k45AP7h+6T3nPoXdu?=
- =?us-ascii?Q?7dzzxq2gLmbz46I/ojY7oaoUDWozqAE+RQM/G5xxzeLI5UP+H+q0eqVL4YQY?=
- =?us-ascii?Q?r0lNwVwcRZNZRhDl8cV8YEglwAuELSe1EXjjPwF+XsCFcUXPanvhpCbsR1Yi?=
- =?us-ascii?Q?uhRPhOWIu12eWO8wlDkP5hFBMI+NiEZFGx45xCOvKio7CXj0XkLFp9w1PLpW?=
- =?us-ascii?Q?mN6pCdo2PQ+Eh3GYwAl7miAGmmMucARYN1rzTTJbFsmne8ytusXvuERPuOH5?=
- =?us-ascii?Q?3Uh4YiWCsr3pJV26JhJmWfhE5I1K73o1oxJ4u4Vz8+ob7CNQr0lJiOVJP8QA?=
- =?us-ascii?Q?573ZNmF5RE4Iq0hn4iwLoIbmS/FXzEsXivmCxODOcjbrzi2hwkHBm2HW3nCV?=
- =?us-ascii?Q?hsGKsavmR8el61T7N4BZoj9kP1+xnSAuixhvGKW6Xu0Nr2cVoPuNhpOYcT3X?=
- =?us-ascii?Q?5SfI2mxFgmRcnvTIPKUl7raRCCP7bM4fasf5kRKx8LmO+bGJ/N2InymHc30+?=
- =?us-ascii?Q?i2y1gKThM4frYUsTizWJo5CHOQ9WoaQ/VjslmPe1kCwZ1ol52dK53KPvc3AN?=
- =?us-ascii?Q?x35r3i7IlWImoxVwOPJSiVT9xMbbBpMd/tK/GZb4y+pFvZJ03opV7q67+zpy?=
- =?us-ascii?Q?AC2obBB8u0+0+FCD89dADGZG45fnWXcur0QYJPbNOV/EycmX54MsonveObR9?=
- =?us-ascii?Q?QaJuHSqez7dSMt+tU9KFPM6CqLntwpzIrZWmaOgPqWUI9704K8crypAtlDYG?=
- =?us-ascii?Q?5tBgKmrKbw/UGWE6fK9X1AitMUtwbMC8YWA49MgdHKkvUhD9tZGbMXWlelAX?=
- =?us-ascii?Q?wRPzkrytj92hxL8CYK1wO656NFCt8Tw74BZYcn1B4+X4MW+Iq20UnVVCHrDd?=
- =?us-ascii?Q?Y/PXLZmQ3a6Z0RoOb8ZAg0+R/HVHSUDbf23B5y6hE04IMuTyoy06RFJ4wemz?=
- =?us-ascii?Q?xImXiCP0oreXqwmUAdbOXgCR9b5aodHfAbE8wAYT90l8rbcppi/q9H5rHQ8d?=
- =?us-ascii?Q?qJp/ufjUDLDnD3JFx60BfRwCVgbfNSGH905fKgBr0maghu4uw+wFSkfJStJJ?=
- =?us-ascii?Q?gcCcW1vStxrfp2nthxFBzx/ETR0SLkmJA6wG8j+hmmEsiUiniJc167HVq9Bz?=
- =?us-ascii?Q?2iiRpdT/Kun3rac+Fi6jCgDwoRCKQaQhGyHapsdrOvDhQyIInTZfvXyJD3ax?=
- =?us-ascii?Q?8NCiVn44I9JSLus4LL6cRxaOcMVoOetMqdVS7xRDeToeYb1b66Mqpp5oH8JM?=
- =?us-ascii?Q?CDbxYNi9zl5JNEhrZV7SJl7j4MiLRAJYkvlwIiljw9es1YtXEuvWIUZCtqA+?=
- =?us-ascii?Q?VOAlDqW+c6Qn3/it1I6RHjsaDAdqt+4PRvonS5zC8RfNMvEOegWK39wVq62D?=
- =?us-ascii?Q?3h0P3qCugnbaiOuA9/JwLWJ/S7kcbt6mrY3XU2wA91k6VbmTV4RVJue3g844?=
- =?us-ascii?Q?qA=3D=3D?=
-X-OriginatorOrg: voleatech.de
-X-MS-Exchange-CrossTenant-Network-Message-Id: 467a458b-813e-4335-f87d-08dc48e2f293
-X-MS-Exchange-CrossTenant-AuthSource: GVXPR05MB11233.eurprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Mar 2024 13:37:55.0990
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: b82a99f6-7981-4a72-9534-4d35298f847b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: hN5Rs8CrMi5EonX1K+RMXlW63LCw5BgfZjNHIJHiLgfakJ/EZAvUOcB45yUc1NOU7w+6FMNi1D/wuJXkrPIMH89f0fBCZ+C3aAHz4y/07R0=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM8PR05MB7220
+References: <20240319122310.27474-1-fw@strlen.de>
+In-Reply-To: <20240319122310.27474-1-fw@strlen.de>
+From: Eric Dumazet <edumazet@google.com>
+Date: Wed, 20 Mar 2024 15:14:40 +0100
+Message-ID: <CANn89i+S0EYPM4N-3RsN5-QDQts5wobJjBikF7=feMo6hHY3Lw@mail.gmail.com>
+Subject: Re: [PATCH net] inet: inet_defrag: prevent sk release while still in use
+To: Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, dsahern@kernel.org, kuba@kernel.org, 
+	pabeni@redhat.com, netfilter-devel@vger.kernel.org, 
+	xingwei lee <xrivendell7@gmail.com>, yue sun <samsun1006219@gmail.com>, 
+	syzbot+e5167d7144a62715044c@syzkaller.appspotmail.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Mar 20, 2024 at 01:37:58PM +0100, Pablo Neira Ayuso wrote:
-> On Wed, Mar 20, 2024 at 12:15:51PM +0100, Sven Auhagen wrote:
-> > On Wed, Mar 20, 2024 at 11:47:50AM +0100, Pablo Neira Ayuso wrote:
-> > > On Wed, Mar 20, 2024 at 11:29:05AM +0100, Sven Auhagen wrote:
-> > > > On Wed, Mar 20, 2024 at 10:51:39AM +0100, Pablo Neira Ayuso wrote:
-> > > > > On Wed, Mar 20, 2024 at 10:31:00AM +0100, Sven Auhagen wrote:
-> > > > > > On Wed, Mar 20, 2024 at 10:27:30AM +0100, Pablo Neira Ayuso wrote:
-> > > > > > > On Wed, Mar 20, 2024 at 10:20:29AM +0100, Sven Auhagen wrote:
-> > > > > > > > On Wed, Mar 20, 2024 at 10:07:24AM +0100, Pablo Neira Ayuso wrote:
-> > > > > > > > > On Wed, Mar 20, 2024 at 09:49:49AM +0100, Sven Auhagen wrote:
-> > > > > > > > > > On Wed, Mar 20, 2024 at 09:45:16AM +0100, Pablo Neira Ayuso wrote:
-> > > > > > > > > > > Hi Sven,
-> > > > > > > > > > > 
-> > > > > > > > > > > On Wed, Mar 20, 2024 at 09:39:16AM +0100, Sven Auhagen wrote:
-> > > > > > > > > > > > On Mon, Mar 18, 2024 at 10:39:15AM +0100, Pablo Neira Ayuso wrote:
-> > > > > > > > > > > [...]
-> > > > > > > > > > > > > diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-> > > > > > > > > > > > > index a0571339239c..481fe3d96bbc 100644
-> > > > > > > > > > > > > --- a/net/netfilter/nf_flow_table_core.c
-> > > > > > > > > > > > > +++ b/net/netfilter/nf_flow_table_core.c
-> > > > > > > > > > > > > @@ -165,10 +165,22 @@ void flow_offload_route_init(struct flow_offload *flow,
-> > > > > > > > > > > > >  }
-> > > > > > > > > > > > >  EXPORT_SYMBOL_GPL(flow_offload_route_init);
-> > > > > > > > > > > > >  
-> > > > > > > > > > > > > -static void flow_offload_fixup_tcp(struct ip_ct_tcp *tcp)
-> > > > > > > > > > > > > +static s32 flow_offload_fixup_tcp(struct net *net, struct nf_conn *ct,
-> > > > > > > > > > > > > +				  enum tcp_conntrack tcp_state)
-> > > > > > > > > > > > >  {
-> > > > > > > > > > > > > -	tcp->seen[0].td_maxwin = 0;
-> > > > > > > > > > > > > -	tcp->seen[1].td_maxwin = 0;
-> > > > > > > > > > > > > +	struct nf_tcp_net *tn = nf_tcp_pernet(net);
-> > > > > > > > > > > > > +
-> > > > > > > > > > > > > +	ct->proto.tcp.state = tcp_state;
-> > > > > > > > > > > > > +	ct->proto.tcp.seen[0].td_maxwin = 0;
-> > > > > > > > > > > > > +	ct->proto.tcp.seen[1].td_maxwin = 0;
-> > > > > > > > > > > > > +
-> > > > > > > > > > > > > +	/* Similar to mid-connection pickup with loose=1.
-> > > > > > > > > > > > > +	 * Avoid large ESTABLISHED timeout.
-> > > > > > > > > > > > > +	 */
-> > > > > > > > > > > > > +	if (tcp_state == TCP_CONNTRACK_ESTABLISHED)
-> > > > > > > > > > > > > +		return tn->timeouts[TCP_CONNTRACK_UNACK];
-> > > > > > > > > > > > 
-> > > > > > > > > > > > Hi Pablo,
-> > > > > > > > > > > > 
-> > > > > > > > > > > > I tested the patch but the part that sets the timout to UNACK is not
-> > > > > > > > > > > > very practical.
-> > > > > > > > > > > > For example my long running SSH connections get killed off by the firewall
-> > > > > > > > > > > > regularly now while beeing ESTABLISHED:
-> > > > > > > > > > > > 
-> > > > > > > > > > > > [NEW] tcp      6 120 SYN_SENT src=192.168.6.55 dst=192.168.10.22 sport=55582 dport=22 [UNREPLIED] src=192.168.10.22 dst=192.168.6.55 sport=22 dport=55582 mark=16777216
-> > > > > > > > > > > > [UPDATE] tcp      6 60 SYN_RECV src=192.168.6.55 dst=192.168.10.22 sport=55582 dport=22 src=192.168.10.22 dst=192.168.6.55 sport=22 dport=55582 mark=16777216
-> > > > > > > > > > > > [UPDATE] tcp      6 86400 ESTABLISHED src=192.168.6.55 dst=192.168.10.22 sport=55582 dport=22 src=192.168.10.22 dst=192.168.6.55 sport=22 dport=55582 [OFFLOAD] mark=16777216
-> > > > > > > > > > > > 
-> > > > > > > > > > > > [DESTROY] tcp      6 ESTABLISHED src=192.168.6.55 dst=192.168.10.22 sport=54941 dport=22 packets=133 bytes=13033 src=192.168.10.22 dst=192.168.6.55 sport=22 dport=54941 packets=95 bytes=15004 [ASSURED] mark=16777216 delta-time=1036
-> > > > > > > > > > > > 
-> > > > > > > > > > > > I would remove the if case here.
-> > > > > > > > > > > 
-> > > > > > > > > > > OK, I remove it and post a v2. Thanks!
-> > > > > > > > > > 
-> > > > > > > > > > Thanks and also the hardcoded TCP_CONNTRACK_ESTABLISHED in flow_offload_fixup_ct
-> > > > > > > > > > should be reverted to the real tcp state ct->proto.tcp.state.
-> > > > > > > > > 
-> > > > > > > > > ct->proto.tcp.state contains the state that was observed before
-> > > > > > > > > handling over this flow to the flowtable, in most cases, this should
-> > > > > > > > > be TCP_CONNTRACK_ESTABLISHED.
-> > > > > > > > > 
-> > > > > > > > > > This way we always set the current TCP timeout.
-> > > > > > > > > 
-> > > > > > > > > I can keep it to ct->proto.tcp.state but I wonder if it is better to
-> > > > > > > > > use a well known state such as TCP_CONNTRACK_ESTABLISHED to pick up from.
-> > > > > > > > 
-> > > > > > > > In case of a race condition or if something is off like my TCP_FIN
-> > > > > > > > that is beeing offloaded again setting to to ESTABLISHED hard coded
-> > > > > > > > will make the e.g. FIN or CLOSE a very long state.
-> > > > > > > > It is not guaranteed that we are still in ESTABLISHED when this code
-> > > > > > > > runs. Also for example we could have seen both FIN already before the
-> > > > > > > > flowtable gc runs.
-> > > > > > > 
-> > > > > > > OK, I just posted a v2, leave things as is. I agree it is better to
-> > > > > > > only address the issue you are observing at this time, it is possible
-> > > > > > > to revisit later.
-> > > > > > > 
-> > > > > > > Thanks!
-> > > > > > 
-> > > > > > Thanks, I will give it another try.
-> > > > > > I think for it to be foolproof we need
-> > > > > > to migrate the TCP state as well in flow_offload_teardown_tcp to FIN or CLOSE.
-> > > > > 
-> > > > > My patch already does it:
-> > > > > 
-> > > > > +void flow_offload_teardown_tcp(struct flow_offload *flow, bool fin)
-> > > > > +{
-> > > > > +       enum tcp_conntrack tcp_state;
-> > > > > +
-> > > > > +       if (fin)
-> > > > > +               tcp_state = TCP_CONNTRACK_FIN_WAIT;
-> > > > > +       else /* rst */
-> > > > > +               tcp_state = TCP_CONNTRACK_CLOSE;
-> > > > > +
-> > > > > +       flow_offload_fixup_tcp(nf_ct_net(flow->ct), flow->ct, tcp_state);
-> > > > > 
-> > > > > flow_offload_fixup_tcp() updates the TCP state to FIN / CLOSE state.
-> > > > > 
-> > > > > > They way thinks are right now we are open to a race condition from the reverse side of the
-> > > > > > connection to reoffload the connection while a FIN or RST is not processed by the netfilter code
-> > > > > > running after the flowtable code.
-> > > > > > The conenction is still in TCP established during that window and another packet can just
-> > > > > > push it back to the flowtable while the FIN or RST is not processed yet.
-> > > > > 
-> > > > > I don't see how:
-> > > > > 
-> > > > > static void nft_flow_offload_eval(const struct nft_expr *expr,
-> > > > >                                   ...
-> > > > > 
-> > > > >         switch (ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum) {
-> > > > >         case IPPROTO_TCP:
-> > > > >                 tcph = skb_header_pointer(pkt->skb, nft_thoff(pkt),
-> > > > >                                           sizeof(_tcph), &_tcph);
-> > > > >                 if (unlikely(!tcph || tcph->fin || tcph->rst ||
-> > > > >                              !nf_conntrack_tcp_established(ct)))
-> > > > >                         goto out;
-> > > > > 
-> > > > > this would now be either in FIN/CLOSE state.
-> > > > > 
-> > > > > FIN, RST packet does not trigger re-offload. And ACK packet would find
-> > > > > the entry in !nf_conntrack_tcp_established(ct).
-> > > > > 
-> > > > > What path could trigger re-offload after my latest patch?
-> > > > 
-> > > > From looking through the nf conntrack tcp code you need to spin_lock
-> > > > the TCP state change to avoid a race with another packet.
-> > > 
-> > > The flowtable owns the flow, packets belonging the flow cannot update
-> > > the TCP state while the flow is offloaded to the flowtable.
-> > > 
-> > > Once _TEARDOWN flag is set on, then packets get back to classic
-> > > conntrack path.
-> > 
-> > Hmm alright, something is going wrong somewhere and it looks a lot like
-> > a race condition :)
-> 
-> This check is racy, another packet could alter the ct state right
-> after it evaluates true.
-> 
->          switch (ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum) {
->          case IPPROTO_TCP:
->                  tcph = skb_header_pointer(pkt->skb, nft_thoff(pkt),
->                                            sizeof(_tcph), &_tcph);
->                  if (unlikely(!tcph || tcph->fin || tcph->rst ||
->                               !nf_conntrack_tcp_established(ct))) <-------
->                          goto out;
-> 
-> Sequence would be:
-> 
-> 1) flow expires (after 30 seconds), goes back to conntrack in established state
-> 2) packet re-offloads the flow and nf_conntrack_tcp_established(ct) evaluates true.
-> 3) FIN packet races to update conntrack getting to FIN_WAIT while re-offloading
->    the flow.
-> 
-> then you see FIN_WAIT and offload, it could happen with an expired
-> flow that goes back to conntrack.
-> 
-> But I am not sure yet if this is the case you're observing there.
-> 
-> > I mean just in theory it is not guaranteed that both directions send all
-> > packets through the flowtable just because it is offloaded.
-> > A variety of error checks might send a packet back to the slow path.
-> 
-> There is the mtu check that is lacking the teardown, but that should
-> only affect UDP traffic. A patch from Felix decided has cached the mtu
-> in the flow entry. That is also probably convenient to have, but it
-> looks like a different issue, I will also post a patch for this issue.
+On Tue, Mar 19, 2024 at 12:36=E2=80=AFPM Florian Westphal <fw@strlen.de> wr=
+ote:
+>
+> ip_local_out() and other functions can pass skb->sk as function argument.
+>
+> If the skb is a fragment and reassembly happens before such function call
+> returns, the sk must not be released.
+>
+> This affects skb fragments reassembled via netfilter or similar
+> modules, e.g. openvswitch or ct_act.c, when run as part of tx pipeline.
+>
+> Eric Dumazet made an initial analysis of this bug.  Quoting Eric:
+>   Calling ip_defrag() in output path is also implying skb_orphan(),
+>   which is buggy because output path relies on sk not disappearing.
+>
+>   A relevant old patch about the issue was :
+>   8282f27449bf ("inet: frag: Always orphan skbs inside ip_defrag()")
+>
+>   [..]
+>
+>   net/ipv4/ip_output.c depends on skb->sk being set, and probably to an
+>   inet socket, not an arbitrary one.
+>
+>   If we orphan the packet in ipvlan, then downstream things like FQ
+>   packet scheduler will not work properly.
+>
+>   We need to change ip_defrag() to only use skb_orphan() when really
+>   needed, ie whenever frag_list is going to be used.
+>
+> Eric suggested to stash sk in fragment queue and made an initial patch.
+> However there is a problem with this:
+>
+> If skb is refragmented again right after, ip_do_fragment() will copy
+> head->sk to the new fragments, and sets up destructor to sock_wfree.
+> IOW, we have no choice but to fix up sk_wmem accouting to reflect the
+> fully reassembled skb, else wmem will underflow.
+>
+> This change moves the orphan down into the core, to last possible moment.
+> As ip_defrag_offset is aliased with sk_buff->sk member, we must move the
+> offset into the FRAG_CB, else skb->sk gets clobbered.
+>
+> This allows to delay the orphaning long enough to learn if the skb has
+> to be queued or if the skb is completing the reasm queue.
+>
+> In the former case, things work as before, skb is orphaned.  This is
+> safe because skb gets queued/stolen and won't continue past reasm engine.
+>
+> In the latter case, we will steal the skb->sk reference, reattach it to
+> the head skb, and fix up wmem accouting when inet_frag inflates truesize.
+>
+> Diagnosed-by: Eric Dumazet <edumazet@google.com>
+> Reported-by: xingwei lee <xrivendell7@gmail.com>
+> Reported-by: yue sun <samsun1006219@gmail.com>
+> Reported-by: syzbot+e5167d7144a62715044c@syzkaller.appspotmail.com
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  include/linux/skbuff.h                  |  7 +--
+>  net/ipv4/inet_fragment.c                | 71 ++++++++++++++++++++-----
+>  net/ipv4/ip_fragment.c                  |  2 +-
+>  net/ipv6/netfilter/nf_conntrack_reasm.c |  2 +-
+>  4 files changed, 61 insertions(+), 21 deletions(-)
+>
+> diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+> index 7d56ce195120..6d08ff8a9357 100644
+> --- a/include/linux/skbuff.h
+> +++ b/include/linux/skbuff.h
+> @@ -753,8 +753,6 @@ typedef unsigned char *sk_buff_data_t;
+>   *     @list: queue head
+>   *     @ll_node: anchor in an llist (eg socket defer_list)
+>   *     @sk: Socket we are owned by
+> - *     @ip_defrag_offset: (aka @sk) alternate use of @sk, used in
+> - *             fragmentation management
+>   *     @dev: Device we arrived on/are leaving by
+>   *     @dev_scratch: (aka @dev) alternate use of @dev when @dev would be=
+ %NULL
+>   *     @cb: Control buffer. Free for use by every layer. Put private var=
+s here
+> @@ -875,10 +873,7 @@ struct sk_buff {
+>                 struct llist_node       ll_node;
+>         };
+>
+> -       union {
+> -               struct sock             *sk;
+> -               int                     ip_defrag_offset;
+> -       };
+> +       struct sock             *sk;
+>
+>         union {
+>                 ktime_t         tstamp;
+> diff --git a/net/ipv4/inet_fragment.c b/net/ipv4/inet_fragment.c
+> index 7072fc0783ef..7254b640ba06 100644
+> --- a/net/ipv4/inet_fragment.c
+> +++ b/net/ipv4/inet_fragment.c
+> @@ -24,6 +24,8 @@
+>  #include <net/ip.h>
+>  #include <net/ipv6.h>
+>
+> +#include "../core/sock_destructor.h"
+> +
+>  /* Use skb->cb to track consecutive/adjacent fragments coming at
+>   * the end of the queue. Nodes in the rb-tree queue will
+>   * contain "runs" of one or more adjacent fragments.
+> @@ -39,6 +41,7 @@ struct ipfrag_skb_cb {
+>         };
+>         struct sk_buff          *next_frag;
+>         int                     frag_run_len;
+> +       int                     ip_defrag_offset;
+>  };
+>
+>  #define FRAG_CB(skb)           ((struct ipfrag_skb_cb *)((skb)->cb))
+> @@ -396,12 +399,12 @@ int inet_frag_queue_insert(struct inet_frag_queue *=
+q, struct sk_buff *skb,
+>          */
+>         if (!last)
+>                 fragrun_create(q, skb);  /* First fragment. */
+> -       else if (last->ip_defrag_offset + last->len < end) {
+> +       else if (FRAG_CB(last)->ip_defrag_offset + last->len < end) {
+>                 /* This is the common case: skb goes to the end. */
+>                 /* Detect and discard overlaps. */
+> -               if (offset < last->ip_defrag_offset + last->len)
+> +               if (offset < FRAG_CB(last)->ip_defrag_offset + last->len)
+>                         return IPFRAG_OVERLAP;
+> -               if (offset =3D=3D last->ip_defrag_offset + last->len)
+> +               if (offset =3D=3D FRAG_CB(last)->ip_defrag_offset + last-=
+>len)
+>                         fragrun_append_to_last(q, skb);
+>                 else
+>                         fragrun_create(q, skb);
+> @@ -418,13 +421,13 @@ int inet_frag_queue_insert(struct inet_frag_queue *=
+q, struct sk_buff *skb,
+>
+>                         parent =3D *rbn;
+>                         curr =3D rb_to_skb(parent);
+> -                       curr_run_end =3D curr->ip_defrag_offset +
+> +                       curr_run_end =3D FRAG_CB(curr)->ip_defrag_offset =
++
+>                                         FRAG_CB(curr)->frag_run_len;
+> -                       if (end <=3D curr->ip_defrag_offset)
+> +                       if (end <=3D FRAG_CB(curr)->ip_defrag_offset)
+>                                 rbn =3D &parent->rb_left;
+>                         else if (offset >=3D curr_run_end)
+>                                 rbn =3D &parent->rb_right;
+> -                       else if (offset >=3D curr->ip_defrag_offset &&
+> +                       else if (offset >=3D FRAG_CB(curr)->ip_defrag_off=
+set &&
+>                                  end <=3D curr_run_end)
+>                                 return IPFRAG_DUP;
+>                         else
+> @@ -438,23 +441,39 @@ int inet_frag_queue_insert(struct inet_frag_queue *=
+q, struct sk_buff *skb,
+>                 rb_insert_color(&skb->rbnode, &q->rb_fragments);
+>         }
+>
+> -       skb->ip_defrag_offset =3D offset;
+> +       FRAG_CB(skb)->ip_defrag_offset =3D offset;
+>
+>         return IPFRAG_OK;
+>  }
+>  EXPORT_SYMBOL(inet_frag_queue_insert);
+>
+> +void tcp_wfree(struct sk_buff *skb);
 
-I would be suprised if the MTU is an issue.
-I will also add a counter/printk to the two checks from your patch just to make sure.
-I will report back with my testing of v2 of the patches.
+Thanks a lot Florian for looking at this !
 
+Since you had : #include "../core/sock_destructor.h", perhaps the line
+can be removed,
+because it includes <net/tcp.h>
