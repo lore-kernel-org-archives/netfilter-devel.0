@@ -1,112 +1,93 @@
-Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com [209.85.214.175])
+Received: from mail-qv1-f47.google.com (mail-qv1-f47.google.com [209.85.219.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27B5F5FBA6
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 Mar 2024 23:58:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20A8B629
+	for <netfilter-devel@vger.kernel.org>; Wed, 20 Mar 2024 00:45:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710892706; cv=none; b=I2zhg/OpnB5kAFTZEO5QTtMrBy0ztUsu+Wt3MN9Ywj7ZuOu7m6aRs++1ve4/Z45Tn5rQLyJwcJSUmB94/OmhKD9lelLOBBTPQbjRHIMi6n0oHfQtC6BTbXxt7nubeTIvNMMxMyepmPfbr6UHATFl3m+9NqoCa+QKKp3dyqqtmL0=
+	t=1710895508; cv=none; b=oidHA1qHynzI/cUy0DK8Lj6sP93Mx9338K429fHPWz8h/YbJVD6ZJZdNpe7sjqTai0skl4J91FHC/tfqkvuAHeNd4aFUSvdasKU98DvJKe7TfYQkp3Ssja2uvprqOY7vnAmIxmFp6yJra+rRu1ydzyDSoUVxF6kjdDm1t94imC8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710892706; c=relaxed/simple;
-	bh=SRmeLBMw9Eg1sJkZqWzJ3v4wwV6BlqRQ4eeKbcPsHGI=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=HRlOD7/JKMGxsntlDqBbdAgHhgNxasnjOF9BskdkOU1mZRnO3wu12O2okv+DMLnH2y38irkULtu1ojz+RcTuZ0GWRAvpHRoB34/388ZTe4xDzPfelLjgmIW05s4L1pRpF7/+Pbc/K1iHhoaMhUBmFu8bwN4CTGAZMFbG49gvMV8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=PJl2g0Dv; arc=none smtp.client-ip=209.85.214.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
+	s=arc-20240116; t=1710895508; c=relaxed/simple;
+	bh=K/jYzLMSoAqgk6C+XuFCX8XGVxsRfLXFrti1jvUcHag=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Content-Type; b=tttLmSHNLR3KZb8SSC43D1gS0T4wqYboi7NZ5KjJRcPEq8AMS/+Vrn9bATsGDrj3Zvwwwhj3PW8toNo0ZxuJEurNgqquzHxXuXDC1Z2hC9GTJuorONZ62k7o1Nxvb360pYofMRebBo8tga9a5m7VjlGw1rYXDLI5rNeOve361wY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ezSDG0xq; arc=none smtp.client-ip=209.85.219.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PJl2g0Dv"
-Received: by mail-pl1-f175.google.com with SMTP id d9443c01a7336-1def3340682so39778465ad.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 19 Mar 2024 16:58:24 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ezSDG0xq"
+Received: by mail-qv1-f47.google.com with SMTP id 6a1803df08f44-69107859bedso43519966d6.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 19 Mar 2024 17:45:06 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1710892704; x=1711497504; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=vPpgSAiW1HhDYuitjQf6MOEAiaL35ODrD2U6B+GBRR0=;
-        b=PJl2g0DvehQavC2vIIqM8gHKUEfpKxjeswfIt8JZq4RO2vdYNzujzxGKMT/oo/G3nX
-         Mg4Af2Uq0aYRAx4xpb27Ms2HElQL18aVbSWU/g2fVXL+LzFFzLZqIWymELnNjUid69y0
-         JfaqggkM/p9OkWZ2I8fTzAQyp99WaYIp7B9j9KG5+P4E22ST1gg43IZvxO/NZZIQkJ6D
-         BBLW4gsuonWBaX2Ss3ckYJ4iY3Ti3pNEE2qYAsP3b6xBsKRU/ZnbIjj0ICbiMxp+A1pb
-         pIwUpmkOzqG5p0SjBRe3/oGFVSHUeEc724M851JXezIeskBpkp6duiMY3jjedXjAVefR
-         HfsQ==
+        d=gmail.com; s=20230601; t=1710895506; x=1711500306; darn=vger.kernel.org;
+        h=content-transfer-encoding:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=q6vIIpOFjmQe3YbqpxB6EFRgNSTh5urU9MHkyUkQmDQ=;
+        b=ezSDG0xqTVr0QDOP7Ff73TxmUHJVDwzbpuDQ73S63Zak9jXZz3KqZb3SbT3lT6V+ni
+         2thsnRSqxrh0QChJrGcQ0rkScOUPcVvJs5pYx6qQFpTHtcH6MkW/U1ScNGak/2TFBchr
+         fxMOBN9tV3UG4GIdmddmEjTeyYcIosp/ORaD2NtStkCxgdC+CDKs0j+u2FHNBqezOJ7d
+         6Wfpq2rSGAadoVZcoEftV2+eu/RFxnojXkkXm9t/FdD5ks01DGTruKuv03krRkr0GR2C
+         oDHniLrd7aNYGpwenFjC3hKqjX7zSzPlYTMkUA5y4v3rQhz5jT/AWIYkQYpazinJq0n1
+         j0rw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1710892704; x=1711497504;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=vPpgSAiW1HhDYuitjQf6MOEAiaL35ODrD2U6B+GBRR0=;
-        b=eVGHi+1T3vy7pv6HNMfWjhq8zOD58mWckM2zSMGfJafGKbA4FWG05I6/Od6p3UyKQS
-         8fAR+wqR/hZNeZXf5i7P3x4WmyXWSLF04SdDWo0Z12u+0L8L1uRrwqBqnsN8hKTBPDNj
-         j8ZGyE7WeG1LUic5VJG7GqR9NGMuyEEmalSiyGqA1AqYPFIPAsn3BWWe46YXE8a3deE0
-         6pTfi8TUoTRK7Rg4wrWq81/BGVbISjDHMSrs8BFIW1qldUbvAse+SAn6VNJDwULNlVqG
-         +mvukmRYOCkkUjTkiIJhfrY/s8PH+0YPx2Pzt/Iy5DaGSoZqsogA2FwN2co4KgDF/krt
-         WQjQ==
-X-Gm-Message-State: AOJu0YydSfzXdUe2eJlkyMKuiYOQwT0/6dPqnLGOS0E8a1pCQj49VuUJ
-	aiTCSVXXm5PExuNpoxKx8PNxVKMXY/PhsRS1nFVmB+kT8ddVaiH011znD2fh
-X-Google-Smtp-Source: AGHT+IFhyi30pztrkiMnDedw6NR1l6fhXGgSpWgZYuv+A3gjjzVvN0zvnr1d3OwIz5BEYaTJGKMBPA==
-X-Received: by 2002:a17:903:4289:b0:1dd:7df8:9ed7 with SMTP id ju9-20020a170903428900b001dd7df89ed7mr4142865plb.15.1710892704250;
-        Tue, 19 Mar 2024 16:58:24 -0700 (PDT)
-Received: from slk15.local.net (n58-108-84-186.meb1.vic.optusnet.com.au. [58.108.84.186])
-        by smtp.gmail.com with ESMTPSA id lh6-20020a170903290600b001d94678a76csm12027885plb.117.2024.03.19.16.58.22
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 19 Mar 2024 16:58:23 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From: Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
-Date: Wed, 20 Mar 2024 10:58:20 +1100
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libnetfilter_queue 00/32] Convert libnetfilter_queue to
- not need libnfnetlink
-Message-ID: <ZfomnPKqY2eUOBX6@slk15.local.net>
-Reply-To: duncan_roe@optusnet.com.au
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <20240213210706.4867-1-duncan_roe@optusnet.com.au>
- <20240213210706.4867-2-duncan_roe@optusnet.com.au>
- <ZcyaQvJ1SvnYgakf@calendula>
- <Zc69T21ekMhEbjZ1@slk15.local.net>
+        d=1e100.net; s=20230601; t=1710895506; x=1711500306;
+        h=content-transfer-encoding:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=q6vIIpOFjmQe3YbqpxB6EFRgNSTh5urU9MHkyUkQmDQ=;
+        b=gtQeTu3w4tI31QJXhmf+PESK9JgDSFaKLstemBaLF+5oiBvOoZj46yLHO+bk0KiMW+
+         hzhQ096YE+0QoF3017VuX0D7Js8Ey0C2TAvQBtAwVps3sITkSYeVV2OyfzH9QWOiD88A
+         JicfDatDp/JY0dRGd/N7BjLcut9MEQV+YYqVUuRXyV01grOS2051T9iDi2FxjZzNF/5b
+         yXVZPhXhxZs5fegkHIp/QM12pZ7RofL1u56/vEq1vPTY2G5l2dWzo1bUPwbtTXtoNaXI
+         QT2ewMHnuz4wKlyjxSsLMwSJkxAnHFdKZHJJ4NHXRwp9hxk4V3/9DlJgOoaRpL542ZYd
+         a1Fg==
+X-Forwarded-Encrypted: i=1; AJvYcCWOAvyTLsHQ3+Z4e1fKGbAR9uz5fcBrH3a12bV2Sc3AFlbL3RKgHfT2kQN4UWx+a8DiPF1fVOJCQYWiZPA2s2flU+fmxXimn+9kOLddOPfr
+X-Gm-Message-State: AOJu0YwjNUKfnT0tEAau0WGfh+9KFPFLcYQIO8QZx0VBgB6YfqmRZPkN
+	Im4Ldi92YFZ1Th8QCxK2O95HFV307k7G5c/BeOlGsUx+U1xNDkrVjvXCDnAB61mt0IQ5ykF33LJ
+	RFCM9pKAlBX4XYeQslx7M/gf+qPI=
+X-Google-Smtp-Source: AGHT+IH8EVntUGhG1tm4LWSqA30DSKILUJsMHuSnhSpcW/3iRhcKTHGw20lunmkA6NmZpTbPm7WK55ar7Prf/Em6kZo=
+X-Received: by 2002:ad4:44ac:0:b0:696:456c:3b51 with SMTP id
+ n12-20020ad444ac000000b00696456c3b51mr341944qvt.43.1710895505988; Tue, 19 Mar
+ 2024 17:45:05 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Zc69T21ekMhEbjZ1@slk15.local.net>
+References: <CAPtndGC29Zc6K8V3v4LStfrcnvdCNNfTmjP-Ma9dM+21f1069w@mail.gmail.com>
+ <ZfnAGWIgPfiS5i9G@orbyte.nwl.cc>
+In-Reply-To: <ZfnAGWIgPfiS5i9G@orbyte.nwl.cc>
+From: Sriram Rajagopalan <bglsriram@gmail.com>
+Date: Wed, 20 Mar 2024 06:14:54 +0530
+Message-ID: <CAPtndGD29xG1koLq68BBuQricfg1FWh2QideLydphZ-OUsL0=w@mail.gmail.com>
+Subject: Re: [PATCH] iptables: Fixed the issue with combining the payload in
+ case of invert filter for tcp src and dst ports
+To: Phil Sutter <phil@nwl.cc>, Sriram Rajagopalan <bglsriram@gmail.com>, netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Pablo,
+Phil,
 
-On Fri, Feb 16, 2024 at 12:41:35PM +1100, Duncan Roe wrote:
-> Hi Pablo,
+Thanks a lot.
+
+Regards,
+Sriram
+
+On Tue, Mar 19, 2024 at 10:10=E2=80=AFPM Phil Sutter <phil@nwl.cc> wrote:
 >
-> On Wed, Feb 14, 2024 at 11:47:30AM +0100, Pablo Neira Ayuso wrote:
-> > Hi Duncan,
-> [...]
-> > because this conversion to libmnl _cannot_ break existing userspace
-> > applications, that's the challenge.
+> On Wed, Mar 13, 2024 at 02:38:07PM +0530, Sriram Rajagopalan wrote:
+> > From: Sriram Rajagopalan <bglsriram@gmail.com>
+> > Date: Wed, 13 Mar 2024 02:04:37 -0700
+> > Subject: [PATCH] iptables: Fixed the issue with combining the payload i=
+n case
+> >  of invert filter for tcp src and dst ports
 > >
-> Absolutely. utils/nfqnl_test.c builds and runs, are there any other examples I
-> could try?
+> > Signed-off-by: Sriram Rajagopalan <sriramr@arista.com>
+> > Acked-by: Phil Sutter <phil@nwl.cc>
 >
-> Userspace applications *will* break if they either
+> Patch applied manually (your mailer messed it up) and improved the
+> commit message a bit.
 >
-> 1. Call libnfnetlink nfnl_* functions directly (other than nfnl_rcvbufsiz())
->
->   OR
->
-> 2. Call nfq_open_nfnl()
->
-> Is that acceptable?
->
-> Cheers ... Duncan.
->
-To clarify, the new patch series
-https://patchwork.ozlabs.org/project/netfilter-devel/list/?series=399143
-overcomes 1 and 2 above.
-
-Existing userspace applications should *all* keep running.
-
-Cheers ... Duncan.
+> Thanks, Phil
