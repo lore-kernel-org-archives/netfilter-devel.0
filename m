@@ -1,24 +1,23 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2022B6A8DD
-	for <netfilter-devel@vger.kernel.org>; Wed, 20 Mar 2024 18:09:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 6BFA86A03F
+	for <netfilter-devel@vger.kernel.org>; Wed, 20 Mar 2024 18:09:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710958144; cv=none; b=tTjCRXgsyHZDvVxaKadpfGYWczQa1h7Y3PVon5wQ2d3Qbd3IzPWIrLs+ZnR84Bw/OuF9ANmGR2RF9xInkN8m855HL+3t/q3oUMx4S8xAnRa5Glgn2JY98TYIbTyOKMYLJQO9yIZfsn/wincPQKmFu0XIYD2RvaYoWIBzHCkS5mw=
+	t=1710958169; cv=none; b=iyBzOjCqAlmE1FHNpPW7iHknIfjSpil053jfOEZCi+Pvh6l3B4CEZszJEtrg4uN0veeYxy3NGMnsuylfD1JFsdU+eCA4D+2CkQvdlruoa+3+th5gf84PAc0Zs3N4i0/NPl/iu/a+SwVonSfTU/nEGvW0aq0MWT3Tq1uysvIu4EI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710958144; c=relaxed/simple;
-	bh=8k7Y2Bz2bYYJKwCtNkcQPfAmn8Q73Fz7mfY+Qhqnjh4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=D04ZY34miO8hqaPcTbikwzrrelzl1drM+xI96yx8esqQBOXArJGWVSzX1WncaOqYj3qW7TEZlTKIlPzqtO9Crt4MIG9jeXodAruNIOni3m4aQTcMsgzM9UU1mmZ4L/IvHhgTnIK+FL+JGqCchofQbh53BLzKCi05r2pqn+ammFg=
+	s=arc-20240116; t=1710958169; c=relaxed/simple;
+	bh=pWiPe36DFJfbepcMP/TFAivIaEz32mETUBUMoPOBaq0=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ZoRtb+lQH/icdNTI53AgZfjugtkDRUATIVcmqBl9UvG8bvqU2csahW8uCRe/poF655DD8+219RSda0FOxv1Bdb3z7/eRGLfIuvM7iPsi9TRpxeS5ei1y0z8af8G24c0/VWKs4k9d43WyiMJ8YZDLDdrncYdjO09c380jqdf1zXM=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Date: Wed, 20 Mar 2024 19:08:58 +0100
+Date: Wed, 20 Mar 2024 19:09:23 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft v3] src: do not merge a set with a erroneous one
-Message-ID: <ZfsmOkUyrPfd3Sk4@calendula>
-References: <20240112121930.11363-1-fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] evaluate: display "Range negative size" error
+Message-ID: <ZfsmUykiWOGPARHN@calendula>
+References: <20240319192519.206632-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -27,10 +26,10 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20240112121930.11363-1-fw@strlen.de>
+In-Reply-To: <20240319192519.206632-1-pablo@netfilter.org>
 
-On Fri, Jan 12, 2024 at 01:19:26PM +0100, Florian Westphal wrote:
-> The included sample causes a crash because we attempt to
-> range-merge a prefix expression with a symbolic expression.
+On Tue, Mar 19, 2024 at 08:25:19PM +0100, Pablo Neira Ayuso wrote:
+> zero length ranges now allowed, therefore, update error message to refer
+> to negative ranges which are not possible.
 
-For the record, I have applied this, thanks!
+I have pushed it out this patch
