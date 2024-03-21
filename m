@@ -1,81 +1,115 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29E5885266;
-	Thu, 21 Mar 2024 14:20:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 710BE134420;
+	Thu, 21 Mar 2024 20:52:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711030828; cv=none; b=rDUYsTSRL3YC785GZikWpTv1aN9aYUUbK7nWwFrycX0SckfBBM26nLywPDqNUzz5/A8oyw0TPZzt0eDJfb+YewV/S9tzZdv5VcfHFchKHrU3SSJu3Ss1e9D7KGOw1Fjv9Rg3JMF7j/xpdHLBKHHLjbJyVp8xB4R4w1J2SawRwPk=
+	t=1711054361; cv=none; b=dQYumnxS9263jc0N3cyn3UZc9UMQalUJotQ2nccMixqP7PZzTDjGt5ggPCjAbxAXChYfwg2N9TEA5gaE6UtrmgqcBNR3VLB/FgSJeabFuyW25DXWMXkcGTEDuZBWApfVwt5N/aaVHF1Gbvg5Y+36ES6Q4o5DWswoABC8Q9rhWpg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711030828; c=relaxed/simple;
-	bh=YsaJU7yU5UXT4dwymitMoladXmLHepBOYhkmIslJq/I=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=hzUn4k+F7ZKDppW2pOAny7lboOHYS7TiEnHU1kTG5TJVZ4wzlrdb/Evcw8QOvlV4d8ENoEmcEv/eB4G/IsiiSWyQSPxW/VI6lQf/AOehUroIQiOM4yQc8gHp8ErzfIRSU1iXmx2DE1lL3c28Emp6FeU6GJZSjRDMjGtGuQ0yF/E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=pYEOeXfG; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="pYEOeXfG"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 934BCC43390;
-	Thu, 21 Mar 2024 14:20:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1711030827;
-	bh=YsaJU7yU5UXT4dwymitMoladXmLHepBOYhkmIslJq/I=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=pYEOeXfGnRVAbqxBcvCan2jnhrC9JDNzYWDqSmvi7v+6tZh8jIxSvb1eVHZn2zSSE
-	 SJGn7EWSuaqz8PdqtTPDu1L3H4uVYN5+/DfVFHwzkH9Q1rjdOOE9PiD+99VpyqsqLW
-	 T1R90/yJkeCZlO23U94zh20ZxiYtkgkrPrfA+B360qE8fpY6fbZIoyFObGxrUSGFQF
-	 Jj4GTXAWMYajgB2+/0qaJGATWGSGDj6p7Rrp6x9b4UHIeyEcPWMBOPzUgTjomBjTrc
-	 wHM/61XcZSvBgy0lraF4MZ3WeNyg/4XXQb/pQWplrm/zlSNtp5fYKkoNgrbTfEWU3J
-	 rgP5S1y3Nc87A==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 7D918D982E4;
-	Thu, 21 Mar 2024 14:20:27 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=arc-20240116; t=1711054361; c=relaxed/simple;
+	bh=9zlC3L4tt8Mzkzt3jkTnHSaQIRdB72fowZOWPPC5Zko=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Yfu4ALOekNJrxhTu/C156bMlqNqD90qTGYqQ7DhJpPIrhDr0AQguFAdmKDdg7tYQMpqKOoPBIwFy70qAoJhD7knSdLkhuDDvG/F0vMHGTVl5l5wVuHuvvx+IyR2VxFK1Fe58rBTlchB/artoGfzUSpVp5hio6kqNhOjQKi3MfDs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Date: Thu, 21 Mar 2024 21:52:27 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Linus =?utf-8?Q?L=C3=BCssing?= <linus.luessing@c0d3.blue>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Dietmar Maurer <dietmar@proxmox.com>,
+	Thomas Lamprecht <t.lamprecht@proxmox.com>,
+	Wolfgang Bumiller <w.bumiller@proxmox.com>,
+	Alexandre Derumier <aderumier@odiso.com>
+Subject: Re: [PATCH net] netfilter: conntrack: fix ct-state for ICMPv6
+ Multicast Router Discovery
+Message-ID: <ZfyeC8mjLnGkqnVT@calendula>
+References: <20240306141805.17679-1-linus.luessing@c0d3.blue>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/3] netfilter: nft_set_pipapo: release elements in clone
- only from destroy path
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <171103082750.11634.16678808488889700011.git-patchwork-notify@kernel.org>
-Date: Thu, 21 Mar 2024 14:20:27 +0000
-References: <20240321112117.36737-2-pablo@netfilter.org>
-In-Reply-To: <20240321112117.36737-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com
+In-Reply-To: <20240306141805.17679-1-linus.luessing@c0d3.blue>
 
-Hello:
+On Wed, Mar 06, 2024 at 03:18:04PM +0100, Linus Lüssing wrote:
+> So far Multicast Router Advertisements and Multicast Router
+> Solicitations from the Multicast Router Discovery protocol (RFC4286)
+> would be marked as INVALID for IPv6, even if they are in fact intact
+> and adhering to RFC4286.
 
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+There is also RFC4890 which specifies that also acts as multicast
+routers need to process these message on their interfaces.
 
-On Thu, 21 Mar 2024 12:21:15 +0100 you wrote:
-> Clone already always provides a current view of the lookup table, use it
-> to destroy the set, otherwise it is possible to destroy elements twice.
+> This broke MRA reception and by that multicast reception on
+> IPv6 multicast routers in a Proxmox managed setup, where Proxmox
+> would install a rule like "-m conntrack --ctstate INVALID -j DROP"
+> at the top of the FORWARD chain with br-nf-call-ip6tables enabled
+> by default.
 > 
-> This fix requires:
+> Similar to as it's done for MLDv1, MLDv2 and IPv6 Neighbor Discovery
+> already, fix this issue by excluding MRD from connection tracking
+> handling as MRD always uses predefined multicast destinations
+> for its messages, too. This changes the ct-state for ICMPv6 MRD messages
+> from INVALID to UNTRACKED.
+
+An explicit rule will be still needed to accept this traffic, assuming
+default policy to drop. I think that the issue is likely that this
+"drop invalid rules" is the at the very beginning of the ruleset.
+
+Anyway, turning this from invalid to untracked seems sensible to me.
+Users will still have to explicitly allow for this in their ruleset
+assuming default policy to drop.
+
+I am going to include your Fixes: tag and pass up this patch upstream.
+
+Thanks.
+
+> This issue was found and fixed with the help of the mrdisc tool
+> (https://github.com/troglobit/mrdisc).
 > 
->  212ed75dc5fb ("netfilter: nf_tables: integrate pipapo into commit protocol")
+> Signed-off-by: Linus Lüssing <linus.luessing@c0d3.blue>
+> ---
+>  include/uapi/linux/icmpv6.h               | 1 +
+>  net/netfilter/nf_conntrack_proto_icmpv6.c | 4 +++-
+>  2 files changed, 4 insertions(+), 1 deletion(-)
 > 
-> [...]
-
-Here is the summary with links:
-  - [net,1/3] netfilter: nft_set_pipapo: release elements in clone only from destroy path
-    https://git.kernel.org/netdev/net/c/b0e256f3dd2b
-  - [net,2/3] netfilter: nf_tables: do not compare internal table flags on updates
-    https://git.kernel.org/netdev/net/c/4a0e7f2decbf
-  - [net,3/3] netfilter: nf_tables: Fix a memory leak in nf_tables_updchain
-    https://git.kernel.org/netdev/net/c/7eaf837a4eb5
-
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+> diff --git a/include/uapi/linux/icmpv6.h b/include/uapi/linux/icmpv6.h
+> index ecaece3af38d..4eaab89e2856 100644
+> --- a/include/uapi/linux/icmpv6.h
+> +++ b/include/uapi/linux/icmpv6.h
+> @@ -112,6 +112,7 @@ struct icmp6hdr {
+>  #define ICMPV6_MOBILE_PREFIX_ADV	147
+>  
+>  #define ICMPV6_MRDISC_ADV		151
+> +#define ICMPV6_MRDISC_SOL		152
+>  
+>  #define ICMPV6_MSG_MAX          255
+>  
+> diff --git a/net/netfilter/nf_conntrack_proto_icmpv6.c b/net/netfilter/nf_conntrack_proto_icmpv6.c
+> index 1020d67600a9..327b8059025d 100644
+> --- a/net/netfilter/nf_conntrack_proto_icmpv6.c
+> +++ b/net/netfilter/nf_conntrack_proto_icmpv6.c
+> @@ -62,7 +62,9 @@ static const u_int8_t noct_valid_new[] = {
+>  	[NDISC_ROUTER_ADVERTISEMENT - 130] = 1,
+>  	[NDISC_NEIGHBOUR_SOLICITATION - 130] = 1,
+>  	[NDISC_NEIGHBOUR_ADVERTISEMENT - 130] = 1,
+> -	[ICMPV6_MLD2_REPORT - 130] = 1
+> +	[ICMPV6_MLD2_REPORT - 130] = 1,
+> +	[ICMPV6_MRDISC_ADV - 130] = 1,
+> +	[ICMPV6_MRDISC_SOL - 130] = 1
+>  };
+>  
+>  bool nf_conntrack_invert_icmpv6_tuple(struct nf_conntrack_tuple *tuple,
+> -- 
+> 2.43.0
+> 
