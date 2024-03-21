@@ -1,22 +1,35 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 999B95A4D4
-	for <netfilter-devel@vger.kernel.org>; Thu, 21 Mar 2024 12:24:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29E5885266;
+	Thu, 21 Mar 2024 14:20:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711023849; cv=none; b=f52Od9EdAoKuRi9B3exdS8SCgrRXC7YDBgLHm7x9k2C/0rsmTTgeDlBXenOJdH5Xx6TLa5rpJyNFrkmYaXw8peDqTe+qDd8cExYfYca5IWX/Q3pq6k+L65n96D5BbEfdVZ/sKe8tmc9XTZeR0nuxEjgyZyWxd8BXeXvjpFP6Ouo=
+	t=1711030828; cv=none; b=rDUYsTSRL3YC785GZikWpTv1aN9aYUUbK7nWwFrycX0SckfBBM26nLywPDqNUzz5/A8oyw0TPZzt0eDJfb+YewV/S9tzZdv5VcfHFchKHrU3SSJu3Ss1e9D7KGOw1Fjv9Rg3JMF7j/xpdHLBKHHLjbJyVp8xB4R4w1J2SawRwPk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711023849; c=relaxed/simple;
-	bh=9Y+iDB2kpa11/N8tm74FqUL/5DZnx/fV2adFugr74CQ=;
-	h=From:To:Subject:Date:Message-Id:MIME-Version; b=hwuJ81u26T/f/L7uTUnkC49rgYJ1WewEWBxpEaImjgQPJ+YHtd97mXL1GhR4LWmswhFQV3HQn1fMLVVb8RsWlEFtq6v06aQqzHs6XQJIdoLd/Q/Hufg6ArdqwQF0owl5zCyFyrJ+kn8tL/VIVXUYuyjIcNw2ozZhhv/GSyGmUH8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] datatype: leave DTYPE_F_PREFIX only for IP address datatype
-Date: Thu, 21 Mar 2024 13:24:01 +0100
-Message-Id: <20240321122401.310768-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+	s=arc-20240116; t=1711030828; c=relaxed/simple;
+	bh=YsaJU7yU5UXT4dwymitMoladXmLHepBOYhkmIslJq/I=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=hzUn4k+F7ZKDppW2pOAny7lboOHYS7TiEnHU1kTG5TJVZ4wzlrdb/Evcw8QOvlV4d8ENoEmcEv/eB4G/IsiiSWyQSPxW/VI6lQf/AOehUroIQiOM4yQc8gHp8ErzfIRSU1iXmx2DE1lL3c28Emp6FeU6GJZSjRDMjGtGuQ0yF/E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=pYEOeXfG; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="pYEOeXfG"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 934BCC43390;
+	Thu, 21 Mar 2024 14:20:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1711030827;
+	bh=YsaJU7yU5UXT4dwymitMoladXmLHepBOYhkmIslJq/I=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=pYEOeXfGnRVAbqxBcvCan2jnhrC9JDNzYWDqSmvi7v+6tZh8jIxSvb1eVHZn2zSSE
+	 SJGn7EWSuaqz8PdqtTPDu1L3H4uVYN5+/DfVFHwzkH9Q1rjdOOE9PiD+99VpyqsqLW
+	 T1R90/yJkeCZlO23U94zh20ZxiYtkgkrPrfA+B360qE8fpY6fbZIoyFObGxrUSGFQF
+	 Jj4GTXAWMYajgB2+/0qaJGATWGSGDj6p7Rrp6x9b4UHIeyEcPWMBOPzUgTjomBjTrc
+	 wHM/61XcZSvBgy0lraF4MZ3WeNyg/4XXQb/pQWplrm/zlSNtp5fYKkoNgrbTfEWU3J
+	 rgP5S1y3Nc87A==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 7D918D982E4;
+	Thu, 21 Mar 2024 14:20:27 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -24,77 +37,45 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/3] netfilter: nft_set_pipapo: release elements in clone
+ only from destroy path
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <171103082750.11634.16678808488889700011.git-patchwork-notify@kernel.org>
+Date: Thu, 21 Mar 2024 14:20:27 +0000
+References: <20240321112117.36737-2-pablo@netfilter.org>
+In-Reply-To: <20240321112117.36737-2-pablo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com
 
-DTYPE_F_PREFIX flag provides a hint to the netlink delinearize path to
-use prefix notation.
+Hello:
 
-It seems use of prefix notation in meta mark causes confusion, users
-expect to see prefix in the listing only in IP address datatypes.
+This series was applied to netdev/net.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-Untoggle this flag so (more lengthy) binop output such as:
+On Thu, 21 Mar 2024 12:21:15 +0100 you wrote:
+> Clone already always provides a current view of the lookup table, use it
+> to destroy the set, otherwise it is possible to destroy elements twice.
+> 
+> This fix requires:
+> 
+>  212ed75dc5fb ("netfilter: nf_tables: integrate pipapo into commit protocol")
+> 
+> [...]
 
-  meta mark & 0xffffff00 == 0xffffff00
+Here is the summary with links:
+  - [net,1/3] netfilter: nft_set_pipapo: release elements in clone only from destroy path
+    https://git.kernel.org/netdev/net/c/b0e256f3dd2b
+  - [net,2/3] netfilter: nf_tables: do not compare internal table flags on updates
+    https://git.kernel.org/netdev/net/c/4a0e7f2decbf
+  - [net,3/3] netfilter: nf_tables: Fix a memory leak in nf_tables_updchain
+    https://git.kernel.org/netdev/net/c/7eaf837a4eb5
 
-is used instead.
-
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1739
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/datatype.c      | 1 -
- src/meta.c          | 1 -
- src/rt.c            | 1 -
- tests/py/any/meta.t | 2 +-
- 4 files changed, 1 insertion(+), 4 deletions(-)
-
-diff --git a/src/datatype.c b/src/datatype.c
-index 3205b214197f..b368ea9125fc 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -1015,7 +1015,6 @@ const struct datatype mark_type = {
- 	.print		= mark_type_print,
- 	.json		= mark_type_json,
- 	.parse		= mark_type_parse,
--	.flags		= DTYPE_F_PREFIX,
- };
- 
- static const struct symbol_table icmp_code_tbl = {
-diff --git a/src/meta.c b/src/meta.c
-index eca8dac72098..a17bacf07d0e 100644
---- a/src/meta.c
-+++ b/src/meta.c
-@@ -363,7 +363,6 @@ const struct datatype devgroup_type = {
- 	.print		= devgroup_type_print,
- 	.json		= devgroup_type_json,
- 	.parse		= devgroup_type_parse,
--	.flags		= DTYPE_F_PREFIX,
- };
- 
- const struct datatype ifname_type = {
-diff --git a/src/rt.c b/src/rt.c
-index d8f3352f4b4a..9320b8322456 100644
---- a/src/rt.c
-+++ b/src/rt.c
-@@ -61,7 +61,6 @@ const struct datatype realm_type = {
- 	.basetype	= &integer_type,
- 	.print		= realm_type_print,
- 	.parse		= realm_type_parse,
--	.flags		= DTYPE_F_PREFIX,
- };
- 
- const struct rt_template rt_templates[] = {
-diff --git a/tests/py/any/meta.t b/tests/py/any/meta.t
-index 718c7ad96186..bd10c56dfe5f 100644
---- a/tests/py/any/meta.t
-+++ b/tests/py/any/meta.t
-@@ -56,7 +56,7 @@ meta mark and 0x03 == 0x01;ok;meta mark & 0x00000003 == 0x00000001
- meta mark and 0x03 != 0x01;ok;meta mark & 0x00000003 != 0x00000001
- meta mark 0x10;ok;meta mark 0x00000010
- meta mark != 0x10;ok;meta mark != 0x00000010
--meta mark 0xffffff00/24;ok
-+meta mark 0xffffff00/24;ok;meta mark & 0xffffff00 == 0xffffff00
- 
- meta mark or 0x03 == 0x01;ok;meta mark | 0x00000003 == 0x00000001
- meta mark or 0x03 != 0x01;ok;meta mark | 0x00000003 != 0x00000001
+You are awesome, thank you!
 -- 
-2.30.2
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
