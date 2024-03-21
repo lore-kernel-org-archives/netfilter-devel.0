@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id A630B58207;
-	Thu, 21 Mar 2024 11:21:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id E413F5813B;
+	Thu, 21 Mar 2024 11:21:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711020087; cv=none; b=KsmWbxA3nD5rkj4CMAr9KRRySZynxG+wEJYuLRTcQ4PxCEmBEBLBJuBLRXGO0yORLqLaQGDQG6KbCHIhO3MJ1eslRKq/skdDODO0hUdw7CkgDlQPc8psDtqIyAoNFawiR+7NrOFyb+WPXSaRCBfqonFl17xlH3HlqV+/F3deOpg=
+	t=1711020087; cv=none; b=FjrJ7bmRTz4F1dUMhAQ01ehoWGF2epGYFuIyFLmEgPr+emdJtMM7QK6HrsZqfEG5gTXQnvJ2NlqIB20ZiCcFF3ObZ4FvY2JMk2akki61XatCJxr9PtoLrHxvgdMLQ3HJU4zftzODjAXrGy2njjBlKFSjS53TrP4REub6RrKNh4I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1711020087; c=relaxed/simple;
-	bh=gSSBpdER9TGv/BZyNYyFKp9TWtGygAfVn/YBysqspUA=;
+	bh=ZWDJNGv/fYX3DYM/IgV4AkcO6UwWPFiUHdwDGw+UIlE=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=pPfRaPiC+pjYEFDnOc8Y8olK6Ei0t/6RUXVn1CM8ZPVeXJm2o8fdVMC1TvFd9WHbfGOfE7TpWkEFKccxJ4nHtIyZ8zb7AaZD5+u0vXXDvM5eqp9OJZMk5B/ajmnk+wtyuXTOn7OYM/Y1AX7482+Om4obEc32DDn5YZICKaZxxTo=
+	 MIME-Version; b=q6vLypPOGhux4HKfvpF76sITJFAXvJ6TbFZ6u9tGxQhmfKE5MwoLKtN8xRQxhXzK6cW5ih+J5azY88auQAFJ8MYwx4S7NGPfRZlU+Vb3nNagLKEzZNs5ApiXylr5yPtnIP7jbRxxRHpZdZ4XyGEcXcQF2r2KTZVbQUdQAffTMAA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -19,9 +19,9 @@ Cc: davem@davemloft.net,
 	kuba@kernel.org,
 	pabeni@redhat.com,
 	edumazet@google.com
-Subject: [PATCH net 3/3] netfilter: nf_tables: Fix a memory leak in nf_tables_updchain
-Date: Thu, 21 Mar 2024 12:21:17 +0100
-Message-Id: <20240321112117.36737-4-pablo@netfilter.org>
+Subject: [PATCH net 1/3] netfilter: nft_set_pipapo: release elements in clone only from destroy path
+Date: Thu, 21 Mar 2024 12:21:15 +0100
+Message-Id: <20240321112117.36737-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240321112117.36737-1-pablo@netfilter.org>
 References: <20240321112117.36737-1-pablo@netfilter.org>
@@ -33,66 +33,46 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Quan Tian <tianquan23@gmail.com>
+Clone already always provides a current view of the lookup table, use it
+to destroy the set, otherwise it is possible to destroy elements twice.
 
-If nft_netdev_register_hooks() fails, the memory associated with
-nft_stats is not freed, causing a memory leak.
+This fix requires:
 
-This patch fixes it by moving nft_stats_alloc() down after
-nft_netdev_register_hooks() succeeds.
+ 212ed75dc5fb ("netfilter: nf_tables: integrate pipapo into commit protocol")
 
-Fixes: b9703ed44ffb ("netfilter: nf_tables: support for adding new devices to an existing netdev chain")
-Signed-off-by: Quan Tian <tianquan23@gmail.com>
+which came after:
+
+ 9827a0e6e23b ("netfilter: nft_set_pipapo: release elements in clone from abort path").
+
+Fixes: 9827a0e6e23b ("netfilter: nft_set_pipapo: release elements in clone from abort path")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 27 ++++++++++++++-------------
- 1 file changed, 14 insertions(+), 13 deletions(-)
+ net/netfilter/nft_set_pipapo.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 984c1c83ee38..5fa3d3540c93 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2631,19 +2631,6 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
- 		}
- 	}
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index c0ceea068936..df8de5090246 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -2329,8 +2329,6 @@ static void nft_pipapo_destroy(const struct nft_ctx *ctx,
+ 	if (m) {
+ 		rcu_barrier();
  
--	if (nla[NFTA_CHAIN_COUNTERS]) {
--		if (!nft_is_base_chain(chain)) {
--			err = -EOPNOTSUPP;
--			goto err_hooks;
--		}
+-		nft_set_pipapo_match_destroy(ctx, set, m);
 -
--		stats = nft_stats_alloc(nla[NFTA_CHAIN_COUNTERS]);
--		if (IS_ERR(stats)) {
--			err = PTR_ERR(stats);
--			goto err_hooks;
--		}
--	}
--
- 	if (!(table->flags & NFT_TABLE_F_DORMANT) &&
- 	    nft_is_base_chain(chain) &&
- 	    !list_empty(&hook.list)) {
-@@ -2658,6 +2645,20 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
- 	}
+ 		for_each_possible_cpu(cpu)
+ 			pipapo_free_scratch(m, cpu);
+ 		free_percpu(m->scratch);
+@@ -2342,8 +2340,7 @@ static void nft_pipapo_destroy(const struct nft_ctx *ctx,
+ 	if (priv->clone) {
+ 		m = priv->clone;
  
- 	unregister = true;
-+
-+	if (nla[NFTA_CHAIN_COUNTERS]) {
-+		if (!nft_is_base_chain(chain)) {
-+			err = -EOPNOTSUPP;
-+			goto err_hooks;
-+		}
-+
-+		stats = nft_stats_alloc(nla[NFTA_CHAIN_COUNTERS]);
-+		if (IS_ERR(stats)) {
-+			err = PTR_ERR(stats);
-+			goto err_hooks;
-+		}
-+	}
-+
- 	err = -ENOMEM;
- 	trans = nft_trans_alloc(ctx, NFT_MSG_NEWCHAIN,
- 				sizeof(struct nft_trans_chain));
+-		if (priv->dirty)
+-			nft_set_pipapo_match_destroy(ctx, set, m);
++		nft_set_pipapo_match_destroy(ctx, set, m);
+ 
+ 		for_each_possible_cpu(cpu)
+ 			pipapo_free_scratch(priv->clone, cpu);
 -- 
 2.30.2
 
