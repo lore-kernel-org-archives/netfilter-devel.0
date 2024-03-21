@@ -1,71 +1,59 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8DAF21100
-	for <netfilter-devel@vger.kernel.org>; Wed, 20 Mar 2024 20:45:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id E0E9E191;
+	Thu, 21 Mar 2024 00:06:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710967538; cv=none; b=SUNXgzsmT1c9ROPXIb1CzCSHvvIAjxHw59l6GBIhmwjS1v/lKwNmYP7flxuKZ6jH2P5UMRL78xzAN2wmbXwk2BtDFi98jHDuBM6oE6zzxc9dm/gUqR8UenSdsklOiaMobPtkL7v3j9YOHFA4efOI714gSno+B/pAAWl2+HCsYmQ=
+	t=1710979608; cv=none; b=gq5wJxsBR0fLGKWshkM90lQ1NFxaSOHj+ZjIKtDEjj+uXesphHL/ex54WbWoqHbSQoxZxv+Ksd975fE14E2iREZ7n378ZGRuviMsmC846/4vZ2c/9SI7PSqGhmIBrKZgXixAI6h34p5B9uf80E5DAZX6y4PHFnasUylyizDYDtg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710967538; c=relaxed/simple;
-	bh=ON982NmFWUbWf7IRG0x+yaOV93u7a3CJVL+0zDufxRg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=D/J2joWkVweQCBUSFdnbemXDP/ltKybznm2W9yXuio3j8WGpMAfa0ExRsIiY2tdJufBz4GT8fVQE0LDMUWzJdKHndWnyRQdWsOsw/MtvoR2B5h7bzqoEv8qNpx9FwTph9y0IQ6r0zS27y9NJP3PFPG4r7A+/2jsmEgpXcCMicbU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=PGfati5t; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="PGfati5t"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=aZzz4ZZo+j5UXaSXTegPJeyQloESZWtID/umLecNEo4=; b=PGfati5toVqWSDqvXqH55LD+JV
-	UojNFzSRcf89CKt8nF9MgD9rJEH96Xvs31cri+9K0GCuBXm+BWH8xqL7KnZuvkPz++5yRJ28XmfTV
-	vxzVmVNn3nbEzBZ0gEd5GZJjRT/r2SGiLG5nTMTbA26DAZIGL4lfcLt3kTmLzH0VBkz9by2PSFAlz
-	1wxmv1cBBlQwyPzlpdNDjmucpM2MIsejX6npU7qCFv8VfuMBHltZelpFlbuzpuSjA2Nwhs7HZYUz1
-	bNX0bZevvHVR0vCkthIyPepyCajv1IFun0MF4Q7xvY8yVGGvoaLqD2MLL6YHB5mA1DpmFLvEvP1aV
-	Zz0x8HBQ==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1rn2oX-000000007io-3lfp;
-	Wed, 20 Mar 2024 21:45:33 +0100
-Date: Wed, 20 Mar 2024 21:45:33 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] netlink_delinearize: restore binop syntax when
- listing ruleset for flags
-Message-ID: <ZftK7coQPu9teaE1@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-References: <20240319110337.42486-1-pablo@netfilter.org>
- <Zfsl-JagV67u9tNG@calendula>
+	s=arc-20240116; t=1710979608; c=relaxed/simple;
+	bh=cTcmO4w/kTveverO/D/2h609HziKzF1FbmTRMfKDrrc=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=YGQ+pCcNB3umsZOdRnPZYDTmqPYx6O4B64YY8ZpXVWHcFF4xcpXxICyPqe8VtSiC9GCCBdUzCZBnyG+fWlMq2etaRmYcflCS13o0ghvzg3poW7etFlfDAK5SkJp+sT/svVbsSm4v6ikUZEqFclLoi6O+7OUrYc1ElysANsinpqM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com
+Subject: [PATCH net 2/3] netfilter: nf_tables: do not compare internal table flags on updates
+Date: Thu, 21 Mar 2024 01:06:34 +0100
+Message-Id: <20240321000635.31865-3-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20240321000635.31865-1-pablo@netfilter.org>
+References: <20240321000635.31865-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Zfsl-JagV67u9tNG@calendula>
+Content-Transfer-Encoding: 8bit
 
-On Wed, Mar 20, 2024 at 07:07:52PM +0100, Pablo Neira Ayuso wrote:
-> On Tue, Mar 19, 2024 at 12:03:37PM +0100, Pablo Neira Ayuso wrote:
-> > c3d57114f119 ("parser_bison: add shortcut syntax for matching flags
-> > without binary operations") provides a similar syntax to iptables using
-> > a prefix representation for flag matching.
-> > 
-> > Restore original representation using binop when listing the ruleset.
-> > The parser still accepts the prefix notation for backward compatibility.
-> 
-> Amended tests, which were not correctly updated and I pushed it out.
-> 
-> @Phil: Sorry, this clashes with your recent updates to make more
-> compact representation of flags in json, you have to rebase.
+Restore skipping transaction if table update does not modify flags.
 
-No problem, thanks for the heads-up!
+Fixes: 179d9ba5559a ("netfilter: nf_tables: fix table flag updates")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index e93f905e60b6..984c1c83ee38 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1213,7 +1213,7 @@ static int nf_tables_updtable(struct nft_ctx *ctx)
+ 	if (flags & ~NFT_TABLE_F_MASK)
+ 		return -EOPNOTSUPP;
+ 
+-	if (flags == ctx->table->flags)
++	if (flags == (ctx->table->flags & NFT_TABLE_F_MASK))
+ 		return 0;
+ 
+ 	if ((nft_table_has_owner(ctx->table) &&
+-- 
+2.30.2
+
