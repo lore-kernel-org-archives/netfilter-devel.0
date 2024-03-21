@@ -1,13 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id F3AF554F89;
-	Thu, 21 Mar 2024 11:21:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A630B58207;
+	Thu, 21 Mar 2024 11:21:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711020086; cv=none; b=AbdGpSUV3MYo2Foebwz3spl9+/YZqUv5/nInPKKslvX4kPenOeNEwQ+HzGYvmS+PnY58AAQ3mg8K1bvHNI5kptsNNcVO97wIlYMTpjkmkHhN2bzBCrpBRCsqAeYZfgSDLmqAp4XbuRLg4/Yl9bxw8+lNulT+M6Oh7PSPnIVKmhg=
+	t=1711020087; cv=none; b=KsmWbxA3nD5rkj4CMAr9KRRySZynxG+wEJYuLRTcQ4PxCEmBEBLBJuBLRXGO0yORLqLaQGDQG6KbCHIhO3MJ1eslRKq/skdDODO0hUdw7CkgDlQPc8psDtqIyAoNFawiR+7NrOFyb+WPXSaRCBfqonFl17xlH3HlqV+/F3deOpg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711020086; c=relaxed/simple;
-	bh=dgcYgmlarTCQWg9j4VVOldGPOW0VJqWYp52FkwDZlYE=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=ehLunRIX1dlf6KQQGCCe1JaFKQx23iE9SbEdazeoekjhYKYADbCun3vfMFRaaaMrrGJ5a3rTrgeDEBUWHcTnXrVCa3wYFgcwdCnEyeCWsDBWC2d8McWEoCUKmus4CYrNq2JZ7lZ50m8XriICsfu58wHnTmpLSqjxN65ee2/QwCo=
+	s=arc-20240116; t=1711020087; c=relaxed/simple;
+	bh=gSSBpdER9TGv/BZyNYyFKp9TWtGygAfVn/YBysqspUA=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=pPfRaPiC+pjYEFDnOc8Y8olK6Ei0t/6RUXVn1CM8ZPVeXJm2o8fdVMC1TvFd9WHbfGOfE7TpWkEFKccxJ4nHtIyZ8zb7AaZD5+u0vXXDvM5eqp9OJZMk5B/ajmnk+wtyuXTOn7OYM/Y1AX7482+Om4obEc32DDn5YZICKaZxxTo=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -18,10 +19,12 @@ Cc: davem@davemloft.net,
 	kuba@kernel.org,
 	pabeni@redhat.com,
 	edumazet@google.com
-Subject: [PATCH net 0/3,v2] Netfilter fixes for net
-Date: Thu, 21 Mar 2024 12:21:14 +0100
-Message-Id: <20240321112117.36737-1-pablo@netfilter.org>
+Subject: [PATCH net 3/3] netfilter: nf_tables: Fix a memory leak in nf_tables_updchain
+Date: Thu, 21 Mar 2024 12:21:17 +0100
+Message-Id: <20240321112117.36737-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20240321112117.36737-1-pablo@netfilter.org>
+References: <20240321112117.36737-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -30,56 +33,66 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-v2: Amended missing SOB in patch 3/3.
+From: Quan Tian <tianquan23@gmail.com>
 
--o-
+If nft_netdev_register_hooks() fails, the memory associated with
+nft_stats is not freed, causing a memory leak.
 
-Hi,
+This patch fixes it by moving nft_stats_alloc() down after
+nft_netdev_register_hooks() succeeds.
 
-The following patchset contains Netfilter fixes for net. There is a
-larger batch of fixes still pending that will follow up asap, this is
-what I deemed to be more urgent at this time:
+Fixes: b9703ed44ffb ("netfilter: nf_tables: support for adding new devices to an existing netdev chain")
+Signed-off-by: Quan Tian <tianquan23@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 27 ++++++++++++++-------------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
 
-1) Use clone view in pipapo set backend to release elements from destroy
-   path, otherwise it is possible to destroy elements twice.
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 984c1c83ee38..5fa3d3540c93 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2631,19 +2631,6 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 		}
+ 	}
+ 
+-	if (nla[NFTA_CHAIN_COUNTERS]) {
+-		if (!nft_is_base_chain(chain)) {
+-			err = -EOPNOTSUPP;
+-			goto err_hooks;
+-		}
+-
+-		stats = nft_stats_alloc(nla[NFTA_CHAIN_COUNTERS]);
+-		if (IS_ERR(stats)) {
+-			err = PTR_ERR(stats);
+-			goto err_hooks;
+-		}
+-	}
+-
+ 	if (!(table->flags & NFT_TABLE_F_DORMANT) &&
+ 	    nft_is_base_chain(chain) &&
+ 	    !list_empty(&hook.list)) {
+@@ -2658,6 +2645,20 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 	}
+ 
+ 	unregister = true;
++
++	if (nla[NFTA_CHAIN_COUNTERS]) {
++		if (!nft_is_base_chain(chain)) {
++			err = -EOPNOTSUPP;
++			goto err_hooks;
++		}
++
++		stats = nft_stats_alloc(nla[NFTA_CHAIN_COUNTERS]);
++		if (IS_ERR(stats)) {
++			err = PTR_ERR(stats);
++			goto err_hooks;
++		}
++	}
++
+ 	err = -ENOMEM;
+ 	trans = nft_trans_alloc(ctx, NFT_MSG_NEWCHAIN,
+ 				sizeof(struct nft_trans_chain));
+-- 
+2.30.2
 
-2) Incorrect check for internal table flags lead to bogus transaction
-   objects.
-
-3) Fix counters memleak in netdev basechain update error path,
-   from Quan Tian.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-24-03-21
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 9c6a59543a3965071d65b0f9ea43aa396ce2ed14:
-
-  Merge branch 'octeontx2-pf-mbox-fixes' (2024-03-20 10:49:08 +0000)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-24-03-21
-
-for you to fetch changes up to 7eaf837a4eb5f74561e2486972e7f5184b613f6e:
-
-  netfilter: nf_tables: Fix a memory leak in nf_tables_updchain (2024-03-21 12:12:06 +0100)
-
-----------------------------------------------------------------
-netfilter pull request 24-03-21
-
-----------------------------------------------------------------
-Pablo Neira Ayuso (2):
-      netfilter: nft_set_pipapo: release elements in clone only from destroy path
-      netfilter: nf_tables: do not compare internal table flags on updates
-
-Quan Tian (1):
-      netfilter: nf_tables: Fix a memory leak in nf_tables_updchain
-
- net/netfilter/nf_tables_api.c  | 29 +++++++++++++++--------------
- net/netfilter/nft_set_pipapo.c |  5 +----
- 2 files changed, 16 insertions(+), 18 deletions(-)
