@@ -1,108 +1,84 @@
-Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46ABC7F;
-	Sat, 23 Mar 2024 00:26:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DCD646B5
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Mar 2024 02:37:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711153595; cv=none; b=g7H08pHfDfo4mH9rOgPPKu6rIylvo1RP+Fiyr0hehnFbh1aDYgNQMghNE4Bx4Rw54kRFSyXu+T0HeGbBUT7zmgmsSk5WCFzWvET7L9xzAQ7mHUJT+kDvMmpjTnVtBnUnsS8M6inNjo2PrxKBN4wKmUhHDbDzh1QuHH3YuBUQhBE=
+	t=1711161462; cv=none; b=aCtWqv84HC/obpmh0Wli2UsP1ST1xkxw16ILnnp3CxJJ9lIrSQu+NOwsn/Ux9NCa/67eNhHuDclFdN2Vmt2+3eM1aDFJMngH9zSFaJVX6wWNHOiD3q7WDGq/vdBQMn9DRkD0t/irzo93tfYYKhidfpd2SyvF7MHIoa4+h8JhyRQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711153595; c=relaxed/simple;
-	bh=wU0zA8OoaYRHOvx/DIRzkdHTS/4bRP2mB1DWJA8wSWQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=twJNxAhz02AJYN7QEI+hvb1pn+6grgNxHU/vJKuHZov/Lxm/wfFGyDN//jPO0U5H4GpYY4WI59lkDPUSSCzaFQyUU6GG20nwbsrOJyVryySRmwgs/EuocpJYuP2+cjT9OozG3CFBVR+UJwK6s4KJFeSzNTfciwPBqqwznlRECfM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SOXdcWjN; arc=none smtp.client-ip=209.85.218.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1711161462; c=relaxed/simple;
+	bh=vxm91y6dfuxKiAYU38XwYeKsFs7nZ++c5WLa6VkU5s0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=HUz/sZ4PCSCMPRVG/5Tq5zq5eZdfkc21osc+tWrEMU5DcoWAkZIhMHF7QnBdGiDb+JPRBcJ5h+Z4wORZhMRzeiNo9HWsZxva22gTDivqJpNU8gPgF9wmMWVyuh3psTrNYfO1Z0ER1tUJHz2pqF4xuO3w8w4lMp0t97zVH8CEX38=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=nFspAzbW; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SOXdcWjN"
-Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-a47385a4379so141258466b.0;
-        Fri, 22 Mar 2024 17:26:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1711153592; x=1711758392; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=wU0zA8OoaYRHOvx/DIRzkdHTS/4bRP2mB1DWJA8wSWQ=;
-        b=SOXdcWjNHm3pPTttpCga7l/2ltph3Bh6bK4oMk6Gtj6AS5SxlEpNIzoUmMciuQl8a5
-         rC/kfBO1g+X75hnxVzsuhISVuydxg96YcvXiQP1b1+eLA6B0IyKoUoeVYt4++65Lk3g/
-         ZUHanzBA18jcSCIFeZFvGH7J0ZHx07Uw6pGgqDZQXQd8kYcY6g75/GnnHTVC4D6wxcfb
-         SxfOicONOdi9EI9u4tMM95s9hvbgvNd3h9txwzZzmC9r/8A13dHNkaCTZuPPDWtU7hKu
-         EjrDGPMigNuREUP1bISxRp97HxvMEN9GGHQMhHRjzKdDIiU2lK104LLMQsayvoMeDm0L
-         OmjA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1711153592; x=1711758392;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=wU0zA8OoaYRHOvx/DIRzkdHTS/4bRP2mB1DWJA8wSWQ=;
-        b=DQJkaVJEJ9V9sUcUiJ922M1ky4iNvazttjigP4Ta5N26cf9KAm4TG1vNtUZMb5/5ig
-         pxU5hR2xd8v68MB1w5ENAEfVl08WMVNjQHWv0e8WRnkrXlLToAWFkan71PknMvgXfkE8
-         AzJSvHgdjzAfDioyBNyS3v4zBSPRi2hKJHm0s97NASWJUyjkhdK9A3QohExSraDy77jt
-         MQEV2Xe19LhZTyo8InDsEo5gZc/QKXVDiGKlNwuvx732QOJkaRPSbxmeKeX/FGB64ZEv
-         jn66MHWsQVabEI5Vy7S2MO+xk4v4P4AJvizTkXWSpf7olAGYj9rZcuktVhPJMcgNzYhq
-         kGQg==
-X-Forwarded-Encrypted: i=1; AJvYcCUA9V/+7kXyRT3pQy6fPfK78/vmPjcmptRZ12hy0/hLSKhlLcgq2LEKgylk6UOpegZYTWmXX0TyyX0CvfGpO1bzsbxsmxOyHsvVUxW2ujPEAr3s4w0n9Wmk/+tAh+WKIOvoVbAkvtxq
-X-Gm-Message-State: AOJu0YxeuQjsVZYr+VnpTPuYNT6sZJJIsYq5vlg/sViNa4nu/4NSNWQF
-	qb33ppUt+LYTbXGBusVY+AipUojYTI4fV8YwJGm4M/zxuzcxir1gMEg/BY60j8KIIIKgtguvcHV
-	f1csLr6AwncQwSO+nxpmWhrZpNWk=
-X-Google-Smtp-Source: AGHT+IF3117YE3+ORlIw6dGfkG+zU6ybLu9Nvj3CXFO+gPHb+xi2TPfpqW0dJyzWVVVyRJejwAkFtbb4uBnZwDIQjsI=
-X-Received: by 2002:a17:906:8cc:b0:a47:3f10:b3c8 with SMTP id
- o12-20020a17090608cc00b00a473f10b3c8mr419328eje.26.1711153592378; Fri, 22 Mar
- 2024 17:26:32 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="nFspAzbW"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=ZfFl4i4P0HRA4vhae9NFrPn74b8wjhQ4BqDTMf1KZzM=; b=nFspAzbWwNZ8yfJCZHav0bwbRZ
+	tYs1W1LZWv7BkyTcNGUqGSDZjAWqAfgW8ML4XREUl9k3sYciEXqAUH7+OT1VXJt+tUU6+yZTMUatb
+	UmO+A5Ki1AlC+tXHOQGEtRu1Zv0PZzeF1nfqEdpUCco43lowcnEZuWSHlH/QP5ataJCoTsLC+oqeR
+	LA/e6qYVwMtO0t6dWQ1EApyZDSd8fOYOKdoCvQDwXBEpEfhV6JwtvxiJOMSGteL/8wNW/wORcdh0G
+	YYZXuBUyf+gpj/ME8kg/gDbsl5G9vcf/lTM10aIE2HamdH5fCNMEL2mJgLHS0qFVIbm00Bx/1a4Pv
+	ZZVc2JTg==;
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1rnrGK-0000000089q-41FY;
+	Sat, 23 Mar 2024 03:37:36 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org,
+	Thomas Haller <thaller@redhat.com>
+Subject: [nft PATCH] tests: shell: Avoid escape chars when printing to non-terminals
+Date: Sat, 23 Mar 2024 03:37:33 +0100
+Message-ID: <20240323023733.20253-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240311070550.7438-1-kerneljasonxing@gmail.com>
- <ZfyhR_24HmShs78t@calendula> <2aa340d2-c098-9ed8-4e65-896e1d63c2da@blackhole.kfki.hu>
- <CAL+tcoDY55yXbo3=OtHpeVOfN8aJmDjwzpd8mRkOH2rMj6QUbA@mail.gmail.com> <b1b95a71-a4e8-288c-7731-811ad548d641@blackhole.kfki.hu>
-In-Reply-To: <b1b95a71-a4e8-288c-7731-811ad548d641@blackhole.kfki.hu>
-From: Jason Xing <kerneljasonxing@gmail.com>
-Date: Sat, 23 Mar 2024 08:25:55 +0800
-Message-ID: <CAL+tcoCe6YFOWOYvdu1UH+kHRYPEmfphOJzB0BcVR-HER0GZ8g@mail.gmail.com>
-Subject: Re: [PATCH nf-next v2] netfilter: conntrack: avoid sending RST to
- reply out-of-window skb
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, edumazet@google.com, 
-	Florian Westphal <fw@strlen.de>, kuba@kernel.org, pabeni@redhat.com, 
-	David Miller <davem@davemloft.net>, netfilter-devel@vger.kernel.org, 
-	coreteam@netfilter.org, netdev@vger.kernel.org, 
-	Jason Xing <kernelxing@tencent.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-> I understand and appreciate your efforts. But please consider the case
-> when one have to diagnose a failing connection and conntrack drops
-> packets. What should be suspected? Firewall rules? One can enable TRACE
-> and check which rules are hit - but because conntrack drops packet,
-> nothing is shown there. Enable and check conntrack events? Because the
-> packets are INVALID, checking the events does not help either. Only when
-> one runs tcpdump and compares it with the TRACE/NFLOG/LOG entries can one
-> spot that some packets "disappeared".
->
-> Compare the whole thing with the case when packets are not dropped
-> silently but can be logged via checking the INVALID flag. One can directly
-> tell that conntrack could not handle the packets and can see all packet
-> parameters.
+Print the 'EXECUTING' status line only if stdout is a terminal, the
+mandatory following escape sequence to delete it messes up log file
+contents.
 
-Thanks for explaining such importance about why not drop silently. Now
-I can see :)
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ tests/shell/run-tests.sh | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-In my first version, I didn't drop it directly but let it go without
-clearing skb->_nfct fields and then let the TCP layer handle it. As
-you said, the out-of-window case is just one of some INVALID cases
-which could also cause RST behaviour, so it seems that the first
-version doesn't handle it well either. It has to take all INVALID
-cases into account...
+diff --git a/tests/shell/run-tests.sh b/tests/shell/run-tests.sh
+index 86c8312683ccb..6a9b518c3aed5 100755
+--- a/tests/shell/run-tests.sh
++++ b/tests/shell/run-tests.sh
+@@ -860,7 +860,7 @@ job_start() {
+ 	local testfile="$1"
+ 	local testidx="$2"
+ 
+-	if [ "$NFT_TEST_JOBS" -le 1 ] ; then
++	if [ "$NFT_TEST_JOBS" -le 1 ] && [[ -t 1 ]]; then
+ 		print_test_header I "$testfile" "$testidx" "EXECUTING"
+ 	fi
+ 
+@@ -873,7 +873,7 @@ job_start() {
+ 	$NFT_TEST_UNSHARE_CMD "$NFT_TEST_BASEDIR/helpers/test-wrapper.sh" "$testfile"
+ 	local rc_got=$?
+ 
+-	if [ "$NFT_TEST_JOBS" -le 1 ] ; then
++	if [ "$NFT_TEST_JOBS" -le 1 ] && [[ -t 1 ]]; then
+ 		echo -en "\033[1A\033[K" # clean the [EXECUTING] foobar line
+ 	fi
+ 
+-- 
+2.43.0
 
-Is there anything left I can do like particular tracepoints something
-like this? No idea. I only hope somebody who encounters such an issue
-can notice this behaviour effortlessly :)
-
-Thanks,
-Jason
-
->
-> Best regards,
-> Jozsef
