@@ -1,45 +1,33 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DCD646B5
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 Mar 2024 02:37:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+Received: from vmicros1.altlinux.org (vmicros1.altlinux.org [194.107.17.57])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4E9801362
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Mar 2024 03:06:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=194.107.17.57
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711161462; cv=none; b=aCtWqv84HC/obpmh0Wli2UsP1ST1xkxw16ILnnp3CxJJ9lIrSQu+NOwsn/Ux9NCa/67eNhHuDclFdN2Vmt2+3eM1aDFJMngH9zSFaJVX6wWNHOiD3q7WDGq/vdBQMn9DRkD0t/irzo93tfYYKhidfpd2SyvF7MHIoa4+h8JhyRQ=
+	t=1711163217; cv=none; b=PwsA42DOpNJdyGQ2GkrVSgr8ZJGYAbYxSaUVKgv0YPoMldAVpY1IyypYGbcExWhr006P0X9B1MZs54yPrxtQMQm8TSmsTVQ5v5bkd0xpZTKbGLc3zpbstukgADIaHw6bPWfQuTRTBZf9QEBNhrssyMNlIcf4t8TaMHHIL9iyUE0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711161462; c=relaxed/simple;
-	bh=vxm91y6dfuxKiAYU38XwYeKsFs7nZ++c5WLa6VkU5s0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=HUz/sZ4PCSCMPRVG/5Tq5zq5eZdfkc21osc+tWrEMU5DcoWAkZIhMHF7QnBdGiDb+JPRBcJ5h+Z4wORZhMRzeiNo9HWsZxva22gTDivqJpNU8gPgF9wmMWVyuh3psTrNYfO1Z0ER1tUJHz2pqF4xuO3w8w4lMp0t97zVH8CEX38=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=nFspAzbW; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="nFspAzbW"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=ZfFl4i4P0HRA4vhae9NFrPn74b8wjhQ4BqDTMf1KZzM=; b=nFspAzbWwNZ8yfJCZHav0bwbRZ
-	tYs1W1LZWv7BkyTcNGUqGSDZjAWqAfgW8ML4XREUl9k3sYciEXqAUH7+OT1VXJt+tUU6+yZTMUatb
-	UmO+A5Ki1AlC+tXHOQGEtRu1Zv0PZzeF1nfqEdpUCco43lowcnEZuWSHlH/QP5ataJCoTsLC+oqeR
-	LA/e6qYVwMtO0t6dWQ1EApyZDSd8fOYOKdoCvQDwXBEpEfhV6JwtvxiJOMSGteL/8wNW/wORcdh0G
-	YYZXuBUyf+gpj/ME8kg/gDbsl5G9vcf/lTM10aIE2HamdH5fCNMEL2mJgLHS0qFVIbm00Bx/1a4Pv
-	ZZVc2JTg==;
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1rnrGK-0000000089q-41FY;
-	Sat, 23 Mar 2024 03:37:36 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org,
-	Thomas Haller <thaller@redhat.com>
-Subject: [nft PATCH] tests: shell: Avoid escape chars when printing to non-terminals
-Date: Sat, 23 Mar 2024 03:37:33 +0100
-Message-ID: <20240323023733.20253-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.43.0
+	s=arc-20240116; t=1711163217; c=relaxed/simple;
+	bh=SrlhXWyl3ud7/emoyLhi7JzSRgrYEzvz96YjStcmnW0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=NMj1Tng1c0Y3s1oSy7uQ6/M0SP4SYWIWYMOAfTjEbHohHLIaWLyGw2CLDiKJYxRtKrwUs5XxtmaWM3ICR4uDRtSrHVWOCVIGovyR73SJzjIQ50sov0CmdhrdL+oPFiAYmO6uTmP4lm9FOzouzi/aK/2dP47p89b8I+gi0GfFw9U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=altlinux.org; spf=pass smtp.mailfrom=altlinux.org; arc=none smtp.client-ip=194.107.17.57
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=altlinux.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=altlinux.org
+Received: from imap.altlinux.org (imap.altlinux.org [194.107.17.38])
+	by vmicros1.altlinux.org (Postfix) with ESMTP id A2AA172C8CC;
+	Sat, 23 Mar 2024 06:06:49 +0300 (MSK)
+Received: from beacon.altlinux.org (unknown [193.43.10.9])
+	by imap.altlinux.org (Postfix) with ESMTPSA id 9119F36D071C;
+	Sat, 23 Mar 2024 06:06:49 +0300 (MSK)
+From: Vitaly Chikunov <vt@altlinux.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	netfilter-devel@vger.kernel.org
+Cc: Vitaly Chikunov <vt@altlinux.org>,
+	Jan Engelhardt <jengelh@inai.de>,
+	Gleb Fotengauer-Malinovskiy <glebfm@altlinux.org>
+Subject: [PATCH iptables] libxtables: Fix xtables_ipaddr_to_numeric calls with xtables_ipmask_to_numeric
+Date: Sat, 23 Mar 2024 06:06:41 +0300
+Message-ID: <20240323030641.988354-1-vt@altlinux.org>
+X-Mailer: git-send-email 2.42.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -48,37 +36,43 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Print the 'EXECUTING' status line only if stdout is a terminal, the
-mandatory following escape sequence to delete it messes up log file
-contents.
+Frequently when addr/mask is printed xtables_ipaddr_to_numeric and
+xtables_ipmask_to_numeric are called together in one printf call but
+xtables_ipmask_to_numeric internally calls xtables_ipaddr_to_numeric
+which prints into the same static buffer causing buffer to be
+overwritten and addr/mask incorrectly printed in such call scenarios.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Make xtables_ipaddr_to_numeric to use two static buffers rotating their
+use. This simplistic approach will leave ABI not changed and cover all
+such use cases.
+
+Interestingly, testing stumbled over this only on non-x86 architectures.
+Error message:
+
+  extensions/libebt_arp.t: ERROR: line 11 (cannot find: ebtables -I INPUT -p ARP --arp-ip-src ! 1.2.3.4/255.0.255.255)
+
+Signed-off-by: Vitaly Chikunov <vt@altlinux.org>
+Cc: Jan Engelhardt <jengelh@inai.de>
+Cc: Gleb Fotengauer-Malinovskiy <glebfm@altlinux.org>
 ---
- tests/shell/run-tests.sh | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ libxtables/xtables.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/tests/shell/run-tests.sh b/tests/shell/run-tests.sh
-index 86c8312683ccb..6a9b518c3aed5 100755
---- a/tests/shell/run-tests.sh
-+++ b/tests/shell/run-tests.sh
-@@ -860,7 +860,7 @@ job_start() {
- 	local testfile="$1"
- 	local testidx="$2"
+diff --git a/libxtables/xtables.c b/libxtables/xtables.c
+index 748a50fc..16a0640d 100644
+--- a/libxtables/xtables.c
++++ b/libxtables/xtables.c
+@@ -1505,7 +1505,9 @@ void xtables_param_act(unsigned int status, const char *p1, ...)
  
--	if [ "$NFT_TEST_JOBS" -le 1 ] ; then
-+	if [ "$NFT_TEST_JOBS" -le 1 ] && [[ -t 1 ]]; then
- 		print_test_header I "$testfile" "$testidx" "EXECUTING"
- 	fi
+ const char *xtables_ipaddr_to_numeric(const struct in_addr *addrp)
+ {
+-	static char buf[16];
++	static char abuf[2][16];
++	static int bufnum = 0;
++	char *buf = abuf[++bufnum & 1];
+ 	const unsigned char *bytep = (const void *)&addrp->s_addr;
  
-@@ -873,7 +873,7 @@ job_start() {
- 	$NFT_TEST_UNSHARE_CMD "$NFT_TEST_BASEDIR/helpers/test-wrapper.sh" "$testfile"
- 	local rc_got=$?
- 
--	if [ "$NFT_TEST_JOBS" -le 1 ] ; then
-+	if [ "$NFT_TEST_JOBS" -le 1 ] && [[ -t 1 ]]; then
- 		echo -en "\033[1A\033[K" # clean the [EXECUTING] foobar line
- 	fi
- 
+ 	sprintf(buf, "%u.%u.%u.%u", bytep[0], bytep[1], bytep[2], bytep[3]);
 -- 
-2.43.0
+2.42.1
 
