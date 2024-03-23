@@ -1,105 +1,67 @@
-Received: from vmicros1.altlinux.org (vmicros1.altlinux.org [194.107.17.57])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 69367249E6
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 Mar 2024 21:37:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=194.107.17.57
+Received: from vps0.lunn.ch (vps0.lunn.ch [156.67.10.101])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E218A5A4C6;
+	Sat, 23 Mar 2024 22:25:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=156.67.10.101
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711229879; cv=none; b=D18cfVPVS/WEaOcOWCNpnM5Q+zFs6kuPpk5Ubt9Pqe4oOWt316S90BhNUW6oS2rdk7baV0U50w17FTnYxJDphEeWoGbadNGaRUwD8nkdB9zvLHZMcuxFcLUrKFx4H93IL1pQIZJ72KhAP9Gs8m8tqhBym6n/SUony+BHPJvYvs0=
+	t=1711232751; cv=none; b=Z/9fQz7f1YL4Fryb3iZ+j81GJD3PJMMkk9H/MAHLy6GbzBmFEEhUj+ypK2q7qpyQmKk0qcpYJ/H0Ld1osI5j2pWDd0s7pwX2g2ZUgCH5DW9Y5fd4ZexBb44Cyj8k/s9PfcXyxM4qxwrK8rO861oqDmwYtQHmIri4f+dUGHMZFjk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711229879; c=relaxed/simple;
-	bh=wwXIFoxCp2DrdRQPEz6A4O2CpwJn0tuxcpCaCW+Hyts=;
-	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RQMpHh08tgN9SFFZkCaQW77lo6qf47651luSsPh1gCnQJTJ1TlMo2yxLmYHJbjQd3YNn13Y7H5O6s+NSYZ/Tqjbvr5JXZBEioTddvEXB11xTluZuZurqQLtqMOdWmz/5DtcfkSIP3i0oo4msHLF4xhSKNmt/RZSjDqN0XLHQ2wg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=altlinux.org; spf=pass smtp.mailfrom=altlinux.org; arc=none smtp.client-ip=194.107.17.57
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=altlinux.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=altlinux.org
-Received: from imap.altlinux.org (imap.altlinux.org [194.107.17.38])
-	by vmicros1.altlinux.org (Postfix) with ESMTP id 7206772C8CC;
-	Sun, 24 Mar 2024 00:37:53 +0300 (MSK)
-Received: from altlinux.org (sole.flsd.net [185.75.180.6])
-	by imap.altlinux.org (Postfix) with ESMTPSA id 60EDF36D071C;
-	Sun, 24 Mar 2024 00:37:53 +0300 (MSK)
-Date: Sun, 24 Mar 2024 00:37:53 +0300
-From: Vitaly Chikunov <vt@altlinux.org>
-To: Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	Jan Engelhardt <jengelh@inai.de>,
-	Gleb Fotengauer-Malinovskiy <glebfm@altlinux.org>
-Subject: Re: [PATCH iptables] libxtables: Fix xtables_ipaddr_to_numeric calls
- with xtables_ipmask_to_numeric
-Message-ID: <20240323213753.cqockivt4fwan52a@altlinux.org>
-References: <20240323030641.988354-1-vt@altlinux.org>
- <Zf7fm6b4SC885EcU@orbyte.nwl.cc>
+	s=arc-20240116; t=1711232751; c=relaxed/simple;
+	bh=5ywmwSOANCwvmN60cHoKWbVHRtpgvPfzhKz4OyO0kz0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=hOXh9VGQkQg+lz0wR5OSs7UmkAHfc2HOq7rUKczlCsCMzC/vL5E5rT8oNze0sL3d5wd+hipaZ3sOPol/6oylAmPadERRxF/b173/AfTKHhQ5XXmzxRB7eAXXlldKjS6qGU53uL8S2nCr6WLX3H8TPk/EU6FDUw7fMIsHmTA3uS0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch; spf=pass smtp.mailfrom=lunn.ch; dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.b=ZpKczV2m; arc=none smtp.client-ip=156.67.10.101
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lunn.ch
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.b="ZpKczV2m"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=lunn.ch;
+	s=20171124; h=In-Reply-To:Content-Disposition:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:From:Sender:Reply-To:Subject:
+	Date:Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	Content-ID:Content-Description:Content-Disposition:In-Reply-To:References;
+	bh=S9qKN3rr+FvnUj2R5c4tNQZmaB108poPnd4hRyAjl10=; b=ZpKczV2m/VB39yMBjAqTJcrUvJ
+	C56/29nH+DoG/tTV3FC8bWOVOeyUX+kI4rwjp8g5+NdBf1nBBBqW/0YwHa00OrHiuoPwGXLbuMXkH
+	NWlhxQandRmtoRS1b5E8Y7ej+fW+h6aK0DFiAlGtd7MYvWUXYt+PKkXPqiOFpMU79M9o=;
+Received: from andrew by vps0.lunn.ch with local (Exim 4.94.2)
+	(envelope-from <andrew@lunn.ch>)
+	id 1ro9o6-00B4TF-7t; Sat, 23 Mar 2024 23:25:42 +0100
+Date: Sat, 23 Mar 2024 23:25:42 +0100
+From: Andrew Lunn <andrew@lunn.ch>
+To: Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Cc: Daniel Hodges <hodges.daniel.scott@gmail.com>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>,
+	Network Development <netdev@vger.kernel.org>,
+	Alexei Starovoitov <ast@kernel.org>, Pavel Machek <pavel@ucw.cz>,
+	Lee Jones <lee@kernel.org>, linux-leds@vger.kernel.org,
+	Daniel Borkmann <daniel@iogearbox.net>, bpf <bpf@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 1/3] leds: trigger: legtrig-bpf: Add ledtrig-bpf module
+Message-ID: <ceeefde3-68a6-4fc9-87a0-401206037855@lunn.ch>
+References: <cover.1711113657.git.hodges.daniel.scott@gmail.com>
+ <ac8e77881212e18d117059a698affd6afc2607af.1711113657.git.hodges.daniel.scott@gmail.com>
+ <CAADnVQ+BsBcp5osqiG46gjtLViQjHStVnPsySffHsybaz7OYEw@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=koi8-r
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <Zf7fm6b4SC885EcU@orbyte.nwl.cc>
+In-Reply-To: <CAADnVQ+BsBcp5osqiG46gjtLViQjHStVnPsySffHsybaz7OYEw@mail.gmail.com>
 
-On Sat, Mar 23, 2024 at 02:56:43PM +0100, Phil Sutter wrote:
-> On Sat, Mar 23, 2024 at 06:06:41AM +0300, Vitaly Chikunov wrote:
-> > Frequently when addr/mask is printed xtables_ipaddr_to_numeric and
-> > xtables_ipmask_to_numeric are called together in one printf call but
-> > xtables_ipmask_to_numeric internally calls xtables_ipaddr_to_numeric
-> > which prints into the same static buffer causing buffer to be
-> > overwritten and addr/mask incorrectly printed in such call scenarios.
-> > 
-> > Make xtables_ipaddr_to_numeric to use two static buffers rotating their
-> > use. This simplistic approach will leave ABI not changed and cover all
-> > such use cases.
-> 
-> I don't quite like the cat'n'mouse game this opens, although it's
-> unlikely someone calls it a third time before copying the buffer.
-> 
-> What do you think about the attached solution?
+> A new kernel module just to call this helper?
+> Feels like overkill. Can it be a part of generic led bits?
+> btw, have you looked at net/netfilter/xt_LED.c ?
+> netfilter had the ability to blink led for a long time.
+> I'm curious whether folks found it useful.
 
-Your approach is indeed much better. But why double underscore prefix
-to a function name, this sounds like reserved identifiers.
+This might become more useful now that we have support for PHY & MAC
+LEDs. You can use the netdev trigger for the usual things an RJ45 LED
+shows: link, rx/tx activity, link speed etc. But they are just Linux
+LEDs, you can also use them for heartbeat, disc IO, tty IO, or xt_LED.
+xt_LED would actually make sense for an LED in a RJ45 socket.
 
- https://en.cppreference.com/w/c/language/identifier
-
-Thanks,
-  
-> 
-> Thanks, Phil
-
-> diff --git a/libxtables/xtables.c b/libxtables/xtables.c
-> index f2fcc5c22fb61..54df1bc9336dd 100644
-> --- a/libxtables/xtables.c
-> +++ b/libxtables/xtables.c
-> @@ -1511,12 +1511,19 @@ void xtables_param_act(unsigned int status, const char *p1, ...)
->  	va_end(args);
->  }
->  
-> +static void
-> +__xtables_ipaddr_to_numeric(const struct in_addr *addrp, char *bufp)
-> +{
-> +	const unsigned char *bytep = (const void *)&addrp->s_addr;
-> +
-> +	sprintf(bufp, "%u.%u.%u.%u", bytep[0], bytep[1], bytep[2], bytep[3]);
-> +}
-> +
->  const char *xtables_ipaddr_to_numeric(const struct in_addr *addrp)
->  {
->  	static char buf[16];
-> -	const unsigned char *bytep = (const void *)&addrp->s_addr;
->  
-> -	sprintf(buf, "%u.%u.%u.%u", bytep[0], bytep[1], bytep[2], bytep[3]);
-> +	__xtables_ipaddr_to_numeric(addrp, buf);
->  	return buf;
->  }
->  
-> @@ -1583,7 +1590,8 @@ const char *xtables_ipmask_to_numeric(const struct in_addr *mask)
->  	cidr = xtables_ipmask_to_cidr(mask);
->  	if (cidr == (unsigned int)-1) {
->  		/* mask was not a decent combination of 1's and 0's */
-> -		sprintf(buf, "/%s", xtables_ipaddr_to_numeric(mask));
-> +		buf[0] = '/';
-> +		__xtables_ipaddr_to_numeric(mask, buf + 1);
->  		return buf;
->  	} else if (cidr == 32) {
->  		/* we don't want to see "/32" */
-
+       Andrew
