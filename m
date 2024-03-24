@@ -1,47 +1,56 @@
-Received: from vps0.lunn.ch (vps0.lunn.ch [156.67.10.101])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E218A5A4C6;
-	Sat, 23 Mar 2024 22:25:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=156.67.10.101
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6661F1A38DA
+	for <netfilter-devel@vger.kernel.org>; Sun, 24 Mar 2024 13:51:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711232751; cv=none; b=Z/9fQz7f1YL4Fryb3iZ+j81GJD3PJMMkk9H/MAHLy6GbzBmFEEhUj+ypK2q7qpyQmKk0qcpYJ/H0Ld1osI5j2pWDd0s7pwX2g2ZUgCH5DW9Y5fd4ZexBb44Cyj8k/s9PfcXyxM4qxwrK8rO861oqDmwYtQHmIri4f+dUGHMZFjk=
+	t=1711288263; cv=none; b=r0WEA66DBZrlHkaqBe0fElmxC2gGpWpR9RGCNkPuCgs2t8nz4iw3wdTczvofzPDPNjttAQu/2+evw8KKhSpUFdUZzPUqnpjOATExZn9MYlW+Nq9twK+4zfKD/2T3zTRvNw0FJ5xd+3yCyfK8t8u5sKxC8lN7eHJp9yj2jSqiD+I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711232751; c=relaxed/simple;
-	bh=5ywmwSOANCwvmN60cHoKWbVHRtpgvPfzhKz4OyO0kz0=;
+	s=arc-20240116; t=1711288263; c=relaxed/simple;
+	bh=qc60tPDOPHemju0jO0N8Rm5tFmKjZCLYdJj4N2ZRi5I=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=hOXh9VGQkQg+lz0wR5OSs7UmkAHfc2HOq7rUKczlCsCMzC/vL5E5rT8oNze0sL3d5wd+hipaZ3sOPol/6oylAmPadERRxF/b173/AfTKHhQ5XXmzxRB7eAXXlldKjS6qGU53uL8S2nCr6WLX3H8TPk/EU6FDUw7fMIsHmTA3uS0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch; spf=pass smtp.mailfrom=lunn.ch; dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.b=ZpKczV2m; arc=none smtp.client-ip=156.67.10.101
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lunn.ch
+	 Content-Type:Content-Disposition:In-Reply-To; b=fpz1wkyP/m9VdMDsoCZ1cAwpQdKbPSelk/jmnsktpxOIlpdsYgn9C6CYvIzDDmSejudRHgwZ9fH3yDZStkwM5laOmJYSuqQ//KaO1m2ZZ2wEMy7hU4nDr7rDD42eFCW+NKNtmdyZ12eXoVuTzfD6eu+R4EyTw3Ep0AM08EPO548=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=Ur0Y0MUt; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.b="ZpKczV2m"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=lunn.ch;
-	s=20171124; h=In-Reply-To:Content-Disposition:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:From:Sender:Reply-To:Subject:
-	Date:Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	Content-ID:Content-Description:Content-Disposition:In-Reply-To:References;
-	bh=S9qKN3rr+FvnUj2R5c4tNQZmaB108poPnd4hRyAjl10=; b=ZpKczV2m/VB39yMBjAqTJcrUvJ
-	C56/29nH+DoG/tTV3FC8bWOVOeyUX+kI4rwjp8g5+NdBf1nBBBqW/0YwHa00OrHiuoPwGXLbuMXkH
-	NWlhxQandRmtoRS1b5E8Y7ej+fW+h6aK0DFiAlGtd7MYvWUXYt+PKkXPqiOFpMU79M9o=;
-Received: from andrew by vps0.lunn.ch with local (Exim 4.94.2)
-	(envelope-from <andrew@lunn.ch>)
-	id 1ro9o6-00B4TF-7t; Sat, 23 Mar 2024 23:25:42 +0100
-Date: Sat, 23 Mar 2024 23:25:42 +0100
-From: Andrew Lunn <andrew@lunn.ch>
-To: Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Cc: Daniel Hodges <hodges.daniel.scott@gmail.com>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	Network Development <netdev@vger.kernel.org>,
-	Alexei Starovoitov <ast@kernel.org>, Pavel Machek <pavel@ucw.cz>,
-	Lee Jones <lee@kernel.org>, linux-leds@vger.kernel.org,
-	Daniel Borkmann <daniel@iogearbox.net>, bpf <bpf@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 1/3] leds: trigger: legtrig-bpf: Add ledtrig-bpf module
-Message-ID: <ceeefde3-68a6-4fc9-87a0-401206037855@lunn.ch>
-References: <cover.1711113657.git.hodges.daniel.scott@gmail.com>
- <ac8e77881212e18d117059a698affd6afc2607af.1711113657.git.hodges.daniel.scott@gmail.com>
- <CAADnVQ+BsBcp5osqiG46gjtLViQjHStVnPsySffHsybaz7OYEw@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="Ur0Y0MUt"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=fst73u0uUisWr+3mXRa8j5ZmxmgEQbRZRw86E8xdVSM=; b=Ur0Y0MUtemddQWJTbYh25pV7fC
+	3iMteuRFhoLeqnO8PBu6Igzff91fwbukE4JtRyj0yyTXDx9qcKPX2aGv2N5GtSqyrU9TAzPPD3jrT
+	t/pwleA9FrXBiovKELJEF+TFuwImd8NwKNiFCrfKFnWLXQLmHa8Q3Q3/VY1tS4WMpyVpy08c0gQ6t
+	aBbGOI/Md4QuXWKx20C8NEwsJZIRI1aSyRwBmaIYLpyP/Kq0mQSkMEF9VAdb8XqnyMYRzWieEzYQD
+	lRK3vHr93om/LemJu0ptXyt4zCQfOb/zkt78uNJvlzVdT+VmCefNbo3t24mlmL3W3NXiPFhhFdfUv
+	xMeMnMrw==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1roOFP-00000000422-32zH;
+	Sun, 24 Mar 2024 14:50:51 +0100
+Date: Sun, 24 Mar 2024 14:50:51 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Vitaly Chikunov <vt@altlinux.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	Jan Engelhardt <jengelh@inai.de>,
+	Gleb Fotengauer-Malinovskiy <glebfm@altlinux.org>
+Subject: Re: [PATCH iptables] libxtables: Fix xtables_ipaddr_to_numeric calls
+ with xtables_ipmask_to_numeric
+Message-ID: <ZgAvu7pD4PJhyxB-@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Vitaly Chikunov <vt@altlinux.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	Jan Engelhardt <jengelh@inai.de>,
+	Gleb Fotengauer-Malinovskiy <glebfm@altlinux.org>
+References: <20240323030641.988354-1-vt@altlinux.org>
+ <Zf7fm6b4SC885EcU@orbyte.nwl.cc>
+ <20240323213753.cqockivt4fwan52a@altlinux.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -50,18 +59,34 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAADnVQ+BsBcp5osqiG46gjtLViQjHStVnPsySffHsybaz7OYEw@mail.gmail.com>
+In-Reply-To: <20240323213753.cqockivt4fwan52a@altlinux.org>
 
-> A new kernel module just to call this helper?
-> Feels like overkill. Can it be a part of generic led bits?
-> btw, have you looked at net/netfilter/xt_LED.c ?
-> netfilter had the ability to blink led for a long time.
-> I'm curious whether folks found it useful.
+On Sun, Mar 24, 2024 at 12:37:53AM +0300, Vitaly Chikunov wrote:
+> On Sat, Mar 23, 2024 at 02:56:43PM +0100, Phil Sutter wrote:
+> > On Sat, Mar 23, 2024 at 06:06:41AM +0300, Vitaly Chikunov wrote:
+> > > Frequently when addr/mask is printed xtables_ipaddr_to_numeric and
+> > > xtables_ipmask_to_numeric are called together in one printf call but
+> > > xtables_ipmask_to_numeric internally calls xtables_ipaddr_to_numeric
+> > > which prints into the same static buffer causing buffer to be
+> > > overwritten and addr/mask incorrectly printed in such call scenarios.
+> > > 
+> > > Make xtables_ipaddr_to_numeric to use two static buffers rotating their
+> > > use. This simplistic approach will leave ABI not changed and cover all
+> > > such use cases.
+> > 
+> > I don't quite like the cat'n'mouse game this opens, although it's
+> > unlikely someone calls it a third time before copying the buffer.
+> > 
+> > What do you think about the attached solution?
+> 
+> Your approach is indeed much better. But why double underscore prefix
+> to a function name, this sounds like reserved identifiers.
 
-This might become more useful now that we have support for PHY & MAC
-LEDs. You can use the netdev trigger for the usual things an RJ45 LED
-shows: link, rx/tx activity, link speed etc. But they are just Linux
-LEDs, you can also use them for heartbeat, disc IO, tty IO, or xt_LED.
-xt_LED would actually make sense for an LED in a RJ45 socket.
+Well, for once it was just a quick sketch. Also, when refactoring into
+an inner function it is not uncommon to prefix it this way, at least if
+it's an internal-only function.
 
-       Andrew
+Another option I could think of is _r suffix, typically used for
+reentrant variants.
+
+Cheers, Phil
