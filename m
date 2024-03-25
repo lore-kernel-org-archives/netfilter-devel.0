@@ -1,68 +1,24 @@
-Received: from mail-pl1-f176.google.com (mail-pl1-f176.google.com [209.85.214.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B074B177AAE
-	for <netfilter-devel@vger.kernel.org>; Mon, 25 Mar 2024 03:19:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.176
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 64BF717EB72
+	for <netfilter-devel@vger.kernel.org>; Mon, 25 Mar 2024 09:19:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711336799; cv=none; b=un6l8hUNVAy19kZV2nY/s7cYBPEZBiaKp+j9Z4rQG7do4YbQ2CiVCHSXaDfBf/mtxATPAttTD+xKreZvqm9tjvoe92TFjgOnqUw3HwnM+5iCI/7QxsOLRvOaVDXo77XtZj0VIvJcYzp8mghs60AnBQ23TvEjjek/0l2/l06VT7w=
+	t=1711358381; cv=none; b=YP2BDdxmni5WU6SwQQVP+fZL/zmu5m5qTKD9HU9Qt6gucuTvIEplnjToaba5UQzBXo5ffWgU4PAblg7aB9zW6KBIZCA+iL5p/i1+OHfsXh49Tqff/cGlcyhArjwO4OgxE3PRHZLLzF+67AOJ7Jt25K+shFAsD2aFf9yXa61PeLs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711336799; c=relaxed/simple;
-	bh=TRwrCO+3DCIyVVfea+eLKtT9WjLC84GKjzXappPS9MY=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=e4anmFlWld5BFGXWWnFa/dT8hUow5F2j5mGhUbhwPm0qbmpMxxWMcQyha1ttiorfBNrF2ePUqgDqXTMCLPKizqYgwCUd+xnwf+mi99/I9+XRHEcyDdIDIa0uuCicTsQQxixZ5MJsEOMAiKwOrVxBREq+LHIZah5UvRNEd2ALtyA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=LIh64N43; arc=none smtp.client-ip=209.85.214.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LIh64N43"
-Received: by mail-pl1-f176.google.com with SMTP id d9443c01a7336-1dddad37712so35566395ad.3
-        for <netfilter-devel@vger.kernel.org>; Sun, 24 Mar 2024 20:19:57 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1711336797; x=1711941597; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=BEP8hVJmU+MKJLVx6LPlnR4Ie2GKCzGRQJvq5u8S/xU=;
-        b=LIh64N43zVI0Uc67FI1qPfS9NnKfvzsc4EL6e55Xv3XMhZV6BnK5Vyt9qU5oqy9A/N
-         n3u8VVh+cVrVZXNIotgl77GUeTYNdf+6vHl82r36y0gqTGiMX3ugMygMfjuTW4sp7lTt
-         D32heZ41mik5vHuqa3EBgKiqmdDq1F81k1O5ViAMQopblwvpHS3gV+jO33CFIFLyr4vW
-         hJyiHXTcxTPOG+UDnb8Fj2Um7nIkSoB0c79uAaVcSCf1g+yHvDfK5+lNd/1MKIEyWY10
-         OgzTYfq5z5VifpeEI31cYZn+VZteW7iAUjJZWGRnntQmKP4TtsYU+siz1NBvLUw6bQlm
-         8icA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1711336797; x=1711941597;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=BEP8hVJmU+MKJLVx6LPlnR4Ie2GKCzGRQJvq5u8S/xU=;
-        b=nckfp4dOGRKoRvjFXZjZi1UykfuuXbattToeQqrH+jOeDUqkPFDtIRQfZHTrh+vxz1
-         PbUA0+kFCazXlHVmw7EpUJRWHPOVZL6clWrJqgTShb2GOFSl9dbT5/26H/VkO7ce1pIh
-         zZsB3ZcdselylGd51e7KyMdQw2U9PVJ9qxGG0fBGpTXQPpNdfWUph9UuCk6tiHJ0mn5O
-         V5ElpXbw5eCsxWV14MhYuo+CDZfAdmgT4PVeD6hnEwgeWJkCSWAUHF/OUBUF2cmDtwvN
-         0x9ns4EXgn4mSa6ClisQxjohXDnbiYrO16fYXtmbi6iWnY4URI49JVfv7aM1CAAxOfXm
-         TIpg==
-X-Gm-Message-State: AOJu0YwDwRXW/yE/kM57kv4KZdmZwp143CHCxzd06Lka9OMkprXHO7RY
-	stltIZdGSVPyRfTKUyRTuRvuo5CvdOkfJ457imP3OKUttY/Cg+FM9Ol9GTZy
-X-Google-Smtp-Source: AGHT+IE9DbFhkWyZ/gmAcpvX30GhzYvECwI0e1wZ1aL7a/iFCx4CHpecRi0NwUSYKJ5Us5zdWjMS4A==
-X-Received: by 2002:a17:902:9008:b0:1e0:9928:5fbe with SMTP id a8-20020a170902900800b001e099285fbemr5788229plp.67.1711336797049;
-        Sun, 24 Mar 2024 20:19:57 -0700 (PDT)
-Received: from KERNELXING-MB0.tencent.com ([43.132.141.24])
-        by smtp.gmail.com with ESMTPSA id b15-20020a170902d50f00b001e0bae4490fsm1254080plg.154.2024.03.24.20.19.54
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 24 Mar 2024 20:19:55 -0700 (PDT)
-From: Jason Xing <kerneljasonxing@gmail.com>
-To: pablo@netfilter.org,
-	kadlec@netfilter.org
-Cc: netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	kerneljasonxing@gmail.com,
-	Jason Xing <kernelxing@tencent.com>
-Subject: [PATCH net-next 2/3] netfilter: use NF_DROP in iptable_filter_table_init()
-Date: Mon, 25 Mar 2024 11:19:44 +0800
-Message-Id: <20240325031945.15760-3-kerneljasonxing@gmail.com>
-X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20240325031945.15760-1-kerneljasonxing@gmail.com>
+	s=arc-20240116; t=1711358381; c=relaxed/simple;
+	bh=qAMStYQqsNm0tOiBlXok7t2v6H47LJwLOLVvYwdXRGw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=nryYzt28by/sM/2otENNrcYerCtkuT+kyUDb2V6a5aPvHqpkPwROahd/ScIe8Q+qlNgBUKPK0EQFZnErmeo/gl6JgUpykQVviG61Sc6e/oUBC2wKhkHSaYuGWgmra/93BRv3x9Gzr4TkDBWKdmx5+YtzSgH4pnScF5srOWHaS/Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Date: Mon, 25 Mar 2024 10:19:27 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jason Xing <kerneljasonxing@gmail.com>
+Cc: kadlec@netfilter.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, Jason Xing <kernelxing@tencent.com>
+Subject: Re: [PATCH net-next 0/3] netfilter: use NF_DROP instead of -NF_DROP
+Message-ID: <ZgFBn1fuSRoDuk1r@calendula>
 References: <20240325031945.15760-1-kerneljasonxing@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -70,31 +26,25 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20240325031945.15760-1-kerneljasonxing@gmail.com>
 
-From: Jason Xing <kernelxing@tencent.com>
+On Mon, Mar 25, 2024 at 11:19:42AM +0800, Jason Xing wrote:
+> From: Jason Xing <kernelxing@tencent.com>
+>
+> Just simply replace the -NF_DROP with NF_DROP since it is just zero.
 
-There is no need to use the negative -NF_DROP because the definition
-is just zero.
+Single patch for this should be fine, thanks.
 
-Signed-off-by: Jason Xing <kernelxing@tencent.com>
----
- net/ipv4/netfilter/iptable_filter.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+There are spots where this happens, and it is not obvious, such as nf_conntrack_in()
 
-diff --git a/net/ipv4/netfilter/iptable_filter.c b/net/ipv4/netfilter/iptable_filter.c
-index b9062f4552ac..3ab908b74795 100644
---- a/net/ipv4/netfilter/iptable_filter.c
-+++ b/net/ipv4/netfilter/iptable_filter.c
-@@ -44,7 +44,7 @@ static int iptable_filter_table_init(struct net *net)
- 		return -ENOMEM;
- 	/* Entry 1 is the FORWARD hook */
- 	((struct ipt_standard *)repl->entries)[1].target.verdict =
--		forward ? -NF_ACCEPT - 1 : -NF_DROP - 1;
-+		forward ? -NF_ACCEPT - 1 : NF_DROP - 1;
- 
- 	err = ipt_register_table(net, &packet_filter, repl, filter_ops);
- 	kfree(repl);
--- 
-2.37.3
+        if (protonum == IPPROTO_ICMP || protonum == IPPROTO_ICMPV6) {
+                ret = nf_conntrack_handle_icmp(tmpl, skb, dataoff,
+                                               protonum, state);
+                if (ret <= 0) {
+                        ret = -ret;
+                        goto out;
+                }
 
+removing signed zero seems more in these cases look more complicated.
