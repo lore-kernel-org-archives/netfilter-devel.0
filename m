@@ -1,92 +1,88 @@
-Received: from smtp-bc0f.mail.infomaniak.ch (smtp-bc0f.mail.infomaniak.ch [45.157.188.15])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1394C4CB4B
-	for <netfilter-devel@vger.kernel.org>; Wed, 27 Mar 2024 10:45:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.157.188.15
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A57512E1E3;
+	Wed, 27 Mar 2024 14:04:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711536336; cv=none; b=rRuxEavsVspVenonKX/0qiHhmp0BhpBgFX6jitXNeGA/5S2LGgDLAsmPBHbsDFPxwKfXPnNMLjhEked7dp06w7QucKgYeQKNRMqhihGRqs1+gEhIcRtZJvuyx0ACKGmZ/I38BNxb18d6acumjV+h/qroDGW5XaQ78xTCYFJWP1k=
+	t=1711548260; cv=none; b=h7pva0Rg78SLAsgHFguI869ze6Rh417XI06/8oRlgdOjnk98ts/d43d/m++6PFLZ97RCoF2Ea7T4G9Ct1v6BWSRuCnzzTO5RN3cpA2Bit3OOtkOPDCEJqy0KxPxwWEjsK9YHlcJchMGQNpc+8xWhKy5ybXIjmkh68lrWG6NCZfU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711536336; c=relaxed/simple;
-	bh=kuBo0H9J1FjHw4PFXPqSPhmKf3pZMS6EUaNHJSI6FL8=;
+	s=arc-20240116; t=1711548260; c=relaxed/simple;
+	bh=DqrslppWQirH3WLvNAHhXmZGAY9viAu3iV+BThcsJb0=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=VhqorS52KR0Ijye6HfReLPi+eU6hljtDreJlqqyJLyBO/DYS6XwI0zCn7VgQVWznxQ7n0ub+AXR7ZBt6bmC86TEIs3PEdfEj0RZqUF4dpkV1NcXCkufvvawpZWj4jBs6zC5guSX0SFKtk7v2tYAp7bW+3Ei79qJVMLUS29M7crs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net; spf=pass smtp.mailfrom=digikod.net; dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b=0Ddi4oL7; arc=none smtp.client-ip=45.157.188.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=digikod.net
+	 Content-Type:Content-Disposition:In-Reply-To; b=ComuIVMbPqmF0m7ZkVk+hUvL6Nv0Xml9c7n8ZKtN07LEKKvl8kpc4NmTggL3KqgZg229UmUzcUw1inmoYwz5EqKInrFLZ5IHxXrbcZ3QqhxSzJHlHLeJqgYNjeTzFn3vv+mMay6HT0Iuz8vZoMNCRo7a9PWBOSNen9zMejVUNek=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fkZ4ZzMM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b="0Ddi4oL7"
-Received: from smtp-3-0000.mail.infomaniak.ch (smtp-3-0000.mail.infomaniak.ch [10.4.36.107])
-	by smtp-4-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4V4Nc21n7dz47F;
-	Wed, 27 Mar 2024 11:45:22 +0100 (CET)
-Received: from unknown by smtp-3-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4V4Nc15n0jz1Zj;
-	Wed, 27 Mar 2024 11:45:21 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-	s=20191114; t=1711536322;
-	bh=kuBo0H9J1FjHw4PFXPqSPhmKf3pZMS6EUaNHJSI6FL8=;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fkZ4ZzMM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48161C433C7;
+	Wed, 27 Mar 2024 14:04:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1711548260;
+	bh=DqrslppWQirH3WLvNAHhXmZGAY9viAu3iV+BThcsJb0=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=0Ddi4oL7T/YfHlyGBg5FlsaH7n6qfIgkvoIhqiCT3hDhhsbVaGn4hpx/hPPLpdRxJ
-	 hNgnaR/qgf9rD6tkmNgdZ+R9vTRhGjpDA/RwrUPNY9/SEl37uhbtlzgEBcXsTGjoGk
-	 blquta0kc6HceETUP8btVeHlfxdJouVYpQvPgjfA=
-Date: Wed, 27 Mar 2024 11:45:21 +0100
-From: =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
-To: Ivanov Mikhail <ivanov.mikhail1@huawei-partners.com>
-Cc: willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com, 
-	linux-security-module@vger.kernel.org, netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
-	yusongping@huawei.com, artem.kuzin@huawei.com, konstantin.meskhidze@huawei.com
-Subject: Re: [PATCH] samples/landlock: Fix incorrect free in
- populate_ruleset_net
-Message-ID: <20240327.Zoo8Huo0eemo@digikod.net>
-References: <20240326095625.3576164-1-ivanov.mikhail1@huawei-partners.com>
+	b=fkZ4ZzMMjaqBuJiYxlOM/67p/g9Uml62Y6jnTGncz7q35Cu/Vgpm+lMryFKOthJyq
+	 bKo4Exa8cm1LMXbN6fYBtVhQbcWc263QEo8gau4OmpfiBo4Y4nahJMKSEPKA72ykYa
+	 AOOgcl7p5t5mHOOYk02TfuK6KgHCRkFtVsWc1K92hocPUlXfNi1Yee9D+iFr7UL0TG
+	 3LuusH6h0frAfQGYnik4WwWj2CCm+qe44xcGesMvpHFg2ariHJS7Ks+/X+2N+ULgMY
+	 yEFWOFrOgGOklWZfdxjqj7WZsTBGlt2iviGAsN1nDGRD3s+5zxuBF0TqVCSKY4vPQg
+	 kg77AOlJKEQzg==
+Date: Wed, 27 Mar 2024 14:04:15 +0000
+From: Simon Horman <horms@kernel.org>
+To: Kuniyuki Iwashima <kuniyu@amazon.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Kuniyuki Iwashima <kuni1840@gmail.com>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, syzkaller <syzkaller@googlegroups.com>
+Subject: Re: [PATCH v1 nf] netfilter: arptables: Select NETFILTER_FAMILY_ARP
+ when building arp_tables.c
+Message-ID: <20240327140415.GH403975@kernel.org>
+References: <20240326041552.19888-1-kuniyu@amazon.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240326095625.3576164-1-ivanov.mikhail1@huawei-partners.com>
-X-Infomaniak-Routing: alpha
+In-Reply-To: <20240326041552.19888-1-kuniyu@amazon.com>
 
-On Tue, Mar 26, 2024 at 05:56:25PM +0800, Ivanov Mikhail wrote:
-> Pointer env_port_name changes after strsep(). Memory allocated via
-> strdup() will not be freed if landlock_add_rule() returns non-zero value.
+On Mon, Mar 25, 2024 at 09:15:52PM -0700, Kuniyuki Iwashima wrote:
+> syzkaller started to report a warning below [0] after consuming the
+> commit 4654467dc7e1 ("netfilter: arptables: allow xtables-nft only
+> builds").
 > 
-> Fixes: 5e990dcef12e ("samples/landlock: Support TCP restrictions")
-> Signed-off-by: Ivanov Mikhail <ivanov.mikhail1@huawei-partners.com>
-> Reviewed-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+> The change accidentally removed the dependency on NETFILTER_FAMILY_ARP
+> from IP_NF_ARPTABLES.
+> 
+> If NF_TABLES_ARP is not enabled on Kconfig, NETFILTER_FAMILY_ARP will
+> be removed and some code necessary for arptables will not be compiled.
+> 
+>   $ grep -E "(NETFILTER_FAMILY_ARP|IP_NF_ARPTABLES|NF_TABLES_ARP)" .config
+>   CONFIG_NETFILTER_FAMILY_ARP=y
+>   # CONFIG_NF_TABLES_ARP is not set
+>   CONFIG_IP_NF_ARPTABLES=y
+> 
+>   $ make olddefconfig
+> 
+>   $ grep -E "(NETFILTER_FAMILY_ARP|IP_NF_ARPTABLES|NF_TABLES_ARP)" .config
+>   # CONFIG_NF_TABLES_ARP is not set
+>   CONFIG_IP_NF_ARPTABLES=y
+> 
+> So, when nf_register_net_hooks() is called for arptables, it will
+> trigger the splat below.
+> 
+> Now IP_NF_ARPTABLES is only enabled by IP_NF_ARPFILTER, so let's
+> restore the dependency on NETFILTER_FAMILY_ARP in IP_NF_ARPFILTER.
 
-Thanks! Applied to my next branch.
+...
 
-> ---
->  samples/landlock/sandboxer.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/samples/landlock/sandboxer.c b/samples/landlock/sandboxer.c
-> index 32e930c853bb..8b8ecd65c28c 100644
-> --- a/samples/landlock/sandboxer.c
-> +++ b/samples/landlock/sandboxer.c
-> @@ -153,7 +153,7 @@ static int populate_ruleset_net(const char *const env_var, const int ruleset_fd,
->  				const __u64 allowed_access)
->  {
->  	int ret = 1;
-> -	char *env_port_name, *strport;
-> +	char *env_port_name, *env_port_name_next, *strport;
->  	struct landlock_net_port_attr net_port = {
->  		.allowed_access = allowed_access,
->  		.port = 0,
-> @@ -165,7 +165,8 @@ static int populate_ruleset_net(const char *const env_var, const int ruleset_fd,
->  	env_port_name = strdup(env_port_name);
->  	unsetenv(env_var);
->  
-> -	while ((strport = strsep(&env_port_name, ENV_DELIMITER))) {
-> +	env_port_name_next = env_port_name;
-> +	while ((strport = strsep(&env_port_name_next, ENV_DELIMITER))) {
->  		net_port.port = atoi(strport);
->  		if (landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
->  				      &net_port, 0)) {
-> -- 
-> 2.34.1
-> 
-> 
+> Fixes: 4654467dc7e1 ("netfilter: arptables: allow xtables-nft only builds")
+> Reported-by: syzkaller <syzkaller@googlegroups.com>
+> Signed-off-by: Kuniyuki Iwashima <kuniyu@amazon.com>
+
+Reviewed-by: Simon Horman <horms@kernel.org>
+
+...
