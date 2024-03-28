@@ -1,145 +1,110 @@
-Received: from smtp-fw-2101.amazon.com (smtp-fw-2101.amazon.com [72.21.196.25])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f172.google.com (mail-pl1-f172.google.com [209.85.214.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E48F13957C;
-	Thu, 28 Mar 2024 19:50:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=72.21.196.25
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB88313AD33
+	for <netfilter-devel@vger.kernel.org>; Thu, 28 Mar 2024 21:31:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711655406; cv=none; b=C2ZKThbQY0sbskjF85FLhOcCLFjW+MeI4k2t9p7CUyCVvA7Fwr6hIZ40yLOxxpOvBXn4Ewh/oZ06sBf3Sg7tmby00JeJpDb54qwebAkoBvnRIA8O/ac8cb+tKI5Xm7wIsoJdYQcYbE9RhMwklBYf5V3jYslxbeqgCg7xm8v/CZY=
+	t=1711661480; cv=none; b=TjgvldZa3zX/ymKRL0HsarDn+EOktff6ExCaq7M1lZxmUopHI0KE2ptr1+QHT3f7TyhhdWFapTfnc8QUCgtKJlHuvhsXRHelFPqmoqoMCqile9bG7YDb7QA7Wf8t/t13PUvT1hHzMx/5bQOAJjaK0RouxuXaZ4lG8lUuCvIry1A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711655406; c=relaxed/simple;
-	bh=jy7iDHuc6Ej+2jTP9CC2GUNMdvWMnjZbOjyyWldjqgM=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=pGlWSCU3hewS85fa+0fXK3PiWedXt3sC0SwKVMFgoa/xq/WNN6+LnunaADVYf/SVA1126JpvS5xxwZ8jdDxu0oETekzJTS8d1U0nja60g2HUHO323OOi0gQfRWWHsb+qggCs8wY0LTe9f8bJqhiO9mxfp0Aqf31j/3E4CI0JwqM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.co.jp; dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b=kSsq3Ssw; arc=none smtp.client-ip=72.21.196.25
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.co.jp
+	s=arc-20240116; t=1711661480; c=relaxed/simple;
+	bh=UaszDaGP5veDsM5R7cFMxC2OFMFNbxNTS5tsT4bTBFk=;
+	h=From:Date:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=a+MPiuWidjXSzBKohcEnXlWn77U/0DlZxXeK58uoCGqC9KcAUAN613IBwKhgTQ4OB8+b+3sXYhUzpbw4KelqMpFIiExEVPWMbosQ/uZMOsdvOl/2GxBcYEaEn1DPB8H1wnoG8RdvzbIlAWMZQ3ZSejpACmqWkisPg0OOFgDbHG8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YDcYMCLK; arc=none smtp.client-ip=209.85.214.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="kSsq3Ssw"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YDcYMCLK"
+Received: by mail-pl1-f172.google.com with SMTP id d9443c01a7336-1e0b889901bso13295865ad.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Mar 2024 14:31:17 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1711655404; x=1743191404;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=nJnwU1+gGS+NGNA2zseGcZeJ5QG2IPGlkTTsQ5KCHlw=;
-  b=kSsq3SswdfM+s5M8UqDDX85q+IN/9e+Z567+yJm/QP1kNGJtNRgrVEbl
-   odpo0TI25iXqMG4FHEkylvhcNAI6R2yWFlh9tcBfJJxN+t0/yvVjL+97g
-   tZFDglExU6sH72SoJanz1znpLauXX5knwVJVaV+VuU3Cxnnl9Os8Q5cbG
-   c=;
-X-IronPort-AV: E=Sophos;i="6.07,162,1708387200"; 
-   d="scan'208";a="391312047"
-Received: from iad12-co-svc-p1-lb1-vlan3.amazon.com (HELO smtpout.prod.us-west-2.prod.farcaster.email.amazon.dev) ([10.43.8.6])
-  by smtp-border-fw-2101.iad2.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Mar 2024 19:49:56 +0000
-Received: from EX19MTAUWB001.ant.amazon.com [10.0.21.151:20037]
- by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.47.83:2525] with esmtp (Farcaster)
- id 73cfa33f-945b-445c-ba15-2d07ca3a8590; Thu, 28 Mar 2024 19:49:56 +0000 (UTC)
-X-Farcaster-Flow-ID: 73cfa33f-945b-445c-ba15-2d07ca3a8590
-Received: from EX19D004ANA001.ant.amazon.com (10.37.240.138) by
- EX19MTAUWB001.ant.amazon.com (10.250.64.248) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1258.28; Thu, 28 Mar 2024 19:49:56 +0000
-Received: from 88665a182662.ant.amazon.com.com (10.106.101.27) by
- EX19D004ANA001.ant.amazon.com (10.37.240.138) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.1258.28;
- Thu, 28 Mar 2024 19:49:44 +0000
-From: Kuniyuki Iwashima <kuniyu@amazon.com>
-To: <devnull+j.granados.samsung.com@kernel.org>
-CC: <Dai.Ngo@oracle.com>, <alex.aring@gmail.com>, <alibuda@linux.alibaba.com>,
-	<allison.henderson@oracle.com>, <anna@kernel.org>, <bridge@lists.linux.dev>,
-	<chuck.lever@oracle.com>, <coreteam@netfilter.org>, <courmisch@gmail.com>,
-	<davem@davemloft.net>, <dccp@vger.kernel.org>, <dhowells@redhat.com>,
-	<dsahern@kernel.org>, <edumazet@google.com>, <fw@strlen.de>,
-	<geliang@kernel.org>, <guwen@linux.alibaba.com>,
-	<herbert@gondor.apana.org.au>, <horms@verge.net.au>,
-	<j.granados@samsung.com>, <ja@ssi.bg>, <jaka@linux.ibm.com>,
-	<jlayton@kernel.org>, <jmaloy@redhat.com>, <jreuter@yaina.de>,
-	<kadlec@netfilter.org>, <keescook@chromium.org>, <kolga@netapp.com>,
-	<kuba@kernel.org>, <linux-afs@lists.infradead.org>,
-	<linux-hams@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-nfs@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-	<linux-s390@vger.kernel.org>, <linux-sctp@vger.kernel.org>,
-	<linux-wpan@vger.kernel.org>, <linux-x25@vger.kernel.org>,
-	<lucien.xin@gmail.com>, <lvs-devel@vger.kernel.org>,
-	<marc.dionne@auristor.com>, <marcelo.leitner@gmail.com>,
-	<martineau@kernel.org>, <matttbe@kernel.org>, <mcgrof@kernel.org>,
-	<miquel.raynal@bootlin.com>, <mptcp@lists.linux.dev>, <ms@dev.tdt.de>,
-	<neilb@suse.de>, <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
-	<pabeni@redhat.com>, <pablo@netfilter.org>, <ralf@linux-mips.org>,
-	<razor@blackwall.org>, <rds-devel@oss.oracle.com>, <roopa@nvidia.com>,
-	<stefan@datenfreihafen.org>, <steffen.klassert@secunet.com>,
-	<tipc-discussion@lists.sourceforge.net>, <tom@talpey.com>,
-	<tonylu@linux.alibaba.com>, <trond.myklebust@hammerspace.com>,
-	<wenjia@linux.ibm.com>, <ying.xue@windriver.com>, <kuniyu@amazon.com>
-Subject: [PATCH v2 4/4] ax.25: Remove the now superfluous sentinel elements from ctl_table array
-Date: Thu, 28 Mar 2024 12:49:34 -0700
-Message-ID: <20240328194934.42278-1-kuniyu@amazon.com>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20240328-jag-sysctl_remset_net-v2-4-52c9fad9a1af@samsung.com>
-References: <20240328-jag-sysctl_remset_net-v2-4-52c9fad9a1af@samsung.com>
+        d=gmail.com; s=20230601; t=1711661477; x=1712266277; darn=vger.kernel.org;
+        h=content-disposition:mime-version:mail-followup-to:reply-to
+         :message-id:subject:cc:to:date:from:sender:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=UaszDaGP5veDsM5R7cFMxC2OFMFNbxNTS5tsT4bTBFk=;
+        b=YDcYMCLKCEtVLWmuWI6tpD5vKI5fvINQ3sbrQ8xlRd17fxrdSOoSVOLKM82LbUs/OO
+         yhfC3y+zymNQyLePwfPDWATZDzGzXwHo5lTOvFcnjCrY7YPg9+XZk+ZIXaEHHoIef+tA
+         hGoz5ZZ67ngWTr/vefeZRCb1z8Mai2KDSZC3Io9OAyWGK+jxR19ZDGnVzX2HtXyFiITF
+         3YnnqnS1Rns7R2wO7QrZlZSLBeshrCzB2tyYLW63Nu5ezoLVVBFfivxC3Gow5z3JSI3Q
+         6uGnuHRmuYZhjqtXRjYdnRyQatVJeBsC2qDp1f9GVgQ1geOuAoetCNObRZvsfmU6N9Wp
+         siZQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1711661477; x=1712266277;
+        h=content-disposition:mime-version:mail-followup-to:reply-to
+         :message-id:subject:cc:to:date:from:sender:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=UaszDaGP5veDsM5R7cFMxC2OFMFNbxNTS5tsT4bTBFk=;
+        b=Fpt5sRjpUa5VqEI8SgoHnXvgY/6wTA2ntJ3RiLjxKvm1dujw9++2+xbNRRMc7mQH0R
+         XRqelKI3wLATa2EwYFfdM1LLp3HmfKTbzlDdlTBZWapdhBImm/rBvHc9h/7KPkzs+iKF
+         m0n8YRmLWDcdMxazVl3KdAhybkbVDUKo2yE+HESUIyDF7OdOu9pPivCpujNT0ixii2B/
+         PeIO2HqFhc1JPdXcAGywTkVTquFQ0oBpSejaPM53lvO9q5R9RxfpekK4dShL5Akm4woI
+         stAUuszLEETI7a0CConxO8auwVbbTLm6bmtbyZgOvOFdGr7JOo2ZwV1t07uXowCj2BBb
+         Jt0g==
+X-Gm-Message-State: AOJu0Yyg7SMennR90D2DtH2rBloKIZxs4TV8J8dwgLiyfOCcXm75P+Bo
+	D9+kf/PnWDdO0pUbTiiFSIGe1iKd5bLQXtYy26mN5pIu/Ps+FzHJbIML8LiP
+X-Google-Smtp-Source: AGHT+IEhi1+9qlSf33R2upSmnlty/KxHVGStM9j2/RkzP4G7ishjszNOlrYxocerEViMxNwAywTsNA==
+X-Received: by 2002:a17:903:2ac6:b0:1e2:307a:a585 with SMTP id lw6-20020a1709032ac600b001e2307aa585mr10046plb.47.1711661477173;
+        Thu, 28 Mar 2024 14:31:17 -0700 (PDT)
+Received: from slk15.local.net (n58-108-84-186.meb1.vic.optusnet.com.au. [58.108.84.186])
+        by smtp.gmail.com with ESMTPSA id d12-20020a170902c18c00b001dee0e175c1sm2106678pld.118.2024.03.28.14.31.15
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 28 Mar 2024 14:31:16 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From: Duncan Roe <duncan_roe@optusnet.com.au>
+X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
+Date: Fri, 29 Mar 2024 08:31:13 +1100
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: (re-send): Convert libnetfilter_queue to not need libnfnetlink]
+Message-ID: <ZgXhoUdAqAHvXUj7@slk15.local.net>
+Reply-To: duncan_roe@optusnet.com.au
+Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Development <netfilter-devel@vger.kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: EX19D037UWC001.ant.amazon.com (10.13.139.197) To
- EX19D004ANA001.ant.amazon.com (10.37.240.138)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-From: Joel Granados via B4 Relay <devnull+j.granados.samsung.com@kernel.org>
-Date: Thu, 28 Mar 2024 16:40:05 +0100
-> This commit comes at the tail end of a greater effort to remove the
-> empty elements at the end of the ctl_table arrays (sentinels) which will
-> reduce the overall build time size of the kernel and run time memory
-> bloat by ~64 bytes per sentinel (further information Link :
-> https://lore.kernel.org/all/ZO5Yx5JFogGi%2FcBo@bombadil.infradead.org/)
-> 
-> When we remove the sentinel from ax25_param_table a buffer overflow
-> shows its ugly head. The sentinel's data element used to be changed when
-> CONFIG_AX25_DAMA_SLAVE was not defined.
+Hi Pablo,
 
-I think it's better to define the relation explicitly between the
-enum and sysctl table by BUILD_BUG_ON() in ax25_register_dev_sysctl()
+On Mon, Sep 11, 2023 at 09:51:07AM +0200, Pablo Neira Ayuso wrote:
+> On Mon, Sep 11, 2023 at 03:54:25PM +1000, Duncan Roe wrote:
+[SNIP]
+> > libnetfilter_queue effectively supports 2 ABIs, the older being based on
+> > libnfnetlink and the newer on libmnl.
+>
+> Yes, there are two APIs, same thing occurs in other existing
+> libnetfilter_* libraries, each of these APIs are based on libnfnetlink
+> and libmnl respectively.
+>
+[SNIP]
+>
+> libnfnetlink will go away sooner or later. We are steadily replacing
+> all client of this library for netfilter.org projects. Telling that
+> this is not deprecated without providing a compatible "old API" for
+> libmnl adds more confusion to this subject.
+>
+> If you want to explore providing a patch that makes the
+> libnfnetlink-based API work over libmnl, then go for it.
 
-  BUILD_BUG_ON(AX25_MAX_VALUES != ARRAY_SIZE(ax25_param_table));
+OK I went for it. But I posted the resultant patchset as a reply to an
+earlier email.
 
-and guard AX25_VALUES_DS_TIMEOUT with #ifdef CONFIG_AX25_DAMA_SLAVE
-as done for other enum.
+The Patchwork series is
+https://patchwork.ozlabs.org/project/netfilter-devel/list/?series=399143
+("Convert nfq_open() to use libmnl").
 
+The series is "code only" - I kept back the documentation changes for
+spearate review. These documentation changes present the "old API" as
+merely an alternative to the mnl API: both use libmnl.
 
-> This did not have any adverse
-> effects as we still stopped on the sentinel because of its null
-> procname. But now that we do not have the sentinel element, we are
-> careful to check ax25_param_table's size.
-> 
-> Signed-off-by: Joel Granados <j.granados@samsung.com>
-> ---
->  net/ax25/sysctl_net_ax25.c | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
-> 
-> diff --git a/net/ax25/sysctl_net_ax25.c b/net/ax25/sysctl_net_ax25.c
-> index db66e11e7fe8..e55be8817a1e 100644
-> --- a/net/ax25/sysctl_net_ax25.c
-> +++ b/net/ax25/sysctl_net_ax25.c
-> @@ -141,8 +141,6 @@ static const struct ctl_table ax25_param_table[] = {
->  		.extra2		= &max_ds_timeout
->  	},
->  #endif
-> -
-> -	{ }	/* that's all, folks! */
->  };
->  
->  int ax25_register_dev_sysctl(ax25_dev *ax25_dev)
-> @@ -155,7 +153,7 @@ int ax25_register_dev_sysctl(ax25_dev *ax25_dev)
->  	if (!table)
->  		return -ENOMEM;
->  
-> -	for (k = 0; k < AX25_MAX_VALUES; k++)
-> +	for (k = 0; k < AX25_MAX_VALUES && k < ARRAY_SIZE(ax25_param_table); k++)
->  		table[k].data = &ax25_dev->values[k];
->  
->  	snprintf(path, sizeof(path), "net/ax25/%s", ax25_dev->dev->name);
-> 
-> -- 
-> 2.43.0
+Do you think you might find time to look at it before too long? I know you
+are very busy but I would appreciate some feedback.
+
+Cheers ... Duncan.
