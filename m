@@ -1,34 +1,34 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78BD9657C6;
-	Thu, 28 Mar 2024 09:50:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C48D97C6D5;
+	Thu, 28 Mar 2024 11:20:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711619430; cv=none; b=XcAAi26Q02yogxl79zzbGAuiMNCfQkRosC6nSb+Xv/9RPaWWYCvtqmRudEdVm/2WUnq6mGXLXI6IwNU5fjACB8qpG6fGAkCbxMvsg+q9eEGQ1BnkpnZHdMdP6BoODl2LOGrnHx7iu28N1EY3N2JZVZwGvIHLe3dT58q6l7RSuwE=
+	t=1711624828; cv=none; b=MakYS7AgeylZfgef/rQXOg//1UwsAvAcqJqhCL9O/uvXN1LjflyuFhJ6BA45IFtphyt90z2iD+TkpAP2keGf9PNELS8AUPuBmLMV1atQdJpmegRf3z9tQllvflwda0oxUPobrxBxTpXWbBbzGF2VEW8YCnXOGDlD5cb4jBPhjUs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711619430; c=relaxed/simple;
-	bh=T/OibAZwWOIloOVhxmID1Y6yFKccDxG8AzFj3qVJeuA=;
+	s=arc-20240116; t=1711624828; c=relaxed/simple;
+	bh=rln8LQGT49GIKShKZMPcgTPrafkfe0C1BUR0MNCCD6Q=;
 	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=oCMyOKKez5cMOWrPhCJ2vcKBE45WB+MCdKhqseOETHfZdA4Drart5XqytpEonIu3dAu3XpH/lXlEYCszAvCg/IJ78ugDY4FlBJ08wy60gkeDI5aXsbQYt5F5KFIc7Qxz2uawY9sKwasOpjulgp2/2rktSqzizI1qnBCFiWt4AHI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=J4DbqByj; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=ZRCTxuO7TgOvJCL/yG+pXdx0clk6XFeHKuP8KWiPqfDsT/PrLYvuW05bN5xA1ge+no5M+neCqHoJfAcqKOD7LAfMOTSwjtpWGiyMIS6ScbZs7p5zWoou6HqU9kVhD4TjiAh0BJdUUe2xx+eCR6LZxF3Fj9Ap8ZgqMK3zBYLQzCc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=r16ejzt/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="J4DbqByj"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 47BFDC433C7;
-	Thu, 28 Mar 2024 09:50:30 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="r16ejzt/"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 4D162C433C7;
+	Thu, 28 Mar 2024 11:20:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1711619430;
-	bh=T/OibAZwWOIloOVhxmID1Y6yFKccDxG8AzFj3qVJeuA=;
+	s=k20201202; t=1711624828;
+	bh=rln8LQGT49GIKShKZMPcgTPrafkfe0C1BUR0MNCCD6Q=;
 	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=J4DbqByjuRHbAFJNQ4TETVv3m0pjAEPYKZoDSwhVk7Xfv+nDwZXGN1zqjLMGl+kba
-	 iMC76bZ65By4/czPbwVEfMlO5yi74cgTLAeoM1K5af3T5bkx+9Q2bN2R369gZ4m7oW
-	 ksM/rTDLRQTITgadNB0ac697ivcyGE2kkndMUm90hPCg92eaiNsorHSxAOQzAbxKul
-	 fw4gjMmyktQ17dPAeMSS+eW0UWv8NqEopdJ5nQ9lqAdSyy/QBXXpX+R7SnnTrb2EEj
-	 20L5DqeNYhgy/zPqk5VkKKogai7w0vavOmV0ByKaoD7k9Ui8SlKArGVBAlQKF7IQXm
-	 v8y63edg1erlw==
+	b=r16ejzt/TlGwqOFXTFztcrEN+zhTGC4oNurDiVTb3m7RS23WPQHwJ0zDZMiBhjbhC
+	 4757YJvSyMqOyilnnNWqEzip17eBHav95s7oohNHDyp8zF6rkwP5OipqpVydCypHBv
+	 UgpMTxI47K0kALr9ghXHHxNBCbR7iIr3UmtzWzxxNcXk2QEGPEQyq2KH0KeboRhupO
+	 jMXA855kzcOVy/IMb8NMyt+JB6A0A+MSPXnd5f5KkgfElVaBAduajTGQlvuT9SJqQ0
+	 3WP0fHEItDgVMjPpBK6ygU9DOCHeDDyuGkB580JP0c7g8pxOn9Y1QADU5oUGOZAFUX
+	 mXT1y6a0MOdyw==
 Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 35FBCC43168;
-	Thu, 28 Mar 2024 09:50:30 +0000 (UTC)
+	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 3CF29C43168;
+	Thu, 28 Mar 2024 11:20:28 +0000 (UTC)
 Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -37,43 +37,39 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/4] netfilter: nf_tables: reject destroy command to
- remove basechain hooks
+Subject: Re: [PATCH v2 net] inet: inet_defrag: prevent sk release while still in
+ use
 From: patchwork-bot+netdevbpf@kernel.org
 Message-Id: 
- <171161943021.10354.8421836895816515032.git-patchwork-notify@kernel.org>
-Date: Thu, 28 Mar 2024 09:50:30 +0000
-References: <20240328031855.2063-2-pablo@netfilter.org>
-In-Reply-To: <20240328031855.2063-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com
+ <171162482824.5741.7261983024812909275.git-patchwork-notify@kernel.org>
+Date: Thu, 28 Mar 2024 11:20:28 +0000
+References: <20240326101845.30836-1-fw@strlen.de>
+In-Reply-To: <20240326101845.30836-1-fw@strlen.de>
+To: Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, dsahern@kernel.org, kuba@kernel.org,
+ pabeni@redhat.com, netfilter-devel@vger.kernel.org, edumazet@google.com,
+ xrivendell7@gmail.com, samsun1006219@gmail.com,
+ syzbot+e5167d7144a62715044c@syzkaller.appspotmail.com
 
 Hello:
 
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+This patch was applied to netdev/net.git (main)
+by Paolo Abeni <pabeni@redhat.com>:
 
-On Thu, 28 Mar 2024 04:18:52 +0100 you wrote:
-> Report EOPNOTSUPP if NFT_MSG_DESTROYCHAIN is used to delete hooks in an
-> existing netdev basechain, thus, only NFT_MSG_DELCHAIN is allowed.
+On Tue, 26 Mar 2024 11:18:41 +0100 you wrote:
+> ip_local_out() and other functions can pass skb->sk as function argument.
 > 
-> Fixes: 7d937b107108f ("netfilter: nf_tables: support for deleting devices in an existing netdev chain")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  net/netfilter/nf_tables_api.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+> If the skb is a fragment and reassembly happens before such function call
+> returns, the sk must not be released.
+> 
+> This affects skb fragments reassembled via netfilter or similar
+> modules, e.g. openvswitch or ct_act.c, when run as part of tx pipeline.
+> 
+> [...]
 
 Here is the summary with links:
-  - [net,1/4] netfilter: nf_tables: reject destroy command to remove basechain hooks
-    https://git.kernel.org/netdev/net/c/b32ca27fa238
-  - [net,2/4] netfilter: nf_tables: reject table flag and netdev basechain updates
-    https://git.kernel.org/netdev/net/c/1e1fb6f00f52
-  - [net,3/4] netfilter: nf_tables: skip netdev hook unregistration if table is dormant
-    https://git.kernel.org/netdev/net/c/216e7bf7402c
-  - [net,4/4] netfilter: arptables: Select NETFILTER_FAMILY_ARP when building arp_tables.c
-    https://git.kernel.org/netdev/net/c/15fba562f7a9
+  - [v2,net] inet: inet_defrag: prevent sk release while still in use
+    https://git.kernel.org/netdev/net/c/18685451fc4e
 
 You are awesome, thank you!
 -- 
