@@ -1,189 +1,166 @@
-Received: from smtp.forwardemail.net (smtp.forwardemail.net [149.28.215.223])
+Received: from mail-ed1-f46.google.com (mail-ed1-f46.google.com [209.85.208.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0E0A3AC08
-	for <netfilter-devel@vger.kernel.org>; Fri, 29 Mar 2024 04:25:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=149.28.215.223
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C66E016E881
+	for <netfilter-devel@vger.kernel.org>; Fri, 29 Mar 2024 12:34:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711686358; cv=none; b=ogVvPA30wP8jqfU2Us9KV20K21IXiAdYj4OABwNf97xSmoronABQLADj7097TzxR4pFgAdOysLu6HXAvou0oQAsjGP6V/D4lqz5maTgTkVdcbYZxcyMTv91DW+06tYRHW8c11ib329tp/cCv/667c+ULrFgLLHvtKlFyoFCRMiU=
+	t=1711715652; cv=none; b=EPDV0g3m6VvQHuj4I+YktgMAz58q5Tin7kVsMshybzrLcoQZR+vjXSel6GMi7twatNCjnIBKWUwtoeXsA2/1zzxYswghalVMJMlfAX2/L+rjGvPTy6PJ5O2MDAge/3BAqr4zlwD0gHq8By85+oxU2Luxx17yaG16t8P9Lp8HB28=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711686358; c=relaxed/simple;
-	bh=nNay1aV4TfSASqPJjXCxeAzelDK7osT+yJa9FnMByoA=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=lCM4B5CXFk6qAb9KmzA5NHbj4L+9AZxPakXSjr8V63cZ1lPlML02iPbBGRBvqRobgdqrT5DqPwXKcZCYfoNSwD97s+Se0S/109xsipGTMfEmPt9vxOpXXGZ+qUv41fwsFSjvu8xtaYm7aeRWdWcaRLiX8dMR5aXG/XvUWfdJ84M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=faucet.nz; spf=pass smtp.mailfrom=fe-bounces.faucet.nz; dkim=pass (1024-bit key) header.d=faucet.nz header.i=@faucet.nz header.b=dlRoWXaV; arc=none smtp.client-ip=149.28.215.223
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=faucet.nz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fe-bounces.faucet.nz
+	s=arc-20240116; t=1711715652; c=relaxed/simple;
+	bh=VEXihi4/+lsEPhvCzmACEATykKJfPopHaiYFYvqUqX4=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=HFO7yN2ie8uJLw7uxaFOFGTZZ5tZGI4UrLB+7GZnAsOYXMqa5EpSM2p+dRnVd0CIHR3sXaBVmsTLq2pCAvz7+MtFscKDG68SDk32bahGLYVFLcdrxsp7pN8E5K/E1cfwYAbgv91BXpMtQXdgwcT5YlQQlx9FFTYvY/vZmoH2yt0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=U2gpM5/G; arc=none smtp.client-ip=209.85.208.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=faucet.nz header.i=@faucet.nz header.b="dlRoWXaV"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=faucet.nz;
- h=Content-Transfer-Encoding: MIME-Version: Message-Id: Date: Subject: Cc:
- To: From; q=dns/txt; s=fe-4ed8c67516; t=1711686350;
- bh=CMNwW1fTsHqMDxsO3OxcQETZvoxbiQrweBGQH4nUay8=;
- b=dlRoWXaVQOdOuQOARy8mpfgbkrf3f53IJHGJQccuZnkM6Jkb4Ywx30QT4oX7pE8l1SWhSrAw5
- AqhzbOUlfnl0iroK7EBDHmipINGPa6VRPTettiSg8UbF2UsqCbn7ebkhQ2fWK4SHgmHyDzX9yF5
- Rmt4/frqpWL5HQ23/STS4bo=
-From: Brad Cowie <brad@faucet.nz>
-To: bpf@vger.kernel.org
-Cc: lorenzo@kernel.org, memxor@gmail.com, pablo@netfilter.org,
- davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com, ast@kernel.org,
- daniel@iogearbox.net, andrii@kernel.org, martin.lau@linux.dev,
- song@kernel.org, john.fastabend@gmail.com, sdf@google.com,
- jolsa@kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- netdev@vger.kernel.org, Brad Cowie <brad@faucet.nz>
-Subject: [PATCH bpf-next] net: netfilter: Make ct zone id configurable for bpf ct helper functions
-Date: Fri, 29 Mar 2024 17:14:30 +1300
-Message-Id: <20240329041430.2176860-1-brad@faucet.nz>
-X-Mailer: git-send-email 2.34.1
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="U2gpM5/G"
+Received: by mail-ed1-f46.google.com with SMTP id 4fb4d7f45d1cf-56ca3e11006so382689a12.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 29 Mar 2024 05:34:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1711715649; x=1712320449; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=GEEht4gVkO75YlS7w3h1a3+FyDs/s2xMtBXUdwf+fg8=;
+        b=U2gpM5/GD7jn3Xopegb8rkMyjAOIFYPDEb2CNFeD52jfS86DTyjLF/xjUEFTdH2x3c
+         8Z7GiSyZTyUryhzBGZOAFSP4lTxzc9Ni/c/8a0XbAajFCyN00XTX8mOt3+p6nJjeWXm/
+         4BBBAr9mOWT5IAQvjfbKLTjijOVHu0/vYPdC9KoMByHTLT9HtYXRBE0EmXFa8Zf28oZT
+         sii8/VVTHPziDEOqhG0nmJURoKb70NHMZBTl+AlceCzXENydVgZvkq2DzAJZ3IPWQeQ9
+         byKm2v5ajcFRp3VT1Os2AGka5XRDA0e9VPJLD1rTBS88wUhwzoe/DsbOYJg8YbnibrCi
+         cFOw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1711715649; x=1712320449;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=GEEht4gVkO75YlS7w3h1a3+FyDs/s2xMtBXUdwf+fg8=;
+        b=p2nJ7EjWPOnsXsGu2Ps2NGcPYJbTy3sjxXLYCDQIePVmv5jIqmCU6YDmj4klYMfdBm
+         3edge2PLWxak6U2ha3jiTeTXBUxjlcdurDzZSm4SI2ZbkHonZS5Viq9PrcB+Y17L965e
+         u0vVdzm8JbG6H97CmwXkfMI9IwalRZNA/+v08NxUAJiPJ6pSwnphFKETGJq0Yu9p/jkj
+         B9r1rHYfdCXkznDlt7hU2UG2Q5E1Vs8omWxxzpoS4fiqOPJ75PSdrykydNBXtJKp691m
+         tB3MNCyLnCaFB97zq3Mw3DVLIu3O7hm627p/3DmGyjfhXqLhIVl7bbiJFdYlMnebXV37
+         vkrg==
+X-Gm-Message-State: AOJu0YxzyPXnnCHq6BKa6OBnxhh1w5tuXEEydludixoqJxIlttdwArKu
+	ErBNygQA+fwtkd/LARrN/nHhsmWoyNfdBsYXU+S+96iuUHqDVQgneQVrQdvbZqzXqcTpPRsv8N3
+	7DxviF2QtsX3No8S9kyioyo8RHfw56x/SZx0=
+X-Google-Smtp-Source: AGHT+IG59DGWobrMfklrOQqJA82d5vSl6shv47AnYIwHEHuT8db2kObivkMIIvdDQ4cLzqkPhfiOe0LGFy4oT4wUucw=
+X-Received: by 2002:a17:906:2a14:b0:a47:3b21:161a with SMTP id
+ j20-20020a1709062a1400b00a473b21161amr1307254eje.37.1711715648894; Fri, 29
+ Mar 2024 05:34:08 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Report-Abuse-To: abuse@forwardemail.net
-X-Report-Abuse: abuse@forwardemail.net
-X-Complaints-To: abuse@forwardemail.net
-X-ForwardEmail-Version: 0.4.40
-X-ForwardEmail-Sender: rfc822; brad@faucet.nz, smtp.forwardemail.net,
- 149.28.215.223
-X-ForwardEmail-ID: 660640461a1a38b2e7c2e855
+References: <20240325123614.10425-1-kerneljasonxing@gmail.com>
+In-Reply-To: <20240325123614.10425-1-kerneljasonxing@gmail.com>
+From: Jason Xing <kerneljasonxing@gmail.com>
+Date: Fri, 29 Mar 2024 20:33:32 +0800
+Message-ID: <CAL+tcoCobqkfKX__xKwwp2u1FH29=+uAUtzwZRnfQjiyudS-eg@mail.gmail.com>
+Subject: Re: [PATCH net-next v2] netfilter: use NF_DROP instead of -NF_DROP
+To: pablo@netfilter.org, kadlec@netfilter.org
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+	Jason Xing <kernelxing@tencent.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Add ct zone id to bpf_ct_opts so that arbitrary ct zone can be
-set for xdp/tc bpf ct helper functions bpf_{xdp,skb}_ct_alloc
-and bpf_{xdp,skb}_ct_lookup.
+On Mon, Mar 25, 2024 at 8:36=E2=80=AFPM Jason Xing <kerneljasonxing@gmail.c=
+om> wrote:
+>
+> From: Jason Xing <kernelxing@tencent.com>
+>
+> At the beginning in 2009 one patch [1] introduced collecting drop
+> counter in nf_conntrack_in() by returning -NF_DROP. Later, another
+> patch [2] changed the return value of tcp_packet() which now is
+> renamed to nf_conntrack_tcp_packet() from -NF_DROP to NF_DROP. As
+> we can see, that -NF_DROP should be corrected.
+>
+> Similarly, there are other two points where the -NF_DROP is used.
+>
+> Well, as NF_DROP is equal to 0, inverting NF_DROP makes no sense
+> as patch [2] said many years ago.
+>
+> [1]
+> commit 7d1e04598e5e ("netfilter: nf_conntrack: account packets drop by tc=
+p_packet()")
+> [2]
+> commit ec8d540969da ("netfilter: conntrack: fix dropping packet after l4p=
+roto->packet()")
+>
+> Signed-off-by: Jason Xing <kernelxing@tencent.com>
 
-Signed-off-by: Brad Cowie <brad@faucet.nz>
----
- net/netfilter/nf_conntrack_bpf.c              | 23 ++++++++++---------
- .../testing/selftests/bpf/prog_tests/bpf_nf.c |  1 -
- .../testing/selftests/bpf/progs/test_bpf_nf.c | 13 ++---------
- 3 files changed, 14 insertions(+), 23 deletions(-)
+Hello Pablo,
 
-diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
-index d2492d050fe6..a0f8a64751ec 100644
---- a/net/netfilter/nf_conntrack_bpf.c
-+++ b/net/netfilter/nf_conntrack_bpf.c
-@@ -30,7 +30,6 @@
-  * @error      - Out parameter, set for any errors encountered
-  *		 Values:
-  *		   -EINVAL - Passed NULL for bpf_tuple pointer
-- *		   -EINVAL - opts->reserved is not 0
-  *		   -EINVAL - netns_id is less than -1
-  *		   -EINVAL - opts__sz isn't NF_BPF_CT_OPTS_SZ (12)
-  *		   -EPROTO - l4proto isn't one of IPPROTO_TCP or IPPROTO_UDP
-@@ -42,16 +41,14 @@
-  *		 Values:
-  *		   IPPROTO_TCP, IPPROTO_UDP
-  * @dir:       - connection tracking tuple direction.
-- * @reserved   - Reserved member, will be reused for more options in future
-- *		 Values:
-- *		   0
-+ * @ct_zone    - connection tracking zone id.
-  */
- struct bpf_ct_opts {
- 	s32 netns_id;
- 	s32 error;
- 	u8 l4proto;
- 	u8 dir;
--	u8 reserved[2];
-+	u16 ct_zone;
- };
- 
- enum {
-@@ -104,11 +101,11 @@ __bpf_nf_ct_alloc_entry(struct net *net, struct bpf_sock_tuple *bpf_tuple,
- 			u32 timeout)
- {
- 	struct nf_conntrack_tuple otuple, rtuple;
-+	struct nf_conntrack_zone ct_zone;
- 	struct nf_conn *ct;
- 	int err;
- 
--	if (!opts || !bpf_tuple || opts->reserved[0] || opts->reserved[1] ||
--	    opts_len != NF_BPF_CT_OPTS_SZ)
-+	if (!opts || !bpf_tuple || opts_len != NF_BPF_CT_OPTS_SZ)
- 		return ERR_PTR(-EINVAL);
- 
- 	if (unlikely(opts->netns_id < BPF_F_CURRENT_NETNS))
-@@ -130,7 +127,9 @@ __bpf_nf_ct_alloc_entry(struct net *net, struct bpf_sock_tuple *bpf_tuple,
- 			return ERR_PTR(-ENONET);
- 	}
- 
--	ct = nf_conntrack_alloc(net, &nf_ct_zone_dflt, &otuple, &rtuple,
-+	nf_ct_zone_init(&ct_zone, opts->ct_zone, NF_CT_DEFAULT_ZONE_DIR, 0);
-+
-+	ct = nf_conntrack_alloc(net, &ct_zone, &otuple, &rtuple,
- 				GFP_ATOMIC);
- 	if (IS_ERR(ct))
- 		goto out;
-@@ -152,11 +151,11 @@ static struct nf_conn *__bpf_nf_ct_lookup(struct net *net,
- {
- 	struct nf_conntrack_tuple_hash *hash;
- 	struct nf_conntrack_tuple tuple;
-+	struct nf_conntrack_zone ct_zone;
- 	struct nf_conn *ct;
- 	int err;
- 
--	if (!opts || !bpf_tuple || opts->reserved[0] || opts->reserved[1] ||
--	    opts_len != NF_BPF_CT_OPTS_SZ)
-+	if (!opts || !bpf_tuple || opts_len != NF_BPF_CT_OPTS_SZ)
- 		return ERR_PTR(-EINVAL);
- 	if (unlikely(opts->l4proto != IPPROTO_TCP && opts->l4proto != IPPROTO_UDP))
- 		return ERR_PTR(-EPROTO);
-@@ -174,7 +173,9 @@ static struct nf_conn *__bpf_nf_ct_lookup(struct net *net,
- 			return ERR_PTR(-ENONET);
- 	}
- 
--	hash = nf_conntrack_find_get(net, &nf_ct_zone_dflt, &tuple);
-+	nf_ct_zone_init(&ct_zone, opts->ct_zone, NF_CT_DEFAULT_ZONE_DIR, 0);
-+
-+	hash = nf_conntrack_find_get(net, &ct_zone, &tuple);
- 	if (opts->netns_id >= 0)
- 		put_net(net);
- 	if (!hash)
-diff --git a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-index b30ff6b3b81a..25c3c4e87ed5 100644
---- a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-+++ b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-@@ -103,7 +103,6 @@ static void test_bpf_nf_ct(int mode)
- 		goto end;
- 
- 	ASSERT_EQ(skel->bss->test_einval_bpf_tuple, -EINVAL, "Test EINVAL for NULL bpf_tuple");
--	ASSERT_EQ(skel->bss->test_einval_reserved, -EINVAL, "Test EINVAL for reserved not set to 0");
- 	ASSERT_EQ(skel->bss->test_einval_netns_id, -EINVAL, "Test EINVAL for netns_id < -1");
- 	ASSERT_EQ(skel->bss->test_einval_len_opts, -EINVAL, "Test EINVAL for len__opts != NF_BPF_CT_OPTS_SZ");
- 	ASSERT_EQ(skel->bss->test_eproto_l4proto, -EPROTO, "Test EPROTO for l4proto != TCP or UDP");
-diff --git a/tools/testing/selftests/bpf/progs/test_bpf_nf.c b/tools/testing/selftests/bpf/progs/test_bpf_nf.c
-index 77ad8adf68da..4adb73bc1b33 100644
---- a/tools/testing/selftests/bpf/progs/test_bpf_nf.c
-+++ b/tools/testing/selftests/bpf/progs/test_bpf_nf.c
-@@ -45,7 +45,8 @@ struct bpf_ct_opts___local {
- 	s32 netns_id;
- 	s32 error;
- 	u8 l4proto;
--	u8 reserved[3];
-+	u8 dir;
-+	u16 ct_zone;
- } __attribute__((preserve_access_index));
- 
- struct nf_conn *bpf_xdp_ct_alloc(struct xdp_md *, struct bpf_sock_tuple *, u32,
-@@ -84,16 +85,6 @@ nf_ct_test(struct nf_conn *(*lookup_fn)(void *, struct bpf_sock_tuple *, u32,
- 	else
- 		test_einval_bpf_tuple = opts_def.error;
- 
--	opts_def.reserved[0] = 1;
--	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
--		       sizeof(opts_def));
--	opts_def.reserved[0] = 0;
--	opts_def.l4proto = IPPROTO_TCP;
--	if (ct)
--		bpf_ct_release(ct);
--	else
--		test_einval_reserved = opts_def.error;
--
- 	opts_def.netns_id = -2;
- 	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
- 		       sizeof(opts_def));
--- 
-2.34.1
+I don't know how it works in the nf area, so I would like to know the
+status of this patch and another one (netfilter: conntrack: dccp: try
+not to drop skb in conntrack
+)? Is there anything I need to change?
 
+Thanks,
+Jason
+
+
+
+
+> ---
+> v2
+> Link: https://lore.kernel.org/all/20240325031945.15760-1-kerneljasonxing@=
+gmail.com/
+> 1. squash three patches into one
+> ---
+>  net/ipv4/netfilter/iptable_filter.c  | 2 +-
+>  net/ipv6/netfilter/ip6table_filter.c | 2 +-
+>  net/netfilter/nf_conntrack_core.c    | 2 +-
+>  3 files changed, 3 insertions(+), 3 deletions(-)
+>
+> diff --git a/net/ipv4/netfilter/iptable_filter.c b/net/ipv4/netfilter/ipt=
+able_filter.c
+> index b9062f4552ac..3ab908b74795 100644
+> --- a/net/ipv4/netfilter/iptable_filter.c
+> +++ b/net/ipv4/netfilter/iptable_filter.c
+> @@ -44,7 +44,7 @@ static int iptable_filter_table_init(struct net *net)
+>                 return -ENOMEM;
+>         /* Entry 1 is the FORWARD hook */
+>         ((struct ipt_standard *)repl->entries)[1].target.verdict =3D
+> -               forward ? -NF_ACCEPT - 1 : -NF_DROP - 1;
+> +               forward ? -NF_ACCEPT - 1 : NF_DROP - 1;
+>
+>         err =3D ipt_register_table(net, &packet_filter, repl, filter_ops)=
+;
+>         kfree(repl);
+> diff --git a/net/ipv6/netfilter/ip6table_filter.c b/net/ipv6/netfilter/ip=
+6table_filter.c
+> index df785ebda0ca..e8992693e14a 100644
+> --- a/net/ipv6/netfilter/ip6table_filter.c
+> +++ b/net/ipv6/netfilter/ip6table_filter.c
+> @@ -43,7 +43,7 @@ static int ip6table_filter_table_init(struct net *net)
+>                 return -ENOMEM;
+>         /* Entry 1 is the FORWARD hook */
+>         ((struct ip6t_standard *)repl->entries)[1].target.verdict =3D
+> -               forward ? -NF_ACCEPT - 1 : -NF_DROP - 1;
+> +               forward ? -NF_ACCEPT - 1 : NF_DROP - 1;
+>
+>         err =3D ip6t_register_table(net, &packet_filter, repl, filter_ops=
+);
+>         kfree(repl);
+> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntra=
+ck_core.c
+> index c63868666bd9..6102dc09cdd3 100644
+> --- a/net/netfilter/nf_conntrack_core.c
+> +++ b/net/netfilter/nf_conntrack_core.c
+> @@ -2024,7 +2024,7 @@ nf_conntrack_in(struct sk_buff *skb, const struct n=
+f_hook_state *state)
+>                         goto repeat;
+>
+>                 NF_CT_STAT_INC_ATOMIC(state->net, invalid);
+> -               if (ret =3D=3D -NF_DROP)
+> +               if (ret =3D=3D NF_DROP)
+>                         NF_CT_STAT_INC_ATOMIC(state->net, drop);
+>
+>                 ret =3D -ret;
+> --
+> 2.37.3
+>
