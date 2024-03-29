@@ -1,23 +1,38 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 55DBD13B2B2
-	for <netfilter-devel@vger.kernel.org>; Fri, 29 Mar 2024 22:01:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id E887D39FD6;
+	Fri, 29 Mar 2024 22:12:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711749723; cv=none; b=rcj/d+63Z1bnf5IibADfZ5+HOv6txz5icVf08yzcTUtBPnthuVe50E4Mxm1njPl5P97M5JqJ5oxUEc/a5BNHgTGajQ7aoOCOa0SbGmVTgzqCWsoEDfRGjtZvhxJhdz842HUSXfDVxTPK9/LoYTAUJb+pJK+TEt4MiEce1cUDvz4=
+	t=1711750330; cv=none; b=j7hSsPOLq1kERq0GSa6k+MXlehN1DPwi2k6D/Xa0+EjLNhCZwiacFaMYIjM+9MJqn190FvHMzb2bLsJk+LvHzwVH/j5plCzzZO4GeiHXqTLTuslucB0KzrUwi/dqZINb01ES5UBPbVeV6Cy42qnqbofDfJEZw9KmC1JJFB1KvEA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711749723; c=relaxed/simple;
-	bh=bC0UELhpfg2KWeGw/h/+4PDsEupDpbCYHrvjA61QPzU=;
-	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=epLuJGuGx+z7BcHxvlJdbRhWMVvylEetFN302HskJexI8fThe+3i8BT33cI+MAd/tjVYKBmfK4lTD7O7h0XZSid+aqkQho56VCsMwTDhbIPcKFrDBHuVdNuRg6dxbNtdQBehcRK0BEvhi65qXx/sdMfUZxpZqorpg2nKvrgu5FM=
+	s=arc-20240116; t=1711750330; c=relaxed/simple;
+	bh=4pyAcfmQivB1ekKoU0AtYp3wcKhIcJ+R2eM65+IthZk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=SfigRfo5/Uim0BVvEDTIcbuFDYqMdNqZgyAUrlQ2bnpIfA5o6QZyc4qNA394xCV4cbz//O/tklE3+v56YUbtg380gSm0AjKbOvFetVLHjdqrVYvEjpCzMCW1Tni6q66LhSTn2Cqn3dWmZxoRlt89S6VpIgfuAuw6PpcxMk0tBgk=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Date: Fri, 29 Mar 2024 23:01:56 +0100
+Date: Fri, 29 Mar 2024 23:12:04 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: (re-send): Convert libnetfilter_queue to not need libnfnetlink]
-Message-ID: <Zgc6U4dPcoBeiFJy@calendula>
-References: <ZgXhoUdAqAHvXUj7@slk15.local.net>
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: Donald Hunter <donald.hunter@gmail.com>, netdev@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>,
+	Jiri Pirko <jiri@resnulli.us>,
+	Jacob Keller <jacob.e.keller@intel.com>,
+	Stanislav Fomichev <sdf@google.com>, donald.hunter@redhat.com,
+	fw@strlen.de, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH net-next v1 2/2] tools/net/ynl: Add multi message support
+ to ynl
+Message-ID: <Zgc8tPPX2fdJ1AJP@calendula>
+References: <20240327181700.77940-1-donald.hunter@gmail.com>
+ <20240327181700.77940-3-donald.hunter@gmail.com>
+ <20240328175729.15208f4a@kernel.org>
+ <m234s9jh0k.fsf@gmail.com>
+ <20240329084346.7a744d1e@kernel.org>
+ <m2plvcj27b.fsf@gmail.com>
+ <CAD4GDZw0RW3B2n5vC-q-XLpQ_bCg0iP13qvOa=cjK37CPLJsKg@mail.gmail.com>
+ <20240329144639.0b42dc19@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -26,70 +41,23 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <ZgXhoUdAqAHvXUj7@slk15.local.net>
+In-Reply-To: <20240329144639.0b42dc19@kernel.org>
 
-Hi Duncan,
-
-On Fri, Mar 29, 2024 at 08:31:13AM +1100, Duncan Roe wrote:
-> Hi Pablo,
+On Fri, Mar 29, 2024 at 02:46:39PM -0700, Jakub Kicinski wrote:
+> On Fri, 29 Mar 2024 21:01:09 +0000 Donald Hunter wrote:
+> > There's no response for 'batch-begin' or 'batch-end'. We may need a
+> > per op spec property to tell us if a request will be acknowledged.
 > 
-> On Mon, Sep 11, 2023 at 09:51:07AM +0200, Pablo Neira Ayuso wrote:
-> > On Mon, Sep 11, 2023 at 03:54:25PM +1000, Duncan Roe wrote:
-> [SNIP]
-> > > libnetfilter_queue effectively supports 2 ABIs, the older being based on
-> > > libnfnetlink and the newer on libmnl.
-> >
-> > Yes, there are two APIs, same thing occurs in other existing
-> > libnetfilter_* libraries, each of these APIs are based on libnfnetlink
-> > and libmnl respectively.
-> >
-> [SNIP]
-> >
-> > libnfnetlink will go away sooner or later. We are steadily replacing
-> > all client of this library for netfilter.org projects. Telling that
-> > this is not deprecated without providing a compatible "old API" for
-> > libmnl adds more confusion to this subject.
-> >
-> > If you want to explore providing a patch that makes the
-> > libnfnetlink-based API work over libmnl, then go for it.
+> :(
 > 
-> OK I went for it. But I posted the resultant patchset as a reply to an
-> earlier email.
+> Pablo, could we possibly start processing the ACK flags on those
+> messages? Maybe the existing user space doesn't set ACK so nobody
+> would notice?
 > 
-> The Patchwork series is
-> https://patchwork.ozlabs.org/project/netfilter-devel/list/?series=399143
-> ("Convert nfq_open() to use libmnl").
-> 
-> The series is "code only" - I kept back the documentation changes for
-> spearate review. These documentation changes present the "old API" as
-> merely an alternative to the mnl API: both use libmnl.
+> I don't think the messages are otherwise marked as special from 
+> the "netlink layer" perspective.
 
-Thanks for explaining.
+It is possible to explore this. I don't have a use-case for NLM_F_ACK
+and the begin marker message at this stage.
 
-> Do you think you might find time to look at it before too long? I know you
-> are very busy but I would appreciate some feedback.
-
-This update is large it comes with its own risks and I see chances
-that existing applications might break with this "transparent"
-approach (where user is not aware that libnfnetlink is not used
-anymore).
-
-So far main complains with the new API is that it is too low level
-(some users do not want to know about netlink details). The old API is
-popular because it provides an easy way for users to receive packets
-from the nfnetlink subsystem without dealing with netlink details.
-
-My suggestion is to extend the new API with more functions to make it
-ressemble more like the old API. Then, document how to migrate from
-the old API to the new API, such documentation would be good to
-include a list of items with things that have changed between old and
-new APIs.
-
-Would you consider feasible to follow up in this direction? If so,
-probably you can make new API proposal that can be discussed.
-
-I hope this does not feel discouraging to you, I think all this work
-that you have done will be useful in this new approach and likely you
-can recover ideas from this patchset.
-
-Thanks for your patience.
+Thanks.
