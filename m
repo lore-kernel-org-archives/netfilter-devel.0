@@ -1,170 +1,151 @@
-Received: from mail-pg1-f182.google.com (mail-pg1-f182.google.com [209.85.215.182])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on2100.outbound.protection.outlook.com [40.107.236.100])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C2008479
-	for <netfilter-devel@vger.kernel.org>; Sun, 31 Mar 2024 22:53:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.182
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711925620; cv=none; b=WKw9U3gV1du5mm6glcuJ3JIocFZIjDM5XPxWGsm1z46KR56W9i0ok3cJy0LwDAgMJ7QUYmMRnTdZxyRMQB+1cfeUuGhZNQWEHIPhaknmispfKFpJDo4a+XVKrVo6/oj7umYbIal7cYDVte97mnmJvzr1fHdOf6JpbU1ZMym0naI=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711925620; c=relaxed/simple;
-	bh=zyAUa/2yxokn+UbDZdpV3vJ8Il6g1jwj7SWtPEmYCPk=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=rRiJeOAJCP8d4v3CcuCD/jDsGhLnaXNymqGu54r1unGYsrEo6Vkpzgq0eigFo2lyq5U2eT8hIn7usmaw5d4s0fqavPisjewa+4zMG+WAtaQZDI4kCLhNrMKeEuNPPp/9UVK9jvu/+hnQ4gS7TgWSlrHpLfIbnIrm3AQzkcGfViw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=WrfoZwXs; arc=none smtp.client-ip=209.85.215.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04254D52B;
+	Mon,  1 Apr 2024 09:39:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.236.100
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1711964391; cv=fail; b=Mb/jc1mfNZvlN5vLLItODV/Y+5wLRp2yU3B3bGicxTc72RvMN0sX+7dHvgOqHcCetAAe4X6T9Ds4Yuo/qy3kdBWJ2MVAbedeli7wrvvgjAVAxfy1K7YDrKqPeGo4ebzKG054upBA7KRImZrQKNaBB8+85X/gMYnXqxj2Dm55rUM=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1711964391; c=relaxed/simple;
+	bh=SsiuLwAf95R7H8rUF4ev1uIEayx3okpcRn9Z9pjOn5o=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=Dqt62c6qQ58gy82vHNFWsrbd7cEsRZJz+K49xeMcVEKFEPznZ04vRCEwQ7uuDOak92uWMHsJ9QiHyVUYME41lp8Xo1mZ1Ajhkf6mD6qFR7+kQGviA4T8ynVMwWPQqzC4CFFzy6TOcqlhv7pPLNpY1txshswoUig5GquUkveG7xE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=gp2M3lIr; arc=fail smtp.client-ip=40.107.236.100
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WrfoZwXs"
-Received: by mail-pg1-f182.google.com with SMTP id 41be03b00d2f7-5bdbe2de25fso2614211a12.3
-        for <netfilter-devel@vger.kernel.org>; Sun, 31 Mar 2024 15:53:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1711925617; x=1712530417; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=zyAUa/2yxokn+UbDZdpV3vJ8Il6g1jwj7SWtPEmYCPk=;
-        b=WrfoZwXsXiwT33pPsDQtBqitaZ6bIgTk39H7XnvUa8rdnZ9Mji96fvXp1fR4HHlY1W
-         FyFQowX2EMSdlpRRXKXILV462oq/Ay4G7M+itUuy+c4WmWi/pOCWjxS4119NiDCuwAT1
-         rLe77NDqDY0nY2AYtq/4WkX7782/GZv9k7/sViPsdLL+bR9ytolXUYnU/HvcJM2CyVeC
-         mLvI43YJH7w3GpbBIOXwgA1ops3k9qrR8xU16VWBjDq5k1ZfOofezI8g3QbbH+G76UmE
-         p1tkbn65OT/okCtnOBnOsrIY9yMqc2IOygtt/IiXkrakoQDUOSjmqCEO5qSX/ohNt4Ys
-         6l7w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1711925617; x=1712530417;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=zyAUa/2yxokn+UbDZdpV3vJ8Il6g1jwj7SWtPEmYCPk=;
-        b=ZWyxD8LBubRZYaeUEal0vgDuKuS289hFZ5LvRr0QTWjT06++D/gObQBAGfOKG/4GRJ
-         R6op3mLU+6bYQQAy3GmC5pzkRtdd8mK2b6zoiGoGU5IVfnAhjpf4b7ya5pf3G2+woL/G
-         uI1DwkJSVR1sDtsZqJGnxOGjpYe0Ja8I1CIfRLiCmvyo7hJKPSxpD6Od2Hwpyr7bfysS
-         k30o6cJYCpJ1ytToBkIXn2etDv5qsABjzER2m+6QjzEHXSR/xPFOfZbnBuNRMByGjXiY
-         fqDWBCMCOLG8qtxFhRYAuKFG+8xkYc6EWHDwxvXFY/f0JS4VoL2ujRx1FOI0pe/6HXkq
-         hivg==
-X-Gm-Message-State: AOJu0YyfTjinKmTC1g9OjBIhveo0dVy014IrxLfZgWYIZg5epNbqXfAO
-	P5794TkGiA3nVA5Thh1KHwsSlngNGvor9e7SkoKG+fMotWy+SELTzK6Z3/iL
-X-Google-Smtp-Source: AGHT+IGyvAT3yAuzLJgTGyQpNlCg+jqeFKzCHLyDNKMI/yU/GvLBj3hkaxDDOSojNQJYz7d6eeMsow==
-X-Received: by 2002:a05:6a20:43a9:b0:1a3:bc78:fd1 with SMTP id i41-20020a056a2043a900b001a3bc780fd1mr10076601pzl.59.1711925617262;
-        Sun, 31 Mar 2024 15:53:37 -0700 (PDT)
-Received: from slk15.local.net (n58-108-84-186.meb1.vic.optusnet.com.au. [58.108.84.186])
-        by smtp.gmail.com with ESMTPSA id d9-20020a170902b70900b001db37fd26bcsm7400351pls.116.2024.03.31.15.53.35
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 31 Mar 2024 15:53:36 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From: Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
-Date: Mon, 1 Apr 2024 09:53:33 +1100
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: (re-send): Convert libnetfilter_queue to not need libnfnetlink]
-Message-ID: <ZgnpbZfHCMZnXmIT@slk15.local.net>
-Reply-To: duncan_roe@optusnet.com.au
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <ZgXhoUdAqAHvXUj7@slk15.local.net>
- <Zgc6U4dPcoBeiFJy@calendula>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="gp2M3lIr"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=MSuVJtRMhIB4lhrNUzIzn2g+gcPbzxuac4rwN9ArroGZZVWNzQdtOLNZYjHpNx4hKWulZe7QS7uyfVvn5n0Pdfcxk1PT9EJjVO7eWZKwPyRrTzkuY8zsUhIv3DIe2ZlzqjziC3eFEuiJiz5flIEA6eQfV8djQPY8rPRWwq5QgIDDt9CyBZMGNax3R5aIMV9udTxpn31VKzHs1m0+ijfmrX/9GQR84VFV5KVX38SinilgaqemGs1a9VH9ZYZD97hsgUeKsMkoeakWNCC0BJqiy6DkyZV1P2Qoohl7nwqm4cuYxND7UYhXlNld/0VuT3IddWaoVoVVAa9qWyD/TBvTpw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=SsiuLwAf95R7H8rUF4ev1uIEayx3okpcRn9Z9pjOn5o=;
+ b=WAA/xkD7vxUZGzNL4DJLOmT1VGdJkjLxSeY1JmdLovKD3xmKQyCtEXDN5OCWSsHE0Q6JXKs6LXA15Iezj/k6MuQh2nwOaHWuMUjb3bxVbrMYrg46nPUhV4NFvbnKf4bMX11EFtqlSs8DSklGvMraYp99OsXuxJY808u/5Bj5Fwf4/vMX4uZrQxctUn5aMeAc+UQ+NlNwP7qoh+Xz4UMbawgt4MIQq9Su601nGittVEHNnyXpEOMgHL6zhoJmgXroN+lbL4nBYC1n4+Hufz/vUupx5iEIk6hrmUT05Ajf3JBAfKoMCCfW5mmnvX0mGU9xSKbmxItbbfjiPyAGgrT64g==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=SsiuLwAf95R7H8rUF4ev1uIEayx3okpcRn9Z9pjOn5o=;
+ b=gp2M3lIr3k9j/hPClBI12pUsKCN/viZ5PvZGExwkE+TO7rEKtJr0Yc2UnxbiKFCqZRdU2gTtdwEiihK/mlXju472MRH8kFstKl3Rir2kcDhteTNkbgiYIZfv1D8J1PcSdzSnb2FZV3DnnL9kflFwFeqKhg0xHMKxD2zOW6KRJyI2luT9yOQrdk1SFqoR+rdFBOY4Kx7xfnSv04A2pyr0hlPPK62jMAVl+XvLVQb/sV2eyu8V7McYyQdpw2Xp5VyBgpDRdMQf5tw3De5kveHwDvkKUXHCPxmcZg9WBO3j1QRgxRGdRA4fbPIG0k/Quhe9YtwhqoMxXzzAtcr1r+0aJQ==
+Received: from IA1PR12MB6235.namprd12.prod.outlook.com (2603:10b6:208:3e5::15)
+ by MW6PR12MB8733.namprd12.prod.outlook.com (2603:10b6:303:24c::8) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7409.46; Mon, 1 Apr
+ 2024 09:39:44 +0000
+Received: from IA1PR12MB6235.namprd12.prod.outlook.com
+ ([fe80::2afb:c838:f5b0:6af3]) by IA1PR12MB6235.namprd12.prod.outlook.com
+ ([fe80::2afb:c838:f5b0:6af3%4]) with mapi id 15.20.7409.042; Mon, 1 Apr 2024
+ 09:39:44 +0000
+From: Jianbo Liu <jianbol@nvidia.com>
+To: "pablo@netfilter.org" <pablo@netfilter.org>
+CC: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "fw@strlen.de"
+	<fw@strlen.de>, "netfilter-devel@vger.kernel.org"
+	<netfilter-devel@vger.kernel.org>, "davem@davemloft.net"
+	<davem@davemloft.net>
+Subject: Re: [BUG] kernel warning from br_nf_local_in+0x157/0x180
+Thread-Topic: [BUG] kernel warning from br_nf_local_in+0x157/0x180
+Thread-Index: AQHaeRh+r2dUlP7fzkayCsPDG8BqZ7FDtn8AgAFzdICABB3CAIAJ9yUA
+Date: Mon, 1 Apr 2024 09:39:43 +0000
+Message-ID: <d134a3fb58c27abab012aa154401e403e6e46b84.camel@nvidia.com>
+References: <ac03a9ba41e130123cd680be6df9f30be95d0f98.camel@nvidia.com>
+	 <Zf15Ni8CuRLNnBAJ@calendula>
+	 <d6084a1cdd0e6d2133c8586936266aedd8eb3564.camel@nvidia.com>
+	 <ZgIkm3KNK78qpptx@calendula>
+In-Reply-To: <ZgIkm3KNK78qpptx@calendula>
+Accept-Language: zh-CN, en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+user-agent: Evolution 3.40.0-1 
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: IA1PR12MB6235:EE_|MW6PR12MB8733:EE_
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info:
+ OA4cqoZgYEgpDkvbj8JjlwFBPPOAXxHncSD82Tgy/0K8ZTFee891TXKBZs7vvOFTLZXo9VlUGyVtcYNXPEVaxn9zQe36/0UqrHMRWbI285XuzqjUAvyjcP0UaokIK5CoCzkwdUp8Y0Ac8XtNzuCZtTkEoTVH7xV5CHCMuIdzT7nPJjZqUkhmkdHrA2X9pS1d3JeUuAMJBWktM0/Rfm08qXmerW2RP3ylhBOHomR369LdLCeZFM1+RdLFMQG8wOhbSyR7efLAHK7+t3rVmrrOpiP/IQrCgpFSFiYV+Px1suh3o0XkZRXoFUDQ8xfGbmQQWZ6NmS9zlP/3BYwPf2smGfaaWW0HU7/hHqWSLAYzkpqJj92P2lCKMLGlpM39oY+N76UOfpSQOIzmOz2sUZipKhlVB0How11yiizeaCzcCa323SQPqZJ8TQu/tCTDM07qLwk2cZXO1Tegr2Cw0OfLP0T7MHgwXRxuTBo4aS8Jen0NO0xDipCmGvt+Fxa6mqDc+4vg3lbRt43Iw4VBUd++GiMM1inBAWmzPnYOsgdXOJMG4bPiM2RLQOiG/ubnio9GSOm+xw3njUUM5V9t+QAOZzUlmfD9nxN0yZUUvx5KNzbj06Rsx6PyHifKuHUpp6tOWeHsbG3kLOl1etPxoCbHziViz1Fn/1uPg7C7DLqzno8=
+x-forefront-antispam-report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:IA1PR12MB6235.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(366007)(376005)(1800799015);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?utf-8?B?T2xNSmRZd2tLUy8yZUlDNUhXZkRQRWcvbmZ2UFdlQS91K3lYQ0RrOVMyTkt4?=
+ =?utf-8?B?dDBSSGszblhtazYyU1o4Z1dOekU2RFJzV0hCRk9hSVZXQkNjTEhwYlppaDlk?=
+ =?utf-8?B?b01NYVU0Vk9rV3pFVS9jOFByR3pNenBUUWEyQlVaU0REbkFVcjJpVFhqZjQ3?=
+ =?utf-8?B?ZEc3ZzhWT1dRWEJkRHRzU2h1K0NjOC9uVDBock93dElGRTE4YlM0QTlSbk1z?=
+ =?utf-8?B?QUNwMlNEa2EzRTFWVGJYbDZUdHFoQTc0Wmx0MVZIbHlybi8waTlvZGliTU82?=
+ =?utf-8?B?TzlpZzVRYVRObWt5Zm5TdkNvd0ZEdVl5L3hnYU5JUG51bzk4WUVGdmVPSTIr?=
+ =?utf-8?B?ck5OcVdHRTBGSXBiTXg0ckh1a01XM09aUlFUK0hlMkV3SnFNK3c5R2thYkM2?=
+ =?utf-8?B?dlpCVDVNZlNBZVB0b3pNYzJsakRFRWViYkVWUUZreWdzVlNWa0lPdnRNcUdr?=
+ =?utf-8?B?Z1l5eUZyaXJ1RnY5VmxPbEdRODgySjEvUHpYRGZLY0p5ZWpDV2dpVUQ4NS96?=
+ =?utf-8?B?MU5wQ1pGaFJhcm1Xdi9wb09FQVIyek02aVk2MmZ4SGZ5UlpKNEtYakFSdjV3?=
+ =?utf-8?B?cTJHSXY0ZFB4eVhleGZuYzg1bnJ2N3NISVRvZGJWVzgzd2JGajRPWUNoNmk0?=
+ =?utf-8?B?dkRTeW5HQkdiemdDUFhMRC9LNGtacFh3cXluUlBkZ2lNeDVkdHdnZE1hZnVh?=
+ =?utf-8?B?SC9pU3lhdGFkb2xKQkFGZWxDU2p6UnI1SHN1N0tYdWhlYlpIeWZkWCtuU2J5?=
+ =?utf-8?B?cGNNZk5HUmhrN0llUEZNSk9SVXhiNno4UWhnWWE3aTRtS01BVG0vbWxUVENk?=
+ =?utf-8?B?RzRxdWhRelVUUFRRUVRIUUhHV0plMkU2Y3JFaHY2akR4U3JYNWV5QVVLNjkv?=
+ =?utf-8?B?K2N2OVJMN2ZlZEFPd1pkcThJNlJVMEJFMklkZHNiYkkveXZFcWJpc2ZLRkhV?=
+ =?utf-8?B?aDZXbzh3Q3JHa3I3eFg2Vi9UTnFOaFRVclhZbldKTXkxTjhnTWlaUktTUDBq?=
+ =?utf-8?B?bTVyNkYwNVhzV3c4Nkluc2RteS9iNlBvMEhRTm52bmJGazI2UUlGMHZaeHI4?=
+ =?utf-8?B?eHdOWU9KU0ZOWEJpL3hwcjh5UnRUeG5MaWIwMFRveFIzZUw2K1BNTGx2WWlB?=
+ =?utf-8?B?TjcwZVd6bmpab3htM2t3U2lmbk9xTW1LSHU1NkN3cDJBdU5NeFV1b2ROakVu?=
+ =?utf-8?B?b1ZSbEZYQ3prZTdCQ0hXbTdmTThKWW5na0hrUzBpYWhFTk1najhVMGFtRHlj?=
+ =?utf-8?B?eWhWVHhIaDZ3VXphN3huTTBzV3dnTUlUcktwbHV2SCt4cHdmeUdodVZCWFZl?=
+ =?utf-8?B?SSt0MC9DVVFDVERnSlpKTXlhblFvdVlxMWpaaDFqSzFMQVRURVdTS3h6bk1P?=
+ =?utf-8?B?NGRmUVZ2bDc0a056dVltVnBQNnFWV2RpMHpGVzNmM084QjlocThDV1lSMTVm?=
+ =?utf-8?B?cmdFQW85WTdrTHcyRXhTQWg0WFVMa3puVnp3TWhkdU8xUDVBWFRlaEdLVDNu?=
+ =?utf-8?B?dlkvTU50WndDYytYdG1NTmYxa3FaUE9RUFd4emdqUldsT0lQYzVSdWl6MWlV?=
+ =?utf-8?B?WnVqQ2VOVjhROFM0aHQrWmx2UHVPeGkxKy9qZkFpanIvL2Z1TWZRRytRdkpH?=
+ =?utf-8?B?VG5EbDZoODRsSStiT3dsTFFuVStLVzJaYzg2UmRISjNtNmNUSngxY2UzelAz?=
+ =?utf-8?B?cFRkRnF1TkVOYmhGSDFWVHdsakpKV2hqc0hBckgvVnhGWjQxbUZ2bVdVbGlW?=
+ =?utf-8?B?bGlZQS93aTJyclU0ZUhoRGplelhNbkdBQzM3UkhDNW0wbjdsV2kwa2J0d29Q?=
+ =?utf-8?B?dlVLZnMxS3ErdUo2SWxzR2NjVjBMc1krMkM1N29QZEFtQ2NkUURzaTFFT3A3?=
+ =?utf-8?B?a1R2MnRUS05vaC9iWmM3dTZCSk5aYTZ6andRK0xqdnk1Q2JoRzJPdXNBS2pR?=
+ =?utf-8?B?TjdERnJ6VmdXRGFWTXVsWjNzWnBBT0l2eXV3RG9EQ2RadlNmd2dxczBQc3RC?=
+ =?utf-8?B?T25mMlVNalpSQUFzZEFINHFvV2N3MllsNzd4TUJQaWEwRkREZXFETy8yUlo3?=
+ =?utf-8?B?dWRRZVVCbXdHdnZteDJESHd6bTF3YjRoL0RsdUtWNlU5ZVRBNmNpMW5VWCtY?=
+ =?utf-8?Q?zvknuwAT5UnTL2WXQAOxxcSHE?=
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <88C66BD1B7A30D4DB6423950575EABE8@namprd12.prod.outlook.com>
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Zgc6U4dPcoBeiFJy@calendula>
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: IA1PR12MB6235.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 27d463a7-0b72-4d10-d1c7-08dc522fa97f
+X-MS-Exchange-CrossTenant-originalarrivaltime: 01 Apr 2024 09:39:43.9954
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: FT+5mjMhesHXd+FIn9dw/c6WG2pWfFsAzJfVMwUfcFY5LWdXbAv1YO0FA0ulgE7H1hh3RZJnwjYH7RzO2MVqBA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW6PR12MB8733
 
-Hi Pablo,
-
-On Fri, Mar 29, 2024 at 11:01:56PM +0100, Pablo Neira Ayuso wrote:
-> Hi Duncan,
->
-> On Fri, Mar 29, 2024 at 08:31:13AM +1100, Duncan Roe wrote:
-> > Hi Pablo,
-> >
-> > On Mon, Sep 11, 2023 at 09:51:07AM +0200, Pablo Neira Ayuso wrote:
-> > > On Mon, Sep 11, 2023 at 03:54:25PM +1000, Duncan Roe wrote:
-> > [SNIP]
-> > > > libnetfilter_queue effectively supports 2 ABIs, the older being based on
-> > > > libnfnetlink and the newer on libmnl.
-> > >
-> > > Yes, there are two APIs, same thing occurs in other existing
-> > > libnetfilter_* libraries, each of these APIs are based on libnfnetlink
-> > > and libmnl respectively.
-> > >
-> > [SNIP]
-> > >
-> > > libnfnetlink will go away sooner or later. We are steadily replacing
-> > > all client of this library for netfilter.org projects. Telling that
-> > > this is not deprecated without providing a compatible "old API" for
-> > > libmnl adds more confusion to this subject.
-> > >
-> > > If you want to explore providing a patch that makes the
-> > > libnfnetlink-based API work over libmnl, then go for it.
-> >
-> > OK I went for it. But I posted the resultant patchset as a reply to an
-> > earlier email.
-> >
-> > The Patchwork series is
-> > https://patchwork.ozlabs.org/project/netfilter-devel/list/?series=399143
-> > ("Convert nfq_open() to use libmnl").
-> >
-> > The series is "code only" - I kept back the documentation changes for
-> > spearate review. These documentation changes present the "old API" as
-> > merely an alternative to the mnl API: both use libmnl.
->
-> Thanks for explaining.
->
-> > Do you think you might find time to look at it before too long? I know you
-> > are very busy but I would appreciate some feedback.
->
-> This update is large
-
-Yes, there are 32 patches. Unlike in my first attempt at this conversion,
-you can apply these patches one at a time without breaking anything.
-
-P1 is the critical patch: it sets up the private structures used by
-libnfnetlink (using copied code) and libnetfilter_queue (by calling
-mnl_socket_open()) so that calls to either library work. You would want to
-carefully review the copied code that sets up the libnfnetlink private
-structures. Once you are satisfied that part is sound, patches up to p10
-convert all other nfq_* functions.
-
-p11 - p32 do pretty much what their titles say. Mostly they implement and
-document the nlif_* functions from libnfnetlink.
-
-N.B. nfq_close() will leak memory until you apply p3. It might be best to
-treat p1 - p3 as a single patch. I can re-issue the series that way if you
-would prefer.
-
-> it comes with its own risks and I see chances
-> that existing applications might break with this "transparent"
-> approach (where user is not aware that libnfnetlink is not used
-> anymore).
-
-Hmm. You do say above that "libnfnetlink will go away sooner or later". For
-it to go away, you will need something like this patchset.
->
-> So far main complains with the new API is that it is too low level
-> (some users do not want to know about netlink details). The old API is
-> popular because it provides an easy way for users to receive packets
-> from the nfnetlink subsystem without dealing with netlink details.
->
-> My suggestion is to extend the new API with more functions to make it
-> ressemble more like the old API. Then, document how to migrate from
-> the old API to the new API, such documentation would be good to
-> include a list of items with things that have changed between old and
-> new APIs.
->
-> Would you consider feasible to follow up in this direction? If so,
-> probably you can make new API proposal that can be discussed.
->
-> I hope this does not feel discouraging to you, I think all this work
-> that you have done will be useful in this new approach and likely you
-> can recover ideas from this patchset.
-
-Will address these points in a separate email.
->
-> Thanks for your patience.
->
-Cheers ... Duncan.
+T24gVHVlLCAyMDI0LTAzLTI2IGF0IDAyOjI4ICswMTAwLCBQYWJsbyBOZWlyYSBBeXVzbyB3cm90
+ZToNCj4gT24gU2F0LCBNYXIgMjMsIDIwMjQgYXQgMTA6Mzc6MTZBTSArMDAwMCwgSmlhbmJvIExp
+dSB3cm90ZToNCj4gPiBPbiBGcmksIDIwMjQtMDMtMjIgYXQgMTM6MjcgKzAxMDAsIFBhYmxvIE5l
+aXJhIEF5dXNvIHdyb3RlOg0KPiA+ID4gSGkgSmlhbmJvLA0KPiA+ID4gDQo+ID4gPiBPbiBNb24s
+IE1hciAxOCwgMjAyNCBhdCAwOTo0MTo0NkFNICswMDAwLCBKaWFuYm8gTGl1IHdyb3RlOg0KPiA+
+ID4gPiBIaSBGbG9yaWFuIGFuZCBQYWJsbywNCj4gPiA+ID4gDQo+ID4gPiA+IFdlIGhpdCB0aGUg
+Zm9sbG93aW5nIHdhcm5pbmcgZnJvbSBicl9uZl9sb2NhbF9pbisweDE1Ny8weDE4MC4NCj4gPiA+
+IA0KPiA+ID4gQ2FuIHlvdSBnaXZlIGEgdHJ5IHRvIHRoaXMgcGF0Y2g/DQo+ID4gPiANCj4gPiAN
+Cj4gPiBTb3JyeSwgaXQgZG9lc24ndCBmaXguDQo+ID4gSXQgbG9va3MgZmluZSB3aGVuIHJ1bm5p
+bmcgdGhlIHRlc3QgbWFudWFsbHkuIEJ1dCB0aGUgd2FybmluZyBzdGlsbA0KPiA+IGFwcGVhcmVk
+IGluIG91ciByZWdyZXNzaW9uIHRlc3RzLg0KPiANCj4gWW91IG1lYW4gZGlmZmVyZW50IHRlc3Qg
+dHJpZ2dlcnMgbm93IHRoZSB3YXJuaW5nIHNwbGF0Pw0KDQpJdCBzaG91bGQgYmUgdGhlIHNhbWUu
+IFRoZSB0ZXN0IEkgcnVuIG1hbnVhbGx5IHdhcyBjb25maWd1cmVkIGJ5IHRoZQ0Kc2NyaXB0cyBJ
+IHBvc3RlZCBpbiB0aGlzIHRocmVhZC4NCg0KPiANCj4gTm90IHN1cmUgeWV0IGlmIHRoaXMgaXMg
+dGhlIGJ1ZyB0aGF0IGlzIHRyaWdnZXJpbmcgdGhlIGlzc3VlIGluIHlvdXINCj4gdGVzdGJlZCB5
+ZXQsIGJ1dCBJIGZpbmQgaXQgb2RkIHRoYXQgcGFja2V0cyBoaXR0aW5nIHRoZSBsb2NhbF9pbiBo
+b29rDQo+IGJlY2F1c2UgcHJvbWlzYyBmbGFnIGlzIHNldCBvbiBjYW4gY29uZmlybSBjb25udHJh
+Y2sgZW50cmllcy4NCj4gDQoNClRoaXMgZml4IHNlZW1zIG9rLiBJIGRpZG4ndCBzZWUgdGhlIHdh
+cm5pbmcgb3IgYW55IG90aGVyIGlzc3VlLg0KDQpUaGFua3MhDQpKaWFuYm8NCg0KPiBXb3VsZCB5
+b3UgcGxlYXNlIGdpdmUgYSB0cnkgdG8gdGhpcyBwYXRjaD8gVGhhbmtzIQ0KDQo=
