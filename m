@@ -1,25 +1,22 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 89A0929CFA
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Apr 2024 18:47:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 576A833982
+	for <netfilter-devel@vger.kernel.org>; Mon,  1 Apr 2024 22:57:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711997239; cv=none; b=UB66wtYa6cQlspHHAYpiZYeVwY6GxOCsxKuiIRRFHUdYC7GlOJKhAJyhEYzf0Coz/6ItNyK8etKklF/aItJjT792gERZu007oVf0pLKftZNp+A4u26Bf0Y9WSQ9e8OSqwDfOP/vKmjC/e4TFjFWmMBxxrmPNNtuk3LZgAomMB6w=
+	t=1712012257; cv=none; b=g3+XH/t2lNF5BK8nFd1q21otuEnOAFOSk7Y7wvrJ57PTYglu7EH6SLfN9XUJOwATIJjQ4nw2K0ltJn0bFsY6So1n4O1cF60yECnGE7HbDnkv/ZAz1xY6pFNDQnAu29QILiSELrcAiS7XAXy+Cj5XdbT+5yg1iZHUXVy7T/cYXVs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711997239; c=relaxed/simple;
-	bh=0zKhoYBBqc2bD6i58alTaeRHhnA9uWsOO3tDmWeAlAI=;
-	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=mpGGNP6JidocK38PPvLBFt5AsJAdnWyyc9GJHETRBGc465NUTrxGV7TtcTKN4ueSakJswnFmbJrietVD+j2ODRI1pM/sObryYSQ5YMySMyuk+nECB06vZ65NGozgMMv33rJsXu3+MxEhzBDvA5Xc8gybSQEhXJ9u9mq8RqdXHdc=
+	s=arc-20240116; t=1712012257; c=relaxed/simple;
+	bh=r3XZSCtpirzlkp5AjZc6oTMBny+zUB87p0uBmpxBMEo=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=LSMb0IM8bWC+9RIVi3WUQ98SErRZLR2stXEhcDSWRcCYWBTFdDn7VlVSGa/N1hEeI9tPa3SqfRFqZxvdLklQiVENp5mwo+3l1pYyPfSGv1CmdWPwWLwt8E/ArF5E7qJnpFzQ2aaCynxAm0CemfqNRwOs3P8x7UI3NcNPr6TZ4N4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf 3/3] netfilter: nf_tables: flush pending destroy work before exit_net release
-Date: Mon,  1 Apr 2024 20:47:10 +0200
-Message-Id: <20240401184710.632714-3-pablo@netfilter.org>
+Subject: [PATCH nft] src: disentangle ICMP code types
+Date: Tue,  2 Apr 2024 00:57:26 +0200
+Message-Id: <20240401225726.1106334-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20240401184710.632714-1-pablo@netfilter.org>
-References: <20240401184710.632714-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -28,126 +25,551 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Similar to 2c9f0293280e ("netfilter: nf_tables: flush pending destroy
-work before netlink notifier") to address a race between exit_net and
-the destroy workqueue.
+Currently, ICMP{v4,v6,inet} code datatypes only describe those that are
+supported by the reject statement, but they can also be used for icmp
+code matching. Moreover, ICMP code types go hand-to-hand with ICMP
+types, that is, ICMP code symbols depend on the ICMP type.
 
-The trace below shows an element to be released via destroy workqueue
-while exit_net has already released the set that is used in such
-transaction.
+Thus, the output of:
 
-[ 1360.547789] BUG: KASAN: slab-use-after-free in nf_tables_trans_destroy_work+0x3f5/0x590 [nf_tables]
-[ 1360.547861] Read of size 8 at addr ffff888140500cc0 by task kworker/4:1/152465
-[ 1360.547870] CPU: 4 PID: 152465 Comm: kworker/4:1 Not tainted 6.8.0+ #359
-[ 1360.547882] Workqueue: events nf_tables_trans_destroy_work [nf_tables]
-[ 1360.547984] Call Trace:
-[ 1360.547991]  <TASK>
-[ 1360.547998]  dump_stack_lvl+0x53/0x70
-[ 1360.548014]  print_report+0xc4/0x610
-[ 1360.548026]  ? __virt_addr_valid+0xba/0x160
-[ 1360.548040]  ? __pfx__raw_spin_lock_irqsave+0x10/0x10
-[ 1360.548054]  ? nf_tables_trans_destroy_work+0x3f5/0x590 [nf_tables]
-[ 1360.548176]  kasan_report+0xae/0xe0
-[ 1360.548189]  ? nf_tables_trans_destroy_work+0x3f5/0x590 [nf_tables]
-[ 1360.548312]  nf_tables_trans_destroy_work+0x3f5/0x590 [nf_tables]
-[ 1360.548447]  ? __pfx_nf_tables_trans_destroy_work+0x10/0x10 [nf_tables]
-[ 1360.548577]  ? _raw_spin_unlock_irq+0x18/0x30
-[ 1360.548591]  process_one_work+0x2f1/0x670
-[ 1360.548610]  worker_thread+0x4d3/0x760
-[ 1360.548627]  ? __pfx_worker_thread+0x10/0x10
-[ 1360.548640]  kthread+0x16b/0x1b0
-[ 1360.548653]  ? __pfx_kthread+0x10/0x10
-[ 1360.548665]  ret_from_fork+0x2f/0x50
-[ 1360.548679]  ? __pfx_kthread+0x10/0x10
-[ 1360.548690]  ret_from_fork_asm+0x1a/0x30
-[ 1360.548707]  </TASK>
+  nft describe icmp_code
 
-[ 1360.548719] Allocated by task 192061:
-[ 1360.548726]  kasan_save_stack+0x20/0x40
-[ 1360.548739]  kasan_save_track+0x14/0x30
-[ 1360.548750]  __kasan_kmalloc+0x8f/0xa0
-[ 1360.548760]  __kmalloc_node+0x1f1/0x450
-[ 1360.548771]  nf_tables_newset+0x10c7/0x1b50 [nf_tables]
-[ 1360.548883]  nfnetlink_rcv_batch+0xbc4/0xdc0 [nfnetlink]
-[ 1360.548909]  nfnetlink_rcv+0x1a8/0x1e0 [nfnetlink]
-[ 1360.548927]  netlink_unicast+0x367/0x4f0
-[ 1360.548935]  netlink_sendmsg+0x34b/0x610
-[ 1360.548944]  ____sys_sendmsg+0x4d4/0x510
-[ 1360.548953]  ___sys_sendmsg+0xc9/0x120
-[ 1360.548961]  __sys_sendmsg+0xbe/0x140
-[ 1360.548971]  do_syscall_64+0x55/0x120
-[ 1360.548982]  entry_SYSCALL_64_after_hwframe+0x55/0x5d
+look confusing because that only displays the values that are supported
+by the reject statement.
 
-[ 1360.548994] Freed by task 192222:
-[ 1360.548999]  kasan_save_stack+0x20/0x40
-[ 1360.549009]  kasan_save_track+0x14/0x30
-[ 1360.549019]  kasan_save_free_info+0x3b/0x60
-[ 1360.549028]  poison_slab_object+0x100/0x180
-[ 1360.549036]  __kasan_slab_free+0x14/0x30
-[ 1360.549042]  kfree+0xb6/0x260
-[ 1360.549049]  __nft_release_table+0x473/0x6a0 [nf_tables]
-[ 1360.549131]  nf_tables_exit_net+0x170/0x240 [nf_tables]
-[ 1360.549221]  ops_exit_list+0x50/0xa0
-[ 1360.549229]  free_exit_list+0x101/0x140
-[ 1360.549236]  unregister_pernet_operations+0x107/0x160
-[ 1360.549245]  unregister_pernet_subsys+0x1c/0x30
-[ 1360.549254]  nf_tables_module_exit+0x43/0x80 [nf_tables]
-[ 1360.549345]  __do_sys_delete_module+0x253/0x370
-[ 1360.549352]  do_syscall_64+0x55/0x120
-[ 1360.549360]  entry_SYSCALL_64_after_hwframe+0x55/0x5d
+Disentangle this by adding internal datatypes for the reject statement
+to handle the ICMP code symbol conversion to value as well as ruleset
+listing.
 
-(gdb) list *__nft_release_table+0x473
-0x1e033 is in __nft_release_table (net/netfilter/nf_tables_api.c:11354).
-11349           list_for_each_entry_safe(flowtable, nf, &table->flowtables, list) {
-11350                   list_del(&flowtable->list);
-11351                   nft_use_dec(&table->use);
-11352                   nf_tables_flowtable_destroy(flowtable);
-11353           }
-11354           list_for_each_entry_safe(set, ns, &table->sets, list) {
-11355                   list_del(&set->list);
-11356                   nft_use_dec(&table->use);
-11357                   if (set->flags & (NFT_SET_MAP | NFT_SET_OBJECT))
-11358                           nft_map_deactivate(&ctx, set);
-(gdb)
+The existing icmp_code, icmpv6_code and icmpx_code remain in place. For
+backward compatibility, a parser function is defined in case an existing
+ruleset relies on these symbols.
 
-[ 1360.549372] Last potentially related work creation:
-[ 1360.549376]  kasan_save_stack+0x20/0x40
-[ 1360.549384]  __kasan_record_aux_stack+0x9b/0xb0
-[ 1360.549392]  __queue_work+0x3fb/0x780
-[ 1360.549399]  queue_work_on+0x4f/0x60
-[ 1360.549407]  nft_rhash_remove+0x33b/0x340 [nf_tables]
-[ 1360.549516]  nf_tables_commit+0x1c6a/0x2620 [nf_tables]
-[ 1360.549625]  nfnetlink_rcv_batch+0x728/0xdc0 [nfnetlink]
-[ 1360.549647]  nfnetlink_rcv+0x1a8/0x1e0 [nfnetlink]
-[ 1360.549671]  netlink_unicast+0x367/0x4f0
-[ 1360.549680]  netlink_sendmsg+0x34b/0x610
-[ 1360.549690]  ____sys_sendmsg+0x4d4/0x510
-[ 1360.549697]  ___sys_sendmsg+0xc9/0x120
-[ 1360.549706]  __sys_sendmsg+0xbe/0x140
-[ 1360.549715]  do_syscall_64+0x55/0x120
-[ 1360.549725]  entry_SYSCALL_64_after_hwframe+0x55/0x5d
+As for the manpage, move existing ICMP code tables from the DATA TYPES
+section to the REJECT STATEMENT section, where this really belongs to.
+But the icmp_code and icmpv6_code table stubs remain in the DATA TYPES
+section because that describe that this is an 8-bit integer field.
 
-Cc: stable@vger.kernel.org
-Fixes: 0935d5588400 ("netfilter: nf_tables: asynchronous release")
+After this patch:
+
+ # nft describe icmp_code
+ datatype icmp_code (icmp code) (basetype integer), 8 bits
+ # nft describe icmpv6_code
+ datatype icmpv6_code (icmpv6 code) (basetype integer), 8 bits
+ # nft describe icmpx_code
+ datatype icmpx_code (icmpx code) (basetype integer), 8 bits
+
+do not display the symbol table of the reject statement anymore.
+
+icmpx_code_type is not used anymore, but keep it in place for backward
+compatibility reasons.
+
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 3 +++
- 1 file changed, 3 insertions(+)
+ doc/data-types.txt        | 68 -----------------------------------
+ doc/statements.txt        | 74 ++++++++++++++++++++++++++++++---------
+ include/datatype.h        |  5 +++
+ src/datatype.c            | 71 +++++++++++++++++++++++++++++++++----
+ src/netlink_delinearize.c | 10 +++---
+ src/parser_bison.y        | 12 +++----
+ src/parser_json.c         |  6 ++--
+ tests/py/ip/icmp.t        |  6 ++--
+ tests/py/ip6/icmpv6.t     |  8 ++---
+ 9 files changed, 147 insertions(+), 113 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index c7b3df6a915c..a77633274c46 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -11480,6 +11480,9 @@ static void __net_exit nf_tables_exit_net(struct net *net)
+diff --git a/doc/data-types.txt b/doc/data-types.txt
+index e5ee91a97386..6c0e2f9420fe 100644
+--- a/doc/data-types.txt
++++ b/doc/data-types.txt
+@@ -242,28 +242,6 @@ integer
  
- 	gc_seq = nft_gc_seq_begin(nft_net);
+ The ICMP Code type is used to conveniently specify the ICMP header's code field.
  
-+	if (!list_empty(&nf_tables_destroy_list))
-+		nf_tables_trans_destroy_flush_work();
+-.Keywords may be used when specifying the ICMP code
+-[options="header"]
+-|==================
+-|Keyword | Value
+-|net-unreachable |
+-0
+-|host-unreachable |
+-1
+-|prot-unreachable|
+-2
+-|port-unreachable|
+-3
+-|frag-needed|
+-4
+-|net-prohibited|
+-9
+-|host-prohibited|
+-10
+-|admin-prohibited|
+-13
+-|===================
+-
+ ICMPV6 TYPE TYPE
+ ~~~~~~~~~~~~~~~~
+ [options="header"]
+@@ -340,52 +318,6 @@ integer
+ 
+ The ICMPv6 Code type is used to conveniently specify the ICMPv6 header's code field.
+ 
+-.keywords may be used when specifying the ICMPv6 code
+-[options="header"]
+-|==================
+-|Keyword |Value
+-|no-route|
+-0
+-|admin-prohibited|
+-1
+-|addr-unreachable|
+-3
+-|port-unreachable|
+-4
+-|policy-fail|
+-5
+-|reject-route|
+-6
+-|==================
+-
+-ICMPVX CODE TYPE
+-~~~~~~~~~~~~~~~~
+-[options="header"]
+-|==================
+-|Name | Keyword | Size | Base type
+-|ICMPvX Code |
+-icmpx_code |
+-8 bit |
+-integer
+-|===================
+-
+-The ICMPvX Code type abstraction is a set of values which overlap between ICMP
+-and ICMPv6 Code types to be used from the inet family.
+-
+-.keywords may be used when specifying the ICMPvX code
+-[options="header"]
+-|==================
+-|Keyword |Value
+-|no-route|
+-0
+-|port-unreachable|
+-1
+-|host-unreachable|
+-2
+-|admin-prohibited|
+-3
+-|=================
+-
+ CONNTRACK TYPES
+ ~~~~~~~~~~~~~~~
+ 
+diff --git a/doc/statements.txt b/doc/statements.txt
+index ae6442b03e46..39b31fd2c825 100644
+--- a/doc/statements.txt
++++ b/doc/statements.txt
+@@ -171,9 +171,9 @@ REJECT STATEMENT
+ ____
+ *reject* [ *with* 'REJECT_WITH' ]
+ 
+-'REJECT_WITH' := *icmp* 'icmp_code' |
+-                 *icmpv6* 'icmpv6_code' |
+-                 *icmpx* 'icmpx_code' |
++'REJECT_WITH' := *icmp* 'icmp_reject_code' |
++                 *icmpv6* 'icmpv6_reject_code' |
++                 *icmpx* 'icmpx_reject_code' |
+                  *tcp reset*
+ ____
+ 
+@@ -184,24 +184,64 @@ using the *prerouting*, *input*,
+ *forward* or *output* hooks, and user-defined chains which are only called from
+ those chains.
+ 
+-.different ICMP reject variants are meant for use in different table families
++.Keywords may be used to reject when specifying the ICMP code
+ [options="header"]
+ |==================
+-|Variant |Family | Type
+-|icmp|
+-ip|
+-icmp_code
+-|icmpv6|
+-ip6|
+-icmpv6_code
+-|icmpx|
+-inet|
+-icmpx_code
++|Keyword | Value
++|net-unreachable |
++0
++|host-unreachable |
++1
++|prot-unreachable|
++2
++|port-unreachable|
++3
++|frag-needed|
++4
++|net-prohibited|
++9
++|host-prohibited|
++10
++|admin-prohibited|
++13
++|===================
 +
- 	if (!list_empty(&nft_net->commit_list) ||
- 	    !list_empty(&nft_net->module_list))
- 		__nf_tables_abort(net, NFNL_ABORT_NONE);
++.keywords may be used to reject when specifying the ICMPv6 code
++[options="header"]
+ |==================
++|Keyword |Value
++|no-route|
++0
++|admin-prohibited|
++1
++|addr-unreachable|
++3
++|port-unreachable|
++4
++|policy-fail|
++5
++|reject-route|
++6
++|==================
++
++The ICMPvX Code type abstraction is a set of values which overlap between ICMP
++and ICMPv6 Code types to be used from the inet family.
++
++.keywords may be used when specifying the ICMPvX code
++[options="header"]
++|==================
++|Keyword |Value
++|no-route|
++0
++|port-unreachable|
++1
++|host-unreachable|
++2
++|admin-prohibited|
++3
++|=================
+ 
+-For a description of the different types and a list of supported keywords refer
+-to DATA TYPES section above. The common default reject value is
+-*port-unreachable*. +
++The common default ICMP code to reject is *port-unreachable*.
+ 
+ Note that in bridge family, reject statement is only allowed in base chains
+ which hook into input or prerouting.
+diff --git a/include/datatype.h b/include/datatype.h
+index c4d6282d6f59..d4b4737cc9ae 100644
+--- a/include/datatype.h
++++ b/include/datatype.h
+@@ -283,6 +283,11 @@ extern const struct datatype priority_type;
+ extern const struct datatype policy_type;
+ extern const struct datatype cgroupv2_type;
+ 
++/* private datatypes for reject statement. */
++extern const struct datatype reject_icmp_code_type;
++extern const struct datatype reject_icmpv6_code_type;
++extern const struct datatype reject_icmpx_code_type;
++
+ void inet_service_type_print(const struct expr *expr, struct output_ctx *octx);
+ 
+ extern const struct datatype *concat_type_alloc(uint32_t type);
+diff --git a/src/datatype.c b/src/datatype.c
+index b368ea9125fc..d398a9c8c618 100644
+--- a/src/datatype.c
++++ b/src/datatype.c
+@@ -1017,6 +1017,7 @@ const struct datatype mark_type = {
+ 	.parse		= mark_type_parse,
+ };
+ 
++/* symbol table for private datatypes for reject statement. */
+ static const struct symbol_table icmp_code_tbl = {
+ 	.base		= BASE_DECIMAL,
+ 	.symbols	= {
+@@ -1032,16 +1033,17 @@ static const struct symbol_table icmp_code_tbl = {
+ 	},
+ };
+ 
+-const struct datatype icmp_code_type = {
+-	.type		= TYPE_ICMP_CODE,
++/* private datatype for reject statement. */
++const struct datatype reject_icmp_code_type = {
+ 	.name		= "icmp_code",
+-	.desc		= "icmp code",
++	.desc		= "reject icmp code",
+ 	.size		= BITS_PER_BYTE,
+ 	.byteorder	= BYTEORDER_BIG_ENDIAN,
+ 	.basetype	= &integer_type,
+ 	.sym_tbl	= &icmp_code_tbl,
+ };
+ 
++/* symbol table for private datatypes for reject statement. */
+ static const struct symbol_table icmpv6_code_tbl = {
+ 	.base		= BASE_DECIMAL,
+ 	.symbols	= {
+@@ -1055,16 +1057,17 @@ static const struct symbol_table icmpv6_code_tbl = {
+ 	},
+ };
+ 
+-const struct datatype icmpv6_code_type = {
+-	.type		= TYPE_ICMPV6_CODE,
++/* private datatype for reject statement. */
++const struct datatype reject_icmpv6_code_type = {
+ 	.name		= "icmpv6_code",
+-	.desc		= "icmpv6 code",
++	.desc		= "reject icmpv6 code",
+ 	.size		= BITS_PER_BYTE,
+ 	.byteorder	= BYTEORDER_BIG_ENDIAN,
+ 	.basetype	= &integer_type,
+ 	.sym_tbl	= &icmpv6_code_tbl,
+ };
+ 
++/* symbol table for private datatypes for reject statement. */
+ static const struct symbol_table icmpx_code_tbl = {
+ 	.base		= BASE_DECIMAL,
+ 	.symbols	= {
+@@ -1076,6 +1079,60 @@ static const struct symbol_table icmpx_code_tbl = {
+ 	},
+ };
+ 
++/* private datatype for reject statement. */
++const struct datatype reject_icmpx_code_type = {
++	.name		= "icmpx_code",
++	.desc		= "reject icmpx code",
++	.size		= BITS_PER_BYTE,
++	.byteorder	= BYTEORDER_BIG_ENDIAN,
++	.basetype	= &integer_type,
++	.sym_tbl	= &icmpx_code_tbl,
++};
++
++/* Backward compatible parser for the reject statement. */
++static struct error_record *icmp_code_parse(struct parse_ctx *ctx,
++					    const struct expr *sym,
++					    struct expr **res)
++{
++	return symbolic_constant_parse(ctx, sym, &icmp_code_tbl, res);
++}
++
++const struct datatype icmp_code_type = {
++	.type		= TYPE_ICMP_CODE,
++	.name		= "icmp_code",
++	.desc		= "icmp code",
++	.size		= BITS_PER_BYTE,
++	.byteorder	= BYTEORDER_BIG_ENDIAN,
++	.basetype	= &integer_type,
++	.parse		= icmp_code_parse,
++};
++
++/* Backward compatible parser for the reject statement. */
++static struct error_record *icmpv6_code_parse(struct parse_ctx *ctx,
++					      const struct expr *sym,
++					      struct expr **res)
++{
++	return symbolic_constant_parse(ctx, sym, &icmpv6_code_tbl, res);
++}
++
++const struct datatype icmpv6_code_type = {
++	.type		= TYPE_ICMPV6_CODE,
++	.name		= "icmpv6_code",
++	.desc		= "icmpv6 code",
++	.size		= BITS_PER_BYTE,
++	.byteorder	= BYTEORDER_BIG_ENDIAN,
++	.basetype	= &integer_type,
++	.parse		= icmpv6_code_parse,
++};
++
++/* Backward compatible parser for the reject statement. */
++static struct error_record *icmpx_code_parse(struct parse_ctx *ctx,
++					     const struct expr *sym,
++					     struct expr **res)
++{
++	return symbolic_constant_parse(ctx, sym, &icmpx_code_tbl, res);
++}
++
+ const struct datatype icmpx_code_type = {
+ 	.type		= TYPE_ICMPX_CODE,
+ 	.name		= "icmpx_code",
+@@ -1083,7 +1140,7 @@ const struct datatype icmpx_code_type = {
+ 	.size		= BITS_PER_BYTE,
+ 	.byteorder	= BYTEORDER_BIG_ENDIAN,
+ 	.basetype	= &integer_type,
+-	.sym_tbl	= &icmpx_code_tbl,
++	.parse		= icmpx_code_parse,
+ };
+ 
+ void time_print(uint64_t ms, struct output_ctx *octx)
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 24dfb3116eab..da9f7a91e4b3 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -2948,7 +2948,7 @@ static void stmt_reject_postprocess(struct rule_pp_ctx *rctx)
+ 	switch (dl->pctx.family) {
+ 	case NFPROTO_IPV4:
+ 		stmt->reject.family = dl->pctx.family;
+-		datatype_set(stmt->reject.expr, &icmp_code_type);
++		datatype_set(stmt->reject.expr, &reject_icmp_code_type);
+ 		if (stmt->reject.type == NFT_REJECT_TCP_RST &&
+ 		    payload_dependency_exists(&dl->pdctx,
+ 					      PROTO_BASE_TRANSPORT_HDR))
+@@ -2957,7 +2957,7 @@ static void stmt_reject_postprocess(struct rule_pp_ctx *rctx)
+ 		break;
+ 	case NFPROTO_IPV6:
+ 		stmt->reject.family = dl->pctx.family;
+-		datatype_set(stmt->reject.expr, &icmpv6_code_type);
++		datatype_set(stmt->reject.expr, &reject_icmpv6_code_type);
+ 		if (stmt->reject.type == NFT_REJECT_TCP_RST &&
+ 		    payload_dependency_exists(&dl->pdctx,
+ 					      PROTO_BASE_TRANSPORT_HDR))
+@@ -2968,7 +2968,7 @@ static void stmt_reject_postprocess(struct rule_pp_ctx *rctx)
+ 	case NFPROTO_BRIDGE:
+ 	case NFPROTO_NETDEV:
+ 		if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH) {
+-			datatype_set(stmt->reject.expr, &icmpx_code_type);
++			datatype_set(stmt->reject.expr, &reject_icmpx_code_type);
+ 			break;
+ 		}
+ 
+@@ -2984,12 +2984,12 @@ static void stmt_reject_postprocess(struct rule_pp_ctx *rctx)
+ 		case NFPROTO_IPV4:			/* INET */
+ 		case __constant_htons(ETH_P_IP):	/* BRIDGE, NETDEV */
+ 			stmt->reject.family = NFPROTO_IPV4;
+-			datatype_set(stmt->reject.expr, &icmp_code_type);
++			datatype_set(stmt->reject.expr, &reject_icmp_code_type);
+ 			break;
+ 		case NFPROTO_IPV6:			/* INET */
+ 		case __constant_htons(ETH_P_IPV6):	/* BRIDGE, NETDEV */
+ 			stmt->reject.family = NFPROTO_IPV6;
+-			datatype_set(stmt->reject.expr, &icmpv6_code_type);
++			datatype_set(stmt->reject.expr, &reject_icmpv6_code_type);
+ 			break;
+ 		default:
+ 			break;
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index bdb73911759c..61bed761b0a9 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -3740,40 +3740,40 @@ reject_opts		:       /* empty */
+ 				$<stmt>0->reject.family = NFPROTO_IPV4;
+ 				$<stmt>0->reject.type = NFT_REJECT_ICMP_UNREACH;
+ 				$<stmt>0->reject.expr = $4;
+-				datatype_set($<stmt>0->reject.expr, &icmp_code_type);
++				datatype_set($<stmt>0->reject.expr, &reject_icmp_code_type);
+ 			}
+ 			|	WITH	ICMP	reject_with_expr
+ 			{
+ 				$<stmt>0->reject.family = NFPROTO_IPV4;
+ 				$<stmt>0->reject.type = NFT_REJECT_ICMP_UNREACH;
+ 				$<stmt>0->reject.expr = $3;
+-				datatype_set($<stmt>0->reject.expr, &icmp_code_type);
++				datatype_set($<stmt>0->reject.expr, &reject_icmp_code_type);
+ 			}
+ 			|	WITH	ICMP6	TYPE	reject_with_expr close_scope_type close_scope_icmp
+ 			{
+ 				$<stmt>0->reject.family = NFPROTO_IPV6;
+ 				$<stmt>0->reject.type = NFT_REJECT_ICMP_UNREACH;
+ 				$<stmt>0->reject.expr = $4;
+-				datatype_set($<stmt>0->reject.expr, &icmpv6_code_type);
++				datatype_set($<stmt>0->reject.expr, &reject_icmpv6_code_type);
+ 			}
+ 			|	WITH	ICMP6	reject_with_expr
+ 			{
+ 				$<stmt>0->reject.family = NFPROTO_IPV6;
+ 				$<stmt>0->reject.type = NFT_REJECT_ICMP_UNREACH;
+ 				$<stmt>0->reject.expr = $3;
+-				datatype_set($<stmt>0->reject.expr, &icmpv6_code_type);
++				datatype_set($<stmt>0->reject.expr, &reject_icmpv6_code_type);
+ 			}
+ 			|	WITH	ICMPX	TYPE	reject_with_expr close_scope_type
+ 			{
+ 				$<stmt>0->reject.type = NFT_REJECT_ICMPX_UNREACH;
+ 				$<stmt>0->reject.expr = $4;
+-				datatype_set($<stmt>0->reject.expr, &icmpx_code_type);
++				datatype_set($<stmt>0->reject.expr, &reject_icmpx_code_type);
+ 			}
+ 			|	WITH	ICMPX	reject_with_expr
+ 			{
+ 				$<stmt>0->reject.type = NFT_REJECT_ICMPX_UNREACH;
+ 				$<stmt>0->reject.expr = $3;
+-				datatype_set($<stmt>0->reject.expr, &icmpx_code_type);
++				datatype_set($<stmt>0->reject.expr, &reject_icmpx_code_type);
+ 			}
+ 			|	WITH	TCP	close_scope_tcp RESET close_scope_reset
+ 			{
+diff --git a/src/parser_json.c b/src/parser_json.c
+index 4fc0479cf497..efe494949460 100644
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -2331,17 +2331,17 @@ static struct stmt *json_parse_reject_stmt(struct json_ctx *ctx,
+ 			stmt->reject.icmp_code = 0;
+ 		} else if (!strcmp(type, "icmpx")) {
+ 			stmt->reject.type = NFT_REJECT_ICMPX_UNREACH;
+-			dtype = &icmpx_code_type;
++			dtype = &reject_icmpx_code_type;
+ 			stmt->reject.icmp_code = 0;
+ 		} else if (!strcmp(type, "icmp")) {
+ 			stmt->reject.type = NFT_REJECT_ICMP_UNREACH;
+ 			stmt->reject.family = NFPROTO_IPV4;
+-			dtype = &icmp_code_type;
++			dtype = &reject_icmp_code_type;
+ 			stmt->reject.icmp_code = 0;
+ 		} else if (!strcmp(type, "icmpv6")) {
+ 			stmt->reject.type = NFT_REJECT_ICMP_UNREACH;
+ 			stmt->reject.family = NFPROTO_IPV6;
+-			dtype = &icmpv6_code_type;
++			dtype = &reject_icmpv6_code_type;
+ 			stmt->reject.icmp_code = 0;
+ 		}
+ 	}
+diff --git a/tests/py/ip/icmp.t b/tests/py/ip/icmp.t
+index 7ddf8b38a538..4b8049d78b7a 100644
+--- a/tests/py/ip/icmp.t
++++ b/tests/py/ip/icmp.t
+@@ -26,8 +26,8 @@ icmp code 111 accept;ok
+ icmp code != 111 accept;ok
+ icmp code 33-55;ok
+ icmp code != 33-55;ok
+-icmp code { 2, 4, 54, 33, 56};ok;icmp code { prot-unreachable, frag-needed, 33, 54, 56}
+-icmp code != { prot-unreachable, frag-needed, 33, 54, 56};ok
++icmp code { 2, 4, 54, 33, 56};ok
++icmp code != { 2, 4, 33, 54, 56};ok
+ 
+ icmp checksum 12343 accept;ok
+ icmp checksum != 12343 accept;ok
+@@ -73,5 +73,5 @@ icmp gateway != { 33, 55, 67, 88};ok
+ icmp gateway != 34;ok
+ icmp gateway != { 333, 334};ok
+ 
+-icmp code 1 icmp type 2;ok;icmp type 2 icmp code host-unreachable
++icmp code 1 icmp type 2;ok;icmp type 2 icmp code 1
+ icmp code != 1 icmp type 2 icmp mtu 5;fail
+diff --git a/tests/py/ip6/icmpv6.t b/tests/py/ip6/icmpv6.t
+index 35dad2be54a4..b2cf6f70fbd1 100644
+--- a/tests/py/ip6/icmpv6.t
++++ b/tests/py/ip6/icmpv6.t
+@@ -28,10 +28,10 @@ icmpv6 type {router-renumbering, mld-listener-done, time-exceeded, nd-router-sol
+ icmpv6 type {mld-listener-query, time-exceeded, nd-router-advert} accept;ok
+ icmpv6 type != {mld-listener-query, time-exceeded, nd-router-advert} accept;ok
+ 
+-icmpv6 code 4;ok;icmpv6 code port-unreachable
++icmpv6 code 4;ok
+ icmpv6 code 3-66;ok
+-icmpv6 code {5, 6, 7} accept;ok;icmpv6 code {policy-fail, reject-route, 7} accept
+-icmpv6 code != {policy-fail, reject-route, 7} accept;ok
++icmpv6 code {5, 6, 7} accept;ok
++icmpv6 code != {5, 6, 7} accept;ok
+ 
+ icmpv6 checksum 2222 log;ok
+ icmpv6 checksum != 2222 log;ok
+@@ -84,7 +84,7 @@ icmpv6 max-delay != 33-45;ok
+ icmpv6 max-delay {33, 55, 67, 88};ok
+ icmpv6 max-delay != {33, 55, 67, 88};ok
+ 
+-icmpv6 type parameter-problem icmpv6 code no-route;ok
++icmpv6 type parameter-problem icmpv6 code 0;ok
+ 
+ icmpv6 type mld-listener-query icmpv6 taddr 2001:db8::133;ok
+ icmpv6 type nd-neighbor-solicit icmpv6 taddr 2001:db8::133;ok
 -- 
 2.30.2
 
