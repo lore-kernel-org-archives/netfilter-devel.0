@@ -1,48 +1,22 @@
-Received: from azazel.net (taras.nevrast.org [35.176.194.208])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E41E81465B9
-	for <netfilter-devel@vger.kernel.org>; Wed,  3 Apr 2024 12:29:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 152C9156655
+	for <netfilter-devel@vger.kernel.org>; Wed,  3 Apr 2024 21:13:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712147399; cv=none; b=YDwMxPonfbjShgXPSRMVt9f6lOxDNA2EDl9M5aXddpfXUcOESSPDEJKyTQtb1b8anY5NCm0sUEQaP/xBGyZIsfNcAu0HpG4sdPK7Fj4K2wWgc0T9v5GCeC/mIm7MC0yns0VVQpmk1zdn65t8FGAzVXnc45kE0ohBhkRekcWNTi0=
+	t=1712178827; cv=none; b=qnsyQU6dvAZwarVTLYuuXE0/xe9v+dBD1mcpiAouYldKg7EY3takpbA9Dibno5PCt18l54wotZAIfr/Heli3vtuAzVcCLAW2gKqUElbBWzd2ooFu3FKEhN5vHJV4BUWvOuj018+8fd8fABGCjkoYgBne8B0+0CyBL2Pu3t9GC00=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712147399; c=relaxed/simple;
-	bh=aCi4Na4ck4bx8W5akCYJ9jiW+WTZ+fRdbGwXMxnIcKY=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=GN9CXuVeONRsGdT+/qRAONEWjPoVKmRh5R2/EBBZfGPINj/Q+OBRyjGaeqAclKXLsJ1WjpvjsYWrtkb86sHo4L+lGepSY6egRjX/W34eN0bA1xBYh0PmEb4rstmLNecaH1SEJD3eF4/kl020IN4UlvBUETRAbh8thIR73QgoXUM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=j0D3dr+0; arc=none smtp.client-ip=35.176.194.208
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="j0D3dr+0"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-	s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=3pqArfhh3gJbAyCVjORpTvQXMLgwTCYMXyLLOV6TFpY=; b=j0D3dr+0XebPEH0nQr07p8g6gK
-	XeKJFOACfEkLQIdGId8ykNgh8ZOEo/S8a33VhAqSDsijKliI35n4Eozeuxw1bpRKO+UyVIDZeBNFh
-	4W/vha8TaQX8dc0MCEeKTewF8fi6Md0mJRFiGSoEiNXu2TAw9h6jX7cF9UmYRsgzM3OjCrGAzFKSf
-	91CCA3lQJPyPvd6xhqzeBac9QBop+zz2sOq1qdxlqhPVj5k9eWnx/5lbna6zcuIeMMA/LlwCufLZx
-	Pox29a5gWrJAhUcb0z5UTeIxgDf3n1jum9eBgKvEMocRVqf8ndk9kwexzzeT2ErUvaNjVkguwkwzJ
-	FyL8uKVw==;
-Received: from [2001:8b0:fb7d:d6d6:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
-	by taras.nevrast.org with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.96)
-	(envelope-from <jeremy@azazel.net>)
-	id 1rrzRD-00HR7h-0V
-	for netfilter-devel@vger.kernel.org;
-	Wed, 03 Apr 2024 13:09:55 +0100
-From: Jeremy Sowden <jeremy@azazel.net>
-To: Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft v2 1/2] evaluate: handle invalid mapping expressions in stateful object statements gracefully.
-Date: Wed,  3 Apr 2024 13:09:36 +0100
-Message-ID: <20240403120937.4061434-2-jeremy@azazel.net>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20240403120937.4061434-1-jeremy@azazel.net>
-References: <20240403120937.4061434-1-jeremy@azazel.net>
+	s=arc-20240116; t=1712178827; c=relaxed/simple;
+	bh=31TcPkjQL622qbKE5kav369a3C34Fy2UYSgDEvtKZ8A=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=Ry5+BosrfVA2ikBf/tOJdsFjZJW2VIy0YAMSXY9e/8Jyq+OE/E9Aw7NJ22wYkobxu7ecUcKBwLYNi+TmKgeryXzxUlmnvkEmzrKcVIeehnIs9m9Cj1PT3PUNByZVK2djvhyYJTWgm/XiKrlb9rIKMegP+R3ncTh3xadeyCuNdBU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf] netfilter: nf_tables: discard table flag update with pending basechain deletion
+Date: Wed,  3 Apr 2024 23:03:40 +0200
+Message-Id: <20240403210340.478255-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -50,43 +24,40 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d6:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 
-Currently, they are reported as assertion failures:
+Hook unregistration is deferred to the commit phase, same occurs with
+hook updates triggered by the table dormant flag. When both commands are
+combined, this results in deleting a basechain while leaving its hook
+still registered in the core.
 
-  BUG: invalid mapping expression variable
-  nft: src/evaluate.c:4618: stmt_evaluate_objref_map: Assertion `0' failed.
-  Aborted
-
-Instead, report them more informatively as errors:
-
-  /space/azazel/tmp/ruleset.1067161.nft:15:29-38: Error: invalid mapping expression variable
-      quota name ip saddr map $quota_map
-                 ~~~~~~~~     ^^^^^^^^^^
-
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+Fixes: 179d9ba5559a ("netfilter: nf_tables: fix table flag updates")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/evaluate.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+More narrowing down for the dormant flag to fix issues as suggested by Florian.
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 1682ba58989e..f28ef2aad8f4 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -4615,8 +4615,9 @@ static int stmt_evaluate_objref_map(struct eval_ctx *ctx, struct stmt *stmt)
- 					  "Expression is not a map with objects");
- 		break;
- 	default:
--		BUG("invalid mapping expression %s\n",
--		    expr_name(map->mappings));
-+		return expr_binary_error(ctx->msgs, map->mappings, map->map,
-+					 "invalid mapping expression %s",
-+					 expr_name(map->mappings));
+ net/netfilter/nf_tables_api.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 8fd9eb96408d..dce3c612d8da 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1210,10 +1210,11 @@ static bool nft_table_pending_update(const struct nft_ctx *ctx)
+ 		return true;
+ 
+ 	list_for_each_entry(trans, &nft_net->commit_list, list) {
+-		if ((trans->msg_type == NFT_MSG_NEWCHAIN ||
+-		     trans->msg_type == NFT_MSG_DELCHAIN) &&
+-		    trans->ctx.table == ctx->table &&
+-		    nft_trans_chain_update(trans))
++		if (trans->ctx.table == ctx->table &&
++		    ((trans->msg_type == NFT_MSG_NEWCHAIN &&
++		      nft_trans_chain_update(trans)) ||
++		     (trans->msg_type == NFT_MSG_DELCHAIN &&
++		      nft_is_base_chain(nft_trans_chain(trans)))))
+ 			return true;
  	}
  
- 	if (!datatype_compatible(map->mappings->set->key->dtype, map->map->dtype))
 -- 
-2.43.0
+2.30.2
 
