@@ -1,29 +1,29 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01EA36EB44
-	for <netfilter-devel@vger.kernel.org>; Wed,  3 Apr 2024 08:42:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 502B16CDDB
+	for <netfilter-devel@vger.kernel.org>; Wed,  3 Apr 2024 08:42:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712133752; cv=none; b=U1DvOOAOgy3FcuWhHVrKtZpdoIq9QbulanK2TTHEva0MacdFjGBXOMfKfqI+Qng5RpbcwK/AY4W0sFuyJUkfFJuA2RKo+fCUySp+ZkyQ4krUSaZi1gzC7NwBPkqRxJ8TqhMGZAEZxU1SzKqDAeMUTsx62qLWd86bKlXuvQuVjGo=
+	t=1712133756; cv=none; b=CHuH3UshccxBfNFL917Nm6jwEpaCi63r5XEdZlJ1UU0s2lZLpiT7dddPYA60exJg2yjFHk+QiebjWMKNkXPlhkxkpdv/lQmyU555fcDdfdHMyqETBoGYr9ZQ1Tad0cl0cziiP+p8Hi9/pLjy+0iYNC2CbtyhG+4N7zNxW8YclV4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712133752; c=relaxed/simple;
-	bh=VUwO9bzXm2JGtAjgFtJ/avSAYswyWnj90MWFDBbkkpA=;
+	s=arc-20240116; t=1712133756; c=relaxed/simple;
+	bh=V7YmFkoPqtDzqXba5zz9g6jJQrUMM/Y3xt6qs3IMlls=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ky8JMybDliUlsaZ0C9J9K8Iz+IPYeuYgLfheFeT5ZnxObDTJAqVxFoZBjglPujE84+MEXDnLHHPmn38LaSyVyq3yu1pfjoyCrlT+Iu8VcRGleaY4C5W7Soh3/R8Pi00HpUc9FJYBgRi5JeDRLrltp0ZOxjvEsHjiKyouCyAeRUA=
+	 MIME-Version; b=YscUEjicsCGSrLR8wGxllUru150VoBXL09yZvAxFjdDSXtIg/atCFXQSOMMdS9PFo1NsDhSJs2JAc34o9cTVPDnXvduhRJ93Wx9I8o1xsR86SejvxIaMdGXqlL5Xv0aSaKTaAaoprz5Yd9mcWaWs+pO/JsEIVubUmzHLedUjenA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1rrwCT-0005xT-Hq; Wed, 03 Apr 2024 10:42:29 +0200
+	id 1rrwCX-0005xs-RL; Wed, 03 Apr 2024 10:42:33 +0200
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: sbrivio@redhat.com,
 	Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 3/9] netfilter: nft_set_pipapo: prepare destroy function for on-demand clone
-Date: Wed,  3 Apr 2024 10:41:03 +0200
-Message-ID: <20240403084113.18823-4-fw@strlen.de>
+Subject: [PATCH nf-next 4/9] netfilter: nft_set_pipapo: prepare walk function for on-demand clone
+Date: Wed,  3 Apr 2024 10:41:04 +0200
+Message-ID: <20240403084113.18823-5-fw@strlen.de>
 X-Mailer: git-send-email 2.43.2
 In-Reply-To: <20240403084113.18823-1-fw@strlen.de>
 References: <20240403084113.18823-1-fw@strlen.de>
@@ -35,65 +35,128 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Once priv->clone can be NULL in case no insertions/removals occurred
-in the last transaction we need to drop set elements from priv->match
-if priv->clone is NULL.
+Right now, without pending updates, priv->clone and priv->match
+will point to different memory locations, but they have identical
+content.
 
-While at it, condense this function by reusing the pipapo_free_match
-helper instead of open-coded version.
+Future patch will make priv->clone == NULL if there are no pending
+changes.
 
-The rcu_barrier() is removed, its not needed: old call_rcu instances
-for pipapo_reclaim_match do not access struct nft_set.
+We cannot just fallback to the live data in this case because there
+are different types of walks:
+
+- set dump: this can fallback to the live copy.
+- flush walk: all set elements should be deactivated.
+  If no single element was removed before, then we must first
+  make a copy of the live data.
+- deactivate/activate walks during abort or commit.
+  This would always have a non-null clone.
+
+The existing test is unreliable, if genmask is not equal to current
+one, we can't infer that the transaction mutex is held, we could
+be in a (lockless) dump.
+
+Its only safe at this time because both commit and abort paths
+will re-clone the live copy, so ->clone is always non-null -- something
+that is about to change.
+
+Next patch will add explicit iter type to tell when flushing
+is requested (i.e., when live data must be copied first).
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nft_set_pipapo.c | 27 ++++++---------------------
- 1 file changed, 6 insertions(+), 21 deletions(-)
+ net/netfilter/nft_set_pipapo.c | 54 +++++++++++++++++++++++-----------
+ 1 file changed, 37 insertions(+), 17 deletions(-)
 
 diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index 48d5600f8836..d2ac2d5560e4 100644
+index d2ac2d5560e4..57b1508d3502 100644
 --- a/net/netfilter/nft_set_pipapo.c
 +++ b/net/netfilter/nft_set_pipapo.c
-@@ -2323,33 +2323,18 @@ static void nft_pipapo_destroy(const struct nft_ctx *ctx,
- {
- 	struct nft_pipapo *priv = nft_set_priv(set);
- 	struct nft_pipapo_match *m;
--	int cpu;
- 
- 	m = rcu_dereference_protected(priv->match, true);
--	if (m) {
--		rcu_barrier();
--
--		for_each_possible_cpu(cpu)
--			pipapo_free_scratch(m, cpu);
--		free_percpu(m->scratch);
--		pipapo_free_fields(m);
--		kfree(m);
--		priv->match = NULL;
--	}
- 
- 	if (priv->clone) {
--		m = priv->clone;
--
--		nft_set_pipapo_match_destroy(ctx, set, m);
--
--		for_each_possible_cpu(cpu)
--			pipapo_free_scratch(priv->clone, cpu);
--		free_percpu(priv->clone->scratch);
--
--		pipapo_free_fields(priv->clone);
--		kfree(priv->clone);
-+		nft_set_pipapo_match_destroy(ctx, set, priv->clone);
-+		pipapo_free_match(priv->clone);
- 		priv->clone = NULL;
-+	} else {
-+		nft_set_pipapo_match_destroy(ctx, set, m);
- 	}
-+
-+	pipapo_free_match(m);
+@@ -2102,33 +2102,23 @@ static void nft_pipapo_remove(const struct net *net, const struct nft_set *set,
  }
  
  /**
+- * nft_pipapo_walk() - Walk over elements
++ * __nft_pipapo_walk() - Walk over elements in m
+  * @ctx:	nftables API context
+  * @set:	nftables API set representation
++ * @m:		matching data pointing to key mapping array
+  * @iter:	Iterator
+  *
+  * As elements are referenced in the mapping array for the last field, directly
+  * scan that array: there's no need to follow rule mappings from the first
+  * field.
+  */
+-static void nft_pipapo_walk(const struct nft_ctx *ctx, struct nft_set *set,
+-			    struct nft_set_iter *iter)
++static void __nft_pipapo_walk(const struct nft_ctx *ctx, struct nft_set *set,
++			      const struct nft_pipapo_match *m,
++			      struct nft_set_iter *iter)
+ {
+-	struct nft_pipapo *priv = nft_set_priv(set);
+-	struct net *net = read_pnet(&set->net);
+-	const struct nft_pipapo_match *m;
+ 	const struct nft_pipapo_field *f;
+ 	unsigned int i, r;
+ 
+-	rcu_read_lock();
+-	if (iter->genmask == nft_genmask_cur(net))
+-		m = rcu_dereference(priv->match);
+-	else
+-		m = priv->clone;
+-
+-	if (unlikely(!m))
+-		goto out;
+-
+ 	for (i = 0, f = m->f; i < m->field_count - 1; i++, f++)
+ 		;
+ 
+@@ -2148,13 +2138,43 @@ static void nft_pipapo_walk(const struct nft_ctx *ctx, struct nft_set *set,
+ 
+ 		iter->err = iter->fn(ctx, set, iter, &e->priv);
+ 		if (iter->err < 0)
+-			goto out;
++			return;
+ 
+ cont:
+ 		iter->count++;
+ 	}
++}
++
++/**
++ * nft_pipapo_walk() - Walk over elements
++ * @ctx:	nftables API context
++ * @set:	nftables API set representation
++ * @iter:	Iterator
++ *
++ * Test if destructive action is needed or not, clone active backend if needed
++ * and call the real function to work on the data.
++ */
++static void nft_pipapo_walk(const struct nft_ctx *ctx, struct nft_set *set,
++			    struct nft_set_iter *iter)
++{
++	struct nft_pipapo *priv = nft_set_priv(set);
++	struct net *net = read_pnet(&set->net);
++	const struct nft_pipapo_match *m;
++
++	rcu_read_lock();
++	if (iter->genmask == nft_genmask_cur(net)) {
++		m = rcu_dereference(priv->match);
++	} else {
++		m = priv->clone;
++		if (!m) /* no pending updates */
++			m = rcu_dereference(priv->match);
++	}
++
++	if (m)
++		__nft_pipapo_walk(ctx, set, m, iter);
++	else
++		WARN_ON_ONCE(1);
+ 
+-out:
+ 	rcu_read_unlock();
+ }
+ 
 -- 
 2.43.2
 
