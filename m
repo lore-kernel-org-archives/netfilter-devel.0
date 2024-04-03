@@ -1,28 +1,22 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E48B139CEF
-	for <netfilter-devel@vger.kernel.org>; Wed,  3 Apr 2024 11:04:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id F0D9D6CDDB
+	for <netfilter-devel@vger.kernel.org>; Wed,  3 Apr 2024 11:18:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712142301; cv=none; b=Uxl5isgeZMCuikTbten5byG4dvbs0LpSy1zDMO8QRP/Op5Iq/xBDkeTA6P28j5UcwGggMg94bKBYuqc69ozAae/mYYcHboG07QXkmwq9/tyYPnBcBBBvUobaUMgiVQdioe+bui+rQuLPUspcMY8kEzKj/cJ+ug0eA2Lig0AKq7c=
+	t=1712143121; cv=none; b=j4zFT7ptgpgT1U2A0lvDJ/M7mL61FdNRPgxR/1AzpBFmOt4fW9xQzLG6YXt9yNLPLqRbpoNJsJ5SIZ5oz1navdOVTls6u4Bf8RU7YPD5qIcSiiN2RFv8a6Z6mCNStLTV7Et4CQTGtDCoFCU5OSSpFQ9QcTBS5dV4540GBwAdlmk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712142301; c=relaxed/simple;
-	bh=/L6QLWMDxM2OJJS4lUb/mFEjfNQ41DjNnztMx4phAqU=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=uNDE8T+6KR7opj33KJTteyJC4SuRWzTvJNQWWANpOwolcTQDKv+u7rImdfcc8WHxJ9hSFO2ml7Y7zk7k1z0s2EqiJd2eqQ4tuFWccFiMe5x3kPeI0e9+MxqKq2j3I/xwwJDASDNLZjEVZzaEUSom/Nfo+mKtMBThe7ML7rskfrA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1rryQF-0007DP-HF; Wed, 03 Apr 2024 13:04:51 +0200
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] tests: packetpath: add check for drop policy
-Date: Wed,  3 Apr 2024 13:03:48 +0200
-Message-ID: <20240403110351.15039-1-fw@strlen.de>
-X-Mailer: git-send-email 2.43.2
+	s=arc-20240116; t=1712143121; c=relaxed/simple;
+	bh=vgx02VcY1TDZ3tHm/olfcuX8fBHVL/H915SkMCVMKuc=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=k82tSpC6Xi/2gTfraCf7V87EhvDeZyWvjfNyGp1RaXBmDLJA8xcWd3ILnZrxbfMSroUpl5v8bkLHRzqqueT9DHUAm6ST9aVLfLOlc1FuifXl5Lazs4fUq5aGlJb9ugYkYJc+6LIwkOH8bSMr+HFsd92xiK1rZcb6Asm/dfGR5jY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf,v2 1/4] netfilter: nf_tables: release batch on table validation from abort path
+Date: Wed,  3 Apr 2024 13:18:29 +0200
+Message-Id: <20240403111832.234325-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,211 +25,79 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-check that policy can be changed from accept to drop and that the kernel
-acts on this.
+Unlike early commit path stage which triggers a call to abort, an
+explicit release of the batch is required on abort, otherwise mutex is
+released and commit_list remains in place.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Add WARN_ON_ONCE to ensure commit_list is empty from the abort path
+before releasing the mutex.
+
+After this patch, commit_list is always assumed to be empty before
+grabbing the mutex, therefore
+
+  03c1f1ef1584 ("netfilter: Cleanup nft_net->module_list from nf_tables_exit_net()")
+
+only needs to release the pending modules for registration.
+
+Cc: stable@vger.kernel.org
+Fixes: c0391b6ab810 ("netfilter: nf_tables: missing validation from the abort path")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- .../packetpath/dumps/policy.json-nft          | 121 ++++++++++++++++++
- .../testcases/packetpath/dumps/policy.nft     |  11 ++
- tests/shell/testcases/packetpath/policy       |  42 ++++++
- 3 files changed, 174 insertions(+)
- create mode 100644 tests/shell/testcases/packetpath/dumps/policy.json-nft
- create mode 100644 tests/shell/testcases/packetpath/dumps/policy.nft
- create mode 100755 tests/shell/testcases/packetpath/policy
+v2: Kuan-Ting Chen reported a kmemleak of modules in module_list in v1.
 
-diff --git a/tests/shell/testcases/packetpath/dumps/policy.json-nft b/tests/shell/testcases/packetpath/dumps/policy.json-nft
-new file mode 100644
-index 000000000000..26e8a0525f2b
---- /dev/null
-+++ b/tests/shell/testcases/packetpath/dumps/policy.json-nft
-@@ -0,0 +1,121 @@
-+{
-+  "nftables": [
-+    {
-+      "metainfo": {
-+        "version": "VERSION",
-+        "release_name": "RELEASE_NAME",
-+        "json_schema_version": 1
-+      }
-+    },
-+    {
-+      "table": {
-+        "family": "inet",
-+        "name": "filter",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "inet",
-+        "table": "filter",
-+        "name": "underflow",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "inet",
-+        "table": "filter",
-+        "name": "input",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "input",
-+        "prio": 0,
-+        "policy": "drop"
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "inet",
-+        "table": "filter",
-+        "chain": "input",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "match": {
-+              "op": "==",
-+              "left": {
-+                "payload": {
-+                  "protocol": "icmp",
-+                  "field": "type"
-+                }
-+              },
-+              "right": "echo-reply"
-+            }
-+          },
-+          {
-+            "accept": null
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "inet",
-+        "table": "filter",
-+        "chain": "input",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "match": {
-+              "op": "==",
-+              "left": {
-+                "payload": {
-+                  "protocol": "ip",
-+                  "field": "saddr"
-+                }
-+              },
-+              "right": "127.0.0.1"
-+            }
-+          },
-+          {
-+            "match": {
-+              "op": "==",
-+              "left": {
-+                "payload": {
-+                  "protocol": "ip",
-+                  "field": "daddr"
-+                }
-+              },
-+              "right": "127.0.0.2"
-+            }
-+          },
-+          {
-+            "counter": {
-+              "packets": 3,
-+              "bytes": 252
-+            }
-+          },
-+          {
-+            "accept": null
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "inet",
-+        "table": "filter",
-+        "chain": "input",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "goto": {
-+              "target": "underflow"
-+            }
-+          }
-+        ]
-+      }
-+    }
-+  ]
-+}
-diff --git a/tests/shell/testcases/packetpath/dumps/policy.nft b/tests/shell/testcases/packetpath/dumps/policy.nft
-new file mode 100644
-index 000000000000..e625ea6c82be
---- /dev/null
-+++ b/tests/shell/testcases/packetpath/dumps/policy.nft
-@@ -0,0 +1,11 @@
-+table inet filter {
-+	chain underflow {
-+	}
+ net/netfilter/nf_tables_api.c | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index fd86f2720c9e..ffcd3213c335 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -10455,10 +10455,11 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 	struct nft_trans *trans, *next;
+ 	LIST_HEAD(set_update_list);
+ 	struct nft_trans_elem *te;
++	int err = 0;
+ 
+ 	if (action == NFNL_ABORT_VALIDATE &&
+ 	    nf_tables_validate(net) < 0)
+-		return -EAGAIN;
++		err = -EAGAIN;
+ 
+ 	list_for_each_entry_safe_reverse(trans, next, &nft_net->commit_list,
+ 					 list) {
+@@ -10655,7 +10656,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 	else
+ 		nf_tables_module_autoload_cleanup(net);
+ 
+-	return 0;
++	return err;
+ }
+ 
+ static int nf_tables_abort(struct net *net, struct sk_buff *skb,
+@@ -10668,6 +10669,9 @@ static int nf_tables_abort(struct net *net, struct sk_buff *skb,
+ 	gc_seq = nft_gc_seq_begin(nft_net);
+ 	ret = __nf_tables_abort(net, action);
+ 	nft_gc_seq_end(nft_net, gc_seq);
 +
-+	chain input {
-+		type filter hook input priority filter; policy drop;
-+		icmp type echo-reply accept
-+		ip saddr 127.0.0.1 ip daddr 127.0.0.2 counter packets 3 bytes 252 accept
-+		goto underflow
-+	}
-+}
-diff --git a/tests/shell/testcases/packetpath/policy b/tests/shell/testcases/packetpath/policy
-new file mode 100755
-index 000000000000..0bb42a548870
---- /dev/null
-+++ b/tests/shell/testcases/packetpath/policy
-@@ -0,0 +1,42 @@
-+#!/bin/bash
++	WARN_ON_ONCE(!list_empty(&nft_net->commit_list));
 +
-+ip link set lo up
+ 	mutex_unlock(&nft_net->commit_mutex);
+ 
+ 	return ret;
+@@ -11473,9 +11477,10 @@ static void __net_exit nf_tables_exit_net(struct net *net)
+ 
+ 	gc_seq = nft_gc_seq_begin(nft_net);
+ 
+-	if (!list_empty(&nft_net->commit_list) ||
+-	    !list_empty(&nft_net->module_list))
+-		__nf_tables_abort(net, NFNL_ABORT_NONE);
++	WARN_ON_ONCE(!list_empty(&nft_net->commit_list));
 +
-+$NFT -f - <<EOF
-+table inet filter {
-+ chain underflow { }
-+
-+  chain input {
-+    type filter hook input priority filter; policy accept;
-+    icmp type echo-reply accept
-+    ip saddr 127.0.0.1 ip daddr 127.0.0.2 counter accept
-+    goto underflow
-+    }
-+}
-+EOF
-+[ $? -ne 0 ] && exit 1
-+
-+ping -q -c 1 127.0.0.2 >/dev/null || exit 2
-+
-+# should work, polict is accept.
-+ping -q -c 1 127.0.0.1 >/dev/null || exit 1
-+
-+$NFT -f - <<EOF
-+table inet filter {
-+  chain input {
-+    type filter hook input priority filter; policy drop;
-+  }
-+}
-+EOF
-+[ $? -ne 0 ] && exit 1
-+
-+$NFT list ruleset
-+
-+ping -W 1 -q -c 1 127.0.0.2
-+
-+ping -q -c 1 127.0.0.2 >/dev/null || exit 2
-+
-+# should fail, policy is set to drop
-+ping -W 1 -q -c 1 127.0.0.1 >/dev/null 2>&1 && exit 1
-+
-+exit 0
++	if (!list_empty(&nft_net->module_list))
++		nf_tables_module_autoload_cleanup(net);
+ 
+ 	__nft_release_tables(net);
+ 
 -- 
-2.43.2
+2.30.2
 
