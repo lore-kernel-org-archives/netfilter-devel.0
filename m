@@ -1,97 +1,131 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2274558105
-	for <netfilter-devel@vger.kernel.org>; Tue,  2 Apr 2024 22:43:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85323D527
+	for <netfilter-devel@vger.kernel.org>; Wed,  3 Apr 2024 00:51:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712097788; cv=none; b=ZAEnnjP9wlMHXQ1Tkt9qR5RLINTobUdoB9z+vqdPn8J2+hcIP1+CPuXGlfolYWudcHMhhyxDb99IcmIbsx2bp3NvT6s9KRSAeC3JW4314bNrJjjVPYxf8rzR377exj4ontzHgA7oEXCde09oyfHDWBrqZVuXICKzfVJ6DS0zAeA=
+	t=1712105479; cv=none; b=Fj//hcfKH/A7bzdaQe+Aqvy/ivcNsReNo88+vuhQAR0tjxldB9pTfw9dXAKJ5Co8gCh+c3i5kY8xngTFTe9uYIWTwEsL5fvfQ4cRiOjwnFHlXs6FFTxLlCmn9Bz6nlTJUoXE6i31hkgK1gC9pN5RZytOCRzbQZq9esIhDbiX8iA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712097788; c=relaxed/simple;
-	bh=zxf39aOWY8yF7/8B1Z1FLXZpgmNMkRhQXRDWNcstJ9Q=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=UQg/jn+3r6wvpcJ+lcizlue5Db+aQKpGbucEQcQG0wYfJRBHr4tNgfWA4Ab73q+7fWKFNu7gXgU81g9J4LYvHFaIlrvyUjYw5DGWjeqyXZ4go4DW0/bsLaEsqMjEsyRV8pAm/OHHNXWKNGKZk/ePTSVY9U6KYBi9jnPTqwJ6usc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Date: Wed, 3 Apr 2024 00:42:59 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jeremy Sowden <jeremy@azazel.net>
-Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nftables] evaluate: add support for variables in map
- expressions
-Message-ID: <ZgyJ8yUi8CyOpEHX@calendula>
-References: <20240324145908.2643098-1-jeremy@azazel.net>
+	s=arc-20240116; t=1712105479; c=relaxed/simple;
+	bh=RzdWNphhB3cH6b8v2I330W/4Om5ixKmLlgD8Gh8HoSg=;
+	h=Subject:To:CC:References:From:Message-ID:Date:MIME-Version:
+	 In-Reply-To:Content-Type; b=HkIX284HCeR/XUq7RWuSvQWx8embJop8zTWasg5HIdmmPCTTqO4kqVX7WLMISOaBhB3tGp/SpxGYCJP6bWLyhgf3OT22REa99qs8N+wOX6EVHOEUu36uJcZDZF9+rWy0Gbp+Y1NLq6TrQrSRfXn/tJi7eI8SmuWw0h4taRKbtU0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.190
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.19.88.214])
+	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4V8R242pcrz29dPW;
+	Wed,  3 Apr 2024 08:48:28 +0800 (CST)
+Received: from canpemm500006.china.huawei.com (unknown [7.192.105.130])
+	by mail.maildlp.com (Postfix) with ESMTPS id C125C1A016C;
+	Wed,  3 Apr 2024 08:51:13 +0800 (CST)
+Received: from [10.174.179.200] (10.174.179.200) by
+ canpemm500006.china.huawei.com (7.192.105.130) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.35; Wed, 3 Apr 2024 08:51:13 +0800
+Subject: Re: [PATCH nft] netfilter: nf_tables: Fix pertential data-race in
+ __nft_flowtable_type_get()
+To: Florian Westphal <fw@strlen.de>
+CC: <pablo@netfilter.org>, <kadlec@netfilter.org>,
+	<netfilter-devel@vger.kernel.org>
+References: <20240401133455.1945938-1-william.xuanziyang@huawei.com>
+ <20240402105642.GB18301@breakpoint.cc>
+ <8393b674-2ad9-404f-8795-4a871240bf1b@huawei.com>
+ <20240402135514.GC18301@breakpoint.cc>
+From: "Ziyang Xuan (William)" <william.xuanziyang@huawei.com>
+Message-ID: <e021e592-6f44-5fe0-2768-684bb9d002dd@huawei.com>
+Date: Wed, 3 Apr 2024 08:51:12 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.11.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20240324145908.2643098-1-jeremy@azazel.net>
+In-Reply-To: <20240402135514.GC18301@breakpoint.cc>
+Content-Type: text/plain; charset="gbk"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
+ canpemm500006.china.huawei.com (7.192.105.130)
 
-On Sun, Mar 24, 2024 at 02:59:07PM +0000, Jeremy Sowden wrote:
-> It is possible to use a variable to initialize a map, which is then used in a
-> map statement:
+> Ziyang Xuan (William) <william.xuanziyang@huawei.com> wrote:
+>>>> Use list_for_each_entry_rcu() with rcu_read_lock() to Iterate over
+>>>> nf_tables_flowtables list in __nft_flowtable_type_get() to resolve it.
+>>>
+>>> I don't think this resolves the described race.
+>>>
+>>>> Signed-off-by: Ziyang Xuan <william.xuanziyang@huawei.com>
+>>>> ---
+>>>>  net/netfilter/nf_tables_api.c | 8 ++++++--
+>>>>  1 file changed, 6 insertions(+), 2 deletions(-)
+>>>>
+>>>> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+>>>> index fd86f2720c9e..fbf38e32f11d 100644
+>>>> --- a/net/netfilter/nf_tables_api.c
+>>>> +++ b/net/netfilter/nf_tables_api.c
+>>>> @@ -8297,10 +8297,14 @@ static const struct nf_flowtable_type *__nft_flowtable_type_get(u8 family)
+>>>>  {
+>>>>  	const struct nf_flowtable_type *type;
+>>>>  
+>>>> -	list_for_each_entry(type, &nf_tables_flowtables, list) {
+>>>> -		if (family == type->family)
+>>>> +	rcu_read_lock()
+>>>> +	list_for_each_entry_rcu(type, &nf_tables_flowtables, list) {
+>>>> +		if (family == type->family) {
+>>>> +			rcu_read_unlock();
+>>>>  			return type;
+>>>
+>>> This means 'type' can be non-null while module is being unloaded,
+>>> before refcount increment.
+>>>
+>>> You need acquire rcu_read_lock() in the caller, nft_flowtable_type_get,
+>>> and release it after refcount on module owner failed or succeeded.
+>>> .
+>> In fact, I just want to resolve the potential tear-down problem about list entry here.
 > 
->   define m = { ::1234 : 5678 }
+> cpu1							cpu2
+> 							rmmod
+> 							flowtable_type
 > 
->   table ip6 nat {
->     map m {
->       typeof ip6 daddr : tcp dport;
->       elements = $m
->     }
->     chain prerouting {
->       ip6 nexthdr tcp redirect to ip6 daddr map @m
->     }
->   }
+> nft_flowtable_type_get
+>      __nft_flowtable_type_get
+>           finds family == type->family
+> 	     						list_del_rcu(type)
 > 
-> However, if one tries to use the variable directly in the statement:
+> CPU INTERRUPTED
+> 							rmmod completes
 > 
->   define m = { ::1234 : 5678 }
+> nft_flowtable_type_get calls
+>    if (type != NULL && try_module_get(type->owner))
+> 	   ---> UaF
 > 
->   table ip6 nat {
->     chain prerouting {
->       ip6 nexthdr tcp redirect to ip6 daddr map $m
->     }
->   }
+> Skeleton fix:
 > 
-> nft rejects it:
+> nft_flowtable_type_get(struct net *net, u8 family)
+>  {
+>  	const struct nf_flowtable_type *type;
 > 
->   /space/azazel/tmp/ruleset.1067161.nft:5:47-48: Error: invalid mapping expression variable
->       ip6 nexthdr tcp redirect to ip6 daddr map $m
->                                   ~~~~~~~~~     ^^
+> +       rcu_read_lock();
+> 	type = __nft_flowtable_type_get(family);
+> 	....
+>  	if (type != NULL && try_module_get(type->owner)) {
+> 		rcu_read_unlock();
+>  		return type;
+> 	}
 > 
-> Extend `expr_evaluate_map` to allow it.
+> 	rcu_read_unlock();
 > 
-> Add a test-case.
+> This avoids the above UaF, rmmod cannot complete fully until after
+> rcu read lock section is done.  (There is a synchronize_rcu in module
+> teardown path before the data section is freed).
 
-Thanks for your patch.
+I see. Thank you for your patient analysis!
 
-> Link: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1067161
-> Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
-> ---
->  src/evaluate.c                                |  1 +
->  .../shell/testcases/maps/anonymous_snat_map_1 | 16 +++++
->  .../maps/dumps/anonymous_snat_map_1.json-nft  | 58 +++++++++++++++++++
->  .../maps/dumps/anonymous_snat_map_1.nft       |  5 ++
->  4 files changed, 80 insertions(+)
->  create mode 100755 tests/shell/testcases/maps/anonymous_snat_map_1
->  create mode 100644 tests/shell/testcases/maps/dumps/anonymous_snat_map_1.json-nft
->  create mode 100644 tests/shell/testcases/maps/dumps/anonymous_snat_map_1.nft
+>> So I think replace with list_for_each_entry_rcu() can resolve the tear-down problem now.
 > 
-> diff --git a/src/evaluate.c b/src/evaluate.c
-> index 1682ba58989e..d49213f8d6bd 100644
-> --- a/src/evaluate.c
-> +++ b/src/evaluate.c
-> @@ -2061,6 +2061,7 @@ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
-
-expr_evaluate_objmap() also needs a similar fix.
-
->  	mappings->set_flags |= NFT_SET_MAP;
->  
->  	switch (map->mappings->etype) {
-> +	case EXPR_VARIABLE:
->  	case EXPR_SET:
->  		if (ctx->ectx.key && ctx->ectx.key->etype == EXPR_CONCAT) {
->  			key = expr_clone(ctx->ectx.key);
+> I don't think so.
+> .
+> 
