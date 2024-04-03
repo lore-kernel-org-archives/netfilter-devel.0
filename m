@@ -1,25 +1,45 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 63C41141987
-	for <netfilter-devel@vger.kernel.org>; Wed,  3 Apr 2024 11:18:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from azazel.net (taras.nevrast.org [35.176.194.208])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56444145FFF
+	for <netfilter-devel@vger.kernel.org>; Wed,  3 Apr 2024 12:29:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712143123; cv=none; b=bzmEfjFHDAw9CJCG2lkFQscNBv4PN7oSZiw2Rz3+t+UYX9IjmIkGirmVnocQZY0PdZyHvhdtsCoZFDjG0udhI89DySlpvxGnErYp76DFohkguvqLUlChv/eqkKogutqTFmOQm3DQzBpllDCMIRySAmr/xRVlXKPwpnAarQlCbW4=
+	t=1712147385; cv=none; b=KsRSGEWyVdHOfKcKTXDX/ph1BhLsGGt5cAldP98FmbJtjDETRZjs1HYG5d8ZRqNcj8MA+gxllKDBxm3VFTWTXHw4/VQN3l2ptWat7oOx5EFtHZyLpi/TZAiolRD91fUKPDd5IFGIfd1uLaG7UuDdeGCjhpGHk7et/RTwrU2p9JE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712143123; c=relaxed/simple;
-	bh=rx+8jfcF5GKJG0reGXxJDhjQEg3VqV5qUsojFNcJvlU=;
-	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=eON86zhCz90eBKs4W16xQjdD1g+cJDOm9Eau2pJrV8T6Vos2huim5W7xGuWEwJNkCWHNoQDjYhpHtl8TbQb7uXUMrGOSQo9TzA2Qj1CKOYGuUFFMpwFN2xq2FLstIEpnnHuV9ObLaNoZaU8gy5sOeZbq6AJe7+VdnVg2M6fmqPs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v2 3/4] netfilter: nf_tables: flush pending destroy work before exit_net release
-Date: Wed,  3 Apr 2024 13:18:31 +0200
-Message-Id: <20240403111832.234325-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20240403111832.234325-1-pablo@netfilter.org>
-References: <20240403111832.234325-1-pablo@netfilter.org>
+	s=arc-20240116; t=1712147385; c=relaxed/simple;
+	bh=d5B3Uwh5U0luQaWPosgN89PvRzuaNOZ0m6F7/sAhKoQ=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=V6XOQJoZYcTZvdB+KnUytA2KkWJpX7wf4hZ+5HIkFz9QrBdZpwgqU9Fr7tbfyThUQB7vAzMrZIdOUcVpwDEV4sZCIO/RE0PJpM6cU/NEhFFvC0r2RP2hF3YZEu9naaH6VwFeLfCT5tM/i7EDdj85RUZgWXIBpbMyq7ufMmt4r+8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=XHdcoHta; arc=none smtp.client-ip=35.176.194.208
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="XHdcoHta"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+	s=20220717; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=09D+7sqKEoF4kMbKoWW0eMmbIY/Kpr1Q8HkwK1U+U20=; b=XHdcoHtaIflKMG0rMMvXQhQLvP
+	mqnTNXWpwdIuNClZYjjoNrVTO96y210B2SzHa/D4v+xSBaAJoCRey3BfdVkoFJtLrGUKziSRC/ta9
+	VdkveAlO/T42UTXsT7BAj6S/Lmd8p9xe9Xi2/6w5c9nef1kwmNiWvkd/yY8Yq+Tx7Rg8SmlkjsbmI
+	X1bjsFbBt7UOP9nIMoEHFlxzkrWemh6oBTxCON2eljc4kA8yJ6V1NJ+uLBI9eJmOWmtdbDkX+MyXM
+	bVC7NPbemyDg3j3HKHGhPPFuHsBFRHshxLm3JBc/8VkbhijaNHywGHxhAfGfUqMyVNxiwoPeS/vOu
+	8oBQkRqA==;
+Received: from [2001:8b0:fb7d:d6d6:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
+	by taras.nevrast.org with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.96)
+	(envelope-from <jeremy@azazel.net>)
+	id 1rrzRD-00HR7h-03
+	for netfilter-devel@vger.kernel.org;
+	Wed, 03 Apr 2024 13:09:55 +0100
+From: Jeremy Sowden <jeremy@azazel.net>
+To: Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH nft v2 0/2] Support for variables in map expressions
+Date: Wed,  3 Apr 2024 13:09:35 +0100
+Message-ID: <20240403120937.4061434-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -27,128 +47,44 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d6:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 
-Similar to 2c9f0293280e ("netfilter: nf_tables: flush pending destroy
-work before netlink notifier") to address a race between exit_net and
-the destroy workqueue.
+The first patch replaces the current assertion failure for invalid
+mapping expression in stateful-object statements with an error message.
+This brings it in line with map statements.
 
-The trace below shows an element to be released via destroy workqueue
-while exit_net path (triggered via module removal) has already released
-the set that is used in such transaction.
+It is possible to use a variable to initialize a map, which is then used
+in a map statement, but if one tries to use the variable directly, nft
+rejects it.  The second patch adds support for doing this.
 
-[ 1360.547789] BUG: KASAN: slab-use-after-free in nf_tables_trans_destroy_work+0x3f5/0x590 [nf_tables]
-[ 1360.547861] Read of size 8 at addr ffff888140500cc0 by task kworker/4:1/152465
-[ 1360.547870] CPU: 4 PID: 152465 Comm: kworker/4:1 Not tainted 6.8.0+ #359
-[ 1360.547882] Workqueue: events nf_tables_trans_destroy_work [nf_tables]
-[ 1360.547984] Call Trace:
-[ 1360.547991]  <TASK>
-[ 1360.547998]  dump_stack_lvl+0x53/0x70
-[ 1360.548014]  print_report+0xc4/0x610
-[ 1360.548026]  ? __virt_addr_valid+0xba/0x160
-[ 1360.548040]  ? __pfx__raw_spin_lock_irqsave+0x10/0x10
-[ 1360.548054]  ? nf_tables_trans_destroy_work+0x3f5/0x590 [nf_tables]
-[ 1360.548176]  kasan_report+0xae/0xe0
-[ 1360.548189]  ? nf_tables_trans_destroy_work+0x3f5/0x590 [nf_tables]
-[ 1360.548312]  nf_tables_trans_destroy_work+0x3f5/0x590 [nf_tables]
-[ 1360.548447]  ? __pfx_nf_tables_trans_destroy_work+0x10/0x10 [nf_tables]
-[ 1360.548577]  ? _raw_spin_unlock_irq+0x18/0x30
-[ 1360.548591]  process_one_work+0x2f1/0x670
-[ 1360.548610]  worker_thread+0x4d3/0x760
-[ 1360.548627]  ? __pfx_worker_thread+0x10/0x10
-[ 1360.548640]  kthread+0x16b/0x1b0
-[ 1360.548653]  ? __pfx_kthread+0x10/0x10
-[ 1360.548665]  ret_from_fork+0x2f/0x50
-[ 1360.548679]  ? __pfx_kthread+0x10/0x10
-[ 1360.548690]  ret_from_fork_asm+0x1a/0x30
-[ 1360.548707]  </TASK>
+Changes since v1
 
-[ 1360.548719] Allocated by task 192061:
-[ 1360.548726]  kasan_save_stack+0x20/0x40
-[ 1360.548739]  kasan_save_track+0x14/0x30
-[ 1360.548750]  __kasan_kmalloc+0x8f/0xa0
-[ 1360.548760]  __kmalloc_node+0x1f1/0x450
-[ 1360.548771]  nf_tables_newset+0x10c7/0x1b50 [nf_tables]
-[ 1360.548883]  nfnetlink_rcv_batch+0xbc4/0xdc0 [nfnetlink]
-[ 1360.548909]  nfnetlink_rcv+0x1a8/0x1e0 [nfnetlink]
-[ 1360.548927]  netlink_unicast+0x367/0x4f0
-[ 1360.548935]  netlink_sendmsg+0x34b/0x610
-[ 1360.548944]  ____sys_sendmsg+0x4d4/0x510
-[ 1360.548953]  ___sys_sendmsg+0xc9/0x120
-[ 1360.548961]  __sys_sendmsg+0xbe/0x140
-[ 1360.548971]  do_syscall_64+0x55/0x120
-[ 1360.548982]  entry_SYSCALL_64_after_hwframe+0x55/0x5d
+  * Patch 1 is new.
+  * Patch 2 updated to add support for map variables in stateful object
+    statements.
 
-[ 1360.548994] Freed by task 192222:
-[ 1360.548999]  kasan_save_stack+0x20/0x40
-[ 1360.549009]  kasan_save_track+0x14/0x30
-[ 1360.549019]  kasan_save_free_info+0x3b/0x60
-[ 1360.549028]  poison_slab_object+0x100/0x180
-[ 1360.549036]  __kasan_slab_free+0x14/0x30
-[ 1360.549042]  kfree+0xb6/0x260
-[ 1360.549049]  __nft_release_table+0x473/0x6a0 [nf_tables]
-[ 1360.549131]  nf_tables_exit_net+0x170/0x240 [nf_tables]
-[ 1360.549221]  ops_exit_list+0x50/0xa0
-[ 1360.549229]  free_exit_list+0x101/0x140
-[ 1360.549236]  unregister_pernet_operations+0x107/0x160
-[ 1360.549245]  unregister_pernet_subsys+0x1c/0x30
-[ 1360.549254]  nf_tables_module_exit+0x43/0x80 [nf_tables]
-[ 1360.549345]  __do_sys_delete_module+0x253/0x370
-[ 1360.549352]  do_syscall_64+0x55/0x120
-[ 1360.549360]  entry_SYSCALL_64_after_hwframe+0x55/0x5d
+Jeremy Sowden (2):
+  evaluate: handle invalid mapping expressions in stateful object
+    statements gracefully.
+  evaluate: add support for variables in map expressions
 
-(gdb) list *__nft_release_table+0x473
-0x1e033 is in __nft_release_table (net/netfilter/nf_tables_api.c:11354).
-11349           list_for_each_entry_safe(flowtable, nf, &table->flowtables, list) {
-11350                   list_del(&flowtable->list);
-11351                   nft_use_dec(&table->use);
-11352                   nf_tables_flowtable_destroy(flowtable);
-11353           }
-11354           list_for_each_entry_safe(set, ns, &table->sets, list) {
-11355                   list_del(&set->list);
-11356                   nft_use_dec(&table->use);
-11357                   if (set->flags & (NFT_SET_MAP | NFT_SET_OBJECT))
-11358                           nft_map_deactivate(&ctx, set);
-(gdb)
+ src/evaluate.c                                |   7 +-
+ .../shell/testcases/maps/0024named_objects_1  |  31 ++++
+ .../shell/testcases/maps/anonymous_snat_map_1 |  16 ++
+ .../maps/dumps/0024named_objects_1.json-nft   | 147 ++++++++++++++++++
+ .../maps/dumps/0024named_objects_1.nft        |  23 +++
+ .../maps/dumps/anonymous_snat_map_1.json-nft  |  58 +++++++
+ .../maps/dumps/anonymous_snat_map_1.nft       |   5 +
+ 7 files changed, 285 insertions(+), 2 deletions(-)
+ create mode 100755 tests/shell/testcases/maps/0024named_objects_1
+ create mode 100755 tests/shell/testcases/maps/anonymous_snat_map_1
+ create mode 100644 tests/shell/testcases/maps/dumps/0024named_objects_1.json-nft
+ create mode 100644 tests/shell/testcases/maps/dumps/0024named_objects_1.nft
+ create mode 100644 tests/shell/testcases/maps/dumps/anonymous_snat_map_1.json-nft
+ create mode 100644 tests/shell/testcases/maps/dumps/anonymous_snat_map_1.nft
 
-[ 1360.549372] Last potentially related work creation:
-[ 1360.549376]  kasan_save_stack+0x20/0x40
-[ 1360.549384]  __kasan_record_aux_stack+0x9b/0xb0
-[ 1360.549392]  __queue_work+0x3fb/0x780
-[ 1360.549399]  queue_work_on+0x4f/0x60
-[ 1360.549407]  nft_rhash_remove+0x33b/0x340 [nf_tables]
-[ 1360.549516]  nf_tables_commit+0x1c6a/0x2620 [nf_tables]
-[ 1360.549625]  nfnetlink_rcv_batch+0x728/0xdc0 [nfnetlink]
-[ 1360.549647]  nfnetlink_rcv+0x1a8/0x1e0 [nfnetlink]
-[ 1360.549671]  netlink_unicast+0x367/0x4f0
-[ 1360.549680]  netlink_sendmsg+0x34b/0x610
-[ 1360.549690]  ____sys_sendmsg+0x4d4/0x510
-[ 1360.549697]  ___sys_sendmsg+0xc9/0x120
-[ 1360.549706]  __sys_sendmsg+0xbe/0x140
-[ 1360.549715]  do_syscall_64+0x55/0x120
-[ 1360.549725]  entry_SYSCALL_64_after_hwframe+0x55/0x5d
-
-Fixes: 0935d5588400 ("netfilter: nf_tables: asynchronous release")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: update commit description to specify that this is triggered in the module
-    removal path.
-    Flush work from module_exit path as suggested by Florian Westphal.
-
- net/netfilter/nf_tables_api.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 0d432d0674e1..17bf53cd0e84 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -11575,6 +11575,7 @@ static void __exit nf_tables_module_exit(void)
- 	unregister_netdevice_notifier(&nf_tables_flowtable_notifier);
- 	nft_chain_filter_fini();
- 	nft_chain_route_fini();
-+	nf_tables_trans_destroy_flush_work();
- 	unregister_pernet_subsys(&nf_tables_net_ops);
- 	cancel_work_sync(&trans_gc_work);
- 	cancel_work_sync(&trans_destroy_work);
 -- 
-2.30.2
+2.43.0
 
