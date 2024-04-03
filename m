@@ -1,81 +1,77 @@
-Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3C3A6EB45
-	for <netfilter-devel@vger.kernel.org>; Wed,  3 Apr 2024 08:30:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.255
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91E3A56471
+	for <netfilter-devel@vger.kernel.org>; Wed,  3 Apr 2024 08:42:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712133047; cv=none; b=nOoWZMXJatFmc+WYqe4Q9oWobq+gViY5aSiUlUylHm0t6jc7BBcAPUjC7hK8MXZCRf2vEEY+MsuE9TY36TBohf5Wmv3LVfMW07+/kEaoLwUR1fWsrehUaGmHqcJim4sli3fB3R+3/9FGmRfvuXE+qLmrcSG/kDk+6vt5YdHGjhc=
+	t=1712133740; cv=none; b=l9Y5QPfmGOilmeYcTU7h1Eaf+H908Rw8ARAU2heVgE++/LxDf6lANY6WuBw6zkRsEN43wl4SUT2bUzEh7tT/VdLzPXddzB5+qo1CK8mE70CIDQlZs0VHgpAZ3wH6C1+aMKVPvJlfhlMBr6P4oKCa21pdP1iNWEpGN9/s0FiyhHA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712133047; c=relaxed/simple;
-	bh=guQC5/hZTZisIFKKljwEtcY+UbW2ZY/1Sinp76lyOkY=;
-	h=Subject:To:CC:References:From:Message-ID:Date:MIME-Version:
-	 In-Reply-To:Content-Type; b=Jyxnb8MitcoKt+AinXEQs4VEmpVfrnesPLiN1o5kDofimo3VFPiZWZ+ZBf6DuQjAoRQKgbaXeNM3micMQdJ9kMglTrKOaRHqmNmfWEaeqy8YTwe+J9Tef1li+gOgbAIeU+bUl0iuYiVYj/5pzRbMoD8OCIAByhEWdwy7o7aIH+Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.255
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.19.162.254])
-	by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4V8dDR6DTcz1QCD6;
-	Wed,  3 Apr 2024 16:28:07 +0800 (CST)
-Received: from canpemm500006.china.huawei.com (unknown [7.192.105.130])
-	by mail.maildlp.com (Postfix) with ESMTPS id E41F118007D;
-	Wed,  3 Apr 2024 16:30:41 +0800 (CST)
-Received: from [10.174.179.200] (10.174.179.200) by
- canpemm500006.china.huawei.com (7.192.105.130) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.35; Wed, 3 Apr 2024 16:30:41 +0800
-Subject: Re: [PATCH nft v2] netfilter: nf_tables: Fix pertential data-race in
- __nft_flowtable_type_get()
-To: Florian Westphal <fw@strlen.de>
-CC: <pablo@netfilter.org>, <kadlec@netfilter.org>,
-	<netfilter-devel@vger.kernel.org>
-References: <20240403072204.2139712-1-william.xuanziyang@huawei.com>
- <20240403080144.GC26310@breakpoint.cc>
-From: "Ziyang Xuan (William)" <william.xuanziyang@huawei.com>
-Message-ID: <0a1e576a-7fb8-8f26-17ce-54ec137acf70@huawei.com>
-Date: Wed, 3 Apr 2024 16:30:41 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.11.0
+	s=arc-20240116; t=1712133740; c=relaxed/simple;
+	bh=w9zfRKK6fltoyYrxzE4GKztu5zioXKmHer3QMk5bXGg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=K83I4W/jCd56aILEWvcO0v5QjoFv3tJ3g2NpU2lCtJqiFuDtIx4dg4SMHKAmLbXXISA2qnJgViSP+EEyojOXnOI4bDVCZeaoEWMd6yS+lHl5prwYo3N/D4FZqMS5hXbdjxDqeIQdA7yK0egZj8tvz7sRPSCRuGQaZEwjmfyrYMk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1rrwCG-0005wP-Lb; Wed, 03 Apr 2024 10:42:16 +0200
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: sbrivio@redhat.com,
+	Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next 0/9] nft_set_pipapo: remove cannot-fail allocations on commit and abort
+Date: Wed,  3 Apr 2024 10:41:00 +0200
+Message-ID: <20240403084113.18823-1-fw@strlen.de>
+X-Mailer: git-send-email 2.43.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <20240403080144.GC26310@breakpoint.cc>
-Content-Type: text/plain; charset="gbk"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
- canpemm500006.china.huawei.com (7.192.105.130)
+Content-Transfer-Encoding: 8bit
 
-> Ziyang Xuan <william.xuanziyang@huawei.com> wrote:
->> nft_unregister_flowtable_type() within nf_flow_inet_module_exit() can
->> concurrent with __nft_flowtable_type_get() within nf_tables_newflowtable().
->> And thhere is not any protection when iterate over nf_tables_flowtables
->> list in __nft_flowtable_type_get(). Therefore, there is pertential
->> data-race of nf_tables_flowtables list entry.
->>
->> Use list_for_each_entry_rcu() to iterate over nf_tables_flowtables list
->> in __nft_flowtable_type_get(), and use rcu_read_lock() in the caller
->> nft_flowtable_type_get() to protect the entire type query process.
-> 
-> Reviewed-by: Florian Westphal <fw@strlen.de>
-> 
-> Would you be so kind to send followup patches for the other two types
-> Pablo pointed out?
-> 
-> static LIST_HEAD(nf_tables_expressions);
-> static LIST_HEAD(nf_tables_objects);
-> 
-> It looks like they have same issue.
+pipapo keeps one active set data (used from datapath) and one shadow
+copy, in priv->clone, used from transactional path to update the set.
 
-Yes, I am doing and testing.
+On abort and commit, the clone/shadow becomes the active set,
+and a new clone is made for the next transaction.
 
-Best regards.
-> 
-> Thanks!
-> 
-> 
-> .
-> 
+The problem with this is that we cannot fail in ->commit.
+
+This patchset rearranges priv->clone allocation so the cloning occurs on
+the first insertion/removal.
+
+set flush needs a bit of extra work, this is done by adding a iter_type
+hint to the walker callbacks so that a set flush will be able to perform
+the needed clone.
+
+The dirty flag is no longer meaningful after these changes, so last
+patch removes it again.
+
+After this patch it is possible to elide calls to nft_setelem_remove
+from the abort path IFF the set backend implements an abort() function,
+but this change isn't included here.
+
+Florian Westphal (9):
+  netfilter: nft_set_pipapo: move prove_locking helper around
+  netfilter: nft_set_pipapo: make pipapo_clone helper return NULL
+  netfilter: nft_set_pipapo: prepare destroy function for on-demand clone
+  netfilter: nft_set_pipapo: prepare walk function for on-demand clone
+  netfilter: nf_tables: pass new nft_iter_type hint to walker
+  netfilter: nft_set_pipapo: merge deactivate helper into caller
+  netfilter: nft_set_pipapo: prepare pipapo_get helper for on-demand clone
+  netfilter: nft_set_pipapo: move cloning of match info to
+    insert/removal path
+  netfilter: nft_set_pipapo: remove dirty flag
+
+ include/net/netfilter/nf_tables.h |  12 ++
+ net/netfilter/nf_tables_api.c     |   1 +
+ net/netfilter/nft_set_pipapo.c    | 259 +++++++++++++++---------------
+ net/netfilter/nft_set_pipapo.h    |   2 -
+ 4 files changed, 140 insertions(+), 134 deletions(-)
+
+-- 
+2.43.2
+
