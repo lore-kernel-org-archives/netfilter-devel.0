@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D4BC180C14;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D4C0980C15;
 	Thu,  4 Apr 2024 10:43:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712227428; cv=none; b=LmVVVH88Lv9DtaGwfnaA5lE1hRprHYcVVdkV5Hr8WpD3dzIE3bpOd6riawhT7woJ5saD4PjJoEBEAe78nCFrEx5PUSrpPJEkhgPIOwohIftlf5QBJLtZIvKVnN0+5bHP7osJ/4iI5lXvlDpPY22dbsc6cbbkrKCEXfwAnmxkgtM=
+	t=1712227428; cv=none; b=umHIHnjyTOm5lwnagM6ox2NktPI95EHMsfB64/4og5uiy4vbZ/SNZa9N6i++6lb//Vmn3LyosKAWAksoX2Qc7nNA/QCvINiWetjGv9ipPDLGL3MW7NJMZhrFAuhtJZF9qU/EsyZ5jfFImDWYYPbj59L4Y2NRv7V8NrpkS56kO48=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1712227428; c=relaxed/simple;
-	bh=IcAm6IPqIzjvFLWEexvayPECTgRbWQe2zvaa9XsxLDs=;
+	bh=KvhShJYyNB7S21kOegxaR5NH0sG3z8wdMAX5kevj4IE=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=KSZ/39+SouIIYKQHHvZ7UkNuildJ1Q3vAdix1Q0H3QPSP42US//dPEb0K3cKjInmzhIixb1eaEW5DP87Ethpwu1gK+phGPmu2AW7mki22rIHm2EWqh0qbilOH/ONiy+xwIu/FPTEgSPouNPw+H1nXzR3rYU+9x/M4Mt2y2Fv6Co=
+	 MIME-Version; b=tDnjvxiVCi6ggOxsMGZLXSeRVe6EhofH4msPaWkRpeNybIx0VOxVFHXkHCacjbxkftT+OL624Qs2lQDyvCUKr9HCwOwMI13CWSTvu3W3UQY5mTkK4VI3FsQAbw6wLkYALVgH0CRR114KoYkogEjFBiF9GmcUbuBoZw+BEDhJUfk=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -19,9 +19,9 @@ Cc: davem@davemloft.net,
 	kuba@kernel.org,
 	pabeni@redhat.com,
 	edumazet@google.com
-Subject: [PATCH net 6/6] netfilter: nf_tables: discard table flag update with pending basechain deletion
-Date: Thu,  4 Apr 2024 12:43:34 +0200
-Message-Id: <20240404104334.1627-7-pablo@netfilter.org>
+Subject: [PATCH net 5/6] netfilter: nf_tables: Fix potential data-race in __nft_flowtable_type_get()
+Date: Thu,  4 Apr 2024 12:43:33 +0200
+Message-Id: <20240404104334.1627-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240404104334.1627-1-pablo@netfilter.org>
 References: <20240404104334.1627-1-pablo@netfilter.org>
@@ -33,37 +33,58 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hook unregistration is deferred to the commit phase, same occurs with
-hook updates triggered by the table dormant flag. When both commands are
-combined, this results in deleting a basechain while leaving its hook
-still registered in the core.
+From: Ziyang Xuan <william.xuanziyang@huawei.com>
 
-Fixes: 179d9ba5559a ("netfilter: nf_tables: fix table flag updates")
+nft_unregister_flowtable_type() within nf_flow_inet_module_exit() can
+concurrent with __nft_flowtable_type_get() within nf_tables_newflowtable().
+And thhere is not any protection when iterate over nf_tables_flowtables
+list in __nft_flowtable_type_get(). Therefore, there is pertential
+data-race of nf_tables_flowtables list entry.
+
+Use list_for_each_entry_rcu() to iterate over nf_tables_flowtables list
+in __nft_flowtable_type_get(), and use rcu_read_lock() in the caller
+nft_flowtable_type_get() to protect the entire type query process.
+
+Fixes: 3b49e2e94e6e ("netfilter: nf_tables: add flow table netlink frontend")
+Signed-off-by: Ziyang Xuan <william.xuanziyang@huawei.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ net/netfilter/nf_tables_api.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index e02d0ae4f436..d89d77946719 100644
+index 1eb51bf24fc2..e02d0ae4f436 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -1209,10 +1209,11 @@ static bool nft_table_pending_update(const struct nft_ctx *ctx)
- 		return true;
+@@ -8296,11 +8296,12 @@ static int nft_flowtable_parse_hook(const struct nft_ctx *ctx,
+ 	return err;
+ }
  
- 	list_for_each_entry(trans, &nft_net->commit_list, list) {
--		if ((trans->msg_type == NFT_MSG_NEWCHAIN ||
--		     trans->msg_type == NFT_MSG_DELCHAIN) &&
--		    trans->ctx.table == ctx->table &&
--		    nft_trans_chain_update(trans))
-+		if (trans->ctx.table == ctx->table &&
-+		    ((trans->msg_type == NFT_MSG_NEWCHAIN &&
-+		      nft_trans_chain_update(trans)) ||
-+		     (trans->msg_type == NFT_MSG_DELCHAIN &&
-+		      nft_is_base_chain(trans->ctx.chain))))
- 			return true;
++/* call under rcu_read_lock */
+ static const struct nf_flowtable_type *__nft_flowtable_type_get(u8 family)
+ {
+ 	const struct nf_flowtable_type *type;
+ 
+-	list_for_each_entry(type, &nf_tables_flowtables, list) {
++	list_for_each_entry_rcu(type, &nf_tables_flowtables, list) {
+ 		if (family == type->family)
+ 			return type;
  	}
+@@ -8312,9 +8313,13 @@ nft_flowtable_type_get(struct net *net, u8 family)
+ {
+ 	const struct nf_flowtable_type *type;
  
++	rcu_read_lock();
+ 	type = __nft_flowtable_type_get(family);
+-	if (type != NULL && try_module_get(type->owner))
++	if (type != NULL && try_module_get(type->owner)) {
++		rcu_read_unlock();
+ 		return type;
++	}
++	rcu_read_unlock();
+ 
+ 	lockdep_nfnl_nft_mutex_not_held();
+ #ifdef CONFIG_MODULES
 -- 
 2.30.2
 
