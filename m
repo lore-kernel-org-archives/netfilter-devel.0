@@ -1,147 +1,290 @@
-Received: from mail-il1-f199.google.com (mail-il1-f199.google.com [209.85.166.199])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63FBE535AC
-	for <netfilter-devel@vger.kernel.org>; Thu,  4 Apr 2024 12:49:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.199
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id F0C61128833;
+	Thu,  4 Apr 2024 14:11:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712234974; cv=none; b=Jm8lYmF366vJW+knb+tlnA6MoS8XsRmRoELhl4H8Ds85+FtEJmhHqvosC3zJbca20mrbOeZBmAPVpWw58KlkqR7gGSjHI600duzZWpODG5BxagmKEhLYIXEmnDFYOOX4Asq6OxwcaDXYgGpviDWxMPT/uOo9yreklRsTRkSUGow=
+	t=1712239870; cv=none; b=un507Kqckdk2Rntj1nOTaZOPBr8mcRltn7QJYLFLgVJBFKoEMoiK0ZTQSeSp5tgxUxVi3nxBKMdtqWYZp5c9ZdzHxR43MtsYG7/a9IHr2sEp/AzBlupfgD6/s7IZ1/sZHfO2X5ojpCwelNF2PtYM1hNsgoyxWcM6SoNd8YycBhc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712234974; c=relaxed/simple;
-	bh=sb4KZ5DnjkABLmFvWPyLD59JcXtsgt27QvqxFSn2aiQ=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=FQ1/D8jcbIqiHL+Z5TIFd364OucIreH1okhc6QbrVA+wcONcuT3160JiViUxLaGfqGs8VEK22++qGKO+EiJ4NsHniqFr+CZLNM9d1PRv9/GaXVWPx6R02zOFAr4pT+9gCmsiEtgFaXIg/e1CnKEgwIkJQX2dOnE8FE/maOAcmDE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.199
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-il1-f199.google.com with SMTP id e9e14a558f8ab-368cb71dfbeso7700515ab.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 04 Apr 2024 05:49:32 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1712234971; x=1712839771;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=VpwTCb/N6+jyMk/fXZkM5PIZRZLMUvuOzVXItB/Y9yk=;
-        b=qmzOaHd6KeBU7EVYE2p7YWKfSjBmOsYDMIptIRLxppAPle3U6uF8M4E0dET0klvvz+
-         +7615dUKjgPicl81lG/4evyZZp2ddExEUak3hyG2VM1LeKSS71IEm6alMfiJnJITTKv8
-         h29v30VcRI8eqrxpx4OAmI6iSss8HhqpSBmsD1HU3B3DAn3tABdhLJYcF8YMoHHyxbmQ
-         s7WIEYJYmQdddufjpPGIwnJquYihw6gB9Ul6McMkwmhcUuAYr7k1TWDabbRkQFj2KoUI
-         1HkNw4ZbCLxUy4qFOeeDX4xDjW/PKiTKKd1/VOOQ6GQm1skedkMG+DXiZLzCgs93sxNw
-         RTJQ==
-X-Forwarded-Encrypted: i=1; AJvYcCXU2/Z4FCKssZo22/M6yHMC6J3z7lO6fqNAae9Kek+depgQ/oJoHyiPVpT6i5Xf2Ydt2xywI7aC++eYf+oZVlThOT+vPgn0bkL51Z2RHp/F
-X-Gm-Message-State: AOJu0YyXdUqXh5Hn4D0SJXCEQ5t5h8AHdz3sGk1XYfxuiqFss7w4UN4t
-	YfnS884jf4vl/tn2cbt9hHsLZv9Rjzy147bs0zDRun/cAKurigzkfyGj45n4CXxRy1kJWL+5ROn
-	sJo72T/PG13o1qT8FmFFLuZRjP4nmdw6w9agZlCMRw/lTQMPFtxzsMn0=
-X-Google-Smtp-Source: AGHT+IH5QdcGAKBpOAUvYhYjJZA7iLPcQe6gVhzzRDOvzFZBwg5fhfy0nQdFWfh3kP9KcxfgcHug0BFvTfDaA6pzO9iSeJAvBBE2
+	s=arc-20240116; t=1712239870; c=relaxed/simple;
+	bh=KERPuvYjSltLlZLXV08lzV/QSTu/a5/riypv63psSVw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=PJL5QwkSt69NTnOQ1g1I3pQlo1g5X/sGhZX9Sie2zrk4rDY31NkOgdn5tWOldzDdTvKmJbN6vkgNEIzcocHDByGyWg881bOj6ToyRoQ3oB/CP7bCxj5I6AqCVIqg6rltrbdntt8gGsYIYq97asIKfwvZxFXGE6AyJj3tuLS0xYM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Date: Thu, 4 Apr 2024 16:11:02 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Eric Dumazet <edumazet@google.com>
+Cc: "David S . Miller" <davem@davemloft.net>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	eric.dumazet@gmail.com, syzbot <syzkaller@googlegroups.com>
+Subject: Re: [PATCH net] netfilter: validate user input for expected length
+Message-ID: <Zg609rcSqzUW64wm@calendula>
+References: <20240404122051.2303764-1-edumazet@google.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a92:c265:0:b0:369:f4bd:2df4 with SMTP id
- h5-20020a92c265000000b00369f4bd2df4mr161162ild.1.1712234971567; Thu, 04 Apr
- 2024 05:49:31 -0700 (PDT)
-Date: Thu, 04 Apr 2024 05:49:31 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <00000000000040a883061544c59f@google.com>
-Subject: [syzbot] [netfilter?] KMSAN: uninit-value in nf_flow_offload_ip_hook
-From: syzbot <syzbot+b6f07e1c07ef40199081@syzkaller.appspotmail.com>
-To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
-	kadlec@netfilter.org, kuba@kernel.org, linux-kernel@vger.kernel.org, 
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pabeni@redhat.com, 
-	pablo@netfilter.org, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20240404122051.2303764-1-edumazet@google.com>
 
-Hello,
+On Thu, Apr 04, 2024 at 12:20:51PM +0000, Eric Dumazet wrote:
+> I got multiple syzbot reports showing old bugs exposed
+> by BPF after commit 20f2505fb436 ("bpf: Try to avoid kzalloc
+> in cgroup/{s,g}etsockopt")
+> 
+> setsockopt() @optlen argument should be taken into account
+> before copying data.
+> 
+>  BUG: KASAN: slab-out-of-bounds in copy_from_sockptr_offset include/linux/sockptr.h:49 [inline]
+>  BUG: KASAN: slab-out-of-bounds in copy_from_sockptr include/linux/sockptr.h:55 [inline]
+>  BUG: KASAN: slab-out-of-bounds in do_replace net/ipv4/netfilter/ip_tables.c:1111 [inline]
+>  BUG: KASAN: slab-out-of-bounds in do_ipt_set_ctl+0x902/0x3dd0 net/ipv4/netfilter/ip_tables.c:1627
+> Read of size 96 at addr ffff88802cd73da0 by task syz-executor.4/7238
+> 
+> CPU: 1 PID: 7238 Comm: syz-executor.4 Not tainted 6.9.0-rc2-next-20240403-syzkaller #0
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/27/2024
+> Call Trace:
+>  <TASK>
+>   __dump_stack lib/dump_stack.c:88 [inline]
+>   dump_stack_lvl+0x241/0x360 lib/dump_stack.c:114
+>   print_address_description mm/kasan/report.c:377 [inline]
+>   print_report+0x169/0x550 mm/kasan/report.c:488
+>   kasan_report+0x143/0x180 mm/kasan/report.c:601
+>   kasan_check_range+0x282/0x290 mm/kasan/generic.c:189
+>   __asan_memcpy+0x29/0x70 mm/kasan/shadow.c:105
+>   copy_from_sockptr_offset include/linux/sockptr.h:49 [inline]
+>   copy_from_sockptr include/linux/sockptr.h:55 [inline]
+>   do_replace net/ipv4/netfilter/ip_tables.c:1111 [inline]
+>   do_ipt_set_ctl+0x902/0x3dd0 net/ipv4/netfilter/ip_tables.c:1627
+>   nf_setsockopt+0x295/0x2c0 net/netfilter/nf_sockopt.c:101
+>   do_sock_setsockopt+0x3af/0x720 net/socket.c:2311
+>   __sys_setsockopt+0x1ae/0x250 net/socket.c:2334
+>   __do_sys_setsockopt net/socket.c:2343 [inline]
+>   __se_sys_setsockopt net/socket.c:2340 [inline]
+>   __x64_sys_setsockopt+0xb5/0xd0 net/socket.c:2340
+>  do_syscall_64+0xfb/0x240
+>  entry_SYSCALL_64_after_hwframe+0x72/0x7a
+> RIP: 0033:0x7fd22067dde9
+> Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 e1 20 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b0 ff ff ff f7 d8 64 89 01 48
+> RSP: 002b:00007fd21f9ff0c8 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
+> RAX: ffffffffffffffda RBX: 00007fd2207abf80 RCX: 00007fd22067dde9
+> RDX: 0000000000000040 RSI: 0000000000000000 RDI: 0000000000000003
+> RBP: 00007fd2206ca47a R08: 0000000000000001 R09: 0000000000000000
+> R10: 0000000020000880 R11: 0000000000000246 R12: 0000000000000000
+> R13: 000000000000000b R14: 00007fd2207abf80 R15: 00007ffd2d0170d8
+>  </TASK>
+> 
+> Allocated by task 7238:
+>   kasan_save_stack mm/kasan/common.c:47 [inline]
+>   kasan_save_track+0x3f/0x80 mm/kasan/common.c:68
+>   poison_kmalloc_redzone mm/kasan/common.c:370 [inline]
+>   __kasan_kmalloc+0x98/0xb0 mm/kasan/common.c:387
+>   kasan_kmalloc include/linux/kasan.h:211 [inline]
+>   __do_kmalloc_node mm/slub.c:4069 [inline]
+>   __kmalloc_noprof+0x200/0x410 mm/slub.c:4082
+>   kmalloc_noprof include/linux/slab.h:664 [inline]
+>   __cgroup_bpf_run_filter_setsockopt+0xd47/0x1050 kernel/bpf/cgroup.c:1869
+>   do_sock_setsockopt+0x6b4/0x720 net/socket.c:2293
+>   __sys_setsockopt+0x1ae/0x250 net/socket.c:2334
+>   __do_sys_setsockopt net/socket.c:2343 [inline]
+>   __se_sys_setsockopt net/socket.c:2340 [inline]
+>   __x64_sys_setsockopt+0xb5/0xd0 net/socket.c:2340
+>  do_syscall_64+0xfb/0x240
+>  entry_SYSCALL_64_after_hwframe+0x72/0x7a
+> 
+> The buggy address belongs to the object at ffff88802cd73da0
+>  which belongs to the cache kmalloc-8 of size 8
+> The buggy address is located 0 bytes inside of
+>  allocated 1-byte region [ffff88802cd73da0, ffff88802cd73da1)
+> 
+> The buggy address belongs to the physical page:
+> page: refcount:1 mapcount:0 mapping:0000000000000000 index:0xffff88802cd73020 pfn:0x2cd73
+> flags: 0xfff80000000000(node=0|zone=1|lastcpupid=0xfff)
+> page_type: 0xffffefff(slab)
+> raw: 00fff80000000000 ffff888015041280 dead000000000100 dead000000000122
+> raw: ffff88802cd73020 000000008080007f 00000001ffffefff 0000000000000000
+> page dumped because: kasan: bad access detected
+> page_owner tracks the page as allocated
+> page last allocated via order 0, migratetype Unmovable, gfp_mask 0x12cc0(GFP_KERNEL|__GFP_NOWARN|__GFP_NORETRY), pid 5103, tgid 2119833701 (syz-executor.4), ts 5103, free_ts 70804600828
+>   set_page_owner include/linux/page_owner.h:32 [inline]
+>   post_alloc_hook+0x1f3/0x230 mm/page_alloc.c:1490
+>   prep_new_page mm/page_alloc.c:1498 [inline]
+>   get_page_from_freelist+0x2e7e/0x2f40 mm/page_alloc.c:3454
+>   __alloc_pages_noprof+0x256/0x6c0 mm/page_alloc.c:4712
+>   __alloc_pages_node_noprof include/linux/gfp.h:244 [inline]
+>   alloc_pages_node_noprof include/linux/gfp.h:271 [inline]
+>   alloc_slab_page+0x5f/0x120 mm/slub.c:2249
+>   allocate_slab+0x5a/0x2e0 mm/slub.c:2412
+>   new_slab mm/slub.c:2465 [inline]
+>   ___slab_alloc+0xcd1/0x14b0 mm/slub.c:3615
+>   __slab_alloc+0x58/0xa0 mm/slub.c:3705
+>   __slab_alloc_node mm/slub.c:3758 [inline]
+>   slab_alloc_node mm/slub.c:3936 [inline]
+>   __do_kmalloc_node mm/slub.c:4068 [inline]
+>   kmalloc_node_track_caller_noprof+0x286/0x450 mm/slub.c:4089
+>   kstrdup+0x3a/0x80 mm/util.c:62
+>   device_rename+0xb5/0x1b0 drivers/base/core.c:4558
+>   dev_change_name+0x275/0x860 net/core/dev.c:1232
+>   do_setlink+0xa4b/0x41f0 net/core/rtnetlink.c:2864
+>   __rtnl_newlink net/core/rtnetlink.c:3680 [inline]
+>   rtnl_newlink+0x180b/0x20a0 net/core/rtnetlink.c:3727
+>   rtnetlink_rcv_msg+0x89b/0x10d0 net/core/rtnetlink.c:6594
+>   netlink_rcv_skb+0x1e3/0x430 net/netlink/af_netlink.c:2559
+>   netlink_unicast_kernel net/netlink/af_netlink.c:1335 [inline]
+>   netlink_unicast+0x7ea/0x980 net/netlink/af_netlink.c:1361
+> page last free pid 5146 tgid 5146 stack trace:
+>   reset_page_owner include/linux/page_owner.h:25 [inline]
+>   free_pages_prepare mm/page_alloc.c:1110 [inline]
+>   free_unref_page+0xd3c/0xec0 mm/page_alloc.c:2617
+>   discard_slab mm/slub.c:2511 [inline]
+>   __put_partials+0xeb/0x130 mm/slub.c:2980
+>   put_cpu_partial+0x17c/0x250 mm/slub.c:3055
+>   __slab_free+0x2ea/0x3d0 mm/slub.c:4254
+>   qlink_free mm/kasan/quarantine.c:163 [inline]
+>   qlist_free_all+0x9e/0x140 mm/kasan/quarantine.c:179
+>   kasan_quarantine_reduce+0x14f/0x170 mm/kasan/quarantine.c:286
+>   __kasan_slab_alloc+0x23/0x80 mm/kasan/common.c:322
+>   kasan_slab_alloc include/linux/kasan.h:201 [inline]
+>   slab_post_alloc_hook mm/slub.c:3888 [inline]
+>   slab_alloc_node mm/slub.c:3948 [inline]
+>   __do_kmalloc_node mm/slub.c:4068 [inline]
+>   __kmalloc_node_noprof+0x1d7/0x450 mm/slub.c:4076
+>   kmalloc_node_noprof include/linux/slab.h:681 [inline]
+>   kvmalloc_node_noprof+0x72/0x190 mm/util.c:634
+>   bucket_table_alloc lib/rhashtable.c:186 [inline]
+>   rhashtable_rehash_alloc+0x9e/0x290 lib/rhashtable.c:367
+>   rht_deferred_worker+0x4e1/0x2440 lib/rhashtable.c:427
+>   process_one_work kernel/workqueue.c:3218 [inline]
+>   process_scheduled_works+0xa2c/0x1830 kernel/workqueue.c:3299
+>   worker_thread+0x86d/0xd70 kernel/workqueue.c:3380
+>   kthread+0x2f0/0x390 kernel/kthread.c:388
+>   ret_from_fork+0x4b/0x80 arch/x86/kernel/process.c:147
+>   ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:243
+> 
+> Memory state around the buggy address:
+>  ffff88802cd73c80: 07 fc fc fc 05 fc fc fc 05 fc fc fc fa fc fc fc
+>  ffff88802cd73d00: fa fc fc fc fa fc fc fc fa fc fc fc fa fc fc fc
+> >ffff88802cd73d80: fa fc fc fc 01 fc fc fc fa fc fc fc fa fc fc fc
+>                                ^
+>  ffff88802cd73e00: fa fc fc fc fa fc fc fc 05 fc fc fc 07 fc fc fc
+>  ffff88802cd73e80: 07 fc fc fc 07 fc fc fc 07 fc fc fc 07 fc fc fc
+> 
+> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+> Reported-by: syzbot <syzkaller@googlegroups.com>
 
-syzbot found the following issue on:
+Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-HEAD commit:    3e92c1e6cd87 Merge tag 'selinux-pr-20240402' of git://git...
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=135dbd3d180000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=5112b3f484393436
-dashboard link: https://syzkaller.appspot.com/bug?extid=b6f07e1c07ef40199081
-compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
-
-Unfortunately, I don't have any reproducer for this issue yet.
-
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/ac287f716705/disk-3e92c1e6.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/f04f8cb0bdc6/vmlinux-3e92c1e6.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/a8eb9003da40/bzImage-3e92c1e6.xz
-
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+b6f07e1c07ef40199081@syzkaller.appspotmail.com
-
-=====================================================
-BUG: KMSAN: uninit-value in nf_flow_skb_encap_protocol net/netfilter/nf_flow_table_ip.c:290 [inline]
-BUG: KMSAN: uninit-value in nf_flow_offload_lookup net/netfilter/nf_flow_table_ip.c:352 [inline]
-BUG: KMSAN: uninit-value in nf_flow_offload_ip_hook+0x79a/0x3e40 net/netfilter/nf_flow_table_ip.c:424
- nf_flow_skb_encap_protocol net/netfilter/nf_flow_table_ip.c:290 [inline]
- nf_flow_offload_lookup net/netfilter/nf_flow_table_ip.c:352 [inline]
- nf_flow_offload_ip_hook+0x79a/0x3e40 net/netfilter/nf_flow_table_ip.c:424
- nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
- nf_hook_slow+0xf2/0x3f0 net/netfilter/core.c:626
- nf_hook_ingress include/linux/netfilter_netdev.h:34 [inline]
- nf_ingress net/core/dev.c:5318 [inline]
- __netif_receive_skb_core+0x430b/0x6190 net/core/dev.c:5406
- __netif_receive_skb_one_core net/core/dev.c:5536 [inline]
- __netif_receive_skb+0xca/0xa00 net/core/dev.c:5652
- netif_receive_skb_internal net/core/dev.c:5738 [inline]
- netif_receive_skb+0x58/0x660 net/core/dev.c:5798
- tun_rx_batched+0x3ee/0x980 drivers/net/tun.c:1549
- tun_get_user+0x5566/0x69e0 drivers/net/tun.c:2002
- tun_chr_write_iter+0x3af/0x5d0 drivers/net/tun.c:2048
- call_write_iter include/linux/fs.h:2108 [inline]
- new_sync_write fs/read_write.c:497 [inline]
- vfs_write+0xb63/0x1520 fs/read_write.c:590
- ksys_write+0x20f/0x4c0 fs/read_write.c:643
- __do_sys_write fs/read_write.c:655 [inline]
- __se_sys_write fs/read_write.c:652 [inline]
- __x64_sys_write+0x93/0xe0 fs/read_write.c:652
- do_syscall_64+0xd5/0x1f0
- entry_SYSCALL_64_after_hwframe+0x72/0x7a
-
-Uninit was created at:
- __alloc_pages+0x9d6/0xe70 mm/page_alloc.c:4598
- alloc_pages_mpol+0x299/0x990 mm/mempolicy.c:2264
- alloc_pages+0x1bf/0x1e0 mm/mempolicy.c:2335
- skb_page_frag_refill+0x2bf/0x7c0 net/core/sock.c:2921
- tun_build_skb drivers/net/tun.c:1679 [inline]
- tun_get_user+0x1258/0x69e0 drivers/net/tun.c:1819
- tun_chr_write_iter+0x3af/0x5d0 drivers/net/tun.c:2048
- call_write_iter include/linux/fs.h:2108 [inline]
- new_sync_write fs/read_write.c:497 [inline]
- vfs_write+0xb63/0x1520 fs/read_write.c:590
- ksys_write+0x20f/0x4c0 fs/read_write.c:643
- __do_sys_write fs/read_write.c:655 [inline]
- __se_sys_write fs/read_write.c:652 [inline]
- __x64_sys_write+0x93/0xe0 fs/read_write.c:652
- do_syscall_64+0xd5/0x1f0
- entry_SYSCALL_64_after_hwframe+0x72/0x7a
-
-CPU: 0 PID: 5636 Comm: syz-executor.0 Not tainted 6.9.0-rc2-syzkaller-00042-g3e92c1e6cd87 #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/27/2024
-=====================================================
-
-
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
+> Signed-off-by: Eric Dumazet <edumazet@google.com>
+> ---
+>  net/bridge/netfilter/ebtables.c | 6 ++++++
+>  net/ipv4/netfilter/arp_tables.c | 4 ++++
+>  net/ipv4/netfilter/ip_tables.c  | 4 ++++
+>  net/ipv6/netfilter/ip6_tables.c | 4 ++++
+>  4 files changed, 18 insertions(+)
+> 
+> diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+> index 99d82676f780ac49d01151fa9c585f44f9ea8ccc..cbd0e3586c3f61904efb4db7d9101d7770c852e7 100644
+> --- a/net/bridge/netfilter/ebtables.c
+> +++ b/net/bridge/netfilter/ebtables.c
+> @@ -1111,6 +1111,8 @@ static int do_replace(struct net *net, sockptr_t arg, unsigned int len)
+>  	struct ebt_table_info *newinfo;
+>  	struct ebt_replace tmp;
+>  
+> +	if (len < sizeof(tmp))
+> +		return -EINVAL;
+>  	if (copy_from_sockptr(&tmp, arg, sizeof(tmp)) != 0)
+>  		return -EFAULT;
+>  
+> @@ -1423,6 +1425,8 @@ static int update_counters(struct net *net, sockptr_t arg, unsigned int len)
+>  {
+>  	struct ebt_replace hlp;
+>  
+> +	if (len < sizeof(hlp))
+> +		return -EINVAL;
+>  	if (copy_from_sockptr(&hlp, arg, sizeof(hlp)))
+>  		return -EFAULT;
+>  
+> @@ -2352,6 +2356,8 @@ static int compat_update_counters(struct net *net, sockptr_t arg,
+>  {
+>  	struct compat_ebt_replace hlp;
+>  
+> +	if (len < sizeof(hlp))
+> +		return -EINVAL;
+>  	if (copy_from_sockptr(&hlp, arg, sizeof(hlp)))
+>  		return -EFAULT;
+>  
+> diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+> index 2407066b0fec1121d71561ecbad6f4f87ecdebbc..b150c9929b12e86219a55c77da480e0c538b3449 100644
+> --- a/net/ipv4/netfilter/arp_tables.c
+> +++ b/net/ipv4/netfilter/arp_tables.c
+> @@ -956,6 +956,8 @@ static int do_replace(struct net *net, sockptr_t arg, unsigned int len)
+>  	void *loc_cpu_entry;
+>  	struct arpt_entry *iter;
+>  
+> +	if (len < sizeof(tmp))
+> +		return -EINVAL;
+>  	if (copy_from_sockptr(&tmp, arg, sizeof(tmp)) != 0)
+>  		return -EFAULT;
+>  
+> @@ -1254,6 +1256,8 @@ static int compat_do_replace(struct net *net, sockptr_t arg, unsigned int len)
+>  	void *loc_cpu_entry;
+>  	struct arpt_entry *iter;
+>  
+> +	if (len < sizeof(tmp))
+> +		return -EINVAL;
+>  	if (copy_from_sockptr(&tmp, arg, sizeof(tmp)) != 0)
+>  		return -EFAULT;
+>  
+> diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+> index 7da1df4997d057a4292927c2041687c2b39d4a01..487670759578168c5ff53bce6642898fc41936b3 100644
+> --- a/net/ipv4/netfilter/ip_tables.c
+> +++ b/net/ipv4/netfilter/ip_tables.c
+> @@ -1108,6 +1108,8 @@ do_replace(struct net *net, sockptr_t arg, unsigned int len)
+>  	void *loc_cpu_entry;
+>  	struct ipt_entry *iter;
+>  
+> +	if (len < sizeof(tmp))
+> +		return -EINVAL;
+>  	if (copy_from_sockptr(&tmp, arg, sizeof(tmp)) != 0)
+>  		return -EFAULT;
+>  
+> @@ -1492,6 +1494,8 @@ compat_do_replace(struct net *net, sockptr_t arg, unsigned int len)
+>  	void *loc_cpu_entry;
+>  	struct ipt_entry *iter;
+>  
+> +	if (len < sizeof(tmp))
+> +		return -EINVAL;
+>  	if (copy_from_sockptr(&tmp, arg, sizeof(tmp)) != 0)
+>  		return -EFAULT;
+>  
+> diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+> index fd9f049d6d41e77eacc10ce074a8a0d96b0d2e11..636b360311c5365fba2330f6ca2f7f1b6dd1363e 100644
+> --- a/net/ipv6/netfilter/ip6_tables.c
+> +++ b/net/ipv6/netfilter/ip6_tables.c
+> @@ -1125,6 +1125,8 @@ do_replace(struct net *net, sockptr_t arg, unsigned int len)
+>  	void *loc_cpu_entry;
+>  	struct ip6t_entry *iter;
+>  
+> +	if (len < sizeof(tmp))
+> +		return -EINVAL;
+>  	if (copy_from_sockptr(&tmp, arg, sizeof(tmp)) != 0)
+>  		return -EFAULT;
+>  
+> @@ -1501,6 +1503,8 @@ compat_do_replace(struct net *net, sockptr_t arg, unsigned int len)
+>  	void *loc_cpu_entry;
+>  	struct ip6t_entry *iter;
+>  
+> +	if (len < sizeof(tmp))
+> +		return -EINVAL;
+>  	if (copy_from_sockptr(&tmp, arg, sizeof(tmp)) != 0)
+>  		return -EFAULT;
+>  
+> -- 
+> 2.44.0.478.gd926399ef9-goog
+> 
