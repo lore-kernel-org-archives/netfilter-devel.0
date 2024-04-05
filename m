@@ -1,147 +1,151 @@
-Received: from azazel.net (taras.nevrast.org [35.176.194.208])
+Received: from smtp-fw-9106.amazon.com (smtp-fw-9106.amazon.com [207.171.188.206])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27B251327FD
-	for <netfilter-devel@vger.kernel.org>; Fri,  5 Apr 2024 20:39:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82DCE175557;
+	Fri,  5 Apr 2024 22:27:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=207.171.188.206
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712349554; cv=none; b=DVAt/VuFw4SL6QZScahJm/OeMsGb3ZqFf1j5rW1MuaWwniqcZEmpMfQjOuA+D6k9vjuRuf/JMy0oNiniVa7N8GlQjzpa6jqN81vxB7ERelkE92ZJnNNcn8YFQNwpfC4vDCux27/CCGrTJzSs9Nb46lC+5iZ8WzTKOzpiROyUfqY=
+	t=1712356047; cv=none; b=u+xTbhwsmRezwWfNUAyD1JnRzYl/RJ/gI33aR37BWnetkFsDlfuOE49y0jw4NlmNvPl+IRzp3v9tKVfEynZUheaDyRaLRI7r5G6eGY6/33jNYzyHjj++ENwlF76h46xJp4yZrTbnCZTWPFcbF4NglQgipCGifrHbHr8YbrgMt50=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712349554; c=relaxed/simple;
-	bh=2q1hcGm4DsCOrQQbsdzT37pwMJebAcfrPo6Ptweum2Y=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=oGjX6tGDrE1UgZpcggRYymSFZVfrVMP38tZMywzKpdnk9/MCpYU8gQxGUHb6a3NFGMLb7WzqLYfo2TwJMaF0ClfwcbhtOBhfUKlmQYDZ5wCtxlZ/1Ykt4xXkGeVYMACK2x7n7y58jAjDyFiXvUSJb1VqxkjrodVi/ue3BxniVlo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=UvjB8MG3; arc=none smtp.client-ip=35.176.194.208
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
+	s=arc-20240116; t=1712356047; c=relaxed/simple;
+	bh=qrrZBeX1vtGWgwK5O99qDlCfzTKu2CnGs6Zioe/+/30=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=Z0aoUwsMtCAaySyGhoMv85FBhIAl7qXo9RqNcGHUA6nx0srvUfdJ0sUczzXtFonspXftrqI+tIQu3FI9Q5mPxzBi7tsHpXZLaZeA7USE3YTTRH9sj5p2/pxHsoCBKQygnR/hJPHMos+OzJ6ckIQP/hqFBl3Qp1ulx67fVGhsHKk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.co.jp; dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b=LMoCvuAv; arc=none smtp.client-ip=207.171.188.206
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.co.jp
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="UvjB8MG3"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-	s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=f71rrOWB3jxvxRf4CpMqAXWFwVnwtaqBqB0wu7bfwWI=; b=UvjB8MG3Ibeu6HLF016F2Hrbno
-	C2Uq/58XObHn3IxuVaI/EuldKcYYlMsJeyMJbkd/zzYcZuU94mPqh6v1/JghJWvNoKvVAVSMEjzUB
-	3wwEDfbogrdN1yne9icKpECjbB10Qb7zdClo3YypE5YJ8Zn1VBfOEaaFEqPbL5/yEzUwFEo1fJcvv
-	HFMRRmuo8GO/aniTSJXUl4FbJrt3nbtJs6955fvrydAZ7Z1dfC6G9wQxmnidBV3V93Ww/XZlTN37r
-	BjxOKxFE3XNdD2jCE8TnFmmrExVLJxi+daIhqFlhkUEaxcqXSyqhgJ/uYXUxWmm6Z7WufElXamVUp
-	qUBbRyxg==;
-Received: from celephais.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] helo=celephais.dreamlands)
-	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.96)
-	(envelope-from <jeremy@azazel.net>)
-	id 1rsqKv-0022lq-28;
-	Fri, 05 Apr 2024 21:38:57 +0100
-Date: Fri, 5 Apr 2024 21:38:56 +0100
-From: Jeremy Sowden <jeremy@azazel.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft v2 0/2] Support for variables in map expressions
-Message-ID: <20240405203856.GB1083504@celephais.dreamlands>
-References: <20240403120937.4061434-1-jeremy@azazel.net>
- <Zg6NUHYLHYbIgKtq@calendula>
+	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="LMoCvuAv"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1712356045; x=1743892045;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=MZmfmRuTm98xxNT3u4GoRIvJJsGslBrgcovMMdqPwTw=;
+  b=LMoCvuAvAiKpauBjBvG9rZqvq6Adv0g22tVGZIEI0d5TB8C2HlDl1LHj
+   ASgigsE0s2Il2hca+iDoCM6AQH10YBXw8e5uCk/kWQjy44Sa3yPPKf9V2
+   ge0Y/ag/602Bo2vu9PmOTCQz5V4tyWdDcU0BFbPvDDGjaYJf/FMeOaHPI
+   Q=;
+X-IronPort-AV: E=Sophos;i="6.07,182,1708387200"; 
+   d="scan'208";a="716520780"
+Received: from pdx4-co-svc-p1-lb2-vlan2.amazon.com (HELO smtpout.prod.us-west-2.prod.farcaster.email.amazon.dev) ([10.25.36.210])
+  by smtp-border-fw-9106.sea19.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Apr 2024 22:27:19 +0000
+Received: from EX19MTAUWB002.ant.amazon.com [10.0.7.35:33431]
+ by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.50.222:2525] with esmtp (Farcaster)
+ id d323b31d-9f42-407f-b466-8125712ac6f4; Fri, 5 Apr 2024 22:27:18 +0000 (UTC)
+X-Farcaster-Flow-ID: d323b31d-9f42-407f-b466-8125712ac6f4
+Received: from EX19D004ANA001.ant.amazon.com (10.37.240.138) by
+ EX19MTAUWB002.ant.amazon.com (10.250.64.231) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1258.28; Fri, 5 Apr 2024 22:27:17 +0000
+Received: from 88665a182662.ant.amazon.com (10.106.101.45) by
+ EX19D004ANA001.ant.amazon.com (10.37.240.138) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.1258.28;
+ Fri, 5 Apr 2024 22:27:06 +0000
+From: Kuniyuki Iwashima <kuniyu@amazon.com>
+To: <j.granados@samsung.com>
+CC: <Dai.Ngo@oracle.com>, <alex.aring@gmail.com>, <alibuda@linux.alibaba.com>,
+	<allison.henderson@oracle.com>, <anna@kernel.org>, <bridge@lists.linux.dev>,
+	<chuck.lever@oracle.com>, <coreteam@netfilter.org>, <courmisch@gmail.com>,
+	<davem@davemloft.net>, <dccp@vger.kernel.org>,
+	<devnull+j.granados.samsung.com@kernel.org>, <dhowells@redhat.com>,
+	<dsahern@kernel.org>, <edumazet@google.com>, <fw@strlen.de>,
+	<geliang@kernel.org>, <guwen@linux.alibaba.com>,
+	<herbert@gondor.apana.org.au>, <horms@verge.net.au>, <ja@ssi.bg>,
+	<jaka@linux.ibm.com>, <jlayton@kernel.org>, <jmaloy@redhat.com>,
+	<jreuter@yaina.de>, <kadlec@netfilter.org>, <keescook@chromium.org>,
+	<kolga@netapp.com>, <kuba@kernel.org>, <kuniyu@amazon.com>,
+	<linux-afs@lists.infradead.org>, <linux-hams@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <linux-nfs@vger.kernel.org>,
+	<linux-rdma@vger.kernel.org>, <linux-s390@vger.kernel.org>,
+	<linux-sctp@vger.kernel.org>, <linux-wpan@vger.kernel.org>,
+	<linux-x25@vger.kernel.org>, <lucien.xin@gmail.com>,
+	<lvs-devel@vger.kernel.org>, <marc.dionne@auristor.com>,
+	<marcelo.leitner@gmail.com>, <martineau@kernel.org>, <matttbe@kernel.org>,
+	<mcgrof@kernel.org>, <miquel.raynal@bootlin.com>, <mptcp@lists.linux.dev>,
+	<ms@dev.tdt.de>, <neilb@suse.de>, <netdev@vger.kernel.org>,
+	<netfilter-devel@vger.kernel.org>, <pabeni@redhat.com>,
+	<pablo@netfilter.org>, <ralf@linux-mips.org>, <razor@blackwall.org>,
+	<rds-devel@oss.oracle.com>, <roopa@nvidia.com>, <stefan@datenfreihafen.org>,
+	<steffen.klassert@secunet.com>, <tipc-discussion@lists.sourceforge.net>,
+	<tom@talpey.com>, <tonylu@linux.alibaba.com>,
+	<trond.myklebust@hammerspace.com>, <wenjia@linux.ibm.com>,
+	<ying.xue@windriver.com>
+Subject: Re: [PATCH v2 4/4] ax.25: Remove the now superfluous sentinel elements from ctl_table array
+Date: Fri, 5 Apr 2024 15:26:58 -0700
+Message-ID: <20240405222658.3615-1-kuniyu@amazon.com>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20240405071531.fv6smp55znlfnul2@joelS2.panther.com>
+References: <20240405071531.fv6smp55znlfnul2@joelS2.panther.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="4l05OZYazoDqyPfp"
-Content-Disposition: inline
-In-Reply-To: <Zg6NUHYLHYbIgKtq@calendula>
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: EX19D035UWB001.ant.amazon.com (10.13.138.33) To
+ EX19D004ANA001.ant.amazon.com (10.37.240.138)
+
+From: Joel Granados <j.granados@samsung.com>
+Date: Fri, 5 Apr 2024 09:15:31 +0200
+> On Thu, Mar 28, 2024 at 12:49:34PM -0700, Kuniyuki Iwashima wrote:
+> > From: Joel Granados via B4 Relay <devnull+j.granados.samsung.com@kernel.org>
+> > Date: Thu, 28 Mar 2024 16:40:05 +0100
+> > > This commit comes at the tail end of a greater effort to remove the
+> > > empty elements at the end of the ctl_table arrays (sentinels) which will
+> > > reduce the overall build time size of the kernel and run time memory
+> > > bloat by ~64 bytes per sentinel (further information Link :
+> > > https://lore.kernel.org/all/ZO5Yx5JFogGi%2FcBo@bombadil.infradead.org/)
+> > > 
+> > > When we remove the sentinel from ax25_param_table a buffer overflow
+> > > shows its ugly head. The sentinel's data element used to be changed when
+> > > CONFIG_AX25_DAMA_SLAVE was not defined.
+> > 
+> > I think it's better to define the relation explicitly between the
+> > enum and sysctl table by BUILD_BUG_ON() in ax25_register_dev_sysctl()
+> > 
+> >   BUILD_BUG_ON(AX25_MAX_VALUES != ARRAY_SIZE(ax25_param_table));
+> > 
+> > and guard AX25_VALUES_DS_TIMEOUT with #ifdef CONFIG_AX25_DAMA_SLAVE
+> > as done for other enum.
+> 
+> When I remove AX25_VALUES_DS_TIMEOUT from the un-guarded build it
+> complains in net/ax25/ax25_ds_timer.c (ax25_ds_set_timer). Here is the
+> report https://lore.kernel.org/oe-kbuild-all/202404040301.qzKmVQGB-lkp@intel.com/.
+> 
+> How best to address this? Should we just guard the whole function and do
+> nothing when not set? like this:
+
+It seems fine to me.
+
+ax25_ds_timeout() checks !ax25_dev->dama.slave_timeout, but it's
+initialised by kzalloc() during dev setup, so it will be a noop.
 
 
---4l05OZYazoDqyPfp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On 2024-04-04, at 13:21:52 +0200, Pablo Neira Ayuso wrote:
-> On Wed, Apr 03, 2024 at 01:09:35PM +0100, Jeremy Sowden wrote:
-> > The first patch replaces the current assertion failure for invalid
-> > mapping expression in stateful-object statements with an error message.
-> > This brings it in line with map statements.
-> >=20
-> > It is possible to use a variable to initialize a map, which is then used
-> > in a map statement, but if one tries to use the variable directly, nft
-> > rejects it.  The second patch adds support for doing this.
->=20
-> Thanks. I can trigger crashes, e.g.
->=20
-> define quota_map =3D "1.2.3.4"
->=20
-> table ip x {
->         chain y {
->                 quota name ip saddr map $quota_map
->         }
+> 
+> ```
+> void ax25_ds_set_timer(ax25_dev *ax25_dev)
+> {
+> #ifdef COFNIG_AX25_DAMA_SLAVE
+>         if (ax25_dev == NULL)        ···/* paranoia */
+>                 return;
+> 
+>         ax25_dev->dama.slave_timeout =
+>                 msecs_to_jiffies(ax25_dev->values[AX25_VALUES_DS_TIMEOUT]) / 10;
+>         mod_timer(&ax25_dev->dama.slave_timer, jiffies + HZ);
+> #else
+>         return;
+> #endif
 > }
->=20
-> src/mnl.c:1759:2: runtime error: member access within misaligned address =
-0x000100000001 for type 'struct expr', which requires 8 byte alignment
-> 0x000100000001: note: pointer points here
-> <memory cannot be printed>
-> src/netlink.c:121:10: runtime error: member access within misaligned addr=
-ess 0x000100000001 for type 'const struct expr', which requires 8 byte alig=
-nment
-> 0x000100000001: note: pointer points here
-> <memory cannot be printed>
-> AddressSanitizer:DEADLYSIGNAL
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> =3D=3D150056=3D=3DERROR: AddressSanitizer: SEGV on unknown address 0x0000=
-9fff8009 (pc 0x7f58e67d8624 bp 0x7ffd57d17eb0 sp 0x7ffd57d17c40 T0)
-> =3D=3D150056=3D=3DThe signal is caused by a READ memory access.
->     #0 0x7f58e67d8624 in alloc_nftnl_setelem src/netlink.c:121
->     #1 0x7f58e67c3d12 in mnl_nft_setelem_batch src/mnl.c:1760
->     #2 0x7f58e67c45d9 in mnl_nft_setelem_add src/mnl.c:1805
->     #3 0x7f58e687df1e in __do_add_elements src/rule.c:1425
->     #4 0x7f58e687e528 in do_add_set src/rule.c:1471
->     #5 0x7f58e687e7aa in do_command_add src/rule.c:1491
->     #6 0x7f58e688fdb3 in do_command src/rule.c:2599
->     #7 0x7f58e679d417 in nft_netlink src/libnftables.c:42
->     #8 0x7f58e67a514a in __nft_run_cmd_from_filename src/libnftables.c:729
->     #9 0x7f58e67a639c in nft_run_cmd_from_filename src/libnftables.c:807
->     #10 0x557c9d25b3b0 in main src/main.c:536
->     #11 0x7f58e5846249 in __libc_start_call_main ../sysdeps/nptl/libc_sta=
-rt_call_main.h:58
->     #12 0x7f58e5846304 in __libc_start_main_impl ../csu/libc-start.c:360
->     #13 0x557c9d258460 in _start (/usr/sbin/nft+0x9460)
->=20
-> AddressSanitizer can not provide additional info.
-> SUMMARY: AddressSanitizer: SEGV src/netlink.c:121 in alloc_nftnl_setelem
-> =3D=3D150056=3D=3DABORTING
->=20
-> I think this is lacking more validation.
+> 
+> ```
+> 
+> I'm not too familiar with this, so pointing me to the "correct" way to
+> handle this would be helpfull.
 
-Agreed.  Should have done more testing.  Apologies!  Will follow up.
+Also, you will need to guard another use of AX25_VALUES_DS_TIMEOUT in
+ax25_dev_device_up().
 
-J.
-
---4l05OZYazoDqyPfp
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmYQYVgACgkQKYasCr3x
-BA0b4xAAzyAEgUem7eGXJKoDOd5AqMbXFbhzXxir5MN1kRqjsuZHvy7RhR+jIxQU
-jHjesvigw9zxWj2wA8QfxKs+BEs2x9wdGI4ZBsUuh5JeqP7F8d97OH86utiFS2x7
-AbHiKY3iDKEzW820u8mfJyri3KNtToCqPhDXEXJHHnkgDtLG11UMVwFQYpa2rm65
-+70d5TmG5e9F+UXCTawT97xSoHRHKsuyJJCRbjYOHTk7B5EZP5izgKjiShB9oQVw
-wOT64JJK0KzNeM+bOnNoA02H6pR+j0sp2xFPij/vR98goIiQ2HPGfOmKDpWA/Ray
-36V90M3bF6eToZEDmjCwObzVyFyDknQS4t+p3Jt6MHLfybRisarCvmPsdKU5ofFr
-z1ijECut2QjgkhNKtbc/sopRzmV/XQ2TdWHgBy3JTrzMKqroLx3FoXwak4LzN9hn
-19YOROsAEF5OUoyo4neBF+1uPiP7uG+ElKYBvddlW43dE+AaWUZJZUfZxLul52df
-8KNa9XITnmzX5QnhDSMPC9a6J6ToF86tKne9OjSZhuu3xaUyJEiY8CgovgvvBT3w
-aSvobUQFPSFYx5dt2+EIJsdriolTjtI5SZNsdxSL7HrzxD7o/PZU0mh759cF9cjh
-LVrfBUJDOnvMKCyyRDXVzm0LMJo87Obdf0Dpfthb5eaCoIpUTO8=
-=NVss
------END PGP SIGNATURE-----
-
---4l05OZYazoDqyPfp--
+Thanks!
