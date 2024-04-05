@@ -1,151 +1,147 @@
-Received: from out-177.mta0.migadu.com (out-177.mta0.migadu.com [91.218.175.177])
+Received: from azazel.net (taras.nevrast.org [35.176.194.208])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8776416FF36;
-	Fri,  5 Apr 2024 20:01:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27B251327FD
+	for <netfilter-devel@vger.kernel.org>; Fri,  5 Apr 2024 20:39:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712347313; cv=none; b=r7a1M+9pp1OIgEDo5QYLYhwM8U2qxK4TaEYeAgOoExbN+WHGezQ/s/LYA7RWJz5qApGR0HcUCWBgMVWJVH00aentlwmGGS00VqlSj1w107xJoQQzf80zkFd0fsaVviLj3ItgsjJumUeMfJz6eiE3IcRYzQMryzOH2Yyt0VUWGVQ=
+	t=1712349554; cv=none; b=DVAt/VuFw4SL6QZScahJm/OeMsGb3ZqFf1j5rW1MuaWwniqcZEmpMfQjOuA+D6k9vjuRuf/JMy0oNiniVa7N8GlQjzpa6jqN81vxB7ERelkE92ZJnNNcn8YFQNwpfC4vDCux27/CCGrTJzSs9Nb46lC+5iZ8WzTKOzpiROyUfqY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712347313; c=relaxed/simple;
-	bh=t8Zy94V47DEeguDpVsCAlSHh8loEquEVZj3DhaG/mCE=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=g7A2Fp8NZpMil9uCfEe3iFY7q7coaSqmV7O8yj4AsCS3NXqryAZ9lAAst5umiioC7p3IbRh8n1Hz5Ol2GlxdD1R10t/nPCrlJlQDCxD1H+dLxYhil2xZjW11JZ4ak+psZ9LH3q9/59BnNjWTxD3F7aKckFoyZXIvfm5TzUfcoUY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=q0ir2StH; arc=none smtp.client-ip=91.218.175.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1712349554; c=relaxed/simple;
+	bh=2q1hcGm4DsCOrQQbsdzT37pwMJebAcfrPo6Ptweum2Y=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=oGjX6tGDrE1UgZpcggRYymSFZVfrVMP38tZMywzKpdnk9/MCpYU8gQxGUHb6a3NFGMLb7WzqLYfo2TwJMaF0ClfwcbhtOBhfUKlmQYDZ5wCtxlZ/1Ykt4xXkGeVYMACK2x7n7y58jAjDyFiXvUSJb1VqxkjrodVi/ue3BxniVlo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=UvjB8MG3; arc=none smtp.client-ip=35.176.194.208
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="q0ir2StH"
-Message-ID: <29325462-d001-4cb3-909d-27f7243a5c05@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1712347309;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=6gWflinqU1d4wkQYf0aiD/ruz8RWl/tYTTOYnC5SJvI=;
-	b=q0ir2StHc3kPa0wMeyOID45TWAeATcIeQbaZClgmEfmzmdtgPJrlcv6qHBr1bYfYt07BB5
-	9Dxh3WzWLM2mpLIqv+IsnXo8LoYFDyLoSmMPxGxLExJblxBQCVvOcgXKPiOe65vUzwZZLh
-	T7czWGzGRog4EKJiUvzb+qgFFNh4HvY=
-Date: Fri, 5 Apr 2024 13:01:40 -0700
+	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="UvjB8MG3"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+	s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=f71rrOWB3jxvxRf4CpMqAXWFwVnwtaqBqB0wu7bfwWI=; b=UvjB8MG3Ibeu6HLF016F2Hrbno
+	C2Uq/58XObHn3IxuVaI/EuldKcYYlMsJeyMJbkd/zzYcZuU94mPqh6v1/JghJWvNoKvVAVSMEjzUB
+	3wwEDfbogrdN1yne9icKpECjbB10Qb7zdClo3YypE5YJ8Zn1VBfOEaaFEqPbL5/yEzUwFEo1fJcvv
+	HFMRRmuo8GO/aniTSJXUl4FbJrt3nbtJs6955fvrydAZ7Z1dfC6G9wQxmnidBV3V93Ww/XZlTN37r
+	BjxOKxFE3XNdD2jCE8TnFmmrExVLJxi+daIhqFlhkUEaxcqXSyqhgJ/uYXUxWmm6Z7WufElXamVUp
+	qUBbRyxg==;
+Received: from celephais.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] helo=celephais.dreamlands)
+	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.96)
+	(envelope-from <jeremy@azazel.net>)
+	id 1rsqKv-0022lq-28;
+	Fri, 05 Apr 2024 21:38:57 +0100
+Date: Fri, 5 Apr 2024 21:38:56 +0100
+From: Jeremy Sowden <jeremy@azazel.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nft v2 0/2] Support for variables in map expressions
+Message-ID: <20240405203856.GB1083504@celephais.dreamlands>
+References: <20240403120937.4061434-1-jeremy@azazel.net>
+ <Zg6NUHYLHYbIgKtq@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH bpf-next] net: netfilter: Make ct zone id configurable for
- bpf ct helper functions
-To: Brad Cowie <brad@faucet.nz>
-Cc: lorenzo@kernel.org, memxor@gmail.com, pablo@netfilter.org,
- davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com, ast@kernel.org,
- daniel@iogearbox.net, andrii@kernel.org, song@kernel.org,
- john.fastabend@gmail.com, sdf@google.com, jolsa@kernel.org,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- netdev@vger.kernel.org, bpf@vger.kernel.org
-References: <20240329041430.2176860-1-brad@faucet.nz>
-Content-Language: en-US
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Martin KaFai Lau <martin.lau@linux.dev>
-In-Reply-To: <20240329041430.2176860-1-brad@faucet.nz>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Migadu-Flow: FLOW_OUT
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="4l05OZYazoDqyPfp"
+Content-Disposition: inline
+In-Reply-To: <Zg6NUHYLHYbIgKtq@calendula>
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 
-On 3/28/24 9:14 PM, Brad Cowie wrote:
-> Add ct zone id to bpf_ct_opts so that arbitrary ct zone can be
-> set for xdp/tc bpf ct helper functions bpf_{xdp,skb}_ct_alloc
-> and bpf_{xdp,skb}_ct_lookup.
-> 
-> Signed-off-by: Brad Cowie <brad@faucet.nz>
-> ---
->   net/netfilter/nf_conntrack_bpf.c              | 23 ++++++++++---------
->   .../testing/selftests/bpf/prog_tests/bpf_nf.c |  1 -
->   .../testing/selftests/bpf/progs/test_bpf_nf.c | 13 ++---------
->   3 files changed, 14 insertions(+), 23 deletions(-)
-> 
-> diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
-> index d2492d050fe6..a0f8a64751ec 100644
-> --- a/net/netfilter/nf_conntrack_bpf.c
-> +++ b/net/netfilter/nf_conntrack_bpf.c
-> @@ -30,7 +30,6 @@
->    * @error      - Out parameter, set for any errors encountered
->    *		 Values:
->    *		   -EINVAL - Passed NULL for bpf_tuple pointer
-> - *		   -EINVAL - opts->reserved is not 0
->    *		   -EINVAL - netns_id is less than -1
->    *		   -EINVAL - opts__sz isn't NF_BPF_CT_OPTS_SZ (12)
->    *		   -EPROTO - l4proto isn't one of IPPROTO_TCP or IPPROTO_UDP
-> @@ -42,16 +41,14 @@
->    *		 Values:
->    *		   IPPROTO_TCP, IPPROTO_UDP
->    * @dir:       - connection tracking tuple direction.
-> - * @reserved   - Reserved member, will be reused for more options in future
-> - *		 Values:
-> - *		   0
-> + * @ct_zone    - connection tracking zone id.
->    */
->   struct bpf_ct_opts {
->   	s32 netns_id;
->   	s32 error;
->   	u8 l4proto;
->   	u8 dir;
-> -	u8 reserved[2];
-> +	u16 ct_zone;
 
-How about the other fields (flags and dir) in the "struct nf_conntrack_zone" and 
-would it be useful to have values other than the default?
+--4l05OZYazoDqyPfp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-[ ... ]
+On 2024-04-04, at 13:21:52 +0200, Pablo Neira Ayuso wrote:
+> On Wed, Apr 03, 2024 at 01:09:35PM +0100, Jeremy Sowden wrote:
+> > The first patch replaces the current assertion failure for invalid
+> > mapping expression in stateful-object statements with an error message.
+> > This brings it in line with map statements.
+> >=20
+> > It is possible to use a variable to initialize a map, which is then used
+> > in a map statement, but if one tries to use the variable directly, nft
+> > rejects it.  The second patch adds support for doing this.
+>=20
+> Thanks. I can trigger crashes, e.g.
+>=20
+> define quota_map =3D "1.2.3.4"
+>=20
+> table ip x {
+>         chain y {
+>                 quota name ip saddr map $quota_map
+>         }
+> }
+>=20
+> src/mnl.c:1759:2: runtime error: member access within misaligned address =
+0x000100000001 for type 'struct expr', which requires 8 byte alignment
+> 0x000100000001: note: pointer points here
+> <memory cannot be printed>
+> src/netlink.c:121:10: runtime error: member access within misaligned addr=
+ess 0x000100000001 for type 'const struct expr', which requires 8 byte alig=
+nment
+> 0x000100000001: note: pointer points here
+> <memory cannot be printed>
+> AddressSanitizer:DEADLYSIGNAL
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> =3D=3D150056=3D=3DERROR: AddressSanitizer: SEGV on unknown address 0x0000=
+9fff8009 (pc 0x7f58e67d8624 bp 0x7ffd57d17eb0 sp 0x7ffd57d17c40 T0)
+> =3D=3D150056=3D=3DThe signal is caused by a READ memory access.
+>     #0 0x7f58e67d8624 in alloc_nftnl_setelem src/netlink.c:121
+>     #1 0x7f58e67c3d12 in mnl_nft_setelem_batch src/mnl.c:1760
+>     #2 0x7f58e67c45d9 in mnl_nft_setelem_add src/mnl.c:1805
+>     #3 0x7f58e687df1e in __do_add_elements src/rule.c:1425
+>     #4 0x7f58e687e528 in do_add_set src/rule.c:1471
+>     #5 0x7f58e687e7aa in do_command_add src/rule.c:1491
+>     #6 0x7f58e688fdb3 in do_command src/rule.c:2599
+>     #7 0x7f58e679d417 in nft_netlink src/libnftables.c:42
+>     #8 0x7f58e67a514a in __nft_run_cmd_from_filename src/libnftables.c:729
+>     #9 0x7f58e67a639c in nft_run_cmd_from_filename src/libnftables.c:807
+>     #10 0x557c9d25b3b0 in main src/main.c:536
+>     #11 0x7f58e5846249 in __libc_start_call_main ../sysdeps/nptl/libc_sta=
+rt_call_main.h:58
+>     #12 0x7f58e5846304 in __libc_start_main_impl ../csu/libc-start.c:360
+>     #13 0x557c9d258460 in _start (/usr/sbin/nft+0x9460)
+>=20
+> AddressSanitizer can not provide additional info.
+> SUMMARY: AddressSanitizer: SEGV src/netlink.c:121 in alloc_nftnl_setelem
+> =3D=3D150056=3D=3DABORTING
+>=20
+> I think this is lacking more validation.
 
-> diff --git a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-> index b30ff6b3b81a..25c3c4e87ed5 100644
-> --- a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-> +++ b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-> @@ -103,7 +103,6 @@ static void test_bpf_nf_ct(int mode)
->   		goto end;
->   
->   	ASSERT_EQ(skel->bss->test_einval_bpf_tuple, -EINVAL, "Test EINVAL for NULL bpf_tuple");
-> -	ASSERT_EQ(skel->bss->test_einval_reserved, -EINVAL, "Test EINVAL for reserved not set to 0");
->   	ASSERT_EQ(skel->bss->test_einval_netns_id, -EINVAL, "Test EINVAL for netns_id < -1");
->   	ASSERT_EQ(skel->bss->test_einval_len_opts, -EINVAL, "Test EINVAL for len__opts != NF_BPF_CT_OPTS_SZ");
->   	ASSERT_EQ(skel->bss->test_eproto_l4proto, -EPROTO, "Test EPROTO for l4proto != TCP or UDP");
-> diff --git a/tools/testing/selftests/bpf/progs/test_bpf_nf.c b/tools/testing/selftests/bpf/progs/test_bpf_nf.c
-> index 77ad8adf68da..4adb73bc1b33 100644
-> --- a/tools/testing/selftests/bpf/progs/test_bpf_nf.c
-> +++ b/tools/testing/selftests/bpf/progs/test_bpf_nf.c
-> @@ -45,7 +45,8 @@ struct bpf_ct_opts___local {
->   	s32 netns_id;
->   	s32 error;
->   	u8 l4proto;
-> -	u8 reserved[3];
-> +	u8 dir;
-> +	u16 ct_zone;
->   } __attribute__((preserve_access_index));
->   
->   struct nf_conn *bpf_xdp_ct_alloc(struct xdp_md *, struct bpf_sock_tuple *, u32,
-> @@ -84,16 +85,6 @@ nf_ct_test(struct nf_conn *(*lookup_fn)(void *, struct bpf_sock_tuple *, u32,
->   	else
->   		test_einval_bpf_tuple = opts_def.error;
->   
-> -	opts_def.reserved[0] = 1;
-> -	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
-> -		       sizeof(opts_def));
-> -	opts_def.reserved[0] = 0;
-> -	opts_def.l4proto = IPPROTO_TCP;
-> -	if (ct)
-> -		bpf_ct_release(ct);
-> -	else
-> -		test_einval_reserved = opts_def.error;
-> -
+Agreed.  Should have done more testing.  Apologies!  Will follow up.
 
-Can it actually test an alloc and lookup of a non default zone id?
+J.
 
-Please also separate the selftest into another patch.
+--4l05OZYazoDqyPfp
+Content-Type: application/pgp-signature; name="signature.asc"
 
-pw-bot: cr
+-----BEGIN PGP SIGNATURE-----
 
->   	opts_def.netns_id = -2;
->   	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
->   		       sizeof(opts_def));
+iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmYQYVgACgkQKYasCr3x
+BA0b4xAAzyAEgUem7eGXJKoDOd5AqMbXFbhzXxir5MN1kRqjsuZHvy7RhR+jIxQU
+jHjesvigw9zxWj2wA8QfxKs+BEs2x9wdGI4ZBsUuh5JeqP7F8d97OH86utiFS2x7
+AbHiKY3iDKEzW820u8mfJyri3KNtToCqPhDXEXJHHnkgDtLG11UMVwFQYpa2rm65
++70d5TmG5e9F+UXCTawT97xSoHRHKsuyJJCRbjYOHTk7B5EZP5izgKjiShB9oQVw
+wOT64JJK0KzNeM+bOnNoA02H6pR+j0sp2xFPij/vR98goIiQ2HPGfOmKDpWA/Ray
+36V90M3bF6eToZEDmjCwObzVyFyDknQS4t+p3Jt6MHLfybRisarCvmPsdKU5ofFr
+z1ijECut2QjgkhNKtbc/sopRzmV/XQ2TdWHgBy3JTrzMKqroLx3FoXwak4LzN9hn
+19YOROsAEF5OUoyo4neBF+1uPiP7uG+ElKYBvddlW43dE+AaWUZJZUfZxLul52df
+8KNa9XITnmzX5QnhDSMPC9a6J6ToF86tKne9OjSZhuu3xaUyJEiY8CgovgvvBT3w
+aSvobUQFPSFYx5dt2+EIJsdriolTjtI5SZNsdxSL7HrzxD7o/PZU0mh759cF9cjh
+LVrfBUJDOnvMKCyyRDXVzm0LMJo87Obdf0Dpfthb5eaCoIpUTO8=
+=NVss
+-----END PGP SIGNATURE-----
 
+--4l05OZYazoDqyPfp--
