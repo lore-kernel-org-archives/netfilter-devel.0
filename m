@@ -1,214 +1,332 @@
-Received: from szxga07-in.huawei.com (szxga07-in.huawei.com [45.249.212.35])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb1-f201.google.com (mail-yb1-f201.google.com [209.85.219.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E22D039FDD;
-	Mon,  8 Apr 2024 09:48:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.35
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EFAF6CDA8
+	for <netfilter-devel@vger.kernel.org>; Mon,  8 Apr 2024 13:08:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712569736; cv=none; b=A5uzykAofttnQww54QbTDY3ov+8vuBY/40FdB8IhR+sWDf4tcg1MDlbpqNIQphkv4RoG5ttGDKCfdEtyWRk6lb1SYLG230ErztDtjxkxxMfC93tqqtEEmKlQkYwt0aAV3+5dnm44s5XHmeUd0dgL5JrcMcEVYdGl9cLkDjTtt+g=
+	t=1712581725; cv=none; b=SSzgeKEfeGXBRxYCfQhXdWGSuDMgI4p+ZErPQKMf4XLPZIcUxR1gGAQjlBtwfLXvSx+7JM0G/G18cjweYn8UNx8ZX/IQbpbZO/6uYKq+J8V0d0ETPrqdLRAw1HKcYB0L+FmEtR4xh0IvA71cKBhq+yvqyP+DweuYXnSItVSt/Zc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712569736; c=relaxed/simple;
-	bh=7gG55KZ60vzKBlRodfDl94ICgIx8q4YVhjGOymAP7Rk=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=CcHyUvmWa5MKvnAi2xfWBWApojDV6v/MFQ/hzKZc/v3WD4mvC6Grp4zNzV+9h3BGXv0cWUqetKJFTKhAhNbMzo49K5DoAr34q+HIybEOo6+79LLfNCK8a7F85oFwpmw6Y+LXvVyRNM+bL9On26uDopqlGoQcBJJwuybBS3mEFRI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.35
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
-Received: from mail.maildlp.com (unknown [172.19.88.234])
-	by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4VCkjv3PyWz1RBl7;
-	Mon,  8 Apr 2024 17:45:55 +0800 (CST)
-Received: from dggpemm500020.china.huawei.com (unknown [7.185.36.49])
-	by mail.maildlp.com (Postfix) with ESMTPS id E51751402CF;
-	Mon,  8 Apr 2024 17:48:45 +0800 (CST)
-Received: from mscphis02103.huawei.com (10.123.65.215) by
- dggpemm500020.china.huawei.com (7.185.36.49) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.35; Mon, 8 Apr 2024 17:48:44 +0800
-From: Ivanov Mikhail <ivanov.mikhail1@huawei-partners.com>
-To: <mic@digikod.net>
-CC: <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
-	<linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-	<netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-	<artem.kuzin@huawei.com>, <konstantin.meskhidze@huawei.com>
-Subject: [PATCH 1/2] landlock: Add hook on socket_listen()
-Date: Mon, 8 Apr 2024 17:47:46 +0800
-Message-ID: <20240408094747.1761850-2-ivanov.mikhail1@huawei-partners.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20240408094747.1761850-1-ivanov.mikhail1@huawei-partners.com>
-References: <20240408094747.1761850-1-ivanov.mikhail1@huawei-partners.com>
+	s=arc-20240116; t=1712581725; c=relaxed/simple;
+	bh=m+jw77nLcnkLeRDbaHPflyBgSYWw0KkJf+HonyKXlD4=;
+	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
+	 To:Cc:Content-Type; b=ZZ4tFi06WIDbo9HtvDgUhiTFZ4rMRt3vGEGl/OX/UaaV8TLrQqCDcloofEXkQIe//jEX12mDsVjosaf90tKQNi7+3SUQlPexu3DXH0eOwc1CHvLLrHP7n3E2R28fxQ8xWOPd105jPKHClntdRJ7vJnFWknnzScYhpHCuuwjzgfg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=IxKar8Xl; arc=none smtp.client-ip=209.85.219.201
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="IxKar8Xl"
+Received: by mail-yb1-f201.google.com with SMTP id 3f1490d57ef6-dd169dd4183so5624637276.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 08 Apr 2024 06:08:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1712581722; x=1713186522; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:from:subject:message-id:references
+         :mime-version:in-reply-to:date:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=d06Ago2/G5anqicwOggM0K0/XYbwCAxGONLNO2HI/JQ=;
+        b=IxKar8XlnVWQG5vb0UYCKgcjuZDfc8BxwaxxTnjRPDu/xHUeAck28UHHJzDNArqyny
+         h+WnOl62r9k2z18YxZlbG5YXJe+nCjJ2+JEeMLojjYteTt9i1cKn4R1xmPT/8brasNFV
+         68PfmUa5hY6kWVUA73yoEFfqQbjGAhPM497fzrp5lLWL7BK0mGh9MtdAZpmvcpaW6g2L
+         QK4D1WLi0LPHYCcauZDaeSCPHjZm8gbgNMzSk7PqvXa1DiLWaQfVRWepof0yLaydvjKN
+         gAoRJzatOTbqTNqXlswK2EHbcyautL+OLQNe5IQ3PdOi8n028FGT5UCi05JChQmCi+jY
+         vj/w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1712581722; x=1713186522;
+        h=content-transfer-encoding:cc:to:from:subject:message-id:references
+         :mime-version:in-reply-to:date:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=d06Ago2/G5anqicwOggM0K0/XYbwCAxGONLNO2HI/JQ=;
+        b=g+kwgHiMAl7ywtL4PNp1l4ZHWacxRs0OZgi8fZ7j9R05Yhlj+LkyAn/1aqrt5ruwp3
+         mEy8Aa6dkbDP9gbuWMAeuDcR7FHBLjgEgkJwjngzGSccvA7EdfI1DPocV4vJIHzvGcpl
+         NcOt0ieX/rHvvF52dgsOp3e7D3gER4RjZ3dnpSW7r5TdTWnZMG3i8h4YmWsXw5ylq3ST
+         0Sq1LaCwOh6swZnd8ECghjpO7M8NtM3Qeh9a7j7r0xHUQJQ9r3jbppMqksENcpba7WFH
+         fWPnq/RbLkFvjfoeV9nkRTPird/q3kbbXaPP9iHodQHGLCdVkWbC/mtKD2IFCGdz7nZN
+         vy1Q==
+X-Forwarded-Encrypted: i=1; AJvYcCUZADsm1MEi4BTKtxWHvT63mSF7iLFrgf14iMqyV8C/Ws+Q3fCri5JfNzpz8NIO742S43SbqPdAnftUeINqLZttcHSMzREaP4CeUwvYLBt4
+X-Gm-Message-State: AOJu0YyGdNbRx5QfCQleSUGk+ZGzBbibYDZVSDf2q2tJ/65Ty3fdgEy+
+	Ip5VIpLD3TMgnz8ok8314Vmcp/sr/m4UqjmRbsY/fK+I56Kia8nRx9+jXjUU8njmZMhRyGY+hrH
+	pww==
+X-Google-Smtp-Source: AGHT+IGcg1Ntpbtl+ojQVjIfyP2CUrOqPziIvPtcqCRCiSSD5vtFjGMNukw3ga8LybH10Tc112piZU0ftFc=
+X-Received: from swim.c.googlers.com ([fda3:e722:ac3:cc00:31:98fb:c0a8:1605])
+ (user=gnoack job=sendgmr) by 2002:a05:6902:2d06:b0:dcd:3a37:65 with SMTP id
+ fo6-20020a0569022d0600b00dcd3a370065mr701394ybb.7.1712581722377; Mon, 08 Apr
+ 2024 06:08:42 -0700 (PDT)
+Date: Mon, 8 Apr 2024 15:08:40 +0200
+In-Reply-To: <20240408093927.1759381-4-ivanov.mikhail1@huawei-partners.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: mscpeml100003.china.huawei.com (10.199.174.67) To
- dggpemm500020.china.huawei.com (7.185.36.49)
+Mime-Version: 1.0
+References: <20240408093927.1759381-1-ivanov.mikhail1@huawei-partners.com> <20240408093927.1759381-4-ivanov.mikhail1@huawei-partners.com>
+Message-ID: <ZhPsWKSRrqDiulrg@google.com>
+Subject: Re: [RFC PATCH v1 03/10] selftests/landlock: Create 'create' test
+From: "=?utf-8?Q?G=C3=BCnther?= Noack" <gnoack@google.com>
+To: Ivanov Mikhail <ivanov.mikhail1@huawei-partners.com>
+Cc: mic@digikod.net, willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com, 
+	linux-security-module@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, yusongping@huawei.com, 
+	artem.kuzin@huawei.com, konstantin.meskhidze@huawei.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Make hook for socket_listen(). It will check that the socket protocol is
-TCP, and if the socket's local port number is 0 (which means,
-that listen(2) was called without any previous bind(2) call),
-then listen(2) call will be legitimate only if there is a rule for bind(2)
-allowing binding to port 0 (or if LANDLOCK_ACCESS_NET_BIND_TCP is not
-supported by the sandbox).
+Hello!
 
-Create a new check_access_socket() function to prevent useless copy paste.
-It should be called by hook handlers after they perform special checks and
-calculate socket port value.
+I am very happy to see this patch set, this is a very valuable feature, IMH=
+O! :)
 
-Signed-off-by: Ivanov Mikhail <ivanov.mikhail1@huawei-partners.com>
-Reviewed-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
----
- security/landlock/net.c | 104 +++++++++++++++++++++++++++++++++-------
- 1 file changed, 88 insertions(+), 16 deletions(-)
+Regarding the subject of this patch:
 
-diff --git a/security/landlock/net.c b/security/landlock/net.c
-index c8bcd29bde09..c6ae4092cfd6 100644
---- a/security/landlock/net.c
-+++ b/security/landlock/net.c
-@@ -10,6 +10,7 @@
- #include <linux/net.h>
- #include <linux/socket.h>
- #include <net/ipv6.h>
-+#include <net/tcp.h>
- 
- #include "common.h"
- #include "cred.h"
-@@ -61,17 +62,36 @@ static const struct landlock_ruleset *get_current_net_domain(void)
- 	return dom;
- }
- 
--static int current_check_access_socket(struct socket *const sock,
--				       struct sockaddr *const address,
--				       const int addrlen,
--				       access_mask_t access_request)
-+static int check_access_socket(const struct landlock_ruleset *const dom,
-+			  __be16 port,
-+			  access_mask_t access_request)
- {
--	__be16 port;
- 	layer_mask_t layer_masks[LANDLOCK_NUM_ACCESS_NET] = {};
- 	const struct landlock_rule *rule;
- 	struct landlock_id id = {
- 		.type = LANDLOCK_KEY_NET_PORT,
- 	};
-+
-+	id.key.data = (__force uintptr_t)port;
-+	BUILD_BUG_ON(sizeof(port) > sizeof(id.key.data));
-+
-+	rule = landlock_find_rule(dom, id);
-+	access_request = landlock_init_layer_masks(
-+		dom, access_request, &layer_masks, LANDLOCK_KEY_NET_PORT);
-+
-+	if (landlock_unmask_layers(rule, access_request, &layer_masks,
-+				   ARRAY_SIZE(layer_masks)))
-+		return 0;
-+
-+	return -EACCES;
-+}
-+
-+static int current_check_access_socket(struct socket *const sock,
-+				       struct sockaddr *const address,
-+				       const int addrlen,
-+				       access_mask_t access_request)
-+{
-+	__be16 port;
- 	const struct landlock_ruleset *const dom = get_current_net_domain();
- 
- 	if (!dom)
-@@ -159,17 +179,7 @@ static int current_check_access_socket(struct socket *const sock,
- 			return -EINVAL;
- 	}
- 
--	id.key.data = (__force uintptr_t)port;
--	BUILD_BUG_ON(sizeof(port) > sizeof(id.key.data));
--
--	rule = landlock_find_rule(dom, id);
--	access_request = landlock_init_layer_masks(
--		dom, access_request, &layer_masks, LANDLOCK_KEY_NET_PORT);
--	if (landlock_unmask_layers(rule, access_request, &layer_masks,
--				   ARRAY_SIZE(layer_masks)))
--		return 0;
--
--	return -EACCES;
-+	return check_access_socket(dom, port, access_request);
- }
- 
- static int hook_socket_bind(struct socket *const sock,
-@@ -187,9 +197,71 @@ static int hook_socket_connect(struct socket *const sock,
- 					   LANDLOCK_ACCESS_NET_CONNECT_TCP);
- }
- 
-+/*
-+ * Check that socket state and attributes are correct for listen.
-+ * It is required to not wrongfully return -EACCES instead of -EINVAL.
-+ */
-+static int check_tcp_socket_can_listen(struct socket *const sock)
-+{
-+	struct sock *sk = sock->sk;
-+	unsigned char cur_sk_state = sk->sk_state;
-+	const struct inet_connection_sock *icsk;
-+
-+	/* Allow only unconnected TCP socket to listen(cf. inet_listen). */
-+	if (sock->state != SS_UNCONNECTED)
-+		return -EINVAL;
-+
-+	/* Check sock state consistency. */
-+	if (!((1 << cur_sk_state) & (TCPF_CLOSE | TCPF_LISTEN)))
-+		return -EINVAL;
-+
-+	/* Sockets can listen only if ULP control hook has clone method. */
-+	icsk = inet_csk(sk);
-+	if (icsk->icsk_ulp_ops && !icsk->icsk_ulp_ops->clone)
-+		return -EINVAL;
-+	return 0;
-+}
-+
-+static int hook_socket_listen(struct socket *const sock,
-+			  const int backlog)
-+{
-+	int err;
-+	int family;
-+	const struct landlock_ruleset *const dom = get_current_net_domain();
-+
-+	if (!dom)
-+		return 0;
-+	if (WARN_ON_ONCE(dom->num_layers < 1))
-+		return -EACCES;
-+
-+	/*
-+	 * listen() on a TCP socket without pre-binding is allowed only
-+	 * if binding to port 0 is allowed.
-+	 */
-+	family = sock->sk->__sk_common.skc_family;
-+
-+	if (family == AF_INET || family == AF_INET6) {
-+		/* Checks if it's a (potential) TCP socket. */
-+		if (sock->type != SOCK_STREAM)
-+			return 0;
-+
-+		/* Socket is alredy binded to some port. */
-+		if (inet_sk(sock->sk)->inet_num != 0)
-+			return 0;
-+
-+		err = check_tcp_socket_can_listen(sock);
-+		if (unlikely(err))
-+			return err;
-+
-+		return check_access_socket(dom, 0, LANDLOCK_ACCESS_NET_BIND_TCP);
-+	}
-+	return 0;
-+}
-+
- static struct security_hook_list landlock_hooks[] __ro_after_init = {
- 	LSM_HOOK_INIT(socket_bind, hook_socket_bind),
- 	LSM_HOOK_INIT(socket_connect, hook_socket_connect),
-+	LSM_HOOK_INIT(socket_listen, hook_socket_listen),
- };
- 
- __init void landlock_add_net_hooks(void)
--- 
-2.34.1
+  [RFC PATCH v1 03/10] selftests/landlock: Create 'create' test
+                                                   ^^^^^^
 
+This was probably meant to say "socket"?
+
+(In my mind, it is a good call to put the test in a separate file -
+the existing test files have grown too large already.)
+
+
+On Mon, Apr 08, 2024 at 05:39:20PM +0800, Ivanov Mikhail wrote:
+> Initiate socket_test.c selftests. Add protocol fixture for tests
+> with changeable domain/type values. Only most common variants of
+> protocols (like ipv4-tcp,ipv6-udp, unix) were added.
+> Add simple socket access right checking test.
+>=20
+> Signed-off-by: Ivanov Mikhail <ivanov.mikhail1@huawei-partners.com>
+> Reviewed-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+> ---
+>  .../testing/selftests/landlock/socket_test.c  | 197 ++++++++++++++++++
+>  1 file changed, 197 insertions(+)
+>  create mode 100644 tools/testing/selftests/landlock/socket_test.c
+>=20
+> diff --git a/tools/testing/selftests/landlock/socket_test.c b/tools/testi=
+ng/selftests/landlock/socket_test.c
+> new file mode 100644
+> index 000000000..525f4f7df
+> --- /dev/null
+> +++ b/tools/testing/selftests/landlock/socket_test.c
+> @@ -0,0 +1,197 @@
+> +// SPDX-License-Identifier: GPL-2.0-only
+> +/*
+> + * Landlock tests - Socket
+> + *
+> + * Copyright =C2=A9 2024 Huawei Tech. Co., Ltd.
+> + */
+> +
+> +#define _GNU_SOURCE
+> +
+> +#include <errno.h>
+> +#include <linux/landlock.h>
+> +#include <sched.h>
+> +#include <string.h>
+> +#include <sys/prctl.h>
+> +#include <sys/socket.h>
+> +
+> +#include "common.h"
+> +
+> +/* clang-format off */
+> +
+> +#define ACCESS_LAST LANDLOCK_ACCESS_SOCKET_CREATE
+> +
+> +#define ACCESS_ALL ( \
+> +	LANDLOCK_ACCESS_SOCKET_CREATE)
+> +
+> +/* clang-format on */
+> +
+> +struct protocol_variant {
+> +	int domain;
+> +	int type;
+> +};
+> +
+> +struct service_fixture {
+> +	struct protocol_variant protocol;
+> +};
+> +
+> +static void setup_namespace(struct __test_metadata *const _metadata)
+> +{
+> +	set_cap(_metadata, CAP_SYS_ADMIN);
+> +	ASSERT_EQ(0, unshare(CLONE_NEWNET));
+> +	clear_cap(_metadata, CAP_SYS_ADMIN);
+> +}
+> +
+> +static int socket_variant(const struct service_fixture *const srv)
+> +{
+> +	int ret;
+> +
+> +	ret =3D socket(srv->protocol.domain, srv->protocol.type | SOCK_CLOEXEC,
+> +			 0);
+> +	if (ret < 0)
+> +		return -errno;
+> +	return ret;
+> +}
+
+This helper is mostly concerned with mapping the error code.
+
+In the fs_test.c, we have dealt with such use cases with helpers like
+test_open_rel() and test_open().  These helpers attempt to open the file, t=
+ake
+the same arguments as open(2), but instead of returning the opened fd, they=
+ only
+return 0 or errno.  Do you think this would be an option here?
+
+Then you could write your tests as
+
+  ASSERT_EQ(EACCES, test_socket(p->domain, p->type, 0));
+
+and the test would (a) more obviously map to socket(2), and (b) keep releva=
+nt
+information like the expected error code at the top level of the test.
+
+> +
+> +FIXTURE(protocol)
+> +{
+> +	struct service_fixture srv0;
+> +};
+> +
+> +FIXTURE_VARIANT(protocol)
+> +{
+> +	const struct protocol_variant protocol;
+> +};
+> +
+> +FIXTURE_SETUP(protocol)
+> +{
+> +	disable_caps(_metadata);
+> +	self->srv0.protocol =3D variant->protocol;
+> +	setup_namespace(_metadata);
+> +};
+> +
+> +FIXTURE_TEARDOWN(protocol)
+> +{
+> +}
+> +
+> +/* clang-format off */
+> +FIXTURE_VARIANT_ADD(protocol, unspec) {
+> +	/* clang-format on */
+> +	.protocol =3D {
+> +		.domain =3D AF_UNSPEC,
+> +		.type =3D SOCK_STREAM,
+> +	},
+> +};
+> +
+> +/* clang-format off */
+> +FIXTURE_VARIANT_ADD(protocol, unix_stream) {
+> +	/* clang-format on */
+> +	.protocol =3D {
+> +		.domain =3D AF_UNIX,
+> +		.type =3D SOCK_STREAM,
+> +	},
+> +};
+> +
+> +/* clang-format off */
+> +FIXTURE_VARIANT_ADD(protocol, unix_dgram) {
+> +	/* clang-format on */
+> +	.protocol =3D {
+> +		.domain =3D AF_UNIX,
+> +		.type =3D SOCK_DGRAM,
+> +	},
+> +};
+> +
+> +/* clang-format off */
+> +FIXTURE_VARIANT_ADD(protocol, ipv4_tcp) {
+> +	/* clang-format on */
+> +	.protocol =3D {
+> +		.domain =3D AF_INET,
+> +		.type =3D SOCK_STREAM,
+> +	},
+> +};
+> +
+> +/* clang-format off */
+> +FIXTURE_VARIANT_ADD(protocol, ipv4_udp) {
+> +	/* clang-format on */
+> +	.protocol =3D {
+> +		.domain =3D AF_INET,
+> +		.type =3D SOCK_DGRAM,
+> +	},
+> +};
+> +
+> +/* clang-format off */
+> +FIXTURE_VARIANT_ADD(protocol, ipv6_tcp) {
+> +	/* clang-format on */
+> +	.protocol =3D {
+> +		.domain =3D AF_INET6,
+> +		.type =3D SOCK_STREAM,
+> +	},
+> +};
+> +
+> +/* clang-format off */
+> +FIXTURE_VARIANT_ADD(protocol, ipv6_udp) {
+> +	/* clang-format on */
+> +	.protocol =3D {
+> +		.domain =3D AF_INET6,
+> +		.type =3D SOCK_DGRAM,
+> +	},
+> +};
+> +
+> +static void test_socket_create(struct __test_metadata *const _metadata,
+> +				  const struct service_fixture *const srv,
+> +				  const bool deny_create)
+> +{
+> +	int fd;
+> +
+> +	fd =3D socket_variant(srv);
+> +	if (srv->protocol.domain =3D=3D AF_UNSPEC) {
+> +		EXPECT_EQ(fd, -EAFNOSUPPORT);
+> +	} else if (deny_create) {
+> +		EXPECT_EQ(fd, -EACCES);
+> +	} else {
+> +		EXPECT_LE(0, fd)
+> +		{
+> +			TH_LOG("Failed to create socket: %s", strerror(errno));
+> +		}
+> +		EXPECT_EQ(0, close(fd));
+> +	}
+> +}
+
+This is slightly too much logic in a test helper, for my taste,
+and the meaning of the true/false argument in the main test below
+is not very obvious.
+
+Extending the idea from above, if test_socket() was simpler, would it
+be possible to turn these fixtures into something shorter like this:
+
+  ASSERT_EQ(EAFNOSUPPORT, test_socket(AF_UNSPEC, SOCK_STREAM, 0));
+  ASSERT_EQ(EACCES, test_socket(AF_UNIX, SOCK_STREAM, 0));
+  ASSERT_EQ(EACCES, test_socket(AF_UNIX, SOCK_DGRAM, 0));
+  ASSERT_EQ(EACCES, test_socket(AF_INET, SOCK_STREAM, 0));
+  // etc.
+
+Would that make the tests easier to write, to list out the table of
+expected values aspect like that, rather than in a fixture?
+
+
+> +
+> +TEST_F(protocol, create)
+> +{
+> +	const struct landlock_ruleset_attr ruleset_attr =3D {
+> +		.handled_access_socket =3D LANDLOCK_ACCESS_SOCKET_CREATE,
+> +	};
+> +	const struct landlock_socket_attr create_socket_attr =3D {
+> +		.allowed_access =3D LANDLOCK_ACCESS_SOCKET_CREATE,
+> +		.domain =3D self->srv0.protocol.domain,
+> +		.type =3D self->srv0.protocol.type,
+> +	};
+> +
+> +	int ruleset_fd;
+> +
+> +	/* Allowed create */
+> +	ruleset_fd =3D landlock_create_ruleset(&ruleset_attr,
+> +							sizeof(ruleset_attr), 0);
+> +	ASSERT_LE(0, ruleset_fd);
+> +
+> +	ASSERT_EQ(0,
+> +			landlock_add_rule(ruleset_fd, LANDLOCK_RULE_SOCKET,
+> +					&create_socket_attr, 0));
+
+The indentation looks wrong?  We run clang-format on Landlock files.
+
+  clang-format -i security/landlock/*.[ch] \
+  	include/uapi/linux/landlock.h \
+  	tools/testing/selftests/landlock/*.[ch]
+
+=E2=80=94G=C3=BCnther
