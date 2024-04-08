@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7E3B8146A6A;
-	Mon,  8 Apr 2024 21:18:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 31066147C89;
+	Mon,  8 Apr 2024 21:18:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712611127; cv=none; b=HIZzJap5RNVzKZTQj3IqFUHRDR3dHtxflslbkYQsmVE3WkoA2bbJocNHE28m6oBniNwsX6S/Fsb7Pqc6P3J9Cq5Z1SpZL27Ym4Z7+0mZeVgxy0epRNvRabb5boLVH8XUxDzTxOgfYvZDq2tBkNR+ELeoNuBcwZOkxOr9uSmM65w=
+	t=1712611127; cv=none; b=QNdJ4HZ6SHx1QONZh0YdXWDzUXLvvoeGEkxK9s6eDfG6R8+3iNyLuBygRO8cFDmTnATCMxGjtsMfVbkhSKj+aDU8Tfw+PsNa0V1fD7bLilZLZv8aRDR5UVdZxABcy/tsgo8TxgJ80gDh8mL5xNPqSloyF3LWxs9R5NpjMhPiMjg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1712611127; c=relaxed/simple;
-	bh=OcTtiI2gmV2oS8b9cr+/8mTXcIpQa7/DNTDere7MeIk=;
+	bh=XSJCZS/OyKN9S1WwgEvTjF5yL9cAPCKboTqMw9v5xPs=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=LBwzGIuPgN4eAAP98jCt60qGkKA14y3ogSQ3jo7ixwfLIV0gTOT9oxEpjSuNfaWpvk0M68tA5C5aju236dxTSRvnzkxnMoAEa7gdh4Nl/H5iUqz/AoEvaBT/6FmmplXmeNmNdOcjAI9puSWYgyHncXzLm2B0SowVNBWYkusAwQA=
+	 MIME-Version; b=EK9YYWSUYqDl+UBrT/LT5Sk+HkhYYG2kaaqT3omhgO5YUOhSDxmsLNkBt/lGqy3Rh8jvx66Do0SvSzl0qL4FdK/NH8y7ecXwIDEPbFLfN2oPhVroOkJc11+jH26ZRdr+35s7DAJmEAaH4yLxaJADJzazKBxJmJxRuQ6mwJDqusA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -17,9 +17,9 @@ To: netfilter-devel@vger.kernel.org
 Cc: stable@vger.kernel.org,
 	gregkh@linuxfoundation.org,
 	sashal@kernel.org
-Subject: [PATCH -stable 6.1.x 1/3] netfilter: nf_tables: release batch on table validation from abort path
-Date: Mon,  8 Apr 2024 23:18:32 +0200
-Message-Id: <20240408211834.311982-2-pablo@netfilter.org>
+Subject: [PATCH -stable 6.1.x 2/3] netfilter: nf_tables: release mutex after nft_gc_seq_end from abort path
+Date: Mon,  8 Apr 2024 23:18:33 +0200
+Message-Id: <20240408211834.311982-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240408211834.311982-1-pablo@netfilter.org>
 References: <20240408211834.311982-1-pablo@netfilter.org>
@@ -31,78 +31,56 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-commit a45e6889575c2067d3c0212b6bc1022891e65b91 upstream.
+commit 0d459e2ffb541841714839e8228b845458ed3b27 upstream.
 
-Unlike early commit path stage which triggers a call to abort, an
-explicit release of the batch is required on abort, otherwise mutex is
-released and commit_list remains in place.
+The commit mutex should not be released during the critical section
+between nft_gc_seq_begin() and nft_gc_seq_end(), otherwise, async GC
+worker could collect expired objects and get the released commit lock
+within the same GC sequence.
 
-Add WARN_ON_ONCE to ensure commit_list is empty from the abort path
-before releasing the mutex.
-
-After this patch, commit_list is always assumed to be empty before
-grabbing the mutex, therefore
-
-  03c1f1ef1584 ("netfilter: Cleanup nft_net->module_list from nf_tables_exit_net()")
-
-only needs to release the pending modules for registration.
+nf_tables_module_autoload() temporarily releases the mutex to load
+module dependencies, then it goes back to replay the transaction again.
+Move it at the end of the abort phase after nft_gc_seq_end() is called.
 
 Cc: stable@vger.kernel.org
-Fixes: c0391b6ab810 ("netfilter: nf_tables: missing validation from the abort path")
+Fixes: 720344340fb9 ("netfilter: nf_tables: GC transaction race with abort path")
+Reported-by: Kuan-Ting Chen <hexrabbit@devco.re>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ net/netfilter/nf_tables_api.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 8d38cd504769..6b032a90e2b1 100644
+index 6b032a90e2b1..e7b31c2c92df 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -9902,10 +9902,11 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 	struct nft_trans *trans, *next;
- 	LIST_HEAD(set_update_list);
- 	struct nft_trans_elem *te;
-+	int err = 0;
+@@ -10077,11 +10077,6 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 		nf_tables_abort_release(trans);
+ 	}
  
- 	if (action == NFNL_ABORT_VALIDATE &&
- 	    nf_tables_validate(net) < 0)
--		return -EAGAIN;
-+		err = -EAGAIN;
- 
- 	list_for_each_entry_safe_reverse(trans, next, &nft_net->commit_list,
- 					 list) {
-@@ -10081,7 +10082,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 	else
- 		nf_tables_module_autoload_cleanup(net);
- 
--	return 0;
-+	return err;
+-	if (action == NFNL_ABORT_AUTOLOAD)
+-		nf_tables_module_autoload(net);
+-	else
+-		nf_tables_module_autoload_cleanup(net);
+-
+ 	return err;
  }
  
- static int nf_tables_abort(struct net *net, struct sk_buff *skb,
-@@ -10095,6 +10096,8 @@ static int nf_tables_abort(struct net *net, struct sk_buff *skb,
- 	ret = __nf_tables_abort(net, action);
- 	nft_gc_seq_end(nft_net, gc_seq);
+@@ -10098,6 +10093,14 @@ static int nf_tables_abort(struct net *net, struct sk_buff *skb,
  
-+	WARN_ON_ONCE(!list_empty(&nft_net->commit_list));
+ 	WARN_ON_ONCE(!list_empty(&nft_net->commit_list));
+ 
++	/* module autoload needs to happen after GC sequence update because it
++	 * temporarily releases and grabs mutex again.
++	 */
++	if (action == NFNL_ABORT_AUTOLOAD)
++		nf_tables_module_autoload(net);
++	else
++		nf_tables_module_autoload_cleanup(net);
 +
  	mutex_unlock(&nft_net->commit_mutex);
  
  	return ret;
-@@ -10892,9 +10895,10 @@ static void __net_exit nf_tables_exit_net(struct net *net)
- 
- 	gc_seq = nft_gc_seq_begin(nft_net);
- 
--	if (!list_empty(&nft_net->commit_list) ||
--	    !list_empty(&nft_net->module_list))
--		__nf_tables_abort(net, NFNL_ABORT_NONE);
-+	WARN_ON_ONCE(!list_empty(&nft_net->commit_list));
-+
-+	if (!list_empty(&nft_net->module_list))
-+		nf_tables_module_autoload_cleanup(net);
- 
- 	__nft_release_tables(net);
- 
 -- 
 2.30.2
 
