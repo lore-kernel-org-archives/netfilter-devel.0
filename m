@@ -1,149 +1,218 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb1-f201.google.com (mail-yb1-f201.google.com [209.85.219.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02B151411EF
-	for <netfilter-devel@vger.kernel.org>; Mon,  8 Apr 2024 15:46:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0119146019
+	for <netfilter-devel@vger.kernel.org>; Mon,  8 Apr 2024 19:49:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712591196; cv=none; b=rOTHbmpKiPC45wYE3yqDLdZgafiIzRYerPd36x/dbzpTKJKZVsopOoxY4yO2FcWKGOSteVwZ0rvVNWAS136EbTg4EA8hCPSKJywWkBDtrVi07geVUkLenGrBeG1ury/rbvq7Vo/6ZclUmkD0J9Lim2jRunxrGhsXXptmG3ZmF9w=
+	t=1712605758; cv=none; b=GxLRp4elu7iuau8aD6sIjpPaIIjHZbxPU5LikoevwchuUOISRNUsTqbR/ZxeEk2mJjKgMq5otfKiZoN7H1HZpa07NeGfv+Ky6/wErIYr9hEFvWRl7BJmdMQlfViazLmboBfu5MRDKrJgU//Hf1eckPLGrovGL4H3erUAn9zHyXE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712591196; c=relaxed/simple;
-	bh=B4HiyIFhE8S/fj6rOvF/7//nzHemPA0SBmGRiuyhdu8=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=kTlXaY/r3gLxCxBpoliTMJGSjeTlvjZEsVD4HCAiRrnCJ2buTd4sYx1i6CnB1GuijqLQtHcfEPLSDYfjYrmnhN5QUctZ/0a7yAMJHTn9sxgvlMeRTg5c/dNwIYP2pTooDQbJu/lJJHAaeas7378WDEYf2YSBG+esD9/e41FOVbE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=AIl38YTg; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1712605758; c=relaxed/simple;
+	bh=4VwVkJ15ie8oUnERlTxvN5nffzGsfOJzaRKC0uM48eI=;
+	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
+	 To:Cc:Content-Type; b=dIle5a88STKvvh7ihjPfkXO43DCW8rFeVBWk1gFeKce3iIMK6eTqaPSq1YV+Nb/LWdRpDDvEm4ic8YG85s1cOdswfbdXlr2eiPP1zcjMWCjgoWa9+3S8FGSn45pjky27Ub1nKKgC0NDR+mfjB28Ht7e8qLcZm1d2UTzJRVyDj6g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=V6xkBBj6; arc=none smtp.client-ip=209.85.219.201
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="AIl38YTg"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1712591193;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=nGtKyjAEhoPqRJQvGNhE2fWM02c+1BVqR/NHfBMtA3k=;
-	b=AIl38YTgtMxzdWLDTvFKvGaIMY3GWpVdTj59WYPKihhJ9Mw5H4DU0q8Z3ZRkD/v2T416UX
-	FiuIIyjz71KZQDP3oJnh8AOcy7mHKfC2a27NveDBmnJyZVzIde6gbPIj30CcCKFHnkQZ7V
-	jkfJ+mA7GpRJbEKgAvJRxGybgfJ5WOk=
-Received: from mail-ed1-f71.google.com (mail-ed1-f71.google.com
- [209.85.208.71]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-628-FKy9vLshONaJ-HL9lg3yhg-1; Mon, 08 Apr 2024 11:46:31 -0400
-X-MC-Unique: FKy9vLshONaJ-HL9lg3yhg-1
-Received: by mail-ed1-f71.google.com with SMTP id 4fb4d7f45d1cf-56e42e754easo1159166a12.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 08 Apr 2024 08:46:31 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="V6xkBBj6"
+Received: by mail-yb1-f201.google.com with SMTP id 3f1490d57ef6-dbe9e13775aso7898959276.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 08 Apr 2024 12:49:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1712605755; x=1713210555; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:from:subject:message-id:references
+         :mime-version:in-reply-to:date:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=aq405guPa3OPZRO9v26OPDN3Zw9hWnozHgBpKl4FcoU=;
+        b=V6xkBBj6NTxNWgeDgA/cAzKtxzFWOds4KdSwz+0WGaLwxs6aouijdGOMrlKyjTJ55K
+         kRjDKlFmFfcTY7Gna2at7h5FrflV+abRYehoUfLk6iHSkDvWnrS3nXvS++t0/U4Z5pqk
+         QZTgF8cXg/gLMQExZ4dK2fShjJpVhn28jdoIWtPDIIriF8sWaca0MO6u9EDvAPNPzw8J
+         UZ/xuM14IEnxVlv7NE1qNpF2x1+ejU3WPtOscs+O58ECxKGQsglanWV8umqyTt60tzSq
+         J06pleWISRw3GLI7fRDoW1ebAtF7ljwMsvZQRpbPuCEqvUS+Nud0ue70CU4aSajeFP/R
+         8Jqw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1712591189; x=1713195989;
-        h=content-transfer-encoding:mime-version:organization:references
-         :in-reply-to:message-id:subject:cc:to:from:date:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=nGtKyjAEhoPqRJQvGNhE2fWM02c+1BVqR/NHfBMtA3k=;
-        b=GON3eMktuv3Nk7e65N/TiB3VM/Yiiyw3Ik30ahdLPGcEzvZ8Ftggl6HBJWa/l0+P3j
-         aLLGO2mhenHuqsOkhlJWa0NtfNq1NJvNRWj9P3gXxypcOWcwzQqYHV6mTUYtwQSXlh8J
-         bN/UMdcjhQFxoCTaAu8iBConsZoJ62TZoihERViQlqKHP/uic0h9bYtInLzbcC6lR93F
-         2124V6fLzANxd4Mm5K0/xJenMPX4wgssvNvD4q0I5dtVV+GppYFsUo3axaUCqSUJZhtV
-         UK0wXIBNUwqsKN8H+ZTF519RIrA5fniVDu1KRZc4giHNK8NKKmCpZjfrxUFyEnEdIei0
-         cKuQ==
-X-Gm-Message-State: AOJu0Yyye9iDxogQLWlemnOYdsx5NGjLRuZHOs+iurn8jMiZQLin0lIa
-	c9hLSpKXyCCo1lL8zPeBvHWxgbtEtgXX3xVxpHt09LgRNrPycMNQHfryk29WRFUWnukGMQ5/GUd
-	35HQ9hlEBOTYkQc633q1+0oDVYt6yP1NGgzGLH7daeF3XSBqk23zy2/bbWXESs0mmpY5t5AFYMG
-	Ll
-X-Received: by 2002:a50:f609:0:b0:56a:ae8a:acc0 with SMTP id c9-20020a50f609000000b0056aae8aacc0mr5966671edn.21.1712591189392;
-        Mon, 08 Apr 2024 08:46:29 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IGxg8K6J6nMCQfZHZSC8osmUIzyHfGU3Dw/j1LZr1xYusGJCk2/VO0JyefQHxwHoC1iXFDkrg==
-X-Received: by 2002:a50:f609:0:b0:56a:ae8a:acc0 with SMTP id c9-20020a50f609000000b0056aae8aacc0mr5966654edn.21.1712591188845;
-        Mon, 08 Apr 2024 08:46:28 -0700 (PDT)
-Received: from maya.cloud.tilaa.com (maya.cloud.tilaa.com. [164.138.29.33])
-        by smtp.gmail.com with ESMTPSA id g37-20020a056402322500b0056e2e9d916bsm2936797eda.0.2024.04.08.08.46.28
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 08 Apr 2024 08:46:28 -0700 (PDT)
-Date: Mon, 8 Apr 2024 17:45:52 +0200
-From: Stefano Brivio <sbrivio@redhat.com>
-To: Florian Westphal <fw@strlen.de>
-Cc: <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nf-next 8/9] netfilter: nft_set_pipapo: move cloning of
- match info to insert/removal path
-Message-ID: <20240408174552.6c1dc303@elisabeth>
-In-Reply-To: <20240403084113.18823-9-fw@strlen.de>
-References: <20240403084113.18823-1-fw@strlen.de>
-	<20240403084113.18823-9-fw@strlen.de>
-Organization: Red Hat
-X-Mailer: Claws Mail 4.2.0 (GTK 3.24.36; x86_64-pc-linux-gnu)
+        d=1e100.net; s=20230601; t=1712605755; x=1713210555;
+        h=content-transfer-encoding:cc:to:from:subject:message-id:references
+         :mime-version:in-reply-to:date:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=aq405guPa3OPZRO9v26OPDN3Zw9hWnozHgBpKl4FcoU=;
+        b=shm7rPpEnz8um7dt7AgRRUOzvK+fvNHcmtcDscKhPQxv/QY6eI8wDrj/zJrTYC8ADz
+         hFdwdm2ra9jIJQQ4ma3XlD5JT06wtiF2T4MvpyVOCGfFBXTUK20Tp6GCm69TIDY2CT9R
+         S2njBMOQHwjc+SeXsB+m8MwpTQFP7B2GUA9LYy1KT932sGLWxuqa6gXowbycBrQ3cz1V
+         tz7hH4+e4VSL7DnmVSkH9eq7i/Td/DL93M6jCGJhILooWMM/JjsMmhMRjMIlaXucNdmc
+         1FV0IndtJEtPExVBV2xlqRHshZ27/xUjbD/OJfPEPzgcf+AtpJu8hEyQhfM/cm09OBod
+         +1gw==
+X-Forwarded-Encrypted: i=1; AJvYcCW+q/h5aepavW8+qByLUPkFr1xgkLrxMFTNl1l3k/9PUCvEHRrgdu2PC+p0pDHKk+mt6OYKiQWVmFHYugWGOBLVTLYiQXw+mNoRJhY5F28K
+X-Gm-Message-State: AOJu0YwkMEkmN61gNNh9JEZ6TYoW9iRzJwPgF2KDyVmzkTZ/H9qH8Ayv
+	eLvDlknBcO9JaCCd4LSJs33xIsH5YUHOpA1OsoSPDDx4n9EkrKwbZ+1yDx9vSDA8MIZszbLkme6
+	feA==
+X-Google-Smtp-Source: AGHT+IEOvC2+HFvfUx+HVQIDT3l0tZKQZWg0eCxC+0TeQ/H78hrhDDQEqkf6GmdV35Kdx2aknK+7XH+Xzcw=
+X-Received: from swim.c.googlers.com ([fda3:e722:ac3:cc00:31:98fb:c0a8:1605])
+ (user=gnoack job=sendgmr) by 2002:a05:6902:100a:b0:dda:ce5f:b4c3 with SMTP id
+ w10-20020a056902100a00b00ddace5fb4c3mr3253808ybt.1.1712605755482; Mon, 08 Apr
+ 2024 12:49:15 -0700 (PDT)
+Date: Mon, 8 Apr 2024 21:49:13 +0200
+In-Reply-To: <20240408093927.1759381-2-ivanov.mikhail1@huawei-partners.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
+References: <20240408093927.1759381-1-ivanov.mikhail1@huawei-partners.com> <20240408093927.1759381-2-ivanov.mikhail1@huawei-partners.com>
+Message-ID: <ZhRKOTmoAOuwkujB@google.com>
+Subject: Re: [RFC PATCH v1 01/10] landlock: Support socket access-control
+From: "=?utf-8?Q?G=C3=BCnther?= Noack" <gnoack@google.com>
+To: Ivanov Mikhail <ivanov.mikhail1@huawei-partners.com>
+Cc: mic@digikod.net, willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com, 
+	linux-security-module@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, yusongping@huawei.com, 
+	artem.kuzin@huawei.com, konstantin.meskhidze@huawei.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Wed,  3 Apr 2024 10:41:08 +0200
-Florian Westphal <fw@strlen.de> wrote:
+Hello!
 
-> This set type keeps two copies of the sets' content,
->    priv->match (live version, used to match from packet path)
->    priv->clone (work-in-progress version of the 'future' priv->match).
-> 
-> All additions and removals are done on priv->clone.  When transaction
-> completes, priv->clone becomes priv->match and a new clone is allocated
-> for use by next transaction.
-> 
-> Problem is that the cloning requires GFP_KERNEL allocations but we
-> cannot fail at either commit or abort time.
-> 
-> This patch defers the clone until we get an insertion or removal
-> request.  This allows us to handle OOM situations correctly.
-> 
-> This also allows to remove ->dirty in a followup change:
-> 
-> If ->clone exists, ->dirty is always true
-> If ->clone is NULL, ->dirty is always false, no elements were added
-> or removed (except catchall elements which are external to the specific
-> set backend).
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  net/netfilter/nft_set_pipapo.c | 62 ++++++++++++++++++++++------------
->  1 file changed, 41 insertions(+), 21 deletions(-)
-> 
-> diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-> index 2cc905e92889..eef6a978561f 100644
-> --- a/net/netfilter/nft_set_pipapo.c
-> +++ b/net/netfilter/nft_set_pipapo.c
-> @@ -615,6 +615,9 @@ nft_pipapo_get(const struct net *net, const struct nft_set *set,
->  	struct nft_pipapo_match *m = priv->clone;
->  	struct nft_pipapo_elem *e;
->  
-> +	if (!m)
-> +		m = rcu_dereference(priv->match);
+Just zooming in on what I think are the most high level questions here,
+so that we get the more dramatic changes out of the way early, if needed.
+
+On Mon, Apr 08, 2024 at 05:39:18PM +0800, Ivanov Mikhail wrote:
+> diff --git a/include/uapi/linux/landlock.h b/include/uapi/linux/landlock.=
+h
+> index 25c8d7677..8551ade38 100644
+> --- a/include/uapi/linux/landlock.h
+> +++ b/include/uapi/linux/landlock.h
+> @@ -37,6 +37,13 @@ struct landlock_ruleset_attr {
+>  	 * rule explicitly allow them.
+>  	 */
+>  	__u64 handled_access_net;
 > +
->  	e = pipapo_get(net, set, m, (const u8 *)elem->key.val.data,
->  		       nft_genmask_cur(net), get_jiffies_64(),
->  		       GFP_ATOMIC);
-> @@ -1259,6 +1262,23 @@ static bool nft_pipapo_transaction_mutex_held(const struct nft_set *set)
->  #endif
->  }
->  
-> +static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old);
+> +	/**
+> +	 * @handled_access_net: Bitmask of actions (cf. `Socket flags`_)
+                           ^^^
+			   Typo
+
+> +	 * that is handled by this ruleset and should then be forbidden if no
+> +	 * rule explicitly allow them.
+> +	 */
+> +	__u64 handled_access_socket;
+
+What is your rationale for introducing and naming this additional field?
+
+I am not convinced that "socket" is the right name to use in this field,
+but it is well possible that I'm missing some context.
+
+* If we introduce this additional field in the landlock_ruleset_attr, which
+  other socket-related operations will go in the remaining 63 bits?  (I'm h=
+aving
+  a hard time coming up with so many of them.)
+
+* Should this have a more general name than "socket", so that other planned
+  features from the bug tracker [1] fit in?
+
+The other alternative is of course to piggy back on the existing
+handled_access_net field, whose name already is pretty generic.
+
+For that, I believe we would need to clarify in struct landlock_net_port_at=
+tr
+which exact values are permitted there.
+
+I imagine you have considered this approach?  Are there more reasons why th=
+is
+was ruled out, which I am overlooking?
+
+[1] https://github.com/orgs/landlock-lsm/projects/1/views/1
+
+
+> @@ -244,4 +277,20 @@ struct landlock_net_port_attr {
+>  #define LANDLOCK_ACCESS_NET_BIND_TCP			(1ULL << 0)
+>  #define LANDLOCK_ACCESS_NET_CONNECT_TCP			(1ULL << 1)
+>  /* clang-format on */
 > +
-> +static struct nft_pipapo_match *pipapo_maybe_clone(const struct nft_set *set)
+> +/**
+> + * DOC: socket_acess
+> + *
+> + * Socket flags
+> + * ~~~~~~~~~~~~~~~~
 
-Nit:
+Mega-Nit: This ~~~ underline should only be as long as the text above it ;-=
+)
+You might want to fix it for the "Network Flags" headline as well.
 
-/**
- * pipapo_maybe_clone() - Build clone for pending data changes, if not existing
- * @set:	nftables API set representation
- *
- * Return: newly created or existing clone, if any. NULL on allocation failure
- */
+> + *
+> + * These flags enable to restrict a sandboxed process to a set of
+> + * socket-related actions for specific protocols. This is supported
+> + * since the Landlock ABI version 5.
+> + *
+> + * - %LANDLOCK_ACCESS_SOCKET_CREATE: Create a socket
+> + */
 
-The rest of the series looks good (and like a big improvement) to me,
-thanks! For all the patches minus 3/9,
 
-Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
+> diff --git a/security/landlock/ruleset.h b/security/landlock/ruleset.h
+> index c7f152678..f4213db09 100644
+> --- a/security/landlock/ruleset.h
+> +++ b/security/landlock/ruleset.h
+> @@ -92,6 +92,12 @@ enum landlock_key_type {
+>  	 * node keys.
+>  	 */
+>  	LANDLOCK_KEY_NET_PORT,
+> +
+> +	/**
+> +	 * @LANDLOCK_KEY_SOCKET: Type of &landlock_ruleset.root_socket's
+> +	 * node keys.
+> +	 */
+> +	LANDLOCK_KEY_SOCKET,
+>  };
+> =20
+>  /**
+> @@ -177,6 +183,15 @@ struct landlock_ruleset {
+>  	struct rb_root root_net_port;
+>  #endif /* IS_ENABLED(CONFIG_INET) */
+> =20
+> +	/**
+> +	 * @root_socket: Root of a red-black tree containing &struct
+> +	 * landlock_rule nodes with socket type, described by (domain, type)
+> +	 * pair (see socket(2)). Once a ruleset is tied to a
+> +	 * process (i.e. as a domain), this tree is immutable until @usage
+> +	 * reaches zero.
+> +	 */
+> +	struct rb_root root_socket;
 
--- 
-Stefano
+The domain is a value between 0 and 45,
+and the socket type is one of 1, 2, 3, 4, 5, 6, 10.
 
+The bounds of these are defined with AF_MAX (include/linux/socket.h) and
+SOCK_MAX (include/linux/net.h).
+
+Why don't we just combine these two numbers into an index and create a big =
+bit
+vector here, like this:
+
+    socket_type_mask_t socket_domains[AF_MAX];
+
+socket_type_mask_t would need to be typedef'd to u16 and ideally have a sta=
+tic
+check to test that it has more bits than SOCK_MAX.
+
+Then you can look up whether a socket creation is permitted by checking:
+
+    /* assuming appropriate bounds checks */
+    if (dom->socket_domains[domain] & (1 << type)) { /* permitted */ }
+
+and merging the socket_domains of two domains would be a bitwise-AND.
+
+(We can also cram socket_type_mask_t in a u8 but it would require mapping t=
+he
+existing socket types onto a different number space.)
+
+
+As I said before, I am very excited to see this patch.
+
+I think this will unlock a tremendous amount of use cases for many programs=
+,
+especially for programs that do not use networking at all, which can now lo=
+ck
+themselves down to guarantee that with a sandbox.
+
+Thank you very much for looking into it!
+=E2=80=94G=C3=BCnther
