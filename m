@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id EF1B614830F;
-	Mon,  8 Apr 2024 21:19:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B18A0147C62;
+	Mon,  8 Apr 2024 21:19:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712611179; cv=none; b=CyX0s9Pq7REh5XMxYbwbx3nIolhGShSceC0grJH8fTdulvtUuXY8mC7v5HKJOHTg031/a4KkYiTJ266ruWlHEd0g7vS/85SPB8p2JYYzDovjRm0WLPms4eXa/afkRU+KpT/5cQDVrd5r7Dcu0d9gB2v1L35xnD3gdmme6M3ZaSs=
+	t=1712611180; cv=none; b=DXVQO15HGPcvY3eas+arkxCpZgJ710DA2GRZWrI3Wd9MDbj+OYKSU7bTZS+uOTiHdVbWC0TD1rzd5NobBYIO7VuCGzaAfGho09/A6jlq6pC0UyynG3jfYraUdbtqe18lXiDBLljWbKArW2g6tKB5QyLCJqcSxFcn/J/Ju98ltXM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712611179; c=relaxed/simple;
-	bh=+s49S/7tHLWuHMPfM9KJj7ZqUeaWHj0tttJALPzkPJE=;
+	s=arc-20240116; t=1712611180; c=relaxed/simple;
+	bh=A15d8aUmS31doyPWr+zTpdRGFKMgdLjNzjrdPick9E0=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=IYl4AMOcgmjMTdLKjvSHfVr4Z6cu7hUF9i3iQjtBDvjgWAel9T9vK+fF9JFz8q604wiYizEo9ZUhwTEuCsj/vnm21hTnMacZKDwgJ1RsGUu7Ayp8SZRno5JoHBWoAIUabIxL/jR+ZyGDvBcIsXkxeX/ibTjpJqDOv+LhFZEtDO0=
+	 MIME-Version; b=kGgsPWfukjwH5QRGkjs2UtA3fkJbWTUnXSoU0Rb9KACdmxCq1Yz+4HWnxoav23EP4bzfpQJkOx2G/44o9kam+pu362CKnUqirCaZCkkRQXJRfXf+4f5ONICSxj/H9XO4lzcrvI0Pbai1prhBywJPV4akA/b4NShcx52+t+1gXrY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -17,9 +17,9 @@ To: netfilter-devel@vger.kernel.org
 Cc: stable@vger.kernel.org,
 	gregkh@linuxfoundation.org,
 	sashal@kernel.org
-Subject: [PATCH -stable,5.15.x 2/3] netfilter: nf_tables: release mutex after nft_gc_seq_end from abort path
-Date: Mon,  8 Apr 2024 23:19:29 +0200
-Message-Id: <20240408211930.312070-3-pablo@netfilter.org>
+Subject: [PATCH -stable,5.15.x 3/3] netfilter: nf_tables: discard table flag update with pending basechain deletion
+Date: Mon,  8 Apr 2024 23:19:30 +0200
+Message-Id: <20240408211930.312070-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240408211930.312070-1-pablo@netfilter.org>
 References: <20240408211930.312070-1-pablo@netfilter.org>
@@ -31,56 +31,57 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-commit 0d459e2ffb541841714839e8228b845458ed3b27 upstream.
+commit 1bc83a019bbe268be3526406245ec28c2458a518 upstream.
 
-The commit mutex should not be released during the critical section
-between nft_gc_seq_begin() and nft_gc_seq_end(), otherwise, async GC
-worker could collect expired objects and get the released commit lock
-within the same GC sequence.
+Hook unregistration is deferred to the commit phase, same occurs with
+hook updates triggered by the table dormant flag. When both commands are
+combined, this results in deleting a basechain while leaving its hook
+still registered in the core.
 
-nf_tables_module_autoload() temporarily releases the mutex to load
-module dependencies, then it goes back to replay the transaction again.
-Move it at the end of the abort phase after nft_gc_seq_end() is called.
-
-Cc: stable@vger.kernel.org
-Fixes: 720344340fb9 ("netfilter: nf_tables: GC transaction race with abort path")
-Reported-by: Kuan-Ting Chen <hexrabbit@devco.re>
+Fixes: 179d9ba5559a ("netfilter: nf_tables: fix table flag updates")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ net/netfilter/nf_tables_api.c | 20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 5f6a46d55ad9..1ba3396ad7d2 100644
+index 1ba3396ad7d2..2003bb5bb955 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -9873,11 +9873,6 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 		nf_tables_abort_release(trans);
- 	}
+@@ -1139,6 +1139,24 @@ static void nf_tables_table_disable(struct net *net, struct nft_table *table)
+ #define __NFT_TABLE_F_UPDATE		(__NFT_TABLE_F_WAS_DORMANT | \
+ 					 __NFT_TABLE_F_WAS_AWAKEN)
  
--	if (action == NFNL_ABORT_AUTOLOAD)
--		nf_tables_module_autoload(net);
--	else
--		nf_tables_module_autoload_cleanup(net);
--
- 	return err;
- }
- 
-@@ -9894,6 +9889,14 @@ static int nf_tables_abort(struct net *net, struct sk_buff *skb,
- 
- 	WARN_ON_ONCE(!list_empty(&nft_net->commit_list));
- 
-+	/* module autoload needs to happen after GC sequence update because it
-+	 * temporarily releases and grabs mutex again.
-+	 */
-+	if (action == NFNL_ABORT_AUTOLOAD)
-+		nf_tables_module_autoload(net);
-+	else
-+		nf_tables_module_autoload_cleanup(net);
++static bool nft_table_pending_update(const struct nft_ctx *ctx)
++{
++	struct nftables_pernet *nft_net = nft_pernet(ctx->net);
++	struct nft_trans *trans;
 +
- 	mutex_unlock(&nft_net->commit_mutex);
++	if (ctx->table->flags & __NFT_TABLE_F_UPDATE)
++		return true;
++
++	list_for_each_entry(trans, &nft_net->commit_list, list) {
++		if (trans->ctx.table == ctx->table &&
++		    trans->msg_type == NFT_MSG_DELCHAIN &&
++		    nft_is_base_chain(trans->ctx.chain))
++			return true;
++	}
++
++	return false;
++}
++
+ static int nf_tables_updtable(struct nft_ctx *ctx)
+ {
+ 	struct nft_trans *trans;
+@@ -1162,7 +1180,7 @@ static int nf_tables_updtable(struct nft_ctx *ctx)
+ 		return -EOPNOTSUPP;
  
- 	return ret;
+ 	/* No dormant off/on/off/on games in single transaction */
+-	if (ctx->table->flags & __NFT_TABLE_F_UPDATE)
++	if (nft_table_pending_update(ctx))
+ 		return -EINVAL;
+ 
+ 	trans = nft_trans_alloc(ctx, NFT_MSG_NEWTABLE,
 -- 
 2.30.2
 
