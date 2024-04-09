@@ -1,44 +1,23 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28407128826
-	for <netfilter-devel@vger.kernel.org>; Tue,  9 Apr 2024 11:47:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B8381129E6E
+	for <netfilter-devel@vger.kernel.org>; Tue,  9 Apr 2024 11:55:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712663225; cv=none; b=qKNlMUBKOD0jh8eAUD4VRB7mwINKk/TPZ4LKvpRnnI8skt+ltCpaVZlHzEkgT8XALVyUP9z1SlODSJOHpG85jlO68oXDkuLbxeujqPXSefLVKV5rZgupdUTNbGA+kgzEgsI22ngJraaNA8/LgzSvohNyLbjddpADDlMeXHwD35o=
+	t=1712663724; cv=none; b=r1OquwNlBe7ifWAYOh5BPQv3Unw9TSliHQzjh8Hi+EWJf4GgDYvrmKJNf/+PKIkV6UNh6W/0g4pmcwZgkIzwEmn3fqMfr6PAWf8P3zuJyGIWHj4z9eNJeff+VKCYKxF+j7sp9B5jcqSzW9oxVXMW7QmOKg1oyXXnc2uMN3Hbj6A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712663225; c=relaxed/simple;
-	bh=PygwlUOw/QNpLBkWIpfGpjs0c4AIn/lJxmTe+w8cBDs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=QgZsixu7DoVPBOLlD6Qjcv7RQHlNJ0aet3QiKDM7SHKnptgE8LCeRVIY763q9e5j3MaKo4P1Q4+ypaKwjyw/bdGBvxoExc2AfJtBUr5tHuLI48mQy80mhWJ23Jv+zT4/qFJmQkrmwV9nRejT12v0Co8JskLaLlilOJjMSZBAe3M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=J1CWFnyJ; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="J1CWFnyJ"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=Vf1v5aAFl6V0aUV5MXt8YX9KWCjTbO4LOHhRreGMBCU=; b=J1CWFnyJiS8yQ3GAzJXm7Ft7JZ
-	6tbPvVsPZ7/dbIplMDt4YbmWncCIzZArMuP9/ADbMvffUvKcHkaRkDK396VSjo6Bslpmp6Rhu3Wl7
-	BlxDBTpcYt6u7aYreNe9EpCWhJx2Qiggc8ctAyjd7ZejUGhKxdr09BaVa58PKRe+n2jbfPaGNgWrz
-	0uXeY0vaE1Y99dB723qAtk9eJ4s0luU+3u4P8VCO+wDkQYpsxXZwGtqb5iOVOZwvrCCVyQz4wnb+e
-	JaOSxOqCv2CA4nN2hX8518XT3E/RPK8Mg0mSSwFzRqrDWh4J4/M3yRz+HmqP8oU7kIDFIm+PLSfQd
-	U3cr9lEA==;
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1ru9gs-000000000gP-2TG3;
-	Tue, 09 Apr 2024 13:31:02 +0200
-From: Phil Sutter <phil@nwl.cc>
+	s=arc-20240116; t=1712663724; c=relaxed/simple;
+	bh=m9Cv8n2oLtPgqv5x9M6orjJOBiazKpqcW2fuUJyBe68=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=gi0OsFi5aZz4dE8EUSuQ04XjQ/9Z0v16YtrzEBC5hC4IuKfj/NvuGVJ7prZamZ/dvPaXYe4iMUP6syuoYrJNXN7HwKT3z7Qk1PZ3EmJ2M2Hy0L8h5Qv1Ao2S8A98qP5hegfwSLQTruVO6jweb+r92IEmb9Z5Ln2bBkz5w4TPJTc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Cc: gorbanev.es@gmail.com
-Subject: [iptables PATCH] xshared: Fix parsing of empty string arg in '-c' option
-Date: Tue,  9 Apr 2024 13:31:01 +0200
-Message-ID: <20240409113101.672-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.43.0
+Cc: syzbot+b6f07e1c07ef40199081@syzkaller.appspotmail.com
+Subject: [PATCH nf] netfilter: flowtable: validate PPPoe header
+Date: Tue,  9 Apr 2024 13:54:59 +0200
+Message-Id: <20240409115459.324991-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -47,48 +26,84 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Calling iptables with '-c ""' resulted in a call to strchr() with an
-invalid pointer as 'optarg + 1' points to past the buffer. The most
-simple fix is to drop the offset: The global optstring part specifies a
-single colon after 'c', so getopt() enforces a valid pointer in optarg.
-If it contains a comma at first position, packet counter value parsing
-will fail so all cases are covered.
+Ensure there is sufficient room to access the protocol field of the
+PPPoe header. Validate it once before the flowtable lookup, then use a
+helper function to access protocol field.
 
-Reported-by: gorbanev.es@gmail.com
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1741
-Fixes: 60a6073690a45 ("Make --set-counters (-c) accept comma separated counters")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Reported-by: syzbot+b6f07e1c07ef40199081@syzkaller.appspotmail.com
+Fixes: 72efd585f714 ("netfilter: flowtable: add pppoe support")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- extensions/iptables.t | 5 +++++
- iptables/xshared.c    | 2 +-
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ include/net/netfilter/nf_flow_table.h | 12 +++++++++++-
+ net/netfilter/nf_flow_table_ip.c      |  8 +++++---
+ 2 files changed, 16 insertions(+), 4 deletions(-)
 
-diff --git a/extensions/iptables.t b/extensions/iptables.t
-index b4b6d677abab1..5d6d3d15cc5fd 100644
---- a/extensions/iptables.t
-+++ b/extensions/iptables.t
-@@ -4,3 +4,8 @@
- -i eth+ -o alongifacename+;=;OK
- ! -i eth0;=;OK
- ! -o eth+;=;OK
-+-c "";;FAIL
-+-c ,3;;FAIL
-+-c 3,;;FAIL
-+-c ,;;FAIL
-+-c 2,3 -j ACCEPT;-j ACCEPT;OK
-diff --git a/iptables/xshared.c b/iptables/xshared.c
-index b998dd75aaf05..b1997ea35f8f8 100644
---- a/iptables/xshared.c
-+++ b/iptables/xshared.c
-@@ -1885,7 +1885,7 @@ void do_parse(int argc, char *argv[],
- 			set_option(p->ops, &cs->options, OPT_COUNTERS,
- 				   &args->invflags, invert);
- 			args->pcnt = optarg;
--			args->bcnt = strchr(args->pcnt + 1, ',');
-+			args->bcnt = strchr(args->pcnt, ',');
- 			if (args->bcnt)
- 			    args->bcnt++;
- 			if (!args->bcnt && xs_has_arg(argc, argv))
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index a763dd327c6e..cb2fca8075df 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -336,7 +336,7 @@ int nf_flow_rule_route_ipv6(struct net *net, struct flow_offload *flow,
+ int nf_flow_table_offload_init(void);
+ void nf_flow_table_offload_exit(void);
+ 
+-static inline __be16 nf_flow_pppoe_proto(const struct sk_buff *skb)
++static inline __be16 __nf_flow_pppoe_proto(const struct sk_buff *skb)
+ {
+ 	__be16 proto;
+ 
+@@ -352,6 +352,16 @@ static inline __be16 nf_flow_pppoe_proto(const struct sk_buff *skb)
+ 	return 0;
+ }
+ 
++static inline int nf_flow_pppoe_proto(struct sk_buff *skb, __be16 *inner_proto)
++{
++	if (!pskb_may_pull(skb, PPPOE_SES_HLEN))
++		return -1;
++
++	*inner_proto = __nf_flow_pppoe_proto(skb);
++
++	return 0;
++}
++
+ #define NF_FLOW_TABLE_STAT_INC(net, count) __this_cpu_inc((net)->ft.stat->count)
+ #define NF_FLOW_TABLE_STAT_DEC(net, count) __this_cpu_dec((net)->ft.stat->count)
+ #define NF_FLOW_TABLE_STAT_INC_ATOMIC(net, count)	\
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index e45fade76409..9e9e105052da 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -273,10 +273,11 @@ static unsigned int nf_flow_xmit_xfrm(struct sk_buff *skb,
+ 	return NF_STOLEN;
+ }
+ 
+-static bool nf_flow_skb_encap_protocol(const struct sk_buff *skb, __be16 proto,
++static bool nf_flow_skb_encap_protocol(struct sk_buff *skb, __be16 proto,
+ 				       u32 *offset)
+ {
+ 	struct vlan_ethhdr *veth;
++	__be16 inner_proto;
+ 
+ 	switch (skb->protocol) {
+ 	case htons(ETH_P_8021Q):
+@@ -287,7 +288,8 @@ static bool nf_flow_skb_encap_protocol(const struct sk_buff *skb, __be16 proto,
+ 		}
+ 		break;
+ 	case htons(ETH_P_PPP_SES):
+-		if (nf_flow_pppoe_proto(skb) == proto) {
++		if (nf_flow_pppoe_proto(skb, &inner_proto) &&
++		    inner_proto == proto) {
+ 			*offset += PPPOE_SES_HLEN;
+ 			return true;
+ 		}
+@@ -316,7 +318,7 @@ static void nf_flow_encap_pop(struct sk_buff *skb,
+ 			skb_reset_network_header(skb);
+ 			break;
+ 		case htons(ETH_P_PPP_SES):
+-			skb->protocol = nf_flow_pppoe_proto(skb);
++			skb->protocol = __nf_flow_pppoe_proto(skb);
+ 			skb_pull(skb, PPPOE_SES_HLEN);
+ 			skb_reset_network_header(skb);
+ 			break;
 -- 
-2.43.0
+2.30.2
 
