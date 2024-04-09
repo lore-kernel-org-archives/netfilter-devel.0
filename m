@@ -1,64 +1,64 @@
-Received: from mail-oi1-f174.google.com (mail-oi1-f174.google.com [209.85.167.174])
+Received: from mail-oa1-f41.google.com (mail-oa1-f41.google.com [209.85.160.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C17A65473F
-	for <netfilter-devel@vger.kernel.org>; Tue,  9 Apr 2024 03:03:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 453D06FE35
+	for <netfilter-devel@vger.kernel.org>; Tue,  9 Apr 2024 06:24:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712631810; cv=none; b=gknBebB3a3aUQHi23m5aehhjwuyeYYZLuRY03MCE+Ms19KzRSGIv4LowjTxuvrU7umMJcTXLnnG+NngC4V4M/dyj5aEq+qlANvA4KecwGS4bKzhqcVNJSoPTZEptf2JnhVkighSCMWyAAAAC/H2zqdo0EnttkAKLYjp6cEVk7YU=
+	t=1712643853; cv=none; b=t4Eorj/f6Oj1otWxYbudvJQjPd1uUILK9PW7ZNUGKYXVwdMZxxH4elY7gPzkAKDwNIH5yOTHU4NnqDtNBAKrN4JgDX/VYL+6LenBG0LiVqAqUxNnmU3AUv9Zu1I/guGBBfykWc7CA8bisPAVIZ+8MEg2wk/4Wn5pfmGguYCNNJY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712631810; c=relaxed/simple;
-	bh=zMCZB83S21kXHWwgleWtFLpNVdQwP+M8sUoRc6lXuWA=;
+	s=arc-20240116; t=1712643853; c=relaxed/simple;
+	bh=n/xgLHNWse4LTN7aIkQ+kAgz4y1Ne0w+y9JNbin59J4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=R3S5Nn+ZyM0i4ENeSAa/1Ivm3oBJ9pOHuw6X5qJEPVqRQEKNKy6IPVfPKeeYuhV49rD2PwS7ess6Q+YkTqe2sd3W9UXNLpdtY9GyH1GttkHxEOFqUlGz146j+iy/MCwqZMJAcCaEvR1xA5yKwvYQDRe6kR59Ry6l4Gl0Uxu9r64=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YNhFsIby; arc=none smtp.client-ip=209.85.167.174
+	 MIME-Version; b=cOcHnYnerx2n5mwSLTDnqxZ9CnNPOjkSxE2ze2GJYfbVwYdZ8rcsJDoBSyQNd0+FmhYLIRkRgIBYvoe6cKoZUag/MBEGsBpLAw+E4w/QYtUDzDv1ERdy4zfIM+iG7D9efdIwUtE0+ceFsGmYB21IIEA5XHROny6YXiRfrGBQXLU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=nNrAaBO9; arc=none smtp.client-ip=209.85.160.41
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YNhFsIby"
-Received: by mail-oi1-f174.google.com with SMTP id 5614622812f47-3c5fa88c6a4so582880b6e.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 08 Apr 2024 20:03:28 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nNrAaBO9"
+Received: by mail-oa1-f41.google.com with SMTP id 586e51a60fabf-22eccfeee22so2181725fac.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 08 Apr 2024 23:24:10 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1712631807; x=1713236607; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1712643849; x=1713248649; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=6p0Rk36YiRfXNsRE7Rie0j+FHUHfqaVk3zghddANo0w=;
-        b=YNhFsIby3S+hJA1gdzg+85n8p6slJaV4SLAehmrs1cHVOQ2iB85XBLJSg/RsttYr8r
-         qfjxjH8rcs1QhY7GY3I3zP/4oVPp6OOG6qG8INXJaQzBoo1oq4JOYq6LITBTwLVslx8r
-         CVaBED5RD6AojQb3/PPMgidZeWRaWFBo8uAH9wfU2oG9iI5271DKou/PXqv8Iqa9KzoQ
-         piIDWiudf479fRPkZ+Mk4EKuv+940fnwiQ8KMcVEw7cwINaX/TtutG3deF6HdIQwR9HL
-         Hy4sl3aNsNzbw7kIkDq3KA47RBOdVEu3UpOt0d/IJzEmZKIWG8/0Pjuaxj+w8FPtz0P6
-         T1nQ==
+        bh=0djhO2ggMGZD+pDIvRYDBMEW5mU/C5XsoDNJQBsMZQ0=;
+        b=nNrAaBO9/4rjDYLCvLCN/kucKCVhOdMoCPGtDxKuijDltAWDxi/eeTjUEF2bFvNzFp
+         4CBxQ92LZ6V34ml80mt3izPEFTa6Vssmhy1XXrryGCeu2C8agJ9ByB+/KCFGDiBOQDr5
+         AUXPn+pZIJxhTm2SP6oguaeMSwJrVJExJbuIAW8zDUZ7JHxIelbcdDYxhqNhFtb227Q9
+         icAU4jIjvLAEvApJJak+3Rk5JMBbcl4UOiwXbJ96fdJRCRFQHQWPlVjs1bhd5bHy+HBd
+         oSNdcJVU6phd4uUOiXgF//K2iEiHvOL4T3q3QhCXzLQ4kxefAiWOzOfEtGo9UM76isy3
+         hXBg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1712631807; x=1713236607;
+        d=1e100.net; s=20230601; t=1712643849; x=1713248649;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=6p0Rk36YiRfXNsRE7Rie0j+FHUHfqaVk3zghddANo0w=;
-        b=wy0QJZNBF8I1SuHHMNKXuJ5LyxQVJHLXkIJ5y4zgeDD0KzZ3Rk/MtRer5/qpKBlAUx
-         E0BaErHs/F0Vw8c5M8G1aYoNo3d+pgo7BVSAEFJHVxF/MC2jVX+9lkUU7tqus2PZJrIH
-         ghUnXNzBOdcM1abRnPGeLZpnFhenAypSFPEIEpawMeimJsKRmEjiPS+nL502X8CekVGX
-         gAVVL2byB18r96Q9+RKtWL+5wsEPzcVFMciUL2Q0cXqpA1kRogyhIIiNweucRHF629+E
-         /THKffFYevpXEdC82WmrUT6gCV7b16IJmTTFfwxdqi+63oUWbXsmaZj4UCW7sHcpqREZ
-         MFyg==
-X-Gm-Message-State: AOJu0YybzdLv8XZ8AAd0WZxyFqbwIlBTCe+EH9YWgS248DIV7smBiU3c
-	8+fFXhfuYca9IMFnd/KIkxv7OkOnrNzMA+RiAidXWw6HY0h9iG9z/yHbtMzboqI=
-X-Google-Smtp-Source: AGHT+IGItufyTAUfRUuRYfRbBTugixJDRXww3Dk6G9EDlzf2ecvCCQaVV2sOqEdHQSdZLWSVCQmDaw==
-X-Received: by 2002:a05:6808:1922:b0:3c5:e91e:2a61 with SMTP id bf34-20020a056808192200b003c5e91e2a61mr10872659oib.23.1712631807174;
-        Mon, 08 Apr 2024 20:03:27 -0700 (PDT)
+        bh=0djhO2ggMGZD+pDIvRYDBMEW5mU/C5XsoDNJQBsMZQ0=;
+        b=m2WtuVfCaapMZKOh6VtV8u/zwPMFuEcU5/htHUnFJrNH1Ff5TFqssdzJ3i2SWJEG2h
+         yE1aR7IpKn+0FlvoIfIKk80814sSXIZgt5qxuq8Qz9q1MW6hrnIw+NSpYI0DP9vAxjUt
+         7cNYTdioP+SMXu4v9/l0N8gHF9vljGEM37BH4PxL/BoSI5iwnFt9L2bPB8KLJSGOA+5P
+         e2R8iuHweHcfW8pACfn3X7+RGGo28mCbOvBe/FpLkN3nwSWQvwT4uwFkuYj9eOYZ7nx9
+         B1NuoiV0CMClQ7UPlOJNnFp1plNwgYlcHFYKnfNDgcmWw+sfowHxlQ+QS8YqOZlqCMhr
+         SYoA==
+X-Gm-Message-State: AOJu0YxfDZAdoQxfsqaU8v0FIxp0FDbCKgGWtSha1837sygAt+4CnuQL
+	ei4sqqc1kcUNf/tlWGBxDFbVjECdwvT1sjHoVJLcAVjerXeueQvFZIX7kXfIs3E=
+X-Google-Smtp-Source: AGHT+IFdBl2BpRaF7+1vduuTngrF4u30gHCDFexU6grhXQWTMuNpEWUP/6Pl5MKoQc3GNGO1sDAzQQ==
+X-Received: by 2002:a05:6870:a2ca:b0:229:ec0e:7348 with SMTP id w10-20020a056870a2ca00b00229ec0e7348mr11748304oak.46.1712643848798;
+        Mon, 08 Apr 2024 23:24:08 -0700 (PDT)
 Received: from localhost.localdomain (122-151-81-38.sta.wbroadband.net.au. [122.151.81.38])
-        by smtp.gmail.com with ESMTPSA id o5-20020a056a001b4500b006e72c8ece23sm7265341pfv.191.2024.04.08.20.03.24
+        by smtp.gmail.com with ESMTPSA id r15-20020a056a00216f00b006e685994cdesm7565527pff.63.2024.04.08.23.24.06
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 08 Apr 2024 20:03:26 -0700 (PDT)
+        Mon, 08 Apr 2024 23:24:08 -0700 (PDT)
 From: Son Dinh <dinhtrason@gmail.com>
 To: netfilter-devel@vger.kernel.org,
 	fw@netfilter.org
 Cc: pablo@netfilter.org,
 	Son Dinh <dinhtrason@gmail.com>
-Subject: [nft PATCH v2] dynset: avoid errouneous assert with ipv6 concat data
-Date: Tue,  9 Apr 2024 13:02:48 +1000
-Message-ID: <20240409030248.2870-1-dinhtrason@gmail.com>
+Subject: [nft PATCH v3] dynset: avoid errouneous assert with ipv6 concat data
+Date: Tue,  9 Apr 2024 16:23:31 +1000
+Message-ID: <20240409062331.3285-1-dinhtrason@gmail.com>
 X-Mailer: git-send-email 2.44.0.windows.1
 In-Reply-To: <CA+Xkr6hrT0QvYn3V2S7=drzCLYky-ebe3J_9k8uf-KjSV=kdFw@mail.gmail.com>
 References: <CA+Xkr6hrT0QvYn3V2S7=drzCLYky-ebe3J_9k8uf-KjSV=kdFw@mail.gmail.com>
@@ -82,17 +82,19 @@ netlink_gen_expr when generating netlink info for the dynset data.
 
 Signed-off-by: Son Dinh <dinhtrason@gmail.com>
 ---
- src/netlink_linearize.c            |  6 +++---
+ src/netlink_linearize.c            |  6 ++---
  tests/py/ip/sets.t                 |  2 ++
- tests/py/ip/sets.t.payload.inet    | 11 +++++++++++
- tests/py/ip/sets.t.payload.ip      |  8 ++++++++
- tests/py/ip/sets.t.payload.netdev  | 10 ++++++++++
+ tests/py/ip/sets.t.json            | 37 ++++++++++++++++++++++++++++++
+ tests/py/ip/sets.t.payload.inet    | 11 +++++++++
+ tests/py/ip/sets.t.payload.ip      |  8 +++++++
+ tests/py/ip/sets.t.payload.netdev  | 10 ++++++++
  tests/py/ip6/sets.t                |  3 +++
- tests/py/ip6/sets.t.payload.inet   | 11 +++++++++++
- tests/py/ip6/sets.t.payload.ip6    |  8 ++++++++
- tests/py/ip6/sets.t.payload.netdev | 10 ++++++++++
+ tests/py/ip6/sets.t.json           | 37 ++++++++++++++++++++++++++++++
+ tests/py/ip6/sets.t.payload.inet   | 11 +++++++++
+ tests/py/ip6/sets.t.payload.ip6    |  8 +++++++
+ tests/py/ip6/sets.t.payload.netdev | 10 ++++++++
  tests/py/nft-test.py               |  4 ++++
- 10 files changed, 70 insertions(+), 3 deletions(-)
+ 12 files changed, 144 insertions(+), 3 deletions(-)
 
 diff --git src/netlink_linearize.c src/netlink_linearize.c
 index 6204d8fd..de9e975f 100644
@@ -124,6 +126,51 @@ index 46d9686b..828a1f1f 100644
 +!map2 type ipv4_addr . ipv4_addr . inet_service : ipv4_addr . inet_service;ok
 +add @map2 { ip saddr . ip daddr . th dport : 10.0.0.1 . 80 };ok
 \ No newline at end of file
+diff --git tests/py/ip/sets.t.json tests/py/ip/sets.t.json
+index 44ca1528..f2637d93 100644
+--- tests/py/ip/sets.t.json
++++ tests/py/ip/sets.t.json
+@@ -303,3 +303,40 @@
+     }
+ ]
+ 
++# add @map2 { ip saddr . ip daddr . th dport : 10.0.0.1 . 80 }
++[
++    {
++        "map": {
++            "data": {
++                "concat": [
++                    "10.0.0.1",
++                    80
++                ]
++            },
++            "elem": {
++                "concat": [
++                    {
++                        "payload": {
++                            "field": "saddr",
++                            "protocol": "ip"
++                        }
++                    },
++                    {
++                        "payload": {
++                            "field": "daddr",
++                            "protocol": "ip"
++                        }
++                    },
++                    {
++                        "payload": {
++                            "field": "dport",
++                            "protocol": "th"
++                        }
++                    }
++                ]
++            },
++            "map": "@map2",
++            "op": "add"
++        }
++    }
++]
 diff --git tests/py/ip/sets.t.payload.inet tests/py/ip/sets.t.payload.inet
 index fd6517a5..cc04b43d 100644
 --- tests/py/ip/sets.t.payload.inet
@@ -189,6 +236,51 @@ index 17fd62f5..cc26bd22 100644
 +!map2 type ipv6_addr . ipv6_addr . inet_service : ipv6_addr . inet_service;ok
 +add @map2 { ip6 saddr . ip6 daddr . th dport : 1234::1 . 80 };ok
 \ No newline at end of file
+diff --git tests/py/ip6/sets.t.json tests/py/ip6/sets.t.json
+index 2029d2b5..99236099 100644
+--- tests/py/ip6/sets.t.json
++++ tests/py/ip6/sets.t.json
+@@ -148,3 +148,40 @@
+     }
+ ]
+ 
++# add @map2 { ip6 saddr . ip6 daddr . th dport : 1234::1 . 80 }
++[
++    {
++        "map": {
++            "data": {
++                "concat": [
++                    "1234::1",
++                    80
++                ]
++            },
++            "elem": {
++                "concat": [
++                    {
++                        "payload": {
++                            "field": "saddr",
++                            "protocol": "ip6"
++                        }
++                    },
++                    {
++                        "payload": {
++                            "field": "daddr",
++                            "protocol": "ip6"
++                        }
++                    },
++                    {
++                        "payload": {
++                            "field": "dport",
++                            "protocol": "th"
++                        }
++                    }
++                ]
++            },
++            "map": "@map2",
++            "op": "add"
++        }
++    }
++]
 diff --git tests/py/ip6/sets.t.payload.inet tests/py/ip6/sets.t.payload.inet
 index 2bbd5573..2dbb818a 100644
 --- tests/py/ip6/sets.t.payload.inet
