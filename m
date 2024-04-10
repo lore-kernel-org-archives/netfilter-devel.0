@@ -1,108 +1,126 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 0F7F722085;
-	Wed, 10 Apr 2024 23:13:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4B17746B5
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Apr 2024 23:17:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712790806; cv=none; b=tiHldZEKEfUwCSIkELrBdjtlTt8gNsiUQrX/6hebPhCPV1+cloASGVHvuASYA22be1+QtnPDkuUbsE1xaLbdg9vH7FiMTcQsfJkLBIE8Zq1QlB/FEoOYEijAV32sb5SyxA0ERb+B2xrpIRIsxtscKYoKwGqK9irPa9ccba3l91A=
+	t=1712791045; cv=none; b=sNdbFVOFblZ3wTw+LNg+ymDaAKjXEujhqiNYa9EabftVtMkZioOWmUwdMgYqtUmYZwGLepee2dlicY8LTIQ5cHM1DuqSwgQnBYO9LJF66tbv9bmfHzyxHTBcz/7Z83mmMlQcbnCq8smZW7ZrsXGQdJJm6M2u7y1XO2c9XxaKfXE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712790806; c=relaxed/simple;
-	bh=bHyt7N5icrXFS1QjKwCymQusO+NZNrKNBTvtubLCLHI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=t6ay1WoryLD7XZ6sYbhmmUNjS2Kx0lkwlz1Fq46sNMx2j5csrc2uohyU4V5dZrhi9SaBVJ2tw485oIMkIt1RimQFEFBzdepC/UWnYfGSdqTM4CNpOI5D8pBYCMjnZfaMwMJPKa76s1Svv8myy1C4rz3ma5pApCPzOwGIxKfghDU=
+	s=arc-20240116; t=1712791045; c=relaxed/simple;
+	bh=AK57BoHO+fgxMjl8axgB9ySTHqcFEJvNxP4u0keOT5U=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Qq3xvbVXKG33uhqIwd0yaxUDM5a2zf0I+PphmjBnhAAnzzg4FrqrYWxnbkTUMgrP+KlOlosNLUYcUB8ky8oos5OogjlXxMuZE9S5JXOfu/yg3MfQL+3LKbUcbhc5aMsGKg486cV1T1sZfH6A9dbMVSpZjHHbf7tTa2fqsELHWKg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Date: Thu, 11 Apr 2024 01:13:13 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Donald Hunter <donald.hunter@gmail.com>
-Cc: netdev@vger.kernel.org, Jakub Kicinski <kuba@kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>,
-	Jiri Pirko <jiri@resnulli.us>,
-	Jacob Keller <jacob.e.keller@intel.com>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	donald.hunter@redhat.com
-Subject: Re: [PATCH net-next v2 2/3] netfilter: nfnetlink: Handle ACK flags
- for batch messages
-Message-ID: <ZhcdCUA2yJ56xdbj@calendula>
-References: <20240410221108.37414-1-donald.hunter@gmail.com>
- <20240410221108.37414-3-donald.hunter@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Cc: syzbot+b6f07e1c07ef40199081@syzkaller.appspotmail.com
+Subject: [PATCH nf,v3] netfilter: flowtable: validate pppoe header
+Date: Thu, 11 Apr 2024 01:17:18 +0200
+Message-Id: <20240410231718.2824-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20240410221108.37414-3-donald.hunter@gmail.com>
+Content-Transfer-Encoding: 8bit
 
-On Wed, Apr 10, 2024 at 11:11:07PM +0100, Donald Hunter wrote:
-> The NLM_F_ACK flag is not processed for nfnetlink batch messages.
+Ensure there is sufficient room to access the protocol field of the
+PPPoe header. Validate it once before the flowtable lookup, then use a
+helper function to access protocol field.
 
-Let me clarify: It is not processed for the begin and end marker
-netlink message, but it is processed for command messages.
+Reported-by: syzbot+b6f07e1c07ef40199081@syzkaller.appspotmail.com
+Fixes: 72efd585f714 ("netfilter: flowtable: add pppoe support")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v3: return boolean nf_flow_pppoe_proto to fix incorrect logic in v2.
 
-> This is a problem for ynl which wants to receive an ack for every
-> message it sends. Add processing for ACK and provide responses when
-> requested.
+ include/net/netfilter/nf_flow_table.h | 12 +++++++++++-
+ net/netfilter/nf_flow_table_inet.c    |  3 ++-
+ net/netfilter/nf_flow_table_ip.c      |  8 +++++---
+ 3 files changed, 18 insertions(+), 5 deletions(-)
 
-NLM_F_ACK is regarded for the specific command messages that are
-contained in the batch, that is:
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index a763dd327c6e..9abb7ee40d72 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -336,7 +336,7 @@ int nf_flow_rule_route_ipv6(struct net *net, struct flow_offload *flow,
+ int nf_flow_table_offload_init(void);
+ void nf_flow_table_offload_exit(void);
+ 
+-static inline __be16 nf_flow_pppoe_proto(const struct sk_buff *skb)
++static inline __be16 __nf_flow_pppoe_proto(const struct sk_buff *skb)
+ {
+ 	__be16 proto;
+ 
+@@ -352,6 +352,16 @@ static inline __be16 nf_flow_pppoe_proto(const struct sk_buff *skb)
+ 	return 0;
+ }
+ 
++static inline bool nf_flow_pppoe_proto(struct sk_buff *skb, __be16 *inner_proto)
++{
++	if (!pskb_may_pull(skb, PPPOE_SES_HLEN))
++		return false;
++
++	*inner_proto = __nf_flow_pppoe_proto(skb);
++
++	return true;
++}
++
+ #define NF_FLOW_TABLE_STAT_INC(net, count) __this_cpu_inc((net)->ft.stat->count)
+ #define NF_FLOW_TABLE_STAT_DEC(net, count) __this_cpu_dec((net)->ft.stat->count)
+ #define NF_FLOW_TABLE_STAT_INC_ATOMIC(net, count)	\
+diff --git a/net/netfilter/nf_flow_table_inet.c b/net/netfilter/nf_flow_table_inet.c
+index 9505f9d188ff..6eef15648b7b 100644
+--- a/net/netfilter/nf_flow_table_inet.c
++++ b/net/netfilter/nf_flow_table_inet.c
+@@ -21,7 +21,8 @@ nf_flow_offload_inet_hook(void *priv, struct sk_buff *skb,
+ 		proto = veth->h_vlan_encapsulated_proto;
+ 		break;
+ 	case htons(ETH_P_PPP_SES):
+-		proto = nf_flow_pppoe_proto(skb);
++		if (!nf_flow_pppoe_proto(skb, &proto))
++			return NF_ACCEPT;
+ 		break;
+ 	default:
+ 		proto = skb->protocol;
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index e45fade76409..9e9e105052da 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -273,10 +273,11 @@ static unsigned int nf_flow_xmit_xfrm(struct sk_buff *skb,
+ 	return NF_STOLEN;
+ }
+ 
+-static bool nf_flow_skb_encap_protocol(const struct sk_buff *skb, __be16 proto,
++static bool nf_flow_skb_encap_protocol(struct sk_buff *skb, __be16 proto,
+ 				       u32 *offset)
+ {
+ 	struct vlan_ethhdr *veth;
++	__be16 inner_proto;
+ 
+ 	switch (skb->protocol) {
+ 	case htons(ETH_P_8021Q):
+@@ -287,7 +288,8 @@ static bool nf_flow_skb_encap_protocol(const struct sk_buff *skb, __be16 proto,
+ 		}
+ 		break;
+ 	case htons(ETH_P_PPP_SES):
+-		if (nf_flow_pppoe_proto(skb) == proto) {
++		if (nf_flow_pppoe_proto(skb, &inner_proto) &&
++		    inner_proto == proto) {
+ 			*offset += PPPOE_SES_HLEN;
+ 			return true;
+ 		}
+@@ -316,7 +318,7 @@ static void nf_flow_encap_pop(struct sk_buff *skb,
+ 			skb_reset_network_header(skb);
+ 			break;
+ 		case htons(ETH_P_PPP_SES):
+-			skb->protocol = nf_flow_pppoe_proto(skb);
++			skb->protocol = __nf_flow_pppoe_proto(skb);
+ 			skb_pull(skb, PPPOE_SES_HLEN);
+ 			skb_reset_network_header(skb);
+ 			break;
+-- 
+2.30.2
 
-batch begin
-command
-command
-...
-command
-batch end
-
-Thus, NLM_F_ACK can be set on for the command messages and it is not
-ignore in that case.
-
-May I ask why do you need this? Is it to make your userspace tool happy?
-
-> I have checked that iproute2, pyroute2 and systemd are unaffected by
-> this change since none of them use NLM_F_ACK for batch begin/end.
-> I also ran a search on github and did not spot any usage that would
-> break.
-> 
-> Signed-off-by: Donald Hunter <donald.hunter@gmail.com>
-> ---
->  net/netfilter/nfnetlink.c | 5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-> index c9fbe0f707b5..37762941c288 100644
-> --- a/net/netfilter/nfnetlink.c
-> +++ b/net/netfilter/nfnetlink.c
-> @@ -427,6 +427,9 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
->  
->  	nfnl_unlock(subsys_id);
->  
-> +	if (nlh->nlmsg_flags & NLM_F_ACK)
-> +		nfnl_err_add(&err_list, nlh, 0, &extack);
-> +
->  	while (skb->len >= nlmsg_total_size(0)) {
->  		int msglen, type;
->  
-> @@ -463,6 +466,8 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
->  			goto done;
->  		} else if (type == NFNL_MSG_BATCH_END) {
->  			status |= NFNL_BATCH_DONE;
-> +			if (nlh->nlmsg_flags & NLM_F_ACK)
-> +				nfnl_err_add(&err_list, nlh, 0, &extack);
-
-if (status == NFNL_BATCH_DONE) should probably be a better place for
-this. I would like to have userspace that uses this, I don't have a
-usecase at this moment for this new code.
-
-Thanks.
-
->  			goto done;
->  		} else if (type < NLMSG_MIN_TYPE) {
->  			err = -EINVAL;
-> -- 
-> 2.43.0
-> 
