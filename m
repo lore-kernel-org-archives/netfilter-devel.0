@@ -1,132 +1,133 @@
-Received: from vmicros1.altlinux.org (vmicros1.altlinux.org [194.107.17.57])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2ADE56FCB
-	for <netfilter-devel@vger.kernel.org>; Tue,  9 Apr 2024 16:49:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=194.107.17.57
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 6AAD015444A;
+	Wed, 10 Apr 2024 09:23:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712681361; cv=none; b=kRnkc7NfwowLwKorP6ulwzI3EXHf36SFA6kB7+rhLUf1p8r4Aih8DZgKiHHxup+XVTI80T2EuQGjrzold+kVv4FSg90m3WVVgtwMYpzPO5mPZyA7SoDWsKlO1nbS+ZWWeh2aSDq4G0qbgFsisS73LnrlPBPTkGXjPvoelLji+pA=
+	t=1712741030; cv=none; b=sWTSACDONhJ4PvCTQw4kFjUsqezjHonkLnyc/PfiWD4dNimfHM0N4dBPK9mcabrbOS2IxITd3aQPdDTvqS5xv2hVqegs+JKoo0dN4bF8+2bnX7hA07ZxblObvnDpTunc4ev/dvDG82d5rGqlL3ssi2sGYnZISSNoPwdwB9H/SNU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712681361; c=relaxed/simple;
-	bh=qpMrJbQ3paQ4TFiBd4/isONXtG9C4QwkwAch7MMtu8Y=;
+	s=arc-20240116; t=1712741030; c=relaxed/simple;
+	bh=DhyQeHjydszLKnOgjgYXyohLr75mbDAOWJKZ2AQnIwA=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=hLpQLRPnUQFAj4UsrUnthYmNcmPgZHGCgqkdF10MrjYAQW/f7DR3XVj4HJK14ZrYjWs0aOQMBU5cJk6oCh+pCbPBRO+wnp8EjgXKQtmvINB3lfaHEA/onZEkIEDqXOCEWZLSt4KKEgm0cls2F+I13nI64nfwYf1g8uhpKPtcsBQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=altlinux.org; spf=pass smtp.mailfrom=altlinux.org; arc=none smtp.client-ip=194.107.17.57
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=altlinux.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=altlinux.org
-Received: from imap.altlinux.org (imap.altlinux.org [194.107.17.38])
-	by vmicros1.altlinux.org (Postfix) with ESMTP id 16B8C72C8F5;
-	Tue,  9 Apr 2024 19:49:11 +0300 (MSK)
-Received: from altlinux.org (sole.flsd.net [185.75.180.6])
-	by imap.altlinux.org (Postfix) with ESMTPSA id 0E41536D016C;
-	Tue,  9 Apr 2024 19:49:11 +0300 (MSK)
-Date: Tue, 9 Apr 2024 19:49:10 +0300
-From: Vitaly Chikunov <vt@altlinux.org>
-To: Phil Sutter <phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH] libxtables: Attenuate effects of functions'
- internal static buffers
-Message-ID: <20240409164910.5x6l35anvc36juca@altlinux.org>
-References: <20240409151404.30835-1-phil@nwl.cc>
+	 Content-Type:Content-Disposition:In-Reply-To; b=WNf4PGbj26fEHsGfLn9u5EV4tnLyhCo297vYJpcIvz35R+j7obtMsvW8Ey6luAgVIry9Z6SyJ5KV2qXhsOgCqGmywgor1shuA4Opc62XXXL8fRxPAKthK3sOn5gBWTZ9OidTeGFXgKOcGbRtr6QYh+bSq1cFOVz1g4AlI5+qOhc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Date: Wed, 10 Apr 2024 11:23:42 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Eric Dumazet <edumazet@google.com>
+Cc: "David S . Miller" <davem@davemloft.net>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	eric.dumazet@gmail.com, syzbot <syzkaller@googlegroups.com>
+Subject: Re: [PATCH net] netfilter: complete validation of user input
+Message-ID: <ZhZanswJEPkqrlZE@calendula>
+References: <20240409120741.3538135-1-edumazet@google.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=koi8-r
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20240409151404.30835-1-phil@nwl.cc>
+In-Reply-To: <20240409120741.3538135-1-edumazet@google.com>
 
-Phil,
+On Tue, Apr 09, 2024 at 12:07:41PM +0000, Eric Dumazet wrote:
+> In my recent commit, I missed that do_replace() handlers
+> use copy_from_sockptr() (which I fixed), followed
+> by unsafe copy_from_sockptr_offset() calls.
 
-On Tue, Apr 09, 2024 at 05:14:04PM +0200, Phil Sutter wrote:
-> While functions returning pointers to internal static buffers have
-> obvious limitations, users are likely unaware how they call each other
-> internally and thus won't notice unsafe use. One such case is calling
-> both xtables_ipaddr_to_numeric() and xtables_ipmask_to_numeric() as
-> parameters for a single printf() call.
+I forgot too to git grep away from net/netfilter/ folder for some
+reason.
+
+> In all functions, we can perform the @optlen validation
+> before even calling xt_alloc_table_info() with the following
+> check:
 > 
-> Defuse this trap by avoiding the internal calls to
-> xtables_ip{,6}addr_to_numeric() which is easily doable since callers
-> keep their own static buffers already.
-> 
-> While being at it, make use of inet_ntop() everywhere and also use
-> INET_ADDRSTRLEN/INET6_ADDRSTRLEN defines for correct (and annotated)
-> static buffer sizes.
-> 
-> Reported-by: Vitaly Chikunov <vt@altlinux.org>
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> if ((u64)optlen < (u64)tmp.size + sizeof(tmp))
+>         return -EINVAL;
 
-Reviewed-by: Vitaly Chikunov <vt@altlinux.org>
+Thanks for this fix.
 
-Also, I tested in our build env and it's worked good.
+> Fixes: 0c83842df40f ("netfilter: validate user input for expected length")
+> Reported-by: syzbot <syzkaller@googlegroups.com>
 
-Thanks,
+Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
+> Signed-off-by: Eric Dumazet <edumazet@google.com>
 > ---
->  libxtables/xtables.c | 20 +++++++++-----------
->  1 file changed, 9 insertions(+), 11 deletions(-)
+>  net/ipv4/netfilter/arp_tables.c | 4 ++++
+>  net/ipv4/netfilter/ip_tables.c  | 4 ++++
+>  net/ipv6/netfilter/ip6_tables.c | 4 ++++
+>  3 files changed, 12 insertions(+)
 > 
-> diff --git a/libxtables/xtables.c b/libxtables/xtables.c
-> index f2fcc5c22fb61..7b370d486f888 100644
-> --- a/libxtables/xtables.c
-> +++ b/libxtables/xtables.c
-> @@ -1513,11 +1513,9 @@ void xtables_param_act(unsigned int status, const char *p1, ...)
+> diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+> index b150c9929b12e86219a55c77da480e0c538b3449..14365b20f1c5c09964dd7024060116737f22cb63 100644
+> --- a/net/ipv4/netfilter/arp_tables.c
+> +++ b/net/ipv4/netfilter/arp_tables.c
+> @@ -966,6 +966,8 @@ static int do_replace(struct net *net, sockptr_t arg, unsigned int len)
+>  		return -ENOMEM;
+>  	if (tmp.num_counters == 0)
+>  		return -EINVAL;
+> +	if ((u64)len < (u64)tmp.size + sizeof(tmp))
+> +		return -EINVAL;
 >  
->  const char *xtables_ipaddr_to_numeric(const struct in_addr *addrp)
->  {
-> -	static char buf[16];
-> -	const unsigned char *bytep = (const void *)&addrp->s_addr;
-> +	static char buf[INET_ADDRSTRLEN];
+>  	tmp.name[sizeof(tmp.name)-1] = 0;
 >  
-> -	sprintf(buf, "%u.%u.%u.%u", bytep[0], bytep[1], bytep[2], bytep[3]);
-> -	return buf;
-> +	return inet_ntop(AF_INET, addrp, buf, sizeof(buf));
->  }
+> @@ -1266,6 +1268,8 @@ static int compat_do_replace(struct net *net, sockptr_t arg, unsigned int len)
+>  		return -ENOMEM;
+>  	if (tmp.num_counters == 0)
+>  		return -EINVAL;
+> +	if ((u64)len < (u64)tmp.size + sizeof(tmp))
+> +		return -EINVAL;
 >  
->  static const char *ipaddr_to_host(const struct in_addr *addr)
-> @@ -1577,13 +1575,14 @@ int xtables_ipmask_to_cidr(const struct in_addr *mask)
+>  	tmp.name[sizeof(tmp.name)-1] = 0;
 >  
->  const char *xtables_ipmask_to_numeric(const struct in_addr *mask)
->  {
-> -	static char buf[20];
-> +	static char buf[INET_ADDRSTRLEN + 1];
->  	uint32_t cidr;
+> diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+> index 487670759578168c5ff53bce6642898fc41936b3..fe89a056eb06c43743b2d7449e59f4e9360ba223 100644
+> --- a/net/ipv4/netfilter/ip_tables.c
+> +++ b/net/ipv4/netfilter/ip_tables.c
+> @@ -1118,6 +1118,8 @@ do_replace(struct net *net, sockptr_t arg, unsigned int len)
+>  		return -ENOMEM;
+>  	if (tmp.num_counters == 0)
+>  		return -EINVAL;
+> +	if ((u64)len < (u64)tmp.size + sizeof(tmp))
+> +		return -EINVAL;
 >  
->  	cidr = xtables_ipmask_to_cidr(mask);
->  	if (cidr == (unsigned int)-1) {
->  		/* mask was not a decent combination of 1's and 0's */
-> -		sprintf(buf, "/%s", xtables_ipaddr_to_numeric(mask));
-> +		buf[0] = '/';
-> +		inet_ntop(AF_INET, mask, buf + 1, sizeof(buf) - 1);
->  		return buf;
->  	} else if (cidr == 32) {
->  		/* we don't want to see "/32" */
-> @@ -1863,9 +1862,8 @@ void xtables_ipparse_any(const char *name, struct in_addr **addrpp,
+>  	tmp.name[sizeof(tmp.name)-1] = 0;
 >  
->  const char *xtables_ip6addr_to_numeric(const struct in6_addr *addrp)
->  {
-> -	/* 0000:0000:0000:0000:0000:0000:000.000.000.000
-> -	 * 0000:0000:0000:0000:0000:0000:0000:0000 */
-> -	static char buf[50+1];
-> +	static char buf[INET6_ADDRSTRLEN];
-> +
->  	return inet_ntop(AF_INET6, addrp, buf, sizeof(buf));
->  }
+> @@ -1504,6 +1506,8 @@ compat_do_replace(struct net *net, sockptr_t arg, unsigned int len)
+>  		return -ENOMEM;
+>  	if (tmp.num_counters == 0)
+>  		return -EINVAL;
+> +	if ((u64)len < (u64)tmp.size + sizeof(tmp))
+> +		return -EINVAL;
 >  
-> @@ -1923,12 +1921,12 @@ int xtables_ip6mask_to_cidr(const struct in6_addr *k)
+>  	tmp.name[sizeof(tmp.name)-1] = 0;
 >  
->  const char *xtables_ip6mask_to_numeric(const struct in6_addr *addrp)
->  {
-> -	static char buf[50+2];
-> +	static char buf[INET6_ADDRSTRLEN + 1];
->  	int l = xtables_ip6mask_to_cidr(addrp);
+> diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+> index 636b360311c5365fba2330f6ca2f7f1b6dd1363e..131f7bb2110d3a08244c6da40ff9be45a2be711b 100644
+> --- a/net/ipv6/netfilter/ip6_tables.c
+> +++ b/net/ipv6/netfilter/ip6_tables.c
+> @@ -1135,6 +1135,8 @@ do_replace(struct net *net, sockptr_t arg, unsigned int len)
+>  		return -ENOMEM;
+>  	if (tmp.num_counters == 0)
+>  		return -EINVAL;
+> +	if ((u64)len < (u64)tmp.size + sizeof(tmp))
+> +		return -EINVAL;
 >  
->  	if (l == -1) {
->  		strcpy(buf, "/");
-> -		strcat(buf, xtables_ip6addr_to_numeric(addrp));
-> +		inet_ntop(AF_INET6, addrp, buf + 1, sizeof(buf) - 1);
->  		return buf;
->  	}
->  	/* we don't want to see "/128" */
+>  	tmp.name[sizeof(tmp.name)-1] = 0;
+>  
+> @@ -1513,6 +1515,8 @@ compat_do_replace(struct net *net, sockptr_t arg, unsigned int len)
+>  		return -ENOMEM;
+>  	if (tmp.num_counters == 0)
+>  		return -EINVAL;
+> +	if ((u64)len < (u64)tmp.size + sizeof(tmp))
+> +		return -EINVAL;
+>  
+>  	tmp.name[sizeof(tmp.name)-1] = 0;
+>  
 > -- 
-> 2.43.0
+> 2.44.0.478.gd926399ef9-goog
+> 
