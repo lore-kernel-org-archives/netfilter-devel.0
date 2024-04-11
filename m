@@ -1,22 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4338514AA7;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 433C946B83;
 	Thu, 11 Apr 2024 23:42:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712878951; cv=none; b=ZlcVtASfyCVXKVfkd+3cM9N8jInNvKhon3Q9GeZU06DQv4MsqvD3Jk7ZO3Tvo4GuN7/CJCFKYn2vbfNJbg28SYzh7pCkecjNGwNFIFCymhvq1lokhphAtCIDCBI0MLGGtifMR+tJsxyh7kkIv8XInvs+CsDB7rjiqjFS76LbLuM=
+	t=1712878952; cv=none; b=kQfKO95+XoQ268P2y0Pt/oG/S8oTdpNBDUaWiFixyCuw+zujB2+UM921z4KnMePk2dBgB0OdVgKXzX670mDLF+kNkfjL/SSOoZ5+p2MoZ1EhPVPTPWgLt0CHXGJcZqGOc+spFwp9zj38OrmhODiOwmzHGINKIV+N2fsX+n0h44M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712878951; c=relaxed/simple;
-	bh=/OMS7BKyqGbd6XvDWMqH/K15uYWKdbrXsDYCDEsp80k=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=m0fRsN/we+zet2axxKWexZ23gf/s5/6x24F5tWgsSTENUM8rYZ5R+Q+fiYUEj6/2CRimF0LBP83CwEwKPiCn3Fd9pol6RFdaI1yM6tKhqdoEljeV+acSZzP1vqGfEi5UISE4hJdGLqii6wtes9xBYmGWOu1kXHRxwfjMXQ/qQgs=
+	s=arc-20240116; t=1712878952; c=relaxed/simple;
+	bh=AbJWDUPe32ZT+YJq80rf/hwNLhNNOxKQCfrR0vMxsvw=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=IS1MiqCMWlv/j2/ktwnv9z0Pk6cmASabjT2hb2cHe3WcaUGVGiLTNyJ0kDqthJaRBczSb56Zon6NxGejyPq+Aiw7T0x1XeVJEKHjjVY/T7iArymHLIY2HQEntJJPYEyoxxQ2Fl9vFgL8wWBmDuI8fg9uSfo/iVnu2Po7fi9YTZA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1rv43n-0000tM-M7; Fri, 12 Apr 2024 01:42:27 +0200
+	id 1rv43f-0000t2-GX; Fri, 12 Apr 2024 01:42:19 +0200
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: <netfilter-devel@vger.kernel.org>,
@@ -25,12 +24,10 @@ Cc: <netfilter-devel@vger.kernel.org>,
 	Eric Dumazet <edumazet@google.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH net-next 02/15] selftests: netfilter: bridge_brouter.sh: move to lib.sh infra
-Date: Fri, 12 Apr 2024 01:36:07 +0200
-Message-ID: <20240411233624.8129-3-fw@strlen.de>
+Subject: [PATCH net-next 00/15] selftests: move netfilter tests to net
+Date: Fri, 12 Apr 2024 01:36:05 +0200
+Message-ID: <20240411233624.8129-1-fw@strlen.de>
 X-Mailer: git-send-email 2.43.2
-In-Reply-To: <20240411233624.8129-1-fw@strlen.de>
-References: <20240411233624.8129-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -39,218 +36,139 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Doing so gets us dynamically generated netns names.
+First patch in this series moves selftests/netfilter/
+to selftests/net/netfilter/.
 
-Also:
-* do not assume rp_filter is disabled, if its on script failed
-* reduce timeout (-W) for "expected to fail" ping commands
-* don't print PASS line for basic sanity ping
-* shellcheck cleanups
+Passing this via net-next rather than nf-next for this reason.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- .../selftests/net/netfilter/bridge_brouter.sh | 128 +++++++-----------
- 1 file changed, 52 insertions(+), 76 deletions(-)
+Main motivation is that a lot of these scripts only work on my old
+development VM, I hope that placing this in net/ will get these
+tests to get run in more regular intervals (and tests get more robust).
 
-diff --git a/tools/testing/selftests/net/netfilter/bridge_brouter.sh b/tools/testing/selftests/net/netfilter/bridge_brouter.sh
-index 29f3955b9af7..2549b6590693 100755
---- a/tools/testing/selftests/net/netfilter/bridge_brouter.sh
-+++ b/tools/testing/selftests/net/netfilter/bridge_brouter.sh
-@@ -5,142 +5,118 @@
- # part of a bridge.
- 
- #           eth0    br0     eth0
--# setup is: ns1 <-> ns0 <-> ns2
-+# setup is: ns1 <-> nsbr <-> ns2
- 
--# Kselftest framework requirement - SKIP code is 4.
--ksft_skip=4
--ret=0
-+source lib.sh
- 
--ebtables -V > /dev/null 2>&1
--if [ $? -ne 0 ];then
-+if ! ebtables -V > /dev/null 2>&1;then
- 	echo "SKIP: Could not run test without ebtables"
- 	exit $ksft_skip
- fi
- 
--ip -Version > /dev/null 2>&1
--if [ $? -ne 0 ];then
--	echo "SKIP: Could not run test without ip tool"
--	exit $ksft_skip
--fi
-+cleanup() {
-+	cleanup_all_ns
-+}
- 
--ip netns add ns0
--ip netns add ns1
--ip netns add ns2
-+trap cleanup EXIT
- 
--ip link add veth0 netns ns0 type veth peer name eth0 netns ns1
--if [ $? -ne 0 ]; then
-+setup_ns nsbr ns1 ns2
-+
-+ip netns exec "$nsbr" sysctl -q net.ipv4.conf.default.rp_filter=0
-+ip netns exec "$nsbr" sysctl -q net.ipv4.conf.all.rp_filter=0
-+if ! ip link add veth0 netns "$nsbr" type veth peer name eth0 netns "$ns1"; then
- 	echo "SKIP: Can't create veth device"
- 	exit $ksft_skip
- fi
--ip link add veth1 netns ns0 type veth peer name eth0 netns ns2
--
--ip -net ns0 link set lo up
--ip -net ns0 link set veth0 up
--ip -net ns0 link set veth1 up
-+ip link add veth1 netns "$nsbr" type veth peer name eth0 netns "$ns2"
- 
--ip -net ns0 link add br0 type bridge
--if [ $? -ne 0 ]; then
-+if ! ip -net "$nsbr" link add br0 type bridge; then
- 	echo "SKIP: Can't create bridge br0"
- 	exit $ksft_skip
- fi
- 
--ip -net ns0 link set veth0 master br0
--ip -net ns0 link set veth1 master br0
--ip -net ns0 link set br0 up
--ip -net ns0 addr add 10.0.0.1/24 dev br0
-+ip -net "$nsbr" link set veth0 up
-+ip -net "$nsbr" link set veth1 up
-+
-+ip -net "$nsbr" link set veth0 master br0
-+ip -net "$nsbr" link set veth1 master br0
-+ip -net "$nsbr" link set br0 up
-+ip -net "$nsbr" addr add 10.0.0.1/24 dev br0
- 
--# place both in same subnet, ns1 and ns2 connected via ns0:br0
--for i in 1 2; do
--  ip -net ns$i link set lo up
--  ip -net ns$i link set eth0 up
--  ip -net ns$i addr add 10.0.0.1$i/24 dev eth0
--done
-+# place both in same subnet, ${ns1} and ${ns2} connected via ${nsbr}:br0
-+ip -net "$ns1" link set eth0 up
-+ip -net "$ns2" link set eth0 up
-+ip -net "$ns1" addr add 10.0.0.11/24 dev eth0
-+ip -net "$ns2" addr add 10.0.0.12/24 dev eth0
- 
- test_ebtables_broute()
- {
--	local cipt
--
- 	# redirect is needed so the dstmac is rewritten to the bridge itself,
- 	# ip stack won't process OTHERHOST (foreign unicast mac) packets.
--	ip netns exec ns0 ebtables -t broute -A BROUTING -p ipv4 --ip-protocol icmp -j redirect --redirect-target=DROP
--	if [ $? -ne 0 ]; then
-+	if ! ip netns exec "$nsbr" ebtables -t broute -A BROUTING -p ipv4 --ip-protocol icmp -j redirect --redirect-target=DROP; then
- 		echo "SKIP: Could not add ebtables broute redirect rule"
- 		return $ksft_skip
- 	fi
- 
--	# ping netns1, expected to not work (ip forwarding is off)
--	ip netns exec ns1 ping -q -c 1 10.0.0.12 > /dev/null 2>&1
--	if [ $? -eq 0 ]; then
-+	ip netns exec "$nsbr" sysctl -q net.ipv4.conf.veth0.forwarding=0
-+
-+	# ping net${ns1}, expected to not work (ip forwarding is off)
-+	if ip netns exec "$ns1" ping -q -c 1 10.0.0.12 -W 0.5 > /dev/null 2>&1; then
- 		echo "ERROR: ping works, should have failed" 1>&2
- 		return 1
- 	fi
- 
- 	# enable forwarding on both interfaces.
- 	# neither needs an ip address, but at least the bridge needs
--	# an ip address in same network segment as ns1 and ns2 (ns0
-+	# an ip address in same network segment as ${ns1} and ${ns2} (${nsbr}
- 	# needs to be able to determine route for to-be-forwarded packet).
--	ip netns exec ns0 sysctl -q net.ipv4.conf.veth0.forwarding=1
--	ip netns exec ns0 sysctl -q net.ipv4.conf.veth1.forwarding=1
--
--	sleep 1
-+	ip netns exec "$nsbr" sysctl -q net.ipv4.conf.veth0.forwarding=1
-+	ip netns exec "$nsbr" sysctl -q net.ipv4.conf.veth1.forwarding=1
- 
--	ip netns exec ns1 ping -q -c 1 10.0.0.12 > /dev/null
--	if [ $? -ne 0 ]; then
-+	if ! ip netns exec "$ns1" ping -q -c 1 10.0.0.12 > /dev/null; then
- 		echo "ERROR: ping did not work, but it should (broute+forward)" 1>&2
- 		return 1
- 	fi
- 
--	echo "PASS: ns1/ns2 connectivity with active broute rule"
--	ip netns exec ns0 ebtables -t broute -F
-+	echo "PASS: ${ns1}/${ns2} connectivity with active broute rule"
-+	ip netns exec "$nsbr" ebtables -t broute -F
- 
--	# ping netns1, expected to work (frames are bridged)
--	ip netns exec ns1 ping -q -c 1 10.0.0.12 > /dev/null
--	if [ $? -ne 0 ]; then
-+	# ping net${ns1}, expected to work (frames are bridged)
-+	if ! ip netns exec "$ns1" ping -q -c 1 10.0.0.12 > /dev/null; then
- 		echo "ERROR: ping did not work, but it should (bridged)" 1>&2
- 		return 1
- 	fi
- 
--	ip netns exec ns0 ebtables -t filter -A FORWARD -p ipv4 --ip-protocol icmp -j DROP
-+	ip netns exec "$nsbr" ebtables -t filter -A FORWARD -p ipv4 --ip-protocol icmp -j DROP
- 
--	# ping netns1, expected to not work (DROP in bridge forward)
--	ip netns exec ns1 ping -q -c 1 10.0.0.12 > /dev/null 2>&1
--	if [ $? -eq 0 ]; then
-+	# ping net${ns1}, expected to not work (DROP in bridge forward)
-+	if ip netns exec "$ns1" ping -q -c 1 10.0.0.12 -W 0.5 > /dev/null 2>&1; then
- 		echo "ERROR: ping works, should have failed (icmp forward drop)" 1>&2
- 		return 1
- 	fi
- 
- 	# re-activate brouter
--	ip netns exec ns0 ebtables -t broute -A BROUTING -p ipv4 --ip-protocol icmp -j redirect --redirect-target=DROP
-+	ip netns exec "$nsbr" ebtables -t broute -A BROUTING -p ipv4 --ip-protocol icmp -j redirect --redirect-target=DROP
- 
--	ip netns exec ns2 ping -q -c 1 10.0.0.11 > /dev/null
--	if [ $? -ne 0 ]; then
-+	if ! ip netns exec "$ns2" ping -q -c 1 10.0.0.11 > /dev/null; then
- 		echo "ERROR: ping did not work, but it should (broute+forward 2)" 1>&2
- 		return 1
- 	fi
- 
--	echo "PASS: ns1/ns2 connectivity with active broute rule and bridge forward drop"
-+	echo "PASS: ${ns1}/${ns2} connectivity with active broute rule and bridge forward drop"
- 	return 0
- }
- 
- # test basic connectivity
--ip netns exec ns1 ping -c 1 -q 10.0.0.12 > /dev/null
--if [ $? -ne 0 ]; then
--    echo "ERROR: Could not reach ns2 from ns1" 1>&2
--    ret=1
-+if ! ip netns exec "$ns1" ping -c 1 -q 10.0.0.12 > /dev/null; then
-+    echo "ERROR: Could not reach ${ns2} from ${ns1}" 1>&2
-+    exit 1
- fi
- 
--ip netns exec ns2 ping -c 1 -q 10.0.0.11 > /dev/null
--if [ $? -ne 0 ]; then
--    echo "ERROR: Could not reach ns1 from ns2" 1>&2
--    ret=1
--fi
--
--if [ $ret -eq 0 ];then
--    echo "PASS: netns connectivity: ns1 and ns2 can reach each other"
-+if ! ip netns exec "$ns2" ping -c 1 -q 10.0.0.11 > /dev/null; then
-+    echo "ERROR: Could not reach ${ns1} from ${ns2}" 1>&2
-+    exit 1
- fi
- 
- test_ebtables_broute
--ret=$?
--for i in 0 1 2; do ip netns del ns$i;done
--
--exit $ret
-+exit $?
+Changes are:
+
+- make use of existing 'setup_ns' and 'busywait' helpers
+- fix shellcheck warnings
+- add more SKIP checks to avoid failures
+- get rid of netcat in favor of socat, too many test
+  failures due to 'wrong' netcat flavor
+- do not assume rp_filter sysctl is off
+
+I have more patches that fix up the remaining test scripts,
+but the series was too large to send them at once (34 patches).
+
+After all scripts are fixed up, tests pass on both my Debian
+and Fedora test machines.
+
+If you want me to route this via a different tree, e.g. nf-next,
+please let me know.
+
+MAINTAINERS is updated to reflect that future updates should be handled
+via netfilter-devel@.
+
+Florian Westphal (15):
+  selftests: netfilter: move to net subdir
+  selftests: netfilter: bridge_brouter.sh: move to lib.sh infra
+  selftests: netfilter: br_netfilter.sh: move to lib.sh infra
+  selftests: netfilter: conntrack_icmp_related.sh: move to lib.sh infra
+  selftests: netfilter: conntrack_tcp_unreplied.sh: move to lib.sh infra
+  selftests: netfilter: conntrack_sctp_collision.sh: move to lib.sh infra
+  selftests: netfilter: conntrack_vrf.sh: move to lib.sh infra
+  selftests: netfilter: conntrack_ipip_mtu.sh" move to lib.sh infra
+  selftests: netfilter: place checktool helper in lib.sh
+  selftests: netfilter: ipvs.sh: move to lib.sh infra
+  selftests: netfilter: nf_nat_edemux.sh: move to lib.sh infra
+  selftests: netfilter: nft_conntrack_helper.sh: test to lib.sh infra
+  selftests: netfilter: nft_fib.sh: move to lib.sh infra
+  selftests: netfilter: nft_flowtable.sh: move test to lib.sh infra
+  selftests: netfilter: nft_nat.sh: move to lib.sh infra
+
+ MAINTAINERS                                   |   1 +
+ .../selftests/{ => net}/netfilter/.gitignore  |   4 +-
+ .../testing/selftests/net/netfilter/Makefile  |  44 ++
+ .../{ => net}/netfilter/audit_logread.c       |   0
+ .../selftests/net/netfilter/br_netfilter.sh   | 163 ++++++
+ .../selftests/net/netfilter/bridge_brouter.sh | 122 +++++
+ tools/testing/selftests/net/netfilter/config  |  37 ++
+ .../{ => net}/netfilter/connect_close.c       |   0
+ .../netfilter/conntrack_dump_flush.c          |   2 +-
+ .../netfilter/conntrack_icmp_related.sh       | 179 +++----
+ .../netfilter/conntrack_ipip_mtu.sh}          |  44 +-
+ .../net/netfilter/conntrack_sctp_collision.sh |  87 ++++
+ .../net/netfilter/conntrack_tcp_unreplied.sh  | 153 ++++++
+ .../{ => net}/netfilter/conntrack_vrf.sh      | 101 ++--
+ tools/testing/selftests/net/netfilter/ipvs.sh | 211 ++++++++
+ tools/testing/selftests/net/netfilter/lib.sh  |  10 +
+ .../selftests/net/netfilter/nf_nat_edemux.sh  |  97 ++++
+ .../nf-queue.c => net/netfilter/nf_queue.c}   |   0
+ .../{ => net}/netfilter/nft_audit.sh          |   0
+ .../{ => net}/netfilter/nft_concat_range.sh   |   0
+ .../net/netfilter/nft_conntrack_helper.sh     | 171 +++++++
+ .../selftests/{ => net}/netfilter/nft_fib.sh  |  71 +--
+ .../{ => net}/netfilter/nft_flowtable.sh      | 108 ++--
+ .../selftests/{ => net}/netfilter/nft_meta.sh |   0
+ .../selftests/{ => net}/netfilter/nft_nat.sh  | 480 ++++++++----------
+ .../{ => net}/netfilter/nft_nat_zones.sh      |   0
+ .../{ => net}/netfilter/nft_queue.sh          |  18 +-
+ .../{ => net}/netfilter/nft_synproxy.sh       |   0
+ .../{ => net}/netfilter/nft_zones_many.sh     |   0
+ .../selftests/{ => net}/netfilter/rpath.sh    |   0
+ .../{ => net}/netfilter/sctp_collision.c      |   0
+ .../{ => net}/netfilter/xt_string.sh          |   0
+ tools/testing/selftests/netfilter/Makefile    |  21 -
+ .../selftests/netfilter/bridge_brouter.sh     | 146 ------
+ .../selftests/netfilter/bridge_netfilter.sh   | 188 -------
+ tools/testing/selftests/netfilter/config      |   9 -
+ .../netfilter/conntrack_sctp_collision.sh     |  89 ----
+ .../netfilter/conntrack_tcp_unreplied.sh      | 167 ------
+ tools/testing/selftests/netfilter/ipvs.sh     | 228 ---------
+ .../selftests/netfilter/nf_nat_edemux.sh      | 127 -----
+ .../netfilter/nft_conntrack_helper.sh         | 197 -------
+ .../selftests/netfilter/nft_trans_stress.sh   | 151 ------
+ tools/testing/selftests/netfilter/settings    |   1 -
+ 43 files changed, 1493 insertions(+), 1934 deletions(-)
+ rename tools/testing/selftests/{ => net}/netfilter/.gitignore (92%)
+ create mode 100644 tools/testing/selftests/net/netfilter/Makefile
+ rename tools/testing/selftests/{ => net}/netfilter/audit_logread.c (100%)
+ create mode 100755 tools/testing/selftests/net/netfilter/br_netfilter.sh
+ create mode 100755 tools/testing/selftests/net/netfilter/bridge_brouter.sh
+ create mode 100644 tools/testing/selftests/net/netfilter/config
+ rename tools/testing/selftests/{ => net}/netfilter/connect_close.c (100%)
+ rename tools/testing/selftests/{ => net}/netfilter/conntrack_dump_flush.c (99%)
+ rename tools/testing/selftests/{ => net}/netfilter/conntrack_icmp_related.sh (52%)
+ rename tools/testing/selftests/{netfilter/ipip-conntrack-mtu.sh => net/netfilter/conntrack_ipip_mtu.sh} (89%)
+ create mode 100755 tools/testing/selftests/net/netfilter/conntrack_sctp_collision.sh
+ create mode 100755 tools/testing/selftests/net/netfilter/conntrack_tcp_unreplied.sh
+ rename tools/testing/selftests/{ => net}/netfilter/conntrack_vrf.sh (66%)
+ create mode 100755 tools/testing/selftests/net/netfilter/ipvs.sh
+ create mode 100644 tools/testing/selftests/net/netfilter/lib.sh
+ create mode 100755 tools/testing/selftests/net/netfilter/nf_nat_edemux.sh
+ rename tools/testing/selftests/{netfilter/nf-queue.c => net/netfilter/nf_queue.c} (100%)
+ rename tools/testing/selftests/{ => net}/netfilter/nft_audit.sh (100%)
+ rename tools/testing/selftests/{ => net}/netfilter/nft_concat_range.sh (100%)
+ create mode 100755 tools/testing/selftests/net/netfilter/nft_conntrack_helper.sh
+ rename tools/testing/selftests/{ => net}/netfilter/nft_fib.sh (78%)
+ rename tools/testing/selftests/{ => net}/netfilter/nft_flowtable.sh (88%)
+ rename tools/testing/selftests/{ => net}/netfilter/nft_meta.sh (100%)
+ rename tools/testing/selftests/{ => net}/netfilter/nft_nat.sh (62%)
+ rename tools/testing/selftests/{ => net}/netfilter/nft_nat_zones.sh (100%)
+ rename tools/testing/selftests/{ => net}/netfilter/nft_queue.sh (95%)
+ rename tools/testing/selftests/{ => net}/netfilter/nft_synproxy.sh (100%)
+ rename tools/testing/selftests/{ => net}/netfilter/nft_zones_many.sh (100%)
+ rename tools/testing/selftests/{ => net}/netfilter/rpath.sh (100%)
+ rename tools/testing/selftests/{ => net}/netfilter/sctp_collision.c (100%)
+ rename tools/testing/selftests/{ => net}/netfilter/xt_string.sh (100%)
+ delete mode 100644 tools/testing/selftests/netfilter/Makefile
+ delete mode 100755 tools/testing/selftests/netfilter/bridge_brouter.sh
+ delete mode 100644 tools/testing/selftests/netfilter/bridge_netfilter.sh
+ delete mode 100644 tools/testing/selftests/netfilter/config
+ delete mode 100755 tools/testing/selftests/netfilter/conntrack_sctp_collision.sh
+ delete mode 100755 tools/testing/selftests/netfilter/conntrack_tcp_unreplied.sh
+ delete mode 100755 tools/testing/selftests/netfilter/ipvs.sh
+ delete mode 100755 tools/testing/selftests/netfilter/nf_nat_edemux.sh
+ delete mode 100755 tools/testing/selftests/netfilter/nft_conntrack_helper.sh
+ delete mode 100755 tools/testing/selftests/netfilter/nft_trans_stress.sh
+ delete mode 100644 tools/testing/selftests/netfilter/settings
+
 -- 
 2.43.2
-
