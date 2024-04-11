@@ -1,42 +1,35 @@
-Received: from smtp.forwardemail.net (smtp.forwardemail.net [149.28.215.223])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F9B884A40
-	for <netfilter-devel@vger.kernel.org>; Thu, 11 Apr 2024 02:30:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=149.28.215.223
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E17F313B28D;
+	Thu, 11 Apr 2024 02:50:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712802643; cv=none; b=f49JoeSYmKGIYbEvVXGR7IHL76EWn9lYEm7bhDJWZb6eNyTAX624gcMLnRWzv1vdZmd0Hyd/Vp0XrDr0swjnjdDdkvhBGxZZuGEdLrvjymiZv+2Ir1fKQI94SIc6+o3D86ry9S1geJVCuZwbVxt53FJvL4hypgbE56qxpNglrXw=
+	t=1712803828; cv=none; b=K6oQillmGpf7FEk4FYAQ9JQgOXfklsltuaUKawXutOftAKHJU7w7Qc7g2uiEIMQFVQQOww4GhHIK4wd07cjFFiK6OveUDPzjn2qGfJL3Teg6hMGsDp3KjRkLgkVZEgnxhYAo4ZcR4JRvHujyIGJB0NRlYUbmAbJvyDs4sgesxUk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712802643; c=relaxed/simple;
-	bh=PcPW/OIMVeZXCRyoeXq8oAFYmKKXUaihPmtYX8Q/b7U=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=ctNgWJZunX/n0MeaxxzFzdU86Bb4fjzvoSBWokHtC9elHm2jDmJmA9xSdZOREeFyUD7VfOyn9CKX4GbmlJcvZcaL9jkUf73KuQF+NbnA0EhXTskzSXvO4PVjNnC5Ejwb6JKYAhBv9pP1gOQtc1LKg+cPcKfi9paJ10jtApP8A50=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=faucet.nz; spf=pass smtp.mailfrom=fe-bounces.faucet.nz; dkim=pass (1024-bit key) header.d=faucet.nz header.i=@faucet.nz header.b=L7PJZMBL; arc=none smtp.client-ip=149.28.215.223
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=faucet.nz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fe-bounces.faucet.nz
+	s=arc-20240116; t=1712803828; c=relaxed/simple;
+	bh=BXwOUb94B0aeTXI2iXmNwcmPP3CbC1OC03DofIcmIf0=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=r5AvuacYPo7K33GKZ5Lcquqaj372omuhb/5vSVC3J2hA65j46haSa15y0rX33x/t9UeTnKXOjk/1pX68wZ+ZFNOVPhAj8weB4QvVDXvpWChA2axJX7xE+YrG9zzT0pUi726H65aFPrgz7P5qAwqKDhxSrdNWfWf3nrSaUaCyfcM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AGAO8/oW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=faucet.nz header.i=@faucet.nz header.b="L7PJZMBL"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=faucet.nz;
- h=Content-Transfer-Encoding: MIME-Version: References: In-Reply-To:
- Message-Id: Date: Subject: Cc: To: From; q=dns/txt; s=fe-4ed8c67516;
- t=1712802622; bh=PcPW/OIMVeZXCRyoeXq8oAFYmKKXUaihPmtYX8Q/b7U=;
- b=L7PJZMBLkMN7WDX4YZXd8m6KBjmjsQeClHiYxmTPQweEmHUrsf9CXOfB+Z0lkFGUqSd8Pxv6a
- lh0tNe244JKzHJnDaehpzwy7Su/NzQrHe+kj1mGi+4dSZzGM3NIzK1v/ePwgsf2f1k7HuxNfz4v
- PTldSIt8K3rYh2cfbViY53g=
-From: Brad Cowie <brad@faucet.nz>
-To: martin.lau@linux.dev
-Cc: andrii@kernel.org, ast@kernel.org, bpf@vger.kernel.org, brad@faucet.nz,
- coreteam@netfilter.org, daniel@iogearbox.net, davem@davemloft.net,
- john.fastabend@gmail.com, jolsa@kernel.org, kuba@kernel.org,
- lorenzo@kernel.org, memxor@gmail.com, netdev@vger.kernel.org,
- netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org,
- sdf@google.com, song@kernel.org
-Subject: Re: [PATCH bpf-next] net: netfilter: Make ct zone id configurable for bpf ct helper functions
-Date: Thu, 11 Apr 2024 14:29:33 +1200
-Message-Id: <20240411022933.2946226-1-brad@faucet.nz>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <29325462-d001-4cb3-909d-27f7243a5c05@linux.dev>
-References: <29325462-d001-4cb3-909d-27f7243a5c05@linux.dev>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AGAO8/oW"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 6DC0FC43390;
+	Thu, 11 Apr 2024 02:50:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1712803827;
+	bh=BXwOUb94B0aeTXI2iXmNwcmPP3CbC1OC03DofIcmIf0=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=AGAO8/oWrszXoVTPJ/SWuS3ggI+sgdJ3aRRl82+g8Cmc9yeOyO/FD8ctdO53DaThR
+	 hzCJj0vbK9VDMUSd4mmYI5Fllp12fN0vOWr7YAaFIH8Uf/8JW96MrxiiTGDP2AcSAe
+	 G5gdr3Vl0zIOcZil/5aRypDF2D+5tOQM9WWWGLzbaUDUp4LGA5gHe1NJeSt0ISHzPd
+	 qU0msNwCaszBUuAdc95VRqAftQ8FgQvIXFZKIX68llcgJWD6y1y5IibuXlIm60w2g6
+	 op9KG8ftojjkXyY26Hy0GZ9eLV5sVeCe00JIPrPFZb2UxFKvt1jR6Atb9jLGcaiqUe
+	 9AFQa+d6di8Jw==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 5BAE0C395F6;
+	Thu, 11 Apr 2024 02:50:27 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -44,30 +37,42 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Report-Abuse-To: abuse@forwardemail.net
-X-Report-Abuse: abuse@forwardemail.net
-X-Complaints-To: abuse@forwardemail.net
-X-ForwardEmail-Version: 0.4.40
-X-ForwardEmail-Sender: rfc822; brad@faucet.nz, smtp.forwardemail.net,
- 149.28.215.223
-X-ForwardEmail-ID: 66174b3ed27b905a1d2cd455
+Subject: Re: [PATCH net] netfilter: complete validation of user input
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <171280382737.28291.10185015760254158015.git-patchwork-notify@kernel.org>
+Date: Thu, 11 Apr 2024 02:50:27 +0000
+References: <20240409120741.3538135-1-edumazet@google.com>
+In-Reply-To: <20240409120741.3538135-1-edumazet@google.com>
+To: Eric Dumazet <edumazet@google.com>
+Cc: davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com,
+ pablo@netfilter.org, kadlec@netfilter.org, netdev@vger.kernel.org,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ eric.dumazet@gmail.com, syzkaller@googlegroups.com
 
-On Sat, 6 Apr 2024 at 09:01, Martin KaFai Lau <martin.lau@linux.dev> wrote:
-> How about the other fields (flags and dir) in the "struct nf_conntrack_zone" and
-> would it be useful to have values other than the default?
+Hello:
 
-Good question, it would probably be useful to make these configurable
-as well. My reason for only adding ct zone id was to avoid changing
-the size of bpf_ct_opts (NF_BPF_CT_OPTS_SZ).
+This patch was applied to netdev/net.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
 
-I would be interested in some opinions here on if it's acceptable to
-increase the size of bpf_ct_opts, if so, should I also add back some
-reserved options to the struct for future use?
+On Tue,  9 Apr 2024 12:07:41 +0000 you wrote:
+> In my recent commit, I missed that do_replace() handlers
+> use copy_from_sockptr() (which I fixed), followed
+> by unsafe copy_from_sockptr_offset() calls.
+> 
+> In all functions, we can perform the @optlen validation
+> before even calling xt_alloc_table_info() with the following
+> check:
+> 
+> [...]
 
-> Can it actually test an alloc and lookup of a non default zone id?
+Here is the summary with links:
+  - [net] netfilter: complete validation of user input
+    https://git.kernel.org/netdev/net/c/65acf6e0501a
 
-Yes, I have a test written now and will include this in my v2 submission.
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-> Please also separate the selftest into another patch.
 
-Will do.
