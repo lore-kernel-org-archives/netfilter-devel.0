@@ -1,22 +1,22 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DE7B47F58;
-	Thu, 11 Apr 2024 23:43:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD8C0482E4;
+	Thu, 11 Apr 2024 23:43:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712878983; cv=none; b=gFH6y8a8dcfuBuwAXeFq3CRXkkV3WUk0xLUm4qolL4giyaGtrcTQC3+ZAm85S7mUVtICdi3qagAckk4bAZUna0U4U8vOb2Q4L7EgiRP0jFEg+baxRohxKvWyV3iRXYOcWh4dqUGyX4p3OQuc21Rzo8A9x/uHMd79LVyWq1wu1C4=
+	t=1712878987; cv=none; b=r3wIYVABPWJ5ap9vMkDUjQQWVcNXTLycqm5B7iywUHvKh3zkOTiB2M0nlF7uFwnqopDYU1wkLLBY1n9WV4bM0+U00uPb2NWWt8MZS5p+f6TJJta/rrlUqD4Htd1dcpXfcz9H36AJGXMf0HoPRvGRTVbCHaTxdpa546oakLI3R3Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712878983; c=relaxed/simple;
-	bh=mohIqOPAhcXEuZUrzoS2P0GGSr+RtYRroQNCSiEQEnw=;
+	s=arc-20240116; t=1712878987; c=relaxed/simple;
+	bh=awl1Y0gRaatzbgh/lINLdMWulxxmyubrimSXFDCA3/8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=DGnOr+Pq/jVOVDvglMO+6yZvR5yEG9rwXKXFo7hN6fzaZYuXQZVvGii4TMmb+qbz9Kv+1spWGy5623t88cRJ01CRm/hbWRZMHny9R/vB3VOStruQ2/GYRAZ8XC2YogutrUkTarMMbOF5rcRUi9gdCf757Sx3JoNMFxXiZy+zKFQ=
+	 MIME-Version; b=FoRM6AnWFZtG2ct5Te1sHfLv9hBlj8aB1bf7xTBkicDqROU7ukBljDGUiuGVPJMcLJ+5nuQeL8QONrOLsRQJR3BCt5g4EdO1oN0MN2EQyAx17nDcR8tcaxPIUT5L/7bO568zIuF9z8rSabFhfOHuOl4hNht7GBlkqKdHrbR0bn8=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1rv44K-0000wr-CX; Fri, 12 Apr 2024 01:43:00 +0200
+	id 1rv44O-0000xP-FR; Fri, 12 Apr 2024 01:43:04 +0200
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: <netfilter-devel@vger.kernel.org>,
@@ -25,9 +25,9 @@ Cc: <netfilter-devel@vger.kernel.org>,
 	Eric Dumazet <edumazet@google.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH net-next 10/15] selftests: netfilter: ipvs.sh: move to lib.sh infra
-Date: Fri, 12 Apr 2024 01:36:15 +0200
-Message-ID: <20240411233624.8129-11-fw@strlen.de>
+Subject: [PATCH net-next 11/15] selftests: netfilter: nf_nat_edemux.sh: move to lib.sh infra
+Date: Fri, 12 Apr 2024 01:36:16 +0200
+Message-ID: <20240411233624.8129-12-fw@strlen.de>
 X-Mailer: git-send-email 2.43.2
 In-Reply-To: <20240411233624.8129-1-fw@strlen.de>
 References: <20240411233624.8129-1-fw@strlen.de>
@@ -39,241 +39,157 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The setup_ns helper makes the netns names random, so replace nsX with $nsX
-everywhere.
-
-Replace nc with socat, otherwise script fails on my system due to
-incompatible nc versions ("nc: cannot use -p and -l").
+While at it, use checktool helper.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- tools/testing/selftests/net/netfilter/ipvs.sh | 153 ++++++++----------
- 1 file changed, 68 insertions(+), 85 deletions(-)
+ .../selftests/net/netfilter/nf_nat_edemux.sh  | 82 ++++++-------------
+ 1 file changed, 26 insertions(+), 56 deletions(-)
 
-diff --git a/tools/testing/selftests/net/netfilter/ipvs.sh b/tools/testing/selftests/net/netfilter/ipvs.sh
-index c3b8f90c497e..4ceee9fb3949 100755
---- a/tools/testing/selftests/net/netfilter/ipvs.sh
-+++ b/tools/testing/selftests/net/netfilter/ipvs.sh
-@@ -1,4 +1,4 @@
--#!/bin/sh
-+#!/bin/bash
- # SPDX-License-Identifier: GPL-2.0
- #
- # End-to-end ipvs test suite
-@@ -24,8 +24,8 @@
- # We assume that all network driver are loaded
+diff --git a/tools/testing/selftests/net/netfilter/nf_nat_edemux.sh b/tools/testing/selftests/net/netfilter/nf_nat_edemux.sh
+index a1aa8f4a5828..1014551dd769 100755
+--- a/tools/testing/selftests/net/netfilter/nf_nat_edemux.sh
++++ b/tools/testing/selftests/net/netfilter/nf_nat_edemux.sh
+@@ -4,88 +4,60 @@
+ # Test NAT source port clash resolution
  #
  
 -# Kselftest framework requirement - SKIP code is 4.
 -ksft_skip=4
 +source lib.sh
-+
  ret=0
- GREEN='\033[0;92m'
- RED='\033[0;31m'
-@@ -46,53 +46,39 @@ readonly datalen=32
+-
+-sfx=$(mktemp -u "XXXXXXXX")
+-ns1="ns1-$sfx"
+-ns2="ns2-$sfx"
+ socatpid=0
  
- sysipvsnet="/proc/sys/net/ipv4/vs/"
- if [ ! -d $sysipvsnet ]; then
--	modprobe -q ip_vs
--	if [ $? -ne 0 ]; then
-+	if ! modprobe -q ip_vs; then
- 		echo "skip: could not run test without ipvs module"
- 		exit $ksft_skip
- 	fi
- fi
+ cleanup()
+ {
+-	[ $socatpid -gt 0 ] && kill $socatpid
+-	ip netns del $ns1
+-	ip netns del $ns2
+-}
+-
+-socat -h > /dev/null 2>&1
+-if [ $? -ne 0 ];then
+-	echo "SKIP: Could not run test without socat"
+-	exit $ksft_skip
+-fi
+-
+-iptables --version > /dev/null 2>&1
+-if [ $? -ne 0 ];then
+-	echo "SKIP: Could not run test without iptables"
+-	exit $ksft_skip
+-fi
++	[ "$socatpid" -gt 0 ] && kill "$socatpid"
  
 -ip -Version > /dev/null 2>&1
--if [ $? -ne 0 ]; then
+-if [ $? -ne 0 ];then
 -	echo "SKIP: Could not run test without ip tool"
 -	exit $ksft_skip
 -fi
--
--ipvsadm -v > /dev/null 2>&1
--if [ $? -ne 0 ]; then
--	echo "SKIP: Could not run test without ipvsadm"
++	cleanup_all_ns
++}
+ 
+-ip netns add "$ns1"
+-if [ $? -ne 0 ];then
+-	echo "SKIP: Could not create net namespace $ns1"
 -	exit $ksft_skip
 -fi
-+checktool "ipvsadm -v" "run test without ipvsadm"
 +checktool "socat -h" "run test without socat"
++checktool "iptables --version" "run test without iptables"
  
- setup() {
--	ip netns add ns0
--	ip netns add ns1
--	ip netns add ns2
+ trap cleanup EXIT
+ 
+-ip netns add $ns2
++setup_ns ns1 ns2
+ 
+ # Connect the namespaces using a veth pair
+ ip link add name veth2 type veth peer name veth1
+-ip link set netns $ns1 dev veth1
+-ip link set netns $ns2 dev veth2
++ip link set netns "$ns1" dev veth1
++ip link set netns "$ns2" dev veth2
+ 
+-ip netns exec $ns1 ip link set up dev lo
+-ip netns exec $ns1 ip link set up dev veth1
+-ip netns exec $ns1 ip addr add 192.168.1.1/24 dev veth1
++ip netns exec "$ns1" ip link set up dev lo
++ip netns exec "$ns1" ip link set up dev veth1
++ip netns exec "$ns1" ip addr add 192.168.1.1/24 dev veth1
+ 
+-ip netns exec $ns2 ip link set up dev lo
+-ip netns exec $ns2 ip link set up dev veth2
+-ip netns exec $ns2 ip addr add 192.168.1.2/24 dev veth2
++ip netns exec "$ns2" ip link set up dev lo
++ip netns exec "$ns2" ip link set up dev veth2
++ip netns exec "$ns2" ip addr add 192.168.1.2/24 dev veth2
+ 
+ # Create a server in one namespace
+-ip netns exec $ns1 socat -u TCP-LISTEN:5201,fork OPEN:/dev/null,wronly=1 &
++ip netns exec "$ns1" socat -u TCP-LISTEN:5201,fork OPEN:/dev/null,wronly=1 &
+ socatpid=$!
+ 
+ # Restrict source port to just one so we don't have to exhaust
+ # all others.
+-ip netns exec $ns2 sysctl -q net.ipv4.ip_local_port_range="10000 10000"
++ip netns exec "$ns2" sysctl -q net.ipv4.ip_local_port_range="10000 10000"
+ 
+ # add a virtual IP using DNAT
+-ip netns exec $ns2 iptables -t nat -A OUTPUT -d 10.96.0.1/32 -p tcp --dport 443 -j DNAT --to-destination 192.168.1.1:5201
++ip netns exec "$ns2" iptables -t nat -A OUTPUT -d 10.96.0.1/32 -p tcp --dport 443 -j DNAT --to-destination 192.168.1.1:5201
+ 
+ # ... and route it to the other namespace
+-ip netns exec $ns2 ip route add 10.96.0.1 via 192.168.1.1
 -
--	ip link add veth01 netns ns0 type veth peer name veth10 netns ns1
--	ip link add veth02 netns ns0 type veth peer name veth20 netns ns2
--	ip link add veth12 netns ns1 type veth peer name veth21 netns ns2
--
--	ip netns exec ns0 ip link set veth01 up
--	ip netns exec ns0 ip link set veth02 up
--	ip netns exec ns0 ip link add br0 type bridge
--	ip netns exec ns0 ip link set veth01 master br0
--	ip netns exec ns0 ip link set veth02 master br0
--	ip netns exec ns0 ip link set br0 up
--	ip netns exec ns0 ip addr add ${cip_v4}/24 dev br0
--
--	ip netns exec ns1 ip link set lo up
--	ip netns exec ns1 ip link set veth10 up
--	ip netns exec ns1 ip addr add ${gip_v4}/24 dev veth10
--	ip netns exec ns1 ip link set veth12 up
--	ip netns exec ns1 ip addr add ${dip_v4}/24 dev veth12
--
--	ip netns exec ns2 ip link set lo up
--	ip netns exec ns2 ip link set veth21 up
--	ip netns exec ns2 ip addr add ${rip_v4}/24 dev veth21
--	ip netns exec ns2 ip link set veth20 up
--	ip netns exec ns2 ip addr add ${sip_v4}/24 dev veth20
-+	setup_ns ns0 ns1 ns2
-+
-+	ip link add veth01 netns "${ns0}" type veth peer name veth10 netns "${ns1}"
-+	ip link add veth02 netns "${ns0}" type veth peer name veth20 netns "${ns2}"
-+	ip link add veth12 netns "${ns1}" type veth peer name veth21 netns "${ns2}"
-+
-+	ip netns exec "${ns0}" ip link set veth01 up
-+	ip netns exec "${ns0}" ip link set veth02 up
-+	ip netns exec "${ns0}" ip link add br0 type bridge
-+	ip netns exec "${ns0}" ip link set veth01 master br0
-+	ip netns exec "${ns0}" ip link set veth02 master br0
-+	ip netns exec "${ns0}" ip link set br0 up
-+	ip netns exec "${ns0}" ip addr add "${cip_v4}/24" dev br0
-+
-+	ip netns exec "${ns1}" ip link set veth10 up
-+	ip netns exec "${ns1}" ip addr add "${gip_v4}/24" dev veth10
-+	ip netns exec "${ns1}" ip link set veth12 up
-+	ip netns exec "${ns1}" ip addr add "${dip_v4}/24" dev veth12
-+
-+	ip netns exec "${ns2}" ip link set veth21 up
-+	ip netns exec "${ns2}" ip addr add "${rip_v4}/24" dev veth21
-+	ip netns exec "${ns2}" ip link set veth20 up
-+	ip netns exec "${ns2}" ip addr add "${sip_v4}/24" dev veth20
+-sleep 1
++ip netns exec "$ns2" ip route add 10.96.0.1 via 192.168.1.1
  
- 	sleep 1
+ # add a persistent connection from the other namespace
+-ip netns exec $ns2 socat -t 10 - TCP:192.168.1.1:5201 > /dev/null &
++ip netns exec "$ns2" socat -t 10 - TCP:192.168.1.1:5201 > /dev/null &
  
-@@ -100,10 +86,7 @@ setup() {
- }
+ sleep 1
  
- cleanup() {
--	for i in 0 1 2
--	do
--		ip netns del ns$i > /dev/null 2>&1
--	done
-+	cleanup_all_ns
+ # ip daddr:dport will be rewritten to 192.168.1.1 5201
+ # NAT must reallocate source port 10000 because
+ # 192.168.1.2:10000 -> 192.168.1.1:5201 is already in use
+-echo test | ip netns exec $ns2 socat -t 3 -u STDIN TCP:10.96.0.1:443,connect-timeout=3 >/dev/null
++echo test | ip netns exec "$ns2" socat -t 3 -u STDIN TCP:10.96.0.1:443,connect-timeout=3 >/dev/null
+ ret=$?
  
- 	if [ -f "${outfile}" ]; then
- 		rm "${outfile}"
-@@ -114,13 +97,13 @@ cleanup() {
- }
+ # Check socat can connect to 10.96.0.1:443 (aka 192.168.1.1:5201).
+@@ -96,16 +68,14 @@ else
+ fi
  
- server_listen() {
--	ip netns exec ns2 nc -l -p 8080 > "${outfile}" &
-+	ip netns exec "$ns2" socat -u -4 TCP-LISTEN:8080,reuseaddr STDOUT > "${outfile}" &
- 	server_pid=$!
- 	sleep 0.2
- }
+ # check sport clashres.
+-ip netns exec $ns1 iptables -t nat -A PREROUTING -p tcp --dport 5202 -j REDIRECT --to-ports 5201
+-ip netns exec $ns1 iptables -t nat -A PREROUTING -p tcp --dport 5203 -j REDIRECT --to-ports 5201
++ip netns exec "$ns1" iptables -t nat -A PREROUTING -p tcp --dport 5202 -j REDIRECT --to-ports 5201
++ip netns exec "$ns1" iptables -t nat -A PREROUTING -p tcp --dport 5203 -j REDIRECT --to-ports 5201
  
- client_connect() {
--	ip netns exec ns0 timeout 2 nc -w 1 ${vip_v4} ${port} < "${infile}"
-+	ip netns exec "${ns0}" timeout 2 socat -u -4 STDIN TCP:"${vip_v4}":"${port}" < "${infile}"
- }
+-sleep 5 | ip netns exec $ns2 socat -t 5 -u STDIN TCP:192.168.1.1:5202,connect-timeout=5 >/dev/null &
+-cpid1=$!
+-sleep 1
++sleep 5 | ip netns exec "$ns2" socat -t 5 -u STDIN TCP:192.168.1.1:5202,connect-timeout=5 >/dev/null &
  
- verify_data() {
-@@ -136,58 +119,58 @@ test_service() {
+ # if connect succeeds, client closes instantly due to EOF on stdin.
+ # if connect hangs, it will time out after 5s.
+-echo | ip netns exec $ns2 socat -t 3 -u STDIN TCP:192.168.1.1:5203,connect-timeout=5 >/dev/null &
++echo | ip netns exec "$ns2" socat -t 3 -u STDIN TCP:192.168.1.1:5203,connect-timeout=5 >/dev/null &
+ cpid2=$!
  
+ time_then=$(date +%s)
+@@ -117,7 +87,7 @@ time_now=$(date +%s)
+ # 'cpid2' to connect and then exit (and no connect delay).
+ delta=$((time_now - time_then))
  
- test_dr() {
--	ip netns exec ns0 ip route add ${vip_v4} via ${gip_v4} dev br0
-+	ip netns exec "${ns0}" ip route add "${vip_v4}" via "${gip_v4}" dev br0
- 
--	ip netns exec ns1 sysctl -qw net.ipv4.ip_forward=1
--	ip netns exec ns1 ipvsadm -A -t ${vip_v4}:${port} -s rr
--	ip netns exec ns1 ipvsadm -a -t ${vip_v4}:${port} -r ${rip_v4}:${port}
--	ip netns exec ns1 ip addr add ${vip_v4}/32 dev lo:1
-+	ip netns exec "${ns1}" sysctl -qw net.ipv4.ip_forward=1
-+	ip netns exec "${ns1}" ipvsadm -A -t "${vip_v4}:${port}" -s rr
-+	ip netns exec "${ns1}" ipvsadm -a -t "${vip_v4}:${port}" -r "${rip_v4}:${port}"
-+	ip netns exec "${ns1}" ip addr add "${vip_v4}/32" dev lo:1
- 
- 	# avoid incorrect arp response
--	ip netns exec ns2 sysctl -qw net.ipv4.conf.all.arp_ignore=1
--	ip netns exec ns2 sysctl -qw net.ipv4.conf.all.arp_announce=2
-+	ip netns exec "${ns2}" sysctl -qw net.ipv4.conf.all.arp_ignore=1
-+	ip netns exec "${ns2}" sysctl -qw net.ipv4.conf.all.arp_announce=2
- 	# avoid reverse route lookup
--	ip netns exec ns2 sysctl -qw  net.ipv4.conf.all.rp_filter=0
--	ip netns exec ns2 sysctl -qw  net.ipv4.conf.veth21.rp_filter=0
--	ip netns exec ns2 ip addr add ${vip_v4}/32 dev lo:1
-+	ip netns exec "${ns2}" sysctl -qw  net.ipv4.conf.all.rp_filter=0
-+	ip netns exec "${ns2}" sysctl -qw  net.ipv4.conf.veth21.rp_filter=0
-+	ip netns exec "${ns2}" ip addr add "${vip_v4}/32" dev lo:1
- 
- 	test_service
- }
- 
- test_nat() {
--	ip netns exec ns0 ip route add ${vip_v4} via ${gip_v4} dev br0
-+	ip netns exec "${ns0}" ip route add "${vip_v4}" via "${gip_v4}" dev br0
- 
--	ip netns exec ns1 sysctl -qw net.ipv4.ip_forward=1
--	ip netns exec ns1 ipvsadm -A -t ${vip_v4}:${port} -s rr
--	ip netns exec ns1 ipvsadm -a -m -t ${vip_v4}:${port} -r ${rip_v4}:${port}
--	ip netns exec ns1 ip addr add ${vip_v4}/32 dev lo:1
-+	ip netns exec "${ns1}" sysctl -qw net.ipv4.ip_forward=1
-+	ip netns exec "${ns1}" ipvsadm -A -t "${vip_v4}:${port}" -s rr
-+	ip netns exec "${ns1}" ipvsadm -a -m -t "${vip_v4}:${port}" -r "${rip_v4}:${port}"
-+	ip netns exec "${ns1}" ip addr add "${vip_v4}/32" dev lo:1
- 
--	ip netns exec ns2 ip link del veth20
--	ip netns exec ns2 ip route add default via ${dip_v4} dev veth21
-+	ip netns exec "${ns2}" ip link del veth20
-+	ip netns exec "${ns2}" ip route add default via "${dip_v4}" dev veth21
- 
- 	test_service
- }
- 
- test_tun() {
--	ip netns exec ns0 ip route add ${vip_v4} via ${gip_v4} dev br0
--
--	ip netns exec ns1 modprobe ipip
--	ip netns exec ns1 ip link set tunl0 up
--	ip netns exec ns1 sysctl -qw net.ipv4.ip_forward=0
--	ip netns exec ns1 sysctl -qw net.ipv4.conf.all.send_redirects=0
--	ip netns exec ns1 sysctl -qw net.ipv4.conf.default.send_redirects=0
--	ip netns exec ns1 ipvsadm -A -t ${vip_v4}:${port} -s rr
--	ip netns exec ns1 ipvsadm -a -i -t ${vip_v4}:${port} -r ${rip_v4}:${port}
--	ip netns exec ns1 ip addr add ${vip_v4}/32 dev lo:1
--
--	ip netns exec ns2 modprobe ipip
--	ip netns exec ns2 ip link set tunl0 up
--	ip netns exec ns2 sysctl -qw net.ipv4.conf.all.arp_ignore=1
--	ip netns exec ns2 sysctl -qw net.ipv4.conf.all.arp_announce=2
--	ip netns exec ns2 sysctl -qw net.ipv4.conf.all.rp_filter=0
--	ip netns exec ns2 sysctl -qw net.ipv4.conf.tunl0.rp_filter=0
--	ip netns exec ns2 sysctl -qw net.ipv4.conf.veth21.rp_filter=0
--	ip netns exec ns2 ip addr add ${vip_v4}/32 dev lo:1
-+	ip netns exec "${ns0}" ip route add "${vip_v4}" via "${gip_v4}" dev br0
-+
-+	ip netns exec "${ns1}" modprobe -q ipip
-+	ip netns exec "${ns1}" ip link set tunl0 up
-+	ip netns exec "${ns1}" sysctl -qw net.ipv4.ip_forward=0
-+	ip netns exec "${ns1}" sysctl -qw net.ipv4.conf.all.send_redirects=0
-+	ip netns exec "${ns1}" sysctl -qw net.ipv4.conf.default.send_redirects=0
-+	ip netns exec "${ns1}" ipvsadm -A -t "${vip_v4}:${port}" -s rr
-+	ip netns exec "${ns1}" ipvsadm -a -i -t "${vip_v4}:${port}" -r ${rip_v4}:${port}
-+	ip netns exec "${ns1}" ip addr add ${vip_v4}/32 dev lo:1
-+
-+	ip netns exec "${ns2}" modprobe -q ipip
-+	ip netns exec "${ns2}" ip link set tunl0 up
-+	ip netns exec "${ns2}" sysctl -qw net.ipv4.conf.all.arp_ignore=1
-+	ip netns exec "${ns2}" sysctl -qw net.ipv4.conf.all.arp_announce=2
-+	ip netns exec "${ns2}" sysctl -qw net.ipv4.conf.all.rp_filter=0
-+	ip netns exec "${ns2}" sysctl -qw net.ipv4.conf.tunl0.rp_filter=0
-+	ip netns exec "${ns2}" sysctl -qw net.ipv4.conf.veth21.rp_filter=0
-+	ip netns exec "${ns2}" ip addr add "${vip_v4}/32" dev lo:1
- 
- 	test_service
- }
+-if [ $delta -lt 2 -a $rv -eq 0 ]; then
++if [ $delta -lt 2 ] && [ $rv -eq 0 ]; then
+ 	echo "PASS: could connect to service via redirected ports"
+ else
+ 	echo "FAIL: socat cannot connect to service via redirect ($delta seconds elapsed, returned $rv)"
 -- 
 2.43.2
 
