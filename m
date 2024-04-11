@@ -1,13 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id F10A21F171;
-	Thu, 11 Apr 2024 11:29:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id F0F8613BACD;
+	Thu, 11 Apr 2024 11:29:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712834952; cv=none; b=CfwDsLUMbwxp/V027H2zPDpRinUijJQrKqO0UwxX2D67Efqlzzj2xJmtDUzku0+E3uW7Si1zI4Q/cV0Cikoq9x5sWyIVwqAHHYLAnHSjRtX3Sd4cugVo3zBG/s6JG/u8T5VPf3WOj4+6HGe5NEg6xx7h2rVwlKq7VlK5IOuPpC4=
+	t=1712834953; cv=none; b=I7vmHYWbzZ5ZcWccDAlb3RyZLV1phIhDHW2nJP04CwIrB94ueBEszEkyQGC44Hfw5vl14auhi/XarFfLzQRv8PED3J+FqGOcNsm/xlDF67VHXav0sDpfxUposrNXiKKwS5oBZDSR/1yoEoeCg7ExvLVBrcfUbYQ2fQuAgE2O0mA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712834952; c=relaxed/simple;
-	bh=Dk/SgwLS3lcPHCeBzT69fmwChaIFlyCprnM9FkkRB6Q=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=s2wLJtvoy71rRqKd0YdQ5uCfozY3fpxDPTqR9aZ7uAikmiNXE/+HJwIR3qM4E90ClMV2ch+iN3B+s0Nluoy09+ThfLcHAIILEFoSKwUVJUF/vU1pBXWrlQuMvpcBB5XJvFtycCcR+8xMhDEdrnTPB0xek3UIsJ+4d3rAHF3c96I=
+	s=arc-20240116; t=1712834953; c=relaxed/simple;
+	bh=i9VkAHjxVSR2v7wAIqFrQ8rTNs3tdMKBAJwrdz/74Xg=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=cxbn0FVs+J4h+IcN696FvSalHhFNtcezULKXvb7Fg4loyIcxljjJI91fiHt/u89p2xTManT8i2pnUU7XkdoSdPNTiBTZFwFsSPrjr4wosszifcIlNc57ZY0UuQbkQ9WXFYfqWXbEuNLtUrc6hw9/WCK1f/bbjV9SnxP6glnFPNI=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -19,10 +20,12 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 0/7] Netfilter fixes for net
-Date: Thu, 11 Apr 2024 13:28:53 +0200
-Message-Id: <20240411112900.129414-1-pablo@netfilter.org>
+Subject: [PATCH net 2/7] netfilter: nf_tables: Fix potential data-race in __nft_obj_type_get()
+Date: Thu, 11 Apr 2024 13:28:55 +0200
+Message-Id: <20240411112900.129414-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20240411112900.129414-1-pablo@netfilter.org>
+References: <20240411112900.129414-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,73 +34,52 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Ziyang Xuan <william.xuanziyang@huawei.com>
 
-The following patchset contains Netfilter fixes for net:
+nft_unregister_obj() can concurrent with __nft_obj_type_get(),
+and there is not any protection when iterate over nf_tables_objects
+list in __nft_obj_type_get(). Therefore, there is potential data-race
+of nf_tables_objects list entry.
 
-Patches #1 and #2 add missing rcu read side lock when iterating over
-expression and object type list which could race with module removal.
+Use list_for_each_entry_rcu() to iterate over nf_tables_objects
+list in __nft_obj_type_get(), and use rcu_read_lock() in the caller
+nft_obj_type_get() to protect the entire type query process.
 
-Patch #3 prevents promisc packet from visiting the bridge/input hook
-	 to amend a recent fix to address conntrack confirmation race
-	 in br_netfilter and nf_conntrack_bridge.
+Fixes: e50092404c1b ("netfilter: nf_tables: add stateful objects")
+Signed-off-by: Ziyang Xuan <william.xuanziyang@huawei.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-Patch #4 adds and uses iterate decorator type to fetch the current
-	 pipapo set backend datastructure view when netlink dumps the
-	 set elements.
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 53b8c00863ad..f11d0c0a2c73 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -7611,7 +7611,7 @@ static const struct nft_object_type *__nft_obj_type_get(u32 objtype, u8 family)
+ {
+ 	const struct nft_object_type *type;
+ 
+-	list_for_each_entry(type, &nf_tables_objects, list) {
++	list_for_each_entry_rcu(type, &nf_tables_objects, list) {
+ 		if (type->family != NFPROTO_UNSPEC &&
+ 		    type->family != family)
+ 			continue;
+@@ -7627,9 +7627,13 @@ nft_obj_type_get(struct net *net, u32 objtype, u8 family)
+ {
+ 	const struct nft_object_type *type;
+ 
++	rcu_read_lock();
+ 	type = __nft_obj_type_get(objtype, family);
+-	if (type != NULL && try_module_get(type->owner))
++	if (type != NULL && try_module_get(type->owner)) {
++		rcu_read_unlock();
+ 		return type;
++	}
++	rcu_read_unlock();
+ 
+ 	lockdep_nfnl_nft_mutex_not_held();
+ #ifdef CONFIG_MODULES
+-- 
+2.30.2
 
-Patch #5 fixes removal of duplicate elements in the pipapo set backend.
-
-Patch #6 flowtable validates pppoe header before accessing it.
-
-Patch #7 fixes flowtable datapath for pppoe packets, otherwise lookup
-         fails and pppoe packets follow classic path.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-24-04-11
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 19fa4f2a85d777a8052e869c1b892a2f7556569d:
-
-  r8169: fix LED-related deadlock on module removal (2024-04-10 10:44:29 +0100)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-24-04-11
-
-for you to fetch changes up to 6db5dc7b351b9569940cd1cf445e237c42cd6d27:
-
-  netfilter: flowtable: incorrect pppoe tuple (2024-04-11 12:14:10 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 24-04-11
-
-----------------------------------------------------------------
-Florian Westphal (1):
-      netfilter: nft_set_pipapo: do not free live element
-
-Pablo Neira Ayuso (4):
-      netfilter: br_netfilter: skip conntrack input hook for promisc packets
-      netfilter: nft_set_pipapo: walk over current view on netlink dump
-      netfilter: flowtable: validate pppoe header
-      netfilter: flowtable: incorrect pppoe tuple
-
-Ziyang Xuan (2):
-      netfilter: nf_tables: Fix potential data-race in __nft_expr_type_get()
-      netfilter: nf_tables: Fix potential data-race in __nft_obj_type_get()
-
- include/net/netfilter/nf_flow_table.h      | 12 +++++++++++-
- include/net/netfilter/nf_tables.h          | 14 ++++++++++++++
- net/bridge/br_input.c                      | 15 +++++++++++----
- net/bridge/br_netfilter_hooks.c            |  6 ++++++
- net/bridge/br_private.h                    |  1 +
- net/bridge/netfilter/nf_conntrack_bridge.c | 14 ++++++++++----
- net/netfilter/nf_flow_table_inet.c         |  3 ++-
- net/netfilter/nf_flow_table_ip.c           | 10 ++++++----
- net/netfilter/nf_tables_api.c              | 22 ++++++++++++++++++----
- net/netfilter/nft_set_pipapo.c             | 19 ++++++++++++-------
- 10 files changed, 91 insertions(+), 25 deletions(-)
