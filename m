@@ -1,22 +1,22 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D35A46B83;
-	Thu, 11 Apr 2024 23:42:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 639181755A;
+	Thu, 11 Apr 2024 23:42:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712878959; cv=none; b=lk82bi9OliS8GxdiOCNUSFR83vJWOtd45nvZa/0NDxc+wCV0qzWPuV/IOp0he/X7iOkScRTQ6rgiqdPIEq8xf7ACuG66uWUOwPD//lXREjgHxwrPQrgG2V4MC5HNSWCgBYO/YUJPZv5ynrz6wUA2Q5WH1Q0LVzRsWhqhhKcREsw=
+	t=1712878962; cv=none; b=kvIiYOC9ybFiDxlKsWmS7c2bRxucbrd2OgI8jeTr5uMxGSQ29AD2vTF05smdLqrT0Uj5dzJATB+Wa/fvW0SROsBOrpx7AR/KMeSyTAx4mliHz3aovUYUITpwiM+ASeRFZEGKlS4EwPcu2tSPo9Gqw/wA1QaTgmRcbxPAQLzfI0U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712878959; c=relaxed/simple;
-	bh=1s0HNkhLeVxCZiGBKaDLO7xYuNfZY9L7rWej9yRrU2Q=;
+	s=arc-20240116; t=1712878962; c=relaxed/simple;
+	bh=2JtBxlFN3nNMaKBv+CaQfWd6hiYEwORpfE3uEuEuwT0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=jg3lkHVo0+fEZhFMkhAHntwODgkpWZ6QWHlkUdXde+DChnnWxFQ40rvQH3Vgr0AvIAqCCB4RlfPr+NBv+H+c4FXRl1qtPvkks2RYvZHjDz6hnWEfPBAmpHilwdPEvIVh7kcP3DKixC6ynma6TU7ifTxrKQiCnmUU3XGJiEmFv34=
+	 MIME-Version; b=E3q030nptOdRyY8QJhh6ut6hUej6WuvZOcZlsKK/52rijtcLJXMjzBMGd9I0CGCkiPcFUe1F1GBFfgGyba2Au9MpWdOzemAP8mqmojaybFNK9kHEbi8OiEe/PX30N9vbFn/iHJKkTzCDWnP+Cya++HBlrnSZkuW88q726GKX6tY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1rv43v-0000uE-SZ; Fri, 12 Apr 2024 01:42:35 +0200
+	id 1rv43z-0000uf-UY; Fri, 12 Apr 2024 01:42:39 +0200
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: <netfilter-devel@vger.kernel.org>,
@@ -25,9 +25,9 @@ Cc: <netfilter-devel@vger.kernel.org>,
 	Eric Dumazet <edumazet@google.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH net-next 04/15] selftests: netfilter: conntrack_icmp_related.sh: move to lib.sh infra
-Date: Fri, 12 Apr 2024 01:36:09 +0200
-Message-ID: <20240411233624.8129-5-fw@strlen.de>
+Subject: [PATCH net-next 05/15] selftests: netfilter: conntrack_tcp_unreplied.sh: move to lib.sh infra
+Date: Fri, 12 Apr 2024 01:36:10 +0200
+Message-ID: <20240411233624.8129-6-fw@strlen.de>
 X-Mailer: git-send-email 2.43.2
 In-Reply-To: <20240411233624.8129-1-fw@strlen.de>
 References: <20240411233624.8129-1-fw@strlen.de>
@@ -39,25 +39,30 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Only relevant change is that netns names have random suffix names,
-i.e. its safe to run this in parallel with other tests.
+Replace nc with socat. Too many different implementations of nc
+are around with incompatible options ("nc: cannot use -p and -l").
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- .../net/netfilter/conntrack_icmp_related.sh   | 179 +++++++-----------
- 1 file changed, 71 insertions(+), 108 deletions(-)
+ .../net/netfilter/conntrack_tcp_unreplied.sh  | 124 ++++++++----------
+ 1 file changed, 55 insertions(+), 69 deletions(-)
 
-diff --git a/tools/testing/selftests/net/netfilter/conntrack_icmp_related.sh b/tools/testing/selftests/net/netfilter/conntrack_icmp_related.sh
-index 76645aaf2b58..c63d840ead61 100755
---- a/tools/testing/selftests/net/netfilter/conntrack_icmp_related.sh
-+++ b/tools/testing/selftests/net/netfilter/conntrack_icmp_related.sh
-@@ -14,35 +14,32 @@
- # check the icmp errors are propagated to the correct host as per
- # nat of "established" icmp-echo "connection".
+diff --git a/tools/testing/selftests/net/netfilter/conntrack_tcp_unreplied.sh b/tools/testing/selftests/net/netfilter/conntrack_tcp_unreplied.sh
+index e7d7bf13cff5..1f862c089028 100755
+--- a/tools/testing/selftests/net/netfilter/conntrack_tcp_unreplied.sh
++++ b/tools/testing/selftests/net/netfilter/conntrack_tcp_unreplied.sh
+@@ -4,37 +4,29 @@
+ # Check that UNREPLIED tcp conntrack will eventually timeout.
+ #
  
 -# Kselftest framework requirement - SKIP code is 4.
 -ksft_skip=4
 -ret=0
+-
+-waittime=20
+-sfx=$(mktemp -u "XXXXXXXX")
+-ns1="ns1-$sfx"
+-ns2="ns2-$sfx"
 +source lib.sh
  
 -nft --version > /dev/null 2>&1
@@ -70,300 +75,177 @@ index 76645aaf2b58..c63d840ead61 100755
 -ip -Version > /dev/null 2>&1
 -if [ $? -ne 0 ];then
 -	echo "SKIP: Could not run test without ip tool"
--	exit $ksft_skip
--fi
--
++if ! conntrack --version > /dev/null 2>&1;then
++	echo "SKIP: Could not run test without conntrack tool"
+ 	exit $ksft_skip
+ fi
+ 
++ret=0
++
  cleanup() {
--	for i in 1 2;do ip netns del nsclient$i;done
--	for i in 1 2;do ip netns del nsrouter$i;done
+-	ip netns pids $ns1 | xargs kill 2>/dev/null
+-	ip netns pids $ns2 | xargs kill 2>/dev/null
++	ip netns pids "$ns1" | xargs kill 2>/dev/null
++	ip netns pids "$ns2" | xargs kill 2>/dev/null
+ 
+-	ip netns del $ns1
+-	ip netns del $ns2
 +	cleanup_all_ns
  }
  
- trap cleanup EXIT
- 
--ipv4() {
+ ipv4() {
 -    echo -n 192.168.$1.2
--}
-+setup_ns nsclient1 nsclient2 nsrouter1 nsrouter2
-+
-+ret=0
-+
-+add_addr()
-+{
-+	ns=$1
-+	dev=$2
-+	i=$3
- 
--ipv6 () {
--    echo -n dead:$1::2
-+	ip -net "$ns" link set "$dev" up
-+	ip -net "$ns" addr add "192.168.$i.2/24" dev "$dev"
-+	ip -net "$ns" addr add "dead:$i::2/64" dev "$dev" nodad
++    echo -n 192.168."$1".2
  }
  
  check_counter()
-@@ -52,10 +49,9 @@ check_counter()
+@@ -44,51 +36,53 @@ check_counter()
  	expect=$3
  	local lret=0
  
--	cnt=$(ip netns exec $ns nft list counter inet filter "$name" | grep -q "$expect")
+-	cnt=$(ip netns exec $ns2 nft list counter inet filter "$name" | grep -q "$expect")
 -	if [ $? -ne 0 ]; then
-+	if ! ip netns exec "$ns" nft list counter inet filter "$name" | grep -q "$expect"; then
- 		echo "ERROR: counter $name in $ns has unexpected value (expected $expect)" 1>&2
--		ip netns exec $ns nft list counter inet filter "$name" 1>&2
-+		ip netns exec "$ns" nft list counter inet filter "$name" 1>&2
++	if ! ip netns exec "$ns2" nft list counter inet filter "$name" | grep -q "$expect"; then
+ 		echo "ERROR: counter $name in $ns2 has unexpected value (expected $expect)" 1>&2
+-		ip netns exec $ns2 nft list counter inet filter "$name" 1>&2
++		ip netns exec "$ns2" nft list counter inet filter "$name" 1>&2
  		lret=1
  	fi
  
-@@ -65,9 +61,8 @@ check_counter()
- check_unknown()
- {
- 	expect="packets 0 bytes 0"
--	for n in nsclient1 nsclient2 nsrouter1 nsrouter2; do
--		check_counter $n "unknown" "$expect"
--		if [ $? -ne 0 ] ;then
-+	for n in ${nsclient1} ${nsclient2} ${nsrouter1} ${nsrouter2}; do
-+		if ! check_counter "$n" "unknown" "$expect"; then
- 			return 1
- 		fi
- 	done
-@@ -75,61 +70,48 @@ check_unknown()
- 	return 0
+ 	return $lret
  }
  
--for n in nsclient1 nsclient2 nsrouter1 nsrouter2; do
--  ip netns add $n
--  ip -net $n link set lo up
--done
+-# Create test namespaces
+-ip netns add $ns1 || exit 1
 -
--DEV=veth0
--ip link add $DEV netns nsclient1 type veth peer name eth1 netns nsrouter1
- DEV=veth0
--ip link add $DEV netns nsclient2 type veth peer name eth1 netns nsrouter2
-+ip link add "$DEV" netns "$nsclient1" type veth peer name eth1 netns "$nsrouter1"
-+ip link add "$DEV" netns "$nsclient2" type veth peer name eth1 netns "$nsrouter2"
-+ip link add "$DEV" netns "$nsrouter1" type veth peer name eth2 netns "$nsrouter2"
+ trap cleanup EXIT
  
--DEV=veth0
--ip link add $DEV netns nsrouter1 type veth peer name eth2 netns nsrouter2
-+add_addr "$nsclient1" $DEV 1
-+add_addr "$nsclient2" $DEV 2
+-ip netns add $ns2 || exit 1
++# Create test namespaces
++setup_ns ns1 ns2
  
--DEV=veth0
--for i in 1 2; do
--    ip -net nsclient$i link set $DEV up
--    ip -net nsclient$i addr add $(ipv4 $i)/24 dev $DEV
--    ip -net nsclient$i addr add $(ipv6 $i)/64 dev $DEV
--done
+ # Connect the namespace to the host using a veth pair
+-ip -net $ns1 link add name veth1 type veth peer name veth2
+-ip -net $ns1 link set netns $ns2 dev veth2
++ip -net "$ns1" link add name veth1 type veth peer name veth2
++ip -net "$ns1" link set netns "$ns2" dev veth2
+ 
+-ip -net $ns1 link set up dev lo
+-ip -net $ns2 link set up dev lo
+-ip -net $ns1 link set up dev veth1
+-ip -net $ns2 link set up dev veth2
++ip -net "$ns1" link set up dev lo
++ip -net "$ns2" link set up dev lo
++ip -net "$ns1" link set up dev veth1
++ip -net "$ns2" link set up dev veth2
+ 
+-ip -net $ns2 addr add 10.11.11.2/24 dev veth2
+-ip -net $ns2 route add default via 10.11.11.1
++ip -net "$ns2" addr add 10.11.11.2/24 dev veth2
++ip -net "$ns2" route add default via 10.11.11.1
+ 
+-ip netns exec $ns2 sysctl -q net.ipv4.conf.veth2.forwarding=1
++ip netns exec "$ns2" sysctl -q net.ipv4.conf.veth2.forwarding=1
+ 
+ # add a rule inside NS so we enable conntrack
+-ip netns exec $ns1 iptables -A INPUT -m state --state established,related -j ACCEPT
++ip netns exec "$ns1" nft -f - <<EOF
++table inet filter {
++	chain input {
++		type filter hook input priority 0; policy accept;
++		ct state established accept
++	}
++}
++EOF
+ 
+-ip -net $ns1 addr add 10.11.11.1/24 dev veth1
+-ip -net $ns1 route add 10.99.99.99 via 10.11.11.2
++ip -net "$ns1" addr add 10.11.11.1/24 dev veth1
++ip -net "$ns1" route add 10.99.99.99 via 10.11.11.2
+ 
+ # Check connectivity works
+-ip netns exec $ns1 ping -q -c 2 10.11.11.2 >/dev/null || exit 1
 -
--ip -net nsrouter1 link set eth1 up
--ip -net nsrouter1 link set veth0 up
-+ip -net "$nsrouter1" link set eth1 up
-+ip -net "$nsrouter1" link set $DEV up
+-ip netns exec $ns2 nc -l -p 8080 < /dev/null &
++ip netns exec "$ns1" ping -q -c 2 10.11.11.2 >/dev/null || exit 1
  
--ip -net nsrouter2 link set eth1 up
--ip -net nsrouter2 link set eth2 up
-+ip -net "$nsrouter2" link set eth1 mtu 1280 up
-+ip -net "$nsrouter2" link set eth2 up
+-# however, conntrack entries are there
++ip netns exec "$ns2" socat -u -4 TCP-LISTEN:8080,reuseaddr STDOUT &
  
--ip -net nsclient1 route add default via 192.168.1.1
--ip -net nsclient1 -6 route add default via dead:1::1
-+ip -net "$nsclient1" route add default via 192.168.1.1
-+ip -net "$nsclient1" -6 route add default via dead:1::1
- 
--ip -net nsclient2 route add default via 192.168.2.1
--ip -net nsclient2 route add default via dead:2::1
-+ip -net "$nsclient2" route add default via 192.168.2.1
-+ip -net "$nsclient2" route add default via dead:2::1
-+ip -net "$nsclient2" link set veth0 mtu 1280
- 
--i=3
--ip -net nsrouter1 addr add 192.168.1.1/24 dev eth1
--ip -net nsrouter1 addr add 192.168.3.1/24 dev veth0
--ip -net nsrouter1 addr add dead:1::1/64 dev eth1
--ip -net nsrouter1 addr add dead:3::1/64 dev veth0
--ip -net nsrouter1 route add default via 192.168.3.10
--ip -net nsrouter1 -6 route add default via dead:3::10
-+ip -net "$nsrouter1" addr add 192.168.1.1/24 dev eth1
-+ip -net "$nsrouter1" addr add 192.168.3.1/24 dev veth0
-+ip -net "$nsrouter1" addr add dead:1::1/64 dev eth1 nodad
-+ip -net "$nsrouter1" addr add dead:3::1/64 dev veth0 nodad
-+ip -net "$nsrouter1" route add default via 192.168.3.10
-+ip -net "$nsrouter1" -6 route add default via dead:3::10
- 
--ip -net nsrouter2 addr add 192.168.2.1/24 dev eth1
--ip -net nsrouter2 addr add 192.168.3.10/24 dev eth2
--ip -net nsrouter2 addr add dead:2::1/64 dev eth1
--ip -net nsrouter2 addr add dead:3::10/64 dev eth2
--ip -net nsrouter2 route add default via 192.168.3.1
--ip -net nsrouter2 route add default via dead:3::1
-+ip -net "$nsrouter2" addr add 192.168.2.1/24 dev eth1
-+ip -net "$nsrouter2" addr add 192.168.3.10/24 dev eth2
-+ip -net "$nsrouter2" addr add dead:2::1/64  dev eth1 nodad
-+ip -net "$nsrouter2" addr add dead:3::10/64 dev eth2 nodad
-+ip -net "$nsrouter2" route add default via 192.168.3.1
-+ip -net "$nsrouter2" route add default via dead:3::1
- 
--sleep 2
- for i in 4 6; do
--	ip netns exec nsrouter1 sysctl -q net.ipv$i.conf.all.forwarding=1
--	ip netns exec nsrouter2 sysctl -q net.ipv$i.conf.all.forwarding=1
-+	ip netns exec "$nsrouter1" sysctl -q net.ipv$i.conf.all.forwarding=1
-+	ip netns exec "$nsrouter2" sysctl -q net.ipv$i.conf.all.forwarding=1
- done
- 
--for netns in nsrouter1 nsrouter2; do
--ip netns exec $netns nft -f - <<EOF
-+for netns in "$nsrouter1" "$nsrouter2"; do
-+ip netns exec "$netns" nft -f - <<EOF
+-ip netns exec $ns2 nft -f - <<EOF
++ip netns exec "$ns2" nft -f - <<EOF
  table inet filter {
- 	counter unknown { }
- 	counter related { }
-@@ -144,7 +126,7 @@ table inet filter {
- EOF
- done
+ 	counter connreq { }
+ 	counter redir { }
+@@ -104,17 +98,15 @@ if [ $? -ne 0 ]; then
+ 	exit 1
+ fi
  
--ip netns exec nsclient1 nft -f - <<EOF
-+ip netns exec "$nsclient1" nft -f - <<EOF
- table inet filter {
- 	counter unknown { }
- 	counter related { }
-@@ -164,7 +146,7 @@ table inet filter {
- }
- EOF
+-ip netns exec $ns2 sysctl -q net.netfilter.nf_conntrack_tcp_timeout_syn_sent=10
++ip netns exec "$ns2" sysctl -q net.netfilter.nf_conntrack_tcp_timeout_syn_sent=10
  
--ip netns exec nsclient2 nft -f - <<EOF
-+ip netns exec "$nsclient2" nft -f - <<EOF
- table inet filter {
- 	counter unknown { }
- 	counter new { }
-@@ -189,11 +171,10 @@ table inet filter {
- }
- EOF
+ echo "INFO: connect $ns1 -> $ns2 to the virtual ip"
+-ip netns exec $ns1 bash -c 'while true ; do
+-	nc -p 60000 10.99.99.99 80
+-	sleep 1
++ip netns exec "$ns1" bash -c 'for i in $(seq 1 $BUSYWAIT_TIMEOUT) ; do
++	socat -u STDIN TCP:10.99.99.99:80 < /dev/null
++	sleep 0.1
+ 	done' &
  
--
- # make sure NAT core rewrites adress of icmp error if nat is used according to
- # conntrack nat information (icmp error will be directed at nsrouter1 address,
- # but it needs to be routed to nsclient1 address).
--ip netns exec nsrouter1 nft -f - <<EOF
-+ip netns exec "$nsrouter1" nft -f - <<EOF
- table ip nat {
- 	chain postrouting {
- 		type nat hook postrouting priority 0; policy accept;
-@@ -208,44 +189,32 @@ table ip6 nat {
- }
- EOF
- 
--ip netns exec nsrouter2 ip link set eth1  mtu 1280
--ip netns exec nsclient2 ip link set veth0 mtu 1280
 -sleep 1
 -
--ip netns exec nsclient1 ping -c 1 -s 1000 -q -M do 192.168.2.2 >/dev/null
--if [ $? -ne 0 ]; then
-+if ! ip netns exec "$nsclient1" ping -c 1 -s 1000 -q -M "do" 192.168.2.2 >/dev/null; then
- 	echo "ERROR: netns ip routing/connectivity broken" 1>&2
--	cleanup
- 	exit 1
- fi
--ip netns exec nsclient1 ping6 -q -c 1 -s 1000 dead:2::2 >/dev/null
--if [ $? -ne 0 ]; then
-+if ! ip netns exec "$nsclient1" ping -c 1 -s 1000 -q dead:2::2 >/dev/null; then
- 	echo "ERROR: netns ipv6 routing/connectivity broken" 1>&2
--	cleanup
+-ip netns exec $ns2 nft -f - <<EOF
++ip netns exec "$ns2" nft -f - <<EOF
+ table inet nat {
+ 	chain prerouting {
+ 		type nat hook prerouting priority 0; policy accept;
+@@ -127,34 +119,28 @@ if [ $? -ne 0 ]; then
  	exit 1
  fi
  
--check_unknown
--if [ $? -ne 0 ]; then
-+if ! check_unknown; then
- 	ret=1
+-count=$(ip netns exec $ns2 conntrack -L -p tcp --dport 80 2>/dev/null | wc -l)
+-if [ $count -eq 0 ]; then
++count=$(ip netns exec "$ns2" conntrack -L -p tcp --dport 80 2>/dev/null | wc -l)
++if [ "$count" -eq 0 ]; then
+ 	echo "ERROR: $ns2 did not pick up tcp connection from peer"
+ 	exit 1
  fi
  
- expect="packets 0 bytes 0"
--for netns in nsrouter1 nsrouter2 nsclient1;do
--	check_counter "$netns" "related" "$expect"
--	if [ $? -ne 0 ]; then
-+for netns in "$nsrouter1" "$nsrouter2" "$nsclient1";do
-+	if ! check_counter "$netns" "related" "$expect"; then
- 		ret=1
+-echo "INFO: NAT redirect added in ns $ns2, waiting for $waittime seconds for nat to take effect"
+-for i in $(seq 1 $waittime); do
+-	echo -n "."
+-
+-	sleep 1
+-
+-	count=$(ip netns exec $ns2 conntrack -L -p tcp --reply-port-src 8080 2>/dev/null | wc -l)
+-	if [ $count -gt 0 ]; then
+-		echo
+-		echo "PASS: redirection took effect after $i seconds"
+-		break
++wait_for_redirect()
++{
++	count=$(ip netns exec "$ns2" conntrack -L -p tcp --reply-port-src 8080 2>/dev/null | wc -l)
++	if [ "$count" -gt 0 ]; then
++		return 0
  	fi
- done
  
- expect="packets 2 bytes 2076"
--check_counter nsclient2 "new" "$expect"
+-	m=$((i%20))
+-	if [ $m -eq 0 ]; then
+-		echo " waited for $i seconds"
+-	fi
+-done
++	return 1
++}
++echo "INFO: NAT redirect added in ns $ns2, waiting for $BUSYWAIT_TIMEOUT ms for nat to take effect"
++
++busywait $BUSYWAIT_TIMEOUT wait_for_redirect
++ret=$?
+ 
+ expect="packets 1 bytes 60"
+-check_counter "$ns2" "redir" "$expect"
 -if [ $? -ne 0 ]; then
-+if ! check_counter "$nsclient2" "new" "$expect"; then
- 	ret=1
- fi
- 
--ip netns exec nsclient1 ping -q -c 1 -s 1300 -M do 192.168.2.2 > /dev/null
--if [ $? -eq 0 ]; then
-+if ip netns exec "$nsclient1" ping -W 0.5 -q -c 1 -s 1300 -M "do" 192.168.2.2 > /dev/null; then
- 	echo "ERROR: ping should have failed with PMTU too big error" 1>&2
- 	ret=1
- fi
-@@ -253,30 +222,26 @@ fi
- # nsrouter2 should have generated the icmp error, so
- # related counter should be 0 (its in forward).
- expect="packets 0 bytes 0"
--check_counter "nsrouter2" "related" "$expect"
--if [ $? -ne 0 ]; then
-+if ! check_counter "$nsrouter2" "related" "$expect"; then
- 	ret=1
- fi
- 
- # but nsrouter1 should have seen it, same for nsclient1.
- expect="packets 1 bytes 576"
--for netns in nsrouter1 nsclient1;do
--	check_counter "$netns" "related" "$expect"
--	if [ $? -ne 0 ]; then
-+for netns in ${nsrouter1} ${nsclient1};do
-+	if ! check_counter "$netns" "related" "$expect"; then
- 		ret=1
- 	fi
- done
- 
--ip netns exec nsclient1 ping6 -c 1 -s 1300 dead:2::2 > /dev/null
--if [ $? -eq 0 ]; then
-+if ip netns exec "${nsclient1}" ping6 -W 0.5 -c 1 -s 1300 dead:2::2 > /dev/null; then
- 	echo "ERROR: ping6 should have failed with PMTU too big error" 1>&2
- 	ret=1
- fi
- 
- expect="packets 2 bytes 1856"
--for netns in nsrouter1 nsclient1;do
--	check_counter "$netns" "related" "$expect"
--	if [ $? -ne 0 ]; then
-+for netns in "${nsrouter1}" "${nsclient1}";do
-+	if ! check_counter "$netns" "related" "$expect"; then
- 		ret=1
- 	fi
- done
-@@ -288,21 +253,19 @@ else
- fi
- 
- # add 'bad' route,  expect icmp REDIRECT to be generated
--ip netns exec nsclient1 ip route add 192.168.1.42 via 192.168.1.1
--ip netns exec nsclient1 ip route add dead:1::42 via dead:1::1
-+ip netns exec "${nsclient1}" ip route add 192.168.1.42 via 192.168.1.1
-+ip netns exec "${nsclient1}" ip route add dead:1::42 via dead:1::1
- 
--ip netns exec "nsclient1" ping -q -c 2 192.168.1.42 > /dev/null
-+ip netns exec "$nsclient1" ping -W 1 -q -i 0.5 -c 2 192.168.1.42 > /dev/null
- 
- expect="packets 1 bytes 112"
--check_counter nsclient1 "redir4" "$expect"
--if [ $? -ne 0 ];then
-+if ! check_counter "$nsclient1" "redir4" "$expect"; then
- 	ret=1
- fi
- 
--ip netns exec "nsclient1" ping -c 1 dead:1::42 > /dev/null
-+ip netns exec "$nsclient1" ping -W 1 -c 1 dead:1::42 > /dev/null
- expect="packets 1 bytes 192"
--check_counter nsclient1 "redir6" "$expect"
--if [ $? -ne 0 ];then
-+if ! check_counter "$nsclient1" "redir6" "$expect"; then
++if ! check_counter "$ns2" "redir" "$expect"; then
  	ret=1
  fi
  
