@@ -1,78 +1,103 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA9821448EF
-	for <netfilter-devel@vger.kernel.org>; Thu, 11 Apr 2024 11:05:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id F10A21F171;
+	Thu, 11 Apr 2024 11:29:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712833510; cv=none; b=CIGEZoaUDR6XP06/6W4qTg/SfuRkuwvEqVBo/DyeSONmCVOQqVulNdHAVuqfDS4gsYw6LLq5zaklinlc1ocflAXHo7w0xTw82ADYLb79caYciY5pegCAOI888uF1l7OaS5RM1Yy562ZZnLC3HiGyFIZRipsVU1C3FS5JmJubkYo=
+	t=1712834952; cv=none; b=CfwDsLUMbwxp/V027H2zPDpRinUijJQrKqO0UwxX2D67Efqlzzj2xJmtDUzku0+E3uW7Si1zI4Q/cV0Cikoq9x5sWyIVwqAHHYLAnHSjRtX3Sd4cugVo3zBG/s6JG/u8T5VPf3WOj4+6HGe5NEg6xx7h2rVwlKq7VlK5IOuPpC4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712833510; c=relaxed/simple;
-	bh=/BbgFmRIVBwF+INOMP8vq3X6QcYBSw6veYSIUq8J9nI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=tDregX+RiwSu5G8rF5jksj0438AYZ/JItg+zXOQHieJCaQmcPtmx9YRbCfvxE1fSXM8pN8QZoCEfFc8F+rw35gN1tvezohK2HN9cSROHmVZnytqLnam/nTVbV33KnxTYhdXvzZISNpWcue5sFe8UVA6iB+TGG+gNgjK1rA2xTw4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1rusEq-00041v-Mb; Thu, 11 Apr 2024 13:05:04 +0200
-Date: Thu, 11 Apr 2024 13:05:04 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Sven Auhagen <sven.auhagen@voleatech.de>,
-	netfilter-devel@vger.kernel.org, cratiu@nvidia.com, ozsh@nvidia.com,
-	vladbu@nvidia.com, gal@nvidia.com, fw@strlen.de
-Subject: Re: [PATCH nf] netfilter: flowtable: infer TCP state and timeout
- before flow teardown
-Message-ID: <20240411110504.GE18399@breakpoint.cc>
-References: <nvslglowbvxntlpftefkumbwn2gz72evwnfvv4q2qencte7wyn@3jejk23urzeg>
- <Zfqxq3HK_nsGRLhx@calendula>
- <xvnywodpmc3eui6k5kt6fnooq35533jsavkeha7af6c2fntxwm@u3bzj57ntong>
- <Zfq-1gES4VJg2zHe@calendula>
- <o7kxkadlzt2ux5bbdcsgxlfxnfedzxv4jlfd3xnhri6qpr5w3n@2vmkj5o3yrek>
- <ZfrYpvJFrrajPbHM@calendula>
- <x3qvcfxgdmurfnydhrs7ao6fmxxubmhxs2mjk24yn5zjfbo3h5@esbr3eff7bir>
- <ZhUibxdb005sYZNq@calendula>
- <uhn7bt3jdrvmczhlw3dsrinb2opr2qksnbip7asekilgczm35v@hyvzkxrgdhgn>
- <ZhetEIvz_vCB-A5D@calendula>
+	s=arc-20240116; t=1712834952; c=relaxed/simple;
+	bh=Dk/SgwLS3lcPHCeBzT69fmwChaIFlyCprnM9FkkRB6Q=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=s2wLJtvoy71rRqKd0YdQ5uCfozY3fpxDPTqR9aZ7uAikmiNXE/+HJwIR3qM4E90ClMV2ch+iN3B+s0Nluoy09+ThfLcHAIILEFoSKwUVJUF/vU1pBXWrlQuMvpcBB5XJvFtycCcR+8xMhDEdrnTPB0xek3UIsJ+4d3rAHF3c96I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de
+Subject: [PATCH net 0/7] Netfilter fixes for net
+Date: Thu, 11 Apr 2024 13:28:53 +0200
+Message-Id: <20240411112900.129414-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZhetEIvz_vCB-A5D@calendula>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> I can also see IP_CT_TCP_FLAG_CLOSE_INIT is not set on when ct->state
-> is adjusted to _FIN_WAIT state in the fixup routine.
+Hi,
 
-Unrelated to this patch, but I think that there is an increasing and
-disturbing amount of code that attempts to 'fix' the ct state.
+The following patchset contains Netfilter fixes for net:
 
-I don't think its right and I intend to remove all of these "fixups"
-of the conntrack state from flowtable infra.
+Patches #1 and #2 add missing rcu read side lock when iterating over
+expression and object type list which could race with module removal.
 
-I see no reason whatsoever why we need to do this, fin can be passed up
-to conntrack and conntrack can and should handle this without any extra
-mucking with the nf_conn state fields from flowtable infra.
+Patch #3 prevents promisc packet from visiting the bridge/input hook
+	 to amend a recent fix to address conntrack confirmation race
+	 in br_netfilter and nf_conntrack_bridge.
 
-The only cases where I see why we need to take action from
-flowtable layer are:
+Patch #4 adds and uses iterate decorator type to fetch the current
+	 pipapo set backend datastructure view when netlink dumps the
+	 set elements.
 
-1. timeout extensions of nf_conn from gc worker to prevent eviction
-2. removal of the flowtable entry on RST reception. Don't see why that
-   needs state fixup of nf_conn.
-3. removal of the flowtable entry on hard failure of
-   output routines, e.g. because route is stale.
-   Don't see why that needs any nf_conn changes either.
+Patch #5 fixes removal of duplicate elements in the pipapo set backend.
 
-My impression is that all these conditionals paper over some other
-bugs, for example gc_worker extending timeout is racing with the
-datapath, this needs to be fixed first.
+Patch #6 flowtable validates pppoe header before accessing it.
 
-I plan to work on this after the selftest fixups.
+Patch #7 fixes flowtable datapath for pppoe packets, otherwise lookup
+         fails and pppoe packets follow classic path.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-24-04-11
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 19fa4f2a85d777a8052e869c1b892a2f7556569d:
+
+  r8169: fix LED-related deadlock on module removal (2024-04-10 10:44:29 +0100)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-24-04-11
+
+for you to fetch changes up to 6db5dc7b351b9569940cd1cf445e237c42cd6d27:
+
+  netfilter: flowtable: incorrect pppoe tuple (2024-04-11 12:14:10 +0200)
+
+----------------------------------------------------------------
+netfilter pull request 24-04-11
+
+----------------------------------------------------------------
+Florian Westphal (1):
+      netfilter: nft_set_pipapo: do not free live element
+
+Pablo Neira Ayuso (4):
+      netfilter: br_netfilter: skip conntrack input hook for promisc packets
+      netfilter: nft_set_pipapo: walk over current view on netlink dump
+      netfilter: flowtable: validate pppoe header
+      netfilter: flowtable: incorrect pppoe tuple
+
+Ziyang Xuan (2):
+      netfilter: nf_tables: Fix potential data-race in __nft_expr_type_get()
+      netfilter: nf_tables: Fix potential data-race in __nft_obj_type_get()
+
+ include/net/netfilter/nf_flow_table.h      | 12 +++++++++++-
+ include/net/netfilter/nf_tables.h          | 14 ++++++++++++++
+ net/bridge/br_input.c                      | 15 +++++++++++----
+ net/bridge/br_netfilter_hooks.c            |  6 ++++++
+ net/bridge/br_private.h                    |  1 +
+ net/bridge/netfilter/nf_conntrack_bridge.c | 14 ++++++++++----
+ net/netfilter/nf_flow_table_inet.c         |  3 ++-
+ net/netfilter/nf_flow_table_ip.c           | 10 ++++++----
+ net/netfilter/nf_tables_api.c              | 22 ++++++++++++++++++----
+ net/netfilter/nft_set_pipapo.c             | 19 ++++++++++++-------
+ 10 files changed, 91 insertions(+), 25 deletions(-)
