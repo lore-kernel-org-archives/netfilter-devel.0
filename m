@@ -1,22 +1,22 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A1C247F58;
-	Thu, 11 Apr 2024 23:42:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB2E84C601;
+	Thu, 11 Apr 2024 23:42:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712878971; cv=none; b=BLM4cq+t+0BodpolEvPI8JYqzh2Abm0jlzVCnXtuoklFR1vKbtQsW7SyDXhriOrwqGocIWnL7Qe3EHfO5jtWsCK6qfWsyBg02QLFy7zTK/PcMswt1k6oyAZ2rqcFfv2rYPDUAb/C+O1e8lZ4rGvMGp1QvD0Zpsqqc/ooMmcMI9s=
+	t=1712878975; cv=none; b=jEF0lu8+H6W5Wjubig1h4BWHQxWDmuq6SfSu0dp4HGt86Rff2gZN1ryKrYUDljIIE5JHZAmNUUQvIQmExy0knyqWsSqysxABZ4uNmh/d0/g11nZfHIOY0a6c2gqquHtzP+bRxCxlN7nPpNsfb4+Hv04BCDD9uFsw5LbpnuhBQ2A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712878971; c=relaxed/simple;
-	bh=uREVuv0j7lxNVKOebzeCfKFuRGQ2SCDtaVNHIakP7x0=;
+	s=arc-20240116; t=1712878975; c=relaxed/simple;
+	bh=whtwwGbid6QwZLpkD1J7YMYQ1Kfyh2iTM3OtCJ9OgpM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=g6dHO01txucFM9yFvDBxWErHLfog3nrrW+d3wFsorh+oqNCQ0POKsE0zzxMYzmb59JW0I2aEGWTg07GYbmrEWPQtNKZ42pIWIPd4okE6Thq61Y+Aj4KeIboBF6FB9em2i8ao7UGdKziXYVNW/GDXEvJA3EQsXll4x2hMxBMdMQU=
+	 MIME-Version; b=SLR5X9rtEGEP1hNB1+0uTezUqBT7g2D2OEPiDfiDA0nAWa1JR20CdGxkSChEdl111YU2QV822XOLsj0Rgr1BN262oQV4Y1qsiKDGaB9b1bgoYSZZoxpJLKWSeTCn2O2BAGWPhZIN+Fws3Zu51xR0KrqaMhRRh2hJLYwqfvo5FNE=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1rv448-0000vc-3w; Fri, 12 Apr 2024 01:42:48 +0200
+	id 1rv44C-0000vu-6s; Fri, 12 Apr 2024 01:42:52 +0200
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: <netfilter-devel@vger.kernel.org>,
@@ -25,9 +25,9 @@ Cc: <netfilter-devel@vger.kernel.org>,
 	Eric Dumazet <edumazet@google.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH net-next 07/15] selftests: netfilter: conntrack_vrf.sh: move to lib.sh infra
-Date: Fri, 12 Apr 2024 01:36:12 +0200
-Message-ID: <20240411233624.8129-8-fw@strlen.de>
+Subject: [PATCH net-next 08/15] selftests: netfilter: conntrack_ipip_mtu.sh" move to lib.sh infra
+Date: Fri, 12 Apr 2024 01:36:13 +0200
+Message-ID: <20240411233624.8129-9-fw@strlen.de>
 X-Mailer: git-send-email 2.43.2
 In-Reply-To: <20240411233624.8129-1-fw@strlen.de>
 References: <20240411233624.8129-1-fw@strlen.de>
@@ -39,234 +39,114 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-swap test for "ip" with "conntrack", former is already accounted for
-via setup_ns helper.  Also switch to bash.
-
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- .../selftests/net/netfilter/conntrack_vrf.sh  | 101 +++++++-----------
- 1 file changed, 39 insertions(+), 62 deletions(-)
+ .../net/netfilter/conntrack_ipip_mtu.sh       | 37 +++++++------------
+ 1 file changed, 14 insertions(+), 23 deletions(-)
 
-diff --git a/tools/testing/selftests/net/netfilter/conntrack_vrf.sh b/tools/testing/selftests/net/netfilter/conntrack_vrf.sh
-index 8b5ea9234588..f7417004ec71 100755
---- a/tools/testing/selftests/net/netfilter/conntrack_vrf.sh
-+++ b/tools/testing/selftests/net/netfilter/conntrack_vrf.sh
-@@ -1,4 +1,4 @@
--#!/bin/sh
-+#!/bin/bash
+diff --git a/tools/testing/selftests/net/netfilter/conntrack_ipip_mtu.sh b/tools/testing/selftests/net/netfilter/conntrack_ipip_mtu.sh
+index eb9553e4986b..f87ca4c59d3b 100755
+--- a/tools/testing/selftests/net/netfilter/conntrack_ipip_mtu.sh
++++ b/tools/testing/selftests/net/netfilter/conntrack_ipip_mtu.sh
+@@ -1,8 +1,7 @@
+ #!/bin/bash
+ # SPDX-License-Identifier: GPL-2.0
  
- # This script demonstrates interaction of conntrack and vrf.
- # The vrf driver calls the netfilter hooks again, with oif/iif
-@@ -28,84 +28,65 @@
- # that was supposed to be fixed by the commit mentioned above to make sure
- # that any fix to test case 1 won't break masquerade again.
- 
+-# Kselftest framework requirement - SKIP code is 4.
 -ksft_skip=4
 +source lib.sh
  
- IP0=172.30.30.1
- IP1=172.30.30.2
- PFXL=30
- ret=0
+ # Conntrack needs to reassemble fragments in order to have complete
+ # packets for rule matching.  Reassembly can lead to packet loss.
+@@ -23,15 +22,8 @@ ksft_skip=4
+ # between Client A and Client B over WAN. Wanrouter has MTU 1400 set
+ # on its interfaces.
  
--sfx=$(mktemp -u "XXXXXXXX")
--ns0="ns0-$sfx"
--ns1="ns1-$sfx"
+-rnd=$(mktemp -u XXXXXXXX)
+ rx=$(mktemp)
+ 
+-r_a="ns-ra-$rnd"
+-r_b="ns-rb-$rnd"
+-r_w="ns-rw-$rnd"
+-c_a="ns-ca-$rnd"
+-c_b="ns-cb-$rnd"
 -
- cleanup()
- {
- 	ip netns pids $ns0 | xargs kill 2>/dev/null
- 	ip netns pids $ns1 | xargs kill 2>/dev/null
- 
--	ip netns del $ns0 $ns1
-+	cleanup_all_ns
+ checktool (){
+ 	if ! $1 > /dev/null 2>&1; then
+ 		echo "SKIP: Could not $2"
+@@ -40,29 +32,31 @@ checktool (){
  }
  
--nft --version > /dev/null 2>&1
--if [ $? -ne 0 ];then
-+if ! nft --version > /dev/null 2>&1;then
- 	echo "SKIP: Could not run test without nft tool"
- 	exit $ksft_skip
- fi
+ checktool "iptables --version" "run test without iptables"
+-checktool "ip -Version" "run test without ip tool"
+-checktool "which socat" "run test without socat"
+-checktool "ip netns add ${r_a}" "create net namespace"
++checktool "socat -h" "run test without socat"
  
--ip -Version > /dev/null 2>&1
--if [ $? -ne 0 ];then
--	echo "SKIP: Could not run test without ip tool"
--	exit $ksft_skip
--fi
--
--ip netns add "$ns0"
--if [ $? -ne 0 ];then
--	echo "SKIP: Could not create net namespace $ns0"
-+if ! conntrack --version > /dev/null 2>&1;then
-+	echo "SKIP: Could not run test without conntrack tool"
- 	exit $ksft_skip
- fi
--ip netns add "$ns1"
+-for n in ${r_b} ${r_w} ${c_a} ${c_b};do
+-	ip netns add ${n}
+-done
++setup_ns r_a r_b r_w c_a c_b
+ 
+ cleanup() {
+-	for n in ${r_a} ${r_b} ${r_w} ${c_a} ${c_b};do
+-		ip netns del ${n}
+-	done
++	cleanup_all_ns
+ 	rm -f ${rx}
+ }
  
  trap cleanup EXIT
  
--ip netns exec $ns0 sysctl -q -w net.ipv4.conf.default.rp_filter=0
--ip netns exec $ns0 sysctl -q -w net.ipv4.conf.all.rp_filter=0
--ip netns exec $ns0 sysctl -q -w net.ipv4.conf.all.rp_filter=0
-+setup_ns ns0 ns1
- 
--ip link add veth0 netns "$ns0" type veth peer name veth0 netns "$ns1" > /dev/null 2>&1
--if [ $? -ne 0 ];then
-+ip netns exec "$ns0" sysctl -q -w net.ipv4.conf.default.rp_filter=0
-+ip netns exec "$ns0" sysctl -q -w net.ipv4.conf.all.rp_filter=0
-+ip netns exec "$ns0" sysctl -q -w net.ipv4.conf.all.rp_filter=0
++listener_ready()
++{
++	ns="$1"
++	port="$2"
++	ss -N "$ns" -lnu -o "sport = :$port" | grep -q "$port"
++}
 +
-+if ! ip link add veth0 netns "$ns0" type veth peer name veth0 netns "$ns1" > /dev/null 2>&1; then
- 	echo "SKIP: Could not add veth device"
- 	exit $ksft_skip
- fi
+ test_path() {
+ 	msg="$1"
  
--ip -net $ns0 li add tvrf type vrf table 9876
--if [ $? -ne 0 ];then
-+if ! ip -net "$ns0" li add tvrf type vrf table 9876; then
- 	echo "SKIP: Could not add vrf device"
- 	exit $ksft_skip
- fi
+ 	ip netns exec ${c_b} socat -t 3 - udp4-listen:5000,reuseaddr > ${rx} < /dev/null &
  
--ip -net $ns0 li set lo up
--
--ip -net $ns0 li set veth0 master tvrf
--ip -net $ns0 li set tvrf up
--ip -net $ns0 li set veth0 up
--ip -net $ns1 li set veth0 up
-+ip -net "$ns0" li set veth0 master tvrf
-+ip -net "$ns0" li set tvrf up
-+ip -net "$ns0" li set veth0 up
-+ip -net "$ns1" li set veth0 up
+-	sleep 1
++	busywait $BUSYWAIT_TIMEOUT listener_ready "$c_b" 5000
++
+ 	for i in 1 2 3; do
+ 		head -c1400 /dev/zero | tr "\000" "a" | \
+ 			ip netns exec ${c_a} socat -t 1 -u STDIN UDP:192.168.20.2:5000
+@@ -129,7 +123,7 @@ r_addr="10.2.2.1"
  
--ip -net $ns0 addr add $IP0/$PFXL dev veth0
--ip -net $ns1 addr add $IP1/$PFXL dev veth0
-+ip -net "$ns0" addr add $IP0/$PFXL dev veth0
-+ip -net "$ns1" addr add $IP1/$PFXL dev veth0
+ ip netns exec ${r_b} ip link add ipip0 type ipip local ${l_addr} remote ${r_addr} mode ipip || exit $ksft_skip
  
--ip netns exec $ns1 iperf3 -s > /dev/null 2>&1&
--if [ $? -ne 0 ];then
--	echo "SKIP: Could not start iperf3"
--	exit $ksft_skip
--fi
-+ip netns exec "$ns1" iperf3 -s > /dev/null 2>&1 &
+-for dev in lo veth0 veth1 ipip0; do
++for dev in veth0 veth1 ipip0; do
+ 	ip -net ${r_b} link set $dev up
+ done
  
- # test vrf ingress handling.
- # The incoming connection should be placed in conntrack zone 1,
- # as decided by the first iteration of the ruleset.
- test_ct_zone_in()
- {
--ip netns exec $ns0 nft -f - <<EOF
-+ip netns exec "$ns0" nft -f - <<EOF
- table testct {
- 	chain rawpre {
- 		type filter hook prerouting priority raw;
-@@ -126,21 +107,21 @@ table testct {
- 	}
- }
- EOF
--	ip netns exec $ns1 ping -W 1 -c 1 -I veth0 $IP0 > /dev/null
-+	ip netns exec "$ns1" ping -W 1 -c 1 -I veth0 "$IP0" > /dev/null
+@@ -142,21 +136,18 @@ ip netns exec ${r_b} sysctl -q net.ipv4.conf.all.forwarding=1 > /dev/null
  
- 	# should be in zone 1, not zone 2
--	count=$(ip netns exec $ns0 conntrack -L -s $IP1 -d $IP0 -p icmp --zone 1 2>/dev/null | wc -l)
--	if [ $count -eq 1 ]; then
-+	count=$(ip netns exec "$ns0" conntrack -L -s $IP1 -d $IP0 -p icmp --zone 1 2>/dev/null | wc -l)
-+	if [ "$count" -eq 1 ]; then
- 		echo "PASS: entry found in conntrack zone 1"
- 	else
- 		echo "FAIL: entry not found in conntrack zone 1"
--		count=$(ip netns exec $ns0 conntrack -L -s $IP1 -d $IP0 -p icmp --zone 2 2> /dev/null | wc -l)
--		if [ $count -eq 1 ]; then
-+		count=$(ip netns exec "$ns0" conntrack -L -s $IP1 -d $IP0 -p icmp --zone 2 2> /dev/null | wc -l)
-+		if [ "$count" -eq 1 ]; then
- 			echo "FAIL: entry found in zone 2 instead"
- 		else
- 			echo "FAIL: entry not in zone 1 or 2, dumping table"
--			ip netns exec $ns0 conntrack -L
--			ip netns exec $ns0 nft list ruleset
-+			ip netns exec "$ns0" conntrack -L
-+			ip netns exec "$ns0" nft list ruleset
- 		fi
- 	fi
- }
-@@ -153,12 +134,12 @@ test_masquerade_vrf()
- 	local qdisc=$1
+ # Client A
+ ip -net ${c_a} addr add 192.168.10.2/24 dev veth0
+-ip -net ${c_a} link set dev lo up
+ ip -net ${c_a} link set dev veth0 up
+ ip -net ${c_a} route add default via 192.168.10.1
  
- 	if [ "$qdisc" != "default" ]; then
--		tc -net $ns0 qdisc add dev tvrf root $qdisc
-+		tc -net "$ns0" qdisc add dev tvrf root "$qdisc"
- 	fi
+ # Client A
+ ip -net ${c_b} addr add 192.168.20.2/24 dev veth0
+ ip -net ${c_b} link set dev veth0 up
+-ip -net ${c_b} link set dev lo up
+ ip -net ${c_b} route add default via 192.168.20.1
  
--	ip netns exec $ns0 conntrack -F 2>/dev/null
-+	ip netns exec "$ns0" conntrack -F 2>/dev/null
+ # Wan
+ ip -net ${r_w} addr add 10.2.2.254/24 dev veth0
+ ip -net ${r_w} addr add 10.4.4.254/24 dev veth1
  
--ip netns exec $ns0 nft -f - <<EOF
-+ip netns exec "$ns0" nft -f - <<EOF
- flush ruleset
- table ip nat {
- 	chain rawout {
-@@ -179,17 +160,15 @@ table ip nat {
- 	}
- }
- EOF
--	ip netns exec $ns0 ip vrf exec tvrf iperf3 -t 1 -c $IP1 >/dev/null
--	if [ $? -ne 0 ]; then
-+	if ! ip netns exec "$ns0" ip vrf exec tvrf iperf3 -t 1 -c $IP1 >/dev/null; then
- 		echo "FAIL: iperf3 connect failure with masquerade + sport rewrite on vrf device"
- 		ret=1
- 		return
- 	fi
+-ip -net ${r_w} link set dev lo up
+ ip -net ${r_w} link set dev veth0 up mtu 1400
+ ip -net ${r_w} link set dev veth1 up mtu 1400
  
- 	# must also check that nat table was evaluated on second (lower device) iteration.
--	ip netns exec $ns0 nft list table ip nat |grep -q 'counter packets 2' &&
--	ip netns exec $ns0 nft list table ip nat |grep -q 'untracked counter packets [1-9]'
--	if [ $? -eq 0 ]; then
-+	ip netns exec "$ns0" nft list table ip nat |grep -q 'counter packets 2' &&
-+	if ip netns exec "$ns0" nft list table ip nat |grep -q 'untracked counter packets [1-9]'; then
- 		echo "PASS: iperf3 connect with masquerade + sport rewrite on vrf device ($qdisc qdisc)"
- 	else
- 		echo "FAIL: vrf rules have unexpected counter value"
-@@ -197,7 +176,7 @@ EOF
- 	fi
- 
- 	if [ "$qdisc" != "default" ]; then
--		tc -net $ns0 qdisc del dev tvrf root
-+		tc -net "$ns0" qdisc del dev tvrf root
- 	fi
- }
- 
-@@ -206,8 +185,8 @@ EOF
- # oifname is the lower device (veth0 in this case).
- test_masquerade_veth()
- {
--	ip netns exec $ns0 conntrack -F 2>/dev/null
--ip netns exec $ns0 nft -f - <<EOF
-+	ip netns exec "$ns0" conntrack -F 2>/dev/null
-+ip netns exec "$ns0" nft -f - <<EOF
- flush ruleset
- table ip nat {
- 	chain postrouting {
-@@ -216,16 +195,14 @@ table ip nat {
- 	}
- }
- EOF
--	ip netns exec $ns0 ip vrf exec tvrf iperf3 -t 1 -c $IP1 > /dev/null
--	if [ $? -ne 0 ]; then
-+	if ! ip netns exec "$ns0" ip vrf exec tvrf iperf3 -t 1 -c $IP1 > /dev/null; then
- 		echo "FAIL: iperf3 connect failure with masquerade + sport rewrite on veth device"
- 		ret=1
- 		return
- 	fi
- 
- 	# must also check that nat table was evaluated on second (lower device) iteration.
--	ip netns exec $ns0 nft list table ip nat |grep -q 'counter packets 2'
--	if [ $? -eq 0 ]; then
-+	if ip netns exec "$ns0" nft list table ip nat |grep -q 'counter packets 2'; then
- 		echo "PASS: iperf3 connect with masquerade + sport rewrite on veth device"
- 	else
- 		echo "FAIL: vrf masq rule has unexpected counter value"
 -- 
 2.43.2
 
