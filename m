@@ -1,22 +1,22 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD8C0482E4;
-	Thu, 11 Apr 2024 23:43:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE63C47F58;
+	Thu, 11 Apr 2024 23:43:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712878987; cv=none; b=r3wIYVABPWJ5ap9vMkDUjQQWVcNXTLycqm5B7iywUHvKh3zkOTiB2M0nlF7uFwnqopDYU1wkLLBY1n9WV4bM0+U00uPb2NWWt8MZS5p+f6TJJta/rrlUqD4Htd1dcpXfcz9H36AJGXMf0HoPRvGRTVbCHaTxdpa546oakLI3R3Q=
+	t=1712878991; cv=none; b=i97i0CDlL940xMI0vQ5eL4lPJ/dyxi04IWmabkgDQp2NvCg4JKfL4ZoN4CeKt9xM7VKGsMEax6bNsNPVPlUGzD7YY8yQ8xMFAVs/kskNesoTmoezUxTcuJiWi8Jjluej9DziF9/GHaKKKN7dsE0XVUeIMNqBdMr/nEovLI6ZgSg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712878987; c=relaxed/simple;
-	bh=awl1Y0gRaatzbgh/lINLdMWulxxmyubrimSXFDCA3/8=;
+	s=arc-20240116; t=1712878991; c=relaxed/simple;
+	bh=MX8uDJx4isHSYs5Cv9ylLKucX9rcXh9h53YYVatxS3k=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=FoRM6AnWFZtG2ct5Te1sHfLv9hBlj8aB1bf7xTBkicDqROU7ukBljDGUiuGVPJMcLJ+5nuQeL8QONrOLsRQJR3BCt5g4EdO1oN0MN2EQyAx17nDcR8tcaxPIUT5L/7bO568zIuF9z8rSabFhfOHuOl4hNht7GBlkqKdHrbR0bn8=
+	 MIME-Version; b=oM3/U1Yk91MxJwlfbyAehWzl976+L2r3pgaSjSd6iE/IDEkxDW83/I61GoDsVp7CHEzWBXaRLYdCGw5eog4iuB9eNW6Ikekg4lF3+1D423pLR39AH+0c9jbrV1Tw9MaEru4t8GV2s/J1DdCxufZpUcDIdcSkubSAwyOhsXJuMmA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1rv44O-0000xP-FR; Fri, 12 Apr 2024 01:43:04 +0200
+	id 1rv44S-0000xm-IL; Fri, 12 Apr 2024 01:43:08 +0200
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: <netfilter-devel@vger.kernel.org>,
@@ -25,9 +25,9 @@ Cc: <netfilter-devel@vger.kernel.org>,
 	Eric Dumazet <edumazet@google.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH net-next 11/15] selftests: netfilter: nf_nat_edemux.sh: move to lib.sh infra
-Date: Fri, 12 Apr 2024 01:36:16 +0200
-Message-ID: <20240411233624.8129-12-fw@strlen.de>
+Subject: [PATCH net-next 12/15] selftests: netfilter: nft_conntrack_helper.sh: test to lib.sh infra
+Date: Fri, 12 Apr 2024 01:36:17 +0200
+Message-ID: <20240411233624.8129-13-fw@strlen.de>
 X-Mailer: git-send-email 2.43.2
 In-Reply-To: <20240411233624.8129-1-fw@strlen.de>
 References: <20240411233624.8129-1-fw@strlen.de>
@@ -39,157 +39,245 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-While at it, use checktool helper.
+prefer socat over nc, nc has too many incompatible versions around.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- .../selftests/net/netfilter/nf_nat_edemux.sh  | 82 ++++++-------------
- 1 file changed, 26 insertions(+), 56 deletions(-)
+ .../net/netfilter/nft_conntrack_helper.sh     | 132 +++++++-----------
+ 1 file changed, 53 insertions(+), 79 deletions(-)
 
-diff --git a/tools/testing/selftests/net/netfilter/nf_nat_edemux.sh b/tools/testing/selftests/net/netfilter/nf_nat_edemux.sh
-index a1aa8f4a5828..1014551dd769 100755
---- a/tools/testing/selftests/net/netfilter/nf_nat_edemux.sh
-+++ b/tools/testing/selftests/net/netfilter/nf_nat_edemux.sh
-@@ -4,88 +4,60 @@
- # Test NAT source port clash resolution
+diff --git a/tools/testing/selftests/net/netfilter/nft_conntrack_helper.sh b/tools/testing/selftests/net/netfilter/nft_conntrack_helper.sh
+index faa7778d7bd1..abcaa7337197 100755
+--- a/tools/testing/selftests/net/netfilter/nft_conntrack_helper.sh
++++ b/tools/testing/selftests/net/netfilter/nft_conntrack_helper.sh
+@@ -5,72 +5,48 @@
+ # 2. auto-assign still works.
  #
- 
--# Kselftest framework requirement - SKIP code is 4.
+ # Kselftest framework requirement - SKIP code is 4.
 -ksft_skip=4
++
 +source lib.sh
++
  ret=0
--
+ 
 -sfx=$(mktemp -u "XXXXXXXX")
 -ns1="ns1-$sfx"
 -ns2="ns2-$sfx"
- socatpid=0
+ testipv6=1
  
++checktool "socat -h" "run test without socat"
++checktool "conntrack --version" "run test without conntrack"
++checktool "nft --version" "run test without nft"
++
  cleanup()
  {
--	[ $socatpid -gt 0 ] && kill $socatpid
--	ip netns del $ns1
--	ip netns del $ns2
+-	ip netns del ${ns1}
+-	ip netns del ${ns2}
 -}
 -
--socat -h > /dev/null 2>&1
+-nft --version > /dev/null 2>&1
 -if [ $? -ne 0 ];then
--	echo "SKIP: Could not run test without socat"
+-	echo "SKIP: Could not run test without nft tool"
 -	exit $ksft_skip
 -fi
 -
--iptables --version > /dev/null 2>&1
--if [ $? -ne 0 ];then
--	echo "SKIP: Could not run test without iptables"
--	exit $ksft_skip
--fi
-+	[ "$socatpid" -gt 0 ] && kill "$socatpid"
- 
 -ip -Version > /dev/null 2>&1
 -if [ $? -ne 0 ];then
 -	echo "SKIP: Could not run test without ip tool"
 -	exit $ksft_skip
 -fi
-+	cleanup_all_ns
-+}
- 
--ip netns add "$ns1"
+-
+-conntrack -V > /dev/null 2>&1
 -if [ $? -ne 0 ];then
--	echo "SKIP: Could not create net namespace $ns1"
+-	echo "SKIP: Could not run test without conntrack tool"
 -	exit $ksft_skip
 -fi
-+checktool "socat -h" "run test without socat"
-+checktool "iptables --version" "run test without iptables"
++	ip netns pids "$ns1" | xargs kill 2>/dev/null
+ 
+-which nc >/dev/null 2>&1
+-if [ $? -ne 0 ];then
+-	echo "SKIP: Could not run test without netcat tool"
+-	exit $ksft_skip
+-fi
++	ip netns del "$ns1"
++	ip netns del "$ns2"
++}
  
  trap cleanup EXIT
  
--ip netns add $ns2
+-ip netns add ${ns1}
+-ip netns add ${ns2}
 +setup_ns ns1 ns2
  
- # Connect the namespaces using a veth pair
- ip link add name veth2 type veth peer name veth1
--ip link set netns $ns1 dev veth1
--ip link set netns $ns2 dev veth2
-+ip link set netns "$ns1" dev veth1
-+ip link set netns "$ns2" dev veth2
- 
--ip netns exec $ns1 ip link set up dev lo
--ip netns exec $ns1 ip link set up dev veth1
--ip netns exec $ns1 ip addr add 192.168.1.1/24 dev veth1
-+ip netns exec "$ns1" ip link set up dev lo
-+ip netns exec "$ns1" ip link set up dev veth1
-+ip netns exec "$ns1" ip addr add 192.168.1.1/24 dev veth1
- 
--ip netns exec $ns2 ip link set up dev lo
--ip netns exec $ns2 ip link set up dev veth2
--ip netns exec $ns2 ip addr add 192.168.1.2/24 dev veth2
-+ip netns exec "$ns2" ip link set up dev lo
-+ip netns exec "$ns2" ip link set up dev veth2
-+ip netns exec "$ns2" ip addr add 192.168.1.2/24 dev veth2
- 
- # Create a server in one namespace
--ip netns exec $ns1 socat -u TCP-LISTEN:5201,fork OPEN:/dev/null,wronly=1 &
-+ip netns exec "$ns1" socat -u TCP-LISTEN:5201,fork OPEN:/dev/null,wronly=1 &
- socatpid=$!
- 
- # Restrict source port to just one so we don't have to exhaust
- # all others.
--ip netns exec $ns2 sysctl -q net.ipv4.ip_local_port_range="10000 10000"
-+ip netns exec "$ns2" sysctl -q net.ipv4.ip_local_port_range="10000 10000"
- 
- # add a virtual IP using DNAT
--ip netns exec $ns2 iptables -t nat -A OUTPUT -d 10.96.0.1/32 -p tcp --dport 443 -j DNAT --to-destination 192.168.1.1:5201
-+ip netns exec "$ns2" iptables -t nat -A OUTPUT -d 10.96.0.1/32 -p tcp --dport 443 -j DNAT --to-destination 192.168.1.1:5201
- 
- # ... and route it to the other namespace
--ip netns exec $ns2 ip route add 10.96.0.1 via 192.168.1.1
--
--sleep 1
-+ip netns exec "$ns2" ip route add 10.96.0.1 via 192.168.1.1
- 
- # add a persistent connection from the other namespace
--ip netns exec $ns2 socat -t 10 - TCP:192.168.1.1:5201 > /dev/null &
-+ip netns exec "$ns2" socat -t 10 - TCP:192.168.1.1:5201 > /dev/null &
- 
- sleep 1
- 
- # ip daddr:dport will be rewritten to 192.168.1.1 5201
- # NAT must reallocate source port 10000 because
- # 192.168.1.2:10000 -> 192.168.1.1:5201 is already in use
--echo test | ip netns exec $ns2 socat -t 3 -u STDIN TCP:10.96.0.1:443,connect-timeout=3 >/dev/null
-+echo test | ip netns exec "$ns2" socat -t 3 -u STDIN TCP:10.96.0.1:443,connect-timeout=3 >/dev/null
- ret=$?
- 
- # Check socat can connect to 10.96.0.1:443 (aka 192.168.1.1:5201).
-@@ -96,16 +68,14 @@ else
+-ip link add veth0 netns ${ns1} type veth peer name veth0 netns ${ns2} > /dev/null 2>&1
+-if [ $? -ne 0 ];then
++if ! ip link add veth0 netns "$ns1" type veth peer name veth0 netns "$ns2" > /dev/null 2>&1;then
+     echo "SKIP: No virtual ethernet pair device support in kernel"
+     exit $ksft_skip
  fi
  
- # check sport clashres.
--ip netns exec $ns1 iptables -t nat -A PREROUTING -p tcp --dport 5202 -j REDIRECT --to-ports 5201
--ip netns exec $ns1 iptables -t nat -A PREROUTING -p tcp --dport 5203 -j REDIRECT --to-ports 5201
-+ip netns exec "$ns1" iptables -t nat -A PREROUTING -p tcp --dport 5202 -j REDIRECT --to-ports 5201
-+ip netns exec "$ns1" iptables -t nat -A PREROUTING -p tcp --dport 5203 -j REDIRECT --to-ports 5201
+-ip -net ${ns1} link set lo up
+-ip -net ${ns1} link set veth0 up
++ip -net "$ns1" link set veth0 up
++ip -net "$ns2" link set veth0 up
  
--sleep 5 | ip netns exec $ns2 socat -t 5 -u STDIN TCP:192.168.1.1:5202,connect-timeout=5 >/dev/null &
--cpid1=$!
--sleep 1
-+sleep 5 | ip netns exec "$ns2" socat -t 5 -u STDIN TCP:192.168.1.1:5202,connect-timeout=5 >/dev/null &
+-ip -net ${ns2} link set lo up
+-ip -net ${ns2} link set veth0 up
++ip -net "$ns1" addr add 10.0.1.1/24 dev veth0
++ip -net "$ns1" addr add dead:1::1/64 dev veth0 nodad
  
- # if connect succeeds, client closes instantly due to EOF on stdin.
- # if connect hangs, it will time out after 5s.
--echo | ip netns exec $ns2 socat -t 3 -u STDIN TCP:192.168.1.1:5203,connect-timeout=5 >/dev/null &
-+echo | ip netns exec "$ns2" socat -t 3 -u STDIN TCP:192.168.1.1:5203,connect-timeout=5 >/dev/null &
- cpid2=$!
+-ip -net ${ns1} addr add 10.0.1.1/24 dev veth0
+-ip -net ${ns1} addr add dead:1::1/64 dev veth0
+-
+-ip -net ${ns2} addr add 10.0.1.2/24 dev veth0
+-ip -net ${ns2} addr add dead:1::2/64 dev veth0
++ip -net "$ns2" addr add 10.0.1.2/24 dev veth0
++ip -net "$ns2" addr add dead:1::2/64 dev veth0 nodad
  
- time_then=$(date +%s)
-@@ -117,7 +87,7 @@ time_now=$(date +%s)
- # 'cpid2' to connect and then exit (and no connect delay).
- delta=$((time_now - time_then))
+ load_ruleset_family() {
+ 	local family=$1
+ 	local ns=$2
  
--if [ $delta -lt 2 -a $rv -eq 0 ]; then
-+if [ $delta -lt 2 ] && [ $rv -eq 0 ]; then
- 	echo "PASS: could connect to service via redirected ports"
- else
- 	echo "FAIL: socat cannot connect to service via redirect ($delta seconds elapsed, returned $rv)"
+-ip netns exec ${ns} nft -f - <<EOF
++ip netns exec "$ns" nft -f - <<EOF
+ table $family raw {
+ 	ct helper ftp {
+              type "ftp" protocol tcp
+@@ -94,22 +70,21 @@ check_for_helper()
+ 	local message=$2
+ 	local port=$3
+ 
+-	if echo $message |grep -q 'ipv6';then
++	if echo "$message" |grep -q 'ipv6';then
+ 		local family="ipv6"
+ 	else
+ 		local family="ipv4"
+ 	fi
+ 
+-	ip netns exec ${netns} conntrack -L -f $family -p tcp --dport $port 2> /dev/null |grep -q 'helper=ftp'
+-	if [ $? -ne 0 ] ; then
+-		if [ $autoassign -eq 0 ] ;then
++	if ! ip netns exec "$netns" conntrack -L -f $family -p tcp --dport "$port" 2> /dev/null |grep -q 'helper=ftp';then
++		if [ "$autoassign" -eq 0 ] ;then
+ 			echo "FAIL: ${netns} did not show attached helper $message" 1>&2
+ 			ret=1
+ 		else
+ 			echo "PASS: ${netns} did not show attached helper $message" 1>&2
+ 		fi
+ 	else
+-		if [ $autoassign -eq 0 ] ;then
++		if [ "$autoassign" -eq 0 ] ;then
+ 			echo "PASS: ${netns} connection on port $port has ftp helper attached" 1>&2
+ 		else
+ 			echo "FAIL: ${netns} connection on port $port has ftp helper attached" 1>&2
+@@ -120,69 +95,68 @@ check_for_helper()
+ 	return 0
+ }
+ 
++listener_ready()
++{
++	ns="$1"
++	port="$2"
++	proto="$3"
++	ss -N "$ns" -lnt -o "sport = :$port" | grep -q "$port"
++}
++
+ test_helper()
+ {
+ 	local port=$1
+ 	local autoassign=$2
+ 
+-	if [ $autoassign -eq 0 ] ;then
++	if [ "$autoassign" -eq 0 ] ;then
+ 		msg="set via ruleset"
+ 	else
+ 		msg="auto-assign"
+ 	fi
+ 
+-	sleep 3 | ip netns exec ${ns2} nc -w 2 -l -p $port > /dev/null &
++	ip netns exec "$ns2" socat -t 3 -u -4 TCP-LISTEN:"$port",reuseaddr STDOUT > /dev/null &
++	busywait "$BUSYWAIT_TIMEOUT" listener_ready "$ns2" "$port" "-4"
+ 
+-	sleep 1 | ip netns exec ${ns1} nc -w 2 10.0.1.2 $port > /dev/null &
+-	sleep 1
++	ip netns exec "$ns1" socat -u -4 STDIN TCP:10.0.1.2:"$port" < /dev/null > /dev/null
+ 
+-	check_for_helper "$ns1" "ip $msg" $port $autoassign
+-	check_for_helper "$ns2" "ip $msg" $port $autoassign
+-
+-	wait
++	check_for_helper "$ns1" "ip $msg" "$port" "$autoassign"
++	check_for_helper "$ns2" "ip $msg" "$port" "$autoassign"
+ 
+ 	if [ $testipv6 -eq 0 ] ;then
+ 		return 0
+ 	fi
+ 
+-	ip netns exec ${ns1} conntrack -F 2> /dev/null
+-	ip netns exec ${ns2} conntrack -F 2> /dev/null
+-
+-	sleep 3 | ip netns exec ${ns2} nc -w 2 -6 -l -p $port > /dev/null &
++	ip netns exec "$ns1" conntrack -F 2> /dev/null
++	ip netns exec "$ns2" conntrack -F 2> /dev/null
+ 
+-	sleep 1 | ip netns exec ${ns1} nc -w 2 -6 dead:1::2 $port > /dev/null &
+-	sleep 1
++	ip netns exec "$ns2" socat -t 3 -u -6 TCP-LISTEN:"$port",reuseaddr STDOUT > /dev/null &
++	busywait $BUSYWAIT_TIMEOUT listener_ready "$ns2" "$port" "-6"
+ 
+-	check_for_helper "$ns1" "ipv6 $msg" $port
+-	check_for_helper "$ns2" "ipv6 $msg" $port
++	ip netns exec "$ns1" socat -t 3 -u -6 STDIN TCP:"[dead:1::2]":"$port" < /dev/null > /dev/null
+ 
+-	wait
++	check_for_helper "$ns1" "ipv6 $msg" "$port"
++	check_for_helper "$ns2" "ipv6 $msg" "$port"
+ }
+ 
+-load_ruleset_family ip ${ns1}
+-if [ $? -ne 0 ];then
++if ! load_ruleset_family ip "$ns1"; then
+ 	echo "FAIL: ${ns1} cannot load ip ruleset" 1>&2
+ 	exit 1
+ fi
+ 
+-load_ruleset_family ip6 ${ns1}
+-if [ $? -ne 0 ];then
++if ! load_ruleset_family ip6 "$ns1"; then
+ 	echo "SKIP: ${ns1} cannot load ip6 ruleset" 1>&2
+ 	testipv6=0
+ fi
+ 
+-load_ruleset_family inet ${ns2}
+-if [ $? -ne 0 ];then
++if ! load_ruleset_family inet "${ns2}"; then
+ 	echo "SKIP: ${ns1} cannot load inet ruleset" 1>&2
+-	load_ruleset_family ip ${ns2}
+-	if [ $? -ne 0 ];then
++	if ! load_ruleset_family ip "${ns2}"; then
+ 		echo "FAIL: ${ns2} cannot load ip ruleset" 1>&2
+ 		exit 1
+ 	fi
+ 
+-	if [ $testipv6 -eq 1 ] ;then
+-		load_ruleset_family ip6 ${ns2}
+-		if [ $? -ne 0 ];then
++	if [ "$testipv6" -eq 1 ] ;then
++		if ! load_ruleset_family ip6 "$ns2"; then
+ 			echo "FAIL: ${ns2} cannot load ip6 ruleset" 1>&2
+ 			exit 1
+ 		fi
+@@ -190,8 +164,8 @@ if [ $? -ne 0 ];then
+ fi
+ 
+ test_helper 2121 0
+-ip netns exec ${ns1} sysctl -qe 'net.netfilter.nf_conntrack_helper=1'
+-ip netns exec ${ns2} sysctl -qe 'net.netfilter.nf_conntrack_helper=1'
++ip netns exec "$ns1" sysctl -qe 'net.netfilter.nf_conntrack_helper=1'
++ip netns exec "$ns2" sysctl -qe 'net.netfilter.nf_conntrack_helper=1'
+ test_helper 21 1
+ 
+ exit $ret
 -- 
 2.43.2
 
