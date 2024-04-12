@@ -1,122 +1,62 @@
-Received: from out-177.mta0.migadu.com (out-177.mta0.migadu.com [91.218.175.177])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E87C1843
-	for <netfilter-devel@vger.kernel.org>; Fri, 12 Apr 2024 00:45:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEE29DDAA;
+	Fri, 12 Apr 2024 02:16:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712882746; cv=none; b=TeQ1rbddlaFO/1ZWYw5PiqykiAQFBFLLYmaP/69Ne18jbYQaNnwCXifdoQaMznLKviLvTU52QizaIAS6Xgk/n59XR1qvPlFLuE+lv1fNqhGF54yynIugF14Fiiy6+hOmqPbuJY7ixQdxlNMmQG69hFSwwD6idTxOAOaVTnBJn2s=
+	t=1712888212; cv=none; b=qz4n4bPiaj/184dFOq1ZScQONV5Ryer5KC9YU3dL1l0t/J1YNXohsIRzcvhrRvdtQrShfYf/kA+cts0IDJA46UbCT5sBRdfcT7ivUuW/nxF5dohB5JFt6UHZqYkLxZSfuke4ClOy/B3/cUOQ5c95W1wAXY6O6nCGZkE4pzNO1UA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712882746; c=relaxed/simple;
-	bh=WICWHin3hX1DW3QNHTdvtD49sau2s6Cge+RHt79rDCM=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=UdMLvCizHs2MhxPx6Me6qvXxd89/1otFWyZC4k3AeY/u5hZu2pYx2hX13B/vA446XN3/uI1lH2jzk0KlEdBwsg+m92TL45CSNZ4QMhGHzmE4noGwjZdxzyFKTrFpTBlPxka8Hfn4IWA1NDABHYVArxOunAqDWvHZuHHqgTxqDOY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=twapsL1J; arc=none smtp.client-ip=91.218.175.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1712888212; c=relaxed/simple;
+	bh=hjq6KWAGXCi/vXjVk35RFkpnXQE4A5wyLzJTa4uGCo4=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=OOSYKxT79ZCcp6qabkh71I4xCdEKAdwYS3zB5hiNu9+Tu1U10TvYlbZzgk11EJQm01a3wvvW9TzKnOTL+0F118n08+XVIqSvViC6oBfPQZ2IZV2XxA4FtEMkoInvbkw3XlNfn8ScfucfkdUAbej6BafK3T1tVuoKGotpyTG3J8M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nnJCiXxW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="twapsL1J"
-Message-ID: <c0cef1f9-64db-49a2-8c64-3eb9e5092a0f@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1712882741;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=eDBXv8VvuEuihDknHFwM75wDdGn0/XWeRQX26GRUPxg=;
-	b=twapsL1Jjoj1zy7LLzzUeNWJTUK3ZtRc7x566xQXsm/N4mdhUHvG3hFcP0ET/NLLoK1kix
-	c7ZZaYGlddtYLxNu0rcVWlAJee7/64webEYd4CJek2WlmvwPMQXp/uVcKuS+b/9I3aUzsK
-	4OPw9iVDyzI+pJe8Uji4ZvbARif0RqU=
-Date: Thu, 11 Apr 2024 17:45:29 -0700
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nnJCiXxW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 230A4C072AA;
+	Fri, 12 Apr 2024 02:16:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1712888212;
+	bh=hjq6KWAGXCi/vXjVk35RFkpnXQE4A5wyLzJTa4uGCo4=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=nnJCiXxW588TbzKAMJbEIAFkMjEfsu+XuWkeTOPe8cYgSyx4+sqxL/Sa+aZD/R3fi
+	 UTiA5iRlNcP/19cdle3IWCpX6GddNvcJMq57lgrvwvaH4SNIvA5mwI3pZiWEIj62SO
+	 QA8eJqnbg26NZYGT2WraeUjC5MTBhFnAtNaTKeBxBkMMf9n6t74vpf/vzysci2+nuW
+	 rj+0qCowYTlrzHDcrqHEUW0fCtNDUlqky477ZXuV5iqK4mspTOcLXMaNlJmEIVBvPo
+	 C6MuVA7nMAi6mv76+UwoO0QTnCnA6+oXYcy/OvjORbh4DK/2N6/O1POr6nhjsavaNu
+	 LSOFbqlfOnFnw==
+Date: Thu, 11 Apr 2024 19:16:51 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>, Paolo Abeni
+ <pabeni@redhat.com>, "David S. Miller" <davem@davemloft.net>, Eric Dumazet
+ <edumazet@google.com>, Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH net-next 00/15] selftests: move netfilter tests to net
+Message-ID: <20240411191651.515937b4@kernel.org>
+In-Reply-To: <20240411233624.8129-1-fw@strlen.de>
+References: <20240411233624.8129-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH bpf-next] net: netfilter: Make ct zone id configurable for
- bpf ct helper functions
-To: Brad Cowie <brad@faucet.nz>
-Cc: andrii@kernel.org, ast@kernel.org, bpf@vger.kernel.org,
- coreteam@netfilter.org, daniel@iogearbox.net, davem@davemloft.net,
- john.fastabend@gmail.com, jolsa@kernel.org, kuba@kernel.org,
- lorenzo@kernel.org, memxor@gmail.com, netdev@vger.kernel.org,
- netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org,
- sdf@google.com, song@kernel.org
-References: <29325462-d001-4cb3-909d-27f7243a5c05@linux.dev>
- <20240411022933.2946226-1-brad@faucet.nz>
-Content-Language: en-US
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Martin KaFai Lau <martin.lau@linux.dev>
-In-Reply-To: <20240411022933.2946226-1-brad@faucet.nz>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-X-Migadu-Flow: FLOW_OUT
 
-On 4/10/24 7:29 PM, Brad Cowie wrote:
-> On Sat, 6 Apr 2024 at 09:01, Martin KaFai Lau <martin.lau@linux.dev> wrote:
->> How about the other fields (flags and dir) in the "struct nf_conntrack_zone" and
->> would it be useful to have values other than the default?
+On Fri, 12 Apr 2024 01:36:05 +0200 Florian Westphal wrote:
+> First patch in this series moves selftests/netfilter/
+> to selftests/net/netfilter/.
 > 
-> Good question, it would probably be useful to make these configurable
-> as well. My reason for only adding ct zone id was to avoid changing
-> the size of bpf_ct_opts (NF_BPF_CT_OPTS_SZ).
-> 
-> I would be interested in some opinions here on if it's acceptable to
-> increase the size of bpf_ct_opts, if so, should I also add back some
-> reserved options to the struct for future use?
+> Passing this via net-next rather than nf-next for this reason.
 
-I think the reserved[2] was there for the padding reason.
+Either tree works, FWIW.
 
-It should be the first time there is a __sz increase. May be worth to explore 
-how it should work.
+I presume we should add these to the netdev CI, right?
 
-The opts_len check will need to check == old_size or == new_size. Only use the 
-new fields if it is new_size.
-
-There is
-
-enum {
-         NF_BPF_CT_OPTS_SZ = 12,
-};
-
-This enum probably needs to update with the new size also. NF_BPF_CT_OPTS_SZ 
-should be under CO-RE and its enum value will be updated with the running kernel.
-
-The bpf prog has its own struct bpf_ct_opts during compilation (from vmlinux.h 
-or defined a local one), so may be the bpf prog can do something like this:
-
-#include "vmlinux.h"
-
-struct bpf_ct_opts___newer {
-	s32 netns_id;
-	s32 error;
-	u8 l4proto;
-	u8 dir;
-	u8 reserved[2];
-	u32 new_field; /* for example */
-} __attribute__((preserve_access_index));
-
-SEC("tc")
-int run_in_older_kernel(struct __sk_buff *ctx)
-{
-	struct bpf_ct_opts___newer opts = {};
-
-	/* min of the running kernel opts size or the
-	 * local ___newer opts size
-	 */
-	bpf_skb_ct_lookup(ctx, &tup, sizeof(tup.ipv4), &opts,
-			  min(NF_BPF_CT_OPTS_SZ, sizeof(opts));
-}
-
-
-> 
->> Can it actually test an alloc and lookup of a non default zone id?
-> 
-> Yes, I have a test written now and will include this in my v2 submission.
-> 
->> Please also separate the selftest into another patch.
-> 
-> Will do.
-> 
-
+Assuming yes - I need to set up the worker manually. A bit of a chicken
+and an egg problem there. The TARGET must exist when I start it
+otherwise worker will fail :) These missed the
+net-next-2024-04-12--00-00 branch, I'll start the worker first thing in
+the morning..
