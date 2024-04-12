@@ -1,34 +1,48 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C85C54AECB;
-	Fri, 12 Apr 2024 06:53:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB36C502AC
+	for <netfilter-devel@vger.kernel.org>; Fri, 12 Apr 2024 11:27:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712904816; cv=none; b=N0g6Z0ThYhz7FLNARDY9z8K1kp8jMIeZ2kqddN40nvwoEIZJUlN6cc9neYpLf5lmocGdtdMoVOPJM6qLPSZ4kpH8unHOADiq95t+7FiyzFpk170Ri8blswP6POUPd28ouZlBn0YUcIDgX5v5TdHy/+4n4Ofm4Dt+P0gb549WP0A=
+	t=1712921257; cv=none; b=uiciWmZN3oYarSVtGOnLXw/ugKHpPF/3EQU1I+TbzWFzJosRGIPMqUreW2dxhA965a4dYB6Kpo7E9gDByRD1VPDlVUSBP3O7o8j4d83YeaIAnLJzPj66v6MLBAQ/glg5wgB4C6c6WBk+IzRvQ3qK6ycEBBiWfkcjGnW8OzrfDk0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712904816; c=relaxed/simple;
-	bh=72PxMKmpVXYUq3xJ/w7enZoehUEfZdxYWo9Py65Ynto=;
+	s=arc-20240116; t=1712921257; c=relaxed/simple;
+	bh=02DEftBNbNFldPkRKycVO+56rcu7v9MHfzL0UfWWuEo=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=bTCRfnKf4zoGg5mE9yg9hh1eMN+KInfRYHqUS576TSJm2CYi59uEhiKypuiX3BEtMGosWm+dzIg/GxDevX8tgYgAomWi0Hc8cTiZIGIrnT4pTs07Y1SyRYTjLYsNlcMmYtCVv7mXwraJIseSb62sWXfwr429qdb4YO0sWX67CNc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1rvAmw-0003DW-4B; Fri, 12 Apr 2024 08:53:30 +0200
-Date: Fri, 12 Apr 2024 08:53:30 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Jakub Kicinski <kuba@kernel.org>
-Cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net-next 00/15] selftests: move netfilter tests to net
-Message-ID: <20240412065330.GG18399@breakpoint.cc>
-References: <20240411233624.8129-1-fw@strlen.de>
- <20240411191651.515937b4@kernel.org>
+	 Content-Type:Content-Disposition:In-Reply-To; b=sPHcc8G5niR2AelMhQi4/bXRCmE7q/4xsIpgmaIVmpcMWaX3vZXVx2E/byFOY7FOVE3XYTF2zAeUk/TIK69X4QkcLpC139oYBbbcElYC3oiXjZlUHZhnzGtqUL5c/SXKVYebYSn+MjUdNMl11qIqVNUc1EeV/z72jgUughCcl+o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=QEOXj81y; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="QEOXj81y"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=gH7QPavz2HJuExUH6fgHzS9CSOL6SZs52PHremLiLUU=; b=QEOXj81yShF3FzJwkMm4948tBQ
+	e2AElOAHsXnyUpM7HqoDLbAn+vyad1SgxVKSm3EpGGmlJ+eqbb2EFjVgp7U0kZrdsehMWpc5E3aLl
+	x4D/Z7jLB9RoRh/KHnP16JYhJDwheYRON0PTioOUJqBphqBeC1dQaLi292DxnOkHODrRQqAvjtzTL
+	FYngxd6qj+K8AQ8iD8EawgFxlZYmpCMX+21ZltZTnUCFA/CI6JEUDqf4+JaShZVRAu3DXRBGApsUq
+	kUXzt/gnCgSOdf+O2JNBtSZW05Cu8JABNQQKV0RdRob3L93eZYeH+eiZphyY4G4GcKyNhziPulXjZ
+	KM9rTraA==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1rvF41-000000003L1-41ZL;
+	Fri, 12 Apr 2024 13:27:25 +0200
+Date: Fri, 12 Apr 2024 13:27:25 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, Quentin Deslandes <qde@naccy.de>
+Subject: Re: [nft PATCH v2 1/2] doc: nft.8: Two minor synopsis fixups
+Message-ID: <ZhkanVAuKQmdolkd@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, Quentin Deslandes <qde@naccy.de>
+References: <20240326132651.21274-1-phil@nwl.cc>
+ <20240326132651.21274-2-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,25 +51,17 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240411191651.515937b4@kernel.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20240326132651.21274-2-phil@nwl.cc>
 
-Jakub Kicinski <kuba@kernel.org> wrote:
-> > Passing this via net-next rather than nf-next for this reason.
+On Tue, Mar 26, 2024 at 02:26:50PM +0100, Phil Sutter wrote:
+> The curly braces in 'add table' are to be put literally, so need to be
+> bold. Also, they are optional unless either one (or both) of 'comment'
+> and 'flags' are specified.
 > 
-> Either tree works, FWIW.
+> The 'add chain' synopsis contained a stray tick, messing up the
+> following markup.
 > 
-> I presume we should add these to the netdev CI, right?
+> Fixes: 7fd67ce121f86 ("doc: fix synopsis of named counter, quota and ct {helper,timeout,expect}")
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
 
-After all scripts have been updated it would be great if you
-could do that, yes.
-
-ATM too many nf tests barf for various reasons.
-
-> Assuming yes - I need to set up the worker manually. A bit of a chicken
-> and an egg problem there. The TARGET must exist when I start it
-> otherwise worker will fail :) These missed the
-> net-next-2024-04-12--00-00 branch, I'll start the worker first thing in
-> the morning..
-
-Let me know how I can help.
+Patch applied, will respin the second one.
