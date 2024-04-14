@@ -1,132 +1,85 @@
-Received: from mail-pf1-f177.google.com (mail-pf1-f177.google.com [209.85.210.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FB95199B0
-	for <netfilter-devel@vger.kernel.org>; Sun, 14 Apr 2024 05:16:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EA5A1DFF4;
+	Sun, 14 Apr 2024 23:04:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713071793; cv=none; b=Iy1MHa8kVSelc6b+An9zccpldOdfqPUR5YI1MQt0P4CVzt9CTr8qBYd2l7KKuxyAE0fanGknviGKg92/POtHVIpOx6aEk9BfoOBjArDnjXfwclASf8VLXbky55AYJ6OifXl34U8F+RNEeKigoTDWSyefej3afBzu5ZmI/ZtPNbw=
+	t=1713135882; cv=none; b=NeSDLXL8vlikQCtEswg4VtG8BcsAvbPQeTtdSuK8IJSyI5t8RGlNFLWeRqtPfEkaVyUSQrNheNf0/ghydGYyJ4DvMYikb25VErj/p+5ItzklcdLc5nxJOJHBBUEOXhprZVVrhqsUzXgtNJsIb9ixWp0V2ddqLYyLypJoJRaBdTY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713071793; c=relaxed/simple;
-	bh=8cav29WrCq1jDBsULq+CCGM6fsBAvatrXnZ+wHDoDvw=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=KjYHMe4ewFzxoieEAGSfmoWhuvlUVKKbrkNvbomMrOmSFgvKc53EDcn7MEeotX5spVW7xrMnT3AEj4u4SKNeh3cTqsAXbTMo/PdfWPtO7YIN6ACpvhxWp2dHWVqBwMv6KFzQuy0NyNz1YAxFVfVOxqxen0F3GBiVRRIp6twUpfo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jve5jbed; arc=none smtp.client-ip=209.85.210.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jve5jbed"
-Received: by mail-pf1-f177.google.com with SMTP id d2e1a72fcca58-6ed112c64beso1734468b3a.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 13 Apr 2024 22:16:31 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1713071791; x=1713676591; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=nz/9VCoKFaxXik7F8i1h/dMrDItX7nl4484C1/XWjnk=;
-        b=jve5jbed2RC3iCSbtkVs2HyDBWSVVD4IrRIG7tensifhgfOJXwIkWqP2mvTEe3Z5eT
-         p+XAoCYp4EPolmazvRACkVWUoTN6broK7nYJZkihkf0C5dv/qDaTpzlmqRv6rt3xK272
-         V9fE469WIPTIb5oRcAPOFQ70UqmqRJIOjFk2/kfkl+ELjbCTUrk5Kg0y7J65VqId2i73
-         vT5Nwi2LjSH2xA4CL2xi1A5Lqknrfah3GMMkNYNlW6rW3MFROopgkM6IolXn4ESTHYGI
-         wEYLdS6iTWRoWJhJ8Fvm9ZhWYVBAJ+W/HDJoqdKB7q3IdYIKCZtI0NLVkIIGsf2KMe37
-         ol+A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1713071791; x=1713676591;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=nz/9VCoKFaxXik7F8i1h/dMrDItX7nl4484C1/XWjnk=;
-        b=uNdFrEIG3l7cDVgRS6lRHEGzr7XNoolHdhcE5EmjP9RYpIzpZDC2gXEEguIM06cz3V
-         rDtBtVU5i5HJv6xBAy5fastZD+D1RXqNlPn1ojNvhew65gPPRmM8IR/BZz1hDbjmu7wZ
-         SqDVoQU+paebuO97PbGYJhfzwxBb5HmHC8c2ohRbyR78uUdc984bQW515lC9BnxZW6zK
-         kyibmCTGxlADobyLgPePPs+rvxK4aILCP8tVeMIihwQZ+3lzBj5HPbHnT9dRtEINxee3
-         Day1Bt/NaUdgeiAZTrcZoeh2IX3Ufqbf8eysp13LjoaSf6F3gjXNmveDZkohElZUGFh0
-         CFSQ==
-X-Gm-Message-State: AOJu0YzfvKdkklrLKDywRdAbKQh6/OwI5z8IdBj3O8xPx4CeA12rKlIx
-	mpEq2KtGpaBpVVTZGfzt7fALjE48Nyv9j4UwLe3b4Cwq/vR8x3gLtwrO3hmE6YTw3H7h7tUuW+K
-	yhrKp17cbsa+YoFcR7/NkCI3N3Bfo6mUm/9EP7A==
-X-Google-Smtp-Source: AGHT+IE9G4+mC5YUwZr9Kwumyjb5yvsO+OIC7uLdDj5dLPwH40LYfkztcM5QfMRfb99mu1IvBgkUHgp3F9c259J/YAg=
-X-Received: by 2002:a17:90a:f309:b0:2a5:f85b:8b2c with SMTP id
- ca9-20020a17090af30900b002a5f85b8b2cmr5602528pjb.14.1713071791295; Sat, 13
- Apr 2024 22:16:31 -0700 (PDT)
+	s=arc-20240116; t=1713135882; c=relaxed/simple;
+	bh=1F1CNbqCcjZGKSOs1VT/JdjiQmh/5cknyAOB2kLkCbI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=CGgOGmsNgdSiscQCD4SWIIakq0MaqJd44dgoJNGpy79+ITRlPo3RntqkMmFc2kfxHEpJXyNT5jHXP11b1wXKNfFkYDZ+1le8/qsK+azhulTRSdrJdZAxyAvkfQRtXfbyBQglvdtzlgQW4r+7lB3M0xjgyV9ZS2nulcPdXMvL10U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1rw8tg-0002V9-8E; Mon, 15 Apr 2024 01:04:28 +0200
+From: Florian Westphal <fw@strlen.de>
+To: <netdev@vger.kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	<netfilter-devel@vger.kernel.org>,
+	pablo@netfilter.org
+Subject: [PATCH net-next 00/12] selftests: netfilter: move to lib.sh infra
+Date: Mon, 15 Apr 2024 00:57:12 +0200
+Message-ID: <20240414225729.18451-1-fw@strlen.de>
+X-Mailer: git-send-email 2.43.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CALFUNymhWkcy2p9hqt7eO4H4Hm5t70Y02=XodnpH1zgAZ0cVSw@mail.gmail.com>
- <007a92b1-db83-4e8b-d05f-0feabb6bd7c4@netfilter.org>
-In-Reply-To: <007a92b1-db83-4e8b-d05f-0feabb6bd7c4@netfilter.org>
-From: keltargw <keltar.gw@gmail.com>
-Date: Sun, 14 Apr 2024 10:16:20 +0500
-Message-ID: <CALFUNyn4HSDGoK3t3yceU0NcOQSjrJctbti_Mogm5BTgqTeXHw@mail.gmail.com>
-Subject: Re: Incorrect dependency handling with delayed ipset destroy ipset 7.21
-To: Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-Thanks for the suggestion. I'm not that familiar with ipset source
-code, do you mean something like issuing a second rcu_barrier between
-call_rcu and returning result code back to netlink (and only doing
-that for list type)?
+This is the second batch of the netfilter selftest move.
 
-As I understand it there isn't much that could be done in e.g.
-list_set_destroy as it might not be called yet, sitting in the rcu
-wait queue.
+scripts are moved to lib.sh infra. This allows to use busywait helper
+and ditch various 'sleep 2' all over the place.
 
+Last patch updates the makefile with the missing bits to make
+'kselftest-install' target work as intended again and adds more required
+config settings.
 
-On Sat, 13 Apr 2024 at 19:02, Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
->
-> On Sat, 13 Apr 2024, keltargw wrote:
->
-> > I have a problem with recent kernels. Due to delayed ipset destroy I'm
-> > unable to destroy ipset that was recently in use by another (destroyed)
-> > ipset. It is demonstrated by this example:
-> >
-> > #!/bin/bash
-> > set -x
-> >
-> > ipset create qwe1 list:set
-> > ipset create asd1 hash:net
-> > ipset add qwe1 asd1
-> > ipset add asd1 1.1.1.1
-> >
-> > ipset destroy qwe1
-> > ipset list asd1 -t
-> > ipset destroy asd1
-> >
-> > Second ipset destroy reports an error "ipset v7.21: Set cannot be
-> > destroyed: it is in use by a kernel component".
-> > If this command is repeated after a short delay, it deletes ipset
-> > without any problems.
-> >
-> > It seems it could be fixed with that kernel module patch:
-> >
-> > Index: linux-6.7.9/net/netfilter/ipset/ip_set_core.c
-> > ===================================================================
-> > --- linux-6.7.9.orig/net/netfilter/ipset/ip_set_core.c
-> > +++ linux-6.7.9/net/netfilter/ipset/ip_set_core.c
-> > @@ -1241,6 +1241,9 @@ static int ip_set_destroy(struct sk_buff
-> >   u32 flags = flag_exist(info->nlh);
-> >   u16 features = 0;
-> >
-> > + /* Wait for flush to ensure references are cleared */
-> > + rcu_barrier();
-> > +
-> >   read_lock_bh(&ip_set_ref_lock);
-> >   s = find_set_and_id(inst, nla_data(attr[IPSET_ATTR_SETNAME]),
-> >      &i);
-> >
-> > If you have any suggestions on how this problem should be approached
-> > please let me know.
->
-> I'd better solve it in the list type itself: your patch unnecessarily
-> slows down all set destroy operations.
->
-> Best regards,
-> Jozsef
-> --
-> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-> PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-> Address : Wigner Research Centre for Physics
->           H-1525 Budapest 114, POB. 49, Hungary
+Missing/work in progress:
+1. nft_concat_range.sh: it runs for a very long time and also has
+a few remaining issues.
+2. some scripts still generate lots of warnings when fed to shellcheck.
+
+Both issues work-in-progress, no point in waiting because its not
+essential and series should not grow too large.
+
+Florian Westphal (12):
+  selftests: netfilter: conntrack_icmp_related.sh: move to lib.sh infra
+  selftests: netfilter: conntrack_tcp_unreplied.sh: move to lib.sh infra
+  selftests: netfilter: nft_queue.sh: move to lib.sh infra
+  selftests: netfilter: nft_synproxy.sh: move to lib.sh infra
+  selftests: netfilter: nft_zones_many.sh: move to lib.sh infra
+  selftests: netfilter: xt_string.sh: move to lib.sh infra
+  selftests: netfilter: nft_nat_zones.sh: shellcheck cleanups
+  selftests: netfilter: nft_queue.sh: shellcheck cleanups
+  selftests: netfilter: conntrack_ipip_mtu.sh: shellcheck cleanups
+  selftests: netfilter: nft_fib.sh: shellcheck cleanups
+  selftests: netfilter: nft_audit.sh: skip if auditd is running
+  selftests: netfilter: update makefiles and kernel config
+
+ tools/testing/selftests/Makefile              |   2 +-
+ .../testing/selftests/net/netfilter/Makefile  |   5 +
+ tools/testing/selftests/net/netfilter/config  |  42 ++-
+ .../net/netfilter/conntrack_ipip_mtu.sh       |  74 ++---
+ .../selftests/net/netfilter/nft_audit.sh      |  18 +-
+ .../selftests/net/netfilter/nft_fib.sh        | 128 ++++----
+ .../selftests/net/netfilter/nft_nat_zones.sh  | 193 +++++--------
+ .../selftests/net/netfilter/nft_queue.sh      | 273 ++++++++----------
+ .../selftests/net/netfilter/nft_synproxy.sh   |  77 ++---
+ .../selftests/net/netfilter/nft_zones_many.sh |  93 +++---
+ .../selftests/net/netfilter/xt_string.sh      |  55 ++--
+ 11 files changed, 458 insertions(+), 502 deletions(-)
+
+-- 
+2.43.2
+
