@@ -1,22 +1,22 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFCE7134433;
-	Sun, 14 Apr 2024 23:04:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2A201369BF;
+	Sun, 14 Apr 2024 23:04:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713135896; cv=none; b=JF6tf26Rr5yFwOIJpHSTARRs0YjtczPVvxWj/l7iBuibF2WOWJtGbxeVdffz3GTbTUdByoknxrfF45wsudfOG/ciq0vtBKqdCwl6EFfFlGAgQ5mQgnEi3Tdv7CX44pr3d8tLyO/Qbzx5Uhpv1biM8rxngqI8yEuUTkncbKECQeg=
+	t=1713135896; cv=none; b=Pan9PES96+G0UL7ES0jA/u+43nR5r5nYhAOBclWy1A5Ee8ym9v8A0ixkJVm/pQNKER4QsRWKr5hm9K++QF3x26pdgk1geAX/PvoxKYOmUnr6xgK9iSby4IyUBylsc2CnVX4sK3wU7Nc8kldkV+y4u6e2emsRR+RiuBNQLXGGbMY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1713135896; c=relaxed/simple;
-	bh=UIBG++aMXdWyyIukRkVB0NgtM+pw22owy8C5ip8p+oI=;
+	bh=CYMECbFjAP6fMd+pxWOaX4ssSIUxkUnXd0x+d9YNe5Y=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=smy0n6uI8RhCvWrshSMpXBMAs9Bol2CIo1QTU1CVZsdeLHoklWba9dpTE+JKmdlZIYX5V7kYKyE1yeFMS99uXyGT0GNpPgCs9H4mPY0BP0MABgy/l3eMs+q/08rtOPLWQGZbeOcq9Sbyw/+CVrFwG5OntfZVla7LxBMeLWnLG4o=
+	 MIME-Version; b=iPH0SqCUOYgIMLSSho2jx/IE9x14ddTOamfAjEg3z9FqnZn/Aq+IdpiC1ULQ+6VpKUMwkXoUmcWzrKo/2OXTkRuvKP5s9OucDrFcFuCwRrch1dhfshpyjyulNw2Fxc+KSc6B+P+ttn0Dfo11mcRqndkZX8OOCeeaXsURGdLS+PM=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1rw8u3-0002YG-3l; Mon, 15 Apr 2024 01:04:51 +0200
+	id 1rw8u4-0002Yb-5s; Mon, 15 Apr 2024 01:04:52 +0200
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -25,9 +25,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net-next 10/12] selftests: netfilter: nft_fib.sh: shellcheck cleanups
-Date: Mon, 15 Apr 2024 00:57:22 +0200
-Message-ID: <20240414225729.18451-11-fw@strlen.de>
+Subject: [PATCH net-next 11/12] selftests: netfilter: nft_audit.sh: skip if auditd is running
+Date: Mon, 15 Apr 2024 00:57:23 +0200
+Message-ID: <20240414225729.18451-12-fw@strlen.de>
 X-Mailer: git-send-email 2.43.2
 In-Reply-To: <20240414225729.18451-1-fw@strlen.de>
 References: <20240414225729.18451-1-fw@strlen.de>
@@ -39,254 +39,74 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-no functional change intended.
+This testcase doesn't work if auditd is running, audit_logread will not
+receive any data in that case.
+
+Skip if auditd is already running.  While at it, do a few minor
+shellcheck cleanups.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- .../selftests/net/netfilter/nft_fib.sh        | 128 +++++++++---------
- 1 file changed, 61 insertions(+), 67 deletions(-)
+ .../selftests/net/netfilter/nft_audit.sh       | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_fib.sh b/tools/testing/selftests/net/netfilter/nft_fib.sh
-index 04d6dc886b8a..ce1451c275fd 100755
---- a/tools/testing/selftests/net/netfilter/nft_fib.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_fib.sh
-@@ -16,7 +16,7 @@ cleanup()
- {
- 	cleanup_all_ns
+diff --git a/tools/testing/selftests/net/netfilter/nft_audit.sh b/tools/testing/selftests/net/netfilter/nft_audit.sh
+index 99ed5bd6e840..80936d70fcf6 100755
+--- a/tools/testing/selftests/net/netfilter/nft_audit.sh
++++ b/tools/testing/selftests/net/netfilter/nft_audit.sh
+@@ -6,6 +6,16 @@
+ SKIP_RC=4
+ RC=0
  
--	[ $log_netns -eq 0 ] && sysctl -q net.netfilter.nf_log_all_netns=$log_netns
-+	[ "$log_netns" -eq 0 ] && sysctl -q net.netfilter.nf_log_all_netns=$log_netns
- }
++if [ -r /var/run/auditd.pid ];then
++	read pid < /var/run/auditd.pid
++	p=$(pgrep ^auditd$)
++
++	if [ "$pid" -eq "$p" ]; then
++		echo "SKIP: auditd is running"
++		exit $SKIP_RC
++	fi
++fi
++
+ nft --version >/dev/null 2>&1 || {
+ 	echo "SKIP: missing nft tool"
+ 	exit $SKIP_RC
+@@ -73,7 +83,7 @@ done
  
- checktool "nft --version" "run test without nft"
-@@ -25,8 +25,7 @@ setup_ns nsrouter ns1 ns2
+ for ((i = 0; i < 500; i++)); do
+ 	echo "add rule t2 c3 counter accept comment \"rule $i\""
+-done >$rulefile
++done > "$rulefile"
+ do_test "nft -f $rulefile" \
+ 'table=t2 family=2 entries=500 op=nft_register_rule'
  
- trap cleanup EXIT
+@@ -101,7 +111,7 @@ do_test 'nft add counter t2 c1; add counter t2 c2' \
  
--dmesg | grep -q ' nft_rpfilter: '
--if [ $? -eq 0 ]; then
-+if dmesg | grep -q ' nft_rpfilter: ';then
- 	dmesg -c | grep ' nft_rpfilter: '
- 	echo "WARN: a previous test run has failed" 1>&2
- fi
-@@ -36,7 +35,7 @@ sysctl -q net.netfilter.nf_log_all_netns=1
- load_ruleset() {
- 	local netns=$1
+ for ((i = 3; i <= 500; i++)); do
+ 	echo "add counter t2 c$i"
+-done >$rulefile
++done > "$rulefile"
+ do_test "nft -f $rulefile" \
+ 'table=t2 family=2 entries=498 op=nft_register_obj'
  
--ip netns exec ${netns} nft -f /dev/stdin <<EOF
-+ip netns exec "$netns" nft -f /dev/stdin <<EOF
- table inet filter {
- 	chain prerouting {
- 		type filter hook prerouting priority 0; policy accept;
-@@ -49,7 +48,7 @@ EOF
- load_pbr_ruleset() {
- 	local netns=$1
+@@ -115,7 +125,7 @@ do_test 'nft add quota t2 q1 { 10 bytes }; add quota t2 q2 { 10 bytes }' \
  
--ip netns exec ${netns} nft -f /dev/stdin <<EOF
-+ip netns exec "$netns" nft -f /dev/stdin <<EOF
- table inet filter {
- 	chain forward {
- 		type filter hook forward priority raw;
-@@ -63,7 +62,7 @@ EOF
- load_ruleset_count() {
- 	local netns=$1
+ for ((i = 3; i <= 500; i++)); do
+ 	echo "add quota t2 q$i { 10 bytes }"
+-done >$rulefile
++done > "$rulefile"
+ do_test "nft -f $rulefile" \
+ 'table=t2 family=2 entries=498 op=nft_register_obj'
  
--ip netns exec ${netns} nft -f /dev/stdin <<EOF
-+ip netns exec "$netns" nft -f /dev/stdin <<EOF
- table inet filter {
- 	chain prerouting {
- 		type filter hook prerouting priority 0; policy accept;
-@@ -89,52 +88,49 @@ check_fib_counter() {
- 	local ns=$2
- 	local address=$3
+@@ -157,7 +167,7 @@ table=t2 family=2 entries=135 op=nft_reset_rule'
  
--	line=$(ip netns exec ${ns} nft list table inet filter | grep 'fib saddr . iif' | grep $address | grep "packets $want" )
--	ret=$?
--
--	if [ $ret -ne 0 ];then
-+	if ! ip netns exec "$ns" nft list table inet filter | grep 'fib saddr . iif' | grep "$address" | grep -q "packets $want";then
- 		echo "Netns $ns fib counter doesn't match expected packet count of $want for $address" 1>&2
--		ip netns exec ${ns} nft list table inet filter
-+		ip netns exec "$ns" nft list table inet filter
- 		return 1
- 	fi
+ # resetting sets and elements
  
--	if [ $want -gt 0 ]; then
-+	if [ "$want" -gt 0 ]; then
- 		echo "PASS: fib expression did drop packets for $address"
- 	fi
- 
- 	return 0
- }
- 
--load_ruleset ${nsrouter}
--load_ruleset ${ns1}
--load_ruleset ${ns2}
-+load_ruleset "$nsrouter"
-+load_ruleset "$ns1"
-+load_ruleset "$ns2"
- 
- if ! ip link add veth0 netns "$nsrouter" type veth peer name eth0 netns "$ns1" > /dev/null 2>&1; then
-     echo "SKIP: No virtual ethernet pair device support in kernel"
-     exit $ksft_skip
- fi
--ip link add veth1 netns ${nsrouter} type veth peer name eth0 netns ${ns2}
-+ip link add veth1 netns "$nsrouter" type veth peer name eth0 netns "$ns2"
- 
--ip -net ${nsrouter} link set veth0 up
--ip -net ${nsrouter} addr add 10.0.1.1/24 dev veth0
--ip -net ${nsrouter} addr add dead:1::1/64 dev veth0 nodad
-+ip -net "$nsrouter" link set veth0 up
-+ip -net "$nsrouter" addr add 10.0.1.1/24 dev veth0
-+ip -net "$nsrouter" addr add dead:1::1/64 dev veth0 nodad
- 
--ip -net ${nsrouter} link set veth1 up
--ip -net ${nsrouter} addr add 10.0.2.1/24 dev veth1
--ip -net ${nsrouter} addr add dead:2::1/64 dev veth1 nodad
-+ip -net "$nsrouter" link set veth1 up
-+ip -net "$nsrouter" addr add 10.0.2.1/24 dev veth1
-+ip -net "$nsrouter" addr add dead:2::1/64 dev veth1 nodad
- 
--ip -net ${ns1} link set eth0 up
--ip -net ${ns2} link set eth0 up
-+ip -net "$ns1" link set eth0 up
-+ip -net "$ns2" link set eth0 up
- 
--ip -net ${ns1} addr add 10.0.1.99/24 dev eth0
--ip -net ${ns1} addr add dead:1::99/64 dev eth0 nodad
--ip -net ${ns1} route add default via 10.0.1.1
--ip -net ${ns1} route add default via dead:1::1
-+ip -net "$ns1" addr add 10.0.1.99/24 dev eth0
-+ip -net "$ns1" addr add dead:1::99/64 dev eth0 nodad
-+ip -net "$ns1" route add default via 10.0.1.1
-+ip -net "$ns1" route add default via dead:1::1
- 
--ip -net ${ns2} addr add 10.0.2.99/24 dev eth0
--ip -net ${ns2} addr add dead:2::99/64 dev eth0 nodad
--ip -net ${ns2} route add default via 10.0.2.1
--ip -net ${ns2} route add default via dead:2::1
-+ip -net "$ns2" addr add 10.0.2.99/24 dev eth0
-+ip -net "$ns2" addr add dead:2::99/64 dev eth0 nodad
-+ip -net "$ns2" route add default via 10.0.2.1
-+ip -net "$ns2" route add default via dead:2::1
- 
- test_ping() {
-   local daddr4=$1
-@@ -155,11 +151,11 @@ test_ping() {
-   return 0
- }
- 
--ip netns exec ${nsrouter} sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
--ip netns exec ${nsrouter} sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
--ip netns exec ${nsrouter} sysctl net.ipv4.conf.veth1.forwarding=1 > /dev/null
--ip netns exec ${nsrouter} sysctl net.ipv4.conf.all.rp_filter=0 > /dev/null
--ip netns exec ${nsrouter} sysctl net.ipv4.conf.veth0.rp_filter=0 > /dev/null
-+ip netns exec "$nsrouter" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
-+ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
-+ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth1.forwarding=1 > /dev/null
-+ip netns exec "$nsrouter" sysctl net.ipv4.conf.all.rp_filter=0 > /dev/null
-+ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth0.rp_filter=0 > /dev/null
- 
- test_ping 10.0.2.1 dead:2::1 || exit 1
- check_drops || exit 1
-@@ -169,69 +165,67 @@ check_drops || exit 1
- 
- echo "PASS: fib expression did not cause unwanted packet drops"
- 
--ip netns exec ${nsrouter} nft flush table inet filter
-+ip netns exec "$nsrouter" nft flush table inet filter
- 
--ip -net ${ns1} route del default
--ip -net ${ns1} -6 route del default
-+ip -net "$ns1" route del default
-+ip -net "$ns1" -6 route del default
- 
--ip -net ${ns1} addr del 10.0.1.99/24 dev eth0
--ip -net ${ns1} addr del dead:1::99/64 dev eth0
-+ip -net "$ns1" addr del 10.0.1.99/24 dev eth0
-+ip -net "$ns1" addr del dead:1::99/64 dev eth0
- 
--ip -net ${ns1} addr add 10.0.2.99/24 dev eth0
-+ip -net "$ns1" addr add 10.0.2.99/24 dev eth0
- ip -net "$ns1" addr add dead:2::99/64 dev eth0 nodad
- 
--ip -net ${ns1} route add default via 10.0.2.1
--ip -net ${ns1} -6 route add default via dead:2::1
-+ip -net "$ns1" route add default via 10.0.2.1
-+ip -net "$ns1" -6 route add default via dead:2::1
- 
- ip -net "$nsrouter" addr add dead:2::1/64 dev veth0 nodad
- 
- # switch to ruleset that doesn't log, this time
- # its expected that this does drop the packets.
--load_ruleset_count ${nsrouter}
-+load_ruleset_count "$nsrouter"
- 
- # ns1 has a default route, but nsrouter does not.
- # must not check return value, ping to 1.1.1.1 will
- # fail.
--check_fib_counter 0 ${nsrouter} 1.1.1.1 || exit 1
--check_fib_counter 0 ${nsrouter} 1c3::c01d || exit 1
-+check_fib_counter 0 "$nsrouter" 1.1.1.1 || exit 1
-+check_fib_counter 0 "$nsrouter" 1c3::c01d || exit 1
- 
- ip netns exec "$ns1" ping -W 0.5 -c 1 -q 1.1.1.1 > /dev/null
--check_fib_counter 1 ${nsrouter} 1.1.1.1 || exit 1
-+check_fib_counter 1 "$nsrouter" 1.1.1.1 || exit 1
- 
- ip netns exec "$ns1" ping -W 0.5 -i 0.1 -c 3 -q 1c3::c01d > /dev/null
--check_fib_counter 3 ${nsrouter} 1c3::c01d || exit 1
-+check_fib_counter 3 "$nsrouter" 1c3::c01d || exit 1
- 
- # delete all rules
--ip netns exec ${ns1} nft flush ruleset
--ip netns exec ${ns2} nft flush ruleset
--ip netns exec ${nsrouter} nft flush ruleset
-+ip netns exec "$ns1" nft flush ruleset
-+ip netns exec "$ns2" nft flush ruleset
-+ip netns exec "$nsrouter" nft flush ruleset
- 
--ip -net ${ns1} addr add 10.0.1.99/24 dev eth0
-+ip -net "$ns1" addr add 10.0.1.99/24 dev eth0
- ip -net "$ns1" addr add dead:1::99/64 dev eth0 nodad
- 
--ip -net ${ns1} addr del 10.0.2.99/24 dev eth0
--ip -net ${ns1} addr del dead:2::99/64 dev eth0
-+ip -net "$ns1" addr del 10.0.2.99/24 dev eth0
-+ip -net "$ns1" addr del dead:2::99/64 dev eth0
- 
--ip -net ${nsrouter} addr del dead:2::1/64 dev veth0
-+ip -net "$nsrouter" addr del dead:2::1/64 dev veth0
- 
- # ... pbr ruleset for the router, check iif+oif.
--load_pbr_ruleset ${nsrouter}
--if [ $? -ne 0 ] ; then
-+if ! load_pbr_ruleset "$nsrouter";then
- 	echo "SKIP: Could not load fib forward ruleset"
- 	exit $ksft_skip
- fi
- 
--ip -net ${nsrouter} rule add from all table 128
--ip -net ${nsrouter} rule add from all iif veth0 table 129
--ip -net ${nsrouter} route add table 128 to 10.0.1.0/24 dev veth0
--ip -net ${nsrouter} route add table 129 to 10.0.2.0/24 dev veth1
-+ip -net "$nsrouter" rule add from all table 128
-+ip -net "$nsrouter" rule add from all iif veth0 table 129
-+ip -net "$nsrouter" route add table 128 to 10.0.1.0/24 dev veth0
-+ip -net "$nsrouter" route add table 129 to 10.0.2.0/24 dev veth1
- 
- # drop main ipv4 table
--ip -net ${nsrouter} -4 rule delete table main
-+ip -net "$nsrouter" -4 rule delete table main
- 
--test_ping 10.0.2.99 dead:2::99
--if [ $? -ne 0 ] ; then
--	ip -net ${nsrouter} nft list ruleset
-+if ! test_ping 10.0.2.99 dead:2::99;then
-+	ip -net "$nsrouter" nft list ruleset
- 	echo "FAIL: fib mismatch in pbr setup"
- 	exit 1
- fi
+-elem=(22 ,80 ,443)
++elem=(22 ",80" ",443")
+ relem=""
+ for i in {1..3}; do
+ 	relem+="${elem[((i - 1))]}"
 -- 
 2.43.2
 
