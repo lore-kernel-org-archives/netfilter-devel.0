@@ -1,57 +1,57 @@
-Received: from mail-qk1-f174.google.com (mail-qk1-f174.google.com [209.85.222.174])
+Received: from mail-qv1-f52.google.com (mail-qv1-f52.google.com [209.85.219.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 619D31386D6;
-	Tue, 16 Apr 2024 19:32:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90DAF13958A;
+	Tue, 16 Apr 2024 19:32:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713295956; cv=none; b=XrUa7k8ulH0LaR9t450jqc2qKo36E7zGiCEEcx+swGDtICU6kNAKPwaeYKmf3CtMT+7/KDkE4/ub1idUtHoodK7hQwTlg0N2s2VT1TXPqDnh7oy/dOvbgEtCTpErlklCmuuHprlwhT0x4eCH06gPz5RqJa0pf8jazQJb4UpAoPY=
+	t=1713295960; cv=none; b=nnSO793bUTT6roLAiKgDq5yMx9G/tPARMWGEzgI/yfIElCKNRt70bdkx3jaD/ErmHoQpGgwyKCvM0V9HWy/H+bt4tPrrO4Aq+7uRlAMP0eQLraFoCHYgrnR5gxCAzbC/hw2/q9Nr2QGVMT2Tq7944v4hM92UuIzmT70hg62iknc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713295956; c=relaxed/simple;
-	bh=JmklNJkXVbBt0Hk1Q+ree0UoA88bHG2P1eTirKF3fUE=;
+	s=arc-20240116; t=1713295960; c=relaxed/simple;
+	bh=Z5eKkhGzI61to4+9oCaEDLPzrRmsjhuoTlHtMcra+wQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Tp+Ihl7QX5wjTWrv0pxBrK1oN6ZC3DjNsafNel7zHq0V0t/FUBIEyg0L2uw01egmSNGmS3zvecGv1WUgNzfh7/DZedhWHxIUa1BiYnrF/1eHfV0zlRmvpk+21nO7ESUOYyuwQY7CKX3jRdQn9CosFNM2mNYJ5PGP4G1aGR2Qbb0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SahGBjtL; arc=none smtp.client-ip=209.85.222.174
+	 MIME-Version; b=iZoUBoHyR84RPy9iKECmD3gRh5xBA8Tl7AqVXRzFPzXfPxMau1AJETAnuS/lP1fLChLs7vaSwx8zNvmUwpcvU+hh1Nju0axLL7dK2E8z9htynoug0bZDKuXy9tRzU7gFcrR/avfkzFJwAW3wxf2uErW0WAfg+tO1tIuZ/sZzXsc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=PYmcb76X; arc=none smtp.client-ip=209.85.219.52
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SahGBjtL"
-Received: by mail-qk1-f174.google.com with SMTP id af79cd13be357-78d62c1e82bso322049385a.3;
-        Tue, 16 Apr 2024 12:32:34 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PYmcb76X"
+Received: by mail-qv1-f52.google.com with SMTP id 6a1803df08f44-69b9365e584so757286d6.1;
+        Tue, 16 Apr 2024 12:32:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1713295953; x=1713900753; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1713295957; x=1713900757; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=c8y7IngMiFe8wB8ombVLCmxifTnM5mL9MitMGDY7XhQ=;
-        b=SahGBjtL0x9DXQunVYdoP3DNXKHZ1LTRRerTdUb9AgqZBW+UNj3ad/+KkFCGlQkQOf
-         QwjXpd1BHlA7mXkzeJTxuuc/dStPqr0liGXkMbnOp4yJaO5MJEzMujTZwEbrmYpM8zHl
-         V6Z9/9fN9HtARm9hybzlj8+poumIuY1YJjYS8qVxEeTN5VQdiBVXISwKDZg8S/4Gv+mC
-         CPvwZA6HM89BnHDIe4TpYSRraZc2b3lXbeMTQQAUaCPixqGQNdUQNLQHEZHLYIuTmpo3
-         /1bmJLLp0cJrjoXN615xf9wC4hYau0vQV23MveFVjdl3+O++79PlDX9kLzqsuiHQzlmc
-         G6uw==
+        bh=5Qtj+HJLcSA6Egxh9EBJGAXfVQ/F2/t2JKExwDP1lg0=;
+        b=PYmcb76XS1M+O0TLsRXlmUYTvBDst+7s/39lLU8NlTAOYzFYYQ6s4fYIIk6H12K7y4
+         J1yY97Gt85gJ4cmFhBXN/WMBfckgpJkR7jyQTtijR+9PTVAYZYCsCE3FvJkh365V0Mvq
+         L1boBN0CNmfn95fMNlYl4a3ANifPX3aeN5nlj4tG+AFjWjJ59j46Cl8oj3X87D9/eEJS
+         Jr17pQ2I1RTPF1UYZKyVc8x7iSVs+vxqCV6A9aOiH0dhK677O1o4fCKmjkpkLPRnLKiG
+         F1wXVdcuN72Sx2vW69LqieY0bpv9k+aDYHssGxIN4c0oiYHPuxd+zhTJmAONP0vyuidR
+         P6hQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1713295953; x=1713900753;
+        d=1e100.net; s=20230601; t=1713295957; x=1713900757;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=c8y7IngMiFe8wB8ombVLCmxifTnM5mL9MitMGDY7XhQ=;
-        b=l6tXvx7cBGwF614V+ucQksVWVuzJKqBJTHej+JGW9rLmMsFGE/ZOeWfNugp6MY/K+4
-         H4nI1kzFwLGGqY7BDYo+jqmtrPJ461sdHiZgE1cpIUhB69xoCnUmDXcn6s2zBzEqf/qO
-         evTVdpA+44uzxonsq89GXPQs9zsy0/1pM5NIPkLTYqwOE8xshF2LkExoCoyg7EO6lLy+
-         Y5HiUMJPYw8grmXFYw0xZN3I/csijUsY0JEH9aaaMTJdnH/LEUX0sqkxPc2b3wmFY+7D
-         o+ic2IGMu/6RMQC8FL874mPuxhWGX6MqXU0tyXVXl5sLkM60gLjY58OOznjxfdMryHSL
-         5DPg==
-X-Forwarded-Encrypted: i=1; AJvYcCXXHMVJ7FPyef6HqQD8q0U3HluJX8o1q7JylNomM8EdhYrftwhJ4qF3DzRLrHx122mWQrqNWUl2tBz9kUuau8KeYz2nnZonEfmyrH7ZORao
-X-Gm-Message-State: AOJu0Yx5qxFekBtkfXlFxfxrQATuaYU5A0EzXe+V5+YHOvr7jclWRqGi
-	0Mkayf5n5+unVK+DIKN7QGy7CXSPcQm5bBZ8KtVODdaaEGOk9wVLLy/OWdOX
-X-Google-Smtp-Source: AGHT+IENa831t8vCHTpsFDldBlMLSOZ+0DbkMP6jBeOUHyNJrDr6wERJaYcKLYW5ux1kjou3DQ2VKw==
-X-Received: by 2002:ad4:5969:0:b0:69b:7a67:d3ea with SMTP id eq9-20020ad45969000000b0069b7a67d3eamr9174838qvb.17.1713295952677;
-        Tue, 16 Apr 2024 12:32:32 -0700 (PDT)
+        bh=5Qtj+HJLcSA6Egxh9EBJGAXfVQ/F2/t2JKExwDP1lg0=;
+        b=sGYJVVrGM6hhIOM9kwdjXCxOyrn7iQDoek1S3hFXJUoAntcvGAqwLDOujEyTRdUE1q
+         8eyreXmImcRljp7CkW7wpuIeeYSoppfiswPQAn3tACRP2cugawt+v8YDFYvpZaTKwxMd
+         z4MgFgYZG7Scg+DrhsI2agZBacVr21sgoHY5BS2RMZFO9M5MiLM3q16ZpTV4Iq+njZK8
+         zT5pGxJnfKeQC6DUvPxIp6ljmzdR6v0oNw1pINoV9HpP9xK8vDVrdEdu3RUHP4IbrWES
+         aLzCYMWDtmvDrggwX3NuxXftN3OSrKQSOxP9d8WU6xw2qlu6GOEzpAxIbU/yTr/Gr909
+         Lt+w==
+X-Forwarded-Encrypted: i=1; AJvYcCXkkM5WExksrCUDv2FoP79EiERSLo3+ll6v8OcTI+EbosIAe1oC8cIwG+rs2hH/1pvrc3rojGQ9Zz8CBojZ0QdwehLg2W/olfGgWtGt+W7c
+X-Gm-Message-State: AOJu0YynUXFR3A6+IygsJxuBwrkZYe9H62LDWi767KOScYBFU6ZE93ZC
+	Pcwl2qo4o2CAAG4mWFHxrlMrQwyf8Zycxy34a3STERlMSPuHsTmQsRxQfrvW
+X-Google-Smtp-Source: AGHT+IGqAj18aW9DCfJkvZoSFkJfO+HhD+vthgeMez6Swa84C8tCKBxfyOEtgkBzwwX7aF9hzohtsA==
+X-Received: by 2002:ad4:4d11:0:b0:69b:5f59:7bc0 with SMTP id l17-20020ad44d11000000b0069b5f597bc0mr5194174qvl.16.1713295957177;
+        Tue, 16 Apr 2024 12:32:37 -0700 (PDT)
 Received: from imac.redhat.com ([88.97.103.74])
-        by smtp.gmail.com with ESMTPSA id p12-20020a0cfacc000000b0069b52026a19sm6901757qvo.25.2024.04.16.12.32.28
+        by smtp.gmail.com with ESMTPSA id p12-20020a0cfacc000000b0069b52026a19sm6901757qvo.25.2024.04.16.12.32.33
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 16 Apr 2024 12:32:32 -0700 (PDT)
+        Tue, 16 Apr 2024 12:32:36 -0700 (PDT)
 From: Donald Hunter <donald.hunter@gmail.com>
 To: netdev@vger.kernel.org,
 	Jakub Kicinski <kuba@kernel.org>,
@@ -66,9 +66,9 @@ To: netdev@vger.kernel.org,
 	coreteam@netfilter.org
 Cc: donald.hunter@redhat.com,
 	Donald Hunter <donald.hunter@gmail.com>
-Subject: [PATCH net-next v3 2/4] tools/net/ynl: Add multi message support to ynl
-Date: Tue, 16 Apr 2024 20:32:13 +0100
-Message-ID: <20240416193215.8259-3-donald.hunter@gmail.com>
+Subject: [PATCH net-next v3 3/4] tools/net/ynl: Handle acks that use req_value
+Date: Tue, 16 Apr 2024 20:32:14 +0100
+Message-ID: <20240416193215.8259-4-donald.hunter@gmail.com>
 X-Mailer: git-send-email 2.44.0
 In-Reply-To: <20240416193215.8259-1-donald.hunter@gmail.com>
 References: <20240416193215.8259-1-donald.hunter@gmail.com>
@@ -80,211 +80,54 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add a "--multi <do-op> <json>" command line to ynl that makes it
-possible to add several operations to a single netlink request payload.
-The --multi command line option is repeated for each operation.
+The nfnetlink family uses the directional op model but errors get
+reported using the request value instead of the reply value.
 
-This is used by the nftables family for transaction batches. For
-example:
-
-./tools/net/ynl/cli.py \
- --spec Documentation/netlink/specs/nftables.yaml \
- --multi batch-begin '{"res-id": 10}' \
- --multi newtable '{"name": "test", "nfgen-family": 1}' \
- --multi newchain '{"name": "chain", "table": "test", "nfgen-family": 1}' \
- --multi batch-end '{"res-id": 10}'
-[None, None, None, None]
-
-It can also be used for bundling get requests:
-
-./tools/net/ynl/cli.py \
- --spec Documentation/netlink/specs/nftables.yaml \
- --multi gettable '{"name": "test", "nfgen-family": 1}' \
- --multi getchain '{"name": "chain", "table": "test", "nfgen-family": 1}' \
- --output-json
-[{"name": "test", "use": 1, "handle": 1, "flags": [],
- "nfgen-family": 1, "version": 0, "res-id": 2},
- {"table": "test", "name": "chain", "handle": 1, "use": 0,
- "nfgen-family": 1, "version": 0, "res-id": 2}]
+Add a method get_op_by_value that falls back to returning the request op
+for directional ops.
 
 Signed-off-by: Donald Hunter <donald.hunter@gmail.com>
 ---
- tools/net/ynl/cli.py     | 25 ++++++++++++--
- tools/net/ynl/lib/ynl.py | 70 ++++++++++++++++++++++++++++------------
- 2 files changed, 71 insertions(+), 24 deletions(-)
+ tools/net/ynl/lib/nlspec.py | 12 ++++++++++++
+ tools/net/ynl/lib/ynl.py    |  2 +-
+ 2 files changed, 13 insertions(+), 1 deletion(-)
 
-diff --git a/tools/net/ynl/cli.py b/tools/net/ynl/cli.py
-index f131e33ac3ee..058926d69ef0 100755
---- a/tools/net/ynl/cli.py
-+++ b/tools/net/ynl/cli.py
-@@ -19,13 +19,28 @@ class YnlEncoder(json.JSONEncoder):
+diff --git a/tools/net/ynl/lib/nlspec.py b/tools/net/ynl/lib/nlspec.py
+index 6d08ab9e213f..04085bc6365e 100644
+--- a/tools/net/ynl/lib/nlspec.py
++++ b/tools/net/ynl/lib/nlspec.py
+@@ -567,6 +567,18 @@ class SpecFamily(SpecElement):
+           return op
+       return None
  
++    def get_op_by_value(self, value):
++        """
++        For a given operation value, look up operation spec. Search
++        by response value first then fall back to request value. This
++        is required for handling failure cases.
++        """
++        if value in self.rsp_by_value:
++            return self.rsp_by_value[value]
++        if self.msg_id_model == 'directional' and value in self.req_by_value:
++            return self.req_by_value[value]
++        return None
++
+     def resolve(self):
+         self.resolve_up(super())
  
- def main():
--    parser = argparse.ArgumentParser(description='YNL CLI sample')
-+    description = """
-+    YNL CLI utility - a general purpose netlink utility that uses YAML
-+    specs to drive protocol encoding and decoding.
-+    """
-+    epilog = """
-+    The --multi option can be repeated to include several do operations
-+    in the same netlink payload.
-+    """
-+
-+    parser = argparse.ArgumentParser(description=description,
-+                                     epilog=epilog)
-     parser.add_argument('--spec', dest='spec', type=str, required=True)
-     parser.add_argument('--schema', dest='schema', type=str)
-     parser.add_argument('--no-schema', action='store_true')
-     parser.add_argument('--json', dest='json_text', type=str)
--    parser.add_argument('--do', dest='do', type=str)
--    parser.add_argument('--dump', dest='dump', type=str)
-+
-+    group = parser.add_mutually_exclusive_group()
-+    group.add_argument('--do', dest='do', metavar='DO-OPERATION', type=str)
-+    group.add_argument('--multi', dest='multi', nargs=2, action='append',
-+                       metavar=('DO-OPERATION', 'JSON_TEXT'), type=str)
-+    group.add_argument('--dump', dest='dump', metavar='DUMP-OPERATION', type=str)
-+
-     parser.add_argument('--sleep', dest='sleep', type=int)
-     parser.add_argument('--subscribe', dest='ntf', type=str)
-     parser.add_argument('--replace', dest='flags', action='append_const',
-@@ -73,6 +88,10 @@ def main():
-         if args.dump:
-             reply = ynl.dump(args.dump, attrs)
-             output(reply)
-+        if args.multi:
-+            ops = [ (item[0], json.loads(item[1]), args.flags or []) for item in args.multi ]
-+            reply = ynl.do_multi(ops)
-+            output(reply)
-     except NlError as e:
-         print(e)
-         exit(1)
 diff --git a/tools/net/ynl/lib/ynl.py b/tools/net/ynl/lib/ynl.py
-index a67f7b6fef92..a45e53ab0dd9 100644
+index a45e53ab0dd9..eb6c5475fb48 100644
 --- a/tools/net/ynl/lib/ynl.py
 +++ b/tools/net/ynl/lib/ynl.py
-@@ -940,16 +940,11 @@ class YnlFamily(SpecFamily):
- 
-       return op['do']['request']['attributes'].copy()
- 
--    def _op(self, method, vals, flags=None, dump=False):
--        op = self.ops[method]
--
-+    def _encode_message(self, op, vals, flags, req_seq):
-         nl_flags = Netlink.NLM_F_REQUEST | Netlink.NLM_F_ACK
-         for flag in flags or []:
-             nl_flags |= flag
--        if dump:
--            nl_flags |= Netlink.NLM_F_DUMP
- 
--        req_seq = random.randint(1024, 65535)
-         msg = self.nlproto.message(nl_flags, op.req_value, 1, req_seq)
-         if op.fixed_header:
-             msg += self._encode_struct(op.fixed_header, vals)
-@@ -957,18 +952,32 @@ class YnlFamily(SpecFamily):
-         for name, value in vals.items():
-             msg += self._add_attr(op.attr_set.name, name, value, search_attrs)
-         msg = _genl_msg_finalize(msg)
-+        return msg
-+
-+    def _ops(self, ops):
-+        reqs_by_seq = {}
-+        req_seq = random.randint(1024, 65535)
-+        payload = b''
-+        for (method, vals, flags) in ops:
-+            op = self.ops[method]
-+            msg = self._encode_message(op, vals, flags, req_seq)
-+            reqs_by_seq[req_seq] = (op, msg, flags)
-+            payload += msg
-+            req_seq += 1
- 
--        self.sock.send(msg, 0)
-+        self.sock.send(payload, 0)
- 
-         done = False
-         rsp = []
-+        op_rsp = []
-         while not done:
-             reply = self.sock.recv(self._recv_size)
-             nms = NlMsgs(reply, attr_space=op.attr_set)
-             self._recv_dbg_print(reply, nms)
-             for nl_msg in nms:
--                if nl_msg.extack:
--                    self._decode_extack(msg, op, nl_msg.extack)
-+                if nl_msg.extack and nl_msg.nl_seq in reqs_by_seq:
-+                    (req_op, req_msg, req_flags) = reqs_by_seq[nl_msg.nl_seq]
-+                    self._decode_extack(req_msg, req_op, nl_msg.extack)
- 
-                 if nl_msg.error:
-                     raise NlError(nl_msg)
-@@ -976,13 +985,27 @@ class YnlFamily(SpecFamily):
-                     if nl_msg.extack:
-                         print("Netlink warning:")
-                         print(nl_msg)
--                    done = True
-+
-+                    (_, _, req_flags) = reqs_by_seq[nl_msg.nl_seq]
-+                    if Netlink.NLM_F_DUMP in req_flags:
-+                        rsp.append(op_rsp)
-+                    elif not op_rsp:
-+                        rsp.append(None)
-+                    elif len(op_rsp) == 1:
-+                        rsp.append(op_rsp[0])
-+                    else:
-+                        rsp.append(op_rsp)
-+                    op_rsp = []
-+
-+                    del reqs_by_seq[nl_msg.nl_seq]
-+                    done = len(reqs_by_seq) == 0
-                     break
- 
-                 decoded = self.nlproto.decode(self, nl_msg)
-+                rsp_op = self.rsp_by_value[decoded.cmd()]
- 
-                 # Check if this is a reply to our request
--                if nl_msg.nl_seq != req_seq or decoded.cmd() != op.rsp_value:
-+                if nl_msg.nl_seq not in reqs_by_seq or decoded.cmd() != rsp_op.rsp_value:
-                     if decoded.cmd() in self.async_msg_ids:
-                         self.handle_ntf(decoded)
-                         continue
-@@ -990,21 +1013,26 @@ class YnlFamily(SpecFamily):
-                         print('Unexpected message: ' + repr(decoded))
-                         continue
- 
--                rsp_msg = self._decode(decoded.raw_attrs, op.attr_set.name)
-+                rsp_msg = self._decode(decoded.raw_attrs, rsp_op.attr_set.name)
-                 if op.fixed_header:
--                    rsp_msg.update(self._decode_struct(decoded.raw, op.fixed_header))
--                rsp.append(rsp_msg)
-+                    rsp_msg.update(self._decode_struct(decoded.raw, rsp_op.fixed_header))
-+                op_rsp.append(rsp_msg)
- 
--        if dump:
--            return rsp
--        if not rsp:
--            return None
--        if len(rsp) == 1:
--            return rsp[0]
-         return rsp
- 
-+    def _op(self, method, vals, flags=None, dump=False):
-+        req_flags = flags or []
-+        if dump:
-+            req_flags.append(Netlink.NLM_F_DUMP)
-+
-+        ops = [(method, vals, req_flags)]
-+        return self._ops(ops)[0]
-+
-     def do(self, method, vals, flags=None):
-         return self._op(method, vals, flags)
- 
-     def dump(self, method, vals):
--        return self._op(method, vals, [], dump=True)
-+        return self._op(method, vals, dump=True)
-+
-+    def do_multi(self, ops):
-+        return self._ops(ops)
+@@ -390,7 +390,7 @@ class NetlinkProtocol:
+         msg = self._decode(nl_msg)
+         fixed_header_size = 0
+         if ynl:
+-            op = ynl.rsp_by_value[msg.cmd()]
++            op = ynl.get_op_by_value(msg.cmd())
+             fixed_header_size = ynl._struct_size(op.fixed_header)
+         msg.raw_attrs = NlAttrs(msg.raw, fixed_header_size)
+         return msg
 -- 
 2.44.0
 
