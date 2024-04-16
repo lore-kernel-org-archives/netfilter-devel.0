@@ -1,187 +1,134 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45053136E2B
-	for <netfilter-devel@vger.kernel.org>; Tue, 16 Apr 2024 08:18:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C05D7EEB7;
+	Tue, 16 Apr 2024 08:44:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713255532; cv=none; b=Tj7G+C4hFngmcFLUPzi5/A1wuiclY7Kljll09b5yi4r4dYXvbcyOauRjvoOu8Ag2hfO/xu0mueOI0ZgAP7eES2LWECXW+duksK6IL1YSb/6lSLSyK6JC2vWMv0l+y74XxDqvDpVkqKbP+esaIHjUYw4N+rF4FQrzqWF1cRxCDNw=
+	t=1713257057; cv=none; b=lWpoMbD5K/ZxWNWktp7IinLhuuZjrcS/X5UMNANTarfuvoanlUvy7UsfLgVjHMhgM03tAngjt8x8cNBw8jF56pyexjOQ8dHt6aYVTT8zleQIclrVlV52uNyXAoa0CtaZ6rtLvIg206fA1UEmPDWzfoyTMcP9/aKf1Ku1N6h3s3U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713255532; c=relaxed/simple;
-	bh=WSUcYTGfMiJPS6dBoWIy1OiuZHDqhA72PAGbwoqjEHc=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=awTVqLZ7yApq3WhnUEyr+SR8w0IsEh7edqbwEfYIoV1e5jw0AfNHfZpVqUa7cJTCDvN48qe09PVehno/S3xN/S2osYL/rJxDDoYg4WnQcenJRTlAJ2xvPeIP4Y735p7aPCRtmwar/65NroMSu9ZBH4k/O1a09QbwL+3luU+y434=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=TByiiSen; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1713257057; c=relaxed/simple;
+	bh=wzQ1AYXTGr5az/pyEpj7BjxnP08LN1p5OfLYS23YDAE=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=ryf7PfXDvWc7NVeEnz3+JEwEFV+/7agogV0Yoonvy6cOm8I4Z5pV8BF59uJfRJTb5ZviWUCFbWSz3ciV3DkAGWlS/95qhFOiDM6abxmxohglyUjF8eRvXMiAR66gL8ymcgHUtiIkljNChkSBYqNl4uTmuT/imvurm/7Y3+UMFJg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=sfqe+/XQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="TByiiSen"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1713255529;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=sx9FIAo9TZjFdKuhika+AQetmZMIT9vu9nUh+3JKCOQ=;
-	b=TByiiSen8u4aSXJIcOd8ZEvHzJ1U8Izegjbg0vUe7+kU55q01CaBCCds/86hosbbmARQWZ
-	uFNPqUQIlAVqsVjxpRhoiT4PZyXfUqjAGHzVy2nIkE/wnPu51iHD057H8lfoyAwzq0zZbV
-	S/LoLmJ64E/oz1JfvlTyAQPDixFuCRQ=
-Received: from mail-ej1-f72.google.com (mail-ej1-f72.google.com
- [209.85.218.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-75-OP0LWQpLO92RuA5OQrh1rQ-1; Tue, 16 Apr 2024 04:18:47 -0400
-X-MC-Unique: OP0LWQpLO92RuA5OQrh1rQ-1
-Received: by mail-ej1-f72.google.com with SMTP id a640c23a62f3a-a51a65f488cso86112866b.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Apr 2024 01:18:47 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1713255526; x=1713860326;
-        h=mime-version:user-agent:content-transfer-encoding:autocrypt
-         :references:in-reply-to:date:cc:to:from:subject:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=sx9FIAo9TZjFdKuhika+AQetmZMIT9vu9nUh+3JKCOQ=;
-        b=CRXOcujRwnNozBDdskxBCNNnWGDz/NDdzoubyoqBydJ3XXj/s8EJf11pBkB6F14f1r
-         hoLfIs8ADluvAY4A06yekzjE+EAcBYetuUWCapnw+nMSeJwV6Mx5zA9h+JuCaai6n0zg
-         oUmmPoccTvPgmAWSk6FL+LLBmttSPNjeML0fl054TAAkshRVBEHswYUcAAwN6nQBXnke
-         T9tRSKKXwyrvBU1XupuO5pTVBTVm1TS/1Iq+/FjXumpJ9YTCmW3UUHuhfNJ00XDGIX7x
-         2S5+2PQ4GgdH9GsOpeHLQu7ib8NcNbvncWnp63zhVuE65GX5rqhQYWQ4Exgt0KDrC+49
-         JM9g==
-X-Forwarded-Encrypted: i=1; AJvYcCXwGSBRCt8ZaVR9NM4A3QuMjER5IjyjgIoIBPEwn0qP0ilCiLVLRfEwVfNR2WiB7KYJRv9+JsL27JKjltJx1o5HfIC/eiJCOWCOqE35z/4f
-X-Gm-Message-State: AOJu0YyiH4ByzqEqk7rmQxJS8wz4KNdLqwTUrgqLRf9h2AAfokpz+Kya
-	EjwJwayOcjv7AN3CxNbDBi31clkD4isEiMnisARwNkiTcopBZrI+gS4IzSPPYId8yCipupcjA9M
-	D9mZ3Zf1Or6vBVc5/e6+LBS5hHLUd3C1wUFm87MxMxdVCjgyq2mIqTRXl+tnu0fgofg==
-X-Received: by 2002:a17:906:4ecf:b0:a52:6535:d078 with SMTP id i15-20020a1709064ecf00b00a526535d078mr3213740ejv.7.1713255526639;
-        Tue, 16 Apr 2024 01:18:46 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IEeWubKk9sfU5n4Eg4r0fgR17oDosoRykSHGnpq+PCrNmzGMeRZ2HKjVJzu/+KOc5EhcE24Ng==
-X-Received: by 2002:a17:906:4ecf:b0:a52:6535:d078 with SMTP id i15-20020a1709064ecf00b00a526535d078mr3213728ejv.7.1713255526227;
-        Tue, 16 Apr 2024 01:18:46 -0700 (PDT)
-Received: from gerbillo.redhat.com (146-241-231-31.dyn.eolo.it. [146.241.231.31])
-        by smtp.gmail.com with ESMTPSA id gf14-20020a170906e20e00b00a51e6222200sm6539922ejb.156.2024.04.16.01.18.42
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 16 Apr 2024 01:18:45 -0700 (PDT)
-Message-ID: <be056435353af60a564f457c79dacc16c6ea920e.camel@redhat.com>
-Subject: Re: [PATCH v3 1/4] networking: Remove the now superfluous sentinel
- elements from ctl_table array
-From: Paolo Abeni <pabeni@redhat.com>
-To: Kuniyuki Iwashima <kuniyu@amazon.com>, 
-	devnull+j.granados.samsung.com@kernel.org
-Cc: Dai.Ngo@oracle.com, alex.aring@gmail.com, alibuda@linux.alibaba.com, 
- allison.henderson@oracle.com, anna@kernel.org, bridge@lists.linux.dev, 
- chuck.lever@oracle.com, coreteam@netfilter.org, courmisch@gmail.com, 
- davem@davemloft.net, dccp@vger.kernel.org, dhowells@redhat.com,
- dsahern@kernel.org,  edumazet@google.com, fw@strlen.de, geliang@kernel.org,
- guwen@linux.alibaba.com,  herbert@gondor.apana.org.au, horms@verge.net.au,
- j.granados@samsung.com, ja@ssi.bg,  jaka@linux.ibm.com, jlayton@kernel.org,
- jmaloy@redhat.com, jreuter@yaina.de,  kadlec@netfilter.org,
- keescook@chromium.org, kolga@netapp.com, kuba@kernel.org, 
- linux-afs@lists.infradead.org, linux-hams@vger.kernel.org, 
- linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, 
- linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, 
- linux-sctp@vger.kernel.org, linux-wpan@vger.kernel.org, 
- linux-x25@vger.kernel.org, lucien.xin@gmail.com, lvs-devel@vger.kernel.org,
-  marc.dionne@auristor.com, marcelo.leitner@gmail.com, martineau@kernel.org,
-  matttbe@kernel.org, mcgrof@kernel.org, miquel.raynal@bootlin.com, 
- mptcp@lists.linux.dev, ms@dev.tdt.de, neilb@suse.de,
- netdev@vger.kernel.org,  netfilter-devel@vger.kernel.org,
- pablo@netfilter.org, ralf@linux-mips.org,  razor@blackwall.org,
- rds-devel@oss.oracle.com, roopa@nvidia.com,  stefan@datenfreihafen.org,
- steffen.klassert@secunet.com,  tipc-discussion@lists.sourceforge.net,
- tom@talpey.com, tonylu@linux.alibaba.com,  trond.myklebust@hammerspace.com,
- wenjia@linux.ibm.com, ying.xue@windriver.com
-Date: Tue, 16 Apr 2024 10:18:42 +0200
-In-Reply-To: <20240415231210.22785-1-kuniyu@amazon.com>
-References: <20240412-jag-sysctl_remset_net-v3-1-11187d13c211@samsung.com>
-	 <20240415231210.22785-1-kuniyu@amazon.com>
-Autocrypt: addr=pabeni@redhat.com; prefer-encrypt=mutual; keydata=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
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.50.4 (3.50.4-1.fc39) 
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="sfqe+/XQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CC3BC113CE;
+	Tue, 16 Apr 2024 08:44:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1713257057;
+	bh=wzQ1AYXTGr5az/pyEpj7BjxnP08LN1p5OfLYS23YDAE=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=sfqe+/XQmepM1HPmDwJ46+tIyidLRfA28k+ZDddgrUjm71BGB2d3TZ39/r+N99Nyx
+	 w3YuFdf7j4yaW9KyQcaKluOqnT+QqFLS5KlTP62NTIn9XQEdZsTiPuEBRwjZDgUkrx
+	 Zpw2i60xnh5hdrzTLyhhP7Ao9jp1LyC9rlg1qeDluvs85x0B/eEoy3DlRCwhU4qSSZ
+	 GRt7ATd2k7P0zsHXayositbL312+Se3P6T72At6h32IXGBspkhLVG25GFnBSmT3HJM
+	 v5kuEmTOamUNlcHUEXdGZ9me1QKEvqL4GUAArpUrrXlyDeBN1GcyWTadjni/AqjoML
+	 F4jZPvn0gAdog==
+Message-ID: <ce433aee-b478-4fcf-b8e1-3b38bfca795a@kernel.org>
+Date: Tue, 16 Apr 2024 10:44:13 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird Beta
+Subject: Re: [PATCH net-next 01/12] selftests: netfilter:
+ conntrack_icmp_related.sh: move to lib.sh infra
+Content-Language: en-GB
+To: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org
+Cc: Paolo Abeni <pabeni@redhat.com>, "David S. Miller" <davem@davemloft.net>,
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+ netfilter-devel@vger.kernel.org, pablo@netfilter.org
+References: <20240414225729.18451-1-fw@strlen.de>
+ <20240414225729.18451-2-fw@strlen.de>
+From: Matthieu Baerts <matttbe@kernel.org>
+Autocrypt: addr=matttbe@kernel.org; keydata=
+ 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
+ lzVbFe7fduHbABmYz9cefQpO7wDE/Q==
+Organization: NGI0 Core
+In-Reply-To: <20240414225729.18451-2-fw@strlen.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Mon, 2024-04-15 at 16:12 -0700, Kuniyuki Iwashima wrote:
-> From: Joel Granados via B4 Relay <devnull+j.granados.samsung.com@kernel.o=
-rg>
-> Date: Fri, 12 Apr 2024 16:48:29 +0200
-> > From: Joel Granados <j.granados@samsung.com>
-> >=20
-> > This commit comes at the tail end of a greater effort to remove the
-> > empty elements at the end of the ctl_table arrays (sentinels) which
-> > will reduce the overall build time size of the kernel and run time
-> > memory bloat by ~64 bytes per sentinel (further information Link :
-> > https://lore.kernel.org/all/ZO5Yx5JFogGi%2FcBo@bombadil.infradead.org/)
-> >=20
-> > * Remove sentinel element from ctl_table structs.
-> > * Remove extra element in ctl_table arrays declarations
-> > * Remove instances where an array element is zeroed out to make it look
-> >   like a sentinel. This is not longer needed and is safe after commit
-> >   c899710fe7f9 ("networking: Update to register_net_sysctl_sz") added
-> >   the array size to the ctl_table registration
-> > * Replace the for loop stop condition that tests for procname =3D=3D NU=
-LL with
-> >   one that depends on array size
-> > * Removed the "-1" that adjusted for having an extra empty element when
-> >   looping over ctl_table arrays
-> > * Removing the unprivileged user check in ipv6_route_sysctl_init is
-> >   safe as it is replaced by calling ipv6_route_sysctl_table_size;
-> >   introduced in commit c899710fe7f9 ("networking: Update to
-> >   register_net_sysctl_sz")
-> > * Replace empty array registration with the register_net_sysctl_sz call=
-.
-> >=20
-> > Signed-off-by: Joel Granados <j.granados@samsung.com>
-> > ---
-> >  net/core/neighbour.c                | 5 +----
-> >  net/core/sysctl_net_core.c          | 9 ++++-----
-> >  net/dccp/sysctl.c                   | 2 --
-> >  net/ieee802154/6lowpan/reassembly.c | 6 +-----
-> >  net/ipv4/devinet.c                  | 5 ++---
-> >  net/ipv4/ip_fragment.c              | 2 --
-> >  net/ipv4/route.c                    | 8 ++------
-> >  net/ipv4/sysctl_net_ipv4.c          | 7 +++----
-> >  net/ipv4/xfrm4_policy.c             | 1 -
-> >  net/ipv6/addrconf.c                 | 5 +----
-> >  net/ipv6/icmp.c                     | 1 -
-> >  net/ipv6/reassembly.c               | 2 --
-> >  net/ipv6/route.c                    | 5 -----
-> >  net/ipv6/sysctl_net_ipv6.c          | 4 +---
-> >  net/ipv6/xfrm6_policy.c             | 1 -
-> >  net/llc/sysctl_net_llc.c            | 8 ++------
-> >  net/mpls/af_mpls.c                  | 3 +--
-> >  net/mptcp/ctrl.c                    | 1 -
-> >  net/netrom/sysctl_net_netrom.c      | 1 -
-> >  net/phonet/sysctl.c                 | 1 -
-> >  net/rds/ib_sysctl.c                 | 1 -
-> >  net/rds/sysctl.c                    | 1 -
-> >  net/rds/tcp.c                       | 1 -
-> >  net/rose/sysctl_net_rose.c          | 1 -
-> >  net/rxrpc/sysctl.c                  | 1 -
-> >  net/sctp/sysctl.c                   | 6 +-----
-> >  net/smc/smc_sysctl.c                | 1 -
-> >  net/sunrpc/sysctl.c                 | 1 -
-> >  net/sunrpc/xprtrdma/svc_rdma.c      | 1 -
-> >  net/sunrpc/xprtrdma/transport.c     | 1 -
-> >  net/sunrpc/xprtsock.c               | 1 -
-> >  net/tipc/sysctl.c                   | 1 -
-> >  net/unix/sysctl_net_unix.c          | 1 -
-> >  net/x25/sysctl_net_x25.c            | 1 -
-> >  net/xfrm/xfrm_sysctl.c              | 5 +----
-> >  35 files changed, 20 insertions(+), 81 deletions(-)
->=20
-> You may want to split patch based on subsystem or the type of changes
-> to make review easier.
+Hi Florian,
 
-I agree with Kuniyuki. I think the x25 chunks can me moved in the last
-patch, and at least sunrpc and rds could go in separate patches,
-possibly even xfrm and smc.
+On 15/04/2024 00:57, Florian Westphal wrote:
+> Only relevant change is that netns names have random suffix names,
+> i.e. its safe to run this in parallel with other tests.
 
-Thanks,
+According to the patch title and description, it looks like something is
+missing from the diff below where on the 'config' file is modified, no?
 
-Paolo
+Same for patch 2/12 where we have the opposite modification.
+
+(BTW, it is good to see all the shellcheck cleanups, my text editor will
+show fewer warnings :) )
+
+> 
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  tools/testing/selftests/net/netfilter/config | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/tools/testing/selftests/net/netfilter/config b/tools/testing/selftests/net/netfilter/config
+> index 9df6a9f11384..a34c284242ec 100644
+> --- a/tools/testing/selftests/net/netfilter/config
+> +++ b/tools/testing/selftests/net/netfilter/config
+> @@ -2,6 +2,8 @@ CONFIG_AUDIT=y
+>  CONFIG_BRIDGE_EBT_BROUTE=m
+>  CONFIG_BRIDGE_EBT_REDIRECT=m
+>  CONFIG_BRIDGE_NETFILTER=m
+> +CONFIG_NF_CONNTRACK=m
+> +CONFIG_NF_CT_NETLINK=m
+>  CONFIG_IP_NF_MATCH_RPFILTER=m
+>  CONFIG_IP6_NF_MATCH_RPFILTER=m
+>  CONFIG_IP_SCTP=m
+
+Cheers,
+Matt
+-- 
+Sponsored by the NGI0 Core fund.
 
