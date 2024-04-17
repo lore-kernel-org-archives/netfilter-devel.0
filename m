@@ -1,76 +1,80 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A392184F;
-	Wed, 17 Apr 2024 02:10:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E39B6A353;
+	Wed, 17 Apr 2024 09:50:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713319818; cv=none; b=XSmFUJi38T9hFmRMZg6RD52h+ri8OUXXxUzzqhIMw36dbO7TFi9RJtDr3+UTnGnb93fo6+ghJvAcg8lLMzMUY620U/yt/phqAsyUIxhZ7EOfPAMcyIFmUcIY9aPQcmqSKYl7W8mYnL912dy9O1eeWoMLhwAgvaZk4YsoYIlwX6E=
+	t=1713347430; cv=none; b=ZBw9AI1g/aLlnaRBE0TZT7v5tSqCeQTGim/qdlqr2JdPs5PMaBR61rrkusrhfnO4TZrfHO2yYzAkdCKGjz5EK7BX9ePD4d8BCS7qohZEKaGNsZ8Eryg4L48hqNX8ng9PRhskFVJBbF9jw4naiRe6YNnxNNYKl7D0vGQ/bNHHql8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713319818; c=relaxed/simple;
-	bh=iQXAH9GDVARJSIBtw6I91vL4k2Xy/1mcs1G02+bi4wI=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=aUgHQS/EdXvjgr+Afgic5dPVNtsohVlP5PN4hVpb5mwU23gQiF5Vjuuy+SzoDx4kCkvEC83Slcg9rmpLksR1NS6/thuLXQYfXEuGmPrgXn8+VHvOIOze9N9EBNvxNVjGONOLY6AbGem0tCz5sBeCPNI7V8QKqhOwUbG4xlV/tD4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SkV0IDPy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713347430; c=relaxed/simple;
+	bh=9m38jLti7vEEOVjNiPOKf79/T9Jgd9GGlaJEsAlaI5g=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=nPclXTbRrioEjVtusa5SDDyd+4VY0P23VKUGL+teQTW2Ah4RVwEPMOdDeTRbBeknJTkOSkoEJdAGjvXMpgRT35q5jnFwl+ahibMin66AMshjx/6RAgXT/rO7g4JoXzQHiGELo5v6bgNElEK7nB9yTgaMhkhDVW+YMt0T63IpTTc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=I4kTAL/Y; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SkV0IDPy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 328B6C113CE;
-	Wed, 17 Apr 2024 02:10:17 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="I4kTAL/Y"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id CC331C32786;
+	Wed, 17 Apr 2024 09:50:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1713319817;
-	bh=iQXAH9GDVARJSIBtw6I91vL4k2Xy/1mcs1G02+bi4wI=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=SkV0IDPyE6shQFbvmfjG/binBVNqOf2YtsUGrFbegRjdm5UqDm4VXISeoh2kfMBp1
-	 nFWSdbLU/PO8y7XUR9zk2BnZi87go/V4MjjzQWLRpQXKE4rs3xOdLmOZmqEfPBtupW
-	 5vJql/hvCBCgx79vj5Er74DxiDM0nbJjiuL7E8LPVoiH5khj3aK1znpoNjvD8MXJNp
-	 gU9tgtZbj3zFxHz+iscQn/bG0m9stamCfNAE8NGT1hZ8xHTlFeOBNEjV+6TDAj+dAN
-	 nZ8UDEY3Z1jGO5RjjFYP0xAPxD2OOyKaO+rK3bAeswLiYTXgA8XIJlglqmd1h1FhQu
-	 sa5ypnUsV8hqw==
-Date: Tue, 16 Apr 2024 19:10:16 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Donald Hunter <donald.hunter@gmail.com>
-Cc: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Eric
- Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>, Jiri Pirko
- <jiri@resnulli.us>, Jacob Keller <jacob.e.keller@intel.com>, Pablo Neira
- Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- donald.hunter@redhat.com
-Subject: Re: [PATCH net-next v3 3/4] tools/net/ynl: Handle acks that use
- req_value
-Message-ID: <20240416191016.5072e144@kernel.org>
-In-Reply-To: <20240416193215.8259-4-donald.hunter@gmail.com>
-References: <20240416193215.8259-1-donald.hunter@gmail.com>
-	<20240416193215.8259-4-donald.hunter@gmail.com>
+	s=k20201202; t=1713347429;
+	bh=9m38jLti7vEEOVjNiPOKf79/T9Jgd9GGlaJEsAlaI5g=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=I4kTAL/YO5Ku5t0wRFlTJWKi4ESGaBBp75VwQWeepOEwPGJMNpM/yIe9RIqekQDIK
+	 F0Tad3DLUJx32/mt0dZsCQNAdBsR591gdSQ9FJsPX+vhvA6K5hDt61ILW8zgF07mqj
+	 zKMJ5Dl5b0JpBjJfzhV+LE24naIMz1tWhWNcA+lRTWUUq8vNntAm4qoAUARYQQXzbK
+	 wP/umc1d8AohwIk0GJK8SeqX4y9JnfPMVB1i8t/MAtsgw4pcp8fap19K3ouQf3P15a
+	 S7yoqYJN5O2D9tDOGVJ058rfPHnbhgSgXOJ8tChAV8BuoNlYewjE1+/DinmldkF/jg
+	 FrWUzEKTqM5mQ==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id BAABEC54BB3;
+	Wed, 17 Apr 2024 09:50:29 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next] selftests: fix netfilter path in Makefile
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <171334742976.18271.5668344541939574035.git-patchwork-notify@kernel.org>
+Date: Wed, 17 Apr 2024 09:50:29 +0000
+References: <20240416053210.721056-1-yujie.liu@intel.com>
+In-Reply-To: <20240416053210.721056-1-yujie.liu@intel.com>
+To: Yujie Liu <yujie.liu@intel.com>
+Cc: netdev@vger.kernel.org, fw@strlen.de, netfilter-devel@vger.kernel.org,
+ pabeni@redhat.com, davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+ pablo@netfilter.org, lkp@intel.com
 
-On Tue, 16 Apr 2024 20:32:14 +0100 Donald Hunter wrote:
-> The nfnetlink family uses the directional op model but errors get
-> reported using the request value instead of the reply value.
+Hello:
 
-What's an error in this case ? "Normal" errors come via NLMSG_ERROR
+This patch was applied to netdev/net-next.git (main)
+by David S. Miller <davem@davemloft.net>:
 
-> diff --git a/tools/net/ynl/lib/nlspec.py b/tools/net/ynl/lib/nlspec.py
-> index 6d08ab9e213f..04085bc6365e 100644
-> --- a/tools/net/ynl/lib/nlspec.py
-> +++ b/tools/net/ynl/lib/nlspec.py
-> @@ -567,6 +567,18 @@ class SpecFamily(SpecElement):
->            return op
->        return None
->  
-> +    def get_op_by_value(self, value):
-> +        """
-> +        For a given operation value, look up operation spec. Search
-> +        by response value first then fall back to request value. This
-> +        is required for handling failure cases.
+On Tue, 16 Apr 2024 13:32:10 +0800 you wrote:
+> Netfilter tests have been moved to a subdir under selftests/net by
+> patch series [1]. Fix the path in selftests/Makefile accordingly.
+> 
+> This helps fix the following error:
+> 
+>     tools/testing/selftests$ make
+>     ...
+>     make[1]: Entering directory 'tools/testing/selftests'
+>     make[1]: *** netfilter: No such file or directory.  Stop.
+>     make[1]: Leaving directory 'tools/testing/selftests'
+> 
+> [...]
 
-Looks like we're only going to need it in NetlinkProtocol, so that's
-fine. But let's somehow call out that this is a bit of a hack, so that
-people don't feel like this is the more correct way of finding the op
-than direct access to rsp_by_value[].
+Here is the summary with links:
+  - [net-next] selftests: fix netfilter path in Makefile
+    https://git.kernel.org/netdev/net-next/c/9ef1ed26a67b
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
