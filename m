@@ -1,80 +1,183 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from smtp2-kfki.kfki.hu (smtp2-kfki.kfki.hu [148.6.0.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E39B6A353;
-	Wed, 17 Apr 2024 09:50:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E304D4685
+	for <netfilter-devel@vger.kernel.org>; Wed, 17 Apr 2024 10:26:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713347430; cv=none; b=ZBw9AI1g/aLlnaRBE0TZT7v5tSqCeQTGim/qdlqr2JdPs5PMaBR61rrkusrhfnO4TZrfHO2yYzAkdCKGjz5EK7BX9ePD4d8BCS7qohZEKaGNsZ8Eryg4L48hqNX8ng9PRhskFVJBbF9jw4naiRe6YNnxNNYKl7D0vGQ/bNHHql8=
+	t=1713349615; cv=none; b=la9fROVyhfLUlJASTz6un4LbNX1L3S651Q+3wNuIqP4NdR2fHpKp3rnHIbsRFoOCrL4y2LARXsvlE9sf8I38Uh0dF4oJR2vYku0g8qi7Jpee2S5Gw1YKbAY4SXvapndyjQVLAmDe1xH8Zoz6yj9xkY76Pn1lrZTZ+BprCnTKTQc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713347430; c=relaxed/simple;
-	bh=9m38jLti7vEEOVjNiPOKf79/T9Jgd9GGlaJEsAlaI5g=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=nPclXTbRrioEjVtusa5SDDyd+4VY0P23VKUGL+teQTW2Ah4RVwEPMOdDeTRbBeknJTkOSkoEJdAGjvXMpgRT35q5jnFwl+ahibMin66AMshjx/6RAgXT/rO7g4JoXzQHiGELo5v6bgNElEK7nB9yTgaMhkhDVW+YMt0T63IpTTc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=I4kTAL/Y; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="I4kTAL/Y"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id CC331C32786;
-	Wed, 17 Apr 2024 09:50:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1713347429;
-	bh=9m38jLti7vEEOVjNiPOKf79/T9Jgd9GGlaJEsAlaI5g=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=I4kTAL/YO5Ku5t0wRFlTJWKi4ESGaBBp75VwQWeepOEwPGJMNpM/yIe9RIqekQDIK
-	 F0Tad3DLUJx32/mt0dZsCQNAdBsR591gdSQ9FJsPX+vhvA6K5hDt61ILW8zgF07mqj
-	 zKMJ5Dl5b0JpBjJfzhV+LE24naIMz1tWhWNcA+lRTWUUq8vNntAm4qoAUARYQQXzbK
-	 wP/umc1d8AohwIk0GJK8SeqX4y9JnfPMVB1i8t/MAtsgw4pcp8fap19K3ouQf3P15a
-	 S7yoqYJN5O2D9tDOGVJ058rfPHnbhgSgXOJ8tChAV8BuoNlYewjE1+/DinmldkF/jg
-	 FrWUzEKTqM5mQ==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id BAABEC54BB3;
-	Wed, 17 Apr 2024 09:50:29 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=arc-20240116; t=1713349615; c=relaxed/simple;
+	bh=rN35f9Uq55hYfyGPSaoXp75dZp0AqdQRk44W7tOUmyc=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=acFQfauZIcPgYsMO5FocGyxqA4FEQ+n9dWwxTgrz+AQE3ZqtlfbuJIov7Hsb+oqoYZzbOm/RB8V509r2Z6Km/5YORwrGkhYTnwdsLEwogwXn6JJgdBfQn6ACXNYFg+Pmn3cmPZ7zJT1N7zfw3zBfXYVNFprRxkIXeRt5kiNgBW0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=148.6.0.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Received: from localhost (localhost [127.0.0.1])
+	by smtp2.kfki.hu (Postfix) with ESMTP id A3C11CC0114;
+	Wed, 17 Apr 2024 12:26:41 +0200 (CEST)
+X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+	by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+	with ESMTP; Wed, 17 Apr 2024 12:26:39 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
+	by smtp2.kfki.hu (Postfix) with ESMTP id 4E4E6CC00EA;
+	Wed, 17 Apr 2024 12:26:39 +0200 (CEST)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+	id 47EA934316B; Wed, 17 Apr 2024 12:26:39 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by blackhole.kfki.hu (Postfix) with ESMTP id 4592234316A;
+	Wed, 17 Apr 2024 12:26:39 +0200 (CEST)
+Date: Wed, 17 Apr 2024 12:26:39 +0200 (CEST)
+From: Jozsef Kadlecsik <kadlec@netfilter.org>
+To: keltargw <keltar.gw@gmail.com>
+cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
+Subject: Re: Incorrect dependency handling with delayed ipset destroy ipset
+ 7.21
+In-Reply-To: <CALFUNymuoZ=nZsiDoCcDdB21fFkpo3PBbHdwUKnOwd67ttxAig@mail.gmail.com>
+Message-ID: <24710b7f-00ec-a7b2-7611-39118cace9a9@netfilter.org>
+References: <CALFUNymhWkcy2p9hqt7eO4H4Hm5t70Y02=XodnpH1zgAZ0cVSw@mail.gmail.com> <007a92b1-db83-4e8b-d05f-0feabb6bd7c4@netfilter.org> <CALFUNyn4HSDGoK3t3yceU0NcOQSjrJctbti_Mogm5BTgqTeXHw@mail.gmail.com> <1bc47ada-d95f-dc9e-f2b4-b0ed5875b069@netfilter.org>
+ <CALFUNymuoZ=nZsiDoCcDdB21fFkpo3PBbHdwUKnOwd67ttxAig@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next] selftests: fix netfilter path in Makefile
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <171334742976.18271.5668344541939574035.git-patchwork-notify@kernel.org>
-Date: Wed, 17 Apr 2024 09:50:29 +0000
-References: <20240416053210.721056-1-yujie.liu@intel.com>
-In-Reply-To: <20240416053210.721056-1-yujie.liu@intel.com>
-To: Yujie Liu <yujie.liu@intel.com>
-Cc: netdev@vger.kernel.org, fw@strlen.de, netfilter-devel@vger.kernel.org,
- pabeni@redhat.com, davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
- pablo@netfilter.org, lkp@intel.com
+Content-Type: text/plain; charset=US-ASCII
 
-Hello:
+On Mon, 15 Apr 2024, keltargw wrote:
 
-This patch was applied to netdev/net-next.git (main)
-by David S. Miller <davem@davemloft.net>:
+> Thank you. That seems to be working fine, but I'm not sure about how 
+> readable it becomes, as destroy logic becomes splitted in two 
+> inseparable parts.
 
-On Tue, 16 Apr 2024 13:32:10 +0800 you wrote:
-> Netfilter tests have been moved to a subdir under selftests/net by
-> patch series [1]. Fix the path in selftests/Makefile accordingly.
+Yes, that'd make reading the code harder but would be fast :-).
+
+> How about adding list_set_flush() at the end of list_set_cancel_gc()
+> instead, would that be too heavy? E.g.
+
+Again yes and it'd result in a slower destroy operation for list type of 
+sets. But the list type should be used very lightly (if at all in 
+production) so I don't regard it as a performance critical area in ipset.
+
+Your patch is fine for me. Please submit it in a form that can be applied 
+in git with proper commit text part and such. Thanks!
+
+Best regards,
+Jozsef
+ 
+> diff --git a/kernel/net/netfilter/ipset/ip_set_list_set.c
+> b/kernel/net/netfilter/ipset/ip_set_list_set.c
+> index cc2e5b9..1cdb68e 100644
+> --- a/kernel/net/netfilter/ipset/ip_set_list_set.c
+> +++ b/kernel/net/netfilter/ipset/ip_set_list_set.c
+> @@ -552,6 +552,8 @@ list_set_cancel_gc(struct ip_set *set)
 > 
-> This helps fix the following error:
+>        if (SET_WITH_TIMEOUT(set))
+>                timer_shutdown_sync(&map->gc);
+> +
+> +       list_set_flush(set);
+> }
 > 
->     tools/testing/selftests$ make
->     ...
->     make[1]: Entering directory 'tools/testing/selftests'
->     make[1]: *** netfilter: No such file or directory.  Stop.
->     make[1]: Leaving directory 'tools/testing/selftests'
+> static const struct ip_set_type_variant set_variant = {
 > 
-> [...]
+> On Mon, 15 Apr 2024 at 14:28, Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
+> >
+> > On Sun, 14 Apr 2024, keltargw wrote:
+> >
+> > > Thanks for the suggestion. I'm not that familiar with ipset source code,
+> > > do you mean something like issuing a second rcu_barrier between call_rcu
+> > > and returning result code back to netlink (and only doing that for list
+> > > type)?
+> > >
+> > > As I understand it there isn't much that could be done in e.g.
+> > > list_set_destroy as it might not be called yet, sitting in the rcu wait
+> > > queue.
+> >
+> > No, I meant release the reference counter of the element sets immediately
+> > when destroying a list type of set. Something like moving just the
+> > ip_set_put_byindex() call
+> >
+> >         list_for_each_entry_safe(e, n, &map->members, list) {
+> >                 ...
+> >                 ip_set_put_byindex(map->net, e->id);
+> >                 ...
+> >         }
+> >
+> > from list_set_destroy() into list_set_cancel_gc(). That way the member
+> > sets can be destroyed without waiting for anything.
+> >
+> > Best regards,
+> > Jozsef
+> >
+> > > On Sat, 13 Apr 2024 at 19:02, Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
+> > > >
+> > > > On Sat, 13 Apr 2024, keltargw wrote:
+> > > >
+> > > > > I have a problem with recent kernels. Due to delayed ipset destroy I'm
+> > > > > unable to destroy ipset that was recently in use by another (destroyed)
+> > > > > ipset. It is demonstrated by this example:
+> > > > >
+> > > > > #!/bin/bash
+> > > > > set -x
+> > > > >
+> > > > > ipset create qwe1 list:set
+> > > > > ipset create asd1 hash:net
+> > > > > ipset add qwe1 asd1
+> > > > > ipset add asd1 1.1.1.1
+> > > > >
+> > > > > ipset destroy qwe1
+> > > > > ipset list asd1 -t
+> > > > > ipset destroy asd1
+> > > > >
+> > > > > Second ipset destroy reports an error "ipset v7.21: Set cannot be
+> > > > > destroyed: it is in use by a kernel component".
+> > > > > If this command is repeated after a short delay, it deletes ipset
+> > > > > without any problems.
+> > > > >
+> > > > > It seems it could be fixed with that kernel module patch:
+> > > > >
+> > > > > Index: linux-6.7.9/net/netfilter/ipset/ip_set_core.c
+> > > > > ===================================================================
+> > > > > --- linux-6.7.9.orig/net/netfilter/ipset/ip_set_core.c
+> > > > > +++ linux-6.7.9/net/netfilter/ipset/ip_set_core.c
+> > > > > @@ -1241,6 +1241,9 @@ static int ip_set_destroy(struct sk_buff
+> > > > >   u32 flags = flag_exist(info->nlh);
+> > > > >   u16 features = 0;
+> > > > >
+> > > > > + /* Wait for flush to ensure references are cleared */
+> > > > > + rcu_barrier();
+> > > > > +
+> > > > >   read_lock_bh(&ip_set_ref_lock);
+> > > > >   s = find_set_and_id(inst, nla_data(attr[IPSET_ATTR_SETNAME]),
+> > > > >      &i);
+> > > > >
+> > > > > If you have any suggestions on how this problem should be approached
+> > > > > please let me know.
+> > > >
+> > > > I'd better solve it in the list type itself: your patch unnecessarily
+> > > > slows down all set destroy operations.
+> > > >
+> > > > Best regards,
+> > > > Jozsef
+> > > > --
+> > > > E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+> > > > PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+> > > > Address : Wigner Research Centre for Physics
+> > > >           H-1525 Budapest 114, POB. 49, Hungary
+> > >
+> >
+> > --
+> > E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+> > PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+> > Address : Wigner Research Centre for Physics
+> >           H-1525 Budapest 114, POB. 49, Hungary
+> 
 
-Here is the summary with links:
-  - [net-next] selftests: fix netfilter path in Makefile
-    https://git.kernel.org/netdev/net-next/c/9ef1ed26a67b
-
-You are awesome, thank you!
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
