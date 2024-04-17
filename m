@@ -1,194 +1,67 @@
-Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78C6C132803
-	for <netfilter-devel@vger.kernel.org>; Wed, 17 Apr 2024 13:07:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.37
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50B9014037E;
+	Wed, 17 Apr 2024 13:50:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713359271; cv=none; b=KunUr2J91Y6KQDqbbigmTRRamvJ///opuSKi+y3S4eQJ+JRnFepq7ybc9jfFQNYelQ+qoWsoo2R4r+A+aA36Ro83r8OQyyM3n2msMG9NX1NfIQkuuLg0ytn+MLSmGkjiwGOSP/aBWHNSvndHEpNxLsZS8qhm2yCnefS8Lt65Rqk=
+	t=1713361827; cv=none; b=dzv52flN1G9wOqfdllWZ+xKnkCK5qDYm8adGJ3npmWbuxvlFKANQEeTi3f/fKMUV2FKOfzOOVX5w8sUpG7X1CG/liE3WR0pYM4FPrRGL1pbYRD6ZgqxMFgTHscD8Mh1DR1RWQ3Kmlh7kha4GtvQ1o5f6fKboP4tLk/Dd3Dteeh0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713359271; c=relaxed/simple;
-	bh=M5AbliW62VTYQiQJ1ZutBcfkVP4HB7k7NtYzfZIlJ/c=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=ppEa+2gqk8QAZPy8iwKLBcjByblbHC04/LPSnj3mGLKdjCkLJnldqkccJ4NTEdsZSZQhVKSdtCYGiWes+693f1rqE/Nd7A3CgQcSdX4t5Cnslacnla0WhP4y7/iJYlHrBM1SYDvUmmdUvAiy5lzGHVAhETZdJnPWAwli9IISMWc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (1024-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=rIP3z9lg; arc=none smtp.client-ip=193.238.174.37
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	s=arc-20240116; t=1713361827; c=relaxed/simple;
+	bh=S0wKCInWk2bMmf+CEL3Qe4U9QJ44+BgpeCC/onWUcto=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=C21fzte0gxeMFvPkxO7fghcdMpKTjQdYiCYLK9IIVrQO8ANCbAd9/ue4n+xt0vzNwAYo+JmLz3W/fY7cf7HiqwolSlE5HNKjCZkJdDT60TI53ATVY5MXg1H8tBgJ/mWPISMzONVMwTNu36R/uPx1K6MKnSyHLd78/YGfkNk00/E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Lc2lJrQA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="rIP3z9lg"
-Received: from mg.ssi.bg (localhost [127.0.0.1])
-	by mg.ssi.bg (Proxmox) with ESMTP id 0D00937E22
-	for <netfilter-devel@vger.kernel.org>; Wed, 17 Apr 2024 16:02:35 +0300 (EEST)
-Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
-	by mg.ssi.bg (Proxmox) with ESMTPS
-	for <netfilter-devel@vger.kernel.org>; Wed, 17 Apr 2024 16:02:30 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by ink.ssi.bg (Postfix) with ESMTPSA id 4288A90044E;
-	Wed, 17 Apr 2024 16:02:16 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=ssi.bg; s=ink;
-	t=1713358938; bh=M5AbliW62VTYQiQJ1ZutBcfkVP4HB7k7NtYzfZIlJ/c=;
-	h=Date:From:To:cc:Subject:In-Reply-To:References;
-	b=rIP3z9lg474l8tpwwtcJBro3ovnU4Qfnvcxkx1KMUiZeJfC+x4FRaIz45VEtYhIA7
-	 2hXk/0GMt1SRfVrA/ZjGxU/NrGCNmi6eLwucjmlmiiwLcIMruuUoBP1u7fgn+0PecV
-	 gqnKrdP1nTNquMXl96hRMOVYdKZUhu1/Jfmh++ig=
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.17.1/8.17.1) with ESMTP id 43HD2EIr076830;
-	Wed, 17 Apr 2024 16:02:15 +0300
-Date: Wed, 17 Apr 2024 16:02:14 +0300 (EEST)
-From: Julian Anastasov <ja@ssi.bg>
-To: Alexander Mikhalitsyn <aleksandr.mikhalitsyn@canonical.com>
-cc: horms@verge.net.au, netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        =?UTF-8?Q?St=C3=A9phane_Graber?= <stgraber@stgraber.org>,
-        Christian Brauner <brauner@kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH net-next] ipvs: allow some sysctls in non-init user
- namespaces
-In-Reply-To: <20240416144814.173185-1-aleksandr.mikhalitsyn@canonical.com>
-Message-ID: <32f56a2e-8142-4391-916a-65fe51a57933@ssi.bg>
-References: <20240416144814.173185-1-aleksandr.mikhalitsyn@canonical.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Lc2lJrQA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5397FC072AA;
+	Wed, 17 Apr 2024 13:50:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1713361826;
+	bh=S0wKCInWk2bMmf+CEL3Qe4U9QJ44+BgpeCC/onWUcto=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=Lc2lJrQAiFIls3X5Omox1lve0sdVoy22rr6PUNZteaikW3bKmjIG8i4aRPNlVfWKb
+	 mOect5c/BDDVX+ua808coEzi/+lQyYJyo9xAV0Ca2Xfu7nniLlPp2aJAD8PUGxfsoF
+	 s7BNBzi+gL5M5qMlqi4hPBfpmbXYh47z3b45ZN+w1LugeoyyezClnMr4KBQYJ3KcVl
+	 s1BoZWJd1OJkrS+7F4IGxjqqVuEzQ4A4C63AnPoZjuS9uJn7AdfKJK7E3v0MHCZLEy
+	 uTj1g/8STa3fTkNzK/k7KNPULq4z4ZtfiGabyYYpVgP69u9yWv6XKBw+hN5wyPzgPw
+	 8S1DdkNWsPzTg==
+Date: Wed, 17 Apr 2024 06:50:25 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Donald Hunter <donald.hunter@gmail.com>
+Cc: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Eric
+ Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>, Jiri Pirko
+ <jiri@resnulli.us>, Jacob Keller <jacob.e.keller@intel.com>, Pablo Neira
+ Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ donald.hunter@redhat.com
+Subject: Re: [PATCH net-next v3 3/4] tools/net/ynl: Handle acks that use
+ req_value
+Message-ID: <20240417065025.678763bb@kernel.org>
+In-Reply-To: <m2mspsgnj9.fsf@gmail.com>
+References: <20240416193215.8259-1-donald.hunter@gmail.com>
+	<20240416193215.8259-4-donald.hunter@gmail.com>
+	<20240416191016.5072e144@kernel.org>
+	<m2mspsgnj9.fsf@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="-1463811672-76452460-1713358936=:3334"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
----1463811672-76452460-1713358936=:3334
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-
-
-	Hello,
-
-On Tue, 16 Apr 2024, Alexander Mikhalitsyn wrote:
-
-> Let's make all IPVS sysctls visible and RO even when
-> network namespace is owned by non-initial user namespace.
+On Wed, 17 Apr 2024 13:51:38 +0100 Donald Hunter wrote:
+> > On Tue, 16 Apr 2024 20:32:14 +0100 Donald Hunter wrote:  
+> >> The nfnetlink family uses the directional op model but errors get
+> >> reported using the request value instead of the reply value.  
+> >
+> > What's an error in this case ? "Normal" errors come via NLMSG_ERROR  
 > 
-> Let's make a few sysctls to be writable:
-> - conntrack
-> - conn_reuse_mode
-> - expire_nodest_conn
-> - expire_quiescent_template
-> 
-> I'm trying to be conservative with this to prevent
-> introducing any security issues in there. Maybe,
-> we can allow more sysctls to be writable, but let's
-> do this on-demand and when we see real use-case.
-> 
-> This list of sysctls was chosen because I can't
-> see any security risks allowing them and also
-> Kubernetes uses [2] these specific sysctls.
-> 
-> This patch is motivated by user request in the LXC
-> project [1].
-> 
-> [1] https://github.com/lxc/lxc/issues/4278
-> [2] https://github.com/kubernetes/kubernetes/blob/b722d017a34b300a2284b890448e5a605f21d01e/pkg/proxy/ipvs/proxier.go#L103
-> 
-> Cc: Stéphane Graber <stgraber@stgraber.org>
-> Cc: Christian Brauner <brauner@kernel.org>
-> Cc: Julian Anastasov <ja@ssi.bg>
-> Cc: Simon Horman <horms@verge.net.au>
-> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-> Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-> Cc: Florian Westphal <fw@strlen.de>
-> Signed-off-by: Alexander Mikhalitsyn <aleksandr.mikhalitsyn@canonical.com>
-> ---
->  net/netfilter/ipvs/ip_vs_ctl.c | 18 +++++++++++++++---
->  1 file changed, 15 insertions(+), 3 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index 143a341bbc0a..92a818c2f783 100644
-> --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> @@ -4285,10 +4285,22 @@ static int __net_init ip_vs_control_net_init_sysctl(struct netns_ipvs *ipvs)
+> Thanks for pointing out what should have been obvious. Looking at it
+> again today, I realise I missed the root cause which was a bug in the
+> extack decoding for directional ops. When I fix that issue, this patch
+> can be dropped.
 
-	As the list of privileged vars is short I prefer
-to use a bool and to make only some vars read-only:
-
-	bool unpriv = false;
-
->  		if (tbl == NULL)
->  			return -ENOMEM;
->  
-> -		/* Don't export sysctls to unprivileged users */
-> +		/* Let's show all sysctls in non-init user namespace-owned
-> +		 * net namespaces, but make them read-only.
-> +		 *
-> +		 * Allow only a few specific sysctls to be writable.
-> +		 */
->  		if (net->user_ns != &init_user_ns) {
-
-	Here we should just set: unpriv = true;
-
-> -			tbl[0].procname = NULL;
-> -			ctl_table_size = 0;
-> +			for (idx = 0; idx < ARRAY_SIZE(vs_vars); idx++) {
-> +				if (!tbl[idx].procname)
-> +					continue;
-> +
-> +				if (!((strcmp(tbl[idx].procname, "conntrack") == 0) ||
-> +				      (strcmp(tbl[idx].procname, "conn_reuse_mode") == 0) ||
-> +				      (strcmp(tbl[idx].procname, "expire_nodest_conn") == 0) ||
-> +				      (strcmp(tbl[idx].procname, "expire_quiescent_template") == 0)))
-> +					tbl[idx].mode = 0444;
-> +			}
->  		}
->  	} else
->  		tbl = vs_vars;
-
-	And below at every place to use:
-
-	if (unpriv)
-		tbl[idx].mode = 0444;
-
-	for the following 4 privileged sysctl vars:
-
-- sync_qlen_max:
-	- allocates messages in kernel context
-	- this needs better tunning in another patch
-
-- sync_sock_size:
-	- allocates messages in kernel context
-
-- run_estimation:
-	- for now, better init ns to decide if to use est stats
-
-- est_nice:
-	- for now, better init ns to decide the value
-
-- debug_level:
-	- already set to 0444
-
-	I.e. these vars allocate resources (mem, CPU) without
-proper control, so for now we will just copy them from init ns
-without allowing writing. And they are vars that are not tuned
-often. Also we do not know which netns is supposed to be the
-privileged one, some solutions move all devices out of init_net,
-so we can not decide where to use lower limits.
-
-	OTOH, "amemthresh" is not privileged but needs single READ_ONCE 
-for sysctl_amemthresh in update_defense_level() due to the possible
-div by zero if we allow writing to anyone, eg.:
-
-	int amemthresh = max(READ_ONCE(ipvs->sysctl_amemthresh), 0);
-	...
-	nomem = availmem < amemthresh;
-	... use only amemthresh
-
-	All other vars can be writable.
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
----1463811672-76452460-1713358936=:3334--
-
+Ha :) Feel free to post v4 as soon as ready.
