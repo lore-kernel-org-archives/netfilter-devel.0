@@ -1,82 +1,128 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8EE815E5B0;
-	Thu, 18 Apr 2024 11:20:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BAE115FD16;
+	Thu, 18 Apr 2024 13:23:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.37
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713439227; cv=none; b=sdm12HgEj+XyvfYNuVuXkO2J9AsE9KCemw4bwu7shsz8VE44ZFnKUzOQY7pcmvIQYZVf+tRhN9a/2lnkkCeVcnmN+Y+KEOh8PBP2lo6bYoFAV+4dfvl6uYYFmdooC9Gv3p9uPM8BIZ2IphzyDymAs907SUsQ+lzj9fh8UQfYVI4=
+	t=1713446601; cv=none; b=dPI/TLcK/Kp00XxiCVLWKKU/onJaxqozQQwa+PNUbERB5feXmP8mnUNDtGVfzD3nVezvj+vd1wBSM4n6gOlQ8hflDXl/HF97nBeffGIV9szuDUVt7UoPEeNnjujd4BCOPcOdi8fLutS4RH/0TetVML85PZrwbmtAknezgkFqa9k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713439227; c=relaxed/simple;
-	bh=mK+bh3vfgVoq9njLn9DSVemJKPUCQTG16xKzx2RPQms=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=fgCrMsaE8Zp4IGBsOTTi9/LoxrqZBp9XL6dycvwH6FkQKzSHOv0Sdpq2yuQaiql5t5UtsRnYSBv/M+BfEQGPIn60kLo0RtOQAF/bhGbWxYGeHjq9l0DJZrcetp/iXx1+ZajyroXKQd8NJupznqdzj39u+7/G4ci9pw/oXb67fx4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=H74+1guu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713446601; c=relaxed/simple;
+	bh=WAl7L1iBp86eXNg2Shw1xOHGw0vm5p71Lv8WUKHUN1s=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=aHh7fq3/ZJvLEX1fLjxhhwMvgblJov0W4VWFzB/6va4IVQr/FtvmF9RmfKBGPASRZxPSb1gDiWULt+cp4uTxtZPfanqPGcV49TptFxKzPouqxEPIUY0atdRt/NE0zlH9nfcUkz/bQGbnsf1FyHZ7fiIlSYo4B3gADorWRtXPuUI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (1024-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=VPMuh+U8; arc=none smtp.client-ip=193.238.174.37
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="H74+1guu"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id AA489C2BD11;
-	Thu, 18 Apr 2024 11:20:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1713439227;
-	bh=mK+bh3vfgVoq9njLn9DSVemJKPUCQTG16xKzx2RPQms=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=H74+1guuidOVgNknDPokvzDtwfV+E6LhRrhodgZpF1hkIsL/o6OPwlLopPI0wHTvY
-	 3uJAIHFgrvp68FNowf88ewtQ9pYTp2WIUwbuNYDS9cHHxncQghe/3k2wTVIW5RXzo5
-	 3XF9vuxj/IQurzwpPp2odA2nybMnTbecaSoXDB7bRJ0Gbr/BhGr7ExZYtMoLOuq1r6
-	 tmio+8y2rvzKjRzka3cyLjMwLRS4k9jjwsGIycvmVNUURZNDV8jYJVT4v09sRuida0
-	 Z9SGYEybnsS4rqg+8b3dDnhyR6lEx+Cc+BsnWtc/nRnbELOlM7ENRJ0jNd3+vv2kOW
-	 9V3KXFiy7MZeQ==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 9A58DC4361B;
-	Thu, 18 Apr 2024 11:20:27 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (1024-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="VPMuh+U8"
+Received: from mg.ssi.bg (localhost [127.0.0.1])
+	by mg.ssi.bg (Proxmox) with ESMTP id F0A0A1836A;
+	Thu, 18 Apr 2024 16:23:09 +0300 (EEST)
+Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
+	by mg.ssi.bg (Proxmox) with ESMTPS;
+	Thu, 18 Apr 2024 16:23:09 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by ink.ssi.bg (Postfix) with ESMTPSA id BFD95900570;
+	Thu, 18 Apr 2024 16:23:05 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=ssi.bg; s=ink;
+	t=1713446586; bh=WAl7L1iBp86eXNg2Shw1xOHGw0vm5p71Lv8WUKHUN1s=;
+	h=Date:From:To:cc:Subject:In-Reply-To:References;
+	b=VPMuh+U8F/Dd/e+BkI2TBEssJim6xN25jHmgFlpSmaL9wrwBSHkpkOMSCM5xXPCQw
+	 mtKTpzXsmLIvxEEtJKBz6s0S3XbZknzChjrQMGnEdndru2+08SopfQ86HOdVAcQddG
+	 3329gWCWZ+MoCyY7jaKvAqFx3TbndwCaosCxiIDM=
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.17.1/8.17.1) with ESMTP id 43IDMtKa057494;
+	Thu, 18 Apr 2024 16:22:57 +0300
+Date: Thu, 18 Apr 2024 16:22:55 +0300 (EEST)
+From: Julian Anastasov <ja@ssi.bg>
+To: Alexander Mikhalitsyn <aleksandr.mikhalitsyn@canonical.com>
+cc: horms@verge.net.au, netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH net-next v2 1/2] ipvs: add READ_ONCE barrier for
+ ipvs->sysctl_amemthresh
+In-Reply-To: <20240418110153.102781-1-aleksandr.mikhalitsyn@canonical.com>
+Message-ID: <eb0b4b89-9a1f-0e1b-9744-6eb3396048bd@ssi.bg>
+References: <20240418110153.102781-1-aleksandr.mikhalitsyn@canonical.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/3] netfilter: nf_tables: missing iterator type in lookup
- walk
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <171343922762.25572.17378961976403355276.git-patchwork-notify@kernel.org>
-Date: Thu, 18 Apr 2024 11:20:27 +0000
-References: <20240418010948.3332346-2-pablo@netfilter.org>
-In-Reply-To: <20240418010948.3332346-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com
+Content-Type: text/plain; charset=US-ASCII
 
-Hello:
 
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+	Hello,
 
-On Thu, 18 Apr 2024 03:09:46 +0200 you wrote:
-> Add missing decorator type to lookup expression and tighten WARN_ON_ONCE
-> check in pipapo to spot earlier that this is unset.
-> 
-> Fixes: 29b359cf6d95 ("netfilter: nft_set_pipapo: walk over current view on netlink dump")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+On Thu, 18 Apr 2024, Alexander Mikhalitsyn wrote:
+
+> Cc: Julian Anastasov <ja@ssi.bg>
+> Cc: Simon Horman <horms@verge.net.au>
+> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+> Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
+> Cc: Florian Westphal <fw@strlen.de>
+> Suggested-by: Julian Anastasov <ja@ssi.bg>
+> Signed-off-by: Alexander Mikhalitsyn <aleksandr.mikhalitsyn@canonical.com>
 > ---
->  net/netfilter/nft_lookup.c     | 1 +
->  net/netfilter/nft_set_pipapo.c | 3 ++-
->  2 files changed, 3 insertions(+), 1 deletion(-)
+>  net/netfilter/ipvs/ip_vs_ctl.c | 12 +++++++-----
+>  1 file changed, 7 insertions(+), 5 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> index 143a341bbc0a..daa62b8b2dd1 100644
+> --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
 
-Here is the summary with links:
-  - [net,1/3] netfilter: nf_tables: missing iterator type in lookup walk
-    https://git.kernel.org/netdev/net/c/efefd4f00c96
-  - [net,2/3] netfilter: nf_tables: restore set elements when delete set fails
-    https://git.kernel.org/netdev/net/c/e79b47a8615d
-  - [net,3/3] netfilter: nf_tables: fix memleak in map from abort path
-    https://git.kernel.org/netdev/net/c/86a1471d7cde
+> @@ -105,7 +106,8 @@ static void update_defense_level(struct netns_ipvs *ipvs)
+>  	/* si_swapinfo(&i); */
+>  	/* availmem = availmem - (i.totalswap - i.freeswap); */
+>  
+> -	nomem = (availmem < ipvs->sysctl_amemthresh);
+> +	amemthresh = max(READ_ONCE(ipvs->sysctl_amemthresh), 0);
+> +	nomem = (availmem < amemthresh);
+>  
+>  	local_bh_disable();
+>  
+> @@ -146,8 +148,8 @@ static void update_defense_level(struct netns_ipvs *ipvs)
+>  	case 1:
+>  		if (nomem) {
+>  			ipvs->drop_rate = ipvs->drop_counter
+> -				= ipvs->sysctl_amemthresh /
+> -				(ipvs->sysctl_amemthresh-availmem);
+> +				= amemthresh /
+> +				(amemthresh-availmem);
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+	Thanks, both patches look ok except that the old styling
+is showing warnings for this patch:
 
+scripts/checkpatch.pl --strict /tmp/file1.patch
+
+	It would be great if you silence them somehow in v3...
+
+	BTW, est_cpulist is masked with current->cpus_mask of the
+sysctl writer process, if that is of any help. That is why I skipped
+it but lets keep it read-only for now...
+
+>  			ipvs->sysctl_drop_packet = 2;
+>  		} else {
+>  			ipvs->drop_rate = 0;
+> @@ -156,8 +158,8 @@ static void update_defense_level(struct netns_ipvs *ipvs)
+>  	case 2:
+>  		if (nomem) {
+>  			ipvs->drop_rate = ipvs->drop_counter
+> -				= ipvs->sysctl_amemthresh /
+> -				(ipvs->sysctl_amemthresh-availmem);
+> +				= amemthresh /
+> +				(amemthresh-availmem);
+>  		} else {
+>  			ipvs->drop_rate = 0;
+>  			ipvs->sysctl_drop_packet = 1;
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
 
