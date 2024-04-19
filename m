@@ -1,242 +1,177 @@
-Received: from EUR01-HE1-obe.outbound.protection.outlook.com (mail-he1eur01on2092.outbound.protection.outlook.com [40.107.13.92])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F062F8BE2
-	for <netfilter-devel@vger.kernel.org>; Fri, 19 Apr 2024 07:48:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.13.92
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713512887; cv=fail; b=isp3R8zGXWxqbY/uA5JmAC+4HQIIxHCVXV+xy8L+OrYqkteIBT6c53mHin6Zwcv0eF76qzmXBwDGdK6TlsJ4h3ZY8GI6UWmv7tM798JPDwDTDajryPIdEqSEnDiHgJH8D7CxVf3bosFKdP+bS/pasKLAjR9GBysl20D1ii+LJaA=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713512887; c=relaxed/simple;
-	bh=q2wMx3UuzEqAgyujS9qbaHg4mbtlXPnOjnrYrdFzOjU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=BBlVAvsTuNXvf1n2yHI5EgeEow9+z1Lt2YB4JL8bh0hJC4kIsbyqW+D7A0KmhXCoA1loWWjbrqRFHHKRa+OfEDP2OHHruWc5tGoWH0gFkxehSKo/VyGR0cNU+uVpcjVFVwCy9FnCcCzuKDDv2rcdBzbVVQ4k/O38SxXucarPfkU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=voleatech.de; spf=pass smtp.mailfrom=voleatech.de; dkim=pass (1024-bit key) header.d=voleatech.de header.i=@voleatech.de header.b=SsyqqH+N; arc=fail smtp.client-ip=40.107.13.92
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=voleatech.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=voleatech.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 517F12E405;
+	Fri, 19 Apr 2024 11:23:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.53
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1713525812; cv=none; b=NY6mw/yFZbulPMDAln9V9YQz0nllpgqlm1RL5Kjj/p47SkM5BHaBMa0do/CriEnZjQkzHgodvnJWnwm2qasC0Pnfbf+dw+RjNcdBSpg0IqmLCLZxOZD1gz2XtVyHzTCHYYBOfnaRzmGypayrBi3cD41QuBjlt17EpmQDg6ZQ7Nc=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1713525812; c=relaxed/simple;
+	bh=0kkw8bkTTz7qpeiQW0WRFjug7VupQ7REApR8PXhPSz0=;
+	h=From:To:Cc:Subject:In-Reply-To:Date:Message-ID:References:
+	 MIME-Version:Content-Type; b=HIpaALIDOAuki0vF9Ua6ULJuQyjxrnnk/tzLsQcZS5esLdcfUEjNJRdJJtFlAEJC0lsUMVNFcUGBQqpgnt+LAY0jXmUbVmv+WqHTVGp8libeFwVrSFbrl6OaWYNw1yCDs+/k6Hi7q8/hBtiM+oyD7tPqIA5N+TK/gyZm5GKaHsY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=VSJuqqsu; arc=none smtp.client-ip=209.85.128.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=voleatech.de header.i=@voleatech.de header.b="SsyqqH+N"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=P9JaN7DeI5Tq4aljQmqxMKKMy6RZPwCHOhbRKDWxhfkSCHjupE0a9DbDmPJhu/b349o29lAt56jO+0HwKIAGtw1DAQhSZBr2yp668BQ42fNeSTUZ42ivyOji4DIA8Qyu/wxgcWCO8Ao6s6LEwQPTeSEylQLFxCqxlBaODsJ4ZXoCGU4urTv38/t0N4H/YJhPKkA2usugMMmmS3zgParw4owvWEqWrELptG46rMn66KntXty8PA0opjuyRH5Fpd4eoGMao6eqig+Pe7D+aUIL9VH0Ff0+6hlt2+Q3/8gnUsm2kpj1n0tMGjgjtolnhm24RPDCulaT3JNFf9vCjVc8oA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=ha8YbydGYIQ85U+sUBiP3ia3kf+iu5IDAbJkXUFUjdI=;
- b=EQjcs6RAdtCWAanIc2oTQbAkEULhLwj4IwqzRfwcO9GONUiVQdWMSBkOrFYkU7czA1OEQ8jj+muNETdLs/iLyD0yM3tC0F0gd9VhnUP+f+cGiZ49lhttDQ8ColGMhyWl5l8wMQqiFYvsJESggDvy7vFMhbsotgrtkcxNd1vTk+8/cEAZk9H3iCp/49+PMk013y91CVS5YHFFM4SUi386o0Y9enwOp7zoJ1KGKnakcr1O5nt0toZQ6Vi08vnKmZKV3f+u0r3lrz0AwQuIf4B6FP+uooZ7nV8xAT2P+0oRmQxZyNsuTtGQ1kFFBLrccH5V5ic/YrMS0wJj+LI3ovTkFQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=voleatech.de; dmarc=pass action=none header.from=voleatech.de;
- dkim=pass header.d=voleatech.de; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=voleatech.de;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=ha8YbydGYIQ85U+sUBiP3ia3kf+iu5IDAbJkXUFUjdI=;
- b=SsyqqH+NBaT0+0NTOGq6dQtBup8VveQ+iz7P+cTAY5K9MGVgRLiVQcGpNjvhZozaXUWix+7Dolqjzd5KIGD+KF/ShwRWUMf0m3auXuVgQMKnpCfP2ytrFHjv4FPLv9nHzBUBY6jFGp9WdbNkVwRC1zPkoesHflHjH+4Ci3/rJ+0=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=voleatech.de;
-Received: from DBBPR05MB11225.eurprd05.prod.outlook.com (2603:10a6:10:538::14)
- by AS2PR05MB10731.eurprd05.prod.outlook.com (2603:10a6:20b:647::16) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7452.50; Fri, 19 Apr
- 2024 07:48:00 +0000
-Received: from DBBPR05MB11225.eurprd05.prod.outlook.com
- ([fe80::eb7:22e6:e723:9086]) by DBBPR05MB11225.eurprd05.prod.outlook.com
- ([fe80::eb7:22e6:e723:9086%6]) with mapi id 15.20.7472.037; Fri, 19 Apr 2024
- 07:48:00 +0000
-Date: Fri, 19 Apr 2024 09:47:56 +0200
-From: Sven Auhagen <sven.auhagen@voleatech.de>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VSJuqqsu"
+Received: by mail-wm1-f53.google.com with SMTP id 5b1f17b1804b1-418c0d83d18so14080595e9.0;
+        Fri, 19 Apr 2024 04:23:30 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1713525808; x=1714130608; darn=vger.kernel.org;
+        h=mime-version:user-agent:references:message-id:date:in-reply-to
+         :subject:cc:to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=snFlYp4KgV+yLc6IElZhwwDwX1ADO6EDxPHFaCHHkjA=;
+        b=VSJuqqsury0QZ+CZHKDlLhtyoHReSl3sva6xdOaagNDY+ANJF4i5UCpRs/uVn6T8wD
+         yopOPdzE+juPR0gj9snYKX0jxTZFMo/wsbrdCFpeh5sRFQ67Mvog+EBTVmz2b918ZFjb
+         oHDBC88Wf9vtGl4OdHrz09MJPovBMYtyN/Oji6WCS7GnUohfPPqMqpq5YVPGxcT5Nt/A
+         3K2H11frUxji5Hq/x02aiX5nOG5oAerQClmadVK1Rva/1THbI6mvt5ZL1ZMAagZCz9kG
+         MGYRz7tR6hL9evvKGRoMWhqoJGPOOyyOTL5FNbtoclkpyUPGU6BiITt/lsb9PcZ/XMfX
+         8qEA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1713525808; x=1714130608;
+        h=mime-version:user-agent:references:message-id:date:in-reply-to
+         :subject:cc:to:from:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=snFlYp4KgV+yLc6IElZhwwDwX1ADO6EDxPHFaCHHkjA=;
+        b=uNQzbQWuzceTvlqF6JIjexzC3wykAA795nbBIrVuUIJ6Bpmzj+Bg1SdabSYPqg5Brv
+         XN2YxGyDGr45DXmOTLV007DiRvFnL8oLgeaxvGUHqAEzBFmmWqK0eNudq9Mqakr1rBxY
+         /LEvx76RTF7WA3VpAX78g02iP45Oi5xKGjTKyh+VNdmJTUIIMFPe9+VNfbFSE770EE+P
+         uvIo8Qbk6sjAh1kwUIdmyj8QkTwoVTO5lFvYLJ4DuKyIob7yfy6tLbu0N4QDHbGQpsxr
+         BbBB5OoQm1TgMT0FeQV43hBCPPM7tmmI7t2LQn7FRj9c4SxngLyoSuNDeYYK5GvN2zqy
+         +kYw==
+X-Forwarded-Encrypted: i=1; AJvYcCXWBEb/JCLu1gCwj58x33AOCpq5Km5T1zre4BjVePcqrTY8hfuj93+ZTtvfpIqRUAa6PWzaUmuI1J3Ae3dJM4KSngbeiEf5eZuaatofrOdu
+X-Gm-Message-State: AOJu0YypsLowREFLxhWtT5K/7G/rfkHekNURKKV9lSWCGRFJ87Wsl3hH
+	5Waxua/94iyNM/ydVlKY8ADzTKtfEIcdZ730Zw9MmnETpIuoTPGk
+X-Google-Smtp-Source: AGHT+IFeYf5HXUSQA81O5QO2J7a9UD4lVm/Kn9ZNwdXApO682UXvzybci9IW3JRCl4BhviaOmSIOZg==
+X-Received: by 2002:a05:600c:350b:b0:418:d4e6:30cf with SMTP id h11-20020a05600c350b00b00418d4e630cfmr1164254wmq.14.1713525808302;
+        Fri, 19 Apr 2024 04:23:28 -0700 (PDT)
+Received: from imac ([2a02:8010:60a0:0:d172:310a:8388:5ffb])
+        by smtp.gmail.com with ESMTPSA id f7-20020a05600c154700b004190d7126c0sm1654348wmg.38.2024.04.19.04.23.26
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 19 Apr 2024 04:23:27 -0700 (PDT)
+From: Donald Hunter <donald.hunter@gmail.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org, 
-	cratiu@nvidia.com, ozsh@nvidia.com, vladbu@nvidia.com, gal@nvidia.com
-Subject: Re: [PATCH nf] netfilter: flowtable: infer TCP state and timeout
- before flow teardown
-Message-ID: <yjjoc762gpm3gsdwyqpsbgw6wsybl7lhk3pqeygmv3acy76u3w@znzu42tkxosa>
-References: <o7kxkadlzt2ux5bbdcsgxlfxnfedzxv4jlfd3xnhri6qpr5w3n@2vmkj5o3yrek>
- <ZfrYpvJFrrajPbHM@calendula>
- <x3qvcfxgdmurfnydhrs7ao6fmxxubmhxs2mjk24yn5zjfbo3h5@esbr3eff7bir>
- <ZhUibxdb005sYZNq@calendula>
- <uhn7bt3jdrvmczhlw3dsrinb2opr2qksnbip7asekilgczm35v@hyvzkxrgdhgn>
- <ZhetEIvz_vCB-A5D@calendula>
- <20240411110504.GE18399@breakpoint.cc>
- <ZhfMQM3KXi9dCBUd@calendula>
- <20240411121320.GF18399@breakpoint.cc>
- <ZhgGxoJyo_1vhPN_@calendula>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZhgGxoJyo_1vhPN_@calendula>
-X-ClientProxiedBy: FR0P281CA0248.DEUP281.PROD.OUTLOOK.COM
- (2603:10a6:d10:af::7) To DBBPR05MB11225.eurprd05.prod.outlook.com
- (2603:10a6:10:538::14)
+Cc: netdev@vger.kernel.org,  Jakub Kicinski <kuba@kernel.org>,  "David S.
+ Miller" <davem@davemloft.net>,  Eric Dumazet <edumazet@google.com>,  Paolo
+ Abeni <pabeni@redhat.com>,  Jiri Pirko <jiri@resnulli.us>,  Jacob Keller
+ <jacob.e.keller@intel.com>,  Jozsef Kadlecsik <kadlec@netfilter.org>,
+  netfilter-devel@vger.kernel.org,  coreteam@netfilter.org,
+  donald.hunter@redhat.com
+Subject: Re: [PATCH net-next v4 4/4] netfilter: nfnetlink: Handle ACK flags
+ for batch messages
+In-Reply-To: <ZiFKvyvojcIqMQ3R@calendula> (Pablo Neira Ayuso's message of
+	"Thu, 18 Apr 2024 18:30:55 +0200")
+Date: Fri, 19 Apr 2024 12:20:25 +0100
+Message-ID: <m2a5lpha4m.fsf@gmail.com>
+References: <20240418104737.77914-1-donald.hunter@gmail.com>
+	<20240418104737.77914-5-donald.hunter@gmail.com>
+	<ZiFKvyvojcIqMQ3R@calendula>
+User-Agent: Gnus/5.13 (Gnus v5.13)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DBBPR05MB11225:EE_|AS2PR05MB10731:EE_
-X-MS-Office365-Filtering-Correlation-Id: 1be35cc0-fa72-42ff-6b62-08dc604508e5
-X-MS-Exchange-AtpMessageProperties: SA
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?RZP5tOEwNlI5bFFo+z84zXeUiw7aUpBtuNxCDy1BXPQGRfiG4JmNPSRLcMnK?=
- =?us-ascii?Q?O+hwg37PPVQhae9FGBMC7Xt/g2THhS8z+uc5HMhy/KRQ8AUhTkNGS+QD5iAY?=
- =?us-ascii?Q?SJzRfpMfMYJbSxBTEvBzsy002z0SRHe2X4zK4gVvX44HvyDCEUXSGr3NnsPU?=
- =?us-ascii?Q?Csq9kXfaAvkrVnG0ho5jynDrMqV6TZJh9wltdExtjhsM97dRevd6OWNPt7R7?=
- =?us-ascii?Q?5wy+zISTCqGwPpSMzKpeCBzn025QoGFQxlbGmNC6zABuO4JlICKYqBsf8Aql?=
- =?us-ascii?Q?KhGKSv7H5e20vs5n8ydJHI2WmyJHsO6P4na4h1mXwjNJRzuC7I6K6PS4lthi?=
- =?us-ascii?Q?3APffloM1ocDbySKnGp/Kc66PpU/Akhkn4zSSqvTWn4lmLNdhUN2mQo9+v10?=
- =?us-ascii?Q?5SfOia4Hv2+MlLW4J0OOlaQOKjm+FxT0Q6mxgZmV9HfF27fDR/5dNcZcOyVu?=
- =?us-ascii?Q?cbDou45mWGjh7z5zuBA5gF4N3+uoSaFU/G5IXfbDYCMd30vLnsDadfD9u42S?=
- =?us-ascii?Q?yK05HjGuIA9Ilw1NEVgSE3OJiTmt/xgTv1/aHG1vbp3D5gtFvevmp9VoVxhO?=
- =?us-ascii?Q?CSLsXxi4DE6USCUuBrveQINDDkZLW/KAXwWXTSnH5faxGdenSxD+O0W3q6MP?=
- =?us-ascii?Q?qr4UikOwGuRb+09PCNe2SKxGDzQq61AC/+ga2nQM374rxklNWieirADhIsAA?=
- =?us-ascii?Q?1zMjvfQZ5ApWue/iehAuWstciRWyAFrApFfYGobZ41gRV7vPF98i0UJUf6LR?=
- =?us-ascii?Q?CPpnps5lzC1mQlcYsLgHtJG9op56vMdBZMg+q+x4QklJ+08KxuxEgMsZil9X?=
- =?us-ascii?Q?dUz8cfA38G4e1xC6p1fEeTZUIQ/YP6jXeFOwRR+WB1U3NcwgMne5hqWIjxZn?=
- =?us-ascii?Q?UYSrLTnWdis0sjVxy68DNwz64zOYLMEbtOiqP9oFCXBEX6bUhi3JZzMvBMrx?=
- =?us-ascii?Q?ALGGhj/li62rngbFYE2OkDLkZ8I/LyIqLmjY/ST9q2Jhqpa2p2P7MqKiN3dO?=
- =?us-ascii?Q?3tZcauLbzNYVEghWvIPsVb7WLh0HKLN2pYAus5cDd8NRkjOxsHHmSw3rQ4qC?=
- =?us-ascii?Q?2fwdqVIwtsD0DLl5YjMsc1kNaCVpCYCYq4VQFbNb4PwKjjakjs5on1vGsOt6?=
- =?us-ascii?Q?4sqvBm0qh+eZiHZpM7F97Gg04Mh99SOqVez2LXh5EjpzMb0xtLJ1IlN46hjC?=
- =?us-ascii?Q?L7st9LiP7d+qLoFRGGlZJNyK/sS5KtjirVG76xvBQ2Zpyg62oaOVhqqLTPlM?=
- =?us-ascii?Q?87znXAcPNHpXonP5V4pwdX+Innde3YUKC3Ya3n6XNQ=3D=3D?=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DBBPR05MB11225.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(376005)(1800799015)(366007);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?8w9SFXF5rnqDtKj4mTboUDZt8iwBBwYdlcqqPw9cS5cqFrdpHwYV30Ga4Qe4?=
- =?us-ascii?Q?v7MloJOETSHNGnxoJlW/uDbC4nniqYp3XAZjqY0PHIrBHfR8nzRf9P6knZ7c?=
- =?us-ascii?Q?M17IuXTNAiQPeG3XIzPRVnH3yyL6wkUuX1fjkcY9JVHlOOoFyBN3mM4fEAX/?=
- =?us-ascii?Q?qjTWaj+E5ObMk5BA+1GSrj0HzwKV3dsdILS+xvdDm2t4P5nCOXIXUjYgDGHb?=
- =?us-ascii?Q?ua+R3ll+Rk/rFCXqWFxOfKHC40dwRKaWXqGIbIuEi+yJgCIyquxFv3oDpxwK?=
- =?us-ascii?Q?hNQZDsZ4DVFK/TiKuEcaD4fH8SbLS51Cv9aychQNAldRPAsNrtpaBzM+xo9c?=
- =?us-ascii?Q?jn+Hkc3IRm8GPc2tnKVJQSzEA9PBkFiGf16wTxBr4VQz1vVV1IvtYMvRKAd6?=
- =?us-ascii?Q?M0bmEJGRn6nynjoYd2nJ0A5tiAfgQPypSiCJiNB23yzezr7QvSoGcoShpFwl?=
- =?us-ascii?Q?WP7eRDjrV3uEk21RjDQ5ppubdnx1OUjyIwQZQYHSdkYTdNktv1yehpNMHL1o?=
- =?us-ascii?Q?Bz+bmvBgwUs8y3MEDdTxHQWUFQvgb1E9VOh99+rsMuW0lmT7EydF4SBksJcy?=
- =?us-ascii?Q?ub7gCokT6xBIe4dUNl35uDit6qh5CVkMbiKRBkF1koMJGbuAjg46l/9EPNlN?=
- =?us-ascii?Q?ms6p0Qb5+/7O38/1PRMJcvM03BVmSjqdtuqOfisjv5gmp/Gum4IBGdceMtGF?=
- =?us-ascii?Q?AkVfsdsRXUFaO2aAf3I5v+0skZ5ZD4ROmHnreFLOuHHJGFEWX+I+csV8Kw1z?=
- =?us-ascii?Q?0KQZnM+AVsg3yiGxCi/FCkGVwYZC+A38tFOvRH41khtQuZ+H9f4imRhfrDSN?=
- =?us-ascii?Q?B6QG5Vda/ympbMEYrqghJSQ1ahBZpBW4qJOswRAj2i9YfgfTwOtOHyANIgW8?=
- =?us-ascii?Q?TeFljjEWoJLJ6rhu50KhP8htGcnuMlrtnRjh8g+uxd64h75dQ5LmCeH2t9jZ?=
- =?us-ascii?Q?niEqYFafH1dlI+zthgJTbZWDpHKYZAcB4m0dY5docpK+15fq8Gy+4XT8Ew6r?=
- =?us-ascii?Q?jAI8mCJegiNFvLjYOw3RsInzjiAk68GaTarA2jSFHgbape/DelN5ccFcVniP?=
- =?us-ascii?Q?rylSQ524ZoZn/ubIA0i0gDL9rGeWGN/PmJe+GL4HDbvGUyYsSirmEO2kHp/2?=
- =?us-ascii?Q?TAlJUy/ojTNR9bK+Y3e8EGJxd/SiINCrzrnH0jft1xpba2kmB8m+opITgYgT?=
- =?us-ascii?Q?nF2TTITPc1SSxA9es16O2GxB9KT1xyYhQbLRtn6xIeGihSsX7DmXIUCI/WFt?=
- =?us-ascii?Q?bSI+BopW/K3Mx2xlWvX3M0xSakNs8BIBe3Qu5tVam/87O/yuJUBjP7QA8t/8?=
- =?us-ascii?Q?ewnv3wJ9RsrzGlXmhF2GwZ3IwTnZWYBNCnzbLzLW2Mvdfm7nyQqqLyjBWPRV?=
- =?us-ascii?Q?9JtFlwEty36xXqztdX32A8P8GE8C1wQCkdTGvYJFBD6XS7l047M0Z0kuOiP0?=
- =?us-ascii?Q?gjkef6TaXHKuaDOENILQhUMk4JmtPhRsulsL/KcXojKTA19DvVNaRvMUyV03?=
- =?us-ascii?Q?Iv0dMtyvKeW7rBrN8EkhN5tpgz9CjxANJFVjgJdhNV8BYN8SPjQtchrsITo6?=
- =?us-ascii?Q?tmO0Q6s1xR7g2WgECcxV9iCVSHI+EzY6zUUq9cAa0W62Qr79GErmruhV69wP?=
- =?us-ascii?Q?Fw=3D=3D?=
-X-OriginatorOrg: voleatech.de
-X-MS-Exchange-CrossTenant-Network-Message-Id: 1be35cc0-fa72-42ff-6b62-08dc604508e5
-X-MS-Exchange-CrossTenant-AuthSource: DBBPR05MB11225.eurprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Apr 2024 07:48:00.0234
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: b82a99f6-7981-4a72-9534-4d35298f847b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: vn9cYy2GAaG9Da6AJS6KXbH8fhUbhdgGqrCrrqODsndpOEp6rfYZp39mMOQdEtRwRkpRNMel7HM1BP5eW7rBK8YS5airxkNnKU3ibC05fdM=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AS2PR05MB10731
+Content-Type: text/plain
 
-On Thu, Apr 11, 2024 at 05:50:30PM +0200, Pablo Neira Ayuso wrote:
-> On Thu, Apr 11, 2024 at 02:13:20PM +0200, Florian Westphal wrote:
-> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > > I see no reason whatsoever why we need to do this, fin can be passed up
-> > > > to conntrack and conntrack can and should handle this without any extra
-> > > > mucking with the nf_conn state fields from flowtable infra.
-> > > 
-> > > You mean, just let the fin packet go without tearing down the flow
-> > > entry?
-> > 
-> > Yes, thats what I meant.  RST would still remove the flow entry.
-> 
-> So flow entry would remain in place if fin packet is seen. Then, an
-> ack packet will follow fastpath while another fin packet in the other
-> direction will follow classic.
-> 
-> > > > The only cases where I see why we need to take action from
-> > > > flowtable layer are:
-> > > > 
-> > > > 1. timeout extensions of nf_conn from gc worker to prevent eviction
-> > > > 2. removal of the flowtable entry on RST reception. Don't see why that
-> > > >    needs state fixup of nf_conn.
-> > > 
-> > > Remove it right away then is what you propose?
-> > 
-> > Isn't that what is happeing right now?  We set TEARDOWN bit and
-> > remove OFFLOAD bit from nf_conn.
-> > 
-> > I think we should NOT do it for FIN and let conntrack handle this,
-> > but we should still do it for RST.
-> 
-> Conntrack will have to deal then with an entry that is completely
-> out-of-sync, will that work? At least a fixup to disable sequence
-> tracking will be required?
-> 
-> > Technically I think we could also skip it for RST but I don't see
-> > a big advantage.  For FIN it will keep offloading in place which is
-> > a win for connetions where one end still sends more data.
-> 
-> I see.
-> 
-> > > > 3. removal of the flowtable entry on hard failure of
-> > > >    output routines, e.g. because route is stale.
-> > > >    Don't see why that needs any nf_conn changes either.
-> > > 
-> > > if dst is stale, packet needs to go back to classic path to get a
-> > > fresh route.
-> > 
-> > Yes, sure.  But I would keep the teardown in place that we have now,
-> > I meant to say that the current code makes sense to me, i.e.:
-> > 
-> > if (!nf_flow_dst_check(&tuplehash->tuple)) {
-> > 	flow_offload_teardown(flow);
-> > 	return 0;
-> > }
-> 
-> I see, I misunderstood.
-> 
-> > > > My impression is that all these conditionals paper over some other
-> > > > bugs, for example gc_worker extending timeout is racing with the
-> > > > datapath, this needs to be fixed first.
-> > > 
-> > > That sounds good. But I am afraid some folks will not be happy if TCP
-> > > flow becomes stateless again.
-> > 
-> > I do not know what that means.  There can never be a flowtable entry
-> > without a backing nf_conn, so I don't know what stateless means in this
-> > context.
-> 
-> If fin does not tear down the flow entry, then the flow entry remains
-> in place and it holds a reference to the conntrack object, which will
-> not be release until 30 seconds of no traffic activity, right?
-> 
-> Maybe I am just missing part of what you have in mind, I still don't
-> see the big picture.
-> 
-> Would you make a quick summary of the proposed new logic?
-> 
+Pablo Neira Ayuso <pablo@netfilter.org> writes:
+
+> Hi Donald,
+>
+> Apologies for a bit late jumping back on this, it took me a while.
+>
+> On Thu, Apr 18, 2024 at 11:47:37AM +0100, Donald Hunter wrote:
+>> The NLM_F_ACK flag is ignored for nfnetlink batch begin and end
+>> messages. This is a problem for ynl which wants to receive an ack for
+>> every message it sends, not just the commands in between the begin/end
+>> messages.
+>
+> Just a side note: Turning on NLM_F_ACK for every message fills up the
+> receiver buffer very quickly, leading to ENOBUFS. Netlink, in general,
+> supports batching (with non-atomic semantics), I did not look at ynl
+> in detail, if it does send() + recv() for each message for other
+> subsystem then fine, but if it uses batching to amortize the cost of
+> the syscall then this explicit ACK could be an issue with very large
+> batches.
+
+ynl is batching the messages for send() and will accept batches from
+recv() but nfnetlink is sending each ack separately. It is using
+netlink_ack() which uses a new skb for each message, for example:
+
+sudo strace -e sendto,recvfrom ./tools/net/ynl/cli.py \
+     --spec Documentation/netlink/specs/nftables.yaml \
+     --multi batch-begin '{"res-id": 10}' \
+     --multi newtable '{"name": "test", "nfgen-family": 1}' \
+     --multi newchain '{"name": "chain", "table": "test", "nfgen-family": 1}' \
+     --multi batch-end '{"res-id": 10}'
+sendto(3, [[{nlmsg_len=20, nlmsg_type=0x10 /* NLMSG_??? */, nlmsg_flags=NLM_F_REQUEST|NLM_F_ACK, nlmsg_seq=28254, nlmsg_pid=0}, "\x00\x00\x00\x0a"], [{nlmsg_len=32, nlmsg_type=0xa00 /* NLMSG_??? */, nlmsg_flags=NLM_F_REQUEST|NLM_F_ACK, nlmsg_seq=28255, nlmsg_pid=0}, "\x01\x00\x00\x00\x09\x00\x01\x00\x74\x65\x73\x74\x00\x00\x00\x00"], [{nlmsg_len=44, nlmsg_type=0xa03 /* NLMSG_??? */, nlmsg_flags=NLM_F_REQUEST|NLM_F_ACK, nlmsg_seq=28256, nlmsg_pid=0}, "\x01\x00\x00\x00\x0a\x00\x03\x00\x63\x68\x61\x69\x6e\x00\x00\x00\x09\x00\x01\x00\x74\x65\x73\x74\x00\x00\x00\x00"], [{nlmsg_len=20, nlmsg_type=0x11 /* NLMSG_??? */, nlmsg_flags=NLM_F_REQUEST|NLM_F_ACK, nlmsg_seq=28257, nlmsg_pid=0}, "\x00\x00\x00\x0a"]], 116, 0, NULL, 0) = 116
+recvfrom(3, [{nlmsg_len=36, nlmsg_type=NLMSG_ERROR, nlmsg_flags=NLM_F_CAPPED, nlmsg_seq=28254, nlmsg_pid=997}, {error=0, msg={nlmsg_len=20, nlmsg_type=NFNL_MSG_BATCH_BEGIN, nlmsg_flags=NLM_F_REQUEST|NLM_F_ACK, nlmsg_seq=28254, nlmsg_pid=0}}], 131072, 0, NULL, NULL) = 36
+recvfrom(3, [{nlmsg_len=36, nlmsg_type=NLMSG_ERROR, nlmsg_flags=NLM_F_CAPPED, nlmsg_seq=28255, nlmsg_pid=997}, {error=0, msg={nlmsg_len=32, nlmsg_type=NFNL_SUBSYS_NFTABLES<<8|NFT_MSG_NEWTABLE, nlmsg_flags=NLM_F_REQUEST|NLM_F_ACK, nlmsg_seq=28255, nlmsg_pid=0}}], 131072, 0, NULL, NULL) = 36
+recvfrom(3, [{nlmsg_len=36, nlmsg_type=NLMSG_ERROR, nlmsg_flags=NLM_F_CAPPED, nlmsg_seq=28256, nlmsg_pid=997}, {error=0, msg={nlmsg_len=44, nlmsg_type=NFNL_SUBSYS_NFTABLES<<8|NFT_MSG_NEWCHAIN, nlmsg_flags=NLM_F_REQUEST|NLM_F_ACK, nlmsg_seq=28256, nlmsg_pid=0}}], 131072, 0, NULL, NULL) = 36
+recvfrom(3, [{nlmsg_len=36, nlmsg_type=NLMSG_ERROR, nlmsg_flags=NLM_F_CAPPED, nlmsg_seq=28257, nlmsg_pid=997}, {error=0, msg={nlmsg_len=20, nlmsg_type=NFNL_MSG_BATCH_END, nlmsg_flags=NLM_F_REQUEST|NLM_F_ACK, nlmsg_seq=28257, nlmsg_pid=0}}], 131072, 0, NULL, NULL) = 36
+
+> Out of curiosity: Why does the tool need an explicit ack for each
+> command? As mentioned above, this consumes a lot netlink bandwidth.
+
+For the ynl python library, I guess it was a design choice to request an
+ack for each command.
+
+Since the Netlink API allows a user to request acks, it seems necessary
+to be consistent about providing them. Otherwise we'd need to extend the
+netlink message specs to say which messages are ack capable and which
+are not.
+
+>> Add processing for ACKs for begin/end messages and provide responses
+>> when requested.
+>> 
+>> I have checked that iproute2, pyroute2 and systemd are unaffected by
+>> this change since none of them use NLM_F_ACK for batch begin/end.
+>
+> nitpick: Quick grep shows me iproute2 does not use the nfnetlink
+> subsystem? If I am correct, maybe remove this.
+
+Yeah, my mistake. I did check iproute2 but didn't mean to add it to the
+list. For nft, NFNL_MSG_BATCH_* usage is contained in libnftnl from what
+I can see. I'll update the patch.
+
 > Thanks!
+>
+> One more comment below.
 
-Hi Pablo,
+Did you miss adding a comment?
 
-I tested your last patch but it makes no difference:
-
-    [NEW] tcp      6 120 SYN_SENT src=192.168.7.126 dst=157.240.223.63 sport=63461 dport=443 [UNREPLIED] src=157.240.223.63 dst=87.138.198.79 sport=443 dport=13354 mark=25165825
- [UPDATE] tcp      6 60 SYN_RECV src=192.168.7.126 dst=157.240.223.63 sport=63461 dport=443 src=157.240.223.63 dst=87.138.198.79 sport=443 dport=13354 mark=25165825
- [UPDATE] tcp      6 86400 ESTABLISHED src=192.168.7.126 dst=157.240.223.63 sport=63461 dport=443 src=157.240.223.63 dst=87.138.198.79 sport=443 dport=13354 [OFFLOAD] mark=25165825
- [UPDATE] tcp      6 120 FIN_WAIT src=192.168.7.126 dst=157.240.223.63 sport=63461 dport=443 src=157.240.223.63 dst=87.138.198.79 sport=443 dport=13354 [OFFLOAD] mark=25165825
- [UPDATE] tcp      6 30 LAST_ACK src=192.168.7.126 dst=157.240.223.63 sport=63461 dport=443 src=157.240.223.63 dst=87.138.198.79 sport=443 dport=13354 [OFFLOAD] mark=25165825
-[DESTROY] tcp      6 LAST_ACK src=192.168.7.126 dst=157.240.223.63 sport=63461 dport=443 packets=10 bytes=790 src=157.240.223.63 dst=87.138.198.79 sport=443 dport=13354 packets=19 bytes=5061 [ASSURED] mark=25165825 delta-time=138
-
-Best
-Sven
-
+>
+>> Signed-off-by: Donald Hunter <donald.hunter@gmail.com>
+>> ---
+>>  net/netfilter/nfnetlink.c | 5 +++++
+>>  1 file changed, 5 insertions(+)
+>> 
+>> diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+>> index c9fbe0f707b5..4abf660c7baf 100644
+>> --- a/net/netfilter/nfnetlink.c
+>> +++ b/net/netfilter/nfnetlink.c
+>> @@ -427,6 +427,9 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
+>>  
+>>  	nfnl_unlock(subsys_id);
+>>  
+>> +	if (nlh->nlmsg_flags & NLM_F_ACK)
+>> +		nfnl_err_add(&err_list, nlh, 0, &extack);
+>> +
+>>  	while (skb->len >= nlmsg_total_size(0)) {
+>>  		int msglen, type;
+>>  
+>> @@ -573,6 +576,8 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
+>>  		} else if (err) {
+>>  			ss->abort(net, oskb, NFNL_ABORT_NONE);
+>>  			netlink_ack(oskb, nlmsg_hdr(oskb), err, NULL);
+>> +		} else if (nlh->nlmsg_flags & NLM_F_ACK) {
+>> +			nfnl_err_add(&err_list, nlh, 0, &extack);
+>>  		}
+>>  	} else {
+>>  		enum nfnl_abort_action abort_action;
+>> -- 
+>> 2.44.0
+>> 
