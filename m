@@ -1,555 +1,242 @@
-Received: from mail-oa1-f43.google.com (mail-oa1-f43.google.com [209.85.160.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from EUR01-HE1-obe.outbound.protection.outlook.com (mail-he1eur01on2092.outbound.protection.outlook.com [40.107.13.92])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D9FD175560
-	for <netfilter-devel@vger.kernel.org>; Thu, 18 Apr 2024 17:33:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.43
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713461611; cv=none; b=It0kf6k/0AF8oZEmfowAWcvT4zLnmq0TYTItq33oB3jaRL++Z1BFiNr6pnUnuNKhP9Vg+s4FsMGTECw+lcjkSDEp2VPGlSPVLr64J6zRugZEy48CLkFkboUXoumKHR7dSQFCw5rlHIi1BYecPtgizQCSCr42xG3C3xIfuOTy8C0=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713461611; c=relaxed/simple;
-	bh=vVoc5zq0qVRDbnyGYqUu5jY97W87uQbiK+3UuEoP9F8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RWZGvVkbfKBOGCUq8/uqobXTN56OBUFYZY+uLr6/M8hrgee1Hjv8G5vw4TBMdPEvZQDrOEi8Ly2VgSiJXper88URdPFUwqcemyBPLsfRxnNcapplyx0QSiIhrVpDKY10ovJCFrj4ZGYhqykaX6edS8Qax8U9Ke4Nt4b0uc9SmIM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=JMLBZWMe; arc=none smtp.client-ip=209.85.160.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F062F8BE2
+	for <netfilter-devel@vger.kernel.org>; Fri, 19 Apr 2024 07:48:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.13.92
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1713512887; cv=fail; b=isp3R8zGXWxqbY/uA5JmAC+4HQIIxHCVXV+xy8L+OrYqkteIBT6c53mHin6Zwcv0eF76qzmXBwDGdK6TlsJ4h3ZY8GI6UWmv7tM798JPDwDTDajryPIdEqSEnDiHgJH8D7CxVf3bosFKdP+bS/pasKLAjR9GBysl20D1ii+LJaA=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1713512887; c=relaxed/simple;
+	bh=q2wMx3UuzEqAgyujS9qbaHg4mbtlXPnOjnrYrdFzOjU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=BBlVAvsTuNXvf1n2yHI5EgeEow9+z1Lt2YB4JL8bh0hJC4kIsbyqW+D7A0KmhXCoA1loWWjbrqRFHHKRa+OfEDP2OHHruWc5tGoWH0gFkxehSKo/VyGR0cNU+uVpcjVFVwCy9FnCcCzuKDDv2rcdBzbVVQ4k/O38SxXucarPfkU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=voleatech.de; spf=pass smtp.mailfrom=voleatech.de; dkim=pass (1024-bit key) header.d=voleatech.de header.i=@voleatech.de header.b=SsyqqH+N; arc=fail smtp.client-ip=40.107.13.92
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=voleatech.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=voleatech.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="JMLBZWMe"
-Received: by mail-oa1-f43.google.com with SMTP id 586e51a60fabf-22fa7e4b0beso734817fac.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Apr 2024 10:33:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1713461608; x=1714066408; darn=vger.kernel.org;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=Su/0jhVB60Wlg9G5Him3VvxG/87i2p2Lv2g9MqI6bUU=;
-        b=JMLBZWMeoJ3pn4AjTfN4NPROPvKxhG7zRayH4/JQoWirBjKQTbdwp8L5kuyP6meJZq
-         xF3Qe9AU9k01C8tIlKlvZZUt8rIgxWP8YJKZjNa+kiJoqpp41Ng9Q2MoElau9z+9Qj7j
-         LlygJe2LBcQocZo5FQMsOscxXv57A3G+8A0y0=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1713461608; x=1714066408;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=Su/0jhVB60Wlg9G5Him3VvxG/87i2p2Lv2g9MqI6bUU=;
-        b=gjz+PR4KFrttz5xAK6n19XCzpBelCPxlxdJBxLUBEyrokOOUYg8RXI15WgOGxnKzNg
-         XeyvcIVinurXJoXo55LArXd5JItavgEozshOO0MnmJ469PVED1znBmCAxT7x5AbI72rs
-         JBPkPDEVp/NuAGE7lC50DRCc/zF7TYpjy/YxAcnzJfLhFjrCemjCJ52pVu27wnkyAsVw
-         o1PzgokjcOu+Pk9d33hT1lHVkSqqEqFv6G02qt5Cg3jPvIAP75uI2IQSk8xhRTRmhkTs
-         gzYvLJvDv8xRzWUpDcIiC7rUKF3WNoILDm6NR5jWo6KUbc2mQ2G//iVUV00Mdl9E0K40
-         ALHA==
-X-Forwarded-Encrypted: i=1; AJvYcCU3utc5pEPg+JL9JsgEQyh0cP8wCfD0Zwqq5G7yLHHOxeyqWO6kMK2Zdg8oFIhFnLRt+UBAjI6Zc1NtvsoPLGafiPmdRr7EkMZyKFbI8Pqi
-X-Gm-Message-State: AOJu0Yz0/DNM3LyR6pXASLyCELTL5D60taAyEXwiGsvt96mWh98Ok8kW
-	ivoIFtdNFtKLD5Cn0zWEJ/lTvrVuIq5PYHgL3Toa0iXOTnXNKSNSeTnRTC/svoiqt2D23AwcsZY
-	=
-X-Google-Smtp-Source: AGHT+IGA2jtQNRvB9rGrp0xvC3LVrf3b0mrd0c1k+WW3TidBwOQ3bB57iP8v8X9wDFCdBcLCvEqCvQ==
-X-Received: by 2002:a05:6870:e8c5:b0:22e:959b:cf74 with SMTP id r5-20020a056870e8c500b0022e959bcf74mr4409603oan.40.1713461608313;
-        Thu, 18 Apr 2024 10:33:28 -0700 (PDT)
-Received: from www.outflux.net ([198.0.35.241])
-        by smtp.gmail.com with ESMTPSA id s21-20020a632155000000b005cd8044c6fesm1689076pgm.23.2024.04.18.10.33.27
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 18 Apr 2024 10:33:27 -0700 (PDT)
-Date: Thu, 18 Apr 2024 10:33:27 -0700
-From: Kees Cook <keescook@chromium.org>
-To: Thomas =?iso-8859-1?Q?Wei=DFschuh?= <linux@weissschuh.net>
-Cc: David Ahern <dsahern@kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Luis Chamberlain <mcgrof@kernel.org>,
-	Joel Granados <j.granados@samsung.com>,
-	Joerg Reuter <jreuter@yaina.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Roopa Prabhu <roopa@nvidia.com>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Alexander Aring <alex.aring@gmail.com>,
-	Stefan Schmidt <stefan@datenfreihafen.org>,
-	Miquel Raynal <miquel.raynal@bootlin.com>,
-	Steffen Klassert <steffen.klassert@secunet.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	Matthieu Baerts <matttbe@kernel.org>,
-	Mat Martineau <martineau@kernel.org>,
-	Geliang Tang <geliang@kernel.org>,
-	Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
-	Xin Long <lucien.xin@gmail.com>,
-	Wenjia Zhang <wenjia@linux.ibm.com>,
-	Jan Karcher <jaka@linux.ibm.com>,
-	"D. Wythe" <alibuda@linux.alibaba.com>,
-	Tony Lu <tonylu@linux.alibaba.com>,
-	Wen Gu <guwen@linux.alibaba.com>, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	linux-hams@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, bridge@lists.linux.dev,
-	linux-wpan@vger.kernel.org, mptcp@lists.linux.dev,
-	linux-sctp@vger.kernel.org, linux-s390@vger.kernel.org
-Subject: Re: [PATCH v2] sysctl: treewide: constify
- ctl_table_header::ctl_table_arg
-Message-ID: <202404181026.1E2AA3457@keescook>
-References: <20240418-sysctl-const-table-arg-v2-1-4012abc31311@weissschuh.net>
+	dkim=pass (1024-bit key) header.d=voleatech.de header.i=@voleatech.de header.b="SsyqqH+N"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=P9JaN7DeI5Tq4aljQmqxMKKMy6RZPwCHOhbRKDWxhfkSCHjupE0a9DbDmPJhu/b349o29lAt56jO+0HwKIAGtw1DAQhSZBr2yp668BQ42fNeSTUZ42ivyOji4DIA8Qyu/wxgcWCO8Ao6s6LEwQPTeSEylQLFxCqxlBaODsJ4ZXoCGU4urTv38/t0N4H/YJhPKkA2usugMMmmS3zgParw4owvWEqWrELptG46rMn66KntXty8PA0opjuyRH5Fpd4eoGMao6eqig+Pe7D+aUIL9VH0Ff0+6hlt2+Q3/8gnUsm2kpj1n0tMGjgjtolnhm24RPDCulaT3JNFf9vCjVc8oA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=ha8YbydGYIQ85U+sUBiP3ia3kf+iu5IDAbJkXUFUjdI=;
+ b=EQjcs6RAdtCWAanIc2oTQbAkEULhLwj4IwqzRfwcO9GONUiVQdWMSBkOrFYkU7czA1OEQ8jj+muNETdLs/iLyD0yM3tC0F0gd9VhnUP+f+cGiZ49lhttDQ8ColGMhyWl5l8wMQqiFYvsJESggDvy7vFMhbsotgrtkcxNd1vTk+8/cEAZk9H3iCp/49+PMk013y91CVS5YHFFM4SUi386o0Y9enwOp7zoJ1KGKnakcr1O5nt0toZQ6Vi08vnKmZKV3f+u0r3lrz0AwQuIf4B6FP+uooZ7nV8xAT2P+0oRmQxZyNsuTtGQ1kFFBLrccH5V5ic/YrMS0wJj+LI3ovTkFQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=voleatech.de; dmarc=pass action=none header.from=voleatech.de;
+ dkim=pass header.d=voleatech.de; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=voleatech.de;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=ha8YbydGYIQ85U+sUBiP3ia3kf+iu5IDAbJkXUFUjdI=;
+ b=SsyqqH+NBaT0+0NTOGq6dQtBup8VveQ+iz7P+cTAY5K9MGVgRLiVQcGpNjvhZozaXUWix+7Dolqjzd5KIGD+KF/ShwRWUMf0m3auXuVgQMKnpCfP2ytrFHjv4FPLv9nHzBUBY6jFGp9WdbNkVwRC1zPkoesHflHjH+4Ci3/rJ+0=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=voleatech.de;
+Received: from DBBPR05MB11225.eurprd05.prod.outlook.com (2603:10a6:10:538::14)
+ by AS2PR05MB10731.eurprd05.prod.outlook.com (2603:10a6:20b:647::16) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7452.50; Fri, 19 Apr
+ 2024 07:48:00 +0000
+Received: from DBBPR05MB11225.eurprd05.prod.outlook.com
+ ([fe80::eb7:22e6:e723:9086]) by DBBPR05MB11225.eurprd05.prod.outlook.com
+ ([fe80::eb7:22e6:e723:9086%6]) with mapi id 15.20.7472.037; Fri, 19 Apr 2024
+ 07:48:00 +0000
+Date: Fri, 19 Apr 2024 09:47:56 +0200
+From: Sven Auhagen <sven.auhagen@voleatech.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org, 
+	cratiu@nvidia.com, ozsh@nvidia.com, vladbu@nvidia.com, gal@nvidia.com
+Subject: Re: [PATCH nf] netfilter: flowtable: infer TCP state and timeout
+ before flow teardown
+Message-ID: <yjjoc762gpm3gsdwyqpsbgw6wsybl7lhk3pqeygmv3acy76u3w@znzu42tkxosa>
+References: <o7kxkadlzt2ux5bbdcsgxlfxnfedzxv4jlfd3xnhri6qpr5w3n@2vmkj5o3yrek>
+ <ZfrYpvJFrrajPbHM@calendula>
+ <x3qvcfxgdmurfnydhrs7ao6fmxxubmhxs2mjk24yn5zjfbo3h5@esbr3eff7bir>
+ <ZhUibxdb005sYZNq@calendula>
+ <uhn7bt3jdrvmczhlw3dsrinb2opr2qksnbip7asekilgczm35v@hyvzkxrgdhgn>
+ <ZhetEIvz_vCB-A5D@calendula>
+ <20240411110504.GE18399@breakpoint.cc>
+ <ZhfMQM3KXi9dCBUd@calendula>
+ <20240411121320.GF18399@breakpoint.cc>
+ <ZhgGxoJyo_1vhPN_@calendula>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZhgGxoJyo_1vhPN_@calendula>
+X-ClientProxiedBy: FR0P281CA0248.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:d10:af::7) To DBBPR05MB11225.eurprd05.prod.outlook.com
+ (2603:10a6:10:538::14)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20240418-sysctl-const-table-arg-v2-1-4012abc31311@weissschuh.net>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DBBPR05MB11225:EE_|AS2PR05MB10731:EE_
+X-MS-Office365-Filtering-Correlation-Id: 1be35cc0-fa72-42ff-6b62-08dc604508e5
+X-MS-Exchange-AtpMessageProperties: SA
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?RZP5tOEwNlI5bFFo+z84zXeUiw7aUpBtuNxCDy1BXPQGRfiG4JmNPSRLcMnK?=
+ =?us-ascii?Q?O+hwg37PPVQhae9FGBMC7Xt/g2THhS8z+uc5HMhy/KRQ8AUhTkNGS+QD5iAY?=
+ =?us-ascii?Q?SJzRfpMfMYJbSxBTEvBzsy002z0SRHe2X4zK4gVvX44HvyDCEUXSGr3NnsPU?=
+ =?us-ascii?Q?Csq9kXfaAvkrVnG0ho5jynDrMqV6TZJh9wltdExtjhsM97dRevd6OWNPt7R7?=
+ =?us-ascii?Q?5wy+zISTCqGwPpSMzKpeCBzn025QoGFQxlbGmNC6zABuO4JlICKYqBsf8Aql?=
+ =?us-ascii?Q?KhGKSv7H5e20vs5n8ydJHI2WmyJHsO6P4na4h1mXwjNJRzuC7I6K6PS4lthi?=
+ =?us-ascii?Q?3APffloM1ocDbySKnGp/Kc66PpU/Akhkn4zSSqvTWn4lmLNdhUN2mQo9+v10?=
+ =?us-ascii?Q?5SfOia4Hv2+MlLW4J0OOlaQOKjm+FxT0Q6mxgZmV9HfF27fDR/5dNcZcOyVu?=
+ =?us-ascii?Q?cbDou45mWGjh7z5zuBA5gF4N3+uoSaFU/G5IXfbDYCMd30vLnsDadfD9u42S?=
+ =?us-ascii?Q?yK05HjGuIA9Ilw1NEVgSE3OJiTmt/xgTv1/aHG1vbp3D5gtFvevmp9VoVxhO?=
+ =?us-ascii?Q?CSLsXxi4DE6USCUuBrveQINDDkZLW/KAXwWXTSnH5faxGdenSxD+O0W3q6MP?=
+ =?us-ascii?Q?qr4UikOwGuRb+09PCNe2SKxGDzQq61AC/+ga2nQM374rxklNWieirADhIsAA?=
+ =?us-ascii?Q?1zMjvfQZ5ApWue/iehAuWstciRWyAFrApFfYGobZ41gRV7vPF98i0UJUf6LR?=
+ =?us-ascii?Q?CPpnps5lzC1mQlcYsLgHtJG9op56vMdBZMg+q+x4QklJ+08KxuxEgMsZil9X?=
+ =?us-ascii?Q?dUz8cfA38G4e1xC6p1fEeTZUIQ/YP6jXeFOwRR+WB1U3NcwgMne5hqWIjxZn?=
+ =?us-ascii?Q?UYSrLTnWdis0sjVxy68DNwz64zOYLMEbtOiqP9oFCXBEX6bUhi3JZzMvBMrx?=
+ =?us-ascii?Q?ALGGhj/li62rngbFYE2OkDLkZ8I/LyIqLmjY/ST9q2Jhqpa2p2P7MqKiN3dO?=
+ =?us-ascii?Q?3tZcauLbzNYVEghWvIPsVb7WLh0HKLN2pYAus5cDd8NRkjOxsHHmSw3rQ4qC?=
+ =?us-ascii?Q?2fwdqVIwtsD0DLl5YjMsc1kNaCVpCYCYq4VQFbNb4PwKjjakjs5on1vGsOt6?=
+ =?us-ascii?Q?4sqvBm0qh+eZiHZpM7F97Gg04Mh99SOqVez2LXh5EjpzMb0xtLJ1IlN46hjC?=
+ =?us-ascii?Q?L7st9LiP7d+qLoFRGGlZJNyK/sS5KtjirVG76xvBQ2Zpyg62oaOVhqqLTPlM?=
+ =?us-ascii?Q?87znXAcPNHpXonP5V4pwdX+Innde3YUKC3Ya3n6XNQ=3D=3D?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DBBPR05MB11225.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(376005)(1800799015)(366007);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?8w9SFXF5rnqDtKj4mTboUDZt8iwBBwYdlcqqPw9cS5cqFrdpHwYV30Ga4Qe4?=
+ =?us-ascii?Q?v7MloJOETSHNGnxoJlW/uDbC4nniqYp3XAZjqY0PHIrBHfR8nzRf9P6knZ7c?=
+ =?us-ascii?Q?M17IuXTNAiQPeG3XIzPRVnH3yyL6wkUuX1fjkcY9JVHlOOoFyBN3mM4fEAX/?=
+ =?us-ascii?Q?qjTWaj+E5ObMk5BA+1GSrj0HzwKV3dsdILS+xvdDm2t4P5nCOXIXUjYgDGHb?=
+ =?us-ascii?Q?ua+R3ll+Rk/rFCXqWFxOfKHC40dwRKaWXqGIbIuEi+yJgCIyquxFv3oDpxwK?=
+ =?us-ascii?Q?hNQZDsZ4DVFK/TiKuEcaD4fH8SbLS51Cv9aychQNAldRPAsNrtpaBzM+xo9c?=
+ =?us-ascii?Q?jn+Hkc3IRm8GPc2tnKVJQSzEA9PBkFiGf16wTxBr4VQz1vVV1IvtYMvRKAd6?=
+ =?us-ascii?Q?M0bmEJGRn6nynjoYd2nJ0A5tiAfgQPypSiCJiNB23yzezr7QvSoGcoShpFwl?=
+ =?us-ascii?Q?WP7eRDjrV3uEk21RjDQ5ppubdnx1OUjyIwQZQYHSdkYTdNktv1yehpNMHL1o?=
+ =?us-ascii?Q?Bz+bmvBgwUs8y3MEDdTxHQWUFQvgb1E9VOh99+rsMuW0lmT7EydF4SBksJcy?=
+ =?us-ascii?Q?ub7gCokT6xBIe4dUNl35uDit6qh5CVkMbiKRBkF1koMJGbuAjg46l/9EPNlN?=
+ =?us-ascii?Q?ms6p0Qb5+/7O38/1PRMJcvM03BVmSjqdtuqOfisjv5gmp/Gum4IBGdceMtGF?=
+ =?us-ascii?Q?AkVfsdsRXUFaO2aAf3I5v+0skZ5ZD4ROmHnreFLOuHHJGFEWX+I+csV8Kw1z?=
+ =?us-ascii?Q?0KQZnM+AVsg3yiGxCi/FCkGVwYZC+A38tFOvRH41khtQuZ+H9f4imRhfrDSN?=
+ =?us-ascii?Q?B6QG5Vda/ympbMEYrqghJSQ1ahBZpBW4qJOswRAj2i9YfgfTwOtOHyANIgW8?=
+ =?us-ascii?Q?TeFljjEWoJLJ6rhu50KhP8htGcnuMlrtnRjh8g+uxd64h75dQ5LmCeH2t9jZ?=
+ =?us-ascii?Q?niEqYFafH1dlI+zthgJTbZWDpHKYZAcB4m0dY5docpK+15fq8Gy+4XT8Ew6r?=
+ =?us-ascii?Q?jAI8mCJegiNFvLjYOw3RsInzjiAk68GaTarA2jSFHgbape/DelN5ccFcVniP?=
+ =?us-ascii?Q?rylSQ524ZoZn/ubIA0i0gDL9rGeWGN/PmJe+GL4HDbvGUyYsSirmEO2kHp/2?=
+ =?us-ascii?Q?TAlJUy/ojTNR9bK+Y3e8EGJxd/SiINCrzrnH0jft1xpba2kmB8m+opITgYgT?=
+ =?us-ascii?Q?nF2TTITPc1SSxA9es16O2GxB9KT1xyYhQbLRtn6xIeGihSsX7DmXIUCI/WFt?=
+ =?us-ascii?Q?bSI+BopW/K3Mx2xlWvX3M0xSakNs8BIBe3Qu5tVam/87O/yuJUBjP7QA8t/8?=
+ =?us-ascii?Q?ewnv3wJ9RsrzGlXmhF2GwZ3IwTnZWYBNCnzbLzLW2Mvdfm7nyQqqLyjBWPRV?=
+ =?us-ascii?Q?9JtFlwEty36xXqztdX32A8P8GE8C1wQCkdTGvYJFBD6XS7l047M0Z0kuOiP0?=
+ =?us-ascii?Q?gjkef6TaXHKuaDOENILQhUMk4JmtPhRsulsL/KcXojKTA19DvVNaRvMUyV03?=
+ =?us-ascii?Q?Iv0dMtyvKeW7rBrN8EkhN5tpgz9CjxANJFVjgJdhNV8BYN8SPjQtchrsITo6?=
+ =?us-ascii?Q?tmO0Q6s1xR7g2WgECcxV9iCVSHI+EzY6zUUq9cAa0W62Qr79GErmruhV69wP?=
+ =?us-ascii?Q?Fw=3D=3D?=
+X-OriginatorOrg: voleatech.de
+X-MS-Exchange-CrossTenant-Network-Message-Id: 1be35cc0-fa72-42ff-6b62-08dc604508e5
+X-MS-Exchange-CrossTenant-AuthSource: DBBPR05MB11225.eurprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Apr 2024 07:48:00.0234
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: b82a99f6-7981-4a72-9534-4d35298f847b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: vn9cYy2GAaG9Da6AJS6KXbH8fhUbhdgGqrCrrqODsndpOEp6rfYZp39mMOQdEtRwRkpRNMel7HM1BP5eW7rBK8YS5airxkNnKU3ibC05fdM=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AS2PR05MB10731
 
-On Thu, Apr 18, 2024 at 11:40:08AM +0200, Thomas Weiﬂschuh wrote:
-> To be able to constify instances of struct ctl_tables it is necessary to
-> remove ways through which non-const versions are exposed from the
-> sysctl core.
-> One of these is the ctl_table_arg member of struct ctl_table_header.
+On Thu, Apr 11, 2024 at 05:50:30PM +0200, Pablo Neira Ayuso wrote:
+> On Thu, Apr 11, 2024 at 02:13:20PM +0200, Florian Westphal wrote:
+> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > > I see no reason whatsoever why we need to do this, fin can be passed up
+> > > > to conntrack and conntrack can and should handle this without any extra
+> > > > mucking with the nf_conn state fields from flowtable infra.
+> > > 
+> > > You mean, just let the fin packet go without tearing down the flow
+> > > entry?
+> > 
+> > Yes, thats what I meant.  RST would still remove the flow entry.
 > 
-> Constify this reference as a prerequisite for the full constification of
-> struct ctl_table instances.
-> No functional change.
+> So flow entry would remain in place if fin packet is seen. Then, an
+> ack packet will follow fastpath while another fin packet in the other
+> direction will follow classic.
 > 
-> Signed-off-by: Thomas Weiﬂschuh <linux@weissschuh.net>
-> ---
-> Changes in v2:
-> - Add link to original monolithic series
-> - Send to all maintainers again
-> - Link to v1: https://lore.kernel.org/r/20240322-sysctl-const-table-arg-v1-1-88436d34961b@weissschuh.net
-> ---
-> This is a standalone version of PATCH 11 from my original const-sysctl
-> series at
-> https://lore.kernel.org/lkml/20231204-const-sysctl-v2-0-7a5060b11447@weissschuh.net/
+> > > > The only cases where I see why we need to take action from
+> > > > flowtable layer are:
+> > > > 
+> > > > 1. timeout extensions of nf_conn from gc worker to prevent eviction
+> > > > 2. removal of the flowtable entry on RST reception. Don't see why that
+> > > >    needs state fixup of nf_conn.
+> > > 
+> > > Remove it right away then is what you propose?
+> > 
+> > Isn't that what is happeing right now?  We set TEARDOWN bit and
+> > remove OFFLOAD bit from nf_conn.
+> > 
+> > I think we should NOT do it for FIN and let conntrack handle this,
+> > but we should still do it for RST.
 > 
-> It is based upon the branch constfy of
-> https://git.kernel.org/pub/scm/linux/kernel/git/sysctl/sysctl.git/
+> Conntrack will have to deal then with an entry that is completely
+> out-of-sync, will that work? At least a fixup to disable sequence
+> tracking will be required?
 > 
-> This patch is meant to be applied through the sysctl tree.
+> > Technically I think we could also skip it for RST but I don't see
+> > a big advantage.  For FIN it will keep offloading in place which is
+> > a win for connetions where one end still sends more data.
 > 
-> It was implemented by manually searching for "ctl_table_arg"
-> throughout the tree and inspecing each found site.
+> I see.
 > 
-> If somebody comes up with a cocciscript for this, I'll be happy to use
-> that.
+> > > > 3. removal of the flowtable entry on hard failure of
+> > > >    output routines, e.g. because route is stale.
+> > > >    Don't see why that needs any nf_conn changes either.
+> > > 
+> > > if dst is stale, packet needs to go back to classic path to get a
+> > > fresh route.
+> > 
+> > Yes, sure.  But I would keep the teardown in place that we have now,
+> > I meant to say that the current code makes sense to me, i.e.:
+> > 
+> > if (!nf_flow_dst_check(&tuplehash->tuple)) {
+> > 	flow_offload_teardown(flow);
+> > 	return 0;
+> > }
+> 
+> I see, I misunderstood.
+> 
+> > > > My impression is that all these conditionals paper over some other
+> > > > bugs, for example gc_worker extending timeout is racing with the
+> > > > datapath, this needs to be fixed first.
+> > > 
+> > > That sounds good. But I am afraid some folks will not be happy if TCP
+> > > flow becomes stateless again.
+> > 
+> > I do not know what that means.  There can never be a flowtable entry
+> > without a backing nf_conn, so I don't know what stateless means in this
+> > context.
+> 
+> If fin does not tear down the flow entry, then the flow entry remains
+> in place and it holds a reference to the conntrack object, which will
+> not be release until 30 seconds of no traffic activity, right?
+> 
+> Maybe I am just missing part of what you have in mind, I still don't
+> see the big picture.
+> 
+> Would you make a quick summary of the proposed new logic?
+> 
+> Thanks!
 
-My simple attempt doesn't find any additional instances:
+Hi Pablo,
 
-@constify@
-identifier VAR;
-expression EXP;
-@@
+I tested your last patch but it makes no difference:
 
--       struct ctl_table *VAR;
-+       const struct ctl_table *VAR;
-        ...
-        VAR = (EXP)->ctl_table_arg
+    [NEW] tcp      6 120 SYN_SENT src=192.168.7.126 dst=157.240.223.63 sport=63461 dport=443 [UNREPLIED] src=157.240.223.63 dst=87.138.198.79 sport=443 dport=13354 mark=25165825
+ [UPDATE] tcp      6 60 SYN_RECV src=192.168.7.126 dst=157.240.223.63 sport=63461 dport=443 src=157.240.223.63 dst=87.138.198.79 sport=443 dport=13354 mark=25165825
+ [UPDATE] tcp      6 86400 ESTABLISHED src=192.168.7.126 dst=157.240.223.63 sport=63461 dport=443 src=157.240.223.63 dst=87.138.198.79 sport=443 dport=13354 [OFFLOAD] mark=25165825
+ [UPDATE] tcp      6 120 FIN_WAIT src=192.168.7.126 dst=157.240.223.63 sport=63461 dport=443 src=157.240.223.63 dst=87.138.198.79 sport=443 dport=13354 [OFFLOAD] mark=25165825
+ [UPDATE] tcp      6 30 LAST_ACK src=192.168.7.126 dst=157.240.223.63 sport=63461 dport=443 src=157.240.223.63 dst=87.138.198.79 sport=443 dport=13354 [OFFLOAD] mark=25165825
+[DESTROY] tcp      6 LAST_ACK src=192.168.7.126 dst=157.240.223.63 sport=63461 dport=443 packets=10 bytes=790 src=157.240.223.63 dst=87.138.198.79 sport=443 dport=13354 packets=19 bytes=5061 [ASSURED] mark=25165825 delta-time=138
 
-it actually misses a few. :P
+Best
+Sven
 
-Reviewed-by: Kees Cook <keescook@chromium.org>
-
-> ---
->  drivers/net/vrf.c                       | 2 +-
->  include/linux/sysctl.h                  | 2 +-
->  ipc/ipc_sysctl.c                        | 2 +-
->  ipc/mq_sysctl.c                         | 2 +-
->  kernel/ucount.c                         | 2 +-
->  net/ax25/sysctl_net_ax25.c              | 2 +-
->  net/bridge/br_netfilter_hooks.c         | 2 +-
->  net/core/sysctl_net_core.c              | 2 +-
->  net/ieee802154/6lowpan/reassembly.c     | 2 +-
->  net/ipv4/devinet.c                      | 2 +-
->  net/ipv4/ip_fragment.c                  | 2 +-
->  net/ipv4/route.c                        | 2 +-
->  net/ipv4/sysctl_net_ipv4.c              | 2 +-
->  net/ipv4/xfrm4_policy.c                 | 2 +-
->  net/ipv6/addrconf.c                     | 2 +-
->  net/ipv6/netfilter/nf_conntrack_reasm.c | 2 +-
->  net/ipv6/reassembly.c                   | 2 +-
->  net/ipv6/sysctl_net_ipv6.c              | 6 +++---
->  net/ipv6/xfrm6_policy.c                 | 2 +-
->  net/mpls/af_mpls.c                      | 4 ++--
->  net/mptcp/ctrl.c                        | 2 +-
->  net/netfilter/nf_conntrack_standalone.c | 2 +-
->  net/netfilter/nf_log.c                  | 2 +-
->  net/sctp/sysctl.c                       | 2 +-
->  net/smc/smc_sysctl.c                    | 2 +-
->  net/unix/sysctl_net_unix.c              | 2 +-
->  net/xfrm/xfrm_sysctl.c                  | 2 +-
->  27 files changed, 30 insertions(+), 30 deletions(-)
-> 
-> diff --git a/drivers/net/vrf.c b/drivers/net/vrf.c
-> index bb95ce43cd97..66f8542f3b18 100644
-> --- a/drivers/net/vrf.c
-> +++ b/drivers/net/vrf.c
-> @@ -1971,7 +1971,7 @@ static int vrf_netns_init_sysctl(struct net *net, struct netns_vrf *nn_vrf)
->  static void vrf_netns_exit_sysctl(struct net *net)
->  {
->  	struct netns_vrf *nn_vrf = net_generic(net, vrf_net_id);
-> -	struct ctl_table *table;
-> +	const struct ctl_table *table;
->  
->  	table = nn_vrf->ctl_hdr->ctl_table_arg;
->  	unregister_net_sysctl_table(nn_vrf->ctl_hdr);
-> diff --git a/include/linux/sysctl.h b/include/linux/sysctl.h
-> index 47bd28ffa88f..09db2f2e6488 100644
-> --- a/include/linux/sysctl.h
-> +++ b/include/linux/sysctl.h
-> @@ -171,7 +171,7 @@ struct ctl_table_header {
->  		struct rcu_head rcu;
->  	};
->  	struct completion *unregistering;
-> -	struct ctl_table *ctl_table_arg;
-> +	const struct ctl_table *ctl_table_arg;
->  	struct ctl_table_root *root;
->  	struct ctl_table_set *set;
->  	struct ctl_dir *parent;
-> diff --git a/ipc/ipc_sysctl.c b/ipc/ipc_sysctl.c
-> index 19b2a67aef40..113452038303 100644
-> --- a/ipc/ipc_sysctl.c
-> +++ b/ipc/ipc_sysctl.c
-> @@ -305,7 +305,7 @@ bool setup_ipc_sysctls(struct ipc_namespace *ns)
->  
->  void retire_ipc_sysctls(struct ipc_namespace *ns)
->  {
-> -	struct ctl_table *tbl;
-> +	const struct ctl_table *tbl;
->  
->  	tbl = ns->ipc_sysctls->ctl_table_arg;
->  	unregister_sysctl_table(ns->ipc_sysctls);
-> diff --git a/ipc/mq_sysctl.c b/ipc/mq_sysctl.c
-> index 43c0825da9e8..068e7d5aa42b 100644
-> --- a/ipc/mq_sysctl.c
-> +++ b/ipc/mq_sysctl.c
-> @@ -159,7 +159,7 @@ bool setup_mq_sysctls(struct ipc_namespace *ns)
->  
->  void retire_mq_sysctls(struct ipc_namespace *ns)
->  {
-> -	struct ctl_table *tbl;
-> +	const struct ctl_table *tbl;
->  
->  	tbl = ns->mq_sysctls->ctl_table_arg;
->  	unregister_sysctl_table(ns->mq_sysctls);
-> diff --git a/kernel/ucount.c b/kernel/ucount.c
-> index 90300840256b..366a2c1971f5 100644
-> --- a/kernel/ucount.c
-> +++ b/kernel/ucount.c
-> @@ -119,7 +119,7 @@ bool setup_userns_sysctls(struct user_namespace *ns)
->  void retire_userns_sysctls(struct user_namespace *ns)
->  {
->  #ifdef CONFIG_SYSCTL
-> -	struct ctl_table *tbl;
-> +	const struct ctl_table *tbl;
->  
->  	tbl = ns->sysctls->ctl_table_arg;
->  	unregister_sysctl_table(ns->sysctls);
-> diff --git a/net/ax25/sysctl_net_ax25.c b/net/ax25/sysctl_net_ax25.c
-> index db66e11e7fe8..e0128dc9def3 100644
-> --- a/net/ax25/sysctl_net_ax25.c
-> +++ b/net/ax25/sysctl_net_ax25.c
-> @@ -171,7 +171,7 @@ int ax25_register_dev_sysctl(ax25_dev *ax25_dev)
->  void ax25_unregister_dev_sysctl(ax25_dev *ax25_dev)
->  {
->  	struct ctl_table_header *header = ax25_dev->sysheader;
-> -	struct ctl_table *table;
-> +	const struct ctl_table *table;
->  
->  	if (header) {
->  		ax25_dev->sysheader = NULL;
-> diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-> index 35e10c5a766d..a09118c56c7d 100644
-> --- a/net/bridge/br_netfilter_hooks.c
-> +++ b/net/bridge/br_netfilter_hooks.c
-> @@ -1268,7 +1268,7 @@ static int br_netfilter_sysctl_init_net(struct net *net)
->  static void br_netfilter_sysctl_exit_net(struct net *net,
->  					 struct brnf_net *brnet)
->  {
-> -	struct ctl_table *table = brnet->ctl_hdr->ctl_table_arg;
-> +	const struct ctl_table *table = brnet->ctl_hdr->ctl_table_arg;
->  
->  	unregister_net_sysctl_table(brnet->ctl_hdr);
->  	if (!net_eq(net, &init_net))
-> diff --git a/net/core/sysctl_net_core.c b/net/core/sysctl_net_core.c
-> index 6973dda3abda..903ab4a51c17 100644
-> --- a/net/core/sysctl_net_core.c
-> +++ b/net/core/sysctl_net_core.c
-> @@ -743,7 +743,7 @@ static __net_init int sysctl_core_net_init(struct net *net)
->  
->  static __net_exit void sysctl_core_net_exit(struct net *net)
->  {
-> -	struct ctl_table *tbl;
-> +	const struct ctl_table *tbl;
->  
->  	tbl = net->core.sysctl_hdr->ctl_table_arg;
->  	unregister_net_sysctl_table(net->core.sysctl_hdr);
-> diff --git a/net/ieee802154/6lowpan/reassembly.c b/net/ieee802154/6lowpan/reassembly.c
-> index 6dd960ec558c..2a983cf450da 100644
-> --- a/net/ieee802154/6lowpan/reassembly.c
-> +++ b/net/ieee802154/6lowpan/reassembly.c
-> @@ -399,7 +399,7 @@ static int __net_init lowpan_frags_ns_sysctl_register(struct net *net)
->  
->  static void __net_exit lowpan_frags_ns_sysctl_unregister(struct net *net)
->  {
-> -	struct ctl_table *table;
-> +	const struct ctl_table *table;
->  	struct netns_ieee802154_lowpan *ieee802154_lowpan =
->  		net_ieee802154_lowpan(net);
->  
-> diff --git a/net/ipv4/devinet.c b/net/ipv4/devinet.c
-> index 7a437f0d4190..7592f242336b 100644
-> --- a/net/ipv4/devinet.c
-> +++ b/net/ipv4/devinet.c
-> @@ -2749,7 +2749,7 @@ static __net_init int devinet_init_net(struct net *net)
->  static __net_exit void devinet_exit_net(struct net *net)
->  {
->  #ifdef CONFIG_SYSCTL
-> -	struct ctl_table *tbl;
-> +	const struct ctl_table *tbl;
->  
->  	tbl = net->ipv4.forw_hdr->ctl_table_arg;
->  	unregister_net_sysctl_table(net->ipv4.forw_hdr);
-> diff --git a/net/ipv4/ip_fragment.c b/net/ipv4/ip_fragment.c
-> index a4941f53b523..6b9285fd6f06 100644
-> --- a/net/ipv4/ip_fragment.c
-> +++ b/net/ipv4/ip_fragment.c
-> @@ -632,7 +632,7 @@ static int __net_init ip4_frags_ns_ctl_register(struct net *net)
->  
->  static void __net_exit ip4_frags_ns_ctl_unregister(struct net *net)
->  {
-> -	struct ctl_table *table;
-> +	const struct ctl_table *table;
->  
->  	table = net->ipv4.frags_hdr->ctl_table_arg;
->  	unregister_net_sysctl_table(net->ipv4.frags_hdr);
-> diff --git a/net/ipv4/route.c b/net/ipv4/route.c
-> index c8f76f56dc16..af30b5942ba4 100644
-> --- a/net/ipv4/route.c
-> +++ b/net/ipv4/route.c
-> @@ -3590,7 +3590,7 @@ static __net_init int sysctl_route_net_init(struct net *net)
->  
->  static __net_exit void sysctl_route_net_exit(struct net *net)
->  {
-> -	struct ctl_table *tbl;
-> +	const struct ctl_table *tbl;
->  
->  	tbl = net->ipv4.route_hdr->ctl_table_arg;
->  	unregister_net_sysctl_table(net->ipv4.route_hdr);
-> diff --git a/net/ipv4/sysctl_net_ipv4.c b/net/ipv4/sysctl_net_ipv4.c
-> index 7e4f16a7dcc1..ce5d19978a26 100644
-> --- a/net/ipv4/sysctl_net_ipv4.c
-> +++ b/net/ipv4/sysctl_net_ipv4.c
-> @@ -1554,7 +1554,7 @@ static __net_init int ipv4_sysctl_init_net(struct net *net)
->  
->  static __net_exit void ipv4_sysctl_exit_net(struct net *net)
->  {
-> -	struct ctl_table *table;
-> +	const struct ctl_table *table;
->  
->  	kfree(net->ipv4.sysctl_local_reserved_ports);
->  	table = net->ipv4.ipv4_hdr->ctl_table_arg;
-> diff --git a/net/ipv4/xfrm4_policy.c b/net/ipv4/xfrm4_policy.c
-> index c33bca2c3841..1dda59e0aeab 100644
-> --- a/net/ipv4/xfrm4_policy.c
-> +++ b/net/ipv4/xfrm4_policy.c
-> @@ -186,7 +186,7 @@ static __net_init int xfrm4_net_sysctl_init(struct net *net)
->  
->  static __net_exit void xfrm4_net_sysctl_exit(struct net *net)
->  {
-> -	struct ctl_table *table;
-> +	const struct ctl_table *table;
->  
->  	if (!net->ipv4.xfrm4_hdr)
->  		return;
-> diff --git a/net/ipv6/addrconf.c b/net/ipv6/addrconf.c
-> index 247bd4d8ee45..9c34a351f115 100644
-> --- a/net/ipv6/addrconf.c
-> +++ b/net/ipv6/addrconf.c
-> @@ -7235,7 +7235,7 @@ static int __addrconf_sysctl_register(struct net *net, char *dev_name,
->  static void __addrconf_sysctl_unregister(struct net *net,
->  					 struct ipv6_devconf *p, int ifindex)
->  {
-> -	struct ctl_table *table;
-> +	const struct ctl_table *table;
->  
->  	if (!p->sysctl_header)
->  		return;
-> diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-> index 1a51a44571c3..98809f846229 100644
-> --- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-> +++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-> @@ -105,7 +105,7 @@ static int nf_ct_frag6_sysctl_register(struct net *net)
->  static void __net_exit nf_ct_frags6_sysctl_unregister(struct net *net)
->  {
->  	struct nft_ct_frag6_pernet *nf_frag = nf_frag_pernet(net);
-> -	struct ctl_table *table;
-> +	const struct ctl_table *table;
->  
->  	table = nf_frag->nf_frag_frags_hdr->ctl_table_arg;
->  	unregister_net_sysctl_table(nf_frag->nf_frag_frags_hdr);
-> diff --git a/net/ipv6/reassembly.c b/net/ipv6/reassembly.c
-> index acb4f119e11f..ee95cdcc8747 100644
-> --- a/net/ipv6/reassembly.c
-> +++ b/net/ipv6/reassembly.c
-> @@ -487,7 +487,7 @@ static int __net_init ip6_frags_ns_sysctl_register(struct net *net)
->  
->  static void __net_exit ip6_frags_ns_sysctl_unregister(struct net *net)
->  {
-> -	struct ctl_table *table;
-> +	const struct ctl_table *table;
->  
->  	table = net->ipv6.sysctl.frags_hdr->ctl_table_arg;
->  	unregister_net_sysctl_table(net->ipv6.sysctl.frags_hdr);
-> diff --git a/net/ipv6/sysctl_net_ipv6.c b/net/ipv6/sysctl_net_ipv6.c
-> index 888676163e90..75de55f907b0 100644
-> --- a/net/ipv6/sysctl_net_ipv6.c
-> +++ b/net/ipv6/sysctl_net_ipv6.c
-> @@ -313,9 +313,9 @@ static int __net_init ipv6_sysctl_net_init(struct net *net)
->  
->  static void __net_exit ipv6_sysctl_net_exit(struct net *net)
->  {
-> -	struct ctl_table *ipv6_table;
-> -	struct ctl_table *ipv6_route_table;
-> -	struct ctl_table *ipv6_icmp_table;
-> +	const struct ctl_table *ipv6_table;
-> +	const struct ctl_table *ipv6_route_table;
-> +	const struct ctl_table *ipv6_icmp_table;
->  
->  	ipv6_table = net->ipv6.sysctl.hdr->ctl_table_arg;
->  	ipv6_route_table = net->ipv6.sysctl.route_hdr->ctl_table_arg;
-> diff --git a/net/ipv6/xfrm6_policy.c b/net/ipv6/xfrm6_policy.c
-> index 42fb6996b077..4891012b692f 100644
-> --- a/net/ipv6/xfrm6_policy.c
-> +++ b/net/ipv6/xfrm6_policy.c
-> @@ -218,7 +218,7 @@ static int __net_init xfrm6_net_sysctl_init(struct net *net)
->  
->  static void __net_exit xfrm6_net_sysctl_exit(struct net *net)
->  {
-> -	struct ctl_table *table;
-> +	const struct ctl_table *table;
->  
->  	if (!net->ipv6.sysctl.xfrm6_hdr)
->  		return;
-> diff --git a/net/mpls/af_mpls.c b/net/mpls/af_mpls.c
-> index 6dab883a08dd..973881b8faa3 100644
-> --- a/net/mpls/af_mpls.c
-> +++ b/net/mpls/af_mpls.c
-> @@ -1438,7 +1438,7 @@ static void mpls_dev_sysctl_unregister(struct net_device *dev,
->  				       struct mpls_dev *mdev)
->  {
->  	struct net *net = dev_net(dev);
-> -	struct ctl_table *table;
-> +	const struct ctl_table *table;
->  
->  	if (!mdev->sysctl)
->  		return;
-> @@ -2706,7 +2706,7 @@ static void mpls_net_exit(struct net *net)
->  {
->  	struct mpls_route __rcu **platform_label;
->  	size_t platform_labels;
-> -	struct ctl_table *table;
-> +	const struct ctl_table *table;
->  	unsigned int index;
->  
->  	table = net->mpls.ctl->ctl_table_arg;
-> diff --git a/net/mptcp/ctrl.c b/net/mptcp/ctrl.c
-> index 13fe0748dde8..8d661156ab8c 100644
-> --- a/net/mptcp/ctrl.c
-> +++ b/net/mptcp/ctrl.c
-> @@ -198,7 +198,7 @@ static int mptcp_pernet_new_table(struct net *net, struct mptcp_pernet *pernet)
->  
->  static void mptcp_pernet_del_table(struct mptcp_pernet *pernet)
->  {
-> -	struct ctl_table *table = pernet->ctl_table_hdr->ctl_table_arg;
-> +	const struct ctl_table *table = pernet->ctl_table_hdr->ctl_table_arg;
->  
->  	unregister_net_sysctl_table(pernet->ctl_table_hdr);
->  
-> diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-> index 0ee98ce5b816..bb9dea676ec1 100644
-> --- a/net/netfilter/nf_conntrack_standalone.c
-> +++ b/net/netfilter/nf_conntrack_standalone.c
-> @@ -1122,7 +1122,7 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
->  static void nf_conntrack_standalone_fini_sysctl(struct net *net)
->  {
->  	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
-> -	struct ctl_table *table;
-> +	const struct ctl_table *table;
->  
->  	table = cnet->sysctl_header->ctl_table_arg;
->  	unregister_net_sysctl_table(cnet->sysctl_header);
-> diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-> index 370f8231385c..efedd2f13ac7 100644
-> --- a/net/netfilter/nf_log.c
-> +++ b/net/netfilter/nf_log.c
-> @@ -514,7 +514,7 @@ static int netfilter_log_sysctl_init(struct net *net)
->  
->  static void netfilter_log_sysctl_exit(struct net *net)
->  {
-> -	struct ctl_table *table;
-> +	const struct ctl_table *table;
->  
->  	table = net->nf.nf_log_dir_header->ctl_table_arg;
->  	unregister_net_sysctl_table(net->nf.nf_log_dir_header);
-> diff --git a/net/sctp/sysctl.c b/net/sctp/sysctl.c
-> index f65d6f92afcb..25bdf17c7262 100644
-> --- a/net/sctp/sysctl.c
-> +++ b/net/sctp/sysctl.c
-> @@ -624,7 +624,7 @@ int sctp_sysctl_net_register(struct net *net)
->  
->  void sctp_sysctl_net_unregister(struct net *net)
->  {
-> -	struct ctl_table *table;
-> +	const struct ctl_table *table;
->  
->  	table = net->sctp.sysctl_header->ctl_table_arg;
->  	unregister_net_sysctl_table(net->sctp.sysctl_header);
-> diff --git a/net/smc/smc_sysctl.c b/net/smc/smc_sysctl.c
-> index a5946d1b9d60..4e8baa2e7ea4 100644
-> --- a/net/smc/smc_sysctl.c
-> +++ b/net/smc/smc_sysctl.c
-> @@ -133,7 +133,7 @@ int __net_init smc_sysctl_net_init(struct net *net)
->  
->  void __net_exit smc_sysctl_net_exit(struct net *net)
->  {
-> -	struct ctl_table *table;
-> +	const struct ctl_table *table;
->  
->  	table = net->smc.smc_hdr->ctl_table_arg;
->  	unregister_net_sysctl_table(net->smc.smc_hdr);
-> diff --git a/net/unix/sysctl_net_unix.c b/net/unix/sysctl_net_unix.c
-> index 3e84b31c355a..44996af61999 100644
-> --- a/net/unix/sysctl_net_unix.c
-> +++ b/net/unix/sysctl_net_unix.c
-> @@ -52,7 +52,7 @@ int __net_init unix_sysctl_register(struct net *net)
->  
->  void unix_sysctl_unregister(struct net *net)
->  {
-> -	struct ctl_table *table;
-> +	const struct ctl_table *table;
->  
->  	table = net->unx.ctl->ctl_table_arg;
->  	unregister_net_sysctl_table(net->unx.ctl);
-> diff --git a/net/xfrm/xfrm_sysctl.c b/net/xfrm/xfrm_sysctl.c
-> index 7fdeafc838a7..e972930c292b 100644
-> --- a/net/xfrm/xfrm_sysctl.c
-> +++ b/net/xfrm/xfrm_sysctl.c
-> @@ -76,7 +76,7 @@ int __net_init xfrm_sysctl_init(struct net *net)
->  
->  void __net_exit xfrm_sysctl_fini(struct net *net)
->  {
-> -	struct ctl_table *table;
-> +	const struct ctl_table *table;
->  
->  	table = net->xfrm.sysctl_hdr->ctl_table_arg;
->  	unregister_net_sysctl_table(net->xfrm.sysctl_hdr);
-> 
-> ---
-> base-commit: 48a8b5270db856be233021e47a5f1dc02d47ed0d
-> change-id: 20231226-sysctl-const-table-arg-2c828e0264dc
-> 
-> Best regards,
-> -- 
-> Thomas Weiﬂschuh <linux@weissschuh.net>
-> 
-
--- 
-Kees Cook
