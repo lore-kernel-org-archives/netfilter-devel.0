@@ -1,106 +1,151 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv1-f44.google.com (mail-qv1-f44.google.com [209.85.219.44])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35839DDA8;
-	Sat, 20 Apr 2024 03:30:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52BC9205E18
+	for <netfilter-devel@vger.kernel.org>; Sat, 20 Apr 2024 18:32:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713583829; cv=none; b=DtHLlt7ZwFoPEozPzJOXuc0tMySWuSC5Gfgs2MQu9sY1aqwowBcyVGZZwpw86Gm6RqxydLpJPPuq3cGsCX5Ad2m5OpDdhPQZZEVLLjjR10JUZfRatlAUGZripArYBXWlCtl7gPvkqU26zUuInkX8fKwRZsEbcDzm7GsACN5fBdA=
+	t=1713637943; cv=none; b=RMlDmPU2OxA8BcXTqrstwd7oOgfTfEPFlrpuKiTwnk40L4X6gL6/j7521YLmMFMzLLI37esD8AQ1c7ThgAaKiMaQ/kfO6qh1w9JmgSn99XP0xeWhPKfrkTcqGLSTRMsgSKZfqjTxWpi2mgShQmYeoneALn7z7FXpiyZzSRZYBdA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713583829; c=relaxed/simple;
-	bh=SiGMpQbe8ZtWXyfF4V/sR/uPQM8brDvWkx4PDvxfjm0=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=cieL8alfRHLebQ7NDXdK3OtA/71LOaa8whqKszs4eSlEh8c0g6uRWMOEJwqVRKgOOTCLqwzurujlh+1ZrlvMdoPnlpYVWtoX3oPSgFomn1Ao01NJHCMOL/+AcT+WLmhXYPYpQiM8AyFUh71f4KaHO9pcrOXN2lYLidK2biroWj8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PB4P6sNf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713637943; c=relaxed/simple;
+	bh=1ckHfXu0IC5drOUZ2Af6tqqhTg5RGDdXibtM+LP+oNA=;
+	h=Date:From:To:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=VKKZhXYCKD0C0Kp5pzMW9vQDLHOSgxt3gTus/kqri1Wrs8FU+cAfAjNOkbVSaIkjamGMUAsiG3yfQqi69chk0ANPkdzOdYA5vWcA0g1jiehPiJkzQdWN0dKH0XNl1aihxhoPJI64Its+510CIXkyyWtBBJ4BtnvHtjxVsAL+zIc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=GEqQwEnZ; arc=none smtp.client-ip=209.85.219.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PB4P6sNf"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 13469C32783;
-	Sat, 20 Apr 2024 03:30:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1713583829;
-	bh=SiGMpQbe8ZtWXyfF4V/sR/uPQM8brDvWkx4PDvxfjm0=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=PB4P6sNfNtbuGq7Z5ejPY0xryH0mO+4UZZOJAuCovb7jkjgARj0vLFIUo71mB0Hsy
-	 NdAeKqTiuhKy/HeYpTAfJVNCC36KDK7xU42Vnhopyn5RZkydtK9eClECUu2But+FAu
-	 SzeKZ91xFjB7L4IqC4MDs3eDCCLp3fAZFCXoXLGHAZrNaHDAHh24EHd49r/t9nvWBP
-	 8Yln54mDULZeUUf+0uMmfEIRr3tG297e/XtvXIj8sSWXOr32VLLKvBiDZVPaRzpK9L
-	 NFRCMmWyQYGf0xZFFgEZ0QUWw3SlsvYg+XVaCDF1KbLb2pTpCAxAyRxnRxJjIARGMc
-	 1pDVNm/EJe3hg==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 07F7DC433E9;
-	Sat, 20 Apr 2024 03:30:29 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GEqQwEnZ"
+Received: by mail-qv1-f44.google.com with SMTP id 6a1803df08f44-6962a97752eso26735456d6.2
+        for <netfilter-devel@vger.kernel.org>; Sat, 20 Apr 2024 11:32:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1713637941; x=1714242741; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:subject:to:from:date:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=j15fgyhZJGUf1oQfaBOxkroa8xNFtil3BVxxl5Jn2OM=;
+        b=GEqQwEnZue4p2+/5zO9xL6QTcNPAE1rCbPGHlBsbzCASRdpdBM6QdN7zlqBKwxvCLV
+         HAVWdbPpb1A2lIMf52waq/zt6HL0+S+TAkbm59dUz0mLzi8HVujLR5JlCFY5TwIvwFQU
+         wkDLO0189aUX5P7dZJ24LBqfs7JCOjSxkExJQ++s6lRfHzUGplXfu5TKOt6Pi43H0/Wt
+         7S28hHqsSmHUDh6MZuj3mleZW1BDp/mhzT1/n+5SWTBZpQr2P5WccmeutlOg0x/NfGCR
+         fq7h7y8XJy4tgTVDIsaSvuNhulEaF/wCMW2+KEILef/FRb/Rnbskm56atJz1k9AiaxQA
+         16Eg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1713637941; x=1714242741;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:subject:to:from:date:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=j15fgyhZJGUf1oQfaBOxkroa8xNFtil3BVxxl5Jn2OM=;
+        b=r1YrTJNdZKrg1YaZSs14S0RpD4g9e6jnH1OcXJL9yvD/Boo/oq3TtAgvOFXqBQQrjv
+         o38nbzW5Jv7s+dy6uN2R3h24NKC8sgLVztailXRoUUG2y832NlQdZq2UUuaxUr3kgA6O
+         kgl4ZlrWMRk9IJeC4od5Nr+UpA0oYHzjCoUrB7jegAteTMsnr0YDqo9VtgYmTIS6ayvJ
+         jZBO1F4/VD/Ab6o2Z6Ne8GvajBFVTInrtHDBBcw5ilMdKPXtOe/5VS9jWGnvVCQZ9EdE
+         +QA44l9/KuAZS0Gw2Jd3AsxbS2KqG7/vA4MMlCaDrqGUwN+0And/3/UqbjvNwwzCFLTY
+         25yA==
+X-Gm-Message-State: AOJu0YzWgpW9JXX48VRI8IduwD8CiJdvTy9qe4eZpCu0kHVN93lF+0om
+	uM+4tv1MUl8iW1NWCMKdn+6gqrIkBnvlle/S2Q+O378FbsHC1SsM4uMo+upa
+X-Google-Smtp-Source: AGHT+IGHnIqUdF1aWODQt3Fm0jU2+qwGiDIoPy5XpY3W/hAlfDO4rIKOVvihiD6rIE1C2/goHoTFqQ==
+X-Received: by 2002:a05:6214:10cc:b0:69b:2521:fcfb with SMTP id r12-20020a05621410cc00b0069b2521fcfbmr5429046qvs.53.1713637940953;
+        Sat, 20 Apr 2024 11:32:20 -0700 (PDT)
+Received: from playground ([204.111.226.63])
+        by smtp.gmail.com with ESMTPSA id z15-20020a0cf00f000000b0069942e76d99sm2669129qvk.48.2024.04.20.11.32.20
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 20 Apr 2024 11:32:20 -0700 (PDT)
+Date: Sat, 20 Apr 2024 14:32:18 -0400
+From: <imnozi@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Subject: Re: [Thread split] nftables rule optimization - dropping invalid in
+ ingress?
+Message-ID: <20240420143218.085d31a5@playground>
+In-Reply-To: <20240420084802.6ff973cf@localhost>
+References: <20240420084802.6ff973cf@localhost>
+X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next v2 00/12] testing: make netfilter selftests
- functional in vng environment
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <171358382902.21761.11464327013965926812.git-patchwork-notify@kernel.org>
-Date: Sat, 20 Apr 2024 03:30:29 +0000
-References: <20240418152744.15105-1-fw@strlen.de>
-In-Reply-To: <20240418152744.15105-1-fw@strlen.de>
-To: Florian Westphal <fw@strlen.de>
-Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
- edumazet@google.com, kuba@kernel.org, netfilter-devel@vger.kernel.org,
- pablo@netfilter.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Hello:
+On Sat, 20 Apr 2024 08:48:02 -0000
+"William N." <netfilter@riseup.net> wrote:
 
-This series was applied to netdev/net-next.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
-
-On Thu, 18 Apr 2024 17:27:28 +0200 you wrote:
-> This is the second batch of the netfilter selftest move.
+> As per advice by Kerin Millar, this is a continuation of another
+> discussion [1] which resulted in a different topic.
 > 
-> Changes since v1:
-> - makefile and kernel config are updated to have all required features
-> - fix makefile with missing bits to make kselftest-install work
-> - test it via vng as per
->    https://github.com/linux-netdev/nipa/wiki/How-to-run-netdev-selftests-CI-style
->    (Thanks Jakub!)
-> - squash a few fixes, e.g. nft_queue.sh v1 had a race w. NFNETLINK_QUEUE=m
-> - add a settings file with 8m timeout, for nft_concat_range.sh sake.
->   That script can be sped up a bit, I think, but its not contained in
->   this batch yet.
-> - toss the first two bogus rebase artifacts (Matthieu Baerts)
+> On Sat, 20 Apr 2024 03:36:00 +0100 Kerin Millar wrote:
 > 
-> [...]
+> > To begin with, I would recommend that you jettison these rules
+> > outright. It is probable that they would otherwise end up being
+> > useless. But why? [...]  
+> 
+> Actually, I have read about all this in older posts here. I should have
+> probably clarified better the forest, not just the trees.
+> 
+> The rules I mention (along with a few others) were inspired by a few
+> sources - some using iptables (where INVALID may be different in its
+> code definition from nftables and thus need such rules). That said, I
+> have actually tested and am aware that e.g. Xmas is an invalid TCP
+> packet that will be dropped by conntrack anyway. Similarly, the others
+> too.
+> 
+> However, in the setup I am trying to implement, I am attempting to be
+> "clever" and optimize things by dropping bad traffic earlier, so I am
+> doing it in the ingress hook where, AFAICS, conntrack is not available.
+> Why ingress? - Because I am following the general principle that
+> attacks should be stopped as soon and as far as possible, rather than
+> allowing them go further inside (in this case - next hooks). And even
+> though the next hook (prerouting) can drop e.g. Xmas of FINSYN as
+> invalid, I assume it would be a waste of CPU cycles to allow further
+> processing of such traffic. So, I thought: why not prevent the
+> unnecessary load on stateful conntrack? - Hence the whole idea to drop
+> early.
+> 
+> OTOH, adding more rules to ingress adds CPU cycles itself.
+> 
+> Which is more optimal - dropping early or not piling up extra rules in
+> ingress? Looking for an answer to that, I have done this:
 
-Here is the summary with links:
-  - [net-next,v2,01/12] selftests: netfilter: nft_queue.sh: move to lib.sh infra
-    https://git.kernel.org/netdev/net-next/c/03a1a62f3a3c
-  - [net-next,v2,02/12] selftests: netfilter: nft_queue.sh: shellcheck cleanups
-    https://git.kernel.org/netdev/net-next/c/cebb352269e7
-  - [net-next,v2,03/12] selftests: netfilter: nft_synproxy.sh: move to lib.sh infra
-    https://git.kernel.org/netdev/net-next/c/a849e06c8025
-  - [net-next,v2,04/12] selftests: netfilter: nft_zones_many.sh: move to lib.sh infra
-    https://git.kernel.org/netdev/net-next/c/c1a9d47b59d0
-  - [net-next,v2,05/12] selftests: netfilter: xt_string.sh: move to lib.sh infra
-    https://git.kernel.org/netdev/net-next/c/5067fec09403
-  - [net-next,v2,06/12] selftests: netfilter: xt_string.sh: shellcheck cleanups
-    https://git.kernel.org/netdev/net-next/c/c0f9a2b705c2
-  - [net-next,v2,07/12] selftests: netfilter: nft_nat_zones.sh: shellcheck cleanups
-    https://git.kernel.org/netdev/net-next/c/d6905f088d2b
-  - [net-next,v2,08/12] selftests: netfilter: conntrack_ipip_mtu.sh: shellcheck cleanups
-    https://git.kernel.org/netdev/net-next/c/05af10a88e75
-  - [net-next,v2,09/12] selftests: netfilter: nft_fib.sh: shellcheck cleanups
-    https://git.kernel.org/netdev/net-next/c/9b443c769b1b
-  - [net-next,v2,10/12] selftests: netfilter: nft_meta.sh: small shellcheck cleanup
-    https://git.kernel.org/netdev/net-next/c/4d7730154ed5
-  - [net-next,v2,11/12] selftests: netfilter: nft_audit.sh: add more skip checks
-    https://git.kernel.org/netdev/net-next/c/1f50b0fef936
-  - [net-next,v2,12/12] selftests: netfilter: update makefiles and kernel config
-    https://git.kernel.org/netdev/net-next/c/0b2e1db97b42
+INVALID packets are those that netfilter has no idea what to do with and will eventually drop them after they fit no existing ACCEPT rules. A couple examples of INVALID packets would be (1) a TCP RESET for a non-existent conn (possibly one that was just reset, possibly a DoS attack), and (2) a TCP data packet for a non-existent conn. Neither of these is routable because there is no place to send them. Thus they are dropped in due time. The choice is whether to drop them after they pass through all the rules they will pass through or to drop them as soon as possible after conntrack tags them as INVALID.
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+With iptables, I found the earliest I could drop bad traffic (large blocksets of addrs I never want access to or from whether or not they are INVALID, and all other INVALID packets) was at the top of PREROUTING in table mangle. I would think nftables is similar.
 
+The most optimal involves the least amount of processing. I would think conntrack is more efficient at tagging INVALID packets than a bunch of rules somewhere. Then it takes only one rule to drop INVALID packets early in PREROUTING. Or two if you jump to a chain that has a DROP rule; said chain would allow you to easily add or remove a log rule.
+
+Neal
+
+
+> 
+> As per earlier advise from you in a different context, I checked this:
+> 
+> # zgrep BPFILTER /proc/config.gz 
+> # CONFIG_BPFILTER is not set
+> 
+> If I am reading this correctly, it means there is no BPF JIT
+> optimization. Is this normal? Is BPF still experimental and for that
+> reason not available? I don't know, which is why I asked and still hope
+> for an answer:
+> 
+> https://marc.info/?l=netfilter&m=171345423924347&w=2
+> 
+> Why am I referring to BPF? - Because I suppose having it available
+> would make the difference between the "drop early" (in ingress) and
+> "drop as invalid" (in prerouting) cases negligible.
+> 
+> Now, the question comes down to: How big is the actual difference? Is
+> it negligible right now (without BPF)? - I really don't know. Hence
+> this other thread:
+> 
+> https://marc.info/?l=netfilter&m=171354240711565&w=2
+> 
+> Any info and advice is very welcome, as the whole thing discussed here
+> is very unclear to me.
+> 
+> --
+> 
+> [1] https://marc.info/?l=netfilter&m=171358042732609&w=2
+> 
 
