@@ -1,120 +1,173 @@
-Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com [209.85.214.175])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp-relay-internal-1.canonical.com (smtp-relay-internal-1.canonical.com [185.125.188.123])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70E0315E89
-	for <netfilter-devel@vger.kernel.org>; Mon, 22 Apr 2024 05:26:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7206B4C62A
+	for <netfilter-devel@vger.kernel.org>; Mon, 22 Apr 2024 07:35:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.125.188.123
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713763576; cv=none; b=mf9QhnuNWDLgSD1gPo1wezJsyQg3hEo5BR7E2ygM15pFd9TVQtr2sxflY6EuOYIaEQ0qnys4WSXKK6FiPwCNg0TqNfZGhOsyOpgY+nLbNGwp7441TbZ/U0j6j84mX5j6dZAUpyFC6qy//Ni025J/1B8NSEVXdWokQp+tLxnT/N4=
+	t=1713771312; cv=none; b=NtBMc/DJwOdFs/8ENMOi6JGSVpVeP5/5/t4fmXByQBFh+S8IcUKEbjrMbgWy+/Wixv7M87utCUTQOCvluZy9TQHayB5YbXrWcHhi34qWtMdDxOzqqh4LSHQAvXS1+jFY0A95Eju6QN9aeWVWU+Rk0VaEX74O9BBRSgqt9t8AMnY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713763576; c=relaxed/simple;
-	bh=qV5Zsh6maqWwvO9pQvrYwmX6w5pNSdKZKVRar559JE8=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ok5nURIBz6lfrB0MPVTa0QkNiWCQuPOdjLPWiunetXRm9YGLQmRLyH5N87a6l+1HVqfEtiORB7vlHWgLVvcmkMLMfB8wjpHsjGF8yNfG64iJ+jE5BYIwn+B99S2EE4ZOjakZjs7/fElekLLnDqi3AOXj7YNL+NGplD30iJWhk54=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=gEw1im1r; arc=none smtp.client-ip=209.85.214.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1713771312; c=relaxed/simple;
+	bh=fBrj1dnoyR2LmahOk4WbX0ibThwyJ1nrtKoFW/2YZOk=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=ITUkT279A6to654Qxon6K3OBxl5UFo0zrV6WtYU1G7ePtL+B/U9CbniYEmbL8dvrH5YFU5TwdUvFbiULTxzbbsW++3AVlLXDh5qN/XYSa1ZyMJIFuqXG60DmxtLcxBgdjTUgjzKkfBvG36pPyv4nWjlwQAbhsFg/K0Hfg8MSXUs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=canonical.com; spf=pass smtp.mailfrom=canonical.com; dkim=pass (2048-bit key) header.d=canonical.com header.i=@canonical.com header.b=pCQ654iZ; arc=none smtp.client-ip=185.125.188.123
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=canonical.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=canonical.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gEw1im1r"
-Received: by mail-pl1-f175.google.com with SMTP id d9443c01a7336-1e83a2a4f2cso19962895ad.1
-        for <netfilter-devel@vger.kernel.org>; Sun, 21 Apr 2024 22:26:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1713763573; x=1714368373; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=qV5Zsh6maqWwvO9pQvrYwmX6w5pNSdKZKVRar559JE8=;
-        b=gEw1im1rXGGL55Nq7msH+szT82o9WRaPJBvtDkOMQumEZVHxHTD2tR2KGuzZ7Jyptl
-         HBZmnsOGwgp/RsD+kQFrCi8bvqYubx2t3W0nt25NkG789UjT8bq573PnQkKvY+QazL+X
-         uY1f0coqUlASbduKuTImCZqzs+qyvRZzGFzsB0Lwl3HUUq6gEvMw9JWRz8AqDddBBqZc
-         AvOjicHPqSooohpBrwqswNXCG0lVCa7G4JieZbHsrL376Jxz8zQn7YzOwHpMRMDf5yoT
-         CshVi1DnJeCqTBU0mz4AMSJ5mCBFbBwx26yczwfVMRiFyt0J+JURjpMmE8EkrOveUyIG
-         Rf1A==
+	dkim=pass (2048-bit key) header.d=canonical.com header.i=@canonical.com header.b="pCQ654iZ"
+Received: from mail-vk1-f198.google.com (mail-vk1-f198.google.com [209.85.221.198])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-relay-internal-1.canonical.com (Postfix) with ESMTPS id 5E5013F684
+	for <netfilter-devel@vger.kernel.org>; Mon, 22 Apr 2024 07:35:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canonical.com;
+	s=20210705; t=1713771303;
+	bh=46RCdpJ7vgBjG7tk56Uoq6fJtjN5FpgbYn8UqwNaImE=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type;
+	b=pCQ654iZ5wIW11Ey8CSsUqFGyW5L44fhRxN4nEFlgrh4lrenXnBKrv6FopVn98w4i
+	 THoSfBU3VE9znLNSeWnJQ785kplPiDieRs1irBSXvFXAfCuUD1JhLOvMY0UZs4y90k
+	 0r1T8w5AjO1TeFdN/Gw3N/bXNhNoAnOMn5KYuqgHIc9nmqg/GpVBU0Lu9oofi4Ngcq
+	 Yl8owgFA6YKHkCdM3TH8ORFHnE0wCQWgoTIynLph+UYje9JMUUEG7saoU4OSkaLi3S
+	 dBS0ceR7bkBN3W3DIw9p+SyWkUoZTiK+szBV57Bfpghv6nocA9iODS710BDLPuMRbz
+	 k9xuwBcJyI9QA==
+Received: by mail-vk1-f198.google.com with SMTP id 71dfb90a1353d-4dcd0de6282so2933760e0c.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Apr 2024 00:35:03 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1713763573; x=1714368373;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=qV5Zsh6maqWwvO9pQvrYwmX6w5pNSdKZKVRar559JE8=;
-        b=h62evqGoKAaKc5X45bRpcuFAg0aoctmZw5RhWKlm0/lyICkHK+GQHwOEN/ir7tLl2s
-         A6YQfucV8o5hImMyPSS37VizTjDjYA4uloqFDccJbo/0LkRCDzqfGQtWM6xIPwrBL7Ym
-         pFGGB65g1VstL6wYoTrly0Na9BAv+YW8fuCoPaMYLrQFklfbIOo4K5GL/UTaldPskyiQ
-         6Fh12moPbFU6fxBi3qTUZTn85d4bRRukb8GmBXZPsmFyQmkAq/DTMCThAmaswhlhBRPn
-         pEm6ccmo1PCv08rswuc/Rx7fg1uCFvHi2DYYaTE12b7IzP2pgJz9SsCEAi3dMschkpR/
-         U1Kg==
-X-Gm-Message-State: AOJu0YyPFJTyjIO7TkNhuA+aNKfRd6Hv6milWkbnNYq4bXTzXqDfj68y
-	IynMoYT0h+8jXwpEnX8Cot18FEsW0hS6E2qtet5tobnxXie7XMf7SidAQg==
-X-Google-Smtp-Source: AGHT+IG6aOVUEvm43BBfqUhq5dM0YOD3i5E5UR9Jx46NnTLZWNjGg5J1v+Jmpgdplglou6rH7Ujb4w==
-X-Received: by 2002:a17:903:11c9:b0:1e1:214:1b7d with SMTP id q9-20020a17090311c900b001e102141b7dmr10164329plh.61.1713763573583;
-        Sun, 21 Apr 2024 22:26:13 -0700 (PDT)
-Received: from slk15.local.net ([49.190.141.216])
-        by smtp.gmail.com with ESMTPSA id e4-20020a17090301c400b001dd59b54f9fsm7190281plh.136.2024.04.21.22.26.12
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 21 Apr 2024 22:26:13 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From: Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
-Date: Mon, 22 Apr 2024 15:26:10 +1000
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: (re-send): Convert libnetfilter_queue to not need libnfnetlink]
-Message-ID: <ZiX08mKzZRu5IHm8@slk15.local.net>
-Reply-To: duncan_roe@optusnet.com.au
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <ZgXhoUdAqAHvXUj7@slk15.local.net>
- <Zgc6U4dPcoBeiFJy@calendula>
+        d=1e100.net; s=20230601; t=1713771302; x=1714376102;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=46RCdpJ7vgBjG7tk56Uoq6fJtjN5FpgbYn8UqwNaImE=;
+        b=mPZ6YMjMbPqovFcWn5AUkwX6FmLp/1X/a6YCI/HziB9UjbyO7xhwHAqXJiW9QAb1PJ
+         PM3BH4OV5nqP8vBeMbqa/QCxtvNPZxIrml7ugkJC136+QfYH9hAsitZjSeHFOSk6gNSx
+         N1OjMZvNJjzOrSfFKQD2w5lJD629GSrEWm4v1n7P9CjCh9yLCIAVcclkFXIgtq4fo5Kn
+         xvmUjNlKP/hF29/RTgg7+OPxejFynsim4mo80wrPK/yd6QkhRl+gVnLToHWqQbtSbonP
+         OLrJQj+EMh0WgabgpHf+jOie6JCkX1pF8fOOVBL8iqZXSZ6wAtK8YGoipINox+38g5e8
+         EncQ==
+X-Forwarded-Encrypted: i=1; AJvYcCW4aqZcn2KURTPMPjBjq28FwL8uUOWA4fn/A2bh4YSp98LU1W0GvkagT00BYhfyN8rLhGw7pfIq0y/xH3+EmDus0nOVBSz6RXWz2opv9FvA
+X-Gm-Message-State: AOJu0Yy+nU4dVMaRKPkU8P8zITPksAsHMJEpn0ZPv7P63eyU9reb4/bQ
+	rE7JLy+VCXi8X2YplBJXdce7ia6pvagtZJ36C7V+N4NBUzkQkVuCc8erkz6EvQHyxU6YlDdb/cw
+	izEIbr814X39Oyo8b79ZjESSi3QLEnE98Il/+2bdHKoF3+o3BYoffRsTHSareJXTzkqxXt7xvas
+	Z2pB4/is7ponqOiIeGf2UJy0edbkhU6qMpf5r66Mzu+9xsRTx9//90BYJ2
+X-Received: by 2002:a05:6122:2027:b0:4d4:11a6:a4ff with SMTP id l39-20020a056122202700b004d411a6a4ffmr11538025vkd.3.1713771302337;
+        Mon, 22 Apr 2024 00:35:02 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IFehc8zEqs1hmzU7+iKls2b71g++dU2LKDYThQ8eqyp3FH6CkvHWc1W5LvQ5+FS3DHVZn+FvE4vGYtHboiybk8=
+X-Received: by 2002:a05:6122:2027:b0:4d4:11a6:a4ff with SMTP id
+ l39-20020a056122202700b004d411a6a4ffmr11538011vkd.3.1713771302079; Mon, 22
+ Apr 2024 00:35:02 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Zgc6U4dPcoBeiFJy@calendula>
+References: <20240418145743.248109-1-aleksandr.mikhalitsyn@canonical.com> <ef5a38db-c80d-feb8-7c7d-c9b66085afba@ssi.bg>
+In-Reply-To: <ef5a38db-c80d-feb8-7c7d-c9b66085afba@ssi.bg>
+From: Aleksandr Mikhalitsyn <aleksandr.mikhalitsyn@canonical.com>
+Date: Mon, 22 Apr 2024 09:34:51 +0200
+Message-ID: <CAEivzxejY7s_vNYbN4HJBT-RGrkYx7x1L4rfir-0EM+7EuPKew@mail.gmail.com>
+Subject: Re: [PATCH net-next v3 1/2] ipvs: add READ_ONCE barrier for ipvs->sysctl_amemthresh
+To: Julian Anastasov <ja@ssi.bg>
+Cc: horms@verge.net.au, netdev@vger.kernel.org, lvs-devel@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>, 
+	Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Pablo,
-
-On Fri, Mar 29, 2024 at 11:01:56PM +0100, Pablo Neira Ayuso wrote:
-> Hi Duncan,
+On Sun, Apr 21, 2024 at 1:06=E2=80=AFPM Julian Anastasov <ja@ssi.bg> wrote:
 >
-[SNIP]
 >
-> This update is large ...
+>         Hello,
 
-Yes it's too large. It's actually 2 separate patchsets run together:
- 1. Eliminate libnfnetlink calls & headers from libnetfilter_queue (11 patches)
- 2. Add all the nlif_* functions from libnfnetlink (21 patches)
+Dear Julian,
 
-> ... I see chances
-> that existing applications might break with this "transparent"
-> approach ...
+Thanks a lot for the fast review and suggestions!
 
-Did you have anything specific in mind?
+Kind regards,
+Alex
 
-After I gdb-stepped through patched and unpatched code, all I could find was
-nfq_open_nfnl() is missing its EBUSY check - easily fixed. Oh and internal
-buffers are dimensioned MNL_SOCKET_BUFFER_SIZE (min of architecture page size
-and 8192) where they used to be NFNL_BUFFSIZE (always 8192).
-
-Patches 01/32-03/32 assure that existing old-API programs can continue to use
-direct libnfnetlink calls:
-
-Patch 01/32: Convert nfq_open() adds code taken from libnfnetlink to create a
-fully populated struct nfnl_handle. This enables other functions to continue to
-use libnfnetlink calls.
-
-Patch 02/32: Convert nfq_open_nfnl() is far larger than it needs to be. It
-converts the code added in patch 01/32 into a static function (which is how I
-missed the EBUSY check) - I'll put the static function in patch 01/32 next time.
-Other than that patch 02/32 sets up a struct mnl_socket from the data in the
-struct nfnl_handle.
-
-Patch 03/32: Convert nfq_close() calls mnl_socket_close() and adds code taken
-from libnfnetlink to dispose of the struct nfnl_handle.
-
-How about if I submit a v2 with only patches 01 - 11? That's enough so a
-libnetfilter_queue build no longer needs libnfnetlink.
-
-Cheers ... Duncan.
+>
+> On Thu, 18 Apr 2024, Alexander Mikhalitsyn wrote:
+>
+> > Cc: Julian Anastasov <ja@ssi.bg>
+> > Cc: Simon Horman <horms@verge.net.au>
+> > Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+> > Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
+> > Cc: Florian Westphal <fw@strlen.de>
+> > Suggested-by: Julian Anastasov <ja@ssi.bg>
+> > Signed-off-by: Alexander Mikhalitsyn <aleksandr.mikhalitsyn@canonical.c=
+om>
+>
+>         Looks good to me, thanks!
+>
+> Acked-by: Julian Anastasov <ja@ssi.bg>
+>
+> > ---
+> >  net/netfilter/ipvs/ip_vs_ctl.c | 14 +++++++-------
+> >  1 file changed, 7 insertions(+), 7 deletions(-)
+> >
+> > diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_=
+ctl.c
+> > index 143a341bbc0a..32be24f0d4e4 100644
+> > --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> > +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> > @@ -94,6 +94,7 @@ static void update_defense_level(struct netns_ipvs *i=
+pvs)
+> >  {
+> >       struct sysinfo i;
+> >       int availmem;
+> > +     int amemthresh;
+> >       int nomem;
+> >       int to_change =3D -1;
+> >
+> > @@ -105,7 +106,8 @@ static void update_defense_level(struct netns_ipvs =
+*ipvs)
+> >       /* si_swapinfo(&i); */
+> >       /* availmem =3D availmem - (i.totalswap - i.freeswap); */
+> >
+> > -     nomem =3D (availmem < ipvs->sysctl_amemthresh);
+> > +     amemthresh =3D max(READ_ONCE(ipvs->sysctl_amemthresh), 0);
+> > +     nomem =3D (availmem < amemthresh);
+> >
+> >       local_bh_disable();
+> >
+> > @@ -145,9 +147,8 @@ static void update_defense_level(struct netns_ipvs =
+*ipvs)
+> >               break;
+> >       case 1:
+> >               if (nomem) {
+> > -                     ipvs->drop_rate =3D ipvs->drop_counter
+> > -                             =3D ipvs->sysctl_amemthresh /
+> > -                             (ipvs->sysctl_amemthresh-availmem);
+> > +                     ipvs->drop_counter =3D amemthresh / (amemthresh -=
+ availmem);
+> > +                     ipvs->drop_rate =3D ipvs->drop_counter;
+> >                       ipvs->sysctl_drop_packet =3D 2;
+> >               } else {
+> >                       ipvs->drop_rate =3D 0;
+> > @@ -155,9 +156,8 @@ static void update_defense_level(struct netns_ipvs =
+*ipvs)
+> >               break;
+> >       case 2:
+> >               if (nomem) {
+> > -                     ipvs->drop_rate =3D ipvs->drop_counter
+> > -                             =3D ipvs->sysctl_amemthresh /
+> > -                             (ipvs->sysctl_amemthresh-availmem);
+> > +                     ipvs->drop_counter =3D amemthresh / (amemthresh -=
+ availmem);
+> > +                     ipvs->drop_rate =3D ipvs->drop_counter;
+> >               } else {
+> >                       ipvs->drop_rate =3D 0;
+> >                       ipvs->sysctl_drop_packet =3D 1;
+> > --
+> > 2.34.1
+>
+> Regards
+>
+> --
+> Julian Anastasov <ja@ssi.bg>
+>
