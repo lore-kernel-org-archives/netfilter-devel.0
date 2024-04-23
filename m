@@ -1,71 +1,74 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96F063EA76;
-	Tue, 23 Apr 2024 19:42:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 368BC20B3E;
+	Tue, 23 Apr 2024 20:52:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713901355; cv=none; b=kBIyGMGcL3mOfn+tJOf2hDzPVV64k30cKSrz2hS5/BuCJDVLl+eaLMAIleAZ+dIHad8HG6J8kjmkKygHPY7HBWCf8oCuofoXLLzbsQkq08hTIrA0fcslkZraGshHh3q+S46jL5O4cHWLtN8+AWH0f8S5NA2ZdhDForjosvBonm4=
+	t=1713905540; cv=none; b=KP35+Vp3Mf484yRHm+F+K73ovm+bfiHvcvOmAS3DzxXcnNb1Lm1X7zcZiUU6QaSmw4g9mXCTcOO8rF6RJrL8hKVSkq4HcwpRA6xRwAvXLRg+GcmQG7wQKwQfQVNOr7yFQP4gttjjziF6GUiSjA4nPYH4QQiLmEvd66keY6SSZTQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713901355; c=relaxed/simple;
-	bh=cry/RH2rKuH1HbgXRSzotD72z8BzbveBjDuTfED9nTg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gSlS4V9Qs/gFRKNIpK6Fvla6lQH3BCzY6W5cY42Czv2qMTUt37MK59yX0lX5KQYZ/tJH0PM58c3Q65d8CExanpRIdn0mqIfmZDd3R+FPAj7+dL81h/DMvluCgMiZYmDc0X+Tg0Fp6+3NcwFEkH6MNiKHanonk7HTZBmqROcwdao=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1rzM21-00024O-1A; Tue, 23 Apr 2024 21:42:21 +0200
-Date: Tue, 23 Apr 2024 21:42:21 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Jakub Kicinski <kuba@kernel.org>
-Cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-	Paolo Abeni <pabeni@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>, netfilter-devel@vger.kernel.org,
-	pablo@netfilter.org
+	s=arc-20240116; t=1713905540; c=relaxed/simple;
+	bh=zvNqaxYezO5KYpnZSUD51TDSRefEBFV6Og5zBvNQxBQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=BpTTIcZZJ+MJSXqc5vx1+ZuKTe4gvQ81zelpm9rBZ2QHf0uHjUyhVNvNZZf1Vn5mxCcD7/ntN96XmO5tIG0pbv28sc5RJp/0QYqV/j/JIQnJCHCRcelHIK2451v3BPqPBq5kiH9z+0rnQyQZt/VBANbOBMBongYFE00nN2uu2Uo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=pUO7jd9Q; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="pUO7jd9Q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82F7CC116B1;
+	Tue, 23 Apr 2024 20:52:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1713905539;
+	bh=zvNqaxYezO5KYpnZSUD51TDSRefEBFV6Og5zBvNQxBQ=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=pUO7jd9QSDcGzIBnH6FdyBSLBvAJgX7+f8ozew8fK89ze1lWHTIWINP2aQ09loCLx
+	 BKKmOGxmxAJC8/JMUfhnLdvyV+3NpcCbz0A2nLrWxMAn73w5AUDRUfwjq9SCkDUxO0
+	 ckhZ9mB15GADIKQO7hNP3wWIhMGc9ijmXJ6K8ZgAo3yaAayvJQ9DDSVXxhaZ7z9pp0
+	 nosUPQBmQsiz/jX4gjchDYvcba+STtlhTtNIa+3+O14g2REnOJZOnoSJiAjtd3RI8F
+	 MmyjFN2zwUPwwkK0mr6+zAzBW6xeqkft97YJvniukrjmf2rOusUD0VQC3SJ5lpnvNE
+	 YJ7v0J++3ZnrA==
+Date: Tue, 23 Apr 2024 13:52:18 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>, "David S.
+ Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ netfilter-devel@vger.kernel.org, pablo@netfilter.org
 Subject: Re: [PATCH net-next 0/7] selftest: netfilter: additional cleanups
-Message-ID: <20240423194221.GA6732@breakpoint.cc>
+Message-ID: <20240423135218.7f4af1b7@kernel.org>
+In-Reply-To: <20240423194221.GA6732@breakpoint.cc>
 References: <20240423130604.7013-1-fw@strlen.de>
- <20240423095043.2f8d46fc@kernel.org>
+	<20240423095043.2f8d46fc@kernel.org>
+	<20240423194221.GA6732@breakpoint.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240423095043.2f8d46fc@kernel.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Jakub Kicinski <kuba@kernel.org> wrote:
-> On Tue, 23 Apr 2024 15:05:43 +0200 Florian Westphal wrote:
-> > This is the last planned series of the netfilter-selftest-move.
-> > It contains cleanups (and speedups) and a few small updates to
-> > scripts to improve error/skip reporting.
+On Tue, 23 Apr 2024 21:42:21 +0200 Florian Westphal wrote:
+> > The main thing that seems to be popping up in the netdev runner is:
 > > 
-> > I intend to route future changes, if any, via nf(-next) trees
-> > now that the 'massive code churn' phase is over.
+> > # TEST: performance
+> > #   net,port                                                      [SKIP]
+> > #   perf not supported
+> > 
+> > What is "perf" in this case? Some NFT module? the perf tool is
+> > installed, AFAICT..  
 > 
-> Got it.
+> Its looking for the pktgen wrapper script
+> (pktgen_bench_xmit_mode_netif_receive.sh).
 > 
-> The main thing that seems to be popping up in the netdev runner is:
+> I don't think it makes too much sense to have that run as part of the CI.
 > 
-> # TEST: performance
-> #   net,port                                                      [SKIP]
-> #   perf not supported
-> 
-> What is "perf" in this case? Some NFT module? the perf tool is
-> installed, AFAICT..
+> I can either remove this or move it under some special commandline
+> option, or I can look into this and see if I can get it to run.
 
-Its looking for the pktgen wrapper script
-(pktgen_bench_xmit_mode_netif_receive.sh).
+Hm, never used it myself but it makes me think of the extended ksft
+vars:
 
-I don't think it makes too much sense to have that run as part of the CI.
+ | TEST_PROGS_EXTENDED, TEST_GEN_PROGS_EXTENDED mean it is the
+ | executable which is not tested by default.
 
-I can either remove this or move it under some special commandline
-option, or I can look into this and see if I can get it to run.
-
-Let me know, thanks.
+https://docs.kernel.org/dev-tools/kselftest.html?highlight=test_progs_extended#contributing-new-tests-details
