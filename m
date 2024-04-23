@@ -1,34 +1,40 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from smtp-relay-services-1.canonical.com (smtp-relay-services-1.canonical.com [185.125.188.251])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A4FA171A4;
-	Tue, 23 Apr 2024 00:53:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3968B1C687
+	for <netfilter-devel@vger.kernel.org>; Tue, 23 Apr 2024 03:37:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.125.188.251
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713833593; cv=none; b=Urz/ODShqc0Q3te7wH3Lqf9/2LX9DE3MsXTDTWdAZfWsNHqZmgOfaIpm6bVEQcbhORW9muePx36GKt6uAiC/6FQ3RzzLLB7TIOOh2NoM+/iLElpG6bm55iPZEjn6COrmzXSsSbxI55lgYfTGsaNtySmTZRy/gBKqeklA1v/iHuQ=
+	t=1713843443; cv=none; b=H20F22Z4hXrjxAPCU095O1AaTF2xSh1pzE4m1dia4/YACmLDEef+gbhm4Jd0NIpsCGOF/AFccFaa2g6cGLfXYjeuq9Sm/hGmAp87uiYFmrZGGthS7Lb8jLRqKKJBNPByO7Inv964gxfVQJVHn8sDosbiZq63jkK+esmS5ZQv9HI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713833593; c=relaxed/simple;
-	bh=mGGe9ThqcUB7ZTQjCZWi5VJqzjKOF1STkWW4HS5m8oc=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=FhyJheAUKE21GbvUO60eEu28mkiUVBJxmTHPj/3UwhWeunxCgU9m+/PbzmNFFedfR0w3/cajKsNlqRfyTKFobrgrYLq64OjOS4Zab++ByWIspsEbAeAu4g0M01Hh8jhMzKzSAakxtU71oE1DDd1QMFr+Qyol0/knnNLCkFp5mjo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=l3tctvct; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713843443; c=relaxed/simple;
+	bh=lRnLjcLsfDOXD3Hw3LG1Gr9LKIv5ly9M6T2eQ89sp1Y=;
+	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date; b=TdYq9C0lXEJhRfmPMqHJxRRyhGM0KVoCHA/6yjUMN2+N9shLch+rsBzGAsgx+mYFA7f4t+xKhzh4KnNrGFB/5KwQHnGa4DCPCBwQ7HJsuuf4g5G2YvqbxLmzIUUV0n3oDzMzvRuW03wOLkNrii4qt9EIMSVBc0KtzTThjbBUvbk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net; spf=pass smtp.mailfrom=launchpad.net; dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b=lLinVOvL; arc=none smtp.client-ip=185.125.188.251
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=launchpad.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="l3tctvct"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 418F6C113CC;
-	Tue, 23 Apr 2024 00:53:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1713833593;
-	bh=mGGe9ThqcUB7ZTQjCZWi5VJqzjKOF1STkWW4HS5m8oc=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=l3tctvctopY7wJchX8TQdd8F3hs8hDan9QEXdkif+21NaOhvXKH4S/H3HO2THokWZ
-	 1EFPR6Wfeaq0/ORdxsGxI7kN3RL0yJqD/B/EEow6+SalvFEGX1Vt/GkazGVPIeI+Y3
-	 ZtmCbacvsV2AhSLzxKYKIKJsuieZQyoFZ0nk9vsq5M4QMPdxonsQYBKwTGTVJdVFf0
-	 +boKZKtv4Qbruydy+j9Em1CAN7d6P2nBUnVH9Z5bIdpm8vQmpYlQ2KuHrjARkow/Ed
-	 OovOxFp6S1ZJpA8mFrnADdOgEL6O1XRxCbaxWxPXgENysHlFkKN5YZJT2lgm5zHw2V
-	 JOmVpBFHYX0Yw==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 36DC2C433A2;
-	Tue, 23 Apr 2024 00:53:13 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b="lLinVOvL"
+Received: from juju-98d295-prod-launchpad-3.localdomain (appserver-2.lp.internal [10.131.215.183])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-relay-services-1.canonical.com (Postfix) with ESMTPSA id 2EE3B4009D
+	for <netfilter-devel@vger.kernel.org>; Tue, 23 Apr 2024 03:27:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=launchpad.net;
+	s=20210803; t=1713842879;
+	bh=16lM24CP7gMwtt7mrPoRPq1sjDnfhlnqfx1GSE2cpw0=;
+	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date:
+	 Reply-To;
+	b=lLinVOvLf9G/olBqgmBaKA9GcPyStG7ySQn/VirWltH1otYYuIlc/BZOpJt9UR2Wy
+	 DLIWC0sMXos34JUBVi9gIRu81fR2ziL5xBrqxSul8nk1QSuj+elDYOYuldUCIq948f
+	 1abd99T1/1nwbMK2pD6SruDtfpOWaRv6D73SpmDWLG5tMm+60RmD+USkbKpFAob24m
+	 /FvGvWhnMnoA8JvovRjYfuPAEjb62jUfXDjF148/8yu/zTXI+Tmu+QJOqejMx+SVeI
+	 tg2y131MHj6Blt7ISLHlY0A1mKkoRtQXBi41sng8QN5cZPebexllHecQQRbqWhjeZv
+	 Y5clC7Mftq73Q==
+Received: from [10.131.215.183] (localhost [127.0.0.1])
+	by juju-98d295-prod-launchpad-3.localdomain (Postfix) with ESMTP id 918717E073
+	for <netfilter-devel@vger.kernel.org>; Tue, 23 Apr 2024 03:27:57 +0000 (UTC)
 Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -36,51 +42,38 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next v4 0/4] netlink: Add nftables spec w/ multi messages
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <171383359322.888.1077638959430684768.git-patchwork-notify@kernel.org>
-Date: Tue, 23 Apr 2024 00:53:13 +0000
-References: <20240418104737.77914-1-donald.hunter@gmail.com>
-In-Reply-To: <20240418104737.77914-1-donald.hunter@gmail.com>
-To: Donald Hunter <donald.hunter@gmail.com>
-Cc: netdev@vger.kernel.org, kuba@kernel.org, davem@davemloft.net,
- edumazet@google.com, pabeni@redhat.com, jiri@resnulli.us,
- jacob.e.keller@intel.com, pablo@netfilter.org, kadlec@netfilter.org,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- donald.hunter@redhat.com
+Content-Transfer-Encoding: quoted-printable
+To: netfilter-devel@vger.kernel.org
+From: Launchpad Email Validator <noreply@launchpad.net>
+Subject: Launchpad: Validate your team's contact email address
+Message-Id: <171384287753.2756066.4441350662136305957.launchpad@juju-98d295-prod-launchpad-3>
+Date: Tue, 23 Apr 2024 03:27:57 -0000
+Reply-To: Launchpad Email Validator <noreply@launchpad.net>
+Sender: noreply@launchpad.net
+Errors-To: noreply@launchpad.net
+X-Generated-By: Launchpad (canonical.com); Revision="67d34a19aaa1df7be4dd8bf498cbc5bbd785067b"; Instance="launchpad-appserver"
+X-Launchpad-Hash: fb4e05796b3f617e425432ef412230561e50c745
 
-Hello:
 
-This series was applied to netdev/net-next.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
+Hello
 
-On Thu, 18 Apr 2024 11:47:33 +0100 you wrote:
-> This series adds a ynl spec for nftables and extends ynl with a --multi
-> command line option that makes it possible to send transactional batches
-> for nftables.
-> 
-> This series includes a patch for nfnetlink which adds ACK processing for
-> batch begin/end messages. If you'd prefer that to be sent separately to
-> nf-next then I can do so, but I included it here so that it gets seen in
-> context.
-> 
-> [...]
+The Launchpad user named 'Peter J. Mello (roguescholar)' requested the
+registration of 'netfilter-devel@vger.kernel.org' as the contact email addr=
+ess
+of team 'Xtables-addons Development'. This request can only be made by a te=
+am
+owner/administrator, so if this change request was unexpected or was
+not requested by one of the team's administrators, please contact
+system-error@launchpad.net.
 
-Here is the summary with links:
-  - [net-next,v4,1/4] doc/netlink/specs: Add draft nftables spec
-    https://git.kernel.org/netdev/net-next/c/1ee731687137
-  - [net-next,v4,2/4] tools/net/ynl: Fix extack decoding for directional ops
-    https://git.kernel.org/netdev/net-next/c/0a966d606c68
-  - [net-next,v4,3/4] tools/net/ynl: Add multi message support to ynl
-    https://git.kernel.org/netdev/net-next/c/ba8be00f68f5
-  - [net-next,v4,4/4] netfilter: nfnetlink: Handle ACK flags for batch messages
-    https://git.kernel.org/netdev/net-next/c/bf2ac490d28c
+If you want to make this email address the contact email of
+'Xtables-addons Development', please click on the link below and follow the
+instructions.
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+    https://launchpad.net/token/QdhB85kK4gFkDh0Z5Wkq
+
+Thanks,
+
+The Launchpad Team
 
 
