@@ -1,36 +1,29 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A2D7823DE;
-	Tue, 23 Apr 2024 11:11:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B5A584D03
+	for <netfilter-devel@vger.kernel.org>; Tue, 23 Apr 2024 11:49:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713870683; cv=none; b=M8eg6z8G9zBO+9Q18UdWukpteFDQwPXD/LQms+A/Ms0RzsPOEb1AgJek09vFL6NeZYt/auqaQpk95SXR4BwsnwDBgWFBwDEK1ktILIE4FmfaSjRV0U9qC6X8nBgotnVTRg4Ed/cFrMA187im+wrBSXPgueo4YpZI6/b2YNy6r00=
+	t=1713872978; cv=none; b=TtS8yaIRwQ3aGjNkXrEN+d0PvIUbv1RxuPggpXICMuG4qh31dUgL8uL0U1Yd45Dtn9t6DrwRXgfqXRARrW8VNXS3FSpOG6CA0zql+PT7lWErQdvAtEwWWKlSIq17j8T/0veKxEP0QYp/EJ2MnSyuqtfI01P2n66bIMKNjhzwdf8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713870683; c=relaxed/simple;
-	bh=/5I5lwIPx9PUX8/fZPeDyG1iBAYxbA5KU6P3hlbkIKQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=TXi4nk3L58SfVr00h5J1D4TWf7AcBP5aiEf7YLYzTQDMx1MPtSxFbbt4igVm0xNgsspQmQDm16AbaUqNWnBIe10AfiHaoSN1U9ZoFYEvjm0EKf8vFdqb9HYjBEOZCRov93KqVpPWiJYmhwGyWreW6dP6dGggkcYijz14sRwkFWo=
+	s=arc-20240116; t=1713872978; c=relaxed/simple;
+	bh=9GOHUXZ0L+FTUY227yOCkoejPb3diyGGwxU4gojzM+w=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=BLewIJZ1ms5LNaxgtHqupgyJDG3Q9z/s5MDclQn9ZuLz/XsRqd9+PslXIWEf7ZvrZRRb1b7vuA4lgdHbtLweB6Knb3CijHdBa/EjTmttWMGvu+zT+NwxGQ+TZ4nLbGQsR68u1ofXxkCirtZLPc9XLehOoscEbraqFsoPR79ygbA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1rzE3S-0006xA-7c; Tue, 23 Apr 2024 13:11:18 +0200
+	id 1rzEeT-0007Id-TP; Tue, 23 Apr 2024 13:49:33 +0200
 From: Florian Westphal <fw@strlen.de>
-To: <netdev@vger.kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	<netfilter-devel@vger.kernel.org>,
-	pablo@netfilter.org
-Subject: [PATCH net-next 7/7] selftests: netfilter: conntrack_vrf.sh: prefer socat, not iperf3
-Date: Tue, 23 Apr 2024 15:05:50 +0200
-Message-ID: <20240423130604.7013-8-fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>,
+	Vlad Buslov <vladbu@nvidia.com>
+Subject: [PATCH nf-next] netfilter: conntrack: remove flowtable early-drop test
+Date: Tue, 23 Apr 2024 15:44:28 +0200
+Message-ID: <20240423134434.8652-1-fw@strlen.de>
 X-Mailer: git-send-email 2.43.2
-In-Reply-To: <20240423130604.7013-1-fw@strlen.de>
-References: <20240423130604.7013-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -39,99 +32,51 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Use socat, like most of the other scripts already do.  This also makes
-the script complete slightly faster (3s -> 1s).
+Not sure why this special case exists.  Early drop logic
+(which kicks in when conntrack table is full) should be independent
+of flowtable offload and only consider assured bit (i.e., two-way
+traffic was seen).
 
-iperf3 establishes two connections (1 control connection, and 1+x
-depending on test), so adjust expected counter values as well.
+flowtable entries hold a reference to the conntrack entry (struct
+nf_conn) that has been offloaded. The conntrack use count is not
+decremented until after the entry is free'd.
 
+This change therefore will not result in exceeding the conntrack table
+limit.  It does allow early-drop of tcp flows even when they've been
+offloaded, but only if they have been offloaded before syn-ack was
+received or after at least one peer has sent a fin.
+
+Currently 'fin' packet reception already stops offloading, so this
+should not impact offloading either.
+
+Cc: Vlad Buslov <vladbu@nvidia.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- .../selftests/net/netfilter/conntrack_vrf.sh  | 40 ++++++++++---------
- 1 file changed, 21 insertions(+), 19 deletions(-)
+ Vlad, do you remember why you added this test?
 
-diff --git a/tools/testing/selftests/net/netfilter/conntrack_vrf.sh b/tools/testing/selftests/net/netfilter/conntrack_vrf.sh
-index f7417004ec71..073e8e62d350 100755
---- a/tools/testing/selftests/net/netfilter/conntrack_vrf.sh
-+++ b/tools/testing/selftests/net/netfilter/conntrack_vrf.sh
-@@ -43,15 +43,9 @@ cleanup()
- 	cleanup_all_ns
- }
+ For reference, this came in
+ df25455e5a48 ("netfilter: nf_conntrack: allow early drop of offloaded UDP conns")
+ and maybe was just a 'move-it-around' from the check in
+ early_drop_list, which would mean this was there from the
+ beginning.  Doesn't change "i don't understand why this test
+ exists" though :-)
+
+ net/netfilter/nf_conntrack_core.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index c63868666bd9..43629e79067d 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1440,8 +1440,6 @@ static bool gc_worker_can_early_drop(const struct nf_conn *ct)
+ 	const struct nf_conntrack_l4proto *l4proto;
+ 	u8 protonum = nf_ct_protonum(ct);
  
--if ! nft --version > /dev/null 2>&1;then
--	echo "SKIP: Could not run test without nft tool"
--	exit $ksft_skip
--fi
--
--if ! conntrack --version > /dev/null 2>&1;then
--	echo "SKIP: Could not run test without conntrack tool"
--	exit $ksft_skip
--fi
-+checktool "nft --version" "run test without nft"
-+checktool "conntrack --version" "run test without conntrack"
-+checktool "socat -h" "run test without socat"
+-	if (test_bit(IPS_OFFLOAD_BIT, &ct->status) && protonum != IPPROTO_UDP)
+-		return false;
+ 	if (!test_bit(IPS_ASSURED_BIT, &ct->status))
+ 		return true;
  
- trap cleanup EXIT
- 
-@@ -79,7 +73,15 @@ ip -net "$ns1" li set veth0 up
- ip -net "$ns0" addr add $IP0/$PFXL dev veth0
- ip -net "$ns1" addr add $IP1/$PFXL dev veth0
- 
--ip netns exec "$ns1" iperf3 -s > /dev/null 2>&1 &
-+listener_ready()
-+{
-+        local ns="$1"
-+
-+        ss -N "$ns" -l -n -t -o "sport = :55555" | grep -q "55555"
-+}
-+
-+ip netns exec "$ns1" socat -u -4 TCP-LISTEN:55555,reuseaddr,fork STDOUT > /dev/null &
-+busywait $BUSYWAIT_TIMEOUT listener_ready "$ns1"
- 
- # test vrf ingress handling.
- # The incoming connection should be placed in conntrack zone 1,
-@@ -160,16 +162,16 @@ table ip nat {
- 	}
- }
- EOF
--	if ! ip netns exec "$ns0" ip vrf exec tvrf iperf3 -t 1 -c $IP1 >/dev/null; then
--		echo "FAIL: iperf3 connect failure with masquerade + sport rewrite on vrf device"
-+	if ! ip netns exec "$ns0" ip vrf exec tvrf socat -u -4 STDIN TCP:"$IP1":55555 < /dev/null > /dev/null;then
-+		echo "FAIL: connect failure with masquerade + sport rewrite on vrf device"
- 		ret=1
- 		return
- 	fi
- 
- 	# must also check that nat table was evaluated on second (lower device) iteration.
--	ip netns exec "$ns0" nft list table ip nat |grep -q 'counter packets 2' &&
--	if ip netns exec "$ns0" nft list table ip nat |grep -q 'untracked counter packets [1-9]'; then
--		echo "PASS: iperf3 connect with masquerade + sport rewrite on vrf device ($qdisc qdisc)"
-+	if ip netns exec "$ns0" nft list table ip nat |grep -q 'counter packets 1' &&
-+	   ip netns exec "$ns0" nft list table ip nat |grep -q 'untracked counter packets [1-9]'; then
-+		echo "PASS: connect with masquerade + sport rewrite on vrf device ($qdisc qdisc)"
- 	else
- 		echo "FAIL: vrf rules have unexpected counter value"
- 		ret=1
-@@ -195,15 +197,15 @@ table ip nat {
- 	}
- }
- EOF
--	if ! ip netns exec "$ns0" ip vrf exec tvrf iperf3 -t 1 -c $IP1 > /dev/null; then
--		echo "FAIL: iperf3 connect failure with masquerade + sport rewrite on veth device"
-+	if ! ip netns exec "$ns0" ip vrf exec tvrf socat -u -4 STDIN TCP:"$IP1":55555 < /dev/null > /dev/null;then
-+		echo "FAIL: connect failure with masquerade + sport rewrite on veth device"
- 		ret=1
- 		return
- 	fi
- 
- 	# must also check that nat table was evaluated on second (lower device) iteration.
--	if ip netns exec "$ns0" nft list table ip nat |grep -q 'counter packets 2'; then
--		echo "PASS: iperf3 connect with masquerade + sport rewrite on veth device"
-+	if ip netns exec "$ns0" nft list table ip nat |grep -q 'counter packets 1'; then
-+		echo "PASS: connect with masquerade + sport rewrite on veth device"
- 	else
- 		echo "FAIL: vrf masq rule has unexpected counter value"
- 		ret=1
 -- 
 2.43.2
 
