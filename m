@@ -1,94 +1,71 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEA751DDC5;
-	Tue, 23 Apr 2024 18:31:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96F063EA76;
+	Tue, 23 Apr 2024 19:42:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713897108; cv=none; b=na4g+41QcKKUfAUVIVfgS47Xqo5jjlr+WdTFRhS9vKR6s+5mQb7nBMLxbUPDiyj1X604PH0Vh9cxVnLkBSuH6OceENWw5B7DCxC7fxEsRhL7/x0cB+QCvMHW3y7I5V/XNtj+ySeyhr0cf2xY2Oen+mjYV9nH9mrTZQjPtxonWao=
+	t=1713901355; cv=none; b=kBIyGMGcL3mOfn+tJOf2hDzPVV64k30cKSrz2hS5/BuCJDVLl+eaLMAIleAZ+dIHad8HG6J8kjmkKygHPY7HBWCf8oCuofoXLLzbsQkq08hTIrA0fcslkZraGshHh3q+S46jL5O4cHWLtN8+AWH0f8S5NA2ZdhDForjosvBonm4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713897108; c=relaxed/simple;
-	bh=zCEHlyKJhhK4MvhJVSRGGSCDG0oxF0tC8ADUk82NkVk=;
+	s=arc-20240116; t=1713901355; c=relaxed/simple;
+	bh=cry/RH2rKuH1HbgXRSzotD72z8BzbveBjDuTfED9nTg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=bfRq5v77AOHR8aaGY6eV8O+t4obBkrmNNQ7UZr5mkx1KRud0on5EW8Th/1x6gZNv4CIsmrcPxMemhMvacMK0q4VuGTyc0tyiFQ6k3WkB1jtv5bpJZZWCSoec0Z418b+IwL4cLm2rxS+fXaHMUM/K6XuSCnm8GJ3Tp8SKroRPu+c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=WfiCVzYk; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="WfiCVzYk"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Sender:In-Reply-To:
-	Content-Transfer-Encoding:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Reply-To:Content-ID:Content-Description;
-	bh=Rogg05ztOu4aP2/pn8CD75vsgL5H5uwqaxXujjk6r6E=; b=WfiCVzYkyj37KGe/1NcuIa1Hgk
-	I9gAfHu6MCMw7NSXSor84TLrOU+mUG0ndyfzjVt0moZbaiRHo/8L+p3QYdcySteGNhcAPGJCKkoWj
-	g/687Hepcmtf5PZKpuZ7znbxvUnMDD43qnPnbu67zfXVJS8SML5AtXvgw73tSyJkv3Nhg5awIIQnq
-	1JNMkoOZN3LoUHS53IUhOaxE7wP++2K6T0ediCLJbAhO11cNq5v9xJzhveqww2JPt0aKNdvm5A/Y5
-	rB55b5NewsYDat/UO4lQuhE8Q3txZ3JjdTGVGjV+Hgo05PhOwNnuMGRbC0LVs1cOtEcnZeCVZdr0F
-	79Ap4ebA==;
-Received: from mcgrof by bombadil.infradead.org with local (Exim 4.97.1 #2 (Red Hat Linux))
-	id 1rzKvd-000000018V6-22Td;
-	Tue, 23 Apr 2024 18:31:41 +0000
-Date: Tue, 23 Apr 2024 11:31:41 -0700
-From: Luis Chamberlain <mcgrof@kernel.org>
-To: Thomas =?iso-8859-1?Q?Wei=DFschuh?= <linux@weissschuh.net>
-Cc: Joel Granados <j.granados@samsung.com>,
-	Kees Cook <keescook@chromium.org>,
-	Eric Dumazet <edumazet@google.com>,
-	Dave Chinner <david@fromorbit.com>, linux-fsdevel@vger.kernel.org,
-	netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-s390@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-riscv@lists.infradead.org, linux-mm@kvack.org,
-	linux-security-module@vger.kernel.org, bpf@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-xfs@vger.kernel.org,
-	linux-trace-kernel@vger.kernel.org,
-	linux-perf-users@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, kexec@lists.infradead.org,
-	linux-hardening@vger.kernel.org, bridge@lists.linux.dev,
-	lvs-devel@vger.kernel.org, linux-rdma@vger.kernel.org,
-	rds-devel@oss.oracle.com, linux-sctp@vger.kernel.org,
-	linux-nfs@vger.kernel.org, apparmor@lists.ubuntu.com
-Subject: Re: [PATCH v3 00/11] sysctl: treewide: constify ctl_table argument
- of sysctl handlers
-Message-ID: <Zif-jf8Takojtq7x@bombadil.infradead.org>
-References: <20240423-sysctl-const-handler-v3-0-e0beccb836e2@weissschuh.net>
+	 Content-Type:Content-Disposition:In-Reply-To; b=gSlS4V9Qs/gFRKNIpK6Fvla6lQH3BCzY6W5cY42Czv2qMTUt37MK59yX0lX5KQYZ/tJH0PM58c3Q65d8CExanpRIdn0mqIfmZDd3R+FPAj7+dL81h/DMvluCgMiZYmDc0X+Tg0Fp6+3NcwFEkH6MNiKHanonk7HTZBmqROcwdao=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1rzM21-00024O-1A; Tue, 23 Apr 2024 21:42:21 +0200
+Date: Tue, 23 Apr 2024 21:42:21 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+	Paolo Abeni <pabeni@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>, netfilter-devel@vger.kernel.org,
+	pablo@netfilter.org
+Subject: Re: [PATCH net-next 0/7] selftest: netfilter: additional cleanups
+Message-ID: <20240423194221.GA6732@breakpoint.cc>
+References: <20240423130604.7013-1-fw@strlen.de>
+ <20240423095043.2f8d46fc@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20240423-sysctl-const-handler-v3-0-e0beccb836e2@weissschuh.net>
-Sender: Luis Chamberlain <mcgrof@infradead.org>
+In-Reply-To: <20240423095043.2f8d46fc@kernel.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-On Tue, Apr 23, 2024 at 09:54:35AM +0200, Thomas Weiﬂschuh wrote:
-> * Patch 1 is a bugfix for the stack_erasing sysctl handler
-> * Patches 2-10 change various helper functions throughout the kernel to
->   be able to handle 'const ctl_table'.
-> * Patch 11 changes the signatures of all proc handlers through the tree.
->   Some other signatures are also adapted, for details see the commit
->   message.
+Jakub Kicinski <kuba@kernel.org> wrote:
+> On Tue, 23 Apr 2024 15:05:43 +0200 Florian Westphal wrote:
+> > This is the last planned series of the netfilter-selftest-move.
+> > It contains cleanups (and speedups) and a few small updates to
+> > scripts to improve error/skip reporting.
+> > 
+> > I intend to route future changes, if any, via nf(-next) trees
+> > now that the 'massive code churn' phase is over.
 > 
-> Only patch 1 changes any code at all.
+> Got it.
 > 
-> The series was compile-tested on top of next-20230423 for
-> i386, x86_64, arm, arm64, riscv, loongarch, s390 and m68k.
+> The main thing that seems to be popping up in the netdev runner is:
 > 
-> The series was split from my larger series sysctl-const series [0].
-> It only focusses on the proc_handlers but is an important step to be
-> able to move all static definitions of ctl_table into .rodata.
+> # TEST: performance
+> #   net,port                                                      [SKIP]
+> #   perf not supported
 > 
-> [0] https://lore.kernel.org/lkml/20231204-const-sysctl-v2-0-7a5060b11447@weissschuh.net/
-> 
-> Signed-off-by: Thomas Weiﬂschuh <linux@weissschuh.net>
+> What is "perf" in this case? Some NFT module? the perf tool is
+> installed, AFAICT..
 
-Cover letters don't need SOBS we only use them for patches.
+Its looking for the pktgen wrapper script
+(pktgen_bench_xmit_mode_netif_receive.sh).
 
-But anyway:
+I don't think it makes too much sense to have that run as part of the CI.
 
-Reviewed-by: Luis Chamberlain <mcgrof@kernel.org>
+I can either remove this or move it under some special commandline
+option, or I can look into this and see if I can get it to run.
 
-  Luis
+Let me know, thanks.
