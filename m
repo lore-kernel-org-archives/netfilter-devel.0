@@ -1,101 +1,382 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FD9114A85
-	for <netfilter-devel@vger.kernel.org>; Wed, 24 Apr 2024 18:35:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 645E4143C6F
+	for <netfilter-devel@vger.kernel.org>; Wed, 24 Apr 2024 20:06:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713983719; cv=none; b=JkoBnR7WfPi3Z5IonVfrwFP42sw7kN8gaMvC1dCmwdY/m9GZbDsDp+/iI+dekMRUXMLtWMLpZwPetzl3HQW3CQ36VZnm3pL85ZdPpQWD9h7RIvIY9DFzRhrU8/xCgmypfPx1/sln7nW+91eGgm94pWkXxCHx8XeVSa6+4xtHqv8=
+	t=1713989179; cv=none; b=ns6VDjeMyja9ZbjUpKNLP06NwTuRzI4Y9c8inEJvABdlQg9QdCpG/YfXfj2tFAaFqiV/Wb+FlT79fJcK+a+P/uaA9a8FJ1OhSchFS3ZZXv4M+x59GBZ8HFmPL1U9X44aVPURDGRD7yLM6TVcFeo+YCcTzDbPpi6EwxYVAldKIj4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713983719; c=relaxed/simple;
-	bh=PjfL/hZUjcjRqmhIXiq5r/+CNwXcNOPiUIBDl3QebSE=;
+	s=arc-20240116; t=1713989179; c=relaxed/simple;
+	bh=N7yRAW2E81aeZ4Johqhoonl5ADDTRyNpvExGk7KGeVM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ASECYnGMcT621kZgTGugUc57O4+oq2q7UyAsZ/vPR0aWsnYMQAXHZLacPXLDwHcElirsonBmX9R/YssfIh/3FF4gZUa0zc6fymG1bH8WFinhOLUmSG2ns0HIvWx4eqG98oe0ntKB5Cnd7D9+/EUWj7L1jNg8Sh3G48xwPzxl58o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=EZNgO6r0; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="EZNgO6r0"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=ID+7SnXm50zDVA2zBIqZ2DOqLOGiE26GvJnBLz9yjdY=; b=EZNgO6r0orINbVri+BZPWiJgQQ
-	0vQPLmw+OCF0pu8yfblC9GQ0U/DRHu2uum4phA+NCvpgFbiG9OyRFWb12Y/KIpS7kGCBQK5Cr20wu
-	xOmzeGh5cPb0fIYkdVhOlbo2HDMnQr08pbd2GJ6XzAzk3NE4qIqxcMauqJUpfaihbi5pzB1J9rWwc
-	31QvNaE1NEgMP00eoegzHtSKoXQCX2PlJqTBF/rNcDizqkzdZoIZ9i2K4mem/roXNZkKUIsLkQ4GC
-	rPoGJgFDhUl3oGdExTuNBfHPwOtqruCTio0ir321YdsxLZCfm4ji/EHDEi1UPpjovT8NHFTOe1QIX
-	0K73Ui9A==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1rzhSa-000000001Wo-2ODL;
-	Wed, 24 Apr 2024 20:35:12 +0200
-Date: Wed, 24 Apr 2024 20:35:12 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Alexander Kanavin <alex@linutronix.de>, netfilter-devel@vger.kernel.org,
-	Khem Raj <raj.khem@gmail.com>
-Subject: Re: [iptables][PATCH] configure: Add option to enable/disable
- libnfnetlink
-Message-ID: <ZilQ4G2LzdU4ksEq@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Alexander Kanavin <alex@linutronix.de>,
-	netfilter-devel@vger.kernel.org, Khem Raj <raj.khem@gmail.com>
-References: <20240424122804.980366-1-alex@linutronix.de>
- <ZikA0v0PrvZBsqq6@orbyte.nwl.cc>
- <53acd1f2-92ed-4ea5-b7be-05d3a0f5b276@linutronix.de>
- <ZikeIC9v7J0z8GXa@orbyte.nwl.cc>
- <ZikjLzdb97ZS1muM@calendula>
+	 Content-Type:Content-Disposition:In-Reply-To; b=qvEseLVJi8DtVVAnCeP8bniXRa8YRLeUct6XeOrnUG0QlnKIcm4JcMiRXvS42yThDXju37D3V0UR639TMSOEkJW+dIxH2uwsp0rkOkokCwBsE610NVrgBDkNmi1qsn+4dRr6Hu1KzyQbYxu1wz7YBSZbUQnpnCerKUWWqLKVDo0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Date: Wed, 24 Apr 2024 22:06:11 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+Subject: Re: [nft PATCH 0/7] A bunch of JSON printer/parser fixes
+Message-ID: <ZilmMzQIAyvvuFqo@calendula>
+References: <20240309113527.8723-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="MgGCK9hK5fxxNVky"
 Content-Disposition: inline
-In-Reply-To: <ZikjLzdb97ZS1muM@calendula>
+In-Reply-To: <20240309113527.8723-1-phil@nwl.cc>
 
-On Wed, Apr 24, 2024 at 05:20:15PM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Apr 24, 2024 at 04:58:40PM +0200, Phil Sutter wrote:
-> > On Wed, Apr 24, 2024 at 04:11:59PM +0200, Alexander Kanavin wrote:
-> > > On 4/24/24 14:53, Phil Sutter wrote:
-> > > > Hi,
-> > > >
-> > > > On Wed, Apr 24, 2024 at 02:28:04PM +0200, Alexander Kanavin wrote:
-> > > >> From: "Maxin B. John" <maxin.john@intel.com>
-> > > >>
-> > > >> This changes the configure behaviour from autodetecting
-> > > >> for libnfnetlink to having an option to disable it explicitly.
-> > > >>
-> > > >> Signed-off-by: Khem Raj <raj.khem@gmail.com>
-> > > >> Signed-off-by: Maxin B. John <maxin.john@intel.com>
-> > > >> Signed-off-by: Alexander Kanavin <alex@linutronix.de>
-> > > > The patch looks fine as-is, I wonder though what's the goal: Does the
-> > > > build system have an incompatible libnfnetlink which breaks the build?
-> > > > It is used by nfnl_osf only, right? So maybe introduce
-> > > > | AC_ARG_ENABLE([nfnl_osf], ...)
-> > > > instead?
-> > > 
-> > > The patch is very old, and I didn't write it (I'm only cleaning up the 
-> > > custom patches that yocto project is currently carrying). It was 
-> > > introduced for the purposes of ensuring build determinism and 
-> > > reproducibility: so that libnfnetlink support doesn't get quietly 
-> > > enabled or disabled depending on what is available in the build system, 
-> > > but can be reliably turned off or on.
-> > 
-> > Thanks for the explanation. I don't quite get how a build is
-> > deterministic if libnfnetlink presence is not, but OK.
+
+--MgGCK9hK5fxxNVky
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+
+Hi Phil,
+
+On Sat, Mar 09, 2024 at 12:35:20PM +0100, Phil Sutter wrote:
+> Fix the following flaws in JSON input/output code:
 > 
-> IIRC, there are also dependencies on utils with libnfnetlink that
-> would need to be disabled too.
+> * Patch 3:
+>   Wrong ordering of 'nft -j list ruleset' preventing a following restore
+>   of the dump. Code assumed dumping objects before chains was fine in
+>   all cases, when actually verdict maps may reference chains already.
+>   Dump like nft_cmd_expand() does when expanding nested syntax for
+>   kernel submission (chains first, objects second, finally rules).
+> 
+> * Patch 5:
+>   Maps may contain concatenated "targets". Both printer and parser were
+>   entirely ignorant of that fact.
+> 
+> * Patch 6:
+>   Synproxy objects were "mostly" supported, some hooks missing to
+>   cover for named ones.
+> 
+> Patch 4 applies the new ordering to all stored json-nft dumps. Patch 7
+> adds new dumps which are now parseable given the fixes above.
+> 
+> Patches 1 and 2 are fallout fixes to initially make the whole shell
+> testsuite pass on my testing system.
+> 
+> Bugs still present after this series:
+> 
+> * Nested chains remain entirely unsupported
+> * Maps specifying interval "targets" (i.e., set->data->flags contains
+>   EXPR_F_INTERVAL bit) will be printed like regular ones and the parser
+>   then rejects them.
 
-Within iptables, we only have nfnl_osf (in utils/) which depends on it,
-but missing HAVE_LIBNFNETLINK effectively disables it from being built.
-So unless you have something else in mind, that's fine with and without
-this patch.
+I am seeing memleaks when running tests after this series, please see
+attachment for reference.
 
-Cheers, Phil
+Thanks.
+
+--MgGCK9hK5fxxNVky
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: attachment; filename="leaks.txt"
+
+Command `./../../src/nft -j list ruleset` failed
+>>>>
+
+=================================================================
+==84914==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 40 byte(s) in 1 object(s) allocated from:
+    #0 0x7fad744b89cf in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fad74be3c3b in json_array (/lib/x86_64-linux-gnu/libjansson.so.4+0x8c3b)
+    #2 0x7fad73ab8483 in __binop_expr_json src/json.c:550
+    #3 0x7fad73ab8571 in binop_expr_json src/json.c:559
+    #4 0x7fad73aaff68 in expr_print_json src/json.c:53
+    #5 0x7fad73ab84aa in __binop_expr_json src/json.c:552
+    #6 0x7fad73ab83e7 in __binop_expr_json src/json.c:549
+    #7 0x7fad73ab8571 in binop_expr_json src/json.c:559
+    #8 0x7fad73aaff68 in expr_print_json src/json.c:53
+    #9 0x7fad73ac1b55 in ct_stmt_json src/json.c:1248
+    #10 0x7fad73ab09a6 in stmt_print_json src/json.c:96
+    #11 0x7fad73ab3410 in rule_print_json src/json.c:248
+    #12 0x7fad73ac7ff8 in table_print_json_full src/json.c:1741
+    #13 0x7fad73ac8537 in do_list_ruleset_json src/json.c:1763
+    #14 0x7fad73acbcc0 in do_command_list_json src/json.c:1986
+    #15 0x7fad73a8e84f in do_command_list src/rule.c:2354
+    #16 0x7fad73a90f1d in do_command src/rule.c:2624
+    #17 0x7fad7399e2f4 in nft_netlink src/libnftables.c:42
+    #18 0x7fad739a488c in nft_run_cmd_from_buffer src/libnftables.c:598
+    #19 0x55c43466d377 in main src/main.c:533
+    #20 0x7fad72a46249 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+Direct leak of 40 byte(s) in 1 object(s) allocated from:
+    #0 0x7fad744b89cf in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fad74be3c3b in json_array (/lib/x86_64-linux-gnu/libjansson.so.4+0x8c3b)
+    #2 0x7fad73ab8483 in __binop_expr_json src/json.c:550
+    #3 0x7fad73ab8571 in binop_expr_json src/json.c:559
+    #4 0x7fad73aaff68 in expr_print_json src/json.c:53
+    #5 0x7fad73ac1b55 in ct_stmt_json src/json.c:1248
+    #6 0x7fad73ab09a6 in stmt_print_json src/json.c:96
+    #7 0x7fad73ab3410 in rule_print_json src/json.c:248
+    #8 0x7fad73ac7ff8 in table_print_json_full src/json.c:1741
+    #9 0x7fad73ac8537 in do_list_ruleset_json src/json.c:1763
+    #10 0x7fad73acbcc0 in do_command_list_json src/json.c:1986
+    #11 0x7fad73a8e84f in do_command_list src/rule.c:2354
+    #12 0x7fad73a90f1d in do_command src/rule.c:2624
+    #13 0x7fad7399e2f4 in nft_netlink src/libnftables.c:42
+    #14 0x7fad739a488c in nft_run_cmd_from_buffer src/libnftables.c:598
+    #15 0x55c43466d377 in main src/main.c:533
+    #16 0x7fad72a46249 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+Direct leak of 40 byte(s) in 1 object(s) allocated from:
+    #0 0x7fad744b89cf in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fad74be3c3b in json_array (/lib/x86_64-linux-gnu/libjansson.so.4+0x8c3b)
+    #2 0x7fad73ab83e7 in __binop_expr_json src/json.c:549
+    #3 0x7fad73ab8571 in binop_expr_json src/json.c:559
+    #4 0x7fad73aaff68 in expr_print_json src/json.c:53
+    #5 0x7fad73ac1b55 in ct_stmt_json src/json.c:1248
+    #6 0x7fad73ab09a6 in stmt_print_json src/json.c:96
+    #7 0x7fad73ab3410 in rule_print_json src/json.c:248
+    #8 0x7fad73ac7ff8 in table_print_json_full src/json.c:1741
+    #9 0x7fad73ac8537 in do_list_ruleset_json src/json.c:1763
+    #10 0x7fad73acbcc0 in do_command_list_json src/json.c:1986
+    #11 0x7fad73a8e84f in do_command_list src/rule.c:2354
+    #12 0x7fad73a90f1d in do_command src/rule.c:2624
+    #13 0x7fad7399e2f4 in nft_netlink src/libnftables.c:42
+    #14 0x7fad739a488c in nft_run_cmd_from_buffer src/libnftables.c:598
+    #15 0x55c43466d377 in main src/main.c:533
+    #16 0x7fad72a46249 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+Direct leak of 40 byte(s) in 1 object(s) allocated from:
+    #0 0x7fad744b89cf in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fad74be3c3b in json_array (/lib/x86_64-linux-gnu/libjansson.so.4+0x8c3b)
+    #2 0x7fad73ab83e7 in __binop_expr_json src/json.c:549
+    #3 0x7fad73ab8571 in binop_expr_json src/json.c:559
+    #4 0x7fad73aaff68 in expr_print_json src/json.c:53
+    #5 0x7fad73ab84aa in __binop_expr_json src/json.c:552
+    #6 0x7fad73ab83e7 in __binop_expr_json src/json.c:549
+    #7 0x7fad73ab8571 in binop_expr_json src/json.c:559
+    #8 0x7fad73aaff68 in expr_print_json src/json.c:53
+    #9 0x7fad73ac1b55 in ct_stmt_json src/json.c:1248
+    #10 0x7fad73ab09a6 in stmt_print_json src/json.c:96
+    #11 0x7fad73ab3410 in rule_print_json src/json.c:248
+    #12 0x7fad73ac7ff8 in table_print_json_full src/json.c:1741
+    #13 0x7fad73ac8537 in do_list_ruleset_json src/json.c:1763
+    #14 0x7fad73acbcc0 in do_command_list_json src/json.c:1986
+    #15 0x7fad73a8e84f in do_command_list src/rule.c:2354
+    #16 0x7fad73a90f1d in do_command src/rule.c:2624
+    #17 0x7fad7399e2f4 in nft_netlink src/libnftables.c:42
+    #18 0x7fad739a488c in nft_run_cmd_from_buffer src/libnftables.c:598
+    #19 0x55c43466d377 in main src/main.c:533
+    #20 0x7fad72a46249 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+Indirect leak of 256 byte(s) in 2 object(s) allocated from:
+    #0 0x7fad744b89cf in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fad74bdeaac  (/lib/x86_64-linux-gnu/libjansson.so.4+0x3aac)
+    #2 0x7ffd4687548f  ([stack]+0x1c48f)
+
+Indirect leak of 250 byte(s) in 4 object(s) allocated from:
+    #0 0x7fad744b89cf in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fad74bdecda  (/lib/x86_64-linux-gnu/libjansson.so.4+0x3cda)
+
+Indirect leak of 144 byte(s) in 2 object(s) allocated from:
+    #0 0x7fad744b89cf in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fad74be396b in json_object (/lib/x86_64-linux-gnu/libjansson.so.4+0x896b)
+    #2 0x7ffd4687548f  ([stack]+0x1c48f)
+
+Indirect leak of 128 byte(s) in 1 object(s) allocated from:
+    #0 0x7fad744b89cf in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fad74bdeaac  (/lib/x86_64-linux-gnu/libjansson.so.4+0x3aac)
+    #2 0x7ffd46875a9f  ([stack]+0x1ca9f)
+
+Indirect leak of 72 byte(s) in 1 object(s) allocated from:
+    #0 0x7fad744b89cf in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fad74be396b in json_object (/lib/x86_64-linux-gnu/libjansson.so.4+0x896b)
+    #2 0x7ffd46875a9f  ([stack]+0x1ca9f)
+
+Indirect leak of 64 byte(s) in 1 object(s) allocated from:
+    #0 0x7fad744b89cf in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fad74be3c6b in json_array (/lib/x86_64-linux-gnu/libjansson.so.4+0x8c6b)
+    #2 0x7fad73ab8483 in __binop_expr_json src/json.c:550
+    #3 0x7fad73ab8571 in binop_expr_json src/json.c:559
+    #4 0x7fad73aaff68 in expr_print_json src/json.c:53
+    #5 0x7fad73ab84aa in __binop_expr_json src/json.c:552
+    #6 0x7fad73ab83e7 in __binop_expr_json src/json.c:549
+    #7 0x7fad73ab8571 in binop_expr_json src/json.c:559
+    #8 0x7fad73aaff68 in expr_print_json src/json.c:53
+    #9 0x7fad73ac1b55 in ct_stmt_json src/json.c:1248
+    #10 0x7fad73ab09a6 in stmt_print_json src/json.c:96
+    #11 0x7fad73ab3410 in rule_print_json src/json.c:248
+    #12 0x7fad73ac7ff8 in table_print_json_full src/json.c:1741
+    #13 0x7fad73ac8537 in do_list_ruleset_json src/json.c:1763
+    #14 0x7fad73acbcc0 in do_command_list_json src/json.c:1986
+    #15 0x7fad73a8e84f in do_command_list src/rule.c:2354
+    #16 0x7fad73a90f1d in do_command src/rule.c:2624
+    #17 0x7fad7399e2f4 in nft_netlink src/libnftables.c:42
+    #18 0x7fad739a488c in nft_run_cmd_from_buffer src/libnftables.c:598
+    #19 0x55c43466d377 in main src/main.c:533
+    #20 0x7fad72a46249 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+Indirect leak of 64 byte(s) in 1 object(s) allocated from:
+    #0 0x7fad744b89cf in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fad74be3c6b in json_array (/lib/x86_64-linux-gnu/libjansson.so.4+0x8c6b)
+    #2 0x7fad73ab83e7 in __binop_expr_json src/json.c:549
+    #3 0x7fad73ab8571 in binop_expr_json src/json.c:559
+    #4 0x7fad73aaff68 in expr_print_json src/json.c:53
+    #5 0x7fad73ab84aa in __binop_expr_json src/json.c:552
+    #6 0x7fad73ab83e7 in __binop_expr_json src/json.c:549
+    #7 0x7fad73ab8571 in binop_expr_json src/json.c:559
+    #8 0x7fad73aaff68 in expr_print_json src/json.c:53
+    #9 0x7fad73ac1b55 in ct_stmt_json src/json.c:1248
+    #10 0x7fad73ab09a6 in stmt_print_json src/json.c:96
+    #11 0x7fad73ab3410 in rule_print_json src/json.c:248
+    #12 0x7fad73ac7ff8 in table_print_json_full src/json.c:1741
+    #13 0x7fad73ac8537 in do_list_ruleset_json src/json.c:1763
+    #14 0x7fad73acbcc0 in do_command_list_json src/json.c:1986
+    #15 0x7fad73a8e84f in do_command_list src/rule.c:2354
+    #16 0x7fad73a90f1d in do_command src/rule.c:2624
+    #17 0x7fad7399e2f4 in nft_netlink src/libnftables.c:42
+    #18 0x7fad739a488c in nft_run_cmd_from_buffer src/libnftables.c:598
+    #19 0x55c43466d377 in main src/main.c:533
+    #20 0x7fad72a46249 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+Indirect leak of 64 byte(s) in 1 object(s) allocated from:
+    #0 0x7fad744b89cf in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fad74be3c6b in json_array (/lib/x86_64-linux-gnu/libjansson.so.4+0x8c6b)
+    #2 0x7fad73ab8571 in binop_expr_json src/json.c:559
+    #3 0x7fad73aaff68 in expr_print_json src/json.c:53
+    #4 0x7fad73ab84aa in __binop_expr_json src/json.c:552
+    #5 0x7fad73ab83e7 in __binop_expr_json src/json.c:549
+    #6 0x7fad73ab8571 in binop_expr_json src/json.c:559
+    #7 0x7fad73aaff68 in expr_print_json src/json.c:53
+    #8 0x7fad73ac1b55 in ct_stmt_json src/json.c:1248
+    #9 0x7fad73ab09a6 in stmt_print_json src/json.c:96
+    #10 0x7fad73ab3410 in rule_print_json src/json.c:248
+    #11 0x7fad73ac7ff8 in table_print_json_full src/json.c:1741
+    #12 0x7fad73ac8537 in do_list_ruleset_json src/json.c:1763
+    #13 0x7fad73acbcc0 in do_command_list_json src/json.c:1986
+    #14 0x7fad73a8e84f in do_command_list src/rule.c:2354
+    #15 0x7fad73a90f1d in do_command src/rule.c:2624
+    #16 0x7fad7399e2f4 in nft_netlink src/libnftables.c:42
+    #17 0x7fad739a488c in nft_run_cmd_from_buffer src/libnftables.c:598
+    #18 0x55c43466d377 in main src/main.c:533
+    #19 0x7fad72a46249 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+Indirect leak of 64 byte(s) in 1 object(s) allocated from:
+    #0 0x7fad744b89cf in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fad74be3c6b in json_array (/lib/x86_64-linux-gnu/libjansson.so.4+0x8c6b)
+    #2 0x7fad73ab83e7 in __binop_expr_json src/json.c:549
+    #3 0x7fad73ab8571 in binop_expr_json src/json.c:559
+    #4 0x7fad73aaff68 in expr_print_json src/json.c:53
+    #5 0x7fad73ac1b55 in ct_stmt_json src/json.c:1248
+    #6 0x7fad73ab09a6 in stmt_print_json src/json.c:96
+    #7 0x7fad73ab3410 in rule_print_json src/json.c:248
+    #8 0x7fad73ac7ff8 in table_print_json_full src/json.c:1741
+    #9 0x7fad73ac8537 in do_list_ruleset_json src/json.c:1763
+    #10 0x7fad73acbcc0 in do_command_list_json src/json.c:1986
+    #11 0x7fad73a8e84f in do_command_list src/rule.c:2354
+    #12 0x7fad73a90f1d in do_command src/rule.c:2624
+    #13 0x7fad7399e2f4 in nft_netlink src/libnftables.c:42
+    #14 0x7fad739a488c in nft_run_cmd_from_buffer src/libnftables.c:598
+    #15 0x55c43466d377 in main src/main.c:533
+    #16 0x7fad72a46249 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+Indirect leak of 64 byte(s) in 1 object(s) allocated from:
+    #0 0x7fad744b89cf in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fad74be3c6b in json_array (/lib/x86_64-linux-gnu/libjansson.so.4+0x8c6b)
+    #2 0x7fad73ab8483 in __binop_expr_json src/json.c:550
+    #3 0x7fad73ab8571 in binop_expr_json src/json.c:559
+    #4 0x7fad73aaff68 in expr_print_json src/json.c:53
+    #5 0x7fad73ac1b55 in ct_stmt_json src/json.c:1248
+    #6 0x7fad73ab09a6 in stmt_print_json src/json.c:96
+    #7 0x7fad73ab3410 in rule_print_json src/json.c:248
+    #8 0x7fad73ac7ff8 in table_print_json_full src/json.c:1741
+    #9 0x7fad73ac8537 in do_list_ruleset_json src/json.c:1763
+    #10 0x7fad73acbcc0 in do_command_list_json src/json.c:1986
+    #11 0x7fad73a8e84f in do_command_list src/rule.c:2354
+    #12 0x7fad73a90f1d in do_command src/rule.c:2624
+    #13 0x7fad7399e2f4 in nft_netlink src/libnftables.c:42
+    #14 0x7fad739a488c in nft_run_cmd_from_buffer src/libnftables.c:598
+    #15 0x55c43466d377 in main src/main.c:533
+    #16 0x7fad72a46249 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+Indirect leak of 64 byte(s) in 2 object(s) allocated from:
+    #0 0x7fad744b89cf in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fad74be3ed4 in json_stringn_nocheck (/lib/x86_64-linux-gnu/libjansson.so.4+0x8ed4)
+
+Indirect leak of 40 byte(s) in 1 object(s) allocated from:
+    #0 0x7fad744b89cf in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fad74be3c3b in json_array (/lib/x86_64-linux-gnu/libjansson.so.4+0x8c3b)
+    #2 0x7fad73ab8571 in binop_expr_json src/json.c:559
+    #3 0x7fad73aaff68 in expr_print_json src/json.c:53
+    #4 0x7fad73ab84aa in __binop_expr_json src/json.c:552
+    #5 0x7fad73ab83e7 in __binop_expr_json src/json.c:549
+    #6 0x7fad73ab8571 in binop_expr_json src/json.c:559
+    #7 0x7fad73aaff68 in expr_print_json src/json.c:53
+    #8 0x7fad73ac1b55 in ct_stmt_json src/json.c:1248
+    #9 0x7fad73ab09a6 in stmt_print_json src/json.c:96
+    #10 0x7fad73ab3410 in rule_print_json src/json.c:248
+    #11 0x7fad73ac7ff8 in table_print_json_full src/json.c:1741
+    #12 0x7fad73ac8537 in do_list_ruleset_json src/json.c:1763
+    #13 0x7fad73acbcc0 in do_command_list_json src/json.c:1986
+    #14 0x7fad73a8e84f in do_command_list src/rule.c:2354
+    #15 0x7fad73a90f1d in do_command src/rule.c:2624
+    #16 0x7fad7399e2f4 in nft_netlink src/libnftables.c:42
+    #17 0x7fad739a488c in nft_run_cmd_from_buffer src/libnftables.c:598
+    #18 0x55c43466d377 in main src/main.c:533
+    #19 0x7fad72a46249 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+Indirect leak of 24 byte(s) in 1 object(s) allocated from:
+    #0 0x7fad744b89cf in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fad74be431d in json_integer (/lib/x86_64-linux-gnu/libjansson.so.4+0x931d)
+    #2 0x7fad73abe8dc in datatype_json src/json.c:975
+    #3 0x7fad73abf15a in constant_expr_json src/json.c:1003
+    #4 0x7fad73aaff68 in expr_print_json src/json.c:53
+    #5 0x7fad73ab84aa in __binop_expr_json src/json.c:552
+    #6 0x7fad73ab8483 in __binop_expr_json src/json.c:550
+    #7 0x7fad73ab8571 in binop_expr_json src/json.c:559
+    #8 0x7fad73aaff68 in expr_print_json src/json.c:53
+    #9 0x7fad73ab84aa in __binop_expr_json src/json.c:552
+    #10 0x7fad73ab83e7 in __binop_expr_json src/json.c:549
+    #11 0x7fad73ab8571 in binop_expr_json src/json.c:559
+    #12 0x7fad73aaff68 in expr_print_json src/json.c:53
+    #13 0x7fad73ac1b55 in ct_stmt_json src/json.c:1248
+    #14 0x7fad73ab09a6 in stmt_print_json src/json.c:96
+    #15 0x7fad73ab3410 in rule_print_json src/json.c:248
+    #16 0x7fad73ac7ff8 in table_print_json_full src/json.c:1741
+    #17 0x7fad73ac8537 in do_list_ruleset_json src/json.c:1763
+    #18 0x7fad73acbcc0 in do_command_list_json src/json.c:1986
+    #19 0x7fad73a8e84f in do_command_list src/rule.c:2354
+    #20 0x7fad73a90f1d in do_command src/rule.c:2624
+    #21 0x7fad7399e2f4 in nft_netlink src/libnftables.c:42
+    #22 0x7fad739a488c in nft_run_cmd_from_buffer src/libnftables.c:598
+    #23 0x55c43466d377 in main src/main.c:533
+    #24 0x7fad72a46249 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+Indirect leak of 24 byte(s) in 1 object(s) allocated from:
+    #0 0x7fad744b89cf in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fad74be431d in json_integer (/lib/x86_64-linux-gnu/libjansson.so.4+0x931d)
+    #2 0x7fad73abe8dc in datatype_json src/json.c:975
+    #3 0x7fad73abf15a in constant_expr_json src/json.c:1003
+    #4 0x7fad73aaff68 in expr_print_json src/json.c:53
+    #5 0x7fad73ab84aa in __binop_expr_json src/json.c:552
+    #6 0x7fad73ab8483 in __binop_expr_json src/json.c:550
+    #7 0x7fad73ab8571 in binop_expr_json src/json.c:559
+    #8 0x7fad73aaff68 in expr_print_json src/json.c:53
+    #9 0x7fad73ac1b55 in ct_stmt_json src/json.c:1248
+    #10 0x7fad73ab09a6 in stmt_print_json src/json.c:96
+    #11 0x7fad73ab3410 in rule_print_json src/json.c:248
+    #12 0x7fad73ac7ff8 in table_print_json_full src/json.c:1741
+    #13 0x7fad73ac8537 in do_list_ruleset_json src/json.c:1763
+    #14 0x7fad73acbcc0 in do_command_list_json src/json.c:1986
+    #15 0x7fad73a8e84f in do_command_list src/rule.c:2354
+    #16 0x7fad73a90f1d in do_command src/rule.c:2624
+    #17 0x7fad7399e2f4 in nft_netlink src/libnftables.c:42
+    #18 0x7fad739a488c in nft_run_cmd_from_buffer src/libnftables.c:598
+    #19 0x55c43466d377 in main src/main.c:533
+    #20 0x7fad72a46249 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+Indirect leak of 8 byte(s) in 2 object(s) allocated from:
+    #0 0x7fad744b89cf in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fad74be0fb4  (/lib/x86_64-linux-gnu/libjansson.so.4+0x5fb4)
+
+SUMMARY: AddressSanitizer: 1490 byte(s) leaked in 26 allocation(s).
+<<<<
+
+--MgGCK9hK5fxxNVky--
