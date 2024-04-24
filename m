@@ -1,44 +1,47 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34D6D1581F4
-	for <netfilter-devel@vger.kernel.org>; Wed, 24 Apr 2024 21:59:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA298156F46
+	for <netfilter-devel@vger.kernel.org>; Wed, 24 Apr 2024 22:00:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713995997; cv=none; b=k6wSPSKVsBBIm6OnHald80D8qA3Fhnd9nFQldDrEO8lKKoCjff2ZgVh2fdycTWy0V6YwMoeF30FqucxuHxioW3LjBKmv6Gc00VcT2TIhKBPbTAQF0HN8tU01eRBV+jqB0bk9RS30KMJmNPBVIM5PxU1wFfFqTFzxI10DAjUb1IQ=
+	t=1713996051; cv=none; b=U4EgWBrewOWn+myEepeU+GlJQazw47CrZiBofKTYHeUDnMfb0I54PqEvksch20uqvGiXjs1qyWFe2lsBcYKfTouiCCX7um5LojM/5ZHGpfA9MmzFqyeB8XMM52rqGKvelZMEIWR9Pt5V69qh0niMmmGUqZnsJfX2PuAoXx0VaFw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713995997; c=relaxed/simple;
-	bh=8PW/WaVDrQSNt1WBXAnCnsY0xFlIZoJI73tC55sOivo=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=ELr/EJCwkyR2u7YJ3DgsN7LIjXw4LwM8QcE1ibMhTmyduQDKuVGwEhvfq2Ho7gs01gpCaKZ8W/haGfEiZ5E52vm7YP4akZUKj1ptcyrVMhvfNIyXOHMXTBlBjeeRYM/SVQov0UJwDN7CMz5MmeEcBDR0wyxBjXal4pNdSOvNYls=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=G+dU9gKT; arc=none smtp.client-ip=151.80.46.58
+	s=arc-20240116; t=1713996051; c=relaxed/simple;
+	bh=77rRAKRLoX2+PF5bKCRU+RUYrX4Zufk0ZP6RkcOtJ/I=;
+	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=SSZkGE9+Jv5lwNe+l/B1uIHaDbECiSYSgAqODuqZ3uy/ckb5zNsLOqK5GJxeQwAR1EOVA0FC/+ocdlIAchNqy2bFS3fmnUhTPOxZ8byaRtVMnPeT0RgJF2Ce0utuu0go7pIJUgaoGWlop32K72ytujJSxPPCWz57ftwVoHfAnUI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=PIhu4LXe; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="G+dU9gKT"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="PIhu4LXe"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=0W6gXT+xHNw1b7cNjm3GtzQkgKd6udgZYh5d/j6zfU0=; b=G+dU9gKTF4HQOXy4KkMueKW8RN
-	pBeqHMGcHTA+GwU2hnihtebcWcObRgiMTr02kW4UEco3/J3MxTHOr2c8EbCD4/rHV+v03njQeqlHb
-	2pqgaZHY0WF3hgvQ0ApNOzHn2lRUwuHtI5OrW5UYKxOJ+g6NBV/VV5nmNN78VCpXAgbDox1NNxb5u
-	yTzEDXbCXQVpV/5OfI4sLLpsy8SbYXBl8i1mU4bvsKanEyg3noEfX7W/cXfHPIUgEyPL3JRpPGpNY
-	EbA9Y8bJ8pjjYseHAGSAK5b9Tc/I9oeCdtnTgyPs758vMYnuEwyJuuxOrM6mbt17AQmY9vLK55vnm
-	wsUGhNbw==;
+	bh=yjftzZj6lZ0ZdFwLO8M82JWjBLt27jWsUoISIR9D3yk=; b=PIhu4LXeS8ZqImIeRi/ua2tT/+
+	4hwpPI4vBpRbIMH+ED1yCOQCXH0OveBjE6Krr/xdi0pzMO159zykVQE8neJ09ahzqCF46FJzdUawX
+	1wgqEoB+E2vIX5sU7SKoXapNfim3uyHGStKOKcnbw01wzsVulSLKhNNymiH006Y82wwbBv+AirVlN
+	TVW/LMtNq5FSW/qt5SksEZORK8LHgSZiruVSR4El5pLcqVimmw6tOGhWy4T/MVq1djjxREoeY0Hs5
+	RvEIS++zSMWmFaMLewvkYarvYLYHmt2oZEgA2XVngPAaKNLUyoS2zRtkzcTN7yUPwbmpl8ynoBAYH
+	kZMascmw==;
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1rzkef-000000003p8-0foV
+	id 1rzkfY-000000003v9-1Etg
 	for netfilter-devel@vger.kernel.org;
-	Wed, 24 Apr 2024 23:59:53 +0200
+	Thu, 25 Apr 2024 00:00:48 +0200
 From: Phil Sutter <phil@nwl.cc>
 To: netfilter-devel@vger.kernel.org
-Subject: [nft PATCH] tests: shell: Fix for maps/typeof_maps_add_delete with ASAN
-Date: Wed, 24 Apr 2024 23:59:52 +0200
-Message-ID: <20240424215952.19589-1-phil@nwl.cc>
+Subject: [nft PATCH 2/2] doc: nft.8: Highlight "hook" in flowtable description
+Date: Thu, 25 Apr 2024 00:00:48 +0200
+Message-ID: <20240424220048.19935-2-phil@nwl.cc>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20240424220048.19935-1-phil@nwl.cc>
+References: <20240424220048.19935-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -47,65 +50,30 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-With both KASAN and ASAN enabled, my VM is too slow so the ping-induced
-set entry times out before the test checks its existence. Increase its
-timeout to 2s, seems to do the trick.
+Lacking an explicit description of possible hook values, emphasising the
+word in the description text should draw readers' attention in the right
+direction.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- .../testcases/maps/dumps/typeof_maps_add_delete.json-nft      | 2 +-
- tests/shell/testcases/maps/dumps/typeof_maps_add_delete.nft   | 2 +-
- tests/shell/testcases/maps/typeof_maps_add_delete             | 4 ++--
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ doc/nft.txt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/tests/shell/testcases/maps/dumps/typeof_maps_add_delete.json-nft b/tests/shell/testcases/maps/dumps/typeof_maps_add_delete.json-nft
-index 8130c46c154cd..b3204a283d0ad 100644
---- a/tests/shell/testcases/maps/dumps/typeof_maps_add_delete.json-nft
-+++ b/tests/shell/testcases/maps/dumps/typeof_maps_add_delete.json-nft
-@@ -231,7 +231,7 @@
-               "elem": {
-                 "elem": {
-                   "val": "10.2.3.4",
--                  "timeout": 1
-+                  "timeout": 2
-                 }
-               },
-               "data": 2,
-diff --git a/tests/shell/testcases/maps/dumps/typeof_maps_add_delete.nft b/tests/shell/testcases/maps/dumps/typeof_maps_add_delete.nft
-index 9134673cf48a1..e80366b8bf2a4 100644
---- a/tests/shell/testcases/maps/dumps/typeof_maps_add_delete.nft
-+++ b/tests/shell/testcases/maps/dumps/typeof_maps_add_delete.nft
-@@ -16,7 +16,7 @@ table ip dynset {
- 
- 	chain input {
- 		type filter hook input priority filter; policy accept;
--		add @dynmark { 10.2.3.4 timeout 1s : 0x00000002 } comment "also check timeout-gc"
-+		add @dynmark { 10.2.3.4 timeout 2s : 0x00000002 } comment "also check timeout-gc"
- 		meta l4proto icmp ip daddr 127.0.0.42 jump test_ping
- 	}
- }
-diff --git a/tests/shell/testcases/maps/typeof_maps_add_delete b/tests/shell/testcases/maps/typeof_maps_add_delete
-index d2ac9f1ce8c92..2d718c5fecbf3 100755
---- a/tests/shell/testcases/maps/typeof_maps_add_delete
-+++ b/tests/shell/testcases/maps/typeof_maps_add_delete
-@@ -30,7 +30,7 @@ EXPECTED="table ip dynset {
- 	chain input {
- 		type filter hook input priority 0; policy accept;
- 
--		add @dynmark { 10.2.3.4 timeout 1s : 0x2 } comment \"also check timeout-gc\"
-+		add @dynmark { 10.2.3.4 timeout 2s : 0x2 } comment \"also check timeout-gc\"
- 		meta l4proto icmp ip daddr 127.0.0.42 jump test_ping
- 	}
- }"
-@@ -45,7 +45,7 @@ ping -c 1 127.0.0.42
- $NFT get element ip dynset dynmark { 10.2.3.4 }
- 
- # wait so that 10.2.3.4 times out.
--sleep 2
-+sleep 3
- 
- set +e
- $NFT get element ip dynset dynmark { 10.2.3.4 } && exit 1
+diff --git a/doc/nft.txt b/doc/nft.txt
+index 2080c07350f6d..e4eb982e75af8 100644
+--- a/doc/nft.txt
++++ b/doc/nft.txt
+@@ -747,8 +747,8 @@ protocols. Each entry also caches the destination interface and the gateway
+ address - to update the destination link-layer address - to forward packets.
+ The ttl and hoplimit fields are also decremented. Hence, flowtables provides an
+ alternative path that allow packets to bypass the classic forwarding path.
+-Flowtables reside in the ingress hook that is located before the prerouting
+-hook. You can select which flows you want to offload through the flow
++Flowtables reside in the ingress *hook* that is located before the prerouting
++*hook*. You can select which flows you want to offload through the flow
+ expression from the forward chain. Flowtables are identified by their address
+ family and their name. The address family must be one of ip, ip6, or inet. The inet
+ address family is a dummy family which is used to create hybrid IPv4/IPv6
 -- 
 2.43.0
 
