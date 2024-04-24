@@ -1,49 +1,46 @@
 Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADD4115A4AA
-	for <netfilter-devel@vger.kernel.org>; Wed, 24 Apr 2024 12:28:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1DEB15B153
+	for <netfilter-devel@vger.kernel.org>; Wed, 24 Apr 2024 12:29:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713961696; cv=none; b=JOVzsILFi3NPXI3eUmM4PUY1vBWjZp/ABQfjcFXERfEOfnaHtHN5QkmgKY0+37soen4SUr3csA/OOYy4ZxDBGwZXAJ4qVnQCn++IV+Eu4v5Af3xV34RqWVNvbwN4u41cMOLeLedsRwnBra2gP67ppEQsaqN0fe1NbH0Mprn/Low=
+	t=1713961796; cv=none; b=INMfBepR7F0+vC0Lt2IdsCiNDx5ACGcKJfE96vhhrJfahJnKKQxnGkuFDboU4QTlYK0v9nnUZ2WHdpYpyIOlPPcN6tZfOdzTSKSGQFeU+WkbAGUds2PUHaBHRXc5oZ8zJZWVJCnlPkE4xF4d251Ya23V21B0Ect85sx698x+1/E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713961696; c=relaxed/simple;
+	s=arc-20240116; t=1713961796; c=relaxed/simple;
 	bh=8cSOEYRJZBdc3Lypsx/aEkDuaF3/cyvE4R4c261zQas=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=VGSTUoWUL63AoRFfYzxcS0fEqFuoHdh7lw5NttncMq6WFiXjP0hwCUZxKSNUtyLJQ+aQpMRcBALCE48tqcpv4Yng96i5UBkfTd8lqXJgYZkM8Q8FTfQJyjCJHrPl6/a9m6E2UKpbYK3F3Q8p2Sr2GGaaiN5Y0HtZK+42F8kSIOU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=i/MyiMZQ; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=JwfWtyl4; arc=none smtp.client-ip=193.142.43.55
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=hQMzcs8S687r7P4MAwGlSGoLD0LJl5iMuDUMqMoeQ7gTy4lC1ub596TxwRjhFa5m3YwEH9QLagA50PIHcr4OdTuhEgWJo0GuNbrGmVQ7aQi607ynImkHAoxy1Sa1dQlzgK3+Tvfk/4Dsy3tOo3n8v7ipcUlRpG2XjS+l7hDASuE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=YuWXmT8c; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=g0wvTOjD; arc=none smtp.client-ip=193.142.43.55
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="i/MyiMZQ";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="JwfWtyl4"
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="YuWXmT8c";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="g0wvTOjD"
 From: Alexander Kanavin <alex@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1713961693;
+	s=2020; t=1713961793;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
+	 to:to:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding;
 	bh=MxsGLGGu73akh7wmSnXuKw30+CAJucHbKFupEsJrPpQ=;
-	b=i/MyiMZQmrO4wYI6/cQcKRACuG6FuW+qhemtn9IKmcA8bxQxWtri5MaaYGAZtUVPVmbXvb
-	64KcgwrIS6bXWLytjWXDDsiv/lPN1/ncosiQfvEK2VJpD25LH5zBryr6Jso+ofJsRLw6XJ
-	0Kp0cG7XLEly03l+dOe++cs9bCoDdGRhIF2n/t1sbEew+LI1BBn+2omHUyifzehtERk8ID
-	Bs2bIeH+5XEzq5R0jzvtNW3PIKxDpAZIWDudD2oZmjqnJ6I85KuAxVf6dY8PFI7yqixf03
-	uDaoqENwJWCojGUQmwxInrToWPWa5j2rCS5ITzDRam/6kWrURHubf8/myIcxkw==
+	b=YuWXmT8cvLSUQXhH8hOtvH2eNu6z72GMqO0/IbjvpFps+v8H45xGXo9mE30XixbeJhvgaD
+	sL229sXdkqgxwFWPSPXfEchNrtjzVP7SrNOLr+/PYrjnDe8iU4JbqKLtpvzezGqegv2lVV
+	Jd5DFKXTPt3rWl3gpXbTrsSKDrBKD/CbyLyLSjK2W+rsNF6tOO/LiNxVZtDK1RYx+5cJ9q
+	yQ6BEuBSRloA2Ym6eWV9BWbuout4VUKU6OzWOXVT4yXzFyJ2MV1S4ShOmYdAYfmHKyUV6x
+	0U6f4Yi2I6tw2M48dcPJr3uWnHpeBIpk1o7VbzmPJwGPvEpY0ba0YSTOLqnmDg==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1713961693;
+	s=2020e; t=1713961793;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
+	 to:to:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding;
 	bh=MxsGLGGu73akh7wmSnXuKw30+CAJucHbKFupEsJrPpQ=;
-	b=JwfWtyl4NX4qsivW9ORNn0pBXmVWqbzU5oyJ1q4p0NKSSavkO4NLXSK9wWCmPSaXrD6QYi
-	atoDOUKblxrNXnDg==
+	b=g0wvTOjDZ8Yk9mJIrsvNWr96flVpwZ3p+Z4Umqd8dOIAQwl+mn8MF4E0w2keK8b7NzoQvT
+	GMyFTOClpERzK3BA==
 To: phil@nwl.cc,
 	netfilter-devel@vger.kernel.org
-Cc: "Maxin B. John" <maxin.john@intel.com>,
-	Khem Raj <raj.khem@gmail.com>,
-	Alexander Kanavin <alex@linutronix.de>
 Subject: [iptables][PATCH] configure: Add option to enable/disable libnfnetlink
-Date: Wed, 24 Apr 2024 14:28:04 +0200
-Message-Id: <20240424122804.980366-1-alex@linutronix.de>
+Date: Wed, 24 Apr 2024 14:29:52 +0200
+Message-Id: <20240424122952.981359-1-alex@linutronix.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
