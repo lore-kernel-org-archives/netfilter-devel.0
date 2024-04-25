@@ -1,77 +1,66 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CD8BA3F;
-	Thu, 25 Apr 2024 00:30:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8F78F513;
+	Thu, 25 Apr 2024 03:12:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714005029; cv=none; b=We7rwI7RSg77xO63zL4+MLLpLq0oPV+0VG0db5iNks6nNqh4IGr3z+VdblcTKiPLJLlKT851eiwQIHEf6yqs1LOT2AP+TRvaoxCQzt0NnaKdtKScKDOg9b5dEPTKdYsH+WzBYEFzpr8jn+832NDK+aAy3jmk6jxd44DLkzPXDw4=
+	t=1714014757; cv=none; b=qLuhEiTxRwQPDgzZx8mQQch319DdTsLoxugQLQ/G3sZGZdQeTLhabJD950yCU1z9x2MDoVup7lO0SouBZblOz7lE3ub6Nr0MNrbltB38NdG6jaC1btQob7fFDqf3/1taIn4RVA3rfBjswLDu9Hes1X0bJ5iWIEtKJbdmaqPOFqU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714005029; c=relaxed/simple;
-	bh=7V9b27qCWrZrOqKoA0pgyFCHk4yqPSPUuvkVppirZS4=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=kgrC7W7STimGwyxNQewn/bJ+dqPIkWhpkdqfaNPjEaWgG8KO9iwZ2A81AbfoQzZuCqkfrSRbINROldGePNOr0+PprcEJBx3X9KYBolrlXVWY/SDnbdOO2qIJCkHrPr4hLxzz2AgjZvK7w0fVQevTooaznkPfpybfhsmnmWxYiI4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eYgliMNF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714014757; c=relaxed/simple;
+	bh=Cc9/KJ14ILnwNdU8czLRH7creacZ14o3hne1jmTaNs0=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=RsAbKdNp1mjCpTw7Guq/RC+smplDVwBwX1GiCMHzDvCSeMwaSHvw45y5qFh9NDn/XvUkQmS5r3Z87dljqRElzLc+FVU3IdOd0Z3OvcHIYskq8yLOBGR5a1bGkrHOO7r7cNUZvDgnCrS/Wg22ibqGQ/FqbhF+DmHZbrs1jCyzJGQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PspTijnP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eYgliMNF"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 27045C113CE;
-	Thu, 25 Apr 2024 00:30:29 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PspTijnP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55C57C113CD;
+	Thu, 25 Apr 2024 03:12:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1714005029;
-	bh=7V9b27qCWrZrOqKoA0pgyFCHk4yqPSPUuvkVppirZS4=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=eYgliMNFklftChCOl5/gsq/K2ZS8JC2p+6hHycQpe6SrkLPkasxS3OajEiFou/E4X
-	 vvcsV2KZ/MSFxI/pOZWdhvHnYftlW1ETVIK3RFdxAAl0QUxAEPKQbwqZYTYxuzDGVK
-	 B/8lMwxBGNo+MwSf0FSSoZDkePfCxoL/mAXvkYG/mmDiOxX3X0088U9xSZMdYL7Hxl
-	 tAaz43uTXwpJFeyOGK/a4JJiC4G8pTY1fNgDIpOvUgDbONdA/ZPdS/5SxLbUdaVtnJ
-	 DsU2RusorwrXrVYM9J+AsKZ+cdGdCTstb0fRhK4V7AsBJ9TMqlS4DHlm2GB+EQCiwt
-	 n0vrQ8hgQx1fg==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 11A6DCF21C0;
-	Thu, 25 Apr 2024 00:30:29 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=k20201202; t=1714014756;
+	bh=Cc9/KJ14ILnwNdU8czLRH7creacZ14o3hne1jmTaNs0=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=PspTijnPTb4cLwKaUXaBK6lgKqrykqW7TnXryDjg7qy1V4DjZ9qYPfEzdMwJcLXmE
+	 2q4vN4nwJllD1z/pH7aACsx2p2ofCITa183q4xZiAclRBaq/82Q7A/KwffAzVOELei
+	 BATUW6SiIq4LeUt/sDYn/hnGKl2shhXeP1rwhzi0rZHTU/OxLjZRFcQA8QACF8kBTq
+	 Md3p5a2MNJIshoUuU+UOn1xH4LNXomCzxGby8JGUI0mSu2HkcgWhSAkP5pU+L9gZk0
+	 nFvpPG5wZraQmtC6JOcQTZn622/SbjwBkjxqFODHiN0ijyqtZ768dGuDQszSMnLkI8
+	 ayXyd+53H5Hzw==
+Date: Wed, 24 Apr 2024 20:12:34 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Thomas =?UTF-8?B?V2Vpw59zY2h1aA==?= <linux@weissschuh.net>
+Cc: Luis Chamberlain <mcgrof@kernel.org>, Joel Granados
+ <j.granados@samsung.com>, Kees Cook <keescook@chromium.org>, Eric Dumazet
+ <edumazet@google.com>, Dave Chinner <david@fromorbit.com>,
+ linux-fsdevel@vger.kernel.org, netdev@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-s390@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org,
+ linux-mm@kvack.org, linux-security-module@vger.kernel.org,
+ bpf@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+ linux-xfs@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+ linux-perf-users@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, kexec@lists.infradead.org,
+ linux-hardening@vger.kernel.org, bridge@lists.linux.dev,
+ lvs-devel@vger.kernel.org, linux-rdma@vger.kernel.org,
+ rds-devel@oss.oracle.com, linux-sctp@vger.kernel.org,
+ linux-nfs@vger.kernel.org, apparmor@lists.ubuntu.com
+Subject: Re: [PATCH v3 00/11] sysctl: treewide: constify ctl_table argument
+ of sysctl handlers
+Message-ID: <20240424201234.3cc2b509@kernel.org>
+In-Reply-To: <20240423-sysctl-const-handler-v3-0-e0beccb836e2@weissschuh.net>
+References: <20240423-sysctl-const-handler-v3-0-e0beccb836e2@weissschuh.net>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next] selftests: netfilter: nft_zones_many.sh: set ct
- sysctl after ruleset load
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <171400502906.22410.3606824868899948697.git-patchwork-notify@kernel.org>
-Date: Thu, 25 Apr 2024 00:30:29 +0000
-References: <20240422102546.2494-1-fw@strlen.de>
-In-Reply-To: <20240422102546.2494-1-fw@strlen.de>
-To: Florian Westphal <fw@strlen.de>
-Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
- edumazet@google.com, kuba@kernel.org, netfilter-devel@vger.kernel.org,
- pablo@netfilter.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Hello:
+On Tue, 23 Apr 2024 09:54:35 +0200 Thomas Wei=C3=9Fschuh wrote:
+> The series was split from my larger series sysctl-const series [0].
+> It only focusses on the proc_handlers but is an important step to be
+> able to move all static definitions of ctl_table into .rodata.
 
-This patch was applied to netdev/net-next.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
-
-On Mon, 22 Apr 2024 12:25:42 +0200 you wrote:
-> nf_conntrack_udp_timeout sysctl only exist once conntrack module is loaded,
-> if this test runs standalone on a modular kernel sysctl setting fails,
-> this can result in test failure as udp conntrack entries expire too fast.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  tools/testing/selftests/net/netfilter/nft_zones_many.sh | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-
-Here is the summary with links:
-  - [net-next] selftests: netfilter: nft_zones_many.sh: set ct sysctl after ruleset load
-    https://git.kernel.org/netdev/net-next/c/8e2b318a65c3
-
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+Split this per subsystem, please.
