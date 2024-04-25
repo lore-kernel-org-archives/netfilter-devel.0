@@ -1,89 +1,99 @@
-Received: from todd.t-8ch.de (todd.t-8ch.de [159.69.126.157])
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 265FC6CDA5;
-	Thu, 25 Apr 2024 07:10:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.69.126.157
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BC3D8005C
+	for <netfilter-devel@vger.kernel.org>; Thu, 25 Apr 2024 08:51:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714029040; cv=none; b=uZlhU/LfITufdr6wUyubmn7V68w/ZlTtzgNBBFxXy8bUwO01JD1et/nSI0mp7VLDgueIne3fITim+YnlqFAhs+pEgdNN6rxk/Zj2zxO9lJq1zbr3218wWdisDtRsno2+CyirAzvAvpVOwdFPn2Nmhvjdz3kt18Hz7V5BGdSQI2o=
+	t=1714035067; cv=none; b=TJ4QY/ywDp3Jvc9c7pE+9ycv9rtOUhVJW/V3czrMrr7KhiAqhqUmMxgtjnukt/56TnCHVlHo8jDSASMNTAWHVthwazAFInyG5AA4oc+qyYbc7FbwmUfjVEohyMCMTSSGmBoCC0ywjBPvrSlAoQ3Oy6WkhXoWdxILzPMQnU9pja4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714029040; c=relaxed/simple;
-	bh=rmNCwj/QZXocvFu/SV+UsAbq1yc1Onrw5e/MM6tpI4o=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gieOt1pLr+D0qMK4OYcfBKCyFuFyZJ7Do7RWMt3ayutKnlctUSr2Giaov9NdiRm4Za70PQzA3qkWCBKWf1/H9AA4Nu5ldrBgQ/XdgGVcB+r1Ht+ee3gDsTp/K9jbn607DyqrWZKqMU3wvsVD4YOAM1Fwrm2yuESrIdV3F2KqHVU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=MmasBUph; arc=none smtp.client-ip=159.69.126.157
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=weissschuh.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=weissschuh.net
+	s=arc-20240116; t=1714035067; c=relaxed/simple;
+	bh=4+5ufroLsp7+QOppbDi9XtkehsElhb0MOUyNrWX7bRo=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=WXO38WTNaIP6tbKIpdt5s+CRVPv1SQpgVAM1bD28iRXpqL27yLsmTAYFV59NiGLCaR8Bf8iHSiZxefBWgKo+C6+elHPRUoamSantynIOkYpncYb4TAiEnJM0NQg7O58xQr2wUPZop9VB5PDhsi6jZOlOo+3DlaNNkxCBs9vZBuc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=L0mCBZwm; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=6qoSKypz; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="MmasBUph"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=weissschuh.net;
-	s=mail; t=1714029027;
-	bh=rmNCwj/QZXocvFu/SV+UsAbq1yc1Onrw5e/MM6tpI4o=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=MmasBUphC0hDmcDselWsqNDchcFNLbtyyIXYaTEfQv4BLOsVbY80KeyHb5BvHn9uV
-	 mXfX+53b9fklgAHnv4JHOlIL0SSIIXm5AmCALLJVlcCrmQacW/Cc+9xB5aBl8A7Dwb
-	 B9LRLV8RKBn3hp3tvoCofURazzoY7NMe3hrGTd84=
-Date: Thu, 25 Apr 2024 09:10:27 +0200
-From: Thomas =?utf-8?Q?Wei=C3=9Fschuh?= <linux@weissschuh.net>
-To: Jakub Kicinski <kuba@kernel.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>, 
-	Joel Granados <j.granados@samsung.com>, Kees Cook <keescook@chromium.org>, 
-	Eric Dumazet <edumazet@google.com>, Dave Chinner <david@fromorbit.com>, 
-	linux-fsdevel@vger.kernel.org, netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	linux-s390@vger.kernel.org, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, 
-	linux-mm@kvack.org, linux-security-module@vger.kernel.org, bpf@vger.kernel.org, 
-	linuxppc-dev@lists.ozlabs.org, linux-xfs@vger.kernel.org, linux-trace-kernel@vger.kernel.org, 
-	linux-perf-users@vger.kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	kexec@lists.infradead.org, linux-hardening@vger.kernel.org, bridge@lists.linux.dev, 
-	lvs-devel@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, 
-	linux-sctp@vger.kernel.org, linux-nfs@vger.kernel.org, apparmor@lists.ubuntu.com
-Subject: Re: [PATCH v3 00/11] sysctl: treewide: constify ctl_table argument
- of sysctl handlers
-Message-ID: <9e657181-866a-4626-82d0-e0030051b003@t-8ch.de>
-References: <20240423-sysctl-const-handler-v3-0-e0beccb836e2@weissschuh.net>
- <20240424201234.3cc2b509@kernel.org>
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="L0mCBZwm";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="6qoSKypz"
+From: Alexander Kanavin <alex@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1714035062;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=vGZrz31VRywk9Kr2tFM+E2LwH3II9gcrv9VHdHgqzw0=;
+	b=L0mCBZwm1ylNveb+bgLoofkkyvgYdNn0I+MEEEUf7mV+PaNzakMyED8ymHbkpZ4KnmJVaR
+	3ZNnBD4IY1gUUfZbU/007RJdYss62L4PIOINjppX682AStTORmHaQ7Grx+FwGBSY+KjXPl
+	HsEZCwRdO+uI/RjjeEQqpc6cS5eIIGaszbGsG41sP8hu+ttqwSbXB1ByDTRBnhEaaKasFa
+	WgG8EG4w5QCmAkrAZfsaezSeGDH5+4bxrwc80i/zxnYidQ1SyfNPEjP2ZVaI1iwfhfuUEl
+	6EGCKtG2iGcE4iB/JsoTLzKmiT4r7kp08ImMGUs9qTeailO2+opsXbHuMd8MMA==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1714035062;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=vGZrz31VRywk9Kr2tFM+E2LwH3II9gcrv9VHdHgqzw0=;
+	b=6qoSKypzMlAExr39QE/jJBvBSsqmnvtcajsXD93ti1QKYHBnk15VqipfErAfu7lp1mEi+T
+	hfqIzcV23ya8qxDA==
+To: phil@nwl.cc,
+	netfilter-devel@vger.kernel.org
+Subject: [iptables][PATCHv2] configure: Add option to enable/disable libnfnetlink
+Date: Thu, 25 Apr 2024 10:51:02 +0200
+Message-Id: <20240425085102.3528036-1-alex@linutronix.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20240424201234.3cc2b509@kernel.org>
 
-On 2024-04-24 20:12:34+0000, Jakub Kicinski wrote:
-> On Tue, 23 Apr 2024 09:54:35 +0200 Thomas Weißschuh wrote:
-> > The series was split from my larger series sysctl-const series [0].
-> > It only focusses on the proc_handlers but is an important step to be
-> > able to move all static definitions of ctl_table into .rodata.
-> 
-> Split this per subsystem, please.
+From: "Maxin B. John" <maxin.john@intel.com>
 
-Unfortunately this would introduce an enormous amount of code churn.
+Default behavior (autodetecting) does not change, but specifying
+either option would explicitly disable or enable libnfnetlink support,
+and if the library is not found in the latter case, ./configure will error
+out.
 
-The function prototypes for each callback have to stay consistent.
-So a another callback member ("proc_handler_new") is needed and users
-would be migrated to it gradually.
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+Signed-off-by: Maxin B. John <maxin.john@intel.com>
+Signed-off-by: Alexander Kanavin <alex@linutronix.de>
+---
+ configure.ac | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-But then *all* definitions of "struct ctl_table" throughout the tree need to
-be touched.
-In contrast, the proposed series only needs to change the handler
-implementations, not their usage sites.
+diff --git a/configure.ac b/configure.ac
+index d99fa3b9..c9194da0 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -63,6 +63,9 @@ AC_ARG_WITH([pkgconfigdir], AS_HELP_STRING([--with-pkgconfigdir=PATH],
+ AC_ARG_ENABLE([nftables],
+ 	AS_HELP_STRING([--disable-nftables], [Do not build nftables compat]),
+ 	[enable_nftables="$enableval"], [enable_nftables="yes"])
++AC_ARG_ENABLE([libnfnetlink],
++    AS_HELP_STRING([--disable-libnfnetlink], [Do not use netfilter netlink library]),
++    [enable_libnfnetlink="$enableval"], [enable_libnfnetlink="auto"])
+ AC_ARG_ENABLE([connlabel],
+ 	AS_HELP_STRING([--disable-connlabel],
+ 	[Do not build libnetfilter_conntrack]),
+@@ -113,8 +116,14 @@ AM_CONDITIONAL([ENABLE_SYNCONF], [test "$enable_nfsynproxy" = "yes"])
+ AM_CONDITIONAL([ENABLE_NFTABLES], [test "$enable_nftables" = "yes"])
+ AM_CONDITIONAL([ENABLE_CONNLABEL], [test "$enable_connlabel" = "yes"])
+ 
+-PKG_CHECK_MODULES([libnfnetlink], [libnfnetlink >= 1.0],
+-	[nfnetlink=1], [nfnetlink=0])
++# If specified explicitly on the command line, error out when library was not found
++AS_IF([test "x$enable_libnfnetlink" = "xyes"], [
++    PKG_CHECK_MODULES([libnfnetlink], [libnfnetlink >= 1.0], [nfnetlink=1])
++    ])
++# Otherwise, disable and continue
++AS_IF([test "x$enable_libnfnetlink" = "xauto"], [
++    PKG_CHECK_MODULES([libnfnetlink], [libnfnetlink >= 1.0], [nfnetlink=1], [nfnetlink=0])
++    ])
+ AM_CONDITIONAL([HAVE_LIBNFNETLINK], [test "$nfnetlink" = 1])
+ 
+ if test "x$enable_bpfc" = "xyes" || test "x$enable_nfsynproxy" = "xyes"; then
+-- 
+2.39.2
 
-There are many, many more usage sites than handler implementations.
-
-Especially, as the majority of sysctl tables use the standard handlers
-(proc_dostring, proc_dobool, ...) and are not affected by the proposed
-aproach at all.
-
-And then we would have introduced a new handler name "proc_handler_new"
-and maybe have to do the whole thing again to rename it back to
-the original and well-known "proc_handler".
-
-
-Of course if somebody has a better aproach, I'm all ears.
-
-
-Thomas
