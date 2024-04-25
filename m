@@ -1,29 +1,32 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C1A812B156
-	for <netfilter-devel@vger.kernel.org>; Thu, 25 Apr 2024 12:08:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA59F84DFC
+	for <netfilter-devel@vger.kernel.org>; Thu, 25 Apr 2024 12:09:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714046941; cv=none; b=YwbLdZSQPOTb3E0XXUK3tSaopBD7AYPqofji5VghBnt3jYXtL0+Jm0IndBhii+h7CDtHd8QGkcbi/QM9OWuWHYcpeGfcASPmHjkXHyUTuY1tq+ld8UhxWrW9PsAoCZlekVHyJJIfbD+J7DSZaiw2NswPpRklgVn2u15gsRpxyno=
+	t=1714046945; cv=none; b=jXhSBcmCrITa8JP3/TdnC7gHqqzZ58smOzLxA97CxHnA/Xfw3Mwaxkn/xJI3zamvurMD+OkUgQ805YoYfW+tJM34mVmQ06BFlhHet63f2ep6PSo9098w7EFStlFD5gtUH4MoEXKJ+cF/PoBA/iThnBMz3+7FY5CUD3qPhvi5sxM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714046941; c=relaxed/simple;
-	bh=Yrm+gBiqXzECirOGHtZYntlDf2idwaBLUIfF0lR9a/g=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ZTdi9twtxM9zYdhWrr+EE085ns12t8gHVjay5c/DHzljiRduhzIgLFannDJg0wKcaEs07UlCCXmQdBTaYiMCNXRcZQqNNY9YapLgoNbPAgYGUSSriF8k7tlpTfXSSL9w8f6iHZnv7UGxWCe399NruzzZC+6UoiBBFQwHDVEQnZ4=
+	s=arc-20240116; t=1714046945; c=relaxed/simple;
+	bh=BkVwatDBlB/NF7ijNKYzujNFvuGKqzhMrtjLrNfhZrY=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=So3FgK0ZhiYgvy3fpQyb74FIAgBJ+8a11lP+43DwNNfUcrRr1Yn5C6XUhLTOfXtr+zPlocmP5fVlKW6AUA8u+Z8ZT3WkJ2r4RMxTCAzG5Jhi/q2HCn7Ii/wSDhZzUpnJ3R2x2p+zuLPGN0jZy5vhbrfRFjltijh+ybkzGI53M4I=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1rzxuL-0007nY-F4; Thu, 25 Apr 2024 14:08:57 +0200
+	id 1rzxuP-0007nm-HU; Thu, 25 Apr 2024 14:09:01 +0200
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: sbrivio@redhat.com,
 	Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v2 0/8] nft_set_pipapo: remove cannot-fail allocations on commit and abort
-Date: Thu, 25 Apr 2024 14:06:39 +0200
-Message-ID: <20240425120651.16326-1-fw@strlen.de>
+Subject: [PATCH nf-next v2 1/8] netfilter: nft_set_pipapo: move prove_locking helper around
+Date: Thu, 25 Apr 2024 14:06:40 +0200
+Message-ID: <20240425120651.16326-2-fw@strlen.de>
 X-Mailer: git-send-email 2.43.2
+In-Reply-To: <20240425120651.16326-1-fw@strlen.de>
+References: <20240425120651.16326-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -32,54 +35,55 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Changes since v1:
- - rebase on top of nf/net-next tree
- - patch
-   "netfilter: nf_tables: pass new nft_iter_type hint to walker" has
-   been removed, a similar change has been applied already
+Preparation patch, the helper will soon get called from insert
+function too.
 
-I've retained Stefanos RvB tags for commits that have not been changed.
-Tested with nftables py/shell tests and nft_concat_range on a debug
-kernel.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
+---
+ net/netfilter/nft_set_pipapo.c | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-V1 cover letter:
-
-pipapo keeps one active set data (used from datapath) and one shadow
-copy, in priv->clone, used from transactional path to update the set.
-
-On abort and commit, the clone/shadow becomes the active set,
-and a new clone is made for the next transaction.
-
-The problem with this is that we cannot fail in ->commit.
-
-This patchset rearranges priv->clone allocation so the cloning occurs on
-the first insertion/removal.
-
-set flush needs a bit of extra work, this is done by adding a iter_type
-hint to the walker callbacks so that a set flush will be able to perform
-the needed clone.
-
-The dirty flag is no longer meaningful after these changes, so last
-patch removes it again.
-
-After this patch it is possible to elide calls to nft_setelem_remove
-from the abort path IFF the set backend implements an abort() function,
-but this change isn't included here.
-
-Florian Westphal (8):
-  netfilter: nft_set_pipapo: move prove_locking helper around
-  netfilter: nft_set_pipapo: make pipapo_clone helper return NULL
-  netfilter: nft_set_pipapo: prepare destroy function for on-demand clone
-  netfilter: nft_set_pipapo: prepare walk function for on-demand clone
-  netfilter: nft_set_pipapo: merge deactivate helper into caller
-  netfilter: nft_set_pipapo: prepare pipapo_get helper for on-demand clone
-  netfilter: nft_set_pipapo: move cloning of match info to insert/removal path
-  netfilter: nft_set_pipapo: remove dirty flag
-
- net/netfilter/nft_set_pipapo.c | 261 ++++++++++++++++-----------------
- net/netfilter/nft_set_pipapo.h |   2 -
- 2 files changed, 126 insertions(+), 137 deletions(-)
-
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index 187138afac45..b8205d961ba4 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -1247,6 +1247,17 @@ static int pipapo_realloc_scratch(struct nft_pipapo_match *clone,
+ 	return 0;
+ }
+ 
++static bool nft_pipapo_transaction_mutex_held(const struct nft_set *set)
++{
++#ifdef CONFIG_PROVE_LOCKING
++	const struct net *net = read_pnet(&set->net);
++
++	return lockdep_is_held(&nft_pernet(net)->commit_mutex);
++#else
++	return true;
++#endif
++}
++
+ /**
+  * nft_pipapo_insert() - Validate and insert ranged elements
+  * @net:	Network namespace
+@@ -1799,17 +1810,6 @@ static void nft_pipapo_commit(struct nft_set *set)
+ 	priv->clone = new_clone;
+ }
+ 
+-static bool nft_pipapo_transaction_mutex_held(const struct nft_set *set)
+-{
+-#ifdef CONFIG_PROVE_LOCKING
+-	const struct net *net = read_pnet(&set->net);
+-
+-	return lockdep_is_held(&nft_pernet(net)->commit_mutex);
+-#else
+-	return true;
+-#endif
+-}
+-
+ static void nft_pipapo_abort(const struct nft_set *set)
+ {
+ 	struct nft_pipapo *priv = nft_set_priv(set);
 -- 
 2.43.2
 
