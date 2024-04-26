@@ -1,108 +1,225 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from mailout2.w1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66E0C823DC
-	for <netfilter-devel@vger.kernel.org>; Fri, 26 Apr 2024 05:45:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19A9913BADA;
+	Fri, 26 Apr 2024 06:59:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.118.77.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714110307; cv=none; b=lNSJSsy0tnuBdpGJnhnESD657Akgrxgmhkfojq/BNUrTh/GjsN6aZ+rJoPNvmPgTG/n4PZDEyp/+EB4ndrRKMD9Dt++2VmRfVMfcdI7HldhOO8BTdc1zVZ0GaKuaxrmHdFjw6Frzw2pNeRYiKV4Ya51whKa/NbwWQ417jHatMLM=
+	t=1714114782; cv=none; b=CKtCHCWXFDvR1ZE5ActtLoe0cbfXwL2s1+Fgxed+h5oLaLH2FyZ+M4yaK4B3InBFyLqrLkUmNsJw/HTARJGwwOWNYtqduAnT0x7RzTBWMWqEY/N9BYZkUQQVw9K5dLU3vr/e36RGNyD/mKUHAOoiCR8l0SkiRVS45EBUeIqAwHw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714110307; c=relaxed/simple;
-	bh=x5fCGmKPiA2lffgM7W4p4nLMa6fGYMsWURoEzbEwQpU=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=H6eLlcT3Zo2tKKlPSfR1nQ6vfvnBLCV7j8al5U+n67vzeujbqSD4GbPWrnjXA9WQrwTUy8lqU04yxuZwxG04JuMl1G4w5XL/YlC2JwzAOCLvo1eMmYGFyF+iLr/L4QBNIiSZATEEy0yc8PmDMhOgA5Axoj2/1+h08Hw8NgQMj1A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=SP5ZhtsD; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1714114782; c=relaxed/simple;
+	bh=VegRhdx8vhbP1fdPNReSsBiQd6jF0kNOXjrPgTBgW2g=;
+	h=Date:From:To:CC:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To:References; b=mvkJ82DunPAxXJWQMEVQzI6kTK9nEE1z0kPO7eQdP/lOzRV9YAS3/WRnrXy4TEapc8R65cEEqx8M3ZGHvRaFG7y3uyVrspaEQQs3lp9sB5Ju3Kad12OvAs98cAyucCLdtpuucrqil6c0bL41g+7XxKg297N986QBvToxZcCYsng=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=o3gAAC4D; arc=none smtp.client-ip=210.118.77.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="SP5ZhtsD"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1714110305;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=azkTO+VrLcVY1n/gUdPW60eiZibK6orDA9NsUrpoA1A=;
-	b=SP5ZhtsDxOPl75AYEGcd9fOjfY3Kt/ErzqQl0s+h66maEHPUt8l3Dv+fh6Jgump5BIa1L4
-	7Zu8P7KqLnr1DBGFW2SYxxzXnp49KwTng6PmdWwyhvtP0V+xyVXnO/VRh3JU9gaTqhMH56
-	9CFs9sKgCd2meGDIkcol6Qnsa9ZeuCQ=
-Received: from mail-ej1-f72.google.com (mail-ej1-f72.google.com
- [209.85.218.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-369-Kv7egY6pMbeActDKzknGRg-1; Fri, 26 Apr 2024 01:45:01 -0400
-X-MC-Unique: Kv7egY6pMbeActDKzknGRg-1
-Received: by mail-ej1-f72.google.com with SMTP id a640c23a62f3a-a558739aaf4so111129866b.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Apr 2024 22:45:01 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1714110299; x=1714715099;
-        h=content-transfer-encoding:mime-version:organization:references
-         :in-reply-to:message-id:subject:cc:to:from:date:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=azkTO+VrLcVY1n/gUdPW60eiZibK6orDA9NsUrpoA1A=;
-        b=lY6VBpfo2jje4KtaYLjy76eO5CRbP4Lp71rmOPvPjk3VxQM5nJQahRJ5u0Lwg3rafG
-         uZPUd4XlJERovadQhIauVyzngmCdfoSz/eVS9/VM2UGuAvIy1TMZXAbyVWPxbOwdsKX9
-         WjtjHwc3FFQ17Hyi4B5hVTIakALZWEXoI2CIGHp7v28ifdy27F17WePoQQ6nCDZQ49wx
-         ohraYLz40dFnw+mTflhyFjKxhQof++A0ygCVgHl7z8bHTai0HAq2rPijoTH1ErWmZS/d
-         SgKCMPqO1J0QdRZehKjlHxlqBKEswr5k+Fw68hnfTL079E5CmbhWim3B5LPnN6hq9e3u
-         MOzA==
-X-Gm-Message-State: AOJu0YxSI80jMSJx2E0quLm2rUpZwm360VBIyr4lK6ERNaZP3UFqO7a1
-	+fdwofS85GoUFqz620GSbi+qm/jJqAdLYCC4N8Xu418Jzmjx8o9VxCcf325Y+BK++rHsGjT9MuE
-	DgwBfsPWS/8Q7R+VQPbmp4BvIqMFTt4Kzi4/8MDKNinxMoZpEL4QLS9Y37msI9i+8c2nc0gqEcZ
-	c/
-X-Received: by 2002:a17:907:bb97:b0:a51:dcda:dcde with SMTP id xo23-20020a170907bb9700b00a51dcdadcdemr1415724ejc.70.1714110299412;
-        Thu, 25 Apr 2024 22:44:59 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IHnJEtZSzwzILllMwrOgkK7+s1tYR7+R6jxbh5gcp5tKi+9HD8Nzf6YxIB0g+sbGRZao8FjKQ==
-X-Received: by 2002:a17:907:bb97:b0:a51:dcda:dcde with SMTP id xo23-20020a170907bb9700b00a51dcdadcdemr1415674ejc.70.1714110298344;
-        Thu, 25 Apr 2024 22:44:58 -0700 (PDT)
-Received: from maya.cloud.tilaa.com (maya.cloud.tilaa.com. [164.138.29.33])
-        by smtp.gmail.com with ESMTPSA id dv25-20020a170906b81900b00a58befa5d9fsm1003237ejb.69.2024.04.25.22.44.57
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 25 Apr 2024 22:44:57 -0700 (PDT)
-Date: Fri, 26 Apr 2024 07:44:24 +0200
-From: Stefano Brivio <sbrivio@redhat.com>
-To: Florian Westphal <fw@strlen.de>
-Cc: <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nf-next v2 4/8] netfilter: nft_set_pipapo: prepare walk
- function for on-demand clone
-Message-ID: <20240426074424.670803cf@elisabeth>
-In-Reply-To: <20240425120651.16326-5-fw@strlen.de>
-References: <20240425120651.16326-1-fw@strlen.de>
-	<20240425120651.16326-5-fw@strlen.de>
-Organization: Red Hat
-X-Mailer: Claws Mail 4.2.0 (GTK 3.24.36; x86_64-pc-linux-gnu)
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="o3gAAC4D"
+Received: from eucas1p2.samsung.com (unknown [182.198.249.207])
+	by mailout2.w1.samsung.com (KnoxPortal) with ESMTP id 20240426065937euoutp027cea4fdb8852804e5cac02c0bf0ab966~Jwk8Ih6jH1312713127euoutp02C;
+	Fri, 26 Apr 2024 06:59:37 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.w1.samsung.com 20240426065937euoutp027cea4fdb8852804e5cac02c0bf0ab966~Jwk8Ih6jH1312713127euoutp02C
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
+	s=mail20170921; t=1714114777;
+	bh=RAahLIMOGiGmOJ9Ik/GbtwXwXyGGxOO3w+fnlrkOweI=;
+	h=Date:From:To:CC:Subject:In-Reply-To:References:From;
+	b=o3gAAC4DRR19i8p+CY7Jaz+Qo7PWP06ureHe9d/TcZriAHZ2f3aAxLOXB8qIqAjmJ
+	 c0zR+f5CxaDOMhWQSuyRA1I6WXwTVGjbpwksc0S34zwT5P9PHBqZAExdEPB+VC3oYY
+	 1EA1odNQZ9TB3mOjACaztmiuamJXVODpZ1+3kfMI=
+Received: from eusmges3new.samsung.com (unknown [203.254.199.245]) by
+	eucas1p1.samsung.com (KnoxPortal) with ESMTP id
+	20240426065937eucas1p17e6e14a8fa83a831e1f46436d35ff764~Jwk74nzHJ2936429364eucas1p1F;
+	Fri, 26 Apr 2024 06:59:37 +0000 (GMT)
+Received: from eucas1p1.samsung.com ( [182.198.249.206]) by
+	eusmges3new.samsung.com (EUCPMTA) with SMTP id 19.CD.09620.9D05B266; Fri, 26
+	Apr 2024 07:59:37 +0100 (BST)
+Received: from eusmtrp2.samsung.com (unknown [182.198.249.139]) by
+	eucas1p2.samsung.com (KnoxPortal) with ESMTPA id
+	20240426065936eucas1p2971394a913727d431786adef9db8e9b4~Jwk7TFZ3o0634906349eucas1p2L;
+	Fri, 26 Apr 2024 06:59:36 +0000 (GMT)
+Received: from eusmgms1.samsung.com (unknown [182.198.249.179]) by
+	eusmtrp2.samsung.com (KnoxPortal) with ESMTP id
+	20240426065936eusmtrp2aa3306842099a9b2cba9d4fa0c84649c~Jwk7RY8kS1910019100eusmtrp2Y;
+	Fri, 26 Apr 2024 06:59:36 +0000 (GMT)
+X-AuditID: cbfec7f5-d1bff70000002594-9d-662b50d95d99
+Received: from eusmtip1.samsung.com ( [203.254.199.221]) by
+	eusmgms1.samsung.com (EUCPMTA) with SMTP id 51.F1.08810.8D05B266; Fri, 26
+	Apr 2024 07:59:36 +0100 (BST)
+Received: from CAMSVWEXC02.scsc.local (unknown [106.1.227.72]) by
+	eusmtip1.samsung.com (KnoxPortal) with ESMTPA id
+	20240426065936eusmtip1d5ad5eb9c96b466fadc134bb0b11d2c7~Jwk63eBOi1002010020eusmtip1x;
+	Fri, 26 Apr 2024 06:59:36 +0000 (GMT)
+Received: from localhost (106.110.32.44) by CAMSVWEXC02.scsc.local
+	(2002:6a01:e348::6a01:e348) with Microsoft SMTP Server (TLS) id 15.0.1497.2;
+	Fri, 26 Apr 2024 07:59:35 +0100
+Date: Fri, 26 Apr 2024 08:59:31 +0200
+From: Joel Granados <j.granados@samsung.com>
+To: Jakub Kicinski <kuba@kernel.org>
+CC: Joel Granados via B4 Relay <devnull+j.granados.samsung.com@kernel.org>,
+	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+	Paolo Abeni <pabeni@redhat.com>, Alexander Aring <alex.aring@gmail.com>,
+	Stefan Schmidt <stefan@datenfreihafen.org>, Miquel Raynal
+	<miquel.raynal@bootlin.com>, David Ahern <dsahern@kernel.org>, Steffen
+	Klassert <steffen.klassert@secunet.com>, Herbert Xu
+	<herbert@gondor.apana.org.au>, Matthieu Baerts <matttbe@kernel.org>, Mat
+	Martineau <martineau@kernel.org>, Geliang Tang <geliang@kernel.org>, Ralf
+	Baechle <ralf@linux-mips.org>, Remi Denis-Courmont <courmisch@gmail.com>,
+	Allison Henderson <allison.henderson@oracle.com>, David Howells
+	<dhowells@redhat.com>, Marc Dionne <marc.dionne@auristor.com>, Marcelo
+	Ricardo Leitner <marcelo.leitner@gmail.com>, Xin Long
+	<lucien.xin@gmail.com>, Wenjia Zhang <wenjia@linux.ibm.com>, Jan Karcher
+	<jaka@linux.ibm.com>, "D. Wythe" <alibuda@linux.alibaba.com>, Tony Lu
+	<tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>, Trond
+	Myklebust <trond.myklebust@hammerspace.com>, Anna Schumaker
+	<anna@kernel.org>, Chuck Lever <chuck.lever@oracle.com>, Jeff Layton
+	<jlayton@kernel.org>, Neil Brown <neilb@suse.de>, Olga Kornievskaia
+	<kolga@netapp.com>, Dai Ngo <Dai.Ngo@oracle.com>, Tom Talpey
+	<tom@talpey.com>, Jon Maloy <jmaloy@redhat.com>, Ying Xue
+	<ying.xue@windriver.com>, Martin Schiller <ms@dev.tdt.de>, Pablo Neira Ayuso
+	<pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>, Florian
+	Westphal <fw@strlen.de>, Roopa Prabhu <roopa@nvidia.com>, Nikolay
+	Aleksandrov <razor@blackwall.org>, Simon Horman <horms@verge.net.au>, Julian
+	Anastasov <ja@ssi.bg>, Joerg Reuter <jreuter@yaina.de>, Luis Chamberlain
+	<mcgrof@kernel.org>, Kees Cook <keescook@chromium.org>,
+	<netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<dccp@vger.kernel.org>, <linux-wpan@vger.kernel.org>,
+	<mptcp@lists.linux.dev>, <linux-hams@vger.kernel.org>,
+	<linux-rdma@vger.kernel.org>, <rds-devel@oss.oracle.com>,
+	<linux-afs@lists.infradead.org>, <linux-sctp@vger.kernel.org>,
+	<linux-s390@vger.kernel.org>, <linux-nfs@vger.kernel.org>,
+	<tipc-discussion@lists.sourceforge.net>, <linux-x25@vger.kernel.org>,
+	<netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+	<bridge@lists.linux.dev>, <lvs-devel@vger.kernel.org>
+Subject: Re: [PATCH v4 1/8] net: Remove the now superfluous sentinel
+ elements from ctl_table array
+Message-ID: <20240426065931.wyrzevlheburnf47@joelS2.panther.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha512";
+	protocol="application/pgp-signature"; boundary="6aeoqlr4wnxytbye"
+Content-Disposition: inline
+In-Reply-To: <20240425155804.66f3bed5@kernel.org>
+X-ClientProxiedBy: CAMSVWEXC01.scsc.local (2002:6a01:e347::6a01:e347) To
+	CAMSVWEXC02.scsc.local (2002:6a01:e348::6a01:e348)
+X-Brightmail-Tracker: H4sIAAAAAAAAA1WTfUxTVxjGc+69vS2wbpdi9FiMmwwM6gbicL4wNyUac7OvaMzG3KLCxlWZ
+	ULWFKTNmlVL5/tiQCFgoCEMELAq1CgJiN0QKQxzoUPmQApIBCoLlGzq6Ytz+e97n/T3nnOeP
+	IyBF8QKxIFASwkkl/kFOtC2luzXZ+O6D7Wv2rY1SikEv3wBdFTE8kEecIkBZZqZAlxNLgLm9
+	j4DZskgSRrv6eKA+V0qD6k4EBbN/xdLQnNFDwLPwaQo05UoCem8Z+aCLL0RQGN5GwdW+cRpi
+	+5eB4ooJQU+ikQctecM0TOYV8KHTZKRgMsEO0mIUBDTEBsO19h4KmnQJPEgyeMD9q+0ENJer
+	aGiqrufBE308BUnZChJ6swZ40JacR0F1pRqBsXiIAIV6hATFaDcJU/m1PGiMN5OQrikgoTWp
+	F8FvkVU8aCgO58NY5m0SKtVyCm5lLYYkjYGCsfpBBGcG75HwZ4UzGF6YCWgsHeXBqMoVkvO1
+	BFyPnuCD9s73YJgyENA93keDuXUTnGzQ8Tf7sA+NJpJ91liH2Myi4+xZ+V2KnZpczWovPCDY
+	2N/7SbYsvZ3P6qpd2KySUHZGf5nPlhRE02zNhYsEW9blxSadq0Zsae5P21d8bbsxgAsK/IGT
+	un/kZ3sgLTwRHb7ncKyozE6O4pgYZCPAjCd+PNBCxyBbgYjJR1ido0fW4QXC2TUqZKFEzCjC
+	fcYTLxMzF1MWEucRTslrXkjMQ7MZfTzrUIpwR93j+UEgoBgXnN2DLWmaeQffGWwjLXoR44wj
+	StMoC08yFSKcMFZFW3gHJgD/nCyzSCGzGSvqfC24kLHHdWk9lMUmmWP4didtlY74/JzAQtgw
+	HrgyNh5Zn7kCm3I6KKs+gQ3ah4TlIsz88Ro+3annWxdbsTL6+QLkgPtrtQv+MmwuUy8EkhG+
+	MTfMtw6FCOedNBFW6gMc0dKzkPDBas2Vf+ti5nXc+tTeYpPz8hfdGdJqC3HUKZGVXokLOwap
+	JPR2+n+apb9qlv6qmVWuwsXl7v9zLaevwXnZA6RVf4g1miEqC/EL0BIuVBa8n5O9J+GOusn8
+	g2Whkv1u3x0KLkHzv7R+rtZ0DeX3P3fTI0KA9Mh5Pmy8VNiExJTkkIRzWiR88Nx1n0gY4B/2
+	Iyc9tFcaGsTJ9MhRQDktEboEvMmJmP3+IdxBjjvMSV9uCYGNWE4UZHI3vi2/fHzE46zt0tkD
+	ezdmbHF29UwNlyZ/Jlet21Cwm107POO4bUwQdrPG3XtnzeLGSzvMDlrv3vzJXPL0Q78rvUca
+	PENy2h4dfEMlJIyVqdfsSGhTl4gucN6pGXteNER5rR/+fOtGpV+K21P33UcqPEf23U0cpG9s
+	+lXsOFG1pzh65JHXVqlpR71Y/GVofOc3yr/X3VwVeF1jFzJrd3q6bknTel/bmQGf5UO7dnUr
+	WhML475apWyc8Dn1yNvGw0Y1e3Svb9zFt3LHPwla6eXutlPR8CzMOfBJZPrSp7mRpdqK492a
+	iY/vSg1jRSN17m3TEpncqXZL03L79+9TgydiPkVfOFGyA/4eq0mpzP8f5hGj+SAFAAA=
+X-Brightmail-Tracker: H4sIAAAAAAAAA2WTfUxTZxTGfe+9vS2Qmivg9gaZU4KbQSkUCpw6P9jM4jXLEv1ny8ac6+AC
+	TltMP4xDndWqYFmxzsEEERAdasGiFIE6IKw4GODAyUQ0LdMCMj4UHSKWFRhNt8xk//3Oc57n
+	yZs3OQLS38wPEmxTqDmlQrYjhPal2mdaHOE9m1YkRx57sRJs2jh4UKfngfbQEQIOW2cpqD6b
+	RcCsY5CAaWsGCeMPBnlQVGKhoaDzEAXTd7Jo6DrdT8Djg39RYL52mICBZicfqg1lCMoO2imo
+	GZykIWs4GHRXJxD0H3Py4LfSJzS4Sk18+H3CSYEr2w/y9DoCbmTJodbRT8HN6mweGNvE0F3j
+	IKDrWgENNxvbefDQZqDAeEZHwkDxCA/sJ0opaKwvQuCsGCNAV/QnCbrxPhKmLrTwoMMwS0K+
+	2URCj3EAQVNGAw9uVBzkw/PCn0moL9JS0Fz8ChjNbRQ8bx9F8N3obRJu1YVC27NZAjos4zwY
+	L1gOJy5UEfDD0Rd8qOr8Atqm2gjomxykYbZnHRy4Uc2Pf5u955wg2ccdrYgtLN/DntL+SrFT
+	rjC26uJdgs26Pkyy1nwHn61uXMYWV2pYt+0Kn600HaXZny5eIljrAylrLGlErOXc/k1LPxat
+	VqZp1NyS1DSVek1IghiiRGIpiKIkUpE4Om7LqqiYkIi1q5O4Hdt2ccqItZ+JUg1GC9rZFbD7
+	uNNEa5Ge0SMfAWYk2H0ph/awP/M9wgbza149GF95dpvn5QDs7tbPeXznPE8R7m5o/2ewIJzz
+	vJPQI4GAYpbhM/3YE6CZlbhz1E56OJAJxYcseZTHTzJ1/rh1qIHvWQQwSfhC/deUJytk4rGu
+	9UNv5xEC5+QOEh6PkFmAW/P6KQ+TzC6cXTBFevwkswifnxF4ZB9GjOuzDMj70KV44mwv5eV9
+	eHz6ITKigPyXmvJfasr/r8krv4ndhbf+L6/ApWdGSC+vwWbzGFWM+CYUyGlU8hS5SixSyeQq
+	jSJFlJgmr0Rzx1Ld7LLUosLhpyIbIgTIhkLnks7LZTdREKVIU3AhgcK7T5cn+wuTZF+mc8q0
+	rUrNDk5lQzFzn3icDFqYmDZ3eQr1VnFsZIxYEiuNjJHGRoe8Kty4M1Pmz6TI1Nx2jtvJKf/N
+	EQKfIC0RGDE0KR27oj/3Vm+57l4NR4e+ozYFNp/O0/yYkv4w6f1d5UIL78CQ/Y95l32Pvksb
+	rJ9e6k62x4c9+fZ8rzx7hDgvL07I/8S9vWeEZwgcl0j0AxUdQvdouu/96f1te+vnhysSDLLM
+	3OvlPjZc94vPhug97o2PxvZJniy5HynZvDjDwZS899X6/fYoxrbujbM9cYZEv+MwbD3duW37
+	3lMX4+pOzGzI1X4UHrdlc90Cag+qer3LtNxgzS1tOvWNy+IXn7pYj1yak58vmlcrDZ9pOllh
+	T2/Ru5hNj2pykhcGO8Kp9eq+erYkM3vJ7rKrnCxnfvkqq47ovxMd1Gxq+GA6eTKEUqXKxGGk
+	UiX7G1ARo/DBBAAA
+X-CMS-MailID: 20240426065936eucas1p2971394a913727d431786adef9db8e9b4
+X-Msg-Generator: CA
+X-RootMTR: 20240425225817eucas1p21d1f3bcedc248575285a74af88e66966
+X-EPHeader: CA
+CMS-TYPE: 201P
+X-CMS-RootMailID: 20240425225817eucas1p21d1f3bcedc248575285a74af88e66966
+References: <20240425-jag-sysctl_remset_net-v4-0-9e82f985777d@samsung.com>
+	<20240425-jag-sysctl_remset_net-v4-1-9e82f985777d@samsung.com>
+	<CGME20240425225817eucas1p21d1f3bcedc248575285a74af88e66966@eucas1p2.samsung.com>
+	<20240425155804.66f3bed5@kernel.org>
 
-On Thu, 25 Apr 2024 14:06:43 +0200
-Florian Westphal <fw@strlen.de> wrote:
+--6aeoqlr4wnxytbye
+Content-Type: text/plain; charset="utf-8"
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> The existing code uses iter->type to figure out what data is needed, the
-> live copy (READ) or clone (UPDATE).
-> 
-> Without pending updates, priv->clone and priv->match will point to
-> different memory locations, but they have identical content.
-> 
-> Future patch will make priv->clone == NULL if there are no pending changes,
-> in this case we must copy the live data for the UPDATE case.
-> 
-> Currently this would require GFP_ATOMIC allocation.  Split the walk
-> function in two parts: one that does the walk and one that decides which
-> data is needed.
-> 
-> In the UPDATE case, callers hold the transaction mutex so we do not need
-> the rcu read lock.  This allows to use GFP_KERNEL allocation while
-> cloning.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+On Thu, Apr 25, 2024 at 03:58:04PM -0700, Jakub Kicinski wrote:
+> On Thu, 25 Apr 2024 14:02:59 +0200 Joel Granados via B4 Relay wrote:
+> > -	for (i =3D 0; i < ARRAY_SIZE(mpls_table) - 1; i++)
+> > +	for (i =3D 0; i < tabel_size; i++)
+> >  		table[i].data =3D (char *)net + (uintptr_t)table[i].data;
+> > =20
+> >  	net->mpls.ctl =3D register_net_sysctl_sz(net, "net/mpls", table,
+> > -					       ARRAY_SIZE(mpls_table));
+> > +					       tabel_size);
+>=20
+> ../net/mpls/af_mpls.c: In function =E2=80=98mpls_net_init=E2=80=99:
+> ../net/mpls/af_mpls.c:2676:25: error: =E2=80=98tabel_size=E2=80=99 undecl=
+ared (first use in this function); did you mean =E2=80=98table_size=E2=80=
+=99?
+>  2676 |         for (i =3D 0; i < tabel_size; i++)
+>       |                         ^~~~~~~~~~
+>       |                         table_size
+> ../net/mpls/af_mpls.c:2676:25: note: each undeclared identifier is report=
+ed only once for each function it appears in
+> ../net/mpls/af_mpls.c:2660:16: warning: unused variable =E2=80=98table_si=
+ze=E2=80=99 [-Wunused-variable]
+>  2660 |         size_t table_size =3D ARRAY_SIZE(mpls_table);
+Sorry about this. I pulled the trigger way too early. This is already
+fixed in my v4.
+>       |                ^~~~~~~~~~
+> --=20
+> netdev FAQ tl;dr:
+>  - designate your patch to a tree - [PATCH net] or [PATCH net-next]
+>  - for fixes the Fixes: tag is required, regardless of the tree
+>  - don't post large series (> 15 patches), break them up
+>  - don't repost your patches within one 24h period
+>=20
+> pw-bot: cr
 
-Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
+--=20
 
--- 
-Stefano
+Joel Granados
 
+--6aeoqlr4wnxytbye
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAABCgAdFiEErkcJVyXmMSXOyyeQupfNUreWQU8FAmYrUNMACgkQupfNUreW
+QU8Lzgv/TJmurVNSgO2iDBVQ8bKTLVZCDWpkqOISTJcAhPeC7GVAN0DUGnndUsYY
+VWlk378kGRgh4o4vkVoT+vDFGcLfekyBZ7A7+1Hch+Ej8pBi3ehx+O6lrTIvfSLP
+WLzkYqO7D1w7m8im/Bxj5D3i3d1oGVY4SYptq2ZFMzwecJMwEVxKTd12FPvaKDWj
+3dIO/lGPDyMckpa1NNjioclQH/3bjchV7EN9vMgX9tq031kCW6IHzijIecYxoxC1
+03w84MltO003waD5EsSw7/V14Db62XqxmYwMXzIv4MLe0prEc7s18scPpP9nJOpF
+1oHVmtXm/iz9O1E6r+cuiGGZTNMF8NOF7XfmgosExm43utnVXCzjouGOn5FbFd8O
+hZ6YkOLlQaNXi6B8TveTe0PKN8h0TzKporAIjD6vuKpaSRrM2i74Mo7870R6STD5
+niiT2phZNFuC2ezKpGVCgY67f87SnHLmu1uXbDdoI7aVATzEWUNwDp6V7DHP0vB5
++KgDXCQs
+=+u1k
+-----END PGP SIGNATURE-----
+
+--6aeoqlr4wnxytbye--
