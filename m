@@ -1,118 +1,135 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from us-smtp-delivery-44.mimecast.com (us-smtp-delivery-44.mimecast.com [207.211.30.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B970F145343
-	for <netfilter-devel@vger.kernel.org>; Fri, 26 Apr 2024 14:44:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AA4F15E5D2
+	for <netfilter-devel@vger.kernel.org>; Fri, 26 Apr 2024 15:13:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=207.211.30.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714142671; cv=none; b=IvMivek2Qq7u2AfeL2ojf8S1xkRjB1poIcOLWFzTXPbTs9Ebp0zieyAlLPIg4kDhQFcnTuxQ/IAOjCCUuTmpzPnJJC/J3mNNnxLdhwZwokkgHxkby9TS4bwTMIfyNKXsbx3BYGgm362GXftE4bd6KBOkfLvjIsRlCGz9nNlMhUw=
+	t=1714144441; cv=none; b=E4eYr588vFdwGs27j5meZAV3jzQMNBbcYroCAbMqBI68vvIrrjbkLOhgYnThtFddWRMuRhsvwkWmpVHcTV9P2EWCwo4r00nCn87sl9B1AF/xgwX5eGT1dUQQWmNgUClYYddvijWafi55d5IupkNPGPmTJiw1pn85ROHLiqa44tE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714142671; c=relaxed/simple;
-	bh=Qa2Q47fPM2PDghiaeRci4XkQ1Yf9nQsC8DbOWnNZjfI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=YnUnHezE7RNIwEUu3KMuobGFK7d7DAwYnoxqkYXUMahe7YXe9WwOgBChxHKj5qMi00EFNn1yWuQODPmhk3wqyW3NtMFZU+P6qmYyrroJUWbgtIPkXM/RDezGyBZFfwUMvbtOAV46SucIwZr1GWQU+pRYF3W87WhL7/XxBMwh8IY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=qBJrqxON; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="qBJrqxON"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=XDF9b6seQSJzFSgcPu66i4HqLSU9m5gPDb3KFpRhLqk=; b=qBJrqxONZtpz0S6q5as6TrMmTN
-	A/in8tK4Rgk86Cycr9AJ49HSV/bhqpmUMnS3J7Jud5Du7MN6Xrab874SM5ql1VpBylRBelifj4cuY
-	zsNhZtEXqqoIi19urrBzDcaMCoJe+Lg9csAuEdXmUtLCrCBk2+rnKgbAnImYA1Em0PGDRkWDKZPuC
-	qS4gjlSLq9S2woDn20a+VSKOD62Ls/XHjt10821r/vnJ+5ahxOzBkBwEX7ZHzkvvSdyN4WmTgWOSg
-	JcoHqOYkHf4T8xPJ5nDbAWd3GDeBGlfDvNT1aZYN/X1pOfC3JoNyyrzIiGHFUtVgMzrO4AXQSVWAk
-	4gxfBbOQ==;
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1s0MoG-000000002gU-30qJ;
-	Fri, 26 Apr 2024 16:44:20 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: [libnetfilter_conntrack PATCH] conntrack: bsf: Do not return -1 on failure
-Date: Fri, 26 Apr 2024 16:44:20 +0200
-Message-ID: <20240426144420.12208-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.43.0
+	s=arc-20240116; t=1714144441; c=relaxed/simple;
+	bh=/5QVirdnw7ZwA7vkg/j+WG0o2OISZH7RAn/4/rQYtJs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=GSUyCn5YDt4xPpKUXWPEhQpUfnmLvgPgb0ZBR3qa94QDifE8mnxBgNR8ePFaCz+dlEpYjCaY6FC4pbQDqE/K1pXMmocZXPdcg8Nfh+0dMXTxOqsdQuCwNVwf0QNdJUL4IBEaJEZrFQ06pp7Se8bn8RQFH0hHlmEeq87AjqnhavI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=queasysnail.net; spf=none smtp.mailfrom=queasysnail.net; arc=none smtp.client-ip=207.211.30.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=queasysnail.net
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=queasysnail.net
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-465-w0zvaQ4fM4Wn9feoiW-OqQ-1; Fri, 26 Apr 2024 11:13:48 -0400
+X-MC-Unique: w0zvaQ4fM4Wn9feoiW-OqQ-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.rdu2.redhat.com [10.11.54.6])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 049EF1049C97;
+	Fri, 26 Apr 2024 15:13:47 +0000 (UTC)
+Received: from hog (unknown [10.39.193.137])
+	by smtp.corp.redhat.com (Postfix) with ESMTPS id 4E8DF2166B31;
+	Fri, 26 Apr 2024 15:13:38 +0000 (UTC)
+Date: Fri, 26 Apr 2024 17:13:37 +0200
+From: Sabrina Dubroca <sd@queasysnail.net>
+To: Joel Granados via B4 Relay <devnull+j.granados.samsung.com@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Alexander Aring <alex.aring@gmail.com>,
+	Stefan Schmidt <stefan@datenfreihafen.org>,
+	Miquel Raynal <miquel.raynal@bootlin.com>,
+	David Ahern <dsahern@kernel.org>,
+	Steffen Klassert <steffen.klassert@secunet.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	Matthieu Baerts <matttbe@kernel.org>,
+	Mat Martineau <martineau@kernel.org>,
+	Geliang Tang <geliang@kernel.org>,
+	Remi Denis-Courmont <courmisch@gmail.com>,
+	Allison Henderson <allison.henderson@oracle.com>,
+	David Howells <dhowells@redhat.com>,
+	Marc Dionne <marc.dionne@auristor.com>,
+	Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
+	Xin Long <lucien.xin@gmail.com>,
+	Wenjia Zhang <wenjia@linux.ibm.com>,
+	Jan Karcher <jaka@linux.ibm.com>,
+	"D. Wythe" <alibuda@linux.alibaba.com>,
+	Tony Lu <tonylu@linux.alibaba.com>,
+	Wen Gu <guwen@linux.alibaba.com>,
+	Trond Myklebust <trond.myklebust@hammerspace.com>,
+	Anna Schumaker <anna@kernel.org>,
+	Chuck Lever <chuck.lever@oracle.com>,
+	Jeff Layton <jlayton@kernel.org>, Neil Brown <neilb@suse.de>,
+	Olga Kornievskaia <kolga@netapp.com>, Dai Ngo <Dai.Ngo@oracle.com>,
+	Tom Talpey <tom@talpey.com>, Jon Maloy <jmaloy@redhat.com>,
+	Ying Xue <ying.xue@windriver.com>, Martin Schiller <ms@dev.tdt.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, Roopa Prabhu <roopa@nvidia.com>,
+	Nikolay Aleksandrov <razor@blackwall.org>,
+	Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
+	Joerg Reuter <jreuter@yaina.de>,
+	Luis Chamberlain <mcgrof@kernel.org>,
+	Kees Cook <keescook@chromium.org>, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, dccp@vger.kernel.org,
+	linux-wpan@vger.kernel.org, mptcp@lists.linux.dev,
+	linux-hams@vger.kernel.org, linux-rdma@vger.kernel.org,
+	rds-devel@oss.oracle.com, linux-afs@lists.infradead.org,
+	linux-sctp@vger.kernel.org, linux-s390@vger.kernel.org,
+	linux-nfs@vger.kernel.org, tipc-discussion@lists.sourceforge.net,
+	linux-x25@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, bridge@lists.linux.dev,
+	lvs-devel@vger.kernel.org, Joel Granados <j.granados@samsung.com>
+Subject: Re: [PATCH v5 5/8] net: Remove ctl_table sentinel elements from
+ several networking subsystems
+Message-ID: <ZivEOtGOWVc0W8Th@hog>
+References: <20240426-jag-sysctl_remset_net-v5-0-e3b12f6111a6@samsung.com>
+ <20240426-jag-sysctl_remset_net-v5-5-e3b12f6111a6@samsung.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20240426-jag-sysctl_remset_net-v5-5-e3b12f6111a6@samsung.com>
+X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.6
 
-Return values of the filter add functions are used to update an array
-cursor, so sanely return 0 in error case.
+2024-04-26, 12:46:57 +0200, Joel Granados via B4 Relay wrote:
+> diff --git a/net/smc/smc_sysctl.c b/net/smc/smc_sysctl.c
+> index a5946d1b9d60..bd0b7e2f8824 100644
+> --- a/net/smc/smc_sysctl.c
+> +++ b/net/smc/smc_sysctl.c
+> @@ -90,7 +90,6 @@ static struct ctl_table smc_table[] = {
+>  		.extra1		= &conns_per_lgr_min,
+>  		.extra2		= &conns_per_lgr_max,
+>  	},
+> -	{  }
+>  };
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- src/conntrack/bsf.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+There's an ARRAY_SIZE(smc_table) - 1 in smc_sysctl_net_init, shouldn't
+the -1 be removed like you did in other patches?
 
-diff --git a/src/conntrack/bsf.c b/src/conntrack/bsf.c
-index 48fd4fafbc3e5..1e78bad9b40ec 100644
---- a/src/conntrack/bsf.c
-+++ b/src/conntrack/bsf.c
-@@ -336,7 +336,7 @@ add_state_filter_cta(struct sock_filter *this,
- 	s = stack_create(sizeof(struct jump), 3 + 32);
- 	if (s == NULL) {
- 		errno = ENOMEM;
--		return -1;
-+		return 0;
- 	}
- 
- 	jt = 1;
-@@ -403,7 +403,7 @@ add_state_filter(struct sock_filter *this,
- 
- 	if (cta[proto].cta_protoinfo == 0 && cta[proto].cta_state == 0) {
- 		errno = ENOTSUP;
--		return -1;
-+		return 0;
- 	}
- 
- 	return add_state_filter_cta(this,
-@@ -448,7 +448,7 @@ bsf_add_proto_filter(const struct nfct_filter *f, struct sock_filter *this)
- 	s = stack_create(sizeof(struct jump), 3 + 255);
- 	if (s == NULL) {
- 		errno = ENOMEM;
--		return -1;
-+		return 0;
- 	}
- 
- 	jt = 1;
-@@ -520,7 +520,7 @@ bsf_add_addr_ipv4_filter(const struct nfct_filter *f,
- 	s = stack_create(sizeof(struct jump), 3 + 127);
- 	if (s == NULL) {
- 		errno = ENOMEM;
--		return -1;
-+		return 0;
- 	}
- 
- 	jt = 1;
-@@ -605,7 +605,7 @@ bsf_add_addr_ipv6_filter(const struct nfct_filter *f,
- 	s = stack_create(sizeof(struct jump), 3 + 80);
- 	if (s == NULL) {
- 		errno = ENOMEM;
--		return -1;
-+		return 0;
- 	}
- 
- 	jf = 1;
-@@ -704,7 +704,7 @@ bsf_add_mark_filter(const struct nfct_filter *f, struct sock_filter *this)
- 	s = stack_create(sizeof(struct jump), 3 + 127);
- 	if (s == NULL) {
- 		errno = ENOMEM;
--		return -1;
-+		return 0;
- 	}
- 
- 	jt = 1;
+
+int __net_init smc_sysctl_net_init(struct net *net)
+{
+	struct ctl_table *table;
+
+	table = smc_table;
+	if (!net_eq(net, &init_net)) {
+		int i;
+
+		table = kmemdup(table, sizeof(smc_table), GFP_KERNEL);
+		if (!table)
+			goto err_alloc;
+
+		for (i = 0; i < ARRAY_SIZE(smc_table) - 1; i++)
+			table[i].data += (void *)net - (void *)&init_net;
+	}
+
+	net->smc.smc_hdr = register_net_sysctl_sz(net, "net/smc", table,
+						  ARRAY_SIZE(smc_table));
+[...]
+
 -- 
-2.43.0
+Sabrina
 
