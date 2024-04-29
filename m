@@ -1,168 +1,92 @@
-Received: from us-smtp-delivery-44.mimecast.com (us-smtp-delivery-44.mimecast.com [205.139.111.44])
+Received: from azazel.net (taras.nevrast.org [35.176.194.208])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDE2180058
-	for <netfilter-devel@vger.kernel.org>; Mon, 29 Apr 2024 14:49:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.139.111.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A57713F006
+	for <netfilter-devel@vger.kernel.org>; Mon, 29 Apr 2024 20:06:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714402183; cv=none; b=mXrQ24c5KAz1bG3v0XO61A5MIQc/eu+yKhF5wr58cowZZvo/LT90EfLWyLGAFTw62+YmZlUUayld0FqXxxR5P4LBUeDDGBnY4EiTo0s9f7HU5ZPXt1RLipCXicyWeFpBV5Fksu9JsW0JE4//GhA0Ze94cRXRPIokHpzjyzBQ/Z0=
+	t=1714421183; cv=none; b=rT6xhWnHfkc0TZh7AjUXxq8UfHL4ksgzOtSGYFq45/jrVla4tFUUJvWneuWxQBdYUBZaXZDhe7VNgePk0CYtvcLioYPLHDgzJ8MHKZYqmO+UatJ0LFW5+DG2rahhrQ5TM18qadkf/RDGr/eqYOdDMDhDtxswRYYrKhEHPjWNsek=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714402183; c=relaxed/simple;
-	bh=Pqr7/07Yw2D7SEawMZgXWcnAK3LEd3hoqf3xCtS6wY4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 In-Reply-To:Content-Type:Content-Disposition; b=AgRODlqOolZM0Wzos3yBNjR9SyiLPAgEDFzTYb4Ko/JI1vXaKJYEGtMnEVHt8gIz2hysqwK36v2ycY91A3Nq84iAyBIjkyKAoYIDLtinTMiw61KfR2hTJRU+JUYhlSAUQOJauAq+3tV8jOKo/kO6d2ViBezN+G03ELhGOOkNOLs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=queasysnail.net; spf=none smtp.mailfrom=queasysnail.net; arc=none smtp.client-ip=205.139.111.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=queasysnail.net
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=queasysnail.net
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-34-ZwAzUYwrN5SO0iPVZmvC4A-1; Mon, 29 Apr 2024 10:49:29 -0400
-X-MC-Unique: ZwAzUYwrN5SO0iPVZmvC4A-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.rdu2.redhat.com [10.11.54.6])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 1116780D678;
-	Mon, 29 Apr 2024 14:49:29 +0000 (UTC)
-Received: from hog (unknown [10.39.193.137])
-	by smtp.corp.redhat.com (Postfix) with ESMTPS id AD66D2166B32;
-	Mon, 29 Apr 2024 14:49:19 +0000 (UTC)
-Date: Mon, 29 Apr 2024 16:49:18 +0200
-From: Sabrina Dubroca <sd@queasysnail.net>
-To: Joel Granados <j.granados@samsung.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Alexander Aring <alex.aring@gmail.com>,
-	Stefan Schmidt <stefan@datenfreihafen.org>,
-	Miquel Raynal <miquel.raynal@bootlin.com>,
-	David Ahern <dsahern@kernel.org>,
-	Steffen Klassert <steffen.klassert@secunet.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	Matthieu Baerts <matttbe@kernel.org>,
-	Mat Martineau <martineau@kernel.org>,
-	Geliang Tang <geliang@kernel.org>,
-	Remi Denis-Courmont <courmisch@gmail.com>,
-	Allison Henderson <allison.henderson@oracle.com>,
-	David Howells <dhowells@redhat.com>,
-	Marc Dionne <marc.dionne@auristor.com>,
-	Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
-	Xin Long <lucien.xin@gmail.com>,
-	Wenjia Zhang <wenjia@linux.ibm.com>,
-	Jan Karcher <jaka@linux.ibm.com>,
-	"D. Wythe" <alibuda@linux.alibaba.com>,
-	Tony Lu <tonylu@linux.alibaba.com>,
-	Wen Gu <guwen@linux.alibaba.com>,
-	Trond Myklebust <trond.myklebust@hammerspace.com>,
-	Anna Schumaker <anna@kernel.org>,
-	Chuck Lever <chuck.lever@oracle.com>,
-	Jeff Layton <jlayton@kernel.org>, Neil Brown <neilb@suse.de>,
-	Olga Kornievskaia <kolga@netapp.com>, Dai Ngo <Dai.Ngo@oracle.com>,
-	Tom Talpey <tom@talpey.com>, Jon Maloy <jmaloy@redhat.com>,
-	Ying Xue <ying.xue@windriver.com>, Martin Schiller <ms@dev.tdt.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, Roopa Prabhu <roopa@nvidia.com>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
-	Joerg Reuter <jreuter@yaina.de>,
-	Luis Chamberlain <mcgrof@kernel.org>,
-	Kees Cook <keescook@chromium.org>, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, dccp@vger.kernel.org,
-	linux-wpan@vger.kernel.org, mptcp@lists.linux.dev,
-	linux-hams@vger.kernel.org, linux-rdma@vger.kernel.org,
-	rds-devel@oss.oracle.com, linux-afs@lists.infradead.org,
-	linux-sctp@vger.kernel.org, linux-s390@vger.kernel.org,
-	linux-nfs@vger.kernel.org, tipc-discussion@lists.sourceforge.net,
-	linux-x25@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, bridge@lists.linux.dev,
-	lvs-devel@vger.kernel.org
-Subject: Re: [PATCH v5 1/8] net: Remove the now superfluous sentinel elements
- from ctl_table array
-Message-ID: <Zi-zbrq43dnlsQBY@hog>
-References: <20240426-jag-sysctl_remset_net-v5-0-e3b12f6111a6@samsung.com>
- <20240426-jag-sysctl_remset_net-v5-1-e3b12f6111a6@samsung.com>
- <CGME20240429085414eucas1p11b3790e4687b8dc8ef02fe0f54bc9c55@eucas1p1.samsung.com>
- <Zi9gG82_OKnLlFI2@hog>
- <20240429123315.og27yehofzz6cui3@joelS2.panther.com>
+	s=arc-20240116; t=1714421183; c=relaxed/simple;
+	bh=aCi4Na4ck4bx8W5akCYJ9jiW+WTZ+fRdbGwXMxnIcKY=;
+	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=sQemzA7TmhE5HVc+imHN3mcK8t9KBpwD3Fe6d1FmDNWwdiWCOOoKHz8ZifYMTaThQ38s5P7FQXQi/05h4NQh/Yx3aoNjklppVPFdDiUL8fFCRQ7TXAeOwZPobjVIqGDJnciXaahgcaRr6vN53obKgufOW5dfHiT2vWjFoGJhh/k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=FJy7dnVS; arc=none smtp.client-ip=35.176.194.208
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="FJy7dnVS"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+	s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=3pqArfhh3gJbAyCVjORpTvQXMLgwTCYMXyLLOV6TFpY=; b=FJy7dnVSf3uPXDwrEcvb591y05
+	nK5c7frSuGvOJUPQxenKZpC9Wp9KQTVZYqmMyc6RL1VaxNpl5U6vL0CNPj/b0dj1ehzKiOj/eMpuT
+	lqmgJeZzRYDaGa12J6yj9YK1pioio2v/YHcl4p4HgZ8do7eFHfDPI84lma82RRXuE2+63Pympgvk4
+	lBtkn8+9Ve/ON9k3g8vP1ZGxVczQCBmn38jkFzGc7u+VmA5G9j2SgkLQf10PnS+6d5M8D/RYQGqNx
+	Q810ZRC6yEzyQxvGklkB0OtENWgXVZBNPs4WVX0iKEOP1JkWwsI95RvwXhav/2i9h05w9P89TXO0J
+	YQ29zWkA==;
+Received: from dreamlands.azazel.net ([81.187.231.252] helo=ulthar.dreamlands.azazel.net)
+	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.96)
+	(envelope-from <jeremy@azazel.net>)
+	id 1s1WfP-00G8U5-2W
+	for netfilter-devel@vger.kernel.org;
+	Mon, 29 Apr 2024 20:27:59 +0100
+From: Jeremy Sowden <jeremy@azazel.net>
+To: Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH nft v3 1/2] evaluate: handle invalid mapping expressions in stateful object statements gracefully.
+Date: Mon, 29 Apr 2024 20:27:52 +0100
+Message-ID: <20240429192756.1347369-2-jeremy@azazel.net>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20240429192756.1347369-1-jeremy@azazel.net>
+References: <20240429192756.1347369-1-jeremy@azazel.net>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <20240429123315.og27yehofzz6cui3@joelS2.panther.com>
-X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.6
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: queasysnail.net
-Content-Type: text/plain; charset=UTF-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 81.187.231.252
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 
-2024-04-29, 14:33:15 +0200, Joel Granados wrote:
-> On Mon, Apr 29, 2024 at 10:53:47AM +0200, Sabrina Dubroca wrote:
-> > 2024-04-26, 12:46:53 +0200, Joel Granados via B4 Relay wrote:
-> > > diff --git a/net/core/sysctl_net_core.c b/net/core/sysctl_net_core.c
-> > > index 6973dda3abda..a84690b13bb9 100644
-> > > --- a/net/core/sysctl_net_core.c
-> > > +++ b/net/core/sysctl_net_core.c
-> > [...]
-> > > @@ -723,12 +722,11 @@ static __net_init int sysctl_core_net_init(stru=
-ct net *net)
-> > >  =09=09if (tbl =3D=3D NULL)
-> > >  =09=09=09goto err_dup;
-> > > =20
-> > > -=09=09for (tmp =3D tbl; tmp->procname; tmp++)
-> > > -=09=09=09tmp->data +=3D (char *)net - (char *)&init_net;
-> >=20
-> > Some coding style nits in case you re-post:
-> Thx. I will, so please scream if you see more issues.
+Currently, they are reported as assertion failures:
 
-I've gone through the whole series and didn't see anything more.
+  BUG: invalid mapping expression variable
+  nft: src/evaluate.c:4618: stmt_evaluate_objref_map: Assertion `0' failed.
+  Aborted
 
-> > > +=09=09for (int i =3D 0; i < table_size; ++i)
-> >=20
-> > move the declaration of int i out of the for (), it's almost never
-> > written this way (at least in networking)
-> done
->=20
-> >=20
-> > > +=09=09=09(tbl + i)->data +=3D (char *)net - (char *)&init_net;
-> >=20
-> >                         tbl[i].data =3D ...
-> >=20
-> > is more in line with other similar functions in the rest of net/
-> done
->=20
-> >=20
-> >=20
-> > [...]
-> > > diff --git a/net/mpls/af_mpls.c b/net/mpls/af_mpls.c
-> > > index 6dab883a08dd..ecc849678e7b 100644
-> > > --- a/net/mpls/af_mpls.c
-> > > +++ b/net/mpls/af_mpls.c
-> > [...]
-> > > @@ -2674,6 +2673,7 @@ static const struct ctl_table mpls_table[] =3D =
-{
-> > > =20
-> > >  static int mpls_net_init(struct net *net)
-> > >  {
-> > > +=09size_t table_size =3D ARRAY_SIZE(mpls_table);
-> >=20
-> > This table still has a {} as its final element. It should be gone too?
-> Now, how did that get away?  I'll run my coccinelle scripts once more to
-> make sure that I don't have more of these hiding in the shadows.
+Instead, report them more informatively as errors:
 
-I didn't spot any other with a dumb
+  /space/azazel/tmp/ruleset.1067161.nft:15:29-38: Error: invalid mapping expression variable
+      quota name ip saddr map $quota_map
+                 ~~~~~~~~     ^^^^^^^^^^
 
-    sed -n '<line>,^};/p' <file>
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ src/evaluate.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-(with file/line produced by git grep 'struct ctl_table' -- net)
-
-
-Thanks.
-
---=20
-Sabrina
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 1682ba58989e..f28ef2aad8f4 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -4615,8 +4615,9 @@ static int stmt_evaluate_objref_map(struct eval_ctx *ctx, struct stmt *stmt)
+ 					  "Expression is not a map with objects");
+ 		break;
+ 	default:
+-		BUG("invalid mapping expression %s\n",
+-		    expr_name(map->mappings));
++		return expr_binary_error(ctx->msgs, map->mappings, map->map,
++					 "invalid mapping expression %s",
++					 expr_name(map->mappings));
+ 	}
+ 
+ 	if (!datatype_compatible(map->mappings->set->key->dtype, map->map->dtype))
+-- 
+2.43.0
 
