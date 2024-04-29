@@ -1,132 +1,89 @@
-Received: from us-smtp-delivery-44.mimecast.com (us-smtp-delivery-44.mimecast.com [207.211.30.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f178.google.com (mail-pl1-f178.google.com [209.85.214.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDB1B44C60
-	for <netfilter-devel@vger.kernel.org>; Sat, 27 Apr 2024 08:14:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=207.211.30.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F2667F
+	for <netfilter-devel@vger.kernel.org>; Mon, 29 Apr 2024 01:08:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714205695; cv=none; b=jNpQFIdE39k4zlucvsGjptoxa3ot8/7b8asDhsKSiMwf23FrJTzFHEW2QBgCK9E/0gBA+4v37hi87/L4qOyEmaidNgBPMOynXFTUF+9o/AB5oDyKTiGDecUNM/aGY0dAI+wFLxdIBHQ1e+qiHKf4DOuxKF5829AGWD+yvYSc5qw=
+	t=1714352918; cv=none; b=ZvaRhRNo3nBbqnd2QnUhDa6I4ldv9pC3ZzlXDme90miKFpNbnY9e8mlaL+E6aX27xtOqmWnGK7EXq0oB2kA1E7q0bZNTGqdl7i/dzBkFeTGrfodTb4X/PAZdSBSLLcQYq0wShQPjal0n+18Yils6tQZHLYwR31DkmqSz2oy/oiw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714205695; c=relaxed/simple;
-	bh=yonDWqdlxvIDOh++86MACveVtWv+lfo/zS7623cId9Q=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 In-Reply-To:Content-Type:Content-Disposition; b=Dp3n9NWaPR9oDKa9wchVCj/xlTETqxBmzW3+jRdO2zdwa6UgdDBQ+UKG+HDiLje06EoVOcosVUPpYf6a6GyIzkf/pZIFXHzmjYW9MiaXB/dYVy597PosD8qmpYUEQKEj3xeAkEZPzv/TTQVYLok5vkcuvBCd/avL1XRFCKIiPKA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=queasysnail.net; spf=none smtp.mailfrom=queasysnail.net; arc=none smtp.client-ip=207.211.30.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=queasysnail.net
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=queasysnail.net
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-637-ISDaXyS1NyqDVnSv6P_Hvg-1; Sat, 27 Apr 2024 04:14:47 -0400
-X-MC-Unique: ISDaXyS1NyqDVnSv6P_Hvg-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.rdu2.redhat.com [10.11.54.4])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id CA54D8001B2;
-	Sat, 27 Apr 2024 08:14:46 +0000 (UTC)
-Received: from hog (unknown [10.39.193.137])
-	by smtp.corp.redhat.com (Postfix) with ESMTPS id D2F3B202450F;
-	Sat, 27 Apr 2024 08:14:37 +0000 (UTC)
-Date: Sat, 27 Apr 2024 10:14:36 +0200
-From: Sabrina Dubroca <sd@queasysnail.net>
-To: Joel Granados <j.granados@samsung.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Alexander Aring <alex.aring@gmail.com>,
-	Stefan Schmidt <stefan@datenfreihafen.org>,
-	Miquel Raynal <miquel.raynal@bootlin.com>,
-	David Ahern <dsahern@kernel.org>,
-	Steffen Klassert <steffen.klassert@secunet.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	Matthieu Baerts <matttbe@kernel.org>,
-	Mat Martineau <martineau@kernel.org>,
-	Geliang Tang <geliang@kernel.org>,
-	Remi Denis-Courmont <courmisch@gmail.com>,
-	Allison Henderson <allison.henderson@oracle.com>,
-	David Howells <dhowells@redhat.com>,
-	Marc Dionne <marc.dionne@auristor.com>,
-	Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
-	Xin Long <lucien.xin@gmail.com>,
-	Wenjia Zhang <wenjia@linux.ibm.com>,
-	Jan Karcher <jaka@linux.ibm.com>,
-	"D. Wythe" <alibuda@linux.alibaba.com>,
-	Tony Lu <tonylu@linux.alibaba.com>,
-	Wen Gu <guwen@linux.alibaba.com>,
-	Trond Myklebust <trond.myklebust@hammerspace.com>,
-	Anna Schumaker <anna@kernel.org>,
-	Chuck Lever <chuck.lever@oracle.com>,
-	Jeff Layton <jlayton@kernel.org>, Neil Brown <neilb@suse.de>,
-	Olga Kornievskaia <kolga@netapp.com>, Dai Ngo <Dai.Ngo@oracle.com>,
-	Tom Talpey <tom@talpey.com>, Jon Maloy <jmaloy@redhat.com>,
-	Ying Xue <ying.xue@windriver.com>, Martin Schiller <ms@dev.tdt.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, Roopa Prabhu <roopa@nvidia.com>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
-	Joerg Reuter <jreuter@yaina.de>,
-	Luis Chamberlain <mcgrof@kernel.org>,
-	Kees Cook <keescook@chromium.org>, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, dccp@vger.kernel.org,
-	linux-wpan@vger.kernel.org, mptcp@lists.linux.dev,
-	linux-hams@vger.kernel.org, linux-rdma@vger.kernel.org,
-	rds-devel@oss.oracle.com, linux-afs@lists.infradead.org,
-	linux-sctp@vger.kernel.org, linux-s390@vger.kernel.org,
-	linux-nfs@vger.kernel.org, tipc-discussion@lists.sourceforge.net,
-	linux-x25@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, bridge@lists.linux.dev,
-	lvs-devel@vger.kernel.org
-Subject: Re: [PATCH v5 8/8] ax.25: x.25: Remove the now superfluous sentinel
- elements from ctl_table array
-Message-ID: <ZiyxJFnJimaRr9nK@hog>
-References: <20240426-jag-sysctl_remset_net-v5-0-e3b12f6111a6@samsung.com>
- <20240426-jag-sysctl_remset_net-v5-8-e3b12f6111a6@samsung.com>
+	s=arc-20240116; t=1714352918; c=relaxed/simple;
+	bh=Tu9D+2NPsfNayYOgiQN9rn8wHC6VeJo2yo6JfyxNlbQ=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=q7FhBakFHvIfaUTIfVLnnVqzGIbmV+Mn8lyvq9A+FwC+288yAT+i5w73P4Y388yh3Fk0EZM0BNBOVhhObNkLL9vauln1umhrX0AiKt53xi0dqM00LLbISEt/h81eEKc0AFc0eX514T0XzX5D32F+K8/AlI0k8nX2/oqyFVBm4u4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=X3wqTUT7; arc=none smtp.client-ip=209.85.214.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="X3wqTUT7"
+Received: by mail-pl1-f178.google.com with SMTP id d9443c01a7336-1e3f17c6491so31998935ad.2
+        for <netfilter-devel@vger.kernel.org>; Sun, 28 Apr 2024 18:08:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1714352916; x=1714957716; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:to
+         :from:sender:from:to:cc:subject:date:message-id:reply-to;
+        bh=bvz19X/mAmzt3PgGq+TFbom+mP/aPWctu3H4YFDdrE8=;
+        b=X3wqTUT7BtIWqjrZZ4kl4kuVVDfgRUZMfr+Cj9jLev033ok728T/GFlQCq60XR9dgf
+         zIUS3P5jHPodYL9UcUH67ysqefNQBQz9ydGKIl4h3OPNTCfLDd/I8BKx25hYn8qNnDCC
+         sHkMsgug5/Z9Lr6S2QBcyrILrNGWqgSiG52Dzg5+T+cDwMnaLGDEQXykMkoDtgZeNEZI
+         WZjs+Ds7K1It7VJFBSomExYtG2AFSWM/DZUUw5s2BSjcM57reE5F+xiIB/dholdw4SRc
+         TxobhOk7LWngyV2nj1aloY2w7OR+H5LFJHJBFeuh738x45Gk/COPyoLBNzfIiXipRLD+
+         or4g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1714352916; x=1714957716;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:to
+         :from:sender:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=bvz19X/mAmzt3PgGq+TFbom+mP/aPWctu3H4YFDdrE8=;
+        b=bLZruIKhZOyS5X7tOIlv9vsBnBHC8ppqJHMxOGG1ALAuSL91udPCfJHqxgr3B/gr4l
+         FlYR6eMVW/4u+AGtJDaNYSgwfZ/VXfvcAKnlBt4PVXFuZIzkQ4+DoZZS2/+q2VfuZkEL
+         f+Mq2DVfpaocTJ6h1OZeWp8nE/N8hJbrD75NtwLg/8OQjD4aQIHbB+JFucGJJr6cnzid
+         KQ6rhEroRiux2aH7N39jPJJjFcQLK0zCwrv6BYShjXqkRzbZNtIwqL9vUOEW7DHuNKbB
+         JvhbJ2C3q63GHU3KRPPx0pVy1pugUuVE/f3CZnVLE3QnPLzErR/bE5olHP3DILFFCSRi
+         ejWA==
+X-Gm-Message-State: AOJu0YyFAMUFujTnnnLkwi8rG7Gl+v80vvEBhOdNO/IZtrJXJrW5bE31
+	OVipyZYfgSz/aDE3i699zdxZ1JfiQvjntoEefuzlJ7RLJBkY9uemzNs0RQ==
+X-Google-Smtp-Source: AGHT+IErS68qGjRM5qxYhC45jaeEvK2VwzJNyCeGX3Dn+IMec5LAzuUCz5gFlHqA53I6qthAX+e/xA==
+X-Received: by 2002:a17:902:d487:b0:1e2:1df:449b with SMTP id c7-20020a170902d48700b001e201df449bmr12180675plg.69.1714352915607;
+        Sun, 28 Apr 2024 18:08:35 -0700 (PDT)
+Received: from slk15.local.net ([49.190.141.216])
+        by smtp.gmail.com with ESMTPSA id p23-20020a1709027ed700b001d8f111804asm19406904plb.113.2024.04.28.18.08.34
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 28 Apr 2024 18:08:35 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From: Duncan Roe <duncan_roe@optusnet.com.au>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH libnetfilter_queue] Update .gitignore
+Date: Mon, 29 Apr 2024 11:08:31 +1000
+Message-Id: <20240429010831.1453-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.35.8
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <20240426-jag-sysctl_remset_net-v5-8-e3b12f6111a6@samsung.com>
-X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.4
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: queasysnail.net
-Content-Type: text/plain; charset=UTF-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-2024-04-26, 12:47:00 +0200, Joel Granados via B4 Relay wrote:
-> diff --git a/net/ax25/ax25_ds_timer.c b/net/ax25/ax25_ds_timer.c
-> index c4f8adbf8144..8f385d2a7628 100644
-> --- a/net/ax25/ax25_ds_timer.c
-> +++ b/net/ax25/ax25_ds_timer.c
-> @@ -49,12 +49,16 @@ void ax25_ds_del_timer(ax25_dev *ax25_dev)
-> =20
->  void ax25_ds_set_timer(ax25_dev *ax25_dev)
->  {
-> +#ifdef CONFIG_AX25_DAMA_SLAVE
+Ignore Q editor artefacts and other junk
 
-Is this really needed? Looks like this file is only compiled when this
-config is set:
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+---
+ .gitignore | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-grep ax25_ds_timer net/ax25/Makefile
-ax25-$(CONFIG_AX25_DAMA_SLAVE) +=3D ax25_ds_in.o ax25_ds_subr.o ax25_ds_tim=
-er.o
-
-
->  =09if (ax25_dev =3D=3D NULL)=09=09/* paranoia */
->  =09=09return;
-> =20
->  =09ax25_dev->dama.slave_timeout =3D
->  =09=09msecs_to_jiffies(ax25_dev->values[AX25_VALUES_DS_TIMEOUT]) / 10;
->  =09mod_timer(&ax25_dev->dama.slave_timer, jiffies + HZ);
-> +#else
-> +=09return;
-> +#endif
->  }
-
---=20
-Sabrina
+diff --git a/.gitignore b/.gitignore
+index ae3e740..b544bb1 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -22,3 +22,7 @@ Makefile.in
+ /doxygen/doxyfile.stamp
+ /doxygen/html/
+ /doxygen/man/
++RCS
++.qrc
++cpp.qm
++*.scr
+-- 
+2.35.8
 
