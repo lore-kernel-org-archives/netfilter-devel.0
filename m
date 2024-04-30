@@ -1,99 +1,112 @@
-Received: from azazel.net (taras.nevrast.org [35.176.194.208])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f54.google.com (mail-ej1-f54.google.com [209.85.218.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 175BF13F006
-	for <netfilter-devel@vger.kernel.org>; Mon, 29 Apr 2024 20:06:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9E40129E72
+	for <netfilter-devel@vger.kernel.org>; Tue, 30 Apr 2024 10:18:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714421195; cv=none; b=oHajbk7PlaHqFxgiUNRdh/SnCgL35uKami4BOgyCstQ2VxUovitElq0kuJwPpQ3codHeKQRfJFXPK6eQ0Qoz6tQaxZvWhcDdJ5ZBcaMEmPyEHr4vc0eqQAiJWUPORon3RidhETMrSTZYpyJOaINeIcWxVnQb4cHH/+7+oQrhSy4=
+	t=1714472339; cv=none; b=UOjudMjHiS3/IKD98/t9xKZIFGLwrulNYFVgfyY6p5+bZsEnzP2TPFN9C7zg6WVikX5aIQho39xJn4X6x+jliXm/SIYE4uS0CIDVLpI1ZstD9SFszMaI6JRwS+ZIuRmSCERmTHlgUf7DFl3gcxL3McD75L3Vbt+GmMycWsY6E8Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714421195; c=relaxed/simple;
-	bh=o0V5b/lqrk3IJthlla6ehnl4MTqtkr9NXXQrVNGOOI8=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=JHXKo2Me26SBpLbONbh9Hdz1p9L6P0oIxzFpOBfRvpE0IuNOjc2l1qreRW5j4/fBaDER2ki28zjS/Ar1wvdS+G0yVEmkD4nYFw97jk6vuHHRaa+0qETiVqnU4hRtksCUQYphQq8V3Fu+EafJ84ZkHOPtp2yfEeZ7y11XOx5Qkb4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=iajxSoM2; arc=none smtp.client-ip=35.176.194.208
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
+	s=arc-20240116; t=1714472339; c=relaxed/simple;
+	bh=WTP0kuJFFCGr3B5NIZ2LEfNN50rejOlAqs5ohmjZzVI=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Content-Type; b=TB8RUHfIQzx7lEGMgs2HrPtditcyTFUsb/65ZNm1JEp4U2FMFuTw+CfOgI1p80nWYF3KZug53FiJ/4vB21/xlGzNthj1fOIp/DWUGZOKO30R+4ep/1SXAaCYZ1QUXqJLcupHMiWNiTPUYKHSvgA0t5hKd2dHqF3NAtbhCWSSqcQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SeYDR/kz; arc=none smtp.client-ip=209.85.218.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="iajxSoM2"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-	s=20220717; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=47hSKzHTqSctVRCumxheMB+KTr2MUbpVfSmq0mD0OgY=; b=iajxSoM2PUIzBVPlJSNli8aHWD
-	e8ggCOZs+zb+6KcLx+fNUznXgjFFCSj7L9YdP0pMx1mO+JVmtKR49Riiuigz1qDM1IBbgXene6ITh
-	yKmG3G6CKoX4QJ1Tg0eEqhlApMjGFNqrPA3U9LIhopeEI4FbabywK+6/Rau4bxenz//u2YSF3encb
-	48VIlzHDzOZEFDnz4Pkw/g46HFC1Dvs2C5MVh/TJEc/0a3FRZXvlJ+EqR77EqzgGs0m6q8xHRTedC
-	sZUP2ciY1WKlZ92f9ffTO0g9d18sc/dYkM3Jdtfn29JrNXUns0iu3K35M4j7iSyG0mqY/Q2aHlGGT
-	OsjCq53g==;
-Received: from dreamlands.azazel.net ([81.187.231.252] helo=ulthar.dreamlands.azazel.net)
-	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.96)
-	(envelope-from <jeremy@azazel.net>)
-	id 1s1WfP-00G8U5-2M
-	for netfilter-devel@vger.kernel.org;
-	Mon, 29 Apr 2024 20:27:59 +0100
-From: Jeremy Sowden <jeremy@azazel.net>
-To: Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft v3 0/2] Support for variables in map expressions
-Date: Mon, 29 Apr 2024 20:27:51 +0100
-Message-ID: <20240429192756.1347369-1-jeremy@azazel.net>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SeYDR/kz"
+Received: by mail-ej1-f54.google.com with SMTP id a640c23a62f3a-a58e7628aeaso376633266b.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Apr 2024 03:18:57 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1714472336; x=1715077136; darn=vger.kernel.org;
+        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=rrFZvqDAEpbT/hpuiz/5P/17Uv4VVLsf6B2bRkojVa8=;
+        b=SeYDR/kzfMAEE7VdkiI0e3jt1SuQeBag9pcJfVvavMH0Get4hU9605RZks35gOqkQx
+         eDuaIbZXarHZbL2zthnFfrfUiDLttCPs3xOWi9LjJJ1FDPqz2OCSoUhpUlzATm/4Sqk1
+         c+JRaD+cMym3/SYxyBxjFE/LypqtH13JNgK3FLj9N1nY8/WlFJvaO+uk5HjxtTaE6sKM
+         HG6XcWCI3tw9ZBf0R4lDwH5qsGoyF8ukY+bfzNnlnVXBVw/zy/OlIDqh5FXwn5lfX539
+         ubgjTnUtahHCCqDU+glEHrPJG+UuOctOLBAsNpzN5+roU7TgkqwsY8PLF/tT88ScBnFr
+         wDCQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1714472336; x=1715077136;
+        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=rrFZvqDAEpbT/hpuiz/5P/17Uv4VVLsf6B2bRkojVa8=;
+        b=NEgU8C3UV43jDQ4OEfwf49vjmvQA2YC6sXhtDVkaVTSCZOMPacUkPNxQqg+I3oChjv
+         BiklWEQs3PIZNCDEDT9XC5QQeDM9CYtcSdGQFvcgCvaHq49TslJMbaLbbAeex5t5bKti
+         kpdluCclZR4lf3UFz1WpQyzGqEhdKLcB0UZOez9RkaZNUIPtoI9FXzF/bkEl2qi9FiBU
+         cJoPRAdOKsq7HPZEnIsgAaC0V3Rk1ejL82F57lAF3ShIJk+564aRZPKmPIlHsoaoQTWF
+         JyQsB6xxaUflxHRoJbtY4YQHwXdeqjonnG7ZtU4+uDOjenN/k2RZLN1g4rjQtn2x4N/W
+         ETqQ==
+X-Gm-Message-State: AOJu0YxAJz7s2321cXab0Zz271OtleiSnyWJNtfo+YJOoaQ9TdKZ8k3e
+	G74XUNZmwroIG1tcDAoaVimlBaJKTsaki0XTuUhFjfoBOutuZOE7ZZ7+3tbf5XlVkwoTFoIuXiE
+	fVmzy+8+Wra/lQjd16e+MMze3xbakMeNE
+X-Google-Smtp-Source: AGHT+IFvYIxc/xLZT2Iy0rM10F+e53PbHRpSHPTjbBsIkCUr5ryxMaLcuVUuEx2VAjl02z8OQPX6W0KR3xkFXqD4Nrw=
+X-Received: by 2002:a17:906:fb17:b0:a58:e74b:7e16 with SMTP id
+ lz23-20020a170906fb1700b00a58e74b7e16mr1633484ejb.46.1714472335516; Tue, 30
+ Apr 2024 03:18:55 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 81.187.231.252
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
+From: Evgen Bendyak <jman.box@gmail.com>
+Date: Tue, 30 Apr 2024 13:18:29 +0300
+Message-ID: <CAM9G1EADHBYk9Y-Y9RBHbAhqOPOMab41DOEh+PZZa6XKGm8drA@mail.gmail.com>
+Subject: [libnetfilter_log] fix bug in race condition of calling nflog_open
+ from different threads at same time
+To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-The first patch replaces the current assertion failure for invalid
-mapping expression in stateful-object statements with an error message.
-This brings it in line with map statements.
+This patch addresses a bug that occurs when the nflog_open function is
+called concurrently from different threads within an application. The
+function nflog_open internally invokes nflog_open_nfnl. Within this
+function, a static global variable pkt_cb (static struct nfnl_callback
+pkt_cb) is used. This variable is assigned a pointer to a newly
+created structure (pkt_cb.data = h;) and is passed to
+nfnl_callback_register. The issue arises with concurrent execution of
+pkt_cb.data = h;, as only one of the simultaneously created
+nflog_handle structures is retained due to the callback function.
+Subsequently, the callback function __nflog_rcv_pkt is invoked for all
+the nflog_open structures, but only references one of them.
+Consequently, the callbacks registered by the end-user of the library
+through nflog_callback_register fail to trigger in sessions where the
+incorrect reference was recorded.
+This patch corrects this behavior by creating the structure locally on
+the stack for each call to nflog_open_nfnl. Since the
+nfnl_callback_register function simply copies the data into its
+internal structures, there is no need to retain pkt_cb beyond this
+point.
 
-It is possible to use a variable to initialize a map, which is then used
-in a map statement, but if one tries to use the variable directly, nft
-rejects it.  The second patch adds support for doing this.
 
-Changes since v2
+*** a/src/libnetfilter_log.c    2024-04-30 12:45:41.974918256 +0300
+--- b/src/libnetfilter_log.c    2024-04-30 12:49:56.774643783 +0300
+*************** static int __nflog_rcv_pkt(struct nlmsgh
+*** 161,171 ****
+      return gh->cb(gh, nfmsg, &nfldata, gh->data);
+  }
 
-  * Patch 2: error-checking (and test-cases) added for variables that do
-    not contain maps
+- static struct nfnl_callback pkt_cb = {
+-     .call         = &__nflog_rcv_pkt,
+-     .attr_count     = NFULA_MAX,
+- };
+-
+  /* public interface */
 
-Changes since v1
+  struct nfnl_handle *nflog_nfnlh(struct nflog_handle *h)
+--- 161,166 ----
+*************** struct nflog_handle *nflog_open_nfnl(str
+*** 255,260 ****
+--- 250,259 ----
+  {
+      struct nflog_handle *h;
+      int err;
++     struct nfnl_callback pkt_cb = {
++         .call         = &__nflog_rcv_pkt,
++         .attr_count     = NFULA_MAX,
++     };
 
-  * Patch 1 is new.
-  * Patch 2 updated to add support for map variables in stateful object
-    statements.
-
-Jeremy Sowden (2):
-  evaluate: handle invalid mapping expressions in stateful object
-    statements gracefully.
-  evaluate: add support for variables in map expressions
-
- src/evaluate.c                                |  17 +-
- .../shell/testcases/maps/0024named_objects_1  |  31 ++++
- .../shell/testcases/maps/0024named_objects_2  |  23 +++
- .../shell/testcases/maps/anonymous_snat_map_1 |  16 ++
- .../shell/testcases/maps/anonymous_snat_map_2 |  23 +++
- .../maps/dumps/0024named_objects_1.json-nft   | 147 ++++++++++++++++++
- .../maps/dumps/0024named_objects_1.nft        |  23 +++
- .../maps/dumps/anonymous_snat_map_1.json-nft  |  58 +++++++
- .../maps/dumps/anonymous_snat_map_1.nft       |   5 +
- 9 files changed, 341 insertions(+), 2 deletions(-)
- create mode 100755 tests/shell/testcases/maps/0024named_objects_1
- create mode 100755 tests/shell/testcases/maps/0024named_objects_2
- create mode 100755 tests/shell/testcases/maps/anonymous_snat_map_1
- create mode 100755 tests/shell/testcases/maps/anonymous_snat_map_2
- create mode 100644 tests/shell/testcases/maps/dumps/0024named_objects_1.json-nft
- create mode 100644 tests/shell/testcases/maps/dumps/0024named_objects_1.nft
- create mode 100644 tests/shell/testcases/maps/dumps/anonymous_snat_map_1.json-nft
- create mode 100644 tests/shell/testcases/maps/dumps/anonymous_snat_map_1.nft
-
--- 
-2.43.0
-
+      h = calloc(1, sizeof(*h));
+      if (!h)
