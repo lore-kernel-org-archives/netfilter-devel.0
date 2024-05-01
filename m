@@ -1,87 +1,79 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB0A21607BD;
-	Wed,  1 May 2024 20:09:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF68C165FAA;
+	Wed,  1 May 2024 22:00:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714594162; cv=none; b=ZWXq+h0Sw/5PWleA5ymsyW1MaB4HFto0Ac1Q3Xc2AfAYmtl0UJJQK3HmrmnzDaqvM6Ls9kXcDV0Q5PA8j93Sz9rsSYsrtAPO/WCO1eId3odgDD3o/LkCtuhHaGSpjbVVc375ScyUgLzXn1c+j1R3I6PoSgxrTC7XITfHt+3k3fk=
+	t=1714600831; cv=none; b=XBrMfXlCRMN4T9xxKG7jInyPgZblOh32kPjOuY2iP+ar9qyIKzTlZLbABnhRp7TR7LGA2U/s1HDSmLxVE0izsATA+V5iOY/bVw6OJf5cDvQpBGSMb9lXHdJJEDC8MzKpR3VZ+PARaTu2O1Nf1OzntOL8pSJIBSQkqH+wI264wK8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714594162; c=relaxed/simple;
-	bh=11GMfyacO/V3AJ5Zzbk/inKMzfB5AhpTUojNys8ow5k=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Ofv58OCzRiLoxcaJ8nZDI4F2FuiDbcLoKUeLUE5ufgn8tgLyvig0fGIIONP0OcSwPWhuhf3CTHb04MrYHcLjuUg+zHdsquqQlbqlS3o4biob1ckOK0z+8kdqu7iKlm233ZvcAEzDqIZbjI5mRcarI2/P++vdSm0Q41KfXJ6Wqk8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=V2Gr0diT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714600831; c=relaxed/simple;
+	bh=7lj6j3p1J31BkRE1bBmMJsLh1g6Wji4W6zmoyg64ShA=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=nohWA3WCiN39TxTg4AIBVAdb4IF6cziwGpVY9SkZ6d1Xn3UnZVIInlr3WWvoNJx8JUoBSujqyf75FS2r9xnPZtcAXw2VPWykxbHhwfLpVAvg/cmIXtUai7THjl4/de/ruleGxFs9LiaKLjisTpFQB+NR5ZdXxdk82N8bL6Kjj0Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=g1DomE3u; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="V2Gr0diT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 853F4C072AA;
-	Wed,  1 May 2024 20:09:19 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="g1DomE3u"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 5BFD8C4AF48;
+	Wed,  1 May 2024 22:00:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1714594161;
-	bh=11GMfyacO/V3AJ5Zzbk/inKMzfB5AhpTUojNys8ow5k=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=V2Gr0diTOxX0iQ2UfjZ23jIP3nLVnzSDTkzwq7zJPdHrVpmo98wQuNY1ODz5keTNK
-	 0Sj8f+ueS0ufaWGU+4wwyoC7ydF+E0VTZyi5s/UuZqcebyDUzqCkhWDc02pGZ/vPup
-	 7+xw0wrlR6r/A8bHQliGfDCjg6M6ix5E7bxEwE7ZSlhkFAQ9D3T8zau2OI0oGUdEsr
-	 1GaIS7ggyqvqpe5I/yclgNsTviEKpLHPPplVq/waghOhASERTzpwnA8vq5DJtk+11M
-	 L//WQ01h8l7dZ0RrSdr13Fn/Bn6DSRHVwIgFR0jTmb7s919OZ7vOm2lJUXvSLFbNtx
-	 f86evON9wMVLw==
-Date: Wed, 1 May 2024 21:09:17 +0100
-From: Simon Horman <horms@kernel.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, netfilter-devel@vger.kernel.org,
-	pablo@netfilter.org
-Subject: Re: [PATCH net-next] selftests: netfilter: nft_concat_range.sh:
- reduce debug kernel run time
-Message-ID: <20240501200917.GL516117@kernel.org>
-References: <20240430145810.23447-1-fw@strlen.de>
- <20240501155920.GV2575892@kernel.org>
- <20240501194153.GA8667@breakpoint.cc>
+	s=k20201202; t=1714600831;
+	bh=7lj6j3p1J31BkRE1bBmMJsLh1g6Wji4W6zmoyg64ShA=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=g1DomE3ulsOzQWtN3deCTGsMM9sbsp4Y9PHqaQTMkvgkZove57sXPo1wbazJSMaDW
+	 uo5Yfcvp4aEDx8aM61gKiq/9t0TS2FIl8TdnnzTEK38Heu1k3OcdH6DDkpF9d2r3MG
+	 XbJLun2o6LpYFwiSu9201o3Aqt5Xk7AjzK187AgAMC7b9HXF6mHZ2a1x48qyL5AcBO
+	 OotwxHAmooOje58hIeRPbRNbdRhukzKU72Wr6ED1moAcwnr+GCAGPbDlAugvZxmovo
+	 T507fOPdLCZ9F2OGalYDMZ3mWGk1qZ4ogjA2liI/JJ2eeKNrfOb2t0yE9SVULnihbX
+	 5bUwLWNPJakug==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 5074DC433A2;
+	Wed,  1 May 2024 22:00:31 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240501194153.GA8667@breakpoint.cc>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next] selftests: netfilter: nft_concat_range.sh: reduce
+ debug kernel run time
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <171460083132.4291.7145095168769929770.git-patchwork-notify@kernel.org>
+Date: Wed, 01 May 2024 22:00:31 +0000
+References: <20240430145810.23447-1-fw@strlen.de>
+In-Reply-To: <20240430145810.23447-1-fw@strlen.de>
+To: Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
+ edumazet@google.com, kuba@kernel.org, netfilter-devel@vger.kernel.org,
+ pablo@netfilter.org
 
-On Wed, May 01, 2024 at 09:41:53PM +0200, Florian Westphal wrote:
-> Simon Horman <horms@kernel.org> wrote:
-> > On Tue, Apr 30, 2024 at 04:58:07PM +0200, Florian Westphal wrote:
-> > 
-> > ...
-> > 
-> > > diff --git a/tools/testing/selftests/net/netfilter/nft_concat_range.sh b/tools/testing/selftests/net/netfilter/nft_concat_range.sh
-> > 
-> > ...
-> > 
-> > > @@ -1584,10 +1594,16 @@ for name in ${TESTS}; do
-> > >  			continue
-> > >  		fi
-> > >  
-> > > -		printf "  %-60s  " "${display}"
-> > > +		[ "$KSFT_MACHINE_SLOW" = "yes" ] && count=1
-> > > +
-> > > +		printf "  %-32s  " "${display}"
-> > > +		tthen=$(date +%s)
-> > >  		eval test_"${name}"
-> > >  		ret=$?
-> > >  
-> > > +		tnow=$(date +%s)
-> > > +		printf "%5ds%-30s" $((tnow-tthen))
-> > > + 
-> > 
-> > Hi Florian,
-> > 
-> > A minor nit: the format string above expects two variables, but only one
-> > is passed.
+Hello:
+
+This patch was applied to netdev/net-next.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
+
+On Tue, 30 Apr 2024 16:58:07 +0200 you wrote:
+> Even a 1h timeout isn't enough for nft_concat_range.sh to complete on
+> debug kernels.
 > 
-> Its intentional, I thought this was better than "%5ds                 "
-> or similar.
+> Reduce test complexity and only match on single entry if
+> KSFT_MACHINE_SLOW is set.
+> 
+> To spot 'slow' tests, print the subtest duration (in seconds) in
+> addition to the status.
+> 
+> [...]
 
-Understood, thanks.
+Here is the summary with links:
+  - [net-next] selftests: netfilter: nft_concat_range.sh: reduce debug kernel run time
+    https://git.kernel.org/netdev/net-next/c/496bc5861c73
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
