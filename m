@@ -1,132 +1,39 @@
-Received: from out-177.mta1.migadu.com (out-177.mta1.migadu.com [95.215.58.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE090165FAA
-	for <netfilter-devel@vger.kernel.org>; Wed,  1 May 2024 22:11:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.177
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5941925634
+	for <netfilter-devel@vger.kernel.org>; Thu,  2 May 2024 08:30:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714601482; cv=none; b=isNsKxGEApZdk9JjUuHkFCA7dUXez/SXzlCv6lR5uLPe9AK1RbATe9ReQzTuBas5QaSrhRpliXMMyymUlmw846PBo7ywOaB57M1QK7o4w8SDSJtGpRYxozucMdP2Ce7D0gIGLtXGPSl9GGWrZ/JqIG8wqQ/wEGrJ0vJGBzqchGI=
+	t=1714638645; cv=none; b=c1TRvPUKeKt3XOb8Y8tg6TiCVyDQsScgA7Q9anE0vvrxpdeq/vCVFS+yTvymdDs8arSA+izw6VhEFijW9Sd8dGWG8Yt1zCAZPNJayGMZTsRs27LNy28brxrLFB/UxsMiSvYTCc5gOw4JjcwrHfhfw0aJiONmb67jwoynA292UQI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714601482; c=relaxed/simple;
-	bh=mIJlBSZdyKIvENC8XczJFKTy5wuRWt3B+ZgNrKdjlJE=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=MUUnubJYbRwWOcJeMe1B/EuLsSF3npL9hx+SEpSCSrMU/hI4kLNQAvd6QOEPR2vMftZrGv4ctLIozUSgqnLNdaQoNTy3iamfDX2vYXs1Z1yHZ02OKtoHkoofA5weNUn542J92clLo6UzgeOBKV0XxPc0sbgYbfReHg3IzILKW+4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=BN+LYUb5; arc=none smtp.client-ip=95.215.58.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="BN+LYUb5"
-Message-ID: <f3721e87-10dc-46d7-86b1-432d8afa4b21@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1714601478;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=rGW3yDHopUvbdT8k5H063AAugiRm6wOVHCvilw2wUW0=;
-	b=BN+LYUb5O8VnwZrZyQbvc12jesTJVCflel+oYDFTQ4vHJVvS9X4XzZT0u6XEGUY65Txu8W
-	I8IjAkDuOkjycm/eK/e16I6cLyzRfKOtsE1vjTIkDChPJJFYUEqdpXfEkPAWJJomW5zgod
-	a6TVep454qqHA94hmzQTgBtwY3QFbe0=
-Date: Wed, 1 May 2024 15:11:09 -0700
+	s=arc-20240116; t=1714638645; c=relaxed/simple;
+	bh=NbMMrnOIjmONF91X9rZTeA+jj1XYRFGPvfhxG3ktjCw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ctPUDKl0pSqATSMlYnHkU2wvGe5yq5xE1pnE6WCzW86ft2YC1rEyHRcNQvcA0b82kOF5DggYHP8EPltF3o2DHx3nVERqYScXhTIGfIQnQOcr1qeynY5SJEz/E6OvzyeinxJlIUOFUFzcuGUnWcuYqyHoXoPRt1zEUvU84pOZ3lU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Date: Thu, 2 May 2024 10:30:31 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: bre Breitenberger Markus <bre@keba.com>
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH] conntrackd: Fix signal handler race-condition
+Message-ID: <ZjNPJ_dEJXwU_8-o@calendula>
+References: <AS8PR07MB7176A6FE25478A7C1BA4BF29CD3C2@AS8PR07MB7176.eurprd07.prod.outlook.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH bpf-next v2 1/2] net: netfilter: Make ct zone opts
- configurable for bpf ct helpers
-To: Brad Cowie <brad@faucet.nz>
-Cc: andrii@kernel.org, ast@kernel.org, bpf@vger.kernel.org,
- coreteam@netfilter.org, daniel@iogearbox.net, davem@davemloft.net,
- john.fastabend@gmail.com, jolsa@kernel.org, kuba@kernel.org,
- lorenzo@kernel.org, memxor@gmail.com, netdev@vger.kernel.org,
- netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org,
- sdf@google.com, song@kernel.org
-References: <463c8ea7-08cf-412e-bb31-6fbb15b4df8b@linux.dev>
- <20240501045931.157041-1-brad@faucet.nz>
-Content-Language: en-US
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Martin KaFai Lau <martin.lau@linux.dev>
-In-Reply-To: <20240501045931.157041-1-brad@faucet.nz>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Migadu-Flow: FLOW_OUT
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <AS8PR07MB7176A6FE25478A7C1BA4BF29CD3C2@AS8PR07MB7176.eurprd07.prod.outlook.com>
 
-On 4/30/24 9:59 PM, Brad Cowie wrote:
-> On Fri, 26 Apr 2024 at 11:27, Martin KaFai Lau <martin.lau@linux.dev> wrote:
->> On 4/23/24 8:00 PM, Brad Cowie wrote:
->>>    };
->>>
->>>    static int bpf_nf_ct_tuple_parse(struct bpf_sock_tuple *bpf_tuple,
->>> @@ -104,11 +107,13 @@ __bpf_nf_ct_alloc_entry(struct net *net, struct bpf_sock_tuple *bpf_tuple,
->>>    			u32 timeout)
->>>    {
->>>    	struct nf_conntrack_tuple otuple, rtuple;
->>> +	struct nf_conntrack_zone ct_zone;
->>>    	struct nf_conn *ct;
->>>    	int err;
->>>
->>> -	if (!opts || !bpf_tuple || opts->reserved[0] || opts->reserved[1] ||
->>> -	    opts_len != NF_BPF_CT_OPTS_SZ)
->>> +	if (!opts || !bpf_tuple)
->>> +		return ERR_PTR(-EINVAL);
->>> +	if (!(opts_len == NF_BPF_CT_OPTS_SZ || opts_len == NF_BPF_CT_OPTS_OLD_SZ))
->>>    		return ERR_PTR(-EINVAL);
->>>
->>>    	if (unlikely(opts->netns_id < BPF_F_CURRENT_NETNS))
->>> @@ -130,7 +135,16 @@ __bpf_nf_ct_alloc_entry(struct net *net, struct bpf_sock_tuple *bpf_tuple,
->>>    			return ERR_PTR(-ENONET);
->>>    	}
->>>
->>> -	ct = nf_conntrack_alloc(net, &nf_ct_zone_dflt, &otuple, &rtuple,
->>> +	if (opts_len == NF_BPF_CT_OPTS_SZ) {
->>> +		if (opts->ct_zone_dir == 0)
->>
->> I don't know the details about the dir in ct_zone, so a question: a 0
->> ct_zone_dir is invalid and can be reused to mean NF_CT_DEFAULT_ZONE_DIR?
-> 
-> ct_zone_dir is a bitmask that can have two different bits set,
-> NF_CT_ZONE_DIR_ORIG (1) and NF_CT_ZONE_DIR_REPL (2).
-> 
-> The comparison function nf_ct_zone_matches_dir() in nf_conntrack_zones.h
-> checks if ct_zone_dir & (1 << ip_conntrack_dir dir). ip_conntrack_dir
-> has two possible values IP_CT_DIR_ORIGINAL (0) and IP_CT_DIR_REPLY (1).
-> 
-> If ct_zone_dir has a value of 0, this makes nf_ct_zone_matches_dir()
-> always return false which makes nf_ct_zone_id() always return
-> NF_CT_DEFAULT_ZONE_ID instead of the specified ct zone id.
-> 
-> I chose to override ct_zone_dir here and set NF_CT_DEFAULT_ZONE_DIR (3),
-> to make the behaviour more obvious when a user calls the bpf ct helper
-> kfuncs while only setting ct_zone_id but not ct_zone_dir.
+On Thu, Apr 04, 2024 at 10:39:39AM +0000, bre Breitenberger Markus wrote:
+> Install signal handlers after everything is initialized as there is a
+> race condition that can happen when the process gets terminated after
+> the signal handler is installed but before all fields in the global
+> state are set up correctly, leading to a SIGSEGV as the cleanup code
+> dereferences uninitialized pointers.
 
-Ok. make sense.
-
-> 
->>> +			opts->ct_zone_dir = NF_CT_DEFAULT_ZONE_DIR;
->>> +		nf_ct_zone_init(&ct_zone,
->>> +				opts->ct_zone_id, opts->ct_zone_dir, opts->ct_zone_flags);
->>> +	} else {
->>
->> Better enforce "ct_zone_id == 0" also instead of ignoring it.
-> 
-> Could I ask for clarification here, do you mean changing this
-> else statement to:
-> 
-> +	} else if (opts->ct_zone_id == 0) {
-> 
-> Or should I be setting opts->ct_zone_id = 0 inside the else block?
-
-Testing non zero inside the else and return error instead of silently ignoring 
-it and then use nf_ct_zone_dflt:
-
-	} else {
-		if (opts->ct_zone_id)
-			/* don't ignore the opts->ct_zone_id */
-			return ERR_PTR(-EINVAL);
-		
-		ct_zone = nf_ct_zone_dflt;
-	}
-
-
+Applied, thanks
