@@ -1,137 +1,121 @@
-Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0272757CAF
-	for <netfilter-devel@vger.kernel.org>; Fri,  3 May 2024 13:06:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.37
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 766DF153575
+	for <netfilter-devel@vger.kernel.org>; Fri,  3 May 2024 13:09:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714741612; cv=none; b=j19RErEBs9x3K2OXj+BzrLvjn+OcvyD5wJGsaF5H78O+RcbrbbHt252eGwgofqtzZ/07+lJ+rOjZLnhZcBhPGQ6+aAnXsCFOGHos67BrEC5jDhZTyoiGDF+HptKTLf2aQoBPNl3tlPstPE2+X77Ir7IrwaNml+dSt/mDCpUXEq0=
+	t=1714741791; cv=none; b=mH1Rw3O+u5SRZo5ItJp9qBl9MqORxaLnHKncMpQZblhg8k+8sYR64THq+coliwqScsjkwvWypzBVeHJRpmIk1T9Ota1wIvyB/5XsTuZs8m+Xci5S/M1CYrZqcbYSRH3w8AlUgmmqzv0I1CPrKWTZt7e/3yk7l+lmgl+Tk4P9V68=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714741612; c=relaxed/simple;
-	bh=0kB9KsGXFOQAn9WaIfuv4jbNZroARw33YyK+RAm3BLQ=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=bzvSbKH4zSZi7EMsuLW/OoR0AmF2zj5umiEU48bBZpniwpKPU5URUzXrV9dKhHIAQdopuRTUeCtA3fJQOXUfyrS4Zdg/J4HUpo/Vc+vgbpyPcwIYeX0D8xP+8EMFcRcISzt+mRdbjaFFrFcaXM6A9I4MQtRB/PREStjMJjUslKI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (1024-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=YWJ7hn1K; arc=none smtp.client-ip=193.238.174.37
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	s=arc-20240116; t=1714741791; c=relaxed/simple;
+	bh=X6C7RF9TKaxSCUyHuqTQxYBHHbzU6Q2pKeHElNp9ing=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=XXh5hhqEFw8feSKg/OpWPL1G9MC0WugtGXx6LsSGYrYKYBDrSw/+MJgH8egAAel9D+jEChzkrYqTMPBgBPqXKUDVsKWVeKvzPLCHfo6APEk86xpBjuBpCqQZWQOlnO0B6UL91wjJym/m46AmAXQCw/Wga/fuB9WWI8XXZQA8Xdw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=gW4SrUty; arc=none smtp.client-ip=209.85.128.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="YWJ7hn1K"
-Received: from mg.ssi.bg (localhost [127.0.0.1])
-	by mg.ssi.bg (Proxmox) with ESMTP id 8507BA4C4
-	for <netfilter-devel@vger.kernel.org>; Fri,  3 May 2024 16:06:42 +0300 (EEST)
-Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
-	by mg.ssi.bg (Proxmox) with ESMTPS
-	for <netfilter-devel@vger.kernel.org>; Fri,  3 May 2024 16:06:41 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by ink.ssi.bg (Postfix) with ESMTPSA id 3FFEA9003F2;
-	Fri,  3 May 2024 16:06:34 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=ssi.bg; s=ink;
-	t=1714741595; bh=0kB9KsGXFOQAn9WaIfuv4jbNZroARw33YyK+RAm3BLQ=;
-	h=Date:From:To:cc:Subject:In-Reply-To:References;
-	b=YWJ7hn1KFeLK3QcqPYFmkp0qdYuCvHjowC85pPDI6on/BDmmgNSTJV89+IcfPESoG
-	 pJso8GkiQ5c5wg5bPOuYW0fqAQLzoayqDo29LIAzn5ISYIXM1Fbdiu3UJRu/Qd1RPK
-	 EsDjDXG22jH0l8/7xId8pnT1nKHR3U4tigsLV8aM=
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.17.1/8.17.1) with ESMTP id 443D6Od9049696;
-	Fri, 3 May 2024 16:06:25 +0300
-Date: Fri, 3 May 2024 16:06:24 +0300 (EEST)
-From: Julian Anastasov <ja@ssi.bg>
-To: Alexander Mikhalitsyn <aleksandr.mikhalitsyn@canonical.com>
-cc: horms@verge.net.au, netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        =?UTF-8?Q?St=C3=A9phane_Graber?= <stgraber@stgraber.org>,
-        Christian Brauner <brauner@kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH net-next v3 2/2] ipvs: allow some sysctls in non-init
- user namespaces
-In-Reply-To: <20240418145743.248109-2-aleksandr.mikhalitsyn@canonical.com>
-Message-ID: <8e70d6d3-6852-7b84-81b3-5d1a798f224f@ssi.bg>
-References: <20240418145743.248109-1-aleksandr.mikhalitsyn@canonical.com> <20240418145743.248109-2-aleksandr.mikhalitsyn@canonical.com>
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="gW4SrUty"
+Received: by mail-wm1-f53.google.com with SMTP id 5b1f17b1804b1-418820e6effso55615e9.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 03 May 2024 06:09:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1714741787; x=1715346587; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=x4NnT8XVbTwzug7JP7Q58haNK5/UZ8F5739iOS26WfA=;
+        b=gW4SrUtyIJ7kUzXZ43AGNoY1iMotjjEepos2Xqu77u7cW6VilAzmDOufu0BH4Ei1t2
+         kiEIv9m7TPk5RxkL9ImtFKxx/dywmH8Vbog4fO8gSharxf/pJnf6tNCZ1bSg4m8U/au2
+         qrlH0HTN4iHJ7/07iasOL+rPu6dscTckVw1ROhxjx+D4VFR2FeScAl7Z+KReWY/qnUSH
+         Adb/W31Go/V0G6RRkGVJyJ8LT23Bwrnso5JZCNsZWfcEaAesL7exaGkb1DfMQ9FmwDA2
+         gsz2jC7uruIGa2UbMNYjkAEttwIsFZweJ4JoCMDEbYIJUeiSJaxvbh7+15etgN1L0UnW
+         336w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1714741787; x=1715346587;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=x4NnT8XVbTwzug7JP7Q58haNK5/UZ8F5739iOS26WfA=;
+        b=fGhkjup9smaUcWNNhiVpk1mQYVD62eHK3wAYoe9KVFfBgpvM/SFa3yKBYTtHSqicaX
+         WYSeT5xyL9EdAmtostxVsCvw7aalunJIjJh65Cj5829Hijiwkr1ILn43mWJ3hxGaF0U5
+         r7WD/V9+FdNgBhXviuLKfdunS55HiVO/S7LWR0IyFadRdJQu7TOZGfrSTCfX0julzK7j
+         gCoffZ2z+pkep0lKUxURI8SCNt+0tj/eB1mK7Uv+QfzTcVUrC+lUpgc5vfSQbc9zhpMR
+         cNhA/r9G8zR5Wy3JWv4tyK/RZRPe39aIVgpQlp6sThhKPtVxBSXy7yHE3GhP5lsgJiay
+         fGBw==
+X-Gm-Message-State: AOJu0YyvJVV50MVm/BbGU4hoU1IDgHd5hiDlpdMGPFohBYX/v6ayTxIW
+	Kev9UMVucYm89MZ+pNfBgs6jt/PHbozk24KruDQ5JmEDUUvGi0pRlLpSHje5/+Px7S7hghqD0hC
+	C8aivoGECkHTUHEdrAIlS2PN0HviaiWlCebPXB+EgXAGECiRo8A==
+X-Google-Smtp-Source: AGHT+IFTnPskT3jJKf+bPB0ajhPGecH3d+2qbqXYaLOimrcdyLpBfxgrr307tZ/o6hSpGpMSz5Nj+bj38rSzqHq1iCc=
+X-Received: by 2002:a05:600c:3b8d:b0:41b:4c6a:de6d with SMTP id
+ 5b1f17b1804b1-41e1cabfeafmr1295305e9.5.1714741787351; Fri, 03 May 2024
+ 06:09:47 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="-1463811672-1490811829-1714741586=:48180"
+References: <20240503113456.864063-1-aojea@google.com> <20240503113456.864063-2-aojea@google.com>
+ <CAAdXToSN6h9vf8wSA3aQz6wU7pkuWsE5=tQ5qNRX_oQhTxNu=Q@mail.gmail.com>
+In-Reply-To: <CAAdXToSN6h9vf8wSA3aQz6wU7pkuWsE5=tQ5qNRX_oQhTxNu=Q@mail.gmail.com>
+From: Antonio Ojea <aojea@google.com>
+Date: Fri, 3 May 2024 15:09:35 +0200
+Message-ID: <CAAdXToSAHk5-h=QXQgn9yQg47=bY+ZjvU+4vfocPexMG=7GEqQ@mail.gmail.com>
+Subject: Re: [PATCH net-next 1/2] netfilter: nft_queue: compute SCTP checksum
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de, pablo@netfilter.org, willemb@google.com, edumazet@google.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Fri, May 3, 2024 at 2:46=E2=80=AFPM Antonio Ojea <aojea@google.com> wrot=
+e:
+>
+> On Fri, May 3, 2024 at 1:35=E2=80=AFPM Antonio Ojea <aojea@google.com> wr=
+ote:
+> >
+> > when the packet is processed with GSO and is SCTP it has to take into
+> > account the SCTP checksum.
+> >
+> > Signed-off-by: Antonio Ojea <aojea@google.com>
+> > ---
+> >  net/netfilter/nfnetlink_queue.c | 1 +
+> >  1 file changed, 1 insertion(+)
+> >
+> > diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_=
+queue.c
+> > index 00f4bd21c59b..428014aea396 100644
+> > --- a/net/netfilter/nfnetlink_queue.c
+> > +++ b/net/netfilter/nfnetlink_queue.c
+> > @@ -600,6 +600,7 @@ nfqnl_build_packet_message(struct net *net, struct =
+nfqnl_instance *queue,
+> >         case NFQNL_COPY_PACKET:
+> >                 if (!(queue->flags & NFQA_CFG_F_GSO) &&
+> >                     entskb->ip_summed =3D=3D CHECKSUM_PARTIAL &&
+> > +                   (skb_csum_is_sctp(entskb) && skb_crc32c_csum_help(e=
+ntskb)) &&
+>
+> My bad, this is wrong, it should be an OR so skb_checksum_help is
+> always evaluated.
+> Pablo suggested in the bugzilla to use a helper, so I'm not sure this
+> is the right fix, I've tried
+> to look for similar solutions to find a more consistent solution but
+> I'm completely new to the
+> kernel codebase so some guidance will be appreciated.
+>
+> -                   skb_checksum_help(entskb))
+> +                   ((skb_csum_is_sctp(entskb) &&
+> skb_crc32c_csum_help(entskb)) ||
+> +                   skb_checksum_help(entskb)))
+>
 
----1463811672-1490811829-1714741586=:48180
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+... and with this patch the regression test fails, so back to square 0.
+It seems I still didn't find the root cause
 
-
-	Hello,
-
-On Thu, 18 Apr 2024, Alexander Mikhalitsyn wrote:
-
-> Let's make all IPVS sysctls writtable even when
-> network namespace is owned by non-initial user namespace.
-> 
-> Let's make a few sysctls to be read-only for non-privileged users:
-> - sync_qlen_max
-> - sync_sock_size
-> - run_estimation
-> - est_cpulist
-> - est_nice
-> 
-> I'm trying to be conservative with this to prevent
-> introducing any security issues in there. Maybe,
-> we can allow more sysctls to be writable, but let's
-> do this on-demand and when we see real use-case.
-> 
-> This patch is motivated by user request in the LXC
-> project [1]. Having this can help with running some
-> Kubernetes [2] or Docker Swarm [3] workloads inside the system
-> containers.
-> 
-> Link: https://github.com/lxc/lxc/issues/4278 [1]
-> Link: https://github.com/kubernetes/kubernetes/blob/b722d017a34b300a2284b890448e5a605f21d01e/pkg/proxy/ipvs/proxier.go#L103 [2]
-> Link: https://github.com/moby/libnetwork/blob/3797618f9a38372e8107d8c06f6ae199e1133ae8/osl/namespace_linux.go#L682 [3]
-> 
-> Cc: Stéphane Graber <stgraber@stgraber.org>
-> Cc: Christian Brauner <brauner@kernel.org>
-> Cc: Julian Anastasov <ja@ssi.bg>
-> Cc: Simon Horman <horms@verge.net.au>
-> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-> Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-> Cc: Florian Westphal <fw@strlen.de>
-> Signed-off-by: Alexander Mikhalitsyn <aleksandr.mikhalitsyn@canonical.com>
-> ---
->  net/netfilter/ipvs/ip_vs_ctl.c | 21 +++++++++++++++------
->  1 file changed, 15 insertions(+), 6 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index 32be24f0d4e4..c3ba71aa2654 100644
-> --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-
-...
-
-> @@ -4284,12 +4285,6 @@ static int __net_init ip_vs_control_net_init_sysctl(struct netns_ipvs *ipvs)
->  		tbl = kmemdup(vs_vars, sizeof(vs_vars), GFP_KERNEL);
->  		if (tbl == NULL)
->  			return -ENOMEM;
-> -
-> -		/* Don't export sysctls to unprivileged users */
-> -		if (net->user_ns != &init_user_ns) {
-> -			tbl[0].procname = NULL;
-> -			ctl_table_size = 0;
-> -		}
->  	} else
->  		tbl = vs_vars;
->  	/* Initialize sysctl defaults */
-
-	Sorry but you have to send v4 because above if-block was
-changed with net-next commit 635470eb0aa7 from today...
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
----1463811672-1490811829-1714741586=:48180--
-
+>                 data_len =3D READ_ONCE(queue->copy_range);
+>
+> >                     skb_checksum_help(entskb))
+> >                         return NULL;
+> >
+> > --
+> > 2.45.0.rc1.225.g2a3ae87e7f-goog
+> >
