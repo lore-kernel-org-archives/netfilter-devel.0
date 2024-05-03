@@ -1,76 +1,87 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb1-f201.google.com (mail-yb1-f201.google.com [209.85.219.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C91861509B7;
-	Fri,  3 May 2024 10:41:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 668CE15251A
+	for <netfilter-devel@vger.kernel.org>; Fri,  3 May 2024 11:35:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714732916; cv=none; b=r7bxTJmRPO5YDTs95ciHv6/HgHcbIh+/eyeDAVnPsD4xkAZlSN+EGFSPb9tM92UvvpHScGLh7RzcNHcw0vsCzEnVZIXMBVwlcWz31VFv9+l2Gbz0BcWdCXILSHevHhuZEnB8Y7VJ1vAtUxlvnxGZ+c7XROQjVMLpYYFJBRro/Gs=
+	t=1714736130; cv=none; b=c9nv3EJnhcEl006FvgHK+WJikzE7afRmCx0uSmhQk3KXY9asHXI3hNGSCkWhVJmKmXXG1UJCfeVF21HQCZQVlsamFDQ1+lOUKTCkgSrhn8qtxPCMKExGQreh8zX5wXMJErs52TUuxxadUIM1iLUIcFgFfNyx9ffp7sXuKJqcchQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714732916; c=relaxed/simple;
-	bh=BeMHoJOu1sgwWKRFqAwYYsALNTVJWj+Tn/G61kiqAUc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=cVEJkxv7jLefLGZdkKqETtPQqRsfzhXzZm2qtxwnRCyBN95gAx/j2w+xtmBPMNuHCDTxUoPiEaPCQ6hePYwfFsqGv6gUKd1Wp4+wDVKpj51dgwZz96b6CGzrRrHUWz3DbpCqy3nvHIh2DNl/heDz1a2Tc0RXHw6FgtMkdiRZJIk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1s2qMJ-0000Yk-Qq; Fri, 03 May 2024 12:41:43 +0200
-Date: Fri, 3 May 2024 12:41:43 +0200
-From: Florian Westphal <fw@strlen.de>
-To: kernel test robot <lkp@intel.com>
-Cc: Florian Westphal <fw@strlen.de>, oe-kbuild-all@lists.linux.dev,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Stefano Brivio <sbrivio@redhat.com>
-Subject: Re: [netfilter-nf:under-review 14/18]
- net/netfilter/nft_set_pipapo.c:2122: warning: expecting prototype for
- __nft_pipapo_walk(). Prototype was for nft_pipapo_do_walk() instead
-Message-ID: <20240503104143.GA9734@breakpoint.cc>
-References: <202405031522.nDHvTzEz-lkp@intel.com>
+	s=arc-20240116; t=1714736130; c=relaxed/simple;
+	bh=c5+0ZcuPH5pFwb2hqFlG/GotqFsBHTqrOuz6u1ohptE=;
+	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=qanlQPQpSXNfkORpuwZac2IMch3xuErTi4ansZ+6A2IqOUy8kfFt8wYoWMJTEYr2X7ACbzg10hWwNL3I2vMe16+QtT5duY3xniidZf1PXYhAvPm7MPo5Jb+2kSbqAJZW7g3rr/PaEGfqhDvwf46m2tnRj6RtnEJHhNhi2hn03x8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--aojea.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=mE9jnVpd; arc=none smtp.client-ip=209.85.219.201
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--aojea.bounces.google.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="mE9jnVpd"
+Received: by mail-yb1-f201.google.com with SMTP id 3f1490d57ef6-de57643041bso14931140276.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 03 May 2024 04:35:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1714736128; x=1715340928; darn=vger.kernel.org;
+        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=lQO985nl790Wibor+XlZMKdFimoX/pDv7wmLKz64h5g=;
+        b=mE9jnVpdP4nwndwzcjH4NZ64kSsvb7HwZUt5bLlee0WV8UduPoOzQdcrCjvV4aL3cT
+         Kwp+bmLZ/HRsmDT2HLWpgpzLQmnw1ue9jOQHubYiGRMhfMbqn6dyVrSIgRu2mta4XwTE
+         Tj8sWRCyra005rPeQ4tPNTwByzlXOzEvffBXuYCOE/amvj1iYABfd9WmGp0ef8rNMD4m
+         Lj1Jk3FjWVpXwJ9Kd2LIEWLThzoX83yybftbIkGsWhnj6M3qCS1zsGhs22EX9kTEChSi
+         if6kmdHzpqWM4LR71Xlihk0Z4rLkb+o1ad2w0SmOvb2ZyWZMyuT2dpI+ZQ866Vrxir7A
+         maaQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1714736128; x=1715340928;
+        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=lQO985nl790Wibor+XlZMKdFimoX/pDv7wmLKz64h5g=;
+        b=UEckTt24n6+ogAdln55SEUCY1PWNaZ+zajsHCV5zWg7NCyVNqzW0EAT5nsObKanh+g
+         rJ8NRwjDzmAvNMTeAO+e2smSAAMJ+lDivFfU5QIoeDgQL9j6fjmYQOIMFMPf3rOSzvU8
+         2Q5i0OvvY1YBUJhXA1t2ZWdTSDMhTcnJitdt5jy9eT3B7v7CK8zBQpnQ699CUUbYevoO
+         nutT1Kr549EJRfPnrDYEM3dk1mwbGH/fhnE2AJsRt79LbUl6E0JfptxHk4UTjCqqsvxZ
+         u0PQzrD+KSY46KAl/9ckCgkMBapbjHzYakllTriA871nIIYzlMqCBWW3Epl7+1oTr7Ss
+         dV0w==
+X-Gm-Message-State: AOJu0YxTk+xdefbKoNPZXFPR+lxMw/liJ3cnXuZl1RAbtqyCsqSTh4tj
+	Y9yGDLrBFJXaIabDCWLqvh/0+5ODmnm2H4NpZ4W2eS3iZPn3tQW1eMSjx0LIW3Rgpx/OszFGj8Z
+	qZ+eYAjcICNPQn6p1dCUYEBozDnnI8lILI0Bh+L7i2gKQkCbzHkDaMdblNf2jaZHSrzNh7jf1Iu
+	tSFSGUwLO+8IHvXeMrhAsOzMmJVjg3PDa0qqNvd0w=
+X-Google-Smtp-Source: AGHT+IEnj0Ld6CFY5nFVNAiqxT9VALNZ7skU4oO70ibvLtNnkb9dnbr8B6A+XyZUfKAwqLHtbS3Dfo7Ruw==
+X-Received: from aojea.c.googlers.com ([fda3:e722:ac3:cc00:31:98fb:c0a8:b3d])
+ (user=aojea job=sendgmr) by 2002:a05:6902:c0b:b0:dd9:3a6b:11f8 with SMTP id
+ fs11-20020a0569020c0b00b00dd93a6b11f8mr802245ybb.5.1714736128332; Fri, 03 May
+ 2024 04:35:28 -0700 (PDT)
+Date: Fri,  3 May 2024 11:34:53 +0000
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <202405031522.nDHvTzEz-lkp@intel.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.45.0.rc1.225.g2a3ae87e7f-goog
+Message-ID: <20240503113456.864063-1-aojea@google.com>
+Subject: [PATCH net-next 0/2] netfilter: nfqueue: incorrect sctp checksum
+From: Antonio Ojea <aojea@google.com>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de, pablo@netfilter.org, willemb@google.com, edumazet@google.com, 
+	Antonio Ojea <aojea@google.com>
+Content-Type: text/plain; charset="UTF-8"
 
-kernel test robot <lkp@intel.com> wrote:
-> tree:   git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git under-review
-> head:   7ab960ad3bd958ddbeabe9ab2287ac5d0a673f23
-> commit: cd491237776df450e99904b9408bfad35366a73f [14/18] netfilter: nft_set_pipapo: prepare walk function for on-demand clone
-> config: sh-allmodconfig (https://download.01.org/0day-ci/archive/20240503/202405031522.nDHvTzEz-lkp@intel.com/config)
-> compiler: sh4-linux-gcc (GCC) 13.2.0
-> reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20240503/202405031522.nDHvTzEz-lkp@intel.com/reproduce)
-> 
-> If you fix the issue in a separate patch/commit (i.e. not just a new version of
-> the same patch/commit), kindly add following tags
-> | Reported-by: kernel test robot <lkp@intel.com>
-> | Closes: https://lore.kernel.org/oe-kbuild-all/202405031522.nDHvTzEz-lkp@intel.com/
-> 
-> All warnings (new ones prefixed by >>):
-> 
-> >> net/netfilter/nft_set_pipapo.c:2122: warning: expecting prototype for __nft_pipapo_walk(). Prototype was for nft_pipapo_do_walk() instead
+Fixes the bug described in https://bugzilla.netfilter.org/show_bug.cgi?id=1742
+causing netfilter to drop SCTP packets when using
+nfqueue and GSO due to incorrect checksum.
 
-Sigh.  Pablo, can you squash this to
-"netfilter: nft_set_pipapo: prepare walk function for on-demand clone"?
+Instead of adding a new helper to process the sctp checksum, patch 1
+implements the same solution used in net/core/dev.c using the
+skb_crc32c_csum_help() function.
 
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index be5c554ca4d3..1a1dcb646af5 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -2100,7 +2100,7 @@ static void nft_pipapo_remove(const struct net *net, const struct nft_set *set,
- }
- 
- /**
-- * __nft_pipapo_walk() - Walk over elements in m
-+ * nft_pipapo_do_walk() - Walk over elements in m
-  * @ctx:       nftables API context
-  * @set:       nftables API set representation
-  * @m:         matching data pointing to key mapping array
+The bug can be reproduced with the selftest in patch 2.
+
+Antonio Ojea (2):
+  netfilter: nft_queue: compute SCTP checksum
+  selftests: net: netfilter: nft_queue.sh: sctp checksum
+
+ net/netfilter/nfnetlink_queue.c               |  1 +
+ .../selftests/net/netfilter/nft_queue.sh      | 38 +++++++++++++++++++
+ 2 files changed, 39 insertions(+)
+
+-- 
+2.45.0.rc1.225.g2a3ae87e7f-goog
 
