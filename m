@@ -1,73 +1,102 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1614F1422BF
-	for <netfilter-devel@vger.kernel.org>; Mon,  6 May 2024 09:19:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC4BB142E87;
+	Mon,  6 May 2024 11:50:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714987201; cv=none; b=E+EtJ5YidlGSYh6IjDqMt0SYQnE7CF59RcwGk2IlzBCYc8XV6JMxO93C9SXagCHsoJleWl7K0OBOy7+nmabgmVL6TtCU6lmyZU4ntdc8wYGgaAKKHmkq4E1+JQIg0wGRkhaC+xHNiBJSC/IUcH4YDkC4lPzG0pL50BSC/AWNrno=
+	t=1714996236; cv=none; b=G29BHRSrFBHcglpMzpeVKr9gBT5hr83YY3u/Qhqmjsg6BxouR+iiylAStBov0vszyZaiBi6MgFHMomI4CV+Bz6wsCyWT7evLZLoIPVmYITMkcREZzfsjyfvsQvuLn6D5viv6cpb9WsShHwebI7OT776IkH4jOBMJjGLd3oqiAWA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714987201; c=relaxed/simple;
-	bh=5N9v9tPbYlj/zVVAhwt849ws8ifN3N5iUrM/ZDxK9SM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=I+ZVYwTLXD9L8zA5n15MUVNHRXZcnqxYT7Xr2Pb5QsrozuxHnIFm/MSidbKcrbYcF/lj4xlffP4gn7HVyVVALWoxtc92wPKTu1W29Q1/G1EXRQGk+At5yKcm+0MFdVORkiaQEbEBPQ5giSi/Ffj2tLULZArvMK0OXehQdICJ4rY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Date: Mon, 6 May 2024 11:10:44 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: kernel test robot <lkp@intel.com>, oe-kbuild-all@lists.linux.dev,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	Stefano Brivio <sbrivio@redhat.com>
-Subject: Re: [netfilter-nf:under-review 14/18]
- net/netfilter/nft_set_pipapo.c:2122: warning: expecting prototype for
- __nft_pipapo_walk(). Prototype was for nft_pipapo_do_walk() instead
-Message-ID: <ZjielNW_OUxZuj3V@calendula>
-References: <202405031522.nDHvTzEz-lkp@intel.com>
- <20240503104143.GA9734@breakpoint.cc>
+	s=arc-20240116; t=1714996236; c=relaxed/simple;
+	bh=y6cqDXl03vpDlI1WoQ3qF+Vekj9+MML61XpUT2jK0uI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=pX3EZUxvyUvtFamczbbkoXHzN6wg1rN3L5dThzbCAMCZm6a6+9vHv8PWsCf4zt1z7j2Mw3K/MC0X50KZNgEYFCg3zdrA8jXbLXNRBVNJUxGzVkEYhxM4elUdc/PVvbpMYRwomWV0fiaCuih42o6c48/08NCEw1tf9CMcIabxPps=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1s3wrO-0003r1-NL; Mon, 06 May 2024 13:50:22 +0200
+From: Florian Westphal <fw@strlen.de>
+To: <netdev@vger.kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	<netfilter-devel@vger.kernel.org>,
+	pablo@netfilter.org
+Subject: [PATCH net-next] selftests: netfilter: conntrack_tcp_unreplied.sh: wait for initial connection attempt
+Date: Mon,  6 May 2024 13:43:16 +0200
+Message-ID: <20240506114320.12178-1-fw@strlen.de>
+X-Mailer: git-send-email 2.43.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20240503104143.GA9734@breakpoint.cc>
+Content-Transfer-Encoding: 8bit
 
-On Fri, May 03, 2024 at 12:41:43PM +0200, Florian Westphal wrote:
-> kernel test robot <lkp@intel.com> wrote:
-> > tree:   git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git under-review
-> > head:   7ab960ad3bd958ddbeabe9ab2287ac5d0a673f23
-> > commit: cd491237776df450e99904b9408bfad35366a73f [14/18] netfilter: nft_set_pipapo: prepare walk function for on-demand clone
-> > config: sh-allmodconfig (https://download.01.org/0day-ci/archive/20240503/202405031522.nDHvTzEz-lkp@intel.com/config)
-> > compiler: sh4-linux-gcc (GCC) 13.2.0
-> > reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20240503/202405031522.nDHvTzEz-lkp@intel.com/reproduce)
-> > 
-> > If you fix the issue in a separate patch/commit (i.e. not just a new version of
-> > the same patch/commit), kindly add following tags
-> > | Reported-by: kernel test robot <lkp@intel.com>
-> > | Closes: https://lore.kernel.org/oe-kbuild-all/202405031522.nDHvTzEz-lkp@intel.com/
-> > 
-> > All warnings (new ones prefixed by >>):
-> > 
-> > >> net/netfilter/nft_set_pipapo.c:2122: warning: expecting prototype for __nft_pipapo_walk(). Prototype was for nft_pipapo_do_walk() instead
-> 
-> Sigh.  Pablo, can you squash this to
-> "netfilter: nft_set_pipapo: prepare walk function for on-demand clone"?
+Netdev CI reports occasional failures with this test
+("ERROR: ns2-dX6bUE did not pick up tcp connection from peer").
 
-Done!
+Add explicit busywait call until the initial connection attempt shows
+up in conntrack rather than a one-shot 'must exist' check.
 
-> diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-> index be5c554ca4d3..1a1dcb646af5 100644
-> --- a/net/netfilter/nft_set_pipapo.c
-> +++ b/net/netfilter/nft_set_pipapo.c
-> @@ -2100,7 +2100,7 @@ static void nft_pipapo_remove(const struct net *net, const struct nft_set *set,
->  }
->  
->  /**
-> - * __nft_pipapo_walk() - Walk over elements in m
-> + * nft_pipapo_do_walk() - Walk over elements in m
->   * @ctx:       nftables API context
->   * @set:       nftables API set representation
->   * @m:         matching data pointing to key mapping array
-> 
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ .../net/netfilter/conntrack_tcp_unreplied.sh  | 25 +++++++++++++------
+ 1 file changed, 18 insertions(+), 7 deletions(-)
+
+diff --git a/tools/testing/selftests/net/netfilter/conntrack_tcp_unreplied.sh b/tools/testing/selftests/net/netfilter/conntrack_tcp_unreplied.sh
+index 1f862c089028..121ea93c0178 100755
+--- a/tools/testing/selftests/net/netfilter/conntrack_tcp_unreplied.sh
++++ b/tools/testing/selftests/net/netfilter/conntrack_tcp_unreplied.sh
+@@ -106,6 +106,23 @@ ip netns exec "$ns1" bash -c 'for i in $(seq 1 $BUSYWAIT_TIMEOUT) ; do
+ 	sleep 0.1
+ 	done' &
+ 
++wait_for_attempt()
++{
++	count=$(ip netns exec "$ns2" conntrack -L -p tcp --dport 80 2>/dev/null | wc -l)
++	if [ "$count" -gt 0 ]; then
++		return 0
++	fi
++
++	return 1
++}
++
++# wait for conntrack to pick the new connection request up before loading
++# the nat redirect rule.
++if ! busywait "$BUSYWAIT_TIMEOUT" wait_for_attempt; then
++	echo "ERROR: $ns2 did not pick up tcp connection from peer"
++	exit 1
++fi
++
+ ip netns exec "$ns2" nft -f - <<EOF
+ table inet nat {
+ 	chain prerouting {
+@@ -119,12 +136,6 @@ if [ $? -ne 0 ]; then
+ 	exit 1
+ fi
+ 
+-count=$(ip netns exec "$ns2" conntrack -L -p tcp --dport 80 2>/dev/null | wc -l)
+-if [ "$count" -eq 0 ]; then
+-	echo "ERROR: $ns2 did not pick up tcp connection from peer"
+-	exit 1
+-fi
+-
+ wait_for_redirect()
+ {
+ 	count=$(ip netns exec "$ns2" conntrack -L -p tcp --reply-port-src 8080 2>/dev/null | wc -l)
+@@ -136,7 +147,7 @@ wait_for_redirect()
+ }
+ echo "INFO: NAT redirect added in ns $ns2, waiting for $BUSYWAIT_TIMEOUT ms for nat to take effect"
+ 
+-busywait $BUSYWAIT_TIMEOUT wait_for_redirect
++busywait "$BUSYWAIT_TIMEOUT" wait_for_redirect
+ ret=$?
+ 
+ expect="packets 1 bytes 60"
+-- 
+2.43.2
+
