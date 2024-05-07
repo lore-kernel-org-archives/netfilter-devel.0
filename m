@@ -1,151 +1,78 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3DFA018732F
-	for <netfilter-devel@vger.kernel.org>; Tue,  7 May 2024 22:32:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E73B86128;
+	Tue,  7 May 2024 23:40:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715121171; cv=none; b=IrpRuocI8+LHpqJ1/PBlf5HmP62LPQQgV3jbQMn7kug9zH77wKehJfNpj4nmNw22vksBDbskxtY/xb89R6yBn1qMXQ0ir7vxGaVmGBdbsjxUV7NtlBHU+LsQP+UKPyMSHOp2APCUCR2WR9r3HHxOBK3q+kqMkQ7muhu1gR+qsuc=
+	t=1715125230; cv=none; b=KKz/Vy3+Y1h2V8o8+JLZxwNCxDaGLedngO4seWCaCAMFnqx9TbhjzpJ3ViJtIR00TyF0hUiLzZfeAcuiI67WCUbAwPvo7BOxGa5zKPWcyUgP1TO7BIJx173JSjbzwz+G7L1Dskpl0fzKvWkoJtZSKd1lh13dtWxF3Ldyn6HYkro=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715121171; c=relaxed/simple;
-	bh=SG4STb9XekOfTSCSHlHl+ivn4c+gJOUhKaNvEw9T+50=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=hxs6Ie7ANz0nV8AILA1w3L0mAOXq8LI1juKQzjqnRB8koFHE8+wkZDPZzobGXJrSa4LR1E9ryfZVgQjdzKBVFAt2mfQ+uJ5zo9xJrrx72VchD54L0m3euBRMlI0ckkm/8B0iVMx0gn43ku/Era6lO+OCg0/7KLTo11q9ipHXYLI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Date: Wed, 8 May 2024 00:32:38 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Neels Hofmeyr <nhofmeyr@sysmocom.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: nftables with thousands of chains is unreasonably slow
-Message-ID: <ZjqsBomPs2qWEi_5@calendula>
-References: <ZjjGOyXkmeudzzc5@my.box>
+	s=arc-20240116; t=1715125230; c=relaxed/simple;
+	bh=C7NSF3vJhM4BSvLjhB7M0TbuLFQ4Crn+An+CD8TYils=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=drZ+VZ20unmd6Xq5oHApWWlsv/kXjIxBz+wl5co9DLcVMQustYrs7q4hrqyTdBl/fPOnNbfqfbA6qTOoAmsWersBowhORaJnamhvNtzWnkz9pogEoqDd21UEfHvfSKMVOdmYTxDoeSmW09RvX8h9+N8qjQpo24bkBlqEdDOax78=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=khlssk/S; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="khlssk/S"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 0F635C4AF63;
+	Tue,  7 May 2024 23:40:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1715125230;
+	bh=C7NSF3vJhM4BSvLjhB7M0TbuLFQ4Crn+An+CD8TYils=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=khlssk/SpyYlEs8LkVpq0Z5t6Tdqi+g3kxCMkKq2MpWdF9DngeQcYnMAx52Q69Oqz
+	 3r/oTmctYWIapJuVcVy9/kf3snuZp2u48/t9/MQ4g+I9Ydx+QMTZFdfQUi4CQSxoYs
+	 Ooh7ckXPP88M56dXmYvJNqffr5lLryrA/pVybuQWZaeDM2OIZolV96YjWHxIK38VBh
+	 PudfJ0wObEDQUW5YN2Iy9drzZvYWDZTao16Pz7l7KT/wCKE9OfQkg1LHlXGiTQcbO3
+	 iDFcKV85P+kjzag42WK5UytNqbmcNHn8/v8W5ZL+DuGep5o827WsURFYm8Odu7lilZ
+	 XRqxKrif3Cjuw==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id EBD59C43330;
+	Tue,  7 May 2024 23:40:29 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <ZjjGOyXkmeudzzc5@my.box>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next] selftests: netfilter: conntrack_tcp_unreplied.sh:
+ wait for initial connection attempt
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <171512522996.22016.2718919156181526257.git-patchwork-notify@kernel.org>
+Date: Tue, 07 May 2024 23:40:29 +0000
+References: <20240506114320.12178-1-fw@strlen.de>
+In-Reply-To: <20240506114320.12178-1-fw@strlen.de>
+To: Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
+ edumazet@google.com, kuba@kernel.org, netfilter-devel@vger.kernel.org,
+ pablo@netfilter.org
 
-Hi Neels,
+Hello:
 
-On Mon, May 06, 2024 at 01:59:55PM +0200, Neels Hofmeyr wrote:
-> Hi!
-> 
-> I am trying to figure out why adding/deleting chains and retrieving counters
-> via nftables takes long for high nr of entries. I'd like to share some
-> findings, to ask whether this is known, whether a solution exists, etc...
-> 
-> I'm writing two programs that interact with nftables via
-> nft_run_cmd_from_buffer(). (osmo-upf and osmo-hnbgw)
-> 
-> One use case is setting up / tearing down thousands of GTP tunnels via nftables
-> rule sets one by one, for reference:
-> https://gitea.osmocom.org/cellular-infrastructure/osmo-upf/src/commit/a21bcec358a5147deb15d156700279f52386a7d7/tests/nft-rule.vty
+This patch was applied to netdev/net-next.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
 
-You are focusing on the "set up / tear down thousands of GTP tunnels"
-problems in this email, correct?
+On Mon,  6 May 2024 13:43:16 +0200 you wrote:
+> Netdev CI reports occasional failures with this test
+> ("ERROR: ns2-dX6bUE did not pick up tcp connection from peer").
+> 
+> Add explicit busywait call until the initial connection attempt shows
+> up in conntrack rather than a one-shot 'must exist' check.
+> 
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> 
+> [...]
 
-> The other use case is retrieving all counters that are currently present in the
-> inet table that my client program owns.
-> 
-> Adding the first few hundred chains / reading a few hundred counters finishes
-> in an ok amount of time. But the more chains are already submitted in the
-> table, the longer it takes to add another one, etc.
-> 
-> By the time that there are ~4000 chains, adding another chain becomes
-> prohibitively slow. Some numbers: in total, when setting up 1000 GTP tunnels in
-> osmo-upf, which means adding 4000 chains into a table owned by the program
-> (osmo-upf), in total takes 49 seconds. This includes the overhead for talking
-> PFCP and logging, etc., but by far the most time is taken waiting for
-> nft_run_cmd_from_buffer().
+Here is the summary with links:
+  - [net-next] selftests: netfilter: conntrack_tcp_unreplied.sh: wait for initial connection attempt
+    https://git.kernel.org/netdev/net-next/c/76508154d7da
 
-In you scenario: Is there a nft_run_cmd_from_buffer() call for each
-new chain?
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-> We'd like to scale up to like 100 times the above -- completely beyond all
-> reason currently, since the wait time seems to increase exponentially.
-> 
-> I have two angles:
-> 
-> 1) workaround: structure the chains and rules differently?
-> 2) analysis: bpftracing tells me that most time is spent in chain_free().
-> 
-> (1) Currently I have one flat table with all the chains in that "top level".
-> Would it make sense to try breaking that long list up into smaller groups,
-> maybe batches of 100? As in, pseudocode:
-> 
->   table osmo-upf {
->       group-0 {
->          chain-0 {}
-> 	 chain-1 {}
-> 	 ...
->       }
->       group-1 {
->          chain-100 {}
->          chain-101 {}
-> 	 ...
->       }
->       ...
->       group-1000 {
->          chain-100000 {}
->          chain-100001 {}
-> 	 ...
->       }
->   }
-> 
-> Then I can also retrieve the counters in batches of 100, which might be more
-> efficient and better to coordinate with concurrent tasks.
 
-This means, your existing approach is not batching updates?
-
-> (2) Using bpftrace, I drilled a bit into where the time is spent. Two
-> interesting findings for me so far:
-> 
-> It seems most time is spent in
-> 
->   nft_run_cmd_from_buffer
->     nft_evaluate
->       nft_cache_update
->         nft_cache_release
->           nft_cache_flush
->             table_free
->               chain_free
-> 
-> The bpftrace shows:
-> 
-> nft_cache_update() was called 6000 times.
-> (I have 1000 GTP tunnels and expect four chains per GTP tunnel, which would be
-> 4000, not sure why I see 6k, but that's not really that significant.)
-> 
-> chain_free() was called more than 5 million times, that's 1000 times as often
-> as I would naively expect to see.
-> 
-> Most calls are fast (<16us), but there are some break-outs of up to 8ms, and in
-> total the 5 million calls amount to 80 seconds. (One bpftrace dump below, FYI)
-> 
-> I'm continuing to think:
-> 
-> - Is this stuff known already, or does it make sense to continue on this path,
->   share a reproduction recipe here, and so on?
-
-Yes, a simple reproducer would be good to have. Users from time to
-time post reproducer on bugzilla to trigger issue, sometimes those
-reproducers provide the time it takes, so it should be possible to get
-numbers before and after patches.
-
-> - can we fix that? Is there some memory leak / unnecessary blow up happening
->   that causes this apparent factor 1000 in effort?
-
-tests regularly run valgrind and ASAN to ensure no memleaks.
-
-> - can we defer the free, so my client program gets the nftables results without
->   having to wait for the freeing? Can the client program decide when to do the
->   nftables freeing, i.e. not within nft_run_cmd_from_buffer()?
-
-I am not sure yet I understand the pattern you follow to trigger the
-issue.
-
-Thanks for reporting.
