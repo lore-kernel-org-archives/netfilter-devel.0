@@ -1,219 +1,286 @@
-Received: from mailout2.w1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4ABDE82D62;
-	Wed,  8 May 2024 11:46:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.118.77.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A21BF56B70
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 May 2024 12:52:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715168803; cv=none; b=r4+TihxJqOgmyUCehE91vYQowL4h/5ic7FjRAM5nZklYPvu9tjpsqKErxql3GjkA4N00/44tlRZebRFTzrES+NTfNMY0N8+KyA1ajtJwjuD5if7WNCSR21BcKm/WJ/LP+svd9EAnhRrU1Gw0r7ABw+h1szrSH2hGjV3q522pH94=
+	t=1715172769; cv=none; b=uh2Brh+rckxF7/E4hZVVdiOsn3Ck1Gm5/tlhCu6oD/Zd8oNmJRmxYGDYDDyFOVlY4tWIPoee2d8blNM7GyUQfPrqHwq2OoECOyKhu9WrHBuqfTeZisKKPNEmGTb/SZf3Z+BPxp14oeeG3FIM83FEbhipUbPbUj9t3qHX/6OXAXM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715168803; c=relaxed/simple;
-	bh=cpA+7N6Sz3fsV3eip5EVkKcJQeVtFO7ZiIALxL3MuKA=;
-	h=Date:From:To:CC:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To:References; b=U+8k4XmOVQRQawKAarRlX7wi2Q1LMRxT2qdZnRTdMWxrI7DHXOey/FD0uT30oCzA5UZN5K7Mct4AC49DlR83clHXkrgu26phEutdJCbKd9u3PnnYT/TDQz5Dy5E7WrMkJk+RvMqfOUSakZk/q7EJg3/6ULBZTki8IK3rDmE/weU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=MGedoFgJ; arc=none smtp.client-ip=210.118.77.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="MGedoFgJ"
-Received: from eucas1p1.samsung.com (unknown [182.198.249.206])
-	by mailout2.w1.samsung.com (KnoxPortal) with ESMTP id 20240508113726euoutp023b917c183029915f96a388a085ef9f3c~NgG6-85E21770217702euoutp02_;
-	Wed,  8 May 2024 11:37:26 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.w1.samsung.com 20240508113726euoutp023b917c183029915f96a388a085ef9f3c~NgG6-85E21770217702euoutp02_
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1715168246;
-	bh=cF90zorX3Vhkec3/TFj+N593dqTmsatotOCQjHSZEbM=;
-	h=Date:From:To:CC:Subject:In-Reply-To:References:From;
-	b=MGedoFgJUxqsWS+zDcnWEQjCsAolmv6XQq26O3hTwtnVUXsPIbO123xNVdDsR1wi8
-	 4ruaFwHk37WfH/K8Vb94HbGRPKKEv2Im4rxPFviwViSVpO0j+oN5tsVWmyq70AhMUk
-	 fkBQHu/4DdTej80roiXkz13NiIEQJKgdnVvkytNE=
-Received: from eusmges1new.samsung.com (unknown [203.254.199.242]) by
-	eucas1p1.samsung.com (KnoxPortal) with ESMTP id
-	20240508113725eucas1p16225069534576a85124b13399ba8b854~NgG6vou7Z2221222212eucas1p1K;
-	Wed,  8 May 2024 11:37:25 +0000 (GMT)
-Received: from eucas1p1.samsung.com ( [182.198.249.206]) by
-	eusmges1new.samsung.com (EUCPMTA) with SMTP id C2.CE.09624.5F36B366; Wed,  8
-	May 2024 12:37:25 +0100 (BST)
-Received: from eusmtrp1.samsung.com (unknown [182.198.249.138]) by
-	eucas1p1.samsung.com (KnoxPortal) with ESMTPA id
-	20240508113725eucas1p1c73dc1b7bc2780f99b281e4cc534d1a0~NgG6RWhmU1576115761eucas1p1a;
-	Wed,  8 May 2024 11:37:25 +0000 (GMT)
-Received: from eusmgms2.samsung.com (unknown [182.198.249.180]) by
-	eusmtrp1.samsung.com (KnoxPortal) with ESMTP id
-	20240508113725eusmtrp125fc799878405e7480db3ef8c0ccefef~NgG6P556t0870508705eusmtrp1k;
-	Wed,  8 May 2024 11:37:25 +0000 (GMT)
-X-AuditID: cbfec7f2-c11ff70000002598-a3-663b63f58af9
-Received: from eusmtip2.samsung.com ( [203.254.199.222]) by
-	eusmgms2.samsung.com (EUCPMTA) with SMTP id 28.7B.09010.5F36B366; Wed,  8
-	May 2024 12:37:25 +0100 (BST)
-Received: from CAMSVWEXC02.scsc.local (unknown [106.1.227.72]) by
-	eusmtip2.samsung.com (KnoxPortal) with ESMTPA id
-	20240508113725eusmtip245b7460632450ec5f8efcdd3ed3a83f1~NgG6AtV8G1709017090eusmtip2g;
-	Wed,  8 May 2024 11:37:25 +0000 (GMT)
-Received: from localhost (106.110.32.44) by CAMSVWEXC02.scsc.local
-	(2002:6a01:e348::6a01:e348) with Microsoft SMTP Server (TLS) id 15.0.1497.2;
-	Wed, 8 May 2024 12:37:24 +0100
-Date: Wed, 8 May 2024 13:37:19 +0200
-From: Joel Granados <j.granados@samsung.com>
-To: Kees Cook <keescook@chromium.org>
-CC: Jakub Kicinski <kuba@kernel.org>, Luis Chamberlain <mcgrof@kernel.org>,
-	Kees Cook <keescook@chromium.org>, Eric Dumazet <edumazet@google.com>, Dave
-	Chinner <david@fromorbit.com>, <linux-fsdevel@vger.kernel.org>,
-	<netdev@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
-	<linux-s390@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-riscv@lists.infradead.org>, <linux-mm@kvack.org>,
-	<linux-security-module@vger.kernel.org>, <bpf@vger.kernel.org>,
-	<linuxppc-dev@lists.ozlabs.org>, <linux-xfs@vger.kernel.org>,
-	<linux-trace-kernel@vger.kernel.org>, <linux-perf-users@vger.kernel.org>,
-	<netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
-	<kexec@lists.infradead.org>, <linux-hardening@vger.kernel.org>,
-	<bridge@lists.linux.dev>, <lvs-devel@vger.kernel.org>,
-	<linux-rdma@vger.kernel.org>, <rds-devel@oss.oracle.com>,
-	<linux-sctp@vger.kernel.org>, <linux-nfs@vger.kernel.org>,
-	<apparmor@lists.ubuntu.com>
-Subject: Re: [PATCH v3 00/11] sysctl: treewide: constify ctl_table argument
- of sysctl handlers
-Message-ID: <20240508113719.pccjkyd5nk5soqrg@joelS2.panther.com>
+	s=arc-20240116; t=1715172769; c=relaxed/simple;
+	bh=8haH6aEm4xVJV69oRnZ9hfZYh8xbaoEzQay4eCoJx5E=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=ULxlCe676Vz/qNJm+CY8CeTmUnSzkcNTyKFI9UiSnBaL4pxmqrXv4R7TjQx++VtCfI6MfQUEVWEMwUkpHPQKx7Ko/gyaVye+e6SDp/qzSVJFovJ+yx9i8DN97yVHFv6tmE8Nb+UvGldUl4+FpWeVclXPxJrYQkW0d5LSQAe52cE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1s4gmq-0004aT-Au; Wed, 08 May 2024 14:52:44 +0200
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>,
+	Sven Auhagen <sven.auhagen@voleatech.de>
+Subject: [PATCH nf-next] netfilter: nf_tables: allow clone callbacks to sleep
+Date: Wed,  8 May 2024 14:52:47 +0200
+Message-ID: <20240508125303.22130-1-fw@strlen.de>
+X-Mailer: git-send-email 2.43.2
+In-Reply-To: <qfqcb3jgkeovcelauadxyxyg65ps32nndcdutwcjg55wpzywkr@vzgi3sh2izrw>
+References: <qfqcb3jgkeovcelauadxyxyg65ps32nndcdutwcjg55wpzywkr@vzgi3sh2izrw>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="v7sa5w52x2sbyktg"
-Content-Disposition: inline
-In-Reply-To: <d11f875e-4fb5-46dd-a412-84818208c575@t-8ch.de>
-X-ClientProxiedBy: CAMSVWEXC01.scsc.local (2002:6a01:e347::6a01:e347) To
-	CAMSVWEXC02.scsc.local (2002:6a01:e348::6a01:e348)
-X-Brightmail-Tracker: H4sIAAAAAAAAA2WSf0wTZxzG917vrkez4lGdvIDOwQCz6RhuKO8C21RMdsuiwy1b4pJldnAU
-	Ai2kBabgsiKObvwQtJnQKrMgItCFstI1/DISwDIps0WJkskgqeAmUGB0hSBa13KQmey/z/N8
-	v0/u+7w5iie6RwZTabJsVi4TZ4SRAtxsWb75mjspLiV61L0bFVh0BHL19ZPIfKkEQ0/aVTxk
-	sowBNGlx8NFgiRR1Wt0YsptPE8h4/w6Buq7ewNGPhmWAbndcINHYT08JZO+2Emj4l2YcPegp
-	w5HZdYpEFTWFPDSpmybQfKmDRH2G33DU8biNj1aWPAQqvLjAQyMVkwBZdJtRRfMAjm62uoi9
-	W5nzyiGcGaiFjM6YwxibvicZ48JZPtNa9w3zV6sGMLaqGsDcGRnHGefKrxhjr58hGZfxxcTn
-	PxPEJ7MZabms/PV3jgpSda4JkPVzyLG66iq+EjzZXAz8KEjHwMFyKygGAkpENwBYvzTI58Q/
-	AFaZ7DgnXACqp5r465H2yi6MG1wBcLh4XXi3ZvvH1vJGABufthG+CE6Hw85zHatM0juhbWaU
-	5+NNdARculW4yjy6nQ9trgAfb6SPQtNlNfCxkN4LtY4hnOMAeEMzgXP7x2Dhmcfej1FeDoFX
-	PJTP9qPjYdt5O4+7NBS6L43hHH8NB0y/rx4K6QkB1HTZMG5wALYM95Mcb4RT/aa1mlugVV2K
-	cwE1gNc883xO6L3PVOBeS8fBU8MTa4l90GawEb6LIO0PR5wB3KH+8Ky5ksfZQvhdkYjbjoT6
-	sRm8Arysfaaa9plq2v+qcfZOqOtcIP9n74D1NdM8jt+Gzc1zuA7wm0Agm6OQSljFLhn7VZRC
-	LFXkyCRRSZlSI/D+81ZP/0IbqJ76O6oHYBToAeHesKNFbwfBuCxTxoZtEl5XxaaIhMni43ms
-	PPMLeU4Gq+gBIRQeFiiMSN7GimiJOJtNZ9ksVr4+xSi/YCW2R1rSi4Qx4elB5/Z35R9871Za
-	+ZbjQfXKdOsrOUox3EDMsoJq43MJ6pZDi+P63LRti5GzjTXXFoNky/5FR8J6Ba4909mfJm73
-	XF94kFCg/OHkwzJxxMcn4lRJwsqBw2/2FVyIVmtFcTumh2rclm/z/+guS7g6cyLrYt49Z+Mg
-	9uHIbodGETtep6ib3G9yOJY/Kv38S6vmtqM19uH4n7mS8kfd0p59KU3qOfP9w+ly+uDoXfTG
-	J1Wt+TAy3vnBkeTodztDscsr5g3WkwcOba/tdeclKopWnI3stIQ1vBWTF/8CnZrUwDc1hJd6
-	5k8Hzhnuvk/lT6q2htbqx19iMUr1KAxXpIp3vcqTK8T/AgNMPNVuBAAA
-X-Brightmail-Tracker: H4sIAAAAAAAAA2WSfUxTZxTG896vtmrntaC+gDpX2WaYVlpofWHAIDHLXXTL9seyZROxK1dg
-	0pb1w+AWNwxmzDIWQCICMotCJ4UUdmGErw1XWSlUpLjJ0Gx11kEmH9mgA0OKZYVmmcn+++V5
-	8jzn5OTwcdEiGcnP0RhYnUaZK6bWEa7AgGfvgurFY7HW4nB02mEmka9/gEIdV4ox9LirCEft
-	Dg9AEw4vD90oVqMe1wKG3B1fkIh7MEai3m8HCfRlyxJAP3ZfpJCneYVE7msuEv30jY1Ak/YS
-	AnX4zlCotK4QRxPmaRL99bmXQv0twwTqXu7kIf+jAIkKL83jaLx0AiCHeQsqtQ0R6Gabj0zd
-	ztQUjBLM0GXImDkjw1nPUgw3X85j2uo/Yf5oqwLMyIU6wIyN3yOYWb8TY9yWGYrxcTte3/CO
-	JEmnNRrYndlavSFZ/K4UySTSBCSRxSdIpHH70xNlcvG+lKRMNjfnBKvbl3JUkl356U2Q1xKV
-	f8ZnIguAf4sJCPiQjoddlb2YCazji+gGAE3dFVTI2Aa//vs2GeIwuDxmWtNF9ByAjdbnQgEO
-	QEuZiVg1CDoa9pzvXgtQ9B44MvMLvsrh9LPw0a3CNcbpLh50LdKrHEYfhe0N58AqC+lUWO0d
-	JUKlrRicthfgIWMTHKz6nQiFT0Bn61xwAD/IUfCrAH9VFtBJsLPGjYcWfQYuXPEQIT4FfY8n
-	QSkIq36iqfqJpur/mkJyDBwPPMT+J78ALXXTeIiToc32J2EGPCsIZ416dZZaL5PolWq9UZMl
-	UWnVHAg+XYdjqb0TNE7NSewA4wM7iA4mva1NbhBJaLQaVhwu/KFo/zGRMFN58kNWp83QGXNZ
-	vR3Ig1cswyM3q7TBD9YYMqSKWLk0XpEQK09QxIm3Cl/J+0wporOUBvY4y+axun9zGF8QWYBZ
-	xWWJk1SvYtDoUnNPN78hM3Utbnq+XvLqaLIqrNZ2teTNuqKLUa7E9T1X9wzE7Bqv2VbW4Tni
-	TO07HXjZ7uZ+Tn1YNb6oqLxeUrzT3HZj5Xr+3ZOXn7LMpsRNC5oiJu+0FH+wvn+0YkzRJapP
-	Gz4gqFj43nJhKOOU//D93VjfsNOmOh/RMLx1Y9TB3dQSeXfzHe39CKtAmNW84S3pvHTO7n+t
-	Nquitqnc8etvM40jMUcyPVPXyvEIWWv0jrRdG8/mr/i42733Bt7P+ah50n8rZuptc7r4Y2c6
-	zTsIdZVNndF732ugqeTD574T9jNpPO/x7QuH+l56oNTL5YYD0uUAb1ZM6LOV0hhcp1f+Aw47
-	jhcJBAAA
-X-CMS-MailID: 20240508113725eucas1p1c73dc1b7bc2780f99b281e4cc534d1a0
-X-Msg-Generator: CA
-X-RootMTR: 20240425031241eucas1p1fb0790e0d03ccbe4fca2b5f6da83d6db
-X-EPHeader: CA
-CMS-TYPE: 201P
-X-CMS-RootMailID: 20240425031241eucas1p1fb0790e0d03ccbe4fca2b5f6da83d6db
-References: <20240423-sysctl-const-handler-v3-0-e0beccb836e2@weissschuh.net>
-	<CGME20240425031241eucas1p1fb0790e0d03ccbe4fca2b5f6da83d6db@eucas1p1.samsung.com>
-	<20240424201234.3cc2b509@kernel.org>
-	<20240425110412.2n5d27smecfncsfa@joelS2.panther.com>
-	<d11f875e-4fb5-46dd-a412-84818208c575@t-8ch.de>
+Content-Transfer-Encoding: 8bit
 
---v7sa5w52x2sbyktg
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Sven Auhagen reports transaction failures with following error:
+  ./main.nft:13:1-26: Error: Could not process rule: Cannot allocate memory
+  percpu: allocation failed, size=16 align=8 atomic=1, atomic alloc failed, no space left
 
-Kees
+This points to failing pcpu allocation with GFP_ATOMIC flag.
+However, transactions happen from user context and are allowed to sleep.
 
-Could you comment on the feasibility of this alternative from the
-Control Flow Integrity perspective. My proposal is to change the
-proc_handler to void* and back in the same release. So there would not
-be a kernel released with a void* proc_handler.
+One case where we can call into percpu allocator with GFP_ATOMIC is
+nft_counter expression.
 
-> > However, there is an alternative way to do this that allows chunking. We
-> > first define the proc_handler as a void pointer (casting it where it is
-> > being used) [1]. Then we could do the constification by subsystem (like
-> > Jakub proposes). Finally we can "revert the void pointer change so we
-> > don't have one size fit all pointer as our proc_handler [2].
-> >=20
-> > Here are some comments about the alternative:
-> > 1. We would need to make the first argument const in all the derived
-> >    proc_handlers [3]=20
-> > 2. There would be no undefined behavior for two reasons:
-> >    2.1. There is no case where we change the first argument. We know
-> >         this because there are no compile errors after we make it const.
-> >    2.2. We would always go from non-const to const. This is the case
-> >         because all the stuff that is unchanged in non-const.
-> > 3. If the idea sticks, it should go into mainline as one patchset. I
-> >    would not like to have a void* proc_handler in a kernel release.
-> > 4. I think this is a "win/win" solution were the constification goes
-> >    through and it is divided in such a way that it is reviewable.
-> >=20
-> > I would really like to hear what ppl think about this "heretic"
-> > alternative. @Thomas, @Luis, @Kees @Jakub?
->=20
-> Thanks for that alternative, I'm not a big fan though.
->=20
-> Besides the wonky syntax, Control Flow Integrity should trap on
-> this construct. Functions are called through different pointers than
-> their actual types which is exactly what CFI is meant to prevent.
->=20
-> Maybe people find it easier to review when using
-> "--word-diff" and/or "-U0" with git diff/show.
-> There is really nothing going an besides adding a few "const"s.
->=20
-> But if the consensus prefers this solution, I'll be happy to adopt it.
->=20
-> > [1] https://git.kernel.org/pub/scm/linux/kernel/git/joel.granados/linux=
-=2Egit/commit/?h=3Djag/constfy_treewide_alternative&id=3D4a383503b1ea650d4e=
-12c1f5838974e879f5aa6f
-> > [2] https://git.kernel.org/pub/scm/linux/kernel/git/joel.granados/linux=
-=2Egit/commit/?h=3Djag/constfy_treewide_alternative&id=3Da3be65973d27ec2933=
-b9e81e1bec60be3a9b460d
-> > [3] proc_dostring, proc_dobool, proc_dointvec....
->=20
->=20
-> Thomas
+Normally this happens from control plane, so this could use GFP_KERNEL
+instead.  But one use case, element insertion from packet path,
+needs to use GFP_ATOMIC allocations (nft_dynset expression).
 
-Best
---=20
+At this time, .clone callbacks always use GFP_ATOMIC for this reason.
 
-Joel Granados
+Add gfp_t argument to the .clone function and pass GFP_KERNEL or
+GFP_ATOMIC flag depending on context, this allows all clone memory
+allocations to sleep for the normal (transaction) case.
 
---v7sa5w52x2sbyktg
-Content-Type: application/pgp-signature; name="signature.asc"
+Cc: Sven Auhagen <sven.auhagen@voleatech.de>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ include/net/netfilter/nf_tables.h |  4 ++--
+ net/netfilter/nf_tables_api.c     |  8 ++++----
+ net/netfilter/nft_connlimit.c     |  4 ++--
+ net/netfilter/nft_counter.c       |  4 ++--
+ net/netfilter/nft_dynset.c        |  2 +-
+ net/netfilter/nft_last.c          |  4 ++--
+ net/netfilter/nft_limit.c         | 14 ++++++++------
+ net/netfilter/nft_quota.c         |  4 ++--
+ 8 files changed, 23 insertions(+), 21 deletions(-)
 
------BEGIN PGP SIGNATURE-----
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 3f1ed467f951..2796153b03da 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -416,7 +416,7 @@ struct nft_expr_info;
+ 
+ int nft_expr_inner_parse(const struct nft_ctx *ctx, const struct nlattr *nla,
+ 			 struct nft_expr_info *info);
+-int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src);
++int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src, gfp_t gfp);
+ void nft_expr_destroy(const struct nft_ctx *ctx, struct nft_expr *expr);
+ int nft_expr_dump(struct sk_buff *skb, unsigned int attr,
+ 		  const struct nft_expr *expr, bool reset);
+@@ -935,7 +935,7 @@ struct nft_expr_ops {
+ 						struct nft_regs *regs,
+ 						const struct nft_pktinfo *pkt);
+ 	int				(*clone)(struct nft_expr *dst,
+-						 const struct nft_expr *src);
++						 const struct nft_expr *src, gfp_t gfp);
+ 	unsigned int			size;
+ 
+ 	int				(*init)(const struct nft_ctx *ctx,
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 167074283ea9..c0a4813c80c9 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3333,7 +3333,7 @@ static struct nft_expr *nft_expr_init(const struct nft_ctx *ctx,
+ 	return ERR_PTR(err);
+ }
+ 
+-int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src)
++int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src, gfp_t gfp)
+ {
+ 	int err;
+ 
+@@ -3341,7 +3341,7 @@ int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src)
+ 		return -EINVAL;
+ 
+ 	dst->ops = src->ops;
+-	err = src->ops->clone(dst, src);
++	err = src->ops->clone(dst, src, gfp);
+ 	if (err < 0)
+ 		return err;
+ 
+@@ -6525,7 +6525,7 @@ int nft_set_elem_expr_clone(const struct nft_ctx *ctx, struct nft_set *set,
+ 		if (!expr)
+ 			goto err_expr;
+ 
+-		err = nft_expr_clone(expr, set->exprs[i]);
++		err = nft_expr_clone(expr, set->exprs[i], GFP_KERNEL_ACCOUNT);
+ 		if (err < 0) {
+ 			kfree(expr);
+ 			goto err_expr;
+@@ -6564,7 +6564,7 @@ static int nft_set_elem_expr_setup(struct nft_ctx *ctx,
+ 
+ 	for (i = 0; i < num_exprs; i++) {
+ 		expr = nft_setelem_expr_at(elem_expr, elem_expr->size);
+-		err = nft_expr_clone(expr, expr_array[i]);
++		err = nft_expr_clone(expr, expr_array[i], GFP_KERNEL_ACCOUNT);
+ 		if (err < 0)
+ 			goto err_elem_expr_setup;
+ 
+diff --git a/net/netfilter/nft_connlimit.c b/net/netfilter/nft_connlimit.c
+index de9d1980df69..92b984fa8175 100644
+--- a/net/netfilter/nft_connlimit.c
++++ b/net/netfilter/nft_connlimit.c
+@@ -210,12 +210,12 @@ static void nft_connlimit_destroy(const struct nft_ctx *ctx,
+ 	nft_connlimit_do_destroy(ctx, priv);
+ }
+ 
+-static int nft_connlimit_clone(struct nft_expr *dst, const struct nft_expr *src)
++static int nft_connlimit_clone(struct nft_expr *dst, const struct nft_expr *src, gfp_t gfp)
+ {
+ 	struct nft_connlimit *priv_dst = nft_expr_priv(dst);
+ 	struct nft_connlimit *priv_src = nft_expr_priv(src);
+ 
+-	priv_dst->list = kmalloc(sizeof(*priv_dst->list), GFP_ATOMIC);
++	priv_dst->list = kmalloc(sizeof(*priv_dst->list), gfp);
+ 	if (!priv_dst->list)
+ 		return -ENOMEM;
+ 
+diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
+index dccc68a5135a..291ed2026367 100644
+--- a/net/netfilter/nft_counter.c
++++ b/net/netfilter/nft_counter.c
+@@ -226,7 +226,7 @@ static void nft_counter_destroy(const struct nft_ctx *ctx,
+ 	nft_counter_do_destroy(priv);
+ }
+ 
+-static int nft_counter_clone(struct nft_expr *dst, const struct nft_expr *src)
++static int nft_counter_clone(struct nft_expr *dst, const struct nft_expr *src, gfp_t gfp)
+ {
+ 	struct nft_counter_percpu_priv *priv = nft_expr_priv(src);
+ 	struct nft_counter_percpu_priv *priv_clone = nft_expr_priv(dst);
+@@ -236,7 +236,7 @@ static int nft_counter_clone(struct nft_expr *dst, const struct nft_expr *src)
+ 
+ 	nft_counter_fetch(priv, &total);
+ 
+-	cpu_stats = alloc_percpu_gfp(struct nft_counter, GFP_ATOMIC);
++	cpu_stats = alloc_percpu_gfp(struct nft_counter, gfp);
+ 	if (cpu_stats == NULL)
+ 		return -ENOMEM;
+ 
+diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
+index c09dba57354c..b4ada3ab2167 100644
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -35,7 +35,7 @@ static int nft_dynset_expr_setup(const struct nft_dynset *priv,
+ 
+ 	for (i = 0; i < priv->num_exprs; i++) {
+ 		expr = nft_setelem_expr_at(elem_expr, elem_expr->size);
+-		if (nft_expr_clone(expr, priv->expr_array[i]) < 0)
++		if (nft_expr_clone(expr, priv->expr_array[i], GFP_ATOMIC) < 0)
+ 			return -1;
+ 
+ 		elem_expr->size += priv->expr_array[i]->ops->size;
+diff --git a/net/netfilter/nft_last.c b/net/netfilter/nft_last.c
+index 8e6d7eaf9dc8..de1b6066bfa8 100644
+--- a/net/netfilter/nft_last.c
++++ b/net/netfilter/nft_last.c
+@@ -102,12 +102,12 @@ static void nft_last_destroy(const struct nft_ctx *ctx,
+ 	kfree(priv->last);
+ }
+ 
+-static int nft_last_clone(struct nft_expr *dst, const struct nft_expr *src)
++static int nft_last_clone(struct nft_expr *dst, const struct nft_expr *src, gfp_t gfp)
+ {
+ 	struct nft_last_priv *priv_dst = nft_expr_priv(dst);
+ 	struct nft_last_priv *priv_src = nft_expr_priv(src);
+ 
+-	priv_dst->last = kzalloc(sizeof(*priv_dst->last), GFP_ATOMIC);
++	priv_dst->last = kzalloc(sizeof(*priv_dst->last), gfp);
+ 	if (!priv_dst->last)
+ 		return -ENOMEM;
+ 
+diff --git a/net/netfilter/nft_limit.c b/net/netfilter/nft_limit.c
+index cefa25e0dbb0..21d26b79b460 100644
+--- a/net/netfilter/nft_limit.c
++++ b/net/netfilter/nft_limit.c
+@@ -150,7 +150,7 @@ static void nft_limit_destroy(const struct nft_ctx *ctx,
+ }
+ 
+ static int nft_limit_clone(struct nft_limit_priv *priv_dst,
+-			   const struct nft_limit_priv *priv_src)
++			   const struct nft_limit_priv *priv_src, gfp_t gfp)
+ {
+ 	priv_dst->tokens_max = priv_src->tokens_max;
+ 	priv_dst->rate = priv_src->rate;
+@@ -158,7 +158,7 @@ static int nft_limit_clone(struct nft_limit_priv *priv_dst,
+ 	priv_dst->burst = priv_src->burst;
+ 	priv_dst->invert = priv_src->invert;
+ 
+-	priv_dst->limit = kmalloc(sizeof(*priv_dst->limit), GFP_ATOMIC);
++	priv_dst->limit = kmalloc(sizeof(*priv_dst->limit), gfp);
+ 	if (!priv_dst->limit)
+ 		return -ENOMEM;
+ 
+@@ -223,14 +223,15 @@ static void nft_limit_pkts_destroy(const struct nft_ctx *ctx,
+ 	nft_limit_destroy(ctx, &priv->limit);
+ }
+ 
+-static int nft_limit_pkts_clone(struct nft_expr *dst, const struct nft_expr *src)
++static int nft_limit_pkts_clone(struct nft_expr *dst, const struct nft_expr *src,
++				gfp_t gfp)
+ {
+ 	struct nft_limit_priv_pkts *priv_dst = nft_expr_priv(dst);
+ 	struct nft_limit_priv_pkts *priv_src = nft_expr_priv(src);
+ 
+ 	priv_dst->cost = priv_src->cost;
+ 
+-	return nft_limit_clone(&priv_dst->limit, &priv_src->limit);
++	return nft_limit_clone(&priv_dst->limit, &priv_src->limit, gfp);
+ }
+ 
+ static struct nft_expr_type nft_limit_type;
+@@ -281,12 +282,13 @@ static void nft_limit_bytes_destroy(const struct nft_ctx *ctx,
+ 	nft_limit_destroy(ctx, priv);
+ }
+ 
+-static int nft_limit_bytes_clone(struct nft_expr *dst, const struct nft_expr *src)
++static int nft_limit_bytes_clone(struct nft_expr *dst, const struct nft_expr *src,
++				 gfp_t gfp)
+ {
+ 	struct nft_limit_priv *priv_dst = nft_expr_priv(dst);
+ 	struct nft_limit_priv *priv_src = nft_expr_priv(src);
+ 
+-	return nft_limit_clone(priv_dst, priv_src);
++	return nft_limit_clone(priv_dst, priv_src, gfp);
+ }
+ 
+ static const struct nft_expr_ops nft_limit_bytes_ops = {
+diff --git a/net/netfilter/nft_quota.c b/net/netfilter/nft_quota.c
+index 3ba12a7471b0..9b2d7463d3d3 100644
+--- a/net/netfilter/nft_quota.c
++++ b/net/netfilter/nft_quota.c
+@@ -233,7 +233,7 @@ static void nft_quota_destroy(const struct nft_ctx *ctx,
+ 	return nft_quota_do_destroy(ctx, priv);
+ }
+ 
+-static int nft_quota_clone(struct nft_expr *dst, const struct nft_expr *src)
++static int nft_quota_clone(struct nft_expr *dst, const struct nft_expr *src, gfp_t gfp)
+ {
+ 	struct nft_quota *priv_dst = nft_expr_priv(dst);
+ 	struct nft_quota *priv_src = nft_expr_priv(src);
+@@ -241,7 +241,7 @@ static int nft_quota_clone(struct nft_expr *dst, const struct nft_expr *src)
+ 	priv_dst->quota = priv_src->quota;
+ 	priv_dst->flags = priv_src->flags;
+ 
+-	priv_dst->consumed = kmalloc(sizeof(*priv_dst->consumed), GFP_ATOMIC);
++	priv_dst->consumed = kmalloc(sizeof(*priv_dst->consumed), gfp);
+ 	if (!priv_dst->consumed)
+ 		return -ENOMEM;
+ 
+-- 
+2.43.2
 
-iQGzBAABCgAdFiEErkcJVyXmMSXOyyeQupfNUreWQU8FAmY7Y+4ACgkQupfNUreW
-QU9YEgwAhDVP7Y6eoR6THZeBhX5jlhu2G9nJstttqNF2XutpFKVjE8Z3C89eHNng
-DCMo7QPRNspNV7452TWHzjB9TyWvZ3WtKaNd1O0ECwCMpZ32/0aZ5SAsMd+cY2D5
-yDhAjIzVJups6lQWx1bTMDtuWft9Ebi7Wvd9I3Q+Qjq5khbrSHMCzCr1Bl2ZfscY
-ApmHqb3v0KxOM+QrrybFvFCD/tt7uYyJfmH96GgBLdl2+7ceoUigiSK5ebySplCo
-UnNLZi6LEwS1kjyNpbWQbKq9czcSKCCYVM3kzqzcPBdRU/km7XH0oi7SybNt7PSz
-ZvFQgc34OiFAFcb9twbtzTKfXVBXpBwmOwwgqLw4yNS2C8QH+nbO6qUmHoDp44ZW
-6jYrjdWbdDrP+Mwh56FkIcs84+0tgdLgsT6ni9LyK50S8Ik7ivQRCnojjpNJS19p
-wRnfmB6C3lNH2MWxq9gw8k+RMhDB3eRxcXrTbEjYImsO4zb3xo+CjjPG5TGkvezg
-ehHTRa51
-=YpMU
------END PGP SIGNATURE-----
-
---v7sa5w52x2sbyktg--
