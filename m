@@ -1,277 +1,158 @@
-Received: from smtp.forwardemail.net (smtp.forwardemail.net [167.172.40.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from EUR03-DBA-obe.outbound.protection.outlook.com (mail-dbaeur03on2120.outbound.protection.outlook.com [40.107.104.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A63F14AA8
-	for <netfilter-devel@vger.kernel.org>; Wed,  8 May 2024 05:07:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=167.172.40.54
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715144851; cv=none; b=WT9mVaSutr2uv29ulHup8IjQ+4my4BsiDjvg2m2XOd7nfjKtK+5NBkqnbNL8X3cy5z9nwtqCUAVZwkckRgEO1pmXe1P/e2w5c2R8pJ7mePQcafwV2neMfDGHQNoLI4LlWiS+kimQ4PSMe7u0+UJqq7os6bVl1JYcZCS+gRGXPD0=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715144851; c=relaxed/simple;
-	bh=Z2o2I5WcAMYKDQXdxREMXmKqV3sC/Mbn7eUMdL7i1YA=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=YeF2EivH9/au1SzxGltKrG5qS9+VdKB4KkASzFvpFhZ3luihcNdy5wBZZN8jtfOMNUTyX4rFzz4YlBwB1BOlQuo0qdrhPaAQYifYC9BbhmdMqOkHZJbvR1r99mPOahKVSzG46o5LX81HwMef866DzaukpSvZAH1spgw/vgK4bKY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=faucet.nz; spf=pass smtp.mailfrom=fe-bounces.faucet.nz; dkim=pass (1024-bit key) header.d=faucet.nz header.i=@faucet.nz header.b=OOpdO87q; arc=none smtp.client-ip=167.172.40.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=faucet.nz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fe-bounces.faucet.nz
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A34E2747B
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 May 2024 10:21:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.104.120
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1715163674; cv=fail; b=q7IbRniJFwG7zKyRdYVc1C3jPqUQVVmnjfTFylD6LQbWQA/QjiaFXYkyGVZSZfx2BcvU8yRUYPGuLNd/g3aWI2Vnsrq3T22YCZUqLvRoGREW3s/22SXC5CdEBiAiyioI4DaygKoVcbEViUarcJiTnuUlE9YFE+8uXsK14QKVBqA=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1715163674; c=relaxed/simple;
+	bh=No0HuQQT9/ILhHJNRft8VQKR5GREgqVTZ+SU0KalK1I=;
+	h=Date:From:To:Cc:Subject:Message-ID:Content-Type:
+	 Content-Disposition:MIME-Version; b=B6cVk4/iq7VTm9AfSMiS4M6FascasALBuot92g1V7q9VLMbExmcPdvMpZH6+cCc7hI6cFOfAxoLybIJXH837m6DqqXooPbflQqIIsGLJUgFErcCLqmHJ5yK3aC6y7GM7cfN3R8vSR0ts16MlygV3dsJcyxDcrw2N8UYGgbEBY80=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=voleatech.de; spf=pass smtp.mailfrom=voleatech.de; dkim=pass (1024-bit key) header.d=voleatech.de header.i=@voleatech.de header.b=MeHerL9l; arc=fail smtp.client-ip=40.107.104.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=voleatech.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=voleatech.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=faucet.nz header.i=@faucet.nz header.b="OOpdO87q"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=faucet.nz;
- h=Content-Transfer-Encoding: MIME-Version: References: In-Reply-To:
- Message-Id: Date: Subject: Cc: To: From; q=dns/txt; s=fe-4ed8c67516;
- t=1715144815; bh=rkWOQFNwdY5GouQOzcDon4MN1/rPKcGZmvC33wMBP4w=;
- b=OOpdO87qLmyDKnx9KmIKSvOh7QFyIVyHivkf6hQfR8wFeK4yTurJCevtOXA5rxW+oosN4ypyg
- BY0Y/ih4dg5Ca+nnby7KTM/RNs+UlUwQ0aPD7y/A8jk02zpTR0jAezVuCYDfbQaFZJm3duxDeWO
- 7AkALgRDpXVwWD9FzgVWf/s=
-From: Brad Cowie <brad@faucet.nz>
-To: bpf@vger.kernel.org, martin.lau@linux.dev
-Cc: lorenzo@kernel.org, memxor@gmail.com, pablo@netfilter.org,
- davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com, ast@kernel.org,
- daniel@iogearbox.net, andrii@kernel.org, song@kernel.org,
- john.fastabend@gmail.com, sdf@google.com, jolsa@kernel.org,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- netdev@vger.kernel.org, Brad Cowie <brad@faucet.nz>
-Subject: [PATCH bpf-next v3 2/2] selftests/bpf: Update tests for new ct zone opts for nf_conntrack kfuncs
-Date: Wed,  8 May 2024 17:04:50 +1200
-Message-Id: <20240508050450.88356-1-brad@faucet.nz>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20240508043033.52311-1-brad@faucet.nz>
-References: <20240508043033.52311-1-brad@faucet.nz>
+	dkim=pass (1024-bit key) header.d=voleatech.de header.i=@voleatech.de header.b="MeHerL9l"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=KRrEkomrSULIVRv1iz1+Pw/TmEuIHcU9Ql2e+q+ufR0f8voFLQF3Gu+phYSWn6qjNXV2C6hST1aNW3acqvI8j01yKJZvWrZ8ETuIidZdjwXiMKDX69X8Xv5eLbPcDa7q6ef8GmbOBDGdcmr65BefFPYNGYkZtpGL672/osuC5BmTqpFOWh46tuOhZR+6Rqrw4RpCJQh6KVfLyPrcJQD1/MKFNm36mJUgl4XARWsvZ5NbxcCsrot1Q2q0gUZCZzkaWdjnd/6wmeKu3Oq/plB4GLOakOgENxRJquCd2BM9YhL0n4QAfVeV/t/txvM4E7PZO75yILN/Ic66SsraNCvsew==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=No0HuQQT9/ILhHJNRft8VQKR5GREgqVTZ+SU0KalK1I=;
+ b=V5iLzX6YUWzN2LU4wbHggy0JUN1Ji9U9mrkPnsQX52gfRUzlORpQ+an1yYsnGCbVMtAZ2u0O40cLhLodt7XrM8E8c5ybjSiUIkMSCzrh5uDfI6tZq1BhDb03TJOr3DNkMXAYbGrwATmfIED6CGfsIfjlC8FDmWzli9JKt56Z7rQdSE9pGPSiIdVu9F3iPjkzcjSqjP2vh9o4sWZYsDHYSjJqiquEHBVfxMEMR4JZ1PxV9CfcgSs5/v0t2f2U52MHKc/uFe7idadIuLiTjxCJuLX83w3+CJ0/2OtzhoTYwSxg+bQ/dVFnA1V/1Rr+frIKfmLvsL8WPUY5P5JfpHMb1A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=voleatech.de; dmarc=pass action=none header.from=voleatech.de;
+ dkim=pass header.d=voleatech.de; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=voleatech.de;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=No0HuQQT9/ILhHJNRft8VQKR5GREgqVTZ+SU0KalK1I=;
+ b=MeHerL9lqHqEhr79tWtO3iT9mwA6/7LTYzIsZ+SOY/6QQXzH6JRrYNyEn5QA02zOi170hXl83DML3HAJnjd+2QVmxFvOMDYTwcw2ksYe2I1lMsUKm6oIGD7ipMhkNoWEley0x/Rab+CYRnUo1e/v10B8jTA/6deYVf5GcXABNsk=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=voleatech.de;
+Received: from DBBPR05MB11225.eurprd05.prod.outlook.com (2603:10a6:10:538::14)
+ by GV1PR05MB11537.eurprd05.prod.outlook.com (2603:10a6:150:1a4::7) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7544.45; Wed, 8 May
+ 2024 10:21:07 +0000
+Received: from DBBPR05MB11225.eurprd05.prod.outlook.com
+ ([fe80::eb7:22e6:e723:9086]) by DBBPR05MB11225.eurprd05.prod.outlook.com
+ ([fe80::eb7:22e6:e723:9086%6]) with mapi id 15.20.7544.041; Wed, 8 May 2024
+ 10:21:07 +0000
+Date: Wed, 8 May 2024 12:21:03 +0200
+From: Sven Auhagen <sven.auhagen@voleatech.de>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de, pablo@netfilter.org
+Subject: Could not process rule: Cannot allocate memory
+Message-ID: <qfqcb3jgkeovcelauadxyxyg65ps32nndcdutwcjg55wpzywkr@vzgi3sh2izrw>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+X-ClientProxiedBy: FR3P281CA0059.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:d10:4b::21) To DBBPR05MB11225.eurprd05.prod.outlook.com
+ (2603:10a6:10:538::14)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Report-Abuse-To: abuse@forwardemail.net
-X-Report-Abuse: abuse@forwardemail.net
-X-Complaints-To: abuse@forwardemail.net
-X-ForwardEmail-Version: 0.4.40
-X-ForwardEmail-Sender: rfc822; brad@faucet.nz, smtp.forwardemail.net,
- 167.172.40.54
-X-ForwardEmail-ID: 663b086e72b4a4e913ba5a86
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DBBPR05MB11225:EE_|GV1PR05MB11537:EE_
+X-MS-Office365-Filtering-Correlation-Id: 0ef87b35-bc98-49d4-a01e-08dc6f4892c6
+X-MS-Exchange-AtpMessageProperties: SA
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230031|366007|1800799015|376005;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?OE3utV0yvr12/if/m2dB3xSVTq1msdFEeAxP/gPQ2Ydm3V2Kofakk10o4xLp?=
+ =?us-ascii?Q?8O2HyfAu/nVtBJ4FN/O/qPSeqdzbbiJqPIQqsPt+Y8NCVek1ssauFJgtXcb9?=
+ =?us-ascii?Q?mu8+QMXTsRqJ9jLJSHxWTGZ/lZExhogzxRj5POP4/lrGCnccMTSc75Wj2p1Q?=
+ =?us-ascii?Q?hzD/JfRyA1uPLftSYfuySDbA7GnzUGVzs45K+uNOEtiA28wV8IhglzLy/me2?=
+ =?us-ascii?Q?4/Klgt5hD+5kEDvpzs5PO3x8FvrqYNaDbxo2DywYIRnrbKJHpVnlDbsHmuBr?=
+ =?us-ascii?Q?tvwQoHmJ4PcnyefPicsJvfDCF4u4lMEkmZGJ3AYJmx7NDrrG3i5fBkKnc6LQ?=
+ =?us-ascii?Q?m/bfGQtf0karz6QB+tTFR6o41Dj8SAG5yTQ76Oh4W4b21VaI6YRXZgYNTIH6?=
+ =?us-ascii?Q?nrem06RDqbcmhCSh7UPy+B5wqet1tkohSLM9OQ6DagVZOL+f6a0h7p8ZYwxK?=
+ =?us-ascii?Q?Dedmiw++XzDamjUXqwxaIzfsAW50oLFU1vF16k9pgVBFRuSjIIWfPuBqcjfz?=
+ =?us-ascii?Q?JuKug3AqRfd7w05kX/QRaoXAt8V83J+TeK3I8pdgCnu/7b1vB/pl6YJrT4v4?=
+ =?us-ascii?Q?sLY+nw8yKUGEsDl58IWa7R02EpCCYVI+V2Z8+xNgseb79dNEc5QQufZhSDKK?=
+ =?us-ascii?Q?fJnkdDGCW+gRpHam+HnQRQVYypdA0Rcv93nqLwSJrNZaSmhUg3p3spW4J6Z7?=
+ =?us-ascii?Q?RRHy9J40psa62PXEX/ar/gw6s5F8mEZUqsyS8PnGwLJ1zi8hWOacHp7UmhpX?=
+ =?us-ascii?Q?UZ/Pr6aWVO3ek7LLXRCgRILyWsp/KYvEEviUp1J/RmE1PPuWiTDoFo81Ichc?=
+ =?us-ascii?Q?f+tBX1ic+1IUULEGBcAmeKCzd5na1ZFwVY97mTUsnBPzPKA3W1LkdEdesE3w?=
+ =?us-ascii?Q?o2qimiJ7H4pk78tZnMSkeXTvlMC9jyuVbHWphVZ5tRcMjNZbxt0YbyfmImWa?=
+ =?us-ascii?Q?d1WI4OzCY0HHfHyzPaX2/8pVAc8kvhwfXNyvRY6fhaGAZ3l7oqiNatpegjB4?=
+ =?us-ascii?Q?DWZITdyiKGiNQlHb7ADOxtYArZta3w7J5ApXD0y/e83GAX2SCvQqlALRdX2u?=
+ =?us-ascii?Q?erzAWZdxOKt1chq9OmM1IrWHYSphKvMykRdRFSkvYoRL1ZFlgad/gLRizfz1?=
+ =?us-ascii?Q?32SHJ4uHufm/uKhb52p65ibtg9P8G6onxm58KO7wT4mhjJ3LCGh4hTvHXb6L?=
+ =?us-ascii?Q?kFUYesaNzVM+y3Y2emsguFXyDU8deB/w5QV8lAlsAkunnHw0MtJA1ZsNiduK?=
+ =?us-ascii?Q?q6Cia6L75IL3SiGeRAYwpE08slOdYx+0OURLr9Mm9w=3D=3D?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DBBPR05MB11225.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(366007)(1800799015)(376005);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?mxw4R6F5Q67mw4/6NfBgcP3JpHvC30sDi8HxjBXG5Klg/tqu1BjIoq4zzY80?=
+ =?us-ascii?Q?sOKA2DYSeq3WCo6AC/1G1nqwwohyj1i4UlMXXkPTVOW6Lpm1kxQifvqKcC43?=
+ =?us-ascii?Q?JBa9tDPbseF1FJtU/Qq8/Ht4mQCn5eNn4Y0mxAVoMSdEkVYYfEzYRUbAk/tY?=
+ =?us-ascii?Q?w4lto8jXuBN7ztEJgzHaHzquGkizmxF7DpxbjO6ODXdUVmOznwH4ptBz0jYt?=
+ =?us-ascii?Q?OGmOvoF59/TTgQr8dqO9NxNHOxQfgPfM7vpf+2f5Zgi9cYzP7KtOAFruKOVy?=
+ =?us-ascii?Q?0oo92p0VYglXcmgHjftRQJcR9EBjFy9L/aj0Pi9w68JEJ8M7ka/GM8eIQT6v?=
+ =?us-ascii?Q?aIES+DnndVO8qTbsuYn97unL7BnFvmhEVHFBYwVPeojQYjA/DmGLQoo39oXG?=
+ =?us-ascii?Q?u4VV8uf+jUENoQat/9cWbHnt8+UAbH6OLjsqdWrwQXiKqzmbwrDSuVnh6FFO?=
+ =?us-ascii?Q?6/gYs2/lsJajlI5E6ILxla2ynydKprrHjJtJxz/9wZxFOeOMCP+FnL3uE4R0?=
+ =?us-ascii?Q?6SX85vfwGKlR6p01iEM1AP2bqr0beVOdB4iWhtoeRdPuDrQjG9Y+wZMe41kN?=
+ =?us-ascii?Q?d/4TKkAWIreYtxvWWqTk6ss9iikgt2qnZ6k+5jdMkqZ7mA03UrNglWQRk00m?=
+ =?us-ascii?Q?Ov07Tjd/X2VDbKYxcpjnQQ7nx7bvz1DKzMTavFma2FOy46vijRRXLVqBOC1j?=
+ =?us-ascii?Q?gwhrj0iVZac03mrwllJuPS7AVbCGRSdxL7Pop9DCJW0y3jeVPgFZyaMRp6tJ?=
+ =?us-ascii?Q?rcp0ojosX+N0hHL9QNMSpKt+VpEfGExZKnyw29lBeujysRPUsQ/SA6B8Ao8u?=
+ =?us-ascii?Q?ECWo/iBx5Vs5Cs3hO9MbKtgi8XcH7/D4bhzDQztr58dEfeF3TZ0b7bB8U8xb?=
+ =?us-ascii?Q?WyVwp7vq+BpSHuLSqBr0XAVmeiQRExCa0OVMlygtsdEbJU/gq8dvxjvF8aMM?=
+ =?us-ascii?Q?qbaYnFSwOPRZLLymZc0ZwLxTJuV3UJh3s1EfjgGFACXdyNpzNawcfcYLKbGq?=
+ =?us-ascii?Q?gv94D3o2hPLOq0n1tLv5MaCEKGpBPwGmYbMA9ifjc+PLfAJ9GDGJoH1RS5OD?=
+ =?us-ascii?Q?pC6I88PBZEVIwG1StVji9lsPkftfIyeA2QoP2J+fQ4riP4j6jUHiNf5dUaiM?=
+ =?us-ascii?Q?KZYHsRzs/VtnhWxfgSktkK8l305O3zgLzXQcVHqB1LKFAJ/PcFAAKkc1DvvV?=
+ =?us-ascii?Q?xTs4p0s5oiJZfzIWhpteqeEx7BPYHpzVNCUWNjYBi7zxancIjSpr+d23p6i7?=
+ =?us-ascii?Q?2MDEtBcK9N4zvKLTCnIQ9zFp4sa7F+ndI1vJxavmOUFuccPeIRFijludkIm+?=
+ =?us-ascii?Q?4XAyU5HZxww37Pp+2TRJG7ggP+kgR62WhZObReG0Dan5LOS9gq/yzSiNh0gP?=
+ =?us-ascii?Q?bHOraN9DUovV/kHzzAjg9JuALlqSdAlSdSeMlwJXFPUQ965eNU7jGlnycmXi?=
+ =?us-ascii?Q?zl62Zvsry4u4eR3Sn0XPRFiqbAj0cqZzJTHDLPFbIkmOrUs7wQAQQHwCBI+J?=
+ =?us-ascii?Q?kpEKergjzeCDjMq9r/goi/fFGixXN1uvcTSJduIZrtMMTuuXxlIafMOrdK1V?=
+ =?us-ascii?Q?Dp8NC9LnPdKMvEYM1CNuFN31/rP3noocY52m17FcrwIzz4tXNnsi93RNth8i?=
+ =?us-ascii?Q?Iw=3D=3D?=
+X-OriginatorOrg: voleatech.de
+X-MS-Exchange-CrossTenant-Network-Message-Id: 0ef87b35-bc98-49d4-a01e-08dc6f4892c6
+X-MS-Exchange-CrossTenant-AuthSource: DBBPR05MB11225.eurprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 May 2024 10:21:07.2303
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: b82a99f6-7981-4a72-9534-4d35298f847b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: O7tHriXkRw82xk73FgAIhTtKQyW9t8G0lOgku878gYTQiC33wrxmpey+y54CX++rLwp5hFGewB8bIMTodo5wCUlYJHHk1EflRNgyJz9XNww=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: GV1PR05MB11537
 
-Add test for allocating and looking up ct entry in a
-non-default ct zone with kfuncs bpf_{xdp,skb}_ct_alloc
-and bpf_{xdp,skb}_ct_lookup.
+Hi,
 
-Add negative tests for looking up ct entry in a different
-ct zone to where it was allocated and with a different
-direction.
+I am using nftables with geoip sets.
+When I have larger sets in my ruleset and I want to atomically update the entire ruleset, I start with
+destroy table inet filter and then continue with my new ruleset.
 
-Signed-off-by: Brad Cowie <brad@faucet.nz>
----
-v2 -> v3:
-  - Test both old and new bpf_ct_opts struct definitions
-  - Restore test for reserved options
-  - Add test for ct_zone_dir
+When the sets are larger I now always get an error:
+./main.nft:13:1-26: Error: Could not process rule: Cannot allocate memory
+destroy table inet filter
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-v1 -> v2:
-  - Separate test changes into different patch
-  - Add test for allocating/looking up entry in non-default ct zone
----
- tools/testing/selftests/bpf/config            |   1 +
- .../testing/selftests/bpf/prog_tests/bpf_nf.c |   6 +
- .../testing/selftests/bpf/progs/test_bpf_nf.c | 117 ++++++++++++++++--
- 3 files changed, 114 insertions(+), 10 deletions(-)
+along with the kernel message
+percpu: allocation failed, size=16 align=8 atomic=1, atomic alloc failed, no space left
 
-diff --git a/tools/testing/selftests/bpf/config b/tools/testing/selftests/bpf/config
-index eeabd798bc3a..2fb16da78dce 100644
---- a/tools/testing/selftests/bpf/config
-+++ b/tools/testing/selftests/bpf/config
-@@ -80,6 +80,7 @@ CONFIG_NETFILTER_XT_TARGET_CT=y
- CONFIG_NETKIT=y
- CONFIG_NF_CONNTRACK=y
- CONFIG_NF_CONNTRACK_MARK=y
-+CONFIG_NF_CONNTRACK_ZONES=y
- CONFIG_NF_DEFRAG_IPV4=y
- CONFIG_NF_DEFRAG_IPV6=y
- CONFIG_NF_NAT=y
-diff --git a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-index b30ff6b3b81a..b73401a71e4a 100644
---- a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-+++ b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-@@ -122,6 +122,12 @@ static void test_bpf_nf_ct(int mode)
- 	ASSERT_EQ(skel->bss->test_exist_lookup_mark, 43, "Test existing connection lookup ctmark");
- 	ASSERT_EQ(skel->data->test_snat_addr, 0, "Test for source natting");
- 	ASSERT_EQ(skel->data->test_dnat_addr, 0, "Test for destination natting");
-+	ASSERT_EQ(skel->data->test_ct_zone_id_alloc_entry, 0, "Test for alloc new entry in specified ct zone");
-+	ASSERT_EQ(skel->data->test_ct_zone_id_insert_entry, 0, "Test for insert new entry in specified ct zone");
-+	ASSERT_EQ(skel->data->test_ct_zone_id_succ_lookup, 0, "Test for successful lookup in specified ct_zone");
-+	ASSERT_EQ(skel->bss->test_ct_zone_dir_enoent_lookup, -ENOENT, "Test ENOENT for lookup with wrong ct zone dir");
-+	ASSERT_EQ(skel->bss->test_ct_zone_id_enoent_lookup, -ENOENT, "Test ENOENT for lookup in wrong ct zone");
-+
- end:
- 	if (client_fd != -1)
- 		close(client_fd);
-diff --git a/tools/testing/selftests/bpf/progs/test_bpf_nf.c b/tools/testing/selftests/bpf/progs/test_bpf_nf.c
-index 77ad8adf68da..f57cd5d6d548 100644
---- a/tools/testing/selftests/bpf/progs/test_bpf_nf.c
-+++ b/tools/testing/selftests/bpf/progs/test_bpf_nf.c
-@@ -9,6 +9,9 @@
- #define EINVAL 22
- #define ENOENT 2
- 
-+#define NF_CT_ZONE_DIR_ORIG (1 << IP_CT_DIR_ORIGINAL)
-+#define NF_CT_ZONE_DIR_REPL (1 << IP_CT_DIR_REPLY)
-+
- extern unsigned long CONFIG_HZ __kconfig;
- 
- int test_einval_bpf_tuple = 0;
-@@ -22,6 +25,11 @@ int test_eafnosupport = 0;
- int test_alloc_entry = -EINVAL;
- int test_insert_entry = -EAFNOSUPPORT;
- int test_succ_lookup = -ENOENT;
-+int test_ct_zone_id_alloc_entry = -EINVAL;
-+int test_ct_zone_id_insert_entry = -EAFNOSUPPORT;
-+int test_ct_zone_id_succ_lookup = -ENOENT;
-+int test_ct_zone_dir_enoent_lookup = 0;
-+int test_ct_zone_id_enoent_lookup = 0;
- u32 test_delta_timeout = 0;
- u32 test_status = 0;
- u32 test_insert_lookup_mark = 0;
-@@ -48,6 +56,16 @@ struct bpf_ct_opts___local {
- 	u8 reserved[3];
- } __attribute__((preserve_access_index));
- 
-+struct bpf_ct_opts___new {
-+	s32 netns_id;
-+	s32 error;
-+	u8 l4proto;
-+	u8 dir;
-+	u16 ct_zone_id;
-+	u8 ct_zone_dir;
-+	u8 reserved[3];
-+} __attribute__((preserve_access_index));
-+
- struct nf_conn *bpf_xdp_ct_alloc(struct xdp_md *, struct bpf_sock_tuple *, u32,
- 				 struct bpf_ct_opts___local *, u32) __ksym;
- struct nf_conn *bpf_xdp_ct_lookup(struct xdp_md *, struct bpf_sock_tuple *, u32,
-@@ -84,16 +102,6 @@ nf_ct_test(struct nf_conn *(*lookup_fn)(void *, struct bpf_sock_tuple *, u32,
- 	else
- 		test_einval_bpf_tuple = opts_def.error;
- 
--	opts_def.reserved[0] = 1;
--	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
--		       sizeof(opts_def));
--	opts_def.reserved[0] = 0;
--	opts_def.l4proto = IPPROTO_TCP;
--	if (ct)
--		bpf_ct_release(ct);
--	else
--		test_einval_reserved = opts_def.error;
--
- 	opts_def.netns_id = -2;
- 	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
- 		       sizeof(opts_def));
-@@ -220,10 +228,98 @@ nf_ct_test(struct nf_conn *(*lookup_fn)(void *, struct bpf_sock_tuple *, u32,
- 	}
- }
- 
-+static __always_inline void
-+nf_ct_opts_new_test(struct nf_conn *(*lookup_fn)(void *, struct bpf_sock_tuple *, u32,
-+						 struct bpf_ct_opts___new *, u32),
-+		    struct nf_conn *(*alloc_fn)(void *, struct bpf_sock_tuple *, u32,
-+						struct bpf_ct_opts___new *, u32),
-+		    void *ctx)
-+{
-+	struct bpf_ct_opts___new opts_def = { .l4proto = IPPROTO_TCP, .netns_id = -1 };
-+	struct bpf_sock_tuple bpf_tuple;
-+	struct nf_conn *ct;
-+
-+	__builtin_memset(&bpf_tuple, 0, sizeof(bpf_tuple.ipv4));
-+
-+	opts_def.reserved[0] = 1;
-+	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
-+		       sizeof(opts_def));
-+	opts_def.reserved[0] = 0;
-+	opts_def.l4proto = IPPROTO_TCP;
-+	if (ct)
-+		bpf_ct_release(ct);
-+	else
-+		test_einval_reserved = opts_def.error;
-+
-+	bpf_tuple.ipv4.saddr = bpf_get_prandom_u32(); /* src IP */
-+	bpf_tuple.ipv4.daddr = bpf_get_prandom_u32(); /* dst IP */
-+	bpf_tuple.ipv4.sport = bpf_get_prandom_u32(); /* src port */
-+	bpf_tuple.ipv4.dport = bpf_get_prandom_u32(); /* dst port */
-+
-+	/* use non-default ct zone */
-+	opts_def.ct_zone_id = 10;
-+	opts_def.ct_zone_dir = NF_CT_ZONE_DIR_ORIG;
-+	ct = alloc_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
-+		      sizeof(opts_def));
-+	if (ct) {
-+		__u16 sport = bpf_get_prandom_u32();
-+		__u16 dport = bpf_get_prandom_u32();
-+		union nf_inet_addr saddr = {};
-+		union nf_inet_addr daddr = {};
-+		struct nf_conn *ct_ins;
-+
-+		bpf_ct_set_timeout(ct, 10000);
-+
-+		/* snat */
-+		saddr.ip = bpf_get_prandom_u32();
-+		bpf_ct_set_nat_info(ct, &saddr, sport, NF_NAT_MANIP_SRC___local);
-+		/* dnat */
-+		daddr.ip = bpf_get_prandom_u32();
-+		bpf_ct_set_nat_info(ct, &daddr, dport, NF_NAT_MANIP_DST___local);
-+
-+		ct_ins = bpf_ct_insert_entry(ct);
-+		if (ct_ins) {
-+			struct nf_conn *ct_lk;
-+
-+			/* entry should exist in same ct zone we inserted it */
-+			ct_lk = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4),
-+					  &opts_def, sizeof(opts_def));
-+			if (ct_lk) {
-+				bpf_ct_release(ct_lk);
-+				test_ct_zone_id_succ_lookup = 0;
-+			}
-+
-+			/* entry should not exist with wrong direction */
-+			opts_def.ct_zone_dir = NF_CT_ZONE_DIR_REPL;
-+			ct_lk = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4),
-+					  &opts_def, sizeof(opts_def));
-+			opts_def.ct_zone_dir = NF_CT_ZONE_DIR_ORIG;
-+			if (ct_lk)
-+				bpf_ct_release(ct_lk);
-+			else
-+				test_ct_zone_dir_enoent_lookup = opts_def.error;
-+
-+			/* entry should not exist in default ct zone */
-+			opts_def.ct_zone_id = 0;
-+			ct_lk = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4),
-+					  &opts_def, sizeof(opts_def));
-+			if (ct_lk)
-+				bpf_ct_release(ct_lk);
-+			else
-+				test_ct_zone_id_enoent_lookup = opts_def.error;
-+
-+			bpf_ct_release(ct_ins);
-+			test_ct_zone_id_insert_entry = 0;
-+		}
-+		test_ct_zone_id_alloc_entry = 0;
-+	}
-+}
-+
- SEC("xdp")
- int nf_xdp_ct_test(struct xdp_md *ctx)
- {
- 	nf_ct_test((void *)bpf_xdp_ct_lookup, (void *)bpf_xdp_ct_alloc, ctx);
-+	nf_ct_opts_new_test((void *)bpf_xdp_ct_lookup, (void *)bpf_xdp_ct_alloc, ctx);
- 	return 0;
- }
- 
-@@ -231,6 +327,7 @@ SEC("tc")
- int nf_skb_ct_test(struct __sk_buff *ctx)
- {
- 	nf_ct_test((void *)bpf_skb_ct_lookup, (void *)bpf_skb_ct_alloc, ctx);
-+	nf_ct_opts_new_test((void *)bpf_skb_ct_lookup, (void *)bpf_skb_ct_alloc, ctx);
- 	return 0;
- }
- 
--- 
-2.34.1
+This also happens when I use delete instead of destroy.
+
+This seems to be an issue with allocating atomic memory in the netfilter kernel code.
+Does anyone have a hint what is going on and how to debug it or maybe a suggestion
+for a patch?
+
+Best and thanks
+Sven
 
