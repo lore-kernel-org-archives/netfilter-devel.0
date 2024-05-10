@@ -1,25 +1,26 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D68682581
-	for <netfilter-devel@vger.kernel.org>; Fri, 10 May 2024 00:13:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id AF2087F
+	for <netfilter-devel@vger.kernel.org>; Fri, 10 May 2024 00:40:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715299996; cv=none; b=t/4eXsGdYGHqOGQnpx9xumQKz21WUVvpNIc9jyVyK0dTpSIVlUiC0b/K3Rjz3wMdjqXyxwqFcP6S6/GQwnshaS/SGA2RRdVXhec2gsCfzcKqFN4pZETXj8p4YYzAUauubIkP5yxJe5xyeQnHDzDOxeC7KDuxpt2YYUtgdsrjsQE=
+	t=1715301614; cv=none; b=dDOkGwVWIn7Z6VBrXZyOSm4CHOXk/HmKWy0tIe/SMj/KTkd181+QLwNDoCX/CF0NDW+I+UEBRW/xAWQTlzKAsg/4c+MyQlQBK2YOIjhvdHdEycHYiD+e/EwL1FM1YPR4/7hWxv8SNgHY/cUajCCYuIbcTuEKffWQk/XzgpCTIF4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715299996; c=relaxed/simple;
-	bh=mXwnANxyx6SV83YqARPWMxSP88SH+hLM9Y/nKmVDmLA=;
+	s=arc-20240116; t=1715301614; c=relaxed/simple;
+	bh=AWRqPVVb4LVeoGLSw9OC4JtGIa/ezrc4C7g4K49n4K8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=soTDF8tkZ1oTzGx8ip5gUAzEUDrWIBIjqAfCwCIAUlAPuBMIXkMNIIszfYfp05jJYqhuVUea9tuuDlmKmpTFeLBHVSXKWIdlxdHnC14UOZ6G5mXSSps3PJV3tpGuZeB/K/dmb7kni09rrU5VbCI1mGVCrl9J/6T50Gbtdp0idRk=
+	 Content-Type:Content-Disposition:In-Reply-To; b=qyPKZWztgwHnBOiBQFTmCjhBThNCrosK4ZOkDhiArdl9Y3Er4qzvdP+uV/aiMdFSy8mev/IoHTyriiHzeITJV/Pol+5Mq7b1U4EoqaO8Jfv38Bl6W8pIifxLD7Pu2er2kOGLeh2T3Cyb16tcT8670qVEBuKVDaoDcDC38TZY7Mk=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Date: Fri, 10 May 2024 02:13:11 +0200
+Date: Fri, 10 May 2024 02:40:08 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-	Thomas Haller <thaller@redhat.com>
-Subject: Re: [nf-next PATCH 0/5] Dynamic hook interface binding
-Message-ID: <Zj1mlxa-bckdazdv@calendula>
-References: <20240503195045.6934-1-phil@nwl.cc>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, sbrivio@redhat.com
+Subject: Re: [PATCH nf-next v2 7/8] netfilter: nft_set_pipapo: move cloning
+ of match info to insert/removal path
+Message-ID: <Zj1s6HcwpUsHKkrK@calendula>
+References: <20240425120651.16326-1-fw@strlen.de>
+ <20240425120651.16326-8-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -28,38 +29,56 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20240503195045.6934-1-phil@nwl.cc>
+In-Reply-To: <20240425120651.16326-8-fw@strlen.de>
 
-Hi Phil,
+Hi Florian,
 
-On Fri, May 03, 2024 at 09:50:40PM +0200, Phil Sutter wrote:
-> Currently, netdev-family chains and flowtables expect their interfaces
-> to exist at creation time. In practice, this bites users of virtual
-> interfaces if these happen to be created after the nftables service
-> starts up and loads the stored ruleset.
-> 
-> Vice-versa, if an interface disappears at run-time (via module unloading
-> or 'ip link del'), it also disappears from the ruleset, along with the
-> chain and its rules which binds to it. This is at least problematic for
-> setups which store the running ruleset during system shutdown.
-> 
-> This series attempts to solve these problems by effectively making
-> netdev hooks name-based: If no matching interface is found at hook
-> creation time, it will be inactive until a matching interface appears.
-> If a bound interface is renamed, a matching inactive hook is searched
-> for it.
-> 
-> Ruleset dumps will stabilize in that regard. To still provide
-> information about which existing interfaces a chain/flowtable currently
-> binds to, new netlink attributes *_ACT_DEVS are introduced which are
-> filled from the active hooks only.
-> 
-> This series is also prep work for a simple ildcard interface binding
-> similar to the wildcard interface matching in meta expression. It should
-> suffice to turn struct nft_hook::ops into an array of all matching
-> interfaces, but the respective code does not exist yet.
+I have iterated several times over this batch, but I came up with one
+late question today, see below.
 
-Before taking a closer look: Would it be possible to have a torture
-test to exercise this path from userspace?
+On Thu, Apr 25, 2024 at 02:06:46PM +0200, Florian Westphal wrote:
+> This set type keeps two copies of the sets' content,
+>    priv->match (live version, used to match from packet path)
+>    priv->clone (work-in-progress version of the 'future' priv->match).
+> 
+> All additions and removals are done on priv->clone.  When transaction
+> completes, priv->clone becomes priv->match and a new clone is allocated
+> for use by next transaction.
+> 
+> Problem is that the cloning requires GFP_KERNEL allocations but we
+> cannot fail at either commit or abort time.
+> 
+> This patch defers the clone until we get an insertion or removal
+> request.  This allows us to handle OOM situations correctly.
+> 
+> This also allows to remove ->dirty in a followup change:
+> 
+> If ->clone exists, ->dirty is always true
+> If ->clone is NULL, ->dirty is always false, no elements were added
+> or removed (except catchall elements which are external to the specific
+> set backend).
+> 
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
+> ---
+>  net/netfilter/nft_set_pipapo.c | 73 ++++++++++++++++++++++++----------
+>  1 file changed, 52 insertions(+), 21 deletions(-)
+> 
+> diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+> index 9c8da9a0861d..2b1c91e56ca1 100644
+> --- a/net/netfilter/nft_set_pipapo.c
+> +++ b/net/netfilter/nft_set_pipapo.c
+> @@ -615,6 +615,9 @@ nft_pipapo_get(const struct net *net, const struct nft_set *set,
+>  	struct nft_pipapo_match *m = priv->clone;
+>  	struct nft_pipapo_elem *e;
+>  
+> +	if (!m)
+> +		m = rcu_dereference(priv->match);
 
-Thanks!
+nft_pipapo_get() is called from rcu path via _GET netlink command.
+Is it safe to walk over priv->clone? Userspace could be updating
+(with mutex held) while a request to get an element can be done.
+
+That makes me think nft_pipapo_get() should always use priv->match?
+
+Thanks, and apologies for the late review.
