@@ -1,23 +1,29 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2614C21340
-	for <netfilter-devel@vger.kernel.org>; Fri, 10 May 2024 10:51:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C5E782C6C
+	for <netfilter-devel@vger.kernel.org>; Fri, 10 May 2024 11:05:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715338322; cv=none; b=W3jlqVxSPxmmBIGGnqx/e6Lmq4nkzBhmEeybtexVzUmX9EbHpqtCjO6LNzkjwxvdoDRSy6DfVtYwcCH8iJIA1uSASxcojB9oIO6FeNqJibLs1YUNHKDjiRh0CCDr2/azE67/b8w605n4s8ozc6lAMLSxq5/0p8BmPyuSTTKs9Go=
+	t=1715339152; cv=none; b=QHNezIFa/afhNeZc/ZjstEcTIDj98Ry4syAcLP2437aG+oo9ye8wgXu4mttVvwxgxFMWJp3/sjGv+Zuc0SEo6mt8NJ5pFAHQuZSQgsyS/hqAFvkPJ/Y4+JoNyoTaWaKh/q4wKFOwQo4AVW1HdEsXrjfcMa8cKhMPxAjhM9KKs/8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715338322; c=relaxed/simple;
-	bh=Tk9HvgGnZV8xwh6fIPlAAKJ+C239r6Qg5qsPEL4qq40=;
+	s=arc-20240116; t=1715339152; c=relaxed/simple;
+	bh=4lYPXY5k5PGSSwl1pydBuv6K20Dyjs3P2nJMedjDtvw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gv3zC4y0zeNLsFsOkO2auiDsBX4dPoCQybTfXzSHknZmvUaWkqjVqUPXlyI9q+4zmBE+bWahOeDypqYHKF1y477Ftermhro0sVch0FW9jwqP6Ikd3/16m481VEgYpas7UJ801W1DOFlX+Fw88dSgfrRzfr2F9MlspNMI+Z9GCMM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Date: Fri, 10 May 2024 12:51:53 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+	 Content-Type:Content-Disposition:In-Reply-To; b=T1kqEYGRm9oQn+FhijQe1i9lN+MzrPDMVBig9BdErD6c6Bnqt/l1toTKmawQml12rigvfQ37NRSzG1Uvnht+vTm8l6FgWRNW/ujZJXJgCI4XbTFzpZw6aotzvZNcaDD70yvvWZ3tkZ9jEQR3JScKnNvX8weHm0FUdWfWrKeCFps=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1s5O4R-0006bP-9u; Fri, 10 May 2024 13:05:47 +0200
+Date: Fri, 10 May 2024 13:05:47 +0200
+From: Florian Westphal <fw@strlen.de>
 To: Sven Auhagen <sven.auhagen@voleatech.de>
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	pablo@netfilter.org
 Subject: Re: Could not process rule: Cannot allocate memory
-Message-ID: <Zj38SZbf2EfzmTpC@calendula>
+Message-ID: <20240510110547.GA6094@breakpoint.cc>
 References: <qfqcb3jgkeovcelauadxyxyg65ps32nndcdutwcjg55wpzywkr@vzgi3sh2izrw>
  <20240508140820.GB28190@breakpoint.cc>
  <20240510090629.GD16079@breakpoint.cc>
@@ -28,53 +34,12 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <qhjlvlrbtoxmlmowgkku3gqqgczzdyvvm4urz3322qbzxwqbc3@ns35urbmwknj>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-On Fri, May 10, 2024 at 12:45:15PM +0200, Sven Auhagen wrote:
-> On Fri, May 10, 2024 at 11:06:29AM +0200, Florian Westphal wrote:
-> > Florian Westphal <fw@strlen.de> wrote:
-> > > Sven Auhagen <sven.auhagen@voleatech.de> wrote:
-> > > > When the sets are larger I now always get an error:
-> > > > ./main.nft:13:1-26: Error: Could not process rule: Cannot allocate memory
-> > > > destroy table inet filter
-> > > > ^^^^^^^^^^^^^^^^^^^^^^^^^^
-> > > > along with the kernel message
-> > > > percpu: allocation failed, size=16 align=8 atomic=1, atomic alloc failed, no space left
-> > > 
-> > > This specific pcpu allocation failure aside, I think we need to reduce
-> > > memory waste with flush op.
-
-Agreed.
-
-One more question below.
-
-> > Plan is:
-> > 
-> > 1. Get rid of ->data[] in struct nft_trans.
-> >    All nft_trans_xxx will add struct nft_trans as first
-> >    member instead.
-> > 
-> > 2. Add nft_trans_binding.  Move binding_list head from
-> >    nft_trans to nft_trans_binding.
-> >    nft_trans_set and nft_trans_chain use nft_trans_binding
-> >    as first member.
-> >    This gets rid of struct list_head for all other types.
-> > 
-> > 3. Get rid of struct nft_ctx from nft_trans.
-> >    As far as I can see a lot of data here is redundant,
-> >    We can likely stash only struct net, u16 flags,
-> >    bool report.
-> >    nft_chain can be moved to the appropriate sub-trans type
-> >    struct.
-> 
-> Here is also a minimal example to trigger the problem.
-
-Can you still see this after Florian's patch?
-
-> I left out the ip addresses:
-> 
+Sven Auhagen <sven.auhagen@voleatech.de> wrote:
 > destroy table inet filter
 > 
 > table inet filter {
@@ -85,36 +50,5 @@ Can you still see this after Florian's patch?
 >         counter;
 >         elements = { }
 >     }
-> 
->     set SET2_FW_V4 {
->         type ipv4_addr;
->         flags interval;
->         counter;
->         elements = { }
->     }
-> 
->     set SET3_FW_V4 {
->         type ipv4_addr;
->         flags interval;
->         counter;
->         elements = { }
->     }
-> 
->     set SET4_FW_V4 {
->         type ipv4_addr;
->         flags interval;
->         counter;
->         elements = { }
->     }
-> 
->     chain input {
->         type filter hook input priority 0;
->         policy accept;
-> 
->         ip saddr @SET1_FW_V4 drop
->         ip saddr @SET2_FW_V4 drop
->         ip saddr @SET3_FW_V4 drop
->         ip saddr @SET4_FW_V4 drop
->     }
-> }
-> 
+
+Thanks, so this happens even with simple set like rbtree.
