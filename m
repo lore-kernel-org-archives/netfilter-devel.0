@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8254148CCC;
-	Sun, 12 May 2024 16:14:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id C78214F5FA;
+	Sun, 12 May 2024 16:14:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715530494; cv=none; b=SdoXtpipzHwy7w40ifJip8C6zhvj1lSXTRovGdAzd4MxotgFxhF8es3N/+EhT2uaEvTRJNzhvSS453W1a9Qm2dLIEsyVIqAT0cTYIXJnv4S2guFnBxBZ1i5+CS5LsuPhNMqp/I5Kw/m1lJ14osMfkEdRT66+FonfW/z/N2SvbD0=
+	t=1715530494; cv=none; b=J6gu4b+9ir4j4nAgWY7r15tRzv5G2XhwjrOCIBWEK04A/v5Jw76jVeyt7gCEjhXO9wXLKjrnU9ZbNooLnhx8jWWHmTjTHmX2EM2pEnf0rEAu6ky3RBdfuoWzMBwBQxTLLGgIeikN0gz+65blNcHforAqXAylS9ljsUAwYVdIBFc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1715530494; c=relaxed/simple;
-	bh=1NnJ2nQkUXKA/t8DXQMNFLk9evxmHmqJL6Lr4Dd4T7c=;
+	bh=KHA30vNJCCVSqHwpf09gKV9+lwqi1/mPLSVhogpMxIQ=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=AOOpSMtxW+XrONIX7gBEw6blaanOZsB+hEJFOK+fTjVOtqa2NK0NAu2Pzfi+Bgix6y6qBVvZnz5mQWlsZCepuoiTcOkcjzz8H9ndcjjLT3mjN1qglYKAlezILeaeAzrPq/o6TLOETKJ67CPYpPSHfOkXsQCScAm+WAVYGdigSt4=
+	 MIME-Version; b=LMwf9O/AnO19ZC3R9E0H8zzYnG4GTdt/UlcAVw5+UcjSMaDsPavs1ArjmHghNF8ZntiC71X3bBh7x9/RkWzSghrfhiRa1b4c5yfpywuG5enINA+dl3PGHXDY9bk+jLGuWaRuYVxR0bwMGnW83PRupslGbbICWnmRX8WvBezQzXY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net-next 05/17] netfilter: use NF_DROP instead of -NF_DROP
-Date: Sun, 12 May 2024 18:14:24 +0200
-Message-Id: <20240512161436.168973-6-pablo@netfilter.org>
+Subject: [PATCH net-next 13/17] netfilter: nft_set_pipapo: prepare pipapo_get helper for on-demand clone
+Date: Sun, 12 May 2024 18:14:32 +0200
+Message-Id: <20240512161436.168973-14-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240512161436.168973-1-pablo@netfilter.org>
 References: <20240512161436.168973-1-pablo@netfilter.org>
@@ -34,71 +34,98 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Jason Xing <kernelxing@tencent.com>
+From: Florian Westphal <fw@strlen.de>
 
-At the beginning in 2009 one patch [1] introduced collecting drop
-counter in nf_conntrack_in() by returning -NF_DROP. Later, another
-patch [2] changed the return value of tcp_packet() which now is
-renamed to nf_conntrack_tcp_packet() from -NF_DROP to NF_DROP. As
-we can see, that -NF_DROP should be corrected.
+The helper uses priv->clone unconditionally which will fail once we do
+the clone conditionally on first insert or removal.
 
-Similarly, there are other two points where the -NF_DROP is used.
+'nft get element' from userspace needs to use priv->match since this
+runs from rcu read side lock section.
 
-Well, as NF_DROP is equal to 0, inverting NF_DROP makes no sense
-as patch [2] said many years ago.
+Prepare for this by passing the match backend data as argument.
 
-[1]
-commit 7d1e04598e5e ("netfilter: nf_conntrack: account packets drop by tcp_packet()")
-[2]
-commit ec8d540969da ("netfilter: conntrack: fix dropping packet after l4proto->packet()")
-
-Signed-off-by: Jason Xing <kernelxing@tencent.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/iptable_filter.c  | 2 +-
- net/ipv6/netfilter/ip6table_filter.c | 2 +-
- net/netfilter/nf_conntrack_core.c    | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ net/netfilter/nft_set_pipapo.c | 17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff --git a/net/ipv4/netfilter/iptable_filter.c b/net/ipv4/netfilter/iptable_filter.c
-index b9062f4552ac..3ab908b74795 100644
---- a/net/ipv4/netfilter/iptable_filter.c
-+++ b/net/ipv4/netfilter/iptable_filter.c
-@@ -44,7 +44,7 @@ static int iptable_filter_table_init(struct net *net)
- 		return -ENOMEM;
- 	/* Entry 1 is the FORWARD hook */
- 	((struct ipt_standard *)repl->entries)[1].target.verdict =
--		forward ? -NF_ACCEPT - 1 : -NF_DROP - 1;
-+		forward ? -NF_ACCEPT - 1 : NF_DROP - 1;
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index 7c11f568069c..6657aa34f4d7 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -504,6 +504,7 @@ bool nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
+  * pipapo_get() - Get matching element reference given key data
+  * @net:	Network namespace
+  * @set:	nftables API set representation
++ * @m:		storage containing active/existing elements
+  * @data:	Key data to be matched against existing elements
+  * @genmask:	If set, check that element is active in given genmask
+  * @tstamp:	timestamp to check for expired elements
+@@ -517,17 +518,15 @@ bool nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
+  */
+ static struct nft_pipapo_elem *pipapo_get(const struct net *net,
+ 					  const struct nft_set *set,
++					  const struct nft_pipapo_match *m,
+ 					  const u8 *data, u8 genmask,
+ 					  u64 tstamp, gfp_t gfp)
+ {
+ 	struct nft_pipapo_elem *ret = ERR_PTR(-ENOENT);
+-	struct nft_pipapo *priv = nft_set_priv(set);
+ 	unsigned long *res_map, *fill_map = NULL;
+-	const struct nft_pipapo_match *m;
+ 	const struct nft_pipapo_field *f;
+ 	int i;
  
- 	err = ipt_register_table(net, &packet_filter, repl, filter_ops);
- 	kfree(repl);
-diff --git a/net/ipv6/netfilter/ip6table_filter.c b/net/ipv6/netfilter/ip6table_filter.c
-index df785ebda0ca..e8992693e14a 100644
---- a/net/ipv6/netfilter/ip6table_filter.c
-+++ b/net/ipv6/netfilter/ip6table_filter.c
-@@ -43,7 +43,7 @@ static int ip6table_filter_table_init(struct net *net)
- 		return -ENOMEM;
- 	/* Entry 1 is the FORWARD hook */
- 	((struct ip6t_standard *)repl->entries)[1].target.verdict =
--		forward ? -NF_ACCEPT - 1 : -NF_DROP - 1;
-+		forward ? -NF_ACCEPT - 1 : NF_DROP - 1;
+-	m = priv->clone;
+ 	if (m->bsize_max == 0)
+ 		return ret;
  
- 	err = ip6t_register_table(net, &packet_filter, repl, filter_ops);
- 	kfree(repl);
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index c63868666bd9..6102dc09cdd3 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -2024,7 +2024,7 @@ nf_conntrack_in(struct sk_buff *skb, const struct nf_hook_state *state)
- 			goto repeat;
+@@ -612,9 +611,11 @@ static struct nft_elem_priv *
+ nft_pipapo_get(const struct net *net, const struct nft_set *set,
+ 	       const struct nft_set_elem *elem, unsigned int flags)
+ {
++	struct nft_pipapo *priv = nft_set_priv(set);
++	struct nft_pipapo_match *m = rcu_dereference(priv->match);
+ 	struct nft_pipapo_elem *e;
  
- 		NF_CT_STAT_INC_ATOMIC(state->net, invalid);
--		if (ret == -NF_DROP)
-+		if (ret == NF_DROP)
- 			NF_CT_STAT_INC_ATOMIC(state->net, drop);
+-	e = pipapo_get(net, set, (const u8 *)elem->key.val.data,
++	e = pipapo_get(net, set, m, (const u8 *)elem->key.val.data,
+ 		       nft_genmask_cur(net), get_jiffies_64(),
+ 		       GFP_ATOMIC);
+ 	if (IS_ERR(e))
+@@ -1288,7 +1289,7 @@ static int nft_pipapo_insert(const struct net *net, const struct nft_set *set,
+ 	else
+ 		end = start;
  
- 		ret = -ret;
+-	dup = pipapo_get(net, set, start, genmask, tstamp, GFP_KERNEL);
++	dup = pipapo_get(net, set, m, start, genmask, tstamp, GFP_KERNEL);
+ 	if (!IS_ERR(dup)) {
+ 		/* Check if we already have the same exact entry */
+ 		const struct nft_data *dup_key, *dup_end;
+@@ -1310,7 +1311,7 @@ static int nft_pipapo_insert(const struct net *net, const struct nft_set *set,
+ 
+ 	if (PTR_ERR(dup) == -ENOENT) {
+ 		/* Look for partially overlapping entries */
+-		dup = pipapo_get(net, set, end, nft_genmask_next(net), tstamp,
++		dup = pipapo_get(net, set, m, end, nft_genmask_next(net), tstamp,
+ 				 GFP_KERNEL);
+ 	}
+ 
+@@ -1862,9 +1863,11 @@ static struct nft_elem_priv *
+ nft_pipapo_deactivate(const struct net *net, const struct nft_set *set,
+ 		      const struct nft_set_elem *elem)
+ {
++	const struct nft_pipapo *priv = nft_set_priv(set);
++	struct nft_pipapo_match *m = priv->clone;
+ 	struct nft_pipapo_elem *e;
+ 
+-	e = pipapo_get(net, set, (const u8 *)elem->key.val.data,
++	e = pipapo_get(net, set, m, (const u8 *)elem->key.val.data,
+ 		       nft_genmask_next(net), nft_net_tstamp(net), GFP_KERNEL);
+ 	if (IS_ERR(e))
+ 		return NULL;
 -- 
 2.30.2
 
