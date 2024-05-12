@@ -1,99 +1,78 @@
-Received: from todd.t-8ch.de (todd.t-8ch.de [159.69.126.157])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4881537F5;
-	Sat, 11 May 2024 09:51:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.69.126.157
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 37F672B9D1;
+	Sun, 12 May 2024 16:14:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715421082; cv=none; b=hLo1qT7TB6M1I8MXvU4U+q0teDCMTaCT99oP1yXheShClDSEGn2rV4ifefhv/3YO/abP38hBCCzsrcUyArpwKnQONTKXI+RKoIC5VnIahkTw2jq+NK27hcZa61JpOAkVP9bVP1kkw5WYYrGcgCI9k/9+0OPBDERqK0u0+BHgsmc=
+	t=1715530490; cv=none; b=KZO2+YVnDiTRoTq+XxaW0unTp4c5MvEvhOw7wUdhZMLTRgQLljuhF2m07CY6KGeYvkgy8l8hy1rTDzkpL+rRcoJ1/rwKx4RiXU36Nm82EN+1EXdQdZ5MAUaPTzjq2r88nCHD21RsIoJgcQD1H2HTh7UITU+hOLEJqFD5s2kEcH0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715421082; c=relaxed/simple;
-	bh=0cJX+ofKilB0YeAddG2Rk34Tcb84daQhOHXhdzx0r3M=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=X1Emcb0fYYhIyfj4HDg32a0cLUnd3pWmx0p1eqTDOa+K/dtsGx99nPG6i9Fnxbq0yaMHPghGHN9HnmxE2ySH1nZngEn/mRlDZzJNH3K/XDH5c5MvQZU32BFzpay9cqLlH3U8f6hk+0mwpcNA7zgH/xGNpjc1jvhT2QfLm9mOL2Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=k56XE3N3; arc=none smtp.client-ip=159.69.126.157
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=weissschuh.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=weissschuh.net
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="k56XE3N3"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=weissschuh.net;
-	s=mail; t=1715421078;
-	bh=0cJX+ofKilB0YeAddG2Rk34Tcb84daQhOHXhdzx0r3M=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=k56XE3N3d4pgs8RXOwLSnRLB27sLWUfITEgcvrDMjZdmJPa/Ir6S6oi9PpE553jPt
-	 sb7k+FxSLFp8Odclpb2t4vqVdgVnPhAwWUDBH9QwI80jAM7LA7gxjkMhJ80aDoR2yw
-	 DUA3ugAMpnt1Nr9pHpMHzjCRdAMZeTMxIBsCjZb8=
-Date: Sat, 11 May 2024 11:51:18 +0200
-From: Thomas =?utf-8?Q?Wei=C3=9Fschuh?= <linux@weissschuh.net>
-To: Kees Cook <keescook@chromium.org>
-Cc: Jakub Kicinski <kuba@kernel.org>, Luis Chamberlain <mcgrof@kernel.org>, 
-	Joel Granados <j.granados@samsung.com>, Eric Dumazet <edumazet@google.com>, 
-	Dave Chinner <david@fromorbit.com>, linux-fsdevel@vger.kernel.org, netdev@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-s390@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-riscv@lists.infradead.org, linux-mm@kvack.org, linux-security-module@vger.kernel.org, 
-	bpf@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-xfs@vger.kernel.org, 
-	linux-trace-kernel@vger.kernel.org, linux-perf-users@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, kexec@lists.infradead.org, 
-	linux-hardening@vger.kernel.org, bridge@lists.linux.dev, lvs-devel@vger.kernel.org, 
-	linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-sctp@vger.kernel.org, 
-	linux-nfs@vger.kernel.org, apparmor@lists.ubuntu.com
-Subject: Re: [PATCH v3 00/11] sysctl: treewide: constify ctl_table argument
- of sysctl handlers
-Message-ID: <8d1daa64-3746-46a3-b696-127a70cdf7e7@t-8ch.de>
-References: <20240423-sysctl-const-handler-v3-0-e0beccb836e2@weissschuh.net>
- <20240424201234.3cc2b509@kernel.org>
- <202405080959.104A73A914@keescook>
+	s=arc-20240116; t=1715530490; c=relaxed/simple;
+	bh=DWkXEuvme9ikZHgele9+Sa5L/nbqmEQm5NdeK5JCzeg=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=OBISw+8Gyv71v40c/ClM0/O8YI2b+GSZcssP022QzAnE5D1X20Olw9J22AKTiB7V2ojmGwvomIt/cYzBtjAWKvz9Gx+l9KnbD3Ijm3PahoyMs7RJuODRnn552cqDWYZiu17hZ2oWuHzV3j58zYv+CXKGdi6nc471YRCyFmoQxHE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de
+Subject: [PATCH net-next 01/17] netfilter: nf_tables: skip transaction if update object is not implemented
+Date: Sun, 12 May 2024 18:14:20 +0200
+Message-Id: <20240512161436.168973-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20240512161436.168973-1-pablo@netfilter.org>
+References: <20240512161436.168973-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <202405080959.104A73A914@keescook>
 
-Hi Kees,
+Turn update into noop as a follow up for:
 
-On 2024-05-08 10:11:35+0000, Kees Cook wrote:
-> On Wed, Apr 24, 2024 at 08:12:34PM -0700, Jakub Kicinski wrote:
-> > On Tue, 23 Apr 2024 09:54:35 +0200 Thomas Weißschuh wrote:
-> > > The series was split from my larger series sysctl-const series [0].
-> > > It only focusses on the proc_handlers but is an important step to be
-> > > able to move all static definitions of ctl_table into .rodata.
-> > 
-> > Split this per subsystem, please.
-> 
-> I've done a few painful API transitions before, and I don't think the
-> complexity of these changes needs a per-subsystem constification pass. I
-> think this series is the right approach, but that patch 11 will need
-> coordination with Linus. We regularly do system-wide prototype changes
-> like this right at the end of the merge window before -rc1 comes out.
+  9fedd894b4e1 ("netfilter: nf_tables: fix unexpected EOPNOTSUPP error")
 
-That sounds good.
+instead of adding a transaction object which is simply discarded at a
+later stage of the commit protocol.
 
-> The requirements are pretty simple: it needs to be a obvious changes
-> (this certainly is) and as close to 100% mechanical as possible. I think
-> patch 11 easily qualifies. Linus should be able to run the same Coccinelle
-> script and get nearly the same results, etc. And all the other changes
-> need to have landed. This change also has no "silent failure" conditions:
-> anything mismatched will immediately stand out.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-Unfortunately coccinelle alone is not sufficient, as some helpers with
-different prototypes are called by handlers and themselves are calling
-handler and therefore need to change in the same commit.
-But if I add a diff for those on top of the coccinelle script to the
-changelog it should be obvious.
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 167074283ea9..a7f54eb68d9a 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -7776,6 +7776,9 @@ static int nf_tables_newobj(struct sk_buff *skb, const struct nfnl_info *info,
+ 		if (WARN_ON_ONCE(!type))
+ 			return -ENOENT;
+ 
++		if (!obj->ops->update)
++			return 0;
++
+ 		nft_ctx_init(&ctx, net, skb, info->nlh, family, table, NULL, nla);
+ 
+ 		return nf_tables_updobj(&ctx, type, nla[NFTA_OBJ_DATA], obj);
+@@ -9467,9 +9470,10 @@ static void nft_obj_commit_update(struct nft_trans *trans)
+ 	obj = nft_trans_obj(trans);
+ 	newobj = nft_trans_obj_newobj(trans);
+ 
+-	if (obj->ops->update)
+-		obj->ops->update(obj, newobj);
++	if (WARN_ON_ONCE(!obj->ops->update))
++		return;
+ 
++	obj->ops->update(obj, newobj);
+ 	nft_obj_destroy(&trans->ctx, newobj);
+ }
+ 
+-- 
+2.30.2
 
-> So, have patches 1-10 go via their respective subsystems, and once all
-> of those are in Linus's tree, send patch 11 as a stand-alone PR.
-
-Ack, I'll do that with the cover letter information requested by Joel.
-
-> (From patch 11, it looks like the seccomp read/write function changes
-> could be split out? I'll do that now...)
-
-Thanks!
-
-Thomas
