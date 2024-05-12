@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id CAAAC4CB2E;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B512E4B5A6;
 	Sun, 12 May 2024 16:14:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715530493; cv=none; b=CMIta9XKDtHbtv7lVxJwyqxcGMzmDv8KuQy5FkIKkyAG1KNK+/z67/p/fnmyj0cAudh4rAJ0ymr2CXcl3xjvvi9ZYKwBre0JQDZKb71exslJXQ85slYEEsMhFUhV5xSqg9lisvPco7wW9Fv1HP7VynDnRAOaTAA906JSwUhM7Zk=
+	t=1715530493; cv=none; b=aO3BzrV6/EiKt21v3leia9uZszDCZI4T3Q37HnJGhH5asnbqZVWqLA0fEAZBd7XTVF5PqFG6nKGCoyOnNgsMdpKM/yerSuLds4zsqBtWl24QIt/8GPtHdsWecnPrdtWTlo/a6zMClkfdHvkvV7w11hZHyR0utyqqwNNCMCmE5/I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1715530493; c=relaxed/simple;
-	bh=VPcBv78REJ4fCKTC6eQUOsBDrBaXz6pje7ybvlJM3bc=;
+	bh=5Jrm7Aeo1VASZOcoO4uVbeprh5O37YDIz4MTycixMEo=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=NmzFGF4C58Zy8seNNIudTI3HJyzy1iRGL9qfXDX/X+SqIxJoWTa3ZiL8sB+B8fQtQyvC1hPs6R7M1uta5dMnccM2PPpm3DL4I4DQJMNlnCxOY+oFH3Nr6amquN+2Me83xmvh/Y13DjPRfLfuhqm0snZZgFX+n/j4vJe1neG57Ek=
+	 MIME-Version; b=PjdaTPlzwxT1TjcALoljDrbWfiemlCVV6T/llPDgSTEK5fTD/oynheHznC6vhJCe9xCtOZooJhh/AWpcgIP+lYfXYwcBANxKnzcHSUh7ZMzgOS0BpwgRSJCAu9zBXOfTggZGj79UZNmmxoY6RDmKUNXtD/NQacLJomckCfLiuY4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net-next 09/17] netfilter: nft_set_pipapo: make pipapo_clone helper return NULL
-Date: Sun, 12 May 2024 18:14:28 +0200
-Message-Id: <20240512161436.168973-10-pablo@netfilter.org>
+Subject: [PATCH net-next 10/17] netfilter: nft_set_pipapo: prepare destroy function for on-demand clone
+Date: Sun, 12 May 2024 18:14:29 +0200
+Message-Id: <20240512161436.168973-11-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240512161436.168973-1-pablo@netfilter.org>
 References: <20240512161436.168973-1-pablo@netfilter.org>
@@ -36,87 +36,67 @@ Content-Transfer-Encoding: 8bit
 
 From: Florian Westphal <fw@strlen.de>
 
-Currently it returns an error pointer, but the only possible failure
-is ENOMEM.
+Once priv->clone can be NULL in case no insertions/removals occurred
+in the last transaction we need to drop set elements from priv->match
+if priv->clone is NULL.
 
-After a followup patch, we'd need to discard the errno code, i.e.
+While at it, condense this function by reusing the pipapo_free_match
+helper instead of open-coded version.
 
-x = pipapo_clone()
-if (IS_ERR(x))
-	return NULL
-
-or make more changes to fix up callers to expect IS_ERR() code
-from set->ops->deactivate().
-
-So simplify this and make it return ptr-or-null.
+The rcu_barrier() is removed, its not needed: old call_rcu instances
+for pipapo_reclaim_match do not access struct nft_set.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_set_pipapo.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ net/netfilter/nft_set_pipapo.c | 27 ++++++---------------------
+ 1 file changed, 6 insertions(+), 21 deletions(-)
 
 diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index b8205d961ba4..7b6d5d2d0d54 100644
+index 7b6d5d2d0d54..459e2dd5050c 100644
 --- a/net/netfilter/nft_set_pipapo.c
 +++ b/net/netfilter/nft_set_pipapo.c
-@@ -1395,7 +1395,7 @@ static int nft_pipapo_insert(const struct net *net, const struct nft_set *set,
-  * pipapo_clone() - Clone matching data to create new working copy
-  * @old:	Existing matching data
-  *
-- * Return: copy of matching data passed as 'old', error pointer on failure
-+ * Return: copy of matching data passed as 'old' or NULL.
-  */
- static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old)
+@@ -2326,33 +2326,18 @@ static void nft_pipapo_destroy(const struct nft_ctx *ctx,
  {
-@@ -1405,7 +1405,7 @@ static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old)
+ 	struct nft_pipapo *priv = nft_set_priv(set);
+ 	struct nft_pipapo_match *m;
+-	int cpu;
  
- 	new = kmalloc(struct_size(new, f, old->field_count), GFP_KERNEL);
- 	if (!new)
--		return ERR_PTR(-ENOMEM);
-+		return NULL;
+ 	m = rcu_dereference_protected(priv->match, true);
+-	if (m) {
+-		rcu_barrier();
+-
+-		for_each_possible_cpu(cpu)
+-			pipapo_free_scratch(m, cpu);
+-		free_percpu(m->scratch);
+-		pipapo_free_fields(m);
+-		kfree(m);
+-		priv->match = NULL;
+-	}
  
- 	new->field_count = old->field_count;
- 	new->bsize_max = old->bsize_max;
-@@ -1477,7 +1477,7 @@ static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old)
- 	free_percpu(new->scratch);
- 	kfree(new);
- 
--	return ERR_PTR(-ENOMEM);
-+	return NULL;
+ 	if (priv->clone) {
+-		m = priv->clone;
+-
+-		nft_set_pipapo_match_destroy(ctx, set, m);
+-
+-		for_each_possible_cpu(cpu)
+-			pipapo_free_scratch(priv->clone, cpu);
+-		free_percpu(priv->clone->scratch);
+-
+-		pipapo_free_fields(priv->clone);
+-		kfree(priv->clone);
++		nft_set_pipapo_match_destroy(ctx, set, priv->clone);
++		pipapo_free_match(priv->clone);
+ 		priv->clone = NULL;
++	} else {
++		nft_set_pipapo_match_destroy(ctx, set, m);
+ 	}
++
++	pipapo_free_match(m);
  }
  
  /**
-@@ -1797,7 +1797,7 @@ static void nft_pipapo_commit(struct nft_set *set)
- 		return;
- 
- 	new_clone = pipapo_clone(priv->clone);
--	if (IS_ERR(new_clone))
-+	if (!new_clone)
- 		return;
- 
- 	priv->dirty = false;
-@@ -1821,7 +1821,7 @@ static void nft_pipapo_abort(const struct nft_set *set)
- 	m = rcu_dereference_protected(priv->match, nft_pipapo_transaction_mutex_held(set));
- 
- 	new_clone = pipapo_clone(m);
--	if (IS_ERR(new_clone))
-+	if (!new_clone)
- 		return;
- 
- 	priv->dirty = false;
-@@ -2269,8 +2269,8 @@ static int nft_pipapo_init(const struct nft_set *set,
- 
- 	/* Create an initial clone of matching data for next insertion */
- 	priv->clone = pipapo_clone(m);
--	if (IS_ERR(priv->clone)) {
--		err = PTR_ERR(priv->clone);
-+	if (!priv->clone) {
-+		err = -ENOMEM;
- 		goto out_free;
- 	}
- 
 -- 
 2.30.2
 
