@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8E61B4F211;
-	Sun, 12 May 2024 16:14:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8254148CCC;
+	Sun, 12 May 2024 16:14:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715530494; cv=none; b=A/Qkd74N6Ng0Q62LAqmYbevONEcwBGfHZXEa6zfuOVcmhuvkHf1dJajNvIg1u7/o4PVnDQAkczcx1O0D6wc1DCSOLaP7C1n414v1KyjpypTHfhvFgemIjW88yHJWa3tkzWGrRxF2Vs31UufWIxySfZdBeyCyodXiXdskg7f5cjU=
+	t=1715530494; cv=none; b=SdoXtpipzHwy7w40ifJip8C6zhvj1lSXTRovGdAzd4MxotgFxhF8es3N/+EhT2uaEvTRJNzhvSS453W1a9Qm2dLIEsyVIqAT0cTYIXJnv4S2guFnBxBZ1i5+CS5LsuPhNMqp/I5Kw/m1lJ14osMfkEdRT66+FonfW/z/N2SvbD0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1715530494; c=relaxed/simple;
-	bh=DZDWsqAhuwQOhXTbqFP+4H+cKXmXmiE5SMSv3fIHGl8=;
+	bh=1NnJ2nQkUXKA/t8DXQMNFLk9evxmHmqJL6Lr4Dd4T7c=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=MbB+/LEuzyrskKhuk0mrBzZFCQjvhyVLwFlQwc/pNlHLa9B9fhhsVeOAlN40XYoSSXXmhQVQItg9CdnzXTJtzUo8xxTNfPGT3VTk0PLHhCvpfUqV6kYon43CpAeLMXcefOOFS8U1YDn2FfGo4+mUr8rN3rdCWKQQ3kO83N/R0RI=
+	 MIME-Version; b=AOOpSMtxW+XrONIX7gBEw6blaanOZsB+hEJFOK+fTjVOtqa2NK0NAu2Pzfi+Bgix6y6qBVvZnz5mQWlsZCepuoiTcOkcjzz8H9ndcjjLT3mjN1qglYKAlezILeaeAzrPq/o6TLOETKJ67CPYpPSHfOkXsQCScAm+WAVYGdigSt4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net-next 11/17] netfilter: nft_set_pipapo: prepare walk function for on-demand clone
-Date: Sun, 12 May 2024 18:14:30 +0200
-Message-Id: <20240512161436.168973-12-pablo@netfilter.org>
+Subject: [PATCH net-next 05/17] netfilter: use NF_DROP instead of -NF_DROP
+Date: Sun, 12 May 2024 18:14:24 +0200
+Message-Id: <20240512161436.168973-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240512161436.168973-1-pablo@netfilter.org>
 References: <20240512161436.168973-1-pablo@netfilter.org>
@@ -34,126 +34,71 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+From: Jason Xing <kernelxing@tencent.com>
 
-The existing code uses iter->type to figure out what data is needed, the
-live copy (READ) or clone (UPDATE).
+At the beginning in 2009 one patch [1] introduced collecting drop
+counter in nf_conntrack_in() by returning -NF_DROP. Later, another
+patch [2] changed the return value of tcp_packet() which now is
+renamed to nf_conntrack_tcp_packet() from -NF_DROP to NF_DROP. As
+we can see, that -NF_DROP should be corrected.
 
-Without pending updates, priv->clone and priv->match will point to
-different memory locations, but they have identical content.
+Similarly, there are other two points where the -NF_DROP is used.
 
-Future patch will make priv->clone == NULL if there are no pending changes,
-in this case we must copy the live data for the UPDATE case.
+Well, as NF_DROP is equal to 0, inverting NF_DROP makes no sense
+as patch [2] said many years ago.
 
-Currently this would require GFP_ATOMIC allocation.  Split the walk
-function in two parts: one that does the walk and one that decides which
-data is needed.
+[1]
+commit 7d1e04598e5e ("netfilter: nf_conntrack: account packets drop by tcp_packet()")
+[2]
+commit ec8d540969da ("netfilter: conntrack: fix dropping packet after l4proto->packet()")
 
-In the UPDATE case, callers hold the transaction mutex so we do not need
-the rcu read lock.  This allows to use GFP_KERNEL allocation while
-cloning.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
+Signed-off-by: Jason Xing <kernelxing@tencent.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_set_pipapo.c | 60 ++++++++++++++++++++++------------
- 1 file changed, 39 insertions(+), 21 deletions(-)
+ net/ipv4/netfilter/iptable_filter.c  | 2 +-
+ net/ipv6/netfilter/ip6table_filter.c | 2 +-
+ net/netfilter/nf_conntrack_core.c    | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index 459e2dd5050c..543d6cf01de6 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -2106,35 +2106,23 @@ static void nft_pipapo_remove(const struct net *net, const struct nft_set *set,
- }
+diff --git a/net/ipv4/netfilter/iptable_filter.c b/net/ipv4/netfilter/iptable_filter.c
+index b9062f4552ac..3ab908b74795 100644
+--- a/net/ipv4/netfilter/iptable_filter.c
++++ b/net/ipv4/netfilter/iptable_filter.c
+@@ -44,7 +44,7 @@ static int iptable_filter_table_init(struct net *net)
+ 		return -ENOMEM;
+ 	/* Entry 1 is the FORWARD hook */
+ 	((struct ipt_standard *)repl->entries)[1].target.verdict =
+-		forward ? -NF_ACCEPT - 1 : -NF_DROP - 1;
++		forward ? -NF_ACCEPT - 1 : NF_DROP - 1;
  
- /**
-- * nft_pipapo_walk() - Walk over elements
-+ * nft_pipapo_do_walk() - Walk over elements in m
-  * @ctx:	nftables API context
-  * @set:	nftables API set representation
-+ * @m:		matching data pointing to key mapping array
-  * @iter:	Iterator
-  *
-  * As elements are referenced in the mapping array for the last field, directly
-  * scan that array: there's no need to follow rule mappings from the first
-- * field.
-+ * field. @m is protected either by RCU read lock or by transaction mutex.
-  */
--static void nft_pipapo_walk(const struct nft_ctx *ctx, struct nft_set *set,
--			    struct nft_set_iter *iter)
-+static void nft_pipapo_do_walk(const struct nft_ctx *ctx, struct nft_set *set,
-+			       const struct nft_pipapo_match *m,
-+			       struct nft_set_iter *iter)
- {
--	struct nft_pipapo *priv = nft_set_priv(set);
--	const struct nft_pipapo_match *m;
- 	const struct nft_pipapo_field *f;
- 	unsigned int i, r;
+ 	err = ipt_register_table(net, &packet_filter, repl, filter_ops);
+ 	kfree(repl);
+diff --git a/net/ipv6/netfilter/ip6table_filter.c b/net/ipv6/netfilter/ip6table_filter.c
+index df785ebda0ca..e8992693e14a 100644
+--- a/net/ipv6/netfilter/ip6table_filter.c
++++ b/net/ipv6/netfilter/ip6table_filter.c
+@@ -43,7 +43,7 @@ static int ip6table_filter_table_init(struct net *net)
+ 		return -ENOMEM;
+ 	/* Entry 1 is the FORWARD hook */
+ 	((struct ip6t_standard *)repl->entries)[1].target.verdict =
+-		forward ? -NF_ACCEPT - 1 : -NF_DROP - 1;
++		forward ? -NF_ACCEPT - 1 : NF_DROP - 1;
  
--	WARN_ON_ONCE(iter->type != NFT_ITER_READ &&
--		     iter->type != NFT_ITER_UPDATE);
--
--	rcu_read_lock();
--	if (iter->type == NFT_ITER_READ)
--		m = rcu_dereference(priv->match);
--	else
--		m = priv->clone;
--
--	if (unlikely(!m))
--		goto out;
--
- 	for (i = 0, f = m->f; i < m->field_count - 1; i++, f++)
- 		;
+ 	err = ip6t_register_table(net, &packet_filter, repl, filter_ops);
+ 	kfree(repl);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index c63868666bd9..6102dc09cdd3 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -2024,7 +2024,7 @@ nf_conntrack_in(struct sk_buff *skb, const struct nf_hook_state *state)
+ 			goto repeat;
  
-@@ -2151,14 +2139,44 @@ static void nft_pipapo_walk(const struct nft_ctx *ctx, struct nft_set *set,
+ 		NF_CT_STAT_INC_ATOMIC(state->net, invalid);
+-		if (ret == -NF_DROP)
++		if (ret == NF_DROP)
+ 			NF_CT_STAT_INC_ATOMIC(state->net, drop);
  
- 		iter->err = iter->fn(ctx, set, iter, &e->priv);
- 		if (iter->err < 0)
--			goto out;
-+			return;
- 
- cont:
- 		iter->count++;
- 	}
-+}
- 
--out:
--	rcu_read_unlock();
-+/**
-+ * nft_pipapo_walk() - Walk over elements
-+ * @ctx:	nftables API context
-+ * @set:	nftables API set representation
-+ * @iter:	Iterator
-+ *
-+ * Test if destructive action is needed or not, clone active backend if needed
-+ * and call the real function to work on the data.
-+ */
-+static void nft_pipapo_walk(const struct nft_ctx *ctx, struct nft_set *set,
-+			    struct nft_set_iter *iter)
-+{
-+	struct nft_pipapo *priv = nft_set_priv(set);
-+	const struct nft_pipapo_match *m;
-+
-+	switch (iter->type) {
-+	case NFT_ITER_UPDATE:
-+		m = priv->clone;
-+		nft_pipapo_do_walk(ctx, set, m, iter);
-+		break;
-+	case NFT_ITER_READ:
-+		rcu_read_lock();
-+		m = rcu_dereference(priv->match);
-+		nft_pipapo_do_walk(ctx, set, m, iter);
-+		rcu_read_unlock();
-+		break;
-+	default:
-+		iter->err = -EINVAL;
-+		WARN_ON_ONCE(1);
-+		break;
-+	}
- }
- 
- /**
+ 		ret = -ret;
 -- 
 2.30.2
 
