@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8250448788;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id AF78F4AEFD;
 	Sun, 12 May 2024 16:14:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715530493; cv=none; b=GMAhOuZijIMw4S7tS0WG580W0IgVTeGkIufDJjm6eprRzuSpCNNYeNE9BXcOkGqbVm3FJ9K9VTyR/05vCd+v7pkg6Sjvy7RaNphgXQ8XZh1Tiuc14KGNJovXnCO7tHlgwmJPb2i8FKS91md6hD5ea8/lLedOanVeduWvth5NobU=
+	t=1715530493; cv=none; b=pAs+MynYTt58vIxJRT8TRiHsnXhfhYPhUByoS/QMhFGWe8Vb6MPaToj327KZLWgPVW86h3q6QA+85jPDnSG/CpCaTIQnH5biJkjFSCydGc0g1e9T3QOeAkAMuEK0LzoZXW3YKkjBAvWUjAWOX9WtgtouISsWSXBx2TfoUPD2kCY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1715530493; c=relaxed/simple;
-	bh=VCsclNw9n+t5AONhNUibLcz108u/GU5hTBng27CVFI4=;
+	bh=Pq7LDsBtPJodAdqmyRfmsGifSzDCUsjV0ORWBfpmM6U=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=tnTpN5Wc6N78hrjE6MtCBaiFSJ/5ltnouixjQDdRwL3ywGlN64G6cZlghVeMK4bCHe/mfzEvGjXIBUVAtdbLouroaaFZ5ux9g1E5eVi6FsvrtHCdOAcT1aorVZTfjF8KXSkr8vns3cux3vgl2AMtMGgoCOkE2aTAlHUpJfmHbFI=
+	 MIME-Version; b=VgtKPgNtERp5utfo300/UMW7o7MuDT2fnb+WQJCdN1PrM+pWxJlUZW6eJ270BNseGKOw4yWtSqwP5Elt8jKpqdwfXgKPyzxsu9MfOgnCrohUgcNuUtdMPO1ALF5RMVXxHKyrj2u+7JeoqPs9loqwjayF2mnTnEjeqgG+JEQiar8=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net-next 06/17] netfilter: conntrack: documentation: remove reference to non-existent sysctl
-Date: Sun, 12 May 2024 18:14:25 +0200
-Message-Id: <20240512161436.168973-7-pablo@netfilter.org>
+Subject: [PATCH net-next 07/17] netfilter: conntrack: remove flowtable early-drop test
+Date: Sun, 12 May 2024 18:14:26 +0200
+Message-Id: <20240512161436.168973-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240512161436.168973-1-pablo@netfilter.org>
 References: <20240512161436.168973-1-pablo@netfilter.org>
@@ -36,33 +36,43 @@ Content-Transfer-Encoding: 8bit
 
 From: Florian Westphal <fw@strlen.de>
 
-The referenced sysctl doesn't exist anymore.
+Not sure why this special case exists.  Early drop logic
+(which kicks in when conntrack table is full) should be independent
+of flowtable offload and only consider assured bit (i.e., two-way
+traffic was seen).
 
-Fixes: 4592ee7f525c ("netfilter: conntrack: remove offload_pickup sysctl again")
+flowtable entries hold a reference to the conntrack entry (struct
+nf_conn) that has been offloaded. The conntrack use count is not
+decremented until after the entry is free'd.
+
+This change therefore will not result in exceeding the conntrack table
+limit.  It does allow early-drop of tcp flows even when they've been
+offloaded, but only if they have been offloaded before syn-ack was
+received or after at least one peer has sent a fin.
+
+Currently 'fin' packet reception already stops offloading, so this
+should not impact offloading either.
+
+Cc: Vlad Buslov <vladbu@nvidia.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- Documentation/networking/nf_conntrack-sysctl.rst | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/Documentation/networking/nf_conntrack-sysctl.rst b/Documentation/networking/nf_conntrack-sysctl.rst
-index c383a394c665..238b66d0e059 100644
---- a/Documentation/networking/nf_conntrack-sysctl.rst
-+++ b/Documentation/networking/nf_conntrack-sysctl.rst
-@@ -222,11 +222,11 @@ nf_flowtable_tcp_timeout - INTEGER (seconds)
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 6102dc09cdd3..7ac20750c127 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1440,8 +1440,6 @@ static bool gc_worker_can_early_drop(const struct nf_conn *ct)
+ 	const struct nf_conntrack_l4proto *l4proto;
+ 	u8 protonum = nf_ct_protonum(ct);
  
-         Control offload timeout for tcp connections.
-         TCP connections may be offloaded from nf conntrack to nf flow table.
--        Once aged, the connection is returned to nf conntrack with tcp pickup timeout.
-+        Once aged, the connection is returned to nf conntrack.
+-	if (test_bit(IPS_OFFLOAD_BIT, &ct->status) && protonum != IPPROTO_UDP)
+-		return false;
+ 	if (!test_bit(IPS_ASSURED_BIT, &ct->status))
+ 		return true;
  
- nf_flowtable_udp_timeout - INTEGER (seconds)
-         default 30
- 
-         Control offload timeout for udp connections.
-         UDP connections may be offloaded from nf conntrack to nf flow table.
--        Once aged, the connection is returned to nf conntrack with udp pickup timeout.
-+        Once aged, the connection is returned to nf conntrack.
 -- 
 2.30.2
 
