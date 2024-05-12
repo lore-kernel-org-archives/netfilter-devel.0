@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B512E4B5A6;
-	Sun, 12 May 2024 16:14:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 905FE4F215;
+	Sun, 12 May 2024 16:14:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715530493; cv=none; b=aO3BzrV6/EiKt21v3leia9uZszDCZI4T3Q37HnJGhH5asnbqZVWqLA0fEAZBd7XTVF5PqFG6nKGCoyOnNgsMdpKM/yerSuLds4zsqBtWl24QIt/8GPtHdsWecnPrdtWTlo/a6zMClkfdHvkvV7w11hZHyR0utyqqwNNCMCmE5/I=
+	t=1715530494; cv=none; b=AKIdfb9NborO74QT9nRbsRtrJqguzlXc82rvM5AP0UR161CdnfvMRKCksw0uzGRx+8TI8lz+zY3zEs1bOcEBNRYdgrr2BaH0apKSPhu5qiyYTHeKnQRgy0uVLEtfEgHpWW6B7jV08mkCcI/NpJQtNn7wrItbug81sHakqeWX3Xc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715530493; c=relaxed/simple;
-	bh=5Jrm7Aeo1VASZOcoO4uVbeprh5O37YDIz4MTycixMEo=;
+	s=arc-20240116; t=1715530494; c=relaxed/simple;
+	bh=AMDps6fOAYIbIgbUTyhL7ViVny0EBfDcUGIvrv4BKkE=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=PjdaTPlzwxT1TjcALoljDrbWfiemlCVV6T/llPDgSTEK5fTD/oynheHznC6vhJCe9xCtOZooJhh/AWpcgIP+lYfXYwcBANxKnzcHSUh7ZMzgOS0BpwgRSJCAu9zBXOfTggZGj79UZNmmxoY6RDmKUNXtD/NQacLJomckCfLiuY4=
+	 MIME-Version; b=fpqtTYsOqIWKx5O1wh1nAvCFQpYQu+mVBvopaQgKG9LIb9dG+X1v/qjwNV3HHLj5HhGVsNGXvHYGcCCXZOD3/56KQSOANcqPXadRGMSDWhegXC/WGAUdPV0osin767/PyfBN4L+O8wptzhISRsHCkVB4VwN/C9ck1v9FTPJ4gZU=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net-next 10/17] netfilter: nft_set_pipapo: prepare destroy function for on-demand clone
-Date: Sun, 12 May 2024 18:14:29 +0200
-Message-Id: <20240512161436.168973-11-pablo@netfilter.org>
+Subject: [PATCH net-next 12/17] netfilter: nft_set_pipapo: merge deactivate helper into caller
+Date: Sun, 12 May 2024 18:14:31 +0200
+Message-Id: <20240512161436.168973-13-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240512161436.168973-1-pablo@netfilter.org>
 References: <20240512161436.168973-1-pablo@netfilter.org>
@@ -36,67 +36,82 @@ Content-Transfer-Encoding: 8bit
 
 From: Florian Westphal <fw@strlen.de>
 
-Once priv->clone can be NULL in case no insertions/removals occurred
-in the last transaction we need to drop set elements from priv->match
-if priv->clone is NULL.
-
-While at it, condense this function by reusing the pipapo_free_match
-helper instead of open-coded version.
-
-The rcu_barrier() is removed, its not needed: old call_rcu instances
-for pipapo_reclaim_match do not access struct nft_set.
+Its the only remaining call site so there is no need for this to
+be separated anymore.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_set_pipapo.c | 27 ++++++---------------------
- 1 file changed, 6 insertions(+), 21 deletions(-)
+ net/netfilter/nft_set_pipapo.c | 39 ++++++++--------------------------
+ 1 file changed, 9 insertions(+), 30 deletions(-)
 
 diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index 7b6d5d2d0d54..459e2dd5050c 100644
+index 543d6cf01de6..7c11f568069c 100644
 --- a/net/netfilter/nft_set_pipapo.c
 +++ b/net/netfilter/nft_set_pipapo.c
-@@ -2326,33 +2326,18 @@ static void nft_pipapo_destroy(const struct nft_ctx *ctx,
- {
- 	struct nft_pipapo *priv = nft_set_priv(set);
- 	struct nft_pipapo_match *m;
--	int cpu;
- 
- 	m = rcu_dereference_protected(priv->match, true);
--	if (m) {
--		rcu_barrier();
--
--		for_each_possible_cpu(cpu)
--			pipapo_free_scratch(m, cpu);
--		free_percpu(m->scratch);
--		pipapo_free_fields(m);
--		kfree(m);
--		priv->match = NULL;
--	}
- 
- 	if (priv->clone) {
--		m = priv->clone;
--
--		nft_set_pipapo_match_destroy(ctx, set, m);
--
--		for_each_possible_cpu(cpu)
--			pipapo_free_scratch(priv->clone, cpu);
--		free_percpu(priv->clone->scratch);
--
--		pipapo_free_fields(priv->clone);
--		kfree(priv->clone);
-+		nft_set_pipapo_match_destroy(ctx, set, priv->clone);
-+		pipapo_free_match(priv->clone);
- 		priv->clone = NULL;
-+	} else {
-+		nft_set_pipapo_match_destroy(ctx, set, m);
- 	}
-+
-+	pipapo_free_match(m);
+@@ -1851,52 +1851,31 @@ static void nft_pipapo_activate(const struct net *net,
  }
  
  /**
+- * pipapo_deactivate() - Check that element is in set, mark as inactive
++ * nft_pipapo_deactivate() - Search for element and make it inactive
+  * @net:	Network namespace
+  * @set:	nftables API set representation
+- * @data:	Input key data
+- * @ext:	nftables API extension pointer, used to check for end element
+- *
+- * This is a convenience function that can be called from both
+- * nft_pipapo_deactivate() and nft_pipapo_flush(), as they are in fact the same
+- * operation.
++ * @elem:	nftables API element representation containing key data
+  *
+  * Return: deactivated element if found, NULL otherwise.
+  */
+-static void *pipapo_deactivate(const struct net *net, const struct nft_set *set,
+-			       const u8 *data, const struct nft_set_ext *ext)
++static struct nft_elem_priv *
++nft_pipapo_deactivate(const struct net *net, const struct nft_set *set,
++		      const struct nft_set_elem *elem)
+ {
+ 	struct nft_pipapo_elem *e;
+ 
+-	e = pipapo_get(net, set, data, nft_genmask_next(net),
+-		       nft_net_tstamp(net), GFP_KERNEL);
++	e = pipapo_get(net, set, (const u8 *)elem->key.val.data,
++		       nft_genmask_next(net), nft_net_tstamp(net), GFP_KERNEL);
+ 	if (IS_ERR(e))
+ 		return NULL;
+ 
+ 	nft_set_elem_change_active(net, set, &e->ext);
+ 
+-	return e;
+-}
+-
+-/**
+- * nft_pipapo_deactivate() - Call pipapo_deactivate() to make element inactive
+- * @net:	Network namespace
+- * @set:	nftables API set representation
+- * @elem:	nftables API element representation containing key data
+- *
+- * Return: deactivated element if found, NULL otherwise.
+- */
+-static struct nft_elem_priv *
+-nft_pipapo_deactivate(const struct net *net, const struct nft_set *set,
+-		      const struct nft_set_elem *elem)
+-{
+-	const struct nft_set_ext *ext = nft_set_elem_ext(set, elem->priv);
+-
+-	return pipapo_deactivate(net, set, (const u8 *)elem->key.val.data, ext);
++	return &e->priv;
+ }
+ 
+ /**
+- * nft_pipapo_flush() - Call pipapo_deactivate() to make element inactive
++ * nft_pipapo_flush() - make element inactive
+  * @net:	Network namespace
+  * @set:	nftables API set representation
+  * @elem_priv:	nftables API element representation containing key data
 -- 
 2.30.2
 
