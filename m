@@ -1,192 +1,89 @@
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27CC414F120;
-	Mon, 13 May 2024 12:18:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 766A1150998
+	for <netfilter-devel@vger.kernel.org>; Mon, 13 May 2024 13:09:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715602734; cv=none; b=Q7ACV6/lKusf7e+E20+i6qclb9nys0oSLLpxQBkuSgO3sgQpjD4mPjFx/IqCmMUA3GCNiGB+zE9ATihZjUW6Ql5sMgodysTLR+39shVVQUf0gOh66UkeiGtgAOqQoJfzOjUtzJGRoOFYxgqgwwFX8xza/wNrcUXsu7SR1shQHTE=
+	t=1715605769; cv=none; b=ApVLqEHwTPpysiAXFq/sXiid4N2cyoGudX/AhZEpzB9LMGPpuK7Gmu82vxGNi2gTCIMpdolNevL/FivxWFpmuW6KfvCRX0W9vCcBNxNrU3UMnDYuQBc8dmM/9Z2xjZpQ9OrVpeJ/1Y33qK0v7DPxYdBUe30WkCPITHsQSfZL2lQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715602734; c=relaxed/simple;
-	bh=SrdN7bp3GCGn0BQxbzXtwzf6R0uqeQKv+xbDU3kLob0=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=mosoKBAFPb3EqwNBWIxuSF1GmcK4oC08a/eApEYvftdS+WEQf70C1Al0V3kaY9OofAzteZgPW+qbu99iB4UsOUs+we9x6GIyX1xOzl08yIhhiN0TOsNF9jARPaLLm2go0A/XtD/PbjSWTRZnTyn2CJWwCKjqXWtlP/RC53Zu794=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.187
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
-Received: from mail.maildlp.com (unknown [172.19.163.48])
-	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4VdJMy25NyzkXWr;
-	Mon, 13 May 2024 20:15:10 +0800 (CST)
-Received: from dggpemm500020.china.huawei.com (unknown [7.185.36.49])
-	by mail.maildlp.com (Postfix) with ESMTPS id EE432180060;
-	Mon, 13 May 2024 20:18:41 +0800 (CST)
-Received: from [10.123.123.159] (10.123.123.159) by
- dggpemm500020.china.huawei.com (7.185.36.49) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.35; Mon, 13 May 2024 20:18:37 +0800
-Message-ID: <2a278e4b-89c4-4fc5-173e-b62978299b28@huawei-partners.com>
-Date: Mon, 13 May 2024 15:18:32 +0300
+	s=arc-20240116; t=1715605769; c=relaxed/simple;
+	bh=QfQknhbj4TTh3ZiuEIhqtT3m06EwRvVBB1K4KFPgzNM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ZXY9R7E1h2hQ6ygmpWUdP+o6m8lPRBXlrrqovjgWLUSNg7Q7e7EEBwpYuQD5M7/5p0WZRVGPh9A4Ltu/E/NC8Yl8+M3qk07u1FcjqDOeXoc1yB+u4wH2mcsP0lvrO5Rer6ioUQ2RxKEHPGNDz+r5Qjo2xTwUv7NfUsgadSWPkrU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1s6VQj-0001Od-Hh; Mon, 13 May 2024 15:09:25 +0200
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next 00/11] netfilter: nf_tables: reduce transaction log memory usage
+Date: Mon, 13 May 2024 15:00:40 +0200
+Message-ID: <20240513130057.11014-1-fw@strlen.de>
+X-Mailer: git-send-email 2.43.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 2/2] selftests/landlock: Create 'listen_zero',
- 'deny_listen_zero' tests
-Content-Language: ru
-To: =?UTF-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
-CC: <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
-	<linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-	<netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-	<artem.kuzin@huawei.com>, <konstantin.meskhidze@huawei.com>,
-	=?UTF-8?Q?G=C3=BCnther_Noack?= <gnoack@google.com>
-References: <20240408094747.1761850-1-ivanov.mikhail1@huawei-partners.com>
- <20240408094747.1761850-3-ivanov.mikhail1@huawei-partners.com>
- <20240430.ohruCa7giToo@digikod.net>
-From: Ivanov Mikhail <ivanov.mikhail1@huawei-partners.com>
-In-Reply-To: <20240430.ohruCa7giToo@digikod.net>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: lhrpeml100003.china.huawei.com (7.191.160.210) To
- dggpemm500020.china.huawei.com (7.185.36.49)
 
+The transaction log can grow to huge values.
+Insertion of 1.000.000 elements into a set, or flushing a set with
+1.000.000 elements will eat 128 byte per element, i.e. 128 MiBi.
 
+This series compacts the structures. After this series, struct
+nft_trans_elem can be allocated from kmalloc-96 slab, resulting
+in a 25% memory reduction.
 
-4/30/2024 4:36 PM, Mickaël Salaün wrote:
-> The subject should be something like:
-> "selftests/landlock: Test listening on socket without binding"
+To further reduce flush/mass-insert several approaches come
+to mind:
 
-thanks, will be fixed.
+1. allow struct nft_trans_elem to hold several elements.
+2. add a kernel-internal, dedicated nft_trans_elem_batch that
+   is only used for flushing (similar to 1).
+3. Remove 'struct net' from nft_trans struct.  This reduces
+   size of nft_trans_elem to 64 bytes, which would halve memory
+   needs compared to the current state.
 
-> 
-> On Mon, Apr 08, 2024 at 05:47:47PM +0800, Ivanov Mikhail wrote:
->> Suggested code test scenarios where listen(2) call without explicit
->> bind(2) is allowed and forbidden.
->>
->> Signed-off-by: Ivanov Mikhail <ivanov.mikhail1@huawei-partners.com>
->> Reviewed-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
->> ---
->>   tools/testing/selftests/landlock/net_test.c | 89 +++++++++++++++++++++
->>   1 file changed, 89 insertions(+)
->>
->> diff --git a/tools/testing/selftests/landlock/net_test.c b/tools/testing/selftests/landlock/net_test.c
->> index 936cfc879f1d..6d6b5aef387f 100644
->> --- a/tools/testing/selftests/landlock/net_test.c
->> +++ b/tools/testing/selftests/landlock/net_test.c
->> @@ -1714,6 +1714,95 @@ TEST_F(port_specific, bind_connect_zero)
->>   	EXPECT_EQ(0, close(bind_fd));
->>   }
->>   
->> +TEST_F(port_specific, listen_zero)
->> +{
->> +	int listen_fd, connect_fd;
->> +	uint16_t port;
->> +
->> +	/* Adds a rule layer with bind actions. */
->> +	if (variant->sandbox == TCP_SANDBOX) {
->> +		const struct landlock_ruleset_attr ruleset_attr = {
->> +			.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP,
->> +		};
->> +		const struct landlock_net_port_attr tcp_bind_zero = {
->> +			.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
->> +			.port = 0,
->> +		};
->> +		int ruleset_fd;
->> +
->> +		ruleset_fd = landlock_create_ruleset(&ruleset_attr,
->> +						     sizeof(ruleset_attr), 0);
->> +		ASSERT_LE(0, ruleset_fd);
->> +
->> +		/* Checks zero port value on bind action. */
->> +		EXPECT_EQ(0,
->> +			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
->> +					    &tcp_bind_zero, 0));
->> +
->> +		enforce_ruleset(_metadata, ruleset_fd);
->> +		EXPECT_EQ(0, close(ruleset_fd));
->> +	}
->> +
->> +	listen_fd = socket_variant(&self->srv0);
->> +	ASSERT_LE(0, listen_fd);
->> +
->> +	connect_fd = socket_variant(&self->srv0);
->> +	ASSERT_LE(0, listen_fd);
->> +	/*
->> +	 * Allow listen(2) to select a random port for the socket,
->> +	 * since bind(2) wasn't called.
->> +	 */
->> +	EXPECT_EQ(0, listen(listen_fd, backlog));
->> +
->> +	/* Sets binded (by listen(2)) port for both protocol families. */
->> +	port = get_binded_port(listen_fd, &variant->prot);
->> +	EXPECT_NE(0, port);
->> +	set_port(&self->srv0, port);
->> +
->> +	/* Connects on the binded port. */
->> +	EXPECT_EQ(0, connect_variant(connect_fd, &self->srv0));
->> +
->> +	EXPECT_EQ(0, close(listen_fd));
->> +	EXPECT_EQ(0, close(connect_fd));
->> +}
->> +
->> +TEST_F(port_specific, deny_listen_zero)
->> +{
->> +	int listen_fd, ret;
->> +
->> +	/* Adds a rule layer with bind actions. */
->> +	if (variant->sandbox == TCP_SANDBOX) {
->> +		const struct landlock_ruleset_attr ruleset_attr = {
->> +			.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP,
->> +		};
->> +		int ruleset_fd;
->> +
->> +		ruleset_fd = landlock_create_ruleset(&ruleset_attr,
->> +						     sizeof(ruleset_attr), 0);
->> +		ASSERT_LE(0, ruleset_fd);
->> +
->> +		/* Forbid binding to any port. */
->> +		enforce_ruleset(_metadata, ruleset_fd);
->> +		EXPECT_EQ(0, close(ruleset_fd));
->> +	}
->> +
->> +	listen_fd = socket_variant(&self->srv0);
->> +	ASSERT_LE(0, listen_fd);
->> +	/*
-> 
-> nit: Extra space
+I have tried to do 3), its possible but not very elegant.
 
-will be fixed
+You can have a look at the general idea at
+https://git.kernel.org/pub/scm/linux/kernel/git/fwestphal/nf-next.git/commit/?h=nft_trans_compact_01&id=5269e591563204490b9fad6ae1e33810a9f4c39d
 
-> 
->> +	 * Check that listen(2) call is prohibited without first calling bind(2).
-> 
-> This should fit in 80 columns.
+I have started to look at 1) too, but unlike this compaction
+series it looks like this will make things even more complex
+as we'll need to be careful wrt. appending more set elements to
+an already-queued nft_trans_elem (must be same msg_type, same set,
+etc).
 
-will be fixed
+This series has seen brief testing with kasan+kmemleak and
+nftables.git selftests.
 
-> 
->> +	 */
->> +	ret = listen(listen_fd, backlog);
->> +	if (is_restricted(&variant->prot, variant->sandbox)) {
->> +		/* Denied by Landlock. */
->> +		EXPECT_NE(0, ret);
->> +		EXPECT_EQ(EACCES, errno);
->> +	} else {
->> +		EXPECT_EQ(0, ret);
->> +	}
->> +
->> +	EXPECT_EQ(0, close(listen_fd));
->> +}
-> 
-> These tests look good!
-> 
->> +
->>   TEST_F(port_specific, bind_connect_1023)
->>   {
->>   	int bind_fd, connect_fd, ret;
->> -- 
->> 2.34.1
->>
->>
+Feedback and comments welcome.
+
+Florian Westphal (11):
+  netfilter: nf_tables: make struct nft_trans first member of derived subtypes
+  netfilter: nf_tables: move bind list_head into relevant subtypes
+  netfilter: nf_tables: compact chain+ft transaction objects
+  netfilter: nf_tables: reduce trans->ctx.table references
+  netfilter: nf_tables: pass nft_chain to destroy function, not nft_ctx
+  netfilter: nf_tables: pass more specific nft_trans_chain where possible
+  netfilter: nf_tables: avoid usage of embedded nft_ctx
+  netfilter: nf_tables: store chain pointer in rule transaction
+  netfilter: nf_tables: reduce trans->ctx.chain references
+  netfilter: nf_tables: pass nft_table to destroy function
+  netfilter: nf_tables: do not store nft_ctx in transaction objects
+
+ include/net/netfilter/nf_tables.h | 152 +++++++----
+ net/netfilter/nf_tables_api.c     | 402 +++++++++++++++++-------------
+ net/netfilter/nf_tables_offload.c |  40 +--
+ net/netfilter/nft_immediate.c     |   2 +-
+ 4 files changed, 363 insertions(+), 233 deletions(-)
+
+-- 
+2.43.2
+
