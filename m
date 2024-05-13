@@ -1,86 +1,110 @@
-Received: from mail-yb1-f202.google.com (mail-yb1-f202.google.com [209.85.219.202])
+Received: from mail-yb1-f201.google.com (mail-yb1-f201.google.com [209.85.219.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53BD417C9
-	for <netfilter-devel@vger.kernel.org>; Mon, 13 May 2024 00:10:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.202
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5294386
+	for <netfilter-devel@vger.kernel.org>; Mon, 13 May 2024 00:10:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715559001; cv=none; b=r7NBoYvaTiOTi+mLGs9tWoiYWG1oBvxhpPhMC5794pz2hztJTLL+U49nRfBuj4vCgIS5aexm5iFzDeKieW1EHDaE5x1mV8oM9cayHHY5JuqG1hZPpJOwcsBJWAhPnIQN9agVvWWvrovNr7g/v/5034ZtkKRLqPr1Ql/Kx7+2PUo=
+	t=1715559005; cv=none; b=twPaXEIQ9oPmO/1xudud+oy5Jo6AoaUYa1paQ2Mt0+YX8phLr9aNiiu64XxAav1FC87oOHrE2ta3bFq01phgRpL9b8KgPAtWpoISkML24Rti1EfiJDe3nfkm3GCtZr5c0/AFjTK724lSohcamWuzXf+BkY73oMM4OPKktuDoilM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715559001; c=relaxed/simple;
-	bh=j5ReI+dkmLfYL3rhf/NbOzaERYSzmKe+G8J3O1wgkWk=;
-	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=PTcTp9DLLueC7C/mDFeCrzqe2bNJu4S/OOkwHgbH2qUm7Ymb/PzIQSuMaL3gFiEOr7dkQ9CA/kZ3S/8Do40XEz/FgfjMDIle+CAe6EzJjBfcAbcF1rEC0Rkx2VdiShROzD6oPhKAVhGjAnvuJ2KarmWKDGs4+Jr1vUd3k/etUr4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--aojea.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=boF5BYzC; arc=none smtp.client-ip=209.85.219.202
+	s=arc-20240116; t=1715559005; c=relaxed/simple;
+	bh=uVs+OLxkoJMQ+yo531IkNy69Zjuqp8/qQAS7yXZAUeA=;
+	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
+	 To:Cc:Content-Type; b=C6sWKePHfTxF/0PIJWQ7TVfap5ZymnfMSEjI0mc2JVLoboam4iU1z4g8+X5MlfQUmnmMuSZXIrpiJBGUBJ/nsf7yskEg8lytehDMvlGYGPKrlN3oSsyiL3Xv2UhO9X55kauUNNmaklXlZlKR8Aok9tE++7jw0GpVGwAzNEigIMY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--aojea.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=nohDNN/c; arc=none smtp.client-ip=209.85.219.201
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--aojea.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="boF5BYzC"
-Received: by mail-yb1-f202.google.com with SMTP id 3f1490d57ef6-dee5f035dd6so3840514276.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 12 May 2024 17:10:00 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="nohDNN/c"
+Received: by mail-yb1-f201.google.com with SMTP id 3f1490d57ef6-ddaf2f115f2so6102780276.3
+        for <netfilter-devel@vger.kernel.org>; Sun, 12 May 2024 17:10:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1715558999; x=1716163799; darn=vger.kernel.org;
-        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=G/WEADA0knahowoCwC0UB1tfsTxvAlht8Q4CeXdnap8=;
-        b=boF5BYzCtlCY5l9zBia9nyl6y5dkK5rrJ+dPbSVnoet2nOHS2XvjUXT1f3m/3QVhd2
-         z3N1M/MTKJa8RE7wVsc731p7XDGgmCTgLP0VxFUnzf5A/gQBhPlxV0naLxYkG3YqqTrA
-         7I7IXgtVkgHfsW1R9peJQAMFoZ67H/FVkxm8uO+CR2lzeB27o9fKTlLcXONi4o6OiKu/
-         NDT00BWVRvjQfxl0booD65d3zeXPA/eetdq7yrWVbedc8yvYZUg1/c1NAWjJinhm5v8G
-         bq+0gwFvs+/MRNhbJ6LI6kD7MqPcTwHIZ3fX1KjjjmsxI65BiwWWXmOopCcJPJKedSYm
-         84Xw==
+        d=google.com; s=20230601; t=1715559003; x=1716163803; darn=vger.kernel.org;
+        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
+         :date:from:to:cc:subject:date:message-id:reply-to;
+        bh=sRR8A6vw3MNL4cRtn6UHahv8PFJoyA7NkSXhvo/ge0s=;
+        b=nohDNN/ckLXxE/2dZ0RYn3bY1ryZeYQGoHPX32PeQVmBqf/R6G/+oTPVPup08rDZJU
+         xhvzKIeyT5wTB/RKtDWMBllG0SvuN/9IH+NpmK4M2B7tgiq0PBpxxJZMMCgPAS9p1RvC
+         Mo/8vY2iVOeaWzAFUAtZBAbt9MX0Grizpy7eqnyUJ8rO3ier+AS6Qq1XIb1wN+NVQhUF
+         vjKmFXSYR7RzQZox23IngKUwMicfZ9mzL75rxL0pDdKKmqDvdfatvjTbEeZghOnaef6M
+         93CATPko7hk/ir80EtfPUVuvXkALCcOquYNjM/bZMp5iLF4LmQM0VxVPcJD9kBHkfS1h
+         eVoQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1715558999; x=1716163799;
-        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=G/WEADA0knahowoCwC0UB1tfsTxvAlht8Q4CeXdnap8=;
-        b=cxQ7DQQKjnhkC5DfE+ahAuc5O26ArdmIoym16GNE7NCMILgUj93XjpH/DztOVIlrpf
-         wM//+WiQGkiXmJ2m1M3vQQlixeayA4FGFc1cl85HC5Z6F6MAxgBFIWEc1zBTbDxfZmar
-         cnx8PlAq4si7LmuXaZN/yrIsinv621nP1sL4fvzXB+zYtkTzwJw5m3oUVsgLmbabtkiq
-         mAuS329ey16CqhJNiBfQ+/0DIRs2LfpHq7/CArUdB5CCKr8aK+/JNvKxj9fYzPjDOEzR
-         v0WE8L89NLPWaFDhH2Y9JJrGhbVP7PXyzOs2hTdhyF2tv3U5p3UnTb01m01GGyf7kj3r
-         fNXQ==
-X-Gm-Message-State: AOJu0YxhhOy4soMtOrc+rKnD6L7w+XVVFu2j14nvfbTXkjcUUzUyk7Lc
-	064qH41ibNszwKAWGvwkxhO/RC/Cj2wq2QzXvpt9jH+Qg7vaw/4k7gQY//tFkeC1r2cjiktFfBC
-	Pbm9emMm9w01u8VxopcAlyWJKo2ufMIG1xXW/Q1PRK1PIChIphMKPDmDYsTAioPzNhg4wjGgO1m
-	mL4V11plexNl9HIXuaOJzPkGz3JMe0wnxh4Wysw6w=
-X-Google-Smtp-Source: AGHT+IEaz6JJ60TEF++9dH3TbfnrMw2id/NnkBFJAVNxDbrsImxAT90a+Qtpr9IVS1EuXzq8Ys/l9Xw/Vw==
+        d=1e100.net; s=20230601; t=1715559003; x=1716163803;
+        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
+         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=sRR8A6vw3MNL4cRtn6UHahv8PFJoyA7NkSXhvo/ge0s=;
+        b=DXqr7LjLf2BGuP3a7RdP5EEGgdVYb7jdWn2MZJwEjQISKjntKlv0nRa8m8WfqI+mHG
+         aR7wJDM0YRu76mt1k2X0Q5xQhXgVXbkROOPVs+GdhUvIQtdlk/Q8r9fazVJRrx+0X/ZR
+         9P7oiJwHFyTzfHDrJ+ehGbGtBu8NHrIb5P1cK1wyJU0hvkOYS5qSWxnazChBy1HWTe/D
+         5Ksa3TfgLEvkuHgrKExJWBX+8ObusjDpmxWYQqb0ok+J2c65Gc/v+y7npBk3VZSC7o/3
+         Pd6o3cua1yVJJFMDGFgPb1UcNW1PdHHDwTYvkVmrohiY50a+ypTI+xVv2fz9lVb+zuSZ
+         Lf3A==
+X-Gm-Message-State: AOJu0YyVeWmZDsb8ENk07ER1innlM+3m4pf/te7gO2AEAmUQeYN2DFvR
+	vL3CF6HMb0KXTmrmMIsmP7grv7qgL7Zqd6td4JlYCvVT3iBx8OQVTI5/k1Q2i/ZsRqFKXWSVdmq
+	64hs0WMiegNHh6RkGCuzhj4bvNOUGT5WFEWgycHQZ1iOcdnL4XOJhmDU6TP9OpCW1UekNZbPGik
+	t5s6H92raStI4JdHhMScVSsMc64jGWHDHyvDaVOJ4=
+X-Google-Smtp-Source: AGHT+IGueTUZZ1TA651SQgB//wittngvAC6GdvMuxa4GxlkkgOP0gdbOc+D3AZN8SdqMylU4BKiGoqau9w==
 X-Received: from aojea.c.googlers.com ([fda3:e722:ac3:cc00:31:98fb:c0a8:b3d])
- (user=aojea job=sendgmr) by 2002:a05:6902:100f:b0:dee:5d43:a0f3 with SMTP id
- 3f1490d57ef6-dee5d43c91fmr1816195276.6.1715558999196; Sun, 12 May 2024
- 17:09:59 -0700 (PDT)
-Date: Mon, 13 May 2024 00:09:51 +0000
+ (user=aojea job=sendgmr) by 2002:a05:6902:1025:b0:de5:3003:4b83 with SMTP id
+ 3f1490d57ef6-dee4f4fbce6mr770389276.8.1715559002906; Sun, 12 May 2024
+ 17:10:02 -0700 (PDT)
+Date: Mon, 13 May 2024 00:09:52 +0000
+In-Reply-To: <20240513000953.1458015-1-aojea@google.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0
+References: <20240513000953.1458015-1-aojea@google.com>
 X-Mailer: git-send-email 2.45.0.118.g7fe29c98d7-goog
-Message-ID: <20240513000953.1458015-1-aojea@google.com>
-Subject: [PATCH v2 0/2] netfilter: nfqueue: incorrect sctp checksum
+Message-ID: <20240513000953.1458015-2-aojea@google.com>
+Subject: [PATCH v2 1/2] netfilter: nft_queue: compute SCTP checksum
 From: Antonio Ojea <aojea@google.com>
 To: netfilter-devel@vger.kernel.org
 Cc: pablo@netfilter.org, fw@strlen.de, Antonio Ojea <aojea@google.com>
 Content-Type: text/plain; charset="UTF-8"
 
-Fixes the bug described in
-https://bugzilla.netfilter.org/show_bug.cgi?id=1742
-causing netfilter to drop SCTP packets when using
-nfqueue and GSO due to incorrect checksum.
+when packet is enqueued with nfqueue and GSO is enabled, checksum
+calculation has to take into account the protocol, as SCTP uses a
+32 bits CRC checksum.
 
-Patch 1 adds a new helper to process the sctp checksum
-correctly.
+Signed-off-by: Antonio Ojea <aojea@google.com>
+---
+V1 -> V2: add a helper function to process the checksum
 
-Patch 2 adds a selftest regression test.
+ net/netfilter/nfnetlink_queue.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-Antonio Ojea (2):
-  netfilter: nft_queue: compute SCTP checksum
-  selftests: net: netfilter: nft_queue.sh: sctp checksum
-
- net/netfilter/nfnetlink_queue.c               | 10 ++++-
- .../selftests/net/netfilter/nft_queue.sh      | 38 +++++++++++++++++++
- 2 files changed, 47 insertions(+), 1 deletion(-)
-
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 00f4bd21c59b..accf4942d9ff 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -538,6 +538,14 @@ static int nfqnl_put_bridge(struct nf_queue_entry *entry, struct sk_buff *skb)
+ 	return -1;
+ }
+ 
++static int nf_queue_checksum_help(struct sk_buff *entskb)
++{
++  if (skb_csum_is_sctp(entskb))
++    return skb_crc32c_csum_help(entskb);
++
++  return skb_checksum_help(entskb);
++}
++
+ static struct sk_buff *
+ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 			   struct nf_queue_entry *entry,
+@@ -600,7 +608,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 	case NFQNL_COPY_PACKET:
+ 		if (!(queue->flags & NFQA_CFG_F_GSO) &&
+ 		    entskb->ip_summed == CHECKSUM_PARTIAL &&
+-		    skb_checksum_help(entskb))
++		    nf_queue_checksum_help(entskb))
+ 			return NULL;
+ 
+ 		data_len = READ_ONCE(queue->copy_range);
 -- 
 2.45.0.118.g7fe29c98d7-goog
 
