@@ -1,55 +1,55 @@
-Received: from mail-ed1-f74.google.com (mail-ed1-f74.google.com [209.85.208.74])
+Received: from mail-ed1-f73.google.com (mail-ed1-f73.google.com [209.85.208.73])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 751F484A30
-	for <netfilter-devel@vger.kernel.org>; Mon, 13 May 2024 22:00:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.74
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D3A384A4D
+	for <netfilter-devel@vger.kernel.org>; Mon, 13 May 2024 22:00:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.73
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715637643; cv=none; b=IsJw7SZzLE6bof/nBPeH7M6TD+PMfGYT+aWtiaRyQh75lb4TYMxplNgn8xIuHO8UXxDArLiS1ld1K16qZgldLfuUizA19aZ2pdgkhZ4BXmKX1LYFlpUDj13MPm2Wa1UdrIgVKdqFDgpVFCIXFsG0dmsJ0jbi6eB7Ck8nYC79wD8=
+	t=1715637645; cv=none; b=MMA1ioMhp6XV/RSc+HGAlWtAuEkHdniBJJZMYLmUkDph61mvqigZMmJtz1kAvYMLXxQOd+bQr1aXAyexj+BTmFuKajHli0Gnx/IYPDDMjb+z289znfOyzrVdc1AOHk00/Exu0r3OzJLhvTTb6P4slljS2vOczV4z0lZquGKpIjo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715637643; c=relaxed/simple;
-	bh=LIrWmCdeD1ztOWNBI7+NUXxYs/0uH1ZHZGCeC3zvnAU=;
+	s=arc-20240116; t=1715637645; c=relaxed/simple;
+	bh=e9MzZhYLpeEu/4EYqjX0x/UhwNdkvGsS//SHXfG2E1c=;
 	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=l1e3Oq1iqlw36X2ZP/KHJUtvUF2jy4ijK6FVYszRXm+xli0vnuuw34a2gMapNZFj3lPbK7GXmDZV7svJLFnxbwDf1Q9Xga2c9mUKj11JPIMYmCkcVrE5ZiPF4t1K9xdCsq4bjDCuKfTcKBqqO9nTHr7DdhJ/Q2p3C58CbRP1FiQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--aojea.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=4kZk8bk5; arc=none smtp.client-ip=209.85.208.74
+	 To:Cc:Content-Type; b=X1Dn7PD3VWXPA6lDaGnDxrxVPzJnOSwYrv7MG1w6+z17i8c0v2YVD+sxsHkC+tRmlDOSlib3aaxW7sp25smW03G5rG99+VUmxmKOkFu4+GBLm4APOgsuYw7RkBHv+UYhspl1km4jTXGwVQHyDSGxlS7USYsakSfVydu4/JFGQyw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--aojea.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=meT7waSC; arc=none smtp.client-ip=209.85.208.73
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--aojea.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="4kZk8bk5"
-Received: by mail-ed1-f74.google.com with SMTP id 4fb4d7f45d1cf-56c1ac93679so207084a12.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 May 2024 15:00:41 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="meT7waSC"
+Received: by mail-ed1-f73.google.com with SMTP id 4fb4d7f45d1cf-572b0a23d55so155320a12.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 May 2024 15:00:43 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1715637640; x=1716242440; darn=vger.kernel.org;
+        d=google.com; s=20230601; t=1715637642; x=1716242442; darn=vger.kernel.org;
         h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
          :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=yDcp++hVHXLnnv/a//XLn51NEsO9sflqY1HSW045cEs=;
-        b=4kZk8bk5cS1kAagfqJidmDddnNdvkwQzmEcFgRNGRZ7aZ5X8oiu9lPHmYrIlX1FIKr
-         /kPIQfONzPp/bDOFv53Ub4yHs03ml2Eu7QQSt46Btt8OwPiUkwjpYsaV18rwgaa8RAeO
-         3mexKwBI/uaPQ2fnjo6CMMqGMLYBbUc8AVUtLT4STE7FWm7TkHfqrxBbmvBXlkNDpPd/
-         GmQFgnKnUe1gJMXNJvp2gmahXDGpjBM6ympI4/laWI+PawRTdwPNtlMQc7Hzh1CF+wQi
-         RHJgfk3BpoBlUpAnSLqbkXVRKRjrXGSLZusW2Y31H2IS4Y465uK1yChkUsyL1cIQ8Vh9
-         2hiQ==
+        bh=/T2vV+rwgF2ttDJrQAVcBOgx0bc8+qmSjEhPHlAqsDI=;
+        b=meT7waSCUDdGckgVQrpvLcXjOkOp0rXBNJqikvlFdFC+VlN45UfnNhESzfWtsNSBeW
+         hm2XEkENvlJVj/GcdAZfmu9Hia6oups/OgTJMEWVv0QeRcMneHz/ypE6bbqnQAA5GA9L
+         X2WBD8sm8wZoHRzrSkX2GJatlScYlBRDWFPdlbrTXRVVliSLyp3/1GlEp5VbiHcmdAV0
+         J92p0Zks4xl1v+ePHv37Dycrd74ikMXEzm5PhLnsVNubBV2C5FLFYeUXvhxfrB8cehb/
+         P/KiNEaMIkM93KmDTb1uvaBSPGmHowI8vnbvPj9yAZGixm31SYQJHSJUpgPCAkHzadYB
+         Cj+Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1715637640; x=1716242440;
+        d=1e100.net; s=20230601; t=1715637642; x=1716242442;
         h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
          :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=yDcp++hVHXLnnv/a//XLn51NEsO9sflqY1HSW045cEs=;
-        b=YD8CU5vz6VGsmkHUf8ixPucQEM9qJmJJhGCyltPCOO662VAPt85xDnBnk3V6QklWF6
-         fJMwKAeP80x5CIelyxKNR0Hb11hhRmttKQ3pJjwBpTHf9uLw7y/IO8pO0NpTVgzs2bDu
-         LYof2a5vRVHbaKd+xc6k48zEkGNwZ+2Dm9pqX6VGFPH60Cawq4A75+c5pHkNkVZeednM
-         RN7TaY2ueykLw8E0Gs6KAjzUKXng37nhaarngaTol/gtc0lbdbWMRomdsPC2BvJ7pMtt
-         rnjVwWNxlVKUfayek9PdBd8g1LdBidzcxHxh0wBvZZ+VqLEJEuKX7w+yFjrZSImccscN
-         itow==
-X-Gm-Message-State: AOJu0YzHC2jM0q/Fj4Lt6QD95Zt2POySm3TnJbwwRBes4zmGywdGdFvO
-	YyaUCMUc1u0XjFuG3kPy4sXtp5OfHchQ7W1xzWU+NLFeEX92UUtyJ9T+E3t+4neWwqoPkNxyj8F
-	pspVbvjHd6IlcG8TmouH1Y6Nw840QtWEGQQPw5hljm+FmPKcArXkF7MRZi/wq+zS4Lzflz/CMLM
-	us2/Gi13cS50C5e1syDJANmFh+Apz/a9UZB4Sq7bA=
-X-Google-Smtp-Source: AGHT+IFVq3d9ex5Q/KjzQTk2mNRwdXYwhzlOe1jRUXzkPsXtq/mn1Zy+sqQANFSYC2zavM0GNdAclQOnXg==
+        bh=/T2vV+rwgF2ttDJrQAVcBOgx0bc8+qmSjEhPHlAqsDI=;
+        b=Q1Id6+9s2v0YQZbXXRv77476lPE7YYIEoFl5c/Kxu1RUZHU7LtJH3Yvxo8705URFP4
+         4i/QZciccfnNuuU2Zf8NBnaKJ87oZdoLdBFjlR7oQHiC2MhjulPJ92d63zQpFANs7WE9
+         xoQbbGxogF2Dq8mUk95Vv/KsW9KJfD3wJ6HZNvGb4mSG6rHM9T0w5cpvGmWyNW6UnUt3
+         x/nBxfUcv5UjjtmoPIv1vh/uq91HzokfwJOSPf3aiup8pwn5ij+UNpKMH4JoXYTC5vFo
+         rOdnPgU3gABdDEg+yIAhBJCrCZ49dN1Z+RyUGAU+jNN3N5EsaSskfEk12UwNM+oNS2vW
+         mQrw==
+X-Gm-Message-State: AOJu0Yzlm10SdSOcIk42nB6Azx/MxT8I1JeEUDzfVphTKV88YsvcK9Tx
+	qLfjdjl1/v+E2R3AlNlyRhRqZBls4ph0jSLlFytzQmNKpkaUEvBYtmmUIetUfEVNSQ2no7G+agu
+	iyqbtRS/7aoYuYuLTBCVksvFT99sAgUxVYhL9pNpRnBn9MBiTRwy7xZ+9JRw8RRij15EDEt932L
+	fBVgC7YsYIT/DvYlWvLkqaq5doeJPywp3zxxDjgzY=
+X-Google-Smtp-Source: AGHT+IE5tgOPVM4jcW261QssoXZ60dxQ8zE//eA+jbbhlQ5Kkb1xymISVL9mv0kDXbuqSOC8pb+xYfH4mQ==
 X-Received: from aojea.c.googlers.com ([fda3:e722:ac3:cc00:31:98fb:c0a8:b3d])
- (user=aojea job=sendgmr) by 2002:a05:6402:3485:b0:572:469b:6a86 with SMTP id
- 4fb4d7f45d1cf-5734d701e58mr14953a12.8.1715637639527; Mon, 13 May 2024
- 15:00:39 -0700 (PDT)
-Date: Mon, 13 May 2024 22:00:32 +0000
+ (user=aojea job=sendgmr) by 2002:aa7:c0ce:0:b0:573:6e6:df32 with SMTP id
+ 4fb4d7f45d1cf-5734d43e8d4mr13603a12.0.1715637641949; Mon, 13 May 2024
+ 15:00:41 -0700 (PDT)
+Date: Mon, 13 May 2024 22:00:33 +0000
 In-Reply-To: <20240513220033.2874981-1-aojea@google.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -59,53 +59,85 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0
 References: <20240513220033.2874981-1-aojea@google.com>
 X-Mailer: git-send-email 2.45.0.118.g7fe29c98d7-goog
-Message-ID: <20240513220033.2874981-2-aojea@google.com>
-Subject: [PATCH v3 1/2] netfilter: nft_queue: compute SCTP checksum
+Message-ID: <20240513220033.2874981-3-aojea@google.com>
+Subject: [PATCH v3 2/2] selftests: net: netfilter: nft_queue.sh: sctp checksum
 From: Antonio Ojea <aojea@google.com>
 To: netfilter-devel@vger.kernel.org
 Cc: pablo@netfilter.org, fw@strlen.de, Antonio Ojea <aojea@google.com>
 Content-Type: text/plain; charset="UTF-8"
 
-when packet is enqueued with nfqueue and GSO is enabled, checksum
-calculation has to take into account the protocol, as SCTP uses a
-32 bits CRC checksum.
+Test that nfqueue, when using GSO, process SCTP packets
+correctly.
+
+Regression test for https://bugzilla.netfilter.org/show_bug.cgi?id=1742
 
 Signed-off-by: Antonio Ojea <aojea@google.com>
 ---
-V1 -> V2: add a helper function to process the checksum
-V2 -> V3: use tabs instead of whitespaces
+ .../selftests/net/netfilter/nft_queue.sh      | 38 +++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
- net/netfilter/nfnetlink_queue.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 00f4bd21c59b..13802907ddb8 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -538,6 +538,14 @@ static int nfqnl_put_bridge(struct nf_queue_entry *entry, struct sk_buff *skb)
- 	return -1;
+diff --git a/tools/testing/selftests/net/netfilter/nft_queue.sh b/tools/testing/selftests/net/netfilter/nft_queue.sh
+index 8538f08c64c2..5e075c7e0350 100755
+--- a/tools/testing/selftests/net/netfilter/nft_queue.sh
++++ b/tools/testing/selftests/net/netfilter/nft_queue.sh
+@@ -25,6 +25,9 @@ cleanup()
  }
  
-+static int nf_queue_checksum_help(struct sk_buff *entskb)
-+{
-+	if (skb_csum_is_sctp(entskb))
-+		return skb_crc32c_csum_help(entskb);
+ checktool "nft --version" "test without nft tool"
++checktool "socat -h" "run test without socat"
 +
-+	return skb_checksum_help(entskb);
++modprobe -q sctp
+ 
+ trap cleanup EXIT
+ 
+@@ -375,6 +378,40 @@ EOF
+ 	wait 2>/dev/null
+ }
+ 
++test_sctp_forward()
++{
++        ip netns exec "$nsrouter" nft -f /dev/stdin <<EOF
++table inet sctpq {
++        chain forward {
++        type filter hook forward priority 0; policy accept;
++                sctp dport 12345 queue num 10
++        }
++}
++EOF
++        ip netns exec "$nsrouter" ./nf_queue -q 10 -G -t "$timeout" &
++        local nfqpid=$!
++
++        timeout 5 ip netns exec "$ns2" socat -u SCTP-LISTEN:12345 STDOUT > "$TMPFILE1" &
++        local rpid=$!
++
++        # ss does not show the sctp socket?
++        busywait "$BUSYWAIT_TIMEOUT" sh -c "ps axf | grep -q SCTP-LISTEN" "$ns2"
++
++        ip netns exec "$ns1" socat -u STDIN SCTP:10.0.2.99:12345 <"$TMPINPUT" >/dev/null
++
++        if ! ip netns exec "$nsrouter" nft delete table inet sctpq; then
++                echo "FAIL:  Could not delete sctpq table"
++                exit 1
++        fi
++
++        if ! diff -u "$TMPINPUT" "$TMPFILE1" ; then
++                echo "FAIL: lost packets?!" 1>&2
++                return
++        fi
++
++        wait "$rpid" && echo "PASS: sctp and nfqueue in forward chain with GSO"
 +}
 +
- static struct sk_buff *
- nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 			   struct nf_queue_entry *entry,
-@@ -600,7 +608,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	case NFQNL_COPY_PACKET:
- 		if (!(queue->flags & NFQA_CFG_F_GSO) &&
- 		    entskb->ip_summed == CHECKSUM_PARTIAL &&
--		    skb_checksum_help(entskb))
-+		    nf_queue_checksum_help(entskb))
- 			return NULL;
+ ip netns exec "$nsrouter" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
+ ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
+ ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth1.forwarding=1 > /dev/null
+@@ -413,5 +450,6 @@ test_tcp_localhost
+ test_tcp_localhost_connectclose
+ test_tcp_localhost_requeue
+ test_icmp_vrf
++test_sctp_forward
  
- 		data_len = READ_ONCE(queue->copy_range);
+ exit $ret
 -- 
 2.45.0.118.g7fe29c98d7-goog
 
