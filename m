@@ -1,76 +1,54 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 70EF38002F
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 May 2024 11:35:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A497136673
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 May 2024 11:43:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715686510; cv=none; b=abX2EgUQytZsFKEZ76iAWJhyyN3hmHhQdueyS+rqOcnYGE5qFzHUsHwWp7CrM5qRvQV18HLRCk+bXkEwu8jyALbCBzGrUshHieXjHZE5J9u8c80DzURnZ/SfNaUvTtcv48fHLOnfAxuvhWI/5rDc9OhwsPb7hhfqWlb2rJIX9HQ=
+	t=1715686989; cv=none; b=Y8IzgphJPAzL3E2EfLCbGYbJkrV+YvNxXltsCwLZ0gxoa5n7B/J4EYoeVlE7NPlaFtwcf78hZcRuBnmvwzgNfYQ/ldNbPxUmxgWoEsQul57kKElHle/8oWs7fIpy1D559r6afF9y5KGS/kzkYn43vyQza5tlwUalrL0wnI0PDxo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715686510; c=relaxed/simple;
-	bh=nL9F6aDy61vWiqMet7huJJL2cBnVym6ZyVehnoMWjLk=;
+	s=arc-20240116; t=1715686989; c=relaxed/simple;
+	bh=1IVNyPzVeN7Cldm28omS/DX+GMXpiCP+tcrtZA0ohRU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=sAcltblVeOWxn99M0K3kp3ba9YnD1s5fxufIP0YcU6rQXnNB7LSsEGEDM7lgxtMm5HmKxSz1ADF/ZL7toRqNmTX2Jb2PeVMPPoXXWl06D+92Uuzggw2kc/fIodlM+QvIzuQ1fwBX08Kb8i7WU2/Qngp84/xCGaarDr2g4apB2e8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Date: Tue, 14 May 2024 13:34:57 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, Yi Chen <yiche@redhat.com>
+	 Content-Type:Content-Disposition:In-Reply-To; b=KED52Cg+ItyColzPiQf5pxxEn+wXAT+gboNlwNkTrRqdpJS7DIwWQT8e7C+fSrypO1FjgETLBY6tyiPg2K33oJfSIWML0Ht11COhNH64YFADzNgnrzQjlkADbt8TRNjt3AErDvBU/3PTHzZn9j8UeDh8DQsygEDkQerX4qOR/Wk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1s6qYj-0000rH-Ow; Tue, 14 May 2024 13:43:05 +0200
+Date: Tue, 14 May 2024 13:43:05 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	Yi Chen <yiche@redhat.com>
 Subject: Re: [PATCH nf] netfilter: nfnetlink_queue: fix rcu splat on program
  exit
-Message-ID: <ZkNMYQ1u2zJhlviL@calendula>
+Message-ID: <20240514114305.GA2005@breakpoint.cc>
 References: <20240514103133.2784-1-fw@strlen.de>
+ <ZkNMYQ1u2zJhlviL@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240514103133.2784-1-fw@strlen.de>
+In-Reply-To: <ZkNMYQ1u2zJhlviL@calendula>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-Hi Florian,
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> >  Due to MR cloed this patch is actually vs nf-next tree.
+> >  It will also conflict with the pending sctp checksum patch
+> >  from Antonio Ojea (nft_queue.sh), I can resend if needed once
+> >  Antonios patch is applied (conflict resulution is simple: use
+> >  both changes).
+> 
+> I can route this through nf.git and deal with conflict resolution if
+> you prefer it that way.
 
-On Tue, May 14, 2024 at 12:31:30PM +0200, Florian Westphal wrote:
-> If userspace program exits while the queue its subscribed to has packets
-> available we get following (harmless) RCU splat:
-> 
->  net/netfilter/nfnetlink_queue.c:261 suspicious rcu_dereference_check() usage!
->  other info that might help us debug this:
->  rcu_scheduler_active = 2, debug_locks = 1
->  2 locks held by swapper/0/0:
->   #0: (rcu_callback){....}-{0:0}, at: rcu_core
->   #1: (&inst->lock){+.-.}-{3:3}, at: instance_destroy_rcu
->  [..] Call Trace:
->   lockdep_rcu_suspicious+0x1ab/0x250
->   nfqnl_reinject+0x5d3/0xfb0
->   instance_destroy_rcu+0x1b5/0x220
->   rcu_core+0xe32 [..]
-> 
-> This is harmless because the incorrectly-obtained pointer will not be
-> dereferenced in case nfqnl_reinject is called with NF_DROP verdict.
-> 
-> Fix this by open-coding skb+entry release without going through
-> nfqnl_reinject().  kfree_skb+release_ref is exactly what nfql_reinject
-> ends up doing when called with NF_DROP, except that it also does a
-> truckload of other things that are irrelevant for DROP.
-> 
-> A similar warning can be triggered by flushing the ruleset while
-> packets are being reinjected.
-> 
-> This is harmless as well, the WARN_ON_ONCE() should be removed.
-> 
-> Reported-by: Yi Chen <yiche@redhat.com>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  Due to MR cloed this patch is actually vs nf-next tree.
->  It will also conflict with the pending sctp checksum patch
->  from Antonio Ojea (nft_queue.sh), I can resend if needed once
->  Antonios patch is applied (conflict resulution is simple: use
->  both changes).
+Yes, I think thats best, but if its too much hassle I can resend
+once nf.git has been updated with post-merge net tree.
 
-I can route this through nf.git and deal with conflict resolution if
-you prefer it that way.
-
-Thanks.
+Its not an urgent fix in any case.
