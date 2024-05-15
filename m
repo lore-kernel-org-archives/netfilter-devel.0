@@ -1,127 +1,135 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f201.google.com (mail-yw1-f201.google.com [209.85.128.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C4717441E
-	for <netfilter-devel@vger.kernel.org>; Wed, 15 May 2024 12:50:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FD1684D23
+	for <netfilter-devel@vger.kernel.org>; Wed, 15 May 2024 13:23:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715777439; cv=none; b=fq/ssjTqu5Bwsj6f5EpgFYoYsF2qZHh+CgfH5QBomL3Y4HY5dfGJimDNHzxGP9ZQ0pDwsD8RRSlKW64HU9g3fb0q1zsX9zf0VLi0Gw0exPSGJv2T6uqSmB8bhl/vZY4ROeHwT9Eyk7ILP64JW0zsp+MDI7/Ruz8FMSHwgcTIL5s=
+	t=1715779423; cv=none; b=m3nqUjY8RV5clqEfnAU2cRWUbamoD8UzfEcAXlybGFoj/8GS0Y33xjbfv3FkH2N3Ie2ThmxH76GfoRnL+TxSnoRkRiqkltCSEHdihIVBwz9DCXJ57i+tsEXSkFmaFjvfgkP+GL41SmiaCj7BahbmcdmtoT/RukhN/oaIf2p5gNs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715777439; c=relaxed/simple;
-	bh=HyoFBCVHjWAaEsXYDZGDPR3zPUhbcHZK+2Q1Jp3y1wM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=f0TXbDFg6pJWHajIdTp+nmXSagz30UuCDQdwR0bYaawpY4RhhPOHt4QlbsLXcayFVRjDhG6H7+kzNE2XgCIZhT3gf1u9sG6Tbejvv4kVgiZorbmYlYj3FxMimv3gjaZ6baHtZqvvjbN1lkmUPjcMIzs54FueDco9lvADfp6WO0E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=ZjypOt0P; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1715779423; c=relaxed/simple;
+	bh=/Fn+JE02PGtB60rbxbFDOK1lugDzDlc47hMekr5Z2Zw=;
+	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=IfzVoir3pKe632l8mLmpXriWYIElru6TV816l5sV9jxgpCKN/xDXQU9mZTCZd7g39q96Y4mJXwX+z7VPWYGdfwmmF6w4Yjf2hx5vfbNyl6Ivpmipt7JoCAiBC7Fxvm1e/vUfK3opbfo0yIxOimsecXBTIQ77ZjyKmJ4rBiH3UrY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--edumazet.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=0biqTXUF; arc=none smtp.client-ip=209.85.128.201
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--edumazet.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="ZjypOt0P"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=njdNs9qDcIM4VQRSXkCHC9CZTv7VNH3YBJyC/Pi3FqI=; b=ZjypOt0PqtOEHnAg9vR8cwodt7
-	3q0BPsHtxVmw4mteI9DwkDyjun2prH/A5X9jIZ9ndPjgSc1iMWJjyZioXTDOtVXrHVuuJsMVUM1t2
-	kflhgMtpEx6d/+tr8vCSf7Dr8M/wtAQQv/ZhbB3Ou01SFaE4aXLM/FJsgPX8fe+fM2TzWHD9T6GNI
-	lSgHcMCyW2eXpaKVX8dVvwVBb/cnwffcSuDgJuKNVpAAc/ELwR713mIWngHi4m8c6XP5ujblQ7Chb
-	9+Rdm0azjOOI4d/h7FJ+4T7MPRUNBD7RF5mV4Zc7izKKHaTmMotU3p07nsfaYhegxS1z0sKP9BSL3
-	7hOpSyJw==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1s7DmE-000000005OI-1Sdu;
-	Wed, 15 May 2024 14:30:34 +0200
-Date: Wed, 15 May 2024 14:30:34 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-	Thomas Haller <thaller@redhat.com>
-Subject: Re: [nf-next PATCH 0/5] Dynamic hook interface binding
-Message-ID: <ZkSq6nfq0fE9658S@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-	Thomas Haller <thaller@redhat.com>
-References: <20240503195045.6934-1-phil@nwl.cc>
- <Zj1mlxa-bckdazdv@calendula>
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="0biqTXUF"
+Received: by mail-yw1-f201.google.com with SMTP id 00721157ae682-61be3f082b0so115966117b3.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 May 2024 06:23:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1715779420; x=1716384220; darn=vger.kernel.org;
+        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=7S26aTNNpcoU71ByNeJa3ykL8EiKJD4Wc47OQUK+O8k=;
+        b=0biqTXUFNRO2iOEaU/Uc6tqJ0Ay3ADWqMuWEx4X6WSveB+Oh2S749bVjzfUtJAgPwM
+         6n3a4GVzAr23BATzo41c+koIfI4TSlVuOQ1SjbR/OjbKfp5rUKqSygJXR7ljaX5zZXYd
+         lQBNQ+TafpLoplLlzQcvuOYM5cA1JHEbaeocxR9MsH9UCBY/dg7nbGgfCRPLublhgDEM
+         xwC3Vjz2A/inPGowVYuKjW3QIZbqrEsUnqCv5Yfc67K75hkojBLUj6Nvg9Zm4dWFFwAH
+         qDw2D14SfctanmjteOw8hqb08vZ8gq9BpPhZQ/OgczZubCuzJ3REJl/ctMSHk+jVJQwO
+         mUCg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1715779420; x=1716384220;
+        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=7S26aTNNpcoU71ByNeJa3ykL8EiKJD4Wc47OQUK+O8k=;
+        b=jh6OirYTfeAVTc1SZaJ5sLRjTPRKXL15QJPGYN5+25MpPn+BLiWpUxJHEvKTnIm8GN
+         9tuPecml5GtCNWGcb0Ssf5rl+lC44GOMrdm1Nz2I3Bk0UWc4zfiAnAm5yIlaLu6SVzxe
+         CVDBY+neFlYh3JB3d+UyolIw87xOCVv9v3XsC23BW6vPo2y2DXrel9pnbzAW0hRW0J41
+         DyZN+iZmikBcwTfdEAvDsWuP0QQRmLi7rxVsgyuVFRongrIv6TkxDpjivdQueb3k71gi
+         berTox7L+GBQ8go+oOqJBEZNMEwtn7Q4JFraSlGsVeeoBg5K8bS/XvgiPDPwR7UJ5On1
+         xpAA==
+X-Forwarded-Encrypted: i=1; AJvYcCUbFmI6UPrRC1klxVqGv+8CqMwZA8gg4Nsrj3aMISSgxxPj5KCjUmMZitHmaqEI2ocVegmi3U4KeybPo9gQX5cqnWEFx2Wbmb3/5PeRTgX9
+X-Gm-Message-State: AOJu0YxwXB6V1zwiW+gyEE0BC213MrLsAcvjKcL+eaGqhzEkFOQPC3Ah
+	iOLV/XRcX3dMWZPIzZXM/doktVovkmVL8jrUdbC767ZTWIZVr90F6zBHGn7ygQ++ZgfJh6TCuL4
+	bVWEK2B1kkw==
+X-Google-Smtp-Source: AGHT+IGp5926Z0lKiYFQpoO+xP6RfZWGWQCMU9QrJccBe09Ypi3BI/uFM+gss43SsTbr/sHo/f0r6/UZdd0ihA==
+X-Received: from edumazet1.c.googlers.com ([fda3:e722:ac3:cc00:2b:7d90:c0a8:395a])
+ (user=edumazet job=sendgmr) by 2002:a25:a186:0:b0:de1:d49:7ff6 with SMTP id
+ 3f1490d57ef6-dee4f37adeemr1322301276.7.1715779420523; Wed, 15 May 2024
+ 06:23:40 -0700 (PDT)
+Date: Wed, 15 May 2024 13:23:39 +0000
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="xcoFuiKr+GF5t9xL"
-Content-Disposition: inline
-In-Reply-To: <Zj1mlxa-bckdazdv@calendula>
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.45.0.rc1.225.g2a3ae87e7f-goog
+Message-ID: <20240515132339.3346267-1-edumazet@google.com>
+Subject: [PATCH net] netfilter: nfnetlink_queue: acquire rcu_read_lock() in instance_destroy_rcu()
+From: Eric Dumazet <edumazet@google.com>
+To: "David S . Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>, 
+	Paolo Abeni <pabeni@redhat.com>, Pablo Neira Ayuso <pablo@netfilter.org>, 
+	Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+	coreteam@netfilter.org, eric.dumazet@gmail.com, 
+	Eric Dumazet <edumazet@google.com>, syzbot <syzkaller@googlegroups.com>
+Content-Type: text/plain; charset="UTF-8"
 
+syzbot reported that nf_reinject() could be called without rcu_read_lock() :
 
---xcoFuiKr+GF5t9xL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+WARNING: suspicious RCU usage
+6.9.0-rc7-syzkaller-02060-g5c1672705a1a #0 Not tainted
 
-Hi Pablo,
+net/netfilter/nfnetlink_queue.c:263 suspicious rcu_dereference_check() usage!
 
-On Fri, May 10, 2024 at 02:13:11AM +0200, Pablo Neira Ayuso wrote:
-> Before taking a closer look: Would it be possible to have a torture
-> test to exercise this path from userspace?
+other info that might help us debug this:
 
-Please kindly find my torture script attached. It does the following:
+rcu_scheduler_active = 2, debug_locks = 1
+2 locks held by syz-executor.4/13427:
+  #0: ffffffff8e334f60 (rcu_callback){....}-{0:0}, at: rcu_lock_acquire include/linux/rcupdate.h:329 [inline]
+  #0: ffffffff8e334f60 (rcu_callback){....}-{0:0}, at: rcu_do_batch kernel/rcu/tree.c:2190 [inline]
+  #0: ffffffff8e334f60 (rcu_callback){....}-{0:0}, at: rcu_core+0xa86/0x1830 kernel/rcu/tree.c:2471
+  #1: ffff88801ca92958 (&inst->lock){+.-.}-{2:2}, at: spin_lock_bh include/linux/spinlock.h:356 [inline]
+  #1: ffff88801ca92958 (&inst->lock){+.-.}-{2:2}, at: nfqnl_flush net/netfilter/nfnetlink_queue.c:405 [inline]
+  #1: ffff88801ca92958 (&inst->lock){+.-.}-{2:2}, at: instance_destroy_rcu+0x30/0x220 net/netfilter/nfnetlink_queue.c:172
 
-1) Create three netns connected by VETH pairs:
-   client [cr0]<->[rc0] router [rs0]<->[sr0] server
+stack backtrace:
+CPU: 0 PID: 13427 Comm: syz-executor.4 Not tainted 6.9.0-rc7-syzkaller-02060-g5c1672705a1a #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 04/02/2024
+Call Trace:
+ <IRQ>
+  __dump_stack lib/dump_stack.c:88 [inline]
+  dump_stack_lvl+0x241/0x360 lib/dump_stack.c:114
+  lockdep_rcu_suspicious+0x221/0x340 kernel/locking/lockdep.c:6712
+  nf_reinject net/netfilter/nfnetlink_queue.c:323 [inline]
+  nfqnl_reinject+0x6ec/0x1120 net/netfilter/nfnetlink_queue.c:397
+  nfqnl_flush net/netfilter/nfnetlink_queue.c:410 [inline]
+  instance_destroy_rcu+0x1ae/0x220 net/netfilter/nfnetlink_queue.c:172
+  rcu_do_batch kernel/rcu/tree.c:2196 [inline]
+  rcu_core+0xafd/0x1830 kernel/rcu/tree.c:2471
+  handle_softirqs+0x2d6/0x990 kernel/softirq.c:554
+  __do_softirq kernel/softirq.c:588 [inline]
+  invoke_softirq kernel/softirq.c:428 [inline]
+  __irq_exit_rcu+0xf4/0x1c0 kernel/softirq.c:637
+  irq_exit_rcu+0x9/0x30 kernel/softirq.c:649
+  instr_sysvec_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1043 [inline]
+  sysvec_apic_timer_interrupt+0xa6/0xc0 arch/x86/kernel/apic/apic.c:1043
+ </IRQ>
+ <TASK>
 
-2) In router ns, add an nftables ruleset with:
-   - A netdev chain for each interface rcN and rsN (N e [0,9])
-   - A flowtable for each interface pair (rcN, rsN) (N e [0,9])
-   - A base chain in forward hook with ten rules adding traffic to
-     the respective flowtable.
+Fixes: 9872bec773c2 ("[NETFILTER]: nfnetlink: use RCU for queue instances hash")
+Reported-by: syzbot <syzkaller@googlegroups.com>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+---
+ net/netfilter/nfnetlink_queue.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-3) Run iperf3 between client and server ns for a minute
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 00f4bd21c59b419e96794127693c21ccb05e45b0..f1c31757e4969e8f975c7a1ebbc3b96148ec9724 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -169,7 +169,9 @@ instance_destroy_rcu(struct rcu_head *head)
+ 	struct nfqnl_instance *inst = container_of(head, struct nfqnl_instance,
+ 						   rcu);
+ 
++	rcu_read_lock();
+ 	nfqnl_flush(inst, NULL, 0);
++	rcu_read_unlock();
+ 	kfree(inst);
+ 	module_put(THIS_MODULE);
+ }
+-- 
+2.45.0.rc1.225.g2a3ae87e7f-goog
 
-4) While iperf runs, rename rcN -> rc((N+1)%10) (same for rsN) in a busy
-   loop.
-
-I extended my series meanwhile by an extra patch adding notifications
-for each hook update and had (a patched) 'nft monitor' running in
-parallel.
-
-WDYT, is something still missing I could add to the test? Also, I'm not
-sure whether I should add it to netfilter selftests as it doesn't have a
-defined failure outcome.
-
-Cheers, Phil
-
---xcoFuiKr+GF5t9xL
-Content-Type: application/x-sh
-Content-Disposition: attachment; filename="nft_interface_stress.sh"
-Content-Transfer-Encoding: quoted-printable
-
-#!/bin/bash -e=0A=0Ansc=3D$(mktemp -u nsc-XXXXXX)=0Ansr=3D$(mktemp -u nsr-X=
-XXXXX)=0Anss=3D$(mktemp -u nss-XXXXXX)=0A=0Acleanup() {=0A	for netns in $ns=
-c $nsr $nss; do=0A		ip netns del $netns=0A	done=0A}=0Atrap "cleanup" EXIT=
-=0A=0Afor netns in $nsc $nsr $nss; do=0A	ip netns add $netns=0Adone=0A=0Aip=
- -net $nsc link add cr0 type veth peer name rc0 netns $nsr=0Aip -net $nss l=
-ink add sr0 type veth peer name rs0 netns $nsr=0Aip -net $nsc link set cr0 =
-up=0Aip -net $nsr link set rc0 up=0Aip -net $nsr link set rs0 up=0Aip -net =
-$nss link set sr0 up=0Aip -net $nsc addr add 10.0.0.1/24 dev cr0=0Aip -net =
-$nsc route add default via 10.0.0.2=0Aip -net $nss addr add 10.1.0.1/24 dev=
- sr0=0Aip -net $nss route add default via 10.1.0.2=0Aip -net $nsr addr add =
-10.0.0.2/24 dev rc0=0Aip -net $nsr addr add 10.1.0.2/24 dev rs0=0A=0A{=0A	e=
-cho "table netdev t {"=0A	for ((i =3D 0; i < 10; i++)); do=0A		cat <<-EOF=
-=0A		chain chain_rc$i {=0A			type filter hook ingress device rc$i priority =
-0=0A			counter=0A		}=0A		chain chain_rs$i {=0A			type filter hook ingress d=
-evice rs$i priority 0=0A			counter=0A		}=0A		EOF=0A	done=0A	echo "}"=0A	ech=
-o "table ip t {"=0A	for ((i =3D 0; i < 10; i++)); do=0A		cat <<-EOF=0A		flo=
-wtable ft_${i} {=0A			hook ingress priority 0=0A			devices =3D { rc$i, rs$i=
- }=0A		}=0A		EOF=0A	done=0A	echo "chain c {"=0A	echo "type filter hook forw=
-ard priority 0"=0A	for ((i =3D 0; i < 10; i++)); do=0A		echo -n "iifname rc=
-$i oifname rs$i "=0A		echo    "ip protocol tcp counter flow add @ft_${i}"=
-=0A	done=0A	echo "counter"=0A	echo "}"=0A	echo "}"=0A} | ip netns exec $nsr=
- nft -f -=0A=0Afor ((o=3D0, n=3D1; ; o=3Dn, n++, n %=3D 10)); do=0A	ip -net=
- $nsr link set rc$o name rc$n=0A	ip -net $nsr link set rs$o name rs$n=0Adon=
-e &=0Aloop_pid=3D$!=0A=0Aip netns exec $nss iperf3 --server --daemon -1=0Ai=
-p netns exec $nsc iperf3 --format m -c 10.1.0.1 --time 60 --length 56 --par=
-allel 10=0A=0Akill $loop_pid=0Await=0A=0Aip netns exec $nsr nft list rulese=
-t=0A
---xcoFuiKr+GF5t9xL--
