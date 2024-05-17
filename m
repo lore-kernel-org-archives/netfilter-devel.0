@@ -1,123 +1,116 @@
-Received: from smtp-190b.mail.infomaniak.ch (smtp-190b.mail.infomaniak.ch [185.125.25.11])
+Received: from us-smtp-delivery-44.mimecast.com (us-smtp-delivery-44.mimecast.com [207.211.30.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FD0C8479
-	for <netfilter-devel@vger.kernel.org>; Fri, 17 May 2024 15:30:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.125.25.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79800399
+	for <netfilter-devel@vger.kernel.org>; Fri, 17 May 2024 15:38:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=207.211.30.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715959854; cv=none; b=myqAE3qE0kbq0l7z481UfHMNRW5J5gE3HivY0ZJi/45CXisM/Jbppme+Yz0S2nN3gcA3GyYEqd4FJwg8y+ttzMe2bFUFuIjowhPmoHZoLHJGe8bNmlmf17sejBKUpe7qoKG7FRJGEuQXj9oOck4P2wzkXSRpf1W5xH0Zea41Oag=
+	t=1715960300; cv=none; b=IH4rGy2EM92aeI9OoUTdVpyzwdirBMwBAkGEFrPUJHA6pBPKdqrH9jmVnm7ad3skCnT/LpKbB4rQt8U2I0pnHXCTYChIrNImD7P1MDUjD70zB9J2j78okc0h5U9jQYGfWxsYmNk9KWjFqVvMOpLRaxhQ/sKdWld7ZPlNszTIMAk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715959854; c=relaxed/simple;
-	bh=cUMkYnXb2sVcgkJHzzstVudL5onkuBflFC5M66AkkAo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=XmXN617pLzIPfZkzu9MK5tMIi8cbnaeAsE2/AQTLYQVQAq30nrlMupzr1pTFnLr8lFBd4YDSIilYDOPFzZHWxQY3oMEcfDO0NbCuPHxzGl9vRDbWUBRFfK/f+jAUvIVTrVa+BiSExdBrUuqaA0Kt4OB5EvU+QQ5qp+1/NZ4a9N8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net; spf=pass smtp.mailfrom=digikod.net; dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b=ueqelzg1; arc=none smtp.client-ip=185.125.25.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=digikod.net
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b="ueqelzg1"
-Received: from smtp-3-0000.mail.infomaniak.ch (smtp-3-0000.mail.infomaniak.ch [10.4.36.107])
-	by smtp-4-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4VgrNl6JJbz13M3;
-	Fri, 17 May 2024 17:24:39 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=digikod.net;
-	s=20191114; t=1715959479;
-	bh=8cODBbaV2wOKAiX030YC9XoVHmqVf2+m2ed+C0a8c+4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=ueqelzg19343f69VenrcasMFnBmalWOXY0aHal5RLHRC3JZaZNw/mA+RojjzK//oI
-	 2fqXEesvnQJpgmXflhkK8FMJqhX18qIrlJtCTCiPqyD5u1zFUkjgcgxaF24m5BO1z8
-	 r4r09+By6TmkuJgehvJPvua7gSEdlisBPA2vXqm8=
-Received: from unknown by smtp-3-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4VgrNl30d9zsjt;
-	Fri, 17 May 2024 17:24:39 +0200 (CEST)
-Date: Fri, 17 May 2024 17:24:41 +0200
-From: =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
-To: Ivanov Mikhail <ivanov.mikhail1@huawei-partners.com>
-Cc: =?utf-8?Q?G=C3=BCnther?= Noack <gnoack@google.com>, 
-	willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com, linux-security-module@vger.kernel.org, 
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, yusongping@huawei.com, 
-	artem.kuzin@huawei.com, konstantin.meskhidze@huawei.com
-Subject: Re: [RFC PATCH v1 03/10] selftests/landlock: Create 'create' test
-Message-ID: <20240517.Wieciequ2iec@digikod.net>
-References: <20240408093927.1759381-1-ivanov.mikhail1@huawei-partners.com>
- <20240408093927.1759381-4-ivanov.mikhail1@huawei-partners.com>
- <ZhPsWKSRrqDiulrg@google.com>
- <9a8b71c6-f72c-7ec0-adee-5828dc41cf44@huawei-partners.com>
- <20240508.Kiqueira8The@digikod.net>
- <986f11a9-1426-a87d-c43e-a86380305a21@huawei-partners.com>
+	s=arc-20240116; t=1715960300; c=relaxed/simple;
+	bh=JoaVRlStp8RrWSxyOCouhUz7t6oVS8UocMnIZpXzY4c=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=NkTUChKvQSsMy1/TJoB3iJ5OO2tBdWSO5mxT3L1xG5yYiA3A+kHNqSgWjAESlnEOuvAHvlxyw+gGA76A2Cr1AIxhhb6tlhkzow0Fo891rCOsoVWIUFfPhQJpvZcb+OO4cY5mpmJaExv8OMa2blf2MIWiK22dMWR+dYmTE07PM5g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=garver.life; spf=fail smtp.mailfrom=garver.life; arc=none smtp.client-ip=207.211.30.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=garver.life
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=garver.life
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-527-lQUIDa6QNu-6LgouUpeiPQ-1; Fri, 17 May 2024 11:38:08 -0400
+X-MC-Unique: lQUIDa6QNu-6LgouUpeiPQ-1
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.rdu2.redhat.com [10.11.54.8])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 242898008AD;
+	Fri, 17 May 2024 15:38:08 +0000 (UTC)
+Received: from egarver-mac.redhat.com (unknown [10.22.9.146])
+	by smtp.corp.redhat.com (Postfix) with ESMTP id A491AC15BB1;
+	Fri, 17 May 2024 15:38:07 +0000 (UTC)
+From: Eric Garver <eric@garver.life>
+To: netfilter-devel@vger.kernel.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>
+Subject: [PATCH net-next] netfilter: nft_fib: allow from forward/input without iif selector
+Date: Fri, 17 May 2024 11:38:06 -0400
+Message-ID: <20240517153807.90267-1-eric@garver.life>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <986f11a9-1426-a87d-c43e-a86380305a21@huawei-partners.com>
-X-Infomaniak-Routing: alpha
+X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.8
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: garver.life
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=WINDOWS-1252; x-default=true
 
-On Thu, May 16, 2024 at 04:54:58PM +0300, Ivanov Mikhail wrote:
-> 
-> 
-> 5/8/2024 1:38 PM, Mickaël Salaün wrote:
-> > On Thu, Apr 11, 2024 at 06:58:34PM +0300, Ivanov Mikhail wrote:
-> > > 
-> > > 4/8/2024 4:08 PM, Günther Noack wrote:
+This removes the restriction of needing iif selector in the
+forward/input hooks for fib lookups when requested result is
+oif/oifname.
 
+Removing this restriction allows "loose" lookups from the forward hooks.
 
-> > > > > +		{
-> > > > > +			TH_LOG("Failed to create socket: %s", strerror(errno));
-> > > > > +		}
-> > > > > +		EXPECT_EQ(0, close(fd));
-> > > > > +	}
-> > > > > +}
-> > > > 
-> > > > This is slightly too much logic in a test helper, for my taste,
-> > > > and the meaning of the true/false argument in the main test below
-> > > > is not very obvious.
-> > > > 
-> > > > Extending the idea from above, if test_socket() was simpler, would it
-> > > > be possible to turn these fixtures into something shorter like this:
-> > > > 
-> > > >     ASSERT_EQ(EAFNOSUPPORT, test_socket(AF_UNSPEC, SOCK_STREAM, 0));
-> > > >     ASSERT_EQ(EACCES, test_socket(AF_UNIX, SOCK_STREAM, 0));
-> > > >     ASSERT_EQ(EACCES, test_socket(AF_UNIX, SOCK_DGRAM, 0));
-> > > >     ASSERT_EQ(EACCES, test_socket(AF_INET, SOCK_STREAM, 0));
-> > > >     // etc.
-> > 
-> > I'd prefer that too.
-> > 
-> > > > 
-> > > > Would that make the tests easier to write, to list out the table of
-> > > > expected values aspect like that, rather than in a fixture?
-> > > > 
-> > > > 
-> > > 
-> > > Initially, I conceived this function as an entity that allows to
-> > > separate the logic associated with the tested methods or usecases from
-> > > the logic of configuring the state of the Landlock ruleset in the
-> > > sandbox.
-> > > 
-> > > But at the moment, `test_socket_create()` is obviously a wrapper over
-> > > socket(2). So for now it's worth removing unnecessary logic.
-> > > 
-> > > But i don't think it's worth removing the fixtures here:
-> > > 
-> > >    * in my opinion, the design of the fixtures is quite convenient.
-> > >      It allows you to separate the definition of the object under test
-> > >      from the test case. E.g. test protocol.create checks the ability of
-> > >      Landlock to restrict the creation of a socket of a certain type,
-> > >      rather than the ability to restrict creation of UNIX, TCP, UDP...
-> > >      sockets
-> > 
-> > I'm not sure to understand, but we need to have positive and negative
-> > tests, potentially in separate TEST_F().
-> 
-> I mean we can use fixtures in order to not add ASSERT_EQ for
-> each protocol, as suggested by Günther. It's gonna look like this:
-> 
->      ASSERT_EQ(EAFNOSUPPORT, test_socket(&self->unspec_srv0));
->      ASSERT_EQ(EACCES, test_socket(&self->srv0));
-> 
-> I think it would make the test easier to read, don't you think so?
+Signed-off-by: Eric Garver <eric@garver.life>
+---
+ net/ipv4/netfilter/nft_fib_ipv4.c | 3 +--
+ net/ipv6/netfilter/nft_fib_ipv6.c | 3 +--
+ net/netfilter/nft_fib.c           | 8 +++-----
+ 3 files changed, 5 insertions(+), 9 deletions(-)
 
-Yes, this looks good.
+diff --git a/net/ipv4/netfilter/nft_fib_ipv4.c b/net/ipv4/netfilter/nft_fib=
+_ipv4.c
+index 9eee535c64dd..975a4a809058 100644
+--- a/net/ipv4/netfilter/nft_fib_ipv4.c
++++ b/net/ipv4/netfilter/nft_fib_ipv4.c
+@@ -116,8 +116,7 @@ void nft_fib4_eval(const struct nft_expr *expr, struct =
+nft_regs *regs,
+ =09=09fl4.daddr =3D iph->daddr;
+ =09=09fl4.saddr =3D get_saddr(iph->saddr);
+ =09} else {
+-=09=09if (nft_hook(pkt) =3D=3D NF_INET_FORWARD &&
+-=09=09    priv->flags & NFTA_FIB_F_IIF)
++=09=09if (nft_hook(pkt) =3D=3D NF_INET_FORWARD)
+ =09=09=09fl4.flowi4_iif =3D nft_out(pkt)->ifindex;
+=20
+ =09=09fl4.daddr =3D iph->saddr;
+diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib=
+_ipv6.c
+index 36dc14b34388..f95e39e235d3 100644
+--- a/net/ipv6/netfilter/nft_fib_ipv6.c
++++ b/net/ipv6/netfilter/nft_fib_ipv6.c
+@@ -30,8 +30,7 @@ static int nft_fib6_flowi_init(struct flowi6 *fl6, const =
+struct nft_fib *priv,
+ =09=09fl6->daddr =3D iph->daddr;
+ =09=09fl6->saddr =3D iph->saddr;
+ =09} else {
+-=09=09if (nft_hook(pkt) =3D=3D NF_INET_FORWARD &&
+-=09=09    priv->flags & NFTA_FIB_F_IIF)
++=09=09if (nft_hook(pkt) =3D=3D NF_INET_FORWARD)
+ =09=09=09fl6->flowi6_iif =3D nft_out(pkt)->ifindex;
+=20
+ =09=09fl6->daddr =3D iph->saddr;
+diff --git a/net/netfilter/nft_fib.c b/net/netfilter/nft_fib.c
+index 37cfe6dd712d..b58f62195ff3 100644
+--- a/net/netfilter/nft_fib.c
++++ b/net/netfilter/nft_fib.c
+@@ -35,11 +35,9 @@ int nft_fib_validate(const struct nft_ctx *ctx, const st=
+ruct nft_expr *expr,
+ =09switch (priv->result) {
+ =09case NFT_FIB_RESULT_OIF:
+ =09case NFT_FIB_RESULT_OIFNAME:
+-=09=09hooks =3D (1 << NF_INET_PRE_ROUTING);
+-=09=09if (priv->flags & NFTA_FIB_F_IIF) {
+-=09=09=09hooks |=3D (1 << NF_INET_LOCAL_IN) |
+-=09=09=09=09 (1 << NF_INET_FORWARD);
+-=09=09}
++=09=09hooks =3D (1 << NF_INET_PRE_ROUTING) |
++=09=09=09(1 << NF_INET_LOCAL_IN) |
++=09=09=09(1 << NF_INET_FORWARD);
+ =09=09break;
+ =09case NFT_FIB_RESULT_ADDRTYPE:
+ =09=09if (priv->flags & NFTA_FIB_F_IIF)
+--=20
+2.43.0
+
