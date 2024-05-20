@@ -1,133 +1,97 @@
-Received: from mail-ed1-f48.google.com (mail-ed1-f48.google.com [209.85.208.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out-189.mta1.migadu.com (out-189.mta1.migadu.com [95.215.58.189])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 074054AEE3
-	for <netfilter-devel@vger.kernel.org>; Mon, 20 May 2024 18:59:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67CB445BE7
+	for <netfilter-devel@vger.kernel.org>; Mon, 20 May 2024 23:53:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.189
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716231564; cv=none; b=d7qH5/4zuX18d0UBVmuy6cjtqflMwLxc1Hkq1vfs3bcJIzPzKWqXDA7sKNiexoBB/bqdK04OiYkIdV2+ajT1dsrqGxBoxiE6DrkoMBsgI86AqeI2v5qFvtNoYIkOuDnBC11Y5R3rBkABn3p5qlk++peER15oPTNEvJ1SPBkAxog=
+	t=1716249209; cv=none; b=enRoVqkASwq2Xg88ZcHQQGTiVHwRptXPRhHdmVnWyIxCz2ZE0y8DNWCg2l1okPJx52SLXh2K24fry5zZmiRQfUVUQ94Xm/q0qR3iwLyhm/7xx5z995K1OSfP6atY+d1h5FyDmB6m/SvGyI/BImG6RMdFa2U71hvaNNMOiui+SpY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716231564; c=relaxed/simple;
-	bh=QKtcsy0ccZAqiY3vgNQioM7kZK/anzLPVDSX3lVMkIs=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=lZ0oWhvPckx7qz1iVZ2ufSfNCUiqqxO7svAsHP8JbECtPHZssoHdr88fWBX3cAAStFzdG5KxUBOpFUuH74TJDm8B7005RxJeOBEMbinLSPVIBweG9e6IBAU9f4S8ID+Cy7r9GCYlmlYnoWPxctnrTi5CWKkfLWsOucMJuuYNnT8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=DNA9R9u7; arc=none smtp.client-ip=209.85.208.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	s=arc-20240116; t=1716249209; c=relaxed/simple;
+	bh=x+EKiowODG5X+fkqOSbqrJoIHtEXFXTbIPAPqy4yU3w=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=gZDnHXUaIOfMCoGVygeKfO/vIDINNS1fHu9pel/VpAAGX6Vo3aCW+uDZ4uZ05eivRP637KCSGEV/q6q9XQ+TQZ9aGRIWb/9ZH7PhnxfRNpaZiAx4a7Q2lws/aDDkULlxliCTMcaVsDpcds6hY/Mk+5sr+lqc2B1f3R7rc8ZD3+E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=MTdmrQfE; arc=none smtp.client-ip=95.215.58.189
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="DNA9R9u7"
-Received: by mail-ed1-f48.google.com with SMTP id 4fb4d7f45d1cf-5724736770cso16452a12.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 May 2024 11:59:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1716231561; x=1716836361; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=heqXAbnVIs6qDsQwGx6ClyVFz+xxgmyueiyqevEG7po=;
-        b=DNA9R9u7aZI1vkwH26XHv9ZyjDVxnuGtIAYFOs2cjoKor2oiZODDWObRSEy12BD9b0
-         +m+HqNE+t+PF82z+Zt6ILO0g8pkpYfFXQCXNhzI2Sa/lVGy1ywoZmRpdCWUV11LZ50ow
-         t4IsnZeOZT88GiK8D1SWRAl1UsLqlue2Htw1/G0t19SmE2vtTu5JDLA9rB0sO1S6g+MT
-         DG6aqYVvBK7lr0YqQG/veiIKXy1VbJ6ljLsNhOYzPiCBTU/AeT536ewXMdtO/iPmNYaS
-         9G/hj773THndBfH/grd+2e7movWocQpoLWwKLjlL8ig5p5PaNSDcxmAA+9cnCn0cLeDN
-         OttQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1716231561; x=1716836361;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=heqXAbnVIs6qDsQwGx6ClyVFz+xxgmyueiyqevEG7po=;
-        b=NyYndVBQGgYsDKHhSM78Zt+m6S/A9Siq3kBMu02NbTYl2VAF63gbiWBQOEv/jUIrCz
-         CXbOAcTBZ9mH90StEZqsJZRlavfNBX1UvtPsCRal3q4hcMnr+dLX1LP1aVtbVnQQz/JH
-         e2ZIknkU0wVeZ4nDccBQVFE8cGOQFaXR7YzhSBTBjiDMZfoZdKI3AQ3GH6enYgOkM6QQ
-         2TJahfRI5u3LNzBi8AS9APFza67pX3CtxVDTQ/c26xTi+UCq0w0sZNfyCuoRqAHu0gXW
-         oyMC/aB1eBv9VJhWKn9Qjwfkcf+v19T9iZNHXzaSK+kd5gb62bkITLAHqJTCDtiMFDDm
-         Qqww==
-X-Gm-Message-State: AOJu0YzynamHCofMWFLVXTVYxfQ2A7RFwouECCMhyNV7Uoz+yTHBcyDe
-	WmnQTjdb/VuOZUz9igjh3QaayZ7tYBkbTyUek4BFChUKysHvpkWIzHnPsTaFQh+MHR57w6btRDJ
-	5kEXv/wX5hzD69YcBHe4ujEDAbD+HEuzYPrpGddZhjCseHK2woYPs
-X-Google-Smtp-Source: AGHT+IFEyqMzyDSInqA3/6R4FSJsPWqffKX+aPP+un4UnVPc921LcaYfxqiJQic7jQ1hLKUVtgDdCW+pQQha/fSFn0o=
-X-Received: by 2002:aa7:d5d5:0:b0:576:b1a9:2960 with SMTP id
- 4fb4d7f45d1cf-576b1a93178mr268106a12.5.1716231560996; Mon, 20 May 2024
- 11:59:20 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="MTdmrQfE"
+X-Envelope-To: brad@faucet.nz
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1716249204;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=IG3pDjesBduiqqkxCNEFP3pxyRLYTneq5hI70cFf9HY=;
+	b=MTdmrQfEmestsFfWkLhC7ayTjwN+7sZBz1w/BYhhzAwVvC3X50MA7HutkGqSppNqmvnTIh
+	Qc5KkB2oUpEyQYcGYLUZgSy2Eu7OKF/Bch/X5Bv/bHqe8ulbI9g9SSyNewkQkwvDus3Aox
+	iHRn/KIpQntNqnyso2GgowrZLrOINAI=
+X-Envelope-To: lorenzo@kernel.org
+X-Envelope-To: memxor@gmail.com
+X-Envelope-To: pablo@netfilter.org
+X-Envelope-To: davem@davemloft.net
+X-Envelope-To: kuba@kernel.org
+X-Envelope-To: pabeni@redhat.com
+X-Envelope-To: ast@kernel.org
+X-Envelope-To: daniel@iogearbox.net
+X-Envelope-To: andrii@kernel.org
+X-Envelope-To: song@kernel.org
+X-Envelope-To: john.fastabend@gmail.com
+X-Envelope-To: sdf@google.com
+X-Envelope-To: jolsa@kernel.org
+X-Envelope-To: netfilter-devel@vger.kernel.org
+X-Envelope-To: coreteam@netfilter.org
+X-Envelope-To: netdev@vger.kernel.org
+X-Envelope-To: bpf@vger.kernel.org
+Message-ID: <e160d17a-cc09-4548-9542-84886a40fe3d@linux.dev>
+Date: Mon, 20 May 2024 16:52:02 -0700
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240513220033.2874981-1-aojea@google.com> <Zkszmr7lNVte6iNu@calendula>
- <Zktv4TN-DPvCLCXZ@calendula> <ZkuXgB_Qo5336q4-@calendula> <ZkuasOTMseQKGUr_@calendula>
-In-Reply-To: <ZkuasOTMseQKGUr_@calendula>
-From: Antonio Ojea <aojea@google.com>
-Date: Mon, 20 May 2024 19:59:06 +0100
-Message-ID: <CAAdXToQRUiJBzMPGZ7AD_16A-JRZNUrr0aJ20mwaoF7gb92Rqg@mail.gmail.com>
-Subject: Re: [PATCH v3 0/2] netfilter: nfqueue: incorrect sctp checksum
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Subject: Re: [PATCH bpf-next v3 2/2] selftests/bpf: Update tests for new ct
+ zone opts for nf_conntrack kfuncs
+To: Brad Cowie <brad@faucet.nz>
+Cc: lorenzo@kernel.org, memxor@gmail.com, pablo@netfilter.org,
+ davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com, ast@kernel.org,
+ daniel@iogearbox.net, andrii@kernel.org, song@kernel.org,
+ john.fastabend@gmail.com, sdf@google.com, jolsa@kernel.org,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ netdev@vger.kernel.org, bpf@vger.kernel.org
+References: <20240508043033.52311-1-brad@faucet.nz>
+ <20240508050450.88356-1-brad@faucet.nz>
+Content-Language: en-US
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Martin KaFai Lau <martin.lau@linux.dev>
+In-Reply-To: <20240508050450.88356-1-brad@faucet.nz>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Migadu-Flow: FLOW_OUT
 
-On Mon, May 20, 2024 at 7:47=E2=80=AFPM Pablo Neira Ayuso <pablo@netfilter.=
-org> wrote:
->
-> On Mon, May 20, 2024 at 08:33:39PM +0200, Pablo Neira Ayuso wrote:
-> > On Mon, May 20, 2024 at 05:44:35PM +0200, Pablo Neira Ayuso wrote:
-> > > On Mon, May 20, 2024 at 01:27:22PM +0200, Pablo Neira Ayuso wrote:
-> > > > On Mon, May 13, 2024 at 10:00:31PM +0000, Antonio Ojea wrote:
-> > > > > Fixes the bug described in
-> > > > > https://bugzilla.netfilter.org/show_bug.cgi?id=3D1742
-> > > > > causing netfilter to drop SCTP packets when using
-> > > > > nfqueue and GSO due to incorrect checksum.
-> > > > >
-> > > > > Patch 1 adds a new helper to process the sctp checksum
-> > > > > correctly.
-> > > > >
-> > > > > Patch 2 adds a selftest regression test.
-> > > >
-> > > > I am inclined to integrated this into nf.git, I will pick a Fixes: =
-tag
-> > > > sufficiently old so -stable picks up.
-> > >
-> > > I have to collapse this chunk, otherwise I hit one issue with missing
-> > > exported symbol. No need to resend, I will amend here. Just for the
-> > > record.
-> >
-> > Hm. SCTP GSO support is different too, because it keeps a list of segme=
-nts.
-> >
-> > static int
-> > nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenu=
-m)
-> > {
-> > [...]
-> >         if ((queue->flags & NFQA_CFG_F_GSO) || !skb_is_gso(skb))
-> >                 return __nfqnl_enqueue_packet(net, queue, entry);
-> >
-> > I think this needs to be:
-> >
-> >         if ((queue->flags & NFQA_CFG_F_GSO) || !skb_is_gso(skb) || !skb=
-_is_gso_sctp(skb))
->
-> This is not correct either:
->
->         if (queue->flags & NFQA_CFG_F_GSO) is true, this also needs !skb_=
-is_gso_sctp(skb)
->
-> I can see the current selftest disables the NFQA_CFG_F_GSO flag (-G
-> option in nf_queue test program), I suspect that's why this is working.
->
+On 5/7/24 10:04 PM, Brad Cowie wrote:
+> @@ -84,16 +102,6 @@ nf_ct_test(struct nf_conn *(*lookup_fn)(void *, struct bpf_sock_tuple *, u32,
+>   	else
+>   		test_einval_bpf_tuple = opts_def.error;
+>   
+> -	opts_def.reserved[0] = 1;
+> -	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
+> -		       sizeof(opts_def));
+> -	opts_def.reserved[0] = 0;
+> -	opts_def.l4proto = IPPROTO_TCP;
+> -	if (ct)
+> -		bpf_ct_release(ct);
+> -	else
+> -		test_einval_reserved = opts_def.error;
+> -
+>   	opts_def.netns_id = -2;
+>   	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
 
-I see, so I fixed the bug in one direction and regressed in the other
-one, let me retest both things locallly
+This non-zero reserved[0] test is still valid and useful. How about create a new 
+test_einval_reserved_new for testing the new struct?
 
-> >                 return __nfqnl_enqueue_packet(net, queue, entry);
-> >
-> > so SCTP GSO packets enters this path below:
-> >
-> >         nf_bridge_adjust_skb_data(skb);
-> >         segs =3D skb_gso_segment(skb, 0);
-> >
-> > to deliver separated segments to userspace.
-> >
-> > Otherwise, I don't see yet how userspace can deal with several SCTP
-> > segments, from nf_reinject() there is a list of segments no more.
+pw-bot: cr
+
+[ Sorry for the delay. I have some backlog. ].
