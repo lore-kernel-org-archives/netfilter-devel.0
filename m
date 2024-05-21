@@ -1,85 +1,118 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 54DD51E48B
-	for <netfilter-devel@vger.kernel.org>; Tue, 21 May 2024 12:58:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BDE74F8A1;
+	Tue, 21 May 2024 13:19:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716296338; cv=none; b=qsN8f5NEFHeoxcjCbOzJ9wNek1VCs6fkkLuX77+6yRviee1fT4HLw/ZrNqMduDiC6RmGHx5vmek2qJPnmGZiXNpk/ltjb2hiri9NmzlQKIJ7tlX5mF/MlfNeLi9v+Xa4ukl1rKJcA7C4gc8gR+9ZW0PkT8omOsUhPw4ygbXkirg=
+	t=1716297592; cv=none; b=Z/SMsL7LMYmYw46ivGHzC9AXIshFXWd1NAx2WH9N0o8kmeKD09bIS/Zp+IehIL/FJ+H3ifq+LWnNApfSxXcIjC0EtR2YQ7OLzSdl6rRkNSgpDuyD9LhbwKHOAj2s7RGkQFLuRZVpcgvt87rGqedu96mtikTY112+n8Xej1gQIkQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716296338; c=relaxed/simple;
-	bh=FG/Gi01dTZv15t2HWEky9nFCTfoarLCx58S0lqBipXU=;
+	s=arc-20240116; t=1716297592; c=relaxed/simple;
+	bh=Fw44D5ZDxbrWGw8WLCi/dURG/HilOXbuM/gWbouzp2A=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=qvYs1tihWurxM8xly6uruRRq0TUcWd1M80uVs0VPUk+qDL+aH8E3AoTcK4Ni0VKZksjd50ib0v97ylGG9N2/SUncXqrGv7HfF4lACPhsuqzpFlDsC+4UP6n0QJIsnmsdslJevRv10RdY7/oXN8zAry/mtNg4GJV5H49dniWtTUA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Date: Tue, 21 May 2024 14:58:52 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: Antonio Ojea <aojea@google.com>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH v3 0/2] netfilter: nfqueue: incorrect sctp checksum
-Message-ID: <ZkyajEEYa0SV8zq-@calendula>
-References: <20240513220033.2874981-1-aojea@google.com>
- <Zkszmr7lNVte6iNu@calendula>
- <Zktv4TN-DPvCLCXZ@calendula>
- <ZkuXgB_Qo5336q4-@calendula>
- <ZkuasOTMseQKGUr_@calendula>
- <CAAdXToQRUiJBzMPGZ7AD_16A-JRZNUrr0aJ20mwaoF7gb92Rqg@mail.gmail.com>
- <Zkx8BCuu6dyTDjcX@calendula>
- <20240521105124.GA29082@breakpoint.cc>
- <ZkyOjy0YBg35tUrk@calendula>
- <20240521124850.GC2980@breakpoint.cc>
+	 Content-Type:Content-Disposition:In-Reply-To; b=aXB1fW3dwYUnMB5TtDOPRB/pKNo6KPCcX5BuuwLYkqVvBrCOF2bcnbCKbf9Xnq8q9HBEuZ3FZ4qMlxKLWMXn1UHCE/9XySeTu2MDCappFAtd0q5d5g7Gn8wdqCahMwMH/vVnmeWYMUyDz07Kb5OPRb/Dwe4nYkCJEvHLN5D+JrM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ow23eEFc; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ow23eEFc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20B76C32786;
+	Tue, 21 May 2024 13:19:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1716297591;
+	bh=Fw44D5ZDxbrWGw8WLCi/dURG/HilOXbuM/gWbouzp2A=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=ow23eEFcZk9QNj4O05Dr2gPM8iLaS5yK4X4T+PnwkTjCgyMYdVk4JAFAGOPEcRsCs
+	 8jvavdtxmQDr/y8QgEsaz+78m5WCNEniYxkznqN9ApNHUD90j0CV7y6F+ERb7gksE6
+	 0MFTxZYCmW3T2M1okaMZkbsq8ejJXFYhGJ62ZL/XdRP+v0UMXv+6G5tdxa4BvcyZ9h
+	 QStBVqOoOxdYQs1mso8ZBieR1Eni+fazIZNrv/YgWvRvoWwbmsEaVATX4TfSVzi2xx
+	 Y7VkiVCtkWU2KvyRe1k3AxCLSpIcPki4nf4Iqu8SXkn6A0ktcziz1Z/JOD3VDvvJU7
+	 Ss/LE1UFF9bUA==
+Date: Tue, 21 May 2024 15:19:48 +0200
+From: Lorenzo Bianconi <lorenzo@kernel.org>
+To: Toke =?iso-8859-1?Q?H=F8iland-J=F8rgensen?= <toke@redhat.com>
+Cc: Alexei Starovoitov <alexei.starovoitov@gmail.com>,
+	bpf <bpf@vger.kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>,
+	Network Development <netdev@vger.kernel.org>,
+	Alexei Starovoitov <ast@kernel.org>,
+	Daniel Borkmann <daniel@iogearbox.net>,
+	Andrii Nakryiko <andrii@kernel.org>,
+	Lorenzo Bianconi <lorenzo.bianconi@redhat.com>,
+	Florian Westphal <fw@strlen.de>,
+	Jesper Dangaard Brouer <hawk@kernel.org>,
+	Simon Horman <horms@kernel.org>, donhunte@redhat.com,
+	Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Subject: Re: [PATCH bpf-next v2 3/4] samples/bpf: Add bpf sample to offload
+ flowtable traffic to xdp
+Message-ID: <ZkyfdIDbElsaILT1@lore-rh-laptop>
+References: <cover.1716026761.git.lorenzo@kernel.org>
+ <8b9e194a4cb04af838035183694c85242f78e626.1716026761.git.lorenzo@kernel.org>
+ <CAADnVQLV4=mQ3+2baLhfJi_m6A72khNxUhcgPuv+sdQqE7skgA@mail.gmail.com>
+ <87ttira2na.fsf@toke.dk>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="LOi/9RCDxpjG24/l"
+Content-Disposition: inline
+In-Reply-To: <87ttira2na.fsf@toke.dk>
+
+
+--LOi/9RCDxpjG24/l
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20240521124850.GC2980@breakpoint.cc>
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, May 21, 2024 at 02:48:50PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > > userspace, my proposal:
-> > > > 
-> > > >               if (!skb_is_gso(skb) || ((queue->flags & NFQA_CFG_F_GSO) && !skb_is_gso_sctp(skb)))
-> > > >                         return __nfqnl_enqueue_packet(net, queue, entry);
-> > > 
-> > > This disables F_GSO with sctp packets, is sctp incompatible with nfqueue?
-> > 
-> > This will send a big SCTP payload to userspace (larger than mtu),
-> > then, userspace will send the such big SCTP payload to kernelspace via
-> > nf_reinject().
-> 
-> I'm not following.
-> 
->   if (!skb_is_gso(skb) || ((queue->flags & NFQA_CFG_F_GSO) && !skb_is_gso_sctp(skb)))
->      return __nfqnl_enqueue_packet(net, queue, entry);
-> 
-> Means:
-> 1. skb isn't gso -> queue, OR
-> 2. Userspace can cope with large packets AND packet is not sctp-gso
+> Alexei Starovoitov <alexei.starovoitov@gmail.com> writes:
+>=20
+> > On Sat, May 18, 2024 at 3:13=E2=80=AFAM Lorenzo Bianconi <lorenzo@kerne=
+l.org> wrote:
+> >>
+> >> Introduce xdp_flowtable_offload bpf sample to offload sw flowtable log=
+ic
+> >> in xdp layer if hw flowtable is not available or does not support a
+> >> specific kind of traffic.
+> >>
+> >> Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+> >> ---
+> >>  samples/bpf/Makefile                     |   7 +-
+> >>  samples/bpf/xdp_flowtable_offload.bpf.c  | 591 +++++++++++++++++++++++
+> >>  samples/bpf/xdp_flowtable_offload_user.c | 128 +++++
+> >>  3 files changed, 725 insertions(+), 1 deletion(-)
+> >>  create mode 100644 samples/bpf/xdp_flowtable_offload.bpf.c
+> >>  create mode 100644 samples/bpf/xdp_flowtable_offload_user.c
+> >
+> > I feel this sample code is dead on arrival.
+> > Make selftest more real if you want people to use it as an example,
+> > but samples dir is just a dumping ground.
+> > We shouldn't be adding anything to it.
+>=20
+> Agreed. We can integrate a working sample into xdp-tools instead :)
 
-Yes, this is implicit case: skb is gso. This is adding an exception
-for sctp-gso.
+ack fine, I can post a patch for xdp-tools.
 
-> -> queue
-> 
-> -> sctp gso packets are fully software-segmented in kernel, and
-> we queue n packets instead of 1 superpacket.
-> 
-> Apparently GSO SCTP is incompatible resp. skb_zerocopy() lacks
-> GSO_BY_FRAGS support.
-> 
-> Too bad.
+Regards,
+Lorenzo
 
-Then, either extend skb_zerocopy() to deal with GSO_BY_FRAGS or poor
-man approach as above: enqueue n packets until that is supported.
+>=20
+> -Toke
+>=20
 
-By reading this, my understanding is that you prefer to extend
-skb_zerocopy(), I pick up from Antonio's work and send a patch.
+--LOi/9RCDxpjG24/l
+Content-Type: application/pgp-signature; name="signature.asc"
 
-> > Can kernel deal with SCTP packets larger than MTU?
-> 
-> As far as I can see the gso helpers used in fwd and output
-> path handle this transparently, i.e., yes.
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCZkyfcAAKCRA6cBh0uS2t
+rC2hAP90R0KOfB8EylHLyXDT6ua6eqWWhhV4ItjgF1Ld0VxMywEA8tG2Q5GhCWxx
+kyeU0WT+V3+GYLts7EzNSBW+ZUIvwww=
+=hWW1
+-----END PGP SIGNATURE-----
+
+--LOi/9RCDxpjG24/l--
