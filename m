@@ -1,98 +1,121 @@
-Received: from mail-wr1-f51.google.com (mail-wr1-f51.google.com [209.85.221.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9334C848A;
-	Tue, 21 May 2024 01:45:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CCBC7352D
+	for <netfilter-devel@vger.kernel.org>; Tue, 21 May 2024 10:19:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716255915; cv=none; b=kZt7QNpaS9pSKV/sdGKXOGWtPhwBfcmZWGumJ8yGMn8rEuIRCA36xLfLG90cxM+SiQtWQQXijXZDCspagfN9svxoWul6QAQW3dcv8J/zkWK2FJpYAHvz0vPk7lC6vp9XHmX/cW4IyeVl49qTkaQ4QDkyIoRJZczUFlNfDM3jdoo=
+	t=1716286756; cv=none; b=CgUjq42OfZ8lx+4sp+N+EOrdiE9f7a8QAT44ULtt1RktTH8TM+l8dsVSY5iK6iEZ4xW36Vxa+FgUcXvrxIaEnz25azDNvBpwhpE7CfRj6r8xASvK4Xs9VBeXr6MWhagnMkEnpGn7ic3rM4q+quJwijYyprc8FuIcbZS1dD56sbI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716255915; c=relaxed/simple;
-	bh=nYJ6ohX56xTSoxHh+136A500XOjiqdHDWmcMcyDFuos=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=c6lRvus3Mwj8T/i6eszq4Ts5e5qMwOXFeV8y4vR/guUPv9+BVKfaba9WToteRXPC8ZHSGYmXPPaFwr6MuGWThL7Hbujfvc9MhFPpAgfReXD/dNtoWWrq1GYmQ73hXPcAn2uBip0ukxoK55qyG19bfDBh/2vmJsK6SWvRGpC1SkM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Je08O0xr; arc=none smtp.client-ip=209.85.221.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1716286756; c=relaxed/simple;
+	bh=m/BnOv9IyIknk0taxfZ9in2qMKbBmTm62BEIyazTekA=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=e7XClTAL0/bSDtXrUlVR8jDciZWsKzxM6pb+nlbsCZSKeXhu9Jkclibt1eTESRYBXXORDrCT7QF++aqQ826V3kTmce7BxcP1Y3EH9dNvKJ+twPXu8btrVpN/2UKGeRtltGDS30DN2B6e21Uj/gdS5tO38/elJugZfNaCF2hgtlQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=ZH/sUGn8; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Je08O0xr"
-Received: by mail-wr1-f51.google.com with SMTP id ffacd0b85a97d-351ae94323aso2472681f8f.0;
-        Mon, 20 May 2024 18:45:13 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1716255912; x=1716860712; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=6C3KCpd8ggBuxZPJIwx9XN0w1n7QWEhCXo3/tudXqb4=;
-        b=Je08O0xrt4Gm+nES70xq2+/dGpIqQ7I3Nfc+SUThv1rogU+6PZjx70Uph+uoRVn+Jw
-         wFQaBwKQGPNFKs/PHJq9j9X8kjoVT1ldodSlINV2N7lYW8iNvf629SxiI7r36c98RRIH
-         fUrjzkgkT4Swf5WPFrWIb5Xt5t8uPO8OCo4OzpouZoMqckBhh1ik+KCsAGt83UvUOUP2
-         3i54h+Sg2UIPwFXUs0Sv+w6uLjV+B1GqsnzUcfv691htuyfvBg/g2bZgHBZGgAxbTuPS
-         4X7VWp9z/u1wMJ61LG4q/2H/lU/7IC5UT2VLhpTjOhCq2ToseXhsQbMbeUunc6LBK7cL
-         yqkQ==
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ZH/sUGn8"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1716286753;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=GDN4wBeS+zyaK3mckFLu3ekq1g2jhLMHXCljitfNdOI=;
+	b=ZH/sUGn8K2YAspUoGR+gQSTolGOc20+vCPs/g2soRpUTAaYRQTtWGt0sUOfFtHHFiT+epV
+	MAJjlG3sJYvYRws0G+0WYPi/1SCd6EC4LENX8YpITH6ZQakQkTkuRoQiJxoXmiSefdSs/h
+	hHM5L+Jxs/eLI0ugbu0pGP2KaMqYVGI=
+Received: from mail-pl1-f198.google.com (mail-pl1-f198.google.com
+ [209.85.214.198]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-176-skKDkR9HMcuz-OVRp5lytA-1; Tue, 21 May 2024 06:19:12 -0400
+X-MC-Unique: skKDkR9HMcuz-OVRp5lytA-1
+Received: by mail-pl1-f198.google.com with SMTP id d9443c01a7336-1ec263943d0so113545525ad.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 May 2024 03:19:11 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1716255912; x=1716860712;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+        d=1e100.net; s=20230601; t=1716286751; x=1716891551;
+        h=content-transfer-encoding:mime-version:message-id:date:references
+         :in-reply-to:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=6C3KCpd8ggBuxZPJIwx9XN0w1n7QWEhCXo3/tudXqb4=;
-        b=WiHiF7xueaoc8a5yA5GPcjy0KmD955/FN8YK/1IglGFPNysTgfPRd2BasQ8CDDy9iI
-         /tVoTkO+JMYu9kmy4l8o3IN25JP70e5nEF2C/7nuxgYIvGbV2YK9Wh0u5RjOey8UBv3F
-         d5xRFP3Rcp5qR4uWGk3u/PMOVfhuAZ82QNoiNI2mv5EmAVTjVeNZqNoQKW40L0zKJ2r0
-         dnjHIRkkXaf6lKnbd1c7R+CG0XE54LOcUWVFFgkPwb5ioumKBgshgO5+wNSM/spFIlJ5
-         3YCL1LSHDNhWphxZFaou08WtQKD27XQAA3QnP+Pmd/NlsyygLgxl8p0qo82EifLECacB
-         tyCg==
-X-Forwarded-Encrypted: i=1; AJvYcCUjKUYqybjSg67FY7p7ErxgHFQf5Rw/EqV15SSBwVbY3ppThUqWlJEWsdRXXztO//gGUwJm7J9wlCYaim02jcM7ptRwLKNf78PUkQxUlXlIWZmx2drCSZ6ui02wr5SEm6pux5ctrtvg
-X-Gm-Message-State: AOJu0YwNNzBHPCOsMgoau2yTsUKAa6gTu2x6ZB5QzDnBqgJdBkhGKaUk
-	VPq4BdK7up4OcgEmJpCoYpXRD1XpfKd8+ewWpb8uewnrrK3UayLGL8cvE3pq4JGfrsgeMzzvH4u
-	eBY/4UTIKdDIByv7E/B5TtSDfko+jaA==
-X-Google-Smtp-Source: AGHT+IF3nx15+9RDSgQQTFHFfV+rnjufSpqAUtxzRidsx+tpGjFlFdupQCBDtG9zEF4VjZ55ApLK/ww1KQhC0b9MIj0=
-X-Received: by 2002:adf:fe92:0:b0:354:be7c:954 with SMTP id
- ffacd0b85a97d-354be7c0c11mr4671482f8f.15.1716255911450; Mon, 20 May 2024
- 18:45:11 -0700 (PDT)
+        bh=GDN4wBeS+zyaK3mckFLu3ekq1g2jhLMHXCljitfNdOI=;
+        b=GPAO2CP4eVN+j91ewLuCKlsTlDOxcYoT6/v/8a5gnKSuAmwvI4LCF/EroielBzwBvn
+         YYwYKFF2UswfeyXaNxHRNn1e+WqSZFuMP3BLb5i5PrnihxzzymTFdG+JSWqM9rxerr8G
+         54Mmf+G0SdpvVFbVNEqwW1fF81hPP45ABz1zvYzgMLiXC+k83890BT9ESsI3uOSk9D68
+         aM6u/f3eSKuiu/PjpqSSAv04NpGIp6Iyy40FlcfiE9gsPFMlW4jG56zZoSyzSg0PfFYm
+         wQMt/WLxFX5ab8uy02QUgG1+wQ7rrs86PNs01W80GvfIO3fdDPd/ko1VRaXa2UiH74H9
+         t3Lw==
+X-Forwarded-Encrypted: i=1; AJvYcCUfukZQmn8kOl3SRNssdYsIHXb/QYGkNlQhDca+aFTqBN4naDrgzvw1ItD4Wcp8YpCrzrEs0x6VubzYo9Qhhq4IGTT0HvOG5WAGzyLtrgR3
+X-Gm-Message-State: AOJu0YzBR/3kCUmRoBiSBOdkf5fBzEhaW5SRIYRMLlqjo+12bd1ENyCz
+	bgZgwaeR6rLs3BiSSciBmc21uZJPfIBw230tJn/tmDSCCY/7MWa5CTiySdo1765Ner6Wc7KsQQi
+	lSx3bFFaC12BlRfUdEXvxTZpfCTWZ76WCuyM1dmaAMUOa7HL5pn7ko5IFsKkgEDyxjw==
+X-Received: by 2002:a17:902:ec83:b0:1f2:f0d3:db30 with SMTP id d9443c01a7336-1f2f0d3e367mr98973215ad.64.1716286750933;
+        Tue, 21 May 2024 03:19:10 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEvvHcjqOjtYCqzf1Shk/DnxCibhC9dkl7mU3+4cXSE2zbcJWmISDdAei0dLnJPKrfutGYx0w==
+X-Received: by 2002:a17:902:ec83:b0:1f2:f0d3:db30 with SMTP id d9443c01a7336-1f2f0d3e367mr98973045ad.64.1716286750535;
+        Tue, 21 May 2024 03:19:10 -0700 (PDT)
+Received: from alrua-x1.borgediget.toke.dk ([45.145.92.2])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-1ef0c2565b6sm217542135ad.295.2024.05.21.03.19.09
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 21 May 2024 03:19:10 -0700 (PDT)
+Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
+	id B10B312F75B4; Tue, 21 May 2024 12:19:05 +0200 (CEST)
+From: Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
+To: Alexei Starovoitov <alexei.starovoitov@gmail.com>, Lorenzo Bianconi
+ <lorenzo@kernel.org>
+Cc: bpf <bpf@vger.kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>,
+ Jozsef Kadlecsik <kadlec@netfilter.org>, "David S. Miller"
+ <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
+ <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, netfilter-devel
+ <netfilter-devel@vger.kernel.org>, Network Development
+ <netdev@vger.kernel.org>, Alexei Starovoitov <ast@kernel.org>, Daniel
+ Borkmann <daniel@iogearbox.net>, Andrii Nakryiko <andrii@kernel.org>,
+ Lorenzo Bianconi <lorenzo.bianconi@redhat.com>, Florian Westphal
+ <fw@strlen.de>, Jesper Dangaard Brouer <hawk@kernel.org>, Simon Horman
+ <horms@kernel.org>, donhunte@redhat.com, Kumar Kartikeya Dwivedi
+ <memxor@gmail.com>
+Subject: Re: [PATCH bpf-next v2 3/4] samples/bpf: Add bpf sample to offload
+ flowtable traffic to xdp
+In-Reply-To: <CAADnVQLV4=mQ3+2baLhfJi_m6A72khNxUhcgPuv+sdQqE7skgA@mail.gmail.com>
+References: <cover.1716026761.git.lorenzo@kernel.org>
+ <8b9e194a4cb04af838035183694c85242f78e626.1716026761.git.lorenzo@kernel.org>
+ <CAADnVQLV4=mQ3+2baLhfJi_m6A72khNxUhcgPuv+sdQqE7skgA@mail.gmail.com>
+X-Clacks-Overhead: GNU Terry Pratchett
+Date: Tue, 21 May 2024 12:19:05 +0200
+Message-ID: <87ttira2na.fsf@toke.dk>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <cover.1716026761.git.lorenzo@kernel.org> <8b9e194a4cb04af838035183694c85242f78e626.1716026761.git.lorenzo@kernel.org>
-In-Reply-To: <8b9e194a4cb04af838035183694c85242f78e626.1716026761.git.lorenzo@kernel.org>
-From: Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Date: Mon, 20 May 2024 18:45:00 -0700
-Message-ID: <CAADnVQLV4=mQ3+2baLhfJi_m6A72khNxUhcgPuv+sdQqE7skgA@mail.gmail.com>
-Subject: Re: [PATCH bpf-next v2 3/4] samples/bpf: Add bpf sample to offload
- flowtable traffic to xdp
-To: Lorenzo Bianconi <lorenzo@kernel.org>
-Cc: bpf <bpf@vger.kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>, 
-	Jozsef Kadlecsik <kadlec@netfilter.org>, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	netfilter-devel <netfilter-devel@vger.kernel.org>, 
-	Network Development <netdev@vger.kernel.org>, Alexei Starovoitov <ast@kernel.org>, 
-	Daniel Borkmann <daniel@iogearbox.net>, Andrii Nakryiko <andrii@kernel.org>, 
-	Lorenzo Bianconi <lorenzo.bianconi@redhat.com>, =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>, 
-	Florian Westphal <fw@strlen.de>, Jesper Dangaard Brouer <hawk@kernel.org>, Simon Horman <horms@kernel.org>, donhunte@redhat.com, 
-	Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, May 18, 2024 at 3:13=E2=80=AFAM Lorenzo Bianconi <lorenzo@kernel.or=
-g> wrote:
->
-> Introduce xdp_flowtable_offload bpf sample to offload sw flowtable logic
-> in xdp layer if hw flowtable is not available or does not support a
-> specific kind of traffic.
->
-> Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
-> ---
->  samples/bpf/Makefile                     |   7 +-
->  samples/bpf/xdp_flowtable_offload.bpf.c  | 591 +++++++++++++++++++++++
->  samples/bpf/xdp_flowtable_offload_user.c | 128 +++++
->  3 files changed, 725 insertions(+), 1 deletion(-)
->  create mode 100644 samples/bpf/xdp_flowtable_offload.bpf.c
->  create mode 100644 samples/bpf/xdp_flowtable_offload_user.c
+Alexei Starovoitov <alexei.starovoitov@gmail.com> writes:
 
-I feel this sample code is dead on arrival.
-Make selftest more real if you want people to use it as an example,
-but samples dir is just a dumping ground.
-We shouldn't be adding anything to it.
+> On Sat, May 18, 2024 at 3:13=E2=80=AFAM Lorenzo Bianconi <lorenzo@kernel.=
+org> wrote:
+>>
+>> Introduce xdp_flowtable_offload bpf sample to offload sw flowtable logic
+>> in xdp layer if hw flowtable is not available or does not support a
+>> specific kind of traffic.
+>>
+>> Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+>> ---
+>>  samples/bpf/Makefile                     |   7 +-
+>>  samples/bpf/xdp_flowtable_offload.bpf.c  | 591 +++++++++++++++++++++++
+>>  samples/bpf/xdp_flowtable_offload_user.c | 128 +++++
+>>  3 files changed, 725 insertions(+), 1 deletion(-)
+>>  create mode 100644 samples/bpf/xdp_flowtable_offload.bpf.c
+>>  create mode 100644 samples/bpf/xdp_flowtable_offload_user.c
+>
+> I feel this sample code is dead on arrival.
+> Make selftest more real if you want people to use it as an example,
+> but samples dir is just a dumping ground.
+> We shouldn't be adding anything to it.
+
+Agreed. We can integrate a working sample into xdp-tools instead :)
+
+-Toke
+
