@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 05B8F14901F;
-	Wed, 22 May 2024 23:14:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3253E19470;
+	Wed, 22 May 2024 23:14:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716419652; cv=none; b=gLlj/QCpf3GEhR9lr2aJojoYm5BTZH9L+zKFYSHnCWLRe2yLG32a6MoDGsf3Fy7+kB+YtUxTqLWmrQmt8epbjDFRx4avf2CEIX+fnHk5twj5bfNaa7hrQYt4xEg666IvHtTL4Ahu8GMsbYPmt+SRWx3oSsgXrItevra3X+dJSUU=
+	t=1716419652; cv=none; b=go6dFxx9dfvgydvrUaPCbyvC4HPRy0MuxY2GLQDEaFKysyn8RHTdRwvTjeV0vegtioRBvp+pZEitBVMMaoMve4bvHcb80Uk4JxB6kgX6OUzWw62BcxPotk3gjiXL+VpEe5fM+WVgYO3VQRR79oApi7IfDY52rBFX0/mRoBaMRUs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1716419652; c=relaxed/simple;
-	bh=BJZ+uUadFze585e9aOHxn2QMXf+G+UneaUjFaJ9cvW4=;
+	bh=DTgRKfxj+1zRBu9Atn+nXDKC7uNhiPYbOhZk7jZJh/M=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=WUlZvpOR932yg4ZilvZ5xZYrZXIUr+4dJ68ZuRGrC5KfgnvBihvQgPuqI+o9biBqRzmtFAAzbVI1YWqIV99wdmMZO8U+UNbDzKCv4moAGgrv71PVGRLEL9Q66FSOKmdw6y1wKzAMoyaU8YwF2Sx0Efo6Khfgh+Z5HnbR6wOxz5Y=
+	 MIME-Version; b=CF1mgFegl4XPZFay8evy+oCMoo+kPfI5ewF00t0VRUfF/MS0FhEoH7Uqa0hn34RRCdxEHN2Y58CBubUubbvwiMe0nQDdMS+xB75UM5K+CJzP4Ern/CigNaISsRw3cK8jNwbuFSfig/VSPMmpyLVZ08uUourNCYjyl8jt2stu2Zw=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 1/6] netfilter: nfnetlink_queue: acquire rcu_read_lock() in instance_destroy_rcu()
-Date: Thu, 23 May 2024 01:13:50 +0200
-Message-Id: <20240522231355.9802-2-pablo@netfilter.org>
+Subject: [PATCH net 6/6] netfilter: nft_fib: allow from forward/input without iif selector
+Date: Thu, 23 May 2024 01:13:55 +0200
+Message-Id: <20240522231355.9802-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240522231355.9802-1-pablo@netfilter.org>
 References: <20240522231355.9802-1-pablo@netfilter.org>
@@ -34,73 +34,40 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Eric Dumazet <edumazet@google.com>
+From: Eric Garver <eric@garver.life>
 
-syzbot reported that nf_reinject() could be called without rcu_read_lock() :
+This removes the restriction of needing iif selector in the
+forward/input hooks for fib lookups when requested result is
+oif/oifname.
 
-WARNING: suspicious RCU usage
-6.9.0-rc7-syzkaller-02060-g5c1672705a1a #0 Not tainted
+Removing this restriction allows "loose" lookups from the forward hooks.
 
-net/netfilter/nfnetlink_queue.c:263 suspicious rcu_dereference_check() usage!
-
-other info that might help us debug this:
-
-rcu_scheduler_active = 2, debug_locks = 1
-2 locks held by syz-executor.4/13427:
-  #0: ffffffff8e334f60 (rcu_callback){....}-{0:0}, at: rcu_lock_acquire include/linux/rcupdate.h:329 [inline]
-  #0: ffffffff8e334f60 (rcu_callback){....}-{0:0}, at: rcu_do_batch kernel/rcu/tree.c:2190 [inline]
-  #0: ffffffff8e334f60 (rcu_callback){....}-{0:0}, at: rcu_core+0xa86/0x1830 kernel/rcu/tree.c:2471
-  #1: ffff88801ca92958 (&inst->lock){+.-.}-{2:2}, at: spin_lock_bh include/linux/spinlock.h:356 [inline]
-  #1: ffff88801ca92958 (&inst->lock){+.-.}-{2:2}, at: nfqnl_flush net/netfilter/nfnetlink_queue.c:405 [inline]
-  #1: ffff88801ca92958 (&inst->lock){+.-.}-{2:2}, at: instance_destroy_rcu+0x30/0x220 net/netfilter/nfnetlink_queue.c:172
-
-stack backtrace:
-CPU: 0 PID: 13427 Comm: syz-executor.4 Not tainted 6.9.0-rc7-syzkaller-02060-g5c1672705a1a #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 04/02/2024
-Call Trace:
- <IRQ>
-  __dump_stack lib/dump_stack.c:88 [inline]
-  dump_stack_lvl+0x241/0x360 lib/dump_stack.c:114
-  lockdep_rcu_suspicious+0x221/0x340 kernel/locking/lockdep.c:6712
-  nf_reinject net/netfilter/nfnetlink_queue.c:323 [inline]
-  nfqnl_reinject+0x6ec/0x1120 net/netfilter/nfnetlink_queue.c:397
-  nfqnl_flush net/netfilter/nfnetlink_queue.c:410 [inline]
-  instance_destroy_rcu+0x1ae/0x220 net/netfilter/nfnetlink_queue.c:172
-  rcu_do_batch kernel/rcu/tree.c:2196 [inline]
-  rcu_core+0xafd/0x1830 kernel/rcu/tree.c:2471
-  handle_softirqs+0x2d6/0x990 kernel/softirq.c:554
-  __do_softirq kernel/softirq.c:588 [inline]
-  invoke_softirq kernel/softirq.c:428 [inline]
-  __irq_exit_rcu+0xf4/0x1c0 kernel/softirq.c:637
-  irq_exit_rcu+0x9/0x30 kernel/softirq.c:649
-  instr_sysvec_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1043 [inline]
-  sysvec_apic_timer_interrupt+0xa6/0xc0 arch/x86/kernel/apic/apic.c:1043
- </IRQ>
- <TASK>
-
-Fixes: 9872bec773c2 ("[NETFILTER]: nfnetlink: use RCU for queue instances hash")
-Reported-by: syzbot <syzkaller@googlegroups.com>
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Acked-by: Florian Westphal <fw@strlen.de>
+Fixes: be8be04e5ddb ("netfilter: nft_fib: reverse path filter for policy-based routing on iif")
+Signed-off-by: Eric Garver <eric@garver.life>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_queue.c | 2 ++
- 1 file changed, 2 insertions(+)
+ net/netfilter/nft_fib.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 00f4bd21c59b..f1c31757e496 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -169,7 +169,9 @@ instance_destroy_rcu(struct rcu_head *head)
- 	struct nfqnl_instance *inst = container_of(head, struct nfqnl_instance,
- 						   rcu);
- 
-+	rcu_read_lock();
- 	nfqnl_flush(inst, NULL, 0);
-+	rcu_read_unlock();
- 	kfree(inst);
- 	module_put(THIS_MODULE);
- }
+diff --git a/net/netfilter/nft_fib.c b/net/netfilter/nft_fib.c
+index 37cfe6dd712d..b58f62195ff3 100644
+--- a/net/netfilter/nft_fib.c
++++ b/net/netfilter/nft_fib.c
+@@ -35,11 +35,9 @@ int nft_fib_validate(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 	switch (priv->result) {
+ 	case NFT_FIB_RESULT_OIF:
+ 	case NFT_FIB_RESULT_OIFNAME:
+-		hooks = (1 << NF_INET_PRE_ROUTING);
+-		if (priv->flags & NFTA_FIB_F_IIF) {
+-			hooks |= (1 << NF_INET_LOCAL_IN) |
+-				 (1 << NF_INET_FORWARD);
+-		}
++		hooks = (1 << NF_INET_PRE_ROUTING) |
++			(1 << NF_INET_LOCAL_IN) |
++			(1 << NF_INET_FORWARD);
+ 		break;
+ 	case NFT_FIB_RESULT_ADDRTYPE:
+ 		if (priv->flags & NFTA_FIB_F_IIF)
 -- 
 2.30.2
 
