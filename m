@@ -1,35 +1,28 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB06980617;
-	Wed, 22 May 2024 22:10:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3E3FE19470;
+	Wed, 22 May 2024 23:14:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716415829; cv=none; b=jwDaRyIRvbznDgYb9XdQAF0Y1IOzjOm1+jbjxpTxHMkpSAVLAmocZZwDML35uqlUat1iBQ/6/URilaOwGzGxXp1Cz/+xHSdf6hNPnNDDhuvLWYWyQUeonBimpJGdJYpX+hbtNh6lITjbETb6NaWwVhNRlkqzuZ6XkLhl2MaI6pQ=
+	t=1716419650; cv=none; b=TeZfhAFpAWQJb5TF+HZPxiUmD2AuaSTxJZu84xeWHTAhBXADPA+BvYJiNdyLSXi/4SnNPPqHh4JUlS/QqQHUTaNryqwWhVsmCOuABXlFBNkbpQg3Rjn0irBttzJXHDWRq1Dy/HT7RRnBRztX341muaqaYM6EypO0SW+s9h91yoE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716415829; c=relaxed/simple;
-	bh=oSFNzMpDKtK4eH1YetPIyVYw4X0A4rqOFX0DW5tdTNc=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=mD123gVt3PddbyPPfcaA2B7cMYr+2jMIJQBCFuerI5IZwC0F3lten2ekcf8x/3W7Zk8rdfi31Qi54SJU0eJENVFVLIp0x4VzQq9BAf6YEQ5XaIB3brSTvQ/eyFP3XV0ZCSrkcKInTCihY8fyM3un9UBUoUhYJ8AzGwdGlWlXN20=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ODDZJX6f; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ODDZJX6f"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 7C33DC32781;
-	Wed, 22 May 2024 22:10:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1716415829;
-	bh=oSFNzMpDKtK4eH1YetPIyVYw4X0A4rqOFX0DW5tdTNc=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=ODDZJX6faefd3ZMlCma75vd8YuzK2IBEBbPsiJiErLHTIqhie1EY2gjtENuJKNO/w
-	 AMOHu7huK5i/b6Oi8231Od5OxJaNiwVEdhjCNkn/aeo/brPfPda17gDL3nwRi0/XA7
-	 spU8wPqzcFohQ5JtVHvjrc0eZrtkTTOxzgoCQrKJw5cwamIFEuWMUpze/rn/m2ggE3
-	 MSkXnJV2MSOhn0JfcRhNK7hYbKQLaAm+7JS7w2j7/9Aw7nmzjV5kNyuzLQpV3Bnrxc
-	 JTSwNhc/2cKbqGUyGVZekDUhkAZ6VTRat/Z+t9RqpKtYl9+wYz86QApKYO0aKpnc0J
-	 FOZqgawrDYOPQ==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 5F9BAC4361C;
-	Wed, 22 May 2024 22:10:29 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=arc-20240116; t=1716419650; c=relaxed/simple;
+	bh=buIr1GLOTHDs3JnQ54O+t+FAycQe1Z9jdYot7l9lgpA=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=IBcS6mXoYaIkyuGi7FVzN5OWIJk8kw+vkxKHdzAie07q5fORwWVaaBtmZydE0JtUaqkbP1uWuEK58Z6zknITN1xAK0s36iBYEb8JSerswjCaGcHP9vWFZKgcTc1WOOSO5NmaKqvgf9cAnXNoLzGlBuju7vhVXVBWPvhlWCQiKzA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de
+Subject: [PATCH net 0/6] Netfilter fixes for net
+Date: Thu, 23 May 2024 01:13:49 +0200
+Message-Id: <20240522231355.9802-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,52 +30,77 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH bpf-next v4 1/2] net: netfilter: Make ct zone opts
- configurable for bpf ct helpers
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <171641582938.6470.8952877618010663411.git-patchwork-notify@kernel.org>
-Date: Wed, 22 May 2024 22:10:29 +0000
-References: <20240522050712.732558-1-brad@faucet.nz>
-In-Reply-To: <20240522050712.732558-1-brad@faucet.nz>
-To: Brad Cowie <brad@faucet.nz>
-Cc: bpf@vger.kernel.org, martin.lau@linux.dev, lorenzo@kernel.org,
- memxor@gmail.com, pablo@netfilter.org, davem@davemloft.net, kuba@kernel.org,
- pabeni@redhat.com, ast@kernel.org, daniel@iogearbox.net, andrii@kernel.org,
- song@kernel.org, john.fastabend@gmail.com, sdf@google.com, jolsa@kernel.org,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- netdev@vger.kernel.org
 
-Hello:
+Hi,
 
-This series was applied to bpf/bpf-next.git (master)
-by Martin KaFai Lau <martin.lau@kernel.org>:
+The following patchset contains Netfilter fixes for net:
 
-On Wed, 22 May 2024 17:07:11 +1200 you wrote:
-> Add ct zone id and direction to bpf_ct_opts so that arbitrary ct zones
-> can be used for xdp/tc bpf ct helper functions bpf_{xdp,skb}_ct_alloc
-> and bpf_{xdp,skb}_ct_lookup.
-> 
-> Signed-off-by: Brad Cowie <brad@faucet.nz>
-> ---
-> v2 -> v3:
->   - Remove whitespace changes
->   - Add reserved padding options
->   - If ct_zone_id is set when opts size isn't 16, return -EINVAL
->   - Remove ct_zone_flags
->     (not used by nf_conntrack_alloc or nf_conntrack_find_get)
-> 
-> [...]
+Patch #1 syzbot reports that nf_reinject() could be called without
+	 rcu_read_lock() when flushing pending packets at nfnetlink
+	 queue removal, from Eric Dumazet.
 
-Here is the summary with links:
-  - [bpf-next,v4,1/2] net: netfilter: Make ct zone opts configurable for bpf ct helpers
-    https://git.kernel.org/bpf/bpf-next/c/ece4b2969041
-  - [bpf-next,v4,2/2] selftests/bpf: Update tests for new ct zone opts for nf_conntrack kfuncs
-    https://git.kernel.org/bpf/bpf-next/c/a87f34e742d2
+Patch #2 flushes ipset list:set when canceling garbage collection to
+	 reference to other lists to fix a race, from Jozsef Kadlecsik.
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+Patch #3 restores q-in-q matching with nft_payload by reverting
+	 f6ae9f120dad ("netfilter: nft_payload: add C-VLAN support").
 
+Patch #4 fixes vlan mangling in skbuff when vlan offload is present
+	 in skbuff, without this patch nft_payload corrupts packets
+	 in this case.
 
+Patch #5 fixes possible nul-deref in tproxy no IP address is found in
+	 netdevice, reported by syzbot and patch from Florian Westphal.
+
+Patch #6 removes a superfluous restriction which prevents loose fib
+	 lookups from input and forward hooks, from Eric Garver.
+
+My assessment is that patches #1, #2 and #5 address possible kernel
+crash, anything else in this batch fixes broken features.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-24-05-23
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 4b377b4868ef17b040065bd468668c707d2477a5:
+
+  kprobe/ftrace: fix build error due to bad function definition (2024-05-17 19:17:55 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-24-05-23
+
+for you to fetch changes up to 4878baa295a377fa9116dbeb43208272efc1cb1b:
+
+  netfilter: nft_fib: allow from forward/input without iif selector (2024-05-21 16:37:01 +0200)
+
+----------------------------------------------------------------
+netfilter pull request 24-05-23
+
+----------------------------------------------------------------
+Alexander Maltsev (1):
+      netfilter: ipset: Add list flush to cancel_gc
+
+Eric Dumazet (1):
+      netfilter: nfnetlink_queue: acquire rcu_read_lock() in instance_destroy_rcu()
+
+Eric Garver (1):
+      netfilter: nft_fib: allow from forward/input without iif selector
+
+Florian Westphal (1):
+      netfilter: tproxy: bail out if IP has been disabled on the device
+
+Pablo Neira Ayuso (2):
+      netfilter: nft_payload: restore vlan q-in-q match support
+      netfilter: nft_payload: skbuff vlan metadata mangle support
+
+ net/ipv4/netfilter/nf_tproxy_ipv4.c   |  2 +
+ net/netfilter/ipset/ip_set_list_set.c |  3 ++
+ net/netfilter/nfnetlink_queue.c       |  2 +
+ net/netfilter/nft_fib.c               |  8 ++-
+ net/netfilter/nft_payload.c           | 95 ++++++++++++++++++++++++++---------
+ 5 files changed, 82 insertions(+), 28 deletions(-)
