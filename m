@@ -1,29 +1,33 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8845910A0A;
-	Thu, 23 May 2024 15:12:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 20197125AC;
+	Thu, 23 May 2024 15:51:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716477169; cv=none; b=unc1sHxDsFLGsKDZngub5k0ZWa7I3TwmvzbWjBGB5TYR3TNZNTGdlVG2irnrODbLH62Z8ByFZOIh/zI+DzRLL3I8j507BOtljZvS2hjjJ8zU/xIpKNiAAKHP4fXSy4Md1qbwTRyaItOjdaBlxetEpirMfNi/Pdlnvgjwke1xz4s=
+	t=1716479503; cv=none; b=aM8UGmyieodeg/nt9tznVqeuIBUzk1LmbpqbqQhVVRhV+nxK3FMPn6JFQWClHqeAaABRVohal43RHu7n2+4iLxRHqGlH0XSkc+SucIFLpQicwYijr5Q9dMNKuaYrKbuQ2z0c0mp+g+L1RrP48YPUgmmOTF0y+YYo8wkKFrItpYw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716477169; c=relaxed/simple;
-	bh=/2JZJ+NgwBkFkdxGrZRWxcDRkjnMuIpIfZagfrfb048=;
+	s=arc-20240116; t=1716479503; c=relaxed/simple;
+	bh=c+omJLXIaKohFU40Ei43xY+PMLmF+0y9NVZRG4jJmi0=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Fmh4HwxY2sZ218WXT0cCYUjEdS33a+taGzGOVqRWaMihN2rkfamu2J4x9s3ZnkPEUk0epEdeXG2bwumyCFSZltxc0ANaX0cd21UWNWHa8YjTWNjpaShs4ioAJ7JVTUsYPaIfiO7okinqPg+hN6YNirE623BRCCPHZf9L+aMLRI4=
+	 Content-Type:Content-Disposition:In-Reply-To; b=OhWIh/8eEgdPgg6UQHWhrPEimNRKBXdx5mtpVGJE1wzZ3kQ8mwEkxBxdmMKXOmkSaW+Jb3pCfL9sZzZS8KqVXjBKGEy5493UXQgoLAlVIPxnYmmt5xzCyvMwcYBNcxKgQDgV6PS5p2Ws1pGDN+/BGSnpoLP/e0kZUTRRXV4Hudk=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Date: Thu, 23 May 2024 17:12:41 +0200
+Date: Thu, 23 May 2024 17:51:36 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Paolo Abeni <pabeni@redhat.com>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org, kuba@kernel.org, edumazet@google.com,
-	fw@strlen.de
-Subject: Re: [PATCH net 4/6] netfilter: nft_payload: skbuff vlan metadata
- mangle support
-Message-ID: <Zk9c6TfO6_BRvbkN@calendula>
-References: <20240522231355.9802-1-pablo@netfilter.org>
- <20240522231355.9802-5-pablo@netfilter.org>
- <e20cde161e014616d0b4969f2bec22cd80ca2c5a.camel@redhat.com>
+To: Lorenzo Bianconi <lorenzo@kernel.org>
+Cc: bpf@vger.kernel.org, kadlec@netfilter.org, davem@davemloft.net,
+	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	ast@kernel.org, daniel@iogearbox.net, andrii@kernel.org,
+	martin.lau@linux.dev, eddyz87@gmail.com,
+	lorenzo.bianconi@redhat.com, toke@redhat.com, fw@strlen.de,
+	hawk@kernel.org, horms@kernel.org, donhunte@redhat.com,
+	memxor@gmail.com
+Subject: Re: [PATCH v3 bpf-next 1/3] netfilter: nf_tables: add flowtable map
+ for xdp offload
+Message-ID: <Zk9mCJIqMoWopQaA@calendula>
+References: <cover.1716465377.git.lorenzo@kernel.org>
+ <1925643414ddbea91659007826fd829f8aa56864.1716465377.git.lorenzo@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -32,60 +36,34 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <e20cde161e014616d0b4969f2bec22cd80ca2c5a.camel@redhat.com>
+In-Reply-To: <1925643414ddbea91659007826fd829f8aa56864.1716465377.git.lorenzo@kernel.org>
 
-On Thu, May 23, 2024 at 11:26:45AM +0200, Paolo Abeni wrote:
-> On Thu, 2024-05-23 at 01:13 +0200, Pablo Neira Ayuso wrote:
-> > @@ -801,21 +801,79 @@ struct nft_payload_set {
-> >  	u8			csum_flags;
-> >  };
-> >  
-> > +/* This is not struct vlan_hdr. */
-> > +struct nft_payload_vlan_hdr {
-> > +        __be16          h_vlan_proto;
-> > +        __be16          h_vlan_TCI;
-> > +};
-> > +
-> > +static bool
-> > +nft_payload_set_vlan(const u32 *src, struct sk_buff *skb, u8 offset, u8 len,
-> > +		     int *vlan_hlen)
-> > +{
-> > +	struct nft_payload_vlan_hdr *vlanh;
-> > +	__be16 vlan_proto;
-> > +	__be16 vlan_tci;
-> > +
-> > +	if (offset >= offsetof(struct vlan_ethhdr, h_vlan_encapsulated_proto)) {
-> > +		*vlan_hlen = VLAN_HLEN;
-> > +		return true;
-> > +	}
-> > +
-> > +	switch (offset) {
-> > +	case offsetof(struct vlan_ethhdr, h_vlan_proto):
-> > +		if (len == 2) {
-> > +			vlan_proto = nft_reg_load16(src);
-> 
-> I'm sorry but the above introduces build warning due to endianess
-> mismatch (host -> be)
-> 
-> > +			skb->vlan_proto = vlan_proto;
-> > +		} else if (len == 4) {
-> > +			vlanh = (struct nft_payload_vlan_hdr *)src;
-> > +			__vlan_hwaccel_put_tag(skb, vlanh->h_vlan_proto,
-> > +					       ntohs(vlanh->h_vlan_TCI));
-> > +		} else {
-> > +			return false;
-> > +		}
-> > +		break;
-> > +	case offsetof(struct vlan_ethhdr, h_vlan_TCI):
-> > +		if (len != 2)
-> > +			return false;
-> > +
-> > +		vlan_tci = ntohs(nft_reg_load16(src));
-> 
-> Similar things here htons() expect a be short int and is receiving a
-> u16, vlan_tci is 'be' and the assigned data uses host endianess.
-> 
-> 
-> Could you please address the above?
+Hi Lorenzo,
 
-Sure, I will post v2.
+On Thu, May 23, 2024 at 02:06:16PM +0200, Lorenzo Bianconi wrote:
+> From: Florian Westphal <fw@strlen.de>
+> 
+> This adds a small internal mapping table so that a new bpf (xdp) kfunc
+> can perform lookups in a flowtable.
+> 
+> As-is, xdp program has access to the device pointer, but no way to do a
+> lookup in a flowtable -- there is no way to obtain the needed struct
+> without questionable stunts.
+> 
+> This allows to obtain an nf_flowtable pointer given a net_device
+> structure.
+> 
+> In order to keep backward compatibility, the infrastructure allows the
+> user to add a given device to multiple flowtables, but it will always
+> return the first added mapping performing the lookup since it assumes
+> the right configuration is 1:1 mapping between flowtables and net_devices.
+
+Would it be possible to move this new code in _offload.c to
+nf_flow_table_xdp.c?
+
+The flowtable offload code is already a bit convoluted, the hardware
+offload API for payload matching results in chatty with many sparse
+warnings (unless I adds casting everywhere), but I remember I failed
+to provide a convincing improvements on that front without requiring
+changes to drivers at the time. This is of course no related to this
+series.
