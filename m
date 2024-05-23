@@ -1,62 +1,158 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2E7237147
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 May 2024 16:45:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A752B22334;
+	Thu, 23 May 2024 16:54:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716482744; cv=none; b=R4UMCaAleyIH6c+fmgDX+nA7DxWqo5+b7GKfWHR8bA+dGR9L4BP1aOVUWEKV+qm2GECBugfcrp3yC+SXqDY1gmPFWNG+2PQU89BJS/2IwZRYUIdkRPL5JxAZmqeHfx6SX3vjvQlKiL2LZe4UsxxjOy+Mx8ZjkAY1m9+x5JlvUbA=
+	t=1716483291; cv=none; b=Gdg5t53hYGZrC870XLNnQ+JU0qJJZzc+zJMQQXb3SKMzY8fxXqzxJJZW3M6HzRyq6RKUIX7Y154fP/mD8g4rsKa+NaKaqpxrJXLRz/HpGhrzU7v0OA7yQjP0u3DM78wZB7paC/pjMFqpbR3ZjsbKjKlT66yN3qZ2+c/rzKiKW+g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716482744; c=relaxed/simple;
-	bh=IM3zxHBTFatLoUXmdXOvtEIofKolIN4pStuB65QxbNU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Y1N77GjlM/1D4xqB4tN6MWSnjLqPD6XCEWMN/1kM9FDE0zonYCG9VLJp9UwEEFXPmw/pdBUsHVOQCMawYxsA3OyqlC61FykfAnMEunhe2Jqh5cQ6jSibX2OrKLSALjeMZ8J3odw9Gi8Skeh7TSQZpxEjThjSONWk7aUmVr5oYuE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=QzL3F6RJ; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1716483291; c=relaxed/simple;
+	bh=eYRTP55zHPTx1wqIyD0CwxUVER7F1bNXTCqO7Z2cUeE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=GCUgcKxLJ1/rX8D0QdNTmRrROvqCs/wNibo0vIvms5f3mNJAE7q9VTwwCpdBYOLRHFjUlGRSeXzBw52QnoS7f2OT1i0LQP+aLC4U++Kh8FeZC8qxE73nK6VVdOOUisZuv6Xs3Wn3Ovm0oP7E6Epio8LG0XIXoFiOqFnQLtcqBvM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=lwgFh6Gu; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=Of5P/s3g; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=lwgFh6Gu; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=Of5P/s3g; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="QzL3F6RJ"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=IM3zxHBTFatLoUXmdXOvtEIofKolIN4pStuB65QxbNU=; b=QzL3F6RJ3diPUUyOKJj7T+YsqY
-	TT7N8bNRMtvgr5ZqJzOn+WEocEnDciUcQa4tgANWz1Hrxsu3mq889RZLjNEdL4D7OO+aIJsnVfCDs
-	UEnKDbmmftJOyG9L4iLKJhHiTlzqSdBwXggSUxqHRAuMv1ntnRnCbSskTpKdZwekaB8nBgPvAxEhc
-	AC36WwB54GY8+Wsb2bMSBB0S7bmgbcKr80ISgMsVNadvZl1uX563e32I1i+gk7/wxEFqm+EzKM2xu
-	NjTX8eY5SekBFRTVXjwuRxVAwX0qNoBlJq1yyjd3dWIzFGABZWCmDvkCfW7uHM7o7g3U0EanmHcz5
-	iLIXZl8w==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1sABZN-000000000Mm-3osX;
-	Thu, 23 May 2024 18:45:33 +0200
-Date: Thu, 23 May 2024 18:45:33 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Michael Estner <michaelestner@web.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] iptables: cleanup FIXME
-Message-ID: <Zk9yrd8Ji1xAcblw@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Michael Estner <michaelestner@web.de>,
-	netfilter-devel@vger.kernel.org
-References: <20240523145058.747280-1-michaelestner@web.de>
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="lwgFh6Gu";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="Of5P/s3g";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="lwgFh6Gu";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="Of5P/s3g"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 7ECC42036A;
+	Thu, 23 May 2024 16:54:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1716483287; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=8dXeplD1JrXrU/dHr8hrBZ3Tb1p6ZC/7YwQd+1tVqb8=;
+	b=lwgFh6Gubysg2jLJrdwJfqEdWiYVYdoeCQbmgSacaROl6wot0vSXiipzhGt+sADPA/moWN
+	nPmF+gQeb3nF/z2pDA5sx9ksAZ84VSf8jCdv1IpRiVIsYzcD+yRa4S+Z3gZn/6XUWrGFPk
+	nlJed8gFdnaU8P0xRtLyugf6wlAxCW4=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1716483287;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=8dXeplD1JrXrU/dHr8hrBZ3Tb1p6ZC/7YwQd+1tVqb8=;
+	b=Of5P/s3g5djlbJvdQ9bIs63NtrddvumKnxoeHxqG6R0e76IfAXVDOx1JJzG6vCAXCNTmiP
+	+ymvF9TG1pSyn1Bg==
+Authentication-Results: smtp-out2.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1716483287; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=8dXeplD1JrXrU/dHr8hrBZ3Tb1p6ZC/7YwQd+1tVqb8=;
+	b=lwgFh6Gubysg2jLJrdwJfqEdWiYVYdoeCQbmgSacaROl6wot0vSXiipzhGt+sADPA/moWN
+	nPmF+gQeb3nF/z2pDA5sx9ksAZ84VSf8jCdv1IpRiVIsYzcD+yRa4S+Z3gZn/6XUWrGFPk
+	nlJed8gFdnaU8P0xRtLyugf6wlAxCW4=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1716483287;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=8dXeplD1JrXrU/dHr8hrBZ3Tb1p6ZC/7YwQd+1tVqb8=;
+	b=Of5P/s3g5djlbJvdQ9bIs63NtrddvumKnxoeHxqG6R0e76IfAXVDOx1JJzG6vCAXCNTmiP
+	+ymvF9TG1pSyn1Bg==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 5B10313A6B;
+	Thu, 23 May 2024 16:54:47 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id 9rFJE9d0T2bzeQAAD6G6ig
+	(envelope-from <iluceno@suse.de>); Thu, 23 May 2024 16:54:47 +0000
+From: Ismael Luceno <iluceno@suse.de>
+To: linux-kernel@vger.kernel.org
+Cc: Ismael Luceno <iluceno@suse.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	=?UTF-8?q?Michal=20Kube=C4=8Dek?= <mkubecek@suse.com>,
+	Simon Horman <horms@verge.net.au>,
+	Julian Anastasov <ja@ssi.bg>,
+	lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	coreteam@netfilter.org
+Subject: [PATCH] ipvs: Avoid unnecessary calls to skb_is_gso_sctp
+Date: Thu, 23 May 2024 18:54:44 +0200
+Message-ID: <20240523165445.24016-1-iluceno@suse.de>
+X-Mailer: git-send-email 2.44.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240523145058.747280-1-michaelestner@web.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Spam-Flag: NO
+X-Spam-Score: -3.30
+X-Spam-Level: 
+X-Spamd-Result: default: False [-3.30 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	MID_CONTAINS_FROM(1.00)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	ARC_NA(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	RCPT_COUNT_SEVEN(0.00)[10];
+	RCVD_TLS_ALL(0.00)[];
+	FUZZY_BLOCKED(0.00)[rspamd.com];
+	TO_DN_SOME(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FROM_EQ_ENVFROM(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.com:email,netfilter.org:email,suse.de:email]
 
-On Thu, May 23, 2024 at 04:50:58PM +0200, Michael Estner wrote:
-> Remove obsolet FIXME since struct ebt_entry has no flags var.
-> Update the debug output.
+In the context of the SCTP SNAT/DNAT handler, these calls can only
+return true.
 
-It never had, but there's bitmask and I wonder if it should compare
-those values instead.
+Ref: e10d3ba4d434 ("ipvs: Fix checksumming on GSO of SCTP packets")
+Signed-off-by: Ismael Luceno <iluceno@suse.de>
+CC: Pablo Neira Ayuso <pablo@netfilter.org>
+CC: Michal Kubeček <mkubecek@suse.com>
+CC: Simon Horman <horms@verge.net.au>
+CC: Julian Anastasov <ja@ssi.bg>
+CC: lvs-devel@vger.kernel.org
+CC: netfilter-devel@vger.kernel.org
+CC: netdev@vger.kernel.org
+CC: coreteam@netfilter.org
+---
+ net/netfilter/ipvs/ip_vs_proto_sctp.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Cheers, Phil
+diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+index 1e689c714127..83e452916403 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+@@ -126,7 +126,7 @@ sctp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 	if (sctph->source != cp->vport || payload_csum ||
+ 	    skb->ip_summed == CHECKSUM_PARTIAL) {
+ 		sctph->source = cp->vport;
+-		if (!skb_is_gso(skb) || !skb_is_gso_sctp(skb))
++		if (!skb_is_gso(skb))
+ 			sctp_nat_csum(skb, sctph, sctphoff);
+ 	} else {
+ 		skb->ip_summed = CHECKSUM_UNNECESSARY;
+@@ -175,7 +175,7 @@ sctp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 	    (skb->ip_summed == CHECKSUM_PARTIAL &&
+ 	     !(skb_dst(skb)->dev->features & NETIF_F_SCTP_CRC))) {
+ 		sctph->dest = cp->dport;
+-		if (!skb_is_gso(skb) || !skb_is_gso_sctp(skb))
++		if (!skb_is_gso(skb))
+ 			sctp_nat_csum(skb, sctph, sctphoff);
+ 	} else if (skb->ip_summed != CHECKSUM_PARTIAL) {
+ 		skb->ip_summed = CHECKSUM_UNNECESSARY;
+-- 
+2.44.0
+
