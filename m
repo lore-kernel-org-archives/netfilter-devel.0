@@ -1,69 +1,67 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 20197125AC;
-	Thu, 23 May 2024 15:51:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A692FE545;
+	Thu, 23 May 2024 16:20:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716479503; cv=none; b=aM8UGmyieodeg/nt9tznVqeuIBUzk1LmbpqbqQhVVRhV+nxK3FMPn6JFQWClHqeAaABRVohal43RHu7n2+4iLxRHqGlH0XSkc+SucIFLpQicwYijr5Q9dMNKuaYrKbuQ2z0c0mp+g+L1RrP48YPUgmmOTF0y+YYo8wkKFrItpYw=
+	t=1716481227; cv=none; b=r3cy7r9hqCgfHaiCNuzcrdspICQx3IoZ05Iv8jEtWLfWOEVRjb4iZp7QYHzIusNlQjK2YHaXcN/5T1WDp3/vkhPzT1sD2y/5ZuyNmhp5y59PJreI1lJueWv7Xf+AzCRqSfUrWQpGCq+GiZ6VRBBddHQ1gurW1QqK4949lDHvwEQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716479503; c=relaxed/simple;
-	bh=c+omJLXIaKohFU40Ei43xY+PMLmF+0y9NVZRG4jJmi0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=OhWIh/8eEgdPgg6UQHWhrPEimNRKBXdx5mtpVGJE1wzZ3kQ8mwEkxBxdmMKXOmkSaW+Jb3pCfL9sZzZS8KqVXjBKGEy5493UXQgoLAlVIPxnYmmt5xzCyvMwcYBNcxKgQDgV6PS5p2Ws1pGDN+/BGSnpoLP/e0kZUTRRXV4Hudk=
+	s=arc-20240116; t=1716481227; c=relaxed/simple;
+	bh=GZugc6t/TGMb0kkCWihZjQHCum1izVwaDyo4kbG/SYc=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=HcfMRkL4QO4Oj3NpQX1Tsvxj0U2zkGHe48FDTd+ZrVmGAJ9avCefLWBQp8VTDUNCwPrCADCCa00X7/w9tWNO3Zo7b0PAnoRYMrplFpCH4mlG94ZPjQ6JE1dcg7/T1QlcBxlbfdvTXfXQo6m4pRsqJ10oIuZrYVds2Onr440bzGM=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Date: Thu, 23 May 2024 17:51:36 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Lorenzo Bianconi <lorenzo@kernel.org>
-Cc: bpf@vger.kernel.org, kadlec@netfilter.org, davem@davemloft.net,
-	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	ast@kernel.org, daniel@iogearbox.net, andrii@kernel.org,
-	martin.lau@linux.dev, eddyz87@gmail.com,
-	lorenzo.bianconi@redhat.com, toke@redhat.com, fw@strlen.de,
-	hawk@kernel.org, horms@kernel.org, donhunte@redhat.com,
-	memxor@gmail.com
-Subject: Re: [PATCH v3 bpf-next 1/3] netfilter: nf_tables: add flowtable map
- for xdp offload
-Message-ID: <Zk9mCJIqMoWopQaA@calendula>
-References: <cover.1716465377.git.lorenzo@kernel.org>
- <1925643414ddbea91659007826fd829f8aa56864.1716465377.git.lorenzo@kernel.org>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de
+Subject: [PATCH net 2/6] netfilter: ipset: Add list flush to cancel_gc
+Date: Thu, 23 May 2024 18:20:15 +0200
+Message-Id: <20240523162019.5035-3-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20240523162019.5035-1-pablo@netfilter.org>
+References: <20240523162019.5035-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <1925643414ddbea91659007826fd829f8aa56864.1716465377.git.lorenzo@kernel.org>
+Content-Transfer-Encoding: 8bit
 
-Hi Lorenzo,
+From: Alexander Maltsev <keltar.gw@gmail.com>
 
-On Thu, May 23, 2024 at 02:06:16PM +0200, Lorenzo Bianconi wrote:
-> From: Florian Westphal <fw@strlen.de>
-> 
-> This adds a small internal mapping table so that a new bpf (xdp) kfunc
-> can perform lookups in a flowtable.
-> 
-> As-is, xdp program has access to the device pointer, but no way to do a
-> lookup in a flowtable -- there is no way to obtain the needed struct
-> without questionable stunts.
-> 
-> This allows to obtain an nf_flowtable pointer given a net_device
-> structure.
-> 
-> In order to keep backward compatibility, the infrastructure allows the
-> user to add a given device to multiple flowtables, but it will always
-> return the first added mapping performing the lookup since it assumes
-> the right configuration is 1:1 mapping between flowtables and net_devices.
+Flushing list in cancel_gc drops references to other lists right away,
+without waiting for RCU to destroy list. Fixes race when referenced
+ipsets can't be destroyed while referring list is scheduled for destroy.
 
-Would it be possible to move this new code in _offload.c to
-nf_flow_table_xdp.c?
+Fixes: 97f7cf1cd80e ("netfilter: ipset: fix performance regression in swap operation")
+Signed-off-by: Alexander Maltsev <keltar.gw@gmail.com>
+Acked-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/ipset/ip_set_list_set.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-The flowtable offload code is already a bit convoluted, the hardware
-offload API for payload matching results in chatty with many sparse
-warnings (unless I adds casting everywhere), but I remember I failed
-to provide a convincing improvements on that front without requiring
-changes to drivers at the time. This is of course no related to this
-series.
+diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+index 6c3f28bc59b3..54e2a1dd7f5f 100644
+--- a/net/netfilter/ipset/ip_set_list_set.c
++++ b/net/netfilter/ipset/ip_set_list_set.c
+@@ -549,6 +549,9 @@ list_set_cancel_gc(struct ip_set *set)
+ 
+ 	if (SET_WITH_TIMEOUT(set))
+ 		timer_shutdown_sync(&map->gc);
++
++	/* Flush list to drop references to other ipsets */
++	list_set_flush(set);
+ }
+ 
+ static const struct ip_set_type_variant set_variant = {
+-- 
+2.30.2
+
