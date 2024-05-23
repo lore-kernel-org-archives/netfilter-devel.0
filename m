@@ -1,173 +1,146 @@
-Received: from mail-ed1-f48.google.com (mail-ed1-f48.google.com [209.85.208.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB67046AF
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 May 2024 08:37:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37F8713CFA2
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 May 2024 09:26:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716453464; cv=none; b=P5bTxT27UjuZP0cYwYnxRfk1JR+lrgynvNCQej6olGriYnjrg6e2Ut2M2eIOOWF+R+XySaX4z/qLaejP1LWosnVAKjrm54S9EjLwV8nh+OHkh5AC9RJ0c1XEOrZWOzYeTLIcuQloMtQBTHnPClK1oSngo65N6qXn/NGPyWLX4H4=
+	t=1716456415; cv=none; b=NGW3tgCh6PeMeyhqRqa7vrjccivFGk8DsHrW12AICPbOsN7eazbfLuCgC8x+HAaC/wMqGGk9lzKRGtqXxA6QjRnzBXdeLEc7HMz6fvWyiKuk13a7JHbSSTdWpWpfqLvnYjzH5apNXD4IkLKOpgdNnybiq6szbqIFGyheCIusM94=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716453464; c=relaxed/simple;
-	bh=88MhsEGVC7kvYQOJqO5nLZ4WbgjgQEMHgzccSF8VDlc=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=mS4zo/ULAUAO/HMhLgqQbwDjvT+QvED5JOpuahebp9MyLGqOu6tZIZwuLqg3XdncFOtuQkpJ1hKpxY1TyxrGE62phMzpCBfaQuj42tcPnJM5TlXvJwA1FcQ+sOMPG2LKA9MRbLKoKIA75StGeJ/UyYNOJ2ZKsIV0BoR+bKeoAj8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jftEyOEC; arc=none smtp.client-ip=209.85.208.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1716456415; c=relaxed/simple;
+	bh=JAYFrGgwYS8HfWrSnz/neCHT8hu2MGuUU/8snl7KE+o=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=sKi9idaBiQ6o65XP6BzVow//WE6FwuU4gJNRZJR/xnI3EcYpLsyrbTHS0qEwGFVn1LpWvBZI1EBAKMWM+w/nhNJP+UfbO7m6Xu1QUxaLV4Nz3J+z8Po9fLxpB5A2pL2zS9MvIr9OviI34KTsn/pEXndAOIDUvV2r+b3vCsnENcE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=ejU5X3O7; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jftEyOEC"
-Received: by mail-ed1-f48.google.com with SMTP id 4fb4d7f45d1cf-571ba432477so12832292a12.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 May 2024 01:37:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1716453460; x=1717058260; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=UGOh/A51V14tXc2+JQMaqimlRjEbQOh88ES0RfZJAHU=;
-        b=jftEyOECfLTfVtzDXDH8SPyJquZXwLD/5Svvbpw4NRKTgUAJpgEAnqwy9VIMsrMBBQ
-         T+X0US7AglTH6LLxbbrPw0ldANBRmdJ6UI3MLzyV0JbODs3Px4yzHMVPjGvlr6pz1bf+
-         Xg6iwXm3xLBlfjh9OB/mAmPPrX3X0FZn7SqWvlwzWpaB/tI4or7vYR8PvomqGvnfKJJW
-         KTHzU/7173rumUg2VPb/cqxWzRr22v6OChtIUfAeGDcXdjUWYbEktOcBQrNlH7iZO6My
-         k0kYHn5BlSCKbwMeF+2tj/jDKWKecwNDoEIarlRgg4AKdZB5hn4kC0jvVhvOrWqh4QUk
-         +x6Q==
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ejU5X3O7"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1716456412;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=HKdhJA1OuoIvsTtBmTZlDesLkRNCmxNuqAHFhZzRfDI=;
+	b=ejU5X3O7EF/n4Hstxya8JthB2931BPkpyicaJZNvUXofb0RrPk3y/ofkj4mBYkxCfnyXh8
+	RBIXmjUPwGFmNTZSHEeSsmZi8v3WfoLFErQtRjkyR2VMMkSJIHxQYRy5+31x/cD4oin8dj
+	U+PgrZI8o4au8/CD89EM8/Y+2EXjOFY=
+Received: from mail-wr1-f70.google.com (mail-wr1-f70.google.com
+ [209.85.221.70]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-391-DX2UfksrOImk6NBJ7YchHA-1; Thu, 23 May 2024 05:26:48 -0400
+X-MC-Unique: DX2UfksrOImk6NBJ7YchHA-1
+Received: by mail-wr1-f70.google.com with SMTP id ffacd0b85a97d-34e079eca20so1798179f8f.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 May 2024 02:26:48 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1716453460; x=1717058260;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=UGOh/A51V14tXc2+JQMaqimlRjEbQOh88ES0RfZJAHU=;
-        b=OFyDLNb1xn90cV139WkKqX4k3lG58hj0AGRtWMlsldi9opVR3Qx/dNkz8M/vZ5duBN
-         m+Eyb1wncMfIIVjfU5JfaxxqftWdCAInpFdzWc8AvvnAa801tlw33+DBJ7GO1eKrYmqx
-         BFhbFa4zNyyt140XcfWqJdjUb1T8kFPD3OTHnYnx3euy+8y1nD6OTuyIBUNx2qLWjpBT
-         fFBlYiOZKNW+JGrHJxiUJvGazCpIYMwbKow+yus0uCrv6aEfu8Yufq7EWXJhZ4nbOKg0
-         LxUEngIXOpWjXlQ1lWdcTgiDO4JolR/OAF2bbH4fMAtxbjG0fttjN12gkeQx+HUOUlN1
-         crvw==
-X-Gm-Message-State: AOJu0Yy7tuYZAdGKbqljmEt1OX8BEz33aNaczWb69ja//MQu11tPl4PL
-	K6ysm3vP/AKP1Cde88657SXIPCLe3pILZdwucYxeLO9Ru3mAzv04rSbQOTZ7vP+9a0nZVk3ALb/
-	VKd0iS4AUXQB6rTM5SGvuIOXlTcA=
-X-Google-Smtp-Source: AGHT+IFKrtf3tfkLdm0xOUNLvnRkyyLJkNy3lBOMZnIpnFsjdqMHms/DO97v5ocL78Uw+dmKO9t0fc3WXnLtEKv5twI=
-X-Received: by 2002:a50:9e2e:0:b0:572:7c99:a280 with SMTP id
- 4fb4d7f45d1cf-578329e295cmr2869289a12.15.1716453459926; Thu, 23 May 2024
- 01:37:39 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1716456407; x=1717061207;
+        h=mime-version:user-agent:content-transfer-encoding:autocrypt
+         :references:in-reply-to:date:cc:to:from:subject:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=HKdhJA1OuoIvsTtBmTZlDesLkRNCmxNuqAHFhZzRfDI=;
+        b=Rk4ETAJsNnwvABJ/46pys/NOJnzjEujMP2GG5GLIwEzc+GKRpxD7kegviu8lMNISwh
+         bHwzJ6a/ebKLItsXD5CEKJhPqDQIOxHUAjWcP0SM04mEkHaCiq80fKFVM6l+KdE82jnu
+         pYrlLSWMViIFHqXNuDVjU/kM5ia5gTiLYrRZrAYjk+x2T98sRTnn6XK3aKUOB55b1GBj
+         XygUw1ZfWB/MloyZSdb/dW2u7auhPeECzoK4yCV2vBk77V1Zdj7gjynhtpouI00cvuzd
+         UEgK4eqer0ukAMqT48jMt+8qzy/WSP2SAmdtmqsn+an24IVsZyUYAsNEoyhXGUZk7Iy5
+         tD4A==
+X-Forwarded-Encrypted: i=1; AJvYcCWq8wU1FKyhVNGL0NrMT4kMYXN/ZjgRh6v3Y3saKrenZIDAGZCAcWaP9DBehvr1PXgpp6P+45erP+gmsZSBrphG/txAJOJBDPz7lWIuKzvj
+X-Gm-Message-State: AOJu0Yw8FsTKs5MQGOijnIsvxGlsf95A1dwO/YHGDK4K1LYezLSjKuIt
+	OSbRCD9W6e8ayblvAFlobqedWvNgOYx4pBSaTMtRok42olRqai2chwIMsQnzPzaMO+JBfW1d2QZ
+	dBY5LsO+2g45p6m0wEYrYzMfOFH+YdKMfjFGAzNHwMLXCPQsn0PSnbE0j6ItPQGC/XQ==
+X-Received: by 2002:adf:eac5:0:b0:354:c3c0:e601 with SMTP id ffacd0b85a97d-354d8bb2529mr3233950f8f.0.1716456407656;
+        Thu, 23 May 2024 02:26:47 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IHWcnLVYix1DRW7sXtNhoy2PeZnLMyU+nMP7RUVXyrj7h2EIeXu2Vz7KmipixkDTbIXF34p4A==
+X-Received: by 2002:adf:eac5:0:b0:354:c3c0:e601 with SMTP id ffacd0b85a97d-354d8bb2529mr3233928f8f.0.1716456407260;
+        Thu, 23 May 2024 02:26:47 -0700 (PDT)
+Received: from gerbillo.redhat.com ([2a0d:3341:b094:ab10:29ae:cdc:4db4:a22a])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-354fc599876sm591264f8f.10.2024.05.23.02.26.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 23 May 2024 02:26:46 -0700 (PDT)
+Message-ID: <e20cde161e014616d0b4969f2bec22cd80ca2c5a.camel@redhat.com>
+Subject: Re: [PATCH net 4/6] netfilter: nft_payload: skbuff vlan metadata
+ mangle support
+From: Paolo Abeni <pabeni@redhat.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org, 
+	edumazet@google.com, fw@strlen.de
+Date: Thu, 23 May 2024 11:26:45 +0200
+In-Reply-To: <20240522231355.9802-5-pablo@netfilter.org>
+References: <20240522231355.9802-1-pablo@netfilter.org>
+	 <20240522231355.9802-5-pablo@netfilter.org>
+Autocrypt: addr=pabeni@redhat.com; prefer-encrypt=mutual; keydata=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
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.50.4 (3.50.4-1.fc39) 
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CALMA0xYY-QzN+gbPTxNw3TJt3Rvm-vkN1yb4MgHs1Ey4TuEURw@mail.gmail.com>
- <02acedac-3ec3-8b2c-0f27-30cf135be5de@netfilter.org>
-In-Reply-To: <02acedac-3ec3-8b2c-0f27-30cf135be5de@netfilter.org>
-From: Zhixu Liu <zhixu.liu@gmail.com>
-Date: Thu, 23 May 2024 16:37:03 +0800
-Message-ID: <CALMA0xZ9y-oU1tNXK8BNHtN_FyqKuerkAGFvuRB1pfraMG=cdA@mail.gmail.com>
-Subject: Re: [PATCH] fix json output format for IPSET_OPT_IP
-To: Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Content-Type: multipart/mixed; boundary="000000000000c0d11206191af65f"
 
---000000000000c0d11206191af65f
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On Thu, 2024-05-23 at 01:13 +0200, Pablo Neira Ayuso wrote:
+> @@ -801,21 +801,79 @@ struct nft_payload_set {
+>  	u8			csum_flags;
+>  };
+> =20
+> +/* This is not struct vlan_hdr. */
+> +struct nft_payload_vlan_hdr {
+> +        __be16          h_vlan_proto;
+> +        __be16          h_vlan_TCI;
+> +};
+> +
+> +static bool
+> +nft_payload_set_vlan(const u32 *src, struct sk_buff *skb, u8 offset, u8 =
+len,
+> +		     int *vlan_hlen)
+> +{
+> +	struct nft_payload_vlan_hdr *vlanh;
+> +	__be16 vlan_proto;
+> +	__be16 vlan_tci;
+> +
+> +	if (offset >=3D offsetof(struct vlan_ethhdr, h_vlan_encapsulated_proto)=
+) {
+> +		*vlan_hlen =3D VLAN_HLEN;
+> +		return true;
+> +	}
+> +
+> +	switch (offset) {
+> +	case offsetof(struct vlan_ethhdr, h_vlan_proto):
+> +		if (len =3D=3D 2) {
+> +			vlan_proto =3D nft_reg_load16(src);
 
-Thanks, please see attachment for the updated patch.
+I'm sorry but the above introduces build warning due to endianess
+mismatch (host -> be)
 
-Jozsef Kadlecsik <kadlec@netfilter.org> =E4=BA=8E2024=E5=B9=B45=E6=9C=8823=
-=E6=97=A5=E5=91=A8=E5=9B=9B 15:09=E5=86=99=E9=81=93=EF=BC=9A
->
-> Hello,
->
-> On Mon, 20 May 2024, Zhixu Liu wrote:
->
-> > It should be quoted to be a well formed json file, otherwise see follow=
-ing
-> > bad example (range is not quoted):
-> >
-> >   # ipset create foo bitmap:ip range 192.168.0.0/16
-> >   # ipset list -o json foo
-> >   [
-> >     {
-> >       "name" : "foo",
-> >       "type" : "bitmap:ip",
-> >       "revision" : 3,
-> >       "header" : {
-> >         "range" : 192.168.0.0-192.168.255.255,
-> >         "memsize" : 8280,
-> >         "references" : 0,
-> >         "numentries" : 0
-> >       },
-> >       "members" : [
-> >       ]
-> >     }
-> >   ]
->
-> Thank you your patch. Please rework it and use a quoted buffer similarly
-> to ipset_print_hexnumber() in order to avoid the many "if (env &
-> IPSET_ENV_QUOTED)" constructs.
->
-> Best regards,
-> Jozsef
-> --
-> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-> PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-> Address : Wigner Research Centre for Physics
->           H-1525 Budapest 114, POB. 49, Hungary
+> +			skb->vlan_proto =3D vlan_proto;
+> +		} else if (len =3D=3D 4) {
+> +			vlanh =3D (struct nft_payload_vlan_hdr *)src;
+> +			__vlan_hwaccel_put_tag(skb, vlanh->h_vlan_proto,
+> +					       ntohs(vlanh->h_vlan_TCI));
+> +		} else {
+> +			return false;
+> +		}
+> +		break;
+> +	case offsetof(struct vlan_ethhdr, h_vlan_TCI):
+> +		if (len !=3D 2)
+> +			return false;
+> +
+> +		vlan_tci =3D ntohs(nft_reg_load16(src));
+
+Similar things here htons() expect a be short int and is receiving a
+u16, vlan_tci is 'be' and the assigned data uses host endianess.
 
 
+Could you please address the above?
 
---=20
-Z. Liu
+Thanks!
 
---000000000000c0d11206191af65f
-Content-Type: application/octet-stream; 
-	name="0001-ipset-fix-json-output-format-for-IPSET_OPT_IP.patch"
-Content-Disposition: attachment; 
-	filename="0001-ipset-fix-json-output-format-for-IPSET_OPT_IP.patch"
-Content-Transfer-Encoding: base64
-Content-ID: <f_lwizz8e80>
-X-Attachment-Id: f_lwizz8e80
+Paolo
 
-RnJvbSBmOGRiNTUzNDVlYTkyZjRmNzdlYmI3ZTIyZjJhN2RiODM4OTU2NWUwIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiAiWi4gTGl1IiA8bGl1enhAa25vd25zZWMuY29tPgpEYXRlOiBN
-b24sIDIwIE1heSAyMDI0IDIyOjIzOjQwICswODAwClN1YmplY3Q6IFtQQVRDSCAxLzFdIGlwc2V0
-OiBmaXgganNvbiBvdXRwdXQgZm9ybWF0IGZvciBJUFNFVF9PUFRfSVAKCklQU0VUX09QVF9JUCBz
-aG91bGQgYmUgcXVvdGVkIHRvIGJlIGEgd2VsbCBmb3JtZWQganNvbiBmaWxlLCBvdGhlcndpc2Ug
-c2VlCmZvbGxvd2luZyBiYWQgZXhhbXBsZSAocmFuZ2UgaXMgbm90IHF1b3RlZCk6CgogICMgaXBz
-ZXQgY3JlYXRlIGZvbyBiaXRtYXA6aXAgcmFuZ2UgMTkyLjE2OC4wLjAvMTYKICAjIGlwc2V0IGxp
-c3QgLW8ganNvbiBmb28KICBbCiAgICB7CiAgICAgICJuYW1lIiA6ICJmb28iLAogICAgICAidHlw
-ZSIgOiAiYml0bWFwOmlwIiwKICAgICAgInJldmlzaW9uIiA6IDMsCiAgICAgICJoZWFkZXIiIDog
-ewogICAgICAgICJyYW5nZSIgOiAxOTIuMTY4LjAuMC0xOTIuMTY4LjI1NS4yNTUsCiAgICAgICAg
-Im1lbXNpemUiIDogODI4MCwKICAgICAgICAicmVmZXJlbmNlcyIgOiAwLAogICAgICAgICJudW1l
-bnRyaWVzIiA6IDAKICAgICAgfSwKICAgICAgIm1lbWJlcnMiIDogWwogICAgICBdCiAgICB9CiAg
-XQoKU2lnbmVkLW9mZi1ieTogWi4gTGl1IDxsaXV6eEBrbm93bnNlYy5jb20+Ci0tLQogbGliL3By
-aW50LmMgfCAxNyArKysrKysrKysrKysrKy0tLQogMSBmaWxlIGNoYW5nZWQsIDE0IGluc2VydGlv
-bnMoKyksIDMgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvbGliL3ByaW50LmMgYi9saWIvcHJp
-bnQuYwppbmRleCA2ZWE3OWNiLi4zODA2ZTFjIDEwMDY0NAotLS0gYS9saWIvcHJpbnQuYworKysg
-Yi9saWIvcHJpbnQuYwpAQCAtMjYxLDYgKzI2MSw3IEBAIGlwc2V0X3ByaW50X2lwKGNoYXIgKmJ1
-ZiwgdW5zaWduZWQgaW50IGxlbiwKIAl1aW50OF90IGZhbWlseSwgY2lkcjsKIAlpbnQgZmxhZ3Ms
-IHNpemUsIG9mZnNldCA9IDA7CiAJZW51bSBpcHNldF9vcHQgY2lkcm9wdDsKKwljb25zdCBjaGFy
-ICpxdW90ZWQgPSBlbnYgJiBJUFNFVF9FTlZfUVVPVEVEID8gIlwiIiA6ICIiOwogCiAJYXNzZXJ0
-KGJ1Zik7CiAJYXNzZXJ0KGxlbiA+IDApOwpAQCAtMjc3LDIwICsyNzgsMjYgQEAgaXBzZXRfcHJp
-bnRfaXAoY2hhciAqYnVmLCB1bnNpZ25lZCBpbnQgbGVuLAogCQljaWRyID0gZmFtaWx5ID09IE5G
-UFJPVE9fSVBWNiA/IDEyOCA6IDMyOwogCWZsYWdzID0gKGVudiAmIElQU0VUX0VOVl9SRVNPTFZF
-KSA/IDAgOiBOSV9OVU1FUklDSE9TVDsKIAorCXNpemUgPSBzbnByaW50ZihidWYsIGxlbiwgIiVz
-IiwgcXVvdGVkKTsKKwlTTlBSSU5URl9GQUlMVVJFKHNpemUsIGxlbiwgb2Zmc2V0KTsKKwogCWlw
-ID0gaXBzZXRfZGF0YV9nZXQoZGF0YSwgb3B0KTsKIAlhc3NlcnQoaXApOwogCWlmIChmYW1pbHkg
-PT0gTkZQUk9UT19JUFY0KQotCQlzaXplID0gc25wcmludGZfaXB2NChidWYsIGxlbiwgZmxhZ3Ms
-IGlwLCBjaWRyKTsKKwkJc2l6ZSA9IHNucHJpbnRmX2lwdjQoYnVmICsgb2Zmc2V0LCBsZW4sIGZs
-YWdzLCBpcCwgY2lkcik7CiAJZWxzZSBpZiAoZmFtaWx5ID09IE5GUFJPVE9fSVBWNikKLQkJc2l6
-ZSA9IHNucHJpbnRmX2lwdjYoYnVmLCBsZW4sIGZsYWdzLCBpcCwgY2lkcik7CisJCXNpemUgPSBz
-bnByaW50Zl9pcHY2KGJ1ZiArIG9mZnNldCwgbGVuLCBmbGFncywgaXAsIGNpZHIpOwogCWVsc2UK
-IAkJcmV0dXJuIC0xOwogCUQoInNpemUgJWksIGxlbiAldSIsIHNpemUsIGxlbik7CiAJU05QUklO
-VEZfRkFJTFVSRShzaXplLCBsZW4sIG9mZnNldCk7CiAKIAlEKCJsZW46ICV1LCBvZmZzZXQgJXUi
-LCBsZW4sIG9mZnNldCk7Ci0JaWYgKCFpcHNldF9kYXRhX3Rlc3QoZGF0YSwgSVBTRVRfT1BUX0lQ
-X1RPKSkKKwlpZiAoIWlwc2V0X2RhdGFfdGVzdChkYXRhLCBJUFNFVF9PUFRfSVBfVE8pKSB7CisJ
-CXNpemUgPSBzbnByaW50ZihidWYgKyBvZmZzZXQsIGxlbiwgIiVzIiwgcXVvdGVkKTsKKwkJU05Q
-UklOVEZfRkFJTFVSRShzaXplLCBsZW4sIG9mZnNldCk7CiAJCXJldHVybiBvZmZzZXQ7CisJfQog
-CiAJc2l6ZSA9IHNucHJpbnRmKGJ1ZiArIG9mZnNldCwgbGVuLCAiJXMiLCBJUFNFVF9SQU5HRV9T
-RVBBUkFUT1IpOwogCVNOUFJJTlRGX0ZBSUxVUkUoc2l6ZSwgbGVuLCBvZmZzZXQpOwpAQCAtMzA0
-LDYgKzMxMSwxMCBAQCBpcHNldF9wcmludF9pcChjaGFyICpidWYsIHVuc2lnbmVkIGludCBsZW4s
-CiAJCXJldHVybiAtMTsKIAogCVNOUFJJTlRGX0ZBSUxVUkUoc2l6ZSwgbGVuLCBvZmZzZXQpOwor
-CisJc2l6ZSA9IHNucHJpbnRmKGJ1ZiArIG9mZnNldCwgbGVuLCAiJXMiLCBxdW90ZWQpOworCVNO
-UFJJTlRGX0ZBSUxVUkUoc2l6ZSwgbGVuLCBvZmZzZXQpOworCiAJcmV0dXJuIG9mZnNldDsKIH0K
-IAotLSAKMi40My4yCgo=
---000000000000c0d11206191af65f--
+
+
