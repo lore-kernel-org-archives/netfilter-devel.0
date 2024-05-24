@@ -1,111 +1,144 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-f174.google.com (mail-oi1-f174.google.com [209.85.167.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8125BAD2C;
-	Thu, 23 May 2024 17:06:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDE0E763E4
+	for <netfilter-devel@vger.kernel.org>; Fri, 24 May 2024 05:37:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716484001; cv=none; b=Ll1oNsnxpjZUbOh7CZsTVI0DuZS+t9NC46WVsy8vk2QA193IHTO3uQgQtXX2d/7aQG8Cq7qIPQFUOktKQuvBSlyLJqyEA1lVlGeNkQGjXPwg9cq85Pk1LxMjX5gazFS1FNgiFxWn9qOQ8zTlREiIkVZf0XU30z5j1xBT3UTu7ZQ=
+	t=1716529071; cv=none; b=awnvc7TlaL17f7WnYQKRYJCMTAkRxMSF/4iQciiKs2o0QOHbR6PXTwkjG80dSDOFe0gbB9GEEi+gxVEix2ZYJ9fUApHD21d0B+PM4YHGEYbR2632ZBlrtpXnAy6EW7IqIDUkYZ8XNoCir8yLsmrBgsd5S8WQJAgDM1omQhPpKU4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716484001; c=relaxed/simple;
-	bh=aFq6+NRWbFnR4Chabf4DjhwoXgN0KJ7rz+7Lp933T0Q=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fEWr/GU21ZKWSf1vyV7vMbUr58nb/2nRQcC3Xg0EXFhAODb9cxyjOpyskoCUgE0azF92dXD5d2j/o7Bba9sGPghwOHqJ5Z1agT+xLyhi5VbVz60EBF2clKELMmwgwnt6BXTDxPBJls0dRH9Ag+bxFImIzwDSKINLeC6duOrDwPw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VJDQL6Jy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1716529071; c=relaxed/simple;
+	bh=tlS/im+etms+Lo0Y35tlKxjAEU4xvaqKGmvceLEKisc=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=UGofK0/jHatvk4s1aJY11kpvJUd8mRsn+2Lbg+RjfjXI0CMP7FuIpX8e48zLV010u2O4rw8FVooJzsz0OiYdCYeza8mElkkwQ1ePmLV0QjF3aZ3rcYP3IlRRITxSp8h/hgmpqJ7m2aMTycom4ETGaiNo+6uGVgVBuDfk7e7zPMg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ffRtSnH6; arc=none smtp.client-ip=209.85.167.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VJDQL6Jy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3B5CC2BD10;
-	Thu, 23 May 2024 17:06:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1716484001;
-	bh=aFq6+NRWbFnR4Chabf4DjhwoXgN0KJ7rz+7Lp933T0Q=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=VJDQL6JyTvs2vqBccgKxTSyJrDn2STDoAFs6hrNwRvgDFJIB4MPdit9gDsSrPbHF6
-	 jyyS0nsSO3WT/Lwv3l1xiu/PIEK2nBvgS7JH3AoGcuIWTt/CSJtSfUeaaJ7RL5gxaz
-	 DrTgOgCEwUmvk051ov/nZ0BxjWEhZiudv99Q/78pEoy9H77j4usL+XDIJFEasF83S2
-	 BwGOMQZTSK0Ui7slLVIs7X2GyNAubLQF5cWFmD/dm9aXZPICYmfygF40dep7wS5N28
-	 +t6UJfaEWxLg9MnBaadc17LArPabq4+JsmhmxLH4Jz/l1X0wBfUFmklUc73drVqFWf
-	 1qkCukvv/xuLA==
-Date: Thu, 23 May 2024 19:06:37 +0200
-From: Lorenzo Bianconi <lorenzo@kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: bpf@vger.kernel.org, kadlec@netfilter.org, davem@davemloft.net,
-	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	ast@kernel.org, daniel@iogearbox.net, andrii@kernel.org,
-	martin.lau@linux.dev, eddyz87@gmail.com,
-	lorenzo.bianconi@redhat.com, toke@redhat.com, fw@strlen.de,
-	hawk@kernel.org, horms@kernel.org, donhunte@redhat.com,
-	memxor@gmail.com
-Subject: Re: [PATCH v3 bpf-next 1/3] netfilter: nf_tables: add flowtable map
- for xdp offload
-Message-ID: <Zk93nVYfv09t6gLJ@lore-desk>
-References: <cover.1716465377.git.lorenzo@kernel.org>
- <1925643414ddbea91659007826fd829f8aa56864.1716465377.git.lorenzo@kernel.org>
- <Zk9mCJIqMoWopQaA@calendula>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ffRtSnH6"
+Received: by mail-oi1-f174.google.com with SMTP id 5614622812f47-3c9cc66c649so3927526b6e.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 May 2024 22:37:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1716529068; x=1717133868; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:sender:from:to:cc:subject:date:message-id:reply-to;
+        bh=PqCImmIgCl6ICqPAO0GX7TmOadr9EYMD24t89OwbqLE=;
+        b=ffRtSnH62Z4TOyASspXHV/JZ0xv2tp+WLXl8NPr7CDVXgF8se+cOz5+TXL/6diirdn
+         Nionfq0074j8w03RDsAz+OKQpKoz5nr0L+r6xx8URd4axdglmeFoikaHcKN59CGnUCKN
+         FpslcwfEQfI6jknT/fqZd12SD/shXt0dtvlZvIphV3dVGNBOfxoRKnXG+SReYj4GQtXD
+         sg+n5D3hv7LMyXoPgfJKY2jQGG1UV+DD+/Zcj+AMYNMV3kHia3yr6P54QiZF8+A0E4SU
+         4D0z7VcdluY9EnMOYd68s7+boBy6ucYkG7MV8j5QrsXEBXLld4I0uolggv+zWLXczvJ9
+         zO5w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1716529068; x=1717133868;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:sender:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=PqCImmIgCl6ICqPAO0GX7TmOadr9EYMD24t89OwbqLE=;
+        b=VcAQGN7nmGAazBHm2ep4+2PT/E+EdJAcTHKGEaIq4XUBavzYJcRrGWHSN4UU1pJh2j
+         /2ALWQh5n+cPJWUymlFiKnwzW5UcPiWrfCwUBC+uitgAoMSDROZMOp5n4y1arQvpXY7c
+         a9JUju1ZuKJscMpbPNSfb4/8fHKbrCUD9mGyvTw3TlsdRhhzeYEwWoA/FXAh3XKuvhqG
+         8xYqY3WQ+4iKA3DpV/TUAGzHdTgLwD2WHuIsIwJ1CQkJmFVMnOR7UfZtTgywXti1DpDG
+         l+uc844kDjfDL0HFEH0bhXuwswHa9FffYjhhCBfNMmvYhMN0GA3IpXmET0UexWjKz/Zh
+         Ql+Q==
+X-Gm-Message-State: AOJu0Yz8XKF1P+OWhlWfm1WOVwGW+iZLtpwZVr4GkKSw7yhIHDGam9Yb
+	vYOtwOMExS1dMLxXjVD/ro23j4IxVfvYQwz81k/pVinbZ4xupY65y0ceCQ==
+X-Google-Smtp-Source: AGHT+IGlnllf0FE3k93dixuwopAUzXwSj0kfnEohF1UQRkh8q0LbxAE6sqVLIuE6N6WtFqrj4mXt4A==
+X-Received: by 2002:a05:6808:274c:b0:3c9:6bbe:53a8 with SMTP id 5614622812f47-3d1a5f21ad8mr1461618b6e.27.1716529067805;
+        Thu, 23 May 2024 22:37:47 -0700 (PDT)
+Received: from slk15.local.net ([49.190.141.216])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-6f8fcbe9f61sm460374b3a.110.2024.05.23.22.37.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 23 May 2024 22:37:47 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From: Duncan Roe <duncan_roe@optusnet.com.au>
+To: netfilter-devel@vger.kernel.org
+Cc: pablo@netfilter.org
+Subject: [PATCH libnetfilter_queue v2 00/15] Convert libnetfilter_queue to not need libnfnetlink
+Date: Fri, 24 May 2024 15:37:27 +1000
+Message-Id: <20240524053742.27294-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.35.8
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="+QLTDrDmMdxPV0GQ"
-Content-Disposition: inline
-In-Reply-To: <Zk9mCJIqMoWopQaA@calendula>
+Content-Transfer-Encoding: 8bit
 
+The general method is to make the opaque struct nfq_handle contain fully
+populated libnfnetlink-style and libmnl-style handles.
+Patch 1 (nfq_open()) and patch 2 (nfq_open_nfnl()) sets this up.
+Patch 3 (nfq_close()) cleans it away.
+Patches 3-10 convert the other nfq_* functions that used to use
+  libnfnetlink, except for the nfq_get_*_name functions that need nlif.
+Patches 11-13 provide all the nlif_* functions that libnfnetlink used to
+  offer, converted to use libmnl.
+Patch 14 removes all use of and reference to header files provided by
+  libnfnetlink. It provides prototypes as required.
+Patch 15 removes libnfnetlink as a private library.
 
---+QLTDrDmMdxPV0GQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+There is a tester for this patchset at
+https://github.com/duncan-roe/nfqnltester
+Some of the tests require checking out different branches,
+e.g. for testing the effect of loading libraries in a diffrernt order.
+There is more info in the README. In particular I checked that nlif still
+works with -lnfnetlink coming first
+(app will use libnfnetlink's functions).
 
-> Hi Lorenzo,
->=20
-> On Thu, May 23, 2024 at 02:06:16PM +0200, Lorenzo Bianconi wrote:
-> > From: Florian Westphal <fw@strlen.de>
-> >=20
-> > This adds a small internal mapping table so that a new bpf (xdp) kfunc
-> > can perform lookups in a flowtable.
-> >=20
-> > As-is, xdp program has access to the device pointer, but no way to do a
-> > lookup in a flowtable -- there is no way to obtain the needed struct
-> > without questionable stunts.
-> >=20
-> > This allows to obtain an nf_flowtable pointer given a net_device
-> > structure.
-> >=20
-> > In order to keep backward compatibility, the infrastructure allows the
-> > user to add a given device to multiple flowtables, but it will always
-> > return the first added mapping performing the lookup since it assumes
-> > the right configuration is 1:1 mapping between flowtables and net_devic=
-es.
->=20
-> Would it be possible to move this new code in _offload.c to
-> nf_flow_table_xdp.c?
+The nlif functions sit a little uneasily in libnetfilter_queue.
+ulogd2 and conntrack-tools both use them so perhaps they would
+be better placed in libmnl.
+---
+ Changes in v2:
+ - 11/32 (Fix checkpatch whitespace and block comment warnings) is
+   subsumed into previous patches
+ - 22/32 becomes 14
+ - 21/32 becomes 15
+ - 12/32 & 17/32 become 11, but rtnl.c is not copied
+ - 14/32 & 16/32 become 12
+ - 19/32 & (some of) 32/32 become 13
+ - The only changes to linux_list.h are to fix or suppress checkpatch errors.
+   There is no attempt to document the circular linked list functions
+   and macros, so no changes to build_man.sh. That is how the rest of the
+   patches disappear.
+ - Other changes are documented in the individual patches
 
-ack, I will do in v4.
+Duncan Roe (15):
+  src: Convert nfq_open() to use libmnl
+  src: Convert nfq_open_nfnl() to use libmnl
+  src: Convert nfq_close() to use libmnl
+  src: Convert nfq_create_queue(), nfq_bind_pf() & nfq_unbind_pf() to
+    use libmnl
+  src: Convert nfq_set_queue_flags(), nfq_set_queue_maxlen() &
+    nfq_set_mode() to use libmnl
+  src: Convert nfq_handle_packet(), nfq_get_secctx(), nfq_get_payload()
+    and all the nfq_get_ functions to use libmnl
+  src: Convert nfq_set_verdict() and nfq_set_verdict2() to use libmnl if
+    there is no data
+  src: Incorporate nfnl_rcvbufsiz() in libnetfilter_queue
+  src: Convert nfq_fd() to use libmnl
+  src: Convert remaining nfq_* functions to use libmnl
+  src: Copy nlif-related files from libnfnetlink
+  doc: Add iftable.c to the doxygen system
+  src: Convert all nlif_* functions to use libmnl
+  include: Use libmnl.h instead of libnfnetlink.h
+  build: Remove libnfnetlink from the build
 
-Regards,
-Lorenzo
+ Make_global.am                                |   2 +-
+ configure.ac                                  |   1 -
+ doxygen/Makefile.am                           |   1 +
+ doxygen/doxygen.cfg.in                        |   6 +
+ .../libnetfilter_queue/libnetfilter_queue.h   |  38 +-
+ include/libnetfilter_queue/linux_list.h       | 730 ++++++++++++++++++
+ .../linux_nfnetlink_queue.h                   |   3 +-
+ libnetfilter_queue.pc.in                      |   2 -
+ src/Makefile.am                               |   3 +-
+ src/iftable.c                                 | 373 +++++++++
+ src/libnetfilter_queue.c                      | 543 ++++++++-----
+ 11 files changed, 1512 insertions(+), 190 deletions(-)
+ create mode 100644 include/libnetfilter_queue/linux_list.h
+ create mode 100644 src/iftable.c
 
->=20
-> The flowtable offload code is already a bit convoluted, the hardware
-> offload API for payload matching results in chatty with many sparse
-> warnings (unless I adds casting everywhere), but I remember I failed
-> to provide a convincing improvements on that front without requiring
-> changes to drivers at the time. This is of course no related to this
-> series.
+-- 
+2.35.8
 
---+QLTDrDmMdxPV0GQ
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCZk93nQAKCRA6cBh0uS2t
-rDJjAQCdP7SyEpHHjTb/gA3YXxC40XjL87kHX4+NvaBwp4O35QEA2jcw7VjCBkRW
-96iKq6LHPG1o8WOyTGVGs+86OoBJtgw=
-=+W5Y
------END PGP SIGNATURE-----
-
---+QLTDrDmMdxPV0GQ--
