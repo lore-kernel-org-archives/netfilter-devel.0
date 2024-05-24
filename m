@@ -1,63 +1,63 @@
-Received: from mail-pg1-f179.google.com (mail-pg1-f179.google.com [209.85.215.179])
+Received: from mail-pf1-f181.google.com (mail-pf1-f181.google.com [209.85.210.181])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4048184D11
-	for <netfilter-devel@vger.kernel.org>; Fri, 24 May 2024 05:38:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7AFD84DEB
+	for <netfilter-devel@vger.kernel.org>; Fri, 24 May 2024 05:38:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.181
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716529091; cv=none; b=Va0HPCZ2UHJy8+HHGZAT+ZqrkKKWjkzpHhkWoIJQxslGOg8lgKfwxnsmrzGwSKcujQ+9OssxVy8NuPPJF9EA0XtxP6TA9G63C141vctuahcTigOHgHVwO/eB83xnYW/jXT9I9H2J4K5Rp82OkmmNrnlIEoH0gXxxq7wAcRm9RCs=
+	t=1716529095; cv=none; b=EI4QNlS92/768/2MO3fUXe19PzD6xVmEyoasUTQnFeTjFGKZHGQziLsRYHZsziFafBlZxnXc3R3oBqw8FKH88S0s6ZJeVcylAtHDzgTymx52FtmJDROIILpqoMUNSbaeIp/UOusII997JD0P6XwMqyfSRiyWXgCDvAc67LzYtDE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716529091; c=relaxed/simple;
-	bh=fJs6ADc0gKqH0TlYdqzQxOJ5vlyVgunekpTcL2WwgpA=;
+	s=arc-20240116; t=1716529095; c=relaxed/simple;
+	bh=x3KcHBcdax96IN/Tjz5Tf0+Dt5SKrQFAdQngqMcC/0w=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=ibeA/cxT46vGu8Cfdmkn2iCSM3GPm/fJKaO7RBNmqMZ0n6ce3G94p6ujs0H/rFlrUS/c0z2oBzs4xfZAAHJQ9tJu3YSH5OvOjeXeVfYlKm7m7Nv+WzNlUl4C3pbGV9glQV3BmEx/Q66tHbx0kFYxdaCL2DCVrQHqfXqFuSnI1TY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hxBWBzxA; arc=none smtp.client-ip=209.85.215.179
+	 MIME-Version; b=W+4DdvNBrCVoE+iMSSgcrSMzz3wTL7Y+H4TVG/myZEk+ZZTFTZ+SKqoH7m44qgX2O08b35A3D0+IxLCaeBC7zmVHO/Zc8fdg3HfbbMId3QjRvqz9SpSBsRA9R5WwXfWsndHPlmQbtyIOxC6cCHqgyBMCZ055SuLqGIsELsTNCnU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EM4/6rEg; arc=none smtp.client-ip=209.85.210.181
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hxBWBzxA"
-Received: by mail-pg1-f179.google.com with SMTP id 41be03b00d2f7-681953ad4f2so416734a12.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 May 2024 22:38:10 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EM4/6rEg"
+Received: by mail-pf1-f181.google.com with SMTP id d2e1a72fcca58-6f8ec7e054dso358760b3a.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 May 2024 22:38:13 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1716529089; x=1717133889; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1716529093; x=1717133893; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=jzY2N2YVmt4iIeyenqo1Ylmjm4TD7eVnSjs8ysjF1Io=;
-        b=hxBWBzxAnSxJZJLd5SuZjN86b7gNQmTICPbmISbU64Goj/Ea06c3Tb3SS7I2Qrl5cU
-         seebRsI+OqWq2h981Cen86m8IgIV+YQhQwKNqiqvabCiF+M1TXBvJA6Fg7y0ioztWdqw
-         xopKZ7j2jZs518zMk/A5AeQsM6EbhDcbZK5KY+IgkrANOHD/ZUt/Ymj/4pHj7Qd8m1+k
-         sPC6Yyw7lRJBHzB5VQrQzLa4jnb9GFB+U56qG+MnBjrFPsEWRQo1wCJOq/NxFNAV+5fL
-         YtHec716HLUJgxE654C42LzAk6p6F6yuOmx8SonwpwGPZAFIkyJ8r+IE/hZyltyt+8VD
-         fR+g==
+        bh=J6MOJ7at8deTEk7SDAya3sab5LrvfIJZTyOavfIVR2E=;
+        b=EM4/6rEg5Hzlg7p32IIBe6vpdGKiZrMy/1dnKPLc22B+n23kM3awCO7i5W0hzuiGBb
+         o0x9RaDEF5BCgLc5guKmUKM64wZJxWQcWeOOwbWwaSSIiSIiuc/ttmGrX1HB4w2M0iGT
+         umDsrafSRuqiX1HVTLYo0TZYiL4nKRPxLT9y10E+IXJCoHuxRBbT6szbRzCwsxWF6uqa
+         /u8bk+exJNkq7HLk7rsj7MaZA/Mv/BToxfL5Ys82gmam2HFauXPoghsJfVzX/BC1x1ix
+         CxErlI8+TJ3DPeyzEzwYO7KvpT7rAmjnE6D7NS4NW4rkALqs9b0Z1y07fs0VrxfndPFe
+         ob1A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1716529089; x=1717133889;
+        d=1e100.net; s=20230601; t=1716529093; x=1717133893;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=jzY2N2YVmt4iIeyenqo1Ylmjm4TD7eVnSjs8ysjF1Io=;
-        b=izjU8PtYPRX5YTV2h9W7ast6OlEIff+7CWX3EbJ6MkMmCzhN5MiDwB/fNJ+tTjzcZm
-         V5qORwA+sS+J5EZJ6nQOUvnHwmYrRH3TrHFIZQJv/6zzexge+biI4O8xo+QF7y/LBRIa
-         d7bzzodF92ztwXjvGeHxz6nCvSwIibXts8pegU22VsM6Ffj8AklLoLNK1dTR/bdW+Zfp
-         wbSNnq7N7OLYWLwmsQVmMj6VYEQRn84qYcuHgkAgzBMJdtpu8TcwdlHvj81pHbQvgDOy
-         V4FOb/3gTy2fiDpFhmLTO0YnBZAy5Dav2okxlcx7EMmyan6ezBArtQQsjboLf7QDizNd
-         k3Nw==
-X-Gm-Message-State: AOJu0YyWZMGk3BEyqLkyK5nfRvufj2orO6/Dm9qkB/UqrFp9EBkbFdLn
-	baEOT+XK95J0UkJvMudpRg5oPdbTgIpn6KnnGRait3kb1yBS8yDaFXTIRQ==
-X-Google-Smtp-Source: AGHT+IEY1Zt2aLJ1QPfA+8IosLQKCrgxyUDI+KoxkC4oW/I/kUCAAHHVk/IAgqlArUx3W2mIVGKFUw==
-X-Received: by 2002:a05:6a21:1693:b0:1b2:184d:c19d with SMTP id adf61e73a8af0-1b2184dc329mr337379637.20.1716529089328;
-        Thu, 23 May 2024 22:38:09 -0700 (PDT)
+        bh=J6MOJ7at8deTEk7SDAya3sab5LrvfIJZTyOavfIVR2E=;
+        b=gLfAhzpNXDn92FeIhePS/lK2Pr+xj07ip4q0ABc6eCHg3oiQ9e77vv487hL+dWNL6L
+         IRI0J9t+VpVW0Twemj15QPtiWYwypx6V2JEut4zOmHfM/cNAWSKKXZkbuRFVKv5hiFe3
+         HGuj6jAPGvjoz2ohpy22ZYdKdUUyGTcZWCz/McHhF9Ner8UEiSbkvtABObkK1+2q7wl2
+         XQKJWCWVhd11BliHsA9WM+pYwwVblltm6+dE84coacH0Tqmr5ohyP/da6/lyFMBOTUPp
+         47mdx/FuMiP1rwYu7bCk9ObdRvf8OJ1km7/gLsdbXupjcuhnchn9E7ZMp7l2cI1/cIys
+         bUzQ==
+X-Gm-Message-State: AOJu0YwwArxds48sD5Vhxvu1Oc/v62CLRisdimcrF1IcOaOqEuwmujdF
+	I7HKJngb+6GMDybKEmHjnJxthJ/62QxDS/2z/XiL41Ido9vH8XDPpxc/TQ==
+X-Google-Smtp-Source: AGHT+IHSd1OnKzrUTyXumbKafz2KmQy1Z9Kn+q1+5oYyzsJPp17StkutzqKnFrJk1yHU5/VRO8XTig==
+X-Received: by 2002:a05:6a00:4c8b:b0:6ea:9252:435 with SMTP id d2e1a72fcca58-6f8f3d70f73mr1845891b3a.30.1716529093021;
+        Thu, 23 May 2024 22:38:13 -0700 (PDT)
 Received: from slk15.local.net ([49.190.141.216])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-6f8fcbe9f61sm460374b3a.110.2024.05.23.22.38.07
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-6f8fcbe9f61sm460374b3a.110.2024.05.23.22.38.11
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 23 May 2024 22:38:09 -0700 (PDT)
+        Thu, 23 May 2024 22:38:12 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From: Duncan Roe <duncan_roe@optusnet.com.au>
 To: netfilter-devel@vger.kernel.org
 Cc: pablo@netfilter.org
-Subject: [PATCH libnetfilter_queue v2 12/15] doc: Add iftable.c to the doxygen system
-Date: Fri, 24 May 2024 15:37:39 +1000
-Message-Id: <20240524053742.27294-13-duncan_roe@optusnet.com.au>
+Subject: [PATCH libnetfilter_queue v2 14/15] include: Use libmnl.h instead of libnfnetlink.h
+Date: Fri, 24 May 2024 15:37:41 +1000
+Message-Id: <20240524053742.27294-15-duncan_roe@optusnet.com.au>
 X-Mailer: git-send-email 2.35.8
 In-Reply-To: <20240524053742.27294-1-duncan_roe@optusnet.com.au>
 References: <20240524053742.27294-1-duncan_roe@optusnet.com.au>
@@ -69,177 +69,104 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-iftable.c has a usage description (moved from libnetfilter_queue.c),
-but is not yet converted to use libmnl.
+Add nlif_* prototypes and 64-bit converters to libnetfilter_queue.h.
+Update (deprecated) include/libnetfilter_queue/linux_nfnetlink_queue.h
+to use /usr/include/linux/nfnetlink.h
+instead of libnfnetlink/linux_nfnetlink.h
+As an aside, everything compiles fine with this line removed
+(i.e library, utils and examples all compile),
+so maybe we can do without it.
 
 Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
 ---
- v2: Created from patches 14/32 & 16/32
+ Changes in v2:
+ - This was patch 18 v1
+ - Update commit message:
+   - libnetfilter_queue.c has no libnfnetlink.h references
+     (removed in patch 6 v2).
+   - Incorporate patch 22 v1
 
- doxygen/Makefile.am      |  1 +
- doxygen/doxygen.cfg.in   |  2 ++
- src/iftable.c            | 49 ++++++++++++++++++++++++++++++++++++++++
- src/libnetfilter_queue.c | 38 ++++---------------------------
- 4 files changed, 56 insertions(+), 34 deletions(-)
+ .../libnetfilter_queue/libnetfilter_queue.h   | 36 ++++++++++++++++++-
+ .../linux_nfnetlink_queue.h                   |  3 +-
+ 2 files changed, 37 insertions(+), 2 deletions(-)
 
-diff --git a/doxygen/Makefile.am b/doxygen/Makefile.am
-index 68be963..a6cd83a 100644
---- a/doxygen/Makefile.am
-+++ b/doxygen/Makefile.am
-@@ -2,6 +2,7 @@ if HAVE_DOXYGEN
+diff --git a/include/libnetfilter_queue/libnetfilter_queue.h b/include/libnetfilter_queue/libnetfilter_queue.h
+index 9327f8c..46289f2 100644
+--- a/include/libnetfilter_queue/libnetfilter_queue.h
++++ b/include/libnetfilter_queue/libnetfilter_queue.h
+@@ -14,7 +14,7 @@
+ #define __LIBCTNETLINK_H
  
- doc_srcs = $(top_srcdir)/src/libnetfilter_queue.c\
-            $(top_srcdir)/src/nlmsg.c\
-+           $(top_srcdir)/src/iftable.c\
-            $(top_srcdir)/src/extra/checksum.c\
-            $(top_srcdir)/src/extra/ipv4.c\
-            $(top_srcdir)/src/extra/pktbuff.c\
-diff --git a/doxygen/doxygen.cfg.in b/doxygen/doxygen.cfg.in
-index fcfc045..bf6cba8 100644
---- a/doxygen/doxygen.cfg.in
-+++ b/doxygen/doxygen.cfg.in
-@@ -16,6 +16,8 @@ EXCLUDE_SYMBOLS        = EXPORT_SYMBOL \
-                          nfnl_handle \
-                          nfnl_subsys_handle \
-                          mnl_socket \
-+                         ifindex_node \
-+                         nlif_handle \
-                          nfnl_callback2 \
-                          tcp_flag_word
- EXAMPLE_PATTERNS       =
-diff --git a/src/iftable.c b/src/iftable.c
-index 4673001..9884a52 100644
---- a/src/iftable.c
-+++ b/src/iftable.c
-@@ -29,6 +29,55 @@
-  * \defgroup iftable Functions to manage a table of network interfaces
-  * These functions maintain a database of the name and flags of each
-  * network interface.
-+ *
-+ * Programs access an nlif database through an opaque __struct nlif_handle__
-+ * interface resolving handle. Call nlif_open() to get a handle:
-+ * \verbatim
-+	h = nlif_open();
-+	if (h == NULL) {
-+		perror("nlif_open");
-+		exit(EXIT_FAILURE);
-+	}
-+\endverbatim
-+ * Once the handler is open, you need to fetch the interface table at a
-+ * whole via a call to nlif_query.
-+ * \verbatim
-+	nlif_query(h);
-+\endverbatim
-+ * libnetfilter_queue is able to update the interface mapping
-+ * when a new interface appears.
-+ * To do so, you need to call nlif_catch() on the handler after each
-+ * interface related event. The simplest way to get and treat event is to run
-+ * a **select()** or **poll()** against the nlif and netilter_queue
-+ * file descriptors.
-+ * E.g. use nlif_fd() to get the nlif file descriptor, then give this fd to
-+ * **poll()** as in this code snippet (error-checking removed):
-+ * \verbatim
-+	if_fd = nlif_fd(h);
-+	qfd = mnl_socket_get_fd(nl); // For mnl API or ...
-+	qfd = nfq_fd(qh);            // For nfnl API
-+	. . .
-+	fds[0].fd = ifd;
-+	fds[0].events = POLLIN;
-+	fds[1].fd = qfd;
-+	fds[1].events = POLLIN;
-+	for(;;)
-+	{
-+		poll((struct pollfd *)&fds, 2, -1);
-+		if (fds[0].revents & POLLIN)
-+			nlif_catch(h);
-+\endverbatim
-+ * Don't forget to close the handler when you don't need the feature anymore:
-+ * \verbatim
-+	nlif_close(h);
-+\endverbatim
-+ *
-+ * \manonly
-+.SH SYNOPSIS
-+.nf
-+\fB
-+#include <libnetfilter_queue/libnetfilter_queue.h>
-+\endmanonly
-  * @{
-  */
+ #include <sys/time.h>
+-#include <libnfnetlink/libnfnetlink.h>
++#include <libmnl/libmnl.h>
  
-diff --git a/src/libnetfilter_queue.c b/src/libnetfilter_queue.c
-index ecdd144..970aea2 100644
---- a/src/libnetfilter_queue.c
-+++ b/src/libnetfilter_queue.c
-@@ -1324,34 +1324,7 @@ uint32_t nfq_get_physoutdev(struct nfq_data *nfad)
-  * \param name pointer to the buffer to receive the interface name;
-  *  not more than \c IFNAMSIZ bytes will be copied to it.
-  * \return -1 in case of error, >0 if it succeed.
-- *
-- * To use a nlif_handle, You need first to call nlif_open() and to open
-- * an handler. Don't forget to store the result as it will be used
-- * during all your program life:
-- * \verbatim
--	h = nlif_open();
--	if (h == NULL) {
--		perror("nlif_open");
--		exit(EXIT_FAILURE);
--	}
--\endverbatim
-- * Once the handler is open, you need to fetch the interface table at a
-- * whole via a call to nlif_query.
-- * \verbatim
--	nlif_query(h);
--\endverbatim
-- * libnfnetlink is able to update the interface mapping when a new interface
-- * appears. To do so, you need to call nlif_catch() on the handler after each
-- * interface related event. The simplest way to get and treat event is to run
-- * a select() or poll() against the nlif file descriptor. To get this file
-- * descriptor, you need to use nlif_fd:
-- * \verbatim
--	if_fd = nlif_fd(h);
--\endverbatim
-- * Don't forget to close the handler when you don't need the feature anymore:
-- * \verbatim
--	nlif_close(h);
--\endverbatim
-+ * \sa __nlif_open__(3)
-  *
-  */
- EXPORT_SYMBOL
-@@ -1370,9 +1343,8 @@ int nfq_get_indev_name(struct nlif_handle *nlif_handle,
-  * \param name pointer to the buffer to receive the interface name;
-  *  not more than \c IFNAMSIZ bytes will be copied to it.
-  *
-- * See nfq_get_indev_name() documentation for nlif_handle usage.
-- *
-  * \return  -1 in case of error, > 0 if it succeed.
-+ * \sa __nlif_open__(3)
-  */
- EXPORT_SYMBOL
- int nfq_get_physindev_name(struct nlif_handle *nlif_handle,
-@@ -1390,9 +1362,8 @@ int nfq_get_physindev_name(struct nlif_handle *nlif_handle,
-  * \param name pointer to the buffer to receive the interface name;
-  *  not more than \c IFNAMSIZ bytes will be copied to it.
-  *
-- * See nfq_get_indev_name() documentation for nlif_handle usage.
-- *
-  * \return  -1 in case of error, > 0 if it succeed.
-+ * \sa __nlif_open__(3)
-  */
- EXPORT_SYMBOL
- int nfq_get_outdev_name(struct nlif_handle *nlif_handle,
-@@ -1410,9 +1381,8 @@ int nfq_get_outdev_name(struct nlif_handle *nlif_handle,
-  * \param name pointer to the buffer to receive the interface name;
-  *  not more than \c IFNAMSIZ bytes will be copied to it.
-  *
-- * See nfq_get_indev_name() documentation for nlif_handle usage.
-- *
-  * \return  -1 in case of error, > 0 if it succeed.
-+ * \sa __nlif_open__(3)
-  */
+ #include <libnetfilter_queue/linux_nfnetlink_queue.h>
  
- EXPORT_SYMBOL
+@@ -25,6 +25,7 @@ extern "C" {
+ struct nfq_handle;
+ struct nfq_q_handle;
+ struct nfq_data;
++struct nlif_handle;
+ 
+ extern int nfq_errno;
+ 
+@@ -155,8 +156,41 @@ int nfq_nlmsg_parse(const struct nlmsghdr *nlh, struct nlattr **attr);
+ struct nlmsghdr *nfq_nlmsg_put(char *buf, int type, uint32_t queue_num);
+ struct nlmsghdr *nfq_nlmsg_put2(char *buf, int type, uint32_t queue_num, uint16_t flags);
+ 
++/*
++ * Network Interface Table API
++ */
++
++#ifndef IFNAMSIZ
++#define IFNAMSIZ 16
++#endif
++
++struct nlif_handle *nlif_open(void);
++void nlif_close(struct nlif_handle *orig);
++int nlif_fd(struct nlif_handle *nlif_handle);
++int nlif_query(struct nlif_handle *nlif_handle);
++int nlif_catch(struct nlif_handle *nlif_handle);
++int nlif_index2name(struct nlif_handle *nlif_handle, unsigned int if_index, char *name);
++int nlif_get_ifflags(const struct nlif_handle *h, unsigned int index, unsigned int *flags);
++
+ #ifdef __cplusplus
+ } /* extern "C" */
+ #endif
+ 
++/*
++ * __be46 stuff - should be in libmnl.h maybe?
++ */
++
++#include <byteswap.h>
++#if __BYTE_ORDER == __BIG_ENDIAN
++#  ifndef __be64_to_cpu
++#  define __be64_to_cpu(x)     (x)
++#  endif
++# else
++# if __BYTE_ORDER == __LITTLE_ENDIAN
++#  ifndef __be64_to_cpu
++#  define __be64_to_cpu(x)     __bswap_64(x)
++#  endif
++# endif
++#endif
++
+ #endif	/* __LIBNFQNETLINK_H */
+diff --git a/include/libnetfilter_queue/linux_nfnetlink_queue.h b/include/libnetfilter_queue/linux_nfnetlink_queue.h
+index 6844270..82d8ece 100644
+--- a/include/libnetfilter_queue/linux_nfnetlink_queue.h
++++ b/include/libnetfilter_queue/linux_nfnetlink_queue.h
+@@ -8,7 +8,8 @@
+ #endif
+ 
+ #include <linux/types.h>
+-#include <libnfnetlink/linux_nfnetlink.h>
++/* Use the real header since libnfnetlink is going away. */
++#include <linux/nfnetlink.h>
+ 
+ enum nfqnl_msg_types {
+ 	NFQNL_MSG_PACKET,		/* packet from kernel to userspace */
 -- 
 2.35.8
 
