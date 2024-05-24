@@ -1,131 +1,74 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id C3871482D8
-	for <netfilter-devel@vger.kernel.org>; Fri, 24 May 2024 11:46:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from mout.web.de (mout.web.de [212.227.17.11])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64F6F12BE90
+	for <netfilter-devel@vger.kernel.org>; Fri, 24 May 2024 13:25:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716551183; cv=none; b=KkdAZaFKWiJ0pCQRgxsDLB41hF5b1FLtMqUx7lr91kZqdEUdgsnqTmcnlOdabZq2IBWfp56RE/dZlnFO+jmxX3DnBFm09Tv02Jt0LwB5qlolcoSvcAIEmTaODWYzkthiDTm7XgYzsv+qprzczsxuBAiMvucs/nyGftVIRAcI4zA=
+	t=1716557103; cv=none; b=tHa8ajmvEV02tl3HBn5HGNkdY2OQKta7QIx3ftL6oDH37/vQqyDnF+M1geoA1UPPntjtPSt88YagTH70PhjsjcLz5CvYeqJDQNcko+x9fregmz/tUpn0X2LannMCcnhjeZjKhFzWy14YrKHHldDZz7n5MqOw25YsmpjHPjAO9ho=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716551183; c=relaxed/simple;
-	bh=6QDoW7y0Glp101zgkPwiov89jJk9oftxxaFszjP6J38=;
-	h=From:To:Subject:Date:Message-Id:MIME-Version; b=XPVEYIJ4ijBLj6vt4kxLlDVmGa89k7eZoS1Ouz9XxMmsZjbZ9AfVu0rhKd0mg+31qI9KpMP6Po8C91T35rj3tt1+C5rpvCym6bKHtuGmLrZRSmbf/yoqM8Yi6fzooeYM6192Zn8MoKYnmPefYGHuwPDeL8lu3gCvx5mgPxvZSp4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft,v2] tests: shell: add vlan double tagging match simple test case
-Date: Fri, 24 May 2024 13:46:06 +0200
-Message-Id: <20240524114606.6145-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+	s=arc-20240116; t=1716557103; c=relaxed/simple;
+	bh=79sunbzm+Lo4pL5mmumuGym2gafehJEo7srBCwODDVY=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=PnT8NX6R+gDw0oPeFyj+g9cgxNGigQdFv+7tOxGeE186ToUDBNNKkRIf5fwWzJclAw83rVTqbugJ4p6lqXbdtgYtcedeV+cEyMdyV5sK+paYy+AGnpW5pR+CfW48Do74VObk9nnTU6Bdx9LDr/X8/ZDpJAZ9xNNfM0pMHQjZ9XI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de; spf=pass smtp.mailfrom=web.de; dkim=pass (2048-bit key) header.d=web.de header.i=michaelestner@web.de header.b=fwpcNzcR; arc=none smtp.client-ip=212.227.17.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=web.de
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=web.de header.i=michaelestner@web.de header.b="fwpcNzcR"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=web.de;
+	s=s29768273; t=1716557097; x=1717161897; i=michaelestner@web.de;
+	bh=79sunbzm+Lo4pL5mmumuGym2gafehJEo7srBCwODDVY=;
+	h=X-UI-Sender-Class:From:To:Cc:Subject:Date:Message-Id:In-Reply-To:
+	 References:MIME-Version:Content-Transfer-Encoding:cc:
+	 content-transfer-encoding:content-type:date:from:message-id:
+	 mime-version:reply-to:subject:to;
+	b=fwpcNzcRStbO3X+wk4UPOBrIkWxeANfBrY6dgSDPYCYn5QU11QKr64MdZB/Q5hIK
+	 e7bQSqpfnp1oq44tDoQmMEkHGqRjlnUuqyeK5zWd/pgdNcLiqZMBhdMVFdUM4pu9i
+	 dbblX2KEpjs61hfj5ni8mAJhUW/bZ/cciQ2ZbQ+I/IH74SPpdU35zqeZx9nwyIIeM
+	 nfQG5rJ6ZB9Bq2zJieEi8p7goh8X6z1hztudMuRJYARoXZj6JjGs4IS71rpwOJct6
+	 ZiJ6hKWN153FP4eVtvvzTcmOs2SzHHs627okubZmUZVa9g5FIkEM5P8nK7ZWU7SbU
+	 amC2G2GM0HuxSDRspw==
+X-UI-Sender-Class: 814a7b36-bfc1-4dae-8640-3722d8ec6cd6
+Received: from del01453.ebgroup.elektrobit.com ([130.41.201.208]) by
+ smtp.web.de (mrweb106 [213.165.67.124]) with ESMTPSA (Nemesis) id
+ 1N7gbY-1sWzuN0tjm-014n9n; Fri, 24 May 2024 15:24:57 +0200
+From: Michael Estner <michaelestner@web.de>
+To: phil@nwl.cc
+Cc: netfilter-devel@vger.kernel.org
+Subject: [PATCH] iptables: cleanup FIXME 
+Date: Fri, 24 May 2024 15:24:51 +0200
+Message-Id: <20240524132452.84195-1-michaelestner@web.de>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <Zk9yrd8Ji1xAcblw>
+References: <Zk9yrd8Ji1xAcblw>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:fn2aaqEaLhJ6eYTeayU0qgQGFcI5s77hR0nCi2zFbneAMEu2LeH
+ i+Qs6/wHpGDN1qUN2SLVlGiFjMZDuS4ybIOVsTRe5djMFr57Ie8fPv3i21KNiiQLsgp/vH3
+ 2/cKS0ven4LjtxlU4uVy5M+yTSfHEhjzl1/WR4ZPJLqjoP09XTBsRM8L8aJcByaRzV+K4XH
+ 5e6mMcQGSQ5eDYtFkQqBQ==
+X-Spam-Flag: NO
+UI-OutboundReport: notjunk:1;M01:P0:tP1DKRPAobw=;F43LdgV1BE6rgd4WN0It3CdtANc
+ Xfc6QKr5Nx3Lq4rBKHoKTZi9QEMV+Q9+4fY+QTKRnmNwSiF34m1uWZ/VhT6qVDy4L90aQkMfl
+ cPFJNQH+F3Gx7uzqW9kFq2sAy2zgyqlxazVk4s+zcmXtPufs+drwITX4wH8kaN1GO+QtXAUYZ
+ mZO+5/hptxB3IgP1bV60rAzEdaX8/N94kPDQJdWZLW5GQXzR4CnaWcgmjwa3DtlRWzfHKSU8q
+ zbK7KKY30//HBjkImhLWFKXLbCPyy6bcEL6NkzIvkDo0wFMk4YPsYGajRWPSa3Wtk+68+cl8W
+ lc/vxAAHDeL8CQMI8ibYCyhcESD2qupoSFCHW2BKfkUdM3zwvtQOT9Psmufq19tf1G9j15mb7
+ pcXvJmQZDv1tgBVgcVMa81v0mpar9LkCkKsnJbEIKRSgv3a8PO5wSoyCBufubwJDHxAlLL7WW
+ IHiku0saJGsNH6z+gs22xexipHqHgqbADnoZKWwlb7ZpAFJ2BlkTeBXx4yhwqwLZHYoVwE9VZ
+ 6SgSCjPpuqqlWiLdd5hY9XWAiAx3MsIdx1LXusOoO8+3zpj4EhHWSv41nbST2poXC1CqdsNWb
+ 0norODejuU9q/I5ZpRGmqt+e8jW5RPDbsDk638rLlHdpo3cuSHlRrm0V1Lh2CqgNnbFYTMI4Z
+ GOLWXM3M83HtFPCpok/BStYUyAHxLLgBCvuNMGQM26vTa2YNoD8c6iQrVhk1Ei/SnnlkTQxXK
+ VDPc1eREJx2If8jPazs2AhW/pbfTWWK11xsa5/8kkOoSsPCPwO4cvrHG2Ylfp+ARVbV98Y/GP
+ sxZdeRqhHJw+iYp0dt2McyJpgDes/4nytt9Eztv8k6xrQ=
 
-As a follow up for:
-
-  74cf3d16d8e9 ("tests: shell: add vlan match test case")
-
-Add basic test for q-in-q matching support.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-NOTE: `vlan type ip` matches at offset 20 at link-layer.
-
-But 'ip saddr' matching does not work with q-in-q, I suspect an issue with
-skb_network_header() not set to IP address when two vlan tags are present.
-With one single vlan tag it works, because vlan tag ends up in the vlan
-offload fields of the skbuff.
-
-That is why I have picked this:
-
-+		ether type 8021ad vlan id 10 vlan type 8021q vlan id 100 vlan type ip counter
-                                                                         ^----------^
-
-instead of ip saddr until this is fixed.
-
- tests/shell/testcases/packetpath/vlan_qinq | 69 ++++++++++++++++++++++
- 1 file changed, 69 insertions(+)
- create mode 100755 tests/shell/testcases/packetpath/vlan_qinq
-
-diff --git a/tests/shell/testcases/packetpath/vlan_qinq b/tests/shell/testcases/packetpath/vlan_qinq
-new file mode 100755
-index 000000000000..7169abc22e77
---- /dev/null
-+++ b/tests/shell/testcases/packetpath/vlan_qinq
-@@ -0,0 +1,69 @@
-+#!/bin/bash
-+
-+rnd=$(mktemp -u XXXXXXXX)
-+ns1="nft1ifname-$rnd"
-+ns2="nft2ifname-$rnd"
-+
-+cleanup()
-+{
-+	ip netns del "$ns1"
-+	ip netns del "$ns2"
-+}
-+
-+trap cleanup EXIT
-+
-+set -e
-+
-+ip netns add "$ns1"
-+ip netns add "$ns2"
-+ip -net "$ns1" link set lo up
-+ip -net "$ns2" link set lo up
-+
-+ip link add veth0 netns $ns1 type veth peer name veth0 netns $ns2
-+
-+ip -net "$ns1" link set veth0 addr da:d3:00:01:02:03
-+
-+ip -net "$ns1" link add link veth0 name vlan10 type vlan proto 802.1ad id 10
-+ip -net "$ns1" link add link vlan10 name vlan10.100 type vlan proto 802.1q id 100
-+
-+ip -net "$ns2" link add link veth0 name vlan10 type vlan proto 802.1ad id 10
-+ip -net "$ns2" link add link vlan10 name vlan10.100 type vlan proto 802.1q id 100
-+
-+for dev in veth0 vlan10 vlan10.100; do
-+	ip -net "$ns1" link set $dev up
-+	ip -net "$ns2" link set $dev up
-+done
-+
-+ip -net "$ns1" addr add 10.1.1.1/24 dev vlan10.100
-+ip -net "$ns2" addr add 10.1.1.2/24 dev vlan10.100
-+
-+ip netns exec "$ns2" $NFT -f /dev/stdin <<"EOF"
-+table netdev t {
-+	chain c1 {
-+		type filter hook ingress device veth0 priority filter;
-+		ether type 8021ad vlan id 10 vlan type 8021q vlan id 100 vlan type ip counter
-+	}
-+
-+	chain c2 {
-+		type filter hook ingress device vlan10 priority filter;
-+		vlan id 100 ip daddr 10.1.1.2 counter
-+	}
-+
-+	chain c3 {
-+		type filter hook ingress device vlan10.100 priority filter;
-+		ip daddr 10.1.1.2 counter
-+	}
-+}
-+EOF
-+
-+ip netns exec "$ns1" ping -c 1 10.1.1.2
-+
-+ip netns exec "$ns2" $NFT list ruleset
-+ip netns exec "$ns2" $NFT list chain netdev t c1 | grep 'counter packets 0 bytes 0'
-+[[ $? -eq 0 ]] && exit 1
-+
-+ip netns exec "$ns2" $NFT list chain netdev t c2 | grep 'counter packets 0 bytes 0'
-+[[ $? -eq 0 ]] && exit 1
-+
-+ip netns exec "$ns2" $NFT list chain netdev t c3 | grep 'counter packets 0 bytes 0'
-+[[ $? -eq 0 ]] && exit 1
--- 
-2.30.2
+I checked bitmask in the ebt_entry struct in iptables/xshared.h
+Should be compared here since bitmask needs to be the first
+field in the struct ebt_entry.
 
