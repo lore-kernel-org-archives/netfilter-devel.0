@@ -1,63 +1,63 @@
-Received: from mail-pf1-f182.google.com (mail-pf1-f182.google.com [209.85.210.182])
+Received: from mail-pf1-f171.google.com (mail-pf1-f171.google.com [209.85.210.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEC9082897
-	for <netfilter-devel@vger.kernel.org>; Fri, 24 May 2024 05:38:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CDD684DE2
+	for <netfilter-devel@vger.kernel.org>; Fri, 24 May 2024 05:38:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716529084; cv=none; b=HIh/jWFMHkGlkxgrbuDvAr/fAsKs6vhhZYQPqFk9gKwtWFOMyD3bVT9uxW60WjiDWM/eYwWcxzoIQqkaiqQVW5mG3EhpWm1cyjX54TXUERBSomJ4VArZfsLoQiiBei/qKQSlhPAcZ3SUW2E9XPiqq4GyzBme1hEyFbpqZDMfxsE=
+	t=1716529085; cv=none; b=VPFqb1aSer6/7r+/LkbidF+d3Ij3FAIfcqkKU9WsM04vbo6ddQjCVned5WEFVmPIgRE+wF0T2aQPJmN4Kt1gxGQJ5v91Eft/KrGhJzln9ShIb1spqgCDKmTg0iqCXGeBzFYkIHl6x8IsHLxk6TM2wX5f2vRI8UR68o5DFf218LY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716529084; c=relaxed/simple;
-	bh=mgdR8pJzCzPAvakOIui/Ls1TJzSsk0zXbwfvZeEf5ZY=;
+	s=arc-20240116; t=1716529085; c=relaxed/simple;
+	bh=VKZYRGyJ9ohREfhYERKvpCKF8Q4FeTbQ5UddWd4r25E=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=YM/Bf7B3Zwn/2ul6WtRufCOsrX736VZqRSYhEWLiKH0Y10W92VLBXnkmeNhgw4QLgAK0ufINwfTz8wo8ZSBIn+OGYPWncmJKYJubVlO2DQJM3l+uS7xvtG2nWpPTEkHPEMgXdrAogGKXYiharxJ0E2hRIwgviEyVxwDxM06RU3A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=nYeWj2/E; arc=none smtp.client-ip=209.85.210.182
+	 MIME-Version; b=Lxx3+qOmtYTnY7s214JrT4mRfpVE1kUZ9fNh1UGQ95DzC8CPV9A7x+nTvpgGcJOjXiauISrtAdxaneO/J8O+Ol6TYJl6WsEdAE2t/8y/rlckPeGKb5ZjXZ2VbXv3COSV5tVJUS2PcVtvWsmHljTPvm8x/72/YOfB6ixEYAh3rwQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=micXriR4; arc=none smtp.client-ip=209.85.210.171
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nYeWj2/E"
-Received: by mail-pf1-f182.google.com with SMTP id d2e1a72fcca58-6f8ecafd28cso437377b3a.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 May 2024 22:38:02 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="micXriR4"
+Received: by mail-pf1-f171.google.com with SMTP id d2e1a72fcca58-6f6a045d476so2871660b3a.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 May 2024 22:38:01 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1716529082; x=1717133882; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1716529080; x=1717133880; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=EAhgVB0ZLE/4yJq9T4qIVU/e90vu9j7mTe/iLsept1A=;
-        b=nYeWj2/E/2LBM+T4FNppknnicBuYfpBhNC6uZStucR0PqvIBipqnIwPNQxlrrYhUN8
-         Ugaot7hCIiAerDNAU3Ih5Hf0m+keHXlNGBSb+BeStESTVixjfnwu6fh3jG3JESsFJvwP
-         8rU3o0NxLmKOdfqNEXnZEOOiKfdmZkjcewk7fg69rA8lVrbfx5+4eRE6AnAA9ytoUr2C
-         G5fZIWRIQyKXMOF8WcoGGjZhvfU8UvRcL9eB3WFN+h+hBE7sbWz8NLsq6xU2McLzmqNo
-         VT8ux2JtFHEPuplsN6dFSOgQ5hjLbvvJAz+VZJ1nxsGctSuTWLfQFDTBgYldAq4ltyY0
-         Vq0g==
+        bh=Fb23lW6Tbx5slj7A8cVV+7QXbCSRdIw3TQ3U/wjF6/M=;
+        b=micXriR4g5RLECdC10N3AooFXh9aT89NCoJSCVzBGHn4ur6GA/ERu448o0FjrC992L
+         J6afTSkGdlFqhRgZ91fhx6lmNRdvKfOCVFSM0XwvSa/1FFx90saCTM/Xj3RqaB4lgo9i
+         8Vr2XUdWzLY3nx+6tLrPhv1LgsWRonTIvwzfjfDfRl61QGlB2zT6h57E2Rz+COGiO7HF
+         i2jENem/Jd2Err32XcWVsR2S8A4ylGczXr/xblaeqwQsSHBybs1WfouicZgVbvrB9IpN
+         qE4qxje01dO7mw3CKtGLtphS64gXja1Ddqd9YzEW9BZ+yZJFvpxofrN8AU7qUKr1aTl9
+         JT0Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1716529082; x=1717133882;
+        d=1e100.net; s=20230601; t=1716529080; x=1717133880;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=EAhgVB0ZLE/4yJq9T4qIVU/e90vu9j7mTe/iLsept1A=;
-        b=IhuY8xJDExFE435OpM7ImP4pNvcDg6Ej+V4Vgk9Sq6Z3xtA3sGBJGH65MBnP4C79An
-         nZfkutkjvFDRIP7zrL9OrakiywTn1c3g9HNVYwmT0D+DjA8C+cOQiLOQMMIREWDtqH4k
-         J1PY6GUo25LS1rhC+8tpLLrqObQ+FJ9JmKOjsZ/w56YVqUd+zF5/P8/5pkF/DIlR93sI
-         NTF3Qudw1ECw+fffABetIXwoiKhrZX2aRjAwqN/rznXRoaFfKbLJSjVC45Uurumg2/8t
-         11u7rzZ6U7muKpa6ebx86c/um2rb8rzmxAqjBVK3Wr/jp7lMLeB5/eZ8NU49nk7m5Zef
-         PiJg==
-X-Gm-Message-State: AOJu0YxXnBLKhG9benCIPQMIs6VjSk48P1P09k+6sg1jqU66n1yS7i+h
-	u+1riZ8umBQQKwZKy7QNicm6k3s7lex0KwKm564ubN8sq0Fg5ZjMin8bbQ==
-X-Google-Smtp-Source: AGHT+IGrUXb5aaBiPNgelzXMPRf3csXgZt9ca/Fen7s17bxIXlDtethAAPnpus1Gqzq/Eajd6mOJaQ==
-X-Received: by 2002:a05:6a00:2917:b0:6f8:c1b6:d06a with SMTP id d2e1a72fcca58-6f8f3d84ba1mr1181318b3a.29.1716529081929;
-        Thu, 23 May 2024 22:38:01 -0700 (PDT)
+        bh=Fb23lW6Tbx5slj7A8cVV+7QXbCSRdIw3TQ3U/wjF6/M=;
+        b=LMWVc+GiIRlHNlwMpiXmCfcYDpEznw8o/t9qoRDLaKs5IZrlKn5a/F20WHaQEkNCDb
+         pl5W9EjRQdNteqcdWNGS48JVUpyWnqf4LV+yYbxhzDhft9bZgsyHbft9I+AEh2osbOHD
+         x6iE0LwJmzfWVZp2Le3q8z9lxvSRchFD/sh5Mi9VmRV2Zkpq2erCtNhYKr+Ww+t4t7Rd
+         AtinANglJH1wtG0HELZ6od8JQnxSr2b67y8UX2Jrqe+tZGseKbjE7ilmi7ST+ev4u+Ke
+         k2zjt4w0egAySktXe0Oxm9RW+MARfC3qg0g9/53tf8fSBKbZBWTDFKDz5L3scg+PeHdQ
+         UGYw==
+X-Gm-Message-State: AOJu0YzCD+iFckFvqquClHwlh6cgZCKKQrpkXrOafWTyj6AyD+y2bKiC
+	liOstU9b/AjpC9sp8XPBuQ6yAj5+GFaOT8X320wVRPeFlJo01ftrPbdvsw==
+X-Google-Smtp-Source: AGHT+IHK/GgLSp7caEqz+OpbHK/ERVmATIIdMKUMkI/USvmVFMIqUanDsFxVdTSZm30XEIQdNfFn1A==
+X-Received: by 2002:a05:6a00:4390:b0:6f8:ddfe:8fcf with SMTP id d2e1a72fcca58-6f8f34ac923mr1517013b3a.13.1716529080131;
+        Thu, 23 May 2024 22:38:00 -0700 (PDT)
 Received: from slk15.local.net ([49.190.141.216])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-6f8fcbe9f61sm460374b3a.110.2024.05.23.22.38.00
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-6f8fcbe9f61sm460374b3a.110.2024.05.23.22.37.58
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 23 May 2024 22:38:01 -0700 (PDT)
+        Thu, 23 May 2024 22:37:59 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From: Duncan Roe <duncan_roe@optusnet.com.au>
 To: netfilter-devel@vger.kernel.org
 Cc: pablo@netfilter.org
-Subject: [PATCH libnetfilter_queue v2 08/15] src: Incorporate nfnl_rcvbufsiz() in libnetfilter_queue
-Date: Fri, 24 May 2024 15:37:35 +1000
-Message-Id: <20240524053742.27294-9-duncan_roe@optusnet.com.au>
+Subject: [PATCH libnetfilter_queue v2 07/15] src: Convert nfq_set_verdict() and nfq_set_verdict2() to use libmnl if there is no data
+Date: Fri, 24 May 2024 15:37:34 +1000
+Message-Id: <20240524053742.27294-8-duncan_roe@optusnet.com.au>
 X-Mailer: git-send-email 2.35.8
 In-Reply-To: <20240524053742.27294-1-duncan_roe@optusnet.com.au>
 References: <20240524053742.27294-1-duncan_roe@optusnet.com.au>
@@ -69,79 +69,101 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-nfnl_rcvbufsiz() is the first bullet point in the Performance section
-of the libnetfilter_queue HTML main page.
-We have to assume people have used it,
-so supply a version that uses libmnl.
+static __set_verdict() uses mnl-API calls in enough places that the path
+for no (mangled) data doesn't use any nfnl-API functions.
+With no data, __set_verdict() uses sendto() (faster than sendmsg()).
+nfq_set_verdict2() must not use htonl() on the packet mark.
 
 Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
 ---
- v2: rebase to account for updated patches
+ v2:
+ - rebase to account for updated patches 1 - 3
+ - fix checkpatch warning re block comment termination
 
- .../libnetfilter_queue/libnetfilter_queue.h   |  2 ++
- src/libnetfilter_queue.c                      | 36 +++++++++++++++++++
- 2 files changed, 38 insertions(+)
+ src/libnetfilter_queue.c | 36 +++++++++++++++++-------------------
+ 1 file changed, 17 insertions(+), 19 deletions(-)
 
-diff --git a/include/libnetfilter_queue/libnetfilter_queue.h b/include/libnetfilter_queue/libnetfilter_queue.h
-index f7e68d8..9327f8c 100644
---- a/include/libnetfilter_queue/libnetfilter_queue.h
-+++ b/include/libnetfilter_queue/libnetfilter_queue.h
-@@ -35,6 +35,8 @@ typedef int  nfq_callback(struct nfq_q_handle *gh, struct nfgenmsg *nfmsg,
- 		       struct nfq_data *nfad, void *data);
- 
- 
-+extern unsigned int nfnl_rcvbufsiz(const struct nfnl_handle *h,
-+				   unsigned int size);
- extern struct nfq_handle *nfq_open(void);
- extern struct nfq_handle *nfq_open_nfnl(struct nfnl_handle *nfnlh);
- extern int nfq_close(struct nfq_handle *h);
 diff --git a/src/libnetfilter_queue.c b/src/libnetfilter_queue.c
-index 3fa8d2d..f26b65f 100644
+index 6500fec..3fa8d2d 100644
 --- a/src/libnetfilter_queue.c
 +++ b/src/libnetfilter_queue.c
-@@ -585,6 +585,42 @@ out_free:
-  * @{
-  */
+@@ -38,8 +38,8 @@
+ /* so won't try to validate higher-numbered attrs but will store them. */
+ /* mnl API programs will then be able to access them. */
+ #include <linux/netfilter/nfnetlink.h>
++#include <linux/netfilter/nfnetlink_compat.h>
  
-+/**
-+ * nfnl_rcvbufsiz - set the socket buffer size
-+ * \param h nfnetlink connection handle obtained via call to \b nfq_nfnlh()
-+ * \param size size of the buffer we want to set
-+ *
-+ * This nfnl-API function sets the new size of the socket buffer.
-+ * Use this setting
-+ * to increase the socket buffer size if your system is reporting ENOBUFS
-+ * errors.
-+ *
-+ * \return new size of kernel socket buffer
-+ */
+-#include <libnfnetlink/libnfnetlink.h>
+ #include <libnetfilter_queue/libnetfilter_queue.h>
+ #include "internal.h"
+ 
+@@ -951,13 +951,8 @@ static int __set_verdict(struct nfq_q_handle *qh, uint32_t id,
+ 		uint32_t data_len, const unsigned char *data,
+ 		enum nfqnl_msg_types type)
+ {
+-	struct nfqnl_msg_verdict_hdr vh;
+-	union {
+-		char buf[NFNL_HEADER_LEN
+-			+NFA_LENGTH(sizeof(mark))
+-			+NFA_LENGTH(sizeof(vh))];
+-		struct nlmsghdr nmh;
+-	} u;
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	struct nlmsghdr *nlh;
+ 
+ 	struct iovec iov[3];
+ 	int nvecs;
+@@ -968,20 +963,23 @@ static int __set_verdict(struct nfq_q_handle *qh, uint32_t id,
+ 
+ 	memset(iov, 0, sizeof(iov));
+ 
+-	vh.verdict = htonl(verdict);
+-	vh.id = htonl(id);
+-
+-	nfnl_fill_hdr(qh->h->nfnlssh, &u.nmh, 0, AF_UNSPEC, qh->id,
+-				type, NLM_F_REQUEST);
++	nlh = nfq_nlmsg_put(buf, NFQNL_MSG_VERDICT, qh->id);
+ 
+ 	/* add verdict header */
+-	nfnl_addattr_l(&u.nmh, sizeof(u), NFQA_VERDICT_HDR, &vh, sizeof(vh));
++	nfq_nlmsg_verdict_put(nlh, id, verdict);
+ 
+ 	if (set_mark)
+-		nfnl_addattr32(&u.nmh, sizeof(u), NFQA_MARK, mark);
++		nfq_nlmsg_verdict_put_mark(nlh, mark);
 +
-+EXPORT_SYMBOL
-+unsigned int nfnl_rcvbufsiz(const struct nfnl_handle *h, unsigned int size)
-+{
-+	int status;
-+	socklen_t socklen = sizeof(size);
-+	unsigned int read_size = 0;
-+
-+	/* first we try the FORCE option, which is introduced in kernel
-+	 * 2.6.14 to give "root" the ability to override the system wide
-+	 * maximum
++	/* Efficiency gain: when there is only 1 iov,
++	 * sendto() is faster than sendmsg() because the kernel only has
++	 * 1 userspace address to validate instead of 2.
 +	 */
-+	status = setsockopt(h->fd, SOL_SOCKET, SO_RCVBUFFORCE, &size, socklen);
-+	if (status < 0) {
-+		/* if this didn't work, we try at least to get the system
-+		 * wide maximum (or whatever the user requested)
-+		 */
-+		setsockopt(h->fd, SOL_SOCKET, SO_RCVBUF, &size, socklen);
-+	}
-+	getsockopt(h->fd, SOL_SOCKET, SO_RCVBUF, &read_size, &socklen);
-+
-+	return read_size;
-+}
-+
- /**
-  * nfq_close - close a nfqueue handler
-  * \param h Netfilter queue connection handle obtained via call to nfq_open()
++	if (!data_len)
++		return mnl_socket_sendto(qh->h->nl, nlh, nlh->nlmsg_len);
+ 
+-	iov[0].iov_base = &u.nmh;
+-	iov[0].iov_len = NLMSG_TAIL(&u.nmh) - (void *)&u.nmh;
++	iov[0].iov_base = nlh;
++	iov[0].iov_len = NLMSG_TAIL(nlh) - (void *)nlh;
+ 	nvecs = 1;
+ 
+ 	if (data_len) {
+@@ -995,7 +993,7 @@ static int __set_verdict(struct nfq_q_handle *qh, uint32_t id,
+ 		 * header.  The size of the attribute is given in the
+ 		 * nla_len field and is set in the nfnl_build_nfa_iovec()
+ 		 * function. */
+-		u.nmh.nlmsg_len += data_attr.nla_len;
++		nlh->nlmsg_len += data_attr.nla_len;
+ 	}
+ 
+ 	return nfnl_sendiov(qh->h->nfnlh, iov, nvecs, 0);
+@@ -1052,7 +1050,7 @@ int nfq_set_verdict2(struct nfq_q_handle *qh, uint32_t id,
+ 		     uint32_t verdict, uint32_t mark,
+ 		     uint32_t data_len, const unsigned char *buf)
+ {
+-	return __set_verdict(qh, id, verdict, htonl(mark), 1, data_len,
++	return __set_verdict(qh, id, verdict, mark, 1, data_len,
+ 						buf, NFQNL_MSG_VERDICT);
+ }
+ 
 -- 
 2.35.8
 
