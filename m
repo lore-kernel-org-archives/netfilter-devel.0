@@ -1,66 +1,38 @@
-Received: from mail-pf1-f180.google.com (mail-pf1-f180.google.com [209.85.210.180])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from szxga05-in.huawei.com (szxga05-in.huawei.com [45.249.212.191])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B858885286
-	for <netfilter-devel@vger.kernel.org>; Fri, 24 May 2024 05:38:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CA10282E2;
+	Fri, 24 May 2024 09:30:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.191
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716529097; cv=none; b=hlNDzyg50OuidTuGvdmiD/SsDDPJFvBwkr3uMr/6t18hhBXtEAjzYgLWWgVgCNWGHuG5U+DAwxWh9y5/9E7VQSSrQjiRXQoyG+o1xm0pk7EfaLukusVALdbY8BuwAjIeozMHebbBHYyvKYZz9KMEtadAXsGPlrSBA3qvuojB4to=
+	t=1716543062; cv=none; b=nD5Z8pyPo653g726o5K8E2rJYHmZBfbirgy9TPa5NgsJkHo0ICgL4RRLObfON8zyBYTuV6X7SOsS1/saKEAN1ex0A1pA5ez2pOhLu/ptPoPhW3JWl9nKpiN+f+6tJNH/6MzRlpAr6kPX2CARmtqWYXnJjLMtolUyBZmt2RCvhGg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716529097; c=relaxed/simple;
-	bh=zf7nI8VCA4uVTiUd43rNKgZ+KepDp5+QWawmLjv6yhU=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=l410zJSYVSch0UNvQwO5FsRpyhDpcI7HDNJxlPfG8jgJEo2aGk24l1T8GFQy8E0H4gKU2nDentYKDfWbBwKJpUgUgz49YG1aJia5Y02tCpBugZhzp5rHb1H13jTEW+3SgIkhez2qJoQDNng75OzvY6cqvbnjT3zyvfEIx+orI7s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=C/uwrJ4C; arc=none smtp.client-ip=209.85.210.180
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="C/uwrJ4C"
-Received: by mail-pf1-f180.google.com with SMTP id d2e1a72fcca58-6f69422c090so3676185b3a.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 May 2024 22:38:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1716529095; x=1717133895; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=cqvHPDbxLtfCnye35rWsySJwaa0HricqSMVkAzCrPjw=;
-        b=C/uwrJ4CE8QqFOnx6RTxipdiaILwUGuo9y8aUKfekQg+2QSusRrjA2GFJ9xxP+SgS6
-         QSBskiv9VGbhdL0xpKoI7VUrtZ+VWPdEeYi3yOEaM9TJWlFIIH6rGbYDS/Gda2FBG1tg
-         IZAJZtO8TZIKco1Zy8J+oZKGGd3T03CNeoNpKSRVbNowSUwPBQHJ8U22Ey2PKbomn5xk
-         CbinruX7ZqhF8v4jnt8/6tUfUIkwpRM4zhXkSRvg/34tYu1uO+u+vC+jCaoTZx4y4QAl
-         EKefnlK1EJHHCIk7HZvVnNibEAcus1VHh3e4zO7xe19o0dCHLNTATLiO+kmHzpQqHYr6
-         UWXw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1716529095; x=1717133895;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:sender:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=cqvHPDbxLtfCnye35rWsySJwaa0HricqSMVkAzCrPjw=;
-        b=rJbCUPv72sDXXHgouRNwhixCZxHvIXZj3eOJsm2RgVS1ATf0MBnIqnjdjCLnTAPzC5
-         n4vXAq7W9cdW/vTD2JeHiZNdy30YawDcxJDwdLdaK5diH4UYct57NAzFQmOZaY9iz4EG
-         IswZ1xtczUBG61fQl23kIPJQiK50EthKMVD/Z5b39aAUOxqYC3Jb009RLrMxsK8mgYOS
-         N8dgALlGdkm5WNoBOLBfBi4BlZd+XewsMuyNArO0lh0pl24xpr8Lb1aa2PqScGpI3Bbm
-         i6xkweusfrghdozc13V+owwpGv6jUDoVFXsbnUIqi4Uvj67lP4/TTwZljmPl3bXtm6rP
-         mkmw==
-X-Gm-Message-State: AOJu0YzjnsW4kLAaj6AJWIGr7Asj/hI0mK/xKuPjOHfgQXthBvVB3OML
-	Eum9IT/BoE4qkz5P6y1xKePd9WAX8zGCQQzo7zEI2FKCX4AmXf/++wfGVw==
-X-Google-Smtp-Source: AGHT+IF4Xfi4kqUWQL2hP1kKe4eS62B4UdADKc09LzLSX3UOWiWxmQny0SeKj2aLhXilvr2tG/Gh6A==
-X-Received: by 2002:a05:6a21:271b:b0:1b1:d2a5:c7b1 with SMTP id adf61e73a8af0-1b212df0622mr1359777637.49.1716529094893;
-        Thu, 23 May 2024 22:38:14 -0700 (PDT)
-Received: from slk15.local.net ([49.190.141.216])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-6f8fcbe9f61sm460374b3a.110.2024.05.23.22.38.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 23 May 2024 22:38:14 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From: Duncan Roe <duncan_roe@optusnet.com.au>
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org
-Subject: [PATCH libnetfilter_queue v2 15/15] build: Remove libnfnetlink from the build
-Date: Fri, 24 May 2024 15:37:42 +1000
-Message-Id: <20240524053742.27294-16-duncan_roe@optusnet.com.au>
-X-Mailer: git-send-email 2.35.8
-In-Reply-To: <20240524053742.27294-1-duncan_roe@optusnet.com.au>
-References: <20240524053742.27294-1-duncan_roe@optusnet.com.au>
+	s=arc-20240116; t=1716543062; c=relaxed/simple;
+	bh=iSUGjStUDnULq441NmNtrtnQRwQJUew+PKFp4V5Spyk=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=JYqvT3ILmKtDqBIO9wDXsp7hNDhT0pVie0LHgIaYufYqExLMjexiuvf2hkIzvT5PUOj9NHkaM3rIdurNFUThp0LD+jKRWLD8+xfujd1kgBAXPetmoy8YJyZ+X3Yzlg8vVjZjrVGV62QGnfycXVT1DjOgjodqZfpNAsXiqOsRJRc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.191
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
+Received: from mail.maildlp.com (unknown [172.19.162.112])
+	by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4Vm09Y5DDmz1HCVN;
+	Fri, 24 May 2024 17:29:21 +0800 (CST)
+Received: from dggpemm500020.china.huawei.com (unknown [7.185.36.49])
+	by mail.maildlp.com (Postfix) with ESMTPS id DF78F14037C;
+	Fri, 24 May 2024 17:30:55 +0800 (CST)
+Received: from mscphis02103.huawei.com (10.123.65.215) by
+ dggpemm500020.china.huawei.com (7.185.36.49) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.35; Fri, 24 May 2024 17:30:54 +0800
+From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+To: <mic@digikod.net>
+CC: <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
+	<linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+	<netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+	<artem.kuzin@huawei.com>, <konstantin.meskhidze@huawei.com>
+Subject: [RFC PATCH v2 00/12] Socket type control for Landlock
+Date: Fri, 24 May 2024 17:30:03 +0800
+Message-ID: <20240524093015.2402952-1-ivanov.mikhail1@huawei-partners.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -68,63 +40,102 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: mscpeml100004.china.huawei.com (7.188.51.133) To
+ dggpemm500020.china.huawei.com (7.185.36.49)
 
-libnfnetlink was a "private library" - always loaded whether user apps
-used it or not. Remove it now it is no longer needed.
+Hello! This is v2 RFC patch dedicated to socket protocols restriction.
 
-Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
----
- v2: This was patch 21/32. No changes.
+It is based on the landlock's mic-next branch on top of v6.9 kernel
+version.
 
- Make_global.am           | 2 +-
- configure.ac             | 1 -
- libnetfilter_queue.pc.in | 2 --
- src/Makefile.am          | 2 +-
- 4 files changed, 2 insertions(+), 5 deletions(-)
+Description
+===========
+Patchset implements new type of Landlock rule, that restricts socket
+protocols used in the sandboxed process. This restriction does not affect
+socket actions such as bind(2) or send(2), only those actions that result
+in a socket with unwanted protocol (e.g. creating socket with socket(2)).
 
-diff --git a/Make_global.am b/Make_global.am
-index 91da5da..4d8a58e 100644
---- a/Make_global.am
-+++ b/Make_global.am
-@@ -1,2 +1,2 @@
--AM_CPPFLAGS = -I${top_srcdir}/include ${LIBNFNETLINK_CFLAGS} ${LIBMNL_CFLAGS}
-+AM_CPPFLAGS = -I${top_srcdir}/include ${LIBMNL_CFLAGS}
- AM_CFLAGS = -Wall ${GCC_FVISIBILITY_HIDDEN}
-diff --git a/configure.ac b/configure.ac
-index 7359fba..ba7b15f 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -42,7 +42,6 @@ case "$host" in
- esac
- 
- dnl Dependencies
--PKG_CHECK_MODULES([LIBNFNETLINK], [libnfnetlink >= 0.0.41])
- PKG_CHECK_MODULES([LIBMNL], [libmnl >= 1.0.3])
- 
- AS_IF([test "$enable_man_pages" = no -a "$enable_html_doc" = no],
-diff --git a/libnetfilter_queue.pc.in b/libnetfilter_queue.pc.in
-index 9c6c2c4..1927a8a 100644
---- a/libnetfilter_queue.pc.in
-+++ b/libnetfilter_queue.pc.in
-@@ -9,8 +9,6 @@ Name: libnetfilter_queue
- Description: netfilter userspace packet queueing library
- URL: http://netfilter.org/projects/libnetfilter_queue/
- Version: @VERSION@
--Requires: libnfnetlink
- Conflicts:
- Libs: -L${libdir} -lnetfilter_queue
--Libs.private: @LIBNFNETLINK_LIBS@
- Cflags: -I${includedir}
-diff --git a/src/Makefile.am b/src/Makefile.am
-index a6813e8..e5e1d66 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -39,4 +39,4 @@ libnetfilter_queue_la_SOURCES = libnetfilter_queue.c	\
- 				extra/pktbuff.c		\
- 				extra/udp.c
- 
--libnetfilter_queue_la_LIBADD  = ${LIBNFNETLINK_LIBS} ${LIBMNL_LIBS}
-+libnetfilter_queue_la_LIBADD  = ${LIBMNL_LIBS}
+Such restriction would be useful to ensure that a sandboxed process uses
+only necessary protocols. For example sandboxed TCP server may want to
+permit only TCP sockets and deny any others. See [1] for more cases.
+
+The rules store information about the socket family and type. Thus, any
+protocol that can be defined by a family-type pair can be restricted by
+Landlock.
+
+struct landlock_socket_attr {
+	__u64 allowed_access;
+	int family; // same as domain in socket(2)
+	int type; // see socket(2)
+}
+
+Patchset currently implements rule only for socket creation, but
+other necessary rules will also be impemented. [2]
+
+[1] https://lore.kernel.org/all/ZJvy2SViorgc+cZI@google.com/
+[2] https://lore.kernel.org/all/b8a2045a-e7e8-d141-7c01-bf47874c7930@digikod.net/
+
+Code coverage
+=============
+Code coverage(gcov) report with the launch of all the landlock selftests:
+* security/landlock:
+lines......: 93.3% (795 of 852 lines)
+functions..: 95.5% (106 of 111 functions)
+
+* security/landlock/socket.c:
+lines......: 100.0% (33 of 33 lines)
+functions..: 100.0% (5 of 5 functions)
+
+General changes
+===============
+ * Rebases on mic-next (landlock-6.10-rc1).
+ * Refactors code and commits.
+ * Renames `family` into `domain` in landlock_socket_attr.
+ * Changes ABI version from 5 to 6.
+ * Reverts landlock_key.data type from u64 to uinptr_t.
+ * Adds mini.socket_overflow, mini.socket_invalid_type tests.
+
+Previous versions
+=================
+v1: https://lore.kernel.org/all/20240408093927.1759381-1-ivanov.mikhail1@huawei-partners.com/
+
+Mikhail Ivanov (12):
+  landlock: Support socket access-control
+  landlock: Add hook on socket creation
+  selftests/landlock: Add protocol.create to socket tests
+  selftests/landlock: Add protocol.socket_access_rights to socket tests
+  selftests/landlock: Add protocol.rule_with_unknown_access to socket
+    tests
+  selftests/landlock: Add protocol.rule_with_unhandled_access to socket
+    tests
+  selftests/landlock: Add protocol.inval to socket tests
+  selftests/landlock: Add tcp_layers.ruleset_overlap to socket tests
+  selftests/landlock: Add mini.ruleset_with_unknown_access to socket
+    tests
+  selftests/landlock: Add mini.socket_overflow to socket tests
+  selftests/landlock: Add mini.socket_invalid_type to socket tests
+  samples/landlock: Support socket protocol restrictions
+
+ include/uapi/linux/landlock.h                 |  53 +-
+ samples/landlock/sandboxer.c                  | 141 ++++-
+ security/landlock/Makefile                    |   2 +-
+ security/landlock/limits.h                    |   5 +
+ security/landlock/ruleset.c                   |  37 +-
+ security/landlock/ruleset.h                   |  41 +-
+ security/landlock/setup.c                     |   2 +
+ security/landlock/socket.c                    | 130 ++++
+ security/landlock/socket.h                    |  19 +
+ security/landlock/syscalls.c                  |  66 +-
+ tools/testing/selftests/landlock/base_test.c  |   2 +-
+ tools/testing/selftests/landlock/common.h     |   1 +
+ tools/testing/selftests/landlock/config       |   1 +
+ .../testing/selftests/landlock/socket_test.c  | 581 ++++++++++++++++++
+ 14 files changed, 1056 insertions(+), 25 deletions(-)
+ create mode 100644 security/landlock/socket.c
+ create mode 100644 security/landlock/socket.h
+ create mode 100644 tools/testing/selftests/landlock/socket_test.c
+
 -- 
-2.35.8
+2.34.1
 
