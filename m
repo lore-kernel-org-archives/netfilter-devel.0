@@ -1,63 +1,63 @@
-Received: from mail-pf1-f180.google.com (mail-pf1-f180.google.com [209.85.210.180])
+Received: from mail-pf1-f175.google.com (mail-pf1-f175.google.com [209.85.210.175])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEF467EEE7
-	for <netfilter-devel@vger.kernel.org>; Fri, 24 May 2024 05:37:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 554E4763E4
+	for <netfilter-devel@vger.kernel.org>; Fri, 24 May 2024 05:37:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716529072; cv=none; b=X3i5n44eTaOnsHNNNpnGBh9I8gjdPaeKCfuscw3myY1h955JPSZ1yP/4IQ4RKeTw9DBL9G0Xvc00hhq7feG3i6Ko19w7JBSmdnFo6eQKUng3icntUVRHrecJAadZkKywVThN/aJxTPZ+5Gkwjcwc76fLBrberCeyi0Muh2rc5O4=
+	t=1716529074; cv=none; b=MdmuDhOs2xPq/543QbYkDLbxWZoP0oM7fAlmfapk/Yf8BqPf4TIvET64YjIOtbCSKCSy6VTV+dqJAnmS9IlQauSnhnRNtas3mA/wWtJwU0OLVa7q5uUtc9TZ92ahwSdbCW6VBNsHMrN+xuR2hMZEXdk0/6flxicWesQ3z4dvaZY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716529072; c=relaxed/simple;
-	bh=8vHbraDJuBgaz96HXp4wRD3AtOePzw0z6u7h+Ugg75c=;
+	s=arc-20240116; t=1716529074; c=relaxed/simple;
+	bh=Oh8zNklnrHCIPh6h/aZy99Yq8fh43WB7e2ptDoGXIuI=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=AQO25icH7iDAOSzVpAxrV5t5bTsqPukGKbGw8s7UCHheoddOofH9q3SiV/mji7RHy1hZa8y8IbCIz2PkEcohszdamxKezqfR4A7i1rltMTzMRgNmGpBy7c1nnJS0U0BNCF+83GOWE/y50zQkFAxDQll09jfJVlnxJZfxY+9Yleg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SZu4/hu6; arc=none smtp.client-ip=209.85.210.180
+	 MIME-Version; b=WkCzta8Z3nbEytQrLPuODQbQKpjK4OgtFZm75RtbC/BbHDg555FTP2AgtdxmD+WEn/4B73jVcjUFYc/V3RVxI+amoS57ysIu27RSWniK8vMUMK8PVRJsm0GCw1aZbVQOBPI36jPfUHd+8VICkAqNOBo0xxFrdsva6cRiEWLdxLU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hAeZr/Jo; arc=none smtp.client-ip=209.85.210.175
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SZu4/hu6"
-Received: by mail-pf1-f180.google.com with SMTP id d2e1a72fcca58-6f8e98760fcso479071b3a.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 May 2024 22:37:50 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hAeZr/Jo"
+Received: by mail-pf1-f175.google.com with SMTP id d2e1a72fcca58-6f69422c090so3675998b3a.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 May 2024 22:37:52 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1716529070; x=1717133870; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1716529071; x=1717133871; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=qO6rCQBgYPlIMZwi7ywJLde9Snohe4MqyM6CiIF/pcE=;
-        b=SZu4/hu674BsOuP4OAWlAKgiHe/BBqK4gNH2Ir3TQjY0TaauGys/KAqFplT+tvAAVA
-         8rcRWnXuPJtmDys4ms3k0ne7DaniCWzpDc0MGrZQrH5yrP6tNbC3P+kb6bdtqnKH89Uj
-         iYmLoS9X27N9kMa5p41vPDwjpVnWdbwQf96YY8MHQC6qIkMm0vp+ZtXNX2PQKtIYKSWb
-         fbtIE4p4QGPAmgRUa2hYmMTwH9O6rjX0hmhOwc+aR0Ruu9kunNx1k4kaKjfT73Nr5VQ1
-         dUXNH3EU2RQZspthJ3dBg1u0LIB28Y0nd5emwIraHs2XGdcCTN5HLM1N4Pcl0jmO/DRz
-         zz0A==
+        bh=b1nAYecjGKZaGuQ3erB/Q7TcmpN1h09QlkqlyC1w/NE=;
+        b=hAeZr/JooLsGgVj8+Xz9li8wKFDByCPSIh8foNLOpBwGyAqPIbkHlf9pM6gMn6CyQ/
+         oCHJZQWqgzgNIETSkKfTLG96nYdSS+33ykKuBKA92zuFQsQ0zdMunENN84wMOItT5ihI
+         OezemBaidITEb+3M8YGR61+k/32DYsH9DjK4Hil7c9h0vWoFSK4cYZiO5bUOzbsRXImv
+         AKSmDVBKzfvX+B5CVVE+Q2TIKhNkLtlEMFo6DxaQfhmUNUyoGshhbZ1QYf96VqqMSpkh
+         mJukU88hY2HroPy3eBOcdSqO4f0jfB+zcacN6p5gzzb1bsNvInV35ZBMqPKFQeNMzJT3
+         2WLg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1716529070; x=1717133870;
+        d=1e100.net; s=20230601; t=1716529071; x=1717133871;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=qO6rCQBgYPlIMZwi7ywJLde9Snohe4MqyM6CiIF/pcE=;
-        b=tR6bZoPXAUx4krH9lk1VjdFeYWo19ZYdx5olhrEd7t8vmfGsysQPoSPonhe8U1qhWn
-         ZjJYRrqutN3qKzIyyMh1JXwmlL2xLBA4mHWLj+uqJNgNbRQqh7nfj3Zo2gCU+zu9TjfI
-         Gq9Hm7kIpW4i7iscnJagNQ4YNjHAf9QQkA7oLCH2q2mSGJb1M/1QSUVWHZPPJF4KaR0j
-         o8aBkE7hP7eoRHWR9arFRIUtmzzzOUxinRzgNO16nxxC9h2yXFWsT7mh1frayovcX+ja
-         yXOCn+bp9AjPoCdu9xkRcojyaykbJ4DOtt4Ca8LtZzeP7fR4RMFQfiz0hWoLJWGpcYuS
-         S44Q==
-X-Gm-Message-State: AOJu0YwereM2PUyZ+sQjv5MYx/wUqgolpTXhkVtTsflycHO80nnRtbKB
-	c5Sc2paezQXvNGX19gpe+UrXPGqxe9JzWDryWrbBYgDW4xMSUp7Ymf6vgw==
-X-Google-Smtp-Source: AGHT+IH5tGVL8w05RVQ5F+N7L6j5xw8RBG3iAnD64zxWIrkZ9JnEWOeQBdkAKXbOgtmBb1mMlH93nA==
-X-Received: by 2002:a05:6a00:28cd:b0:6ed:5f64:2ffa with SMTP id d2e1a72fcca58-6f8f194abd8mr1914290b3a.0.1716529069617;
-        Thu, 23 May 2024 22:37:49 -0700 (PDT)
+        bh=b1nAYecjGKZaGuQ3erB/Q7TcmpN1h09QlkqlyC1w/NE=;
+        b=KpMHJqX2YySPzVn12d83oeAAie16E4t1+jmBCh7NcRVTrWaqh5u/fyeah2VAwLS0Au
+         vHeeGeNwMEfgpZGzCKDdH91PKhmkavASaUkzUUHczTUuhBeyf2SYnAB/5vOiUVb+OySm
+         EwQXsx9QiufGYp0O2Ybz+0xGFx76bl/ysNM00gx8e+oejx1UrgsvL/LGy3k0TSSNxNjX
+         WEzDLz4TugvSILiO9yUAocTlZwvolDKt+T1L9MAQJsD+4u/HfuiGWuOpxFNBoSg03rMR
+         cEpO3z1xYddufpo6psuxMGomVJaAOIDM69LMV1CbonPeLEdG65xuAaxnqetXVb2JuOzT
+         S/7A==
+X-Gm-Message-State: AOJu0Yy3hMZfa17hPt//7ZhLvOdK2+k8zAZ6x/PsBvUEK3m6/a+piXis
+	2CA1pKXVkxmgJ3yE8sYSL5Qt0GvgkBMjQz/wuOgC/mq0UXMqIUi+9MVyFQ==
+X-Google-Smtp-Source: AGHT+IHH2qaV+pRN2xsT3Hh3LTFGLOvnWNpGMdkTYc60FGas8R9Cm8Ed/Z7eNJXKxPKjXEIzcfEWig==
+X-Received: by 2002:a05:6a00:2a0f:b0:6ea:c43c:a650 with SMTP id d2e1a72fcca58-6f8f41a95a0mr1050240b3a.32.1716529071334;
+        Thu, 23 May 2024 22:37:51 -0700 (PDT)
 Received: from slk15.local.net ([49.190.141.216])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-6f8fcbe9f61sm460374b3a.110.2024.05.23.22.37.48
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-6f8fcbe9f61sm460374b3a.110.2024.05.23.22.37.49
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 23 May 2024 22:37:49 -0700 (PDT)
+        Thu, 23 May 2024 22:37:51 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From: Duncan Roe <duncan_roe@optusnet.com.au>
 To: netfilter-devel@vger.kernel.org
 Cc: pablo@netfilter.org
-Subject: [PATCH libnetfilter_queue v2 01/15] src: Convert nfq_open() to use libmnl
-Date: Fri, 24 May 2024 15:37:28 +1000
-Message-Id: <20240524053742.27294-2-duncan_roe@optusnet.com.au>
+Subject: [PATCH libnetfilter_queue v2 02/15] src: Convert nfq_open_nfnl() to use libmnl
+Date: Fri, 24 May 2024 15:37:29 +1000
+Message-Id: <20240524053742.27294-3-duncan_roe@optusnet.com.au>
 X-Mailer: git-send-email 2.35.8
 In-Reply-To: <20240524053742.27294-1-duncan_roe@optusnet.com.au>
 References: <20240524053742.27294-1-duncan_roe@optusnet.com.au>
@@ -69,194 +69,100 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add copies of nfnl_handle, nfnl_subsys_handle & mnl_socket to
-libnetfilter_queue.c. After calling mnl_socket_open() & mnl_socket_bind(),
-fill in the libnfnetlink structs as if nfnl_open() had been called.
-Call a static extended version of nfq_open_nfnl(), __nfq_open_nfnl() which
-can tell how it was called via an extra argument: struct nfq_handle *qh.
-nfq_open() passes the qh returned by mnl_open(). nfq_open_nfnl() passes
-NULL.
-__nfq_open_nfnl() creates and returns a qh if it wasn't given one.
-Otherwise it returns the qh it was given or NULL on error (but the
-passed-in qh is not freed).
+__nfq_open_nfnl() manufactures a libmnl handle if called by
+nfq_open_nfnl().
+Replace calls to nfnl_subsys_open() and nfnl_callback_register() with
+inline code.
 
 Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
 ---
  Changes in v2:
- - Rather than inline nfnl subsys code, minimally modify nfq_open_nfnl()
-   as per updated commit message
- - Replace NFNL_BUFFSIZE with MNL_SOCKET_BUFFER_SIZE
- - Use calloc instead of malloc + memset in new code
- - Don't rename struct nfq_handle *qh to *h
- - Fix checkpatch space before tab warnings in lines 143,147,159,165
- - Keep nfq_errno
- doxygen/doxygen.cfg.in   |  3 ++
- src/libnetfilter_queue.c | 86 ++++++++++++++++++++++++++++++++++------
- 2 files changed, 77 insertions(+), 12 deletions(-)
+ - Pretty much re-written as per updated commit message. In particular:
+   - Don't clear message sequencing - original didn't do that.
+   - Don't close the socket in any error path since it was open on entry.
+ src/libnetfilter_queue.c | 56 ++++++++++++++++++++++++++++++++--------
+ 1 file changed, 45 insertions(+), 11 deletions(-)
 
-diff --git a/doxygen/doxygen.cfg.in b/doxygen/doxygen.cfg.in
-index 97174ff..6dd7017 100644
---- a/doxygen/doxygen.cfg.in
-+++ b/doxygen/doxygen.cfg.in
-@@ -13,6 +13,9 @@ EXCLUDE_SYMBOLS        = EXPORT_SYMBOL \
-                          nfq_handle \
-                          nfq_data \
-                          nfq_q_handle \
-+                         nfnl_handle \
-+                         nfnl_subsys_handle \
-+                         mnl_socket \
-                          tcp_flag_word
- EXAMPLE_PATTERNS       =
- INPUT_FILTER           = "sed 's/EXPORT_SYMBOL//g'"
 diff --git a/src/libnetfilter_queue.c b/src/libnetfilter_queue.c
-index bf67a19..f366198 100644
+index f366198..bfb6482 100644
 --- a/src/libnetfilter_queue.c
 +++ b/src/libnetfilter_queue.c
-@@ -31,6 +31,7 @@
- #include <sys/socket.h>
- #include <linux/netfilter/nfnetlink_queue.h>
- 
-+#include <libmnl/libmnl.h>
- #include <libnfnetlink/libnfnetlink.h>
- #include <libnetfilter_queue/libnetfilter_queue.h>
- #include "internal.h"
-@@ -134,11 +135,43 @@ gcc -g3 -ggdb -Wall -lmnl -lnetfilter_queue -o nf-queue nf-queue.c
-  * burst
-  */
- 
-+/* Copy of private libnfnetlink structures */
-+
-+#define NFNL_MAX_SUBSYS 16
-+
-+struct nfnl_subsys_handle {
-+	struct nfnl_handle	*nfnlh;
-+	uint32_t		subscriptions;
-+	uint8_t			subsys_id;
-+	uint8_t			cb_count;
-+	struct nfnl_callback	*cb;	/* array of callbacks */
-+};
-+
-+struct nfnl_handle {
-+	int			fd;
-+	struct sockaddr_nl	local;
-+	struct sockaddr_nl	peer;
-+	uint32_t		subscriptions;
-+	uint32_t		seq;
-+	uint32_t		dump;
-+	uint32_t		rcv_buffer_size;	/* for nfnl_catch */
-+	uint32_t		flags;
-+	struct nlmsghdr		*last_nlhdr;
-+	struct nfnl_subsys_handle subsys[NFNL_MAX_SUBSYS+1];
-+};
-+
-+/* Copy of private libmnl structure */
-+struct mnl_socket {
-+	int			fd;
-+	struct sockaddr_nl	addr;
-+};
-+
- struct nfq_handle
- {
- 	struct nfnl_handle *nfnlh;
- 	struct nfnl_subsys_handle *nfnlssh;
- 	struct nfq_q_handle *qh_list;
-+	struct mnl_socket *nl;
- };
- 
- struct nfq_q_handle
-@@ -157,6 +190,9 @@ struct nfq_data {
- 
- EXPORT_SYMBOL int nfq_errno;
- 
-+static struct nfq_handle *__nfq_open_nfnl(struct nfnl_handle *nfnlh,
-+					  struct nfq_handle *qh);
-+
- /***********************************************************************
-  * low level stuff
-  ***********************************************************************/
-@@ -383,20 +419,41 @@ int nfq_fd(struct nfq_handle *h)
- EXPORT_SYMBOL
- struct nfq_handle *nfq_open(void)
- {
--	struct nfnl_handle *nfnlh = nfnl_open();
- 	struct nfq_handle *qh;
-+	struct nfq_handle *h;
- 
--	if (!nfnlh)
--		return NULL;
--
--	/* unset netlink sequence tracking by default */
--	nfnl_unset_sequence_tracking(nfnlh);
--
--	qh = nfq_open_nfnl(nfnlh);
-+	qh = calloc(1, sizeof(*qh));
- 	if (!qh)
--		nfnl_close(nfnlh);
-+		return NULL;
-+	qh->nl = mnl_socket_open(NETLINK_NETFILTER);
-+	if (!qh->nl)
-+		goto err_free;
-+
-+	if (mnl_socket_bind(qh->nl, 0, MNL_SOCKET_AUTOPID) < 0)
-+		goto err_close;
-+
-+	/* Manufacture an nfnl handle */
-+	qh->nfnlh = calloc(1, sizeof(*qh->nfnlh));
-+	if (!qh->nfnlh)
-+		goto err_close;
-+	qh->nfnlh->fd = qh->nl->fd;
-+	qh->nfnlh->local = qh->nl->addr;
-+	qh->nfnlh->peer.nl_family = AF_NETLINK;
-+	qh->nfnlh->rcv_buffer_size = MNL_SOCKET_BUFFER_SIZE;
-+
-+	h = __nfq_open_nfnl(qh->nfnlh, qh); /* Will return qh or NULL */
-+	if (!h)
-+		goto err_free2;
- 
- 	return qh;
-+
-+err_free2:
-+	free(qh->nfnlh);
-+err_close:
-+	mnl_socket_close(qh->nl);
-+err_free:
-+	free(qh);
-+	return NULL;
- }
- 
- /**
-@@ -415,6 +472,11 @@ struct nfq_handle *nfq_open(void)
-  */
- EXPORT_SYMBOL
- struct nfq_handle *nfq_open_nfnl(struct nfnl_handle *nfnlh)
-+{
-+	return __nfq_open_nfnl(nfnlh, NULL);
-+}
-+static struct nfq_handle *__nfq_open_nfnl(struct nfnl_handle *nfnlh,
-+					  struct nfq_handle *qh)
- {
- 	struct nfnl_callback pkt_cb = {
- 		.call		= __nfq_rcv_pkt,
-@@ -423,11 +485,10 @@ struct nfq_handle *nfq_open_nfnl(struct nfnl_handle *nfnlh)
+@@ -484,33 +484,67 @@ static struct nfq_handle *__nfq_open_nfnl(struct nfnl_handle *nfnlh,
+ 	};
  	struct nfq_handle *h;
  	int err;
++	int i;
++	uint32_t new_subscriptions;
  
--	h = malloc(sizeof(*h));
-+	h = qh ? qh : calloc(1, sizeof(*h));
+ 	h = qh ? qh : calloc(1, sizeof(*h));
  	if (!h)
  		return NULL;
  
--	memset(h, 0, sizeof(*h));
++	if (!qh) {
++		/* Manufacture the libmnl handle */
++		h->nl = calloc(1, sizeof(*h->nl));
++		if (!h->nl)
++			goto out_free;
++		h->nl->fd = nfnlh->fd;
++		h->nl->addr = nfnlh->local;
++	}
  	h->nfnlh = nfnlh;
  
- 	h->nfnlssh = nfnl_subsys_open(h->nfnlh, NFNL_SUBSYS_QUEUE,
-@@ -448,7 +509,8 @@ struct nfq_handle *nfq_open_nfnl(struct nfnl_handle *nfnlh)
- out_close:
- 	nfnl_subsys_close(h->nfnlssh);
+-	h->nfnlssh = nfnl_subsys_open(h->nfnlh, NFNL_SUBSYS_QUEUE,
+-				      NFQNL_MSG_MAX, 0);
+-	if (!h->nfnlssh) {
++	/* Replace nfnl_subsys_open() with code adapted from libnfnetlink */
++	h->nfnlssh = &h->nfnlh->subsys[NFNL_SUBSYS_QUEUE];
++	if (h->nfnlssh->cb) {
++		errno = EBUSY;
++		goto out_free;
++	}
++	h->nfnlssh->cb = calloc(NFQNL_MSG_MAX, sizeof(*(h->nfnlssh->cb)));
++	if (!h->nfnlssh->cb) {
+ 		/* FIXME: nfq_errno */
+ 		goto out_free;
+ 	}
++	h->nfnlssh->nfnlh = h->nfnlh;
++	h->nfnlssh->cb_count = NFQNL_MSG_MAX;
++	h->nfnlssh->subsys_id = NFNL_SUBSYS_QUEUE;
++
++	/* Replacement code for recalc_rebind_subscriptions() */
++	new_subscriptions = nfnlh->subscriptions;
++	for (i = 0; i < NFNL_MAX_SUBSYS; i++)
++		new_subscriptions |= nfnlh->subsys[i].subscriptions;
++	nfnlh->local.nl_groups = new_subscriptions;
++	err = bind(nfnlh->fd, (struct sockaddr *)&nfnlh->local,
++		   sizeof(nfnlh->local));
++	if (err == -1) {
++		free(h->nfnlssh->cb);
++		h->nfnlssh->cb = NULL;
++		goto out_free;
++	}
++	h->nfnlssh->subscriptions = new_subscriptions;
+ 
+ 	pkt_cb.data = h;
+-	err = nfnl_callback_register(h->nfnlssh, NFQNL_MSG_PACKET, &pkt_cb);
+-	if (err < 0) {
+-		nfq_errno = err;
+-		goto out_close;
+-	}
++	/* Replacement code for nfnl_callback_register()
++	 * The only error return from nfnl_callback_register() is not possible
++	 * here: NFQNL_MSG_PACKET (= 0) will be less than h->nfnlssh->cb_count
++	 * (set to NFQNL_MSG_MAX (= 4) a few lines back).
++	 */
++	memcpy(&h->nfnlssh->cb[NFQNL_MSG_PACKET], &pkt_cb, sizeof(pkt_cb));
+ 
+ 	return h;
+-out_close:
+-	nfnl_subsys_close(h->nfnlssh);
  out_free:
--	free(h);
-+	if (!qh)
-+		free(h);
+-	if (!qh)
++	if (!qh) {
++		if (h->nl)
++			free(h->nl);
+ 		free(h);
++	}
  	return NULL;
  }
  
