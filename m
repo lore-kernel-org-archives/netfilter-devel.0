@@ -1,25 +1,22 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id AC3632208E
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id AC39A17E8EF
 	for <netfilter-devel@vger.kernel.org>; Mon, 27 May 2024 22:18:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716848289; cv=none; b=sZTL/dceXZsGm/1an8Z04p8HgYjDscFF9Low5Y1R4Sny23yY4w348BbDdL6ReNvB33dUM/K4KuvAaeCJT09LGcbv5g6R8acaMlZlOOFrHFEj94ngEKxAmyJ0vt61ZDld6ryfWrt2B+y2aAA07tLGGPWh+f20RrG/CBA7wTI91fQ=
+	t=1716848290; cv=none; b=YgV5Dy+k4NlLjn3Xx304mQFt0b+iZYSUv6TVz9JtcGcPueqW3POAXokPtgpK02VNSveOpfwRnLtrWHKMFBn6wfyOLtOJoSEU02SYvZlsgMFajyoCSd0iWdJX0S4gsUKiktUK4cZLVVoJkYnMKFOGWxEQZUwVPNY/AvlLhTFM2xI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716848289; c=relaxed/simple;
-	bh=J/YFELsexEdNn3EdhT+r4f91Um8g4SqR0ANUaoR4zRU=;
-	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=H+v16CMU4QKIkWp9tlflG4xwiQocJU47Ia9sqjRsyCXzvlkBwFaQ+aKLTUIX7ZTN1tgB3Qs1G1A97Mh1wPAIb+4rLIdFpnrhrjjuqz0OrWL19RgWEEb2+rvae1SD22bDzte8DOb8+5t+BWJlMFLq1tQYeLg82c3O9U3EEHugu3c=
+	s=arc-20240116; t=1716848290; c=relaxed/simple;
+	bh=XssGgBESfxHx5pvksbwkunzCQexQxKG5kyPVths0a5U=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=lH1m2uEp7rA+MRkAYnsQvDkn06IXAdfM12qUxKOoV3my7ie6s2oXRxBUQ9l4WRssoQRoj2BnrVzcLdqNDNXaGBzAgs6MHurrM49aC0J0BBd1GjVg8f93XU91CVi9NFiNq1F0jf5Bao0yBHKUtWkv0OiqwNvJBYYyVOcMb5wze/0=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 2/2] cache: recycle existing cache with incremental updates
-Date: Tue, 28 May 2024 00:17:57 +0200
-Message-Id: <20240527221757.834892-2-pablo@netfilter.org>
+Subject: [PATCH nft 1/2] cache: check for NFT_CACHE_REFRESH in current requested cache
+Date: Tue, 28 May 2024 00:17:56 +0200
+Message-Id: <20240527221757.834892-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20240527221757.834892-1-pablo@netfilter.org>
-References: <20240527221757.834892-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -28,59 +25,46 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Cache tracking has improved over time by incrementally adding/deleting
-objects when evaluating commands that are going to be sent to the kernel.
+NFT_CACHE_REFRESH is set on inconditionally by ruleset listing commands
+to deal with stateful information in this ruleset. This flag results in
+dropping the existing cache and fully fetching all objects from the
+kernel.
 
-nft_cache_is_complete() already checks that the cache contains objects
-that are required to handle this batch of commands by comparing cache
-flags.
+Check if this flag is requested by the current list of commands, instead
+of checking at cache->flags which represents the cache after the
+_previous_ list of commands.
 
-Infer from the current generation ID if no other transaction has
-invalidated the existing cache, this allows to skip unnecessary cache
-flush then refill situations which slow down incremental updates.
-
+Fixes: 407c54f71255 ("src: cache gets out of sync in interactive mode")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/cache.c | 18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ src/cache.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/src/cache.c b/src/cache.c
-index 7cc84d714b08..2cfc4af7280e 100644
+index c000e32c497f..7cc84d714b08 100644
 --- a/src/cache.c
 +++ b/src/cache.c
-@@ -1182,9 +1182,21 @@ static bool nft_cache_needs_refresh(unsigned int flags)
- 	return flags & NFT_CACHE_REFRESH;
+@@ -1177,9 +1177,9 @@ static bool nft_cache_is_complete(struct nft_cache *cache, unsigned int flags)
+ 	return (cache->flags & flags) == flags;
  }
  
--static bool nft_cache_is_updated(struct nft_cache *cache, uint16_t genid)
-+static bool nft_cache_is_updated(struct nft_cache *cache, unsigned int flags,
-+				 uint16_t genid)
+-static bool nft_cache_needs_refresh(struct nft_cache *cache)
++static bool nft_cache_needs_refresh(unsigned int flags)
  {
--	return genid && genid == cache->genid;
-+	if (!genid)
-+		return false;
-+
-+	if (genid == cache->genid)
-+		return true;
-+
-+	if (genid == cache->genid + 1) {
-+		cache->genid++;
-+		return true;
-+	}
-+
-+	return false;
+-	return cache->flags & NFT_CACHE_REFRESH;
++	return flags & NFT_CACHE_REFRESH;
  }
  
- bool nft_cache_needs_update(struct nft_cache *cache)
-@@ -1209,7 +1221,7 @@ replay:
+ static bool nft_cache_is_updated(struct nft_cache *cache, uint16_t genid)
+@@ -1207,7 +1207,7 @@ int nft_cache_update(struct nft_ctx *nft, unsigned int flags,
+ replay:
+ 	ctx.seqnum = cache->seqnum++;
  	genid = mnl_genid_get(&ctx);
- 	if (!nft_cache_needs_refresh(flags) &&
+-	if (!nft_cache_needs_refresh(cache) &&
++	if (!nft_cache_needs_refresh(flags) &&
  	    nft_cache_is_complete(cache, flags) &&
--	    nft_cache_is_updated(cache, genid))
-+	    nft_cache_is_updated(cache, flags, genid))
+ 	    nft_cache_is_updated(cache, genid))
  		return 0;
- 
- 	if (cache->genid)
 -- 
 2.30.2
 
