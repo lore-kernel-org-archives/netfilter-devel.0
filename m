@@ -1,67 +1,67 @@
-Received: from mail-ed1-f74.google.com (mail-ed1-f74.google.com [209.85.208.74])
+Received: from mail-yb1-f201.google.com (mail-yb1-f201.google.com [209.85.219.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5245316D9D0
-	for <netfilter-devel@vger.kernel.org>; Mon, 27 May 2024 21:09:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.74
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37367161310
+	for <netfilter-devel@vger.kernel.org>; Mon, 27 May 2024 21:11:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716844159; cv=none; b=qqerJGTkO/wEY9e885T+604kBHA1uJp7fKXOzDWLTyF7iaqsLi0K9UKV1lY+WcdIBbSGOsd7FQYDZxTIwUcZUmlAldEaAwGVgXbC2XCLKGx5u1j/HYzbodZrdndf/8/+Dk4E6CA2PeH9tCOgokgS4vC/7rQlmJ//ZxwdXS8h5Cw=
+	t=1716844275; cv=none; b=bds7EoGG4juJCeKnhcmjQaO2PUxttRvsBPyUJZBGdXpD5+aoQyWR0kB6CmJdhrBsnb/8he3Ob36dheZCnGo13Sb6qdYB9aBhzxfz6cHMONRdO2zlm061d20WcAXZj0Qty7VzJ0h/rOvbmDZ2JEOjvnJ/mm2P7TFkBravSI40Joc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716844159; c=relaxed/simple;
-	bh=B2sdpk0KWi/B5qJynwoFYyupEtL+8nOcnizJswXywzs=;
+	s=arc-20240116; t=1716844275; c=relaxed/simple;
+	bh=jOH72SbmCuh1qVL9ZpmU9Zt0L0Zg8KmU12p0G8PUjcE=;
 	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=AsE06HlLFWlJrKv+WYYX3A0KWgd0WRpWwf/jBdJd+BMWqknsTba5skphxstRlIttoOwPQiuPvsjNJzzrCnDPYBJLCCOoNv1aqkyb38uIjE8nSkrFtD/V0SMcMNMxiiHV5DmYFdC7osrRzdJfEXEaLV/1WRoo9F46Zbc7uwXx/zA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=CWWZVwqT; arc=none smtp.client-ip=209.85.208.74
+	 To:Cc:Content-Type; b=iib8T80CuymeniiJNxYpwqD1GkeeJX7oZN2FkxXKmprAzakDpkKpT95VCT+V4D+T/YURAIDrMR5c5F/td/rg/pagLZ0i9qbRwKGIIkasmhtpIJwyUgZMh2Yo4msnbew8lLhiIVj9w1B5W1TKAlYEjaFAxPMtxlgdA6ov3PGUnvk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=wC1rvMfm; arc=none smtp.client-ip=209.85.219.201
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="CWWZVwqT"
-Received: by mail-ed1-f74.google.com with SMTP id 4fb4d7f45d1cf-579c0d6ac5bso52540a12.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 May 2024 14:09:17 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="wC1rvMfm"
+Received: by mail-yb1-f201.google.com with SMTP id 3f1490d57ef6-df771b4ec6eso196572276.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 May 2024 14:11:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1716844156; x=1717448956; darn=vger.kernel.org;
+        d=google.com; s=20230601; t=1716844273; x=1717449073; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:from:subject:message-id:references
          :mime-version:in-reply-to:date:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=tsuU1jT5jbBYuKJGyR0vYRn2b/uI6FX1lK3w7EnaKgg=;
-        b=CWWZVwqTBJQb9Vsq3OW4nWiG/al5IYhwM7vQapoV7peG5anYuPv8UCsBDhullzA/A8
-         rMr71KZyenM0bJznbKZz2WgYp6GNhvfLEp9Fw3zpwc6ggDQ4eBpCrRKxr8lUS50roH7x
-         xmYGKaAfv2oFf6wNPzp0Jo+LfhbD5ptuRpzQypyaUbmd7J5RhRsOdcffESVj2dn4J2sA
-         HpWfVBg7Xd0vKDPX8310p5gAsOupTk2LGpTxTPGnC94QHSnOtD5zZOMbs472iN4Koqhf
-         UAEQi2B57vpP5rv4x+RaNWx10Ce7QHDAPiwhPdXu0wJ4NnEnn23u+tkupFAC2rHg55Qm
-         OJyw==
+        bh=jHTNTLN2NBseetsHgkmI+JNq5t6plhK651mJJB/QFCA=;
+        b=wC1rvMfm0b5flKr7mHcBy516GxKjDSYF6wXPdWwbe4t2kDXa6lCqBxUbpMX043BBiv
+         MoazRXj4asaakgTr0sGLrfzDKlUXcRd46cHNi7KGkfjAQ6NiLHNDUX1kHBcPn2Ds5DC8
+         R4SFbnHHCSv8zxBIw+MxURmkyFSvUQp/z3GtwUeyLh+kEbNxQpAny3VO4qQjY7jzYLwA
+         PcIYYn5xx1KunX6jgT57gL1cb2edN4i2bLmewSx8cM3UBJAz+trBV3Upi97M8I734+Bu
+         qk+OSNWgxaPhEiQFAzkiF5K3/HP4KYDuaeCzOEz70QWUkA6gOMe6K9PSGKYygJfQxIaD
+         ELCg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1716844156; x=1717448956;
+        d=1e100.net; s=20230601; t=1716844273; x=1717449073;
         h=content-transfer-encoding:cc:to:from:subject:message-id:references
          :mime-version:in-reply-to:date:x-gm-message-state:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=tsuU1jT5jbBYuKJGyR0vYRn2b/uI6FX1lK3w7EnaKgg=;
-        b=QRldhg8U1gBR6GaR76y2TSFHVX4LwyjrExETfeoeN5XnakZCpqjlTQ5M3sUYtAX/ti
-         vpJBNL0WMXPHZm6XP9xEDMuEGkonIMfMcHvJssFKfMpU9mGqgD5oIE+Q/J/tL1Hf1Aac
-         2ZvV33NfVw+qqFQQ8E1qahLxzlH2nFoxtw+x9Rje5cnsTkjLKLdEMF4fiyTfBhlEjKRH
-         RfRSlhAwZbqZx2Nn+eB1MLDzz27YVp8PJGrNJ63TQ40CzkZC5PfsGwhMxbgaSrzsF+ME
-         cKP2ezdqHnYvG+vGGct/FRA7gN3ln2jj7ZsuXI6omANSgeL8umI51sfKyy0K/Ta5AmBJ
-         v72A==
-X-Forwarded-Encrypted: i=1; AJvYcCUmJ+9zYBtlFjXK6bdl39diMfJizs+ZJRnQB52yim8xLPPRNor/XKxeNvqgq0P3JJj5PDCQQb0zhnKl4aG8CcP9G0O2m2Zp3P9w7M95tsFE
-X-Gm-Message-State: AOJu0Yy6TQDXq/0ACAXzUpfThGk9FPT2Zfgfhm5jvDAHBCIt+uw7uBlX
-	xy0LsCpCY2Fy48BnHjRfEIBC7OhkJJBwqQ4FC75uSkQVIw77BewMle7YSRIkxJSzqJtXRfdkzNl
-	5Yg==
-X-Google-Smtp-Source: AGHT+IHIN3d5YINuHAotEC4UxRkqcfccx/A2KpD7+JS/UKBjxJVjWI3KslNY0Cmuac66sqraieanwYleU6g=
+        bh=jHTNTLN2NBseetsHgkmI+JNq5t6plhK651mJJB/QFCA=;
+        b=CKR6vNhpAGcvOo9LUOKLzQ+/KrSxp0QNY1yREE9MFOUJYbjRgqqRaEnSULfAvczN0z
+         7TxEojT4cSOLR0kg+mOY/rgemTOWpw9o4Lz7XbRSMCp8DEfZrH/miVD2Or8qbZnKVCsP
+         R7rs4qJ7s1LEWZ5EY22ICKwEIOhqTGBOKFDnUxENioepQ7uL+2gdSTf1A3pNzbf/n3/p
+         seo88KEnaIA73x57nUmxnxQ76czAg2u8tQNmAJvfIXdRcHVr7d9HU+T14oukFhhZsMee
+         geoaIUr2sAhBDqR+133Z4zodL5qRr+x0c60rv1Z4Iup/PdSYNTQg3+aLF4d2naDjoz+d
+         59aA==
+X-Forwarded-Encrypted: i=1; AJvYcCV5meu3Ys1G8WYv1o5le0APa/L23t9wKlk2naYbMZ5cqbCO91iPeRpwAfs9dfQzftKyIA8naMvx2mTnDKr5ULC2VUtgwWevzsGq58GAHcSy
+X-Gm-Message-State: AOJu0YywhnxR3UPSFgxom+VkK4l+c1tmDKXNKMpxH6Gu37nTSY+ZmGEi
+	vtby0IOjDZXK80tEz7Ppl+rrjh1pli4kcQoof/w+MxhLlEMEn66WwMPC7DAWFe4rHvPLEFnQfv4
+	x/w==
+X-Google-Smtp-Source: AGHT+IEjOCWrO/w/wQv/+CSw5jX5MMbEDuw/w70D/xJDDN7/Tb/pgDzlutH9lO1deRmleYUvQ5+T1wfReAo=
 X-Received: from swim.c.googlers.com ([fda3:e722:ac3:cc00:31:98fb:c0a8:1605])
- (user=gnoack job=sendgmr) by 2002:a17:906:478c:b0:a55:8f2a:9508 with SMTP id
- a640c23a62f3a-a626512671cmr1059666b.10.1716844155608; Mon, 27 May 2024
- 14:09:15 -0700 (PDT)
-Date: Mon, 27 May 2024 23:09:13 +0200
-In-Reply-To: <20240524093015.2402952-9-ivanov.mikhail1@huawei-partners.com>
+ (user=gnoack job=sendgmr) by 2002:a25:c591:0:b0:df7:83fa:273b with SMTP id
+ 3f1490d57ef6-df783fa33e5mr590467276.11.1716844273259; Mon, 27 May 2024
+ 14:11:13 -0700 (PDT)
+Date: Mon, 27 May 2024 23:11:11 +0200
+In-Reply-To: <20240524093015.2402952-6-ivanov.mikhail1@huawei-partners.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0
-References: <20240524093015.2402952-1-ivanov.mikhail1@huawei-partners.com> <20240524093015.2402952-9-ivanov.mikhail1@huawei-partners.com>
-Message-ID: <ZlT2edk0lBcMPcjp@google.com>
-Subject: Re: [RFC PATCH v2 08/12] selftests/landlock: Add tcp_layers.ruleset_overlap
+References: <20240524093015.2402952-1-ivanov.mikhail1@huawei-partners.com> <20240524093015.2402952-6-ivanov.mikhail1@huawei-partners.com>
+Message-ID: <ZlT274CFVomTcl0C@google.com>
+Subject: Re: [RFC PATCH v2 05/12] selftests/landlock: Add protocol.rule_with_unknown_access
  to socket tests
 From: "=?utf-8?Q?G=C3=BCnther?= Noack" <gnoack@google.com>
 To: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
@@ -72,156 +72,57 @@ Cc: mic@digikod.net, willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com,
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, May 24, 2024 at 05:30:11PM +0800, Mikhail Ivanov wrote:
-> * Add tcp_layers fixture for tests that check multiple layer
->   configuration scenarios.
->=20
-> * Add test that validates multiple layer behavior with overlapped
->   restrictions.
+On Fri, May 24, 2024 at 05:30:08PM +0800, Mikhail Ivanov wrote:
+> Add test that validates behavior of landlock after rule with
+> unknown access is added.
 >=20
 > Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
 > ---
 >=20
 > Changes since v1:
-> * Replaces test_socket_create() with test_socket().
-> * Formats code with clang-format.
-> * Refactors commit message.
-> * Minor fixes.
+> * Refactors commit messsage.
 > ---
->  .../testing/selftests/landlock/socket_test.c  | 109 ++++++++++++++++++
->  1 file changed, 109 insertions(+)
+>  .../testing/selftests/landlock/socket_test.c  | 26 +++++++++++++++++++
+>  1 file changed, 26 insertions(+)
 >=20
 > diff --git a/tools/testing/selftests/landlock/socket_test.c b/tools/testi=
 ng/selftests/landlock/socket_test.c
-> index 751596c381fe..52edc1a8ac21 100644
+> index eb5d62263460..57d5927906b8 100644
 > --- a/tools/testing/selftests/landlock/socket_test.c
 > +++ b/tools/testing/selftests/landlock/socket_test.c
-> @@ -299,4 +299,113 @@ TEST_F(protocol, inval)
->  				       &protocol, 0));
+> @@ -206,4 +206,30 @@ TEST_F(protocol, socket_access_rights)
+>  	EXPECT_EQ(0, close(ruleset_fd));
 >  }
 > =20
-> +FIXTURE(tcp_layers)
-> +{
-> +	struct service_fixture srv0;
-> +};
-> +
-> +FIXTURE_VARIANT(tcp_layers)
-> +{
-> +	const size_t num_layers;
-> +};
-> +
-> +FIXTURE_SETUP(tcp_layers)
-> +{
-> +	const struct protocol_variant prot =3D {
-> +		.family =3D AF_INET,
-> +		.type =3D SOCK_STREAM,
-> +	};
-> +
-> +	disable_caps(_metadata);
-> +	self->srv0.protocol =3D prot;
-> +	setup_namespace(_metadata);
-> +};
-> +
-> +FIXTURE_TEARDOWN(tcp_layers)
-> +{
-> +}
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(tcp_layers, no_sandbox_with_ipv4) {
-> +	/* clang-format on */
-> +	.num_layers =3D 0,
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(tcp_layers, one_sandbox_with_ipv4) {
-> +	/* clang-format on */
-> +	.num_layers =3D 1,
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(tcp_layers, two_sandboxes_with_ipv4) {
-> +	/* clang-format on */
-> +	.num_layers =3D 2,
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(tcp_layers, three_sandboxes_with_ipv4) {
-> +	/* clang-format on */
-> +	.num_layers =3D 3,
-> +};
-> +
-> +TEST_F(tcp_layers, ruleset_overlap)
+> +TEST_F(protocol, rule_with_unknown_access)
 > +{
 > +	const struct landlock_ruleset_attr ruleset_attr =3D {
-> +		.handled_access_socket =3D LANDLOCK_ACCESS_SOCKET_CREATE,
+> +		.handled_access_socket =3D ACCESS_ALL,
 > +	};
-> +	const struct landlock_socket_attr tcp_create =3D {
-> +		.allowed_access =3D LANDLOCK_ACCESS_SOCKET_CREATE,
+> +	struct landlock_socket_attr protocol =3D {
 > +		.family =3D self->srv0.protocol.family,
 > +		.type =3D self->srv0.protocol.type,
 > +	};
+> +	int ruleset_fd;
+> +	__u64 access;
 > +
-> +	if (variant->num_layers >=3D 1) {
-> +		int ruleset_fd;
+> +	ruleset_fd =3D
+> +		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
+> +	ASSERT_LE(0, ruleset_fd);
 > +
-> +		ruleset_fd =3D landlock_create_ruleset(&ruleset_attr,
-> +						     sizeof(ruleset_attr), 0);
-> +		ASSERT_LE(0, ruleset_fd);
-> +
-> +		/* Allows create. */
-> +		ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_SOCKET,
-> +					       &tcp_create, 0));
-> +		enforce_ruleset(_metadata, ruleset_fd);
-> +		EXPECT_EQ(0, close(ruleset_fd));
+> +	for (access =3D 1ULL << 63; access !=3D ACCESS_LAST; access >>=3D 1) {
+> +		protocol.allowed_access =3D access;
+> +		EXPECT_EQ(-1,
+> +			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_SOCKET,
+> +					    &protocol, 0));
+> +		EXPECT_EQ(EINVAL, errno);
 > +	}
-> +
-> +	if (variant->num_layers >=3D 2) {
-> +		int ruleset_fd;
-> +
-> +		/* Creates another ruleset layer with denied create. */
-> +		ruleset_fd =3D landlock_create_ruleset(&ruleset_attr,
-> +						     sizeof(ruleset_attr), 0);
-> +		ASSERT_LE(0, ruleset_fd);
-> +
-> +		enforce_ruleset(_metadata, ruleset_fd);
-> +		EXPECT_EQ(0, close(ruleset_fd));
-> +	}
-> +
-> +	if (variant->num_layers >=3D 3) {
-> +		int ruleset_fd;
-> +
-> +		/* Creates another ruleset layer. */
-> +		ruleset_fd =3D landlock_create_ruleset(&ruleset_attr,
-> +						     sizeof(ruleset_attr), 0);
-> +		ASSERT_LE(0, ruleset_fd);
-> +
-> +		/* Try to allow create second time. */
-> +		ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_SOCKET,
-> +					       &tcp_create, 0));
-> +		enforce_ruleset(_metadata, ruleset_fd);
-> +		EXPECT_EQ(0, close(ruleset_fd));
-> +	}
-> +
-> +	if (variant->num_layers < 2) {
-> +		ASSERT_EQ(0, test_socket(&self->srv0));
-> +	} else {
-> +		ASSERT_EQ(EACCES, test_socket(&self->srv0));
-> +	}
+> +	EXPECT_EQ(0, close(ruleset_fd));
 > +}
+> +
+>  TEST_HARNESS_MAIN
+> --=20
+> 2.34.1
+>=20
 
-Wouldn't this be simpler if you did multiple checks in one test, in a seque=
-nce?
-
-  * Expect that socket() works
-  * Enforce ruleset 1 with a rule
-  * Expect that socket() works
-  * Enforce ruleset 2 without a rule
-  * Expect that socket() fails
-  * Enforce ruleset 3
-  * Expect that socket() still fails
-
-Then it would test the same and you would not need the fixture.
-If you extracted these if bodies above into helper functions,
-I think it would also read reasonably well.
-
-=E2=80=94G=C3=BCnther
+Reviewed-by: G=C3=BCnther Noack <gnoack@google.com>
