@@ -1,74 +1,119 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb1-f202.google.com (mail-yb1-f202.google.com [209.85.219.202])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61738F9CF
-	for <netfilter-devel@vger.kernel.org>; Sun, 26 May 2024 09:50:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D22D76A33A
+	for <netfilter-devel@vger.kernel.org>; Mon, 27 May 2024 08:49:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.202
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716717038; cv=none; b=JqhaOP5Rwri/LmzgzVAnxJZyqzVcXQtiKvSUt9QRq8F07JWeyIZan9YjiYm3vqHPdvLRiqdWCE5YXS2uNrrNHveZQp94+igs91RT+oDiMcwGl9MScSZuI+HG0XfWYi8uXq7GioQqb002vAaLgF3Qf40RG77M+DgGAz593ffGQYQ=
+	t=1716799745; cv=none; b=D87OgluUMamb3JVkxEhsiitOlHWs1bghi+LVscNTFUreCKr1+R2Mycgu164nWqRBZKkp92aZVVZaDaS8fckc3UjxHjSKdGJoy7Qz7/QMppqZxlJqwPnCgxtctQ7+DOor4rXNraIhfty8ZL9dO+McOk65ePSbJyF71t/Wq7uX0B0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716717038; c=relaxed/simple;
-	bh=rXbpqmMDnGuocFM6NZnEGK4YEMiXhIVn4VcadNZPMBc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=B11m4Y+fJtHzB/S6S0x8qiOIBVKuZlFTDNTMXZBlJo33aMBSg/oBXfE0jpAFfycJvGjg39vPU4e5JfLjzCRfT8NR0gGsQLDS33ZHOJW/qsAqdgSZ6Rwb3d2e9ps+pC9QQim3S041a82Q2+BMe2Q8WhCzPV7W4cB67iNNbHjYzx0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=aEG9JZlg; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1716799745; c=relaxed/simple;
+	bh=6hnkCumVKeX0lruCxCw3rgX0CDGw6k01picz6DuzG8Q=;
+	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
+	 To:Cc:Content-Type; b=qudLhuCtwEsDBgkMufaTpqQOqweVmcv8XfM0IQ3sPf0l3mC8OOx8S06LBY62+AIpE8ZNUDK8sSB6ZHAv9fRjXaHtIAuMnapfkV6IM1Rt7XAK8eBYOglqcL/F3gaRp913OTsy8wBrBir4VP9Z4Mz07FBh7W9WXg3MKgT8Dd4T7HY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=UXKgjLEf; arc=none smtp.client-ip=209.85.219.202
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="aEG9JZlg"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=rXbpqmMDnGuocFM6NZnEGK4YEMiXhIVn4VcadNZPMBc=; b=aEG9JZlg0uXkwg3tmqUMFUwyqM
-	olMupCegU3VIsL7Wllhrs8wrKhMndzyh8Aiq3gzZQQvvErk0APoj9H02OF4Bb5kjf+fZrmCNNosmp
-	2kstPO4D/aVGIfBgHTy4EXZMBmn17Su3TlkykDJcFM0zCUCroC5nhO2bV3XbSY3CyK/3b8sp1zhOJ
-	dSNFMqdfHIjh1A0iY3WmgV9hV0f+Tw9P2hq1LcwjrIT61sY3ns8fkzs3+06WfpLI5rRv1oGhzyUfk
-	jCd3tktnCiBY5EDGYvsO+ClGbpqcidBaX4c6i6jALwnzjFdy05ehodniq+EwRMkBUKLyiHScnQ/Hd
-	z21D2K4w==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1sBAWJ-000000008SA-14Xg;
-	Sun, 26 May 2024 11:50:27 +0200
-Date: Sun, 26 May 2024 11:50:27 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Michael Estner <michaelestner@web.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] iptables: cleanup FIXME
-Message-ID: <ZlMF49DdO0aoiJkL@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Michael Estner <michaelestner@web.de>,
-	netfilter-devel@vger.kernel.org
-References: <Zk9yrd8Ji1xAcblw>
- <20240524132452.84195-1-michaelestner@web.de>
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="UXKgjLEf"
+Received: by mail-yb1-f202.google.com with SMTP id 3f1490d57ef6-df4dc93d0d3so4074389276.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 May 2024 01:49:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1716799742; x=1717404542; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:from:subject:message-id:references
+         :mime-version:in-reply-to:date:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=dNR5DO1CHyjpfDZYPq+x3L8T7L/dl362JOK4DfPxNZs=;
+        b=UXKgjLEfwAgzJtkWtzpTfSgNW8EAItvJMecdcczX07IUcrLAF//xS5IegXyvtUai4+
+         jxkLLLeL/fqifPA/mEz5jHU6h1CHYbSIvEQ/hRunv69PwQ1e1Gfqe2ldgOrwLd2/Etfh
+         rMQSRUWNxxqcAn5NB07xJHfvgolg6KwyB2bqBUU2hTUnegymEdaQUQYeEgNTNDjh51wY
+         d6BsdK1YQuOujIUrx4I2QIwsHAxMNYZdfE+k/bOTAatDE28uFMX1oiaclWC7roOFcV88
+         nz2XG9WDoWW+NIqk7PH4ikGuIxhmmRt5SEoOThHEudFJioAnrJBmgJq+tXhrPLqqA7/I
+         YiCg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1716799742; x=1717404542;
+        h=content-transfer-encoding:cc:to:from:subject:message-id:references
+         :mime-version:in-reply-to:date:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=dNR5DO1CHyjpfDZYPq+x3L8T7L/dl362JOK4DfPxNZs=;
+        b=PesDxCS0kcQ+vke4sx4nXpNljbwn5vR2zALboxgRFMrAJ9nknN7V17WwqFc8YyT0yS
+         +VjbQ/TmTZ9CTQQ7XsuKCx4AFExRbitDCDte1jttfYpkTxp+lVJ4aw5WJw1OM+b+t/HQ
+         0htsRsC+Nss5usIZOtNmOK7Yr+TOqcFvn5sYOYhrTA5muVJ/NrEwhY8W7gX52gsPiF8z
+         E5fPXtXISVu1O5yiYnRg9paoICVPDSPsaKCTbZlaHeJ/0qaiC7VFAR4Op4dN1z1nGP37
+         jYhMNsEiR/nkLuZ7twFGDthR1jaOu4GKcDcT2vQzfoTThblUiHQnRS33d4niqF/FoX7L
+         LIVw==
+X-Forwarded-Encrypted: i=1; AJvYcCXG3nq0i0cpNjhPmifjFBjlW1jfq9AyEbIlv8l+jKVdU1ofKjKpVRGjgZE3b5AEZHK/ftrWLJYEJNGudl7W3CLj0XrrnCTwuYUsyi/2k1C2
+X-Gm-Message-State: AOJu0YyDF/lrr5RamynxeoAJfCkp+IFtX1j1tJRO1zfZXAsZBRFW3Dpz
+	y8glDg4O+kyAMeU1GdEhefyVBjivL3w9bt1eY7Vw3CK6QBgGJe7x+Lbsli7QjnthwWDe8NOvRqA
+	wLg==
+X-Google-Smtp-Source: AGHT+IHJLKjrAfYMfR23BMucCCENKd9d4PeuadLwUvN/ob+x/lnn2t/ndL57JaArcRK5IeZd70rpBAatIAQ=
+X-Received: from swim.c.googlers.com ([fda3:e722:ac3:cc00:31:98fb:c0a8:1605])
+ (user=gnoack job=sendgmr) by 2002:a25:d341:0:b0:df4:8ff6:47f4 with SMTP id
+ 3f1490d57ef6-df7721580c8mr2525115276.1.1716799741829; Mon, 27 May 2024
+ 01:49:01 -0700 (PDT)
+Date: Mon, 27 May 2024 10:48:58 +0200
+In-Reply-To: <20240524093015.2402952-3-ivanov.mikhail1@huawei-partners.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240524132452.84195-1-michaelestner@web.de>
+Mime-Version: 1.0
+References: <20240524093015.2402952-1-ivanov.mikhail1@huawei-partners.com> <20240524093015.2402952-3-ivanov.mikhail1@huawei-partners.com>
+Message-ID: <ZlRI-gqDNkYOV_Th@google.com>
+Subject: Re: [RFC PATCH v2 02/12] landlock: Add hook on socket creation
+From: "=?utf-8?Q?G=C3=BCnther?= Noack" <gnoack@google.com>
+To: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+Cc: mic@digikod.net, willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com, 
+	linux-security-module@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, yusongping@huawei.com, 
+	artem.kuzin@huawei.com, konstantin.meskhidze@huawei.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Michael,
+Hello Mikhail!
 
-On Fri, May 24, 2024 at 03:24:51PM +0200, Michael Estner wrote:
-> I checked bitmask in the ebt_entry struct in iptables/xshared.h
-> Should be compared here since bitmask needs to be the first
-> field in the struct ebt_entry.
+Thanks for sending another revision of this patch set!
 
-The reason why 'bitmask' has to be the first field is that in kernel
-space, the first bit in it is used to distinguish list element types
-between 'struct ebt_entries' and 'struct ebt_entry'. See
-EBT_ENTRY_OR_ENTRIES define and the related comment in
-include/uapi/linux/netfilter_bridge/ebtables.h for reference.
+On Fri, May 24, 2024 at 05:30:05PM +0800, Mikhail Ivanov wrote:
+> Add hook to security_socket_post_create(), which checks whether the socke=
+t
+> type and family are allowed by domain. Hook is called after initializing
+> the socket in the network stack to not wrongfully return EACCES for a
+> family-type pair, which is considered invalid by the protocol.
+>=20
+> Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
 
-While it seems sensible to do, I wonder why things seem to work fine
-even without it. Do we find a corner-case which makes it necessary to
-compare 'bitmask'? Or the other way round, is there a case which breaks
-if we do?
+## Some observations that *do not* need to be addressed in this commit, IMH=
+O:
 
-Cheers, Phil
+get_raw_handled_socket_accesses, get_current_socket_domain and
+current_check_access_socket are based on the similarly-named functions from
+net.c (and fs.c), and it makes sense to stay consistent with these.
+
+There are some possible refactorings that could maybe be applied to that co=
+de,
+but given that the same ones would apply to net.c as well, it's probably be=
+st to
+address these separately.
+
+  * Should get_raw_handled_socket_accesses be inlined?
+  * Does the WARN_ON_ONCE(dom->num_layers < 1) check have the right return =
+code?
+  * Can we refactor out commonalities (probably not worth it right now thou=
+gh)?
+
+
+## The only actionable feedback that I have that is specific to this commit=
+ is:
+
+In the past, we have introduced new (non-test) Landlock functionality in a
+single commit -- that way, we have no "loose ends" in the code between thes=
+e two
+commits, and that simplifies it for people who want to patch your feature o=
+nto
+other kernel trees.  (e.g. I think we should maybe merge commit 01/12 and 0=
+2/12
+into a single commit.)  WDYT?
+
+=E2=80=94G=C3=BCnther
