@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2433513E059;
-	Tue, 28 May 2024 22:55:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id EEB1B13E3E5;
+	Tue, 28 May 2024 22:55:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716936930; cv=none; b=kZPvpMlKQOai3J7a2Z9c3RcN7bole3jUmnKDebh0jsCKT+jODh1P5jAq7COyTHM02Ls9ciVnoKJw9tD6ByV8VDddl+9+v9DuYdqC1j+BwdQ1fooVg3IAYpuEz5pQ/OZDf9bxo8oXvQmW7BG427YZXDiBGh0uYiKIpQDGSwlWDas=
+	t=1716936931; cv=none; b=sJSGakFTSK+y+a45+RtwBaozTIyk4BuNcU7NDfB3F2xzC4hduhCLhTisIzcu04pW2Fp9Y7w6FzlfgSvnMhRfcgTE4U3U4l09hSXzY52Dm9AJWvzJEi7s9LzKc+l4ZqHTokKxT1n93amAHKWQFathW9+QwnLY6kdlYott3lY8nB8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716936930; c=relaxed/simple;
-	bh=BJZ+uUadFze585e9aOHxn2QMXf+G+UneaUjFaJ9cvW4=;
+	s=arc-20240116; t=1716936931; c=relaxed/simple;
+	bh=Kl1hatbDvoPkE+SV3b9o2dQqQtjDw7GjY6QaOqy2HT8=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=pDNASNLS9ZQ9yuKljX/H3qojm9IjTUjXR3roT7+l43GBpRDxSGrt18OdjT13pM+e8jCOxD2x7bGQnN+hDOjiupl/TdF+JS30xvRF7RHj0KIeOCJT1XsS+G1V6Rwf2R1P4YrBd5VSguZN63x3UMXSyQv3JOF936hDSwM772cWAa8=
+	 MIME-Version; b=C1czvso+BXf3lSit2LArEPpiD36PMNhCOCi6bphy4oD1TaKj0WzFJjac/zl476fEgImbvzyJfPoDZ+ck6cZIBKS5Qqln1ysY1xkuazd1ECi9DqfBUDShqLmafQzCbG1mcrIACylDhxfnpTOTaulSG+52E4iPN7iLQp9a8k8A6z4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -21,9 +21,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	kadlec@netfilter.org
-Subject: [PATCH net 1/6] netfilter: nfnetlink_queue: acquire rcu_read_lock() in instance_destroy_rcu()
-Date: Wed, 29 May 2024 00:55:14 +0200
-Message-Id: <20240528225519.1155786-2-pablo@netfilter.org>
+Subject: [PATCH net 3/6] netfilter: nft_payload: restore vlan q-in-q match support
+Date: Wed, 29 May 2024 00:55:16 +0200
+Message-Id: <20240528225519.1155786-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240528225519.1155786-1-pablo@netfilter.org>
 References: <20240528225519.1155786-1-pablo@netfilter.org>
@@ -35,73 +35,67 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Eric Dumazet <edumazet@google.com>
+Revert f6ae9f120dad ("netfilter: nft_payload: add C-VLAN support").
 
-syzbot reported that nf_reinject() could be called without rcu_read_lock() :
+f41f72d09ee1 ("netfilter: nft_payload: simplify vlan header handling")
+already allows to match on inner vlan tags by subtract the vlan header
+size to the payload offset which has been popped and stored in skbuff
+metadata fields.
 
-WARNING: suspicious RCU usage
-6.9.0-rc7-syzkaller-02060-g5c1672705a1a #0 Not tainted
-
-net/netfilter/nfnetlink_queue.c:263 suspicious rcu_dereference_check() usage!
-
-other info that might help us debug this:
-
-rcu_scheduler_active = 2, debug_locks = 1
-2 locks held by syz-executor.4/13427:
-  #0: ffffffff8e334f60 (rcu_callback){....}-{0:0}, at: rcu_lock_acquire include/linux/rcupdate.h:329 [inline]
-  #0: ffffffff8e334f60 (rcu_callback){....}-{0:0}, at: rcu_do_batch kernel/rcu/tree.c:2190 [inline]
-  #0: ffffffff8e334f60 (rcu_callback){....}-{0:0}, at: rcu_core+0xa86/0x1830 kernel/rcu/tree.c:2471
-  #1: ffff88801ca92958 (&inst->lock){+.-.}-{2:2}, at: spin_lock_bh include/linux/spinlock.h:356 [inline]
-  #1: ffff88801ca92958 (&inst->lock){+.-.}-{2:2}, at: nfqnl_flush net/netfilter/nfnetlink_queue.c:405 [inline]
-  #1: ffff88801ca92958 (&inst->lock){+.-.}-{2:2}, at: instance_destroy_rcu+0x30/0x220 net/netfilter/nfnetlink_queue.c:172
-
-stack backtrace:
-CPU: 0 PID: 13427 Comm: syz-executor.4 Not tainted 6.9.0-rc7-syzkaller-02060-g5c1672705a1a #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 04/02/2024
-Call Trace:
- <IRQ>
-  __dump_stack lib/dump_stack.c:88 [inline]
-  dump_stack_lvl+0x241/0x360 lib/dump_stack.c:114
-  lockdep_rcu_suspicious+0x221/0x340 kernel/locking/lockdep.c:6712
-  nf_reinject net/netfilter/nfnetlink_queue.c:323 [inline]
-  nfqnl_reinject+0x6ec/0x1120 net/netfilter/nfnetlink_queue.c:397
-  nfqnl_flush net/netfilter/nfnetlink_queue.c:410 [inline]
-  instance_destroy_rcu+0x1ae/0x220 net/netfilter/nfnetlink_queue.c:172
-  rcu_do_batch kernel/rcu/tree.c:2196 [inline]
-  rcu_core+0xafd/0x1830 kernel/rcu/tree.c:2471
-  handle_softirqs+0x2d6/0x990 kernel/softirq.c:554
-  __do_softirq kernel/softirq.c:588 [inline]
-  invoke_softirq kernel/softirq.c:428 [inline]
-  __irq_exit_rcu+0xf4/0x1c0 kernel/softirq.c:637
-  irq_exit_rcu+0x9/0x30 kernel/softirq.c:649
-  instr_sysvec_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1043 [inline]
-  sysvec_apic_timer_interrupt+0xa6/0xc0 arch/x86/kernel/apic/apic.c:1043
- </IRQ>
- <TASK>
-
-Fixes: 9872bec773c2 ("[NETFILTER]: nfnetlink: use RCU for queue instances hash")
-Reported-by: syzbot <syzkaller@googlegroups.com>
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Acked-by: Florian Westphal <fw@strlen.de>
+Fixes: f6ae9f120dad ("netfilter: nft_payload: add C-VLAN support")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_queue.c | 2 ++
- 1 file changed, 2 insertions(+)
+ net/netfilter/nft_payload.c | 23 +++++++----------------
+ 1 file changed, 7 insertions(+), 16 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 00f4bd21c59b..f1c31757e496 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -169,7 +169,9 @@ instance_destroy_rcu(struct rcu_head *head)
- 	struct nfqnl_instance *inst = container_of(head, struct nfqnl_instance,
- 						   rcu);
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index 0a689c8e0295..a3cb5dbcb362 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -45,36 +45,27 @@ nft_payload_copy_vlan(u32 *d, const struct sk_buff *skb, u8 offset, u8 len)
+ 	int mac_off = skb_mac_header(skb) - skb->data;
+ 	u8 *vlanh, *dst_u8 = (u8 *) d;
+ 	struct vlan_ethhdr veth;
+-	u8 vlan_hlen = 0;
+-
+-	if ((skb->protocol == htons(ETH_P_8021AD) ||
+-	     skb->protocol == htons(ETH_P_8021Q)) &&
+-	    offset >= VLAN_ETH_HLEN && offset < VLAN_ETH_HLEN + VLAN_HLEN)
+-		vlan_hlen += VLAN_HLEN;
  
-+	rcu_read_lock();
- 	nfqnl_flush(inst, NULL, 0);
-+	rcu_read_unlock();
- 	kfree(inst);
- 	module_put(THIS_MODULE);
- }
+ 	vlanh = (u8 *) &veth;
+-	if (offset < VLAN_ETH_HLEN + vlan_hlen) {
++	if (offset < VLAN_ETH_HLEN) {
+ 		u8 ethlen = len;
+ 
+-		if (vlan_hlen &&
+-		    skb_copy_bits(skb, mac_off, &veth, VLAN_ETH_HLEN) < 0)
+-			return false;
+-		else if (!nft_payload_rebuild_vlan_hdr(skb, mac_off, &veth))
++		if (!nft_payload_rebuild_vlan_hdr(skb, mac_off, &veth))
+ 			return false;
+ 
+-		if (offset + len > VLAN_ETH_HLEN + vlan_hlen)
+-			ethlen -= offset + len - VLAN_ETH_HLEN - vlan_hlen;
++		if (offset + len > VLAN_ETH_HLEN)
++			ethlen -= offset + len - VLAN_ETH_HLEN;
+ 
+-		memcpy(dst_u8, vlanh + offset - vlan_hlen, ethlen);
++		memcpy(dst_u8, vlanh + offset, ethlen);
+ 
+ 		len -= ethlen;
+ 		if (len == 0)
+ 			return true;
+ 
+ 		dst_u8 += ethlen;
+-		offset = ETH_HLEN + vlan_hlen;
++		offset = ETH_HLEN;
+ 	} else {
+-		offset -= VLAN_HLEN + vlan_hlen;
++		offset -= VLAN_HLEN;
+ 	}
+ 
+ 	return skb_copy_bits(skb, offset + mac_off, dst_u8, len) == 0;
 -- 
 2.30.2
 
