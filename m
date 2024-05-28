@@ -1,338 +1,224 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2022E167D95
-	for <netfilter-devel@vger.kernel.org>; Mon, 27 May 2024 22:31:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65B3E74424;
+	Tue, 28 May 2024 08:03:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.37
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716849081; cv=none; b=HdjSWUNFBeHQTkWng737Alj8IIdBu+veGeHvL/LBs+3Hgi9f061TnaxYSlFinnxlP3QnA0dKfgYIWoGytmv5utM5cprUHz5uMDTTeULQqpQzoxCv5amsGsw+PKQfUll7Y87ooiA0GutS6Ml90tAvZU5E49PQmsg2guMH/M95aEs=
+	t=1716883387; cv=none; b=r0XPvW2zJMYnQ9Q6vpIp/pkbXrmY0N7m3REbXxQyICxM8KHUkVobzVmESNFBqB8e684tzOD+vAn4a51h6ZHVwNxCwqSdxhp7gaXEKQkUxgtFvZex5+4MkOJGkk1I49vRWK7sW3/Es9spaoixnRyqiWD2uyUTffh7yVzxIxfKkB4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716849081; c=relaxed/simple;
-	bh=IsisX6gapOyQBEzsZihPbz6eM8FpXXrVyzSqZb05iZg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=bTbYyD2NfluIaeTjJvzdhXMAY309ccwcq9OIU0dJhumdG96H52xhhLgsmaYfEksLl4tf3bCcRRC1ZPnSbS6NXmJTV24VWBmzqvzY2miWs3D6UmOlOkgVj7YwPYOCsf6Nz3eEitETaxLL4m3wFHGi4PRz6NAlHVu8ZW1NRFllhG8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Date: Tue, 28 May 2024 00:31:15 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Neels Hofmeyr <nhofmeyr@sysmocom.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: nftables with thousands of chains is unreasonably slow
-Message-ID: <ZlUJswB1ViCcVHId@calendula>
-References: <ZjjGOyXkmeudzzc5@my.box>
- <ZjqsBomPs2qWEi_5@calendula>
- <Zj20ysFpLN4oJGkZ@my.box>
+	s=arc-20240116; t=1716883387; c=relaxed/simple;
+	bh=A94f+PqoCPa3oRSc8RRJdAVA8f/YNkLb3mhcS1IwVI4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=eoz3CS9tAP87LlvM40WA9R3K7INdq0nqe00Jdc2czY84RodqieT79v5v6ApHQGm+CulXakDb32q2ChPXrUKT8Zannd+1Wz33GNggj84FhB8JHrWfZbR/A55fSqrKuYSpvfGdsigo2vM9Mtiy6z19ehzfgh7nUv0y/SSGq7rd464=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (1024-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=ByQnVQPf; arc=none smtp.client-ip=193.238.174.37
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="ByQnVQPf"
+Received: from mg.ssi.bg (localhost [127.0.0.1])
+	by mg.ssi.bg (Proxmox) with ESMTP id 38D868625;
+	Tue, 28 May 2024 11:02:58 +0300 (EEST)
+Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
+	by mg.ssi.bg (Proxmox) with ESMTPS;
+	Tue, 28 May 2024 11:02:54 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by ink.ssi.bg (Postfix) with ESMTPSA id 576BE9003B8;
+	Tue, 28 May 2024 11:02:53 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=ssi.bg; s=ink;
+	t=1716883374; bh=A94f+PqoCPa3oRSc8RRJdAVA8f/YNkLb3mhcS1IwVI4=;
+	h=From:To:Cc:Subject:Date;
+	b=ByQnVQPfjRNPg6eIe5ZKUwq26tF0vJhoPFRP4KCjorl5eRuHsEpGp8VlLEk2E0WCq
+	 YS1wwPNANt1hM97I0bJvoqjqUXjRrJOOy4sqr5jLAXyj5jB0NmCUHPqik62dZ1B4Yi
+	 2u/hU+PLFwxrXSHe9iq8NBWflJkCRFIJFNpM0Wl4=
+Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.1/8.17.1) with ESMTP id 44S82rTf010178;
+	Tue, 28 May 2024 11:02:53 +0300
+Received: (from root@localhost)
+	by ja.home.ssi.bg (8.18.1/8.18.1/Submit) id 44S82prl010176;
+	Tue, 28 May 2024 11:02:51 +0300
+From: Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Dust Li <dust.li@linux.alibaba.com>,
+        Jiejian Wu <jiejian@linux.alibaba.com>, rcu@vger.kernel.org
+Subject: [PATCHv4 net-next 00/14] ipvs: per-net tables and optimizations
+Date: Tue, 28 May 2024 11:02:20 +0300
+Message-ID: <20240528080234.10148-1-ja@ssi.bg>
+X-Mailer: git-send-email 2.45.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <Zj20ysFpLN4oJGkZ@my.box>
+Content-Transfer-Encoding: 8bit
 
-Hi Neels,
+	Hello,
 
-On Fri, May 10, 2024 at 07:46:50AM +0200, Neels Hofmeyr wrote:
-> Hi,
-> 
-> I have some more news on my complaints about nftables speed =)
-> Before, I assumed the performance loss was exponential, but turns out that it
-> is linear.
-> 
-> Attached is a reproduction program in c.
+	This patchset targets more netns isolation when IPVS
+is used in large setups and also includes some optimizations.
 
-Thanks for your reproducer.
+	First patch adds useful wrappers to rculist_bl, the
+hlist_bl methods IPVS will use in the following patches. The other
+patches are IPVS-specific.
 
-> Below is the output I get, first the explanation.
-> 
-> An aim is to crank the n in the program up to 200k
-> and still complete < 2 minutes;
-> 
-> I have taken the nft ruleset as used in osmo-upf, I have not yet spent time to
-> find a more minimal nft script.
-> 
-> One "item" here is a batch of two chains with a rule each, plus two map entries
-> (exactly as done for one direction of a GTP-U tunnel in osmo-upf).
-> 
-> The program calls one nft_run_cmd_from_buffer() per such item.
-> Roughly every 128th time, the program prints the time it takes for a single
-> nft_run_cmd_from_buffer() call adding one such item.
-> 
-> The first ~200 items take less than a millisecond each.
-> The 5000th item takes ~25 milliseconds, factor 34.
-> The increase is *linear* (attached a chart).
-> 
-> Then the program goes on to delete the same items one by one. The first one
-> takes ~21ms to delete, the last few only 0.33 ms each, factor 60.
-> The transition is also linear.
+	The following patches will:
 
-Problem is two-fold.
+* Convert the global __ip_vs_mutex to per-net service_mutex and
+  switch the service tables to be per-net, cowork by Jiejian Wu and
+  Dust Li
 
-One of the issues is that the cache gets cancelled (ie. flush and
-refill) for each new incremental update. I made a small improvement to
-address this:
+* Convert some code that walks the service lists to use RCU instead of
+  the service_mutex
 
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20240527221757.834892-1-pablo@netfilter.org/
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20240527221757.834892-2-pablo@netfilter.org/
+* We used two tables for services (non-fwmark and fwmark), merge them
+  into single svc_table
 
-which improves the results shown by your nft_slew.c test program.
+* The list for unavailable destinations (dest_trash) holds dsts and
+  thus dev references causing extra work for the ip_vs_dst_event() dev
+  notifier handler. Change this by dropping the reference when dest
+  is removed and saved into dest_trash. The dest_trash will need more
+  changes to make it light for lookups. TODO.
 
-(the excessive number of chain_free() calls you have observed is gone).
+* On new connection we can do multiple lookups for services by tryng
+  different fallback options. Add more counters for service types, so
+  that we can avoid unneeded lookups for services.
 
-Next issue that pops up after applying these two patches is chain
-validation from the kernel. With a quick kernel hack to disable chain
-validation (that's a bit of cheating, but goal is to find baseline in
-case chain validation becomes negligible), then, I can see constant
-time to incrementally update a ruleset using your program.
+* Add infrastructure for resizable hash tables based on hlist_bl
+  which we will use for services and connections: hlists with
+  per-bucket bit lock in the heads. The resizing delays RCU lookups
+  on a bucket level with seqcounts which are protected with spin locks.
+  The entries keep the table ID and the hash value which allows to
+  filter the entries without touching many cache lines and to
+  unlink the entries without lookup by keys.
 
-> --Log output--
-> 
-> Legend:
-> 'created idx <i> in <t> ns' shows one single nft_run_cmd_from_buffer() timing.
-> (in braces: how many nft_run_cmd_from_buffer() were called since the last log
-> output, and how much time has elapsed)
-> 
-> ----
-> created idx    1 in  1114876 ns   (1 in 1 ms)
-> created idx  128 in   728617 ns   (127 in 77 ms)
-> created idx  256 in  1090610 ns   (128 in 121 ms)
-> created idx  384 in  1647839 ns   (128 in 169 ms)
-> created idx  512 in  2056034 ns   (128 in 231 ms)
-> created idx  640 in  2381756 ns   (128 in 281 ms)
-> created idx  768 in  2951399 ns   (128 in 333 ms)
-> created idx  896 in  3251231 ns   (128 in 395 ms)
-> created idx 1024 in  3623743 ns   (128 in 448 ms)
-> created idx 1152 in  4132313 ns   (128 in 506 ms)
-> created idx 1280 in  4833977 ns   (128 in 567 ms)
-> created idx 1408 in  6512871 ns   (128 in 761 ms)
-> created idx 1536 in  7053907 ns   (128 in 874 ms)
-> created idx 1664 in  7704614 ns   (128 in 953 ms)
-> created idx 1792 in  8203072 ns   (128 in 1031 ms)
-> created idx 1920 in  8978494 ns   (128 in 1110 ms)
-> created idx 2048 in  9616001 ns   (128 in 1189 ms)
-> created idx 2176 in 10496205 ns   (128 in 1266 ms)
-> created idx 2304 in 10877421 ns   (128 in 1367 ms)
-> created idx 2432 in 11407523 ns   (128 in 1429 ms)
-> created idx 2560 in 12016916 ns   (128 in 1509 ms)
-> created idx 2688 in 12740551 ns   (128 in 1594 ms)
-> created idx 2816 in 13171042 ns   (128 in 1672 ms)
-> created idx 2944 in 13911451 ns   (128 in 1754 ms)
-> created idx 3072 in 16008519 ns   (128 in 1861 ms)
-> created idx 3200 in 15957528 ns   (128 in 1968 ms)
-> created idx 3328 in 16310521 ns   (128 in 2063 ms)
-> created idx 3456 in 16731960 ns   (128 in 2124 ms)
-> created idx 3584 in 17517371 ns   (128 in 2202 ms)
-> created idx 3712 in 18090952 ns   (128 in 2272 ms)
-> created idx 3840 in 18867300 ns   (128 in 2361 ms)
-> created idx 3968 in 19330995 ns   (128 in 2432 ms)
-> created idx 4096 in 19871577 ns   (128 in 2519 ms)
-> created idx 4224 in 20686331 ns   (128 in 2593 ms)
-> created idx 4352 in 21175337 ns   (128 in 2700 ms)
-> created idx 4480 in 22022105 ns   (128 in 2766 ms)
-> created idx 4608 in 22466535 ns   (128 in 2846 ms)
-> created idx 4736 in 23259487 ns   (128 in 2939 ms)
-> created idx 4864 in 23976185 ns   (128 in 3015 ms)
-> created idx 4992 in 24488874 ns   (128 in 3102 ms)
-> created idx 4999 in 24558272 ns   (7 in 172 ms)
-> created idx 5000 in 24876752 ns   (1 in 24 ms)
-> deleted idx    1 in 21248834 ns   (1 in 21 ms)
-> deleted idx  128 in 19360199 ns   (127 in 2485 ms)
-> deleted idx  256 in 18756603 ns   (128 in 2437 ms)
-> deleted idx  384 in 18838228 ns   (128 in 2616 ms)
-> deleted idx  512 in 17583553 ns   (128 in 2347 ms)
-> deleted idx  640 in 17042570 ns   (128 in 2217 ms)
-> deleted idx  768 in 16833165 ns   (128 in 2162 ms)
-> deleted idx  896 in 15824594 ns   (128 in 2101 ms)
-> deleted idx 1024 in 15680040 ns   (128 in 2035 ms)
-> deleted idx 1152 in 14934728 ns   (128 in 1967 ms)
-> deleted idx 1280 in 14373106 ns   (128 in 1907 ms)
-> deleted idx 1408 in 14227968 ns   (128 in 1834 ms)
-> deleted idx 1536 in 13650017 ns   (128 in 1772 ms)
-> deleted idx 1664 in 13268944 ns   (128 in 1710 ms)
-> deleted idx 1792 in 12703344 ns   (128 in 1662 ms)
-> deleted idx 1920 in 12091815 ns   (128 in 1574 ms)
-> deleted idx 2048 in 11260211 ns   (128 in 1482 ms)
-> deleted idx 2176 in 10610571 ns   (128 in 1409 ms)
-> deleted idx 2304 in 10201007 ns   (128 in 1341 ms)
-> deleted idx 2432 in  9894120 ns   (128 in 1273 ms)
-> deleted idx 2560 in  8968704 ns   (128 in 1205 ms)
-> deleted idx 2688 in  8569120 ns   (128 in 1133 ms)
-> deleted idx 2816 in  8340385 ns   (128 in 1083 ms)
-> deleted idx 2944 in  8278684 ns   (128 in 1002 ms)
-> deleted idx 3072 in  7010837 ns   (128 in 926 ms)
-> deleted idx 3200 in  6341329 ns   (128 in 859 ms)
-> deleted idx 3328 in  4675342 ns   (128 in 681 ms)
-> deleted idx 3456 in  4301439 ns   (128 in 578 ms)
-> deleted idx 3584 in  3840153 ns   (128 in 534 ms)
-> deleted idx 3712 in  3667216 ns   (128 in 490 ms)
-> deleted idx 3840 in  3304109 ns   (128 in 446 ms)
-> deleted idx 3968 in  2882374 ns   (128 in 400 ms)
-> deleted idx 4096 in  2620334 ns   (128 in 361 ms)
-> deleted idx 4224 in  2231384 ns   (128 in 323 ms)
-> deleted idx 4352 in  1858886 ns   (128 in 274 ms)
-> deleted idx 4480 in  1882147 ns   (128 in 230 ms)
-> deleted idx 4608 in  1262297 ns   (128 in 186 ms)
-> deleted idx 4736 in   921315 ns   (128 in 143 ms)
-> deleted idx 4864 in   617549 ns   (128 in 102 ms)
-> deleted idx 4992 in   339924 ns   (128 in 63 ms)
-> deleted idx 4999 in   330487 ns   (7 in 2 ms)
-> deleted idx 5000 in   392075 ns   (1 in 0 ms)
-> ----
+* Change the 256-bucket service hash table to be resizable in the
+  range of 4..20 bits depending on the added services and use jhash
+  hashing to reduce the collisions.
 
-> run: nft_slew
-> 	./nft_slew
-> 
-> nft_slew: nft_slew.c
-> 	gcc -o nft_slew nft_slew.c -lnftables
-> 	sudo setcap cap_net_admin+pe nft_slew
+* Change the global connection table to be per-net and resizable
+  in the range of 256..ip_vs_conn_tab_size. As the connections are
+  hashed by using remote addresses and ports, use siphash instead
+  of jhash for better security.
 
-> #include <stdio.h>
-> #include <limits.h>
-> #include <time.h>
-> #include <sys/time.h>
-> #include <nftables/libnftables.h>
-> 
-> void timespec_diff(struct timespec *a, const struct timespec *b)
-> {
-> 	a->tv_sec -= b->tv_sec;
-> 	if (a->tv_nsec < b->tv_nsec) {
-> 		a->tv_nsec += 1e9 - b->tv_nsec;
-> 		a->tv_sec--;
-> 	} else {
-> 		a->tv_nsec -= b->tv_nsec;
-> 	}
-> }
-> 
-> static const char *create =
-> "add table inet slew {"
-> "       flags owner;"
-> "	map tunmap-pre { typeof ip daddr . @ih,32,32 : verdict; };"
-> "	map tunmap-post { typeof meta mark : verdict; };"
-> "	chain pre { type filter hook prerouting priority -300; policy accept;"
-> "	        udp dport 2152 ip daddr . @ih,32,32 vmap @tunmap-pre;"
-> "       };"
-> "	chain post { type filter hook postrouting priority 400; policy accept;"
-> "		meta mark vmap @tunmap-post;"
-> "	};"
-> "}"
-> ;
-> 
-> static struct nft_ctx *nft_ctx;
-> 
-> int main(void) {
-> 	nft_ctx = nft_ctx_new(NFT_CTX_DEFAULT);
-> 
-> 	if (!nft_ctx) {
-> 		printf("cannot create nft_ctx\n");
-> 		return 1;
-> 	}
-> 
-> 	if (nft_run_cmd_from_buffer(nft_ctx, create)) {
-> 		printf("cannot init table\n");
-> 		return 1;
-> 	}
-> 
-> 	char cmd[1024];
-> 
-> 	const unsigned int n = 5000;
-> 
-> 	struct timespec last_start;
-> 	struct timespec last_diff;
-> 
-> 	struct timespec start;
-> 	struct timespec now;
-> 
-> 	clock_gettime(CLOCK_MONOTONIC, &last_start);
-> 	int count_since_last = 0;
-> 
-> 	for (unsigned int i = 1; i <= n; i++) {
-> 		snprintf(cmd, sizeof(cmd),
-> 			 "add chain inet slew tunmap-pre-%u;\n"
-> 			 "add rule inet slew tunmap-pre-%u"
-> 			 " ip daddr set 127.0.1.1"
-> 			 " meta mark set %u counter accept;\n"
-> 			 "add chain inet slew tunmap-post-%u;\n"
-> 			 "add rule inet slew tunmap-post-%u"
-> 			 " ip saddr set 127.0.2.1"
-> 			 " udp sport set 2152"
-> 			 " @ih,32,32 set 0x%x"
-> 			 " counter accept;\n"
-> 			 "add element inet slew tunmap-pre { "
-> 			 "127.0.1.1 . 0x%x : jump tunmap-pre-%u };\n"
-> 			 "add element inet slew tunmap-post { %u : jump tunmap-post-%u };\n",
-> 			 i, i, i, i, i,
-> 			 UINT_MAX - i,
-> 			 i,
-> 			 i, i, i);
-> 
-> 		bool show_time = ((i & 0x7f) == 0) || (i == 1) || (i == n) || (i == n - 1);
-> 
-> 		if (show_time)
-> 			clock_gettime(CLOCK_MONOTONIC, &start);
-> 
-> 		if (nft_run_cmd_from_buffer(nft_ctx, cmd)) {
-> 			printf("failed on %u\n", i);
-> 			return 1;
-> 		}
-> 
-> 		count_since_last++;
-> 		if (show_time) {
-> 			clock_gettime(CLOCK_MONOTONIC, &now);
-> 
-> 			last_diff = now;
-> 			timespec_diff(&last_diff, &last_start);
-> 			last_start = now;
-> 
-> 			timespec_diff(&now, &start);
-> 			printf("created idx %4d in %8u ns   (%d in %u ms)\n",
-> 			       i, now.tv_nsec,
-> 			       count_since_last, last_diff.tv_nsec / 1000000 + last_diff.tv_sec * 1000);
-> 			fflush(stdout);
-> 			count_since_last = 0;
-> 			clock_gettime(CLOCK_MONOTONIC, &last_start);
-> 		}
-> 	}
-> 
-> 	for (unsigned int i = 1; i <= n; i++) {
-> 		snprintf(cmd, sizeof(cmd),
-> 			 "delete element inet slew tunmap-pre { 127.0.1.1 . 0x%x };\n"
-> 			 "delete element inet slew tunmap-post { %u };\n"
-> 			 "delete chain inet slew tunmap-pre-%u;\n"
-> 			 "delete chain inet slew tunmap-post-%u;\n",
-> 			 i, i, i, i);
-> 
-> 		bool show_time = ((i & 0x7f) == 0) || (i == 1) || (i == n) || (i == n - 1);
-> 
-> 		if (show_time)
-> 			clock_gettime(CLOCK_MONOTONIC, &start);
-> 
-> 		if (nft_run_cmd_from_buffer(nft_ctx, cmd)) {
-> 			printf("failed on deleting %u\n", i);
-> 			return 1;
-> 		}
-> 
-> 		count_since_last++;
-> 		if (show_time) {
-> 			clock_gettime(CLOCK_MONOTONIC, &now);
-> 
-> 			last_diff = now;
-> 			timespec_diff(&last_diff, &last_start);
-> 			last_start = now;
-> 
-> 			timespec_diff(&now, &start);
-> 			printf("deleted idx %4d in %8u ns   (%d in %u ms)\n",
-> 			       i, now.tv_nsec,
-> 			       count_since_last, last_diff.tv_nsec / 1000000 + last_diff.tv_sec * 1000);
-> 			fflush(stdout);
-> 			count_since_last = 0;
-> 			clock_gettime(CLOCK_MONOTONIC, &last_start);
-> 		}
-> 	}
-> 
-> 	nft_ctx_free(nft_ctx);
-> 
-> 	return 0;
-> }
+* As the connection table is not with fixed size, show its current
+  size to user space
+
+* As the connection table is not global anymore, the no_cport and
+  dropentry counters can be per-net
+
+* Make the connection hashing more secure for setups with multiple
+  services. Hashing only by remote address and port (client info)
+  is not enough. To reduce the possible hash collisions add the
+  used virtual address/port (local info) into the hash and as a side
+  effect the MASQ connections will be double hashed into the
+  hash table to match the traffic from real servers:
+    OLD:
+    - all methods: c_list node: proto, caddr:cport
+    NEW:
+    - all methods: hn0 node (dir 0): proto, caddr:cport -> vaddr:vport
+    - MASQ method: hn1 node (dir 1): proto, daddr:dport -> caddr:cport
+
+* Add /proc/net/ip_vs_status to show current state of IPVS, per-net
+
+cat /proc/net/ip_vs_status
+Conns:	9401
+Conn buckets:	524288 (19 bits, lfactor -5)
+Conn buckets empty:	505633 (96%)
+Conn buckets len-1:	18322 (98%)
+Conn buckets len-2:	329 (1%)
+Conn buckets len-3:	3 (0%)
+Conn buckets len-4:	1 (0%)
+Services:	12
+Service buckets:	128 (7 bits, lfactor -3)
+Service buckets empty:	116 (90%)
+Service buckets len-1:	12 (100%)
+Stats thread slots:	1 (max 16)
+Stats chain max len:	16
+Stats thread ests:	38400
+
+It shows the table size, the load factor (2^n), how many are the empty
+buckets, with percents from the all buckets, the number of buckets
+with length 1..7 where len-7 catches all len>=7 (zero values are
+not shown). The len-N percents ignore the empty buckets, so they
+are relative among all len-N buckets. It shows that smaller lfactor
+is needed to achieve len-1 buckets to be ~98%. Only real tests can
+show if relying on len-1 buckets is a better option because the
+hash table becomes too large with multiple connections. And as
+every table uses random key, the services may not avoid collision
+in all cases.
+
+* add conn_lfactor and svc_lfactor sysctl vars, so that one can tune
+  the connection/service hash table sizing
+
+Changes in v4:
+Patch 14:
+* the load factor parameters will be read-only for unprivileged
+  namespaces while we do not account the allocated memory
+Patch 5:
+* resync with changes in main tree
+
+Changes in v3:
+Patch 7:
+* change the sign of the load factor parameter, so that
+  2^lfactor = load/size
+Patch 8:
+* change the sign of the load factor parameter
+* fix 'goto unlock_sem' in svc_resize_work_handler() after the last
+  mutex_trylock() call, should be goto unlock_m
+* now cond_resched_rcu() needs to include linux/rcupdate_wait.h
+Patch 9:
+* consider that the sign of the load factor parameter is changed
+Patch 12:
+* consider that the sign of the load factor parameter is changed
+Patch 14:
+* change the sign of the load factor parameters in docs
+
+Changes in v2:
+Patch 1:
+* add comments to hlist_bl_for_each_entry_continue_rcu and fix
+  sparse warnings
+Patch 9:
+* Simon Kirby reports that backup server crashes if conn_tab is not
+  created. Create it just to sync conns before any services are added.
+Patch 11:
+* kernel test robot reported for dropentry_counters problem when
+  compiling with !CONFIG_SYSCTL, so it is time to wrap todrop_entry,
+  ip_vs_conn_ops_mode and ip_vs_random_dropentry under CONFIG_SYSCTL
+Patch 13:
+* remove extra old_gen assignment at start of ip_vs_status_show()
+
+Jiejian Wu (1):
+  ipvs: make ip_vs_svc_table and ip_vs_svc_fwm_table per netns
+
+Julian Anastasov (13):
+  rculist_bl: add hlist_bl_for_each_entry_continue_rcu
+  ipvs: some service readers can use RCU
+  ipvs: use single svc table
+  ipvs: do not keep dest_dst after dest is removed
+  ipvs: use more counters to avoid service lookups
+  ipvs: add resizable hash tables
+  ipvs: use resizable hash table for services
+  ipvs: switch to per-net connection table
+  ipvs: show the current conn_tab size to users
+  ipvs: no_cport and dropentry counters can be per-net
+  ipvs: use more keys for connection hashing
+  ipvs: add ip_vs_status info
+  ipvs: add conn_lfactor and svc_lfactor sysctl vars
+
+ Documentation/networking/ipvs-sysctl.rst |   33 +
+ include/linux/rculist_bl.h               |   49 +-
+ include/net/ip_vs.h                      |  395 ++++++-
+ net/netfilter/ipvs/ip_vs_conn.c          | 1074 ++++++++++++++-----
+ net/netfilter/ipvs/ip_vs_core.c          |  177 +++-
+ net/netfilter/ipvs/ip_vs_ctl.c           | 1236 ++++++++++++++++------
+ net/netfilter/ipvs/ip_vs_est.c           |   18 +-
+ net/netfilter/ipvs/ip_vs_pe_sip.c        |    4 +-
+ net/netfilter/ipvs/ip_vs_sync.c          |   23 +
+ net/netfilter/ipvs/ip_vs_xmit.c          |   39 +-
+ 10 files changed, 2355 insertions(+), 693 deletions(-)
+
+-- 
+2.44.0
 
 
