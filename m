@@ -1,144 +1,160 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-io1-f77.google.com (mail-io1-f77.google.com [209.85.166.77])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D48DE190674;
-	Wed, 29 May 2024 16:29:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 001781B960
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 May 2024 20:41:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.77
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717000181; cv=none; b=lwg77lK4CPTlbvgnn6u4VL1YNP7w9+is87ebMvgg5GpRtkMrSP95/8StoqF1Ukg3LmWGXqyO7swKyv39m7Qfho26tmADk8hSmn7FF1LsoFaG+I6l3GaOwwKyUjwbmaCyL09iKcCICTxEvBxdJkkJxuHf4niPd87kCXUoGrNGARY=
+	t=1717015281; cv=none; b=hHDxz1J0QKtwByyyN8wfjguvEgyqBs/NgrVtPpiAOIwNh8gNEuBEBXJAGUJEo0YiygrAYPNzOWlzsLxMsat8qg4x8Js6+F095+vSvqyFGfqOt6IX4sCYdvtc1HSiczCi3qFZlROmrsVE5ENZ0nh34yBtxnhqarN3zHJH5pgwrXw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717000181; c=relaxed/simple;
-	bh=3tHIwdbnjoTNL6ML5KnhjhEyimnnTQ36tmq4mQnwqVw=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=lef1MeNs9q/JtrNsqBpP7jVFXSdthZrniCYhijpvUjpzD0sDbhOQT9fY0BjnRLHXc/mf+7NFBPymTVkTBA5oLG9EEri4MJhjsmIES+akz0dDpqLa16T/1YwnphzUTrBYe4i57OzESGHxSspjdG2xhrK3YOEMuuRjXN3CWkMilN8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=VUA0iBwG; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=mlKwRR9Z; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="VUA0iBwG";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="mlKwRR9Z"
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1717000175;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=1zGFUh5BIokNXo1khBHVCTilWjLuFPEXOImnZTfvdCg=;
-	b=VUA0iBwGEc81mD73qjwJmXlz8MTU8Y/yPMtDI1dD51yp1PuNqbRK4AeLOvx0M/xs2VAspJ
-	TOrqy0YKTyBrSZdrkFNxC6Dr+G52Zdl9cfH0Dw6XWybKf1S4gnXQLAv7EDjHXrZRvdf4xF
-	CRzouHRVmve2c7Va8sAQEm2pFri7GGpNvlh5qMjhdbEGxsNsbGUb/EQrmuyesUPc/yDns8
-	bcFITrtRfs+evv9IlR1K1dzhsR29rJF/+0gf9zb1Tfm67cO7jnBXHKK1VRzqnT+m7TQS0p
-	eYjQ5p+Jq9wgmMBatCxfqGcDjbtp5PVO3S2EQgZFcP0eIj6iOwEI/5CtyTssuw==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1717000175;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=1zGFUh5BIokNXo1khBHVCTilWjLuFPEXOImnZTfvdCg=;
-	b=mlKwRR9ZI3EbRRNirrageDDySZ/98P75LZSWJpU43woC6gIsPKql8ddWXQyQFmlgImThft
-	ByzJU1aTXr3dNJBA==
-To: linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Boqun Feng <boqun.feng@gmail.com>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Frederic Weisbecker <frederic@kernel.org>,
-	Ingo Molnar <mingo@redhat.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Waiman Long <longman@redhat.com>,
-	Will Deacon <will@kernel.org>,
-	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-	Florian Westphal <fw@strlen.de>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Roopa Prabhu <roopa@nvidia.com>,
-	bridge@lists.linux.dev,
-	coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org
-Subject: [PATCH v3 net-next 07/15] netfilter: br_netfilter: Use nested-BH locking for brnf_frag_data_storage.
-Date: Wed, 29 May 2024 18:02:30 +0200
-Message-ID: <20240529162927.403425-8-bigeasy@linutronix.de>
-In-Reply-To: <20240529162927.403425-1-bigeasy@linutronix.de>
-References: <20240529162927.403425-1-bigeasy@linutronix.de>
+	s=arc-20240116; t=1717015281; c=relaxed/simple;
+	bh=vNUZSXvhfyZXrV1PqvZgY4bk+8fmC2eOIfBDamZztuU=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=sxvs64h473kxXre4aYFp9CmQRbEJqdKwGlMXLr3T+Co1Fr6bt1IIMl0GIeAzT3co5u/Vz3n8kqGAzdfBgwZQUV6T+Y0iKyYBSjp6kFkkMZ/jgrPyJtbD6TyMQYndFWpk+Lm3lvAhwiSzL+ODf+KavbJA8QcyQmppDPUU9mGrRdg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.77
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-io1-f77.google.com with SMTP id ca18e2360f4ac-7e8e558d366so14049439f.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 May 2024 13:41:19 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1717015279; x=1717620079;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=i+7TQmH1QD5ycywdTyCtsUi/9cznvI6RRnPmBYeGhNY=;
+        b=ayEGSJ9BR6FBsRjXHhAnPAeLqNM8Ihk9Hcn2/+ekCwjsN5Un2m4sGLFVqEdvgtDdTw
+         8OfRemttwDx/zVMU38is9+eF9Q/4/0hQaGJq6uRP+2V/01U3r5nSe+cetKRYliY0aasa
+         MpeHh2YFx7LXwpxvTCCt8GSJjRRODIm3Jp8IPiF9DyxV1x9cE5DRl6L9s3d/svUGFpN8
+         /3fhZvBXd9QTJExEFkNemQ1mSyFTIJ/y/APN6d210BZh/U7TfEfDVhuA4z0NydmzGfWj
+         pSr/1AIp14rSAPGPWQUgZAxdsEH8/EmI+FJndCoVcmdAz0LqVQW8wKrCCudClmAa3W+0
+         WXsw==
+X-Forwarded-Encrypted: i=1; AJvYcCXNkZCO5VUKNdlY2irMLmAljqkB8ciX9StM2HA9NJS74XZTjU8nuldIawIOtpr3z4chGqgRtM4vTdkUH9slMdxwF+pkvJxYyTX1dGICvAEk
+X-Gm-Message-State: AOJu0YydYvsJ96S8PW14+ZbX8cPUtLDxluiJ8IK1PU0vF8uzkfI6vicx
+	a2lDY6efiX0Gkj7sAtcFsCz1HwKbiHMu/2dwW1/qmHws05imYMzsftheAzL9l7TrJZn1gTD1A+t
+	2+TfKKutfNPtGoevmCtTQjlwl/viv55nrIeFR7ZR6qJUH9mc6xaimU9U=
+X-Google-Smtp-Source: AGHT+IH+6tmCLu8pIgw/Dhplloi6SKh6Te/gU9fAy8vAXL0utPay12W/fDdNdhOPP1pL+7B7RfrRmJyqoHkqnICkuwTB05+ikb2e
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+X-Received: by 2002:a05:6602:3412:b0:7da:6916:b435 with SMTP id
+ ca18e2360f4ac-7eaf5b67173mr259439f.0.1717015279272; Wed, 29 May 2024 13:41:19
+ -0700 (PDT)
+Date: Wed, 29 May 2024 13:41:19 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000cb987006199dc574@google.com>
+Subject: [syzbot] [fscrypt?] WARNING in fscrypt_fname_siphash
+From: syzbot <syzbot+340581ba9dceb7e06fb3@syzkaller.appspotmail.com>
+To: coreteam@netfilter.org, davem@davemloft.net, ebiggers@kernel.org, 
+	fw@strlen.de, jaegeuk@kernel.org, kadlec@netfilter.org, kuba@kernel.org, 
+	linux-fscrypt@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pablo@netfilter.org, 
+	syzkaller-bugs@googlegroups.com, tytso@mit.edu
+Content-Type: text/plain; charset="UTF-8"
 
-brnf_frag_data_storage is a per-CPU variable and relies on disabled BH
-for its locking. Without per-CPU locking in local_bh_disable() on
-PREEMPT_RT this data structure requires explicit locking.
+Hello,
 
-Add a local_lock_t to the data structure and use local_lock_nested_bh()
-for locking. This change adds only lockdep coverage and does not alter
-the functional behaviour for !PREEMPT_RT.
+syzbot found the following issue on:
 
-Cc: Florian Westphal <fw@strlen.de>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: Nikolay Aleksandrov <razor@blackwall.org>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Roopa Prabhu <roopa@nvidia.com>
-Cc: bridge@lists.linux.dev
-Cc: coreteam@netfilter.org
-Cc: netfilter-devel@vger.kernel.org
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+HEAD commit:    74eca356f6d4 Merge tag 'ceph-for-6.10-rc1' of https://gith..
+git tree:       upstream
+console+strace: https://syzkaller.appspot.com/x/log.txt?x=15460752980000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=ee7b962709a5f5a5
+dashboard link: https://syzkaller.appspot.com/bug?extid=340581ba9dceb7e06fb3
+compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=15da8cd8980000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=14111972980000
+
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/a5f8df213fa4/disk-74eca356.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/864334770567/vmlinux-74eca356.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/b30965ded6d8/bzImage-74eca356.xz
+mounted in repro: https://storage.googleapis.com/syzbot-assets/b77754f322c2/mount_0.gz
+
+The issue was bisected to:
+
+commit f9006acc8dfe59e25aa75729728ac57a8d84fc32
+Author: Florian Westphal <fw@strlen.de>
+Date:   Wed Apr 21 07:51:08 2021 +0000
+
+    netfilter: arp_tables: pass table pointer via nf_hook_ops
+
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=12dc9ee8980000
+final oops:     https://syzkaller.appspot.com/x/report.txt?x=11dc9ee8980000
+console output: https://syzkaller.appspot.com/x/log.txt?x=16dc9ee8980000
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+340581ba9dceb7e06fb3@syzkaller.appspotmail.com
+Fixes: f9006acc8dfe ("netfilter: arp_tables: pass table pointer via nf_hook_ops")
+
+EXT4-fs (loop0): mounted filesystem 00000000-0000-0000-0000-000000000000 r/w without journal. Quota mode: writeback.
+fscrypt: AES-256-CBC-CTS using implementation "cts-cbc-aes-aesni"
+------------[ cut here ]------------
+WARNING: CPU: 1 PID: 5079 at fs/crypto/fname.c:567 fscrypt_fname_siphash+0xc2/0x100 fs/crypto/fname.c:567
+Modules linked in:
+CPU: 1 PID: 5079 Comm: syz-executor422 Not tainted 6.9.0-syzkaller-12358-g74eca356f6d4 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 04/02/2024
+RIP: 0010:fscrypt_fname_siphash+0xc2/0x100 fs/crypto/fname.c:567
+Code: 0f b6 04 28 84 c0 75 3d 41 8b 34 24 49 83 c6 40 4c 89 ff 4c 89 f2 5b 41 5c 41 5d 41 5e 41 5f e9 b4 97 52 09 e8 3f 7a 72 ff 90 <0f> 0b 90 eb a8 89 d9 80 e1 07 38 c1 7c 86 48 89 df e8 d8 f0 d4 ff
+RSP: 0018:ffffc90003c7f430 EFLAGS: 00010293
+RAX: ffffffff822399b1 RBX: 0000000000000000 RCX: ffff888022a61e00
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: ffffc90003c7f5f0 R08: ffffffff82239955 R09: ffffffff82541c38
+R10: 0000000000000007 R11: ffff888022a61e00 R12: ffffc90003c7f580
+R13: dffffc0000000000 R14: ffff88807fcb3000 R15: ffff88807fd0b4b0
+FS:  000055558ddca380(0000) GS:ffff8880b9500000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000045ede0 CR3: 0000000074e92000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __ext4fs_dirhash+0x3db/0x1530 fs/ext4/hash.c:268
+ ext4fs_dirhash+0x193/0x320 fs/ext4/hash.c:322
+ htree_dirblock_to_tree+0x727/0x10e0 fs/ext4/namei.c:1124
+ ext4_htree_fill_tree+0x744/0x1400 fs/ext4/namei.c:1219
+ ext4_dx_readdir fs/ext4/dir.c:597 [inline]
+ ext4_readdir+0x2b1c/0x3500 fs/ext4/dir.c:142
+ iterate_dir+0x65e/0x820 fs/readdir.c:110
+ __do_sys_getdents64 fs/readdir.c:409 [inline]
+ __se_sys_getdents64+0x20d/0x4f0 fs/readdir.c:394
+ do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+ do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7f91a3441b99
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 f1 17 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffd41154a58 EFLAGS: 00000246 ORIG_RAX: 00000000000000d9
+RAX: ffffffffffffffda RBX: 6f72746e6f632f2e RCX: 00007f91a3441b99
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000004
+RBP: 00007f91a34b55f0 R08: 000055558ddcb4c0 R09: 000055558ddcb4c0
+R10: 000055558ddcb4c0 R11: 0000000000000246 R12: 00007ffd41154a80
+R13: 00007ffd41154ca8 R14: 431bde82d7b634db R15: 00007f91a348a03b
+ </TASK>
+
+
 ---
- net/bridge/br_netfilter_hooks.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hook=
-s.c
-index bf30c50b56895..9596ad19224ad 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -137,6 +137,7 @@ static inline bool is_pppoe_ipv6(const struct sk_buff *=
-skb,
- #define NF_BRIDGE_MAX_MAC_HEADER_LENGTH (PPPOE_SES_HLEN + ETH_HLEN)
-=20
- struct brnf_frag_data {
-+	local_lock_t bh_lock;
- 	char mac[NF_BRIDGE_MAX_MAC_HEADER_LENGTH];
- 	u8 encap_size;
- 	u8 size;
-@@ -144,7 +145,9 @@ struct brnf_frag_data {
- 	__be16 vlan_proto;
- };
-=20
--static DEFINE_PER_CPU(struct brnf_frag_data, brnf_frag_data_storage);
-+static DEFINE_PER_CPU(struct brnf_frag_data, brnf_frag_data_storage) =3D {
-+	.bh_lock =3D INIT_LOCAL_LOCK(bh_lock),
-+};
-=20
- static void nf_bridge_info_free(struct sk_buff *skb)
- {
-@@ -882,6 +885,7 @@ static int br_nf_dev_queue_xmit(struct net *net, struct=
- sock *sk, struct sk_buff
-=20
- 		IPCB(skb)->frag_max_size =3D nf_bridge->frag_max_size;
-=20
-+		guard(local_lock_nested_bh)(&brnf_frag_data_storage.bh_lock);
- 		data =3D this_cpu_ptr(&brnf_frag_data_storage);
-=20
- 		if (skb_vlan_tag_present(skb)) {
-@@ -909,6 +913,7 @@ static int br_nf_dev_queue_xmit(struct net *net, struct=
- sock *sk, struct sk_buff
-=20
- 		IP6CB(skb)->frag_max_size =3D nf_bridge->frag_max_size;
-=20
-+		guard(local_lock_nested_bh)(&brnf_frag_data_storage.bh_lock);
- 		data =3D this_cpu_ptr(&brnf_frag_data_storage);
- 		data->encap_size =3D nf_bridge_encap_header_len(skb);
- 		data->size =3D ETH_HLEN + data->encap_size;
---=20
-2.45.1
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
 
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
