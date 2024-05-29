@@ -1,43 +1,128 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 101C0819
-	for <netfilter-devel@vger.kernel.org>; Wed, 29 May 2024 12:02:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CD72748D;
+	Wed, 29 May 2024 13:04:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716984168; cv=none; b=jHkqY6B7DQ8Hd2ts6B/nLEMGUK1jHBYIOZo4iP9jcqZpl09d18G0YCmTLFUcJgJNDI2nY8yBTuVw72IhgqmG8mMdEzPJdSEH/LTc0MakQV6gmAuPsxWTxrXe07wT+v5hw8yZu+qsp+kn60xKghqwGgPeNxNmr/mayM8Fio66Qzc=
+	t=1716987884; cv=none; b=LgrYVsCPL/DaANkglgxtiZnhkqTxRPaxBJ+C1am6eTV+TMjVKZ1j9zjRDVqSmik3Lipn48bnw7ysvIqCXkRJ+pJWu9rh33YNjjY9dBKDCKrytGUMpSD1EM7JjX0Rfi7KohbGbATsnbNcxWiA6f6bqaNWnx8bPs4mst/28rqWoCk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716984168; c=relaxed/simple;
-	bh=CfDoVBClKgPHYDLSoB1bbT3YW3boe6j/xWG8Eho45oQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=f903atzKGKGTCdVTK0AJSswSed7iz+o4oOdbYiJCw7kSK8bDZHjE6k13aKWaPxYzXH++IwQJPunITuOyS/vdpxqiQC9Vps4NUa3rd4HCgX0vBDN5tvUfCU+RRcW5JtZ7+F33NrrhTRL7WzTqk4LzD13v4pQ3HEOuLC5gqiw2SEk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1sCI0s-0003DV-FN; Wed, 29 May 2024 14:02:38 +0200
-Date: Wed, 29 May 2024 14:02:38 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Yunjian Wang <wangyunjian@huawei.com>
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-	kadlec@netfilter.org, kuba@kernel.org, davem@davemloft.net,
-	coreteam@netfilter.org, xudingke@huawei.com
-Subject: Re: [PATCH net] netfilter: nf_conncount: fix wrong variable type
-Message-ID: <20240529120238.GA12043@breakpoint.cc>
-References: <1716946829-77508-1-git-send-email-wangyunjian@huawei.com>
+	s=arc-20240116; t=1716987884; c=relaxed/simple;
+	bh=/JmrtSSabh4sHnn3D2MtOAexutK1tQy/JLlskSAIqRQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=t+c4CyfpaPg6h8HOOGTaPbEw2nNTb1VhqWw8ms5F8rpadD9HnWzV2PwWE6UY37N77LA8vl9kvGn7gv18XBlY435mmJnM0tOYb60ehU0swbDrT/jHPSCh0nay4ufqUjnFoWuEknXoWpc0r7H74Y6a3Qy0pEjfBhp+Weosv5e5qAA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=uZ+lFrTF; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="uZ+lFrTF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47E13C2BD10;
+	Wed, 29 May 2024 13:04:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1716987883;
+	bh=/JmrtSSabh4sHnn3D2MtOAexutK1tQy/JLlskSAIqRQ=;
+	h=From:To:Cc:Subject:Date:From;
+	b=uZ+lFrTFSo81jbIYXnpRft8oSLDSwRnqrjUXMxrhYOzddRP7vn63GxKldmVieEhMf
+	 MOEpU5TFKGqkbDWvlfqQdTuIPJH4oNfQx7jTsTSfARQ7TIwuQnNKkBfmtzddeGiSGR
+	 EL2p9F6KquyJjiMQj0DGN/Dk3Nby/2+/K5tLUcbEhSgMnGdjUMDdkjEPLItqcjwjrG
+	 yuMWo6EkmTij8EeRvjOFhBFkMY+WKbRY7KdJiCK3kEekPL6Lh7MIPGQfaKUUke90R0
+	 9qsbXFWNwVHCdL3KI7lJx0vZ2SPmDgjZbWOs8EO96tHTDTWwbQ2M/iMbWmP7e8PLo+
+	 diReGTKG8t0VA==
+From: Lorenzo Bianconi <lorenzo@kernel.org>
+To: bpf@vger.kernel.org
+Cc: pablo@netfilter.org,
+	kadlec@netfilter.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	ast@kernel.org,
+	daniel@iogearbox.net,
+	andrii@kernel.org,
+	martin.lau@linux.dev,
+	eddyz87@gmail.com,
+	lorenzo.bianconi@redhat.com,
+	toke@redhat.com,
+	fw@strlen.de,
+	hawk@kernel.org,
+	horms@kernel.org,
+	donhunte@redhat.com,
+	memxor@gmail.com
+Subject: [PATCH v4 bpf-next 0/3] netfilter: Add the capability to offload flowtable in XDP layer
+Date: Wed, 29 May 2024 15:04:29 +0200
+Message-ID: <cover.1716987534.git.lorenzo@kernel.org>
+X-Mailer: git-send-email 2.45.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1716946829-77508-1-git-send-email-wangyunjian@huawei.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 
-Yunjian Wang <wangyunjian@huawei.com> wrote:
-> 'keylen' is supposed to be unsigned int, not u8, so fix it.
+Introduce bpf_xdp_flow_lookup kfunc in order to perform the lookup of
+a given flowtable entry based on the fib tuple of incoming traffic.
+bpf_xdp_flow_lookup can be used as building block to offload in XDP
+the sw flowtable processing when the hw support is not available.
 
-Its limited to 5, so u8 works fine.
+This series has been tested running the xdp_flowtable_offload eBPF program
+on an ixgbe 10Gbps NIC (eno2) in order to XDP_REDIRECT the TCP traffic to
+a veth pair (veth0-veth1) based on the content of the nf_flowtable as soon
+as the TCP connection is in the established state:
+
+[tcp client] (eno1) == LAN == (eno2) xdp_flowtable_offload [XDP_REDIRECT] --> veth0 == veth1 [tcp server]
+
+table inet filter {
+	flowtable ft {
+		hook ingress priority filter
+		devices = { eno2, veth0 }
+	}
+	chain forward {
+		type filter hook forward priority filter
+		meta l4proto { tcp, udp } flow add @ft
+	}
+}
+
+-  sw flowtable [1 TCP stream, T = 300s]: ~ 6.2 Gbps
+- xdp flowtable [1 TCP stream, T = 300s]: ~ 7.6 Gbps
+
+-  sw flowtable [3 TCP stream, T = 300s]: ~ 7.7 Gbps
+- xdp flowtable [3 TCP stream, T = 300s]: ~ 8.8 Gbps
+
+Changes since v3:
+- move flowtable map utilities in nf_flow_table_xdp.c
+Changes since v2:
+- introduce bpf_flowtable_opts struct in bpf_xdp_flow_lookup signature
+- get rid of xdp_flowtable_offload bpf sample
+- get rid of test_xdp_flowtable.sh for selftest and rely on prog_tests instead
+- rename bpf_xdp_flow_offload_lookup in bpf_xdp_flow_lookup
+Changes since v1:
+- return NULL in bpf_xdp_flow_offload_lookup kfunc in case of error
+- take into account kfunc registration possible failures
+Changes since RFC:
+- fix compilation error if BTF is not enabled
+
+Florian Westphal (1):
+  netfilter: nf_tables: add flowtable map for xdp offload
+
+Lorenzo Bianconi (2):
+  netfilter: add bpf_xdp_flow_lookup kfunc
+  selftests/bpf: Add selftest for bpf_xdp_flow_lookup kfunc
+
+ include/net/netfilter/nf_flow_table.h         |  18 ++
+ net/netfilter/Makefile                        |   7 +-
+ net/netfilter/nf_flow_table_bpf.c             | 117 ++++++++++++
+ net/netfilter/nf_flow_table_inet.c            |   2 +-
+ net/netfilter/nf_flow_table_offload.c         |   6 +-
+ net/netfilter/nf_flow_table_xdp.c             | 163 +++++++++++++++++
+ tools/testing/selftests/bpf/config            |  13 ++
+ .../selftests/bpf/prog_tests/xdp_flowtable.c  | 168 ++++++++++++++++++
+ .../selftests/bpf/progs/xdp_flowtable.c       | 145 +++++++++++++++
+ 9 files changed, 635 insertions(+), 4 deletions(-)
+ create mode 100644 net/netfilter/nf_flow_table_bpf.c
+ create mode 100644 net/netfilter/nf_flow_table_xdp.c
+ create mode 100644 tools/testing/selftests/bpf/prog_tests/xdp_flowtable.c
+ create mode 100644 tools/testing/selftests/bpf/progs/xdp_flowtable.c
+
+-- 
+2.45.1
+
