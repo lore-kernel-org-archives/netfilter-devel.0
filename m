@@ -1,78 +1,88 @@
-Received: from szxga06-in.huawei.com (szxga06-in.huawei.com [45.249.212.32])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73A353D6B
-	for <netfilter-devel@vger.kernel.org>; Wed, 29 May 2024 01:47:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.32
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1184A15B0E1;
+	Wed, 29 May 2024 02:57:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716947241; cv=none; b=NuAaFIYHFjaj9fYbELfwE/BTAcloHD+7Q9CHfd99byPNABhYeiGCm3BmZ5jNhJ5WgUNNi7aefwLS/eAIDb+8B78qH3smNLbI6+YsemKcqwcI9/pNO/EBMfMQPINVSSsT1Rtga6Di6L/wAIIaoG3mLauEEuypG7Lkvle28Z7W5MQ=
+	t=1716951422; cv=none; b=qJ/pHaTRbS+moU8MytfJqhkpQ+XYuudjsHitD+6MIWbQQ9NtqxS8YNH5jzoafAlKSxgQfPkpdTN6GFvC9XaWiFE2mHpcJo1p8QZsYv0jh9VJUo3yJd729ZbnxT7BCOxIjt6wWMiAVvVWvMqDqa9MpkZIKFU3z9iULSN9dMd7SW8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716947241; c=relaxed/simple;
-	bh=5NCgNOTmb3qMG58Wn5/ND2LJ9CqJmR6OaqD3YuPYP7o=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=EkFHuNZoj1RbuvlIHPz4N86/GWNU596M4LMMB4B3FxXnSYJEI8BVMdUJZmTpHcDU+VKF9iEckg/XPrwjCP79tQpEcgkpwZ4Ak5TSexUwRmgJ0S6C72uQhs1VhuBquJSlq4loySEtrIVqt0GomIXS4+Wv8+mVQ8Umiw7dnha4GiM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.32
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.19.162.112])
-	by szxga06-in.huawei.com (SkyGuard) with ESMTP id 4VpsfZ6V0Cz1xs32;
-	Wed, 29 May 2024 09:45:58 +0800 (CST)
-Received: from dggpemm500008.china.huawei.com (unknown [7.185.36.136])
-	by mail.maildlp.com (Postfix) with ESMTPS id CE6881400F4;
-	Wed, 29 May 2024 09:47:15 +0800 (CST)
-Received: from localhost (10.174.242.157) by dggpemm500008.china.huawei.com
- (7.185.36.136) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.35; Wed, 29 May
- 2024 09:47:15 +0800
-From: Yunjian Wang <wangyunjian@huawei.com>
-To: <netfilter-devel@vger.kernel.org>
-CC: <pablo@netfilter.org>, <kadlec@netfilter.org>, <kuba@kernel.org>,
-	<davem@davemloft.net>, <coreteam@netfilter.org>, <xudingke@huawei.com>,
-	Yunjian Wang <wangyunjian@huawei.com>
-Subject: [PATCH net] netfilter: nf_conncount: fix wrong variable type
-Date: Wed, 29 May 2024 09:40:29 +0800
-Message-ID: <1716946829-77508-1-git-send-email-wangyunjian@huawei.com>
-X-Mailer: git-send-email 1.9.5.msysgit.1
+	s=arc-20240116; t=1716951422; c=relaxed/simple;
+	bh=kCbn1M2QOr3tg0aboBFXxUAzlVonui9TIyWgU01m2Nk=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=QuTaIHQocP6Yw9F+/N3K2Svn81apA8QP048D4EEfibf27YECWq1ZE9ut2OlMM7K/dj84aGIQR5wSM532dWS9l4T0ow0016mzDxVcUIzg/nuBpX5cAefJWWLhxRsNPfnwRq9+eEputW90onxkBwGXexUFI1VfEAto8Hmxx+GvcQw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DRmgg0lO; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DRmgg0lO"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id D33A3C3277B;
+	Wed, 29 May 2024 02:57:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1716951421;
+	bh=kCbn1M2QOr3tg0aboBFXxUAzlVonui9TIyWgU01m2Nk=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=DRmgg0lOo0L4ifi/LB0XfpRsqdBtydGjIX7my18yNfwjQcriNscOSRuXWMTpY698I
+	 /IqfHdL1yOtMsed78VDH4bmSQuPwzBjY3mnG9w02jlq3ENJbUhu02IE2EWdJEQ2HvW
+	 /9Wq/al86Tjq0iP/2riknMLNxtywD/lcgRc7EICaMsb1fht8oACq/Q51UFY7BQRwI6
+	 OgcxXl43pCi88QZEfctytaFUFYmkdD6clS8EHbWTH9t4DC5/llQ67cU/1RNCCOx/Ds
+	 1Ld2V11RyMpLP9FFPtKDZz4q30HN5OeFkhRTeIuJxuqhn/ar2XSaceTVsQ7A4ljoxx
+	 uCJHpvVBVXA8A==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id C79F3C4361C;
+	Wed, 29 May 2024 02:57:01 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
- dggpemm500008.china.huawei.com (7.185.36.136)
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next 0/5] net: constify ctl_table arguments of utility
+ functions
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <171695142181.13406.6878241525958954105.git-patchwork-notify@kernel.org>
+Date: Wed, 29 May 2024 02:57:01 +0000
+References: <20240527-sysctl-const-handler-net-v1-0-16523767d0b2@weissschuh.net>
+In-Reply-To: <20240527-sysctl-const-handler-net-v1-0-16523767d0b2@weissschuh.net>
+To: =?utf-8?q?Thomas_Wei=C3=9Fschuh_=3Clinux=40weissschuh=2Enet=3E?=@ci.codeaurora.org
+Cc: davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+ pabeni@redhat.com, dsahern@kernel.org, horms@verge.net.au, ja@ssi.bg,
+ pablo@netfilter.org, kadlec@netfilter.org, j.granados@samsung.com,
+ mcgrof@kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+ lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org
 
-'keylen' is supposed to be unsigned int, not u8, so fix it.
+Hello:
 
-Fixes: 2ba39118c10a ("netfilter: nf_conncount: Move locking into count_tree()")
-Fixes: c80f10bc973a ("netfilter: nf_conncount: speculative garbage collection on empty lists")
-Signed-off-by: Yunjian Wang <wangyunjian@huawei.com>
----
- net/netfilter/nf_conncount.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+This series was applied to netdev/net-next.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
 
-diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index 8715617b02fe..4554f4b093fa 100644
---- a/net/netfilter/nf_conncount.c
-+++ b/net/netfilter/nf_conncount.c
-@@ -321,7 +321,7 @@ insert_tree(struct net *net,
- 	struct nf_conncount_rb *rbconn;
- 	struct nf_conncount_tuple *conn;
- 	unsigned int count = 0, gc_count = 0;
--	u8 keylen = data->keylen;
-+	unsigned int keylen = data->keylen;
- 	bool do_gc = true;
- 
- 	spin_lock_bh(&nf_conncount_locks[hash]);
-@@ -403,7 +403,7 @@ count_tree(struct net *net,
- 	struct rb_node *parent;
- 	struct nf_conncount_rb *rbconn;
- 	unsigned int hash;
--	u8 keylen = data->keylen;
-+	unsigned int keylen = data->keylen;
- 
- 	hash = jhash2(key, data->keylen, conncount_rnd) % CONNCOUNT_SLOTS;
- 	root = &data->root[hash];
+On Mon, 27 May 2024 19:04:18 +0200 you wrote:
+> The sysctl core is preparing to only expose instances of
+> struct ctl_table as "const".
+> This will also affect the ctl_table argument of sysctl handlers.
+> 
+> As the function prototype of all sysctl handlers throughout the tree
+> needs to stay consistent that change will be done in one commit.
+> 
+> [...]
+
+Here is the summary with links:
+  - [net-next,1/5] net/neighbour: constify ctl_table arguments of utility function
+    https://git.kernel.org/netdev/net-next/c/874aa96d78c7
+  - [net-next,2/5] net/ipv4/sysctl: constify ctl_table arguments of utility functions
+    https://git.kernel.org/netdev/net-next/c/551814313f11
+  - [net-next,3/5] net/ipv6/addrconf: constify ctl_table arguments of utility functions
+    https://git.kernel.org/netdev/net-next/c/c55eb03765f4
+  - [net-next,4/5] net/ipv6/ndisc: constify ctl_table arguments of utility function
+    https://git.kernel.org/netdev/net-next/c/7a20cd1e71d8
+  - [net-next,5/5] ipvs: constify ctl_table arguments of utility functions
+    https://git.kernel.org/netdev/net-next/c/0a9f788fdde4
+
+You are awesome, thank you!
 -- 
-2.33.0
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
