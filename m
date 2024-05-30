@@ -1,31 +1,31 @@
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A0CF16F0C1;
-	Thu, 30 May 2024 12:20:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43A3413213B;
+	Thu, 30 May 2024 12:50:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717071638; cv=none; b=NO5UkpIFP3U434H7ACjAz4vHM7M9jhBqjAI33q/lUMPctMfVFQnmbI2tdkUQcCQ7p0rSo2z9OF5B81HsXjcu41vE0edxYm/vvJrN69dcYGA7SAWx1jUxjyq7+Pe0nF3DgNcc8dpUqad6lF8uSC9Aae/IbPypSdXLLwzgG5VzY1o=
+	t=1717073463; cv=none; b=TVS4XaPCARGuJ4cuImJNdN0E7AgX+Hj6qOwJrHBLDPu/hfVFHAzUfZ7YdjxOJNrNJ9gaSJ8y4FclJzBNNqbgi9ZME+zvtDbl5ivfRsHYGnx9cBR3+7TSlNwxfmw3Xtcn1EIimc1TJmEBEMmvU2JkIYmV23ZxGGNvEaAx7vYZdPs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717071638; c=relaxed/simple;
-	bh=9iJ/TuMIlthLg5LqLwNJiT/ocP0v0J3ubZ8OoWOEiZE=;
+	s=arc-20240116; t=1717073463; c=relaxed/simple;
+	bh=lKpaqNPJMf21IrGoIwYmzqq9mOimSqs4XI3W+F264Is=;
 	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=POhrlJQPoHP6BvEDAa2d2XzY8X27OwOOqkj/nrg/Ww3MaJDA0M58W6Nw++kc/3yjNjb56zqFB6G9ADEV6ta/HZd9ct5ZRvnOK5ITUnt+bh6lSvTQ5lckMK1OrvrBgJvbcqjH86PtAViWs7pfgvD5Q/67TMe75GiG5wWsVGrMqeU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.188
+	 In-Reply-To:Content-Type; b=fsJQoF6CYBuPUEjPsq5yTEMEytK/vOvpJ/YwWuBxzQ0Ti04Bw12k7xpNMPVQST8nzxWHin6TejJk1X8pprKqdL+s6Csd6JZYliuvddVs3UuoIFEDkMy2mLFTctWk3w8By3LbDNSXwP4l0oo5FF8lB+TNGy7TUFnJppivglTYw/Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.187
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
 Received: from mail.maildlp.com (unknown [172.19.163.48])
-	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4Vqlfj3qQbzckHh;
-	Thu, 30 May 2024 20:19:09 +0800 (CST)
+	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4VqmGy2SzJzxR1N;
+	Thu, 30 May 2024 20:47:06 +0800 (CST)
 Received: from dggpemm500020.china.huawei.com (unknown [7.185.36.49])
-	by mail.maildlp.com (Postfix) with ESMTPS id DF57B18007A;
-	Thu, 30 May 2024 20:20:30 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id A339118007A;
+	Thu, 30 May 2024 20:50:56 +0800 (CST)
 Received: from [10.123.123.159] (10.123.123.159) by
  dggpemm500020.china.huawei.com (7.185.36.49) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.35; Thu, 30 May 2024 20:20:26 +0800
-Message-ID: <3cd4fad8-d72e-87cd-3cf9-2648a770f13c@huawei-partners.com>
-Date: Thu, 30 May 2024 15:20:21 +0300
+ 15.1.2507.35; Thu, 30 May 2024 20:50:52 +0800
+Message-ID: <10f3b3e0-d928-6bba-218c-f1b88778f83c@huawei-partners.com>
+Date: Thu, 30 May 2024 15:50:47 +0300
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -33,7 +33,8 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH v2 02/12] landlock: Add hook on socket creation
+Subject: Re: [RFC PATCH v2 03/12] selftests/landlock: Add protocol.create to
+ socket tests
 Content-Language: ru
 To: =?UTF-8?Q?G=C3=BCnther_Noack?= <gnoack@google.com>
 CC: <mic@digikod.net>, <willemdebruijn.kernel@gmail.com>,
@@ -42,71 +43,170 @@ CC: <mic@digikod.net>, <willemdebruijn.kernel@gmail.com>,
 	<yusongping@huawei.com>, <artem.kuzin@huawei.com>,
 	<konstantin.meskhidze@huawei.com>
 References: <20240524093015.2402952-1-ivanov.mikhail1@huawei-partners.com>
- <20240524093015.2402952-3-ivanov.mikhail1@huawei-partners.com>
- <ZlRI-gqDNkYOV_Th@google.com>
+ <20240524093015.2402952-4-ivanov.mikhail1@huawei-partners.com>
+ <ZlSmAhLV00iry6we@google.com>
 From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-In-Reply-To: <ZlRI-gqDNkYOV_Th@google.com>
+In-Reply-To: <ZlSmAhLV00iry6we@google.com>
 Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: lhrpeml500004.china.huawei.com (7.191.163.9) To
+X-ClientProxiedBy: lhrpeml500006.china.huawei.com (7.191.161.198) To
  dggpemm500020.china.huawei.com (7.185.36.49)
 
 
 
-5/27/2024 11:48 AM, Günther Noack wrote:
-> Hello Mikhail!
-> 
-> Thanks for sending another revision of this patch set!
-> 
-> On Fri, May 24, 2024 at 05:30:05PM +0800, Mikhail Ivanov wrote:
->> Add hook to security_socket_post_create(), which checks whether the socket
->> type and family are allowed by domain. Hook is called after initializing
->> the socket in the network stack to not wrongfully return EACCES for a
->> family-type pair, which is considered invalid by the protocol.
+5/27/2024 6:27 PM, Günther Noack wrote:
+> On Fri, May 24, 2024 at 05:30:06PM +0800, Mikhail Ivanov wrote:
+>> Initiate socket_test.c selftests. Add protocol fixture for tests
+>> with changeable family-type values. Only most common variants of
+>> protocols (like ipv4-tcp,ipv6-udp, unix) were added.
+>> Add simple socket access right checking test.
 >>
 >> Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+>> ---
+>>
+>> Changes since v1:
+>> * Replaces test_socket_create() and socket_variant() helpers
+>>    with test_socket().
+>> * Renames domain to family in protocol fixture.
+>> * Remove AF_UNSPEC fixture entry and add unspec_srv0 fixture field to
+>>    check AF_UNSPEC socket creation case.
+>> * Formats code with clang-format.
+>> * Refactors commit message.
+>> ---
+>>   .../testing/selftests/landlock/socket_test.c  | 181 ++++++++++++++++++
+>>   1 file changed, 181 insertions(+)
+>>   create mode 100644 tools/testing/selftests/landlock/socket_test.c
+>>
+>> diff --git a/tools/testing/selftests/landlock/socket_test.c b/tools/testing/selftests/landlock/socket_test.c
+>> new file mode 100644
+>> index 000000000000..4c51f89ed578
+>> --- /dev/null
+>> +++ b/tools/testing/selftests/landlock/socket_test.c
+>> @@ -0,0 +1,181 @@
+>> +// SPDX-License-Identifier: GPL-2.0-only
+>> +/*
+>> + * Landlock tests - Socket
+>> + *
+>> + * Copyright © 2024 Huawei Tech. Co., Ltd.
+>> + * Copyright © 2024 Microsoft Corporation
 > 
-> ## Some observations that *do not* need to be addressed in this commit, IMHO:
-> 
-> get_raw_handled_socket_accesses, get_current_socket_domain and
-> current_check_access_socket are based on the similarly-named functions from
-> net.c (and fs.c), and it makes sense to stay consistent with these.
-> 
-> There are some possible refactorings that could maybe be applied to that code,
-> but given that the same ones would apply to net.c as well, it's probably best to
-> address these separately.
-> 
->    * Should get_raw_handled_socket_accesses be inlined
-It's a fairly simple and compact function, so compiler should inline it
-without any problems. Mickaël was against optional inlines [1].
+> It looked to me like these patches came from Huawei?
+> Was this left by accident?
 
-[1] 
-https://lore.kernel.org/linux-security-module/5c6c99f7-4218-1f79-477e-5d943c9809fd@digikod.net/
-
->    * Does the WARN_ON_ONCE(dom->num_layers < 1) check have the right return code?
-
-Looks like a rudimental check. `dom` is always NULL when `num_layers`< 1
-(see get_*_domain functions).
-
->    * Can we refactor out commonalities (probably not worth it right now though)?
-
-I had a few ideas about refactoring commonalities, as currently landlock
-has several repetitive patterns in the code. But solution requires a
-good design and a separate patch. Probably it's worth opening an issue
-on github. WDYT?
+Yeah, second line should be removed. Thanks!
 
 > 
 > 
-> ## The only actionable feedback that I have that is specific to this commit is:
+>> + */
+>> +
+>> +#define _GNU_SOURCE
+>> +
+>> +#include <errno.h>
+>> +#include <linux/landlock.h>
+>> +#include <sched.h>
+>> +#include <string.h>
+>> +#include <sys/prctl.h>
+>> +#include <sys/socket.h>
+>> +
+>> +#include "common.h"
+>> +
+>> +/* clang-format off */
+>> +
+>> +#define ACCESS_LAST LANDLOCK_ACCESS_SOCKET_CREATE
+>> +
+>> +#define ACCESS_ALL ( \
+>> +	LANDLOCK_ACCESS_SOCKET_CREATE)
+>> +
+>> +/* clang-format on */
 > 
-> In the past, we have introduced new (non-test) Landlock functionality in a
-> single commit -- that way, we have no "loose ends" in the code between these two
-> commits, and that simplifies it for people who want to patch your feature onto
-> other kernel trees.  (e.g. I think we should maybe merge commit 01/12 and 02/12
-> into a single commit.)  WDYT?
+> It does not look like clang-format would really mess up this format in a bad
+> way.  Maybe we can remove the "clang-format off" section here and just write the
+> "#define"s on one line?
 
-Yeah, this two should be merged and tests commits as well. I just wanted
-to do this in one of the latest patch versions to simplify code review.
+You're right, I'll fix it
 
+> 
+> ACCESS_ALL is unused in this commit.
+> Should it be introduced in a subsequent commit instead?
+
+Indeed, thanks
+
+> 
+> 
+>> +static int test_socket(const struct service_fixture *const srv)
+>> +{
+>> +	int fd;
+>> +
+>> +	fd = socket(srv->protocol.family, srv->protocol.type | SOCK_CLOEXEC, 0);
+>> +	if (fd < 0)
+>> +		return errno;
+>> +	/*
+>> +	 * Mixing error codes from close(2) and socket(2) should not lead to any
+>> +	 * (access type) confusion for this test.
+>> +	 */
+>> +	if (close(fd) != 0)
+>> +		return errno;
+>> +	return 0;
+>> +}
+> 
+> I personally find that it helps me remember if these test helpers have the same
+> signature as the syscall that they are exercising.  (But I don't feel very
+> strongly about it.  Just a suggestion.)
+
+You're right, in this case test_socket() would be more clear.
+I'll fix it.
+
+> 
+> 
+>> [...]
+>>
+>> +TEST_F(protocol, create)
+>> +{
+>> +	const struct landlock_ruleset_attr ruleset_attr = {
+>> +		.handled_access_socket = LANDLOCK_ACCESS_SOCKET_CREATE,
+>> +	};
+>> +	const struct landlock_socket_attr create_socket_attr = {
+>> +		.allowed_access = LANDLOCK_ACCESS_SOCKET_CREATE,
+>> +		.family = self->srv0.protocol.family,
+>> +		.type = self->srv0.protocol.type,
+>> +	};
+>> +
+>> +	int ruleset_fd;
+>> +
+>> +	/* Allowed create */
+>> +	ruleset_fd =
+>> +		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
+>> +	ASSERT_LE(0, ruleset_fd);
+>> +
+>> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_SOCKET,
+>> +				       &create_socket_attr, 0));
+>> +
+>> +	enforce_ruleset(_metadata, ruleset_fd);
+>> +	EXPECT_EQ(0, close(ruleset_fd));
+>> +
+>> +	ASSERT_EQ(0, test_socket(&self->srv0));
+>> +	ASSERT_EQ(EAFNOSUPPORT, test_socket(&self->unspec_srv0));
+>> +
+>> +	/* Denied create */
+>> +	ruleset_fd =
+>> +		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
+>> +	ASSERT_LE(0, ruleset_fd);
+>> +
+>> +	enforce_ruleset(_metadata, ruleset_fd);
+>> +	EXPECT_EQ(0, close(ruleset_fd));
+>> +
+>> +	ASSERT_EQ(EACCES, test_socket(&self->srv0));
+>> +	ASSERT_EQ(EAFNOSUPPORT, test_socket(&self->unspec_srv0));
+> 
+> Should we exhaustively try out the other combinations (other than selv->srv0)
+> here?  I assume socket() should always fail for these?
+
+Do you mean testing all supported protocols? AFAICS this will require
+adding ~80 FIXTURE_VARIANTs, but it won't be an issue if you think that
+it can be useful.
+
+> 
+> (If you are alredy doing this in another commit that I have not looked at yet,
+> please ignore this comment.)
 > 
 > —Günther
