@@ -1,55 +1,135 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CE4B17F51E
-	for <netfilter-devel@vger.kernel.org>; Thu, 30 May 2024 13:13:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD16E169AC6;
+	Thu, 30 May 2024 14:35:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717074820; cv=none; b=WLL3CgcIGeukXfErlHF2I4xE2OAIkg/vmG5cZBXFnnH0dPUKZ/TXLFBYp2+60IS4ji2QDCKYSl11MpiucLtYgbJfuRp9M+xYL3cnvvwUoWETySc8HtR2vk+UkATPJjslQYwZ+BzJF7rV779KRZrNS+pdvQLdd/iwQjNUu9eYGk8=
+	t=1717079734; cv=none; b=dtxh86bbeJ6nbPdPhY1Eozts4LvcpPrfKnwu3hxMmdBUg+F3KDXORGpF41ISWAUbk6Z1yuzHySXGThYWCAuZwR/Tly8FntXzuHCw0L9+703xO8886IgWRGXMOkImOtiY2P2swBMGKptCN7eDqKeR6boR4dQwTJYhMA9lXvYumQM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717074820; c=relaxed/simple;
-	bh=9UdN93OWw9BuMgVkEJzYy5qWO/eM8oviY0ooORi2pL0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=I3CCyj5xrs1QRDPMW0BQqee6krbhXxhtN+IAXhJroHC3/zMP/dl2BlnGLBl73WDa2CqLind5zlHcRcINP3UVahj9RV3ftr6XqINKYG0MYl+D8hs5R0Pr9r7CxIAMIA+nQt0dEOWgdY9wagEjhUWJQYCTwppqzwxM+oykspxsIw8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1sCfb2-0002AE-AT; Thu, 30 May 2024 15:13:32 +0200
-Date: Thu, 30 May 2024 15:13:32 +0200
-From: Florian Westphal <fw@strlen.de>
-To: wangyunjian <wangyunjian@huawei.com>
-Cc: Florian Westphal <fw@strlen.de>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"pablo@netfilter.org" <pablo@netfilter.org>,
-	"kadlec@netfilter.org" <kadlec@netfilter.org>,
-	"kuba@kernel.org" <kuba@kernel.org>,
-	"davem@davemloft.net" <davem@davemloft.net>,
-	"coreteam@netfilter.org" <coreteam@netfilter.org>,
-	xudingke <xudingke@huawei.com>
-Subject: Re: [PATCH net] netfilter: nf_conncount: fix wrong variable type
-Message-ID: <20240530131332.GB2041@breakpoint.cc>
-References: <1716946829-77508-1-git-send-email-wangyunjian@huawei.com>
- <20240529120238.GA12043@breakpoint.cc>
- <d6a7fe4b75b14cdda1a259c2acb10766@huawei.com>
- <20240530075220.GA19949@breakpoint.cc>
- <fc77f3c83cd3470ba1678f48dcbd172c@huawei.com>
+	s=arc-20240116; t=1717079734; c=relaxed/simple;
+	bh=nw72xWnPpdyLXDd6BSSXfeSuAij6WeLgNpBcNRwcIao=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=cxpv7taI9362vLoLEi0dMUtq7xGKcEZFlMtb0Oc8HcoTKhQrlYmtfThQyOzhkXuEMpCL0PJLMwAjY8dHNQV6utu+z6pqffJdKYQyMKZ0UzeQfw5wgUgNofZ2cZdrs6BgUc9du/pVuZBr3kyPrYyrG4Lf3DBe28m8fezBU7kTOZA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.188
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
+Received: from mail.maildlp.com (unknown [172.19.163.48])
+	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4VqpZq18vWzmWxF;
+	Thu, 30 May 2024 22:30:59 +0800 (CST)
+Received: from dggpemm500020.china.huawei.com (unknown [7.185.36.49])
+	by mail.maildlp.com (Postfix) with ESMTPS id 813F018007F;
+	Thu, 30 May 2024 22:35:23 +0800 (CST)
+Received: from [10.123.123.159] (10.123.123.159) by
+ dggpemm500020.china.huawei.com (7.185.36.49) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.35; Thu, 30 May 2024 22:35:19 +0800
+Message-ID: <f4b5e2b9-e960-fd08-fdf4-328bb475e2ef@huawei-partners.com>
+Date: Thu, 30 May 2024 17:35:14 +0300
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <fc77f3c83cd3470ba1678f48dcbd172c@huawei.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH v2 04/12] selftests/landlock: Add
+ protocol.socket_access_rights to socket tests
+Content-Language: ru
+To: =?UTF-8?Q?G=C3=BCnther_Noack?= <gnoack@google.com>
+CC: <mic@digikod.net>, <willemdebruijn.kernel@gmail.com>,
+	<gnoack3000@gmail.com>, <linux-security-module@vger.kernel.org>,
+	<netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
+	<yusongping@huawei.com>, <artem.kuzin@huawei.com>,
+	<konstantin.meskhidze@huawei.com>
+References: <20240524093015.2402952-1-ivanov.mikhail1@huawei-partners.com>
+ <20240524093015.2402952-5-ivanov.mikhail1@huawei-partners.com>
+ <ZlTyj_0g-E4oM22G@google.com>
+From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+In-Reply-To: <ZlTyj_0g-E4oM22G@google.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: lhrpeml500006.china.huawei.com (7.191.161.198) To
+ dggpemm500020.china.huawei.com (7.185.36.49)
 
-wangyunjian <wangyunjian@huawei.com> wrote:
-> > Then please quote the exact warning in the commit message and remove the
-> > u8 temporary variable in favor of data->keylen.
+
+
+5/27/2024 11:52 PM, Günther Noack wrote:
+> Hello!
 > 
-> OK, I will update it. This is not a bugfix, only considered for net-next?
+> I see that this test is adapted from the network_access_rights test in
+> net_test.c, and some of the subsequent are similarly copied from there.  It
+> makes it hard to criticize the code, because being a little bit consistent is
+> probably a good thing.  Have you found any opportunities to extract
+> commonalities into common.h?
 
-nf-next, yes.
+I think that all common tests should be extracted to common.h or maybe
+some new header. *_test.c could maintain a fixture for these tests for
+some rule-specific logic. Such refactoring should be in separate patch
+though.
+
+> 	
+> On Fri, May 24, 2024 at 05:30:07PM +0800, Mikhail Ivanov wrote:
+>> Add test that checks possibility of adding rule with every possible
+>> access right.
+>>
+>> Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+>> ---
+>>
+>> Changes since v1:
+>> * Formats code with clang-format.
+>> * Refactors commit message.
+>> ---
+>>   .../testing/selftests/landlock/socket_test.c  | 28 +++++++++++++++++++
+>>   1 file changed, 28 insertions(+)
+>>
+>> diff --git a/tools/testing/selftests/landlock/socket_test.c b/tools/testing/selftests/landlock/socket_test.c
+>> index 4c51f89ed578..eb5d62263460 100644
+>> --- a/tools/testing/selftests/landlock/socket_test.c
+>> +++ b/tools/testing/selftests/landlock/socket_test.c
+>> @@ -178,4 +178,32 @@ TEST_F(protocol, create)
+>>   	ASSERT_EQ(EAFNOSUPPORT, test_socket(&self->unspec_srv0));
+>>   }
+>>   
+>> +TEST_F(protocol, socket_access_rights)
+>> +{
+>> +	const struct landlock_ruleset_attr ruleset_attr = {
+>> +		.handled_access_socket = ACCESS_ALL,
+>> +	};
+>> +	struct landlock_socket_attr protocol = {
+>> +		.family = self->srv0.protocol.family,
+>> +		.type = self->srv0.protocol.type,
+>> +	};
+>> +	int ruleset_fd;
+>> +	__u64 access;
+>> +
+>> +	ruleset_fd =
+>> +		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
+>> +	ASSERT_LE(0, ruleset_fd);
+>> +
+>> +	for (access = 1; access <= ACCESS_LAST; access <<= 1) {
+>> +		protocol.allowed_access = access;
+>> +		EXPECT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_SOCKET,
+>> +					       &protocol, 0))
+>> +		{
+>> +			TH_LOG("Failed to add rule with access 0x%llx: %s",
+>> +			       access, strerror(errno));
+>> +		}
+>> +	}
+>> +	EXPECT_EQ(0, close(ruleset_fd));
+> 
+> Reviewed-by: Günther Noack <gnoack@google.com>
+> 
+> P.S. We are inconsistent with our use of EXPECT/ASSERT for test teardown.  The
+> fs_test.c uses ASSERT_EQ in these places whereas net_test.c and your new tests
+> use EXPECT_EQ.
+> 
+> It admittedly does not make much of a difference for close(), so should be OK.
+> Some other selftests are even ignoring the result for close().  If we want to
+> make it consistent in the Landlock tests again, we can also do it in an
+> independent sweep.
+> 
+> I filed a small cleanup task as a reminder:
+> https://github.com/landlock-lsm/linux/issues/31
+> 
+> —Günther
