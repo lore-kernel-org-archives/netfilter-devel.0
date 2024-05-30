@@ -1,87 +1,98 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8827C171B6;
-	Thu, 30 May 2024 08:30:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A20515ADBE
+	for <netfilter-devel@vger.kernel.org>; Thu, 30 May 2024 09:42:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717057831; cv=none; b=XBhLAXJJ5JVgJ3uRLP7FYuRWcxW/e3X5czX0EEkylPEVH9elTI3YyJ0qdkfU32I/RumTs8ahWvxXwnITaqWGNg4dUaordVshUGrVLagT78vEotPT1duevZVoB8qoyWHYpGTaumh8B58YjgC0M6Kfw0a55DeAFJNrkW6luzw7ezI=
+	t=1717062130; cv=none; b=QGMk9nK++ZG9CF6kimqsOQFO4Guki9W93bXNMEqb2mhFE2bivJw8QGNz7S5qafD/a1Sfc9wHWGLPgdIgOm5znIKSUB7I4EAuJUqWXJm3U8XbEusePmxmWAonfRLCeKcaKMEWuQVvV2bt8faqOq2Ehs+VzDJCaMFnOIxcZzNUQ+s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717057831; c=relaxed/simple;
-	bh=U0wpfOaiA60pJBqJkCFS7H/vswpEsThJgZwp2bBSNRs=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=FXMfg8S4JNh7+lcJ273wTL50qB6hqFlsKkcjdpSPx+adkPVpIKy+39SosmdX8luXXy8F65G3mG5MinwB/lazG2d+jKMN54xSlpD04RoJd5AJreJ34aJBqx3jV94/WKSX5JL44OL7GKM/jX44gSGkUdi3bWl5dwdViVERveqFwTM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cuEPnCQ8; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cuEPnCQ8"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 3B7D4C32786;
-	Thu, 30 May 2024 08:30:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1717057830;
-	bh=U0wpfOaiA60pJBqJkCFS7H/vswpEsThJgZwp2bBSNRs=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=cuEPnCQ8VF+WbBQ3P5yHXopZ+H8n4hS7ED6FNkYhQ0cdIvtdRqjY9lnwiSgl9n4s5
-	 qm4gjotjWWorp1OtEFmeeQpM6x9HrDyezLomwbLXqZoCbptTxFM060EEitbwPi4Lzc
-	 /OT6cdpTUFlA2GYPrssBlMXq8398fWIIeLn5MXR/ZW4CwUoiNwAFCTcrUJtNrngk8u
-	 S3ngR/3Ij0xYss0BR4AhH8Rt/8ZGjXNx5DhFQvOigfMLjTEWHiYFpW9cK+BdD8wTQM
-	 wkrkdIeBd7ZPnari2sPTRuarR9mWhQr5G42D5BrO9uoLs2FAPWQWMonh3HCnqh7buL
-	 /Xey8/mMza0ZQ==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 2D378D40190;
-	Thu, 30 May 2024 08:30:30 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=arc-20240116; t=1717062130; c=relaxed/simple;
+	bh=9DvXWuqkb6fy8RDMMgTTHbeF7u86Manur4zirADnJWI=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=NxcbnRTJ9mHcKlPUUQ//EDGrfOqXWb1pyyw7CaqwrDQlCohTMEXHKAvYU0bU6TkuEnkb5ZkBcR6X7jiksjQkXGthflb3C6WrDtXeOBNwVw1QjUtHkAZp7XCBaMerpY+WTVAPH9kO5HDIIEVv1LhHo8FBLvtO9t4SsJbfPzvwxJE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.187
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.19.163.48])
+	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4Vqh552LlhzwQRG;
+	Thu, 30 May 2024 17:38:17 +0800 (CST)
+Received: from kwepemd100011.china.huawei.com (unknown [7.221.188.204])
+	by mail.maildlp.com (Postfix) with ESMTPS id 05498180080;
+	Thu, 30 May 2024 17:42:06 +0800 (CST)
+Received: from dggpemm500008.china.huawei.com (7.185.36.136) by
+ kwepemd100011.china.huawei.com (7.221.188.204) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1258.34; Thu, 30 May 2024 17:42:05 +0800
+Received: from dggpemm500008.china.huawei.com ([7.185.36.136]) by
+ dggpemm500008.china.huawei.com ([7.185.36.136]) with mapi id 15.01.2507.035;
+ Thu, 30 May 2024 17:42:05 +0800
+From: wangyunjian <wangyunjian@huawei.com>
+To: Florian Westphal <fw@strlen.de>
+CC: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"pablo@netfilter.org" <pablo@netfilter.org>, "kadlec@netfilter.org"
+	<kadlec@netfilter.org>, "kuba@kernel.org" <kuba@kernel.org>,
+	"davem@davemloft.net" <davem@davemloft.net>, "coreteam@netfilter.org"
+	<coreteam@netfilter.org>, xudingke <xudingke@huawei.com>
+Subject: RE: [PATCH net] netfilter: nf_conncount: fix wrong variable type
+Thread-Topic: [PATCH net] netfilter: nf_conncount: fix wrong variable type
+Thread-Index: AQHasWoiYMZX4xQfcUOwinIB0t9RfrGtl0IAgAGBBoD//8tgAIAAisOg
+Date: Thu, 30 May 2024 09:42:05 +0000
+Message-ID: <fc77f3c83cd3470ba1678f48dcbd172c@huawei.com>
+References: <1716946829-77508-1-git-send-email-wangyunjian@huawei.com>
+ <20240529120238.GA12043@breakpoint.cc>
+ <d6a7fe4b75b14cdda1a259c2acb10766@huawei.com>
+ <20240530075220.GA19949@breakpoint.cc>
+In-Reply-To: <20240530075220.GA19949@breakpoint.cc>
+Accept-Language: zh-CN, en-US
+Content-Language: zh-CN
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/6] netfilter: nfnetlink_queue: acquire rcu_read_lock()
- in instance_destroy_rcu()
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <171705783018.21028.13096652860732569624.git-patchwork-notify@kernel.org>
-Date: Thu, 30 May 2024 08:30:30 +0000
-References: <20240528225519.1155786-2-pablo@netfilter.org>
-In-Reply-To: <20240528225519.1155786-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de, kadlec@netfilter.org
 
-Hello:
+> -----Original Message-----
+> From: Florian Westphal [mailto:fw@strlen.de]
+> Sent: Thursday, May 30, 2024 3:52 PM
+> To: wangyunjian <wangyunjian@huawei.com>
+> Cc: Florian Westphal <fw@strlen.de>; netfilter-devel@vger.kernel.org;
+> pablo@netfilter.org; kadlec@netfilter.org; kuba@kernel.org;
+> davem@davemloft.net; coreteam@netfilter.org; xudingke
+> <xudingke@huawei.com>
+> Subject: Re: [PATCH net] netfilter: nf_conncount: fix wrong variable type
+>=20
+> wangyunjian <wangyunjian@huawei.com> wrote:
+> > > -----Original Message-----
+> > > From: Florian Westphal [mailto:fw@strlen.de]
+> > > Sent: Wednesday, May 29, 2024 8:03 PM
+> > > To: wangyunjian <wangyunjian@huawei.com>
+> > > Cc: netfilter-devel@vger.kernel.org; pablo@netfilter.org;
+> kadlec@netfilter.org;
+> > > kuba@kernel.org; davem@davemloft.net; coreteam@netfilter.org;
+> xudingke
+> > > <xudingke@huawei.com>
+> > > Subject: Re: [PATCH net] netfilter: nf_conncount: fix wrong variable =
+type
+> > >
+> > > Yunjian Wang <wangyunjian@huawei.com> wrote:
+> > > > 'keylen' is supposed to be unsigned int, not u8, so fix it.
+> > >
+> > > Its limited to 5, so u8 works fine.
+> >
+> > Currently, it does not affect the functionality. The main issue is that=
+ code
+> > checks will report a warning: implicit narrowing conversion from type
+> > 'unsigned int' to small type 'u8'.
+>=20
+> Then please quote the exact warning in the commit message and remove the
+> u8 temporary variable in favor of data->keylen.
 
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+OK, I will update it. This is not a bugfix, only considered for net-next?
 
-On Wed, 29 May 2024 00:55:14 +0200 you wrote:
-> From: Eric Dumazet <edumazet@google.com>
-> 
-> syzbot reported that nf_reinject() could be called without rcu_read_lock() :
-> 
-> WARNING: suspicious RCU usage
-> 6.9.0-rc7-syzkaller-02060-g5c1672705a1a #0 Not tainted
-> 
-> [...]
-
-Here is the summary with links:
-  - [net,1/6] netfilter: nfnetlink_queue: acquire rcu_read_lock() in instance_destroy_rcu()
-    https://git.kernel.org/netdev/net/c/dc21c6cc3d69
-  - [net,2/6] netfilter: ipset: Add list flush to cancel_gc
-    https://git.kernel.org/netdev/net/c/c1193d9bbbd3
-  - [net,3/6] netfilter: nft_payload: restore vlan q-in-q match support
-    https://git.kernel.org/netdev/net/c/aff5c01fa128
-  - [net,4/6] netfilter: nft_payload: skbuff vlan metadata mangle support
-    https://git.kernel.org/netdev/net/c/33c563ebf8d3
-  - [net,5/6] netfilter: tproxy: bail out if IP has been disabled on the device
-    https://git.kernel.org/netdev/net/c/21a673bddc8f
-  - [net,6/6] netfilter: nft_fib: allow from forward/input without iif selector
-    https://git.kernel.org/netdev/net/c/e8ded22ef0f4
-
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+Thanks.
