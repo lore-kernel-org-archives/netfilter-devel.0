@@ -1,67 +1,87 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED40920322
-	for <netfilter-devel@vger.kernel.org>; Thu, 30 May 2024 07:52:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8827C171B6;
+	Thu, 30 May 2024 08:30:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717055553; cv=none; b=ojGGZFJ8AMQ4EQrxmpgm41cWD20XfEhhhYR22WLLb3W64kiklH1obOjCmlWdT4dGVtyXh8l065mXYZ6kjn82z6Y39pNMUI/SH0Iagj37/DffWZdCm07WIYff3y3sEYx96NQLhzjFXvTm22G/BCqwZ7zh0O06ypzsUvTGnKlt9Fw=
+	t=1717057831; cv=none; b=XBhLAXJJ5JVgJ3uRLP7FYuRWcxW/e3X5czX0EEkylPEVH9elTI3YyJ0qdkfU32I/RumTs8ahWvxXwnITaqWGNg4dUaordVshUGrVLagT78vEotPT1duevZVoB8qoyWHYpGTaumh8B58YjgC0M6Kfw0a55DeAFJNrkW6luzw7ezI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717055553; c=relaxed/simple;
-	bh=UEuux+9gAr029aRO7lrsS9R+qUkjQ2VCcyyeTYu2fqU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=kjP/rqXIMQn6Gn5remH+KQCikxbEpQ5JYGKqKdXwei7ptWMKE9ArHA3gn/7RqRbVVvhOyZLZXNV5b4AFkhD3ILHdeinKBPYSmVf/RHlZSR6Yhf1rFZg1Acc0yNJwZE5clmIGCcMudj8uFVKltLpjRh+6hHYiA2dXFZv8jTwbBiA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1sCaaC-0000TL-I5; Thu, 30 May 2024 09:52:20 +0200
-Date: Thu, 30 May 2024 09:52:20 +0200
-From: Florian Westphal <fw@strlen.de>
-To: wangyunjian <wangyunjian@huawei.com>
-Cc: Florian Westphal <fw@strlen.de>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"pablo@netfilter.org" <pablo@netfilter.org>,
-	"kadlec@netfilter.org" <kadlec@netfilter.org>,
-	"kuba@kernel.org" <kuba@kernel.org>,
-	"davem@davemloft.net" <davem@davemloft.net>,
-	"coreteam@netfilter.org" <coreteam@netfilter.org>,
-	xudingke <xudingke@huawei.com>
-Subject: Re: [PATCH net] netfilter: nf_conncount: fix wrong variable type
-Message-ID: <20240530075220.GA19949@breakpoint.cc>
-References: <1716946829-77508-1-git-send-email-wangyunjian@huawei.com>
- <20240529120238.GA12043@breakpoint.cc>
- <d6a7fe4b75b14cdda1a259c2acb10766@huawei.com>
+	s=arc-20240116; t=1717057831; c=relaxed/simple;
+	bh=U0wpfOaiA60pJBqJkCFS7H/vswpEsThJgZwp2bBSNRs=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=FXMfg8S4JNh7+lcJ273wTL50qB6hqFlsKkcjdpSPx+adkPVpIKy+39SosmdX8luXXy8F65G3mG5MinwB/lazG2d+jKMN54xSlpD04RoJd5AJreJ34aJBqx3jV94/WKSX5JL44OL7GKM/jX44gSGkUdi3bWl5dwdViVERveqFwTM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cuEPnCQ8; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cuEPnCQ8"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 3B7D4C32786;
+	Thu, 30 May 2024 08:30:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1717057830;
+	bh=U0wpfOaiA60pJBqJkCFS7H/vswpEsThJgZwp2bBSNRs=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=cuEPnCQ8VF+WbBQ3P5yHXopZ+H8n4hS7ED6FNkYhQ0cdIvtdRqjY9lnwiSgl9n4s5
+	 qm4gjotjWWorp1OtEFmeeQpM6x9HrDyezLomwbLXqZoCbptTxFM060EEitbwPi4Lzc
+	 /OT6cdpTUFlA2GYPrssBlMXq8398fWIIeLn5MXR/ZW4CwUoiNwAFCTcrUJtNrngk8u
+	 S3ngR/3Ij0xYss0BR4AhH8Rt/8ZGjXNx5DhFQvOigfMLjTEWHiYFpW9cK+BdD8wTQM
+	 wkrkdIeBd7ZPnari2sPTRuarR9mWhQr5G42D5BrO9uoLs2FAPWQWMonh3HCnqh7buL
+	 /Xey8/mMza0ZQ==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 2D378D40190;
+	Thu, 30 May 2024 08:30:30 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <d6a7fe4b75b14cdda1a259c2acb10766@huawei.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/6] netfilter: nfnetlink_queue: acquire rcu_read_lock()
+ in instance_destroy_rcu()
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <171705783018.21028.13096652860732569624.git-patchwork-notify@kernel.org>
+Date: Thu, 30 May 2024 08:30:30 +0000
+References: <20240528225519.1155786-2-pablo@netfilter.org>
+In-Reply-To: <20240528225519.1155786-2-pablo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, fw@strlen.de, kadlec@netfilter.org
 
-wangyunjian <wangyunjian@huawei.com> wrote:
-> > -----Original Message-----
-> > From: Florian Westphal [mailto:fw@strlen.de]
-> > Sent: Wednesday, May 29, 2024 8:03 PM
-> > To: wangyunjian <wangyunjian@huawei.com>
-> > Cc: netfilter-devel@vger.kernel.org; pablo@netfilter.org; kadlec@netfilter.org;
-> > kuba@kernel.org; davem@davemloft.net; coreteam@netfilter.org; xudingke
-> > <xudingke@huawei.com>
-> > Subject: Re: [PATCH net] netfilter: nf_conncount: fix wrong variable type
-> > 
-> > Yunjian Wang <wangyunjian@huawei.com> wrote:
-> > > 'keylen' is supposed to be unsigned int, not u8, so fix it.
-> > 
-> > Its limited to 5, so u8 works fine.
+Hello:
+
+This series was applied to netdev/net.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
+
+On Wed, 29 May 2024 00:55:14 +0200 you wrote:
+> From: Eric Dumazet <edumazet@google.com>
 > 
-> Currently, it does not affect the functionality. The main issue is that code
-> checks will report a warning: implicit narrowing conversion from type
-> 'unsigned int' to small type 'u8'.
+> syzbot reported that nf_reinject() could be called without rcu_read_lock() :
+> 
+> WARNING: suspicious RCU usage
+> 6.9.0-rc7-syzkaller-02060-g5c1672705a1a #0 Not tainted
+> 
+> [...]
 
-Then please quote the exact warning in the commit message and remove the
-u8 temporary variable in favor of data->keylen.
+Here is the summary with links:
+  - [net,1/6] netfilter: nfnetlink_queue: acquire rcu_read_lock() in instance_destroy_rcu()
+    https://git.kernel.org/netdev/net/c/dc21c6cc3d69
+  - [net,2/6] netfilter: ipset: Add list flush to cancel_gc
+    https://git.kernel.org/netdev/net/c/c1193d9bbbd3
+  - [net,3/6] netfilter: nft_payload: restore vlan q-in-q match support
+    https://git.kernel.org/netdev/net/c/aff5c01fa128
+  - [net,4/6] netfilter: nft_payload: skbuff vlan metadata mangle support
+    https://git.kernel.org/netdev/net/c/33c563ebf8d3
+  - [net,5/6] netfilter: tproxy: bail out if IP has been disabled on the device
+    https://git.kernel.org/netdev/net/c/21a673bddc8f
+  - [net,6/6] netfilter: nft_fib: allow from forward/input without iif selector
+    https://git.kernel.org/netdev/net/c/e8ded22ef0f4
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
