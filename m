@@ -1,94 +1,76 @@
-Received: from mail-wr1-f52.google.com (mail-wr1-f52.google.com [209.85.221.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C46C81667EB;
-	Wed, 29 May 2024 21:53:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A557E2F5E
+	for <netfilter-devel@vger.kernel.org>; Thu, 30 May 2024 03:02:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717019597; cv=none; b=AmoK0PyF14DfZvoPgsGswirZ2dfrvw6SOQoja0ijTr3HH42hGDiu9WXPnsmJFRcgKHndXtvaHKbQZOWTfNqUczzFXnsJKboPjii/6Eb4l9f09cUws1WXG/Q7R34W/Dha4nlOlBp1A//4c2MPSBPId1oayd/XQwor8KeDdAEh6TM=
+	t=1717038162; cv=none; b=njZIu3KOrwrZX4h8SMU1pSh3w9unuVTHYLhx977OXjkBajrWMaluMUM+pr4dnYTkO2x2DW1T/rT3Ktcuiz56SnnmibaVOzrbXYnGRMflv30AsBxYymJYYv86gbJmx6280QWbKoI/JXEqM7wCqF9J3ogaCDmHd0rPfQ33IA9BJ50=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717019597; c=relaxed/simple;
-	bh=oyFIqEg5ZHqGxpxppH6pOXHhNaBV7a5BVW45aXMxU04=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=cChAy58SO6agkRw0ye8G0CcWMCz/XADt7AYGWWTOypWoKKnwc43gg2swtq3wawg9JP5FF+FxSlt/MCeyJXRLVpJ7FIGSg4UhY1RXW+VvhXGsTgC7KrYlQybaJ8A3k1jjvkwbPZSmuNFmh24FLub6Xf97c08IUk7Hzm3woW2QJXE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=K5dzknKj; arc=none smtp.client-ip=209.85.221.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="K5dzknKj"
-Received: by mail-wr1-f52.google.com with SMTP id ffacd0b85a97d-35507dfe221so113418f8f.1;
-        Wed, 29 May 2024 14:53:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1717019594; x=1717624394; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=oyFIqEg5ZHqGxpxppH6pOXHhNaBV7a5BVW45aXMxU04=;
-        b=K5dzknKjVemx5BoWmzfBeA0B0a3joLgaUt6OijLUM+ShJopAjuhpGoip+Ckq3onV25
-         df26pXKssHTUOILSFWI0fis7PN24o7si1WwgsMuecIpVhFwXFuK/NYwzjRQiQK42gRhW
-         dOlY9mgHWQmuclbn5epRX/v6Au4EikNqU7RHrhzaerPutdmjYhY2DTeklvARQfBVpVrJ
-         dmwX59csmPcTLHfn2OS6h5hydLBnXcPwEnVLY76M4TvzDaJ3HxAVw2d64wU13AMc9IKs
-         Wx+Zg0MJ5VemKD4Lz21LXDk94x75mE2WiW9yc7ctU/ucF1zQdkIp2sI9hpYKv7N24zyC
-         Hu5Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1717019594; x=1717624394;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=oyFIqEg5ZHqGxpxppH6pOXHhNaBV7a5BVW45aXMxU04=;
-        b=dpGf5Fe+JAV//BLQ9UqxmMp4i0QfhrlKC9/5gmhwf/XddkXBoFy/U9cPTnGnIzygkY
-         tu+8XzXJPK2tSPIu0aZsj+kBcxGHKGc6huRLay4NKFjtrXlvWub4Dn8GdIKc1m6B9u+w
-         GYLjwWOOqH2SRflDsN6CXlB2rLugvQFdfMQMiWTIAukkILjb74t2IZz7yyFxhmDLr0PP
-         1ka0wlEo7Fg4SzGk016gJvWoduAiBXRUIEDHm8BSxPGPuj6WnHEVq5CieXDE+kf/xQgT
-         pg7zt+tgq97vQQKCWIBhi/bPK1/AweECZwL3DlrV8K+ek7GlLUFty7K8irQaNNkrRRjm
-         ZlxA==
-X-Forwarded-Encrypted: i=1; AJvYcCW6BGaDS7Qo47Ok8yK/XgTlJKswjXuba0eMwns7c1whCI8tn1+saE08WFgOxckJdqsq2MmzXJCiD3zUB4mWU2N5lqgNQ+fh6ebvID6x6p4x7O8b/myg6ov0UcEczWUmOYtWYEQxKwUM
-X-Gm-Message-State: AOJu0YwZyOzD09Q0wkss8byFv3xtTpj5ouHxGeFdHjSyftj0PnJf/5HP
-	aU3OdUvMPlVkOinXa9CCkBGSeglMmMcTCL4LPISsyFcHTehkmRw+LA+CBFO4WnsxozrAgnFRFvZ
-	znjivLxc+YdmEw91oQ3eQCiEVEi+aEQ==
-X-Google-Smtp-Source: AGHT+IFxSQvyEgkGQpK+qlE4c5kmPromFru7Y1V/80+NkY7erAfKldAzbD5wMiTwc2/hZwb4og+nxOGw0etzAmYD9G0=
-X-Received: by 2002:adf:e50c:0:b0:349:bccc:a1e7 with SMTP id
- ffacd0b85a97d-35dc0092445mr391102f8f.19.1717019594137; Wed, 29 May 2024
- 14:53:14 -0700 (PDT)
+	s=arc-20240116; t=1717038162; c=relaxed/simple;
+	bh=IbAp2DjDAPK+mBGz8DdyS3u5isIOhO1OxqQZk4N3RW4=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=Elc5pFzASbO91+5Dzcfk5fAawR5QqjsJAf34Kfe4nDyNgi6qr5ps5NCjtSDpXnwAzGKrIYeulk7ZyxxI92uIL+stfQ6Xq4cGVy8ixi7GHhI73R4ubPW/Rz7tb3z8PTqr0k/aPdQcy1n6qKvrkNR/tCK2gN+MDTfn7H5EOGoxRp4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.187
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.19.88.194])
+	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4VqWD04fcxzwQfZ;
+	Thu, 30 May 2024 10:58:40 +0800 (CST)
+Received: from kwepemd100012.china.huawei.com (unknown [7.221.188.214])
+	by mail.maildlp.com (Postfix) with ESMTPS id EE1D814037E;
+	Thu, 30 May 2024 11:02:28 +0800 (CST)
+Received: from dggpemm500008.china.huawei.com (7.185.36.136) by
+ kwepemd100012.china.huawei.com (7.221.188.214) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1258.34; Thu, 30 May 2024 11:02:28 +0800
+Received: from dggpemm500008.china.huawei.com ([7.185.36.136]) by
+ dggpemm500008.china.huawei.com ([7.185.36.136]) with mapi id 15.01.2507.035;
+ Thu, 30 May 2024 11:02:28 +0800
+From: wangyunjian <wangyunjian@huawei.com>
+To: Florian Westphal <fw@strlen.de>
+CC: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"pablo@netfilter.org" <pablo@netfilter.org>, "kadlec@netfilter.org"
+	<kadlec@netfilter.org>, "kuba@kernel.org" <kuba@kernel.org>,
+	"davem@davemloft.net" <davem@davemloft.net>, "coreteam@netfilter.org"
+	<coreteam@netfilter.org>, xudingke <xudingke@huawei.com>
+Subject: RE: [PATCH net] netfilter: nf_conncount: fix wrong variable type
+Thread-Topic: [PATCH net] netfilter: nf_conncount: fix wrong variable type
+Thread-Index: AQHasWoiYMZX4xQfcUOwinIB0t9RfrGtl0IAgAGBBoA=
+Date: Thu, 30 May 2024 03:02:28 +0000
+Message-ID: <d6a7fe4b75b14cdda1a259c2acb10766@huawei.com>
+References: <1716946829-77508-1-git-send-email-wangyunjian@huawei.com>
+ <20240529120238.GA12043@breakpoint.cc>
+In-Reply-To: <20240529120238.GA12043@breakpoint.cc>
+Accept-Language: zh-CN, en-US
+Content-Language: zh-CN
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <cover.1716987534.git.lorenzo@kernel.org> <db46e0e2abd192c7db498046f5ce170a742a0e95.1716987534.git.lorenzo@kernel.org>
-In-Reply-To: <db46e0e2abd192c7db498046f5ce170a742a0e95.1716987534.git.lorenzo@kernel.org>
-From: Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Date: Wed, 29 May 2024 14:53:03 -0700
-Message-ID: <CAADnVQJ_Wur5bmMsgOC7YvZ-D5GNzO9Fm2_4=L3eYkuQVpcg8g@mail.gmail.com>
-Subject: Re: [PATCH v4 bpf-next 2/3] netfilter: add bpf_xdp_flow_lookup kfunc
-To: Lorenzo Bianconi <lorenzo@kernel.org>
-Cc: bpf <bpf@vger.kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>, 
-	Jozsef Kadlecsik <kadlec@netfilter.org>, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	netfilter-devel <netfilter-devel@vger.kernel.org>, 
-	Network Development <netdev@vger.kernel.org>, Alexei Starovoitov <ast@kernel.org>, 
-	Daniel Borkmann <daniel@iogearbox.net>, Andrii Nakryiko <andrii@kernel.org>, 
-	Martin KaFai Lau <martin.lau@linux.dev>, Eddy Z <eddyz87@gmail.com>, 
-	Lorenzo Bianconi <lorenzo.bianconi@redhat.com>, =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>, 
-	Florian Westphal <fw@strlen.de>, Jesper Dangaard Brouer <hawk@kernel.org>, Simon Horman <horms@kernel.org>, donhunte@redhat.com, 
-	Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, May 29, 2024 at 6:04=E2=80=AFAM Lorenzo Bianconi <lorenzo@kernel.or=
-g> wrote:
->
-> Introduce bpf_xdp_flow_lookup kfunc in order to perform the lookup
-> of a given flowtable entry based on a fib tuple of incoming traffic.
-> bpf_xdp_flow_lookup can be used as building block to offload in xdp
-> the processing of sw flowtable when hw flowtable is not available.
->
-> Acked-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
-> Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+> -----Original Message-----
+> From: Florian Westphal [mailto:fw@strlen.de]
+> Sent: Wednesday, May 29, 2024 8:03 PM
+> To: wangyunjian <wangyunjian@huawei.com>
+> Cc: netfilter-devel@vger.kernel.org; pablo@netfilter.org; kadlec@netfilte=
+r.org;
+> kuba@kernel.org; davem@davemloft.net; coreteam@netfilter.org; xudingke
+> <xudingke@huawei.com>
+> Subject: Re: [PATCH net] netfilter: nf_conncount: fix wrong variable type
+>=20
+> Yunjian Wang <wangyunjian@huawei.com> wrote:
+> > 'keylen' is supposed to be unsigned int, not u8, so fix it.
+>=20
+> Its limited to 5, so u8 works fine.
 
-lgtm
-Waiting for the Ack from netfilter folks...
-
-So we can land it through bpf-next and pass it to net-next
-a week or so later.
+Currently, it does not affect the functionality. The main issue is that cod=
+e
+checks will report a warning: implicit narrowing conversion from type
+'unsigned int' to small type 'u8'.
