@@ -1,105 +1,92 @@
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+Received: from mx0b-0064b401.pphosted.com (mx0b-0064b401.pphosted.com [205.220.178.238])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1327314265
-	for <netfilter-devel@vger.kernel.org>; Fri, 31 May 2024 03:49:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88EA843154;
+	Fri, 31 May 2024 08:57:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.178.238
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717127359; cv=none; b=ZRjCLZF8qztMUF2bolmdr5EhvsCCcNhcQRCx1zMBd5o7wn95omwwDFpq75Ce3l4fWyZ60jp/rdJdg1yM/4HUoBaWEdZAs29VoGbneZDI/z0W0jR+MnIAYyM+4p0rYXuzVMstyTUeIpzJTSX+2mr2i00MjdjNk3HOCWqQ14KG3pg=
+	t=1717145828; cv=none; b=paP0dVHoklQ2o2GtqvRbACJSPW+6aaNFjal8RNod+Jv7pUmAH1+SS2iBqKhz0dDUSyyrQ/qG7vRsAjw6A2D+Xhh1QeW0/jVXJ3goSEjHKit6JAboSbX4aLWDzSkDaT/ROjO8GSd3YPnA4F7LiV9KZlj8BS5qDWkVe6p5rvkka0Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717127359; c=relaxed/simple;
-	bh=x/FQDpINNyZebwwgX6nhRcdMV+aUWb9STDHxefqllNs=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=BA9eHm1ALSrXyu/Yv7tn0sug5YVlnWNDOL0HsYwJN9n3gI9drkEVH2b3yKtAJwcZGYojVOihanzH+/wo1SklWljfo0jeVG3R7q2wgfUq6wyJOIC4+n5YXoUrVdB66Ow6W0+Ejm6NzFBe5iJKtn0VL3do9KCLps6NW+N97B/3/L0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.187
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.19.162.254])
-	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4Vr8CK6nMZzxQw3;
-	Fri, 31 May 2024 11:45:17 +0800 (CST)
-Received: from dggpemm500008.china.huawei.com (unknown [7.185.36.136])
-	by mail.maildlp.com (Postfix) with ESMTPS id E915B1800CD;
-	Fri, 31 May 2024 11:48:53 +0800 (CST)
-Received: from localhost (10.174.242.157) by dggpemm500008.china.huawei.com
- (7.185.36.136) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.35; Fri, 31 May
- 2024 11:48:47 +0800
-From: Yunjian Wang <wangyunjian@huawei.com>
-To: <netfilter-devel@vger.kernel.org>
-CC: <pablo@netfilter.org>, <kadlec@netfilter.org>, <fw@strlen.de>,
-	<kuba@kernel.org>, <davem@davemloft.net>, <coreteam@netfilter.org>,
-	<xudingke@huawei.com>, Yunjian Wang <wangyunjian@huawei.com>
-Subject: [PATCH nf-next v2] netfilter: nf_conncount: fix wrong variable type
-Date: Fri, 31 May 2024 11:48:47 +0800
-Message-ID: <1717127327-22064-1-git-send-email-wangyunjian@huawei.com>
-X-Mailer: git-send-email 1.9.5.msysgit.1
+	s=arc-20240116; t=1717145828; c=relaxed/simple;
+	bh=kPaFz5uK0ZOx/rIMQz/T/Y/SU8NEW+MLiaH5hug2usI=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=PkG6KFxOVBkAHc7mrtzu5bELm+so2l9OJVK2/cc6YtR0ZJtynLv1rg0A5su0ndwLhKW3NRigOE3Ko/fT0e5LK7NZJkJcP3NMsFeD4a39kC+DObrPsatIcjFYEla6FVCSnxPlwEErMzJ3thUOvLN3z0tAwOtgu0GqTujVyWF2jeA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=windriver.com; spf=pass smtp.mailfrom=windriver.com; arc=none smtp.client-ip=205.220.178.238
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=windriver.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=windriver.com
+Received: from pps.filterd (m0250812.ppops.net [127.0.0.1])
+	by mx0a-0064b401.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 44V4tQal022085;
+	Fri, 31 May 2024 08:56:54 GMT
+Received: from ala-exchng02.corp.ad.wrs.com (ala-exchng02.wrs.com [147.11.82.254])
+	by mx0a-0064b401.pphosted.com (PPS) with ESMTPS id 3yf5ydg88n-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
+	Fri, 31 May 2024 08:56:53 +0000 (GMT)
+Received: from ala-exchng01.corp.ad.wrs.com (147.11.82.252) by
+ ALA-EXCHNG02.corp.ad.wrs.com (147.11.82.254) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.39; Fri, 31 May 2024 01:56:52 -0700
+Received: from pek-lpd-ccm6.wrs.com (147.11.136.210) by
+ ala-exchng01.corp.ad.wrs.com (147.11.82.252) with Microsoft SMTP Server id
+ 15.1.2507.39 via Frontend Transport; Fri, 31 May 2024 01:56:48 -0700
+From: Lizhi Xu <lizhi.xu@windriver.com>
+To: <ebiggers@kernel.org>
+CC: <adilger.kernel@dilger.ca>, <coreteam@netfilter.org>,
+        <davem@davemloft.net>, <fw@strlen.de>, <jaegeuk@kernel.org>,
+        <kadlec@netfilter.org>, <kuba@kernel.org>,
+        <linux-ext4@vger.kernel.org>, <linux-fscrypt@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <lizhi.xu@windriver.com>,
+        <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
+        <pablo@netfilter.org>,
+        <syzbot+340581ba9dceb7e06fb3@syzkaller.appspotmail.com>,
+        <syzkaller-bugs@googlegroups.com>, <tytso@mit.edu>
+Subject: [PATCH V3] ext4: check hash version and filesystem casefolded consistent
+Date: Fri, 31 May 2024 16:56:47 +0800
+Message-ID: <20240531085647.2918240-1-lizhi.xu@windriver.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20240531033407.GB6505@sol.localdomain>
+References: <20240531033407.GB6505@sol.localdomain>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
- dggpemm500008.china.huawei.com (7.185.36.136)
+X-Proofpoint-ORIG-GUID: BCm3wry5b9WNN3q2iVIUrHzGri0mMOPg
+X-Proofpoint-GUID: BCm3wry5b9WNN3q2iVIUrHzGri0mMOPg
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1039,Hydra:6.0.650,FMLib:17.12.28.16
+ definitions=2024-05-31_05,2024-05-30_01,2024-05-17_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 phishscore=0 adultscore=0
+ lowpriorityscore=0 bulkscore=0 mlxlogscore=999 impostorscore=0
+ priorityscore=1501 spamscore=0 malwarescore=0 suspectscore=0 clxscore=1015
+ mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.21.0-2405170001 definitions=main-2405310066
 
-Now there is a issue is that code checks reports a warning: implicit
-narrowing conversion from type 'unsigned int' to small type 'u8' (the
-'keylen' variable). Fix it by removing the 'keylen' variable.
+When mounting the ext4 filesystem, if the hash version and casefolded are not
+consistent, exit the mounting.
 
-Signed-off-by: Yunjian Wang <wangyunjian@huawei.com>
+Reported-by: syzbot+340581ba9dceb7e06fb3@syzkaller.appspotmail.com
+Signed-off-by: Lizhi Xu <lizhi.xu@windriver.com>
 ---
-v2: update commit log and remove the 'keylen' variable
----
- net/netfilter/nf_conncount.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ fs/ext4/super.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index 8715617b02fe..34ba14e59e95 100644
---- a/net/netfilter/nf_conncount.c
-+++ b/net/netfilter/nf_conncount.c
-@@ -321,7 +321,6 @@ insert_tree(struct net *net,
- 	struct nf_conncount_rb *rbconn;
- 	struct nf_conncount_tuple *conn;
- 	unsigned int count = 0, gc_count = 0;
--	u8 keylen = data->keylen;
- 	bool do_gc = true;
+diff --git a/fs/ext4/super.c b/fs/ext4/super.c
+index c682fb927b64..c0036e3922c2 100644
+--- a/fs/ext4/super.c
++++ b/fs/ext4/super.c
+@@ -5262,6 +5262,9 @@ static int __ext4_fill_super(struct fs_context *fc, struct super_block *sb)
+ 		goto failed_mount;
  
- 	spin_lock_bh(&nf_conncount_locks[hash]);
-@@ -333,7 +332,7 @@ insert_tree(struct net *net,
- 		rbconn = rb_entry(*rbnode, struct nf_conncount_rb, node);
+ 	ext4_hash_info_init(sb);
++	if (es->s_def_hash_version == DX_HASH_SIPHASH && 
++	    !ext4_has_feature_casefold(sb))
++		goto failed_mount;
  
- 		parent = *rbnode;
--		diff = key_diff(key, rbconn->key, keylen);
-+		diff = key_diff(key, rbconn->key, data->keylen);
- 		if (diff < 0) {
- 			rbnode = &((*rbnode)->rb_left);
- 		} else if (diff > 0) {
-@@ -378,7 +377,7 @@ insert_tree(struct net *net,
- 
- 	conn->tuple = *tuple;
- 	conn->zone = *zone;
--	memcpy(rbconn->key, key, sizeof(u32) * keylen);
-+	memcpy(rbconn->key, key, sizeof(u32) * data->keylen);
- 
- 	nf_conncount_list_init(&rbconn->list);
- 	list_add(&conn->node, &rbconn->list.head);
-@@ -403,7 +402,6 @@ count_tree(struct net *net,
- 	struct rb_node *parent;
- 	struct nf_conncount_rb *rbconn;
- 	unsigned int hash;
--	u8 keylen = data->keylen;
- 
- 	hash = jhash2(key, data->keylen, conncount_rnd) % CONNCOUNT_SLOTS;
- 	root = &data->root[hash];
-@@ -414,7 +412,7 @@ count_tree(struct net *net,
- 
- 		rbconn = rb_entry(parent, struct nf_conncount_rb, node);
- 
--		diff = key_diff(key, rbconn->key, keylen);
-+		diff = key_diff(key, rbconn->key, data->keylen);
- 		if (diff < 0) {
- 			parent = rcu_dereference_raw(parent->rb_left);
- 		} else if (diff > 0) {
+ 	err = ext4_handle_clustersize(sb);
+ 	if (err)
 -- 
-2.33.0
+2.43.0
 
