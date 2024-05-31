@@ -1,90 +1,90 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19D6EEAE7;
-	Fri, 31 May 2024 01:05:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from zg8tmtu5ljy1ljeznc42.icoremail.net (zg8tmtu5ljy1ljeznc42.icoremail.net [159.65.134.6])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 69CF0D26A;
+	Fri, 31 May 2024 01:29:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.65.134.6
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717117516; cv=none; b=ONVVox5SsVP/Mm3kRBEq+H3OROQOT8KaCY7ciukGi76H0ERpSmeh8UHvnPgc/yeK+2KlfbJGI/Hlnvj8KtdWIe6iTH+JO24quOEAseiu5VH8VYVFSW93Qz06RX/2oYrUVQoP9EDYjWzex0SVQ8d2kEcI3pbPcWJSCNwKV5e0ijA=
+	t=1717118990; cv=none; b=tBwtAMY5HXxnfi0H7VHw8+s58qbwUL3FXiDr64rAMzKg79S3FStlY8ygDV/c6J/HBksvXXs6pwkqpSu5GjazNoPmbLHtGtCTk6exos+++HHPBU/2E5aM8S34u3C0t0p+bu6QSw5X07a8GdI+1nw1k3tmKS+Lb2iLD06enNytQFg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717117516; c=relaxed/simple;
-	bh=lPLWeAPfBQ6oxpEs16VAr4Cg6Rl9aRzpSeyPTv3ueiA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jtml2AVyHk0ISehnOw9dmwgw2ogy4kz6h48q8b/gAtl/E4z9US0tbzXCS/0D6sFFnMasQInaatwtpuxUFEoeNg2cCOpSk6upOe4+Oyq693xfozEWZ970cziHZvntXMwcRaRY3bIS8sQRaqvg0ZB45Lm+oL2RQCgukN1UcF4fSW0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=P6UDd489; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="P6UDd489"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CA03C4AF09;
-	Fri, 31 May 2024 01:05:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1717117515;
-	bh=lPLWeAPfBQ6oxpEs16VAr4Cg6Rl9aRzpSeyPTv3ueiA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=P6UDd489pzVxW7MTo4FlgeeEiIjBKfuMvB5tC0smqSZyq8AucFhhj5Gl+H2Y8DD+w
-	 WEgjlurXYQAfk8QTT+Aknoiad8cORfCXSKTPHXSvJWkqIb4AAqllLGXTmT7zs/p2JB
-	 lBOUEv7y1oeAxgb8smS27Fl0Cwx/y9OP346waPsIyakOfNUTn3bPVG4glOEoUS7J8c
-	 OxeUwK06EZKZuXUJrLG9iENe/t+MJC3mQd8NfjMUMcr0SNfxFLM5aFetDZlS78Ads0
-	 PN7D9tF73Ac6UMSPTGzPOEZWYrGcV3l39Is8MYyY+Y2PADm/PZuQzIclm1Tt8kj+PT
-	 qlUZEUn0yzpJA==
-Date: Thu, 30 May 2024 18:05:13 -0700
-From: Eric Biggers <ebiggers@kernel.org>
-To: Lizhi Xu <lizhi.xu@windriver.com>
-Cc: syzbot+340581ba9dceb7e06fb3@syzkaller.appspotmail.com,
-	coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-	jaegeuk@kernel.org, kadlec@netfilter.org, kuba@kernel.org,
-	linux-fscrypt@vger.kernel.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	pablo@netfilter.org, syzkaller-bugs@googlegroups.com, tytso@mit.edu
-Subject: Re: [PATCH] ext4: add casefolded file check
-Message-ID: <20240531010513.GA9629@sol.localdomain>
-References: <000000000000cb987006199dc574@google.com>
- <20240530074150.4192102-1-lizhi.xu@windriver.com>
+	s=arc-20240116; t=1717118990; c=relaxed/simple;
+	bh=cN24PCts8cd/+uVtUS2fsYyNPhWnS9RM9MgIE/6VNN0=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=C//G1e6XXuM55pFGIQdwPGHTrOknEe83NFtNOIWOdihocxt2CVzdaoCb+r+olUugjvsNLvQlk4reTi2bgzphosRUNnfqGnzJmHaJK/ETRKPSqO2AotHdablPJgOquodcm/cxJtLDwPTq0gEM5Mlkmp7X7CLgaX/P7cYX100GMcs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zju.edu.cn; spf=pass smtp.mailfrom=zju.edu.cn; arc=none smtp.client-ip=159.65.134.6
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zju.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zju.edu.cn
+Received: from gui.. (unknown [125.120.154.162])
+	by mail-app4 (Coremail) with SMTP id cS_KCgCnNrTWJ1lmOB00AQ--.34291S4;
+	Fri, 31 May 2024 09:28:55 +0800 (CST)
+From: Lin Ma <linma@zju.edu.cn>
+To: pablo@netfilter.org,
+	kadlec@netfilter.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: Lin Ma <linma@zju.edu.cn>
+Subject: [PATCH net-next v1] netfilter: cttimeout: remove 'l3num' attr check
+Date: Fri, 31 May 2024 09:28:47 +0800
+Message-Id: <20240531012847.2390529-1-linma@zju.edu.cn>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240530074150.4192102-1-lizhi.xu@windriver.com>
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:cS_KCgCnNrTWJ1lmOB00AQ--.34291S4
+X-Coremail-Antispam: 1UD129KBjvdXoW7Gr18Cr4xKr4DAF13Ar4fKrg_yoWkGrg_Zr
+	Wkta9rZF15Jw4qgw4UKa1fXr9rK34xWF1fuFyfX3y7J3s8twsYgrWv9as0yF17Cw1DKFyU
+	Ar4vqryru343KjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+	9fnUUIcSsGvfJTRUUUb3xFF20E14v26r4j6ryUM7CY07I20VC2zVCF04k26cxKx2IYs7xG
+	6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48ve4kI8w
+	A2z4x0Y4vE2Ix0cI8IcVAFwI0_tr0E3s1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI0_Cr1j
+	6rxdM28EF7xvwVC2z280aVAFwI0_GcCE3s1l84ACjcxK6I8E87Iv6xkF7I0E14v26rxl6s
+	0DM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj6xII
+	jxv20xvE14v26r1j6r18McIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x0Yz7v_Jr0_Gr
+	1lF7xvr2IYc2Ij64vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7M4IIrI8v6xkF7I0E8cxa
+	n2IY04v7MxkF7I0En4kS14v26r1q6r43MxAIw28IcxkI7VAKI48JMxC20s026xCaFVCjc4
+	AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE
+	17CEb7AF67AKxVWUtVW8ZwCIc40Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1xMI
+	IF0xvE2Ix0cI8IcVCY1x0267AKxVW8JVWxJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4l
+	IxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY1x0267AKxVW8JVW8JrUvcSsGvf
+	C2KfnxnUUI43ZEXa7VUbGQ6JUUUUU==
+X-CM-SenderInfo: qtrwiiyqvtljo62m3hxhgxhubq/
 
-On Thu, May 30, 2024 at 03:41:50PM +0800, 'Lizhi Xu' via syzkaller-bugs wrote:
-> The file name that needs to calculate the siphash must have both flags casefolded
-> and dir at the same time, so before calculating it, confirm that the flag meets
-> the conditions.
-> 
-> Reported-by: syzbot+340581ba9dceb7e06fb3@syzkaller.appspotmail.com
-> Signed-off-by: Lizhi Xu <lizhi.xu@windriver.com>
-> ---
->  fs/ext4/hash.c | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/fs/ext4/hash.c b/fs/ext4/hash.c
-> index deabe29da7fb..c8840cfc01dd 100644
-> --- a/fs/ext4/hash.c
-> +++ b/fs/ext4/hash.c
-> @@ -265,6 +265,10 @@ static int __ext4fs_dirhash(const struct inode *dir, const char *name, int len,
->  		__u64	combined_hash;
->  
->  		if (fscrypt_has_encryption_key(dir)) {
-> +			if (!IS_CASEFOLDED(dir)) {
-> +				ext4_warning_inode(dir, "Siphash requires Casefolded file");
-> +				return -2;
-> +			}
->  			combined_hash = fscrypt_fname_siphash(dir, &qname);
->  		} else {
->  			ext4_warning_inode(dir, "Siphash requires key");
+After commit dd2934a95701 ("netfilter: conntrack: remove l3->l4 mapping
+information"), the attribute of type `CTA_TIMEOUT_L3PROTO` is not used
+any more in function cttimeout_default_set.
 
-First, this needs to be sent to the ext4 mailing list (and not to irrelevant
-mailing lists such as netdev).  Please use ./scripts/get_maintainer.pl, as is
-recommended by Documentation/process/submitting-patches.rst.
+However, the previous commit ea9cf2a55a7b ("netfilter: cttimeout: remove
+set but not used variable 'l3num'") forgot to remove the attribute
+present check when removing the related variable.
 
-Second, ext4 already checks for the directory being casefolded before allowing
-siphash.  This is done by dx_probe().  Evidently syzbot found some way around
-that, so what needs to be done is figure out why that happened and what is the
-best fix to prevent it.  This is not necessarily the patch you've proposed, as
-the real issue might actually be a missing check at some earlier time like when
-reading the inode from disk or when mounting the filesystem.
+This commit removes that check to ensure consistency.
 
-- Eric
+Signed-off-by: Lin Ma <linma@zju.edu.cn>
+---
+ net/netfilter/nfnetlink_cttimeout.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
+index f466af4f8531..eab4f476b47f 100644
+--- a/net/netfilter/nfnetlink_cttimeout.c
++++ b/net/netfilter/nfnetlink_cttimeout.c
+@@ -366,8 +366,7 @@ static int cttimeout_default_set(struct sk_buff *skb,
+ 	__u8 l4num;
+ 	int ret;
+ 
+-	if (!cda[CTA_TIMEOUT_L3PROTO] ||
+-	    !cda[CTA_TIMEOUT_L4PROTO] ||
++	if (!cda[CTA_TIMEOUT_L4PROTO] ||
+ 	    !cda[CTA_TIMEOUT_DATA])
+ 		return -EINVAL;
+ 
+-- 
+2.34.1
+
