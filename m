@@ -1,94 +1,65 @@
-Received: from mx0b-0064b401.pphosted.com (mx0b-0064b401.pphosted.com [205.220.178.238])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC87DAD59;
-	Fri, 31 May 2024 09:06:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.178.238
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 714E215664C;
+	Fri, 31 May 2024 16:14:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717146396; cv=none; b=No8sl52n7k2j+NT7qiAWMsnNbsbGhw3vuEPKcbBDfynlluh0eOvbXA2FloG6jHA7OEpOg+kMYkMLex8kew3TTpBbCTGp+f0J99fF7+XTUQtuxUMAZK2zyqk3msA9PlwC8qNIrMPBimB+4czLGWaUqtg3mhz/siWZbYCqX34ibnM=
+	t=1717172055; cv=none; b=gHc0ECaDEzkBi+IZ89lh1yTWdj9rsngxNttOuenL9sJZ1a0PILJBbBgYH79NtNKDpon3buE5SO5yRpdW5ySrFyVFq7mO+mrirkFIKTxkVPAAgHztv7jhuzs9826l58wBLRWCDfgbD2iudzQoor2Ps15il7WJD6b3hyjVyrLBmok=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717146396; c=relaxed/simple;
-	bh=uAJlqDMiuKeV1HJo6t1t12QkEwDuIC/XqQuiy4tqFGg=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=aKSrMB9+zAgC1rA5rOpaQEcXkWwI7AGRH2/GvEGJOgaQNd2mXULjy8QHSU8X1/xbL1Oe4XVM3vCZhRaH4x0e4q4x/gwYqSB9ZIAuDslGrmDeASQ6vsxNEGSLvjdlF4MISqkRk6ID58IEGzPaEL4Ew+LpJXL82iKqRWY8L+WR7pI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=windriver.com; spf=pass smtp.mailfrom=windriver.com; arc=none smtp.client-ip=205.220.178.238
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=windriver.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=windriver.com
-Received: from pps.filterd (m0250812.ppops.net [127.0.0.1])
-	by mx0a-0064b401.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 44V5JcQe023664;
-	Fri, 31 May 2024 09:06:17 GMT
-Received: from ala-exchng01.corp.ad.wrs.com (ala-exchng01.wrs.com [147.11.82.252])
-	by mx0a-0064b401.pphosted.com (PPS) with ESMTPS id 3yf5ydg8j7-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-	Fri, 31 May 2024 09:06:17 +0000 (GMT)
-Received: from ala-exchng01.corp.ad.wrs.com (147.11.82.252) by
- ala-exchng01.corp.ad.wrs.com (147.11.82.252) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39; Fri, 31 May 2024 02:06:16 -0700
-Received: from pek-lpd-ccm6.wrs.com (147.11.136.210) by
- ala-exchng01.corp.ad.wrs.com (147.11.82.252) with Microsoft SMTP Server id
- 15.1.2507.39 via Frontend Transport; Fri, 31 May 2024 02:06:12 -0700
-From: Lizhi Xu <lizhi.xu@windriver.com>
-To: <lkp@intel.com>
-CC: <coreteam@netfilter.org>, <davem@davemloft.net>, <ebiggers@kernel.org>,
-        <fw@strlen.de>, <jaegeuk@kernel.org>, <kadlec@netfilter.org>,
-        <kuba@kernel.org>, <linux-fscrypt@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <lizhi.xu@windriver.com>,
-        <llvm@lists.linux.dev>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <oe-kbuild-all@lists.linux.dev>,
-        <pablo@netfilter.org>,
-        <syzbot+340581ba9dceb7e06fb3@syzkaller.appspotmail.com>,
-        <syzkaller-bugs@googlegroups.com>, <tytso@mit.edu>
-Subject: [PATCH V4] ext4: check hash version and filesystem casefolded consistent
-Date: Fri, 31 May 2024 17:06:11 +0800
-Message-ID: <20240531090611.2972737-1-lizhi.xu@windriver.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <202405311607.yQR7dozp-lkp@intel.com>
-References: <202405311607.yQR7dozp-lkp@intel.com>
+	s=arc-20240116; t=1717172055; c=relaxed/simple;
+	bh=eV0g9Ph7jJLsyZUcpm94JqOOAYt/kXhHzqUmzlnrmAA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=omW4K6OOI4lP4sBAMQAMvoIalPQUEZe69LNZ7MVlGFXaBu4YZfR4bSvnm6Ia5DV6zta31uXA1AdPdmRmOdqB3c15/bMfMx4Qdlqu5ygFFVBUVnTbZVCo3O9Gy9Wux8YcAKxl9aZSc1jcISzdnqC56MzQ/oYDXAaUXx6pwJ0VDZY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=u7AxhjmV; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="u7AxhjmV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1F5FC116B1;
+	Fri, 31 May 2024 16:14:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1717172055;
+	bh=eV0g9Ph7jJLsyZUcpm94JqOOAYt/kXhHzqUmzlnrmAA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=u7AxhjmV99/1FjY6xv/+wmGIh/pR2TUra3c9K+SYUBPyvWpqGuMNGOd5m1/8ah011
+	 N+2HZ1cqn0EW7d6vBRQ1h5gRr/WJMeYw876OSeYzn9lJtLFXtlrX6/qmE0cA7Wr+ko
+	 FWNEgEutkRudMb2snFtXHrrBjHJY/S/BIaXNCN+Mpc6IJoUOflNwPIWvcYXYq7uGYd
+	 /OzY4FTDUkduy0fmnZvv//lZP9jLurjAQFVb0cbCk79woPb/4xaGTDwpQHl0Wmyd4P
+	 Iw40VvzN9ZEYGkzwyLcazLqN8OPPZ23wDoM/PEOokmfP7/UeCwQ5p3b5tbnBEGay2a
+	 Wb3ERVcnAF4RA==
+Date: Fri, 31 May 2024 17:14:10 +0100
+From: Simon Horman <horms@kernel.org>
+To: Donald Hunter <donald.hunter@gmail.com>
+Cc: netdev@vger.kernel.org, Jakub Kicinski <kuba@kernel.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	netfilter-devel@vger.kernel.org, donald.hunter@redhat.com
+Subject: Re: [PATCH net-next v1] netfilter: nfnetlink: convert kfree_skb to
+ consume_skb
+Message-ID: <20240531161410.GC491852@kernel.org>
+References: <20240528103754.98985-1-donald.hunter@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-Proofpoint-ORIG-GUID: ikRHvRvNQg2q9qQhjJ1hLVAsnzKq0Rdv
-X-Proofpoint-GUID: ikRHvRvNQg2q9qQhjJ1hLVAsnzKq0Rdv
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1039,Hydra:6.0.650,FMLib:17.12.28.16
- definitions=2024-05-31_05,2024-05-30_01,2024-05-17_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 phishscore=0 adultscore=0
- lowpriorityscore=0 bulkscore=0 mlxlogscore=999 impostorscore=0
- priorityscore=1501 spamscore=0 malwarescore=0 suspectscore=0 clxscore=1011
- mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.21.0-2405170001 definitions=main-2405310067
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240528103754.98985-1-donald.hunter@gmail.com>
 
-When mounting the ext4 filesystem, if the hash version and casefolded are not
-consistent, exit the mounting.
+On Tue, May 28, 2024 at 11:37:54AM +0100, Donald Hunter wrote:
+> Use consume_skb in the batch code path to avoid generating spurious
+> NOT_SPECIFIED skb drop reasons.
+> 
+> Signed-off-by: Donald Hunter <donald.hunter@gmail.com>
 
-Reported-by: syzbot+340581ba9dceb7e06fb3@syzkaller.appspotmail.com
-Signed-off-by: Lizhi Xu <lizhi.xu@windriver.com>
----
- fs/ext4/super.c | 5 +++++
- 1 file changed, 5 insertions(+)
+Hi Donald,
 
-diff --git a/fs/ext4/super.c b/fs/ext4/super.c
-index c682fb927b64..0ad326504c50 100644
---- a/fs/ext4/super.c
-+++ b/fs/ext4/super.c
-@@ -5262,6 +5262,11 @@ static int __ext4_fill_super(struct fs_context *fc, struct super_block *sb)
- 		goto failed_mount;
- 
- 	ext4_hash_info_init(sb);
-+	if (es->s_def_hash_version == DX_HASH_SIPHASH && 
-+	    !ext4_has_feature_casefold(sb)) {
-+		err = -EINVAL;
-+		goto failed_mount;
-+	}
- 
- 	err = ext4_handle_clustersize(sb);
- 	if (err)
--- 
-2.43.0
+I do wonder if this is the correct approach. I'm happy to stand corrected,
+but my understanding is that consume_skb() is for situations where the skb
+is no longer needed for reasons other than errors. But some of these
+call-sites do appear to be error paths of sorts.
 
+...
