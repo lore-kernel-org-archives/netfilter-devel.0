@@ -1,154 +1,51 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F011682D8E;
-	Mon,  3 Jun 2024 14:50:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A6E6F7C6D5
+	for <netfilter-devel@vger.kernel.org>; Mon,  3 Jun 2024 18:17:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717426262; cv=none; b=pnqHvEYnpOsFr2eZv+Bqu2DAOUjukWa/X1BkR7pWF3YeTsqKwj6eN0hTXBTFcN1KIJ2mZNIN9BpDxFWtrQ5opuCxU97IAXgaqiXdRwzutvga60hR15DW/hXpXAE/Zpk+/i+dcEOQN02mNDxaw+PbEuUOvhqTeaPi+vbySkBDmWE=
+	t=1717438636; cv=none; b=HLwDCS9ME7xjS5KLZfQqaIyYYrvOM7odj8I9HBFcgijvniT6nIFGju4EZysCM+ZJNfM77gvAgv//2XnbzrbaJI7dqx6R/qsD+dQ8qY/WmMGzlphH/GUUMaAnT5Xa4CXg2MuRrEm55z7eioK8TDIXavdx4rdPyBCi7sK8+YlH0a4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717426262; c=relaxed/simple;
-	bh=zG98KLJbkM25RRn+j3UuuXqg165jOeRk2KEUp6rpJ8I=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=nv3SjxouzSnNxCmzz4nzuf1QB0jR3vddeJrUegI3O3mxYSMILrEJkEP/wNz12TRAjIFxJDdr9fi5rtO2LV9hIPSfCI8xPX4aoIjjuC6Sllas5823rFalqiQYOK9pqd3H2i4rAuweu0JgtPD08mI52brljHg/kBsyUr6c6TizxH8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=SDeMR4vU; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=EtXdY/cY; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=SDeMR4vU; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=EtXdY/cY; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="SDeMR4vU";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="EtXdY/cY";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="SDeMR4vU";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="EtXdY/cY"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 25F8420041;
-	Mon,  3 Jun 2024 14:50:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1717426258; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=oe7YXIZQ2xQOr2btlbRQ08j1/YVZeKV53iC/f6cqlfw=;
-	b=SDeMR4vUjc/iiTjnSjIxaV3KqI4m+Fqopb1EOGNnw/9s5+CEXaC8dmFLl6VN5WTGy9TsJs
-	z2hGnUUsGddeCq8i3DsmdQTslbD1r8Dtx/K+Ha+71eaadY6Tabf8+2DlPch+xL608XHU+3
-	0f3TMd3/nxeRO++zBmJIgwUODsKJtnE=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1717426258;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=oe7YXIZQ2xQOr2btlbRQ08j1/YVZeKV53iC/f6cqlfw=;
-	b=EtXdY/cYXTA1Cs9Y0HwyWtAG3TQRjf5bD+HdC+5tdH7VsZpHYIfONy3IDXpRl5Qf9NVrf+
-	wfvEITRAl3DsckCQ==
-Authentication-Results: smtp-out2.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1717426258; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=oe7YXIZQ2xQOr2btlbRQ08j1/YVZeKV53iC/f6cqlfw=;
-	b=SDeMR4vUjc/iiTjnSjIxaV3KqI4m+Fqopb1EOGNnw/9s5+CEXaC8dmFLl6VN5WTGy9TsJs
-	z2hGnUUsGddeCq8i3DsmdQTslbD1r8Dtx/K+Ha+71eaadY6Tabf8+2DlPch+xL608XHU+3
-	0f3TMd3/nxeRO++zBmJIgwUODsKJtnE=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1717426258;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=oe7YXIZQ2xQOr2btlbRQ08j1/YVZeKV53iC/f6cqlfw=;
-	b=EtXdY/cYXTA1Cs9Y0HwyWtAG3TQRjf5bD+HdC+5tdH7VsZpHYIfONy3IDXpRl5Qf9NVrf+
-	wfvEITRAl3DsckCQ==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id D2F0113A93;
-	Mon,  3 Jun 2024 14:50:57 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id jlr0LFHYXWaLbAAAD6G6ig
-	(envelope-from <krisman@suse.de>); Mon, 03 Jun 2024 14:50:57 +0000
-From: Gabriel Krisman Bertazi <krisman@suse.de>
-To: Lizhi Xu <lizhi.xu@windriver.com>
-Cc: <lkp@intel.com>,  <coreteam@netfilter.org>,  <davem@davemloft.net>,
-  <ebiggers@kernel.org>,  <fw@strlen.de>,  <jaegeuk@kernel.org>,
-  <kadlec@netfilter.org>,  <kuba@kernel.org>,
-  <linux-fscrypt@vger.kernel.org>,  <linux-kernel@vger.kernel.org>,
-  <llvm@lists.linux.dev>,  <netdev@vger.kernel.org>,
-  <netfilter-devel@vger.kernel.org>,  <oe-kbuild-all@lists.linux.dev>,
-  <pablo@netfilter.org>,
-  <syzbot+340581ba9dceb7e06fb3@syzkaller.appspotmail.com>,
-  <syzkaller-bugs@googlegroups.com>,  <tytso@mit.edu>,
-  <adilger.kernel@dilger.ca>,  <linux-ext4@vger.kernel.org>
-Subject: Re: [PATCH V5] ext4: check hash version and filesystem casefolded
- consistent
-In-Reply-To: <20240601113749.473058-1-lizhi.xu@windriver.com> (Lizhi Xu's
-	message of "Sat, 1 Jun 2024 19:37:49 +0800")
-References: <20240531185519.GB1153@sol.localdomain>
-	<20240601113749.473058-1-lizhi.xu@windriver.com>
-Date: Mon, 03 Jun 2024 10:50:51 -0400
-Message-ID: <87plsym65w.fsf@mailhost.krisman.be>
-User-Agent: Gnus/5.13 (Gnus v5.13)
+	s=arc-20240116; t=1717438636; c=relaxed/simple;
+	bh=VEmy2Sb11J421niCprY6n2cZZ1hR1n+GO+j9Aie0zVk=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=MhWwIx+EoC8SdJ3qyyT+9EQR+5jxtxS6om/fT+C46BCA8XW3eP7CFfGN1THKrfb+erzX5PQSIRFCzyIQdFDc005SyLlTJ4h6MNmfbcRgSN5Tv+8W6GKO0uzx0xvq4+464toLMgBo02n8mt6ebHYxt43CrqOFXYNz3BdOy7nRqh4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next] netfilter: nf_tables: rise cap on SELinux secmark context
+Date: Mon,  3 Jun 2024 20:16:59 +0200
+Message-Id: <20240603181659.5998-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Spam-Level: 
-X-Spamd-Result: default: False [-2.51 / 50.00];
-	BAYES_HAM(-2.71)[98.71%];
-	SUSPICIOUS_RECIPS(1.50)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	TAGGED_RCPT(0.00)[340581ba9dceb7e06fb3];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	ARC_NA(0.00)[];
-	RCPT_COUNT_TWELVE(0.00)[21];
-	RCVD_TLS_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FUZZY_BLOCKED(0.00)[rspamd.com];
-	FROM_HAS_DN(0.00)[];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo]
-X-Spam-Score: -2.51
-X-Spam-Flag: NO
+Content-Transfer-Encoding: 8bit
 
-Lizhi Xu <lizhi.xu@windriver.com> writes:
+secmark context is artificially limited 256 bytes, rise it to 4Kbytes.
 
-> When mounting the ext4 filesystem, if the hash version and casefolded are not
-> consistent, exit the mounting.
->
-> Reported-by: syzbot+340581ba9dceb7e06fb3@syzkaller.appspotmail.com
-> Signed-off-by: Lizhi Xu <lizhi.xu@windriver.com>
-> ---
->  fs/ext4/super.c | 5 +++++
->  1 file changed, 5 insertions(+)
->
-> diff --git a/fs/ext4/super.c b/fs/ext4/super.c
-> index c682fb927b64..0ad326504c50 100644
-> --- a/fs/ext4/super.c
-> +++ b/fs/ext4/super.c
-> @@ -5262,6 +5262,11 @@ static int __ext4_fill_super(struct fs_context *fc, struct super_block *sb)
->  		goto failed_mount;
->  
->  	ext4_hash_info_init(sb);
-> +	if (es->s_def_hash_version == DX_HASH_SIPHASH && 
-> +	    !ext4_has_feature_casefold(sb)) {
+Fixes: fb961945457f ("netfilter: nf_tables: add SECMARK support")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/uapi/linux/netfilter/nf_tables.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Can we ever have DX_HASH_SIPHASH set up in the super block?  I thought
-it was used solely for directories where ext4_hash_in_dirent(inode) is
-true.
-
-If this is only for the case of a superblock corruption, perhaps we
-should always reject the mount, whether casefold is enabled or not?
-
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index aa4094ca2444..639894ed1b97 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1376,7 +1376,7 @@ enum nft_secmark_attributes {
+ #define NFTA_SECMARK_MAX	(__NFTA_SECMARK_MAX - 1)
+ 
+ /* Max security context length */
+-#define NFT_SECMARK_CTX_MAXLEN		256
++#define NFT_SECMARK_CTX_MAXLEN		4096
+ 
+ /**
+  * enum nft_reject_types - nf_tables reject expression reject types
 -- 
-Gabriel Krisman Bertazi
+2.30.2
+
