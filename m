@@ -1,64 +1,119 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C12E168D0;
-	Tue,  4 Jun 2024 16:48:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 274F5A5F
+	for <netfilter-devel@vger.kernel.org>; Tue,  4 Jun 2024 18:40:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717519715; cv=none; b=GIYxc50VqfY8EFzsxmMVVi/ON3CCdNGDTS6sPb3a4J/BmtiokRm8iTFsvXNMeOMF9PqSOP64Rzkt6XU6bW7vdW/M5GSYMQJUugjOOQq5oJ3CyUZ4sCCsg1f3Dvz44XS4MdoCH2GdfEPGgumvOu0MGYc7Nde9mpQPBuRtLkEitfQ=
+	t=1717526409; cv=none; b=O1XCIlA5Jemhtc9H4pIKozWHJvft3iO1MmO/59OhqFAOhn2VTEsKqG7x+GDLBpOOJGOP3b++gWfgbkbNHJwxA1eEbvAs8HZqbBF9vKttMLuALVQfsW+CtONi9hiqaDMiIQKaV/VdPJKwWZtDFvRv8qvedV7UuSxvMhCr2t2a+gg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717519715; c=relaxed/simple;
-	bh=HejwG8X7RD+pxyK2RCN4wPlCln47uyj1jxaZitWWMEQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fZCjJt8f13hYImEX/h65/nouEmZErFlhwao6cQR/HyGqdWwbqCdmi8AmDHwnsFagHC9WBKtnVB0/C6dW1WzKAGOY/EOXiDcC9AugZsjSMBtxFxRw0RFa5KSmlWXY8hFw/gQ7E/L3z6YbZf+/8ORbPv6XuLbhn41L2wtrmcpnFbk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ViShzCVS; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ViShzCVS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD94FC2BBFC;
-	Tue,  4 Jun 2024 16:48:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1717519714;
-	bh=HejwG8X7RD+pxyK2RCN4wPlCln47uyj1jxaZitWWMEQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=ViShzCVShU/PsuQeBaiZm12AaeJzPuFGEDcPWv4krr/VVcaSAh0P59txuPI52wqtI
-	 1rhKg3vKnvBysVeA2K1G2PkatVQ9RfsEQPMl7HqaZIKpPhUxiQAszbrjkOiFyxdp7i
-	 /KFpwjwQ/RI0udyd+aZdsFA3h9x+O7BlXVqaiybmX7uQPob/3/BBBUwYVzpaya7S4b
-	 KV7e/uXPxmax2YZ/DeGDn9QuwTSm1bvVqITzGPpLLLxlSfZN6Y3npvaDN2TokcFWxz
-	 fOimLYrHtKimwReXxlJS/XhNNoAtMSP+dcQXoW7joYPBO7oNsAiACshaE9FqM9S5Fm
-	 K/Z+sobv5s6WA==
-Date: Tue, 4 Jun 2024 17:48:29 +0100
-From: Simon Horman <horms@kernel.org>
-To: Lin Ma <linma@zju.edu.cn>
-Cc: pablo@netfilter.org, kadlec@netfilter.org, davem@davemloft.net,
-	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net-next v1] netfilter: cttimeout: remove 'l3num' attr
- check
-Message-ID: <20240604164829.GA791188@kernel.org>
-References: <20240531012847.2390529-1-linma@zju.edu.cn>
+	s=arc-20240116; t=1717526409; c=relaxed/simple;
+	bh=/XTXjxjV+XV7zVHN4alWxHeECu7gGeegqCXZZwtfqDY=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=QZ00fMWVSfc9yxFAowtJQ0x7zKeCQYHuuqCHJ5/POsM6+X5StYm2MuCMLK1H0r63TW4uJrnnbPMGAbchQ2lk8hEKERPgl4x4ZnOB2lXUGTfjsY3YnTGA2KyXjoT2iCbSGo0G0TKjSaZ9+yUOwdiN6ngjLsOCFvBI+XmrlT2CXec=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] scanner: inet_pton() allows for broader IPv4-Mapped IPv6 addresses
+Date: Tue,  4 Jun 2024 20:39:53 +0200
+Message-Id: <20240604183953.412880-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240531012847.2390529-1-linma@zju.edu.cn>
+Content-Transfer-Encoding: 8bit
 
-On Fri, May 31, 2024 at 09:28:47AM +0800, Lin Ma wrote:
-> After commit dd2934a95701 ("netfilter: conntrack: remove l3->l4 mapping
-> information"), the attribute of type `CTA_TIMEOUT_L3PROTO` is not used
-> any more in function cttimeout_default_set.
-> 
-> However, the previous commit ea9cf2a55a7b ("netfilter: cttimeout: remove
-> set but not used variable 'l3num'") forgot to remove the attribute
-> present check when removing the related variable.
-> 
-> This commit removes that check to ensure consistency.
-> 
-> Signed-off-by: Lin Ma <linma@zju.edu.cn>
+inet_pton() allows for broader IPv4-Mapped IPv6 address syntax than
+those specified by rfc4291. This patch extends the scanner to support
+them for compatibility reasons. This allows to represent the last 4
+bytes of an IPv6 address as an IPv4 address.
 
-Reviewed-by: Simon Horman <horms@kernel.org>
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1730
+Fixes: fd513de78bc0 ("scanner: IPv4-Mapped IPv6 addresses support")
+Fixes: 3f82ef3d0dbf ("scanner: Support rfc4291 IPv4-compatible addresses")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/scanner.l | 47 +++++++++++++++++++++++------------------------
+ 1 file changed, 23 insertions(+), 24 deletions(-)
+
+diff --git a/src/scanner.l b/src/scanner.l
+index e4d20e691d00..96c505bcdd48 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -132,48 +132,47 @@ slash		\/
+ timestring	([0-9]+d)?([0-9]+h)?([0-9]+m)?([0-9]+s)?([0-9]+ms)?
+ 
+ hex4		([[:xdigit:]]{1,4})
++rfc4291_broader	(((:{hex4}){2})|(:{ip4addr}))
+ v680		(({hex4}:){7}{hex4})
+-v670		((:)((:{hex4}){7}))
+-v671		((({hex4}:){1})((:{hex4}){6}))
+-v672		((({hex4}:){2})((:{hex4}){5}))
+-v673		((({hex4}:){3})((:{hex4}){4}))
+-v674		((({hex4}:){4})((:{hex4}){3}))
+-v675		((({hex4}:){5})((:{hex4}){2}))
++v670		((:)((:{hex4}){5}){rfc4291_broader})
++v671		((({hex4}:){1})((:{hex4}){4}){rfc4291_broader})
++v672		((({hex4}:){2})((:{hex4}){3}){rfc4291_broader})
++v673		((({hex4}:){3})((:{hex4}){2}){rfc4291_broader})
++v674		((({hex4}:){4})((:{hex4}){1}){rfc4291_broader})
++v675		((({hex4}:){5}){rfc4291_broader})
+ v676		((({hex4}:){6})(:{hex4}{1}))
+ v677		((({hex4}:){7})(:))
+ v67		({v670}|{v671}|{v672}|{v673}|{v674}|{v675}|{v676}|{v677})
+-v660		((:)((:{hex4}){6}))
+-v661		((({hex4}:){1})((:{hex4}){5}))
+-v662		((({hex4}:){2})((:{hex4}){4}))
+-v663		((({hex4}:){3})((:{hex4}){3}))
+-v664		((({hex4}:){4})((:{hex4}){2}))
++v660		((:)((:{hex4}){4}){rfc4291_broader})
++v661		((({hex4}:){1})((:{hex4}){3}){rfc4291_broader})
++v662		((({hex4}:){2})((:{hex4}){2}){rfc4291_broader})
++v663		((({hex4}:){3})((:{hex4}){1}){rfc4291_broader})
++v664		((({hex4}:){4}){rfc4291_broader})
+ v665		((({hex4}:){5})((:{hex4}){1}))
+ v666		((({hex4}:){6})(:))
+ v66		({v660}|{v661}|{v662}|{v663}|{v664}|{v665}|{v666})
+-v650		((:)((:{hex4}){5}))
+-v651		((({hex4}:){1})((:{hex4}){4}))
+-v652		((({hex4}:){2})((:{hex4}){3}))
+-v653		((({hex4}:){3})((:{hex4}){2}))
++v650		((:)((:{hex4}){3}){rfc4291_broader})
++v651		((({hex4}:){1})((:{hex4}){2}){rfc4291_broader})
++v652		((({hex4}:){2})((:{hex4}){1}){rfc4291_broader})
++v653		((({hex4}:){3}){rfc4291_broader})
+ v654		((({hex4}:){4})(:{hex4}{1}))
+ v655		((({hex4}:){5})(:))
+ v65		({v650}|{v651}|{v652}|{v653}|{v654}|{v655})
+-v640		((:)((:{hex4}){4}))
+-v641		((({hex4}:){1})((:{hex4}){3}))
+-v642		((({hex4}:){2})((:{hex4}){2}))
++v640		((:)((:{hex4}){2}){rfc4291_broader})
++v641		((({hex4}:){1})((:{hex4}){1}){rfc4291_broader})
++v642		((({hex4}:){2}){rfc4291_broader})
+ v643		((({hex4}:){3})((:{hex4}){1}))
+ v644		((({hex4}:){4})(:))
+ v64		({v640}|{v641}|{v642}|{v643}|{v644})
+-v630		((:)((:{hex4}){3}))
+-v631		((({hex4}:){1})((:{hex4}){2}))
++v630		((:)((:{hex4}){1}){rfc4291_broader})
++v631		((({hex4}:){1}){rfc4291_broader})
+ v632		((({hex4}:){2})((:{hex4}){1}))
+ v633		((({hex4}:){3})(:))
+ v63		({v630}|{v631}|{v632}|{v633})
+-v620		((:)((:{hex4}){2}))
+-v620_rfc4291	((:)(:{ip4addr}))
++v620		((:){rfc4291_broader})
+ v621		((({hex4}:){1})((:{hex4}){1}))
+ v622		((({hex4}:){2})(:))
+-v62_rfc4291	((:)(:[fF]{4})(:{ip4addr}))
+-v62		({v620}|{v621}|{v622}|{v62_rfc4291}|{v620_rfc4291})
++v62		({v620}|{v621}|{v622})
+ v610		((:)(:{hex4}{1}))
+ v611		((({hex4}:){1})(:))
+ v61		({v610}|{v611})
+-- 
+2.30.2
 
