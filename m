@@ -1,51 +1,28 @@
-Received: from mx0b-0064b401.pphosted.com (mx0b-0064b401.pphosted.com [205.220.178.238])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49BBB8BFA;
-	Tue,  4 Jun 2024 09:37:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.178.238
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6911713CF98
+	for <netfilter-devel@vger.kernel.org>; Tue,  4 Jun 2024 12:04:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717493837; cv=none; b=qmlYNHPMgakT94u2cbPrg/UPkOpoVbGZLBoYrUNcibQqA1j1AjvrqUf/b1ihZlQKZWolyAymzrMpvIReCaSIgqRoRPdRKOqorgpYBP+WmJfR7nfh+jN6n0ZhFDB56WCUvOBc6SHrmDuSQcJF/Qy5bVQ6V0Lq1XJh4PiWl7nY/C4=
+	t=1717502656; cv=none; b=G7i2AzirtzgPktAaJyS4nIJEwDQYL1uVAlpXaKPaNRC/IkivEPTEmZLhvBDsljf//iHfdRk37M/saenDJD6iKLXkLlxrBDoVDadE4aQT6JZAwfb6tTUYl53Yh3y90neA216gWPrbS5+VoPPIIrl/0rSCrJHr+Lpk84iLvqgNRmM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717493837; c=relaxed/simple;
-	bh=af2fEpd+Md2eU+XT2qqgm8Gs0Ji9V0aPy63zg4vev+o=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=r81VgLweyEuOobj0/eb0sIJkEkevhYgqJuD6lFKXCZ1+IfudEuo3S/NZrGEw8Yf8fd2jXUvdS0t6Pvd73jhhXs3FI3dqHF/Ka3SlihnKWE7woJeRvtnIVErdNPXtcTg897AI6ud9cxreCFjZb4GAqpbYnonTqSuibaonwjfEbyw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=windriver.com; spf=pass smtp.mailfrom=windriver.com; arc=none smtp.client-ip=205.220.178.238
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=windriver.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=windriver.com
-Received: from pps.filterd (m0250811.ppops.net [127.0.0.1])
-	by mx0a-0064b401.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 4549UYmV011658;
-	Tue, 4 Jun 2024 09:36:43 GMT
-Received: from ala-exchng02.corp.ad.wrs.com (ala-exchng02.wrs.com [147.11.82.254])
-	by mx0a-0064b401.pphosted.com (PPS) with ESMTPS id 3yfruxat3p-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-	Tue, 04 Jun 2024 09:36:42 +0000 (GMT)
-Received: from ala-exchng01.corp.ad.wrs.com (147.11.82.252) by
- ALA-EXCHNG02.corp.ad.wrs.com (147.11.82.254) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39; Tue, 4 Jun 2024 02:36:41 -0700
-Received: from pek-lpd-ccm6.wrs.com (147.11.136.210) by
- ala-exchng01.corp.ad.wrs.com (147.11.82.252) with Microsoft SMTP Server id
- 15.1.2507.39 via Frontend Transport; Tue, 4 Jun 2024 02:36:36 -0700
-From: Lizhi Xu <lizhi.xu@windriver.com>
-To: <dan.carpenter@linaro.org>
-CC: <adilger.kernel@dilger.ca>, <coreteam@netfilter.org>,
-        <davem@davemloft.net>, <ebiggers@kernel.org>, <fw@strlen.de>,
-        <jaegeuk@kernel.org>, <kadlec@netfilter.org>, <kuba@kernel.org>,
-        <linux-ext4@vger.kernel.org>, <linux-fscrypt@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <lizhi.xu@windriver.com>,
-        <lkp@intel.com>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <oe-kbuild-all@lists.linux.dev>,
-        <oe-kbuild@lists.linux.dev>, <pablo@netfilter.org>,
-        <syzbot+340581ba9dceb7e06fb3@syzkaller.appspotmail.com>,
-        <syzkaller-bugs@googlegroups.com>, <tytso@mit.edu>
-Subject: Re: [PATCH V3] ext4: check hash version and filesystem casefolded consistent
-Date: Tue, 4 Jun 2024 17:36:35 +0800
-Message-ID: <20240604093635.538480-1-lizhi.xu@windriver.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <638bf33d-7ab0-4ff0-aece-ab877cff1694@moroto.mountain>
-References: <638bf33d-7ab0-4ff0-aece-ab877cff1694@moroto.mountain>
+	s=arc-20240116; t=1717502656; c=relaxed/simple;
+	bh=t7bgj/Dtyw0O6j/mlx+gvAQEww7xAADiC2w8zQsk8cw=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DcqnqEY4aUq6K2hC08F0lZkLRyHFrnZt9s/747Esy6MORG13ed/xe+qGsppzYoaZfg95gTbHOvHg4g95qdVpfbh5xCIrUChicakEBhEUSdokNRLQXrpX9mZ9GWEsI3lHjnIfrmXBkjvCuyQ51mO8p2iS262gSob3AzUjXbNpv0o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1sEStb-0001Na-Hh; Tue, 04 Jun 2024 14:04:07 +0200
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nftables] tests: shell: add test case for reset tcp warning
+Date: Tue,  4 Jun 2024 14:01:49 +0200
+Message-ID: <20240604120152.27217-1-fw@strlen.de>
+X-Mailer: git-send-email 2.44.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -53,50 +30,262 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-Proofpoint-ORIG-GUID: mq-ShY-sh6m8qUd6uHmR57w9omC2Phuz
-X-Proofpoint-GUID: mq-ShY-sh6m8qUd6uHmR57w9omC2Phuz
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1039,Hydra:6.0.650,FMLib:17.12.28.16
- definitions=2024-06-04_03,2024-05-30_01,2024-05-17_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1011 suspectscore=0
- lowpriorityscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
- bulkscore=0 spamscore=0 mlxscore=0 priorityscore=1501 phishscore=0
- malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.21.0-2405170001 definitions=main-2406040077
 
-On Tue, 4 Jun 2024 12:27:06 +0300, Dan Carpenter wrote: 
-> kernel test robot noticed the following build warnings:
-> 
-> https://git-scm.com/docs/git-format-patch#_base_tree_information]
-> 
-> url:    https://github.com/intel-lab-lkp/linux/commits/Lizhi-Xu/ext4-check-hash-version-and-filesystem-casefolded-consistent/20240531-170046
-> base:   https://git.kernel.org/pub/scm/linux/kernel/git/tytso/ext4.git dev
-> patch link:    https://lore.kernel.org/r/20240531085647.2918240-1-lizhi.xu%40windriver.com
-> patch subject: [PATCH V3] ext4: check hash version and filesystem casefolded consistent
-> config: i386-randconfig-141-20240601 (https://download.01.org/0day-ci/archive/20240602/202406020752.Ii2MU4KP-lkp@intel.com/config)
-> compiler: clang version 18.1.5 (https://github.com/llvm/llvm-project 617a15a9eac96088ae5e9134248d8236e34b91b1)
-> 
-> If you fix the issue in a separate patch/commit (i.e. not just a new version of
-> the same patch/commit), kindly add following tags
-> | Reported-by: kernel test robot <lkp@intel.com>
-> | Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
-> | Closes: https://lore.kernel.org/r/202406020752.Ii2MU4KP-lkp@intel.com/
-> 
-> smatch warnings:
-> fs/ext4/super.c:5287 __ext4_fill_super() warn: missing error code 'err'
-> 
-> vim +/err +5287 fs/ext4/super.c
-> 
-> d4fab7b28e2f5d7 Theodore Ts'o           2023-04-27  5280  	err = ext4_block_group_meta_init(sb, silent);
-> d4fab7b28e2f5d7 Theodore Ts'o           2023-04-27  5281  	if (err)
-> 0d1ee42f27d30ee Alexandre Ratchov       2006-10-11  5282  		goto failed_mount;
-> 0b8e58a140cae2b Andreas Dilger          2009-06-03  5283
-> db9345d9e6f075e Jason Yan               2023-03-23  5284  	ext4_hash_info_init(sb);
-> 66b3f078839bbdb Lizhi Xu                2024-05-31  5285  	if (es->s_def_hash_version == DX_HASH_SIPHASH &&
-> 66b3f078839bbdb Lizhi Xu                2024-05-31  5286  	    !ext4_has_feature_casefold(sb))
-> 66b3f078839bbdb Lizhi Xu                2024-05-31 @5287  		goto failed_mount;
-This warning has been resolved in the following patch: 
-https://lore.kernel.org/all/20240601113749.473058-1-lizhi.xu@windriver.com/
+tcp reset rule + nftrace 1 triggers (harmless) splat from flow dissector:
 
-Lizhi
+ WARNING: CPU: 2 PID: 145809 at net/core/flow_dissector.c:1104 __skb_flow_dissect+0x19d4/0x5cc0
+  __skb_get_hash+0xa8/0x220
+  nft_trace_init+0x2ff/0x3b0
+  nft_do_chain+0xb04/0x1370
+  nft_do_chain_inet+0xc5/0x2e0
+  nf_hook_slow+0xa0/0x1d0
+  ip_local_out+0x14/0x90
+  nf_send_reset+0x94e/0xbd0
+  nft_reject_inet_eval+0x45e/0x690
+  nft_do_chain+0x220/0x1370
+  nf_hook_slow+0xa0/0x1d0
+  ip_local_deliver+0x23f/0x2d0
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ .../packetpath/dumps/tcp_reset.json-nft       | 168 ++++++++++++++++++
+ .../testcases/packetpath/dumps/tcp_reset.nft  |  13 ++
+ tests/shell/testcases/packetpath/tcp_reset    |  31 ++++
+ 3 files changed, 212 insertions(+)
+ create mode 100644 tests/shell/testcases/packetpath/dumps/tcp_reset.json-nft
+ create mode 100644 tests/shell/testcases/packetpath/dumps/tcp_reset.nft
+ create mode 100755 tests/shell/testcases/packetpath/tcp_reset
+
+diff --git a/tests/shell/testcases/packetpath/dumps/tcp_reset.json-nft b/tests/shell/testcases/packetpath/dumps/tcp_reset.json-nft
+new file mode 100644
+index 000000000000..e1367cc1abe1
+--- /dev/null
++++ b/tests/shell/testcases/packetpath/dumps/tcp_reset.json-nft
+@@ -0,0 +1,168 @@
++{
++  "nftables": [
++    {
++      "metainfo": {
++        "version": "VERSION",
++        "release_name": "RELEASE_NAME",
++        "json_schema_version": 1
++      }
++    },
++    {
++      "table": {
++        "family": "inet",
++        "name": "filter",
++        "handle": 0
++      }
++    },
++    {
++      "chain": {
++        "family": "inet",
++        "table": "filter",
++        "name": "input",
++        "handle": 0,
++        "type": "filter",
++        "hook": "input",
++        "prio": 0,
++        "policy": "accept"
++      }
++    },
++    {
++      "chain": {
++        "family": "inet",
++        "table": "filter",
++        "name": "output",
++        "handle": 0,
++        "type": "filter",
++        "hook": "output",
++        "prio": 0,
++        "policy": "accept"
++      }
++    },
++    {
++      "rule": {
++        "family": "inet",
++        "table": "filter",
++        "chain": "input",
++        "handle": 0,
++        "expr": [
++          {
++            "mangle": {
++              "key": {
++                "meta": {
++                  "key": "nftrace"
++                }
++              },
++              "value": 1
++            }
++          }
++        ]
++      }
++    },
++    {
++      "rule": {
++        "family": "inet",
++        "table": "filter",
++        "chain": "input",
++        "handle": 0,
++        "expr": [
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "payload": {
++                  "protocol": "ip",
++                  "field": "daddr"
++                }
++              },
++              "right": "127.0.0.1"
++            }
++          },
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "payload": {
++                  "protocol": "tcp",
++                  "field": "dport"
++                }
++              },
++              "right": 5555
++            }
++          },
++          {
++            "reject": {
++              "type": "tcp reset"
++            }
++          }
++        ]
++      }
++    },
++    {
++      "rule": {
++        "family": "inet",
++        "table": "filter",
++        "chain": "input",
++        "handle": 0,
++        "expr": [
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "payload": {
++                  "protocol": "ip6",
++                  "field": "daddr"
++                }
++              },
++              "right": "::1"
++            }
++          },
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "payload": {
++                  "protocol": "tcp",
++                  "field": "dport"
++                }
++              },
++              "right": 5555
++            }
++          },
++          {
++            "reject": {
++              "type": "tcp reset"
++            }
++          }
++        ]
++      }
++    },
++    {
++      "rule": {
++        "family": "inet",
++        "table": "filter",
++        "chain": "input",
++        "handle": 0,
++        "expr": [
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "payload": {
++                  "protocol": "tcp",
++                  "field": "dport"
++                }
++              },
++              "right": 5555
++            }
++          },
++          {
++            "counter": {
++              "packets": 0,
++              "bytes": 0
++            }
++          }
++        ]
++      }
++    }
++  ]
++}
+diff --git a/tests/shell/testcases/packetpath/dumps/tcp_reset.nft b/tests/shell/testcases/packetpath/dumps/tcp_reset.nft
+new file mode 100644
+index 000000000000..fb3df1afe418
+--- /dev/null
++++ b/tests/shell/testcases/packetpath/dumps/tcp_reset.nft
+@@ -0,0 +1,13 @@
++table inet filter {
++	chain input {
++		type filter hook input priority filter; policy accept;
++		meta nftrace set 1
++		ip daddr 127.0.0.1 tcp dport 5555 reject with tcp reset
++		ip6 daddr ::1 tcp dport 5555 reject with tcp reset
++		tcp dport 5555 counter packets 0 bytes 0
++	}
++
++	chain output {
++		type filter hook output priority filter; policy accept;
++	}
++}
+diff --git a/tests/shell/testcases/packetpath/tcp_reset b/tests/shell/testcases/packetpath/tcp_reset
+new file mode 100755
+index 000000000000..3dfcdde40c77
+--- /dev/null
++++ b/tests/shell/testcases/packetpath/tcp_reset
+@@ -0,0 +1,31 @@
++#!/bin/bash
++
++# regression check for kernel commit
++# netfilter: nf_reject: init skb->dev for reset packet
++
++socat -h > /dev/null || exit 77
++
++ip link set lo up
++
++$NFT -f - <<EOF
++table inet filter {
++  chain input {
++    type filter hook input priority filter; policy accept;
++    meta nftrace set 1
++    ip daddr 127.0.0.1 tcp dport 5555 reject with tcp reset
++    ip6 daddr ::1 tcp dport 5555 reject with tcp reset
++    tcp dport 5555 counter
++   }
++   chain output {
++    type filter hook output priority filter; policy accept;
++    # empty chain, so nf_hook_slow is called from ip_local_out.
++   }
++}
++EOF
++[ $? -ne 0 ] && exit 1
++
++socat -u STDIN TCP:127.0.0.1:5555,connect-timeout=2 < /dev/null > /dev/null
++socat -u STDIN TCP:[::1]:5555,connect-timeout=2 < /dev/null > /dev/null
++
++$NFT list ruleset |grep -q 'counter packets 0 bytes 0' || exit 1
++exit 0
+-- 
+2.44.2
+
