@@ -1,172 +1,131 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+Received: from mail-lj1-f173.google.com (mail-lj1-f173.google.com [209.85.208.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A1A214AD0D;
-	Tue,  4 Jun 2024 19:06:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2852613E8B5;
+	Tue,  4 Jun 2024 20:22:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717528010; cv=none; b=FtHm1Hm8gG23o+HxgPo+daI5Z2RYIRx7GU2KdAWQxWihrFbI40uPI8JDD9hXFZCzFst9WnIBFGtPQ5swTBupYdlUgfUh/XfRLFP+/ia9LDdO9KcO0/ARQkI/pwTn5Ccud4axRDkLqRo630SypdojwaMeoTiiijt77k02Ls3Ex7w=
+	t=1717532573; cv=none; b=Ouua3ibFzJUkHBw1bioOZWkaY2fHBU5qG+OcVkeNH4cbMWu3uUhUvisbFu0XsX9mlLrnKlRPFL7TLfd0dDIitUlOi3qH4jljyxB92Qs/VgqBVaIkPJNP1L+GKAgvwccUzc142ANjJU2XWvmakCB6hkvoW6ZD9vwOENLqObPAkQk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717528010; c=relaxed/simple;
-	bh=w+z51GOxz6CgOvEKGk3Y4qP1o260i7X7s60eVfx6w8g=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=IKcbQ1rtaR3MZ+T4V80c66IJIjTLrICeyDES8QMqTTm3jvwIud+OaeGrVHE4arlAS1kWNl+w+2L4I6A6Tdh4bEhs9fdgxpGV33RVfSLNissEeW7NL1xXM+msZ6kIH1n878GvnN5FLjaWebmCmQAJBkDGpaV5/n6IL1RXgKxg/SM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=xpVmld3U; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=Sub/LDfg; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=xpVmld3U; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=Sub/LDfg; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1717532573; c=relaxed/simple;
+	bh=rprCz2kfM6uU6vFs55xzq8qeh7i7r4w/Ir9xd0LalVI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=f4lOwjC0QGieY8C4BOceGTttPWXrcvWUyZoygZkTNpfzVD8FfDEQDDolSk714YgMjrtw9jXuI/r0SIuSblg7PTp1vnvLR9QGUo+DXfgksh9fc3XffLIxqJaAf15XXebRZgar507ZtzyQaGCvEj1XciadWTtNU1RrD5nE/UvctmU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=nLSSoOR1; arc=none smtp.client-ip=209.85.208.173
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="xpVmld3U";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="Sub/LDfg";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="xpVmld3U";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="Sub/LDfg"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 398E21F37C;
-	Tue,  4 Jun 2024 19:06:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1717528007; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=TXBboWW451VBPbHdzoF/IPP9YUNWIilu8/IAXa2j64I=;
-	b=xpVmld3U5rCSlYA+RS3LZvZSmgEP04a9DhPwJTUWgJ6Mqdan4i7dfYHA4JH+u4Rr6GzE2P
-	GK06r+QZDHElrI4eDogAq3kYyd9GvsOpXf6dfJEn6QoPPmuva1wI+ic/K/tU2OmKmqdaad
-	52fu0xlxtHW7AmnDbEecQpzxYKdW6ok=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1717528007;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=TXBboWW451VBPbHdzoF/IPP9YUNWIilu8/IAXa2j64I=;
-	b=Sub/LDfgBk8LEnfeHQ5e0GjMGwc+RlDeU1LiGDsIpcv2LArYPL7mmsyoi6FdC4RTqmZ3EU
-	ajAGh0JzEvzQgqBA==
-Authentication-Results: smtp-out2.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1717528007; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=TXBboWW451VBPbHdzoF/IPP9YUNWIilu8/IAXa2j64I=;
-	b=xpVmld3U5rCSlYA+RS3LZvZSmgEP04a9DhPwJTUWgJ6Mqdan4i7dfYHA4JH+u4Rr6GzE2P
-	GK06r+QZDHElrI4eDogAq3kYyd9GvsOpXf6dfJEn6QoPPmuva1wI+ic/K/tU2OmKmqdaad
-	52fu0xlxtHW7AmnDbEecQpzxYKdW6ok=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1717528007;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=TXBboWW451VBPbHdzoF/IPP9YUNWIilu8/IAXa2j64I=;
-	b=Sub/LDfgBk8LEnfeHQ5e0GjMGwc+RlDeU1LiGDsIpcv2LArYPL7mmsyoi6FdC4RTqmZ3EU
-	ajAGh0JzEvzQgqBA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id E6E1B13A93;
-	Tue,  4 Jun 2024 19:06:46 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id pNiQMsZlX2YBYQAAD6G6ig
-	(envelope-from <krisman@suse.de>); Tue, 04 Jun 2024 19:06:46 +0000
-From: Gabriel Krisman Bertazi <krisman@suse.de>
-To: Lizhi Xu <lizhi.xu@windriver.com>
-Cc: <adilger.kernel@dilger.ca>,  <coreteam@netfilter.org>,
-  <davem@davemloft.net>,  <ebiggers@kernel.org>,  <fw@strlen.de>,
-  <jaegeuk@kernel.org>,  <kadlec@netfilter.org>,  <kuba@kernel.org>,
-  <linux-ext4@vger.kernel.org>,  <linux-fscrypt@vger.kernel.org>,
-  <linux-kernel@vger.kernel.org>,  <lkp@intel.com>,
-  <llvm@lists.linux.dev>,  <netdev@vger.kernel.org>,
-  <netfilter-devel@vger.kernel.org>,  <oe-kbuild-all@lists.linux.dev>,
-  <pablo@netfilter.org>,
-  <syzbot+340581ba9dceb7e06fb3@syzkaller.appspotmail.com>,
-  <syzkaller-bugs@googlegroups.com>,  <tytso@mit.edu>
-Subject: Re: [PATCH V5] ext4: check hash version and filesystem casefolded
- consistent
-In-Reply-To: <20240604011718.3360272-1-lizhi.xu@windriver.com> (Lizhi Xu's
-	message of "Tue, 4 Jun 2024 09:17:17 +0800")
-Organization: SUSE
-References: <87plsym65w.fsf@mailhost.krisman.be>
-	<20240604011718.3360272-1-lizhi.xu@windriver.com>
-Date: Tue, 04 Jun 2024 15:06:32 -0400
-Message-ID: <87le3kle87.fsf@mailhost.krisman.be>
-User-Agent: Gnus/5.13 (Gnus v5.13)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nLSSoOR1"
+Received: by mail-lj1-f173.google.com with SMTP id 38308e7fff4ca-2e724bc466fso70650731fa.3;
+        Tue, 04 Jun 2024 13:22:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1717532570; x=1718137370; darn=vger.kernel.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=D+5VN7JC7w36LO4y/6SnJC0QWdaCns+KEWJ/kmwDx20=;
+        b=nLSSoOR1z7uv/L91BZIdUwouPyi5jCaCXuL1c6yXSo0XCqHSZB0chR7SLNKGid2Fir
+         rED8TVF1IbToaZetltzK7Mx4CepVbnsowqyg+v9JiAjyXogpIeXwdygIhUKynE6uKODd
+         mo0qBEfrOv9jjqxbBakFuERSMKEDdjCYTJGdPev+730JB1YM2MkD/zBZIerQSOzFGoeq
+         9/MFpWXzSbUHxTc2OwSHhrIq3R3YMN9LqAursAgh/tcJiqDVdu4ZdLyL+gZpwlALRFWT
+         9nul1fo7Zz/9RLMUY+2TAbV3C/DnWFbEK+VquEpBkwXHB1Jb2CpLtU5Q+mmJSsMAm4yg
+         Ql0g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1717532570; x=1718137370;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=D+5VN7JC7w36LO4y/6SnJC0QWdaCns+KEWJ/kmwDx20=;
+        b=Zy4b/iBTuYMc1tZpe2siBWwGN5IUD0W8gCXXQOl3vt10FEmi0nMnDCbLU3wAN03cc3
+         pc1Pxo+b2FGy1J+7a5B3iWr0uqbjVoJztY7TuW+HA+NwXwOzd/BktqS3od9JhPr2K+uz
+         epiPw3UJqEO+ZEMoZ1Wv35n85Kdx9aNEVhw5ZoGTXtzoX6QLYvcgfRlKelP7/W+QO/LO
+         Ck52cHUYEEJVtn7vC9u/ERoNBIglvTU9okgI3RWzkkZhC70sD9Tc68YP209x0uwaZ/ip
+         fujsH6H3l4dpZ7hedoTYlhX4SZln5ukKm6HIsZCqzQlmL/9eL1QxBWEtfWmLrkQirN16
+         Jxbg==
+X-Forwarded-Encrypted: i=1; AJvYcCWMGId3J4eqD6Ov89tPByT4jyZpHjTAjDmu4/+2PSUIIf/5uwq6pzABr2IRLfASdrX/W2fFmuiBfC45jujoMEDwRvQNbBI5bmPzNUHpSlknyoNKOZe+IJcdDxGaiv2hsSF6C+8QdnLR7RkNtIfunVXV37+ol+WznOxY5KwLL/t9zjKOzup646dMAb43BdzX
+X-Gm-Message-State: AOJu0YyyI6g8qqkuYTC/8jHwWYRymSGJ8qRQy+kLTZrjvPpuY+u899UJ
+	SYcxRJ98A+yT1pgxrWGPplDt0+gBfSYBhI2t2dLwy2p+TnDFuXfv
+X-Google-Smtp-Source: AGHT+IHbA6nBXzhEGt0w8RUq2Jf6dO0ymzZGh1nbN9gbq0tkCsrC3dyep/a04os+KbH31SMx/r34gg==
+X-Received: by 2002:a05:651c:b2a:b0:2e4:a21a:bf7d with SMTP id 38308e7fff4ca-2eac79ed730mr2397901fa.21.1717532570057;
+        Tue, 04 Jun 2024 13:22:50 -0700 (PDT)
+Received: from localhost ([2a02:168:59f0:1:b0ab:dd5e:5c82:86b0])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-57a31be7c04sm8041588a12.58.2024.06.04.13.22.49
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 04 Jun 2024 13:22:49 -0700 (PDT)
+Date: Tue, 4 Jun 2024 22:22:44 +0200
+From: =?iso-8859-1?Q?G=FCnther?= Noack <gnoack3000@gmail.com>
+To: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+Cc: mic@digikod.net, willemdebruijn.kernel@gmail.com,
+	linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, yusongping@huawei.com,
+	artem.kuzin@huawei.com, konstantin.meskhidze@huawei.com
+Subject: Re: [RFC PATCH v2 00/12] Socket type control for Landlock
+Message-ID: <20240604.c18387da7a0e@gnoack.org>
+References: <20240524093015.2402952-1-ivanov.mikhail1@huawei-partners.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Spam-Flag: NO
-X-Spam-Score: -2.80
-X-Spam-Level: 
-X-Spamd-Result: default: False [-2.80 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	SUSPICIOUS_RECIPS(1.50)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	ARC_NA(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	HAS_ORG_HEADER(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	RCPT_COUNT_TWELVE(0.00)[21];
-	MIME_TRACE(0.00)[0:+];
-	TAGGED_RCPT(0.00)[340581ba9dceb7e06fb3];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FUZZY_BLOCKED(0.00)[rspamd.com];
-	FROM_HAS_DN(0.00)[];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[appspotmail.com:email]
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20240524093015.2402952-1-ivanov.mikhail1@huawei-partners.com>
 
-Lizhi Xu <lizhi.xu@windriver.com> writes:
+On Fri, May 24, 2024 at 05:30:03PM +0800, Mikhail Ivanov wrote:
+> Hello! This is v2 RFC patch dedicated to socket protocols restriction.
+> 
+> It is based on the landlock's mic-next branch on top of v6.9 kernel
+> version.
 
-> On Mon, 03 Jun 2024 10:50:51 -0400, Gabriel Krisman Bertazi wrote:
->> > When mounting the ext4 filesystem, if the hash version and casefolded are not
->> > consistent, exit the mounting.
->> >
->> > Reported-by: syzbot+340581ba9dceb7e06fb3@syzkaller.appspotmail.com
->> > Signed-off-by: Lizhi Xu <lizhi.xu@windriver.com>
->> > ---
->> >  fs/ext4/super.c | 5 +++++
->> >  1 file changed, 5 insertions(+)
->> >
->> > diff --git a/fs/ext4/super.c b/fs/ext4/super.c
->> > index c682fb927b64..0ad326504c50 100644
->> > --- a/fs/ext4/super.c
->> > +++ b/fs/ext4/super.c
->> > @@ -5262,6 +5262,11 @@ static int __ext4_fill_super(struct fs_context *fc, struct super_block *sb)
->> >  		goto failed_mount;
->> >  
->> >  	ext4_hash_info_init(sb);
->> > +	if (es->s_def_hash_version == DX_HASH_SIPHASH && 
->> > +	    !ext4_has_feature_casefold(sb)) {
->> 
->> Can we ever have DX_HASH_SIPHASH set up in the super block?  I thought
->> it was used solely for directories where ext4_hash_in_dirent(inode) is
->> true.
-> The value of s'def_hash_version is obtained by reading the super block from the
-> buffer cache of the block device in ext4_load_super().
+Hello Mikhail!
 
-Yes, I know.  My point is whether this check should just be:
+I patched in your patchset and tried to use the feature with a small
+demo tool, but I ran into what I think is a bug -- do you happen to
+know what this might be?
 
-if (es->s_def_hash_version == DX_HASH_SIPHASH)
-	goto failed_mount;
+I used 6.10-rc1 as a base and patched your patches on top.
 
-Since, IIUC, DX_HASH_SIPHASH is done per-directory and not written to
-the sb.
+The code is a small tool called "nonet", which does the following:
 
->> If this is only for the case of a superblock corruption, perhaps we
->> should always reject the mount, whether casefold is enabled or not?
-> Based on the existing information, it cannot be confirmed whether the superblock
-> is corrupt, but one thing is clear: if the default hash version of the superblock
-> is set to DX_HASH_SIPHASH, but the casefold feature is not set at the same time,
-> it is definitely an error.
+  - Disable socket creation with a Landlock ruleset with the following
+    attributes:
+  
+    struct landlock_ruleset_attr attr = {
+      .handled_access_socket = LANDLOCK_ACCESS_SOCKET_CREATE,
+    };
 
+  - open("/dev/null", O_WRONLY)
 
--- 
-Gabriel Krisman Bertazi
+Expected result:
+
+  - open() should work
+
+Observed result:
+
+  - open() fails with EACCES.
+
+I traced this with perf, and found that the open() gets rejected from
+Landlock's hook_file_open, whereas hook_socket_create does not get
+invoked.  This is surprising to me -- Enabling a policy for socket
+creation should not influence the outcome of opening files!
+
+Tracing commands:
+
+  sudo perf probe hook_socket_create '$params'
+  sudo perf probe 'hook_file_open%return $retval'
+  sudo perf record -e 'probe:*' -g -- ./nonet
+  sudo perf report
+ 
+You can find the tool in my landlock-examples repo in the nonet_bug branch:
+https://github.com/gnoack/landlock-examples/blob/nonet_bug/nonet.c
+
+Landlock is enabled like this:
+https://github.com/gnoack/landlock-examples/blob/nonet_bug/sandbox_socket.c
+
+Do you have a hunch what might be going on?
+
+Thanks,
+–Günther
+
