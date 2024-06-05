@@ -1,104 +1,116 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from smtp2-kfki.kfki.hu (smtp2-kfki.kfki.hu [148.6.0.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD7A7946C
-	for <netfilter-devel@vger.kernel.org>; Wed,  5 Jun 2024 05:52:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E21ABA3F
+	for <netfilter-devel@vger.kernel.org>; Wed,  5 Jun 2024 06:28:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717566741; cv=none; b=hd7aEO197Y83EyVU8dk+D/gQLQNG06EhQE1dG2Ofg1dPJ4pSvMqFcJuFMHZSm8iMsr9tarEL+nrcRxJySCA4mg/JZu0ti6ehgRCbJI1MQ/llauEJQjx4jRbWi6guhkX9DVuWVCZw+bkP9nh/QhsYTgi2pRHJu+dlzf6PY7BOdCM=
+	t=1717568891; cv=none; b=EjZL7fhMhY2Mvozcu9OTuZ/U06ePqfEP4oRS0XKDcQLiY/+s33zO/HXwsEkjY4e8ElVCEUlgxO1xVDSyGrAjOI67m6ySp3sg7701NFVOGbXU5ib6j0xjOoT6Ql8m5QoY49n1OYpaPtpV4PE8KGgiw/PLKnaDGFjeemaYw2FzfDg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717566741; c=relaxed/simple;
-	bh=7QfuTFmIvOt1VUhc5FeIscPZl52KY6EThgDk4dv8nQo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fpo+8u8Lsuh7rR/IeFWYJ1bd1h0oF/pJqyc9ZykoaOIDCnSxfDNhRH47sllweAwWABY4nONkkN2TyGTEcxM7QeyakoSRM73NHgKRg3gdO8pgqWuURCoipbgsapaPUtWShd99YDVmSejmH5efUhAlXsB0ZsFi1OkT/oQotZsRpsY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+	s=arc-20240116; t=1717568891; c=relaxed/simple;
+	bh=6KEM/rUUcAdHrBVTPazpB9ZgImkZQYBsRd699fjYX90=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=lssM01eAYrSl+OfBz7kof9r0khyfUSJJLiTPfTF53doMqduhxK7K+J0NwrvBGj8d84ymCOog1xYBwKyT2QOkzKueBTRVvjfmOk+vuLVpd3rNOg5G9PzjPtPzXKpQ02NnD4ee69rI8bMaF/J2Oh43jT21muHCcUfnj5BajiUTivM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=148.6.0.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [46.222.218.95] (port=2834 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1sEjZ8-00A2mZ-CV; Wed, 05 Jun 2024 07:52:08 +0200
-Date: Wed, 5 Jun 2024 07:52:04 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Davide Ornaghi <d.ornaghi97@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, kadlec@netfilter.org,
-	davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-	pabeni@redhat.com, fw@strlen.de
-Subject: Re: [PATCH nft] Check for NULL netlink attributes
-Message-ID: <Zl_9BPZ8sKK9PzR9@calendula>
-References: <CAHH-0UdpvNzWOD9Ef1KHF=hYsoyYGi0K=okkyJormxv=-deNbQ@mail.gmail.com>
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Received: from localhost (localhost [127.0.0.1])
+	by smtp2.kfki.hu (Postfix) with ESMTP id 008F5CC010B;
+	Wed,  5 Jun 2024 08:28:03 +0200 (CEST)
+X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+	by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+	with ESMTP; Wed,  5 Jun 2024 08:28:00 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
+	by smtp2.kfki.hu (Postfix) with ESMTP id BC956CC0108;
+	Wed,  5 Jun 2024 08:28:00 +0200 (CEST)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+	id B5E6D34316B; Wed,  5 Jun 2024 08:28:00 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by blackhole.kfki.hu (Postfix) with ESMTP id B434334316A;
+	Wed,  5 Jun 2024 08:28:00 +0200 (CEST)
+Date: Wed, 5 Jun 2024 08:28:00 +0200 (CEST)
+From: Jozsef Kadlecsik <kadlec@netfilter.org>
+To: Zhixu Liu <zhixu.liu@gmail.com>
+cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] fix json output format for IPSET_OPT_IP
+In-Reply-To: <CALMA0xZ9y-oU1tNXK8BNHtN_FyqKuerkAGFvuRB1pfraMG=cdA@mail.gmail.com>
+Message-ID: <7606e43c-4fff-ef50-4c16-7502fdfff5cd@netfilter.org>
+References: <CALMA0xYY-QzN+gbPTxNw3TJt3Rvm-vkN1yb4MgHs1Ey4TuEURw@mail.gmail.com> <02acedac-3ec3-8b2c-0f27-30cf135be5de@netfilter.org> <CALMA0xZ9y-oU1tNXK8BNHtN_FyqKuerkAGFvuRB1pfraMG=cdA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <CAHH-0UdpvNzWOD9Ef1KHF=hYsoyYGi0K=okkyJormxv=-deNbQ@mail.gmail.com>
-X-Spam-Score: -1.9 (-)
+Content-Type: multipart/mixed; boundary="110363376-1514791719-1717568880=:7851"
 
-Hi Davide,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-I suggest this patch subject:
+--110363376-1514791719-1717568880=:7851
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-        nf_tables: nft_inner: validate mandatory meta and payload netlink attributes
+On Thu, 23 May 2024, Zhixu Liu wrote:
 
-On Tue, Jun 04, 2024 at 11:36:21PM +0200, Davide Ornaghi wrote:
-> Payload and meta nftables exprs can be embedded into inner exprs via
-> nft_expr_inner_parse, which doesn't check for NULL netlink attributes,
-> unlike other exprs passing through select_ops.
-> Add the missing checks to nft_meta_inner_init and nft_payload_inner_init
-> to prevent dereferencing NULL pointers and eventually causing UAF reads on commit_mutex.
+> Thanks, please see attachment for the updated patch.
 
-I'd suggest this patch description:
+Thank you, patch is applied in the ipset git repository.
 
-"Check for mandatory netlink attributes in payload and meta expression
-when used embedded from the inner expression, otherwise NULL pointer
-dereference is possible if userspace."
+Best regards,
+Jozsef=20
+> Jozsef Kadlecsik <kadlec@netfilter.org> =E4=BA=8E2024=E5=B9=B45=E6=9C=88=
+23=E6=97=A5=E5=91=A8=E5=9B=9B 15:09=E5=86=99=E9=81=93=EF=BC=9A
+> >
+> > Hello,
+> >
+> > On Mon, 20 May 2024, Zhixu Liu wrote:
+> >
+> > > It should be quoted to be a well formed json file, otherwise see fo=
+llowing
+> > > bad example (range is not quoted):
+> > >
+> > >   # ipset create foo bitmap:ip range 192.168.0.0/16
+> > >   # ipset list -o json foo
+> > >   [
+> > >     {
+> > >       "name" : "foo",
+> > >       "type" : "bitmap:ip",
+> > >       "revision" : 3,
+> > >       "header" : {
+> > >         "range" : 192.168.0.0-192.168.255.255,
+> > >         "memsize" : 8280,
+> > >         "references" : 0,
+> > >         "numentries" : 0
+> > >       },
+> > >       "members" : [
+> > >       ]
+> > >     }
+> > >   ]
+> >
+> > Thank you your patch. Please rework it and use a quoted buffer simila=
+rly
+> > to ipset_print_hexnumber() in order to avoid the many "if (env &
+> > IPSET_ENV_QUOTED)" constructs.
+> >
+> > Best regards,
+> > Jozsef
+> > --
+> > E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+> > PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+> > Address : Wigner Research Centre for Physics
+> >           H-1525 Budapest 114, POB. 49, Hungary
+>=20
+>=20
+>=20
+> --=20
+> Z. Liu
+>=20
 
-And please add:
-
-Fixes: a150d122b6bd ("netfilter: nft_meta: add inner match support")
-Fixes: 3a07327d10a0 ("netfilter: nft_inner: support for inner tunnel header matching")
-
-Thanks a lot for submitting your fix.
-
-> Signed-off-by: Davide Ornaghi <d.ornaghi97@gmail.com>
-> ---
->  net/netfilter/nft_meta.c    | 2 ++
->  net/netfilter/nft_payload.c | 3 +++
->  2 files changed, 5 insertions(+)
-> 
-> diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-> index ba0d3683a..e2893077b 100644
-> --- a/net/netfilter/nft_meta.c
-> +++ b/net/netfilter/nft_meta.c
-> @@ -839,6 +839,8 @@ static int nft_meta_inner_init(const struct nft_ctx
-> *ctx,
->         struct nft_meta *priv = nft_expr_priv(expr);
->         unsigned int len;
-> 
-> +       if (!tb[NFTA_META_KEY] || !tb[NFTA_META_DREG])
-> +               return -EINVAL;
->         priv->key = ntohl(nla_get_be32(tb[NFTA_META_KEY]));
->         switch (priv->key) {
->         case NFT_META_PROTOCOL:
-> diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-> index 0c43d748e..4c6f15ad0 100644
-> --- a/net/netfilter/nft_payload.c
-> +++ b/net/netfilter/nft_payload.c
-> @@ -650,6 +650,9 @@ static int nft_payload_inner_init(const struct nft_ctx
-> *ctx,
->         struct nft_payload *priv = nft_expr_priv(expr);
->         u32 base;
-> 
-> +       if (!tb[NFTA_PAYLOAD_BASE] || !tb[NFTA_PAYLOAD_OFFSET] ||
-> +           !tb[NFTA_PAYLOAD_LEN] || !tb[NFTA_PAYLOAD_DREG])
-> +               return -EINVAL;
->         base   = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_BASE]));
->         switch (base) {
->         case NFT_PAYLOAD_TUN_HEADER:
-> --
-> 2.34.1
+--=20
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
+--110363376-1514791719-1717568880=:7851--
