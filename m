@@ -1,105 +1,114 @@
-Received: from mail-lf1-f51.google.com (mail-lf1-f51.google.com [209.85.167.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0b-0064b401.pphosted.com (mx0b-0064b401.pphosted.com [205.220.178.238])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 801CD14B96A
-	for <netfilter-devel@vger.kernel.org>; Tue,  4 Jun 2024 21:40:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D75A2107;
+	Wed,  5 Jun 2024 01:17:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.178.238
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717537225; cv=none; b=KA9jd93poH09MdvuzYviGljixAdQ/uMxjrZpE7p56v6qHuu6GEgxy0614Ij63q9/x2nx51rJOGKyTxHrH1WXBPFlLtBpAXR9BcVlnj6oz6SiRTCKV+pPfwgo0nniZIpaKPxK9D357m/fmhm8vzp8b8aptxb8S4rJSgblThbXEBs=
+	t=1717550243; cv=none; b=Gz0in5xG7w4wu6SqJ8afpSZTxUmnWAwUtKtnuUYJParsDb6TjpxijvFsvzyovfwl4QXjlqaFxVZlI+EbzmC/ypgzNwlC43BRm0Y3bJbvYPDZNKvKfRjsiMOHTAU+0bpvCGlKLvhpMoZrlyOHL+LhOd/Q0CtvHLMWWLfhSqu4NhI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717537225; c=relaxed/simple;
-	bh=kj+DjAiSae41Bxuj53wUf0RED4SiOjnAegp2lUnfMRs=;
-	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=ThA01dCd7lddsjOVab6Or85RgfkZ4MjpGn845SYStWeeZ0e6EPJ5JJDiTSTpqTczhkgxWjTTJsoBfx2vwwHfI4WBGlAsZlJx8SxOae1Lq8fpVFuKjtQECoQz9pP6w+kK0o9H6yJ5RYlPflMUd2tVNbSL1Bk03A/KfAjFNdVHvXA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=RoPDFtn/; arc=none smtp.client-ip=209.85.167.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RoPDFtn/"
-Received: by mail-lf1-f51.google.com with SMTP id 2adb3069b0e04-52b936c958dso4254615e87.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 04 Jun 2024 14:40:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1717537222; x=1718142022; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:mime-version:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=31KMZloGNKPu4Ebz9kDyf4fWSFvrV5kPTUoogq3lT+g=;
-        b=RoPDFtn/NedeuLoB2rojpgKKWmxvhlocX4jyNr3b51JrEdvap+XMVHCh6r5hUpZCza
-         2jHxl+xVriE3oXdQ8R5fDGc/H/2HH7CgBDAUITdXBf/+8ttHAnMw4Kl/dJ2zf82R4qg+
-         wo5g/cTwfMQaDM1M5BP6xPNjb5WplUNzg+rJt/w5UG86XtU/axRI9kVAMXEIpBwwY4Dh
-         +h+0S1d67t3CdXR2zKJG8QMflNSfg9K6AdA7drqbVh73EoRTFwg05UjdxezLoWvKbLqp
-         /y0H1QEtnmbos2tHw5vNNoQjyW6/EYs8vfOrhrsPo/X79dIv6x2N7u/j3v++ySHtq/qZ
-         oUSQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1717537222; x=1718142022;
-        h=cc:to:subject:message-id:date:from:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=31KMZloGNKPu4Ebz9kDyf4fWSFvrV5kPTUoogq3lT+g=;
-        b=G+XnWVOdgzkfzR3uK3Hb/ralWO5T7449AyIif7xZDTPVvpgSnQ42iPOqPW4TXT5ibA
-         P0tQHTJlybd6TAf1bBvthrp8Slw4HpflXbnpdQSJ4wWvETL/0H6nVnwsvpkVclx1br7W
-         k220Bf68/MdvnK82g2bm2nz1irV1oDFBWPbjFkuy8fcfaKstOhKqpVyElq/ptkdOYVzZ
-         O2eh/GAlHAjFJ/IKCd8cjU2pnFSnmkeY6gIuLQyLNVpnCpIxRUfhymzZkG3KpWZgRBEc
-         ID1kFbGSSy1aofq2RLDoFzfXJZUgcpo7jNywf3eSEZdxBe6r9gyCBRPgw2sDtVwy+Fzw
-         yvOQ==
-X-Gm-Message-State: AOJu0Yz09eQ5yUclIWtTbabgOsfzmuaY3kjq51p3FTkk4UgCQ8sywDKU
-	Pw3up7i78V3RCRVVOdv+n+u1OO8zPxQVq/b5wFV40lvpFKVShNMGDPQvrjmZU5OQaV0fRDw5sam
-	tnQImiY5LSD+BLjOGjdTN1KD3LmMvG3OufLg=
-X-Google-Smtp-Source: AGHT+IHqwn93cn4m56rJLLSePIPCTgupyc1Nmx29zrM8ya7YB37KzCB/ETzM0rszaIApV4VG+Roh645jnggZwBZOQZE=
-X-Received: by 2002:ac2:5226:0:b0:520:dc1c:3c5d with SMTP id
- 2adb3069b0e04-52bab4f6fb0mr376816e87.42.1717537221450; Tue, 04 Jun 2024
- 14:40:21 -0700 (PDT)
+	s=arc-20240116; t=1717550243; c=relaxed/simple;
+	bh=HLpoLdstnucicsvT5jMONV0hC5aA5fX3wp6EmkQr7ro=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=Fey+Z0FdNFjJnP/PlhgyizvOAQQOCH9ITAykAYr+OzlvvtzJ6XTiiOFO8rTolNebV5MfgI/ht96LyJWlB3iWuM2wqQwz+oPua4wawxSwgLbBy5Cx78aj3ydNELa2OmmOx/+LaYi97RdOWnb1JpnyzOyiJamhDEODBBhj+XRVzmM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=windriver.com; spf=pass smtp.mailfrom=windriver.com; arc=none smtp.client-ip=205.220.178.238
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=windriver.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=windriver.com
+Received: from pps.filterd (m0250811.ppops.net [127.0.0.1])
+	by mx0a-0064b401.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 45518rnG006051;
+	Wed, 5 Jun 2024 01:16:52 GMT
+Received: from ala-exchng01.corp.ad.wrs.com (ala-exchng01.wrs.com [147.11.82.252])
+	by mx0a-0064b401.pphosted.com (PPS) with ESMTPS id 3yfruxbkk2-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
+	Wed, 05 Jun 2024 01:16:52 +0000 (GMT)
+Received: from ALA-EXCHNG02.corp.ad.wrs.com (147.11.82.254) by
+ ala-exchng01.corp.ad.wrs.com (147.11.82.252) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.39; Tue, 4 Jun 2024 18:16:51 -0700
+Received: from pek-lpd-ccm6.wrs.com (147.11.136.210) by
+ ALA-EXCHNG02.corp.ad.wrs.com (147.11.82.254) with Microsoft SMTP Server id
+ 15.1.2507.39 via Frontend Transport; Tue, 4 Jun 2024 18:16:45 -0700
+From: Lizhi Xu <lizhi.xu@windriver.com>
+To: <krisman@suse.de>
+CC: <adilger.kernel@dilger.ca>, <coreteam@netfilter.org>,
+        <davem@davemloft.net>, <ebiggers@kernel.org>, <fw@strlen.de>,
+        <jaegeuk@kernel.org>, <kadlec@netfilter.org>, <kuba@kernel.org>,
+        <linux-ext4@vger.kernel.org>, <linux-fscrypt@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <lizhi.xu@windriver.com>,
+        <lkp@intel.com>, <llvm@lists.linux.dev>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <oe-kbuild-all@lists.linux.dev>,
+        <pablo@netfilter.org>,
+        <syzbot+340581ba9dceb7e06fb3@syzkaller.appspotmail.com>,
+        <syzkaller-bugs@googlegroups.com>, <tytso@mit.edu>
+Subject: Re: [PATCH V5] ext4: check hash version and filesystem casefolded consistent
+Date: Wed, 5 Jun 2024 09:16:44 +0800
+Message-ID: <20240605011644.1878-1-lizhi.xu@windriver.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <87le3kle87.fsf@mailhost.krisman.be>
+References: <87le3kle87.fsf@mailhost.krisman.be>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: Davide Ornaghi <d.ornaghi97@gmail.com>
-Date: Tue, 4 Jun 2024 23:40:10 +0200
-Message-ID: <CAHH-0Ud7C2TBP9VQZY54kFBkSz4-V0g9eXK+nzdgV9rcwexJXw@mail.gmail.com>
-Subject: [PATCH nft] Check for NULL netlink attributes
-To: netfilter-devel@vger.kernel.org
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, kadlec@netfilter.org, davem@davemloft.net, 
-	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com, fw@strlen.de
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Proofpoint-ORIG-GUID: eSwt-QjaTDEty4IdYCpGVD27kbz6EKap
+X-Proofpoint-GUID: eSwt-QjaTDEty4IdYCpGVD27kbz6EKap
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1039,Hydra:6.0.680,FMLib:17.12.28.16
+ definitions=2024-06-04_11,2024-06-04_02,2024-05-17_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015 suspectscore=0
+ lowpriorityscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
+ bulkscore=0 spamscore=0 mlxscore=0 priorityscore=1501 phishscore=0
+ malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.21.0-2405170001 definitions=main-2406050008
 
-Payload and meta nftables exprs can be embedded into inner exprs via
-nft_expr_inner_parse, which doesn't check for NULL netlink attributes,
-unlike other exprs passing through select_ops.
-Add the missing checks to nft_meta_inner_init and nft_payload_inner_init
-to prevent dereferencing NULL pointers and eventually causing UAF reads
-on commit_mutex.
+On Tue, 04 Jun 2024 15:06:32 -0400, Gabriel Krisman Bertazi wrote:
+> >> > When mounting the ext4 filesystem, if the hash version and casefolded are not
+> >> > consistent, exit the mounting.
+> >> >
+> >> > Reported-by: syzbot+340581ba9dceb7e06fb3@syzkaller.appspotmail.com
+> >> > Signed-off-by: Lizhi Xu <lizhi.xu@windriver.com>
+> >> > ---
+> >> >  fs/ext4/super.c | 5 +++++
+> >> >  1 file changed, 5 insertions(+)
+> >> >
+> >> > diff --git a/fs/ext4/super.c b/fs/ext4/super.c
+> >> > index c682fb927b64..0ad326504c50 100644
+> >> > --- a/fs/ext4/super.c
+> >> > +++ b/fs/ext4/super.c
+> >> > @@ -5262,6 +5262,11 @@ static int __ext4_fill_super(struct fs_context *fc, struct super_block *sb)
+> >> >  		goto failed_mount;
+> >> >  
+> >> >  	ext4_hash_info_init(sb);
+> >> > +	if (es->s_def_hash_version == DX_HASH_SIPHASH && 
+> >> > +	    !ext4_has_feature_casefold(sb)) {
+> >> 
+> >> Can we ever have DX_HASH_SIPHASH set up in the super block?  I thought
+> >> it was used solely for directories where ext4_hash_in_dirent(inode) is
+> >> true.
+> > The value of s'def_hash_version is obtained by reading the super block from the
+> > buffer cache of the block device in ext4_load_super().
+> 
+> Yes, I know.  My point is whether this check should just be:
+Based on the existing information, it cannot be confirmed that it is incorrect
+to separately determine the value of s_def_hash_version as DX_HASH_SIPHASH.
+Additionally, I have come up with a better solution, and I will issue the next
+fixed version in a while.
+> 
+> if (es->s_def_hash_version == DX_HASH_SIPHASH)
+> 	goto failed_mount;
+> 
+> Since, IIUC, DX_HASH_SIPHASH is done per-directory and not written to
+> the sb.
+> 
+> >> If this is only for the case of a superblock corruption, perhaps we
+> >> should always reject the mount, whether casefold is enabled or not?
+> > Based on the existing information, it cannot be confirmed whether the superblock
+> > is corrupt, but one thing is clear: if the default hash version of the superblock
+> > is set to DX_HASH_SIPHASH, but the casefold feature is not set at the same time,
+> > it is definitely an error.
 
-Signed-off-by: Davide Ornaghi <d.ornaghi97@gmail.com>
----
- net/netfilter/nft_meta.c    | 2 ++
- net/netfilter/nft_payload.c | 3 +++
- 2 files changed, 5 insertions(+)
-
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index ba0d3683a..e2893077b 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -839,6 +839,8 @@ static int nft_meta_inner_init(const struct nft_ctx *ctx,
-        struct nft_meta *priv = nft_expr_priv(expr);
-        unsigned int len;
-
-+       if (!tb[NFTA_META_KEY] || !tb[NFTA_META_DREG])
-+               return -EINVAL;
-        priv->key = ntohl(nla_get_be32(tb[NFTA_META_KEY]));
-        switch (priv->key) {
-        case NFT_META_PROTOCOL:
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index 0c43d748e..4c6f15ad0 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -650,6 +650,9 @@ static int nft_payload_inner_init(const struct nft_ctx *ctx,
-        struct nft_payload *priv = nft_expr_priv(expr);
-        u32 base;
-
-+       if (!tb[NFTA_PAYLOAD_BASE] || !tb[NFTA_PAYLOAD_OFFSET] ||
-+           !tb[NFTA_PAYLOAD_LEN] || !tb[NFTA_PAYLOAD_DREG])
-+               return -EINVAL;
-        base   = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_BASE]));
-        switch (base) {
-        case NFT_PAYLOAD_TUN_HEADER:
---
-2.34.1
+Lizhi
