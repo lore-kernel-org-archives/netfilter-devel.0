@@ -1,108 +1,107 @@
-Received: from mail-wr1-f52.google.com (mail-wr1-f52.google.com [209.85.221.52])
+Received: from mail-lf1-f47.google.com (mail-lf1-f47.google.com [209.85.167.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4295114B951
-	for <netfilter-devel@vger.kernel.org>; Wed,  5 Jun 2024 09:09:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BB441373
+	for <netfilter-devel@vger.kernel.org>; Wed,  5 Jun 2024 11:04:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717578575; cv=none; b=WI9p9/6sfip/VjCN8peRwj7HfvJHHVj3+rVBV2UeGku9DZ39r9/EfdAptKGA2tbk76RZgajwVnMYgzmNQ6hZ2dO2ODbnKT7Ib9QTQFn6xe3c5RQ3l7IqVhTuRKCKDKJRTNIWExGFck9Qgz9uSLnXTG3YMTVAlP64BOAtlrHeSzw=
+	t=1717585443; cv=none; b=HjJhn/c8MDLFUVyjiUtjo5NXzhaXgtHmaV/5kavdPwe2MDK2/o6FqpLcQ6vJpR44scB0+rKNuF/Lia3EFr8tSGPaVRD51mWPI7zToMEWFoNKwVjF5j3iNKS092EcXb1/56Q0gnUcr/X2iN5x3pB6bkLCuQTo+KFhBDCg4Upn5DU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717578575; c=relaxed/simple;
-	bh=H/xOWZ5L4n5xAiHYw2Q4KfjoBz5ywAXTZXlV5booVn0=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=leGuhfJ2N98p61DUKWS1kh1sL21ujCVz4qhZ4gb5Kgcilu1mhcglvJs3Gmww+xHr0fuK26ppRspK6KLI3aR3p2XDghFIStKqRC/3WDPnsD1y6VQuiJpCaUaPkjyNo1ObbMXbSDrJf1siIDkbSeZkc1k1dLxXJkUMdaA6EycyXZw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=6wind.com; spf=pass smtp.mailfrom=6wind.com; dkim=pass (2048-bit key) header.d=6wind.com header.i=@6wind.com header.b=OKi2oKjX; arc=none smtp.client-ip=209.85.221.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=6wind.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=6wind.com
+	s=arc-20240116; t=1717585443; c=relaxed/simple;
+	bh=YRuTq8icvLt43Xz+g1U1s6coHMoaDqx5UcPioIlfQII=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=ddYQhy40teGtf/021QDAeqXccONb5NWQuevvwyLEUeZx+B4cqmuE/kLMggq7GW66rDym3PMHN4E5QX461AbhoiWTQby4qw4QFy0yjg1dlWq0jwveHGYQlnu8seO2KV2sbnXmGoC3FNIeDPgoPJOG39o80nNVEDL2vd+C8J2+G1M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=MCbsjcFT; arc=none smtp.client-ip=209.85.167.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=6wind.com header.i=@6wind.com header.b="OKi2oKjX"
-Received: by mail-wr1-f52.google.com with SMTP id ffacd0b85a97d-35e5604abdcso406376f8f.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 05 Jun 2024 02:09:34 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MCbsjcFT"
+Received: by mail-lf1-f47.google.com with SMTP id 2adb3069b0e04-52b7e693b8aso733224e87.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 05 Jun 2024 04:04:02 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=6wind.com; s=google; t=1717578572; x=1718183372; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:organization:content-language
-         :from:references:cc:to:subject:reply-to:user-agent:mime-version:date
-         :message-id:from:to:cc:subject:date:message-id:reply-to;
-        bh=+UmpGA+ZeMi4kfohJdgrNuGbikeEYkKaVXbYI+HeV3g=;
-        b=OKi2oKjXLSiCEhQQMwK0i7lhWxpjwASPfPZgW7c4YOqDsBzmmYXOG7z/j9M5DMloir
-         9iYZRfgkWdh3umQWcUCD9K1R1cu8Si56viYGGqueGGsrYf71OfOOa01ZSb661WZohyZE
-         omGrhlLyufgkwA0SP0zK0t3SP7YFP4ACq67ZMvSOln3xoV1YqCw9TDGh4CZKbSrboACR
-         +AsTJBx8i+4WidyJxyqTEAPNBNEadkV5bDXMYrEvE99EkqYru+JcBtxOlmKaDw+07kxG
-         VyFlHmWVpoDWOXoqv9G8CMiRzacPPX+46HhPIQBx/vi6p1CayiQhCoajpVbHo9g+UOnw
-         8tkQ==
+        d=gmail.com; s=20230601; t=1717585440; x=1718190240; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=YelDKh653St8Uk3tIl8zzDR/OIzJiBFQgK+ie3d/Mz0=;
+        b=MCbsjcFTrWR4uOyPl7bK7m0ZOyYDlTbsjQJ3ND5hFz870EqBFAOffihURbgFuMV/cA
+         cf0WVpPyzKrv1j6FngXAHnj9zQwpJakTzF0aEacPeD3FnwSMjLJf05Q6nKpUe9zq/XD7
+         AyMIhkHUXXrQ+QiYBXmYJaynhlQf4p3IguGN2mttalq8EnKObjzU8RC/QyU8KyuaCPyK
+         IXJ4g96r/bEXRZYL9KjaTFP8ieR99QjD8way95DcdSlRld2G/fB0ya8whugm1mRz3Yfw
+         myPJcVxbuo3UfKMPjC9EleoYHmAvZ5PWObwUeIJn7oJEe9DJn6KKdLbsg0GdnXUzrjAQ
+         aM+g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1717578572; x=1718183372;
-        h=content-transfer-encoding:in-reply-to:organization:content-language
-         :from:references:cc:to:subject:reply-to:user-agent:mime-version:date
-         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=+UmpGA+ZeMi4kfohJdgrNuGbikeEYkKaVXbYI+HeV3g=;
-        b=a+T831Ttug/Tq2aglBaM+TevCUdJFRm/aQY+ecF3N+hMNpCThiLwVSNxdqnp7Isk9M
-         Z1iq0oS94QSEpUSJ1wyyHyOakGOiLrAwvWmnnDFhJJUZ4/JXlYQP74ka4QC4sZt//g/0
-         WoYgoZuLhHaNqKPHE6yIb0simzVP43MI6WppKUlvjooAGC6uXCCjDdtTssYtPsvhFkSl
-         RcT6IRpCkF0fZXY2W4dWZsC7LrFI0GCRvWSktLcyQv36/3uKj048Ez1SJ3fIk/cxmEgp
-         cIsFj+A0QZLR3n9ZUSEgzkAOqobNP8p/daE+KZ4qFu22vXxGqccRuyG7hkthyY6xJixZ
-         AFCw==
-X-Forwarded-Encrypted: i=1; AJvYcCXOMd6o561dWJa6Yqe1oz/PrvF50YvGEi5F+qQ3075qW11eJIJERkA2Wzb8Mml7GZZtw4gVtTU10HyMPETXeYFo7EtGjS9TaX3BaG9D4mxS
-X-Gm-Message-State: AOJu0YyMp9J1l4KTq2Qoj5z2y4AAktXf82OXVdS9eKcJKNYA8QwCEfkx
-	XQdUOFIn1C6TpD28cNfWdj8T83P3eA0C8VEzq+zC1RMRLdQIoal1YTKSN4OuPurLw5UdXvHlc4R
-	/
-X-Google-Smtp-Source: AGHT+IGigeZlMKJ5xlsed0h4vjvUJM8+w/gb50iEjVMBFpz47EWxxpTlL+2yqiHfs06YqiZSo8wp3w==
-X-Received: by 2002:a5d:460e:0:b0:354:dfd4:4f62 with SMTP id ffacd0b85a97d-35e8395b176mr1559128f8f.5.1717578572641;
-        Wed, 05 Jun 2024 02:09:32 -0700 (PDT)
-Received: from ?IPV6:2a01:e0a:b41:c160:a705:b9f1:ebc:16a5? ([2a01:e0a:b41:c160:a705:b9f1:ebc:16a5])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-35dd04ca434sm13841259f8f.30.2024.06.05.02.09.31
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 05 Jun 2024 02:09:31 -0700 (PDT)
-Message-ID: <c527582b-05dd-45bf-a9b1-2499b01280ee@6wind.com>
-Date: Wed, 5 Jun 2024 11:09:31 +0200
+        d=1e100.net; s=20230601; t=1717585440; x=1718190240;
+        h=cc:to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=YelDKh653St8Uk3tIl8zzDR/OIzJiBFQgK+ie3d/Mz0=;
+        b=TjBF7G0OANvFkkEGvJndPxrUDegUuB2fvr4YZ3CKBowmvlAAqUAsZDX3TR6D6chygo
+         UytEcRr5o6RR8QtbBjzLoLUYvUthrM1GQ7mNWaHlWdj1reZwPZv/qmJcEc/97mlRJM7x
+         QLTygqiFfmFKVu4C022DsaKVBCRyWAb5+kAlrai4ICgguE1mDV7iWOrvIHyxt8DbhIVH
+         XL/ROrF4Wglxozm2I8NMRu2LsvKTWD0m021rz9D4a72VSg7Ny5gxYGn7yDtfE1tOWItC
+         t6PSfXDuXHCOwrNp5oTueRhjcqazQGAz53R5xveyz/dD+YelPIyy9fcYCV8IQt5M3fhi
+         eDHg==
+X-Gm-Message-State: AOJu0Yw9El0NcRil+suYI67aSiVyHu8T1XzJFWKPVA35vV+U2Kr/kcpg
+	iJNrrvNNMJvQrlmT6NTdU0x1JZ28thbJF4P5Meel9GCc/wH7vAA/NRdFVrl9M2sUK3/uXUkGkv4
+	mdXC03+Y9+eaTJVBzGUns1zSzEScXWhERThw=
+X-Google-Smtp-Source: AGHT+IFQhaaQMEvn8UyR3QSzCcwSKhxvPmfzX7Hbudr3BUxIX3XI/sNC6ue8Ok/jqxfTks3Sn7KxeGma75rSMTFIcag=
+X-Received: by 2002:ac2:4343:0:b0:523:2e60:64c6 with SMTP id
+ 2adb3069b0e04-52ba226953fmr1318337e87.11.1717585440094; Wed, 05 Jun 2024
+ 04:04:00 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Reply-To: nicolas.dichtel@6wind.com
-Subject: Re: [PATCH nf] netfilter: restore default behavior for
- nf_conntrack_events
-To: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, netdev@vger.kernel.org,
- netfilter-devel@vger.kernel.org, stable@vger.kernel.org
-References: <20240604135438.2613064-1-nicolas.dichtel@6wind.com>
- <ZmAn7VcLHsdAI8Xg@strlen.de>
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Content-Language: en-US
-Organization: 6WIND
-In-Reply-To: <ZmAn7VcLHsdAI8Xg@strlen.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+From: Davide Ornaghi <d.ornaghi97@gmail.com>
+Date: Wed, 5 Jun 2024 13:03:45 +0200
+Message-ID: <CAHH-0Ud0OvWYzBpXqg1noeDWHg7ZpDWPue4-Pr_Nt9-HjoUXNQ@mail.gmail.com>
+Subject: [PATCH nft] nf_tables: nft_inner: validate mandatory meta and payload
+ netlink attributes
+To: netfilter-devel@vger.kernel.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, kadlec@netfilter.org, davem@davemloft.net, 
+	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com, 
+	Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset="UTF-8"
 
-Le 05/06/2024 à 10:55, Florian Westphal a écrit :
-> Nicolas Dichtel <nicolas.dichtel@6wind.com> wrote:
->> Since the below commit, there are regressions for legacy setups:
->> 1/ conntracks are created while there are no listener
->> 2/ a listener starts and dumps all conntracks to get the current state
->> 3/ conntracks deleted before the listener has started are not advertised
->>
->> This is problematic in containers, where conntracks could be created early.
->> This sysctl is part of unsafe sysctl and could not be changed easily in
->> some environments.
->>
->> Let's switch back to the legacy behavior.
-> 
-> :-(
-> 
-> Would it be possible to resolve this for containers by setting
-> the container default to 1 if init_net had it changed to 1 at netns
-> creation time?
+Check for mandatory netlink attributes in payload and meta expression
+when used embedded from the inner expression, otherwise NULL pointer
+dereference is possible if userspace.
 
-When we have access to the host, it is possible to allow the configuration of
-this (unsafe) sysctl for the pod. But there are cases where we don't have access
-to the host.
+Fixes: a150d122b6bd ("netfilter: nft_meta: add inner match support")
+Fixes: 3a07327d10a0 ("netfilter: nft_inner: support for inner tunnel
+header matching")
+Signed-off-by: Davide Ornaghi <d.ornaghi97@gmail.com>
+---
+ net/netfilter/nft_meta.c    | 2 ++
+ net/netfilter/nft_payload.c | 3 +++
+ 2 files changed, 5 insertions(+)
 
-https://docs.openshift.com/container-platform/4.9/nodes/containers/nodes-containers-sysctls.html#nodes-containers-sysctls-unsafe_nodes-containers-using
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index ba0d3683a..e2893077b 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -839,6 +839,8 @@ static int nft_meta_inner_init(const struct nft_ctx *ctx,
+        struct nft_meta *priv = nft_expr_priv(expr);
+        unsigned int len;
 
++       if (!tb[NFTA_META_KEY] || !tb[NFTA_META_DREG])
++               return -EINVAL;
+        priv->key = ntohl(nla_get_be32(tb[NFTA_META_KEY]));
+        switch (priv->key) {
+        case NFT_META_PROTOCOL:
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index 0c43d748e..4c6f15ad0 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -650,6 +650,9 @@ static int nft_payload_inner_init(const struct nft_ctx *ctx,
+        struct nft_payload *priv = nft_expr_priv(expr);
+        u32 base;
 
-Regards,
-Nicolas
++       if (!tb[NFTA_PAYLOAD_BASE] || !tb[NFTA_PAYLOAD_OFFSET] ||
++           !tb[NFTA_PAYLOAD_LEN] || !tb[NFTA_PAYLOAD_DREG])
++               return -EINVAL;
+        base   = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_BASE]));
+        switch (base) {
+        case NFT_PAYLOAD_TUN_HEADER:
+--
+2.34.1
