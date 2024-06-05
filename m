@@ -1,98 +1,104 @@
-Received: from mx0a-0064b401.pphosted.com (mx0a-0064b401.pphosted.com [205.220.166.238])
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6268333F7;
-	Wed,  5 Jun 2024 01:24:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.166.238
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD7A7946C
+	for <netfilter-devel@vger.kernel.org>; Wed,  5 Jun 2024 05:52:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717550659; cv=none; b=hi0PILRaQuB3O4Gmu1WCxyXjTBfeD9hjhvCOt5oPdaepT4JwxhToqS1Cag/2ho+n6cj3uZ8xUdR4WUX2zKSMK07NL737qPLCaHE47KIbYnsZ8xlCVAsUn91HaDF6EPmm/Jr+IY0VL79znGMJkAalN4qfgk6VJUTjIMWUlJO3o1w=
+	t=1717566741; cv=none; b=hd7aEO197Y83EyVU8dk+D/gQLQNG06EhQE1dG2Ofg1dPJ4pSvMqFcJuFMHZSm8iMsr9tarEL+nrcRxJySCA4mg/JZu0ti6ehgRCbJI1MQ/llauEJQjx4jRbWi6guhkX9DVuWVCZw+bkP9nh/QhsYTgi2pRHJu+dlzf6PY7BOdCM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717550659; c=relaxed/simple;
-	bh=Id9sImMrkS3WBgztVALbU9ktfSbg5X5ksatQi+bWftI=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=enZ/MAMrr7f8+icfgLIJOaiReoj5L86AFgWk2PzYlBY2CAz2IItkxNWpM7f9ehomOjCbRHtWcpivRJ22Erzk44Q9n/zWUNs/TVDPSW0ugTpxnjTzYHiD3l2bmS/QJ5y3za22WhIk4VoexmolrRthpniZoe5V2qA9C2XmjEpeHJY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=windriver.com; spf=pass smtp.mailfrom=windriver.com; arc=none smtp.client-ip=205.220.166.238
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=windriver.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=windriver.com
-Received: from pps.filterd (m0250809.ppops.net [127.0.0.1])
-	by mx0a-0064b401.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 4550LIkK016063;
-	Tue, 4 Jun 2024 18:23:44 -0700
-Received: from ala-exchng02.corp.ad.wrs.com (ala-exchng02.wrs.com [147.11.82.254])
-	by mx0a-0064b401.pphosted.com (PPS) with ESMTPS id 3yg35f3a8n-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-	Tue, 04 Jun 2024 18:23:44 -0700 (PDT)
-Received: from ALA-EXCHNG02.corp.ad.wrs.com (147.11.82.254) by
- ALA-EXCHNG02.corp.ad.wrs.com (147.11.82.254) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39; Tue, 4 Jun 2024 18:23:43 -0700
-Received: from pek-lpd-ccm6.wrs.com (147.11.136.210) by
- ALA-EXCHNG02.corp.ad.wrs.com (147.11.82.254) with Microsoft SMTP Server id
- 15.1.2507.39 via Frontend Transport; Tue, 4 Jun 2024 18:23:36 -0700
-From: Lizhi Xu <lizhi.xu@windriver.com>
-To: <krisman@suse.de>
-CC: <adilger.kernel@dilger.ca>, <coreteam@netfilter.org>,
-        <davem@davemloft.net>, <ebiggers@kernel.org>, <fw@strlen.de>,
-        <jaegeuk@kernel.org>, <kadlec@netfilter.org>, <kuba@kernel.org>,
-        <linux-ext4@vger.kernel.org>, <linux-fscrypt@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <lizhi.xu@windriver.com>,
-        <lkp@intel.com>, <llvm@lists.linux.dev>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <oe-kbuild-all@lists.linux.dev>,
-        <pablo@netfilter.org>,
-        <syzbot+340581ba9dceb7e06fb3@syzkaller.appspotmail.com>,
-        <syzkaller-bugs@googlegroups.com>, <tytso@mit.edu>
-Subject: [PATCH V6] fs/ext4: Filesystem without casefold feature cannot be mounted with spihash
-Date: Wed, 5 Jun 2024 09:23:35 +0800
-Message-ID: <20240605012335.44086-1-lizhi.xu@windriver.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <87le3kle87.fsf@mailhost.krisman.be>
-References: <87le3kle87.fsf@mailhost.krisman.be>
+	s=arc-20240116; t=1717566741; c=relaxed/simple;
+	bh=7QfuTFmIvOt1VUhc5FeIscPZl52KY6EThgDk4dv8nQo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=fpo+8u8Lsuh7rR/IeFWYJ1bd1h0oF/pJqyc9ZykoaOIDCnSxfDNhRH47sllweAwWABY4nONkkN2TyGTEcxM7QeyakoSRM73NHgKRg3gdO8pgqWuURCoipbgsapaPUtWShd99YDVmSejmH5efUhAlXsB0ZsFi1OkT/oQotZsRpsY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [46.222.218.95] (port=2834 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1sEjZ8-00A2mZ-CV; Wed, 05 Jun 2024 07:52:08 +0200
+Date: Wed, 5 Jun 2024 07:52:04 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Davide Ornaghi <d.ornaghi97@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, kadlec@netfilter.org,
+	davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+	pabeni@redhat.com, fw@strlen.de
+Subject: Re: [PATCH nft] Check for NULL netlink attributes
+Message-ID: <Zl_9BPZ8sKK9PzR9@calendula>
+References: <CAHH-0UdpvNzWOD9Ef1KHF=hYsoyYGi0K=okkyJormxv=-deNbQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-Proofpoint-GUID: 2upWjM2V16NiGPCPyDb6ZG4I8yCG6TLl
-X-Proofpoint-ORIG-GUID: 2upWjM2V16NiGPCPyDb6ZG4I8yCG6TLl
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1039,Hydra:6.0.680,FMLib:17.12.28.16
- definitions=2024-06-04_11,2024-06-04_02,2024-05-17_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0
- mlxlogscore=999 priorityscore=1501 adultscore=0 mlxscore=0 phishscore=0
- clxscore=1015 malwarescore=0 spamscore=0 lowpriorityscore=0 suspectscore=0
- bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.21.0-2405170001 definitions=main-2406050009
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <CAHH-0UdpvNzWOD9Ef1KHF=hYsoyYGi0K=okkyJormxv=-deNbQ@mail.gmail.com>
+X-Spam-Score: -1.9 (-)
 
-When mounting the ext4 filesystem, if the default hash version is set to 
-DX_HASH_SIPHASH but the casefold feature is not set, exit the mounting.
+Hi Davide,
 
-Reported-by: syzbot+340581ba9dceb7e06fb3@syzkaller.appspotmail.com
-Signed-off-by: Lizhi Xu <lizhi.xu@windriver.com>
----
- fs/ext4/super.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+I suggest this patch subject:
 
-diff --git a/fs/ext4/super.c b/fs/ext4/super.c
-index c682fb927b64..d0645af3e66e 100644
---- a/fs/ext4/super.c
-+++ b/fs/ext4/super.c
-@@ -3593,6 +3593,14 @@ int ext4_feature_set_ok(struct super_block *sb, int readonly)
- 			 "mounted without CONFIG_UNICODE");
- 		return 0;
- 	}
-+#else
-+	if (EXT4_SB(sb)->s_es->s_def_hash_version == DX_HASH_SIPHASH &&
-+	    !ext4_has_feature_casefold(sb)) {
-+		ext4_msg(sb, KERN_ERR,
-+			 "Filesystem without casefold feature cannot be "
-+			 "mounted with spihash");
-+		return 0;
-+	}
- #endif
- 
- 	if (readonly)
--- 
-2.43.0
+        nf_tables: nft_inner: validate mandatory meta and payload netlink attributes
 
+On Tue, Jun 04, 2024 at 11:36:21PM +0200, Davide Ornaghi wrote:
+> Payload and meta nftables exprs can be embedded into inner exprs via
+> nft_expr_inner_parse, which doesn't check for NULL netlink attributes,
+> unlike other exprs passing through select_ops.
+> Add the missing checks to nft_meta_inner_init and nft_payload_inner_init
+> to prevent dereferencing NULL pointers and eventually causing UAF reads on commit_mutex.
+
+I'd suggest this patch description:
+
+"Check for mandatory netlink attributes in payload and meta expression
+when used embedded from the inner expression, otherwise NULL pointer
+dereference is possible if userspace."
+
+And please add:
+
+Fixes: a150d122b6bd ("netfilter: nft_meta: add inner match support")
+Fixes: 3a07327d10a0 ("netfilter: nft_inner: support for inner tunnel header matching")
+
+Thanks a lot for submitting your fix.
+
+> Signed-off-by: Davide Ornaghi <d.ornaghi97@gmail.com>
+> ---
+>  net/netfilter/nft_meta.c    | 2 ++
+>  net/netfilter/nft_payload.c | 3 +++
+>  2 files changed, 5 insertions(+)
+> 
+> diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+> index ba0d3683a..e2893077b 100644
+> --- a/net/netfilter/nft_meta.c
+> +++ b/net/netfilter/nft_meta.c
+> @@ -839,6 +839,8 @@ static int nft_meta_inner_init(const struct nft_ctx
+> *ctx,
+>         struct nft_meta *priv = nft_expr_priv(expr);
+>         unsigned int len;
+> 
+> +       if (!tb[NFTA_META_KEY] || !tb[NFTA_META_DREG])
+> +               return -EINVAL;
+>         priv->key = ntohl(nla_get_be32(tb[NFTA_META_KEY]));
+>         switch (priv->key) {
+>         case NFT_META_PROTOCOL:
+> diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+> index 0c43d748e..4c6f15ad0 100644
+> --- a/net/netfilter/nft_payload.c
+> +++ b/net/netfilter/nft_payload.c
+> @@ -650,6 +650,9 @@ static int nft_payload_inner_init(const struct nft_ctx
+> *ctx,
+>         struct nft_payload *priv = nft_expr_priv(expr);
+>         u32 base;
+> 
+> +       if (!tb[NFTA_PAYLOAD_BASE] || !tb[NFTA_PAYLOAD_OFFSET] ||
+> +           !tb[NFTA_PAYLOAD_LEN] || !tb[NFTA_PAYLOAD_DREG])
+> +               return -EINVAL;
+>         base   = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_BASE]));
+>         switch (base) {
+>         case NFT_PAYLOAD_TUN_HEADER:
+> --
+> 2.34.1
