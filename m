@@ -1,202 +1,93 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f51.google.com (mail-lf1-f51.google.com [209.85.167.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E167D1D696;
-	Thu,  6 Jun 2024 13:05:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88102194C99
+	for <netfilter-devel@vger.kernel.org>; Thu,  6 Jun 2024 13:07:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717679106; cv=none; b=CUCanjaYpAsOQHu5bHpc5O97oMbEjggMKH9j1es+5P/7LmBH1WzYdeaFbwXIa8UTcBg6FSMJyV4mbtxs7kMjfXvjC4ULkN99ggQtlCo+gNSYU3JGgMKnHVRt0t716W9TJk2l8inVVbpgBHb1kpovPOoUYdC04LZ1YaTJVJz4UQE=
+	t=1717679232; cv=none; b=i8UCzp+GnQdrvDoFl3AS/yT+feeQWP4eFCIJ4EPhBVf2L8trX1lU0JttijyrR5FyfN6o/TF+AD8skqL8sFF7jldBgGwRUK61Acwi8rIYPhhZXHsM03e8JyXeAH6gNsrxsXmoW+dIkCy/SAE8DxhzJghtmi2jOKCm8uLFqoV06+Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717679106; c=relaxed/simple;
-	bh=ipNwps6GA/THnHJMQ4ov1vutBYXr+eaMshxe1CAGqNE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=aPmycRG68NfTYtSwkKX+SquAx/DX4I8BFSi7MXfrEuB2lxfsY6+0W4mziDlpBXBgs7EvXtzkOYAXVrtjwfThUOrzrZP9tpyP6MRUedc6FFDHw43rhstLMXWoGPvBJQ9DCBBxsFBU4/HtBjzMYouH90q+sa29fLMt3ejHf7+bW/g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1sFCnZ-0003EH-75; Thu, 06 Jun 2024 15:04:57 +0200
-Date: Thu, 6 Jun 2024 15:04:57 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Christoph Paasch <cpaasch@apple.com>,
-	Netfilter <netfilter-devel@vger.kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
-	daniel@iogearbox.net, willemb@google.com
-Subject: Re: [PATCH nf] netfilter: nf_reject: init skb->dev for reset packet
-Message-ID: <20240606130457.GA9890@breakpoint.cc>
-References: <20240604120311.27300-1-fw@strlen.de>
- <FF8A506F-6F0F-440E-9F52-B27D05731B77@apple.com>
- <20240605181450.GA7176@breakpoint.cc>
- <ZmCwlbF8BvLGNgRM@calendula>
- <20240605190833.GB7176@breakpoint.cc>
- <20240606092620.GC4688@breakpoint.cc>
+	s=arc-20240116; t=1717679232; c=relaxed/simple;
+	bh=Etq3BFH0SUDQc3u7gbIgGA42LQ02usvZh0xzy0dG8VE=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=fNS5fPnkLEFS9l5sCHUzJF79+P+/+PgmK1us7rm8ibnmngW9yfBRXVM4isx77sInJAmFc5WAHz0u2WCEQnLt9AMV61yJHsMq0HdGGBSwts9o5iXCEJ/yaczr48BE9Q9D/2wdPBN0GIbTwLM/TgwEXDcvSxvuPIXJodk70lee7RE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=6wind.com; spf=pass smtp.mailfrom=6wind.com; dkim=pass (2048-bit key) header.d=6wind.com header.i=@6wind.com header.b=HVEdj6k8; arc=none smtp.client-ip=209.85.167.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=6wind.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=6wind.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=6wind.com header.i=@6wind.com header.b="HVEdj6k8"
+Received: by mail-lf1-f51.google.com with SMTP id 2adb3069b0e04-52b8b7b8698so1204468e87.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 06 Jun 2024 06:07:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=6wind.com; s=google; t=1717679229; x=1718284029; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:organization:content-language
+         :from:references:cc:to:subject:reply-to:user-agent:mime-version:date
+         :message-id:from:to:cc:subject:date:message-id:reply-to;
+        bh=X7/YjkjE87q9fVWLbAbF50WpMhrk7+YRouKRmXLf4ss=;
+        b=HVEdj6k8ZweIWXWv63y8axEwQ/cJAkUQd/SjI2vIdYXS41l3wDskJETC+ZbU44KxqX
+         oEa6c3TaH/dKrbYTyGAh82e4vKJeWlMGDsRd3UrTqQDpukWtAYkSpPJieuO3iR4JIyC9
+         pAAidD/WILy4VhCzKFIDEPtcGnjY05m0F+iw7Xyp/C6awK0mjOyZLimiMP7DxvOiGM4v
+         b8HbiKD2b62AwDcJsvkRa8gLg6yIwnAkD8lNihGQGvd2GGOezqloibY8R6FW8ZKO4X1T
+         xh/r4zUWeXK8qUFUz/ej63kmrX8RYsExZpmEtcbrsnJEekRPfJkIMt6XpHN3pGsVDkO/
+         L8Xg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1717679229; x=1718284029;
+        h=content-transfer-encoding:in-reply-to:organization:content-language
+         :from:references:cc:to:subject:reply-to:user-agent:mime-version:date
+         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=X7/YjkjE87q9fVWLbAbF50WpMhrk7+YRouKRmXLf4ss=;
+        b=hKsr3LVEC/Ijo6GU/c5TZnshfMKl1YUoawdCU6il/gDH7tHJ8HpHG6KvE83IwqRJJz
+         VZf3dGViVcmm/45G/NuphKbk4sFMYtrUvZZ5KcImSAu4uuzp8PpeaJW7rma9PazGE2EB
+         iQ3Ne4TPxOJQAn8BxZ8Akse/K/E395ABS1pDEovywYz1R6iDQ8VViOpRXnTL+jITiuGd
+         dLy/ms/LQR4rP3dmRx9AJLe2cpR3fdoaRu0/yOrkO3reSvDjCY7qOYmmvp5MOsbJP2yF
+         bdjFuaniyXrVYL4Gl3o5xro+XMFT+7JoabLlUhogPxxo9XvIqf2mQOWpnfE3HTtKUXOs
+         mD8g==
+X-Forwarded-Encrypted: i=1; AJvYcCUKHeyNftSNxAFz8VZMcGoSH5qLxLzm9HiRwNKGLSy/hrut4vLGRePPXNc+gzL7sPbZm1a0px5ccatL77HNmO3wO6D/Lg4U7yrNIiFY2ykJ
+X-Gm-Message-State: AOJu0Yw9VNyt9zQphOXlzZTCnp5dXrxXwxCpo7uvDXGkURlklxmWzV2Y
+	5eQsijDULF2RPg/xIEpNgl8gnqC+tVjNJK/ooCC9pBGll9VGeGpSXrK8d+OqBt0=
+X-Google-Smtp-Source: AGHT+IGLIp8RENe2geB0EOGlL/St+z0m6WGvSCPoo9gsCnSNdlZPwexPjET61pIuui0zOW6sPdb95A==
+X-Received: by 2002:a05:6512:b92:b0:529:593f:3f3c with SMTP id 2adb3069b0e04-52bab4f4c6bmr4590296e87.53.1717679228688;
+        Thu, 06 Jun 2024 06:07:08 -0700 (PDT)
+Received: from ?IPV6:2a01:e0a:b41:c160:ff33:6de4:d126:4280? ([2a01:e0a:b41:c160:ff33:6de4:d126:4280])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4215c1aad97sm21117195e9.20.2024.06.06.06.07.07
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 06 Jun 2024 06:07:08 -0700 (PDT)
+Message-ID: <9def8383-55ba-407a-af58-838dff2f3e49@6wind.com>
+Date: Thu, 6 Jun 2024 15:07:07 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240606092620.GC4688@breakpoint.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+User-Agent: Mozilla Thunderbird
+Reply-To: nicolas.dichtel@6wind.com
+Subject: Re: [PATCH nf] netfilter: restore default behavior for
+ nf_conntrack_events
+To: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, netdev@vger.kernel.org,
+ netfilter-devel@vger.kernel.org, stable@vger.kernel.org
+References: <20240604135438.2613064-1-nicolas.dichtel@6wind.com>
+ <ZmAn7VcLHsdAI8Xg@strlen.de> <c527582b-05dd-45bf-a9b1-2499b01280ee@6wind.com>
+ <ZmCxb2MqzeQPDFZt@calendula> <1eafd4a6-8a7e-48d7-b0a5-6f0f328cf7db@6wind.com>
+ <20240606085352.GB4688@breakpoint.cc>
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Content-Language: en-US
+Organization: 6WIND
+In-Reply-To: <20240606085352.GB4688@breakpoint.cc>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-Florian Westphal <fw@strlen.de> wrote:
-> ... doesn't solve the nft_hash.c issue (which calls _symmetric version, and
-> that uses flow_key definiton that isn't exported outside flow_dissector.o.
-
-and here is the diff that would pass net for _symmetric, not too
-horrible I think.
-
-With that and the copypaste of skb_get_hash into nf_trace infra
-netfilter can still pass skbs to the flow dissector with NULL skb->sk,dev
-but the WARN would no longer trigger as struct net is non-null.
-
-diff --git a/drivers/net/tun.c b/drivers/net/tun.c
-index 9254bca2813d..e9e6cf3d148c 100644
---- a/drivers/net/tun.c
-+++ b/drivers/net/tun.c
-@@ -524,12 +524,13 @@ static inline void tun_flow_save_rps_rxhash(struct tun_flow_entry *e, u32 hash)
-  */
- static u16 tun_automq_select_queue(struct tun_struct *tun, struct sk_buff *skb)
- {
-+	const struct net *net = dev_net(tun->dev);
- 	struct tun_flow_entry *e;
- 	u32 txq, numqueues;
- 
- 	numqueues = READ_ONCE(tun->numqueues);
- 
--	txq = __skb_get_hash_symmetric(skb);
-+	txq = __skb_get_hash_symmetric(net, skb);
- 	e = tun_flow_find(&tun->flows[tun_hashfn(txq)], txq);
- 	if (e) {
- 		tun_flow_save_rps_rxhash(e, txq);
-@@ -1038,10 +1039,11 @@ static void tun_automq_xmit(struct tun_struct *tun, struct sk_buff *skb)
- 		/* Select queue was not called for the skbuff, so we extract the
- 		 * RPS hash and save it into the flow_table here.
- 		 */
-+		const struct net *net = dev_net(tun->dev);
- 		struct tun_flow_entry *e;
- 		__u32 rxhash;
- 
--		rxhash = __skb_get_hash_symmetric(skb);
-+		rxhash = __skb_get_hash_symmetric(net, skb);
- 		e = tun_flow_find(&tun->flows[tun_hashfn(rxhash)], rxhash);
- 		if (e)
- 			tun_flow_save_rps_rxhash(e, rxhash);
-@@ -1938,7 +1940,7 @@ static ssize_t tun_get_user(struct tun_struct *tun, struct tun_file *tfile,
- 	 */
- 	if (!rcu_access_pointer(tun->steering_prog) && tun->numqueues > 1 &&
- 	    !tfile->detached)
--		rxhash = __skb_get_hash_symmetric(skb);
-+		rxhash = __skb_get_hash_symmetric(dev_net(tun->dev), skb);
- 
- 	rcu_read_lock();
- 	if (unlikely(!(tun->dev->flags & IFF_UP))) {
-@@ -2521,7 +2523,7 @@ static int tun_xdp_one(struct tun_struct *tun,
- 
- 	if (!rcu_dereference(tun->steering_prog) && tun->numqueues > 1 &&
- 	    !tfile->detached)
--		rxhash = __skb_get_hash_symmetric(skb);
-+		rxhash = __skb_get_hash_symmetric(dev_net(tun->dev), skb);
- 
- 	if (tfile->napi_enabled) {
- 		queue = &tfile->sk.sk_write_queue;
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index 1c2902eaebd3..60a4dc5586c8 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -1493,7 +1493,7 @@ __skb_set_sw_hash(struct sk_buff *skb, __u32 hash, bool is_l4)
- }
- 
- void __skb_get_hash(struct sk_buff *skb);
--u32 __skb_get_hash_symmetric(const struct sk_buff *skb);
-+u32 __skb_get_hash_symmetric(const struct net *net, const struct sk_buff *skb);
- u32 skb_get_poff(const struct sk_buff *skb);
- u32 __skb_get_poff(const struct sk_buff *skb, const void *data,
- 		   const struct flow_keys_basic *keys, int hlen);
-diff --git a/net/core/flow_dissector.c b/net/core/flow_dissector.c
-index f82e9a7d3b37..634896129780 100644
---- a/net/core/flow_dissector.c
-+++ b/net/core/flow_dissector.c
-@@ -1831,14 +1831,14 @@ EXPORT_SYMBOL(make_flow_keys_digest);
- 
- static struct flow_dissector flow_keys_dissector_symmetric __read_mostly;
- 
--u32 __skb_get_hash_symmetric(const struct sk_buff *skb)
-+u32 __skb_get_hash_symmetric(const struct net *net, const struct sk_buff *skb)
- {
- 	struct flow_keys keys;
- 
- 	__flow_hash_secret_init();
- 
- 	memset(&keys, 0, sizeof(keys));
--	__skb_flow_dissect(NULL, skb, &flow_keys_dissector_symmetric,
-+	__skb_flow_dissect(net, skb, &flow_keys_dissector_symmetric,
- 			   &keys, NULL, 0, 0, 0, 0);
- 
- 	return __flow_hash_from_keys(&keys, &hashrnd);
-diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
-index 92d47e469204..3e7296ed5319 100644
---- a/net/netfilter/nft_hash.c
-+++ b/net/netfilter/nft_hash.c
-@@ -51,7 +51,8 @@ static void nft_symhash_eval(const struct nft_expr *expr,
- 	struct sk_buff *skb = pkt->skb;
- 	u32 h;
- 
--	h = reciprocal_scale(__skb_get_hash_symmetric(skb), priv->modulus);
-+	h = reciprocal_scale(__skb_get_hash_symmetric(nft_net(pkt), skb),
-+			     priv->modulus);
- 
- 	regs->data[priv->dreg] = h + priv->offset;
- }
-diff --git a/net/openvswitch/actions.c b/net/openvswitch/actions.c
-index 964225580824..0e6166784972 100644
---- a/net/openvswitch/actions.c
-+++ b/net/openvswitch/actions.c
-@@ -1084,7 +1084,8 @@ static int clone(struct datapath *dp, struct sk_buff *skb,
- 			     !dont_clone_flow_key);
- }
- 
--static void execute_hash(struct sk_buff *skb, struct sw_flow_key *key,
-+static void execute_hash(const struct net *net,
-+			 struct sk_buff *skb, struct sw_flow_key *key,
- 			 const struct nlattr *attr)
- {
- 	struct ovs_action_hash *hash_act = nla_data(attr);
-@@ -1097,7 +1098,7 @@ static void execute_hash(struct sk_buff *skb, struct sw_flow_key *key,
- 		/* OVS_HASH_ALG_SYM_L4 hashing type.  NOTE: this doesn't
- 		 * extend past an encapsulated header.
- 		 */
--		hash = __skb_get_hash_symmetric(skb);
-+		hash = __skb_get_hash_symmetric(net, skb);
- 	}
- 
- 	hash = jhash_1word(hash, hash_act->hash_basis);
-@@ -1359,7 +1360,7 @@ static int do_execute_actions(struct datapath *dp, struct sk_buff *skb,
- 			break;
- 
- 		case OVS_ACTION_ATTR_HASH:
--			execute_hash(skb, key, a);
-+			execute_hash(ovs_dp_get_net(dp), skb, key, a);
- 			break;
- 
- 		case OVS_ACTION_ATTR_PUSH_MPLS: {
-diff --git a/net/packet/af_packet.c b/net/packet/af_packet.c
-index ea3ebc160e25..b047fdb0c02c 100644
---- a/net/packet/af_packet.c
-+++ b/net/packet/af_packet.c
-@@ -1364,7 +1364,9 @@ static unsigned int fanout_demux_hash(struct packet_fanout *f,
- 				      struct sk_buff *skb,
- 				      unsigned int num)
- {
--	return reciprocal_scale(__skb_get_hash_symmetric(skb), num);
-+	struct net *net = read_pnet(&f->net);
-+
-+	return reciprocal_scale(__skb_get_hash_symmetric(net, skb), num);
- }
- 
- static unsigned int fanout_demux_lb(struct packet_fanout *f,
+Le 06/06/2024 à 10:53, Florian Westphal a écrit :
+> Nicolas Dichtel <nicolas.dichtel@6wind.com> wrote:
+>> I understand it's "sad" to keep nf_conntrack_events=1, but this change breaks
+>> the backward compatibility. A container migrated to a host with a recent kernel
+>> is broken.
+>> Usually, in the networking stack, sysctl are added to keep the legacy behavior
+>> and enable new systems to use "modern" features. There are a lot of examples :)
+> 
+> Weeks of work down the drain.  I wonder if we can make any changes aside
+> from bug fixes in the future.
+The commit doesn't remove the optimization, it only keeps the existing behavior.
+Systems that require this optimization, could still turn nf_conntrack_event to 2.
