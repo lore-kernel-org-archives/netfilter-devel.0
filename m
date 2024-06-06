@@ -1,73 +1,106 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A272F49657
-	for <netfilter-devel@vger.kernel.org>; Wed,  5 Jun 2024 22:24:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2B391C2E;
+	Thu,  6 Jun 2024 00:35:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717626288; cv=none; b=Dod7tkFrl38szJz9SJIkyHTE/FPkNKDvgKGat98W6eJHSt3dLbUZoROIxtAkWG+2BHdkp6dz8xev21GyYtht/Mmbqm7myOESDKTiWfXrxmRHQZu2MbmPhASckxaYYIePvVqQlXRkiW5+3R+btspxMJgzV5coB0aLmmuFwUJaR0U=
+	t=1717634140; cv=none; b=D7jQiu6kE1F1vw/uUCnPBy3Yk99yDMUMpQBLz0PXPCpxzciXead1Xp14t9UqGwBx60frM5pWri+trczRkmrZkNOrf9Yf5tto67wxyhW7LUBVbFDMkti3LQyw7UaqUszMM09fQWiAO9QJVpVp4hJd6wwFtBg13crgU6ewdH6nYLo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717626288; c=relaxed/simple;
-	bh=7esYb5c8qMbDN5Hd2Fb9ni4hdOTmBYtBHJE2BU1o52Y=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=b4XujOWksapHWIgueLSPzLyTQ21LmvA93ZqN4u7vk8e4+urTpzMVZPTT4n+4xffL4PdOYrVyZ+B1jDEcfc5eaWMvxpj3x3DJz5A/spAHA3Q+io7vBLSRf8JCMO5Xjl++NPxdLFQ+JNr3DZ6PXgBF53rvduM6lujJrNih5w0vywU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [31.221.188.228] (port=12062 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1sEz3h-00B95N-W2; Thu, 06 Jun 2024 00:24:44 +0200
-Date: Thu, 6 Jun 2024 00:24:40 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, Lion Ackermann <nnamrec@gmail.com>
-Subject: Re: [PATCH 1/1] netfilter: ipset: Fix race between namespace cleanup
- and gc in the list:set type
-Message-ID: <ZmDlqGtGv_LdMj6k@calendula>
-References: <20240604135803.2462674-1-kadlec@netfilter.org>
- <20240604135803.2462674-2-kadlec@netfilter.org>
+	s=arc-20240116; t=1717634140; c=relaxed/simple;
+	bh=aOGQ6WFlXVj8Sat+De81wFW1YR4LJnyGhk5Mzdbi00w=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=d8wQ3pBXhAobf/xRGyN5WLqSd9Yw4KFDV41pi6GBK3M0RBU2X7q3WdZMRXPToZPhQfS+Nkt97UOkvEWEMhYjfexwUPD4eU2BMeAmuKDU33M1ox0xA1FmdvI7mkTsGg92RGh6SO1zOUwd/ZtAFsHFEuSllNw5CLgyxG24ChtMfh8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oUMs7Jqq; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oUMs7Jqq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFF45C2BD11;
+	Thu,  6 Jun 2024 00:35:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1717634139;
+	bh=aOGQ6WFlXVj8Sat+De81wFW1YR4LJnyGhk5Mzdbi00w=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=oUMs7Jqqk1nmcaEsJuKC3CVlZ6y/8sBoJNYvKQypQ24KQZ3mxMYNWdyHgPpinkcKV
+	 zqXHpwzgn4TkqiQwHQaL6O7HfBCiYVaBeFprhx4a68v2eAC5rsRmoZXBhFtZPS2YTO
+	 iBCjO8XpgJdIojCe9Tjxkx7uFefC+rnF8kvCjMJpEPiYDA3bmcFhSalG85kldbxn8I
+	 NWtSDcWlbm/2JuJEPSRaV/sTToAUGsZulA8BDEIBiUMMMYjoBGFLkZMdzQGABBZ+/T
+	 KlCCDP5rBAs0jsqR6sh6sG5d0XLyWJeiebOx78q5+dnred0kXsZbscGqpk/+rfZFj3
+	 gdxNQPOHe8dFQ==
+Date: Wed, 5 Jun 2024 17:35:32 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Jianguo Wu <wujianguo106@163.com>
+Cc: Hangbin Liu <liuhangbin@gmail.com>, wujianguo
+ <wujianguo@chinatelecom.cn>, netdev@vger.kernel.org, edumazet@google.com,
+ contact@proelbtn.com, pablo@netfilter.org, dsahern@kernel.org,
+ pabeni@redhat.com, netfilter-devel@vger.kernel.org, fw@strlen.de
+Subject: Re: [PATCH net v2 2/3] selftests: add selftest for the SRv6 End.DX4
+ behavior with netfilter
+Message-ID: <20240605173532.304798bd@kernel.org>
+In-Reply-To: <eaf06c77-2457-46fc-aaf1-fb5ae0080072@163.com>
+References: <20240604144949.22729-1-wujianguo@chinatelecom.cn>
+	<20240604144949.22729-3-wujianguo@chinatelecom.cn>
+	<Zl_OWcrrEipnN_VP@Laptop-X1>
+	<eaf06c77-2457-46fc-aaf1-fb5ae0080072@163.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20240604135803.2462674-2-kadlec@netfilter.org>
-X-Spam-Score: -1.9 (-)
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Hi Jozsef,
-
-On Tue, Jun 04, 2024 at 03:58:03PM +0200, Jozsef Kadlecsik wrote:
-[...]
-> @@ -424,14 +428,8 @@ static void
->  list_set_destroy(struct ip_set *set)
->  {
->  	struct list_set *map = set->data;
-> -	struct set_elem *e, *n;
->  
-> -	list_for_each_entry_safe(e, n, &map->members, list) {
-> -		list_del(&e->list);
-> -		ip_set_put_byindex(map->net, e->id);
-> -		ip_set_ext_destroy(set, e);
-> -		kfree(e);
-> -	}
-> +	BUG_ON(!list_empty(&map->members));
-
-It would probably be better to turn this is WARN_ON_ONCE, such as:
-
-        WARN_ON_ONCE(!list_empty(&map->members);
-
-BUG_ON is only allowed to be used in very particular cases these days.
-
-I can update this patch if you are fine with it.
-
->  	kfree(map);
->  
->  	set->data = NULL;
-> -- 
-> 2.39.2
+On Wed, 5 Jun 2024 11:28:17 +0800 Jianguo Wu wrote:
+> > sysctl: cannot stat /proc/sys/net/netfilter/nf_hooks_lwtunnel: No such file or directory
+> > Warning: Extension rpfilter revision 0 not supported, missing kernel module?
+> > iptables v1.8.9 (nf_tables):  RULE_APPEND failed (No such file or directory): rule in chain PREROUTING
+> >   
 > 
+> What is your kernel version? The file was introduced from v5.15-rc1
+> 
+> > Looks we are missing some config in selftest net/config.
+> >   
+> 
+> Sorry, I can't find what config to add, please tell me.
+
+Please follow the instructions from here:
+https://github.com/linux-netdev/nipa/wiki/How-to-run-netdev-selftests-CI-style
+the kernel we build for testing is minimal.
+
+We see this output:
+
+TAP version 13
+1..1
+# overriding timeout to 7200
+# selftests: net: srv6_end_dx4_netfilter_test.sh
+# Warning: file srv6_end_dx4_netfilter_test.sh is not executable
+# 
+# ################################################################################
+# TEST SECTION: SRv6 VPN connectivity test among hosts in the same tenant
+# ################################################################################
+# 
+#     TEST: Hosts connectivity: hs-1 -> hs-2 (tenant 100)                 [ OK ]
+# 
+#     TEST: Hosts connectivity: hs-2 -> hs-1 (tenant 100)                 [ OK ]
+# 
+# ################################################################################
+# TEST SECTION: SRv6 VPN connectivity test with netfilter enabled in routers
+# ################################################################################
+# Warning: Extension rpfilter revision 0 not supported, missing kernel module?
+# iptables v1.8.8 (nf_tables):  RULE_APPEND failed (No such file or directory): rule in chain PREROUTING
+# Warning: Extension rpfilter revision 0 not supported, missing kernel module?
+# iptables v1.8.8 (nf_tables):  RULE_APPEND failed (No such file or directory): rule in chain PREROUTING
+# 
+#     TEST: Hosts connectivity: hs-1 -> hs-2 (tenant 100)                 [ OK ]
+# 
+#     TEST: Hosts connectivity: hs-2 -> hs-1 (tenant 100)                 [ OK ]
+# 
+# Tests passed:   4
+# Tests failed:   0
+ok 1 selftests: net: srv6_end_dx4_netfilter_test.sh
+
+https://netdev-3.bots.linux.dev/vmksft-net-dbg/results/627022/58-srv6-end-dx4-netfilter-test-sh/stdout
+
+
+
+Note that the CI uses nftables-based iptables, not legacy iptables.
