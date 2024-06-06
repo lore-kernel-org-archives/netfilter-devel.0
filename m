@@ -1,223 +1,119 @@
-Received: from mail-qt1-f180.google.com (mail-qt1-f180.google.com [209.85.160.180])
+Received: from mail-pl1-f178.google.com (mail-pl1-f178.google.com [209.85.214.178])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CECA7623
-	for <netfilter-devel@vger.kernel.org>; Thu,  6 Jun 2024 01:55:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58FEE14AB8;
+	Thu,  6 Jun 2024 02:10:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717638941; cv=none; b=aSE1HtoYzMxCL8hIc0MsqXyXyzL68fIiWZwksXrr7d73TmkefRVTz2cYy2Jo3qsGcspc4+1FXGqmYTnTJm+BIeg/WqA//PxM7kDzOoBhYYPPckYFq0RzB/+NhbOPfRNGvyRxymhGYykuE5xnut4O2OO+Oem26lOpJpnrvM0co8c=
+	t=1717639854; cv=none; b=uxtC6wiZDqgVUXJelwQAXRzrMW6j4AQOdi+vLCX1A+v541Qgb24zfFtAMcJWNPJpAIKjpyaxU9iH8GUS0k7FgAdaGbrVNUox7VgioELvejywB2eKj8Hv9TEUm3rnNf75LnEi8snVQ+LvOakaOuzYHEqDkA/lBFQDanEOWgLIYow=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717638941; c=relaxed/simple;
-	bh=EbnCkFlmoIikZl/MUPpJTOMBQhQwsZz19Bv+l7q9w6M=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=e+tymi+5vBxteZqzQfrRJVBO9O6OaOf2l/ql+oemhvkO4Sk1ccNzfueW4Zvsf/4AMZacPd5iJ8Vb0LCyfDq8w5sHq8CG0Esuss87QdnX1HG12KqSV/DFkcLdpA7mZPVTMwLDiv9mBnrsysZN5upVV8W+vBUQW4p8rKtr33l8IcM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=ipTxbFOQ; arc=none smtp.client-ip=209.85.160.180
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	s=arc-20240116; t=1717639854; c=relaxed/simple;
+	bh=pvbRGZ9lWGQhvfPLgqQ2rsd01i2xWchlkHCWNwoi67w=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=qc6cHzcSWW/kMKKGWL7+qfJgN5S04G8eP2lEEWTv/FZJWctBbspS5EEogCLbWi/I2w1bjvtPxdmxvoYYsBeCZil2y134yFpQbOP78iRNRqHHgb3xo3H+OCMZJZKcxu5B4QqW9qHd75+JsyGobQnWwJdPdIRbSMgnaDMdtw8i328=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hvgM6s/+; arc=none smtp.client-ip=209.85.214.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="ipTxbFOQ"
-Received: by mail-qt1-f180.google.com with SMTP id d75a77b69052e-44036ce0adaso156171cf.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 05 Jun 2024 18:55:39 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hvgM6s/+"
+Received: by mail-pl1-f178.google.com with SMTP id d9443c01a7336-1f68834bfdfso3971605ad.3;
+        Wed, 05 Jun 2024 19:10:53 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1717638939; x=1718243739; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=zUrSdBiduh4Db/1aD09S3T3SUCIp0AO2KNwZ81GBnvw=;
-        b=ipTxbFOQCttxppYpLo9CkOSaTBYedSP0AjDSAwuYC/p3bhFoqSgBEscUqPo5KGTSpk
-         TU2tnObP0FqKUvbVE9/TkDg7fFuYVUvmMFnIyqj50eE4F7SYAZlMrzxwMkLSgnjcGYex
-         WMZrUbwBWHhgG0hK8XlhZzv/8U3iUUC8sbTfWQQdldBB89r7f7jgIXs+jLKazqvFEZiy
-         VLsTvkp9mh/5PQi5vx4ZEN4b96R8cED2jlOPA60rL/cnmR70ryCbjJSXpkEiX/OPzwQ9
-         zBJ+irkZOR9F0Lwjaso6F4pvC3tRWOyQc2KiOsKY4jypQuaqFkBadDqqGx+TuXAFQY3S
-         0FEg==
+        d=gmail.com; s=20230601; t=1717639852; x=1718244652; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=/lQ0BtcLqRYPijPjELgs/dGd5qA6wIUM0sIqX5CqmgA=;
+        b=hvgM6s/+YB+vU1VO+KgleLzOEVoTm0MpQGez1aSAHisO+FZ4fjY7btEvAtp5NwneBF
+         iNDIdig2wQGr6U8LL/wdGHIgghP+Sj/4crw+yg9X9nj7AiK46ZiHHmB4Z/qiuF2eF47b
+         hou4dt4bhWH8qwEMe9r9GwKublulQtdtS9A1eZhE8lKmpqQT7WZ6oY/t/IdAMefviGdc
+         a6YEVtljErD0Ypw2ng//RQkasswJmrv2VpRjCc7J0B7naMkhv9FX4GASc360QV1TQxtf
+         Q6dhKU+XzVnxd85iQbAlt6DRQvRqMweYd5X6kXWBxj7l7Ruaca4+ECZC4kmCr6bqMiHi
+         4PlQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1717638939; x=1718243739;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=zUrSdBiduh4Db/1aD09S3T3SUCIp0AO2KNwZ81GBnvw=;
-        b=gnsSad0wP/rC8ycSxsDFZ1mWJqCeZ3Cg8oRsk5M0DzCAg4VqLoYjSsdeYXBV4z2QC6
-         dWsnogxvQKAvPar+TlzDBHbIiO5ikkKlFNpQ46Q4pvaJyQxbO2HnqSApjFVZ8DHGM31h
-         DbxuN53zrlioBnyno1hrPzbANcvUl9v5+zk8PTwuBvYNs5Er57cxovB7atbYLnDyIOpv
-         ZDslRjIIX8ycGdH01vx04mmqe+Q+gs8RV5YLPZpcBgA9CW18hh/xTJoX4supziar+m6M
-         BZXzydU6bKGT8sW0MfEIPbG9STWgkFHAtmEoC7TPIf2+ExtIw0gTYgjneXmeqYH+dPat
-         eZbQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVJ3hVCCX77+gAE4+LOCoVAu/Q3Kb39OiTyGE2VNurvDE6QaEJ4pKYD8MvjThS8OA6Z6OlpPFnTKvC3+aIqyNUd+w+AXCs0kv+0AcD+D0Ck
-X-Gm-Message-State: AOJu0YylqHDKmhAp/YbT1rwDrI/eIqtLrJo4lx4fXWOjvYu2cucpNvI6
-	4JuFMXC9gXFX2zxUCqd98qvXOO+mYoXV8ojAwJuw9fYTVHTgGSxjppzQyPtWVxRvsibEjrAR9Qr
-	4WQsnWMW71Ztw51fjsNDUkltqXLAJy4mkbCN+1ArnMKf7cjMyRsiF
-X-Google-Smtp-Source: AGHT+IEnxpQafaT11+txElX9LAJY4Zol9ZDkzyHkuw5ULeFvU8PmZa/RhoOwmmIwg92466dT1oqryNZ74WjtIJTXU5Y=
-X-Received: by 2002:a05:622a:1dca:b0:43c:554e:b81 with SMTP id
- d75a77b69052e-440384ca86fmr860971cf.23.1717638938541; Wed, 05 Jun 2024
- 18:55:38 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1717639852; x=1718244652;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=/lQ0BtcLqRYPijPjELgs/dGd5qA6wIUM0sIqX5CqmgA=;
+        b=iCTtbXZLcSgnL6eD1dlnHYprftvgMtjZBtN3WcO71E/OqIKMFWTdYjQqqRCE82U1oV
+         ruBocXIPM9i/Dlo/fYZTvLR1GCtYGdfzo/VueLgswHLMRWPt9nUftHRNArAFVxxV9yik
+         LvVh1RfXRqKMLW59eSwd3EwM25O4wrBfw/AL2f+Z+58Y8Z+T5eBhLujb3tUgC2WkDRaB
+         X/RR95aFbC7Ydypk6KorY/bK2XfTuCV43vtSzCIMjJPEk2pXybILWuffj5B9/anb6vq6
+         3KSmvWqaCym6HjzZnxqwKrzS5GlZ0yMYEk5uu7YT4OoruZJGNlpuxTYRP1e5eP3xueFS
+         p/mg==
+X-Forwarded-Encrypted: i=1; AJvYcCVTSeeqgEHiRMheoFPUGASbF+VIbSAeKzkMNgLBEQKQIqIJ+4q256tuWjHRuKR3LjuF/PxxfylD93DKd1mVUI+rpyDdczrUx2H33BHCq+N4sNcLz0A45NNrEG9fJmaBUdXuHbqEsEy+
+X-Gm-Message-State: AOJu0YzoYAz9tOAH5YXDpW8+NRRLzoyUMeUwU1O088it45mnMRjjgDQV
+	u2eSCX4CBqlBHw+H3o+OEpDggT+isZ7N+3HOPhWzwM3pNptLLZwo
+X-Google-Smtp-Source: AGHT+IEu4Jc3hrTMlO4BYQwCE/M6Qh0vjDFf1WxIvmx7KQ3DzSX5hgy/h2z15qjf2jk+VY+tkC2IrA==
+X-Received: by 2002:a17:903:187:b0:1f6:a506:4eb with SMTP id d9443c01a7336-1f6a5a86af6mr52503395ad.60.1717639852405;
+        Wed, 05 Jun 2024 19:10:52 -0700 (PDT)
+Received: from Laptop-X1 ([43.228.180.230])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-1f6bd7ed6desm2189245ad.243.2024.06.05.19.10.49
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 05 Jun 2024 19:10:51 -0700 (PDT)
+Date: Thu, 6 Jun 2024 10:10:44 +0800
+From: Hangbin Liu <liuhangbin@gmail.com>
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: Jianguo Wu <wujianguo106@163.com>,
+	wujianguo <wujianguo@chinatelecom.cn>, netdev@vger.kernel.org,
+	edumazet@google.com, contact@proelbtn.com, pablo@netfilter.org,
+	dsahern@kernel.org, pabeni@redhat.com,
+	netfilter-devel@vger.kernel.org, fw@strlen.de
+Subject: Re: [PATCH net v2 2/3] selftests: add selftest for the SRv6 End.DX4
+ behavior with netfilter
+Message-ID: <ZmEapORjk3v3FYke@Laptop-X1>
+References: <20240604144949.22729-1-wujianguo@chinatelecom.cn>
+ <20240604144949.22729-3-wujianguo@chinatelecom.cn>
+ <Zl_OWcrrEipnN_VP@Laptop-X1>
+ <eaf06c77-2457-46fc-aaf1-fb5ae0080072@163.com>
+ <20240605173532.304798bd@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240604120311.27300-1-fw@strlen.de> <FF8A506F-6F0F-440E-9F52-B27D05731B77@apple.com>
- <20240605181450.GA7176@breakpoint.cc> <ZmCwlbF8BvLGNgRM@calendula>
- <20240605190833.GB7176@breakpoint.cc> <ZmDAQ6r49kSgwaMm@calendula>
- <CA+FuTSfAhHDedA68LOiiUpbBtQKV9E-W5o4TJibpCWokYii69A@mail.gmail.com> <ZmDjtm27BnxQ0xRX@calendula>
-In-Reply-To: <ZmDjtm27BnxQ0xRX@calendula>
-From: Willem de Bruijn <willemb@google.com>
-Date: Wed, 5 Jun 2024 21:54:59 -0400
-Message-ID: <CA+FuTScK2cpgRdd5CjgE=z=XbH8Gb45i4kkMNKsCPN9rQa6GpQ@mail.gmail.com>
-Subject: Re: [PATCH nf] netfilter: nf_reject: init skb->dev for reset packet
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>, Christoph Paasch <cpaasch@apple.com>, 
-	Netfilter <netfilter-devel@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	netdev@vger.kernel.org, daniel@iogearbox.net, 
-	Stanislav Fomichev <sdf@google.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240605173532.304798bd@kernel.org>
 
-On Wed, Jun 5, 2024 at 6:16=E2=80=AFPM Pablo Neira Ayuso <pablo@netfilter.o=
-rg> wrote:
->
-> On Wed, Jun 05, 2024 at 05:38:00PM -0400, Willem de Bruijn wrote:
-> > On Wed, Jun 5, 2024 at 3:45=E2=80=AFPM Pablo Neira Ayuso <pablo@netfilt=
-er.org> wrote:
-> > >
-> > > On Wed, Jun 05, 2024 at 09:08:33PM +0200, Florian Westphal wrote:
-> > > > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > >
-> > > > [ CC Willem ]
-> > > >
-> > > > > On Wed, Jun 05, 2024 at 08:14:50PM +0200, Florian Westphal wrote:
-> > > > > > Christoph Paasch <cpaasch@apple.com> wrote:
-> > > > > > > > Reported-by: Christoph Paasch <cpaasch@apple.com>
-> > > > > > > > Suggested-by: Paolo Abeni <pabeni@redhat.com>
-> > > > > > > > Closes: https://github.com/multipath-tcp/mptcp_net-next/iss=
-ues/494
-> > > > > > > > Signed-off-by: Florian Westphal <fw@strlen.de>
-> > > > > > >
-> > > > > > > I just gave this one a shot in my syzkaller instances and am =
-still hitting the issue.
-> > > > > >
-> > > > > > No, different bug, this patch is correct.
-> > > > > >
-> > > > > > I refuse to touch the flow dissector.
-> > > > >
-> > > > > I see callers of ip_local_out() in the tree which do not set skb-=
->dev.
-> > > > >
-> > > > > I don't understand this:
-> > > > >
-> > > > > bool __skb_flow_dissect(const struct net *net,
-> > > > >                         const struct sk_buff *skb,
-> > > > >                         struct flow_dissector *flow_dissector,
-> > > > >                         void *target_container, const void *data,
-> > > > >                         __be16 proto, int nhoff, int hlen, unsign=
-ed int flags)
-> > > > > {
-> > > > > [...]
-> > > > >         WARN_ON_ONCE(!net);
-> > > > >         if (net) {
-> > > > >
-> > > > > it was added by 9b52e3f267a6 ("flow_dissector: handle no-skb use =
-case")
-> > > > >
-> > > > > Is this WARN_ON_ONCE() bogus?
-> > > >
-> > > > When this was added (handle dissection from bpf prog, per netns), t=
-he correct
-> > > > solution would have been to pass 'struct net' explicitly via skb_ge=
-t_hash()
-> > > > and all variants.  As that was likely deemed to be too much code ch=
-urn it
-> > > > tries to infer struct net via skb->{dev,sk}.
-> >
-> > It has been a while, but I think we just did not anticipate skb's with
-> > neither dev nor sk set.
-> >
-> > Digging through the layers from skb_hash to __skb_flow_dissect
-> > now, it does look impractical to add such an explicit API.
-> >
-> > > > So there are several options here:
-> > > > 1. remove the WARN_ON_ONCE and be done with it
-> > > > 2. remove the WARN_ON_ONCE and pretend net was init_net
-> > > > 3. also look at skb_dst(skb)->dev if skb->dev is unset, then back t=
-o 1)
-> > > >    or 2)
-> > > > 4. stop using skb_get_hash() from netfilter (but there are likely o=
-ther
-> > > >    callers that might hit this).
-> > > > 5. fix up callers, one by one
-> > > > 6. assign skb->dev inside netfilter if its unset
-> >
-> > Is 6 a realistic option?
->
-> Postrouting path already sets on skb->dev via ip_output(), if callers
-> are "fixed" then skb->dev will get set twice.
+On Wed, Jun 05, 2024 at 05:35:32PM -0700, Jakub Kicinski wrote:
+> On Wed, 5 Jun 2024 11:28:17 +0800 Jianguo Wu wrote:
+> > > sysctl: cannot stat /proc/sys/net/netfilter/nf_hooks_lwtunnel: No such file or directory
+> > > Warning: Extension rpfilter revision 0 not supported, missing kernel module?
+> > > iptables v1.8.9 (nf_tables):  RULE_APPEND failed (No such file or directory): rule in chain PREROUTING
+> > >   
+> > 
+> > What is your kernel version? The file was introduced from v5.15-rc1
+> > 
+> > > Looks we are missing some config in selftest net/config.
+> > >   
+> > 
+> > Sorry, I can't find what config to add, please tell me.
+> 
+> Please follow the instructions from here:
+> https://github.com/linux-netdev/nipa/wiki/How-to-run-netdev-selftests-CI-style
+> the kernel we build for testing is minimal.
+> 
+> We see this output:
+> 
+> # ################################################################################
+> # TEST SECTION: SRv6 VPN connectivity test with netfilter enabled in routers
+> # ################################################################################
 
-I meant to set it just before calling skb_get_hash and unset
-right after. Just using the skb to piggy back the information.
+If I run the test specifically, I also got error:
+sysctl: cannot stat /proc/sys/net/netfilter/nf_hooks_lwtunnel: No such file or directory
 
-> the netfilter tracing infrastructure only needs a hash identifier for
-> this packet to be displayed from userspace when tracing rules, how is
-> the running the custom bpf dissector hook useful in such case?
+This is because CONFIG_NF_CONNTRACK is build as module. The test need to load
+nf_conntrack specifically. I guest the reason you don't have this error is
+because you have run the netfilter tests first? Which has loaded this module.
 
-The BPF flow dissector is there as much to short circuit the
-hard-coded C protocol dissectors as to expand on the existing
-feature set. I did not want production machines exposed to
-every protocol parser, as that set kept expanding.
+> # Warning: Extension rpfilter revision 0 not supported, missing kernel module?
+> # iptables v1.8.8 (nf_tables):  RULE_APPEND failed (No such file or directory): rule in chain PREROUTING
+> # Warning: Extension rpfilter revision 0 not supported, missing kernel module?
+> # iptables v1.8.8 (nf_tables):  RULE_APPEND failed (No such file or directory): rule in chain PREROUTING
 
-Having different dissection algorithms depending on where the
-packet enters the dissector is also surprising behavior?
+Just checked, we need CONFIG_IP_NF_MATCH_RPFILTER=m in config file.
 
-If all that is needed is an opaque ID, and on egress skb->hash
-is derived with skb_set_hash_from_sk from sk_txhash, then
-this can even be pseudo-random from net_tx_rndhash().
-
-> the most correct solution is to pass struct net explicitly to the
-> dissector API instead of guessing what net this packet belongs to.
-
-Unfortunately from skb_get_hash to __skb_flow_dissect is four
-layers of indirections, including one with three underscores already,
-that cannot be easily circumvented.
-
-Temporarily passing it through skb (and unsetting after) seems
-the simplest fix to me.
-
-> Else, remove this WARN_ON_ONCE which is just a oneliner.
-
-According to the commit that introduced it, this was to sniff out drivers
-that don't set this (via eth_get_headlen).
-
-The problem is that nothing else warns loudly, so you just quietly
-lose the BPF dissection coverage.
-
-This is the first time it warned. You point out that the value of BPF
-is limited to you in this case. But that's not true for all such cases.
-I'd rather dissection breaks hard than that it falls back quietly for
-input from an untrusted network.
-
-Maybe reduce it to DEBUG_NET_WARN_ON_ONCE?
-
-> > > > 3 and 2 combined are probably going to be the least invasive.
-> > > >
-> > > > 5 might take some time, we now know two, namely tcp resets generate=
-d
-> > > > from netfilter and igmp_send_report().  No idea if there are more.
-> > >
-> > > Quickly browsing, synproxy and tee also calls ip_local_out() too.
-> > >
-> > > icmp_send() which is used, eg. to send destination unreachable too to
-> > > reset.
-> >
-> > Since this uses ip_append_data the generated response should have
-> > its skb->sk set.
->
-> thanks for explaining.
->
-> > > There is also __skb_get_hash_symmetric() that could hit this from
-> > > nft_hash?
-> > >
-> > > No idea what more callers need to be adjusted to remove this splat,
-> > > that was a cursory tree review.
-> > >
-> > > And ip_output() sets on skb->dev from postrouting path, then if
-> > > callers are fixed, then skb->dev would be once then again from output=
- path?
+Thanks
+Hangbin
