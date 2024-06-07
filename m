@@ -1,195 +1,165 @@
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv1-f46.google.com (mail-qv1-f46.google.com [209.85.219.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA9EC1667DE;
-	Fri,  7 Jun 2024 13:58:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 053CF190688;
+	Fri,  7 Jun 2024 14:13:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717768718; cv=none; b=VlFXwF7BYdrCouG01q5+lqO3x89oZRzqh7YRVWcFHrgJev0fm0KgEI5vnqu+fOoq6fMYnZFo3l2ZarFv3gvpgm5LY/W1IEaFSV9c+EpaPFWkTBQeZA0a7aGDgxJdX4OFeF63RjiPM6JNYKqTwsqpaBJTVQ1MLEqGv3+zu8AAYbw=
+	t=1717769630; cv=none; b=mRolFK4Z/en2s3aQ2ouFQoYIMj7c59P8BnMndBaWtyFlTgFNVr5klbj3+FCTKp1e1CoPZLtMU3N0E5+jmDp+UrYsF0lRfQeoO+Gm9vOViE0VRRKrf44BwlTLRNmZBMOUuKykWebKA+rEutxBeoTjuA5A8kMxCm/NI3Ey4lI1bOI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717768718; c=relaxed/simple;
-	bh=4G3FDvumPPb0WEUrF2heN84BCxUEYbAoobu+s6ougQ0=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=jsP30XqQVIuI99wB2FkF3da9TRLh69y7Tr598EeMxM9Yhsm9M9pVR/bpcMUu5nCw0fHSk9Kkt7vrYDQDjXjjVGemzyOxzvuf3PAaBuUfLmtMEMODyrIJGir89fre68hQtdC/cuVDqXurIeQrKKr048No+q/66n/nbhB/OnyzwZ4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.188
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
-Received: from mail.maildlp.com (unknown [172.19.163.48])
-	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4VwjNL4Rr8zmYYQ;
-	Fri,  7 Jun 2024 21:53:54 +0800 (CST)
-Received: from dggpemm500020.china.huawei.com (unknown [7.185.36.49])
-	by mail.maildlp.com (Postfix) with ESMTPS id 1337C18007B;
-	Fri,  7 Jun 2024 21:58:31 +0800 (CST)
-Received: from [10.123.123.159] (10.123.123.159) by
- dggpemm500020.china.huawei.com (7.185.36.49) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.39; Fri, 7 Jun 2024 21:58:26 +0800
-Message-ID: <a2514345-f6e0-c081-d285-1ce0f8885291@huawei-partners.com>
-Date: Fri, 7 Jun 2024 16:58:21 +0300
+	s=arc-20240116; t=1717769630; c=relaxed/simple;
+	bh=h8SrABv9xVI5t/A44n3g7COQPE+D88GaCDSSoBXDB7E=;
+	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
+	 Mime-Version:Content-Type; b=AxVXO6Ceh2uLY34i5B66SPry4GYmnoskLPdN1Y+nPN3CIteFJz2voPueRycjPd0v+SU8c1BjUa4Q1F1FlMfpC4rD1/lOhkIeSamYg9bGZbmXV2BN8ZNLkU4CSMV46TBj/f0JpJnM4VvdIyP65MTggaG8jr6Wrc66OUPlwIitYok=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mkixJhhA; arc=none smtp.client-ip=209.85.219.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mkixJhhA"
+Received: by mail-qv1-f46.google.com with SMTP id 6a1803df08f44-6af6c2bee7bso18367956d6.1;
+        Fri, 07 Jun 2024 07:13:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1717769628; x=1718374428; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:subject:references
+         :in-reply-to:message-id:cc:to:from:date:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=olAsbRmHjvUjtmdGZKqQHlFuLVWJli5njLF2mZn8TUY=;
+        b=mkixJhhAuAjbmEeF8reU61EEX0YO2I5t1ZUbVWZoK3quzBI8ttj9oGjlS3YRppoQA5
+         yV5+iO1f10nVfN7KAJDow9d1njuDfB7g+n6l4wSc7uFzz7Q7c6wrRaq8uYaxXVyjKF21
+         1t9v2aComC3TVJxCYA/d0SVyr+fhJmGHg5nHtypKQJTurra67e/Ck+xo4nQBPjF7zBV0
+         upPvM2yf5AVXnou9/HZvRGPVH+f/FZ57KNaMayzy4AWqFQk+tSfHYj4xFgkvDwvoirK1
+         FW8CvefqOBVo9nmLGgvm6e4tpmhTtRPGLb+4dx/jfdPywRNOwpADRv2zYRDclvzSAPZR
+         PY/Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1717769628; x=1718374428;
+        h=content-transfer-encoding:mime-version:subject:references
+         :in-reply-to:message-id:cc:to:from:date:x-gm-message-state:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=olAsbRmHjvUjtmdGZKqQHlFuLVWJli5njLF2mZn8TUY=;
+        b=WUKsD5kuyW6/WAsSzBkLH5zyQwd0dry4Gyk5seKg7vUpO7EfUvQLAmZO/EsfCEblCD
+         SilC9zmnBYgl3gxoFqSRXb9bg1xXBBq3/1QrCmhcinMMrM9HsA4sk0YPUCXqCsbr0O2i
+         RhxsmfaDsjaHXp0IzMSdb3bQTRT32r3LZrlscpM2lVRFg4BjBtN/LiCK2GpzXDwVJGu8
+         PqZ0Dnjk28ARf2Z3AUEJG6qdM8orAepr0v5r8MPCGA8nCRaxztbr29H2Fo0/18SZ4lte
+         oWT6E7QsC3px9xs8B7iUddOf6dfaowLmzoU8nMfqqTGmGHkZGz6l5QfUwcT2Yo/0+P+S
+         MAXw==
+X-Forwarded-Encrypted: i=1; AJvYcCVDuqWEC/z/rI8IMMoHUSQTva+HnTaR/MNNVpWVHA1KgiTQPoZKzIornzSAMvpKJguvzdeWIjiCOWBiFT6nH0fiqUHTnmmExXNXrh7BQ98Z
+X-Gm-Message-State: AOJu0YzGMJefZ/sjYa6H8Uj+99Xqd9LzP00P6p08BzVtsrNL800m/86i
+	YJFvGwJ08hO19XKu+7wLZLGUrNbQbG0jj1rf4IfZmt4pKMbECMVg
+X-Google-Smtp-Source: AGHT+IHr+PCcf1WkuVzRWZucQTdIiQWwssQMae51/dgnX/y44swIrbFN5XvVxZvM6Sfsy5ktQ0uSgw==
+X-Received: by 2002:ad4:5763:0:b0:6af:4fcd:3065 with SMTP id 6a1803df08f44-6b04c059731mr121148846d6.19.1717769627606;
+        Fri, 07 Jun 2024 07:13:47 -0700 (PDT)
+Received: from localhost (56.148.86.34.bc.googleusercontent.com. [34.86.148.56])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-6b04fa2937esm17135446d6.140.2024.06.07.07.13.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 07 Jun 2024 07:13:47 -0700 (PDT)
+Date: Fri, 07 Jun 2024 10:13:46 -0400
+From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
+To: Eric Dumazet <edumazet@google.com>, 
+ Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, 
+ Paolo Abeni <pabeni@redhat.com>, 
+ "David S. Miller" <davem@davemloft.net>, 
+ Jakub Kicinski <kuba@kernel.org>, 
+ netfilter-devel@vger.kernel.org, 
+ pablo@netfilter.org, 
+ willemb@google.com, 
+ Christoph Paasch <cpaasch@apple.com>
+Message-ID: <6663159ab88ef_2f27b294c5@willemb.c.googlers.com.notmuch>
+In-Reply-To: <CANn89i+50SE0Lnbpj1b1u62CyOfVxH25bneXnc3e=RJB0+jJ9g@mail.gmail.com>
+References: <20240607083205.3000-1-fw@strlen.de>
+ <20240607083205.3000-2-fw@strlen.de>
+ <CANn89i+50SE0Lnbpj1b1u62CyOfVxH25bneXnc3e=RJB0+jJ9g@mail.gmail.com>
+Subject: Re: [PATCH net-next 1/2] net: add and use skb_get_hash_net
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH v2 00/12] Socket type control for Landlock
-Content-Language: ru
-To: =?UTF-8?Q?G=C3=BCnther_Noack?= <gnoack@google.com>
-CC: =?UTF-8?Q?G=C3=BCnther_Noack?= <gnoack3000@gmail.com>, <mic@digikod.net>,
-	<willemdebruijn.kernel@gmail.com>, <linux-security-module@vger.kernel.org>,
-	<netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
-	<yusongping@huawei.com>, <artem.kuzin@huawei.com>,
-	<konstantin.meskhidze@huawei.com>
-References: <20240524093015.2402952-1-ivanov.mikhail1@huawei-partners.com>
- <20240604.c18387da7a0e@gnoack.org>
- <ebd680cc-25d6-ee14-4856-310f5e5e28e4@huawei-partners.com>
- <ZmG6f1XCrdWE-O7y@google.com>
-From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-In-Reply-To: <ZmG6f1XCrdWE-O7y@google.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: lhrpeml100004.china.huawei.com (7.191.162.219) To
- dggpemm500020.china.huawei.com (7.185.36.49)
+Mime-Version: 1.0
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-6/6/2024 4:32 PM, Günther Noack wrote:
-> Hello Mikhail!
-> 
-> On Thu, Jun 06, 2024 at 02:44:23PM +0300, Mikhail Ivanov wrote:
->> 6/4/2024 11:22 PM, Günther Noack wrote:
->>> On Fri, May 24, 2024 at 05:30:03PM +0800, Mikhail Ivanov wrote:
->>>> Hello! This is v2 RFC patch dedicated to socket protocols restriction.
->>>>
->>>> It is based on the landlock's mic-next branch on top of v6.9 kernel
->>>> version.
->>>
->>> Hello Mikhail!
->>>
->>> I patched in your patchset and tried to use the feature with a small
->>> demo tool, but I ran into what I think is a bug -- do you happen to
->>> know what this might be?
->>>
->>> I used 6.10-rc1 as a base and patched your patches on top.
->>>
->>> The code is a small tool called "nonet", which does the following:
->>>
->>>     - Disable socket creation with a Landlock ruleset with the following
->>>       attributes:
->>>       struct landlock_ruleset_attr attr = {
->>>         .handled_access_socket = LANDLOCK_ACCESS_SOCKET_CREATE,
->>>       };
->>>
->>>     - open("/dev/null", O_WRONLY)
->>>
->>> Expected result:
->>>
->>>     - open() should work
->>>
->>> Observed result:
->>>
->>>     - open() fails with EACCES.
->>>
->>> I traced this with perf, and found that the open() gets rejected from
->>> Landlock's hook_file_open, whereas hook_socket_create does not get
->>> invoked.  This is surprising to me -- Enabling a policy for socket
->>> creation should not influence the outcome of opening files!
->>>
->>> Tracing commands:
->>>
->>>     sudo perf probe hook_socket_create '$params'
->>>     sudo perf probe 'hook_file_open%return $retval'
->>>     sudo perf record -e 'probe:*' -g -- ./nonet
->>>     sudo perf report
->>> You can find the tool in my landlock-examples repo in the nonet_bug branch:
->>> https://github.com/gnoack/landlock-examples/blob/nonet_bug/nonet.c
->>>
->>> Landlock is enabled like this:
->>> https://github.com/gnoack/landlock-examples/blob/nonet_bug/sandbox_socket.c
->>>
->>> Do you have a hunch what might be going on?
->>
->> Hello Günther!
->> Big thanks for this research!
->>
->> I figured out that I define LANDLOCK_SHIFT_ACCESS_SOCKET macro in
->> really strange way (see landlock/limits.h):
->>
->>    #define LANDLOCK_SHIFT_ACCESS_SOCKET	LANDLOCK_NUM_ACCESS_SOCKET
->>
->> With this definition, socket access mask overlaps the fs access
->> mask in ruleset->access_masks[layer_level]. That's why
->> landlock_get_fs_access_mask() returns non-zero mask in hook_file_open().
->>
->> So, the macro must be defined in this way:
->>
->>    #define LANDLOCK_SHIFT_ACCESS_SOCKET	(LANDLOCK_NUM_ACCESS_NET +
->>                                           LANDLOCK_NUM_ACCESS_FS)
->>
->> With this fix, open() doesn't fail in your example.
->>
->> I'm really sorry that I somehow made such a stupid typo. I will try my
->> best to make sure this doesn't happen again.
-> 
-> Thanks for figuring it out so quickly.  With that change, I'm getting some
-> compilation errors (some bit shifts are becoming too wide for the underlying
-> types), but I'm sure you can address that easily for the next version of the
-> patch set.
-> 
-> IMHO this shows that our reliance on bit manipulation is probably getting in the
-> way of code clarity. :-/ I hope we can simplify these internal structures at
-> some point.  Once we have a better way to check for performance changes [1], we
-> can try to change this and measure whether these comprehensibility/performance
-> tradeoff is really worth it.
-> 
-> [1] https://github.com/landlock-lsm/linux/issues/24
+Eric Dumazet wrote:
+> On Fri, Jun 7, 2024 at 10:36=E2=80=AFAM Florian Westphal <fw@strlen.de>=
+ wrote:
+> >
+> > Years ago flow dissector gained ability to delegate flow dissection
+> > to a bpf program, scoped per netns.
+> >
+> > Unfortunately, skb_get_hash() only gets an sk_buff argument instead
+> > of both net+skb.  This means the flow dissector needs to obtain the
+> > netns pointer from somewhere else.
+> >
+> > The netns is derived from skb->dev, and if that is not available, fro=
+m
+> > skb->sk.  If neither is set, we hit a (benign) WARN_ON_ONCE().
+> >
+> > Trying both dev and sk covers most cases, but not all, as recently
+> > reported by Christoph Paasch.
+> >
+> > In case of nf-generated tcp reset, both sk and dev are NULL:
+> >
+> > WARNING: .. net/core/flow_dissector.c:1104
+> >  skb_flow_dissect_flow_keys include/linux/skbuff.h:1536 [inline]
+> >  skb_get_hash include/linux/skbuff.h:1578 [inline]
+> >  nft_trace_init+0x7d/0x120 net/netfilter/nf_tables_trace.c:320
+> >  nft_do_chain+0xb26/0xb90 net/netfilter/nf_tables_core.c:268
+> >  nft_do_chain_ipv4+0x7a/0xa0 net/netfilter/nft_chain_filter.c:23
+> >  nf_hook_slow+0x57/0x160 net/netfilter/core.c:626
+> >  __ip_local_out+0x21d/0x260 net/ipv4/ip_output.c:118
+> >  ip_local_out+0x26/0x1e0 net/ipv4/ip_output.c:127
+> >  nf_send_reset+0x58c/0x700 net/ipv4/netfilter/nf_reject_ipv4.c:308
+> >  nft_reject_ipv4_eval+0x53/0x90 net/ipv4/netfilter/nft_reject_ipv4.c:=
+30
+> >  [..]
+> >
+> > syzkaller did something like this:
+> > table inet filter {
+> >   chain input {
+> >     type filter hook input priority filter; policy accept;
+> >     meta nftrace set 1                  # calls skb_get_hash
+> >     tcp dport 42 reject with tcp reset  # emits skb with NULL skb dev=
+/sk
+> >    }
+> >    chain output {
+> >     type filter hook output priority filter; policy accept;
+> >     # empty chain is enough
+> >    }
+> > }
+> >
+> > ... then sends a tcp packet to port 42.
+> >
+> > Initial attempt to simply set skb->dev from nf_reject_ipv4 doesn't co=
+ver
+> > all cases: skbs generated via ipv4 igmp_send_report trigger similar s=
+plat.
 
-Sounds great, probably this idea should be added to this issue [1].
+Does this mean we have more non-nf callsites to convert?
 
-[1] https://github.com/landlock-lsm/linux/issues/34
+> >
+> > Moreover, Pablo Neira found that nft_hash.c uses __skb_get_hash_symme=
+tric()
+> > which would trigger same warn splat for such skbs.
+> >
+> > Lets allow callers to pass the current netns explicitly.
+> > The nf_trace infrastructure is adjusted to use the new helper.
+> >
+> > __skb_get_hash_symmetric is handled in the next patch.
+> >
+> > Reported-by: Christoph Paasch <cpaasch@apple.com>
+> > Closes: https://github.com/multipath-tcp/mptcp_net-next/issues/494
+> > Signed-off-by: Florian Westphal <fw@strlen.de>
+> =
 
-> 
-> The other takeaway in my mind is, we should probably have some tests for that,
-> to check that the enablement of one kind of policy does not affect the
-> operations that belong to other kinds of policies.  Like this, for instance (I
-> was about to send this test to help debugging):
-> 
-> TEST_F(mini, restricting_socket_does_not_affect_fs_actions)
-> {
-> 	const struct landlock_ruleset_attr ruleset_attr = {
-> 		.handled_access_socket = LANDLOCK_ACCESS_SOCKET_CREATE,
-> 	};
-> 	int ruleset_fd, fd;
-> 
-> 	ruleset_fd = landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
-> 	ASSERT_LE(0, ruleset_fd);
-> 
-> 	enforce_ruleset(_metadata, ruleset_fd);
-> 	ASSERT_EQ(0, close(ruleset_fd));
-> 
-> 	/*
-> 	 * Accessing /dev/null for writing should be permitted,
-> 	 * because we did not add any file system restrictions.
-> 	 */
-> 	fd = open("/dev/null", O_WRONLY);
-> 	EXPECT_LE(0, fd);
-> 
-> 	ASSERT_EQ(0, close(fd));
-> }
-> 
-> Since these kinds of tests are a bit at the intersection between the
-> fs/net/socket tests, maybe they could go into a separate test file?  The next
-> time we add a new kind of Landlock restriction, it would come more naturally to
-> add the matching test there and spot such issues earlier.  Would you volunteer
-> to add such a test as part of your patch set? :)
+> Nice, I had an internal syzbot report about the same issue.
+> =
 
-Good idea! This test should probably be a part of the patch I mentioned
-here [1]. WDYT?
+> Reviewed-by: Eric Dumazet <edumazet@google.com>
 
-(Btw, [1] should also be a part of the issue mentioned above).
+Subject to the documentation warning from the bot
 
-[1] 
-https://lore.kernel.org/all/f4b5e2b9-e960-fd08-fdf4-328bb475e2ef@huawei-partners.com/
+Reviewed-by: Willem de Bruijn <willemb@google.com>
 
-> 
-> Thanks,
-> Günther
+Thanks for fixing this, Florian.
+
