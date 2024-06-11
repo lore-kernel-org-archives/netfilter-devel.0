@@ -1,70 +1,120 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAB6317721
-	for <netfilter-devel@vger.kernel.org>; Tue, 11 Jun 2024 16:45:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1894A41C6D
+	for <netfilter-devel@vger.kernel.org>; Tue, 11 Jun 2024 17:38:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718124324; cv=none; b=qrcKzn6iF+DV6SvMNM8vvVYBCgCtDq3hpab1VhkleG3knt4ReT/FOo7Y7tPOVZ6/fq8ynDPVDINwIzdQLR88dUq0U3UkLQJHC8AWpp3aWAZ0J2jFLBRGfAiJI4omXxN4g7rahnmuP7L9b7hDgtklrwDW3OCbFY9wBm6vIY0qHdI=
+	t=1718127506; cv=none; b=UAOBR93TRwQWlByXL0nCCLfAQURSZHPXe4a2tugF5XhBDmglbqJizi8rPmMo1W0gd39PDFjpcuF2Z0PY1VAIR040Ebz4Nfd2ebHyFXa2ca96NiZSbVVPTcQQ4chw+Tr2hjvA7NvzGoUdKoZXXnYSvbLmGgBTRa3CHhjSVVWTB20=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718124324; c=relaxed/simple;
-	bh=Dndc2lS9iAFM8Oy5FsXudpGjuC+OrQCSnQPqy9SLL8g=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=GERIszipj4qiAl3hj1eUGYuUXucMgSARv/SbUxOp9Ep+2A7dWs3jtZ/rz8dcgmnhkL5cvRUaJvZWBcJmQ9c5aBnQ6egN+ukvATCKB7/gSoHWgiA227L31bnz8IvpIO14i6tDsR36LJes21fRDOd/YJdxxPey2DQ5DDn9uXEGKDg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+	s=arc-20240116; t=1718127506; c=relaxed/simple;
+	bh=iexWsyl2IWaBxxJCMOJOgiucnw0NPMP4KNhI0a0aGwE=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=b1ezM7Fq7xc/dtvuGM0l8LN7z8Y6L8FmhUln0fvpayTQUTwsMtcyBHAtFfPmPdH0fHZPdbRQVjTpECVJe/AqxDlmdM2qP59HUWDprUmCw9gw7ER8lqmGLjyDYuSIf0CBEJ2G9ohtkHkW4T6xTOgZf5N/7hwqnwbZzWYWg4QbngI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=34488 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1sH4cV-002WNe-EO; Tue, 11 Jun 2024 18:45:17 +0200
-Date: Tue, 11 Jun 2024 18:45:14 +0200
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, Lion Ackermann <nnamrec@gmail.com>
-Subject: Re: [PATCH 1/1] netfilter: ipset: Fix race between namespace cleanup
- and gc in the list:set type
-Message-ID: <Zmh_Gn0bSkeshGOo@calendula>
-References: <20240604135803.2462674-1-kadlec@netfilter.org>
- <20240604135803.2462674-2-kadlec@netfilter.org>
- <ZmDlqGtGv_LdMj6k@calendula>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nft,v2] cmd: skip variable set elements when collapsing commands
+Date: Tue, 11 Jun 2024 19:38:12 +0200
+Message-Id: <20240611173812.173224-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <ZmDlqGtGv_LdMj6k@calendula>
-X-Spam-Score: -1.9 (-)
+Content-Transfer-Encoding: 8bit
 
-On Thu, Jun 06, 2024 at 12:24:40AM +0200, Pablo Neira Ayuso wrote:
-> Hi Jozsef,
-> 
-> On Tue, Jun 04, 2024 at 03:58:03PM +0200, Jozsef Kadlecsik wrote:
-> [...]
-> > @@ -424,14 +428,8 @@ static void
-> >  list_set_destroy(struct ip_set *set)
-> >  {
-> >  	struct list_set *map = set->data;
-> > -	struct set_elem *e, *n;
-> >  
-> > -	list_for_each_entry_safe(e, n, &map->members, list) {
-> > -		list_del(&e->list);
-> > -		ip_set_put_byindex(map->net, e->id);
-> > -		ip_set_ext_destroy(set, e);
-> > -		kfree(e);
-> > -	}
-> > +	BUG_ON(!list_empty(&map->members));
-> 
-> It would probably be better to turn this is WARN_ON_ONCE, such as:
-> 
->         WARN_ON_ONCE(!list_empty(&map->members);
-> 
-> BUG_ON is only allowed to be used in very particular cases these days.
-> 
-> I can update this patch if you are fine with it.
+ASAN reports an issue when collapsing commands that represent an element
+through a variable:
 
-Applied to nf.git, I am sorry for the delay, traveling last week.
+include/list.h:60:13: runtime error: member access within null pointer of type 'struct list_head'
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==11398==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x7ffb77cf09c2 bp 0x7ffc818267c0 sp 0x7ffc818267a0 T0)
+==11398==The signal is caused by a WRITE memory access.
+==11398==Hint: address points to the zero page.
+    #0 0x7ffb77cf09c2 in __list_add include/list.h:60
+    #1 0x7ffb77cf0ad9 in list_add_tail include/list.h:87
+    #2 0x7ffb77cf0e72 in list_move_tail include/list.h:169
+    #3 0x7ffb77cf86ad in nft_cmd_collapse src/cmd.c:478
+    #4 0x7ffb77da9f16 in nft_evaluate src/libnftables.c:531
+    #5 0x7ffb77dac471 in __nft_run_cmd_from_filename src/libnftables.c:720
+    #6 0x7ffb77dad703 in nft_run_cmd_from_filename src/libnftables.c:807
+
+Skip such commands to address this issue.
+
+This patch also extends tests/shell to cover for this bug.
+
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1754
+Fixes: 498a5f0c219d ("rule: collapse set element commands")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: extend tests/shell
+
+ src/cmd.c                                                 | 3 +++
+ tests/shell/testcases/sets/collapse_elem_0                | 6 ++++++
+ tests/shell/testcases/sets/dumps/collapse_elem_0.json-nft | 5 ++++-
+ tests/shell/testcases/sets/dumps/collapse_elem_0.nft      | 2 +-
+ 4 files changed, 14 insertions(+), 2 deletions(-)
+
+diff --git a/src/cmd.c b/src/cmd.c
+index d6b1d844ed8d..37d93abc2cd4 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -455,6 +455,9 @@ bool nft_cmd_collapse(struct list_head *cmds)
+ 			continue;
+ 		}
+ 
++		if (cmd->expr->etype == EXPR_VARIABLE)
++			continue;
++
+ 		if (!elems) {
+ 			elems = cmd;
+ 			continue;
+diff --git a/tests/shell/testcases/sets/collapse_elem_0 b/tests/shell/testcases/sets/collapse_elem_0
+index 7699e9da3e75..52a42c2f7305 100755
+--- a/tests/shell/testcases/sets/collapse_elem_0
++++ b/tests/shell/testcases/sets/collapse_elem_0
+@@ -17,3 +17,9 @@ add element ip a x { 2 }
+ add element ip6 a x { 2 }"
+ 
+ $NFT -f - <<< $RULESET
++
++RULESET="define m = { 3, 4 }
++add element ip a x \$m
++add element ip a x { 5 }"
++
++$NFT -f - <<< $RULESET
+diff --git a/tests/shell/testcases/sets/dumps/collapse_elem_0.json-nft b/tests/shell/testcases/sets/dumps/collapse_elem_0.json-nft
+index c713828d2843..c8ff43471428 100644
+--- a/tests/shell/testcases/sets/dumps/collapse_elem_0.json-nft
++++ b/tests/shell/testcases/sets/dumps/collapse_elem_0.json-nft
+@@ -23,7 +23,10 @@
+         "handle": 0,
+         "elem": [
+           1,
+-          2
++          2,
++          3,
++          4,
++          5
+         ]
+       }
+     },
+diff --git a/tests/shell/testcases/sets/dumps/collapse_elem_0.nft b/tests/shell/testcases/sets/dumps/collapse_elem_0.nft
+index a3244fc616de..775f0ab15d67 100644
+--- a/tests/shell/testcases/sets/dumps/collapse_elem_0.nft
++++ b/tests/shell/testcases/sets/dumps/collapse_elem_0.nft
+@@ -1,7 +1,7 @@
+ table ip a {
+ 	set x {
+ 		type inet_service
+-		elements = { 1, 2 }
++		elements = { 1, 2, 3, 4, 5 }
+ 	}
+ }
+ table ip6 a {
+-- 
+2.30.2
+
