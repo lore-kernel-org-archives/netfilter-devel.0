@@ -1,148 +1,81 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id BF499172BD8
-	for <netfilter-devel@vger.kernel.org>; Tue, 11 Jun 2024 08:35:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B156617556F;
+	Tue, 11 Jun 2024 08:41:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718094906; cv=none; b=NLZbqLzeMVu63+zSwC5XoaPkFsWsy/LeHJmhFIilk1DXOTOTOEb98Sa64dr2DRkpjhiyJgDTqm++m0feMfdnJixQe3wOeAdEMC1MViKZMXOMVzvyem5NYJWqBCmzT7kTrAozdLTz7faUHTHzNo6oX5yPOTkqU72IPOE/K/JshEk=
+	t=1718095289; cv=none; b=mvnLt07Z/tErJ5WbK3DdZt0l7BV8ZSsPzHYuLYJ+OhJSKRLrWsMGMRPKcfcBpN6WBgzrrRtyTZg305NAW1rdAIJedGavxsoWvUYRKa5l32DUXC3TbrDIFxvr33idLiuL8DmpbbsQeuCA7NHFe7cWwXRmwEVNlS1NbXs000Y0TQw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718094906; c=relaxed/simple;
-	bh=IC5JR52VZjO3+TPvht9hidVmCj0ru4Pogz1R4HWGEQk=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=r1ijSW0TfCP1CQZUpPSLNIXMe0urGQZWXcpDCNQtcc6JuVJI4JDjQa+0tFqQDDXuXP5wY+I3/TMc0FkVW4cHhvIhZg9uDPTwQfEyPGuObtX7WsS90EPvkIOD4h0gDP+rpJ3vLdzOPrieuNljRL0OZdyUMGsib78VKjbZMwsxx4Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+	s=arc-20240116; t=1718095289; c=relaxed/simple;
+	bh=ocsjki62tMXIwEMfkAUu6z5CKETwhLUNFOD++UH5k8E=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=bO1kncCcy5LtjktMyK7pJI3CUB/m0sqFMBSH6A9MgOHFWQ8KQm8zk3doEaddlOLJjMWEcSIDralGL+IVnmzBr4aX7E+/onfjGWGdIlbVqaGNXtGrwJRAqVDW70EhzOR3DVIvb+9V7qaj6qqmVrtlsyE85KjZWSdJwr7V0MD/Og8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=40150 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1sGx4B-001zqS-U7; Tue, 11 Jun 2024 10:41:22 +0200
+Date: Tue, 11 Jun 2024 10:41:19 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: aojea@google.com,
-	fw@strlen.de
-Subject: [PATCH nf-next,v4 2/2] selftests: net: netfilter: nft_queue.sh: sctp coverage
-Date: Tue, 11 Jun 2024 10:34:57 +0200
-Message-Id: <20240611083457.3006-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20240611083457.3006-1-pablo@netfilter.org>
-References: <20240611083457.3006-1-pablo@netfilter.org>
+To: Harshit Mogalapalli <harshit.m.mogalapalli@oracle.com>
+Cc: netfilter-devel@vger.kernel.org,
+	"stable@vger.kernel.org" <stable@vger.kernel.org>,
+	Vegard Nossum <vegard.nossum@oracle.com>
+Subject: Re: Testing stable backports for netfilter
+Message-ID: <ZmgNr0y2gCR4YW_K@calendula>
+References: <652cad2e-2857-4374-a597-a3337f9330f0@oracle.com>
+ <Zmd3XaiC_GiCakyf@calendula>
+ <c3789a4c-f262-444b-8234-8431cded548b@oracle.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <c3789a4c-f262-444b-8234-8431cded548b@oracle.com>
+X-Spam-Score: -1.8 (-)
 
-From: Antonio Ojea <aojea@google.com>
+On Tue, Jun 11, 2024 at 11:28:29AM +0530, Harshit Mogalapalli wrote:
+> On 11/06/24 03:29, Pablo Neira Ayuso wrote:
+> > On Mon, Jun 10, 2024 at 11:51:53PM +0530, Harshit Mogalapalli wrote:
+> > > Hello netfilter developers,
+> > > 
+> > > Do we have any tests that we could run before sending a stable backport in
+> > > netfilter/ subsystem to stable@vger ?
+> > > 
+> > > Let us say we have a CVE fix which is only backported till 5.10.y but it is
+> > > needed is 5.4.y and 4.19.y, the backport might need to easy to make, just
+> > > fixing some conflicts due to contextual changes or missing commits.
+> > 
+> > Which one in particular is missing?
+> 
+> I was planning to backport the fix for CVE-2023-52628 onto 5.4.y and 4.19.y
+> trees.
+> 
+> lts-5.10       : v5.10.198             - a7d86a77c33b netfilter: nftables:
+> exthdr: fix 4-byte stack OOB write
+>   lts-5.15       : v5.15.132             - 1ad7b189cc14 netfilter: nftables:
+> exthdr: fix 4-byte stack OOB write
+>   lts-6.1        : v6.1.54               - d9ebfc0f2137 netfilter: nftables:
+>
+> exthdr: fix 4-byte stack OOB write
+>   mainline       : v6.6-rc1              - fd94d9dadee5 netfilter: nftables:
+> exthdr: fix 4-byte stack OOB write
 
-Test that nfqueue with and without GSO process SCTP packets correctly.
+This is information is incorrect.
 
-Signed-off-by: Antonio Ojea <aojea@google.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v4: - use ss -S to detect listener socket reliably.
-    - add test to cover SCTP GSO from output path.
+This fix is already in 6.1 -stable.
 
- .../selftests/net/netfilter/nft_queue.sh      | 76 +++++++++++++++++++
- 1 file changed, 76 insertions(+)
+commit d9ebfc0f21377690837ebbd119e679243e0099cc
+Author: Florian Westphal <fw@strlen.de>
+Date:   Tue Sep 5 23:13:56 2023 +0200
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_queue.sh b/tools/testing/selftests/net/netfilter/nft_queue.sh
-index 8538f08c64c2..288b3cc55ed7 100755
---- a/tools/testing/selftests/net/netfilter/nft_queue.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_queue.sh
-@@ -25,6 +25,9 @@ cleanup()
- }
- 
- checktool "nft --version" "test without nft tool"
-+checktool "socat -h" "run test without socat"
-+
-+modprobe -q sctp
- 
- trap cleanup EXIT
- 
-@@ -375,6 +378,77 @@ EOF
- 	wait 2>/dev/null
- }
- 
-+sctp_listener_ready()
-+{
-+	ss -S -N "$1" -lnt -o "sport = :12345" | grep -q 12345
-+}
-+
-+test_sctp_forward()
-+{
-+	ip netns exec "$nsrouter" nft -f /dev/stdin <<EOF
-+table inet sctpq {
-+        chain forward {
-+        type filter hook forward priority 0; policy accept;
-+                sctp dport 12345 queue num 10
-+        }
-+}
-+EOF
-+	ip netns exec "$nsrouter" ./nf_queue -q 10 -G -t "$timeout" &
-+	local nfqpid=$!
-+
-+	timeout 60 ip netns exec "$ns2" socat -u SCTP-LISTEN:12345 STDOUT > "$TMPFILE1" &
-+	local rpid=$!
-+
-+	busywait "$BUSYWAIT_TIMEOUT" sctp_listener_ready "$ns2"
-+
-+	ip netns exec "$ns1" socat -u STDIN SCTP:10.0.2.99:12345 <"$TMPINPUT" >/dev/null
-+
-+	if ! ip netns exec "$nsrouter" nft delete table inet sctpq; then
-+		echo "FAIL:  Could not delete sctpq table"
-+		exit 1
-+	fi
-+
-+	if ! diff -u "$TMPINPUT" "$TMPFILE1" ; then
-+		echo "FAIL: lost packets?!" 1>&2
-+		return
-+	fi
-+
-+	wait "$rpid" && echo "PASS: sctp and nfqueue in forward chain"
-+}
-+
-+test_sctp_output()
-+{
-+        ip netns exec "$ns1" nft -f /dev/stdin <<EOF
-+table inet sctpq {
-+        chain output {
-+        type filter hook output priority 0; policy accept;
-+                sctp dport 12345 queue num 11
-+        }
-+}
-+EOF
-+	ip netns exec "$ns1" ./nf_queue -q 11 -t "$timeout" &
-+	local nfqpid=$!
-+
-+	timeout 60 ip netns exec "$ns2" socat -u SCTP-LISTEN:12345 STDOUT > "$TMPFILE1" &
-+	local rpid=$!
-+
-+	busywait "$BUSYWAIT_TIMEOUT" sctp_listener_ready "$ns2"
-+
-+	ip netns exec "$ns1" socat -u STDIN SCTP:10.0.2.99:12345 <"$TMPINPUT" >/dev/null
-+
-+	if ! ip netns exec "$ns1" nft delete table inet sctpq; then
-+		echo "FAIL:  Could not delete sctpq table"
-+		exit 1
-+	fi
-+
-+	if ! diff -u "$TMPINPUT" "$TMPFILE1" ; then
-+		echo "FAIL: lost packets?!" 1>&2
-+		return
-+	fi
-+
-+	wait "$rpid" && echo "PASS: sctp and nfqueue in output chain with GSO"
-+}
-+
- ip netns exec "$nsrouter" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
- ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
- ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth1.forwarding=1 > /dev/null
-@@ -413,5 +487,7 @@ test_tcp_localhost
- test_tcp_localhost_connectclose
- test_tcp_localhost_requeue
- test_icmp_vrf
-+test_sctp_forward
-+test_sctp_output
- 
- exit $ret
--- 
-2.30.2
+    netfilter: nftables: exthdr: fix 4-byte stack OOB write
 
+    [ Upstream commit fd94d9dadee58e09b49075240fe83423eb1dcd36 ]
