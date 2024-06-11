@@ -1,14 +1,13 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 335B94594C;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D4249150991;
 	Tue, 11 Jun 2024 22:03:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718143411; cv=none; b=oTlRbLp41CCFzBK8aQS4eSqxjvKBYBGW22uGuTqtRu3u4y8SfvvX5Vg/EbbXyw4k5GVt+ZtMySM3KgoV3PJ8A3d6ola6Ds3QeGg3HyiuiR/MuhKlYM6YGneECuE3eGZ5pdEyNZHKblP8ehk2QilgihWfGCzTvNikr5ZcSm4mZSc=
+	t=1718143411; cv=none; b=fDOz6gmSXDap/kElOi89TJcdpBe84g253fBfDGAODL513zR0Bpjp1VxP2vNvpcCls8Yk4jy5285d0999XAacC5QwgRjpF6RjnGAI1lc4CbxRJcTjESx7ss/x+iQWP/9a+ef9GB0O4dC2x4NtketXtyRrtiHFGVeAIldIaJn7Iq4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1718143411; c=relaxed/simple;
-	bh=e4Tz2z1xQQrfnYbVXk9VLvbPCDlDfZzGESORDBwJt4s=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=bvfxyBSgloWq7K1SLzkCvaGG84RCCz06bRWRFVCVTTVPii9RexlNnttuCF30N+1rnSZmie/1uBxfOgvnntgKUp3xnbPX8jCw6OYFYhECkFtgawIM/Gg3yT/rPKOzxCr3zUENcSNkkjFST+ExpDkKn+kom+iisnDo29shUe3ju0I=
+	bh=Z/32LF81Zn9UJbVOXGfYBPwKOU5DY4DOyiVLJEzR1UY=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=cW8KS3VsM7IQ7NiOHl8BxE3teXzzfOMQftO4DprV4S0aNpLFPMuiu0Mim5p1iNZQ4c+tY5wD8B4ZNspYkBJOCcMcNSbWA0b5DJDhPK9quG/s6ypA5uPmpQR6wtJMZkxtS2K7D66nWMC7Ni7oXC3G1NKwTEHFmUjUBs4sla/243Y=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,12 +19,10 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 1/3] netfilter: nft_inner: validate mandatory meta and payload
-Date: Wed, 12 Jun 2024 00:03:21 +0200
-Message-Id: <20240611220323.413713-2-pablo@netfilter.org>
+Subject: [PATCH net 0/3] Netfilter fixes for net
+Date: Wed, 12 Jun 2024 00:03:20 +0200
+Message-Id: <20240611220323.413713-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20240611220323.413713-1-pablo@netfilter.org>
-References: <20240611220323.413713-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -34,50 +31,61 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Davide Ornaghi <d.ornaghi97@gmail.com>
+Hi,
 
-Check for mandatory netlink attributes in payload and meta expression
-when used embedded from the inner expression, otherwise NULL pointer
-dereference is possible from userspace.
+The following patchset contains Netfilter fixes for net:
 
-Fixes: a150d122b6bd ("netfilter: nft_meta: add inner match support")
-Fixes: 3a07327d10a0 ("netfilter: nft_inner: support for inner tunnel header matching")
-Signed-off-by: Davide Ornaghi <d.ornaghi97@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_meta.c    | 3 +++
- net/netfilter/nft_payload.c | 4 ++++
- 2 files changed, 7 insertions(+)
+Patch #1 fixes insufficient sanitization of netlink attributes for the
+	 inner expression which can trigger nul-pointer dereference,
+	 from Davide Ornaghi.
 
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index ba0d3683a45d..9139ce38ea7b 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -839,6 +839,9 @@ static int nft_meta_inner_init(const struct nft_ctx *ctx,
- 	struct nft_meta *priv = nft_expr_priv(expr);
- 	unsigned int len;
- 
-+	if (!tb[NFTA_META_KEY] || !tb[NFTA_META_DREG])
-+		return -EINVAL;
-+
- 	priv->key = ntohl(nla_get_be32(tb[NFTA_META_KEY]));
- 	switch (priv->key) {
- 	case NFT_META_PROTOCOL:
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index 0c43d748e23a..50429cbd42da 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -650,6 +650,10 @@ static int nft_payload_inner_init(const struct nft_ctx *ctx,
- 	struct nft_payload *priv = nft_expr_priv(expr);
- 	u32 base;
- 
-+	if (!tb[NFTA_PAYLOAD_BASE] || !tb[NFTA_PAYLOAD_OFFSET] ||
-+	    !tb[NFTA_PAYLOAD_LEN] || !tb[NFTA_PAYLOAD_DREG])
-+		return -EINVAL;
-+
- 	base   = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_BASE]));
- 	switch (base) {
- 	case NFT_PAYLOAD_TUN_HEADER:
--- 
-2.30.2
+Patch #2 address a report that there is a race condition between
+         namespace cleanup and the garbage collection of the list:set
+         type. This patch resolves this issue with other minor issues
+	 as well, from Jozsef Kadlecsik.
 
+Patch #3 ip6_route_me_harder() ignores flowlabel/dsfield when ip dscp
+	 has been mangled, this unbreaks ip6 dscp set $v,
+	 from Florian Westphal.
+
+All of these patches address issues that are present in several releases.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-24-06-11
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 36534d3c54537bf098224a32dc31397793d4594d:
+
+  tcp: use signed arithmetic in tcp_rtx_probe0_timed_out() (2024-06-10 19:50:10 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-24-06-11
+
+for you to fetch changes up to 6f8f132cc7bac2ac76911e47d5baa378aafda4cb:
+
+  netfilter: Use flowlabel flow key when re-routing mangled packets (2024-06-11 18:46:04 +0200)
+
+----------------------------------------------------------------
+netfilter pull request 24-06-11
+
+----------------------------------------------------------------
+Davide Ornaghi (1):
+      netfilter: nft_inner: validate mandatory meta and payload
+
+Florian Westphal (1):
+      netfilter: Use flowlabel flow key when re-routing mangled packets
+
+Jozsef Kadlecsik (1):
+      netfilter: ipset: Fix race between namespace cleanup and gc in the list:set type
+
+ net/ipv6/netfilter.c                  |  1 +
+ net/netfilter/ipset/ip_set_core.c     | 81 ++++++++++++++++++++---------------
+ net/netfilter/ipset/ip_set_list_set.c | 30 ++++++-------
+ net/netfilter/nft_meta.c              |  3 ++
+ net/netfilter/nft_payload.c           |  4 ++
+ 5 files changed, 68 insertions(+), 51 deletions(-)
