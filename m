@@ -1,70 +1,50 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2F727381BB
-	for <netfilter-devel@vger.kernel.org>; Tue, 11 Jun 2024 16:17:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D452739855
+	for <netfilter-devel@vger.kernel.org>; Tue, 11 Jun 2024 16:44:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718122640; cv=none; b=lQkVu9dIavzsdBEX1jdKiMYkS558KeQLYQfxYVVQyjF0bYuUc3GK7Rc0zkj0VI/s27TbozK2C+TdqpZ5V6W5I1XdltGjCJKnY++aP6N4w7ZVI24XScWwN5G2h05l3CKqeVOZtCdaxWLIIWFGMBOeG1KyWe7VxVnor719RB0ijjw=
+	t=1718124296; cv=none; b=sFfxJdSkooST39N3KUvPOxV1021GHL91kurZFdcyoFN/9mQuhfHs9tXWed0maqy3qrGkhj2EUDI6temBrT6zhcGPOpB6HruCMovtg4x/TQkKYKZDkEAIom7pOhyk2108ZY+HcrX/Qk+6zN1DWmbKPc2G21aCF+TAQdtrnis+sks=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718122640; c=relaxed/simple;
-	bh=fzDp4s4M0YP2zHW3AvZywcPFMojzW37cJ48ka9pxK7U=;
-	h=From:To:Subject:Date:Message-Id:MIME-Version; b=M9lmqtfFJLrr9jHiYdDjJKjU+uEJy7pK9+0rDOX4deeBBqdL2fCirI3xDl6aAIUlnJIBNH5WHofPYiE1r8Wx4HhbRTxTE93KIGpcS8fAoujfXv4umTS7a/lqApgnOrH8sNSpMpc1KLR5Aqye+Fy+ljaKxhPY+EdxvV265U1DYaw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+	s=arc-20240116; t=1718124296; c=relaxed/simple;
+	bh=RMvLT723C5ez5HJa+XfwAKM3Xm5vHYD20vgOM0DbGWc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=X6QlZdl9l4KStEMvfLwZUCqSear/rhc96BTcbsow8I527NgtlPQzI6hsJehp5twVvgEsLTKyvfxgkVIO1S7P87/mtWVObAnE3FwmWkK+AyaC0hi6M/fZOx+ZR67ICgkgDerx+TLRxP7aOci2oTvIwoWEuasImu01TVzQsvwBCgA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=40076 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1sH4c2-002WLO-0X; Tue, 11 Jun 2024 18:44:47 +0200
+Date: Tue, 11 Jun 2024 18:44:44 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] cmd: skip variable set elements when collapsing commands
-Date: Tue, 11 Jun 2024 18:17:11 +0200
-Message-Id: <20240611161711.20247-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, Yi Chen <yiche@redhat.com>
+Subject: Re: [PATCH nf] netfilter: Use flowlabel flow key when re-routing
+ mangled packets
+Message-ID: <Zmh-_F9bJJOrnkbY@calendula>
+References: <20240606102334.5521-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20240606102334.5521-1-fw@strlen.de>
+X-Spam-Score: -1.9 (-)
 
-ASAN reports an issue when collapsing commands that represent an element
-through a variable:
+On Thu, Jun 06, 2024 at 12:23:31PM +0200, Florian Westphal wrote:
+> 'ip6 dscp set $v' in an nftables outpute route chain has no effect.
+> While nftables does detect the dscp change and calls the reroute hook.
+> But ip6_route_me_harder never sets the dscp/flowlabel:
+> flowlabel/dsfield routing rules are ignored and no reroute takes place.
+> 
+> Thanks to Yi Chen for an excellent reproducer script that I used
+> to validate this change.
 
-include/list.h:60:13: runtime error: member access within null pointer of type 'struct list_head'
-AddressSanitizer:DEADLYSIGNAL
-=================================================================
-==11398==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x7ffb77cf09c2 bp 0x7ffc818267c0 sp 0x7ffc818267a0 T0)
-==11398==The signal is caused by a WRITE memory access.
-==11398==Hint: address points to the zero page.
-    #0 0x7ffb77cf09c2 in __list_add include/list.h:60
-    #1 0x7ffb77cf0ad9 in list_add_tail include/list.h:87
-    #2 0x7ffb77cf0e72 in list_move_tail include/list.h:169
-    #3 0x7ffb77cf86ad in nft_cmd_collapse src/cmd.c:478
-    #4 0x7ffb77da9f16 in nft_evaluate src/libnftables.c:531
-    #5 0x7ffb77dac471 in __nft_run_cmd_from_filename src/libnftables.c:720
-    #6 0x7ffb77dad703 in nft_run_cmd_from_filename src/libnftables.c:807
-
-Skip such commands to address this issue.
-
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1754
-Fixes: 498a5f0c219d ("rule: collapse set element commands")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/cmd.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/src/cmd.c b/src/cmd.c
-index d6b1d844ed8d..37d93abc2cd4 100644
---- a/src/cmd.c
-+++ b/src/cmd.c
-@@ -455,6 +455,9 @@ bool nft_cmd_collapse(struct list_head *cmds)
- 			continue;
- 		}
- 
-+		if (cmd->expr->etype == EXPR_VARIABLE)
-+			continue;
-+
- 		if (!elems) {
- 			elems = cmd;
- 			continue;
--- 
-2.30.2
-
+Applied to nf.git, thanks Florian
