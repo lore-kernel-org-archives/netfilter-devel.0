@@ -1,107 +1,70 @@
-Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F51E17C7D3;
-	Tue, 11 Jun 2024 11:36:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.189
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2F727381BB
+	for <netfilter-devel@vger.kernel.org>; Tue, 11 Jun 2024 16:17:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718105763; cv=none; b=Nj/f8sxN4odXUGZvxbvLO09lV3Mnp592qt8Ikyk9Neb2IG4aS9igUl7YC+NcL0ZNxPKDBTDEdvqaRJK2XJ6BAf31RO7YWr1xgRbB6KQ4sOmWugarPyLb/xtG6EqCHs1M1PO6GxGCcl6cskty2xXKFhbiwBNNj+xHAnloB9FlncM=
+	t=1718122640; cv=none; b=lQkVu9dIavzsdBEX1jdKiMYkS558KeQLYQfxYVVQyjF0bYuUc3GK7Rc0zkj0VI/s27TbozK2C+TdqpZ5V6W5I1XdltGjCJKnY++aP6N4w7ZVI24XScWwN5G2h05l3CKqeVOZtCdaxWLIIWFGMBOeG1KyWe7VxVnor719RB0ijjw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718105763; c=relaxed/simple;
-	bh=X+Vr5x7b/jaeilN4C9JCZliYRRivqC4zJPAs6RBXedg=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=dwVpnIOGa6LjvhUzHk1Fl2t1FfFg9Iu8y0Lzw3qF/h1SIgs2LKimsDiXM4lgzTLY/qN+dQdOLPtfO22qjBbK0qJ11atEsgK4afFURVbkLGBWsZSmWczb4qAqTOyCIs79355tn9VFeps7vKYLgR3/wQxrGDxXyXnSlYwl9urb5p4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.189
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
-Received: from mail.maildlp.com (unknown [172.19.163.48])
-	by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4Vz63H1gk6zPqgD;
-	Tue, 11 Jun 2024 19:32:27 +0800 (CST)
-Received: from dggpemm500020.china.huawei.com (unknown [7.185.36.49])
-	by mail.maildlp.com (Postfix) with ESMTPS id 3EDDE18006C;
-	Tue, 11 Jun 2024 19:35:51 +0800 (CST)
-Received: from [10.123.123.159] (10.123.123.159) by
- dggpemm500020.china.huawei.com (7.185.36.49) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.39; Tue, 11 Jun 2024 19:35:46 +0800
-Message-ID: <00f459b5-8aac-4312-8327-fa2bb4964ba6@huawei-partners.com>
-Date: Tue, 11 Jun 2024 14:35:41 +0300
+	s=arc-20240116; t=1718122640; c=relaxed/simple;
+	bh=fzDp4s4M0YP2zHW3AvZywcPFMojzW37cJ48ka9pxK7U=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=M9lmqtfFJLrr9jHiYdDjJKjU+uEJy7pK9+0rDOX4deeBBqdL2fCirI3xDl6aAIUlnJIBNH5WHofPYiE1r8Wx4HhbRTxTE93KIGpcS8fAoujfXv4umTS7a/lqApgnOrH8sNSpMpc1KLR5Aqye+Fy+ljaKxhPY+EdxvV265U1DYaw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] cmd: skip variable set elements when collapsing commands
+Date: Tue, 11 Jun 2024 18:17:11 +0200
+Message-Id: <20240611161711.20247-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH v2 00/12] Socket type control for Landlock
-Content-Language: ru
-To: =?UTF-8?Q?G=C3=BCnther_Noack?= <gnoack@google.com>
-CC: =?UTF-8?Q?G=C3=BCnther_Noack?= <gnoack3000@gmail.com>, <mic@digikod.net>,
-	<willemdebruijn.kernel@gmail.com>, <linux-security-module@vger.kernel.org>,
-	<netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
-	<yusongping@huawei.com>, <artem.kuzin@huawei.com>,
-	<konstantin.meskhidze@huawei.com>, Tahera Fahimi <fahimitahera@gmail.com>
-References: <20240524093015.2402952-1-ivanov.mikhail1@huawei-partners.com>
- <20240604.c18387da7a0e@gnoack.org>
- <ebd680cc-25d6-ee14-4856-310f5e5e28e4@huawei-partners.com>
- <ZmazTKVNlsH3crwP@google.com>
-From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-In-Reply-To: <ZmazTKVNlsH3crwP@google.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: lhrpeml500001.china.huawei.com (7.191.163.213) To
- dggpemm500020.china.huawei.com (7.185.36.49)
 
-6/10/2024 11:03 AM, Günther Noack wrote:
-> On Thu, Jun 06, 2024 at 02:44:23PM +0300, Mikhail Ivanov wrote:
->> 6/4/2024 11:22 PM, Günther Noack wrote:
->> I figured out that I define LANDLOCK_SHIFT_ACCESS_SOCKET macro in
->> really strange way (see landlock/limits.h):
->>
->>    #define LANDLOCK_SHIFT_ACCESS_SOCKET	LANDLOCK_NUM_ACCESS_SOCKET
->>
->> With this definition, socket access mask overlaps the fs access
->> mask in ruleset->access_masks[layer_level]. That's why
->> landlock_get_fs_access_mask() returns non-zero mask in hook_file_open().
->>
->> So, the macro must be defined in this way:
->>
->>    #define LANDLOCK_SHIFT_ACCESS_SOCKET	(LANDLOCK_NUM_ACCESS_NET +
->>                                           LANDLOCK_NUM_ACCESS_FS)
->>
->> With this fix, open() doesn't fail in your example.
->>
->> I'm really sorry that I somehow made such a stupid typo. I will try my
->> best to make sure this doesn't happen again.
-> 
-> I found that we had the exact same bug with a wrongly defined "SHIFT" value in
-> [1].
-> 
-> Maybe we should define access_masks_t as a bit-field rather than doing the
-> bit-shifts by hand.  Then the compiler would keep track of the bit-offsets
-> automatically.
-> 
-> Bit-fields have a bad reputation, but in my understanding, this is largely
-> because they make it hard to control the exact bit-by-bit layout.  In our case,
-> we do not need such an exact control though, and it would be fine.
-> 
-> To quote Linus Torvalds on [2],
-> 
->    Bitfields are fine if you don't actually care about the underlying format,
->    and want gcc to just randomly assign bits, and want things to be
->    convenient in that situation.
-> 
-> Let me send you a proposal patch which replaces access_masks_t with a bit-field
-> and removes the need for the "SHIFT" definition, which we already got wrong in
-> two patch sets now.  It has the additional benefit of making the code a bit
-> shorter and also removing a few static_assert()s which are now guaranteed by the
-> compiler.
-> 
-> —Günther
-> 
-> [1] https://lore.kernel.org/all/ZmLEoBfHyUR3nKAV@google.com/
-> [2] https://yarchive.net/comp/linux/bitfields.html
+ASAN reports an issue when collapsing commands that represent an element
+through a variable:
 
-Thank you, Günther! It really looks more clear.
+include/list.h:60:13: runtime error: member access within null pointer of type 'struct list_head'
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==11398==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x7ffb77cf09c2 bp 0x7ffc818267c0 sp 0x7ffc818267a0 T0)
+==11398==The signal is caused by a WRITE memory access.
+==11398==Hint: address points to the zero page.
+    #0 0x7ffb77cf09c2 in __list_add include/list.h:60
+    #1 0x7ffb77cf0ad9 in list_add_tail include/list.h:87
+    #2 0x7ffb77cf0e72 in list_move_tail include/list.h:169
+    #3 0x7ffb77cf86ad in nft_cmd_collapse src/cmd.c:478
+    #4 0x7ffb77da9f16 in nft_evaluate src/libnftables.c:531
+    #5 0x7ffb77dac471 in __nft_run_cmd_from_filename src/libnftables.c:720
+    #6 0x7ffb77dad703 in nft_run_cmd_from_filename src/libnftables.c:807
 
-This patch should be applied to Landlock separately, right?
+Skip such commands to address this issue.
+
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1754
+Fixes: 498a5f0c219d ("rule: collapse set element commands")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/cmd.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/cmd.c b/src/cmd.c
+index d6b1d844ed8d..37d93abc2cd4 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -455,6 +455,9 @@ bool nft_cmd_collapse(struct list_head *cmds)
+ 			continue;
+ 		}
+ 
++		if (cmd->expr->etype == EXPR_VARIABLE)
++			continue;
++
+ 		if (!elems) {
+ 			elems = cmd;
+ 			continue;
+-- 
+2.30.2
+
