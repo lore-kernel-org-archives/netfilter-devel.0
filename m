@@ -1,94 +1,69 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDEDD1DFE3;
-	Wed, 12 Jun 2024 13:15:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 793101E504;
+	Wed, 12 Jun 2024 14:48:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718198154; cv=none; b=SX/57ZGwiT6PZqcusOMB2WA7/z3FWanKON5AGnTkeP3ZTe19EuVDP4x97q3Z2BG9nQjt1blXwHgxA2hrspLh99kCkeN+8Od3bk+GWFh+ZcQhXFn3q4GfPJjT5FD81PGGhqeVogAVDNKobH+xfb6T8HTAxNd1rAGa12o+tIcvA3k=
+	t=1718203687; cv=none; b=bN1HT8lVYZKdr/WqQqB1+JLy/g19kASDxmEcCoJubDHA7V+APbVB96xWFDBQjzRoGxmbpWfMxvfn6mPWi+dZMD6LWVUsaw/5JN+Rl7xl2iqq5iFwETM5JhKXzl32qy0GMYdxYoemio/Xpxo9FSWFa8RWzLcM+6P70oDyDiJeM28=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718198154; c=relaxed/simple;
-	bh=W4ACezUPO47ukssjODA/ZzcWfulgmEYa/NAuOUhOOXo=;
+	s=arc-20240116; t=1718203687; c=relaxed/simple;
+	bh=gIuOYfz93n8dSbxaF6xUILMdMtwvKuPRkUX+zeecAKU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=pdiFp9QidBiYy4KhJpgNpuzBrfEdZw6U6oqUxBKrWhVMhdkReLrZzSOZq1CgRiIOBgTHn2GN3kR88ybOxqLnbziV+c/R8fjhSuHCbHJhdnLk88dv5LHpfk7OaxuVnJ7NEWOmaZgOFsMKrpwKnQ8vkMmdFndcOA/ER2euKyBWd/A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=43820 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1sHNpH-003v6v-6y; Wed, 12 Jun 2024 15:15:45 +0200
-Date: Wed, 12 Jun 2024 15:15:42 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+	 Content-Type:Content-Disposition:In-Reply-To; b=l1LFb52wmKrMpqKM2PGaBWUkp/mnk2UOCOmadpbw+YG0eRvxkioetw0d19ZSSK3oIgBLGFW1loNnAu3WM0XHV1ZMXmm1KaAgQVoi9QYbxT/SpHInRJQHqYfenJZlGjUHB981uahcu8E8gQdZBOZSD3dK+4JqACiSSa6/w5WOHnw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=AUhSppyo; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="AUhSppyo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 695EEC116B1;
+	Wed, 12 Jun 2024 14:48:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+	s=korg; t=1718203687;
+	bh=gIuOYfz93n8dSbxaF6xUILMdMtwvKuPRkUX+zeecAKU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=AUhSppyowsRAhKMbeg3vEuP/5Y45fwXYI0mxxW89h4nOx5NS7rF4pWv/SYGu/CW21
+	 AC7eO/BbZKnj+y2vlp7UDvV+yOKgzjVqTWHQYnpKnpCgP+cDbS7KEFG8p1Dmw9DcAV
+	 /U9rCCoifJGVK1kWKk24zcNge8Hqn/D3TIZO32uo=
+Date: Wed, 12 Jun 2024 16:48:04 +0200
+From: Greg KH <gregkh@linuxfoundation.org>
 To: Kuntal Nayak <kuntal.nayak@broadcom.com>
-Cc: stable@vger.kernel.org, gregkh@linuxfoundation.org,
+Cc: stable@vger.kernel.org, pablo@netfilter.org, kadlec@netfilter.org,
+	fw@strlen.de, davem@davemloft.net, kuba@kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
 	ajay.kaher@broadcom.com, alexey.makhalov@broadcom.com,
-	vasavi.sirnapalli@broadcom.com, kadlec@netfilter.org, fw@strlen.de,
-	davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-	pabeni@redhat.com, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v6.1] netfilter: nf_tables: use timestamp to check for
- set element timeout
-Message-ID: <ZmmffoZAlP2wRQJL@calendula>
-References: <20240607230146.47222-1-kuntal.nayak@broadcom.com>
+	vasavi.sirnapalli@broadcom.com
+Subject: Re: [PATCH 1/2 v5.10] netfilter: nf_tables: restrict tunnel object
+ to NFPROTO_NETDEV
+Message-ID: <2024061254-crayfish-gory-e4b8@gregkh>
+References: <20240607213735.46127-1-kuntal.nayak@broadcom.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240607230146.47222-1-kuntal.nayak@broadcom.com>
-X-Spam-Score: -1.9 (-)
+In-Reply-To: <20240607213735.46127-1-kuntal.nayak@broadcom.com>
 
-Hi,
-
-Thanks for your patch.
-
-rbtree GC chunk is not correct though. In 6.1, GC runs via workqueue,
-so the cached timestamp cannot be used in such case.
-
-Another possibility is to pull in the patch dependency to run GC
-synchronously.
-
-I am preparing a batch of updates for -stable, let me pick up on your
-patch.
-
-Thanks.
-
-On Fri, Jun 07, 2024 at 04:01:46PM -0700, Kuntal Nayak wrote:
-> diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-> index 5bf5572e9..c4c92192c 100644
-> --- a/net/netfilter/nft_set_rbtree.c
-> +++ b/net/netfilter/nft_set_rbtree.c
-[...]
-> @@ -622,12 +624,14 @@ static void nft_rbtree_gc(struct work_struct *work)
->  	struct nft_set *set;
->  	unsigned int gc_seq;
->  	struct net *net;
-> +	u64 tstamp;
->  
->  	priv = container_of(work, struct nft_rbtree, gc_work.work);
->  	set  = nft_set_container_of(priv);
->  	net  = read_pnet(&set->net);
->  	nft_net = nft_pernet(net);
->  	gc_seq  = READ_ONCE(nft_net->gc_seq);
-> +	tstamp = nft_net_tstamp(net);
->  
->  	if (nft_set_gc_is_pending(set))
->  		goto done;
-> @@ -659,7 +663,7 @@ static void nft_rbtree_gc(struct work_struct *work)
->  			rbe_end = rbe;
->  			continue;
->  		}
-> -		if (!nft_set_elem_expired(&rbe->ext))
-> +		if (!__nft_set_elem_expired(&rbe->ext, tstamp))
->  			continue;
->  
->  		nft_set_elem_dead(&rbe->ext);
-> -- 
-> 2.39.3
+On Fri, Jun 07, 2024 at 02:37:34PM -0700, Kuntal Nayak wrote:
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
 > 
+> [ upstream commit 776d451648443f9884be4a1b4e38e8faf1c621f9 ]
+> 
+> Bail out on using the tunnel dst template from other than netdev family.
+> Add the infrastructure to check for the family in objects.
+> 
+> Fixes: af308b94a2a4 ("netfilter: nf_tables: add tunnel support")
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> [KN: Backport patch according to v5.10.x source]
+> Signed-off-by: Kuntal Nayak <kuntal.nayak@broadcom.com>
+> ---
+>  include/net/netfilter/nf_tables.h |  2 ++
+>  net/netfilter/nf_tables_api.c     | 14 +++++++++-----
+>  net/netfilter/nft_tunnel.c        |  1 +
+>  3 files changed, 12 insertions(+), 5 deletions(-)
+
+Both now queued up, thanks.
+
+greg k-h
