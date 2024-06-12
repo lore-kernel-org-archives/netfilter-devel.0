@@ -1,43 +1,43 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01B0E1D54B
-	for <netfilter-devel@vger.kernel.org>; Wed, 12 Jun 2024 13:04:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54BB91D54B
+	for <netfilter-devel@vger.kernel.org>; Wed, 12 Jun 2024 13:04:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718197471; cv=none; b=rezr0V4WQf88jt+69hbDCpfUYB23W3iocXNmRhKBwAHQHjKS7vLQ7ghdN1ntbbhg4kJnTLcybeI0VwcG6jz/Yfw87obBm08S3RWYhfBtZ60h+fosd3K6FmhFfGNrVA3doYCQh2smCMdX1VORfpbJ8R7xd1zeEgiHcdxpIWt1IuM=
+	t=1718197474; cv=none; b=SaDWsX3/Q51JdfI4CFCCNVwJgQ/SpNp8Suu7LLieLg0B9wa4wdZxAMlajMKBCLdaJ00ZRrbHVOXvQ42RcNFiyA+uYGGdWXut+PHynQi2yNpuxZmaxURiydV21Lm/h/s9y0G8AW+INmjutB3jwXF/XSBkpsbGGoB6goukN5P7sO8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718197471; c=relaxed/simple;
-	bh=QuJTkKGLKs0HprWi/XK8O7ZVtY8+UwULuUumyyVjb/I=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=VtKq21hL7AZ3C1J6VHzxa/kEjxEL5EdLo8kVf+8UtLOQZekwbWRwBuS3ehTCXO6x6Jsjpm0N5+6syLX56Bk/nFZwTxn0lydEBoODyRa/ebEuAKt/H1I7jH9U3QDHErekX+qWKh72msGxCYvNu9eeb/anf+57WWRml2VP2EbOF0c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=RiZyv5Ba; arc=none smtp.client-ip=151.80.46.58
+	s=arc-20240116; t=1718197474; c=relaxed/simple;
+	bh=Xcm9/4XeicLEDVf1PQzlRcGa6o/RYegKVo6SYKvK/Tw=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=kqexCCUoyRLr4qHVjH0vcUwAgKo39pDH2l+3ZRkGoQ0GKloeKTQol/y6O6Bj5llzyp4SWRBaNPSH45OoA2aph6GLFGqEhDbWsX760KExFWLn9ZLgflCTS6ZjqY+51tAd6ErQ2Hsx6bNdvc6X8uYduJRt/ei+L09Z/HS+R/IZi/0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=qnId3n9P; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="RiZyv5Ba"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="qnId3n9P"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=vrAlztVKOohJ59TYTUItAZOuDtT8wvR8GcBItI11huA=; b=RiZyv5Ba2gdqPNCdrpNLarBmAI
-	Wr08/JXAO5BWbh+iEA77uSrteXVHdhCLOENO7+o8wSw00Y+/lJs3154J2GK296QfvNYnzUGA9lbw0
-	rygOKa2N9GJdnhnrF42u9oYrLyuOaao7w5E9s9hkiEQbuCyz71IspngAEg9SmdGcL4T5zuZiCoGho
-	DGDobpCqA73DaWbdTkTSHKP4KWqvzpCZnS51TWpNGmBGFE13ekkFBfwjBwkE5y6J6s6MYKlrzTBlr
-	28kgaqOaDEht83nr5hKZ3Gq5DYjQAf0nDrzLEj6P8dzgdN2UTK5WOf3UQV6JTGFIXim9hguJg6lG7
-	am03bphg==;
+	bh=h0zXv3KL+OPyYpEeBOXWrausG0dfC03gG+idmvti+ko=; b=qnId3n9P0jjhxe2pww/j3Od7lJ
+	7q7XklxL4KwxkCGBphm+Ch7IiG3e7Lt8AtnekUZeGb7u2S0Y4/IcMMXiwRVlwNyEKAOM0+EtaBdZh
+	RhJKMCPQJWthrQtdHwoCJ08U90mxIO37BaXuY0vcpkaLvnRr8AEup6matX2+sQHvMt7046AUTS5CB
+	Lu6aljonVWlZN0n5mgbkGzJE9fmwSD5a/7ezeP3PI75U2PqwZRmMfZzSQxbHVBXxXgBu0/n9yw3oz
+	0mCcEVwOQjhG/uAsjRi5Ks4hVVHiZ7aPzSwDwog7BV6mlDPgAqvoOKaAnLi5LTRYmxcZZCy4xZT5A
+	mZQ95dFg==;
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1sHNHm-000000006cd-2uB9;
-	Wed, 12 Jun 2024 14:41:06 +0200
+	id 1sHNHl-000000006cT-2F2E
+	for netfilter-devel@vger.kernel.org;
+	Wed, 12 Jun 2024 14:41:05 +0200
 From: Phil Sutter <phil@nwl.cc>
 To: netfilter-devel@vger.kernel.org
-Cc: Michael Estner <michaelestner@web.de>
-Subject: [iptables PATCH] ebtables: Include 'bitmask' value when comparing rules
-Date: Wed, 12 Jun 2024 14:41:09 +0200
-Message-ID: <20240612124109.19837-3-phil@nwl.cc>
+Subject: [iptables PATCH] man: extensions: recent: Clarify default value of ip_list_hash_size
+Date: Wed, 12 Jun 2024 14:41:07 +0200
+Message-ID: <20240612124109.19837-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -47,41 +47,28 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The former FIXME comment pointed at the fact that struct ebt_entry does
-not have a 'flags' field (unlike struct ipt_ip). In fact, ebt_entry's
-equivalent is 'bitmask' field. Comparing that instead is the right
-thing to do, even though it does not seem to make a difference in
-practice: No rule options alter just the bitmask value, nor is it
-possible to fill an associated field with default values (e.g. all-zero
-MAC and mask).
+The default value of 0 is a bit confusing.
 
-Since the situation described above might change and there is a slight
-performance improvement in some cases (e.g. comparing rules differing
-only by specified/omitted source/dest MAC address), add the check
-anyway.
-
-Suggested-by: Michael Estner <michaelestner@web.de>
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/nft-bridge.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ extensions/libxt_recent.man | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
-index 922ce98385400..f4a3c69ac1660 100644
---- a/iptables/nft-bridge.c
-+++ b/iptables/nft-bridge.c
-@@ -373,9 +373,9 @@ static bool nft_bridge_is_same(const struct iptables_command_state *cs_a,
- 	int i;
- 
- 	if (a->ethproto != b->ethproto ||
--	    /* FIXME: a->flags != b->flags || */
-+	    a->bitmask != b->bitmask ||
- 	    a->invflags != b->invflags) {
--		DEBUGP("different proto/flags/invflags\n");
-+		DEBUGP("different proto/bitmask/invflags\n");
- 		return false;
- 	}
- 
+diff --git a/extensions/libxt_recent.man b/extensions/libxt_recent.man
+index 419be2579594d..82537fab9846f 100644
+--- a/extensions/libxt_recent.man
++++ b/extensions/libxt_recent.man
+@@ -97,7 +97,9 @@ Number of addresses remembered per table.
+ Number of packets per address remembered.
+ .TP
+ \fBip_list_hash_size\fP=\fI0\fP
+-Hash table size. 0 means to calculate it based on ip_list_tot, default: 512.
++Hash table size. 0 means to calculate it based on ip_list_tot by rounding it up
++to the next power of two (with \fBip_list_tot\fP defaulting to \fI100\fP,
++\fBip_list_hash_size\fP will calculate to \fI128\fP by default).
+ .TP
+ \fBip_list_perms\fP=\fI0644\fP
+ Permissions for /proc/net/xt_recent/* files.
 -- 
 2.43.0
 
