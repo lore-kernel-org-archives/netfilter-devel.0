@@ -1,38 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4587413D512;
-	Thu, 13 Jun 2024 11:45:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1378C143C51;
+	Thu, 13 Jun 2024 11:45:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718279113; cv=none; b=RWKKp68Hlpd4/e80mMwdV7OYqn6ZUbaWG++lhCEQR58BpJCtEWboI0WUz5EtPfx64mva+aKgi8c5NJbVhE4tj2hHzi52az2PF/ZP4KHJauJl4EoMml2pxX7CIlEArFk9kXF+uCN/OHjxQxH78ZJ43hbfpibKlhSb5Sy7pZ4OTy0=
+	t=1718279137; cv=none; b=pWVIV5Hh1k+/Qe0YuQCFW7HifvyXgAQRuQIIYhW8JtcVHnO5mO3c7um6bNY1cO71sbth6qxg41cDLSmfC8DZ+Ie6seH5so0lRisaoVCsfBVfvGXHJLpBaSKCSX9rLdgysAF5v6kbIF1u1e/O7W6VQm8enfywr9NP2Ns5HHJS30A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718279113; c=relaxed/simple;
-	bh=av1XUW+BTT85GCu/Sqb3B3x4M3F5gJ2N4cFTosDrZdA=;
+	s=arc-20240116; t=1718279137; c=relaxed/simple;
+	bh=wvlVjwmu/5vzTmfKc2hp32K3ik2sb9cUdEA8ItJREh4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=t0MR8zPVNTe2PIamyxuhpdq5LM8Jz1/F6pGIpoOh8mmCGrBYXD/V7khCqD7ZyrWQRKly2n3P5mOiey+sgFkXCEcuTr9iIE6TPBcAWHqdWB2vaKM0chyvwHtd6L2d2MxK8tAZhags6URtOBNSSeRBszVwMchX7OJNsotYtUsgRb8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=vfeOsY8l; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=Bdg3kZuEImhn0xdHsc68UdcdwK8YGcRozb5zMzXF5EHHoLKq+hVVa6yjsP4G5c6hKs62CJ4drk079ijE+EF7z7Eu9xG0lQ9zeo7iBIi5OCRmjtwAO+83/FWW7OFjx3poOo0FnLoe70eSaXeWUIGLCmRor6NrBMwhhlLoZuYbIBY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=2bXWccHx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="vfeOsY8l"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3599C2BBFC;
-	Thu, 13 Jun 2024 11:45:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="2bXWccHx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40937C32786;
+	Thu, 13 Jun 2024 11:45:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1718279113;
-	bh=av1XUW+BTT85GCu/Sqb3B3x4M3F5gJ2N4cFTosDrZdA=;
+	s=korg; t=1718279136;
+	bh=wvlVjwmu/5vzTmfKc2hp32K3ik2sb9cUdEA8ItJREh4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=vfeOsY8ltmoBcE05rV2gFCiFGlVF96iysjYRzpT21jPxAPkwW1qwBaghzBtER4K6A
-	 S/bAHjURHaSpdQ2W5CqAT9SND8AC2qU2DqTYd44CFEeMMiBL3bh2rmRD27c0OXN/NZ
-	 yWdsZGcypNB4fqTXb9E4pXDhmEaSWndsNRs3wEgE=
+	b=2bXWccHxGUBwyxa+Fw8Q7Z6GR35ewUfc0IzEDQCASvh8aGxCO5EgpPexQjopkKjs/
+	 9xNzoUraZt5szG84aISCDTDIQ19lMJgDfRg4yb65K+jSTe/DsBY2g6PdmRhlSJUq/s
+	 AdEoNcR7WBetust6RZ2g3aSTKzvIvxTNp4NGAQgI=
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To: stable@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	patches@lists.linux.dev,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>
-Subject: [PATCH 4.19 178/213] netfilter: nf_tables: fix memleak when more than 255 elements expired
-Date: Thu, 13 Jun 2024 13:33:46 +0200
-Message-ID: <20240613113234.848034243@linuxfoundation.org>
+	Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 4.19 180/213] netfilter: nf_tables: double hook unregistration in netns path
+Date: Thu, 13 Jun 2024 13:33:48 +0200
+Message-ID: <20240613113234.925300849@linuxfoundation.org>
 X-Mailer: git-send-email 2.45.2
 In-Reply-To: <20240613113227.969123070@linuxfoundation.org>
 References: <20240613113227.969123070@linuxfoundation.org>
@@ -53,78 +52,121 @@ Content-Transfer-Encoding: 8bit
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-commit cf5000a7787cbc10341091d37245a42c119d26c5 upstream.
+commit f9a43007d3f7ba76d5e7f9421094f00f2ef202f8 upstream.
 
-When more than 255 elements expired we're supposed to switch to a new gc
-container structure.
+__nft_release_hooks() is called from pre_netns exit path which
+unregisters the hooks, then the NETDEV_UNREGISTER event is triggered
+which unregisters the hooks again.
 
-This never happens: u8 type will wrap before reaching the boundary
-and nft_trans_gc_space() always returns true.
+[  565.221461] WARNING: CPU: 18 PID: 193 at net/netfilter/core.c:495 __nf_unregister_net_hook+0x247/0x270
+[...]
+[  565.246890] CPU: 18 PID: 193 Comm: kworker/u64:1 Tainted: G            E     5.18.0-rc7+ #27
+[  565.253682] Workqueue: netns cleanup_net
+[  565.257059] RIP: 0010:__nf_unregister_net_hook+0x247/0x270
+[...]
+[  565.297120] Call Trace:
+[  565.300900]  <TASK>
+[  565.304683]  nf_tables_flowtable_event+0x16a/0x220 [nf_tables]
+[  565.308518]  raw_notifier_call_chain+0x63/0x80
+[  565.312386]  unregister_netdevice_many+0x54f/0xb50
 
-This means we recycle the initial gc container structure and
-lose track of the elements that came before.
+Unregister and destroy netdev hook from netns pre_exit via kfree_rcu
+so the NETDEV_UNREGISTER path see unregistered hooks.
 
-While at it, don't deref 'gc' after we've passed it to call_rcu.
-
-Fixes: 5f68718b34a5 ("netfilter: nf_tables: GC transaction API to avoid race with control plane")
-Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 767d1216bff8 ("netfilter: nftables: fix possible UAF over chains from packet path in netns")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- include/net/netfilter/nf_tables.h |    2 +-
- net/netfilter/nf_tables_api.c     |   10 ++++++++--
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ net/netfilter/nf_tables_api.c    |   34 +++++++++++++++++++++++++++-------
+ net/netfilter/nft_chain_filter.c |    3 +++
+ 2 files changed, 30 insertions(+), 7 deletions(-)
 
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1389,7 +1389,7 @@ struct nft_trans_gc {
- 	struct net		*net;
- 	struct nft_set		*set;
- 	u32			seq;
--	u8			count;
-+	u16			count;
- 	void			*priv[NFT_TRANS_GC_BATCHCOUNT];
- 	struct rcu_head		rcu;
- };
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -6857,12 +6857,15 @@ static int nft_trans_gc_space(struct nft
- struct nft_trans_gc *nft_trans_gc_queue_async(struct nft_trans_gc *gc,
- 					      unsigned int gc_seq, gfp_t gfp)
- {
-+	struct nft_set *set;
-+
- 	if (nft_trans_gc_space(gc))
- 		return gc;
- 
-+	set = gc->set;
- 	nft_trans_gc_queue_work(gc);
- 
--	return nft_trans_gc_alloc(gc->set, gc_seq, gfp);
-+	return nft_trans_gc_alloc(set, gc_seq, gfp);
+@@ -204,9 +204,10 @@ static int nf_tables_register_hook(struc
+ 	return nf_register_net_hook(net, ops);
  }
- EXPORT_SYMBOL_GPL(nft_trans_gc_queue_async);
  
-@@ -6879,15 +6882,18 @@ EXPORT_SYMBOL_GPL(nft_trans_gc_queue_asy
- 
- struct nft_trans_gc *nft_trans_gc_queue_sync(struct nft_trans_gc *gc, gfp_t gfp)
+-static void nf_tables_unregister_hook(struct net *net,
+-				      const struct nft_table *table,
+-				      struct nft_chain *chain)
++static void __nf_tables_unregister_hook(struct net *net,
++					const struct nft_table *table,
++					struct nft_chain *chain,
++					bool release_netdev)
  {
-+	struct nft_set *set;
+ 	const struct nft_base_chain *basechain;
+ 	const struct nf_hook_ops *ops;
+@@ -221,6 +222,16 @@ static void nf_tables_unregister_hook(st
+ 		return basechain->type->ops_unregister(net, ops);
+ 
+ 	nf_unregister_net_hook(net, ops);
++	if (release_netdev &&
++	    table->family == NFPROTO_NETDEV)
++		nft_base_chain(chain)->ops.dev = NULL;
++}
 +
- 	if (WARN_ON_ONCE(!lockdep_commit_lock_is_held(gc->net)))
- 		return NULL;
- 
- 	if (nft_trans_gc_space(gc))
- 		return gc;
- 
-+	set = gc->set;
- 	call_rcu(&gc->rcu, nft_trans_gc_trans_free);
- 
--	return nft_trans_gc_alloc(gc->set, 0, gfp);
-+	return nft_trans_gc_alloc(set, 0, gfp);
++static void nf_tables_unregister_hook(struct net *net,
++				      const struct nft_table *table,
++				      struct nft_chain *chain)
++{
++	__nf_tables_unregister_hook(net, table, chain, false);
  }
- EXPORT_SYMBOL_GPL(nft_trans_gc_queue_sync);
  
+ static int nft_trans_table_add(struct nft_ctx *ctx, int msg_type)
+@@ -5821,8 +5832,9 @@ nft_flowtable_type_get(struct net *net,
+ 	return ERR_PTR(-ENOENT);
+ }
+ 
+-static void nft_unregister_flowtable_net_hooks(struct net *net,
+-					       struct nft_flowtable *flowtable)
++static void __nft_unregister_flowtable_net_hooks(struct net *net,
++						 struct nft_flowtable *flowtable,
++						 bool release_netdev)
+ {
+ 	int i;
+ 
+@@ -5831,9 +5843,17 @@ static void nft_unregister_flowtable_net
+ 			continue;
+ 
+ 		nf_unregister_net_hook(net, &flowtable->ops[i]);
++		if (release_netdev)
++			flowtable->ops[i].dev = NULL;
+ 	}
+ }
+ 
++static void nft_unregister_flowtable_net_hooks(struct net *net,
++					       struct nft_flowtable *flowtable)
++{
++	__nft_unregister_flowtable_net_hooks(net, flowtable, false);
++}
++
+ static int nf_tables_newflowtable(struct net *net, struct sock *nlsk,
+ 				  struct sk_buff *skb,
+ 				  const struct nlmsghdr *nlh,
+@@ -7862,9 +7882,9 @@ static void __nft_release_table(struct n
+ 	ctx.family = table->family;
+ 
+ 	list_for_each_entry(chain, &table->chains, list)
+-		nf_tables_unregister_hook(net, table, chain);
++		__nf_tables_unregister_hook(net, table, chain, true);
+ 	list_for_each_entry(flowtable, &table->flowtables, list)
+-		nft_unregister_flowtable_net_hooks(net, flowtable);
++		__nft_unregister_flowtable_net_hooks(net, flowtable, true);
+ 	/* No packets are walking on these chains anymore. */
+ 	ctx.table = table;
+ 	list_for_each_entry(chain, &table->chains, list) {
+--- a/net/netfilter/nft_chain_filter.c
++++ b/net/netfilter/nft_chain_filter.c
+@@ -296,6 +296,9 @@ static void nft_netdev_event(unsigned lo
+ 		if (strcmp(basechain->dev_name, dev->name) != 0)
+ 			return;
+ 
++		if (!basechain->ops.dev)
++			return;
++
+ 		/* UNREGISTER events are also happpening on netns exit.
+ 		 *
+ 		 * Altough nf_tables core releases all tables/chains, only
 
 
