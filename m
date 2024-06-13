@@ -1,136 +1,103 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from www62.your-server.de (www62.your-server.de [213.133.104.62])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BE2317C72;
-	Thu, 13 Jun 2024 15:12:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D87AA23;
+	Thu, 13 Jun 2024 16:06:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.133.104.62
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718291526; cv=none; b=ZYBtLcMnkkUpgH9gWaYdSP1E3WsXAbtcV1Ou0r35pzXvwUdT23rcln3irB4mBzZsAj9rfeFVSv5BnqT/UaA7xG0od50wy4R4WCd34CjJdplH/sKH8uHmiV6CwabuVZCRkN/mj4p1QH3tbtClVkg0rf3o4Gb7uBsRi5Zbfca6RYA=
+	t=1718294798; cv=none; b=OiWnLaaFeed8NrTmfectVqWkBjrdIp5K+7VZEYM79UX9FeH6s3DBSlJoJGjJx/mU3C6A/fEWnIS4Nx6OTZ8zu4Bgvz+8wLoaNJS+nJaHggnwuXNJw5pdYgi6BXguPrd+RDUyv3M4fFiGNiia52Qoj9/AcAIGYnKy3IcxlLQc2PA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718291526; c=relaxed/simple;
-	bh=Js8RVIcQWrK8SBzBs0EgFN3NPMVLrfZVEqHlgM+8ujY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Fb9Rrr7NXtNhvCWyjuERHOori/5Sw77A71qaSzaLu6IA9TpS7vs1lrZ9ml88P3mFeRMSmPrrcokKwWsq9r0kblGU4p8XPFXJKA5fRer9rQqURUZwf4KE5k3m+IIJQzG8UjPeOXhfBb/A+UFch+7mZlDH2XWNqLY6Sw6E45hQHLw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PLFhTImn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718294798; c=relaxed/simple;
+	bh=Pb3EEjAGN0nezQ9jSkjeRX/Hq+KcFqJc+RoeI8vNR68=;
+	h=Subject:To:Cc:References:From:Message-ID:Date:MIME-Version:
+	 In-Reply-To:Content-Type; b=RCMyIGCu+ewgPxqNXqa1Gkiu2Y9FfmVkOHFf+0x3dEUrlIoYBmHvtGm9l6Hqfpe/Ga2jdZ9aNgN6Mio6rMUp+AXmogo75UzGhUBLRz78iw7H5Hl4v2bU1EmXqrHM4Tbae/FyqOq7Vh0DBmoaDn7Jde+5qPtLFkY20LU64gY6oFY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=iogearbox.net; spf=pass smtp.mailfrom=iogearbox.net; dkim=pass (2048-bit key) header.d=iogearbox.net header.i=@iogearbox.net header.b=QbkfydBZ; arc=none smtp.client-ip=213.133.104.62
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=iogearbox.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iogearbox.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PLFhTImn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B4A1C2BBFC;
-	Thu, 13 Jun 2024 15:12:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1718291526;
-	bh=Js8RVIcQWrK8SBzBs0EgFN3NPMVLrfZVEqHlgM+8ujY=;
-	h=Date:From:To:Cc:Subject:Reply-To:References:In-Reply-To:From;
-	b=PLFhTImnGBfruVfem7uoDdRQY9dt85NU9uz9NI1nWR1Tl8ZwZA2Rn8Oo+pStfyXsV
-	 EcyX+RV9PlAq8NGbBuCq1xDrwXHGIZbMJoy9lp/uxPIyy3x1VXFO0lRdU9guvTXWpK
-	 fWfovpAiSyeT2cI38X08BEvOMCHEP5MPP0MmNOwv9CguIjdgxn95t02Yg8rhsTjHrv
-	 JMsJdorpaWlfhjWGwd4su7F+sxA8gjgfARcKbZKcoULYJLtjoN0Cnd2hb1zWGCyIw6
-	 EdYmQujOfzjZ7hZCGpSCTtFxQu7IFk8SsutSm4TeEzC3kDQYyJTjRTvS5rNl7PGpcJ
-	 CzwVznRaVDJlg==
-Received: by paulmck-ThinkPad-P17-Gen-1.home (Postfix, from userid 1000)
-	id A66DDCE09E0; Thu, 13 Jun 2024 08:12:05 -0700 (PDT)
-Date: Thu, 13 Jun 2024 08:12:05 -0700
-From: "Paul E. McKenney" <paulmck@kernel.org>
-To: "Jason A. Donenfeld" <Jason@zx2c4.com>
-Cc: Jakub Kicinski <kuba@kernel.org>, Julia Lawall <Julia.Lawall@inria.fr>,
-	linux-block@vger.kernel.org, kernel-janitors@vger.kernel.org,
-	bridge@lists.linux.dev, linux-trace-kernel@vger.kernel.org,
-	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
-	kvm@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	"Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Nicholas Piggin <npiggin@gmail.com>, netdev@vger.kernel.org,
-	wireguard@lists.zx2c4.com, linux-kernel@vger.kernel.org,
-	ecryptfs@vger.kernel.org, Neil Brown <neilb@suse.de>,
-	Olga Kornievskaia <kolga@netapp.com>, Dai Ngo <Dai.Ngo@oracle.com>,
-	Tom Talpey <tom@talpey.com>, linux-nfs@vger.kernel.org,
-	linux-can@vger.kernel.org, Lai Jiangshan <jiangshanlai@gmail.com>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	Vlastimil Babka <vbabka@suse.cz>
-Subject: Re: [PATCH 00/14] replace call_rcu by kfree_rcu for simple
- kmem_cache_free callback
-Message-ID: <6595ff2a-690e-4d6c-9be5-eb83f2df23fa@paulmck-laptop>
-Reply-To: paulmck@kernel.org
-References: <20240609082726.32742-1-Julia.Lawall@inria.fr>
- <20240612143305.451abf58@kernel.org>
- <baee4d58-17b4-4918-8e45-4d8068a23e8c@paulmck-laptop>
- <Zmov7ZaL-54T9GiM@zx2c4.com>
- <Zmo9-YGraiCj5-MI@zx2c4.com>
- <08ee7eb2-8d08-4f1f-9c46-495a544b8c0e@paulmck-laptop>
- <Zmrkkel0Fo4_g75a@zx2c4.com>
- <e06440e2-9121-4c92-8bf2-945977987052@paulmck-laptop>
- <Zmr-KPG9F6w-uzys@zx2c4.com>
+	dkim=pass (2048-bit key) header.d=iogearbox.net header.i=@iogearbox.net header.b="QbkfydBZ"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=iogearbox.net; s=default2302; h=Content-Transfer-Encoding:Content-Type:
+	In-Reply-To:MIME-Version:Date:Message-ID:From:References:Cc:To:Subject:Sender
+	:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID;
+	bh=1Hk2u8/hNJ9Bp9zo2zLPHyEXs50hagFI4OBYQq7GwbY=; b=QbkfydBZx6yw5ebaS47RT0ABr7
+	FhXgPL1iOHq+Ob3F/FT6Pm274TKjYQAJtyvszypuNvqAqOksymTS0GRbCFCxRzI9AL2aKeh4DSq8u
+	BGQNzOmqDqCLDEOSEpH95qTz0mEXtr9mlFUm9kQ0EE5C2C1VDVIQOl5jvSWez2UvVyJXA+EKXV3/0
+	nW9hjnZC931b0C0U5oagvHWSN2Lw7UtkAIudRpB5x4K14kHYHwCAlo1TYf1iiXV6g4BkSR5zvCYw2
+	KGCS1IOE/ecIHUSe34jZ6ChFREqJU4Z1+kYQ5I23uIIQevyGQfRuHmiofKG7QRVyImjT/vh2OeXTH
+	Yrx7hnmA==;
+Received: from sslproxy05.your-server.de ([78.46.172.2])
+	by www62.your-server.de with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <daniel@iogearbox.net>)
+	id 1sHmy7-000JbR-Vz; Thu, 13 Jun 2024 18:06:32 +0200
+Received: from [178.197.249.34] (helo=linux.home)
+	by sslproxy05.your-server.de with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
+	(Exim 4.96)
+	(envelope-from <daniel@iogearbox.net>)
+	id 1sHmy7-000G4z-0p;
+	Thu, 13 Jun 2024 18:06:30 +0200
+Subject: Re: [PATCH v4 bpf-next 3/3] selftests/bpf: Add selftest for
+ bpf_xdp_flow_lookup kfunc
+To: Lorenzo Bianconi <lorenzo@kernel.org>, bpf@vger.kernel.org
+Cc: pablo@netfilter.org, kadlec@netfilter.org, davem@davemloft.net,
+ edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+ netfilter-devel@vger.kernel.org, netdev@vger.kernel.org, ast@kernel.org,
+ andrii@kernel.org, martin.lau@linux.dev, eddyz87@gmail.com,
+ lorenzo.bianconi@redhat.com, toke@redhat.com, fw@strlen.de, hawk@kernel.org,
+ horms@kernel.org, donhunte@redhat.com, memxor@gmail.com
+References: <cover.1716987534.git.lorenzo@kernel.org>
+ <21f41edcad0897e3a849b17392796b32215ae8ca.1716987535.git.lorenzo@kernel.org>
+From: Daniel Borkmann <daniel@iogearbox.net>
+Message-ID: <95f8897c-a20b-fa5f-84ab-8204e2654a9e@iogearbox.net>
+Date: Thu, 13 Jun 2024 18:06:29 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <Zmr-KPG9F6w-uzys@zx2c4.com>
+In-Reply-To: <21f41edcad0897e3a849b17392796b32215ae8ca.1716987535.git.lorenzo@kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Authenticated-Sender: daniel@iogearbox.net
+X-Virus-Scanned: Clear (ClamAV 0.103.10/27305/Thu Jun 13 10:33:25 2024)
 
-On Thu, Jun 13, 2024 at 04:11:52PM +0200, Jason A. Donenfeld wrote:
-> On Thu, Jun 13, 2024 at 05:46:11AM -0700, Paul E. McKenney wrote:
-> > How about a kmem_cache_destroy_rcu() that marks that specified cache
-> > for destruction, and then a kmem_cache_destroy_barrier() that waits?
-> > 
-> > I took the liberty of adding your name to the Google document [1] and
-> > adding this section:
+On 5/29/24 3:04 PM, Lorenzo Bianconi wrote:
+> Introduce e2e selftest for bpf_xdp_flow_lookup kfunc through
+> xdp_flowtable utility.
 > 
-> Cool, though no need to make me yellow!
+> Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+[...]
+> +struct flow_offload_tuple_rhash *
+> +bpf_xdp_flow_lookup(struct xdp_md *, struct bpf_fib_lookup *,
+> +		    struct bpf_flowtable_opts___local *, u32) __ksym;
 
-No worries, Jakub is also colored yellow.  People added tomorrow
-will be cyan if I follow my usual change-color ordering.  ;-)
+Btw, this fails CI build :
 
-> > > But then, if that mechanism generally works, we don't really need a new
-> > > function and we can just go with the first option of making
-> > > kmem_cache_destroy() asynchronously wait. It'll wait, as you described,
-> > > but then we adjust the tail of every kfree_rcu batch freeing cycle to
-> > > check if there are _still_ any old outstanding kmem_cache_destroy()
-> > > requests. If so, then we can splat and keep the old debugging info we
-> > > currently have for finding memleaks.
-> > 
-> > The mechanism can always be sabotaged by memory-leak bugs on the part
-> > of the user of the kmem_cache structure in play, right?
-> > 
-> > OK, but I see your point.  I added this to the existing
-> > "kmem_cache_destroy() Lingers for kfree_rcu()" section:
-> > 
-> > 	One way of preserving this debugging information is to splat if
-> > 	all of the slab’s memory has not been freed within a reasonable
-> > 	timeframe, perhaps the same 21 seconds that causes an RCU CPU
-> > 	stall warning.
-> > 
-> > Does that capture it?
-> 
-> Not quite what I was thinking. Your 21 seconds as a time-based thing I
-> guess could be fine. But I was mostly thinking:
-> 
-> 1) kmem_cache_destroy() is called, but there are outstanding objects, so
->    it defers.
-> 
-> 2) Sometime later, a kfree_rcu_work batch freeing operation runs.
+https://github.com/kernel-patches/bpf/actions/runs/9499749947/job/26190382116
 
-Or not, if there has been a leak and there happens to be no outstanding
-kfree_rcu() memory.
-
-> 3) At the end of this batch freeing, the kernel notices that the
->    kmem_cache whose destruction was previously deferred still has
->    outstanding objects and has not been destroyed. It can conclude that
->    there's thus been a memory leak.
-
-And the batch freeing can be replicated across CPUs, so it would be
-necessary to determine which was last to do this effective.  Don't get
-me wrong, this can be done, but the performance/latency tradeoffs can
-be interesting.
-
-> In other words, instead of having to do this based on timers, you can
-> just have the batch freeing code ask, "did those pending kmem_cache
-> destructions get completed as a result of this last operation?"
-
-I agree that kfree_rcu_work-batch time is a good time to evaluate slab
-(and I have added this to the document), but I do not believe that it
-can completely replace timeouts.
-
-							Thanx, Paul
+   [...]
+   progs/xdp_flowtable.c:20:1: error: conflicting types for 'bpf_xdp_flow_lookup'
+      20 | bpf_xdp_flow_lookup(struct xdp_md *, struct bpf_fib_lookup *,
+         | ^
+   /tmp/work/bpf/bpf/tools/testing/selftests/bpf/tools/include/vmlinux.h:106755:41: note: previous declaration is here
+    106755 | extern struct flow_offload_tuple_rhash *bpf_xdp_flow_lookup(struct xdp_md *ctx, struct bpf_fib_lookup *fib_tuple, struct bpf_flowtable_opts *opts, u32 opts_len) __weak __ksym;
+           |                                         ^
+   progs/xdp_flowtable.c:134:47: error: incompatible pointer types passing 'struct bpf_flowtable_opts___local *' to parameter of type 'struct bpf_flowtable_opts *' [-Werror,-Wincompatible-pointer-types]
+     134 |         tuplehash = bpf_xdp_flow_lookup(ctx, &tuple, &opts, sizeof(opts));
+         |                                                      ^~~~~
+   /tmp/work/bpf/bpf/tools/testing/selftests/bpf/tools/include/vmlinux.h:106755:142: note: passing argument to parameter 'opts' here
+    106755 | extern struct flow_offload_tuple_rhash *bpf_xdp_flow_lookup(struct xdp_md *ctx, struct bpf_fib_lookup *fib_tuple, struct bpf_flowtable_opts *opts, u32 opts_len) __weak __ksym;
+           |                                                                                                                                              ^
+   2 errors generated.
+     CLNG-BPF [test_maps] kprobe_multi_override.bpf.o
+     CLNG-BPF [test_maps] tailcall_bpf2bpf1.bpf.o
+   make: *** [Makefile:654: /tmp/work/bpf/bpf/tools/testing/selftests/bpf/xdp_flowtable.bpf.o] Error 1
+   make: *** Waiting for unfinished jobs....
+   make: Leaving directory '/tmp/work/bpf/bpf/tools/testing/selftests/bpf'
+   Error: Process completed with exit code 2.
