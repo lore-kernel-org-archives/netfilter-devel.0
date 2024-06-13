@@ -1,38 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D48F5143870;
-	Thu, 13 Jun 2024 11:45:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2074143870;
+	Thu, 13 Jun 2024 11:45:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718279148; cv=none; b=MRGqUm/poKWGaxtVKIK62TEtoeinV+QOMQmk9JDoMw73QM08sn29uRcMPjztEhSRkftC7FJt7YmCgepIVgC7ukOdo2FobYazB2uTGs2C/kO/vByizu7mOysDVPcwa0o+n6wP+sj5Hut5Mu5lKF2Sg4esziXZPpLGC8KKJjmgflQ=
+	t=1718279151; cv=none; b=npCxeYQft/BBAfH1Hx82SbFcwu2rJ2DWdd8gaT0ZQfSQTRQH6frX0ZZRa4fb6IcwYC4XPh2zv5zEU31oTKdNi/h0gWT+ILdeD886WIJAKKZkAtb6oD3+57ShsnGOL0Cn1cJuxDV6NH2JmxJCI9+DrYuObtp3YBvkpgh1IfbBKcI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718279148; c=relaxed/simple;
-	bh=lADNaDvuqA/mWyB9GkvLDo17Zn1ONPyao4aL3eUD5UA=;
+	s=arc-20240116; t=1718279151; c=relaxed/simple;
+	bh=DeUoA9VTQGrrA3I8puROcQdqb11qjEpmuvVxFbWNwAk=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=n4UWTvNVQEXHHyjCXVGV1zdCbWpkpM/f0FQVLcUfCtt22gJ4pK9lcPQBm35vz19pz/1cZI8n2VCzi39upZtXu19UP8FkI5I2xgVhMgSXpLqvmFx4mW+PCEZjO3epGHVKCLkUczFOJkglg+pyLowxkQ/xXe1LKo6tmn93echRcpU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=x+EdnTtz; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=thB4GlircA03u4DWPYDm7Lw7ry3DeoVjhIfrzj4lz+iQYgQaXc2+3eYHdvIaduQBlNaeWbqfZZI7SxQcoCnNveaBmb8GJ8Ca+nkJDq2rvHBl1p2DXj3hP8neE9RNHglMEPHeGMEA5gJ9+Lj1BNZt1lC2bUhRhDMY6R2n+LHv1Rs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=NQvDCpZT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="x+EdnTtz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1F82C2BBFC;
-	Thu, 13 Jun 2024 11:45:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="NQvDCpZT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0E1CC2BBFC;
+	Thu, 13 Jun 2024 11:45:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1718279148;
-	bh=lADNaDvuqA/mWyB9GkvLDo17Zn1ONPyao4aL3eUD5UA=;
+	s=korg; t=1718279151;
+	bh=DeUoA9VTQGrrA3I8puROcQdqb11qjEpmuvVxFbWNwAk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=x+EdnTtzGI5dSi8OtQ23xtSeY+CkK4ccespDhSNOdv2aejIkpAzxmdjSrX+F3xOQL
-	 vQQEcqm4rTQNZistoNDO4qRgl3gk4ZMRK+rE2B7LICAGcPCPw6sewr1P7GEcX4uDhS
-	 uCoRTGlU4pUvqvrFSg1zomvk7ody5JHIDug+tGEI=
+	b=NQvDCpZTVJ03eN4/jxBfhdmA9XHb0DytOI7dEO51z9dmYbLz9ImfuZuvHsLiwd++e
+	 BHYzTzXdecjf7rKElKb4oTplYJCEsTdtVfDyCLy6FZb6CHrwZts0A0Iv+rh/rnur1W
+	 3VFVZ8jdZnafMDPGaGAzzCz/og+yRFPJSLRzRCe0=
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To: stable@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	patches@lists.linux.dev,
-	lonial con <kongln9170@gmail.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 4.19 192/213] netfilter: nft_set_rbtree: skip end interval element from gc
-Date: Thu, 13 Jun 2024 13:34:00 +0200
-Message-ID: <20240613113235.383057906@linuxfoundation.org>
+	Florian Westphal <fw@strlen.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Sasha Levin <sashal@kernel.org>,
+	syzbot+de4025c006ec68ac56fc@syzkaller.appspotmail.com
+Subject: [PATCH 4.19 193/213] netfilter: nf_tables: set dormant flag on hook register failure
+Date: Thu, 13 Jun 2024 13:34:01 +0200
+Message-ID: <20240613113235.422388419@linuxfoundation.org>
 X-Mailer: git-send-email 2.45.2
 In-Reply-To: <20240613113227.969123070@linuxfoundation.org>
 References: <20240613113227.969123070@linuxfoundation.org>
@@ -51,53 +53,38 @@ Content-Transfer-Encoding: 8bit
 
 ------------------
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
 
-commit 60c0c230c6f046da536d3df8b39a20b9a9fd6af0 upstream.
+[ Upstream commit bccebf64701735533c8db37773eeacc6566cc8ec ]
 
-rbtree lazy gc on insert might collect an end interval element that has
-been just added in this transactions, skip end interval elements that
-are not yet active.
+We need to set the dormant flag again if we fail to register
+the hooks.
 
-Fixes: f718863aca46 ("netfilter: nft_set_rbtree: fix overlap expiration walk")
-Cc: stable@vger.kernel.org
-Reported-by: lonial con <kongln9170@gmail.com>
+During memory pressure hook registration can fail and we end up
+with a table marked as active but no registered hooks.
+
+On table/base chain deletion, nf_tables will attempt to unregister
+the hook again which yields a warn splat from the nftables core.
+
+Reported-and-tested-by: syzbot+de4025c006ec68ac56fc@syzkaller.appspotmail.com
+Fixes: 179d9ba5559a ("netfilter: nf_tables: fix table flag updates")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/netfilter/nft_set_rbtree.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ net/netfilter/nf_tables_api.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -240,8 +240,7 @@ static void nft_rbtree_gc_remove(struct
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -925,6 +925,7 @@ static int nf_tables_updtable(struct nft
+ 	return 0;
  
- static int nft_rbtree_gc_elem(const struct nft_set *__set,
- 			      struct nft_rbtree *priv,
--			      struct nft_rbtree_elem *rbe,
--			      u8 genmask)
-+			      struct nft_rbtree_elem *rbe)
- {
- 	struct nft_set *set = (struct nft_set *)__set;
- 	struct rb_node *prev = rb_prev(&rbe->node);
-@@ -260,7 +259,7 @@ static int nft_rbtree_gc_elem(const stru
- 	while (prev) {
- 		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
- 		if (nft_rbtree_interval_end(rbe_prev) &&
--		    nft_set_elem_active(&rbe_prev->ext, genmask))
-+		    nft_set_elem_active(&rbe_prev->ext, NFT_GENMASK_ANY))
- 			break;
- 
- 		prev = rb_prev(prev);
-@@ -368,7 +367,7 @@ static int __nft_rbtree_insert(const str
- 		 */
- 		if (nft_set_elem_expired(&rbe->ext) &&
- 		    nft_set_elem_active(&rbe->ext, cur_genmask)) {
--			err = nft_rbtree_gc_elem(set, priv, rbe, genmask);
-+			err = nft_rbtree_gc_elem(set, priv, rbe);
- 			if (err < 0)
- 				return err;
- 
+ err_register_hooks:
++	ctx->table->flags |= NFT_TABLE_F_DORMANT;
+ 	nft_trans_destroy(trans);
+ 	return ret;
+ }
 
 
