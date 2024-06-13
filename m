@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9831554916;
-	Thu, 13 Jun 2024 01:02:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 41689EAD0;
+	Thu, 13 Jun 2024 01:02:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718240557; cv=none; b=N2hOXcYJszmvAMrdxi9ocKqQEcZCXiPM2MmTNq1KhhGL4IZUvX6slS2sT3IKVPYJzD1WYXW3sF3cLWOkAiV/uibsLrc/OHyeYejXC6Xo9KgbH5cl9vQTPSZWRMdHvcDYBSf9ilwB896Uey0WW+WGBMcZFa8QfoQxqmlh1pS/6qU=
+	t=1718240558; cv=none; b=pq/wJpk+e6ztIhnAaTUQzJ6KUlSSEudwWpx1n0/IHhF7SGLMmwTVKLIbdKQzzCX1mKJkQQPNC4LdSZhYaw+TQKXBjZsHebHX/RyZFeNr3cRDSLhM3GKlctv3WfgIoGUl3qAXVcaVtTmF3K3Jna6YRwzsNxnj5vt2uMfx67fclOs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718240557; c=relaxed/simple;
-	bh=chBYqvM545pRS5SqyKmuQN0CattQuloesk/z4Kum5As=;
+	s=arc-20240116; t=1718240558; c=relaxed/simple;
+	bh=96bmHFLSPpVIT2nbMyfL+r5hD7K93ZFKKcCx8auvrJk=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=pfGNyJM4UB0XC1QypuXn4SHPdHdbMXhUwCZBEMtWrhOQKZULQQVAGiesFbcF4cFr1xE9pfRQ1eLkTpbpfE8tHtxinnjnVMFwsxcqMfPA/2j2bdV4tPhePHhxwVmNmziA7kecfC/gYcP5lO59orgaZ6sWK26VFs6UOeWWqa7l1Rk=
+	 MIME-Version; b=lU3tExjQAQct6xjM14wXiJkuasJ4s45tmE3Q8fMJr9RveFhjP9en/YqMKhoetfET/hVwi1lIKofoosuThuAa2+Ez3/YWN/tZjh6Igg1F6zyGuZ6mLyn4rs7n5aIxMvQCjKS8JL7qyouHPIO9z98bENP1Wr8RMk/0CUdfElOr5Lw=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -17,9 +17,9 @@ To: netfilter-devel@vger.kernel.org
 Cc: gregkh@linuxfoundation.org,
 	sashal@kernel.org,
 	stable@vger.kernel.org
-Subject: [PATCH -stable,4.19.x 28/40] netfilter: nftables: exthdr: fix 4-byte stack OOB write
-Date: Thu, 13 Jun 2024 03:01:57 +0200
-Message-Id: <20240613010209.104423-29-pablo@netfilter.org>
+Subject: [PATCH -stable,4.19.x 29/40] netfilter: nft_dynset: report EOPNOTSUPP on missing set feature
+Date: Thu, 13 Jun 2024 03:01:58 +0200
+Message-Id: <20240613010209.104423-30-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240613010209.104423-1-pablo@netfilter.org>
 References: <20240613010209.104423-1-pablo@netfilter.org>
@@ -31,70 +31,51 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+commit 95cd4bca7b1f4a25810f3ddfc5e767fb46931789 upstream.
 
-commit fd94d9dadee58e09b49075240fe83423eb1dcd36 upstream.
+If userspace requests a feature which is not available the original set
+definition, then bail out with EOPNOTSUPP. If userspace sends
+unsupported dynset flags (new feature not supported by this kernel),
+then report EOPNOTSUPP to userspace. EINVAL should be only used to
+report malformed netlink messages from userspace.
 
-If priv->len is a multiple of 4, then dst[len / 4] can write past
-the destination array which leads to stack corruption.
-
-This construct is necessary to clean the remainder of the register
-in case ->len is NOT a multiple of the register size, so make it
-conditional just like nft_payload.c does.
-
-The bug was added in 4.1 cycle and then copied/inherited when
-tcp/sctp and ip option support was added.
-
-Bug reported by Zero Day Initiative project (ZDI-CAN-21950,
-ZDI-CAN-21951, ZDI-CAN-21961).
-
-Fixes: 49499c3e6e18 ("netfilter: nf_tables: switch registers to 32 bit addressing")
-Fixes: 935b7f643018 ("netfilter: nft_exthdr: add TCP option matching")
-Fixes: 133dc203d77d ("netfilter: nft_exthdr: Support SCTP chunks")
-Fixes: dbb5281a1f84 ("netfilter: nf_tables: add support for matching IPv4 options")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 22fe54d5fefc ("netfilter: nf_tables: add support for dynamic set updates")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/netfilter/nft_exthdr.c | 14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ net/netfilter/nft_dynset.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-index 8d0f14cd7cc3..847abad9ee7f 100644
---- a/net/netfilter/nft_exthdr.c
-+++ b/net/netfilter/nft_exthdr.c
-@@ -36,6 +36,14 @@ static unsigned int optlen(const u8 *opt, unsigned int offset)
- 		return opt[offset + 1];
- }
+diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
+index 7f79e877671b..04ca3afe70dc 100644
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -133,7 +133,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 		u32 flags = ntohl(nla_get_be32(tb[NFTA_DYNSET_FLAGS]));
  
-+static int nft_skb_copy_to_reg(const struct sk_buff *skb, int offset, u32 *dest, unsigned int len)
-+{
-+	if (len % NFT_REG32_SIZE)
-+		dest[len / NFT_REG32_SIZE] = 0;
-+
-+	return skb_copy_bits(skb, offset, dest, len);
-+}
-+
- static void nft_exthdr_ipv6_eval(const struct nft_expr *expr,
- 				 struct nft_regs *regs,
- 				 const struct nft_pktinfo *pkt)
-@@ -57,8 +65,7 @@ static void nft_exthdr_ipv6_eval(const struct nft_expr *expr,
+ 		if (flags & ~NFT_DYNSET_F_INV)
+-			return -EINVAL;
++			return -EOPNOTSUPP;
+ 		if (flags & NFT_DYNSET_F_INV)
+ 			priv->invert = true;
  	}
- 	offset += priv->offset;
+@@ -168,7 +168,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 	timeout = 0;
+ 	if (tb[NFTA_DYNSET_TIMEOUT] != NULL) {
+ 		if (!(set->flags & NFT_SET_TIMEOUT))
+-			return -EINVAL;
++			return -EOPNOTSUPP;
  
--	dest[priv->len / NFT_REG32_SIZE] = 0;
--	if (skb_copy_bits(pkt->skb, offset, dest, priv->len) < 0)
-+	if (nft_skb_copy_to_reg(pkt->skb, offset, dest, priv->len) < 0)
- 		goto err;
- 	return;
- err:
-@@ -114,7 +121,8 @@ static void nft_exthdr_tcp_eval(const struct nft_expr *expr,
- 		if (priv->flags & NFT_EXTHDR_F_PRESENT) {
- 			*dest = 1;
- 		} else {
--			dest[priv->len / NFT_REG32_SIZE] = 0;
-+			if (priv->len % NFT_REG32_SIZE)
-+				dest[priv->len / NFT_REG32_SIZE] = 0;
- 			memcpy(dest, opt + offset, priv->len);
- 		}
+ 		err = nf_msecs_to_jiffies64(tb[NFTA_DYNSET_TIMEOUT], &timeout);
+ 		if (err)
+@@ -182,7 +182,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 
+ 	if (tb[NFTA_DYNSET_SREG_DATA] != NULL) {
+ 		if (!(set->flags & NFT_SET_MAP))
+-			return -EINVAL;
++			return -EOPNOTSUPP;
+ 		if (set->dtype == NFT_DATA_VERDICT)
+ 			return -EOPNOTSUPP;
  
 -- 
 2.30.2
