@@ -1,38 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81A986AFAE;
-	Thu, 13 Jun 2024 11:45:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D48F5143870;
+	Thu, 13 Jun 2024 11:45:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718279145; cv=none; b=iN7MGFX6ECx1bju+LobV5Ye3LgMBLpgU5mNYxmYqzdsPZiDjPLU2PrMC3/4LxMqyCYf/jfyFogt1wKY/y6nDqasXll1xkAY6QRbpkLyGejyNOmE8Nmfa2cAhgLh030jMeVyISuf1seBsmmzA1V8GgoSql4nJy1NtF0BVYPUlYbo=
+	t=1718279148; cv=none; b=MRGqUm/poKWGaxtVKIK62TEtoeinV+QOMQmk9JDoMw73QM08sn29uRcMPjztEhSRkftC7FJt7YmCgepIVgC7ukOdo2FobYazB2uTGs2C/kO/vByizu7mOysDVPcwa0o+n6wP+sj5Hut5Mu5lKF2Sg4esziXZPpLGC8KKJjmgflQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718279145; c=relaxed/simple;
-	bh=5BXeDsl+GZs+nLhawJu81Pn7rfzlBdUApm67O716qrI=;
+	s=arc-20240116; t=1718279148; c=relaxed/simple;
+	bh=lADNaDvuqA/mWyB9GkvLDo17Zn1ONPyao4aL3eUD5UA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Ei4Gd1OptSQaWsbsLsgnBYB/rj8MMxV6xjO5vjg6m7ol0rujQnimXV4D1WbgNU3mwayk2/kLT9w/1VGL5DV7j4l71hBfQi83PGhEmxImVqfaWGeW3++UeUApbwi8CtPlRcOzLOKlLDO/NwBHJS82wN6uukJKvnJN6Byqmmo9NJI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=paR5GgXM; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=n4UWTvNVQEXHHyjCXVGV1zdCbWpkpM/f0FQVLcUfCtt22gJ4pK9lcPQBm35vz19pz/1cZI8n2VCzi39upZtXu19UP8FkI5I2xgVhMgSXpLqvmFx4mW+PCEZjO3epGHVKCLkUczFOJkglg+pyLowxkQ/xXe1LKo6tmn93echRcpU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=x+EdnTtz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="paR5GgXM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A5A1C32786;
-	Thu, 13 Jun 2024 11:45:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="x+EdnTtz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1F82C2BBFC;
+	Thu, 13 Jun 2024 11:45:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1718279145;
-	bh=5BXeDsl+GZs+nLhawJu81Pn7rfzlBdUApm67O716qrI=;
+	s=korg; t=1718279148;
+	bh=lADNaDvuqA/mWyB9GkvLDo17Zn1ONPyao4aL3eUD5UA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=paR5GgXMRYPgl6sCbO4JKs9wa4ROjeUtGDEc/txAkuTE1fvd8vBd6urwiY73REsGn
-	 Smbp/DY8LTg2TkzIrYmh7cR4VrLtvpH1ZvXdLllqaqzq8zbngAZVkKKmgeqBEsdibP
-	 WKQVKLOUuLetd08Z7isLWSbjctnmKRuBor+r0tyE=
+	b=x+EdnTtzGI5dSi8OtQ23xtSeY+CkK4ccespDhSNOdv2aejIkpAzxmdjSrX+F3xOQL
+	 vQQEcqm4rTQNZistoNDO4qRgl3gk4ZMRK+rE2B7LICAGcPCPw6sewr1P7GEcX4uDhS
+	 uCoRTGlU4pUvqvrFSg1zomvk7ody5JHIDug+tGEI=
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To: stable@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	patches@lists.linux.dev,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Sasha Levin <sashal@kernel.org>
-Subject: [PATCH 4.19 191/213] netfilter: nf_tables: validate NFPROTO_* family
-Date: Thu, 13 Jun 2024 13:33:59 +0200
-Message-ID: <20240613113235.344610498@linuxfoundation.org>
+	lonial con <kongln9170@gmail.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 4.19 192/213] netfilter: nft_set_rbtree: skip end interval element from gc
+Date: Thu, 13 Jun 2024 13:34:00 +0200
+Message-ID: <20240613113235.383057906@linuxfoundation.org>
 X-Mailer: git-send-email 2.45.2
 In-Reply-To: <20240613113227.969123070@linuxfoundation.org>
 References: <20240613113227.969123070@linuxfoundation.org>
@@ -53,130 +53,51 @@ Content-Transfer-Encoding: 8bit
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-[ Upstream commit d0009effa8862c20a13af4cb7475d9771b905693 ]
+commit 60c0c230c6f046da536d3df8b39a20b9a9fd6af0 upstream.
 
-Several expressions explicitly refer to NF_INET_* hook definitions
-from expr->ops->validate, however, family is not validated.
+rbtree lazy gc on insert might collect an end interval element that has
+been just added in this transactions, skip end interval elements that
+are not yet active.
 
-Bail out with EOPNOTSUPP in case they are used from unsupported
-families.
-
-Fixes: 0ca743a55991 ("netfilter: nf_tables: add compatibility layer for x_tables")
-Fixes: a3c90f7a2323 ("netfilter: nf_tables: flow offload expression")
-Fixes: 2fa841938c64 ("netfilter: nf_tables: introduce routing expression")
-Fixes: 554ced0a6e29 ("netfilter: nf_tables: add support for native socket matching")
-Fixes: ad49d86e07a4 ("netfilter: nf_tables: Add synproxy support")
-Fixes: 4ed8eb6570a4 ("netfilter: nf_tables: Add native tproxy support")
-Fixes: 6c47260250fc ("netfilter: nf_tables: add xfrm expression")
+Fixes: f718863aca46 ("netfilter: nft_set_rbtree: fix overlap expiration walk")
+Cc: stable@vger.kernel.org
+Reported-by: lonial con <kongln9170@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/netfilter/nft_compat.c       |   12 ++++++++++++
- net/netfilter/nft_flow_offload.c |    5 +++++
- net/netfilter/nft_nat.c          |    5 +++++
- net/netfilter/nft_rt.c           |    5 +++++
- net/netfilter/nft_socket.c       |    5 +++++
- net/netfilter/nft_tproxy.c       |    5 +++++
- 6 files changed, 37 insertions(+)
+ net/netfilter/nft_set_rbtree.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -319,6 +319,12 @@ static int nft_target_validate(const str
- 	unsigned int hook_mask = 0;
- 	int ret;
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -240,8 +240,7 @@ static void nft_rbtree_gc_remove(struct
  
-+	if (ctx->family != NFPROTO_IPV4 &&
-+	    ctx->family != NFPROTO_IPV6 &&
-+	    ctx->family != NFPROTO_BRIDGE &&
-+	    ctx->family != NFPROTO_ARP)
-+		return -EOPNOTSUPP;
-+
- 	if (nft_is_base_chain(ctx->chain)) {
- 		const struct nft_base_chain *basechain =
- 						nft_base_chain(ctx->chain);
-@@ -560,6 +566,12 @@ static int nft_match_validate(const stru
- 	unsigned int hook_mask = 0;
- 	int ret;
- 
-+	if (ctx->family != NFPROTO_IPV4 &&
-+	    ctx->family != NFPROTO_IPV6 &&
-+	    ctx->family != NFPROTO_BRIDGE &&
-+	    ctx->family != NFPROTO_ARP)
-+		return -EOPNOTSUPP;
-+
- 	if (nft_is_base_chain(ctx->chain)) {
- 		const struct nft_base_chain *basechain =
- 						nft_base_chain(ctx->chain);
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -145,6 +145,11 @@ static int nft_flow_offload_validate(con
+ static int nft_rbtree_gc_elem(const struct nft_set *__set,
+ 			      struct nft_rbtree *priv,
+-			      struct nft_rbtree_elem *rbe,
+-			      u8 genmask)
++			      struct nft_rbtree_elem *rbe)
  {
- 	unsigned int hook_mask = (1 << NF_INET_FORWARD);
+ 	struct nft_set *set = (struct nft_set *)__set;
+ 	struct rb_node *prev = rb_prev(&rbe->node);
+@@ -260,7 +259,7 @@ static int nft_rbtree_gc_elem(const stru
+ 	while (prev) {
+ 		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
+ 		if (nft_rbtree_interval_end(rbe_prev) &&
+-		    nft_set_elem_active(&rbe_prev->ext, genmask))
++		    nft_set_elem_active(&rbe_prev->ext, NFT_GENMASK_ANY))
+ 			break;
  
-+	if (ctx->family != NFPROTO_IPV4 &&
-+	    ctx->family != NFPROTO_IPV6 &&
-+	    ctx->family != NFPROTO_INET)
-+		return -EOPNOTSUPP;
-+
- 	return nft_chain_validate_hooks(ctx->chain, hook_mask);
- }
- 
---- a/net/netfilter/nft_nat.c
-+++ b/net/netfilter/nft_nat.c
-@@ -94,6 +94,11 @@ static int nft_nat_validate(const struct
- 	struct nft_nat *priv = nft_expr_priv(expr);
- 	int err;
- 
-+	if (ctx->family != NFPROTO_IPV4 &&
-+	    ctx->family != NFPROTO_IPV6 &&
-+	    ctx->family != NFPROTO_INET)
-+		return -EOPNOTSUPP;
-+
- 	err = nft_chain_validate_dependency(ctx->chain, NFT_CHAIN_T_NAT);
- 	if (err < 0)
- 		return err;
---- a/net/netfilter/nft_rt.c
-+++ b/net/netfilter/nft_rt.c
-@@ -159,6 +159,11 @@ static int nft_rt_validate(const struct
- 	const struct nft_rt *priv = nft_expr_priv(expr);
- 	unsigned int hooks;
- 
-+	if (ctx->family != NFPROTO_IPV4 &&
-+	    ctx->family != NFPROTO_IPV6 &&
-+	    ctx->family != NFPROTO_INET)
-+		return -EOPNOTSUPP;
-+
- 	switch (priv->key) {
- 	case NFT_RT_NEXTHOP4:
- 	case NFT_RT_NEXTHOP6:
---- a/net/netfilter/nft_socket.c
-+++ b/net/netfilter/nft_socket.c
-@@ -139,6 +139,11 @@ static int nft_socket_validate(const str
- 			       const struct nft_expr *expr,
- 			       const struct nft_data **data)
- {
-+	if (ctx->family != NFPROTO_IPV4 &&
-+	    ctx->family != NFPROTO_IPV6 &&
-+	    ctx->family != NFPROTO_INET)
-+		return -EOPNOTSUPP;
-+
- 	return nft_chain_validate_hooks(ctx->chain,
- 					(1 << NF_INET_PRE_ROUTING) |
- 					(1 << NF_INET_LOCAL_IN) |
---- a/net/netfilter/nft_tproxy.c
-+++ b/net/netfilter/nft_tproxy.c
-@@ -293,6 +293,11 @@ static int nft_tproxy_validate(const str
- 			       const struct nft_expr *expr,
- 			       const struct nft_data **data)
- {
-+	if (ctx->family != NFPROTO_IPV4 &&
-+	    ctx->family != NFPROTO_IPV6 &&
-+	    ctx->family != NFPROTO_INET)
-+		return -EOPNOTSUPP;
-+
- 	return nft_chain_validate_hooks(ctx->chain, 1 << NF_INET_PRE_ROUTING);
- }
+ 		prev = rb_prev(prev);
+@@ -368,7 +367,7 @@ static int __nft_rbtree_insert(const str
+ 		 */
+ 		if (nft_set_elem_expired(&rbe->ext) &&
+ 		    nft_set_elem_active(&rbe->ext, cur_genmask)) {
+-			err = nft_rbtree_gc_elem(set, priv, rbe, genmask);
++			err = nft_rbtree_gc_elem(set, priv, rbe);
+ 			if (err < 0)
+ 				return err;
  
 
 
