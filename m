@@ -1,28 +1,28 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C54A91448EB;
-	Thu, 13 Jun 2024 11:44:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6FB3143C63;
+	Thu, 13 Jun 2024 11:44:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718279070; cv=none; b=HJyfwd1huoJSsV+KE5a1u2H3z8YjrWXrm/vJ6ae6WURz5PBKkR+NGhl+AvIKQkWwJ0CJm4hISczMtW2CnbCKqprl7DsXHgOYbzu19JfBOTw+LQnVR++57cKfiDvzTzYV5BSUwKnvZUgDXcT2h8vX7pwAEweYkVt+NtyUYtlEJaY=
+	t=1718279073; cv=none; b=dRsXzUsdyZuZNbftMVfiJn+8ubAvzLz6618e6S5Y24HLwuFfpfNMaTafGzWfEPIeFSVJUVxPKOvfibVbcdmJPZhABtexEzYvVXncB0yOTGN819PKNEeci6ZAhhOqB17BmqiiCjHGT/IeaUGMNiz2nHunQtQbKk4ur6dkxRTQjRE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718279070; c=relaxed/simple;
-	bh=T6Nl7h6YT1bJwGVBtPyPbOZKURBYV36CJYmY6g+yLWU=;
+	s=arc-20240116; t=1718279073; c=relaxed/simple;
+	bh=2/XjpUpoLSVWfe0SOvRSXQyGAFBJJiNFDRFcPoKNWgs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=TOCvasVqj1crWK6RU6krohtsbTxWgvg7wIndb7NyykGW+/yVhrEwYmSwYQi2V46h/8AupyuvlWw1nk8Yu89++sRvAg/BRStgP9mxp3c2PuJKUqYlgYITxdu3ICyteIdZ0QqoSJ9zt4cYWEhVdDuadflEW2YtjG74NUHyaFUxoZA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=J2+MHnsA; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=rTTtuzlXANXZi5GcR79TlbT9j0fwddLDWWKUBwuEdZtIGAvlqpttt8dWQkLs/f9OZN3rU7aNNJOUX27Xc+YNUEnfSOP8NGb5vdQ/Gd7mmyv/AIL/7gHzrB6L7ypGWQRjgTgqWJ0TwVyPgxK1pv4i5DYLPrCljL79lSvSiATlSEM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=lPzEzpOQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="J2+MHnsA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22FE2C2BBFC;
-	Thu, 13 Jun 2024 11:44:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="lPzEzpOQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D772C2BBFC;
+	Thu, 13 Jun 2024 11:44:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1718279070;
-	bh=T6Nl7h6YT1bJwGVBtPyPbOZKURBYV36CJYmY6g+yLWU=;
+	s=korg; t=1718279073;
+	bh=2/XjpUpoLSVWfe0SOvRSXQyGAFBJJiNFDRFcPoKNWgs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=J2+MHnsA4VgnP88vxxKxh6EOrgPqK1hkcGGpRNhra0vJWeSpdShPMfOAO3qPdd9Yx
-	 GyWyh0JLJu6XjgyK2i1o+DmAlqp57RuDFkTe4a2gPCAofrbrnmMc1sS5BlKUEuD8aP
-	 /IQbSIRIYUhFPEcY5gp1Ew9zZio6dt+GZkJs/qBI=
+	b=lPzEzpOQ6wRXvZCzr7T7fzu2AMU7tqI0WOSRWKylwQS7miy/w9dFPbYyevAkzAsl3
+	 1vIq3C5yQ4SBxijC53hSXMVEKjWIAnZfLO+27XlkNKT/s+IdTeAjycdBQYvi37HA15
+	 lji3VVSWZRjjeJa368zEo3bKUHhLleW+FT6eGJYQ=
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To: stable@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
@@ -30,9 +30,9 @@ Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	patches@lists.linux.dev,
 	Florian Westphal <fw@strlen.de>,
 	Sasha Levin <sashal@kernel.org>
-Subject: [PATCH 4.19 165/213] netfilter: nft_set_rbtree: fix null deref on element insertion
-Date: Thu, 13 Jun 2024 13:33:33 +0200
-Message-ID: <20240613113234.350164799@linuxfoundation.org>
+Subject: [PATCH 4.19 166/213] netfilter: nft_set_rbtree: fix overlap expiration walk
+Date: Thu, 13 Jun 2024 13:33:34 +0200
+Message-ID: <20240613113234.387916572@linuxfoundation.org>
 X-Mailer: git-send-email 2.45.2
 In-Reply-To: <20240613113227.969123070@linuxfoundation.org>
 References: <20240613113227.969123070@linuxfoundation.org>
@@ -53,82 +53,82 @@ Content-Transfer-Encoding: 8bit
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-commit 61ae320a29b0540c16931816299eb86bf2b66c08 upstream.
+commit f718863aca469a109895cb855e6b81fff4827d71 upstream.
 
-There is no guarantee that rb_prev() will not return NULL in nft_rbtree_gc_elem():
+The lazy gc on insert that should remove timed-out entries fails to release
+the other half of the interval, if any.
 
-general protection fault, probably for non-canonical address 0xdffffc0000000003: 0000 [#1] PREEMPT SMP KASAN
-KASAN: null-ptr-deref in range [0x0000000000000018-0x000000000000001f]
- nft_add_set_elem+0x14b0/0x2990
-  nf_tables_newsetelem+0x528/0xb30
+Can be reproduced with tests/shell/testcases/sets/0044interval_overlap_0
+in nftables.git and kmemleak enabled kernel.
 
-Furthermore, there is a possible use-after-free while iterating,
-'node' can be free'd so we need to cache the next value to use.
+Second bug is the use of rbe_prev vs. prev pointer.
+If rbe_prev() returns NULL after at least one iteration, rbe_prev points
+to element that is not an end interval, hence it should not be removed.
+
+Lastly, check the genmask of the end interval if this is active in the
+current generation.
 
 Fixes: c9e6978e2725 ("netfilter: nft_set_rbtree: Switch to node list walk for overlap detection")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/netfilter/nft_set_rbtree.c |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ net/netfilter/nft_set_rbtree.c |   20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
 
 --- a/net/netfilter/nft_set_rbtree.c
 +++ b/net/netfilter/nft_set_rbtree.c
-@@ -223,7 +223,7 @@ static int nft_rbtree_gc_elem(const stru
+@@ -219,29 +219,37 @@ static void *nft_rbtree_get(const struct
+ 
+ static int nft_rbtree_gc_elem(const struct nft_set *__set,
+ 			      struct nft_rbtree *priv,
+-			      struct nft_rbtree_elem *rbe)
++			      struct nft_rbtree_elem *rbe,
++			      u8 genmask)
  {
  	struct nft_set *set = (struct nft_set *)__set;
  	struct rb_node *prev = rb_prev(&rbe->node);
--	struct nft_rbtree_elem *rbe_prev;
-+	struct nft_rbtree_elem *rbe_prev = NULL;
+-	struct nft_rbtree_elem *rbe_prev = NULL;
++	struct nft_rbtree_elem *rbe_prev;
  	struct nft_set_gc_batch *gcb;
  
  	gcb = nft_set_gc_batch_check(set, NULL, GFP_ATOMIC);
-@@ -231,17 +231,21 @@ static int nft_rbtree_gc_elem(const stru
+ 	if (!gcb)
  		return -ENOMEM;
  
- 	/* search for expired end interval coming before this element. */
--	do {
-+	while (prev) {
+-	/* search for expired end interval coming before this element. */
++	/* search for end interval coming before this element.
++	 * end intervals don't carry a timeout extension, they
++	 * are coupled with the interval start element.
++	 */
+ 	while (prev) {
  		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
- 		if (nft_rbtree_interval_end(rbe_prev))
+-		if (nft_rbtree_interval_end(rbe_prev))
++		if (nft_rbtree_interval_end(rbe_prev) &&
++		    nft_set_elem_active(&rbe_prev->ext, genmask))
  			break;
  
  		prev = rb_prev(prev);
--	} while (prev != NULL);
-+	}
-+
-+	if (rbe_prev) {
-+		rb_erase(&rbe_prev->node, &priv->root);
-+		atomic_dec(&set->nelems);
-+	}
+ 	}
  
--	rb_erase(&rbe_prev->node, &priv->root);
+-	if (rbe_prev) {
++	if (prev) {
++		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
++
+ 		rb_erase(&rbe_prev->node, &priv->root);
+ 		atomic_dec(&set->nelems);
++		nft_set_gc_batch_add(gcb, rbe_prev);
+ 	}
+ 
  	rb_erase(&rbe->node, &priv->root);
--	atomic_sub(2, &set->nelems);
-+	atomic_dec(&set->nelems);
+@@ -323,7 +331,7 @@ static int __nft_rbtree_insert(const str
  
- 	nft_set_gc_batch_add(gcb, rbe);
- 	nft_set_gc_batch_complete(gcb);
-@@ -270,7 +274,7 @@ static int __nft_rbtree_insert(const str
- 			       struct nft_set_ext **ext)
- {
- 	struct nft_rbtree_elem *rbe, *rbe_le = NULL, *rbe_ge = NULL;
--	struct rb_node *node, *parent, **p, *first = NULL;
-+	struct rb_node *node, *next, *parent, **p, *first = NULL;
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 	u8 genmask = nft_genmask_next(net);
- 	int d, err;
-@@ -309,7 +313,9 @@ static int __nft_rbtree_insert(const str
- 	 * Values stored in the tree are in reversed order, starting from
- 	 * highest to lowest value.
- 	 */
--	for (node = first; node != NULL; node = rb_next(node)) {
-+	for (node = first; node != NULL; node = next) {
-+		next = rb_next(node);
-+
- 		rbe = rb_entry(node, struct nft_rbtree_elem, node);
+ 		/* perform garbage collection to avoid bogus overlap reports. */
+ 		if (nft_set_elem_expired(&rbe->ext)) {
+-			err = nft_rbtree_gc_elem(set, priv, rbe);
++			err = nft_rbtree_gc_elem(set, priv, rbe, genmask);
+ 			if (err < 0)
+ 				return err;
  
- 		if (!nft_set_elem_active(&rbe->ext, genmask))
 
 
