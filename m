@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D2BDD1CF8F;
-	Thu, 13 Jun 2024 01:02:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7BBF6B646;
+	Thu, 13 Jun 2024 01:02:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718240550; cv=none; b=RspIBz5kcDeAVtgN3W5Jyba9XezckBpLfAeQNbjCSgEg4AuqV/e8QFyFgTCY3VKyEhvnfauHEWRZIZ1/bueqJk5X9n464KxFqn2Mp5ISJJjFgmp66D6P57o4KDFwJFKKqhzxnlRm7QPfwJBZD9zxvdugt/kKg1JlZIz7yNfcKiI=
+	t=1718240550; cv=none; b=mfqatwhYZYG0W77JQSf5n2oOWMIvm6KGwhkyw/E8kgWloseuWvu8lgVWCo5in9kwhq9jfnlyioKldklDvkFX9gE2ap8rzYl+HfkaiF//vkogK75SOqefFtYsj5fhDQrK1drGUJh4Fc5oxkebvrQZgDGNskmqE0jUQ0Zeul7EZ14=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1718240550; c=relaxed/simple;
-	bh=A50b4L+qT6qvaBUZLhUAoqhVPk4KIdFd0CRD1kpzn1w=;
+	bh=afqdUmR1zLyaNOXhMRKzkiOqOrxo3ttlGhnNYDTSirw=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=lXFd2f1jgOelZbWhIk4oQ2Ysk/R1+hASN9fWMpTJGTH3Dz5tsYrVDb3jqO1d+qLYuXisbuMyKy7u7JESPpDJsaZSfzPmKthBwllT1Z6DbCbhm479nnF3d7whUTblXzkHMd9YD1XsozYpMhReFu+EwuAt4oREba2J13J5DqZ/X1U=
+	 MIME-Version; b=ds090J3HVi1wyTtA4j2b322Zx21xN/xIthbIsgRSH2LC0z9F9vh57DpB73LcAvmIqeQOhcwVmfLd/Br2u+5bK8mYcUh84DF0J0JX01h80PBCTY95b9wW7XLDuAr7maGcfgyNzOL3cOGPGVq/YA/DNGcdwoVoM+ZvWoN97ofjKM0=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -17,9 +17,9 @@ To: netfilter-devel@vger.kernel.org
 Cc: gregkh@linuxfoundation.org,
 	sashal@kernel.org,
 	stable@vger.kernel.org
-Subject: [PATCH -stable,4.19.x 16/40] netfilter: nf_tables: defer gc run if previous batch is still pending
-Date: Thu, 13 Jun 2024 03:01:45 +0200
-Message-Id: <20240613010209.104423-17-pablo@netfilter.org>
+Subject: [PATCH -stable,4.19.x 17/40] netfilter: nft_set_rbtree: skip sync GC for new elements in this transaction
+Date: Thu, 13 Jun 2024 03:01:46 +0200
+Message-Id: <20240613010209.104423-18-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240613010209.104423-1-pablo@netfilter.org>
 References: <20240613010209.104423-1-pablo@netfilter.org>
@@ -31,77 +31,47 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+commit 2ee52ae94baabf7ee09cf2a8d854b990dac5d0e4 upstream.
 
-commit 8e51830e29e12670b4c10df070a4ea4c9593e961 upstream.
-
-Don't queue more gc work, else we may queue the same elements multiple
-times.
-
-If an element is flagged as dead, this can mean that either the previous
-gc request was invalidated/discarded by a transaction or that the previous
-request is still pending in the system work queue.
-
-The latter will happen if the gc interval is set to a very low value,
-e.g. 1ms, and system work queue is backlogged.
-
-The sets refcount is 1 if no previous gc requeusts are queued, so add
-a helper for this and skip gc run if old requests are pending.
-
-Add a helper for this and skip the gc run in this case.
+New elements in this transaction might expired before such transaction
+ends. Skip sync GC for such elements otherwise commit path might walk
+over an already released object. Once transaction is finished, async GC
+will collect such expired element.
 
 Fixes: f6c383b8c31a ("netfilter: nf_tables: adapt set backend to use GC transaction API")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h | 5 +++++
- net/netfilter/nft_set_hash.c      | 3 +++
- net/netfilter/nft_set_rbtree.c    | 3 +++
- 3 files changed, 11 insertions(+)
+ net/netfilter/nft_set_rbtree.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index cf63b52f3c94..70fdfe6d410b 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -445,6 +445,11 @@ static inline void *nft_set_priv(const struct nft_set *set)
- 	return (void *)set->data;
- }
- 
-+static inline bool nft_set_gc_is_pending(const struct nft_set *s)
-+{
-+	return refcount_read(&s->refs) != 1;
-+}
-+
- static inline struct nft_set *nft_set_container_of(const void *priv)
- {
- 	return (void *)priv - offsetof(struct nft_set, data);
-diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index 9ff988b1bc1a..a7dcf2e141c6 100644
---- a/net/netfilter/nft_set_hash.c
-+++ b/net/netfilter/nft_set_hash.c
-@@ -304,6 +304,9 @@ static void nft_rhash_gc(struct work_struct *work)
- 	nft_net = net_generic(net, nf_tables_net_id);
- 	gc_seq = READ_ONCE(nft_net->gc_seq);
- 
-+	if (nft_set_gc_is_pending(set))
-+		goto done;
-+
- 	gc = nft_trans_gc_alloc(set, gc_seq, GFP_KERNEL);
- 	if (!gc)
- 		goto done;
 diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 35200be68c15..92931fa9593b 100644
+index 92931fa9593b..8bda3f25360b 100644
 --- a/net/netfilter/nft_set_rbtree.c
 +++ b/net/netfilter/nft_set_rbtree.c
-@@ -618,6 +618,9 @@ static void nft_rbtree_gc(struct work_struct *work)
- 	nft_net = net_generic(net, nf_tables_net_id);
- 	gc_seq  = READ_ONCE(nft_net->gc_seq);
+@@ -317,6 +317,7 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 	struct nft_rbtree_elem *rbe, *rbe_le = NULL, *rbe_ge = NULL;
+ 	struct rb_node *node, *next, *parent, **p, *first = NULL;
+ 	struct nft_rbtree *priv = nft_set_priv(set);
++	u8 cur_genmask = nft_genmask_cur(net);
+ 	u8 genmask = nft_genmask_next(net);
+ 	int d, err;
  
-+	if (nft_set_gc_is_pending(set))
-+		goto done;
-+
- 	gc = nft_trans_gc_alloc(set, gc_seq, GFP_KERNEL);
- 	if (!gc)
- 		goto done;
+@@ -362,8 +363,11 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 		if (!nft_set_elem_active(&rbe->ext, genmask))
+ 			continue;
+ 
+-		/* perform garbage collection to avoid bogus overlap reports. */
+-		if (nft_set_elem_expired(&rbe->ext)) {
++		/* perform garbage collection to avoid bogus overlap reports
++		 * but skip new elements in this transaction.
++		 */
++		if (nft_set_elem_expired(&rbe->ext) &&
++		    nft_set_elem_active(&rbe->ext, cur_genmask)) {
+ 			err = nft_rbtree_gc_elem(set, priv, rbe, genmask);
+ 			if (err < 0)
+ 				return err;
 -- 
 2.30.2
 
