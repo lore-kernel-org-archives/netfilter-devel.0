@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 255B36AFAE;
-	Thu, 13 Jun 2024 11:47:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1339D143C67;
+	Thu, 13 Jun 2024 11:47:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718279225; cv=none; b=ruiQ5O9F1zO9gK0vy6sSdJXH6HTQmCgF0y5YThWRui0XKDmlH12Rn2QTNeETI+KVUrveqDjb+elBSY/nBoq2TSQ9P1K8LErGNppuku2QHQCOGHxj6MRBZpLF3zDX8ERqG9Zl303a8aJs5g3L2IcWAE2R8HwvvDgORvKrto9eipw=
+	t=1718279228; cv=none; b=sgPIwac9E7Hm88uYOpxLoR101i0aXKA77AL817UfLSiDuBDP5wT9NXsjgO4lFzaDok2MsODYZXppNgeikGNvpyNozqfVBSaeCO3EssxXbxGmF9YVePGidir/bKWhk8vZot0FoyCBdbgjmHXAmBxc3CIRu+KlWuHWPE01HMfpWCY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718279225; c=relaxed/simple;
-	bh=gBZWNMJZXwvMyPUusqLil7RFQyzWEHflhjRsXeRWfYA=;
+	s=arc-20240116; t=1718279228; c=relaxed/simple;
+	bh=vr44zOlXYtubGPMqGfz7urh3/foqnyqGv429utas4/A=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=s0ZW/GnPObS6Ea/vxfOxYq09EDuoC+q9+7qTETyZ/KdzPNG4zDPFWswwh9/SXkJvqpFRm4ciDdUCtr4zFyEe8XWst5B0STmp1pd359N2WFXSSJCkIhfq3fFL245gsr73OnvyXMSU/oTXpi0ieZwGzZnte4fUq+bUI/s3iX/nxYE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=iatiC6z7; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=fOpBEOIItlLOtdAayT9hsgQFdinyG5yez/Ow6xxoagST8Lq35UwgKIEJwLm4dpSiN3hZb7+h1V5WE6TbCNTLrrDEtFwMQCKaKnJRr6qetiyxktnUTPsnbKVJCOnKzAsI/wQMl2Riht4e+Zc+YPODCjSAraaLXULDPuozVShywKg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=fYBfnIdK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="iatiC6z7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D310C2BBFC;
-	Thu, 13 Jun 2024 11:47:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="fYBfnIdK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CDC2C2BBFC;
+	Thu, 13 Jun 2024 11:47:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1718279225;
-	bh=gBZWNMJZXwvMyPUusqLil7RFQyzWEHflhjRsXeRWfYA=;
+	s=korg; t=1718279228;
+	bh=vr44zOlXYtubGPMqGfz7urh3/foqnyqGv429utas4/A=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=iatiC6z7Nv7qwPBp+WnH/wOWz7yk2gqe2DGue087E61TzcZszowzvI7cMhLCnwRgw
-	 pBwEYk/voGOUaZF5zn/9NkWvLSIUapuqt+xpoHMcWTLoKFJWflY2ShGwEImHAE8It+
-	 GHDvtolQzyNm2iX/Mu3lC3ndH5j2in65XqABoDWA=
+	b=fYBfnIdKhLWA4hXSWppIvcrLXihg/FuPRf3vu35LJ1BRmPWSkf1wb/HWwM9aGbqE2
+	 oyxx8k8DmzgyokNr/XW4n7VgZTGrvF06jSAkRHxQPxG2L4W8szWHuy1BhKmZvKb4Nq
+	 sdE+OzMJtcO/xP1XErB+W6gd/xSsd1E+RCkO9Kos=
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To: stable@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	patches@lists.linux.dev,
-	Florian Westphal <fw@strlen.de>
-Subject: [PATCH 4.19 186/213] netfilter: nftables: exthdr: fix 4-byte stack OOB write
-Date: Thu, 13 Jun 2024 13:33:54 +0200
-Message-ID: <20240613113235.156045419@linuxfoundation.org>
+	Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 4.19 187/213] netfilter: nft_dynset: report EOPNOTSUPP on missing set feature
+Date: Thu, 13 Jun 2024 13:33:55 +0200
+Message-ID: <20240613113235.194194841@linuxfoundation.org>
 X-Mailer: git-send-email 2.45.2
 In-Reply-To: <20240613113227.969123070@linuxfoundation.org>
 References: <20240613113227.969123070@linuxfoundation.org>
@@ -50,69 +50,52 @@ Content-Transfer-Encoding: 8bit
 
 ------------------
 
-From: Florian Westphal <fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-commit fd94d9dadee58e09b49075240fe83423eb1dcd36 upstream.
+commit 95cd4bca7b1f4a25810f3ddfc5e767fb46931789 upstream.
 
-If priv->len is a multiple of 4, then dst[len / 4] can write past
-the destination array which leads to stack corruption.
+If userspace requests a feature which is not available the original set
+definition, then bail out with EOPNOTSUPP. If userspace sends
+unsupported dynset flags (new feature not supported by this kernel),
+then report EOPNOTSUPP to userspace. EINVAL should be only used to
+report malformed netlink messages from userspace.
 
-This construct is necessary to clean the remainder of the register
-in case ->len is NOT a multiple of the register size, so make it
-conditional just like nft_payload.c does.
-
-The bug was added in 4.1 cycle and then copied/inherited when
-tcp/sctp and ip option support was added.
-
-Bug reported by Zero Day Initiative project (ZDI-CAN-21950,
-ZDI-CAN-21951, ZDI-CAN-21961).
-
-Fixes: 49499c3e6e18 ("netfilter: nf_tables: switch registers to 32 bit addressing")
-Fixes: 935b7f643018 ("netfilter: nft_exthdr: add TCP option matching")
-Fixes: 133dc203d77d ("netfilter: nft_exthdr: Support SCTP chunks")
-Fixes: dbb5281a1f84 ("netfilter: nf_tables: add support for matching IPv4 options")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 22fe54d5fefc ("netfilter: nf_tables: add support for dynamic set updates")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/netfilter/nft_exthdr.c |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ net/netfilter/nft_dynset.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/net/netfilter/nft_exthdr.c
-+++ b/net/netfilter/nft_exthdr.c
-@@ -36,6 +36,14 @@ static unsigned int optlen(const u8 *opt
- 		return opt[offset + 1];
- }
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -133,7 +133,7 @@ static int nft_dynset_init(const struct
+ 		u32 flags = ntohl(nla_get_be32(tb[NFTA_DYNSET_FLAGS]));
  
-+static int nft_skb_copy_to_reg(const struct sk_buff *skb, int offset, u32 *dest, unsigned int len)
-+{
-+	if (len % NFT_REG32_SIZE)
-+		dest[len / NFT_REG32_SIZE] = 0;
-+
-+	return skb_copy_bits(skb, offset, dest, len);
-+}
-+
- static void nft_exthdr_ipv6_eval(const struct nft_expr *expr,
- 				 struct nft_regs *regs,
- 				 const struct nft_pktinfo *pkt)
-@@ -57,8 +65,7 @@ static void nft_exthdr_ipv6_eval(const s
+ 		if (flags & ~NFT_DYNSET_F_INV)
+-			return -EINVAL;
++			return -EOPNOTSUPP;
+ 		if (flags & NFT_DYNSET_F_INV)
+ 			priv->invert = true;
  	}
- 	offset += priv->offset;
+@@ -168,7 +168,7 @@ static int nft_dynset_init(const struct
+ 	timeout = 0;
+ 	if (tb[NFTA_DYNSET_TIMEOUT] != NULL) {
+ 		if (!(set->flags & NFT_SET_TIMEOUT))
+-			return -EINVAL;
++			return -EOPNOTSUPP;
  
--	dest[priv->len / NFT_REG32_SIZE] = 0;
--	if (skb_copy_bits(pkt->skb, offset, dest, priv->len) < 0)
-+	if (nft_skb_copy_to_reg(pkt->skb, offset, dest, priv->len) < 0)
- 		goto err;
- 	return;
- err:
-@@ -114,7 +121,8 @@ static void nft_exthdr_tcp_eval(const st
- 		if (priv->flags & NFT_EXTHDR_F_PRESENT) {
- 			*dest = 1;
- 		} else {
--			dest[priv->len / NFT_REG32_SIZE] = 0;
-+			if (priv->len % NFT_REG32_SIZE)
-+				dest[priv->len / NFT_REG32_SIZE] = 0;
- 			memcpy(dest, opt + offset, priv->len);
- 		}
+ 		err = nf_msecs_to_jiffies64(tb[NFTA_DYNSET_TIMEOUT], &timeout);
+ 		if (err)
+@@ -182,7 +182,7 @@ static int nft_dynset_init(const struct
+ 
+ 	if (tb[NFTA_DYNSET_SREG_DATA] != NULL) {
+ 		if (!(set->flags & NFT_SET_MAP))
+-			return -EINVAL;
++			return -EOPNOTSUPP;
+ 		if (set->dtype == NFT_DATA_VERDICT)
+ 			return -EOPNOTSUPP;
  
 
 
