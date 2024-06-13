@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE02114265E;
-	Thu, 13 Jun 2024 11:44:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 954F5143C5B;
+	Thu, 13 Jun 2024 11:44:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718279095; cv=none; b=dxeyP6cF+CW4oAwmZz6iWb02QuyWPS26G/R42SKr/Q1FqWOBDrI9aoV94Otlh48KCFeA5yeSzdxmk1b2qVxUjFs4uUZE5S8KAUnnbgH41A7Xjx1aXKnDswcSVoduJLchh2jRSkaB/4NAn3HHYH4+msihBCiGGn08U+5Vj6I3V3A=
+	t=1718279098; cv=none; b=HDgOuqmN78wPc+gsAgzxKT1jHeSFVIZbdSj80+9fypPMj3AeQlvr7RkjR6bH2TAyvgwQB91lxr/JP+sFLp44OuxaKMfswGHTA83IvNdw0K3b8clxcF9+4ZxVYRJLbSTj6mCRPCc1tj+3rRq6KdkmOI907Sec8YpIdt+03ZGkPOo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718279095; c=relaxed/simple;
-	bh=qzlKT4fcHXVEBSswqCe1rkOpfAVYTIqPYfQkBN3Lu5k=;
+	s=arc-20240116; t=1718279098; c=relaxed/simple;
+	bh=vuUGKXyo3cBW47MCyZgNii3Dq2fDB+TLJdslECmExfI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=VZRoDt5iGDwiaopcJyY3RGdy3UUkkEPfOaQ0l3uhBZtJ6GaKqWGCazvFcBiBcyhGT1zBmQiKpyoajzj1ZaLDzJwFkT4f3zq1NW+mWBPV5Bbc4jsbMdXH8sVmPBjIpXU54zfVRMfTXhmAAgjMpXevsTrl6flkchI7RLM/Hr3XrkI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=Fk0dtEjS; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=qwh6zTSc9aD5kJ/6SOExn+qCuqJl5U0Kz8yBg1cIpI7UF5LHxjSa6ULO2MUv/KFAkLvFOevXAWbc9tHJQB95GA9PbKN554Ug6+ZLRatH6zkMvIO2z3PBbaIyAt9Uge/IjDfUKqZXMlbzn+RiS/+Si5rlzYMWyhR+9p+7qDb8Qqw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=wDJCKGVZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="Fk0dtEjS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3867AC2BBFC;
-	Thu, 13 Jun 2024 11:44:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="wDJCKGVZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CC10C2BBFC;
+	Thu, 13 Jun 2024 11:44:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1718279095;
-	bh=qzlKT4fcHXVEBSswqCe1rkOpfAVYTIqPYfQkBN3Lu5k=;
+	s=korg; t=1718279098;
+	bh=vuUGKXyo3cBW47MCyZgNii3Dq2fDB+TLJdslECmExfI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Fk0dtEjSCMKwy6pLV3HoKCOky+RuwfzO+riJtr061aVhid3DOAv96xdN9Sl79QvWD
-	 +9xAoAMskYjzuq5TxymR4A9bLuEblevgSt1kqEphb92TJ1PgBRpO+U0GL9noB4Xzay
-	 R9XUR8gEsEsDmCSl3khtUPhkYZi2oO1mZIawSgfQ=
+	b=wDJCKGVZ0ElpXZ6cLsxFYJsDG1KnI6rM0NUYxo4nghDeS+BUt3hvG5h/vRs1ssvJ7
+	 yeLu1HEDqCO3UOfTpZYzm9rIJZ/t5WyD1iG7+UHOFpUGG5sfxR5++BGF+/Y+9RQP5A
+	 r0OgG0E5sq/gcQZ1/Fcx9qCG6hgzOiFpeWhP4DEQ=
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To: stable@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	patches@lists.linux.dev,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 4.19 173/213] netfilter: nf_tables: GC transaction race with abort path
-Date: Thu, 13 Jun 2024 13:33:41 +0200
-Message-ID: <20240613113234.657005933@linuxfoundation.org>
+	Florian Westphal <fw@strlen.de>
+Subject: [PATCH 4.19 174/213] netfilter: nf_tables: defer gc run if previous batch is still pending
+Date: Thu, 13 Jun 2024 13:33:42 +0200
+Message-ID: <20240613113234.694621487@linuxfoundation.org>
 X-Mailer: git-send-email 2.45.2
 In-Reply-To: <20240613113227.969123070@linuxfoundation.org>
 References: <20240613113227.969123070@linuxfoundation.org>
@@ -50,36 +50,71 @@ Content-Transfer-Encoding: 8bit
 
 ------------------
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
 
-commit 720344340fb9be2765bbaab7b292ece0a4570eae upstream.
+commit 8e51830e29e12670b4c10df070a4ea4c9593e961 upstream.
 
-Abort path is missing a synchronization point with GC transactions. Add
-GC sequence number hence any GC transaction losing race will be
-discarded.
+Don't queue more gc work, else we may queue the same elements multiple
+times.
 
-Fixes: 5f68718b34a5 ("netfilter: nf_tables: GC transaction API to avoid race with control plane")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+If an element is flagged as dead, this can mean that either the previous
+gc request was invalidated/discarded by a transaction or that the previous
+request is still pending in the system work queue.
+
+The latter will happen if the gc interval is set to a very low value,
+e.g. 1ms, and system work queue is backlogged.
+
+The sets refcount is 1 if no previous gc requeusts are queued, so add
+a helper for this and skip gc run if old requests are pending.
+
+Add a helper for this and skip the gc run in this case.
+
+Fixes: f6c383b8c31a ("netfilter: nf_tables: adapt set backend to use GC transaction API")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/netfilter/nf_tables_api.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ include/net/netfilter/nf_tables.h |    5 +++++
+ net/netfilter/nft_set_hash.c      |    3 +++
+ net/netfilter/nft_set_rbtree.c    |    3 +++
+ 3 files changed, 11 insertions(+)
 
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -7263,7 +7263,12 @@ static int __nf_tables_abort(struct net
- static int nf_tables_abort(struct net *net, struct sk_buff *skb)
- {
- 	struct nftables_pernet *nft_net = net_generic(net, nf_tables_net_id);
--	int ret = __nf_tables_abort(net);
-+	unsigned int gc_seq;
-+	int ret;
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -445,6 +445,11 @@ static inline void *nft_set_priv(const s
+ 	return (void *)set->data;
+ }
+ 
++static inline bool nft_set_gc_is_pending(const struct nft_set *s)
++{
++	return refcount_read(&s->refs) != 1;
++}
 +
-+	gc_seq = nft_gc_seq_begin(nft_net);
-+	ret = __nf_tables_abort(net);
-+	nft_gc_seq_end(nft_net, gc_seq);
+ static inline struct nft_set *nft_set_container_of(const void *priv)
+ {
+ 	return (void *)priv - offsetof(struct nft_set, data);
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -304,6 +304,9 @@ static void nft_rhash_gc(struct work_str
+ 	nft_net = net_generic(net, nf_tables_net_id);
+ 	gc_seq = READ_ONCE(nft_net->gc_seq);
  
- 	mutex_unlock(&nft_net->commit_mutex);
++	if (nft_set_gc_is_pending(set))
++		goto done;
++
+ 	gc = nft_trans_gc_alloc(set, gc_seq, GFP_KERNEL);
+ 	if (!gc)
+ 		goto done;
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -618,6 +618,9 @@ static void nft_rbtree_gc(struct work_st
+ 	nft_net = net_generic(net, nf_tables_net_id);
+ 	gc_seq  = READ_ONCE(nft_net->gc_seq);
  
++	if (nft_set_gc_is_pending(set))
++		goto done;
++
+ 	gc = nft_trans_gc_alloc(set, gc_seq, GFP_KERNEL);
+ 	if (!gc)
+ 		goto done;
 
 
