@@ -1,28 +1,28 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80664137914;
-	Thu, 13 Jun 2024 11:46:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33D12143866;
+	Thu, 13 Jun 2024 11:46:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718279163; cv=none; b=bPsAG01tCneDcU2vioRRBqqtHge0z1Ly+ItD2qKWNt9XtUqVWA2s1hVmzuv2hvWTVOphz3xd5oDAvgxoD8I018ouNu1vT6oid8/B6mganXhcryJPsKKJOuojAuyBkw7MQlsnF45Fcu5uau+k+QBEpRKEjTxheW19aFNHh/zamm8=
+	t=1718279166; cv=none; b=XZrS4Fl19fEXVovGMBGx5/zU/g7M4M7XnHc27J4vZv6KfsCXuDnJWmceb9ku6Jb2pY5PlcwOxL57tGn22WGu9snAPmeBHIDaCBDnPEllpsPgoJMegTpHg33pSw1iavZQqU6zcY8Pkcc9wLVItRJXkvJngNkGPUgYhfxeiUHobzU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718279163; c=relaxed/simple;
-	bh=wACfqpwb9rS10aL8AxJikw772yO3B0E0A85ET+ZrZX4=;
+	s=arc-20240116; t=1718279166; c=relaxed/simple;
+	bh=CN0+qHWgPq6QsZ3DJ3v7WeUUd+oKP9vfbcSyX1FBq3c=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=rdvMt3BuXuCG0ejAen1CJflP4us1oO/+QqlQ131n7EwvrcAk4mFmBYVoVliT/hhmSw0KhrfGAv36q2gHWggVjnJgbOGRl4coHn6qv/tgYhiazwzCrag2tQBfbGN9xd6O7uC6J3EZUqGgA+Pf1ClDzXxzKvEieVd/0+76Cw8Wkj0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=tWEqpvKV; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=XwB7ce7FKIsVQec2hu/nXqZ/DTlQbNPwrtnfqb9HHHOkzJaZ/BSzygJJ0XBIsgd3Dygznqr4mXi2CCD01SeiV0bNzSLmIiNf45GYDxy6lZhSafxjsg0y/Yb/lgQtLfG1RQDBadGAaFajvKSNxrWaCX5WEz14YqVEv4L4eFz45Lc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=VpCdDVxq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="tWEqpvKV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B67A7C2BBFC;
-	Thu, 13 Jun 2024 11:46:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="VpCdDVxq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0AC9C2BBFC;
+	Thu, 13 Jun 2024 11:46:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1718279163;
-	bh=wACfqpwb9rS10aL8AxJikw772yO3B0E0A85ET+ZrZX4=;
+	s=korg; t=1718279166;
+	bh=CN0+qHWgPq6QsZ3DJ3v7WeUUd+oKP9vfbcSyX1FBq3c=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=tWEqpvKV6np/sBDJxtLBWCBUjewsLD67wvXLBKdIMkrQ5SsCcIRvFjv1q/Id7Qsnl
-	 oAZry54MJGmZdQ8zYYd+ov4u7GlK5hsCwgeunREU+y6IVLScrQxQU0AME8zs5Ejr8F
-	 Ik1Xh9c7Q4D4nHH2lLWdTNdJmXoXXkZDfZq+A9aY=
+	b=VpCdDVxqmXGDPhI9jAjwZgqL3o8PdZo1Cp1hL9l7apAiTujMvBKq6ECBKyN34Y7X9
+	 xLffmljPB83QjjqbEmxrD1RHkm6UcyUw/HdZOTBhNKjbBfUpfmejnZ3ItqvN14kZTm
+	 mslUWxgwwekRZzImBJATwF+FoIf+2uVHJy6VR0q8=
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To: stable@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
@@ -30,9 +30,9 @@ Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	patches@lists.linux.dev,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Sasha Levin <sashal@kernel.org>
-Subject: [PATCH 4.19 197/213] netfilter: nf_tables: reject new basechain after table flag update
-Date: Thu, 13 Jun 2024 13:34:05 +0200
-Message-ID: <20240613113235.576836729@linuxfoundation.org>
+Subject: [PATCH 4.19 198/213] netfilter: nf_tables: discard table flag update with pending basechain deletion
+Date: Thu, 13 Jun 2024 13:34:06 +0200
+Message-ID: <20240613113235.615589176@linuxfoundation.org>
 X-Mailer: git-send-email 2.45.2
 In-Reply-To: <20240613113227.969123070@linuxfoundation.org>
 References: <20240613113227.969123070@linuxfoundation.org>
@@ -53,58 +53,56 @@ Content-Transfer-Encoding: 8bit
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-commit 994209ddf4f430946f6247616b2e33d179243769 upstream.
+commit 1bc83a019bbe268be3526406245ec28c2458a518 upstream.
 
-When dormant flag is toggled, hooks are disabled in the commit phase by
-iterating over current chains in table (existing and new).
-
-The following configuration allows for an inconsistent state:
-
-  add table x
-  add chain x y { type filter hook input priority 0; }
-  add table x { flags dormant; }
-  add chain x w { type filter hook input priority 1; }
-
-which triggers the following warning when trying to unregister chain w
-which is already unregistered.
-
-[  127.322252] WARNING: CPU: 7 PID: 1211 at net/netfilter/core.c:50                                                                     1 __nf_unregister_net_hook+0x21a/0x260
-[...]
-[  127.322519] Call Trace:
-[  127.322521]  <TASK>
-[  127.322524]  ? __warn+0x9f/0x1a0
-[  127.322531]  ? __nf_unregister_net_hook+0x21a/0x260
-[  127.322537]  ? report_bug+0x1b1/0x1e0
-[  127.322545]  ? handle_bug+0x3c/0x70
-[  127.322552]  ? exc_invalid_op+0x17/0x40
-[  127.322556]  ? asm_exc_invalid_op+0x1a/0x20
-[  127.322563]  ? kasan_save_free_info+0x3b/0x60
-[  127.322570]  ? __nf_unregister_net_hook+0x6a/0x260
-[  127.322577]  ? __nf_unregister_net_hook+0x21a/0x260
-[  127.322583]  ? __nf_unregister_net_hook+0x6a/0x260
-[  127.322590]  ? __nf_tables_unregister_hook+0x8a/0xe0 [nf_tables]
-[  127.322655]  nft_table_disable+0x75/0xf0 [nf_tables]
-[  127.322717]  nf_tables_commit+0x2571/0x2620 [nf_tables]
+Hook unregistration is deferred to the commit phase, same occurs with
+hook updates triggered by the table dormant flag. When both commands are
+combined, this results in deleting a basechain while leaving its hook
+still registered in the core.
 
 Fixes: 179d9ba5559a ("netfilter: nf_tables: fix table flag updates")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/netfilter/nf_tables_api.c |    3 +++
- 1 file changed, 3 insertions(+)
+ net/netfilter/nf_tables_api.c |   20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -1750,6 +1750,9 @@ static int nf_tables_addchain(struct nft
- 		struct nft_chain_hook hook;
- 		struct nf_hook_ops *ops;
+@@ -877,6 +877,24 @@ static void nf_tables_table_disable(stru
+ #define __NFT_TABLE_F_UPDATE		(__NFT_TABLE_F_WAS_DORMANT | \
+ 					 __NFT_TABLE_F_WAS_AWAKEN)
  
-+		if (table->flags & __NFT_TABLE_F_UPDATE)
-+			return -EINVAL;
++static bool nft_table_pending_update(const struct nft_ctx *ctx)
++{
++	struct nftables_pernet *nft_net = net_generic(ctx->net, nf_tables_net_id);
++	struct nft_trans *trans;
 +
- 		err = nft_chain_parse_hook(net, nla, &hook, family, true);
- 		if (err < 0)
- 			return err;
++	if (ctx->table->flags & __NFT_TABLE_F_UPDATE)
++		return true;
++
++	list_for_each_entry(trans, &nft_net->commit_list, list) {
++		if (trans->ctx.table == ctx->table &&
++		    trans->msg_type == NFT_MSG_DELCHAIN &&
++		    nft_is_base_chain(trans->ctx.chain))
++			return true;
++	}
++
++	return false;
++}
++
+ static int nf_tables_updtable(struct nft_ctx *ctx)
+ {
+ 	struct nft_trans *trans;
+@@ -894,7 +912,7 @@ static int nf_tables_updtable(struct nft
+ 		return 0;
+ 
+ 	/* No dormant off/on/off/on games in single transaction */
+-	if (ctx->table->flags & __NFT_TABLE_F_UPDATE)
++	if (nft_table_pending_update(ctx))
+ 		return -EINVAL;
+ 
+ 	trans = nft_trans_alloc(ctx, NFT_MSG_NEWTABLE,
 
 
