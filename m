@@ -1,71 +1,60 @@
-Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFDCA12BF01
-	for <netfilter-devel@vger.kernel.org>; Thu, 13 Jun 2024 03:09:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC998130A40;
+	Thu, 13 Jun 2024 03:38:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718248153; cv=none; b=hnByQoLyPMFbITPfq4vF8R1IgeU3YdS651DTQlDfrabklnfra4DhGA4SCtnqh5Fy3BKdPEU2w7X6hdA4b2zhzA6qg8gUwJQ7iC82Qa0DYLgNUS1ZASPYTcaCb9X6Lv05PuRAIxkJCdB/fbdx+nMRxSudRT1r1caFkD3EtG+wQ2M=
+	t=1718249883; cv=none; b=KRGkE0ok+wbYnTorTmGyFNa6iDPjgFcO66NRaihIrWax6yjmlEGXI2R5MVdljD/82LPZuQtW2zs1x+PC8eePOvIvdLva8h+ANWh/PIWqJIMhNMw4gw8SNj+BCEj1ol7nefqZorcEGx5MmFr8nRCbaAjx1P4bYUGlcfQlB7xvfHA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718248153; c=relaxed/simple;
-	bh=jfKM5K8ea0wBQUh/AqfFqFVBGmCFakSH6ddWgJmIrIA=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ZH6nqIp+2bPaFGWeeOX0D93wm98SaQ7mrs+Ig9YAazDXatlThwZPGwJfYGXtL68IAcpYGJorZHHpbVS5elEyFOJMCDMK1Vf4HjyiPzVMNhSNDNThPp+enYzHITkZ+TVG40LuBkK+uAvbl6fx2hxA4iCgapnF2tJt+EICs9dA/V0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=j1AOstZq; arc=none smtp.client-ip=209.85.216.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1718249883; c=relaxed/simple;
+	bh=MUF6QJIs92YjVFx9pLVup9B1X4v/FOHgXQ+Q1ulGSY8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=HW+9VwlcPz5RihUx6mpz0y4hErm5jUTcRWbLAo1ssOQ/imt9cTFXtfOJ1e5as9RT3dXmiFL2HJtY7/oK5vOzmWFwYLdpr6xv4EknNAtSIR5eGbKqatsI54Onvvh7v4SuOb12Kew5sogp2Zxa28SlOHeNVEcxCQJMk3+AS1g6uKg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=D/Q38vJo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="j1AOstZq"
-Received: by mail-pj1-f51.google.com with SMTP id 98e67ed59e1d1-2c313edc316so382095a91.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Jun 2024 20:09:11 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1718248151; x=1718852951; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=yBLHo25Bm3YhqHF47Dr5dmoqJ509v4bI5Hmxnwjd72U=;
-        b=j1AOstZqxFR0zUpCkh0qz/EykB2GayHpANirk1NZcw+0Up4yEb9/OQOYc5Ii+lM5ir
-         I3bQO5iVz8jct6IvmlGEEKBQUUvRyZepm0Bb2OgCVQvqzJYY+EbGeXeVRGFWwPKADAGu
-         8oFm5zQRBG1glbDcHA3JwlfYuVlyHK9giNxDtxcwDNMlxzUlPA2gJA2cU7H3c6qHUFiq
-         N7bYg/Wy7BDeLEp2mqBf6gg6nCH/J9d/XlbtSdd9VKFB7U/eIvny05wsW02jqUYdBBvQ
-         Bx2h0ZFIoJiKGxuMcMc8YfMBEUtNhZdxyElxJ4TSyTN627lwSXMJ68Jl17QbJUJQwVSI
-         /7lw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1718248151; x=1718852951;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=yBLHo25Bm3YhqHF47Dr5dmoqJ509v4bI5Hmxnwjd72U=;
-        b=hJ7MK2SHO8+F9p8B75rB08A5XeTP0OLzk6vwHqppYzEZr/6BLeWmPVaL4UisldgiAb
-         LBwjsF+VQxmJN2rGWE9TTwdb4rybP5ywmFWzMU0E/LjcwpTe/uIKH9ru5TlRHj7hXwgx
-         iG8EMKU4rfguZ9OHFLvfbCFZ/wOYndz7q4jomCNVhZQR+IeyqMv0FkEEYZ957TLusQoZ
-         DUIhpy/FlzwU7s6/mkyLYIzzf2nvRiwISsrIBkP6WFHFhHojDkumS5UK9O7vCEs3o4zz
-         rkun6lDOVyoWNnS2+bGa9idGVrQw2vBfWL/iCO0quyhJM8Iyyguis/7iUKvfXV1FO9Z4
-         dyQQ==
-X-Gm-Message-State: AOJu0YwplCOIlyuEkM8hAQ5ert0OqkWX1mE+pGTG0ZmctY59f3TZ7NXw
-	H/OLBancnRH+p4tBMZo0HbNjr+VSrOuMcV71nVv1MAtOGqFceMGQBAuUNQ==
-X-Google-Smtp-Source: AGHT+IGKX0/6QYRXpqioH2QBOjRmStSElGFnHUVHtWwT0xlA/N7YsefB1qpcDUXvRwuePHtWhVhBEA==
-X-Received: by 2002:a17:90a:986:b0:2c2:7bbe:d6ba with SMTP id 98e67ed59e1d1-2c4a7601665mr3805152a91.8.1718248151026;
-        Wed, 12 Jun 2024 20:09:11 -0700 (PDT)
-Received: from slk15.local.net ([49.190.141.216])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-2c4c45af993sm391323a91.11.2024.06.12.20.09.09
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 12 Jun 2024 20:09:10 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From: Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
-Date: Thu, 13 Jun 2024 13:09:07 +1000
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libnetfilter_queue] Stop a memory leak in nfq_close
-Message-ID: <Zmpi04j4x1stEwxS@slk15.local.net>
-Reply-To: duncan_roe@optusnet.com.au
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <20240506231719.9589-1-duncan_roe@optusnet.com.au>
- <ZmCB-walvbM9SnX7@calendula>
- <Zme6j5eOm8thplwY@slk15.local.net>
- <ZmjN9Z-C7r7vzakH@calendula>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="D/Q38vJo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7817BC2BBFC;
+	Thu, 13 Jun 2024 03:38:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1718249882;
+	bh=MUF6QJIs92YjVFx9pLVup9B1X4v/FOHgXQ+Q1ulGSY8=;
+	h=Date:From:To:Cc:Subject:Reply-To:References:In-Reply-To:From;
+	b=D/Q38vJoRXlXt5XW/4wGVxDR3Ve5LY0YeIOEeyXy3NbqhqX2dZ1j6M305bUwT45/t
+	 UDuYraBOn5RJGcB5wbPp0mVvgGhhjTHGq9Z0Flg5xyFBTSbQm63u8OHLMVmMqygIG8
+	 n9Bktxt8XPwCkrGEjHdwaonD6xgWh8Godtd+lRtFFTJN7g05LyY6qtQ9CoXmzs1IMm
+	 s3wJnTMklP71T4XudKIUo3akJ/RvcV6b0A4eh6dGBbeQLpeU8YyAJJTIYJ6rHLoz8s
+	 fp4CPkLTgzE6dVIPWUBEYXDVCE07lQXMRXq4lTfYFbtT2/hHBATfDcVAbYnccY1Jab
+	 dAuGuN0IsVTKA==
+Received: by paulmck-ThinkPad-P17-Gen-1.home (Postfix, from userid 1000)
+	id 1975FCE0DEA; Wed, 12 Jun 2024 20:38:02 -0700 (PDT)
+Date: Wed, 12 Jun 2024 20:38:02 -0700
+From: "Paul E. McKenney" <paulmck@kernel.org>
+To: "Jason A. Donenfeld" <Jason@zx2c4.com>
+Cc: Jakub Kicinski <kuba@kernel.org>, Julia Lawall <Julia.Lawall@inria.fr>,
+	linux-block@vger.kernel.org, kernel-janitors@vger.kernel.org,
+	bridge@lists.linux.dev, linux-trace-kernel@vger.kernel.org,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+	kvm@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	"Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	Nicholas Piggin <npiggin@gmail.com>, netdev@vger.kernel.org,
+	wireguard@lists.zx2c4.com, linux-kernel@vger.kernel.org,
+	ecryptfs@vger.kernel.org, Neil Brown <neilb@suse.de>,
+	Olga Kornievskaia <kolga@netapp.com>, Dai Ngo <Dai.Ngo@oracle.com>,
+	Tom Talpey <tom@talpey.com>, linux-nfs@vger.kernel.org,
+	linux-can@vger.kernel.org, Lai Jiangshan <jiangshanlai@gmail.com>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	Vlastimil Babka <vbabka@suse.cz>
+Subject: Re: [PATCH 00/14] replace call_rcu by kfree_rcu for simple
+ kmem_cache_free callback
+Message-ID: <08ee7eb2-8d08-4f1f-9c46-495a544b8c0e@paulmck-laptop>
+Reply-To: paulmck@kernel.org
+References: <20240609082726.32742-1-Julia.Lawall@inria.fr>
+ <20240612143305.451abf58@kernel.org>
+ <baee4d58-17b4-4918-8e45-4d8068a23e8c@paulmck-laptop>
+ <Zmov7ZaL-54T9GiM@zx2c4.com>
+ <Zmo9-YGraiCj5-MI@zx2c4.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -74,105 +63,135 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ZmjN9Z-C7r7vzakH@calendula>
+In-Reply-To: <Zmo9-YGraiCj5-MI@zx2c4.com>
 
-On Wed, Jun 12, 2024 at 12:21:41AM +0200, Pablo Neira Ayuso wrote:
-> On Tue, Jun 11, 2024 at 12:46:39PM +1000, Duncan Roe wrote:
-> > Hi Pablo,
-> >
-> > On Wed, Jun 05, 2024 at 05:19:23PM +0200, Pablo Neira Ayuso wrote:
-> > > Hi Duncan,
-> > >
-> > > On Tue, May 07, 2024 at 09:17:19AM +1000, Duncan Roe wrote:
-> > > > 0c5e5fb introduced struct nfqnl_q_handle *qh_list which can point to
-> > > > dynamically acquired memory. Without this patch, that memory is not freed.
-> > >
-> > > Indeed.
-> > >
-> > > Looking at the example available at utils, I can see this assumes
-> > > that:
-> > >
-> > >         nfq_destroy_queue(qh);
-> > >
-> > > needs to be called.
-> > >
-> > > qh->data can be also set to heap structure, in that case this would leak too.
-> > >
-> > > It seems nfq_destroy_queue() needs to be called before nfq_close() by design.
-> >
-> > Oh sorry, I missed that. Anyone starting with the example available at utils as
-> > a template will be OK then.
-> > But someone carefully checking each line of code might do a
-> > `man nfq_destroy_queue` and see:
-> >        Removes the binding for the specified queue handle. This call also
-> >        unbind from the nfqueue handler, so you don't have to call
-> >        nfq_unbind_pf.
-> > And on then doing `man nfq_unbind_pf` that person would see:
-> >        Unbinds the given queue connection handle from processing packets
-> >        belonging to the given protocol family.
-> >
-> >        This call is obsolete, Linux kernels from 3.8 onwards ignore it.
-> > And might draw the conclusion that the call to nfq_destroy_queue is unnecessary,
-> > especially if planning to call exit after calling nfq_close.
->
-> Then, update documentation.
->
-> > > Probably add:
-> > >
-> > >         assert(h->qh_list == NULL);
-> >
-> > I don't like that. It would be the first assert() in libnetfilter_queue.
-> > libnfnetlink is peppered with asserts: I removed them in the replacement
-> > libmnl-using code because libmnl doesn't have them. Have you looked at the v2
-> > patches BTW? I'd really appreciate some feedback.
-> >
-> > >
-> > > at the top of nfq_close() instead to give a chance to users of this to
-> > > fix their code in case they are leaking qh?
-> >
-> > It's not as important to call nfq_destroy_queue as it used to be. Why not just
-> > free the memory?
->
-> It is not possible to know if qh->data is stored in the bss, onstack
-> or the heap, it is up to the user to decide this.
+On Thu, Jun 13, 2024 at 02:31:53AM +0200, Jason A. Donenfeld wrote:
+> On Thu, Jun 13, 2024 at 01:31:57AM +0200, Jason A. Donenfeld wrote:
+> > On Wed, Jun 12, 2024 at 03:37:55PM -0700, Paul E. McKenney wrote:
+> > > On Wed, Jun 12, 2024 at 02:33:05PM -0700, Jakub Kicinski wrote:
+> > > > On Sun,  9 Jun 2024 10:27:12 +0200 Julia Lawall wrote:
+> > > > > Since SLOB was removed, it is not necessary to use call_rcu
+> > > > > when the callback only performs kmem_cache_free. Use
+> > > > > kfree_rcu() directly.
+> > > > > 
+> > > > > The changes were done using the following Coccinelle semantic patch.
+> > > > > This semantic patch is designed to ignore cases where the callback
+> > > > > function is used in another way.
+> > > > 
+> > > > How does the discussion on:
+> > > >   [PATCH] Revert "batman-adv: prefer kfree_rcu() over call_rcu() with free-only callbacks"
+> > > >   https://lore.kernel.org/all/20240612133357.2596-1-linus.luessing@c0d3.blue/
+> > > > reflect on this series? IIUC we should hold off..
+> > > 
+> > > We do need to hold off for the ones in kernel modules (such as 07/14)
+> > > where the kmem_cache is destroyed during module unload.
+> > > 
+> > > OK, I might as well go through them...
+> > > 
+> > > [PATCH 01/14] wireguard: allowedips: replace call_rcu by kfree_rcu for simple kmem_cache_free callback
+> > > 	Needs to wait, see wg_allowedips_slab_uninit().
+> > 
+> > Right, this has exactly the same pattern as the batman-adv issue:
+> > 
+> >     void wg_allowedips_slab_uninit(void)
+> >     {
+> >             rcu_barrier();
+> >             kmem_cache_destroy(node_cache);
+> >     }
+> > 
+> > I'll hold off on sending that up until this matter is resolved.
+> 
+> BTW, I think this whole thing might be caused by:
+> 
+>     a35d16905efc ("rcu: Add basic support for kfree_rcu() batching")
+> 
+> The commit message there mentions:
+> 
+>     There is an implication with rcu_barrier() with this patch. Since the
+>     kfree_rcu() calls can be batched, and may not be handed yet to the RCU
+>     machinery in fact, the monitor may not have even run yet to do the
+>     queue_rcu_work(), there seems no easy way of implementing rcu_barrier()
+>     to wait for those kfree_rcu()s that are already made. So this means a
+>     kfree_rcu() followed by an rcu_barrier() does not imply that memory will
+>     be freed once rcu_barrier() returns.
+> 
+> Before that, a kfree_rcu() used to just add a normal call_rcu() into the
+> list, but with the function offset < 4096 as a special marker. So the
+> kfree_rcu() calls would be treated alongside the other call_rcu() ones
+> and thus affected by rcu_barrier(). Looks like that behavior is no more
+> since this commit.
 
-qh->data is a pointer which is assigned in nfq_create_queue() at
-libnetfilter_queue.c:584. I was never proposing to free what qh->data points to,
-only to free any left-over qh structs.
+You might well be right, and thank you for digging into this!
 
-The user cannot access qh->data directly because qh (struct nfq_q_handle) is
-opaque.
+> Rather than getting rid of the batching, which seems good for
+> efficiency, I wonder if the right fix to this would be adding a
+> `should_destroy` boolean to kmem_cache, which kmem_cache_destroy() sets
+> to true. And then right after it checks `if (number_of_allocations == 0)
+> actually_destroy()`, and likewise on each kmem_cache_free(), it could
+> check `if (should_destroy && number_of_allocations == 0)
+> actually_destroy()`. This way, the work is delayed until it's safe to do
+> so. This might also mitigate other lurking bugs of bad code that calls
+> kmem_cache_destroy() before kmem_cache_free().
 
-nfq_destroy_queue(qh) will free qh at libnetfilter_queue.c:619. I'm just
-proposing to free qh's for which nfq_destroy_queue was not called. In
-nfq_close(h), h->qh_list can only have struct nfq_q_handles if it has anything.
->
-> > I could send a v2 with the Fixes: tag removed and a commit
-> > message that mentions the change is a backstop in case nfq_destroy_queue was not
-> > called.
+Here are the current options being considered, including those that
+are completely brain-dead:
 
-I can still do that. It's an enhancement now.
-> >
-> > Either way, `man nfq_destroy_queue` could be improved e.g.:
-> >        Removes the binding for the specified queue handle. This call also
-> >        releases associated internal memory.
-> > While being about it, how about removing the obsolete code snippet at the
-> > head of Library initialisation (that details calls to nfq_[un]bind_pf)?
-> > Perhaps a separate doc: patch?
->
-> I'd suggest to address this by updating documentation.
+o	Document current state.  (Must use call_rcu() if module
+	destroys slab of RCU-protected objects.)
 
-Yes it could do with updating. My first instinct would be to remove the
-nfq_unbind_pf comments and code snippet as I mentioned originally. Kernel 3.8 is
-way out of LTS.
+	Need to review Julia's and Uladzislau's series of patches
+	that change call_rcu() of slab objects to kfree_rcu().
 
-But, there have been quite recent emails on the lists from folks who are stuck
-with these old kernels owing to having proprietary closed-source binary blobs.
+o	Make rcu_barrier() wait for kfree_rcu() objects.  (This is
+	surprisingly complex and will wait unnecessarily in some cases.
+	However, it does preserve current code.)
 
-I could leave these old comments and doxygen lines in but with extra lines
-highlighting they are for pre-3.8 only. Do you have a preferance?
+o	Make a kfree_rcu_barrier() that waits for kfree_rcu() objects.
+	(This avoids the unnecessary waits, but adds complexity to
+	kfree_rcu().  This is harder than it looks, but could be done,
+	for example by maintaining pairs of per-CPU counters and handling
+	them in an SRCU-like fashion.  Need some way of communicating the
+	index, though.)
 
-Cheers ... Duncan.
->
-> Thanks.
->
+	(There might be use cases where both rcu_barrier() and
+	kfree_rcu_barrier() would need to be invoked.)
+
+	A simpler way to implement this is to scan all of the in-flight
+	objects, and queue each (either separately or in bulk) using
+	call_rcu().  This still has problems with kfree_rcu_mightsleep()
+	under low-memory conditions, in which case there are a bunch
+	of synchronize_rcu() instances waiting.  These instances could
+	use SRCU-like per-CPU arrays of counters.  Or just protect the
+	calls to synchronize_rcu() and the later frees with an SRCU
+	reader, then have the other end call synchronize_srcu().
+
+o	Make the current kmem_cache_destroy() asynchronously wait for
+	all memory to be returned, then complete the destruction.
+	(This gets rid of a valuable debugging technique because
+	in normal use, it is a bug to attempt to destroy a kmem_cache
+	that has objects still allocated.)
+
+o	Make a kmem_cache_destroy_rcu() that asynchronously waits for
+	all memory to be returned, then completes the destruction.
+	(This raises the question of what to is it takes a "long time"
+	for the objects to be freed.)
+
+o	Make a kmem_cache_free_barrier() that blocks until all
+	objects in the specified kmem_cache have been freed.
+
+o	Make a kmem_cache_destroy_wait() that waits for all memory to
+	be returned, then does the destruction.  This is equivalent to:
+
+		kmem_cache_free_barrier(&mycache);
+		kmem_cache_destroy(&mycache);
+
+Uladzislau has started discussions on the last few of these:
+https://lore.kernel.org/all/ZmnL4jkhJLIW924W@pc636/
+
+I have also added this information to a Google Document for
+easier tracking:
+https://docs.google.com/document/d/1v0rcZLvvjVGejT3523W0rDy_sLFu2LWc_NR3fQItZaA/edit?usp=sharing
+
+Other thoughts?
+
+							Thanx, Paul
