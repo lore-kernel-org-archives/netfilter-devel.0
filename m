@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3389E18028;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D2BDD1CF8F;
 	Thu, 13 Jun 2024 01:02:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718240549; cv=none; b=f6WQYipvfL8NODYthVgAFVf9FfLFbVxdAxxFUwu++SB08rcdYrVuhI54JeczMjXNpla5eWKp8og+YkgLVJPUKFZ9TUHMAg4OhUfiI5yM4hVWM7aml23hfcqlpCECuZH6HDvpTFxRTraF88rPVXGYUBqPcMVyQiygjC+Pt9uM1dA=
+	t=1718240550; cv=none; b=RspIBz5kcDeAVtgN3W5Jyba9XezckBpLfAeQNbjCSgEg4AuqV/e8QFyFgTCY3VKyEhvnfauHEWRZIZ1/bueqJk5X9n464KxFqn2Mp5ISJJjFgmp66D6P57o4KDFwJFKKqhzxnlRm7QPfwJBZD9zxvdugt/kKg1JlZIz7yNfcKiI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718240549; c=relaxed/simple;
-	bh=VR0vCSw6qBR8FFlSppYaTO9EIzBrOVfmurNjZkRbst0=;
+	s=arc-20240116; t=1718240550; c=relaxed/simple;
+	bh=A50b4L+qT6qvaBUZLhUAoqhVPk4KIdFd0CRD1kpzn1w=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=We8UnbJWtfgRCgVd5kWbGJD1iMKgElojSc7ez7ea2gxPGvl19UF+Dp+YHesgtFTPLSMsnumAWCnx3NkB+LT8Bl5JMvxoNm/JzD8nOwhV7oau3r+Y6hFxmZEOMfD1DJkAcFQg2AadoeV7hkrlu66dWRI3Jz4B5+W4IA7ZsYry7vE=
+	 MIME-Version; b=lXFd2f1jgOelZbWhIk4oQ2Ysk/R1+hASN9fWMpTJGTH3Dz5tsYrVDb3jqO1d+qLYuXisbuMyKy7u7JESPpDJsaZSfzPmKthBwllT1Z6DbCbhm479nnF3d7whUTblXzkHMd9YD1XsozYpMhReFu+EwuAt4oREba2J13J5DqZ/X1U=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -17,9 +17,9 @@ To: netfilter-devel@vger.kernel.org
 Cc: gregkh@linuxfoundation.org,
 	sashal@kernel.org,
 	stable@vger.kernel.org
-Subject: [PATCH -stable,4.19.x 15/40] netfilter: nf_tables: GC transaction race with abort path
-Date: Thu, 13 Jun 2024 03:01:44 +0200
-Message-Id: <20240613010209.104423-16-pablo@netfilter.org>
+Subject: [PATCH -stable,4.19.x 16/40] netfilter: nf_tables: defer gc run if previous batch is still pending
+Date: Thu, 13 Jun 2024 03:01:45 +0200
+Message-Id: <20240613010209.104423-17-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240613010209.104423-1-pablo@netfilter.org>
 References: <20240613010209.104423-1-pablo@netfilter.org>
@@ -31,36 +31,77 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-commit 720344340fb9be2765bbaab7b292ece0a4570eae upstream.
+From: Florian Westphal <fw@strlen.de>
 
-Abort path is missing a synchronization point with GC transactions. Add
-GC sequence number hence any GC transaction losing race will be
-discarded.
+commit 8e51830e29e12670b4c10df070a4ea4c9593e961 upstream.
 
-Fixes: 5f68718b34a5 ("netfilter: nf_tables: GC transaction API to avoid race with control plane")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Don't queue more gc work, else we may queue the same elements multiple
+times.
+
+If an element is flagged as dead, this can mean that either the previous
+gc request was invalidated/discarded by a transaction or that the previous
+request is still pending in the system work queue.
+
+The latter will happen if the gc interval is set to a very low value,
+e.g. 1ms, and system work queue is backlogged.
+
+The sets refcount is 1 if no previous gc requeusts are queued, so add
+a helper for this and skip gc run if old requests are pending.
+
+Add a helper for this and skip the gc run in this case.
+
+Fixes: f6c383b8c31a ("netfilter: nf_tables: adapt set backend to use GC transaction API")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_tables_api.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ include/net/netfilter/nf_tables.h | 5 +++++
+ net/netfilter/nft_set_hash.c      | 3 +++
+ net/netfilter/nft_set_rbtree.c    | 3 +++
+ 3 files changed, 11 insertions(+)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 81bdc5201c91..a48e92114bdc 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -7263,7 +7263,12 @@ static int __nf_tables_abort(struct net *net)
- static int nf_tables_abort(struct net *net, struct sk_buff *skb)
- {
- 	struct nftables_pernet *nft_net = net_generic(net, nf_tables_net_id);
--	int ret = __nf_tables_abort(net);
-+	unsigned int gc_seq;
-+	int ret;
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index cf63b52f3c94..70fdfe6d410b 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -445,6 +445,11 @@ static inline void *nft_set_priv(const struct nft_set *set)
+ 	return (void *)set->data;
+ }
+ 
++static inline bool nft_set_gc_is_pending(const struct nft_set *s)
++{
++	return refcount_read(&s->refs) != 1;
++}
 +
-+	gc_seq = nft_gc_seq_begin(nft_net);
-+	ret = __nf_tables_abort(net);
-+	nft_gc_seq_end(nft_net, gc_seq);
+ static inline struct nft_set *nft_set_container_of(const void *priv)
+ {
+ 	return (void *)priv - offsetof(struct nft_set, data);
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index 9ff988b1bc1a..a7dcf2e141c6 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -304,6 +304,9 @@ static void nft_rhash_gc(struct work_struct *work)
+ 	nft_net = net_generic(net, nf_tables_net_id);
+ 	gc_seq = READ_ONCE(nft_net->gc_seq);
  
- 	mutex_unlock(&nft_net->commit_mutex);
++	if (nft_set_gc_is_pending(set))
++		goto done;
++
+ 	gc = nft_trans_gc_alloc(set, gc_seq, GFP_KERNEL);
+ 	if (!gc)
+ 		goto done;
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 35200be68c15..92931fa9593b 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -618,6 +618,9 @@ static void nft_rbtree_gc(struct work_struct *work)
+ 	nft_net = net_generic(net, nf_tables_net_id);
+ 	gc_seq  = READ_ONCE(nft_net->gc_seq);
  
++	if (nft_set_gc_is_pending(set))
++		goto done;
++
+ 	gc = nft_trans_gc_alloc(set, gc_seq, GFP_KERNEL);
+ 	if (!gc)
+ 		goto done;
 -- 
 2.30.2
 
