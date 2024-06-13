@@ -1,113 +1,189 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4455014AD23;
-	Thu, 13 Jun 2024 17:14:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from mail-lf1-f52.google.com (mail-lf1-f52.google.com [209.85.167.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C626114A093;
+	Thu, 13 Jun 2024 17:39:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718298901; cv=none; b=s+UoZosRo1qsnK3twXkThdcFfp630kAIMDHCbdsNt3zkdAjajZb/6fYFUVoJsrOp0ouhiT/bgW9dWd+6OQfl1LX+Q5U3xbWOwF6UJSu1U5Qc6V3hZ71cVDx6xhBYOvEJkrb3dnH9g22AeUIb2Jz6if0hoeoG/1/sktzEsoUgpHw=
+	t=1718300347; cv=none; b=FvcBqipXnT4jVkCaQbuMt82mAVEta6SHLrHf2D25fq1tFY+kht90u8XLQFT+HOjE/jNRUa9ifdGf5dEqZjLgE4WZpXivzCWM1qEQXwwkyxqJtcHlgy1p6SS08yrEGsDPudHqXJsy0rKua91JAjyXuytR9RjzxBp+LjNakEDPxmc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718298901; c=relaxed/simple;
-	bh=PiihNOfcyEATAtCG900JeUIgMm/Oa/AY2JJ7f9Jlat8=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=KzElyYzZs2SdeQkU9ebDjKvEGmc8uKcbE2tsLrUfm/NVeQRybyMDZHiVAbcstN0reiXTQqM6TsDoVMp5qT+hl48sh+vrDpEQHZksPw+rRAVwb+ACtB6MOMZnTmyrhnFrQCs21I8HVDi5ijShcKoKZiaGh2oHGIy2FCkaUvBsc5g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: sashal@kernel.org,
-	gregkh@linuxfoundation.org,
-	stable@vger.kernel.org
-Subject: [PATCH -stable,5.4] netfilter: nftables: exthdr: fix 4-byte stack OOB write
-Date: Thu, 13 Jun 2024 19:14:55 +0200
-Message-Id: <20240613171455.121818-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+	s=arc-20240116; t=1718300347; c=relaxed/simple;
+	bh=fHH7Y/GCV9RKHWRoNr6bxBkzHP+WxpUKHOajIKJQc0A=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Lf4iKElbc9keRklBn9lGQ6hAlZqgy4ISQbyGU9RmOGzUcLz45CEiXPbxF0DhcKbF6hfq8OgdHd+aARmCwgXrcu6IYnM+lkbWWFqlXqFjCjwlUw2rnsJVGbkH+DAcK5zQ9x++sdlEBFIhfrMEohE+eeN/I1ZujTuw6ycNC6ar7qA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=gxkFx2sc; arc=none smtp.client-ip=209.85.167.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gxkFx2sc"
+Received: by mail-lf1-f52.google.com with SMTP id 2adb3069b0e04-52bbdb15dd5so1658349e87.3;
+        Thu, 13 Jun 2024 10:39:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1718300344; x=1718905144; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=956BT+Uq9SD+emo8+jCK8z5I39sZ4FeCbRyFqSAHxWc=;
+        b=gxkFx2scR94MsRlvbmw5uI806EfMTrEnQpNzuFTxR9wGTPSOc+7D52WekaOxVJyu2P
+         wgKjqGD2SC3evJk+4k5zPryD57uZDRfw/HP4S8qUN+91swZKgCy60ho3uBSe0XlDg///
+         is7Tt4KaQcr9Z3fA8iaip8pYI8q32JWcFIKkXX6qut+iSB5q6dEVEGv78Yen3ATEOvrb
+         A+NxrI0xrwPvO1fgYJlbxpUPW1fUHJ8BagXdFv5oN74f83KWTKee5Q+NmWmYuKo1ciZV
+         rAPAmX6yQvSMDWS4J2SkiqXowLtcdDTvHrRnj3KgaD6YVbh4aWWdljhnv3GBXcDQ/cig
+         Wtqg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1718300344; x=1718905144;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=956BT+Uq9SD+emo8+jCK8z5I39sZ4FeCbRyFqSAHxWc=;
+        b=qyMzCidkHpEcC47LckCplOQOTZ3IlM87jg53yUgh6HM6EoV5aI25PrE7h4tZL4D5Zj
+         2NXfgvqlC0q6s07e3NKEFtKNH7XcrWDLhuCKXt1lckQOSJhaofr3yRE0XI9BM8gdZmku
+         lRcvvSxFpHzHQ0+sno4jHM2s3OMqzj9VV58UuD3683x3hj4KgriGtFkAPrOyplOjKBHX
+         bliQ4xvo7UcE0F5mISvuLTLv2R8h4i5wvUlgtolo8Jj0wMKQWnq6C5PCLfH2XQzkkUqr
+         r+JwuXYFV6ESFn808yhRjDpTFtCtMdQX5JH5J11RpA5zbWr39BGlG/kU6GTfXboG1iAH
+         v8iQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVsay3bizCj3Do0cRqomwNingFhHf4dfl/G1I2mBShys24omAVVodi2I7UDLTQixI5vi2ONjA28IctmRD1Z/9t5qvC8peqTlua7nst0zcD0JQi8nuCRdSbROheUzaTJsEDbGTmn4DgPkKZbLh20b6c9n7FemaoUS350KWqLFc95Au4byqghV1c4Gzf+FRELc4D1+ymIwdEYIaO1vjLR4Yv25QtszYbRcTnE+Zicfcs6BiRuwx791dFhoCpeki65HZwBzenqWl4FWzJU5UsntK2zY4BfJI+DyKVM4DRfFl0Zo+7NcoJPsldjd4WF3A+VzFLfGBFkFGBFIpBdiD2w8B6JUBJDzvJEmK3mnwnseKK0tfLs/E1YYCOOww9LMyeRxnuUpDi/1i31CkC7s6cFuM08onDuRCwADKlvhr9M5yMQZUCTwvE777CPzdIGIw==
+X-Gm-Message-State: AOJu0Yw4mvVvDUWiyeYHXkAdI5AZPvyQWVmfpJI8RthwN0PGekzTw8a9
+	jYd4+USev2JiNN9x1Y9Zzgu6jDzUmYX6hWnA45Swk+Fx7oZkN2Va
+X-Google-Smtp-Source: AGHT+IEqfg03O6T4CVRhNhuT1kToVJHsIj8GcfpqCCRbVlEQmwf5k9Sqz/b5zlxpaNyn2BuI8Okyaw==
+X-Received: by 2002:a05:6512:517:b0:52b:796e:66a5 with SMTP id 2adb3069b0e04-52ca6e9954cmr243776e87.66.1718300343767;
+        Thu, 13 Jun 2024 10:39:03 -0700 (PDT)
+Received: from pc636 (host-90-233-218-141.mobileonline.telia.com. [90.233.218.141])
+        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-52ca288cd87sm299099e87.304.2024.06.13.10.39.01
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 13 Jun 2024 10:39:03 -0700 (PDT)
+From: Uladzislau Rezki <urezki@gmail.com>
+X-Google-Original-From: Uladzislau Rezki <urezki@pc636>
+Date: Thu, 13 Jun 2024 19:38:59 +0200
+To: "Paul E. McKenney" <paulmck@kernel.org>
+Cc: Uladzislau Rezki <urezki@gmail.com>, Vlastimil Babka <vbabka@suse.cz>,
+	"Jason A. Donenfeld" <Jason@zx2c4.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Julia Lawall <Julia.Lawall@inria.fr>, linux-block@vger.kernel.org,
+	kernel-janitors@vger.kernel.org, bridge@lists.linux.dev,
+	linux-trace-kernel@vger.kernel.org,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+	kvm@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	"Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	Nicholas Piggin <npiggin@gmail.com>, netdev@vger.kernel.org,
+	wireguard@lists.zx2c4.com, linux-kernel@vger.kernel.org,
+	ecryptfs@vger.kernel.org, Neil Brown <neilb@suse.de>,
+	Olga Kornievskaia <kolga@netapp.com>, Dai Ngo <Dai.Ngo@oracle.com>,
+	Tom Talpey <tom@talpey.com>, linux-nfs@vger.kernel.org,
+	linux-can@vger.kernel.org, Lai Jiangshan <jiangshanlai@gmail.com>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [PATCH 00/14] replace call_rcu by kfree_rcu for simple
+ kmem_cache_free callback
+Message-ID: <Zmsuswo8OPIhY5KJ@pc636>
+References: <20240609082726.32742-1-Julia.Lawall@inria.fr>
+ <20240612143305.451abf58@kernel.org>
+ <baee4d58-17b4-4918-8e45-4d8068a23e8c@paulmck-laptop>
+ <ZmrfA1p2zSVIaYam@zx2c4.com>
+ <80e03b02-7e24-4342-af0b-ba5117b19828@paulmck-laptop>
+ <Zmru7hhz8kPDPsyz@pc636>
+ <7efde25f-6af5-4a67-abea-b26732a8aca1@paulmck-laptop>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <7efde25f-6af5-4a67-abea-b26732a8aca1@paulmck-laptop>
 
-From: Florian Westphal <fw@strlen.de>
+On Thu, Jun 13, 2024 at 08:06:30AM -0700, Paul E. McKenney wrote:
+> On Thu, Jun 13, 2024 at 03:06:54PM +0200, Uladzislau Rezki wrote:
+> > On Thu, Jun 13, 2024 at 05:47:08AM -0700, Paul E. McKenney wrote:
+> > > On Thu, Jun 13, 2024 at 01:58:59PM +0200, Jason A. Donenfeld wrote:
+> > > > On Wed, Jun 12, 2024 at 03:37:55PM -0700, Paul E. McKenney wrote:
+> > > > > On Wed, Jun 12, 2024 at 02:33:05PM -0700, Jakub Kicinski wrote:
+> > > > > > On Sun,  9 Jun 2024 10:27:12 +0200 Julia Lawall wrote:
+> > > > > > > Since SLOB was removed, it is not necessary to use call_rcu
+> > > > > > > when the callback only performs kmem_cache_free. Use
+> > > > > > > kfree_rcu() directly.
+> > > > > > > 
+> > > > > > > The changes were done using the following Coccinelle semantic patch.
+> > > > > > > This semantic patch is designed to ignore cases where the callback
+> > > > > > > function is used in another way.
+> > > > > > 
+> > > > > > How does the discussion on:
+> > > > > >   [PATCH] Revert "batman-adv: prefer kfree_rcu() over call_rcu() with free-only callbacks"
+> > > > > >   https://lore.kernel.org/all/20240612133357.2596-1-linus.luessing@c0d3.blue/
+> > > > > > reflect on this series? IIUC we should hold off..
+> > > > > 
+> > > > > We do need to hold off for the ones in kernel modules (such as 07/14)
+> > > > > where the kmem_cache is destroyed during module unload.
+> > > > > 
+> > > > > OK, I might as well go through them...
+> > > > > 
+> > > > > [PATCH 01/14] wireguard: allowedips: replace call_rcu by kfree_rcu for simple kmem_cache_free callback
+> > > > > 	Needs to wait, see wg_allowedips_slab_uninit().
+> > > > 
+> > > > Also, notably, this patch needs additionally:
+> > > > 
+> > > > diff --git a/drivers/net/wireguard/allowedips.c b/drivers/net/wireguard/allowedips.c
+> > > > index e4e1638fce1b..c95f6937c3f1 100644
+> > > > --- a/drivers/net/wireguard/allowedips.c
+> > > > +++ b/drivers/net/wireguard/allowedips.c
+> > > > @@ -377,7 +377,6 @@ int __init wg_allowedips_slab_init(void)
+> > > > 
+> > > >  void wg_allowedips_slab_uninit(void)
+> > > >  {
+> > > > -	rcu_barrier();
+> > > >  	kmem_cache_destroy(node_cache);
+> > > >  }
+> > > > 
+> > > > Once kmem_cache_destroy has been fixed to be deferrable.
+> > > > 
+> > > > I assume the other patches are similar -- an rcu_barrier() can be
+> > > > removed. So some manual meddling of these might be in order.
+> > > 
+> > > Assuming that the deferrable kmem_cache_destroy() is the option chosen,
+> > > agreed.
+> > >
+> > <snip>
+> > void kmem_cache_destroy(struct kmem_cache *s)
+> > {
+> > 	int err = -EBUSY;
+> > 	bool rcu_set;
+> > 
+> > 	if (unlikely(!s) || !kasan_check_byte(s))
+> > 		return;
+> > 
+> > 	cpus_read_lock();
+> > 	mutex_lock(&slab_mutex);
+> > 
+> > 	rcu_set = s->flags & SLAB_TYPESAFE_BY_RCU;
+> > 
+> > 	s->refcount--;
+> > 	if (s->refcount)
+> > 		goto out_unlock;
+> > 
+> > 	err = shutdown_cache(s);
+> > 	WARN(err, "%s %s: Slab cache still has objects when called from %pS",
+> > 	     __func__, s->name, (void *)_RET_IP_);
+> > ...
+> > 	cpus_read_unlock();
+> > 	if (!err && !rcu_set)
+> > 		kmem_cache_release(s);
+> > }
+> > <snip>
+> > 
+> > so we have SLAB_TYPESAFE_BY_RCU flag that defers freeing slab-pages
+> > and a cache by a grace period. Similar flag can be added, like
+> > SLAB_DESTROY_ONCE_FULLY_FREED, in this case a worker rearm itself
+> > if there are still objects which should be freed.
+> > 
+> > Any thoughts here?
+> 
+> Wouldn't we also need some additional code to later check for all objects
+> being freed to the slab, whether or not that code is  initiated from
+> kmem_cache_destroy()?
+>
+Same away as SLAB_TYPESAFE_BY_RCU is handled from the kmem_cache_destroy() function.
+It checks that flag and if it is true and extra worker is scheduled to perform a
+deferred(instead of right away) destroy after rcu_barrier() finishes.
 
-commit fd94d9dadee58e09b49075240fe83423eb1dcd36 upstream.
-
-If priv->len is a multiple of 4, then dst[len / 4] can write past
-the destination array which leads to stack corruption.
-
-This construct is necessary to clean the remainder of the register
-in case ->len is NOT a multiple of the register size, so make it
-conditional just like nft_payload.c does.
-
-The bug was added in 4.1 cycle and then copied/inherited when
-tcp/sctp and ip option support was added.
-
-Bug reported by Zero Day Initiative project (ZDI-CAN-21950,
-ZDI-CAN-21951, ZDI-CAN-21961).
-
-Fixes: 49499c3e6e18 ("netfilter: nf_tables: switch registers to 32 bit addressing")
-Fixes: 935b7f643018 ("netfilter: nft_exthdr: add TCP option matching")
-Fixes: 133dc203d77d ("netfilter: nft_exthdr: Support SCTP chunks")
-Fixes: dbb5281a1f84 ("netfilter: nf_tables: add support for matching IPv4 options")
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-Hi Greg, Sasha,
-
-This backport is missing in 5.4, please apply to -stable. Thanks.
-
- net/netfilter/nft_exthdr.c | 17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
-
-diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-index 670dd146fb2b..ca268293cfa1 100644
---- a/net/netfilter/nft_exthdr.c
-+++ b/net/netfilter/nft_exthdr.c
-@@ -33,6 +33,14 @@ static unsigned int optlen(const u8 *opt, unsigned int offset)
- 		return opt[offset + 1];
- }
- 
-+static int nft_skb_copy_to_reg(const struct sk_buff *skb, int offset, u32 *dest, unsigned int len)
-+{
-+	if (len % NFT_REG32_SIZE)
-+		dest[len / NFT_REG32_SIZE] = 0;
-+
-+	return skb_copy_bits(skb, offset, dest, len);
-+}
-+
- static void nft_exthdr_ipv6_eval(const struct nft_expr *expr,
- 				 struct nft_regs *regs,
- 				 const struct nft_pktinfo *pkt)
-@@ -54,8 +62,7 @@ static void nft_exthdr_ipv6_eval(const struct nft_expr *expr,
- 	}
- 	offset += priv->offset;
- 
--	dest[priv->len / NFT_REG32_SIZE] = 0;
--	if (skb_copy_bits(pkt->skb, offset, dest, priv->len) < 0)
-+	if (nft_skb_copy_to_reg(pkt->skb, offset, dest, priv->len) < 0)
- 		goto err;
- 	return;
- err:
-@@ -151,8 +158,7 @@ static void nft_exthdr_ipv4_eval(const struct nft_expr *expr,
- 	}
- 	offset += priv->offset;
- 
--	dest[priv->len / NFT_REG32_SIZE] = 0;
--	if (skb_copy_bits(pkt->skb, offset, dest, priv->len) < 0)
-+	if (nft_skb_copy_to_reg(pkt->skb, offset, dest, priv->len) < 0)
- 		goto err;
- 	return;
- err:
-@@ -208,7 +214,8 @@ static void nft_exthdr_tcp_eval(const struct nft_expr *expr,
- 		if (priv->flags & NFT_EXTHDR_F_PRESENT) {
- 			*dest = 1;
- 		} else {
--			dest[priv->len / NFT_REG32_SIZE] = 0;
-+			if (priv->len % NFT_REG32_SIZE)
-+				dest[priv->len / NFT_REG32_SIZE] = 0;
- 			memcpy(dest, opt + offset, priv->len);
- 		}
- 
--- 
-2.30.2
-
+--
+Uladzislau Rezki
