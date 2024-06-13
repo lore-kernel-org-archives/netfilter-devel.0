@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 62B1984A5F;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 00A3B12B83;
 	Thu, 13 Jun 2024 01:02:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718240563; cv=none; b=iV+TjbaPhLrjFoBaQfg9Z66EoVJ/Z5w13l/UjHpFO5rKbywJvLrz0gpeUt+SCUgE1Fn8MHDpy8GctA59z7rivGKqGt/OI1afnvfr6/EYEFSVbrmhMjdJcTEraPw3xtbSVooNVKS0K3bmP8tEJ9eJ2xHwUNhgvyhbIeNMCWB4TnQ=
+	t=1718240564; cv=none; b=L2Rd+p7CshBD6IeK71V/Rzbl6UNHVZ+dWdut6EE9kRB6nM5v28+K24XP+Z8a+5bA6g1FVfNJ+I9OHN7qs2rDsOMtpWmf0xq0IA/fukcwp2dHtfvQZwHtXT6IIJ8kXvyqX3RKDgC6AQGNDw0HLCZjafq9UVcTKDppTr/YgdPGfIU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718240563; c=relaxed/simple;
-	bh=q47zAy360POrRe7MdFoXQ34KOw7Qj07FA7CDKCrbjyI=;
+	s=arc-20240116; t=1718240564; c=relaxed/simple;
+	bh=OUS0NVyX7hd78YXELdEYvqVU/BfJmkrb7NxNgIAhrsY=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=ePZ8pkbZgltwqO8j798T+Filbd9xLzUS7iTcKWP0QlrdqD31jQIoUYROdMl2yohxaTIpOiXn79dM7q7bdzo4LhqRbwCyFfZSOkNdmgan+ygQGGlfGF/C8NKYIKFGIqMdnkSjs8h/knqNFUKAwxt+ukon6aEzSREUDN+L7ywamw0=
+	 MIME-Version; b=Yah51AxNzS4I1CiJ2KIsF95H16OjGp7iPwDFvdlom4ZtH3tJp3XcUr0h0moNlwpsrrjnFabdDI5coEZ7dnwDoI31vZ/yrex0VXkjlR7aFbvOZ2G/rU01AnY3o0TOMpYCG6C5Mf4e3Ewh6535O/mBr8bTdxpQOv8Hl7ttaCzypa8=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -17,9 +17,9 @@ To: netfilter-devel@vger.kernel.org
 Cc: gregkh@linuxfoundation.org,
 	sashal@kernel.org,
 	stable@vger.kernel.org
-Subject: [PATCH -stable,4.19.x 37/40] netfilter: nf_tables: do not compare internal table flags on updates
-Date: Thu, 13 Jun 2024 03:02:06 +0200
-Message-Id: <20240613010209.104423-38-pablo@netfilter.org>
+Subject: [PATCH -stable,4.19.x 38/40] netfilter: nf_tables: mark set as dead when unbinding anonymous set with timeout
+Date: Thu, 13 Jun 2024 03:02:07 +0200
+Message-Id: <20240613010209.104423-39-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240613010209.104423-1-pablo@netfilter.org>
 References: <20240613010209.104423-1-pablo@netfilter.org>
@@ -31,30 +31,46 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-[ Upstream commit 4a0e7f2decbf9bd72461226f1f5f7dcc4b08f139 ]
+commit 552705a3650bbf46a22b1adedc1b04181490fc36 upstream.
 
-Restore skipping transaction if table update does not modify flags.
+While the rhashtable set gc runs asynchronously, a race allows it to
+collect elements from anonymous sets with timeouts while it is being
+released from the commit path.
 
-Fixes: 179d9ba5559a ("netfilter: nf_tables: fix table flag updates")
+Mingi Cho originally reported this issue in a different path in 6.1.x
+with a pipapo set with low timeouts which is not possible upstream since
+7395dfacfff6 ("netfilter: nf_tables: use timestamp to check for set
+element timeout").
+
+Fix this by setting on the dead flag for anonymous sets to skip async gc
+in this case.
+
+According to 08e4c8c5919f ("netfilter: nf_tables: mark newset as dead on
+transaction abort"), Florian plans to accelerate abort path by releasing
+objects via workqueue, therefore, this sets on the dead flag for abort
+path too.
+
+Cc: stable@vger.kernel.org
+Fixes: 5f68718b34a5 ("netfilter: nf_tables: GC transaction API to avoid race with control plane")
+Reported-by: Mingi Cho <mgcho.minic@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/netfilter/nf_tables_api.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_tables_api.c | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index d2f095e8853f..2c7fd0df9389 100644
+index 2c7fd0df9389..2b0fe55b46c1 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -890,7 +890,7 @@ static int nf_tables_updtable(struct nft_ctx *ctx)
- 	if (flags & ~NFT_TABLE_F_DORMANT)
- 		return -EINVAL;
+@@ -3943,6 +3943,7 @@ void nf_tables_unbind_set(const struct nft_ctx *ctx, struct nft_set *set,
  
--	if (flags == ctx->table->flags)
-+	if (flags == (ctx->table->flags & NFT_TABLE_F_MASK))
- 		return 0;
- 
- 	/* No dormant off/on/off/on games in single transaction */
+ 	if (list_empty(&set->bindings) && nft_set_is_anonymous(set)) {
+ 		list_del_rcu(&set->list);
++		set->dead = 1;
+ 		if (event)
+ 			nf_tables_set_notify(ctx, set, NFT_MSG_DELSET,
+ 					     GFP_KERNEL);
 -- 
 2.30.2
 
