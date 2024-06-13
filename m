@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 80DF483CB4;
-	Thu, 13 Jun 2024 01:02:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 25CF9EAD0;
+	Thu, 13 Jun 2024 01:02:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718240559; cv=none; b=Y0xa12HmJb9rVP/xDsGuxJpQQjTaqpA1IXUDkJUeFnSncRF7qvdHiVISryUHqAvwX1XHC3N+uvPkeBxSWthB/aAv432chfs6twBAG7Y0ig/Pmk+tCGpYKu5ic+BHwla9Pjd7mBM1Ct66OiJbVbJY2Itrxx3uimoF27Kf1qZEzOo=
+	t=1718240560; cv=none; b=tCXXmI2xdfwBPJwAWnSL3/9u7p/kxqpq56+2rMDo8Gt7WGNAi06+sv/GrwGLuSgkq3sXtlRTU2898RHAfChk6F8wzyjmSVv4fk9qIi6Vzw/0X44HxRpJX4jf6P1MYgPGCHb07zqRaRM7bRGpPmDKRPYzh/pYxDxsfSxZ1LF0c+Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718240559; c=relaxed/simple;
-	bh=wBPfI/H36hGTuElBVwc4XdCgoEIlpfAVqjRseEIpLBw=;
+	s=arc-20240116; t=1718240560; c=relaxed/simple;
+	bh=X6F2+0anYVbFj7zs657WcuHSj7ZM4LPdZL0Iasy9sNI=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=f2zRSzSF0hwlYxPH3ESGzpfLtIYOGa2BtuH1ih+EMG5+ZHHw66DtmPLbHNh3A0g5f3WTh5NW+HNdus6/BycoW4/iKIeZsaqDcvDbDTpSXXk2HiLW3czLlhwF1NFb6/LSSu3R7KMeM/oye50yQvQRB3/Fwnnjnxu7X1S4KbzBuxM=
+	 MIME-Version; b=FlNKuGSn8TSFkJty6JCBwk/h+T4cilw8niM0LpI3O1Me+Zrh6nuW/n7Rc/u99P3Z26qnFakUQePMNNSjZkpTYxyrMrHWjyFJJpGUxN3gyLPVqhomMPUi9t/7YIQ43iL0rHMy2yMfuSAAgZSJKhOsbaG2HGZIqczNwxkcDvjk+uE=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -17,9 +17,9 @@ To: netfilter-devel@vger.kernel.org
 Cc: gregkh@linuxfoundation.org,
 	sashal@kernel.org,
 	stable@vger.kernel.org
-Subject: [PATCH -stable,4.19.x 31/40] netfilter: nf_tables: mark newset as dead on transaction abort
-Date: Thu, 13 Jun 2024 03:02:00 +0200
-Message-Id: <20240613010209.104423-32-pablo@netfilter.org>
+Subject: [PATCH -stable,4.19.x 32/40] netfilter: nf_tables: skip dead set elements in netlink dump
+Date: Thu, 13 Jun 2024 03:02:01 +0200
+Message-Id: <20240613010209.104423-33-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240613010209.104423-1-pablo@netfilter.org>
 References: <20240613010209.104423-1-pablo@netfilter.org>
@@ -31,48 +31,43 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+[ Upstream commit 6b1ca88e4bb63673dc9f9c7f23c899f22c3cb17a ]
 
-[ Upstream commit 08e4c8c5919fd405a4d709b4ba43d836894a26eb ]
+Delete from packet path relies on the garbage collector to purge
+elements with NFT_SET_ELEM_DEAD_BIT on.
 
-If a transaction is aborted, we should mark the to-be-released NEWSET dead,
-just like commit path does for DEL and DESTROYSET commands.
+Skip these dead elements from nf_tables_dump_setelem() path, I very
+rarely see tests/shell/testcases/maps/typeof_maps_add_delete reports
+[DUMP FAILED] showing a mismatch in the expected output with an element
+that should not be there.
 
-In both cases all remaining elements will be released via
-set->ops->destroy().
+If the netlink dump happens before GC worker run, it might show dead
+elements in the ruleset listing.
 
-The existing abort code does NOT post the actual release to the work queue.
-Also the entire __nf_tables_abort() function is wrapped in gc_seq
-begin/end pair.
-
-Therefore, async gc worker will never try to release the pending set
-elements, as gc sequence is always stale.
-
-It might be possible to speed up transaction aborts via work queue too,
-this would result in a race and a possible use-after-free.
-
-So fix this before it becomes an issue.
+nft_rhash_get() already skips dead elements in nft_rhash_cmp(),
+therefore, it already does not show the element when getting a single
+element via netlink control plane.
 
 Fixes: 5f68718b34a5 ("netfilter: nf_tables: GC transaction API to avoid race with control plane")
-Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_tables_api.c | 1 +
- 1 file changed, 1 insertion(+)
+ net/netfilter/nf_tables_api.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index b23d7c3455de..29a782e9ad07 100644
+index 29a782e9ad07..8045eefc99e1 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -7254,6 +7254,7 @@ static int __nf_tables_abort(struct net *net)
- 				nft_trans_destroy(trans);
- 				break;
- 			}
-+			nft_trans_set(trans)->dead = 1;
- 			list_del_rcu(&nft_trans_set(trans)->list);
- 			break;
- 		case NFT_MSG_DELSET:
+@@ -4200,7 +4200,7 @@ static int nf_tables_dump_setelem(const struct nft_ctx *ctx,
+ 	const struct nft_set_ext *ext = nft_set_elem_ext(set, elem->priv);
+ 	struct nft_set_dump_args *args;
+ 
+-	if (nft_set_elem_expired(ext))
++	if (nft_set_elem_expired(ext) || nft_set_elem_is_dead(ext))
+ 		return 0;
+ 
+ 	args = container_of(iter, struct nft_set_dump_args, iter);
 -- 
 2.30.2
 
