@@ -1,133 +1,192 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA15C652;
-	Thu, 13 Jun 2024 00:32:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A57FCD30B;
+	Thu, 13 Jun 2024 01:02:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718238723; cv=none; b=kz9IZJ9RGCIZLnXXGS6F/hkIPFo0YG7XXGqdkRhoh61r72EGJLJozUcb4hR1sRD47Uq0BQeFESSWH45fbtz465gmzMWcnSItmUK84AI4gn0ghPzgcu5J/Vc2MnA8FGHDvYMNONreYzWtk9uSWZPzNBdquN1fC6Glp7CVYF4ah80=
+	t=1718240540; cv=none; b=MJ42/cBkUjekIWHLeyu1+QVxWM0TSXOuNV4v6aTtVHAJfbJlUWeVMD9Lff/iTjfXCVDqyFgqEFXP0CCPCQKSPRr+utouBo+PABhvQTCmFPSsHtyte5U3sWJda3+yKvAUQU6jh62mRWoNy6KBigujhxJtEZplKsAln1RqusNODaU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718238723; c=relaxed/simple;
-	bh=+UbqprezWqxEbhKmSRaDsTwuur4mIfjSb1NUN/fCVbQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=K4dh9MDL+JHFhrN4K326PI0WduhfcrP0KhZ1vsSROdINZ2B3ogPVKOXnB1Uo+H6O0BytOPqf++V2LhEY9pWfWM0ZnHgVJz2s55AWHMeKQlVmJQpe5brMpR3xllEF7YQuuU8s60sUHVwGOlPGsfkvyKPqZdAOSthwo7h2J7Y9lRU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b=eF1VsvRJ; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="eF1VsvRJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45E47C116B1;
-	Thu, 13 Jun 2024 00:32:00 +0000 (UTC)
-Authentication-Results: smtp.kernel.org;
-	dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="eF1VsvRJ"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
-	t=1718238717;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=GLUb85oLbjyoG+FcfWhggv8KT8bN6SBWkCY+yvZAHV8=;
-	b=eF1VsvRJdSDlt+jjhJiKZ5eDDi+CCrqpbP2qILiWHB7HfEnI5D10gtd4TmY1udoArULYFC
-	3p47U2iNEXteOz8cl56PqFBBedrFExfiroU7FcnCZmp/raJumk5hGsmXBZe7KI+jDx3FRz
-	mt6afVKn9JVqLJRPjTB0wjVVNYzZzWI=
-Received: 
-	by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id 0c052d48 (TLSv1.3:TLS_AES_256_GCM_SHA384:256:NO);
-	Thu, 13 Jun 2024 00:31:57 +0000 (UTC)
-Date: Thu, 13 Jun 2024 02:31:53 +0200
-From: "Jason A. Donenfeld" <Jason@zx2c4.com>
-To: "Paul E. McKenney" <paulmck@kernel.org>
-Cc: Jakub Kicinski <kuba@kernel.org>, Julia Lawall <Julia.Lawall@inria.fr>,
-	linux-block@vger.kernel.org, kernel-janitors@vger.kernel.org,
-	bridge@lists.linux.dev, linux-trace-kernel@vger.kernel.org,
-	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
-	kvm@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	"Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Nicholas Piggin <npiggin@gmail.com>, netdev@vger.kernel.org,
-	wireguard@lists.zx2c4.com, linux-kernel@vger.kernel.org,
-	ecryptfs@vger.kernel.org, Neil Brown <neilb@suse.de>,
-	Olga Kornievskaia <kolga@netapp.com>, Dai Ngo <Dai.Ngo@oracle.com>,
-	Tom Talpey <tom@talpey.com>, linux-nfs@vger.kernel.org,
-	linux-can@vger.kernel.org, Lai Jiangshan <jiangshanlai@gmail.com>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	Vlastimil Babka <vbabka@suse.cz>
-Subject: Re: [PATCH 00/14] replace call_rcu by kfree_rcu for simple
- kmem_cache_free callback
-Message-ID: <Zmo9-YGraiCj5-MI@zx2c4.com>
-References: <20240609082726.32742-1-Julia.Lawall@inria.fr>
- <20240612143305.451abf58@kernel.org>
- <baee4d58-17b4-4918-8e45-4d8068a23e8c@paulmck-laptop>
- <Zmov7ZaL-54T9GiM@zx2c4.com>
+	s=arc-20240116; t=1718240540; c=relaxed/simple;
+	bh=2dJuckz3yorBpwcuXcD0Q4iaaPHoFmIoH4i94c3bUNM=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=HT0E1ckfoolVfdbJblwTXVe/pjuJtqkzwI2Chlw97DFXgTqyIce6lQ4ucuRUpN7L7UAxcouX13v28WUMtIPuKPkKRMdHDNmmg6pno68XibHjhwhlecEnw2KCkcPsrEUWLo+Xo41AxyzWnvLia76N9GTgg60bPWBIvY2vbLQu7vI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: gregkh@linuxfoundation.org,
+	sashal@kernel.org,
+	stable@vger.kernel.org
+Subject: [PATCH -stable,4.19.x 00/40] Netfilter fixes for -stable
+Date: Thu, 13 Jun 2024 03:01:29 +0200
+Message-Id: <20240613010209.104423-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <Zmov7ZaL-54T9GiM@zx2c4.com>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Jun 13, 2024 at 01:31:57AM +0200, Jason A. Donenfeld wrote:
-> On Wed, Jun 12, 2024 at 03:37:55PM -0700, Paul E. McKenney wrote:
-> > On Wed, Jun 12, 2024 at 02:33:05PM -0700, Jakub Kicinski wrote:
-> > > On Sun,  9 Jun 2024 10:27:12 +0200 Julia Lawall wrote:
-> > > > Since SLOB was removed, it is not necessary to use call_rcu
-> > > > when the callback only performs kmem_cache_free. Use
-> > > > kfree_rcu() directly.
-> > > > 
-> > > > The changes were done using the following Coccinelle semantic patch.
-> > > > This semantic patch is designed to ignore cases where the callback
-> > > > function is used in another way.
-> > > 
-> > > How does the discussion on:
-> > >   [PATCH] Revert "batman-adv: prefer kfree_rcu() over call_rcu() with free-only callbacks"
-> > >   https://lore.kernel.org/all/20240612133357.2596-1-linus.luessing@c0d3.blue/
-> > > reflect on this series? IIUC we should hold off..
-> > 
-> > We do need to hold off for the ones in kernel modules (such as 07/14)
-> > where the kmem_cache is destroyed during module unload.
-> > 
-> > OK, I might as well go through them...
-> > 
-> > [PATCH 01/14] wireguard: allowedips: replace call_rcu by kfree_rcu for simple kmem_cache_free callback
-> > 	Needs to wait, see wg_allowedips_slab_uninit().
-> 
-> Right, this has exactly the same pattern as the batman-adv issue:
-> 
->     void wg_allowedips_slab_uninit(void)
->     {
->             rcu_barrier();
->             kmem_cache_destroy(node_cache);
->     }
-> 
-> I'll hold off on sending that up until this matter is resolved.
+Hi Greg, Sasha,
 
-BTW, I think this whole thing might be caused by:
+This round includes pending -stable backport fixes for 4.19.
 
-    a35d16905efc ("rcu: Add basic support for kfree_rcu() batching")
+This large batch includes dependency patches and fixes which are
+already present in -stable kernels >= 5.4.x but not in 4.19.x.
 
-The commit message there mentions:
+The following list shows the backported patches, I am using original
+commit IDs for reference:
 
-    There is an implication with rcu_barrier() with this patch. Since the
-    kfree_rcu() calls can be batched, and may not be handed yet to the RCU
-    machinery in fact, the monitor may not have even run yet to do the
-    queue_rcu_work(), there seems no easy way of implementing rcu_barrier()
-    to wait for those kfree_rcu()s that are already made. So this means a
-    kfree_rcu() followed by an rcu_barrier() does not imply that memory will
-    be freed once rcu_barrier() returns.
+1) 0c2a85edd143 ("netfilter: nf_tables: pass context to nft_set_destroy()")
 
-Before that, a kfree_rcu() used to just add a normal call_rcu() into the
-list, but with the function offset < 4096 as a special marker. So the
-kfree_rcu() calls would be treated alongside the other call_rcu() ones
-and thus affected by rcu_barrier(). Looks like that behavior is no more
-since this commit.
+2) f8bb7889af58 ("netfilter: nftables: rename set element data activation/deactivation functions")
 
-Rather than getting rid of the batching, which seems good for
-efficiency, I wonder if the right fix to this would be adding a
-`should_destroy` boolean to kmem_cache, which kmem_cache_destroy() sets
-to true. And then right after it checks `if (number_of_allocations == 0)
-actually_destroy()`, and likewise on each kmem_cache_free(), it could
-check `if (should_destroy && number_of_allocations == 0)
-actually_destroy()`. This way, the work is delayed until it's safe to do
-so. This might also mitigate other lurking bugs of bad code that calls
-kmem_cache_destroy() before kmem_cache_free().
+3) 628bd3e49cba ("netfilter: nf_tables: drop map element references from preparation phase")
 
-Jason
+4) 3b18d5eba491 ("netfilter: nft_set_rbtree: allow loose matching of closing element in interval")
+
+5) 340eaff65116 ("netfilter: nft_set_rbtree: Add missing expired checks")
+
+6) c9e6978e2725 ("netfilter: nft_set_rbtree: Switch to node list walk for overlap detection")
+
+7) 61ae320a29b0 ("netfilter: nft_set_rbtree: fix null deref on element insertion")
+
+8) f718863aca46 ("netfilter: nft_set_rbtree: fix overlap expiration walk")
+
+9) 24138933b97b ("netfilter: nf_tables: don't skip expired elements during walk")
+
+10) 5f68718b34a5 ("netfilter: nf_tables: GC transaction API to avoid race with control plane")
+
+11) f6c383b8c31a ("netfilter: nf_tables: adapt set backend to use GC transaction API")
+
+12) a2dd0233cbc4 ("netfilter: nf_tables: remove busy mark and gc batch API")
+
+13) 6a33d8b73dfa ("netfilter: nf_tables: fix GC transaction races with netns and netlink event exit path")
+
+14) 02c6c24402bf ("netfilter: nf_tables: GC transaction race with netns dismantle")
+
+15) 720344340fb9 ("netfilter: nf_tables: GC transaction race with abort path")
+
+16) 8e51830e29e1 ("netfilter: nf_tables: defer gc run if previous batch is still pending")
+
+17) 2ee52ae94baa ("netfilter: nft_set_rbtree: skip sync GC for new elements in this transaction")
+
+18) 96b33300fba8 ("netfilter: nft_set_rbtree: use read spinlock to avoid datapath contention")
+
+19) b079155faae9 ("netfilter: nft_set_hash: try later when GC hits EAGAIN on iteration")
+
+20) cf5000a7787c ("netfilter: nf_tables: fix memleak when more than 255 elements expired")
+
+21) 6069da443bf6 ("netfilter: nf_tables: unregister flowtable hooks on netns exit")
+
+22) f9a43007d3f7 ("netfilter: nf_tables: double hook unregistration in netns path")
+
+23) 0ce7cf4127f1 ("netfilter: nftables: update table flags from the commit phase")
+
+24) 179d9ba5559a ("netfilter: nf_tables: fix table flag updates")
+
+25) c9bd26513b3a ("netfilter: nf_tables: disable toggling dormant table state more than once")
+
+26) ("netfilter: nf_tables: bogus EBUSY when deleting flowtable after flush (for 4.19)")
+    NB: This patch does not exist in any upstream tree, but there is a similar patch already in 5.4
+
+27) 917d80d376ff ("netfilter: nft_dynset: fix timeouts later than 23 days")
+
+28) fd94d9dadee5 ("netfilter: nftables: exthdr: fix 4-byte stack OOB write")
+
+29) 95cd4bca7b1f ("netfilter: nft_dynset: report EOPNOTSUPP on missing set feature")
+
+30) 7b1394892de8 ("netfilter: nft_dynset: relax superfluous check on set updates")
+
+31) 08e4c8c5919f ("netfilter: nf_tables: mark newset as dead on transaction abort")
+
+32) 6b1ca88e4bb6 ("netfilter: nf_tables: skip dead set elements in netlink dump")
+
+33) d0009effa886 ("netfilter: nf_tables: validate NFPROTO_* family")
+
+34) 60c0c230c6f0 ("netfilter: nft_set_rbtree: skip end interval element from gc")
+
+35) bccebf647017 ("netfilter: nf_tables: set dormant flag on hook register failure")
+
+36) 7e0f122c6591 ("netfilter: nf_tables: allow NFPROTO_INET in nft_(match/target)_validate()")
+
+37) 4a0e7f2decbf ("netfilter: nf_tables: do not compare internal table flags on updates")
+
+38) 552705a3650b ("netfilter: nf_tables: mark set as dead when unbinding anonymous set with timeout")
+
+39) 994209ddf4f4 ("netfilter: nf_tables: reject new basechain after table flag update")
+
+40) 1bc83a019bbe ("netfilter: nf_tables: discard table flag update with pending basechain deletion")
+
+Please, apply.
+Thanks.
+
+Florian Westphal (4):
+  netfilter: nf_tables: defer gc run if previous batch is still pending
+  netfilter: nftables: exthdr: fix 4-byte stack OOB write
+  netfilter: nf_tables: mark newset as dead on transaction abort
+  netfilter: nf_tables: set dormant flag on hook register failure
+
+Ignat Korchagin (1):
+  netfilter: nf_tables: allow NFPROTO_INET in nft_(match/target)_validate()
+
+Pablo Neira Ayuso (34):
+  netfilter: nf_tables: pass context to nft_set_destroy()
+  netfilter: nftables: rename set element data activation/deactivation functions
+  netfilter: nf_tables: drop map element references from preparation phase
+  netfilter: nft_set_rbtree: allow loose matching of closing element in interval
+  netfilter: nft_set_rbtree: Switch to node list walk for overlap detection
+  netfilter: nft_set_rbtree: fix null deref on element insertion
+  netfilter: nft_set_rbtree: fix overlap expiration walk
+  netfilter: nf_tables: don't skip expired elements during walk
+  netfilter: nf_tables: GC transaction API to avoid race with control plane
+  netfilter: nf_tables: adapt set backend to use GC transaction API
+  netfilter: nf_tables: remove busy mark and gc batch API
+  netfilter: nf_tables: fix GC transaction races with netns and netlink event exit path
+  netfilter: nf_tables: GC transaction race with netns dismantle
+  netfilter: nf_tables: GC transaction race with abort path
+  netfilter: nft_set_rbtree: skip sync GC for new elements in this transaction
+  netfilter: nft_set_rbtree: use read spinlock to avoid datapath contention
+  netfilter: nft_set_hash: try later when GC hits EAGAIN on iteration
+  netfilter: nf_tables: fix memleak when more than 255 elements expired
+  netfilter: nf_tables: unregister flowtable hooks on netns exit
+  netfilter: nf_tables: double hook unregistration in netns path
+  netfilter: nftables: update table flags from the commit phase
+  netfilter: nf_tables: fix table flag updates
+  netfilter: nf_tables: disable toggling dormant table state more than once
+  netfilter: nf_tables: bogus EBUSY when deleting flowtable after flush (for 4.19)
+  netfilter: nft_dynset: fix timeouts later than 23 days
+  netfilter: nft_dynset: report EOPNOTSUPP on missing set feature
+  netfilter: nft_dynset: relax superfluous check on set updates
+  netfilter: nf_tables: skip dead set elements in netlink dump
+  netfilter: nf_tables: validate NFPROTO_* family
+  netfilter: nft_set_rbtree: skip end interval element from gc
+  netfilter: nf_tables: do not compare internal table flags on updates
+  netfilter: nf_tables: mark set as dead when unbinding anonymous set with timeout
+  netfilter: nf_tables: reject new basechain after table flag update
+  netfilter: nf_tables: discard table flag update with pending basechain deletion
+
+Phil Sutter (1):
+  netfilter: nft_set_rbtree: Add missing expired checks
+
+ include/net/netfilter/nf_tables.h        | 132 +++---
+ include/uapi/linux/netfilter/nf_tables.h |   1 +
+ net/netfilter/nf_tables_api.c            | 529 +++++++++++++++++++----
+ net/netfilter/nft_chain_filter.c         |   3 +
+ net/netfilter/nft_compat.c               |  32 ++
+ net/netfilter/nft_dynset.c               |  24 +-
+ net/netfilter/nft_exthdr.c               |  14 +-
+ net/netfilter/nft_flow_offload.c         |   5 +
+ net/netfilter/nft_nat.c                  |   5 +
+ net/netfilter/nft_rt.c                   |   5 +
+ net/netfilter/nft_set_bitmap.c           |   5 +-
+ net/netfilter/nft_set_hash.c             | 111 +++--
+ net/netfilter/nft_set_rbtree.c           | 387 ++++++++++++++---
+ net/netfilter/nft_socket.c               |   5 +
+ net/netfilter/nft_tproxy.c               |   5 +
+ 15 files changed, 977 insertions(+), 286 deletions(-)
+
+-- 
+2.30.2
+
