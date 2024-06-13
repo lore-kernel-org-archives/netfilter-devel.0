@@ -1,38 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6FB3143C63;
-	Thu, 13 Jun 2024 11:44:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BEA5143739;
+	Thu, 13 Jun 2024 11:44:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718279073; cv=none; b=dRsXzUsdyZuZNbftMVfiJn+8ubAvzLz6618e6S5Y24HLwuFfpfNMaTafGzWfEPIeFSVJUVxPKOvfibVbcdmJPZhABtexEzYvVXncB0yOTGN819PKNEeci6ZAhhOqB17BmqiiCjHGT/IeaUGMNiz2nHunQtQbKk4ur6dkxRTQjRE=
+	t=1718279077; cv=none; b=sPk2aVuWDyLwnSSvxUSTNMX+BuH0Xktjn5VGi0j15eDZqc77Kt/tuNR6+Z+mhps02Ec60GZtu5UqghQJTIx/oxJ62J9XAb5qepODQRfGn9cy9KMT/0+Qb6WKwCCAAfSvewLIyqUkYEexoxv9RrMbkCUkfTJKziqn+mhwvn5go2I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718279073; c=relaxed/simple;
-	bh=2/XjpUpoLSVWfe0SOvRSXQyGAFBJJiNFDRFcPoKNWgs=;
+	s=arc-20240116; t=1718279077; c=relaxed/simple;
+	bh=Flar6ZmrTXWmrQ8jt6juxrXKZooEELKFh5hyOJCz96E=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=rTTtuzlXANXZi5GcR79TlbT9j0fwddLDWWKUBwuEdZtIGAvlqpttt8dWQkLs/f9OZN3rU7aNNJOUX27Xc+YNUEnfSOP8NGb5vdQ/Gd7mmyv/AIL/7gHzrB6L7ypGWQRjgTgqWJ0TwVyPgxK1pv4i5DYLPrCljL79lSvSiATlSEM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=lPzEzpOQ; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=LygK+icTS7z5TFrGOC+BtKTrSoc+DsxxSidq0rlzTVpkfgmeQkuuiV+rZeSahabvjMPIdPnaaWZ6FYlER5O0gldWMjdaHhsOqZ/BpB1G8BBB6cm9VQ5Z3L9Sz6QkXT7lpNuV0cMnV0ny6/+to1pfLj49Lca3yC0sPqRywkLUxbI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=pg8qUbkQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="lPzEzpOQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D772C2BBFC;
-	Thu, 13 Jun 2024 11:44:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="pg8qUbkQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34B06C2BBFC;
+	Thu, 13 Jun 2024 11:44:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1718279073;
-	bh=2/XjpUpoLSVWfe0SOvRSXQyGAFBJJiNFDRFcPoKNWgs=;
+	s=korg; t=1718279076;
+	bh=Flar6ZmrTXWmrQ8jt6juxrXKZooEELKFh5hyOJCz96E=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=lPzEzpOQ6wRXvZCzr7T7fzu2AMU7tqI0WOSRWKylwQS7miy/w9dFPbYyevAkzAsl3
-	 1vIq3C5yQ4SBxijC53hSXMVEKjWIAnZfLO+27XlkNKT/s+IdTeAjycdBQYvi37HA15
-	 lji3VVSWZRjjeJa368zEo3bKUHhLleW+FT6eGJYQ=
+	b=pg8qUbkQ8IWOdqWobcC4EvIo3vGB9vy11sQIRLxreCmphBUfIijfJCfrGoIeEYHXi
+	 D/Td40sTF2Ubh7re0xs1J24GcD3RTrbxOakNs4qAxB4BvLe6JKixLgFPHV+jleTNSz
+	 5rSILGf5QLC9RhnmOAeXqAgYRAW5hsqloX4j/apM=
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To: stable@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	patches@lists.linux.dev,
 	Florian Westphal <fw@strlen.de>,
-	Sasha Levin <sashal@kernel.org>
-Subject: [PATCH 4.19 166/213] netfilter: nft_set_rbtree: fix overlap expiration walk
-Date: Thu, 13 Jun 2024 13:33:34 +0200
-Message-ID: <20240613113234.387916572@linuxfoundation.org>
+	Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 4.19 167/213] netfilter: nf_tables: dont skip expired elements during walk
+Date: Thu, 13 Jun 2024 13:33:35 +0200
+Message-ID: <20240613113234.425879484@linuxfoundation.org>
 X-Mailer: git-send-email 2.45.2
 In-Reply-To: <20240613113227.969123070@linuxfoundation.org>
 References: <20240613113227.969123070@linuxfoundation.org>
@@ -53,82 +53,85 @@ Content-Transfer-Encoding: 8bit
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-commit f718863aca469a109895cb855e6b81fff4827d71 upstream.
+commit 24138933b97b055d486e8064b4a1721702442a9b upstream.
 
-The lazy gc on insert that should remove timed-out entries fails to release
-the other half of the interval, if any.
+There is an asymmetry between commit/abort and preparation phase if the
+following conditions are met:
 
-Can be reproduced with tests/shell/testcases/sets/0044interval_overlap_0
-in nftables.git and kmemleak enabled kernel.
+1. set is a verdict map ("1.2.3.4 : jump foo")
+2. timeouts are enabled
 
-Second bug is the use of rbe_prev vs. prev pointer.
-If rbe_prev() returns NULL after at least one iteration, rbe_prev points
-to element that is not an end interval, hence it should not be removed.
+In this case, following sequence is problematic:
 
-Lastly, check the genmask of the end interval if this is active in the
-current generation.
+1. element E in set S refers to chain C
+2. userspace requests removal of set S
+3. kernel does a set walk to decrement chain->use count for all elements
+   from preparation phase
+4. kernel does another set walk to remove elements from the commit phase
+   (or another walk to do a chain->use increment for all elements from
+    abort phase)
 
-Fixes: c9e6978e2725 ("netfilter: nft_set_rbtree: Switch to node list walk for overlap detection")
+If E has already expired in 1), it will be ignored during list walk, so its use count
+won't have been changed.
+
+Then, when set is culled, ->destroy callback will zap the element via
+nf_tables_set_elem_destroy(), but this function is only safe for
+elements that have been deactivated earlier from the preparation phase:
+lack of earlier deactivate removes the element but leaks the chain use
+count, which results in a WARN splat when the chain gets removed later,
+plus a leak of the nft_chain structure.
+
+Update pipapo_get() not to skip expired elements, otherwise flush
+command reports bogus ENOENT errors.
+
+Fixes: 3c4287f62044 ("nf_tables: Add set type for arbitrary concatenation of ranges")
+Fixes: 8d8540c4f5e0 ("netfilter: nft_set_rbtree: add timeout support")
+Fixes: 9d0982927e79 ("netfilter: nft_hash: add support for timeouts")
 Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/netfilter/nft_set_rbtree.c |   20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
+ net/netfilter/nf_tables_api.c  |    4 ++++
+ net/netfilter/nft_set_hash.c   |    2 --
+ net/netfilter/nft_set_rbtree.c |    2 --
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4159,8 +4159,12 @@ static int nf_tables_dump_setelem(const
+ 				  const struct nft_set_iter *iter,
+ 				  struct nft_set_elem *elem)
+ {
++	const struct nft_set_ext *ext = nft_set_elem_ext(set, elem->priv);
+ 	struct nft_set_dump_args *args;
+ 
++	if (nft_set_elem_expired(ext))
++		return 0;
++
+ 	args = container_of(iter, struct nft_set_dump_args, iter);
+ 	return nf_tables_fill_setelem(args->skb, set, elem);
+ }
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -268,8 +268,6 @@ static void nft_rhash_walk(const struct
+ 
+ 		if (iter->count < iter->skip)
+ 			goto cont;
+-		if (nft_set_elem_expired(&he->ext))
+-			goto cont;
+ 		if (!nft_set_elem_active(&he->ext, iter->genmask))
+ 			goto cont;
+ 
 --- a/net/netfilter/nft_set_rbtree.c
 +++ b/net/netfilter/nft_set_rbtree.c
-@@ -219,29 +219,37 @@ static void *nft_rbtree_get(const struct
+@@ -556,8 +556,6 @@ static void nft_rbtree_walk(const struct
  
- static int nft_rbtree_gc_elem(const struct nft_set *__set,
- 			      struct nft_rbtree *priv,
--			      struct nft_rbtree_elem *rbe)
-+			      struct nft_rbtree_elem *rbe,
-+			      u8 genmask)
- {
- 	struct nft_set *set = (struct nft_set *)__set;
- 	struct rb_node *prev = rb_prev(&rbe->node);
--	struct nft_rbtree_elem *rbe_prev = NULL;
-+	struct nft_rbtree_elem *rbe_prev;
- 	struct nft_set_gc_batch *gcb;
- 
- 	gcb = nft_set_gc_batch_check(set, NULL, GFP_ATOMIC);
- 	if (!gcb)
- 		return -ENOMEM;
- 
--	/* search for expired end interval coming before this element. */
-+	/* search for end interval coming before this element.
-+	 * end intervals don't carry a timeout extension, they
-+	 * are coupled with the interval start element.
-+	 */
- 	while (prev) {
- 		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
--		if (nft_rbtree_interval_end(rbe_prev))
-+		if (nft_rbtree_interval_end(rbe_prev) &&
-+		    nft_set_elem_active(&rbe_prev->ext, genmask))
- 			break;
- 
- 		prev = rb_prev(prev);
- 	}
- 
--	if (rbe_prev) {
-+	if (prev) {
-+		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
-+
- 		rb_erase(&rbe_prev->node, &priv->root);
- 		atomic_dec(&set->nelems);
-+		nft_set_gc_batch_add(gcb, rbe_prev);
- 	}
- 
- 	rb_erase(&rbe->node, &priv->root);
-@@ -323,7 +331,7 @@ static int __nft_rbtree_insert(const str
- 
- 		/* perform garbage collection to avoid bogus overlap reports. */
- 		if (nft_set_elem_expired(&rbe->ext)) {
--			err = nft_rbtree_gc_elem(set, priv, rbe);
-+			err = nft_rbtree_gc_elem(set, priv, rbe, genmask);
- 			if (err < 0)
- 				return err;
+ 		if (iter->count < iter->skip)
+ 			goto cont;
+-		if (nft_set_elem_expired(&rbe->ext))
+-			goto cont;
+ 		if (!nft_set_elem_active(&rbe->ext, iter->genmask))
+ 			goto cont;
  
 
 
