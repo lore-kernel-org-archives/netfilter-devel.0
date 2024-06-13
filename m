@@ -1,37 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DB17143861;
-	Thu, 13 Jun 2024 11:46:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33AB16AFAE;
+	Thu, 13 Jun 2024 11:47:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718279219; cv=none; b=NGuHb9Cldhe+XxlHHC7/xYUa1ADp8tdtH82cZM+K9hZmSegFJu6TrcOsYz3r2XfjE/nZhdIUaJCqx27c4YptyAyvQphqtTdVR2yp8BiBeuG+VlNht52YgSZ6XORhYGt0IOgngdhDrEdW2br3nnu6ZtmkW8aZ3yP+YkNMVf0Hmd0=
+	t=1718279222; cv=none; b=NKTXMLLCdPqEhJUQpRIwyOhE8jsllYFQCNU/CeYMoTdIzY0YV6gRAqUeCH0UM3BdrFnbfG50HlyHT6aThlIBdwzqwVN7I5cw6lUtATgv1hzORBZd83nTV6WI8t3jt+QajgiaGUEKggnNeqtxIUSSQ56Qdi3mzt/BLDk3CWvQeKU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718279219; c=relaxed/simple;
-	bh=qedXbED6mauAF6Y6Nxfq7W9uAC4doo/GyJAsfdFyTPY=;
+	s=arc-20240116; t=1718279222; c=relaxed/simple;
+	bh=CyDRE8fYOiRZgTz+RFSRMboGu+rAMr6FifRoFT28hiU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=uuvo0y5DL4+3X4Df+KSCy77rz/OYm6Qbw1MopKdRbPiTBZVMGbfkA1SBWqHQnmkgX7DwLlXm5KGlYwon5PFCSW6iwIf8c8x0qNYAUjbmbwuBjiwMe+bzhrrUoZB6Xw84fbkBHuS2MzTECIXw0bb86YdddtDCpkqFMKQrxtzQB0s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=RnRqfaoe; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=XOas3Uz012HO0+OVS6gSZd47/1GZJ0H4NC5eaVNwoqz+UAM9L7U6cpWwtNhAm7D/8JOr8jYgJ8HwlupfTQMnZBV2l3WYFQbhtFbPlV5J3Va67o+MPh4aDpP7RavzGswkVzZ6yAfHqkPx1N3MdilglnPZUkyr+ocZsPedEKPRPS4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=FczdF1zR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="RnRqfaoe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9EFAC2BBFC;
-	Thu, 13 Jun 2024 11:46:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="FczdF1zR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD1D0C2BBFC;
+	Thu, 13 Jun 2024 11:47:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1718279219;
-	bh=qedXbED6mauAF6Y6Nxfq7W9uAC4doo/GyJAsfdFyTPY=;
+	s=korg; t=1718279222;
+	bh=CyDRE8fYOiRZgTz+RFSRMboGu+rAMr6FifRoFT28hiU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=RnRqfaoeRFfrg3ZKxlZBpjH9VEezxhwHEIwnvCkNYVjFoOZ38i6Xq10PP7vr77RNJ
-	 6R06FWMU477BozVraoG7k7fSvdR2r9pSG8np0O1wbYPAZHSag4MqrNAknPimX1SewA
-	 ji+HID57swqM0g297Txrm1STDS3TShBu1NNaccxs=
+	b=FczdF1zRESzB2g1LEHAOAOSQnJwgq26Ebz/5LT+plMb3OW3sxaUzJ4xdUELY+fNHf
+	 hcgpB60MlHI9Qj7a5ZOxlxz0e8Jnn05yCuEP7YbbFlUSiKjwTPqvAeZ+/T/f6ag92Y
+	 5nq3CQimk3TD5TNa+/cRPla37ayuGQ53abt8XnLI=
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To: stable@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	patches@lists.linux.dev,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 4.19 184/213] netfilter: nf_tables: bogus EBUSY when deleting flowtable after flush (for 4.19)
-Date: Thu, 13 Jun 2024 13:33:52 +0200
-Message-ID: <20240613113235.080337055@linuxfoundation.org>
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Sasha Levin <sashal@kernel.org>
+Subject: [PATCH 4.19 185/213] netfilter: nft_dynset: fix timeouts later than 23 days
+Date: Thu, 13 Jun 2024 13:33:53 +0200
+Message-ID: <20240613113235.118284636@linuxfoundation.org>
 X-Mailer: git-send-email 2.45.2
 In-Reply-To: <20240613113227.969123070@linuxfoundation.org>
 References: <20240613113227.969123070@linuxfoundation.org>
@@ -52,34 +53,75 @@ Content-Transfer-Encoding: 8bit
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-3f0465a9ef02 ("netfilter: nf_tables: dynamically allocate hooks per
-net_device in flowtables") reworks flowtable support to allow for
-dynamic allocation of hooks, which implicitly fixes the following
-bogus EBUSY in transaction:
+commit 917d80d376ffbaa9725fde9e3c0282f63643f278 upstream.
 
-  delete flowtable
-  add flowtable # same flowtable with same devices, it hits EBUSY
+Use nf_msecs_to_jiffies64 and nf_jiffies64_to_msecs as provided by
+8e1102d5a159 ("netfilter: nf_tables: support timeouts larger than 23
+days"), otherwise ruleset listing breaks.
 
-This patch does not exist in any tree, but it fixes this issue for
--stable Linux kernel 4.19
-
+Fixes: a8b1e36d0d1d ("netfilter: nft_dynset: fix element timeout for HZ != 1000")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/netfilter/nf_tables_api.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/net/netfilter/nf_tables.h |    3 +++
+ net/netfilter/nf_tables_api.c     |    4 ++--
+ net/netfilter/nft_dynset.c        |    8 +++++---
+ 3 files changed, 10 insertions(+), 5 deletions(-)
 
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1423,4 +1423,7 @@ struct nftables_pernet {
+ 	unsigned int		gc_seq;
+ };
+ 
++int nf_msecs_to_jiffies64(const struct nlattr *nla, u64 *result);
++__be64 nf_jiffies64_to_msecs(u64 input);
++
+ #endif /* _NET_NF_TABLES_H */
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -5956,6 +5956,9 @@ static int nf_tables_newflowtable(struct
- 			continue;
+@@ -3294,7 +3294,7 @@ cont:
+ 	return 0;
+ }
  
- 		list_for_each_entry(ft, &table->flowtables, list) {
-+			if (!nft_is_active_next(net, ft))
-+				continue;
+-static int nf_msecs_to_jiffies64(const struct nlattr *nla, u64 *result)
++int nf_msecs_to_jiffies64(const struct nlattr *nla, u64 *result)
+ {
+ 	u64 ms = be64_to_cpu(nla_get_be64(nla));
+ 	u64 max = (u64)(~((u64)0));
+@@ -3308,7 +3308,7 @@ static int nf_msecs_to_jiffies64(const s
+ 	return 0;
+ }
+ 
+-static __be64 nf_jiffies64_to_msecs(u64 input)
++__be64 nf_jiffies64_to_msecs(u64 input)
+ {
+ 	u64 ms = jiffies64_to_nsecs(input);
+ 
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -169,8 +169,10 @@ static int nft_dynset_init(const struct
+ 	if (tb[NFTA_DYNSET_TIMEOUT] != NULL) {
+ 		if (!(set->flags & NFT_SET_TIMEOUT))
+ 			return -EINVAL;
+-		timeout = msecs_to_jiffies(be64_to_cpu(nla_get_be64(
+-						tb[NFTA_DYNSET_TIMEOUT])));
 +
- 			for (k = 0; k < ft->ops_len; k++) {
- 				if (!ft->ops[k].dev)
- 					continue;
++		err = nf_msecs_to_jiffies64(tb[NFTA_DYNSET_TIMEOUT], &timeout);
++		if (err)
++			return err;
+ 	}
+ 
+ 	err = nft_parse_register_load(tb[NFTA_DYNSET_SREG_KEY], &priv->sreg_key,
+@@ -284,7 +286,7 @@ static int nft_dynset_dump(struct sk_buf
+ 	if (nla_put_string(skb, NFTA_DYNSET_SET_NAME, priv->set->name))
+ 		goto nla_put_failure;
+ 	if (nla_put_be64(skb, NFTA_DYNSET_TIMEOUT,
+-			 cpu_to_be64(jiffies_to_msecs(priv->timeout)),
++			 nf_jiffies64_to_msecs(priv->timeout),
+ 			 NFTA_DYNSET_PAD))
+ 		goto nla_put_failure;
+ 	if (priv->expr && nft_expr_dump(skb, NFTA_DYNSET_EXPR, priv->expr))
 
 
