@@ -1,38 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33AB16AFAE;
-	Thu, 13 Jun 2024 11:47:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 255B36AFAE;
+	Thu, 13 Jun 2024 11:47:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718279222; cv=none; b=NKTXMLLCdPqEhJUQpRIwyOhE8jsllYFQCNU/CeYMoTdIzY0YV6gRAqUeCH0UM3BdrFnbfG50HlyHT6aThlIBdwzqwVN7I5cw6lUtATgv1hzORBZd83nTV6WI8t3jt+QajgiaGUEKggnNeqtxIUSSQ56Qdi3mzt/BLDk3CWvQeKU=
+	t=1718279225; cv=none; b=ruiQ5O9F1zO9gK0vy6sSdJXH6HTQmCgF0y5YThWRui0XKDmlH12Rn2QTNeETI+KVUrveqDjb+elBSY/nBoq2TSQ9P1K8LErGNppuku2QHQCOGHxj6MRBZpLF3zDX8ERqG9Zl303a8aJs5g3L2IcWAE2R8HwvvDgORvKrto9eipw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718279222; c=relaxed/simple;
-	bh=CyDRE8fYOiRZgTz+RFSRMboGu+rAMr6FifRoFT28hiU=;
+	s=arc-20240116; t=1718279225; c=relaxed/simple;
+	bh=gBZWNMJZXwvMyPUusqLil7RFQyzWEHflhjRsXeRWfYA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=XOas3Uz012HO0+OVS6gSZd47/1GZJ0H4NC5eaVNwoqz+UAM9L7U6cpWwtNhAm7D/8JOr8jYgJ8HwlupfTQMnZBV2l3WYFQbhtFbPlV5J3Va67o+MPh4aDpP7RavzGswkVzZ6yAfHqkPx1N3MdilglnPZUkyr+ocZsPedEKPRPS4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=FczdF1zR; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=s0ZW/GnPObS6Ea/vxfOxYq09EDuoC+q9+7qTETyZ/KdzPNG4zDPFWswwh9/SXkJvqpFRm4ciDdUCtr4zFyEe8XWst5B0STmp1pd359N2WFXSSJCkIhfq3fFL245gsr73OnvyXMSU/oTXpi0ieZwGzZnte4fUq+bUI/s3iX/nxYE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=iatiC6z7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="FczdF1zR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD1D0C2BBFC;
-	Thu, 13 Jun 2024 11:47:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="iatiC6z7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D310C2BBFC;
+	Thu, 13 Jun 2024 11:47:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1718279222;
-	bh=CyDRE8fYOiRZgTz+RFSRMboGu+rAMr6FifRoFT28hiU=;
+	s=korg; t=1718279225;
+	bh=gBZWNMJZXwvMyPUusqLil7RFQyzWEHflhjRsXeRWfYA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=FczdF1zRESzB2g1LEHAOAOSQnJwgq26Ebz/5LT+plMb3OW3sxaUzJ4xdUELY+fNHf
-	 hcgpB60MlHI9Qj7a5ZOxlxz0e8Jnn05yCuEP7YbbFlUSiKjwTPqvAeZ+/T/f6ag92Y
-	 5nq3CQimk3TD5TNa+/cRPla37ayuGQ53abt8XnLI=
+	b=iatiC6z7Nv7qwPBp+WnH/wOWz7yk2gqe2DGue087E61TzcZszowzvI7cMhLCnwRgw
+	 pBwEYk/voGOUaZF5zn/9NkWvLSIUapuqt+xpoHMcWTLoKFJWflY2ShGwEImHAE8It+
+	 GHDvtolQzyNm2iX/Mu3lC3ndH5j2in65XqABoDWA=
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To: stable@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	patches@lists.linux.dev,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Sasha Levin <sashal@kernel.org>
-Subject: [PATCH 4.19 185/213] netfilter: nft_dynset: fix timeouts later than 23 days
-Date: Thu, 13 Jun 2024 13:33:53 +0200
-Message-ID: <20240613113235.118284636@linuxfoundation.org>
+	Florian Westphal <fw@strlen.de>
+Subject: [PATCH 4.19 186/213] netfilter: nftables: exthdr: fix 4-byte stack OOB write
+Date: Thu, 13 Jun 2024 13:33:54 +0200
+Message-ID: <20240613113235.156045419@linuxfoundation.org>
 X-Mailer: git-send-email 2.45.2
 In-Reply-To: <20240613113227.969123070@linuxfoundation.org>
 References: <20240613113227.969123070@linuxfoundation.org>
@@ -51,77 +50,69 @@ Content-Transfer-Encoding: 8bit
 
 ------------------
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
 
-commit 917d80d376ffbaa9725fde9e3c0282f63643f278 upstream.
+commit fd94d9dadee58e09b49075240fe83423eb1dcd36 upstream.
 
-Use nf_msecs_to_jiffies64 and nf_jiffies64_to_msecs as provided by
-8e1102d5a159 ("netfilter: nf_tables: support timeouts larger than 23
-days"), otherwise ruleset listing breaks.
+If priv->len is a multiple of 4, then dst[len / 4] can write past
+the destination array which leads to stack corruption.
 
-Fixes: a8b1e36d0d1d ("netfilter: nft_dynset: fix element timeout for HZ != 1000")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+This construct is necessary to clean the remainder of the register
+in case ->len is NOT a multiple of the register size, so make it
+conditional just like nft_payload.c does.
+
+The bug was added in 4.1 cycle and then copied/inherited when
+tcp/sctp and ip option support was added.
+
+Bug reported by Zero Day Initiative project (ZDI-CAN-21950,
+ZDI-CAN-21951, ZDI-CAN-21961).
+
+Fixes: 49499c3e6e18 ("netfilter: nf_tables: switch registers to 32 bit addressing")
+Fixes: 935b7f643018 ("netfilter: nft_exthdr: add TCP option matching")
+Fixes: 133dc203d77d ("netfilter: nft_exthdr: Support SCTP chunks")
+Fixes: dbb5281a1f84 ("netfilter: nf_tables: add support for matching IPv4 options")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- include/net/netfilter/nf_tables.h |    3 +++
- net/netfilter/nf_tables_api.c     |    4 ++--
- net/netfilter/nft_dynset.c        |    8 +++++---
- 3 files changed, 10 insertions(+), 5 deletions(-)
+ net/netfilter/nft_exthdr.c |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1423,4 +1423,7 @@ struct nftables_pernet {
- 	unsigned int		gc_seq;
- };
- 
-+int nf_msecs_to_jiffies64(const struct nlattr *nla, u64 *result);
-+__be64 nf_jiffies64_to_msecs(u64 input);
-+
- #endif /* _NET_NF_TABLES_H */
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3294,7 +3294,7 @@ cont:
- 	return 0;
+--- a/net/netfilter/nft_exthdr.c
++++ b/net/netfilter/nft_exthdr.c
+@@ -36,6 +36,14 @@ static unsigned int optlen(const u8 *opt
+ 		return opt[offset + 1];
  }
  
--static int nf_msecs_to_jiffies64(const struct nlattr *nla, u64 *result)
-+int nf_msecs_to_jiffies64(const struct nlattr *nla, u64 *result)
- {
- 	u64 ms = be64_to_cpu(nla_get_be64(nla));
- 	u64 max = (u64)(~((u64)0));
-@@ -3308,7 +3308,7 @@ static int nf_msecs_to_jiffies64(const s
- 	return 0;
- }
- 
--static __be64 nf_jiffies64_to_msecs(u64 input)
-+__be64 nf_jiffies64_to_msecs(u64 input)
- {
- 	u64 ms = jiffies64_to_nsecs(input);
- 
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -169,8 +169,10 @@ static int nft_dynset_init(const struct
- 	if (tb[NFTA_DYNSET_TIMEOUT] != NULL) {
- 		if (!(set->flags & NFT_SET_TIMEOUT))
- 			return -EINVAL;
--		timeout = msecs_to_jiffies(be64_to_cpu(nla_get_be64(
--						tb[NFTA_DYNSET_TIMEOUT])));
++static int nft_skb_copy_to_reg(const struct sk_buff *skb, int offset, u32 *dest, unsigned int len)
++{
++	if (len % NFT_REG32_SIZE)
++		dest[len / NFT_REG32_SIZE] = 0;
 +
-+		err = nf_msecs_to_jiffies64(tb[NFTA_DYNSET_TIMEOUT], &timeout);
-+		if (err)
-+			return err;
++	return skb_copy_bits(skb, offset, dest, len);
++}
++
+ static void nft_exthdr_ipv6_eval(const struct nft_expr *expr,
+ 				 struct nft_regs *regs,
+ 				 const struct nft_pktinfo *pkt)
+@@ -57,8 +65,7 @@ static void nft_exthdr_ipv6_eval(const s
  	}
+ 	offset += priv->offset;
  
- 	err = nft_parse_register_load(tb[NFTA_DYNSET_SREG_KEY], &priv->sreg_key,
-@@ -284,7 +286,7 @@ static int nft_dynset_dump(struct sk_buf
- 	if (nla_put_string(skb, NFTA_DYNSET_SET_NAME, priv->set->name))
- 		goto nla_put_failure;
- 	if (nla_put_be64(skb, NFTA_DYNSET_TIMEOUT,
--			 cpu_to_be64(jiffies_to_msecs(priv->timeout)),
-+			 nf_jiffies64_to_msecs(priv->timeout),
- 			 NFTA_DYNSET_PAD))
- 		goto nla_put_failure;
- 	if (priv->expr && nft_expr_dump(skb, NFTA_DYNSET_EXPR, priv->expr))
+-	dest[priv->len / NFT_REG32_SIZE] = 0;
+-	if (skb_copy_bits(pkt->skb, offset, dest, priv->len) < 0)
++	if (nft_skb_copy_to_reg(pkt->skb, offset, dest, priv->len) < 0)
+ 		goto err;
+ 	return;
+ err:
+@@ -114,7 +121,8 @@ static void nft_exthdr_tcp_eval(const st
+ 		if (priv->flags & NFT_EXTHDR_F_PRESENT) {
+ 			*dest = 1;
+ 		} else {
+-			dest[priv->len / NFT_REG32_SIZE] = 0;
++			if (priv->len % NFT_REG32_SIZE)
++				dest[priv->len / NFT_REG32_SIZE] = 0;
+ 			memcpy(dest, opt + offset, priv->len);
+ 		}
+ 
 
 
