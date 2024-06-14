@@ -1,84 +1,54 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BF2E15FCF5
-	for <netfilter-devel@vger.kernel.org>; Fri, 14 Jun 2024 15:16:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1224158A29;
+	Fri, 14 Jun 2024 15:19:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718378210; cv=none; b=ZQ8etTBTA3u/78GCVK7kd+1ISmM2U/Y25f6TAfKpzWtNOGGP8F0AdeV/cEoKGWt1A+2i6tZjOiICkSgPZ2pUq7NBUuDBs6ZS0ZtCA/+m2PYAo8q8TKeqgnjIXKzDWr0dyGf3f/1W5XdT+dyXOTYJjVv+pAmyGhqhuhARSrmD39o=
+	t=1718378370; cv=none; b=DwzxAn6YcPWsAlm8YEwz+Y3b/G8Vxysp+sb8teMDV0A+nt3Svtbl6Fnw8XuH//2gI8B5dnhQMwlflDJaAQAZPAQ0lZNp9RvFZkvd/alOVv54rQ/ZsCeEExOrtz2SEUnlwtmHs3GsjEMJRU2EJ/T4Y0Cmb6laoYhzitNFIFJFHuc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718378210; c=relaxed/simple;
-	bh=p+HoCpRxH1Kf/i84CW5y0nYqjOF6hkQofzduAIyM88g=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=VCwVjkn1RDaLMXanHS3YiP7458a4PvqYaYhLoaHuCKHn+RQnRm+wHF6ta0OU04DgsJNWywc6NQqEId6QUeDYfQDo/KKBN/2EIQB6EyF+Qzz0rc0elSTtQbUw6ysHaqM0uNAj2+VoE2wcHK6XneMru0bwtPTKgNynAXH7a9WzXws=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=PZ/5bdB9; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="PZ/5bdB9"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=kbq78l3vrRkBTzF92H9WS7PV/crd5Alh63ZJWaJcIpQ=; b=PZ/5bdB9wSfhGfFZpfZE2LOcwR
-	wB2EJolmH1pfVv42YW0BhCfcFLxGY6XEqWN4fs5a2Kv2ANPwarx6B8mqj2etrDAs/7MDFCw/gmeJ4
-	rIeJqsqU45orRyyKmBD3Jsp8MiJCGf9GtyLrhVQY1PcCgjNNcJfYvkQlbt7GLyIUhSniKec4MOcMp
-	xQJwZGZHaFAR6ERCfH5qJAPmZeZUEBmmVdbJCtLadG2FVQNqiPpXyo3zx0JOthHLv3U0/vkLPys0j
-	RZnIr4TJrjtBLIkgPddUebMxo006pmL4L1dJ+ybnFHjVWxBGtb7hD00MrAkur2DUKGH0jScspgch4
-	cWYRWRBg==;
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1sI8fO-000000007Kd-1ROs;
-	Fri, 14 Jun 2024 17:16:38 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org,
-	Fabio <pedretti.fabio@gmail.com>
-Subject: [nf-next PATCH v2 1/2] netfilter: xt_recent: Reduce size of struct recent_entry::nstamps
-Date: Fri, 14 Jun 2024 17:16:40 +0200
-Message-ID: <20240614151641.28885-2-phil@nwl.cc>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20240614151641.28885-1-phil@nwl.cc>
-References: <20240614151641.28885-1-phil@nwl.cc>
+	s=arc-20240116; t=1718378370; c=relaxed/simple;
+	bh=9ltlPdlPXJjT3XQ3Y1utAMDtxGpQCjIg/lMX679BHL4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=kShd2bVpCHxJYCOKyCSRFTnSh1yYogF0cxj43KOpN3NSteE7823nKDId6QYvjfEifMeCxCXxskMXRk2aywzal01WRb4JeldnWbIj/nNOCR8C0RPHVrHFhiwNWAuGAs9wG7Q7lG7Lqvwo57qzOcEPX7dTAd8f3r/2B8+mDPuZ73I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=58314 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1sI8hr-007H1t-EP; Fri, 14 Jun 2024 17:19:13 +0200
+Date: Fri, 14 Jun 2024 17:19:09 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Lorenzo Bianconi <lorenzo@kernel.org>
+Cc: bpf@vger.kernel.org, kadlec@netfilter.org, davem@davemloft.net,
+	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	ast@kernel.org, daniel@iogearbox.net, andrii@kernel.org,
+	martin.lau@linux.dev, eddyz87@gmail.com,
+	lorenzo.bianconi@redhat.com, toke@redhat.com, fw@strlen.de,
+	hawk@kernel.org, horms@kernel.org, donhunte@redhat.com,
+	memxor@gmail.com
+Subject: Re: [PATCH v4 bpf-next 0/3] netfilter: Add the capability to offload
+ flowtable in XDP layer
+Message-ID: <Zmxfbf-4htvHKj1T@calendula>
+References: <cover.1716987534.git.lorenzo@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <cover.1716987534.git.lorenzo@kernel.org>
+X-Spam-Score: -1.8 (-)
 
-There is no point in this change besides presenting its possibility
-separate from a follow-up patch extending the size of both 'index' and
-'nstamps' fields.
+On Wed, May 29, 2024 at 03:04:29PM +0200, Lorenzo Bianconi wrote:
+> Introduce bpf_xdp_flow_lookup kfunc in order to perform the lookup of
+> a given flowtable entry based on the fib tuple of incoming traffic.
+> bpf_xdp_flow_lookup can be used as building block to offload in XDP
+> the sw flowtable processing when the hw support is not available.
 
-The value of 'nstamps' is initialized to 1 in recent_entry_init() and
-adjusted in recent_entry_update() to match that of 'index' if it becomes
-larger after being incremented. Since 'index' is of type u8, it will at
-max become 255 (and wrap to 0 afterwards). Therefore, 'nstamps' will
-also never exceed the value 255.
-
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- net/netfilter/xt_recent.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index ef93e0d3bee0..60259280b2d5 100644
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -70,7 +70,7 @@ struct recent_entry {
- 	u_int16_t		family;
- 	u_int8_t		ttl;
- 	u_int8_t		index;
--	u_int16_t		nstamps;
-+	u_int8_t		nstamps;
- 	unsigned long		stamps[];
- };
- 
--- 
-2.43.0
-
+Akced-by: Pablo Neira Ayuso <pablo@netfilter.org>
