@@ -1,74 +1,111 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id A9ED817555
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5ADEA1CFBC
 	for <netfilter-devel@vger.kernel.org>; Sat, 15 Jun 2024 09:18:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718443120; cv=none; b=KYb1OcS9sFrrWk20sSa77gLLiRMs1+KIOAXpEcWEbDbLiZUfBS//5sClJIGlaywClEU6mQvmRSCJD0FeSoABkcbsTw/9O62FNaIUG94lUiWCr+REBC/r1Vvp4zvpsQpT1EFtPKFz6XY+AU4SnEc7XicWU+/lRJQ2owfq0LLvM4M=
+	t=1718443121; cv=none; b=d9obkzn/B9qLupAdgeIPhog1m/cemOfXcVXdKoPU2fmwbCS7uck4I43vbx+7XPfDC9W4GkITbwQiFpXTA3iDUNbPkJZCvvfXTbg20FXzjS19iMlEJM997bh+z5gBhjMuuplWGPSPxFRAWdigzs6fT1Q3MG7zBCErgH8cRstF2Kg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718443120; c=relaxed/simple;
-	bh=VRUGbGgb08b+8zqWGJdxe5MJssws3crueCgdVpx1Hx4=;
-	h=From:To:Subject:Date:Message-Id:MIME-Version:Content-Type; b=WJ5cQ2H2zl+2YufvjbKPxJtagSDHyHLGfCRQx8rNBqblPmDVTmbCihkzb6WMQV9/00+EN9TeKc2P7lpoKpzrDzgjWhypKJQ+uArUmDbL8myYKEzpqwvL6OTbCYukzGS2A2n9ratEI+RNFYigN9z6x2jTNyTeo0OF24sDfwWBNp4=
+	s=arc-20240116; t=1718443121; c=relaxed/simple;
+	bh=AaJzN1bfXlFvaeWA3aTf1bDTc3piubG1rgXR4IDY7vg=;
+	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=Bxemqle30LyvpZwSb4TzDbJDOWLnwGHr1jrGhHo3CDhuazW8y8S0E7vSU/pc15yc+tbwlclgfXNEx/EgtutcdZrBSSzGe4Ofm14CjXsEyokirfy1XwnvfmR9G/AGQBXHiIHAT6xKO4mex9Q5W/51qCMhHkImQWwOVbo2k800gcY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 0/2] nft include path updates
-Date: Sat, 15 Jun 2024 11:18:23 +0200
-Message-Id: <20240615091825.152372-1-pablo@netfilter.org>
+Subject: [PATCH nft 1/2] libnftables: add base directory of -f/--filename to include path
+Date: Sat, 15 Jun 2024 11:18:24 +0200
+Message-Id: <20240615091825.152372-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20240615091825.152372-1-pablo@netfilter.org>
+References: <20240615091825.152372-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Hi,
+This patch adds an include path relative to the current (the including)
+file's directory.
 
-This patchset updates include path logic of nftables:
+Users of -f/--filename have to explicitly specify -I with a redundant
+path to find included files in the main file, eg.
 
-Patch #1 adds -f/--filename base directory as implicit include path,
-         so users do not need to add a redundant -I/--includepath
-         such as:
+ # nft -I /path/to/files -f /path/to/files/ruleset.nft
 
-  # nft -I /path/to/files -f /path/to/files/ruleset.nft
+Assuming:
 
-Patch #2 searches for default include path last so users have a way
-         to override the default include path either via -I/--includepath
-         or the implicit include path added by Patch #1
+ # cat /path/to/files/ruleset.nft
+ include "file1.nft"
+ include "file2.nft"
+ include "file3.nft"
 
-  For instance, assuming you have:
-
-  # cat /path/to/files/ruleset.nft
-    include "file1.nft"
-    include "file2.nft"
-  # ls /path/to/files/
-    file1.nft file2.nft
-
-  then, make a copy of the ruleset:
-
-  # mkdir update
-  # cp -r /path/to/files/* update
-  # vim update/file1.nft
-  ...
-      file edit goes here
-  ...
-  # nft -f copy/ruleset.nft
-
-Comments welcome, thanks.
-
-Pablo Neira Ayuso (2):
-  libnftables: add base directory of -f/--filename to include path
-  libnftables: search for default include path last
-
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1661
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
  doc/nft.txt       |  2 ++
- src/libnftables.c | 19 +++++++++++++-
- src/scanner.l     | 63 ++++++++++++++++++++++++++++++-----------------
- 3 files changed, 61 insertions(+), 23 deletions(-)
+ src/libnftables.c | 18 ++++++++++++++++++
+ 2 files changed, 20 insertions(+)
 
---
+diff --git a/doc/nft.txt b/doc/nft.txt
+index e4eb982e75af..3f4593a29831 100644
+--- a/doc/nft.txt
++++ b/doc/nft.txt
+@@ -43,6 +43,8 @@ understanding of their meaning. You can get information about options by running
+ *-f*::
+ *--file 'filename'*::
+ 	Read input from 'filename'. If 'filename' is -, read from stdin.
++	The directory path to this file is inserted at the beginning the list of
++	directories to be searched for included files (see *-I/--includepath*).
+ 
+ *-D*::
+ *--define 'name=value'*::
+diff --git a/src/libnftables.c b/src/libnftables.c
+index 0dee1bacb0db..40e37bdf8c06 100644
+--- a/src/libnftables.c
++++ b/src/libnftables.c
+@@ -17,6 +17,7 @@
+ #include <cmd.h>
+ #include <errno.h>
+ #include <sys/stat.h>
++#include <libgen.h>
+ 
+ static int nft_netlink(struct nft_ctx *nft,
+ 		       struct list_head *cmds, struct list_head *msgs)
+@@ -786,6 +787,19 @@ static int nft_run_optimized_file(struct nft_ctx *nft, const char *filename)
+ 	return __nft_run_cmd_from_filename(nft, filename);
+ }
+ 
++static int nft_ctx_add_basedir_include_path(struct nft_ctx *nft,
++					    const char *filename)
++{
++	const char *basedir = dirname(xstrdup(filename));
++	int ret;
++
++	ret = nft_ctx_add_include_path(nft, basedir);
++
++	free_const(basedir);
++
++	return ret;
++}
++
+ EXPORT_SYMBOL(nft_run_cmd_from_filename);
+ int nft_run_cmd_from_filename(struct nft_ctx *nft, const char *filename)
+ {
+@@ -798,6 +812,10 @@ int nft_run_cmd_from_filename(struct nft_ctx *nft, const char *filename)
+ 	    !nft_output_json(&nft->output))
+ 		nft->stdin_buf = stdin_to_buffer();
+ 
++	if (!nft->stdin_buf &&
++	    nft_ctx_add_basedir_include_path(nft, filename) < 0)
++		return -1;
++
+ 	if (nft->optimize_flags) {
+ 		ret = nft_run_optimized_file(nft, filename);
+ 		free_const(nft->stdin_buf);
+-- 
 2.30.2
 
