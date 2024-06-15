@@ -1,22 +1,22 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5ADEA1CFBC
-	for <netfilter-devel@vger.kernel.org>; Sat, 15 Jun 2024 09:18:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 37B231429A
+	for <netfilter-devel@vger.kernel.org>; Sat, 15 Jun 2024 09:18:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718443121; cv=none; b=d9obkzn/B9qLupAdgeIPhog1m/cemOfXcVXdKoPU2fmwbCS7uck4I43vbx+7XPfDC9W4GkITbwQiFpXTA3iDUNbPkJZCvvfXTbg20FXzjS19iMlEJM997bh+z5gBhjMuuplWGPSPxFRAWdigzs6fT1Q3MG7zBCErgH8cRstF2Kg=
+	t=1718443121; cv=none; b=nPKI0wY+hIJJ/1OrM1O+B9CF0WoWtL5k4Nc2lekcEYgC0h6IQz21YmHM6J04hDQ37s/n0ffA9+ZbFY/xQl7IltJaJLT8asHrqhmdu7kF5tvdTy1xONsxcZCEb29VpifAXZ8N5XB7C0QSF1UU3omcFd5DpkBHRb44Y1TnN5LUhpw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1718443121; c=relaxed/simple;
-	bh=AaJzN1bfXlFvaeWA3aTf1bDTc3piubG1rgXR4IDY7vg=;
+	bh=TxJOFKLnzqFwKe5hGBncXELBY2sjRVXchf0tO9T+p2g=;
 	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=Bxemqle30LyvpZwSb4TzDbJDOWLnwGHr1jrGhHo3CDhuazW8y8S0E7vSU/pc15yc+tbwlclgfXNEx/EgtutcdZrBSSzGe4Ofm14CjXsEyokirfy1XwnvfmR9G/AGQBXHiIHAT6xKO4mex9Q5W/51qCMhHkImQWwOVbo2k800gcY=
+	 MIME-Version:Content-Type; b=CPTtQ+2sTA4PQc/kfuGJvJDLUThG43cTrhVbkVSsl6MJyX67tMB1ihH/nwNbmnJuhkt4nbiixzXO/5XU4VLZnT3RvJp670xjzyHDc6yBidgkV4GN/F6twQddSfsS8uggdpXQRXOwZyJSHIg5mU5SlhRoNVWxVlsfTvMtp1Xl0nY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 1/2] libnftables: add base directory of -f/--filename to include path
-Date: Sat, 15 Jun 2024 11:18:24 +0200
-Message-Id: <20240615091825.152372-2-pablo@netfilter.org>
+Subject: [PATCH nft 2/2] libnftables: search for default include path last
+Date: Sat, 15 Jun 2024 11:18:25 +0200
+Message-Id: <20240615091825.152372-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240615091825.152372-1-pablo@netfilter.org>
 References: <20240615091825.152372-1-pablo@netfilter.org>
@@ -26,86 +26,123 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-This patch adds an include path relative to the current (the including)
-file's directory.
+The default include path is searched for files before include paths
+specified via -I/--include.
 
-Users of -f/--filename have to explicitly specify -I with a redundant
-path to find included files in the main file, eg.
+Search for default include path after user-specified include paths to
+allow users for test nftables configurations spanning multiple files
+without overwriting the globally installed ones.
 
- # nft -I /path/to/files -f /path/to/files/ruleset.nft
+See:
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20220627222304.93139-1-dxld@darkboxed.org/
 
-Assuming:
-
- # cat /path/to/files/ruleset.nft
- include "file1.nft"
- include "file2.nft"
- include "file3.nft"
-
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1661
+Reported-by: Daniel Gröber <dxld@darkboxed.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- doc/nft.txt       |  2 ++
- src/libnftables.c | 18 ++++++++++++++++++
- 2 files changed, 20 insertions(+)
+ src/libnftables.c |  1 -
+ src/scanner.l     | 63 ++++++++++++++++++++++++++++++-----------------
+ 2 files changed, 41 insertions(+), 23 deletions(-)
 
-diff --git a/doc/nft.txt b/doc/nft.txt
-index e4eb982e75af..3f4593a29831 100644
---- a/doc/nft.txt
-+++ b/doc/nft.txt
-@@ -43,6 +43,8 @@ understanding of their meaning. You can get information about options by running
- *-f*::
- *--file 'filename'*::
- 	Read input from 'filename'. If 'filename' is -, read from stdin.
-+	The directory path to this file is inserted at the beginning the list of
-+	directories to be searched for included files (see *-I/--includepath*).
- 
- *-D*::
- *--define 'name=value'*::
 diff --git a/src/libnftables.c b/src/libnftables.c
-index 0dee1bacb0db..40e37bdf8c06 100644
+index 40e37bdf8c06..af4734c05004 100644
 --- a/src/libnftables.c
 +++ b/src/libnftables.c
-@@ -17,6 +17,7 @@
- #include <cmd.h>
- #include <errno.h>
- #include <sys/stat.h>
-+#include <libgen.h>
+@@ -202,7 +202,6 @@ struct nft_ctx *nft_ctx_new(uint32_t flags)
+ 	nft_init(ctx);
  
- static int nft_netlink(struct nft_ctx *nft,
- 		       struct list_head *cmds, struct list_head *msgs)
-@@ -786,6 +787,19 @@ static int nft_run_optimized_file(struct nft_ctx *nft, const char *filename)
- 	return __nft_run_cmd_from_filename(nft, filename);
+ 	ctx->state = xzalloc(sizeof(struct parser_state));
+-	nft_ctx_add_include_path(ctx, DEFAULT_INCLUDE_PATH);
+ 	ctx->parser_max_errors	= 10;
+ 	cache_init(&ctx->cache.table_cache);
+ 	ctx->top_scope = scope_alloc();
+diff --git a/src/scanner.l b/src/scanner.l
+index 96c505bcdd48..c825fa79cfd9 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -1175,39 +1175,58 @@ static bool search_in_include_path(const char *filename)
+ 		filename[0] != '/');
  }
  
-+static int nft_ctx_add_basedir_include_path(struct nft_ctx *nft,
-+					    const char *filename)
++static int include_path_glob(struct nft_ctx *nft, void *scanner,
++			     const char *include_path, const char *filename,
++			     const struct location *loc)
 +{
-+	const char *basedir = dirname(xstrdup(filename));
++	struct parser_state *state = yyget_extra(scanner);
++	struct error_record *erec;
++	char buf[PATH_MAX];
 +	int ret;
 +
-+	ret = nft_ctx_add_include_path(nft, basedir);
++	ret = snprintf(buf, sizeof(buf), "%s/%s", include_path, filename);
++	if (ret < 0 || ret >= PATH_MAX) {
++		erec = error(loc, "Too long file path \"%s/%s\"\n",
++			     include_path, filename);
++		erec_queue(erec, state->msgs);
++		return -1;
++	}
 +
-+	free_const(basedir);
++	ret = include_glob(nft, scanner, buf, loc);
 +
++	/* error was already handled */
++	if (ret == -1)
++		return -1;
++	/* no wildcards and file was processed: break early. */
++	if (ret == 0)
++		return 0;
++
++	/* else 1 (no wildcards) or 2 (wildcards): keep
++	 * searching.
++	 */
 +	return ret;
 +}
 +
- EXPORT_SYMBOL(nft_run_cmd_from_filename);
- int nft_run_cmd_from_filename(struct nft_ctx *nft, const char *filename)
+ int scanner_include_file(struct nft_ctx *nft, void *scanner,
+ 			 const char *filename, const struct location *loc)
  {
-@@ -798,6 +812,10 @@ int nft_run_cmd_from_filename(struct nft_ctx *nft, const char *filename)
- 	    !nft_output_json(&nft->output))
- 		nft->stdin_buf = stdin_to_buffer();
+ 	struct parser_state *state = yyget_extra(scanner);
+ 	struct error_record *erec;
+-	char buf[PATH_MAX];
+ 	unsigned int i;
+ 	int ret = -1;
  
-+	if (!nft->stdin_buf &&
-+	    nft_ctx_add_basedir_include_path(nft, filename) < 0)
-+		return -1;
-+
- 	if (nft->optimize_flags) {
- 		ret = nft_run_optimized_file(nft, filename);
- 		free_const(nft->stdin_buf);
+ 	if (search_in_include_path(filename)) {
+ 		for (i = 0; i < nft->num_include_paths; i++) {
+-			ret = snprintf(buf, sizeof(buf), "%s/%s",
+-				       nft->include_paths[i], filename);
+-			if (ret < 0 || ret >= PATH_MAX) {
+-				erec = error(loc, "Too long file path \"%s/%s\"\n",
+-					     nft->include_paths[i], filename);
+-				erec_queue(erec, state->msgs);
+-				return -1;
+-			}
+-
+-			ret = include_glob(nft, scanner, buf, loc);
+-
+-			/* error was already handled */
+-			if (ret == -1)
+-				return -1;
+-			/* no wildcards and file was processed: break early. */
+-			if (ret == 0)
+-				return 0;
+-
+-			/* else 1 (no wildcards) or 2 (wildcards): keep
+-			 * searching.
+-			 */
++			ret = include_path_glob(nft, scanner,
++						nft->include_paths[i],
++						filename, loc);
++			if (ret <= 0)
++				return ret;
+ 		}
++		ret = include_path_glob(nft, scanner, DEFAULT_INCLUDE_PATH,
++					filename, loc);
++		if (ret <= 0)
++			return ret;
+ 	} else {
+ 		/* an absolute path (starts with '/') */
+ 		ret = include_glob(nft, scanner, filename, loc);
 -- 
 2.30.2
 
