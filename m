@@ -1,148 +1,86 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 37B231429A
-	for <netfilter-devel@vger.kernel.org>; Sat, 15 Jun 2024 09:18:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from smtp2-kfki.kfki.hu (smtp2-kfki.kfki.hu [148.6.0.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 683C2191475
+	for <netfilter-devel@vger.kernel.org>; Mon, 17 Jun 2024 09:23:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718443121; cv=none; b=nPKI0wY+hIJJ/1OrM1O+B9CF0WoWtL5k4Nc2lekcEYgC0h6IQz21YmHM6J04hDQ37s/n0ffA9+ZbFY/xQl7IltJaJLT8asHrqhmdu7kF5tvdTy1xONsxcZCEb29VpifAXZ8N5XB7C0QSF1UU3omcFd5DpkBHRb44Y1TnN5LUhpw=
+	t=1718616227; cv=none; b=JJfvm8qO4D35/PzhQtWaKXw4UDPnRdsvWupxq6YLHlL64SKaiIq2JxmYgwyn4pA7ImqJcg21YQn4L6iRMB+WbWkX3TmmoMH+I3ra5li6KfpaXrFjAE7/zrPD97o5hdsleFhQpKZpfey6bMYt1pdxTjfgGUMKaNGRob+wOZP41zw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718443121; c=relaxed/simple;
-	bh=TxJOFKLnzqFwKe5hGBncXELBY2sjRVXchf0tO9T+p2g=;
-	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=CPTtQ+2sTA4PQc/kfuGJvJDLUThG43cTrhVbkVSsl6MJyX67tMB1ihH/nwNbmnJuhkt4nbiixzXO/5XU4VLZnT3RvJp670xjzyHDc6yBidgkV4GN/F6twQddSfsS8uggdpXQRXOwZyJSHIg5mU5SlhRoNVWxVlsfTvMtp1Xl0nY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+	s=arc-20240116; t=1718616227; c=relaxed/simple;
+	bh=V0RFvhFakOAEJel9Hvd7rs7ItkwgeB1WanMImc/ozG8=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=DchCp2vGGY60jeFwu71XbMrqp8cAVaHPCzpK09y/1boL3UHFlmHSEXy3ni8I1tSCkkhDJzRQPJpqVId9QRS0CgFvTEqbvg9VSlEnOaKMEfpoOXxV72/P1byGtB6tfwAjvm+/tDGtpSDLnJBZ5O9nIbvPlQysDstH28y02lG8OwE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=X+xoUkta; arc=none smtp.client-ip=148.6.0.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="X+xoUkta"
+Received: from localhost (localhost [127.0.0.1])
+	by smtp2.kfki.hu (Postfix) with ESMTP id 59A3BCC011F;
+	Mon, 17 Jun 2024 11:18:17 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	blackhole.kfki.hu; h=mime-version:x-mailer:message-id:date:date
+	:from:from:received:received:received; s=20151130; t=1718615895;
+	 x=1720430296; bh=d1KtR7Wer+wpSgruS9B+M3fxJzCUfLoSKluDftg8OgM=; b=
+	X+xoUktakp6Y9PHIJNvJFWEmRSW3ABnJRaJQlVXYTGHTF73WXyaq8mPV3SmEYmU9
+	rvuQqzlkEeeHZANeNScjSyEgHVKcxR6CKovBnDksm20ELoOsL5f/BdrLst5i8Fu2
+	R6GXPjD2XxPRffcnBI549YGzcFwwd6KrR45J5KdIxAU=
+X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+	by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+	with ESMTP; Mon, 17 Jun 2024 11:18:15 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
+	by smtp2.kfki.hu (Postfix) with ESMTP id 58693CC00FE;
+	Mon, 17 Jun 2024 11:18:15 +0200 (CEST)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+	id 5189934316B; Mon, 17 Jun 2024 11:18:15 +0200 (CEST)
+From: Jozsef Kadlecsik <kadlec@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 2/2] libnftables: search for default include path last
-Date: Sat, 15 Jun 2024 11:18:25 +0200
-Message-Id: <20240615091825.152372-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20240615091825.152372-1-pablo@netfilter.org>
-References: <20240615091825.152372-1-pablo@netfilter.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/1] ipset patch for nf
+Date: Mon, 17 Jun 2024 11:18:14 +0200
+Message-Id: <20240617091815.610343-1-kadlec@netfilter.org>
+X-Mailer: git-send-email 2.39.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: quoted-printable
 
-The default include path is searched for files before include paths
-specified via -I/--include.
+Hi Pablo,
 
-Search for default include path after user-specified include paths to
-allow users for test nftables configurations spanning multiple files
-without overwriting the globally installed ones.
+Please apply the next patch to the nf tree, which fixes a suspicious=20
+rcu_dereference_protected() call.
 
-See:
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20220627222304.93139-1-dxld@darkboxed.org/
+- The patch fixing the race between namespace cleanup and gc in ipset lef=
+t=20
+  out checking the pernet exit phase when calling rcu_dereference_protect=
+ed(),
+  which thus resulted the suspicious RCU usage warning.
 
-Reported-by: Daniel Gröber <dxld@darkboxed.org>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/libnftables.c |  1 -
- src/scanner.l     | 63 ++++++++++++++++++++++++++++++-----------------
- 2 files changed, 41 insertions(+), 23 deletions(-)
+Best regards,
+Jozsef
 
-diff --git a/src/libnftables.c b/src/libnftables.c
-index 40e37bdf8c06..af4734c05004 100644
---- a/src/libnftables.c
-+++ b/src/libnftables.c
-@@ -202,7 +202,6 @@ struct nft_ctx *nft_ctx_new(uint32_t flags)
- 	nft_init(ctx);
- 
- 	ctx->state = xzalloc(sizeof(struct parser_state));
--	nft_ctx_add_include_path(ctx, DEFAULT_INCLUDE_PATH);
- 	ctx->parser_max_errors	= 10;
- 	cache_init(&ctx->cache.table_cache);
- 	ctx->top_scope = scope_alloc();
-diff --git a/src/scanner.l b/src/scanner.l
-index 96c505bcdd48..c825fa79cfd9 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -1175,39 +1175,58 @@ static bool search_in_include_path(const char *filename)
- 		filename[0] != '/');
- }
- 
-+static int include_path_glob(struct nft_ctx *nft, void *scanner,
-+			     const char *include_path, const char *filename,
-+			     const struct location *loc)
-+{
-+	struct parser_state *state = yyget_extra(scanner);
-+	struct error_record *erec;
-+	char buf[PATH_MAX];
-+	int ret;
-+
-+	ret = snprintf(buf, sizeof(buf), "%s/%s", include_path, filename);
-+	if (ret < 0 || ret >= PATH_MAX) {
-+		erec = error(loc, "Too long file path \"%s/%s\"\n",
-+			     include_path, filename);
-+		erec_queue(erec, state->msgs);
-+		return -1;
-+	}
-+
-+	ret = include_glob(nft, scanner, buf, loc);
-+
-+	/* error was already handled */
-+	if (ret == -1)
-+		return -1;
-+	/* no wildcards and file was processed: break early. */
-+	if (ret == 0)
-+		return 0;
-+
-+	/* else 1 (no wildcards) or 2 (wildcards): keep
-+	 * searching.
-+	 */
-+	return ret;
-+}
-+
- int scanner_include_file(struct nft_ctx *nft, void *scanner,
- 			 const char *filename, const struct location *loc)
- {
- 	struct parser_state *state = yyget_extra(scanner);
- 	struct error_record *erec;
--	char buf[PATH_MAX];
- 	unsigned int i;
- 	int ret = -1;
- 
- 	if (search_in_include_path(filename)) {
- 		for (i = 0; i < nft->num_include_paths; i++) {
--			ret = snprintf(buf, sizeof(buf), "%s/%s",
--				       nft->include_paths[i], filename);
--			if (ret < 0 || ret >= PATH_MAX) {
--				erec = error(loc, "Too long file path \"%s/%s\"\n",
--					     nft->include_paths[i], filename);
--				erec_queue(erec, state->msgs);
--				return -1;
--			}
--
--			ret = include_glob(nft, scanner, buf, loc);
--
--			/* error was already handled */
--			if (ret == -1)
--				return -1;
--			/* no wildcards and file was processed: break early. */
--			if (ret == 0)
--				return 0;
--
--			/* else 1 (no wildcards) or 2 (wildcards): keep
--			 * searching.
--			 */
-+			ret = include_path_glob(nft, scanner,
-+						nft->include_paths[i],
-+						filename, loc);
-+			if (ret <= 0)
-+				return ret;
- 		}
-+		ret = include_path_glob(nft, scanner, DEFAULT_INCLUDE_PATH,
-+					filename, loc);
-+		if (ret <= 0)
-+			return ret;
- 	} else {
- 		/* an absolute path (starts with '/') */
- 		ret = include_glob(nft, scanner, filename, loc);
--- 
-2.30.2
+The following changes since commit 9bb49a1f0354a2ed2854af40d7051188b9b858=
+37:
 
+  netfilter: ipset: Fix race between namespace cleanup and gc in the list=
+:set type (2024-06-04 09:23:46 +0200)
+
+are available in the Git repository at:
+
+  git://blackhole.kfki.hu/nf 0eb942092ce49
+
+for you to fetch changes up to 0eb942092ce49307042e4603917f1e126ca50394:
+
+  netfilter: ipset: Fix suspicious rcu_dereference_protected() (2024-06-1=
+4 12:20:33 +0200)
+
+----------------------------------------------------------------
+Jozsef Kadlecsik (1):
+      netfilter: ipset: Fix suspicious rcu_dereference_protected()
+
+ net/netfilter/ipset/ip_set_core.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
