@@ -1,31 +1,33 @@
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 001731482E6
-	for <netfilter-devel@vger.kernel.org>; Tue, 18 Jun 2024 08:11:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA1FB13A41A
+	for <netfilter-devel@vger.kernel.org>; Tue, 18 Jun 2024 08:24:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718698315; cv=none; b=SpLmcAwKCjHAufZFTd1avoGA1GEYdVttEfrEywEBIERB5vQCpdvfATCaQo5GAFy7nag9HvZSyU2ML1khFvVy11hfWrzpJXRObfkYAx3eC1qjtmDuVlXCxhbzmhqOI/LKFuO2rqZGkjdjIZFuV8v9DJKXH/q7POgPRPlftKfvLZ8=
+	t=1718699070; cv=none; b=Chamh4cMn4d7LsmXSJ/Qbk+0o9jeonH+C6AIpIYmsxVI0meyElg64SiTTIcpvx9s7bML7LinkZs8DTL74JIv/4zVXWyRK2rLI7Kj+lIKDmPmXTw9gnRoA45whXI11Jf1j4IO8UvJX21e+V+spoAPDPZM5kiN+ZwjAFzM7MFHaiU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718698315; c=relaxed/simple;
-	bh=HEt9u1htdppUmUrVWtfByFYfpwT6d4r+SXkE/ql8Doo=;
+	s=arc-20240116; t=1718699070; c=relaxed/simple;
+	bh=PmJG4sH4ASq9JlksPdgwEbAgKmxE5DpNk+62Rn7l30Q=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BqeVbADSmtcdmss0Wx+zIOnhA62gyAGgrlAvA/pOhcfU2H/XgqWoKNgRIqVYaviUF0v1mb12A54Ghn3isFEEkLyqGU8Vs646ST6WGQ5Z/k/iACjORIzblTZXhdB1We7Wb2s0rsDfKcFtZtqmpOE3Ld2vBGOPsY/FlMepENQhJ2c=
+	 Content-Type:Content-Disposition:In-Reply-To; b=JqqGI5HL08FaT7/CyxSguXApBTAbooqFuESYxBlcS+Xj1ECjYMeAFZ0uFo2sXbMQhy2mazJg3SdbOlpggu2xYVdyXygYGW5FXACA2a8/XFRdSkYC4DPEUifzQ4sgPFrAdgPU2rDXnXiMU+olyJ/m2T62P1s6W5ayYJzbRrHh80E=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=50684 helo=gnumonks.org)
+Received: from [78.30.37.63] (port=56738 helo=gnumonks.org)
 	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <pablo@gnumonks.org>)
-	id 1sJTwQ-00D8R8-Th; Tue, 18 Jun 2024 10:11:48 +0200
-Date: Tue, 18 Jun 2024 10:11:46 +0200
+	id 1sJU8b-00D9Ih-5w; Tue, 18 Jun 2024 10:24:23 +0200
+Date: Tue, 18 Jun 2024 10:24:20 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: Florian Westphal <fw@strlen.de>
 Cc: netfilter-devel@vger.kernel.org
-Subject: Re: let nftables indicate incomplete dissections
-Message-ID: <ZnFBQmrX9FgTG8rb@calendula>
-References: <20240612075013.GA13354@breakpoint.cc>
+Subject: Re: [PATCH nf-next 02/11] netfilter: nf_tables: move bind list_head
+ into relevant subtypes
+Message-ID: <ZnFENEs7ESGSM2Ub@calendula>
+References: <20240513130057.11014-1-fw@strlen.de>
+ <20240513130057.11014-3-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -34,53 +36,67 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20240612075013.GA13354@breakpoint.cc>
+In-Reply-To: <20240513130057.11014-3-fw@strlen.de>
 X-Spam-Score: -1.9 (-)
 
-On Wed, Jun 12, 2024 at 09:50:13AM +0200, Florian Westphal wrote:
-> "nft list ruleset" currently omits things it does not understand
-> and that it cannot represent in any other way.
-> 
-> This includes:
-> 1. expression is unknown
-> 2. expression is known (e.g. "cmp"), but attr contains unexpected value
-> 3. expression is known but there is an unknown netlink attr contained in
-> the dump
-> 
-> If backend (libnftl) could mark expressions as incomplete (from .parse
-> callbacks?), it would be then possible for the frontend (nft) to document
-> this, e.g. by adding something like "# unknown attributes", or similar.
+Hi Florian,
 
-ack, how do you plan to handle this?
+I like this series, just a comestic glitch.
 
-> This is mainly needed for container environments, where host environment
-> might be using a lot older version than what is used by a specific
-> container image.
-> 
-> Related problem: entity that is using the raw netlink interface, it
-> that case libnftnl might be able to parse everything but nft could
-> lack the ability to properly print this.
+On Mon, May 13, 2024 at 03:00:42PM +0200, Florian Westphal wrote:
+> @@ -416,11 +436,26 @@ static int nft_deltable(struct nft_ctx *ctx)
+>  	return err;
+>  }
+>  
+> -static struct nft_trans *nft_trans_chain_add(struct nft_ctx *ctx, int msg_type)
+> +static struct nft_trans *
+> +nft_trans_alloc_chain(const struct nft_ctx *ctx, int msg_type)
+>  {
+>  	struct nft_trans *trans;
+>  
+>  	trans = nft_trans_alloc(ctx, msg_type, sizeof(struct nft_trans_chain));
+> +	if (trans) {
 
-There are two options here:
+May I mangle this to do here:
 
-- Add more raw expressions and dump them, eg. meta@15, where 15 is the type.
-  This is more compact. If there is a requirement to allow to restore
-  this from older nftables versions, then it might be not enough since
-  maybe there is a need for meta@type,somethingelse (as in the ct direction
-  case).
-- Use a netlink representation as raw expression: meta@1,3,0x0x000000004
-  but this requires dumping the whole list of attributes which is chatty.
+        if (!trans)
+                return NULL;
 
-Or explore a combination of both.
+...
 
-I am telling all this because I suspect maybe this "forward
-compatibility" (a.k.a. "old tools support the future") could rise the
-bar again and have a requirement to be able to load rulesets that
-contains features that old tools don't understand.
+> +		struct nft_trans_chain *chain = nft_trans_container_chain(trans);
+> +
+> +		INIT_LIST_HEAD(&chain->nft_trans_binding.binding_list);
+> +	}
+> +
+> +	return trans;
+> +}
+> +
+> +static struct nft_trans *nft_trans_chain_add(struct nft_ctx *ctx, int msg_type)
+> +{
+> +	struct nft_trans *trans;
+> +
+> +	trans = nft_trans_alloc_chain(ctx, msg_type);
+>  	if (trans == NULL)
+>  		return ERR_PTR(-ENOMEM);
+>  
+> @@ -560,12 +595,16 @@ static int __nft_trans_set_add(const struct nft_ctx *ctx, int msg_type,
+>  			       struct nft_set *set,
+>  			       const struct nft_set_desc *desc)
+>  {
+> +	struct nft_trans_set *trans_set;
+>  	struct nft_trans *trans;
+>  
+>  	trans = nft_trans_alloc(ctx, msg_type, sizeof(struct nft_trans_set));
+>  	if (trans == NULL)
+>  		return -ENOMEM;
 
-> If noone has any objections, I would place this on my todo list and
-> start with adding to libnftnl the needed "expression is incomplete"
-> marking by extending the .parse callbacks.
+As it is done here?
 
-Maybe it is worth exploring what I propose above instead of displaying
-"expression is incomplete"?
+>  
+> +	trans_set = nft_trans_container_set(trans);
+> +	INIT_LIST_HEAD(&trans_set->nft_trans_binding.binding_list);
+> +
+>  	if (msg_type == NFT_MSG_NEWSET && ctx->nla[NFTA_SET_ID] && !desc) {
+>  		nft_trans_set_id(trans) =
+>  			ntohl(nla_get_be32(ctx->nla[NFTA_SET_ID]));
