@@ -1,52 +1,68 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACED715216E
-	for <netfilter-devel@vger.kernel.org>; Wed, 19 Jun 2024 15:59:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 929CB2262B;
+	Wed, 19 Jun 2024 16:46:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718812779; cv=none; b=lC+SOfWe2g/up/1P4ti1XZ2YADXo1h4wYB4m5kyrlYTxf8XEdgLzwlBfNkqUNOPJePxvM8+3e4vXNCz5XPPG8U8FvBfh2PVWFI92LKl7V6tZ8IHnaMQzGhRZNPZPzNyhGfcJ6+v6UWFpyaqIDUPJolWfx5qTMD/PPSjR3Q59Ajw=
+	t=1718815596; cv=none; b=a1/Cb2UNdUvQC4Pmw0B4YWM9yyv2/OFUUJJKpOoTBjFWJ57gMu9K9OGJiVbkOmSPaaJUFlpMJ9i64A9D4YYjDgBewIiDdJHCJMCkrn9vvmb+/lpG3oC6c5wPM2JHUUE45PAZ6C0gl9L4p/p2xYrl/bHJzD8dVes0STdQxzr5RFk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718812779; c=relaxed/simple;
-	bh=HRyamxkpMOyxQMlOB86Jr/TfOXphtDuf9r5Z7uaVFUI=;
+	s=arc-20240116; t=1718815596; c=relaxed/simple;
+	bh=EYkeKSbtNt6ckvuCFzfSCizaZJeveGlRlQZbS2iiRBM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=NI+Oydgrb5IDmuh+zdcrYjas6Ia5NiWhrgGv3xz/X8xzS/bcxuvhG/14/bzeP0sQJ5E1LTUjxomMDL9wGv/M5jJT3niiAzyuxvlfuoejYHkGydZMSVCokKdF742gijXw6tS1DA7mygn5pdeCx5o+vuwTst4t2XIveKVrw27BzbE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=U+3aahwd; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	 Content-Type:Content-Disposition:In-Reply-To; b=f3XEZcnslU7UfPPApSN7e6PKOnz60D7GtxSNPqeHcmMw9e4M9XycHHGL+FbgKx1kwoe0FEYuAsHE+VIjEwK7wgK7ayQe0GikRDTCeErD7H82n1lD254DRgsj0pIaKTvb886yrYxuQdoHM9nme1R1VDmySejtYurB7T3gqoK37wE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=U6v5z/sd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="U+3aahwd"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=ApsgCKfnV9/CIXTcU0h5aA62zqlW962lJ0/rf8sAmYg=; b=U+3aahwdD3e9g2kTioINnaFGaP
-	9E/wx4twxWbwg8AvYlC/K8j4pNb8K4lFr1WNuySiZ6dItiovjGGW+Wfl23YZE9cYXw0EUIUXK4pKH
-	Td24uZ0xlTg1rgpsguolnMl8qAPgkwf9Ac03fJ+2ERTchjEA15omUVGV+UC1psVGvWwqz1oQilTg9
-	zNvyXpiVrBJbUtodnHxCN+MzgYGF0IOJYGDMuS2YsROpr2XxwmLMTOLANgA/rpi22iBKzx2082+ER
-	CBrMPw0MLbNPirWzNT8T081BCVRke3HVJfqJQ4/+PYGJDP/bF/MBatjW3ekc6CvrK4OLoZf2q/0la
-	W60ndtyg==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1sJxie-000000003Ez-3Xko;
-	Wed, 19 Jun 2024 17:59:32 +0200
-Date: Wed, 19 Jun 2024 17:59:32 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-	Thomas Haller <thaller@redhat.com>
-Subject: Re: [PATCH v2 0/7] Dynamic hook interface binding
-Message-ID: <ZnMAZPn263VZWaPd@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-	Thomas Haller <thaller@redhat.com>
-References: <20240517130615.19979-1-phil@nwl.cc>
- <ZnDCXfYr7qZ0bD9E@calendula>
- <ZnLAiiJJldqUXl_s@orbyte.nwl.cc>
- <ZnLvw0MbcL81GUrc@calendula>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="U6v5z/sd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E5A8C2BBFC;
+	Wed, 19 Jun 2024 16:46:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1718815596;
+	bh=EYkeKSbtNt6ckvuCFzfSCizaZJeveGlRlQZbS2iiRBM=;
+	h=Date:From:To:Cc:Subject:Reply-To:References:In-Reply-To:From;
+	b=U6v5z/sdVrRwT3ywPATsj7XmP7jMC/9Ue7euI2CV/THH1rdybzupp61Q3EwrfCb0Z
+	 oRYlNRBfdTqybOoKx/k80D0IFIG9kqzvnBfEhD0JRlH5VjuYxCM23EMd3xBXpXT4V1
+	 1uKiOxgwzsrXXxoSU+L5hezYeMeNJITqk3/QT2yQTixMKTvXNKFLINUqCcR1a6Eofa
+	 +OA6Ypzrq6AdcZ9WeH29C2vx0ekyMr+caeurBrnmo/hQuNhH7uVp+yJZMA3eeltGHh
+	 vqikZFgBg0Khso/7VAufzpVxv9ZrPvAsnpHAA9QtIEbrLcOlZKN9roRJ/XJu5hty2l
+	 uLXG9ZdVaWb9A==
+Received: by paulmck-ThinkPad-P17-Gen-1.home (Postfix, from userid 1000)
+	id EC3CDCE09D8; Wed, 19 Jun 2024 09:46:35 -0700 (PDT)
+Date: Wed, 19 Jun 2024 09:46:35 -0700
+From: "Paul E. McKenney" <paulmck@kernel.org>
+To: Vlastimil Babka <vbabka@suse.cz>
+Cc: Uladzislau Rezki <urezki@gmail.com>,
+	"Jason A. Donenfeld" <Jason@zx2c4.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Julia Lawall <Julia.Lawall@inria.fr>, linux-block@vger.kernel.org,
+	kernel-janitors@vger.kernel.org, bridge@lists.linux.dev,
+	linux-trace-kernel@vger.kernel.org,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+	kvm@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	"Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	Nicholas Piggin <npiggin@gmail.com>, netdev@vger.kernel.org,
+	wireguard@lists.zx2c4.com, linux-kernel@vger.kernel.org,
+	ecryptfs@vger.kernel.org, Neil Brown <neilb@suse.de>,
+	Olga Kornievskaia <kolga@netapp.com>, Dai Ngo <Dai.Ngo@oracle.com>,
+	Tom Talpey <tom@talpey.com>, linux-nfs@vger.kernel.org,
+	linux-can@vger.kernel.org, Lai Jiangshan <jiangshanlai@gmail.com>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	kasan-dev <kasan-dev@googlegroups.com>
+Subject: Re: [PATCH 00/14] replace call_rcu by kfree_rcu for simple
+ kmem_cache_free callback
+Message-ID: <04567347-c138-48fb-a5ab-44cc6a318549@paulmck-laptop>
+Reply-To: paulmck@kernel.org
+References: <e926e3c6-05ce-4ba6-9e2e-e5f3b37bcc23@suse.cz>
+ <3b6fe525-626c-41fb-8625-3925ca820d8e@paulmck-laptop>
+ <6711935d-20b5-41c1-8864-db3fc7d7823d@suse.cz>
+ <ZnCDgdg1EH6V7w5d@pc636>
+ <36c60acd-543e-48c5-8bd2-6ed509972d28@suse.cz>
+ <ZnFT1Czb8oRb0SE7@pc636>
+ <5c8b2883-962f-431f-b2d3-3632755de3b0@paulmck-laptop>
+ <9967fdfa-e649-456d-a0cb-b4c4bf7f9d68@suse.cz>
+ <6dad6e9f-e0ca-4446-be9c-1be25b2536dd@paulmck-laptop>
+ <4cba4a48-902b-4fb6-895c-c8e6b64e0d5f@suse.cz>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -55,250 +71,142 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ZnLvw0MbcL81GUrc@calendula>
+In-Reply-To: <4cba4a48-902b-4fb6-895c-c8e6b64e0d5f@suse.cz>
 
-On Wed, Jun 19, 2024 at 04:48:35PM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Jun 19, 2024 at 01:27:06PM +0200, Phil Sutter wrote:
-> > On Tue, Jun 18, 2024 at 01:10:21AM +0200, Pablo Neira Ayuso wrote:
-> > > Hi Phil,
-> > > 
-> > > On Fri, May 17, 2024 at 03:06:08PM +0200, Phil Sutter wrote:
-> > > > Changes since v1:
-> > > > - New patch 6 adding notifications for updated hooks.
-> > > > - New patch 7 adding the requested torture test.
-> > > > 
-> > > > Currently, netdev-family chains and flowtables expect their interfaces
-> > > > to exist at creation time. In practice, this bites users of virtual
-> > > > interfaces if these happen to be created after the nftables service
-> > > > starts up and loads the stored ruleset.
-> > > > 
-> > > > Vice-versa, if an interface disappears at run-time (via module unloading
-> > > > or 'ip link del'), it also disappears from the ruleset, along with the
-> > > > chain and its rules which binds to it. This is at least problematic for
-> > > > setups which store the running ruleset during system shutdown.
-> > > 
-> > > I'd suggest that you place your patch 2/7 to modify the existing
-> > > behaviour in first place.
+On Wed, Jun 19, 2024 at 11:28:13AM +0200, Vlastimil Babka wrote:
+> On 6/18/24 7:53 PM, Paul E. McKenney wrote:
+> > On Tue, Jun 18, 2024 at 07:21:42PM +0200, Vlastimil Babka wrote:
+> >> On 6/18/24 6:48 PM, Paul E. McKenney wrote:
+> >> > On Tue, Jun 18, 2024 at 11:31:00AM +0200, Uladzislau Rezki wrote:
+> >> >> > On 6/17/24 8:42 PM, Uladzislau Rezki wrote:
+> >> >> > >> +
+> >> >> > >> +	s = container_of(work, struct kmem_cache, async_destroy_work);
+> >> >> > >> +
+> >> >> > >> +	// XXX use the real kmem_cache_free_barrier() or similar thing here
+> >> >> > > It implies that we need to introduce kfree_rcu_barrier(), a new API, which i
+> >> >> > > wanted to avoid initially.
+> >> >> > 
+> >> >> > I wanted to avoid new API or flags for kfree_rcu() users and this would
+> >> >> > be achieved. The barrier is used internally so I don't consider that an
+> >> >> > API to avoid. How difficult is the implementation is another question,
+> >> >> > depending on how the current batching works. Once (if) we have sheaves
+> >> >> > proven to work and move kfree_rcu() fully into SLUB, the barrier might
+> >> >> > also look different and hopefully easier. So maybe it's not worth to
+> >> >> > invest too much into that barrier and just go for the potentially
+> >> >> > longer, but easier to implement?
+> >> >> > 
+> >> >> Right. I agree here. If the cache is not empty, OK, we just defer the
+> >> >> work, even we can use a big 21 seconds delay, after that we just "warn"
+> >> >> if it is still not empty and leave it as it is, i.e. emit a warning and
+> >> >> we are done.
+> >> >> 
+> >> >> Destroying the cache is not something that must happen right away. 
+> >> > 
+> >> > OK, I have to ask...
+> >> > 
+> >> > Suppose that the cache is created and destroyed by a module and
+> >> > init/cleanup time, respectively.  Suppose that this module is rmmod'ed
+> >> > then very quickly insmod'ed.
+> >> > 
+> >> > Do we need to fail the insmod if the kmem_cache has not yet been fully
+> >> > cleaned up?
+> >> 
+> >> We don't have any such link between kmem_cache and module to detect that, so
+> >> we would have to start tracking that. Probably not worth the trouble.
 > > 
-> > I did not to avoid "dead" entries in the hook list (with ops.dev gone,
-> > there's nothing left identifying the hook). But it's only temporary and
-> > maybe cleans up the diffs, will give it a go.
-> 
-> OK.
-> 
-> > > > This series attempts to solve these problems by effectively making
-> > > > netdev hooks name-based: If no matching interface is found at hook
-> > > > creation time, it will be inactive until a matching interface appears.
-> > > > If a bound interface is renamed, a matching inactive hook is searched
-> > > > for it.
-> > > > 
-> > > > Ruleset dumps will stabilize in that regard. To still provide
-> > > > information about which existing interfaces a chain/flowtable currently
-> > > > binds to, new netlink attributes *_ACT_DEVS are introduced which are
-> > > > filled from the active hooks only.
-> > > 
-> > > Currently, NFTA_HOOK_DEVS already represents the netdevice that are
-> > > active. If one of these devices goes aways, then it is removed from
-> > > the basechain and it does not show up in NFTA_HOOK_DEVS anymore.
-> > > 
-> > > There are netlink notifications that need to fit into NLMSG_GOODSIZE,
-> > > but this adds yet another netlink array attribute.
+> > Fair enough!
 > > 
-> > Hmm. I could introduce NFTA_HOOK_INACTIVE_DEVS which contains only those
-> > entries missing in NFTA_HOOK_DEVS. This shouldn't bloat the dumps too
-> > much (apart from the added overhead) and won't change old user space
-> > behaviour.
+> >> >  If not, do we have two versions of the same kmem_cache in
+> >> > /proc during the overlap time?
+> >> 
+> >> Hm could happen in /proc/slabinfo but without being harmful other than
+> >> perhaps confusing someone. We could filter out the caches being destroyed
+> >> trivially.
+> > 
+> > Or mark them in /proc/slabinfo?  Yet another column, yay!!!  Or script
+> > breakage from flagging the name somehow, for example, trailing "/"
+> > character.
 > 
-> Not sure. What does NFTA_HOOK_INACTIVE_DEVS contains? Could you
-> provide an example? Again, if this array gets again too large, there
-> could be issues with NLMSG_GOODSIZE again for notifications.
+> Yeah I've been resisting such changes to the layout and this wouldn't be
+> worth it, apart from changing the name itself but not in a dangerous way
+> like with "/" :)
 
-I assumed your intention was for NFTA_HOOK_DEVS to not change
-semantically, i.e. remain to contain only devices which are present at
-time of the dump. Then I could introduce INACTIVE_DEVS to contain those
-we lost meanwhile. As an example:
+;-) ;-) ;-)
 
-1) add netdev chain for devices eth0, eth1, eth2
-2) list ruleset:
-   - HOOK_DEVS = { eth0, eth1, eth2 }
-   - INACTIVE_DEVS = {}
-3) ip link del eth1
-4) list ruleset:
-   - HOOK_DEVS = { eth0, eth2 }
-   - INACTIVE_DEVS = { eth1 }
+> >> Sysfs and debugfs might be more problematic as I suppose directory names
+> >> would clash. I'll have to check... might be even happening now when we do
+> >> detect leaked objects and just leave the cache around... thanks for the
+> >> question.
+> > 
+> > "It is a service that I provide."  ;-)
+> > 
+> > But yes, we might be living with it already and there might already
+> > be ways people deal with it.
+> 
+> So it seems if the sysfs/debugfs directories already exist, they will
+> silently not be created. Wonder if we have such cases today already because
+> caches with same name exist. I think we do with the zsmalloc using 32 caches
+> with same name that we discussed elsewhere just recently.
+> 
+> Also indeed if the cache has leaked objects and won't be thus destroyed,
+> these directories indeed stay around, as well as the slabinfo entry, and can
+> prevent new ones from being created (slabinfo lines with same name are not
+> prevented).
 
-This avoids duplicate entries in both lists and thus avoids overhead.
-This would fix for the interfaces missing in dumps problem.
+New one on me!
 
-Wildcards would appear as-is in either HOOK_DEVS (if there's at least
-one matching interface) or INACTIVE_DEVS (if there is none). The actual
-list of active interfaces would require a GETDEVICE call.
+> But it wouldn't be great to introduce this possibility to happen for the
+> temporarily delayed removal due to kfree_rcu() and a module re-insert, since
+> that's a legitimate case and not buggy state due to leaks.
 
-> I would just display these active devices (in the list of devices that
-> are attached to this basechain) via the new command _GETDEV that we
-> are discussing below? These netdevices that match the pattern come and
-> go, I guess user only wants to make sure they are actually registered
-> to this hook for diagnostics, showing an exact match, ie. tap0, or
-> inexact match, ie. tap* should be should when listing the ruleset IMO.
+Agreed.
 
-OK, let's see if I can sum this up correctly:
+> The debugfs directory we could remove immediately before handing over to the
+> scheduled workfn, but if it turns out there was a leak and the workfn leaves
+> the cache around, debugfs dir will be gone and we can't check the
+> alloc_traces/free_traces files there (but we have the per-object info
+> including the traces in the dmesg splat).
+> 
+> The sysfs directory is currently removed only with the whole cache being
+> destryed due to sysfs/kobject lifetime model. I'd love to untangle it for
+> other reasons too, but haven't investigated it yet. But again it might be
+> useful for sysfs dir to stay around for inspection, as for the debugfs.
+> 
+> We could rename the sysfs/debugfs directories before queuing the work? Add
+> some prefix like GOING_AWAY-$name. If leak is detected and cache stays
+> forever, another rename to LEAKED-$name. (and same for the slabinfo). But
+> multiple ones with same name might pile up, so try adding a counter then?
+> Probably messy to implement, but perhaps the most robust in the end? The
+> automatic counter could also solve the general case of people using same
+> name for multiple caches.
+> 
+> Other ideas?
 
-1) NFTA_HOOK_DEVS is changed to always reflect what the user specified
-2) Interfaces being removed or added trigger NEWDEV/DELDEV notifications
-3) Active hooks are dumped by GETDEV netlink request
-4) NEWDEV/DELDEV netlink requests/responses added to cover for oversized
-chains/flowtables
+Move the going-away files/directories to some new directoriesy?  But you
+would still need a counter or whatever.  I honestly cannot say what
+would be best from the viewpoint of existing software scanning those
+files and directories.
 
-You're saying we have to use (4) for wildcard interfaces, too. Is this
-to keep them away from NFTA_HOOK_DEVS? Because in theory 1-3 are
-sufficient for wildcards, too.
+							Thanx, Paul
 
-> > > I think we cannot escape adding new commands such as:
-> > > 
-> > > NFT_MSG_NEWDEVICE
-> > > NFT_MSG_GETDEVICE
-> > > NFT_MSG_DELDEVICE
-> > > 
-> > > to populate the basechain/flowtable, those can be used only if the
-> > > "subscription" mecanism is used, so older kernels still rely in
-> > > NFTA_HOOK_DEVS (older-older kernels actually already deal with
-> > > NFTA_HOOK_DEV only...).
+> Thanks,
+> Vlastimil
+> 
 > > 
-> > Why can't they co-exist? I.e., NFTA_HOOK_DEV{,S} continues to behave as
-> > before and NEWDEV/DELDEV modify the list of existing chains/flowtables.
-> > An explicit GETDEV to dump currently active interfaces seems reasonable,
-> > especially with wildcard specifiers in mind.
-> 
-> yes, NFTA_HOOK_DEVS and these new commands need to coexist, there is
-> no other way to retain backward compatibility.
-> 
-> > > NFT_MSG_NEWDEVICE can provide a flag to specify this is a wildcard
-> > > or exact matching.
+> > 							Thanx, Paul
 > > 
-> > I had the same mechanism we use for wildcard ifname matching in mind
-> > which is to specify a name length which either includes or excludes the
-> > terminating NUL-char. Using strncmp() is sufficient then.
-> 
-> That's fine.
-> 
-> > Or do you think more advanced (e.g. "enp*s0") wildcards are useful?
-> 
-> I prefer future does not bring "enp*s0", but let's agree on an API
-> that can be extended to accomodate new requirements, that's my only
-> comment in this regard.
-> 
-> > > There is also a need for a netlink attribute to specify if this is
-> > > adding a device to a chain or flowtable.
-> > 
-> > Since one has to specify the specific chain or flowtable to add to
-> > anyway, one could just add NFTA_DEV_CHAIN and NFTA_DEV_FLOWTABLE
-> > attributes, which are mutually exclusive and together with
-> > NFTA_DEV_TABLE identify the object to manipulate.
-> 
-> Right.
-> 
-> > > With these new commands, the NFT_NETDEVICE_MAX cap can also go away in
-> > > newer kernels with a command like this:
-> > > 
-> > >         nft add device flowtable ip x y { a, b, c }
-> > >         nft add device chain ip x y { a, b, c }
-> > > 
-> > > which expands to one one NFT_MSG_* message for each item.
-> > > 
-> > > Then, the nested notation will need to detect what to use depending on
-> > > the user input:
-> > > 
-> > >         table netdev x {
-> > >                 chain y {
-> > >                         type filter hook ingress devices = { tap* } priority 0
-> > >                 }
-> > >         }
-> > > 
-> > > this triggers the new commands path, same if the list of devices goes
-> > > over NFT_NETDEVICE_MAX (256).
-> > 
-> > This is for user space to remain compatible to older kernels, right?
-> 
-> Yes.
-> 
-> > > This can also help incrementally report on new devices that match on a
-> > > given "subscription pattern" via new NFT_MSG_NEWDEVICE command for
-> > > monitoring purpose.
-> > 
-> > Yes, adding NEWDEV/DELDEV notifications is a nice approach!
-> 
-> This will also help to remove the existing NFT_NETDEVICE_MAX limit.
-> 
-> > > Maybe a command like:
-> > > 
-> > >         nft list device chain ip x y
-> > > 
-> > > could be used to list the existing devices that are "active" as per
-> > > your definition, so:
-> > > 
-> > >         nft list ruleset
-> > > 
-> > > does not show the listing of "active" devices that expand to tap*,
-> > > because this is only informational (not really required to restore a
-> > > ruleset), I guess the user only wants this to inspect to make sure
-> > > what devices are registered to the given tap* pattern.
-> > 
-> > ACK.
-> > 
-> > > There is also another case that would need to be handled:
-> > > 
-> > >         - chain A with device tap0
-> > >         - chain B with wildcard device tap*
-> > > 
-> > > I would expect a "exclude" clause for the wildcard case will come
-> > > sooner or later to define a different policy for a specify chain.
-> > > The new specific command approach would be extensible in that sense.
-> > 
-> > As a first implementation, I would just forbid such combinations.
-> > Assuming "tap*" is just "tap" with length 3 and "tap0" is "tap0\0" with
-> > length 5, modifying the duplicate hook check in
-> > nf_tables_parse_netdev_hooks() to perform a strncmp(namea, nameb,
-> > min(lena, lenb)) should suffice.
-> 
-> That is fine to ensure a given basechain does not have both tap0 and tap*
-
-Ah, I missed that nf_tables_parse_netdev_hooks() merely searches the
-current list for duplicate entries, not all chains'/flowtables' ones.
-
-Hmm. I can create multiple netdev chains attaching to the same
-interfaces, but only a single flowtable. Is this intentional?
-
-> > Another option avoiding maintenance of an exclusion list would be to
-> > just add a new interface to the first chain/flowtable with matching hook
-> > in the list. This should work since 'nft list ruleset' does not sort the
-> > ruleset, so 'add chain t b; add chain t a' is a meaningful difference to
-> > 'add chain t a; add chain t b'.
-> > 
-> > The exclusion list approach either means tracking a list of active
-> > hooks' matching names in each wildcard hook or some preference when
-> > searching a hook for a new interface. All this may become increasingly
-> > complicated by stuff like one hook for 'eth*' and another for 'et*'.
-> > 
-> > > > This series is also prep work for a simple wildcard interface binding
-> > > > similar to the wildcard interface matching in meta expression. It should
-> > > > suffice to turn struct nft_hook::ops into an array of all matching
-> > > > interfaces, but the respective code does not exist yet.
-> > > 
-> > > I think this series is all about this wildcard interface matching,
-> > > which is not coming explicitly.
-> > 
-> > My motivation for this series is an open ticket complaining about the
-> > inability to define a flowtable for an interface which is created by
-> > NetworkManager (which depends on nftables service for startup).
-> > 
-> > A related (but not complained so far) issue is in reverse direction: If
-> > the interface vanishes before nftables service saves the ruleset upon
-> > shutdown, the dump will be incomplete.
-> >
-> > I consider wildcard interface hooks merely a (nice) side-effect from
-> > fixing the above. Which should not require too much additional work.
-> 
-> OK.
-> 
-> Thanks.
+> >> >> > > Since you do it asynchronous can we just repeat
+> >> >> > > and wait until it a cache is furry freed?
+> >> >> > 
+> >> >> > The problem is we want to detect the cases when it's not fully freed
+> >> >> > because there was an actual read. So at some point we'd need to stop the
+> >> >> > repeats because we know there can no longer be any kfree_rcu()'s in
+> >> >> > flight since the kmem_cache_destroy() was called.
+> >> >> > 
+> >> >> Agree. As noted above, we can go with 21 seconds(as an example) interval
+> >> >> and just perform destroy(without repeating).
+> >> >> 
+> >> >> --
+> >> >> Uladzislau Rezki
+> >> 
 > 
