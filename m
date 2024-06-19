@@ -1,153 +1,115 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-io1-f78.google.com (mail-io1-f78.google.com [209.85.166.78])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AB551CAB3;
-	Tue, 18 Jun 2024 17:53:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EACF1181
+	for <netfilter-devel@vger.kernel.org>; Wed, 19 Jun 2024 00:11:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.78
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718733192; cv=none; b=kSnnQIlXIyDZyMZIYrelGg5GpzzE6UVIcyin8UH+Cn7AikQJZPF1edfIg/CtsI+3QhrLSzWz/BdGb4Lhqgcik4J3r6Bbu1xp4dfhvaAk5tE3UbgB3lG0SGUE+s+KKQ2jmG0EiCcr8SJfHHDDLh31KRjqUovHz7Jsg2z5iI6Hb6w=
+	t=1718755882; cv=none; b=SoLbbi+g5ifBA4waHnyV0O75rb+w48xuIJ0QakgK7RLqXKI8yrsqT9A7yAHXvFZuv4zQ8DeMiMAuO8kLboVz7W305QM42wLf/NGQIrFneN6Y9dRXbgb/Hf+v6Eg5H/to1Lj6/VFnFQEq4q8/blzU+0eXKt1urxWKyGHXhOEB2tw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718733192; c=relaxed/simple;
-	bh=1oG2z1L2HMCk/Y21GlrePdx7AXyrdRLAZGfQqNCTU9I=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=hU2aa3P504iXMC1l6vLhXLIbQNepjd4AH8WLt94DPsNA7mEIN/5HYCHTkxQ6HT3Gci4rhNr5y0GLapeSQoG4woMhDbp8Lt9x2xb2Jgw5EUmVHAe2ppeVYx99Ci+xFayR5+C3nShY+YC/V11QrtUop5/rAzv6agxBm4meoPyyaMQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QkOp7f3+; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QkOp7f3+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 078A0C3277B;
-	Tue, 18 Jun 2024 17:53:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1718733192;
-	bh=1oG2z1L2HMCk/Y21GlrePdx7AXyrdRLAZGfQqNCTU9I=;
-	h=Date:From:To:Cc:Subject:Reply-To:References:In-Reply-To:From;
-	b=QkOp7f3+vMry8cAs4SIc1hm/gEn1nrjiwL7M2c0KKPR9yiamR54iaHuuCRGK7piGG
-	 +n42AXTyIq0ngAFYyq7228+ThonPylf7E7oMdT2aYR9Pj835uWmAGVPiU6S9gfNyhB
-	 yfkIq9lqKnRI9OARD5J0WUk6ozDPQ5dA8rkdgqCxf/WalWf2keAEK6iXZgRM6fR4Ch
-	 vHY9axBAPsFEWk9+VWTA6AYH4XWKV//PM6aKm/qaUrDDo0afnO6WO7QxPGZLE4pl9Y
-	 oz/l1kLMvMAbKJ2LAF3HRzkHJxiudjKsFXTmeXVFEuWrvtx/MztlGXtyweNvs6fNs6
-	 OSLwxNqjqPupw==
-Received: by paulmck-ThinkPad-P17-Gen-1.home (Postfix, from userid 1000)
-	id A0B31CE05B6; Tue, 18 Jun 2024 10:53:11 -0700 (PDT)
-Date: Tue, 18 Jun 2024 10:53:11 -0700
-From: "Paul E. McKenney" <paulmck@kernel.org>
-To: Vlastimil Babka <vbabka@suse.cz>
-Cc: Uladzislau Rezki <urezki@gmail.com>,
-	"Jason A. Donenfeld" <Jason@zx2c4.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Julia Lawall <Julia.Lawall@inria.fr>, linux-block@vger.kernel.org,
-	kernel-janitors@vger.kernel.org, bridge@lists.linux.dev,
-	linux-trace-kernel@vger.kernel.org,
-	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
-	kvm@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	"Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Nicholas Piggin <npiggin@gmail.com>, netdev@vger.kernel.org,
-	wireguard@lists.zx2c4.com, linux-kernel@vger.kernel.org,
-	ecryptfs@vger.kernel.org, Neil Brown <neilb@suse.de>,
-	Olga Kornievskaia <kolga@netapp.com>, Dai Ngo <Dai.Ngo@oracle.com>,
-	Tom Talpey <tom@talpey.com>, linux-nfs@vger.kernel.org,
-	linux-can@vger.kernel.org, Lai Jiangshan <jiangshanlai@gmail.com>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	kasan-dev <kasan-dev@googlegroups.com>
-Subject: Re: [PATCH 00/14] replace call_rcu by kfree_rcu for simple
- kmem_cache_free callback
-Message-ID: <6dad6e9f-e0ca-4446-be9c-1be25b2536dd@paulmck-laptop>
-Reply-To: paulmck@kernel.org
-References: <08ee7eb2-8d08-4f1f-9c46-495a544b8c0e@paulmck-laptop>
- <Zmrkkel0Fo4_g75a@zx2c4.com>
- <e926e3c6-05ce-4ba6-9e2e-e5f3b37bcc23@suse.cz>
- <3b6fe525-626c-41fb-8625-3925ca820d8e@paulmck-laptop>
- <6711935d-20b5-41c1-8864-db3fc7d7823d@suse.cz>
- <ZnCDgdg1EH6V7w5d@pc636>
- <36c60acd-543e-48c5-8bd2-6ed509972d28@suse.cz>
- <ZnFT1Czb8oRb0SE7@pc636>
- <5c8b2883-962f-431f-b2d3-3632755de3b0@paulmck-laptop>
- <9967fdfa-e649-456d-a0cb-b4c4bf7f9d68@suse.cz>
+	s=arc-20240116; t=1718755882; c=relaxed/simple;
+	bh=zUk4PJQj040+altTZQi2P9xGOdiRD/LpLPND1/EIfQE=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=Se6NnpUNZj6zItNrEteKht5fwFpL7G1N0mihSPNIih4NPWsKqmweml1TZbHnQ3YCy/fH0vCFe1gul+/oYSXSt0BqNtQ3U5NglY5Nszkb1hTlaS9Cmig4SMErDTAAGQWL5vCyiPjIJ3PmPWDBXjQ7oRkbTFaGCwgvc72rYrGDziw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.78
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-io1-f78.google.com with SMTP id ca18e2360f4ac-7eb84511dbfso732572939f.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jun 2024 17:11:20 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1718755880; x=1719360680;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=EXevxKNM8dWqLihLY7avM1/no8pefWJwTC3rupvj+TI=;
+        b=IIOhF/egr7NRSqOs1X4sQdAybmBNORqgkrLo6uXZT67d3Gn5x0b0t1DIdU82cdseYr
+         5ls1/rMlRE4zuhtzpZPVHpB9BQabJHydnjn5wy7TPVpQtyb/opTKKRbVdlUTYx2zyV9D
+         D+OF0QAnY7KYyobBRVbVh7RvhhcPmnsPVzXNSRSqQfgsqNaiZfcTq+L3kxWiBRt+H2C8
+         R7YXT3CcToy3TxZI9qkKN8mYaPfhuFfCKtZUlDEeBGSF+xfhacIgNCQgkesmyEKE0SS2
+         2lNgVsskVUlLWIkXNXhl02LbNHd6f16OnLXtlfd9djF48GsduuCWtVPtVmzQxYcBwcmA
+         NSGg==
+X-Forwarded-Encrypted: i=1; AJvYcCXXmU9iPrTJYezcCaNODXmlBb3ecEWyx5aIzQG+bG6/gPVzjJYeTlaBVFlRkh1GibzqDWlYf+vuraJ1hp9JVRwnhkjiJ0F2qIxJxo37reJK
+X-Gm-Message-State: AOJu0YxJnab6F2q7SQydFGmGaDGVAlk7+LGEUaStPM4Fm3Vx98YTKU06
+	hvMqPUbgD8i1iurds1BOPsX+TQ/W8/QIBTK1HYIuXliw7Aabc3FR2VL/JvSPYA34gYPNn2bTBqW
+	JkZJUfIUOyOW4lLbbYHFzXoK27/t4BmQJaW5m3Cyd0XsD4c6XIZB8sAE=
+X-Google-Smtp-Source: AGHT+IFHaOVDQCA7cLz/diVjEC310AujbXQfgMqkJKgZXogK4WkdNQ3r+IwuHk/Nn//3yAdo/EWp8nQiCEwifxVbQ02O5y7z2sMT
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <9967fdfa-e649-456d-a0cb-b4c4bf7f9d68@suse.cz>
+X-Received: by 2002:a05:6638:890c:b0:4b9:ad20:521d with SMTP id
+ 8926c6da1cb9f-4b9ad205468mr30266173.1.1718755880145; Tue, 18 Jun 2024
+ 17:11:20 -0700 (PDT)
+Date: Tue, 18 Jun 2024 17:11:20 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000b123a6061b33099c@google.com>
+Subject: [syzbot] [netfilter?] net-next test error: WARNING: suspicious RCU
+ usage in corrupted
+From: syzbot <syzbot+6c048081aec46ad4ddf5@syzkaller.appspotmail.com>
+To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
+	kadlec@netfilter.org, kuba@kernel.org, linux-kernel@vger.kernel.org, 
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pabeni@redhat.com, 
+	pablo@netfilter.org, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-On Tue, Jun 18, 2024 at 07:21:42PM +0200, Vlastimil Babka wrote:
-> On 6/18/24 6:48 PM, Paul E. McKenney wrote:
-> > On Tue, Jun 18, 2024 at 11:31:00AM +0200, Uladzislau Rezki wrote:
-> >> > On 6/17/24 8:42 PM, Uladzislau Rezki wrote:
-> >> > >> +
-> >> > >> +	s = container_of(work, struct kmem_cache, async_destroy_work);
-> >> > >> +
-> >> > >> +	// XXX use the real kmem_cache_free_barrier() or similar thing here
-> >> > > It implies that we need to introduce kfree_rcu_barrier(), a new API, which i
-> >> > > wanted to avoid initially.
-> >> > 
-> >> > I wanted to avoid new API or flags for kfree_rcu() users and this would
-> >> > be achieved. The barrier is used internally so I don't consider that an
-> >> > API to avoid. How difficult is the implementation is another question,
-> >> > depending on how the current batching works. Once (if) we have sheaves
-> >> > proven to work and move kfree_rcu() fully into SLUB, the barrier might
-> >> > also look different and hopefully easier. So maybe it's not worth to
-> >> > invest too much into that barrier and just go for the potentially
-> >> > longer, but easier to implement?
-> >> > 
-> >> Right. I agree here. If the cache is not empty, OK, we just defer the
-> >> work, even we can use a big 21 seconds delay, after that we just "warn"
-> >> if it is still not empty and leave it as it is, i.e. emit a warning and
-> >> we are done.
-> >> 
-> >> Destroying the cache is not something that must happen right away. 
-> > 
-> > OK, I have to ask...
-> > 
-> > Suppose that the cache is created and destroyed by a module and
-> > init/cleanup time, respectively.  Suppose that this module is rmmod'ed
-> > then very quickly insmod'ed.
-> > 
-> > Do we need to fail the insmod if the kmem_cache has not yet been fully
-> > cleaned up?
-> 
-> We don't have any such link between kmem_cache and module to detect that, so
-> we would have to start tracking that. Probably not worth the trouble.
+Hello,
 
-Fair enough!
+syzbot found the following issue on:
 
-> >  If not, do we have two versions of the same kmem_cache in
-> > /proc during the overlap time?
-> 
-> Hm could happen in /proc/slabinfo but without being harmful other than
-> perhaps confusing someone. We could filter out the caches being destroyed
-> trivially.
+HEAD commit:    4314175af496 Merge branch 'net-smc-IPPROTO_SMC'
+git tree:       net-next
+console output: https://syzkaller.appspot.com/x/log.txt?x=14f4852e980000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=7266aeba025a54a4
+dashboard link: https://syzkaller.appspot.com/bug?extid=6c048081aec46ad4ddf5
+compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
 
-Or mark them in /proc/slabinfo?  Yet another column, yay!!!  Or script
-breakage from flagging the name somehow, for example, trailing "/"
-character.
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/48b3722e2009/disk-4314175a.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/2297abec79e7/vmlinux-4314175a.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/1e99b4419b68/bzImage-4314175a.xz
 
-> Sysfs and debugfs might be more problematic as I suppose directory names
-> would clash. I'll have to check... might be even happening now when we do
-> detect leaked objects and just leave the cache around... thanks for the
-> question.
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+6c048081aec46ad4ddf5@syzkaller.appspotmail.com
 
-"It is a service that I provide."  ;-)
+=============================
+WARNING: suspicious RCU usage
+6.10.0-rc3-syzkaller-00696-g4314175af496 #0 Not tainted
+-----------------------------
+net/netfilter/ipset/ip_set_core.c:1200 suspicious rcu_dereference_protected() usage!
 
-But yes, we might be living with it already and there might already
-be ways people deal with it.
+other info that might help us debug this:
 
-							Thanx, Paul
 
-> >> > > Since you do it asynchronous can we just repeat
-> >> > > and wait until it a cache is furry freed?
-> >> > 
-> >> > The problem is we want to detect the cases when it's not fully freed
-> >> > because there was an actual read. So at some point we'd need to stop the
-> >> > repeats because we know there can no longer be any kfree_rcu()'s in
-> >> > flight since the kmem_cache_destroy() was called.
-> >> > 
-> >> Agree. As noted above, we can go with 21 seconds(as an example) interval
-> >> and just perform destroy(without repeating).
-> >> 
-> >> --
-> >> Uladzislau Rezki
-> 
+rcu_scheduler_active = 2, debug_locks = 1
+3 locks held by kworker/u8:3/51:
+ #0: ffff888015edd948 ((wq_completion)netns){+.+.}-{0:0}, at: process_one_work kernel/workqueue.c:3206 [inline]
+ #0: ffff888015edd948 ((wq_completion)netns){+.+.}-{0:0}, at: process_scheduled_works+0x90a/0x1830 kernel/workqueue.c:3312
+ #1: ffffc90000bb7d00 (net_cleanup_work){+.+.}-{0:0}, at: process_one_work kernel/workqueue.c:3207 [inline]
+ #1: ffffc90000bb7d00 (net_cleanup_work){+.+.}-{0:0}, at: process_scheduled_works+0x945/0x1830 kernel/workqueue.c:3312
+ #2: ffffffff8f5db650 (pernet_ops_rwsem){++++}-{3:3}, at: cleanup_net+0x16a/0xcc0 net/core/net_namespace.c:594
+
+stack backtrace:
+CPU: 0 PID: 51 Comm
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
