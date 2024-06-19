@@ -1,13 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 0989C1848;
-	Wed, 19 Jun 2024 17:05:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1D34B20DCB;
+	Wed, 19 Jun 2024 17:05:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718816752; cv=none; b=pWsaYFxaSPkas63dD8mjO5xzGxbFQVkv3o4llMVP3yoB3OqTtouuuevQTiEAMy7OypOclaVImWGbTNOb7AsICGkNICBJF3nRLA0ZA6t4cyGSX8iz2ycCawhr6oThkwgIXlOP+J7No+aNf9XTXsnKK47xRjTlynT73hB7Rmucr7w=
+	t=1718816753; cv=none; b=t9jrJjvTFX7xHyIPLWyeyNPBXX0qVhz1uERf1iCPVeXjvKT1KAS6BRUD2l6U+zFgcAuxUblujPvP9Iu4XgUFDeLI6vKJi3fM4RmfjQWfxGcmCZG/zBzQBzar3nYyAiYMDDxqmC+7x/Kcikgw9okjqfpbX/70n/OQnfRf/xC7ou4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718816752; c=relaxed/simple;
-	bh=AFWtC+KFuj3ZvwsSS+G3o68131MSoPf01hAva18aIXU=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=P0TvkMLzh43MNEtGsx1XRVq5RhB2S42Ar0JETTqpWZL9/xQ8aOb8ZBxxoK7pc/RKrbaO9V4B6MNBvv1SLdAbzx0mIdGufrHDSXAebyvcVc12t90NwTiakhlhHW7rViRCZUndJDAesbcqWNKPUH1t8uzX13TMgRkTmTElcgDaVao=
+	s=arc-20240116; t=1718816753; c=relaxed/simple;
+	bh=XhAeErKeKgR5ADcPpPZ7jIw3mLPcRI+5ucAxD/EDFuE=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=i15CmGPr4lYAb9fVzdwm+jQOtI+R3r1j9N7/KdZqkFUg+zUVFFzyIDuAdlOnvEiRQJEYL4gGvznUnsBjmamvEE5gjqFzpus4GWfCFsSGy+FVU89BiJwbD2+EiuMVf4rJ/XcY9cEgZ6vNAxxObfzl1pyY/l1t1RiNfsPI45RZXRM=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -19,10 +20,12 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 0/5] Netfilter fixes for net
-Date: Wed, 19 Jun 2024 19:05:32 +0200
-Message-Id: <20240619170537.2846-1-pablo@netfilter.org>
+Subject: [PATCH net 1/5] netfilter: ipset: Fix suspicious rcu_dereference_protected()
+Date: Wed, 19 Jun 2024 19:05:33 +0200
+Message-Id: <20240619170537.2846-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20240619170537.2846-1-pablo@netfilter.org>
+References: <20240619170537.2846-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,68 +34,56 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Jozsef Kadlecsik <kadlec@netfilter.org>
 
-The following patchset contains Netfilter fixes for net:
+When destroying all sets, we are either in pernet exit phase or
+are executing a "destroy all sets command" from userspace. The latter
+was taken into account in ip_set_dereference() (nfnetlink mutex is held),
+but the former was not. The patch adds the required check to
+rcu_dereference_protected() in ip_set_dereference().
 
-Patch #1 fixes the suspicious RCU usage warning that resulted from the
-	 recent fix for the race between namespace cleanup and gc in
-	 ipset left out checking the pernet exit phase when calling
-	 rcu_dereference_protected(), from Jozsef Kadlecsik.
+Fixes: 4e7aaa6b82d6 ("netfilter: ipset: Fix race between namespace cleanup and gc in the list:set type")
+Reported-by: syzbot+b62c37cdd58103293a5a@syzkaller.appspotmail.com
+Reported-by: syzbot+cfbe1da5fdfc39efc293@syzkaller.appspotmail.com
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202406141556.e0b6f17e-lkp@intel.com
+Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/ipset/ip_set_core.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-Patch #2 fixes incorrect input and output netdevice in SRv6 prerouting
-	 hooks, from Jianguo Wu.
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index c7ae4d9bf3d2..61431690cbd5 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -53,12 +53,13 @@ MODULE_DESCRIPTION("core IP set support");
+ MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_IPSET);
+ 
+ /* When the nfnl mutex or ip_set_ref_lock is held: */
+-#define ip_set_dereference(p)		\
+-	rcu_dereference_protected(p,	\
++#define ip_set_dereference(inst)	\
++	rcu_dereference_protected((inst)->ip_set_list,	\
+ 		lockdep_nfnl_is_held(NFNL_SUBSYS_IPSET) || \
+-		lockdep_is_held(&ip_set_ref_lock))
++		lockdep_is_held(&ip_set_ref_lock) || \
++		(inst)->is_deleted)
+ #define ip_set(inst, id)		\
+-	ip_set_dereference((inst)->ip_set_list)[id]
++	ip_set_dereference(inst)[id]
+ #define ip_set_ref_netlink(inst,id)	\
+ 	rcu_dereference_raw((inst)->ip_set_list)[id]
+ #define ip_set_dereference_nfnl(p)	\
+@@ -1133,7 +1134,7 @@ static int ip_set_create(struct sk_buff *skb, const struct nfnl_info *info,
+ 		if (!list)
+ 			goto cleanup;
+ 		/* nfnl mutex is held, both lists are valid */
+-		tmp = ip_set_dereference(inst->ip_set_list);
++		tmp = ip_set_dereference(inst);
+ 		memcpy(list, tmp, sizeof(struct ip_set *) * inst->ip_set_max);
+ 		rcu_assign_pointer(inst->ip_set_list, list);
+ 		/* Make sure all current packets have passed through */
+-- 
+2.30.2
 
-Patch #3 moves nf_hooks_lwtunnel sysctl toggle to the netfilter core.
-	 The connection tracking system is loaded on-demand, this
-	 ensures availability of this knob regardless.
-
-Patch #4-#5 adds selftests for SRv6 netfilter hooks also from Jianguo Wu.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-24-06-19
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit a8763466669d21b570b26160d0a5e0a2ee529d22:
-
-  selftests: openvswitch: Set value to nla flags. (2024-06-19 13:10:53 +0100)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-24-06-19
-
-for you to fetch changes up to 221200ffeb065c6bbd196760c168b42305961655:
-
-  selftests: add selftest for the SRv6 End.DX6 behavior with netfilter (2024-06-19 18:42:10 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 24-06-19
-
-----------------------------------------------------------------
-Jianguo Wu (4):
-      seg6: fix parameter passing when calling NF_HOOK() in End.DX4 and End.DX6 behaviors
-      netfilter: move the sysctl nf_hooks_lwtunnel into the netfilter core
-      selftests: add selftest for the SRv6 End.DX4 behavior with netfilter
-      selftests: add selftest for the SRv6 End.DX6 behavior with netfilter
-
-Jozsef Kadlecsik (1):
-      netfilter: ipset: Fix suspicious rcu_dereference_protected()
-
- include/net/netns/netfilter.h                      |   3 +
- net/ipv6/seg6_local.c                              |   8 +-
- net/netfilter/core.c                               |  13 +-
- net/netfilter/ipset/ip_set_core.c                  |  11 +-
- net/netfilter/nf_conntrack_standalone.c            |  15 -
- net/netfilter/nf_hooks_lwtunnel.c                  |  67 ++++
- net/netfilter/nf_internals.h                       |   6 +
- tools/testing/selftests/net/Makefile               |   2 +
- tools/testing/selftests/net/config                 |   2 +
- .../selftests/net/srv6_end_dx4_netfilter_test.sh   | 335 ++++++++++++++++++++
- .../selftests/net/srv6_end_dx6_netfilter_test.sh   | 340 +++++++++++++++++++++
- 11 files changed, 776 insertions(+), 26 deletions(-)
- create mode 100755 tools/testing/selftests/net/srv6_end_dx4_netfilter_test.sh
- create mode 100755 tools/testing/selftests/net/srv6_end_dx6_netfilter_test.sh
