@@ -1,421 +1,181 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9AD7C156242;
-	Wed, 19 Jun 2024 17:05:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from mail-ed1-f73.google.com (mail-ed1-f73.google.com [209.85.208.73])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58527156F37
+	for <netfilter-devel@vger.kernel.org>; Wed, 19 Jun 2024 19:05:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.73
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718816755; cv=none; b=ekqeEKDklDBfR/VdJXlfK7hqdGKH2bjP+IJ+2+zrQWFnrtpqWedQ6MAJsJU1gIAz+W/ltzAfSBbUiJgxg9gwpqIl5OqBujZ2U7tG5KAvdv7mPCUR2RDmh77ayWNMONE4S1/EigiFL7hBoCu7g6ziQWLp4HO39tWaqUvS/EgSvvg=
+	t=1718823910; cv=none; b=mVrJexYWqNyG9Kcs7R5Nxoi0KIAxtQx4dEYJrv5HDE7Ta5xbyjiLg9nqUQc3eXoKNxIb7foiRNeOw0/E0u5drwVzWb8GlwCXHfIX6oaTwMpgA1wAN9viRiQJ8hLq4xFGMY2QCh/A11/CTBRcCYvCtS/Z7GaPn71RJYlQMpqrqvw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718816755; c=relaxed/simple;
-	bh=nt1G2C3kPWJaNCi9c9dGTZBHcvPYesKvmAl9nL5WZEQ=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=GEyBDbPj0imU9gGBNOXQ/Ga1MdJOYcqWHv8DuvoP4Xvk3pkOSBxBTUJPK0Hf8Ym8DSLnual7SdWomRfAp3HCu8bw8Pc6rHW70TIAyFGF79FxUdPMD+kEEgVIMHNwsAEFzv1IBSuY5e1tMbiBEvLC26cga3BICa7GEbKnuz1y95E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	fw@strlen.de
-Subject: [PATCH net 5/5] selftests: add selftest for the SRv6 End.DX6 behavior with netfilter
-Date: Wed, 19 Jun 2024 19:05:37 +0200
-Message-Id: <20240619170537.2846-6-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20240619170537.2846-1-pablo@netfilter.org>
-References: <20240619170537.2846-1-pablo@netfilter.org>
+	s=arc-20240116; t=1718823910; c=relaxed/simple;
+	bh=HsYG3u4BQt6CoTRVpqG4TEiDfmw8LWNDnatTsKEzkb8=;
+	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
+	 To:Cc:Content-Type; b=N9Sdc1xXQZ1yvDcrwruBiCwDvD3b+XhyAjhi4Huqn7ejJn/JMxAtx57wBM+f5/UviS1rv8ncdrdqFFgdHL1dicpO55fOnQT+nxAzSJyiNrTmXdZS3V4AbxC1GLWSPc4dmQynAaiDooJxD0gAmHnde9ZBe1XQlTIyoCi5zaJ7aWQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=SJR23Yxz; arc=none smtp.client-ip=209.85.208.73
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="SJR23Yxz"
+Received: by mail-ed1-f73.google.com with SMTP id 4fb4d7f45d1cf-57ceb0e6a06so10538a12.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jun 2024 12:05:08 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1718823907; x=1719428707; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:from:subject:message-id:references
+         :mime-version:in-reply-to:date:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=5cBZWGbah1lE3Ejb3luq7CWnw8Aj0HxoLRS/D6N+3r0=;
+        b=SJR23YxzaYyvW889BAghG+CvSfV2szgHsex7117rRvLYhbedINvbUeXSLHENS/+L2K
+         CXz3iARAOH90Rx6N4c+C6p+Rs1V6CuAdqcs4/BnJaYUMpgolamWwtBN48ETE4nUCjadF
+         6Jo8a60Q1ICIIYpoVrB+93zCyFjXMrq41JIaKGos3QGBJ5bMDUUAnGIVh+qaUcsIfMOF
+         h5x10boO4sdlWbfy89DrYsUcu9obMjPESsnxwhDJMk5i89pjG4JzyT0adn0iRlnXxtmW
+         E1DcFui3UJTpuJBFLArrkwSGRA82rTxO0aOq9EJI/FkewsqCud2C+RjPHog2jFm6fwNl
+         kZ3A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1718823907; x=1719428707;
+        h=content-transfer-encoding:cc:to:from:subject:message-id:references
+         :mime-version:in-reply-to:date:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=5cBZWGbah1lE3Ejb3luq7CWnw8Aj0HxoLRS/D6N+3r0=;
+        b=qQdhUukr9z9bRFGO0Iz7gcGoTXQdGMLseG2wbUxL8bmWHJrMzEBKk0dtQYJJi/md7o
+         GSfKPEpPiufdrWsx7v73IT2+1+TWqynWwSKh85hZ3em6s4acPBaTChy+5cLpZdMyKUC8
+         nCDbW2TkSXQ+U7oRyPP3+7KvSdK+scj/JNSGe4SBfxvoYTbx5xDvW0BLUOtHX5wCNPzX
+         a4CoZJcMqwVtjPQq1EJCfbA4tE/hobiGJRrfmM9VC2nWor6U2QtFj6174D2wZyzcEBMq
+         B+s1TTVMmfzLiWKCq0xGxZzX7dHw6a0RwfZyPEgqim4SzcU0S/HhFt0vk4y8FhatGR6T
+         maKw==
+X-Forwarded-Encrypted: i=1; AJvYcCUpVKtT5oltSYFawpeYfDy1Tl1KjDBlJW44EJWDopO0C4u8atOiKtx96ThtxQwBQiQ3mgGOrVb04b+3Dyh4YGWyem5jsP2oT4K/diKhiD2K
+X-Gm-Message-State: AOJu0Yy8yhOZ7nfwKESLjFY6NXQXsoDZKjSDmnoTkmGEXPQDjo9cTmqm
+	55TOL/jl7rbf5xj1Nu3sRdj5H6whTnDfS5xUibQrsPsY4iY3OR4AQXLGky2/STvaqr3dp2xuJNF
+	eAQ==
+X-Google-Smtp-Source: AGHT+IH6ezgKV5I5dqSOcFIAzwyP5l78NkMHv7BZHgz0EUfSDl2F76DIwt6VZIICzod9Kw3Y9KPHF1bf3Jc=
+X-Received: from swim.c.googlers.com ([fda3:e722:ac3:cc00:31:98fb:c0a8:1605])
+ (user=gnoack job=sendgmr) by 2002:a05:6402:1608:b0:57c:7cda:6757 with SMTP id
+ 4fb4d7f45d1cf-57d07edca18mr2461a12.6.1718823906227; Wed, 19 Jun 2024 12:05:06
+ -0700 (PDT)
+Date: Wed, 19 Jun 2024 21:05:03 +0200
+In-Reply-To: <a18333c0-4efc-dcf4-a219-ec46480352b1@huawei-partners.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
+References: <20240408094747.1761850-1-ivanov.mikhail1@huawei-partners.com>
+ <20240408094747.1761850-2-ivanov.mikhail1@huawei-partners.com>
+ <20240425.Soot5eNeexol@digikod.net> <a18333c0-4efc-dcf4-a219-ec46480352b1@huawei-partners.com>
+Message-ID: <ZnMr30kSCGME16rO@google.com>
+Subject: Re: [PATCH 1/2] landlock: Add hook on socket_listen()
+From: "=?utf-8?Q?G=C3=BCnther?= Noack" <gnoack@google.com>
+To: Ivanov Mikhail <ivanov.mikhail1@huawei-partners.com>
+Cc: "=?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?=" <mic@digikod.net>, willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com, 
+	linux-security-module@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, yusongping@huawei.com, 
+	artem.kuzin@huawei.com, konstantin.meskhidze@huawei.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-From: Jianguo Wu <wujianguo@chinatelecom.cn>
+I agree with Micka=C3=ABl's comment: this seems like an important fix.
 
-this selftest is designed for evaluating the SRv6 End.DX6 behavior
-used with netfilter(rpfilter), in this example, for implementing
-IPv6 L3 VPN use cases.
+Mostly for completeness: I played with the "socket type" patch set in a "TC=
+P
+server" example, where *all* possible operations are restricted with Landlo=
+ck,
+including the ones from the "socket type" patch set V2 with the little fix =
+we
+discussed.
 
-Signed-off-by: Jianguo Wu <wujianguo@chinatelecom.cn>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- tools/testing/selftests/net/Makefile          |   1 +
- tools/testing/selftests/net/config            |   1 +
- .../net/srv6_end_dx6_netfilter_test.sh        | 340 ++++++++++++++++++
- 3 files changed, 342 insertions(+)
- create mode 100755 tools/testing/selftests/net/srv6_end_dx6_netfilter_test.sh
+ - socket()
+ - bind()
+ - enforce a landlock ruleset restricting:
+   - file system access
+   - all TCP bind and connect
+   - socket creation
+ - listen()
+ - accept()
 
-diff --git a/tools/testing/selftests/net/Makefile b/tools/testing/selftests/net/Makefile
-index 7a5f7dd320de..d9393569d03a 100644
---- a/tools/testing/selftests/net/Makefile
-+++ b/tools/testing/selftests/net/Makefile
-@@ -44,6 +44,7 @@ TEST_PROGS += srv6_end_next_csid_l3vpn_test.sh
- TEST_PROGS += srv6_end_x_next_csid_l3vpn_test.sh
- TEST_PROGS += srv6_end_flavors_test.sh
- TEST_PROGS += srv6_end_dx4_netfilter_test.sh
-+TEST_PROGS += srv6_end_dx6_netfilter_test.sh
- TEST_PROGS += vrf_strict_mode_test.sh
- TEST_PROGS += arp_ndisc_evict_nocarrier.sh
- TEST_PROGS += ndisc_unsolicited_na_test.sh
-diff --git a/tools/testing/selftests/net/config b/tools/testing/selftests/net/config
-index c2766e558f92..d4891f7a2bfa 100644
---- a/tools/testing/selftests/net/config
-+++ b/tools/testing/selftests/net/config
-@@ -102,3 +102,4 @@ CONFIG_CRYPTO_ARIA=y
- CONFIG_XFRM_INTERFACE=m
- CONFIG_XFRM_USER=m
- CONFIG_IP_NF_MATCH_RPFILTER=m
-+CONFIG_IP6_NF_MATCH_RPFILTER=m
-diff --git a/tools/testing/selftests/net/srv6_end_dx6_netfilter_test.sh b/tools/testing/selftests/net/srv6_end_dx6_netfilter_test.sh
-new file mode 100755
-index 000000000000..9e69a2ed5bc3
---- /dev/null
-+++ b/tools/testing/selftests/net/srv6_end_dx6_netfilter_test.sh
-@@ -0,0 +1,340 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+#
-+# author: Jianguo Wu <wujianguo@chinatelecom.cn>
-+#
-+# Mostly copied from tools/testing/selftests/net/srv6_end_dt6_l3vpn_test.sh.
-+#
-+# This script is designed for testing the support of netfilter hooks for
-+# SRv6 End.DX4 behavior.
-+#
-+# Hereafter a network diagram is shown, where one tenants (named 100) offer
-+# IPv6 L3 VPN services allowing hosts to communicate with each other across
-+# an IPv6 network.
-+#
-+# Routers rt-1 and rt-2 implement IPv6 L3 VPN services leveraging the SRv6
-+# architecture. The key components for such VPNs are: a) SRv6 Encap behavior,
-+# b) SRv6 End.DX4 behavior.
-+#
-+# To explain how an IPv6 L3 VPN based on SRv6 works, let us briefly consider an
-+# example where, within the same domain of tenant 100, the host hs-1 pings
-+# the host hs-2.
-+#
-+# First of all, L2 reachability of the host hs-2 is taken into account by
-+# the router rt-1 which acts as an arp proxy.
-+#
-+# When the host hs-1 sends an IPv6 packet destined to hs-2, the router rt-1
-+# receives the packet on the internal veth-t100 interface, rt-1 contains the
-+# SRv6 Encap route for encapsulating the IPv6 packet in a IPv6 plus the Segment
-+# Routing Header (SRH) packet. This packet is sent through the (IPv6) core
-+# network up to the router rt-2 that receives it on veth0 interface.
-+#
-+# The rt-2 router uses the 'localsid' routing table to process incoming
-+# IPv6+SRH packets which belong to the VPN of the tenant 100. For each of these
-+# packets, the SRv6 End.DX4 behavior removes the outer IPv6+SRH headers and
-+# routs the packet to the specified nexthop. Afterwards, the packet is sent to
-+# the host hs-2 through the veth-t100 interface.
-+#
-+# The ping response follows the same processing but this time the role of rt-1
-+# and rt-2 are swapped.
-+#
-+# And when net.netfilter.nf_hooks_lwtunnel is set to 1 in rt-1 or rt-2, and a
-+# rpfilter iptables rule is added, SRv6 packets will go through netfilter PREROUTING
-+# hooks.
-+#
-+#
-+# +-------------------+                                   +-------------------+
-+# |                   |                                   |                   |
-+# |    hs-1 netns     |                                   |     hs-2 netns    |
-+# |                   |                                   |                   |
-+# |  +-------------+  |                                   |  +-------------+  |
-+# |  |    veth0    |  |                                   |  |    veth0    |  |
-+# |  | cafe::1/64  |  |                                   |  | cafe::2/64  |  |
-+# |  +-------------+  |                                   |  +-------------+  |
-+# |        .          |                                   |         .         |
-+# +-------------------+                                   +-------------------+
-+#          .                                                        .
-+#          .                                                        .
-+#          .                                                        .
-+# +-----------------------------------+   +-----------------------------------+
-+# |        .                          |   |                         .         |
-+# | +---------------+                 |   |                 +---------------- |
-+# | |   veth-t100   |                 |   |                 |   veth-t100   | |
-+# | | cafe::11/64   |    +----------+ |   | +----------+    | cafe::22/64   | |
-+# | +-------+-------+   |   route   | |   | |   route  |    +-------+-------- |
-+# |                     |   table   | |   | |   table  |                      |
-+# |                      +----------+ |   | +----------+                      |
-+# |                  +--------------+ |   | +--------------+                  |
-+# |                 |      veth0    | |   | |   veth0       |                 |
-+# |                 | 2001:11::1/64 |.|...|.| 2001:11::2/64 |                 |
-+# |                  +--------------+ |   | +--------------+                  |
-+# |                                   |   |                                   |
-+# |                        rt-1 netns |   | rt-2 netns                        |
-+# |                                   |   |                                   |
-+# +-----------------------------------+   +-----------------------------------+
-+#
-+# ~~~~~~~~~~~~~~~~~~~~~~~~~
-+# | Network configuration |
-+# ~~~~~~~~~~~~~~~~~~~~~~~~~
-+#
-+# rt-1: localsid table
-+# +----------------------------------------------------------------+
-+# |SID              |Action                                        |
-+# +----------------------------------------------------------------+
-+# |fc00:21:100::6004|apply SRv6 End.DX6 nh6 cafe::1 dev veth-t100  |
-+# +----------------------------------------------------------------+
-+#
-+# rt-1: route table
-+# +---------------------------------------------------+
-+# |host       |Action                                 |
-+# +---------------------------------------------------+
-+# |cafe::2    |apply seg6 encap segs fc00:12:100::6004|
-+# +---------------------------------------------------+
-+# |cafe::/64  |forward to dev veth_t100               |
-+# +---------------------------------------------------+
-+#
-+#
-+# rt-2: localsid table
-+# +---------------------------------------------------------------+
-+# |SID              |Action                                       |
-+# +---------------------------------------------------------------+
-+# |fc00:12:100::6004|apply SRv6 End.DX6 nh6 cafe::2 dev veth-t100 |
-+# +---------------------------------------------------------------+
-+#
-+# rt-2: route table
-+# +---------------------------------------------------+
-+# |host       |Action                                 |
-+# +---------------------------------------------------+
-+# |cafe::1    |apply seg6 encap segs fc00:21:100::6004|
-+# +---------------------------------------------------+
-+# |cafe::/64  |forward to dev veth_t100               |
-+# +---------------------------------------------------+
-+#
-+
-+# Kselftest framework requirement - SKIP code is 4.
-+ksft_skip=4
-+
-+readonly IPv6_RT_NETWORK=2001:11
-+readonly IPv6_HS_NETWORK=cafe
-+readonly SID_LOCATOR=fc00
-+
-+PING_TIMEOUT_SEC=4
-+
-+ret=0
-+
-+PAUSE_ON_FAIL=${PAUSE_ON_FAIL:=no}
-+
-+log_test()
-+{
-+	local rc=$1
-+	local expected=$2
-+	local msg="$3"
-+
-+	if [ ${rc} -eq ${expected} ]; then
-+		nsuccess=$((nsuccess+1))
-+		printf "\n    TEST: %-60s  [ OK ]\n" "${msg}"
-+	else
-+		ret=1
-+		nfail=$((nfail+1))
-+		printf "\n    TEST: %-60s  [FAIL]\n" "${msg}"
-+		if [ "${PAUSE_ON_FAIL}" = "yes" ]; then
-+			echo
-+			echo "hit enter to continue, 'q' to quit"
-+			read a
-+			[ "$a" = "q" ] && exit 1
-+		fi
-+	fi
-+}
-+
-+print_log_test_results()
-+{
-+	if [ "$TESTS" != "none" ]; then
-+		printf "\nTests passed: %3d\n" ${nsuccess}
-+		printf "Tests failed: %3d\n"   ${nfail}
-+	fi
-+}
-+
-+log_section()
-+{
-+	echo
-+	echo "################################################################################"
-+	echo "TEST SECTION: $*"
-+	echo "################################################################################"
-+}
-+
-+cleanup()
-+{
-+	ip link del veth-rt-1 2>/dev/null || true
-+	ip link del veth-rt-2 2>/dev/null || true
-+
-+	# destroy routers rt-* and hosts hs-*
-+	for ns in $(ip netns show | grep -E 'rt-*|hs-*'); do
-+		ip netns del ${ns} || true
-+	done
-+}
-+
-+# Setup the basic networking for the routers
-+setup_rt_networking()
-+{
-+	local rt=$1
-+	local nsname=rt-${rt}
-+
-+	ip netns add ${nsname}
-+
-+	ip netns exec ${nsname} sysctl -wq net.ipv6.conf.all.accept_dad=0
-+	ip netns exec ${nsname} sysctl -wq net.ipv6.conf.default.accept_dad=0
-+
-+	ip link set veth-rt-${rt} netns ${nsname}
-+	ip -netns ${nsname} link set veth-rt-${rt} name veth0
-+
-+	ip -netns ${nsname} addr add ${IPv6_RT_NETWORK}::${rt}/64 dev veth0 nodad
-+	ip -netns ${nsname} link set veth0 up
-+	ip -netns ${nsname} link set lo up
-+
-+	ip netns exec ${nsname} sysctl -wq net.ipv6.conf.all.forwarding=1
-+}
-+
-+setup_rt_netfilter()
-+{
-+	local rt=$1
-+	local nsname=rt-${rt}
-+
-+	ip netns exec ${nsname} sysctl -wq net.netfilter.nf_hooks_lwtunnel=1
-+	ip netns exec ${nsname} ip6tables -t raw -A PREROUTING -m rpfilter --invert -j DROP
-+}
-+
-+setup_hs()
-+{
-+	local hs=$1
-+	local rt=$2
-+	local tid=$3
-+	local hsname=hs-${hs}
-+	local rtname=rt-${rt}
-+	local rtveth=veth-t${tid}
-+
-+	# set the networking for the host
-+	ip netns add ${hsname}
-+
-+	ip -netns ${hsname} link add veth0 type veth peer name ${rtveth}
-+	ip -netns ${hsname} link set ${rtveth} netns ${rtname}
-+	ip -netns ${hsname} addr add ${IPv6_HS_NETWORK}::${hs}/64 dev veth0 nodad
-+	ip -netns ${hsname} link set veth0 up
-+	ip -netns ${hsname} link set lo up
-+
-+	ip -netns ${rtname} addr add ${IPv6_HS_NETWORK}::${rt}${hs}/64 dev ${rtveth}
-+	ip -netns ${rtname} link set ${rtveth} up
-+
-+	ip netns exec ${rtname} sysctl -wq net.ipv6.conf.all.accept_dad=0
-+	ip netns exec ${rtname} sysctl -wq net.ipv6.conf.default.accept_dad=0
-+
-+	ip netns exec ${rtname} sysctl -wq net.ipv6.conf.${rtveth}.proxy_ndp=1
-+}
-+
-+setup_vpn_config()
-+{
-+	local hssrc=$1
-+	local rtsrc=$2
-+	local hsdst=$3
-+	local rtdst=$4
-+	local tid=$5
-+
-+	local hssrc_name=hs-t${tid}-${hssrc}
-+	local hsdst_name=hs-t${tid}-${hsdst}
-+	local rtsrc_name=rt-${rtsrc}
-+	local rtdst_name=rt-${rtdst}
-+	local rtveth=veth-t${tid}
-+	local vpn_sid=${SID_LOCATOR}:${hssrc}${hsdst}:${tid}::6004
-+
-+	ip -netns ${rtsrc_name} -6 neigh add proxy ${IPv6_HS_NETWORK}::${hsdst} dev ${rtveth}
-+
-+	# set the encap route for encapsulating packets which arrive from the
-+	# host hssrc and destined to the access router rtsrc.
-+	ip -netns ${rtsrc_name} -6 route add ${IPv6_HS_NETWORK}::${hsdst}/128 \
-+		encap seg6 mode encap segs ${vpn_sid} dev veth0
-+	ip -netns ${rtsrc_name} -6 route add ${vpn_sid}/128 \
-+		via 2001:11::${rtdst} dev veth0
-+
-+	# set the decap route for decapsulating packets which arrive from
-+	# the rtdst router and destined to the hsdst host.
-+	ip -netns ${rtdst_name} -6 route add ${vpn_sid}/128 \
-+		encap seg6local action End.DX6 nh6 ${IPv6_HS_NETWORK}::${hsdst} dev veth-t${tid}
-+}
-+
-+setup()
-+{
-+	ip link add veth-rt-1 type veth peer name veth-rt-2
-+	# setup the networking for router rt-1 and router rt-2
-+	setup_rt_networking 1
-+	setup_rt_networking 2
-+
-+	# setup two hosts for the tenant 100.
-+	#  - host hs-1 is directly connected to the router rt-1;
-+	#  - host hs-2 is directly connected to the router rt-2.
-+	setup_hs 1 1 100
-+	setup_hs 2 2 100
-+
-+	# setup the IPv4 L3 VPN which connects the host hs-1 and host hs-2.
-+	setup_vpn_config 1 1 2 2 100  #args: src_host src_router dst_host dst_router tenant
-+	setup_vpn_config 2 2 1 1 100
-+}
-+
-+check_hs_connectivity()
-+{
-+	local hssrc=$1
-+	local hsdst=$2
-+	local tid=$3
-+
-+	ip netns exec hs-${hssrc} ping -6 -c 1 -W ${PING_TIMEOUT_SEC} \
-+		${IPv6_HS_NETWORK}::${hsdst} >/dev/null 2>&1
-+}
-+
-+check_and_log_hs_connectivity()
-+{
-+	local hssrc=$1
-+	local hsdst=$2
-+	local tid=$3
-+
-+	check_hs_connectivity ${hssrc} ${hsdst} ${tid}
-+	log_test $? 0 "Hosts connectivity: hs-${hssrc} -> hs-${hsdst} (tenant ${tid})"
-+}
-+
-+host_tests()
-+{
-+	log_section "SRv6 VPN connectivity test among hosts in the same tenant"
-+
-+	check_and_log_hs_connectivity 1 2 100
-+	check_and_log_hs_connectivity 2 1 100
-+}
-+
-+router_netfilter_tests()
-+{
-+	log_section "SRv6 VPN connectivity test with netfilter enabled in routers"
-+	setup_rt_netfilter 1
-+	setup_rt_netfilter 2
-+
-+	check_and_log_hs_connectivity 1 2 100
-+	check_and_log_hs_connectivity 2 1 100
-+}
-+
-+if [ "$(id -u)" -ne 0 ];then
-+	echo "SKIP: Need root privileges"
-+	exit $ksft_skip
-+fi
-+
-+if [ ! -x "$(command -v ip)" ]; then
-+	echo "SKIP: Could not run test without ip tool"
-+	exit $ksft_skip
-+fi
-+
-+cleanup &>/dev/null
-+
-+setup
-+
-+host_tests
-+router_netfilter_tests
-+
-+print_log_test_results
-+
-+cleanup &>/dev/null
-+
-+exit ${ret}
--- 
-2.30.2
+From the connection handler (which would be the place where an attacker can
+usually provide input), it is now still possible to bind a socket due to th=
+is
+problem.  The steps are:
 
+  1) connect() on client_fd with AF_UNSPEC to disassociate the client FD
+  2) listen() on the client_fd
+
+This succeeds and it listens on an ephemeral port.
+
+The code is at [1], if you are interested.
+
+[1] https://github.com/gnoack/landlock-examples/blob/main/tcpserver.c
+
+
+On Mon, May 13, 2024 at 03:15:50PM +0300, Ivanov Mikhail wrote:
+> 4/30/2024 4:36 PM, Micka=C3=ABl Sala=C3=BCn wrote:
+> > On Mon, Apr 08, 2024 at 05:47:46PM +0800, Ivanov Mikhail wrote:
+> > > Make hook for socket_listen(). It will check that the socket protocol=
+ is
+> > > TCP, and if the socket's local port number is 0 (which means,
+> > > that listen(2) was called without any previous bind(2) call),
+> > > then listen(2) call will be legitimate only if there is a rule for bi=
+nd(2)
+> > > allowing binding to port 0 (or if LANDLOCK_ACCESS_NET_BIND_TCP is not
+> > > supported by the sandbox).
+> >=20
+> > Thanks for this patch and sorry for the late full review.  The code is
+> > good overall.
+> >=20
+> > We should either consider this patch as a fix or add a new flag/access
+> > right to Landlock syscalls for compatibility reason.  I think this
+> > should be a fix.  Calling listen(2) without a previous call to bind(2)
+> > is a corner case that we should properly handle.  The commit message
+> > should make that explicit and highlight the goal of the patch: first
+> > explain why, and then how.
+>=20
+> Yeap, this is fix-patch. I have covered motivation and proposed solution
+> in cover letter. Do you have any suggestions on how i can improve this?
+
+Without wanting to turn around the direction of this code review now, I am =
+still
+slightly concerned about the assymetry of this special case being implement=
+ed
+for listen() but not for connect().
+
+The reason is this: My colleague Mr. B. recently pointed out to me that you=
+ can
+also do a bind() on a socket before a connect(!). The steps are:
+
+* create socket with socket()
+* bind() to a local port 9090
+* connect() to a remote port 8080
+
+This gives you a connection between ports 9090 and 8080.
+
+A regular connect() without an explicit bind() is of course the more usual
+scenario.  In that case, we are also using up ("implicitly binding") one of=
+ the
+ephemeral ports.
+
+It seems that, with respect to the port binding, listen() and connect() wor=
+k
+quite similarly then?  This being considered, maybe it *is* the listen()
+operation on a port which we should be restricting, and not bind()?
+
+With some luck, that would then also free us from having to implement the
+check_tcp_socket_can_listen() logic, which is seemingly emulating logic fro=
+m
+elsewhere in the kernel?
+
+(I am by far not an expert in Linux networking, so I'll put this out for
+consideration and will happily stand corrected if I am misunderstanding
+something.  Maybe someone with more networking background can chime in?)
+
+
+> > > +		/* Socket is alredy binded to some port. */
+> >=20
+> > This kind of spelling issue can be found by scripts/checkpatch.pl
+>=20
+> will be fixed
+
+P.S. there are two typos here, the obvious one in "alredy",
+but also the passive of "to bind" is "bound", not "binded".
+(That is also mis-spelled in a few more places I think.)
+
+=E2=80=94G=C3=BCnther
