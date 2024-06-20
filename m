@@ -1,104 +1,178 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp-190a.mail.infomaniak.ch (smtp-190a.mail.infomaniak.ch [185.125.25.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AFBB159204
-	for <netfilter-devel@vger.kernel.org>; Wed, 19 Jun 2024 20:36:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADF91172BAB
+	for <netfilter-devel@vger.kernel.org>; Thu, 20 Jun 2024 08:10:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.125.25.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718829407; cv=none; b=GtzyiFgzQYM0kP787dk1sFRlB+RJCsjUB6+DMS6t3E1ScmnRs0Mr9dsJJXCtwD9sDICmUcY2YlELc5fniZAhuwLr1ijlyUWpGXJhhEXG4AQ9LUlPQFarkAJrXnGpgN7iSRWLvEcwCRXOWlYIsw3OtBPsCkgOvsSNVnPzluNNohE=
+	t=1718871044; cv=none; b=qBXE1bQWEY/E31XaMuTug9h1O4MA85bfgpV6a6kbK/r2JtnZCsAc3w14FVNRdFNdiCfqcBUUoBuYuZXpyQ0jGK3hk55REN3CNComzWAmtNT6pSsxwptrz/dRdCcbde/Ei9YtKvLxbVxJlz8zAuefCWdqH0chRxHsNCT92kOFqNE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718829407; c=relaxed/simple;
-	bh=PKPTPQeuN3+8nTzcDvGYYfFUGoWxiQ8cx9mtFzf4o9U=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=MvmUPluMb9E1kO12O9MFSD7crfyIUXUD6gwlplOMrEQJvLTRdAeMafP3uua7ixeWA/QJElWx9AZ+i3MvXYlrx6/KbpzKRRCD7ECET+TfXC947SPvBzBuKm993BX6P3GpaR5KgFqYji01TzaDfdWAO0mNUioZoAWTdTem6Z2X06M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1sK22t-0002cd-I4; Wed, 19 Jun 2024 22:36:43 +0200
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] selftests: netfilter: nft_queue.sh: add test for disappearing listener
-Date: Wed, 19 Jun 2024 22:31:48 +0200
-Message-ID: <20240619203154.20146-1-fw@strlen.de>
-X-Mailer: git-send-email 2.44.2
+	s=arc-20240116; t=1718871044; c=relaxed/simple;
+	bh=FyjNm/I3kq/pP/dapIPg9gsHpP1PzC710dtt7pmzUKY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=vAXhZOE28YQEyFiqPzG5+KT3ADQXEiKJxgiNr8uqdKMSBqe8fBwYD84fmyiAhEn/OuzCz5pQsnwQuP8JVcA5DabVxBfu0MizoJOtBOI6ZUJYcfOi1POFtcPcr6vI44uLrqI0JdgIGiyE3C3hqrIaEbfogzTcr9VC3yLAyUnyYmM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net; spf=pass smtp.mailfrom=digikod.net; dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b=sOtNOmYZ; arc=none smtp.client-ip=185.125.25.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=digikod.net
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b="sOtNOmYZ"
+Received: from smtp-3-0001.mail.infomaniak.ch (smtp-3-0001.mail.infomaniak.ch [10.4.36.108])
+	by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4W4Xwr6kjdz8pT;
+	Thu, 20 Jun 2024 10:00:44 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=digikod.net;
+	s=20191114; t=1718870444;
+	bh=W/NUAL6voE5A4pFcJSHOLM46v6kGmeT8h3EcYwb3KUc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=sOtNOmYZHEhT5EIB2V7KL7iSkDlMWcmlXneHp9D4RSJGbbkFF01kDHHlU3rEP3MqK
+	 db2AHQ+1PdQ3sARwOOndydYhkRuqDzzz0lu9vjn3Zis9aLshwsvhTNB4T4MNzlnX7h
+	 tVG6xTX3hNIg1t4k/xOjCkXRQ4pckdidlfeyTPvk=
+Received: from unknown by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4W4Xwk3bNHzMhc;
+	Thu, 20 Jun 2024 10:00:38 +0200 (CEST)
+Date: Thu, 20 Jun 2024 10:00:36 +0200
+From: =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
+To: =?utf-8?Q?G=C3=BCnther?= Noack <gnoack@google.com>, 
+	Eric Dumazet <edumazet@google.com>
+Cc: Ivanov Mikhail <ivanov.mikhail1@huawei-partners.com>, 
+	willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com, linux-security-module@vger.kernel.org, 
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, yusongping@huawei.com, 
+	artem.kuzin@huawei.com, konstantin.meskhidze@huawei.com
+Subject: Re: [PATCH 1/2] landlock: Add hook on socket_listen()
+Message-ID: <20240620.teeFoot6gaeX@digikod.net>
+References: <20240408094747.1761850-1-ivanov.mikhail1@huawei-partners.com>
+ <20240408094747.1761850-2-ivanov.mikhail1@huawei-partners.com>
+ <20240425.Soot5eNeexol@digikod.net>
+ <a18333c0-4efc-dcf4-a219-ec46480352b1@huawei-partners.com>
+ <ZnMr30kSCGME16rO@google.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <ZnMr30kSCGME16rO@google.com>
+X-Infomaniak-Routing: alpha
 
-If userspace program exits while the queue its subscribed to has packets
-those need to be discarded.
+On Wed, Jun 19, 2024 at 09:05:03PM +0200, Günther Noack wrote:
+> I agree with Mickaël's comment: this seems like an important fix.
+> 
+> Mostly for completeness: I played with the "socket type" patch set in a "TCP
+> server" example, where *all* possible operations are restricted with Landlock,
+> including the ones from the "socket type" patch set V2 with the little fix we
+> discussed.
+> 
+>  - socket()
+>  - bind()
+>  - enforce a landlock ruleset restricting:
+>    - file system access
+>    - all TCP bind and connect
+>    - socket creation
+>  - listen()
+>  - accept()
+> 
+> From the connection handler (which would be the place where an attacker can
+> usually provide input), it is now still possible to bind a socket due to this
+> problem.  The steps are:
+> 
+>   1) connect() on client_fd with AF_UNSPEC to disassociate the client FD
+>   2) listen() on the client_fd
+> 
+> This succeeds and it listens on an ephemeral port.
+> 
+> The code is at [1], if you are interested.
+> 
+> [1] https://github.com/gnoack/landlock-examples/blob/main/tcpserver.c
+> 
+> 
+> On Mon, May 13, 2024 at 03:15:50PM +0300, Ivanov Mikhail wrote:
+> > 4/30/2024 4:36 PM, Mickaël Salaün wrote:
+> > > On Mon, Apr 08, 2024 at 05:47:46PM +0800, Ivanov Mikhail wrote:
+> > > > Make hook for socket_listen(). It will check that the socket protocol is
+> > > > TCP, and if the socket's local port number is 0 (which means,
+> > > > that listen(2) was called without any previous bind(2) call),
+> > > > then listen(2) call will be legitimate only if there is a rule for bind(2)
+> > > > allowing binding to port 0 (or if LANDLOCK_ACCESS_NET_BIND_TCP is not
+> > > > supported by the sandbox).
+> > > 
+> > > Thanks for this patch and sorry for the late full review.  The code is
+> > > good overall.
+> > > 
+> > > We should either consider this patch as a fix or add a new flag/access
+> > > right to Landlock syscalls for compatibility reason.  I think this
+> > > should be a fix.  Calling listen(2) without a previous call to bind(2)
+> > > is a corner case that we should properly handle.  The commit message
+> > > should make that explicit and highlight the goal of the patch: first
+> > > explain why, and then how.
+> > 
+> > Yeap, this is fix-patch. I have covered motivation and proposed solution
+> > in cover letter. Do you have any suggestions on how i can improve this?
+> 
+> Without wanting to turn around the direction of this code review now, I am still
+> slightly concerned about the assymetry of this special case being implemented
+> for listen() but not for connect().
+> 
+> The reason is this: My colleague Mr. B. recently pointed out to me that you can
+> also do a bind() on a socket before a connect(!). The steps are:
+> 
+> * create socket with socket()
+> * bind() to a local port 9090
+> * connect() to a remote port 8080
+> 
+> This gives you a connection between ports 9090 and 8080.
 
-commit dc21c6cc3d69 ("netfilter: nfnetlink_queue: acquire rcu_read_lock()
-in instance_destroy_rcu()") fixed a (harmless) rcu splat that could be
-triggered in this case.
+Yes, this should not be an issue, but something to keep in mind.
 
-Add a test case to cover this.
+> 
+> A regular connect() without an explicit bind() is of course the more usual
+> scenario.  In that case, we are also using up ("implicitly binding") one of the
+> ephemeral ports.
+> 
+> It seems that, with respect to the port binding, listen() and connect() work
+> quite similarly then?  This being considered, maybe it *is* the listen()
+> operation on a port which we should be restricting, and not bind()?
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- .../selftests/net/netfilter/nft_queue.sh      | 37 +++++++++++++++++++
- 1 file changed, 37 insertions(+)
+I agree that we should be able to control listen according to the binded
+port, see https://github.com/landlock-lsm/linux/issues/15
+In a nutshell, the LANDLOCK_ACCESS_NET_LISTEN_TCP should make more sense
+for most use cases, but I think LANDLOCK_ACCESS_NET_BIND_TCP is also
+useful to limit opened (well-known) ports and port spoofing.
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_queue.sh b/tools/testing/selftests/net/netfilter/nft_queue.sh
-index 8538f08c64c2..c61d23a8c88d 100755
---- a/tools/testing/selftests/net/netfilter/nft_queue.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_queue.sh
-@@ -375,6 +375,42 @@ EOF
- 	wait 2>/dev/null
- }
- 
-+test_queue_removal()
-+{
-+	read tainted_then < /proc/sys/kernel/tainted
-+
-+	ip netns exec "$ns1" nft -f - <<EOF
-+flush ruleset
-+table ip filter {
-+	chain output {
-+		type filter hook output priority 0; policy accept;
-+		ip protocol icmp queue num 0
-+	}
-+}
-+EOF
-+	ip netns exec "$ns1" ./nf_queue -q 0 -d 30000 -t "$timeout" &
-+	local nfqpid=$!
-+
-+	busywait "$BUSYWAIT_TIMEOUT" nf_queue_wait "$ns1" 0
-+
-+	ip netns exec "$ns1" ping -w 2 -f -c 10 127.0.0.1 -q >/dev/null
-+	kill $nfqpid
-+
-+	ip netns exec "$ns1" nft flush ruleset
-+
-+	if [ "$tainted_then" -ne 0 ];then
-+		return
-+	fi
-+
-+	read tainted_now < /proc/sys/kernel/tainted
-+	if [ "$tainted_now" -eq 0 ];then
-+		echo "PASS: queue program exiting while packets queued"
-+	else
-+		echo "TAINT: queue program exiting while packets queued"
-+		ret=1
-+	fi
-+}
-+
- ip netns exec "$nsrouter" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
- ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
- ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth1.forwarding=1 > /dev/null
-@@ -413,5 +449,6 @@ test_tcp_localhost
- test_tcp_localhost_connectclose
- test_tcp_localhost_requeue
- test_icmp_vrf
-+test_queue_removal
- 
- exit $ret
--- 
-2.44.2
+> 
+> With some luck, that would then also free us from having to implement the
+> check_tcp_socket_can_listen() logic, which is seemingly emulating logic from
+> elsewhere in the kernel?
 
+An alternative could be to only use LANDLOCK_ACCESS_NET_BIND_TCP for
+explicit binding (i.e. current state, but with appropriate
+documentation), and delegate to LANDLOCK_ACCESS_NET_LISTEN_TCP the
+control of binding with listen(2).  That should free us from
+implementing check_tcp_socket_can_listen().  The rationale would be that
+a malicious sandboxed process could not explicitly bind to a
+well-specified port, but only to a range of dedicated random ports (the
+same range use for auto-binding with connect).  That could also help
+developers by staying close to the kernel syscall ABI (principle of
+least astonishment).
+
+> 
+> (I am by far not an expert in Linux networking, so I'll put this out for
+> consideration and will happily stand corrected if I am misunderstanding
+> something.  Maybe someone with more networking background can chime in?)
+
+That would be good indeed.  Netfilter or network folks? Eric?
+
+> 
+> 
+> > > > +		/* Socket is alredy binded to some port. */
+> > > 
+> > > This kind of spelling issue can be found by scripts/checkpatch.pl
+> > 
+> > will be fixed
+> 
+> P.S. there are two typos here, the obvious one in "alredy",
+> but also the passive of "to bind" is "bound", not "binded".
+> (That is also mis-spelled in a few more places I think.)
+> 
+> —Günther
+> 
