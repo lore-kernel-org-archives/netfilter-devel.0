@@ -1,182 +1,1464 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-io1-f79.google.com (mail-io1-f79.google.com [209.85.166.79])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC93A1AE091;
-	Thu, 20 Jun 2024 13:27:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF49C1B3740
+	for <netfilter-devel@vger.kernel.org>; Thu, 20 Jun 2024 17:13:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.79
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718890057; cv=none; b=ImPNTBePnMbW9HJS/n7WZGtl+ciZnmD8yIO9w95bPx8Q/lIDpf3OhiRgdh+weRiUNesFXrqWwZXrZ+Azm0F2bos8T7AW4dxQw575FXj/g/o1zbtFi+wbQhAtIHcSMVmYJI3ouup7iz0ia5UorWzgS7+2CONKkHVxwruKodDF/BE=
+	t=1718903609; cv=none; b=PqTVSRWcQG6u+qYAEvSJNfrsbv5SzuIazgfFHk76wAyn9nErg81Y1NErvhAAXjtgdFYeqL2Z2Ye2PL5ohGYUipn87e2SLIHreAie5hDCWjN3EfN+BXjidOw2Tz8xV8hHNaYGxKDjpufAE8i+hCPpLiF1+oLnZFTLvnCRAgWh3qo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718890057; c=relaxed/simple;
-	bh=hVYiIFL5HwJaYF05A9M5SqbFcZHu2+UJJv8+B5zsSCs=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=s6dKZt+1+c9NOxdmsJh5EEyc/q0iiEJhO5uA/puM5HQm0yLKD7ehra9WvxsKdLuN5GdE5xVzWZZgHw2waq6nUeBwZ88IR4Hyhl7gaYCcKqO3mRkyx/C+iiV4YK4MU4xlhAKBtA8s8H/ZEjikA2nEW7vr99olME0NeEaZ6/588hk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=bxANh1gS; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=uVtEEhpC; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="bxANh1gS";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="uVtEEhpC"
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1718890053;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=7Fimo9A+L9/O8JEt6UHonD1Uw2oHXu2TNi4Wzvh1cs4=;
-	b=bxANh1gSjfTkjb1of2CTKsIDUvOSDJAUbHfCfy/FvFyth92S9dfVSoH+WCSmTuXjWvzwxt
-	DACjKXQQ1VYIUIQsnFbUyv6Bv02RdibulAhl5hLFmhtPoWpuNMHDbM3PY6SEOLQCzu3BdP
-	wcmeopCIlOo7aABqL85HqI1wXNxgFCEXQO4ydrz6oQea4aN8v0kTayekSBejrLDh32NKR2
-	0kMU3y7jT7N5LYd4y+g//zA4MQLR1IN7pVprYh7uo6uiVY3wYQjOIcE+A8Ct4sXoGIfKIw
-	max+JfgnHByESacJAxA4OPs+jTBItb+RxU4q/fjG18Wftp4Y/m5tnaKLiEGgMw==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1718890053;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=7Fimo9A+L9/O8JEt6UHonD1Uw2oHXu2TNi4Wzvh1cs4=;
-	b=uVtEEhpCVzejJ054Aym774dUIX5mpnUiN6B9bHxjzorpiAOft8TrsEotoN0TfIIq5ejLnp
-	XLqSEigg6nf9VIBw==
-To: linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Daniel Bristot de Oliveira <bristot@kernel.org>,
-	Boqun Feng <boqun.feng@gmail.com>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Frederic Weisbecker <frederic@kernel.org>,
-	Ingo Molnar <mingo@redhat.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Waiman Long <longman@redhat.com>,
-	Will Deacon <will@kernel.org>,
-	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-	Florian Westphal <fw@strlen.de>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Roopa Prabhu <roopa@nvidia.com>,
-	bridge@lists.linux.dev,
-	coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org
-Subject: [PATCH v9 net-next 07/15] netfilter: br_netfilter: Use nested-BH locking for brnf_frag_data_storage.
-Date: Thu, 20 Jun 2024 15:21:57 +0200
-Message-ID: <20240620132727.660738-8-bigeasy@linutronix.de>
-In-Reply-To: <20240620132727.660738-1-bigeasy@linutronix.de>
-References: <20240620132727.660738-1-bigeasy@linutronix.de>
+	s=arc-20240116; t=1718903609; c=relaxed/simple;
+	bh=scgHkruoEAkle9q6sx/K7pawaw3JGtStnANhAJE+Mrs=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=cXtYhFjfc14w2mQ3+8AjC1dcViBWc+ppa0PHtVn/Rwlwl9I1hRwpfUQcZP8yL028zgot7WWfcNI0ysHSlRARsL52RnEpVVZpF8kTyLrjxqbVj2FX47e4Y5Oj8Tykifs1ixgdmLCCm+67/14ItdmKJGbOEiIpRk+19gY6XvtrkZk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.79
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-io1-f79.google.com with SMTP id ca18e2360f4ac-7e8e2ea7b4bso148891439f.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Jun 2024 10:13:25 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1718903605; x=1719508405;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=dloohfvNqwLpkgq3WIx9Wy5br5yUFL1AXkVltV350hg=;
+        b=gcMRxiG2pvLkSxyfiR0Qw+pSnAoVs5LywZN1OZXbaERkbGG28qKa9De1nMytzK5lxq
+         GJD5gZwcSMbKpAAqN/aNn88YojUq56gl79o+34vwkH3HoggnTMFjwdX0uwWqWv77fQZX
+         bRHOXzmFKJimL90DfQodNFRafJd2Nshrog2yaOpOCCye4WpOmRlgcJV1OkM/Dt/fQwiY
+         K6vLn8FzSqZQ2WEjuH7xPfcX06oG/yTiKnM+YV8kqFqCUZIgICJ3tDT2fM8jRB7R3pdb
+         jwOzYZpPgB165zwjzOWXI/10O6UIdPzGrcvaLYoo3CB+MwCQT9HGD9MKtZfJDXvv89UY
+         5fmQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWH/jQlS6ymB4F4gCO3bbrwAp1FbyIwcFXIqchjhUYRGI00fhSy3p5AqnzJOb0N6W3v7M7HtIMhlNOvWmq6j9w2O65egwilfqnvKHUUmoL1
+X-Gm-Message-State: AOJu0Yz6QRAcORrjf96FIhVKWSOb4h35U37yRWbqyFSBok0aanMg/WwC
+	DZt87GR6ceqtoK71nbApxTchRRGSPjbZNqLuU/UQCdWUSlhp1NDq0Y5YnIL25k6E7WqeXb93h6B
+	mgLDap2GS2G4I7VV6f6wrm19ufaEECUVqHQJXzPe+T7TDt7BhVwdZgf4=
+X-Google-Smtp-Source: AGHT+IFSG4BQt1tRkgp1nG4acJ9PEY8VfVecGiMDljTzb9OTfi5GQnQ0zB6p/EDX5Ag/rbZ75LTcQFwSL2Xcj6/ufpbRF9G6yVIB
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+X-Received: by 2002:a05:6638:3492:b0:4b9:b122:d07d with SMTP id
+ 8926c6da1cb9f-4b9b122d669mr147548173.4.1718903604911; Thu, 20 Jun 2024
+ 10:13:24 -0700 (PDT)
+Date: Thu, 20 Jun 2024 10:13:24 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000c63a8e061b556ea6@google.com>
+Subject: [syzbot] [netfilter?] [usb?] INFO: rcu detected stall in NF_HOOK
+From: syzbot <syzbot+696cffe71c444e4a2dd8@syzkaller.appspotmail.com>
+To: davem@davemloft.net, dsahern@kernel.org, edumazet@google.com, 
+	kadlec@netfilter.org, kuba@kernel.org, linux-kernel@vger.kernel.org, 
+	linux-usb@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-brnf_frag_data_storage is a per-CPU variable and relies on disabled BH
-for its locking. Without per-CPU locking in local_bh_disable() on
-PREEMPT_RT this data structure requires explicit locking.
+Hello,
 
-Add a local_lock_t to the data structure and use local_lock_nested_bh()
-for locking. This change adds only lockdep coverage and does not alter
-the functional behaviour for !PREEMPT_RT.
+syzbot found the following issue on:
 
-Cc: Florian Westphal <fw@strlen.de>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: Nikolay Aleksandrov <razor@blackwall.org>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Roopa Prabhu <roopa@nvidia.com>
-Cc: bridge@lists.linux.dev
-Cc: coreteam@netfilter.org
-Cc: netfilter-devel@vger.kernel.org
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+HEAD commit:    2ccbdf43d5e7 Merge tag 'for-linus' of git://git.kernel.org..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=10341146980000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=fa0ce06dcc735711
+dashboard link: https://syzkaller.appspot.com/bug?extid=696cffe71c444e4a2dd8
+compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=13e8bfee980000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=12d3d851980000
+
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/93525a95fe83/disk-2ccbdf43.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/b9b895227ea2/vmlinux-2ccbdf43.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/e825248a8e73/bzImage-2ccbdf43.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+696cffe71c444e4a2dd8@syzkaller.appspotmail.com
+
+rcu: INFO: rcu_preempt detected expedited stalls on CPUs/tasks: { P45
+ 1-....
+ } 2688 jiffies s: 1349 root: 0x2/T
+rcu: blocking rcu_node structures (internal RCU debug):
+
+Sending NMI from CPU 0 to CPUs 1:
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+NMI backtrace for cpu 1
+CPU: 1 PID: 5155 Comm: kworker/1:4 Not tainted 6.10.0-rc3-syzkaller-00044-g2ccbdf43d5e7 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 06/07/2024
+Workqueue: events nsim_dev_trap_report_work
+RIP: 0010:__asan_memcpy+0x4e/0x70 mm/kasan/shadow.c:109
+Code: e8 17 e5 ff ff 84 c0 74 2c 4c 89 ff 4c 89 e6 ba 01 00 00 00 48 89 d9 e8 00 e5 ff ff 84 c0 74 15 4c 89 ff 4c 89 f6 4c 89 e2 5b <41> 5c 41 5e 41 5f e9 87 cd 8a 09 31 c0 5b 41 5c 41 5e 41 5f c3 cc
+RSP: 0018:ffffc90000a163a0 EFLAGS: 00000002
+RAX: 0000000000010101 RBX: 0000000000000001 RCX: ffffffff8b7fc5b8
+RDX: 0000000000000001 RSI: ffffffff8bcb80c0 RDI: ffffc90000a1670e
+RBP: ffffc90000a164b0 R08: ffffc90000a1670e R09: 1ffff92000142ce1
+R10: dffffc0000000000 R11: fffff52000142ce2 R12: 0000000000000001
+R13: dffffc0000000000 R14: ffffffff8bcb80c0 R15: ffffc90000a1670e
+FS:  0000000000000000(0000) GS:ffff8880b9500000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000055558ba82ca8 CR3: 0000000024054000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <NMI>
+ </NMI>
+ <IRQ>
+ vsnprintf+0x948/0x1da0 lib/vsprintf.c:2786
+ sprintf+0xda/0x120 lib/vsprintf.c:3028
+ print_caller kernel/printk/printk.c:1338 [inline]
+ info_print_prefix+0x204/0x310 kernel/printk/printk.c:1355
+ record_print_text kernel/printk/printk.c:1402 [inline]
+ printk_get_next_message+0x6da/0xbe0 kernel/printk/printk.c:2855
+ console_emit_next_record kernel/printk/printk.c:2895 [inline]
+ console_flush_all+0x410/0xfd0 kernel/printk/printk.c:2994
+ console_unlock+0x13b/0x4d0 kernel/printk/printk.c:3063
+ vprintk_emit+0x5a6/0x770 kernel/printk/printk.c:2345
+ dev_vprintk_emit+0x2ae/0x330 drivers/base/core.c:4951
+ dev_printk_emit+0xdd/0x120 drivers/base/core.c:4962
+ _dev_err+0x122/0x170 drivers/base/core.c:5017
+ wdm_int_callback+0x41f/0xac0 drivers/usb/class/cdc-wdm.c:269
+ __usb_hcd_giveback_urb+0x373/0x530 drivers/usb/core/hcd.c:1648
+ dummy_timer+0x830/0x45d0 drivers/usb/gadget/udc/dummy_hcd.c:1987
+ __run_hrtimer kernel/time/hrtimer.c:1687 [inline]
+ __hrtimer_run_queues+0x59b/0xd50 kernel/time/hrtimer.c:1751
+ hrtimer_interrupt+0x396/0x990 kernel/time/hrtimer.c:1813
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1032 [inline]
+ __sysvec_apic_timer_interrupt+0x110/0x3f0 arch/x86/kernel/apic/apic.c:1049
+ instr_sysvec_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1043 [inline]
+ sysvec_apic_timer_interrupt+0x52/0xc0 arch/x86/kernel/apic/apic.c:1043
+ asm_sysvec_apic_timer_interrupt+0x1a/0x20 arch/x86/include/asm/idtentry.h:702
+RIP: 0010:__orc_find arch/x86/kernel/unwind_orc.c:99 [inline]
+RIP: 0010:orc_find arch/x86/kernel/unwind_orc.c:227 [inline]
+RIP: 0010:unwind_next_frame+0x527/0x2a00 arch/x86/kernel/unwind_orc.c:494
+Code: 75 34 48 63 2b 48 01 dd 48 89 ef 4c 89 f6 e8 60 34 55 00 48 8d 43 04 4c 39 f5 4c 0f 46 e8 48 8d 43 fc 4c 0f 47 e0 4c 0f 46 fb <4d> 39 e5 77 1d e8 df 31 55 00 eb 96 89 d9 80 e1 07 80 c1 03 38 c1
+RSP: 0018:ffffc90000a17708 EFLAGS: 00000293
+RAX: ffffffff90113598 RBX: ffffffff9011359c RCX: ffff888056a0bc00
+RDX: ffff888056a0bc00 RSI: ffffffff895aff5e RDI: ffffffff895afe38
+RBP: ffffffff895afe38 R08: ffffffff8140f500 R09: ffffc90000a178d0
+R10: 0000000000000003 R11: ffffffff8181e050 R12: ffffffff9011359c
+R13: ffffffff901135a0 R14: ffffffff895aff5e R15: ffffffff9011359c
+ arch_stack_walk+0x151/0x1b0 arch/x86/kernel/stacktrace.c:25
+ stack_trace_save+0x118/0x1d0 kernel/stacktrace.c:122
+ kasan_save_stack mm/kasan/common.c:47 [inline]
+ kasan_save_track+0x3f/0x80 mm/kasan/common.c:68
+ kasan_save_free_info+0x40/0x50 mm/kasan/generic.c:579
+ poison_slab_object+0xe0/0x150 mm/kasan/common.c:240
+ __kasan_slab_free+0x37/0x60 mm/kasan/common.c:256
+ kasan_slab_free include/linux/kasan.h:184 [inline]
+ slab_free_hook mm/slub.c:2196 [inline]
+ slab_free mm/slub.c:4437 [inline]
+ kmem_cache_free+0x145/0x350 mm/slub.c:4512
+ skb_release_all net/core/skbuff.c:1171 [inline]
+ __kfree_skb net/core/skbuff.c:1187 [inline]
+ kfree_skb_reason+0x16d/0x3b0 net/core/skbuff.c:1223
+ kfree_skb include/linux/skbuff.h:1257 [inline]
+ ip6_mc_input+0xa1b/0xc30 net/ipv6/ip6_input.c:589
+ ip_sabotage_in+0x203/0x290 net/bridge/br_netfilter_hooks.c:996
+ nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
+ nf_hook_slow+0xc3/0x220 net/netfilter/core.c:626
+ nf_hook include/linux/netfilter.h:269 [inline]
+ NF_HOOK+0x29e/0x450 include/linux/netfilter.h:312
+ __netif_receive_skb_one_core net/core/dev.c:5625 [inline]
+ __netif_receive_skb+0x1ea/0x650 net/core/dev.c:5739
+ netif_receive_skb_internal net/core/dev.c:5825 [inline]
+ netif_receive_skb+0x1e8/0x890 net/core/dev.c:5885
+ NF_HOOK+0x9e/0x400 include/linux/netfilter.h:314
+ br_handle_frame_finish+0x18eb/0x1fe0
+ br_nf_hook_thresh+0x472/0x590
+ br_nf_pre_routing_finish_ipv6+0xa9e/0xdd0
+ NF_HOOK include/linux/netfilter.h:314 [inline]
+ br_nf_pre_routing_ipv6+0x370/0x760 net/bridge/br_netfilter_ipv6.c:184
+ nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
+ nf_hook_bridge_pre net/bridge/br_input.c:277 [inline]
+ br_handle_frame+0x9f3/0x1520 net/bridge/br_input.c:424
+ __netif_receive_skb_core+0x13d3/0x4420 net/core/dev.c:5519
+ __netif_receive_skb_one_core net/core/dev.c:5623 [inline]
+ __netif_receive_skb+0x12f/0x650 net/core/dev.c:5739
+ process_backlog+0x391/0x7d0 net/core/dev.c:6068
+ __napi_poll+0xcb/0x490 net/core/dev.c:6722
+ napi_poll net/core/dev.c:6791 [inline]
+ net_rx_action+0x7bb/0x10a0 net/core/dev.c:6907
+ handle_softirqs+0x2c4/0x970 kernel/softirq.c:554
+ do_softirq+0x11b/0x1e0 kernel/softirq.c:455
+ </IRQ>
+ <TASK>
+ __local_bh_enable_ip+0x1bb/0x200 kernel/softirq.c:382
+ spin_unlock_bh include/linux/spinlock.h:396 [inline]
+ nsim_dev_trap_report drivers/net/netdevsim/dev.c:820 [inline]
+ nsim_dev_trap_report_work+0x75d/0xaa0 drivers/net/netdevsim/dev.c:850
+ process_one_work kernel/workqueue.c:3231 [inline]
+ process_scheduled_works+0xa2c/0x1830 kernel/workqueue.c:3312
+ worker_thread+0x86d/0xd70 kernel/workqueue.c:3393
+ kthread+0x2f0/0x390 kernel/kthread.c:389
+ ret_from_fork+0x4b/0x80 arch/x86/kernel/process.c:147
+ ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:244
+ </TASK>
+INFO: NMI handler (nmi_cpu_backtrace_handler) took too long to run: 5.575 msecs
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+rcu: INFO: rcu_preempt detected stalls on CPUs/tasks:
+rcu: 	Tasks blocked on level-0 rcu_node (CPUs 0-1): P45/1:b..l
+rcu: 	(detected by 1, t=10502 jiffies, g=16325, q=901 ncpus=2)
+task:kworker/1:1     state:R  running task     stack:21328 pid:45    tgid:45    ppid:2      flags:0x00004000
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:5408 [inline]
+ __schedule+0x17e8/0x4a20 kernel/sched/core.c:6745
+ preempt_schedule_irq+0xfb/0x1c0 kernel/sched/core.c:7067
+ irqentry_exit+0x5e/0x90 kernel/entry/common.c:354
+ asm_sysvec_apic_timer_interrupt+0x1a/0x20 arch/x86/include/asm/idtentry.h:702
+RIP: 0010:lock_acquire+0x264/0x550 kernel/locking/lockdep.c:5758
+Code: 2b 00 74 08 4c 89 f7 e8 2a 84 89 00 f6 44 24 61 02 0f 85 85 01 00 00 41 f7 c7 00 02 00 00 74 01 fb 48 c7 44 24 40 0e 36 e0 45 <4b> c7 44 25 00 00 00 00 00 43 c7 44 25 09 00 00 00 00 43 c7 44 25
+RSP: 0018:ffffc90000b56f20 EFLAGS: 00000206
+RAX: 0000000000000001 RBX: 1ffff9200016adf0 RCX: 0000000000000001
+RDX: dffffc0000000000 RSI: ffffffff8bcacd00 RDI: ffffffff8c1ff840
+RBP: ffffc90000b57068 R08: ffffffff92fab587 R09: 1ffffffff25f56b0
+R10: dffffc0000000000 R11: fffffbfff25f56b1 R12: 1ffff9200016adec
+R13: dffffc0000000000 R14: ffffc90000b56f80 R15: 0000000000000246
+ rcu_lock_acquire include/linux/rcupdate.h:329 [inline]
+ rcu_read_lock include/linux/rcupdate.h:781 [inline]
+ sk_filter_trim_cap+0x1d0/0xa80 net/core/filter.c:154
+ sk_filter include/linux/filter.h:945 [inline]
+ do_one_broadcast net/netlink/af_netlink.c:1491 [inline]
+ netlink_broadcast_filtered+0x7c0/0x1290 net/netlink/af_netlink.c:1544
+ netlink_broadcast+0x39/0x50 net/netlink/af_netlink.c:1568
+ uevent_net_broadcast_untagged lib/kobject_uevent.c:331 [inline]
+ kobject_uevent_net_broadcast+0x38f/0x580 lib/kobject_uevent.c:410
+ kobject_uevent_env+0x57d/0x8e0 lib/kobject_uevent.c:593
+ really_probe+0x7f4/0xad0 drivers/base/dd.c:706
+ __driver_probe_device+0x1a2/0x390 drivers/base/dd.c:798
+ driver_probe_device+0x50/0x430 drivers/base/dd.c:828
+ __device_attach_driver+0x2d6/0x530 drivers/base/dd.c:956
+ bus_for_each_drv+0x24e/0x2e0 drivers/base/bus.c:457
+ __device_attach+0x333/0x520 drivers/base/dd.c:1028
+ bus_probe_device+0x189/0x260 drivers/base/bus.c:532
+ device_add+0x856/0xbf0 drivers/base/core.c:3721
+ usb_new_device+0x104a/0x19a0 drivers/usb/core/hub.c:2651
+ hub_port_connect drivers/usb/core/hub.c:5521 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5661 [inline]
+ port_event drivers/usb/core/hub.c:5821 [inline]
+ hub_event+0x2d6a/0x5150 drivers/usb/core/hub.c:5903
+ process_one_work kernel/workqueue.c:3231 [inline]
+ process_scheduled_works+0xa2c/0x1830 kernel/workqueue.c:3312
+ worker_thread+0x86d/0xd70 kernel/workqueue.c:3393
+ kthread+0x2f0/0x390 kernel/kthread.c:389
+ ret_from_fork+0x4b/0x80 arch/x86/kernel/process.c:147
+ ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:244
+ </TASK>
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callback - 0 bytes
+cdc_wdm 3-1:1.0: nonzero urb status received: -71
+cdc_wdm 3-1:1.0: wdm_int_callb
+
 ---
- net/bridge/br_netfilter_hooks.c | 20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hook=
-s.c
-index bf30c50b56895..3c9f6538990ea 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -137,6 +137,7 @@ static inline bool is_pppoe_ipv6(const struct sk_buff *=
-skb,
- #define NF_BRIDGE_MAX_MAC_HEADER_LENGTH (PPPOE_SES_HLEN + ETH_HLEN)
-=20
- struct brnf_frag_data {
-+	local_lock_t bh_lock;
- 	char mac[NF_BRIDGE_MAX_MAC_HEADER_LENGTH];
- 	u8 encap_size;
- 	u8 size;
-@@ -144,7 +145,9 @@ struct brnf_frag_data {
- 	__be16 vlan_proto;
- };
-=20
--static DEFINE_PER_CPU(struct brnf_frag_data, brnf_frag_data_storage);
-+static DEFINE_PER_CPU(struct brnf_frag_data, brnf_frag_data_storage) =3D {
-+	.bh_lock =3D INIT_LOCAL_LOCK(bh_lock),
-+};
-=20
- static void nf_bridge_info_free(struct sk_buff *skb)
- {
-@@ -850,6 +853,7 @@ static int br_nf_dev_queue_xmit(struct net *net, struct=
- sock *sk, struct sk_buff
- {
- 	struct nf_bridge_info *nf_bridge =3D nf_bridge_info_get(skb);
- 	unsigned int mtu, mtu_reserved;
-+	int ret;
-=20
- 	mtu_reserved =3D nf_bridge_mtu_reduction(skb);
- 	mtu =3D skb->dev->mtu;
-@@ -882,6 +886,7 @@ static int br_nf_dev_queue_xmit(struct net *net, struct=
- sock *sk, struct sk_buff
-=20
- 		IPCB(skb)->frag_max_size =3D nf_bridge->frag_max_size;
-=20
-+		local_lock_nested_bh(&brnf_frag_data_storage.bh_lock);
- 		data =3D this_cpu_ptr(&brnf_frag_data_storage);
-=20
- 		if (skb_vlan_tag_present(skb)) {
-@@ -897,7 +902,9 @@ static int br_nf_dev_queue_xmit(struct net *net, struct=
- sock *sk, struct sk_buff
- 		skb_copy_from_linear_data_offset(skb, -data->size, data->mac,
- 						 data->size);
-=20
--		return br_nf_ip_fragment(net, sk, skb, br_nf_push_frag_xmit);
-+		ret =3D br_nf_ip_fragment(net, sk, skb, br_nf_push_frag_xmit);
-+		local_unlock_nested_bh(&brnf_frag_data_storage.bh_lock);
-+		return ret;
- 	}
- 	if (IS_ENABLED(CONFIG_NF_DEFRAG_IPV6) &&
- 	    skb->protocol =3D=3D htons(ETH_P_IPV6)) {
-@@ -909,6 +916,7 @@ static int br_nf_dev_queue_xmit(struct net *net, struct=
- sock *sk, struct sk_buff
-=20
- 		IP6CB(skb)->frag_max_size =3D nf_bridge->frag_max_size;
-=20
-+		local_lock_nested_bh(&brnf_frag_data_storage.bh_lock);
- 		data =3D this_cpu_ptr(&brnf_frag_data_storage);
- 		data->encap_size =3D nf_bridge_encap_header_len(skb);
- 		data->size =3D ETH_HLEN + data->encap_size;
-@@ -916,8 +924,12 @@ static int br_nf_dev_queue_xmit(struct net *net, struc=
-t sock *sk, struct sk_buff
- 		skb_copy_from_linear_data_offset(skb, -data->size, data->mac,
- 						 data->size);
-=20
--		if (v6ops)
--			return v6ops->fragment(net, sk, skb, br_nf_push_frag_xmit);
-+		if (v6ops) {
-+			ret =3D v6ops->fragment(net, sk, skb, br_nf_push_frag_xmit);
-+			local_unlock_nested_bh(&brnf_frag_data_storage.bh_lock);
-+			return ret;
-+		}
-+		local_unlock_nested_bh(&brnf_frag_data_storage.bh_lock);
-=20
- 		kfree_skb(skb);
- 		return -EMSGSIZE;
---=20
-2.45.2
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
 
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
