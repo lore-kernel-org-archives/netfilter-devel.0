@@ -1,164 +1,112 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B367C1A4F11
-	for <netfilter-devel@vger.kernel.org>; Thu, 20 Jun 2024 09:30:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 443641A4F09
+	for <netfilter-devel@vger.kernel.org>; Thu, 20 Jun 2024 09:40:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718875851; cv=none; b=Se79jDCZwE4W4wegLFlSqBsolCVNSTSvQl2MVe8vzGiRRPgl2HTN2lqZqReV/CguFYLObQKRptbOCi4cLlqHyJyHwUVKkv4PBNRKl3XsEJWuECn71F14sz1bXPI2G9VBWb1U+PVe+x0NgqYUH5V/eCQ+VISrICH3mG6DCW5jIRM=
+	t=1718876439; cv=none; b=EKSOV43CV8DtEOUKm90AbUYG8vPMx3C2K0n61TDV7tiWsXiKZhQ6Dr1EztpMkdIU/aAOBs/B+TvzMj6FSoI7nhx6mPVAL4L+odnBAEL1zMq0BJKz+mo3EBmA9Ta2CVhUfLoi247z6pTuEiHVUxipGeaMKiyKt3yBCIESvsw2X/0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718875851; c=relaxed/simple;
-	bh=flvjLcXoVY51KG2y7bNtnSc3hGoWC6Snd8kMUN/MSQk=;
-	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=JhCw4TtY/twBKdKhJENv94w7k9HM5L5wskPVVBlMmBJi95y3miCe2TgIS/Q3wTmWj/OX774UfFadunZcGjNThv6KHPd1CHQqnD/aiFaOAVSmha+2WZ9Ve0DCe/zUFVobzKdIPyvdKwtcb0gLmpMkXVSAzcMFwxIqEeVdeWXFtzA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=38574 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1sKE7v-00GLTJ-Ku; Thu, 20 Jun 2024 11:30:46 +0200
-Date: Thu, 20 Jun 2024 11:30:42 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
-	Florian Westphal <fw@strlen.de>, Thomas Haller <thaller@redhat.com>
-Subject: Re: [PATCH v2 0/7] Dynamic hook interface binding
-Message-ID: <ZnP2wloF4FF3bFHW@calendula>
-References: <20240517130615.19979-1-phil@nwl.cc>
- <ZnDCXfYr7qZ0bD9E@calendula>
- <ZnLAiiJJldqUXl_s@orbyte.nwl.cc>
- <ZnLvw0MbcL81GUrc@calendula>
- <ZnMAZPn263VZWaPd@orbyte.nwl.cc>
+	s=arc-20240116; t=1718876439; c=relaxed/simple;
+	bh=KIfNt1QGxmQOwjeFJlqkiQWGjyux5g2qZqevxXwvfOg=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=KWPJrGYM2mFK9N47f7JS9NF3g26tn4rwcnAHGNr9FtKHpY4UvlDwo4JD+dORem2QAgL+CmudDK6sJgj2PZ8V05ISXkjIm5ayCrOrJkRuZJQEKi+Idv1wvJn9b11uEdiFjooT8ZpCt+ueZV97GGmG6SVza+seWGOi6xo1JQz2IoU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=ZpxDWJGg; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ZpxDWJGg"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1718876436;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=FCDnNrLNWMU9Vh2OS+L9tNbUggsEdetIwOwbT/RVGNc=;
+	b=ZpxDWJGgRIFoFDEoLkm0CkBqV3vES7E6q1K2Rm6jnkTRFu0PxdGaLNE8wwr3i7eOUpsvsS
+	pc34qNdftyxjvBvZ9oOj8gV95RT9O36pcMRVd5ayPNgkMF5cDvERq5Hf+XOBnJYVJkwJ4M
+	eJ4c6PDjinB8ON0Bzxsy3OMHgzPLB5k=
+Received: from mail-vs1-f71.google.com (mail-vs1-f71.google.com
+ [209.85.217.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-353-QtElUwxaP8-nF7ghX3Hcgg-1; Thu, 20 Jun 2024 05:40:35 -0400
+X-MC-Unique: QtElUwxaP8-nF7ghX3Hcgg-1
+Received: by mail-vs1-f71.google.com with SMTP id ada2fe7eead31-48bd4902d1fso89559137.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Jun 2024 02:40:35 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1718876434; x=1719481234;
+        h=mime-version:user-agent:content-transfer-encoding:autocrypt
+         :references:in-reply-to:date:cc:to:from:subject:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=FCDnNrLNWMU9Vh2OS+L9tNbUggsEdetIwOwbT/RVGNc=;
+        b=MofAkbHOKHxqdcDuhq+m6H3s9zR0UFJXmfgTqCGikz7Xoe91uEoT6TxIt56fWCfeBE
+         N3kZbuqg5EmGH8CkcKABIW2CpksniakjqQyYKvHfGUQCoAithAnyxrty/6PDNiUs7d2w
+         sM4qJKgTy4/v0thOQm96d/XUhHOoB6NXjQ2JGj/Zc+aGfe4FCSHqO38WPlUjvRwj6nuZ
+         GQGc/mMlLd3GjrlNQJapiXSDP2BQ3NZEW0wGjXZbRAmsuda1mQW3/APidhooTHza2PBZ
+         IcD4wSfvu3m3x7tOeRFsUs7DL63x27nKiWY4uJ2vISXJXPbXwVu/hpS2uZ87eMk9a+QT
+         OIfQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUw8R5vzO2JGbgHR4dkZKRCYWHmgrQYBqruMC6U1c4EHvTLE0g9uuqQlsJDZFYe6kkFpD4nckcfH1PaOKbL/MLG5gDDLce6GAGcvx4XpdQ7
+X-Gm-Message-State: AOJu0Yy6Gh6+O2NNl6LiCE6VUeRjwYPJMkpNvGsLCyvlgdvtqEp55QeB
+	6DXfbj4RaH8UrXrvODNMSkOnXaYClNIm3+d4nil1FS+kebCvePX5OOhi/Y9uR6cSyo2Dv5f2tmP
+	gAJG5N4I4gcVca6PyCi5V8Q0vBOqEuwgM0kEWzfKYi5gI8W1za2ewhpuEcCHqFCx7UGWIgHRBBA
+	==
+X-Received: by 2002:a05:6122:169e:b0:4ec:ef7d:b99 with SMTP id 71dfb90a1353d-4ef2758261dmr5309674e0c.0.1718876434024;
+        Thu, 20 Jun 2024 02:40:34 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IF8Ab5SLuThw6qjDLtLVmsa3Zt97I1LGYDQyFLZBxUB+r++2dRTz4kaLK25T58o3pLboLH2fA==
+X-Received: by 2002:a05:6122:169e:b0:4ec:ef7d:b99 with SMTP id 71dfb90a1353d-4ef2758261dmr5309666e0c.0.1718876433698;
+        Thu, 20 Jun 2024 02:40:33 -0700 (PDT)
+Received: from gerbillo.redhat.com ([2a0d:3341:b0b7:b110::f71])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-798aaedbf4esm680868485a.38.2024.06.20.02.40.32
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 20 Jun 2024 02:40:33 -0700 (PDT)
+Message-ID: <3d0635da6ea9b3a6445c5e6751ec0cfd024a08e1.camel@redhat.com>
+Subject: Re: [PATCH net 4/5] selftests: add selftest for the SRv6 End.DX4
+ behavior with netfilter
+From: Paolo Abeni <pabeni@redhat.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org, 
+	edumazet@google.com, fw@strlen.de
+Date: Thu, 20 Jun 2024 11:40:30 +0200
+In-Reply-To: <20240619170537.2846-5-pablo@netfilter.org>
+References: <20240619170537.2846-1-pablo@netfilter.org>
+	 <20240619170537.2846-5-pablo@netfilter.org>
+Autocrypt: addr=pabeni@redhat.com; prefer-encrypt=mutual; keydata=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
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.50.4 (3.50.4-1.fc39) 
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <ZnMAZPn263VZWaPd@orbyte.nwl.cc>
-X-Spam-Score: -1.9 (-)
 
-Hi Phil,
+On Wed, 2024-06-19 at 19:05 +0200, Pablo Neira Ayuso wrote:
+> +setup_hs()
+> +{
+> +	local hs=3D$1
+> +	local rt=3D$2
+> +	local tid=3D$3
+> +	local hsname=3Dhs-${hs}
+> +	local rtname=3Drt-${rt}
+> +	local rtveth=3Dveth-t${tid}
+> +
+> +	# set the networking for the host
+> +	ip netns add ${hsname}
 
-On Wed, Jun 19, 2024 at 05:59:32PM +0200, Phil Sutter wrote:
-> On Wed, Jun 19, 2024 at 04:48:35PM +0200, Pablo Neira Ayuso wrote:
-> > On Wed, Jun 19, 2024 at 01:27:06PM +0200, Phil Sutter wrote:
-> > > On Tue, Jun 18, 2024 at 01:10:21AM +0200, Pablo Neira Ayuso wrote:
-> > > > On Fri, May 17, 2024 at 03:06:08PM +0200, Phil Sutter wrote:
-[...]
-> > > > > This series attempts to solve these problems by effectively making
-> > > > > netdev hooks name-based: If no matching interface is found at hook
-> > > > > creation time, it will be inactive until a matching interface appears.
-> > > > > If a bound interface is renamed, a matching inactive hook is searched
-> > > > > for it.
-> > > > > 
-> > > > > Ruleset dumps will stabilize in that regard. To still provide
-> > > > > information about which existing interfaces a chain/flowtable currently
-> > > > > binds to, new netlink attributes *_ACT_DEVS are introduced which are
-> > > > > filled from the active hooks only.
-> > > > 
-> > > > Currently, NFTA_HOOK_DEVS already represents the netdevice that are
-> > > > active. If one of these devices goes aways, then it is removed from
-> > > > the basechain and it does not show up in NFTA_HOOK_DEVS anymore.
-> > > > 
-> > > > There are netlink notifications that need to fit into NLMSG_GOODSIZE,
-> > > > but this adds yet another netlink array attribute.
-> > > 
-> > > Hmm. I could introduce NFTA_HOOK_INACTIVE_DEVS which contains only those
-> > > entries missing in NFTA_HOOK_DEVS. This shouldn't bloat the dumps too
-> > > much (apart from the added overhead) and won't change old user space
-> > > behaviour.
-> > 
-> > Not sure. What does NFTA_HOOK_INACTIVE_DEVS contains? Could you
-> > provide an example? Again, if this array gets again too large, there
-> > could be issues with NLMSG_GOODSIZE again for notifications.
-> 
-> I assumed your intention was for NFTA_HOOK_DEVS to not change
-> semantically, i.e. remain to contain only devices which are present at
-> time of the dump. Then I could introduce INACTIVE_DEVS to contain those
-> we lost meanwhile. As an example:
-> 
-> 1) add netdev chain for devices eth0, eth1, eth2
-> 2) list ruleset:
->    - HOOK_DEVS = { eth0, eth1, eth2 }
->    - INACTIVE_DEVS = {}
-> 3) ip link del eth1
-> 4) list ruleset:
->    - HOOK_DEVS = { eth0, eth2 }
->    - INACTIVE_DEVS = { eth1 }
+Side note for a possible follow-up (_not_ intended to block this
+PR!!!):
 
-Hm. I think such list could grow up collecitng devices that could not
-ever show up again.
+If you leverage setup_ns() from lib.sh, you can reduce a bit the code
+duplication, and the script will avoid any possible netns name
+conflict.
 
-> This avoids duplicate entries in both lists and thus avoids overhead.
-> This would fix for the interfaces missing in dumps problem.
-> 
-> Wildcards would appear as-is in either HOOK_DEVS (if there's at least
-> one matching interface) or INACTIVE_DEVS (if there is none). The actual
-> list of active interfaces would require a GETDEVICE call.
+The same for the following test.
 
-I think wildcards should inconditionally show in HOOK_DEVS, otherwise
-this tracking becomes tricky?
+Cheers,
 
-I am not sure ACTIVE_DEVS or INACTIVE_DEVS is worth in the basechain
-notification, since this is merely for diagnostics, just let this
-information be listed in the specific command that allows to inspect
-what devices are matching the wildcard (to me this is for debugging
-purpose only, because if users says tap* then that is all tap devices
-will be registered in such basechain/flowtable).
+Paolo
 
-> > I would just display these active devices (in the list of devices that
-> > are attached to this basechain) via the new command _GETDEV that we
-> > are discussing below? These netdevices that match the pattern come and
-> > go, I guess user only wants to make sure they are actually registered
-> > to this hook for diagnostics, showing an exact match, ie. tap0, or
-> > inexact match, ie. tap* should be should when listing the ruleset IMO.
-> 
-> OK, let's see if I can sum this up correctly:
-> 
-> 1) NFTA_HOOK_DEVS is changed to always reflect what the user specified
-> 2) Interfaces being removed or added trigger NEWDEV/DELDEV notifications
-> 3) Active hooks are dumped by GETDEV netlink request
-> 4) NEWDEV/DELDEV netlink requests/responses added to cover for oversized
-> chains/flowtables
-
-Makes sense.
-
-> You're saying we have to use (4) for wildcard interfaces, too. Is this
-> to keep them away from NFTA_HOOK_DEVS? Because in theory 1-3 are
-> sufficient for wildcards, too.
-
-As said, I would only expose active devices in GETDEV.
-
-[...]
-> > > > There is also another case that would need to be handled:
-> > > > 
-> > > >         - chain A with device tap0
-> > > >         - chain B with wildcard device tap*
-> > > > 
-> > > > I would expect a "exclude" clause for the wildcard case will come
-> > > > sooner or later to define a different policy for a specify chain.
-> > > > The new specific command approach would be extensible in that sense.
-> > > 
-> > > As a first implementation, I would just forbid such combinations.
-> > > Assuming "tap*" is just "tap" with length 3 and "tap0" is "tap0\0" with
-> > > length 5, modifying the duplicate hook check in
-> > > nf_tables_parse_netdev_hooks() to perform a strncmp(namea, nameb,
-> > > min(lena, lenb)) should suffice.
-> > 
-> > That is fine to ensure a given basechain does not have both tap0 and tap*
-> 
-> Ah, I missed that nf_tables_parse_netdev_hooks() merely searches the
-> current list for duplicate entries, not all chains'/flowtables' ones.
-> 
-> Hmm. I can create multiple netdev chains attaching to the same
-> interfaces, but only a single flowtable. Is this intentional?
-
-For basechain, definitely because one could have a pure hardware
-basechain (for offload) while a pure software policy in separated
-basechain, placing hardware before software.
-
-Thanks.
