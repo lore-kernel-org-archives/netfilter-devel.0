@@ -1,48 +1,35 @@
-Received: from smtp-190a.mail.infomaniak.ch (smtp-190a.mail.infomaniak.ch [185.125.25.10])
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADF91172BAB
-	for <netfilter-devel@vger.kernel.org>; Thu, 20 Jun 2024 08:10:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.125.25.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B367C1A4F11
+	for <netfilter-devel@vger.kernel.org>; Thu, 20 Jun 2024 09:30:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718871044; cv=none; b=qBXE1bQWEY/E31XaMuTug9h1O4MA85bfgpV6a6kbK/r2JtnZCsAc3w14FVNRdFNdiCfqcBUUoBuYuZXpyQ0jGK3hk55REN3CNComzWAmtNT6pSsxwptrz/dRdCcbde/Ei9YtKvLxbVxJlz8zAuefCWdqH0chRxHsNCT92kOFqNE=
+	t=1718875851; cv=none; b=Se79jDCZwE4W4wegLFlSqBsolCVNSTSvQl2MVe8vzGiRRPgl2HTN2lqZqReV/CguFYLObQKRptbOCi4cLlqHyJyHwUVKkv4PBNRKl3XsEJWuECn71F14sz1bXPI2G9VBWb1U+PVe+x0NgqYUH5V/eCQ+VISrICH3mG6DCW5jIRM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718871044; c=relaxed/simple;
-	bh=FyjNm/I3kq/pP/dapIPg9gsHpP1PzC710dtt7pmzUKY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=vAXhZOE28YQEyFiqPzG5+KT3ADQXEiKJxgiNr8uqdKMSBqe8fBwYD84fmyiAhEn/OuzCz5pQsnwQuP8JVcA5DabVxBfu0MizoJOtBOI6ZUJYcfOi1POFtcPcr6vI44uLrqI0JdgIGiyE3C3hqrIaEbfogzTcr9VC3yLAyUnyYmM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net; spf=pass smtp.mailfrom=digikod.net; dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b=sOtNOmYZ; arc=none smtp.client-ip=185.125.25.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=digikod.net
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b="sOtNOmYZ"
-Received: from smtp-3-0001.mail.infomaniak.ch (smtp-3-0001.mail.infomaniak.ch [10.4.36.108])
-	by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4W4Xwr6kjdz8pT;
-	Thu, 20 Jun 2024 10:00:44 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=digikod.net;
-	s=20191114; t=1718870444;
-	bh=W/NUAL6voE5A4pFcJSHOLM46v6kGmeT8h3EcYwb3KUc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=sOtNOmYZHEhT5EIB2V7KL7iSkDlMWcmlXneHp9D4RSJGbbkFF01kDHHlU3rEP3MqK
-	 db2AHQ+1PdQ3sARwOOndydYhkRuqDzzz0lu9vjn3Zis9aLshwsvhTNB4T4MNzlnX7h
-	 tVG6xTX3hNIg1t4k/xOjCkXRQ4pckdidlfeyTPvk=
-Received: from unknown by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4W4Xwk3bNHzMhc;
-	Thu, 20 Jun 2024 10:00:38 +0200 (CEST)
-Date: Thu, 20 Jun 2024 10:00:36 +0200
-From: =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
-To: =?utf-8?Q?G=C3=BCnther?= Noack <gnoack@google.com>, 
-	Eric Dumazet <edumazet@google.com>
-Cc: Ivanov Mikhail <ivanov.mikhail1@huawei-partners.com>, 
-	willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com, linux-security-module@vger.kernel.org, 
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, yusongping@huawei.com, 
-	artem.kuzin@huawei.com, konstantin.meskhidze@huawei.com
-Subject: Re: [PATCH 1/2] landlock: Add hook on socket_listen()
-Message-ID: <20240620.teeFoot6gaeX@digikod.net>
-References: <20240408094747.1761850-1-ivanov.mikhail1@huawei-partners.com>
- <20240408094747.1761850-2-ivanov.mikhail1@huawei-partners.com>
- <20240425.Soot5eNeexol@digikod.net>
- <a18333c0-4efc-dcf4-a219-ec46480352b1@huawei-partners.com>
- <ZnMr30kSCGME16rO@google.com>
+	s=arc-20240116; t=1718875851; c=relaxed/simple;
+	bh=flvjLcXoVY51KG2y7bNtnSc3hGoWC6Snd8kMUN/MSQk=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=JhCw4TtY/twBKdKhJENv94w7k9HM5L5wskPVVBlMmBJi95y3miCe2TgIS/Q3wTmWj/OX774UfFadunZcGjNThv6KHPd1CHQqnD/aiFaOAVSmha+2WZ9Ve0DCe/zUFVobzKdIPyvdKwtcb0gLmpMkXVSAzcMFwxIqEeVdeWXFtzA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=38574 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1sKE7v-00GLTJ-Ku; Thu, 20 Jun 2024 11:30:46 +0200
+Date: Thu, 20 Jun 2024 11:30:42 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
+	Florian Westphal <fw@strlen.de>, Thomas Haller <thaller@redhat.com>
+Subject: Re: [PATCH v2 0/7] Dynamic hook interface binding
+Message-ID: <ZnP2wloF4FF3bFHW@calendula>
+References: <20240517130615.19979-1-phil@nwl.cc>
+ <ZnDCXfYr7qZ0bD9E@calendula>
+ <ZnLAiiJJldqUXl_s@orbyte.nwl.cc>
+ <ZnLvw0MbcL81GUrc@calendula>
+ <ZnMAZPn263VZWaPd@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -51,128 +38,127 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <ZnMr30kSCGME16rO@google.com>
-X-Infomaniak-Routing: alpha
+In-Reply-To: <ZnMAZPn263VZWaPd@orbyte.nwl.cc>
+X-Spam-Score: -1.9 (-)
 
-On Wed, Jun 19, 2024 at 09:05:03PM +0200, Günther Noack wrote:
-> I agree with Mickaël's comment: this seems like an important fix.
-> 
-> Mostly for completeness: I played with the "socket type" patch set in a "TCP
-> server" example, where *all* possible operations are restricted with Landlock,
-> including the ones from the "socket type" patch set V2 with the little fix we
-> discussed.
-> 
->  - socket()
->  - bind()
->  - enforce a landlock ruleset restricting:
->    - file system access
->    - all TCP bind and connect
->    - socket creation
->  - listen()
->  - accept()
-> 
-> From the connection handler (which would be the place where an attacker can
-> usually provide input), it is now still possible to bind a socket due to this
-> problem.  The steps are:
-> 
->   1) connect() on client_fd with AF_UNSPEC to disassociate the client FD
->   2) listen() on the client_fd
-> 
-> This succeeds and it listens on an ephemeral port.
-> 
-> The code is at [1], if you are interested.
-> 
-> [1] https://github.com/gnoack/landlock-examples/blob/main/tcpserver.c
-> 
-> 
-> On Mon, May 13, 2024 at 03:15:50PM +0300, Ivanov Mikhail wrote:
-> > 4/30/2024 4:36 PM, Mickaël Salaün wrote:
-> > > On Mon, Apr 08, 2024 at 05:47:46PM +0800, Ivanov Mikhail wrote:
-> > > > Make hook for socket_listen(). It will check that the socket protocol is
-> > > > TCP, and if the socket's local port number is 0 (which means,
-> > > > that listen(2) was called without any previous bind(2) call),
-> > > > then listen(2) call will be legitimate only if there is a rule for bind(2)
-> > > > allowing binding to port 0 (or if LANDLOCK_ACCESS_NET_BIND_TCP is not
-> > > > supported by the sandbox).
+Hi Phil,
+
+On Wed, Jun 19, 2024 at 05:59:32PM +0200, Phil Sutter wrote:
+> On Wed, Jun 19, 2024 at 04:48:35PM +0200, Pablo Neira Ayuso wrote:
+> > On Wed, Jun 19, 2024 at 01:27:06PM +0200, Phil Sutter wrote:
+> > > On Tue, Jun 18, 2024 at 01:10:21AM +0200, Pablo Neira Ayuso wrote:
+> > > > On Fri, May 17, 2024 at 03:06:08PM +0200, Phil Sutter wrote:
+[...]
+> > > > > This series attempts to solve these problems by effectively making
+> > > > > netdev hooks name-based: If no matching interface is found at hook
+> > > > > creation time, it will be inactive until a matching interface appears.
+> > > > > If a bound interface is renamed, a matching inactive hook is searched
+> > > > > for it.
+> > > > > 
+> > > > > Ruleset dumps will stabilize in that regard. To still provide
+> > > > > information about which existing interfaces a chain/flowtable currently
+> > > > > binds to, new netlink attributes *_ACT_DEVS are introduced which are
+> > > > > filled from the active hooks only.
+> > > > 
+> > > > Currently, NFTA_HOOK_DEVS already represents the netdevice that are
+> > > > active. If one of these devices goes aways, then it is removed from
+> > > > the basechain and it does not show up in NFTA_HOOK_DEVS anymore.
+> > > > 
+> > > > There are netlink notifications that need to fit into NLMSG_GOODSIZE,
+> > > > but this adds yet another netlink array attribute.
 > > > 
-> > > Thanks for this patch and sorry for the late full review.  The code is
-> > > good overall.
-> > > 
-> > > We should either consider this patch as a fix or add a new flag/access
-> > > right to Landlock syscalls for compatibility reason.  I think this
-> > > should be a fix.  Calling listen(2) without a previous call to bind(2)
-> > > is a corner case that we should properly handle.  The commit message
-> > > should make that explicit and highlight the goal of the patch: first
-> > > explain why, and then how.
+> > > Hmm. I could introduce NFTA_HOOK_INACTIVE_DEVS which contains only those
+> > > entries missing in NFTA_HOOK_DEVS. This shouldn't bloat the dumps too
+> > > much (apart from the added overhead) and won't change old user space
+> > > behaviour.
 > > 
-> > Yeap, this is fix-patch. I have covered motivation and proposed solution
-> > in cover letter. Do you have any suggestions on how i can improve this?
+> > Not sure. What does NFTA_HOOK_INACTIVE_DEVS contains? Could you
+> > provide an example? Again, if this array gets again too large, there
+> > could be issues with NLMSG_GOODSIZE again for notifications.
 > 
-> Without wanting to turn around the direction of this code review now, I am still
-> slightly concerned about the assymetry of this special case being implemented
-> for listen() but not for connect().
+> I assumed your intention was for NFTA_HOOK_DEVS to not change
+> semantically, i.e. remain to contain only devices which are present at
+> time of the dump. Then I could introduce INACTIVE_DEVS to contain those
+> we lost meanwhile. As an example:
 > 
-> The reason is this: My colleague Mr. B. recently pointed out to me that you can
-> also do a bind() on a socket before a connect(!). The steps are:
-> 
-> * create socket with socket()
-> * bind() to a local port 9090
-> * connect() to a remote port 8080
-> 
-> This gives you a connection between ports 9090 and 8080.
+> 1) add netdev chain for devices eth0, eth1, eth2
+> 2) list ruleset:
+>    - HOOK_DEVS = { eth0, eth1, eth2 }
+>    - INACTIVE_DEVS = {}
+> 3) ip link del eth1
+> 4) list ruleset:
+>    - HOOK_DEVS = { eth0, eth2 }
+>    - INACTIVE_DEVS = { eth1 }
 
-Yes, this should not be an issue, but something to keep in mind.
+Hm. I think such list could grow up collecitng devices that could not
+ever show up again.
 
+> This avoids duplicate entries in both lists and thus avoids overhead.
+> This would fix for the interfaces missing in dumps problem.
 > 
-> A regular connect() without an explicit bind() is of course the more usual
-> scenario.  In that case, we are also using up ("implicitly binding") one of the
-> ephemeral ports.
+> Wildcards would appear as-is in either HOOK_DEVS (if there's at least
+> one matching interface) or INACTIVE_DEVS (if there is none). The actual
+> list of active interfaces would require a GETDEVICE call.
+
+I think wildcards should inconditionally show in HOOK_DEVS, otherwise
+this tracking becomes tricky?
+
+I am not sure ACTIVE_DEVS or INACTIVE_DEVS is worth in the basechain
+notification, since this is merely for diagnostics, just let this
+information be listed in the specific command that allows to inspect
+what devices are matching the wildcard (to me this is for debugging
+purpose only, because if users says tap* then that is all tap devices
+will be registered in such basechain/flowtable).
+
+> > I would just display these active devices (in the list of devices that
+> > are attached to this basechain) via the new command _GETDEV that we
+> > are discussing below? These netdevices that match the pattern come and
+> > go, I guess user only wants to make sure they are actually registered
+> > to this hook for diagnostics, showing an exact match, ie. tap0, or
+> > inexact match, ie. tap* should be should when listing the ruleset IMO.
 > 
-> It seems that, with respect to the port binding, listen() and connect() work
-> quite similarly then?  This being considered, maybe it *is* the listen()
-> operation on a port which we should be restricting, and not bind()?
-
-I agree that we should be able to control listen according to the binded
-port, see https://github.com/landlock-lsm/linux/issues/15
-In a nutshell, the LANDLOCK_ACCESS_NET_LISTEN_TCP should make more sense
-for most use cases, but I think LANDLOCK_ACCESS_NET_BIND_TCP is also
-useful to limit opened (well-known) ports and port spoofing.
-
+> OK, let's see if I can sum this up correctly:
 > 
-> With some luck, that would then also free us from having to implement the
-> check_tcp_socket_can_listen() logic, which is seemingly emulating logic from
-> elsewhere in the kernel?
+> 1) NFTA_HOOK_DEVS is changed to always reflect what the user specified
+> 2) Interfaces being removed or added trigger NEWDEV/DELDEV notifications
+> 3) Active hooks are dumped by GETDEV netlink request
+> 4) NEWDEV/DELDEV netlink requests/responses added to cover for oversized
+> chains/flowtables
 
-An alternative could be to only use LANDLOCK_ACCESS_NET_BIND_TCP for
-explicit binding (i.e. current state, but with appropriate
-documentation), and delegate to LANDLOCK_ACCESS_NET_LISTEN_TCP the
-control of binding with listen(2).  That should free us from
-implementing check_tcp_socket_can_listen().  The rationale would be that
-a malicious sandboxed process could not explicitly bind to a
-well-specified port, but only to a range of dedicated random ports (the
-same range use for auto-binding with connect).  That could also help
-developers by staying close to the kernel syscall ABI (principle of
-least astonishment).
+Makes sense.
 
-> 
-> (I am by far not an expert in Linux networking, so I'll put this out for
-> consideration and will happily stand corrected if I am misunderstanding
-> something.  Maybe someone with more networking background can chime in?)
+> You're saying we have to use (4) for wildcard interfaces, too. Is this
+> to keep them away from NFTA_HOOK_DEVS? Because in theory 1-3 are
+> sufficient for wildcards, too.
 
-That would be good indeed.  Netfilter or network folks? Eric?
+As said, I would only expose active devices in GETDEV.
 
-> 
-> 
-> > > > +		/* Socket is alredy binded to some port. */
+[...]
+> > > > There is also another case that would need to be handled:
+> > > > 
+> > > >         - chain A with device tap0
+> > > >         - chain B with wildcard device tap*
+> > > > 
+> > > > I would expect a "exclude" clause for the wildcard case will come
+> > > > sooner or later to define a different policy for a specify chain.
+> > > > The new specific command approach would be extensible in that sense.
 > > > 
-> > > This kind of spelling issue can be found by scripts/checkpatch.pl
+> > > As a first implementation, I would just forbid such combinations.
+> > > Assuming "tap*" is just "tap" with length 3 and "tap0" is "tap0\0" with
+> > > length 5, modifying the duplicate hook check in
+> > > nf_tables_parse_netdev_hooks() to perform a strncmp(namea, nameb,
+> > > min(lena, lenb)) should suffice.
 > > 
-> > will be fixed
+> > That is fine to ensure a given basechain does not have both tap0 and tap*
 > 
-> P.S. there are two typos here, the obvious one in "alredy",
-> but also the passive of "to bind" is "bound", not "binded".
-> (That is also mis-spelled in a few more places I think.)
+> Ah, I missed that nf_tables_parse_netdev_hooks() merely searches the
+> current list for duplicate entries, not all chains'/flowtables' ones.
 > 
-> —Günther
-> 
+> Hmm. I can create multiple netdev chains attaching to the same
+> interfaces, but only a single flowtable. Is this intentional?
+
+For basechain, definitely because one could have a pure hardware
+basechain (for offload) while a pure software policy in separated
+basechain, placing hardware before software.
+
+Thanks.
