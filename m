@@ -1,75 +1,77 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id ACD79192B69;
-	Wed, 26 Jun 2024 23:38:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCA23192B6E
+	for <netfilter-devel@vger.kernel.org>; Wed, 26 Jun 2024 23:39:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719445141; cv=none; b=NXS3nqICts36m6as1jl1bk41o7QAfBz6lgHSte65oeEXbF/9pSpwTegX+gUldTCNsuIkt7UvsUzc9f173fo2/W7LJ0l7bBDWVyqaBotsWIZA2JMwLY/1Pkbhu3f4N8PDvYoq4IAHJ5ZrtrdUEYMO+eMH8Uh2/Ws7XW7ioWyCQI0=
+	t=1719445191; cv=none; b=pPb6HzuRIdtRsOcMqunGhKG6VjVI7BLQT4YGH9EE+CAWLGMOc/jKLWHm9YF6bCzT+4GN7wTBIuWUfNfH8WSLNLnrbZNjih1RHv2m6R5zaxP4twGIU8LvXFe9NX544OCOnfXltIVCow0+XTdglCCtOEearvksBg9LBn3NahuNdtE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719445141; c=relaxed/simple;
-	bh=hImuZQ7maYIYqa/IcFnM8kTqP4IHb5Ke4znOD4+XIew=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=McEqifD6+jSoGDgaqSZY5IHDQDRfOpzftAqB/a9yxslK1rDnjdvMk005CbVlrKz9yLXvE+e+Ejv3nAlZLXDn5Uur2/3MS3LukDRZ50occ9f0iT8MoxuI8HDJFu3GobyIqDMydAZexX6BMOWqlh4x/YOzg5IBLEELZ3VM84XcTP8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+	s=arc-20240116; t=1719445191; c=relaxed/simple;
+	bh=3qGey6uN1TyJa1bFYIxhy1R2qevK7SFhXhR+RMlH45Q=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=kBHLTtwqKv6YtdEtXiJxRHn/LsOiN+krWPFpX/q0eCMVcGCKplcluhHexFRF/EUu5cYkqi7lJlsSWH/+gHrGdRrPbt9zAaW3cpRXHMatyY21AFbBg/x5kxr0Aj3hh1chr+LO+OqISKVDlykhEP/HwS++wrzhzMV7F6GN0qOAcQw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=44556 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1sMcEq-008kAW-8i; Thu, 27 Jun 2024 01:39:46 +0200
+Date: Thu, 27 Jun 2024 01:39:43 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	fw@strlen.de,
-	torvalds@linuxfoundation.org
-Subject: [PATCH net 1/2] netfilter: fix undefined reference to 'netfilter_lwtunnel_*' when CONFIG_SYSCTL=n
-Date: Thu, 27 Jun 2024 01:38:44 +0200
-Message-Id: <20240626233845.151197-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20240626233845.151197-1-pablo@netfilter.org>
-References: <20240626233845.151197-1-pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+	netfilter-devel@vger.kernel.org, Fabio <pedretti.fabio@gmail.com>
+Subject: Re: [nf-next PATCH v2 1/2] netfilter: xt_recent: Reduce size of
+ struct recent_entry::nstamps
+Message-ID: <Znymv6czZP4M4zuc@calendula>
+References: <20240614151641.28885-1-phil@nwl.cc>
+ <20240614151641.28885-2-phil@nwl.cc>
+ <Znw9-9hAxauzr2Ie@calendula>
+ <ZnyY-j4pqHjflOnb@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <ZnyY-j4pqHjflOnb@orbyte.nwl.cc>
+X-Spam-Score: -1.9 (-)
 
-From: Jianguo Wu <wujianguo@chinatelecom.cn>
+On Thu, Jun 27, 2024 at 12:40:58AM +0200, Phil Sutter wrote:
+> On Wed, Jun 26, 2024 at 06:12:43PM +0200, Pablo Neira Ayuso wrote:
+> > Hi Phil,
+> > 
+> > On Fri, Jun 14, 2024 at 05:16:40PM +0200, Phil Sutter wrote:
+> > > There is no point in this change besides presenting its possibility
+> > > separate from a follow-up patch extending the size of both 'index' and
+> > > 'nstamps' fields.
+> > > 
+> > > The value of 'nstamps' is initialized to 1 in recent_entry_init() and
+> > > adjusted in recent_entry_update() to match that of 'index' if it becomes
+> > > larger after being incremented. Since 'index' is of type u8, it will at
+> > > max become 255 (and wrap to 0 afterwards). Therefore, 'nstamps' will
+> > > also never exceed the value 255.
+> > 
+> > Series LGTM.
+> 
+> Thanks for your review.
+> 
+> > I'd suggest you collapse these two patches while keeping the
+> > description above, because nstamps is shrinked here in 1/2 then it
+> > gets back to original u16 in 2/2.
+> 
+> ACK, that was the plan right from the start. :)
 
-if CONFIG_SYSFS is not enabled in config, we get the below compile error,
+Thanks, I have to admit splitting the patch in two helped me
+understand a lot better when reviewing.
 
-All errors (new ones prefixed by >>):
+> > Maybe something like:
+> 
+> I composed a new note to add to the second patch. Please review and let
+> me know if it's unclear or misleading.
 
-   csky-linux-ld: net/netfilter/core.o: in function `netfilter_init':
-   core.c:(.init.text+0x42): undefined reference to `netfilter_lwtunnel_init'
->> csky-linux-ld: core.c:(.init.text+0x56): undefined reference to `netfilter_lwtunnel_fini'
->> csky-linux-ld: core.c:(.init.text+0x70): undefined reference to `netfilter_lwtunnel_init'
-   csky-linux-ld: core.c:(.init.text+0x78): undefined reference to `netfilter_lwtunnel_fini'
-
-Fixes: a2225e0250c5 ("netfilter: move the sysctl nf_hooks_lwtunnel into the netfilter core")
-Reported-by: Mirsad Todorovac <mtodorovac69@gmail.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202406210511.8vbByYj3-lkp@intel.com/
-Closes: https://lore.kernel.org/oe-kbuild-all/202406210520.6HmrUaA2-lkp@intel.com/
-Signed-off-by: Jianguo Wu <wujianguo@chinatelecom.cn>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_hooks_lwtunnel.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/net/netfilter/nf_hooks_lwtunnel.c b/net/netfilter/nf_hooks_lwtunnel.c
-index 7cdb59bb4459..d8ebebc9775d 100644
---- a/net/netfilter/nf_hooks_lwtunnel.c
-+++ b/net/netfilter/nf_hooks_lwtunnel.c
-@@ -117,4 +117,7 @@ void netfilter_lwtunnel_fini(void)
- {
- 	unregister_pernet_subsys(&nf_lwtunnel_net_ops);
- }
-+#else
-+int __init netfilter_lwtunnel_init(void) { return 0; }
-+void netfilter_lwtunnel_fini(void) {}
- #endif /* CONFIG_SYSCTL */
--- 
-2.30.2
-
+LGTM, thanks
