@@ -1,42 +1,34 @@
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADB0618EFCF;
-	Wed, 26 Jun 2024 16:04:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD868190045
+	for <netfilter-devel@vger.kernel.org>; Wed, 26 Jun 2024 16:12:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719417854; cv=none; b=CVTKtA3O/nb6sI+/5+l2/DQWayBkHY76J3qb+b5Zc/enpqt9WdyuXqZ+QngI/rYKkoJwa1b+TPUv3IU1ngcNzl6IZMNkiJZveldAZO3C+64eoCWJzEtP6b5sSRE9W4uD6tuUIkd7YKa2yHNUaU7uhhaMIynJeAj5BegLbbcUvrg=
+	t=1719418370; cv=none; b=jozfTJfO+ICTb7u3lXJ4OTPiCbBwdzOAWXeZH9+Z4i3rDhmCymrDDYFhr1dTqOteUYbppi2SeBL6L0MFsNgEr/jPccuBw9WrYSb2KWVF1KKrI/kf8IDE8Jb+2qFLbI9kdrOxR1mVI9l/W4vKwUG9NOfGmdi+0s2xycYq3t0vxxU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719417854; c=relaxed/simple;
-	bh=4O4CAULsJeXynfjY6mPTGWkKb6XikVyaPfbpdlls0Fc=;
+	s=arc-20240116; t=1719418370; c=relaxed/simple;
+	bh=b8Mhb+GRNr5OO/+iWOMoch6HL0W4JUI+qyJMV3cP+KA=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=XLZtVlD/S5JzhDqZFNd3d4ShHHz3bTz1a2LXcsN8RqVKsQZBagKDTmhF5uvDBfekffo+0K+w+amEx/W4/pKjppeU2IytICYJmLt9PCgWbO8gJAriQW1BW4F6Nij09Vs/A1kzawTZfZT9Um0Q81gEWJsNgEkHkjsmGEKkJ+EhJN4=
+	 Content-Type:Content-Disposition:In-Reply-To; b=Yv4fC29DDH1iCytIto1Uu/QhBSzHDmyZNBRLC9FdKfQdHZXPWGDnfcjwkTKJ6QBz9gnkO1BOU+qSZCqdgfBg1VsWf0++SuyVj47i1+07YXMOyN6Jahgb1j6pzGmqcoUphw2tyTkuOso+dRk+AHtcuHt4IvIw9S5yREoVm9I4rVo=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=40636 helo=gnumonks.org)
+Received: from [78.30.37.63] (port=58316 helo=gnumonks.org)
 	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <pablo@gnumonks.org>)
-	id 1sMV7p-008D6r-J6; Wed, 26 Jun 2024 18:04:03 +0200
-Date: Wed, 26 Jun 2024 18:04:00 +0200
+	id 1sMVGG-008DtX-N9; Wed, 26 Jun 2024 18:12:46 +0200
+Date: Wed, 26 Jun 2024 18:12:43 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Mirsad Todorovac <mtodorovac69@gmail.com>
-Cc: Linux Kernel Build System <linux-kbuild@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org
-Subject: Re: [PROBLEM] make randconfig: net/netfilter/core.c:830: undefined
- reference to `netfilter_lwtunnel_fini'
-Message-ID: <Znw78PpYwAgFZiaB@calendula>
-References: <7a472130-d9c4-4fda-840b-093308f73d3d@gmail.com>
- <Znc4931wlIgvqrfP@calendula>
- <6cdb1346-75ca-472e-8d96-d58a1eaab172@gmail.com>
- <b50bb0bf-4d35-4334-a721-2a092210aecc@gmail.com>
+To: Phil Sutter <phil@nwl.cc>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	Fabio <pedretti.fabio@gmail.com>
+Subject: Re: [nf-next PATCH v2 1/2] netfilter: xt_recent: Reduce size of
+ struct recent_entry::nstamps
+Message-ID: <Znw9-9hAxauzr2Ie@calendula>
+References: <20240614151641.28885-1-phil@nwl.cc>
+ <20240614151641.28885-2-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -45,29 +37,62 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <b50bb0bf-4d35-4334-a721-2a092210aecc@gmail.com>
+In-Reply-To: <20240614151641.28885-2-phil@nwl.cc>
 X-Spam-Score: -1.9 (-)
 
-On Sun, Jun 23, 2024 at 12:51:49AM +0200, Mirsad Todorovac wrote:
-> On 6/23/24 00:48, Mirsad Todorovac wrote:
-> > On 6/22/24 22:49, Pablo Neira Ayuso wrote:
-> >> Hi,
-> >>
-> >> There is a fix on the table address this, I will submit is in the next
-> >> pull request.
-> > 
-> > Thank you very much.
-> > 
-> > Please consider adding Reported-by: Mirsad Todorovac <mtodorovac69@gmail.com>
-> >  
-> >> Thanks for reporting
-> > 
-> > No big deal. Anytime :-)
-> 
-> P.S.
-> 
-> Please notify when I could test the same .config with your fix.
+Hi Phil,
 
-Patch is here:
+On Fri, Jun 14, 2024 at 05:16:40PM +0200, Phil Sutter wrote:
+> There is no point in this change besides presenting its possibility
+> separate from a follow-up patch extending the size of both 'index' and
+> 'nstamps' fields.
+> 
+> The value of 'nstamps' is initialized to 1 in recent_entry_init() and
+> adjusted in recent_entry_update() to match that of 'index' if it becomes
+> larger after being incremented. Since 'index' is of type u8, it will at
+> max become 255 (and wrap to 0 afterwards). Therefore, 'nstamps' will
+> also never exceed the value 255.
 
-https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git/commit/?id=aef5daa2c49d510436b733827d4f0bab79fcc4a0
+Series LGTM.
+
+I'd suggest you collapse these two patches while keeping the
+description above, because nstamps is shrinked here in 1/2 then it
+gets back to original u16 in 2/2.
+
+Maybe something like:
+
+The value of 'nstamps' is initialized to 1 in recent_entry_init() and
+adjusted in recent_entry_update() to match that of 'index' if it becomes
+larger after being incremented. Since 'index' is of type u8, it will at
+max become 255 (and wrap to 0 afterwards). Therefore, 'nstamps' will
+also never exceed the value 255. But this patch expands 'index' to
+u16 and then 'nstamps' needs to use u16 too, which exactly the
+existing field size in the existing codebase.
+
+I can do this mangling if you prefer to save you cycles, in such case
+if you also like better wording, just let me know.
+
+Thanks.
+
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> ---
+>  net/netfilter/xt_recent.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
+> index ef93e0d3bee0..60259280b2d5 100644
+> --- a/net/netfilter/xt_recent.c
+> +++ b/net/netfilter/xt_recent.c
+> @@ -70,7 +70,7 @@ struct recent_entry {
+>  	u_int16_t		family;
+>  	u_int8_t		ttl;
+>  	u_int8_t		index;
+> -	u_int16_t		nstamps;
+> +	u_int8_t		nstamps;
+>  	unsigned long		stamps[];
+>  };
+>  
+> -- 
+> 2.43.0
+> 
+> 
