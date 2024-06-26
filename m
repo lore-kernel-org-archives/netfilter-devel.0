@@ -1,13 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 218A6193072;
-	Wed, 26 Jun 2024 23:38:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id ACDDB194141;
+	Wed, 26 Jun 2024 23:38:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719445140; cv=none; b=iD0ImkUOYtgLBNbl8NBH9VbZJDQAGXQZrR+g2/9kEtHgzJdxaFx3tt94RyYSkhomz3mNlEukBriQEWWFoZkF4bN5MEQ6UHJAF2oKXHrOJSn3LtCME7LiMYm11g+TRJiVH2+8NO6bgs/MtUo3cX3UBG9BeSIG1CkpxLTrAARu0bM=
+	t=1719445140; cv=none; b=gnjPyIFZtdoSue4/lExq7oSno+154OdGVZgiuQxZ2ffAO88Gq/OUQ1EiyTL62hSWWzdgYbnksYml1AvcgpacHYgLJ2/i360B8fKJ2EzLJ5RrbWUbCKik2Cv8b17dz+KdB7vi639ySlHrneUBz5R0yAK1OcUMsvUIxi6dvpGf7fE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1719445140; c=relaxed/simple;
-	bh=H6+X8o5gCJR7GeC8Ea6KPH4ohUSoOM5EDQEmUefiDWE=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=pwwsBmZu71OqAKHaBryMj3yJ2Nu8bK9GzTAMQlbjel/LrhqeMgx13j9mZ6FXFpemDBJz5wydWJPZpI3DyHLx1XOr10/ckRu6l6dIJ1oMbqw4LAk/NMUWgY8//yvVnPlLkYMN1mgKqYk3tuqX0uhoBeJPXgNITJvSVmcNs6M24hQ=
+	bh=Ai2WoGSkZmZxVZLmj1Z/CgnlYz0b2ZYj+heCCrJG43o=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=pNjWBTUrewsbPzKbwnEw18DroAa8MuoUgP2yPZv0zQ8U1oJYADFv1CZOEkDJBaNw+ToLk9Iki4bj7FAyLAhABkGslrEypjChq7TSGt4Pf8MOPpqLXZ79BgIg44J9M84aDIw7f2iEw+pZwPL+2U3Wyj+kas/wgDy+wu8ZjDmWrE4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,10 +21,12 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	torvalds@linuxfoundation.org
-Subject: [PATCH net 0/2] Netfilter fixes for net
-Date: Thu, 27 Jun 2024 01:38:43 +0200
-Message-Id: <20240626233845.151197-1-pablo@netfilter.org>
+Subject: [PATCH net 2/2] netfilter: nf_tables: fully validate NFT_DATA_VALUE on store to data registers
+Date: Thu, 27 Jun 2024 01:38:45 +0200
+Message-Id: <20240626233845.151197-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20240626233845.151197-1-pablo@netfilter.org>
+References: <20240626233845.151197-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -32,49 +35,84 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+register store validation for NFT_DATA_VALUE is conditional, however,
+the datatype is always either NFT_DATA_VALUE or NFT_DATA_VERDICT. This
+only requires a new helper function to infer the register type from the
+set datatype so this conditional check can be removed. Otherwise,
+pointer to chain object can be leaked through the registers.
 
-The following patchset contains two Netfilter fixes for net:
-
-Patch #1 fixes CONFIG_SYSCTL=n for a patch coming in the previous PR
-	 to move the sysctl toggle to enable SRv6 netfilter hooks from
-	 nf_conntrack to the core, from Jianguo Wu.
-
-Patch #2 fixes a possible pointer leak to userspace due to insufficient
-	 validation of NFT_DATA_VALUE.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-24-06-27
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 058722ee350c0bdd664e467156feb2bf5d9cc271:
-
-  net: usb: ax88179_178a: improve link status logs (2024-06-24 10:15:09 +0100)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-24-06-27
-
-for you to fetch changes up to 7931d32955e09d0a11b1fe0b6aac1bfa061c005c:
-
-  netfilter: nf_tables: fully validate NFT_DATA_VALUE on store to data registers (2024-06-27 01:09:51 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 24-06-27
-
-----------------------------------------------------------------
-Jianguo Wu (1):
-      netfilter: fix undefined reference to 'netfilter_lwtunnel_*' when CONFIG_SYSCTL=n
-
-Pablo Neira Ayuso (1):
-      netfilter: nf_tables: fully validate NFT_DATA_VALUE on store to data registers
-
+Fixes: 96518518cc41 ("netfilter: add nftables")
+Reported-by: Linus Torvalds <torvalds@linuxfoundation.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
  include/net/netfilter/nf_tables.h | 5 +++++
- net/netfilter/nf_hooks_lwtunnel.c | 3 +++
  net/netfilter/nf_tables_api.c     | 8 ++++----
  net/netfilter/nft_lookup.c        | 3 ++-
- 4 files changed, 14 insertions(+), 5 deletions(-)
+ 3 files changed, 11 insertions(+), 5 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 2796153b03da..188d41da1a40 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -619,6 +619,11 @@ static inline void *nft_set_priv(const struct nft_set *set)
+ 	return (void *)set->data;
+ }
+ 
++static inline enum nft_data_types nft_set_datatype(const struct nft_set *set)
++{
++	return set->dtype == NFT_DATA_VERDICT ? NFT_DATA_VERDICT : NFT_DATA_VALUE;
++}
++
+ static inline bool nft_set_gc_is_pending(const struct nft_set *s)
+ {
+ 	return refcount_read(&s->refs) != 1;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index be3b4c90d2ed..e8dcf41d360d 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5740,8 +5740,7 @@ static int nf_tables_fill_setelem(struct sk_buff *skb,
+ 
+ 	if (nft_set_ext_exists(ext, NFT_SET_EXT_DATA) &&
+ 	    nft_data_dump(skb, NFTA_SET_ELEM_DATA, nft_set_ext_data(ext),
+-			  set->dtype == NFT_DATA_VERDICT ? NFT_DATA_VERDICT : NFT_DATA_VALUE,
+-			  set->dlen) < 0)
++			  nft_set_datatype(set), set->dlen) < 0)
+ 		goto nla_put_failure;
+ 
+ 	if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPRESSIONS) &&
+@@ -11073,6 +11072,9 @@ static int nft_validate_register_store(const struct nft_ctx *ctx,
+ 
+ 		return 0;
+ 	default:
++		if (type != NFT_DATA_VALUE)
++			return -EINVAL;
++
+ 		if (reg < NFT_REG_1 * NFT_REG_SIZE / NFT_REG32_SIZE)
+ 			return -EINVAL;
+ 		if (len == 0)
+@@ -11081,8 +11083,6 @@ static int nft_validate_register_store(const struct nft_ctx *ctx,
+ 		    sizeof_field(struct nft_regs, data))
+ 			return -ERANGE;
+ 
+-		if (data != NULL && type != NFT_DATA_VALUE)
+-			return -EINVAL;
+ 		return 0;
+ 	}
+ }
+diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
+index b314ca728a29..f3080fa1b226 100644
+--- a/net/netfilter/nft_lookup.c
++++ b/net/netfilter/nft_lookup.c
+@@ -132,7 +132,8 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
+ 			return -EINVAL;
+ 
+ 		err = nft_parse_register_store(ctx, tb[NFTA_LOOKUP_DREG],
+-					       &priv->dreg, NULL, set->dtype,
++					       &priv->dreg, NULL,
++					       nft_set_datatype(set),
+ 					       set->dlen);
+ 		if (err < 0)
+ 			return err;
+-- 
+2.30.2
+
