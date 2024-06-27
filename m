@@ -1,35 +1,28 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2530113E40C;
-	Thu, 27 Jun 2024 11:10:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id EE42C148833;
+	Thu, 27 Jun 2024 11:27:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719486629; cv=none; b=EntqPIldVBisS6gpECYhBOE2ph+PkkEoylnI9ndc9VdaphIn84s5MxW2AkuB3SLkGfTZsHTo9vlOS87F1zB9WPDtLdwwvqljj6xPDSLS4Pz6G73eaeZmw9fPmZnLX2mPTavZqbJ7Fzct+HkerTgdhbblU7Lq5w7N6Xu3YHu3hFs=
+	t=1719487642; cv=none; b=O1mLEfkPZdXhzYnjzZaB8SDYuQqN88grgPCJ+mVktZFGdR37XQDpr7VgAk4rnINc13S1SLAb4/vN34Jqb7FrNcIoM6xS4vV22PUjGH7UQAbrAYzL4cbA8IfZiM1KktE+m7HbSsyC69EfyG63+QtbaTm1Y9c0TdE8V2WAOv6wFJM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719486629; c=relaxed/simple;
-	bh=5Oejg1SsOEtX3szxfJgKeybMK968kT2ShO2aLKqk5EI=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=kfGtncxYCVxA+MGE1lmJNo0lvz/3UoBsjG/4hlmmpt6Vd6Ie9kKE0S9dr1Q2JtdZEcup+GDwnB8/Bx3AOikw8x9YYI4LvA5ErqyB26cscdX0B7l7MvonsWDzjxTd/jh2AjJ54YW+quSNYSDO9OXGB/w1dqfZ5uPDdjRXWOjdZHk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=q2cGsDpK; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="q2cGsDpK"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id ABE4CC32786;
-	Thu, 27 Jun 2024 11:10:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1719486628;
-	bh=5Oejg1SsOEtX3szxfJgKeybMK968kT2ShO2aLKqk5EI=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=q2cGsDpK59TM2TxjHxvHo7hiLwBR1vau8SJN1WLWSKNmH6MLioc5USwdHEhEQgdcX
-	 pRhB9qGNElaRldQIIAzNPjciolcvODvwmWo7lcsdQopbJ/MGwbNlCbij2wblnddAGL
-	 0N6dyJJ+Kt+D2UyMMEzCQgaAbkWYfyeLyvxdd06Clhzqyig8O4V4TwzPcYl36fykVg
-	 DwmYpwPXTYNAWKkxzBjTHt0Ci/qtXwmFMk1GXr48ZA05YunrWuY9xsWMOVuFMIuQDS
-	 Y+2UIkXWo7sUa9X0VM/xZcNmx8OaH0ToAR9gVRm+x3e0ebcTa/eGFWZ/+Rm0rfGDfM
-	 9vaPOK9KtZNGQ==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 9BB5ADE8DE0;
-	Thu, 27 Jun 2024 11:10:28 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=arc-20240116; t=1719487642; c=relaxed/simple;
+	bh=AjqaV/zIfOToM4PlUU/A9sSIUe/RdllymlNneEvF22I=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=QghJEbTdM4xOLvk420phdDNiZg3P+Fwb/Y9IUBFGUE4Jd6YpbFjXzt5GPEGHf+xYmW28keD7QYd58W9T+wqQPdA/mRt7oO26UDnfpJfxC6qsb1o4dMbOR6xjzc+jsNVrnEmlGIbVNmh9kBr2PVo7OM2h3n7U2B4LrowyEwcLWRo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de
+Subject: [PATCH nf-next 00/19] Netfilter/IPVS updates for net-next
+Date: Thu, 27 Jun 2024 13:26:54 +0200
+Message-Id: <20240627112713.4846-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,48 +30,118 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/2] netfilter: fix undefined reference to
- 'netfilter_lwtunnel_*' when CONFIG_SYSCTL=n
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <171948662863.18078.5867641588662636382.git-patchwork-notify@kernel.org>
-Date: Thu, 27 Jun 2024 11:10:28 +0000
-References: <20240626233845.151197-2-pablo@netfilter.org>
-In-Reply-To: <20240626233845.151197-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de, torvalds@linuxfoundation.org
 
-Hello:
+Hi,
 
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+The following patchset contains Netfilter/IPVS updates for net-next:
 
-On Thu, 27 Jun 2024 01:38:44 +0200 you wrote:
-> From: Jianguo Wu <wujianguo@chinatelecom.cn>
-> 
-> if CONFIG_SYSFS is not enabled in config, we get the below compile error,
-> 
-> All errors (new ones prefixed by >>):
-> 
->    csky-linux-ld: net/netfilter/core.o: in function `netfilter_init':
->    core.c:(.init.text+0x42): undefined reference to `netfilter_lwtunnel_init'
-> >> csky-linux-ld: core.c:(.init.text+0x56): undefined reference to `netfilter_lwtunnel_fini'
-> >> csky-linux-ld: core.c:(.init.text+0x70): undefined reference to `netfilter_lwtunnel_init'
->    csky-linux-ld: core.c:(.init.text+0x78): undefined reference to `netfilter_lwtunnel_fini'
-> 
-> [...]
+Patch #1 to #11 to shrink memory consumption for transaction objects:
 
-Here is the summary with links:
-  - [net,1/2] netfilter: fix undefined reference to 'netfilter_lwtunnel_*' when CONFIG_SYSCTL=n
-    https://git.kernel.org/netdev/net/c/aef5daa2c49d
-  - [net,2/2] netfilter: nf_tables: fully validate NFT_DATA_VALUE on store to data registers
-    https://git.kernel.org/netdev/net/c/7931d32955e0
+  struct nft_trans_chain { /* size: 120 (-32), cachelines: 2, members: 10 */
+  struct nft_trans_elem { /* size: 72 (-40), cachelines: 2, members: 4 */
+  struct nft_trans_flowtable { /* size: 80 (-48), cachelines: 2, members: 5 */
+  struct nft_trans_obj { /* size: 72 (-40), cachelines: 2, members: 4 */
+  struct nft_trans_rule { /* size: 80 (-32), cachelines: 2, members: 6 */
+  struct nft_trans_set { /* size: 96 (-24), cachelines: 2, members: 8 */
+  struct nft_trans_table { /* size: 56 (-40), cachelines: 1, members: 2 */
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+  struct nft_trans_elem can now be allocated from kmalloc-96 instead of
+  kmalloc-128 slab.
 
+  Series from Florian Westphal. For the record, I have mangled patch #1
+  to add nft_trans_container_*() and use if for every transaction object.
+   I have also added BUILD_BUG_ON to ensure struct nft_trans always comes
+  at the beginning of the container transaction object. And few minor
+  cleanups, any new bugs are of my own.
 
+Patch #12 simplify check for SCTP GSO in IPVS, from Ismael Luceno.
+
+Patch #13 nf_conncount key length remains in the u32 bound, from Yunjian Wang.
+
+Patch #14 removes unnecessary check for CTA_TIMEOUT_L3PROTO when setting
+	  default conntrack timeouts via nfnetlink_cttimeout API, from
+	  Lin Ma.
+
+Patch #15 updates NFT_SECMARK_CTX_MAXLEN to 4096, SELinux could use
+	  larger secctx names than the existing 256 bytes length.
+
+Patch #16 fixes nfnetlink_queue with SCTP traffic, from Antonio Ojea.
+
+Patch #17 adds a selftest for SCTP traffic under nfnetlink_queue,
+	  also from Antonio.
+
+Patch #18 adds a selftest to exercise nfnetlink_queue listeners leaving
+	  nfnetlink_queue, from Florian Westphal.
+
+Patch #19 increases hitcount from 255 to 65535 in xt_recent, from Phil Sutter.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-24-06-27
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit c4532232fa2a4f8d9b9a88135a666545157f3d13:
+
+  selftests: net: remove unneeded IP_GRE config (2024-06-25 08:37:55 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-24-06-27
+
+for you to fetch changes up to 8871d1e4dceb6692ea8217b1fc835c4bf2e93d97:
+
+  netfilter: xt_recent: Lift restrictions on max hitcount value (2024-06-27 01:55:57 +0200)
+
+----------------------------------------------------------------
+netfilter pull request 24-06-27
+
+----------------------------------------------------------------
+Antonio Ojea (2):
+      netfilter: nfnetlink_queue: unbreak SCTP traffic
+      selftests: netfilter: nft_queue.sh: sctp coverage
+
+Florian Westphal (12):
+      netfilter: nf_tables: make struct nft_trans first member of derived subtypes
+      netfilter: nf_tables: move bind list_head into relevant subtypes
+      netfilter: nf_tables: compact chain+ft transaction objects
+      netfilter: nf_tables: reduce trans->ctx.table references
+      netfilter: nf_tables: pass nft_chain to destroy function, not nft_ctx
+      netfilter: nf_tables: pass more specific nft_trans_chain where possible
+      netfilter: nf_tables: avoid usage of embedded nft_ctx
+      netfilter: nf_tables: store chain pointer in rule transaction
+      netfilter: nf_tables: reduce trans->ctx.chain references
+      netfilter: nf_tables: pass nft_table to destroy function
+      netfilter: nf_tables: do not store nft_ctx in transaction objects
+      selftests: netfilter: nft_queue.sh: add test for disappearing listener
+
+Ismael Luceno (1):
+      ipvs: Avoid unnecessary calls to skb_is_gso_sctp
+
+Lin Ma (1):
+      netfilter: cttimeout: remove 'l3num' attr check
+
+Pablo Neira Ayuso (1):
+      netfilter: nf_tables: rise cap on SELinux secmark context
+
+Phil Sutter (1):
+      netfilter: xt_recent: Lift restrictions on max hitcount value
+
+Yunjian Wang (1):
+      netfilter: nf_conncount: fix wrong variable type
+
+ include/net/netfilter/nf_tables.h                  | 222 +++++++----
+ include/uapi/linux/netfilter/nf_tables.h           |   2 +-
+ net/core/dev.c                                     |   1 +
+ net/netfilter/ipvs/ip_vs_proto_sctp.c              |   4 +-
+ net/netfilter/nf_conncount.c                       |   8 +-
+ net/netfilter/nf_tables_api.c                      | 411 ++++++++++++---------
+ net/netfilter/nf_tables_offload.c                  |  40 +-
+ net/netfilter/nfnetlink_cttimeout.c                |   3 +-
+ net/netfilter/nfnetlink_queue.c                    |  12 +-
+ net/netfilter/nft_immediate.c                      |   2 +-
+ net/netfilter/xt_recent.c                          |   8 +-
+ tools/testing/selftests/net/netfilter/nft_queue.sh | 113 ++++++
+ 12 files changed, 546 insertions(+), 280 deletions(-)
