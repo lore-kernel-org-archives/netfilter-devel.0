@@ -1,117 +1,58 @@
-Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA00619AA47
-	for <netfilter-devel@vger.kernel.org>; Thu, 27 Jun 2024 19:09:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.37
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D53460EC4;
+	Thu, 27 Jun 2024 20:00:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719515369; cv=none; b=udZF+Lk4ieoCdJ7pEvnZuY5RlPud5yPgET25YI21xq3hb3rEEJYQiylkO/IbVx55DwQbGBw9AYOYVsyT0WsIcjjKXi4kHQ2NuiMH+Ja7p56IhOafgoitpCFpx1B4u03YvSvTIrjIahUNQ+XeSZo/gP4XbcuVq1LJBV07hgF6tos=
+	t=1719518460; cv=none; b=DWhdR6d3GqkdSvTjzLUlnyaTATSzJ4XNQhjDqJtR39rgwYuOSDE5KQ9HMu4d/PZ4qMKkN1dALeOAsF8QEMNP1WFTDSB3+J0kiLAs1Oii9ihaz20tI5Yum7qxzUW+n5CnhDpHoiqfgGPD1Ur3SnTlDGN++qbOJapwqyU0kEoaOjM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719515369; c=relaxed/simple;
-	bh=xLMzz62KCg/+ORSjR85luR+L2JfDFo4OR3KMezt3O90=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=qGXE7uVH++AHKZ/PYB5sSgOY8VbMKOOaRWxzWvGZ6WiQndYD4UnqJe5yYPgjWohCBkPj9+FJh7mN/CKnwHEH1Ga76ElCt3m6JIPpFryLZGl1zhAMPlT/maEm4F7L9Ns1sOqzpEHmOkGszdAl/swvtLUd5d9BOM3QkKhaqrrAcQo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (1024-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=J7AUjKNe; arc=none smtp.client-ip=193.238.174.37
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="J7AUjKNe"
-Received: from mg.ssi.bg (localhost [127.0.0.1])
-	by mg.ssi.bg (Proxmox) with ESMTP id 606151C0BA
-	for <netfilter-devel@vger.kernel.org>; Thu, 27 Jun 2024 22:09:19 +0300 (EEST)
-Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
-	by mg.ssi.bg (Proxmox) with ESMTPS
-	for <netfilter-devel@vger.kernel.org>; Thu, 27 Jun 2024 22:09:18 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by ink.ssi.bg (Postfix) with ESMTPSA id A34809004EF;
-	Thu, 27 Jun 2024 22:09:11 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=ssi.bg; s=ink;
-	t=1719515353; bh=xLMzz62KCg/+ORSjR85luR+L2JfDFo4OR3KMezt3O90=;
-	h=Date:From:To:cc:Subject:In-Reply-To:References;
-	b=J7AUjKNehXrt6e315joPRqDdeRCWw8kUtIQGoFaKCnlDCMPG053D6GXu5iPZdqA2Z
-	 l7hA9IDzvlM1jEsc/5lK+bvuY7KcrtV8XAVepG9/aAFYe3lL+Xn4L1Uov0/Y7+jqHO
-	 pgwz/9f9uhKvU7eKRfdwg9b9snVFlAF8T15PPNx4=
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.1/8.17.1) with ESMTP id 45RJ92YK078348;
-	Thu, 27 Jun 2024 22:09:03 +0300
-Date: Thu, 27 Jun 2024 22:09:02 +0300 (EEST)
-From: Julian Anastasov <ja@ssi.bg>
-To: Chen Hanxiao <chenhx.fnst@fujitsu.com>
-cc: Simon Horman <horms@verge.net.au>, Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        "David S . Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH net-next v2] ipvs: properly dereference pe in
- ip_vs_add_service
-In-Reply-To: <20240627061515.1477-1-chenhx.fnst@fujitsu.com>
-Message-ID: <b6867456-a926-4d51-9000-fc7816788c17@ssi.bg>
-References: <20240627061515.1477-1-chenhx.fnst@fujitsu.com>
+	s=arc-20240116; t=1719518460; c=relaxed/simple;
+	bh=evboQ7WIE6MM6hHChdF4SsKYOQlEdGGWnOmmziYT1Ac=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=eUJYMBQcMHaQx+2oHIV6suDCuVfrqcP0o055hmTkd0rEbQG+AJxnns8RAH1VBkNGeqDQrAbYR6QNU2P7z3pM44h9cTA8/RViyo/Okiv5gOzfnZo7ggXeuQc+dDq7qguIZlZGn+jRFvXZYeW7z5X0DVVfjyF+G7SeI63Lz+C7Pjc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1sMvIX-0004ym-MI; Thu, 27 Jun 2024 22:00:49 +0200
+Date: Thu, 27 Jun 2024 22:00:49 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, davem@davemloft.net,
+	netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com,
+	fw@strlen.de
+Subject: Re: [PATCH nf-next 00/19] Netfilter/IPVS updates for net-next
+Message-ID: <20240627200049.GA18997@breakpoint.cc>
+References: <20240627112713.4846-1-pablo@netfilter.org>
+ <Zn1M890ZdC1WRekQ@calendula>
+ <20240627113202.72569175@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240627113202.72569175@kernel.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-
-	Hello,
-
-On Thu, 27 Jun 2024, Chen Hanxiao wrote:
-
-> Use pe directly to resolve sparse warning:
+Jakub Kicinski <kuba@kernel.org> wrote:
+> On Thu, 27 Jun 2024 13:28:51 +0200 Pablo Neira Ayuso wrote:
+> > Note for netdev maintainer: This PR is actually targeted at *net-next*.
+> > 
+> > Please, let me know if you prefer I resubmit.
 > 
->   net/netfilter/ipvs/ip_vs_ctl.c:1471:27: warning: dereference of noderef expression
+> Not a big deal, but since you offered I have another ask - looks like
+> this series makes the nf_queue test time out in our infra.
 > 
-> Fixes: 39b972231536 ("ipvs: handle connections started by real-servers")
-> Signed-off-by: Chen Hanxiao <chenhx.fnst@fujitsu.com>
-
-	Looks good to me, thanks!
-
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
-> ---
-> v2:
-> 	use pe directly.
+> https://netdev.bots.linux.dev/contest.html?test=nft-queue-sh
 > 
->  net/netfilter/ipvs/ip_vs_ctl.c | 10 +++++-----
->  1 file changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index b6d0dcf3a5c3..f4384e147ee1 100644
-> --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> @@ -1459,18 +1459,18 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
->  	if (ret < 0)
->  		goto out_err;
->  
-> -	/* Bind the ct retriever */
-> -	RCU_INIT_POINTER(svc->pe, pe);
-> -	pe = NULL;
-> -
->  	/* Update the virtual service counters */
->  	if (svc->port == FTPPORT)
->  		atomic_inc(&ipvs->ftpsvc_counter);
->  	else if (svc->port == 0)
->  		atomic_inc(&ipvs->nullsvc_counter);
-> -	if (svc->pe && svc->pe->conn_out)
-> +	if (pe && pe->conn_out)
->  		atomic_inc(&ipvs->conn_out_counter);
->  
-> +	/* Bind the ct retriever */
-> +	RCU_INIT_POINTER(svc->pe, pe);
-> +	pe = NULL;
-> +
->  	/* Count only IPv4 services for old get/setsockopt interface */
->  	if (svc->af == AF_INET)
->  		ipvs->num_services++;
-> -- 
-> 2.39.1
+> Could you take a look before you respin? It used to take 24 sec,
+> not it times out after 224 sec..
 
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
-
+Looks like its the sctp selftests that got added, I can have a look
+tomorrow.
