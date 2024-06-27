@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4890D15574C;
-	Thu, 27 Jun 2024 11:27:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4577615688C;
+	Thu, 27 Jun 2024 11:27:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719487651; cv=none; b=UAlJPI3k/GKwVgO9Qh3GuO8XQxvMkSqylh6r0Tf9GxatkhL82S4mkkPKZx15UJCeKGBzKxNgKlpwFJ1JOjDPLprLV1V5OTk15t/ZqaxBfKokcLbXIEU0Kio5pZSkbrO+n4GAuTDSYKk2j80Sbe05fX7jMlzrhRrAjNMeLtRQ0DI=
+	t=1719487652; cv=none; b=O1PF7dedPcacGp1rwTJphkibvLyueGu1QxL0sA3OGdz33mnXBE424mRVtdRepK2opS6UeShYSfDOTUmIX+pfSMcJm5Ci/LTcoqryEG6mLu5IM63WAakb/+BTsBJgRW19Y3VmXvQhqnC2wA+Nq0/abtB5iaTlYtU8myRoK++m4wA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719487651; c=relaxed/simple;
-	bh=KD8knpXBOYQbSVlqs+ARIVBd61NDg66wZcUOPYafw8Q=;
+	s=arc-20240116; t=1719487652; c=relaxed/simple;
+	bh=VEmy2Sb11J421niCprY6n2cZZ1hR1n+GO+j9Aie0zVk=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=fa9y0iEYnn0cMXRyB6QOsfe4tY/S3wDPn8DE0Tj0QRliQGyWnprjuCo23UprhfvfT57JNvx6FGbH/xXlmG+ugxISXHztaWY0uWNXol2ipmqxCTwz6OteSbCa9KhoqMaLKoJDmGvHcR/hm31FlY/AnGMCfoIZzMtpYXf9JWUZ9k8=
+	 MIME-Version; b=MApnHjo/qgiVkdiE96K+8VK1SHXWox2X5pFORa5XZEvX2HVXqx0HhRCUQoy++TdHNZboTeyKXilLJuh6kEJPutHaq1PGpzj9F0cd3oT+YVTOcJABh5a7DTs0SBLpDTN+uNOgDqrJEe48cwB5YFpgVZmuSKOsSYOnabfKkcd/ecE=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH nf-next 14/19] netfilter: cttimeout: remove 'l3num' attr check
-Date: Thu, 27 Jun 2024 13:27:08 +0200
-Message-Id: <20240627112713.4846-15-pablo@netfilter.org>
+Subject: [PATCH nf-next 15/19] netfilter: nf_tables: rise cap on SELinux secmark context
+Date: Thu, 27 Jun 2024 13:27:09 +0200
+Message-Id: <20240627112713.4846-16-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240627112713.4846-1-pablo@netfilter.org>
 References: <20240627112713.4846-1-pablo@netfilter.org>
@@ -34,39 +34,27 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Lin Ma <linma@zju.edu.cn>
+secmark context is artificially limited 256 bytes, rise it to 4Kbytes.
 
-After commit dd2934a95701 ("netfilter: conntrack: remove l3->l4 mapping
-information"), the attribute of type `CTA_TIMEOUT_L3PROTO` is not used
-any more in function cttimeout_default_set.
-
-However, the previous commit ea9cf2a55a7b ("netfilter: cttimeout: remove
-set but not used variable 'l3num'") forgot to remove the attribute
-present check when removing the related variable.
-
-This commit removes that check to ensure consistency.
-
-Signed-off-by: Lin Ma <linma@zju.edu.cn>
-Reviewed-by: Simon Horman <horms@kernel.org>
+Fixes: fb961945457f ("netfilter: nf_tables: add SECMARK support")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_cttimeout.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/uapi/linux/netfilter/nf_tables.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-index f466af4f8531..eab4f476b47f 100644
---- a/net/netfilter/nfnetlink_cttimeout.c
-+++ b/net/netfilter/nfnetlink_cttimeout.c
-@@ -366,8 +366,7 @@ static int cttimeout_default_set(struct sk_buff *skb,
- 	__u8 l4num;
- 	int ret;
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index aa4094ca2444..639894ed1b97 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1376,7 +1376,7 @@ enum nft_secmark_attributes {
+ #define NFTA_SECMARK_MAX	(__NFTA_SECMARK_MAX - 1)
  
--	if (!cda[CTA_TIMEOUT_L3PROTO] ||
--	    !cda[CTA_TIMEOUT_L4PROTO] ||
-+	if (!cda[CTA_TIMEOUT_L4PROTO] ||
- 	    !cda[CTA_TIMEOUT_DATA])
- 		return -EINVAL;
+ /* Max security context length */
+-#define NFT_SECMARK_CTX_MAXLEN		256
++#define NFT_SECMARK_CTX_MAXLEN		4096
  
+ /**
+  * enum nft_reject_types - nf_tables reject expression reject types
 -- 
 2.30.2
 
