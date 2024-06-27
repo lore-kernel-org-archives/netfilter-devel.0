@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id C14C317F3;
-	Thu, 27 Jun 2024 00:41:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B74116AC0;
+	Thu, 27 Jun 2024 00:41:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719448886; cv=none; b=OE0ouYq6ib/CehtpADgoHoDYF6W8QCrEuDndPu83M8D6YteQg1hYRuazH/UohgfB5CQrtsJfY2F4WgKji+TStQOQW1ecbRLhojJf00Y1Vvyf5+Y6+OZH0hKGbCNLyR8Im0qiCXx0Fp3R1HNEmrWHkZMs/R697lQ4BP5Ep/Phd/c=
+	t=1719448888; cv=none; b=Kz6ZFf5x6qaaulrWXaATxsCYD7yjKv9u/ck1IdMJeNedSV5YeBq9HsUYD6l0o4un+CtzFGxBfWeKB+G5WsGbFwssspjT1w6C3I/NvLJ+klYSl0Dz/eAxqc+PZhsCqPZHL0XDpnf6zH4oaTL3ioncCq5HWSt+cA3sunNBibX5poY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719448886; c=relaxed/simple;
-	bh=0ugcYokPHB0D4OEM7Cw5s43v53SiC+dFhxfp6PuPYP0=;
+	s=arc-20240116; t=1719448888; c=relaxed/simple;
+	bh=JzsYOL0ybgf+0CY3HWHMKuGZ7mWJ/knzollqOs3aFMw=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=QFJ5G4Lt2KEoeimpzNSVuuE6nBY8/ruEUbnHhHJZ39mBAG4lwEhmN06JpQqqzGdT4wh4N3JVpM8ln70dpRK1+fWsN9SrFoGU9VZyp+p5G7b0LqF+uh5UzjBeIQE2vjm/31nxAZuH183ygs7Y2Ij4uNoubPgQhzOzxQwP2St5epY=
+	 MIME-Version; b=TI/MiRgk9joe6Q8/3xrw6uZtWoQn/O/xiO6ToNwW/Or1nZtK2fGl87e3Irmg/AyctHkrWbk+jfi++THhTtM1h6pe3kzRvtzRwRPlaa1HE3WNGvPW/pUtccIBBWDQCwIq6KShZQp2KR75usMUAvylRL5a5QNTR/9Swzffv3x0UQE=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -18,9 +18,9 @@ Cc: stable@vger.kernel.org,
 	gregkh@linuxfoundation.org,
 	sashal@kernel.org,
 	torvalds@linuxfoundation.org
-Subject: [PATCH -stable,5.4.x] netfilter: nf_tables: validate family when identifying table via handle
-Date: Thu, 27 Jun 2024 02:41:12 +0200
-Message-Id: <20240627004113.150349-2-pablo@netfilter.org>
+Subject: [PATCH -stable,5.10.x] netfilter: nf_tables: validate family when identifying table via handle
+Date: Thu, 27 Jun 2024 02:41:13 +0200
+Message-Id: <20240627004113.150349-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240627004113.150349-1-pablo@netfilter.org>
 References: <20240627004113.150349-1-pablo@netfilter.org>
@@ -45,10 +45,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 8131d858f38d..44d4d97b45d1 100644
+index f3cb5c920276..754278b85706 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -553,7 +553,7 @@ static struct nft_table *nft_table_lookup(const struct net *net,
+@@ -713,7 +713,7 @@ static struct nft_table *nft_table_lookup(const struct net *net,
  
  static struct nft_table *nft_table_lookup_byhandle(const struct net *net,
  						   const struct nlattr *nla,
@@ -57,7 +57,7 @@ index 8131d858f38d..44d4d97b45d1 100644
  {
  	struct nftables_pernet *nft_net;
  	struct nft_table *table;
-@@ -561,6 +561,7 @@ static struct nft_table *nft_table_lookup_byhandle(const struct net *net,
+@@ -721,6 +721,7 @@ static struct nft_table *nft_table_lookup_byhandle(const struct net *net,
  	nft_net = net_generic(net, nf_tables_net_id);
  	list_for_each_entry(table, &nft_net->tables, list) {
  		if (be64_to_cpu(nla_get_be64(nla)) == table->handle &&
@@ -65,7 +65,7 @@ index 8131d858f38d..44d4d97b45d1 100644
  		    nft_active_genmask(table, genmask))
  			return table;
  	}
-@@ -1243,7 +1244,7 @@ static int nf_tables_deltable(struct net *net, struct sock *nlsk,
+@@ -1440,7 +1441,7 @@ static int nf_tables_deltable(struct net *net, struct sock *nlsk,
  
  	if (nla[NFTA_TABLE_HANDLE]) {
  		attr = nla[NFTA_TABLE_HANDLE];
