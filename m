@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4577615688C;
-	Thu, 27 Jun 2024 11:27:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1639E156960;
+	Thu, 27 Jun 2024 11:27:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719487652; cv=none; b=O1PF7dedPcacGp1rwTJphkibvLyueGu1QxL0sA3OGdz33mnXBE424mRVtdRepK2opS6UeShYSfDOTUmIX+pfSMcJm5Ci/LTcoqryEG6mLu5IM63WAakb/+BTsBJgRW19Y3VmXvQhqnC2wA+Nq0/abtB5iaTlYtU8myRoK++m4wA=
+	t=1719487653; cv=none; b=Cu6NQyijMrexfeUz9cKdWjiyx0CI+difChY6OZqTwLRlcEZMhLwPnyuWRB3Z0yQDlT5a4cES6pKFpZcswKgHpmLmwV079CpbZlHrvSgotsKTwoVebMLCBHb6bdO6IWQ7aIVPgFSQiUBUKrkAWrm23zIqncdVCaxkJKIYmjqHxbQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719487652; c=relaxed/simple;
-	bh=VEmy2Sb11J421niCprY6n2cZZ1hR1n+GO+j9Aie0zVk=;
+	s=arc-20240116; t=1719487653; c=relaxed/simple;
+	bh=6rL2DNHcfc72gqvV78DFg/P384QL1CBe+ogYmpEqpXc=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=MApnHjo/qgiVkdiE96K+8VK1SHXWox2X5pFORa5XZEvX2HVXqx0HhRCUQoy++TdHNZboTeyKXilLJuh6kEJPutHaq1PGpzj9F0cd3oT+YVTOcJABh5a7DTs0SBLpDTN+uNOgDqrJEe48cwB5YFpgVZmuSKOsSYOnabfKkcd/ecE=
+	 MIME-Version; b=K6IctwrS17R03RRXlyv6PQ4XX40Kx+O7Oc0kkXlHjJF23NobtyGyEOcrEBOIOnj2BjYLqyypD5pEpOd4AGhEDCtnrsmsJzxgIe14cP8q43uRDF74sJ0erL9+GEbJws1H4bNOEvXAC4cZzUVxIx/UFrQVzuVTr2NiWr8peMbCkjQ=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH nf-next 15/19] netfilter: nf_tables: rise cap on SELinux secmark context
-Date: Thu, 27 Jun 2024 13:27:09 +0200
-Message-Id: <20240627112713.4846-16-pablo@netfilter.org>
+Subject: [PATCH nf-next 16/19] netfilter: nfnetlink_queue: unbreak SCTP traffic
+Date: Thu, 27 Jun 2024 13:27:10 +0200
+Message-Id: <20240627112713.4846-17-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240627112713.4846-1-pablo@netfilter.org>
 References: <20240627112713.4846-1-pablo@netfilter.org>
@@ -34,27 +34,73 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-secmark context is artificially limited 256 bytes, rise it to 4Kbytes.
+From: Antonio Ojea <aojea@google.com>
 
-Fixes: fb961945457f ("netfilter: nf_tables: add SECMARK support")
+when packet is enqueued with nfqueue and GSO is enabled, checksum
+calculation has to take into account the protocol, as SCTP uses a
+32 bits CRC checksum.
+
+Enter skb_gso_segment() path in case of SCTP GSO packets because
+skb_zerocopy() does not support for GSO_BY_FRAGS.
+
+Joint work with Pablo.
+
+Signed-off-by: Antonio Ojea <aojea@google.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/nf_tables.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/core/dev.c                  |  1 +
+ net/netfilter/nfnetlink_queue.c | 12 ++++++++++--
+ 2 files changed, 11 insertions(+), 2 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index aa4094ca2444..639894ed1b97 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -1376,7 +1376,7 @@ enum nft_secmark_attributes {
- #define NFTA_SECMARK_MAX	(__NFTA_SECMARK_MAX - 1)
+diff --git a/net/core/dev.c b/net/core/dev.c
+index b94fb4e63a28..6c13a3072f04 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -3386,6 +3386,7 @@ int skb_crc32c_csum_help(struct sk_buff *skb)
+ out:
+ 	return ret;
+ }
++EXPORT_SYMBOL(skb_crc32c_csum_help);
  
- /* Max security context length */
--#define NFT_SECMARK_CTX_MAXLEN		256
-+#define NFT_SECMARK_CTX_MAXLEN		4096
+ __be16 skb_network_protocol(struct sk_buff *skb, int *depth)
+ {
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index f1c31757e496..fe550cebae1e 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -540,6 +540,14 @@ static int nfqnl_put_bridge(struct nf_queue_entry *entry, struct sk_buff *skb)
+ 	return -1;
+ }
  
- /**
-  * enum nft_reject_types - nf_tables reject expression reject types
++static int nf_queue_checksum_help(struct sk_buff *entskb)
++{
++	if (skb_csum_is_sctp(entskb))
++		return skb_crc32c_csum_help(entskb);
++
++	return skb_checksum_help(entskb);
++}
++
+ static struct sk_buff *
+ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 			   struct nf_queue_entry *entry,
+@@ -602,7 +610,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 	case NFQNL_COPY_PACKET:
+ 		if (!(queue->flags & NFQA_CFG_F_GSO) &&
+ 		    entskb->ip_summed == CHECKSUM_PARTIAL &&
+-		    skb_checksum_help(entskb))
++		    nf_queue_checksum_help(entskb))
+ 			return NULL;
+ 
+ 		data_len = READ_ONCE(queue->copy_range);
+@@ -983,7 +991,7 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
+ 		break;
+ 	}
+ 
+-	if ((queue->flags & NFQA_CFG_F_GSO) || !skb_is_gso(skb))
++	if (!skb_is_gso(skb) || ((queue->flags & NFQA_CFG_F_GSO) && !skb_is_gso_sctp(skb)))
+ 		return __nfqnl_enqueue_packet(net, queue, entry);
+ 
+ 	nf_bridge_adjust_skb_data(skb);
 -- 
 2.30.2
 
