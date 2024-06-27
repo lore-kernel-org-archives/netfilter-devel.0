@@ -1,28 +1,31 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D53836B0D
-	for <netfilter-devel@vger.kernel.org>; Thu, 27 Jun 2024 13:58:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 288CF178392
+	for <netfilter-devel@vger.kernel.org>; Thu, 27 Jun 2024 13:58:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719496702; cv=none; b=tNWkLrIvTfBotdnoOZLY3LNmKsqK8NxuBV1x17MH6y/TZ/PFelEeOYqK3TM1UheXHnrPJj2NqaaV7E86dQAxNg/cZJRonew14XJPUVfUKN3TS7sIaE3CmAkYILQcIYALwyHtgcGCNeJycUCjB1aM7cqQXeDVJtlwlS3CfeoVKUo=
+	t=1719496703; cv=none; b=Xnj9nRwhdp33GGcnlYkRrF0ilTntSQ7w633MjXG9bgBeXOJORYUdZ3dCQdtmimJVa9QNR57CNIT2JeypqTovAanbT3crUxzVRVSNeNPKi0IpEQ3USRzTFvz3liCQnXGWna8SqT9miRizFlM6vdnClJhwa8gGSStPr0lHRDX7qHc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719496702; c=relaxed/simple;
-	bh=HMeRhFRlP9VxWPbjBhluIUk2KBis4348r2DjBor2AFg=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=S3mgzR3uJy0XqCstEs76Fqw6jFtgpvX8Sy5wXWvWdrcSfHJABSWHnuwi6l/nVN6zTeqCVqt/is9F+1nB55bN/PcsFuanz6Ve7NcjX22qkdpLR1yZbBenLoJilhWtMHtaeALd+XpSHuD01Aebd5mlf3BGIVxju7sRV9mCIE9EUFE=
+	s=arc-20240116; t=1719496703; c=relaxed/simple;
+	bh=USKrwoH70LWTqJy0ht8SZGZtDLHl4wEkWWqdcIhvDiQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=XARatMGMRw7oy3yjnyr9BcvaahH2RuqGM6dLYsHvNxJVNmPzeTQM1ArF/2EYUAtC2/K/17/KQcu40BbbfXKHKFYvNHE/4a8xONIrADrF/R9p3Itcf0oOo8FEr7sWv+yq8wGpR0/sM1V3Kp16bluu1mchtWCSC9eNLP7PuUsp11M=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1sMpdc-0002A9-A3; Thu, 27 Jun 2024 15:58:12 +0200
+	id 1sMpdk-0002AX-F0; Thu, 27 Jun 2024 15:58:20 +0200
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [RFC nf-next 0/4] nf_tables: remove explicit register zeroing
-Date: Thu, 27 Jun 2024 15:53:20 +0200
-Message-ID: <20240627135330.17039-1-fw@strlen.de>
+Subject: [RFC nf-next 2/4] netfilter: nf_tables: allow loads only when register is initialized
+Date: Thu, 27 Jun 2024 15:53:22 +0200
+Message-ID: <20240627135330.17039-3-fw@strlen.de>
 X-Mailer: git-send-email 2.44.2
+In-Reply-To: <20240627135330.17039-1-fw@strlen.de>
+References: <20240627135330.17039-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,57 +34,135 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+Reject rules where a load occurs from a register that has not seen a store
+early in the same rule.
 
-I'd like to propose this again.
+commit 4c905f6740a3 ("netfilter: nf_tables: initialize registers in
+nft_do_chain()")
+had to add a unconditional memset to the nftables register space to avoid
+leaking stack information to userspace.
 
-First patch is preparation work.
-Second patch is the actual change I'd like to get into nf-next.
+This memset shows up in benchmarks.  After this change, this commit can
+be reverted again.
 
-The third patch partially un-does the second:
-Instead of rejecting a rule that triggers uninitialised register
-access detection, do explicit zeroing from blob generator.
+Note that this breaks userspace compatibility, because theoretically
+you can do
 
-Please see patch 3 for a rationale why I think that we should
-just go with patch 1+2.
+  rule 1: reg2 := meta load iif, reg2  == 1 jump ...
+  rule 2: reg2 == 2 jump ...   // read access with no store in this rule
 
-Patch 4 reverts the explicit zeroing.
+... after this change this is rejected.
 
-Florian Westphal (4):
-  netfilter: nf_tables: pass context structure to
-    nft_parse_register_load
-  netfilter: nf_tables: allow loads only when register is initialized
-  netfilter: nf_tables: insert register zeroing instructions for dodgy
-    chains
-  netfilter: nf_tables: don't initialize registers in nft_do_chain()
+Neither nftables nor iptables-nft generate such rules, each rule is
+always standalone.
 
- include/net/netfilter/nf_tables.h      |  14 ++-
- net/bridge/netfilter/nft_meta_bridge.c |   2 +-
- net/ipv4/netfilter/nft_dup_ipv4.c      |   4 +-
- net/ipv6/netfilter/nft_dup_ipv6.c      |   4 +-
- net/netfilter/nf_tables_api.c          | 119 +++++++++++++++++++++++--
- net/netfilter/nf_tables_core.c         |   2 +-
- net/netfilter/nft_bitwise.c            |   4 +-
- net/netfilter/nft_byteorder.c          |   2 +-
- net/netfilter/nft_cmp.c                |   6 +-
- net/netfilter/nft_ct.c                 |   2 +-
- net/netfilter/nft_dup_netdev.c         |   2 +-
- net/netfilter/nft_dynset.c             |   4 +-
- net/netfilter/nft_exthdr.c             |   2 +-
- net/netfilter/nft_fwd_netdev.c         |   6 +-
- net/netfilter/nft_hash.c               |   2 +-
- net/netfilter/nft_lookup.c             |   2 +-
- net/netfilter/nft_masq.c               |   4 +-
- net/netfilter/nft_meta.c               |   2 +-
- net/netfilter/nft_nat.c                |   8 +-
- net/netfilter/nft_objref.c             |   2 +-
- net/netfilter/nft_payload.c            |   2 +-
- net/netfilter/nft_queue.c              |   2 +-
- net/netfilter/nft_range.c              |   2 +-
- net/netfilter/nft_redir.c              |   4 +-
- net/netfilter/nft_tproxy.c             |   4 +-
- 25 files changed, 159 insertions(+), 48 deletions(-)
+This resuts in a small increase of nft_ctx structure by sizeof(long).
 
+To cope with hypothetical rulesets like the example above we could emit
+on-demand "reg[x] = 0" store when generating the datapath blob in
+nf_tables_commit_chain_prepare().  Followup patch adds this.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ include/net/netfilter/nf_tables.h |  1 +
+ net/netfilter/nf_tables_api.c     | 38 +++++++++++++++++++++++++++----
+ 2 files changed, 35 insertions(+), 4 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 9a71fc20598b..3f06ec7dc500 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -221,6 +221,7 @@ struct nft_ctx {
+ 	u8				family;
+ 	u8				level;
+ 	bool				report;
++	DECLARE_BITMAP(reg_inited, NFT_REG32_NUM);
+ };
+ 
+ enum nft_data_desc_flags {
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 7437b38269a5..c59a32ab9145 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -146,6 +146,8 @@ static void nft_ctx_init(struct nft_ctx *ctx,
+ 	ctx->report	= nlmsg_report(nlh);
+ 	ctx->flags	= nlh->nlmsg_flags;
+ 	ctx->seq	= nlh->nlmsg_seq;
++
++	bitmap_zero(ctx->reg_inited, NFT_REG32_NUM);
+ }
+ 
+ static struct nft_trans *nft_trans_alloc_gfp(const struct nft_ctx *ctx,
+@@ -11105,8 +11107,8 @@ static int nft_validate_register_load(enum nft_registers reg, unsigned int len)
+ int nft_parse_register_load(const struct nft_ctx *ctx,
+ 			    const struct nlattr *attr, u8 *sreg, u32 len)
+ {
+-	u32 reg;
+-	int err;
++	int err, invalid_reg;
++	u32 reg, next_register;
+ 
+ 	err = nft_parse_register(attr, &reg);
+ 	if (err < 0)
+@@ -11116,11 +11118,36 @@ int nft_parse_register_load(const struct nft_ctx *ctx,
+ 	if (err < 0)
+ 		return err;
+ 
++	next_register = DIV_ROUND_UP(len, NFT_REG32_SIZE) + reg;
++
++	/* Can't happen: nft_validate_register_load() should have failed */
++	if (WARN_ON_ONCE(next_register > NFT_REG32_NUM))
++		return -EINVAL;
++
++	/* find first register that did not see an earlier store. */
++	invalid_reg = find_next_zero_bit(ctx->reg_inited, NFT_REG32_NUM, reg);
++
++	/* invalid register within the range that we're loading from? */
++	if (invalid_reg < next_register)
++		return -ENODATA;
++
+ 	*sreg = reg;
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(nft_parse_register_load);
+ 
++static void nft_saw_register_store(const struct nft_ctx *__ctx,
++				   int reg, unsigned int len)
++{
++	unsigned int registers = DIV_ROUND_UP(len, NFT_REG32_SIZE);
++	struct nft_ctx *ctx = (struct nft_ctx *)__ctx;
++
++	if (WARN_ON_ONCE(len == 0 || reg < 0))
++		return;
++
++	bitmap_set(ctx->reg_inited, reg, registers);
++}
++
+ static int nft_validate_register_store(const struct nft_ctx *ctx,
+ 				       enum nft_registers reg,
+ 				       const struct nft_data *data,
+@@ -11142,7 +11169,7 @@ static int nft_validate_register_store(const struct nft_ctx *ctx,
+ 				return err;
+ 		}
+ 
+-		return 0;
++		break;
+ 	default:
+ 		if (reg < NFT_REG_1 * NFT_REG_SIZE / NFT_REG32_SIZE)
+ 			return -EINVAL;
+@@ -11154,8 +11181,11 @@ static int nft_validate_register_store(const struct nft_ctx *ctx,
+ 
+ 		if (data != NULL && type != NFT_DATA_VALUE)
+ 			return -EINVAL;
+-		return 0;
++		break;
+ 	}
++
++	nft_saw_register_store(ctx, reg, len);
++	return 0;
+ }
+ 
+ int nft_parse_register_store(const struct nft_ctx *ctx,
 -- 
 2.44.2
 
