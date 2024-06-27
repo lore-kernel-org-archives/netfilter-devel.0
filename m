@@ -1,79 +1,86 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B74116AC0;
-	Thu, 27 Jun 2024 00:41:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from mail-lf1-f43.google.com (mail-lf1-f43.google.com [209.85.167.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 590444A1A
+	for <netfilter-devel@vger.kernel.org>; Thu, 27 Jun 2024 00:51:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719448888; cv=none; b=Kz6ZFf5x6qaaulrWXaATxsCYD7yjKv9u/ck1IdMJeNedSV5YeBq9HsUYD6l0o4un+CtzFGxBfWeKB+G5WsGbFwssspjT1w6C3I/NvLJ+klYSl0Dz/eAxqc+PZhsCqPZHL0XDpnf6zH4oaTL3ioncCq5HWSt+cA3sunNBibX5poY=
+	t=1719449496; cv=none; b=haO3CeL7IfuSdWOzQsNSb1fPYJ6qhuKWQdoMgrbtx2wSklfpbOmW0/ZJoPI50uXKF8khRFrJ5F1Ak3xHUiC8p9D6bRIn5tOmzhe3P3OZBMMgW0HtHSCi6O694AujuNPzdgHQpVWKlsHgt5rE4Frn2o7GxKlLSYD6pHaeXWWl/yk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719448888; c=relaxed/simple;
-	bh=JzsYOL0ybgf+0CY3HWHMKuGZ7mWJ/knzollqOs3aFMw=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=TI/MiRgk9joe6Q8/3xrw6uZtWoQn/O/xiO6ToNwW/Or1nZtK2fGl87e3Irmg/AyctHkrWbk+jfi++THhTtM1h6pe3kzRvtzRwRPlaa1HE3WNGvPW/pUtccIBBWDQCwIq6KShZQp2KR75usMUAvylRL5a5QNTR/9Swzffv3x0UQE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: stable@vger.kernel.org,
-	gregkh@linuxfoundation.org,
-	sashal@kernel.org,
-	torvalds@linuxfoundation.org
-Subject: [PATCH -stable,5.10.x] netfilter: nf_tables: validate family when identifying table via handle
-Date: Thu, 27 Jun 2024 02:41:13 +0200
-Message-Id: <20240627004113.150349-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20240627004113.150349-1-pablo@netfilter.org>
-References: <20240627004113.150349-1-pablo@netfilter.org>
+	s=arc-20240116; t=1719449496; c=relaxed/simple;
+	bh=F8EoZ0KgtTlDrx+RHUhANavpveeXSZDay8RJ9TkoSWU=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=gQYFiXTSxkoAh17apr85UKIIEAdgFX/y5BYJk63ahXibX9SazDbL1geu+g3+xdhesUwer79cr0Fz7ajYnRUb3SL0Bu/58oAcORNoG3m8TzcUeYhllbBRmM1xRx16/HXVFsQa1/8cWlorvNXfUaqS3SwIkljYNj1Y+4xWey7mxRA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linuxfoundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=MSa2eXcv; arc=none smtp.client-ip=209.85.167.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linuxfoundation.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="MSa2eXcv"
+Received: by mail-lf1-f43.google.com with SMTP id 2adb3069b0e04-52ce6c8db7bso5408649e87.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 26 Jun 2024 17:51:34 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linuxfoundation.org; s=google; t=1719449492; x=1720054292; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=Dvw1jFo9mXXB8AmAp5CxanBbcNFEjyqwIr5wHdhTfGg=;
+        b=MSa2eXcv1hB5GQA/g64b2im0/6Ej57cv4Ks4cZ95/3T+D562DSj5mLOJeK00E3Hqrp
+         cBZ+hBd/nuSiv+t3aL0m0zmKJzH+nZ4nwc/XgZjuC9fPRsgXP9xe7WY6r/U3vyHtt5KU
+         fWFjBFqikC95fa8m95R0ElkYSPUGArjyb32hg=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1719449492; x=1720054292;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=Dvw1jFo9mXXB8AmAp5CxanBbcNFEjyqwIr5wHdhTfGg=;
+        b=TpD3UqsgU1aFDaxdNW8iOVAMDPOSm4RLs4OJO29NWxo4fd0sy2rFJ0BPRQ/T8REaN1
+         qF8MeRcrrIbPUgbNKFgzJZ/YvAInND5y5v9OYhIEqg5IqPD+2n8bIZIMmgA9nAE3lmzf
+         tn/yz5E2wflq4tLD+C1QfefeAfxa5wOQSJzFy9+emz1OlJi+DrB/ne7cfQKH2JsOJyJc
+         0kHD+1NwyXX34DhTXxM1+Vy/cq99Awdpk0JUkoVA7F8j3DicahL2ReDMhEkzhsdgOHRk
+         rhD1k3lKR3Z0Y5h4VeCcB1CZ/BnFGeQcv6XtgaUUI18y6Uf//+8Dc53TeR1N25t97hUR
+         KXdw==
+X-Gm-Message-State: AOJu0YxMW+4xBexC0aRm7wwlgfvZg4TWUZC+7zZI5iplRXpBkBnqPEkG
+	ZFuZKoilyDENRqq2ekB+JFOxVzu0Axa50YV9Rg1N1nctZs9lkTLXJQ9YLEYrKj9dh8Wn+vHYpWm
+	7nmlhJg==
+X-Google-Smtp-Source: AGHT+IE+YuTBVsLKf5ZOrV2CGcOWr5dkLnr9aCNOhsnpn3Ib8pTE0k7O4jZ0ncSE2WPYH9S1uo9NIg==
+X-Received: by 2002:a05:6512:3a8b:b0:52c:e1d4:8ecd with SMTP id 2adb3069b0e04-52ce1d49146mr9871746e87.8.1719449492428;
+        Wed, 26 Jun 2024 17:51:32 -0700 (PDT)
+Received: from mail-lf1-f48.google.com (mail-lf1-f48.google.com. [209.85.167.48])
+        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-52e7131a211sm21470e87.222.2024.06.26.17.51.31
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 26 Jun 2024 17:51:31 -0700 (PDT)
+Received: by mail-lf1-f48.google.com with SMTP id 2adb3069b0e04-52ce6a9fd5cso4072239e87.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 26 Jun 2024 17:51:31 -0700 (PDT)
+X-Received: by 2002:a05:6512:78f:b0:52c:d5c7:d998 with SMTP id
+ 2adb3069b0e04-52ce183b2a0mr6378530e87.35.1719449490723; Wed, 26 Jun 2024
+ 17:51:30 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20240626233845.151197-1-pablo@netfilter.org> <20240626233845.151197-3-pablo@netfilter.org>
+In-Reply-To: <20240626233845.151197-3-pablo@netfilter.org>
+From: Linus Torvalds <torvalds@linuxfoundation.org>
+Date: Wed, 26 Jun 2024 17:51:13 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wibyec=ObQrd3pR+cUUchDGXFk3bTp435jOz+NP0xEzXw@mail.gmail.com>
+Message-ID: <CAHk-=wibyec=ObQrd3pR+cUUchDGXFk3bTp435jOz+NP0xEzXw@mail.gmail.com>
+Subject: Re: [PATCH net 2/2] netfilter: nf_tables: fully validate
+ NFT_DATA_VALUE on store to data registers
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net, 
+	netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com, 
+	edumazet@google.com, fw@strlen.de
+Content-Type: text/plain; charset="UTF-8"
 
-[ Upstream commit f6e1532a2697b81da00bfb184e99d15e01e9d98c ]
+On Wed, 26 Jun 2024 at 16:38, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>
+> Reported-by: Linus Torvalds <torvalds@linuxfoundation.org>
 
-Validate table family when looking up for it via NFTA_TABLE_HANDLE.
+Oh, I was only the messenger boy, not the actual reporter.
 
-Fixes: 3ecbfd65f50e ("netfilter: nf_tables: allocate handle and delete objects via handle")
-Reported-by: Xingyuan Mo <hdthky0@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- net/netfilter/nf_tables_api.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+I think reporting credit should probably go to HexRabbit Chen
+<hexrabbit@devco.re>
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index f3cb5c920276..754278b85706 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -713,7 +713,7 @@ static struct nft_table *nft_table_lookup(const struct net *net,
- 
- static struct nft_table *nft_table_lookup_byhandle(const struct net *net,
- 						   const struct nlattr *nla,
--						   u8 genmask)
-+						   int family, u8 genmask)
- {
- 	struct nftables_pernet *nft_net;
- 	struct nft_table *table;
-@@ -721,6 +721,7 @@ static struct nft_table *nft_table_lookup_byhandle(const struct net *net,
- 	nft_net = net_generic(net, nf_tables_net_id);
- 	list_for_each_entry(table, &nft_net->tables, list) {
- 		if (be64_to_cpu(nla_get_be64(nla)) == table->handle &&
-+		    table->family == family &&
- 		    nft_active_genmask(table, genmask))
- 			return table;
- 	}
-@@ -1440,7 +1441,7 @@ static int nf_tables_deltable(struct net *net, struct sock *nlsk,
- 
- 	if (nla[NFTA_TABLE_HANDLE]) {
- 		attr = nla[NFTA_TABLE_HANDLE];
--		table = nft_table_lookup_byhandle(net, attr, genmask);
-+		table = nft_table_lookup_byhandle(net, attr, family, genmask);
- 	} else {
- 		attr = nla[NFTA_TABLE_NAME];
- 		table = nft_table_lookup(net, attr, family, genmask);
--- 
-2.30.2
-
+           Linus
