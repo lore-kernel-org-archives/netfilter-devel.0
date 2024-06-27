@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id BB8F115748E;
-	Thu, 27 Jun 2024 11:27:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4B2A914B968;
+	Thu, 27 Jun 2024 11:27:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719487655; cv=none; b=t2aRivlPFFGKSbYlFYyESVh6zbkUaPDr6EnLaSdGlmpLlTCR9mJrtoytUNvyWJeFW8SeQKYogok3cC1Rdg7LsDGsE/8gcZWS4q5Jq/sQRlweaDQKS5L1U1inKwsqI1a9Ul1GAItGibgSv/O19gQ4b+4r5Zi0KCW/jY4XAt1wOH8=
+	t=1719487657; cv=none; b=MeEnCCLNCsdMN//kLIQDMS073P74P+gvCwuQc+vV5+CBKNUoeU0y4McwcwtrGt+29HkZfXq9BzAggdSde8Ud50m45HBwpwTY1VeavMtcV8w25zyKmmRAOT1FyuFJ9+5KbF9mj9EWIjYLD+qO7I5cuqT19Rhi1Z66vLr2M5ZATOE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719487655; c=relaxed/simple;
-	bh=XFMjFeicxW2lgJEW1FJwriCUu96ZDzBtQwEpeDkA9uA=;
+	s=arc-20240116; t=1719487657; c=relaxed/simple;
+	bh=QWdoxRnGLtzRglYYajDEVC9t/Eue0WSK/jHpEOqzg0w=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=nU0g+PJhd5dViOkzNWAm9qDhK9x2DW/7b4nqpBuHpfjRtSNQO0OOctKn/FFfC9ddUlu5GCcmnj5f26V4ywaqCvy71jlCaHTTRktdQ+UZkQ5E8URGZ4uTPw8kMPIxhyS5nA6/AukKjHT/zP89JU3mzZtNZS2gtZBU+79ZBjSwVag=
+	 MIME-Version; b=i5ntivDBS8H0UOF8d3ndqz2BY3e1MGE+UKvke8+/Myo0WXZsfiLzj4lHPq3j71EGSRaI/zM0RhSVzDskL14oEq1eoKAK0muKNNNT4MiYVOoJvKpaUdn+EF0e4TnrlR8cSILsLdpDYuLGlZHtBd2E1zS1fYQP9RJBcYeLhGWZfGM=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH nf-next 18/19] selftests: netfilter: nft_queue.sh: add test for disappearing listener
-Date: Thu, 27 Jun 2024 13:27:12 +0200
-Message-Id: <20240627112713.4846-19-pablo@netfilter.org>
+Subject: [PATCH nf-next 19/19] netfilter: xt_recent: Lift restrictions on max hitcount value
+Date: Thu, 27 Jun 2024 13:27:13 +0200
+Message-Id: <20240627112713.4846-20-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240627112713.4846-1-pablo@netfilter.org>
 References: <20240627112713.4846-1-pablo@netfilter.org>
@@ -34,77 +34,61 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+From: Phil Sutter <phil@nwl.cc>
 
-If userspace program exits while the queue its subscribed to has packets
-those need to be discarded.
+Support tracking of up to 65535 packets per table entry instead of just
+255 to better facilitate longer term tracking or higher throughput
+scenarios.
 
-commit dc21c6cc3d69 ("netfilter: nfnetlink_queue: acquire rcu_read_lock()
-in instance_destroy_rcu()") fixed a (harmless) rcu splat that could be
-triggered in this case.
+Note how this aligns sizes of struct recent_entry's 'nstamps' and
+'index' fields when 'nstamps' was larger before. This is unnecessary as
+the value of 'nstamps' grows along with that of 'index' after being
+initialized to 1 (see recent_entry_update()). Its value will thus never
+exceed that of 'index' and therefore does not need to provide space for
+larger values.
 
-Add a test case to cover this.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Requested-by: Fabio <pedretti.fabio@gmail.com>
+Link: https://bugzilla.netfilter.org/show_bug.cgi?id=1745
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- .../selftests/net/netfilter/nft_queue.sh      | 37 +++++++++++++++++++
- 1 file changed, 37 insertions(+)
+ net/netfilter/xt_recent.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_queue.sh b/tools/testing/selftests/net/netfilter/nft_queue.sh
-index 288b3cc55ed7..7e210d75e738 100755
---- a/tools/testing/selftests/net/netfilter/nft_queue.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_queue.sh
-@@ -449,6 +449,42 @@ EOF
- 	wait "$rpid" && echo "PASS: sctp and nfqueue in output chain with GSO"
- }
+diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
+index ef93e0d3bee0..588a5e6ad899 100644
+--- a/net/netfilter/xt_recent.c
++++ b/net/netfilter/xt_recent.c
+@@ -59,9 +59,9 @@ MODULE_PARM_DESC(ip_list_gid, "default owning group of /proc/net/xt_recent/* fil
+ /* retained for backwards compatibility */
+ static unsigned int ip_pkt_list_tot __read_mostly;
+ module_param(ip_pkt_list_tot, uint, 0400);
+-MODULE_PARM_DESC(ip_pkt_list_tot, "number of packets per IP address to remember (max. 255)");
++MODULE_PARM_DESC(ip_pkt_list_tot, "number of packets per IP address to remember (max. 65535)");
  
-+test_queue_removal()
-+{
-+	read tainted_then < /proc/sys/kernel/tainted
-+
-+	ip netns exec "$ns1" nft -f - <<EOF
-+flush ruleset
-+table ip filter {
-+	chain output {
-+		type filter hook output priority 0; policy accept;
-+		ip protocol icmp queue num 0
-+	}
-+}
-+EOF
-+	ip netns exec "$ns1" ./nf_queue -q 0 -d 30000 -t "$timeout" &
-+	local nfqpid=$!
-+
-+	busywait "$BUSYWAIT_TIMEOUT" nf_queue_wait "$ns1" 0
-+
-+	ip netns exec "$ns1" ping -w 2 -f -c 10 127.0.0.1 -q >/dev/null
-+	kill $nfqpid
-+
-+	ip netns exec "$ns1" nft flush ruleset
-+
-+	if [ "$tainted_then" -ne 0 ];then
-+		return
-+	fi
-+
-+	read tainted_now < /proc/sys/kernel/tainted
-+	if [ "$tainted_now" -eq 0 ];then
-+		echo "PASS: queue program exiting while packets queued"
-+	else
-+		echo "TAINT: queue program exiting while packets queued"
-+		ret=1
-+	fi
-+}
-+
- ip netns exec "$nsrouter" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
- ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
- ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth1.forwarding=1 > /dev/null
-@@ -489,5 +525,6 @@ test_tcp_localhost_requeue
- test_icmp_vrf
- test_sctp_forward
- test_sctp_output
-+test_queue_removal
+-#define XT_RECENT_MAX_NSTAMPS	256
++#define XT_RECENT_MAX_NSTAMPS	65536
  
- exit $ret
+ struct recent_entry {
+ 	struct list_head	list;
+@@ -69,7 +69,7 @@ struct recent_entry {
+ 	union nf_inet_addr	addr;
+ 	u_int16_t		family;
+ 	u_int8_t		ttl;
+-	u_int8_t		index;
++	u_int16_t		index;
+ 	u_int16_t		nstamps;
+ 	unsigned long		stamps[];
+ };
+@@ -80,7 +80,7 @@ struct recent_table {
+ 	union nf_inet_addr	mask;
+ 	unsigned int		refcnt;
+ 	unsigned int		entries;
+-	u8			nstamps_max_mask;
++	u_int16_t		nstamps_max_mask;
+ 	struct list_head	lru_list;
+ 	struct list_head	iphash[];
+ };
 -- 
 2.30.2
 
