@@ -1,96 +1,76 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E80BA17F8
-	for <netfilter-devel@vger.kernel.org>; Thu, 27 Jun 2024 00:06:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1604D4C7C;
+	Thu, 27 Jun 2024 00:41:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719446774; cv=none; b=qfAYGHSDog5Q3CWSp0+zE13G3trfl8g8icBJPBFsWfdrmdLe1Cf1U0pL1PJ1h1Q5IoeZ7IelyHrCI/HdaES6G1s0EP6esv4eK8RfbxNPy/YsfG/cUp33Q0B8XHc9waXKExJVUugyQXBo1pqDi5aYoIERQ60IMxqS2C9l3cvMp94=
+	t=1719448884; cv=none; b=rqYssrce84S9Jue8PhGJV0ZhMsgDW5hmqp4K8o54+6LazLChx35ERQk+hIS+4QAMb4WqhAMGY9BVd7EcbcdMyDSNAWljRg8Gc/QEsktysIYWx/VvWnQarNIbkQ0UtuNz0XcPivDaK/Z9mbAubwO4QPflATzn8KDKpg4S+x4amJ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719446774; c=relaxed/simple;
-	bh=TC05Rdd9SgEkhowh2mB2qtCmkOxwi6HZz7MOhWj0+a4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=uIs/w9Pos8/eo42ehAz5PYrfiNQwExXE0UYI1B4M6HroMD6TkEEbjHqKYpyFe5/qd6WHKfwPKXbqYHMzg5dF4lQyleTWi2u974a0G/Y6nB/Emsft+QUj1hXUHS1gQLS7zucnJaRIzatRK9qjiM2dL5RkrI22XYFokeLy04EdkGY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=bUe55i+z; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="bUe55i+z"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=ZcuO77HTGWXpP7fR+Z+cMxKBnuQ4T87YFnztuwwMSuQ=; b=bUe55i+zJfP/NhnXJsydt1xObN
-	KbYGvfhPUPR7mqlfQg6PpjtKwpgJvQc7F2aCiiG6jLiEMRvrRKDXeKJseaKdWA5Bh0E93/5x9wXbg
-	YVZu7/A98/XEsLUSvWYEu1j6PTc0u6sdptfbrBp1LkWiAiU6hYEMwgNDGZFDaSVLap/CxWwXsp40N
-	KSjmMjGEF7OCGkPbnM6j/QM0K2/8DiOqukd3un4rQe97gqqAFr4J8TMCDYLZCVodmxv4UTEBMNQyE
-	eucVfTLOhlqyqZHbBnL5XBL79vYdA4+Hphzg9Y8qxTeoWHh3PNnsJMAKuQwQ/0r5eogqMbMVxTxht
-	4fl5ZaCQ==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1sMceP-000000003Ez-1pAA;
-	Thu, 27 Jun 2024 02:06:09 +0200
-Date: Thu, 27 Jun 2024 02:06:09 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	Fabio <pedretti.fabio@gmail.com>
-Subject: Re: [nf-next PATCH v2 1/2] netfilter: xt_recent: Reduce size of
- struct recent_entry::nstamps
-Message-ID: <Znys8VUURMRnUfxd@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	Fabio <pedretti.fabio@gmail.com>
-References: <20240614151641.28885-1-phil@nwl.cc>
- <20240614151641.28885-2-phil@nwl.cc>
- <Znw9-9hAxauzr2Ie@calendula>
- <ZnyY-j4pqHjflOnb@orbyte.nwl.cc>
- <Znymv6czZP4M4zuc@calendula>
+	s=arc-20240116; t=1719448884; c=relaxed/simple;
+	bh=93isI6uyvkaHqrN+KFDejx8ggG8wgEi87rrl5QEcVo0=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=IfuakKUGupr3eUULTgxtfHWPgS0fxR1ZZDQ+tVUX70ofAKdN2JNpPsOHaA8lJrOBLgjwGKKqi7EEyE/UU+R3qH+miKgpBrxh8e/B1+wysRRPbPR8TB3tX7xhXOSlFrswp9oCCF6qgaLjikfZbzKLotvfw7MmxTHDocyotVlDfhc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: stable@vger.kernel.org,
+	gregkh@linuxfoundation.org,
+	sashal@kernel.org,
+	torvalds@linuxfoundation.org
+Subject: [PATCH -stable,4.19.x] netfilter: nf_tables: validate family when identifying table via handle
+Date: Thu, 27 Jun 2024 02:41:11 +0200
+Message-Id: <20240627004113.150349-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Znymv6czZP4M4zuc@calendula>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Jun 27, 2024 at 01:39:43AM +0200, Pablo Neira Ayuso wrote:
-> On Thu, Jun 27, 2024 at 12:40:58AM +0200, Phil Sutter wrote:
-> > On Wed, Jun 26, 2024 at 06:12:43PM +0200, Pablo Neira Ayuso wrote:
-> > > Hi Phil,
-> > > 
-> > > On Fri, Jun 14, 2024 at 05:16:40PM +0200, Phil Sutter wrote:
-> > > > There is no point in this change besides presenting its possibility
-> > > > separate from a follow-up patch extending the size of both 'index' and
-> > > > 'nstamps' fields.
-> > > > 
-> > > > The value of 'nstamps' is initialized to 1 in recent_entry_init() and
-> > > > adjusted in recent_entry_update() to match that of 'index' if it becomes
-> > > > larger after being incremented. Since 'index' is of type u8, it will at
-> > > > max become 255 (and wrap to 0 afterwards). Therefore, 'nstamps' will
-> > > > also never exceed the value 255.
-> > > 
-> > > Series LGTM.
-> > 
-> > Thanks for your review.
-> > 
-> > > I'd suggest you collapse these two patches while keeping the
-> > > description above, because nstamps is shrinked here in 1/2 then it
-> > > gets back to original u16 in 2/2.
-> > 
-> > ACK, that was the plan right from the start. :)
-> 
-> Thanks, I have to admit splitting the patch in two helped me
-> understand a lot better when reviewing.
+[ Upstream commit f6e1532a2697b81da00bfb184e99d15e01e9d98c ]
 
-Cool! When restructuring patches for netfilter, I noticed a few times
-how I suddenly was able to split things into surprisingly small sets
-of changes which were much easier to explain in the commit message. So
-we both benefit from this practice. :)
+Validate table family when looking up for it via NFTA_TABLE_HANDLE.
 
-Cheers, Phil
+Fixes: 3ecbfd65f50e ("netfilter: nf_tables: allocate handle and delete objects via handle")
+Reported-by: Xingyuan Mo <hdthky0@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/netfilter/nf_tables_api.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 198e4a89df48..2c31470dd61f 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -536,7 +536,7 @@ static struct nft_table *nft_table_lookup(const struct net *net,
+ 
+ static struct nft_table *nft_table_lookup_byhandle(const struct net *net,
+ 						   const struct nlattr *nla,
+-						   u8 genmask)
++						   int family, u8 genmask)
+ {
+ 	struct nftables_pernet *nft_net;
+ 	struct nft_table *table;
+@@ -544,6 +544,7 @@ static struct nft_table *nft_table_lookup_byhandle(const struct net *net,
+ 	nft_net = net_generic(net, nf_tables_net_id);
+ 	list_for_each_entry(table, &nft_net->tables, list) {
+ 		if (be64_to_cpu(nla_get_be64(nla)) == table->handle &&
++		    table->family == family &&
+ 		    nft_active_genmask(table, genmask))
+ 			return table;
+ 	}
+@@ -1189,7 +1190,7 @@ static int nf_tables_deltable(struct net *net, struct sock *nlsk,
+ 
+ 	if (nla[NFTA_TABLE_HANDLE]) {
+ 		attr = nla[NFTA_TABLE_HANDLE];
+-		table = nft_table_lookup_byhandle(net, attr, genmask);
++		table = nft_table_lookup_byhandle(net, attr, family, genmask);
+ 	} else {
+ 		attr = nla[NFTA_TABLE_NAME];
+ 		table = nft_table_lookup(net, attr, family, genmask);
+-- 
+2.30.2
+
