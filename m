@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1639E156960;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id CD67B156F29;
 	Thu, 27 Jun 2024 11:27:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719487653; cv=none; b=Cu6NQyijMrexfeUz9cKdWjiyx0CI+difChY6OZqTwLRlcEZMhLwPnyuWRB3Z0yQDlT5a4cES6pKFpZcswKgHpmLmwV079CpbZlHrvSgotsKTwoVebMLCBHb6bdO6IWQ7aIVPgFSQiUBUKrkAWrm23zIqncdVCaxkJKIYmjqHxbQ=
+	t=1719487654; cv=none; b=hK1pJLEh2RtEY3HshPYnBixYI9Ja7fxnLUdiuvsDWMcRhdru1mARu3BXSUEjUC7NYpAUmnNbN5+U0ac6dXU/Hz0Xw+Vq9X4PuoNy+e2RSzqyOEVAjwq4+P/8ak3Y2xrpk6XNzL/nutX7qyqnULCBhGedEApiUxgsfY6068A96vc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719487653; c=relaxed/simple;
-	bh=6rL2DNHcfc72gqvV78DFg/P384QL1CBe+ogYmpEqpXc=;
+	s=arc-20240116; t=1719487654; c=relaxed/simple;
+	bh=O7w4weAUTFWs1hgUj9TYWoJjcWDOSlAb+4k2tecoCZ0=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=K6IctwrS17R03RRXlyv6PQ4XX40Kx+O7Oc0kkXlHjJF23NobtyGyEOcrEBOIOnj2BjYLqyypD5pEpOd4AGhEDCtnrsmsJzxgIe14cP8q43uRDF74sJ0erL9+GEbJws1H4bNOEvXAC4cZzUVxIx/UFrQVzuVTr2NiWr8peMbCkjQ=
+	 MIME-Version; b=Vu981BIe7036wF14vsimVtFDL9GnWOBfKE9NdWYxYiTiQ8JU8+5Tx5GuAoCKdTWG4m+Wi+EfVxvYBWmD3Q9D11YUbOliD62zvvRYkqLhOvWisu6FefeI5zKw+s234p0yPTTeoAD9J4BS0yjUPoQ9cNO/Y/xnXMCwRbWHQtxtsFs=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH nf-next 16/19] netfilter: nfnetlink_queue: unbreak SCTP traffic
-Date: Thu, 27 Jun 2024 13:27:10 +0200
-Message-Id: <20240627112713.4846-17-pablo@netfilter.org>
+Subject: [PATCH nf-next 17/19] selftests: netfilter: nft_queue.sh: sctp coverage
+Date: Thu, 27 Jun 2024 13:27:11 +0200
+Message-Id: <20240627112713.4846-18-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240627112713.4846-1-pablo@netfilter.org>
 References: <20240627112713.4846-1-pablo@netfilter.org>
@@ -36,71 +36,116 @@ Content-Transfer-Encoding: 8bit
 
 From: Antonio Ojea <aojea@google.com>
 
-when packet is enqueued with nfqueue and GSO is enabled, checksum
-calculation has to take into account the protocol, as SCTP uses a
-32 bits CRC checksum.
-
-Enter skb_gso_segment() path in case of SCTP GSO packets because
-skb_zerocopy() does not support for GSO_BY_FRAGS.
+Test that nfqueue with and without GSO process SCTP packets correctly.
 
 Joint work with Pablo.
 
 Signed-off-by: Antonio Ojea <aojea@google.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/core/dev.c                  |  1 +
- net/netfilter/nfnetlink_queue.c | 12 ++++++++++--
- 2 files changed, 11 insertions(+), 2 deletions(-)
+ .../selftests/net/netfilter/nft_queue.sh      | 76 +++++++++++++++++++
+ 1 file changed, 76 insertions(+)
 
-diff --git a/net/core/dev.c b/net/core/dev.c
-index b94fb4e63a28..6c13a3072f04 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -3386,6 +3386,7 @@ int skb_crc32c_csum_help(struct sk_buff *skb)
- out:
- 	return ret;
- }
-+EXPORT_SYMBOL(skb_crc32c_csum_help);
- 
- __be16 skb_network_protocol(struct sk_buff *skb, int *depth)
- {
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index f1c31757e496..fe550cebae1e 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -540,6 +540,14 @@ static int nfqnl_put_bridge(struct nf_queue_entry *entry, struct sk_buff *skb)
- 	return -1;
+diff --git a/tools/testing/selftests/net/netfilter/nft_queue.sh b/tools/testing/selftests/net/netfilter/nft_queue.sh
+index 8538f08c64c2..288b3cc55ed7 100755
+--- a/tools/testing/selftests/net/netfilter/nft_queue.sh
++++ b/tools/testing/selftests/net/netfilter/nft_queue.sh
+@@ -25,6 +25,9 @@ cleanup()
  }
  
-+static int nf_queue_checksum_help(struct sk_buff *entskb)
-+{
-+	if (skb_csum_is_sctp(entskb))
-+		return skb_crc32c_csum_help(entskb);
+ checktool "nft --version" "test without nft tool"
++checktool "socat -h" "run test without socat"
 +
-+	return skb_checksum_help(entskb);
++modprobe -q sctp
+ 
+ trap cleanup EXIT
+ 
+@@ -375,6 +378,77 @@ EOF
+ 	wait 2>/dev/null
+ }
+ 
++sctp_listener_ready()
++{
++	ss -S -N "$1" -lnt -o "sport = :12345" | grep -q 12345
 +}
 +
- static struct sk_buff *
- nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 			   struct nf_queue_entry *entry,
-@@ -602,7 +610,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	case NFQNL_COPY_PACKET:
- 		if (!(queue->flags & NFQA_CFG_F_GSO) &&
- 		    entskb->ip_summed == CHECKSUM_PARTIAL &&
--		    skb_checksum_help(entskb))
-+		    nf_queue_checksum_help(entskb))
- 			return NULL;
++test_sctp_forward()
++{
++	ip netns exec "$nsrouter" nft -f /dev/stdin <<EOF
++table inet sctpq {
++        chain forward {
++        type filter hook forward priority 0; policy accept;
++                sctp dport 12345 queue num 10
++        }
++}
++EOF
++	ip netns exec "$nsrouter" ./nf_queue -q 10 -G -t "$timeout" &
++	local nfqpid=$!
++
++	timeout 60 ip netns exec "$ns2" socat -u SCTP-LISTEN:12345 STDOUT > "$TMPFILE1" &
++	local rpid=$!
++
++	busywait "$BUSYWAIT_TIMEOUT" sctp_listener_ready "$ns2"
++
++	ip netns exec "$ns1" socat -u STDIN SCTP:10.0.2.99:12345 <"$TMPINPUT" >/dev/null
++
++	if ! ip netns exec "$nsrouter" nft delete table inet sctpq; then
++		echo "FAIL:  Could not delete sctpq table"
++		exit 1
++	fi
++
++	if ! diff -u "$TMPINPUT" "$TMPFILE1" ; then
++		echo "FAIL: lost packets?!" 1>&2
++		return
++	fi
++
++	wait "$rpid" && echo "PASS: sctp and nfqueue in forward chain"
++}
++
++test_sctp_output()
++{
++        ip netns exec "$ns1" nft -f /dev/stdin <<EOF
++table inet sctpq {
++        chain output {
++        type filter hook output priority 0; policy accept;
++                sctp dport 12345 queue num 11
++        }
++}
++EOF
++	ip netns exec "$ns1" ./nf_queue -q 11 -t "$timeout" &
++	local nfqpid=$!
++
++	timeout 60 ip netns exec "$ns2" socat -u SCTP-LISTEN:12345 STDOUT > "$TMPFILE1" &
++	local rpid=$!
++
++	busywait "$BUSYWAIT_TIMEOUT" sctp_listener_ready "$ns2"
++
++	ip netns exec "$ns1" socat -u STDIN SCTP:10.0.2.99:12345 <"$TMPINPUT" >/dev/null
++
++	if ! ip netns exec "$ns1" nft delete table inet sctpq; then
++		echo "FAIL:  Could not delete sctpq table"
++		exit 1
++	fi
++
++	if ! diff -u "$TMPINPUT" "$TMPFILE1" ; then
++		echo "FAIL: lost packets?!" 1>&2
++		return
++	fi
++
++	wait "$rpid" && echo "PASS: sctp and nfqueue in output chain with GSO"
++}
++
+ ip netns exec "$nsrouter" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
+ ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
+ ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth1.forwarding=1 > /dev/null
+@@ -413,5 +487,7 @@ test_tcp_localhost
+ test_tcp_localhost_connectclose
+ test_tcp_localhost_requeue
+ test_icmp_vrf
++test_sctp_forward
++test_sctp_output
  
- 		data_len = READ_ONCE(queue->copy_range);
-@@ -983,7 +991,7 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
- 		break;
- 	}
- 
--	if ((queue->flags & NFQA_CFG_F_GSO) || !skb_is_gso(skb))
-+	if (!skb_is_gso(skb) || ((queue->flags & NFQA_CFG_F_GSO) && !skb_is_gso_sctp(skb)))
- 		return __nfqnl_enqueue_packet(net, queue, entry);
- 
- 	nf_bridge_adjust_skb_data(skb);
+ exit $ret
 -- 
 2.30.2
 
