@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 45E7514EC4E;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 462AD14EC53;
 	Thu, 27 Jun 2024 11:27:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719487644; cv=none; b=rCHWhCnwgfUGO9H7UlOAinShOk01YWvju1UrOlKt7rBddOXxiQPysFsxDWYpNT4Hs4ZqsxE0pLVHlFs2vyizfiZE6aRZbwjY2Hw4DQ5yXjLyay6ZrA41mSac2ZJ5RZ25JCGGEeEP2rh30dK4WuCK+zLzo11Z4v5ZhzADDwsTEzk=
+	t=1719487645; cv=none; b=ptL8By8zYLykk5xdwYTds7vWeJ1YP8PtbeHRmdzOIvIRSb82kri49G5Dp0th8rjwzyaDmml+bWXsyiBNUakqLIG0Esj1FtBqOa3u/F7yqo+NECjBhX2jX7yZdNZyLFJFo5wyhNgrXfvrLb2hWSTLSz93oDZ5Kc9iJXsUJNyC0ZM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719487644; c=relaxed/simple;
-	bh=CWN6ZMTU2zDpXqEPXVximbwv431J+f/R1JuLAZKdn2I=;
+	s=arc-20240116; t=1719487645; c=relaxed/simple;
+	bh=EhJLAkSJNEcAQj8EAFjRLxHVJUr7XgCQpnkdsZnakac=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=jBUKrRJZU0dNM1qUYHZJQJuw75t7vMDFbcsSHvyk4C+uHQGtVUhvj3imlgM2KMjvS7j6X2crUAt0d94pvquruZlixlqedcULIKenu0F8D5PL6NuaI3ik3ml9dKAkMWiRd5TzKrvdSFyQOX8s63/taSuosH9X3OXey2a4cypbQcg=
+	 MIME-Version; b=bu3vHiAQou4CqiFosAOtQ96u8t8woR0uspAuSNGiw/4nBk35KvmvW6RECO2sR2gJGvb6+A9e5+DktXKz2lPTZV1OZ/hIj7XAQ1bvgdla7KYUqq+qwc07wnZsEXSnZhMKNG9S3Zeez5RBsILtN2rDeISYtUgUYcfV2nZDQROsDCQ=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH nf-next 05/19] netfilter: nf_tables: pass nft_chain to destroy function, not nft_ctx
-Date: Thu, 27 Jun 2024 13:26:59 +0200
-Message-Id: <20240627112713.4846-6-pablo@netfilter.org>
+Subject: [PATCH nf-next 06/19] netfilter: nf_tables: pass more specific nft_trans_chain where possible
+Date: Thu, 27 Jun 2024 13:27:00 +0200
+Message-Id: <20240627112713.4846-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240627112713.4846-1-pablo@netfilter.org>
 References: <20240627112713.4846-1-pablo@netfilter.org>
@@ -36,120 +36,142 @@ Content-Transfer-Encoding: 8bit
 
 From: Florian Westphal <fw@strlen.de>
 
-It would be better to not store nft_ctx inside nft_trans object,
-the netlink ctx strucutre is huge and most of its information is
-never needed in places that use trans->ctx.
-
-Avoid/reduce its usage if possible, no runtime behaviour change
-intended.
+These functions pass a pointer to the base object type, use the
+more specific one.  No functional change intended.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h |  2 +-
- net/netfilter/nf_tables_api.c     | 17 ++++++++---------
- net/netfilter/nft_immediate.c     |  2 +-
- 3 files changed, 10 insertions(+), 11 deletions(-)
+ net/netfilter/nf_tables_api.c | 51 ++++++++++++++++++-----------------
+ 1 file changed, 26 insertions(+), 25 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 1f0607b671ac..328fdc140551 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1171,7 +1171,7 @@ static inline bool nft_chain_is_bound(struct nft_chain *chain)
- 
- int nft_chain_add(struct nft_table *table, struct nft_chain *chain);
- void nft_chain_del(struct nft_chain *chain);
--void nf_tables_chain_destroy(struct nft_ctx *ctx);
-+void nf_tables_chain_destroy(struct nft_chain *chain);
- 
- struct nft_stats {
- 	u64			bytes;
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 60c435774db8..bdc2d7f781ca 100644
+index bdc2d7f781ca..62a4da955574 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -2118,9 +2118,9 @@ static void nf_tables_chain_free_chain_rules(struct nft_chain *chain)
- 	kvfree(chain->blob_next);
+@@ -448,6 +448,7 @@ nft_trans_alloc_chain(const struct nft_ctx *ctx, int msg_type)
+ 
+ 	trans_chain = nft_trans_container_chain(trans);
+ 	INIT_LIST_HEAD(&trans_chain->nft_trans_binding.binding_list);
++	trans_chain->chain = ctx->chain;
+ 
+ 	return trans;
  }
- 
--void nf_tables_chain_destroy(struct nft_ctx *ctx)
-+void nf_tables_chain_destroy(struct nft_chain *chain)
- {
--	struct nft_chain *chain = ctx->chain;
-+	const struct nft_table *table = chain->table;
- 	struct nft_hook *hook, *next;
- 
- 	if (WARN_ON(chain->use > 0))
-@@ -2132,7 +2132,7 @@ void nf_tables_chain_destroy(struct nft_ctx *ctx)
- 	if (nft_is_base_chain(chain)) {
- 		struct nft_base_chain *basechain = nft_base_chain(chain);
- 
--		if (nft_base_chain_netdev(ctx->family, basechain->ops.hooknum)) {
-+		if (nft_base_chain_netdev(table->family, basechain->ops.hooknum)) {
- 			list_for_each_entry_safe(hook, next,
- 						 &basechain->hook_list, list) {
- 				list_del_rcu(&hook->list);
-@@ -2621,7 +2621,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
- err_trans:
- 	nft_use_dec_restore(&table->use);
- err_destroy_chain:
--	nf_tables_chain_destroy(ctx);
-+	nf_tables_chain_destroy(chain);
- 
- 	return err;
- }
-@@ -9532,7 +9532,7 @@ static void nft_commit_release(struct nft_trans *trans)
- 		if (nft_trans_chain_update(trans))
- 			nft_hooks_destroy(&nft_trans_chain_hooks(trans));
- 		else
--			nf_tables_chain_destroy(&trans->ctx);
-+			nf_tables_chain_destroy(nft_trans_chain(trans));
- 		break;
- 	case NFT_MSG_DELRULE:
- 	case NFT_MSG_DESTROYRULE:
-@@ -10524,7 +10524,7 @@ static void nf_tables_abort_release(struct nft_trans *trans)
- 		if (nft_trans_chain_update(trans))
- 			nft_hooks_destroy(&nft_trans_chain_hooks(trans));
- 		else
--			nf_tables_chain_destroy(&trans->ctx);
-+			nf_tables_chain_destroy(nft_trans_chain(trans));
- 		break;
- 	case NFT_MSG_NEWRULE:
- 		nf_tables_rule_destroy(&trans->ctx, nft_trans_rule(trans));
-@@ -11411,7 +11411,7 @@ int __nft_release_basechain(struct nft_ctx *ctx)
- 	}
- 	nft_chain_del(ctx->chain);
- 	nft_use_dec(&ctx->table->use);
--	nf_tables_chain_destroy(ctx);
-+	nf_tables_chain_destroy(ctx->chain);
- 
- 	return 0;
- }
-@@ -11486,10 +11486,9 @@ static void __nft_release_table(struct net *net, struct nft_table *table)
- 		nft_obj_destroy(&ctx, obj);
- 	}
- 	list_for_each_entry_safe(chain, nc, &table->chains, list) {
--		ctx.chain = chain;
- 		nft_chain_del(chain);
- 		nft_use_dec(&table->use);
--		nf_tables_chain_destroy(&ctx);
-+		nf_tables_chain_destroy(chain);
- 	}
- 	nf_tables_table_destroy(&ctx);
- }
-diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
-index 6475c7abc1fe..ac2422c215e5 100644
---- a/net/netfilter/nft_immediate.c
-+++ b/net/netfilter/nft_immediate.c
-@@ -221,7 +221,7 @@ static void nft_immediate_destroy(const struct nft_ctx *ctx,
- 			list_del(&rule->list);
- 			nf_tables_rule_destroy(&chain_ctx, rule);
+@@ -468,7 +469,6 @@ static struct nft_trans *nft_trans_chain_add(struct nft_ctx *ctx, int msg_type)
+ 				ntohl(nla_get_be32(ctx->nla[NFTA_CHAIN_ID]));
  		}
--		nf_tables_chain_destroy(&chain_ctx);
-+		nf_tables_chain_destroy(chain);
+ 	}
+-	nft_trans_chain(trans) = ctx->chain;
+ 	nft_trans_commit_list_add_tail(ctx->net, trans);
+ 
+ 	return trans;
+@@ -2089,18 +2089,19 @@ static struct nft_stats __percpu *nft_stats_alloc(const struct nlattr *attr)
+ 	return newstats;
+ }
+ 
+-static void nft_chain_stats_replace(struct nft_trans *trans)
++static void nft_chain_stats_replace(struct nft_trans_chain *trans)
+ {
+-	struct nft_base_chain *chain = nft_base_chain(trans->ctx.chain);
++	const struct nft_trans *t = &trans->nft_trans_binding.nft_trans;
++	struct nft_base_chain *chain = nft_base_chain(trans->chain);
+ 
+-	if (!nft_trans_chain_stats(trans))
++	if (!trans->stats)
+ 		return;
+ 
+-	nft_trans_chain_stats(trans) =
+-		rcu_replace_pointer(chain->stats, nft_trans_chain_stats(trans),
+-				    lockdep_commit_lock_is_held(trans->ctx.net));
++	trans->stats =
++		rcu_replace_pointer(chain->stats, trans->stats,
++				    lockdep_commit_lock_is_held(t->ctx.net));
+ 
+-	if (!nft_trans_chain_stats(trans))
++	if (!trans->stats)
+ 		static_branch_inc(&nft_counters_enabled);
+ }
+ 
+@@ -9456,47 +9457,47 @@ static int nf_tables_validate(struct net *net)
+  *
+  * We defer the drop policy until the transaction has been finalized.
+  */
+-static void nft_chain_commit_drop_policy(struct nft_trans *trans)
++static void nft_chain_commit_drop_policy(struct nft_trans_chain *trans)
+ {
+ 	struct nft_base_chain *basechain;
+ 
+-	if (nft_trans_chain_policy(trans) != NF_DROP)
++	if (trans->policy != NF_DROP)
+ 		return;
+ 
+-	if (!nft_is_base_chain(trans->ctx.chain))
++	if (!nft_is_base_chain(trans->chain))
+ 		return;
+ 
+-	basechain = nft_base_chain(trans->ctx.chain);
++	basechain = nft_base_chain(trans->chain);
+ 	basechain->policy = NF_DROP;
+ }
+ 
+-static void nft_chain_commit_update(struct nft_trans *trans)
++static void nft_chain_commit_update(struct nft_trans_chain *trans)
+ {
+-	struct nft_table *table = trans->ctx.table;
++	struct nft_table *table = trans->nft_trans_binding.nft_trans.ctx.table;
+ 	struct nft_base_chain *basechain;
+ 
+-	if (nft_trans_chain_name(trans)) {
++	if (trans->name) {
+ 		rhltable_remove(&table->chains_ht,
+-				&trans->ctx.chain->rhlhead,
++				&trans->chain->rhlhead,
+ 				nft_chain_ht_params);
+-		swap(trans->ctx.chain->name, nft_trans_chain_name(trans));
++		swap(trans->chain->name, trans->name);
+ 		rhltable_insert_key(&table->chains_ht,
+-				    trans->ctx.chain->name,
+-				    &trans->ctx.chain->rhlhead,
++				    trans->chain->name,
++				    &trans->chain->rhlhead,
+ 				    nft_chain_ht_params);
+ 	}
+ 
+-	if (!nft_is_base_chain(trans->ctx.chain))
++	if (!nft_is_base_chain(trans->chain))
+ 		return;
+ 
+ 	nft_chain_stats_replace(trans);
+ 
+-	basechain = nft_base_chain(trans->ctx.chain);
++	basechain = nft_base_chain(trans->chain);
+ 
+-	switch (nft_trans_chain_policy(trans)) {
++	switch (trans->policy) {
+ 	case NF_DROP:
+ 	case NF_ACCEPT:
+-		basechain->policy = nft_trans_chain_policy(trans);
++		basechain->policy = trans->policy;
  		break;
- 	default:
- 		break;
+ 	}
+ }
+@@ -10309,14 +10310,14 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 			break;
+ 		case NFT_MSG_NEWCHAIN:
+ 			if (nft_trans_chain_update(trans)) {
+-				nft_chain_commit_update(trans);
++				nft_chain_commit_update(nft_trans_container_chain(trans));
+ 				nf_tables_chain_notify(&trans->ctx, NFT_MSG_NEWCHAIN,
+ 						       &nft_trans_chain_hooks(trans));
+ 				list_splice(&nft_trans_chain_hooks(trans),
+ 					    &nft_trans_basechain(trans)->hook_list);
+ 				/* trans destroyed after rcu grace period */
+ 			} else {
+-				nft_chain_commit_drop_policy(trans);
++				nft_chain_commit_drop_policy(nft_trans_container_chain(trans));
+ 				nft_clear(net, trans->ctx.chain);
+ 				nf_tables_chain_notify(&trans->ctx, NFT_MSG_NEWCHAIN, NULL);
+ 				nft_trans_destroy(trans);
 -- 
 2.30.2
 
