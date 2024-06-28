@@ -1,173 +1,107 @@
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-il1-f207.google.com (mail-il1-f207.google.com [209.85.166.207])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2486A15698D;
-	Fri, 28 Jun 2024 16:51:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 820CE25634
+	for <netfilter-devel@vger.kernel.org>; Fri, 28 Jun 2024 18:38:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719593477; cv=none; b=sk+cGQ7tmqUDiydTYaus5P1dZJmpgCZyGCaJrdsMuFqVxvp9vKmP45BJW2D7voEEHY0Pkg2Ree0HXHHXIMaAUemXL0u9Sszhr3ZZfNbLPocLzhIylz++lEK0n8A8WcKRBraZl4bQzbxA3cdU4GQ1NnDlJd3d6NTq1DunCzbFsZs=
+	t=1719599903; cv=none; b=J4ht9FU5RBf/2aTH9+PaS5fhph5CbvuQgEL6W8ig5fADMP6Lc7sh50ZaOBg7yIyd7RqhG0c2AblEai1MmhTOMgRfeDJRtRVaF7CSTP6zNwYHzZuQ5fO9qIFWQYcAXu1qOXXyovvt5dAyxwh/+tP7ZUDj1fHzbwFNr1XmE5R4lss=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719593477; c=relaxed/simple;
-	bh=4owyfH6X+DyJ9WfPxXPkoc5JShgygnGI39eEOeau6PI=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=bxRp05Xa0FI/BDItVP/AyRiUDN7VSZJyxitONmRpik5z8Dz0DYemZJlk7HSwh50NcQKd9qGcMuPfwGN4OC3TwKuTiqtlXTp4f3zBWs1xSQeVBeOs2iaPs1P0G02oDbIegym1ohwYHQP/GlCcghKMXSmLS+eoebAtFj9yOqzN5Z8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.188
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
-Received: from mail.maildlp.com (unknown [172.19.163.252])
-	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4W9hHM0dTgzdfP2;
-	Sat, 29 Jun 2024 00:49:35 +0800 (CST)
-Received: from dggpemm500020.china.huawei.com (unknown [7.185.36.49])
-	by mail.maildlp.com (Postfix) with ESMTPS id 0F5C1180087;
-	Sat, 29 Jun 2024 00:51:10 +0800 (CST)
-Received: from [10.123.123.159] (10.123.123.159) by
- dggpemm500020.china.huawei.com (7.185.36.49) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.39; Sat, 29 Jun 2024 00:51:05 +0800
-Message-ID: <b2d1a152-0241-6a3a-1f31-4a1045fff856@huawei-partners.com>
-Date: Fri, 28 Jun 2024 19:51:00 +0300
+	s=arc-20240116; t=1719599903; c=relaxed/simple;
+	bh=WAgvqGSSMUhPpGWuEaYRvYoyRrVFQyKjhyHF8lm3m3s=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=b/xjaEzCN7lHf+nm0xX9XND5DW7ajKrq7o+Qqqo4Ui9oIiemSg47bDD27rdslO6D13RBzvp/7e20HS6eIAMn0PguWb2tl4L4nzkgRTCzyUOf5qjSABItOeNlMellaPoiMZ8oIzy8xLx7nz+FdtORUeTfZkGc6TSZGEKrGHjr/cs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-il1-f207.google.com with SMTP id e9e14a558f8ab-376229f07a8so10477945ab.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Jun 2024 11:38:22 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1719599902; x=1720204702;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=uAQwFq9UPZbXFZDZdCFdcQuDs/7IHMkcXpTnMEOHaSI=;
+        b=N86voCct0uMNvyDQMJLJzVK5MWaAyUtEnieol3euuTZ3xmJlilUtpuqB3VUEGEg2ic
+         SYU+WEpeUq5ek1FZhPu2ClL1xwvJyBxWHghQZM/WrKaj9Eq81EtZy++mRMEE6xv8Dppd
+         uBmVu8ZYNmk6Q1yDw/zGeEG9rEjVlQrYveO3GLwY3seiqn5MG5BG6F6zmHFchOc+FWmU
+         sW3Nglxr8JKvapsOT1NH+/CzyecYQw2iqPJbQHiyBm13perHxckHywAB2zgZ9o3W+tSB
+         9jwrXZ6sKRR2DjaWyBwhlQbgy63ODnOWCDyaQ0UkOROtfoOKONYoNDDtrhlG9vlzfOrI
+         lYoA==
+X-Forwarded-Encrypted: i=1; AJvYcCUjUkUoMRA7SA591Ia5OMw1VNB9nNkXovavNFcsIjR/7MRrpzy2374wDVa/n48ElxUgq7cvsRTeBp8JxEldIkopSFNsOfxvgnd0bTKLa40F
+X-Gm-Message-State: AOJu0YziwQztc2pQjLuqQrZ5FV4swgxYrMleiYaRhX6avKm1ecLFWuja
+	K1kv4KT8GtqxJEldKIrZib4qnNV93bcDEg+ps5uZICWYAK5Bhn+r2ZStBUzX0lpbiekkhRWwk6c
+	xEY0zDb/sk9dzhVMLyDuJyjRauo62W7qXL3raElzlTlGWGK4ZFLp73lw=
+X-Google-Smtp-Source: AGHT+IFyojeDoOQfAz+WpFDP13ym2ekViaAZ2Ap6ROc1rvqVHqXy6e4NW0dc11phb0kwVSPqpMSaRAWLrRTi/u2q8ChreueD8oNh
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/2] landlock: Add hook on socket_listen()
-Content-Language: ru
-To: =?UTF-8?Q?G=C3=BCnther_Noack?= <gnoack@google.com>
-CC: =?UTF-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>,
-	<willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
-	<linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-	<netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-	<artem.kuzin@huawei.com>, <konstantin.meskhidze@huawei.com>
-References: <20240408094747.1761850-1-ivanov.mikhail1@huawei-partners.com>
- <20240408094747.1761850-2-ivanov.mikhail1@huawei-partners.com>
- <20240425.Soot5eNeexol@digikod.net>
- <a18333c0-4efc-dcf4-a219-ec46480352b1@huawei-partners.com>
- <ZnMr30kSCGME16rO@google.com>
-From: Ivanov Mikhail <ivanov.mikhail1@huawei-partners.com>
-In-Reply-To: <ZnMr30kSCGME16rO@google.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: lhrpeml100006.china.huawei.com (7.191.160.224) To
- dggpemm500020.china.huawei.com (7.185.36.49)
+X-Received: by 2002:a05:6e02:168a:b0:375:ae47:ba62 with SMTP id
+ e9e14a558f8ab-3763f5c900emr15343485ab.1.1719599901745; Fri, 28 Jun 2024
+ 11:38:21 -0700 (PDT)
+Date: Fri, 28 Jun 2024 11:38:21 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <0000000000004cb7a6061bf78daf@google.com>
+Subject: [syzbot] [netfilter?] bpf test error: WARNING: suspicious RCU usage
+ in corrupted
+From: syzbot <syzbot+784a3db26e5409459be4@syzkaller.appspotmail.com>
+To: ast@kernel.org, coreteam@netfilter.org, daniel@iogearbox.net, 
+	davem@davemloft.net, edumazet@google.com, kadlec@netfilter.org, 
+	kuba@kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-6/19/2024 10:05 PM, Günther Noack wrote:
-> I agree with Mickaël's comment: this seems like an important fix.
-> 
-> Mostly for completeness: I played with the "socket type" patch set in a "TCP
-> server" example, where *all* possible operations are restricted with Landlock,
-> including the ones from the "socket type" patch set V2 with the little fix we
-> discussed.
-> 
->   - socket()
->   - bind()
->   - enforce a landlock ruleset restricting:
->     - file system access
->     - all TCP bind and connect
->     - socket creation
->   - listen()
->   - accept()
-> 
->>From the connection handler (which would be the place where an attacker can
-> usually provide input), it is now still possible to bind a socket due to this
-> problem.  The steps are:
-> 
->    1) connect() on client_fd with AF_UNSPEC to disassociate the client FD
->    2) listen() on the client_fd
-> 
-> This succeeds and it listens on an ephemeral port.
-> 
-> The code is at [1], if you are interested.
-> 
-> [1] https://github.com/gnoack/landlock-examples/blob/main/tcpserver.c
+Hello,
 
-Do you mean that this scenario works with patch-fix currently being
-discussed?
+syzbot found the following issue on:
 
-> 
-> 
-> On Mon, May 13, 2024 at 03:15:50PM +0300, Ivanov Mikhail wrote:
->> 4/30/2024 4:36 PM, Mickaël Salaün wrote:
->>> On Mon, Apr 08, 2024 at 05:47:46PM +0800, Ivanov Mikhail wrote:
->>>> Make hook for socket_listen(). It will check that the socket protocol is
->>>> TCP, and if the socket's local port number is 0 (which means,
->>>> that listen(2) was called without any previous bind(2) call),
->>>> then listen(2) call will be legitimate only if there is a rule for bind(2)
->>>> allowing binding to port 0 (or if LANDLOCK_ACCESS_NET_BIND_TCP is not
->>>> supported by the sandbox).
->>>
->>> Thanks for this patch and sorry for the late full review.  The code is
->>> good overall.
->>>
->>> We should either consider this patch as a fix or add a new flag/access
->>> right to Landlock syscalls for compatibility reason.  I think this
->>> should be a fix.  Calling listen(2) without a previous call to bind(2)
->>> is a corner case that we should properly handle.  The commit message
->>> should make that explicit and highlight the goal of the patch: first
->>> explain why, and then how.
->>
->> Yeap, this is fix-patch. I have covered motivation and proposed solution
->> in cover letter. Do you have any suggestions on how i can improve this?
-> 
-> Without wanting to turn around the direction of this code review now, I am still
-> slightly concerned about the assymetry of this special case being implemented
-> for listen() but not for connect().
-> 
-> The reason is this: My colleague Mr. B. recently pointed out to me that you can
-> also do a bind() on a socket before a connect(!). The steps are:
-> 
-> * create socket with socket()
-> * bind() to a local port 9090
-> * connect() to a remote port 8080
-> 
-> This gives you a connection between ports 9090 and 8080.
-> 
-> A regular connect() without an explicit bind() is of course the more usual
-> scenario.  In that case, we are also using up ("implicitly binding") one of the
-> ephemeral ports.
-> 
-> It seems that, with respect to the port binding, listen() and connect() work
-> quite similarly then?  This being considered, maybe it *is* the listen()
-> operation on a port which we should be restricting, and not bind()?
+HEAD commit:    7e9f79428372 xdp: Remove WARN() from __xdp_reg_mem_model()
+git tree:       bpf
+console output: https://syzkaller.appspot.com/x/log.txt?x=16956dea980000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=1437ab35b9d90e65
+dashboard link: https://syzkaller.appspot.com/bug?extid=784a3db26e5409459be4
+compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
 
-Do you mean that ability to restrict auto-binding for connect() should
-also be implemented? This looks like good idea if we want to provide
-full control over port binding. But it's hard for me to come up with an
-idea how it can be implemented: current Landlock API allows to restrict
-only the destination port for connect().
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/ca96920a98d8/disk-7e9f7942.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/24f81a5f5d0b/vmlinux-7e9f7942.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/31b888945299/bzImage-7e9f7942.xz
 
-I think an independent restriction of auto-binding for bind() and
-listen() is a good approach: API is more clear and Landlock rules do
-not affect each other's behavior. Did I understood your suggestion
-correctly?
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+784a3db26e5409459be4@syzkaller.appspotmail.com
 
-> 
-> With some luck, that would then also free us from having to implement the
-> check_tcp_socket_can_listen() logic, which is seemingly emulating logic from
-> elsewhere in the kernel?
+=============================
+WARNING: suspicious RCU usage
+6.10.0-rc3-syzkaller-00138-g7e9f79428372 #0 Not tainted
+-----------------------------
+net/netfilter/ipset/ip_set_core.c:1200 suspicious rcu_dereference_protected() usage!
 
-But check_tcp_socket_can_listen() will be required for
-LANDLOCK_ACCESS_NET_LISTEN_TCP hook anyway. Did I miss smth?
+other info that might help us debug this:
 
-> 
-> (I am by far not an expert in Linux networking, so I'll put this out for
-> consideration and will happily stand corrected if I am misunderstanding
-> something.  Maybe someone with more networking background can chime in?)
-> 
-> 
->>>> +		/* Socket is alredy binded to some port. */
->>>
->>> This kind of spelling issue can be found by scripts/checkpatch.pl
->>
->> will be fixed
-> 
-> P.S. there are two typos here, the obvious one in "alredy",
-> but also the passive of "to bind" is "bound", not "binded".
-> (That is also mis-spelled in a few more places I think.)
 
-Thanks, I'll fix them.
+rcu_scheduler
 
-> 
-> —Günther
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
