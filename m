@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 432841CB31B;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id BE2A51CB322;
 	Fri, 28 Jun 2024 16:05:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719590728; cv=none; b=LVXKbKXbj/7Jup8hAJrweVnbwVfptRpdQPr/A257TOztURfZOxvTMijYcZdOyTKdUZVECi6bsH241/MmjAn4qjbtJE0497nu9CZNC/pGqn+CosCRo50TecJEr2ahTUc7jfUjecs1tOt06gfmep9M1fnz+PjK8Ygnn4l/IzUk+Rc=
+	t=1719590728; cv=none; b=UBe9tqAKlDrjhl3zMjylRnDdK59QuA7oZBpxhjfkLDQXfM3nj0h3kWZvLXLS6RTi5dcFeU6VrOIrzDA4FlG/KD3S5XEpqdBqDzZNlW5KbouKYYS+hcGpUdx6w0dRkNNcBvvC9zkFPsCPCk+0Q1vqUl5Rd/uLHXnlhHuryC6gcgo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1719590728; c=relaxed/simple;
-	bh=+twRS4cAQhJ8xB9YUTVoU9ehxkiHxpcEeAs++sOJivs=;
+	bh=ZXXrJZcLkJL71+9FkUu1PsVQBCI4YnmY0uaH6fR37Ws=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=Q7zks0vwIqJPUU7mpLv2VUprs4C/3JPJFy9kcBaR4rFoAe1Ith9YdawyR/IIdB+qwufEm2gx3K5FY00ISBcJrP3pFGmayuujWh79H/Io2gOLwIvk+W0xU+fmkX3z0gaSaSpIcTNx97dbvQLwjHUWjvJptrDoOt8WlEjc2wyHUwc=
+	 MIME-Version; b=N5hE0TFUILG1lF/WgjynIg5ic2/WLSMswtYMtOqiulM5Z3BmigrnZXZw5R1tXvBTqSt4cfj62huWt7RNzNti7Ne5CNk+x/uDjVGcjFbMJNr7ZhJEiTxqnr3rL/EQ6L2+yqf0yTvEWqbcQR5Nb5J/OJ0ECk/xfzU5h3FnTLKTcKc=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net-next 12/17] ipvs: Avoid unnecessary calls to skb_is_gso_sctp
-Date: Fri, 28 Jun 2024 18:05:00 +0200
-Message-Id: <20240628160505.161283-13-pablo@netfilter.org>
+Subject: [PATCH net-next 13/17] netfilter: nf_conncount: fix wrong variable type
+Date: Fri, 28 Jun 2024 18:05:01 +0200
+Message-Id: <20240628160505.161283-14-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240628160505.161283-1-pablo@netfilter.org>
 References: <20240628160505.161283-1-pablo@netfilter.org>
@@ -34,42 +34,65 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Ismael Luceno <iluceno@suse.de>
+From: Yunjian Wang <wangyunjian@huawei.com>
 
-In the context of the SCTP SNAT/DNAT handler, these calls can only
-return true.
+Now there is a issue is that code checks reports a warning: implicit
+narrowing conversion from type 'unsigned int' to small type 'u8' (the
+'keylen' variable). Fix it by removing the 'keylen' variable.
 
-Fixes: e10d3ba4d434 ("ipvs: Fix checksumming on GSO of SCTP packets")
-Signed-off-by: Ismael Luceno <iluceno@suse.de>
-Acked-by: Julian Anastasov <ja@ssi.bg>
-Acked-by: Simon Horman <horms@kernel.org>
+Signed-off-by: Yunjian Wang <wangyunjian@huawei.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_proto_sctp.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/nf_conncount.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-index 1e689c714127..83e452916403 100644
---- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-@@ -126,7 +126,7 @@ sctp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 	if (sctph->source != cp->vport || payload_csum ||
- 	    skb->ip_summed == CHECKSUM_PARTIAL) {
- 		sctph->source = cp->vport;
--		if (!skb_is_gso(skb) || !skb_is_gso_sctp(skb))
-+		if (!skb_is_gso(skb))
- 			sctp_nat_csum(skb, sctph, sctphoff);
- 	} else {
- 		skb->ip_summed = CHECKSUM_UNNECESSARY;
-@@ -175,7 +175,7 @@ sctp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 	    (skb->ip_summed == CHECKSUM_PARTIAL &&
- 	     !(skb_dst(skb)->dev->features & NETIF_F_SCTP_CRC))) {
- 		sctph->dest = cp->dport;
--		if (!skb_is_gso(skb) || !skb_is_gso_sctp(skb))
-+		if (!skb_is_gso(skb))
- 			sctp_nat_csum(skb, sctph, sctphoff);
- 	} else if (skb->ip_summed != CHECKSUM_PARTIAL) {
- 		skb->ip_summed = CHECKSUM_UNNECESSARY;
+diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
+index 8715617b02fe..34ba14e59e95 100644
+--- a/net/netfilter/nf_conncount.c
++++ b/net/netfilter/nf_conncount.c
+@@ -321,7 +321,6 @@ insert_tree(struct net *net,
+ 	struct nf_conncount_rb *rbconn;
+ 	struct nf_conncount_tuple *conn;
+ 	unsigned int count = 0, gc_count = 0;
+-	u8 keylen = data->keylen;
+ 	bool do_gc = true;
+ 
+ 	spin_lock_bh(&nf_conncount_locks[hash]);
+@@ -333,7 +332,7 @@ insert_tree(struct net *net,
+ 		rbconn = rb_entry(*rbnode, struct nf_conncount_rb, node);
+ 
+ 		parent = *rbnode;
+-		diff = key_diff(key, rbconn->key, keylen);
++		diff = key_diff(key, rbconn->key, data->keylen);
+ 		if (diff < 0) {
+ 			rbnode = &((*rbnode)->rb_left);
+ 		} else if (diff > 0) {
+@@ -378,7 +377,7 @@ insert_tree(struct net *net,
+ 
+ 	conn->tuple = *tuple;
+ 	conn->zone = *zone;
+-	memcpy(rbconn->key, key, sizeof(u32) * keylen);
++	memcpy(rbconn->key, key, sizeof(u32) * data->keylen);
+ 
+ 	nf_conncount_list_init(&rbconn->list);
+ 	list_add(&conn->node, &rbconn->list.head);
+@@ -403,7 +402,6 @@ count_tree(struct net *net,
+ 	struct rb_node *parent;
+ 	struct nf_conncount_rb *rbconn;
+ 	unsigned int hash;
+-	u8 keylen = data->keylen;
+ 
+ 	hash = jhash2(key, data->keylen, conncount_rnd) % CONNCOUNT_SLOTS;
+ 	root = &data->root[hash];
+@@ -414,7 +412,7 @@ count_tree(struct net *net,
+ 
+ 		rbconn = rb_entry(parent, struct nf_conncount_rb, node);
+ 
+-		diff = key_diff(key, rbconn->key, keylen);
++		diff = key_diff(key, rbconn->key, data->keylen);
+ 		if (diff < 0) {
+ 			parent = rcu_dereference_raw(parent->rb_left);
+ 		} else if (diff > 0) {
 -- 
 2.30.2
 
