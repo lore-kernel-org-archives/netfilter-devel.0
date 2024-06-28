@@ -1,140 +1,140 @@
-Received: from mail-lf1-f44.google.com (mail-lf1-f44.google.com [209.85.167.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05BD0B645;
-	Fri, 28 Jun 2024 15:23:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.44
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 246F71C688C;
+	Fri, 28 Jun 2024 16:05:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719588202; cv=none; b=pDA7V7zhFXK5YB2G+WECkjP09tHHqSRLPtbE3n+JeVZp0HFyFOdFEhst6+LCWe8LVT6ucTQD2sgFVTSrHGqQ9SCyZmBSKW65JmXMubZA4JDhEp+pOj8EwYkKMVLL9SicykKdkZLLLIlhpxfYjEuKkt/+K8wo//5hLnDnmWHMv00=
+	t=1719590725; cv=none; b=aizSQomcEIz0T9KKC0tnj3Af8v/z53ljaWV2vTyzPflOIdMjI/7XnzmPVliMMhMn+NmEn4vJxWZqYpX2xKwALU4shfYEHB4Y8Sr7f2S2drC0dBbeyZELpJqFwqbg8aDNCBP0pnFPqNsa5jYPESxGjECSDIX9PO5Wh6aixng5rxE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719588202; c=relaxed/simple;
-	bh=BR2tHTmy+fHEV9yIh4M/cf4SZ2OcHQDH7CpErqksoLo=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=gESsWUGJpjQLi4BAJrj0HeFNJ0hqDlbEzz6TjyQTLThqIdGKN33I65CLM5BTVTXxNavgErFhI3vNaeaMMZm739lo4Kn/GkD+xysi93Q9RPKmFjB/1fpE5GfYePqVxxiq6W8RzROBCKaGyVtqU58+K27AHaaBovT9En/2oNtDM80=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Mapxl0Rq; arc=none smtp.client-ip=209.85.167.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Mapxl0Rq"
-Received: by mail-lf1-f44.google.com with SMTP id 2adb3069b0e04-52ce9ba0cedso1292758e87.2;
-        Fri, 28 Jun 2024 08:23:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1719588199; x=1720192999; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=jL/M2DhfYKttVaFn04K/Ozv5calB4SUJe5t8RdpTJN8=;
-        b=Mapxl0Rq4bfoTU4Pr2hWWAGtrf7fvf088X33TA3OZKvpBwV+WL3RnIqmtFF94DO3AB
-         EYIoGPNGiStDKH8NjpfHi1yo7g1QrwM5rEtVl53NJiI8SrIYG1qWG/dKhwq8hMz7xgfb
-         oXLRu5Twt8yppnOmMKr407CwtORjh/ShbPmJlvm30TYRbA+a+tJOobMlWtpwlFecwYLU
-         +Tcs8XF50VJmYZX9CSpcZcFlULXhv2GYpN3TZ3lvJWtG8B8akEZTW6UWOSEJSUW0ktHp
-         0030hpVPujVUSc3xijG7g2racrNRs1rdlvvwIqLp33PNzH5XB5qEKdUutokDyHUM54qN
-         ZRsQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1719588199; x=1720192999;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=jL/M2DhfYKttVaFn04K/Ozv5calB4SUJe5t8RdpTJN8=;
-        b=O0a0fx3r4G3yu0D6VQ+atEi5KWs9BIyJaY/mYWngZ3jGuH9Lf2YPID+5GsbUCjrx+F
-         dpvLIIS8WnUvFCGijufoVJ7RltCpj2queTQoehCBW4jtA5+DY1Nof/mjCb5EfG1Zn+WP
-         bLK1xtGSVF6AToV9vg26oOc2KdLXuNYLN/uncfES+qN2HXwNZQpKJZoQ+GRq7i5wULR5
-         o4K1R8ccRkeukLfV725G8nTRezJUfeu+fzWGd1AQI5s9/gPouT75Ir9vwRv1Q9ehxMLy
-         6TQR94BJ7V7XQ6hQ0VANvgGUc8jURZ8CtI6znt3XASr/Y4AyJHQYJx4BFkBUrd4npeNF
-         3XVw==
-X-Forwarded-Encrypted: i=1; AJvYcCWFNAxzBcZmUjNl1elqsqugwipjJIbFXENoqSsf5xEKzN1CvPDespD5dhN3S1LE1T6O3TJ9uAa8v4dvkbIZCF8CX2FZmGML5k/NhgT07Lgpm/I1D1+5ckb45UVigdnrov9ir/IfTEOFa/uj808HVRnpL7sjA4aVXVLx+NAeJF7dVqkdb++E
-X-Gm-Message-State: AOJu0YxRDdjTp474C5laeDKm4tT2u5PLcxP5qiFvdqLl33I5jaNpH2II
-	KdmubJUhyinc1NDS2LTAvUmMqIVsWGpkw67KQZM+iJTBeqeP0nnt
-X-Google-Smtp-Source: AGHT+IGg5kcqMly3Comvqhc88Qjsv4Vew155hATIGzgcomShCMIVMWAiMMp6EA68DvlRzN+VxwZ1BQ==
-X-Received: by 2002:a05:6512:78e:b0:52c:a20e:4da4 with SMTP id 2adb3069b0e04-52ce185ca1amr12557484e87.57.1719588198875;
-        Fri, 28 Jun 2024 08:23:18 -0700 (PDT)
-Received: from [192.168.178.20] (dh207-41-166.xnet.hr. [88.207.41.166])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a72aaf633bdsm87877066b.74.2024.06.28.08.23.17
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 28 Jun 2024 08:23:18 -0700 (PDT)
-Message-ID: <8cb43e8d-cb88-47c4-9fed-9de3b1be1e9e@gmail.com>
-Date: Fri, 28 Jun 2024 17:23:16 +0200
+	s=arc-20240116; t=1719590725; c=relaxed/simple;
+	bh=KlGOqq1sJgN8F7D6z2r4JZGzTXSEEMfJJgaUTcDofoQ=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=BvZf4fD7oQ9Cx8TigptAKLAs+FNbGZ8xZegLXkuDxJaJYvOz89ykaLzHu3AXQ8LOyn8uRMCIRygAvKLmg98fjh6O/lYWPXMNPnW/IyNcQRuMxPedzgP510xu8EzJZOYx65zuazQNcKvzJoBaVHAh8wDBy5v7n2KrSVjULg4pmiQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de
+Subject: [PATCH net-next 00/17] Netfilter/IPVS updates for net-next
+Date: Fri, 28 Jun 2024 18:04:48 +0200
+Message-Id: <20240628160505.161283-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PROBLEM] make randconfig: net/netfilter/core.c:830: undefined
- reference to `netfilter_lwtunnel_fini'
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Linux Kernel Build System <linux-kbuild@vger.kernel.org>,
- Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
- Jozsef Kadlecsik <kadlec@netfilter.org>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- netdev@vger.kernel.org
-References: <7a472130-d9c4-4fda-840b-093308f73d3d@gmail.com>
- <Znc4931wlIgvqrfP@calendula> <6cdb1346-75ca-472e-8d96-d58a1eaab172@gmail.com>
- <b50bb0bf-4d35-4334-a721-2a092210aecc@gmail.com> <Znw78PpYwAgFZiaB@calendula>
- <3d7b5916-c462-49cb-af32-e43f6d6ebfec@gmail.com>
- <d3f8254f-0f53-47ee-a363-b14e9991a6e9@gmail.com> <Zn3PNGFkg6jqU9wc@calendula>
-Content-Language: en-US
-From: Mirsad Todorovac <mtodorovac69@gmail.com>
-In-Reply-To: <Zn3PNGFkg6jqU9wc@calendula>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
+Note: New PR excluding SCTP nfqueue updates.
 
+-o-
 
-On 6/27/24 22:44, Pablo Neira Ayuso wrote:
-> On Thu, Jun 27, 2024 at 10:30:24PM +0200, Mirsad Todorovac wrote:
->> On 6/26/24 20:34, Mirsad Todorovac wrote:
->>>
->>>
->>> On 6/26/24 18:04, Pablo Neira Ayuso wrote:
->>>> On Sun, Jun 23, 2024 at 12:51:49AM +0200, Mirsad Todorovac wrote:
->>>>> On 6/23/24 00:48, Mirsad Todorovac wrote:
->>>>>> On 6/22/24 22:49, Pablo Neira Ayuso wrote:
->>>>>>> Hi,
->>>>>>>
->>>>>>> There is a fix on the table address this, I will submit is in the next
->>>>>>> pull request.
->>>>>>
->>>>>> Thank you very much.
->>>>>>
->>>>>> Please consider adding Reported-by: Mirsad Todorovac <mtodorovac69@gmail.com>
->>>>>>  
->>>>>>> Thanks for reporting
->>>>>>
->>>>>> No big deal. Anytime :-)
->>>>>
->>>>> P.S.
->>>>>
->>>>> Please notify when I could test the same .config with your fix.
->>>>
->>>> Patch is here:
->>>>
->>>> https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git/commit/?id=aef5daa2c49d510436b733827d4f0bab79fcc4a0
->>>
->>> Build error has gone, tested in the same environment. Please find the build output attached.
->>>
->>> Tested-by: Mirsad Todorovac <mtodorov@69@gmail.com>
->>
->> Apology, please, the right email is this:
->>
->> Tested-by: Mirsad Todorovac <mtodorovac69@gmail.com>
-> 
-> Thanks a lot for testing.
+Hi,
 
-Not at all - I think that testing whether the patch fixed the problem in the
-initial environment adds to QA.
+The following patchset contains Netfilter/IPVS updates for net-next:
 
-> Patch is already flying upstream, I missed adding this tag. But I
-> could include your Reported-by: tag.
+Patch #1 to #11 to shrink memory consumption for transaction objects:
 
-In the Internet space-time contiuum, you actually did not miss a thing,
-because my testing is a logical consequence of your patch, and could not have
-preceded it, so that the Tested-by would be in the original patch ;-)
+  struct nft_trans_chain { /* size: 120 (-32), cachelines: 2, members: 10 */
+  struct nft_trans_elem { /* size: 72 (-40), cachelines: 2, members: 4 */
+  struct nft_trans_flowtable { /* size: 80 (-48), cachelines: 2, members: 5 */
+  struct nft_trans_obj { /* size: 72 (-40), cachelines: 2, members: 4 */
+  struct nft_trans_rule { /* size: 80 (-32), cachelines: 2, members: 6 */
+  struct nft_trans_set { /* size: 96 (-24), cachelines: 2, members: 8 */
+  struct nft_trans_table { /* size: 56 (-40), cachelines: 1, members: 2 */
 
-As Lord Merovingi said, "cause and effect" ;-)
+  struct nft_trans_elem can now be allocated from kmalloc-96 instead of
+  kmalloc-128 slab.
 
-Best regards,
-Mirsad Todorovac
+  Series from Florian Westphal. For the record, I have mangled patch #1
+  to add nft_trans_container_*() and use if for every transaction object.
+   I have also added BUILD_BUG_ON to ensure struct nft_trans always comes
+  at the beginning of the container transaction object. And few minor
+  cleanups, any new bugs are of my own.
+
+Patch #12 simplify check for SCTP GSO in IPVS, from Ismael Luceno.
+
+Patch #13 nf_conncount key length remains in the u32 bound, from Yunjian Wang.
+
+Patch #14 removes unnecessary check for CTA_TIMEOUT_L3PROTO when setting
+          default conntrack timeouts via nfnetlink_cttimeout API, from
+          Lin Ma.
+
+Patch #15 updates NFT_SECMARK_CTX_MAXLEN to 4096, SELinux could use
+          larger secctx names than the existing 256 bytes length.
+
+Patch #16 adds a selftest to exercise nfnetlink_queue listeners leaving
+          nfnetlink_queue, from Florian Westphal.
+
+Patch #17 increases hitcount from 255 to 65535 in xt_recent, from Phil Sutter.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-24-06-28
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit c4532232fa2a4f8d9b9a88135a666545157f3d13:
+
+  selftests: net: remove unneeded IP_GRE config (2024-06-25 08:37:55 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-24-06-28
+
+for you to fetch changes up to f4ebd03496f6b67940b0af92ce885c1d0dc9e121:
+
+  netfilter: xt_recent: Lift restrictions on max hitcount value (2024-06-28 17:57:50 +0200)
+
+----------------------------------------------------------------
+netfilter pull request 24-06-28
+
+----------------------------------------------------------------
+Florian Westphal (12):
+      netfilter: nf_tables: make struct nft_trans first member of derived subtypes
+      netfilter: nf_tables: move bind list_head into relevant subtypes
+      netfilter: nf_tables: compact chain+ft transaction objects
+      netfilter: nf_tables: reduce trans->ctx.table references
+      netfilter: nf_tables: pass nft_chain to destroy function, not nft_ctx
+      netfilter: nf_tables: pass more specific nft_trans_chain where possible
+      netfilter: nf_tables: avoid usage of embedded nft_ctx
+      netfilter: nf_tables: store chain pointer in rule transaction
+      netfilter: nf_tables: reduce trans->ctx.chain references
+      netfilter: nf_tables: pass nft_table to destroy function
+      netfilter: nf_tables: do not store nft_ctx in transaction objects
+      selftests: netfilter: nft_queue.sh: add test for disappearing listener
+
+Ismael Luceno (1):
+      ipvs: Avoid unnecessary calls to skb_is_gso_sctp
+
+Lin Ma (1):
+      netfilter: cttimeout: remove 'l3num' attr check
+
+Pablo Neira Ayuso (1):
+      netfilter: nf_tables: rise cap on SELinux secmark context
+
+Phil Sutter (1):
+      netfilter: xt_recent: Lift restrictions on max hitcount value
+
+Yunjian Wang (1):
+      netfilter: nf_conncount: fix wrong variable type
+
+ include/net/netfilter/nf_tables.h                  | 222 +++++++----
+ include/uapi/linux/netfilter/nf_tables.h           |   2 +-
+ net/netfilter/ipvs/ip_vs_proto_sctp.c              |   4 +-
+ net/netfilter/nf_conncount.c                       |   8 +-
+ net/netfilter/nf_tables_api.c                      | 411 ++++++++++++---------
+ net/netfilter/nf_tables_offload.c                  |  40 +-
+ net/netfilter/nfnetlink_cttimeout.c                |   3 +-
+ net/netfilter/nft_immediate.c                      |   2 +-
+ net/netfilter/xt_recent.c                          |   8 +-
+ tools/testing/selftests/net/netfilter/nft_queue.sh |  37 ++
+ 10 files changed, 459 insertions(+), 278 deletions(-)
