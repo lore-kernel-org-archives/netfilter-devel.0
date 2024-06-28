@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4F4CC1CCCBF;
-	Fri, 28 Jun 2024 16:05:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 016C51C8FCB;
+	Fri, 28 Jun 2024 16:05:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719590729; cv=none; b=espRkBE4KV4py/gNY9q9jcYhuXkGYR5zD13VB3vHO84i0oGB56+bk7/UJBp+586ll4AR/WGxlv13uYgA1HFeflK41VVAuvUv9XRFemtgm07UpJNENgOT0CWs5+muZh6hAzxJzJ8pPnT4uwV5/TeNWo6/vZJKMr1VEdtX/t/6UJ0=
+	t=1719590730; cv=none; b=BokPFWT140MTVj08oIhzI3Q413UmwRzc4cws85POPtp+6//BIVvSbB48hD2lNZ7ylGWi0gLAsTAnqkAjEj7WFv4fyjKrdPRNJIudZ6RyjmYV0iNUP0A9otifrHSgzZnVV1Q8RNLzE0kSam0MKC51hCFQabAocXbydHHiIGWtPg8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719590729; c=relaxed/simple;
-	bh=ekxrUgpca4XqudLWJwFZWii+C51P2o6RNcl7sfbkIyU=;
+	s=arc-20240116; t=1719590730; c=relaxed/simple;
+	bh=VEmy2Sb11J421niCprY6n2cZZ1hR1n+GO+j9Aie0zVk=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=nRDu/b03ClvlpIRBUKIcfaw6f2l+r8bnR7SLk0HvE7DBwTqZ3ZU6/B3u4Rrw68rgD61BOBPbrEfxsuMEyh1VRwCy7BiG5miMKvYPZbLlK2oZ/SzsWMovEAEz8LycLqjLIm8qacIkf4DwfTwu4T3fHg0znJRptUu57HCa3kc73QU=
+	 MIME-Version; b=RqVjEn7G2Va3kf2ZZr9qrUeSnYTiBK8RDEV4U7AZa8VAzyVRKLTg+/uvLdnaSoKiB8cU2NfyjrkSpc8Os09ArdvR9UXhX0AVSyXdhE7yuoXP4hiAx2FP2aFYFUvXTCDwy6/BczV+oV5PcF7X/0T0qdWHjoiqFNl14d4b0sIACso=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net-next 16/17] selftests: netfilter: nft_queue.sh: add test for disappearing listener
-Date: Fri, 28 Jun 2024 18:05:04 +0200
-Message-Id: <20240628160505.161283-17-pablo@netfilter.org>
+Subject: [PATCH net-next 15/17] netfilter: nf_tables: rise cap on SELinux secmark context
+Date: Fri, 28 Jun 2024 18:05:03 +0200
+Message-Id: <20240628160505.161283-16-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240628160505.161283-1-pablo@netfilter.org>
 References: <20240628160505.161283-1-pablo@netfilter.org>
@@ -34,77 +34,27 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+secmark context is artificially limited 256 bytes, rise it to 4Kbytes.
 
-If userspace program exits while the queue its subscribed to has packets
-those need to be discarded.
-
-commit dc21c6cc3d69 ("netfilter: nfnetlink_queue: acquire rcu_read_lock()
-in instance_destroy_rcu()") fixed a (harmless) rcu splat that could be
-triggered in this case.
-
-Add a test case to cover this.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: fb961945457f ("netfilter: nf_tables: add SECMARK support")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- .../selftests/net/netfilter/nft_queue.sh      | 37 +++++++++++++++++++
- 1 file changed, 37 insertions(+)
+ include/uapi/linux/netfilter/nf_tables.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_queue.sh b/tools/testing/selftests/net/netfilter/nft_queue.sh
-index 8538f08c64c2..c61d23a8c88d 100755
---- a/tools/testing/selftests/net/netfilter/nft_queue.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_queue.sh
-@@ -375,6 +375,42 @@ EOF
- 	wait 2>/dev/null
- }
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index aa4094ca2444..639894ed1b97 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1376,7 +1376,7 @@ enum nft_secmark_attributes {
+ #define NFTA_SECMARK_MAX	(__NFTA_SECMARK_MAX - 1)
  
-+test_queue_removal()
-+{
-+	read tainted_then < /proc/sys/kernel/tainted
-+
-+	ip netns exec "$ns1" nft -f - <<EOF
-+flush ruleset
-+table ip filter {
-+	chain output {
-+		type filter hook output priority 0; policy accept;
-+		ip protocol icmp queue num 0
-+	}
-+}
-+EOF
-+	ip netns exec "$ns1" ./nf_queue -q 0 -d 30000 -t "$timeout" &
-+	local nfqpid=$!
-+
-+	busywait "$BUSYWAIT_TIMEOUT" nf_queue_wait "$ns1" 0
-+
-+	ip netns exec "$ns1" ping -w 2 -f -c 10 127.0.0.1 -q >/dev/null
-+	kill $nfqpid
-+
-+	ip netns exec "$ns1" nft flush ruleset
-+
-+	if [ "$tainted_then" -ne 0 ];then
-+		return
-+	fi
-+
-+	read tainted_now < /proc/sys/kernel/tainted
-+	if [ "$tainted_now" -eq 0 ];then
-+		echo "PASS: queue program exiting while packets queued"
-+	else
-+		echo "TAINT: queue program exiting while packets queued"
-+		ret=1
-+	fi
-+}
-+
- ip netns exec "$nsrouter" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
- ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
- ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth1.forwarding=1 > /dev/null
-@@ -413,5 +449,6 @@ test_tcp_localhost
- test_tcp_localhost_connectclose
- test_tcp_localhost_requeue
- test_icmp_vrf
-+test_queue_removal
+ /* Max security context length */
+-#define NFT_SECMARK_CTX_MAXLEN		256
++#define NFT_SECMARK_CTX_MAXLEN		4096
  
- exit $ret
+ /**
+  * enum nft_reject_types - nf_tables reject expression reject types
 -- 
 2.30.2
 
