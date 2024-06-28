@@ -1,76 +1,140 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f44.google.com (mail-lf1-f44.google.com [209.85.167.44])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 118E51514E1;
-	Fri, 28 Jun 2024 15:18:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05BD0B645;
+	Fri, 28 Jun 2024 15:23:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719587891; cv=none; b=ONa0T2vMLZ8Jg6wA2ta2eZvXfNENgSrUdUDs0gmYMOQCVvaPL2fQuks1NH1BuQ8XztJ9ItV4X20BDMfF6GdfgF/qNm7yIzAxevbdkhgtC4R+Y10nag+Vulq7qpoXrt71Zo1z0dSyiEB3QzFAVvcry4YiVRALlYOe1rdoXbD391c=
+	t=1719588202; cv=none; b=pDA7V7zhFXK5YB2G+WECkjP09tHHqSRLPtbE3n+JeVZp0HFyFOdFEhst6+LCWe8LVT6ucTQD2sgFVTSrHGqQ9SCyZmBSKW65JmXMubZA4JDhEp+pOj8EwYkKMVLL9SicykKdkZLLLIlhpxfYjEuKkt/+K8wo//5hLnDnmWHMv00=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719587891; c=relaxed/simple;
-	bh=tWQ0zloMRzChKTql1BmkoRPH3i/mMpZLrEYoyTAh7xE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=lRiHoBpRIkNko9ysm/vd25SpAore1N38tSXvtUEf9CXZahLYFJUfW8hvUigdOzEAxnWTX6III7m9X/4Rz0sElOe1CgwljRrrw79VrBaEQBdFOcVU6oGO6XxPOtxZFS2Fz5W8Qu8XDnGD4f1KMVqPRpmQPEScTZlMKPRM5tHLckg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1sNDME-0005JK-Qx; Fri, 28 Jun 2024 17:17:50 +0200
-Date: Fri, 28 Jun 2024 17:17:50 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Jakub Kicinski <kuba@kernel.org>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com,
-	fw@strlen.de
-Subject: Re: [PATCH nf-next 00/19] Netfilter/IPVS updates for net-next
-Message-ID: <20240628151750.GE15488@breakpoint.cc>
-References: <20240627112713.4846-1-pablo@netfilter.org>
- <Zn1M890ZdC1WRekQ@calendula>
- <20240627113202.72569175@kernel.org>
+	s=arc-20240116; t=1719588202; c=relaxed/simple;
+	bh=BR2tHTmy+fHEV9yIh4M/cf4SZ2OcHQDH7CpErqksoLo=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=gESsWUGJpjQLi4BAJrj0HeFNJ0hqDlbEzz6TjyQTLThqIdGKN33I65CLM5BTVTXxNavgErFhI3vNaeaMMZm739lo4Kn/GkD+xysi93Q9RPKmFjB/1fpE5GfYePqVxxiq6W8RzROBCKaGyVtqU58+K27AHaaBovT9En/2oNtDM80=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Mapxl0Rq; arc=none smtp.client-ip=209.85.167.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Mapxl0Rq"
+Received: by mail-lf1-f44.google.com with SMTP id 2adb3069b0e04-52ce9ba0cedso1292758e87.2;
+        Fri, 28 Jun 2024 08:23:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1719588199; x=1720192999; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=jL/M2DhfYKttVaFn04K/Ozv5calB4SUJe5t8RdpTJN8=;
+        b=Mapxl0Rq4bfoTU4Pr2hWWAGtrf7fvf088X33TA3OZKvpBwV+WL3RnIqmtFF94DO3AB
+         EYIoGPNGiStDKH8NjpfHi1yo7g1QrwM5rEtVl53NJiI8SrIYG1qWG/dKhwq8hMz7xgfb
+         oXLRu5Twt8yppnOmMKr407CwtORjh/ShbPmJlvm30TYRbA+a+tJOobMlWtpwlFecwYLU
+         +Tcs8XF50VJmYZX9CSpcZcFlULXhv2GYpN3TZ3lvJWtG8B8akEZTW6UWOSEJSUW0ktHp
+         0030hpVPujVUSc3xijG7g2racrNRs1rdlvvwIqLp33PNzH5XB5qEKdUutokDyHUM54qN
+         ZRsQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1719588199; x=1720192999;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=jL/M2DhfYKttVaFn04K/Ozv5calB4SUJe5t8RdpTJN8=;
+        b=O0a0fx3r4G3yu0D6VQ+atEi5KWs9BIyJaY/mYWngZ3jGuH9Lf2YPID+5GsbUCjrx+F
+         dpvLIIS8WnUvFCGijufoVJ7RltCpj2queTQoehCBW4jtA5+DY1Nof/mjCb5EfG1Zn+WP
+         bLK1xtGSVF6AToV9vg26oOc2KdLXuNYLN/uncfES+qN2HXwNZQpKJZoQ+GRq7i5wULR5
+         o4K1R8ccRkeukLfV725G8nTRezJUfeu+fzWGd1AQI5s9/gPouT75Ir9vwRv1Q9ehxMLy
+         6TQR94BJ7V7XQ6hQ0VANvgGUc8jURZ8CtI6znt3XASr/Y4AyJHQYJx4BFkBUrd4npeNF
+         3XVw==
+X-Forwarded-Encrypted: i=1; AJvYcCWFNAxzBcZmUjNl1elqsqugwipjJIbFXENoqSsf5xEKzN1CvPDespD5dhN3S1LE1T6O3TJ9uAa8v4dvkbIZCF8CX2FZmGML5k/NhgT07Lgpm/I1D1+5ckb45UVigdnrov9ir/IfTEOFa/uj808HVRnpL7sjA4aVXVLx+NAeJF7dVqkdb++E
+X-Gm-Message-State: AOJu0YxRDdjTp474C5laeDKm4tT2u5PLcxP5qiFvdqLl33I5jaNpH2II
+	KdmubJUhyinc1NDS2LTAvUmMqIVsWGpkw67KQZM+iJTBeqeP0nnt
+X-Google-Smtp-Source: AGHT+IGg5kcqMly3Comvqhc88Qjsv4Vew155hATIGzgcomShCMIVMWAiMMp6EA68DvlRzN+VxwZ1BQ==
+X-Received: by 2002:a05:6512:78e:b0:52c:a20e:4da4 with SMTP id 2adb3069b0e04-52ce185ca1amr12557484e87.57.1719588198875;
+        Fri, 28 Jun 2024 08:23:18 -0700 (PDT)
+Received: from [192.168.178.20] (dh207-41-166.xnet.hr. [88.207.41.166])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a72aaf633bdsm87877066b.74.2024.06.28.08.23.17
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 28 Jun 2024 08:23:18 -0700 (PDT)
+Message-ID: <8cb43e8d-cb88-47c4-9fed-9de3b1be1e9e@gmail.com>
+Date: Fri, 28 Jun 2024 17:23:16 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240627113202.72569175@kernel.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PROBLEM] make randconfig: net/netfilter/core.c:830: undefined
+ reference to `netfilter_lwtunnel_fini'
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Linux Kernel Build System <linux-kbuild@vger.kernel.org>,
+ Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+ Jozsef Kadlecsik <kadlec@netfilter.org>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ netdev@vger.kernel.org
+References: <7a472130-d9c4-4fda-840b-093308f73d3d@gmail.com>
+ <Znc4931wlIgvqrfP@calendula> <6cdb1346-75ca-472e-8d96-d58a1eaab172@gmail.com>
+ <b50bb0bf-4d35-4334-a721-2a092210aecc@gmail.com> <Znw78PpYwAgFZiaB@calendula>
+ <3d7b5916-c462-49cb-af32-e43f6d6ebfec@gmail.com>
+ <d3f8254f-0f53-47ee-a363-b14e9991a6e9@gmail.com> <Zn3PNGFkg6jqU9wc@calendula>
+Content-Language: en-US
+From: Mirsad Todorovac <mtodorovac69@gmail.com>
+In-Reply-To: <Zn3PNGFkg6jqU9wc@calendula>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Jakub Kicinski <kuba@kernel.org> wrote:
-> On Thu, 27 Jun 2024 13:28:51 +0200 Pablo Neira Ayuso wrote:
-> > Note for netdev maintainer: This PR is actually targeted at *net-next*.
-> > 
-> > Please, let me know if you prefer I resubmit.
+
+
+On 6/27/24 22:44, Pablo Neira Ayuso wrote:
+> On Thu, Jun 27, 2024 at 10:30:24PM +0200, Mirsad Todorovac wrote:
+>> On 6/26/24 20:34, Mirsad Todorovac wrote:
+>>>
+>>>
+>>> On 6/26/24 18:04, Pablo Neira Ayuso wrote:
+>>>> On Sun, Jun 23, 2024 at 12:51:49AM +0200, Mirsad Todorovac wrote:
+>>>>> On 6/23/24 00:48, Mirsad Todorovac wrote:
+>>>>>> On 6/22/24 22:49, Pablo Neira Ayuso wrote:
+>>>>>>> Hi,
+>>>>>>>
+>>>>>>> There is a fix on the table address this, I will submit is in the next
+>>>>>>> pull request.
+>>>>>>
+>>>>>> Thank you very much.
+>>>>>>
+>>>>>> Please consider adding Reported-by: Mirsad Todorovac <mtodorovac69@gmail.com>
+>>>>>>  
+>>>>>>> Thanks for reporting
+>>>>>>
+>>>>>> No big deal. Anytime :-)
+>>>>>
+>>>>> P.S.
+>>>>>
+>>>>> Please notify when I could test the same .config with your fix.
+>>>>
+>>>> Patch is here:
+>>>>
+>>>> https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git/commit/?id=aef5daa2c49d510436b733827d4f0bab79fcc4a0
+>>>
+>>> Build error has gone, tested in the same environment. Please find the build output attached.
+>>>
+>>> Tested-by: Mirsad Todorovac <mtodorov@69@gmail.com>
+>>
+>> Apology, please, the right email is this:
+>>
+>> Tested-by: Mirsad Todorovac <mtodorovac69@gmail.com>
 > 
-> Not a big deal, but since you offered I have another ask - looks like
-> this series makes the nf_queue test time out in our infra.
-> 
-> https://netdev.bots.linux.dev/contest.html?test=nft-queue-sh
-> 
-> Could you take a look before you respin? It used to take 24 sec,
-> not it times out after 224 sec..
+> Thanks a lot for testing.
 
-FTR, its missing update to config file:
-diff --git a/tools/testing/selftests/net/netfilter/config b/tools/testing/selftests/net/netfilter/config
-index 63ef80ef47a4..b2dd4db45215 100644
---- a/tools/testing/selftests/net/netfilter/config
-+++ b/tools/testing/selftests/net/netfilter/config
-@@ -87,3 +87,5 @@ CONFIG_XFRM_USER=m
- CONFIG_XFRM_STATISTICS=y
- CONFIG_NET_PKTGEN=m
- CONFIG_TUN=m
-+CONFIG_INET_DIAG=m
-+CONFIG_SCTP_DIAG=m
+Not at all - I think that testing whether the patch fixed the problem in the
+initial environment adds to QA.
 
-so the 'wait for sctp listener to appear' takes 1m, after that the
-nfqueue listener has timed out aeons ago and sctp connect hangs until
-timeout.
+> Patch is already flying upstream, I missed adding this tag. But I
+> could include your Reported-by: tag.
 
-But fixing the config shows the tests are very very flaky, this needs more
-work, will look into it on monday.
+In the Internet space-time contiuum, you actually did not miss a thing,
+because my testing is a logical consequence of your patch, and could not have
+preceded it, so that the Tested-by would be in the original patch ;-)
 
-Sorry for this.
+As Lord Merovingi said, "cause and effect" ;-)
+
+Best regards,
+Mirsad Todorovac
