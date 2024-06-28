@@ -1,107 +1,157 @@
-Received: from mail-il1-f207.google.com (mail-il1-f207.google.com [209.85.166.207])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 820CE25634
-	for <netfilter-devel@vger.kernel.org>; Fri, 28 Jun 2024 18:38:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.207
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 836FB757ED;
+	Fri, 28 Jun 2024 19:56:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719599903; cv=none; b=J4ht9FU5RBf/2aTH9+PaS5fhph5CbvuQgEL6W8ig5fADMP6Lc7sh50ZaOBg7yIyd7RqhG0c2AblEai1MmhTOMgRfeDJRtRVaF7CSTP6zNwYHzZuQ5fO9qIFWQYcAXu1qOXXyovvt5dAyxwh/+tP7ZUDj1fHzbwFNr1XmE5R4lss=
+	t=1719604590; cv=none; b=ouypSpzH/jUax3m/wmk11IsBz4r3P5FKl6PW3xjLvyky8CMt37d6vwT64WTql/Ek0hyDrrXNStRLMPPVVW3Ta8Ci+p5td+H5bBvuCvcfOmc45N+Go3GiSiWc5HvVLqPMCh+Mp57+HGK8L5UMJGAlK3SV5rmytjycSLv7L9AoerI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719599903; c=relaxed/simple;
-	bh=WAgvqGSSMUhPpGWuEaYRvYoyRrVFQyKjhyHF8lm3m3s=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=b/xjaEzCN7lHf+nm0xX9XND5DW7ajKrq7o+Qqqo4Ui9oIiemSg47bDD27rdslO6D13RBzvp/7e20HS6eIAMn0PguWb2tl4L4nzkgRTCzyUOf5qjSABItOeNlMellaPoiMZ8oIzy8xLx7nz+FdtORUeTfZkGc6TSZGEKrGHjr/cs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-il1-f207.google.com with SMTP id e9e14a558f8ab-376229f07a8so10477945ab.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 Jun 2024 11:38:22 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1719599902; x=1720204702;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=uAQwFq9UPZbXFZDZdCFdcQuDs/7IHMkcXpTnMEOHaSI=;
-        b=N86voCct0uMNvyDQMJLJzVK5MWaAyUtEnieol3euuTZ3xmJlilUtpuqB3VUEGEg2ic
-         SYU+WEpeUq5ek1FZhPu2ClL1xwvJyBxWHghQZM/WrKaj9Eq81EtZy++mRMEE6xv8Dppd
-         uBmVu8ZYNmk6Q1yDw/zGeEG9rEjVlQrYveO3GLwY3seiqn5MG5BG6F6zmHFchOc+FWmU
-         sW3Nglxr8JKvapsOT1NH+/CzyecYQw2iqPJbQHiyBm13perHxckHywAB2zgZ9o3W+tSB
-         9jwrXZ6sKRR2DjaWyBwhlQbgy63ODnOWCDyaQ0UkOROtfoOKONYoNDDtrhlG9vlzfOrI
-         lYoA==
-X-Forwarded-Encrypted: i=1; AJvYcCUjUkUoMRA7SA591Ia5OMw1VNB9nNkXovavNFcsIjR/7MRrpzy2374wDVa/n48ElxUgq7cvsRTeBp8JxEldIkopSFNsOfxvgnd0bTKLa40F
-X-Gm-Message-State: AOJu0YziwQztc2pQjLuqQrZ5FV4swgxYrMleiYaRhX6avKm1ecLFWuja
-	K1kv4KT8GtqxJEldKIrZib4qnNV93bcDEg+ps5uZICWYAK5Bhn+r2ZStBUzX0lpbiekkhRWwk6c
-	xEY0zDb/sk9dzhVMLyDuJyjRauo62W7qXL3raElzlTlGWGK4ZFLp73lw=
-X-Google-Smtp-Source: AGHT+IFyojeDoOQfAz+WpFDP13ym2ekViaAZ2Ap6ROc1rvqVHqXy6e4NW0dc11phb0kwVSPqpMSaRAWLrRTi/u2q8ChreueD8oNh
+	s=arc-20240116; t=1719604590; c=relaxed/simple;
+	bh=WNUsqrf9kKLdBDbBg1Et4QrK1ya69jP1HTBag2z+Xpo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=WA0sUMzcva4Dd2o8gkWnPuCnrQvrLk7nRfqpOTYU7DHSanHwxcMtVzd5zOw+F6E6fuAyVhAPaGO470PRbAU/N9ql2VnpkFkEbzcbGtjfBx9mBfe5Mu8G5GO3aUxrKDiKD63TaovQd7kA0hwrcli2GKepwIq629/Alt4ob32Gw98=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=T1QRP4qY; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="T1QRP4qY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B9BEC116B1;
+	Fri, 28 Jun 2024 19:56:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1719604590;
+	bh=WNUsqrf9kKLdBDbBg1Et4QrK1ya69jP1HTBag2z+Xpo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=T1QRP4qYd1WbW1tuV0xygCBDeoKHICeiHRCMdM28f1vu8owfw4ukbdo3ouUNhcgm9
+	 UEBM2ChkN3tEKn/Mc3AdaLQRmF5HY+4OK1XfCBqk8LelXIOvniF0Vi+abqrGPgDO8S
+	 Pj64lWVTJm47/VXfYVZOBSL7avAB49ZGUYh0dtn+nDmJrW3u7v1lZfR+Dy2AgrywJ9
+	 A90M+/hEKBFDtDQkGe3e31VqEOWDIJgTEKRa6RfJ+RxXG3eZQUsAV6niPMTRZRvloM
+	 6nYTcpgpWbPNbuZXkPAqTwvwcnzo08nsT6C3L8MfFEhkjuv/OpFrmFKsm8NyZ11OiS
+	 S2Rx3966PrX+g==
+Date: Fri, 28 Jun 2024 21:56:26 +0200
+From: Lorenzo Bianconi <lorenzo@kernel.org>
+To: bpf@vger.kernel.org
+Cc: pablo@netfilter.org, kadlec@netfilter.org, davem@davemloft.net,
+	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	ast@kernel.org, daniel@iogearbox.net, andrii@kernel.org,
+	martin.lau@linux.dev, eddyz87@gmail.com,
+	lorenzo.bianconi@redhat.com, toke@redhat.com, fw@strlen.de,
+	hawk@kernel.org, horms@kernel.org, donhunte@redhat.com,
+	memxor@gmail.com
+Subject: Re: [PATCH v5 bpf-next 0/3] netfilter: Add the capability to offload
+ flowtable in XDP layer
+Message-ID: <Zn8VauqdzVbiw8mn@lore-desk>
+References: <cover.1718379122.git.lorenzo@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:168a:b0:375:ae47:ba62 with SMTP id
- e9e14a558f8ab-3763f5c900emr15343485ab.1.1719599901745; Fri, 28 Jun 2024
- 11:38:21 -0700 (PDT)
-Date: Fri, 28 Jun 2024 11:38:21 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000004cb7a6061bf78daf@google.com>
-Subject: [syzbot] [netfilter?] bpf test error: WARNING: suspicious RCU usage
- in corrupted
-From: syzbot <syzbot+784a3db26e5409459be4@syzkaller.appspotmail.com>
-To: ast@kernel.org, coreteam@netfilter.org, daniel@iogearbox.net, 
-	davem@davemloft.net, edumazet@google.com, kadlec@netfilter.org, 
-	kuba@kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
-
-Hello,
-
-syzbot found the following issue on:
-
-HEAD commit:    7e9f79428372 xdp: Remove WARN() from __xdp_reg_mem_model()
-git tree:       bpf
-console output: https://syzkaller.appspot.com/x/log.txt?x=16956dea980000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=1437ab35b9d90e65
-dashboard link: https://syzkaller.appspot.com/bug?extid=784a3db26e5409459be4
-compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
-
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/ca96920a98d8/disk-7e9f7942.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/24f81a5f5d0b/vmlinux-7e9f7942.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/31b888945299/bzImage-7e9f7942.xz
-
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+784a3db26e5409459be4@syzkaller.appspotmail.com
-
-=============================
-WARNING: suspicious RCU usage
-6.10.0-rc3-syzkaller-00138-g7e9f79428372 #0 Not tainted
------------------------------
-net/netfilter/ipset/ip_set_core.c:1200 suspicious rcu_dereference_protected() usage!
-
-other info that might help us debug this:
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="rhKzGA7qyMpLbX45"
+Content-Disposition: inline
+In-Reply-To: <cover.1718379122.git.lorenzo@kernel.org>
 
 
-rcu_scheduler
+--rhKzGA7qyMpLbX45
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+> Introduce bpf_xdp_flow_lookup kfunc in order to perform the lookup of
+> a given flowtable entry based on the fib tuple of incoming traffic.
+> bpf_xdp_flow_lookup can be used as building block to offload in XDP
+> the sw flowtable processing when the hw support is not available.
+>=20
+> This series has been tested running the xdp_flowtable_offload eBPF program
+> on an ixgbe 10Gbps NIC (eno2) in order to XDP_REDIRECT the TCP traffic to
+> a veth pair (veth0-veth1) based on the content of the nf_flowtable as soon
+> as the TCP connection is in the established state:
+>=20
+> [tcp client] (eno1) =3D=3D LAN =3D=3D (eno2) xdp_flowtable_offload [XDP_R=
+EDIRECT] --> veth0 =3D=3D veth1 [tcp server]
+>=20
+> table inet filter {
+> 	flowtable ft {
+> 		hook ingress priority filter
+> 		devices =3D { eno2, veth0 }
+> 	}
+> 	chain forward {
+> 		type filter hook forward priority filter
+> 		meta l4proto { tcp, udp } flow add @ft
+> 	}
+> }
+>=20
+> -  sw flowtable [1 TCP stream, T =3D 300s]: ~ 6.2 Gbps
+> - xdp flowtable [1 TCP stream, T =3D 300s]: ~ 7.6 Gbps
+>=20
+> -  sw flowtable [3 TCP stream, T =3D 300s]: ~ 7.7 Gbps
+> - xdp flowtable [3 TCP stream, T =3D 300s]: ~ 8.8 Gbps
+>=20
+> Changes since v4:
+> - add missing BPF_NO_KFUNC_PROTOTYPES macro to selftest
+> Changes since v3:
+> - move flowtable map utilities in nf_flow_table_xdp.c
+> Changes since v2:
+> - introduce bpf_flowtable_opts struct in bpf_xdp_flow_lookup signature
+> - get rid of xdp_flowtable_offload bpf sample
+> - get rid of test_xdp_flowtable.sh for selftest and rely on prog_tests in=
+stead
+> - rename bpf_xdp_flow_offload_lookup in bpf_xdp_flow_lookup
+> Changes since v1:
+> - return NULL in bpf_xdp_flow_offload_lookup kfunc in case of error
+> - take into account kfunc registration possible failures
+> Changes since RFC:
+> - fix compilation error if BTF is not enabled
 
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+Hi all,
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+Looking at patchwork this series is marked as 'Archived' even if the eBPF b=
+its
+have been acked by Alexei while netfilter ones have been acked by Pablo.
+Am I missing something? Do I need to repost?
 
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
+Regards,
+Lorenzo
 
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
+>=20
+> Akced-by: Pablo Neira Ayuso <pablo@netfilter.org>
+>=20
+> Florian Westphal (1):
+>   netfilter: nf_tables: add flowtable map for xdp offload
+>=20
+> Lorenzo Bianconi (2):
+>   netfilter: add bpf_xdp_flow_lookup kfunc
+>   selftests/bpf: Add selftest for bpf_xdp_flow_lookup kfunc
+>=20
+>  include/net/netfilter/nf_flow_table.h         |  18 ++
+>  net/netfilter/Makefile                        |   7 +-
+>  net/netfilter/nf_flow_table_bpf.c             | 117 ++++++++++++
+>  net/netfilter/nf_flow_table_inet.c            |   2 +-
+>  net/netfilter/nf_flow_table_offload.c         |   6 +-
+>  net/netfilter/nf_flow_table_xdp.c             | 163 +++++++++++++++++
+>  tools/testing/selftests/bpf/config            |  13 ++
+>  .../selftests/bpf/prog_tests/xdp_flowtable.c  | 168 ++++++++++++++++++
+>  .../selftests/bpf/progs/xdp_flowtable.c       | 146 +++++++++++++++
+>  9 files changed, 636 insertions(+), 4 deletions(-)
+>  create mode 100644 net/netfilter/nf_flow_table_bpf.c
+>  create mode 100644 net/netfilter/nf_flow_table_xdp.c
+>  create mode 100644 tools/testing/selftests/bpf/prog_tests/xdp_flowtable.c
+>  create mode 100644 tools/testing/selftests/bpf/progs/xdp_flowtable.c
+>=20
+> --=20
+> 2.45.1
+>=20
 
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
+--rhKzGA7qyMpLbX45
+Content-Type: application/pgp-signature; name="signature.asc"
 
-If you want to undo deduplication, reply with:
-#syz undup
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCZn8VagAKCRA6cBh0uS2t
+rKjVAP9T8l8M3R0UyvBSMH+HJsOO9xHw1NoSjC7aVM6BaR2gDQEAyfg4KFUMWnwH
+YiM/VNHLGewcnfDIO7SHVodd75CAMg4=
+=0igS
+-----END PGP SIGNATURE-----
+
+--rhKzGA7qyMpLbX45--
