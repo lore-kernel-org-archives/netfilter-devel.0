@@ -1,661 +1,173 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 475D01CB31F;
-	Fri, 28 Jun 2024 16:05:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2486A15698D;
+	Fri, 28 Jun 2024 16:51:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719590730; cv=none; b=iqxiLGimwOaIR2+oaujNaazBj+2Z3Tqdg4rm9V4Se8mNUcc7ane2PYiID6X8eFiv8FVASbrmUbfMc8YzVxiPqNggOsZNNS+yIplx4eqFKLubucQRGK9pglSUgGEF50HJr3yOpZxwfDXuJ45+og91aJUBPptKcik9vADNEHDYgp4=
+	t=1719593477; cv=none; b=sk+cGQ7tmqUDiydTYaus5P1dZJmpgCZyGCaJrdsMuFqVxvp9vKmP45BJW2D7voEEHY0Pkg2Ree0HXHHXIMaAUemXL0u9Sszhr3ZZfNbLPocLzhIylz++lEK0n8A8WcKRBraZl4bQzbxA3cdU4GQ1NnDlJd3d6NTq1DunCzbFsZs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719590730; c=relaxed/simple;
-	bh=o3loJTtwRZVdG7pvDraPbz+TZh6MnLgJI/XxaTuJQdE=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=guQDmTjs1nbJ/KYBDf1B7LPFEhFMZjudvGli+w77s9Qlt9WiL/nC+AL647h/7subAoNilJ0JcJ5CBNVYYeCLE0i5M9Ugktiw1OZkZXM2+VTpTl1K917sc4xO0hF1DvOcVWLDbuxomt4cIABIm5jjHPFNgepZXj3SoextyWd5GNs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	fw@strlen.de
-Subject: [PATCH net-next 11/17] netfilter: nf_tables: do not store nft_ctx in transaction objects
-Date: Fri, 28 Jun 2024 18:04:59 +0200
-Message-Id: <20240628160505.161283-12-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20240628160505.161283-1-pablo@netfilter.org>
-References: <20240628160505.161283-1-pablo@netfilter.org>
+	s=arc-20240116; t=1719593477; c=relaxed/simple;
+	bh=4owyfH6X+DyJ9WfPxXPkoc5JShgygnGI39eEOeau6PI=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=bxRp05Xa0FI/BDItVP/AyRiUDN7VSZJyxitONmRpik5z8Dz0DYemZJlk7HSwh50NcQKd9qGcMuPfwGN4OC3TwKuTiqtlXTp4f3zBWs1xSQeVBeOs2iaPs1P0G02oDbIegym1ohwYHQP/GlCcghKMXSmLS+eoebAtFj9yOqzN5Z8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.188
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
+Received: from mail.maildlp.com (unknown [172.19.163.252])
+	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4W9hHM0dTgzdfP2;
+	Sat, 29 Jun 2024 00:49:35 +0800 (CST)
+Received: from dggpemm500020.china.huawei.com (unknown [7.185.36.49])
+	by mail.maildlp.com (Postfix) with ESMTPS id 0F5C1180087;
+	Sat, 29 Jun 2024 00:51:10 +0800 (CST)
+Received: from [10.123.123.159] (10.123.123.159) by
+ dggpemm500020.china.huawei.com (7.185.36.49) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.39; Sat, 29 Jun 2024 00:51:05 +0800
+Message-ID: <b2d1a152-0241-6a3a-1f31-4a1045fff856@huawei-partners.com>
+Date: Fri, 28 Jun 2024 19:51:00 +0300
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 1/2] landlock: Add hook on socket_listen()
+Content-Language: ru
+To: =?UTF-8?Q?G=C3=BCnther_Noack?= <gnoack@google.com>
+CC: =?UTF-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>,
+	<willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
+	<linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+	<netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+	<artem.kuzin@huawei.com>, <konstantin.meskhidze@huawei.com>
+References: <20240408094747.1761850-1-ivanov.mikhail1@huawei-partners.com>
+ <20240408094747.1761850-2-ivanov.mikhail1@huawei-partners.com>
+ <20240425.Soot5eNeexol@digikod.net>
+ <a18333c0-4efc-dcf4-a219-ec46480352b1@huawei-partners.com>
+ <ZnMr30kSCGME16rO@google.com>
+From: Ivanov Mikhail <ivanov.mikhail1@huawei-partners.com>
+In-Reply-To: <ZnMr30kSCGME16rO@google.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: lhrpeml100006.china.huawei.com (7.191.160.224) To
+ dggpemm500020.china.huawei.com (7.185.36.49)
 
-From: Florian Westphal <fw@strlen.de>
+6/19/2024 10:05 PM, Günther Noack wrote:
+> I agree with Mickaël's comment: this seems like an important fix.
+> 
+> Mostly for completeness: I played with the "socket type" patch set in a "TCP
+> server" example, where *all* possible operations are restricted with Landlock,
+> including the ones from the "socket type" patch set V2 with the little fix we
+> discussed.
+> 
+>   - socket()
+>   - bind()
+>   - enforce a landlock ruleset restricting:
+>     - file system access
+>     - all TCP bind and connect
+>     - socket creation
+>   - listen()
+>   - accept()
+> 
+>>From the connection handler (which would be the place where an attacker can
+> usually provide input), it is now still possible to bind a socket due to this
+> problem.  The steps are:
+> 
+>    1) connect() on client_fd with AF_UNSPEC to disassociate the client FD
+>    2) listen() on the client_fd
+> 
+> This succeeds and it listens on an ephemeral port.
+> 
+> The code is at [1], if you are interested.
+> 
+> [1] https://github.com/gnoack/landlock-examples/blob/main/tcpserver.c
 
-nft_ctx is huge and most of the information stored within isn't used
-at all.
+Do you mean that this scenario works with patch-fix currently being
+discussed?
 
-Remove nft_ctx member from the base transaction structure and store
-only what is needed.
+> 
+> 
+> On Mon, May 13, 2024 at 03:15:50PM +0300, Ivanov Mikhail wrote:
+>> 4/30/2024 4:36 PM, Mickaël Salaün wrote:
+>>> On Mon, Apr 08, 2024 at 05:47:46PM +0800, Ivanov Mikhail wrote:
+>>>> Make hook for socket_listen(). It will check that the socket protocol is
+>>>> TCP, and if the socket's local port number is 0 (which means,
+>>>> that listen(2) was called without any previous bind(2) call),
+>>>> then listen(2) call will be legitimate only if there is a rule for bind(2)
+>>>> allowing binding to port 0 (or if LANDLOCK_ACCESS_NET_BIND_TCP is not
+>>>> supported by the sandbox).
+>>>
+>>> Thanks for this patch and sorry for the late full review.  The code is
+>>> good overall.
+>>>
+>>> We should either consider this patch as a fix or add a new flag/access
+>>> right to Landlock syscalls for compatibility reason.  I think this
+>>> should be a fix.  Calling listen(2) without a previous call to bind(2)
+>>> is a corner case that we should properly handle.  The commit message
+>>> should make that explicit and highlight the goal of the patch: first
+>>> explain why, and then how.
+>>
+>> Yeap, this is fix-patch. I have covered motivation and proposed solution
+>> in cover letter. Do you have any suggestions on how i can improve this?
+> 
+> Without wanting to turn around the direction of this code review now, I am still
+> slightly concerned about the assymetry of this special case being implemented
+> for listen() but not for connect().
+> 
+> The reason is this: My colleague Mr. B. recently pointed out to me that you can
+> also do a bind() on a socket before a connect(!). The steps are:
+> 
+> * create socket with socket()
+> * bind() to a local port 9090
+> * connect() to a remote port 8080
+> 
+> This gives you a connection between ports 9090 and 8080.
+> 
+> A regular connect() without an explicit bind() is of course the more usual
+> scenario.  In that case, we are also using up ("implicitly binding") one of the
+> ephemeral ports.
+> 
+> It seems that, with respect to the port binding, listen() and connect() work
+> quite similarly then?  This being considered, maybe it *is* the listen()
+> operation on a port which we should be restricting, and not bind()?
 
-After this change, relevant struct sizes are:
+Do you mean that ability to restrict auto-binding for connect() should
+also be implemented? This looks like good idea if we want to provide
+full control over port binding. But it's hard for me to come up with an
+idea how it can be implemented: current Landlock API allows to restrict
+only the destination port for connect().
 
-struct nft_trans_chain { /* size: 120 (-32), cachelines: 2, members: 10 */
-struct nft_trans_elem { /* size: 72 (-40), cachelines: 2, members: 4 */
-struct nft_trans_flowtable { /* size: 80 (-48), cachelines: 2, members: 5 */
-struct nft_trans_obj { /* size: 72 (-40), cachelines: 2, members: 4 */
-struct nft_trans_rule { /* size: 80 (-32), cachelines: 2, members: 6 */
-struct nft_trans_set { /* size: 96 (-24), cachelines: 2, members: 8 */
-struct nft_trans_table { /* size: 56 (-40), cachelines: 1, members: 2 */
+I think an independent restriction of auto-binding for bind() and
+listen() is a good approach: API is more clear and Landlock rules do
+not affect each other's behavior. Did I understood your suggestion
+correctly?
 
-struct nft_trans_elem can now be allocated from kmalloc-96 instead of
-kmalloc-128 slab.
-A further reduction by 8 bytes would even allow for kmalloc-64.
+> 
+> With some luck, that would then also free us from having to implement the
+> check_tcp_socket_can_listen() logic, which is seemingly emulating logic from
+> elsewhere in the kernel?
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_tables.h |  43 ++++++++-
- net/netfilter/nf_tables_api.c     | 140 +++++++++++++++++-------------
- net/netfilter/nf_tables_offload.c |   8 +-
- 3 files changed, 125 insertions(+), 66 deletions(-)
+But check_tcp_socket_can_listen() will be required for
+LANDLOCK_ACCESS_NET_LISTEN_TCP hook anyway. Did I miss smth?
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 86e6bd63a205..1e8da1b882ac 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1611,18 +1611,26 @@ static inline int nft_set_elem_is_dead(const struct nft_set_ext *ext)
-  * struct nft_trans - nf_tables object update in transaction
-  *
-  * @list: used internally
-+ * @net: struct net
-+ * @table: struct nft_table the object resides in
-  * @msg_type: message type
-- * @put_net: ctx->net needs to be put
-- * @ctx: transaction context
-+ * @seq: netlink sequence number
-+ * @flags: modifiers to new request
-+ * @report: notify via unicast netlink message
-+ * @put_net: net needs to be put
-  *
-  * This is the information common to all objects in the transaction,
-  * this must always be the first member of derived sub-types.
-  */
- struct nft_trans {
- 	struct list_head		list;
-+	struct net			*net;
-+	struct nft_table		*table;
- 	int				msg_type;
--	bool				put_net;
--	struct nft_ctx			ctx;
-+	u32				seq;
-+	u16				flags;
-+	u8				report:1;
-+	u8				put_net:1;
- };
- 
- /**
-@@ -1794,6 +1802,33 @@ struct nft_trans_gc {
- 	struct rcu_head		rcu;
- };
- 
-+static inline void nft_ctx_update(struct nft_ctx *ctx,
-+				  const struct nft_trans *trans)
-+{
-+	switch (trans->msg_type) {
-+	case NFT_MSG_NEWRULE:
-+	case NFT_MSG_DELRULE:
-+	case NFT_MSG_DESTROYRULE:
-+		ctx->chain = nft_trans_rule_chain(trans);
-+		break;
-+	case NFT_MSG_NEWCHAIN:
-+	case NFT_MSG_DELCHAIN:
-+	case NFT_MSG_DESTROYCHAIN:
-+		ctx->chain = nft_trans_chain(trans);
-+		break;
-+	default:
-+		ctx->chain = NULL;
-+		break;
-+	}
-+
-+	ctx->net = trans->net;
-+	ctx->table = trans->table;
-+	ctx->family = trans->table->family;
-+	ctx->report = trans->report;
-+	ctx->flags = trans->flags;
-+	ctx->seq = trans->seq;
-+}
-+
- struct nft_trans_gc *nft_trans_gc_alloc(struct nft_set *set,
- 					unsigned int gc_seq, gfp_t gfp);
- void nft_trans_gc_destroy(struct nft_trans_gc *trans);
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 6958f922f95a..02d75aefaa8e 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -159,7 +159,12 @@ static struct nft_trans *nft_trans_alloc_gfp(const struct nft_ctx *ctx,
- 
- 	INIT_LIST_HEAD(&trans->list);
- 	trans->msg_type = msg_type;
--	trans->ctx	= *ctx;
-+
-+	trans->net = ctx->net;
-+	trans->table = ctx->table;
-+	trans->seq = ctx->seq;
-+	trans->flags = ctx->flags;
-+	trans->report = ctx->report;
- 
- 	return trans;
- }
-@@ -1258,7 +1263,7 @@ static bool nft_table_pending_update(const struct nft_ctx *ctx)
- 		return true;
- 
- 	list_for_each_entry(trans, &nft_net->commit_list, list) {
--		if (trans->ctx.table == ctx->table &&
-+		if (trans->table == ctx->table &&
- 		    ((trans->msg_type == NFT_MSG_NEWCHAIN &&
- 		      nft_trans_chain_update(trans)) ||
- 		     (trans->msg_type == NFT_MSG_DELCHAIN &&
-@@ -2100,7 +2105,7 @@ static void nft_chain_stats_replace(struct nft_trans_chain *trans)
- 
- 	trans->stats =
- 		rcu_replace_pointer(chain->stats, trans->stats,
--				    lockdep_commit_lock_is_held(t->ctx.net));
-+				    lockdep_commit_lock_is_held(t->net));
- 
- 	if (!trans->stats)
- 		static_branch_inc(&nft_counters_enabled);
-@@ -2766,7 +2771,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
- 		err = -EEXIST;
- 		list_for_each_entry(tmp, &nft_net->commit_list, list) {
- 			if (tmp->msg_type == NFT_MSG_NEWCHAIN &&
--			    tmp->ctx.table == table &&
-+			    tmp->table == table &&
- 			    nft_trans_chain_update(tmp) &&
- 			    nft_trans_chain_name(tmp) &&
- 			    strcmp(name, nft_trans_chain_name(tmp)) == 0) {
-@@ -9472,7 +9477,7 @@ static void nft_chain_commit_drop_policy(struct nft_trans_chain *trans)
- 
- static void nft_chain_commit_update(struct nft_trans_chain *trans)
- {
--	struct nft_table *table = trans->nft_trans_binding.nft_trans.ctx.table;
-+	struct nft_table *table = trans->nft_trans_binding.nft_trans.table;
- 	struct nft_base_chain *basechain;
- 
- 	if (trans->name) {
-@@ -9501,7 +9506,8 @@ static void nft_chain_commit_update(struct nft_trans_chain *trans)
- 	}
- }
- 
--static void nft_obj_commit_update(struct nft_trans *trans)
-+static void nft_obj_commit_update(const struct nft_ctx *ctx,
-+				  struct nft_trans *trans)
- {
- 	struct nft_object *newobj;
- 	struct nft_object *obj;
-@@ -9513,15 +9519,21 @@ static void nft_obj_commit_update(struct nft_trans *trans)
- 		return;
- 
- 	obj->ops->update(obj, newobj);
--	nft_obj_destroy(&trans->ctx, newobj);
-+	nft_obj_destroy(ctx, newobj);
- }
- 
- static void nft_commit_release(struct nft_trans *trans)
- {
-+	struct nft_ctx ctx = {
-+		.net = trans->net,
-+	};
-+
-+	nft_ctx_update(&ctx, trans);
-+
- 	switch (trans->msg_type) {
- 	case NFT_MSG_DELTABLE:
- 	case NFT_MSG_DESTROYTABLE:
--		nf_tables_table_destroy(trans->ctx.table);
-+		nf_tables_table_destroy(trans->table);
- 		break;
- 	case NFT_MSG_NEWCHAIN:
- 		free_percpu(nft_trans_chain_stats(trans));
-@@ -9536,21 +9548,21 @@ static void nft_commit_release(struct nft_trans *trans)
- 		break;
- 	case NFT_MSG_DELRULE:
- 	case NFT_MSG_DESTROYRULE:
--		nf_tables_rule_destroy(&trans->ctx, nft_trans_rule(trans));
-+		nf_tables_rule_destroy(&ctx, nft_trans_rule(trans));
- 		break;
- 	case NFT_MSG_DELSET:
- 	case NFT_MSG_DESTROYSET:
--		nft_set_destroy(&trans->ctx, nft_trans_set(trans));
-+		nft_set_destroy(&ctx, nft_trans_set(trans));
- 		break;
- 	case NFT_MSG_DELSETELEM:
- 	case NFT_MSG_DESTROYSETELEM:
--		nf_tables_set_elem_destroy(&trans->ctx,
-+		nf_tables_set_elem_destroy(&ctx,
- 					   nft_trans_elem_set(trans),
- 					   nft_trans_elem_priv(trans));
- 		break;
- 	case NFT_MSG_DELOBJ:
- 	case NFT_MSG_DESTROYOBJ:
--		nft_obj_destroy(&trans->ctx, nft_trans_obj(trans));
-+		nft_obj_destroy(&ctx, nft_trans_obj(trans));
- 		break;
- 	case NFT_MSG_DELFLOWTABLE:
- 	case NFT_MSG_DESTROYFLOWTABLE:
-@@ -9562,7 +9574,7 @@ static void nft_commit_release(struct nft_trans *trans)
- 	}
- 
- 	if (trans->put_net)
--		put_net(trans->ctx.net);
-+		put_net(trans->net);
- 
- 	kfree(trans);
- }
-@@ -10042,7 +10054,7 @@ static void nf_tables_commit_release(struct net *net)
- 
- 	trans = list_last_entry(&nft_net->commit_list,
- 				struct nft_trans, list);
--	get_net(trans->ctx.net);
-+	get_net(trans->net);
- 	WARN_ON_ONCE(trans->put_net);
- 
- 	trans->put_net = true;
-@@ -10186,6 +10198,7 @@ static void nft_gc_seq_end(struct nftables_pernet *nft_net, unsigned int gc_seq)
- static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- {
- 	struct nftables_pernet *nft_net = nft_pernet(net);
-+	const struct nlmsghdr *nlh = nlmsg_hdr(skb);
- 	struct nft_trans_binding *trans_binding;
- 	struct nft_trans *trans, *next;
- 	unsigned int base_seq, gc_seq;
-@@ -10193,6 +10206,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 	struct nft_trans_elem *te;
- 	struct nft_chain *chain;
- 	struct nft_table *table;
-+	struct nft_ctx ctx;
- 	LIST_HEAD(adl);
- 	int err;
- 
-@@ -10201,6 +10215,8 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 		return 0;
- 	}
- 
-+	nft_ctx_init(&ctx, net, skb, nlh, NFPROTO_UNSPEC, NULL, NULL, NULL);
-+
- 	list_for_each_entry(trans_binding, &nft_net->binding_list, binding_list) {
- 		trans = &trans_binding->nft_trans;
- 		switch (trans->msg_type) {
-@@ -10238,7 +10254,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 
- 	/* 1.  Allocate space for next generation rules_gen_X[] */
- 	list_for_each_entry_safe(trans, next, &nft_net->commit_list, list) {
--		struct nft_table *table = trans->ctx.table;
-+		struct nft_table *table = trans->table;
- 		int ret;
- 
- 		ret = nf_tables_commit_audit_alloc(&adl, table);
-@@ -10282,7 +10298,9 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 	net->nft.gencursor = nft_gencursor_next(net);
- 
- 	list_for_each_entry_safe(trans, next, &nft_net->commit_list, list) {
--		struct nft_table *table = trans->ctx.table;
-+		struct nft_table *table = trans->table;
-+
-+		nft_ctx_update(&ctx, trans);
- 
- 		nf_tables_commit_audit_collect(&adl, table, trans->msg_type);
- 		switch (trans->msg_type) {
-@@ -10299,18 +10317,18 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 			} else {
- 				nft_clear(net, table);
- 			}
--			nf_tables_table_notify(&trans->ctx, NFT_MSG_NEWTABLE);
-+			nf_tables_table_notify(&ctx, NFT_MSG_NEWTABLE);
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_DELTABLE:
- 		case NFT_MSG_DESTROYTABLE:
- 			list_del_rcu(&table->list);
--			nf_tables_table_notify(&trans->ctx, trans->msg_type);
-+			nf_tables_table_notify(&ctx, trans->msg_type);
- 			break;
- 		case NFT_MSG_NEWCHAIN:
- 			if (nft_trans_chain_update(trans)) {
- 				nft_chain_commit_update(nft_trans_container_chain(trans));
--				nf_tables_chain_notify(&trans->ctx, NFT_MSG_NEWCHAIN,
-+				nf_tables_chain_notify(&ctx, NFT_MSG_NEWCHAIN,
- 						       &nft_trans_chain_hooks(trans));
- 				list_splice(&nft_trans_chain_hooks(trans),
- 					    &nft_trans_basechain(trans)->hook_list);
-@@ -10318,14 +10336,14 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 			} else {
- 				nft_chain_commit_drop_policy(nft_trans_container_chain(trans));
- 				nft_clear(net, nft_trans_chain(trans));
--				nf_tables_chain_notify(&trans->ctx, NFT_MSG_NEWCHAIN, NULL);
-+				nf_tables_chain_notify(&ctx, NFT_MSG_NEWCHAIN, NULL);
- 				nft_trans_destroy(trans);
- 			}
- 			break;
- 		case NFT_MSG_DELCHAIN:
- 		case NFT_MSG_DESTROYCHAIN:
- 			if (nft_trans_chain_update(trans)) {
--				nf_tables_chain_notify(&trans->ctx, NFT_MSG_DELCHAIN,
-+				nf_tables_chain_notify(&ctx, NFT_MSG_DELCHAIN,
- 						       &nft_trans_chain_hooks(trans));
- 				if (!(table->flags & NFT_TABLE_F_DORMANT)) {
- 					nft_netdev_unregister_hooks(net,
-@@ -10334,16 +10352,15 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 				}
- 			} else {
- 				nft_chain_del(nft_trans_chain(trans));
--				nf_tables_chain_notify(&trans->ctx, NFT_MSG_DELCHAIN,
-+				nf_tables_chain_notify(&ctx, NFT_MSG_DELCHAIN,
- 						       NULL);
--				nf_tables_unregister_hook(trans->ctx.net, table,
-+				nf_tables_unregister_hook(ctx.net, ctx.table,
- 							  nft_trans_chain(trans));
- 			}
- 			break;
- 		case NFT_MSG_NEWRULE:
--			nft_clear(trans->ctx.net, nft_trans_rule(trans));
--			nf_tables_rule_notify(&trans->ctx,
--					      nft_trans_rule(trans),
-+			nft_clear(net, nft_trans_rule(trans));
-+			nf_tables_rule_notify(&ctx, nft_trans_rule(trans),
- 					      NFT_MSG_NEWRULE);
- 			if (nft_trans_rule_chain(trans)->flags & NFT_CHAIN_HW_OFFLOAD)
- 				nft_flow_rule_destroy(nft_trans_flow_rule(trans));
-@@ -10353,11 +10370,9 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 		case NFT_MSG_DELRULE:
- 		case NFT_MSG_DESTROYRULE:
- 			list_del_rcu(&nft_trans_rule(trans)->list);
--			nf_tables_rule_notify(&trans->ctx,
--					      nft_trans_rule(trans),
-+			nf_tables_rule_notify(&ctx, nft_trans_rule(trans),
- 					      trans->msg_type);
--			nft_rule_expr_deactivate(&trans->ctx,
--						 nft_trans_rule(trans),
-+			nft_rule_expr_deactivate(&ctx, nft_trans_rule(trans),
- 						 NFT_TRANS_COMMIT);
- 
- 			if (nft_trans_rule_chain(trans)->flags & NFT_CHAIN_HW_OFFLOAD)
-@@ -10381,7 +10396,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 				    !list_empty(&nft_trans_set(trans)->bindings))
- 					nft_use_dec(&table->use);
- 			}
--			nf_tables_set_notify(&trans->ctx, nft_trans_set(trans),
-+			nf_tables_set_notify(&ctx, nft_trans_set(trans),
- 					     NFT_MSG_NEWSET, GFP_KERNEL);
- 			nft_trans_destroy(trans);
- 			break;
-@@ -10389,14 +10404,14 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 		case NFT_MSG_DESTROYSET:
- 			nft_trans_set(trans)->dead = 1;
- 			list_del_rcu(&nft_trans_set(trans)->list);
--			nf_tables_set_notify(&trans->ctx, nft_trans_set(trans),
-+			nf_tables_set_notify(&ctx, nft_trans_set(trans),
- 					     trans->msg_type, GFP_KERNEL);
- 			break;
- 		case NFT_MSG_NEWSETELEM:
- 			te = nft_trans_container_elem(trans);
- 
- 			nft_setelem_activate(net, te->set, te->elem_priv);
--			nf_tables_setelem_notify(&trans->ctx, te->set,
-+			nf_tables_setelem_notify(&ctx, te->set,
- 						 te->elem_priv,
- 						 NFT_MSG_NEWSETELEM);
- 			if (te->set->ops->commit &&
-@@ -10410,7 +10425,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 		case NFT_MSG_DESTROYSETELEM:
- 			te = nft_trans_container_elem(trans);
- 
--			nf_tables_setelem_notify(&trans->ctx, te->set,
-+			nf_tables_setelem_notify(&ctx, te->set,
- 						 te->elem_priv,
- 						 trans->msg_type);
- 			nft_setelem_remove(net, te->set, te->elem_priv);
-@@ -10426,13 +10441,13 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 			break;
- 		case NFT_MSG_NEWOBJ:
- 			if (nft_trans_obj_update(trans)) {
--				nft_obj_commit_update(trans);
--				nf_tables_obj_notify(&trans->ctx,
-+				nft_obj_commit_update(&ctx, trans);
-+				nf_tables_obj_notify(&ctx,
- 						     nft_trans_obj(trans),
- 						     NFT_MSG_NEWOBJ);
- 			} else {
- 				nft_clear(net, nft_trans_obj(trans));
--				nf_tables_obj_notify(&trans->ctx,
-+				nf_tables_obj_notify(&ctx,
- 						     nft_trans_obj(trans),
- 						     NFT_MSG_NEWOBJ);
- 				nft_trans_destroy(trans);
-@@ -10441,14 +10456,14 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 		case NFT_MSG_DELOBJ:
- 		case NFT_MSG_DESTROYOBJ:
- 			nft_obj_del(nft_trans_obj(trans));
--			nf_tables_obj_notify(&trans->ctx, nft_trans_obj(trans),
-+			nf_tables_obj_notify(&ctx, nft_trans_obj(trans),
- 					     trans->msg_type);
- 			break;
- 		case NFT_MSG_NEWFLOWTABLE:
- 			if (nft_trans_flowtable_update(trans)) {
- 				nft_trans_flowtable(trans)->data.flags =
- 					nft_trans_flowtable_flags(trans);
--				nf_tables_flowtable_notify(&trans->ctx,
-+				nf_tables_flowtable_notify(&ctx,
- 							   nft_trans_flowtable(trans),
- 							   &nft_trans_flowtable_hooks(trans),
- 							   NFT_MSG_NEWFLOWTABLE);
-@@ -10456,7 +10471,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 					    &nft_trans_flowtable(trans)->hook_list);
- 			} else {
- 				nft_clear(net, nft_trans_flowtable(trans));
--				nf_tables_flowtable_notify(&trans->ctx,
-+				nf_tables_flowtable_notify(&ctx,
- 							   nft_trans_flowtable(trans),
- 							   NULL,
- 							   NFT_MSG_NEWFLOWTABLE);
-@@ -10466,7 +10481,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 		case NFT_MSG_DELFLOWTABLE:
- 		case NFT_MSG_DESTROYFLOWTABLE:
- 			if (nft_trans_flowtable_update(trans)) {
--				nf_tables_flowtable_notify(&trans->ctx,
-+				nf_tables_flowtable_notify(&ctx,
- 							   nft_trans_flowtable(trans),
- 							   &nft_trans_flowtable_hooks(trans),
- 							   trans->msg_type);
-@@ -10474,7 +10489,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 								   &nft_trans_flowtable_hooks(trans));
- 			} else {
- 				list_del_rcu(&nft_trans_flowtable(trans)->list);
--				nf_tables_flowtable_notify(&trans->ctx,
-+				nf_tables_flowtable_notify(&ctx,
- 							   nft_trans_flowtable(trans),
- 							   NULL,
- 							   trans->msg_type);
-@@ -10516,9 +10531,13 @@ static void nf_tables_module_autoload(struct net *net)
- 
- static void nf_tables_abort_release(struct nft_trans *trans)
- {
-+	struct nft_ctx ctx = { };
-+
-+	nft_ctx_update(&ctx, trans);
-+
- 	switch (trans->msg_type) {
- 	case NFT_MSG_NEWTABLE:
--		nf_tables_table_destroy(trans->ctx.table);
-+		nf_tables_table_destroy(trans->table);
- 		break;
- 	case NFT_MSG_NEWCHAIN:
- 		if (nft_trans_chain_update(trans))
-@@ -10527,17 +10546,17 @@ static void nf_tables_abort_release(struct nft_trans *trans)
- 			nf_tables_chain_destroy(nft_trans_chain(trans));
- 		break;
- 	case NFT_MSG_NEWRULE:
--		nf_tables_rule_destroy(&trans->ctx, nft_trans_rule(trans));
-+		nf_tables_rule_destroy(&ctx, nft_trans_rule(trans));
- 		break;
- 	case NFT_MSG_NEWSET:
--		nft_set_destroy(&trans->ctx, nft_trans_set(trans));
-+		nft_set_destroy(&ctx, nft_trans_set(trans));
- 		break;
- 	case NFT_MSG_NEWSETELEM:
- 		nft_set_elem_destroy(nft_trans_elem_set(trans),
- 				     nft_trans_elem_priv(trans), true);
- 		break;
- 	case NFT_MSG_NEWOBJ:
--		nft_obj_destroy(&trans->ctx, nft_trans_obj(trans));
-+		nft_obj_destroy(&ctx, nft_trans_obj(trans));
- 		break;
- 	case NFT_MSG_NEWFLOWTABLE:
- 		if (nft_trans_flowtable_update(trans))
-@@ -10569,6 +10588,9 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 	struct nft_trans *trans, *next;
- 	LIST_HEAD(set_update_list);
- 	struct nft_trans_elem *te;
-+	struct nft_ctx ctx = {
-+		.net = net,
-+	};
- 	int err = 0;
- 
- 	if (action == NFNL_ABORT_VALIDATE &&
-@@ -10577,7 +10599,9 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 
- 	list_for_each_entry_safe_reverse(trans, next, &nft_net->commit_list,
- 					 list) {
--		struct nft_table *table = trans->ctx.table;
-+		struct nft_table *table = trans->table;
-+
-+		nft_ctx_update(&ctx, trans);
- 
- 		switch (trans->msg_type) {
- 		case NFT_MSG_NEWTABLE:
-@@ -10604,7 +10628,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 			break;
- 		case NFT_MSG_DELTABLE:
- 		case NFT_MSG_DESTROYTABLE:
--			nft_clear(trans->ctx.net, table);
-+			nft_clear(trans->net, table);
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_NEWCHAIN:
-@@ -10624,7 +10648,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 				}
- 				nft_use_dec_restore(&table->use);
- 				nft_chain_del(nft_trans_chain(trans));
--				nf_tables_unregister_hook(trans->ctx.net, table,
-+				nf_tables_unregister_hook(trans->net, table,
- 							  nft_trans_chain(trans));
- 			}
- 			break;
-@@ -10635,7 +10659,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 					    &nft_trans_basechain(trans)->hook_list);
- 			} else {
- 				nft_use_inc_restore(&table->use);
--				nft_clear(trans->ctx.net, nft_trans_chain(trans));
-+				nft_clear(trans->net, nft_trans_chain(trans));
- 			}
- 			nft_trans_destroy(trans);
- 			break;
-@@ -10646,7 +10670,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 			}
- 			nft_use_dec_restore(&nft_trans_rule_chain(trans)->use);
- 			list_del_rcu(&nft_trans_rule(trans)->list);
--			nft_rule_expr_deactivate(&trans->ctx,
-+			nft_rule_expr_deactivate(&ctx,
- 						 nft_trans_rule(trans),
- 						 NFT_TRANS_ABORT);
- 			if (nft_trans_rule_chain(trans)->flags & NFT_CHAIN_HW_OFFLOAD)
-@@ -10655,8 +10679,8 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 		case NFT_MSG_DELRULE:
- 		case NFT_MSG_DESTROYRULE:
- 			nft_use_inc_restore(&nft_trans_rule_chain(trans)->use);
--			nft_clear(trans->ctx.net, nft_trans_rule(trans));
--			nft_rule_expr_activate(&trans->ctx, nft_trans_rule(trans));
-+			nft_clear(trans->net, nft_trans_rule(trans));
-+			nft_rule_expr_activate(&ctx, nft_trans_rule(trans));
- 			if (nft_trans_rule_chain(trans)->flags & NFT_CHAIN_HW_OFFLOAD)
- 				nft_flow_rule_destroy(nft_trans_flow_rule(trans));
- 
-@@ -10678,9 +10702,9 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 		case NFT_MSG_DELSET:
- 		case NFT_MSG_DESTROYSET:
- 			nft_use_inc_restore(&table->use);
--			nft_clear(trans->ctx.net, nft_trans_set(trans));
-+			nft_clear(trans->net, nft_trans_set(trans));
- 			if (nft_trans_set(trans)->flags & (NFT_SET_MAP | NFT_SET_OBJECT))
--				nft_map_activate(&trans->ctx, nft_trans_set(trans));
-+				nft_map_activate(&ctx, nft_trans_set(trans));
- 
- 			nft_trans_destroy(trans);
- 			break;
-@@ -10720,7 +10744,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 			break;
- 		case NFT_MSG_NEWOBJ:
- 			if (nft_trans_obj_update(trans)) {
--				nft_obj_destroy(&trans->ctx, nft_trans_obj_newobj(trans));
-+				nft_obj_destroy(&ctx, nft_trans_obj_newobj(trans));
- 				nft_trans_destroy(trans);
- 			} else {
- 				nft_use_dec_restore(&table->use);
-@@ -10730,7 +10754,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 		case NFT_MSG_DELOBJ:
- 		case NFT_MSG_DESTROYOBJ:
- 			nft_use_inc_restore(&table->use);
--			nft_clear(trans->ctx.net, nft_trans_obj(trans));
-+			nft_clear(trans->net, nft_trans_obj(trans));
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_NEWFLOWTABLE:
-@@ -10751,7 +10775,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 					    &nft_trans_flowtable(trans)->hook_list);
- 			} else {
- 				nft_use_inc_restore(&table->use);
--				nft_clear(trans->ctx.net, nft_trans_flowtable(trans));
-+				nft_clear(trans->net, nft_trans_flowtable(trans));
- 			}
- 			nft_trans_destroy(trans);
- 			break;
-diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-index 0619feb10abb..64675f1c7f29 100644
---- a/net/netfilter/nf_tables_offload.c
-+++ b/net/netfilter/nf_tables_offload.c
-@@ -513,7 +513,7 @@ static void nft_flow_rule_offload_abort(struct net *net,
- 	int err = 0;
- 
- 	list_for_each_entry_continue_reverse(trans, &nft_net->commit_list, list) {
--		if (trans->ctx.family != NFPROTO_NETDEV)
-+		if (trans->table->family != NFPROTO_NETDEV)
- 			continue;
- 
- 		switch (trans->msg_type) {
-@@ -564,7 +564,7 @@ int nft_flow_rule_offload_commit(struct net *net)
- 	u8 policy;
- 
- 	list_for_each_entry(trans, &nft_net->commit_list, list) {
--		if (trans->ctx.family != NFPROTO_NETDEV)
-+		if (trans->table->family != NFPROTO_NETDEV)
- 			continue;
- 
- 		switch (trans->msg_type) {
-@@ -589,8 +589,8 @@ int nft_flow_rule_offload_commit(struct net *net)
- 			if (!(nft_trans_rule_chain(trans)->flags & NFT_CHAIN_HW_OFFLOAD))
- 				continue;
- 
--			if (trans->ctx.flags & NLM_F_REPLACE ||
--			    !(trans->ctx.flags & NLM_F_APPEND)) {
-+			if (trans->flags & NLM_F_REPLACE ||
-+			    !(trans->flags & NLM_F_APPEND)) {
- 				err = -EOPNOTSUPP;
- 				break;
- 			}
--- 
-2.30.2
+> 
+> (I am by far not an expert in Linux networking, so I'll put this out for
+> consideration and will happily stand corrected if I am misunderstanding
+> something.  Maybe someone with more networking background can chime in?)
+> 
+> 
+>>>> +		/* Socket is alredy binded to some port. */
+>>>
+>>> This kind of spelling issue can be found by scripts/checkpatch.pl
+>>
+>> will be fixed
+> 
+> P.S. there are two typos here, the obvious one in "alredy",
+> but also the passive of "to bind" is "bound", not "binded".
+> (That is also mis-spelled in a few more places I think.)
 
+Thanks, I'll fix them.
+
+> 
+> —Günther
