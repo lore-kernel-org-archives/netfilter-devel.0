@@ -1,91 +1,97 @@
-Received: from mail.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
+Received: from www62.your-server.de (www62.your-server.de [213.133.104.62])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFC3F46434;
-	Mon,  1 Jul 2024 05:39:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=150.107.74.76
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA1BA5C614;
+	Mon,  1 Jul 2024 08:07:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.133.104.62
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719812363; cv=none; b=q+E0zYV1TnN9V4+hVLYdsScUWzQJ8a+eMhhi7bC34vh1Wl4AHMfOQBxc6m+haiporyJeLkdyDb276JS3ic0T98irZTiMmGoP0iASsw2w0G/Zb6djQX3ukzvkpBkWzDf/WdXD0kNhER019+wLYycHWuI41N60H/EvrTeQZeoo0tM=
+	t=1719821241; cv=none; b=NWdlkrTBVfP50yqvE0MBp3bPtr2L50b5fMrnHpF1MbVrHZTxhbfy5vDTSmZONR/D9NizgjqqAMSEtkvXUcaroL/tHVlboGAtcsF2qY0bGwAFMGv9KAICYetrxVHhcfEwbKdGWDV8tQfuqL4iNN3rN3K1rmTMikm6iecxL8RL5dw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719812363; c=relaxed/simple;
-	bh=RJ8xCR1JYp6tT75v34uU+ssIfcIE5+6G4jki/RxvGDM=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type; b=A1vi2gXFzM84Y7VZd0CMzLxlWWJA86L3iFcXxg/nXC3K2zy3IHVejcKN7oqeAkeYkCIosDLr9yS8zDwTKnqUc1pIN0SJ4htWyQ0l/ms1gyM5l1KHrvLgIjLvVBoD5P3xd3QIu3EgFctK4W9RoAUdu5iMBQYzbZ9xIk65LDKpU+g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=canb.auug.org.au; spf=pass smtp.mailfrom=canb.auug.org.au; dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b=nxl2acWw; arc=none smtp.client-ip=150.107.74.76
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=canb.auug.org.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=canb.auug.org.au
+	s=arc-20240116; t=1719821241; c=relaxed/simple;
+	bh=3Hc856aw6bOsK5L6t5DfLT5e5XmQ/CuZmw2ejIUUYEA=;
+	h=Subject:To:Cc:References:From:Message-ID:Date:MIME-Version:
+	 In-Reply-To:Content-Type; b=jhKHyWa3JYzVaimD2hTXrIkeDkRYhK/WUt2AlgHZYC5aqbV9n82dKqL7Y7+7Bs4k69biHtwhd+TGfC3GrtuDH9v9nWjsE8mb5kSGfVp9nJ3LeUyQsxSQ1Te3NliwUQ+6DxhMXWuE5OOiPXw9yhNzZESKToCNmJX7cZYEAhkflzI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=iogearbox.net; spf=pass smtp.mailfrom=iogearbox.net; dkim=pass (2048-bit key) header.d=iogearbox.net header.i=@iogearbox.net header.b=gggtZFLp; arc=none smtp.client-ip=213.133.104.62
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=iogearbox.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iogearbox.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b="nxl2acWw"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canb.auug.org.au;
-	s=201702; t=1719812358;
-	bh=teeHPyKJJzs7w+TI3wYP0PPGnaSwkfmjvc2NyTmO0Ik=;
-	h=Date:From:To:Cc:Subject:From;
-	b=nxl2acWwy/wSWvLFWjLIDnEGotAOo9pN0OwIjsMt+I8poXUZ7q3Wc2lFt0dX4U+2p
-	 opgAEAmzHFmEcbIewvB5hX5X9YNpKIRpSnkUPn7Xp5w/yJ0MZMzUOVevu8+fuZnNNY
-	 dWZZwvcPxaGWZBlcW5w8CgopirZXCLcaoJD8pXxh/KFAhiuObu6B/ZQ2K4Sj4Ub9O9
-	 +aw6aUxCXax5bQDRPO84uS0bnD0ykyPzliDz8/KDYXT+wQPT9MTV4jX0HXBBXGVToF
-	 z5jDlMeYOGcD7tiWot99HAjR7n0J7l3zJ8XitnYRlYDQA07kWY+RtSQwSOf8smUJQE
-	 g/t3QoaUqe63w==
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mail.ozlabs.org (Postfix) with ESMTPSA id 4WCFGY17nzz4wx6;
-	Mon,  1 Jul 2024 15:39:16 +1000 (AEST)
-Date: Mon, 1 Jul 2024 15:39:15 +1000
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-To: Simon Horman <horms@verge.net.au>, Pablo Neira Ayuso
- <pablo@netfilter.org>
-Cc: NetFilter <netfilter-devel@vger.kernel.org>, Linux Kernel Mailing List
- <linux-kernel@vger.kernel.org>, Linux Next Mailing List
- <linux-next@vger.kernel.org>
-Subject: linux-next: duplicate patch in the ipvs-next tree
-Message-ID: <20240701153915.317fc7a2@canb.auug.org.au>
+	dkim=pass (2048-bit key) header.d=iogearbox.net header.i=@iogearbox.net header.b="gggtZFLp"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=iogearbox.net; s=default2302; h=Content-Transfer-Encoding:Content-Type:
+	In-Reply-To:MIME-Version:Date:Message-ID:From:References:Cc:To:Subject:Sender
+	:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID;
+	bh=oV5oBHh63yqsNcaUQykIzDCbVVZ2xyc88O0Bf7a/ij0=; b=gggtZFLp2+HZPqox1UWEeL2pxr
+	xFpcB+L7OrVbzVQcM+f4/qANPcj0IVJxyBaEk3fAMdufonyr70WCPB/lC4IJ211qgECfGUlqaU4R+
+	7+5zt2OxvMPP100jyD6xMcQP4Qgqs/KVTPItaeyHUfuSUiFQqIvJL3NiI0CIym0WrdjH9faGEuZsn
+	XL8Cgl9uTz3NmykB7fB7ahDOPwPPhnqubUETFh2tuo3LDAPS+4E73I0UzeavH5zQBryLKuNcxEtp6
+	GlXK7RK3M8Qt2FhSVr8U2p7GiqFD94p+SsDrBNZ3kch9ZwL2FrzysIumCnwUyXNVWhwREKh1BsswR
+	vwMK/1YQ==;
+Received: from sslproxy03.your-server.de ([88.198.220.132])
+	by www62.your-server.de with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <daniel@iogearbox.net>)
+	id 1sOC45-000ClF-BH; Mon, 01 Jul 2024 10:07:09 +0200
+Received: from [178.197.249.41] (helo=linux.home)
+	by sslproxy03.your-server.de with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
+	(Exim 4.96)
+	(envelope-from <daniel@iogearbox.net>)
+	id 1sOC43-000FAQ-3A;
+	Mon, 01 Jul 2024 10:07:08 +0200
+Subject: Re: [PATCH v5 bpf-next 3/3] selftests/bpf: Add selftest for
+ bpf_xdp_flow_lookup kfunc
+To: Lorenzo Bianconi <lorenzo@kernel.org>
+Cc: bpf@vger.kernel.org, pablo@netfilter.org, kadlec@netfilter.org,
+ davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+ pabeni@redhat.com, netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+ ast@kernel.org, andrii@kernel.org, martin.lau@linux.dev, eddyz87@gmail.com,
+ lorenzo.bianconi@redhat.com, toke@redhat.com, fw@strlen.de, hawk@kernel.org,
+ horms@kernel.org, donhunte@redhat.com, memxor@gmail.com
+References: <cover.1718379122.git.lorenzo@kernel.org>
+ <6472c7a775f6a329d16352092071fda8676c2809.1718379122.git.lorenzo@kernel.org>
+ <89bd0cd7-ed01-a343-d873-dc0c6d2810f2@iogearbox.net>
+ <ZoBqijOJi2JVcHDB@lore-desk>
+From: Daniel Borkmann <daniel@iogearbox.net>
+Message-ID: <66efa6eb-ed16-57b3-f490-8b3b4e6243f1@iogearbox.net>
+Date: Mon, 1 Jul 2024 10:07:06 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/K50fw14UlBDSbAEAWWz4pDC";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+In-Reply-To: <ZoBqijOJi2JVcHDB@lore-desk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Authenticated-Sender: daniel@iogearbox.net
+X-Virus-Scanned: Clear (ClamAV 0.103.10/27322/Sun Jun 30 10:36:30 2024)
 
---Sig_/K50fw14UlBDSbAEAWWz4pDC
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On 6/29/24 10:11 PM, Lorenzo Bianconi wrote:
+>> On 6/14/24 5:40 PM, Lorenzo Bianconi wrote:
+>> [...]
+>>> +void test_xdp_flowtable(void)
+>>> +{
+>>> +	struct xdp_flowtable *skel = NULL;
+>>> +	struct nstoken *tok = NULL;
+>>> +	int iifindex, stats_fd;
+>>> +	__u32 value, key = 0;
+>>> +	struct bpf_link *link;
+>>> +
+>>> +	if (SYS_NOFAIL("nft -v")) {
+>>> +		fprintf(stdout, "Missing required nft tool\n");
+>>> +		test__skip();
+>>> +		return;
+>>
+>> Bit unfortunate that upstream CI skips the test case at the moment:
+> 
+> yep, we are missing nft utility there.
 
-Hi all,
+Ok, not a blocker imho, but if you could work with Manu to get this
+enabled in the CI, that would be great so that the test can actually
+run.
 
-The following commit is also in the netfilter-next tree as a different
-commit (but the same patch):
-
-  8871d1e4dceb ("netfilter: xt_recent: Lift restrictions on max hitcount va=
-lue")
-
-This is commit
-
-  f4ebd03496f6 ("netfilter: xt_recent: Lift restrictions on max hitcount va=
-lue")
-
-in the netfilter-next tree.
-
---=20
-Cheers,
-Stephen Rothwell
-
---Sig_/K50fw14UlBDSbAEAWWz4pDC
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmaCQQMACgkQAVBC80lX
-0Gw9LAgAhK4z7j5PhvTzd2VkoOMl1eN3ufBy4ikW2uC1khDOURTfkVG6JQDyUc8q
-OyPs69Ny63aZqWAdKuo2rD9TKxm9IEZymGB5yobsm7Nugz1HNpNb7267hBJS5XI4
-AWUAbMWm2CCnTjnolDfZFJePCaNEbCegVOAP2qqoTfSLzu2r3oYlhtMJHIbeAWJt
-BxT84qxPmufJj+zuI/ip4MIZRAWu+acVTipt6ZMUWlBtqENK/pwm3FHAtSz7SJs5
-K7pf+5Gu0/4aOxq4xptQOJ7iqcosJqAZTNOL612snzNNrykjL4dsBTGcvZb9umhr
-UE3ce1UUNarOCtrCyoLKr8jowepXQA==
-=LKzh
------END PGP SIGNATURE-----
-
---Sig_/K50fw14UlBDSbAEAWWz4pDC--
+Thanks,
+Daniel
