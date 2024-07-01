@@ -1,88 +1,152 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f201.google.com (mail-yw1-f201.google.com [209.85.128.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E385384DE9;
-	Mon,  1 Jul 2024 15:10:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A58316D333
+	for <netfilter-devel@vger.kernel.org>; Mon,  1 Jul 2024 15:47:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719846629; cv=none; b=o+El8hNUQE1kCrrs/iZIF7q4WPMsfeAVEcuRf3nSPtiIVyht7M/NIQeqiFQyupzPe7evgK9Ek1zkscdKYY5IZsXWktjrINxJSvHkQBQdgsPcB2ajOKhTTVx0Sc9kxoyFmoiRM2sdxcvws+Dk1A5zjd3pOCx9HZ2wcJ/mO5mDeQU=
+	t=1719848841; cv=none; b=iuMjQlg2JVoUTTKESvoRbmiH8C9+CtWYsXg6Y1hl4T5GjJfAR2mRkbPqK+qRRJDqadof01FIpcqvWlaa8SPHP02FJiAr5YUXdQZvbkrqa/51X2b6Fl3+xGfNT6/fZ7WrL1FKEZBktz2m+NoiA+DBlOBTDpcoErd4pTN6LD78jrI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719846629; c=relaxed/simple;
-	bh=MMhmd+2OqCPynT3QO2s+IyuhlXayN0mUXmdQP4pBhXc=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=jB02WDMI1qGOgzO+aneD8610dbW4BhuWk7w39vzerBlWYQzrgyOSzleJbLErB0ByNCgtYUF05f65bIiOPAOrGXm3/dgX7i6UZ6OqYAz2w5ry6kw81QTKg/nCFM5KUUj9xrZUGjNnWUJqM0sJ86PObN102yEKSlWEJFcxJ5ZSrg4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lV9r7hAJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719848841; c=relaxed/simple;
+	bh=FPo8D/Kk1dOyR5uT4VxPnhtcwddp+vWKSHFQqxpjbjU=;
+	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
+	 To:Cc:Content-Type; b=JtdlOnvPUW2msiIkWx5TeJ3CXtzsOBg+pkeKqD0pFPeXzf+ZBKAoy3stYUohdZGPGkbiljULxeQShJW9Ab3L+tDuhTexTdSpZMFjCDCZyRw03R0f6lWmKjwN8mqBFLdvKm+YDE/njTKg/kcJL+dx4MZcbzP7qEwqT6lUSlqU4HM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=aOaubwWF; arc=none smtp.client-ip=209.85.128.201
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lV9r7hAJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 919A0C4AF12;
-	Mon,  1 Jul 2024 15:10:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1719846628;
-	bh=MMhmd+2OqCPynT3QO2s+IyuhlXayN0mUXmdQP4pBhXc=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=lV9r7hAJjQEcxvhXproilhEBUcPjUx6bscl+ZuG+DZjXKTsnVdGye8PpjE0zlE2Do
-	 sf+WDe1YmIijeVQe3eQQJW6AuHquUHvr+p8C7WLyGggZ2UbSARQWYORUTkTJfT/Z6R
-	 zM7N850/CWtDFl6UWRF10IjXrLa0ryyowk5hRDeFuN1pEqPRobXiQDMt71k2B2TdeS
-	 EnFbPIRoWKBF2aA9Jl5ft+JRNA0T7qyTMDNmVv0N01epugVUh/aZzYGGowZSrjjE1t
-	 cSVX/PN6nqoD1A1f/7PITzqWdS+ra4st5VC4r3WXbDan51F5rTW4+LamsL1BriIdnD
-	 bM5C4wcSCa5+A==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 7D276C43468;
-	Mon,  1 Jul 2024 15:10:28 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="aOaubwWF"
+Received: by mail-yw1-f201.google.com with SMTP id 00721157ae682-64f30b1f8ecso8245067b3.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 01 Jul 2024 08:47:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1719848839; x=1720453639; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:from:subject:message-id:references
+         :mime-version:in-reply-to:date:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=WU1tUU/5ppJ9JQGB+epgGM7MVZKaRXGO2Nbxk9/VZsc=;
+        b=aOaubwWFuqJdoKFt27fXTt1PngjO6tfxXkDmMjW49iIRHc1baBBKO3iYLOOsvTfFQn
+         zwjMnQtBXLog0o687dMRKc3Y8HQK+Nb4N34Loaw3wlyzqWiIAhALW+nYguiugcEL3jFK
+         jPXYOkXqjVahWMhIzskZecGMD8P7hqf1WxsoDOhMvhD369CNH1NvjxD2qqsWPuroVUO6
+         hzf+g01BFqlDZsDFGD2DcFLtVL7/AxEOWuusTKiNBlUL3mmloS+9Qny0OreSm8judjtQ
+         EwgmvicbKdTI9/FHK3C2pc6jOpY3k1pkkRlIdWEMdltdaRHGp8MlA6K4eq9d7Jv+ydE6
+         k6cA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1719848839; x=1720453639;
+        h=content-transfer-encoding:cc:to:from:subject:message-id:references
+         :mime-version:in-reply-to:date:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=WU1tUU/5ppJ9JQGB+epgGM7MVZKaRXGO2Nbxk9/VZsc=;
+        b=FKJGkygudTxCpGhsbeYSjS5QHb3+34ApuUBS1auz+JWEhZxl+qos3E+oJIJaCX6LIQ
+         KmZ4VjZ8e18qd9qpgUUZPhXUd82C1xoCNLGOH2FVzXnex35p+nOgAjOKJ00e9t/zc53k
+         83zttsPnIeK0T14w3t3Z7ybyutXCz51Qmg4fFRVm3hoyfic1Q1xEI5rU7DzvYJGSeULS
+         Emw4vGs77OJieP9eM0XqA8qPKFe3LqDGHeo5y4fTXyiW+gyZjLOzuqzmguINQbdRiSPg
+         3/9aYjvCb+xhd67UafHysBfVuCzcdE8Z9/4EO3pA2BGPNiGbeieqmBWQSye8rqYUPxnf
+         CE8g==
+X-Forwarded-Encrypted: i=1; AJvYcCU9k+6j0fdxxcG4MSN2pUFJwD50shu7uh6RLJlBr9NdCJvDpmd4f7592rX0ezqplXSYz7GqGZaXlCTQzky4kiijoTVg3UEvLN2YQr3fU4Xt
+X-Gm-Message-State: AOJu0YyaIlrYWSxg5FjqFRykIyl64nShrmueNzM18A+0WlhZ+/2PF6CV
+	o/gETv+LjyR3NJB7DKARQDam7NcWkvTj17sMLReE6mz/37khEv1IDwCqSxjB2oRWgcE+P7k6JUd
+	guQ==
+X-Google-Smtp-Source: AGHT+IErBJMV/zWn0JWp3w5OGm+ClIlLy1G7Ira79YbfIC8FfYGvfByDwDiqd2kOIkaWE4wAf39lUKmODns=
+X-Received: from swim.c.googlers.com ([fda3:e722:ac3:cc00:31:98fb:c0a8:1605])
+ (user=gnoack job=sendgmr) by 2002:a05:6902:2b84:b0:e03:6556:9fa1 with SMTP id
+ 3f1490d57ef6-e036ec44f66mr275869276.8.1719848839432; Mon, 01 Jul 2024
+ 08:47:19 -0700 (PDT)
+Date: Mon, 1 Jul 2024 17:47:17 +0200
+In-Reply-To: <bd2622cf-27e2-dbb6-735a-0adf6c79b339@huawei-partners.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH v6 bpf-next 0/3] netfilter: Add the capability to offload
- flowtable in XDP layer
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <171984662850.25774.11398044687534883438.git-patchwork-notify@kernel.org>
-Date: Mon, 01 Jul 2024 15:10:28 +0000
-References: <cover.1719698275.git.lorenzo@kernel.org>
-In-Reply-To: <cover.1719698275.git.lorenzo@kernel.org>
-To: Lorenzo Bianconi <lorenzo@kernel.org>
-Cc: bpf@vger.kernel.org, pablo@netfilter.org, kadlec@netfilter.org,
- davem@davemloft.net, edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
- netfilter-devel@vger.kernel.org, netdev@vger.kernel.org, ast@kernel.org,
- daniel@iogearbox.net, andrii@kernel.org, martin.lau@linux.dev,
- eddyz87@gmail.com, lorenzo.bianconi@redhat.com, toke@redhat.com,
- fw@strlen.de, hawk@kernel.org, horms@kernel.org, donhunte@redhat.com,
- memxor@gmail.com
+Mime-Version: 1.0
+References: <20240408094747.1761850-1-ivanov.mikhail1@huawei-partners.com>
+ <20240408094747.1761850-2-ivanov.mikhail1@huawei-partners.com>
+ <20240425.Soot5eNeexol@digikod.net> <a18333c0-4efc-dcf4-a219-ec46480352b1@huawei-partners.com>
+ <ZnMr30kSCGME16rO@google.com> <b2d1a152-0241-6a3a-1f31-4a1045fff856@huawei-partners.com>
+ <ZoKB7bl41ZOiiXmF@google.com> <bd2622cf-27e2-dbb6-735a-0adf6c79b339@huawei-partners.com>
+Message-ID: <ZoLPhQ4eyl0H_oSQ@google.com>
+Subject: Re: [PATCH 1/2] landlock: Add hook on socket_listen()
+From: "=?utf-8?Q?G=C3=BCnther?= Noack" <gnoack@google.com>
+To: Ivanov Mikhail <ivanov.mikhail1@huawei-partners.com>
+Cc: "=?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?=" <mic@digikod.net>, willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com, 
+	linux-security-module@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, yusongping@huawei.com, 
+	artem.kuzin@huawei.com, konstantin.meskhidze@huawei.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hello:
+On Mon, Jul 01, 2024 at 04:10:27PM +0300, Ivanov Mikhail wrote:
+> Thanks for the great explanation! We're on the same page.
+>=20
+> Considering that binding to ephemeral ports can be done not only with
+> bind() or listen(), I think your approach is more correct.
+> Restricting any possible binding to ephemeral ports just using
+> LANDLOCK_ACCESS_NET_BIND_TCP wouldn't allow sandboxed processes
+> to deny listen() without pre-binding (which is quite unsafe) and
+> use connect() in the usuall way (without pre-binding).
+>=20
+> Controlling ephemeral ports allocation for listen() can be done in the
+> same way as for LANDLOCK_ACCESS_NET_BIND_TCP in the patch with
+> LANDLOCK_ACCESS_NET_LISTEN_TCP access right implementation.
 
-This series was applied to bpf/bpf-next.git (master)
-by Daniel Borkmann <daniel@iogearbox.net>:
-
-On Sun, 30 Jun 2024 00:26:47 +0200 you wrote:
-> Introduce bpf_xdp_flow_lookup kfunc in order to perform the lookup of
-> a given flowtable entry based on the fib tuple of incoming traffic.
-> bpf_xdp_flow_lookup can be used as building block to offload in XDP
-> the sw flowtable processing when the hw support is not available.
-> 
-> This series has been tested running the xdp_flowtable_offload eBPF program
-> on an ixgbe 10Gbps NIC (eno2) in order to XDP_REDIRECT the TCP traffic to
-> a veth pair (veth0-veth1) based on the content of the nf_flowtable as soon
-> as the TCP connection is in the established state:
-> 
-> [...]
-
-Here is the summary with links:
-  - [v6,bpf-next,1/3] netfilter: nf_tables: add flowtable map for xdp offload
-    https://git.kernel.org/bpf/bpf-next/c/89cc8f1c5f22
-  - [v6,bpf-next,2/3] netfilter: add bpf_xdp_flow_lookup kfunc
-    https://git.kernel.org/bpf/bpf-next/c/391bb6594fd3
-  - [v6,bpf-next,3/3] selftests/bpf: Add selftest for bpf_xdp_flow_lookup kfunc
-    https://git.kernel.org/bpf/bpf-next/c/c77e572d3a8c
-
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+That sounds good, yes! =F0=9F=91=8D
 
 
+> I'm only concerned about controlling the auto-binding for other
+> operations (such as connect() and sendto() for UDP). As I said, I think
+> this can also be useful: users will be able to control which processes
+> are allowed to use ephemeral ports from ip_local_port_range and which
+> are not, and they must assign ports for each operation explicitly. If
+> you agree that such control is reasonable, we'll probably  have to
+> consider some API changes, since such control is currently not possible.
+>=20
+> We should clarify this before I send a patch with the
+> LANDLOCK_ACCESS_NET_LISTEN_TCP implementation. WDYT?
+
+LANDLOCK_ACCESS_NET_LISTEN_TCP seems like the most important to me.
+
+For connect() and sendto(), I think the access rights are less urgent:
+
+connect(): We already have LANDLOCK_ACCESS_NET_CONNECT_TCP, but that one is
+getting restricted for the *remote* port number.
+
+ (a) I think it would be possible to do the same for the *local* port numbe=
+r, by
+     introducing a separate LANDLOCK_ACCESS_NET_CONNECT_TCP_LOCALPORT right=
+.
+     (Yes, the name is absolutely horrible, this is just for the example :)=
+)
+     hook_socket_connect() would then need to do both a check for the remot=
+e
+     port using LANDLOCK_ACCESS_NET_CONNECT_TCP, as it already does today, =
+as
+     well as a check for the (previously bound?) local port using
+     LANDLOCK_ACCESS_NET_CONNECT_TCP_LOCALPORT.
+    =20
+     So I think it is extensible in that direction, in principle, even thou=
+gh I
+     don't currently have a good name for that access right. :)
+    =20
+ (b) Compared to what LANDLOCK_ACCESS_NET_BIND_TCP already restricts, a
+     hypothetical LANDLOCK_ACCESS_NET_CONNECT_TCP_LOCALPORT right would onl=
+y
+     additionally restrict the use of ephemeral ports.  I'm currently havin=
+g a
+     hard time seeing what an attacker could do with that (use up all ephem=
+eral
+     ports?).
+
+sendto(): I think this is not relevant yet, because as the documentation sa=
+id,
+ephemeral ports are only handed out when sendto() is used with datagram (UD=
+P)
+sockets.
+
+Once Landlock starts having UDP support, this would become relevant, but fo=
+r
+this patch set, I think that the TCP server use case as discussed further a=
+bove
+in this thread is very compelling.
+
+Thanks,
+=E2=80=94G=C3=BCnther
