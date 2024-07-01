@@ -1,62 +1,91 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3616C200C1;
-	Sun, 30 Jun 2024 13:16:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFC3F46434;
+	Mon,  1 Jul 2024 05:39:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=150.107.74.76
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719753386; cv=none; b=MiBvV2bY2N8gCfG9x5vVVP9MsCbttZwaLO942zuTGU7M5iLr3iG/FKCq7RUU6t8PBB1WpkSJyXwmidKPL+1CBrYDs0RvBMenZCNLmNEvZvDcM2guw5RdxZN+QfvGasfEqEMg4MLGzVOBz3FFerquD03TcSTSWbSmvPMp/wJbCcg=
+	t=1719812363; cv=none; b=q+E0zYV1TnN9V4+hVLYdsScUWzQJ8a+eMhhi7bC34vh1Wl4AHMfOQBxc6m+haiporyJeLkdyDb276JS3ic0T98irZTiMmGoP0iASsw2w0G/Zb6djQX3ukzvkpBkWzDf/WdXD0kNhER019+wLYycHWuI41N60H/EvrTeQZeoo0tM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719753386; c=relaxed/simple;
-	bh=262UgeLynu8qYG6MZIXW3paH4jn28M/vPA9axxXZ2uY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=t2PUitkhUG2CuAnafDR9OAW1mE+BYvw8RQAlecKLU4V+R0cEPTTymR5Av2GpmDvndnfQGKWu0IQFqhAoZQ9QLbreh4ygerswwXIrkzIhw+oyBPHnWeZKGZ0l5aPVjNsMPPbz6ld33/qZQYQLb/S0c6LeHT2LGZ9QkqQFwVTm6eQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KBM+gCQA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719812363; c=relaxed/simple;
+	bh=RJ8xCR1JYp6tT75v34uU+ssIfcIE5+6G4jki/RxvGDM=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type; b=A1vi2gXFzM84Y7VZd0CMzLxlWWJA86L3iFcXxg/nXC3K2zy3IHVejcKN7oqeAkeYkCIosDLr9yS8zDwTKnqUc1pIN0SJ4htWyQ0l/ms1gyM5l1KHrvLgIjLvVBoD5P3xd3QIu3EgFctK4W9RoAUdu5iMBQYzbZ9xIk65LDKpU+g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=canb.auug.org.au; spf=pass smtp.mailfrom=canb.auug.org.au; dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b=nxl2acWw; arc=none smtp.client-ip=150.107.74.76
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=canb.auug.org.au
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=canb.auug.org.au
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KBM+gCQA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 508EFC2BD10;
-	Sun, 30 Jun 2024 13:16:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1719753385;
-	bh=262UgeLynu8qYG6MZIXW3paH4jn28M/vPA9axxXZ2uY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=KBM+gCQAEpYIUEU6nXr+TBWqsk88sgO8ALOHAd9X+nqwPFfPYHG56KblvcNSa1dfH
-	 m86WyIPwzmInW5blbFz6ZwE3H8lWmd2RBNcyOvthsMBvXKBDWbzEYO/A27ofE6bg4q
-	 wJpVfhAfU5Qt5RJvJe3bZvHjUm8IpVgenRDA+IzPj6mISi5l/mHmuYZK7x2RQKHXo/
-	 EF97Nr0MV226zDg6zfCKkGWa0JXJ8mQlaWN3WNWc9jmsiYFY3at9x3Owd5PSkyWQNi
-	 p2WDL3iPrGz5+nZU5qWWpLPm+VFSof5HsssKdXbelmZrI/b/2N3skqVr2PeZnhg7g0
-	 nBJ1bVi1G/ukw==
-Date: Sun, 30 Jun 2024 14:16:20 +0100
-From: Simon Horman <horms@kernel.org>
-To: Chen Hanxiao <chenhx.fnst@fujitsu.com>
-Cc: Julian Anastasov <ja@ssi.bg>, Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	"David S . Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH net-next v2] ipvs: properly dereference pe in
- ip_vs_add_service
-Message-ID: <20240630131620.GA17134@kernel.org>
-References: <20240627061515.1477-1-chenhx.fnst@fujitsu.com>
+	dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b="nxl2acWw"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canb.auug.org.au;
+	s=201702; t=1719812358;
+	bh=teeHPyKJJzs7w+TI3wYP0PPGnaSwkfmjvc2NyTmO0Ik=;
+	h=Date:From:To:Cc:Subject:From;
+	b=nxl2acWwy/wSWvLFWjLIDnEGotAOo9pN0OwIjsMt+I8poXUZ7q3Wc2lFt0dX4U+2p
+	 opgAEAmzHFmEcbIewvB5hX5X9YNpKIRpSnkUPn7Xp5w/yJ0MZMzUOVevu8+fuZnNNY
+	 dWZZwvcPxaGWZBlcW5w8CgopirZXCLcaoJD8pXxh/KFAhiuObu6B/ZQ2K4Sj4Ub9O9
+	 +aw6aUxCXax5bQDRPO84uS0bnD0ykyPzliDz8/KDYXT+wQPT9MTV4jX0HXBBXGVToF
+	 z5jDlMeYOGcD7tiWot99HAjR7n0J7l3zJ8XitnYRlYDQA07kWY+RtSQwSOf8smUJQE
+	 g/t3QoaUqe63w==
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mail.ozlabs.org (Postfix) with ESMTPSA id 4WCFGY17nzz4wx6;
+	Mon,  1 Jul 2024 15:39:16 +1000 (AEST)
+Date: Mon, 1 Jul 2024 15:39:15 +1000
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+To: Simon Horman <horms@verge.net.au>, Pablo Neira Ayuso
+ <pablo@netfilter.org>
+Cc: NetFilter <netfilter-devel@vger.kernel.org>, Linux Kernel Mailing List
+ <linux-kernel@vger.kernel.org>, Linux Next Mailing List
+ <linux-next@vger.kernel.org>
+Subject: linux-next: duplicate patch in the ipvs-next tree
+Message-ID: <20240701153915.317fc7a2@canb.auug.org.au>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240627061515.1477-1-chenhx.fnst@fujitsu.com>
+Content-Type: multipart/signed; boundary="Sig_/K50fw14UlBDSbAEAWWz4pDC";
+ protocol="application/pgp-signature"; micalg=pgp-sha256
 
-On Thu, Jun 27, 2024 at 02:15:15PM +0800, Chen Hanxiao wrote:
-> Use pe directly to resolve sparse warning:
-> 
->   net/netfilter/ipvs/ip_vs_ctl.c:1471:27: warning: dereference of noderef expression
-> 
-> Fixes: 39b972231536 ("ipvs: handle connections started by real-servers")
-> Signed-off-by: Chen Hanxiao <chenhx.fnst@fujitsu.com>
+--Sig_/K50fw14UlBDSbAEAWWz4pDC
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Acked-by: Simon Horman <horms@kernel.org>
+Hi all,
 
+The following commit is also in the netfilter-next tree as a different
+commit (but the same patch):
+
+  8871d1e4dceb ("netfilter: xt_recent: Lift restrictions on max hitcount va=
+lue")
+
+This is commit
+
+  f4ebd03496f6 ("netfilter: xt_recent: Lift restrictions on max hitcount va=
+lue")
+
+in the netfilter-next tree.
+
+--=20
+Cheers,
+Stephen Rothwell
+
+--Sig_/K50fw14UlBDSbAEAWWz4pDC
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmaCQQMACgkQAVBC80lX
+0Gw9LAgAhK4z7j5PhvTzd2VkoOMl1eN3ufBy4ikW2uC1khDOURTfkVG6JQDyUc8q
+OyPs69Ny63aZqWAdKuo2rD9TKxm9IEZymGB5yobsm7Nugz1HNpNb7267hBJS5XI4
+AWUAbMWm2CCnTjnolDfZFJePCaNEbCegVOAP2qqoTfSLzu2r3oYlhtMJHIbeAWJt
+BxT84qxPmufJj+zuI/ip4MIZRAWu+acVTipt6ZMUWlBtqENK/pwm3FHAtSz7SJs5
+K7pf+5Gu0/4aOxq4xptQOJ7iqcosJqAZTNOL612snzNNrykjL4dsBTGcvZb9umhr
+UE3ce1UUNarOCtrCyoLKr8jowepXQA==
+=LKzh
+-----END PGP SIGNATURE-----
+
+--Sig_/K50fw14UlBDSbAEAWWz4pDC--
