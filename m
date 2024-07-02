@@ -1,202 +1,145 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4BB776F17
-	for <netfilter-devel@vger.kernel.org>; Tue,  2 Jul 2024 11:26:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45AF116C6A2;
+	Tue,  2 Jul 2024 12:43:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.255
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719919575; cv=none; b=nuunoqn2mCSbfikKfD8+CqLaU3yP6edSb5u+Nq0whyU/4+rQtkO5SM8ySZ9ho/ZATYtxxTmOaYkO6KrAtkU5i7UyHWN6PrCtRXt6iMT+03SSLo31RMLXwAT6k8rKv5KvRhy3oSuPlbfkejfdhtl8pDU+3Os3cHM5cAl0tfgA214=
+	t=1719924224; cv=none; b=kfnigZiNY9d9VnFFiIjt3MTCcTAk6Pfn6vzg+TS2vWWi5cKqEQa0PjZkIOSADDMqvICIpeACHDrgs4MuP7cabzgYDeNsYOgSFqYc6vhBKr0ui3Q7fd1sPqLkTFuB0XJH/Q0UMEzFU+i09kh93RtgVG6jVLtNwk0wsKyjc0luCA4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719919575; c=relaxed/simple;
-	bh=oX0t9YsUZC93M1Gjii8f/m4lQfw+RR07GcJm5Ub68Xs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=khJKGgZlP6pfPPhytRSoA7Qtxqk/XULN/RxUVDwVZsOhSlMH0TT8bSebPBNW6TZFSO5uEid+wU7dBkaM5PX26T+znWDsLpYyCdESo9zvj8OFtt8Txt24vxkQF6Ojp5z4zNvixUgl7t3toQklIbm8Mu+5vudG530TFXNRMeUPpFI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1sObeE-0006qW-K4; Tue, 02 Jul 2024 13:26:10 +0200
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Antonio Ojea <aojea@google.com>,
-	Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next] selftests: netfilter: nft_queue.sh: sctp coverage
-Date: Tue,  2 Jul 2024 13:15:36 +0200
-Message-ID: <20240702111539.32432-1-fw@strlen.de>
-X-Mailer: git-send-email 2.44.2
+	s=arc-20240116; t=1719924224; c=relaxed/simple;
+	bh=+4pUZI8Vh3YIUfOxi6pW0WIBII4dOgHNC8SzYkgDUCw=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=WKxKPHBin60m4bVMw1UVVCRSr5kcNS7aWzk8cubNJt7H9XGc8o+e6qOhX/biDeYh4dqNHvFO9ARqfTzX496RW9URGW6rqctO+mjU+tcQAlYbIBeuNNzWj7jTX/ZuPgV+xlWMlvRH4l+Fgjwx2cMhkUKtZrVbBL0p7m8I0Xh+sQI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.255
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
+Received: from mail.maildlp.com (unknown [172.19.163.174])
+	by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4WD2XV3dNTz1T4H3;
+	Tue,  2 Jul 2024 20:39:06 +0800 (CST)
+Received: from dggpemm500020.china.huawei.com (unknown [7.185.36.49])
+	by mail.maildlp.com (Postfix) with ESMTPS id 9B3241400CD;
+	Tue,  2 Jul 2024 20:43:38 +0800 (CST)
+Received: from [10.123.123.159] (10.123.123.159) by
+ dggpemm500020.china.huawei.com (7.185.36.49) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.39; Tue, 2 Jul 2024 20:43:34 +0800
+Message-ID: <9943a87b-b981-794a-2c3d-b8dc143fe3e9@huawei-partners.com>
+Date: Tue, 2 Jul 2024 15:43:21 +0300
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 1/2] landlock: Add hook on socket_listen()
+Content-Language: ru
+To: =?UTF-8?Q?G=C3=BCnther_Noack?= <gnoack@google.com>
+CC: =?UTF-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>,
+	<willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
+	<linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+	<netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+	<artem.kuzin@huawei.com>, <konstantin.meskhidze@huawei.com>
+References: <20240408094747.1761850-1-ivanov.mikhail1@huawei-partners.com>
+ <20240408094747.1761850-2-ivanov.mikhail1@huawei-partners.com>
+ <20240425.Soot5eNeexol@digikod.net>
+ <a18333c0-4efc-dcf4-a219-ec46480352b1@huawei-partners.com>
+ <ZnMr30kSCGME16rO@google.com>
+ <b2d1a152-0241-6a3a-1f31-4a1045fff856@huawei-partners.com>
+ <ZoKB7bl41ZOiiXmF@google.com>
+ <bd2622cf-27e2-dbb6-735a-0adf6c79b339@huawei-partners.com>
+ <ZoLPhQ4eyl0H_oSQ@google.com>
+From: Ivanov Mikhail <ivanov.mikhail1@huawei-partners.com>
+In-Reply-To: <ZoLPhQ4eyl0H_oSQ@google.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: lhrpeml100001.china.huawei.com (7.191.160.183) To
+ dggpemm500020.china.huawei.com (7.185.36.49)
 
-From: Antonio Ojea <aojea@google.com>
+7/1/2024 6:47 PM, Günther Noack wrote:
+> On Mon, Jul 01, 2024 at 04:10:27PM +0300, Ivanov Mikhail wrote:
+>> Thanks for the great explanation! We're on the same page.
+>>
+>> Considering that binding to ephemeral ports can be done not only with
+>> bind() or listen(), I think your approach is more correct.
+>> Restricting any possible binding to ephemeral ports just using
+>> LANDLOCK_ACCESS_NET_BIND_TCP wouldn't allow sandboxed processes
+>> to deny listen() without pre-binding (which is quite unsafe) and
+>> use connect() in the usuall way (without pre-binding).
+>>
+>> Controlling ephemeral ports allocation for listen() can be done in the
+>> same way as for LANDLOCK_ACCESS_NET_BIND_TCP in the patch with
+>> LANDLOCK_ACCESS_NET_LISTEN_TCP access right implementation.
+> 
+> That sounds good, yes! 👍
+> 
+> 
+>> I'm only concerned about controlling the auto-binding for other
+>> operations (such as connect() and sendto() for UDP). As I said, I think
+>> this can also be useful: users will be able to control which processes
+>> are allowed to use ephemeral ports from ip_local_port_range and which
+>> are not, and they must assign ports for each operation explicitly. If
+>> you agree that such control is reasonable, we'll probably  have to
+>> consider some API changes, since such control is currently not possible.
+>>
+>> We should clarify this before I send a patch with the
+>> LANDLOCK_ACCESS_NET_LISTEN_TCP implementation. WDYT?
+> 
+> LANDLOCK_ACCESS_NET_LISTEN_TCP seems like the most important to me.
+> 
+> For connect() and sendto(), I think the access rights are less urgent:
+> 
+> connect(): We already have LANDLOCK_ACCESS_NET_CONNECT_TCP, but that one is
+> getting restricted for the *remote* port number.
+> 
+>   (a) I think it would be possible to do the same for the *local* port number, by
+>       introducing a separate LANDLOCK_ACCESS_NET_CONNECT_TCP_LOCALPORT right.
+>       (Yes, the name is absolutely horrible, this is just for the example :))
+>       hook_socket_connect() would then need to do both a check for the remote
+>       port using LANDLOCK_ACCESS_NET_CONNECT_TCP, as it already does today, as
+>       well as a check for the (previously bound?) local port using
+>       LANDLOCK_ACCESS_NET_CONNECT_TCP_LOCALPORT.
+>       
+>       So I think it is extensible in that direction, in principle, even though I
+>       don't currently have a good name for that access right. :)
 
-Test that nfqueue with and without GSO process SCTP packets correctly.
+Indeed, implementing a new type of rule seems to be an optimal approach
+for this.
 
-Joint work with Florian and Pablo.
+>       
+>   (b) Compared to what LANDLOCK_ACCESS_NET_BIND_TCP already restricts, a
+>       hypothetical LANDLOCK_ACCESS_NET_CONNECT_TCP_LOCALPORT right would only
+>       additionally restrict the use of ephemeral ports.  I'm currently having a
+>       hard time seeing what an attacker could do with that (use up all ephemeral
+>       ports?).
 
-Signed-off-by: Antonio Ojea <aojea@google.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- Squash patch of original+local fixes to make this work in netdev CI.
+I thought about something like that, yeah) Also, I tried to find out
+if there are cases where port remains bound to the client socket after
+the connection is completed. In this case, listen() can be called to a
+socket with a port bound via connect() call. In the case of TCP, such
+scenario is not possible, port is always deallocated in tcp_set_state()
+method.
 
- Main changes:
-  * update config, ss -S won't work without SCTP_DIAG=m
-  * reduce file size for sctp output test.
-    This is rather slow (~3mbyte/s), but I'm reluctant to just
-    skb_orphan() before doing the nfnetlink_queue segmentation
-    (this "fixes" the problem).
-  * "wait" before comparing output file size, not after.
-     Else we might get file mismatch because sender exited but
-     receiver is still processing inflight packets.
-  * flush existing rules
-  * don't start nf_queue program first: it has an idle (no-packets-seen)
-    timeout of just 2s, on slow machines this can cause exit() before
-    the sender emits the init packet (-> test timeout).
+So, I don't see any realworld vulnerabilities, we can leave this case
+until someone comes up with a real issue.
 
- I did not find anything wrong with the sctp patch to nfnetlink_queue.
+> 
+> sendto(): I think this is not relevant yet, because as the documentation said,
+> ephemeral ports are only handed out when sendto() is used with datagram (UDP)
+> sockets.
+> 
+> Once Landlock starts having UDP support, this would become relevant, but for
+> this patch set, I think that the TCP server use case as discussed further above
+> in this thread is very compelling.
 
- tools/testing/selftests/net/netfilter/config  |  2 +
- .../selftests/net/netfilter/nft_queue.sh      | 85 ++++++++++++++++++-
- 2 files changed, 86 insertions(+), 1 deletion(-)
+Agreed. Anyway, if someone finds any interesting cases with
+auto-binding via sendto(), we can implement a new rule, as you suggested
+for connect().
 
-diff --git a/tools/testing/selftests/net/netfilter/config b/tools/testing/selftests/net/netfilter/config
-index 63ef80ef47a4..b2dd4db45215 100644
---- a/tools/testing/selftests/net/netfilter/config
-+++ b/tools/testing/selftests/net/netfilter/config
-@@ -87,3 +87,5 @@ CONFIG_XFRM_USER=m
- CONFIG_XFRM_STATISTICS=y
- CONFIG_NET_PKTGEN=m
- CONFIG_TUN=m
-+CONFIG_INET_DIAG=m
-+CONFIG_SCTP_DIAG=m
-diff --git a/tools/testing/selftests/net/netfilter/nft_queue.sh b/tools/testing/selftests/net/netfilter/nft_queue.sh
-index c61d23a8c88d..f3bdeb1271eb 100755
---- a/tools/testing/selftests/net/netfilter/nft_queue.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_queue.sh
-@@ -25,6 +25,9 @@ cleanup()
- }
- 
- checktool "nft --version" "test without nft tool"
-+checktool "socat -h" "run test without socat"
-+
-+modprobe -q sctp
- 
- trap cleanup EXIT
- 
-@@ -265,7 +268,6 @@ test_tcp_forward()
- 
- test_tcp_localhost()
- {
--	dd conv=sparse status=none if=/dev/zero bs=1M count=200 of="$TMPINPUT"
- 	timeout 5 ip netns exec "$nsrouter" socat -u TCP-LISTEN:12345 STDOUT >/dev/null &
- 	local rpid=$!
- 
-@@ -375,6 +377,82 @@ EOF
- 	wait 2>/dev/null
- }
- 
-+sctp_listener_ready()
-+{
-+	ss -S -N "$1" -ln -o "sport = :12345" | grep -q 12345
-+}
-+
-+test_sctp_forward()
-+{
-+	ip netns exec "$nsrouter" nft -f /dev/stdin <<EOF
-+flush ruleset
-+table inet sctpq {
-+        chain forward {
-+        type filter hook forward priority 0; policy accept;
-+                sctp dport 12345 queue num 10
-+        }
-+}
-+EOF
-+	timeout 60 ip netns exec "$ns2" socat -u SCTP-LISTEN:12345 STDOUT > "$TMPFILE1" &
-+	local rpid=$!
-+
-+	busywait "$BUSYWAIT_TIMEOUT" sctp_listener_ready "$ns2"
-+
-+	ip netns exec "$nsrouter" ./nf_queue -q 10 -G -t "$timeout" &
-+	local nfqpid=$!
-+
-+	ip netns exec "$ns1" socat -u STDIN SCTP:10.0.2.99:12345 <"$TMPINPUT" >/dev/null
-+
-+	if ! ip netns exec "$nsrouter" nft delete table inet sctpq; then
-+		echo "FAIL:  Could not delete sctpq table"
-+		exit 1
-+	fi
-+
-+	wait "$rpid" && echo "PASS: sctp and nfqueue in forward chain"
-+
-+	if ! diff -u "$TMPINPUT" "$TMPFILE1" ; then
-+		echo "FAIL: lost packets?!" 1>&2
-+		exit 1
-+	fi
-+}
-+
-+test_sctp_output()
-+{
-+        ip netns exec "$ns1" nft -f /dev/stdin <<EOF
-+table inet sctpq {
-+        chain output {
-+        type filter hook output priority 0; policy accept;
-+                sctp dport 12345 queue num 11
-+        }
-+}
-+EOF
-+	# reduce test file size, software segmentation causes sk wmem increase.
-+	dd conv=sparse status=none if=/dev/zero bs=1M count=50 of="$TMPINPUT"
-+
-+	timeout 60 ip netns exec "$ns2" socat -u SCTP-LISTEN:12345 STDOUT > "$TMPFILE1" &
-+	local rpid=$!
-+
-+	busywait "$BUSYWAIT_TIMEOUT" sctp_listener_ready "$ns2"
-+
-+	ip netns exec "$ns1" ./nf_queue -q 11 -t "$timeout" &
-+	local nfqpid=$!
-+
-+	ip netns exec "$ns1" socat -u STDIN SCTP:10.0.2.99:12345 <"$TMPINPUT" >/dev/null
-+
-+	if ! ip netns exec "$ns1" nft delete table inet sctpq; then
-+		echo "FAIL:  Could not delete sctpq table"
-+		exit 1
-+	fi
-+
-+	# must wait before checking completeness of output file.
-+	wait "$rpid" && echo "PASS: sctp and nfqueue in output chain with GSO"
-+
-+	if ! diff -u "$TMPINPUT" "$TMPFILE1" ; then
-+		echo "FAIL: lost packets?!" 1>&2
-+		exit 1
-+	fi
-+}
-+
- test_queue_removal()
- {
- 	read tainted_then < /proc/sys/kernel/tainted
-@@ -443,11 +521,16 @@ test_queue 10
- # same.  We queue to a second program as well.
- load_ruleset "filter2" 20
- test_queue 20
-+ip netns exec "$ns1" nft flush ruleset
- 
- test_tcp_forward
- test_tcp_localhost
- test_tcp_localhost_connectclose
- test_tcp_localhost_requeue
-+test_sctp_forward
-+test_sctp_output
-+
-+# should be last, adds vrf device in ns1 and changes routes
- test_icmp_vrf
- test_queue_removal
- 
--- 
-2.44.2
+Thanks you for your research and ideas, Günther!
+I'll prepare the LANDLOCK_ACCESS_NET_LISTEN_TCP patchset for the review.
 
+> 
+> Thanks,
+> —Günther
