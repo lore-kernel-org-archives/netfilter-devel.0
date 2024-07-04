@@ -1,22 +1,22 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5FE8B143741
-	for <netfilter-devel@vger.kernel.org>; Thu,  4 Jul 2024 21:34:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5D6E8143872
+	for <netfilter-devel@vger.kernel.org>; Thu,  4 Jul 2024 21:34:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720128872; cv=none; b=SU3UFEEkOd8b14v/y/Ngqo/wLALL7/d5xFdnQHtA5XXMyf2X9sOoIBWiCwD6JCr8g68URlOZQoAHWRi95GD7hfiDQg95Z5efNTWtsw7mrRLCI3wA5hhI3JPZNg+VzKgtyhw6gTLb28fs1WA+gS5SSkk3V0KN70H9x6+cjdovoG0=
+	t=1720128872; cv=none; b=Z0bNayo1FSyQRFqoKvwpcqenX395fK8MXaWGEldb+lL1RJpPE3owlZ2QWM+2OMQGOND3i/VDk9SBlJzN6dEreSqTXEA57ooFFe2aq82veB3L/9CgoYqAtk3neJv3SGRYUDJHo0/Fk2q46o0G3audKDV0Fnnv9HW5AbsasWSwUmE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1720128872; c=relaxed/simple;
-	bh=mojcXQB9NoLyqPCXdyM7AlW1e2KbW6de26gDrL6/vYQ=;
+	bh=3nuW8iKwLmr1V1yweXx7w8JeS8jD9kN1gq6JUEtJG3s=;
 	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=dsh6jRHh5CSLpccmz02gpAjfNHWoMt6NxTI95KjODLdw+2x7ArQLMlbGib0xSFcguikQju45rlpY2gJlCykk54PBmYYLdMzY6L4MZbQw5m5yq1ci6kG2872L4rkPsrq0bijhPY+UGyKHSD4UeIMSOTxMqWtM22CEUBF/wMx5mCY=
+	 MIME-Version; b=fFqTJPGrZltSqd5q3fovipqP7J19BbQyFzOYnTVyZhhfICTJ5opg7F3CcQtzDRh25iz3imBshhHT2jAWyPKC5oAqMFbjSjhXdU43Pi9Ylf3LZHDfgmX9HtwwLZ6BL+flbzSjeV6iJFh3wdE4PJPdJmOKfAIvJ1hOXFORiiq8cKE=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 3/4] intervals: fix element deletions with maps
-Date: Thu,  4 Jul 2024 23:34:22 +0200
-Message-Id: <20240704213423.254356-4-pablo@netfilter.org>
+Subject: [PATCH nft 4/4] tests: shell: cover set element deletion in maps
+Date: Thu,  4 Jul 2024 23:34:23 +0200
+Message-Id: <20240704213423.254356-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240704213423.254356-1-pablo@netfilter.org>
 References: <20240704213423.254356-1-pablo@netfilter.org>
@@ -28,100 +28,132 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Set element deletion in maps (including catchall elements) does not work.
+Extend existing coverage to deal with set element deletion, including
+catchall elements too.
 
- # nft delete element ip x m { \* }
- BUG: invalid range expression type catch-all set element
- nft: src/expression.c:1472: range_expr_value_low: Assertion `0' failed.
- Aborted
-
-Call interval_expr_key() to fetch expr->left in the mapping but use the
-expression that represents the mapping because it provides access to the
-EXPR_F_REMOVE flags.
-
-Moreover, assume maximum value for catchall expression by means of the
-expr->len to reuse the existing code to check if the element to be
-deleted really exists.
-
-Fixes: 3e8d934e4f72 ("intervals: support to partial deletion with automerge")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/intervals.c | 31 ++++++++++++++++++-------------
- 1 file changed, 18 insertions(+), 13 deletions(-)
+ tests/shell/testcases/maps/delete_element     | 28 +++++++++++++++
+ .../testcases/maps/delete_element_catchall    | 35 +++++++++++++++++++
+ .../maps/dumps/delete_elem_catchall.nft       | 12 +++++++
+ .../testcases/maps/dumps/delete_element.nft   | 12 +++++++
+ 4 files changed, 87 insertions(+)
+ create mode 100755 tests/shell/testcases/maps/delete_element
+ create mode 100755 tests/shell/testcases/maps/delete_element_catchall
+ create mode 100644 tests/shell/testcases/maps/dumps/delete_elem_catchall.nft
+ create mode 100644 tests/shell/testcases/maps/dumps/delete_element.nft
 
-diff --git a/src/intervals.c b/src/intervals.c
-index 6c3f36fec02a..ff202be9375b 100644
---- a/src/intervals.c
-+++ b/src/intervals.c
-@@ -383,7 +383,7 @@ static int setelem_delete(struct list_head *msgs, struct set *set,
- 			  struct expr *purge, struct expr *elems,
- 			  unsigned int debug_mask)
- {
--	struct expr *i, *next, *prev = NULL;
-+	struct expr *i, *next, *elem, *prev = NULL;
- 	struct range range, prev_range;
- 	int err = 0;
- 	mpz_t rop;
-@@ -394,21 +394,26 @@ static int setelem_delete(struct list_head *msgs, struct set *set,
- 	mpz_init(range.high);
- 	mpz_init(rop);
- 
--	list_for_each_entry_safe(i, next, &elems->expressions, list) {
--		if (i->key->etype == EXPR_SET_ELEM_CATCHALL)
--			continue;
-+	list_for_each_entry_safe(elem, next, &elems->expressions, list) {
-+		i = interval_expr_key(elem);
- 
--		range_expr_value_low(range.low, i);
--		range_expr_value_high(range.high, i);
-+		if (i->key->etype == EXPR_SET_ELEM_CATCHALL) {
-+			/* Assume max value to simplify handling. */
-+			mpz_bitmask(range.low, i->len);
-+			mpz_bitmask(range.high, i->len);
-+		} else {
-+			range_expr_value_low(range.low, i);
-+			range_expr_value_high(range.high, i);
-+		}
- 
--		if (!prev && i->flags & EXPR_F_REMOVE) {
-+		if (!prev && elem->flags & EXPR_F_REMOVE) {
- 			expr_error(msgs, i, "element does not exist");
- 			err = -1;
- 			goto err;
- 		}
- 
--		if (!(i->flags & EXPR_F_REMOVE)) {
--			prev = i;
-+		if (!(elem->flags & EXPR_F_REMOVE)) {
-+			prev = elem;
- 			mpz_set(prev_range.low, range.low);
- 			mpz_set(prev_range.high, range.high);
- 			continue;
-@@ -416,12 +421,12 @@ static int setelem_delete(struct list_head *msgs, struct set *set,
- 
- 		if (mpz_cmp(prev_range.low, range.low) == 0 &&
- 		    mpz_cmp(prev_range.high, range.high) == 0) {
--			if (i->flags & EXPR_F_REMOVE) {
-+			if (elem->flags & EXPR_F_REMOVE) {
- 				if (prev->flags & EXPR_F_KERNEL)
- 					list_move_tail(&prev->list, &purge->expressions);
- 
--				list_del(&i->list);
--				expr_free(i);
-+				list_del(&elem->list);
-+				expr_free(elem);
- 			}
- 		} else if (set->automerge) {
- 			if (setelem_adjust(set, purge, &prev_range, &range, prev, i) < 0) {
-@@ -429,7 +434,7 @@ static int setelem_delete(struct list_head *msgs, struct set *set,
- 				err = -1;
- 				goto err;
- 			}
--		} else if (i->flags & EXPR_F_REMOVE) {
-+		} else if (elem->flags & EXPR_F_REMOVE) {
- 			expr_error(msgs, i, "element does not exist");
- 			err = -1;
- 			goto err;
+diff --git a/tests/shell/testcases/maps/delete_element b/tests/shell/testcases/maps/delete_element
+new file mode 100755
+index 000000000000..75272f448dbf
+--- /dev/null
++++ b/tests/shell/testcases/maps/delete_element
+@@ -0,0 +1,28 @@
++#!/bin/bash
++
++set -e
++
++RULESET="flush ruleset
++
++table ip x {
++        map m {
++                typeof ct bytes : meta priority
++                flags interval
++                elements = {
++                        0-2048000 : 1:0001,
++                        2048001-4000000 : 1:0002,
++                }
++        }
++
++        chain y {
++                type filter hook output priority 0; policy accept;
++
++                meta priority set ct bytes map @m
++        }
++}"
++
++$NFT -f - <<< $RULESET
++
++$NFT delete element ip x m { 0-2048000 }
++$NFT add element ip x m { 0-2048000 : 1:0002 }
++$NFT delete element ip x m { 0-2048000 : 1:0002 }
+diff --git a/tests/shell/testcases/maps/delete_element_catchall b/tests/shell/testcases/maps/delete_element_catchall
+new file mode 100755
+index 000000000000..a6a0fc6f3e04
+--- /dev/null
++++ b/tests/shell/testcases/maps/delete_element_catchall
+@@ -0,0 +1,35 @@
++#!/bin/bash
++
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_catchall_element)
++
++set -e
++
++RULESET="flush ruleset
++
++table ip x {
++        map m {
++                typeof ct bytes : meta priority
++                flags interval
++                elements = {
++                        0-2048000 : 1:0001,
++                        * : 1:0002,
++                }
++        }
++
++        chain y {
++                type filter hook output priority 0; policy accept;
++
++                meta priority set ct bytes map @m
++        }
++}"
++
++$NFT -f - <<< $RULESET
++
++$NFT delete element ip x m { 0-2048000 }
++$NFT add element ip x m { 0-2048000 : 1:0002 }
++$NFT delete element ip x m { 0-2048000 : 1:0002 }
++
++$NFT 'delete element ip x m { * }'
++$NFT 'add element ip x m { * : 1:0003 }'
++$NFT 'delete element ip x m { * : 1:0003 }'
++$NFT 'add element ip x m { * : 1:0003 }'
+diff --git a/tests/shell/testcases/maps/dumps/delete_elem_catchall.nft b/tests/shell/testcases/maps/dumps/delete_elem_catchall.nft
+new file mode 100644
+index 000000000000..14054f4dc4d5
+--- /dev/null
++++ b/tests/shell/testcases/maps/dumps/delete_elem_catchall.nft
+@@ -0,0 +1,12 @@
++table ip x {
++	map m {
++		typeof ct bytes : meta priority
++		flags interval
++		elements = { * : 1:3 }
++	}
++
++	chain y {
++		type filter hook output priority filter; policy accept;
++		meta priority set ct bytes map @m
++	}
++}
+diff --git a/tests/shell/testcases/maps/dumps/delete_element.nft b/tests/shell/testcases/maps/dumps/delete_element.nft
+new file mode 100644
+index 000000000000..5275b4dc2a68
+--- /dev/null
++++ b/tests/shell/testcases/maps/dumps/delete_element.nft
+@@ -0,0 +1,12 @@
++table ip x {
++	map m {
++		typeof ct bytes : meta priority
++		flags interval
++		elements = { 2048001-4000000 : 1:2 }
++	}
++
++	chain y {
++		type filter hook output priority filter; policy accept;
++		meta priority set ct bytes map @m
++	}
++}
 -- 
 2.30.2
 
