@@ -1,89 +1,86 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f50.google.com (mail-lf1-f50.google.com [209.85.167.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93BDB1487C1
-	for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2024 15:28:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACB5A14AA0
+	for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2024 15:56:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720193305; cv=none; b=Bda70V0AyjAv5A6Dt8MpCHssbe6wG6SFf/A5Krn0yvmvCzPwiez76KkpsE4dXs8TCWR/8MQf2xWv2IyWevZ3yB77tIM4VisYPf6TxcePiQ9Iz9n3UgCWGzZ/8LpUFPaaiJIq1z+N7RmUU9Ie8pEG/siLkbKR1xE4SxxpPXK+aM8=
+	t=1720195004; cv=none; b=Yg4Gemn11wyqFRk5OjUUq6zVRPpsxvs1SslufPI8F8/0auDAsRs1AL25qpMl8DblhCN+kIk/3Y6IjDqoVL3Z75to/t7k7x92JtnmPIt8bM33uYqMY+piF2XtberGJDpFPZ3Uag89CgZPi3boRQr3pdLB1j2U6Y8Lx05MD4tsays=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720193305; c=relaxed/simple;
-	bh=lJ1US1dQWt3zsgdIjkwhbxabtGIrY+CcZRKV9nkVFw8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SIOL8+jTdbxwJtRdxjDXG45iI44s+/TCxsaF/1oTkETf9qnKzEeWJQ6saBb8YnrgFn4QN0xasX/dagLe+UQTgu8TSnfLPSgjwScqjhFZq2P6eWXItLuvCBKK64mPL/dVeb226CqP/nkUsV1euWZOkSBvsik4/CPoMXz9ofqnxgU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=V6AzEDf9; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1720195004; c=relaxed/simple;
+	bh=C0u4zo6MV58JrrqQFCG5TEn75gXJ9kD4bFArJXFvLn0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Content-Type; b=VgAtBziQbQuNr0fFyqFM31PRs6EO/Usod0TILkHqJD4h79h7yptWJcnmZXqXCXUaTQNlLwstaC4AG/wy7DRt1Bylae5MQyGtM2rsKy7d0PCn6t4lwElUVt9fWUkdBgYU1XUhoXFBYcLHyXOgTmCVR2356NmyAe49L0QRSSBBY6M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=googlemail.com; spf=pass smtp.mailfrom=googlemail.com; dkim=pass (2048-bit key) header.d=googlemail.com header.i=@googlemail.com header.b=ZTGSQO1n; arc=none smtp.client-ip=209.85.167.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=googlemail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=googlemail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="V6AzEDf9"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=5MjxiBKysMVYYsFlVMKZt082pajPhKJvV9wcjZPezGM=; b=V6AzEDf9ieHUCzx85SG1ozwAei
-	ANZ/0/9meCTAsstsx6XKwbfZNpbLcahmX/4Ged89v9gakPDo6VDaXp2zk/dAX0BD2967DNt5BibHd
-	fA7ARYTtdAgKzDdm16HZptcPw3RZKcmIhICPwToEpqLGoUwwdn9c4m5CfcVNHRj8hQfxDt4p7Wsy9
-	RBeJ3xWjyweq5juS39JngmazJkrg1vi6zNIpqoOuYDKoCtMx6bq1NgJAB16L9nmYJqYrHlzGlH+D5
-	1n0a1t2zOamcaxXt9kS7EOOAGVFBs/MPwx8DNWuh6sueJmG1n6fj6jDXiLsuP91Zo/hNfbg524cCP
-	QH5vtnGw==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1sPkr8-000000001mn-1fdP;
-	Fri, 05 Jul 2024 17:28:14 +0200
-Date: Fri, 5 Jul 2024 17:28:14 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: josh lant <joshualant@googlemail.com>
-Cc: netfilter-devel@vger.kernel.org, josh lant <joshualant@gmail.com>
-Subject: Re: iptables- accessing unallocated memory
-Message-ID: <ZogRDinLhQeOhY6O@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	josh lant <joshualant@googlemail.com>,
-	netfilter-devel@vger.kernel.org, josh lant <joshualant@gmail.com>
-References: <CAMQRqNLQvfETbB6rpAP+QabsVGdwDmA0_7bxhK2jm0gcFQYm9g@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=googlemail.com header.i=@googlemail.com header.b="ZTGSQO1n"
+Received: by mail-lf1-f50.google.com with SMTP id 2adb3069b0e04-52e9a550e9fso2554875e87.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 05 Jul 2024 08:56:42 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=googlemail.com; s=20230601; t=1720195001; x=1720799801; darn=vger.kernel.org;
+        h=to:subject:message-id:date:from:in-reply-to:references:mime-version
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=C0u4zo6MV58JrrqQFCG5TEn75gXJ9kD4bFArJXFvLn0=;
+        b=ZTGSQO1nkmma6vaCizUe58tdR2EgJ2JxLKrjGiP289FRmgl3KeE6NX5fYucNQBfcKJ
+         SyIMP7QBFGdWbGaxDV9zekvkOR925oJuinKx4z4jiWwwKfwXPSHgLZPaIFZQq/MhFLeP
+         4Rhv9YPghsDLwRbwKWcev9x6CsPfc0W8PnJz4vwg+2CI51AFsq4pFN0rSIKicoyolYl7
+         VMJPFs0ZkgFI6rPZkNhGil0Xk9QzS2Iptyk235NJ0Px+LFqBK02mshaArfJJVyIX17rn
+         KTg9KgEwq/DbooesR9wYMgh3h1jVv+HnfW/21emC9PzhPl5NkFxvqHrrYNNw95rq0yX6
+         d06Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1720195001; x=1720799801;
+        h=to:subject:message-id:date:from:in-reply-to:references:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=C0u4zo6MV58JrrqQFCG5TEn75gXJ9kD4bFArJXFvLn0=;
+        b=ZAn4GJAu85uH6frL4sQ3vq1hboHNiPx9PLh6hc5CoCtsRmc2Q3y/WDBiW8IfmxJuhY
+         jWxOucJYWae0YaxuFFaAss7YK0i0rogHAYVcfPd50YoHfIbntFk8+RC/Wbfqw3P9gWgI
+         EMBJBR1eqqH3of276qZY9rycUn14OnzlSVKwSG1vDDzFzgAYCshWlY3tmdrWST74WqDP
+         BZnecO0z7kNaE1IKuSqsbqaCb8eUIhjCFVumhLME2xs8xTIqT+TaBpVYAz/vYAdyI/rN
+         20U9tOc7CIlg5sZ55/YQEsn+TDkurjR/kxXinEM8OVvzg8uYHcF08388QLaRpvZA1wbt
+         JDPA==
+X-Forwarded-Encrypted: i=1; AJvYcCWbiYYd+KKScKV3ycyoeVaQT3Ugrm69ibEm/NcKqlMuXs+5gsGtE8JVJrLBn1HBLrsVDzQOFkVlnjw2w6HpcGaiMNdGtJT5KwbkbRrF/4p9
+X-Gm-Message-State: AOJu0YymaTass4xbL7IF/+yO2wzr69xaRhcyOq87zSuWrruu5hXCES+D
+	25IqvlI2X5IHh/vjBMvWLaTil/5DztFDh8qIDpsrkTv5/rmOucjGYYONsg+gnHbMRAWyTXlEnlP
+	mcS1J/1b43AKSvdHBTM1X27flRI3LIBhz
+X-Google-Smtp-Source: AGHT+IGLLRw/tyaU93DhCgRjSzFqGYIZLbtFyaE5YE3WHDmqj9iGtPkDbgMIoU+49AgISMidBFwUZR9l7xxTshl4nUE=
+X-Received: by 2002:a05:6512:3e24:b0:52c:ca8d:d1c with SMTP id
+ 2adb3069b0e04-52ea0dcdbb8mr1875648e87.2.1720195000597; Fri, 05 Jul 2024
+ 08:56:40 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAMQRqNLQvfETbB6rpAP+QabsVGdwDmA0_7bxhK2jm0gcFQYm9g@mail.gmail.com>
+References: <CAMQRqNLQvfETbB6rpAP+QabsVGdwDmA0_7bxhK2jm0gcFQYm9g@mail.gmail.com>
+ <ZogRDinLhQeOhY6O@orbyte.nwl.cc>
+In-Reply-To: <ZogRDinLhQeOhY6O@orbyte.nwl.cc>
+From: josh lant <joshualant@googlemail.com>
+Date: Fri, 5 Jul 2024 16:56:28 +0100
+Message-ID: <CAMQRqN+S6487boLi98hGSe-X9-8aM1XkNS+BRb+dMS+4hGiBhA@mail.gmail.com>
+Subject: Re: iptables- accessing unallocated memory
+To: Phil Sutter <phil@nwl.cc>, josh lant <joshualant@googlemail.com>, 
+	netfilter-devel@vger.kernel.org, josh lant <joshualant@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
 
-Hi Josh,
+Hi Phil,
 
-On Fri, Jul 05, 2024 at 02:47:19PM +0100, josh lant wrote:
-> I am currently trying to port iptables to ARM's new Morello
-> architecture; featuring hardware capabilities for memory protection.
-> 
-> One of the ways Morello affords protection is by enforcing bounds on
-> memory accesses at the hardware level. On Morello a segfault/bounds
-> fault will occur at runtime when an illegal memory access is made...
-> 
-> When running some of the iptables tests I am encountering some of
-> these faults. I have not investigated if they all occur in the same
-> spot yet, but at least 3 such occurrences in the same place are in
-> tests:
-> chain/0005base-delete_0
-> ebtables/0007-chain-policies_0
-> iptables/0002-verbose-output_0
-> 
-> Let us use ././testcases/iptables/0002-verbose-output_0 as an example
-> here, since I see different behaviour in two different versions of
-> iptables and libnftnl. (I had to update the package versions due to
-> another unrelated issue that I may ask about separately).
-> 
-> Bounds faults occur: iptables (1.8.10), libnftnl (master), libmnl
-> (1.0.5), kernel (6.4)
-> Bounds faults do not occur: iptables (1.8.7), libnftnl (1.2.1), libmnl
-> (1.0.5), kernel (6.4)
+>
+> Could you please try with current HEAD of iptables? I think the bug you
+> see was fixed by commit 2026b08bce7fe ("nft: ruleparse: Add missing
+> braces around ternary"). At least I don't see a problem in
+> testcases/iptables/0002-verbose-output_0 when testing with either
+> valgrind or ASAN.
+>
 
-Could you please try with current HEAD of iptables? I think the bug you
-see was fixed by commit 2026b08bce7fe ("nft: ruleparse: Add missing
-braces around ternary"). At least I don't see a problem in
-testcases/iptables/0002-verbose-output_0 when testing with either
-valgrind or ASAN.
+I was unable to build from master due to some other issue, but I
+applied this patch to 1.8.10 and now all the tests that were failing
+with segfaults are working...
 
-Cheers, Phil
+Many thanks for your quick response. Have a nice weekend!
+
+Cheers,
+
+Josh
