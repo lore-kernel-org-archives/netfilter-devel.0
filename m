@@ -1,83 +1,89 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 83AC714A4C1
-	for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2024 15:22:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93BDB1487C1
+	for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2024 15:28:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720192923; cv=none; b=IogDNwMfIPZqqgwbHEykc2F2Wj6CDjQvNDZkGTg31yPBLehMxPkXiUCGGc8M9uJG+M7gN9jl54njrF4a6yfMeK25/8u0xuEbcB6MAVZjnohNbEMeEpAkW2ZBKe0iqwHQ67NrqJu7Vo6XjiSyrm9iiHoqkCeGgC0DXxua6l0Ag54=
+	t=1720193305; cv=none; b=Bda70V0AyjAv5A6Dt8MpCHssbe6wG6SFf/A5Krn0yvmvCzPwiez76KkpsE4dXs8TCWR/8MQf2xWv2IyWevZ3yB77tIM4VisYPf6TxcePiQ9Iz9n3UgCWGzZ/8LpUFPaaiJIq1z+N7RmUU9Ie8pEG/siLkbKR1xE4SxxpPXK+aM8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720192923; c=relaxed/simple;
-	bh=3Pl5mHG2XWogAUPvKNqWjRTZOn1GQTnpz9rcbjCt9gQ=;
-	h=From:To:Subject:Date:Message-Id:MIME-Version; b=pAK80KWEYRCTDThkuJ1UTQ3brPv5oYPeQf20WxEh7tnvIjar1UACY7IXI7YGZrHT6ssZiyng1pOrxM79SFxRx4YmD6hGIDz5lNy/Dy1JZI4E7HgQrP451N3FCi+XHc10T50Z2ywPF1tyDvwwxJVGjLKDGItnxV7tlQ3MxJYS4us=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH libnftnl] expr: use NFTA_* netlink attributes to build fields, not NFTNL_EXPR_*
-Date: Fri,  5 Jul 2024 17:21:56 +0200
-Message-Id: <20240705152156.464505-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+	s=arc-20240116; t=1720193305; c=relaxed/simple;
+	bh=lJ1US1dQWt3zsgdIjkwhbxabtGIrY+CcZRKV9nkVFw8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=SIOL8+jTdbxwJtRdxjDXG45iI44s+/TCxsaF/1oTkETf9qnKzEeWJQ6saBb8YnrgFn4QN0xasX/dagLe+UQTgu8TSnfLPSgjwScqjhFZq2P6eWXItLuvCBKK64mPL/dVeb226CqP/nkUsV1euWZOkSBvsik4/CPoMXz9ofqnxgU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=V6AzEDf9; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="V6AzEDf9"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=5MjxiBKysMVYYsFlVMKZt082pajPhKJvV9wcjZPezGM=; b=V6AzEDf9ieHUCzx85SG1ozwAei
+	ANZ/0/9meCTAsstsx6XKwbfZNpbLcahmX/4Ged89v9gakPDo6VDaXp2zk/dAX0BD2967DNt5BibHd
+	fA7ARYTtdAgKzDdm16HZptcPw3RZKcmIhICPwToEpqLGoUwwdn9c4m5CfcVNHRj8hQfxDt4p7Wsy9
+	RBeJ3xWjyweq5juS39JngmazJkrg1vi6zNIpqoOuYDKoCtMx6bq1NgJAB16L9nmYJqYrHlzGlH+D5
+	1n0a1t2zOamcaxXt9kS7EOOAGVFBs/MPwx8DNWuh6sueJmG1n6fj6jDXiLsuP91Zo/hNfbg524cCP
+	QH5vtnGw==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1sPkr8-000000001mn-1fdP;
+	Fri, 05 Jul 2024 17:28:14 +0200
+Date: Fri, 5 Jul 2024 17:28:14 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: josh lant <joshualant@googlemail.com>
+Cc: netfilter-devel@vger.kernel.org, josh lant <joshualant@gmail.com>
+Subject: Re: iptables- accessing unallocated memory
+Message-ID: <ZogRDinLhQeOhY6O@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	josh lant <joshualant@googlemail.com>,
+	netfilter-devel@vger.kernel.org, josh lant <joshualant@gmail.com>
+References: <CAMQRqNLQvfETbB6rpAP+QabsVGdwDmA0_7bxhK2jm0gcFQYm9g@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAMQRqNLQvfETbB6rpAP+QabsVGdwDmA0_7bxhK2jm0gcFQYm9g@mail.gmail.com>
 
-Coincidentally NFTNL_EXPR_BASE starts at 1 which comes right after
-NFTA_*_UNSPEC which is zero. And NFTNL_EXPR_ attribute values were
-mapping to NFTA_* attributes.
+Hi Josh,
 
-Use NFTA_* for netlink attribute types instead.
+On Fri, Jul 05, 2024 at 02:47:19PM +0100, josh lant wrote:
+> I am currently trying to port iptables to ARM's new Morello
+> architecture; featuring hardware capabilities for memory protection.
+> 
+> One of the ways Morello affords protection is by enforcing bounds on
+> memory accesses at the hardware level. On Morello a segfault/bounds
+> fault will occur at runtime when an illegal memory access is made...
+> 
+> When running some of the iptables tests I am encountering some of
+> these faults. I have not investigated if they all occur in the same
+> spot yet, but at least 3 such occurrences in the same place are in
+> tests:
+> chain/0005base-delete_0
+> ebtables/0007-chain-policies_0
+> iptables/0002-verbose-output_0
+> 
+> Let us use ././testcases/iptables/0002-verbose-output_0 as an example
+> here, since I see different behaviour in two different versions of
+> iptables and libnftnl. (I had to update the package versions due to
+> another unrelated issue that I may ask about separately).
+> 
+> Bounds faults occur: iptables (1.8.10), libnftnl (master), libmnl
+> (1.0.5), kernel (6.4)
+> Bounds faults do not occur: iptables (1.8.7), libnftnl (1.2.1), libmnl
+> (1.0.5), kernel (6.4)
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/expr/osf.c      | 6 +++---
- src/expr/synproxy.c | 6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+Could you please try with current HEAD of iptables? I think the bug you
+see was fixed by commit 2026b08bce7fe ("nft: ruleparse: Add missing
+braces around ternary"). At least I don't see a problem in
+testcases/iptables/0002-verbose-output_0 when testing with either
+valgrind or ASAN.
 
-diff --git a/src/expr/osf.c b/src/expr/osf.c
-index 060394b30329..293a81420a32 100644
---- a/src/expr/osf.c
-+++ b/src/expr/osf.c
-@@ -89,12 +89,12 @@ nftnl_expr_osf_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
- 	struct nftnl_expr_osf *osf = nftnl_expr_data(e);
- 
- 	if (e->flags & (1 << NFTNL_EXPR_OSF_DREG))
--		mnl_attr_put_u32(nlh, NFTNL_EXPR_OSF_DREG, htonl(osf->dreg));
-+		mnl_attr_put_u32(nlh, NFTA_OSF_DREG, htonl(osf->dreg));
- 	if (e->flags & (1 << NFTNL_EXPR_OSF_TTL))
--		mnl_attr_put_u8(nlh, NFTNL_EXPR_OSF_TTL, osf->ttl);
-+		mnl_attr_put_u8(nlh, NFTA_OSF_TTL, osf->ttl);
- 	if (e->flags & (1 << NFTNL_EXPR_OSF_FLAGS))
- 		if (osf->flags)
--			mnl_attr_put_u32(nlh, NFTNL_EXPR_OSF_FLAGS, htonl(osf->flags));
-+			mnl_attr_put_u32(nlh, NFTA_OSF_FLAGS, htonl(osf->flags));
- }
- 
- static int
-diff --git a/src/expr/synproxy.c b/src/expr/synproxy.c
-index 97c321b994fe..b5a1fef9f406 100644
---- a/src/expr/synproxy.c
-+++ b/src/expr/synproxy.c
-@@ -90,13 +90,13 @@ nftnl_expr_synproxy_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
- 	struct nftnl_expr_synproxy *synproxy = nftnl_expr_data(e);
- 
- 	if (e->flags & (1 << NFTNL_EXPR_SYNPROXY_MSS))
--		mnl_attr_put_u16(nlh, NFTNL_EXPR_SYNPROXY_MSS,
-+		mnl_attr_put_u16(nlh, NFTA_SYNPROXY_MSS,
- 				 htons(synproxy->mss));
- 	if (e->flags & (1 << NFTNL_EXPR_SYNPROXY_WSCALE))
--		mnl_attr_put_u8(nlh, NFTNL_EXPR_SYNPROXY_WSCALE,
-+		mnl_attr_put_u8(nlh, NFTA_SYNPROXY_WSCALE,
- 				synproxy->wscale);
- 	if (e->flags & (1 << NFTNL_EXPR_SYNPROXY_FLAGS))
--		mnl_attr_put_u32(nlh, NFTNL_EXPR_SYNPROXY_FLAGS,
-+		mnl_attr_put_u32(nlh, NFTA_SYNPROXY_FLAGS,
- 				 htonl(synproxy->flags));
- }
- 
--- 
-2.30.2
-
+Cheers, Phil
