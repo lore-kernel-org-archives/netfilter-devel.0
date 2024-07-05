@@ -1,72 +1,127 @@
-Received: from mail-io1-f72.google.com (mail-io1-f72.google.com [209.85.166.72])
+Received: from mail-lf1-f47.google.com (mail-lf1-f47.google.com [209.85.167.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D951F1487FE
-	for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2024 11:18:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.72
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA7AA156899
+	for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2024 13:47:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720178285; cv=none; b=NTbX22PrSeI8MG/B9z5+QMeC79O4jvBNK2pzBuVVJEQyyK+92Crmw+oeUerFYx/6fLuhyysH/YgpUWvhxvpjWhuwZmkT5NgJz2fs53i56g54TInkgLZvZL8r1cohVBoGyTcsHOzpEWTs/QqZ6Hj5L8Hsm+x6/mR3iyGPfIJTH44=
+	t=1720187255; cv=none; b=u8NRS77NrVjK7R3VZoSfkqISHARshDAlquqZ3P/QRI23MTJ3QZsRmlLvqWKyzRHRRBZBqC7j3FA0UXKdAuT8CbEclRUnQgzDUkOkin/Z80u0SUvE/cAhqxsSDMHtZQDTaUOn8j9puQV8LV4NA+4X4fVfHyox42F1esSHvRwT9CI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720178285; c=relaxed/simple;
-	bh=DcEvBQzYn4eHzbpGBy15PzrDsQIOG4YC35uyd6YyNUg=;
-	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
-	 Content-Type; b=CoJl8pv7+FbjChP2q267M7acd8T5sDosrMs1B12px6Om84l4YHzHGDNzhxKu27yb3j/6p9+MX73PYwEfE70q5ZM0irotDLQ7KGPGZOvA/xEeYsHN2zwHUE30JXDX6y+oNUYfwkyChoRPahrJADNHh9+h6xZBfp43vPfGqwJA87o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.72
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-io1-f72.google.com with SMTP id ca18e2360f4ac-7f664993edbso203570839f.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 05 Jul 2024 04:18:03 -0700 (PDT)
+	s=arc-20240116; t=1720187255; c=relaxed/simple;
+	bh=ZmCgPDxPiPTAT0MAUiImX4rm6+pYk9qtR37fM+4drRI=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Content-Type; b=s4O74gWJ9vEvifvaKT9gfQeW7YgVzXEZUSSO/TPsDrGUKfJQphXo9GESARqbayhNluX/iXYLvH2cWaSds/gHysg/QYT1eEKLRSOoHi2OvSjjs8NQC3W3fKdIqMTd0Z7cMv/raBXPcsTItB9PoKezHXS+eUDYpU3w9fgDBKTZsFc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=googlemail.com; spf=pass smtp.mailfrom=googlemail.com; dkim=pass (2048-bit key) header.d=googlemail.com header.i=@googlemail.com header.b=hdgYBraI; arc=none smtp.client-ip=209.85.167.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=googlemail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=googlemail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=googlemail.com header.i=@googlemail.com header.b="hdgYBraI"
+Received: by mail-lf1-f47.google.com with SMTP id 2adb3069b0e04-52e98087e32so1856456e87.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 05 Jul 2024 06:47:33 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=googlemail.com; s=20230601; t=1720187251; x=1720792051; darn=vger.kernel.org;
+        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=ZmCgPDxPiPTAT0MAUiImX4rm6+pYk9qtR37fM+4drRI=;
+        b=hdgYBraIkdbzfGQQ10Q2rttqitrT2cKldc8JTvKVl8kmGV+bocSlV97C5Bfu8RCHcQ
+         kVxW1x7xyRmsrzwdHNtFDpNz8FxboXrU53qDRq6TasDFv1/Ze2JdB/4454jvUi4U+YYw
+         5IjaCJSTpBt6wbU9AJuFmKEeroF8GKrEtFLju2zjPbZV59FC8y9WMFAlGBwYHtBnyWCo
+         9ls9+GNoRg5VKy3SOsItArUF8J9usR541sMi3yAaargC6iY598l2IeDqhyF3t+5XxxkD
+         32AdrgUJb+WR2zHgVYQkw/KgFB4baWNWiICPZsbjY6a16E4KuVa/9dHm5EkcY/kRk50W
+         otiw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1720178283; x=1720783083;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=FcXD0BG3kuwJsqIbgzDKmojoQKPo+GlBR5V8khmyXns=;
-        b=ehtdXaBHO6lXnSt95xeXHNrszcfUqodSuh6BxaFkMphLc8/cXx2TWBEm39u7vhOUHx
-         /R4NVSBptAYnoxq3zDW0fcW8yZwgQ6j7uh3f085UzfyQZ09uEhaZ4sOEzUGejcT4nTAY
-         bOvFCPcqrLqALBRmQIVtkhEIO/6CiiipePmfRLVljZZb96FOvpACUQD2ULMJC1lE3RAq
-         2ugWH/KWX8hFk0OcwuOPlFvKDtBxLSjWh2rz3j8FkyH4K7FX04ypIhZUgFImHuRMuW0N
-         z9Km+wSHHUXG0oSAprH0u9mrIBZkpNMolaGPZhFnuxXRaEG41lhPBWnjZOPsmz2wWY3z
-         bgSQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVsUMdx14WfZtxnIAU2jS8pbtJKBKmGUtPD8T6mwIrizcds1ERTsGrB+2wKxeCV4D4rp18lYbUqcRCiu4VW1RO93auFQOlai+9x+oVbYtTn
-X-Gm-Message-State: AOJu0YwMfd0ODxLpBnSL9GEmbVREKDUAupMcBV/rBnDyp2Db/eCg6HLn
-	lDnJExQLzZWe97a39fD14vtxek1onDuZxzu0Qwldqgl6J7Hgonrb5FQL6yBL+/WBj9/pTDeah7u
-	DKwpUsdeI0e+FhysFvTIBgRrvyE5Sr5rjS7nkuJZ5pm2ju7X6l8T2eyg=
-X-Google-Smtp-Source: AGHT+IFMVpbI/oyUD/Nzf6SMZz+ORuXDMuVeo/VwepvtWQMChUOmoisakOynndWpToGIlO7sv74oPSteHwMvhUCQGIieG7LgFupM
+        d=1e100.net; s=20230601; t=1720187251; x=1720792051;
+        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=ZmCgPDxPiPTAT0MAUiImX4rm6+pYk9qtR37fM+4drRI=;
+        b=XS6augnO/6KnmdiuvLgXldXkhYPe438BfdJTz4kvK+H5HEa4CidxugO7xTYzD2ZZTC
+         7AKjnvZ4Dx2Z+1090xXwgMd7S+OV5oppQcM2g2nXAJG6MiW2RADuTZ9JYF1139AoJ2Vd
+         wpXKYimpjxnrAAVnIoa/MZq2jtzXIDJ4m+bWqsgeHhaczNCV6ID3t5a8og77ExuppN2O
+         zIgP5Lvz/ux0VnVj8xr1nr8GaN+oa2X4QCLN2OAdSBdxbFhhZk1cSkPzcUnqSuODnhS7
+         H8mOwB8v82c7agQPKARNpX3nn9b+BYExxM0xGSM02xP6KrlAHVQnkIGTTZPbsP1iccpC
+         nMgQ==
+X-Gm-Message-State: AOJu0YyODjIDDeMaHLyfjzi3nQkFGEfFPDnS3sKeIdQcAZ9u6cAA1YIE
+	U9Vj8LpfD/CA0QXWqZiSGyIRvwEbP135v4q2djuSucqVhRaoBT48CfgSk7qjjC0tAY5j0fyhNSm
+	DEey0MdPIeHJLZ7X4NWj6/NaWNgjU32b9rjM=
+X-Google-Smtp-Source: AGHT+IHiBl+kW3ZlAuaHB5yQ7iyw9GVpTKpkxELy1kvRd5bWwhDQ+fzskFNpfB+uGOpniLoIRPm07OYhuCZrxmyix7I=
+X-Received: by 2002:ac2:5dcc:0:b0:52c:896f:930d with SMTP id
+ 2adb3069b0e04-52ea06e287bmr2930987e87.57.1720187251054; Fri, 05 Jul 2024
+ 06:47:31 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6638:35ac:b0:4c0:7f51:c3c5 with SMTP id
- 8926c6da1cb9f-4c07f51da77mr85862173.1.1720178283056; Fri, 05 Jul 2024
- 04:18:03 -0700 (PDT)
-Date: Fri, 05 Jul 2024 04:18:03 -0700
-In-Reply-To: <20240705104821.3202-1-hdanton@sina.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000832194061c7e37c3@google.com>
-Subject: Re: [syzbot] [netfilter?] KASAN: slab-use-after-free Read in nf_tables_trans_destroy_work
-From: syzbot <syzbot+4fd66a69358fc15ae2ad@syzkaller.appspotmail.com>
-To: fw@strlen.de, hdanton@sina.com, linux-kernel@vger.kernel.org, 
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
-	syzkaller-bugs@googlegroups.com
+From: josh lant <joshualant@googlemail.com>
+Date: Fri, 5 Jul 2024 14:47:19 +0100
+Message-ID: <CAMQRqNLQvfETbB6rpAP+QabsVGdwDmA0_7bxhK2jm0gcFQYm9g@mail.gmail.com>
+Subject: iptables- accessing unallocated memory
+To: netfilter-devel@vger.kernel.org, josh lant <joshualant@gmail.com>
 Content-Type: text/plain; charset="UTF-8"
 
-Hello,
+Hi there,
 
-syzbot has tested the proposed patch and the reproducer did not trigger any issue:
+I am currently trying to port iptables to ARM's new Morello
+architecture; featuring hardware capabilities for memory protection.
 
-Reported-and-tested-by: syzbot+4fd66a69358fc15ae2ad@syzkaller.appspotmail.com
+One of the ways Morello affords protection is by enforcing bounds on
+memory accesses at the hardware level. On Morello a segfault/bounds
+fault will occur at runtime when an illegal memory access is made...
 
-Tested on:
+When running some of the iptables tests I am encountering some of
+these faults. I have not investigated if they all occur in the same
+spot yet, but at least 3 such occurrences in the same place are in
+tests:
+chain/0005base-delete_0
+ebtables/0007-chain-policies_0
+iptables/0002-verbose-output_0
 
-commit:         1c5fc27b Merge tag 'nf-next-24-06-28' of git://git.ker..
-git tree:       https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git
-console output: https://syzkaller.appspot.com/x/log.txt?x=152db3d1980000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=5264b58fdff6e881
-dashboard link: https://syzkaller.appspot.com/bug?extid=4fd66a69358fc15ae2ad
-compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
-patch:          https://syzkaller.appspot.com/x/patch.diff?x=1395cd71980000
+Let us use ././testcases/iptables/0002-verbose-output_0 as an example
+here, since I see different behaviour in two different versions of
+iptables and libnftnl. (I had to update the package versions due to
+another unrelated issue that I may ask about separately).
 
-Note: testing is done by a robot and is best-effort only.
+Bounds faults occur: iptables (1.8.10), libnftnl (master), libmnl
+(1.0.5), kernel (6.4)
+Bounds faults do not occur: iptables (1.8.7), libnftnl (1.2.1), libmnl
+(1.0.5), kernel (6.4)
+
+The segfault happens in compare_targets, when the memcmp checks the
+data of the two xt_entry_target structs, when the rules are parsed and
+checked using nft_rule_cmp:
+
+https://git.netfilter.org/iptables/tree/iptables/nft-shared.c?h=v1.8.10#n414
+
+The reason I see a fault in the updated iptables 1.8.10 and not 1.8.7
+stems from the way the xt_entry_target structs are allocated in the
+different versions, in both instances inside h->ops->rule_to_cs()
+which calls nft_rule_to_iptables_command_state:
+
+https://git.netfilter.org/iptables/tree/iptables/nft.c?h=v1.8.10#n2390
+
+In 1.8.7, I see that 40B is allocated correctly, with enough space to
+hold the data at the end of the xt_entry_target struct. The allocation
+for this happens in the body of nft_rule_to_iptables_command_state
+itself:
+
+https://git.netfilter.org/iptables/tree/iptables/nft-shared.c?h=v1.8.7#n690
+
+However, in 1.8.10, the allocation is performed while the expression
+parsing happens, earlier within the nft_rule_to_iptables_command_state
+function. In this instance nft_parse_immediate calls
+nft_create_target. The wrapped __nft_create_target is then passed a
+hard-coded 0B to the tgsize parameter. So in this instance no space is
+ever allocated for the data at the end of xt_entry_target (hence the
+segfault when trying to access this unallocated memory):
+
+https://git.netfilter.org/iptables/tree/iptables/nft-ruleparse.c?h=v1.8.10#n99
+
+If someone could give me some insight on how best to patch this and
+pass an actual value to tgsize I would greatly appreciate it.
+Particularly since nft_create_target is called in numerous places, and
+I cannot find an obvious place where I might access the appropriate
+data length to pass.
+
+Many thanks,
+
+Josh
