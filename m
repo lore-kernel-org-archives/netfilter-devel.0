@@ -1,29 +1,79 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f194.google.com (mail-pl1-f194.google.com [209.85.214.194])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E3A816938C
-	for <netfilter-devel@vger.kernel.org>; Wed, 10 Jul 2024 09:05:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEE983C39;
+	Wed, 10 Jul 2024 09:46:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.194
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720602334; cv=none; b=feq74EYYcJdL635wSMDNvNDxQw3DvAr0Ql01c7/tgiyEOkcq+40/rSZvyEmdnnZT809nVDQD4m4jfefsAeszHA8ncu/w4Zx5xtHCyLVFJNqXvCZhOumcBhKbj0kZ3gUeKBhDl2rsf59IiyT/6OfQldRvi9O6TY8Fo+HLXJGSXuk=
+	t=1720604777; cv=none; b=BlU7Dl3JmP6/faM/D6qyuqxdqdUWXh5+HhtUwIaMHGK+yEoW0nPW//9gGvS7Z1uCHW+tXMXjjGG3bVjMB588v82h+kWClYIKipZTWCxZEw0GZsSGz4WkskC7FN5dxW4G2pELhcgQz6hQ2wuihJ1pgWeLPHfLF5H+Tt5igMgasHE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720602334; c=relaxed/simple;
-	bh=+DVRWZ3fYS4t3mHCEbgsWDYFZkEzEKASO78/eJc2Z8o=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=F9FbL9CElmAQSZZWRmU0pjQ4SAWaCbSv9nGxNB1ACxuSZy4kXB4Yl4ejfP4I3blnohdtSPRREd5GTElJ6O2jBCKOmyuUHlfgJQqgMTnV/wyrF+eaeGusfDt3Ea6EXRJLAvOUsdzJtXwWh8vqIY27Cl6W/NXMCeJmxUYqw0ttc4U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1sRTGM-00038S-Aw; Wed, 10 Jul 2024 11:05:22 +0200
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	Nadia Pinaeva <n.m.pinaeva@gmail.com>
-Subject: [PATCH nf-next] netfilter: nf_tables: store new sets in dedicated list
-Date: Wed, 10 Jul 2024 10:58:29 +0200
-Message-ID: <20240710085835.1957-1-fw@strlen.de>
-X-Mailer: git-send-email 2.44.2
+	s=arc-20240116; t=1720604777; c=relaxed/simple;
+	bh=87OuMfoBp1HIgSib8dcBMnekVnZsd8KTyRWTjgXz2SU=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=NoaWMc4ZOl6I3wFvMk3g1S6iHCc1h9Ywk3TWEefmragGZGGb1bA2wOWxbRyltSuzjD/ojW0VQnn7nOMs3nm005wKzQ/QMpIDaCImbqmVWX3+ijvgtqdtikDwPHegdBV7g3F27z+CR5Odf2+DfwnryErJztupFYeqc1beN9K7kck=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=dbBOmPSC; arc=none smtp.client-ip=209.85.214.194
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dbBOmPSC"
+Received: by mail-pl1-f194.google.com with SMTP id d9443c01a7336-1fb4a807708so50185315ad.2;
+        Wed, 10 Jul 2024 02:46:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1720604775; x=1721209575; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=i3a1COtwgflpykMRm7QZx/0MpqKdO0JXYgUvgqxRrRE=;
+        b=dbBOmPSCA312Zb2IMdIXnr+PR9yz6QOx+xMR4tAR0oTh+0rP0dQuwj0c6ArV3u4sWQ
+         /oa3eL9e8XggehofBJ2EiurcdgerG7yZj15OHC7r16mLdi09EEOMy1nXH8L+UEDkmVAT
+         ut0Ivw9ql8e81tEPItmN+pPwydeMYCkxX4GtWa4A7qY90TnZlAi04dU/dUUoP7J8FloQ
+         zmeJNUYjP7bz0ArYpJxlhxd4h3HHPf6ZFEsSgtMbvigX3pPCTx0d3FsxJcYKAxSWBZob
+         okRTqUgOmUsEqNr9QTy27ajn9FvQRUVQgrargvD72wW7wI/UnxCtkgmrnfl73BAB+1BH
+         Kv/A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1720604775; x=1721209575;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=i3a1COtwgflpykMRm7QZx/0MpqKdO0JXYgUvgqxRrRE=;
+        b=mtVvwlhVOyvb+Yr1qsgLQnP+MrBCK8poGDcWpADTQ/W9JC018E8HIM7eS+ShL5W2HX
+         SJCC7OX6/kAoosXfoiqYqL2y/3O9IcJZZMirmc4AG8eE+afYgqdo7Ck+Yown4nSuLNrg
+         kgokiONZ1F/CdGYBGC1NKFGwpca+CBRQW0VxUjj8JMLeClCY/WVo3VPizzb+cD53cIMY
+         xSf3lX2qZwXZz7jz+De3YGrNFwYecfUY/Qci2G5Pf/zZZozs6N1Th/XIF8zT0mgJvg3N
+         BfNfnP48EFHgFcR37kzZrh0iZ0EdSOECqWhqDIYrIWhZzp4b0njCbORw9a7x4Qcz63Mz
+         btGQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWyozc4LPO3zC5OMvLZ83bBqgOzqhicpF6xJiXmNebOgMki1Bjqu3ztzUaCpq6s41u7S/fU1WHrOSvYV5L3UWo+Zu5BKLfQxIZxS+NMZffqHUswnbrvfaGLMI0yHug5k8TzuILEzrBkBLykHWc2Pibv99hsq1lBqQtTpOGGwVXc6g/uXswZ
+X-Gm-Message-State: AOJu0Yz8vRzJ1SqZjCIqHGK6pw2wdhu5euKOw41EQ6fG/Db1rqC+7fYs
+	OT+W5pg/jot+tXMjaIbR9+u6e18tbIubK6EYr6Ojt4T29xUK6m2Y
+X-Google-Smtp-Source: AGHT+IGvdJH3+OVZQzebmwVF4nk/h4qXhnEwC50oELwCdSIdGXrrNeQs5RPx3J9NVn8La2ZNmCKYbg==
+X-Received: by 2002:a17:903:2448:b0:1fb:7f66:250 with SMTP id d9443c01a7336-1fbb6ed578dmr44493075ad.46.1720604774874;
+        Wed, 10 Jul 2024 02:46:14 -0700 (PDT)
+Received: from localhost.localdomain ([166.111.236.150])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-1fbb6a107d2sm29972995ad.18.2024.07.10.02.46.11
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 10 Jul 2024 02:46:14 -0700 (PDT)
+From: yyxRoy <yyxroy22@gmail.com>
+X-Google-Original-From: yyxRoy <979093444@qq.com>
+To: fw@strlen.de
+Cc: 979093444@qq.com,
+	coreteam@netfilter.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	gregkh@linuxfoundation.org,
+	kadlec@blackhole.kfki.hu,
+	kuba@kernel.org,
+	linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	pabeni@redhat.com,
+	pablo@netfilter.org,
+	yyxroy22@gmail.com
+Subject: Re: [PATCH] netfilter: conntrack: tcp: do not lower timeout to CLOSE for in-window RSTs
+Date: Wed, 10 Jul 2024 17:45:54 +0800
+Message-Id: <20240710094554.483075-1-979093444@qq.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20240708141206.GA5340@breakpoint.cc>
+References: <20240708141206.GA5340@breakpoint.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -32,158 +82,35 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-nft_set_lookup_byid() is very slow when transaction becomes large, due to
-walk of the transaction list.
+On Mon, 8 Jul 2024 at 22:12, Florian Westphal <fw@strlen.de> wrote:
+> We can track TTL/NH.
+> We can track TCP timestamps.
+> 
+> But how would we use such extra information?
+> E.g. what I we observe:
+> 
+> ACK, TTL 32
+> ACK, TTL 31
+> ACK, TTL 30
+> ACK, TTL 29
+> 
+> ... will we just refuse to update TTL?
+> If we reduce it, any attacker can shrink it to needed low value
+> to prevent later RST from reaching end host.
+> 
+> If we don't, connection could get stuck on legit route change?
+> What about malicious entities injecting FIN/SYN packets rather than RST?
+> 
+> If we have last ts.echo from remote side, we can make it harder, but
+> what do if RST doesn't carry timestamp?
+> 
+> Could be perfectly legal when machine lost state, e.g. power-cycled.
+> So we can't ignore such RSTs.
 
-Add a dedicated list that contains only the new sets.
+I fully agree with your considerations. There are indeed some challenges with the proposed methods of enhancing checks on RSTs of in-window sequence numbers, TTL, and timestamps.
 
-Before: nft -f ruleset 0.07s user 0.00s system 0% cpu 1:04.84 total
-After: nft -f ruleset 0.07s user 0.00s system 0% cpu 30.115 total
+However, we now have known that conntrack may be vulnerable to attacks and illegal state transitions when it receives in-window RSTs with incorrect TTL or data packets + RSTs. Is it possible to find better methods to mitigate these issues, as they may pose threats to Netfilter users?
 
-.. where ruleset contains ~10 sets with ~100k elements.
-The above number is for a combined flush+reload of the ruleset.
+Note: We have also tested other connection tracking frameworks (such as FreeBSD/OpenBSD PF). Also playing the roles as middleboxes, they only change the state of the connection when they receive an RST with the currently known precise sequence number, thus avoiding these attacks. Could Netfilter adopt similar measures or else to further mitigate these issues?
 
-With previous flush, even the first NEWELEM has to walk through a few
-hundred thousands of DELSET(ELEM) transactions before the first NEWSET
-object. To cope with random-order-newset-newsetelem we'd need to replace
-commit_set_list with a hashtable.
-
-Expectation is that a NEWELEM operation refers to the most recently added
-set, so last entry of the dedicated list should be the set we want.
-
-NB: This is not a bug fix per se (functionality is fine), but with
-larger transaction batches list search takes forever, so it would be
-nice to speed this up for -stable too, hence adding a "fixes" tag.
-
-Fixes: 958bee14d071 ("netfilter: nf_tables: use new transaction infrastructure to handle sets")
-Reported-by: Nadia Pinaeva <n.m.pinaeva@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/net/netfilter/nf_tables.h |  2 ++
- net/netfilter/nf_tables_api.c     | 29 ++++++++++++++++++++---------
- 2 files changed, 22 insertions(+), 9 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 1bfdd16890fa..2be4738eae1c 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1674,6 +1674,7 @@ struct nft_trans_rule {
- 
- struct nft_trans_set {
- 	struct nft_trans_binding	nft_trans_binding;
-+	struct list_head		list_trans_newset;
- 	struct nft_set			*set;
- 	u32				set_id;
- 	u32				gc_int;
-@@ -1875,6 +1876,7 @@ static inline int nft_request_module(struct net *net, const char *fmt, ...) { re
- struct nftables_pernet {
- 	struct list_head	tables;
- 	struct list_head	commit_list;
-+	struct list_head	commit_set_list;
- 	struct list_head	binding_list;
- 	struct list_head	module_list;
- 	struct list_head	notify_list;
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 70d0bad029fd..b0d030b83c5a 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -393,6 +393,7 @@ static void nft_trans_commit_list_add_tail(struct net *net, struct nft_trans *tr
- {
- 	struct nftables_pernet *nft_net = nft_pernet(net);
- 	struct nft_trans_binding *binding;
-+	struct nft_trans_set *trans_set;
- 
- 	list_add_tail(&trans->list, &nft_net->commit_list);
- 
-@@ -402,9 +403,13 @@ static void nft_trans_commit_list_add_tail(struct net *net, struct nft_trans *tr
- 
- 	switch (trans->msg_type) {
- 	case NFT_MSG_NEWSET:
-+		trans_set = nft_trans_container_set(trans);
-+
- 		if (!nft_trans_set_update(trans) &&
- 		    nft_set_is_anonymous(nft_trans_set(trans)))
- 			list_add_tail(&binding->binding_list, &nft_net->binding_list);
-+
-+		list_add_tail(&trans_set->list_trans_newset, &nft_net->commit_set_list);
- 		break;
- 	case NFT_MSG_NEWCHAIN:
- 		if (!nft_trans_chain_update(trans) &&
-@@ -611,6 +616,7 @@ static int __nft_trans_set_add(const struct nft_ctx *ctx, int msg_type,
- 
- 	trans_set = nft_trans_container_set(trans);
- 	INIT_LIST_HEAD(&trans_set->nft_trans_binding.binding_list);
-+	INIT_LIST_HEAD(&trans_set->list_trans_newset);
- 
- 	if (msg_type == NFT_MSG_NEWSET && ctx->nla[NFTA_SET_ID] && !desc) {
- 		nft_trans_set_id(trans) =
-@@ -4473,17 +4479,16 @@ static struct nft_set *nft_set_lookup_byid(const struct net *net,
- {
- 	struct nftables_pernet *nft_net = nft_pernet(net);
- 	u32 id = ntohl(nla_get_be32(nla));
--	struct nft_trans *trans;
-+	struct nft_trans_set *trans;
- 
--	list_for_each_entry(trans, &nft_net->commit_list, list) {
--		if (trans->msg_type == NFT_MSG_NEWSET) {
--			struct nft_set *set = nft_trans_set(trans);
-+	/* its likely the id we need is at the tail, not at start */
-+	list_for_each_entry_reverse(trans, &nft_net->commit_set_list, list_trans_newset) {
-+		struct nft_set *set = trans->set;
- 
--			if (id == nft_trans_set_id(trans) &&
--			    set->table == table &&
--			    nft_active_genmask(set, genmask))
--				return set;
--		}
-+		if (id == trans->set_id &&
-+		    set->table == table &&
-+		    nft_active_genmask(set, genmask))
-+			return set;
- 	}
- 	return ERR_PTR(-ENOENT);
- }
-@@ -10378,6 +10383,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 				nft_flow_rule_destroy(nft_trans_flow_rule(trans));
- 			break;
- 		case NFT_MSG_NEWSET:
-+			list_del(&nft_trans_container_set(trans)->list_trans_newset);
- 			if (nft_trans_set_update(trans)) {
- 				struct nft_set *set = nft_trans_set(trans);
- 
-@@ -10686,6 +10692,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_NEWSET:
-+			list_del(&nft_trans_container_set(trans)->list_trans_newset);
- 			if (nft_trans_set_update(trans)) {
- 				nft_trans_destroy(trans);
- 				break;
-@@ -10781,6 +10788,8 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 		}
- 	}
- 
-+	WARN_ON_ONCE(!list_empty(&nft_net->commit_set_list));
-+
- 	nft_set_abort_update(&set_update_list);
- 
- 	synchronize_rcu();
-@@ -11595,6 +11604,7 @@ static int __net_init nf_tables_init_net(struct net *net)
- 
- 	INIT_LIST_HEAD(&nft_net->tables);
- 	INIT_LIST_HEAD(&nft_net->commit_list);
-+	INIT_LIST_HEAD(&nft_net->commit_set_list);
- 	INIT_LIST_HEAD(&nft_net->binding_list);
- 	INIT_LIST_HEAD(&nft_net->module_list);
- 	INIT_LIST_HEAD(&nft_net->notify_list);
-@@ -11625,6 +11635,7 @@ static void __net_exit nf_tables_exit_net(struct net *net)
- 	gc_seq = nft_gc_seq_begin(nft_net);
- 
- 	WARN_ON_ONCE(!list_empty(&nft_net->commit_list));
-+	WARN_ON_ONCE(!list_empty(&nft_net->commit_set_list));
- 
- 	if (!list_empty(&nft_net->module_list))
- 		nf_tables_module_autoload_cleanup(net);
--- 
-2.44.2
-
+Thank you again for your time and for your efforts in maintaining the community's performance and security!
