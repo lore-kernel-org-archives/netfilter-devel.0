@@ -1,28 +1,47 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E7EAE192B8F
-	for <netfilter-devel@vger.kernel.org>; Wed, 10 Jul 2024 15:20:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 473C036AF8
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Jul 2024 15:33:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720624825; cv=none; b=P3c/2nvLt8/L4PYEg1O0xtCUuELyJbUARMICNSoTv3QOmjp/OThXgXVs4/OFiujbuaoZmSYptWSVJz4DPiCfWt+39LaSGVPLBcW1LfiYJZST85pmehjwFQKXC0MQX6BSaVtt+M21tbz5z+M9SIVx0nRFCXu0TCpLPCwn1IvMR+s=
+	t=1720625610; cv=none; b=mLDVWlwIzDU3u9PmQAOuKjcWE3vqD85gxF0avdRIvF6liAaqHFdMWY7P9gvTJ3frs89WBsN3PUL6SG5aIw2oehW3XBi95k5Piim5Cx0QVSSFvAoo4rQvScf16nIHNAjdi2GHE+n7bmyNFdGy/B3jU8kw5JSeb9HqUt8d5hykS7w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720624825; c=relaxed/simple;
-	bh=H03iDug7ZsGgx708qPcffL+uuASumntyV/aBP3EaRbY=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=Zyblh8pgiAZIJ+7iyH4y6NqvRJGD6o8x241mSUWD19STz1fz+SIX0+Pr4/zGvnlQnXjyvfhKUoJ6q2N+s5SClYtk8h0rl+1NdwFVOuoSXd3c0zx8mX7h2Z8xX4G6z6U+VzDhZyDaMqVfrafatVcvdJgD3o7v588Iug85vnERFDc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: phil@nwl.cc,
-	thaller@redhat.com,
-	jami.maenpaa@wapice.com
-Subject: [PATCH nft 2/2] libnftables: skip useable checks for /dev/stdin
-Date: Wed, 10 Jul 2024 17:20:04 +0200
-Message-Id: <20240710152004.11526-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20240710152004.11526-1-pablo@netfilter.org>
-References: <20240710152004.11526-1-pablo@netfilter.org>
+	s=arc-20240116; t=1720625610; c=relaxed/simple;
+	bh=S83wwmXfWn4jk6ObzuKf/wvYEXZVmFJj0YGHYKk+QIU=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=QHpbDl8cGmW2FDKopkKGgUiDW9KVBpayc4/lJr4nPzivBXzU97Aisd4AxSTyg9iuhQp49sEmbhHy+YC6nTZwuqWvn5ly4ZQW4bekz+3B1XGnmOhU+WN6ss/RrUlJgtWSDsZOBHxipn5+gLnnPTIffRLvz/cyumUhd6ZdJ164dzU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=qHxljZ1o; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="qHxljZ1o"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=bOcMhJwlb8SULiY2Vb3aXcgHA2xxXams8ViC8VTvxk8=; b=qHxljZ1ojTN5fkVAcpn6IWLKq0
+	PL7EsB2xinvkCUjUxKc0t0niTkXPZwa2Uu3OCqx0dyOxH89WftwvkR1ZedO3Ol7RNs+OMaRPEWATj
+	0jSVDh+V/lJT8cszS7V6Z8rUwiRT2xue7DfkkxHcZXqBtS6AZfwYvNPdxtfkI0LcAJ1cw2SzmlHkh
+	m0Bi09riwT7xJmMosGFF9mIkpdgd2BjXQziYSl0z7CBhUpPSkJt6xmBnc+y5Fl5bK1ylWraHtqQmO
+	MX5NceVk9uxqda8PPaloBXAjyIlEFZvOMoG2377la9RJjOYQPofZfhCgZMb5xKGflzcyDTg/P+5NI
+	RtD0fmOw==;
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1sRZJu-000000001Mj-1lp5;
+	Wed, 10 Jul 2024 17:33:26 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: [libnftnl PATCH 2/2] table: Support unsetting NFTNL_TABLE_USERDATA attribute
+Date: Wed, 10 Jul 2024 17:33:22 +0200
+Message-ID: <20240710153322.18574-2-phil@nwl.cc>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20240710153322.18574-1-phil@nwl.cc>
+References: <20240710153322.18574-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,54 +50,28 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-/dev/stdin is a placeholder, read() from STDIN_FILENO is used to fetch
-the standard input into a buffer.
+Cosmetics, but support unsetting anything that may be set.
 
-Since 5c2b2b0a2ba7 ("src: error reporting with -f and read from stdin")
-stdin is stored in a buffer to fix error reporting.
-
-This patch requires: ("parser_json: use stdin buffer if available")
-
-Fixes: 149b1c95d129 ("libnftables: refuse to open onput files other than named pipes or regular files")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: 99be0e6d066d7 ("table: add userdata support")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
-v2: no changes.
+ src/table.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
- src/libnftables.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
-
-diff --git a/src/libnftables.c b/src/libnftables.c
-index 89317f9f6049..36d6a854ff50 100644
---- a/src/libnftables.c
-+++ b/src/libnftables.c
-@@ -664,6 +664,7 @@ retry:
- 
- /* need to use stat() to, fopen() will block for named fifos and
-  * libjansson makes no checks before or after open either.
-+ * /dev/stdin is *never* used, read() from STDIN_FILENO is used instead.
-  */
- static struct error_record *filename_is_useable(struct nft_ctx *nft, const char *name)
- {
-@@ -671,6 +672,9 @@ static struct error_record *filename_is_useable(struct nft_ctx *nft, const char
- 	struct stat sb;
- 	int err;
- 
-+	if (!strcmp(name, "/dev/stdin"))
-+		return NULL;
-+
- 	err = stat(name, &sb);
- 	if (err)
- 		return error(&internal_location, "Could not open file \"%s\": %s\n",
-@@ -681,9 +685,6 @@ static struct error_record *filename_is_useable(struct nft_ctx *nft, const char
- 	if (type == S_IFREG || type == S_IFIFO)
- 		return NULL;
- 
--	if (type == S_IFCHR && 0 == strcmp(name, "/dev/stdin"))
--		return NULL;
--
- 	return error(&internal_location, "Not a regular file: \"%s\"\n", name);
- }
- 
+diff --git a/src/table.c b/src/table.c
+index 13f01cfbf1e6f..1a5f6f3bcc507 100644
+--- a/src/table.c
++++ b/src/table.c
+@@ -74,6 +74,9 @@ void nftnl_table_unset(struct nftnl_table *t, uint16_t attr)
+ 	case NFTNL_TABLE_NAME:
+ 		xfree(t->name);
+ 		break;
++	case NFTNL_TABLE_USERDATA:
++		xfree(t->user.data);
++		break;
+ 	case NFTNL_TABLE_FLAGS:
+ 	case NFTNL_TABLE_HANDLE:
+ 	case NFTNL_TABLE_FAMILY:
 -- 
-2.30.2
+2.43.0
 
