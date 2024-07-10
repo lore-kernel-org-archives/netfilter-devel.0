@@ -1,26 +1,29 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2A90719D074
-	for <netfilter-devel@vger.kernel.org>; Tue,  9 Jul 2024 15:06:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E3A816938C
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Jul 2024 09:05:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720537614; cv=none; b=VC50QpVIXRfTHJSJqwaeBxUjj59DfsysPgzBUH51tadvhqCvMKw8tNBccfSx3kyLIbdDpPvVGXyRlglx8gcni9S9ACbnuzxzZ4XVPHYUonJQTQybwFjUxOix3C2siHRgYtDMrg+6+1aIuLb2EZMzNMgiAyfUzmDHYppTUGsYjKY=
+	t=1720602334; cv=none; b=feq74EYYcJdL635wSMDNvNDxQw3DvAr0Ql01c7/tgiyEOkcq+40/rSZvyEmdnnZT809nVDQD4m4jfefsAeszHA8ncu/w4Zx5xtHCyLVFJNqXvCZhOumcBhKbj0kZ3gUeKBhDl2rsf59IiyT/6OfQldRvi9O6TY8Fo+HLXJGSXuk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720537614; c=relaxed/simple;
-	bh=pfXf6PuFDShGLO1Goh7Vh1fkkAFOyz8TMbKdWaajcz8=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=pAxGWatF1b2P8CDn7bwWWGwckos33HjBNYU5FxcDPoVY+7DcPf20EZOygMb7NQvu6QcNDbiHdSxdkokgCoF/60SmwgBdxRRFTakonGu42p/9lQHT0Po45Cw4JvyUFPNU8AFBAkKczv6k5xq6YOCSDlLvqvareZtliPkdlR7jwbE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: jami.maenpaa@wapice.com
-Subject: [PATCH nft 2/2] libnftables: skip useable checks for /dev/stdin
-Date: Tue,  9 Jul 2024 16:59:53 +0200
-Message-Id: <20240709145953.135124-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20240709145953.135124-1-pablo@netfilter.org>
-References: <20240709145953.135124-1-pablo@netfilter.org>
+	s=arc-20240116; t=1720602334; c=relaxed/simple;
+	bh=+DVRWZ3fYS4t3mHCEbgsWDYFZkEzEKASO78/eJc2Z8o=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=F9FbL9CElmAQSZZWRmU0pjQ4SAWaCbSv9nGxNB1ACxuSZy4kXB4Yl4ejfP4I3blnohdtSPRREd5GTElJ6O2jBCKOmyuUHlfgJQqgMTnV/wyrF+eaeGusfDt3Ea6EXRJLAvOUsdzJtXwWh8vqIY27Cl6W/NXMCeJmxUYqw0ttc4U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1sRTGM-00038S-Aw; Wed, 10 Jul 2024 11:05:22 +0200
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>,
+	Nadia Pinaeva <n.m.pinaeva@gmail.com>
+Subject: [PATCH nf-next] netfilter: nf_tables: store new sets in dedicated list
+Date: Wed, 10 Jul 2024 10:58:29 +0200
+Message-ID: <20240710085835.1957-1-fw@strlen.de>
+X-Mailer: git-send-email 2.44.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -29,50 +32,158 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-/dev/stdin is a placeholder, read() from STDIN_FILENO is used to fetch
-the standard input into a buffer.
+nft_set_lookup_byid() is very slow when transaction becomes large, due to
+walk of the transaction list.
 
-Since 5c2b2b0a2ba7 ("src: error reporting with -f and read from stdin")
-stdin is stored in a buffer to fix error reporting.
+Add a dedicated list that contains only the new sets.
 
-Fixes: 149b1c95d129 ("libnftables: refuse to open onput files other than named pipes or regular files")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Before: nft -f ruleset 0.07s user 0.00s system 0% cpu 1:04.84 total
+After: nft -f ruleset 0.07s user 0.00s system 0% cpu 30.115 total
+
+.. where ruleset contains ~10 sets with ~100k elements.
+The above number is for a combined flush+reload of the ruleset.
+
+With previous flush, even the first NEWELEM has to walk through a few
+hundred thousands of DELSET(ELEM) transactions before the first NEWSET
+object. To cope with random-order-newset-newsetelem we'd need to replace
+commit_set_list with a hashtable.
+
+Expectation is that a NEWELEM operation refers to the most recently added
+set, so last entry of the dedicated list should be the set we want.
+
+NB: This is not a bug fix per se (functionality is fine), but with
+larger transaction batches list search takes forever, so it would be
+nice to speed this up for -stable too, hence adding a "fixes" tag.
+
+Fixes: 958bee14d071 ("netfilter: nf_tables: use new transaction infrastructure to handle sets")
+Reported-by: Nadia Pinaeva <n.m.pinaeva@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/libnftables.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/net/netfilter/nf_tables.h |  2 ++
+ net/netfilter/nf_tables_api.c     | 29 ++++++++++++++++++++---------
+ 2 files changed, 22 insertions(+), 9 deletions(-)
 
-diff --git a/src/libnftables.c b/src/libnftables.c
-index af4734c05004..4676b30a04b1 100644
---- a/src/libnftables.c
-+++ b/src/libnftables.c
-@@ -664,6 +664,7 @@ retry:
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 1bfdd16890fa..2be4738eae1c 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1674,6 +1674,7 @@ struct nft_trans_rule {
  
- /* need to use stat() to, fopen() will block for named fifos and
-  * libjansson makes no checks before or after open either.
-+ * /dev/stdin is *never* used, read() from STDIN_FILENO is used instead.
-  */
- static struct error_record *filename_is_useable(struct nft_ctx *nft, const char *name)
+ struct nft_trans_set {
+ 	struct nft_trans_binding	nft_trans_binding;
++	struct list_head		list_trans_newset;
+ 	struct nft_set			*set;
+ 	u32				set_id;
+ 	u32				gc_int;
+@@ -1875,6 +1876,7 @@ static inline int nft_request_module(struct net *net, const char *fmt, ...) { re
+ struct nftables_pernet {
+ 	struct list_head	tables;
+ 	struct list_head	commit_list;
++	struct list_head	commit_set_list;
+ 	struct list_head	binding_list;
+ 	struct list_head	module_list;
+ 	struct list_head	notify_list;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 70d0bad029fd..b0d030b83c5a 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -393,6 +393,7 @@ static void nft_trans_commit_list_add_tail(struct net *net, struct nft_trans *tr
  {
-@@ -671,6 +672,9 @@ static struct error_record *filename_is_useable(struct nft_ctx *nft, const char
- 	struct stat sb;
- 	int err;
+ 	struct nftables_pernet *nft_net = nft_pernet(net);
+ 	struct nft_trans_binding *binding;
++	struct nft_trans_set *trans_set;
  
-+	if (!strcmp(name, "/dev/stdin"))
-+		return NULL;
+ 	list_add_tail(&trans->list, &nft_net->commit_list);
+ 
+@@ -402,9 +403,13 @@ static void nft_trans_commit_list_add_tail(struct net *net, struct nft_trans *tr
+ 
+ 	switch (trans->msg_type) {
+ 	case NFT_MSG_NEWSET:
++		trans_set = nft_trans_container_set(trans);
 +
- 	err = stat(name, &sb);
- 	if (err)
- 		return error(&internal_location, "Could not open file \"%s\": %s\n",
-@@ -681,9 +685,6 @@ static struct error_record *filename_is_useable(struct nft_ctx *nft, const char
- 	if (type == S_IFREG || type == S_IFIFO)
- 		return NULL;
+ 		if (!nft_trans_set_update(trans) &&
+ 		    nft_set_is_anonymous(nft_trans_set(trans)))
+ 			list_add_tail(&binding->binding_list, &nft_net->binding_list);
++
++		list_add_tail(&trans_set->list_trans_newset, &nft_net->commit_set_list);
+ 		break;
+ 	case NFT_MSG_NEWCHAIN:
+ 		if (!nft_trans_chain_update(trans) &&
+@@ -611,6 +616,7 @@ static int __nft_trans_set_add(const struct nft_ctx *ctx, int msg_type,
  
--	if (type == S_IFCHR && 0 == strcmp(name, "/dev/stdin"))
--		return NULL;
--
- 	return error(&internal_location, "Not a regular file: \"%s\"\n", name);
+ 	trans_set = nft_trans_container_set(trans);
+ 	INIT_LIST_HEAD(&trans_set->nft_trans_binding.binding_list);
++	INIT_LIST_HEAD(&trans_set->list_trans_newset);
+ 
+ 	if (msg_type == NFT_MSG_NEWSET && ctx->nla[NFTA_SET_ID] && !desc) {
+ 		nft_trans_set_id(trans) =
+@@ -4473,17 +4479,16 @@ static struct nft_set *nft_set_lookup_byid(const struct net *net,
+ {
+ 	struct nftables_pernet *nft_net = nft_pernet(net);
+ 	u32 id = ntohl(nla_get_be32(nla));
+-	struct nft_trans *trans;
++	struct nft_trans_set *trans;
+ 
+-	list_for_each_entry(trans, &nft_net->commit_list, list) {
+-		if (trans->msg_type == NFT_MSG_NEWSET) {
+-			struct nft_set *set = nft_trans_set(trans);
++	/* its likely the id we need is at the tail, not at start */
++	list_for_each_entry_reverse(trans, &nft_net->commit_set_list, list_trans_newset) {
++		struct nft_set *set = trans->set;
+ 
+-			if (id == nft_trans_set_id(trans) &&
+-			    set->table == table &&
+-			    nft_active_genmask(set, genmask))
+-				return set;
+-		}
++		if (id == trans->set_id &&
++		    set->table == table &&
++		    nft_active_genmask(set, genmask))
++			return set;
+ 	}
+ 	return ERR_PTR(-ENOENT);
  }
+@@ -10378,6 +10383,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 				nft_flow_rule_destroy(nft_trans_flow_rule(trans));
+ 			break;
+ 		case NFT_MSG_NEWSET:
++			list_del(&nft_trans_container_set(trans)->list_trans_newset);
+ 			if (nft_trans_set_update(trans)) {
+ 				struct nft_set *set = nft_trans_set(trans);
  
+@@ -10686,6 +10692,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_NEWSET:
++			list_del(&nft_trans_container_set(trans)->list_trans_newset);
+ 			if (nft_trans_set_update(trans)) {
+ 				nft_trans_destroy(trans);
+ 				break;
+@@ -10781,6 +10788,8 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 		}
+ 	}
+ 
++	WARN_ON_ONCE(!list_empty(&nft_net->commit_set_list));
++
+ 	nft_set_abort_update(&set_update_list);
+ 
+ 	synchronize_rcu();
+@@ -11595,6 +11604,7 @@ static int __net_init nf_tables_init_net(struct net *net)
+ 
+ 	INIT_LIST_HEAD(&nft_net->tables);
+ 	INIT_LIST_HEAD(&nft_net->commit_list);
++	INIT_LIST_HEAD(&nft_net->commit_set_list);
+ 	INIT_LIST_HEAD(&nft_net->binding_list);
+ 	INIT_LIST_HEAD(&nft_net->module_list);
+ 	INIT_LIST_HEAD(&nft_net->notify_list);
+@@ -11625,6 +11635,7 @@ static void __net_exit nf_tables_exit_net(struct net *net)
+ 	gc_seq = nft_gc_seq_begin(nft_net);
+ 
+ 	WARN_ON_ONCE(!list_empty(&nft_net->commit_list));
++	WARN_ON_ONCE(!list_empty(&nft_net->commit_set_list));
+ 
+ 	if (!list_empty(&nft_net->module_list))
+ 		nf_tables_module_autoload_cleanup(net);
 -- 
-2.30.2
+2.44.2
 
