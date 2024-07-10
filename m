@@ -1,130 +1,110 @@
-Received: from smtp2-kfki.kfki.hu (smtp2-kfki.kfki.hu [148.6.0.51])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9762D192B8F;
-	Wed, 10 Jul 2024 13:49:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F1101940B1
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Jul 2024 13:53:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720619373; cv=none; b=m1jN3gvGSn4l9JtjrqxFBK6iqhd3r9MZVQuXJGopj+vT31JLMeZbpXabWcWZPJk1sia2MtdJlKIdFXNcrrvl5zcss1BX7ShmHe7inefdvy5keEF/MZw8ezSvFOVg+5Tb8lPcHW9rq15gQee1aRHOXj9RRykiAvzZ/lb+qnKk4Q4=
+	t=1720619637; cv=none; b=QlYaLCKk3oVxLaDi2n2RZOrSwN4lzkuB1EVKfzEAqrtyffd7qf4+HagKVMNLRYkudQ7xbSmWi2RurO42AiJWPO0WrSi0QFc9PG+uHuGwmFykKN77UsTk+GnY23+xJq/NupA819+XEnbn/GewNFVvg1mh84AsfmvPfbKGc1K5DQs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720619373; c=relaxed/simple;
-	bh=pArGaEjrBNzLagzcUQy7sb6LrTj46+cz3oLQRUFO5fc=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=H9GjNe2ew/a0eJYC0dh3qip94ACfk/n19u8PqpTY1lgDvfj1kg0ZbORbrk7IDQAeOL73fs9SmAguvC54mFNcqr77uKfzBlBwTCM7dzKqn9s7ro4pQBfg6sDDBvond2+0t2WfWsK9szehwqi43PV5eGEYQQXVHXy7vbhLn7YYrfI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=Ek1pH4Tx; arc=none smtp.client-ip=148.6.0.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
+	s=arc-20240116; t=1720619637; c=relaxed/simple;
+	bh=ohA3OiJ/BKxkhsXZKXi0GXExxx8LdTB+et/iu5mmloA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=RU2TyhCBhh+2ARqNa/YwO2c4STR0Al5srftIjd1xtnOM8SMZ8wiwinIKJEyNum4TJJfz85N+byCCvIA1HYYDQ3hSdZzuVhrCjVibyIuMoXZFcIkq+pnHzIWWBGodr0nmN9pZwTTRpx5BTBKmvhrb0OTOTEUdekZseAVf73byO3o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=kRcXm+QF; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="Ek1pH4Tx"
-Received: from localhost (localhost [127.0.0.1])
-	by smtp2.kfki.hu (Postfix) with ESMTP id 1FAF8CC02C0;
-	Wed, 10 Jul 2024 15:49:27 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	blackhole.kfki.hu; h=mime-version:references:message-id
-	:in-reply-to:from:from:date:date:received:received:received
-	:received; s=20151130; t=1720619365; x=1722433766; bh=z2NQrFM4Pv
-	+TQSD3+eNSvbpMh/+SSq4xiXJqjXQ/tu4=; b=Ek1pH4TxHJwpAN0hMu9hMVhv9Z
-	l5CXszvln762kNrB8+xgru6P4K6jjK5bvUV1+cKAB0kSiT78eavk2Bnmy0DJTP13
-	/r4jqbQDxeNZu7TU3vZwsEibdDXGzV9UuxyQMVFc58JgBedvxgtvWvaknLXKj7ls
-	baHu41t64KpwaRsbQ=
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-	by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-	with ESMTP; Wed, 10 Jul 2024 15:49:25 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-	by smtp2.kfki.hu (Postfix) with ESMTP id 8F693CC02B4;
-	Wed, 10 Jul 2024 15:49:24 +0200 (CEST)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-	id 4C35134316B; Wed, 10 Jul 2024 15:49:24 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by blackhole.kfki.hu (Postfix) with ESMTP id 4B7B534316A;
-	Wed, 10 Jul 2024 15:49:24 +0200 (CEST)
-Date: Wed, 10 Jul 2024 15:49:24 +0200 (CEST)
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: yyxRoy <yyxroy22@gmail.com>
-cc: Florian Westphal <fw@strlen.de>, 979093444@qq.com, coreteam@netfilter.org, 
-    David Miller <davem@davemloft.net>, edumazet@google.com, 
-    gregkh@linuxfoundation.org, kuba@kernel.org, linux-kernel@vger.kernel.org, 
-    netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pabeni@redhat.com, 
-    Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: conntrack: tcp: do not lower timeout to CLOSE
- for in-window RSTs
-In-Reply-To: <20240710094554.483075-1-979093444@qq.com>
-Message-ID: <7dd0aeaf-20cc-877c-e2d9-e0b40d40567d@blackhole.kfki.hu>
-References: <20240708141206.GA5340@breakpoint.cc> <20240710094554.483075-1-979093444@qq.com>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="kRcXm+QF"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=KGx44/LFYBryTpxU2xnw5hR4Xu1+sHXG9wY8wovMMOg=; b=kRcXm+QFYw4kR/xbKMC/yGZ9pn
+	LITz1KGjsRf0+j++U4NzOls1ivsOrsd1hhpp1H+gLfuoN/84S6DQsjvg5zODhXamaAHYS4qYFaXJZ
+	bG09uPa+esHYBSAKGK/QHbn9Hpbg90lPIKtZGS8T8OIWMGzSEB8KTO1QOoYF+fkhEcH4PBble0Dnk
+	E6+wMcX+fP4jEDB42NxJp3/P01/r3jQ+IlL73HlvixvtY+1p6CR6Rbt5Uj6Tgd7av+wWFTrLHrZpy
+	COLOMOsGvL0EXSIu9cjPXztLogxnLmlmdg9ZR+LxJP1lzdNk+hH+CLj9gonDv21HEH+KGGkKKulQb
+	HhCDd9YA==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1sRXlY-000000006L1-3bpl;
+	Wed, 10 Jul 2024 15:53:52 +0200
+Date: Wed, 10 Jul 2024 15:53:52 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, jami.maenpaa@wapice.com,
+	Thomas Haller <thaller@redhat.com>
+Subject: Re: [PATCH nft 1/2] parser_json: use stdin buffer if available
+Message-ID: <Zo6ScCYWnACpWJsl@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, jami.maenpaa@wapice.com,
+	Thomas Haller <thaller@redhat.com>
+References: <20240709145953.135124-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240709145953.135124-1-pablo@netfilter.org>
 
-Hi,
+Hi Pablo,
 
-On Wed, 10 Jul 2024, yyxRoy wrote:
+On Tue, Jul 09, 2024 at 04:59:52PM +0200, Pablo Neira Ayuso wrote:
+> Since 5c2b2b0a2ba7 ("src: error reporting with -f and read from stdin")
+> stdin is stored in a buffer, update json support to use it instead of
+> reading from /dev/stdin.
+> 
+> Some systems do not provide /dev/stdin symlink to /proc/self/fd/0
+> according to reporter (that mentions Yocto Linux as example).
+> 
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  src/parser_json.c | 7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/src/parser_json.c b/src/parser_json.c
+> index ee4657ee8044..4912d3608b2b 100644
+> --- a/src/parser_json.c
+> +++ b/src/parser_json.c
+> @@ -4357,6 +4357,13 @@ int nft_parse_json_filename(struct nft_ctx *nft, const char *filename,
+>  	json_error_t err;
+>  	int ret;
+>  
+> +	if (nft->stdin_buf) {
+> +		json_indesc.type = INDESC_STDIN;
+> +		json_indesc.name = "/dev/stdin";
+> +
+> +		return nft_parse_json_buffer(nft, nft->stdin_buf, msgs, cmds);
+> +	}
 
-> On Mon, 8 Jul 2024 at 22:12, Florian Westphal <fw@strlen.de> wrote:
->> We can track TTL/NH.
->> We can track TCP timestamps.
->>
->> But how would we use such extra information?
->> E.g. what I we observe:
->>
->> ACK, TTL 32
->> ACK, TTL 31
->> ACK, TTL 30
->> ACK, TTL 29
->>
->> ... will we just refuse to update TTL?
->> If we reduce it, any attacker can shrink it to needed low value
->> to prevent later RST from reaching end host.
->>
->> If we don't, connection could get stuck on legit route change?
->> What about malicious entities injecting FIN/SYN packets rather than RST?
->>
->> If we have last ts.echo from remote side, we can make it harder, but
->> what do if RST doesn't carry timestamp?
->>
->> Could be perfectly legal when machine lost state, e.g. power-cycled.
->> So we can't ignore such RSTs.
->
-> I fully agree with your considerations. There are indeed some challenges 
-> with the proposed methods of enhancing checks on RSTs of in-window 
-> sequence numbers, TTL, and timestamps.
+Is this sufficient? In nft_run_cmd_from_filename(), nft->stdin_buf is
+populated conditionally:
 
-Your original suggestion was "Verify the sequence numbers of TCP packets 
-strictly and do not change the timeout of the NAT mapping for an in-window 
-RST packet." Please note, you should demonstrate that such a mitigation
+| if (!strcmp(filename, "/dev/stdin") &&
+|     !nft_output_json(&nft->output))
+|         nft->stdin_buf = stdin_to_buffer();
 
-- does not prevent (from conntrack point of view) currently
-   handled/properly closed traffic to be handled with the mitigation as
-   well
-- the mitigation actually does not pose an easier exhaustion of the
-   conntrack table, i.e. creating an easier DoS vulnerability against it.
+Later (in the wrapped __nft_run_cmd_from_filename()), we try JSON parsing
+conditionally:
 
-> However, we now have known that conntrack may be vulnerable to attacks 
-> and illegal state transitions when it receives in-window RSTs with 
-> incorrect TTL or data packets + RSTs. Is it possible to find better 
-> methods to mitigate these issues, as they may pose threats to Netfilter 
-> users?
+| if (nft_output_json(&nft->output) || nft_input_json(&nft->input))
+|         rc = nft_parse_json_filename(nft, filename, &msgs, &cmds);
 
-The attack requires exhaustive port scanning. That can be prevented with 
-proper firewall rules.
+Things got complicated by commit 2034d8c60ed91 ("src: add input flag
+NFT_CTX_INPUT_JSON to enable JSON parsing") and my request to remain
+compatible, i.e. '-j' flag which enables JSON output shall continue to
+make JSON the assumed input format.
 
-> Note: We have also tested other connection tracking frameworks (such as 
-> FreeBSD/OpenBSD PF). Also playing the roles as middleboxes, they only 
-> change the state of the connection when they receive an RST with the 
-> currently known precise sequence number, thus avoiding these attacks. 
-> Could Netfilter adopt similar measures or else to further mitigate these 
-> issues?
+So long story short, I guess in order to cover all cases, we have to
+enable nft->stdin_buf population also if nft_input_json(...) returns
+true, i.e. cover for library users requesting JSON input (but standard
+output). WDYT?
 
-I find it really strange that those frameworks would match only the exact 
-SEQ of the RST packets.
-
-Best regards,
-Jozsef
--- 
-E-mail : kadlec@netfilter.org, kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-Address: Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Cheers, Phil
