@@ -1,13 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 46B15192B82
-	for <netfilter-devel@vger.kernel.org>; Wed, 10 Jul 2024 15:20:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id E7EAE192B8F
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Jul 2024 15:20:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720624823; cv=none; b=JoOuB1UPmV3WisjdhkG8YZrBZnDuk4XRAlvUyGaiIp5L9H+GGn7vhtWWSlXYu7bBI0l3C5BrwYOOJJ++wsE9gaDp0xUBo30lfYAn5ia/tDBF6SaRm3f/473duaYBv0m8Lj3IMBqtWqECuH4fl3Jc8KjWfC+jziifTBjXD4V579g=
+	t=1720624825; cv=none; b=P3c/2nvLt8/L4PYEg1O0xtCUuELyJbUARMICNSoTv3QOmjp/OThXgXVs4/OFiujbuaoZmSYptWSVJz4DPiCfWt+39LaSGVPLBcW1LfiYJZST85pmehjwFQKXC0MQX6BSaVtt+M21tbz5z+M9SIVx0nRFCXu0TCpLPCwn1IvMR+s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720624823; c=relaxed/simple;
-	bh=gUVSRvD0qaEi4pt2Yu6AmGye+LgDEkBllf6WROgMj2c=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=MlQiah8N4cU4KU094b6nPLI+hHppZpqijxdyeLrXpx/Wx3f+RROcE27TLPm47AQBW5sVsvA8rWqwyecLTg8dBHhUkOxiP9Psy1sKXAImiOVxr3VFbwHiAShQ5mSWs2TSfnkoMvnVePTtIrtbg81E3TBweEXNtYMpfVIQYDR8WP0=
+	s=arc-20240116; t=1720624825; c=relaxed/simple;
+	bh=H03iDug7ZsGgx708qPcffL+uuASumntyV/aBP3EaRbY=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=Zyblh8pgiAZIJ+7iyH4y6NqvRJGD6o8x241mSUWD19STz1fz+SIX0+Pr4/zGvnlQnXjyvfhKUoJ6q2N+s5SClYtk8h0rl+1NdwFVOuoSXd3c0zx8mX7h2Z8xX4G6z6U+VzDhZyDaMqVfrafatVcvdJgD3o7v588Iug85vnERFDc=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -16,10 +17,12 @@ To: netfilter-devel@vger.kernel.org
 Cc: phil@nwl.cc,
 	thaller@redhat.com,
 	jami.maenpaa@wapice.com
-Subject: [PATCH nft 1/2] parser_json: use stdin buffer if available
-Date: Wed, 10 Jul 2024 17:20:03 +0200
-Message-Id: <20240710152004.11526-1-pablo@netfilter.org>
+Subject: [PATCH nft 2/2] libnftables: skip useable checks for /dev/stdin
+Date: Wed, 10 Jul 2024 17:20:04 +0200
+Message-Id: <20240710152004.11526-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20240710152004.11526-1-pablo@netfilter.org>
+References: <20240710152004.11526-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -28,55 +31,53 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
+/dev/stdin is a placeholder, read() from STDIN_FILENO is used to fetch
+the standard input into a buffer.
+
 Since 5c2b2b0a2ba7 ("src: error reporting with -f and read from stdin")
-stdin is stored in a buffer, update json support to use it instead of
-reading from /dev/stdin.
+stdin is stored in a buffer to fix error reporting.
 
-Some systems do not provide /dev/stdin symlink to /proc/self/fd/0
-according to reporter (that mentions Yocto Linux as example).
+This patch requires: ("parser_json: use stdin buffer if available")
 
-Fixes: 935f82e7dd49 ("Support 'nft -f -' to read from stdin")
+Fixes: 149b1c95d129 ("libnftables: refuse to open onput files other than named pipes or regular files")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: remove check for nft_output_json() in nft_run_cmd_from_filename()
-    as suggested by Phil Sutter, so JSON support does not really use
-    /dev/stdin.
+v2: no changes.
 
- src/libnftables.c | 3 +--
- src/parser_json.c | 7 +++++++
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ src/libnftables.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/src/libnftables.c b/src/libnftables.c
-index af4734c05004..89317f9f6049 100644
+index 89317f9f6049..36d6a854ff50 100644
 --- a/src/libnftables.c
 +++ b/src/libnftables.c
-@@ -807,8 +807,7 @@ int nft_run_cmd_from_filename(struct nft_ctx *nft, const char *filename)
- 	if (!strcmp(filename, "-"))
- 		filename = "/dev/stdin";
+@@ -664,6 +664,7 @@ retry:
  
--	if (!strcmp(filename, "/dev/stdin") &&
--	    !nft_output_json(&nft->output))
-+	if (!strcmp(filename, "/dev/stdin"))
- 		nft->stdin_buf = stdin_to_buffer();
+ /* need to use stat() to, fopen() will block for named fifos and
+  * libjansson makes no checks before or after open either.
++ * /dev/stdin is *never* used, read() from STDIN_FILENO is used instead.
+  */
+ static struct error_record *filename_is_useable(struct nft_ctx *nft, const char *name)
+ {
+@@ -671,6 +672,9 @@ static struct error_record *filename_is_useable(struct nft_ctx *nft, const char
+ 	struct stat sb;
+ 	int err;
  
- 	if (!nft->stdin_buf &&
-diff --git a/src/parser_json.c b/src/parser_json.c
-index ee4657ee8044..4912d3608b2b 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -4357,6 +4357,13 @@ int nft_parse_json_filename(struct nft_ctx *nft, const char *filename,
- 	json_error_t err;
- 	int ret;
- 
-+	if (nft->stdin_buf) {
-+		json_indesc.type = INDESC_STDIN;
-+		json_indesc.name = "/dev/stdin";
++	if (!strcmp(name, "/dev/stdin"))
++		return NULL;
 +
-+		return nft_parse_json_buffer(nft, nft->stdin_buf, msgs, cmds);
-+	}
-+
- 	json_indesc.type = INDESC_FILE;
- 	json_indesc.name = filename;
+ 	err = stat(name, &sb);
+ 	if (err)
+ 		return error(&internal_location, "Could not open file \"%s\": %s\n",
+@@ -681,9 +685,6 @@ static struct error_record *filename_is_useable(struct nft_ctx *nft, const char
+ 	if (type == S_IFREG || type == S_IFIFO)
+ 		return NULL;
+ 
+-	if (type == S_IFCHR && 0 == strcmp(name, "/dev/stdin"))
+-		return NULL;
+-
+ 	return error(&internal_location, "Not a regular file: \"%s\"\n", name);
+ }
  
 -- 
 2.30.2
