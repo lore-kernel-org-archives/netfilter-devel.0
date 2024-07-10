@@ -1,116 +1,86 @@
-Received: from mail-pl1-f194.google.com (mail-pl1-f194.google.com [209.85.214.194])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEE983C39;
-	Wed, 10 Jul 2024 09:46:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.194
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0A9622094
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Jul 2024 13:20:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720604777; cv=none; b=BlU7Dl3JmP6/faM/D6qyuqxdqdUWXh5+HhtUwIaMHGK+yEoW0nPW//9gGvS7Z1uCHW+tXMXjjGG3bVjMB588v82h+kWClYIKipZTWCxZEw0GZsSGz4WkskC7FN5dxW4G2pELhcgQz6hQ2wuihJ1pgWeLPHfLF5H+Tt5igMgasHE=
+	t=1720617617; cv=none; b=t5KqamuflQ5fctKO+V0kZWpVMI6brLmNSSjRUauBzmgKlA8RFraedxJisz43FoxH4jh9jyXu1JkyjseQcNV/2QnsCIfoM8+nfLVtX8RkhMCq+2BTZuLrpeV3iGBKy+exLStxHsZbiTqJazQKgcVsvfq0lC7SFWZNphpzdGTthhE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720604777; c=relaxed/simple;
-	bh=87OuMfoBp1HIgSib8dcBMnekVnZsd8KTyRWTjgXz2SU=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=NoaWMc4ZOl6I3wFvMk3g1S6iHCc1h9Ywk3TWEefmragGZGGb1bA2wOWxbRyltSuzjD/ojW0VQnn7nOMs3nm005wKzQ/QMpIDaCImbqmVWX3+ijvgtqdtikDwPHegdBV7g3F27z+CR5Odf2+DfwnryErJztupFYeqc1beN9K7kck=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=dbBOmPSC; arc=none smtp.client-ip=209.85.214.194
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1720617617; c=relaxed/simple;
+	bh=4MYJnv/RwEPMk58wdEe3bPMwSe3tGhlkFs+nfglPF94=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=p23GpNm0H2PuPh4qTqWVJ/k2m/EGhjvTA0gNXNy8XGX5mcCylMlm2mzxZgtbTCH61VDEsuqhitFUQGkAaXUr683wmVh56CjXfTbHMt6zeEt6r7T5nfENXN6bZYY8qOjoHGf+UqeQR6ofTvFaPB1jmqwg6dT7akv9qcdmuG+hvCc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=Wq7Vg15Y; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dbBOmPSC"
-Received: by mail-pl1-f194.google.com with SMTP id d9443c01a7336-1fb4a807708so50185315ad.2;
-        Wed, 10 Jul 2024 02:46:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1720604775; x=1721209575; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=i3a1COtwgflpykMRm7QZx/0MpqKdO0JXYgUvgqxRrRE=;
-        b=dbBOmPSCA312Zb2IMdIXnr+PR9yz6QOx+xMR4tAR0oTh+0rP0dQuwj0c6ArV3u4sWQ
-         /oa3eL9e8XggehofBJ2EiurcdgerG7yZj15OHC7r16mLdi09EEOMy1nXH8L+UEDkmVAT
-         ut0Ivw9ql8e81tEPItmN+pPwydeMYCkxX4GtWa4A7qY90TnZlAi04dU/dUUoP7J8FloQ
-         zmeJNUYjP7bz0ArYpJxlhxd4h3HHPf6ZFEsSgtMbvigX3pPCTx0d3FsxJcYKAxSWBZob
-         okRTqUgOmUsEqNr9QTy27ajn9FvQRUVQgrargvD72wW7wI/UnxCtkgmrnfl73BAB+1BH
-         Kv/A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1720604775; x=1721209575;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=i3a1COtwgflpykMRm7QZx/0MpqKdO0JXYgUvgqxRrRE=;
-        b=mtVvwlhVOyvb+Yr1qsgLQnP+MrBCK8poGDcWpADTQ/W9JC018E8HIM7eS+ShL5W2HX
-         SJCC7OX6/kAoosXfoiqYqL2y/3O9IcJZZMirmc4AG8eE+afYgqdo7Ck+Yown4nSuLNrg
-         kgokiONZ1F/CdGYBGC1NKFGwpca+CBRQW0VxUjj8JMLeClCY/WVo3VPizzb+cD53cIMY
-         xSf3lX2qZwXZz7jz+De3YGrNFwYecfUY/Qci2G5Pf/zZZozs6N1Th/XIF8zT0mgJvg3N
-         BfNfnP48EFHgFcR37kzZrh0iZ0EdSOECqWhqDIYrIWhZzp4b0njCbORw9a7x4Qcz63Mz
-         btGQ==
-X-Forwarded-Encrypted: i=1; AJvYcCWyozc4LPO3zC5OMvLZ83bBqgOzqhicpF6xJiXmNebOgMki1Bjqu3ztzUaCpq6s41u7S/fU1WHrOSvYV5L3UWo+Zu5BKLfQxIZxS+NMZffqHUswnbrvfaGLMI0yHug5k8TzuILEzrBkBLykHWc2Pibv99hsq1lBqQtTpOGGwVXc6g/uXswZ
-X-Gm-Message-State: AOJu0Yz8vRzJ1SqZjCIqHGK6pw2wdhu5euKOw41EQ6fG/Db1rqC+7fYs
-	OT+W5pg/jot+tXMjaIbR9+u6e18tbIubK6EYr6Ojt4T29xUK6m2Y
-X-Google-Smtp-Source: AGHT+IGvdJH3+OVZQzebmwVF4nk/h4qXhnEwC50oELwCdSIdGXrrNeQs5RPx3J9NVn8La2ZNmCKYbg==
-X-Received: by 2002:a17:903:2448:b0:1fb:7f66:250 with SMTP id d9443c01a7336-1fbb6ed578dmr44493075ad.46.1720604774874;
-        Wed, 10 Jul 2024 02:46:14 -0700 (PDT)
-Received: from localhost.localdomain ([166.111.236.150])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-1fbb6a107d2sm29972995ad.18.2024.07.10.02.46.11
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 10 Jul 2024 02:46:14 -0700 (PDT)
-From: yyxRoy <yyxroy22@gmail.com>
-X-Google-Original-From: yyxRoy <979093444@qq.com>
-To: fw@strlen.de
-Cc: 979093444@qq.com,
-	coreteam@netfilter.org,
-	davem@davemloft.net,
-	edumazet@google.com,
-	gregkh@linuxfoundation.org,
-	kadlec@blackhole.kfki.hu,
-	kuba@kernel.org,
-	linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	pabeni@redhat.com,
-	pablo@netfilter.org,
-	yyxroy22@gmail.com
-Subject: Re: [PATCH] netfilter: conntrack: tcp: do not lower timeout to CLOSE for in-window RSTs
-Date: Wed, 10 Jul 2024 17:45:54 +0800
-Message-Id: <20240710094554.483075-1-979093444@qq.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20240708141206.GA5340@breakpoint.cc>
-References: <20240708141206.GA5340@breakpoint.cc>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="Wq7Vg15Y"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Transfer-Encoding:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=+h86FOGlKS+NxGrG/xK6lo/VlmQDl0eqhQ1lbg32xLA=; b=Wq7Vg15YRbO+H/kcdbMNe2sj7o
+	8eW97U7sQ1nyvUdcSO8wQqVaH+eRu+yjs9GNKkavu9lXfwEI/VMOu9I0qhoQUuaRo8NYJgLTOQ96h
+	D3Rab/QmjelXEqA6pcff+1zBlAAZNUzIGlu6Mi9dzZzB1DQu8xKimqw6rW65VPfsWWa9dKk4fp+Zg
+	Lon39YxvDhu32SDlHEbsJrT99IBxu8blmsZnk6d7Evl0ww4noJb1GNianXm1AL0670Z7N/oIxlsu8
+	468GUBXw1fyiSs8q9DIk8grTc5+lKnqQVVdy+R0bfS/A9U7Cxm8/mmYnWHqNJmNR5khJ73L7KMLgh
+	Wt6opu8w==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1sRXEg-000000005yK-1HBb;
+	Wed, 10 Jul 2024 15:19:54 +0200
+Date: Wed, 10 Jul 2024 15:19:54 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Joshua Lant <joshualant@googlemail.com>
+Cc: netfilter-devel@vger.kernel.org, Joshua Lant <joshualant@gmail.com>
+Subject: Re: [PATCH] xtables: Fix compilation error with musl-libc
+Message-ID: <Zo6KepEjo7IHOpWb@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Joshua Lant <joshualant@googlemail.com>,
+	netfilter-devel@vger.kernel.org, Joshua Lant <joshualant@gmail.com>
+References: <20240709130545.882519-1-joshualant@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20240709130545.882519-1-joshualant@gmail.com>
 
-On Mon, 8 Jul 2024 at 22:12, Florian Westphal <fw@strlen.de> wrote:
-> We can track TTL/NH.
-> We can track TCP timestamps.
+On Tue, Jul 09, 2024 at 01:05:45PM +0000, Joshua Lant wrote:
+> Error compiling with musl-libc:
+> The commit hash 810f8568f44f5863c2350a39f4f5c8d60f762958 introduces the
+> netinet/ether.h header into xtables.h, which causes an error due to the
+> redefinition of the ethhdr struct, defined in linux/if_ether.h and
+> netinet/ether.h.
 > 
-> But how would we use such extra information?
-> E.g. what I we observe:
+> This is is a known issue with musl-libc, with kernel headers providing
+> guards against this happening when glibc is used:
+> https://wiki.musl-libc.org/faq (Q: Why am I getting “error: redefinition
+> of struct ethhdr/tcphdr/etc”?)
 > 
-> ACK, TTL 32
-> ACK, TTL 31
-> ACK, TTL 30
-> ACK, TTL 29
-> 
-> ... will we just refuse to update TTL?
-> If we reduce it, any attacker can shrink it to needed low value
-> to prevent later RST from reaching end host.
-> 
-> If we don't, connection could get stuck on legit route change?
-> What about malicious entities injecting FIN/SYN packets rather than RST?
-> 
-> If we have last ts.echo from remote side, we can make it harder, but
-> what do if RST doesn't carry timestamp?
-> 
-> Could be perfectly legal when machine lost state, e.g. power-cycled.
-> So we can't ignore such RSTs.
+> The only value used from netinet/ether.h is ETH_ALEN, which is already set
+> manually in libxtables/xtables.c. Move this definition to the header and
+> eliminate the inclusion of netinet/if_ether.h.
 
-I fully agree with your considerations. There are indeed some challenges with the proposed methods of enhancing checks on RSTs of in-window sequence numbers, TTL, and timestamps.
+Man, this crap keeps popping up. Last time we "fixed" it was in commit
+0e7cf0ad306cd ("Revert "fix build for missing ETH_ALEN definition"").
+There, including netinet/ether.h was OK. Now it's problematic?
+Interestingly, linux/if_ether.h has this:
 
-However, we now have known that conntrack may be vulnerable to attacks and illegal state transitions when it receives in-window RSTs with incorrect TTL or data packets + RSTs. Is it possible to find better methods to mitigate these issues, as they may pose threats to Netfilter users?
+| /* allow libcs like musl to deactivate this, glibc does not implement this. */
+| #ifndef __UAPI_DEF_ETHHDR
+| #define __UAPI_DEF_ETHHDR               1
+| #endif
 
-Note: We have also tested other connection tracking frameworks (such as FreeBSD/OpenBSD PF). Also playing the roles as middleboxes, they only change the state of the connection when they receive an RST with the currently known precise sequence number, thus avoiding these attacks. Could Netfilter adopt similar measures or else to further mitigate these issues?
+So it's not like the other party is ignoring musl's needs. Does adding
+-D__UAPI_DEF_ETHHDR=0 fix the build? Should we maybe add a configure
+option for this instead of shooting the moving target?
 
-Thank you again for your time and for your efforts in maintaining the community's performance and security!
+Cheers, Phil
