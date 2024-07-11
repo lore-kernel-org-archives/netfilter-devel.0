@@ -1,259 +1,133 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f42.google.com (mail-lf1-f42.google.com [209.85.167.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41C6183CCB
-	for <netfilter-devel@vger.kernel.org>; Wed, 10 Jul 2024 21:41:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EE8B76034
+	for <netfilter-devel@vger.kernel.org>; Thu, 11 Jul 2024 05:40:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720647720; cv=none; b=JwwVVLPBR7ZnLkmgmv2tNxaXiY5fGIbEiYTiYVzLr+PWy4xEn9JV2v0SXXkkZYrOb9guOwcGUpPhFmgf22EQD1QS18FrHAbBV8ZQBdDAQdkVEt9uPVEGtJ1Bvc4BKdlClBLR88RGcxx163InZi77MuRwKN8xxs42F6qyHTkGkj8=
+	t=1720676419; cv=none; b=aapLJpBWfBWAIRouB2wsijA+hZ4H2QSHsqNk8JE79GKenhwkQwh79JSklQ76cpO/64PFMVYoCCOyN6JIEHQzpyYsWdB8jMtChBFXFVIy1gx8GQTGAGYWu+TBmgOjBQ7LDusr75r5vyzPJTNyBxC3O4sLYee9ecs7LChApCgx050=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720647720; c=relaxed/simple;
-	bh=ycfvny9PsMptAuSCMP6syK2Y6fspHygrA5wkR3Ozbb0=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=pt/kczFCTEYrGxKORV5kucj52Mqtgla8joiZ2oYkKwCQ5vkWEgdXa3flmUDaksb2fla+AIR3O7K+IV4+hogrtlHEMaD3y2xLT6wRuN0vF07ZIYXhzIuI3CS8bl+g09fjHeiOqAi6xFVfz89ANAvEWl2322kI4hd6YnmpTAUZ9Og=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1sRf4W-0000mh-Hg; Wed, 10 Jul 2024 23:41:56 +0200
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 3/3] tests: connect chains to hook point
-Date: Wed, 10 Jul 2024 23:42:20 +0200
-Message-ID: <20240710214224.11841-3-fw@strlen.de>
-X-Mailer: git-send-email 2.44.2
-In-Reply-To: <20240710214224.11841-1-fw@strlen.de>
-References: <20240710214224.11841-1-fw@strlen.de>
+	s=arc-20240116; t=1720676419; c=relaxed/simple;
+	bh=er2u/C0ayZ13lixi8pV/7AwVK//BH86gyj62gEdZx1I=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=L84KvqqaBevUSJSTpko3iXREEp15pgpzS/8C1k78od6B2Ym7Jzd62eSmei3aaqgqrHWXT9ush3ivmWeL8/4BGvJD6tkgWYO4hv9/l0Q3um9R33OxtfuqEV7caUV6/uDutgLhV8iCD/p7QzXNweGRxXezlqsROJqwJoO4BIjiIFk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=smartx.com; spf=pass smtp.mailfrom=smartx.com; dkim=pass (2048-bit key) header.d=smartx-com.20230601.gappssmtp.com header.i=@smartx-com.20230601.gappssmtp.com header.b=uNwFtapn; arc=none smtp.client-ip=209.85.167.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=smartx.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=smartx.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=smartx-com.20230601.gappssmtp.com header.i=@smartx-com.20230601.gappssmtp.com header.b="uNwFtapn"
+Received: by mail-lf1-f42.google.com with SMTP id 2adb3069b0e04-52ea79e689eso670953e87.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 10 Jul 2024 22:40:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=smartx-com.20230601.gappssmtp.com; s=20230601; t=1720676415; x=1721281215; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=DtQfbSYXmPmFxIghTAuaXxtKY59+oSbNVAa06oAvgE8=;
+        b=uNwFtapna79wdTJKkHWqopN+thTpQZnZjgTuOPCM8QpZaYpNuSWFiosCRNIOvCBdWR
+         XUfoggw+CZ+8DS4HCLGPiJVnNRFM7/Yz1HeYhON0Re3/UXVLFRzRmiE68FUNkbMBWyEL
+         S01597pyjPBHeYZYnTvTY6ojpmuHeA3QwALvp7WMn70jsGebKTSs1djASJrSh2xskf1v
+         HOFLKQLb8bQdiQkWAZBeDlDtlTYYNic6uGlVTj5P3FXkPsxh+MfxnEkODIFvh0ZfpKjW
+         r/8O5QwKg3WDk7clFIs4FPBTx/XmmnGf8xheixKOx2fWPED+SYV9IH/Htus/XYRmCgsD
+         As5A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1720676415; x=1721281215;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=DtQfbSYXmPmFxIghTAuaXxtKY59+oSbNVAa06oAvgE8=;
+        b=EqVRMc/+ZmH8UZXhXMG6bvoKclOVhE5YD6DRPaqJst3D1eNNdJlRWIO0dP59IH01aY
+         tqNxc81WijglHl2NlhmXhk/1n0eWO91aqMfQNSRrPvmRtY2zhJDz2HxLeFFlWaPNIysT
+         jepHdDq8fxGPTB0z4oUnbJtzV845hYco/pjrlP1GKCHWpAtBleVW+em8nUFaSrW04CCU
+         I11Cb+aOR7gRrVINAo/m1KCasskf3pQqhhkLkeiWPwwDneatH3pcAdeVL70aCyuBanHu
+         Q9z7IeXAnNeGxMButjK+ib1cm1kDU6Ju1U2IKsXw/3FGtQpX9J/CxGFLL9w4p2lqfp+d
+         Fztg==
+X-Gm-Message-State: AOJu0YwSLU22mJe6LB46+gTtywUtVKALmojF/gekNQ3QMKlJUtf3XjUg
+	RY2jBoXdncYexm0Kq7ueGesLzFpyU6AsbvytTvygbc+wXpOxmrC2Do6L+ASNEMDM9B3aCv5qZQg
+	QHf99rsvhwmrR0rQuPPwDQ7f0THhzU/vkKVKM2h77H23nF2yJP9I9lorL
+X-Google-Smtp-Source: AGHT+IF+BKDpNJnivyTpTW415g8VRESZbb/7e56pM3pMEuHmh9WnGF7mjq0NVvmuJHBA9fsXR2GqhBai5y9XkJzcVSA=
+X-Received: by 2002:ac2:5544:0:b0:52e:751a:a172 with SMTP id
+ 2adb3069b0e04-52eb99d288dmr5355776e87.49.1720676413776; Wed, 10 Jul 2024
+ 22:40:13 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20240620113527.7789-1-changliang.wu@smartx.com>
+In-Reply-To: <20240620113527.7789-1-changliang.wu@smartx.com>
+From: Changliang Wu <changliang.wu@smartx.com>
+Date: Thu, 11 Jul 2024 13:40:02 +0800
+Message-ID: <CALHBjYFn_qB=Oo3TTg0znOnNz9rX5jP+eYSZbatAN94ys8Tzmw@mail.gmail.com>
+Subject: Re: [PATCH] netfilter: ctnetlink: support CTA_FILTER for flush
+To: pablo@netfilter.org, kadlec@netfilter.org, davem@davemloft.net, 
+	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-These tests should fail because they contain a loop or exceed the jump stack.
+PING
 
-But this depends on the kernel validating chains that are not bound to any
-basechain/hook point.
 
-Wire up the initial chain to filter type.
-
-Without this tests will start to fail when kernel stops validating chains
-that are not reachable by any base chain.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- tests/shell/testcases/chains/0003jump_loop_1                | 3 ++-
- tests/shell/testcases/chains/0010endless_jump_loop_1        | 2 +-
- tests/shell/testcases/chains/0011endless_jump_loop_1        | 2 +-
- tests/shell/testcases/chains/0018check_jump_loop_1          | 2 +-
- tests/shell/testcases/chains/dumps/0003jump_loop_1.json-nft | 6 +++++-
- tests/shell/testcases/chains/dumps/0003jump_loop_1.nft      | 1 +
- .../testcases/chains/dumps/0010endless_jump_loop_1.json-nft | 6 +++++-
- .../testcases/chains/dumps/0010endless_jump_loop_1.nft      | 1 +
- .../testcases/chains/dumps/0011endless_jump_loop_1.json-nft | 6 +++++-
- .../testcases/chains/dumps/0011endless_jump_loop_1.nft      | 1 +
- .../testcases/chains/dumps/0018check_jump_loop_1.json-nft   | 6 +++++-
- .../shell/testcases/chains/dumps/0018check_jump_loop_1.nft  | 1 +
- tests/shell/testcases/transactions/0023rule_1               | 2 +-
- tests/shell/testcases/transactions/anon_chain_loop          | 2 +-
- 14 files changed, 31 insertions(+), 10 deletions(-)
-
-diff --git a/tests/shell/testcases/chains/0003jump_loop_1 b/tests/shell/testcases/chains/0003jump_loop_1
-index 80e243f07bdb..1a8eaf686747 100755
---- a/tests/shell/testcases/chains/0003jump_loop_1
-+++ b/tests/shell/testcases/chains/0003jump_loop_1
-@@ -5,8 +5,9 @@ set -e
- MAX_JUMPS=16
- 
- $NFT add table t
-+$NFT "add chain t c1 { type filter hook prerouting priority 0; }"
- 
--for i in $(seq 1 $MAX_JUMPS)
-+for i in $(seq 2 $MAX_JUMPS)
- do
- 	$NFT add chain t c${i}
- done
-diff --git a/tests/shell/testcases/chains/0010endless_jump_loop_1 b/tests/shell/testcases/chains/0010endless_jump_loop_1
-index 5d3ef2393331..6000e5d7dbf3 100755
---- a/tests/shell/testcases/chains/0010endless_jump_loop_1
-+++ b/tests/shell/testcases/chains/0010endless_jump_loop_1
-@@ -3,7 +3,7 @@
- set -e
- 
- $NFT add table t
--$NFT add chain t c
-+$NFT add chain "t c { type filter hook input priority 0; }"
- 
- # kernel should return ELOOP
- $NFT add rule t c tcp dport vmap {1 : jump c} 2>/dev/null || exit 0
-diff --git a/tests/shell/testcases/chains/0011endless_jump_loop_1 b/tests/shell/testcases/chains/0011endless_jump_loop_1
-index d75932d7a7ca..66abf8d04543 100755
---- a/tests/shell/testcases/chains/0011endless_jump_loop_1
-+++ b/tests/shell/testcases/chains/0011endless_jump_loop_1
-@@ -3,7 +3,7 @@
- set -e
- 
- $NFT add table t
--$NFT add chain t c1
-+$NFT add chain "t c1 { type filter hook forward priority 0; }"
- $NFT add chain t c2
- $NFT add map t m {type inet_service : verdict \;}
- $NFT add element t m {2 : jump c2}
-diff --git a/tests/shell/testcases/chains/0018check_jump_loop_1 b/tests/shell/testcases/chains/0018check_jump_loop_1
-index b87520f287d7..1e674d3dc12b 100755
---- a/tests/shell/testcases/chains/0018check_jump_loop_1
-+++ b/tests/shell/testcases/chains/0018check_jump_loop_1
-@@ -3,7 +3,7 @@
- set -e
- 
- $NFT add table ip filter
--$NFT add chain ip filter ap1
-+$NFT add chain ip filter ap1 "{ type filter hook input priority 0; }"
- $NFT add chain ip filter ap2
- $NFT add rule ip filter ap1 jump ap2
- 
-diff --git a/tests/shell/testcases/chains/dumps/0003jump_loop_1.json-nft b/tests/shell/testcases/chains/dumps/0003jump_loop_1.json-nft
-index ceef32242503..d197e123bd67 100644
---- a/tests/shell/testcases/chains/dumps/0003jump_loop_1.json-nft
-+++ b/tests/shell/testcases/chains/dumps/0003jump_loop_1.json-nft
-@@ -19,7 +19,11 @@
-         "family": "ip",
-         "table": "t",
-         "name": "c1",
--        "handle": 0
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "prerouting",
-+        "prio": 0,
-+        "policy": "accept"
-       }
-     },
-     {
-diff --git a/tests/shell/testcases/chains/dumps/0003jump_loop_1.nft b/tests/shell/testcases/chains/dumps/0003jump_loop_1.nft
-index 7054cde45963..8d89bc40a6c4 100644
---- a/tests/shell/testcases/chains/dumps/0003jump_loop_1.nft
-+++ b/tests/shell/testcases/chains/dumps/0003jump_loop_1.nft
-@@ -1,5 +1,6 @@
- table ip t {
- 	chain c1 {
-+		type filter hook prerouting priority filter; policy accept;
- 		jump c2
- 	}
- 
-diff --git a/tests/shell/testcases/chains/dumps/0010endless_jump_loop_1.json-nft b/tests/shell/testcases/chains/dumps/0010endless_jump_loop_1.json-nft
-index db64cdbcc447..af99873dbeda 100644
---- a/tests/shell/testcases/chains/dumps/0010endless_jump_loop_1.json-nft
-+++ b/tests/shell/testcases/chains/dumps/0010endless_jump_loop_1.json-nft
-@@ -19,7 +19,11 @@
-         "family": "ip",
-         "table": "t",
-         "name": "c",
--        "handle": 0
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "input",
-+        "prio": 0,
-+        "policy": "accept"
-       }
-     }
-   ]
-diff --git a/tests/shell/testcases/chains/dumps/0010endless_jump_loop_1.nft b/tests/shell/testcases/chains/dumps/0010endless_jump_loop_1.nft
-index 1e0d1d603739..62fefaff185b 100644
---- a/tests/shell/testcases/chains/dumps/0010endless_jump_loop_1.nft
-+++ b/tests/shell/testcases/chains/dumps/0010endless_jump_loop_1.nft
-@@ -1,4 +1,5 @@
- table ip t {
- 	chain c {
-+		type filter hook input priority filter; policy accept;
- 	}
- }
-diff --git a/tests/shell/testcases/chains/dumps/0011endless_jump_loop_1.json-nft b/tests/shell/testcases/chains/dumps/0011endless_jump_loop_1.json-nft
-index e1a2262fdf04..75a4d895fc3e 100644
---- a/tests/shell/testcases/chains/dumps/0011endless_jump_loop_1.json-nft
-+++ b/tests/shell/testcases/chains/dumps/0011endless_jump_loop_1.json-nft
-@@ -19,7 +19,11 @@
-         "family": "ip",
-         "table": "t",
-         "name": "c1",
--        "handle": 0
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "forward",
-+        "prio": 0,
-+        "policy": "accept"
-       }
-     },
-     {
-diff --git a/tests/shell/testcases/chains/dumps/0011endless_jump_loop_1.nft b/tests/shell/testcases/chains/dumps/0011endless_jump_loop_1.nft
-index ca0a7378a584..d35736e8ded6 100644
---- a/tests/shell/testcases/chains/dumps/0011endless_jump_loop_1.nft
-+++ b/tests/shell/testcases/chains/dumps/0011endless_jump_loop_1.nft
-@@ -5,6 +5,7 @@ table ip t {
- 	}
- 
- 	chain c1 {
-+		type filter hook forward priority filter; policy accept;
- 		tcp dport vmap @m
- 	}
- 
-diff --git a/tests/shell/testcases/chains/dumps/0018check_jump_loop_1.json-nft b/tests/shell/testcases/chains/dumps/0018check_jump_loop_1.json-nft
-index 7294c8411b20..ac7e11995848 100644
---- a/tests/shell/testcases/chains/dumps/0018check_jump_loop_1.json-nft
-+++ b/tests/shell/testcases/chains/dumps/0018check_jump_loop_1.json-nft
-@@ -19,7 +19,11 @@
-         "family": "ip",
-         "table": "filter",
-         "name": "ap1",
--        "handle": 0
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "input",
-+        "prio": 0,
-+        "policy": "accept"
-       }
-     },
-     {
-diff --git a/tests/shell/testcases/chains/dumps/0018check_jump_loop_1.nft b/tests/shell/testcases/chains/dumps/0018check_jump_loop_1.nft
-index 437900bc6793..bdd0ead778cb 100644
---- a/tests/shell/testcases/chains/dumps/0018check_jump_loop_1.nft
-+++ b/tests/shell/testcases/chains/dumps/0018check_jump_loop_1.nft
-@@ -1,5 +1,6 @@
- table ip filter {
- 	chain ap1 {
-+		type filter hook input priority filter; policy accept;
- 		jump ap2
- 	}
- 
-diff --git a/tests/shell/testcases/transactions/0023rule_1 b/tests/shell/testcases/transactions/0023rule_1
-index e58c088c2e84..863bcde43aac 100755
---- a/tests/shell/testcases/transactions/0023rule_1
-+++ b/tests/shell/testcases/transactions/0023rule_1
-@@ -1,7 +1,7 @@
- #!/bin/bash
- 
- RULESET="add table x
--add chain x y
-+add chain x y { type filter hook input priority 0; }
- add rule x y jump y"
- 
- # kernel must return ELOOP
-diff --git a/tests/shell/testcases/transactions/anon_chain_loop b/tests/shell/testcases/transactions/anon_chain_loop
-index 2fd61810753d..3053d166c286 100755
---- a/tests/shell/testcases/transactions/anon_chain_loop
-+++ b/tests/shell/testcases/transactions/anon_chain_loop
-@@ -3,7 +3,7 @@
- # anon chains with c1 -> c2 recursive jump, expect failure
- $NFT -f - <<EOF
- table ip t {
-- chain c2 { }
-+ chain c2 { type filter hook input priority 0; }
-  chain c1 { }
- }
- 
--- 
-2.44.2
-
+Changliang Wu <changliang.wu@smartx.com> =E4=BA=8E2024=E5=B9=B46=E6=9C=8820=
+=E6=97=A5=E5=91=A8=E5=9B=9B 19:35=E5=86=99=E9=81=93=EF=BC=9A
+>
+> From cb8aa9a, we can use kernel side filtering for dump, but
+> this capability is not available for flush.
+>
+> This Patch allows advanced filter with CTA_FILTER for flush
+>
+> Performace
+> 1048576 ct flows in total, delete 50,000 flows by origin src ip
+> 3.06s -> dump all, compare and delete
+> 584ms -> directly flush with filter
+>
+> Signed-off-by: Changliang Wu <changliang.wu@smartx.com>
+> ---
+>  net/netfilter/nf_conntrack_netlink.c | 9 +++------
+>  1 file changed, 3 insertions(+), 6 deletions(-)
+>
+> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conn=
+track_netlink.c
+> index 3b846cbdc..93afe57d9 100644
+> --- a/net/netfilter/nf_conntrack_netlink.c
+> +++ b/net/netfilter/nf_conntrack_netlink.c
+> @@ -1579,9 +1579,6 @@ static int ctnetlink_flush_conntrack(struct net *ne=
+t,
+>         };
+>
+>         if (ctnetlink_needs_filter(family, cda)) {
+> -               if (cda[CTA_FILTER])
+> -                       return -EOPNOTSUPP;
+> -
+>                 filter =3D ctnetlink_alloc_filter(cda, family);
+>                 if (IS_ERR(filter))
+>                         return PTR_ERR(filter);
+> @@ -1610,14 +1607,14 @@ static int ctnetlink_del_conntrack(struct sk_buff=
+ *skb,
+>         if (err < 0)
+>                 return err;
+>
+> -       if (cda[CTA_TUPLE_ORIG])
+> +       if (cda[CTA_TUPLE_ORIG] && !cda[CTA_FILTER])
+>                 err =3D ctnetlink_parse_tuple(cda, &tuple, CTA_TUPLE_ORIG=
+,
+>                                             family, &zone);
+> -       else if (cda[CTA_TUPLE_REPLY])
+> +       else if (cda[CTA_TUPLE_REPLY] && !cda[CTA_FILTER])
+>                 err =3D ctnetlink_parse_tuple(cda, &tuple, CTA_TUPLE_REPL=
+Y,
+>                                             family, &zone);
+>         else {
+> -               u_int8_t u3 =3D info->nfmsg->version ? family : AF_UNSPEC=
+;
+> +               u8 u3 =3D info->nfmsg->version || cda[CTA_FILTER] ? famil=
+y : AF_UNSPEC;
+>
+>                 return ctnetlink_flush_conntrack(info->net, cda,
+>                                                  NETLINK_CB(skb).portid,
+> --
+> 2.43.0
+>
