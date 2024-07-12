@@ -1,66 +1,62 @@
-Received: from mail-lf1-f43.google.com (mail-lf1-f43.google.com [209.85.167.43])
+Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7298016DEC3
-	for <netfilter-devel@vger.kernel.org>; Fri, 12 Jul 2024 12:28:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F413216CD30
+	for <netfilter-devel@vger.kernel.org>; Fri, 12 Jul 2024 12:39:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720787339; cv=none; b=bx2TJ4g1ZCnwQbN0CobZNQlynVEqR1kRsRwn7Db4/mrf8UC5nUwuidTUp4wxfR7yYmOOHfhf4Pz0YwsDm1IQZKh01MfZ++tlYeehNDwGRinKZURxFpganPoTjwwsl1SkP24toK7BJXJjLQ94IEerkX4Fgl1J16A+uTq9dtHGOhE=
+	t=1720787945; cv=none; b=jxXXLndVkVomugUae3B9X7YYVpLLYTQHvjpSuIjkd2rGutNluphyo8mscAHxyfeI4DJ+0WJI1J/OgywwW2z4QmniU6CdBgVzOSJam/k4tqdlUR7axn09aljVx70TOFzHRChDojazeJ57xbmZTE26JfSs2Wc4vnxaMI4qI/C3LTg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720787339; c=relaxed/simple;
-	bh=Lyu8o9+iyTEiPOM3IyFfI/SpsndBbp7ZlC6l24T6wqM=;
-	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=RhKX1NPChlvirNucCCjTrmq7LmNhAKpTo4dixLM64YVSRT+CkwisVgjZIASbNFF+dBc7SUhA+7TWpK/iSu6rrW2r2vuOR+RJK05Lu7nG/IA4Pipt3fNFsNOFXjgLujokUg3i7Y+cAR1HEW275dcTGqGXHmr/vP270R0LSLI3Uts=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=googlemail.com; spf=pass smtp.mailfrom=googlemail.com; dkim=pass (2048-bit key) header.d=googlemail.com header.i=@googlemail.com header.b=SsNmSAcb; arc=none smtp.client-ip=209.85.167.43
+	s=arc-20240116; t=1720787945; c=relaxed/simple;
+	bh=STosxXf5pyaJNDca33jQkpZIKtA5Efax5jUz5ofsFRU=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=aixMrmeRph5YNYq929qpe4Ew3MxNaB1Pb9n9/m8Yjq7eUjDW4GGw63DlLAXfez36yS/cM2PmOWZZtnJZ32IuMczZ0/mDpqVdBmqlfnmyJD5WvTCLCt/ExjxSUqdTFu/fomNyde3WnsKtGkhwGohDoaHdQQXINg56MxRmrYlJY58=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=googlemail.com; spf=pass smtp.mailfrom=googlemail.com; dkim=pass (2048-bit key) header.d=googlemail.com header.i=@googlemail.com header.b=RmKCoGZ6; arc=none smtp.client-ip=209.85.128.52
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=googlemail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=googlemail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=googlemail.com header.i=@googlemail.com header.b="SsNmSAcb"
-Received: by mail-lf1-f43.google.com with SMTP id 2adb3069b0e04-52ea7d2a039so2020790e87.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 12 Jul 2024 05:28:57 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=googlemail.com header.i=@googlemail.com header.b="RmKCoGZ6"
+Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-4266f344091so15035305e9.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 12 Jul 2024 05:39:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=googlemail.com; s=20230601; t=1720787335; x=1721392135; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:to:from:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=+T2daRH4oYJ23ZWOQwTRmvyRDh9vM8AZS/lE0omlcLc=;
-        b=SsNmSAcbLbTFihcd+NJ5Oy8gbZe8rpiIY6gV4mc/ytwDkC1vKFf8bSL280akJB3Ek5
-         DfwepJPtoDNdg0LjLehFslycd5wXyGYX4nWhQzfYOEu4+5E7YvVE7Y5aLacxoLfNVJJb
-         Hqgnbvd82Im+jCOt6KHhASP2ofxNlC3ZYCwmMXY1fJiUFhfqevy4+rvhSs0NUAKimLor
-         dG9KreLWGaZcRKKdKjllrXxxzlbSPtkecuKRPmo1++3XlSzLLodpeKrTS5qgxttFg7XK
-         T4YVDioxQdsiIPHZwzrtWzbdDtAtV+yyO/WaKNBwR73UeYWJVqjez8eSYl9v5qj4xF7v
-         Qoog==
+        d=googlemail.com; s=20230601; t=1720787942; x=1721392742; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=PfG6vDqW6l4NDiGhE85EiFpXifUp6GuVWIM/fodIMLM=;
+        b=RmKCoGZ6uHA0swZRBI+XynS2uV3Sunw4qOvOcsZtKdKLhV7wyGD5qGhpw2d1hc65Xw
+         sUxs7EBBK5IZjyb+PI9zro36k5Bvc3+TSBd/QcPyWVuum8i7UqbHN98FTS/zjR/mNckH
+         8jSqZ1qNrdK0luwQ8Y9UYZZZayvR6+vs6dcIXX/wIOCyoV6bt4ZO031FCEzchUlZKcQO
+         X43JwmVSoMxlbaNzUwnuZMHQAV4jNq6hgt86/yJXvVv507ByX3ItD9IVP24obGS13O2O
+         RsumiBVUip7Ftj/7waN5NquXGpZ0uXDW2bZY1VIkoPXJlh4mrr6dvU2lRTfM2sn0lwPy
+         vmhA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1720787335; x=1721392135;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=+T2daRH4oYJ23ZWOQwTRmvyRDh9vM8AZS/lE0omlcLc=;
-        b=cxd6DtFN3xn8Dn3gfAXQdEoJd+nAHzgJihcOw62IDRsVXLRkq0+8RXU6cMQFqTKeo3
-         eQhcOoeBmE7IpfajIvBijYTZ9Eajnt7j0VgYF35QP5DJP85az1F77kQEdrEPior4p0Bn
-         /+kjwcSW+2fl+KFkx8ppXpaZzhqACFBJ3vF/dLZZUn5WFxvfyUKpS9YRx1prpFVzzisV
-         5ODUOzn1LkhVfon9OUpmj2fgYp30WzgTYt0sdVOZrbPigGWWrb5OGqNFsCSPkZleZmpB
-         kUEsIBAD0LRjV3UkmIVS02fxKjYiUhRkIhgcncTEcVaRJWSBXWPgRZNWoDITUWd6e5oG
-         qfRQ==
-X-Gm-Message-State: AOJu0YwFMJyhQVt4e8AWvtzqekhLOJwe6/KEo8CRqKqU+rX2k61/s8+y
-	VLPNyHVzXI1OK0thcjHnsKBJ3DIv+aWMTlPwxCmdrc6JziWSksK5e8Bnog==
-X-Google-Smtp-Source: AGHT+IFbpDzG5caOghYPpvBD5dNUpwfLGIZVnjTTZ8NRIa+wDql8CvdNegFIor54TiT+kXC8BSDfYA==
-X-Received: by 2002:a05:6512:3d93:b0:52c:9413:d02f with SMTP id 2adb3069b0e04-52eb99971fbmr8536250e87.17.1720787335078;
-        Fri, 12 Jul 2024 05:28:55 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1720787942; x=1721392742;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=PfG6vDqW6l4NDiGhE85EiFpXifUp6GuVWIM/fodIMLM=;
+        b=tERMQcKkQtwIdwvCYHLrDQeFXX3iyT0TKpntrwXUlXH+NWosxEU0sYnkEpCXNDoE5c
+         tsNR4iLYkLyEzv/FDFhO1tBV9ojj4kQ61NlH7zVzc//hiydDxyXx/JRpF0+UTfxojBLQ
+         z+SKXVAbGBKRWOekd1E689+2t17LiuGckaLYO2+v9GbPQ5I8TkP7m1bLSEhfzN8VfSLh
+         ZEiohGoDhxuf2CB0jF/iQSl0PBT+Jgl9cj67YTpuihjYpBV9JijUyPC5et8+ZDf52SVH
+         E7x4qu9Z6C5BMEm2A4i3XKeuvoIacQ4M/GInudhLGuS0wVId1UnCXrli56Fi++LJkTNa
+         sACw==
+X-Gm-Message-State: AOJu0YwxQClIkJ4yCX6Af2lUaE77YrR4XivwiXJN5jcAi0upRKVYeerz
+	+oz09vr4PAGZIJDcicbSzB7NXUXaUvIKdAa1om4J4056Hdrhlzk08KKClw==
+X-Google-Smtp-Source: AGHT+IERxaqMC7DhHQK+wHDkRlc2EvbSRSRDxqzS6nOARNz/fPvnzxeQYJ7Uvj/S9T/O+SCGc0jHFw==
+X-Received: by 2002:a05:600c:3b92:b0:426:6a53:e54f with SMTP id 5b1f17b1804b1-426708f1fdamr68098925e9.33.1720787941752;
+        Fri, 12 Jul 2024 05:39:01 -0700 (PDT)
 Received: from localhost.localdomain (shef-16-b2-v4wan-169484-cust5160.vm3.cable.virginm.net. [92.236.212.41])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4279f2cc2efsm22451315e9.36.2024.07.12.05.28.54
-        for <netfilter-devel@vger.kernel.org>
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4279f2cc499sm21732435e9.29.2024.07.12.05.39.01
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 12 Jul 2024 05:28:54 -0700 (PDT)
+        Fri, 12 Jul 2024 05:39:01 -0700 (PDT)
 From: Joshua Lant <joshualant@googlemail.com>
 X-Google-Original-From: Joshua Lant <joshualant@gmail.com>
 To: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] xtables: Fix compilation error with musl-libc
-Date: Fri, 12 Jul 2024 12:28:54 +0000
-Message-Id: <20240712122854.1108321-1-joshualant@gmail.com>
+Cc: Joshua Lant <joshualant@gmail.com>
+Subject: [PATCH] configure: Add option for building with musl
+Date: Fri, 12 Jul 2024 12:38:59 +0000
+Message-Id: <20240712123859.1108496-1-joshualant@gmail.com>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <Zo6KepEjo7IHOpWb () orbyte ! nwl ! cc>
-References: <Zo6KepEjo7IHOpWb () orbyte ! nwl ! cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -69,26 +65,70 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi Phil,
+Adding this configure option fixes compilation errors which occur when
+building with musl-libc. These are known issues with musl that cause structure
+redefinition errors in headers between linux/if_ether.h and
+netinet/ether.h.
 
-> Man, this crap keeps popping up. Last time we "fixed" it was in commit
-> 0e7cf0ad306cd ("Revert "fix build for missing ETH_ALEN definition"").
-> There, including netinet/ether.h was OK. Now it's problematic?
-> Interestingly, linux/if_ether.h has this:
-> 
-> | /* allow libcs like musl to deactivate this, glibc does not implement this. */
-> | #ifndef __UAPI_DEF_ETHHDR
-> | #define __UAPI_DEF_ETHHDR               1
-> | #endif
-> 
-> So it's not like the other party is ignoring musl's needs. Does adding
-> -D__UAPI_DEF_ETHHDR=0 fix the build? Should we maybe add a configure
-> option for this instead of shooting the moving target?
+Signed-off-by: Joshua Lant joshualant@gmail.com
+---
+ INSTALL      |  7 +++++++
+ configure.ac | 10 +++++++++-
+ 2 files changed, 16 insertions(+), 1 deletion(-)
 
-Yeah cheers adding that does indeed fix the build...
+diff --git a/INSTALL b/INSTALL
+index d62b428c..8095b0bb 100644
+--- a/INSTALL
++++ b/INSTALL
+@@ -63,6 +63,13 @@ Configuring and compiling
+ 	optionally specify a search path to include anyway. This is
+ 	probably only useful for development.
+ 
++--enable-musl-build
++
++	When compiling against musl-libc, you may encounter issues with
++	redefinitions of structures in headers between musl and the kernel.
++	This is a known issue with musl-libc, and setting this option
++	should fix your build.
++
+ If you want to enable debugging, use
+ 
+ 	./configure CFLAGS="-ggdb3 -O0"
+diff --git a/configure.ac b/configure.ac
+index 2293702b..7f54ccd1 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -77,6 +77,9 @@ AC_ARG_WITH([xt-lock-name], AS_HELP_STRING([--with-xt-lock-name=PATH],
+ AC_ARG_ENABLE([profiling],
+ 	AS_HELP_STRING([--enable-profiling], [build for use of gcov/gprof]),
+ 	[enable_profiling="$enableval"], [enable_profiling="no"])
++AC_ARG_ENABLE([musl-build],
++    AS_HELP_STRING([--enable-musl-build], [Set this option if you encounter compilation errors when building with musl-libc]),
++    [enable_musl_build="$enableval"], [enable_musl_build="no"])
+ 
+ AC_MSG_CHECKING([whether $LD knows -Wl,--no-undefined])
+ saved_LDFLAGS="$LDFLAGS";
+@@ -206,6 +209,10 @@ if test "x$enable_profiling" = "xyes"; then
+ 	regular_LDFLAGS+=" -lgcov --coverage"
+ fi
+ 
++if test "x$enable_musl_build" = "xyes"; then
++	regular_CFLAGS+=" -D__UAPI_DEF_ETHHDR=0"
++fi
++
+ define([EXPAND_VARIABLE],
+ [$2=[$]$1
+ if test $prefix = 'NONE'; then
+@@ -277,7 +284,8 @@ Build parameters:
+   Installation prefix (--prefix):	${prefix}
+   Xtables extension directory:		${e_xtlibdir}
+   Pkg-config directory:			${e_pkgconfigdir}
+-  Xtables lock file:			${xt_lock_name}"
++  Xtables lock file:			${xt_lock_name}
++  Build against musl-libc:		${enable_musl_build}"
+ 
+ if [[ -n "$ksourcedir" ]]; then
+ 	echo "  Kernel source directory:		${ksourcedir}"
+-- 
+2.25.1
 
-I have added a configure option. I will submit this as a separate patch.
-
-Thanks,
-
-Josh
