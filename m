@@ -1,169 +1,126 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B766E446DB
-	for <netfilter-devel@vger.kernel.org>; Mon, 15 Jul 2024 12:00:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E4CA189F59;
+	Mon, 15 Jul 2024 13:19:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721044833; cv=none; b=LKfaEQkwEW1FEra+n5Z2EXJshWxxAFRg9Y7rSnkErGm/Qeb806MISSK41LT8LoyiCakTqxkMV+eMwyT1pUILz1/y8dQndkRMzreMbMMPBLvU3TwTDkcEsoPylleXiB1yQVe+04QmYqz2D87eMZpv6i/jNJBeV8K7FxgQHQ/MJPE=
+	t=1721049569; cv=none; b=YewwEcgSVCfz3DtIX1mqz8AfYyFsedCg2RLpv9r+LkgTrMxSbRjSxFyqQVcO7BcFk4KuK0Kjhk4YTuOG9frVnlMz5+X3A0vscCCCcXqeHSFWZ2EyTnMbThq8ahfE632zHgUgJcFZvXIbuHtQxZqWqNNVkl7swR1OmrNYFO+kVog=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721044833; c=relaxed/simple;
-	bh=VayybFadNIIJ+fOYmY1v8RqFSGZHiqm0UROkaNNllrY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=pRclzgjSuaICJALuXIegOFMPytqkzc5nu4k670FPBb6tCmUBUwfSQaRUC27MX+g6953lMa0LyBHafhZGcXN0oiXLPTvaz37td0k9mH3kGSu++jK1eCZirgcTJCXOcHeLFt4ZDOQ5tyJW2z1nqHXUm0JTecrZ4XKZddXYlc8YdSw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1sTKNY-0005EP-0u; Mon, 15 Jul 2024 14:00:28 +0200
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] selftests: netfilter: add test case for recent mismatch bug
-Date: Mon, 15 Jul 2024 13:55:29 +0200
-Message-ID: <20240715115532.2758-1-fw@strlen.de>
-X-Mailer: git-send-email 2.44.2
+	s=arc-20240116; t=1721049569; c=relaxed/simple;
+	bh=A2MzHVm2704ZVOhFqo+pTDlbtY+sF5fEeAsMUtLmyqY=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=cwuMoLKmCNRtCbL2ydI+MwoRhI6fbUN1IG2rEMfDwJUtuD7zERj9uo4dlQdQttewZ5dqGZEE7jgaTHJEw2JYO9jGc+lalFBYNEx1xNkODu0Gu7+Uqfle8DWS+hVdIJiLuT9WSirYmeM9HGjDA5bU6iek4oFMFoLLFTrkoUTIh84=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=none smtp.mailfrom=orbyte.nwl.cc; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=orbyte.nwl.cc
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <n0-1@orbyte.nwl.cc>)
+	id 1sTLHu-000000006Xl-3LyZ;
+	Mon, 15 Jul 2024 14:58:42 +0200
+Date: Mon, 15 Jul 2024 14:58:42 +0200
+From: Phil Sutter <phil@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: netfilter@vger.kernel.org, netfilter-announce@lists.netfilter.org,
+	lwn@lwn.net
+Subject: [ANNOUNCE] libnftnl 1.2.7 release
+Message-ID: <ZpUdAmsdAZloGBgH@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@netfilter.org>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	netfilter-announce@lists.netfilter.org, lwn@lwn.net
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="fURed8NtU5OwByFY"
+Content-Disposition: inline
+X-DSPAM-Result: Whitelisted
+X-DSPAM-Confidence: 0.9994
 
-Without 'netfilter: nf_set_pipapo: fix initial map fill' this fails:
 
-TEST: reported issues
-  Add two elements, flush, re-add       1s                              [ OK ]
-  net,mac with reload                   1s                              [ OK ]
-  net,port,proto                        1s                              [FAIL]
-post-add: should have returned 10.5.8.0/24 . 51-60 . 6-17  but got table inet filter {
-        set test {
-                type ipv4_addr . inet_service . inet_proto
-                flags interval,timeout
-                elements = { 10.5.7.0/24 . 51-60 . 6-17 }
-        }
-}
+--fURed8NtU5OwByFY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-The other sets defined in the selftest do not trigger this bug, it only
-occurs if the first field group bitsize is smaller than the largest
-group bitsize.
+Hi!
 
-For each added element, check 'get' works and actually returns the
-requested range.
-After map has been filled, check all added ranges can still be
-retrieved.
+The Netfilter project proudly presents:
 
-For each deleted element, check that 'get' fails.
+        libnftnl 1.2.7
 
-Based on a reproducer script from Yi Chen.
+libnftnl is a userspace library providing a low-level netlink
+programming interface (API) to the in-kernel nf_tables subsystem.
+This library is currently used by nftables.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- .../net/netfilter/nft_concat_range.sh         | 76 ++++++++++++++++++-
- 1 file changed, 75 insertions(+), 1 deletion(-)
+This release contains fixes only:
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_concat_range.sh b/tools/testing/selftests/net/netfilter/nft_concat_range.sh
-index 6d66240e149c..47088b005390 100755
---- a/tools/testing/selftests/net/netfilter/nft_concat_range.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_concat_range.sh
-@@ -27,7 +27,7 @@ TYPES="net_port port_net net6_port port_proto net6_port_mac net6_port_mac_proto
-        net6_port_net6_port net_port_mac_proto_net"
- 
- # Reported bugs, also described by TYPE_ variables below
--BUGS="flush_remove_add reload"
-+BUGS="flush_remove_add reload net_port_proto_match"
- 
- # List of possible paths to pktgen script from kernel tree for performance tests
- PKTGEN_SCRIPT_PATHS="
-@@ -371,6 +371,22 @@ race_repeat	0
- perf_duration	0
- "
- 
-+TYPE_net_port_proto_match="
-+display		net,port,proto
-+type_spec	ipv4_addr . inet_service . inet_proto
-+chain_spec	ip daddr . udp dport . meta l4proto
-+dst		addr4 port proto
-+src
-+start		1
-+count		9
-+src_delta	9
-+tools		sendip bash
-+proto		udp
-+
-+race_repeat	0
-+
-+perf_duration	0
-+"
- # Set template for all tests, types and rules are filled in depending on test
- set_template='
- flush ruleset
-@@ -1555,6 +1571,64 @@ test_bug_reload() {
- 	nft flush ruleset
- }
- 
-+# - add ranged element, check that packets match it
-+# - delete element again, check it is gone
-+test_bug_net_port_proto_match() {
-+	setup veth send_"${proto}" set || return ${ksft_skip}
-+	rstart=${start}
-+
-+	range_size=1
-+	for i in $(seq 1 10); do
-+		for j in $(seq 1 20) ; do
-+			elem=$(printf "10.%d.%d.0/24 . %d1-%d0 . 6-17 " ${i} ${j} ${i} "$((i+1))")
-+
-+			nft "add element inet filter test { $elem }" || return 1
-+			nft "get element inet filter test { $elem }" | grep -q "$elem"
-+			if [ $? -ne 0 ];then
-+				local got=$(nft "get element inet filter test { $elem }")
-+				err "post-add: should have returned $elem but got $got"
-+				return 1
-+			fi
-+		done
-+	done
-+
-+	# recheck after set was filled
-+	for i in $(seq 1 10); do
-+		for j in $(seq 1 20) ; do
-+			elem=$(printf "10.%d.%d.0/24 . %d1-%d0 . 6-17 " ${i} ${j} ${i} "$((i+1))")
-+
-+			nft "get element inet filter test { $elem }" | grep -q "$elem"
-+			if [ $? -ne 0 ];then
-+				local got=$(nft "get element inet filter test { $elem }")
-+				err "post-fill: should have returned $elem but got $got"
-+				return 1
-+			fi
-+		done
-+	done
-+
-+	# random del and re-fetch
-+	for i in $(seq 1 10); do
-+		for j in $(seq 1 20) ; do
-+			local rnd=$((RANDOM%10))
-+			local got=""
-+
-+			elem=$(printf "10.%d.%d.0/24 . %d1-%d0 . 6-17 " ${i} ${j} ${i} "$((i+1))")
-+			if [ $rnd -gt 0 ];then
-+				continue
-+			fi
-+
-+			nft "delete element inet filter test { $elem }"
-+			got=$(nft "get element inet filter test { $elem }" 2>/dev/null)
-+			if [ $? -eq 0 ];then
-+				err "post-delete: query for $elem returned $got instead of error."
-+				return 1
-+			fi
-+		done
-+	done
-+
-+	nft flush ruleset
-+}
-+
- test_reported_issues() {
- 	eval test_bug_"${subtest}"
- }
--- 
-2.44.2
+* Avoid potential use-after-free when clearing set's expression list
+* Avoid misc buffer overflows in attribute setters
+* Implement nftnl_obj_unset symbol already exported in libnftnl.map
+* Remove unimplemented symbols from libnftnl.map
+* Drop some unused internal functions
+* Validate per-expression and per-object attribute value and data length
+* Enable some attribute validation where missing
+* Fix synproxy object setter with unaligned data
+* Fix for unsetting userdata attributes in table and chain objects
 
+See ChangeLog that comes attached to this email for more details on
+the updates.
+
+You can download it from:
+
+https://www.netfilter.org/projects/libnftnl/downloads.html
+
+Happy firewalling.
+
+--fURed8NtU5OwByFY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="changes-libnftnl-1.2.7.txt"
+
+Florian Westphal (1):
+  expr: fix buffer overflows in data value setters
+
+Nicholas Vinson (1):
+  chain: Removed non-defined functions
+
+Pablo Neira Ayuso (7):
+  object: define nftnl_obj_unset()
+  set: buffer overflow in NFTNL_SET_DESC_CONCAT setter
+  set_elem: use nftnl_data_cpy() in NFTNL_SET_ELEM_{KEY,KEY_END,DATA}
+  obj: ct_timeout: setter checks for timeout array boundaries
+  expr: immediate: check for chain attribute to release chain name
+  udata: incorrect userdata buffer size validation
+  utils: remove unused code
+
+Phil Sutter (24):
+  set: Do not leave free'd expr_list elements in place
+  tests: Fix objref test case
+  expr: Repurpose struct expr_ops::max_attr field
+  expr: Call expr_ops::set with legal types only
+  include: Sync nf_log.h with kernel headers
+  expr: Introduce struct expr_ops::attr_policy
+  expr: Enforce attr_policy compliance in nftnl_expr_set()
+  chain: Validate NFTNL_CHAIN_USE, too
+  table: Validate NFTNL_TABLE_USE, too
+  flowtable: Validate NFTNL_FLOWTABLE_SIZE, too
+  obj: Validate NFTNL_OBJ_TYPE, too
+  set: Validate NFTNL_SET_ID, too
+  table: Validate NFTNL_TABLE_OWNER, too
+  obj: Do not call nftnl_obj_set_data() with zero data_len
+  obj: synproxy: Use memcpy() to handle potentially unaligned data
+  utils: Fix for wrong variable use in nftnl_assert_validate()
+  obj: Return value on setters
+  obj: Repurpose struct obj_ops::max_attr field
+  obj: Call obj_ops::set with legal attributes only
+  obj: Introduce struct obj_ops::attr_policy
+  obj: Enforce attr_policy compliance in nftnl_obj_set_data()
+  utils: Introduce and use nftnl_set_str_attr()
+  obj: Respect data_len when setting attributes
+  expr: Respect data_len when setting attributes
+
+corubba (1):
+  object: getters take const struct
+
+--fURed8NtU5OwByFY--
