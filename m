@@ -1,126 +1,79 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from mail.he1.boomer41.net (mail.he1.boomer41.net [178.63.148.114])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E4CA189F59;
-	Mon, 15 Jul 2024 13:19:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42D9E433B3
+	for <netfilter-devel@vger.kernel.org>; Mon, 15 Jul 2024 14:13:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.63.148.114
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721049569; cv=none; b=YewwEcgSVCfz3DtIX1mqz8AfYyFsedCg2RLpv9r+LkgTrMxSbRjSxFyqQVcO7BcFk4KuK0Kjhk4YTuOG9frVnlMz5+X3A0vscCCCcXqeHSFWZ2EyTnMbThq8ahfE632zHgUgJcFZvXIbuHtQxZqWqNNVkl7swR1OmrNYFO+kVog=
+	t=1721052837; cv=none; b=fQni9Md0fQrtQCTuG3xTswalTmAM0g8ekUXK0MJPyJwVHTVINsYi5eBBIaEcrfT1rLHEFYYBBA5ypyIr9o+hosvfZrweSx8IM7ISm7QEyGeJm7Opu0un0S70fp76FBiNMy38kLD57k7NcvGMBNWctRgkzRxsw/ENskXAUtsU0Iw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721049569; c=relaxed/simple;
-	bh=A2MzHVm2704ZVOhFqo+pTDlbtY+sF5fEeAsMUtLmyqY=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=cwuMoLKmCNRtCbL2ydI+MwoRhI6fbUN1IG2rEMfDwJUtuD7zERj9uo4dlQdQttewZ5dqGZEE7jgaTHJEw2JYO9jGc+lalFBYNEx1xNkODu0Gu7+Uqfle8DWS+hVdIJiLuT9WSirYmeM9HGjDA5bU6iek4oFMFoLLFTrkoUTIh84=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=none smtp.mailfrom=orbyte.nwl.cc; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=orbyte.nwl.cc
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <n0-1@orbyte.nwl.cc>)
-	id 1sTLHu-000000006Xl-3LyZ;
-	Mon, 15 Jul 2024 14:58:42 +0200
-Date: Mon, 15 Jul 2024 14:58:42 +0200
-From: Phil Sutter <phil@netfilter.org>
+	s=arc-20240116; t=1721052837; c=relaxed/simple;
+	bh=QivCAR+MEiq6lrRvYkYLf5QpIM6FnSXV2PKgRPZkob8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=nlEbsxxFKFl3umg+MBIhZXg8GKN7Kw7cxsCM+z7ooVsJ8BMF1U92Jffq7iBQGnXuZlqbBYz89zLInQ7bXNpe6ZqSu/SSk1gDsD8HW5REowsT36EEc7CZ4+pGsA5WpzsfpDxrbaZ14cs0L+ZAyOz9YXUDVsxvWbWHMm01rfiZlLM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=stephan-brunner.net; spf=pass smtp.mailfrom=stephan-brunner.net; dkim=pass (4096-bit key) header.d=stephan-brunner.net header.i=@stephan-brunner.net header.b=Robfd1xd; arc=none smtp.client-ip=178.63.148.114
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=stephan-brunner.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=stephan-brunner.net
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (4096-bit key) header.d=stephan-brunner.net header.i=@stephan-brunner.net header.b="Robfd1xd"
+From: Stephan Brunner <s.brunner@stephan-brunner.net>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=stephan-brunner.net;
+	s=mail; t=1721052825;
+	bh=QivCAR+MEiq6lrRvYkYLf5QpIM6FnSXV2PKgRPZkob8=;
+	h=From:To:Cc:Subject:Date;
+	b=Robfd1xdtDwJjRKu9LI3M9DlDGkSYhJo8rNgEUsT5NscZ8EJms8JUvg0IEMMQatiN
+	 CBYouD6/pSf7dt9t1F2qbE7246KC7tGIh95eGCRadeyBQd8AvMuX7041lE0hUKM65F
+	 NxzNwm4IQ6IhDHxVhaccl0wP+u/DGLbz8sBZWogpIy5SJrZxR5mdMndBjQg4/t/+ko
+	 vvvPONIcbgZclMBWy1ZQzdyg4Cxo3NYpisebVil1DkGNJmhGwve5OMEu5fGre4aQsT
+	 +sOSp3G3DHAEnrQamVc+znqqAYYQKY3PNBUnOi3+gQI+bjVgsAueHTbrDdeKlAJfIn
+	 9tpO444/r67xv0gdLof6VCAJgzrLJNjPkQMJKlrYX3KuixD0tcYFdWI5QQmYGgxe5M
+	 uX3N8vGfrCY6DjzsSDhhTwgMrbzni2GnrcUnDQlQWpmOLMBGt9oIYtKCH34z9W1ouv
+	 lgJ3q3ybmrTvwy5XjDdaX5npJvEEjM8YsL0qeruVbi5VBtXl4kOMjPSlKsWSleyt6q
+	 KUjR/LATfCLUYvALT/Siq+aFmHbIMzskJxzEallDVxtB1S51qq6u5kRIDshSOSO1Pe
+	 BLRHpSYpypdbkUyQxh+8PPmiGUBCvbTYAKqehC8s7+TYchSYAIzyhmOxKrdE/QXWeT
+	 hRlyPb2/YLjlmFT7Jwby5aRI=
 To: netfilter-devel@vger.kernel.org
-Cc: netfilter@vger.kernel.org, netfilter-announce@lists.netfilter.org,
-	lwn@lwn.net
-Subject: [ANNOUNCE] libnftnl 1.2.7 release
-Message-ID: <ZpUdAmsdAZloGBgH@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@netfilter.org>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	netfilter-announce@lists.netfilter.org, lwn@lwn.net
+Cc: Stephan Brunner <s.brunner@stephan-brunner.net>,
+	=?UTF-8?q?Reinhard=20Ni=C3=9Fl?= <reinhard.nissl@fee.de>
+Subject: [PATCH] conntrack: tcp: fix parsing of tuple-port-src and tuple-port-dst
+Date: Mon, 15 Jul 2024 16:13:42 +0200
+Message-ID: <e8786a769b04bbc6e72ff96f1527bc869f4f75af.1721052742.git.s.brunner@stephan-brunner.net>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="fURed8NtU5OwByFY"
-Content-Disposition: inline
-X-DSPAM-Result: Whitelisted
-X-DSPAM-Confidence: 0.9994
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
+As seen in the parsing code above, L4PROTO should be set to IPPROTO_TCP, not the port number itself.
 
---fURed8NtU5OwByFY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Co-Developed-by: Reinhard Nißl <reinhard.nissl@fee.de>
+Signed-off-by: Stephan Brunner <s.brunner@stephan-brunner.net>
+---
+ extensions/libct_proto_tcp.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Hi!
+diff --git a/extensions/libct_proto_tcp.c b/extensions/libct_proto_tcp.c
+index 27f5833..4681693 100644
+--- a/extensions/libct_proto_tcp.c
++++ b/extensions/libct_proto_tcp.c
+@@ -165,13 +165,13 @@ static int parse_options(char c,
+ 	case '8':
+ 		port = htons(atoi(optarg));
+ 		nfct_set_attr_u16(exptuple, ATTR_ORIG_PORT_SRC, port);
+-		nfct_set_attr_u8(exptuple, ATTR_ORIG_L4PROTO, port);
++		nfct_set_attr_u8(exptuple, ATTR_ORIG_L4PROTO, IPPROTO_TCP);
+ 		*flags |= CT_TCP_EXPTUPLE_SPORT;
+ 		break;
+ 	case '9':
+ 		port = htons(atoi(optarg));
+ 		nfct_set_attr_u16(exptuple, ATTR_ORIG_PORT_DST, port); 
+-		nfct_set_attr_u8(exptuple, ATTR_ORIG_L4PROTO, port);
++		nfct_set_attr_u8(exptuple, ATTR_ORIG_L4PROTO, IPPROTO_TCP);
+ 		*flags |= CT_TCP_EXPTUPLE_DPORT;
+ 		break;
+ 	}
+-- 
+2.45.2
 
-The Netfilter project proudly presents:
-
-        libnftnl 1.2.7
-
-libnftnl is a userspace library providing a low-level netlink
-programming interface (API) to the in-kernel nf_tables subsystem.
-This library is currently used by nftables.
-
-This release contains fixes only:
-
-* Avoid potential use-after-free when clearing set's expression list
-* Avoid misc buffer overflows in attribute setters
-* Implement nftnl_obj_unset symbol already exported in libnftnl.map
-* Remove unimplemented symbols from libnftnl.map
-* Drop some unused internal functions
-* Validate per-expression and per-object attribute value and data length
-* Enable some attribute validation where missing
-* Fix synproxy object setter with unaligned data
-* Fix for unsetting userdata attributes in table and chain objects
-
-See ChangeLog that comes attached to this email for more details on
-the updates.
-
-You can download it from:
-
-https://www.netfilter.org/projects/libnftnl/downloads.html
-
-Happy firewalling.
-
---fURed8NtU5OwByFY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="changes-libnftnl-1.2.7.txt"
-
-Florian Westphal (1):
-  expr: fix buffer overflows in data value setters
-
-Nicholas Vinson (1):
-  chain: Removed non-defined functions
-
-Pablo Neira Ayuso (7):
-  object: define nftnl_obj_unset()
-  set: buffer overflow in NFTNL_SET_DESC_CONCAT setter
-  set_elem: use nftnl_data_cpy() in NFTNL_SET_ELEM_{KEY,KEY_END,DATA}
-  obj: ct_timeout: setter checks for timeout array boundaries
-  expr: immediate: check for chain attribute to release chain name
-  udata: incorrect userdata buffer size validation
-  utils: remove unused code
-
-Phil Sutter (24):
-  set: Do not leave free'd expr_list elements in place
-  tests: Fix objref test case
-  expr: Repurpose struct expr_ops::max_attr field
-  expr: Call expr_ops::set with legal types only
-  include: Sync nf_log.h with kernel headers
-  expr: Introduce struct expr_ops::attr_policy
-  expr: Enforce attr_policy compliance in nftnl_expr_set()
-  chain: Validate NFTNL_CHAIN_USE, too
-  table: Validate NFTNL_TABLE_USE, too
-  flowtable: Validate NFTNL_FLOWTABLE_SIZE, too
-  obj: Validate NFTNL_OBJ_TYPE, too
-  set: Validate NFTNL_SET_ID, too
-  table: Validate NFTNL_TABLE_OWNER, too
-  obj: Do not call nftnl_obj_set_data() with zero data_len
-  obj: synproxy: Use memcpy() to handle potentially unaligned data
-  utils: Fix for wrong variable use in nftnl_assert_validate()
-  obj: Return value on setters
-  obj: Repurpose struct obj_ops::max_attr field
-  obj: Call obj_ops::set with legal attributes only
-  obj: Introduce struct obj_ops::attr_policy
-  obj: Enforce attr_policy compliance in nftnl_obj_set_data()
-  utils: Introduce and use nftnl_set_str_attr()
-  obj: Respect data_len when setting attributes
-  expr: Respect data_len when setting attributes
-
-corubba (1):
-  object: getters take const struct
-
---fURed8NtU5OwByFY--
