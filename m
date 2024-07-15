@@ -1,70 +1,72 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CACD18F2DA
-	for <netfilter-devel@vger.kernel.org>; Mon, 15 Jul 2024 14:31:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC1F418EFD5
+	for <netfilter-devel@vger.kernel.org>; Mon, 15 Jul 2024 14:31:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721053886; cv=none; b=uR8CYMwGlhsyOvGYRqRaTsUeHwZEbQhURJk7Day1nI6AMZC/0EAbBKdr8jsCCfHRJT9REBwhvDSRy9cQRjg9TD6saMBi4SYUNT0VGuXsYXnMax4qxzfD1iKku72fxhhEuKdvZO8hHtPypJHG3fJIDPbJoblQK+miQm2IASWnCvs=
+	t=1721053907; cv=none; b=UWBCo5lehoW+hYh4VaMVRVK9mEefeQkLEhSBR66gQciDTR2BgygwDolOfxPU+gqYK2DXsWPqaP24WaOefWMoITMl9IAcruw/rN5fFFyD9689ODTJpXvxavnWNJ0VHYDJLIsnGg8Gu4fFuJ0YZBFuY1i947umaY/gAH5tKHV2/Os=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721053886; c=relaxed/simple;
-	bh=3Tsl/9TmsJz7W29NkAWnZffwk1u2Ng7yR8t9yIkFwbA=;
+	s=arc-20240116; t=1721053907; c=relaxed/simple;
+	bh=9Vp138a/Qsro7Du5nj3crYP1WQr81PxKr2d20Noksf0=;
 	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=M2xUvBe0zuykuGm/FNLrIQ75eBqKx1ybOctiql2DCEJPkAYe+X5AunqCf29lgeoBD1SrvXh2R0Bdjh3V347EQ4vx9bd+B64qNF49N6ADTKL1zRVZdM5KCsqKcmRCSxQGdkXCQQ9XLxxS6FOiNs9Rgpzxf7IgesfHjwEuPFDg0e0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Pi+V7ggr; arc=none smtp.client-ip=170.10.133.124
+	 MIME-Version:Content-Type; b=kvOp3nomv0bfK378znuKfTYBkjDZvtXgraF79h9QeT+7F5VFoBbGkeyPrzCWbEHH3oDBPvbjNt9AQsRegqv+P9tz1ClB3YkeX4kHrzvm1xjaCFPZAcEdqmN6OkBXJAKO0dhZZEP7e3jbkMnaoP/EZ2N9s27uR59agq5xsRjkZ2Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=fXuesm5U; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Pi+V7ggr"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="fXuesm5U"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1721053883;
+	s=mimecast20190719; t=1721053904;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=jyqlldRpDVf4MbMIMdQg6uH9H6epKniNJVbxxEhL7wQ=;
-	b=Pi+V7ggr6tyYLE0xkiL2Vt6eqyEI39mH7/F7UHVKBi3fbluwsZaxAbRQtLCGhOzahpeOv5
-	cbkcwUw3q6Mv3Tqyeq4VMp/9YHByBHiV526yVGTId3FCIgN210EBADEsZsmUDtI4QL2yXh
-	Acp7K8ntaHENx4wOy6A4sSj09vpK8PU=
-Received: from mail-qk1-f198.google.com (mail-qk1-f198.google.com
- [209.85.222.198]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=Jc0/wxHE1HxlsUbeDA6CvFNCh9k8bqbX9tsnb8jpHVw=;
+	b=fXuesm5UifZ+MIx3jCMiQxS++7k28gGY6Z/Bk8quCvoNglCRnCcSSqMLV2OZLqRE5gYND5
+	BNd5PMmggZXpu4zJZ3o5YRCONJfA97tkqiWTS3v8PQqIq4A0Iop3c1FlohsySlrHLmECxZ
+	G8yp0wgxYjRTUEQ8v8bDSJsx+qMy1FI=
+Received: from mail-yw1-f200.google.com (mail-yw1-f200.google.com
+ [209.85.128.200]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-140-CpbRYg15ODmgiHyBncjCHA-1; Mon, 15 Jul 2024 10:31:22 -0400
-X-MC-Unique: CpbRYg15ODmgiHyBncjCHA-1
-Received: by mail-qk1-f198.google.com with SMTP id af79cd13be357-79f1bf8ad5eso710093785a.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Jul 2024 07:31:19 -0700 (PDT)
+ us-mta-277-srdq66fDMRSrFp4on6b5tA-1; Mon, 15 Jul 2024 10:31:42 -0400
+X-MC-Unique: srdq66fDMRSrFp4on6b5tA-1
+Received: by mail-yw1-f200.google.com with SMTP id 00721157ae682-65fabcd336fso42023607b3.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Jul 2024 07:31:42 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1721053879; x=1721658679;
+        d=1e100.net; s=20230601; t=1721053901; x=1721658701;
         h=content-transfer-encoding:mime-version:organization:references
          :in-reply-to:message-id:subject:cc:to:from:date:x-gm-message-state
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=jyqlldRpDVf4MbMIMdQg6uH9H6epKniNJVbxxEhL7wQ=;
-        b=dE61aMpfKUzkn77xYczvxzv5c2y8zVME+WAJiqv+quqodHL6LH7GBf9501X5AXdOoK
-         dASQKSvQm2dNXazNbM16XelBQLv5rvk1kulcwbBHTudoOLDfOxTadMJwY6WWHuRUNoAQ
-         I+6VeOcaXEdW0DSDZ1BrOOH+joO53C4Yv7JDFpCisDKD/gS1zaHzHKDaZDKjkj7uCUfJ
-         fHL30bBE0vBgj5quHT8LkgOvhdKay3x++Iit2T8f8p9s+Zlf9MiiGSqRzv9ZMrIRIpvI
-         z+ybx/7NcTTHjje32CHseGGYHoKYN91lQV2skA11/m6SDaW1wAli6CQesxejIQahyp4f
-         T1QA==
-X-Gm-Message-State: AOJu0YzbPgWObaGy9l00EPeLoM0FZpwbSQaV3LR0nimOr14zLp2t422Y
-	DacTZLPQ5GQ7PS6a6+I6aV4cWlbYahqYIMaS7B7jHxt2LYnCtt86UN9wkTwnDXXapMDk/K7EpVK
-	aPn3Jy2oHWTIOYSbK0SgiVWd1f3+UmkT9ggt7tzX3t3i7lm6mKsDXfZiPn7oIUnGEIA==
-X-Received: by 2002:a05:6214:2687:b0:6b5:dc5a:ffe0 with SMTP id 6a1803df08f44-6b61bf5d571mr272514366d6.38.1721053878661;
-        Mon, 15 Jul 2024 07:31:18 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IH9Ili14ciSWRbtBOJL1aUbDR9DNeR8Q9911VH3feLkKCm9oIedz4+cp6CKKpPk8C+MjCtXbA==
-X-Received: by 2002:a05:6214:2687:b0:6b5:dc5a:ffe0 with SMTP id 6a1803df08f44-6b61bf5d571mr272514106d6.38.1721053878204;
-        Mon, 15 Jul 2024 07:31:18 -0700 (PDT)
+        bh=Jc0/wxHE1HxlsUbeDA6CvFNCh9k8bqbX9tsnb8jpHVw=;
+        b=HdRhiBEEhxaCHNVTDzKu0+uF95dDoeaNHYRprlfMWQZYvtw+sa9F5kZ4FFtnMsdDDD
+         cIoMVA2PgQUW637s8XevKU8Dbv97jAc4h/ULEyoitGoEwFYTX42ynJaz4RHptD5/mham
+         0YRyJqoDCQnt3kTz/asSZjqlamZxVUmNemndsHHsGqg3iIPguxqi7aiqzQ4xNTSlJLPS
+         iWEB2xWfTVyaUTZjqZ7qFid3ghegC9zS5+1sg7fump3rJiW0/tafGqi9KDpJBoQkMN2j
+         1YodO6cV3N4jRpEXGWYrFKAeDkVA89DEcCyyYIfZl0ew3DrGk4YE/mrGbTBiO2SEhtk5
+         rGSQ==
+X-Gm-Message-State: AOJu0YxFUkhbvSMqqgPAHFM5aNQpzUST6BcmE+jfDCDd1V86d/Z+UDVk
+	NCCYtDJl10svEYDH9nXR5UuIU/DOV5oZHr+NOEZjamiYhyPXva//7dTRnx9cixg3uFlljIZMy+X
+	sbercZfob4ueoW6wHmCRIEpr/sUNAhE/nX7QijmPQQMD7y1Hqn15p9nezp4IoADHnjnWx1b7znx
+	/f
+X-Received: by 2002:a0d:f942:0:b0:615:bb7:d59c with SMTP id 00721157ae682-658ef153014mr206232397b3.22.1721053900923;
+        Mon, 15 Jul 2024 07:31:40 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IHrAgtj3YfUKmqKPDpqRR13mr5NbHHf9LpDJ8HbpSA+tHRVufP/RGpYUSlVCoZyjc1KnLgh7A==
+X-Received: by 2002:a0d:f942:0:b0:615:bb7:d59c with SMTP id 00721157ae682-658ef153014mr206232187b3.22.1721053900600;
+        Mon, 15 Jul 2024 07:31:40 -0700 (PDT)
 Received: from maya.cloud.tilaa.com (maya.cloud.tilaa.com. [164.138.29.33])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-6b761a5586bsm21835826d6.124.2024.07.15.07.31.16
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-6b76194fe1bsm21730646d6.11.2024.07.15.07.31.39
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 15 Jul 2024 07:31:17 -0700 (PDT)
-Date: Mon, 15 Jul 2024 16:30:41 +0200
+        Mon, 15 Jul 2024 07:31:40 -0700 (PDT)
+Date: Mon, 15 Jul 2024 16:31:05 +0200
 From: Stefano Brivio <sbrivio@redhat.com>
 To: Florian Westphal <fw@strlen.de>
-Cc: <netfilter-devel@vger.kernel.org>, Yi Chen <yiche@redhat.com>
-Subject: Re: [PATCH nf] netfilter: nf_set_pipapo: fix initial map fill
-Message-ID: <20240715163041.60249207@elisabeth>
-In-Reply-To: <20240715115407.2542-1-fw@strlen.de>
-References: <20240715115407.2542-1-fw@strlen.de>
+Cc: <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nf] selftests: netfilter: add test case for recent
+ mismatch bug
+Message-ID: <20240715163105.2571a92a@elisabeth>
+In-Reply-To: <20240715115532.2758-1-fw@strlen.de>
+References: <20240715115532.2758-1-fw@strlen.de>
 Organization: Red Hat
 X-Mailer: Claws Mail 4.2.0 (GTK 3.24.41; x86_64-pc-linux-gnu)
 Precedence: bulk
@@ -76,30 +78,36 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Mon, 15 Jul 2024 13:54:03 +0200
+On Mon, 15 Jul 2024 13:55:29 +0200
 Florian Westphal <fw@strlen.de> wrote:
 
-> The initial buffer has to be inited to all-ones, but it must restrict
-> it to the size of the first field, not the total field size.
+> Without 'netfilter: nf_set_pipapo: fix initial map fill' this fails:
 > 
-> After each round in the map search step, the result and the fill map
-> are swapped, so if we have a set where f->bsize of the first element
-> is smaller than m->bsize_max, those one-bits are leaked into future
-> rounds result map.
+> TEST: reported issues
+>   Add two elements, flush, re-add       1s                              [ OK ]
+>   net,mac with reload                   1s                              [ OK ]
+>   net,port,proto                        1s                              [FAIL]
+> post-add: should have returned 10.5.8.0/24 . 51-60 . 6-17  but got table inet filter {
+>         set test {
+>                 type ipv4_addr . inet_service . inet_proto
+>                 flags interval,timeout
+>                 elements = { 10.5.7.0/24 . 51-60 . 6-17 }
+>         }
+> }
 > 
-> This makes pipapo find an incorrect matching results for sets where
-> first field size is not the largest.
+> The other sets defined in the selftest do not trigger this bug, it only
+> occurs if the first field group bitsize is smaller than the largest
+> group bitsize.
 > 
-> Followup patch adds a test case to nft_concat_range.sh selftest script.
+> For each added element, check 'get' works and actually returns the
+> requested range.
+> After map has been filled, check all added ranges can still be
+> retrieved.
 > 
-> Thanks to Stefano Brivio for pointing out that we need to zero out
-> the remainder explicitly, only correcting memset() argument isn't enough.
-
-Thanks for fixing this!
-
-> Fixes: 3c4287f62044 ("nf_tables: Add set type for arbitrary concatenation of ranges")
-> Reported-by: Yi Chen <yiche@redhat.com>
-> Cc: Stefano Brivio <sbrivio@redhat.com>
+> For each deleted element, check that 'get' fails.
+> 
+> Based on a reproducer script from Yi Chen.
+> 
 > Signed-off-by: Florian Westphal <fw@strlen.de>
 
 Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
