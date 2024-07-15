@@ -1,131 +1,210 @@
-Received: from mail-qk1-f176.google.com (mail-qk1-f176.google.com [209.85.222.176])
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AADCD10A2A;
-	Mon, 15 Jul 2024 18:18:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2DFE2B9CD;
+	Mon, 15 Jul 2024 20:39:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721067503; cv=none; b=dw3VhX2CYKdXTQcPx0mAX+TR3SNniP42gf8ftUO5FqLBjyuOvHCLWygU57mjVF3fE7T6MqpgWvMaWa+E4nLT5mhCDis1IJvHcaVDesx1LUKYYT4nJMrhlBEb8GwWUfHJqo56ygidGlFDsr0Q/78qtWUyE5ecgcDfj83W2x+K6AA=
+	t=1721075982; cv=none; b=RJtZTVvFGI2kARy2UF0JDyYoFFNpUbJS3ClJpdLCNtsH+kaf0u+HPz+KnUUnfLqx03VO3db+1GxA73hje54QoMVAXUjUV+ea5LYJ7F9gsQtUsmr/a5CiH8ZULJPxOXsSyOnFKJgHgIOiYAWr3/yT/zHqm2gefviIR13s8WrTITM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721067503; c=relaxed/simple;
-	bh=dSFMdMwXY82MZ3qDGBu0+q+kEdGr+5JZfHK4QyzYUJ8=;
-	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
-	 Mime-Version:Content-Type; b=YzG5IFuB7AS1kT8jnYLwgPem4GCjgYgbFIL9hK4s6XEyUvy8maNTyew2MLF43inYjWbV4spVpZxaOU98xYj228U6gwai2KkqY4RfisUThri+7+5Ai8UmZrzE/nQ++UIjkhVqyd3M32kFiCVcO9lbW6ISRMRfbuc1w0gVh3K1Xdg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=CJodtI76; arc=none smtp.client-ip=209.85.222.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1721075982; c=relaxed/simple;
+	bh=V9+/ko+zXoD5I2WF5JxJeceKIAQ9TGTSvmNI/rBGt7c=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=BYKpm2v5WQMp+BHJ2nN1f9SXW8bN+TFAF2+SLUr6JR/Ks1S4bJnCSKz6N9OjOLnCZN9ym+gYA9mQUAKXkb2RO+IpULgmc70FwAZrDBcRGxmSFAOhcbe2BlqLSWDx3PeqjgkG0Iz3M1JjaBKcj0DRhRDfd5D/3XnCKPR3NyGj1yM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=orGAZVa7; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=EO6Fc55G; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=orGAZVa7; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=EO6Fc55G; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CJodtI76"
-Received: by mail-qk1-f176.google.com with SMTP id af79cd13be357-79f178e6225so322799085a.2;
-        Mon, 15 Jul 2024 11:18:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1721067500; x=1721672300; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:subject:references
-         :in-reply-to:message-id:cc:to:from:date:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=+JdmbicsHA1eZpBDvD12TITVsyaXmn/yyPkv0C2f5fI=;
-        b=CJodtI76VKjIjKIogoj799GgawWGj7q/yOjaSy8FSjbIM6ogiJsYu7XttHb6TDNQMP
-         HZQRYKxPqDGktCXTIRpn1jvRjEkGkkuPugKfzL+zd+fy9D1VAXAn9vwXNpamV2u2A1Iv
-         k+fPWFpgj2aZoQ1jOH/poju6NpKeZvmuBFQT0GSlK2TKMwfHCQjhxgQwDZxH71121OXB
-         iyW7y4+i+KobM24WNgYSg+/bT/CqbCFLvEtLeP0TModaKTrGG+ZpogK5bruix+NOiqiN
-         Dh3bLOIeCaZW8XEUXT7ULdaISfXinPh3YdMZ6rR7ErNEbrzwhmJmOV8dsnyjgezoovBu
-         nJvA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1721067500; x=1721672300;
-        h=content-transfer-encoding:mime-version:subject:references
-         :in-reply-to:message-id:cc:to:from:date:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=+JdmbicsHA1eZpBDvD12TITVsyaXmn/yyPkv0C2f5fI=;
-        b=UCoVvWl5bp/7cpLg6hNIhrIlbnzYn0ge8TFbMOJ2SV1Qci7+9QHY662+xEQIbu9uXI
-         Yr/J2Mi6l5gQr7B261itG5KUaGOOPo4R6jHElj0aewEYf/Z/dXeOFj9asNaB+zN1jigr
-         ABfuxpsmLOHDuW6A3TV7w8gv5DbWbUaTXl3BxqyGsKWnl/QOOx1DXGDAI3hjR2rbHKFV
-         YBHS99wfzkKVO1hi+AnnYJAqNpby2X8Oud58ShhDimTHJlNXDskSiSES5sBlpZTNqzA+
-         WiiDIpK+KtN3q8HKYcRAszp84I/UlX4z9P1dhV+EGgZzdcrIj1yKu26ItBlrmNBR5fqZ
-         zStw==
-X-Forwarded-Encrypted: i=1; AJvYcCU78WE2eLFsK0tGXKIjnW8EX71DS5e06P9NGBGhvOwTUVl+8R2aKkYLZA6VjXCnqnf2Uclmb34W3haINen6bH6Hnnqgq5JE
-X-Gm-Message-State: AOJu0Yzo48kljdVKH/GbiM5w6ykC7FAs9a5pDtb+pG2lA1/LaiGK0b1G
-	BuzdcJCJD+OJ9UGC6/ybKkqoJahxojUiUkyaoHNIZ3FcL1RJHyso
-X-Google-Smtp-Source: AGHT+IEUC82LAgEdAUXep1GXNhv8zoutAtzgDq12Vz/xpe1ZmMc5FjkvUwLzODXPpqr010IfIl498Q==
-X-Received: by 2002:a05:620a:3187:b0:79d:7ae0:ffd2 with SMTP id af79cd13be357-7a179fb23b0mr77078685a.49.1721067500357;
-        Mon, 15 Jul 2024 11:18:20 -0700 (PDT)
-Received: from localhost (240.157.150.34.bc.googleusercontent.com. [34.150.157.240])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-7a160bbe6c6sm222572585a.39.2024.07.15.11.18.19
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 15 Jul 2024 11:18:19 -0700 (PDT)
-Date: Mon, 15 Jul 2024 14:18:19 -0400
-From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>, 
- netdev@vger.kernel.org
-Cc: netfilter-devel@vger.kernel.org, 
- davem@davemloft.net, 
- kuba@kernel.org, 
- pabeni@redhat.com, 
- edumazet@google.com, 
- fw@strlen.de, 
- sdf@google.com, 
- daniel@iogearbox.net
-Message-ID: <669567eb4caa8_2d2577294ab@willemb.c.googlers.com.notmuch>
-In-Reply-To: <20240715141442.43775-1-pablo@netfilter.org>
-References: <20240715141442.43775-1-pablo@netfilter.org>
-Subject: Re: [PATCH net] net: flow_dissector: use DEBUG_NET_WARN_ON_ONCE
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="orGAZVa7";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="EO6Fc55G";
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="orGAZVa7";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="EO6Fc55G"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id A2D1C1F833;
+	Mon, 15 Jul 2024 20:39:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1721075978; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=13l4KWTF4acx+DoFosvJJOCp5skXW9ib/ek+T6Gj1BU=;
+	b=orGAZVa7aS8dwRz7zAaSJ5DJiGvjUzgF5byRuSW/xh5bX54ACMhuDxQkfq5CvQlpDzfm/f
+	7H3aOI+fyJhVNx5bbD4Da7e9RAJfuv0ndyxHiJjpa7Ge0olMyxuQG9l3WTPXJu6+k4V3zL
+	SP5Vu2G4xvhozdFB/d1UMLGaAWWMK04=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1721075978;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=13l4KWTF4acx+DoFosvJJOCp5skXW9ib/ek+T6Gj1BU=;
+	b=EO6Fc55GxbiJuyg2W5VpBFdcwuiQvmKGGmLix2LUIJPD2ddGxBU7Wq0S9CY3ZDHFFWeWrJ
+	OXCTUbUPdgEU3SDQ==
+Authentication-Results: smtp-out2.suse.de;
+	dkim=pass header.d=suse.cz header.s=susede2_rsa header.b=orGAZVa7;
+	dkim=pass header.d=suse.cz header.s=susede2_ed25519 header.b=EO6Fc55G
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1721075978; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=13l4KWTF4acx+DoFosvJJOCp5skXW9ib/ek+T6Gj1BU=;
+	b=orGAZVa7aS8dwRz7zAaSJ5DJiGvjUzgF5byRuSW/xh5bX54ACMhuDxQkfq5CvQlpDzfm/f
+	7H3aOI+fyJhVNx5bbD4Da7e9RAJfuv0ndyxHiJjpa7Ge0olMyxuQG9l3WTPXJu6+k4V3zL
+	SP5Vu2G4xvhozdFB/d1UMLGaAWWMK04=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1721075978;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=13l4KWTF4acx+DoFosvJJOCp5skXW9ib/ek+T6Gj1BU=;
+	b=EO6Fc55GxbiJuyg2W5VpBFdcwuiQvmKGGmLix2LUIJPD2ddGxBU7Wq0S9CY3ZDHFFWeWrJ
+	OXCTUbUPdgEU3SDQ==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 6827F137EB;
+	Mon, 15 Jul 2024 20:39:38 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id xIrMGAqJlWZ9VgAAD6G6ig
+	(envelope-from <vbabka@suse.cz>); Mon, 15 Jul 2024 20:39:38 +0000
+Message-ID: <df0716ac-c995-498c-83ee-b8c25302f9ed@suse.cz>
+Date: Mon, 15 Jul 2024 22:39:38 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 00/14] replace call_rcu by kfree_rcu for simple
+ kmem_cache_free callback
+Content-Language: en-US
+To: Uladzislau Rezki <urezki@gmail.com>
+Cc: paulmck@kernel.org, "Jason A. Donenfeld" <Jason@zx2c4.com>,
+ Jakub Kicinski <kuba@kernel.org>, Julia Lawall <Julia.Lawall@inria.fr>,
+ linux-block@vger.kernel.org, kernel-janitors@vger.kernel.org,
+ bridge@lists.linux.dev, linux-trace-kernel@vger.kernel.org,
+ Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, kvm@vger.kernel.org,
+ linuxppc-dev@lists.ozlabs.org, "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>,
+ Nicholas Piggin <npiggin@gmail.com>, netdev@vger.kernel.org,
+ wireguard@lists.zx2c4.com, linux-kernel@vger.kernel.org,
+ ecryptfs@vger.kernel.org, Neil Brown <neilb@suse.de>,
+ Olga Kornievskaia <kolga@netapp.com>, Dai Ngo <Dai.Ngo@oracle.com>,
+ Tom Talpey <tom@talpey.com>, linux-nfs@vger.kernel.org,
+ linux-can@vger.kernel.org, Lai Jiangshan <jiangshanlai@gmail.com>,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ kasan-dev <kasan-dev@googlegroups.com>
+References: <e926e3c6-05ce-4ba6-9e2e-e5f3b37bcc23@suse.cz>
+ <3b6fe525-626c-41fb-8625-3925ca820d8e@paulmck-laptop>
+ <6711935d-20b5-41c1-8864-db3fc7d7823d@suse.cz> <ZnCDgdg1EH6V7w5d@pc636>
+ <36c60acd-543e-48c5-8bd2-6ed509972d28@suse.cz> <ZnFT1Czb8oRb0SE7@pc636>
+ <5c8b2883-962f-431f-b2d3-3632755de3b0@paulmck-laptop>
+ <9967fdfa-e649-456d-a0cb-b4c4bf7f9d68@suse.cz>
+ <6dad6e9f-e0ca-4446-be9c-1be25b2536dd@paulmck-laptop>
+ <4cba4a48-902b-4fb6-895c-c8e6b64e0d5f@suse.cz> <ZnVInAV8BXhgAjP_@pc636>
+From: Vlastimil Babka <vbabka@suse.cz>
+Autocrypt: addr=vbabka@suse.cz; keydata=
+ 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
+ EP+ylKVEKb0Q2A==
+In-Reply-To: <ZnVInAV8BXhgAjP_@pc636>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
+X-Spamd-Result: default: False [-4.50 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_DKIM_ALLOW(-0.20)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	XM_UA_NO_VERSION(0.01)[];
+	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	FREEMAIL_ENVRCPT(0.00)[gmail.com];
+	FREEMAIL_TO(0.00)[gmail.com];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	RCPT_COUNT_TWELVE(0.00)[29];
+	FUZZY_BLOCKED(0.00)[rspamd.com];
+	MIME_TRACE(0.00)[0:+];
+	ARC_NA(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	FREEMAIL_CC(0.00)[kernel.org,zx2c4.com,inria.fr,vger.kernel.org,lists.linux.dev,efficios.com,lists.ozlabs.org,linux.ibm.com,csgroup.eu,gmail.com,lists.zx2c4.com,suse.de,netapp.com,oracle.com,talpey.com,netfilter.org,googlegroups.com];
+	RCVD_TLS_ALL(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	TO_DN_SOME(0.00)[];
+	MID_RHS_MATCH_FROM(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	DKIM_TRACE(0.00)[suse.cz:+];
+	R_RATELIMIT(0.00)[to_ip_from(RLujeud1qp5x6qhm7ow61zc6bu)];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,suse.cz:dkim]
+X-Spam-Flag: NO
+X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
+X-Rspamd-Action: no action
+X-Spam-Score: -4.50
+X-Spam-Level: 
+X-Rspamd-Queue-Id: A2D1C1F833
 
-Pablo Neira Ayuso wrote:
-> The following splat is easy to reproduce upstream as well as in -stable
-> kernels. Florian Westphal provided the following commit:
+On 6/21/24 11:32 AM, Uladzislau Rezki wrote:
+> On Wed, Jun 19, 2024 at 11:28:13AM +0200, Vlastimil Babka wrote:
+> One question. Maybe it is already late but it is better to ask rather than not.
 > 
->   d1dab4f71d37 ("net: add and use __skb_get_hash_symmetric_net")
+> What do you think if we have a small discussion about it on the LPC 2024 as a
+> topic? It might be it is already late or a schedule is set by now. Or we fix
+> it by a conference time.
 > 
-> but this complementary fix has been also suggested by Willem de Bruijn
-> and it can be easily backported to -stable kernel which consists in
-> using DEBUG_NET_WARN_ON_ONCE instead to silence the following splat
-> given __skb_get_hash() is used by the nftables tracing infrastructure to
-> to identify packets in traces.
-> 
-> [69133.561393] ------------[ cut here ]------------
-> [69133.561404] WARNING: CPU: 0 PID: 43576 at net/core/flow_dissector.c:1104 __skb_flow_dissect+0x134f/
-> [...]
-> [69133.561944] CPU: 0 PID: 43576 Comm: socat Not tainted 6.10.0-rc7+ #379
-> [69133.561959] RIP: 0010:__skb_flow_dissect+0x134f/0x2ad0
-> [69133.561970] Code: 83 f9 04 0f 84 b3 00 00 00 45 85 c9 0f 84 aa 00 00 00 41 83 f9 02 0f 84 81 fc ff
-> ff 44 0f b7 b4 24 80 00 00 00 e9 8b f9 ff ff <0f> 0b e9 20 f3 ff ff 41 f6 c6 20 0f 84 e4 ef ff ff 48 8d 7b 12 e8
-> [69133.561979] RSP: 0018:ffffc90000006fc0 EFLAGS: 00010246
-> [69133.561988] RAX: 0000000000000000 RBX: ffffffff82f33e20 RCX: ffffffff81ab7e19
-> [69133.561994] RDX: dffffc0000000000 RSI: ffffc90000007388 RDI: ffff888103a1b418
-> [69133.562001] RBP: ffffc90000007310 R08: 0000000000000000 R09: 0000000000000000
-> [69133.562007] R10: ffffc90000007388 R11: ffffffff810cface R12: ffff888103a1b400
-> [69133.562013] R13: 0000000000000000 R14: ffffffff82f33e2a R15: ffffffff82f33e28
-> [69133.562020] FS:  00007f40f7131740(0000) GS:ffff888390800000(0000) knlGS:0000000000000000
-> [69133.562027] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> [69133.562033] CR2: 00007f40f7346ee0 CR3: 000000015d200001 CR4: 00000000001706f0
-> [69133.562040] Call Trace:
-> [69133.562044]  <IRQ>
-> [69133.562049]  ? __warn+0x9f/0x1a0
-> [ 1211.841384]  ? __skb_flow_dissect+0x107e/0x2860
-> [...]
-> [ 1211.841496]  ? bpf_flow_dissect+0x160/0x160
-> [ 1211.841753]  __skb_get_hash+0x97/0x280
-> [ 1211.841765]  ? __skb_get_hash_symmetric+0x230/0x230
-> [ 1211.841776]  ? mod_find+0xbf/0xe0
-> [ 1211.841786]  ? get_stack_info_noinstr+0x12/0xe0
-> [ 1211.841798]  ? bpf_ksym_find+0x56/0xe0
-> [ 1211.841807]  ? __rcu_read_unlock+0x2a/0x70
-> [ 1211.841819]  nft_trace_init+0x1b9/0x1c0 [nf_tables]
-> [ 1211.841895]  ? nft_trace_notify+0x830/0x830 [nf_tables]
-> [ 1211.841964]  ? get_stack_info+0x2b/0x80
-> [ 1211.841975]  ? nft_do_chain_arp+0x80/0x80 [nf_tables]
-> [ 1211.842044]  nft_do_chain+0x79c/0x850 [nf_tables]
-> 
-> Fixes: 9b52e3f267a6 ("flow_dissector: handle no-skb use case")
-> Suggested-by: Willem de Bruijn <willemb@google.com>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> Just a thought.
 
-Reviewed-by: Willem de Bruijn <willemb@google.com>
+Sorry for the late reply. The MM MC turned out to be so packed I didn't even
+propose a slab topic. We could discuss in hallway track or a BOF, but
+hopefully if the current direction taken by my RFC brings no unexpected
+surprise, and the necessary RCU barrier side is also feasible, this will be
+settled by time of plumbers.
+
+> --
+> Uladzislau Rezki
+
