@@ -1,76 +1,71 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4D34518E74A
-	for <netfilter-devel@vger.kernel.org>; Mon, 15 Jul 2024 14:16:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 727BD1DA26;
+	Mon, 15 Jul 2024 14:20:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721052964; cv=none; b=Le/uhe0n0SCmByJRxXgQC/RHpPM8u2xpDyDdpEk6zEwfkpvt5QHNly5ICmaXd3bvPontS2YFzKb5+24hLDTekMIPvzb3k3VK9oEXWtg2CyofF7Uc/1Sf+QrCOiDqhbr21d44g9+/ZTjMLJBosWCPDTDpEatRA68Hq64hcaiFCJQ=
+	t=1721053214; cv=none; b=H4bvTE92d8Axc1unTUAAPo/sPXI3Zd9YL5dWmVlkbDi0CunjxnA8CUtOoYlsetsIbH/2pCphk8M0wTCs1SQERrqldxnT8396dMmdLjak55WGb27dhqjAwFuRWgn+BGRErd9JkQENUQua7UQ2wyTTBJ0+fv93iF/KkKuX5F91VQ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721052964; c=relaxed/simple;
-	bh=zDvzuCBWy3rdfdTp3uohB3LAH85nUpp0EzdDX5jhV14=;
-	h=From:To:Subject:Date:Message-Id:MIME-Version; b=XhW9Ryds4Y1PWGGaA+B/DAp+6pc0VHxw1afbGRu3cyOx70NdXUcuOAi6Mq/3Iuq8iX8RiySHeDUudI1Ya7e0/aNVk379N4pZ9iEwDR77zkUiRzVkiwl6RuFJvrF3IkoJvVd9Bg7fy6AhqYy08QEpI1oQ13i7c9kH0iCKv6RG5JA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+	s=arc-20240116; t=1721053214; c=relaxed/simple;
+	bh=quZa7S0jffabVIp8/Lw2BsYsR0GBbInYQnTttYsv3ZI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=KRts2V1LWvALVsKe8VjRb4T+a7MN9K0TyUPwCHI5wYCkgYh07S3C5oGqrPLYOTR//LmiJ+yPLnaG5bG1EKm6KW7+GGzTaYwknTX+Y9+AeCqidEdFJad9550XFGjeJ5RtBtGnVtCDKVqFKadPGvFuZBwxKwlfnvJyxOIw2COsIv8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=51214 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1sTMYa-006TTH-Jg; Mon, 15 Jul 2024 16:20:03 +0200
+Date: Mon, 15 Jul 2024 16:19:59 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next] netfilter: nf_tables: do not remove elements if set backend implements .abort
-Date: Mon, 15 Jul 2024 16:15:56 +0200
-Message-Id: <20240715141556.44047-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: restore default behavior for
+ nf_conntrack_events
+Message-ID: <ZpUwD_KJAmRXBdnv@calendula>
+References: <20240604135438.2613064-1-nicolas.dichtel@6wind.com>
+ <Znv-YuDbgwk_1gOX@calendula>
+ <523daa3d-83b0-495a-bf6e-3b8fd661cffd@6wind.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <523daa3d-83b0-495a-bf6e-3b8fd661cffd@6wind.com>
+X-Spam-Score: -1.9 (-)
 
-pipapo set backend maintains two copies of the datastructure, removing
-the elements from the copy that is going to be discarded slows down
-the abort path significantly, from several minutes to few seconds after
-this patch.
+On Wed, Jul 03, 2024 at 09:37:59AM +0200, Nicolas Dichtel wrote:
+> Hi Pablo,
+> 
+> Le 26/06/2024 à 13:41, Pablo Neira Ayuso a écrit :
+> > Hi Nicolas,
+> > 
+> > On Tue, Jun 04, 2024 at 03:54:38PM +0200, Nicolas Dichtel wrote:
+> >> Since the below commit, there are regressions for legacy setups:
+> >> 1/ conntracks are created while there are no listener
+> >> 2/ a listener starts and dumps all conntracks to get the current state
+> >> 3/ conntracks deleted before the listener has started are not advertised
+> >>
+> >> This is problematic in containers, where conntracks could be created early.
+> >> This sysctl is part of unsafe sysctl and could not be changed easily in
+> >> some environments.
+> >>
+> >> Let's switch back to the legacy behavior.
+> > 
+> > Maybe it is possible to annotate destroy events in a percpu area if
+> > the conntrack extension is not available. This code used to follow
+> > such approach time ago.
+>
+> Thanks for the feedback. I was wondering if just sending the destroy event would
+> be possible. TBH, I'm not very familiar with this part of the code, I need to
+> dig a bit. I won't have time for this right now, any help would be appreciated.
 
-This patch was previously reverted by
-
-  f86fb94011ae ("netfilter: nf_tables: revert do not remove elements if set backend implements .abort")
-
-but it is now possible since recent work by Florian Westphal to perform
-on-demand clone from insert/remove path:
-
-  532aec7e878b ("netfilter: nft_set_pipapo: remove dirty flag")
-  3f1d886cc7c3 ("netfilter: nft_set_pipapo: move cloning of match info to insert/removal path")
-  a238106703ab ("netfilter: nft_set_pipapo: prepare pipapo_get helper for on-demand clone")
-  c5444786d0ea ("netfilter: nft_set_pipapo: merge deactivate helper into caller")
-  6c108d9bee44 ("netfilter: nft_set_pipapo: prepare walk function for on-demand clone")
-  8b8a2417558c ("netfilter: nft_set_pipapo: prepare destroy function for on-demand clone")
-  80efd2997fb9 ("netfilter: nft_set_pipapo: make pipapo_clone helper return NULL")
-  a590f4760922 ("netfilter: nft_set_pipapo: move prove_locking helper around")
-
-after this series, the clone is fully released once aborted, no need to
-take it back to previous state. Thus, no stale reference to elements can
-occur.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 70d0bad029fd..f1b5bfe18691 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -10713,7 +10713,10 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 				break;
- 			}
- 			te = nft_trans_container_elem(trans);
--			nft_setelem_remove(net, te->set, te->elem_priv);
-+			if (!te->set->ops->abort ||
-+			    nft_setelem_is_catchall(te->set, te->elem_priv))
-+				nft_setelem_remove(net, te->set, te->elem_priv);
-+
- 			if (!nft_setelem_is_catchall(te->set, te->elem_priv))
- 				atomic_dec(&te->set->nelems);
- 
--- 
-2.30.2
-
+I will take a look and get back to you.
