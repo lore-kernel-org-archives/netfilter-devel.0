@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4630DB64C;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3555B36AEC;
 	Wed, 17 Jul 2024 21:52:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721253150; cv=none; b=Yb0CgPbg68bWjCYRq5gm8OdSp2jIwi15JGIsSNXwoXqk19Ho3foHyI6onX87EzymYBEzIXbUy65HeCOZ8ydD8ZGVG0fXWzegAC7+jyF1KktKNJqN7VGDGh2I9+dqfWC/JXFJwjNu4glT2r+Dp4h7dFmdg6ScjUA1qlJKVFtlMuw=
+	t=1721253150; cv=none; b=BWt17zzgo9o4hUOPPyOO1sNgw4WBW7m6U4C35oxovoCy3+o1Ysyp8qezX2XBAAZ8xYZ28S/0rY1ALIA2GITbRj481malBVGTZLTWB3AxGGTvm7QNtFHu/C46D0mdtywjiCyyMau56eRLkOAHPN7KIv/kEQRNth+7Fa9UDqf/LVw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1721253150; c=relaxed/simple;
-	bh=NrXJJms9KuICyI2G04+usoSFPj8jcnIM3VKbzizzTnc=;
+	bh=vyePOu/V21C2fLF+74+Frg6UCE5nvON5C5BgJYJD2mE=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=g8lsa8kIah72jkdNvibkbYNzVj6p1goYjjOo1gSuDk/SIjOkYZOYiHoykAvh24KPAa0H0di7hrn41kB6SZdftXDW4OWT3yCJo3rMjWXkXzlnP8GMSdGQc/4/r3gjcfHw95MxpQdABIJv/TUfd80fw2WgbszD9zaHEbYsMOYEh6k=
+	 MIME-Version; b=Rb8yvtNIoLzH4EKyhDZ7fIjK13c6jkCztfbUavZle1vssOc4BoL2opfkjFsR9gxagjYH7xRThjRxoT3JpBfmYJHtG0lhleVaqs4ZHhkfnyc58cXZO+ktoRrUv3xNERSJLZBpu2Spqf88r7dan26BQr/45HfQQZBlinQLNUTO4BU=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 1/4] netfilter: ctnetlink: use helper function to calculate expect ID
-Date: Wed, 17 Jul 2024 23:52:11 +0200
-Message-Id: <20240717215214.225394-2-pablo@netfilter.org>
+Subject: [PATCH net 2/4] netfilter: nf_set_pipapo: fix initial map fill
+Date: Wed, 17 Jul 2024 23:52:12 +0200
+Message-Id: <20240717215214.225394-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240717215214.225394-1-pablo@netfilter.org>
 References: <20240717215214.225394-1-pablo@netfilter.org>
@@ -34,30 +34,136 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Delete expectation path is missing a call to the nf_expect_get_id()
-helper function to calculate the expectation ID, otherwise LSB of the
-expectation object address is leaked to userspace.
+From: Florian Westphal <fw@strlen.de>
 
-Fixes: 3c79107631db ("netfilter: ctnetlink: don't use conntrack/expect object addresses as id")
-Reported-by: zdi-disclosures@trendmicro.com
+The initial buffer has to be inited to all-ones, but it must restrict
+it to the size of the first field, not the total field size.
+
+After each round in the map search step, the result and the fill map
+are swapped, so if we have a set where f->bsize of the first element
+is smaller than m->bsize_max, those one-bits are leaked into future
+rounds result map.
+
+This makes pipapo find an incorrect matching results for sets where
+first field size is not the largest.
+
+Followup patch adds a test case to nft_concat_range.sh selftest script.
+
+Thanks to Stefano Brivio for pointing out that we need to zero out
+the remainder explicitly, only correcting memset() argument isn't enough.
+
+Fixes: 3c4287f62044 ("nf_tables: Add set type for arbitrary concatenation of ranges")
+Reported-by: Yi Chen <yiche@redhat.com>
+Cc: Stefano Brivio <sbrivio@redhat.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_netlink.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/netfilter/nft_set_pipapo.c      |  4 ++--
+ net/netfilter/nft_set_pipapo.h      | 21 +++++++++++++++++++++
+ net/netfilter/nft_set_pipapo_avx2.c | 10 ++++++----
+ 3 files changed, 29 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 3b846cbdc050..4cbf71d0786b 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -3420,7 +3420,8 @@ static int ctnetlink_del_expect(struct sk_buff *skb,
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index 15a236bebb46..eb4c4a4ac7ac 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -434,7 +434,7 @@ bool nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
+ 	res_map  = scratch->map + (map_index ? m->bsize_max : 0);
+ 	fill_map = scratch->map + (map_index ? 0 : m->bsize_max);
  
- 		if (cda[CTA_EXPECT_ID]) {
- 			__be32 id = nla_get_be32(cda[CTA_EXPECT_ID]);
--			if (ntohl(id) != (u32)(unsigned long)exp) {
+-	memset(res_map, 0xff, m->bsize_max * sizeof(*res_map));
++	pipapo_resmap_init(m, res_map);
+ 
+ 	nft_pipapo_for_each_field(f, i, m) {
+ 		bool last = i == m->field_count - 1;
+@@ -542,7 +542,7 @@ static struct nft_pipapo_elem *pipapo_get(const struct net *net,
+ 		goto out;
+ 	}
+ 
+-	memset(res_map, 0xff, m->bsize_max * sizeof(*res_map));
++	pipapo_resmap_init(m, res_map);
+ 
+ 	nft_pipapo_for_each_field(f, i, m) {
+ 		bool last = i == m->field_count - 1;
+diff --git a/net/netfilter/nft_set_pipapo.h b/net/netfilter/nft_set_pipapo.h
+index 0d2e40e10f7f..4a2ff85ce1c4 100644
+--- a/net/netfilter/nft_set_pipapo.h
++++ b/net/netfilter/nft_set_pipapo.h
+@@ -278,4 +278,25 @@ static u64 pipapo_estimate_size(const struct nft_set_desc *desc)
+ 	return size;
+ }
+ 
++/**
++ * pipapo_resmap_init() - Initialise result map before first use
++ * @m:		Matching data, including mapping table
++ * @res_map:	Result map
++ *
++ * Initialize all bits covered by the first field to one, so that after
++ * the first step, only the matching bits of the first bit group remain.
++ *
++ * If other fields have a large bitmap, set remainder of res_map to 0.
++ */
++static inline void pipapo_resmap_init(const struct nft_pipapo_match *m, unsigned long *res_map)
++{
++	const struct nft_pipapo_field *f = m->f;
++	int i;
 +
-+			if (id != nf_expect_get_id(exp)) {
- 				nf_ct_expect_put(exp);
- 				return -ENOENT;
++	for (i = 0; i < f->bsize; i++)
++		res_map[i] = ULONG_MAX;
++
++	for (i = f->bsize; i < m->bsize_max; i++)
++		res_map[i] = 0ul;
++}
+ #endif /* _NFT_SET_PIPAPO_H */
+diff --git a/net/netfilter/nft_set_pipapo_avx2.c b/net/netfilter/nft_set_pipapo_avx2.c
+index d08407d589ea..8910a5ac7ed1 100644
+--- a/net/netfilter/nft_set_pipapo_avx2.c
++++ b/net/netfilter/nft_set_pipapo_avx2.c
+@@ -1036,6 +1036,7 @@ static int nft_pipapo_avx2_lookup_8b_16(unsigned long *map, unsigned long *fill,
+ 
+ /**
+  * nft_pipapo_avx2_lookup_slow() - Fallback function for uncommon field sizes
++ * @mdata:	Matching data, including mapping table
+  * @map:	Previous match result, used as initial bitmap
+  * @fill:	Destination bitmap to be filled with current match result
+  * @f:		Field, containing lookup and mapping tables
+@@ -1051,7 +1052,8 @@ static int nft_pipapo_avx2_lookup_8b_16(unsigned long *map, unsigned long *fill,
+  * Return: -1 on no match, rule index of match if @last, otherwise first long
+  * word index to be checked next (i.e. first filled word).
+  */
+-static int nft_pipapo_avx2_lookup_slow(unsigned long *map, unsigned long *fill,
++static int nft_pipapo_avx2_lookup_slow(const struct nft_pipapo_match *mdata,
++					unsigned long *map, unsigned long *fill,
+ 					const struct nft_pipapo_field *f,
+ 					int offset, const u8 *pkt,
+ 					bool first, bool last)
+@@ -1060,7 +1062,7 @@ static int nft_pipapo_avx2_lookup_slow(unsigned long *map, unsigned long *fill,
+ 	int i, ret = -1, b;
+ 
+ 	if (first)
+-		memset(map, 0xff, bsize * sizeof(*map));
++		pipapo_resmap_init(mdata, map);
+ 
+ 	for (i = offset; i < bsize; i++) {
+ 		if (f->bb == 8)
+@@ -1186,7 +1188,7 @@ bool nft_pipapo_avx2_lookup(const struct net *net, const struct nft_set *set,
+ 			} else if (f->groups == 16) {
+ 				NFT_SET_PIPAPO_AVX2_LOOKUP(8, 16);
+ 			} else {
+-				ret = nft_pipapo_avx2_lookup_slow(res, fill, f,
++				ret = nft_pipapo_avx2_lookup_slow(m, res, fill, f,
+ 								  ret, rp,
+ 								  first, last);
+ 			}
+@@ -1202,7 +1204,7 @@ bool nft_pipapo_avx2_lookup(const struct net *net, const struct nft_set *set,
+ 			} else if (f->groups == 32) {
+ 				NFT_SET_PIPAPO_AVX2_LOOKUP(4, 32);
+ 			} else {
+-				ret = nft_pipapo_avx2_lookup_slow(res, fill, f,
++				ret = nft_pipapo_avx2_lookup_slow(m, res, fill, f,
+ 								  ret, rp,
+ 								  first, last);
  			}
 -- 
 2.30.2
