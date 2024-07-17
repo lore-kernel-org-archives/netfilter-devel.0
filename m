@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3555B36AEC;
-	Wed, 17 Jul 2024 21:52:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id F26B617F4F6;
+	Wed, 17 Jul 2024 21:52:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721253150; cv=none; b=BWt17zzgo9o4hUOPPyOO1sNgw4WBW7m6U4C35oxovoCy3+o1Ysyp8qezX2XBAAZ8xYZ28S/0rY1ALIA2GITbRj481malBVGTZLTWB3AxGGTvm7QNtFHu/C46D0mdtywjiCyyMau56eRLkOAHPN7KIv/kEQRNth+7Fa9UDqf/LVw=
+	t=1721253150; cv=none; b=RzcT236iGIpAeLn0Ximwmhi0ezb+yBiU4hZbv8+MirWgN91dVHBOcd5wZN4dvtMycHcqF2PKgICIT6smrecfQHb09xur3zsGrwOm+EChZGpzHorDRzBjFfH2in9aU/RMIeS9RLM6AH8j1VUw5vdRPkmsLN7cr2spcsCbeLpwWpI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1721253150; c=relaxed/simple;
-	bh=vyePOu/V21C2fLF+74+Frg6UCE5nvON5C5BgJYJD2mE=;
+	bh=vB4cRmjZA1tFdZYOEO/2WZkvusVgM9xolRK2K1uiqPI=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=Rb8yvtNIoLzH4EKyhDZ7fIjK13c6jkCztfbUavZle1vssOc4BoL2opfkjFsR9gxagjYH7xRThjRxoT3JpBfmYJHtG0lhleVaqs4ZHhkfnyc58cXZO+ktoRrUv3xNERSJLZBpu2Spqf88r7dan26BQr/45HfQQZBlinQLNUTO4BU=
+	 MIME-Version; b=u5lzJ3tFY+HMT9g4rjBsV0YJ0INqPiixfaEN/vawDaAUF2tfDCYqwyxqs02LOi/xtjmuFnPN8oCsYQpvlK+Z8lZt+cpUDRejYGSpb1s58FRZMlHQFzGeDDNaNPkaydx9KvFNVy/le/7rsGYdlcgshn0SQbMrtwZyVsElnUNAH+I=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 2/4] netfilter: nf_set_pipapo: fix initial map fill
-Date: Wed, 17 Jul 2024 23:52:12 +0200
-Message-Id: <20240717215214.225394-3-pablo@netfilter.org>
+Subject: [PATCH net 4/4] ipvs: properly dereference pe in ip_vs_add_service
+Date: Wed, 17 Jul 2024 23:52:14 +0200
+Message-Id: <20240717215214.225394-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240717215214.225394-1-pablo@netfilter.org>
 References: <20240717215214.225394-1-pablo@netfilter.org>
@@ -34,137 +34,49 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+From: Chen Hanxiao <chenhx.fnst@fujitsu.com>
 
-The initial buffer has to be inited to all-ones, but it must restrict
-it to the size of the first field, not the total field size.
+Use pe directly to resolve sparse warning:
 
-After each round in the map search step, the result and the fill map
-are swapped, so if we have a set where f->bsize of the first element
-is smaller than m->bsize_max, those one-bits are leaked into future
-rounds result map.
+  net/netfilter/ipvs/ip_vs_ctl.c:1471:27: warning: dereference of noderef expression
 
-This makes pipapo find an incorrect matching results for sets where
-first field size is not the largest.
-
-Followup patch adds a test case to nft_concat_range.sh selftest script.
-
-Thanks to Stefano Brivio for pointing out that we need to zero out
-the remainder explicitly, only correcting memset() argument isn't enough.
-
-Fixes: 3c4287f62044 ("nf_tables: Add set type for arbitrary concatenation of ranges")
-Reported-by: Yi Chen <yiche@redhat.com>
-Cc: Stefano Brivio <sbrivio@redhat.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
+Fixes: 39b972231536 ("ipvs: handle connections started by real-servers")
+Signed-off-by: Chen Hanxiao <chenhx.fnst@fujitsu.com>
+Acked-by: Julian Anastasov <ja@ssi.bg>
+Acked-by: Simon Horman <horms@kernel.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_set_pipapo.c      |  4 ++--
- net/netfilter/nft_set_pipapo.h      | 21 +++++++++++++++++++++
- net/netfilter/nft_set_pipapo_avx2.c | 10 ++++++----
- 3 files changed, 29 insertions(+), 6 deletions(-)
+ net/netfilter/ipvs/ip_vs_ctl.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index 15a236bebb46..eb4c4a4ac7ac 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -434,7 +434,7 @@ bool nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
- 	res_map  = scratch->map + (map_index ? m->bsize_max : 0);
- 	fill_map = scratch->map + (map_index ? 0 : m->bsize_max);
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 78a1cc72dc38..706c2b52a1ac 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -1459,18 +1459,18 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
+ 	if (ret < 0)
+ 		goto out_err;
  
--	memset(res_map, 0xff, m->bsize_max * sizeof(*res_map));
-+	pipapo_resmap_init(m, res_map);
+-	/* Bind the ct retriever */
+-	RCU_INIT_POINTER(svc->pe, pe);
+-	pe = NULL;
+-
+ 	/* Update the virtual service counters */
+ 	if (svc->port == FTPPORT)
+ 		atomic_inc(&ipvs->ftpsvc_counter);
+ 	else if (svc->port == 0)
+ 		atomic_inc(&ipvs->nullsvc_counter);
+-	if (svc->pe && svc->pe->conn_out)
++	if (pe && pe->conn_out)
+ 		atomic_inc(&ipvs->conn_out_counter);
  
- 	nft_pipapo_for_each_field(f, i, m) {
- 		bool last = i == m->field_count - 1;
-@@ -542,7 +542,7 @@ static struct nft_pipapo_elem *pipapo_get(const struct net *net,
- 		goto out;
- 	}
- 
--	memset(res_map, 0xff, m->bsize_max * sizeof(*res_map));
-+	pipapo_resmap_init(m, res_map);
- 
- 	nft_pipapo_for_each_field(f, i, m) {
- 		bool last = i == m->field_count - 1;
-diff --git a/net/netfilter/nft_set_pipapo.h b/net/netfilter/nft_set_pipapo.h
-index 0d2e40e10f7f..4a2ff85ce1c4 100644
---- a/net/netfilter/nft_set_pipapo.h
-+++ b/net/netfilter/nft_set_pipapo.h
-@@ -278,4 +278,25 @@ static u64 pipapo_estimate_size(const struct nft_set_desc *desc)
- 	return size;
- }
- 
-+/**
-+ * pipapo_resmap_init() - Initialise result map before first use
-+ * @m:		Matching data, including mapping table
-+ * @res_map:	Result map
-+ *
-+ * Initialize all bits covered by the first field to one, so that after
-+ * the first step, only the matching bits of the first bit group remain.
-+ *
-+ * If other fields have a large bitmap, set remainder of res_map to 0.
-+ */
-+static inline void pipapo_resmap_init(const struct nft_pipapo_match *m, unsigned long *res_map)
-+{
-+	const struct nft_pipapo_field *f = m->f;
-+	int i;
++	/* Bind the ct retriever */
++	RCU_INIT_POINTER(svc->pe, pe);
++	pe = NULL;
 +
-+	for (i = 0; i < f->bsize; i++)
-+		res_map[i] = ULONG_MAX;
-+
-+	for (i = f->bsize; i < m->bsize_max; i++)
-+		res_map[i] = 0ul;
-+}
- #endif /* _NFT_SET_PIPAPO_H */
-diff --git a/net/netfilter/nft_set_pipapo_avx2.c b/net/netfilter/nft_set_pipapo_avx2.c
-index d08407d589ea..8910a5ac7ed1 100644
---- a/net/netfilter/nft_set_pipapo_avx2.c
-+++ b/net/netfilter/nft_set_pipapo_avx2.c
-@@ -1036,6 +1036,7 @@ static int nft_pipapo_avx2_lookup_8b_16(unsigned long *map, unsigned long *fill,
- 
- /**
-  * nft_pipapo_avx2_lookup_slow() - Fallback function for uncommon field sizes
-+ * @mdata:	Matching data, including mapping table
-  * @map:	Previous match result, used as initial bitmap
-  * @fill:	Destination bitmap to be filled with current match result
-  * @f:		Field, containing lookup and mapping tables
-@@ -1051,7 +1052,8 @@ static int nft_pipapo_avx2_lookup_8b_16(unsigned long *map, unsigned long *fill,
-  * Return: -1 on no match, rule index of match if @last, otherwise first long
-  * word index to be checked next (i.e. first filled word).
-  */
--static int nft_pipapo_avx2_lookup_slow(unsigned long *map, unsigned long *fill,
-+static int nft_pipapo_avx2_lookup_slow(const struct nft_pipapo_match *mdata,
-+					unsigned long *map, unsigned long *fill,
- 					const struct nft_pipapo_field *f,
- 					int offset, const u8 *pkt,
- 					bool first, bool last)
-@@ -1060,7 +1062,7 @@ static int nft_pipapo_avx2_lookup_slow(unsigned long *map, unsigned long *fill,
- 	int i, ret = -1, b;
- 
- 	if (first)
--		memset(map, 0xff, bsize * sizeof(*map));
-+		pipapo_resmap_init(mdata, map);
- 
- 	for (i = offset; i < bsize; i++) {
- 		if (f->bb == 8)
-@@ -1186,7 +1188,7 @@ bool nft_pipapo_avx2_lookup(const struct net *net, const struct nft_set *set,
- 			} else if (f->groups == 16) {
- 				NFT_SET_PIPAPO_AVX2_LOOKUP(8, 16);
- 			} else {
--				ret = nft_pipapo_avx2_lookup_slow(res, fill, f,
-+				ret = nft_pipapo_avx2_lookup_slow(m, res, fill, f,
- 								  ret, rp,
- 								  first, last);
- 			}
-@@ -1202,7 +1204,7 @@ bool nft_pipapo_avx2_lookup(const struct net *net, const struct nft_set *set,
- 			} else if (f->groups == 32) {
- 				NFT_SET_PIPAPO_AVX2_LOOKUP(4, 32);
- 			} else {
--				ret = nft_pipapo_avx2_lookup_slow(res, fill, f,
-+				ret = nft_pipapo_avx2_lookup_slow(m, res, fill, f,
- 								  ret, rp,
- 								  first, last);
- 			}
+ 	/* Count only IPv4 services for old get/setsockopt interface */
+ 	if (svc->af == AF_INET)
+ 		ipvs->num_services++;
 -- 
 2.30.2
 
