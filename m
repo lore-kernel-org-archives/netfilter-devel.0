@@ -1,106 +1,75 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19B288288F
-	for <netfilter-devel@vger.kernel.org>; Fri, 19 Jul 2024 13:55:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83957137E
+	for <netfilter-devel@vger.kernel.org>; Sat, 20 Jul 2024 00:26:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721397302; cv=none; b=tg2m+dl3XxEsaCmKHsKBcMTTj/P8dAN1HuapEfbbCmvXNW0pxoQQcr0VtyyHFCfwmbf9SIEZAc7JOtjs8/RGex6Vh34Z51+uwCO/sAqNeZdRskDvPRg1eR1mAIFMQcKPUnE6Wsqf9K8FbnJNda/nO5/4i9GbiarW01lVR/FQEIQ=
+	t=1721435202; cv=none; b=Wo7o+ySocDseBfHZ+wmc4jSuXr4yWLuIOI3Ss7yYf3TID3q30rwytqD+4mNHgP4PAND/23+DAUt93zmNf5ZdTjUomOT9F8ZSz6RdLjUJ7wdqtPLoxyh81hH7QcNcTjE3izrKxnmUnPgJY6lcqipXdjKDnQV/K3sef8hi7Q2C2FU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721397302; c=relaxed/simple;
-	bh=dQd70NzIUrUi7u0+kH12tI1IRcYbpFmnGej/zSdmF7M=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=rSNRdh3xIAJXG/UL70sqtEdZ6haVIn9rvife12KrnS2rwc3gHGEOeKryHbSk+XLzDBBohpigytJPisOhRTi3JM2tU9DJ0UySneCSBIdP5cieB/lnxz4TqBPqDQSvxPlhPDcAwKBrEZ11sWiX3TWQTQHShtz5P3JB8OSOwwb+ulk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=aklc2OCo; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1721435202; c=relaxed/simple;
+	bh=9fdgu0Vw7J8YEyDUalsRwtuB/XjIW6UKOjb/JKJ0+sA=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=lvdkcSVJgmNpCGoXDtkmFYcragG5eW8V3YGvJ+gCYQFSPWX/uGjivlLeZxseRsASR0R0h2Bm+8EMjJIxM+uWqGfk0E1TLPQ/LVva7WjD8GpEgOIzwoE+mMOnYd45yZ/EIC94dHfjbC8euQ41Z6/90lcjfu7ZevgDVa5V6qjqFQA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=UBl/idAq; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="aklc2OCo"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1721397300;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=8GDVb/Bq9S0UZyBvXx6VysQ0/m9CQOKc/kx5yuaVuYg=;
-	b=aklc2OCoDC44shLsBSj4E5ShCrs6HlcDxpcx8tB2264ps761gCBTwaj4sEia+8WT2urX9W
-	D8UTrs9M+bBL23jdLLTAFwj7ZGo2fMZCICkP3IPKgwp794QeBqsbYcmJdL/SwFhBzTHBSR
-	iTfMySn9ZSu60amuby2NCT9CxFxiH20=
-Received: from mail-qt1-f197.google.com (mail-qt1-f197.google.com
- [209.85.160.197]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-183-UBYaqhy6PuuO05C8NTgnJg-1; Fri, 19 Jul 2024 09:54:58 -0400
-X-MC-Unique: UBYaqhy6PuuO05C8NTgnJg-1
-Received: by mail-qt1-f197.google.com with SMTP id d75a77b69052e-44f104e3ebcso17957121cf.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jul 2024 06:54:58 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1721397298; x=1722002098;
-        h=content-transfer-encoding:mime-version:organization:references
-         :in-reply-to:message-id:subject:cc:to:from:date:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=8GDVb/Bq9S0UZyBvXx6VysQ0/m9CQOKc/kx5yuaVuYg=;
-        b=S5pqTN00hfxtSgoeeYYU5x3HQLTpGzhA1lOKudiMdGF4RmTnKJdECsfgNqZ6ajcj5c
-         GQTaJY5vZfL8RzL/3QMGcIye34W1MIxbbHgvjEXPQBcs/Edi47fMyhIHsMdu/0JH6f4U
-         X7ZMAiQvLCBiw5GibHorWaqbNINdohsaslDrufQ+NRb/zm2uH3Mq04iwXSwUIG6tfR0Q
-         ngN1kHmykJwdYyQ4+MNDm25MUBclAS9W2wJm38L8Pk9TGv1m0G/b/T9wZ68W8iUB72eB
-         00NrczC+WrTS7GfV6FEQB0OMI0F+62oiKGDyAH91AaMXNyzJm+AhnvcbwUpx5mcoEeTi
-         Ge2w==
-X-Gm-Message-State: AOJu0YwuNVtuEIzjEQb8MCgxKfN1TQO6QrvGFiUa380aztpw0Aa5Mr8f
-	6o+Nx8WASQT9CWaLh5MvyLZEv2FRjdMQPjLWKgugnCcYZcx4sSJT05JuP7fuEM5GiR0DkNMCmoY
-	GeyJaqnjAhQ5CuH67HohZrZBOFN9CHcojeE4foi+hMQhvjifALvf6OS9pBhWjD9HdLDRLlpwKmO
-	wz
-X-Received: by 2002:a05:622a:5ca:b0:447:e8f5:b2d0 with SMTP id d75a77b69052e-44f969715b2mr52752201cf.10.1721397297832;
-        Fri, 19 Jul 2024 06:54:57 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IHmKYJu+joDq68Y4I4zn8s+E8A6Jnz0JNa9qC3YoaWP4uTuLlTkLj5qI7CXNWvSq/35aectQQ==
-X-Received: by 2002:a05:622a:5ca:b0:447:e8f5:b2d0 with SMTP id d75a77b69052e-44f969715b2mr52752021cf.10.1721397297476;
-        Fri, 19 Jul 2024 06:54:57 -0700 (PDT)
-Received: from maya.cloud.tilaa.com (maya.cloud.tilaa.com. [164.138.29.33])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-44f9cd2824fsm7438721cf.41.2024.07.19.06.54.56
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 19 Jul 2024 06:54:56 -0700 (PDT)
-Date: Fri, 19 Jul 2024 15:53:56 +0200
-From: Stefano Brivio <sbrivio@redhat.com>
-To: Florian Westphal <fw@strlen.de>
-Cc: <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nf] netfilter: nft_set_pipapo_avx2: disable
- softinterrupts
-Message-ID: <20240719155356.17ca5d1f@elisabeth>
-In-Reply-To: <20240719111930.3050-1-fw@strlen.de>
-References: <20240719111930.3050-1-fw@strlen.de>
-Organization: Red Hat
-X-Mailer: Claws Mail 4.2.0 (GTK 3.24.41; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="UBl/idAq"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=i0hZnZ9ub6Ak8l8tc9dVd2ezdzCDpPQjjHej8AIUj+E=; b=UBl/idAqilCChlpHvq0cDekD80
+	n7gPqjme943imiCjVOcKF5hbadp3yMIMrc9uUI96ojOxVhDcW1uWsIjL20gDVnxSATNAviCMRVGLh
+	8eNbz6pq0+9VWEvDZ8FrvCkyYrhdF2kU3oZ2qBWmlxixjhyDuvpiJ2qX/FA3QexSqetF4QdBfVita
+	K7YfwWXWbPoiO7vxuBCfaME9VD8QpEuJtRBdp1Q67HriiFWaXMS7Kar5XSaY92PNXi1CHkaoIx34N
+	gTkHfG4zhMMHnzJ/FaiNPB4wEJD23NyqJ4sj533ujst1IRKBTZr4cn1FiK6qgpXvCDuCFh2UCSmJE
+	JJPR47qw==;
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1sUxvi-000000000hO-43Z6
+	for netfilter-devel@vger.kernel.org;
+	Sat, 20 Jul 2024 02:26:31 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH] extensions: recent: New kernels support 999 hits
+Date: Sat, 20 Jul 2024 02:26:27 +0200
+Message-ID: <20240720002627.14556-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On Fri, 19 Jul 2024 13:19:26 +0200
-Florian Westphal <fw@strlen.de> wrote:
+Since kernel commit f4ebd03496f6 ("netfilter: xt_recent: Lift
+restrictions on max hitcount value"), the max supported hitcount value
+has increased significantly. Adjust the test to use a value which fails
+on old as well as new kernels.
 
-> We need to disable softinterrupts, else we get following problem:
-> 
-> 1. pipapo_avx2 called from process context; fpu usable
-> 2. preempt_disable() called, pcpu scratchmap in use
-> 3. softirq handles rx or tx, we re-enter pipapo_avx2
-> 4. fpu busy, fallback to generic non-avx version
-> 5. fallback reuses scratch map and index, which are in use
->    by the preempted process
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ extensions/libxt_recent.t | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Oops.
-
-> Handle this same way as generic version by first disabling
-> softinterrupts while the scratchmap is in use.
-> 
-> Fixes: f0b3d338064e ("netfilter: nft_set_pipapo_avx2: Add irq_fpu_usable() check, fallback to non-AVX2 version")
-> Cc: Stefano Brivio <sbrivio@redhat.com>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-
-Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
-
+diff --git a/extensions/libxt_recent.t b/extensions/libxt_recent.t
+index cf23aabc6e63b..3b0dd9fa29c94 100644
+--- a/extensions/libxt_recent.t
++++ b/extensions/libxt_recent.t
+@@ -4,7 +4,7 @@
+ -m recent --rcheck --hitcount 12 --name foo --mask 255.255.255.255 --rsource;=;OK
+ -m recent --update --rttl;-m recent --update --rttl --name DEFAULT --mask 255.255.255.255 --rsource;OK
+ -m recent --set --rttl;;FAIL
+--m recent --rcheck --hitcount 999 --name foo --mask 255.255.255.255 --rsource;;FAIL
++-m recent --rcheck --hitcount 65536 --name foo --mask 255.255.255.255 --rsource;;FAIL
+ # nonsensical, but all should load successfully:
+ -m recent --rcheck --hitcount 3 --name foo --mask 255.255.255.255 --rsource -m recent --rcheck --hitcount 4 --name foo --mask 255.255.255.255 --rsource;=;OK
+ -m recent --rcheck --hitcount 4 --name foo --mask 255.255.255.255 --rsource -m recent --rcheck --hitcount 4 --name foo --mask 255.255.255.255 --rsource;=;OK
 -- 
-Stefano
+2.43.0
 
