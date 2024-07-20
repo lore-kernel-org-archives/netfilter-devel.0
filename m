@@ -1,75 +1,115 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-f172.google.com (mail-oi1-f172.google.com [209.85.167.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83957137E
-	for <netfilter-devel@vger.kernel.org>; Sat, 20 Jul 2024 00:26:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC05A523D
+	for <netfilter-devel@vger.kernel.org>; Sat, 20 Jul 2024 01:34:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721435202; cv=none; b=Wo7o+ySocDseBfHZ+wmc4jSuXr4yWLuIOI3Ss7yYf3TID3q30rwytqD+4mNHgP4PAND/23+DAUt93zmNf5ZdTjUomOT9F8ZSz6RdLjUJ7wdqtPLoxyh81hH7QcNcTjE3izrKxnmUnPgJY6lcqipXdjKDnQV/K3sef8hi7Q2C2FU=
+	t=1721439252; cv=none; b=Z5+nFR8GTavXXPWHZHbulUVF3k11mTexVzmVPotJHeLVk8wGC3vwka0ZiGGPHOOS5AtixUc17mtH2oknfEKMyZ3K+pyuEmIInCe2AwKDtfrG1HR8j8Ktc3WFS4mSg014g9Qxh86uWFDgNMpgpiIZpxC4lV6vtobWB8WPkgf3iT8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721435202; c=relaxed/simple;
-	bh=9fdgu0Vw7J8YEyDUalsRwtuB/XjIW6UKOjb/JKJ0+sA=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=lvdkcSVJgmNpCGoXDtkmFYcragG5eW8V3YGvJ+gCYQFSPWX/uGjivlLeZxseRsASR0R0h2Bm+8EMjJIxM+uWqGfk0E1TLPQ/LVva7WjD8GpEgOIzwoE+mMOnYd45yZ/EIC94dHfjbC8euQ41Z6/90lcjfu7ZevgDVa5V6qjqFQA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=UBl/idAq; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1721439252; c=relaxed/simple;
+	bh=J8bEoKEbGdLsxlrwpmnAIfDzJiU/fTzkk2JHLbEKEZQ=;
+	h=From:Date:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=DrhTDWmgqUfqm73JIda6rvQAlXNGAlen++1RPEf+x6zy70XF7m3GD7ekotYrRO2j9VwJyVSf8t3jQp/2C11eskudyhb5YWRSZJfsptVldIKvMI3bmLomXH5jISxQJeifMtoQ2GhWYCDjb4JJZHqsriIJu+djVTz1A3mBprTUmU8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=eGA8Yjcl; arc=none smtp.client-ip=209.85.167.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="UBl/idAq"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=i0hZnZ9ub6Ak8l8tc9dVd2ezdzCDpPQjjHej8AIUj+E=; b=UBl/idAqilCChlpHvq0cDekD80
-	n7gPqjme943imiCjVOcKF5hbadp3yMIMrc9uUI96ojOxVhDcW1uWsIjL20gDVnxSATNAviCMRVGLh
-	8eNbz6pq0+9VWEvDZ8FrvCkyYrhdF2kU3oZ2qBWmlxixjhyDuvpiJ2qX/FA3QexSqetF4QdBfVita
-	K7YfwWXWbPoiO7vxuBCfaME9VD8QpEuJtRBdp1Q67HriiFWaXMS7Kar5XSaY92PNXi1CHkaoIx34N
-	gTkHfG4zhMMHnzJ/FaiNPB4wEJD23NyqJ4sj533ujst1IRKBTZr4cn1FiK6qgpXvCDuCFh2UCSmJE
-	JJPR47qw==;
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1sUxvi-000000000hO-43Z6
-	for netfilter-devel@vger.kernel.org;
-	Sat, 20 Jul 2024 02:26:31 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH] extensions: recent: New kernels support 999 hits
-Date: Sat, 20 Jul 2024 02:26:27 +0200
-Message-ID: <20240720002627.14556-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eGA8Yjcl"
+Received: by mail-oi1-f172.google.com with SMTP id 5614622812f47-3c9cc66c649so1355419b6e.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jul 2024 18:34:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1721439249; x=1722044049; darn=vger.kernel.org;
+        h=content-disposition:mime-version:mail-followup-to:reply-to
+         :message-id:subject:cc:to:date:from:sender:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=3QsuumXsVCmnmRaZOX/pm8aqqHejw4gEz8xZcMnqtVI=;
+        b=eGA8YjclmAxU3NMqqMZUdnLo7qhGOtek0oAHpJubMV5XArJJZJFE5wQBlgT85bbzg+
+         NHj5anx7C0+OC0VAZrx245aGcoCi9H1XHjeYnDna1EKsLZFaa/OyTI8phZ8HpSj8YGnB
+         wWNvZ4H0w1apO2KnCiJdnX1D2y5nviLO9bWxP0c21Muhkx8QWxPSO65PwVp0JhCYb8GK
+         8E+OKja7ulG2Y+MIz2g0bm2fDL2b1xPOefdjb/OkosgwrQ9rEuGlSTMLaeXxQFZN8C+S
+         jM/wWpQZbPl43fLIWyG60cPtD05UZj6KVX74mabzV2o76V0MZtErda4bXyeImZp/HWMS
+         ollA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1721439249; x=1722044049;
+        h=content-disposition:mime-version:mail-followup-to:reply-to
+         :message-id:subject:cc:to:date:from:sender:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=3QsuumXsVCmnmRaZOX/pm8aqqHejw4gEz8xZcMnqtVI=;
+        b=JBZ2gu8L+HV9KKspNAcUNs0E+n7+QfQGWmKIsrT/pZA84I9oYubJFR6O52JeZfBzQp
+         XTnLV4dYUvgXaHkH5Y4xnvJpwtoSgaBRkDk4QrkLM1Sp0/A2pdWuIc9X18CIiHGCMY6e
+         oVKGF6O0iFCBryYpX/5N0JnqI6VqSpHuQMn3DMgO6HQyeVtFKZSthLYn0tC82593Fu/x
+         fT2enHY8pz9TJYPtcFiH5F6MHETihl71W2U0FZiOXV9dGqiDJCExITTcyVkh3auJHQXc
+         dEWd9en61ftaCXHRKRlQL/nHdzuZp7fSbinvCM3mJ9nfHcj8gQ9xLZpuRu4GqCTvhAaF
+         45Pw==
+X-Gm-Message-State: AOJu0YzXTJF9daCy+1+TRVTZFbq91F9DEqnWuv2FfGw4zPDqBGCjnVOt
+	ES8e8ourXG/pq85Q3RDH7afrmAPk2QnHwFx5UGKvN81PkQ3KeavWydRnAg==
+X-Google-Smtp-Source: AGHT+IEgKplvH5W6clvXSZWLXR672kpC2R8Wdkw1yXfFSExMSL4x1y5Dt5LebcEGUND8MIDT/siq8A==
+X-Received: by 2002:a05:6808:2010:b0:3d9:da81:6d59 with SMTP id 5614622812f47-3dae607dc84mr2082233b6e.34.1721439249607;
+        Fri, 19 Jul 2024 18:34:09 -0700 (PDT)
+Received: from slk15.local.net (n49-190-141-216.meb1.vic.optusnet.com.au. [49.190.141.216])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-1fd6f28f97fsm11380885ad.75.2024.07.19.18.34.06
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 19 Jul 2024 18:34:07 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From: Duncan Roe <duncan_roe@optusnet.com.au>
+X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
+Date: Sat, 20 Jul 2024 11:34:04 +1000
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Speedup patch ping
+Message-ID: <ZpsUDF61Cld9g2jX@slk15.local.net>
+Reply-To: duncan_roe@optusnet.com.au
+Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Development <netfilter-devel@vger.kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="9/g4IfdvZ1GiUsPX"
+Content-Disposition: inline
 
-Since kernel commit f4ebd03496f6 ("netfilter: xt_recent: Lift
-restrictions on max hitcount value"), the max supported hitcount value
-has increased significantly. Adjust the test to use a value which fails
-on old as well as new kernels.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- extensions/libxt_recent.t | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+--9/g4IfdvZ1GiUsPX
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/extensions/libxt_recent.t b/extensions/libxt_recent.t
-index cf23aabc6e63b..3b0dd9fa29c94 100644
---- a/extensions/libxt_recent.t
-+++ b/extensions/libxt_recent.t
-@@ -4,7 +4,7 @@
- -m recent --rcheck --hitcount 12 --name foo --mask 255.255.255.255 --rsource;=;OK
- -m recent --update --rttl;-m recent --update --rttl --name DEFAULT --mask 255.255.255.255 --rsource;OK
- -m recent --set --rttl;;FAIL
---m recent --rcheck --hitcount 999 --name foo --mask 255.255.255.255 --rsource;;FAIL
-+-m recent --rcheck --hitcount 65536 --name foo --mask 255.255.255.255 --rsource;;FAIL
- # nonsensical, but all should load successfully:
- -m recent --rcheck --hitcount 3 --name foo --mask 255.255.255.255 --rsource -m recent --rcheck --hitcount 4 --name foo --mask 255.255.255.255 --rsource;=;OK
- -m recent --rcheck --hitcount 4 --name foo --mask 255.255.255.255 --rsource -m recent --rcheck --hitcount 4 --name foo --mask 255.255.255.255 --rsource;=;OK
--- 
-2.43.0
+Hi Pablo,
 
+Did you notice my build speedup patch
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20240628040439.8501-1-duncan_roe@optusnet.com.au/
+
+The patch reduces the time taken by build_man.sh by about 10 times (on a
+system with 16+ cores) with overall CPU use being halved.
+
+I sent a single patch because only 1 file is changed. Would you rather have
+the development series? There are 17 patches: add time commands + 15
+speedups + remove time commands.
+
+You can run the attached script to verify doxygen/man/ is unchanged (and
+in libnetfilter_log as well).
+
+Cheers ... Duncan.
+
+--9/g4IfdvZ1GiUsPX
+Content-Type: text/plain; charset=us-ascii
+Content-Description: diffdir: diff 2 dirs under under version control skipping vcs files
+Content-Disposition: attachment; filename=diffdir
+
+#!/bin/sh
+#set -x
+opts=""
+while [ $(echo -- "$1"|cut -c4) = '-' ]
+do
+ opts="$opts $1"
+ shift
+done
+if [ -z "$1" -o -z "$2" ];then
+  echo "Usage:- $(basename "$0") [diff opts] <dir1> <dir to be compared to dir1>"
+  exit 1
+fi
+find "$1" -name CVS -prune -o -name .git -prune -o -type d ! -name RCS -exec sh -c "diff $opts \"{}\" \"\$(echo \"{}\" | sed s?^\"$1\"?\"$2\"?)\"" \; 2>&1|glb -v '^Common subdirectories: '
+
+--9/g4IfdvZ1GiUsPX--
