@@ -1,64 +1,54 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66BAA4C7B;
-	Thu, 25 Jul 2024 20:37:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5FBCA2A;
+	Fri, 26 Jul 2024 01:16:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721939822; cv=none; b=pnZ8kzqdxUTbrjgi/0m2FpPFTIR/MSfG0xLMKm+TZKYXFouIHTKcc0abIYFm1J/kR3u+NOvoVPLQlnrpbhfrUBjlz5R2ctniMQcOa/jxVi0kTFXO8VjR4RryQROP8oFSHcAR6ODWVNAX8J+9dRgLRSlvwTKeplq1YN2ChNzDxms=
+	t=1721956600; cv=none; b=uYg+IfWgiNyV8hWGX/qB4+jgSngUJGBFsN4j+SHy5uinDLeZoZGKttKzlTmpSJy1iKchhMsVGrcGqVD8AUGxc/bWGs8iJEbaOL7SBKGhuHrJ/QEahOODgTd6QbbaDITRatDTxGUnazPkbjaLGL/V/DwynfucrR+ydEzMdzpXo2o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721939822; c=relaxed/simple;
-	bh=1R5Crw+ZwZOXSfA6dztHaSXevEbv/z06Mpcq8ujXfGo=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=seedFjRO/lxz1zidWnPB8HT3Sa2wRLMvIHZ6pB0ESuhPeJ7WqppSLxb3G92hjn7CEgPhrKCb57Rn3efmFPw/U7IfZjUSa0G6OVdsulF0VUYN94C6eDmcl9tBCMVCOJjgr0lgecqE8qFHV7eEuBePuoVNc5GQV3YMH0d9B/NU27w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WDfnaRaD; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WDfnaRaD"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 3CAA4C116B1;
-	Thu, 25 Jul 2024 20:37:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1721939822;
-	bh=1R5Crw+ZwZOXSfA6dztHaSXevEbv/z06Mpcq8ujXfGo=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=WDfnaRaDNE+J6fLuQmaWOq0eu4xt8vrjpGpgzKf8awCk2ncc3CtJgaCG0Hqj7mkzH
-	 UoFpaBz93eVtipyG7XwIyy+aPOZYvlKkx1jddyRJ33g8V5sFd8c9Q3jnneNP0+8L+E
-	 NwzfV4Rx4Ab66C8XgUABs2FgDwBVgWRoEApitYsOBdYg7Tnv1u5ABobfseBFKMtQOK
-	 ySj1sRI+LhTGkJXU5EpVQVAoDpnvqbzNBYZssQddaZNq//Vz+4W7SbGbuq+4pNQLH+
-	 8GL0GHV5QZqFASUwymJc8KCwqU5es4tPtX5yD7rDzhKENPx1+lVxXt/x771BGahmYW
-	 0G8q9ZQ+NQoLw==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 2DA87C43445;
-	Thu, 25 Jul 2024 20:37:02 +0000 (UTC)
-Subject: Re: [GIT PULL] sysctl constification changes for v6.11-rc1
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <20240724210014.mc6nima6cekgiukx@joelS2.panther.com>
-References: <CGME20240724210020eucas1p2db4a3e71e4b9696804ac8f1bad6e1c61@eucas1p2.samsung.com> <20240724210014.mc6nima6cekgiukx@joelS2.panther.com>
-X-PR-Tracked-List-Id: <linux-s390.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20240724210014.mc6nima6cekgiukx@joelS2.panther.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/sysctl/sysctl.git/ tags/constfy-sysctl-6.11-rc1
-X-PR-Tracked-Commit-Id: 78eb4ea25cd5fdbdae7eb9fdf87b99195ff67508
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: b485625078cab3b824a84ce185b6e73733704b5b
-Message-Id: <172193982217.17931.952471986314376816.pr-tracker-bot@kernel.org>
-Date: Thu, 25 Jul 2024 20:37:02 +0000
-To: Joel Granados <j.granados@samsung.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Joel Granados <j.granados@samsung.com>, Thomas =?utf-8?B?V2Vp77+9c2NodWg=?= <linux@weissschuh.net>, Luis Chamberlain <mcgrof@kernel.org>, Kees Cook <kees@kernel.org>, Jakub Kicinski <kuba@kernel.org>, Dave Chinner <david@fromorbit.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, linux-riscv@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-xfs@vger.kernel.org, linux-trace-kernel@vger.kernel.org, linux-perf-users@vger.kernel.org, linux-security-module@vger.kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, bpf@vger.kernel.org, kexec@lists.infradead.org, linux-hardening@vger.kernel.org, bridge@lists.linux.dev, mptcp@lists.linux.dev, lvs-devel@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-sctp@vger.kernel.org, linux-nfs@vger.kernel.org, apparmor@lists.ub
- untu.com
+	s=arc-20240116; t=1721956600; c=relaxed/simple;
+	bh=KXNpTpbMgAzzbzLCBBI04qIrGFaCJwDwbrjLdGh4Kfs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=u52Ez+S7cyc8uyixkzWy5eIsGd9QG+CwuDN5+t29CujqGk3f/b5SLnqWkKhTXuuAtDA/i88XoqbtuurX5bhZ++kiefUL4S3XUcbki4C5DIpMS1WHa2SDt2h3D1CLuuhzYSWp9FITY39sipuct6v6URbIUobE3KBrzSfkhGcBozs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1sX9ZS-00042J-D0; Fri, 26 Jul 2024 03:16:34 +0200
+Date: Fri, 26 Jul 2024 03:16:34 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Kuniyuki Iwashima <kuniyu@amazon.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Kuniyuki Iwashima <kuni1840@gmail.com>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org
+Subject: Re: [PATCH v1 nf 0/2] netfilter: iptables: Fix null-ptr-deref in
+ ip6?table_nat_table_init().
+Message-ID: <20240726011634.GA15148@breakpoint.cc>
+References: <20240725192822.4478-1-kuniyu@amazon.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240725192822.4478-1-kuniyu@amazon.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-The pull request you sent on Wed, 24 Jul 2024 23:00:14 +0200:
+Kuniyuki Iwashima <kuniyu@amazon.com> wrote:
+> We had a report that iptables-restore sometimes triggered null-ptr-deref
+> at boot time.
+> 
+> The problem is that iptable_nat_table_init() is exposed to user space too
+> early and accesses net->gen->ptr[iptable_nat_net_ops.id] before allocated.
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/sysctl/sysctl.git/ tags/constfy-sysctl-6.11-rc1
+Right, the other xtables don't have a pernet id, but nat needs this
+because of the nf_nat_core -> iptable_nat dependency.
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/b485625078cab3b824a84ce185b6e73733704b5b
-
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Reviewed-by: Florian Westphal <fw@strlen.de>
