@@ -1,32 +1,74 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8B0F13C9CD
-	for <netfilter-devel@vger.kernel.org>; Fri, 26 Jul 2024 12:31:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C71F17B50A
+	for <netfilter-devel@vger.kernel.org>; Fri, 26 Jul 2024 13:12:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721997122; cv=none; b=r+v/ZUhCTatWyRiMTF4Ibq7wjhCTPcptww193mdFCTE3L/8xipD+YhW8pMkSYgHzGFL3peMpLCOOTkDNFPdV2ePQRLMxZ4mvNj0z2pKwov6I8zdY9HQIGG0HFop6d00iumT775XXTYpRkFinPXJJPRXDeEafidTEiKRCYMUiQZQ=
+	t=1721999537; cv=none; b=i4y8p7jJTDR3smDN0h7XEB1psBK+GuqayNcr9m3UtC6lucMl8wDKxisivzm5QOZZ92iJ25eUH/nMPYOXLgQuShzLyAC5ibDeXDOLqhKMcCV8/22OUZnWFeKSkHuWXnkRbnW/cjqhiZ4zYgDbwne3OKmGLDUAJG7zWLc7eUi37ig=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721997122; c=relaxed/simple;
-	bh=IdDW8H/d36jH16kZN+XbN3LFkX0W/Kjj7N9K6iIC5bs=;
+	s=arc-20240116; t=1721999537; c=relaxed/simple;
+	bh=h72+a98KprrWyPci+WolzqJ6KSeDATMGbgOUIBmI8cs=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=HSW4GtlBbmJ635YjjmGWJO6XWRR4CS94P18KOC7nonclZwQzcWF7qKFhkm7Ui9kk19G0KGOjMsA2Sqtsd7at3qHA0DwwC2KCE1b0ZOXEkYeSanlAxGNnAAtxWPm/FWq6YumT/EV7Ctfqg4a9cVmv0sudzwBhY6mZS7TQ6muORbY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1sXK6y-00011k-4q; Fri, 26 Jul 2024 14:31:52 +0200
-Date: Fri, 26 Jul 2024 14:31:52 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	Phil Sutter <phil@nwl.cc>
-Subject: Re: [PATCH nft 1/4] doc: add documentation about list hooks feature
-Message-ID: <20240726123152.GA3778@breakpoint.cc>
-References: <20240726015837.14572-1-fw@strlen.de>
- <20240726015837.14572-2-fw@strlen.de>
- <ZqNlvkJ2YSc-KIKb@calendula>
+	 Content-Type:Content-Disposition:In-Reply-To; b=rEn2TvXMPocgBb3g1/L2Quul5Xodjf+YgNd8Zr2kc3puBZxHDH/7IFqCX/UPcghtWg/H059+oxI2Bj9M5A4GrcX1j7iFAIBWDga/vawnU8LlSsZ7tS+vHHncLPlQjlWtZXVfaz0do1hwsPZTnnpW4yQT3Kqki+ylV9lLF43trm8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=M5b+kJGV; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="M5b+kJGV"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1721999535;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=lsFdNBSg3GvSCBXb3m0nQOmqj5eLSOCce+7I1qVBgnc=;
+	b=M5b+kJGVPv5fEh4CE4rlTsCGzsGlYv3jt1Fdx3o1bum72jxg1niZWy46qMOK8MxAnm4y5D
+	/7/Cx5g7MKpSsQBZZCuSWWBQFEi6EMUFFXgdnmeIJ8o/YfZT2ReGmptTOiumQR2Jn7Ta6l
+	dMiSUn6ZHzJLQ3vlrRJvoqbLy8HDcws=
+Received: from mail-wr1-f71.google.com (mail-wr1-f71.google.com
+ [209.85.221.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-56-kuo4AvnfNO-Qrxuw9Wn5OQ-1; Fri, 26 Jul 2024 09:12:13 -0400
+X-MC-Unique: kuo4AvnfNO-Qrxuw9Wn5OQ-1
+Received: by mail-wr1-f71.google.com with SMTP id ffacd0b85a97d-36831948d94so1294005f8f.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 26 Jul 2024 06:12:13 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1721999532; x=1722604332;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=lsFdNBSg3GvSCBXb3m0nQOmqj5eLSOCce+7I1qVBgnc=;
+        b=Zl0O589tlJHG/uxlnMP2OjScvB8w5VmiLSuxAKomTQVUAERbT0iHJORG5LXNILRb32
+         y/QTmPh4bql/YuU7iKkdWiYgT0YuD3ONX/MNtmW1fWZfn2BsNBNzoUsguquTqQYnLBsE
+         vJDM4pz/b0fXmuQq9zrn4pnBXvOGzVNHsh1m+Gkk9/6c1IdEaF9Ga0sVp96wHAzqQZrr
+         NvGB4fBbqrV3PtCY+r5r7TZiCm6hR9qW2TQT9v5CzItfE5y6p8vwuMlK4lDuct2enR6e
+         aXUKv7HXamP33CTUNlmkhaEZarYZCaptPoU0U8KWsm1QlePXznt0pDyD9mX8cgu74AnI
+         UDcg==
+X-Forwarded-Encrypted: i=1; AJvYcCXRqCpTKh8XBqnoRupiC5q/Nnnzp5j64WtUA9PwCKEeLs3k5rV8dQ385FdenTgAFzKMWJueYgEq3uNqMD+H37HnwXqow4fcXt6VX8lRvvaJ
+X-Gm-Message-State: AOJu0YzDge2MbHsHzrU+yQPmk+KV7HxIqYpb2SiARfvjTRGsR5UftV8w
+	zC6t31KFh3W/O62ZQYDJn1w4lj/PnmrWeV9sGjE8H4EUkuVhLmmf/bNyLC/OljDmtdTSXWz3FZ9
+	rIJxVfhxcW7hp44pCgQbXsNG1toleqLdrc8FWzkXxP/BQbDCAW/hgu3T1Ml/uOc9evA==
+X-Received: by 2002:a5d:4c86:0:b0:368:65a0:a423 with SMTP id ffacd0b85a97d-36b319f26b3mr3693023f8f.27.1721999532337;
+        Fri, 26 Jul 2024 06:12:12 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IGXbBJu1f7PaSWFiflUVfFPnDcIdALL9LcSAKL69RJROgW1jJl3MeNJ7yWaxIhL6qAgjduClw==
+X-Received: by 2002:a5d:4c86:0:b0:368:65a0:a423 with SMTP id ffacd0b85a97d-36b319f26b3mr3692989f8f.27.1721999531622;
+        Fri, 26 Jul 2024 06:12:11 -0700 (PDT)
+Received: from debian ([2001:4649:f075:0:a45e:6b9:73fc:f9aa])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-36b367fc873sm5157425f8f.60.2024.07.26.06.12.10
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 26 Jul 2024 06:12:10 -0700 (PDT)
+Date: Fri, 26 Jul 2024 15:12:08 +0200
+From: Guillaume Nault <gnault@redhat.com>
+To: Ido Schimmel <idosch@nvidia.com>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com,
+	edumazet@google.com, dsahern@kernel.org, pablo@netfilter.org,
+	kadlec@netfilter.org, fw@strlen.de
+Subject: Re: [RFC PATCH net-next 1/3] ipv4: Mask upper DSCP bits and ECN bits
+ in NETLINK_FIB_LOOKUP family
+Message-ID: <ZqOgqJWJ9cATghR/@debian>
+References: <20240725131729.1729103-1-idosch@nvidia.com>
+ <20240725131729.1729103-2-idosch@nvidia.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -35,48 +77,19 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ZqNlvkJ2YSc-KIKb@calendula>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20240725131729.1729103-2-idosch@nvidia.com>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > +*list hooks* is enough to display everything that is active
-> > +on the system, however, it does currently omit hooks that are
-> > +tied to a specific network device (netdev family). To obtain
-> > +those, the network device needs to be queried by name.
+On Thu, Jul 25, 2024 at 04:17:27PM +0300, Ido Schimmel wrote:
+> The NETLINK_FIB_LOOKUP netlink family can be used to perform a FIB
+> lookup according to user provided parameters and communicate the result
+> back to user space.
 > 
-> IIRC, the idea is to display the ingress path pipeline according to
-> the device (if specified)
+> However, unlike other users of the FIB lookup API, the upper DSCP bits
+> and the ECN bits of the DS field are not masked, which can result in the
+> wrong result being returned.
 > 
->         list hooks netdev eth0
-> 
-> as for egress, as it is not possible to know where the packet is
-> going, it is probably good to allow the user to specify the output
-> device, so it gets the entire pipeline for ingress and egress
-> paths, ie.
-> 
-> list hooks netdev eth0 eth1
+> Solve this by masking the upper DSCP bits and the ECN bits using
+> IPTOS_RT_MASK.
 
-Not really, why would eth0 and eth1 be related here?
+Reviewed-by: Guillaume Nault <gnault@redhat.com>
 
-What would make more sense to me is to allow
-
-list hooks netdev
-
-and then have nft fetch list of all network devices and then query them
-all.
-
-If a packet coming in on devX will be forwarded to devY depends on the
-type of packet and the configuration, e.g. arp/ip vs. bridge/routing
-or even encapsulation...
-
-> Note that this is not implemented. This has limitations, discovering
-> eth{0,1} belongs to bridge device would need more work (not asking to
-> do this now, but it could be a nice usability feature to discover the
-> pipeline?).
-
-Bridge?  I don't think we have bridge family support for netdev hooks?
-AFAIU its only netdev and inet.
-
-This thing should only list the nf hooks registered for the device,
-and not start to guess.  So for "list hooks br0", return ingress and
-egress hooks for the virtual device, not the bridge ports.
