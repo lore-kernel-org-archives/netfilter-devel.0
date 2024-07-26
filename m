@@ -1,110 +1,82 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F69F13C8F9
-	for <netfilter-devel@vger.kernel.org>; Fri, 26 Jul 2024 09:01:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8B0F13C9CD
+	for <netfilter-devel@vger.kernel.org>; Fri, 26 Jul 2024 12:31:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721984467; cv=none; b=YBWi1PZbwTM2GB36IMBv6mljhm2iprO9eVXqvjtVH66PkhDZTPiLNXXQmTvpJF+ALjdrtQdayKzJJSsYaLUMA1SoRnNqz77WUgbdIluiZL4mDtVmMpwXqHmJSwWujUxFUf46/hIqJ64BTpUdP8u5hYCFYzGAeZ0gVKHuix5L0oo=
+	t=1721997122; cv=none; b=r+v/ZUhCTatWyRiMTF4Ibq7wjhCTPcptww193mdFCTE3L/8xipD+YhW8pMkSYgHzGFL3peMpLCOOTkDNFPdV2ePQRLMxZ4mvNj0z2pKwov6I8zdY9HQIGG0HFop6d00iumT775XXTYpRkFinPXJJPRXDeEafidTEiKRCYMUiQZQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721984467; c=relaxed/simple;
-	bh=P0QSDO/0TSliyPbG9Kx7RMQ75dc0KaWEcZ/GbOkCc8c=;
+	s=arc-20240116; t=1721997122; c=relaxed/simple;
+	bh=IdDW8H/d36jH16kZN+XbN3LFkX0W/Kjj7N9K6iIC5bs=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=AlX8yTzu67WnCx6BGLl7Za/kFlmcel9o8iT7JVU5srxhhYyJDDQ7uwoCU3poNV+fpf6FFQcAxKG4lA8xgdRnWat+3UFvb4PqdWy9Mp5q2unR+3TXuyX5/LLDZUz84Roy6N0rFiBRguQOHeje/ppPzXthTyjgqBQwj/dJeB2/sCE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [37.29.213.51] (port=3344 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1sXGoi-004nna-LO; Fri, 26 Jul 2024 11:00:51 +0200
-Date: Fri, 26 Jul 2024 11:00:46 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, Phil Sutter <phil@nwl.cc>
+	 Content-Type:Content-Disposition:In-Reply-To; b=HSW4GtlBbmJ635YjjmGWJO6XWRR4CS94P18KOC7nonclZwQzcWF7qKFhkm7Ui9kk19G0KGOjMsA2Sqtsd7at3qHA0DwwC2KCE1b0ZOXEkYeSanlAxGNnAAtxWPm/FWq6YumT/EV7Ctfqg4a9cVmv0sudzwBhY6mZS7TQ6muORbY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1sXK6y-00011k-4q; Fri, 26 Jul 2024 14:31:52 +0200
+Date: Fri, 26 Jul 2024 14:31:52 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	Phil Sutter <phil@nwl.cc>
 Subject: Re: [PATCH nft 1/4] doc: add documentation about list hooks feature
-Message-ID: <ZqNlvkJ2YSc-KIKb@calendula>
+Message-ID: <20240726123152.GA3778@breakpoint.cc>
 References: <20240726015837.14572-1-fw@strlen.de>
  <20240726015837.14572-2-fw@strlen.de>
+ <ZqNlvkJ2YSc-KIKb@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240726015837.14572-2-fw@strlen.de>
-X-Spam-Score: -1.9 (-)
+In-Reply-To: <ZqNlvkJ2YSc-KIKb@calendula>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-On Fri, Jul 26, 2024 at 03:58:28AM +0200, Florian Westphal wrote:
-> Add a brief segment about 'nft list hooks' and a summary
-> of the output format.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > +*list hooks* is enough to display everything that is active
+> > +on the system, however, it does currently omit hooks that are
+> > +tied to a specific network device (netdev family). To obtain
+> > +those, the network device needs to be queried by name.
 > 
-> As nft.txt is quite large, split the additonal commands
-> into their own file.
+> IIRC, the idea is to display the ingress path pipeline according to
+> the device (if specified)
 > 
-> The existing listing section is removed; list subcommand is
-> already mentioned in the relevant statement sections.
+>         list hooks netdev eth0
 > 
-> Reported-by: Phil Sutter <phil@nwl.cc>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  Makefile.am                 |   1 +
->  doc/additional-commands.txt | 115 ++++++++++++++++++++++++++++++++++++
->  doc/nft.txt                 |  63 +-------------------
->  3 files changed, 117 insertions(+), 62 deletions(-)
->  create mode 100644 doc/additional-commands.txt
+> as for egress, as it is not possible to know where the packet is
+> going, it is probably good to allow the user to specify the output
+> device, so it gets the entire pipeline for ingress and egress
+> paths, ie.
 > 
-> diff --git a/Makefile.am b/Makefile.am
-> index 9088170bfc68..ef198dafcbc8 100644
-> --- a/Makefile.am
-> +++ b/Makefile.am
-> @@ -322,6 +322,7 @@ A2X_OPTS_MANPAGE = \
->  ASCIIDOC_MAIN = doc/nft.txt
->  
->  ASCIIDOC_INCLUDES = \
-> +	doc/additional-commands.txt \
->  	doc/data-types.txt \
->  	doc/payload-expression.txt \
->  	doc/primary-expression.txt \
-> diff --git a/doc/additional-commands.txt b/doc/additional-commands.txt
-> new file mode 100644
-> index 000000000000..dd1b3d2d87d4
-> --- /dev/null
-> +++ b/doc/additional-commands.txt
-> @@ -0,0 +1,115 @@
-> +LIST HOOKS
-> +~~~~~~~~~~
-> +
-> +This shows the low-level netfilter processing pipeline, including
-> +functions registered by kernel modules such as nf_conntrack. +
-> +
-> +[verse]
-> +____
-> +*list hooks* ['family']
-> +*list hooks netdev device* 'DEVICE_NAME'
-> +____
-> +
-> +*list hooks* is enough to display everything that is active
-> +on the system, however, it does currently omit hooks that are
-> +tied to a specific network device (netdev family). To obtain
-> +those, the network device needs to be queried by name.
+> list hooks netdev eth0 eth1
 
-IIRC, the idea is to display the ingress path pipeline according to
-the device (if specified)
+Not really, why would eth0 and eth1 be related here?
 
-        list hooks netdev eth0
+What would make more sense to me is to allow
 
-as for egress, as it is not possible to know where the packet is
-going, it is probably good to allow the user to specify the output
-device, so it gets the entire pipeline for ingress and egress
-paths, ie.
+list hooks netdev
 
-list hooks netdev eth0 eth1
+and then have nft fetch list of all network devices and then query them
+all.
 
-Note that this is not implemented. This has limitations, discovering
-eth{0,1} belongs to bridge device would need more work (not asking to
-do this now, but it could be a nice usability feature to discover the
-pipeline?).
+If a packet coming in on devX will be forwarded to devY depends on the
+type of packet and the configuration, e.g. arp/ip vs. bridge/routing
+or even encapsulation...
+
+> Note that this is not implemented. This has limitations, discovering
+> eth{0,1} belongs to bridge device would need more work (not asking to
+> do this now, but it could be a nice usability feature to discover the
+> pipeline?).
+
+Bridge?  I don't think we have bridge family support for netdev hooks?
+AFAIU its only netdev and inet.
+
+This thing should only list the nf hooks registered for the device,
+and not start to guess.  So for "list hooks br0", return ingress and
+egress hooks for the virtual device, not the bridge ports.
