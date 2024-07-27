@@ -1,44 +1,44 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D97A12D60C
-	for <netfilter-devel@vger.kernel.org>; Sat, 27 Jul 2024 21:36:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97DFC36AEC
+	for <netfilter-devel@vger.kernel.org>; Sat, 27 Jul 2024 21:36:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722116219; cv=none; b=lUDlCZzxw1/Vmhi92bDhOrRqe7bdfk0XGSStwxSZ+i+MEb2BePitYPpyDckeNxCQvG0ryIwXhVerZF2Ijx0K6HwpNAXmtiEzsMQ7T+dIxpORaWKg6hLvdu18fg/EMWBnVhk7IF0lv+GnvhTnKz8BZoynt2TwTVyTH5hTn49Tt2s=
+	t=1722116219; cv=none; b=t1LgVmWZmUKI/8z5q4W46ffIZrASvWGkqhKazEOG3nWb0hKzvXR75zi2ELlC4topzfAoCx6y+AJpEXYMIr+CFPl1Z9HBuu27dMwyfOrM6JWuY/uQTOAelBP7FyFlf1NEVQrlchpgjNlkalI9MpUhvJg8UIzegem3dIoBWrT7zBE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1722116219; c=relaxed/simple;
-	bh=UcBcd5GLwor4/IYBqG9gtzZ2sEsYIFp1lkpQXAj3dTU=;
+	bh=C4xshRsOIiGr2RwO/DeWI643jl9WN6HFaW6yJwIY38c=;
 	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=qh4KdPAfQzSROFRg4feaMKirfC7yYcMT2de1V8s8OI68eoZs45bF+GGZgPmr96S8j7Hk+VUyA3LVZZzQyoBc3rs1nq5SsGmfZ4Jir+VNUnco8OjwjD9+CIhMmWO2JrCDIfm7n23y96gsCPhZVHct/bFe8JPtdwZBRuQdsBt8dTw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=VB7Hgnfg; arc=none smtp.client-ip=151.80.46.58
+	 MIME-Version; b=r9AjhMrZL5rLZD6K5Y5PRq9YYgoKzRIbythMIkGOTg29etBt9ivJ0psGHgHtvPaniNYm5b40VUHn/7Qh6AmW0HJaAaG4JBzuBAaNm8h1nQjNejIRLePNc7YUTLigY8JcKZBDWLvsTcAbxaHA44nmhJWKZKSglKse/++JVfeMMCA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=U8qVcI1e; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="VB7Hgnfg"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="U8qVcI1e"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=NjKhpMRe4a8Fjysag5QvCGho0UtUIh3P0WHGigoOe80=; b=VB7HgnfgkDGhopr2wYWNeagWhM
-	10Kx5SftOwARLlS88Cd3tkvTHNvVNyVJUn8tOQGm/D8zMCtcAzrNOl7hXqlSPiQH2NF/p6XDU+dQx
-	blYzb2HwQY2e2OymL40oU4QaVIXwvlZP5gUGqx6atx30BM9zCj1ePouGvmiv9Js6c4/uokEb7t/GB
-	aqAVJa8pfIxsFEK2GxVfP/wqGiWK2ou2JN+/4CLIcC0Oj+GOzzc0jqU5YllkLkQRxzb73J87FnV8w
-	0pWocTI21pKFodaERQMEVAXOjDvTDJy0Rlkr1Lfw7TGwEWbb7sBoVEy7mXc+TTzmsFlM2Zz45KJqQ
-	uOrSR5Mw==;
+	bh=2LcsGz6DuShOudepC5OJ0NmQDx/np4tNRCR20emgKS8=; b=U8qVcI1exLbrI5EhouxfBKCX4A
+	vjdMyflhA+TyDmu9fSFJtuQY58/AxN1fRmUhvEulGiE/pC2RhLQxnxmdPOduZDwg/cS79CIz7Vjy9
+	15SANvgj0ovU5Tj0PsF7gZQlZUI//tGqjuRmcFNUjp8C0Ryo0+nYgZWwokGtvxoqXyA113yP+f3Zv
+	Q+/1DClbwnQ4nWwimmCdzvKtCZEQ7l1D/JdVPIzk1XqLA/YiG53R+ITAYQ+BP1YqL1ndl3Hg5ImD5
+	EPDJZNmF/KhOA9gEoJPhq+4ferKyRusqdfUpoL7y2GawpQK7UltmaUQ+BToW9YpnYUyoqPs7h5aen
+	9EM3bQjA==;
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1sXp60-000000002Uj-1TBM
+	id 1sXp5y-000000002UW-2kUp
 	for netfilter-devel@vger.kernel.org;
-	Sat, 27 Jul 2024 23:36:56 +0200
+	Sat, 27 Jul 2024 23:36:54 +0200
 From: Phil Sutter <phil@nwl.cc>
 To: netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 08/14] xshared: Do not omit all-wildcard interface spec when inverted
-Date: Sat, 27 Jul 2024 23:36:42 +0200
-Message-ID: <20240727213648.28761-9-phil@nwl.cc>
+Subject: [iptables PATCH 05/14] nft: cmd: Init struct nft_cmd::head early
+Date: Sat, 27 Jul 2024 23:36:39 +0200
+Message-ID: <20240727213648.28761-6-phil@nwl.cc>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20240727213648.28761-1-phil@nwl.cc>
 References: <20240727213648.28761-1-phil@nwl.cc>
@@ -50,75 +50,31 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The rule parses correctly, but the (never matching) part is lost on
-output.
+Calling nft_cmd_free() in error case segfaults otherwise if the to be
+freed object is not part of a list yet.
 
-Looks like a day-1 bug, make it fix the change after which it applies
-cleanly.
+Exposed by commit eab75ed36a4f2 ("nft: Avoid memleak in error path of
+nft_cmd_new()"), but belongs to commit a7f1e208cdf9c (and may go well
+along with it).
 
-Fixes: b2197e7834f77 ("xshared: Entirely ignore interface masks when saving rules")
+Fixes: a7f1e208cdf9c ("nft: split parsing from netlink commands")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- extensions/iptables.t         | 2 ++
- extensions/libarpt_standard.t | 2 ++
- extensions/libebt_standard.t  | 2 ++
- iptables/xshared.c            | 2 +-
- 4 files changed, 7 insertions(+), 1 deletion(-)
+ iptables/nft-cmd.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/extensions/iptables.t b/extensions/iptables.t
-index 5d6d3d15cc5fd..2817c3fb8437f 100644
---- a/extensions/iptables.t
-+++ b/extensions/iptables.t
-@@ -4,6 +4,8 @@
- -i eth+ -o alongifacename+;=;OK
- ! -i eth0;=;OK
- ! -o eth+;=;OK
-+-i + -j ACCEPT;-j ACCEPT;OK
-+! -i +;=;OK
- -c "";;FAIL
- -c ,3;;FAIL
- -c 3,;;FAIL
-diff --git a/extensions/libarpt_standard.t b/extensions/libarpt_standard.t
-index 153540903f786..d6eaced3bd5e3 100644
---- a/extensions/libarpt_standard.t
-+++ b/extensions/libarpt_standard.t
-@@ -9,6 +9,8 @@
- -j ACCEPT ! -i lo;=;OK
- -i ppp+;=;OK
- ! -i ppp+;=;OK
-+-i + -j ACCEPT;-j ACCEPT;OK
-+! -i +;=;OK
- -i lo --destination-mac 11:22:33:44:55:66;-i lo --dst-mac 11:22:33:44:55:66;OK
- --source-mac Unicast;--src-mac 00:00:00:00:00:00/01:00:00:00:00:00;OK
- ! --src-mac Multicast;! --src-mac 01:00:00:00:00:00/01:00:00:00:00:00;OK
-diff --git a/extensions/libebt_standard.t b/extensions/libebt_standard.t
-index 3f1a459cb9814..4cf1f4cfa3ae5 100644
---- a/extensions/libebt_standard.t
-+++ b/extensions/libebt_standard.t
-@@ -17,8 +17,10 @@
- --logical-out br1;=;FAIL
- -i + -d 00:0f:ee:d0:ba:be;-d 00:0f:ee:d0:ba:be;OK
- -i + -p ip;-p IPv4;OK
-+! -i +;=;OK
- --logical-in + -d 00:0f:ee:d0:ba:be;-d 00:0f:ee:d0:ba:be;OK
- --logical-in + -p ip;-p IPv4;OK
-+! --logical-in +;=;OK
- :FORWARD
- -i foobar;=;OK
- -o foobar;=;OK
-diff --git a/iptables/xshared.c b/iptables/xshared.c
-index b1997ea35f8f8..8c7df3c986eed 100644
---- a/iptables/xshared.c
-+++ b/iptables/xshared.c
-@@ -759,7 +759,7 @@ void print_ifaces(const char *iniface, const char *outiface, uint8_t invflags,
+diff --git a/iptables/nft-cmd.c b/iptables/nft-cmd.c
+index b38da9bdc1c0b..58d5aa11e90d2 100644
+--- a/iptables/nft-cmd.c
++++ b/iptables/nft-cmd.c
+@@ -28,6 +28,7 @@ struct nft_cmd *nft_cmd_new(struct nft_handle *h, int command,
+ 	struct nft_cmd *cmd;
  
- void save_iface(char letter, const char *iface, int invert)
- {
--	if (!strlen(iface) || !strcmp(iface, "+"))
-+	if (!strlen(iface) || (!strcmp(iface, "+") && !invert))
- 		return;
- 
- 	printf("%s -%c %s", invert ? " !" : "", letter, iface);
+ 	cmd = xtables_calloc(1, sizeof(struct nft_cmd));
++	INIT_LIST_HEAD(&cmd->head);
+ 	cmd->error.lineno = h->error.lineno;
+ 	cmd->command = command;
+ 	cmd->table = xtables_strdup(table);
 -- 
 2.43.0
 
