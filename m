@@ -1,75 +1,49 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD8A110A1C
-	for <netfilter-devel@vger.kernel.org>; Fri, 26 Jul 2024 15:40:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A852D80BEE
+	for <netfilter-devel@vger.kernel.org>; Sat, 27 Jul 2024 12:33:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722008456; cv=none; b=N96a7gIrFFcyHZpl75oThlhWjMZjG6T4IDI4YfT+YvAGmvvb9fu1e4dejfOEnnMNuaTRKKhtwwKQwBmK+5o9B/wPGO01BaOb9dRVqyeF9/InMq8yv+IkhLaGnF+JYFJP5Z99u9pbEE0Y3CsK47C8qqYC3nLZhXXLF/3Px6dIOUA=
+	t=1722083629; cv=none; b=KMhHcjDt8Gw9k9WgnBCl4FjoHF44aRDmf3nBbEFbyjEwL0wL1XFSpXG///VA7anOaVzCDKTtwIUQa8g48jnWJH91NffX+Ux+MSDFQUcTjSGGbltu8Kn8XEIHSGyKACgrgt+Ox4x3E31Icx2yMqia/9X7vGa+8rfEwf7JhnymerY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722008456; c=relaxed/simple;
-	bh=Bm8yzhTz1w1ezTbv26TxQIGp6hnrL2kL8FOi3oT4/JI=;
+	s=arc-20240116; t=1722083629; c=relaxed/simple;
+	bh=qqFAT8K+GyCpVR2ShjmSmvAHkWX/wBGiHbr/PlaFLoE=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=HA4bavdxQv0EtdFEcgwD49pkSVGgSlHJroX2iwB3VZoiwg3ekdav6NyIr83Maqt5pLKCAPL+r30AmEt7eU50VJwdvBk5K7hM7yxpA05Q+ORiNsflQbTbTlwUU7hiFMWB3GWL2C6LmmOT89Ssy+w3g6vTPwxdpx3ITh8VHqFQXwI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=UYvmBpRO; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=A44HVfKwaT6w+Cnc7JWoIoD3f6eVLjCaJzUntRjryuO+5j6BEkSjnyQkfYo2loTDNbyLyS31cxS30jnOaTvFtEqQHpVh2ZSfstLgeQfGAgKQ4LDuqafUFZWart+WLy2gsGdJdv4vPfu2SYxmjb97Q0tI9ksW8rS2Ynv/zACGCWA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=A6zSW6Lg; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="UYvmBpRO"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1722008453;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=lSqWN3jNFsx72kH3y+ST3WOVydYSi/qMl+4qIb+/cnw=;
-	b=UYvmBpRO1IqZUyx32CzwtwJQcKrXhIc9ZTodf31SEpECwRj0W/iQgyevbaqrCzEK2IA3Nb
-	QSl5wlx3TRaQPwQJrLR+7thNxJRMAcUWD4YhsxzB/ZaM77PmB1DM9NWLegOekRzTCsUVpb
-	sq2BBRROEMKBruvVtV9Dz7zAg4h62Xg=
-Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
- [209.85.221.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-562--d7WcUrKOlqm9McHMcj3oA-1; Fri, 26 Jul 2024 11:40:52 -0400
-X-MC-Unique: -d7WcUrKOlqm9McHMcj3oA-1
-Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-3685e0df024so1363792f8f.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 26 Jul 2024 08:40:52 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1722008451; x=1722613251;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=lSqWN3jNFsx72kH3y+ST3WOVydYSi/qMl+4qIb+/cnw=;
-        b=RtuyqXrQNkSxoUsizQ2Onbhzy2EcU2MGB+Myts3jzuaZS4ETtGYmpxfi6eaQsslpKT
-         1CJh8Xx0DpAvjXBGPiI4wXdLrbFbDbEojRsd7v3EQWhpafL/qrIEKw98d6nkdVyYNKUH
-         ry8X5YRvDUt0+Y5iH5nbX3iORAf8Mdr98YVYUaxeXdkzkav1QRMl2GYL8DxSSfQOZDYO
-         OtM5JdXw1351mtegrzapO6XtEaq7aFgqQFohr5kmCZcjhszCcTagFOvhbvCWcAO8fgG5
-         zmh/V3Fwb8shGOig4sIMj3dPyovQBzqsN1y6LXQDSfNuCaoHkg89ox52LScmMbRqdb8o
-         n7kA==
-X-Forwarded-Encrypted: i=1; AJvYcCVJep219hHkadYQCW7W0+yggVwrsKze7cyQ/WYdGfAvvSEiGAjGGFMjVni+XRUUIY7T1W9EAuNAtYBPjIr9qo32aoza2hOtr8FrqbQNxyjs
-X-Gm-Message-State: AOJu0YzHN49iR2ml147ibGQGWnCGzmLu2fYWaFk5dbbBYHX54C5lA5lf
-	S+Q1WQ8oWxIO972U9P37genP47PyM+SASZeB1PSlWwDlqCgW45ScJI4irIrdaXRfA58DoSsM6uI
-	TOX9g+PNdTmZQbYG58DnbYbGIP6MO7qjI6/KZAXjhQ1Qgx5fj17nj8m34OwZwVZSFDg==
-X-Received: by 2002:adf:f845:0:b0:367:9522:5e70 with SMTP id ffacd0b85a97d-36b5d08a21bmr50783f8f.52.1722008451154;
-        Fri, 26 Jul 2024 08:40:51 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IG2ifAhPfu9FFnitDhFyuHy9MZxvX9eLv0CF2voHRwf4z6SvAD16PMUVKXlb5p6bMlk9X1BUw==
-X-Received: by 2002:adf:f845:0:b0:367:9522:5e70 with SMTP id ffacd0b85a97d-36b5d08a21bmr50754f8f.52.1722008450501;
-        Fri, 26 Jul 2024 08:40:50 -0700 (PDT)
-Received: from debian ([2001:4649:f075:0:a45e:6b9:73fc:f9aa])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-36b36857ec5sm5460659f8f.74.2024.07.26.08.40.49
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 26 Jul 2024 08:40:50 -0700 (PDT)
-Date: Fri, 26 Jul 2024 17:40:47 +0200
-From: Guillaume Nault <gnault@redhat.com>
-To: Florian Westphal <fw@strlen.de>
-Cc: Ido Schimmel <idosch@nvidia.com>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	kuba@kernel.org, pabeni@redhat.com, edumazet@google.com,
-	dsahern@kernel.org, pablo@netfilter.org, kadlec@netfilter.org
-Subject: Re: [RFC PATCH net-next 2/3] netfilter: nft_fib: Mask upper DSCP
- bits before FIB lookup
-Message-ID: <ZqPDf00MuoI677T/@debian>
-References: <20240725131729.1729103-1-idosch@nvidia.com>
- <20240725131729.1729103-3-idosch@nvidia.com>
- <20240726133248.GA5302@breakpoint.cc>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="A6zSW6Lg"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=pIoi8DQWnn8s79iseQ47LEoHLCTRL6zS9hxFmncjbxw=; b=A6zSW6Lg359ceKnvn9zn6Oh0W7
+	9mAr1rwL9y5VjVwtlHSyx5jHWdrK2sWWUg/pXyrWd3Nmw9TM6aFM/DuFtv649hNNcGGR+N1uhM5bB
+	5tt01OufclSb5QlJPDUeYhzK+QdYBqJ4wn/W9ltM8BUg28iVpYzsnCGUBB2KKSIjsmAcCYijJdWRH
+	DsjFv92kdIfZzBriED8TKoyS7wkEHXl41O2mGKy7+fXhiHne5FjFwcphBbEUM6YrF3uK1dgkJ+/NY
+	TCwTQwpzH7YJsvCAuiCkazzw84wGs2lGAV4MS4FfhTOPrs8mi3lTETMkOAcL6fuVig4B/ezxmChw9
+	l5QQ1dhQ==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1sXgcD-000000002qP-2UO4;
+	Sat, 27 Jul 2024 14:33:37 +0200
+Date: Sat, 27 Jul 2024 14:33:37 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: netfilter-devel@vger.kernel.org
+Cc: Florian Westphal <fw@strlen.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [iptables PATCH 0/8] Fix xtables-monitor rule printing,
+ partially RFC
+Message-ID: <ZqTpIS44pyYLTk-p@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+References: <20240716122805.22331-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -78,40 +52,24 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240726133248.GA5302@breakpoint.cc>
+In-Reply-To: <20240716122805.22331-1-phil@nwl.cc>
 
-On Fri, Jul 26, 2024 at 03:32:48PM +0200, Florian Westphal wrote:
-> Ido Schimmel <idosch@nvidia.com> wrote:
-> > @@ -110,7 +108,7 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
-> >  	if (priv->flags & NFTA_FIB_F_MARK)
-> >  		fl4.flowi4_mark = pkt->skb->mark;
-> >  
-> > -	fl4.flowi4_tos = iph->tos & DSCP_BITS;
-> > +	fl4.flowi4_tos = iph->tos & IPTOS_RT_MASK;
+On Tue, Jul 16, 2024 at 02:27:57PM +0200, Phil Sutter wrote:
+> The patches in this series progress from fixes to features, and for the
+> last two I'm not sure they are acceptable as-is: Patch 7 is not entirely
+> complete, one should follow-up printing ebtables policy rules like
+> builtin chain policies in traces but it requires quite some code churn.
+> Patch 8 changes output of both events and traces, thus might break
+> existing scripts parsing xtables-monitor output.
 > 
-> If this is supposed to get centralised, wouldn't it
-> make more sense to not mask it, or will that happen later?
+> Phil Sutter (8):
+>   xtables-monitor: Proper re-init for rule's family
+>   xtables-monitor: Flush stdout after all lines of output
+>   xtables-monitor: Align builtin chain and table output
+>   xtables-monitor: Support arptables chain events
+>   tests: shell: New xtables-monitor test
+>   xtables-monitor: Fix for ebtables rule events
+>   xtables-monitor: Ignore ebtables policy rules unless tracing
+>   xtables-monitor: Print commands instead of -4/-6/-0 flags
 
-I think Ido prefers to have this behaviour introduced in a dedicated
-patch, rather than as a side effect of the centralisation done in
-patch 3/3.
-
-Once patch 3/3 is applied, the next step would be to remove all those
-redundant masks (including this new nft_fib4_eval() one), so that
-fib4_rule_match(), fib_table_lookup() and fib_select_default() could
-see the full DSCP.
-
-This will allow the final step of allowing IPv4 routes and fib-rules to
-be configured for matching either the DSCP bits or only the old TOS ones.
-
-> I thought plan was to ditch RT_MASK...
-
-That was my preference too. But Ido's affraid of potential users who
-may depend on fib-rules with tos=0x1c matching packets with
-dsfield=0xfc. Centralising the mask would allow us to configure this
-behaviour upon route or fib-rule creation.
-
-Here's the original thread that lead to this RFC, if anyone wants more
-details on the current plan:
-https://lore.kernel.org/netdev/ZnwCWejSuOTqriJc@shredder.mtl.com/
-
+Series applied.
