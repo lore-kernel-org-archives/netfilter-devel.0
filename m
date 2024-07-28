@@ -1,193 +1,135 @@
-Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2053.outbound.protection.outlook.com [40.107.94.53])
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06CA225622;
-	Sun, 28 Jul 2024 11:34:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.94.53
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722166462; cv=fail; b=m4mWDykbCBZHsAM1LMWYsti5F6T2YSnEvAboNvhSl7zIlkAgdjIuDxAZx5SJsovQWROXZfK2jvIUTabCLE8cpPlvwhQLc9LBH2dWOFBDOAzgbrr2lMrK/QGlRJdTLdubE9gmnGMZeS7SgY8+Kj+wBZlwidvrd11TspKU2Q+5l68=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722166462; c=relaxed/simple;
-	bh=/nixCiXUQUOCsSUjr67tntRpWMsrsU8ZKr6s0lLJS4Y=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=D56vutq1IMxPri2CaaYgFcJU0ocalEz/Y6MwVO5NQaMuBiZC0aVgEoEnSG+PO7yz3gStEzNTX8GllXvLDoxj/Tof9u3l/FnyIQxqmMm9mxWCRvnBMLXZK4CXfF7w1v9Lftqe4hZTa2EEtTx24TpsLudoxvt5EsAj4MLPHeKsZgs=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=a/mVXz57; arc=fail smtp.client-ip=40.107.94.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="a/mVXz57"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=sgSjg+YHfdFUVOr4cftNhax/96r+XMdoy09VHlRbGEi8eMF5Eaz3fQCBNGsgxKNZYcmwpy3Y5bmB2v3cVLV5kwgQNiCFeUzBRRIA9/+q/4lO2nw8TbET0vlO+YGIwSUuKvj+1xJHa53m32uAlL9qQuqYtMdZevG89zLD+lueqTcmgij1Me7TKBmevNpk7ydT0nrLd8mNGv3vz5jlHo8BIyi7xhgg5T97rKqzuHWZHEB2wPAc6GKxEwfHbG26A8fZMsCBBTQcGXYwg5tRq+tZ4wn3U7xZc/q2UwWlmHmBfil7UkZx5f0fQOSir/ghBPOZiyMlMy+val8VLq2pfZapTw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Xon6wex/1T1EjB90HTLI9gEooFZhARAFh2L0n2EUWLs=;
- b=AoeV/eI3ePY2IM4e5DUfzOtaXquDw7WreYbVwE7XX2WGcil9lVBrciQUXsNOoeI7C6+6kGdRkHZGCWH/SzMVsvP1J+deJKpCK6eSK7h03OM7aDW2ALDVT+4nXYye7vPg2fQBUvKisopVl85PlsUoAAIKwygV5grGy9PB2C4DuCRLCMgRz4qnHo8Eta14xHrThDVAsgYPEiNBJqrs4gQJBoJXnZik2wU7XFYeigS4iXScJXN42U4PcfYAIcw6/tzjS+AFC4KzUxaUEhCfzH+hKybBqub3/iHL59+5jX6WGhwNY0WtKNDlf6EWyRWAHzaomct3FqZfltVautRzGetQVg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Xon6wex/1T1EjB90HTLI9gEooFZhARAFh2L0n2EUWLs=;
- b=a/mVXz57oFYpVugiRYpEFC8rAnLy4q+uWRc1jXU1Ty0nhPf9euinI03rXSnGfWPsJgH0DyHlL2XyQXrqDV1V0I7AemqH9Z+kGVWc78gSkyopz1p2T+X6B/1E2XQEj9pqRSTsHcMQnTHjSQF0+m4j45zxozaeMcqV2FUXhJu1VVc6/QULw2yG1aDJfweJ+ut2dHnZzDsvTHwi5xM3z/R6a2uEB1hLhL4y+eVnkk+4yVXd/5GbJtBkDVmDhgjhknXsiatS3PuUMnonbkXeyAZBfyiRl63NA0i8x8WZJm4vOCJIemuA7jz1O8RTo0nNv3BL/rq+3CaPA007ONdn5/Uzaw==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from CY5PR12MB6179.namprd12.prod.outlook.com (2603:10b6:930:24::22)
- by DS0PR12MB8366.namprd12.prod.outlook.com (2603:10b6:8:f9::17) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7807.27; Sun, 28 Jul
- 2024 11:34:18 +0000
-Received: from CY5PR12MB6179.namprd12.prod.outlook.com
- ([fe80::9ec8:2099:689a:b41f]) by CY5PR12MB6179.namprd12.prod.outlook.com
- ([fe80::9ec8:2099:689a:b41f%5]) with mapi id 15.20.7807.026; Sun, 28 Jul 2024
- 11:34:18 +0000
-Date: Sun, 28 Jul 2024 14:34:06 +0300
-From: Ido Schimmel <idosch@nvidia.com>
-To: Guillaume Nault <gnault@redhat.com>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com,
-	edumazet@google.com, dsahern@kernel.org, pablo@netfilter.org,
-	kadlec@netfilter.org, fw@strlen.de
-Subject: Re: [RFC PATCH net-next 3/3] ipv4: Centralize TOS matching
-Message-ID: <ZqYsrgnWwdQb1zgp@shredder.mtl.com>
-References: <20240725131729.1729103-1-idosch@nvidia.com>
- <20240725131729.1729103-4-idosch@nvidia.com>
- <ZqOh24k4UQUqYLoN@debian>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZqOh24k4UQUqYLoN@debian>
-X-ClientProxiedBy: FR4P281CA0346.DEUP281.PROD.OUTLOOK.COM
- (2603:10a6:d10:f4::10) To CY5PR12MB6179.namprd12.prod.outlook.com
- (2603:10b6:930:24::22)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0535A848E
+	for <netfilter-devel@vger.kernel.org>; Sun, 28 Jul 2024 23:19:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1722208771; cv=none; b=AJARM3ZYwg0dq8GzVxttczh3Dd8uF1Kk7cNYoY7nf/h0CI73bVSzNI9pOXDx66KQ+z7Vi4xYaR0CF4acW+T5gZ5UxPxhQ0mNG7GXRfisgRhJscNw4w8jkID3co1r58srxvlfSIjNadfNpiRz6WBZuBnr03s4G2XB3hynASxuRaU=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1722208771; c=relaxed/simple;
+	bh=1g2w73FdMgFRSYSCnRe5KcEZGbz43h9JUs7q4NKEHZ8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=HdD9jxOf1tXr73IVyYLsF7e7DdK8lROVRlWgZffvesPpbI4QIBQ6GtNFIwuZtJpZMQV/Rb7iwe/7AIjMMsflRv3x/Y7MJqRYGk/raURD78Xcf3h5aaFFNlqW++/zeVnBI4BzT6MQFGxwY852PkRM8+en0baIBH7VnB/Nn0Jn7d8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [2001:8a0:74d4:2501:a64e:31ff:febd:17a4] (port=53188 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1sYDAZ-008dIm-D4; Mon, 29 Jul 2024 01:19:17 +0200
+Date: Mon, 29 Jul 2024 01:19:13 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, Phil Sutter <phil@nwl.cc>
+Subject: Re: [PATCH nft 1/4] doc: add documentation about list hooks feature
+Message-ID: <ZqbR0yOY87wI0VoS@calendula>
+References: <20240726015837.14572-1-fw@strlen.de>
+ <20240726015837.14572-2-fw@strlen.de>
+ <ZqNlvkJ2YSc-KIKb@calendula>
+ <20240726123152.GA3778@breakpoint.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CY5PR12MB6179:EE_|DS0PR12MB8366:EE_
-X-MS-Office365-Filtering-Correlation-Id: 88dbbb83-2661-418f-c55a-08dcaef9378c
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|1800799024|7416014|376014;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?Ppn9CC4mjk8HCE35PLgSCYnmmABMKBujp7bk2VM06HE6qLZVaBKX0fzDWevd?=
- =?us-ascii?Q?EDerlPeSLtaPNNJirOZOk1iMFEQgwu6iVpLeQuZu3NWRqShHB+7LxKAathl5?=
- =?us-ascii?Q?qBDV9sIA5gnzjsQh3bie21q4GcyCZYH+uIiVXC0wlDXMa4sQ9LL7OmaXNdsH?=
- =?us-ascii?Q?VQ84a0oBgmgfPfBDqLJb+7W98bqO/kNHTKctq1jKk5Kamc1+j2yIJi9XSBpy?=
- =?us-ascii?Q?fV1xicFZ2bK7Td5Q7XcK1w/WN67yPhwM4L9eEGGDSy6kQ60nSOk+vR4bwcdP?=
- =?us-ascii?Q?hidvIT2boGZyiksp8ONAJ8uJrsJmx3VCKN7x6JabsKS/QKtyBqqGfUxah5Vy?=
- =?us-ascii?Q?5uljMkw0SICmKGlWcrX+sylC/v33g85rQhR6k3P00HHv+iAQmH5qPUe4ObMW?=
- =?us-ascii?Q?Jp6NplyfGIpvCe+clzwOOnVMpz4gPImziNMCBrHgJdnS1lrluT4g8xEHFhzx?=
- =?us-ascii?Q?1OZZtQviCBJJJ/JFvXi729oKdU0RrbCjMqBWKYP7tqOSG7wKb9EXRUVMCaQv?=
- =?us-ascii?Q?wI1uAoOgE0Wej/T664GEJaEoSYHFSOlQlkhkt6IznfNll1i1AtsAbOTxCObv?=
- =?us-ascii?Q?gL5V27AGRKktT8cQgzL8U/o2xRco8C5xIKtnfe5AEmd6q01YemNmIxWumtpm?=
- =?us-ascii?Q?i09hgS8D7HHVqe7XTiw2s9nMditJCCYFuzn3EE0ffAH09NhjqLSoL+jBFrg/?=
- =?us-ascii?Q?KxMRE83S3sEOR3PYGVh98BI1kkxaGDJ8pglN+QmXDsgBGrHXlab7JOn/1nK+?=
- =?us-ascii?Q?uSycp/5kw1ag60InzEgE305QmKGTQNo3kMqI8hOJ2F6iW9yU01OIXxD3YZiZ?=
- =?us-ascii?Q?lcC7fiep8aZo+gYprGmbMxvG/IUdwhgjSTnAq6TSwq7rjkp5zAikLP0q20Eg?=
- =?us-ascii?Q?wmsgnGtLNJy0CJl1bLDTb5bgvpU6YYCBwGKBLrfcBmUHkfkRMjyhW0F99iaq?=
- =?us-ascii?Q?Ql+L01Uy2P2rlw+W1GrAGUCbhw/3uC3fJrEOKyuKQhCO0/Y3LtTVUYR7RS4X?=
- =?us-ascii?Q?s0R4Xn26Sm3LJt/HllRZmYXuvlemQ1JVVFJ5Mwq/vP5zelS+Kg9bYsiipi/2?=
- =?us-ascii?Q?ZD6JvFwRLskV2qSVXZxLgupl1gQmLGx64y+AIxwBxDCgvAybEpzaqM6PBW0i?=
- =?us-ascii?Q?Wh6uAk2hNrIfjYC2jdGRWSF8lDMkmNMMuNnQuS/e4S43WOYV/j5oCLVM1Jwt?=
- =?us-ascii?Q?4UFBp7TVxtK1PeK1f+8+smcutXUfoykKyG8W5b30ut0LuCB0ysyiVXm99lt9?=
- =?us-ascii?Q?+gkhIXZYMMao5v5rQ+Eiv+DWunXp9/NhVmD00nku0e5wbgAU8tp+kLqhSpV9?=
- =?us-ascii?Q?dW5Tp8KA3Hxuvw7W9pU9GYOftkTYmy4ZSmc8fMzfvGrOrQ=3D=3D?=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CY5PR12MB6179.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(7416014)(376014);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?ZooxEU8cFYLFdhAXJf5qN+MufR82hSEpOTwpUd9acQhX76j39DhnIumKrLCr?=
- =?us-ascii?Q?MI46nOZoVgzLLZAJOWs+BU1FSGAjHd1WzdIj4NMoQEofVSJQDD6ewzu3c5uD?=
- =?us-ascii?Q?oWt/hreq3l8S1EhnbJW+dRyZou+8qamW2u9nEJpM0bkqr36eeYXjsr1Iiw7J?=
- =?us-ascii?Q?OsWtbWF8q1sKGVHY0d6n+v/bbsSO8CqCC6OedwBl/fU4vZQ6SMVbNUn4PSl2?=
- =?us-ascii?Q?kfjoNBHtaIxtnjv71Zm2Bq99KDHNFwyXfUSEZBjM09qBDXysul0LHNplDXxo?=
- =?us-ascii?Q?Kuqy3AHzLiPVNhSTIQnEU9lIrYtAqtywedqdqtgVKjNHai9jsTCh1vxAvGCm?=
- =?us-ascii?Q?JuD3a+F6iwerN7JGY3tGeGY4N6/1AVtSoINr2DM3dWuipPBg6hXjsALTcAsD?=
- =?us-ascii?Q?yu2wuZWkShUyzMndm2ANKHCeCGar+uoQ3Dur5tlwsdC+M3ZBbB8uGIldrVu6?=
- =?us-ascii?Q?9TTq6WqZgfhL9OHq9UHRSvp06TkKu0Te9aZXFoIPbRHdNzRu2YoQ8VzSmYDM?=
- =?us-ascii?Q?bImwW26cxpslP/OkKJDd51pMB2bhTdxZqs6IhPEbKYW7MNnB/3LUWmgbnVVS?=
- =?us-ascii?Q?0Xr5G4bBq3r8KzDMmtgiqqsaEvf2xBESTwQ3mY5G8sq/oQCk9kCfxFu8DNks?=
- =?us-ascii?Q?hQ7H0uRFLc5kN/Hk8r8slaohDMtKZoAQskWfQpxn5RyQIhlNJOtNdCWdBxtc?=
- =?us-ascii?Q?gpBqRO5vs8NgWN/VMrmILkHTQLIIOTm9R1pJtA9CpUFb7F5CW6zFHyeFybFi?=
- =?us-ascii?Q?4oLWBWVizb830AaJ7n9ItBLOsvfU7iMp0/VOjqXfjB/T2bZSvLgD1pvnZLdx?=
- =?us-ascii?Q?Y2EpuwR/vTECDfi06B+6cyfXANvCRUQYCsLnbEx1tHXodNsHr73CEaUJvL54?=
- =?us-ascii?Q?lqIo5rZIjWV1/msGd2RzfchFIzj3QomCJ4fd/dsV3fglFd6+CaN+t6PRwS1F?=
- =?us-ascii?Q?vMAFg5MYQBsHQXi+mBRSbwSNB9J3lf9hpP1QfDh/Nq/MK1+2LZZk3b3gajqY?=
- =?us-ascii?Q?0ko+aGwHP9rY78vHUYN8ZSJPtGDEE/18A2cvj+lZsn6haXI9x1p25ZqphffF?=
- =?us-ascii?Q?UOm9B1veSH87kFnLPKdg7NuHbyVfox9lDJgJRC7otM+7SyDFYz0A1OJgrBZ/?=
- =?us-ascii?Q?AKE4Gh+3HcyOIJRE5JxhLZi3rGvw1VPDhcyn6ip7KktSWQbnF/qVmoLzLThy?=
- =?us-ascii?Q?NDPnfJ0ssfGNHTpEU/pqgqlaw189366TzIY73Bpss8YNmM+q04gi+VxSjIFg?=
- =?us-ascii?Q?+GITsZshAIa3I3g+4kJnDEJyiBJi+27oqQb+M1bRpkFH1m+0ETZ1zpADFELF?=
- =?us-ascii?Q?pGfxE/bZEsS3VYTmanx4us0PeF/w8TM+6LD5s7rvGxo1mPPKH8XJhkRxz6iw?=
- =?us-ascii?Q?3Mf2MMgOPqs7QFV/XHGs544nBdZP6fL/Nf8SW9LIbtpQ1fsjuZzdYjazTdIi?=
- =?us-ascii?Q?fzZxhbMJcjShfXcf+2m4bWEnQfDcT29oHkoamZMKORR+hte3lNww1MVaUCm+?=
- =?us-ascii?Q?aPrGqG7c/vY5jbYC95P4ILLu3B11E9Has2oVISsyXYYvDPzfNjSDHrCam/bo?=
- =?us-ascii?Q?hv+UA9bhHtXLwUQOezAhvkQdadpQ3jsjnxG427Wn?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 88dbbb83-2661-418f-c55a-08dcaef9378c
-X-MS-Exchange-CrossTenant-AuthSource: CY5PR12MB6179.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Jul 2024 11:34:18.2643
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 1L0gflhrsDYnnpeHEZk6wlVYcYHFAp1Ei4ZGW09xTuwvL70vlJBJflZU8GLKmDRrRirKIA9TfPjbT/NXCD8qHw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB8366
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20240726123152.GA3778@breakpoint.cc>
+X-Spam-Score: -1.9 (-)
 
-On Fri, Jul 26, 2024 at 03:17:15PM +0200, Guillaume Nault wrote:
-> On Thu, Jul 25, 2024 at 04:17:29PM +0300, Ido Schimmel wrote:
-> > diff --git a/include/net/ip_fib.h b/include/net/ip_fib.h
-> > index 72af2f223e59..967e4dc555fa 100644
-> > --- a/include/net/ip_fib.h
-> > +++ b/include/net/ip_fib.h
-> > @@ -22,6 +22,8 @@
-> >  #include <linux/percpu.h>
-> >  #include <linux/notifier.h>
-> >  #include <linux/refcount.h>
-> > +#include <linux/ip.h>
+Hi Florian,
+
+On Fri, Jul 26, 2024 at 02:31:52PM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > +*list hooks* is enough to display everything that is active
+> > > +on the system, however, it does currently omit hooks that are
+> > > +tied to a specific network device (netdev family). To obtain
+> > > +those, the network device needs to be queried by name.
+> > 
+> > IIRC, the idea is to display the ingress path pipeline according to
+> > the device (if specified)
+> > 
+> >         list hooks netdev eth0
+> > 
+> > as for egress, as it is not possible to know where the packet is
+> > going, it is probably good to allow the user to specify the output
+> > device, so it gets the entire pipeline for ingress and egress
+> > paths, ie.
+> > 
+> > list hooks netdev eth0 eth1
 > 
-> Why including linux/ip.h? That doesn't seem necessary for this change.
+> Not really, why would eth0 and eth1 be related here?
 
-RT_TOS() is defined in linux/in_route.h as ((tos)&IPTOS_TOS_MASK), but
-IPTOS_TOS_MASK is defined in liunx/ip.h which is not included by
-linux/in_route.h for some reason.
+Note that you can specify:
 
-This also works:
+  list hooks ip device enp0s25
 
-diff --git a/include/net/ip_fib.h b/include/net/ip_fib.h
-index 967e4dc555fa..269ec10f63e4 100644
---- a/include/net/ip_fib.h
-+++ b/include/net/ip_fib.h
-@@ -22,7 +22,6 @@
- #include <linux/percpu.h>
- #include <linux/notifier.h>
- #include <linux/refcount.h>
--#include <linux/ip.h>
- #include <linux/in_route.h>
- 
- struct fib_config {
-diff --git a/include/uapi/linux/in_route.h b/include/uapi/linux/in_route.h
-index 0cc2c23b47f8..10bdd7e7107f 100644
---- a/include/uapi/linux/in_route.h
-+++ b/include/uapi/linux/in_route.h
-@@ -2,6 +2,8 @@
- #ifndef _LINUX_IN_ROUTE_H
- #define _LINUX_IN_ROUTE_H
- 
-+#include <linux/ip.h>
-+
- /* IPv4 routing cache flags */
- 
- #define RTCF_DEAD      RTNH_F_DEAD
+this shows the hooks that will be exercised for a given packet family,
+ie. IPv4 packets will exercise the following hooks.
 
+family ip {
+        hook ingress {
+                 0000000000 chain netdev x y [nf_tables]
+        }
+        hook prerouting {
+                -0000000400 ipv4_conntrack_defrag [nf_defrag_ipv4]
+                -0000000200 ipv4_conntrack_in [nf_conntrack]
+        }
+        hook input {
+                 0000000000 chain ip filter in [nf_tables]
+                +2147483647 nf_confirm [nf_conntrack]
+        }
+        hook forward {
+                -0000000225 selinux_ip_forward
+        }
+        hook output {
+                -0000000400 ipv4_conntrack_defrag [nf_defrag_ipv4]
+                -0000000225 selinux_ip_output
+                -0000000200 ipv4_conntrack_local [nf_conntrack]
+        }
+        hook postrouting {
+                +0000000225 selinux_ip_postroute
+                +2147483647 nf_confirm [nf_conntrack]
+        }
+}
+
+This is _not_ showing the list of hooks for a given family.
+
+What I meant is that user could filter out by ingress and egress
+device to fetch the hooks that are traversed in such case, ie.
+
+  list hooks ip iifname eth0 oifname eth1
+
+to get the traversal of hooks for IPv4 packets, assuming eth0 as
+ingress device and eth1 as egress device.
+
+> What would make more sense to me is to allow
 > 
-> Appart from that,
-> 
-> Reviewed-by: Guillaume Nault <gnault@redhat.com>
+> list hooks netdev
+>
+> and then have nft fetch list of all network devices and then query them
+> all.
 
-Thanks!
+Makes sense, it currently fails with EINVAL because no device has been
+specified.
+
+> If a packet coming in on devX will be forwarded to devY depends on the
+> type of packet and the configuration, e.g. arp/ip vs. bridge/routing
+> or even encapsulation...
+> 
+> > Note that this is not implemented. This has limitations, discovering
+> > eth{0,1} belongs to bridge device would need more work (not asking to
+> > do this now, but it could be a nice usability feature to discover the
+> > pipeline?).
+> 
+> Bridge?  I don't think we have bridge family support for netdev hooks?
+> AFAIU its only netdev and inet.
+>
+> This thing should only list the nf hooks registered for the device,
+> and not start to guess.  So for "list hooks br0", return ingress and
+> egress hooks for the virtual device, not the bridge ports.
+
+OK
