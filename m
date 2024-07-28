@@ -1,47 +1,38 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E88131862AE
-	for <netfilter-devel@vger.kernel.org>; Sat, 27 Jul 2024 21:37:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03341A35;
+	Sun, 28 Jul 2024 00:26:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.255
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722116223; cv=none; b=Ge7kuUBYAcuJsxthnAZqwbdf+WVnipnLrFLziyStNQZJFx8zmYL7jBH4jcVjeqasWoU8Bo1vsq0JuCikWk8wpW5Z5S8ff93yyKgvowl+OAB74GLmptBtuVMW4os0a+vY/tolFyGgTYkvkyJtmJp8WbyDqq6r7ZdhrOttr9C7Zks=
+	t=1722126383; cv=none; b=NwTV1bNbZq0xnprlVzWoV4WkF6/cwKYt/eOENKpgZFrewbw5YE+1cH5KOcn7ZlrKD9eEI5vtw6JPapYzv5E6ecKpdhYFT0gI7pJ6f2u4dBKrHbZ03wrnpGVFu+icL8KgjrDvIN0hbetrRYcrdkiBDvYtuXDOWSKndARGAFMkZvw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722116223; c=relaxed/simple;
-	bh=laJ4b50iABVewLmNan/yurHa/WUQoQWCNeSSkl3sy6w=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=t5RwxjdElmVMD0CgPlLSLZtZ7+CYVH5EgzYfvjYIVgDA+5GV/hKFtzqV1xDGAfN6+bpM0MAxJgQhndxzzS18VyQXNFqdIoZUjTtR47ds5RHt/iroMp4SWWU+Tjn4w21kQWzQHXSKc77iTsMpW66EeFgYYRxhDTHBNmJqoB4JdOI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=OKdxGHf3; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="OKdxGHf3"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=vhJxW5RouVz/FPlXRxHVeYSuT2Sjfkr3lU76+nvsj1A=; b=OKdxGHf3cQaWXaINXboCEZq7Hd
-	KBCzo8QIU+JYO16oLUFlRALNRvIuKYtav2iQ7p8rlMhLaaIhnlv8pWqWgsta3IeMuV05E7A22okZ7
-	i12F0+rp5KdJ0ZreS5/9NsOBIW6MM+/8WjSqj4co/ZDXkamu8vNhe8e5FZ7bwsJRktuePMB2060CK
-	39QdNpUg42qFj+skW5fOAtdcHVTRLa1QNLHSoA8d5YvXpQLrZbB/5i5atT2SnE5CuqDxAUzAWhsn1
-	PaVYzd1glz/Zya0t9mOMXpPrZ/oj93bDDGusnpX1A3tVBpFd251kGJwj5QyMXlbNuquplC3qyM2Eh
-	6fstmAkA==;
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1sXp64-000000002VG-2qtY
-	for netfilter-devel@vger.kernel.org;
-	Sat, 27 Jul 2024 23:37:00 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 02/14] nft: Fix for zeroing existent builtin chains
-Date: Sat, 27 Jul 2024 23:36:36 +0200
-Message-ID: <20240727213648.28761-3-phil@nwl.cc>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20240727213648.28761-1-phil@nwl.cc>
-References: <20240727213648.28761-1-phil@nwl.cc>
+	s=arc-20240116; t=1722126383; c=relaxed/simple;
+	bh=ro4bdkgBTJxXixVQhErz0ISyv4OySIyBHEcBU6aJXSE=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=A+n3lbeLsrBWbEK31SsV17UptHPRlTSzC4fnuK1ZMJjuAf149JKAo+TaySLyLdhIhEhQ1g6zQS/PmpWYo7BeaiIO+eqGrV4d8jirHnQULzxSJhcRwiG8LP4kc5tILMlDmJ/OAGG+oM5QqZjeqp+LpOehyqIHQdhuZsIY9YZMu8s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.255
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
+Received: from mail.maildlp.com (unknown [172.19.162.254])
+	by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4WWj2j6DvNz1L9BQ;
+	Sun, 28 Jul 2024 08:26:05 +0800 (CST)
+Received: from dggpemm500020.china.huawei.com (unknown [7.185.36.49])
+	by mail.maildlp.com (Postfix) with ESMTPS id A80131800D0;
+	Sun, 28 Jul 2024 08:26:12 +0800 (CST)
+Received: from mscphis02103.huawei.com (10.123.65.215) by
+ dggpemm500020.china.huawei.com (7.185.36.49) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.39; Sun, 28 Jul 2024 08:26:11 +0800
+From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+To: <mic@digikod.net>
+CC: <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
+	<linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+	<netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+	<artem.kuzin@huawei.com>, <konstantin.meskhidze@huawei.com>
+Subject: [RFC PATCH v1 0/9] Support TCP listen access-control
+Date: Sun, 28 Jul 2024 08:25:53 +0800
+Message-ID: <20240728002602.3198398-1-ivanov.mikhail1@huawei-partners.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -49,37 +40,65 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: mscpeml100004.china.huawei.com (7.188.51.133) To
+ dggpemm500020.china.huawei.com (7.185.36.49)
 
-Previous attempt at fixing for non-existent chains actually broke
-functionality by adding a check for NFTNL_CHAIN_HANDLE right after
-unsetting the attribute.
+Hello! This is v1 RFC patch dedicated to restriction of listening sockets.
 
-The approach was flawed for another reason, too: Base chains added in
-the same batch (cf. iptables-restore) have no handle either but zeroing
-them may still be sensible.
+It is based on the landlock's mic-next branch on top of v6.10 kernel
+version.
 
-Instead, make use of the new fake chain annotation which identifies
-fakes more reliably.
+Description
+===========
+LANDLOCK_ACCESS_NET_BIND_TCP is useful to limit the scope of "bindable"
+ports to forbid a malicious sandboxed process to impersonate a legitimate
+server process. However, bind(2) might be used by (TCP) clients to set the
+source port to a (legitimate) value. Controlling the ports that can be
+used for listening would allow (TCP) clients to explicitly bind to ports
+that are forbidden for listening.
 
-Fixes: f462975fb8049 ("nft: Fix for zeroing non-existent builtin chains")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- iptables/nft.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Such control is implemented with a new LANDLOCK_ACCESS_NET_LISTEN_TCP
+access right that restricts listening on undesired ports with listen(2).
 
-diff --git a/iptables/nft.c b/iptables/nft.c
-index fde3db2a22b79..243b794f3d826 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -3853,7 +3853,7 @@ static int __nft_chain_zero_counters(struct nft_chain *nc, void *data)
- 		if (!o)
- 			return -1;
- 		/* may skip if it is a fake entry */
--		o->skip = !nftnl_chain_is_set(c, NFTNL_CHAIN_HANDLE);
-+		o->skip = nc->fake;
- 	}
- 
- 	iter = nftnl_rule_iter_create(c);
+It's worth noticing that this access right doesn't affect changing 
+backlog value using listen(2) on already listening socket. For this case
+test ipv4_tcp.double_listen is provided.
+
+Closes: https://github.com/landlock-lsm/linux/issues/15
+
+Code coverage
+=============
+Code coverage(gcov) report with the launch of all the landlock selftests:
+* security/landlock:
+lines......: 93.4% (759 of 813 lines)
+functions..: 95.3% (101 of 106 functions)
+
+* security/landlock/net.c:
+lines......: 100% (77 of 77 lines)
+functions..: 100% (9 of 9 functions)
+
+Mikhail Ivanov (9):
+  landlock: Refactor current_check_access_socket() access right check
+  landlock: Support TCP listen access-control
+  selftests/landlock: Support LANDLOCK_ACCESS_NET_LISTEN_TCP
+  selftests/landlock: Test listening restriction
+  selftests/landlock: Test listen on connected socket
+  selftests/landlock: Test listening without explicit bind restriction
+  selftests/landlock: Test listen on ULP socket without clone method
+  selftests/landlock: Test changing socket backlog with listen(2)
+  samples/landlock: Support LANDLOCK_ACCESS_NET_LISTEN
+
+ include/uapi/linux/landlock.h                |  23 +-
+ samples/landlock/sandboxer.c                 |  31 +-
+ security/landlock/limits.h                   |   2 +-
+ security/landlock/net.c                      | 131 +++++-
+ security/landlock/syscalls.c                 |   2 +-
+ tools/testing/selftests/landlock/base_test.c |   2 +-
+ tools/testing/selftests/landlock/config      |   1 +
+ tools/testing/selftests/landlock/net_test.c  | 448 +++++++++++++++----
+ 8 files changed, 519 insertions(+), 121 deletions(-)
+
 -- 
-2.43.0
+2.34.1
 
