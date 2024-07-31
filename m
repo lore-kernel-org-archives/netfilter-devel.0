@@ -1,273 +1,387 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30CD01B140E
-	for <netfilter-devel@vger.kernel.org>; Wed, 31 Jul 2024 17:09:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 208FF1396;
+	Wed, 31 Jul 2024 17:20:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722445772; cv=none; b=JCV4s3uSf3PN2a0GH1Z7PHUjORGrH8HWEAp14eGEo45ZIf1K7XiaDWlSlVWDJpngtJpKZ61ED7FN4j9rz7UEKD6ZVKzoTymwVWgi4lp+1MmO5BbwSJBaeLlc0xceoutKR2rAi+8pn6ci/CCnDtaZ5oLTmiPlIiJBH3qm6/tn/Xk=
+	t=1722446457; cv=none; b=tB1MyrPX+ErPSc2RXY8CMIFbfR3C+Jckjr0fnUc4SOJ1VokOtoYrIV/f9EpHJx87+hJgU2yd6efzqqUYIRsh7Bu9iXi8aVfKaCFdRSoClqwHU+FhEShv5GVMejR0Vu6yK9CbvphotKCBTm22S+I0BH2gz+ZUndq3cvlbCBRcjP0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722445772; c=relaxed/simple;
-	bh=EYpY7099QCElEKHoLrUW1uwKTwtxdidLb9OIFCE/24Q=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=PW+b1sleAc1QVHqdIk8I49FWoAe7SMPZh1lneFI3u/38UnxenPUiKux6VGYI6fnedCV4wyvAE1BcNAzjA7TcnQx1WGt21eUdPzDWQk7JjdKFQ08+VDETjMb80ZHu/Py/6JtPjB/gLORwedjncTvOwQbEX0up0hbdJypxLE1EQSk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1sZCpM-0006z0-UT; Wed, 31 Jul 2024 19:09:28 +0200
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>
-Subject: [PATCH nft v2 5/5] doc: add documentation about list hooks feature
-Date: Wed, 31 Jul 2024 18:51:05 +0200
-Message-ID: <20240731165111.32166-6-fw@strlen.de>
-X-Mailer: git-send-email 2.44.2
-In-Reply-To: <20240731165111.32166-1-fw@strlen.de>
-References: <20240731165111.32166-1-fw@strlen.de>
+	s=arc-20240116; t=1722446457; c=relaxed/simple;
+	bh=/OUjgcQxbVb4DKsUujnjXtANlpLT2j0hUSkBEfzHeXY=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=lTJT8Go9/altCJEOuBiqh0rfv6GJzFja24TPv8+00cnLPKM5hm8+VsIlAhLa/llofnx2mZ9VF/ztLiG2arD67ktXuDPRSYvo42PZCp/im4nlJCLFRLbptKNke2RdCe1AjZRHfUmY6d1cRL7LpyrKfLPZ/lAlY8sagiMNqx55hqc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.188
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
+Received: from mail.maildlp.com (unknown [172.19.162.254])
+	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4WYzN35cPxzfZ4Y;
+	Thu,  1 Aug 2024 01:18:59 +0800 (CST)
+Received: from dggpemm500020.china.huawei.com (unknown [7.185.36.49])
+	by mail.maildlp.com (Postfix) with ESMTPS id 6AECB180105;
+	Thu,  1 Aug 2024 01:20:50 +0800 (CST)
+Received: from [10.123.123.159] (10.123.123.159) by
+ dggpemm500020.china.huawei.com (7.185.36.49) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.39; Thu, 1 Aug 2024 01:20:46 +0800
+Message-ID: <0a3b8596-f3f3-f617-c40d-de54e8ff05f0@huawei-partners.com>
+Date: Wed, 31 Jul 2024 20:20:41 +0300
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH v1 2/9] landlock: Support TCP listen access-control
+Content-Language: ru
+To: =?UTF-8?Q?G=C3=BCnther_Noack?= <gnoack@google.com>
+CC: <mic@digikod.net>, <willemdebruijn.kernel@gmail.com>,
+	<gnoack3000@gmail.com>, <linux-security-module@vger.kernel.org>,
+	<netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
+	<yusongping@huawei.com>, <artem.kuzin@huawei.com>,
+	<konstantin.meskhidze@huawei.com>, <alx@kernel.org>
+References: <20240728002602.3198398-1-ivanov.mikhail1@huawei-partners.com>
+ <20240728002602.3198398-3-ivanov.mikhail1@huawei-partners.com>
+ <ZqijJPrnCnGnVGkq@google.com>
+From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+In-Reply-To: <ZqijJPrnCnGnVGkq@google.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: lhrpeml500002.china.huawei.com (7.191.160.78) To
+ dggpemm500020.china.huawei.com (7.185.36.49)
 
-Add a brief segment about 'nft list hooks' and a summary
-of the output format.
+7/30/2024 11:24 AM, Günther Noack wrote:
+> Hello!
+> 
+> Thanks for sending these patches!
+> 
+> Most comments are about documentation so far.
+> 
+> In the implementation, I'm mostly unclear about the interaction with the
+> uncommon Upper Layer Protocols.  I'm also not very familiar with the socket
+> state machines, maybe someone from the netdev list would have time to double
+> check that aspect?
+> 
+> 
+> On Sun, Jul 28, 2024 at 08:25:55AM +0800, Mikhail Ivanov wrote:
+>> LANDLOCK_ACCESS_NET_BIND_TCP is useful to limit the scope of "bindable"
+>> ports to forbid a malicious sandboxed process to impersonate a legitimate
+>> server process. However, bind(2) might be used by (TCP) clients to set the
+>> source port to a (legitimate) value. Controlling the ports that can be
+>> used for listening would allow (TCP) clients to explicitly bind to ports
+>> that are forbidden for listening.
+>>
+>> Such control is implemented with a new LANDLOCK_ACCESS_NET_LISTEN_TCP
+>> access right that restricts listening on undesired ports with listen(2).
+> 
+> Nit: I would turn around the first two commit message paragraphs and describe
+> your changes first, before explaining the problems in the bind(2) support.  I
+> was initially a bit confused that the description started talking about
+> LANDLOCK_ACCESS_NET_BIND_TCP.
+> 
+> General recommendations at:
+> https://www.kernel.org/doc/html/v6.10/process/submitting-patches.html#describe-your-changes
 
-As nft.txt is quite large, split the additonal commands
-into their own file.
+I consider the first paragraph as a problem statement for this patch.
+According to linux recommendations problem should be established before
+the description of changes. Do you think that the changes part should
+stand before the problem anyway?
 
-The existing listing section is removed; list subcommand is
-already mentioned in the relevant statement sections.
+> 
+> 
+>> It's worth noticing that this access right doesn't affect changing
+>> backlog value using listen(2) on already listening socket.
+>>
+>> * Create new LANDLOCK_ACCESS_NET_LISTEN_TCP flag.
+>> * Add hook to socket_listen(), which checks whether the socket is allowed
+>>    to listen on a binded local port.
+>> * Add check_tcp_socket_can_listen() helper, which validates socket
+>>    attributes before the actual access right check.
+>> * Update `struct landlock_net_port_attr` documentation with control of
+>>    binding to ephemeral port with listen(2) description.
+>> * Change ABI version to 6.
+>>
+>> Closes: https://github.com/landlock-lsm/linux/issues/15
+>> Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+>> ---
+>>   include/uapi/linux/landlock.h                | 23 +++--
+>>   security/landlock/limits.h                   |  2 +-
+>>   security/landlock/net.c                      | 90 ++++++++++++++++++++
+>>   security/landlock/syscalls.c                 |  2 +-
+>>   tools/testing/selftests/landlock/base_test.c |  2 +-
+>>   5 files changed, 108 insertions(+), 11 deletions(-)
+>>
+>> diff --git a/include/uapi/linux/landlock.h b/include/uapi/linux/landlock.h
+>> index 68625e728f43..6b8df3293eee 100644
+>> --- a/include/uapi/linux/landlock.h
+>> +++ b/include/uapi/linux/landlock.h
+>> @@ -104,13 +104,16 @@ struct landlock_net_port_attr {
+>>   	/**
+>>   	 * @port: Network port in host endianness.
+>>   	 *
+>> -	 * It should be noted that port 0 passed to :manpage:`bind(2)` will
+>> -	 * bind to an available port from a specific port range. This can be
+>> -	 * configured thanks to the ``/proc/sys/net/ipv4/ip_local_port_range``
+>> -	 * sysctl (also used for IPv6). A Landlock rule with port 0 and the
+>> -	 * ``LANDLOCK_ACCESS_NET_BIND_TCP`` right means that requesting to bind
+>> -	 * on port 0 is allowed and it will automatically translate to binding
+>> -	 * on the related port range.
+> 
+> Please rebase on a more recent revision, we have changed this phrasing in the meantime:
+> 
+>   - s/a specific port range/the ephemeral port range/
+>   - The paragraph was split in two.
 
-Reported-by: Phil Sutter <phil@nwl.cc>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Makefile.am                 |   1 +
- doc/additional-commands.txt | 116 ++++++++++++++++++++++++++++++++++++
- doc/nft.txt                 |  63 +-------------------
- 3 files changed, 118 insertions(+), 62 deletions(-)
- create mode 100644 doc/additional-commands.txt
+ok
 
-diff --git a/Makefile.am b/Makefile.am
-index d5ae1f66755a..fb64105dda88 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -321,6 +321,7 @@ A2X_OPTS_MANPAGE = \
- ASCIIDOC_MAIN = doc/nft.txt
- 
- ASCIIDOC_INCLUDES = \
-+	doc/additional-commands.txt \
- 	doc/data-types.txt \
- 	doc/payload-expression.txt \
- 	doc/primary-expression.txt \
-diff --git a/doc/additional-commands.txt b/doc/additional-commands.txt
-new file mode 100644
-index 000000000000..9ad338f8c7d1
---- /dev/null
-+++ b/doc/additional-commands.txt
-@@ -0,0 +1,116 @@
-+LIST HOOKS
-+~~~~~~~~~~
-+
-+This shows the list of functions that have been registered for the
-+given protocol family, including functions that have been
-+registered implicitly by kernel modules such as nf_conntrack. +
-+
-+[verse]
-+____
-+*list hooks* ['family']
-+*list hooks netdev device* 'DEVICE_NAME'
-+____
-+
-+*list hooks* is enough to display everything that is active
-+on the system, however, it does currently omit hooks that are
-+tied to a specific network device (netdev family). To obtain
-+those, the network device needs to be queried by name.
-+Example Usage:
-+
-+.List all active netfilter hooks in either the ip or ip6 stack
-+--------------------------------------------------------------
-+% nft list hooks inet
-+family ip {
-+        hook prerouting {
-+                -0000000400 ipv4_conntrack_defrag [nf_defrag_ipv4]
-+                -0000000200 ipv4_conntrack_in [nf_conntrack]
-+                -0000000100 nf_nat_ipv4_pre_routing [nf_nat]
-+        }
-+        hook input {
-+                 0000000000 chain inet filter input [nf_tables]
-+                +0000000100 nf_nat_ipv4_local_in [nf_nat]
-+[..]
-+--------------------------------------------------------------
-+
-+The above shows a host that has nat, conntrack and ipv4 packet
-+defragmentation enabled.
-+For each hook location for the queried family a list of active hooks
-+using the format +
-+
-+*priority* *identifier* [*module_name*]
-+
-+will be shown.
-+
-+The *priority* value dictates the order in which the hooks are called.
-+The list is sorted, the lowest number is run first.
-+
-+The priority value of hooks registered by the kernel cannot be changed.
-+For basechains registered by nftables, this value corresponds to the
-+*priority* value specified in the base chain definition.
-+
-+After the numerical value, information about the hook is shown.
-+For basechains defined in nftables this includes the table family,
-+the table name and the basechains name.
-+For hooks coming from kernel modules, the function name is used
-+instead.
-+
-+If a *module name* is given, the hook was registered by the kernel
-+module with this name.  You can use 'modinfo *module name*' to
-+obtain more information about the module.
-+
-+This functionality requires a kernel built with the option +
-+CONFIG_NETFILTER_NETLINK_HOOK
-+enabled, either as a module or builtin. The module is named
-+*nfnetlink_hook*.
-+
-+MONITOR
-+~~~~~~~
-+The monitor command allows you to listen to Netlink events produced by the
-+nf_tables subsystem. These are either related to creation and deletion of
-+objects or to packets for which *meta nftrace* was enabled. When they
-+occur, nft will print to stdout the monitored events in either JSON or
-+native nft format. +
-+
-+[verse]
-+____
-+*monitor* [*new* | *destroy*] 'MONITOR_OBJECT'
-+*monitor* *trace*
-+
-+'MONITOR_OBJECT' := *tables* | *chains* | *sets* | *rules* | *elements* | *ruleset*
-+____
-+
-+To filter events related to a concrete object, use one of the keywords in
-+'MONITOR_OBJECT'.
-+
-+To filter events related to a concrete action, use keyword *new* or *destroy*.
-+
-+The second form of invocation takes no further options and exclusively prints
-+events generated for packets with *nftrace* enabled.
-+
-+Hit ^C to finish the monitor operation.
-+
-+.Listen to all events, report in native nft format
-+--------------------------------------------------
-+% nft monitor
-+--------------------------------------------------
-+
-+.Listen to deleted rules, report in JSON format
-+-----------------------------------------------
-+% nft -j monitor destroy rules
-+-----------------------------------------------
-+
-+.Listen to both new and destroyed chains, in native nft format
-+-----------------------------------------------------------------
-+% nft monitor chains
-+-------------------------------
-+
-+.Listen to ruleset events such as table, chain, rule, set, counters and quotas, in native nft format
-+----------------------------------------------------------------------------------------------------
-+% nft monitor ruleset
-+---------------------
-+
-+.Trace incoming packets from host 10.0.0.1
-+------------------------------------------
-+% nft add rule filter input ip saddr 10.0.0.1 meta nftrace set 1
-+% nft monitor trace
-+------------------------------------------
-diff --git a/doc/nft.txt b/doc/nft.txt
-index 3f4593a29831..7e8c8695522d 100644
---- a/doc/nft.txt
-+++ b/doc/nft.txt
-@@ -766,17 +766,6 @@ and subtraction can be used to set relative priority, e.g. filter + 5 equals to
- *destroy*:: Delete the specified flowtable, it does not fail if it does not exist.
- *list*:: List all flowtables.
- 
--LISTING
---------
--[verse]
--*list { secmarks | synproxys | flow tables | meters | hooks }* ['family']
--*list { secmarks | synproxys | flow tables | meters | hooks } table* ['family'] 'table'
--*list ct { timeout | expectation | helper | helpers } table* ['family'] 'table'
--
--Inspect configured objects.
--*list hooks* shows the full hook pipeline, including those registered by
--kernel modules, such as nf_conntrack.
--
- STATEFUL OBJECTS
- ----------------
- [verse]
-@@ -908,57 +897,7 @@ ADDITIONAL COMMANDS
- -------------------
- These are some additional commands included in nft.
- 
--MONITOR
--~~~~~~~~
--The monitor command allows you to listen to Netlink events produced by the
--nf_tables subsystem. These are either related to creation and deletion of
--objects or to packets for which *meta nftrace* was enabled. When they
--occur, nft will print to stdout the monitored events in either JSON or
--native nft format. +
--
--[verse]
--____
--*monitor* [*new* | *destroy*] 'MONITOR_OBJECT'
--*monitor* *trace*
--
--'MONITOR_OBJECT' := *tables* | *chains* | *sets* | *rules* | *elements* | *ruleset*
--____
--
--To filter events related to a concrete object, use one of the keywords in
--'MONITOR_OBJECT'.
--
--To filter events related to a concrete action, use keyword *new* or *destroy*.
--
--The second form of invocation takes no further options and exclusively prints
--events generated for packets with *nftrace* enabled.
--
--Hit ^C to finish the monitor operation.
--
--.Listen to all events, report in native nft format
----------------------------------------------------
--% nft monitor
----------------------------------------------------
--
--.Listen to deleted rules, report in JSON format
-------------------------------------------------
--% nft -j monitor destroy rules
-------------------------------------------------
--
--.Listen to both new and destroyed chains, in native nft format
-------------------------------------------------------------------
--% nft monitor chains
---------------------------------
--
--.Listen to ruleset events such as table, chain, rule, set, counters and quotas, in native nft format
------------------------------------------------------------------------------------------------------
--% nft monitor ruleset
-----------------------
--
--.Trace incoming packets from host 10.0.0.1
--------------------------------------------
--% nft add rule filter input ip saddr 10.0.0.1 meta nftrace set 1
--% nft monitor trace
--------------------------------------------
-+include::additional-commands.txt[]
- 
- ERROR REPORTING
- ---------------
--- 
-2.44.2
+> 
+>> +	 * It should be noted that some operations cause binding socket to a random
+>> +	 * available port from a specific port range. This can be configured thanks
+>> +	 * to the ``/proc/sys/net/ipv4/ip_local_port_range`` sysctl (also used for
+>> +	 * IPv6). Following operation requests are automatically translate to
+>> +	 * binding on the related port range:
+>> +	 *
+>> +	 * - A Landlock rule with port 0 and the ``LANDLOCK_ACCESS_NET_BIND_TCP``
+>> +	 *   right means that binding on port 0 is allowed.
+>> +	 * - A Landlock rule with port 0 and the ``LANDLOCK_ACCESS_NET_LISTEN_TCP``
+>> +	 *   right means listening without an explicit binding is allowed.
+> 
+> There are some grammatical problems in this documentation section.
+> 
+> Can I suggest an alternative?
+> 
+>    Some socket operations will fall back to using a port from the ephemeral port
+>    range, if no specific port is requested by the caller.  Among others, this
+>    happens in the following cases:
+> 
+>    - :manpage:`bind(2)` is invoked with a socket address that uses port 0.
+>    - :manpage:`listen(2)` is invoked on a socket without previously calling
+>      :manpage:`bind(2)`.
+> 
+>    These two actions, which implicitly use an ephemeral port, can be allowed with
+>    a Landlock rule with port 0 and the ``LANDLOCK_ACCESS_NET_BIND_TCP`` /
+>    ``LANDLOCK_ACCESS_NET_LISTEN_TCP`` right.
+> 
+>    The ephemeral port range is configured in the
+>    ``/proc/sys/net/ipv4/ip_local_port_range`` sysctl (also used for IPv6).
 
+Thanks, lets take this one.
+
+> 
+> When we have the documentation wording finalized,
+> please send an update to the man pages as well,
+> for this and other documentation updates.
+
+Should I send it after this patchset would be accepted?
+
+> 
+> Small remarks on what I've done here:
+> 
+> * I am avoiding the word "binding" when referring to the automatic assignment to
+>    an ephemeral port - IMHO, this is potentially confusing, since bind(2) is not
+>    explicitly called.
+> * I am also dropping the "It should be noted" / "Note that" phrase, which is
+>    frowned upon in man pages.
+
+Didn't know that, thanks
+
+> 
+>>   	 */
+>>   	__u64 port;
+>>   };
+>> @@ -251,7 +254,7 @@ struct landlock_net_port_attr {
+>>    * DOC: net_access
+>>    *
+>>    * Network flags
+>> - * ~~~~~~~~~~~~~~~~
+>> + * ~~~~~~~~~~~~~
+>>    *
+>>    * These flags enable to restrict a sandboxed process to a set of network
+>>    * actions. This is supported since the Landlock ABI version 4.
+>> @@ -261,9 +264,13 @@ struct landlock_net_port_attr {
+>>    * - %LANDLOCK_ACCESS_NET_BIND_TCP: Bind a TCP socket to a local port.
+>>    * - %LANDLOCK_ACCESS_NET_CONNECT_TCP: Connect an active TCP socket to
+>>    *   a remote port.
+>> + * - %LANDLOCK_ACCESS_NET_LISTEN_TCP: Listen for TCP socket connections on
+>> + *   a local port. This access right is available since the sixth version
+>> + *   of the Landlock ABI.
+>>    */
+>>   /* clang-format off */
+>>   #define LANDLOCK_ACCESS_NET_BIND_TCP			(1ULL << 0)
+>>   #define LANDLOCK_ACCESS_NET_CONNECT_TCP			(1ULL << 1)
+>> +#define LANDLOCK_ACCESS_NET_LISTEN_TCP			(1ULL << 2)
+>>   /* clang-format on */
+>>   #endif /* _UAPI_LINUX_LANDLOCK_H */
+>> diff --git a/security/landlock/limits.h b/security/landlock/limits.h
+>> index 4eb643077a2a..2ef147389474 100644
+>> --- a/security/landlock/limits.h
+>> +++ b/security/landlock/limits.h
+>> @@ -22,7 +22,7 @@
+>>   #define LANDLOCK_MASK_ACCESS_FS		((LANDLOCK_LAST_ACCESS_FS << 1) - 1)
+>>   #define LANDLOCK_NUM_ACCESS_FS		__const_hweight64(LANDLOCK_MASK_ACCESS_FS)
+>>   
+>> -#define LANDLOCK_LAST_ACCESS_NET	LANDLOCK_ACCESS_NET_CONNECT_TCP
+>> +#define LANDLOCK_LAST_ACCESS_NET	LANDLOCK_ACCESS_NET_LISTEN_TCP
+>>   #define LANDLOCK_MASK_ACCESS_NET	((LANDLOCK_LAST_ACCESS_NET << 1) - 1)
+>>   #define LANDLOCK_NUM_ACCESS_NET		__const_hweight64(LANDLOCK_MASK_ACCESS_NET)
+>>   
+>> diff --git a/security/landlock/net.c b/security/landlock/net.c
+>> index 669ba260342f..a29cb27c3f14 100644
+>> --- a/security/landlock/net.c
+>> +++ b/security/landlock/net.c
+>> @@ -6,10 +6,12 @@
+>>    * Copyright © 2022-2023 Microsoft Corporation
+>>    */
+>>   
+>> +#include "net/sock.h"
+>>   #include <linux/in.h>
+>>   #include <linux/net.h>
+>>   #include <linux/socket.h>
+>>   #include <net/ipv6.h>
+>> +#include <net/tcp.h>
+>>   
+>>   #include "common.h"
+>>   #include "cred.h"
+>> @@ -194,9 +196,97 @@ static int hook_socket_connect(struct socket *const sock,
+>>   					   LANDLOCK_ACCESS_NET_CONNECT_TCP);
+>>   }
+>>   
+>> +/*
+>> + * Checks that socket state and attributes are correct for listen.
+>> + * It is required to not wrongfully return -EACCES instead of -EINVAL.
+>        ^^^^^^^^^^^^^^
+> 
+> Doc nit: I would just document that this function returns -EINVAL on failure?
+> In this place, I would expect that the function interface is documented for
+> callers.  (From that perspective, this is not a requirement, but a guarantee
+> that the function gives.)
+
+Agreed, thanks
+
+> 
+>> + *
+>> + * This checker requires sock->sk to be locked.
+>> + */
+>> +static int check_tcp_socket_can_listen(struct socket *const sock)
+>> +{
+>> +	struct sock *sk = sock->sk;
+>> +	unsigned char cur_sk_state = sk->sk_state;
+>> +	const struct tcp_ulp_ops *icsk_ulp_ops;
+>> +
+>> +	/* Allows only unconnected TCP socket to listen (cf. inet_listen). */
+>> +	if (sock->state != SS_UNCONNECTED)
+>> +		return -EINVAL;
+>> +
+>> +	/*
+>> +	 * Checks sock state. This is needed to ensure consistency with inet stack
+>> +	 * error handling (cf. __inet_listen_sk).
+>> +	 */
+>> +	if (WARN_ON_ONCE(!((1 << cur_sk_state) & (TCPF_CLOSE | TCPF_LISTEN))))
+>> +		return -EINVAL;
+>> +
+>> +	icsk_ulp_ops = inet_csk(sk)->icsk_ulp_ops;
+>> +
+>> +	/*
+>> +	 * ULP (Upper Layer Protocol) stands for protocols which are higher than
+>> +	 * transport protocol in OSI model. Linux has an infrastructure that
+>> +	 * allows TCP sockets to support logic of some ULP (e.g. TLS ULP).
+>> +	 *
+>> +	 * Sockets can listen only if ULP control hook has clone method.
+>> +	 */
+>> +	if (icsk_ulp_ops && !icsk_ulp_ops->clone)
+>> +		return -EINVAL;
+> 
+> This seems like an implementation detail in the networking subsystem?
+
+Yeap. There is probably a missing reference to the corresponding network
+stack code (inet_csk_listen_start()). I'll add it.
+
+> 
+> If I understand correctly, these are cases where we use TCP on top of protocols
+> that are not IP (or have an additional layer in the middle, like TLS?).  This
+> can not be recognized through the socket family or type?
+
+ULP can be used in the context of TCP protocols as an additional layer
+(currently supported only by IP and MPTCP), so it cannot be recognized
+with family or type. You can check this test [1] in which TCP IP socket
+is created with ULP control hook.
+
+[1] 
+https://lore.kernel.org/all/20240728002602.3198398-8-ivanov.mikhail1@huawei-partners.com/
+
+> 
+> Do we have cases where we can run TCP on top of something else than plain IPv4
+> or IPv6, where the clone method exists?
+
+Yeah, MPTCP protocol for example (see net/mptcp/subflow.c). ULP control
+hook is supported only by IP and MPTCP, and in both cases
+clone method is checked during listen(2) execution.
+
+> 
+>> +	return 0;
+>> +}
+>> +
+>> +static int hook_socket_listen(struct socket *const sock, const int backlog)
+>> +{
+>> +	int err = 0;
+>> +	int family;
+>> +	__be16 port;
+>> +	struct sock *sk;
+>> +	const struct landlock_ruleset *const dom = get_current_net_domain();
+>> +
+>> +	if (!dom)
+>> +		return 0;
+>> +	if (WARN_ON_ONCE(dom->num_layers < 1))
+>> +		return -EACCES;
+>> +
+>> +	/* Checks if it's a (potential) TCP socket. */
+>> +	if (sock->type != SOCK_STREAM)
+>> +		return 0;
+>> +
+>> +	sk = sock->sk;
+>> +	family = sk->__sk_common.skc_family;
+>> +	/*
+>> +	 * Socket cannot be assigned AF_UNSPEC because this type is used only
+>> +	 * in the context of addresses.
+>> +	 *
+>> +	 * Doesn't restrict listening for non-TCP sockets.
+>> +	 */
+>> +	if (family != AF_INET && family != AF_INET6)
+>> +		return 0;
+> 
+> Aren't the socket type and family checks duplicated with existing logic that we
+> have for the connect(2) and bind(2) support?  Should it be deduplicated, or is
+> that too messy?
+
+bind(2) and connect(2) hooks also support AF_UNSPEC family, so I think
+such helper is gonna complicate code a little bit. Also it can
+complicate switch in current_check_access_socket().
+
+> 
+>> +
+>> +	lock_sock(sk);
+>> +	/*
+>> +	 * Calling listen(2) for a listening socket does nothing with its state and
+>> +	 * only changes backlog value (cf. __inet_listen_sk). Checking of listen
+>> +	 * access right is not required.
+>> +	 */
+>> +	if (sk->sk_state == TCP_LISTEN)
+>> +		goto release_nocheck;
+>> +
+>> +	err = check_tcp_socket_can_listen(sock);
+>> +	if (unlikely(err))
+>> +		goto release_nocheck;
+>> +
+>> +	port = htons(inet_sk(sk)->inet_num);
+>> +	release_sock(sk);
+>> +	return check_access_socket(dom, port, LANDLOCK_ACCESS_NET_LISTEN_TCP);
+>> +
+>> +release_nocheck:
+>> +	release_sock(sk);
+>> +	return err;
+>> +}
+> 
+> Thanks for sending these patches!
+> 
+> —Günther
