@@ -1,171 +1,101 @@
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+Received: from smtp-bc0a.mail.infomaniak.ch (smtp-bc0a.mail.infomaniak.ch [45.157.188.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D81719478;
-	Thu,  1 Aug 2024 15:48:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5E861EB4A2
+	for <netfilter-devel@vger.kernel.org>; Thu,  1 Aug 2024 16:01:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.157.188.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722527291; cv=none; b=Nr/vZWiTH9983Ip7+X5jXfdy2O+8nf8b+YMl6hOFs5gWoxdrAszRiPwNpJ3QI5HopghbVbXew864yIZuqSOuEX023qft+zvwOfEAbKM7ARIgL02dmXr5JxOXs3gBlo1o6/+DJNlew48jtlWn10VJDH8mnFF0oqISxc/YcKg4tmA=
+	t=1722528099; cv=none; b=ny99WAJDdQbSQg5Sc5AWqPKnOuEOF5JKT7qIs8KCmvP3jorHRZVbakx61DExcUnO8OPASszw3EMRkZgeI2at1O5tIE41+XeHm9uP3bmTyWyvnpGNL2DWwQAoWlGWZXHLuoxhLa0fOq3FOD4jRs4O5MSXLrdgPYJFWdfBfTNco0s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722527291; c=relaxed/simple;
-	bh=3b3teYOeMnKN/5gEkex+1dr1uybGX1tQ7lYOcPUoa4Q=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=ap3WwKas3hvR6F/w0I6sq38u6fkE7HWrFWyYXMVjBMGHnKHlyhsuJmHDjGhE9ZXbUI1bGatlkIMRJKyhS4H1fsJjx625WUhb0tGo+gswWyxrf/35pr74YN9VFz6sCp788iVgXmUDMv3QeZ2Kai/qt7WEUIXtRKKfy4KhF+uofds=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.188
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
-Received: from mail.maildlp.com (unknown [172.19.88.105])
-	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4WZYGX1zszzfZ2f;
-	Thu,  1 Aug 2024 23:46:12 +0800 (CST)
-Received: from dggpemm500020.china.huawei.com (unknown [7.185.36.49])
-	by mail.maildlp.com (Postfix) with ESMTPS id 5BED11402CD;
-	Thu,  1 Aug 2024 23:48:03 +0800 (CST)
-Received: from [10.123.123.159] (10.123.123.159) by
- dggpemm500020.china.huawei.com (7.185.36.49) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.39; Thu, 1 Aug 2024 23:47:59 +0800
-Message-ID: <af585335-9844-c9c1-5320-7751e0f3a97c@huawei-partners.com>
-Date: Thu, 1 Aug 2024 18:47:55 +0300
+	s=arc-20240116; t=1722528099; c=relaxed/simple;
+	bh=45yB8yF0V5hIkICg1x8b1vulfM9LSnFufHVSgPmniTc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=fosSUIKu3OMTKTcos0Fp0zbvpCW3ZmukFwTKtw+jxHRsYTqQoUXwxma2V8Xk+2hhLNd5ZH5YlQ/FtW84uCRn2Qp2xx2GXW2MdxNcDXDMm4+WFD1cbZP07WFGzDVRNiQ5QpQ8E2TEv705hOcMTdusliUAJk/ftEnnMF1t6F+AlBY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net; spf=pass smtp.mailfrom=digikod.net; dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b=OZZ64Xjc; arc=none smtp.client-ip=45.157.188.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=digikod.net
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b="OZZ64Xjc"
+Received: from smtp-4-0000.mail.infomaniak.ch (smtp-4-0000.mail.infomaniak.ch [10.7.10.107])
+	by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4WZYcB5HXkzNW5;
+	Thu,  1 Aug 2024 18:01:30 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=digikod.net;
+	s=20191114; t=1722528090;
+	bh=X7LSKL3+/n7qtF/prYYHJdu0GTbfDpVACKcRIlnRM60=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=OZZ64Xjcl++YpnEKFkfRknQHNtyHvbkK5HyzIx78L7cblHJlZIEL+m0ChQr/HenvG
+	 xDwqHXo9D6sQSd0OehF/BVsyQGyA/GsV1N31HCsAa2ShhjOXgT/yubWhd5Vb0JEbYy
+	 B1TQ+tx/8yC8Ij/mft0cABolKtPLmRSdyOUPtE58=
+Received: from unknown by smtp-4-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4WZYc96bL6zqdN;
+	Thu,  1 Aug 2024 18:01:29 +0200 (CEST)
+Date: Thu, 1 Aug 2024 18:01:25 +0200
+From: =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
+To: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+Cc: willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com, 
+	linux-security-module@vger.kernel.org, netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+	yusongping@huawei.com, artem.kuzin@huawei.com, konstantin.meskhidze@huawei.com
+Subject: Re: [RFC PATCH v1 2/9] landlock: Support TCP listen access-control
+Message-ID: <20240801.eeBaiB4Ijion@digikod.net>
+References: <20240728002602.3198398-1-ivanov.mikhail1@huawei-partners.com>
+ <20240728002602.3198398-3-ivanov.mikhail1@huawei-partners.com>
+ <20240731.AFooxaeR5mie@digikod.net>
+ <68568a44-2079-33ac-592d-c2677acf50dd@huawei-partners.com>
+ <20240801.EeshaeThai9j@digikod.net>
+ <7c8ed332-c4ec-81e7-a94a-e1b62d820dd3@huawei-partners.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH v1 5/9] selftests/landlock: Test listen on connected
- socket
-Content-Language: ru
-To: =?UTF-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
-CC: <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
-	<linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-	<netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-	<artem.kuzin@huawei.com>, <konstantin.meskhidze@huawei.com>
-References: <20240728002602.3198398-1-ivanov.mikhail1@huawei-partners.com>
- <20240728002602.3198398-6-ivanov.mikhail1@huawei-partners.com>
- <20240801.Ee3Cai7eeD1g@digikod.net>
-From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-In-Reply-To: <20240801.Ee3Cai7eeD1g@digikod.net>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: lhrpeml500005.china.huawei.com (7.191.163.240) To
- dggpemm500020.china.huawei.com (7.185.36.49)
+In-Reply-To: <7c8ed332-c4ec-81e7-a94a-e1b62d820dd3@huawei-partners.com>
+X-Infomaniak-Routing: alpha
 
-8/1/2024 5:46 PM, Mickaël Salaün wrote:
-> On Sun, Jul 28, 2024 at 08:25:58AM +0800, Mikhail Ivanov wrote:
->> Test checks that listen(2) doesn't wrongfully return -EACCES instead
->> of -EINVAL when trying to listen for an incorrect socket state.
->>
->> Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+On Thu, Aug 01, 2024 at 06:34:41PM +0300, Mikhail Ivanov wrote:
+> 8/1/2024 5:45 PM, Mickaël Salaün wrote:
+> > On Thu, Aug 01, 2024 at 10:52:25AM +0300, Mikhail Ivanov wrote:
+> > > 7/31/2024 9:30 PM, Mickaël Salaün wrote:
+> > > > On Sun, Jul 28, 2024 at 08:25:55AM +0800, Mikhail Ivanov wrote:
+> > > > > LANDLOCK_ACCESS_NET_BIND_TCP is useful to limit the scope of "bindable"
+> > > > > ports to forbid a malicious sandboxed process to impersonate a legitimate
+> > > > > server process. However, bind(2) might be used by (TCP) clients to set the
+> > > > > source port to a (legitimate) value. Controlling the ports that can be
+> > > > > used for listening would allow (TCP) clients to explicitly bind to ports
+> > > > > that are forbidden for listening.
+> > > > > 
+> > > > > Such control is implemented with a new LANDLOCK_ACCESS_NET_LISTEN_TCP
+> > > > > access right that restricts listening on undesired ports with listen(2).
+> > > > > 
+> > > > > It's worth noticing that this access right doesn't affect changing
+> > > > > backlog value using listen(2) on already listening socket.
+> > > > > 
+> > > > > * Create new LANDLOCK_ACCESS_NET_LISTEN_TCP flag.
+> > > > > * Add hook to socket_listen(), which checks whether the socket is allowed
+> > > > >     to listen on a binded local port.
+> > > > > * Add check_tcp_socket_can_listen() helper, which validates socket
+> > > > >     attributes before the actual access right check.
+> > > > > * Update `struct landlock_net_port_attr` documentation with control of
+> > > > >     binding to ephemeral port with listen(2) description.
+> > > > > * Change ABI version to 6.
+> > > > > 
+> > > > > Closes: https://github.com/landlock-lsm/linux/issues/15
+> > > > > Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+> > > > 
+> > > > Thanks for this series!
+> > > > 
+> > > > I cannot apply this patch series though, could you please provide the
+> > > > base commit?  BTW, this can be automatically put in the cover letter
+> > > > with the git format-patch's --base argument.
+> > > 
+> > > base-commit: 591561c2b47b7e7225e229e844f5de75ce0c09ec
+> > 
+> > Thanks, the following commit makes this series to not apply.
 > 
-> Good to have this test!
-> 
->> ---
->>   tools/testing/selftests/landlock/net_test.c | 65 +++++++++++++++++++++
->>   1 file changed, 65 insertions(+)
->>
->> diff --git a/tools/testing/selftests/landlock/net_test.c b/tools/testing/selftests/landlock/net_test.c
->> index b6fe9bde205f..a8385f1373f6 100644
->> --- a/tools/testing/selftests/landlock/net_test.c
->> +++ b/tools/testing/selftests/landlock/net_test.c
->> @@ -1644,6 +1644,71 @@ TEST_F(ipv4_tcp, with_fs)
->>   	EXPECT_EQ(-EACCES, bind_variant(bind_fd, &self->srv1));
->>   }
->>   
->> +TEST_F(ipv4_tcp, listen_on_connected)
-> 
-> We should use the "protocol" fixture and its variants instead to test
-> with different protocols and also without sandboxing (which is crutial).
-> 
-> I guess espintcp_listen should use "protocol" too.
-> 
-> ipv4_tcp is to run tests that only make sense on an IPv4 socket, but
-> when we test EINVAL, we should make sure Landlock doesn't introduce
-> inconsistencies for other/unsupported protocols.
+> Sorry, you mean that the series are succesfully applied, right?
 
-Makes sense, let's use "protocol".
-
-> 
->> +{
->> +	const struct landlock_ruleset_attr ruleset_attr = {
->> +		.handled_access_net = ACCESS_ALL,
->> +	};
->> +	const struct landlock_net_port_attr tcp_not_restricted_p0 = {
->> +		.allowed_access = ACCESS_ALL,
->> +		.port = self->srv0.port,
->> +	};
->> +	const struct landlock_net_port_attr tcp_denied_listen_p1 = {
->> +		.allowed_access = ACCESS_ALL & ~LANDLOCK_ACCESS_NET_LISTEN_TCP,
->> +		.port = self->srv1.port,
->> +	};
->> +	int ruleset_fd;
->> +	int bind_fd, status;
->> +	pid_t child;
->> +
->> +	ruleset_fd =
->> +		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
->> +	ASSERT_LE(0, ruleset_fd);
->> +
->> +	/* Allows all actions for the first port. */
->> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
->> +				       &tcp_not_restricted_p0, 0));
->> +
->> +	/* Deny listen for the second port. */
-> 
-> nit: Denies listening
-
-will be fixed
-
-> 
->> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
->> +				       &tcp_denied_listen_p1, 0));
->> +
->> +	enforce_ruleset(_metadata, ruleset_fd);
->> +	EXPECT_EQ(0, close(ruleset_fd));
->> +
->> +	/* Init listening socket. */
-> 
-> nit: Initializes
-
-will be fixed
-
-> 
->> +	bind_fd = socket_variant(&self->srv0);
->> +	ASSERT_LE(0, bind_fd);
->> +	EXPECT_EQ(0, bind_variant(bind_fd, &self->srv0));
->> +	EXPECT_EQ(0, listen_variant(bind_fd, backlog));
->> +
->> +	child = fork();
->> +	ASSERT_LE(0, child);
->> +	if (child == 0) {
->> +		int connect_fd;
->> +
->> +		/* Closes listening socket for the child. */
->> +		EXPECT_EQ(0, close(bind_fd));
->> +
->> +		connect_fd = socket_variant(&self->srv1);
->> +		ASSERT_LE(0, connect_fd);
->> +		EXPECT_EQ(0, connect_variant(connect_fd, &self->srv0));
->> +
->> +		/* Tries to listen on connected socket. */
->> +		EXPECT_EQ(-EINVAL, listen_variant(connect_fd, backlog));
->> +
->> +		EXPECT_EQ(0, close(connect_fd));
->> +		_exit(_metadata->exit_code);
->> +		return;
->> +	}
->> +
->> +	EXPECT_EQ(child, waitpid(child, &status, 0));
->> +	EXPECT_EQ(1, WIFEXITED(status));
->> +	EXPECT_EQ(EXIT_SUCCESS, WEXITSTATUS(status));
->> +
->> +	EXPECT_EQ(0, close(bind_fd));
->> +}
->> +
->>   FIXTURE(port_specific)
->>   {
->>   	struct service_fixture srv0;
->> -- 
->> 2.34.1
->>
->>
+Yes, it works with the commit you provided.  I was talking about a next
+(logical) commit f4b89d8ce5a8 ("landlock: Various documentation
+improvements") which makes your series not apply, but that's OK now.
