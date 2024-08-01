@@ -1,31 +1,31 @@
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8A6D1B32A8;
-	Thu,  1 Aug 2024 16:07:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB3B5182D8;
+	Thu,  1 Aug 2024 17:42:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722528435; cv=none; b=aqVtqBgQb3N2Vq3BRrYYAR2NnUZxIdDyvUIJ1KR8PWeQlisbv2z3ogHQvM9WZXrinzsb042OcaM7JxMhf/RKgeq9e2d8CAvo+4jn3DZsWC6NMYa6O+u20Z+g+6IG9J+4qyAIEu2uNhT04i9eOXBSQ4Ijh/z3TPzGzzcwz7nRx6o=
+	t=1722534152; cv=none; b=MfbK1n2pme4qt1dSMUrsV07c/b5M2ixiuudslq779N4IIIiG7Bjl9LMWSGUAJX0ENF5sE9tvPahTMiwnYmSR2RcQhF89IbRUJCOxyiCi0cRg77LgZOImp9lU6rxUqiC0seJ9IFUg0kbsv4F9g7nE28vyi3XC3LOhuZk2A7EUeQ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722528435; c=relaxed/simple;
-	bh=bixVSSRoXHBvRRJby/jKQbob1oz3+FTnSMtRYK4gGv4=;
+	s=arc-20240116; t=1722534152; c=relaxed/simple;
+	bh=cmfIGnKINzdZlBL5hIS52WEXlNaTuy02vwjO0xUPTfs=;
 	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=LVl9bRQmNQOCbTqCnfqPfbXLgX39B9DrRA+pee1ogr+7Xi5qo7xy9d632pXrjMk/tqr/d8AdgqpphUjCdT0LJAhBCoIzSBKGJoTXNFvnpkaCySqIRM6sjhP9xXmVBCEL02Wq0U0t5MQ6/DwADoeN349hloJ4Orpb1RToEVjVPXo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.187
+	 In-Reply-To:Content-Type; b=LwJ+4zQhEEhFlRAz2T0Q0ePq2pj9PaZE5NLrHvzI3oPF/RAl/MWZ7gso0Q1W5JJ6I4plNfSNj0IqbuzM/miTP0ofTd14kgR0+2tWljOB5/cIoqRE+RaFEnUI8NZLKY0Xg42FIUc2mAuG3tz72WEpjZBT2UnTozvfW/L4x83L6fU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.188
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
 Received: from mail.maildlp.com (unknown [172.19.163.252])
-	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4WZYkT5cRZzxVvR;
-	Fri,  2 Aug 2024 00:06:57 +0800 (CST)
+	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4WZbqS4hJnznctB;
+	Fri,  2 Aug 2024 01:41:24 +0800 (CST)
 Received: from dggpemm500020.china.huawei.com (unknown [7.185.36.49])
-	by mail.maildlp.com (Postfix) with ESMTPS id 0105D1800A0;
-	Fri,  2 Aug 2024 00:07:11 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 161531800A0;
+	Fri,  2 Aug 2024 01:42:26 +0800 (CST)
 Received: from [10.123.123.159] (10.123.123.159) by
  dggpemm500020.china.huawei.com (7.185.36.49) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.39; Fri, 2 Aug 2024 00:07:07 +0800
-Message-ID: <35e1e1fb-7252-fcc5-7348-2a8a485efcce@huawei-partners.com>
-Date: Thu, 1 Aug 2024 19:07:03 +0300
+ 15.1.2507.39; Fri, 2 Aug 2024 01:42:22 +0800
+Message-ID: <cc50cc99-a89b-9a02-e1a7-23fd5ef1093a@huawei-partners.com>
+Date: Thu, 1 Aug 2024 20:42:18 +0300
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -33,7 +33,8 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH v1 2/9] landlock: Support TCP listen access-control
+Subject: Re: [RFC PATCH v1 7/9] selftests/landlock: Test listen on ULP socket
+ without clone method
 Content-Language: ru
 To: =?UTF-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
 CC: <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
@@ -41,63 +42,58 @@ CC: <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
 	<netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
 	<artem.kuzin@huawei.com>, <konstantin.meskhidze@huawei.com>
 References: <20240728002602.3198398-1-ivanov.mikhail1@huawei-partners.com>
- <20240728002602.3198398-3-ivanov.mikhail1@huawei-partners.com>
- <20240731.AFooxaeR5mie@digikod.net>
- <68568a44-2079-33ac-592d-c2677acf50dd@huawei-partners.com>
- <20240801.EeshaeThai9j@digikod.net>
- <7c8ed332-c4ec-81e7-a94a-e1b62d820dd3@huawei-partners.com>
- <20240801.eeBaiB4Ijion@digikod.net>
+ <20240728002602.3198398-8-ivanov.mikhail1@huawei-partners.com>
+ <20240801.rae2can8ooT9@digikod.net>
 From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-In-Reply-To: <20240801.eeBaiB4Ijion@digikod.net>
+In-Reply-To: <20240801.rae2can8ooT9@digikod.net>
 Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: lhrpeml100001.china.huawei.com (7.191.160.183) To
+X-ClientProxiedBy: lhrpeml500003.china.huawei.com (7.191.162.67) To
  dggpemm500020.china.huawei.com (7.185.36.49)
 
-8/1/2024 7:01 PM, Mickaël Salaün wrote:
-> On Thu, Aug 01, 2024 at 06:34:41PM +0300, Mikhail Ivanov wrote:
->> 8/1/2024 5:45 PM, Mickaël Salaün wrote:
->>> On Thu, Aug 01, 2024 at 10:52:25AM +0300, Mikhail Ivanov wrote:
->>>> 7/31/2024 9:30 PM, Mickaël Salaün wrote:
->>>>> On Sun, Jul 28, 2024 at 08:25:55AM +0800, Mikhail Ivanov wrote:
->>>>>> LANDLOCK_ACCESS_NET_BIND_TCP is useful to limit the scope of "bindable"
->>>>>> ports to forbid a malicious sandboxed process to impersonate a legitimate
->>>>>> server process. However, bind(2) might be used by (TCP) clients to set the
->>>>>> source port to a (legitimate) value. Controlling the ports that can be
->>>>>> used for listening would allow (TCP) clients to explicitly bind to ports
->>>>>> that are forbidden for listening.
->>>>>>
->>>>>> Such control is implemented with a new LANDLOCK_ACCESS_NET_LISTEN_TCP
->>>>>> access right that restricts listening on undesired ports with listen(2).
->>>>>>
->>>>>> It's worth noticing that this access right doesn't affect changing
->>>>>> backlog value using listen(2) on already listening socket.
->>>>>>
->>>>>> * Create new LANDLOCK_ACCESS_NET_LISTEN_TCP flag.
->>>>>> * Add hook to socket_listen(), which checks whether the socket is allowed
->>>>>>      to listen on a binded local port.
->>>>>> * Add check_tcp_socket_can_listen() helper, which validates socket
->>>>>>      attributes before the actual access right check.
->>>>>> * Update `struct landlock_net_port_attr` documentation with control of
->>>>>>      binding to ephemeral port with listen(2) description.
->>>>>> * Change ABI version to 6.
->>>>>>
->>>>>> Closes: https://github.com/landlock-lsm/linux/issues/15
->>>>>> Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
->>>>>
->>>>> Thanks for this series!
->>>>>
->>>>> I cannot apply this patch series though, could you please provide the
->>>>> base commit?  BTW, this can be automatically put in the cover letter
->>>>> with the git format-patch's --base argument.
->>>>
->>>> base-commit: 591561c2b47b7e7225e229e844f5de75ce0c09ec
->>>
->>> Thanks, the following commit makes this series to not apply.
+8/1/2024 6:08 PM, Mickaël Salaün wrote:
+> On Sun, Jul 28, 2024 at 08:26:00AM +0800, Mikhail Ivanov wrote:
+>> Test checks that listen(2) doesn't wrongfully return -EACCES instead of
+>> -EINVAL when trying to listen on a socket which is set to ULP that doesn't
+>> have clone method in inet_csk(sk)->icsk_ulp_ops (espintcp).
 >>
->> Sorry, you mean that the series are succesfully applied, right?
+>> Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+>> ---
+>>   tools/testing/selftests/landlock/config     |  1 +
+>>   tools/testing/selftests/landlock/net_test.c | 38 +++++++++++++++++++++
+>>   2 files changed, 39 insertions(+)
+>>
+>> diff --git a/tools/testing/selftests/landlock/config b/tools/testing/selftests/landlock/config
+>> index 0086efaa7b68..014401fe6114 100644
+>> --- a/tools/testing/selftests/landlock/config
+>> +++ b/tools/testing/selftests/landlock/config
+>> @@ -12,3 +12,4 @@ CONFIG_SHMEM=y
+>>   CONFIG_SYSFS=y
+>>   CONFIG_TMPFS=y
+>>   CONFIG_TMPFS_XATTR=y
+>> +CONFIG_INET_ESPINTCP=y
+>> \ No newline at end of file
 > 
-> Yes, it works with the commit you provided.  I was talking about a next
-> (logical) commit f4b89d8ce5a8 ("landlock: Various documentation
-> improvements") which makes your series not apply, but that's OK now.
-Nice
+> There are missing dependencies, and also please sort entries. I think it should
+> be:
+> 
+>   CONFIG_CGROUPS=y
+>   CONFIG_CGROUP_SCHED=y
+>   CONFIG_INET=y
+> +CONFIG_INET_ESPINTCP=y
+> +CONFIG_INET_ESP=y
+>   CONFIG_IPV6=y
+> +CONFIG_IPV6_ESP=y
+> +CONFIG_INET6_ESPINTCP=y
+>   CONFIG_NET=y
+>   CONFIG_NET_NS=y
+>   CONFIG_OVERLAY_FS=y
+> 
+> This works with check-linux.sh from
+> https://github.com/landlock-lsm/landlock-test-tools
+
+Thanks, I'll fix this.
+
+> 
+> IPv6 is currently not tested, which should be the case (with the "protocol"
+> variants).
