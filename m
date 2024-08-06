@@ -1,70 +1,53 @@
-Received: from mail-ej1-f53.google.com (mail-ej1-f53.google.com [209.85.218.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from gosford.compton.nu (gosford.compton.nu [217.169.17.27])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 396B81BE852;
-	Tue,  6 Aug 2024 10:28:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D15716DC07;
+	Tue,  6 Aug 2024 11:00:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.169.17.27
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722940104; cv=none; b=N7/RJGspK3avzZBB/MBwqbGlHYNRlIJ9thOQ9QhG/jT+SNh+xwKlFAL4IvsMbaDZxI5x1exdKN5D+EfOk5vkQixrBRT+R7mU+AO6ZoLlcJTJdci80oMWVVooE1MtBVxZuSyVLU9V6aAAXX8nVnjp/JhpC6LbwuPi6czEJYzQPis=
+	t=1722942013; cv=none; b=uLPtFFcis0Vkf3aJo6r0FdpwJwQNNAteuarRRJh9/4Kf+FZIbRaiyfIEPd0ZfI0w+lEuPRZImYQWAsGuLFfSbpJZvjNAuRXKVVdSCMFeAr8SOK5qk9xM6SPk7dY2g5JywuoVDuhmJvup9Y48deE9sC+X6aW6ORY27L1ueNzFweY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722940104; c=relaxed/simple;
-	bh=EOfE/ebGBtf74dVOWosTb1GOhybI3Ox0SBCawLRaCoM=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DF0GrFZXikv0dssyo6jKyiJjEuDGt70Un0HQ9k469lhHIbekJbMw88r7Z1SHDMdJyEsClQBGa6Hswy9dvV1jlATU2pmNVk7nDou3mSEj/d7uCvo2qIIzjtlOSmoQfvqlg0E55jml+4rZCTtcbDE8Io/TyBfLHzLV/lm7UVw13Hw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=eOF/5z63; arc=none smtp.client-ip=209.85.218.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1722942013; c=relaxed/simple;
+	bh=K+q601JkCTnwIUvBbNbmIGhA+FM9h0Z4Dmi+fgenXjg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=NgmPqDR6+nJvzkOo6KrsFR2IxpJuToyZ0Psoh1mEdL+K3yNIlQHiegh7XaJNq/g5pCTTLL335IAmfE7ryMiUO33te/Si801CVnW9oUrp463LpgrhA6BQldnRazHKfRNZL4xA4hyQ+XjE78XhzIl0cbtnft6fv6HzOQUJmPZHCNo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=compton.nu; spf=pass smtp.mailfrom=compton.nu; dkim=pass (2048-bit key) header.d=compton.nu header.i=tom@compton.nu header.b=WWGOsyQR; arc=none smtp.client-ip=217.169.17.27
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=compton.nu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=compton.nu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eOF/5z63"
-Received: by mail-ej1-f53.google.com with SMTP id a640c23a62f3a-a728f74c23dso55110266b.1;
-        Tue, 06 Aug 2024 03:28:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1722940100; x=1723544900; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=UCjUVgAD+QJaA2D+lUO0OlTYuB0Hq3DzdOOGhevVtH0=;
-        b=eOF/5z637hf+kH8imK9S7XbQvbFiCFNN01QmcAoUGhRAZp+j0UmQtQqAPfF/zlqR3R
-         FLdHVpJK5P0hKcbKc8ZjnBrnqTPauBc9Qv0uQWmvi9o7caUopfn1LYSiitawBDDiz82m
-         ppOwieYyj61MQDxkBHRUaVfMEhCE3pP0ErKxiAsXfmigVevlx+MoSO6mQk+fphAS488j
-         Ajg/uKlFzvtl7MHCT5zmbvHsQte8HvVvWtemMz/01wvp/iHs1YcH2mMEgFPx9X44lJIW
-         kmDJRMAUrCXdqKOth96PXPbKARmNjZtbJveYa4oMn4JnbrjgRn3ZrCeau5KLaQgYLk8R
-         6b6Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1722940100; x=1723544900;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=UCjUVgAD+QJaA2D+lUO0OlTYuB0Hq3DzdOOGhevVtH0=;
-        b=tFuOwDKlpGeV+a3/UuOj/SE9TdvMQd/fpFKMJTdgCBBY7QGEtl/I2jxCr1Pw0ig4St
-         0NrIiWgpQllybz8kxmxyWp1cjf7HiFEQdr1RIrZiAj5cPFvxM2ixJNPOcI1ceZCbykE0
-         Bk91NMJZJ6FOl+iYj5rz06+JxFrirSD0bAk3FN2RWeOJ8ogJ6PO3Ta40ObQlvp0pPa3t
-         0Ts1TIjF82swdVij3nDlJ4PlelV3vMBRCKqr8V32d3Zpv0WBI/FxfR1EE1WfobtI5zb1
-         8+6UXEkhsX2aTXJD/MEfMeztACIUyM0i4sHsvK/PmEbDcKh3ey2hrEsvcWO1vaHdpRwY
-         XlHg==
-X-Forwarded-Encrypted: i=1; AJvYcCVUCRUe1wfhzWQCoiXNYkcKCCRNFEzqZ+kKFcwJvNSOxOFU0Otfi0zoIzvDp3rqN+gJU/QGNwtss0w8Jq++Y+RGTJ7y0rOTjyZmkeLKU3a0o0ScgorAKkU9bGqWfDKvwIQHoLGQ
-X-Gm-Message-State: AOJu0YwhZGm36tAULoF/fzACuDnbKDuxMQXBpyS0uUrLooIS0U5POSG7
-	CbppvifZ0dyxu0m0BY7SWfW/Z74EvEvn6tJWFNqw9/SCiSpeZSC8bzsoD+nd5X8=
-X-Google-Smtp-Source: AGHT+IEt/cUUCVUWP3fXZhXdOB0/5qvGanQLCmKshHZRnKBQXnTNEG4+a6ZKjkqhp7eIKZ0+DtFK5A==
-X-Received: by 2002:a17:907:c2a:b0:a7a:c106:364f with SMTP id a640c23a62f3a-a7dc506c508mr1081841366b.43.1722940099279;
-        Tue, 06 Aug 2024 03:28:19 -0700 (PDT)
-Received: from fedora.iskraemeco.si ([193.77.86.250])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a7dc9bc3d09sm541145166b.17.2024.08.06.03.28.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 06 Aug 2024 03:28:18 -0700 (PDT)
-From: Uros Bizjak <ubizjak@gmail.com>
-To: netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: Uros Bizjak <ubizjak@gmail.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>
-Subject: [PATCH] netfilter: nf_tables: Add __percpu annotation to *stats pointer in nf_tables_updchain()
-Date: Tue,  6 Aug 2024 12:26:58 +0200
-Message-ID: <20240806102808.804619-1-ubizjak@gmail.com>
+	dkim=pass (2048-bit key) header.d=compton.nu header.i=tom@compton.nu header.b="WWGOsyQR"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=compton.nu;
+	s=20200130; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=Vx/8NUHHR7uGlkEW5lOU5IjJ2dWZYtOJ1SSV9gYHE2Q=; i=tom@compton.nu;
+	t=1722942011; x=1724151611; b=WWGOsyQRmJpreD969qnHeJpsnUIBDPSa3FgzsWnKUEgFNO+
+	AJTNYTAK0tBSs3BU6nItjA1ls2U0cY0XssRsZEo6ldT9vnsIXdgBNS7CtMNIWrWdfOuxIRFt1Qxrl
+	8lM3Iecc0uqcCBascOPQRt24KS3RSzpJvaO8i5IX9aQ/6GJVvkmmGnIz9BMI6bkacIgzc606hl0EQ
+	GxpftvM5SdxGlKDVOT+AsQFRH74/VUcfotJCAs1bvaHGc2BPJoTun84Sqr7+TGePDEXcS/z1XXiaC
+	RPhsPVkVkxBL5OWL7iAbMkvm18gD1ohM06rpO6QP9+cx+OTWWb4QKvSuURyk62cA==;
+Authentication-Results: gosford.compton.nu;
+	iprev=pass (bericote.compton.nu) smtp.remote-ip=2001:8b0:bd:1:1881:14ff:fe46:3cc7
+Received: from bericote.compton.nu ([2001:8b0:bd:1:1881:14ff:fe46:3cc7]:45800)
+	by gosford.compton.nu with esmtps  (TLS1.3) tls TLS_AES_256_GCM_SHA384
+	(Exim 4.98)
+	(envelope-from <tom@compton.nu>)
+	id 1sbHtJ-0000000GZcr-3n3r;
+	Tue, 06 Aug 2024 11:58:13 +0100
+Received: from tom by bericote.compton.nu with local (Exim 4.98)
+	(envelope-from <tom@compton.nu>)
+	id 1sbHtJ-0000000DoED-3Bna;
+	Tue, 06 Aug 2024 11:58:09 +0100
+From: Tom Hughes <tom@compton.nu>
+To: pablo@netfilter.org,
+	kadlec@netfilter.org,
+	netfilter-devel@vger.kernel.org
+Cc: netdev@vger.kernel.org,
+	Tom Hughes <tom@compton.nu>
+Subject: [PATCH] netfilter: allow ipv6 fragments to arrive on different devices
+Date: Tue,  6 Aug 2024 11:57:51 +0100
+Message-ID: <20240806105751.3291225-1-tom@compton.nu>
 X-Mailer: git-send-email 2.45.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -74,42 +57,37 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Compiling nf_tables_api.c results in several sparse warnings:
+Commit 264640fc2c5f4 ("ipv6: distinguish frag queues by device
+for multicast and link-local packets") modified the ipv6 fragment
+reassembly logic to distinguish frag queues by device for multicast
+and link-local packets but in fact only the main reassembly code
+limits the use of the device to those address types and the netfilter
+reassembly code uses the device for all packets.
 
-nf_tables_api.c:2740:23: warning: incorrect type in assignment (different address spaces)
-nf_tables_api.c:2752:38: warning: incorrect type in assignment (different address spaces)
-nf_tables_api.c:2798:21: warning: incorrect type in argument 1 (different address spaces)
+This means that if fragments of a packet arrive on different interfaces
+then netfilter will fail to reassemble them and the fragments will be
+expired without going any further through the filters.
 
-Add __percpu annotation to *stats pointer to fix these warnings.
-
-Found by GCC's named address space checks.
-
-There were no changes in the resulting object files.
-
-Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>
+Signed-off-by: Tom Hughes <tom@compton.nu>
 ---
- net/netfilter/nf_tables_api.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/ipv6/netfilter/nf_conntrack_reasm.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 481ee78e77bc..805227131f10 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2642,7 +2642,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
- 	struct nft_table *table = ctx->table;
- 	struct nft_chain *chain = ctx->chain;
- 	struct nft_chain_hook hook = {};
--	struct nft_stats *stats = NULL;
-+	struct nft_stats __percpu *stats = NULL;
- 	struct nft_hook *h, *next;
- 	struct nf_hook_ops *ops;
- 	struct nft_trans *trans;
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 6f0844c9315d..4120e67a8ce6 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -154,6 +154,10 @@ static struct frag_queue *fq_find(struct net *net, __be32 id, u32 user,
+ 	};
+ 	struct inet_frag_queue *q;
+ 
++	if (!(ipv6_addr_type(&hdr->daddr) & (IPV6_ADDR_MULTICAST |
++					    IPV6_ADDR_LINKLOCAL)))
++		key.iif = 0;
++
+ 	q = inet_frag_find(nf_frag->fqdir, &key);
+ 	if (!q)
+ 		return NULL;
 -- 
 2.45.2
 
