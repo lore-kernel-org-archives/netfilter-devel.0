@@ -1,151 +1,192 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 6474A339B1
-	for <netfilter-devel@vger.kernel.org>; Wed,  7 Aug 2024 14:32:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from mail-lf1-f45.google.com (mail-lf1-f45.google.com [209.85.167.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B14C47CF3E
+	for <netfilter-devel@vger.kernel.org>; Wed,  7 Aug 2024 14:36:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723041178; cv=none; b=i9BCDhGMpUxe/XKSi454h/jeelLbYEkvlEMZMhbOqBfZo57Ov3D0rx7J2AK1UbUBVcHQOnxebkA4HEV4fMudLSLfTc2CifCUDRt7Bf8qOdIFV0qnMS9xXhQuPgZ1uFp+sgJ2eN70D2dX9cus427PYG6q9K4JFOwsClkMBCuzdM4=
+	t=1723041377; cv=none; b=XiZkjpr5vw8MHlyKQ7j9jZqyaMnLbenGypFq++MSm5Z6F2XuqxnaVnd9w+MbQdVT8QDJb7vFJFZpSf36hMkygXXucmOHBo2il5XttFMjt8AjdxynuCbC0+j7BawdNKYTKs8fsFuEVRTgJ2XvJYRpFi74gISWHlWYpUkW5DmqJJU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723041178; c=relaxed/simple;
-	bh=VhNcfrYZJVkYjuDubeh9AW1wznyV4NZMp4xOPPlGWVY=;
-	h=From:To:Subject:Date:Message-Id:MIME-Version; b=lWUdkNW0KypqTyRfqMK9U64fXpEeJ/LHUxSzXq4VALeR1U8tfQiZSxRbcguhlvEpVJ8ajUpgHD87+YLI03IKRLm6mVPWEG3dbRuP7a2jGDRN4UYhOfCxf2FB747jrpsuKMltNG5EuwU7TH9Euo1Tm+wsGYyfjaajvR8kRhPv/K8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] src: add never expires marker for element timeout
-Date: Wed,  7 Aug 2024 16:32:52 +0200
-Message-Id: <20240807143252.150702-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+	s=arc-20240116; t=1723041377; c=relaxed/simple;
+	bh=5nmRYZynlArPuyC8lVqxNrGVgSWjwaV698vV24Ag1Yc=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Content-Type; b=CvHA4J7tqg+IQslWfUFcEpbMs+VqWWQOGVuCACpp5NtYfxv58jDmLH4hjj5KsHorgl+rvCLn1JHFKrKR/xcLV0H456INjFPRrWOTwLUJaiNkUP87P3gTshtsMH0rqtRUqQmqf4PqiCXj7P/ahhVDFMZ0fl37Zd/BkbAuy3WBAcE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=googlemail.com; spf=pass smtp.mailfrom=googlemail.com; dkim=pass (2048-bit key) header.d=googlemail.com header.i=@googlemail.com header.b=FHWdey2p; arc=none smtp.client-ip=209.85.167.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=googlemail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=googlemail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=googlemail.com header.i=@googlemail.com header.b="FHWdey2p"
+Received: by mail-lf1-f45.google.com with SMTP id 2adb3069b0e04-52efd855adbso2630526e87.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 07 Aug 2024 07:36:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=googlemail.com; s=20230601; t=1723041373; x=1723646173; darn=vger.kernel.org;
+        h=content-transfer-encoding:to:subject:message-id:date:from
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=kwBbHC26Y/awvQjGAgsxk7EpMn1LLNd7/qJjz1NC74c=;
+        b=FHWdey2pYnV/jSJ47arh8rV9+Gaoq0Un3gJ+SCEZh/eOK1hdAwpgYG9uvyaJ2ihJTq
+         +wsYsNba3i71kpFnsXn8yxQbS10jerbFLKSEsbTNXgDC4o+nfduUNP7FNRYdL0WcJOX4
+         bfIGT5Rs9PFrdjoCS/P8R37u9Q1mXSpMPKEonyCs3kBBKJD1WOvGUauWRB55anPMakg0
+         lGGQkbpyt6u0p7Xup3GGXiRyJezj4YsGv5kJ4nUdCC9MQPjKlJ292cxe6489EZo86rFn
+         0Kfq0h7SqOZw17Y4jwptu+83fXZKDtBU3Cs2BCCXi/H59lnyoBkqi8QIE1ENsXk047Xw
+         IB1A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1723041373; x=1723646173;
+        h=content-transfer-encoding:to:subject:message-id:date:from
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=kwBbHC26Y/awvQjGAgsxk7EpMn1LLNd7/qJjz1NC74c=;
+        b=fuEvPOnhQwXTBNVKk/RqYfGYBZEVvq+5ybj61rVc8qRtqBtUCciQ4hzm1rcZpvRKZT
+         dN+f+ntaHM0hgnKpi6idQRQ5jfjzV15uBcTSZgB9qF11h8AxgOB5Nu5h8fCGLkljE6vz
+         7CKS4hj7Uer7n1eLPTewBwaTPGyC12BQ6nOwce2kRgMKiTC7wfcvgRCwSeq1lFNxP4A5
+         ayuaNr8Vt6MPFT0jycbKol1gmcGPUAYyEa0Jg2uIbk7MbKeLGdEPfyMATf1nSZWN9Re4
+         9W2TZrquzvnpIAS6Iq3OUqyag624U3XxRD1IAqxlyPGHv8beJYTKeqtr6WHpkJVD2seg
+         C8GA==
+X-Gm-Message-State: AOJu0YxSovV5vep1OzjchZZBY8l4rR2pHjHGEqP7pwUA+BfprytbFHSG
+	JKh7RdiiDu0jRavuRK3Jofkw1W9FtampmagwcTu8FwxM0weJR9rRRiXU2VPzm5ztf9mL3mUa764
+	jWfiPU832dgUZ9Vru+A4btv/mOLXeH8xr
+X-Google-Smtp-Source: AGHT+IFZdvCsYVO1OU5YQQJIXOAcyMkSueVNiUbIbaacXge+4kUblL7vrzcNK5Df88n4Jqzj7D0FejeNBH+UjZMemRE=
+X-Received: by 2002:a05:6512:104a:b0:530:b7f4:3aaa with SMTP id
+ 2adb3069b0e04-530bb3b4590mr12335198e87.52.1723041373011; Wed, 07 Aug 2024
+ 07:36:13 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+From: josh lant <joshualant@googlemail.com>
+Date: Wed, 7 Aug 2024 15:36:01 +0100
+Message-ID: <CAMQRqNJe=rT8sJD78TCmBNnE+3KQFzx4mqNNXw4O3vohZo_Ycg@mail.gmail.com>
+Subject: iptables: compiling with kernel headers
+To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Allow to specify elements that never expire in sets with global
-timeout.
+Hi,
 
-    set x {
-        typeof ip saddr
-        timeout 1m
-        elements = { 1.1.1.1 timeout never,
-                     2.2.2.2,
-                     3.3.3.3 timeout 2m }
-    }
+Apologies in advance for the long post=E2=80=A6 I wonder if someone could h=
+elp
+me understand the architecture of the iptables codebase, particularly
+its use of kernel headers=E2=80=A6
 
-in this example above:
+**Background**
 
- - 1.1.1.1 is a permanent element
- - 2.2.2.2 expires after 1 minute (uses default set timeout)
- - 3.3.3.3 expires after 2 minutes (uses specified timeout override)
+I am trying to build for the Morello architecture, which uses
+hardware-based capabilities for memory safety, effectively extending
+pointer size to 128b, with 64b address and then added bounds/type
+information etc in the upper 64b.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-This is the userspace dependency for:
+Because of this I have had to modify a number of the kernel uapi
+headers. If you would like some more context of why I am having to do
+this, please see the discussion in this thread:
 
-https://patchwork.ozlabs.org/project/netfilter-devel/list/?series=418393
+https://op-lists.linaro.org/archives/list/linux-morello@op-lists.linaro.org=
+/thread/ZUWKFSJDBB2EIR6UMX3QU63KRZFN7VTN/
 
-Note that no updates are required to support for set element timeout
-updates.
+TL;DR- The uapi structures used in iptables which hold kernel pointers
+are not compatible with the ABI of Linux on the Morello architecture,
+since currently kernel pointers are 64b, but in userspace a * declares
+a capability of size 128b. This causes a discrepancy between what the
+kernel expects and what is provided inside some of the netlink
+messages, due to the alignment of structures now being 16B. As a
+result I have had to modify any kernel pointer inside uapi structs to
+be unsigned longs, casting them when used inside the kernel.
 
- src/expression.c   | 11 +++++++++--
- src/parser_bison.y | 29 ++++++++++++++++++++++++++---
- 2 files changed, 35 insertions(+), 5 deletions(-)
+Does anyone have any opinion on this method of changing uapi structs
+to not contain kernel pointers? Does simply changing them to unsigned
+long seem sensible, or am I likely to come up against some horrible
+problems I have not yet realised?
 
-diff --git a/src/expression.c b/src/expression.c
-index 992f51064051..54b539be89d5 100644
---- a/src/expression.c
-+++ b/src/expression.c
-@@ -25,6 +25,8 @@
- #include <erec.h>
- #include <json.h>
- 
-+#define NFT_NEVER_EXPIRES      UINT64_MAX
+**Issue**
+
+When I try to compile iptables using =E2=80=94with-kernel, or =E2=80=94with=
+-ksource, I
+get this error:
+
+In file included from =E2=80=A6/iptables-morello/extensions/libxt_TOS.c:16:
+In file included from =E2=80=A6/iptables-morello/extensions/tos_values.c:4:
+In file included from =E2=80=A6/kernel-source/include/uapi/linux/ip.h:22:
+In file included from
+=E2=80=A6/usr/src/linux-headers-morello/include/asm/byteorder.h:23:
+In file included from
+=E2=80=A6/kernel-source/include/uapi/linux/byteorder/little_endian.h:14:
+=E2=80=A6/kernel-source/include/uapi/linux/swab.h:48:15: error: unknown typ=
+e
+name '__attribute_const__'
+
+I see that this error arises because when I set the =E2=80=94with-kernel fl=
+ag
+libxt_TOS.c is being compiled against ./include/uapi/linux/ip.h. But
+when I compile without that flag, the -isystem flag value provides the
+./include/linux/ip.h.
+
+**Questions**
+
+I see in the configure.ac script that setting this flag changes the
+includes for the kernel, putting precedence on the uapi versions of
+the headers. This was introduced in commit
+59bbc59fd2fbbb7a51ed19945d82172890bc40f9 specifically in order to fix
+the fact that =E2=80=94with-kernel was broken. However I read in the INSTAL=
+L
+file:
+
+ =E2=80=9Cprerequisites=E2=80=A6  no kernel-source required =E2=80=9C,
+and
+=E2=80=9C--with-ksource=3D =E2=80=A6 Xtables does not depend on kernel head=
+ers anymore=E2=80=A6
+probably only useful for development.=E2=80=9D
+
+So I wonder, is this =E2=80=94with-kernel feature seldom used/tested and no
+longer working in general? Or could my issue be due to the fact that
+this __attribute_const__ is a GCC specific directive and I use clang,
+and this is not being picked up properly when running configure?
+
+What I thought might be a solution to compile with my modified headers
+would be to simply copy over and replace the relevant headers which
+are present in the ./include/linux/ directory of the iptables source
+repo. However, even with unmodified kernel headers this throws up its
+own issues, because I see that there are differences between some of
+these headers in the iptables source and those in the kernel source
+itself.
+
+One example of these differences is in xt_connmark.h, leading to
+errors with duplication of declarations when compiling
+libxt_CONNMARK.c using the headers from the kernel source=E2=80=A6 In the
+iptables source the libxt_CONNMARK.c file defines D_SHIFT_LEFT.
+However, in the latest version of xt_connmark.h in the kernel, this
+enum definition is in the header, so it needs to be removed from the
+iptables libxt_CONNMARK.c file. The version of the header in the
+iptables source has not been updated to correspond to the current
+kernel header version.
+
+commit for xt_connmark.h in kernel source:
+
+commit 472a73e00757b971d613d796374d2727b2e4954d
+Author: Jack Ma <jack.ma@alliedtelesis.co.nz>
+Date:   Mon Mar 19 09:41:59 2018 +1300
+
++enum {
++       D_SHIFT_LEFT =3D 0,
++       D_SHIFT_RIGHT,
++};
 +
- extern const struct expr_ops ct_expr_ops;
- extern const struct expr_ops fib_expr_ops;
- extern const struct expr_ops hash_expr_ops;
-@@ -1314,9 +1316,14 @@ static void set_elem_expr_print(const struct expr *expr,
- 	}
- 	if (expr->timeout) {
- 		nft_print(octx, " timeout ");
--		time_print(expr->timeout, octx);
-+		if (expr->timeout == NFT_NEVER_EXPIRES)
-+			nft_print(octx, "never");
-+		else
-+			time_print(expr->timeout, octx);
- 	}
--	if (!nft_output_stateless(octx) && expr->expiration) {
-+	if (!nft_output_stateless(octx) &&
-+	    expr->timeout != NFT_NEVER_EXPIRES &&
-+	    expr->expiration) {
- 		nft_print(octx, " expires ");
- 		time_print(expr->expiration, octx);
- 	}
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 10105f153aa0..b5a4588fb675 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -45,6 +45,8 @@
- 
- #include "parser_bison.h"
- 
-+#define NFT_NEVER_EXPIRES      UINT64_MAX
-+
- void parser_init(struct nft_ctx *nft, struct parser_state *state,
- 		 struct list_head *msgs, struct list_head *cmds,
- 		 struct scope *top_scope)
-@@ -695,7 +697,7 @@ int nft_lex(void *, void *, void *);
- %type <string>			identifier type_identifier string comment_spec
- %destructor { free_const($$); }	identifier type_identifier string comment_spec
- 
--%type <val>			time_spec time_spec_or_num_s quota_used
-+%type <val>			time_spec time_spec_or_num_s set_elem_time_spec quota_used
- 
- %type <expr>			data_type_expr data_type_atom_expr
- %destructor { expr_free($$); }  data_type_expr data_type_atom_expr
-@@ -4545,7 +4547,28 @@ set_elem_options	:	set_elem_option
- 			|	set_elem_options	set_elem_option
- 			;
- 
--set_elem_option		:	TIMEOUT			time_spec
-+set_elem_time_spec	:	STRING
-+			{
-+				struct error_record *erec;
-+				uint64_t res;
-+
-+				if (!strcmp("never", $1)) {
-+					free_const($1);
-+					$$ = NFT_NEVER_EXPIRES;
-+					break;
-+				}
-+
-+				erec = time_parse(&@1, $1, &res);
-+				free_const($1);
-+				if (erec != NULL) {
-+					erec_queue(erec, state->msgs);
-+					YYERROR;
-+				}
-+				$$ = res;
-+			}
-+			;
-+
-+set_elem_option		:	TIMEOUT		time_spec
- 			{
- 				$<expr>0->timeout = $2;
- 			}
-@@ -4660,7 +4683,7 @@ set_elem_stmt		:	COUNTER	close_scope_counter
- 			}
- 			;
- 
--set_elem_expr_option	:	TIMEOUT			time_spec
-+set_elem_expr_option	:	TIMEOUT		set_elem_time_spec
- 			{
- 				$<expr>0->timeout = $2;
- 			}
--- 
-2.30.2
 
+commit for libxt_CONNMARK.c in iptables source:
+
+commit db7b4e0de960c0ff86b10a3d303b4765dba13d6a
+Author: Jack Ma <jack.ma@alliedtelesis.co.nz>
+Date:   Tue Apr 24 14:58:57 2018 +1200
+
++enum {
++       D_SHIFT_LEFT =3D 0,
++       D_SHIFT_RIGHT,
++};
++
+
+I suppose I am generally confused about why iptables uses its own
+bespoke versions of kernel headers in its source, that do not marry up
+with those actually in the kernel repo. Are the headers different for
+backwards compatibility or portability or such?
+
+Many thanks,
+
+Josh
