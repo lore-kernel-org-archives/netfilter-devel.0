@@ -1,92 +1,136 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF3A61E6738;
-	Wed,  7 Aug 2024 13:27:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A90D3282FB
+	for <netfilter-devel@vger.kernel.org>; Wed,  7 Aug 2024 14:24:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723037271; cv=none; b=ZU8iRGAH0wE2jgKcgbjjD6EKF5F+NZkBJQAgDkEj/IrPI5kLxSJI1e2OB8EBsMH5bqc/sADYxKcUZ/kQIGmzRDQcbkU6AXb53VqLqfZzS4WicfOwpfwoQS7FLq3bWsPHRI/fYmOeh7kvoN9SwznOzuv/fVdSv1F6tkjZef+s+cg=
+	t=1723040652; cv=none; b=MRKqhmx1ZuMuhnPGUxxm3zib/qtkVsw57xJsSxzNfzo1eU6RvazK61x02HMDieeg7p1bvR+f+VgZrkgOBm5Jq82WxaTIqNMZSZk5MlePR2t5fjdCElnNHaov691I5EMaaZ+9Mhos7pJPNVMR/PD+IysdayIV4jwJ7idwSBRPvUs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723037271; c=relaxed/simple;
-	bh=OADje7zt8dY9Vw2o86Ho381UgUDbTseWM16A5rJV8f0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ZjogVvDiXAHVYlb+p6s6Fo9uBUn3CLcBzGHYRNwD9qfqav6s1mLzzR9dX/4nni8D2eHJqNPMAmUhbyLZ2zNGUOsWqc0aEmCWbXfXSTG/LOLJ8iTJ+bJblHH6pvHaXoc0THGnTbeh+YuQpXQddg9BUL3V3GkYQK1a37/bl0cmx1E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IU1XCW/D; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IU1XCW/D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7ABB6C32782;
-	Wed,  7 Aug 2024 13:27:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1723037270;
-	bh=OADje7zt8dY9Vw2o86Ho381UgUDbTseWM16A5rJV8f0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=IU1XCW/D6wOEwJcQtvuddIih6pY5hqO+GhjH9X+ewtQcpYnB0Y48f/8su+gb/ptew
-	 Pq6CW7/SMiXzEXzOhvSI9UHmFuTXWh3SFp/onAqKyioaX9MAGG9t0thw/5isrH6xt6
-	 WuvGUfqyLCK0ZAWtGwXR0oNsOzJYoXxody01XDvOtaXSWZaPi/Qf1RGDCHrhe7nVqk
-	 tyffwT0A2YgPKjUth5a0pM/AfK7nIjZ+cstwKuHWhmIpCzxYCkVNSrtjRNtMTq7RKB
-	 AELnht5eip8je6Ctavbs0M3RuzKicTBWkh5eDkzF9tFI5qjjxEwxC8afQNzl45RR+j
-	 rmZTzDarW0GWw==
-Date: Wed, 7 Aug 2024 09:27:48 -0400
-From: Sasha Levin <sashal@kernel.org>
-To: Siddh Raman Pant <siddh.raman.pant@oracle.com>
-Cc: "stable@vger.kernel.org" <stable@vger.kernel.org>,
-	"pablo@netfilter.org" <pablo@netfilter.org>,
-	"gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-Subject: Re: CVE-2024-39503: netfilter: ipset: Fix race between namespace
- cleanup and gc in the list:set type
-Message-ID: <ZrN2VCc9hM_mahCS@sashalap>
-References: <2024071204-CVE-2024-39503-e604@gregkh>
- <c44971f608d7d1d2733757112ef6fca87b004d17.camel@oracle.com>
+	s=arc-20240116; t=1723040652; c=relaxed/simple;
+	bh=sUYlBJ/EvtWMCKe1K901vTJynRJoetjWopoj3WXF2wI=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=TeM3twRL5uRoFPWzTP/X13xQGP3akeK7Sb/Hv30JGgNyWNcdRwrN44GzgYwAy0VDI/QnDol3lJ4JKdAl9m2/NczO+cMK+dd2ysyOD0FwBm2Wpz8+bv1dbpOVxiOCoBHVd/GiNWOzv0Dv9YbwBmzdRwVXba0SfQaoU7p3aDXD94I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next 0/8] nf_tables: support for updating set element timeout
+Date: Wed,  7 Aug 2024 16:23:49 +0200
+Message-Id: <20240807142357.90493-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <c44971f608d7d1d2733757112ef6fca87b004d17.camel@oracle.com>
+Content-Transfer-Encoding: 8bit
 
-On Wed, Aug 07, 2024 at 06:42:14AM +0000, Siddh Raman Pant wrote:
->On Fri, 12 Jul 2024 14:21:09 +0200, Greg Kroah-Hartman wrote:
->> In the Linux kernel, the following vulnerability has been resolved:
->>
->> netfilter: ipset: Fix race between namespace cleanup and gc in the list:set type
->>
->> Lion Ackermann reported that there is a race condition between namespace cleanup
->> in ipset and the garbage collection of the list:set type. The namespace
->> cleanup can destroy the list:set type of sets while the gc of the set type is
->> waiting to run in rcu cleanup. The latter uses data from the destroyed set which
->> thus leads use after free. The patch contains the following parts:
->>
->> - When destroying all sets, first remove the garbage collectors, then wait
->>   if needed and then destroy the sets.
->> - Fix the badly ordered "wait then remove gc" for the destroy a single set
->>   case.
->> - Fix the missing rcu locking in the list:set type in the userspace test
->>   case.
->> - Use proper RCU list handlings in the list:set type.
->>
->> The patch depends on c1193d9bbbd3 (netfilter: ipset: Add list flush to cancel_gc).
->
->This commit does not exist in stable kernels. Please backport it.
->
->	netfilter: ipset: Add list flush to cancel_gc
->	
->	Flushing list in cancel_gc drops references to other lists right away,
->	without waiting for RCU to destroy list. Fixes race when referenced
->	ipsets can't be destroyed while referring list is scheduled for destroy.
->
->Since this is missing, the CVE fix potentially introduced new races as
->it makes use of RCU.
+Hi,
 
-Indeed, looks like it was missing on older trees. I'll queue it up.
+This patchset adds support for updating set element timeouts. This
+includes 5 fixes, then one patch to consolidate set element timeout
+extensions, and finally the new marker for elements that never expire
+and support for element timeout updates.
 
-Thanks!
+Patch #1 fixes a bug with timeouts less than HZ/10, assuming CONFIG_HZ=100
 
--- 
-Thanks,
-Sasha
+        add element ip x y { 1.2.3.4 timeout 9ms)
+
+   results in an element that never expires. This happens because this
+   timeout results in jiffies64 == 0, hence, the timeout extension is not
+   allocated.
+
+Patch #2 rejects element expiration with no timeout, this is currently
+   silently ignore in case no default set timeout is specified, e.g.
+
+        table ip x {
+        	set y {
+			typeof ip saddr
+			flags timeout
+			elements = { 1.2.3.4 expires 30s }
+		}
+        }
+
+Patch #3 remove unnecessary read_once notation when accessing default
+   set timeout while holding mutex.
+
+Patch #4 adds read-write_once notations for lockless access to default set
+   timeout policy that are missing in dynset.
+
+Patch #5 adds read-write_once notations for element expiration, again dynset
+   could update this while netlink dump is in progress.
+
+Patch #6 consolidates the timeout extensions: timeout and expiration
+   are tightly coupled, use a single extension for both. This simplifies
+   set element timeout updates coming in the next patches.
+
+Patch #7 adds a marker for elements that never update.
+
+        table ip x {
+        	set y {
+			typeof ip saddr
+			timeout 1h
+			elements = { 1.2.3.4 timeout never, 1.2.3.5 }
+		}
+        }
+
+   In this case, 1.2.3.4 never expires and 1.2.3.5 gets a timeout of 1h
+   as per the default set timeout.
+
+   Note that it is already possible to define set elements that never
+   expire by declaring a set with the timeout flag set on, but with no
+   default set policy. In this case, no timeout extension is allocated.
+
+        table ip x {
+        	set y {
+			typeof ip saddr
+			flags timeout
+			elements = { 1.2.3.4, 1.2.3.5 timeout 1h }
+		}
+        }
+
+   In this example above, 1.2.3.4 never expires [*]. The new marker prepares
+   for set element timeout updates, where the timeout extension needs to
+   be allocated. This marker also allows for elements that never expire
+   when default timeout policy is specified, which was not supported.
+
+   [*] Note that sets with no default timeout do not display timeout
+   never to retain backward compatibility in the listing.
+
+Patch #8 allows to update set timeout/expiration.
+
+        table ip x {
+        	set y {
+			typeof ip saddr
+			timeout 1h
+			elements = { 1.2.3.4, 1.2.3.5 }
+		}
+        }
+
+   which use default 1h set timeout. Then, updating timeout is possible via:
+
+        add element x y { 1.2.3.4 timeout 30s }
+        add element x y { 1.2.3.5 timeout 25s }
+
+No tests/shell yet available, still working on this.
+
+Pablo Neira Ayuso (8):
+  netfilter: nf_tables: elements with timeout less than HZ/10 never expire
+  netfilter: nf_tables: reject element expiration with no timeout
+  netfilter: nf_tables: remove annotation to access set timeout while holding lock
+  netfilter: nft_dynset: annotate data-races around set timeout
+  netfilter: nf_tables: annotate data-races around element expiration
+  netfilter: nf_tables: consolidate timeout extension for elements
+  netfilter: nf_tables: add never expires marker to elements
+  netfilter: nf_tables: set element timeout update support
+
+ include/net/netfilter/nf_tables.h        |  32 +++--
+ include/uapi/linux/netfilter/nf_tables.h |   3 +
+ net/netfilter/nf_tables_api.c            | 144 ++++++++++++++++-------
+ net/netfilter/nft_dynset.c               |  21 ++--
+ net/netfilter/nft_last.c                 |   3 +-
+ 5 files changed, 139 insertions(+), 64 deletions(-)
+
+--
+2.30.2
+
