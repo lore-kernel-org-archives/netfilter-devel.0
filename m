@@ -1,146 +1,121 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F47918CBFC
-	for <netfilter-devel@vger.kernel.org>; Thu,  8 Aug 2024 13:05:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3A0318C93C
+	for <netfilter-devel@vger.kernel.org>; Thu,  8 Aug 2024 13:21:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723122316; cv=none; b=af9Ou/d8GuCv5eelrJTHXtAV1dCYR7wc3LD9GziP3nxrk+jmWDcTp7lz6vh931v3g/zrUknFIXPkNGLaoNTZSHpYQam5GVbpPTcllUV3kg45OpL+papR4ronhRYDEEEUIdDvo0YW3IOa4cSHzCjKVP0ooPAezOpZhmm5J2AJjIo=
+	t=1723123294; cv=none; b=MJMvLwkguxdWlYCptpRP/oJIgEiuSs8M3TH6cu9EbTx2rz/3knMUzN9MXQHlvTs7KrUgLnCOTJn0FwHFBNehS+V1OImrghECAOkEwrSfUc3PfSNUqNsjUKvln+6GwB1OnR90TQTrd5mTkrh1WKkjakC3Mis3V7L72laq87/lb2w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723122316; c=relaxed/simple;
-	bh=xV58s8hxpAdkCKHW03AqYVLg4ax9G4WRIktAD5WktTQ=;
+	s=arc-20240116; t=1723123294; c=relaxed/simple;
+	bh=x5zVLAdZvMsXNyyi5jxqtyNoyZiQ5pCnJ+lmRoOo1O4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=IUqVzevfg3769NIBnDqvXAgkQ5adVw2JllaOplwE/DF7O+LkZNjgV4zNuGXNZjloVxLjBfS0y85S/8uiHPpzMeEoPZjDTwUkggLQe1pSkGl6S9ShpJOgOx/gVOwOUEOWIvizj8rt4oa64KpOSYn8D+krD1etPR2j5yZaZjnDLlw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=kgcuUtf0; arc=none smtp.client-ip=151.80.46.58
+	 Content-Type:Content-Disposition:In-Reply-To; b=cpGRhcTcea9ri7yiKoNcrXkObCSW7i/13u30hDfZNx7Y/7dJ7yPdcqI67uGXfsqwXIeWSIqVbNfinCn5PsLarI/g+5aF4ueFFQIVULzIz2EeurTEfiMarY7lXyuQIuOS4M6trYUzFstATtKAm3dJB6WAU14kayJOKuBnshfRkUo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=pNXnmfH+; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="kgcuUtf0"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="pNXnmfH+"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	s=mail2022; h=In-Reply-To:Content-Transfer-Encoding:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=5GKnYnIMWGPfnMSrD9dql3p40VHT6UX/ZnuKsiJ/B6g=; b=kgcuUtf0mK/ifODAVzeyr0arHc
-	9ZzeAK6u6dgJ/wFuSSoIcS9Qw5q402/U0JgHKC+nCnNrZMqyitIEg+uS45SlnPpcLONzeOsmlg/KF
-	irzFoWtLtzUxXLKlr/AWGnp5JK8NuuOdjhfvyXDfTrGmS8CX1w1guFHtKjiMouyOxKFS80yyw5p0p
-	6xCD6NTUNPgAlpN4NqFMlcmYJx/7nuYCrnFsjIQdUs1Swhx0hAE1nyWmKes4LyOZV6E1F0GpxM3ee
-	uQr32eK404omF4fOrYu6u0vSx9YSU4aTWx8GGtuA+1z1eWAnkJWB72vnMwHps93Ny/s11gGE01yhA
-	fclPqg6w==;
+	bh=RpoJHrUnVhDSn6A5u4SVagNS20b5cJKS5aeRC6IUPoU=; b=pNXnmfH+wspo6EUQ0EOLunpZcj
+	hqQ1bu04VpMXNsypYa27k1PdMYkpJaJOEKf5QUCGeGK1425YMpyOJR4ggVIG7A1ZZeNJiO92XWlSC
+	JrK8n1qs0MQ6mMrYioh5u2jpElY7N3ExqhjxeoJ5IKo38dXEUvFGkqyNiEcK0bT1S+h4bbx9PebDF
+	gJLsGX3VAL0Kk+M7bc7wVVMkudSYiFGwxQkMRhZ2QylRTuxeF7NlSVJAtMZq4NZMTTyl5WvJK65mn
+	PDvJOLu7zy+e2YGuuP5olte2zib55fOHd64azQ34Cxdp3KqlfhdL0dDa5Cyr1P5YXDXscZP6e08Fz
+	4LCb7UyA==;
 Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1sc2pL-000000001sP-0Raz;
-	Thu, 08 Aug 2024 15:05:11 +0200
-Date: Thu, 8 Aug 2024 15:05:11 +0200
+	id 1sc357-0000000021t-3Tyf;
+	Thu, 08 Aug 2024 15:21:29 +0200
+Date: Thu, 8 Aug 2024 15:21:29 +0200
 From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-	Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [iptables RFC PATCH 8/8] nft: Support compat extensions in rule
- userdata
-Message-ID: <ZrTCh6fOp_XP7frO@orbyte.nwl.cc>
+To: Joshua Lant <joshualant@googlemail.com>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: iptables: compiling with kernel headers
+Message-ID: <ZrTGWWMs2TA1j5wa@orbyte.nwl.cc>
 Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-	Jan Engelhardt <jengelh@inai.de>
-References: <20240731222703.22741-1-phil@nwl.cc>
- <20240731222703.22741-9-phil@nwl.cc>
- <ZrO1ZVKUT_fNKXx1@calendula>
+	Joshua Lant <joshualant@googlemail.com>,
+	netfilter-devel@vger.kernel.org
+References: <CAMQRqNJe=rT8sJD78TCmBNnE+3KQFzx4mqNNXw4O3vohZo_Ycg@mail.gmail.com>
+ <ZrOpqyQZZW1wUTUQ@orbyte.nwl.cc>
+ <20240808110809.GB2844568@softwood>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <ZrO1ZVKUT_fNKXx1@calendula>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20240808110809.GB2844568@softwood>
 
-Hi Pablo,
-
-On Wed, Aug 07, 2024 at 07:56:53PM +0200, Pablo Neira Ayuso wrote:
-> On Thu, Aug 01, 2024 at 12:27:03AM +0200, Phil Sutter wrote:
-> > Add a mechanism providing forward compatibility for the current and
-> > future versions of iptables-nft (and all other nft-variants) by
-> > annotating nftnl rules with the extensions they were created for.
-> > 
-> > Upon nftnl rule parsing failure, warn about the situation and perform a
-> > second attempt loading the respective compat extensions instead of the
-> > native expressions which replace them. The foundational assumption is
-> > that libxtables extensions are stable and thus the VM code created on
-> > their behalf does not need to be.
-> > 
-> > Since nftnl rule userdata attributes are restricted to 255 bytes, the
-> > implementation focusses on low memory consumption. Therefore, extensions
-> > which remain in the rule as compat expressions are not also added to
-> > userdata. In turn, extensions in userdata are annotated by start and end
-> > expression number they are replacing. Also, the actual payload is
-> > zipped using zlib.
+On Thu, Aug 08, 2024 at 11:08:09AM +0000, Joshua Lant wrote:
+> Hi Phil,
 > 
-> What is store in the userdata extension? Is this a textual
-> representation of the match/target?
+> > > When I try to compile iptables using —with-kernel, or —with-ksource, I
+> > > get this error:
+> > > 
+> > > In file included from …/iptables-morello/extensions/libxt_TOS.c:16:
+> > > In file included from …/iptables-morello/extensions/tos_values.c:4:
+> > > In file included from …/kernel-source/include/uapi/linux/ip.h:22:
+> > > In file included from
+> > > …/usr/src/linux-headers-morello/include/asm/byteorder.h:23:
+> > > In file included from
+> > > …/kernel-source/include/uapi/linux/byteorder/little_endian.h:14:
+> > > …/kernel-source/include/uapi/linux/swab.h:48:15: error: unknown type
+> > > name '__attribute_const__'
+> > 
+> > I can't reproduce this here.
+> >
+> > > I see that this error arises because when I set the —with-kernel flag
+> > > libxt_TOS.c is being compiled against ./include/uapi/linux/ip.h. But
+> > > when I compile without that flag, the -isystem flag value provides the
+> > > ./include/linux/ip.h.
+> > 
+> > What './include/linux/ip.h' is that? It's not in iptables.git. On my
+> > system, /usr/include/linux/ip.h is basically identical to
+> > include/uapi/linux/ip.h in my clone of linux.git.
+> > 
+> 
+> Both the ip.h are under the linux git clone, one in
+> <repo>/include/linux/ip.h and one in <repo>/include/uapi/linux/ip.h. I
+> am setting the --with-kernel or --with-ksource to be the root of the
+> linux git repo.
 
-The patch introduces a new attribute UDATA_TYPE_COMPAT_EXT which holds
-an "array" of this data structure:
+Ah! Well, include/linux/ip.h includes uapi/linux/ip.h so they are not
+entirely incompatible. User space might choke on the former's extras,
+though.
 
-| struct rule_udata_ext {
-|         uint8_t start_idx;
-|         uint8_t end_idx;
-|         uint8_t type;
-|         uint8_t zip:1;
-|         uint16_t orig_size;
-|         uint16_t size;
-|         unsigned char data[];
-| };
+> > Did you retry using gcc? I personally don't use --with-kernel/ksource,
+> > so from my very own perspective, this feature is unused and untested. ;)
+> > 
+> 
+> GCC is not an option really. My whole build system is set up around
+> clang, and the status of the morello GCC compiler is not as mature I
+> don't think, so could cause more issues than it solves...
 
-start_idx/end_idx are those of expressions in the rule which are to be
-replaced by this extension in fallback case. The 'type' field
-distinguishes matches from targets (could be single-bit as well), the
-'zip' field indicates 'data' is zlib-compressed. The remaining fields
-are self-explanatory, whereat 'data' holds a (compressed) object of
-either struct xt_entry_match or struct xt_entry_target.
+I assumed you see the problem with --with-kernel with x86_64, too.
 
-> What is in your opinion the upside/downside of this approach?
+> > These are bugs IMO. Kernel headers are supposed to be compatible, so one
+> > should not have to adjust user space for newer headers - the problem
+> > with xt_connmark.h is an exception to the rule in my perspective.
+> > 
+> ... 
+> > If it helps you, feel free to submit a patch updating the cached
+> > xt_connmark.h and dropping said enum from libxt_CONNMARK.c. Same for
+> > other issues you noticed. In doubt just send me a report and I'll see
+> > how I can resolve things myself.
+> > 
+> 
+> Okay, I'll start trying to update the headers and see how far I get through
+> the compilation. Thanks a lot for your input.
 
-You may recall, I tried to build a mechanism which works with old
-binaries. This one does not, it requires user space support.
-Distributions might backport it though, maybe even just the parser part.
-
-The upside to this is that no kernel modifications are needed, the whole
-thing is transparent to the kernel (apart from the increased rule size).
-
-I had implemented a first approach embedding the rule in textual
-representation into userdata, but it was ugly for different reasons.
-Also I refrained from generating the string rep. ad-hoc from a given
-iptables_command_state object because that would require refactoring of
-the whole printing code to use a buffer or defined fp instead of stdout
-directly. Apart from ugliness caused by reusing "whatever" the user put
-into argv[], I had to overcome some obstacles:
-
-- Space restrictions in userdata, breaking for "long" rules (e.g. having
-  long comments).
-- Parsing a rule from string ad-hoc (e.g. to compare user input with
-  rules in cache) triggered some "funny" bugs.
-- No way to omit redundant data (i.e., extensions which remain as compat
-  expressions in the rule).
-
-Vice-versa, this implementation has the following benefits:
-
-- Rule parsing in fallback case is relatively simple, userdata bits
-  parse similar to compat expression payload.
-- Provide just the minimum parts of the rule in userdata. Comments will
-  always remain in an extension, so will never be carried in userdata.
-- Extensions compress relatively well (due to zero bytes in data
-  structures).
-
-One may assess better readability of netlink debug output when using a
-string rep. This got somewhat reduced by me using NUL-chars to separate
-arguments, but neither nft nor libnftnl will be able to convert the
-binary payload of this approach to something user-friendly. Using
-libxtables though, one could print the individual extensions into
-iptables "command line parts".
-
-I'll happily answer further questions, just shoot!
+YW!
 
 Cheers, Phil
