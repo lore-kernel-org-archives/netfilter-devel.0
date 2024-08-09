@@ -1,81 +1,99 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx01.omp.ru (mx01.omp.ru [90.154.21.10])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F1931940AA;
-	Fri,  9 Aug 2024 15:33:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C327233D1;
+	Fri,  9 Aug 2024 20:20:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.154.21.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723217600; cv=none; b=nTRGXeHHA+3lycRHWfAuCbvoPXWt3HtKP9CaD7spSjYn3Jdp36zuRFI9A6aUQWRcBdrYnADw5umabb7+u272WW2IXkHD0qh9rrZHlgWT03OcRHtnvnDUJJG1DXLFkcQcd3I8LrBYlg1s1Wvg/LmmrSP1WvqpWQeqEDDlcHWMIlc=
+	t=1723234864; cv=none; b=oYHkAV5miihQrpjgEwBZGhVeQz5lSWj/4DpHsTh7HBHyrYLcPchF4BtT/LOMdCEl7VaMc1CKK6DChia8EGb4T1dXrkIIKTZj1QPd8xHpfA5XerlzY9OBYKdR7KRgjHf/MRfXcvsDeqmkcENehrc6CRL3fT/mEpWVaHSH1Vd98t0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723217600; c=relaxed/simple;
-	bh=LLATHC40aB4O6Tlta9sOqjyjUh0MDvWpmXSUKdbn63U=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=sCj0J+9TDbHnrokxihWZy3Sh2OQM1iQNcTGhYvd2kO26IOs+OipUcHWQTomu4/u3cta62HlKIpR20FLKLFQolBQfl2EhTM61waVxLqapXugmv8iwVFcciFkI/59OnIoPBKwJUTleHe9h1zx3DhPv7hJyZvfpHxfvHhCgMfCSxMU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=pAWuV5u9; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="pAWuV5u9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 606EEC32782;
-	Fri,  9 Aug 2024 15:33:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1723217599;
-	bh=LLATHC40aB4O6Tlta9sOqjyjUh0MDvWpmXSUKdbn63U=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=pAWuV5u9nLxT1XU3Tw5pQMzzs/HwvUBlgltHzqBuusOVH7lJlfGEZY6fUGXyuHnnj
-	 0BH9zVIFk8R78xiRFZTSWCoOTvZ/q79JZ8AF8s/+sK7XwdKoXxcd/Nw0naD8KDyxwh
-	 dpzjeb8Uzy2fUqilBRS67T+ZdzvYCRPI8vm28vi9G+d6U2i2QExdtW8tJ6zBhtCl2i
-	 mUjLfO62fIE30qyRI4gvLrztC10YZG3Nfe9XAXeBm8o45BoZV9v0YFpswiBfdvS/wL
-	 YxwCWo0VohojzwY2OjCDwHrGOnQ12Dx8CQ2c5fQ0tojoFu7rHawsK6zMu2vYkMJf63
-	 CfaLXjIit4xLA==
-Date: Fri, 9 Aug 2024 16:33:15 +0100
-From: Simon Horman <horms@kernel.org>
-To: Donald Hunter <donald.hunter@gmail.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	donald.hunter@redhat.com
-Subject: Re: [PATCH nf v1] netfilter: nfnetlink: Initialise extack before use
- in ACKs
-Message-ID: <20240809153315.GC1951@kernel.org>
-References: <20240806154324.40764-1-donald.hunter@gmail.com>
- <20240809090238.GF3075665@kernel.org>
- <m25xsaq74k.fsf@gmail.com>
+	s=arc-20240116; t=1723234864; c=relaxed/simple;
+	bh=9pjaJVblH+a3wOhm0a2g/cjkxPhurbm/9byvAbPg0EE=;
+	h=Subject:To:CC:References:From:Message-ID:Date:MIME-Version:
+	 In-Reply-To:Content-Type; b=gBx2mHuIAPt//GYLxpR8TUBD6i6jSYQBmabIH4+qIqJTsKVJH7IeZ7GsgcYNgyd77BeMd/LrXn0s52ZwN+he7+DSQ6Pgaf2Sc1i2hvWHpzFxQQnas5XZ4EsWd5Miw3hqp1y7eM3hGXI0jpf2uGeAY4IymaMOeGg1gir6KDAhNEo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=omp.ru; spf=pass smtp.mailfrom=omp.ru; arc=none smtp.client-ip=90.154.21.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=omp.ru
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=omp.ru
+Received: from [192.168.1.105] (31.173.86.72) by msexch01.omp.ru (10.188.4.12)
+ with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id 15.2.1258.12; Fri, 9 Aug
+ 2024 23:20:46 +0300
+Subject: Re: [PATCH] netfilter: nfnetlink_log: remove unnecessary check in
+ __build_packet_message()
+To: Roman Smirnov <r.smirnov@omp.ru>, Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>, "David S. Miller"
+	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
+	<kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
+CC: <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+	<netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>, Karina Yankevich
+	<k.yankevich@omp.ru>, <lvc-project@linuxtesting.org>
+References: <20240809074035.11078-1-r.smirnov@omp.ru>
+From: Sergey Shtylyov <s.shtylyov@omp.ru>
+Organization: Open Mobile Platform
+Message-ID: <1d68bf3e-9d71-25fd-826b-250bf9160bda@omp.ru>
+Date: Fri, 9 Aug 2024 23:20:46 +0300
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.10.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <m25xsaq74k.fsf@gmail.com>
+In-Reply-To: <20240809074035.11078-1-r.smirnov@omp.ru>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: msexch01.omp.ru (10.188.4.12) To msexch01.omp.ru
+ (10.188.4.12)
+X-KSE-ServerInfo: msexch01.omp.ru, 9
+X-KSE-AntiSpam-Interceptor-Info: scan successful
+X-KSE-AntiSpam-Version: 6.1.0, Database issued on: 08/09/2024 20:03:51
+X-KSE-AntiSpam-Status: KAS_STATUS_NOT_DETECTED
+X-KSE-AntiSpam-Method: none
+X-KSE-AntiSpam-Rate: 59
+X-KSE-AntiSpam-Info: Lua profiles 186981 [Aug 09 2024]
+X-KSE-AntiSpam-Info: Version: 6.1.0.4
+X-KSE-AntiSpam-Info: Envelope from: s.shtylyov@omp.ru
+X-KSE-AntiSpam-Info: LuaCore: 24 0.3.24
+ 186c4d603b899ccfd4883d230c53f273b80e467f
+X-KSE-AntiSpam-Info: {rep_avail}
+X-KSE-AntiSpam-Info: {relay has no DNS name}
+X-KSE-AntiSpam-Info: {SMTP from is not routable}
+X-KSE-AntiSpam-Info: {Found in DNSBL: 31.173.86.72 in (user)
+ b.barracudacentral.org}
+X-KSE-AntiSpam-Info: {Found in DNSBL: 31.173.86.72 in (user) dbl.spamhaus.org}
+X-KSE-AntiSpam-Info:
+	omp.ru:7.1.1;d41d8cd98f00b204e9800998ecf8427e.com:7.1.1;127.0.0.199:7.1.2
+X-KSE-AntiSpam-Info: ApMailHostAddress: 31.173.86.72
+X-KSE-AntiSpam-Info: {DNS response errors}
+X-KSE-AntiSpam-Info: Rate: 59
+X-KSE-AntiSpam-Info: Status: not_detected
+X-KSE-AntiSpam-Info: Method: none
+X-KSE-AntiSpam-Info: Auth:dmarc=temperror header.from=omp.ru;spf=temperror
+ smtp.mailfrom=omp.ru;dkim=none
+X-KSE-Antiphishing-Info: Clean
+X-KSE-Antiphishing-ScanningType: Heuristic
+X-KSE-Antiphishing-Method: None
+X-KSE-Antiphishing-Bases: 08/09/2024 20:08:00
+X-KSE-Antivirus-Interceptor-Info: scan successful
+X-KSE-Antivirus-Info: Clean, bases: 8/9/2024 6:31:00 PM
+X-KSE-Attachment-Filter-Triggered-Rules: Clean
+X-KSE-Attachment-Filter-Triggered-Filters: Clean
+X-KSE-BulkMessagesFiltering-Scan-Result: InTheLimit
 
-On Fri, Aug 09, 2024 at 12:15:55PM +0100, Donald Hunter wrote:
-> Simon Horman <horms@kernel.org> writes:
+On 8/9/24 10:40 AM, Roman Smirnov wrote:
+
+> skb->dev is always non-NULL, the check is unnecessary.
 > 
-> > On Tue, Aug 06, 2024 at 04:43:24PM +0100, Donald Hunter wrote:
-> >> Add missing extack initialisation when ACKing BATCH_BEGIN and BATCH_END.
-> >> 
-> >> Fixes: bf2ac490d28c ("netfilter: nfnetlink: Handle ACK flags for batch messages")
-> >> Signed-off-by: Donald Hunter <donald.hunter@gmail.com>
-> >
-> > Hi Donald,
-> >
-> > I see two other places that extack is used in nfnetlink_rcv_batch().
-> > Is it safe to leave them as-is?
+> Remove it.
+
+   Mhm, I don't think we need that in a separate paragraph...
+
+> Found by Linux Verification Center (linuxtesting.org) with Svace.
 > 
-> There is a memset at the start of the main while loop that zeroes extack
-> for those two cases.
+> Signed-off-by: Roman Smirnov <r.smirnov@omp.ru>
+> Reviewed-by: Sergey Shtylyov <s.shtylyov@omp.ru>
+[...]
 
-Thanks Donald,
-
-I missed that.
-
-I was wondering if it might be best to clear extack at the beginning of
-the function. But if the loop needs to clear it on each iteration, then
-I think your solution is good.
-
-Reviewed-by: Simon Horman <horms@kernel.org>
-
+MBR, Sergey
