@@ -1,43 +1,53 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 986E31757D
-	for <netfilter-devel@vger.kernel.org>; Sun, 11 Aug 2024 11:53:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 437BA16EB76;
+	Mon, 12 Aug 2024 10:22:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723377192; cv=none; b=r6CjdNz8c6M6zC1XzaYrVdOvwQqsXS6oHneuB33gR2zZXEImycXU1EjlT/YXDzQ1QHV1I1J3Xst4jsGAyd7pJXaDIyFqHzQrKyGsy6gQohjzNZmSfoNfrWwFjq5ks9gefcrI+NfEHz4WDjl4FwtORW0pmtfeleabsi/ke4xANLc=
+	t=1723458134; cv=none; b=IXlLNCuPczcuiIYyH0NOqmFzvTjwtCSgtpNzLPqRMyetIblPcqiqLDFsLxsPYTECr/9V5dVnGd7Mu/m7orCOLtqdejpLp+qvkvUo9Ade1JaxhFPhnkGolgabSICrYnzeT2Pgi8LG+T5S11fb+CeXEmi62k4hKUG+Lbj16G/y5V0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723377192; c=relaxed/simple;
-	bh=QXG2ZGooxPQb8BMvM0UNDhHGun1iKJIzWEkGQQIYPTU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=UDcu6bNA4Bv5BCIi1elCumRm4f2N0nJOmjJS80U4rlRIb0+FroQO5X77Jxpm26kgliF+zczRiw9Sazb97m7ZJVtGeDaDOiW9TSIdwyvkHD9kazQuNxjLGJNz8CyoWDQIETG30XiYgMFgp5RyF92zRcTqcmvwIzlkkQmrtTN+ieo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1sd78F-0004Cb-Ln; Sun, 11 Aug 2024 13:53:07 +0200
-Date: Sun, 11 Aug 2024 13:53:07 +0200
-From: Florian Westphal <fw@strlen.de>
-To: chayleaf <chayleaf-git@pavluk.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH libnftnl] set: export nftnl_set_clone
-Message-ID: <20240811115307.GA13736@breakpoint.cc>
-References: <20240810190605.1215981-1-chayleaf-git@pavluk.org>
+	s=arc-20240116; t=1723458134; c=relaxed/simple;
+	bh=Yls2oguChm5WEcf10Y8JYO1txSwGLMX82C9U66gn36w=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=pV1vhmoTlrTzVC2UO+JKmhMYqy/OI53Ma0SfqgpZW5Eq1CUwmMI0jlw1BMPtxFWCVZoJ2y1EaPSR9ed5mQCjOULXSp4KwLh9Whp+zcyMGpd4zcavxH8RzMQBMcUdVz/ON16c11UKdNbiSDsS8B/bqN/8420XlZ5erkFGcBhq23Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: gregkh@linuxfoundation.org,
+	sashal@kernel.org,
+	stable@vger.kernel.org
+Subject: [PATCH -stable,6.6.x 0/1] Netfilter fixes for -stable
+Date: Mon, 12 Aug 2024 12:21:58 +0200
+Message-Id: <20240812102159.350058-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240810190605.1215981-1-chayleaf-git@pavluk.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 
-chayleaf <chayleaf-git@pavluk.org> wrote:
-> This is present in libnftnl/set.h, so this has to either be exported or
-> removed from the header.
+Hi Greg, Sasha,
 
-Please remove both nftnl_set_clone and nftnl_set_elem_clone, these are
-not used anymore, its dead code.
+This batch contains a backport for recent fixes already upstream for 6.6.x.
+
+The following list shows the backported patch, I am using original commit
+IDs for reference:
+
+1) cff3bd012a95 ("netfilter: nf_tables: prefer nft_chain_validate")
+
+Only one patch for this -stable branch.
+
+Please, apply,
+Thanks.
+
+Florian Westphal (1):
+  netfilter: nf_tables: prefer nft_chain_validate
+
+ net/netfilter/nf_tables_api.c | 154 +++-------------------------------
+ 1 file changed, 13 insertions(+), 141 deletions(-)
+
+-- 
+2.30.2
+
