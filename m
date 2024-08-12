@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9C91B166F1E;
-	Mon, 12 Aug 2024 10:24:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 138F816EBFF;
+	Mon, 12 Aug 2024 10:24:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723458299; cv=none; b=r/Lx5kxNEo6NFnuerpWKfeq5CnbYFKCpbnMzDq01JgPQtZ0I8C8V031SlifgqrZnkuZJAO9qYqYGRa3uSFBW0Ksvq0bl5O5Ol6HBN/mvnQYGqxiyFkNq9DLLBrhq+cB2U6cGxSu+jiLtowCIwipA22txFq1mrHPb0AXuQwVvV58=
+	t=1723458299; cv=none; b=fUi1iyDRclJGzs+dXyB+wxwtbApNE2Hjrz2keQVoXsZ9gAX+7uk/x/lEVQaTf1L+a/55IU2abxM2naHYTQzSpgWJtDULOGHMyGyHXeLM1g+dVCKTOIB+q2gNL6V2c+YEicJStQN/SnVytx9927Do52DLHj46mqTtifqsMWIm3k0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1723458299; c=relaxed/simple;
-	bh=jcexcf64eEBFcJRy19BYw8EuVg6DEtQaEjWkxb0i+UU=;
+	bh=z5BqTFF8sb5RhCSVqHqlj2RhzPzSFRmUAjO854FxM04=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=aBCyscN9PkHvOSbBb/TkMg3JhEkfoAQOaOY3q31RToZCGTO+lo+S+ugJ/VOFg1g39P6R0t1r00oC9PPGEtRnFkNwEgMQXLlEmDYuyViUSq5ZPbEOly+2wMMGMhxRRCAkRdIs03wTTFGe+ZWixVljDUMHl4ofRybm6YkrXt4q+W4=
+	 MIME-Version:Content-Type; b=mYkZhD2Kl54Jk2tQHiF3b+C3ni8CkyK7lXjMOVaHGPvaBHXuPObwoN2N7WFy+s6ZWEp/+3db8xZ55+2FOjjd/Wuh2ciNdbAJMo2Gofa6vqsp+XZ5iWHm+U05EUrzOO7N+Uox8x+CzJwvdMU3Wv7UuYlCRbS8yE6uN2xmHtVcMnI=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -17,9 +17,9 @@ To: netfilter-devel@vger.kernel.org
 Cc: gregkh@linuxfoundation.org,
 	sashal@kernel.org,
 	stable@vger.kernel.org
-Subject: [PATCH -stable,5.15.x 4/5] netfilter: nf_tables: allow clone callbacks to sleep
-Date: Mon, 12 Aug 2024 12:24:45 +0200
-Message-Id: <20240812102446.369777-5-pablo@netfilter.org>
+Subject: [PATCH -stable,5.15.x 5/5] netfilter: nf_tables: prefer nft_chain_validate
+Date: Mon, 12 Aug 2024 12:24:46 +0200
+Message-Id: <20240812102446.369777-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240812102446.369777-1-pablo@netfilter.org>
 References: <20240812102446.369777-1-pablo@netfilter.org>
@@ -29,259 +29,230 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
 From: Florian Westphal <fw@strlen.de>
 
-commit fa23e0d4b756d25829e124d6b670a4c6bbd4bf7e upstream.
+commit cff3bd012a9512ac5ed858d38e6ed65f6391008c upstream.
 
-Sven Auhagen reports transaction failures with following error:
-  ./main.nft:13:1-26: Error: Could not process rule: Cannot allocate memory
-  percpu: allocation failed, size=16 align=8 atomic=1, atomic alloc failed, no space left
+nft_chain_validate already performs loop detection because a cycle will
+result in a call stack overflow (ctx->level >= NFT_JUMP_STACK_SIZE).
 
-This points to failing pcpu allocation with GFP_ATOMIC flag.
-However, transactions happen from user context and are allowed to sleep.
+It also follows maps via ->validate callback in nft_lookup, so there
+appears no reason to iterate the maps again.
 
-One case where we can call into percpu allocator with GFP_ATOMIC is
-nft_counter expression.
+nf_tables_check_loops() and all its helper functions can be removed.
+This improves ruleset load time significantly, from 23s down to 12s.
 
-Normally this happens from control plane, so this could use GFP_KERNEL
-instead.  But one use case, element insertion from packet path,
-needs to use GFP_ATOMIC allocations (nft_dynset expression).
+This also fixes a crash bug. Old loop detection code can result in
+unbounded recursion:
 
-At this time, .clone callbacks always use GFP_ATOMIC for this reason.
+BUG: TASK stack guard page was hit at ....
+Oops: stack guard page: 0000 [#1] PREEMPT SMP KASAN
+CPU: 4 PID: 1539 Comm: nft Not tainted 6.10.0-rc5+ #1
+[..]
 
-Add gfp_t argument to the .clone function and pass GFP_KERNEL or
-GFP_ATOMIC flag depending on context, this allows all clone memory
-allocations to sleep for the normal (transaction) case.
+with a suitable ruleset during validation of register stores.
 
-Cc: Sven Auhagen <sven.auhagen@voleatech.de>
+I can't see any actual reason to attempt to check for this from
+nft_validate_register_store(), at this point the transaction is still in
+progress, so we don't have a full picture of the rule graph.
+
+For nf-next it might make sense to either remove it or make this depend
+on table->validate_state in case we could catch an error earlier
+(for improved error reporting to userspace).
+
+Fixes: 20a69341f2d0 ("netfilter: nf_tables: add netlink set API")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h |  4 ++--
- net/netfilter/nf_tables_api.c     |  8 ++++----
- net/netfilter/nft_connlimit.c     |  4 ++--
- net/netfilter/nft_counter.c       |  4 ++--
- net/netfilter/nft_dynset.c        |  2 +-
- net/netfilter/nft_last.c          |  4 ++--
- net/netfilter/nft_limit.c         | 14 ++++++++------
- net/netfilter/nft_quota.c         |  4 ++--
- 8 files changed, 23 insertions(+), 21 deletions(-)
+ net/netfilter/nf_tables_api.c | 151 +++-------------------------------
+ 1 file changed, 13 insertions(+), 138 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index d241c6d8174a..3e92331d8c9a 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -374,7 +374,7 @@ static inline void *nft_expr_priv(const struct nft_expr *expr)
- 	return (void *)expr->data;
- }
- 
--int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src);
-+int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src, gfp_t gfp);
- void nft_expr_destroy(const struct nft_ctx *ctx, struct nft_expr *expr);
- int nft_expr_dump(struct sk_buff *skb, unsigned int attr,
- 		  const struct nft_expr *expr);
-@@ -872,7 +872,7 @@ struct nft_expr_ops {
- 						struct nft_regs *regs,
- 						const struct nft_pktinfo *pkt);
- 	int				(*clone)(struct nft_expr *dst,
--						 const struct nft_expr *src);
-+						 const struct nft_expr *src, gfp_t gfp);
- 	unsigned int			size;
- 
- 	int				(*init)(const struct nft_ctx *ctx,
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 395bd8c1f5c3..4c5dcd655122 100644
+index 4c5dcd655122..8ded61a3f93e 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -3049,7 +3049,7 @@ static struct nft_expr *nft_expr_init(const struct nft_ctx *ctx,
- 	return ERR_PTR(err);
+@@ -3445,6 +3445,15 @@ static void nf_tables_rule_release(const struct nft_ctx *ctx, struct nft_rule *r
+ 	nf_tables_rule_destroy(ctx, rule);
  }
  
--int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src)
-+int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src, gfp_t gfp)
++/** nft_chain_validate - loop detection and hook validation
++ *
++ * @ctx: context containing call depth and base chain
++ * @chain: chain to validate
++ *
++ * Walk through the rules of the given chain and chase all jumps/gotos
++ * and set lookups until either the jump limit is hit or all reachable
++ * chains have been validated.
++ */
+ int nft_chain_validate(const struct nft_ctx *ctx, const struct nft_chain *chain)
  {
- 	int err;
+ 	struct nft_expr *expr, *last;
+@@ -3463,6 +3472,9 @@ int nft_chain_validate(const struct nft_ctx *ctx, const struct nft_chain *chain)
+ 			if (!expr->ops->validate)
+ 				continue;
  
-@@ -3057,7 +3057,7 @@ int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src)
- 		return -EINVAL;
- 
- 	dst->ops = src->ops;
--	err = src->ops->clone(dst, src);
-+	err = src->ops->clone(dst, src, gfp);
- 	if (err < 0)
- 		return err;
- 
-@@ -5954,7 +5954,7 @@ int nft_set_elem_expr_clone(const struct nft_ctx *ctx, struct nft_set *set,
- 		if (!expr)
- 			goto err_expr;
- 
--		err = nft_expr_clone(expr, set->exprs[i]);
-+		err = nft_expr_clone(expr, set->exprs[i], GFP_KERNEL_ACCOUNT);
- 		if (err < 0) {
- 			kfree(expr);
- 			goto err_expr;
-@@ -5982,7 +5982,7 @@ static int nft_set_elem_expr_setup(struct nft_ctx *ctx,
- 
- 	for (i = 0; i < num_exprs; i++) {
- 		expr = nft_setelem_expr_at(elem_expr, elem_expr->size);
--		err = nft_expr_clone(expr, expr_array[i]);
-+		err = nft_expr_clone(expr, expr_array[i], GFP_KERNEL_ACCOUNT);
- 		if (err < 0)
- 			goto err_elem_expr_setup;
- 
-diff --git a/net/netfilter/nft_connlimit.c b/net/netfilter/nft_connlimit.c
-index f5df535bcbd0..403fffa14fa3 100644
---- a/net/netfilter/nft_connlimit.c
-+++ b/net/netfilter/nft_connlimit.c
-@@ -209,12 +209,12 @@ static void nft_connlimit_destroy(const struct nft_ctx *ctx,
- 	nft_connlimit_do_destroy(ctx, priv);
++			/* This may call nft_chain_validate() recursively,
++			 * callers that do so must increment ctx->level.
++			 */
+ 			err = expr->ops->validate(ctx, expr, &data);
+ 			if (err < 0)
+ 				return err;
+@@ -9999,143 +10011,6 @@ int nft_chain_validate_hooks(const struct nft_chain *chain,
  }
+ EXPORT_SYMBOL_GPL(nft_chain_validate_hooks);
  
--static int nft_connlimit_clone(struct nft_expr *dst, const struct nft_expr *src)
-+static int nft_connlimit_clone(struct nft_expr *dst, const struct nft_expr *src, gfp_t gfp)
- {
- 	struct nft_connlimit *priv_dst = nft_expr_priv(dst);
- 	struct nft_connlimit *priv_src = nft_expr_priv(src);
- 
--	priv_dst->list = kmalloc(sizeof(*priv_dst->list), GFP_ATOMIC);
-+	priv_dst->list = kmalloc(sizeof(*priv_dst->list), gfp);
- 	if (!priv_dst->list)
- 		return -ENOMEM;
- 
-diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
-index 9f78f8ad4ee1..1b468a16b523 100644
---- a/net/netfilter/nft_counter.c
-+++ b/net/netfilter/nft_counter.c
-@@ -225,7 +225,7 @@ static void nft_counter_destroy(const struct nft_ctx *ctx,
- 	nft_counter_do_destroy(priv);
- }
- 
--static int nft_counter_clone(struct nft_expr *dst, const struct nft_expr *src)
-+static int nft_counter_clone(struct nft_expr *dst, const struct nft_expr *src, gfp_t gfp)
- {
- 	struct nft_counter_percpu_priv *priv = nft_expr_priv(src);
- 	struct nft_counter_percpu_priv *priv_clone = nft_expr_priv(dst);
-@@ -235,7 +235,7 @@ static int nft_counter_clone(struct nft_expr *dst, const struct nft_expr *src)
- 
- 	nft_counter_fetch(priv, &total);
- 
--	cpu_stats = alloc_percpu_gfp(struct nft_counter, GFP_ATOMIC);
-+	cpu_stats = alloc_percpu_gfp(struct nft_counter, gfp);
- 	if (cpu_stats == NULL)
- 		return -ENOMEM;
- 
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index e714e0efa736..ecdd4a60db9c 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -35,7 +35,7 @@ static int nft_dynset_expr_setup(const struct nft_dynset *priv,
- 
- 	for (i = 0; i < priv->num_exprs; i++) {
- 		expr = nft_setelem_expr_at(elem_expr, elem_expr->size);
--		if (nft_expr_clone(expr, priv->expr_array[i]) < 0)
-+		if (nft_expr_clone(expr, priv->expr_array[i], GFP_ATOMIC) < 0)
- 			return -1;
- 
- 		elem_expr->size += priv->expr_array[i]->ops->size;
-diff --git a/net/netfilter/nft_last.c b/net/netfilter/nft_last.c
-index 63145a5e69ef..0959e5adfe96 100644
---- a/net/netfilter/nft_last.c
-+++ b/net/netfilter/nft_last.c
-@@ -101,12 +101,12 @@ static void nft_last_destroy(const struct nft_ctx *ctx,
- 	kfree(priv->last);
- }
- 
--static int nft_last_clone(struct nft_expr *dst, const struct nft_expr *src)
-+static int nft_last_clone(struct nft_expr *dst, const struct nft_expr *src, gfp_t gfp)
- {
- 	struct nft_last_priv *priv_dst = nft_expr_priv(dst);
- 	struct nft_last_priv *priv_src = nft_expr_priv(src);
- 
--	priv_dst->last = kzalloc(sizeof(*priv_dst->last), GFP_ATOMIC);
-+	priv_dst->last = kzalloc(sizeof(*priv_dst->last), gfp);
- 	if (!priv_dst->last)
- 		return -ENOMEM;
- 
-diff --git a/net/netfilter/nft_limit.c b/net/netfilter/nft_limit.c
-index b23a671fa9d8..9f69be2016c4 100644
---- a/net/netfilter/nft_limit.c
-+++ b/net/netfilter/nft_limit.c
-@@ -150,7 +150,7 @@ static void nft_limit_destroy(const struct nft_ctx *ctx,
- }
- 
- static int nft_limit_clone(struct nft_limit_priv *priv_dst,
--			   const struct nft_limit_priv *priv_src)
-+			   const struct nft_limit_priv *priv_src, gfp_t gfp)
- {
- 	priv_dst->tokens_max = priv_src->tokens_max;
- 	priv_dst->rate = priv_src->rate;
-@@ -158,7 +158,7 @@ static int nft_limit_clone(struct nft_limit_priv *priv_dst,
- 	priv_dst->burst = priv_src->burst;
- 	priv_dst->invert = priv_src->invert;
- 
--	priv_dst->limit = kmalloc(sizeof(*priv_dst->limit), GFP_ATOMIC);
-+	priv_dst->limit = kmalloc(sizeof(*priv_dst->limit), gfp);
- 	if (!priv_dst->limit)
- 		return -ENOMEM;
- 
-@@ -222,14 +222,15 @@ static void nft_limit_pkts_destroy(const struct nft_ctx *ctx,
- 	nft_limit_destroy(ctx, &priv->limit);
- }
- 
--static int nft_limit_pkts_clone(struct nft_expr *dst, const struct nft_expr *src)
-+static int nft_limit_pkts_clone(struct nft_expr *dst, const struct nft_expr *src,
-+				gfp_t gfp)
- {
- 	struct nft_limit_priv_pkts *priv_dst = nft_expr_priv(dst);
- 	struct nft_limit_priv_pkts *priv_src = nft_expr_priv(src);
- 
- 	priv_dst->cost = priv_src->cost;
- 
--	return nft_limit_clone(&priv_dst->limit, &priv_src->limit);
-+	return nft_limit_clone(&priv_dst->limit, &priv_src->limit, gfp);
- }
- 
- static struct nft_expr_type nft_limit_type;
-@@ -279,12 +280,13 @@ static void nft_limit_bytes_destroy(const struct nft_ctx *ctx,
- 	nft_limit_destroy(ctx, priv);
- }
- 
--static int nft_limit_bytes_clone(struct nft_expr *dst, const struct nft_expr *src)
-+static int nft_limit_bytes_clone(struct nft_expr *dst, const struct nft_expr *src,
-+				 gfp_t gfp)
- {
- 	struct nft_limit_priv *priv_dst = nft_expr_priv(dst);
- 	struct nft_limit_priv *priv_src = nft_expr_priv(src);
- 
--	return nft_limit_clone(priv_dst, priv_src);
-+	return nft_limit_clone(priv_dst, priv_src, gfp);
- }
- 
- static const struct nft_expr_ops nft_limit_bytes_ops = {
-diff --git a/net/netfilter/nft_quota.c b/net/netfilter/nft_quota.c
-index 73de40007dfe..586a6df645bc 100644
---- a/net/netfilter/nft_quota.c
-+++ b/net/netfilter/nft_quota.c
-@@ -232,7 +232,7 @@ static void nft_quota_destroy(const struct nft_ctx *ctx,
- 	return nft_quota_do_destroy(ctx, priv);
- }
- 
--static int nft_quota_clone(struct nft_expr *dst, const struct nft_expr *src)
-+static int nft_quota_clone(struct nft_expr *dst, const struct nft_expr *src, gfp_t gfp)
- {
- 	struct nft_quota *priv_dst = nft_expr_priv(dst);
- 	struct nft_quota *priv_src = nft_expr_priv(src);
-@@ -240,7 +240,7 @@ static int nft_quota_clone(struct nft_expr *dst, const struct nft_expr *src)
- 	priv_dst->quota = priv_src->quota;
- 	priv_dst->flags = priv_src->flags;
- 
--	priv_dst->consumed = kmalloc(sizeof(*priv_dst->consumed), GFP_ATOMIC);
-+	priv_dst->consumed = kmalloc(sizeof(*priv_dst->consumed), gfp);
- 	if (!priv_dst->consumed)
- 		return -ENOMEM;
- 
+-/*
+- * Loop detection - walk through the ruleset beginning at the destination chain
+- * of a new jump until either the source chain is reached (loop) or all
+- * reachable chains have been traversed.
+- *
+- * The loop check is performed whenever a new jump verdict is added to an
+- * expression or verdict map or a verdict map is bound to a new chain.
+- */
+-
+-static int nf_tables_check_loops(const struct nft_ctx *ctx,
+-				 const struct nft_chain *chain);
+-
+-static int nft_check_loops(const struct nft_ctx *ctx,
+-			   const struct nft_set_ext *ext)
+-{
+-	const struct nft_data *data;
+-	int ret;
+-
+-	data = nft_set_ext_data(ext);
+-	switch (data->verdict.code) {
+-	case NFT_JUMP:
+-	case NFT_GOTO:
+-		ret = nf_tables_check_loops(ctx, data->verdict.chain);
+-		break;
+-	default:
+-		ret = 0;
+-		break;
+-	}
+-
+-	return ret;
+-}
+-
+-static int nf_tables_loop_check_setelem(const struct nft_ctx *ctx,
+-					struct nft_set *set,
+-					const struct nft_set_iter *iter,
+-					struct nft_set_elem *elem)
+-{
+-	const struct nft_set_ext *ext = nft_set_elem_ext(set, elem->priv);
+-
+-	if (nft_set_ext_exists(ext, NFT_SET_EXT_FLAGS) &&
+-	    *nft_set_ext_flags(ext) & NFT_SET_ELEM_INTERVAL_END)
+-		return 0;
+-
+-	return nft_check_loops(ctx, ext);
+-}
+-
+-static int nft_set_catchall_loops(const struct nft_ctx *ctx,
+-				  struct nft_set *set)
+-{
+-	u8 genmask = nft_genmask_next(ctx->net);
+-	struct nft_set_elem_catchall *catchall;
+-	struct nft_set_ext *ext;
+-	int ret = 0;
+-
+-	list_for_each_entry_rcu(catchall, &set->catchall_list, list) {
+-		ext = nft_set_elem_ext(set, catchall->elem);
+-		if (!nft_set_elem_active(ext, genmask))
+-			continue;
+-
+-		ret = nft_check_loops(ctx, ext);
+-		if (ret < 0)
+-			return ret;
+-	}
+-
+-	return ret;
+-}
+-
+-static int nf_tables_check_loops(const struct nft_ctx *ctx,
+-				 const struct nft_chain *chain)
+-{
+-	const struct nft_rule *rule;
+-	const struct nft_expr *expr, *last;
+-	struct nft_set *set;
+-	struct nft_set_binding *binding;
+-	struct nft_set_iter iter;
+-
+-	if (ctx->chain == chain)
+-		return -ELOOP;
+-
+-	list_for_each_entry(rule, &chain->rules, list) {
+-		nft_rule_for_each_expr(expr, last, rule) {
+-			struct nft_immediate_expr *priv;
+-			const struct nft_data *data;
+-			int err;
+-
+-			if (strcmp(expr->ops->type->name, "immediate"))
+-				continue;
+-
+-			priv = nft_expr_priv(expr);
+-			if (priv->dreg != NFT_REG_VERDICT)
+-				continue;
+-
+-			data = &priv->data;
+-			switch (data->verdict.code) {
+-			case NFT_JUMP:
+-			case NFT_GOTO:
+-				err = nf_tables_check_loops(ctx,
+-							data->verdict.chain);
+-				if (err < 0)
+-					return err;
+-				break;
+-			default:
+-				break;
+-			}
+-		}
+-	}
+-
+-	list_for_each_entry(set, &ctx->table->sets, list) {
+-		if (!nft_is_active_next(ctx->net, set))
+-			continue;
+-		if (!(set->flags & NFT_SET_MAP) ||
+-		    set->dtype != NFT_DATA_VERDICT)
+-			continue;
+-
+-		list_for_each_entry(binding, &set->bindings, list) {
+-			if (!(binding->flags & NFT_SET_MAP) ||
+-			    binding->chain != chain)
+-				continue;
+-
+-			iter.genmask	= nft_genmask_next(ctx->net);
+-			iter.skip 	= 0;
+-			iter.count	= 0;
+-			iter.err	= 0;
+-			iter.fn		= nf_tables_loop_check_setelem;
+-
+-			set->ops->walk(ctx, set, &iter);
+-			if (!iter.err)
+-				iter.err = nft_set_catchall_loops(ctx, set);
+-
+-			if (iter.err < 0)
+-				return iter.err;
+-		}
+-	}
+-
+-	return 0;
+-}
+-
+ /**
+  *	nft_parse_u32_check - fetch u32 attribute and check for maximum value
+  *
+@@ -10248,7 +10123,7 @@ static int nft_validate_register_store(const struct nft_ctx *ctx,
+ 		if (data != NULL &&
+ 		    (data->verdict.code == NFT_GOTO ||
+ 		     data->verdict.code == NFT_JUMP)) {
+-			err = nf_tables_check_loops(ctx, data->verdict.chain);
++			err = nft_chain_validate(ctx, data->verdict.chain);
+ 			if (err < 0)
+ 				return err;
+ 		}
 -- 
 2.30.2
 
