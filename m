@@ -1,32 +1,49 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00F7219D886
-	for <netfilter-devel@vger.kernel.org>; Tue, 13 Aug 2024 14:37:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EB5F19D886
+	for <netfilter-devel@vger.kernel.org>; Tue, 13 Aug 2024 14:39:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723559844; cv=none; b=gtGxgjFADBFcuhjvG9o6XFvgIKFye2t4LUquQNPS6hfBXf5VFPDBGc8sGVyYbPAvHqyukrSeyo3V7Ai7il3oPOdd8R/Rb3IIjfXDuNNm+lg7b/sXt4DcgoBuRyPtJ+UjWv9f7mF/dmwG/9uSiMcL/5S9+KqnW0EsdKHkQrff3Rs=
+	t=1723559954; cv=none; b=m3hZiRZQjySs+aIU3XgogWd/OIwzZfkcBS2GOZT+byTYZD7kaj+oTq381JX/fPZI/2s0zSRWNcMdDovikb3LXoNHe/17knhzlcYzHpg/7pnzB6NDT26TVddnqOdAc5hs/Yz2rgOdiCl72Psq+2f8YF5cEMkKwKuAZIUbn6pOQnE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723559844; c=relaxed/simple;
-	bh=73KuLAuZzSX2fuPvxbKgwlpEGZYKLB3ab6iwrGWMbbU=;
+	s=arc-20240116; t=1723559954; c=relaxed/simple;
+	bh=L6WYcDBSRJQLnjZiUFbHg2uTBWqkTK2u9Vwzs7ftnFE=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jlFu0Z5ayu6lnqQI4jyCmlb7yX3BYM94FtDW0ZwAn2tJrPyDpP4+BfrC3I2evWyzoxgMsagb/VEsHLwfapeQNq4FiiqRqv5sL/+8Z3LShC1ePHDBcI6ZDvwZMLv9pgqyi8C/eV8xVkavBEgqlThEDI8lV86EhBXD9bmvCZXGgHs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1sdseF-0001cY-U8; Tue, 13 Aug 2024 16:37:19 +0200
-Date: Tue, 13 Aug 2024 16:37:19 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	Eric Dumazet <edumazet@google.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>
-Subject: Re: [netfilter-core] [Q] The usage of xt_recseq.
-Message-ID: <20240813143719.GA5147@breakpoint.cc>
-References: <20240813140121.QvV8fMbm@linutronix.de>
+	 Content-Type:Content-Disposition:In-Reply-To; b=Qd3WUqP8VW+OLwxFopFDynfgdhlXVwsC2KN6goKzjphVWBNyn7Z2eTWN+0ocP1HvwC9lsgCs2q2C68FM/AXzBif/K5jJ8vPw0aC0IgN5gOHjNFI9DZH+W/hJ76nOB+/Kxr0qsFuNFvH4k0s3CwYL7QyGG/Pa5uFHTl58T+MXzjQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=jXczJAp4; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="jXczJAp4"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=baw7Oca3iyrUf2QwEGQsEZDIzYkvdFGQVqIE4BqoC/k=; b=jXczJAp49+/dKmDAu3RTH15x/r
+	ofB5JoGLy2ZPd8C3Ts3EOyeGlY5SXd89ZpalvnH3TNZqKcqeOp8u4YXCGB0ls/YqTyFUPMCFp18Vn
+	QQzCZOrRcOJ5GkIKGOK90Tkyf/1kUwrVWwJFHurivVPNkL1v+AlLx9IHOc3LE2ySGVsZcQm+53l+J
+	lR5Uds8N0+IAQeTPNLEYDgGofRAqUcfDcJNzZzN8wwFHaHfkCxKEOt3Jwp9pDTR6w0LjJioqma9/Y
+	xt8EVU/Fcv6KffTUUkHZbv7q8Y8qMX3Ud0sCoQK9GMl8E3pUSH01fXyCSow8KENCGf7uCzP2TMdTN
+	9JunxVqw==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1sdsg1-000000002k6-1UzQ;
+	Tue, 13 Aug 2024 16:39:09 +0200
+Date: Tue, 13 Aug 2024 16:39:09 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next 1/8] netfilter: nf_tables: elements with timeout
+ less than HZ/10 never expire
+Message-ID: <ZrtwDSyF5VXPqVtD@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+References: <20240807142357.90493-1-pablo@netfilter.org>
+ <20240807142357.90493-2-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -35,54 +52,43 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240813140121.QvV8fMbm@linutronix.de>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20240807142357.90493-2-pablo@netfilter.org>
 
-Hi Sebastian!
+Hi Pablo,
 
-Sebastian Andrzej Siewior <bigeasy@linutronix.de> wrote:
-> xt_recseq is per-CPU sequence counter which is not entirely using the
-> seqcount API.
-> The writer side of the sequence counter is updating the packet and byte
-> counter (64bit) while processing a packet. The reader simply retrieves
-> the two counter.
-> Based on the code, the writer side can be recursive which is probably
-> why the "regular" write side isn't used or maybe because there is no
-> "lock".
-
-Yes, recursive entry is possible even with local_bh_disable(), as
-some of the xt_FOO extensions can send a packet (REJECT and TEE come
-to mind), which can re-enter into ip_tables' traverser (*_do_table).
-
-> The seqcount is per-CPU and disabling BH is used as the "lock". On
-> PREEMPT_RT code in local_bh_disable()ed section is preemptible and this
-> means that a seqcount reader with higher priority can preempt the writer
-> which leads to a deadlock. 
+On Wed, Aug 07, 2024 at 04:23:50PM +0200, Pablo Neira Ayuso wrote:
+> Elements with less than HZ/10 milliseconds timeout never expire because
+> the element timeout extension is not allocated given that
+> nf_msecs_to_jiffies64() returns 0. Round up this timeout to HZ/10 to let
+> them time out.
 > 
-> While trying to trigger the writer side, I managed only to trigger a
-> single reader and only while using iptables-legacy/ arptables-legacy
-> commands. The nft did not trigger it. So it is legacy code only.
+> Fixes: 8e1102d5a159 ("netfilter: nf_tables: support timeouts larger than 23 days")
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  net/netfilter/nf_tables_api.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index 481ee78e77bc..0fb8f8f1ef66 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -4586,6 +4586,9 @@ int nf_msecs_to_jiffies64(const struct nlattr *nla, u64 *result)
+>  	if (ms >= max)
+>  		return -ERANGE;
+>  
+> +	if (ms < HZ/10)
+> +		ms = HZ/10;
+> +
 
-Yes, this is legacy only.
+This lower boundary works for HZ=100 only, right? With HZ=1000, the
+mininum timeout is calculated to 100ms, but the kernel ticks once per ms
+so 1ms is exactly 1 jiffie.
 
-> Would it work to convert the counters to u64_stats_sync? On 32bit
-> there would be a seqcount_t with preemption disabling during the
-> update which means the xt_write_recseq_begin()/ xt_write_recseq_end()
-> has to be limited the counter update only. On 64bit architectures there
-> would be just the update. This means that number of packets and bytes
-> might be "off" (the one got updated, the other not "yet") but I don't
-> think that this is a problem here.
+>  	ms *= NSEC_PER_MSEC;
+>  	*result = nsecs_to_jiffies64(ms);
 
-Unfortunately its not only about counters; local_bh_disable() is also
-used to prevent messing up the chain jump stack.
+Why not simply sanitize *result? E.g. like so:
 
-For local hooks, this is called from process context, so in order
-to avoid timers kicking in and then re-using the jumpstack, this
-local_bh_disable avoids that.
+|	*result = nsecs_to_jiffies64(ms) ?: !!ms;
 
-The chain stack is percpu in -legacy, and on-stack in nf_tables.
-
-Then, there is also recursion via xt_TEE.c, hence this strange
-        if (static_key_false(&xt_tee_enabled))
-
-in ipt_do_table() (We'll switch to a shadow-stack for that case).
+Cheers, Phil
