@@ -1,137 +1,82 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C959D198E99
-	for <netfilter-devel@vger.kernel.org>; Tue, 13 Aug 2024 11:06:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F316A1DFF8
+	for <netfilter-devel@vger.kernel.org>; Tue, 13 Aug 2024 14:01:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723547221; cv=none; b=PGjNPstu1U9z99cBl/BfImRxPWVVWQm8VaMBjeEQXLFjOntxcPD77TaS9iChWH//fb9qyKeFcf15p1skdpJouZJddP4nAF9urRowI90Wrv0iHmnmgJ8UGpui6bmMMRtuEtGR3icE99kHBG6AG0b+8xkWLQ8ev4EJ22ldZadNyPM=
+	t=1723557686; cv=none; b=WpcoLhOIG7mi7v691hrStMln6+eehdLc7hnCaG2xtr0de2YXd/DpMQD/VCz8bLW7MwBpBZH+I6eyjJc3Vf6K/Fy989E5YFEvbfBKtMJ5USbdQ29AWPlsJ0zVkbR1oAPOZNs9lSByl0GqlXJN2vjRm96iC6lu4Fq+x43hL9JNghs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723547221; c=relaxed/simple;
-	bh=BMUk9SEQMerGo9BbFMGIRF9/354ZEzQ8bNsYjh9So5Y=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=CRgrEJRFs33cfaWTmnUr0SP/7Vj7IrUpFtGXjZ8MwJynUB8D7eXk1oxJHIoJhagybE+n/9tG12EE6lqN1g4ITKw0iUBwKvZJZzPw2c/cc/GmjqINGdzgLlT3k7DttszsFLXzeBN0zVjy4oG+y9HXxMRMgqwbNDfUFFXxxLrjTso=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=TdYtgaWP; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1723557686; c=relaxed/simple;
+	bh=CWigfKc67VnvdqYdY3HRNrYTA1Rhw3b5A8OWSx2+2dY=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=ZYVHggD5aVZ549Id6YdAnJOb9kJ+izeHUKt6nm0X1IX0IOYBNbHsU9cFBppgunMxVwTcbYpBAV2UGU/Bdu7/kiboHg3I8HssAzEUv0GDjJt1ZbPu8Uptb5nKbbVxgULTEvlO6wufWM702oDRb1NY1/perW/rXHJw4u8teLUmmJk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=11LklOSs; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=PE1OkRZI; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="TdYtgaWP"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=PqCOrpTB/5/4u0d5HgHrSFVPTHjVPLqcUsUO1kjaYzs=; b=TdYtgaWPFpG4EYYdwXPft5Uj2u
-	D9w/vdob/BslB1hl0vt/4oo9anwE5ABflxLLXpMQjkXOJW1J9hvlbaAGs8wyEnglgrWXAO608CHWC
-	63TfU5g+woABm7EzjtK5X757blMUqQSXXTznEYbJc4xQMiBUTl7p7B+ZKidYI89Ezq/6lPFhVyT5h
-	80Br2JuO93vYbaHJ1U818tipmBorQzF/kYRUbbQ8hVvnqE+ao8FrR1CsBh1UQSSoWx64R47VdyQmq
-	XZ6Heb88HWZCtrFn7MQKNF4Qb1ppjn7flaMFjg1JgHDeEGoziLXj3Nrl80ofaoEuGBTdNMGHRt/5o
-	GFvAqx6g==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1sdpMX-000000000eZ-3Vtf;
-	Tue, 13 Aug 2024 13:06:49 +0200
-Date: Tue, 13 Aug 2024 13:06:49 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Florian Westphal <fw@strlen.de>
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="11LklOSs";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="PE1OkRZI"
+Date: Tue, 13 Aug 2024 16:01:21 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1723557682;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type;
+	bh=sdPc+FcGOPA+PuIhNA7NgJi0zcrR2V3KbWTEaYJLn8o=;
+	b=11LklOSsmwvaQcgnn5IINIVbbndNq+jreIcy66YIkE8F8AYKwf5a4WqOv8K65qOgzo6sa4
+	zWEhGkmumHkYCyNTYDa4kdqI4xQ3mrjTQ6zLRKvAXiiXpfK031ZmozMaGXelbd5PAX1+Y9
+	GuM0Iy2EZDv5mvxPCsax1fqsVGtQHa5FzVdKeey6zBeK80E/pNmOxshX+afjTVFtdMzZ3U
+	kETUpPLxTIeHn925wTBIxYq1OOeOxrM5cLcqrO/YvG72RrlR28wAvs+LgC3i7YkhYnChpj
+	Ht0HtCZVU9y1wGNRW2YrgmU7hxukDSYRIzu3t9jQ533E0lbaCFfilH1NvF0woA==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1723557683;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type;
+	bh=sdPc+FcGOPA+PuIhNA7NgJi0zcrR2V3KbWTEaYJLn8o=;
+	b=PE1OkRZIS2JypLA/xwoHMo6Oyx7ON1oENWVF/TaOab7KFQ/Fm6bI2brV8TiaG3ZvbHyUuo
+	af2a69hEqeXwckDA==
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+To: netfilter-devel@vger.kernel.org, coreteam@netfilter.org
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft 1/4] doc: add documentation about list hooks feature
-Message-ID: <Zrs-STpwUN2rqnl2@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-References: <20240726015837.14572-1-fw@strlen.de>
- <20240726015837.14572-2-fw@strlen.de>
- <ZqNlvkJ2YSc-KIKb@calendula>
- <20240726123152.GA3778@breakpoint.cc>
- <ZqbR0yOY87wI0VoS@calendula>
- <20240728233736.GA31560@breakpoint.cc>
- <ZqbgmMzuOQShJWXK@calendula>
- <20240729153211.GA26048@breakpoint.cc>
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Eric Dumazet <edumazet@google.com>,
+	Thomas Gleixner <tglx@linutronix.de>
+Subject: [Q] The usage of xt_recseq.
+Message-ID: <20240813140121.QvV8fMbm@linutronix.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20240729153211.GA26048@breakpoint.cc>
 
-Hi,
+xt_recseq is per-CPU sequence counter which is not entirely using the
+seqcount API.
+The writer side of the sequence counter is updating the packet and byte
+counter (64bit) while processing a packet. The reader simply retrieves
+the two counter.
+Based on the code, the writer side can be recursive which is probably
+why the "regular" write side isn't used or maybe because there is no
+"lock".
+The seqcount is per-CPU and disabling BH is used as the "lock". On
+PREEMPT_RT code in local_bh_disable()ed section is preemptible and this
+means that a seqcount reader with higher priority can preempt the writer
+which leads to a deadlock. 
 
-On Mon, Jul 29, 2024 at 05:32:11PM +0200, Florian Westphal wrote:
-[...]
-> inet ingress is already awkward in my opinion, I'm not sure why it
-> got added.
+While trying to trigger the writer side, I managed only to trigger a
+single reader and only while using iptables-legacy/ arptables-legacy
+commands. The nft did not trigger it. So it is legacy code only.
 
-I suppose the ability to reuse other inet family ruleset parts for
-ingress was a sought-after feature.
+Would it work to convert the counters to u64_stats_sync? On 32bit
+there would be a seqcount_t with preemption disabling during the
+update which means the xt_write_recseq_begin()/ xt_write_recseq_end()
+has to be limited the counter update only. On 64bit architectures there
+would be just the update. This means that number of packets and bytes
+might be "off" (the one got updated, the other not "yet") but I don't
+think that this is a problem here.
 
-In hindsight, making tables family-agnostic and thus pure "containers"
-for grouping ruleset parts might be a superior design choice. (Or maybe
-I just miss the rub in doing that. :)
+I could send a RFC patch if there is nothing obvious I overlooked ;)
 
-[...]
-> I agree that we first need to figure out what 'nft list hooks xxxx'
-> should do.  I would prefer 'no guesses' approach, i.e.
-
-Let me suggest a deviation which seems more user-friendly:
-
-> 1. nft list hooks
->   dump everything EXCEPT netdev families/devices
-
-Include netdev here, make it really list *all* hooks. Iterating over
-the list of currently existing NICs in this netns is no big deal, is
-it?
-
-> 2. nft list hooks netdev device foo
->    dump ingress/egress netdev hooks,
->    INCLUDING inet ingress (its scoped to the device).
-
-Drop 'netdev' from the syntax here. The output really is "all hooks
-specific to that NIC", not necessarily only netdev ones. (And "device"
-is a distinct identifier for network interfaces in nftables syntax.)
-
-> 3. nft list hooks arp
->    dump arp input and output, if any
-> 4. nft list hooks bridge
->    dump bridge pre/input/forward/out/postrouting
-> 5. nft list hooks ip
->    dump ip pre/input/forward/out/postrouting
-> 6. nft list hooks ip6 -> see above
-> 7. nft list hooks inet -> alias for dumping both ip+ip6 hooks.
-
-I wonder if this is more confusing than not - on the netfilter hooks
-layer, it doesn't quite exist. The only thing which persists a tad
-longer is inet ingress, indicated by nf_register_net_hook() passing it
-down to __nf_register_net_hook for nf_hook_entry_head() to return the
-same value as for netdev ingress. I guess they could be spliced even
-further up.
-
-> This also means that i'd make 'inet device foo' return a warning
-> that the device will be ignored because "inet ingress" is syntactic
-> frontend sugar similar to inet pseudo-family.
-
-Iff my claim holds true, there is no such thing as an inet hook and
-thus also no inet device one. :)
-
-> We could try the 'detect pipeline' later.  But, as per example
-> above, I don't think its easy, unless one omits all packet rewrites
-> (stateless nat, dnat, redirect) and everything else that causes
-> re-routing, e.g. policy routing, tproxy, tc(x), etc.
-> 
-> And then there is l3 and l2 multicasting...
-> 
-> But, admittingly, it might be nice to have something and it might be
-> good enough if pipeline alterations by ruleset and other entities
-> are omitted.
-
-I seem to recall us discussing something like that on NFWS, but to
-simulate traversal of a packet with given properties through the
-ruleset. Which would also identify the hooks involved, I guess?
-
-Cheers, Phil
+Sebastian
