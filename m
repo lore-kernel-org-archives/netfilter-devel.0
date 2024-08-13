@@ -1,91 +1,114 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECECD125AC
-	for <netfilter-devel@vger.kernel.org>; Tue, 13 Aug 2024 14:41:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1A0F19FA9F
+	for <netfilter-devel@vger.kernel.org>; Tue, 13 Aug 2024 15:28:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723560121; cv=none; b=ceJyn6/Ru6afQ1f1B91b4x5PMBMid59KGPSU9RaOhGy2X7JAL/suS4Jdz98p4jCTEhagMf2xaWWCmLdFYtfHT0h5vMFmDoiy5gSGtSFS42nN2MK6W8R//quRPUUQzaa2/0+H/vYkYtMq/Ngy6/qkf85n+8JK0y7/VfKurxf2+mE=
+	t=1723562895; cv=none; b=OyacW26WucIuQh55b2jCUDh6St1EZpOdBmCyW3Q16u1VDdM00FCmuuU+frr03K1CpdPKiLQTaYrp+by2XFpQy16u/HDMcQiOEPIK6zxqaY0JV9f9sGa2DeAWmXskKQPyiMfoMkRAMaRdDBdEVTepMDBowhreplObdzk9vj7G1eQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723560121; c=relaxed/simple;
-	bh=tcpslhVEL19sPud/Jqm2VepfPe7OQD0+L/VxP1MSpx4=;
+	s=arc-20240116; t=1723562895; c=relaxed/simple;
+	bh=C49rAeDdVufTtwKZp4VaLnzK/JeZ8KzEjmezXCGMcPA=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BkUHw0kHzqDRkI+Fb5l4ofqQ2pqnXuYWAdIzgCFH3NrNKrml/paAlZE7nhea7n0TBsuhC2aEjqFWDsBsGcWxPlyY8unxjWYQowf+XbpQKB3PxTXbp/1JgvprYZ2Ivv9bidquNQoDDLv9+Scp+nrCSCzE3dwXfykNNS++m8ruz0M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=Iur3TfYi; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	 Content-Type:Content-Disposition:In-Reply-To; b=hecWsV/w/MwNu6q1+zKwRIjICfJfUS7pYo50U/dpjf/4xiIZ9ZvVWw1L48ijpjZ2nne1mFDZPCXXtlsK02Pjn4TNpmV7Pie48K/j5169pH6RL3OiN+dK+zr42Zi8s1WcIZwDwJjjCNBhg9dAB+R5mSKopwIAK4NJQJ5xZ7b5NJQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=vIec755f; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=n1UL+gwj; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="Iur3TfYi"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=0Yf8LYvPVNDFjosErW3nfQYy8IRcI/Hw3316aHt4acg=; b=Iur3TfYiLG8YBkdHdxJPurdWXp
-	G8+MefnfcU9NfHCecwypVuetiCmxOlNX4gE8YZjvj/Ih0mrU0RU2Sqo9Sr0D1HgHPA/edybavVXMk
-	PG7Ba8CMmojqqvx1lW2dzoqyNMXIIwhfiwhgeTeIyl/HL1UPOM11mfkG5AiFCRw1wZpqAfAzbGaK1
-	AdTnZIfQztMNOj9bLxwA/Lq6vxOhHibgI1k57nh6lGuKoQDA8/RoKOKYKzfz86h4e4ApJedTHTjfq
-	XaIzWnH9MsDS+6Gz1SHBpIES6wH2n3Csq0MRY31yXIGif308Zuu2SM7yId5SVYdTBQX5NSnNHWyJX
-	YL6TvL9Q==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1sdsij-000000002oT-0bMp;
-	Tue, 13 Aug 2024 16:41:57 +0200
-Date: Tue, 13 Aug 2024 16:41:57 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next 2/8] netfilter: nf_tables: reject element
- expiration with no timeout
-Message-ID: <Zrtwtb1uxzLmnqEZ@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-References: <20240807142357.90493-1-pablo@netfilter.org>
- <20240807142357.90493-3-pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="vIec755f";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="n1UL+gwj"
+Date: Tue, 13 Aug 2024 17:28:10 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1723562892;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Vxny4/21ve5chpTQhV5UYyf1NaStBHZqcTlTXoRoHJI=;
+	b=vIec755fVJSayWqfhyol8ry64+c9LPdxOpOJk451SroD7Eo1hm2FpqfUXHgb7joLeqjA6j
+	ZGDgA6Ics+481WgkpbwEWIsv24myKwYK4Px7rASPf8tpks/bfukbXxwpNIpGiBzD0X56Ri
+	J6Kfw2QzXjE61FyyYeBmJ01bSwwLEhFlvTqbN/aVIkG/oxnv8aVejvvvN9zT1qkMMqzYh0
+	0Y2WjtqGSyheke2+Lzvwr/ZrRIVfEHibWFHXyQuwy9Mlws1cg1iMcyednontNUWwzlkh+y
+	wO8uOS5ZnKyR2K6XB3Tjm8SWLN6PUjU5URkQbrhqHGU0fQCPPVUuS+nBKary4Q==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1723562892;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Vxny4/21ve5chpTQhV5UYyf1NaStBHZqcTlTXoRoHJI=;
+	b=n1UL+gwjRLvxa9D3kvazleZclDQu7nUzMc6uP7CbCKVzkYynCb1LL+XqePevYov1oioGaO
+	krmGjOCFchVeigBg==
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	Eric Dumazet <edumazet@google.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>
+Subject: Re: [netfilter-core] [Q] The usage of xt_recseq.
+Message-ID: <20240813152810.iBu4Tg20@linutronix.de>
+References: <20240813140121.QvV8fMbm@linutronix.de>
+ <20240813143719.GA5147@breakpoint.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20240807142357.90493-3-pablo@netfilter.org>
+In-Reply-To: <20240813143719.GA5147@breakpoint.cc>
 
-On Wed, Aug 07, 2024 at 04:23:51PM +0200, Pablo Neira Ayuso wrote:
-> If element timeout is unset and set provides no default timeout, the
-> element expiration is silently ignored, reject this instead to let user
-> know this is unsupported.
-> 
-> While at it, remove unnecesary notation to read default set timeout
-> under mutex.
+On 2024-08-13 16:37:19 [+0200], Florian Westphal wrote:
+> Hi Sebastian!
+Hi Florian,
 
-The sentence above is a left-over from splitting patches, right?
+> > While trying to trigger the writer side, I managed only to trigger a
+> > single reader and only while using iptables-legacy/ arptables-legacy
+> > commands. The nft did not trigger it. So it is legacy code only.
+> 
+> Yes, this is legacy only.
 
-> Fixes: 8e1102d5a159 ("netfilter: nf_tables: support timeouts larger than 23 days")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  net/netfilter/nf_tables_api.c | 3 +++
->  1 file changed, 3 insertions(+)
+perfect.
+
+> > Would it work to convert the counters to u64_stats_sync? On 32bit
+> > there would be a seqcount_t with preemption disabling during the
+> > update which means the xt_write_recseq_begin()/ xt_write_recseq_end()
+> > has to be limited the counter update only. On 64bit architectures there
+> > would be just the update. This means that number of packets and bytes
+> > might be "off" (the one got updated, the other not "yet") but I don't
+> > think that this is a problem here.
 > 
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index 0fb8f8f1ef66..79ab90069b84 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -6920,6 +6920,9 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
->  	if (nla[NFTA_SET_ELEM_EXPIRATION] != NULL) {
->  		if (!(set->flags & NFT_SET_TIMEOUT))
->  			return -EINVAL;
-> +		if (timeout == 0)
-> +			return -EOPNOTSUPP;
-> +
->  		err = nf_msecs_to_jiffies64(nla[NFTA_SET_ELEM_EXPIRATION],
->  					    &expiration);
->  		if (err)
-> -- 
-> 2.30.2
+> Unfortunately its not only about counters; local_bh_disable() is also
+> used to prevent messing up the chain jump stack.
+
+Okay. But I could get rid of the counters/ seqcount and worry about the
+other things later on?
+
+> For local hooks, this is called from process context, so in order
+> to avoid timers kicking in and then re-using the jumpstack, this
+> local_bh_disable avoids that.
 > 
+> The chain stack is percpu in -legacy, and on-stack in nf_tables.
 > 
+> Then, there is also recursion via xt_TEE.c, hence this strange
+>         if (static_key_false(&xt_tee_enabled))
 > 
+> in ipt_do_table() (We'll switch to a shadow-stack for that case).
+
+Yeah. That is another per-CPU thingy. 
+So my plan was to replace the seqcount/ counters with u64_stats_sync,
+make this per-CPU nf_skb_duplicated per-TASK and then come back and
+check what local_bh_disable() is actually protecting other than skb
+alloc/ free during callback invocation (as in TEE).
+
+So jumpstack. This is exclusively used by ipt_do_table(). Not sure how a
+timer comes here but I goes any softirq (as in NAPI) would do the job
+without actually disabling BH.
+Can this be easily transformed to the on-stack thingy that nft is using
+or is it completely different? If the latter I would just a add a lock. 
+local_lock_nested_bh() would be the easiest to not upset anyone but this
+is using hand crafted per-CPU memory instead of alloc_percpu(). Can
+stacksize get extremely huge?
+
+In case I made a wrong turn somewhere, do you have better suggestions?
+
+Sebastian
