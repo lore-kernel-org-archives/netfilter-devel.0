@@ -1,78 +1,70 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 05A4A170A18
-	for <netfilter-devel@vger.kernel.org>; Tue, 13 Aug 2024 10:39:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65A2D170A18;
+	Tue, 13 Aug 2024 10:40:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723545602; cv=none; b=e5n/Y/xDDoE4ctHIQuuIRKDXOh3lLzYVtxnYilcycHTxJAgP9n1qOs7ryH4L+CEbBz38u9XYen9wirQZSLL06vuBwfWthPiqO3ZEMllWxz3Xg4RnFk2/5OYaN1lMvm5EXHobeVFoLVuJ3+q5oVsoak01afeTQrc6xCfrH9x49v0=
+	t=1723545634; cv=none; b=ml8yEDx8RmrUz5T+MIDsedfvnp38vnjhAwcU07M7QVqTSZKdXIAQKuMqYCujaivdDc3i5IRAy10PvJzZ5U9kQUnD42CmH9rcCKEJla6PikUbscH2/F5adwZxnz9JjG2UyOXe/2/55IA/Mr2q9Ud6l5JWqwLE4zOGt+uhOvFKOZg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723545602; c=relaxed/simple;
-	bh=JJQ8AGMbqt1eG/xZRouyt/T56EDgZ8uJH4qOkgFkEfc=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=LWnamdrMkCpnIoHN/1iXi4Cd2ON2acLSb4IuDTHB0u6xmDQI1dSo8ut3ANGGm+f2tdU8GyM7MO3XoigLHSeaT8UAl2+pqb6meQ2aJrzQ7kimMIJagOkzo/2mwu3ZI6q1h8OcdIoavl9Skif1HWcO2WIhQiSfWrHo6hZUSmE4duU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: syzbot+8407d9bb88cd4c6bf61a@syzkaller.appspotmail.com
-Subject: [PATCH nf] netfilter: flowtable: validate vlan header
-Date: Tue, 13 Aug 2024 12:39:46 +0200
-Message-Id: <20240813103946.2658-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+	s=arc-20240116; t=1723545634; c=relaxed/simple;
+	bh=b1en7/XveLuXRGpb6HwF8A/2H+1LvNvVfLKvzo+osBE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=a6DRiAalsV6SPMH0+gWqEL7N2Ym3wHaKBu40R5b7G1UccoTW1D358p/pXg0EGpQ8QJfOo+ZiB8Idn0MFfPKqVsQK2m7j8NXxgxqlmcCsSgQ/JoLY28jwo5kV9vrrvsS9wLGR0PF0BvNRX/rh1a0aX1iSYWUJ3hQnAuJPw1zEwNI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=2Y7B8B9r; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="2Y7B8B9r"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F1D0C4AF09;
+	Tue, 13 Aug 2024 10:40:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+	s=korg; t=1723545633;
+	bh=b1en7/XveLuXRGpb6HwF8A/2H+1LvNvVfLKvzo+osBE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=2Y7B8B9rJNQBZBD1I+uFKh/A1FRD0pWEXBnKaAiNlTomd3z6BMEKwIBfGYM6ZzZ0j
+	 iBGFStiHRRJ3XnjZGTRtv/TYjSQtYe7anlD2Nl9IHLHR7POsaUN/9LajmdFiuiwIlK
+	 +E2pOjr66q/ULQYV+ebH+1mo/dnP6zbPmDjBG27I=
+Date: Tue, 13 Aug 2024 12:40:30 +0200
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, sashal@kernel.org,
+	stable@vger.kernel.org
+Subject: Re: [PATCH -stable,5.15.x 0/5] Netfilter fixes for -stable
+Message-ID: <2024081320-thank-generic-05a4@gregkh>
+References: <20240812102446.369777-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240812102446.369777-1-pablo@netfilter.org>
 
-Ensure there is sufficient room to access the protocol field of the
-VLAN header, validate it once before the flowtable lookup.
+On Mon, Aug 12, 2024 at 12:24:41PM +0200, Pablo Neira Ayuso wrote:
+> Hi Greg, Sasha,
+> 
+> This batch contains a backport for recent fixes already upstream for 5.15.x.
+> 
+> The following list shows the backported patches, I am using original commit
+> IDs for reference:
+> 
+> 1) b53c11664250 ("netfilter: nf_tables: set element extended ACK reporting support")
+> 
+>    This improves error reporting when adding more than one single element to set,
+>    it is not specifically fixing up a crash.
+> 
+> 2) 7395dfacfff6 ("netfilter: nf_tables: use timestamp to check for set element timeout")
+> 
+> 3) 3c13725f43dc ("netfilter: nf_tables: bail out if stateful expression provides no .clone")
+> 
+> 4) fa23e0d4b756 ("netfilter: nf_tables: allow clone callbacks to sleep")
+> 
+> 5) cff3bd012a95 ("netfilter: nf_tables: prefer nft_chain_validate")
+> 
+> Please, apply,
+> Thanks
 
-=====================================================
-BUG: KMSAN: uninit-value in nf_flow_offload_inet_hook+0x45a/0x5f0 net/netfilter/nf_flow_table_inet.c:32
- nf_flow_offload_inet_hook+0x45a/0x5f0 net/netfilter/nf_flow_table_inet.c:32
- nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
- nf_hook_slow+0xf4/0x400 net/netfilter/core.c:626
- nf_hook_ingress include/linux/netfilter_netdev.h:34 [inline]
- nf_ingress net/core/dev.c:5440 [inline]
+All now queued up, thanks.
 
-Fixes: 4cd91f7c290f ("netfilter: flowtable: add vlan support")
-Reported-by: syzbot+8407d9bb88cd4c6bf61a@syzkaller.appspotmail.com
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_flow_table_inet.c | 3 +++
- net/netfilter/nf_flow_table_ip.c   | 3 +++
- 2 files changed, 6 insertions(+)
-
-diff --git a/net/netfilter/nf_flow_table_inet.c b/net/netfilter/nf_flow_table_inet.c
-index 88787b45e30d..a990e1e5dd66 100644
---- a/net/netfilter/nf_flow_table_inet.c
-+++ b/net/netfilter/nf_flow_table_inet.c
-@@ -17,6 +17,9 @@ nf_flow_offload_inet_hook(void *priv, struct sk_buff *skb,
- 
- 	switch (skb->protocol) {
- 	case htons(ETH_P_8021Q):
-+		if (!pskb_may_pull(skb, sizeof(struct vlan_ethhdr)))
-+			return NF_ACCEPT;
-+
- 		veth = (struct vlan_ethhdr *)skb_mac_header(skb);
- 		proto = veth->h_vlan_encapsulated_proto;
- 		break;
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index c2c005234dcd..856acc48b205 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -281,6 +281,9 @@ static bool nf_flow_skb_encap_protocol(struct sk_buff *skb, __be16 proto,
- 
- 	switch (skb->protocol) {
- 	case htons(ETH_P_8021Q):
-+		if (!pskb_may_pull(skb, sizeof(struct vlan_ethhdr)))
-+			return false;
-+
- 		veth = (struct vlan_ethhdr *)skb_mac_header(skb);
- 		if (veth->h_vlan_encapsulated_proto == proto) {
- 			*offset += VLAN_HLEN;
--- 
-2.30.2
-
+greg k-h
