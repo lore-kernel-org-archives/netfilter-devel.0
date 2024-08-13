@@ -1,49 +1,34 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C71525624
-	for <netfilter-devel@vger.kernel.org>; Tue, 13 Aug 2024 18:12:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E47219E81D
+	for <netfilter-devel@vger.kernel.org>; Tue, 13 Aug 2024 18:32:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723572744; cv=none; b=WoVtiigdsc6u04XmSEn/QVIPkfdI2AAN5Ve+GPPi5QzPD14hL942ZtBv12X950slyRf207wtrRsTHoZHh8SsIJzqFuclMy9IIvI0u5T5EM/IYrttMXkJe968hxtKEbK3w0qHMPIqiNnlK0Hk6HdeLZi8h6zf4q/CYWg3jAgBL1E=
+	t=1723573927; cv=none; b=LWOP+4qIGoTpuNUArq9tBr6nWKbsuKSUr4mZEQb1sLRjX1TQZAqBJKp5zaSDBjmM4knBjMvlrbJZ3Q6tFs6nFaAa+mmOJXA82oczv5v76zLPF6l4aNXImqzeIuzBs52LZzg9IuGEjCWWOr5S2AkShor/dH6EiEldAx/HOP4hsW0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723572744; c=relaxed/simple;
-	bh=gQdZyPd1lDj8vdHACLuDdZZkI8W024kAiP1y/VKxB50=;
+	s=arc-20240116; t=1723573927; c=relaxed/simple;
+	bh=PP3BfSOVNwAfs9ZvlXKcvk4AGEqBj19dP4udOnvIdD4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=CXcUVrntKid7CRJXtmJDwtycxVETKErFHnrQMSlEug8soBZG9j7qu5kT1EZkUP62TuQTVvWQXYV74kyYwRqBBZU7cORHA5+VwLXlerxYuDZzVtL2lG8qWo1dzzmd7m8Ru1iaLh2b+DmtHYY5jOo52N07SxMCsee2t35iJkcCJP4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=f3sKJZ+5; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="f3sKJZ+5"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=vJhpb63JUZMd14X4gqMC1rTAnpzcG29UsIIEouaOX9s=; b=f3sKJZ+5628VjuuoUQZvOm4DD0
-	xmXVCC8RKFR+I4C2c9XzlzfJAxdT/2IzyJU4z28wQXbudBeNEhjLjYSOrtTECjhWSGhIQTlGTXLcc
-	lOZPh6WvZkkdn35XzM4xddUpG146CdhLjZcG4Da+p/gaZXz0AnoSXyeNqjy8H/iXWkq9JepbnSCvn
-	NG/Cxw29TgM1oWSV10m0GF5eifK5cCG3ckwqlNK94cxpacSFbgi6UwKV3LBd6uIlpZKlvzL8P4u3R
-	3+Dnjc5QbWy8HQSrtRP98VbT4u2PfuE6qmYyw+zcdvCXH5jo8BbefQ2QgC/CZccUoEiF80gey89JI
-	fcUArnOA==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1sdw0I-000000004u0-3jnI;
-	Tue, 13 Aug 2024 20:12:18 +0200
-Date: Tue, 13 Aug 2024 20:12:18 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next 7/8] netfilter: nf_tables: add never expires
- marker to elements
-Message-ID: <ZruiAlR9UGRJTW8o@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-References: <20240807142357.90493-1-pablo@netfilter.org>
- <20240807142357.90493-8-pablo@netfilter.org>
+	 Content-Type:Content-Disposition:In-Reply-To; b=AZaDzENhIhpms4KzE1XolfBSwG3vkSBeMxetBm3pLiTdgXP2ztRKAHDbO4V7CLYW4RBfe0/ZT7Z8vV1qBWh2DrGeq8ip6a1wrCqs1h/493CeBj8GxcV4u/dlbc6DpbfjC47gfO+G306QM61nTA3vj5a/IthjRruEfhHjBs+C7I0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1sdwJO-0003nL-C5; Tue, 13 Aug 2024 20:32:02 +0200
+Date: Tue, 13 Aug 2024 20:32:02 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, Eric Dumazet <edumazet@google.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>
+Subject: Re: [netfilter-core] [Q] The usage of xt_recseq.
+Message-ID: <20240813183202.GA13864@breakpoint.cc>
+References: <20240813140121.QvV8fMbm@linutronix.de>
+ <20240813143719.GA5147@breakpoint.cc>
+ <20240813152810.iBu4Tg20@linutronix.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -52,51 +37,66 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240807142357.90493-8-pablo@netfilter.org>
+In-Reply-To: <20240813152810.iBu4Tg20@linutronix.de>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-Hi Pablo,
-
-On Wed, Aug 07, 2024 at 04:23:56PM +0200, Pablo Neira Ayuso wrote:
-> This patch adds a timeout marker for those elements that never expire
-> when the element are created, so timeout updates are possible.
+Sebastian Andrzej Siewior <bigeasy@linutronix.de> wrote:
+> > > Would it work to convert the counters to u64_stats_sync? On 32bit
+> > > there would be a seqcount_t with preemption disabling during the
+> > > update which means the xt_write_recseq_begin()/ xt_write_recseq_end()
+> > > has to be limited the counter update only. On 64bit architectures there
+> > > would be just the update. This means that number of packets and bytes
+> > > might be "off" (the one got updated, the other not "yet") but I don't
+> > > think that this is a problem here.
+> > 
+> > Unfortunately its not only about counters; local_bh_disable() is also
+> > used to prevent messing up the chain jump stack.
 > 
-> Note that maximum supported timeout in milliseconds which is conveyed
-> within a netlink attribute is 0x10c6f7a0b5ec which translates to
-> 0xffffffffffe85300 jiffies64, higher milliseconds values result in an
-> ERANGE error. Use U64_MAX as an internal marker to be stored in the set
-> element timeout field for permanent elements.
-> 
-> If userspace provides no timeout for an element, then the default set
-> timeout applies. However, if no default set timeout is specified and
-> timeout flag is set on, then such new element gets the never expires
-> marker.
-> 
-> Note that, in older kernels, it is already possible to define elements
-> that never expire by declaring a set with the set timeout flag set on
-> and no global set timeout, in this case, new element with no explicit
-> timeout never expire do not allocate the timeout extension, hence, they
-> never expire. This approach makes it complicated to accomodate element
-> timeout update, because element extensions do not support reallocations.
-> Therefore, allocate the timeout extension and use the new marker for
-> this case, but do not expose it to userspace to retain backward
-> compatibility in the set listing.
+> Okay. But I could get rid of the counters/ seqcount and worry about the
+> other things later on?
 
-I fail to miss the point why this marker is needed at all:
+Unfortunately no, see xt_replace_table().  A seqcnt transition is seen
+as "done" signal for releasing the ruleset.
 
-Right now, new set elements receive EXT_TIMEOUT upon creation if either
-NFTA_SET_ELEM_TIMEOUT is present (i.e., user specified per-element
-timeout) or set->timeout is non-zero (i.e., set has a default timeout).
+See d3d40f237480 ("Revert "netfilter: x_tables: Switch synchronization to RCU"")
+and its history.
 
-Why not change this logic and add EXT_TIMEOUT to all elements which will
-timeout and initialize it either to the user-defined value or the set's
-default? Then, only elements which don't timeout remain without
-EXT_TIMEOUT. Which is not a problem, because their expiration value does
-not need to be reset and thus they don't need space for one.
+First step would be to revert back to rcu and then replace
+synchronize_rcu with call_rcu based release of the blob.
 
-The only downside is that elements which stick to the set's default
-timeout increase in size (for the copied set->timeout value), but this
-patch series merges EXT_EXPIRATION and EXT_TIMEOUT anyway so their size
-increases already. OTOH, non-expiring set elements won't need a spurious
-EXT_TIMEOUT holding never expires marker.
+Or, just tag the x_tables traversers as incompatible with
+CONFIG_PREEMPT_RT in Kconfig...
 
-Cheers, Phil
+Its possible to build a kernel that can support iptables-nft
+(iptables-over-nftables api) but not classic iptables, so the
+problematic table traverse code isn't built.
+
+> So jumpstack. This is exclusively used by ipt_do_table(). Not sure how a
+> timer comes here but I goes any softirq (as in NAPI) would do the job
+> without actually disabling BH.
+
+Think eg. tcp retransmit timer kicking in while kernel executed ip
+output path on behalf of write() on some socket.
+
+We're in process context, inside ipt_do_table, local_bh_disable is
+needed to delay sirq from coming in at wrong time due to pcpu jumpstack
+area.
+
+> Can this be easily transformed to the on-stack thingy that nft is using
+> or is it completely different?
+
+In first step, blob validation needs to be changed to validate that jump
+depth can't exceed 16 (i.e. 64byte extra scratch space on stack for
+storage of return addresses).
+
+Then it could be updated. It will probably break some test cases but
+I don't think there are real production rulesets that would fail to load
+with a chainstack limit of 16.
+
+> local_lock_nested_bh() would be the easiest to not upset anyone but this
+> is using hand crafted per-CPU memory instead of alloc_percpu(). Can
+> stacksize get extremely huge?
+
+Classic iptables allows as many calls as there are jumps in the ruleset,
+so theroretically they can be huge.
+If that happens outside of test case scripts -- i do not think so.
