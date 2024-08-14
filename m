@@ -1,153 +1,131 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE7311BE849
-	for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2024 19:26:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D896F1C8FA6
+	for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2024 20:44:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723663601; cv=none; b=HhJ2E9Gigmc0foraZtQ4HPhuxc+yzFt6YiMGqDZZdzvhojRIxlm547Tvj8FSfVQrOCCd5pcRKJiMm2pK+qVaDUWOOakjPrWpC2WzQKA5z7WLldU5wVVEUwrs1ng9Uj+IXAl6RpRvG347s1rqLldQsLiHmSAG8DrkgBDuL6uOXV4=
+	t=1723668307; cv=none; b=btJV+q95Xn1NeXw4y6G+6ZqxykmMsxw5FbKfVcsxagDY6m5mutM3Y7ZJVGsLvIDvDAnimhgrB9CK2/gI/5JLXmWFlJsLwhTyq45WMC8WzJrYZ3/vdKv5lZl2DyQ3nvrJJi1rtqJNbkGUAROst7Dvyr1PPfOs9icbCC3pKuwF/FQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723663601; c=relaxed/simple;
-	bh=GNZn93xwLbICkG4v7YCXOINzqau3fkONWjHByXTIJx8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=JDAkRf+CjuUdeV1DE3GHHlJrzLC0GzfG3aWgCG14pUwVG5fPilMI7G+haz4MQ7frBHtobI+nSCK37iiQGxpffmWaLdgtBwAE/9ga+e4fFE623ULLzdwc9pf5m22QdNT+/qTZ4mSwmixrcoee8UC6BCTcOWNrnTxRPDD8BtYlTfI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=XWwRusFV; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="XWwRusFV"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=3aAtTODazpg0udZgU1qYTfwzCP3oQLlYzcNus9jS9kc=; b=XWwRusFVxim1dcyQ0uMP06HK4h
-	gelDm7y/Kc8OLTWhBWy7CUtLMFL1BEnGSkYM8YVgr+Xfex0yvoXXiZtrloyhVccey0kshImnFKlkv
-	pj/vkFOUL5vMSv2H+HKsRzyeDXHrAEX0eFFFGgJtRk9j1PNm9j6hp2hNf/54Cx/xZQW38Y+8g+Vtd
-	kFE6mlSgz26ezhVZ0rZaBABZGcLHbnCLFME3trw/V5vXyAZIn+d/LTu7wb0c/dpbkvrwveBZ/M4Au
-	z2Tj2kPcY6R+AVCvrd560oNKqJvRfcc+wOtZXtFLvUmYUHfzjqiNn86RsVXGSHa4urnfY5dVUYwQL
-	xUBU3/yg==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1seJdk-000000006Oi-3kAh;
-	Wed, 14 Aug 2024 21:26:36 +0200
-Date: Wed, 14 Aug 2024 21:26:36 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft,v2 1/2] datatype: reject rate in quota statement
-Message-ID: <Zr0E7BZu3fowGLBz@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-References: <20240814115122.279041-1-pablo@netfilter.org>
- <ZrzUt-8mZoqdY0ai@orbyte.nwl.cc>
- <ZrzWpcQehJBmss13@calendula>
+	s=arc-20240116; t=1723668307; c=relaxed/simple;
+	bh=vWW1z5zQNtVkSvV8N3zJtS56AjQL2vO5zGLPkldtt0U=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=KMHLI0nSuaTvp5tlFOWmYeNY3FFIC4wSkt/AJ3YGjz4qzMmQ06biLyWP/5MsdqI3x+c9V5Y6IV26VhHDmrYKcaczTcj/XpiPpKGq9F6uDBqGbZXLbK8Xka1uzpZSvq7FfO78p2026/zzTwvd9Hm85IkztN1gHgnXwU7xcPJwQw8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=47534 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1seKrM-00G7ql-Iz; Wed, 14 Aug 2024 22:44:46 +0200
+Date: Wed, 14 Aug 2024 22:44:43 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next 7/8] netfilter: nf_tables: add never expires
+ marker to elements
+Message-ID: <Zr0XO5zNXtcPVZ4L@calendula>
+References: <20240807142357.90493-1-pablo@netfilter.org>
+ <20240807142357.90493-8-pablo@netfilter.org>
+ <ZruiAlR9UGRJTW8o@orbyte.nwl.cc>
+ <ZrvFgG8yHDjGv3-K@calendula>
+ <Zrxwb9O2z_kKPk1I@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <ZrzWpcQehJBmss13@calendula>
+In-Reply-To: <Zrxwb9O2z_kKPk1I@orbyte.nwl.cc>
+X-Spam-Score: -1.9 (-)
 
-On Wed, Aug 14, 2024 at 06:09:09PM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Aug 14, 2024 at 06:00:55PM +0200, Phil Sutter wrote:
-> > On Wed, Aug 14, 2024 at 01:51:21PM +0200, Pablo Neira Ayuso wrote:
-> > > Bail out if rate are used:
+On Wed, Aug 14, 2024 at 10:53:03AM +0200, Phil Sutter wrote:
+> On Tue, Aug 13, 2024 at 10:43:44PM +0200, Pablo Neira Ayuso wrote:
+> > On Tue, Aug 13, 2024 at 08:12:18PM +0200, Phil Sutter wrote:
+> > > Hi Pablo,
 > > > 
-> > >  ruleset.nft:5:77-106: Error: Wrong rate format, expecting bytes or kbytes or mbytes
-> > >  add rule netdev firewall PROTECTED_IPS update @quota_temp_before { ip daddr quota over 45000 mbytes/second } add @quota_trigger { ip daddr }
-> > >                                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> > > On Wed, Aug 07, 2024 at 04:23:56PM +0200, Pablo Neira Ayuso wrote:
+> > > > This patch adds a timeout marker for those elements that never expire
+> > > > when the element are created, so timeout updates are possible.
+> > > > 
+> > > > Note that maximum supported timeout in milliseconds which is conveyed
+> > > > within a netlink attribute is 0x10c6f7a0b5ec which translates to
+> > > > 0xffffffffffe85300 jiffies64, higher milliseconds values result in an
+> > > > ERANGE error. Use U64_MAX as an internal marker to be stored in the set
+> > > > element timeout field for permanent elements.
+> > > > 
+> > > > If userspace provides no timeout for an element, then the default set
+> > > > timeout applies. However, if no default set timeout is specified and
+> > > > timeout flag is set on, then such new element gets the never expires
+> > > > marker.
+> > > > 
+> > > > Note that, in older kernels, it is already possible to define elements
+> > > > that never expire by declaring a set with the set timeout flag set on
+> > > > and no global set timeout, in this case, new element with no explicit
+> > > > timeout never expire do not allocate the timeout extension, hence, they
+> > > > never expire. This approach makes it complicated to accomodate element
+> > > > timeout update, because element extensions do not support reallocations.
+> > > > Therefore, allocate the timeout extension and use the new marker for
+> > > > this case, but do not expose it to userspace to retain backward
+> > > > compatibility in the set listing.
 > > > 
-> > > improve error reporting while at this.
-> > > 
-> > > Fixes: 6615676d825e ("src: add per-bytes limit")
-> > > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > > ---
-> > > v2: - change patch subject
-> > >     - use strndup() to fetch units in rate_parse() so limit rate does not break.
-> > > 
-> > >  src/datatype.c | 20 +++++++++++++-------
-> > >  1 file changed, 13 insertions(+), 7 deletions(-)
-> > > 
-> > > diff --git a/src/datatype.c b/src/datatype.c
-> > > index d398a9c8c618..297c5d0409d5 100644
-> > > --- a/src/datatype.c
-> > > +++ b/src/datatype.c
-> > > @@ -1485,14 +1485,14 @@ static struct error_record *time_unit_parse(const struct location *loc,
-> > >  struct error_record *data_unit_parse(const struct location *loc,
-> > >  				     const char *str, uint64_t *rate)
-> > >  {
-> > > -	if (strncmp(str, "bytes", strlen("bytes")) == 0)
-> > > +	if (strcmp(str, "bytes") == 0)
-> > >  		*rate = 1ULL;
-> > > -	else if (strncmp(str, "kbytes", strlen("kbytes")) == 0)
-> > > +	else if (strcmp(str, "kbytes") == 0)
-> > >  		*rate = 1024;
-> > > -	else if (strncmp(str, "mbytes", strlen("mbytes")) == 0)
-> > > +	else if (strcmp(str, "mbytes") == 0)
-> > >  		*rate = 1024 * 1024;
-> > >  	else
-> > > -		return error(loc, "Wrong rate format");
-> > > +		return error(loc, "Wrong unit format, expecting bytes, kbytes or mbytes");
-> > >  
-> > >  	return NULL;
-> > >  }
+> > > I fail to miss the point why this marker is needed at all:
 > > 
-> > I have local commits which introduce KBYTES and MBYTES keywords and
-> > thereby kill the need for quota_unit and limit_bytes cases in
-> > parser_bison.y. It still needs testing and is surely not solving all
-> > issues there are, but I find it nicer than the partially redundant code
-> > we have right now.
-> 
-> Is this allowing for compact representation? ie. kbytes/second,
-> because I remember this was the issue to follow this poor man
-> approach.
-
-You're right, I just checked and noticed my changes actually make things
-worse, because the parser falls into the string case more often than
-not. I wish there was a way to exclude string tokens via start
-conditions.
-
-For testing, I just removed the '{string}' case from scanner.l and
-updated 'identifier' in parser_bison.y to accept QUOTED_STRING as well.
-With that in place, all these parse correctly:
-
-| nft add rule \"t\" \"c\" limit rate 1 kbytes/second
-| nft add rule \"t\" \"c\" limit rate 1 kbytes/ second
-| nft add rule \"t\" \"c\" limit rate 1 kbytes / second
-| nft add rule \"t\" \"c\" limit rate 1 kbytes /second
-| nft add rule \"t\" \"c\" limit rate 1kbytes/second
-| nft add rule \"t\" \"c\" limit rate 1kbytes /second
-| nft add rule \"t\" \"c\" limit rate 1kbytes/ second
-
-> > My motivation for this was to maybe improve parser's ability to handle
-> > lack of spaces in input. I still see the scanner fall into the generic
-> > "string" token case which requires manual dissection in the parser.
+> > Long story short: I did my best to support this without this marker
+> > but I could not find a design that works without it.
 > > 
-> > What is your motivation for the above changes?
+> > > Right now, new set elements receive EXT_TIMEOUT upon creation if either
+> > > NFTA_SET_ELEM_TIMEOUT is present (i.e., user specified per-element
+> > > timeout) or set->timeout is non-zero (i.e., set has a default timeout).
+> > 
+> > There is one exception though:
+> > 
+> >  table inet x {
+> >         set y {
+> >                 typeof ip saddr
+> >                 flags timeout
+> >         }
+> >  }
+> > 
+> > in this case, there is no default set timeout. Older kernels already
+> > allow to add elements with no EXT_TIMEOUT that never expire with this
+> > approach, however, this is not practical for element updates, because
+> > set element extension reallocation is not supported.
+> > 
+> > > Why not change this logic and add EXT_TIMEOUT to all elements which will
+> > > timeout and initialize it either to the user-defined value or the set's
+> > > default? Then, only elements which don't timeout remain without
+> > > EXT_TIMEOUT. Which is not a problem, because their expiration value does
+> > > not need to be reset and thus they don't need space for one.
+> > 
+> > No EXT_TIMEOUT means users cannot update the timeout policy for such
+> > element. I assume users can update from "timeout never" to "timeout 1h"
+> > as a valid usecase.
 > 
-> A user that accidentally used:
+> Ah, that's the missing piece: I somehow assumed this should only support
+> resetting elements' timeouts, i.e. update only those elements which will
+> timeout already.
 > 
->         quota over 10mbytes/second
-> 
-> which is currently accepted, the /second part is misleading, as the
-> commit described, this is now rejected after this patch.
+> AFAICT, using UINT64_MAX as never-timeout marker is sane but can't one
+> use 0 instead? Set elems expire if EXT_TIMEOUT is present and 'timeout
+> != 0'. This should simplify the code a bit, too because one may default
+> to set->timeout without checking the actual value.
 
-I see. Similar, but distinct bug. :)
+UINT64_MAX marker always reports ERANGE in older kernels so user knows
+this is not supported, assuming new nft and old kernel, then in old
+kernels:
 
-> > Maybe we could collect parser limitations around these units and see
-> > what helps "the most"?
-> 
-> I am fine with handling this from the parser instead, there is now
-> flex start conditions that can help to enable these tokens on demand.
+- if "flags timeout" is used, that means "never expires" in sets which
+  is correct.
 
-Maybe one could introduce a start condition which allows strings, but
-it might turn into a mess given the wide use of them. I'll give it a try
-and let you know.
+- BUT if "timeout 1h" is used, then timeout 0 means use default set timeout
+  which is makes behaviour different in old and new kernels for this.
 
-Thanks, Phil
+I can explore using 0 as marker as you suggest if you think that
+informing the user that this is not supported is not so important.
+
+Note, though, that timeout updates are completely ignored in new
+kernels, I don't have a way to report timeout updates are not
+implemented. Older kernels follow a lazy approach.
