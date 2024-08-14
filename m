@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 61B571494D6;
-	Wed, 14 Aug 2024 22:20:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 427E914A097;
+	Wed, 14 Aug 2024 22:20:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723674055; cv=none; b=evoF5AAoyIhJWQ0u6hmQokCTp/1Jf8Nn+SGK0k5d11J/8RIyKAGaCFrHBI8RUpxKaDpshrEdvGlDuST8lMOvcqSM2hCBIlJH3SfIbK+iRf269UbnxmwRHhgf3La4/Bjw1MwhBOpnEs6AuNPUbh5OlxFMiM8zIL+5nkAjGGb2p8w=
+	t=1723674055; cv=none; b=WmHgOckK0N1AEa8AE4zNgDdwTr5z5yTtFPWHJSUGTup0yScs/++UgflDHxUZ6Bo/czJMNSrHtzASYBWkTKoGN7w0QmkN3xT0MSAxsHuHktDOIUrABGWfFzrBRq9zAWRdmyBBMfH4ZNx/6d/xf4oUvRJBdukmQeXBnPCj+hcm6iA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1723674055; c=relaxed/simple;
-	bh=FNLLVejBIWpvClxKSF4+IrpX1L+lQ9397HafDXBit1o=;
+	bh=rlyyIgvMGTAzzAY8GHZbZD4QyFOJXFOoceMIfUtdIDM=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=YVneXMuITkJ2Qe04+NSJz+3G+eDOiWDXOB36mImHZbE/UPALAZqFeIGMUYo7FWbHFgSg3MfgwVGCGjjwulvMLp0Xq5UCpmLaez5FG6Agkr1Z6KqHP6arTcXtRxNIdAmPOoV4OeklpBhRjmuuUtt5FlDyzzWPBGLO3pq2wAiVTRI=
+	 MIME-Version; b=BoSGOVCEwb1zSSYwt0Cyg6vcllSUxjWZzEgcWOfAjvmlId1iicKVyOQy0DRrW3wu1zv+0C6G0YwZa30aOTWkJfgu+1GH5oG4lXGOCQ4fi5pGSaL2xZllgnv3/xW7RicfWCZyKA9aX+TLTXDDZp/weMFqb2du8v2BVyDsZoJOzeI=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 1/8] netfilter: allow ipv6 fragments to arrive on different devices
-Date: Thu, 15 Aug 2024 00:20:35 +0200
-Message-Id: <20240814222042.150590-2-pablo@netfilter.org>
+Subject: [PATCH net 4/8] netfilter: nf_queue: drop packets with cloned unconfirmed conntracks
+Date: Thu, 15 Aug 2024 00:20:38 +0200
+Message-Id: <20240814222042.150590-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240814222042.150590-1-pablo@netfilter.org>
 References: <20240814222042.150590-1-pablo@netfilter.org>
@@ -34,41 +34,104 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Tom Hughes <tom@compton.nu>
+From: Florian Westphal <fw@strlen.de>
 
-Commit 264640fc2c5f4 ("ipv6: distinguish frag queues by device
-for multicast and link-local packets") modified the ipv6 fragment
-reassembly logic to distinguish frag queues by device for multicast
-and link-local packets but in fact only the main reassembly code
-limits the use of the device to those address types and the netfilter
-reassembly code uses the device for all packets.
+Conntrack assumes an unconfirmed entry (not yet committed to global hash
+table) has a refcount of 1 and is not visible to other cores.
 
-This means that if fragments of a packet arrive on different interfaces
-then netfilter will fail to reassemble them and the fragments will be
-expired without going any further through the filters.
+With multicast forwarding this assumption breaks down because such
+skbs get cloned after being picked up, i.e.  ct->use refcount is > 1.
 
-Fixes: 648700f76b03 ("inet: frags: use rhashtables for reassembly units")
-Signed-off-by: Tom Hughes <tom@compton.nu>
+Likewise, bridge netfilter will clone broad/mutlicast frames and
+all frames in case they need to be flood-forwarded during learning
+phase.
+
+For ip multicast forwarding or plain bridge flood-forward this will
+"work" because packets don't leave softirq and are implicitly
+serialized.
+
+With nfqueue this no longer holds true, the packets get queued
+and can be reinjected in arbitrary ways.
+
+Disable this feature, I see no other solution.
+
+After this patch, nfqueue cannot queue packets except the last
+multicast/broadcast packet.
+
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv6/netfilter/nf_conntrack_reasm.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ net/bridge/br_netfilter_hooks.c |  6 +++++-
+ net/netfilter/nfnetlink_queue.c | 35 +++++++++++++++++++++++++++++++--
+ 2 files changed, 38 insertions(+), 3 deletions(-)
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index 6f0844c9315d..4120e67a8ce6 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -154,6 +154,10 @@ static struct frag_queue *fq_find(struct net *net, __be32 id, u32 user,
- 	};
- 	struct inet_frag_queue *q;
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index 09f6a773a708..8f9c19d992ac 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -622,8 +622,12 @@ static unsigned int br_nf_local_in(void *priv,
+ 	if (likely(nf_ct_is_confirmed(ct)))
+ 		return NF_ACCEPT;
  
-+	if (!(ipv6_addr_type(&hdr->daddr) & (IPV6_ADDR_MULTICAST |
-+					    IPV6_ADDR_LINKLOCAL)))
-+		key.iif = 0;
++	if (WARN_ON_ONCE(refcount_read(&nfct->use) != 1)) {
++		nf_reset_ct(skb);
++		return NF_ACCEPT;
++	}
 +
- 	q = inet_frag_find(nf_frag->fqdir, &key);
- 	if (!q)
- 		return NULL;
+ 	WARN_ON_ONCE(skb_shared(skb));
+-	WARN_ON_ONCE(refcount_read(&nfct->use) != 1);
+ 
+ 	/* We can't call nf_confirm here, it would create a dependency
+ 	 * on nf_conntrack module.
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 55e28e1da66e..e0716da256bf 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -820,10 +820,41 @@ static bool nf_ct_drop_unconfirmed(const struct nf_queue_entry *entry)
+ {
+ #if IS_ENABLED(CONFIG_NF_CONNTRACK)
+ 	static const unsigned long flags = IPS_CONFIRMED | IPS_DYING;
+-	const struct nf_conn *ct = (void *)skb_nfct(entry->skb);
++	struct nf_conn *ct = (void *)skb_nfct(entry->skb);
++	unsigned long status;
++	unsigned int use;
+ 
+-	if (ct && ((ct->status & flags) == IPS_DYING))
++	if (!ct)
++		return false;
++
++	status = READ_ONCE(ct->status);
++	if ((status & flags) == IPS_DYING)
+ 		return true;
++
++	if (status & IPS_CONFIRMED)
++		return false;
++
++	/* in some cases skb_clone() can occur after initial conntrack
++	 * pickup, but conntrack assumes exclusive skb->_nfct ownership for
++	 * unconfirmed entries.
++	 *
++	 * This happens for br_netfilter and with ip multicast routing.
++	 * We can't be solved with serialization here because one clone could
++	 * have been queued for local delivery.
++	 */
++	use = refcount_read(&ct->ct_general.use);
++	if (likely(use == 1))
++		return false;
++
++	/* Can't decrement further? Exclusive ownership. */
++	if (!refcount_dec_not_one(&ct->ct_general.use))
++		return false;
++
++	skb_set_nfct(entry->skb, 0);
++	/* No nf_ct_put(): we already decremented .use and it cannot
++	 * drop down to 0.
++	 */
++	return true;
+ #endif
+ 	return false;
+ }
 -- 
 2.30.2
 
