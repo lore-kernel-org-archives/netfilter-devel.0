@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E030735894;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A4ABD14B947;
 	Wed, 14 Aug 2024 22:20:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723674057; cv=none; b=SKR5bAF6ZWKWBUccFa6LBX/xcDRhz37HmPEnz1pClLDq9KfodyfjcSqMNogwS+5VdniiGB+idInKM+06kFOrB5JERlmhMVakcpqbDkOAyRPeDUlTR66jiNB95IlGvINtxJhxujSu858FalQo0mcUMJnFxNTn2ZcESETBajSUbAc=
+	t=1723674058; cv=none; b=jyJug6qLO8QofH/v+aWZh8a2Z5N5dya7X5kzZ8KlgSvwc/Ke6/OcR2feMtHWe+UI2Vw0+8KflSHYhcAU1hkcwNrKlbEuTIdX3bejPjW/9VUayyOi1xvtf0p2WRHKnJlMhtHeUeUKbyi7YxySHuMiD6PfxvibZ8jHerS0QrCkilc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723674057; c=relaxed/simple;
-	bh=rkWGaJgHSrf5wBsr1/ElzBreebIwrhkKfE8MAloVc+I=;
+	s=arc-20240116; t=1723674058; c=relaxed/simple;
+	bh=x9cfzGdYD8vxaTejJ2HeMaRW0yRC6QJx5zgGA5TeA2M=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=jRU4Vk2oPkjXQMic+pNgplgpWz5ILXNy8epLG2jJ/w2nV49pQSZ2DfB9kowfsvPNY1kKsG2wVGLwusePeNPQMIFV2bBYO8VD0qBCN00YirZNFKOD27tk3xjnk1b4Gk/wFIH2wUBwZu69okZCZFgNB0bw9Fm3YBi0vqwssUCt02A=
+	 MIME-Version; b=arl0XJykkc+lSfYEJrRd7BbP+Q9dR1ye0JqwragwZkLjYskp2VnlKvqbcRIbsje6SHsArC8Jf9QtuWMqKDPozcd1/Mt0BswwwFR/kWFOlYyTB4QaxcjPq4SJIIOlcQee4rqrxHox2M67g2R9mfD2K5UydegjPm8hY+0eiNZlCq8=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 5/8] selftests: netfilter: add test for br_netfilter+conntrack+queue combination
-Date: Thu, 15 Aug 2024 00:20:39 +0200
-Message-Id: <20240814222042.150590-6-pablo@netfilter.org>
+Subject: [PATCH net 6/8] netfilter: nf_tables: Audit log dump reset after the fact
+Date: Thu, 15 Aug 2024 00:20:40 +0200
+Message-Id: <20240814222042.150590-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240814222042.150590-1-pablo@netfilter.org>
 References: <20240814222042.150590-1-pablo@netfilter.org>
@@ -34,123 +34,86 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+From: Phil Sutter <phil@nwl.cc>
 
-Trigger cloned skbs leaving softirq protection.
-This triggers splat without the preceeding change
-("netfilter: nf_queue: drop packets with cloned unconfirmed
- conntracks"):
+In theory, dumpreset may fail and invalidate the preceeding log message.
+Fix this and use the occasion to prepare for object reset locking, which
+benefits from a few unrelated changes:
 
-WARNING: at net/netfilter/nf_conntrack_core.c:1198 __nf_conntrack_confirm..
+* Add an early call to nfnetlink_unicast if not resetting which
+  effectively skips the audit logging but also unindents it.
+* Extract the table's name from the netlink attribute (which is verified
+  via earlier table lookup) to not rely upon validity of the looked up
+  table pointer.
+* Do not use local variable family, it will vanish.
 
-because local delivery and forwarding will race for confirmation.
-
-Based on a reproducer script from Yi Chen.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 8e6cf365e1d5 ("audit: log nftables configuration change events")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+Reviewed-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- .../testing/selftests/net/netfilter/Makefile  |  1 +
- .../net/netfilter/br_netfilter_queue.sh       | 78 +++++++++++++++++++
- 2 files changed, 79 insertions(+)
- create mode 100755 tools/testing/selftests/net/netfilter/br_netfilter_queue.sh
+ net/netfilter/nf_tables_api.c | 28 +++++++++++++---------------
+ 1 file changed, 13 insertions(+), 15 deletions(-)
 
-diff --git a/tools/testing/selftests/net/netfilter/Makefile b/tools/testing/selftests/net/netfilter/Makefile
-index 47945b2b3f92..d13fb5ea3e89 100644
---- a/tools/testing/selftests/net/netfilter/Makefile
-+++ b/tools/testing/selftests/net/netfilter/Makefile
-@@ -7,6 +7,7 @@ MNL_CFLAGS := $(shell $(HOSTPKG_CONFIG) --cflags libmnl 2>/dev/null)
- MNL_LDLIBS := $(shell $(HOSTPKG_CONFIG) --libs libmnl 2>/dev/null || echo -lmnl)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 481ee78e77bc..4fa132715fcc 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -8055,6 +8055,7 @@ static int nf_tables_dump_obj_done(struct netlink_callback *cb)
+ static int nf_tables_getobj(struct sk_buff *skb, const struct nfnl_info *info,
+ 			    const struct nlattr * const nla[])
+ {
++	const struct nftables_pernet *nft_net = nft_pernet(info->net);
+ 	struct netlink_ext_ack *extack = info->extack;
+ 	u8 genmask = nft_genmask_cur(info->net);
+ 	u8 family = info->nfmsg->nfgen_family;
+@@ -8064,6 +8065,7 @@ static int nf_tables_getobj(struct sk_buff *skb, const struct nfnl_info *info,
+ 	struct sk_buff *skb2;
+ 	bool reset = false;
+ 	u32 objtype;
++	char *buf;
+ 	int err;
  
- TEST_PROGS := br_netfilter.sh bridge_brouter.sh
-+TEST_PROGS += br_netfilter_queue.sh
- TEST_PROGS += conntrack_icmp_related.sh
- TEST_PROGS += conntrack_ipip_mtu.sh
- TEST_PROGS += conntrack_tcp_unreplied.sh
-diff --git a/tools/testing/selftests/net/netfilter/br_netfilter_queue.sh b/tools/testing/selftests/net/netfilter/br_netfilter_queue.sh
-new file mode 100755
-index 000000000000..6a764d70ab06
---- /dev/null
-+++ b/tools/testing/selftests/net/netfilter/br_netfilter_queue.sh
-@@ -0,0 +1,78 @@
-+#!/bin/bash
+ 	if (info->nlh->nlmsg_flags & NLM_F_DUMP) {
+@@ -8102,27 +8104,23 @@ static int nf_tables_getobj(struct sk_buff *skb, const struct nfnl_info *info,
+ 	if (NFNL_MSG_TYPE(info->nlh->nlmsg_type) == NFT_MSG_GETOBJ_RESET)
+ 		reset = true;
+ 
+-	if (reset) {
+-		const struct nftables_pernet *nft_net;
+-		char *buf;
+-
+-		nft_net = nft_pernet(net);
+-		buf = kasprintf(GFP_ATOMIC, "%s:%u", table->name, nft_net->base_seq);
+-
+-		audit_log_nfcfg(buf,
+-				family,
+-				1,
+-				AUDIT_NFT_OP_OBJ_RESET,
+-				GFP_ATOMIC);
+-		kfree(buf);
+-	}
+-
+ 	err = nf_tables_fill_obj_info(skb2, net, NETLINK_CB(skb).portid,
+ 				      info->nlh->nlmsg_seq, NFT_MSG_NEWOBJ, 0,
+ 				      family, table, obj, reset);
+ 	if (err < 0)
+ 		goto err_fill_obj_info;
+ 
++	if (!reset)
++		return nfnetlink_unicast(skb2, net, NETLINK_CB(skb).portid);
 +
-+source lib.sh
++	buf = kasprintf(GFP_ATOMIC, "%.*s:%u",
++			nla_len(nla[NFTA_OBJ_TABLE]),
++			(char *)nla_data(nla[NFTA_OBJ_TABLE]),
++			nft_net->base_seq);
++	audit_log_nfcfg(buf, info->nfmsg->nfgen_family, 1,
++			AUDIT_NFT_OP_OBJ_RESET, GFP_ATOMIC);
++	kfree(buf);
 +
-+checktool "nft --version" "run test without nft tool"
-+
-+cleanup() {
-+	cleanup_all_ns
-+}
-+
-+setup_ns c1 c2 c3 sender
-+
-+trap cleanup EXIT
-+
-+nf_queue_wait()
-+{
-+	grep -q "^ *$1 " "/proc/self/net/netfilter/nfnetlink_queue"
-+}
-+
-+port_add() {
-+	ns="$1"
-+	dev="$2"
-+	a="$3"
-+
-+	ip link add name "$dev" type veth peer name "$dev" netns "$ns"
-+
-+	ip -net "$ns" addr add 192.168.1."$a"/24 dev "$dev"
-+	ip -net "$ns" link set "$dev" up
-+
-+	ip link set "$dev" master br0
-+	ip link set "$dev" up
-+}
-+
-+[ "${1}" != "run" ] && { unshare -n "${0}" run; exit $?; }
-+
-+ip link add br0 type bridge
-+ip addr add 192.168.1.254/24 dev br0
-+
-+port_add "$c1" "c1" 1
-+port_add "$c2" "c2" 2
-+port_add "$c3" "c3" 3
-+port_add "$sender" "sender" 253
-+
-+ip link set br0 up
-+
-+modprobe -q br_netfilter
-+
-+sysctl net.bridge.bridge-nf-call-iptables=1 || exit 1
-+
-+ip netns exec "$sender" ping -I sender -c1 192.168.1.1 || exit 1
-+ip netns exec "$sender" ping -I sender -c1 192.168.1.2 || exit 2
-+ip netns exec "$sender" ping -I sender -c1 192.168.1.3 || exit 3
-+
-+nft -f /dev/stdin <<EOF
-+table ip filter {
-+	chain forward {
-+		type filter hook forward priority 0; policy accept;
-+		ct state new counter
-+		ip protocol icmp counter queue num 0 bypass
-+	}
-+}
-+EOF
-+./nf_queue -t 5 > /dev/null &
-+
-+busywait 5000 nf_queue_wait
-+
-+for i in $(seq 1 5); do conntrack -F > /dev/null 2> /dev/null; sleep 0.1 ; done &
-+ip netns exec "$sender" ping -I sender -f -c 50 -b 192.168.1.255
-+
-+read t < /proc/sys/kernel/tainted
-+if [ "$t" -eq 0 ];then
-+	echo PASS: kernel not tainted
-+else
-+	echo ERROR: kernel is tainted
-+	exit 1
-+fi
-+
-+exit 0
+ 	return nfnetlink_unicast(skb2, net, NETLINK_CB(skb).portid);
+ 
+ err_fill_obj_info:
 -- 
 2.30.2
 
