@@ -1,140 +1,110 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D3B3222EEF
-	for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2024 15:38:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A0251AED24
+	for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2024 16:09:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723649902; cv=none; b=apwoHjUpfi7Rxu7THZ/Q1KiP6MpHL286ja+QmEIImti8ivqcXy33qNtyZQfzjCixEillbQE8eSDpsxiZpJphSrFD+28eXM2XenESGNKh5B2ZKp2Xi8i2qEgxk27pu+0g0j5vaNZiOzS/D1flhNwpAfwuHZzD+WutOHEX/eNjexE=
+	t=1723651758; cv=none; b=pGohntWc6HZ1mriIz7lKVVYVRxaJ3g54lKRqte83zK63zMlfVUSji8OzRIC7Kyz8mj5xOAfDvyu9VhUBfwRy+z/d6FC2jnuMIO71nFpXsi36d4vuFc8QcoBtAJtLuM6AvPcNZZrNTbPjZMBV5vXanBQ27oNO3IYpCBYorMLgTCQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723649902; c=relaxed/simple;
-	bh=Tt8bENeTCsMDNbPudWImSVgabsSc7n42NAwwN8UqbjY=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=jWNUcXySJdceSmNnRhh8aPa/AbPCUIUdJJZ7tr7Hcaxeyro0IjKXOAkfc/noEnXNcQMhwKVQ9uP18EGL72T8A5b/Yl4kX/dguf8npqrU+hwlZMwopnxi3R7ffbgjn4NOnOm6+YNzV99Ui1nX6tmqzljgeDlNYVcGz7A/WDla1ZU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+	s=arc-20240116; t=1723651758; c=relaxed/simple;
+	bh=D8KyhMDnVkun7HNcxkaJPpMzK4KSIiSR5mYzjYawx9c=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=YqlRyQWgQ65eSn8Byb45sk3UAQyYPYpj+uzFUFDGW6vUaviXp393FXU4k+W5D5w+KowE7ijopTMfXgSUdP03Tyz+z6wnnOARm3D8tpTjZSe/759/dBFr4YHRyQ/QmxwswdbHgUdxlHMO1WikLRwSAsBKu/0o/ynpir4cd8Dg6V4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=43544 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1seGYg-00FpJ6-CE; Wed, 14 Aug 2024 18:09:12 +0200
+Date: Wed, 14 Aug 2024 18:09:09 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: nhofmeyr@sysmocom.de
-Subject: [PATCH nft] cache: populate chains on demand from error path
-Date: Wed, 14 Aug 2024 17:38:12 +0200
-Message-Id: <20240814153812.834332-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft,v2 1/2] datatype: reject rate in quota statement
+Message-ID: <ZrzWpcQehJBmss13@calendula>
+References: <20240814115122.279041-1-pablo@netfilter.org>
+ <ZrzUt-8mZoqdY0ai@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <ZrzUt-8mZoqdY0ai@orbyte.nwl.cc>
+X-Spam-Score: -1.9 (-)
 
-Updates on verdict maps that require many non-base chains are slowed
-down due to fetching existing non-base chains into the cache.
+On Wed, Aug 14, 2024 at 06:00:55PM +0200, Phil Sutter wrote:
+> On Wed, Aug 14, 2024 at 01:51:21PM +0200, Pablo Neira Ayuso wrote:
+> > Bail out if rate are used:
+> > 
+> >  ruleset.nft:5:77-106: Error: Wrong rate format, expecting bytes or kbytes or mbytes
+> >  add rule netdev firewall PROTECTED_IPS update @quota_temp_before { ip daddr quota over 45000 mbytes/second } add @quota_trigger { ip daddr }
+> >                                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> > 
+> > improve error reporting while at this.
+> > 
+> > Fixes: 6615676d825e ("src: add per-bytes limit")
+> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > ---
+> > v2: - change patch subject
+> >     - use strndup() to fetch units in rate_parse() so limit rate does not break.
+> > 
+> >  src/datatype.c | 20 +++++++++++++-------
+> >  1 file changed, 13 insertions(+), 7 deletions(-)
+> > 
+> > diff --git a/src/datatype.c b/src/datatype.c
+> > index d398a9c8c618..297c5d0409d5 100644
+> > --- a/src/datatype.c
+> > +++ b/src/datatype.c
+> > @@ -1485,14 +1485,14 @@ static struct error_record *time_unit_parse(const struct location *loc,
+> >  struct error_record *data_unit_parse(const struct location *loc,
+> >  				     const char *str, uint64_t *rate)
+> >  {
+> > -	if (strncmp(str, "bytes", strlen("bytes")) == 0)
+> > +	if (strcmp(str, "bytes") == 0)
+> >  		*rate = 1ULL;
+> > -	else if (strncmp(str, "kbytes", strlen("kbytes")) == 0)
+> > +	else if (strcmp(str, "kbytes") == 0)
+> >  		*rate = 1024;
+> > -	else if (strncmp(str, "mbytes", strlen("mbytes")) == 0)
+> > +	else if (strcmp(str, "mbytes") == 0)
+> >  		*rate = 1024 * 1024;
+> >  	else
+> > -		return error(loc, "Wrong rate format");
+> > +		return error(loc, "Wrong unit format, expecting bytes, kbytes or mbytes");
+> >  
+> >  	return NULL;
+> >  }
+> 
+> I have local commits which introduce KBYTES and MBYTES keywords and
+> thereby kill the need for quota_unit and limit_bytes cases in
+> parser_bison.y. It still needs testing and is surely not solving all
+> issues there are, but I find it nicer than the partially redundant code
+> we have right now.
 
-Chains are only required for error reporting hints if kernel reports
-ENOENT. Populate the cache from this error path only.
+Is this allowing for compact representation? ie. kbytes/second,
+because I remember this was the issue to follow this poor man
+approach.
 
-Similar approach already exists from rule ENOENT error path since:
+> My motivation for this was to maybe improve parser's ability to handle
+> lack of spaces in input. I still see the scanner fall into the generic
+> "string" token case which requires manual dissection in the parser.
+> 
+> What is your motivation for the above changes?
 
-  3f1d3912c3a6 ("cache: filter out tables that are not requested")
+A user that accidentally used:
 
-however, NFT_CACHE_CHAIN was toggled inconditionally for rule
-commands, rendering this on-demand cache population useless.
+        quota over 10mbytes/second
 
-before this patch, running Neels' nft_slew benchmark (peak values):
+which is currently accepted, the /second part is misleading, as the
+commit described, this is now rejected after this patch.
 
-  created idx 4992 in 52587950 ns   (128 in 7122 ms)
-  ...
-  deleted idx  128 in 43542500 ns   (127 in 6187 ms)
+> Maybe we could collect parser limitations around these units and see
+> what helps "the most"?
 
-after this patch:
-
-  created idx 4992 in 11361299 ns   (128 in 1612 ms)
-  ...
-  deleted idx 1664 in  5239633 ns   (128 in 733 ms)
-
-cache is still populated when index is used.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-A new attempt to address this issue, now that
-
-"cache: recycle existing cache with incremental updates"
-
-has been reverted.
-
- include/cache.h | 1 -
- src/cache.c     | 5 +----
- src/cmd.c       | 5 +++++
- 3 files changed, 6 insertions(+), 5 deletions(-)
-
-diff --git a/include/cache.h b/include/cache.h
-index 8ca4a9a79c03..44e8430ce1fd 100644
---- a/include/cache.h
-+++ b/include/cache.h
-@@ -31,7 +31,6 @@ enum cache_level_flags {
- 				  NFT_CACHE_SET_BIT |
- 				  NFT_CACHE_SETELEM_BIT,
- 	NFT_CACHE_RULE		= NFT_CACHE_TABLE_BIT |
--				  NFT_CACHE_CHAIN_BIT |
- 				  NFT_CACHE_RULE_BIT,
- 	NFT_CACHE_FULL		= __NFT_CACHE_MAX_BIT - 1,
- 	NFT_CACHE_TERSE		= (1 << 27),
-diff --git a/src/cache.c b/src/cache.c
-index e88cbae2ad95..06b12024003e 100644
---- a/src/cache.c
-+++ b/src/cache.c
-@@ -54,21 +54,19 @@ static unsigned int evaluate_cache_add(struct cmd *cmd, unsigned int flags)
- 		break;
- 	case CMD_OBJ_ELEMENTS:
- 		flags |= NFT_CACHE_TABLE |
--			 NFT_CACHE_CHAIN |
- 			 NFT_CACHE_SET |
- 			 NFT_CACHE_OBJECT |
- 			 NFT_CACHE_SETELEM_MAYBE;
- 		break;
- 	case CMD_OBJ_RULE:
- 		flags |= NFT_CACHE_TABLE |
--			 NFT_CACHE_CHAIN |
- 			 NFT_CACHE_SET |
- 			 NFT_CACHE_OBJECT |
- 			 NFT_CACHE_FLOWTABLE;
- 
- 		if (cmd->handle.index.id ||
- 		    cmd->handle.position.id)
--			flags |= NFT_CACHE_RULE | NFT_CACHE_UPDATE;
-+			flags |= NFT_CACHE_CHAIN | NFT_CACHE_RULE | NFT_CACHE_UPDATE;
- 		break;
- 	default:
- 		break;
-@@ -435,7 +433,6 @@ int nft_cache_evaluate(struct nft_ctx *nft, struct list_head *cmds,
- 		case CMD_DELETE:
- 		case CMD_DESTROY:
- 			flags |= NFT_CACHE_TABLE |
--				 NFT_CACHE_CHAIN |
- 				 NFT_CACHE_SET |
- 				 NFT_CACHE_FLOWTABLE |
- 				 NFT_CACHE_OBJECT;
-diff --git a/src/cmd.c b/src/cmd.c
-index 37d93abc2cd4..37a8d0e62aaa 100644
---- a/src/cmd.c
-+++ b/src/cmd.c
-@@ -69,12 +69,17 @@ static int table_fuzzy_check(struct netlink_ctx *ctx, const struct cmd *cmd,
- static int nft_cmd_enoent_chain(struct netlink_ctx *ctx, const struct cmd *cmd,
- 				const struct location *loc)
- {
-+	unsigned int flags = NFT_CACHE_TABLE |
-+			     NFT_CACHE_CHAIN;
- 	const struct table *table = NULL;
- 	struct chain *chain;
- 
- 	if (!cmd->handle.chain.name)
- 		return 0;
- 
-+	if (nft_cache_update(ctx->nft, flags, ctx->msgs, NULL) < 0)
-+		return 0;
-+
- 	chain = chain_lookup_fuzzy(&cmd->handle, &ctx->nft->cache, &table);
- 	/* check table first. */
- 	if (!table)
--- 
-2.30.2
-
+I am fine with handling this from the parser instead, there is now
+flex start conditions that can help to enable these tokens on demand.
