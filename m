@@ -1,85 +1,140 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FA831AED24
-	for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2024 15:22:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D3B3222EEF
+	for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2024 15:38:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723648955; cv=none; b=dBQi8vZZSM0jzFmLVMxJJrw+ygn3hN6yAyY02B8ImNw6CcU9/4g8jloV8dSYygIEWf3wxCeHV5trxhZwIIcKI/3i+bcSXA9tP5hrDoIiOWkj2g26szHMqCwwAPAdU1lpnoOx8sooNMALOG62Nnxx1W5CbnIvDleJVSv/0qBjAno=
+	t=1723649902; cv=none; b=apwoHjUpfi7Rxu7THZ/Q1KiP6MpHL286ja+QmEIImti8ivqcXy33qNtyZQfzjCixEillbQE8eSDpsxiZpJphSrFD+28eXM2XenESGNKh5B2ZKp2Xi8i2qEgxk27pu+0g0j5vaNZiOzS/D1flhNwpAfwuHZzD+WutOHEX/eNjexE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723648955; c=relaxed/simple;
-	bh=0bLX6K1Yi/hvACaklrk8i2CpXCqhYCkw5culB6uHHj0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=czi41WF6eZCkXI+Eht772vdprrA70vCmqPiXKzaJR5kmTy/Y2hyYsoc3+D4W8WjBj61VNCb0jizH25LPyOadxWDnrDUac5KnK6CegTHeGHxi6tkLJKNk+MN9Fzp7kss1Fz1hSoJh03RO/TL8kQEuxliEIwSZEFNlcllQs3tbZcY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=vYhCd6cg; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=qMch8WJh; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="vYhCd6cg";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="qMch8WJh"
-Date: Wed, 14 Aug 2024 17:22:30 +0200
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1723648951;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=lbN4Lf421wb+j/1osNYciXe0dBjUsPhX0UkchG6F/38=;
-	b=vYhCd6cg/9xD981lfF0JdAyvvY0qySTIHJKFlSHFBsfMAcFQUT0MXG+SzE2yjZM/vA3mDm
-	2VmpNFs2jI6VZ2JCTAiQyZxDcSU5gUgj7C4VN6stC1JkIH2ZFNFec5VEEagm2cFM7Xq91f
-	gPMJ7Ib+8LGrygAtyPGLcA7bFXO3rmjydq6W2AKcjoqXNwDVEv1FBEN7W5HQD2cUH2mIjw
-	JFq/WPl2XDK9tK13lrJdJZrOSx0VzrWiD8iDdKTgCQGXrmMpZtI+M6/Fj449SfqoEM92aK
-	Xl57kNybDTTT9RSBYOpiTzLsKOgjJg1I7YH6YoX5m6kR9lLr2LU3vld2nxg6+Q==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1723648951;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=lbN4Lf421wb+j/1osNYciXe0dBjUsPhX0UkchG6F/38=;
-	b=qMch8WJhuaN7jVTvbQ2wKOKetE0QEgDXC5XkM+bbOHRWEX5ddxocLMoS+ZUZ42SZEUulei
-	F/m7UP++FxJGSCDQ==
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	Eric Dumazet <edumazet@google.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>
-Subject: Re: [netfilter-core] [Q] The usage of xt_recseq.
-Message-ID: <20240814152230.9vBVtL04@linutronix.de>
-References: <20240813140121.QvV8fMbm@linutronix.de>
- <20240813143719.GA5147@breakpoint.cc>
- <20240813152810.iBu4Tg20@linutronix.de>
- <20240813183202.GA13864@breakpoint.cc>
- <20240814071317.YbKDH7yA@linutronix.de>
- <20240814150919.GA22825@breakpoint.cc>
+	s=arc-20240116; t=1723649902; c=relaxed/simple;
+	bh=Tt8bENeTCsMDNbPudWImSVgabsSc7n42NAwwN8UqbjY=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=jWNUcXySJdceSmNnRhh8aPa/AbPCUIUdJJZ7tr7Hcaxeyro0IjKXOAkfc/noEnXNcQMhwKVQ9uP18EGL72T8A5b/Yl4kX/dguf8npqrU+hwlZMwopnxi3R7ffbgjn4NOnOm6+YNzV99Ui1nX6tmqzljgeDlNYVcGz7A/WDla1ZU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: nhofmeyr@sysmocom.de
+Subject: [PATCH nft] cache: populate chains on demand from error path
+Date: Wed, 14 Aug 2024 17:38:12 +0200
+Message-Id: <20240814153812.834332-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20240814150919.GA22825@breakpoint.cc>
+Content-Transfer-Encoding: 8bit
 
-On 2024-08-14 17:09:19 [+0200], Florian Westphal wrote:
-> Sebastian Andrzej Siewior <bigeasy@linutronix.de> wrote:
-> > On 2024-08-13 20:32:02 [+0200], Florian Westphal wrote:
-> > > Or, just tag the x_tables traversers as incompatible with
-> > > CONFIG_PREEMPT_RT in Kconfig...
-> > 
-> > After reading all this I am kind of leaning in for the Kconfig option
-> > because it is legacy code. Do you have any schedule for removal?
-> 
-> No.  I added a hidden kconfig symbol to allow for disabling it in
-> a9525c7f6219 ("netfilter: xtables: allow xtables-nft only builds")
+Updates on verdict maps that require many non-base chains are slowed
+down due to fetching existing non-base chains into the cache.
 
-thank you for the pointer.
+Chains are only required for error reporting hints if kernel reports
+ENOENT. Populate the cache from this error path only.
 
-> I think we should wait a bit more before exposing the symbol
-> in Kconfig to reduce oldconfig breakage chances.
-> 
-> But I think all pieces are in place to allow for the removal.
+Similar approach already exists from rule ENOENT error path since:
 
-Awesome. 
+  3f1d3912c3a6 ("cache: filter out tables that are not requested")
 
-Sebastian
+however, NFT_CACHE_CHAIN was toggled inconditionally for rule
+commands, rendering this on-demand cache population useless.
+
+before this patch, running Neels' nft_slew benchmark (peak values):
+
+  created idx 4992 in 52587950 ns   (128 in 7122 ms)
+  ...
+  deleted idx  128 in 43542500 ns   (127 in 6187 ms)
+
+after this patch:
+
+  created idx 4992 in 11361299 ns   (128 in 1612 ms)
+  ...
+  deleted idx 1664 in  5239633 ns   (128 in 733 ms)
+
+cache is still populated when index is used.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+A new attempt to address this issue, now that
+
+"cache: recycle existing cache with incremental updates"
+
+has been reverted.
+
+ include/cache.h | 1 -
+ src/cache.c     | 5 +----
+ src/cmd.c       | 5 +++++
+ 3 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/include/cache.h b/include/cache.h
+index 8ca4a9a79c03..44e8430ce1fd 100644
+--- a/include/cache.h
++++ b/include/cache.h
+@@ -31,7 +31,6 @@ enum cache_level_flags {
+ 				  NFT_CACHE_SET_BIT |
+ 				  NFT_CACHE_SETELEM_BIT,
+ 	NFT_CACHE_RULE		= NFT_CACHE_TABLE_BIT |
+-				  NFT_CACHE_CHAIN_BIT |
+ 				  NFT_CACHE_RULE_BIT,
+ 	NFT_CACHE_FULL		= __NFT_CACHE_MAX_BIT - 1,
+ 	NFT_CACHE_TERSE		= (1 << 27),
+diff --git a/src/cache.c b/src/cache.c
+index e88cbae2ad95..06b12024003e 100644
+--- a/src/cache.c
++++ b/src/cache.c
+@@ -54,21 +54,19 @@ static unsigned int evaluate_cache_add(struct cmd *cmd, unsigned int flags)
+ 		break;
+ 	case CMD_OBJ_ELEMENTS:
+ 		flags |= NFT_CACHE_TABLE |
+-			 NFT_CACHE_CHAIN |
+ 			 NFT_CACHE_SET |
+ 			 NFT_CACHE_OBJECT |
+ 			 NFT_CACHE_SETELEM_MAYBE;
+ 		break;
+ 	case CMD_OBJ_RULE:
+ 		flags |= NFT_CACHE_TABLE |
+-			 NFT_CACHE_CHAIN |
+ 			 NFT_CACHE_SET |
+ 			 NFT_CACHE_OBJECT |
+ 			 NFT_CACHE_FLOWTABLE;
+ 
+ 		if (cmd->handle.index.id ||
+ 		    cmd->handle.position.id)
+-			flags |= NFT_CACHE_RULE | NFT_CACHE_UPDATE;
++			flags |= NFT_CACHE_CHAIN | NFT_CACHE_RULE | NFT_CACHE_UPDATE;
+ 		break;
+ 	default:
+ 		break;
+@@ -435,7 +433,6 @@ int nft_cache_evaluate(struct nft_ctx *nft, struct list_head *cmds,
+ 		case CMD_DELETE:
+ 		case CMD_DESTROY:
+ 			flags |= NFT_CACHE_TABLE |
+-				 NFT_CACHE_CHAIN |
+ 				 NFT_CACHE_SET |
+ 				 NFT_CACHE_FLOWTABLE |
+ 				 NFT_CACHE_OBJECT;
+diff --git a/src/cmd.c b/src/cmd.c
+index 37d93abc2cd4..37a8d0e62aaa 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -69,12 +69,17 @@ static int table_fuzzy_check(struct netlink_ctx *ctx, const struct cmd *cmd,
+ static int nft_cmd_enoent_chain(struct netlink_ctx *ctx, const struct cmd *cmd,
+ 				const struct location *loc)
+ {
++	unsigned int flags = NFT_CACHE_TABLE |
++			     NFT_CACHE_CHAIN;
+ 	const struct table *table = NULL;
+ 	struct chain *chain;
+ 
+ 	if (!cmd->handle.chain.name)
+ 		return 0;
+ 
++	if (nft_cache_update(ctx->nft, flags, ctx->msgs, NULL) < 0)
++		return 0;
++
+ 	chain = chain_lookup_fuzzy(&cmd->handle, &ctx->nft->cache, &table);
+ 	/* check table first. */
+ 	if (!table)
+-- 
+2.30.2
+
