@@ -1,13 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5A3E535894;
-	Wed, 14 Aug 2024 22:20:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 71FE714A098;
+	Wed, 14 Aug 2024 22:20:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723674052; cv=none; b=c9XQS8M1SqhOLEyCPqEx+MduFq2aJc3oPytfP5yOmLGUWNpmsLdJXa7BnFypmUoxz0frVdBCpJycWK5G0LQjyTntOmMdBHFW056E1y7n6bwuBFUcxRz20AmbPrXsL31GpTSJl6N9me5unDs4IqnevIu4A+1aTFi7v7kax/1lTZI=
+	t=1723674054; cv=none; b=SK01PPGbkkbGOPwsYI6b5oBxlBBogPu3ufzuxx1uNON06MCfH/NlUpFQ2n/5W/TVPbx458a2R1/x2uFijLR8eNSuDoxbbavGYXclb8MwIdQM+49UB1i/CHSYopZnbrMA4OtMHgQG9P9oiwcFpn9f6CRCtalLL1wyw6nXx1qxpdQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723674052; c=relaxed/simple;
-	bh=64+IuF3L/P+ii0pf83OmtJri/7oxvWcUZXcQgl54M0I=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=ieylrHjcQBGY6e2VGyDVIk2ZyV4lN4xAu4CVHJEPHgsVAtU3gaeoMizY8EfTU/as1skNDiroXB38/Dkw6KfBCT2I+A8Tj2ZTUcyE7oVX/mK1o244FTyOmKAV4aOZGVzXyp7EBUAsvEc1YOjpXR7kMs72Kl4Vpshk46s7Qf+2nbI=
+	s=arc-20240116; t=1723674054; c=relaxed/simple;
+	bh=ec7mfZCwAb08NgjKOdtsKyttWhuWfnMBkMzTHKyxvEA=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=dJN3SNno3ecRHYEGWtetidTF408FjpfY3lTLcYig9NaJeqvrXAB0PrvA4H4sa8KCZuZnOgGLwipzQgvkx9whdz46aPIrPLJRvobRMiq1SdguwdM3GFVe2w6C4v4f/AGZSbYkDpcLMefKzCAKyhSTtIbTspTfXnA21LbvAE83e3E=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -19,10 +20,12 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 0/8] Netfilter fixes for net
-Date: Thu, 15 Aug 2024 00:20:34 +0200
-Message-Id: <20240814222042.150590-1-pablo@netfilter.org>
+Subject: [PATCH net 2/8] netfilter: nfnetlink: Initialise extack before use in ACKs
+Date: Thu, 15 Aug 2024 00:20:36 +0200
+Message-Id: <20240814222042.150590-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20240814222042.150590-1-pablo@netfilter.org>
+References: <20240814222042.150590-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,78 +34,42 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Donald Hunter <donald.hunter@gmail.com>
 
-The following patchset contains Netfilter fixes for net:
+Add missing extack initialisation when ACKing BATCH_BEGIN and BATCH_END.
 
-1) Ignores ifindex for types other than mcast/linklocal in ipv6 frag
-   reasm, from Tom Hughes.
+Fixes: bf2ac490d28c ("netfilter: nfnetlink: Handle ACK flags for batch messages")
+Signed-off-by: Donald Hunter <donald.hunter@gmail.com>
+Reviewed-by: Simon Horman <horms@kernel.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nfnetlink.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-2) Initialize extack for begin/end netlink message marker in batch,
-   from Donald Hunter.
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 4abf660c7baf..932b3ddb34f1 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -427,8 +427,10 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 
+ 	nfnl_unlock(subsys_id);
+ 
+-	if (nlh->nlmsg_flags & NLM_F_ACK)
++	if (nlh->nlmsg_flags & NLM_F_ACK) {
++		memset(&extack, 0, sizeof(extack));
+ 		nfnl_err_add(&err_list, nlh, 0, &extack);
++	}
+ 
+ 	while (skb->len >= nlmsg_total_size(0)) {
+ 		int msglen, type;
+@@ -577,6 +579,7 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			ss->abort(net, oskb, NFNL_ABORT_NONE);
+ 			netlink_ack(oskb, nlmsg_hdr(oskb), err, NULL);
+ 		} else if (nlh->nlmsg_flags & NLM_F_ACK) {
++			memset(&extack, 0, sizeof(extack));
+ 			nfnl_err_add(&err_list, nlh, 0, &extack);
+ 		}
+ 	} else {
+-- 
+2.30.2
 
-3) Initialize extack for flowtable offload support, also from Donald.
-
-4) Dropped packets with cloned unconfirmed conntracks in nfqueue,
-   later it should be possible to explore lookup after reinject but
-   Florian prefers this approach at this stage. From Florian Westphal.
-
-5) Add selftest for cloned unconfirmed conntracks in nfqueue for
-   previous update.
-
-6) Audit after filling netlink header successfully in object dump,
-   from Phil Sutter.
-
-7-8) Fix concurrent dump and reset which could result in underflow
-     counter / quota objects.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-24-08-15
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit a2cbb1603943281a604f5adc48079a148db5cb0d:
-
-  tcp: Update window clamping condition (2024-08-14 10:50:49 +0100)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-24-08-15
-
-for you to fetch changes up to bd662c4218f9648e888bebde9468146965f3f8a0:
-
-  netfilter: nf_tables: Add locking for NFT_MSG_GETOBJ_RESET requests (2024-08-14 23:44:55 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 24-08-15
-
-----------------------------------------------------------------
-Donald Hunter (2):
-      netfilter: nfnetlink: Initialise extack before use in ACKs
-      netfilter: flowtable: initialise extack before use
-
-Florian Westphal (2):
-      netfilter: nf_queue: drop packets with cloned unconfirmed conntracks
-      selftests: netfilter: add test for br_netfilter+conntrack+queue combination
-
-Phil Sutter (3):
-      netfilter: nf_tables: Audit log dump reset after the fact
-      netfilter: nf_tables: Introduce nf_tables_getobj_single
-      netfilter: nf_tables: Add locking for NFT_MSG_GETOBJ_RESET requests
-
-Tom Hughes (1):
-      netfilter: allow ipv6 fragments to arrive on different devices
-
- net/bridge/br_netfilter_hooks.c                    |   6 +-
- net/ipv6/netfilter/nf_conntrack_reasm.c            |   4 +
- net/netfilter/nf_flow_table_offload.c              |   2 +-
- net/netfilter/nf_tables_api.c                      | 147 ++++++++++++++-------
- net/netfilter/nfnetlink.c                          |   5 +-
- net/netfilter/nfnetlink_queue.c                    |  35 ++++-
- tools/testing/selftests/net/netfilter/Makefile     |   1 +
- .../selftests/net/netfilter/br_netfilter_queue.sh  |  78 +++++++++++
- 8 files changed, 228 insertions(+), 50 deletions(-)
- create mode 100755 tools/testing/selftests/net/netfilter/br_netfilter_queue.sh
