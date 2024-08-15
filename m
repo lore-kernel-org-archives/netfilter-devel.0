@@ -1,37 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B469063C;
-	Thu, 15 Aug 2024 14:23:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB7E463C;
+	Thu, 15 Aug 2024 14:23:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723731835; cv=none; b=VpNncwsJRi9yzopx2h/L17g6oGURxwoRZ9CdAuCu/1BE6Ci5NvZliLuLlSi8xy0VJC9hlZuuiVdnSkssrtQ40mkKcKjLnQBMiaQIg9MVLc9u2sSvbj14Hqylv82KDNdpwIS4tuZgJ3t4yFLv1nDdzbCNwF/LRT1udj8n1skQnCs=
+	t=1723731838; cv=none; b=bJRIMvFcj6S8QKV0B+GlG1HTMxxS1q8SKhcdaq8oF3T+QAD+txYyZ1T5aBsRGMLSf3XkZZ4AXCNjLWHXn5IFudib23wdUCj+pq4SIXuO+OQ6Xpva+elydvwiIxKeimhICNPdcXdGaM7/aEYAuNlgP3uAjgPM3dCvrPECo96lA4o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723731835; c=relaxed/simple;
-	bh=mJ5CpE/4qPUmUcZJJlAQXmosgB0rF/kYPUKrGwCud/8=;
+	s=arc-20240116; t=1723731838; c=relaxed/simple;
+	bh=Y5NCaFvmpmjQPoyWpWCtDF2/Qv60/EV/eGkQ9VKRUIk=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=sHa/mjRJ2wVT8blJmOrEI3/a/ewjd0Ymoeiz4bYqJz5hxZYdJ3mWK1636ODUo+3IpbPuncl5Wg7O+rh5v4N/yJoaF6seR++GvfLdK+qdYy8SSskr8exlbP/NqAoeX2cgj9K1m4ZD1cjgvAaQcfussGlxIF01maKkhWSfTw1dqlA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=aBYlaUC3; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=CPyhKx1V3WZttEyUjWZh2pm414Kn1M/nR0pu/QqQJa9qfjxUU5T8H/HoDBVN+L4k7M2/trOGi58Gmn08AZG8bfCI0rz1Ciux6SJatCy7oT+YIa13NBGvRsn6KNonwwA4HbOOsJUizr8kXErccqgX56UZZenozxktiUBCbdwf1GQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=dY4xTSfG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="aBYlaUC3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A580FC32786;
-	Thu, 15 Aug 2024 14:23:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="dY4xTSfG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF41CC32786;
+	Thu, 15 Aug 2024 14:23:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1723731835;
-	bh=mJ5CpE/4qPUmUcZJJlAQXmosgB0rF/kYPUKrGwCud/8=;
+	s=korg; t=1723731838;
+	bh=Y5NCaFvmpmjQPoyWpWCtDF2/Qv60/EV/eGkQ9VKRUIk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=aBYlaUC3ZEtHtz4lP1KSDWQGleboZBypvX3QLO7EcdjIPoiUGev3ey32bTjIa86cx
-	 gJy/MEvMQ5uxidVr/dekfzFJXczm7ZmDZi67yAogU1514q4Yhz51FWz8p5qFyZe645
-	 oOVfDZEnB7NC20WblR0eAUHAKtOWn50DAidS2Q9A=
+	b=dY4xTSfGcsFtSOwezHi1NUVr7HPFiiKPN2/Q2rK5L3QSsRskiVGpNke6C4oJ6u8tJ
+	 YN9ilBGXGSVxKtZlfSmHXIpYHl2IMz8AitHbaANzDMtTu3b2jVoxZA/HLf7uEHcog4
+	 vLBJszJlrkXDwcgLONLSyeGwQJ156vmT6QDoUJyE=
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To: stable@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	patches@lists.linux.dev,
+	Florian Westphal <fw@strlen.de>,
 	Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 5.4 252/259] netfilter: nf_tables: use timestamp to check for set element timeout
-Date: Thu, 15 Aug 2024 15:26:25 +0200
-Message-ID: <20240815131912.502018874@linuxfoundation.org>
+Subject: [PATCH 5.4 253/259] netfilter: nf_tables: prefer nft_chain_validate
+Date: Thu, 15 Aug 2024 15:26:26 +0200
+Message-ID: <20240815131912.641960891@linuxfoundation.org>
 X-Mailer: git-send-email 2.46.0
 In-Reply-To: <20240815131902.779125794@linuxfoundation.org>
 References: <20240815131902.779125794@linuxfoundation.org>
@@ -50,188 +51,188 @@ Content-Transfer-Encoding: 8bit
 
 ------------------
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
 
-commit 7395dfacfff65e9938ac0889dafa1ab01e987d15 upstream
+commit cff3bd012a9512ac5ed858d38e6ed65f6391008c upstream.
 
-Add a timestamp field at the beginning of the transaction, store it
-in the nftables per-netns area.
+nft_chain_validate already performs loop detection because a cycle will
+result in a call stack overflow (ctx->level >= NFT_JUMP_STACK_SIZE).
 
-Update set backend .insert, .deactivate and sync gc path to use the
-timestamp, this avoids that an element expires while control plane
-transaction is still unfinished.
+It also follows maps via ->validate callback in nft_lookup, so there
+appears no reason to iterate the maps again.
 
-.lookup and .update, which are used from packet path, still use the
-current time to check if the element has expired. And .get path and dump
-also since this runs lockless under rcu read size lock. Then, there is
-async gc which also needs to check the current time since it runs
-asynchronously from a workqueue.
+nf_tables_check_loops() and all its helper functions can be removed.
+This improves ruleset load time significantly, from 23s down to 12s.
 
-[ NB: rbtree GC updates has been excluded because GC is asynchronous. ]
+This also fixes a crash bug. Old loop detection code can result in
+unbounded recursion:
 
-Fixes: c3e1b005ed1c ("netfilter: nf_tables: add set element timeout support")
+BUG: TASK stack guard page was hit at ....
+Oops: stack guard page: 0000 [#1] PREEMPT SMP KASAN
+CPU: 4 PID: 1539 Comm: nft Not tainted 6.10.0-rc5+ #1
+[..]
+
+with a suitable ruleset during validation of register stores.
+
+I can't see any actual reason to attempt to check for this from
+nft_validate_register_store(), at this point the transaction is still in
+progress, so we don't have a full picture of the rule graph.
+
+For nf-next it might make sense to either remove it or make this depend
+on table->validate_state in case we could catch an error earlier
+(for improved error reporting to userspace).
+
+Fixes: 20a69341f2d0 ("netfilter: nf_tables: add netlink set API")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- include/net/netfilter/nf_tables.h |   21 +++++++++++++++++++--
- net/netfilter/nf_tables_api.c     |    1 +
- net/netfilter/nft_set_hash.c      |    8 +++++++-
- net/netfilter/nft_set_rbtree.c    |    6 ++++--
- 4 files changed, 31 insertions(+), 5 deletions(-)
+ net/netfilter/nf_tables_api.c |  114 ++++--------------------------------------
+ 1 file changed, 13 insertions(+), 101 deletions(-)
 
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -13,6 +13,7 @@
- #include <net/netfilter/nf_flow_table.h>
- #include <net/netlink.h>
- #include <net/flow_offload.h>
-+#include <net/netns/generic.h>
- 
- struct module;
- 
-@@ -656,10 +657,16 @@ static inline struct nft_expr *nft_set_e
- 	return nft_set_ext(ext, NFT_SET_EXT_EXPR);
- }
- 
--static inline bool nft_set_elem_expired(const struct nft_set_ext *ext)
-+static inline bool __nft_set_elem_expired(const struct nft_set_ext *ext,
-+					  u64 tstamp)
- {
- 	return nft_set_ext_exists(ext, NFT_SET_EXT_EXPIRATION) &&
--	       time_is_before_eq_jiffies64(*nft_set_ext_expiration(ext));
-+	       time_after_eq64(tstamp, *nft_set_ext_expiration(ext));
-+}
-+
-+static inline bool nft_set_elem_expired(const struct nft_set_ext *ext)
-+{
-+	return __nft_set_elem_expired(ext, get_jiffies_64());
- }
- 
- static inline struct nft_set_ext *nft_set_elem_ext(const struct nft_set *set,
-@@ -1482,9 +1489,19 @@ struct nftables_pernet {
- 	struct list_head	module_list;
- 	struct list_head	notify_list;
- 	struct mutex		commit_mutex;
-+	u64			tstamp;
- 	unsigned int		base_seq;
- 	u8			validate_state;
- 	unsigned int		gc_seq;
- };
- 
-+extern unsigned int nf_tables_net_id;
-+
-+static inline u64 nft_net_tstamp(const struct net *net)
-+{
-+	struct nftables_pernet *nft_net = net_generic(net, nf_tables_net_id);
-+
-+	return nft_net->tstamp;
-+}
-+
- #endif /* _NET_NF_TABLES_H */
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -7758,6 +7758,7 @@ static bool nf_tables_valid_genid(struct
- 	bool genid_ok;
+@@ -2829,6 +2829,15 @@ static void nf_tables_rule_release(const
+ 	nf_tables_rule_destroy(ctx, rule);
+ }
  
- 	mutex_lock(&nft_net->commit_mutex);
-+	nft_net->tstamp = get_jiffies_64();
- 
- 	genid_ok = genid == 0 || nft_net->base_seq == genid;
- 	if (!genid_ok)
---- a/net/netfilter/nft_set_hash.c
-+++ b/net/netfilter/nft_set_hash.c
-@@ -38,6 +38,7 @@ struct nft_rhash_cmp_arg {
- 	const struct nft_set		*set;
- 	const u32			*key;
- 	u8				genmask;
-+	u64				tstamp;
- };
- 
- static inline u32 nft_rhash_key(const void *data, u32 len, u32 seed)
-@@ -64,7 +65,7 @@ static inline int nft_rhash_cmp(struct r
- 		return 1;
- 	if (nft_set_elem_is_dead(&he->ext))
- 		return 1;
--	if (nft_set_elem_expired(&he->ext))
-+	if (__nft_set_elem_expired(&he->ext, x->tstamp))
- 		return 1;
- 	if (!nft_set_elem_active(&he->ext, x->genmask))
- 		return 1;
-@@ -88,6 +89,7 @@ static bool nft_rhash_lookup(const struc
- 		.genmask = nft_genmask_cur(net),
- 		.set	 = set,
- 		.key	 = key,
-+		.tstamp  = get_jiffies_64(),
- 	};
- 
- 	he = rhashtable_lookup(&priv->ht, &arg, nft_rhash_params);
-@@ -106,6 +108,7 @@ static void *nft_rhash_get(const struct
- 		.genmask = nft_genmask_cur(net),
- 		.set	 = set,
- 		.key	 = elem->key.val.data,
-+		.tstamp  = get_jiffies_64(),
- 	};
- 
- 	he = rhashtable_lookup(&priv->ht, &arg, nft_rhash_params);
-@@ -129,6 +132,7 @@ static bool nft_rhash_update(struct nft_
- 		.genmask = NFT_GENMASK_ANY,
- 		.set	 = set,
- 		.key	 = key,
-+		.tstamp  = get_jiffies_64(),
- 	};
- 
- 	he = rhashtable_lookup(&priv->ht, &arg, nft_rhash_params);
-@@ -172,6 +176,7 @@ static int nft_rhash_insert(const struct
- 		.genmask = nft_genmask_next(net),
- 		.set	 = set,
- 		.key	 = elem->key.val.data,
-+		.tstamp	 = nft_net_tstamp(net),
- 	};
- 	struct nft_rhash_elem *prev;
- 
-@@ -214,6 +219,7 @@ static void *nft_rhash_deactivate(const
- 		.genmask = nft_genmask_next(net),
- 		.set	 = set,
- 		.key	 = elem->key.val.data,
-+		.tstamp	 = nft_net_tstamp(net),
- 	};
- 
- 	rcu_read_lock();
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -315,6 +315,7 @@ static int __nft_rbtree_insert(const str
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 	u8 cur_genmask = nft_genmask_cur(net);
- 	u8 genmask = nft_genmask_next(net);
-+	u64 tstamp = nft_net_tstamp(net);
- 	int d, err;
- 
- 	/* Descend the tree to search for an existing element greater than the
-@@ -362,7 +363,7 @@ static int __nft_rbtree_insert(const str
- 		/* perform garbage collection to avoid bogus overlap reports
- 		 * but skip new elements in this transaction.
- 		 */
--		if (nft_set_elem_expired(&rbe->ext) &&
-+		if (__nft_set_elem_expired(&rbe->ext, tstamp) &&
- 		    nft_set_elem_active(&rbe->ext, cur_genmask)) {
- 			err = nft_rbtree_gc_elem(set, priv, rbe);
- 			if (err < 0)
-@@ -537,6 +538,7 @@ static void *nft_rbtree_deactivate(const
- 	const struct rb_node *parent = priv->root.rb_node;
- 	struct nft_rbtree_elem *rbe, *this = elem->priv;
- 	u8 genmask = nft_genmask_next(net);
-+	u64 tstamp = nft_net_tstamp(net);
- 	int d;
- 
- 	while (parent != NULL) {
-@@ -557,7 +559,7 @@ static void *nft_rbtree_deactivate(const
- 				   nft_rbtree_interval_end(this)) {
- 				parent = parent->rb_right;
++/** nft_chain_validate - loop detection and hook validation
++ *
++ * @ctx: context containing call depth and base chain
++ * @chain: chain to validate
++ *
++ * Walk through the rules of the given chain and chase all jumps/gotos
++ * and set lookups until either the jump limit is hit or all reachable
++ * chains have been validated.
++ */
+ int nft_chain_validate(const struct nft_ctx *ctx, const struct nft_chain *chain)
+ {
+ 	struct nft_expr *expr, *last;
+@@ -2847,6 +2856,9 @@ int nft_chain_validate(const struct nft_
+ 			if (!expr->ops->validate)
  				continue;
--			} else if (nft_set_elem_expired(&rbe->ext)) {
-+			} else if (__nft_set_elem_expired(&rbe->ext, tstamp)) {
- 				break;
- 			} else if (!nft_set_elem_active(&rbe->ext, genmask)) {
- 				parent = parent->rb_left;
+ 
++			/* This may call nft_chain_validate() recursively,
++			 * callers that do so must increment ctx->level.
++			 */
+ 			err = expr->ops->validate(ctx, expr, &data);
+ 			if (err < 0)
+ 				return err;
+@@ -7811,106 +7823,6 @@ int nft_chain_validate_hooks(const struc
+ }
+ EXPORT_SYMBOL_GPL(nft_chain_validate_hooks);
+ 
+-/*
+- * Loop detection - walk through the ruleset beginning at the destination chain
+- * of a new jump until either the source chain is reached (loop) or all
+- * reachable chains have been traversed.
+- *
+- * The loop check is performed whenever a new jump verdict is added to an
+- * expression or verdict map or a verdict map is bound to a new chain.
+- */
+-
+-static int nf_tables_check_loops(const struct nft_ctx *ctx,
+-				 const struct nft_chain *chain);
+-
+-static int nf_tables_loop_check_setelem(const struct nft_ctx *ctx,
+-					struct nft_set *set,
+-					const struct nft_set_iter *iter,
+-					struct nft_set_elem *elem)
+-{
+-	const struct nft_set_ext *ext = nft_set_elem_ext(set, elem->priv);
+-	const struct nft_data *data;
+-
+-	if (nft_set_ext_exists(ext, NFT_SET_EXT_FLAGS) &&
+-	    *nft_set_ext_flags(ext) & NFT_SET_ELEM_INTERVAL_END)
+-		return 0;
+-
+-	data = nft_set_ext_data(ext);
+-	switch (data->verdict.code) {
+-	case NFT_JUMP:
+-	case NFT_GOTO:
+-		return nf_tables_check_loops(ctx, data->verdict.chain);
+-	default:
+-		return 0;
+-	}
+-}
+-
+-static int nf_tables_check_loops(const struct nft_ctx *ctx,
+-				 const struct nft_chain *chain)
+-{
+-	const struct nft_rule *rule;
+-	const struct nft_expr *expr, *last;
+-	struct nft_set *set;
+-	struct nft_set_binding *binding;
+-	struct nft_set_iter iter;
+-
+-	if (ctx->chain == chain)
+-		return -ELOOP;
+-
+-	list_for_each_entry(rule, &chain->rules, list) {
+-		nft_rule_for_each_expr(expr, last, rule) {
+-			struct nft_immediate_expr *priv;
+-			const struct nft_data *data;
+-			int err;
+-
+-			if (strcmp(expr->ops->type->name, "immediate"))
+-				continue;
+-
+-			priv = nft_expr_priv(expr);
+-			if (priv->dreg != NFT_REG_VERDICT)
+-				continue;
+-
+-			data = &priv->data;
+-			switch (data->verdict.code) {
+-			case NFT_JUMP:
+-			case NFT_GOTO:
+-				err = nf_tables_check_loops(ctx,
+-							data->verdict.chain);
+-				if (err < 0)
+-					return err;
+-			default:
+-				break;
+-			}
+-		}
+-	}
+-
+-	list_for_each_entry(set, &ctx->table->sets, list) {
+-		if (!nft_is_active_next(ctx->net, set))
+-			continue;
+-		if (!(set->flags & NFT_SET_MAP) ||
+-		    set->dtype != NFT_DATA_VERDICT)
+-			continue;
+-
+-		list_for_each_entry(binding, &set->bindings, list) {
+-			if (!(binding->flags & NFT_SET_MAP) ||
+-			    binding->chain != chain)
+-				continue;
+-
+-			iter.genmask	= nft_genmask_next(ctx->net);
+-			iter.skip 	= 0;
+-			iter.count	= 0;
+-			iter.err	= 0;
+-			iter.fn		= nf_tables_loop_check_setelem;
+-
+-			set->ops->walk(ctx, set, &iter);
+-			if (iter.err < 0)
+-				return iter.err;
+-		}
+-	}
+-
+-	return 0;
+-}
+-
+ /**
+  *	nft_parse_u32_check - fetch u32 attribute and check for maximum value
+  *
+@@ -8046,7 +7958,7 @@ static int nft_validate_register_store(c
+ 		if (data != NULL &&
+ 		    (data->verdict.code == NFT_GOTO ||
+ 		     data->verdict.code == NFT_JUMP)) {
+-			err = nf_tables_check_loops(ctx, data->verdict.chain);
++			err = nft_chain_validate(ctx, data->verdict.chain);
+ 			if (err < 0)
+ 				return err;
+ 		}
 
 
