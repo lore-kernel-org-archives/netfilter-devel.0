@@ -1,155 +1,98 @@
-Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB2CEECC;
-	Fri, 16 Aug 2024 01:00:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.255
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 225C73EA9A
+	for <netfilter-devel@vger.kernel.org>; Fri, 16 Aug 2024 01:42:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723770026; cv=none; b=lHICqadG0o7fbB6vXuJwQOfiSsfNpY2HjTQrxtKWeNWKj/7ULeU4yhh/vw0nC1iXxUfMb6SIR0whJxuqxss3xqJcdPikfMG5upsFsaVcqNrMjmpsc+1ysSklGE+oIjUS8Z0/F5ecuSIpnpOgOTYWNejA5b2jmn+8GSRtZ56pokY=
+	t=1723772559; cv=none; b=ErbSwwEnoGkgzY4eDW9suE6Xwc7lACKel64VZFKss4Sy7m1aS0tlV3KMCxeztC5ko0hIFa0NMgeIo3Z7fZY5UTVSU60FD6t0rSWhkR7LZvGreu0JStFrA/+O4rNJFfdurnD1xGBfSFfLRCNgTPpD8HC6myeCLwH5PYV3HlK3N9g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723770026; c=relaxed/simple;
-	bh=jYu1hQ3GbO6rFkdtn1RqFe9xx1Q1L0UDXL3rPi7xvPk=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=fLDkcM5iRuKbAmtk03iD0nYXMWpp2s3gAa4WS3yzO8mfms7RfepQjV9Vk1r8pcHsEJvdWqWl0XRoxJ4KV5TRWt95I/qmgjJCZ70uWD1yll+k+zZduH2z48LnMr1coMX6LZIT78SJl8NZOFvT2EnedJPYqMdhCqCr8NeiLAnEHmI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.255
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
-Received: from mail.maildlp.com (unknown [172.19.162.254])
-	by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4WlNts326Lz1T7PK;
-	Fri, 16 Aug 2024 08:59:49 +0800 (CST)
-Received: from dggpemm500020.china.huawei.com (unknown [7.185.36.49])
-	by mail.maildlp.com (Postfix) with ESMTPS id 4500C18010A;
-	Fri, 16 Aug 2024 09:00:21 +0800 (CST)
-Received: from mscphis02103.huawei.com (10.123.65.215) by
- dggpemm500020.china.huawei.com (7.185.36.49) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.39; Fri, 16 Aug 2024 09:00:19 +0800
-From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-To: <mic@digikod.net>
-CC: <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
-	<linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-	<netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-	<artem.kuzin@huawei.com>, <konstantin.meskhidze@huawei.com>
-Subject: [RFC PATCH v1 4/4] selftests/landlock: Add realworld workload based on find tool
-Date: Fri, 16 Aug 2024 08:59:43 +0800
-Message-ID: <20240816005943.1832694-5-ivanov.mikhail1@huawei-partners.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20240816005943.1832694-1-ivanov.mikhail1@huawei-partners.com>
-References: <20240816005943.1832694-1-ivanov.mikhail1@huawei-partners.com>
+	s=arc-20240116; t=1723772559; c=relaxed/simple;
+	bh=wufldpYXNSX/UfEDCsd++exXIFt7pbztxovQy0nwGYk=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Se7RY3IHJ2nXKf5iv9o6nrFCmJ1/xwDIHUYe766hUrFo4yTHgSUEspXvgJr8Hp539N3QdAwq1JWG+4wcrVPdakN+xJXVJR2WoHpFnLjF+lEorTQw2GO96A+DoPxQ4C73hvUfFTsySN6uJZo6G8rMxxNNMwxvTp3/9oYCwXehwqM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=diVu2a1D; arc=none smtp.client-ip=209.85.214.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="diVu2a1D"
+Received: by mail-pl1-f179.google.com with SMTP id d9443c01a7336-1fc65329979so15186005ad.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 Aug 2024 18:42:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1723772557; x=1724377357; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references
+         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=sHP1p3Jy0+HDktHxgMtBxROo9d+5dSjXP/HHcUHD7eU=;
+        b=diVu2a1DiAWiCjiGHD7ReoHP7xfM2PdI0ExZ7Dz4szxPBp3wz8Nms4iUEbHP5FbQUr
+         B80/Lv13suO9yuomjwvADQH80Q6o15lRXK3gDyWIeLu5EeqzBipAjHBU0y1efHzkvEaE
+         nWu3lH0uQ6Zlq4to+llaP6SCL0MVg3KcmJXill/dvqs8xhaT0/ElXqYfc19UI6S4U36K
+         7liqRYH+JuWIRkPFZmRsHPCW7FK4D+y9TU+Tf5Seuan4mcQyOmZtl+Kzs9b5pGuEMReQ
+         9ahdxwkKYXEiKZv5UkbKT9pa3jaFVuQVfY14RwJ3IuqWkmMOwp+aniIJLxCstTjyImI8
+         5W2w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1723772557; x=1724377357;
+        h=in-reply-to:content-disposition:mime-version:references
+         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=sHP1p3Jy0+HDktHxgMtBxROo9d+5dSjXP/HHcUHD7eU=;
+        b=fbScSSfvgG4fibutuM4yDbAW2aDuTCWKKCw3M1L3RpxiN2Cda5HxWtdPW4+4wKTv52
+         /aq+krs81EoI5JHlrsQ09nqKUZR+8u1zLe216OOUmUBIZzV4EnQVFCT1eSXfoScEYGqW
+         kFYPBira9E9ebxGMdkHe78XYaNjioD82BccKs/PZRObTnb9sNZv7jttkWG1HpWtKiP2S
+         oWT+POkBqZj+wXtevvA/sA2cKMDKe9V+RfAVpBD7kCrzCELSVxqzqR14HD3I8R/qoyKF
+         HbiqUylnjMNQPkGlEFVjmSYSMfg6JZLmD7byvG1Nvk4FfCUOhKeLJpQe8ciPJH2Ayv30
+         TCCQ==
+X-Gm-Message-State: AOJu0Yx6h5dc7wAffIjFQBVHXyzMMw9vlemUo0n5STnmq4BwKF3eZosS
+	GD5pQs4ySfKS28JWryMqe0KrJ6tc1BBYQts+zucMp6AYl+rBAyMVlsHROQ==
+X-Google-Smtp-Source: AGHT+IErp7C7Qisi/6+q6vbVTeWNb6fqVu1/gNiOn2key9g9BZDJoOj4/zeybFkLDUMGtd6hIMvUew==
+X-Received: by 2002:a17:902:e752:b0:1fd:684f:ca72 with SMTP id d9443c01a7336-20203ea74a7mr14862405ad.25.1723772557294;
+        Thu, 15 Aug 2024 18:42:37 -0700 (PDT)
+Received: from slk15.local.net (n49-190-141-216.meb1.vic.optusnet.com.au. [49.190.141.216])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-201f02fab02sm16135325ad.48.2024.08.15.18.42.35
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 15 Aug 2024 18:42:36 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From: Duncan Roe <duncan_roe@optusnet.com.au>
+X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
+Date: Fri, 16 Aug 2024 11:42:33 +1000
+To: Florian Westphal <fw@strlen.de>
+Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: Please comment on my libnetfilter_queue build speedup patch
+Message-ID: <Zr6uifNX3ox+V2sT@slk15.local.net>
+Reply-To: duncan_roe@optusnet.com.au
+Mail-Followup-To: Florian Westphal <fw@strlen.de>,
+	Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <Zr1JN/xKIuzi9Ii+@slk15.local.net>
+ <20240815073425.GA19654@breakpoint.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: mscpeml500003.china.huawei.com (7.188.49.51) To
- dggpemm500020.china.huawei.com (7.185.36.49)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240815073425.GA19654@breakpoint.cc>
 
-Implement script that measures Landlock overhead for workload in which
-find tool is executed on Linux source code folder. This workload is tested
-with 5, 10 depth values and few number of layers.
+Hi Florian,
 
-This workload is useful to measure Landlock overhead under different
-number of layers and different keys of the filesystem ruleset.
+On Thu, Aug 15, 2024 at 09:34:25AM +0200, Florian Westphal wrote:
+> Duncan Roe <duncan_roe@optusnet.com.au> wrote:
+> > Hi Pablo,
+> >
+> > I submitted
+> > https://patchwork.ozlabs.org/project/netfilter-devel/patch/20240628040439.8501-1-duncan_roe@optusnet.com.au/
+> > some weeks ago. You neither applied it nor requested any changes.
+>
+> make -j 32  1.19s user 0.70s system 124% cpu 1.525 total
+>
+> ... and thats before this patch, so I don't really see a point.
+>
+> That said, I see no difference in generated output so I applied it.
+>
+Thanks for doing that. It certainly makes a difference here:
 
-Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
----
- .../landlock/bench/bench_find_on_linux.sh     | 84 +++++++++++++++++++
- 1 file changed, 84 insertions(+)
- create mode 100755 tools/testing/selftests/landlock/bench/bench_find_on_linux.sh
+before: 6.77user 6.22system 9.52elapsed 136%CPU
+ after: 3.95user 3.43system 1.29elapsed 572%CPU
 
-diff --git a/tools/testing/selftests/landlock/bench/bench_find_on_linux.sh b/tools/testing/selftests/landlock/bench/bench_find_on_linux.sh
-new file mode 100755
-index 000000000000..ae53c265c444
---- /dev/null
-+++ b/tools/testing/selftests/landlock/bench/bench_find_on_linux.sh
-@@ -0,0 +1,84 @@
-+#!/usr/bin/env bash
-+# SPDX-License-Identifier: GPL-2.0
-+#
-+# Copyright © 2024 Huawei Tech. Co., Ltd.
-+#
-+# Measure openat(2) overhead for workload that executes find tool on Linux source
-+# code with different depths and numbers of ruleset layers.
-+
-+# cf. tools/testing/selftests/kselftest.h
-+KSFT_PASS=0
-+KSFT_FAIL=1
-+KSFT_XFAIL=2
-+KSFT_XPASS=3
-+KSFT_SKIP=4
-+
-+REL_DIR=$(dirname $(realpath $0))
-+FIND=/usr/bin/find
-+LINUX_SRC=$(realpath $REL_DIR/../../../../../)
-+BENCH_CMD=$REL_DIR/run.sh
-+TOPOLOGY=.topology
-+TMP=.tmp
-+
-+# read
-+READ_ACCESS=4
-+
-+# $1 - Linux src files path
-+# $2 - Maximum depth of files
-+# $3 - If $3 == 0 then only files of depth $2 is used in ruleset.
-+#      Otherwise, ruleset uses files of depth 1-$2 and ruleset layer
-+#      of each file matches depth of the file.
-+# $4 - Name of the file in which topology would be saved
-+gen_linux_src_topology()
-+{
-+	n_layers=$2
-+	if [[ $3 -eq 0 ]]; then
-+		n_layers=1
-+		find $1 -mindepth $2 -maxdepth $2 -fprintf $4 '1 %p\n'
-+	else
-+		find $1 -mindepth 1 -maxdepth $2 -fprintf $4 '%d %p\n'
-+	fi
-+
-+	# Allow access to FIND
-+	for depth in $(seq 1 $n_layers);
-+	do
-+		echo $depth /usr/bin/find >> $4
-+		echo $depth /usr/bin/file >> $4
-+		echo $depth /lib >> $4
-+		echo $depth /etc >> $4
-+	done
-+}
-+
-+if [ ! -f "$BENCH_CMD" ]; then
-+	echo $BENCH_CMD does not exist
-+	exit $KSFT_SKIP
-+fi
-+
-+if [ ! -f "$FIND" ]; then
-+	echo $FIND does not exist
-+	exit $KSFT_SKIP
-+fi
-+
-+# $1 - depth
-+# $2 - If $2 == 0 then only files of depth $2 is used in ruleset.
-+#      Otherwise, ruleset uses files of depth 1-$2 and ruleset layer
-+#      of each file matches depth of the file.
-+# $3 - Number of iterations of this sample
-+run_sample()
-+{
-+	n_layers=$1
-+	if [[ $2 -eq 0 ]]; then
-+		n_layers=1
-+	fi
-+
-+	echo Running find on $n_layers layers, $1 depth, $3 iterations...
-+	gen_linux_src_topology $LINUX_SRC $1 $2 $TOPOLOGY
-+
-+	$BENCH_CMD -s -r $3 -b -t fs:$TOPOLOGY:$READ_ACCESS -e openat \
-+		$FIND $LINUX_SRC -mindepth $1 -maxdepth $1 -exec file '{}' \;
-+}
-+
-+run_sample 5 0 10
-+run_sample 5 1 10
-+run_sample 10 0 500
-+run_sample 10 1 500
--- 
-2.34.1
-
+Cheers ... Duncan.
