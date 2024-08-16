@@ -1,194 +1,152 @@
-Received: from fhigh8-smtp.messagingengine.com (fhigh8-smtp.messagingengine.com [103.168.172.159])
+Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A05A610E5
-	for <netfilter-devel@vger.kernel.org>; Thu, 15 Aug 2024 16:38:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.159
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 889D5BA33;
+	Fri, 16 Aug 2024 01:00:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723739886; cv=none; b=VsOiwwK9blgimXqtC7tbyBEGKS5J//9JgZ+olvbdPCje2mRpZNwrm4gsdhw4bqamkuwAvIfz2JU5v/cjRCQtaz4VOncTekIbqSaQZbCxsphewUsnU8iqRbZMzT9LJh8wLY8smVzg1IoLqN2vA3Snjrsg+vQG+60g2j4xRzgkHug=
+	t=1723770021; cv=none; b=nAfKAkNQhGcH4b7o1qyGFp8yNo5jW4SHOXcAxQ6FSJ7UW604T0wncMvX7Re44SIrXzaymEQuN11xcqiNRA9nt7/QdozM7jze8I4Tt9sr70UifSwMMGjKWtwP0zAuXGCx9IQeKqoCzgudvX8VYpPfhqG5Cb06oqY5eAKqyZifGNg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723739886; c=relaxed/simple;
-	bh=0jg9xd3jcSuVa8OC62H9Ier+G0RUpKHU5IYw3T/Q68Y=;
-	h=Message-ID:Date:MIME-Version:Subject:References:From:To:
-	 In-Reply-To:Content-Type; b=dDcYaQdsmFN+fLM/8mn9FjXfLL7ivuLY4gzibWYxDMaGnIP+OR4MVtYly7i4uZt22x1AzfXbv4k/A9P/p38MntPk4AKhKQ5Bd5IRTzr+ZtNOPNrUsGHtxyyXHPRMEcVupI1U8dRf2l1F0YDpy0TFdHCYDQn+zSVhmiNUGKKFEOI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=dev-mail.net; spf=pass smtp.mailfrom=dev-mail.net; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=onyMnwy2; arc=none smtp.client-ip=103.168.172.159
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=dev-mail.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=dev-mail.net
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="onyMnwy2"
-Received: from phl-compute-02.internal (phl-compute-02.nyi.internal [10.202.2.42])
-	by mailfhigh.nyi.internal (Postfix) with ESMTP id A70471151AE8
-	for <netfilter-devel@vger.kernel.org>; Thu, 15 Aug 2024 12:38:02 -0400 (EDT)
-Received: from phl-mailfrontend-01 ([10.202.2.162])
-  by phl-compute-02.internal (MEProxy); Thu, 15 Aug 2024 12:38:02 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:content-transfer-encoding:content-type
-	:content-type:date:date:feedback-id:feedback-id:from:from
-	:in-reply-to:in-reply-to:message-id:mime-version:references
-	:reply-to:reply-to:subject:subject:to:to:x-me-proxy:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1723739882; x=
-	1723826282; bh=/qhdqpDytjFY8JQRQpmCG8R8RMV+0u5qeuR6E+dDSnI=; b=o
-	nyMnwy2tTomzUkhDPdiX5mwJj8QT3AenYWaAkotXLAVTSrcJ2+M06uB6F5g1JXds
-	skSdC4TrXHnsUtVdOwswOf/msLmvGK1QKSAYKTFs8EL+hKKPHiScyiZ4Osm7YYZ0
-	j4g/+FA14EuTa4bOZ/m7MXu28wGn4WBFDTytTNrQKaalxANH/xjtZB1Ba/E5E/4u
-	4Y14H3XKVn+5I7b2G9O1FCr6yZAQ65VFruCPW+J5Ke22hQt5TyMe2GAGothROVL3
-	Fa6Aqhq6dezh/gxmFZz2qSlZNEdFGc6skm31ILG9UjO3psHQGIxk1YVKo8OumJeu
-	WIiRuBREhH96dR80KHzhg==
-X-ME-Sender: <xms:6i6-ZvDFCHRJu56c7rvHxaDzDKJXEVzLwEegonTWEtAUi-XKqdW1IQ>
-    <xme:6i6-ZlgDyCqCbo7EnlP1yW4PQVawu8B9zr0s2_6eG-oKZstYYLyAk9nt-mWRsb6ji
-    mzzQluDU42H7fol>
-X-ME-Received: <xmr:6i6-ZqnUqkZKuLs8kRyc9DHjZF2T79hciD0AdofVlxw7jLsENLfVR_rx7oUWA186V2CvikaqHcBJrGGHoECFB5GJ6geHtXrzCMyLRA>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeftddruddtiedguddtgecutefuodetggdotefrod
-    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpggftfghnshhusghstghrihgsvgdp
-    uffrtefokffrpgfnqfghnecuuegrihhlohhuthemuceftddtnecunecujfgurhepkfffgg
-    gfufhrfhfhvfgjtgfgsehtjeertddtvdejnecuhfhrohhmpehpghhnugcuoehpghhnuges
-    uggvvhdqmhgrihhlrdhnvghtqeenucggtffrrghtthgvrhhnpeffjeeiteduvdetkeeitd
-    dvteeuvddttdegudefvdelieejgefggeetieejieegveenucffohhmrghinhepnhhfthgr
-    sghlvghsrdhorhhgpdhkvghrnhgvlhdrohhrghdpthhhvghrmhgrlhgtihhrtghlvgdrug
-    gvpdhnvghtfhhilhhtvghrrdhorhhgnecuvehluhhsthgvrhfuihiivgeptdenucfrrghr
-    rghmpehmrghilhhfrhhomhepphhgnhguseguvghvqdhmrghilhdrnhgvthdpnhgspghrtg
-    hpthhtohepuddpmhhouggvpehsmhhtphhouhhtpdhrtghpthhtohepnhgvthhfihhlthgv
-    rhdquggvvhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrgh
-X-ME-Proxy: <xmx:6i6-ZhzOe3Cmf4BrMSut04u4NHy9qi-gbPQsE-fZbkxqBgC_jxLqkg>
-    <xmx:6i6-ZkSu96WFdUePYh02ZnCVePxLvnNPzt4HkSXB-vsveFuj2UQVkA>
-    <xmx:6i6-ZkbnnFDM-mzDqcpXD68QsGRTTUbAqM9AQPGLmjyEMtP38W3Ylg>
-    <xmx:6i6-ZlTuvKX6MIh6vB3bmptF0zu0gvkhIYdXVsjTdOvbyCmLLDsFgg>
-    <xmx:6i6-ZqNzdqhgyTV2XQ47aLDJYQxy5aWuzZXcTiUtCrZR8vVklc3iLoqY>
-Feedback-ID: if6e94526:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA for
- <netfilter-devel@vger.kernel.org>; Thu,
- 15 Aug 2024 12:38:02 -0400 (EDT)
-Message-ID: <404e06e6-c2b4-4e17-8242-312da98193e5@dev-mail.net>
-Date: Thu, 15 Aug 2024 12:38:01 -0400
+	s=arc-20240116; t=1723770021; c=relaxed/simple;
+	bh=6Z1VJolCoXQLTemHjcVrm7KRpDaT1/mtr2A5nye3pUg=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=arqSQZkMAjAlTpaEOopc8ScnaB0g4w8PezDP40+sVWWibWoGJN1mO1R0Exev/vZp9nJjtteNxb35mIDyvL3u7LgId+PvXOW8XSuOjcTXCcvsude2URnYYz4I2lcIIJT1fF4ggU/UtioRJruj1qz6wA+UneFSLLoBfVNuvg8salc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.190
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
+Received: from mail.maildlp.com (unknown [172.19.88.163])
+	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4WlNp26qBSz20ldC;
+	Fri, 16 Aug 2024 08:55:38 +0800 (CST)
+Received: from dggpemm500020.china.huawei.com (unknown [7.185.36.49])
+	by mail.maildlp.com (Postfix) with ESMTPS id A80CA180043;
+	Fri, 16 Aug 2024 09:00:14 +0800 (CST)
+Received: from mscphis02103.huawei.com (10.123.65.215) by
+ dggpemm500020.china.huawei.com (7.185.36.49) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.39; Fri, 16 Aug 2024 09:00:12 +0800
+From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+To: <mic@digikod.net>
+CC: <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
+	<linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+	<netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+	<artem.kuzin@huawei.com>, <konstantin.meskhidze@huawei.com>
+Subject: [RFC PATCH v1 0/4] Implement performance impact measurement tool
+Date: Fri, 16 Aug 2024 08:59:39 +0800
+Message-ID: <20240816005943.1832694-1-ivanov.mikhail1@huawei-partners.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Fwd: correct nft v1.1.0 usage for flowtable h/w offload? `flags
- offload` &/or `devices=`
-Content-Language: en-US, fr, de-DE, pl, es-ES
-Reply-To: pgnd@dev-mail.net
-References: <890f23df-cdd6-4dab-9979-d5700d8b914b@dev-mail.net>
-From: pgnd <pgnd@dev-mail.net>
-To: netfilter-devel@vger.kernel.org
-In-Reply-To: <890f23df-cdd6-4dab-9979-d5700d8b914b@dev-mail.net>
-X-Forwarded-Message-Id: <890f23df-cdd6-4dab-9979-d5700d8b914b@dev-mail.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: mscpeml500003.china.huawei.com (7.188.49.51) To
+ dggpemm500020.china.huawei.com (7.185.36.49)
 
-('radio silence' on netfilter@ ML ... trying here)
+Hello! This is v1 RFC patch dedicated to Landlock performance measurement.
 
-i'm setting up nftables flowtable for h/w offload, per
+Landlock LSM hooks are executed with many operations on Linux internal
+objects (files, sockets). This hooks can noticeably affect performance
+of such operations as it was demonstrated in the filesystem caching
+patchset [1]. Having ability to calculate Landlock performance overhead
+allows to compare kernel changes and estimate the acceptability
+of new features (e.g. [2], [3], [4]).
 
-	https://wiki.nftables.org/wiki-nftables/index.php/Flowtables
-	https://docs.kernel.org/networking/nf_flowtable.html#hardware-offload
-	https://thermalcircle.de/doku.php?id=blog:linux:flowtables_1_a_netfilter_nftables_fastpath
-&
-	a slew of older posts @ ML ...
+A syscall execution time was chosen as the measured metric.
+Landlock performance overhead is defined as the difference between syscall
+duration in sandboxed mode and default mode.
 
+Initially, perf trace was chosen as tracer that measures syscalls
+durations. I've figured out that it can show imprecise values.
+It doesn't affect real overhead value, but it shows the wrong
+proportion of overhead relative to syscall baseline duration. Moreover,
+using perf trace caused some measurement noise.
 
-on
+AFAICS all this happens due to its implementation and perf event handlers.
+Until someone figures out if it's possible to fix this issues somehow I
+suggest using libbpf-based simple program provided in this patchset
+that uses per-syscall tracepoints and calculates average durations for
+specified syscalls. In fact it has simple implementation based on a small
+BPF programs and provides more precise metrics.
 
-	/usr/local/sbin/nft -V
-		nftables v1.1.0 (Commodore Bullmoose)
-		  cli:          editline
-		  json:         yes
-		  minigmp:      no
-		  libxtables:   no
+This patchset implements Landlock sandboxer which provides the ability to
+customize the ruleset in a variable way.
 
-	uname -rm
-		6.10.3-200.fc40.x86_64 x86_64
+Currently, following workloads are implemented:
+* Simple script for syscalls microbenchmarking with `openat` support.
+* Script that executes find tool under Linux source files with various
+  depth and sandboxer configurations.
 
+Microbenchmarks can have only simple rulesets with few number
+of rules but in the next patches they should be extended with support of
+large rulesets with different number of layers.
 
-with
+Here is an example of how this tool can be used to measure read access
+Landlock overhead for workload that uses find tool on linux source files
+(with depth 5):
 
-	lspci | grep -i eth
-		02:00.0 Ethernet controller: Intel Corporation I350 Gigabit Network Connection (rev 01)
-		03:00.0 Ethernet controller: Intel Corporation I350 Gigabit Network Connection (rev 01)
+    # ./bench/run.sh -t fs:.topology:4 -e openat -s -b \
+    #    $FIND $LINUX_SRC -mindepth 5 -maxdepth 5 -exec file '{}' \;
 
-	ethtool -k enp3s0 | grep -i offload.*on
-		tcp-segmentation-offload: on
-		generic-segmentation-offload: on
-		generic-receive-offload: on
-		rx-vlan-offload: on
-		tx-vlan-offload: on
-		hw-tc-offload: on
+    Tracing baseline workload...
+    376.294s elapsed
+    Tracing sandboxed workload...
+    381.298s elapsed
 
-	(which, iiuc, is sufficient?)
+    Tracing results
+    ===============
+    cmd: /usr/bin/find /root/linux -mindepth 5 -maxdepth 5 -exec file '{}' \;
+    syscalls: openat
+    access: 4
+    overhead:
+        syscall                  bcalls     scalls   duration+overhead(us)
+        =======                  ======     ======   =====================
+        syscall-257             1498623    1770882       1.88+0.46(+24.0%)
 
-a test config
+Please, share your opinion on the design of the tool and your ideas for
+improving measurement and workloads!
 
-	cat test.nft
-		#!/usr/local/sbin/nft -f
+[1] https://lore.kernel.org/all/20210630224856.1313928-1-mic@digikod.net/
+[2] https://github.com/landlock-lsm/linux/issues/10
+[3] https://github.com/landlock-lsm/linux/issues/19
+[4] https://github.com/landlock-lsm/linux/issues/1
 
-		table inet filter {
+Closes: https://github.com/landlock-lsm/linux/issues/24
 
-			flowtable f {
-				hook ingress priority 0;
-				devices = { enp2s0, enp3s0 };
-			}
+Mikhail Ivanov (4):
+  selftests/landlock: Implement performance impact measurement tool
+  selftests/landlock: Implement per-syscall microbenchmarks
+  selftests/landlock: Implement custom libbpf-based tracer
+  selftests/landlock: Add realworld workload based on find tool
 
-			chain input {
-				type filter hook input priority 0;
-				policy accept;
-			}
-
-			chain forward {
-				type filter hook forward priority 1;
-				policy drop;
-
-				ct state invalid drop;
-
-				tcp dport { 80, 443 } ct state established flow offload @f;
-
-				ct state { established, related } accept;
-				accept;
-			}
-		}
-
-fails conf check,
-
-	nft -c -f ./test.nft
-		./test.nft:8:12-12: Error: Could not process rule: Operation not supported
-		        flowtable f {
-		                  ^
-
-otoh, per example @
-
-	https://docs.kernel.org/networking/nf_flowtable.html#hardware-offload
-
-edit
-
-	flowtable f {
-		hook ingress priority 0;
--		devices = { enp2s0, enp3s0 };
-+		flags offload;
-	}
-
-passes conf check. and after load
-
-	nft list flowtables
-		table inet filter {
-		        flowtable f {
-		                hook ingress priority filter
-		                flags offload
-		        }
-		}
-
-what's the correct/current usage for flowtable declaration in hardware offload use case?
-as documented @ wiki, or kernel docs?
-_seems_ it's kernel docs ...
+ tools/testing/selftests/Makefile              |   1 +
+ .../testing/selftests/landlock/bench/Makefile | 179 ++++++++
+ .../landlock/bench/bench_find_on_linux.sh     |  84 ++++
+ .../testing/selftests/landlock/bench/common.c | 283 ++++++++++++
+ .../testing/selftests/landlock/bench/common.h |  18 +
+ tools/testing/selftests/landlock/bench/config |  10 +
+ .../selftests/landlock/bench/microbench.c     | 192 ++++++++
+ .../selftests/landlock/bench/progs/tracer.c   | 126 ++++++
+ tools/testing/selftests/landlock/bench/run.sh | 409 ++++++++++++++++++
+ .../selftests/landlock/bench/sandboxer.c      | 117 +++++
+ .../testing/selftests/landlock/bench/tracer.c | 278 ++++++++++++
+ .../selftests/landlock/bench/tracer_common.h  |  15 +
+ 12 files changed, 1712 insertions(+)
+ create mode 100644 tools/testing/selftests/landlock/bench/Makefile
+ create mode 100755 tools/testing/selftests/landlock/bench/bench_find_on_linux.sh
+ create mode 100644 tools/testing/selftests/landlock/bench/common.c
+ create mode 100644 tools/testing/selftests/landlock/bench/common.h
+ create mode 100644 tools/testing/selftests/landlock/bench/config
+ create mode 100644 tools/testing/selftests/landlock/bench/microbench.c
+ create mode 100644 tools/testing/selftests/landlock/bench/progs/tracer.c
+ create mode 100755 tools/testing/selftests/landlock/bench/run.sh
+ create mode 100644 tools/testing/selftests/landlock/bench/sandboxer.c
+ create mode 100644 tools/testing/selftests/landlock/bench/tracer.c
+ create mode 100644 tools/testing/selftests/landlock/bench/tracer_common.h
 
 
-reading @,
-
-	https://netfilter.org/projects/nftables/files/changes-nftables-1.1.0.txt
-
-i don't find (yet) the change re `flags offload` usage.
-
-what commit introduced it?
-
+base-commit: 8400291e289ee6b2bf9779ff1c83a291501f017b
+-- 
+2.34.1
 
