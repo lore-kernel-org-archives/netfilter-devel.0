@@ -1,114 +1,93 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from fhigh4-smtp.messagingengine.com (fhigh4-smtp.messagingengine.com [103.168.172.155])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 391D4186E26;
-	Mon, 19 Aug 2024 18:47:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75CCD1891D2
+	for <netfilter-devel@vger.kernel.org>; Mon, 19 Aug 2024 19:04:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.155
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724093240; cv=none; b=cncJV1cJoqlm0X+WDcOS7gl2lGC8FeAn0tkduCJ7c9nV0ctCgOdZEM3FmO6AWYJKgUV+DY2dkPaLsJP6iqnciz9nhamkQ3zU5o0vsHgXNgWbLqTObSP8mSJPQJpPvyCpVJOd5Zirv7osYSXEpmwP/j/iLPsb6genpSwXKxv+XtM=
+	t=1724094252; cv=none; b=h73XHxWD7aZb04OQzNe8CqZFhAeRXbsk68b7Oj2sNfPmQyIHfz0UzVYuXk0gAMOUBx08XIhpvudWpqCLYh6t7/yfYyBa5NdGLfxJ8Ttq42VzmiYqCcNey9eZiYGpKr0GFBaRPzjzROemDB5Q17CcoYzRcaixeW4I/RjWIos78q4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724093240; c=relaxed/simple;
-	bh=aB5PvFFQWqx4/EzkPINh2ocr4ZWwpS+qUOGIeJPrth4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=tA4QtMj6nip3uFVbmFSMt2J28UO1mvT0t8hH38tz7eyPVOkdOIZb2hyWf5E10sTaAavaP0V/ttVxEDx71pXq2jtYs2oJI5FiKpsGfYlU8Y8E6aHkVSX80iySsAnyomOM6EbWTbpJn26a5L4tSp1DzffrYxfeOm/2YoCSbj++iFA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=50536 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1sg7PN-005isC-9Y; Mon, 19 Aug 2024 20:47:15 +0200
-Date: Mon, 19 Aug 2024 20:47:12 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Changliang Wu <changliang.wu@smartx.com>
-Cc: kadlec@netfilter.org, davem@davemloft.net, edumazet@google.com,
-	kuba@kernel.org, pabeni@redhat.com, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] netfilter: ctnetlink: support CTA_FILTER for flush
-Message-ID: <ZsOTMHeMPgtjU6ZZ@calendula>
-References: <20240620113527.7789-1-changliang.wu@smartx.com>
- <CALHBjYFn_qB=Oo3TTg0znOnNz9rX5jP+eYSZbatAN94ys8Tzmw@mail.gmail.com>
+	s=arc-20240116; t=1724094252; c=relaxed/simple;
+	bh=WIISdmp6EXT3KozGjO3fv3OzxgEcSqXbItXM16zenug=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=l/t+E4nTsZjgjbSx/wqtdPpWdwyjuAAO/XYGp42Kn0IPV/oWRDz1/3+j6cfsOonSdEKru0l0gKnQcvWFsakijC/2sj4l3PuIkyUqp+ruxduCPhCpagIXkUIm+YMlxh6mYxhHuJotEe3J1lS3auOO3nLdC5R6JW0uYs4hzjoroRY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=dev-mail.net; spf=pass smtp.mailfrom=dev-mail.net; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=jd0a5CaA; arc=none smtp.client-ip=103.168.172.155
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=dev-mail.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=dev-mail.net
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="jd0a5CaA"
+Received: from phl-compute-08.internal (phl-compute-08.nyi.internal [10.202.2.48])
+	by mailfhigh.nyi.internal (Postfix) with ESMTP id 79C9B114E500;
+	Mon, 19 Aug 2024 15:04:08 -0400 (EDT)
+Received: from phl-mailfrontend-01 ([10.202.2.162])
+  by phl-compute-08.internal (MEProxy); Mon, 19 Aug 2024 15:04:08 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:reply-to:subject:subject:to:to:x-me-proxy
+	:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=
+	1724094248; x=1724180648; bh=WIISdmp6EXT3KozGjO3fv3OzxgEcSqXbItX
+	M16zenug=; b=jd0a5CaAqBvLjogv3n07j/6XoR7RN2y5mlKQtxlkhACdvUbHfnT
+	jt/G6ifV5kw4a6N4g+3nZ2miTtlaYwOxCr8K/z7Zej3M2n6CXGV8MttUXwEUMKW6
+	Qzsl0O74UWnbBtYTXWwGe7AftUYCvcSqBxUnyaJitZJsWEDOw8cSoTnmY7AzXSdB
+	tpIeUNQlSx9XqtwI+joeByFSet+u87Q62kAJxPP8088B8AayOkNYpJxGdlmiima+
+	F4gVH8zr/xLvnCm/vH0J7tj0zfdL+PeaBy4DIhSnrnU9QKuoHtsmc3KQ5O+43sx9
+	WOMK6Jl4rJxunRsr1AiYvJz30zKq7aPYORw==
+X-ME-Sender: <xms:KJfDZpkJJ_VddLMNvYCNgPEZmY_fYjf0-LWw5wklwaMRdQ-9jp62Jg>
+    <xme:KJfDZk2oQEMwC7sBaIiXuu-ZHSYW7wud4TKzXoYcECrbUQ1ni3T4sAEKW_-Js86VD
+    7mBI08rjJ3chjIA>
+X-ME-Received: <xmr:KJfDZvouGZ5lLQPYAbd2BxIZ8HNXeAk5VMd3Gw6p-l8dJP5G4CD5PJ2tdKWcpiENSEgvxIZCMmNMnYolnQ5oqjz8CWqfX5aEyyaByg>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeftddruddugedgudeffecutefuodetggdotefrod
+    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpggftfghnshhusghstghrihgsvgdp
+    uffrtefokffrpgfnqfghnecuuegrihhlohhuthemuceftddtnecunecujfgurhepkfffgg
+    gfrhfuvfevfhfhjggtgfesthejredttddvjeenucfhrhhomhepphhgnhguuceophhgnhgu
+    seguvghvqdhmrghilhdrnhgvtheqnecuggftrfgrthhtvghrnheptdetffehhfekuefgve
+    dvleegffekgfffvddvvddugefgfeeuheeiudehffevuddvnecuffhomhgrihhnpehkvghr
+    nhgvlhdrohhrghenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfh
+    hrohhmpehpghhnugesuggvvhdqmhgrihhlrdhnvghtpdhnsggprhgtphhtthhopedvpdhm
+    ohguvgepshhmthhpohhuthdprhgtphhtthhopehprggslhhosehnvghtfhhilhhtvghrrd
+    horhhgpdhrtghpthhtohepnhgvthhfihhlthgvrhdquggvvhgvlhesvhhgvghrrdhkvghr
+    nhgvlhdrohhrgh
+X-ME-Proxy: <xmx:KJfDZpkISVAGuTAZTBN73YXdXlNxd49bZrREP_wOEFRYFXn9CKWwLg>
+    <xmx:KJfDZn3jIaQ-lymHorWipHhG1DfBRPMNDkymF3ltf1pl0DF_wbdFCA>
+    <xmx:KJfDZovG8vKd-2qog76CkBoFCwFGFGGnoTsGrLllLir6yojIZWYP-Q>
+    <xmx:KJfDZrX8gJQLN0I8-ZmIwqcwn0au6qvAgQMwQUXPlxXSUb9qTkb-Ew>
+    <xmx:KJfDZn9mBgieXqqB4bgX0OoB5S-ojg39HkXYt6JKmDeGq1grnpTTonWP>
+Feedback-ID: if6e94526:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Mon,
+ 19 Aug 2024 15:04:08 -0400 (EDT)
+Message-ID: <2408b714-a7a5-4c84-b108-64dab86eea3e@dev-mail.net>
+Date: Mon, 19 Aug 2024 15:04:07 -0400
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CALHBjYFn_qB=Oo3TTg0znOnNz9rX5jP+eYSZbatAN94ys8Tzmw@mail.gmail.com>
-X-Spam-Score: -1.9 (-)
+User-Agent: Mozilla Thunderbird
+Reply-To: pgnd@dev-mail.net
+Subject: Re: Fwd: correct nft v1.1.0 usage for flowtable h/w offload? `flags
+ offload` &/or `devices=`
+Content-Language: en-US, fr, de-DE, pl, es-ES
+To: pablo@netfilter.org
+Cc: netfilter-devel@vger.kernel.org
+References: <890f23df-cdd6-4dab-9979-d5700d8b914b@dev-mail.net>
+ <404e06e6-c2b4-4e17-8242-312da98193e5@dev-mail.net>
+ <ZsN9Wob9N5Puajg_@calendula>
+ <70800b8c-1463-4584-96f2-be494a335598@dev-mail.net>
+ <ZsOQCgbMuwsEo3zj@calendula>
+From: pgnd <pgnd@dev-mail.net>
+In-Reply-To: <ZsOQCgbMuwsEo3zj@calendula>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Please, provide an example program for libnetfilter_conntrack.
+> driver needs to implement TC_SETUP_FT
+> hw-tc-offload support is necessary, but not sufficient.
 
-See:
 
-commit 27f09380ebb0fc21c4cd20070b828a27430b5de1
-Author: Felix Huettner <felix.huettner@mail.schwarz>
-Date:   Tue Dec 5 09:35:16 2023 +0000
+ah, thx o/
 
-    conntrack: support flush filtering
+https://lore.kernel.org/netdev/20191111232956.24898-1-pablo@netfilter.org/T/
 
-for instance.
 
-thanks
-
-On Thu, Jul 11, 2024 at 01:40:02PM +0800, Changliang Wu wrote:
-> PING
-> 
-> 
-> Changliang Wu <changliang.wu@smartx.com> 于2024年6月20日周四 19:35写道：
-> >
-> > From cb8aa9a, we can use kernel side filtering for dump, but
-> > this capability is not available for flush.
-> >
-> > This Patch allows advanced filter with CTA_FILTER for flush
-> >
-> > Performace
-> > 1048576 ct flows in total, delete 50,000 flows by origin src ip
-> > 3.06s -> dump all, compare and delete
-> > 584ms -> directly flush with filter
-> >
-> > Signed-off-by: Changliang Wu <changliang.wu@smartx.com>
-> > ---
-> >  net/netfilter/nf_conntrack_netlink.c | 9 +++------
-> >  1 file changed, 3 insertions(+), 6 deletions(-)
-> >
-> > diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-> > index 3b846cbdc..93afe57d9 100644
-> > --- a/net/netfilter/nf_conntrack_netlink.c
-> > +++ b/net/netfilter/nf_conntrack_netlink.c
-> > @@ -1579,9 +1579,6 @@ static int ctnetlink_flush_conntrack(struct net *net,
-> >         };
-> >
-> >         if (ctnetlink_needs_filter(family, cda)) {
-> > -               if (cda[CTA_FILTER])
-> > -                       return -EOPNOTSUPP;
-> > -
-> >                 filter = ctnetlink_alloc_filter(cda, family);
-> >                 if (IS_ERR(filter))
-> >                         return PTR_ERR(filter);
-> > @@ -1610,14 +1607,14 @@ static int ctnetlink_del_conntrack(struct sk_buff *skb,
-> >         if (err < 0)
-> >                 return err;
-> >
-> > -       if (cda[CTA_TUPLE_ORIG])
-> > +       if (cda[CTA_TUPLE_ORIG] && !cda[CTA_FILTER])
-> >                 err = ctnetlink_parse_tuple(cda, &tuple, CTA_TUPLE_ORIG,
-> >                                             family, &zone);
-> > -       else if (cda[CTA_TUPLE_REPLY])
-> > +       else if (cda[CTA_TUPLE_REPLY] && !cda[CTA_FILTER])
-> >                 err = ctnetlink_parse_tuple(cda, &tuple, CTA_TUPLE_REPLY,
-> >                                             family, &zone);
-> >         else {
-> > -               u_int8_t u3 = info->nfmsg->version ? family : AF_UNSPEC;
-> > +               u8 u3 = info->nfmsg->version || cda[CTA_FILTER] ? family : AF_UNSPEC;
-> >
-> >                 return ctnetlink_flush_conntrack(info->net, cda,
-> >                                                  NETLINK_CB(skb).portid,
-> > --
-> > 2.43.0
-> >
