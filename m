@@ -1,39 +1,52 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92E4E169397
-	for <netfilter-devel@vger.kernel.org>; Mon, 19 Aug 2024 12:10:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACB3924B2F
+	for <netfilter-devel@vger.kernel.org>; Mon, 19 Aug 2024 15:19:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724069429; cv=none; b=g0WDyzkw1Ulpp7rsQiqfcA7yTdw2WkB4im/HgjRPrHI1MpXsjVfTNN9JSF8A4t7Ia9ZarL7EGF476LexoGCN09O/K7g5u8VlZ9uOl2SmZKVYqZwfRiZEtlu9D5e/+ZRty6wmHkDbm/ua4xpwc4tRF3uZG9L/qhWoERNU4MWTSX0=
+	t=1724080746; cv=none; b=AUR0A5beVmtqqLkJLLIAB2t9UbQKjpCwXPeVbGA4DwW3Ph6vhSD4S8NeTJKvyRXKaAif2K+hke/y050rwfX6qVerrjQ8/97efI/seXGdXKLl1itCvirYzSKTzMnDjG6VMZAMG4zA69ltGSZwnfx02/xpWc/9DUgozZel13/z2Os=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724069429; c=relaxed/simple;
-	bh=+EdtJVQXPLqx9z6gD86kmpz/lTsjV84u3q9+T8gzfBQ=;
+	s=arc-20240116; t=1724080746; c=relaxed/simple;
+	bh=21T80qyKdR/jNDw3bO3rrCofz2oINJ+WZd8uDHUX8SM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=cqDikcWYAA3M2RJlZU1TqL6gJiX4EP+0m7blQjNxNdkR2+aSKKrYMLQEp8AMFWpvg3f3BR8GRVUjTSQuXdONxQSIgMNvqYBJkfirILJxS1I6BAQqS1sJIZGcMWcYXmMBBCNX5mWov5n/90yksIQCRZ3z/xiSxB+y3eTh/Jxu3y8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1sg1DG-0001Hs-TL; Mon, 19 Aug 2024 14:10:18 +0200
-Date: Mon, 19 Aug 2024 14:10:18 +0200
-From: Florian Westphal <fw@strlen.de>
+	 Content-Type:Content-Disposition:In-Reply-To; b=gH7KXq4aC+SoQL1BlVqZd5TAX2hp5jJDPP2oXE/gI12OcGq1X4sbecZdGlRdmATVigD5IlXe8jQdR1hTZYpbxCwmdKXrJxKjfNo3wzfx50MOAfaGWJ9Itq+oYwRcaoE2w4nCLO7dBEfvuVHnpL1oodHCoDxWEd68p/mG4n+LMTk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=e4yKpBRL; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="e4yKpBRL"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=oZ6pPjTKAVd+riCc/t2iai6ooUPnNpkTc0eO4kBppas=; b=e4yKpBRLGb51BnEKqszpqevdZv
+	AYX494UAgbAYeXTiw+W3qk9+RhYlzgPHLKHuZFyD3CG5/3l5uVy3DhEskJVEiJKZqiNzVYJKwSuMz
+	9iiTQqQ8cuUdGBM/ZaQielhbNB8KeDNpLXiPd6keiYmrcd/mRNl78j01pcw9rJ9o/JoonmlCbS62B
+	v4G+02z+K6wyHpSzdU23pQ4CRwkA482S5D1Y9fTF3BgSdinEQf4h56nCYHWVDqTb/BY3w/YGy/0ZY
+	i9LV5YGaXsWWSD1qUBmbzJPK9oZKmFRFL9s7MUZ8/RLLAvbccG71+847qBNkyoWWgbnsX2zX6KS67
+	NMJHh/vg==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1sg49n-000000005zL-1Hnm;
+	Mon, 19 Aug 2024 17:18:55 +0200
+Date: Mon, 19 Aug 2024 17:18:55 +0200
+From: Phil Sutter <phil@nwl.cc>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft,v2 1/2] datatype: reject rate in quota statement
+Message-ID: <ZsNiX0mRqHDCgm95@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft 1/4] doc: add documentation about list hooks feature
-Message-ID: <20240819121018.GA4328@breakpoint.cc>
-References: <20240726015837.14572-1-fw@strlen.de>
- <20240726015837.14572-2-fw@strlen.de>
- <ZqNlvkJ2YSc-KIKb@calendula>
- <20240726123152.GA3778@breakpoint.cc>
- <ZqbR0yOY87wI0VoS@calendula>
- <20240728233736.GA31560@breakpoint.cc>
- <ZqbgmMzuOQShJWXK@calendula>
- <20240729153211.GA26048@breakpoint.cc>
- <Zrs-STpwUN2rqnl2@orbyte.nwl.cc>
- <ZsMkwTdIp1hYWBXt@calendula>
+References: <20240814115122.279041-1-pablo@netfilter.org>
+ <ZrzUt-8mZoqdY0ai@orbyte.nwl.cc>
+ <ZrzWpcQehJBmss13@calendula>
+ <Zr0E7BZu3fowGLBz@orbyte.nwl.cc>
+ <Zr9FKFg8bnfQrqoZ@orbyte.nwl.cc>
+ <ZsMipjpB5QylZ3tH@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -42,40 +55,35 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ZsMkwTdIp1hYWBXt@calendula>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <ZsMipjpB5QylZ3tH@calendula>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> Hi Phil, Florian,
+On Mon, Aug 19, 2024 at 12:47:02PM +0200, Pablo Neira Ayuso wrote:
+> Hi Phil,
 > 
-> @Florian, could you push out what you have to flush your queue in this front?
-
-OK, I pushed the patches to nftables.git.
-
-> > > 1. nft list hooks
-> > >   dump everything EXCEPT netdev families/devices
+> On Fri, Aug 16, 2024 at 02:25:12PM +0200, Phil Sutter wrote:
+> > On Wed, Aug 14, 2024 at 09:26:36PM +0200, Phil Sutter wrote:
+> > [...]
+> > > Maybe one could introduce a start condition which allows strings, but
+> > > it might turn into a mess given the wide use of them. I'll give it a try
+> > > and let you know.
 > > 
-> > Include netdev here, make it really list *all* hooks. Iterating over
-> > the list of currently existing NICs in this netns is no big deal, is
-> > it?
+> > Looks like I hit a dead end there: For expressions like 'iif', we have
+> > to accept STRING on RHS and since I need a token to push SC_STRING, I
+> > can't just enable it for all relational expressions. The alternative is
+> > to enable it for the whole rule but I can't disable it selectively (as I
+> > had to enable it again afterwards without knowing what's next. :(
 > 
-> I like this suggestion.
+> flex rules also tells what to find first (order implies priority)
+> maybe a combination of start conditions to carefully placing. I can
+> take my poor man fix by now so this can be revisited later :)
 
-Fail enough, I will send a patch for this later this week.
+I have a working draft using an exclusive start condition (Florian
+pointed me to that). It passes the testsuite, might need more work
+though (the first token after the limit statement is still parsed in the
+exclusive condition, so all statement openers must potentially be valid
+in all conditions.
 
-> > > 2. nft list hooks netdev device foo
-> > >    dump ingress/egress netdev hooks,
-> > >    INCLUDING inet ingress (its scoped to the device).
-> > 
-> > Drop 'netdev' from the syntax here. The output really is "all hooks
-> > specific to that NIC", not necessarily only netdev ones. (And "device"
-> > is a distinct identifier for network interfaces in nftables syntax.)
-> 
-> I think allowing 'device foo' without family would be good.
+Anyway, it's not a simple fix from my side so please go ahead and we'll
+discuss my patches later as the "academic project" they are.
 
-OK,  I'm still unclear however because internally only netdev
-families exist at the device level, so I'm not sure how to represent
-this.
-
-But dumping the existing network devices and querying them all is not
-and issue so I will make a patch for this.
+Cheers, Phil
