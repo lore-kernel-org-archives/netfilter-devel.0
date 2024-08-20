@@ -1,132 +1,533 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C03E191F91
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 Aug 2024 14:42:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7EAE1BDAB6;
+	Tue, 20 Aug 2024 18:27:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724164978; cv=none; b=J9youfRDOijeKeMXn8x7RtADlsVxe8ywki39BWWkU8n3LA3NPIZ3sdlGpDx6p0tbBECTzIv0qMGd/shfUyOoVCE6jWrbaD0BlvrVri15/x51yjiIM3khi2f6GKW2FHjAUvZshFV/P1lq+zY6pNRcVlCM2fOA62SbpBxcBC4Qm/8=
+	t=1724178446; cv=none; b=WyU0aR11R/Et0oCa5RmEZ12pY8TsrqIbOdkAN68uR4Rx/BJ4KC4gyMrIe5koOi8uw+ehZGkx90OL3PyieiGl42MjQx/ziaNTYFCqW6tgL8L3/7Y5z3ZvDszFmg3tFW/dlljKUg7WK2BufLVJUHV9zcCyJfDk+0oVHL3Zkd/CI6E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724164978; c=relaxed/simple;
-	bh=ejArwdH/GCuKtYASKHBHy+oCqeyYmvzQZGmVaEqs9hM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jYh+DhW13BdA5oAwGynozc1hvFufZOXRxiVL+PPxYcA+vKifKR4kvC4QNDYBbX8jwHWDH9iyRWc6PknCTU9dJM3C87Zmiu8Pdne0Z01oZL9JGwBcKT87dOj4lGeQmkTw8gakQHYoQKXljiVz0ptgkbkxR3rQw+12N+x0o2HpZ2s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=CoJFfyIp; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="CoJFfyIp"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1724164975;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=ydhevR7sNCZW4QWQke0ngPB+mitsjK/8az2rf5wXLK8=;
-	b=CoJFfyIpThwHAjM6UEjN7JqNMQaaD07KEmTel9jXYF8wf1QV13II3ASP0j383NAFhvME0N
-	eOm64SafvPgWjzwwugnWjS9psZJTacISfO8d+vbYTmSlNftuHueqJQs4bGA8x7ZsM/u4Xf
-	HoVyPURu1ui1rHzJEffr7yjNjmrgkwE=
-Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
- [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-494-AIUxkDj-Of2Ib14pxDaVdg-1; Tue, 20 Aug 2024 10:42:53 -0400
-X-MC-Unique: AIUxkDj-Of2Ib14pxDaVdg-1
-Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-42808685ef0so49042335e9.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Aug 2024 07:42:52 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1724164971; x=1724769771;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=ydhevR7sNCZW4QWQke0ngPB+mitsjK/8az2rf5wXLK8=;
-        b=oshtkfNRb+WadjiKS16gm/bpzPDSajgYDin8okjeOFBhPaRB49IOhlwSu2t7nTWGvP
-         tckgP+19NAwFOK0cutth2NQef2S0s4dAqeAqZq0GJslRVb7k8YMOWjjYlCWy8hWKXTvU
-         4Tbvso04dceo4ODgVugc/ev6G0fBncng1rAxjKqtyaMqQbCo71yhJvPAtq0LRwoOSsz/
-         BiXTVQDkaltR/4nAXn+kE8jErdh+XghwEWtvYBWWmi9xi8S4Tc2Xc2McS5x1OStHshp6
-         HlEvayF4hNDYCWKQDRyqgD2PmjEYmGoEfapv6MT8Ch10GIIBdmVkZZWZoQ8JgsLhw486
-         XSYQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVTp67LOkS6GZtPG6yXJuB9UUWWbmXmwOb2DQG3QxldtXar2zS1D1ydR+iFep4aWIyCunikyn8O7w6MiL8zWKH18jrbUetWV7aZW7EdI8ew
-X-Gm-Message-State: AOJu0YxQiFKxSzKaEqzp7uMNLtjAdULN3VQ9Xr25Hr6euGOTnZQIlIAP
-	3lJJ4EwRQd3KpKH9jwSTwOQbO/7l1mj0OZlTRYLQ/5o4X/XlDh3gsMAT4jwrIpOYUdULgmvUFok
-	L9GV7b/LZ7s0DYzNevLU15QGZwdXpEYnQ02mE28ffpBvueKKOYAFG7Y27YM/pHYEsCg==
-X-Received: by 2002:a05:600c:4e91:b0:428:150e:4f13 with SMTP id 5b1f17b1804b1-429ed7e232emr96770345e9.33.1724164971641;
-        Tue, 20 Aug 2024 07:42:51 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IFHVeQ6jHcAhxfzkL4buSeHfHsZ3iDOB6Od9pARovqx5Xe2BHKWBj47sEnzPcyJ2IMCTsGtsA==
-X-Received: by 2002:a05:600c:4e91:b0:428:150e:4f13 with SMTP id 5b1f17b1804b1-429ed7e232emr96769885e9.33.1724164970597;
-        Tue, 20 Aug 2024 07:42:50 -0700 (PDT)
-Received: from debian (2a01cb058d23d6005b76a425e899d6bf.ipv6.abo.wanadoo.fr. [2a01:cb05:8d23:d600:5b76:a425:e899:d6bf])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-429ded71ee3sm196333585e9.29.2024.08.20.07.42.49
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 20 Aug 2024 07:42:50 -0700 (PDT)
-Date: Tue, 20 Aug 2024 16:42:48 +0200
-From: Guillaume Nault <gnault@redhat.com>
-To: Ido Schimmel <idosch@nvidia.com>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com,
-	edumazet@google.com, dsahern@kernel.org, pablo@netfilter.org,
-	kadlec@netfilter.org, fw@strlen.de
-Subject: Re: [PATCH net-next v2 3/3] ipv4: Centralize TOS matching
-Message-ID: <ZsSraEC0ZSGjK/Qt@debian>
-References: <20240814125224.972815-1-idosch@nvidia.com>
- <20240814125224.972815-4-idosch@nvidia.com>
+	s=arc-20240116; t=1724178446; c=relaxed/simple;
+	bh=ghq0lebpUW+hx5lmIv7jFz34Nkpr+LNZz1Td5Jorx28=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=aJMo7H1rXFh9BUVrBsSVWKXadviEJp2ixqwbroQbYyvZl018abx9/VuZJwLK4OFr1eDrGJn4XflZu7OMp1IXaCR8Bzc7nIKpBQLCaO1QJq0+2dCoPgTkBa5ygGR0t6yHB6MCtmZlLpAG7BevHa/3+vE7ROGbKM0x0czFQO5aiSU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.190
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
+Received: from mail.maildlp.com (unknown [172.19.163.17])
+	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4WpHxd3c3Lz2Cn4m;
+	Wed, 21 Aug 2024 02:27:17 +0800 (CST)
+Received: from dggpemm500020.china.huawei.com (unknown [7.185.36.49])
+	by mail.maildlp.com (Postfix) with ESMTPS id E7FBA1A0188;
+	Wed, 21 Aug 2024 02:27:18 +0800 (CST)
+Received: from [10.123.123.159] (10.123.123.159) by
+ dggpemm500020.china.huawei.com (7.185.36.49) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.39; Wed, 21 Aug 2024 02:27:15 +0800
+Message-ID: <be3f4eea-3203-8af1-2e7f-e80fde30c45f@huawei-partners.com>
+Date: Tue, 20 Aug 2024 21:27:10 +0300
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240814125224.972815-4-idosch@nvidia.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH v2 3/9] selftests/landlock: Support
+ LANDLOCK_ACCESS_NET_LISTEN_TCP
+Content-Language: ru
+To: =?UTF-8?Q?G=C3=BCnther_Noack?= <gnoack@google.com>
+CC: <mic@digikod.net>, <willemdebruijn.kernel@gmail.com>,
+	<gnoack3000@gmail.com>, <linux-security-module@vger.kernel.org>,
+	<netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
+	<yusongping@huawei.com>, <artem.kuzin@huawei.com>,
+	<konstantin.meskhidze@huawei.com>
+References: <20240814030151.2380280-1-ivanov.mikhail1@huawei-partners.com>
+ <20240814030151.2380280-4-ivanov.mikhail1@huawei-partners.com>
+ <ZsO-pIGsTl6T5AL1@google.com> <ZsSW0H4FR3ElOPAy@google.com>
+From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+In-Reply-To: <ZsSW0H4FR3ElOPAy@google.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: lhrpeml100006.china.huawei.com (7.191.160.224) To
+ dggpemm500020.china.huawei.com (7.185.36.49)
 
-On Wed, Aug 14, 2024 at 03:52:24PM +0300, Ido Schimmel wrote:
-> The TOS field in the IPv4 flow information structure ('flowi4_tos') is
-> matched by the kernel against the TOS selector in IPv4 rules and routes.
-> The field is initialized differently by different call sites. Some treat
-> it as DSCP (RFC 2474) and initialize all six DSCP bits, some treat it as
-> RFC 1349 TOS and initialize it using RT_TOS() and some treat it as RFC
-> 791 TOS and initialize it using IPTOS_RT_MASK.
+8/20/2024 4:14 PM, Günther Noack wrote:
+> On Mon, Aug 19, 2024 at 11:52:36PM +0200, Günther Noack wrote:
+>> On Wed, Aug 14, 2024 at 11:01:45AM +0800, Mikhail Ivanov wrote:
+>>> * Add listen_variant() to simplify listen(2) return code checking.
+>>> * Rename test_bind_and_connect() to test_restricted_net_fixture().
+>>> * Extend current net rules with LANDLOCK_ACCESS_NET_LISTEN_TCP access.
+>>> * Rename test port_specific.bind_connect_1023 to
+>>>    port_specific.port_1023.
+>>> * Check little endian port restriction for listen in
+>>>    ipv4_tcp.port_endianness.
+>>> * Some local renames and comment changes.
+>>>
+>>> Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+>>> ---
+>>>   tools/testing/selftests/landlock/net_test.c | 198 +++++++++++---------
+>>>   1 file changed, 107 insertions(+), 91 deletions(-)
+>>>
+>>> diff --git a/tools/testing/selftests/landlock/net_test.c b/tools/testing/selftests/landlock/net_test.c
+>>> index f21cfbbc3638..8126f5c0160f 100644
+>>> --- a/tools/testing/selftests/landlock/net_test.c
+>>> +++ b/tools/testing/selftests/landlock/net_test.c
+>>> @@ -2,7 +2,7 @@
+>>>   /*
+>>>    * Landlock tests - Network
+>>>    *
+>>> - * Copyright © 2022-2023 Huawei Tech. Co., Ltd.
+>>> + * Copyright © 2022-2024 Huawei Tech. Co., Ltd.
+>>>    * Copyright © 2023 Microsoft Corporation
+>>>    */
+>>>   
+>>> @@ -22,6 +22,17 @@
+>>>   
+>>>   #include "common.h"
+>>>   
+>>> +/* clang-format off */
+>>> +
+>>> +#define ACCESS_LAST LANDLOCK_ACCESS_NET_LISTEN_TCP
+>>> +
+>>> +#define ACCESS_ALL ( \
+>>> +	LANDLOCK_ACCESS_NET_BIND_TCP | \
+>>> +	LANDLOCK_ACCESS_NET_CONNECT_TCP | \
+>>> +	LANDLOCK_ACCESS_NET_LISTEN_TCP)
+>>> +
+>>> +/* clang-format on */
+>>> +
+>>>   const short sock_port_start = (1 << 10);
+>>>   
+>>>   static const char loopback_ipv4[] = "127.0.0.1";
+>>> @@ -282,6 +293,16 @@ static int connect_variant(const int sock_fd,
+>>>   	return connect_variant_addrlen(sock_fd, srv, get_addrlen(srv, false));
+>>>   }
+>>>   
+>>> +static int listen_variant(const int sock_fd, const int backlog)
+>>
+>> I believe socket_variant(), connect_variant() and bind_variant() were called
+>> like that because they got an instance of a service_fixture as an argument.  The
+>> fixture instances are called variants.  But we don't use these fixtures here.
+>>
+>> In fs_test.c, we also have some functions that behave much like system calls,
+>> but clean up after themselves and return errno, for easier use in assert.  The
+>> naming scheme we have used there is "test_foo" (e.g. test_open()).  I think this
+>> would be more appropriate here as a name?
+>>
+>>> +{
+>>> +	int ret;
+>>> +
+>>> +	ret = listen(sock_fd, backlog);
+>>> +	if (ret < 0)
+>>> +		return -errno;
+>>> +	return ret;
 > 
-> What is common to all these call sites is that they all initialize the
-> lower three DSCP bits, which fits the TOS definition in the initial IPv4
-> specification (RFC 791).
-> 
-> Therefore, the kernel only allows configuring IPv4 FIB rules that match
-> on the lower three DSCP bits which are always guaranteed to be
-> initialized by all call sites:
-> 
->  # ip -4 rule add tos 0x1c table 100
->  # ip -4 rule add tos 0x3c table 100
->  Error: Invalid tos.
-> 
-> While this works, it is unlikely to be very useful. RFC 791 that
-> initially defined the TOS and IP precedence fields was updated by RFC
-> 2474 over twenty five years ago where these fields were replaced by a
-> single six bits DSCP field.
-> 
-> Extending FIB rules to match on DSCP can be done by adding a new DSCP
-> selector while maintaining the existing semantics of the TOS selector
-> for applications that rely on that.
-> 
-> A prerequisite for allowing FIB rules to match on DSCP is to adjust all
-> the call sites to initialize the high order DSCP bits and remove their
-> masking along the path to the core where the field is matched on.
-> 
-> However, making this change alone will result in a behavior change. For
-> example, a forwarded IPv4 packet with a DS field of 0xfc will no longer
-> match a FIB rule that was configured with 'tos 0x1c'.
-> 
-> This behavior change can be avoided by masking the upper three DSCP bits
-> in 'flowi4_tos' before comparing it against the TOS selectors in FIB
-> rules and routes.
-> 
-> Implement the above by adding a new function that checks whether a given
-> DSCP value matches the one specified in the IPv4 flow information
-> structure and invoke it from the three places that currently match on
-> 'flowi4_tos'.
+> listen() can only return -1 or 0.  It might be simpler to just return 0 here,
+> to make it more obvious that this returns an error code.
 
-A bit late for the review, but anyway...
+Agreed, thanks. I'll do such refactoring for the connect_variant() as
+well.
 
-Reviewed-by: Guillaume Nault <gnault@redhat.com>
+> 
+>>> +}
+> 
+> Another remark about listen_variant(): The helper functions in net_test.c return
+> negative error codes, whereas the ones in fs_test.c return positive error codes.
+> We should probably make that more consistent.
 
-Thanks Ido!
+socket_variant() returns positive descriptor in a case of success, so
+let's use negative ones.
 
+Should it be a separate patch btw?
+
+> 
+>>> +
+>>>   FIXTURE(protocol)
+>>>   {
+>>>   	struct service_fixture srv0, srv1, srv2, unspec_any0, unspec_srv0;
+>>> @@ -438,9 +459,11 @@ FIXTURE_VARIANT_ADD(protocol, tcp_sandbox_with_unix_datagram) {
+>>>   	},
+>>>   };
+>>>   
+>>> -static void test_bind_and_connect(struct __test_metadata *const _metadata,
+>>> -				  const struct service_fixture *const srv,
+>>> -				  const bool deny_bind, const bool deny_connect)
+>>> +static void test_restricted_net_fixture(struct __test_metadata *const _metadata,
+>>> +					const struct service_fixture *const srv,
+>>> +					const bool deny_bind,
+>>> +					const bool deny_connect,
+>>> +					const bool deny_listen)
+>>>   {
+>>>   	char buf = '\0';
+>>>   	int inval_fd, bind_fd, client_fd, status, ret;
+>>> @@ -512,8 +535,14 @@ static void test_bind_and_connect(struct __test_metadata *const _metadata,
+>>>   		EXPECT_EQ(0, ret);
+>>>   
+>>>   		/* Creates a listening socket. */
+>>> -		if (srv->protocol.type == SOCK_STREAM)
+>>> -			EXPECT_EQ(0, listen(bind_fd, backlog));
+>>> +		if (srv->protocol.type == SOCK_STREAM) {
+>>> +			ret = listen_variant(bind_fd, backlog);
+>>> +			if (deny_listen) {
+>>> +				EXPECT_EQ(-EACCES, ret);
+>>> +			} else {
+>>> +				EXPECT_EQ(0, ret);
+>>> +			}
+>>
+>> Hmm, passing the expected error code instead of a boolean to this function was not possible?
+>> Then you could just write
+>>
+>>    EXPECT_EQ(expected_listen_error, listen_variant(bind_fd, backlog));
+>>
+>> ?  (Apologies if this was discussed already.)
+>>
+>>> +		}
+>>>   	}
+>>>   
+>>>   	child = fork();
+>>> @@ -530,7 +559,7 @@ static void test_bind_and_connect(struct __test_metadata *const _metadata,
+>>>   		ret = connect_variant(connect_fd, srv);
+>>>   		if (deny_connect) {
+>>>   			EXPECT_EQ(-EACCES, ret);
+>>> -		} else if (deny_bind) {
+>>> +		} else if (deny_bind || deny_listen) {
+>>>   			/* No listening server. */
+>>>   			EXPECT_EQ(-ECONNREFUSED, ret);
+>>>   		} else {
+>>> @@ -545,7 +574,7 @@ static void test_bind_and_connect(struct __test_metadata *const _metadata,
+>>>   
+>>>   	/* Accepts connection from the child. */
+>>>   	client_fd = bind_fd;
+>>> -	if (!deny_bind && !deny_connect) {
+>>> +	if (!deny_bind && !deny_connect && !deny_listen) {
+>>>   		if (srv->protocol.type == SOCK_STREAM) {
+>>>   			client_fd = accept(bind_fd, NULL, 0);
+>>>   			ASSERT_LE(0, client_fd);
+>>> @@ -571,16 +600,15 @@ TEST_F(protocol, bind)
+>>>   {
+>>>   	if (variant->sandbox == TCP_SANDBOX) {
+>>>   		const struct landlock_ruleset_attr ruleset_attr = {
+>>> -			.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
+>>> -					      LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>>> +			.handled_access_net = ACCESS_ALL,
+>>>   		};
+>>> -		const struct landlock_net_port_attr tcp_bind_connect_p0 = {
+>>> -			.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
+>>> -					  LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>>> +		const struct landlock_net_port_attr tcp_not_restricted_p0 = {
+>>> +			.allowed_access = ACCESS_ALL,
+>>>   			.port = self->srv0.port,
+>>>   		};
+>>> -		const struct landlock_net_port_attr tcp_connect_p1 = {
+>>> -			.allowed_access = LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>>> +		const struct landlock_net_port_attr tcp_denied_bind_p1 = {
+>>> +			.allowed_access = ACCESS_ALL &
+>>> +					  ~LANDLOCK_ACCESS_NET_BIND_TCP,
+>>>   			.port = self->srv1.port,
+>>>   		};
+>>>   		int ruleset_fd;
+>>> @@ -589,48 +617,47 @@ TEST_F(protocol, bind)
+>>>   						     sizeof(ruleset_attr), 0);
+>>>   		ASSERT_LE(0, ruleset_fd);
+>>>   
+>>> -		/* Allows connect and bind for the first port.  */
+>>> +		/* Allows all actions for the first port. */
+>>>   		ASSERT_EQ(0,
+>>>   			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
+>>> -					    &tcp_bind_connect_p0, 0));
+>>> +					    &tcp_not_restricted_p0, 0));
+>>>   
+>>> -		/* Allows connect and denies bind for the second port. */
+>>> +		/* Allows all actions despite bind. */
+>>>   		ASSERT_EQ(0,
+>>>   			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
+>>> -					    &tcp_connect_p1, 0));
+>>> +					    &tcp_denied_bind_p1, 0));
+>>>   
+>>>   		enforce_ruleset(_metadata, ruleset_fd);
+>>>   		EXPECT_EQ(0, close(ruleset_fd));
+>>>   	}
+>>> +	bool restricted = is_restricted(&variant->prot, variant->sandbox);
+>>>   
+>>>   	/* Binds a socket to the first port. */
+>>> -	test_bind_and_connect(_metadata, &self->srv0, false, false);
+>>> +	test_restricted_net_fixture(_metadata, &self->srv0, false, false,
+>>> +				    false);
+>>>   
+>>>   	/* Binds a socket to the second port. */
+>>> -	test_bind_and_connect(_metadata, &self->srv1,
+>>> -			      is_restricted(&variant->prot, variant->sandbox),
+>>> -			      false);
+>>> +	test_restricted_net_fixture(_metadata, &self->srv1, restricted, false,
+>>> +				    false);
+>>>   
+>>>   	/* Binds a socket to the third port. */
+>>> -	test_bind_and_connect(_metadata, &self->srv2,
+>>> -			      is_restricted(&variant->prot, variant->sandbox),
+>>> -			      is_restricted(&variant->prot, variant->sandbox));
+>>> +	test_restricted_net_fixture(_metadata, &self->srv2, restricted,
+>>> +				    restricted, restricted);
+>>>   }
+>>>   
+>>>   TEST_F(protocol, connect)
+>>>   {
+>>>   	if (variant->sandbox == TCP_SANDBOX) {
+>>>   		const struct landlock_ruleset_attr ruleset_attr = {
+>>> -			.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
+>>> -					      LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>>> +			.handled_access_net = ACCESS_ALL,
+>>>   		};
+>>> -		const struct landlock_net_port_attr tcp_bind_connect_p0 = {
+>>> -			.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
+>>> -					  LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>>> +		const struct landlock_net_port_attr tcp_not_restricted_p0 = {
+>>> +			.allowed_access = ACCESS_ALL,
+>>>   			.port = self->srv0.port,
+>>>   		};
+>>> -		const struct landlock_net_port_attr tcp_bind_p1 = {
+>>> -			.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
+>>> +		const struct landlock_net_port_attr tcp_denied_connect_p1 = {
+>>> +			.allowed_access = ACCESS_ALL &
+>>> +					  ~LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>>>   			.port = self->srv1.port,
+>>>   		};
+>>>   		int ruleset_fd;
+>>> @@ -639,28 +666,27 @@ TEST_F(protocol, connect)
+>>>   						     sizeof(ruleset_attr), 0);
+>>>   		ASSERT_LE(0, ruleset_fd);
+>>>   
+>>> -		/* Allows connect and bind for the first port. */
+>>> +		/* Allows all actions for the first port. */
+>>>   		ASSERT_EQ(0,
+>>>   			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
+>>> -					    &tcp_bind_connect_p0, 0));
+>>> +					    &tcp_not_restricted_p0, 0));
+>>>   
+>>> -		/* Allows bind and denies connect for the second port. */
+>>> +		/* Allows all actions despite connect. */
+>>>   		ASSERT_EQ(0,
+>>>   			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
+>>> -					    &tcp_bind_p1, 0));
+>>> +					    &tcp_denied_connect_p1, 0));
+>>>   
+>>>   		enforce_ruleset(_metadata, ruleset_fd);
+>>>   		EXPECT_EQ(0, close(ruleset_fd));
+>>>   	}
+>>> -
+>>> -	test_bind_and_connect(_metadata, &self->srv0, false, false);
+>>> -
+>>> -	test_bind_and_connect(_metadata, &self->srv1, false,
+>>> -			      is_restricted(&variant->prot, variant->sandbox));
+>>> -
+>>> -	test_bind_and_connect(_metadata, &self->srv2,
+>>> -			      is_restricted(&variant->prot, variant->sandbox),
+>>> -			      is_restricted(&variant->prot, variant->sandbox));
+>>> +	bool restricted = is_restricted(&variant->prot, variant->sandbox);
+>>> +
+>>> +	test_restricted_net_fixture(_metadata, &self->srv0, false, false,
+>>> +				    false);
+>>> +	test_restricted_net_fixture(_metadata, &self->srv1, false, restricted,
+>>> +				    false);
+>>> +	test_restricted_net_fixture(_metadata, &self->srv2, restricted,
+>>> +				    restricted, restricted);
+>>>   }
+>>>   
+>>>   TEST_F(protocol, bind_unspec)
+>>> @@ -761,7 +787,7 @@ TEST_F(protocol, connect_unspec)
+>>>   	ASSERT_LE(0, bind_fd);
+>>>   	EXPECT_EQ(0, bind_variant(bind_fd, &self->srv0));
+>>>   	if (self->srv0.protocol.type == SOCK_STREAM)
+>>> -		EXPECT_EQ(0, listen(bind_fd, backlog));
+>>> +		EXPECT_EQ(0, listen_variant(bind_fd, backlog));
+>>>   
+>>>   	child = fork();
+>>>   	ASSERT_LE(0, child);
+>>> @@ -1127,8 +1153,8 @@ TEST_F(tcp_layers, ruleset_overlap)
+>>>   	 * Forbids to connect to the socket because only one ruleset layer
+>>>   	 * allows connect.
+>>>   	 */
+>>> -	test_bind_and_connect(_metadata, &self->srv0, false,
+>>> -			      variant->num_layers >= 2);
+>>> +	test_restricted_net_fixture(_metadata, &self->srv0, false,
+>>> +				    variant->num_layers >= 2, false);
+>>>   }
+>>>   
+>>>   TEST_F(tcp_layers, ruleset_expand)
+>>> @@ -1208,11 +1234,12 @@ TEST_F(tcp_layers, ruleset_expand)
+>>>   		EXPECT_EQ(0, close(ruleset_fd));
+>>>   	}
+>>>   
+>>> -	test_bind_and_connect(_metadata, &self->srv0, false,
+>>> -			      variant->num_layers >= 3);
+>>> +	test_restricted_net_fixture(_metadata, &self->srv0, false,
+>>> +				    variant->num_layers >= 3, false);
+>>>   
+>>> -	test_bind_and_connect(_metadata, &self->srv1, variant->num_layers >= 1,
+>>> -			      variant->num_layers >= 2);
+>>> +	test_restricted_net_fixture(_metadata, &self->srv1,
+>>> +				    variant->num_layers >= 1,
+>>> +				    variant->num_layers >= 2, false);
+>>>   }
+>>>   
+>>>   /* clang-format off */
+>>> @@ -1230,16 +1257,6 @@ FIXTURE_TEARDOWN(mini)
+>>>   {
+>>>   }
+>>>   
+>>> -/* clang-format off */
+>>> -
+>>> -#define ACCESS_LAST LANDLOCK_ACCESS_NET_CONNECT_TCP
+>>> -
+>>> -#define ACCESS_ALL ( \
+>>> -	LANDLOCK_ACCESS_NET_BIND_TCP | \
+>>> -	LANDLOCK_ACCESS_NET_CONNECT_TCP)
+>>> -
+>>> -/* clang-format on */
+>>> -
+>>>   TEST_F(mini, network_access_rights)
+>>>   {
+>>>   	const struct landlock_ruleset_attr ruleset_attr = {
+>>> @@ -1454,8 +1471,9 @@ TEST_F(mini, tcp_port_overflow)
+>>>   
+>>>   	enforce_ruleset(_metadata, ruleset_fd);
+>>>   
+>>> -	test_bind_and_connect(_metadata, &srv_denied, true, true);
+>>> -	test_bind_and_connect(_metadata, &srv_max_allowed, false, false);
+>>> +	test_restricted_net_fixture(_metadata, &srv_denied, true, true, false);
+>>> +	test_restricted_net_fixture(_metadata, &srv_max_allowed, false, false,
+>>> +				    false);
+>>>   }
+>>>   
+>>>   FIXTURE(ipv4_tcp)
+>>> @@ -1485,22 +1503,21 @@ FIXTURE_TEARDOWN(ipv4_tcp)
+>>>   TEST_F(ipv4_tcp, port_endianness)
+>>>   {
+>>>   	const struct landlock_ruleset_attr ruleset_attr = {
+>>> -		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
+>>> -				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>>> +		.handled_access_net = ACCESS_ALL,
+>>>   	};
+>>>   	const struct landlock_net_port_attr bind_host_endian_p0 = {
+>>>   		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
+>>>   		/* Host port format. */
+>>>   		.port = self->srv0.port,
+>>>   	};
+>>> -	const struct landlock_net_port_attr connect_big_endian_p0 = {
+>>> -		.allowed_access = LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>>> +	const struct landlock_net_port_attr connect_listen_big_endian_p0 = {
+>>> +		.allowed_access = LANDLOCK_ACCESS_NET_CONNECT_TCP |
+>>> +				  LANDLOCK_ACCESS_NET_LISTEN_TCP,
+>>>   		/* Big endian port format. */
+>>>   		.port = htons(self->srv0.port),
+>>>   	};
+>>> -	const struct landlock_net_port_attr bind_connect_host_endian_p1 = {
+>>> -		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
+>>> -				  LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>>> +	const struct landlock_net_port_attr not_restricted_host_endian_p1 = {
+>>> +		.allowed_access = ACCESS_ALL,
+>>>   		/* Host port format. */
+>>>   		.port = self->srv1.port,
+>>>   	};
+>>> @@ -1514,16 +1531,18 @@ TEST_F(ipv4_tcp, port_endianness)
+>>>   	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
+>>>   				       &bind_host_endian_p0, 0));
+>>>   	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
+>>> -				       &connect_big_endian_p0, 0));
+>>> +				       &connect_listen_big_endian_p0, 0));
+>>>   	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
+>>> -				       &bind_connect_host_endian_p1, 0));
+>>> +				       &not_restricted_host_endian_p1, 0));
+>>>   	enforce_ruleset(_metadata, ruleset_fd);
+>>>   
+>>>   	/* No restriction for big endinan CPU. */
+>>> -	test_bind_and_connect(_metadata, &self->srv0, false, little_endian);
+>>> +	test_restricted_net_fixture(_metadata, &self->srv0, false,
+>>> +				    little_endian, little_endian);
+>>>   
+>>>   	/* No restriction for any CPU. */
+>>> -	test_bind_and_connect(_metadata, &self->srv1, false, false);
+>>> +	test_restricted_net_fixture(_metadata, &self->srv1, false, false,
+>>> +				    false);
+>>>   }
+>>>   
+>>>   TEST_F(ipv4_tcp, with_fs)
+>>> @@ -1691,7 +1710,7 @@ TEST_F(port_specific, bind_connect_zero)
+>>>   	ret = bind_variant(bind_fd, &self->srv0);
+>>>   	EXPECT_EQ(0, ret);
+>>>   
+>>> -	EXPECT_EQ(0, listen(bind_fd, backlog));
+>>> +	EXPECT_EQ(0, listen_variant(bind_fd, backlog));
+>>>   
+>>>   	/* Connects on port 0. */
+>>>   	ret = connect_variant(connect_fd, &self->srv0);
+>>> @@ -1714,26 +1733,23 @@ TEST_F(port_specific, bind_connect_zero)
+>>>   	EXPECT_EQ(0, close(bind_fd));
+>>>   }
+>>>   
+>>> -TEST_F(port_specific, bind_connect_1023)
+>>> +TEST_F(port_specific, port_1023)
+>>>   {
+>>>   	int bind_fd, connect_fd, ret;
+>>>   
+>>> -	/* Adds a rule layer with bind and connect actions. */
+>>> +	/* Adds a rule layer with all actions. */
+>>>   	if (variant->sandbox == TCP_SANDBOX) {
+>>>   		const struct landlock_ruleset_attr ruleset_attr = {
+>>> -			.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
+>>> -					      LANDLOCK_ACCESS_NET_CONNECT_TCP
+>>> +			.handled_access_net = ACCESS_ALL
+>>>   		};
+>>>   		/* A rule with port value less than 1024. */
+>>> -		const struct landlock_net_port_attr tcp_bind_connect_low_range = {
+>>> -			.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
+>>> -					  LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>>> +		const struct landlock_net_port_attr tcp_low_range_port = {
+>>> +			.allowed_access = ACCESS_ALL,
+>>>   			.port = 1023,
+>>>   		};
+>>>   		/* A rule with 1024 port. */
+>>> -		const struct landlock_net_port_attr tcp_bind_connect = {
+>>> -			.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
+>>> -					  LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>>> +		const struct landlock_net_port_attr tcp_port_1024 = {
+>>> +			.allowed_access = ACCESS_ALL,
+>>>   			.port = 1024,
+>>>   		};
+>>>   		int ruleset_fd;
+>>> @@ -1744,10 +1760,10 @@ TEST_F(port_specific, bind_connect_1023)
+>>>   
+>>>   		ASSERT_EQ(0,
+>>>   			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
+>>> -					    &tcp_bind_connect_low_range, 0));
+>>> +					    &tcp_low_range_port, 0));
+>>>   		ASSERT_EQ(0,
+>>>   			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
+>>> -					    &tcp_bind_connect, 0));
+>>> +					    &tcp_port_1024, 0));
+>>>   
+>>>   		enforce_ruleset(_metadata, ruleset_fd);
+>>>   		EXPECT_EQ(0, close(ruleset_fd));
+>>> @@ -1771,7 +1787,7 @@ TEST_F(port_specific, bind_connect_1023)
+>>>   	ret = bind_variant(bind_fd, &self->srv0);
+>>>   	clear_cap(_metadata, CAP_NET_BIND_SERVICE);
+>>>   	EXPECT_EQ(0, ret);
+>>> -	EXPECT_EQ(0, listen(bind_fd, backlog));
+>>> +	EXPECT_EQ(0, listen_variant(bind_fd, backlog));
+>>>   
+>>>   	/* Connects on the binded port 1023. */
+>>>   	ret = connect_variant(connect_fd, &self->srv0);
+>>> @@ -1791,7 +1807,7 @@ TEST_F(port_specific, bind_connect_1023)
+>>>   	/* Binds on port 1024. */
+>>>   	ret = bind_variant(bind_fd, &self->srv0);
+>>>   	EXPECT_EQ(0, ret);
+>>> -	EXPECT_EQ(0, listen(bind_fd, backlog));
+>>> +	EXPECT_EQ(0, listen_variant(bind_fd, backlog));
+>>>   
+>>>   	/* Connects on the binded port 1024. */
+>>>   	ret = connect_variant(connect_fd, &self->srv0);
+>>> -- 
+>>> 2.34.1
+>>>
+>>
+>> —Günther
