@@ -1,305 +1,99 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+Received: from out203-205-221-233.mail.qq.com (out203-205-221-233.mail.qq.com [203.205.221.233])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52323189BA1
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 Aug 2024 08:06:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16F9218C02B
+	for <netfilter-devel@vger.kernel.org>; Tue, 20 Aug 2024 09:15:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.205.221.233
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724141215; cv=none; b=FC0jol7mXXtENbAG6tmcubsiPiRZA64Xbnvyp1lOS9/FrpsNDPhZ630nhIY2pTIYxY2NkEW9E4DZA0CCgJ0YzozrpNZ9+5OcdJziDSPQv5j7K/0S54SJqyIjmOpBEP8VRBPtihB+0b1UPGDTAc7ZVVNNQYxGJgwEx21/Q+bB2ww=
+	t=1724145338; cv=none; b=ZhRssw3WySaTV7cdY5eTXRxdQfB8ZUc/aGP5dSoFLwJh5yFOyvHrh4yFiICeCGc3u0dA4PrK6u314kfNgKIm4yT7Ej/FLU0BVt6tPlI7rmBh8eOa4stOEWGdoDlaDNCd70jQ729lLTW1/QWxvJgO6bs++TtsHmC0UGYWz+pIc1I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724141215; c=relaxed/simple;
-	bh=JfZCHVUZbw1maMAZ8pFkGswzEaAYCqQnXct/s5hyLus=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=dH21vJ8MY5sMTTei6ZXl4JhRpbJ9XLQXQuG1UUwgtLnLkgnZNKE09Bm8j1DDMALsoS+78Ob9HXIiVf1qX1yskRjFggZ4VGXyVK92V0WBs6ggeqh/VUt+UoB7VQYg1kaV8IAsQH63qJdmU4HjqYGl0lyydivkXL3lWbXopPx+1v0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=t9cFruYQ; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=X2z/Y7l3; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+	s=arc-20240116; t=1724145338; c=relaxed/simple;
+	bh=j2ZkFBPH1nuniWjjq4+J93Ntx+IcTRVGPSM3TPrs6Bc=;
+	h=Message-ID:From:To:Cc:Subject:Date:MIME-Version:Content-Type; b=atOUH8TJCxNw2tZE9LQZQvK4Hke3vHBTXNrKXuocPfU0BczK8lmTR0LP7B7sMrdc9PCUcoUnGjbQeKrtvDWccunNvskoX2SSFrCYJU/spzg23+YIiWQWVXpW+Tr/UBdieo7CmmYbmudPHpc1ia/3kBzN35hUvrL4whznwNka84Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=Red54.com; spf=pass smtp.mailfrom=red54.com; dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b=mVAd6CuN; arc=none smtp.client-ip=203.205.221.233
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=Red54.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=red54.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="t9cFruYQ";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="X2z/Y7l3"
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1724141211;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=PbMWvQSLcSLHXIRxE1qdsPYLvZEzG8YggChMjFyayr0=;
-	b=t9cFruYQ4EqOVUxyisUwsXzKY6rjJsYyvu61IaOrV51UZYxfRM03Qr4JVdIUfsP4DP10BQ
-	3EM4GSrcdm/A4Ba1lZbz4CnnS4wiCxjNFXhnjQRMwrOZdVlpv3fg7MJrsET/0VysZyNkpR
-	uCxlH5RACV9H45qp+sQyOeYokvHgGPqI3AbKq9/POFQy7D/kHRTSibNpar7/d/JmKWH3ui
-	HNHOKmsq7SuZBnYx5DyObwm5WEKmsHblCpOgmi3Zxyy7kIjC9cEPtjUXHb4H5Fesktlp6A
-	I9mYAPXtsOqIsL1y0hU/KcEwIKOLlLRjeXVSoXnewO5iqdWOKlW2vMqCL+bMcA==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1724141211;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=PbMWvQSLcSLHXIRxE1qdsPYLvZEzG8YggChMjFyayr0=;
-	b=X2z/Y7l36btncNxStHaGBJr1Wx0VZHcZKzfsPpptLA50FI0Kq1x1tHRLkw17wsTzGJC9z2
-	L0Xk4vp2ZdgVXJCQ==
-To: netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-	Eric Dumazet <edumazet@google.com>
-Subject: [PATCH net-next 3/3] netfilter: nft_counter: Use u64_stats_t for statistic.
-Date: Tue, 20 Aug 2024 09:54:32 +0200
-Message-ID: <20240820080644.2642759-4-bigeasy@linutronix.de>
-In-Reply-To: <20240820080644.2642759-1-bigeasy@linutronix.de>
-References: <20240820080644.2642759-1-bigeasy@linutronix.de>
+	dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b="mVAd6CuN"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
+	t=1724145328; bh=VkR8jXks6Paq5kClWu/hrj/9bfUgC2aWIy5NUJejmdc=;
+	h=From:To:Cc:Subject:Date;
+	b=mVAd6CuNA999xQxsI7Pwc92OD5y1yUD32EL26fRfQfjpJ3O/iX5sFiQvyBpm13flp
+	 X2eenr2pp+5zswcnNKmk3ElRQreup2NIsmOxiiOxz+jBZQ/zKUnWPGV8l2XmRbQ5JS
+	 rKP0UAx0ks9D4CA2mX9TfqLSMUNhPKL+JW+pqHd4=
+Received: from mail.red54.com ([2a09:bac1:31a0::16:15f])
+	by newxmesmtplogicsvrszb9-0.qq.com (NewEsmtp) with SMTP
+	id 3D28F829; Tue, 20 Aug 2024 17:15:18 +0800
+X-QQ-mid: xmsmtpt1724145318tiv0svwd3
+Message-ID: <tencent_E5B5CB5FC9F34CBBC4CF5CA0176D764FBD06@qq.com>
+X-QQ-XMAILINFO: OKkKo7I1HxIebRKxeia8gnZzY5kerGl41GT4a8GqZQtG7LLWZexfw9ezsOC5FA
+	 cGDJBYtbj0yfdMYhY2Rl6/jwosZ5yuXEloSBt0F128LeNk0/z7J1Mxs422+UvBlrwC/48VTkMCmG
+	 WKqM2IqjGKx/VStZXJ7k7EyIHt4TMIgxnFn9pGgLpM/PAodKBNdSayS4VBSJFmnNIWo7w6OWq94a
+	 Gq8tWzuB8qMLODnO0waHhVV4BFunmu/RkTt1B6xt7JyumuXi++tw7oE4AaLRkDw897CA70Zhec8Y
+	 6L84VHmD9GsJYeily6tIAW9UNIi2wwi+Oedwz8ock1zl+apVJb8rlJgbMW/toQHaNW1UXco79AmP
+	 unvgfwwaodFF2ID4sSRiHM1vhA7PDplojYvhChD75jwA5njSa2eDXgKPriJROZWhKIOFi8UT3bYM
+	 +7w1f7c2krGaQXevvmSYkYtFNWNLRfkZh4RdAbPr5CuTgFppBxZJRUReebSdzSC2QC0lpdfZiVBm
+	 dLRP3wEOYoqKEFddklULH9Q8pIbCSD8ISxr4kK5gu4GY6z9mYgdaznQ+h4vhgTD8z/ywm0fQouqT
+	 7nsT2xZZNJWMOVQbZmslhpQVJDAm2suCCBLP5Ebyf2+t63LSz2sRDbhQTo1OaL4KOaiTJtqb8u4N
+	 dSHCxQSBMmg2gs/imm32wBdcLLL92SuJmqsKwNurtZ5fDWO3WHHiGWjaKmz2FcZNUI+4waEmimDa
+	 OZF45ycPYhz+N45GaBBpvU0+2qyhJEhjjibCTKVwT0Wd8Pag5dmTN8lsiLukcSD11ISg4cVLg1I4
+	 LMUU5hq6/HQmcV8WELDpbf7N9O3YV4NhL2Xy9yOr+5MAfIYRBgmgldXiJ4CXXAkTf6XaOFqgyMKC
+	 y743uAPdBY2xJS3dqc0nnlnkt6B5McZcvoBqyP74XqMXcYFMyIqIuv0IJU8H+aHo+lI9BWMxlW5u
+	 oXZfTRkpHKZJYX4oaSQQiyBIBm0xWnkM5itkqIDQk2o+DS8FCEZCnE/CZi196/dZ0xAVGyZOHKhG
+	 BEtF8GEMEAY5tkC/PdYefTyYzl3QB5zbzYQpnp0CB0APfNt1ik0jOGQ/tccWNvSL6Pr/BizQ==
+X-QQ-XMRINFO: NyFYKkN4Ny6FSmKK/uo/jdU=
+Sender: yeking@red54.com
+From: =?UTF-8?q?=E8=B0=A2=E8=87=B4=E9=82=A6=20=28XIE=20Zhibang=29?= <Yeking@Red54.com>
+To: netfilter-devel@vger.kernel.org
+Cc: =?UTF-8?q?=E8=B0=A2=E8=87=B4=E9=82=A6=20=28XIE=20Zhibang=29?= <Yeking@Red54.com>
+Subject: [nft PATCH] doc: Update outdated info
+Date: Tue, 20 Aug 2024 09:15:03 +0000
+X-OQ-MSGID: <20240820091503.195-1-Yeking@Red54.com>
+X-Mailer: git-send-email 2.43.5
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-The nft_counter uses two s64 counters for statistics. Those two are
-protected by a seqcount to ensure that the 64bit variable is always
-properly seen during updates even on 32bit architectures where the store
-is performed by two writes. A side effect is that the two counter (bytes
-and packet) are written and read together in the same window.
+inet family supports route type.
+unicast pkttype changed to host pkttype.
 
-This can be replaced with u64_stats_t. write_seqcount_begin()/ end() is
-replaced with u64_stats_update_begin()/ end() and behaves the same way
-as with seqcount_t on 32bit architectures. Additionally there is a
-preempt_disable on PREEMPT_RT to ensure that a reader does not preempt a
-writer.
-On 64bit architectures the macros are removed and the reads happen
-without any retries. This also means that the reader can observe one
-counter (bytes) from before the update and the other counter (packets)
-but that is okay since there is no requirement to have both counter from
-the same update window.
-
-Convert the statistic to u64_stats_t. There is one optimisation:
-nft_counter_do_init() and nft_counter_clone() allocate a new per-CPU
-counter and assign a value to it. During this assignment preemption is
-disabled which is not needed because the counter is not yet exposed to
-the system so there can not be another writer or reader. Therefore
-disabling preemption is omitted and raw_cpu_ptr() is used to obtain a
-pointer to a counter for the assignment.
-
-Cc: Eric Dumazet <edumazet@google.com>
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Signed-off-by: 谢致邦 (XIE Zhibang) <Yeking@Red54.com>
 ---
- net/netfilter/nft_counter.c | 90 +++++++++++++++++++------------------
- 1 file changed, 46 insertions(+), 44 deletions(-)
+ doc/nft.txt        | 2 +-
+ doc/statements.txt | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
-index eab0dc66bee6b..cc73253294963 100644
---- a/net/netfilter/nft_counter.c
-+++ b/net/netfilter/nft_counter.c
-@@ -8,7 +8,7 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/module.h>
--#include <linux/seqlock.h>
-+#include <linux/u64_stats_sync.h>
- #include <linux/netlink.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
-@@ -17,6 +17,11 @@
- #include <net/netfilter/nf_tables_offload.h>
-=20
- struct nft_counter {
-+	u64_stats_t	bytes;
-+	u64_stats_t	packets;
-+};
-+
-+struct nft_counter_tot {
- 	s64		bytes;
- 	s64		packets;
- };
-@@ -25,25 +30,24 @@ struct nft_counter_percpu_priv {
- 	struct nft_counter __percpu *counter;
- };
-=20
--static DEFINE_PER_CPU(seqcount_t, nft_counter_seq);
-+static DEFINE_PER_CPU(struct u64_stats_sync, nft_counter_sync);
-=20
- static inline void nft_counter_do_eval(struct nft_counter_percpu_priv *pri=
-v,
- 				       struct nft_regs *regs,
- 				       const struct nft_pktinfo *pkt)
- {
-+	struct u64_stats_sync *nft_sync;
- 	struct nft_counter *this_cpu;
--	seqcount_t *myseq;
-=20
- 	local_bh_disable();
- 	this_cpu =3D this_cpu_ptr(priv->counter);
--	myseq =3D this_cpu_ptr(&nft_counter_seq);
-+	nft_sync =3D this_cpu_ptr(&nft_counter_sync);
-=20
--	write_seqcount_begin(myseq);
-+	u64_stats_update_begin(nft_sync);
-+	u64_stats_add(&this_cpu->bytes, pkt->skb->len);
-+	u64_stats_inc(&this_cpu->packets);
-+	u64_stats_update_end(nft_sync);
-=20
--	this_cpu->bytes +=3D pkt->skb->len;
--	this_cpu->packets++;
--
--	write_seqcount_end(myseq);
- 	local_bh_enable();
- }
-=20
-@@ -66,17 +70,16 @@ static int nft_counter_do_init(const struct nlattr * co=
-nst tb[],
- 	if (cpu_stats =3D=3D NULL)
- 		return -ENOMEM;
-=20
--	preempt_disable();
--	this_cpu =3D this_cpu_ptr(cpu_stats);
-+	this_cpu =3D raw_cpu_ptr(cpu_stats);
- 	if (tb[NFTA_COUNTER_PACKETS]) {
--	        this_cpu->packets =3D
--			be64_to_cpu(nla_get_be64(tb[NFTA_COUNTER_PACKETS]));
-+		u64_stats_set(&this_cpu->packets,
-+			      be64_to_cpu(nla_get_be64(tb[NFTA_COUNTER_PACKETS])));
- 	}
- 	if (tb[NFTA_COUNTER_BYTES]) {
--		this_cpu->bytes =3D
--			be64_to_cpu(nla_get_be64(tb[NFTA_COUNTER_BYTES]));
-+		u64_stats_set(&this_cpu->bytes,
-+			      be64_to_cpu(nla_get_be64(tb[NFTA_COUNTER_BYTES])));
- 	}
--	preempt_enable();
-+
- 	priv->counter =3D cpu_stats;
- 	return 0;
- }
-@@ -104,40 +107,41 @@ static void nft_counter_obj_destroy(const struct nft_=
-ctx *ctx,
- }
-=20
- static void nft_counter_reset(struct nft_counter_percpu_priv *priv,
--			      struct nft_counter *total)
-+			      struct nft_counter_tot *total)
- {
-+	struct u64_stats_sync *nft_sync;
- 	struct nft_counter *this_cpu;
--	seqcount_t *myseq;
-=20
- 	local_bh_disable();
- 	this_cpu =3D this_cpu_ptr(priv->counter);
--	myseq =3D this_cpu_ptr(&nft_counter_seq);
-+	nft_sync =3D this_cpu_ptr(&nft_counter_sync);
-+
-+	u64_stats_update_begin(nft_sync);
-+	u64_stats_add(&this_cpu->packets, -total->packets);
-+	u64_stats_add(&this_cpu->bytes, -total->bytes);
-+	u64_stats_update_end(nft_sync);
-=20
--	write_seqcount_begin(myseq);
--	this_cpu->packets -=3D total->packets;
--	this_cpu->bytes -=3D total->bytes;
--	write_seqcount_end(myseq);
- 	local_bh_enable();
- }
-=20
- static void nft_counter_fetch(struct nft_counter_percpu_priv *priv,
--			      struct nft_counter *total)
-+			      struct nft_counter_tot *total)
- {
- 	struct nft_counter *this_cpu;
--	const seqcount_t *myseq;
- 	u64 bytes, packets;
- 	unsigned int seq;
- 	int cpu;
-=20
- 	memset(total, 0, sizeof(*total));
- 	for_each_possible_cpu(cpu) {
--		myseq =3D per_cpu_ptr(&nft_counter_seq, cpu);
-+		struct u64_stats_sync *nft_sync =3D per_cpu_ptr(&nft_counter_sync, cpu);
-+
- 		this_cpu =3D per_cpu_ptr(priv->counter, cpu);
- 		do {
--			seq	=3D read_seqcount_begin(myseq);
--			bytes	=3D this_cpu->bytes;
--			packets	=3D this_cpu->packets;
--		} while (read_seqcount_retry(myseq, seq));
-+			seq	=3D u64_stats_fetch_begin(nft_sync);
-+			bytes	=3D u64_stats_read(&this_cpu->bytes);
-+			packets	=3D u64_stats_read(&this_cpu->packets);
-+		} while (u64_stats_fetch_retry(nft_sync, seq));
-=20
- 		total->bytes	+=3D bytes;
- 		total->packets	+=3D packets;
-@@ -148,7 +152,7 @@ static int nft_counter_do_dump(struct sk_buff *skb,
- 			       struct nft_counter_percpu_priv *priv,
- 			       bool reset)
- {
--	struct nft_counter total;
-+	struct nft_counter_tot total;
-=20
- 	nft_counter_fetch(priv, &total);
-=20
-@@ -237,7 +241,7 @@ static int nft_counter_clone(struct nft_expr *dst, cons=
-t struct nft_expr *src, g
- 	struct nft_counter_percpu_priv *priv_clone =3D nft_expr_priv(dst);
- 	struct nft_counter __percpu *cpu_stats;
- 	struct nft_counter *this_cpu;
--	struct nft_counter total;
-+	struct nft_counter_tot total;
-=20
- 	nft_counter_fetch(priv, &total);
-=20
-@@ -245,11 +249,9 @@ static int nft_counter_clone(struct nft_expr *dst, con=
-st struct nft_expr *src, g
- 	if (cpu_stats =3D=3D NULL)
- 		return -ENOMEM;
-=20
--	preempt_disable();
--	this_cpu =3D this_cpu_ptr(cpu_stats);
--	this_cpu->packets =3D total.packets;
--	this_cpu->bytes =3D total.bytes;
--	preempt_enable();
-+	this_cpu =3D raw_cpu_ptr(cpu_stats);
-+	u64_stats_set(&this_cpu->packets, total.packets);
-+	u64_stats_set(&this_cpu->bytes, total.bytes);
-=20
- 	priv_clone->counter =3D cpu_stats;
- 	return 0;
-@@ -267,17 +269,17 @@ static void nft_counter_offload_stats(struct nft_expr=
- *expr,
- 				      const struct flow_stats *stats)
- {
- 	struct nft_counter_percpu_priv *priv =3D nft_expr_priv(expr);
-+	struct u64_stats_sync *nft_sync;
- 	struct nft_counter *this_cpu;
--	seqcount_t *myseq;
-=20
- 	local_bh_disable();
- 	this_cpu =3D this_cpu_ptr(priv->counter);
--	myseq =3D this_cpu_ptr(&nft_counter_seq);
-+	nft_sync =3D this_cpu_ptr(&nft_counter_sync);
-=20
--	write_seqcount_begin(myseq);
--	this_cpu->packets +=3D stats->pkts;
--	this_cpu->bytes +=3D stats->bytes;
--	write_seqcount_end(myseq);
-+	u64_stats_update_begin(nft_sync);
-+	u64_stats_add(&this_cpu->packets, stats->pkts);
-+	u64_stats_add(&this_cpu->bytes, stats->bytes);
-+	u64_stats_update_end(nft_sync);
- 	local_bh_enable();
- }
-=20
-@@ -286,7 +288,7 @@ void nft_counter_init_seqcount(void)
- 	int cpu;
-=20
- 	for_each_possible_cpu(cpu)
--		seqcount_init(per_cpu_ptr(&nft_counter_seq, cpu));
-+		u64_stats_init(per_cpu_ptr(&nft_counter_sync, cpu));
- }
-=20
- struct nft_expr_type nft_counter_type;
---=20
-2.45.2
+diff --git a/doc/nft.txt b/doc/nft.txt
+index 7e8c8695..846ccfb2 100644
+--- a/doc/nft.txt
++++ b/doc/nft.txt
+@@ -423,7 +423,7 @@ Chains of this type perform Native Address Translation based on conntrack
+ entries. Only the first packet of a connection actually traverses this chain -
+ its rules usually define details of the created conntrack entry (NAT
+ statements for instance).
+-|route | ip, ip6 | output |
++|route | ip, ip6, inet | output |
+ If a packet has traversed a chain of this type and is about to be accepted, a
+ new route lookup is performed if relevant parts of the IP header have changed.
+ This allows one to e.g. implement policy routing selectors in nftables.
+diff --git a/doc/statements.txt b/doc/statements.txt
+index 39b31fd2..5becf0cb 100644
+--- a/doc/statements.txt
++++ b/doc/statements.txt
+@@ -56,7 +56,7 @@ set ip DSCP (diffserv) header field or ipv6 flow labels.
+ ---------------------------------------
+ # redirect tcp:http from 192.160.0.0/16 to local machine for routing instead of bridging
+ # assumes 00:11:22:33:44:55 is local MAC address.
+-bridge input meta iif eth0 ip saddr 192.168.0.0/16 tcp dport 80 meta pkttype set unicast ether daddr set 00:11:22:33:44:55
++bridge input meta iif eth0 ip saddr 192.168.0.0/16 tcp dport 80 meta pkttype set host ether daddr set 00:11:22:33:44:55
+ -------------------------------------------
+ 
+ .Set IPv4 DSCP header field
+-- 
+2.34.1
 
