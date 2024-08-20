@@ -1,31 +1,31 @@
-Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
+Received: from szxga06-in.huawei.com (szxga06-in.huawei.com [45.249.212.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 784CF18FDB7;
-	Tue, 20 Aug 2024 12:32:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FA0C1CAAC;
+	Tue, 20 Aug 2024 12:35:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.32
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724157142; cv=none; b=I8WaJgYZjpEHq77IgS05+EBv88xcN/Grb4MQEwyYmRPL1fu/OQsKdMGnxCdqYR4i4bDBYcKizz2LGH6bJ5/9fOK0K1254MSB0alT57mSJitgXAFjCekOX/AJidIkJt4U8hoyhqtMQmDfCDsFytQ7q1ZsGLYRo1V7j36Y+Dnkx/A=
+	t=1724157319; cv=none; b=iQZIbpDwA7zp1dTAzbvj8XsUlHjgdYDD8iHK0PCSwCvmSFvCHJyH269IElfoF8VadANZ56EIlb72Mbs9QUMOwnOUl2QA77cdovq/j8rxyISkXqH/XcwcVOUXJ1Ib85YoRZAEhhBJ6bn2rfhzpJ4vjGiguJFn8ChaJeHzUipf5Vs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724157142; c=relaxed/simple;
-	bh=0gVkYi5xoB6ZD/MyFff6jmqNz/K/xJkYBvUN6uZEgwA=;
+	s=arc-20240116; t=1724157319; c=relaxed/simple;
+	bh=415Fb8uqy2cFtBUvuX9/gHoPeXRnPBzOx+JeiNL8l7U=;
 	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=T8VoWbVwpgMaOzFd/AFrZTIfdDKH/NPAdORE9QnlKwiwPAv5ltbI2RinlDf1rHOSr8VYXj362vWGgGMuCO3dkaH+q0HZInWXyMDqp1uFu9p/GbzBYVDVfRtDaesHiv073d/WvOduDbFx5TrreCWPRBfl0qExjNeHuAiZY6Hd7oI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.190
+	 In-Reply-To:Content-Type; b=Pag5Yd0wE4tUm/s5hBcfR91lkFrS5YfaJq5nVE/SX3yqMF8yVsfkr9ZR0XNWnhhAnSidW1pu8h0kl5Q5XIiaDmJOnYGDFdbjn1f/l7a+B9ZeUK0025VQmaW8c3JHPP/5UTf+JVCl32xMGK1ph4GmaMlCQkVE7LiuSagGchqNfgQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.32
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
-Received: from mail.maildlp.com (unknown [172.19.163.44])
-	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4Wp7yB3cPXz2CmvJ;
-	Tue, 20 Aug 2024 20:27:14 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.163.17])
+	by szxga06-in.huawei.com (SkyGuard) with ESMTP id 4Wp85B1tdNz1xvR6;
+	Tue, 20 Aug 2024 20:33:18 +0800 (CST)
 Received: from dggpemm500020.china.huawei.com (unknown [7.185.36.49])
-	by mail.maildlp.com (Postfix) with ESMTPS id 519F41401F2;
-	Tue, 20 Aug 2024 20:32:14 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 5EEDC1A0188;
+	Tue, 20 Aug 2024 20:35:12 +0800 (CST)
 Received: from [10.123.123.159] (10.123.123.159) by
  dggpemm500020.china.huawei.com (7.185.36.49) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.39; Tue, 20 Aug 2024 20:32:10 +0800
-Message-ID: <2f67fa30-d4e6-3a1b-7166-eee33c734899@huawei-partners.com>
-Date: Tue, 20 Aug 2024 15:32:06 +0300
+ 15.1.2507.39; Tue, 20 Aug 2024 20:35:08 +0800
+Message-ID: <90d249af-0c6a-252d-7c91-668f31fb94e1@huawei-partners.com>
+Date: Tue, 20 Aug 2024 15:35:04 +0300
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -44,15 +44,17 @@ CC: <mic@digikod.net>, <willemdebruijn.kernel@gmail.com>,
 	<konstantin.meskhidze@huawei.com>
 References: <20240814030151.2380280-1-ivanov.mikhail1@huawei-partners.com>
  <20240814030151.2380280-4-ivanov.mikhail1@huawei-partners.com>
- <ZsO-pIGsTl6T5AL1@google.com>
+ <ZsO-6EC1UYX5pHxl@google.com>
 From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-In-Reply-To: <ZsO-pIGsTl6T5AL1@google.com>
+In-Reply-To: <ZsO-6EC1UYX5pHxl@google.com>
 Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
 X-ClientProxiedBy: lhrpeml500002.china.huawei.com (7.191.160.78) To
  dggpemm500020.china.huawei.com (7.185.36.49)
 
-8/20/2024 12:52 AM, Günther Noack wrote:
+8/20/2024 12:53 AM, Günther Noack wrote:
+> Some comment nits I forgot, see below.
+> 
 > On Wed, Aug 14, 2024 at 11:01:45AM +0800, Mikhail Ivanov wrote:
 >> * Add listen_variant() to simplify listen(2) return code checking.
 >> * Rename test_bind_and_connect() to test_restricted_net_fixture().
@@ -104,25 +106,6 @@ X-ClientProxiedBy: lhrpeml500002.china.huawei.com (7.191.160.78) To
 >>   }
 >>   
 >> +static int listen_variant(const int sock_fd, const int backlog)
-> 
-> I believe socket_variant(), connect_variant() and bind_variant() were called
-> like that because they got an instance of a service_fixture as an argument.  The
-> fixture instances are called variants.  But we don't use these fixtures here.
-> 
-> In fs_test.c, we also have some functions that behave much like system calls,
-> but clean up after themselves and return errno, for easier use in assert.  The
-> naming scheme we have used there is "test_foo" (e.g. test_open()).  I think this
-> would be more appropriate here as a name?
-I think such naming is suitable when a function represents a simple
-separate test for specific operation that doesn't affect the behavior
-of the caller. In current case we just need a wrapper under listen(2)
-which returns -errno on failure. Pros of "listen_variant()" is that
-it follows the style of other tested syscall helpers ("bind_variant()",
-..) but it does seem to be semantically incorrect indeed.
-
-I suggest using a listen(2) synonym - "do_listen()". WDYT?
-
-> 
 >> +{
 >> +	int ret;
 >> +
@@ -163,20 +146,6 @@ I suggest using a listen(2) synonym - "do_listen()". WDYT?
 >> +			} else {
 >> +				EXPECT_EQ(0, ret);
 >> +			}
-> 
-> Hmm, passing the expected error code instead of a boolean to this function was not possible?
-> Then you could just write
-> 
->    EXPECT_EQ(expected_listen_error, listen_variant(bind_fd, backlog));
-> 
-> ?  (Apologies if this was discussed already.)
-
-deny_* arguments are required not only to check an appropriate syscall
-behavior. They also test and control the behavior of other operations in
-the current helper (e.g. connect(2) returns -ECONNREFUSED on
-"deny_bind | deny_listen", listen(2) is not called if deny_bind is set).
-
-> 
 >> +		}
 >>   	}
 >>   
@@ -235,6 +204,12 @@ the current helper (e.g. connect(2) returns -ECONNREFUSED on
 >>   
 >> -		/* Allows connect and denies bind for the second port. */
 >> +		/* Allows all actions despite bind. */
+> 
+> s/despite/except/ would be more conventional English, I believe.
+
+will be fixed, thanks!
+
+> 
 >>   		ASSERT_EQ(0,
 >>   			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
 >> -					    &tcp_connect_p1, 0));
@@ -301,6 +276,12 @@ the current helper (e.g. connect(2) returns -ECONNREFUSED on
 >>   
 >> -		/* Allows bind and denies connect for the second port. */
 >> +		/* Allows all actions despite connect. */
+> 
+> Same here.
+
+will be fixed also
+
+> 
 >>   		ASSERT_EQ(0,
 >>   			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
 >> -					    &tcp_bind_p1, 0));
@@ -524,5 +505,3 @@ the current helper (e.g. connect(2) returns -ECONNREFUSED on
 >> -- 
 >> 2.34.1
 >>
-> 
-> —Günther
