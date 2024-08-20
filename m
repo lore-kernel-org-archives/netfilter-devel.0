@@ -1,22 +1,22 @@
 Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 178FD1C6A1
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 Aug 2024 08:06:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 522CC18952F
+	for <netfilter-devel@vger.kernel.org>; Tue, 20 Aug 2024 08:06:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724141214; cv=none; b=tcWjZ0gp8jPhWwzxCEQSUawKDYaZkLfQD2uKArOFnCoEixHaL5lgqvoI/efV+UrT6nqDi2l5nc1zIBkg6zohbdDnZyvmkt+8ycUJovk89zdNxvPKTpbCnMGhk5x4S+pUuP0YH6H5X1+CRfGv7POnAXcRh3UiqHIPZZKqYWp1LWA=
+	t=1724141214; cv=none; b=KMa6VbWlq/sinOICR4Ti7kWKW6vU95crY1TeE6i0ySdVX1+5eylAy8fAU5YKsPHDJD9Y/M7eFg1RvXMJnlQxxhRW+SBmcmERs9f807xinqdMt4aXTeCPvIFbjOnuL/yEkUxyTfH8iLQ3cSI6/aNq6e1W89gZIV3yWVBiWcOabCE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1724141214; c=relaxed/simple;
-	bh=Ef4CBip1JtOYX+Gy5irzHNZ9foL9y8R9Np44rEZQvz0=;
+	bh=yfjRpTsxEWS+++tERPoAw/urstNxqquT5AnayrExxto=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=eoLsDd6ULaPLnmXh8WrMRONwLCJyGT0ixIbMf9mdWdeX1R7of3h2vBF8XZ+zJ8KGvbzu1mrqjxhZ4ouyh4CLRix4KCaINPOIDS+3pHJ+W5tJCNcfrC/YxRf0Ev5Fb3MSw4lLLutTp7WXBl6SfzPHsjNOycMXmU8lYTb4nxG6TzU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=lOBYelxE; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=FbVopfhF; arc=none smtp.client-ip=193.142.43.55
+	 MIME-Version; b=si/hmTWvyOc2XgiQ8HDSVjel9LGzvAB5eSCM5W/U/vx7i8eTycRaOML8HP09MXVVYbV+9S018qN/hXEJ4q41MNkn1+zjluS4NIntxz1GMxkKRtI8anlKfnEAbUeYXnx+bO5eLNgpWUDW7kB1vk5uvJ42fSuOUkhgFu6Dh7ApE9A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=sY2KwUrA; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=1HoFQXXT; arc=none smtp.client-ip=193.142.43.55
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="lOBYelxE";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="FbVopfhF"
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="sY2KwUrA";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="1HoFQXXT"
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
 	s=2020; t=1724141211;
@@ -24,30 +24,30 @@ DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=OLnGeNvWwQg9Zl3fXaXKnU+a07YVrEpb8t4nsy5w3pQ=;
-	b=lOBYelxEnZ6y+wbeKD/Y/agbQ7Iyc7+P2UfyHCyUR517r81xtrwSwpcJ/j2CE45F+WqB14
-	q0r5sscw95kcvaDhJl13UfzYuaXWTmTX5kaVCyKqxNIjwFFm5CpOBpETSjDuBIneHO+yEJ
-	A+K3XzyqYacc2BkMw4cflui3nn1cksLK1sadaaj0gbP3JQLU0VrylgDgN+6gm9YgvKwGxm
-	pkX17ntcU3HuQpb0n8IVfJ/aUuV/GoQ7rS1FV+Iu1zXSfoXI4XqhuLL+WLIU75Dff6uK7t
-	jpekcx6oEwPzNf1QE0uE+iUmqSSLKKj4CkSnkM/kFPxFBvRpwB4exp+h9OalkQ==
+	bh=9s3upuQ57lCTz6JBjNkW/EibUw7QvchxIEXA3z4iqaQ=;
+	b=sY2KwUrADMbePM2aGbwCVIEcHLeUVzr5hOPP+eSxYk0EdQPAcHJ9EPuVTJ+mPUozgGbSds
+	JFZVyN5d+xdTYsdiK/xVxGMj7uiXq6IqQh5QMEpvmeq67QMDjgW34yzDNs3WH8arbbIP97
+	98B5euV8NbacCup97KbMuywYy2KoybvlD0CGaye64MaPKUBJp7u8OF9RSURFPRY4EvcBIs
+	CsWGxL14qOhjYpG5lO+KV2uvEMrORYj6P9X+qSvmMtbx8MYH50av74xhZZ66E7Roc0JTrH
+	3ThGe2Kqei6dsLxgfsS5mCJV4t8ey8W9GrQnpVOrus3v2vZDxOZq7OMt3J2DvA==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
 	s=2020e; t=1724141211;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=OLnGeNvWwQg9Zl3fXaXKnU+a07YVrEpb8t4nsy5w3pQ=;
-	b=FbVopfhFBrpAvYhUJucgVQqRpW6ANxQQoLfJCCXZcFSfQuCNSczf1smlQ5dK6jqXHvn/Z2
-	D/pEXFGcp6V8r9CQ==
+	bh=9s3upuQ57lCTz6JBjNkW/EibUw7QvchxIEXA3z4iqaQ=;
+	b=1HoFQXXTVYK9u9FugVItBARwEifDrKq2n6F/jaWnN7Y0/1Xk7WBVLALCt58BPjROabUafv
+	44xhyF0grq92XmAg==
 To: netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Jozsef Kadlecsik <kadlec@netfilter.org>,
 	Thomas Gleixner <tglx@linutronix.de>,
 	Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH net 1/3] netfilter: nft_counter: Disable BH in nft_counter_offload_stats().
-Date: Tue, 20 Aug 2024 09:54:30 +0200
-Message-ID: <20240820080644.2642759-2-bigeasy@linutronix.de>
+Subject: [PATCH net 2/3] netfilter: nft_counter: Synchronize nft_counter_reset() against reader.
+Date: Tue, 20 Aug 2024 09:54:31 +0200
+Message-ID: <20240820080644.2642759-3-bigeasy@linutronix.de>
 In-Reply-To: <20240820080644.2642759-1-bigeasy@linutronix.de>
 References: <20240820080644.2642759-1-bigeasy@linutronix.de>
 Precedence: bulk
@@ -58,49 +58,42 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 
-The sequence counter nft_counter_seq is a per-CPU counter. There is no
-lock associated with it. nft_counter_do_eval() is using the same counter
-and disables BH which suggest that it can be invoked from a softirq.
-This in turn means that nft_counter_offload_stats(), which disables only
-preemption, can be interrupted by nft_counter_do_eval() leading to two
-writer for one seqcount_t.
-This can lead to loosing stats or reading statistics while they are
-updated.
+nft_counter_reset() resets the counter by subtracting the previously
+retrieved value from the counter. This is a write operation on the
+counter and as such it requires to be performed with a write sequence of
+nft_counter_seq to serialize against its possible reader.
 
-Disable BH during stats update in nft_counter_offload_stats() to ensure
-one writer at a time.
+Update the packets/ bytes within write-sequence of nft_counter_seq.
 
-Fixes: b72920f6e4a9d ("netfilter: nftables: counter hardware offload suppor=
-t")
+Fixes: d84701ecbcd6a ("netfilter: nft_counter: rework atomic dump and reset=
+")
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- net/netfilter/nft_counter.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/nft_counter.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
 diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
-index 291ed2026367e..16f40b503d379 100644
+index 16f40b503d379..eab0dc66bee6b 100644
 --- a/net/netfilter/nft_counter.c
 +++ b/net/netfilter/nft_counter.c
-@@ -265,7 +265,7 @@ static void nft_counter_offload_stats(struct nft_expr *=
-expr,
+@@ -107,11 +107,16 @@ static void nft_counter_reset(struct nft_counter_perc=
+pu_priv *priv,
+ 			      struct nft_counter *total)
+ {
  	struct nft_counter *this_cpu;
- 	seqcount_t *myseq;
++	seqcount_t *myseq;
 =20
--	preempt_disable();
-+	local_bh_disable();
+ 	local_bh_disable();
  	this_cpu =3D this_cpu_ptr(priv->counter);
- 	myseq =3D this_cpu_ptr(&nft_counter_seq);
-=20
-@@ -273,7 +273,7 @@ static void nft_counter_offload_stats(struct nft_expr *=
-expr,
- 	this_cpu->packets +=3D stats->pkts;
- 	this_cpu->bytes +=3D stats->bytes;
- 	write_seqcount_end(myseq);
--	preempt_enable();
-+	local_bh_enable();
++	myseq =3D this_cpu_ptr(&nft_counter_seq);
++
++	write_seqcount_begin(myseq);
+ 	this_cpu->packets -=3D total->packets;
+ 	this_cpu->bytes -=3D total->bytes;
++	write_seqcount_end(myseq);
+ 	local_bh_enable();
  }
 =20
- void nft_counter_init_seqcount(void)
 --=20
 2.45.2
 
