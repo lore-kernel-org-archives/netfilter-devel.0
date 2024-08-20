@@ -1,31 +1,31 @@
-Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
+Received: from szxga07-in.huawei.com (szxga07-in.huawei.com [45.249.212.35])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7EAE1BDAB6;
-	Tue, 20 Aug 2024 18:27:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A22A1CAB8;
+	Tue, 20 Aug 2024 18:47:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.35
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724178446; cv=none; b=WyU0aR11R/Et0oCa5RmEZ12pY8TsrqIbOdkAN68uR4Rx/BJ4KC4gyMrIe5koOi8uw+ehZGkx90OL3PyieiGl42MjQx/ziaNTYFCqW6tgL8L3/7Y5z3ZvDszFmg3tFW/dlljKUg7WK2BufLVJUHV9zcCyJfDk+0oVHL3Zkd/CI6E=
+	t=1724179632; cv=none; b=ZbnCN6Ga6C+XKSFRkaWkVwU6TToRS2QqJkNzELp4WEYLKYR6niu9ZaA5ULmNA4EpAvpsswpr4sPxhCQeylFxkdotBsQ4yzuuIV1S6Q8SFX3OTbu6udjS6vEIyH5Xish42jp7qpMhT17iIkU68xtQxql8XA1lO6XoJvchNkT1Zvs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724178446; c=relaxed/simple;
-	bh=ghq0lebpUW+hx5lmIv7jFz34Nkpr+LNZz1Td5Jorx28=;
+	s=arc-20240116; t=1724179632; c=relaxed/simple;
+	bh=MI+6+AbYWVXAmOCQRTxhN1stH6g3sRSpWQLKOnWqCXk=;
 	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=aJMo7H1rXFh9BUVrBsSVWKXadviEJp2ixqwbroQbYyvZl018abx9/VuZJwLK4OFr1eDrGJn4XflZu7OMp1IXaCR8Bzc7nIKpBQLCaO1QJq0+2dCoPgTkBa5ygGR0t6yHB6MCtmZlLpAG7BevHa/3+vE7ROGbKM0x0czFQO5aiSU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.190
+	 In-Reply-To:Content-Type; b=F/7xrYfWLQeQ6cX/GDsTUOJIH11aCytOyKn+4YwIluwtUsrvSW8uDFfgN09nPtf94v6NUfJPOgJQP5wyto6nMmSGdBq/Y+4FKaigh3j3wCOvCumPDPwsQDVMkOlKzd2WIeDxEupbMvWYYqVXi+RcMreHZPXCVFwRVJEsed6soJI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.35
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
 Received: from mail.maildlp.com (unknown [172.19.163.17])
-	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4WpHxd3c3Lz2Cn4m;
-	Wed, 21 Aug 2024 02:27:17 +0800 (CST)
+	by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4WpJNQ6MF8z1S8DL;
+	Wed, 21 Aug 2024 02:47:02 +0800 (CST)
 Received: from dggpemm500020.china.huawei.com (unknown [7.185.36.49])
-	by mail.maildlp.com (Postfix) with ESMTPS id E7FBA1A0188;
-	Wed, 21 Aug 2024 02:27:18 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id E56991A0188;
+	Wed, 21 Aug 2024 02:47:04 +0800 (CST)
 Received: from [10.123.123.159] (10.123.123.159) by
  dggpemm500020.china.huawei.com (7.185.36.49) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.39; Wed, 21 Aug 2024 02:27:15 +0800
-Message-ID: <be3f4eea-3203-8af1-2e7f-e80fde30c45f@huawei-partners.com>
-Date: Tue, 20 Aug 2024 21:27:10 +0300
+ 15.1.2507.39; Wed, 21 Aug 2024 02:47:00 +0800
+Message-ID: <22dcebae-dc5d-0bf1-c686-d2f444558106@huawei-partners.com>
+Date: Tue, 20 Aug 2024 21:46:56 +0300
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -33,8 +33,7 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH v2 3/9] selftests/landlock: Support
- LANDLOCK_ACCESS_NET_LISTEN_TCP
+Subject: Re: [RFC PATCH v2 4/9] selftests/landlock: Test listening restriction
 Content-Language: ru
 To: =?UTF-8?Q?G=C3=BCnther_Noack?= <gnoack@google.com>
 CC: <mic@digikod.net>, <willemdebruijn.kernel@gmail.com>,
@@ -43,491 +42,240 @@ CC: <mic@digikod.net>, <willemdebruijn.kernel@gmail.com>,
 	<yusongping@huawei.com>, <artem.kuzin@huawei.com>,
 	<konstantin.meskhidze@huawei.com>
 References: <20240814030151.2380280-1-ivanov.mikhail1@huawei-partners.com>
- <20240814030151.2380280-4-ivanov.mikhail1@huawei-partners.com>
- <ZsO-pIGsTl6T5AL1@google.com> <ZsSW0H4FR3ElOPAy@google.com>
+ <20240814030151.2380280-5-ivanov.mikhail1@huawei-partners.com>
+ <ZsSMe1Ce4OiysGRu@google.com>
 From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-In-Reply-To: <ZsSW0H4FR3ElOPAy@google.com>
+In-Reply-To: <ZsSMe1Ce4OiysGRu@google.com>
 Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: lhrpeml100006.china.huawei.com (7.191.160.224) To
+X-ClientProxiedBy: lhrpeml100004.china.huawei.com (7.191.162.219) To
  dggpemm500020.china.huawei.com (7.185.36.49)
 
-8/20/2024 4:14 PM, Günther Noack wrote:
-> On Mon, Aug 19, 2024 at 11:52:36PM +0200, Günther Noack wrote:
->> On Wed, Aug 14, 2024 at 11:01:45AM +0800, Mikhail Ivanov wrote:
->>> * Add listen_variant() to simplify listen(2) return code checking.
->>> * Rename test_bind_and_connect() to test_restricted_net_fixture().
->>> * Extend current net rules with LANDLOCK_ACCESS_NET_LISTEN_TCP access.
->>> * Rename test port_specific.bind_connect_1023 to
->>>    port_specific.port_1023.
->>> * Check little endian port restriction for listen in
->>>    ipv4_tcp.port_endianness.
->>> * Some local renames and comment changes.
->>>
->>> Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
->>> ---
->>>   tools/testing/selftests/landlock/net_test.c | 198 +++++++++++---------
->>>   1 file changed, 107 insertions(+), 91 deletions(-)
->>>
->>> diff --git a/tools/testing/selftests/landlock/net_test.c b/tools/testing/selftests/landlock/net_test.c
->>> index f21cfbbc3638..8126f5c0160f 100644
->>> --- a/tools/testing/selftests/landlock/net_test.c
->>> +++ b/tools/testing/selftests/landlock/net_test.c
->>> @@ -2,7 +2,7 @@
->>>   /*
->>>    * Landlock tests - Network
->>>    *
->>> - * Copyright © 2022-2023 Huawei Tech. Co., Ltd.
->>> + * Copyright © 2022-2024 Huawei Tech. Co., Ltd.
->>>    * Copyright © 2023 Microsoft Corporation
->>>    */
->>>   
->>> @@ -22,6 +22,17 @@
->>>   
->>>   #include "common.h"
->>>   
->>> +/* clang-format off */
->>> +
->>> +#define ACCESS_LAST LANDLOCK_ACCESS_NET_LISTEN_TCP
->>> +
->>> +#define ACCESS_ALL ( \
->>> +	LANDLOCK_ACCESS_NET_BIND_TCP | \
->>> +	LANDLOCK_ACCESS_NET_CONNECT_TCP | \
->>> +	LANDLOCK_ACCESS_NET_LISTEN_TCP)
->>> +
->>> +/* clang-format on */
->>> +
->>>   const short sock_port_start = (1 << 10);
->>>   
->>>   static const char loopback_ipv4[] = "127.0.0.1";
->>> @@ -282,6 +293,16 @@ static int connect_variant(const int sock_fd,
->>>   	return connect_variant_addrlen(sock_fd, srv, get_addrlen(srv, false));
->>>   }
->>>   
->>> +static int listen_variant(const int sock_fd, const int backlog)
+8/20/2024 3:31 PM, Günther Noack wrote:
+> On Wed, Aug 14, 2024 at 11:01:46AM +0800, Mikhail Ivanov wrote:
+>> Add a test for listening restriction. It's similar to protocol.bind and
+>> protocol.connect tests.
 >>
->> I believe socket_variant(), connect_variant() and bind_variant() were called
->> like that because they got an instance of a service_fixture as an argument.  The
->> fixture instances are called variants.  But we don't use these fixtures here.
+>> Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+>> ---
+>>   tools/testing/selftests/landlock/net_test.c | 44 +++++++++++++++++++++
+>>   1 file changed, 44 insertions(+)
 >>
->> In fs_test.c, we also have some functions that behave much like system calls,
->> but clean up after themselves and return errno, for easier use in assert.  The
->> naming scheme we have used there is "test_foo" (e.g. test_open()).  I think this
->> would be more appropriate here as a name?
->>
->>> +{
->>> +	int ret;
->>> +
->>> +	ret = listen(sock_fd, backlog);
->>> +	if (ret < 0)
->>> +		return -errno;
->>> +	return ret;
+>> diff --git a/tools/testing/selftests/landlock/net_test.c b/tools/testing/selftests/landlock/net_test.c
+>> index 8126f5c0160f..b6fe9bde205f 100644
+>> --- a/tools/testing/selftests/landlock/net_test.c
+>> +++ b/tools/testing/selftests/landlock/net_test.c
+>> @@ -689,6 +689,50 @@ TEST_F(protocol, connect)
+>>   				    restricted, restricted);
+>>   }
+>>   
+>> +TEST_F(protocol, listen)
+>> +{
+>> +	if (variant->sandbox == TCP_SANDBOX) {
+>> +		const struct landlock_ruleset_attr ruleset_attr = {
+>> +			.handled_access_net = ACCESS_ALL,
+>> +		};
+>> +		const struct landlock_net_port_attr tcp_not_restricted_p0 = {
+>> +			.allowed_access = ACCESS_ALL,
+>> +			.port = self->srv0.port,
+>> +		};
+>> +		const struct landlock_net_port_attr tcp_denied_listen_p1 = {
+>> +			.allowed_access = ACCESS_ALL &
+>> +					  ~LANDLOCK_ACCESS_NET_LISTEN_TCP,
+>> +			.port = self->srv1.port,
+>> +		};
+>> +		int ruleset_fd;
+>> +
+>> +		ruleset_fd = landlock_create_ruleset(&ruleset_attr,
+>> +						     sizeof(ruleset_attr), 0);
 > 
-> listen() can only return -1 or 0.  It might be simpler to just return 0 here,
-> to make it more obvious that this returns an error code.
+> Nit: The declaration and the assignment of ruleset_fd can be merged into one
+> line and made const.  (Not a big deal, but it was done a bit more consistently
+> in the rest of the code, I think.)
 
-Agreed, thanks. I'll do such refactoring for the connect_variant() as
-well.
+Current variant is performed in every TEST_F() method. I assume that
+this is required in order to not make a mess by combining the
+ruleset_attr and several rule structures with the operation of creating
+ruleset. WDYT?
 
 > 
->>> +}
+>> +		ASSERT_LE(0, ruleset_fd);
+>> +
+>> +		/* Allows all actions for the first port. */
+>> +		ASSERT_EQ(0,
+>> +			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
+>> +					    &tcp_not_restricted_p0, 0));
+>> +
+>> +		/* Allows all actions despite listen. */
+>> +		ASSERT_EQ(0,
+>> +			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
+>> +					    &tcp_denied_listen_p1, 0));
+>> +
+>> +		enforce_ruleset(_metadata, ruleset_fd);
+>> +		EXPECT_EQ(0, close(ruleset_fd));
+>> +	}
 > 
-> Another remark about listen_variant(): The helper functions in net_test.c return
-> negative error codes, whereas the ones in fs_test.c return positive error codes.
-> We should probably make that more consistent.
+> This entire "if (variant->sandbox == TCP_SANDBOX)" conditional does the exact
+> same thing as the one from patch 5/9.  Should that (or parts of it) get
+> extracted into a suitable helper?
 
-socket_variant() returns positive descriptor in a case of success, so
-let's use negative ones.
-
-Should it be a separate patch btw?
+I don't think replacing
+	if (variant->sandbox == TCP_SANDBOX)
+with
+	if (is_tcp_sandbox(variant))
+will change anything, this condition is already quite simple. If
+you think that such helper is more convenient, I can add it.
 
 > 
->>> +
->>>   FIXTURE(protocol)
->>>   {
->>>   	struct service_fixture srv0, srv1, srv2, unspec_any0, unspec_srv0;
->>> @@ -438,9 +459,11 @@ FIXTURE_VARIANT_ADD(protocol, tcp_sandbox_with_unix_datagram) {
->>>   	},
->>>   };
->>>   
->>> -static void test_bind_and_connect(struct __test_metadata *const _metadata,
->>> -				  const struct service_fixture *const srv,
->>> -				  const bool deny_bind, const bool deny_connect)
->>> +static void test_restricted_net_fixture(struct __test_metadata *const _metadata,
->>> +					const struct service_fixture *const srv,
->>> +					const bool deny_bind,
->>> +					const bool deny_connect,
->>> +					const bool deny_listen)
->>>   {
->>>   	char buf = '\0';
->>>   	int inval_fd, bind_fd, client_fd, status, ret;
->>> @@ -512,8 +535,14 @@ static void test_bind_and_connect(struct __test_metadata *const _metadata,
->>>   		EXPECT_EQ(0, ret);
->>>   
->>>   		/* Creates a listening socket. */
->>> -		if (srv->protocol.type == SOCK_STREAM)
->>> -			EXPECT_EQ(0, listen(bind_fd, backlog));
->>> +		if (srv->protocol.type == SOCK_STREAM) {
->>> +			ret = listen_variant(bind_fd, backlog);
->>> +			if (deny_listen) {
->>> +				EXPECT_EQ(-EACCES, ret);
->>> +			} else {
->>> +				EXPECT_EQ(0, ret);
->>> +			}
+>> +	bool restricted = is_restricted(&variant->prot, variant->sandbox);
+>> +
+>> +	test_restricted_net_fixture(_metadata, &self->srv0, false, false,
+>> +				    false);
+>> +	test_restricted_net_fixture(_metadata, &self->srv1, false, false,
+>> +				    restricted);
+>> +	test_restricted_net_fixture(_metadata, &self->srv2, restricted,
+>> +				    restricted, restricted);
+> 
+> If we start having logic and conditionals in the test implementation (in this
+> case, in test_restricted_test_fixture()), this might be a sign that that test
+> implementation should maybe be split apart?  Once the test is as complicated as
+> the code under test, it does not simplify our confidence in the code much any
+> more?
+> 
+> (It is often considered bad practice to put conditionals in tests, e.g. in
+> https://testing.googleblog.com/2014/07/testing-on-toilet-dont-put-logic-in.html)
+> 
+> Do you think we have a way to simplify that?
+
+I agree.. using 3 external booleans to control behavior of the
+test is really messy. I believe the best we can do to avoid this is to
+split "test_restricted_net_fixture()" into few independent tests. For
+example we can turn this call:
+
+	test_restricted_net_fixture(_metadata, &self->srv0, false,
+		false, false);
+
+into multiple smaller tests:
+
+	/* Tries to bind with invalid and minimal addrlen. */
+	EXPECT_EQ(0, TEST_BIND(&self->srv0));
+
+	/* Tries to connect with invalid and minimal addrlen. */
+	EXPECT_EQ(0, TEST_CONNECT(&self->srv0));
+
+	/* Tries to listen. */
+	EXPECT_EQ(0, TEST_LISTEN(&self->srv0));
+
+	/* Connection tests. */
+	EXPECT_EQ(0, TEST_CLIENT_SERVER(&self->srv0));
+
+Each test is wrapped in a macro that implicitly passes _metadata argument.
+
+This case in which every access is allowed can be wrapped in a macro:
+
+	TEST_UNRESTRICTED_NET_FIXTURE(&self->srv0);
+
+Such approach has following cons though:
+* A lot of duplicated code. These small helpers should be added to every
+   test that uses "test_restricted_net_fixture()". Currently there
+   are 16 calls of this helper.
+
+* There is wouldn't be a single entity that is used to test a network
+   under different sandbox scenarios. If we split the helper each test
+   should care about (1) sandboxing, (2) running all required tests. For
+   example TEST_LISTEN() and TEST_CLIENT_SERVER() could not be called if
+   bind is restricted.
+
+For example protocol.bind test would have following lines after
+"test_restricted_net_fixture()" is removed:
+
+	TEST_UNRESTRICTED_NET_FIXTURE(&self->srv0);
+
+	if (is_restricted(&variant->prot, variant->sandbox)) {
+		EXPECT_EQ(-EACCES, TEST_BIND(&self->srv1));
+		EXPECT_EQ(0, TEST_CONNECT(&self->srv1));
+
+		EXPECT_EQ(-EACCES, TEST_BIND(&self->srv2));
+		EXPECT_EQ(-EACCES, TEST_CONNECT(&self->srv2));
+	} else {
+		TEST_UNRESTRICTED_NET_FIXTURE(&self->srv1);
+		TEST_UNRESTRICTED_NET_FIXTURE(&self->srv2);
+	}
+
+I suggest leaving "test_restricted_net_fixture()" and refactor this
+booleans (in the way you suggested) in order not to lose simplicity in
+the testing:
+
+	bool restricted = is_restricted(&variant->prot,
+		variant->sandbox);
+
+	test_restricted_net_fixture(_metadata, &self->srv0,
+		(struct expected_net_enforcement){
+		.deny_bind = false,
+		.deny_connect = false,
+		.deny_listen = false
+	});
+	test_restricted_net_fixture(_metadata, &self->srv1,
+		(struct expected_net_enforcement){
+		.deny_bind = false,
+		.deny_connect = restricted,
+		.deny_listen = false
+	});
+	test_restricted_net_fixture(_metadata, &self->srv2,
+		(struct expected_net_enforcement){
+		.deny_bind = restricted,
+		.deny_connect = restricted,
+		.deny_listen = restricted
+	});
+
+But it's really not obvious design issue and splitting helper can really
+be a better solution. WDYT?
+
+> 
+> 
+> Readability remark: I am not that strongly invested in this idea, but in the
+> call to test_restricted_net_fixture(), it is difficult to understand "false,
+> false, false", without jumping around in the file.  Should we try to make this
+> more explicit?
+> 
+> I wonder whether we should just pass a struct, so that everything at least has a
+> name?
+> 
+>    test_restricted_net_fixture((struct expected_net_enforcement){
+>      .deny_bind = false,
+>      .deny_connect = false,
+>      .deny_listen = false,
+>    });
+> 
+> Then it would be clearer which boolean is which,
+> and you could use the fact that unspecified struct fields are zero-initialized?
+> 
+> (Alternatively, you could also spell out error codes here, instead of booleans.)
+
+Agreed, this is a best option for refactoring.
+
+I've also tried adding access_mask field to the service_fixture struct
+with all accesses allowed by default. In a test, then you just need to
+remove the necessary accesses after sandboxing:
+
+	if (is_restricted(&variant->prot, variant->sandbox))
+		clear_access(&self->srv2,
+			     LANDLOCK_ACCESS_NET_BIND_TCP |
+				     LANDLOCK_ACCESS_NET_CONNECT_TCP);
+
+	test_restricted_net_fixture(_metadata, &self->srv2);
+
+But this solution is too implicit for the helper. Passing struct would
+be better.
+
+> 
+>> +}
+>> +
+>>   TEST_F(protocol, bind_unspec)
+>>   {
+>>   	const struct landlock_ruleset_attr ruleset_attr = {
+>> -- 
+>> 2.34.1
 >>
->> Hmm, passing the expected error code instead of a boolean to this function was not possible?
->> Then you could just write
->>
->>    EXPECT_EQ(expected_listen_error, listen_variant(bind_fd, backlog));
->>
->> ?  (Apologies if this was discussed already.)
->>
->>> +		}
->>>   	}
->>>   
->>>   	child = fork();
->>> @@ -530,7 +559,7 @@ static void test_bind_and_connect(struct __test_metadata *const _metadata,
->>>   		ret = connect_variant(connect_fd, srv);
->>>   		if (deny_connect) {
->>>   			EXPECT_EQ(-EACCES, ret);
->>> -		} else if (deny_bind) {
->>> +		} else if (deny_bind || deny_listen) {
->>>   			/* No listening server. */
->>>   			EXPECT_EQ(-ECONNREFUSED, ret);
->>>   		} else {
->>> @@ -545,7 +574,7 @@ static void test_bind_and_connect(struct __test_metadata *const _metadata,
->>>   
->>>   	/* Accepts connection from the child. */
->>>   	client_fd = bind_fd;
->>> -	if (!deny_bind && !deny_connect) {
->>> +	if (!deny_bind && !deny_connect && !deny_listen) {
->>>   		if (srv->protocol.type == SOCK_STREAM) {
->>>   			client_fd = accept(bind_fd, NULL, 0);
->>>   			ASSERT_LE(0, client_fd);
->>> @@ -571,16 +600,15 @@ TEST_F(protocol, bind)
->>>   {
->>>   	if (variant->sandbox == TCP_SANDBOX) {
->>>   		const struct landlock_ruleset_attr ruleset_attr = {
->>> -			.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
->>> -					      LANDLOCK_ACCESS_NET_CONNECT_TCP,
->>> +			.handled_access_net = ACCESS_ALL,
->>>   		};
->>> -		const struct landlock_net_port_attr tcp_bind_connect_p0 = {
->>> -			.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
->>> -					  LANDLOCK_ACCESS_NET_CONNECT_TCP,
->>> +		const struct landlock_net_port_attr tcp_not_restricted_p0 = {
->>> +			.allowed_access = ACCESS_ALL,
->>>   			.port = self->srv0.port,
->>>   		};
->>> -		const struct landlock_net_port_attr tcp_connect_p1 = {
->>> -			.allowed_access = LANDLOCK_ACCESS_NET_CONNECT_TCP,
->>> +		const struct landlock_net_port_attr tcp_denied_bind_p1 = {
->>> +			.allowed_access = ACCESS_ALL &
->>> +					  ~LANDLOCK_ACCESS_NET_BIND_TCP,
->>>   			.port = self->srv1.port,
->>>   		};
->>>   		int ruleset_fd;
->>> @@ -589,48 +617,47 @@ TEST_F(protocol, bind)
->>>   						     sizeof(ruleset_attr), 0);
->>>   		ASSERT_LE(0, ruleset_fd);
->>>   
->>> -		/* Allows connect and bind for the first port.  */
->>> +		/* Allows all actions for the first port. */
->>>   		ASSERT_EQ(0,
->>>   			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
->>> -					    &tcp_bind_connect_p0, 0));
->>> +					    &tcp_not_restricted_p0, 0));
->>>   
->>> -		/* Allows connect and denies bind for the second port. */
->>> +		/* Allows all actions despite bind. */
->>>   		ASSERT_EQ(0,
->>>   			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
->>> -					    &tcp_connect_p1, 0));
->>> +					    &tcp_denied_bind_p1, 0));
->>>   
->>>   		enforce_ruleset(_metadata, ruleset_fd);
->>>   		EXPECT_EQ(0, close(ruleset_fd));
->>>   	}
->>> +	bool restricted = is_restricted(&variant->prot, variant->sandbox);
->>>   
->>>   	/* Binds a socket to the first port. */
->>> -	test_bind_and_connect(_metadata, &self->srv0, false, false);
->>> +	test_restricted_net_fixture(_metadata, &self->srv0, false, false,
->>> +				    false);
->>>   
->>>   	/* Binds a socket to the second port. */
->>> -	test_bind_and_connect(_metadata, &self->srv1,
->>> -			      is_restricted(&variant->prot, variant->sandbox),
->>> -			      false);
->>> +	test_restricted_net_fixture(_metadata, &self->srv1, restricted, false,
->>> +				    false);
->>>   
->>>   	/* Binds a socket to the third port. */
->>> -	test_bind_and_connect(_metadata, &self->srv2,
->>> -			      is_restricted(&variant->prot, variant->sandbox),
->>> -			      is_restricted(&variant->prot, variant->sandbox));
->>> +	test_restricted_net_fixture(_metadata, &self->srv2, restricted,
->>> +				    restricted, restricted);
->>>   }
->>>   
->>>   TEST_F(protocol, connect)
->>>   {
->>>   	if (variant->sandbox == TCP_SANDBOX) {
->>>   		const struct landlock_ruleset_attr ruleset_attr = {
->>> -			.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
->>> -					      LANDLOCK_ACCESS_NET_CONNECT_TCP,
->>> +			.handled_access_net = ACCESS_ALL,
->>>   		};
->>> -		const struct landlock_net_port_attr tcp_bind_connect_p0 = {
->>> -			.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
->>> -					  LANDLOCK_ACCESS_NET_CONNECT_TCP,
->>> +		const struct landlock_net_port_attr tcp_not_restricted_p0 = {
->>> +			.allowed_access = ACCESS_ALL,
->>>   			.port = self->srv0.port,
->>>   		};
->>> -		const struct landlock_net_port_attr tcp_bind_p1 = {
->>> -			.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
->>> +		const struct landlock_net_port_attr tcp_denied_connect_p1 = {
->>> +			.allowed_access = ACCESS_ALL &
->>> +					  ~LANDLOCK_ACCESS_NET_CONNECT_TCP,
->>>   			.port = self->srv1.port,
->>>   		};
->>>   		int ruleset_fd;
->>> @@ -639,28 +666,27 @@ TEST_F(protocol, connect)
->>>   						     sizeof(ruleset_attr), 0);
->>>   		ASSERT_LE(0, ruleset_fd);
->>>   
->>> -		/* Allows connect and bind for the first port. */
->>> +		/* Allows all actions for the first port. */
->>>   		ASSERT_EQ(0,
->>>   			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
->>> -					    &tcp_bind_connect_p0, 0));
->>> +					    &tcp_not_restricted_p0, 0));
->>>   
->>> -		/* Allows bind and denies connect for the second port. */
->>> +		/* Allows all actions despite connect. */
->>>   		ASSERT_EQ(0,
->>>   			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
->>> -					    &tcp_bind_p1, 0));
->>> +					    &tcp_denied_connect_p1, 0));
->>>   
->>>   		enforce_ruleset(_metadata, ruleset_fd);
->>>   		EXPECT_EQ(0, close(ruleset_fd));
->>>   	}
->>> -
->>> -	test_bind_and_connect(_metadata, &self->srv0, false, false);
->>> -
->>> -	test_bind_and_connect(_metadata, &self->srv1, false,
->>> -			      is_restricted(&variant->prot, variant->sandbox));
->>> -
->>> -	test_bind_and_connect(_metadata, &self->srv2,
->>> -			      is_restricted(&variant->prot, variant->sandbox),
->>> -			      is_restricted(&variant->prot, variant->sandbox));
->>> +	bool restricted = is_restricted(&variant->prot, variant->sandbox);
->>> +
->>> +	test_restricted_net_fixture(_metadata, &self->srv0, false, false,
->>> +				    false);
->>> +	test_restricted_net_fixture(_metadata, &self->srv1, false, restricted,
->>> +				    false);
->>> +	test_restricted_net_fixture(_metadata, &self->srv2, restricted,
->>> +				    restricted, restricted);
->>>   }
->>>   
->>>   TEST_F(protocol, bind_unspec)
->>> @@ -761,7 +787,7 @@ TEST_F(protocol, connect_unspec)
->>>   	ASSERT_LE(0, bind_fd);
->>>   	EXPECT_EQ(0, bind_variant(bind_fd, &self->srv0));
->>>   	if (self->srv0.protocol.type == SOCK_STREAM)
->>> -		EXPECT_EQ(0, listen(bind_fd, backlog));
->>> +		EXPECT_EQ(0, listen_variant(bind_fd, backlog));
->>>   
->>>   	child = fork();
->>>   	ASSERT_LE(0, child);
->>> @@ -1127,8 +1153,8 @@ TEST_F(tcp_layers, ruleset_overlap)
->>>   	 * Forbids to connect to the socket because only one ruleset layer
->>>   	 * allows connect.
->>>   	 */
->>> -	test_bind_and_connect(_metadata, &self->srv0, false,
->>> -			      variant->num_layers >= 2);
->>> +	test_restricted_net_fixture(_metadata, &self->srv0, false,
->>> +				    variant->num_layers >= 2, false);
->>>   }
->>>   
->>>   TEST_F(tcp_layers, ruleset_expand)
->>> @@ -1208,11 +1234,12 @@ TEST_F(tcp_layers, ruleset_expand)
->>>   		EXPECT_EQ(0, close(ruleset_fd));
->>>   	}
->>>   
->>> -	test_bind_and_connect(_metadata, &self->srv0, false,
->>> -			      variant->num_layers >= 3);
->>> +	test_restricted_net_fixture(_metadata, &self->srv0, false,
->>> +				    variant->num_layers >= 3, false);
->>>   
->>> -	test_bind_and_connect(_metadata, &self->srv1, variant->num_layers >= 1,
->>> -			      variant->num_layers >= 2);
->>> +	test_restricted_net_fixture(_metadata, &self->srv1,
->>> +				    variant->num_layers >= 1,
->>> +				    variant->num_layers >= 2, false);
->>>   }
->>>   
->>>   /* clang-format off */
->>> @@ -1230,16 +1257,6 @@ FIXTURE_TEARDOWN(mini)
->>>   {
->>>   }
->>>   
->>> -/* clang-format off */
->>> -
->>> -#define ACCESS_LAST LANDLOCK_ACCESS_NET_CONNECT_TCP
->>> -
->>> -#define ACCESS_ALL ( \
->>> -	LANDLOCK_ACCESS_NET_BIND_TCP | \
->>> -	LANDLOCK_ACCESS_NET_CONNECT_TCP)
->>> -
->>> -/* clang-format on */
->>> -
->>>   TEST_F(mini, network_access_rights)
->>>   {
->>>   	const struct landlock_ruleset_attr ruleset_attr = {
->>> @@ -1454,8 +1471,9 @@ TEST_F(mini, tcp_port_overflow)
->>>   
->>>   	enforce_ruleset(_metadata, ruleset_fd);
->>>   
->>> -	test_bind_and_connect(_metadata, &srv_denied, true, true);
->>> -	test_bind_and_connect(_metadata, &srv_max_allowed, false, false);
->>> +	test_restricted_net_fixture(_metadata, &srv_denied, true, true, false);
->>> +	test_restricted_net_fixture(_metadata, &srv_max_allowed, false, false,
->>> +				    false);
->>>   }
->>>   
->>>   FIXTURE(ipv4_tcp)
->>> @@ -1485,22 +1503,21 @@ FIXTURE_TEARDOWN(ipv4_tcp)
->>>   TEST_F(ipv4_tcp, port_endianness)
->>>   {
->>>   	const struct landlock_ruleset_attr ruleset_attr = {
->>> -		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
->>> -				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
->>> +		.handled_access_net = ACCESS_ALL,
->>>   	};
->>>   	const struct landlock_net_port_attr bind_host_endian_p0 = {
->>>   		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
->>>   		/* Host port format. */
->>>   		.port = self->srv0.port,
->>>   	};
->>> -	const struct landlock_net_port_attr connect_big_endian_p0 = {
->>> -		.allowed_access = LANDLOCK_ACCESS_NET_CONNECT_TCP,
->>> +	const struct landlock_net_port_attr connect_listen_big_endian_p0 = {
->>> +		.allowed_access = LANDLOCK_ACCESS_NET_CONNECT_TCP |
->>> +				  LANDLOCK_ACCESS_NET_LISTEN_TCP,
->>>   		/* Big endian port format. */
->>>   		.port = htons(self->srv0.port),
->>>   	};
->>> -	const struct landlock_net_port_attr bind_connect_host_endian_p1 = {
->>> -		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
->>> -				  LANDLOCK_ACCESS_NET_CONNECT_TCP,
->>> +	const struct landlock_net_port_attr not_restricted_host_endian_p1 = {
->>> +		.allowed_access = ACCESS_ALL,
->>>   		/* Host port format. */
->>>   		.port = self->srv1.port,
->>>   	};
->>> @@ -1514,16 +1531,18 @@ TEST_F(ipv4_tcp, port_endianness)
->>>   	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
->>>   				       &bind_host_endian_p0, 0));
->>>   	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
->>> -				       &connect_big_endian_p0, 0));
->>> +				       &connect_listen_big_endian_p0, 0));
->>>   	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
->>> -				       &bind_connect_host_endian_p1, 0));
->>> +				       &not_restricted_host_endian_p1, 0));
->>>   	enforce_ruleset(_metadata, ruleset_fd);
->>>   
->>>   	/* No restriction for big endinan CPU. */
->>> -	test_bind_and_connect(_metadata, &self->srv0, false, little_endian);
->>> +	test_restricted_net_fixture(_metadata, &self->srv0, false,
->>> +				    little_endian, little_endian);
->>>   
->>>   	/* No restriction for any CPU. */
->>> -	test_bind_and_connect(_metadata, &self->srv1, false, false);
->>> +	test_restricted_net_fixture(_metadata, &self->srv1, false, false,
->>> +				    false);
->>>   }
->>>   
->>>   TEST_F(ipv4_tcp, with_fs)
->>> @@ -1691,7 +1710,7 @@ TEST_F(port_specific, bind_connect_zero)
->>>   	ret = bind_variant(bind_fd, &self->srv0);
->>>   	EXPECT_EQ(0, ret);
->>>   
->>> -	EXPECT_EQ(0, listen(bind_fd, backlog));
->>> +	EXPECT_EQ(0, listen_variant(bind_fd, backlog));
->>>   
->>>   	/* Connects on port 0. */
->>>   	ret = connect_variant(connect_fd, &self->srv0);
->>> @@ -1714,26 +1733,23 @@ TEST_F(port_specific, bind_connect_zero)
->>>   	EXPECT_EQ(0, close(bind_fd));
->>>   }
->>>   
->>> -TEST_F(port_specific, bind_connect_1023)
->>> +TEST_F(port_specific, port_1023)
->>>   {
->>>   	int bind_fd, connect_fd, ret;
->>>   
->>> -	/* Adds a rule layer with bind and connect actions. */
->>> +	/* Adds a rule layer with all actions. */
->>>   	if (variant->sandbox == TCP_SANDBOX) {
->>>   		const struct landlock_ruleset_attr ruleset_attr = {
->>> -			.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
->>> -					      LANDLOCK_ACCESS_NET_CONNECT_TCP
->>> +			.handled_access_net = ACCESS_ALL
->>>   		};
->>>   		/* A rule with port value less than 1024. */
->>> -		const struct landlock_net_port_attr tcp_bind_connect_low_range = {
->>> -			.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
->>> -					  LANDLOCK_ACCESS_NET_CONNECT_TCP,
->>> +		const struct landlock_net_port_attr tcp_low_range_port = {
->>> +			.allowed_access = ACCESS_ALL,
->>>   			.port = 1023,
->>>   		};
->>>   		/* A rule with 1024 port. */
->>> -		const struct landlock_net_port_attr tcp_bind_connect = {
->>> -			.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
->>> -					  LANDLOCK_ACCESS_NET_CONNECT_TCP,
->>> +		const struct landlock_net_port_attr tcp_port_1024 = {
->>> +			.allowed_access = ACCESS_ALL,
->>>   			.port = 1024,
->>>   		};
->>>   		int ruleset_fd;
->>> @@ -1744,10 +1760,10 @@ TEST_F(port_specific, bind_connect_1023)
->>>   
->>>   		ASSERT_EQ(0,
->>>   			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
->>> -					    &tcp_bind_connect_low_range, 0));
->>> +					    &tcp_low_range_port, 0));
->>>   		ASSERT_EQ(0,
->>>   			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
->>> -					    &tcp_bind_connect, 0));
->>> +					    &tcp_port_1024, 0));
->>>   
->>>   		enforce_ruleset(_metadata, ruleset_fd);
->>>   		EXPECT_EQ(0, close(ruleset_fd));
->>> @@ -1771,7 +1787,7 @@ TEST_F(port_specific, bind_connect_1023)
->>>   	ret = bind_variant(bind_fd, &self->srv0);
->>>   	clear_cap(_metadata, CAP_NET_BIND_SERVICE);
->>>   	EXPECT_EQ(0, ret);
->>> -	EXPECT_EQ(0, listen(bind_fd, backlog));
->>> +	EXPECT_EQ(0, listen_variant(bind_fd, backlog));
->>>   
->>>   	/* Connects on the binded port 1023. */
->>>   	ret = connect_variant(connect_fd, &self->srv0);
->>> @@ -1791,7 +1807,7 @@ TEST_F(port_specific, bind_connect_1023)
->>>   	/* Binds on port 1024. */
->>>   	ret = bind_variant(bind_fd, &self->srv0);
->>>   	EXPECT_EQ(0, ret);
->>> -	EXPECT_EQ(0, listen(bind_fd, backlog));
->>> +	EXPECT_EQ(0, listen_variant(bind_fd, backlog));
->>>   
->>>   	/* Connects on the binded port 1024. */
->>>   	ret = connect_variant(connect_fd, &self->srv0);
->>> -- 
->>> 2.34.1
->>>
->>
->> —Günther
+> 
+> —Günther
