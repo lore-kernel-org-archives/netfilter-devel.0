@@ -1,33 +1,61 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from fout6-smtp.messagingengine.com (fout6-smtp.messagingengine.com [103.168.172.149])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58EBE13635B;
-	Wed, 21 Aug 2024 17:00:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EB1513635E
+	for <netfilter-devel@vger.kernel.org>; Wed, 21 Aug 2024 17:18:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.149
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724259653; cv=none; b=NhJZoXTrx6GqfqavdF6Go5n4H2Ciiu1Hn11//t57dFbFnC8SAqJjYO9PLH/LEkC8jtJ0YxkZ5cmhSR/loATNHWEndjDhlcODZK+ayNQXqyl4z3HSzvJeM+YEA89Czq1MKJWlUu0CSUFUmKhmBex8xd838r3LJ/Rp7/rKKJ2OQnY=
+	t=1724260725; cv=none; b=GN1w8rPRsH+fvmQ7ELPXvrtEgFFw3qO+OE6KewtayHGQ50C0Kzvbz372VOgW4DNP6flwzaNEUmN51bWGfJd4ntU7cHE43WeBtsga/Vd0DYzjdW+5gR41hroyqelGAgQo3AD93TjW6nrs5NZymogF0eNHM22N7CoFyqfT6YrD4Cw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724259653; c=relaxed/simple;
-	bh=XcL10eQguhL9xnQXS2iZsuiQuvqlgs2UmruxJW2VK3g=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=ig9xMLBHbxawepwgIXHAJsI+qpPK/FnBySvYQLN/zFZjFIXR676XbNkVggUQaeEm8AWLTp4qD8cwRloGeS64KoGxlgp+z+zKkpAM/9UrQ0EHhd0s5XNK2AvRNSccOMCvyeymHf+2aiAtdSLUHVwvfn0uRrmGlPCCDy+//kmOhSo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HPjKreLb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724260725; c=relaxed/simple;
+	bh=3oNu+sYmmm3lAh7h0m1qV2HmDt77TIFN1rBTi0UoMYk=;
+	h=Message-ID:Date:MIME-Version:From:To:Subject:Content-Type; b=fieWc3jTVWqIZy6C5e3wwh8YO1CofrR3IMDslvBS1S7Bv81kIGn/JcDmuByJZMUS1H9zA7VpVlp+etRlnvdKgedzBT/TU81D4yziXMnRk25Ffz+RxZfBxhDmKPuv6J1MzBr7FTZbU8QQgEfRuDdPuEP+TsiTJ6OH8/0sXwCrZ18=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=dev-mail.net; spf=pass smtp.mailfrom=dev-mail.net; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=fGCpb+2n; arc=none smtp.client-ip=103.168.172.149
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=dev-mail.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=dev-mail.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HPjKreLb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4094DC32781;
-	Wed, 21 Aug 2024 17:00:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1724259653;
-	bh=XcL10eQguhL9xnQXS2iZsuiQuvqlgs2UmruxJW2VK3g=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=HPjKreLbUV7X9kkF0RnKnBnMitV3oZ1WVrfOPXeSMlLwuCbjytOcXyCA9k5Wq45qM
-	 3nrA6NvAJ5TJT8i/3Zn6z8+LamkJc5xmzk/plnOrER8TZdLRHLOOs54AmbK8U/fcrp
-	 LwXBrY0jpMSydC6HoRgacKJ2rOAg8nd0HEzuQQkvLNttGXgCl4zOCtPitA7ShbNM+7
-	 KffRSPVRe4FAwzJwhSg5IqP8+fofn1Enbpta/PSWZIcGjNxKTn9b+qQTJZnu0HPmRI
-	 a5IRqMQ6A+9FURqxXKKYit0Ob298gg5ihxHH/HnMNgaQh+bZNXi1HGX20Kx9KkwJV8
-	 jmWnW4q+Dnpwg==
-Message-ID: <2a382dbb-0f90-4e6b-b8b9-844d93af5edc@kernel.org>
-Date: Wed, 21 Aug 2024 11:00:51 -0600
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="fGCpb+2n"
+Received: from phl-compute-04.internal (phl-compute-04.nyi.internal [10.202.2.44])
+	by mailfout.nyi.internal (Postfix) with ESMTP id 8F5A5138FEBB
+	for <netfilter-devel@vger.kernel.org>; Wed, 21 Aug 2024 13:18:42 -0400 (EDT)
+Received: from phl-mailfrontend-01 ([10.202.2.162])
+  by phl-compute-04.internal (MEProxy); Wed, 21 Aug 2024 13:18:42 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:content-transfer-encoding:content-type
+	:content-type:date:date:feedback-id:feedback-id:from:from
+	:in-reply-to:message-id:mime-version:reply-to:reply-to:subject
+	:subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+	:x-sasl-enc; s=fm1; t=1724260722; x=1724347122; bh=c88ZLrwjYdeHM
+	kVcGRB8NpbhqGbzPXmD36wzj1myVj8=; b=fGCpb+2nTYi/YSg8p0qO86Uhr437E
+	AhuZJt4xm3Aeh05P/Lx14Y4yTCWe9QR0Olh/BL1pAfZJeVTveXWHEmQCXkc3DYyX
+	VSc4+XW5v66Fj/iMdcBMKuj9IUstHZoBqdEdSOQE70mahiKcRQbCMkhNKBvTecTk
+	s5J8kmDAHr6B35JBCFLv/ulPz2vMvQ94JYoCsFzPfs/kZ8hRBC6azRSR6nYENGp0
+	tKCvYoKPg0UGHaVkPeKHrswqv9WouWpSdSdHgUalUNt730S72JmohNIlS/k+5dE4
+	hd3g7tmYXF8ZFytULQTeNThCf8JmyZEVLs2Uscl5nELsBg9Lmp/NWAgsQ==
+X-ME-Sender: <xms:ciHGZgAkmED4BAvFxQUxy95OE96ctJJED7QhKChe6_1lAfEIRe8Ryg>
+    <xme:ciHGZihwFakmJfwfU_dKgbIKVwx8I5BTiVZZ-9kq01vwOcQS_dGkN8r_qcuiP_rtT
+    4Agdci7128mPARJ>
+X-ME-Received: <xmr:ciHGZjkJJU0jYWcvhnyepBnwBMA2_J0_yAH7lW9EuhTdZXjc-iuM0HGjE51tzxcpyOjfrBgsf9Hg9rbXrTugUqOoD6j57YYMDw4rqA>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeftddruddukedgudduudcutefuodetggdotefrod
+    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpggftfghnshhusghstghrihgsvgdp
+    uffrtefokffrpgfnqfghnecuuegrihhlohhuthemuceftddtnecunecujfgurhepkfffgg
+    gfrhfhvffutgfgsehtkeertddtvdejnecuhfhrohhmpehpghhnugcuoehpghhnugesuggv
+    vhdqmhgrihhlrdhnvghtqeenucggtffrrghtthgvrhhnpefhudfhueehtdehkeevvdejud
+    fffeeftddutdeugeeuueegffdtffdvueeghffgtdenucevlhhushhtvghrufhiiigvpedt
+    necurfgrrhgrmhepmhgrihhlfhhrohhmpehpghhnugesuggvvhdqmhgrihhlrdhnvghtpd
+    hnsggprhgtphhtthhopedupdhmohguvgepshhmthhpohhuthdprhgtphhtthhopehnvght
+    fhhilhhtvghrqdguvghvvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhg
+X-ME-Proxy: <xmx:ciHGZmyPfVIOkmYabsW3rqQuM3pKv1WpsChCUgMzIyJaT5_QS5NB5A>
+    <xmx:ciHGZlTdJApUIsAlM6Wl7IOHuaIP1goE670NTgkgAJtYdZKSfQhJ0Q>
+    <xmx:ciHGZhZR4tKA_TJYEf4X8IMnluFrR35HLO1b7j9XrrYXdGpU0gBhUA>
+    <xmx:ciHGZuTbG2Zg61EPTl7lhj4tI4WC_R73NHSGivccE9qi-dHm9yyuHQ>
+    <xmx:ciHGZjODDzCKmgpqMbNYFUWndsfiRZ1hbrkmz0B_6uFJGEjz0EkK_Djm>
+Feedback-ID: if6e94526:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA for
+ <netfilter-devel@vger.kernel.org>; Wed,
+ 21 Aug 2024 13:18:42 -0400 (EDT)
+Message-ID: <d679b375-5540-47b4-9395-eca8666ac2ec@dev-mail.net>
+Date: Wed, 21 Aug 2024 13:18:41 -0400
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -35,46 +63,41 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next 00/12] Unmask upper DSCP bits - part 1
-Content-Language: en-US
-To: Ido Schimmel <idosch@nvidia.com>, netdev@vger.kernel.org
-Cc: davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, gnault@redhat.com, fw@strlen.de, martin.lau@linux.dev,
- daniel@iogearbox.net, john.fastabend@gmail.com, ast@kernel.org,
- pablo@netfilter.org, kadlec@netfilter.org, willemdebruijn.kernel@gmail.com,
- bpf@vger.kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-References: <20240821125251.1571445-1-idosch@nvidia.com>
-From: David Ahern <dsahern@kernel.org>
-In-Reply-To: <20240821125251.1571445-1-idosch@nvidia.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Reply-To: pgnd@dev-mail.net
+From: pgnd <pgnd@dev-mail.net>
+Content-Language: en-US, fr, de-DE, pl, es-ES
+To: netfilter-devel@vger.kernel.org
+Subject: =?UTF-8?Q?nftables_build_warning=2C_parser=5Fbison=2Ey=3A206=2E1-19?=
+ =?UTF-8?Q?=3A_warning=3A_deprecated_directive=3A_=E2=80=98=25name-prefix_?=
+ =?UTF-8?B?Im5mdF8i4oCZ?=
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On 8/21/24 6:52 AM, Ido Schimmel wrote:
-> tl;dr - This patchset starts to unmask the upper DSCP bits in the IPv4
-> flow key in preparation for allowing IPv4 FIB rules to match on DSCP. No
-> functional changes are expected.
-> 
-> The TOS field in the IPv4 flow key ('flowi4_tos') is used during FIB
-> lookup to match against the TOS selector in FIB rules and routes.
-> 
-> It is currently impossible for user space to configure FIB rules that
-> match on the DSCP value as the upper DSCP bits are either masked in the
-> various call sites that initialize the IPv4 flow key or along the path
-> to the FIB core.
-> 
-> In preparation for adding a DSCP selector to IPv4 and IPv6 FIB rules, we
-> need to make sure the entire DSCP value is present in the IPv4 flow key.
-> This patchset starts to unmask the upper DSCP bits in the various places
-> that invoke the core FIB lookup functions directly (patches #1-#7) and
-> in the input route path (patches #8-#12). Future patchsets will do the
-> same in the output route path.
-> 
-> No functional changes are expected as commit 1fa3314c14c6 ("ipv4:
-> Centralize TOS matching") moved the masking of the upper DSCP bits to
-> the core where 'flowi4_tos' is matched against the TOS selector.
-> 
+i'm building nftables from source, currently `master` branch on fedora40.
 
-for the set:
-Reviewed-by: David Ahern <dsahern@kernel.org>
+i'm getting functional builds, but did catch this in build log output
 
+...
+config.status: executing depfiles commands
+config.status: executing libtool commands
 
+nft configuration:
+   cli support:                  editline
+   enable debugging symbols:     yes
+   use mini-gmp:                 no
+   enable man page:              yes
+   libxtables support:           no
+   json output support:          yes
++ make V=0 -j16
+   YACC     src/parser_bison.c
+/builddir/build/BUILD/nftables/src/parser_bison.y:206.1-19: warning: deprecated directive: ‘%name-prefix "nft_"’, use ‘%define api.prefix {nft_}’ [-Wdeprecated]
+   206 | %name-prefix "nft_"
+       | ^~~~~~~~~~~~~~~~~~~
+       | %define api.prefix {nft_}
+/builddir/build/BUILD/nftables/src/parser_bison.y: warning: fix-its can be applied.  Rerun with option '--update'. [-Wother]
+updating src/parser_bison.h
+...
+
+certainly _not_ fatal.
+
+checking here 1st b4 reporting @ any BZ ... is this a nftables or bison, or build config, or to be ignored?
