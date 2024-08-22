@@ -1,22 +1,27 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1D3F31779BD
-	for <netfilter-devel@vger.kernel.org>; Wed, 21 Aug 2024 23:47:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 0407F4405;
+	Thu, 22 Aug 2024 00:17:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724284027; cv=none; b=rTyjoEBKFEvsCDjrAyVa4fRL6LPLvBpxcoiiIxtKj88rE9uMjdKnKHFEzNN8hXmLj3GUEsyGw6SLTdDl54mW++zs06pr14FL8o3MFmNQTZQiINndpth5GZ5HjANScjvg3Wrz4jsKb6q18HOWTNRJo3KrwvIO558BDMB+TFjQ+J8=
+	t=1724285836; cv=none; b=r+/1vjMpOdjbiJixBOTJt3Som6QnXDg/6cqkccpPuw6SQjy3zEqB8pDNpC3Jh0/uI2kw9Ozm5l4MJKTcWwbYH+vKe6Imr5TZZc6dWXrYfdODifle9v3RZyBvnN/YxwxAKKoz4vaDX9+O1Lj3hG3Ki9hfFiz9zuvA37dGI1IM0yg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724284027; c=relaxed/simple;
-	bh=3EkF5RV76QtfWHP3C1odsODgBIjO9ZbKE0MhMDUvh3c=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=iLHwNBGXL/bOHE0xXbV4D/3IeizwBz1eyZK4i7sq54f/41mdz+zAw2N83iQ80DZPjnEyRgGwsnsoym5jv+eJd3BlMEqOBQU/ynvU/HPqE46JpS1g/t/UEaLkFdmupwctF5J184/VsAoJzBf1M4lVa5xo1ldN2SiL+POt12emaRE=
+	s=arc-20240116; t=1724285836; c=relaxed/simple;
+	bh=qDmpzNy3x7c860yQIQ/G59wbMOPGSCg5fuJv/uzcO6g=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Ks2AodRGUiLkfWZrtMwmAGJBZrCLq9o+pk0pmLv/d8jaRD3OTWA7IYy5CuOs5edJbqqj7krEVs32Mhysn13hxIWmCjCKcaDnzBLRNW/AVFATdUelKNb3Ez6pHB0Q+bGL0NefyBHju4ijW8VsQ9AgKBLWE/fUui92NOK35dlwoMA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Cc: syzbot+8407d9bb88cd4c6bf61a@syzkaller.appspotmail.com
-Subject: [PATCH nf,v2] netfilter: flowtable: validate vlan header
-Date: Thu, 22 Aug 2024 01:46:50 +0200
-Message-Id: <20240821234650.84719-1-pablo@netfilter.org>
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de
+Subject: [PATCH net 0/3] Netfilter fixes for net
+Date: Thu, 22 Aug 2024 02:17:04 +0200
+Message-Id: <20240822001707.2116-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -26,56 +31,52 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Ensure there is sufficient room to access the protocol field of the
-VLAN header, validate it once before the flowtable lookup.
+Hi,
 
-=====================================================
-BUG: KMSAN: uninit-value in nf_flow_offload_inet_hook+0x45a/0x5f0 net/netfilter/nf_flow_table_inet.c:32
- nf_flow_offload_inet_hook+0x45a/0x5f0 net/netfilter/nf_flow_table_inet.c:32
- nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
- nf_hook_slow+0xf4/0x400 net/netfilter/core.c:626
- nf_hook_ingress include/linux/netfilter_netdev.h:34 [inline]
- nf_ingress net/core/dev.c:5440 [inline]
+The following patchset contains Netfilter fixes for net:
 
-Fixes: 4cd91f7c290f ("netfilter: flowtable: add vlan support")
-Reported-by: syzbot+8407d9bb88cd4c6bf61a@syzkaller.appspotmail.com
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-ctx->offset is bumped to VLAN_HLEN to reach the IP header, check for
-VLAN_HLEN instead of vlan_ethhdr.
+Patch #1 disable BH when collecting stats via hardware offload to ensure
+	 concurrent updates from packet path do not result in losing stats.
+	 From Sebastian Andrzej Siewior.
+
+Patch #2 uses write seqcount to reset counters serialize against reader.
+	 Also from Sebastian Andrzej Siewior.
+
+Patch #3 ensures vlan header is in place before accessing its fields,
+	 according to KMSAN splat triggered by syzbot.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-24-08-22
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 807067bf014d4a3ae2cc55bd3de16f22a01eb580:
+
+  kcm: Serialise kcm_sendmsg() for the same socket. (2024-08-19 18:36:12 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-24-08-22
+
+for you to fetch changes up to 0509ac6c6a9a282ade4ad79b04665395691f73b1:
+
+  netfilter: flowtable: validate vlan header (2024-08-21 23:42:49 +0200)
+
+----------------------------------------------------------------
+netfilter pull request 24-08-22
+
+----------------------------------------------------------------
+Pablo Neira Ayuso (1):
+      netfilter: flowtable: validate vlan header
+
+Sebastian Andrzej Siewior (2):
+      netfilter: nft_counter: Disable BH in nft_counter_offload_stats().
+      netfilter: nft_counter: Synchronize nft_counter_reset() against reader.
 
  net/netfilter/nf_flow_table_inet.c | 3 +++
  net/netfilter/nf_flow_table_ip.c   | 3 +++
- 2 files changed, 6 insertions(+)
-
-diff --git a/net/netfilter/nf_flow_table_inet.c b/net/netfilter/nf_flow_table_inet.c
-index 88787b45e30d..dd9a392052ee 100644
---- a/net/netfilter/nf_flow_table_inet.c
-+++ b/net/netfilter/nf_flow_table_inet.c
-@@ -17,6 +17,9 @@ nf_flow_offload_inet_hook(void *priv, struct sk_buff *skb,
- 
- 	switch (skb->protocol) {
- 	case htons(ETH_P_8021Q):
-+		if (!pskb_may_pull(skb, VLAN_HLEN))
-+			return NF_ACCEPT;
-+
- 		veth = (struct vlan_ethhdr *)skb_mac_header(skb);
- 		proto = veth->h_vlan_encapsulated_proto;
- 		break;
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index c2c005234dcd..9a9031e9ea1c 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -281,6 +281,9 @@ static bool nf_flow_skb_encap_protocol(struct sk_buff *skb, __be16 proto,
- 
- 	switch (skb->protocol) {
- 	case htons(ETH_P_8021Q):
-+		if (!pskb_may_pull(skb, VLAN_HLEN))
-+			return false;
-+
- 		veth = (struct vlan_ethhdr *)skb_mac_header(skb);
- 		if (veth->h_vlan_encapsulated_proto == proto) {
- 			*offset += VLAN_HLEN;
--- 
-2.30.2
-
+ net/netfilter/nft_counter.c        | 9 +++++++--
+ 3 files changed, 13 insertions(+), 2 deletions(-)
