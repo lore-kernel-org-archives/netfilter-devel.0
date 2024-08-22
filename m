@@ -1,77 +1,105 @@
-Received: from outgoing.mit.edu (outgoing-auth-1.mit.edu [18.9.28.11])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f54.google.com (mail-wm1-f54.google.com [209.85.128.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A5E31CC8AB
-	for <netfilter-devel@vger.kernel.org>; Thu, 22 Aug 2024 15:01:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=18.9.28.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16772282FC
+	for <netfilter-devel@vger.kernel.org>; Thu, 22 Aug 2024 16:35:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724338876; cv=none; b=ZK5fmSTorTC45Q+4AN+2s9RX/HrjOu6GIjrHm48JPumw01SIUdz8jA3NaMT2c18zU9o263FzEapKULsPiC86+0b0HFwEQJ03EXsoBkM/+zC8zPGy/kskPMAtP8p7LWG1R7GrMBcw4qP/32TMuW4m7G7XAL7Z5GNsaMIZ9tuNZGA=
+	t=1724344539; cv=none; b=Pkm5JNLWnyU/wfRIemsmD84rxPdcOtV42RXfdDT4xmr3Fa8hkDgmfmYMCCckcHGOb8ZWilWk3s7deKpUAm1j5cpHidNQ1QOFDyEkEuYdLmWUTlRjAdYdmMIYIbbqEuIxwUheZv1Ej7gFipkj0MPPf2DFGC20jSEupx6XUkw+PhE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724338876; c=relaxed/simple;
-	bh=znHPXVQUQaPGu7v7UYm34EibjsqpZB+F71eqdtueIH4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=cAzhEUfNiNu5WaR84B2GznqgE1iLhTel3Fxc9qT1yRIcV1Si6jTNP19OucVzkdTj8aq9ZNN1oj84QyCqaFKGQ/WCiR3/6xtDojLac4QQkhg99cOVptyOVzSyS1Js+H/GkUe3naRCJbjhRMsQ4dfgCPfntpELJdLHFiy9spR2q6E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mit.edu; spf=pass smtp.mailfrom=mit.edu; dkim=pass (2048-bit key) header.d=mit.edu header.i=@mit.edu header.b=OprhzNuL; arc=none smtp.client-ip=18.9.28.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mit.edu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mit.edu
+	s=arc-20240116; t=1724344539; c=relaxed/simple;
+	bh=FBYKVMJL+SqEiUBoH4C+35D/h/f4ouG+veDm2SQ35+A=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=emPsPGuSSHqIfs67TED3Z5qp0Tv+xTITcCRgVCAYmZbNZUS4zPN7N0307X21IB4PVkzZNNjx0EzbvE8H+MsizLeLbzbogXbREq5ATRfN/mS7NMZwF4wQEsmb0O1+JBJJivahR3tmR5uUYN8twULjwyI0D7YlM7E+s+C96UyS8vo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=U4cnfugh; arc=none smtp.client-ip=209.85.128.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=mit.edu header.i=@mit.edu header.b="OprhzNuL"
-Received: from cwcc.thunk.org (pool-173-48-112-67.bstnma.fios.verizon.net [173.48.112.67])
-	(authenticated bits=0)
-        (User authenticated as tytso@ATHENA.MIT.EDU)
-	by outgoing.mit.edu (8.14.7/8.12.4) with ESMTP id 47MF0Mmd022375
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 22 Aug 2024 11:00:23 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mit.edu; s=outgoing;
-	t=1724338827; bh=t18gtYxklKYa0rJY7RSL7YSQJKA9/wN+2NyFSJPFoxU=;
-	h=From:Subject:Date:Message-ID:MIME-Version:Content-Type;
-	b=OprhzNuLBbXTcYcn91CAIAUjb4Jb/s0CqItLgL4SGj9Ufifjv4uCF0IbqpYCi05+C
-	 KkCTLf3guoR2t2mHnMaUVUMiFojToxTCYZ65Zs45I/82H5fkd8gKGlu8REJwrFzieJ
-	 Cv9hu9kLyoIyePGgJrIp/GOyv0fq7j5qvDD/EKZ5FGaiIteqNouU1N6xyFlD8P34W/
-	 WCTEjOJ1L4eMx1LIGuW4ufDhHA+JwhICT5V1CQfrnhZ1grXSrJ7B0XzK5CDJqnFyYm
-	 MkjqtJrnY2zWZ42jUX76TcwkpU6bdZUeDg7qUochXApMvMiLpVZAJl5iapEoyqmeUz
-	 tDbe7L2wX706g==
-Received: by cwcc.thunk.org (Postfix, from userid 15806)
-	id E0B3115C02C2; Thu, 22 Aug 2024 11:00:21 -0400 (EDT)
-From: "Theodore Ts'o" <tytso@mit.edu>
-To: krisman@suse.de, Lizhi Xu <lizhi.xu@windriver.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>, adilger.kernel@dilger.ca,
-        coreteam@netfilter.org, davem@davemloft.net, ebiggers@kernel.org,
-        fw@strlen.de, jaegeuk@kernel.org, kadlec@netfilter.org,
-        kuba@kernel.org, linux-ext4@vger.kernel.org,
-        linux-fscrypt@vger.kernel.org, linux-kernel@vger.kernel.org,
-        lkp@intel.com, llvm@lists.linux.dev, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, oe-kbuild-all@lists.linux.dev,
-        pablo@netfilter.org,
-        syzbot+340581ba9dceb7e06fb3@syzkaller.appspotmail.com,
-        syzkaller-bugs@googlegroups.com
-Subject: Re: [PATCH V6] fs/ext4: Filesystem without casefold feature cannot be mounted with spihash
-Date: Thu, 22 Aug 2024 11:00:11 -0400
-Message-ID: <172433877724.370733.16770771071139702263.b4-ty@mit.edu>
-X-Mailer: git-send-email 2.45.2
-In-Reply-To: <20240605012335.44086-1-lizhi.xu@windriver.com>
-References: <87le3kle87.fsf@mailhost.krisman.be> <20240605012335.44086-1-lizhi.xu@windriver.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="U4cnfugh"
+Received: by mail-wm1-f54.google.com with SMTP id 5b1f17b1804b1-428e0d184b4so7336505e9.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Aug 2024 09:35:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1724344536; x=1724949336; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=sXhc31SegQW1u27Vkqy2Da0iA0P0HOdns6Pieyn3XAk=;
+        b=U4cnfughsPsBzp8TA4l3K46xhBSPzMRbX0EW0rIBBuVowgBViLzHEIcMqosrVaw3In
+         wnJMt2b5AJs/Q7sMFeGgcGOmIZgb3b3asqG1oQ3YBZr5BlOWM8ipN4mGMK5uPMqqnEXm
+         zy2kqarXmP10CYpBXC1497fAii/IPESX2TgFqG+HIO35QNpdv6W+ysVK4YD4Up97jcOv
+         phz9ZKC/SWq2xqjAEdF9vnZq2zaAscj7AoZDFX2eHxLSelg40fetkNKNp06DwatTlDqH
+         dBlxdcn3iXYQ4hdPKC6LxdGeEG38dtI71lYAemsYwglHXnJ2X1bgVbLn46rT789Fx/Py
+         Ku1w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1724344536; x=1724949336;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=sXhc31SegQW1u27Vkqy2Da0iA0P0HOdns6Pieyn3XAk=;
+        b=RqBAfpmGV3fD75rblcaC2ljF03RPTr4PIWF0ZMZdFNgYEfglnEI1h1Lq30iA7XK/z4
+         HqBBtKMRTu3uINCvyqMpsJTAJPOzHQbEtmnbiXGvtRFIeJl0DtodgXZezR09lwc5oDsn
+         AqW5fnNinR4YjSx7iuaI+o6EqjLlPmNxPbR4xXJCUV7AEdiZb7LpA0WOsB0X7QKo4VVC
+         v9A4+2H1HYacvtm/a88dhKxqggJ5reSyLRRBd/ynw7MxgFs6LJgLu8GhjKe/ZanlI6/n
+         bAl+Uvxf07XCg/AS0b6Wz+4hT0VkaXRYzN4S1ei2+ahOAzk2m8nwNwOSaEQ8/cDNUuYm
+         kn/Q==
+X-Gm-Message-State: AOJu0Yw6z25CcVjZVRSim0cckUQsSCHvm+7wpgi/eKGdwROOQSZ1NWq4
+	emVkEgJ8m2sdqTJi10KqxOJUWptYPM7UbVfy9VECgQRI5fQvR4Svh5Mz9bDW
+X-Google-Smtp-Source: AGHT+IFWCjQ+sPbLrNLwSi+EfZ9kJedOc/icbMZbcCn2W1NH0c6z5gXLeKPM40nYBiBr7eAZAXhd2Q==
+X-Received: by 2002:a05:600c:4e41:b0:428:ea8e:b4a0 with SMTP id 5b1f17b1804b1-42ac55d9b1cmr17493145e9.14.1724344536156;
+        Thu, 22 Aug 2024 09:35:36 -0700 (PDT)
+Received: from jorge-PC.. ([45.157.58.54])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-42ac5180106sm30186045e9.41.2024.08.22.09.35.35
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 22 Aug 2024 09:35:35 -0700 (PDT)
+From: Jorge Ortiz <jorge.ortiz.escribano@gmail.com>
+To: pablo@netfilter.org,
+	fw@strlen.de
+Cc: netfilter-devel@vger.kernel.org,
+	jorge.ortiz.escribano@gmail.com,
+	jortiz@teldat.com
+Subject: [kernel PATCH] nf_tables_ipv4: fix transport header offset comparison
+Date: Thu, 22 Aug 2024 18:35:32 +0200
+Message-ID: <20240822163532.12244-1-jorge.ortiz.escribano@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
+I have reproduced an issue affecting some nftables meta expressions on the egress hook.
+With the following example ruleset:
 
-On Wed, 05 Jun 2024 09:23:35 +0800, Lizhi Xu wrote:
-> When mounting the ext4 filesystem, if the default hash version is set to
-> DX_HASH_SIPHASH but the casefold feature is not set, exit the mounting.
-> 
-> 
+table netdev test_ndev {
+      chain out {
+            type filter hook egress device "eth0" priority -190; policy accept;
+            meta l4proto udp log prefix "OUT__"
+      }
+}
 
-Applied, thanks!
+When small UDP packets (< 4 bytes payload) are sent from eth0, `meta l4proto udp` condition is not met because `NFT_PKTINFO_L4PROTO` is not set.
+This happens because there is a comparison that checks if the transport header offset exceeds the total length.
+This comparison does not take into account the fact that the skb network offset might be non-zero in egress mode (e.g., 14 bytes for Ethernet header).
 
-[1/1] fs/ext4: Filesystem without casefold feature cannot be mounted with spihash
-      commit: 985b67cd86392310d9e9326de941c22fc9340eec
+Signed-off-by: Jorge Ortiz <jorge.ortiz.escribano@gmail.com>
+---
+ include/net/netfilter/nf_tables_ipv4.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Best regards,
+diff --git a/include/net/netfilter/nf_tables_ipv4.h b/include/net/netfilter/nf_tables_ipv4.h
+index 60a7d0ce3080..0f11568eaba6 100644
+--- a/include/net/netfilter/nf_tables_ipv4.h
++++ b/include/net/netfilter/nf_tables_ipv4.h
+@@ -33,7 +33,7 @@ static inline int __nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt)
+ 	thoff = skb_network_offset(pkt->skb) + (iph->ihl * 4);
+ 	if (pkt->skb->len < len)
+ 		return -1;
+-	else if (len < thoff)
++	else if (len + skb_network_offset(pkt->skb) < thoff)
+ 		return -1;
+ 	else if (thoff < sizeof(*iph))
+ 		return -1;
 -- 
-Theodore Ts'o <tytso@mit.edu>
+2.43.0
+
