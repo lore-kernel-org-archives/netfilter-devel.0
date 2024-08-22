@@ -1,105 +1,94 @@
-Received: from mail-wm1-f54.google.com (mail-wm1-f54.google.com [209.85.128.54])
+Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16772282FC
-	for <netfilter-devel@vger.kernel.org>; Thu, 22 Aug 2024 16:35:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D353168497
+	for <netfilter-devel@vger.kernel.org>; Thu, 22 Aug 2024 17:55:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724344539; cv=none; b=Pkm5JNLWnyU/wfRIemsmD84rxPdcOtV42RXfdDT4xmr3Fa8hkDgmfmYMCCckcHGOb8ZWilWk3s7deKpUAm1j5cpHidNQ1QOFDyEkEuYdLmWUTlRjAdYdmMIYIbbqEuIxwUheZv1Ej7gFipkj0MPPf2DFGC20jSEupx6XUkw+PhE=
+	t=1724349324; cv=none; b=gj0/OG/F+3QordBJtx3fZgfYXACGrxBGTI953uWs/Czm/HHVa1fenOtD1QvNKJcGaMMPUvjB0YSwpz3OnSsTfDGsA796Z+TQpt5Ko1R9b8v+5y3XVaJ7C4q5zQ8EgNtJdKmVlohrln8EQYRm1nXGBV14ek3d5zY84mfyUmOB/vE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724344539; c=relaxed/simple;
-	bh=FBYKVMJL+SqEiUBoH4C+35D/h/f4ouG+veDm2SQ35+A=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=emPsPGuSSHqIfs67TED3Z5qp0Tv+xTITcCRgVCAYmZbNZUS4zPN7N0307X21IB4PVkzZNNjx0EzbvE8H+MsizLeLbzbogXbREq5ATRfN/mS7NMZwF4wQEsmb0O1+JBJJivahR3tmR5uUYN8twULjwyI0D7YlM7E+s+C96UyS8vo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=U4cnfugh; arc=none smtp.client-ip=209.85.128.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+	s=arc-20240116; t=1724349324; c=relaxed/simple;
+	bh=0XcIa29OoFfxsBXltwQYVdzr1GiMVSDn+ts+9lqnRO4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=TPl1sJmckB1oMTqs8xKVJwTX26yzdfZnXdTJQv3ecnXzv/0VjCvlMqUDY+Y1RXkWmfyRyDerYmKcOFCcgMcvFJ8PxodLjoQCZ8gWkDocKFS+uHxogrixNwkvitkgToX58bBhJAUEnLyoIGxOEIBuml/kJYBNwQo8vFhGL+QkJhA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.218.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="U4cnfugh"
-Received: by mail-wm1-f54.google.com with SMTP id 5b1f17b1804b1-428e0d184b4so7336505e9.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Aug 2024 09:35:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1724344536; x=1724949336; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=sXhc31SegQW1u27Vkqy2Da0iA0P0HOdns6Pieyn3XAk=;
-        b=U4cnfughsPsBzp8TA4l3K46xhBSPzMRbX0EW0rIBBuVowgBViLzHEIcMqosrVaw3In
-         wnJMt2b5AJs/Q7sMFeGgcGOmIZgb3b3asqG1oQ3YBZr5BlOWM8ipN4mGMK5uPMqqnEXm
-         zy2kqarXmP10CYpBXC1497fAii/IPESX2TgFqG+HIO35QNpdv6W+ysVK4YD4Up97jcOv
-         phz9ZKC/SWq2xqjAEdF9vnZq2zaAscj7AoZDFX2eHxLSelg40fetkNKNp06DwatTlDqH
-         dBlxdcn3iXYQ4hdPKC6LxdGeEG38dtI71lYAemsYwglHXnJ2X1bgVbLn46rT789Fx/Py
-         Ku1w==
+Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-a8666734767so138788366b.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Aug 2024 10:55:22 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1724344536; x=1724949336;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=sXhc31SegQW1u27Vkqy2Da0iA0P0HOdns6Pieyn3XAk=;
-        b=RqBAfpmGV3fD75rblcaC2ljF03RPTr4PIWF0ZMZdFNgYEfglnEI1h1Lq30iA7XK/z4
-         HqBBtKMRTu3uINCvyqMpsJTAJPOzHQbEtmnbiXGvtRFIeJl0DtodgXZezR09lwc5oDsn
-         AqW5fnNinR4YjSx7iuaI+o6EqjLlPmNxPbR4xXJCUV7AEdiZb7LpA0WOsB0X7QKo4VVC
-         v9A4+2H1HYacvtm/a88dhKxqggJ5reSyLRRBd/ynw7MxgFs6LJgLu8GhjKe/ZanlI6/n
-         bAl+Uvxf07XCg/AS0b6Wz+4hT0VkaXRYzN4S1ei2+ahOAzk2m8nwNwOSaEQ8/cDNUuYm
-         kn/Q==
-X-Gm-Message-State: AOJu0Yw6z25CcVjZVRSim0cckUQsSCHvm+7wpgi/eKGdwROOQSZ1NWq4
-	emVkEgJ8m2sdqTJi10KqxOJUWptYPM7UbVfy9VECgQRI5fQvR4Svh5Mz9bDW
-X-Google-Smtp-Source: AGHT+IFWCjQ+sPbLrNLwSi+EfZ9kJedOc/icbMZbcCn2W1NH0c6z5gXLeKPM40nYBiBr7eAZAXhd2Q==
-X-Received: by 2002:a05:600c:4e41:b0:428:ea8e:b4a0 with SMTP id 5b1f17b1804b1-42ac55d9b1cmr17493145e9.14.1724344536156;
-        Thu, 22 Aug 2024 09:35:36 -0700 (PDT)
-Received: from jorge-PC.. ([45.157.58.54])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-42ac5180106sm30186045e9.41.2024.08.22.09.35.35
+        d=1e100.net; s=20230601; t=1724349321; x=1724954121;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=tWTrl+LdPGz41UsRvCotEZGrzpgKAQwzb8p0dsCSnO4=;
+        b=p9JiHKZnz+b//GwWFvb0x5ao+3VhYRDEN+4fKBzK9Db1O1Hx99HBK13YqRYXJj5O7J
+         9q8Ek8SLeGH45s2ntpgCs86ATRJ44u0E+Okpb7vPr18P4CjHwUAMBNVvtHo9i14xZMHf
+         XzJswDOe/6bGoW7QKRkme9sHst/Kng3J7hjLXqH3Nn8F07agL0Z2bn7Cb9LRwnQ6QHTd
+         09T+xOQxyNtpWPvptq1TDDdKmI+wLW3jXi7eCAVz0mVmGwCSJEb4jzpu14RSRtqSUt3K
+         hqtvYBEptMGVu0J5+DLTZet5NzQ0r7jNL+awery72bujxvpSl47yz0I4tdDEQ87Yheel
+         sOLw==
+X-Forwarded-Encrypted: i=1; AJvYcCXyuAwbzMsI6UunvkKw4zv3E9saJsLfblYdqzqSyROfPVE5PCyZwUJlX0Ns7St+eGxGweWu/r9xduTD3W2lv40=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yyq78DyWz7qR1WIl+X9cHIszctMu3JCLrYa+fRqN8Mz0Zh6j8nz
+	WQc0Uh9xeGqfoEMozzQM1Te4VIQntuYW9xe0rVvjhcqkx2lVeXT98+A+DNmY
+X-Google-Smtp-Source: AGHT+IGGU/1GpHhd23Zu7DL9e4lAv/AKcNyJbFrPqzacgQRisJhif0aWJkXLZWX6XrLOHd+2MaBaYw==
+X-Received: by 2002:a17:907:9490:b0:a7a:a892:8e05 with SMTP id a640c23a62f3a-a866f359158mr512936866b.33.1724349321027;
+        Thu, 22 Aug 2024 10:55:21 -0700 (PDT)
+Received: from gmail.com (fwdproxy-lla-001.fbsv.net. [2a03:2880:30ff:1::face:b00c])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a868f299d51sm148107866b.54.2024.08.22.10.55.20
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 22 Aug 2024 09:35:35 -0700 (PDT)
-From: Jorge Ortiz <jorge.ortiz.escribano@gmail.com>
-To: pablo@netfilter.org,
-	fw@strlen.de
-Cc: netfilter-devel@vger.kernel.org,
-	jorge.ortiz.escribano@gmail.com,
-	jortiz@teldat.com
-Subject: [kernel PATCH] nf_tables_ipv4: fix transport header offset comparison
-Date: Thu, 22 Aug 2024 18:35:32 +0200
-Message-ID: <20240822163532.12244-1-jorge.ortiz.escribano@gmail.com>
-X-Mailer: git-send-email 2.43.0
+        Thu, 22 Aug 2024 10:55:20 -0700 (PDT)
+Date: Thu, 22 Aug 2024 10:55:18 -0700
+From: Breno Leitao <leitao@debian.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: rbc@meta.com, netfilter-devel@vger.kernel.org
+Subject: Re: netfilter: Kconfig: IP6_NF_IPTABLES_LEGACY old =y behaviour
+ question
+Message-ID: <Zsd7hk8SMQoHKjwR@gmail.com>
+References: <Zsb+YHrLklrTCrly@gmail.com>
+ <20240822112339.GA21472@breakpoint.cc>
+ <Zscy83HM2TlwkSDq@gmail.com>
+ <20240822132022.GA25665@breakpoint.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240822132022.GA25665@breakpoint.cc>
 
-I have reproduced an issue affecting some nftables meta expressions on the egress hook.
-With the following example ruleset:
+Hello Florian,
 
-table netdev test_ndev {
-      chain out {
-            type filter hook egress device "eth0" priority -190; policy accept;
-            meta l4proto udp log prefix "OUT__"
-      }
-}
+On Thu, Aug 22, 2024 at 03:20:22PM +0200, Florian Westphal wrote:
+> Breno Leitao <leitao@debian.org> wrote:
+> > On Thu, Aug 22, 2024 at 01:23:39PM +0200, Florian Westphal wrote:
 
-When small UDP packets (< 4 bytes payload) are sent from eth0, `meta l4proto udp` condition is not met because `NFT_PKTINFO_L4PROTO` is not set.
-This happens because there is a comparison that checks if the transport header offset exceeds the total length.
-This comparison does not take into account the fact that the skb network offset might be non-zero in egress mode (e.g., 14 bytes for Ethernet header).
+> > In certain environments, iptables needs to run, but there is *no*
+> > permission to load modules.
+> > 
+> > For those cases, I have CONFIG_IP6_NF_IPTABLES configured as y in
+> > previous kernels, and now it becomes a "m", which doesn't work because
+> > iptables doesn't have permission to load modules, returning:
+> > 
+> > 	$ ip6tables -L
+> > 	modprobe: FATAL: Module ip6_tables not found in directory /lib/modules/....
+> > 	ip6tables v1.8.10 (legacy): can't initialize ip6tables table `filter': Table does not exist (do you need to insmod?)
+> > 	Perhaps ip6tables or your kernel needs to be upgraded.
+> 
+> Hmm, but how can that work?  If you can't load modules, you can't load
+> ip6t_filter either.
 
-Signed-off-by: Jorge Ortiz <jorge.ortiz.escribano@gmail.com>
----
- include/net/netfilter/nf_tables_ipv4.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+This happens inside a container that has no support for module loading, and
+expects the tables to be =y.
 
-diff --git a/include/net/netfilter/nf_tables_ipv4.h b/include/net/netfilter/nf_tables_ipv4.h
-index 60a7d0ce3080..0f11568eaba6 100644
---- a/include/net/netfilter/nf_tables_ipv4.h
-+++ b/include/net/netfilter/nf_tables_ipv4.h
-@@ -33,7 +33,7 @@ static inline int __nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt)
- 	thoff = skb_network_offset(pkt->skb) + (iph->ihl * 4);
- 	if (pkt->skb->len < len)
- 		return -1;
--	else if (len < thoff)
-+	else if (len + skb_network_offset(pkt->skb) < thoff)
- 		return -1;
- 	else if (thoff < sizeof(*iph))
- 		return -1;
--- 
-2.43.0
+> And if thats builtin, then IP6_NF_IPTABLES_LEGACY is supposed to become
+> =y too.
 
+Correct, both of them (IP6_NF_IPTABLES_LEGACY and IP_NF_IPTABLES_LEGACY)
+was able to be user selectable, and they are not anymore, causing this
+behaviour change.
+
+Thanks for your support,
+--breno
