@@ -1,13 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B0A0D16EB54;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B09CB14EC5E;
 	Thu, 22 Aug 2024 10:18:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724321932; cv=none; b=jRDHCWj0e4rf38SWqUzvnyVJrwXU5w+rlGtxt4phjq+pfzpXC66cQ8LcllF/WCaOI9SR5PHSgaX/ovcTbh356M/81pf7PXOdcEOuUObJX/7ZIk0bXbukG+GcuqIVRFim216s+yGAw0Ks0DSXdxfAOP8Jhj75SWIehjr26wN8rBQ=
+	t=1724321932; cv=none; b=CGhAerYllrUUjfs7jd9eP71FNNtlRGGIdmU+zsIlnkijotHHKgzp1fx02KHKIGH+OL/vS0GU8e+4+eN1Suxh9QMqG4W6CsqOUQZRrW4oQdetI/+fbnpgKof9q87+qmxUZFmQGr4gv3yU+UGdrMaWs9LPhan12qD4W+4XyxpicaY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1724321932; c=relaxed/simple;
-	bh=IVTuXysU78MLZKwd8/TLm8jZlEvjvqK9x+LTyFpBZfw=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Kavxz7Rr/r0jSq16uXWFuNfYOSwwm+PbXtLqLmHju0BTNhh4RQa2q41sNQ/qQyheNybqT5Qz10vdPCovOL8Fznbrp24l+7mqCK4Tk5duxnUpQMfznN3ejvvZ3Abtdu1McHEAoXRXBhbXhAAp8HX1i+V0fZdugA2wyUnwd1AqmGQ=
+	bh=NTD6YLYA7x1bgFibKVrKX+RosNGeZde4qslPUCQBcsc=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=es9fn3kA/v4WdRqNuyxqxC40eFn+HBpgLN50pjtrRvni0bwlUCIHTl2mE7CZ95nupzcIChERfrlH8zVsKtNRd1lGgoXv0al9hnytwC+BkFkH8DskS4wT1vr+6weEPDZo8CSa+a0D5Vs8gxlYfUso+fEEnD/l4CzpBbl8o8YtR1M=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -19,10 +20,12 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net,v2 0/3] Netfilter fixes for net
-Date: Thu, 22 Aug 2024 12:18:39 +0200
-Message-Id: <20240822101842.4234-1-pablo@netfilter.org>
+Subject: [PATCH net 1/3] netfilter: nft_counter: Disable BH in nft_counter_offload_stats().
+Date: Thu, 22 Aug 2024 12:18:40 +0200
+Message-Id: <20240822101842.4234-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20240822101842.4234-1-pablo@netfilter.org>
+References: <20240822101842.4234-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,56 +34,50 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-v2: including suggestion from Eric Dumazet on patch #3.
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
--o-
+The sequence counter nft_counter_seq is a per-CPU counter. There is no
+lock associated with it. nft_counter_do_eval() is using the same counter
+and disables BH which suggest that it can be invoked from a softirq.
+This in turn means that nft_counter_offload_stats(), which disables only
+preemption, can be interrupted by nft_counter_do_eval() leading to two
+writer for one seqcount_t.
+This can lead to loosing stats or reading statistics while they are
+updated.
 
-Hi,
+Disable BH during stats update in nft_counter_offload_stats() to ensure
+one writer at a time.
 
-The following patchset contains Netfilter fixes for net:
+Fixes: b72920f6e4a9d ("netfilter: nftables: counter hardware offload support")
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Reviewed-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nft_counter.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Patch #1 disable BH when collecting stats via hardware offload to ensure
-         concurrent updates from packet path do not result in losing stats.
-         From Sebastian Andrzej Siewior.
+diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
+index 291ed2026367..16f40b503d37 100644
+--- a/net/netfilter/nft_counter.c
++++ b/net/netfilter/nft_counter.c
+@@ -265,7 +265,7 @@ static void nft_counter_offload_stats(struct nft_expr *expr,
+ 	struct nft_counter *this_cpu;
+ 	seqcount_t *myseq;
+ 
+-	preempt_disable();
++	local_bh_disable();
+ 	this_cpu = this_cpu_ptr(priv->counter);
+ 	myseq = this_cpu_ptr(&nft_counter_seq);
+ 
+@@ -273,7 +273,7 @@ static void nft_counter_offload_stats(struct nft_expr *expr,
+ 	this_cpu->packets += stats->pkts;
+ 	this_cpu->bytes += stats->bytes;
+ 	write_seqcount_end(myseq);
+-	preempt_enable();
++	local_bh_enable();
+ }
+ 
+ void nft_counter_init_seqcount(void)
+-- 
+2.30.2
 
-Patch #2 uses write seqcount to reset counters serialize against reader.
-         Also from Sebastian Andrzej Siewior.
-
-Patch #3 ensures vlan header is in place before accessing its fields,
-         according to KMSAN splat triggered by syzbot.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-24-08-22
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 807067bf014d4a3ae2cc55bd3de16f22a01eb580:
-
-  kcm: Serialise kcm_sendmsg() for the same socket. (2024-08-19 18:36:12 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-24-08-22
-
-for you to fetch changes up to 6ea14ccb60c8ab829349979b22b58a941ec4a3ee:
-
-  netfilter: flowtable: validate vlan header (2024-08-22 12:14:18 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 24-08-22
-
-----------------------------------------------------------------
-Pablo Neira Ayuso (1):
-      netfilter: flowtable: validate vlan header
-
-Sebastian Andrzej Siewior (2):
-      netfilter: nft_counter: Disable BH in nft_counter_offload_stats().
-      netfilter: nft_counter: Synchronize nft_counter_reset() against reader.
-
- net/netfilter/nf_flow_table_inet.c | 3 +++
- net/netfilter/nf_flow_table_ip.c   | 3 +++
- net/netfilter/nft_counter.c        | 9 +++++++--
- 3 files changed, 13 insertions(+), 2 deletions(-)
