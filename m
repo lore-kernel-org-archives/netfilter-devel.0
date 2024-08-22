@@ -1,35 +1,31 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAD1B1D0498;
-	Thu, 22 Aug 2024 20:10:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D7FC41684AE;
+	Thu, 22 Aug 2024 22:19:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724357441; cv=none; b=mTYRAEBY5jRfY7yV4XOXwFjoBTB7bD1OTsi97oth0XspBinrtUtKd29Fp3m2kLPTeWTfGp6M45Bt4L9RCQxSYIg5HFMnyLhKsYLkMe9DzmcSllSS/omArSZu8kQCmPGIkcJYTJ7XkE9RVtFpzi/a1YnD5CJWEQk9tlRz4jKsXlE=
+	t=1724365190; cv=none; b=hvSqC+0dxcPIjh3V6MK2aS8IGlQWEYP3wT4BCYShpJzn/fUMqll9nLcIR3G4B2HkIa2JWN3qLNGJBrPYbWcmkYxOrA/ZTZ5wh8CrkmH6ZrOOcjdKZ2XOrErWFHFyW5tmpbmMUO1N1sh6pbar7h5oBK3q5Btbrk3BuNo3CTr2jH4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724357441; c=relaxed/simple;
-	bh=VfzQf5sIhyCxwrOTKypIn9Tzg+S4uUV3V4N1ACjeAb0=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=vDkUmFT8uL1uM7XyCj83v2ffgBlyS6DE+0NFQOYw8xRgRB0ZasP0lNS5cmtTaCJfNrCzR+BMzxU5fxL5jVxIVp+XTfVyR5z64HJCPZt2HP8GzdBgRqQT41SG7qmPB0+9unHmGg3pAugqP7yONRvgUzCHNLyri0N/hPVzgvgImvU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SPofPW9T; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SPofPW9T"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51480C4AF12;
-	Thu, 22 Aug 2024 20:10:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1724357441;
-	bh=VfzQf5sIhyCxwrOTKypIn9Tzg+S4uUV3V4N1ACjeAb0=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=SPofPW9TJ8q9ZrXSoZrxw7OKlKL8inwRxrjAegelNHOvEZqJysXX5Kq0iDniwpvKV
-	 dfKiF38fkexNG4r0UYiRCdi4h2SfzpN2xe89Xxea4kWiNPi9GyjG8FMHXkKGlQX7h6
-	 Y0bq4RIx10zHwrKmznhPUceZon9X+w5xG34w0vSEyMuwsrfNAEJMtQ7Pp4B0ybsMCa
-	 0lt555oqQhotswDo7zKLuaDPeCKZNeYJi/xcFUDyjcdLAgberb30EgWF75o4XCRQsF
-	 ppOzzT2OUsSHWo6dukj+BB6lDkNjMZsx1q8QpHH8Uw+qd8GFO53mocIVnHLPtvIyNb
-	 XwqdqjV5NBrjg==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 340BE3809A81;
-	Thu, 22 Aug 2024 20:10:42 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=arc-20240116; t=1724365190; c=relaxed/simple;
+	bh=OYm+71XqklzghjeRY2nBgPG0DoLOf1CgjK8RxhB+oSc=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=seyKH827V2m0x78gZ15PV2vlaTVHsu1R8NPLwTFZ0XEJZXOrlZM73WrVI31wEBTt1OtQYPcePZvHABF70o4rp+y7LxD7/QRS/cUJVMM6XFcj1DGPNNJ9UR77O5LglFO/QcCrzbQwnny/MZWgdd/IoExbUHg7ZyynZUXBoiHylgw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de
+Subject: [PATCH net-next 1/9] netfilter: nfnetlink_queue: unbreak SCTP traffic
+Date: Fri, 23 Aug 2024 00:19:31 +0200
+Message-Id: <20240822221939.157858-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20240822221939.157858-1-pablo@netfilter.org>
+References: <20240822221939.157858-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,49 +33,74 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/3] netfilter: nft_counter: Disable BH in
- nft_counter_offload_stats().
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <172435744075.2469005.11253775629517796126.git-patchwork-notify@kernel.org>
-Date: Thu, 22 Aug 2024 20:10:40 +0000
-References: <20240822101842.4234-2-pablo@netfilter.org>
-In-Reply-To: <20240822101842.4234-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de
 
-Hello:
+From: Antonio Ojea <aojea@google.com>
 
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+when packet is enqueued with nfqueue and GSO is enabled, checksum
+calculation has to take into account the protocol, as SCTP uses a
+32 bits CRC checksum.
 
-On Thu, 22 Aug 2024 12:18:40 +0200 you wrote:
-> From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> 
-> The sequence counter nft_counter_seq is a per-CPU counter. There is no
-> lock associated with it. nft_counter_do_eval() is using the same counter
-> and disables BH which suggest that it can be invoked from a softirq.
-> This in turn means that nft_counter_offload_stats(), which disables only
-> preemption, can be interrupted by nft_counter_do_eval() leading to two
-> writer for one seqcount_t.
-> This can lead to loosing stats or reading statistics while they are
-> updated.
-> 
-> [...]
+Enter skb_gso_segment() path in case of SCTP GSO packets because
+skb_zerocopy() does not support for GSO_BY_FRAGS.
 
-Here is the summary with links:
-  - [net,1/3] netfilter: nft_counter: Disable BH in nft_counter_offload_stats().
-    https://git.kernel.org/netdev/net/c/1eacdd71b343
-  - [net,2/3] netfilter: nft_counter: Synchronize nft_counter_reset() against reader.
-    https://git.kernel.org/netdev/net/c/a0b39e2dc701
-  - [net,3/3] netfilter: flowtable: validate vlan header
-    https://git.kernel.org/netdev/net/c/6ea14ccb60c8
+Joint work with Pablo.
 
-You are awesome, thank you!
+Signed-off-by: Antonio Ojea <aojea@google.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/core/dev.c                  |  1 +
+ net/netfilter/nfnetlink_queue.c | 12 ++++++++++--
+ 2 files changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/net/core/dev.c b/net/core/dev.c
+index e7260889d4cb..8384282acadf 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -3386,6 +3386,7 @@ int skb_crc32c_csum_help(struct sk_buff *skb)
+ out:
+ 	return ret;
+ }
++EXPORT_SYMBOL(skb_crc32c_csum_help);
+ 
+ __be16 skb_network_protocol(struct sk_buff *skb, int *depth)
+ {
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index e0716da256bf..d2773ce9b585 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -540,6 +540,14 @@ static int nfqnl_put_bridge(struct nf_queue_entry *entry, struct sk_buff *skb)
+ 	return -1;
+ }
+ 
++static int nf_queue_checksum_help(struct sk_buff *entskb)
++{
++	if (skb_csum_is_sctp(entskb))
++		return skb_crc32c_csum_help(entskb);
++
++	return skb_checksum_help(entskb);
++}
++
+ static struct sk_buff *
+ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 			   struct nf_queue_entry *entry,
+@@ -602,7 +610,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 	case NFQNL_COPY_PACKET:
+ 		if (!(queue->flags & NFQA_CFG_F_GSO) &&
+ 		    entskb->ip_summed == CHECKSUM_PARTIAL &&
+-		    skb_checksum_help(entskb))
++		    nf_queue_checksum_help(entskb))
+ 			return NULL;
+ 
+ 		data_len = READ_ONCE(queue->copy_range);
+@@ -1014,7 +1022,7 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
+ 		break;
+ 	}
+ 
+-	if ((queue->flags & NFQA_CFG_F_GSO) || !skb_is_gso(skb))
++	if (!skb_is_gso(skb) || ((queue->flags & NFQA_CFG_F_GSO) && !skb_is_gso_sctp(skb)))
+ 		return __nfqnl_enqueue_packet(net, queue, entry);
+ 
+ 	nf_bridge_adjust_skb_data(skb);
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.30.2
 
