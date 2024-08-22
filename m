@@ -1,105 +1,252 @@
-Received: from mail-ej1-f52.google.com (mail-ej1-f52.google.com [209.85.218.52])
+Received: from mail-wr1-f43.google.com (mail-wr1-f43.google.com [209.85.221.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C1716A8CF
-	for <netfilter-devel@vger.kernel.org>; Thu, 22 Aug 2024 06:03:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94F9F139D1A
+	for <netfilter-devel@vger.kernel.org>; Thu, 22 Aug 2024 06:29:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724306638; cv=none; b=CbEnewkRUBNm+bvp/xvdBl1Zy/w64wvfWZrc9dWypXODyXSQ/8yY0kWLl4vX85mk07Iyy5/7cdIooT63A6BE4MLSFQccOHUoxvA8FllyqqoBmrntkkTgwoPZCxABRjoAmbkTMFyBC3pI06Ql/GTpst0Q0XfDVTPdZUUj5V92FG4=
+	t=1724308193; cv=none; b=hopGgAw3av/Deq8Iah/UnvZiTz3vV6YNSD98Vn2Ksm+9CLEc4h2P7j22tF48NqaA5qhkp3yK9ARWHsw6Rxobu4xP0be6jpBTVS5+wU5K5cRFoYSh7FKZIje8DbUHD6QhVB4cNxA9fnh9LjISebhNjEdcN7V81y/iqdzHIhXD51s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724306638; c=relaxed/simple;
-	bh=A6A4Fe632TYShLqfk32WrMMELcP3NWtAJYeFYitcR44=;
+	s=arc-20240116; t=1724308193; c=relaxed/simple;
+	bh=TOV0Mxr9masS1LIDOojNXiiKpad6DIuNqBDKADF4XX4=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=mIEgYNlhnIv/ZXBH1h+hgV7hh7O65Tf47TrTk+m/ebXhfNJglqQIrKcP2AQNg+j9GUnTA3sjbQedBmfGxMjTuwNpDZYspUxtZUS7X7Wixr7ZNlFR22oxk7FE+i37ff6IN7p789PMVtx4p8LATgI4lOH25Xoebm5+hoQntLIS4yk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=bSME000o; arc=none smtp.client-ip=209.85.218.52
+	 To:Cc:Content-Type; b=ORXT6OJB49rKvoBpZh36dEDz4Q4aVlRsevfqhZXisqW06sel3qQDMVvg94vUkW4yvzLjBIIXrZwb1/tRPlATot36iLelcsw/rxAn9ufFIBNs6nyHnB/gKpo5jbmLGiMNjpy+sV2enuXv5YX0MJOTz696f532uXmQaB84BHgZm7s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=owTA9Ou0; arc=none smtp.client-ip=209.85.221.43
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="bSME000o"
-Received: by mail-ej1-f52.google.com with SMTP id a640c23a62f3a-a83597ce5beso64862766b.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 21 Aug 2024 23:03:56 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="owTA9Ou0"
+Received: by mail-wr1-f43.google.com with SMTP id ffacd0b85a97d-371b015572cso197622f8f.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 21 Aug 2024 23:29:51 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1724306635; x=1724911435; darn=vger.kernel.org;
+        d=google.com; s=20230601; t=1724308190; x=1724912990; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=A6A4Fe632TYShLqfk32WrMMELcP3NWtAJYeFYitcR44=;
-        b=bSME000oWPMnQydZRZXV2mKwr+14BbHvtEPSKT/MUAj+SsCdZU5prvCgYxQlPste2n
-         EuaC9IX4cNALFcZ69hlYF+C8SWvqsVjVoxMILHCwOeoTPNn7qkrfSXpiOVq6Ysy1nD4S
-         g2jLz51eXptzSTRVlZu0qqZVVOk+VSI53neyKQtE7qm4eX2TZPBE+viMjykSY3TGkpd6
-         PFbMu3/gutoIpmeLfPP6uKEcTFjnCIiWSpE3shGZKs3xb7nainZ26NixUAfULzRTE0Z7
-         rQeV5iI+rCtcFDHkTIUtxTL9+zorLY2mNHya9LFNRDEvAINB8FI6AKufzdRaGdxei16u
-         2fVg==
+        bh=OPLL/w+pHwmxCdDJmUifzSC2FTvRndnGaui7LUOpJ5U=;
+        b=owTA9Ou07/H/KpB3HmQ8jP/JOekK7nA7E8YCGMKwf4kH1yTmUkA+sDhfo8wwwcVvRN
+         y1kPIsimoKKxKJfPlPnvSFnu3n8Ld92fouPLEdwqRlGng9YrvvX+mLeiARVRE9bWii7E
+         iBI2R8adiOLGRuh6C8A8tBzDYaUSDckb7iTMmdf9ztcXrgACIXGyDJYOsOsnxWQGkZ4E
+         KsIWR+ELDazphKK4jHaj8aG051Khq8Rj1FhrgnfXTWoL0BnX3q5FJJxta8LE00f8TN1v
+         +BWMJFM/tkiBkqQvXg0ayd4PCCyeT5fO54LnEvlmzY6Mve+7OZ0X95t0zdF76dfcGO45
+         8prA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1724306635; x=1724911435;
+        d=1e100.net; s=20230601; t=1724308190; x=1724912990;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=A6A4Fe632TYShLqfk32WrMMELcP3NWtAJYeFYitcR44=;
-        b=uWSz+q6ixJL3BUt5A/LvAphMvuTWAp9Q2/0derTkp/mR57QP2FW1pnsCgRUfJy5XJd
-         erFonJ3QTUT7pHLn96kRWCSmxZ8ft3DtLPbgY/ROZ0KqVrVf+8R1DA+omoZ93Sxm6k8X
-         KQidwU8t/3lAS371+ZT6zTbi9uxeXQorVMSXSS9yPHiMVG8S/LKv0Q8TbFOyVehEgIcI
-         q+BgnLyPs+TCsmu/M0P3/kkqNwPDoHfisQ6NJ19aTflJlou+jm/gMT9jPTCiOvG4pJMR
-         1PbDRj+YJHFM5MoCQL9gvsw9aaNY4utX4WC5vGH8N3UEZTJOf6lY2z69Dxks0tABCyMz
-         7X6A==
-X-Forwarded-Encrypted: i=1; AJvYcCWO9V9JC77hGMMD1b3kbcMhbHulpCdI4hp583w9sGENpz3MoEJziklEUoV/nk1VeIkcEVzSfVdWoYnjQwwrSxo=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwZJ4vUFwORhIK2dKwIKCPK7MTGV1yIhWqg+Dan9WCVu/rgpzMo
-	NhSKc5LStxAMFLazf6TW9sd5ST5Vuy/vbDVma0wioCZWyTOMAgOoCK4srr/ilux8jyVAnxNc9FH
-	jNELfOyJyVSK4xtEBJpkJ3v2wyRN1NCIIlW89
-X-Google-Smtp-Source: AGHT+IGNfFwTAmIsIllx9KcRV2vWMF9IIN4oRU2yH5xHn4rDW0RJpAFvaGgqE4eyO/Fg6KLLFZkJ9cN2Jikv3AYMafQ=
-X-Received: by 2002:a17:907:7f1f:b0:a7d:89ac:9539 with SMTP id
- a640c23a62f3a-a868a5af23cmr176699566b.7.1724306634586; Wed, 21 Aug 2024
- 23:03:54 -0700 (PDT)
+        bh=OPLL/w+pHwmxCdDJmUifzSC2FTvRndnGaui7LUOpJ5U=;
+        b=bw2eDbd9mYtvUq025QiHJfdFr/lw79MBdx6/UFzZxrqI94slZh5Xr5isRhQBir9+KE
+         jlZ0TOVodAw/m0z/YPDd21gN5izCEScDIUMNEqN97Gs+abdgOhuBm5OnHkD0zcF4bqx6
+         h7oNiKHptdDlIPa3eclREQESUlNhvVtYBQ4k6v240QPAv6mqGC3AlgtV03vO9STq75k3
+         bdXS8ZPppkOnLM8Sr6l9JWthx5dhjhvNyf650Jw3tYivbsJjoCxsN9gB+kQZu/z2755U
+         HVWQjXCLHFFXgfIIW31/18ZM0PostWreW4DG6vmI683cI3zpHU2pbFkWhlJM2DT8abdM
+         L8dg==
+X-Forwarded-Encrypted: i=1; AJvYcCX4UZMTwNPJIQDH4+h1ridVfbGe5pkgpvn/VdSTcjsK8WXM5wP3H+V8j4uYA6Z4zITzzuCyVeh6Kz2QIYSSo9s=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyYTSgRwrCGasY5+fZ67r2caSUV3bad0qtdTB1ZqCaoqv7bm9/i
+	p2zYArKNQjlm24NXvOnK7DnC/Dg0xPr/L7YiR7LCxViumhsspSfVcMvUigBHwsAYBNan1tj7eLg
+	jkJMAl+H7M1uYMjdYcIVknvW4hGW6jAGJH9ic
+X-Google-Smtp-Source: AGHT+IEneBO5UyTCCKqQjQV9UoxxtinrLOihEqV9TPNtjGxACOfnSrXX3s8xnsohbadoFovQgSKRFxPDh45lFfYhUbE=
+X-Received: by 2002:a5d:46cc:0:b0:366:efbd:8aa3 with SMTP id
+ ffacd0b85a97d-37308c00a52mr571564f8f.2.1724308189157; Wed, 21 Aug 2024
+ 23:29:49 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240822043609.141992-1-takakura@valinux.co.jp>
-In-Reply-To: <20240822043609.141992-1-takakura@valinux.co.jp>
+References: <0000000000006bc6d20620023a14@google.com> <00000000000090974a0620398254@google.com>
+In-Reply-To: <00000000000090974a0620398254@google.com>
 From: Eric Dumazet <edumazet@google.com>
-Date: Thu, 22 Aug 2024 08:03:41 +0200
-Message-ID: <CANn89iJGUCp-4fRJWzwNzakyNZM=_mSNjX=_OUT8WJW-+isAfA@mail.gmail.com>
-Subject: Re: [PATCH] netfilter: Don't track counter updates of do_add_counters()
-To: takakura@valinux.co.jp
-Cc: pablo@netfilter.org, kadlec@netfilter.org, davem@davemloft.net, 
-	dsahern@kernel.org, kuba@kernel.org, pabeni@redhat.com, fw@strlen.de, 
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Thu, 22 Aug 2024 08:29:35 +0200
+Message-ID: <CANn89iKkFB3iLbqq=a0RXEygKq8wYY1uiSWpWQu7zaYUEQeJYQ@mail.gmail.com>
+Subject: Re: [syzbot] [ppp?] inconsistent lock state in valid_state (4)
+To: syzbot <syzbot+d43eb079c2addf2439c3@syzkaller.appspotmail.com>, 
+	Tom Parkin <tparkin@katalix.com>
+Cc: coreteam@netfilter.org, davem@davemloft.net, dsahern@kernel.org, 
+	kadlec@netfilter.org, kuba@kernel.org, linux-kernel@vger.kernel.org, 
+	linux-ppp@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
+	syzkaller-bugs@googlegroups.com
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Aug 22, 2024 at 6:36=E2=80=AFAM <takakura@valinux.co.jp> wrote:
+On Thu, Aug 22, 2024 at 1:00=E2=80=AFAM syzbot
+<syzbot+d43eb079c2addf2439c3@syzkaller.appspotmail.com> wrote:
 >
-> From: Ryo Takakura <takakura@valinux.co.jp>
+> syzbot has found a reproducer for the following issue on:
 >
-> While adding counters in do_add_counters(), we call
-> xt_write_recseq_begin/end to indicate that counters are being updated.
-> Updates are being tracked so that the counters retrieved by get_counters(=
-)
-> will reflect concurrent updates.
+> HEAD commit:    b311c1b497e5 Merge tag '6.11-rc4-server-fixes' of git://g=
+i..
+> git tree:       upstream
+> console output: https://syzkaller.appspot.com/x/log.txt?x=3D12dccc7b98000=
+0
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=3Ddf2f0ed7e30a6=
+39d
+> dashboard link: https://syzkaller.appspot.com/bug?extid=3Dd43eb079c2addf2=
+439c3
+> compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Deb=
+ian) 2.40
+> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=3D17cf93d5980=
+000
+> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=3D101bb69398000=
+0
 >
-> However, there is no need to track the updates done by do_add_counters() =
-as
-> both do_add_counters() and get_counters() acquire per ipv4,ipv6,arp mutex
-> beforehand which prevents concurrent update and retrieval between the two=
-.
+> Downloadable assets:
+> disk image (non-bootable): https://storage.googleapis.com/syzbot-assets/7=
+bc7510fe41f/non_bootable_disk-b311c1b4.raw.xz
+> vmlinux: https://storage.googleapis.com/syzbot-assets/1c99fa48192f/vmlinu=
+x-b311c1b4.xz
+> kernel image: https://storage.googleapis.com/syzbot-assets/16d5710a012a/b=
+zImage-b311c1b4.xz
 >
-> Moreover, as the xt_write_recseq_begin/end is shared among ipv4,ipv6,arp,
-> do_add_counters() called by one of ipv4,ipv6,arp can falsely delay the
-> synchronization of concurrent get_counters() or xt_replace_table() called
-> by any other than the one calling do_add_counters().
+> IMPORTANT: if you fix the issue, please add the following tag to the comm=
+it:
+> Reported-by: syzbot+d43eb079c2addf2439c3@syzkaller.appspotmail.com
 >
-> So remove xt_write_recseq_begin/end from do_add_counters() for ipv4,ipv6,=
-arp.
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D
+> WARNING: inconsistent lock state
+> 6.11.0-rc4-syzkaller-00019-gb311c1b497e5 #0 Not tainted
+> --------------------------------
+> inconsistent {SOFTIRQ-ON-W} -> {IN-SOFTIRQ-W} usage.
+> ksoftirqd/0/16 [HC0[0]:SC1[1]:HE1:SE0] takes:
+> ffff888039c531e0 (&pch->downl){+.?.}-{2:2}, at: spin_lock include/linux/s=
+pinlock.h:351 [inline]
+> ffff888039c531e0 (&pch->downl){+.?.}-{2:2}, at: ppp_channel_bridge_input =
+drivers/net/ppp/ppp_generic.c:2272 [inline]
+> ffff888039c531e0 (&pch->downl){+.?.}-{2:2}, at: ppp_input+0x18b/0xa10 dri=
+vers/net/ppp/ppp_generic.c:2304
+> {SOFTIRQ-ON-W} state was registered at:
+>   lock_acquire+0x1ed/0x550 kernel/locking/lockdep.c:5759
+>   __raw_spin_lock include/linux/spinlock_api_smp.h:133 [inline]
+>   _raw_spin_lock+0x2e/0x40 kernel/locking/spinlock.c:154
+>   spin_lock include/linux/spinlock.h:351 [inline]
+>   ppp_channel_bridge_input drivers/net/ppp/ppp_generic.c:2272 [inline]
+>   ppp_input+0x18b/0xa10 drivers/net/ppp/ppp_generic.c:2304
+>   pppoe_rcv_core+0x117/0x310 drivers/net/ppp/pppoe.c:379
+>   sk_backlog_rcv include/net/sock.h:1111 [inline]
+>   __release_sock+0x243/0x350 net/core/sock.c:3004
+>   release_sock+0x61/0x1f0 net/core/sock.c:3558
+>   pppoe_sendmsg+0xd5/0x750 drivers/net/ppp/pppoe.c:903
+>   sock_sendmsg_nosec net/socket.c:730 [inline]
+>   __sock_sendmsg+0x221/0x270 net/socket.c:745
+>   ____sys_sendmsg+0x525/0x7d0 net/socket.c:2597
+>   ___sys_sendmsg net/socket.c:2651 [inline]
+>   __sys_sendmmsg+0x3b2/0x740 net/socket.c:2737
+>   __do_sys_sendmmsg net/socket.c:2766 [inline]
+>   __se_sys_sendmmsg net/socket.c:2763 [inline]
+>   __x64_sys_sendmmsg+0xa0/0xb0 net/socket.c:2763
+>   do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+>   do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
+>   entry_SYSCALL_64_after_hwframe+0x77/0x7f
+> irq event stamp: 1309336
+> hardirqs last  enabled at (1309336): [<ffffffff8bc0d5ff>] __raw_spin_unlo=
+ck_irqrestore include/linux/spinlock_api_smp.h:151 [inline]
+> hardirqs last  enabled at (1309336): [<ffffffff8bc0d5ff>] _raw_spin_unloc=
+k_irqrestore+0x8f/0x140 kernel/locking/spinlock.c:194
+> hardirqs last disabled at (1309335): [<ffffffff8bc0d300>] __raw_spin_lock=
+_irqsave include/linux/spinlock_api_smp.h:108 [inline]
+> hardirqs last disabled at (1309335): [<ffffffff8bc0d300>] _raw_spin_lock_=
+irqsave+0xb0/0x120 kernel/locking/spinlock.c:162
+> softirqs last  enabled at (1309326): [<ffffffff81578ffa>] run_ksoftirqd+0=
+xca/0x130 kernel/softirq.c:928
+> softirqs last disabled at (1309331): [<ffffffff81578ffa>] run_ksoftirqd+0=
+xca/0x130 kernel/softirq.c:928
+>
+> other info that might help us debug this:
+>  Possible unsafe locking scenario:
+>
+>        CPU0
+>        ----
+>   lock(&pch->downl);
+>   <Interrupt>
+>     lock(&pch->downl);
+>
+>  *** DEADLOCK ***
+>
+> 1 lock held by ksoftirqd/0/16:
+>  #0: ffffffff8e938320 (rcu_read_lock){....}-{1:2}, at: rcu_lock_acquire i=
+nclude/linux/rcupdate.h:326 [inline]
+>  #0: ffffffff8e938320 (rcu_read_lock){....}-{1:2}, at: rcu_read_lock incl=
+ude/linux/rcupdate.h:838 [inline]
+>  #0: ffffffff8e938320 (rcu_read_lock){....}-{1:2}, at: ppp_channel_bridge=
+_input drivers/net/ppp/ppp_generic.c:2267 [inline]
+>  #0: ffffffff8e938320 (rcu_read_lock){....}-{1:2}, at: ppp_input+0x55/0xa=
+10 drivers/net/ppp/ppp_generic.c:2304
+>
+> stack backtrace:
+> CPU: 0 UID: 0 PID: 16 Comm: ksoftirqd/0 Not tainted 6.11.0-rc4-syzkaller-=
+00019-gb311c1b497e5 #0
+> Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.=
+16.3-2~bpo12+1 04/01/2014
+> Call Trace:
+>  <TASK>
+>  __dump_stack lib/dump_stack.c:93 [inline]
+>  dump_stack_lvl+0x241/0x360 lib/dump_stack.c:119
+>  valid_state+0x13a/0x1c0 kernel/locking/lockdep.c:4012
+>  mark_lock_irq+0xbb/0xc20 kernel/locking/lockdep.c:4215
+>  mark_lock+0x223/0x350 kernel/locking/lockdep.c:4677
+>  __lock_acquire+0xbf9/0x2040 kernel/locking/lockdep.c:5096
+>  lock_acquire+0x1ed/0x550 kernel/locking/lockdep.c:5759
+>  __raw_spin_lock include/linux/spinlock_api_smp.h:133 [inline]
+>  _raw_spin_lock+0x2e/0x40 kernel/locking/spinlock.c:154
+>  spin_lock include/linux/spinlock.h:351 [inline]
+>  ppp_channel_bridge_input drivers/net/ppp/ppp_generic.c:2272 [inline]
+>  ppp_input+0x18b/0xa10 drivers/net/ppp/ppp_generic.c:2304
+>  ppp_sync_process+0x71/0x160 drivers/net/ppp/ppp_synctty.c:490
+>  tasklet_action_common+0x321/0x4d0 kernel/softirq.c:785
+>  handle_softirqs+0x2c4/0x970 kernel/softirq.c:554
+>  run_ksoftirqd+0xca/0x130 kernel/softirq.c:928
+>  smpboot_thread_fn+0x544/0xa30 kernel/smpboot.c:164
+>  kthread+0x2f0/0x390 kernel/kthread.c:389
+>  ret_from_fork+0x4b/0x80 arch/x86/kernel/process.c:147
+>  ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:244
+>  </TASK>
+>
+>
+> ---
+> If you want syzbot to run the reproducer, reply with:
+> #syz test: git://repo/address.git branch-or-commit-hash
+> If you attach or paste a git patch, syzbot will apply it before testing.
 
-Completely wrong patch.
+Bug probably added in
 
-There is no way we can update pairs of 64bit counters without any
-synchronization.
+commit 4cf476ced45d7f12df30a68e833b263e7a2202d1
+Author: Tom Parkin <tparkin@katalix.com>
+Date:   Thu Dec 10 15:50:57 2020 +0000
 
-This is per cpu sequence, the 'shared among ipv4,ipv6,arp' part is moot.
+    ppp: add PPPIOCBRIDGECHAN and PPPIOCUNBRIDGECHAN ioctls
 
-We could use cmpxchg128 on 64bit arches, but I suspect there will be
-no improvement.
+
+
+sk_backlog_rcv() is called without BH being blocked.
+
+Fx would be :
+
+diff --git a/drivers/net/ppp/ppp_generic.c b/drivers/net/ppp/ppp_generic.c
+index eb9acfcaeb097496b5e28c87af13f5b4091a9bed..9d2656afba660a1a0eda5a53903=
+b0f668a11abc9
+100644
+--- a/drivers/net/ppp/ppp_generic.c
++++ b/drivers/net/ppp/ppp_generic.c
+@@ -2269,7 +2269,7 @@ static bool ppp_channel_bridge_input(struct
+channel *pch, struct sk_buff *skb)
+        if (!pchb)
+                goto out_rcu;
+
+-       spin_lock(&pchb->downl);
++       spin_lock_bh(&pchb->downl);
+        if (!pchb->chan) {
+                /* channel got unregistered */
+                kfree_skb(skb);
+@@ -2281,7 +2281,7 @@ static bool ppp_channel_bridge_input(struct
+channel *pch, struct sk_buff *skb)
+                kfree_skb(skb);
+
+ outl:
+-       spin_unlock(&pchb->downl);
++       spin_unlock_bh(&pchb->downl);
+ out_rcu:
+        rcu_read_unlock();
