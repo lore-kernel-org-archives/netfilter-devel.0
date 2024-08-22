@@ -1,31 +1,48 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3C1F04C99;
-	Thu, 22 Aug 2024 00:17:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from mail.valinux.co.jp (mail.valinux.co.jp [210.128.90.3])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18B251BF2A;
+	Thu, 22 Aug 2024 04:36:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.128.90.3
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724285838; cv=none; b=FQI/oyoU8Y6JOd6VELrkgb/OqjtDXk2Zh1x3y/iFISAByNCMLN4uQhsr/3Ehj52vDlaCP9hyw9zzTYcDriCTceSqb4nBwfeNFtkbIAJOdIHkyDTA+VDYk/6ARFRwqm5obD2hExu3EvN/3DrgTsii4trUhd8/AhgSOh4BVwVxos8=
+	t=1724301392; cv=none; b=uNsBvHn7aPHqPUGaJMjG28qddyFzVxF562W/seSixxDgl4TWYKTl2GwRYbEr0jd272HtXEWMdQii0pLpmmJFJSdtbrVLjqizadH9z9Q7b7Yfnmrt6QJeCy9Z/kAR+ItK8SNFI9sI2dNxz56wOfJpx6SE7mwlWtGP4BntWJcqXcs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724285838; c=relaxed/simple;
-	bh=QlkbnX3So7ybXk9gnLxo2Ib8PM6TvzIwAyY14gZWxEU=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=ZYzPLOCZQcHZnNgRR0SIYlaFTx5sBguLaX/5BTdA7Ad2pRshJwTg1bMdGjZr7S6cbGIAn1Li1R9CJOiDkrYtpqan5huf300mbFFHXppwNYmcYj7urevl3pUB6E5M/U9pH32ycu3VY8kADkhIYVaCRfN5KbVg/ToG5CQbJQi2qg4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
+	s=arc-20240116; t=1724301392; c=relaxed/simple;
+	bh=rGhOD38GjPd2YCkgM1QGnWfa7sS2RIeAm2BRL6NL45I=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=J7ugdsblc5/qINGJGH6yFLUOHNZuzTwI3aAUEef0ZqB/6izLa0941LhlL4HwF8p38D+HYFDcuMqBku+oVfiG0jdoeH6o772PLdT3NuEJxYLnDXFAkVwfVSCTAa6YqDqGu1+uw+1ppiswtOHCj3brZ7qbwxzfGNWgmqAzQM36bzw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=valinux.co.jp; spf=pass smtp.mailfrom=valinux.co.jp; arc=none smtp.client-ip=210.128.90.3
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=valinux.co.jp
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=valinux.co.jp
+Received: from localhost (localhost [127.0.0.1])
+	by mail.valinux.co.jp (Postfix) with ESMTP id BA818A9EBD;
+	Thu, 22 Aug 2024 13:36:27 +0900 (JST)
+X-Virus-Scanned: Debian amavisd-new at valinux.co.jp
+Received: from mail.valinux.co.jp ([127.0.0.1])
+	by localhost (mail.valinux.co.jp [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id G7ptISx-GhRg; Thu, 22 Aug 2024 13:36:27 +0900 (JST)
+Received: from DESKTOP-NBGHJ1C.local.valinux.co.jp (vagw.valinux.co.jp [210.128.90.14])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.valinux.co.jp (Postfix) with ESMTPSA id 8B39EA9B76;
+	Thu, 22 Aug 2024 13:36:27 +0900 (JST)
+From: takakura@valinux.co.jp
+To: pablo@netfilter.org,
+	kadlec@netfilter.org,
+	davem@davemloft.net,
+	dsahern@kernel.org,
+	edumazet@google.com,
 	kuba@kernel.org,
 	pabeni@redhat.com,
-	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 3/3] netfilter: flowtable: validate vlan header
-Date: Thu, 22 Aug 2024 02:17:07 +0200
-Message-Id: <20240822001707.2116-4-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20240822001707.2116-1-pablo@netfilter.org>
-References: <20240822001707.2116-1-pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Ryo Takakura <takakura@valinux.co.jp>
+Subject: [PATCH] netfilter: Don't track counter updates of do_add_counters()
+Date: Thu, 22 Aug 2024 13:36:09 +0900
+Message-Id: <20240822043609.141992-1-takakura@valinux.co.jp>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -34,53 +51,116 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Ensure there is sufficient room to access the protocol field of the
-VLAN header, validate it once before the flowtable lookup.
+From: Ryo Takakura <takakura@valinux.co.jp>
 
-=====================================================
-BUG: KMSAN: uninit-value in nf_flow_offload_inet_hook+0x45a/0x5f0 net/netfilter/nf_flow_table_inet.c:32
- nf_flow_offload_inet_hook+0x45a/0x5f0 net/netfilter/nf_flow_table_inet.c:32
- nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
- nf_hook_slow+0xf4/0x400 net/netfilter/core.c:626
- nf_hook_ingress include/linux/netfilter_netdev.h:34 [inline]
- nf_ingress net/core/dev.c:5440 [inline]
+While adding counters in do_add_counters(), we call
+xt_write_recseq_begin/end to indicate that counters are being updated.
+Updates are being tracked so that the counters retrieved by get_counters()
+will reflect concurrent updates.
 
-Fixes: 4cd91f7c290f ("netfilter: flowtable: add vlan support")
-Reported-by: syzbot+8407d9bb88cd4c6bf61a@syzkaller.appspotmail.com
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+However, there is no need to track the updates done by do_add_counters() as
+both do_add_counters() and get_counters() acquire per ipv4,ipv6,arp mutex
+beforehand which prevents concurrent update and retrieval between the two.
+
+Moreover, as the xt_write_recseq_begin/end is shared among ipv4,ipv6,arp,
+do_add_counters() called by one of ipv4,ipv6,arp can falsely delay the 
+synchronization of concurrent get_counters() or xt_replace_table() called 
+by any other than the one calling do_add_counters().
+
+So remove xt_write_recseq_begin/end from do_add_counters() for ipv4,ipv6,arp.
+
+Signed-off-by: Ryo Takakura <takakura@valinux.co.jp>
 ---
- net/netfilter/nf_flow_table_inet.c | 3 +++
- net/netfilter/nf_flow_table_ip.c   | 3 +++
- 2 files changed, 6 insertions(+)
+ net/ipv4/netfilter/arp_tables.c | 4 ----
+ net/ipv4/netfilter/ip_tables.c  | 3 ---
+ net/ipv6/netfilter/ip6_tables.c | 3 ---
+ 3 files changed, 10 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_inet.c b/net/netfilter/nf_flow_table_inet.c
-index 88787b45e30d..dd9a392052ee 100644
---- a/net/netfilter/nf_flow_table_inet.c
-+++ b/net/netfilter/nf_flow_table_inet.c
-@@ -17,6 +17,9 @@ nf_flow_offload_inet_hook(void *priv, struct sk_buff *skb,
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 14365b20f1c5..20de048d3e0c 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -1009,7 +1009,6 @@ static int do_add_counters(struct net *net, sockptr_t arg, unsigned int len)
+ 	const struct xt_table_info *private;
+ 	int ret = 0;
+ 	struct arpt_entry *iter;
+-	unsigned int addend;
  
- 	switch (skb->protocol) {
- 	case htons(ETH_P_8021Q):
-+		if (!pskb_may_pull(skb, VLAN_HLEN))
-+			return NF_ACCEPT;
-+
- 		veth = (struct vlan_ethhdr *)skb_mac_header(skb);
- 		proto = veth->h_vlan_encapsulated_proto;
- 		break;
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index c2c005234dcd..9a9031e9ea1c 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -281,6 +281,9 @@ static bool nf_flow_skb_encap_protocol(struct sk_buff *skb, __be16 proto,
+ 	paddc = xt_copy_counters(arg, len, &tmp);
+ 	if (IS_ERR(paddc))
+@@ -1029,8 +1028,6 @@ static int do_add_counters(struct net *net, sockptr_t arg, unsigned int len)
+ 	}
  
- 	switch (skb->protocol) {
- 	case htons(ETH_P_8021Q):
-+		if (!pskb_may_pull(skb, VLAN_HLEN))
-+			return false;
-+
- 		veth = (struct vlan_ethhdr *)skb_mac_header(skb);
- 		if (veth->h_vlan_encapsulated_proto == proto) {
- 			*offset += VLAN_HLEN;
+ 	i = 0;
+-
+-	addend = xt_write_recseq_begin();
+ 	xt_entry_foreach(iter,  private->entries, private->size) {
+ 		struct xt_counters *tmp;
+ 
+@@ -1038,7 +1035,6 @@ static int do_add_counters(struct net *net, sockptr_t arg, unsigned int len)
+ 		ADD_COUNTER(*tmp, paddc[i].bcnt, paddc[i].pcnt);
+ 		++i;
+ 	}
+-	xt_write_recseq_end(addend);
+  unlock_up_free:
+ 	local_bh_enable();
+ 	xt_table_unlock(t);
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index fe89a056eb06..f54dea2a8fcd 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -1162,7 +1162,6 @@ do_add_counters(struct net *net, sockptr_t arg, unsigned int len)
+ 	const struct xt_table_info *private;
+ 	int ret = 0;
+ 	struct ipt_entry *iter;
+-	unsigned int addend;
+ 
+ 	paddc = xt_copy_counters(arg, len, &tmp);
+ 	if (IS_ERR(paddc))
+@@ -1182,7 +1181,6 @@ do_add_counters(struct net *net, sockptr_t arg, unsigned int len)
+ 	}
+ 
+ 	i = 0;
+-	addend = xt_write_recseq_begin();
+ 	xt_entry_foreach(iter, private->entries, private->size) {
+ 		struct xt_counters *tmp;
+ 
+@@ -1190,7 +1188,6 @@ do_add_counters(struct net *net, sockptr_t arg, unsigned int len)
+ 		ADD_COUNTER(*tmp, paddc[i].bcnt, paddc[i].pcnt);
+ 		++i;
+ 	}
+-	xt_write_recseq_end(addend);
+  unlock_up_free:
+ 	local_bh_enable();
+ 	xt_table_unlock(t);
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 131f7bb2110d..f1d3bb74eb16 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -1179,7 +1179,6 @@ do_add_counters(struct net *net, sockptr_t arg, unsigned int len)
+ 	const struct xt_table_info *private;
+ 	int ret = 0;
+ 	struct ip6t_entry *iter;
+-	unsigned int addend;
+ 
+ 	paddc = xt_copy_counters(arg, len, &tmp);
+ 	if (IS_ERR(paddc))
+@@ -1198,7 +1197,6 @@ do_add_counters(struct net *net, sockptr_t arg, unsigned int len)
+ 	}
+ 
+ 	i = 0;
+-	addend = xt_write_recseq_begin();
+ 	xt_entry_foreach(iter, private->entries, private->size) {
+ 		struct xt_counters *tmp;
+ 
+@@ -1206,7 +1204,6 @@ do_add_counters(struct net *net, sockptr_t arg, unsigned int len)
+ 		ADD_COUNTER(*tmp, paddc[i].bcnt, paddc[i].pcnt);
+ 		++i;
+ 	}
+-	xt_write_recseq_end(addend);
+  unlock_up_free:
+ 	local_bh_enable();
+ 	xt_table_unlock(t);
 -- 
-2.30.2
+2.34.1
 
