@@ -1,94 +1,143 @@
-Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
+Received: from mail-ed1-f51.google.com (mail-ed1-f51.google.com [209.85.208.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D353168497
-	for <netfilter-devel@vger.kernel.org>; Thu, 22 Aug 2024 17:55:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0B711CF28E;
+	Thu, 22 Aug 2024 17:55:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724349324; cv=none; b=gj0/OG/F+3QordBJtx3fZgfYXACGrxBGTI953uWs/Czm/HHVa1fenOtD1QvNKJcGaMMPUvjB0YSwpz3OnSsTfDGsA796Z+TQpt5Ko1R9b8v+5y3XVaJ7C4q5zQ8EgNtJdKmVlohrln8EQYRm1nXGBV14ek3d5zY84mfyUmOB/vE=
+	t=1724349350; cv=none; b=pY6dGRPGwh8poaVLPz6lLqkUlFE3csNVV2ABOX2AOv01Fqt4NB4VzJv+vsnfZKEF+P2FGdpmtY4N8DzAMMwhKzknC5Dn+JTXpHaBIagjsoScXF4OBlbNG86mq+uKS13cAosjo0sf8WfhzHeQzv4enyr65Mkud3OasUuMhM0Pa44=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724349324; c=relaxed/simple;
-	bh=0XcIa29OoFfxsBXltwQYVdzr1GiMVSDn+ts+9lqnRO4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=TPl1sJmckB1oMTqs8xKVJwTX26yzdfZnXdTJQv3ecnXzv/0VjCvlMqUDY+Y1RXkWmfyRyDerYmKcOFCcgMcvFJ8PxodLjoQCZ8gWkDocKFS+uHxogrixNwkvitkgToX58bBhJAUEnLyoIGxOEIBuml/kJYBNwQo8vFhGL+QkJhA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.218.42
+	s=arc-20240116; t=1724349350; c=relaxed/simple;
+	bh=svGzr/EOKthKAfM4ADjLc6AE9vcCg3xzVoqMHFWPJzQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=c3jRL1fQTESLqOukmLxfOsLRV5qK212g2pq+5O6YLjDfXeAtFLlUnZR6AgZ9mfgTFLgrDttxughfEDAN4N/q4VLrmOseInmqJ4H3JLYZ1iPApU4aFAr9fFDhqRb/dBKMuUOwl2x17jGaZQ8stngwKKIetm9sh5PTYVDcx5g4Wcs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.208.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-a8666734767so138788366b.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Aug 2024 10:55:22 -0700 (PDT)
+Received: by mail-ed1-f51.google.com with SMTP id 4fb4d7f45d1cf-5bec4e00978so1255695a12.0;
+        Thu, 22 Aug 2024 10:55:48 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1724349321; x=1724954121;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=tWTrl+LdPGz41UsRvCotEZGrzpgKAQwzb8p0dsCSnO4=;
-        b=p9JiHKZnz+b//GwWFvb0x5ao+3VhYRDEN+4fKBzK9Db1O1Hx99HBK13YqRYXJj5O7J
-         9q8Ek8SLeGH45s2ntpgCs86ATRJ44u0E+Okpb7vPr18P4CjHwUAMBNVvtHo9i14xZMHf
-         XzJswDOe/6bGoW7QKRkme9sHst/Kng3J7hjLXqH3Nn8F07agL0Z2bn7Cb9LRwnQ6QHTd
-         09T+xOQxyNtpWPvptq1TDDdKmI+wLW3jXi7eCAVz0mVmGwCSJEb4jzpu14RSRtqSUt3K
-         hqtvYBEptMGVu0J5+DLTZet5NzQ0r7jNL+awery72bujxvpSl47yz0I4tdDEQ87Yheel
-         sOLw==
-X-Forwarded-Encrypted: i=1; AJvYcCXyuAwbzMsI6UunvkKw4zv3E9saJsLfblYdqzqSyROfPVE5PCyZwUJlX0Ns7St+eGxGweWu/r9xduTD3W2lv40=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yyq78DyWz7qR1WIl+X9cHIszctMu3JCLrYa+fRqN8Mz0Zh6j8nz
-	WQc0Uh9xeGqfoEMozzQM1Te4VIQntuYW9xe0rVvjhcqkx2lVeXT98+A+DNmY
-X-Google-Smtp-Source: AGHT+IGGU/1GpHhd23Zu7DL9e4lAv/AKcNyJbFrPqzacgQRisJhif0aWJkXLZWX6XrLOHd+2MaBaYw==
-X-Received: by 2002:a17:907:9490:b0:a7a:a892:8e05 with SMTP id a640c23a62f3a-a866f359158mr512936866b.33.1724349321027;
-        Thu, 22 Aug 2024 10:55:21 -0700 (PDT)
-Received: from gmail.com (fwdproxy-lla-001.fbsv.net. [2a03:2880:30ff:1::face:b00c])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a868f299d51sm148107866b.54.2024.08.22.10.55.20
+        d=1e100.net; s=20230601; t=1724349347; x=1724954147;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=pF8jJx2hGWJnI5FC+pXJw8DPGOf+ZBo1ceH028PAYOo=;
+        b=EQ9Qjn/inyKvv5GGFN1oIjCxRiVUQdkgi6FcMLfWFOgH+QZrifU57ulW76tEXFRv+r
+         dbC/FMFgmBvaZVfzfcSrG3waloWmWCMh+ihbWM4nS1Q/0ZK2jT4p9ukB1OUYl/lEirUS
+         i4dHBYZyLv2uG0eW52XY2Plp0+8DZ5nIY8+/EfG6n5gm2QEmGMHiJIS2FDnMCGie81rA
+         ZSXZr26U77t/58t9bL/WZmGrhcjlgb5xwmGy1lu00X+lez3vMcBS77ATB0TivpnBiwH5
+         KeY1FlleQi+L4fXvaJ9B0N648NzXazRF+5AoIxCeLgtwYzYczQqdbyizeYS8cQMNShi9
+         5q1g==
+X-Forwarded-Encrypted: i=1; AJvYcCVRo3iatcOh/VVv7X8LbUsRuUmDASvdtNywVQcUNFaAC/m4CmegqIb4WUrOH5EbEPHa+lenlZdU3/sitRU=@vger.kernel.org, AJvYcCVooL9aEghe9yONaAvLVs8Y7RrI8K13xVQBDdP7pvWX2zhfvwAw2kxvTsbqwxlkCU/E+0tY+UvPRXnSZfzZxtzo@vger.kernel.org, AJvYcCWbN+WIW+15TlLkPrGSQsyzs8D4XuV6k7rLfwpXbGMGerhBBarflHW9tmy5Fivs3qCsXLhFnN9E@vger.kernel.org
+X-Gm-Message-State: AOJu0Yym3QxBuvJNg+pPuPVeSI8CznftrLEAkrpi4cO3ow5hALzyfJNL
+	Lm9/OIzLa6ZKy0j60IQFakXMUTBH4NPvdOudh/NbOA9/7K5UqJPZ
+X-Google-Smtp-Source: AGHT+IHpGLM1fOuatWlj67HKeq4LTkSuS54BHZ1AswCdrbIDKiHS4FSe1vcQFS4Db1kJsVr44hxHcQ==
+X-Received: by 2002:a17:907:944f:b0:a7a:b620:aa2f with SMTP id a640c23a62f3a-a866f2a2cabmr489778566b.15.1724349346328;
+        Thu, 22 Aug 2024 10:55:46 -0700 (PDT)
+Received: from localhost (fwdproxy-lla-009.fbsv.net. [2a03:2880:30ff:9::face:b00c])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a868f220121sm147986566b.33.2024.08.22.10.55.45
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 22 Aug 2024 10:55:20 -0700 (PDT)
-Date: Thu, 22 Aug 2024 10:55:18 -0700
+        Thu, 22 Aug 2024 10:55:45 -0700 (PDT)
 From: Breno Leitao <leitao@debian.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: rbc@meta.com, netfilter-devel@vger.kernel.org
-Subject: Re: netfilter: Kconfig: IP6_NF_IPTABLES_LEGACY old =y behaviour
- question
-Message-ID: <Zsd7hk8SMQoHKjwR@gmail.com>
-References: <Zsb+YHrLklrTCrly@gmail.com>
- <20240822112339.GA21472@breakpoint.cc>
- <Zscy83HM2TlwkSDq@gmail.com>
- <20240822132022.GA25665@breakpoint.cc>
+To: fw@strlen.de,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	David Ahern <dsahern@kernel.org>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>
+Cc: leit@meta.com,
+	netfilter-devel@vger.kernel.org (open list:NETFILTER),
+	coreteam@netfilter.org (open list:NETFILTER),
+	netdev@vger.kernel.org (open list:NETWORKING [IPv4/IPv6]),
+	linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH nf-next 1/2] netfilter: Make IP_NF_IPTABLES_LEGACY selectable
+Date: Thu, 22 Aug 2024 10:55:35 -0700
+Message-ID: <20240822175537.3626036-1-leitao@debian.org>
+X-Mailer: git-send-email 2.43.5
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240822132022.GA25665@breakpoint.cc>
+Content-Transfer-Encoding: 8bit
 
-Hello Florian,
+This option makes IP_NF_IPTABLES_LEGACY user selectable, giving
+users the option to configure iptables without enabling any other
+config.
 
-On Thu, Aug 22, 2024 at 03:20:22PM +0200, Florian Westphal wrote:
-> Breno Leitao <leitao@debian.org> wrote:
-> > On Thu, Aug 22, 2024 at 01:23:39PM +0200, Florian Westphal wrote:
+Suggested-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Breno Leitao <leitao@debian.org>
+---
+ net/ipv4/netfilter/Kconfig | 19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
 
-> > In certain environments, iptables needs to run, but there is *no*
-> > permission to load modules.
-> > 
-> > For those cases, I have CONFIG_IP6_NF_IPTABLES configured as y in
-> > previous kernels, and now it becomes a "m", which doesn't work because
-> > iptables doesn't have permission to load modules, returning:
-> > 
-> > 	$ ip6tables -L
-> > 	modprobe: FATAL: Module ip6_tables not found in directory /lib/modules/....
-> > 	ip6tables v1.8.10 (legacy): can't initialize ip6tables table `filter': Table does not exist (do you need to insmod?)
-> > 	Perhaps ip6tables or your kernel needs to be upgraded.
-> 
-> Hmm, but how can that work?  If you can't load modules, you can't load
-> ip6t_filter either.
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 1b991b889506..a06c1903183f 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -12,7 +12,12 @@ config NF_DEFRAG_IPV4
+ 
+ # old sockopt interface and eval loop
+ config IP_NF_IPTABLES_LEGACY
+-	tristate
++	tristate "Legacy IP tables support"
++	default	n
++	select NETFILTER_XTABLES
++	help
++	  iptables is a general, extensible packet identification legacy framework.
++	  This is not needed if you are using iptables over nftables (iptables-nft).
+ 
+ config NF_SOCKET_IPV4
+ 	tristate "IPv4 socket lookup support"
+@@ -177,7 +182,7 @@ config IP_NF_MATCH_TTL
+ config IP_NF_FILTER
+ 	tristate "Packet filtering"
+ 	default m if NETFILTER_ADVANCED=n
+-	select IP_NF_IPTABLES_LEGACY
++	depends on IP_NF_IPTABLES_LEGACY
+ 	help
+ 	  Packet filtering defines a table `filter', which has a series of
+ 	  rules for simple packet filtering at local input, forwarding and
+@@ -217,7 +222,7 @@ config IP_NF_NAT
+ 	default m if NETFILTER_ADVANCED=n
+ 	select NF_NAT
+ 	select NETFILTER_XT_NAT
+-	select IP_NF_IPTABLES_LEGACY
++	depends on IP_NF_IPTABLES_LEGACY
+ 	help
+ 	  This enables the `nat' table in iptables. This allows masquerading,
+ 	  port forwarding and other forms of full Network Address Port
+@@ -258,7 +263,7 @@ endif # IP_NF_NAT
+ config IP_NF_MANGLE
+ 	tristate "Packet mangling"
+ 	default m if NETFILTER_ADVANCED=n
+-	select IP_NF_IPTABLES_LEGACY
++	depends on IP_NF_IPTABLES_LEGACY
+ 	help
+ 	  This option adds a `mangle' table to iptables: see the man page for
+ 	  iptables(8).  This table is used for various packet alterations
+@@ -293,7 +298,7 @@ config IP_NF_TARGET_TTL
+ # raw + specific targets
+ config IP_NF_RAW
+ 	tristate  'raw table support (required for NOTRACK/TRACE)'
+-	select IP_NF_IPTABLES_LEGACY
++	depends on IP_NF_IPTABLES_LEGACY
+ 	help
+ 	  This option adds a `raw' table to iptables. This table is the very
+ 	  first in the netfilter framework and hooks in at the PREROUTING
+@@ -305,9 +310,7 @@ config IP_NF_RAW
+ # security table for MAC policy
+ config IP_NF_SECURITY
+ 	tristate "Security table"
+-	depends on SECURITY
+-	depends on NETFILTER_ADVANCED
+-	select IP_NF_IPTABLES_LEGACY
++	depends on SECURITY && NETFILTER_ADVANCED && IP_NF_IPTABLES_LEGACY
+ 	help
+ 	  This option adds a `security' table to iptables, for use
+ 	  with Mandatory Access Control (MAC) policy.
+-- 
+2.43.5
 
-This happens inside a container that has no support for module loading, and
-expects the tables to be =y.
-
-> And if thats builtin, then IP6_NF_IPTABLES_LEGACY is supposed to become
-> =y too.
-
-Correct, both of them (IP6_NF_IPTABLES_LEGACY and IP_NF_IPTABLES_LEGACY)
-was able to be user selectable, and they are not anymore, causing this
-behaviour change.
-
-Thanks for your support,
---breno
