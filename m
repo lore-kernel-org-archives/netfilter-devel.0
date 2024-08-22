@@ -1,78 +1,86 @@
-Received: from mail-lf1-f52.google.com (mail-lf1-f52.google.com [209.85.167.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0365015F41F
-	for <netfilter-devel@vger.kernel.org>; Thu, 22 Aug 2024 09:01:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.52
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3D5B8176FA5;
+	Thu, 22 Aug 2024 10:18:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724317287; cv=none; b=IUIdTJtp3W1PXeS/FdeigtHC/oUHBdv6TDpMhjtfVJAr8QIs/+Z71OwyoHxXkuHds2tD104qmZtybBAf8B1evjMAkGMkkyhyo3whmdxN4arciwadjYGzm2ZZ635FNqtgOLzG//UTOUe1O13racXLd7dZYRuMqrGWMC7eB+pnfHQ=
+	t=1724321931; cv=none; b=gqYRhbz06q2yuatLUQL+iCdM6fCNl9H8sKVLjWOOp0wFh0FWDNwNu48ibbh8eiPR4emZrwrDqG2RsgWXV6PzPFadL3lTRZx0fF8UnxPZJtUSUOfLg5fq5trVvMihbpIczC/PTuTBylDxq6vwU78LzUPe9O9hnAKiP4dbUhnQsH4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724317287; c=relaxed/simple;
-	bh=ZEcJ/T7ioihoo/lFatA2i2AcN+fDi6NDslFXU001pqk=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=gOs/wGDWWKZGa10DwT90SpzgYSbi7nCovsktWtyzxMa0cEFbc1z3mrp4X7LnsEJWLzahtYjybv+se/sKly7mNi+xCDpL6sCcvZDBpnQjOOPjEGNXFdQbgzh30Dgdnm/OvAORDZi1H2E3hybPKlf2MFF/jlDTMADF8n53ep/fV6s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.167.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-lf1-f52.google.com with SMTP id 2adb3069b0e04-52efdf02d13so685930e87.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Aug 2024 02:01:25 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1724317284; x=1724922084;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=ZEcJ/T7ioihoo/lFatA2i2AcN+fDi6NDslFXU001pqk=;
-        b=ZzHEdNH16Rslkke0EWIY2DEkdYKU58yTM1RS6BEGfQB/jEw4oBwzyZnubjlRsO904Q
-         BgZjG7bmAj2B9MKoTDiO5SWFiENKdn4uzBRi+PlVWCdwjQf/8TozvabHcdbbrZq3tskx
-         ZrjnbeLHS03dTZwYky50nsP1U1j2gBA1UAtkCdoyg5EOLcIHS5gCCilIa1usi6oFHfRg
-         ZxxAr5xgyfJLGRPhcHUWj38cVliaFMqM5At4U43GZBA3R6FFrekrYacNseyZ76OVd5LN
-         vNl9nNpLir+cynowGhZqQlrwveKLKt5bF+YgILsTwhi4rCWCyagp/5PkhEMJfKuZGRJ5
-         79Bg==
-X-Forwarded-Encrypted: i=1; AJvYcCU32OR7YnY24FFxqySBHDP3lHIhpwkjYpk1Ur5V+gnPW9/CIZ4iTOyaPga/DI/HkMsIOgvVpD47KkUTf3BJkDw=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx2ZCX6/YLHOkhbFt0CL9dqCBplcrjMkSbHjNVj1Vn2rMdzhCFi
-	867pl0XVctzpu9oYxtxPq0Q6bkic+Hs43du97npnBTMjhv9M6IsX4TgB5w==
-X-Google-Smtp-Source: AGHT+IFBuV5DNDGs0cxPzAafnpiwDPtItX2Ao+usW0FUYyynBLAWqKzRi9fGevVgAeoGuLKVBPJWFg==
-X-Received: by 2002:a05:6512:39d6:b0:533:324a:9df6 with SMTP id 2adb3069b0e04-5334fcfa277mr1060624e87.29.1724317283251;
-        Thu, 22 Aug 2024 02:01:23 -0700 (PDT)
-Received: from gmail.com (fwdproxy-lla-004.fbsv.net. [2a03:2880:30ff:4::face:b00c])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a868f4f5c3csm87548366b.205.2024.08.22.02.01.22
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 22 Aug 2024 02:01:22 -0700 (PDT)
-Date: Thu, 22 Aug 2024 02:01:20 -0700
-From: Breno Leitao <leitao@debian.org>
-To: fw@strlen.de
-Cc: rbc@meta.com, netfilter-devel@vger.kernel.org
-Subject: netfilter: Kconfig: IP6_NF_IPTABLES_LEGACY old =y behaviour question
-Message-ID: <Zsb+YHrLklrTCrly@gmail.com>
+	s=arc-20240116; t=1724321931; c=relaxed/simple;
+	bh=xDzSyLXoIJrkZXMua97tNHmvv5A088sFUZ3zo0Sc0Os=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=tMTYlkD/PRGl0OngMBJpMgoU7ELoSrABCaEXl/afFnXYaakaASaguMvQEe0GIPp8dVJAUZqjrIkgipr094GT4tkDxPEmiG1OZOTz2MElNqWR8b3u5O2dIHO4UFILTPrLUzv3/W8kuJlLcoX/f1iUbaz/yHWJFlFhcD9DYFZWUD4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de
+Subject: [PATCH net 3/3] netfilter: flowtable: validate vlan header
+Date: Thu, 22 Aug 2024 12:18:42 +0200
+Message-Id: <20240822101842.4234-4-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20240822101842.4234-1-pablo@netfilter.org>
+References: <20240822101842.4234-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-Hello Florian,
+Ensure there is sufficient room to access the protocol field of the
+VLAN header, validate it once before the flowtable lookup.
 
-I am rebasing my workflow in into a new kernel, and I have a question
-that you might be able to help me. It is related to
-IP6_NF_IPTABLES_LEGACY Kconfig, and the change in a9525c7f6219cee9
-("netfilter: xtables: allow xtables-nft only builds").
+=====================================================
+BUG: KMSAN: uninit-value in nf_flow_offload_inet_hook+0x45a/0x5f0 net/netfilter/nf_flow_table_inet.c:32
+ nf_flow_offload_inet_hook+0x45a/0x5f0 net/netfilter/nf_flow_table_inet.c:32
+ nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
+ nf_hook_slow+0xf4/0x400 net/netfilter/core.c:626
+ nf_hook_ingress include/linux/netfilter_netdev.h:34 [inline]
+ nf_ingress net/core/dev.c:5440 [inline]
 
-In my kernel before this change, I used to have ip6_tables "module" as
-builtin (CONFIG_IP6_NF_IPTABLES=y), and all the other dependencies as
-modules, such as IP6_NF_FILTER=m, IP6_NF_MANGLE=m, IP6_NF_RAW=m.
+Fixes: 4cd91f7c290f ("netfilter: flowtable: add vlan support")
+Reported-by: syzbot+8407d9bb88cd4c6bf61a@syzkaller.appspotmail.com
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_flow_table_inet.c | 3 +++
+ net/netfilter/nf_flow_table_ip.c   | 3 +++
+ 2 files changed, 6 insertions(+)
 
-After the mentioned commit above, I am not able to have ip6_tables set
-as a builtin (=y) anymore, give that it is a "hidden" configuration, and
-the only way is to change some of the selectable dependencies
-(IP6_NF_RAW for insntance) to be a built-in (=y).
+diff --git a/net/netfilter/nf_flow_table_inet.c b/net/netfilter/nf_flow_table_inet.c
+index 88787b45e30d..8b541a080342 100644
+--- a/net/netfilter/nf_flow_table_inet.c
++++ b/net/netfilter/nf_flow_table_inet.c
+@@ -17,6 +17,9 @@ nf_flow_offload_inet_hook(void *priv, struct sk_buff *skb,
+ 
+ 	switch (skb->protocol) {
+ 	case htons(ETH_P_8021Q):
++		if (!pskb_may_pull(skb, skb_mac_offset(skb) + sizeof(*veth)))
++			return NF_ACCEPT;
++
+ 		veth = (struct vlan_ethhdr *)skb_mac_header(skb);
+ 		proto = veth->h_vlan_encapsulated_proto;
+ 		break;
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index c2c005234dcd..98edcaa37b38 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -281,6 +281,9 @@ static bool nf_flow_skb_encap_protocol(struct sk_buff *skb, __be16 proto,
+ 
+ 	switch (skb->protocol) {
+ 	case htons(ETH_P_8021Q):
++		if (!pskb_may_pull(skb, skb_mac_offset(skb) + sizeof(*veth)))
++			return false;
++
+ 		veth = (struct vlan_ethhdr *)skb_mac_header(skb);
+ 		if (veth->h_vlan_encapsulated_proto == proto) {
+ 			*offset += VLAN_HLEN;
+-- 
+2.30.2
 
-That said, do you know if I can keep the ip6_tables as builtin without
-changing any of the selectable dependencies configuration. In other
-words, is it possible to keep the old behaviour (ip6_table builtin and
-the dependenceis as modules) with the new IP6_NF_IPTABLES_LEGACY
-configuration?
-
-Thank you!
---breno
