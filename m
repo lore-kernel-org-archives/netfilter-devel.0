@@ -1,59 +1,43 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5EA5188591;
-	Fri, 23 Aug 2024 14:44:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDB9E1DA5E
+	for <netfilter-devel@vger.kernel.org>; Fri, 23 Aug 2024 14:49:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724424286; cv=none; b=e/wsr3051A3my4Q2CRPj8DstkuGmdC49bA/iN0I8YkJVPQFnSFRhQo+kWUZAShjBbpGvPq/hA8pW1XQfIvEZg9NCs7zYUuE/0S/48QjVO3h4IPjgAqc71po6D3jeshoJECOgkQR8dZTYi4Xiph6mByLfcFevvPj+5i2z/ahj64A=
+	t=1724424576; cv=none; b=fhJh6OBYA5v0nKQtyDzbD9WZxtTcp3cWMmP0qfHlaWKTan9SKmNuW4rONa0A487VDK7szpFE3GOqtP7csA+qBD66ogzbg5BZHGiHwZ3HoBLCLd83tqbbxEH8NIuCoRDO2ivrbDYRVB/P//ZUamejporx1iM1xUFai7f89H78YYU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724424286; c=relaxed/simple;
-	bh=gS6dfDMZfebrIIAxUK4kHi8Fpd44OwLvCR/Ke9Tyb4A=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=VXiZpCfVJyueL52uzXawYu2NNiuNQ39i1lvIN065Ms4WlxeGmCcmoX/wKkTati4gd567Jpxae8z1NQTB9V/W2UDwTe3rUFyjHVpsag67WI7Mlvnd8AWwOHQ6KBHcRxTD5NlKXdvupyogvYHPSgPgbLEU8wfQsaPZAwV8jrObdyM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=A46vNcYC; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="A46vNcYC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7A2EC32786;
-	Fri, 23 Aug 2024 14:44:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1724424286;
-	bh=gS6dfDMZfebrIIAxUK4kHi8Fpd44OwLvCR/Ke9Tyb4A=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=A46vNcYCKrI1bCXbORQIPRHTZCBeNQHHtt2qJe3YO88F2+6hk7z47jL1oO2nmyQcj
-	 X86S8EzFkp6JxwerRoFTsJiyuMvw70UwVUmdzOCZYC7CzOni/BuoMjCa6EYfdBnVCq
-	 F68IdtIgcVlb6qbJJJy0p74B3ItEiAZn+ZpX0lxvkMx9F/+jN6y79uvf6IS9uQSrva
-	 +2CrQ2WecPPcNWMalg2gA+ieSkBCgS3gHa6IhyQQHLL7YmDpO94KEYWPdz1muEJ3Ks
-	 GhJ7cro67LVZPVHhIFZ7KbjdCn9F3M6XlgkzjBaJlYoM//ulIIEX/9qmDEtiitauaG
-	 /ImCUCVdI7QrQ==
-Date: Fri, 23 Aug 2024 07:44:44 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Breno Leitao <leitao@debian.org>
-Cc: fw@strlen.de, Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik
- <kadlec@netfilter.org>, "David S. Miller" <davem@davemloft.net>, David
- Ahern <dsahern@kernel.org>, Eric Dumazet <edumazet@google.com>, Paolo Abeni
- <pabeni@redhat.com>, leit@meta.com, netfilter-devel@vger.kernel.org (open
- list:NETFILTER), coreteam@netfilter.org (open list:NETFILTER),
- netdev@vger.kernel.org (open list:NETWORKING [IPv4/IPv6]),
- linux-kernel@vger.kernel.org (open list)
-Subject: Re: [PATCH nf-next 1/2] netfilter: Make IP_NF_IPTABLES_LEGACY
- selectable
-Message-ID: <20240823074444.7de6a99f@kernel.org>
-In-Reply-To: <20240822175537.3626036-1-leitao@debian.org>
-References: <20240822175537.3626036-1-leitao@debian.org>
+	s=arc-20240116; t=1724424576; c=relaxed/simple;
+	bh=Fus7JKMwYePGNRcYG57CX+zik/oUk8uUEHQzcjfEqL4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=qBODAtJWDkr31jabQ4nfYRiJVJEuMyHFSszaHqAa87Uq5FQwKrkVDEwWdQnJBpEuFfrezbfI4yFNk/MVlo/oFlic7i1bXzDlvhOL5fuO4VzDCUAlTMEowJs5Nb0rlbKPRH90OlfUPVcU91xh+VH8bu8OVEbuMaUfmMdHsaXW3i0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1shVbR-0001My-1N; Fri, 23 Aug 2024 16:49:25 +0200
+Date: Fri, 23 Aug 2024 16:49:25 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Joshua Lant <joshualant@googlemail.com>
+Cc: netfilter-devel@vger.kernel.org, Joshua Lant <joshualant@gmail.com>
+Subject: Re: [PATCH] iptables: align xt_CONNMARK with current kernel headers
+Message-ID: <20240823144925.GA5102@breakpoint.cc>
+References: <20240823092206.396460-1-joshualant@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240823092206.396460-1-joshualant@gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-On Thu, 22 Aug 2024 10:55:35 -0700 Breno Leitao wrote:
-> This option makes IP_NF_IPTABLES_LEGACY user selectable, giving
-> users the option to configure iptables without enabling any other
-> config.
+Joshua Lant <joshualant@googlemail.com> wrote:
+> libxt_CONNMARK.c declares enum which is declared in the kernel header.
+> Modify the version of the header in the repo's include dir to match the
+> current kernel, and remove the enum declaration from xt_CONNMARK.c.
 
-Some tests seem to be missing options entries from their configs after
-this change: amt.sh, udpgro.sh, udpgro_fwd.sh
+Applied, thanks.
