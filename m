@@ -1,35 +1,62 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f43.google.com (mail-ej1-f43.google.com [209.85.218.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B477C195;
-	Fri, 23 Aug 2024 00:10:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16BD013C918
+	for <netfilter-devel@vger.kernel.org>; Fri, 23 Aug 2024 09:22:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724371853; cv=none; b=aIsdhVGlcM0sZqP/z8G9yQLin7hCGKeKz7c01Y3hmGiQEnXvxGO+F/sYoW1DTseUozlUEiyt6+4q35fu4je2zoYHCl85QMYAmycwVK378enpFgtoMgy5vh1PF908FId646cJNhhof+UaLi4v4zTJvgF9EYkw1luczO0KHhJtYVU=
+	t=1724404942; cv=none; b=WfCtrH6HW2yk6F9AMGRbwWvuHauXqyyl7TDqSiI5zc/bCTLNSN2riswh38t5qwXMRVcg+9tqX+vDRipqq1jAzwYztcA8Y0YFWqRcKcLn71NRi+CWOg5xn2lSqVoT19r6wyE/HIJgKCrr//VDWxP1dWs5xwcYCmFZQs5fyVLCbgg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724371853; c=relaxed/simple;
-	bh=Zig78F1jxYvV1YE2GVzXH2LxBcFyyr9YBg8AGV5nTvk=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=EAquNUxyIgJQ1eMWIAsfkRLjQhA52pAu2FENLY+8/7SsGHMDiggMVCzzqKtJUDcku0qswyxy7hFk/ckukLlX5XD7aEykkVds/BV4rcQLtbOZwlDUyd6PEtSvHbWELR/L8s1fR9un6QkeBtXeEt6qaOIKSWM272BoodsEzDMN4GA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=a/nowcG9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724404942; c=relaxed/simple;
+	bh=PP6M93O66h+a57xZIN8kARZjc+8zZGib0xWYL94kUJs=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=C/vZuVu22QqbuE2jQgq69qL3XRhJC6JCGqRtLDTfEyMKpBPX1AoINO/9iDC5qCFNy1czHgFDRTy95LTIEax0YJO1n8jsa6yZX8h8DmLJs4Cg27cx/pzZyRfpJDDvG60RwPazc8SmcuXy1C8pQJ8oT/Tfma9uQkM9nrm5E04gPdQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=googlemail.com; spf=pass smtp.mailfrom=googlemail.com; dkim=pass (2048-bit key) header.d=googlemail.com header.i=@googlemail.com header.b=Fn+Aglsb; arc=none smtp.client-ip=209.85.218.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=googlemail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=googlemail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="a/nowcG9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8ED14C32782;
-	Fri, 23 Aug 2024 00:10:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1724371853;
-	bh=Zig78F1jxYvV1YE2GVzXH2LxBcFyyr9YBg8AGV5nTvk=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=a/nowcG9ERskdDMxErmUu5qIWGjv4rH+kulKaudu6KhvjzmgNKqEDZ56IRzXeXMF3
-	 k+eh7XmUrRM36ZoNykiiCCKSnt0Sf+UBi7aGdFEuOXORWLB9MEU9ovdrWoWBPBqCM4
-	 N+JJE5yn7LAA1IVaYY6pFRwjMxwpLCH7AaNhCyG1+J3U6R53qHehS1jhCf+2b/gJfY
-	 QyNagUH6gmmkPrXcqSQebIwFcwk3Y3K5bNrMaqhFJ3Krjx4T7k0sUmKQLfTDWmod1L
-	 yzFFwjRMuZe7AJ1PJf1aCSACbRLGy/UIoO4/6zOlZTfkwZVqfzIZSCJMAW0o60hYkq
-	 Ghvn5qjZt8EVg==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 70D123809A81;
-	Fri, 23 Aug 2024 00:10:54 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=googlemail.com header.i=@googlemail.com header.b="Fn+Aglsb"
+Received: by mail-ej1-f43.google.com with SMTP id a640c23a62f3a-a7ab5fc975dso202481666b.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 23 Aug 2024 02:22:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=googlemail.com; s=20230601; t=1724404939; x=1725009739; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=Wc1kyfrEJtJwx3AClqnJlzkB1+dwSceATO6xA2USX2w=;
+        b=Fn+AglsbCV/ESJf7gXUcWbCP+9RyxMrELRUFyg96CNFSSA+erzTd1leVXjkdZkPsWF
+         N1m7Lvdm6Cok9k2dsQFT6iTqHQRUfgdywv0REEETvO7R6Bb4cvyiL/05NhfKymP0Dakv
+         IQ6R4ofRAcnrJuwqZsT3PXcmN/CJpzsqGHzJKuvlZ5qTiE0+f/l4ZcqEj0Hf7gYhKkq+
+         RWQWzI6xDEe/AYo3zF09jgWPRRIW5TCLLJyCBTdkzxuC3Ui+kFwZLSqj+F216OxtM6vz
+         DM8xU3EG87c59vlVIBTZCM1pnBDiI8+dqQN+Uq/3meSdSH5xAl/uexgH6jgri8xUKHRE
+         yibw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1724404939; x=1725009739;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=Wc1kyfrEJtJwx3AClqnJlzkB1+dwSceATO6xA2USX2w=;
+        b=KH2jT+NRgZwVN0178Yqy2NFa/g387F5u6AjB5CDYSnEpVGJB4VJoiBR8OGQtlOMTDV
+         gYb4X2s1sn9IAxl+77W6zXg00bCoJ9HFyWM2ahNVNvzo4rMZ7rYaoqiDpiZ+sVK38ji/
+         52w0z5Zev0VRXx3mvzYA4x9j98QQVdZhzYHtBI/vOwpQ+QVvULWeEM2Ro0LmYeEI7rPZ
+         ktIPe7LKB5YXOPyrzK90F3q8BGzb4twNgYM3GBnM7n/gJ0k+WK1B3+kWe+dcCsMl6Q0Q
+         XDoTO60lgw4rvIY8HOqb7lADZn9AQBbN4KDsNOsPlGX8Tw1+0j7zjyzhfrc/eVkqH33e
+         GPlw==
+X-Gm-Message-State: AOJu0YyornU+JxOwdk56UADa6y59Awk9Y2Imn6mq3Ncqvv7zpvNKonuz
+	G63zcNB4P4uENOb40iMdMWMNREb8VxZHNV7P9Tz3OCN+BfQhBrgCASymbA==
+X-Google-Smtp-Source: AGHT+IE1t7k+LSsKUSlZujzyR4bhhiCZ5ehcebWzG2O9pa9wMZ1JedIMXG8ZjVhIT3ItWgZV/f09qw==
+X-Received: by 2002:a17:907:f151:b0:a7a:aa35:409e with SMTP id a640c23a62f3a-a86a52bb61emr105379466b.25.1724404938641;
+        Fri, 23 Aug 2024 02:22:18 -0700 (PDT)
+Received: from thinkpc.. (shef-16-b2-v4wan-169484-cust5160.vm3.cable.virginm.net. [92.236.212.41])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a868f222b2esm230913766b.24.2024.08.23.02.22.17
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 23 Aug 2024 02:22:18 -0700 (PDT)
+From: Joshua Lant <joshualant@googlemail.com>
+X-Google-Original-From: Joshua Lant <joshualant@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Cc: Joshua Lant <joshualant@gmail.com>
+Subject: [PATCH] iptables: align xt_CONNMARK with current kernel headers
+Date: Fri, 23 Aug 2024 10:22:06 +0100
+Message-Id: <20240823092206.396460-1-joshualant@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,65 +64,81 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next 00/12] Unmask upper DSCP bits - part 1
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <172437185328.2512544.14083176872988992315.git-patchwork-notify@kernel.org>
-Date: Fri, 23 Aug 2024 00:10:53 +0000
-References: <20240821125251.1571445-1-idosch@nvidia.com>
-In-Reply-To: <20240821125251.1571445-1-idosch@nvidia.com>
-To: Ido Schimmel <idosch@nvidia.com>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, kuba@kernel.org,
- pabeni@redhat.com, edumazet@google.com, gnault@redhat.com,
- dsahern@kernel.org, fw@strlen.de, martin.lau@linux.dev, daniel@iogearbox.net,
- john.fastabend@gmail.com, ast@kernel.org, pablo@netfilter.org,
- kadlec@netfilter.org, willemdebruijn.kernel@gmail.com, bpf@vger.kernel.org,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org
 
-Hello:
+libxt_CONNMARK.c declares enum which is declared in the kernel header.
+Modify the version of the header in the repo's include dir to match the
+current kernel, and remove the enum declaration from xt_CONNMARK.c.
 
-This series was applied to netdev/net-next.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
+Signed-off-by: Joshua Lant joshualant@gmail.com
+---
+ extensions/libxt_CONNMARK.c           |  5 -----
+ include/linux/netfilter/xt_CONNMARK.h |  1 +
+ include/linux/netfilter/xt_connmark.h | 19 ++++++++++---------
+ 3 files changed, 11 insertions(+), 14 deletions(-)
 
-On Wed, 21 Aug 2024 15:52:39 +0300 you wrote:
-> tl;dr - This patchset starts to unmask the upper DSCP bits in the IPv4
-> flow key in preparation for allowing IPv4 FIB rules to match on DSCP. No
-> functional changes are expected.
-> 
-> The TOS field in the IPv4 flow key ('flowi4_tos') is used during FIB
-> lookup to match against the TOS selector in FIB rules and routes.
-> 
-> [...]
-
-Here is the summary with links:
-  - [net-next,01/12] bpf: Unmask upper DSCP bits in bpf_fib_lookup() helper
-    https://git.kernel.org/netdev/net-next/c/ef434fae7228
-  - [net-next,02/12] ipv4: Unmask upper DSCP bits in NETLINK_FIB_LOOKUP family
-    https://git.kernel.org/netdev/net-next/c/bc52a4eecefd
-  - [net-next,03/12] ipv4: Unmask upper DSCP bits when constructing the Record Route option
-    https://git.kernel.org/netdev/net-next/c/be2e9089cb34
-  - [net-next,04/12] netfilter: rpfilter: Unmask upper DSCP bits
-    https://git.kernel.org/netdev/net-next/c/c1ae5ca69b69
-  - [net-next,05/12] netfilter: nft_fib: Unmask upper DSCP bits
-    https://git.kernel.org/netdev/net-next/c/338385e059c5
-  - [net-next,06/12] ipv4: ipmr: Unmask upper DSCP bits in ipmr_rt_fib_lookup()
-    https://git.kernel.org/netdev/net-next/c/2bc9778b6696
-  - [net-next,07/12] ipv4: Unmask upper DSCP bits in fib_compute_spec_dst()
-    https://git.kernel.org/netdev/net-next/c/39d3628f7cea
-  - [net-next,08/12] ipv4: Unmask upper DSCP bits in input route lookup
-    https://git.kernel.org/netdev/net-next/c/df9131c7fafd
-  - [net-next,09/12] ipv4: Unmask upper DSCP bits in RTM_GETROUTE input route lookup
-    https://git.kernel.org/netdev/net-next/c/b1251a6f1a9b
-  - [net-next,10/12] ipv4: icmp: Pass full DS field to ip_route_input()
-    https://git.kernel.org/netdev/net-next/c/1c6f50b37f71
-  - [net-next,11/12] ipv4: udp: Unmask upper DSCP bits during early demux
-    https://git.kernel.org/netdev/net-next/c/b6791ac5ea49
-  - [net-next,12/12] ipv4: Unmask upper DSCP bits when using hints
-    https://git.kernel.org/netdev/net-next/c/be8b8ded7799
-
-You are awesome, thank you!
+diff --git a/extensions/libxt_CONNMARK.c b/extensions/libxt_CONNMARK.c
+index a6568c99..90a5abc0 100644
+--- a/extensions/libxt_CONNMARK.c
++++ b/extensions/libxt_CONNMARK.c
+@@ -31,11 +31,6 @@ struct xt_connmark_target_info {
+ 	uint8_t mode;
+ };
+ 
+-enum {
+-	D_SHIFT_LEFT = 0,
+-	D_SHIFT_RIGHT,
+-};
+-
+ enum {
+ 	O_SET_MARK = 0,
+ 	O_SAVE_MARK,
+diff --git a/include/linux/netfilter/xt_CONNMARK.h b/include/linux/netfilter/xt_CONNMARK.h
+index 2f2e48ec..36cc956e 100644
+--- a/include/linux/netfilter/xt_CONNMARK.h
++++ b/include/linux/netfilter/xt_CONNMARK.h
+@@ -1,3 +1,4 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+ #ifndef _XT_CONNMARK_H_target
+ #define _XT_CONNMARK_H_target
+ 
+diff --git a/include/linux/netfilter/xt_connmark.h b/include/linux/netfilter/xt_connmark.h
+index bbf2acc9..41b578cc 100644
+--- a/include/linux/netfilter/xt_connmark.h
++++ b/include/linux/netfilter/xt_connmark.h
+@@ -1,23 +1,24 @@
++/* SPDX-License-Identifier: GPL-2.0+ WITH Linux-syscall-note */
++/* Copyright (C) 2002,2004 MARA Systems AB <https://www.marasystems.com>
++ * by Henrik Nordstrom <hno@marasystems.com>
++ */
++
+ #ifndef _XT_CONNMARK_H
+ #define _XT_CONNMARK_H
+ 
+ #include <linux/types.h>
+ 
+-/* Copyright (C) 2002,2004 MARA Systems AB <http://www.marasystems.com>
+- * by Henrik Nordstrom <hno@marasystems.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- */
+-
+ enum {
+ 	XT_CONNMARK_SET = 0,
+ 	XT_CONNMARK_SAVE,
+ 	XT_CONNMARK_RESTORE
+ };
+ 
++enum {
++	D_SHIFT_LEFT = 0,
++	D_SHIFT_RIGHT,
++};
++
+ struct xt_connmark_tginfo1 {
+ 	__u32 ctmark, ctmask, nfmask;
+ 	__u8 mode;
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.34.1
 
