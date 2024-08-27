@@ -1,38 +1,41 @@
-Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 699DA19E83D;
-	Tue, 27 Aug 2024 11:27:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.189
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7295915535A;
+	Tue, 27 Aug 2024 11:27:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724758057; cv=none; b=bPlFWy/ZV+Ujda58dqi5tB/n8XqHP+yM0Fqhtoxu2pyj5re6iuOEtVz83z1bAN2L86MqBfozaShJzPUR7JtlBP0Cx+YMVH1M2xzlhDlMt3aB63v15rbwblnC2imtbtKy/K2Y5AoJjbh/OOiw17+YFm/EbKOER4U1HYHCZPQWoaE=
+	t=1724758058; cv=none; b=qRfUhs5g8rB4Ko8P0770GUOrOgp8uqVLijD1ktBBHIl0m+Dob882Sas4lukigO/gXe1GcFP4oZv1xvg4lgRqogVmY9GR3S2cMwGN0+LqLANcNNeahsueVRh94A/5lGk56GyBYr64/pggnQNU2fjduR57tAvW32JHgBBfxoyUskE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724758057; c=relaxed/simple;
-	bh=4/5dD4pWLHgOIe9GUqGD+bM+B6Z2dK3bEF3yT3AM518=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=K3WJt7zmRFnDXyXeeWpLt4h21l1EZx/erOH9jFqNPqmZPzON6kQu//PkOC5tW2UlyHr7ggk2TMJ7YNnv0aZh4PGR0VMdnq9Zh2P9u/IMKGA9mZGF4OFv0/WyxZxwjBw+tB8aJt6AgLFGcPVaC3N2zoNdMp4oLAJjMXK3N2mYuS0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.189
+	s=arc-20240116; t=1724758058; c=relaxed/simple;
+	bh=DSngizSiJ08ipddfWD9GtUALHF9xXbtk6JJr0iHbQMI=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=MSn6w7KKnYfbQLvKX/OnE8NqAqq+fNfCFqjbvyNQInlRFjCjzWbKtCbytzt0GImaOEWDLi0jj34Esi6vTAnvIKFcufU/D9bjjqWJCFUjUG+rmsIRz79QeKGw+4f+hpiLBxp6Uc5nDMpavcIj/gp9lnCiZvCSomm7yov64a7cIwI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.188
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.19.88.194])
-	by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4WtQBW4M18zQqtl;
-	Tue, 27 Aug 2024 19:22:43 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.163.252])
+	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4WtQG91sFMzpTpP;
+	Tue, 27 Aug 2024 19:25:53 +0800 (CST)
 Received: from dggpeml500022.china.huawei.com (unknown [7.185.36.66])
-	by mail.maildlp.com (Postfix) with ESMTPS id 543D4140202;
-	Tue, 27 Aug 2024 19:27:32 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id C7E83180AE7;
+	Tue, 27 Aug 2024 19:27:33 +0800 (CST)
 Received: from huawei.com (10.90.53.73) by dggpeml500022.china.huawei.com
  (7.185.36.66) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Tue, 27 Aug
- 2024 19:27:32 +0800
+ 2024 19:27:33 +0800
 From: Hongbo Li <lihongbo22@huawei.com>
 To: <davem@davemloft.net>, <edumazet@google.com>, <kuba@kernel.org>,
 	<pabeni@redhat.com>, <dsahern@kernel.org>, <ralf@linux-mips.org>,
 	<jmaloy@redhat.com>, <ying.xue@windriver.com>
 CC: <netdev@vger.kernel.org>, <linux-hams@vger.kernel.org>,
 	<netfilter-devel@vger.kernel.org>
-Subject: [PATCH net-next 0/6] replace deprecated strcpy with strscpy
-Date: Tue, 27 Aug 2024 19:35:21 +0800
-Message-ID: <20240827113527.4019856-1-lihongbo22@huawei.com>
+Subject: [PATCH net-next 1/6] net: prefer strscpy over strcpy
+Date: Tue, 27 Aug 2024 19:35:22 +0800
+Message-ID: <20240827113527.4019856-2-lihongbo22@huawei.com>
 X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20240827113527.4019856-1-lihongbo22@huawei.com>
+References: <20240827113527.4019856-1-lihongbo22@huawei.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -51,24 +54,24 @@ The safe replacement is strscpy() [1].
 
 Link: https://www.kernel.org/doc/html/latest/process/deprecated.html#strcpy [1]
 
-Hongbo Li (6):
-  net: prefer strscpy over strcpy
-  net/ipv6: replace deprecated strcpy with strscpy
-  net/netrom: prefer strscpy over strcpy
-  net/netfilter: replace deprecated strcpy with strscpy
-  net/tipc: replace deprecated strcpy with strscpy
-  net/ipv4: net: prefer strscpy over strcpy
+Signed-off-by: Hongbo Li <lihongbo22@huawei.com>
+---
+ net/core/dev.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- net/core/dev.c                  | 2 +-
- net/ipv4/ip_tunnel.c            | 2 +-
- net/ipv4/netfilter/arp_tables.c | 2 +-
- net/ipv4/netfilter/ip_tables.c  | 2 +-
- net/ipv6/ndisc.c                | 2 +-
- net/netfilter/xt_recent.c       | 2 +-
- net/netrom/nr_route.c           | 4 ++--
- net/tipc/bearer.c               | 2 +-
- 8 files changed, 9 insertions(+), 9 deletions(-)
-
+diff --git a/net/core/dev.c b/net/core/dev.c
+index 0d0b983a6c21..f5e0a0d801fd 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -11121,7 +11121,7 @@ struct net_device *alloc_netdev_mqs(int sizeof_priv, const char *name,
+ 	if (!dev->ethtool)
+ 		goto free_all;
+ 
+-	strcpy(dev->name, name);
++	strscpy(dev->name, name, sizeof(dev->name));
+ 	dev->name_assign_type = name_assign_type;
+ 	dev->group = INIT_NETDEV_GROUP;
+ 	if (!dev->ethtool_ops)
 -- 
 2.34.1
 
