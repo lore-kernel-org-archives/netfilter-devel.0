@@ -1,85 +1,99 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADB622E62C;
-	Tue, 27 Aug 2024 16:15:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 181531CCEEE;
+	Tue, 27 Aug 2024 16:57:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724775335; cv=none; b=bw4pRVNkCxQ9WBbj1st4s1Qtk26ltcaJ1OSspNlx4NAaRGG7xa6Lp4bbq75zfVRlOd4SsFGefsHvoBOU9DKnY9cvirWJ37TspWbJ2HT0RbCjkYyaUO/sT69JtxggaajK9dqBWeOj1IdTSWjroORt53nzz7PmCKlodACOEH78fXk=
+	t=1724777848; cv=none; b=FM2daT5pIQEHtHhbQ7a0nn/8wmU2kJefLH4FFjX9jGIeAboi+LBI59hqq/DHAuGskiTloIRgdxpnsSLcFmDGa0IpgJ70jNYON0gkJth5Ij4HPQjb/U0w//XWuv3RA1lQedTJWanhvOJ3j/s1OXcu9en/aVfzxs97hFLdtDU/F5U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724775335; c=relaxed/simple;
-	bh=96jM/fAZwQT9oJnOxuIrzX3FTJqJrZQY4N3yE1108zY=;
+	s=arc-20240116; t=1724777848; c=relaxed/simple;
+	bh=oJyqD4VpJjqosMXWNu7suplXDr6vmBZm5Ry/21c2LBU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=DuaPmA3EvntCIzzLs2SQUhC/3fXJ5Hxm25ZgXtY9GEn6FfCUovlBsugsC1i07re9UTjM1P8T3NS50Gy1azzwpwnZaUbg4+aAX7aBDUg1cMQZOSWFNxTaBSO/wmpCfxmgY3CsPozqDedll+yP2J2WNM/M8PYCqsmbM74cn8HhrOs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=42560 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1siyqm-000FoT-EW; Tue, 27 Aug 2024 18:15:24 +0200
-Date: Tue, 27 Aug 2024 18:15:19 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+	 Content-Type:Content-Disposition:In-Reply-To; b=emZXaVD72rF92thlMvpHSoSlVbfiBYe32ACGlSnXS5e8jdzjP04iK3iGfTll7/f9PGte7L4JlhTYuxT9gsDHzNIKinc39wlZ+IsMjHGywK2LNQjmmM1dnoY31ifWq34wluKf0C97asHeBNcRwE0hL1z76T0UIHXNwFc2DZo+4Eo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=p1UJBBJ1; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="p1UJBBJ1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43572C4AF13;
+	Tue, 27 Aug 2024 16:57:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1724777847;
+	bh=oJyqD4VpJjqosMXWNu7suplXDr6vmBZm5Ry/21c2LBU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=p1UJBBJ1mKHOdQHBhmDJ4EQ027Jc7U6bl7ykT0Ei8+Fd1S9knKc4mKlsYdVFe0jA2
+	 67MI2BNnbQfbVUch9cnSWXGd4uW5gqyz5kKkJVX/fLwNO/RULoGULCRZZXMc9pfx51
+	 XRTLZQteAJYn2GX+qJ66xMsjf2S/zpfF8eCTKAJTV1BBFlT8X+IASKNCJWrq7CMG/H
+	 DhkHoQwyqZwF5i3GWgu6HldMAs6tP5VemMeGV1Z8xKESko/5bwTUtLy7hk60RHGTOh
+	 9rtCuQA2XHfkk8AGLu0RNXJ6d3pTlHa5IdFhtBJ1pHd6ulrim6ioH3KcgotwnkjuOl
+	 OXVK1KhDDMepQ==
+Date: Tue, 27 Aug 2024 17:57:23 +0100
+From: Simon Horman <horms@kernel.org>
 To: Hongbo Li <lihongbo22@huawei.com>
 Cc: davem@davemloft.net, dsahern@kernel.org, edumazet@google.com,
 	kuba@kernel.org, pabeni@redhat.com, jmaloy@redhat.com,
-	ying.xue@windriver.com, kadlec@netfilter.org,
+	ying.xue@windriver.com, pablo@netfilter.org, kadlec@netfilter.org,
 	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH net-next 3/5] net/netfilter: make use of the helper macro
+Subject: Re: [PATCH net-next 2/5] net/tipc: make use of the helper macro
  LIST_HEAD()
-Message-ID: <Zs37l04h3bsK8LIE@calendula>
+Message-ID: <20240827165723.GQ1368797@kernel.org>
 References: <20240827100407.3914090-1-lihongbo22@huawei.com>
- <20240827100407.3914090-4-lihongbo22@huawei.com>
+ <20240827100407.3914090-3-lihongbo22@huawei.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240827100407.3914090-4-lihongbo22@huawei.com>
-X-Spam-Score: -1.9 (-)
+In-Reply-To: <20240827100407.3914090-3-lihongbo22@huawei.com>
 
-Hi,
-
-On Tue, Aug 27, 2024 at 06:04:05PM +0800, Hongbo Li wrote:
+On Tue, Aug 27, 2024 at 06:04:04PM +0800, Hongbo Li wrote:
 > list_head can be initialized automatically with LIST_HEAD()
 > instead of calling INIT_LIST_HEAD(). Here we can simplify
 > the code.
 > 
 > Signed-off-by: Hongbo Li <lihongbo22@huawei.com>
 > ---
->  net/netfilter/core.c | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
+>  net/tipc/socket.c | 6 ++----
+>  1 file changed, 2 insertions(+), 4 deletions(-)
 > 
-> diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-> index b00fc285b334..93642fcd379c 100644
-> --- a/net/netfilter/core.c
-> +++ b/net/netfilter/core.c
-> @@ -655,10 +655,8 @@ void nf_hook_slow_list(struct list_head *head, struct nf_hook_state *state,
->  		       const struct nf_hook_entries *e)
->  {
->  	struct sk_buff *skb, *next;
-> -	struct list_head sublist;
->  	int ret;
-> -
-> -	INIT_LIST_HEAD(&sublist);
-> +	LIST_HEAD(sublist);
+> diff --git a/net/tipc/socket.c b/net/tipc/socket.c
+> index 1a0cd06f0eae..9d30e362392c 100644
+> --- a/net/tipc/socket.c
+> +++ b/net/tipc/socket.c
+> @@ -1009,12 +1009,11 @@ static int tipc_send_group_anycast(struct socket *sock, struct msghdr *m,
+>  	struct tipc_member *mbr = NULL;
+>  	struct net *net = sock_net(sk);
+>  	u32 node, port, exclude;
+> -	struct list_head dsts;
+>  	int lookups = 0;
+>  	int dstcnt, rc;
+>  	bool cong;
+> +	LIST_HEAD(dsts);
 
-comestic:
+nit: Please place this new line where the old dsts line was,
+     in order to preserve, within the context of this hunk,
+     reverse xmas tree order - longest line to shortest -
+     for local variable declarations.
 
-  	struct sk_buff *skb, *next;
-	LIST_HEAD(sublist);          <- here
-  	int ret;
+>  
+> -	INIT_LIST_HEAD(&dsts);
+>  	ua->sa.type = msg_nametype(hdr);
+>  	ua->scope = msg_lookup_scope(hdr);
+>  
+> @@ -1161,10 +1160,9 @@ static int tipc_send_group_mcast(struct socket *sock, struct msghdr *m,
+>  	struct tipc_group *grp = tsk->group;
+>  	struct tipc_msg *hdr = &tsk->phdr;
+>  	struct net *net = sock_net(sk);
+> -	struct list_head dsts;
+>  	u32 dstcnt, exclude;
+> +	LIST_HEAD(dsts);
+>  
+> -	INIT_LIST_HEAD(&dsts);
+>  	ua->sa.type = msg_nametype(hdr);
+>  	ua->scope = msg_lookup_scope(hdr);
+>  	exclude = tipc_group_exclude(grp);
 
-I think this should be included in the variable declaration area at
-the beginning of this function.
-
->  	list_for_each_entry_safe(skb, next, head, list) {
->  		skb_list_del_init(skb);
-> -- 
-> 2.34.1
-> 
-> 
+-- 
+pw-bot: cr
