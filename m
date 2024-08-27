@@ -1,195 +1,71 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 07FC484039
-	for <netfilter-devel@vger.kernel.org>; Mon, 26 Aug 2024 19:02:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C64C8BEA;
+	Tue, 27 Aug 2024 02:25:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724698971; cv=none; b=jvAwblupwZLIc97Nw/rLMyyp+qUCvpbQg7DYPx7PsGXImSwh0t3LGw2W7OmhiHEbjZIZWJTcIeT+OCkC+Wl5xEhOahBfLbNv5oC2/LTtRUD5UkXfCmbfHf5zJ62OCVe/rFOqhQ0tygy1LOVOO9VDIUe2n+wOjWliBKtiSEBtpyc=
+	t=1724725502; cv=none; b=Bm64Hh9pvvinnG4gXuW1s1bFCTporlqRhweJAdI2zUYxa38BCWUf2AT4Ew5PH0+FL1jRXnjp1EZ15rRd3887hkB1D0lVGPWhIJS0GipNMRzoh3WrYvJVJSjZdCCW3tyvhax+iY5NVcNRd0j5vi/7WYG/LWc/FKSX7HlSfk4cPLY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724698971; c=relaxed/simple;
-	bh=V0x5cRx036uxb4v3HHW0pnrfBBAuNgZ6GMN+Ts+jpV0=;
-	h=From:To:Subject:Date:Message-Id:MIME-Version; b=okFo9jqyGZROSOI6EtASQW2oIuALw2psRF4mPvVnduiw2UHJFR9HkAlCWwu0DYNAWCGUMR4FIT3722Iy1RQ4T0YwFHplhyHrDTiIfm7UDJjdKPoe7PXPQ8YBmbe/OrjmA8JAGmoF9EA0DAfMN3rFr5EuXwQEaxy9Y3MxaWrMYB0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] tests: shell: extend coverage for meta l4proto netdev/egress matching
-Date: Mon, 26 Aug 2024 21:02:42 +0200
-Message-Id: <20240826190242.176214-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+	s=arc-20240116; t=1724725502; c=relaxed/simple;
+	bh=5obBFAgk49d6SfmCWkhvVk8SCMkmqHl7tmdg64UCpjs=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=Mox/YLSJF+eFliidvAc5HKVIPL9ll5AQKRZowck5hEld47o4zpFsk3h4N+IkW/ugcPPHVplNEULWjbjRbM3QweEMKWWihiGEEGJG1OVH1vTbaMJJWJEep2HqSj2lWeXSlh5db7PeeqPRXE+CIuhbcJ1HErPTAqH5KQ8HRS9sEUc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dW0qNSud; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dW0qNSud"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36DE7C4FF0C;
+	Tue, 27 Aug 2024 02:25:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1724725501;
+	bh=5obBFAgk49d6SfmCWkhvVk8SCMkmqHl7tmdg64UCpjs=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=dW0qNSudjZtDXdmqiCp1I6Dh28SKCWCEnsMjb+3BDLmJ9XZ92MhHy6Bo2WQ3/IH3C
+	 E+sqs9GXpM21NaCiWs+R42Y0Rmt3iA75W6Qdh3frlzoJyG5SD5wSz9Gw3SCHnK+EE4
+	 Pp5/QQeGat5HAqvoaieIZnIn6GW5CyUDlbidrMnuR7n7P6Nx1rTySv30Ylg/QWpDF9
+	 RDyOIRkqF7NHD4L6XBrWc+AY5UxCfdKZortF1p8VcH3tBnG7u9a9xFVNnWanQd7Hj7
+	 EgVx8vlLSw3SQtFjJ5kOFIKn9G47lfHDo83az8krI3Y51jKjK7m7JvJncKXScDILh+
+	 RBjBaTDQNlRLA==
+Date: Mon, 26 Aug 2024 19:25:00 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com,
+ fw@strlen.de, Antonio Ojea <aojea@google.com>
+Subject: Re: [PATCH net-next 2/9] selftests: netfilter: nft_queue.sh: sctp
+ coverage
+Message-ID: <20240826192500.32efa22c@kernel.org>
+In-Reply-To: <20240822221939.157858-3-pablo@netfilter.org>
+References: <20240822221939.157858-1-pablo@netfilter.org>
+	<20240822221939.157858-3-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Extend coverage to match on small UDP packets from netdev/egress.
+On Fri, 23 Aug 2024 00:19:32 +0200 Pablo Neira Ayuso wrote:
+> From: Antonio Ojea <aojea@google.com>
+> 
+> Test that nfqueue with and without GSO process SCTP packets correctly.
+> 
+> Joint work with Florian and Pablo.
 
-While at it, cover bridge/input and bridge/output hooks too.
+This is unhappy on a debug kernel in netdev CI:
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- .../shell/testcases/packetpath/match_l4proto  | 149 ++++++++++++++++++
- 1 file changed, 149 insertions(+)
- create mode 100755 tests/shell/testcases/packetpath/match_l4proto
+# 2024/08/26 17:38:31 socat[12451] E write(7, 0x563837a56000, 8192): Cannot send after transport endpoint shutdown
+# Binary files /tmp/tmp.ZZAJtF9z9R and /tmp/tmp.hS8W1Te84V differ
+# FAIL: lost packets?!
 
-diff --git a/tests/shell/testcases/packetpath/match_l4proto b/tests/shell/testcases/packetpath/match_l4proto
-new file mode 100755
-index 000000000000..31fbe6c27d66
---- /dev/null
-+++ b/tests/shell/testcases/packetpath/match_l4proto
-@@ -0,0 +1,149 @@
-+#!/bin/bash
-+
-+# NFT_TEST_REQUIRES(NFT_TEST_HAVE_netdev_egress)
-+
-+rnd=$(mktemp -u XXXXXXXX)
-+ns1="nft1payload-$rnd"
-+ns2="nft2payload-$rnd"
-+
-+cleanup()
-+{
-+	ip netns del "$ns1"
-+	ip netns del "$ns2"
-+}
-+
-+trap cleanup EXIT
-+
-+run_test()
-+{
-+	ns1_addr=$2
-+	ns2_addr=$3
-+	cidr=$4
-+
-+	# socat needs square brackets, ie. [abcd::2]
-+	if [ $1 -eq 6 ]; then
-+		nsx1_addr="["$ns1_addr"]"
-+		nsx2_addr="["$ns2_addr"]"
-+	else
-+		nsx1_addr="$ns1_addr"
-+		nsx2_addr="$ns2_addr"
-+	fi
-+
-+	ip netns add "$ns1" || exit 111
-+	ip netns add "$ns2" || exit 111
-+
-+	ip -net "$ns1" link set lo up
-+	ip -net "$ns2" link set lo up
-+
-+	ip link add veth0 netns $ns1 type veth peer name veth0 netns $ns2
-+
-+	ip -net "$ns1" link set veth0 up
-+	ip -net "$ns2" link set veth0 up
-+	ip -net "$ns1" addr add $ns1_addr/$cidr dev veth0
-+	ip -net "$ns2" addr add $ns2_addr/$cidr dev veth0
-+
-+	sleep 5
-+
-+RULESET="table netdev payload_netdev {
-+       counter ingress {}
-+       counter ingress_2 {}
-+       counter egress {}
-+       counter egress_2 {}
-+
-+       chain ingress {
-+               type filter hook ingress device veth0 priority 0;
-+               udp dport 7777 counter name ingress
-+               meta l4proto udp counter name ingress_2
-+       }
-+
-+       chain egress {
-+               type filter hook egress device veth0 priority 0;
-+               udp dport 7777 counter name egress
-+               meta l4proto udp counter name egress_2
-+       }
-+}"
-+
-+	ip netns exec "$ns1" $NFT -f - <<< "$RULESET" || exit 1
-+
-+	ip netns exec "$ns1" bash -c "echo 'A' | socat -u STDIN UDP:$nsx2_addr:7777 > /dev/null"
-+	ip netns exec "$ns1" bash -c "echo 'AA' | socat -u STDIN UDP:$nsx2_addr:7777 > /dev/null"
-+	ip netns exec "$ns1" bash -c "echo 'AAA' | socat -u STDIN UDP:$nsx2_addr:7777 > /dev/null"
-+	ip netns exec "$ns1" bash -c "echo 'AAAA' | socat -u STDIN UDP:$nsx2_addr:7777 > /dev/null"
-+	ip netns exec "$ns1" bash -c "echo 'AAAAA' | socat -u STDIN UDP:$nsx2_addr:7777 > /dev/null"
-+
-+	ip netns exec "$ns2" bash -c "echo 'A' | socat -u STDIN UDP:$nsx1_addr:7777 > /dev/null"
-+	ip netns exec "$ns2" bash -c "echo 'AA' | socat -u STDIN UDP:$nsx1_addr:7777 > /dev/null"
-+	ip netns exec "$ns2" bash -c "echo 'AAA' | socat -u STDIN UDP:$nsx1_addr:7777 > /dev/null"
-+	ip netns exec "$ns2" bash -c "echo 'AAAA' | socat -u STDIN UDP:$nsx1_addr:7777 > /dev/null"
-+	ip netns exec "$ns2" bash -c "echo 'AAAAA' | socat -u STDIN UDP:$nsx1_addr:7777 > /dev/null"
-+
-+	ip netns exec "$ns1" $NFT list ruleset
-+
-+	ip netns exec "$ns1" $NFT list counter netdev payload_netdev ingress | grep "packets 5" > /dev/null || exit 1
-+	ip netns exec "$ns1" $NFT list counter netdev payload_netdev ingress_2 | grep "packets 5" > /dev/null || exit 1
-+	ip netns exec "$ns1" $NFT list counter netdev payload_netdev egress | grep "packets 5" > /dev/null || exit 1
-+	ip netns exec "$ns1" $NFT list counter netdev payload_netdev egress_2| grep "packets 5" > /dev/null || exit 1
-+
-+	#
-+	# ... next stage
-+	#
-+	ip netns exec "$ns1" $NFT flush ruleset
-+
-+	#
-+	# bridge
-+	#
-+
-+	ip -net "$ns1" addr del $ns1_addr/$cidr dev veth0
-+
-+	ip -net "$ns1" link add name br0 type bridge
-+	ip -net "$ns1" link set veth0 master br0
-+	ip -net "$ns1" addr add $ns1_addr/$cidr dev br0
-+	ip -net "$ns1" link set up dev br0
-+
-+	sleep 5
-+
-+RULESET="table bridge payload_bridge {
-+       counter input {}
-+       counter output {}
-+       counter input_2 {}
-+       counter output_2 {}
-+
-+       chain in {
-+               type filter hook input priority 0;
-+               udp dport 7777 counter name input
-+               meta l4proto udp counter name input_2
-+       }
-+
-+       chain out {
-+               type filter hook output priority 0;
-+               udp dport 7777 counter name output
-+               meta l4proto udp counter name output_2
-+        }
-+}"
-+
-+	ip netns exec "$ns1" $NFT -f - <<< "$RULESET" || exit 1
-+
-+	ip netns exec "$ns1" bash -c "echo 'A' | socat -u STDIN UDP:$nsx2_addr:7777 > /dev/null"
-+	ip netns exec "$ns1" bash -c "echo 'AA' | socat -u STDIN UDP:$nsx2_addr:7777 > /dev/null"
-+	ip netns exec "$ns1" bash -c "echo 'AAA' | socat -u STDIN UDP:$nsx2_addr:7777 > /dev/null"
-+	ip netns exec "$ns1" bash -c "echo 'AAAA' | socat -u STDIN UDP:$nsx2_addr:7777 > /dev/null"
-+	ip netns exec "$ns1" bash -c "echo 'AAAAA' | socat -u STDIN UDP:$nsx2_addr:7777 > /dev/null"
-+
-+	ip netns exec "$ns2" bash -c "echo 'A' | socat -u STDIN UDP:$nsx1_addr:7777 > /dev/null"
-+	ip netns exec "$ns2" bash -c "echo 'AA' | socat -u STDIN UDP:$nsx1_addr:7777 > /dev/null"
-+	ip netns exec "$ns2" bash -c "echo 'AAA' | socat -u STDIN UDP:$nsx1_addr:7777 > /dev/null"
-+	ip netns exec "$ns2" bash -c "echo 'AAAA' | socat -u STDIN UDP:$nsx1_addr:7777 > /dev/null"
-+	ip netns exec "$ns2" bash -c "echo 'AAAAA' | socat -u STDIN UDP:$nsx1_addr:7777 > /dev/null"
-+
-+	ip netns exec "$ns1" $NFT list ruleset
-+
-+	ip netns exec "$ns1" $NFT list counter bridge payload_bridge input | grep "packets 5" > /dev/null || exit 1
-+	ip netns exec "$ns1" $NFT list counter bridge payload_bridge input_2 | grep "packets 5" > /dev/null || exit 1
-+	ip netns exec "$ns1" $NFT list counter bridge payload_bridge output | grep "packets 5" > /dev/null || exit 1
-+	ip netns exec "$ns1" $NFT list counter bridge payload_bridge output_2 | grep "packets 5" > /dev/null || exit 1
-+}
-+
-+run_test "4" "10.141.10.2" "10.141.10.3" "24"
-+cleanup
-+run_test "6" "abcd::2" "abcd::3" "64"
-+# trap calls cleanup
--- 
-2.30.2
+https://netdev-3.bots.linux.dev/vmksft-nf-dbg/results/745281/2-nft-queue-sh/stdout
 
+Works fine on a non-debug kernel tho:
+
+https://netdev-3.bots.linux.dev/vmksft-nf/results/745282/5-nft-queue-sh/stdout
+
+so gotta be some race.
+
+Please follow up soon, I'll disable this test case for now.
