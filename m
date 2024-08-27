@@ -1,99 +1,244 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 181531CCEEE;
-	Tue, 27 Aug 2024 16:57:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C85A15B554;
+	Tue, 27 Aug 2024 20:16:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724777848; cv=none; b=FM2daT5pIQEHtHhbQ7a0nn/8wmU2kJefLH4FFjX9jGIeAboi+LBI59hqq/DHAuGskiTloIRgdxpnsSLcFmDGa0IpgJ70jNYON0gkJth5Ij4HPQjb/U0w//XWuv3RA1lQedTJWanhvOJ3j/s1OXcu9en/aVfzxs97hFLdtDU/F5U=
+	t=1724789805; cv=none; b=pmKj9ANSNg1SsTSZ4xOKCaG3CGxul3pS4W56tiF0+KNdaM0Y0QD0ibK2RA9C9erLxPVkrP1SczdViQX6rAYBTG4VEJRwEtTpVtq+Uh0kYXCbYpRldPIMKoBgd1/5x1miJROJHvyz8VU0KgMLiYbCekwlgSBCI3ftC7/oFF/hjk8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724777848; c=relaxed/simple;
-	bh=oJyqD4VpJjqosMXWNu7suplXDr6vmBZm5Ry/21c2LBU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=emZXaVD72rF92thlMvpHSoSlVbfiBYe32ACGlSnXS5e8jdzjP04iK3iGfTll7/f9PGte7L4JlhTYuxT9gsDHzNIKinc39wlZ+IsMjHGywK2LNQjmmM1dnoY31ifWq34wluKf0C97asHeBNcRwE0hL1z76T0UIHXNwFc2DZo+4Eo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=p1UJBBJ1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724789805; c=relaxed/simple;
+	bh=Hcx8QcIxQCwYgcS9aVzVA/bgTxxtOqbsBjmUJhdmgDE=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=tNOR5fsbFYz7f4ojncvA+HUFaYZSBqOlBF3rThvZ3pnzqABhRO6pjIJQp7RBYtTXGQn4uWXCIiOQN99yNdU9QRaLDX4L+XtnD71nZQwPdmIRCHjE9aGr6x+3pq/NzFubQoM61pTk4u53mzufZ86S4FMMmKET8FUo/ULGIHihyEM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=H2cRDo2s; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=Oigw9UeX; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=H2cRDo2s; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=Oigw9UeX; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="p1UJBBJ1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43572C4AF13;
-	Tue, 27 Aug 2024 16:57:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1724777847;
-	bh=oJyqD4VpJjqosMXWNu7suplXDr6vmBZm5Ry/21c2LBU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=p1UJBBJ1mKHOdQHBhmDJ4EQ027Jc7U6bl7ykT0Ei8+Fd1S9knKc4mKlsYdVFe0jA2
-	 67MI2BNnbQfbVUch9cnSWXGd4uW5gqyz5kKkJVX/fLwNO/RULoGULCRZZXMc9pfx51
-	 XRTLZQteAJYn2GX+qJ66xMsjf2S/zpfF8eCTKAJTV1BBFlT8X+IASKNCJWrq7CMG/H
-	 DhkHoQwyqZwF5i3GWgu6HldMAs6tP5VemMeGV1Z8xKESko/5bwTUtLy7hk60RHGTOh
-	 9rtCuQA2XHfkk8AGLu0RNXJ6d3pTlHa5IdFhtBJ1pHd6ulrim6ioH3KcgotwnkjuOl
-	 OXVK1KhDDMepQ==
-Date: Tue, 27 Aug 2024 17:57:23 +0100
-From: Simon Horman <horms@kernel.org>
-To: Hongbo Li <lihongbo22@huawei.com>
-Cc: davem@davemloft.net, dsahern@kernel.org, edumazet@google.com,
-	kuba@kernel.org, pabeni@redhat.com, jmaloy@redhat.com,
-	ying.xue@windriver.com, pablo@netfilter.org, kadlec@netfilter.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH net-next 2/5] net/tipc: make use of the helper macro
- LIST_HEAD()
-Message-ID: <20240827165723.GQ1368797@kernel.org>
-References: <20240827100407.3914090-1-lihongbo22@huawei.com>
- <20240827100407.3914090-3-lihongbo22@huawei.com>
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="H2cRDo2s";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="Oigw9UeX";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="H2cRDo2s";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="Oigw9UeX"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id A903621B26;
+	Tue, 27 Aug 2024 20:16:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1724789801; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=nGZ2P7NBrFDQ9r5RZr35OZ49pTXK6VSOYy22Fa0AIok=;
+	b=H2cRDo2sZsK9GGwhMSl1+LBbuJkzDzZYXcRxrrBUP1ii16m+nlgl5lQuGRMlXjKO3rMU+2
+	RW7ZakNBPsPXhimbmHe87HiRt56Srjp7XbDJTAs786nC4bb+YpVip4YFqKQJVmk2ruOvwG
+	TTSl5TE1vADus4Sac+O5ia3FfZexrQE=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1724789801;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=nGZ2P7NBrFDQ9r5RZr35OZ49pTXK6VSOYy22Fa0AIok=;
+	b=Oigw9UeXIEcBSjzCMhjwNNDBauMqt8lcBgPJkrJGXLDcmeW7czBJF9IftZwl7tLtBCB5ac
+	SJ5wvU5kPUJ/WpCg==
+Authentication-Results: smtp-out1.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1724789801; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=nGZ2P7NBrFDQ9r5RZr35OZ49pTXK6VSOYy22Fa0AIok=;
+	b=H2cRDo2sZsK9GGwhMSl1+LBbuJkzDzZYXcRxrrBUP1ii16m+nlgl5lQuGRMlXjKO3rMU+2
+	RW7ZakNBPsPXhimbmHe87HiRt56Srjp7XbDJTAs786nC4bb+YpVip4YFqKQJVmk2ruOvwG
+	TTSl5TE1vADus4Sac+O5ia3FfZexrQE=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1724789801;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=nGZ2P7NBrFDQ9r5RZr35OZ49pTXK6VSOYy22Fa0AIok=;
+	b=Oigw9UeXIEcBSjzCMhjwNNDBauMqt8lcBgPJkrJGXLDcmeW7czBJF9IftZwl7tLtBCB5ac
+	SJ5wvU5kPUJ/WpCg==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 6516913A20;
+	Tue, 27 Aug 2024 20:16:41 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id NMafEik0zmYWfQAAD6G6ig
+	(envelope-from <krisman@suse.de>); Tue, 27 Aug 2024 20:16:41 +0000
+From: Gabriel Krisman Bertazi <krisman@suse.de>
+To: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Lizhi Xu <lizhi.xu@windriver.com>,  adilger.kernel@dilger.ca,
+  coreteam@netfilter.org,  davem@davemloft.net,  ebiggers@kernel.org,
+  fw@strlen.de,  jaegeuk@kernel.org,  kadlec@netfilter.org,
+  kuba@kernel.org,  linux-ext4@vger.kernel.org,
+  linux-fscrypt@vger.kernel.org,  linux-kernel@vger.kernel.org,
+  lkp@intel.com,  llvm@lists.linux.dev,  netdev@vger.kernel.org,
+  netfilter-devel@vger.kernel.org,  oe-kbuild-all@lists.linux.dev,
+  pablo@netfilter.org,
+  syzbot+340581ba9dceb7e06fb3@syzkaller.appspotmail.com,
+  syzkaller-bugs@googlegroups.com
+Subject: [PATCH] ext4: Fix error message when rejecting the default hash
+In-Reply-To: <172433877724.370733.16770771071139702263.b4-ty@mit.edu>
+	(Theodore Ts'o's message of "Thu, 22 Aug 2024 11:00:11 -0400")
+Organization: SUSE
+References: <87le3kle87.fsf@mailhost.krisman.be>
+	<20240605012335.44086-1-lizhi.xu@windriver.com>
+	<172433877724.370733.16770771071139702263.b4-ty@mit.edu>
+Date: Tue, 27 Aug 2024 16:16:36 -0400
+Message-ID: <87jzg1en6j.fsf_-_@mailhost.krisman.be>
+User-Agent: Gnus/5.13 (Gnus v5.13)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240827100407.3914090-3-lihongbo22@huawei.com>
+Content-Type: text/plain
+X-Spam-Score: -2.80
+X-Spamd-Result: default: False [-2.80 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	SUSPICIOUS_RECIPS(1.50)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	ARC_NA(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	HAS_ORG_HEADER(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	RCPT_COUNT_TWELVE(0.00)[21];
+	MIME_TRACE(0.00)[0:+];
+	TAGGED_RCPT(0.00)[340581ba9dceb7e06fb3];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FUZZY_BLOCKED(0.00)[rspamd.com];
+	FROM_HAS_DN(0.00)[];
+	TO_DN_SOME(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.de:email]
+X-Spam-Flag: NO
+X-Spam-Level: 
 
-On Tue, Aug 27, 2024 at 06:04:04PM +0800, Hongbo Li wrote:
-> list_head can be initialized automatically with LIST_HEAD()
-> instead of calling INIT_LIST_HEAD(). Here we can simplify
-> the code.
-> 
-> Signed-off-by: Hongbo Li <lihongbo22@huawei.com>
-> ---
->  net/tipc/socket.c | 6 ++----
->  1 file changed, 2 insertions(+), 4 deletions(-)
-> 
-> diff --git a/net/tipc/socket.c b/net/tipc/socket.c
-> index 1a0cd06f0eae..9d30e362392c 100644
-> --- a/net/tipc/socket.c
-> +++ b/net/tipc/socket.c
-> @@ -1009,12 +1009,11 @@ static int tipc_send_group_anycast(struct socket *sock, struct msghdr *m,
->  	struct tipc_member *mbr = NULL;
->  	struct net *net = sock_net(sk);
->  	u32 node, port, exclude;
-> -	struct list_head dsts;
->  	int lookups = 0;
->  	int dstcnt, rc;
->  	bool cong;
-> +	LIST_HEAD(dsts);
+"Theodore Ts'o" <tytso@mit.edu> writes:
 
-nit: Please place this new line where the old dsts line was,
-     in order to preserve, within the context of this hunk,
-     reverse xmas tree order - longest line to shortest -
-     for local variable declarations.
+> On Wed, 05 Jun 2024 09:23:35 +0800, Lizhi Xu wrote:
+>> When mounting the ext4 filesystem, if the default hash version is set to
+>> DX_HASH_SIPHASH but the casefold feature is not set, exit the mounting.
+>> 
+>> 
+>
+> Applied, thanks!
+>
+> [1/1] fs/ext4: Filesystem without casefold feature cannot be mounted with spihash
+>       commit: 985b67cd86392310d9e9326de941c22fc9340eec
 
->  
-> -	INIT_LIST_HEAD(&dsts);
->  	ua->sa.type = msg_nametype(hdr);
->  	ua->scope = msg_lookup_scope(hdr);
->  
-> @@ -1161,10 +1160,9 @@ static int tipc_send_group_mcast(struct socket *sock, struct msghdr *m,
->  	struct tipc_group *grp = tsk->group;
->  	struct tipc_msg *hdr = &tsk->phdr;
->  	struct net *net = sock_net(sk);
-> -	struct list_head dsts;
->  	u32 dstcnt, exclude;
-> +	LIST_HEAD(dsts);
->  
-> -	INIT_LIST_HEAD(&dsts);
->  	ua->sa.type = msg_nametype(hdr);
->  	ua->scope = msg_lookup_scope(hdr);
->  	exclude = tipc_group_exclude(grp);
+Ted,
 
+Since you took the above, can you please consider the following fixup?
+I had pointed we shouldn't have siphash as the sb default hash at all:
+
+based on your dev branch.
+
+>8
+Subject: [PATCH] ext4: Fix error message when rejecting the default hash
+
+Commit 985b67cd8639 ("ext4: filesystems without casefold feature cannot
+be mounted with siphash") properly rejects volumes where
+s_def_hash_version is set to DX_HASH_SIPHASH, but the check and the
+error message should not look into casefold setup - a filesystem should
+never have DX_HASH_SIPHASH as the default hash.  Fix it and, since we
+are there, move the check to ext4_hash_info_init.
+
+Fixes:985b67cd8639 ("ext4: filesystems without casefold feature cannot
+be mounted with siphash")
+Signed-off-by: Gabriel Krisman Bertazi <krisman@suse.de>
+---
+ fs/ext4/ext4.h  |  1 +
+ fs/ext4/super.c | 27 +++++++++++++++++----------
+ 2 files changed, 18 insertions(+), 10 deletions(-)
+
+diff --git a/fs/ext4/ext4.h b/fs/ext4/ext4.h
+index 5845e4aa091a..4120f24880cb 100644
+--- a/fs/ext4/ext4.h
++++ b/fs/ext4/ext4.h
+@@ -2462,6 +2462,7 @@ static inline __le16 ext4_rec_len_to_disk(unsigned len, unsigned blocksize)
+ #define DX_HASH_HALF_MD4_UNSIGNED	4
+ #define DX_HASH_TEA_UNSIGNED		5
+ #define DX_HASH_SIPHASH			6
++#define DX_HASH_LAST 			DX_HASH_SIPHASH
+ 
+ static inline u32 ext4_chksum(struct ext4_sb_info *sbi, u32 crc,
+ 			      const void *address, unsigned int length)
+diff --git a/fs/ext4/super.c b/fs/ext4/super.c
+index 25cd0d662e31..c6a34ad07ecc 100644
+--- a/fs/ext4/super.c
++++ b/fs/ext4/super.c
+@@ -3582,13 +3582,6 @@ int ext4_feature_set_ok(struct super_block *sb, int readonly)
+ 			 "mounted without CONFIG_UNICODE");
+ 		return 0;
+ 	}
+-	if (EXT4_SB(sb)->s_es->s_def_hash_version == DX_HASH_SIPHASH &&
+-	    !ext4_has_feature_casefold(sb)) {
+-		ext4_msg(sb, KERN_ERR,
+-			 "Filesystem without casefold feature cannot be "
+-			 "mounted with siphash");
+-		return 0;
+-	}
+ 
+ 	if (readonly)
+ 		return 1;
+@@ -5094,16 +5087,27 @@ static int ext4_load_super(struct super_block *sb, ext4_fsblk_t *lsb,
+ 	return ret;
+ }
+ 
+-static void ext4_hash_info_init(struct super_block *sb)
++static int ext4_hash_info_init(struct super_block *sb)
+ {
+ 	struct ext4_sb_info *sbi = EXT4_SB(sb);
+ 	struct ext4_super_block *es = sbi->s_es;
+ 	unsigned int i;
+ 
++	sbi->s_def_hash_version = es->s_def_hash_version;
++
++	if (sbi->s_def_hash_version > DX_HASH_LAST) {
++		ext4_msg(sb, KERN_ERR,
++			 "Invalid default hash set in the superblock");
++		return -EINVAL;
++	} else if (sbi->s_def_hash_version == DX_HASH_SIPHASH) {
++		ext4_msg(sb, KERN_ERR,
++			 "SIPHASH is not a valid default hash value");
++		return -EINVAL;
++	}
++
+ 	for (i = 0; i < 4; i++)
+ 		sbi->s_hash_seed[i] = le32_to_cpu(es->s_hash_seed[i]);
+ 
+-	sbi->s_def_hash_version = es->s_def_hash_version;
+ 	if (ext4_has_feature_dir_index(sb)) {
+ 		i = le32_to_cpu(es->s_flags);
+ 		if (i & EXT2_FLAGS_UNSIGNED_HASH)
+@@ -5121,6 +5125,7 @@ static void ext4_hash_info_init(struct super_block *sb)
+ #endif
+ 		}
+ 	}
++	return 0;
+ }
+ 
+ static int ext4_block_group_meta_init(struct super_block *sb, int silent)
+@@ -5256,7 +5261,9 @@ static int __ext4_fill_super(struct fs_context *fc, struct super_block *sb)
+ 	if (err)
+ 		goto failed_mount;
+ 
+-	ext4_hash_info_init(sb);
++	err = ext4_hash_info_init(sb);
++	if (err)
++		goto failed_mount;
+ 
+ 	err = ext4_handle_clustersize(sb);
+ 	if (err)
 -- 
-pw-bot: cr
+2.46.0
