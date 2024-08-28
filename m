@@ -1,91 +1,73 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2D3A157A46;
-	Wed, 28 Aug 2024 06:52:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDEE014C5BF;
+	Wed, 28 Aug 2024 07:02:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724827978; cv=none; b=Kwi8OSHT/fgDPnczPb+zmQBvblY98EWzjZPGGx04B4Jw06eIskGPQ7M4jI/NB0gvaF+P1q22uaPVvy+StZ/TD6L+VZTNRBIXsO3CtI0ky+e2LQbTrYtQjOlhnuBV5231kt8Akh5Ru3AYiVCwrwxvyleh+oq78mRTLtDSRQhD/ZA=
+	t=1724828537; cv=none; b=c/2Y99e/HkD2iRQIkLxjm/Tx/ojJVPZ7/EkHKlX6jF5FfVtE9vjaYUlZSRW5fP9u3lvOXZoQqKzBrjg2wVDVLlQYwta3QFw9i1FowVIn5Lv3IG5FoaLXTbNqKryxn6N4dqiMrVK/J/qap2yrYyLPY9Rjb1dgv6C8B6PK8+TNj0k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724827978; c=relaxed/simple;
-	bh=LNVpowAakEC/8CZyOFiWDAQWPNQiAaRezSPsURIEfMA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=YQdfsb4nw+Le49T2yJRGssLGnGmDB9Zi69byzhqRmwyeOV0ljpZPa9W5pg349o2HaNxn0uRhMx/vGAXNfjuzRy03YAFL1RDXlBjo1WGcPNOmEFbd11QPvgwinfZFQYKNV5xDahbpXYQpUj2IDdHMNBLohXqySzyvIbzbNrw6o+Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=55382 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1sjCXu-0017i9-PR; Wed, 28 Aug 2024 08:52:48 +0200
-Date: Wed, 28 Aug 2024 08:52:45 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Hongbo Li <lihongbo22@huawei.com>
-Cc: davem@davemloft.net, dsahern@kernel.org, edumazet@google.com,
-	kuba@kernel.org, pabeni@redhat.com, jmaloy@redhat.com,
-	ying.xue@windriver.com, kadlec@netfilter.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH net-next 3/5] net/netfilter: make use of the helper macro
- LIST_HEAD()
-Message-ID: <Zs7JPVbKHo3Hs6Ej@calendula>
-References: <20240827100407.3914090-1-lihongbo22@huawei.com>
- <20240827100407.3914090-4-lihongbo22@huawei.com>
- <Zs37l04h3bsK8LIE@calendula>
- <55ea4acb-fd89-4ec2-9eb3-1c6aa1a423ef@huawei.com>
+	s=arc-20240116; t=1724828537; c=relaxed/simple;
+	bh=y3Yy8UtEbYLSW7FqOzp1afcPSCmxgE4guwIdTYLZBCY=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=fFjS6m0jIakxkVb7KJ18+n/fdkM+E+g78AqSr0D/Oz0x2dl8hd8DTaBjCE+uohGZPcexi8lmA+Bff8b/o9NRHIs4Dt/hb99tP00sW0kolFn7Xd7Un7weRngpR1NUj6ful3UrGO6R5EjU/0R+/qOt3dUgKBk8pf2tRxnrEBvxqk8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.187
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.19.163.252])
+	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4WtwLW0wbMzyQVp;
+	Wed, 28 Aug 2024 15:01:23 +0800 (CST)
+Received: from kwepemh500013.china.huawei.com (unknown [7.202.181.146])
+	by mail.maildlp.com (Postfix) with ESMTPS id 5DC76180AE8;
+	Wed, 28 Aug 2024 15:02:11 +0800 (CST)
+Received: from huawei.com (10.90.53.73) by kwepemh500013.china.huawei.com
+ (7.202.181.146) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Wed, 28 Aug
+ 2024 15:02:10 +0800
+From: Jinjie Ruan <ruanjinjie@huawei.com>
+To: <pablo@netfilter.org>, <kadlec@netfilter.org>, <roopa@nvidia.com>,
+	<razor@blackwall.org>, <davem@davemloft.net>, <edumazet@google.com>,
+	<kuba@kernel.org>, <pabeni@redhat.com>, <dsahern@kernel.org>,
+	<krzk@kernel.org>, <netfilter-devel@vger.kernel.org>,
+	<coreteam@netfilter.org>, <bridge@lists.linux.dev>, <netdev@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>
+CC: <ruanjinjie@huawei.com>
+Subject: [PATCH -next 0/5] net: Use kmemdup_array() instead of kmemdup() for multiple allocation
+Date: Wed, 28 Aug 2024 15:09:59 +0800
+Message-ID: <20240828071004.1245213-1-ruanjinjie@huawei.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <55ea4acb-fd89-4ec2-9eb3-1c6aa1a423ef@huawei.com>
-X-Spam-Score: -1.9 (-)
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
+ kwepemh500013.china.huawei.com (7.202.181.146)
 
-On Wed, Aug 28, 2024 at 09:35:35AM +0800, Hongbo Li wrote:
-> 
-> 
-> On 2024/8/28 0:15, Pablo Neira Ayuso wrote:
-> > Hi,
-> > 
-> > On Tue, Aug 27, 2024 at 06:04:05PM +0800, Hongbo Li wrote:
-> > > list_head can be initialized automatically with LIST_HEAD()
-> > > instead of calling INIT_LIST_HEAD(). Here we can simplify
-> > > the code.
-> > > 
-> > > Signed-off-by: Hongbo Li <lihongbo22@huawei.com>
-> > > ---
-> > >   net/netfilter/core.c | 4 +---
-> > >   1 file changed, 1 insertion(+), 3 deletions(-)
-> > > 
-> > > diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-> > > index b00fc285b334..93642fcd379c 100644
-> > > --- a/net/netfilter/core.c
-> > > +++ b/net/netfilter/core.c
-> > > @@ -655,10 +655,8 @@ void nf_hook_slow_list(struct list_head *head, struct nf_hook_state *state,
-> > >   		       const struct nf_hook_entries *e)
-> > >   {
-> > >   	struct sk_buff *skb, *next;
-> > > -	struct list_head sublist;
-> > >   	int ret;
-> > > -
-> > > -	INIT_LIST_HEAD(&sublist);
-> > > +	LIST_HEAD(sublist);
-> > 
-> > comestic:
-> > 
-> >    	struct sk_buff *skb, *next;
-> > 	LIST_HEAD(sublist);          <- here
-> >    	int ret;
-> > 
-> > I think this should be included in the variable declaration area at
-> > the beginning of this function.
-> 
-> It is in the variable declaration area just after ret (with a blank line
-> before list_for_each_entry_safe).
+Let the kmemdup_array() take care about multiplication and possible
+overflows.
 
-Indeed. It is reverse xmas tree what I was missing then.
+Jinjie Ruan (5):
+  nfc: core: Use kmemdup_array() instead of kmemdup() for multiple
+    allocation
+  netfilter: Use kmemdup_array() instead of kmemdup() for multiple
+    allocation
+  netfilter: arptables: Use kmemdup_array() instead of kmemdup() for
+    multiple allocation
+  netfilter: iptables: Use kmemdup_array() instead of kmemdup() for
+    multiple allocation
+  netfilter: nf_nat: Use kmemdup_array() instead of kmemdup() for
+    multiple allocation
 
-Thanks.
+ net/bridge/netfilter/ebtables.c | 2 +-
+ net/ipv4/netfilter/arp_tables.c | 2 +-
+ net/ipv4/netfilter/ip_tables.c  | 2 +-
+ net/netfilter/nf_nat_core.c     | 2 +-
+ net/nfc/core.c                  | 5 ++---
+ 5 files changed, 6 insertions(+), 7 deletions(-)
+
+-- 
+2.34.1
+
