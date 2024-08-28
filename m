@@ -1,90 +1,63 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF296156875;
-	Wed, 28 Aug 2024 21:51:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6547125BA;
+	Wed, 28 Aug 2024 22:49:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724881910; cv=none; b=Opl+FsuSZ/boqcCpaoYG+gVl1+JGfE28lKB6UORqi+kPlB38AUz9cHe0U+bhylmDzVRPjOncS2uPg0HlpcV5W+Yd9Rrs1L0/Y75CkNUGwujvx7n8yQDLQddeYajDV0EhUwwmkrSnXZAWx0/8HG27JxCctUKGTxjcJgfb4N1reGw=
+	t=1724885381; cv=none; b=SifwoRkjHwsn8Qb9fXU1s1odSzZvDOhNppd17RqJxEudoCKOxnBoT/Ps0PJQXtUD+fzeAYqtDOk6h4NbGdPB9i+XOu1sZIJEExyrg+WPvX9gjzH+mKX3t/mcrP6Qr53UvDW276ZRzcsLCQ+qtWJErJwjjIhpBad97ohDWyk+Vy8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724881910; c=relaxed/simple;
-	bh=IHJYq1DKkxhXEmjUeagdG1I0bFvT8KS8Bk135eKr5dQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SGv1s/XrpFrTYJLmpEChweWPzz0BnDiUqEgT5FLxX6EA08jkDTYrGmOET+RYxGYzdbUUYfmgaWMIKBW26HoQjA/Re2WkBFSu/HgBJfkxiEXSXiEh1NG24/+CRjs+L/f1aq32kQ2QaLDfrnhO5lHrcmPBN741Qn/TlWdfKLXHH9g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=51254 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1sjQZi-0023bS-Ob; Wed, 28 Aug 2024 23:51:37 +0200
-Date: Wed, 28 Aug 2024 23:51:33 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Uros Bizjak <ubizjak@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
-Subject: Re: [PATCH] netfilter: nf_tables: Add __percpu annotation to *stats
- pointer in nf_tables_updchain()
-Message-ID: <Zs-b5dih9hqH1WSV@calendula>
-References: <20240806102808.804619-1-ubizjak@gmail.com>
- <Zs8564GQ2c486JVR@calendula>
- <CAFULd4Y8tCUNHJ9vVPKch0sMj31LnF8bVtJRTez5tBV9p5509w@mail.gmail.com>
+	s=arc-20240116; t=1724885381; c=relaxed/simple;
+	bh=4egG1FpImnoFP3Y6GdC1UWfhcNBEe+WLTr0+obxTxcw=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=RCNvQj6Ns2EjrenVg/SnRsTaRSZcTLzH3JQmsvqQoSgkZdF5USATuVGxwC5xorxikjvjBxhhdvsAI/csMjLlbMiLIVQPaBGhvai6TCiMkGZBTRpnrVI1hnD1NGPDop9K+6lV4s2t9/EgfFRhRNV6EV7zTACvIJZwMzQXCTDlQwk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BIFUYZQP; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BIFUYZQP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02F2EC4CEC0;
+	Wed, 28 Aug 2024 22:49:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1724885381;
+	bh=4egG1FpImnoFP3Y6GdC1UWfhcNBEe+WLTr0+obxTxcw=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=BIFUYZQPPIoabWZPX2llog3Uc15dMRJT6/KIVwxem5fQyClJ3/ulKKX3KyHIafQa8
+	 LUM17yFLa4e1GG3iwVENnmb0hEiEg+5peJq+mHcd5hnLfI6ROlhQP6NTFz1Tr1+aFl
+	 kbscZqcrI86mxGX0scXUqYCKbqxtRDE9ZmStcaNTVQ5ihRSfudrfu/i0kjhdiYRDf7
+	 kiaakga5Kxgl/a9p/LEFobim7FcSnsX+uyvuTwJNxX2b/aWZo4b3LFMOhHKdgsof+D
+	 5Hg+9wiqS4+09ZDhBb9hNgNiW7DTzO4SatIkdeL9EPYqvMrElyp46H1eZ9mattx0au
+	 iC83IhuwJW//w==
+Date: Wed, 28 Aug 2024 15:49:40 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>, Paolo Abeni
+ <pabeni@redhat.com>, Eric Dumazet <edumazet@google.com>, "David S. Miller"
+ <davem@davemloft.net>
+Subject: Re: [PATCH net-next] selftests: netfilter: nft_queue.sh: reduce
+ test file size for debug build
+Message-ID: <20240828154940.447ddc7d@kernel.org>
+In-Reply-To: <20240827090023.8917-1-fw@strlen.de>
+References: <20240826192500.32efa22c@kernel.org>
+	<20240827090023.8917-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAFULd4Y8tCUNHJ9vVPKch0sMj31LnF8bVtJRTez5tBV9p5509w@mail.gmail.com>
-X-Spam-Score: -1.8 (-)
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Wed, Aug 28, 2024 at 09:29:14PM +0200, Uros Bizjak wrote:
-> On Wed, Aug 28, 2024 at 4:53 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> >
-> > On Tue, Aug 06, 2024 at 12:26:58PM +0200, Uros Bizjak wrote:
-> > > Compiling nf_tables_api.c results in several sparse warnings:
-> > >
-> > > nf_tables_api.c:2740:23: warning: incorrect type in assignment (different address spaces)
-> > > nf_tables_api.c:2752:38: warning: incorrect type in assignment (different address spaces)
-> > > nf_tables_api.c:2798:21: warning: incorrect type in argument 1 (different address spaces)
-> > >
-> > > Add __percpu annotation to *stats pointer to fix these warnings.
-> > >
-> > > Found by GCC's named address space checks.
-> > >
-> > > There were no changes in the resulting object files.
-> >
-> > I never replied to this.
-> >
-> > I can see this is getting things better, but still more sparse
-> > warnings show up related tho nft_stats. I'd prefer those are fixed at
-> > ones, would you give it a look?
-> 
-> Yes, I have a follow-up patch that also fixes the remaining warnings,
-> but it depends on a patch [1] that is on the way to mainline through
-> the mm tree.
-> 
-> I can post the complete patch that uses percpu variants of ERR_PTR,
-> IS_ERR and PTR_ERR where needed if this dependency can temporarily be
-> tolerated.
-> 
-> [1] https://lore.kernel.org/lkml/20240818210235.33481-1-ubizjak@gmail.com/
+On Tue, 27 Aug 2024 11:00:12 +0200 Florian Westphal wrote:
+> The sctp selftest is very slow on debug kernels.
 
-Thanks for explaining.
+I think there may be something more going on here? :(
 
-Post the patch to netfilter-devel@vger.kernel.org explaining the
-dependency so it sits there and I remember about it while it gets
-upstream.
+For reference net-next-2024-08-27--12-00 is when this fix got queued:
 
-If there is any issue and this patch does not reach mm tree, let me
-know.
+https://netdev.bots.linux.dev/contest.html?executor=vmksft-nf-dbg&test=nft-queue-sh
 
-Thanks
+Since then we still see occasional flakes. But take a look at 
+the runtime. If it's happy the test case takes under a minute.
+When it's unhappy it times out (after 5 minutes). I'll increase
+the timeout to 10 minutes, but 1min vs 5min feels like it may
+be getting stuck rather than being slow..
