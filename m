@@ -1,72 +1,90 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 49C641AC438;
-	Wed, 28 Aug 2024 21:47:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF296156875;
+	Wed, 28 Aug 2024 21:51:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724881643; cv=none; b=MT9WgsGpjaiP6X8QepmhY531eGlNgj9hpXorkErF8/DihNwB1f0Ad6aUnM+ArvKH8e43gc23caMgYBVHShFgT/f19XDoJLfib4dZJgGiu9vHBcaKgdFzVg3EDzPgZASv9Bjl+JHv1GJ8FAW/PBnCtBFEoAvPdaLNXZVcYbHa9Uk=
+	t=1724881910; cv=none; b=Opl+FsuSZ/boqcCpaoYG+gVl1+JGfE28lKB6UORqi+kPlB38AUz9cHe0U+bhylmDzVRPjOncS2uPg0HlpcV5W+Yd9Rrs1L0/Y75CkNUGwujvx7n8yQDLQddeYajDV0EhUwwmkrSnXZAWx0/8HG27JxCctUKGTxjcJgfb4N1reGw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724881643; c=relaxed/simple;
-	bh=l9zo+Siqyxe9QxRtclTXrGVatTjo4P7Ba7yEVR4Ua58=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=erCNQEjzxmOyCSTrqftTqwV9i5xVyFr9BfPgS/MZhCPjN5mgK2a3NlkHRIz/lD+YMvYWy9uFt5vgKmGQDKIohXOU1c/rumQbY72njybUqkbOTo6Df29cwcGKsVpOvL35aG4DnCSKqPelDF+Z84mLV1tFQv1Eopdlgqp2FcVpD0I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+	s=arc-20240116; t=1724881910; c=relaxed/simple;
+	bh=IHJYq1DKkxhXEmjUeagdG1I0bFvT8KS8Bk135eKr5dQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=SGv1s/XrpFrTYJLmpEChweWPzz0BnDiUqEgT5FLxX6EA08jkDTYrGmOET+RYxGYzdbUUYfmgaWMIKBW26HoQjA/Re2WkBFSu/HgBJfkxiEXSXiEh1NG24/+CRjs+L/f1aq32kQ2QaLDfrnhO5lHrcmPBN741Qn/TlWdfKLXHH9g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=51254 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1sjQZi-0023bS-Ob; Wed, 28 Aug 2024 23:51:37 +0200
+Date: Wed, 28 Aug 2024 23:51:33 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	fw@strlen.de
-Subject: [PATCH net 2/2] netfilter: nf_tables_ipv6: consider network offset in netdev/egress validation
-Date: Wed, 28 Aug 2024 23:47:08 +0200
-Message-Id: <20240828214708.619261-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20240828214708.619261-1-pablo@netfilter.org>
-References: <20240828214708.619261-1-pablo@netfilter.org>
+To: Uros Bizjak <ubizjak@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
+Subject: Re: [PATCH] netfilter: nf_tables: Add __percpu annotation to *stats
+ pointer in nf_tables_updchain()
+Message-ID: <Zs-b5dih9hqH1WSV@calendula>
+References: <20240806102808.804619-1-ubizjak@gmail.com>
+ <Zs8564GQ2c486JVR@calendula>
+ <CAFULd4Y8tCUNHJ9vVPKch0sMj31LnF8bVtJRTez5tBV9p5509w@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAFULd4Y8tCUNHJ9vVPKch0sMj31LnF8bVtJRTez5tBV9p5509w@mail.gmail.com>
+X-Spam-Score: -1.8 (-)
 
-From netdev/egress, skb->len can include the ethernet header, therefore,
-subtract network offset from skb->len when validating IPv6 packet length.
+On Wed, Aug 28, 2024 at 09:29:14PM +0200, Uros Bizjak wrote:
+> On Wed, Aug 28, 2024 at 4:53 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> >
+> > On Tue, Aug 06, 2024 at 12:26:58PM +0200, Uros Bizjak wrote:
+> > > Compiling nf_tables_api.c results in several sparse warnings:
+> > >
+> > > nf_tables_api.c:2740:23: warning: incorrect type in assignment (different address spaces)
+> > > nf_tables_api.c:2752:38: warning: incorrect type in assignment (different address spaces)
+> > > nf_tables_api.c:2798:21: warning: incorrect type in argument 1 (different address spaces)
+> > >
+> > > Add __percpu annotation to *stats pointer to fix these warnings.
+> > >
+> > > Found by GCC's named address space checks.
+> > >
+> > > There were no changes in the resulting object files.
+> >
+> > I never replied to this.
+> >
+> > I can see this is getting things better, but still more sparse
+> > warnings show up related tho nft_stats. I'd prefer those are fixed at
+> > ones, would you give it a look?
+> 
+> Yes, I have a follow-up patch that also fixes the remaining warnings,
+> but it depends on a patch [1] that is on the way to mainline through
+> the mm tree.
+> 
+> I can post the complete patch that uses percpu variants of ERR_PTR,
+> IS_ERR and PTR_ERR where needed if this dependency can temporarily be
+> tolerated.
+> 
+> [1] https://lore.kernel.org/lkml/20240818210235.33481-1-ubizjak@gmail.com/
 
-Fixes: 42df6e1d221d ("netfilter: Introduce egress hook")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_tables_ipv6.h | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Thanks for explaining.
 
-diff --git a/include/net/netfilter/nf_tables_ipv6.h b/include/net/netfilter/nf_tables_ipv6.h
-index 467d59b9e533..a0633eeaec97 100644
---- a/include/net/netfilter/nf_tables_ipv6.h
-+++ b/include/net/netfilter/nf_tables_ipv6.h
-@@ -31,8 +31,8 @@ static inline int __nft_set_pktinfo_ipv6_validate(struct nft_pktinfo *pkt)
- 	struct ipv6hdr *ip6h, _ip6h;
- 	unsigned int thoff = 0;
- 	unsigned short frag_off;
-+	u32 pkt_len, skb_len;
- 	int protohdr;
--	u32 pkt_len;
- 
- 	ip6h = skb_header_pointer(pkt->skb, skb_network_offset(pkt->skb),
- 				  sizeof(*ip6h), &_ip6h);
-@@ -43,7 +43,8 @@ static inline int __nft_set_pktinfo_ipv6_validate(struct nft_pktinfo *pkt)
- 		return -1;
- 
- 	pkt_len = ntohs(ip6h->payload_len);
--	if (pkt_len + sizeof(*ip6h) > pkt->skb->len)
-+	skb_len = pkt->skb->len - skb_network_offset(pkt->skb);
-+	if (pkt_len + sizeof(*ip6h) > skb_len)
- 		return -1;
- 
- 	protohdr = ipv6_find_hdr(pkt->skb, &thoff, -1, &frag_off, &flags);
--- 
-2.30.2
+Post the patch to netfilter-devel@vger.kernel.org explaining the
+dependency so it sits there and I remember about it while it gets
+upstream.
 
+If there is any issue and this patch does not reach mm tree, let me
+know.
+
+Thanks
