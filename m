@@ -1,36 +1,39 @@
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 065E818950F;
-	Wed, 28 Aug 2024 14:48:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7543B1741F8;
+	Wed, 28 Aug 2024 14:51:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724856499; cv=none; b=TgrUOSVMddRak8J0LAKMFkUnlm7IPyu0vQS8kOgS7t0XkAkX/5VMzQpjlDDgFMN4YZp4apDlbSw1/eFfBiAezynpHhQqdJX4M6HOkoJzleUecVWCfFRhqnkCvtaOLc6n3AOyNI7uV17dnFqSfmYeS0Fvbm0dSS+C3RtFCyWMoUU=
+	t=1724856684; cv=none; b=Rrv0aHJzX0amgH8epphmc+2UjY+qFfHpIS01hz/Ei9Hm4wVpFwkXbRuPvlZNjcrAekJo54xmm0AI2ruhYv0+y0ePjv+wExTN3wjKzQDF2EtRUqVtCSdmyKYuHcjaFUcem7Ar8kJmA1oDisvz55mMZr9AQXsdl3Xpq8OxVa1GQwc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724856499; c=relaxed/simple;
-	bh=udLDLVhkq46Qt9DHf04u4ABYNrg6/v89T/27K1UtEio=;
+	s=arc-20240116; t=1724856684; c=relaxed/simple;
+	bh=VH2Ski7TedU7wSmRk3uDw/EkSFkyqw+5pz78wvTsVzc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=CwKjoE7PfshxkXmPrt3SI3MFPi7mkxL/4Nh4H7lqk0ce6OwUogJFp0vaclSWcznbs5+ms7CSQxz2tC3sWDLnIvBJ/KrduGQ/ATg+d3VXaOEPjDGx314POw2+jSCm8E0w1S6+BuvAdEd3msurGF1yzpS1aoqylnefDEcQbMKW7Fs=
+	 Content-Type:Content-Disposition:In-Reply-To; b=JyjLD9ZIHr4vhFLAqstcPE5VHPtcoxuV6TBkGP5Z4ZfJnRFH+TyTFAI8rlaUc/U3+1dO/wck2oKzMZwAjFrt9NYFo/6B5qGkSK6knW/4btoHCXGdTzkjQZzvX6bV62VcJXDEQsBdIP/EUEeG7QZIncNV2vy1mqmRoy+l0ojswUQ=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=33600 helo=gnumonks.org)
+Received: from [78.30.37.63] (port=35458 helo=gnumonks.org)
 	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <pablo@gnumonks.org>)
-	id 1sjJxz-001bvs-At; Wed, 28 Aug 2024 16:48:13 +0200
-Date: Wed, 28 Aug 2024 16:48:10 +0200
+	id 1sjK0v-001c7h-Av; Wed, 28 Aug 2024 16:51:16 +0200
+Date: Wed, 28 Aug 2024 16:51:12 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Eric Dumazet <edumazet@google.com>,
-	"David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH net-next] selftests: netfilter: nft_queue.sh: reduce test
- file size for debug build
-Message-ID: <Zs84qoMn0Axy-c1d@calendula>
-References: <20240826192500.32efa22c@kernel.org>
- <20240827090023.8917-1-fw@strlen.de>
+To: Jinjie Ruan <ruanjinjie@huawei.com>
+Cc: kadlec@netfilter.org, roopa@nvidia.com, razor@blackwall.org,
+	davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+	pabeni@redhat.com, dsahern@kernel.org, krzk@kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	bridge@lists.linux.dev, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH -next 4/5] netfilter: iptables: Use kmemdup_array()
+ instead of kmemdup() for multiple allocation
+Message-ID: <Zs85YCq6TAYIjhNS@calendula>
+References: <20240828071004.1245213-1-ruanjinjie@huawei.com>
+ <20240828071004.1245213-5-ruanjinjie@huawei.com>
+ <Zs7i4PSQQEI0tHN6@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -39,41 +42,23 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20240827090023.8917-1-fw@strlen.de>
+In-Reply-To: <Zs7i4PSQQEI0tHN6@calendula>
 X-Spam-Score: -1.9 (-)
 
-On Tue, Aug 27, 2024 at 11:00:12AM +0200, Florian Westphal wrote:
-> The sctp selftest is very slow on debug kernels.
+On Wed, Aug 28, 2024 at 10:42:12AM +0200, Pablo Neira Ayuso wrote:
+> On Wed, Aug 28, 2024 at 03:10:03PM +0800, Jinjie Ruan wrote:
+> > Let the kmemdup_array() take care about multiplication and possible
+> > overflows.
 > 
-> Reported-by: Jakub Kicinski <kuba@kernel.org>
-> Closes: https://lore.kernel.org/netdev/20240826192500.32efa22c@kernel.org/
-> Fixes: 4e97d521c2be ("selftests: netfilter: nft_queue.sh: sctp coverage")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+> No patch for net/ipv6/netfilter/ip6_tables.c?
+> 
+> We have yet another code copy & paste there.
+> 
+> BTW, could you collapse all these patches for netfilter in one single
+> patch?
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+BTW, someone else seems to have made the same patch:
 
-> ---
->  Lets see if CI is happy after this tweak.
-> 
->  tools/testing/selftests/net/netfilter/nft_queue.sh | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/tools/testing/selftests/net/netfilter/nft_queue.sh b/tools/testing/selftests/net/netfilter/nft_queue.sh
-> index f3bdeb1271eb..9e5f423bff09 100755
-> --- a/tools/testing/selftests/net/netfilter/nft_queue.sh
-> +++ b/tools/testing/selftests/net/netfilter/nft_queue.sh
-> @@ -39,7 +39,9 @@ TMPFILE2=$(mktemp)
->  TMPFILE3=$(mktemp)
->  
->  TMPINPUT=$(mktemp)
-> -dd conv=sparse status=none if=/dev/zero bs=1M count=200 of="$TMPINPUT"
-> +COUNT=200
-> +[ "$KSFT_MACHINE_SLOW" = "yes" ] && COUNT=25
-> +dd conv=sparse status=none if=/dev/zero bs=1M count=$COUNT of="$TMPINPUT"
->  
->  if ! ip link add veth0 netns "$nsrouter" type veth peer name eth0 netns "$ns1" > /dev/null 2>&1; then
->      echo "SKIP: No virtual ethernet pair device support in kernel"
-> -- 
-> 2.46.0
-> 
-> 
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20240826034136.1791485-1-yanzhen@vivo.com/
+
+it is already sitting in the queue.
