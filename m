@@ -1,39 +1,37 @@
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7543B1741F8;
-	Wed, 28 Aug 2024 14:51:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75C352868B;
+	Wed, 28 Aug 2024 14:53:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724856684; cv=none; b=Rrv0aHJzX0amgH8epphmc+2UjY+qFfHpIS01hz/Ei9Hm4wVpFwkXbRuPvlZNjcrAekJo54xmm0AI2ruhYv0+y0ePjv+wExTN3wjKzQDF2EtRUqVtCSdmyKYuHcjaFUcem7Ar8kJmA1oDisvz55mMZr9AQXsdl3Xpq8OxVa1GQwc=
+	t=1724856819; cv=none; b=BkEa8pqcr4F5ngzEVGt/yqil1fUFBSVNa96feN35G9i9bwsxyw+O2cg9u5lHOOzLsl3KqQcW1JbiDF7/0FJh1FN3NTy7cfFktv2DfIuM5ZHvxZaeQqsVweHiBdqdJ1ISJHirbQren7Va8KiS9yD5XpClO1AJL1Zgt+4rDKr+yxw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724856684; c=relaxed/simple;
-	bh=VH2Ski7TedU7wSmRk3uDw/EkSFkyqw+5pz78wvTsVzc=;
+	s=arc-20240116; t=1724856819; c=relaxed/simple;
+	bh=g3oKDAMDwUwbWBZWpSEiKfl56BXIfpiGoVDTOcj7Ao4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=JyjLD9ZIHr4vhFLAqstcPE5VHPtcoxuV6TBkGP5Z4ZfJnRFH+TyTFAI8rlaUc/U3+1dO/wck2oKzMZwAjFrt9NYFo/6B5qGkSK6knW/4btoHCXGdTzkjQZzvX6bV62VcJXDEQsBdIP/EUEeG7QZIncNV2vy1mqmRoy+l0ojswUQ=
+	 Content-Type:Content-Disposition:In-Reply-To; b=FaQ0W9dLJ524w8Hz2xH5w6L81dj5EMnPUN75TIm4BsASFDeWEfkGrH0N15hEmaVsXRrdcsmUOwQ3qcjHdTO56srRqnikfe14hjtChsNipnNaI6nbLxd1uar0w1rpUtVIQtMxtO7Gl3UwY3MBOJj70J/tN0CJ8O4z4fKY7SlDto8=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=35458 helo=gnumonks.org)
+Received: from [78.30.37.63] (port=33720 helo=gnumonks.org)
 	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <pablo@gnumonks.org>)
-	id 1sjK0v-001c7h-Av; Wed, 28 Aug 2024 16:51:16 +0200
-Date: Wed, 28 Aug 2024 16:51:12 +0200
+	id 1sjK3A-001cPl-Im; Wed, 28 Aug 2024 16:53:34 +0200
+Date: Wed, 28 Aug 2024 16:53:31 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jinjie Ruan <ruanjinjie@huawei.com>
-Cc: kadlec@netfilter.org, roopa@nvidia.com, razor@blackwall.org,
-	davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-	pabeni@redhat.com, dsahern@kernel.org, krzk@kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	bridge@lists.linux.dev, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH -next 4/5] netfilter: iptables: Use kmemdup_array()
- instead of kmemdup() for multiple allocation
-Message-ID: <Zs85YCq6TAYIjhNS@calendula>
-References: <20240828071004.1245213-1-ruanjinjie@huawei.com>
- <20240828071004.1245213-5-ruanjinjie@huawei.com>
- <Zs7i4PSQQEI0tHN6@calendula>
+To: Uros Bizjak <ubizjak@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
+Subject: Re: [PATCH] netfilter: nf_tables: Add __percpu annotation to *stats
+ pointer in nf_tables_updchain()
+Message-ID: <Zs8564GQ2c486JVR@calendula>
+References: <20240806102808.804619-1-ubizjak@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -42,23 +40,52 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <Zs7i4PSQQEI0tHN6@calendula>
-X-Spam-Score: -1.9 (-)
+In-Reply-To: <20240806102808.804619-1-ubizjak@gmail.com>
+X-Spam-Score: -1.8 (-)
 
-On Wed, Aug 28, 2024 at 10:42:12AM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Aug 28, 2024 at 03:10:03PM +0800, Jinjie Ruan wrote:
-> > Let the kmemdup_array() take care about multiplication and possible
-> > overflows.
+On Tue, Aug 06, 2024 at 12:26:58PM +0200, Uros Bizjak wrote:
+> Compiling nf_tables_api.c results in several sparse warnings:
 > 
-> No patch for net/ipv6/netfilter/ip6_tables.c?
+> nf_tables_api.c:2740:23: warning: incorrect type in assignment (different address spaces)
+> nf_tables_api.c:2752:38: warning: incorrect type in assignment (different address spaces)
+> nf_tables_api.c:2798:21: warning: incorrect type in argument 1 (different address spaces)
 > 
-> We have yet another code copy & paste there.
+> Add __percpu annotation to *stats pointer to fix these warnings.
 > 
-> BTW, could you collapse all these patches for netfilter in one single
-> patch?
+> Found by GCC's named address space checks.
+> 
+> There were no changes in the resulting object files.
 
-BTW, someone else seems to have made the same patch:
+I never replied to this.
 
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20240826034136.1791485-1-yanzhen@vivo.com/
+I can see this is getting things better, but still more sparse
+warnings show up related tho nft_stats. I'd prefer those are fixed at
+ones, would you give it a look?
 
-it is already sitting in the queue.
+> Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
+> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+> Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
+> Cc: "David S. Miller" <davem@davemloft.net>
+> Cc: Eric Dumazet <edumazet@google.com>
+> Cc: Jakub Kicinski <kuba@kernel.org>
+> Cc: Paolo Abeni <pabeni@redhat.com>
+> ---
+>  net/netfilter/nf_tables_api.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index 481ee78e77bc..805227131f10 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -2642,7 +2642,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+>  	struct nft_table *table = ctx->table;
+>  	struct nft_chain *chain = ctx->chain;
+>  	struct nft_chain_hook hook = {};
+> -	struct nft_stats *stats = NULL;
+> +	struct nft_stats __percpu *stats = NULL;
+>  	struct nft_hook *h, *next;
+>  	struct nf_hook_ops *ops;
+>  	struct nft_trans *trans;
+> -- 
+> 2.45.2
+> 
