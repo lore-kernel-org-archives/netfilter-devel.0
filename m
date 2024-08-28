@@ -1,38 +1,38 @@
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42021175D5A;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2581176233;
 	Wed, 28 Aug 2024 12:24:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724847874; cv=none; b=A6hjRPgQmc9WDFWZWVu52AeZZ2KtFMtUAKV4TbFhSeALo1xcE32D9A7XtKVRV3xfzz9ZgtCBDWfZHOluGfnRlBCxfOqklKzswbOsGCCT6P/aR4kFoe1dP/bqqYV/FTw2eCIarUDG3HGPisIszQPt23pV4ofMjfzoNxyQNlsizpk=
+	t=1724847875; cv=none; b=eh+venkpb0R2FvpuRl/eMM12bVxvgEaWoQQIMUMoek5v491WZzuDcB65aDX32++FuuW0XfBkvlrE9HWGN29TgdOB3txHSXSTT8K74R3FEbi79T/R4e++82XsUG8afIA9zBPjmFos3ZJvwF02cUecXPglbhwRLrJlVIXgauSfP9E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724847874; c=relaxed/simple;
-	bh=/fNHUFQLEiTHohFs/uQvLcXbwBuKUmF+VAtogInXkwQ=;
+	s=arc-20240116; t=1724847875; c=relaxed/simple;
+	bh=yamfc4O+Z5YpW9l7oNEwgRHuIPAHfmVkTKB8P+Ojc7A=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=g6hosJWd84CWDIqIYdiuX164IhAOQKiWDXg5kNwIHKTb7lCcMJCrSvnM5kRQKlxDxia6t0lekbEkoc0RgJhv0Tc52OPuIlCfJimBUrFirVZq2/VQph5lQqaRjNQa2s0CeTNLrGaxkNy5Yk7Mu+wE4euwaQbmjo2ZSmoxHNoX7RI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.187
+	 MIME-Version:Content-Type; b=f2G6bEL0zwA1TyE9XDNWGzOizx4hRF+3LaVqXzF8rueUu3f8X1IVhSzIoAdRaLwKihrjbSQ996pWjyTo63Msv8pwFIR6/yXTcNvl77/hyP5H4R9gVvOEcNgsHuExCff77tCyF1QUoE/8eU5M/rVsf0OA98n5nx8k8kbqOfBLXvE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.190
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.19.162.254])
-	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4Wv3VP2jGczyQfw;
-	Wed, 28 Aug 2024 20:23:41 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.88.214])
+	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4Wv3Pn01MXz20n1m;
+	Wed, 28 Aug 2024 20:19:40 +0800 (CST)
 Received: from dggpeml500022.china.huawei.com (unknown [7.185.36.66])
-	by mail.maildlp.com (Postfix) with ESMTPS id E6DA6180106;
-	Wed, 28 Aug 2024 20:24:29 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 6F7C61A016C;
+	Wed, 28 Aug 2024 20:24:30 +0800 (CST)
 Received: from huawei.com (10.90.53.73) by dggpeml500022.china.huawei.com
  (7.185.36.66) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Wed, 28 Aug
- 2024 20:24:29 +0800
+ 2024 20:24:30 +0800
 From: Hongbo Li <lihongbo22@huawei.com>
 To: <davem@davemloft.net>, <edumazet@google.com>, <kuba@kernel.org>,
 	<pabeni@redhat.com>, <dsahern@kernel.org>, <ralf@linux-mips.org>,
 	<jmaloy@redhat.com>, <ying.xue@windriver.com>, <dan.carpenter@linaro.org>
 CC: <netdev@vger.kernel.org>, <linux-hams@vger.kernel.org>,
 	<netfilter-devel@vger.kernel.org>, <lihongbo22@huawei.com>
-Subject: [PATCH net-next v2 3/6] net/netrom: prefer strscpy over strcpy
-Date: Wed, 28 Aug 2024 20:32:21 +0800
-Message-ID: <20240828123224.3697672-4-lihongbo22@huawei.com>
+Subject: [PATCH net-next v2 6/6] net/ipv4: net: prefer strscpy over strcpy
+Date: Wed, 28 Aug 2024 20:32:24 +0800
+Message-ID: <20240828123224.3697672-7-lihongbo22@huawei.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20240828123224.3697672-1-lihongbo22@huawei.com>
 References: <20240828123224.3697672-1-lihongbo22@huawei.com>
@@ -56,31 +56,50 @@ Link: https://www.kernel.org/doc/html/latest/process/deprecated.html#strcpy [1]
 
 Signed-off-by: Hongbo Li <lihongbo22@huawei.com>
 ---
- net/netrom/nr_route.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/ipv4/ip_tunnel.c            | 2 +-
+ net/ipv4/netfilter/arp_tables.c | 2 +-
+ net/ipv4/netfilter/ip_tables.c  | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/net/netrom/nr_route.c b/net/netrom/nr_route.c
-index bd2b17b219ae..2b5e246b8d9a 100644
---- a/net/netrom/nr_route.c
-+++ b/net/netrom/nr_route.c
-@@ -189,7 +189,7 @@ static int __must_check nr_add_node(ax25_address *nr, const char *mnemonic,
- 		}
+diff --git a/net/ipv4/ip_tunnel.c b/net/ipv4/ip_tunnel.c
+index 5cffad42fe8c..0cd2f3de100c 100644
+--- a/net/ipv4/ip_tunnel.c
++++ b/net/ipv4/ip_tunnel.c
+@@ -1326,7 +1326,7 @@ int ip_tunnel_init(struct net_device *dev)
  
- 		nr_node->callsign = *nr;
--		strcpy(nr_node->mnemonic, mnemonic);
-+		strscpy(nr_node->mnemonic, mnemonic);
+ 	tunnel->dev = dev;
+ 	tunnel->net = dev_net(dev);
+-	strcpy(tunnel->parms.name, dev->name);
++	strscpy(tunnel->parms.name, dev->name);
+ 	iph->version		= 4;
+ 	iph->ihl		= 5;
  
- 		nr_node->which = 0;
- 		nr_node->count = 1;
-@@ -214,7 +214,7 @@ static int __must_check nr_add_node(ax25_address *nr, const char *mnemonic,
- 	nr_node_lock(nr_node);
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 14365b20f1c5..42c34e8952da 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -826,7 +826,7 @@ static int get_info(struct net *net, void __user *user, const int *len)
+ 		       sizeof(info.underflow));
+ 		info.num_entries = private->number;
+ 		info.size = private->size;
+-		strcpy(info.name, name);
++		strscpy(info.name, name);
  
- 	if (quality != 0)
--		strcpy(nr_node->mnemonic, mnemonic);
-+		strscpy(nr_node->mnemonic, mnemonic);
+ 		if (copy_to_user(user, &info, *len) != 0)
+ 			ret = -EFAULT;
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index fe89a056eb06..97e754ddc155 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -981,7 +981,7 @@ static int get_info(struct net *net, void __user *user, const int *len)
+ 		       sizeof(info.underflow));
+ 		info.num_entries = private->number;
+ 		info.size = private->size;
+-		strcpy(info.name, name);
++		strscpy(info.name, name);
  
- 	for (found = 0, i = 0; i < nr_node->count; i++) {
- 		if (nr_node->routes[i].neighbour == nr_neigh) {
+ 		if (copy_to_user(user, &info, *len) != 0)
+ 			ret = -EFAULT;
 -- 
 2.34.1
 
