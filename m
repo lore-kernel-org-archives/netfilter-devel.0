@@ -1,485 +1,168 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from HK2PR02CU002.outbound.protection.outlook.com (mail-eastasiaazon11010047.outbound.protection.outlook.com [52.101.128.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7CBD14A4D4
-	for <netfilter-devel@vger.kernel.org>; Wed, 28 Aug 2024 09:40:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724838037; cv=none; b=hbbwWI7/13NiR8H5M5w+vrrU/TVqYgHhHS36/904OCv0teADllh6YjN01febrqdZtEtoeBI58u5PldyZb7sAf57EgQwVLWpjF0S0BIQUsPTPmQDAQMS0U3+mqj6iqdge24b/wWoUnGYF6V+ab/5q903Cz0SjcOwhyZwR/NCNMwQ=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724838037; c=relaxed/simple;
-	bh=HiUfCXKj1w2cUUV+ISSe5obOVMnpDw89MwRcXZ+vVGI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=hW3pP4Gpx29IYcuh5wsprUKJRD7YPvScf9LolN5i208BfX25nH7cVrS2NDzylKxaFJOBlfqwbYm5uvWxpYMvHhVCYnhMYSPKyPlqSmn3jyio3uZFlxbwQ9njPg46K6IkP+4pQNB239QUlKfseiLEewngEJWFx/kogIWbPQfLm8U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1sjFA7-00055b-Lq; Wed, 28 Aug 2024 11:40:23 +0200
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: nf_tables: drop unused 3rd argument from validate callback ops
-Date: Wed, 28 Aug 2024 11:34:02 +0200
-Message-ID: <20240828093409.2792-1-fw@strlen.de>
-X-Mailer: git-send-email 2.44.2
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3AF416BE29;
+	Wed, 28 Aug 2024 11:07:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.128.47
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1724843234; cv=fail; b=hxUV3FDGTm67qZN5iTNU6rNfoxUe4Y2B91JfN4x1AuPUrjX+Lh8f3vqfYuFK0UGsXepDNiPheZlWuEeIvuIZmnt1vwFopb2I+c1v7QX8UtutcT9RKK2ZXsDEAiqH+T5DUYk4KYcvBEFKMuvogmQUUs6j43SUNxm0B6r3FG+nj1s=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1724843234; c=relaxed/simple;
+	bh=Gzw8yUu5KhYCCCR7kxL6kMowU6tyVh70ByYXGMvcmfA=;
+	h=From:To:Cc:Subject:Date:Message-Id:Content-Type:MIME-Version; b=CHrgMMaXyPCvvhFvY9pvbi1QjPx5/qPM3z6wDkEC4VqxJ5ZZ9LfP9mlEd9q4Yh3zxaXkofMaJMsU8YCZcxJOV3pWpCC3iX+Hlz3R7+htlPJOphdA1TzYhLZKwUFAiNra6MFetPY9/2CS6eENKCkeoSO7/7d8roFh3TP3V1XBhDw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=vivo.com; spf=pass smtp.mailfrom=vivo.com; dkim=pass (2048-bit key) header.d=vivo.com header.i=@vivo.com header.b=NSDzLuwW; arc=fail smtp.client-ip=52.101.128.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=vivo.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=vivo.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=vivo.com header.i=@vivo.com header.b="NSDzLuwW"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=NVFLGVegCrwbPkX7T0MlqzZSjadtc2jX5w+DJXW2kFpffHC6ZRi2z18oY8SGVYmBnCSHnO05pqK8uRFxBEZeqMKCiycZTcxyAVpgMCaQQoomJPevaTU9AvsndHr1Sy5+RleBL3olZK8L+r2dyWD/lFJR2FtQY5OlliZqF/eWILZGvScoC7LuTd+N429sULUl7S3hV5CfX//G6TYRpzk/WqJvFRahFb/uSckI3XnLqByD/zJyDSOWqI/7trIThSQH5PRCmqiN6TSwRe9D93NndcbF44cUqB+z8p5lIhKXYG28kTLoCMFTPErVf2ZK8xXXSsQH0MHMNvimelink9Vupg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=n49bgZEkPQ9PBXh10xUtzvtiuIXZCFXL1EYrWBB9zZ0=;
+ b=nUuQ5DLaMTgbIqIp2fUqKNeF8cWI5w+pWBF2J/PVz3QHd0/7LnqOjdxSrbHGul0f3+rdK+X1tzHP0r/9d+7Y0CfmlKlsWKVzo5UMXTKkZm/bqPXZyNcJqmNOuOKAm/P8chncA7EG78Et2fzIV28OL+ZasYyfqEhiTgrgn31dsyHnq1F8v8marumKub5qrqsU0nAN92Klyt8xb/7+4wzK1juiISCJajtU7R2WlWpAe5l0q1FCal7CJDbgQvIcM0900cQ/wGJ6h95A48Hdlz9wfYemmnZTi/GXttt2ZahkvoyHUivGO0fgCoA6detPtVBpfjJ4CUvGUhiijFvzRFB7Iw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=vivo.com; dmarc=pass action=none header.from=vivo.com;
+ dkim=pass header.d=vivo.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=vivo.com; s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=n49bgZEkPQ9PBXh10xUtzvtiuIXZCFXL1EYrWBB9zZ0=;
+ b=NSDzLuwWHgFfchOLvNv99st20F1rxFTyepiciFCYinBFD5mMamQL8liu0XBHevJS2lNea91VVDUj8tla+xOG5npbctbMcpchMc2fNWq8M80xfVHS5Dwlumggvq7ff1Qdob0yhcOTfbeLW2oeufh6nF6CRSmvwfmL7W3D+0JhOOmcygGjotbbSTLyGV2dyakSkhYjBrGyJeJgCHq8jfhDC5kBNOatVD7YOKYlJrCdv8Dgj44r6gIL9hMOSv0dgNrVduGEIxFKv1QB4/VU3eYjBnlM7BLU01Oplcw0Dr7p9SLL2m8FmuzOGeeRzVYrgBZ+aI3SRGRmtUnC5tJKesKBSQ==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=vivo.com;
+Received: from SEZPR06MB5899.apcprd06.prod.outlook.com (2603:1096:101:e3::16)
+ by KL1PR06MB6258.apcprd06.prod.outlook.com (2603:1096:820:d8::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7897.25; Wed, 28 Aug
+ 2024 11:07:09 +0000
+Received: from SEZPR06MB5899.apcprd06.prod.outlook.com
+ ([fe80::8bfc:f1ee:8923:77ce]) by SEZPR06MB5899.apcprd06.prod.outlook.com
+ ([fe80::8bfc:f1ee:8923:77ce%3]) with mapi id 15.20.7897.027; Wed, 28 Aug 2024
+ 11:07:08 +0000
+From: Shen Lichuan <shenlichuan@vivo.com>
+To: pablo@netfilter.org,
+	kadlec@netfilter.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com
+Cc: netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	opensource.kernel@vivo.com,
+	Shen Lichuan <shenlichuan@vivo.com>
+Subject: [PATCH v1] netfilter: conntrack: Convert to use ERR_CAST()
+Date: Wed, 28 Aug 2024 19:06:51 +0800
+Message-Id: <20240828110651.56431-1-shenlichuan@vivo.com>
+X-Mailer: git-send-email 2.17.1
+Content-Type: text/plain
+X-ClientProxiedBy: SI2PR06CA0013.apcprd06.prod.outlook.com
+ (2603:1096:4:186::18) To SEZPR06MB5899.apcprd06.prod.outlook.com
+ (2603:1096:101:e3::16)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SEZPR06MB5899:EE_|KL1PR06MB6258:EE_
+X-MS-Office365-Filtering-Correlation-Id: 4177cd84-5609-4239-dce2-08dcc7518e91
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|7416014|376014|366016|1800799024|52116014|38350700014;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?BLmhhPVhjTChL0P2QYFsvoP3RNuMEHH8GeQDYcGKqv0AIX0pvxV/tEURfHMf?=
+ =?us-ascii?Q?dQdOWh/1YT28tffTQV9C9sY4Bso+GbvMmXlDQOeD472VlTcKEqw0TAwyfDD9?=
+ =?us-ascii?Q?WNxlcu51kCfaGiqQQt+ng35x19jIqvaC6Za8c+XMisgCUSXGWqaiDh95McI3?=
+ =?us-ascii?Q?FZEN/JAYCqud5Rh9JsmWyA97ggSoYn06xsKEG3XhMr2CneVNaucaWBRyXya5?=
+ =?us-ascii?Q?3Za5hsKhCJzEE7dyO83dvA5I5voN5CtM9aBjgi2/OrR/UsmZx5nrwDWaSiTo?=
+ =?us-ascii?Q?bp8+4q0I+nLNH8v+56CPe8VyYKN6fdk+Gwb3LwsucoxEzvwYKCdIe+rYYbUL?=
+ =?us-ascii?Q?SDSzWGPnPhFzCz2TafpVB1y335zTjAIaU+lU4Uh3DXTjwYF5LDomkXfM0lre?=
+ =?us-ascii?Q?8K9IiHxcNclBd2Gd9fgtYJp7Ovl1CwtbYEuMXU1O1MnQE34WTgxwWVG0BlQ6?=
+ =?us-ascii?Q?bxvCI+S/CysrwUg7QQybirn+DY05wmCrKuB98D9Kal+vZYU3xhendRzwELD2?=
+ =?us-ascii?Q?I0/dcDrRovBnP/VpxiOUI/dN4wgB2PNbXugl5hFYEO/xnjW7LOs6PFrFtI2d?=
+ =?us-ascii?Q?eaywGvsrYmgQw2XQ5H/RNdn11qHt6TcJO8xRKaEs5nOY0BzwYCg8sEIiNeJM?=
+ =?us-ascii?Q?06b2EK6Bb+o66Hz+viNoflOZZlJIZMW4maEytd8VZkM/JtUqb8x5z+k9bkaQ?=
+ =?us-ascii?Q?JJKzp12UV9Y0PtVPKTOn+H8b9JgdtyzALHy5pBVlOugh+rCcw0O7PkSZWzOT?=
+ =?us-ascii?Q?lgcxnRw1Ymz5GQsPWZkcAeNyUhjVmeCr65tI001qU2beegjvXr6xi7Eyiy6h?=
+ =?us-ascii?Q?GxXIO3ASLaG/TcV6vItInULAm7K4ISQSz0KLi4IULgweBpNyIp+1iFEunoiD?=
+ =?us-ascii?Q?NClt+HvgxR95pC2oUbUzZUa7V5OHHny23OPWqM7mRxFTsUNrXxNeAj7WPHkq?=
+ =?us-ascii?Q?Qg3NIuy6HiQY5U2+uEo1Nm6qH6pP3cp3mePzd+y3FhMqK0LeVTkS/tly4thc?=
+ =?us-ascii?Q?g291ldhy1oWL4VT9VNxaCJRzHzEl2AmXKAi/KdE+T1JfeeqXlHecvLvuW7PQ?=
+ =?us-ascii?Q?+G3XnfcTPht+40RaHFepBUNV/W+EbrnCIHnOidXjLFzyJAbmgXSye1Towe8H?=
+ =?us-ascii?Q?byyU3ykgrCEglXSFI3hhYWQq2jFlPJr1fFONn/sYdMnpx4qL6UP0lzqrm8/4?=
+ =?us-ascii?Q?5mImWcskbks6149YUguQsSrYAefMdgmBXVOGPw2kRbo24NlHlnzm8O+tGI/V?=
+ =?us-ascii?Q?Wv75Fx020hocHFTFYJ5CF3mVeMmCSh7lWNgpic7EbJ8S36C8xi/3zksNBEs5?=
+ =?us-ascii?Q?JXp+i/DmwknQSKN8HSv2DB6rCBt8XgncJDZ/ApJUFPXTg7ZUWfeE5+iYvsUu?=
+ =?us-ascii?Q?r0wcwZSUkH3NQ74XMywgrFM4tfskNohbjg/0zQDXa5d2l0TZWw=3D=3D?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SEZPR06MB5899.apcprd06.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(366016)(1800799024)(52116014)(38350700014);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?GXpyqXpaRGuMq4TmqembH02JSZwxujPnPBkOX+539zYv7LYHwRXVCr2TqTP0?=
+ =?us-ascii?Q?kwrmRElTOMHaVV+8QFjBi7L38SbUMETYfrUeYwgRe43twxBxKg4dfparuQPS?=
+ =?us-ascii?Q?qPhs+xSnARA0ZjIf676cI/fGzmBW3CFKyo1oNLN+nFy44RnjPztj3PPVIC9g?=
+ =?us-ascii?Q?9+DXUFQks/2loljBydHaMrSKhAlWABfLW1nYnHkbjUf96u8Sf60l2Yru2xv2?=
+ =?us-ascii?Q?yQDVcXz7F5Qpu0doN5n8RXm6+FZe6UXmX58u0VsDgP9qPNaVX0qM+YKmJzBu?=
+ =?us-ascii?Q?zjdMqZQk+pj59NX7uTmD4r37G0oJpYJI9xYMHOsklMrBYrKzhmBwUpsf8aFP?=
+ =?us-ascii?Q?C+wJ2P5/tpUaRDwUiJ8GQwm5VEJqOt8m4PkKLafg4hPWz7iTsC5aYJgWLJCs?=
+ =?us-ascii?Q?dlLxvxKsolCv1+7RO56NYjQCGf46vtxbAeQlasxWff4jrFsM9qNQlElYSFxy?=
+ =?us-ascii?Q?J+ZRDoEH2OKhZeipBl9NW7byRyIHHANO3LPu7YuNf2+h4yjbFvzBLePOdac5?=
+ =?us-ascii?Q?vZ0xgMrjGOt0ahIZL9wNoZBEL1Pj5pYvXVvesWf9MoThBA0mV81y0D6YZhBy?=
+ =?us-ascii?Q?qd+12/upXpYcyu5TsMqr8JSlvYl2ALeLUFeiyMbVTA6lbGJBrpPbbz4GIYYe?=
+ =?us-ascii?Q?WVabS4j6l7tV7+pEq6+StRNMATil3VQN9zeS/vYuwdsjrjdTm1ElQRzaAvFX?=
+ =?us-ascii?Q?Xpt5X7UEEWijZp1cTH0O7Cwr9zGz9/OiY6NAF/pOoX8EglHHrWdyVruo07zv?=
+ =?us-ascii?Q?8gA0RugzyR7ofDJUssKQ4oO6YjNhkwuz0Q4GTthSmX1H45okdWD6YmGa2XIt?=
+ =?us-ascii?Q?tywx7pFxZVYwl66nXpvkbKz8Ie8EWhDCc5v9nR4IyMN4ph6meaOfONI7ymhM?=
+ =?us-ascii?Q?ZmOuNZCBygOSM38NIHeYeZ/EGdOk7oFckGev0D/JKkalLrVSanrchyzY5mW1?=
+ =?us-ascii?Q?aAtNmnj5k6egQnxocjnicLpLArGVzDZI+YIpaYc/do+q+U5Oq6vXZi4wOWoQ?=
+ =?us-ascii?Q?STCmEMkeUhDBmV6QSldBvedO0LWiijR4WjoB7yLiuU62XNWh0/nlDRHTxx8D?=
+ =?us-ascii?Q?tQbHdMr/i6f91wX5/bHO2iMzCrmwTWeS3F6eVt5bMdVZ1RFt3viQAsMOUtir?=
+ =?us-ascii?Q?hTm3VtWfzfF4Ndv0/Hb4PALV76I21KsrzImBBu62bSy0A51wr57RzcGhdkxR?=
+ =?us-ascii?Q?+kCGjsukLd2lZrue6fBUEQq0GaaTZzd6ut1Yb3Y94iMmXIjxy0pUOdcVjwNM?=
+ =?us-ascii?Q?g5nAKcg58e/iaAiCKfea72C9F255gTQEAkJD1aiDwh6QYb8Skg0TpUdfuqP4?=
+ =?us-ascii?Q?Ll77Fwafo12dfaFrZXB3+B0aDtwnwEJ/9CrM/DWPGejhX5ea8fFaVltqtXz2?=
+ =?us-ascii?Q?Gn24MiuwozPdllynoZp4HbVObMJcbh16nnKLomSW5/FV95PKcFtp+eAh5Dup?=
+ =?us-ascii?Q?r7+YIQBoJYDZGZp46QjDgj3P0I2++UgMzOgf/7wYEmtcc3phLKIrEYOYmTIQ?=
+ =?us-ascii?Q?zsROaxLIn7tE7+V4VbuYSEML+neymoVEH0xkN/R2pmlznHb/hdY/7TDjbEOT?=
+ =?us-ascii?Q?e0upmhpoYMWbGYTUreQ+Wxc2E4c7/Y+mRoPJzvaX?=
+X-OriginatorOrg: vivo.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 4177cd84-5609-4239-dce2-08dcc7518e91
+X-MS-Exchange-CrossTenant-AuthSource: SEZPR06MB5899.apcprd06.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Aug 2024 11:07:08.1254
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 923e42dc-48d5-4cbe-b582-1a797a6412ed
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 2b9jM4pVRzxLx3pkfEKeDejO8UsvVdP6su55o14zssS26iEol3FtK+1XMKK9nDphk8/VpjLG+OLEH3vUNNIwZg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: KL1PR06MB6258
 
-Since commit a654de8fdc18 ("netfilter: nf_tables: fix chain dependency validation")
-the validate() callback no longer needs the return pointer argument.
+Use the ERR_CAST macro to clearly indicate that this is a pointer 
+to an error value and that a type conversion was performed.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Shen Lichuan <shenlichuan@vivo.com>
 ---
- include/net/netfilter/nf_tables.h        | 3 +--
- include/net/netfilter/nft_fib.h          | 4 +---
- include/net/netfilter/nft_meta.h         | 3 +--
- include/net/netfilter/nft_reject.h       | 3 +--
- net/bridge/netfilter/nft_meta_bridge.c   | 5 ++---
- net/bridge/netfilter/nft_reject_bridge.c | 3 +--
- net/netfilter/nf_tables_api.c            | 3 +--
- net/netfilter/nft_compat.c               | 6 ++----
- net/netfilter/nft_fib.c                  | 3 +--
- net/netfilter/nft_flow_offload.c         | 3 +--
- net/netfilter/nft_fwd_netdev.c           | 3 +--
- net/netfilter/nft_immediate.c            | 3 +--
- net/netfilter/nft_lookup.c               | 3 +--
- net/netfilter/nft_masq.c                 | 3 +--
- net/netfilter/nft_meta.c                 | 6 ++----
- net/netfilter/nft_nat.c                  | 3 +--
- net/netfilter/nft_osf.c                  | 3 +--
- net/netfilter/nft_queue.c                | 3 +--
- net/netfilter/nft_redir.c                | 3 +--
- net/netfilter/nft_reject.c               | 3 +--
- net/netfilter/nft_reject_inet.c          | 3 +--
- net/netfilter/nft_reject_netdev.c        | 3 +--
- net/netfilter/nft_rt.c                   | 3 +--
- net/netfilter/nft_socket.c               | 3 +--
- net/netfilter/nft_synproxy.c             | 3 +--
- net/netfilter/nft_tproxy.c               | 3 +--
- net/netfilter/nft_xfrm.c                 | 3 +--
- 27 files changed, 30 insertions(+), 60 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 1cc33d946d41..7cd60ea7cdee 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -961,8 +961,7 @@ struct nft_expr_ops {
- 						const struct nft_expr *expr,
- 						bool reset);
- 	int				(*validate)(const struct nft_ctx *ctx,
--						    const struct nft_expr *expr,
--						    const struct nft_data **data);
-+						    const struct nft_expr *expr);
- 	bool				(*reduce)(struct nft_regs_track *track,
- 						  const struct nft_expr *expr);
- 	bool				(*gc)(struct net *net,
-diff --git a/include/net/netfilter/nft_fib.h b/include/net/netfilter/nft_fib.h
-index 167640b843ef..38cae7113de4 100644
---- a/include/net/netfilter/nft_fib.h
-+++ b/include/net/netfilter/nft_fib.h
-@@ -21,9 +21,7 @@ nft_fib_is_loopback(const struct sk_buff *skb, const struct net_device *in)
- int nft_fib_dump(struct sk_buff *skb, const struct nft_expr *expr, bool reset);
- int nft_fib_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 		 const struct nlattr * const tb[]);
--int nft_fib_validate(const struct nft_ctx *ctx, const struct nft_expr *expr,
--		     const struct nft_data **data);
--
-+int nft_fib_validate(const struct nft_ctx *ctx, const struct nft_expr *expr);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 9384426ddc06..d3cb53b008f5 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1722,7 +1722,7 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+ 	ct = __nf_conntrack_alloc(net, zone, tuple, &repl_tuple, GFP_ATOMIC,
+ 				  hash);
+ 	if (IS_ERR(ct))
+-		return (struct nf_conntrack_tuple_hash *)ct;
++		return ERR_CAST(ct);
  
- void nft_fib4_eval_type(const struct nft_expr *expr, struct nft_regs *regs,
- 			const struct nft_pktinfo *pkt);
-diff --git a/include/net/netfilter/nft_meta.h b/include/net/netfilter/nft_meta.h
-index ba1238f12a48..d602263590fe 100644
---- a/include/net/netfilter/nft_meta.h
-+++ b/include/net/netfilter/nft_meta.h
-@@ -41,8 +41,7 @@ void nft_meta_set_destroy(const struct nft_ctx *ctx,
- 			  const struct nft_expr *expr);
- 
- int nft_meta_set_validate(const struct nft_ctx *ctx,
--			  const struct nft_expr *expr,
--			  const struct nft_data **data);
-+			  const struct nft_expr *expr);
- 
- bool nft_meta_get_reduce(struct nft_regs_track *track,
- 			 const struct nft_expr *expr);
-diff --git a/include/net/netfilter/nft_reject.h b/include/net/netfilter/nft_reject.h
-index 6d9ba62efd75..19060212988a 100644
---- a/include/net/netfilter/nft_reject.h
-+++ b/include/net/netfilter/nft_reject.h
-@@ -15,8 +15,7 @@ struct nft_reject {
- extern const struct nla_policy nft_reject_policy[];
- 
- int nft_reject_validate(const struct nft_ctx *ctx,
--			const struct nft_expr *expr,
--			const struct nft_data **data);
-+			const struct nft_expr *expr);
- 
- int nft_reject_init(const struct nft_ctx *ctx,
- 		    const struct nft_expr *expr,
-diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
-index 4d8e15927217..d12a221366d6 100644
---- a/net/bridge/netfilter/nft_meta_bridge.c
-+++ b/net/bridge/netfilter/nft_meta_bridge.c
-@@ -168,8 +168,7 @@ static bool nft_meta_bridge_set_reduce(struct nft_regs_track *track,
- }
- 
- static int nft_meta_bridge_set_validate(const struct nft_ctx *ctx,
--					const struct nft_expr *expr,
--					const struct nft_data **data)
-+					const struct nft_expr *expr)
- {
- 	struct nft_meta *priv = nft_expr_priv(expr);
- 	unsigned int hooks;
-@@ -179,7 +178,7 @@ static int nft_meta_bridge_set_validate(const struct nft_ctx *ctx,
- 		hooks = 1 << NF_BR_PRE_ROUTING;
- 		break;
- 	default:
--		return nft_meta_set_validate(ctx, expr, data);
-+		return nft_meta_set_validate(ctx, expr);
- 	}
- 
- 	return nft_chain_validate_hooks(ctx->chain, hooks);
-diff --git a/net/bridge/netfilter/nft_reject_bridge.c b/net/bridge/netfilter/nft_reject_bridge.c
-index 71b54fed7263..1cb5c16e97b7 100644
---- a/net/bridge/netfilter/nft_reject_bridge.c
-+++ b/net/bridge/netfilter/nft_reject_bridge.c
-@@ -170,8 +170,7 @@ static void nft_reject_bridge_eval(const struct nft_expr *expr,
- }
- 
- static int nft_reject_bridge_validate(const struct nft_ctx *ctx,
--				      const struct nft_expr *expr,
--				      const struct nft_data **data)
-+				      const struct nft_expr *expr)
- {
- 	return nft_chain_validate_hooks(ctx->chain, (1 << NF_BR_PRE_ROUTING) |
- 						    (1 << NF_BR_LOCAL_IN));
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 904f2e25b4a4..b6547fe22bd8 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3886,7 +3886,6 @@ static void nf_tables_rule_release(const struct nft_ctx *ctx, struct nft_rule *r
- int nft_chain_validate(const struct nft_ctx *ctx, const struct nft_chain *chain)
- {
- 	struct nft_expr *expr, *last;
--	const struct nft_data *data;
- 	struct nft_rule *rule;
- 	int err;
- 
-@@ -3907,7 +3906,7 @@ int nft_chain_validate(const struct nft_ctx *ctx, const struct nft_chain *chain)
- 			/* This may call nft_chain_validate() recursively,
- 			 * callers that do so must increment ctx->level.
- 			 */
--			err = expr->ops->validate(ctx, expr, &data);
-+			err = expr->ops->validate(ctx, expr);
- 			if (err < 0)
- 				return err;
- 		}
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index d3d11dede545..52cdfee17f73 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -350,8 +350,7 @@ static int nft_target_dump(struct sk_buff *skb,
- }
- 
- static int nft_target_validate(const struct nft_ctx *ctx,
--			       const struct nft_expr *expr,
--			       const struct nft_data **data)
-+			       const struct nft_expr *expr)
- {
- 	struct xt_target *target = expr->ops->data;
- 	unsigned int hook_mask = 0;
-@@ -611,8 +610,7 @@ static int nft_match_large_dump(struct sk_buff *skb,
- }
- 
- static int nft_match_validate(const struct nft_ctx *ctx,
--			      const struct nft_expr *expr,
--			      const struct nft_data **data)
-+			      const struct nft_expr *expr)
- {
- 	struct xt_match *match = expr->ops->data;
- 	unsigned int hook_mask = 0;
-diff --git a/net/netfilter/nft_fib.c b/net/netfilter/nft_fib.c
-index b58f62195ff3..96e02a83c045 100644
---- a/net/netfilter/nft_fib.c
-+++ b/net/netfilter/nft_fib.c
-@@ -26,8 +26,7 @@ const struct nla_policy nft_fib_policy[NFTA_FIB_MAX + 1] = {
- };
- EXPORT_SYMBOL(nft_fib_policy);
- 
--int nft_fib_validate(const struct nft_ctx *ctx, const struct nft_expr *expr,
--		     const struct nft_data **data)
-+int nft_fib_validate(const struct nft_ctx *ctx, const struct nft_expr *expr)
- {
- 	const struct nft_fib *priv = nft_expr_priv(expr);
- 	unsigned int hooks;
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index ab9576098701..9dcd1548df9d 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -380,8 +380,7 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
- }
- 
- static int nft_flow_offload_validate(const struct nft_ctx *ctx,
--				     const struct nft_expr *expr,
--				     const struct nft_data **data)
-+				     const struct nft_expr *expr)
- {
- 	unsigned int hook_mask = (1 << NF_INET_FORWARD);
- 
-diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
-index c83a794025f9..152a9fb4d23a 100644
---- a/net/netfilter/nft_fwd_netdev.c
-+++ b/net/netfilter/nft_fwd_netdev.c
-@@ -204,8 +204,7 @@ static int nft_fwd_neigh_dump(struct sk_buff *skb,
- }
- 
- static int nft_fwd_validate(const struct nft_ctx *ctx,
--			    const struct nft_expr *expr,
--			    const struct nft_data **data)
-+			    const struct nft_expr *expr)
- {
- 	return nft_chain_validate_hooks(ctx->chain, (1 << NF_NETDEV_INGRESS) |
- 						    (1 << NF_NETDEV_EGRESS));
-diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
-index ac2422c215e5..02ee5fb69871 100644
---- a/net/netfilter/nft_immediate.c
-+++ b/net/netfilter/nft_immediate.c
-@@ -244,8 +244,7 @@ static int nft_immediate_dump(struct sk_buff *skb,
- }
- 
- static int nft_immediate_validate(const struct nft_ctx *ctx,
--				  const struct nft_expr *expr,
--				  const struct nft_data **d)
-+				  const struct nft_expr *expr)
- {
- 	const struct nft_immediate_expr *priv = nft_expr_priv(expr);
- 	struct nft_ctx *pctx = (struct nft_ctx *)ctx;
-diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
-index 580e4b1deb9b..63ef832b8aa7 100644
---- a/net/netfilter/nft_lookup.c
-+++ b/net/netfilter/nft_lookup.c
-@@ -206,8 +206,7 @@ static int nft_lookup_dump(struct sk_buff *skb,
- }
- 
- static int nft_lookup_validate(const struct nft_ctx *ctx,
--			       const struct nft_expr *expr,
--			       const struct nft_data **d)
-+			       const struct nft_expr *expr)
- {
- 	const struct nft_lookup *priv = nft_expr_priv(expr);
- 	struct nft_set_iter iter;
-diff --git a/net/netfilter/nft_masq.c b/net/netfilter/nft_masq.c
-index cb43c72a8c2a..868bd4d73555 100644
---- a/net/netfilter/nft_masq.c
-+++ b/net/netfilter/nft_masq.c
-@@ -27,8 +27,7 @@ static const struct nla_policy nft_masq_policy[NFTA_MASQ_MAX + 1] = {
- };
- 
- static int nft_masq_validate(const struct nft_ctx *ctx,
--			     const struct nft_expr *expr,
--			     const struct nft_data **data)
-+			     const struct nft_expr *expr)
- {
- 	int err;
- 
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 0214ad1ced2f..8c8eb14d647b 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -581,8 +581,7 @@ static int nft_meta_get_validate_xfrm(const struct nft_ctx *ctx)
- }
- 
- static int nft_meta_get_validate(const struct nft_ctx *ctx,
--				 const struct nft_expr *expr,
--				 const struct nft_data **data)
-+				 const struct nft_expr *expr)
- {
- 	const struct nft_meta *priv = nft_expr_priv(expr);
- 
-@@ -600,8 +599,7 @@ static int nft_meta_get_validate(const struct nft_ctx *ctx,
- }
- 
- int nft_meta_set_validate(const struct nft_ctx *ctx,
--			  const struct nft_expr *expr,
--			  const struct nft_data **data)
-+			  const struct nft_expr *expr)
- {
- 	struct nft_meta *priv = nft_expr_priv(expr);
- 	unsigned int hooks;
-diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
-index 983dd937fe02..6e21f72c5b57 100644
---- a/net/netfilter/nft_nat.c
-+++ b/net/netfilter/nft_nat.c
-@@ -137,8 +137,7 @@ static const struct nla_policy nft_nat_policy[NFTA_NAT_MAX + 1] = {
- };
- 
- static int nft_nat_validate(const struct nft_ctx *ctx,
--			    const struct nft_expr *expr,
--			    const struct nft_data **data)
-+			    const struct nft_expr *expr)
- {
- 	struct nft_nat *priv = nft_expr_priv(expr);
- 	int err;
-diff --git a/net/netfilter/nft_osf.c b/net/netfilter/nft_osf.c
-index 7fec57ff736f..1c0b493ef0a9 100644
---- a/net/netfilter/nft_osf.c
-+++ b/net/netfilter/nft_osf.c
-@@ -108,8 +108,7 @@ static int nft_osf_dump(struct sk_buff *skb,
- }
- 
- static int nft_osf_validate(const struct nft_ctx *ctx,
--			    const struct nft_expr *expr,
--			    const struct nft_data **data)
-+			    const struct nft_expr *expr)
- {
- 	unsigned int hooks;
- 
-diff --git a/net/netfilter/nft_queue.c b/net/netfilter/nft_queue.c
-index 44e6817e6e29..344fe311878f 100644
---- a/net/netfilter/nft_queue.c
-+++ b/net/netfilter/nft_queue.c
-@@ -69,8 +69,7 @@ static void nft_queue_sreg_eval(const struct nft_expr *expr,
- }
- 
- static int nft_queue_validate(const struct nft_ctx *ctx,
--			      const struct nft_expr *expr,
--			      const struct nft_data **data)
-+			      const struct nft_expr *expr)
- {
- 	static const unsigned int supported_hooks = ((1 << NF_INET_PRE_ROUTING) |
- 						     (1 << NF_INET_LOCAL_IN) |
-diff --git a/net/netfilter/nft_redir.c b/net/netfilter/nft_redir.c
-index 6568cc264078..95eedad85c83 100644
---- a/net/netfilter/nft_redir.c
-+++ b/net/netfilter/nft_redir.c
-@@ -27,8 +27,7 @@ static const struct nla_policy nft_redir_policy[NFTA_REDIR_MAX + 1] = {
- };
- 
- static int nft_redir_validate(const struct nft_ctx *ctx,
--			      const struct nft_expr *expr,
--			      const struct nft_data **data)
-+			      const struct nft_expr *expr)
- {
- 	int err;
- 
-diff --git a/net/netfilter/nft_reject.c b/net/netfilter/nft_reject.c
-index ed2e668474d6..196a92c7ea09 100644
---- a/net/netfilter/nft_reject.c
-+++ b/net/netfilter/nft_reject.c
-@@ -24,8 +24,7 @@ const struct nla_policy nft_reject_policy[NFTA_REJECT_MAX + 1] = {
- EXPORT_SYMBOL_GPL(nft_reject_policy);
- 
- int nft_reject_validate(const struct nft_ctx *ctx,
--			const struct nft_expr *expr,
--			const struct nft_data **data)
-+			const struct nft_expr *expr)
- {
- 	return nft_chain_validate_hooks(ctx->chain,
- 					(1 << NF_INET_LOCAL_IN) |
-diff --git a/net/netfilter/nft_reject_inet.c b/net/netfilter/nft_reject_inet.c
-index 973fa31a9dd6..49020e67304a 100644
---- a/net/netfilter/nft_reject_inet.c
-+++ b/net/netfilter/nft_reject_inet.c
-@@ -61,8 +61,7 @@ static void nft_reject_inet_eval(const struct nft_expr *expr,
- }
- 
- static int nft_reject_inet_validate(const struct nft_ctx *ctx,
--				    const struct nft_expr *expr,
--				    const struct nft_data **data)
-+				    const struct nft_expr *expr)
- {
- 	return nft_chain_validate_hooks(ctx->chain,
- 					(1 << NF_INET_LOCAL_IN) |
-diff --git a/net/netfilter/nft_reject_netdev.c b/net/netfilter/nft_reject_netdev.c
-index 7865cd8b11bb..2558ce1505d9 100644
---- a/net/netfilter/nft_reject_netdev.c
-+++ b/net/netfilter/nft_reject_netdev.c
-@@ -145,8 +145,7 @@ static void nft_reject_netdev_eval(const struct nft_expr *expr,
- }
- 
- static int nft_reject_netdev_validate(const struct nft_ctx *ctx,
--				      const struct nft_expr *expr,
--				      const struct nft_data **data)
-+				      const struct nft_expr *expr)
- {
- 	return nft_chain_validate_hooks(ctx->chain, (1 << NF_NETDEV_INGRESS));
- }
-diff --git a/net/netfilter/nft_rt.c b/net/netfilter/nft_rt.c
-index 14d88394bcb7..dc50b9a5bd68 100644
---- a/net/netfilter/nft_rt.c
-+++ b/net/netfilter/nft_rt.c
-@@ -160,8 +160,7 @@ static int nft_rt_get_dump(struct sk_buff *skb,
- 	return -1;
- }
- 
--static int nft_rt_validate(const struct nft_ctx *ctx, const struct nft_expr *expr,
--			   const struct nft_data **data)
-+static int nft_rt_validate(const struct nft_ctx *ctx, const struct nft_expr *expr)
- {
- 	const struct nft_rt *priv = nft_expr_priv(expr);
- 	unsigned int hooks;
-diff --git a/net/netfilter/nft_socket.c b/net/netfilter/nft_socket.c
-index f30163e2ca62..947566dba1ea 100644
---- a/net/netfilter/nft_socket.c
-+++ b/net/netfilter/nft_socket.c
-@@ -239,8 +239,7 @@ static bool nft_socket_reduce(struct nft_regs_track *track,
- }
- 
- static int nft_socket_validate(const struct nft_ctx *ctx,
--			       const struct nft_expr *expr,
--			       const struct nft_data **data)
-+			       const struct nft_expr *expr)
- {
- 	if (ctx->family != NFPROTO_IPV4 &&
- 	    ctx->family != NFPROTO_IPV6 &&
-diff --git a/net/netfilter/nft_synproxy.c b/net/netfilter/nft_synproxy.c
-index 1d737f89dfc1..5d3e51825985 100644
---- a/net/netfilter/nft_synproxy.c
-+++ b/net/netfilter/nft_synproxy.c
-@@ -248,8 +248,7 @@ static void nft_synproxy_eval(const struct nft_expr *expr,
- }
- 
- static int nft_synproxy_validate(const struct nft_ctx *ctx,
--				 const struct nft_expr *expr,
--				 const struct nft_data **data)
-+				 const struct nft_expr *expr)
- {
- 	if (ctx->family != NFPROTO_IPV4 &&
- 	    ctx->family != NFPROTO_IPV6 &&
-diff --git a/net/netfilter/nft_tproxy.c b/net/netfilter/nft_tproxy.c
-index 1b691393d8b1..50481280abd2 100644
---- a/net/netfilter/nft_tproxy.c
-+++ b/net/netfilter/nft_tproxy.c
-@@ -313,8 +313,7 @@ static int nft_tproxy_dump(struct sk_buff *skb,
- }
- 
- static int nft_tproxy_validate(const struct nft_ctx *ctx,
--			       const struct nft_expr *expr,
--			       const struct nft_data **data)
-+			       const struct nft_expr *expr)
- {
- 	if (ctx->family != NFPROTO_IPV4 &&
- 	    ctx->family != NFPROTO_IPV6 &&
-diff --git a/net/netfilter/nft_xfrm.c b/net/netfilter/nft_xfrm.c
-index 1c866757db55..8a07b46cc8fb 100644
---- a/net/netfilter/nft_xfrm.c
-+++ b/net/netfilter/nft_xfrm.c
-@@ -229,8 +229,7 @@ static int nft_xfrm_get_dump(struct sk_buff *skb,
- 	return 0;
- }
- 
--static int nft_xfrm_validate(const struct nft_ctx *ctx, const struct nft_expr *expr,
--			     const struct nft_data **data)
-+static int nft_xfrm_validate(const struct nft_ctx *ctx, const struct nft_expr *expr)
- {
- 	const struct nft_xfrm *priv = nft_expr_priv(expr);
- 	unsigned int hooks;
+ 	if (!nf_ct_add_synproxy(ct, tmpl)) {
+ 		nf_conntrack_free(ct);
 -- 
-2.44.2
+2.17.1
 
