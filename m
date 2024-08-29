@@ -1,84 +1,97 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f42.google.com (mail-lf1-f42.google.com [209.85.167.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73F8B18CBE9;
-	Thu, 29 Aug 2024 09:50:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4091E18CC1E;
+	Thu, 29 Aug 2024 10:08:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724925024; cv=none; b=XpBopp/K0eHqWRRcch9xzV5CL1TUy8f5J2BYk+/JlbLnABymn8FUbgBBeGWLWhJDOFPP5Ai+m4PYm5PG1CGE+jdS6Fs7yrvOM2y4E96rUqZEmlYxkOZCq5tBePaD808XT3O2z56JH8WczNFIqJpDVbcKQSIWjMoAFGGIPzNQqXU=
+	t=1724926088; cv=none; b=h/1jdFjklUW6ePX7XxXgA3DISDuAp+ZVcYgThxidb4WIrL9OyM76I+5NlGAKYgo9muShiFU+jLMC32Hc8ts74pjsioY/SAKzF6P8ZTsNzEN2LXEdkmcEGfCD82u+qqyA166YHrLkz/FbxT1VHuJu578ZwLbF8zDohCr9p/eGZ7Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724925024; c=relaxed/simple;
-	bh=hs7sKm0U6Yz2qOolLUBqB/IWcmqcYGGMJw3M4eHwXy8=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=JyVZCENbnDyzyPSIvh655fyU6VWVVqkJj0dHitEsGKFx5zB0ZtH8lwhkvrlH9bK62POvj/y2fSGNY1DNmYd80VUgFleBTuJ3O5p0l8+8+sM246wcyB4skRj2NlOGI/rmPIIdki/bQDfPcBd4mY1lusZi1fcNP/60Zl5OzAQ5HRg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=X47FqyQZ; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="X47FqyQZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E59B3C4CEC5;
-	Thu, 29 Aug 2024 09:50:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1724925024;
-	bh=hs7sKm0U6Yz2qOolLUBqB/IWcmqcYGGMJw3M4eHwXy8=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=X47FqyQZnpNOBr/4C2rYcFYFAEgzOguVAGWGSmX/E1mslDwh+hXt5plrJ2CrnBSMD
-	 P1hFp6/egcHURpIHYGThoifqq7FRm46+5jZj08LqjQedAcgsUFLJrLe5C8HWZFAasB
-	 WsYld6QprQCgSd3XgtGu2FIjisn4UmqwlmuOJEgO5/vLdR8Co14vfTIaQBr2/I4y2u
-	 Bx02LnDPRrRbVITWYbgFs5au+QGFcE9vgs6JZ1AFp6sz2usbsANSp4MQz7JDxOGDCA
-	 j4kHBd/rMS/C1kVkLGrcVrbvpNdVgqcFbDPWwuH1aU9iAs6pSUqiphQEwkiVNkmOFv
-	 7ekW96a52zXBw==
-Received: from ip-10-30-226-235.us-west-2.compute.internal (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 586CD3809A81;
-	Thu, 29 Aug 2024 09:50:25 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=arc-20240116; t=1724926088; c=relaxed/simple;
+	bh=v7npGnWVI06jQB/GP+WqmHASzHtfMK63ymHNNGaUS9Y=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=oFJqTEfxBWYlTw7dIEhoRPeMpGBO1HZ+BjEwCAKVXLrCy/So5bJet+9QX2oa+ezOJf09CouJyA1WiHvjCUWaIQPZHbQF07Pooq/aqhV+JgOzBwNAmB6QVlPXh7BqRhmYR7YO483tm/fA72Fmj0yHUWEBwv7JymzgJgSLxL5j/Sg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.167.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-lf1-f42.google.com with SMTP id 2adb3069b0e04-5334adf7249so645506e87.3;
+        Thu, 29 Aug 2024 03:08:06 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1724926085; x=1725530885;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=68VfpIe/gY3b5Zsqxl5bIsvzSythZF52J8UjEnejXGE=;
+        b=XCjImMkft1QWJvHeR+XzkO47uOooNgeVvZXJrZncHO+3wurLG/Mp/itLAGg3tbc5Gi
+         ppqThxJRUoUR3FevnIgew26tSmQweyFBCnkCnnbGHTwaB4a0rhnN4Fj/QrX88anXYd34
+         y/Os9loT5b6PLTBu2wgrOpKBn5CzHI6It3vAwCXBH7qSp6hINn5ewPIQhZE0AkwIuZzF
+         QlZstIOUcFX5kanIRZrFwYtqbG30SdkRbzuWJ9l4cRlmdxRLfGZu7LHy2Ad3FrlK4vvO
+         YwNym/Iy8VeM4WEGXCqzZi0fEmydqM220GuFXcNjaiSA/T2l4IuFg1K8TQL8DvnCynKh
+         4/uA==
+X-Forwarded-Encrypted: i=1; AJvYcCUobM+cTW6kP56gbxZQWGYOgnvzCK0Mj3Ryr4hGoGZMnYiPrUvru7OeeFqdZ88bNTUe3TTEWih5@vger.kernel.org, AJvYcCUv3zcQBPDpy8b73zXUi7ByDTOZVgVwyZaoLQntjadPcAydm0Zg+RncDOv6PsE8Lw5uE61wR5hHX370jOnEts2m@vger.kernel.org, AJvYcCWWvIFXh31M4xE1sL2cQjBwUg/c40+zjEjkbFSOxFwoYDABTjw8zkXjh9ueH3neAjIznDaYQ+hDkSeptjn2z2KE@vger.kernel.org, AJvYcCXdaea2AwDn06d39g+CK60AjUClll0WF3CSDDbRe4TwsXtm92aLP98e600c2ws9e5U3pnGnDAJBEQLCAcc=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz779Lk9kpY/UGZUFh/dUa7yPoqYXzkwr4jWo5+d/6c/wqZVor8
+	lINScQZpb0Uu2nsbKi2Di5E0zOUMvZuYPEl6hQ0ZNeLNxMYv3REh3wvYKA==
+X-Google-Smtp-Source: AGHT+IFmz+YxnGXgxNh++Tsg0uingdtxTTovmvly65eI0+SFc9ZOa//xepAe3YbevHsB4xnK70BHgQ==
+X-Received: by 2002:a05:6512:10d6:b0:52c:90b6:170f with SMTP id 2adb3069b0e04-5353e56eab0mr1847296e87.29.1724926084638;
+        Thu, 29 Aug 2024 03:08:04 -0700 (PDT)
+Received: from gmail.com (fwdproxy-lla-113.fbsv.net. [2a03:2880:30ff:71::face:b00c])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a89891d6dc3sm58031766b.156.2024.08.29.03.08.03
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 29 Aug 2024 03:08:04 -0700 (PDT)
+Date: Thu, 29 Aug 2024 03:08:01 -0700
+From: Breno Leitao <leitao@debian.org>
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: fw@strlen.de, davem@davemloft.net, edumazet@google.com,
+	pabeni@redhat.com, Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	David Ahern <dsahern@kernel.org>, Shuah Khan <shuah@kernel.org>,
+	rbc@meta.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	"open list:NETFILTER" <coreteam@netfilter.org>,
+	"open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>
+Subject: Re: [PATCH nf-next v3 1/2] netfilter: Make IP_NF_IPTABLES_LEGACY
+ selectable
+Message-ID: <ZtBIgekUyptmCqRa@gmail.com>
+References: <20240827145242.3094777-1-leitao@debian.org>
+ <20240827145242.3094777-2-leitao@debian.org>
+ <20240828074240.2abaa74c@kernel.org>
+ <Zs88pbEadxLWLLbn@gmail.com>
+ <20240828114123.3c85a9a5@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/2] netfilter: nf_tables: restore IP sanity checks for
- netdev/egress
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <172492502535.1887808.17550387443774732604.git-patchwork-notify@kernel.org>
-Date: Thu, 29 Aug 2024 09:50:25 +0000
-References: <20240828214708.619261-2-pablo@netfilter.org>
-In-Reply-To: <20240828214708.619261-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240828114123.3c85a9a5@kernel.org>
 
-Hello:
+Hello Jakub,
 
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
-
-On Wed, 28 Aug 2024 23:47:07 +0200 you wrote:
-> Subtract network offset to skb->len before performing IPv4 header sanity
-> checks, then adjust transport offset from offset from mac header.
+On Wed, Aug 28, 2024 at 11:41:23AM -0700, Jakub Kicinski wrote:
+> On Wed, 28 Aug 2024 08:05:09 -0700 Breno Leitao wrote:
+> > On Wed, Aug 28, 2024 at 07:42:40AM -0700, Jakub Kicinski wrote:
+> > > On Tue, 27 Aug 2024 07:52:40 -0700 Breno Leitao wrote:  
+> > > > +++ b/tools/testing/selftests/net/config  
+> > > 
+> > > You gotta check all the configs, net is now fine, but bpf still breaks.
+> > > There may be more configs we don't use in CI.  
+> > 
+> > Sure, how can I find which configs I should care about?
 > 
-> Jorge Ortiz says:
-> 
-> When small UDP packets (< 4 bytes payload) are sent from eth0,
-> `meta l4proto udp` condition is not met because `NFT_PKTINFO_L4PROTO` is
-> not set. This happens because there is a comparison that checks if the
-> transport header offset exceeds the total length.  This comparison does
-> not take into account the fact that the skb network offset might be
-> non-zero in egress mode (e.g., 14 bytes for Ethernet header).
-> 
-> [...]
+> There are various configs in the tree. Grep for the configs you convert
+> from select to depends on, they will all need updating.
 
-Here is the summary with links:
-  - [net,1/2] netfilter: nf_tables: restore IP sanity checks for netdev/egress
-    https://git.kernel.org/netdev/net/c/5fd062891897
-  - [net,2/2] netfilter: nf_tables_ipv6: consider network offset in netdev/egress validation
-    https://git.kernel.org/netdev/net/c/70c261d50095
+I am looking at all files that depend on these Kconfig options, and
+there are a lot of tests.
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+Thinking more about the problem, it doesn't seem to be a good idea to
+change dependency from all NF modules to NF_IPTABLES_LEGACY. In other
+words, the `s/selects/depends on/` is the part that is causing all this
+hassle, and it seems unnecessary.
 
+That said, I would suggest we do not change the dependency, and keep the
+"select NF_IPTABLES_LEGACY", and keep NF_IPTABLES_LEGACY user selectable.
 
+This will make the patch safer, while fixing the problem.
