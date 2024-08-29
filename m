@@ -1,34 +1,34 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8390218C901;
-	Thu, 29 Aug 2024 08:40:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73F8B18CBE9;
+	Thu, 29 Aug 2024 09:50:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724920828; cv=none; b=RmWxmrRX3BXTSPPhX0H2SCAEPGsDK3fCHXSD2gl5WLtm3RH1v7YeXyyzy+2jI99+Bwxdv9CtddZGsLog44wKSEUN/+em3ahkJlnq5oDLtoK1o19+IbYVJQgaW8mXyL0b/EhUZCFxvntgG1KzXcHuBJ/Cjb5VHENGSgiToIDaikk=
+	t=1724925024; cv=none; b=XpBopp/K0eHqWRRcch9xzV5CL1TUy8f5J2BYk+/JlbLnABymn8FUbgBBeGWLWhJDOFPP5Ai+m4PYm5PG1CGE+jdS6Fs7yrvOM2y4E96rUqZEmlYxkOZCq5tBePaD808XT3O2z56JH8WczNFIqJpDVbcKQSIWjMoAFGGIPzNQqXU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724920828; c=relaxed/simple;
-	bh=7TZpA6nhKeHEw9HE36y8c0innkFQ17lG9uoWouj77cM=;
+	s=arc-20240116; t=1724925024; c=relaxed/simple;
+	bh=hs7sKm0U6Yz2qOolLUBqB/IWcmqcYGGMJw3M4eHwXy8=;
 	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=YmNoXAehfqFf0Lpocef+ZUhE3tJtiFeeUmQwY90d7WA0mDF0hG/aLala1nvnkqlyilpb/LR3B5ksFWe/ynAuntcxXbUozpjGsbVjV5rpKfPMDiAyt5ZrYqx/GG+2BP4MLOjNeUe1I+Y/odhMRTklEakBcMKneugngoO1O6HAplY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=qxCoO7a2; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=JyVZCENbnDyzyPSIvh655fyU6VWVVqkJj0dHitEsGKFx5zB0ZtH8lwhkvrlH9bK62POvj/y2fSGNY1DNmYd80VUgFleBTuJ3O5p0l8+8+sM246wcyB4skRj2NlOGI/rmPIIdki/bQDfPcBd4mY1lusZi1fcNP/60Zl5OzAQ5HRg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=X47FqyQZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="qxCoO7a2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1203C4CEC1;
-	Thu, 29 Aug 2024 08:40:27 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="X47FqyQZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E59B3C4CEC5;
+	Thu, 29 Aug 2024 09:50:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1724920828;
-	bh=7TZpA6nhKeHEw9HE36y8c0innkFQ17lG9uoWouj77cM=;
+	s=k20201202; t=1724925024;
+	bh=hs7sKm0U6Yz2qOolLUBqB/IWcmqcYGGMJw3M4eHwXy8=;
 	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=qxCoO7a2F09dszlgyn+0Q032i6pbiFmNqwAQgS7bvIwJapRSPH583c0Vcs08rRjQc
-	 ums+lRMc3EELg0Pwt4WDVg0QaXoMadtVehcH0oydHsqNK7H0AkwhMqTkl7GVWbo2yc
-	 j616LB12HLfQc+xsNZcfa2FnMRUh+5j4l+uNXeO02cW1eZHovxrFFS9dg9mq/isMuG
-	 UaapGyFftTmkGFRGrytB8l5qgYdGTpO4rl/sAkMV34Z4td9vThdqYQHeRLJf9dLajJ
-	 ZIvXFsoCJsfo09VDH7E8vy3SI5ZcJw9z9Yq+HLL4Y0A1EErn9PKVAJGuuXmtGxn9K3
-	 iGqb87eHpKrhA==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 70CF93809A80;
-	Thu, 29 Aug 2024 08:40:29 +0000 (UTC)
+	b=X47FqyQZnpNOBr/4C2rYcFYFAEgzOguVAGWGSmX/E1mslDwh+hXt5plrJ2CrnBSMD
+	 P1hFp6/egcHURpIHYGThoifqq7FRm46+5jZj08LqjQedAcgsUFLJrLe5C8HWZFAasB
+	 WsYld6QprQCgSd3XgtGu2FIjisn4UmqwlmuOJEgO5/vLdR8Co14vfTIaQBr2/I4y2u
+	 Bx02LnDPRrRbVITWYbgFs5au+QGFcE9vgs6JZ1AFp6sz2usbsANSp4MQz7JDxOGDCA
+	 j4kHBd/rMS/C1kVkLGrcVrbvpNdVgqcFbDPWwuH1aU9iAs6pSUqiphQEwkiVNkmOFv
+	 7ekW96a52zXBw==
+Received: from ip-10-30-226-235.us-west-2.compute.internal (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 586CD3809A81;
+	Thu, 29 Aug 2024 09:50:25 +0000 (UTC)
 Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -37,36 +37,44 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next] selftests: netfilter: nft_queue.sh: reduce test file
- size for debug build
+Subject: Re: [PATCH net 1/2] netfilter: nf_tables: restore IP sanity checks for
+ netdev/egress
 From: patchwork-bot+netdevbpf@kernel.org
 Message-Id: 
- <172492082825.1867547.6955538013977129327.git-patchwork-notify@kernel.org>
-Date: Thu, 29 Aug 2024 08:40:28 +0000
-References: <20240827090023.8917-1-fw@strlen.de>
-In-Reply-To: <20240827090023.8917-1-fw@strlen.de>
-To: Florian Westphal <fw@strlen.de>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, kuba@kernel.org,
- pabeni@redhat.com, edumazet@google.com, davem@davemloft.net
+ <172492502535.1887808.17550387443774732604.git-patchwork-notify@kernel.org>
+Date: Thu, 29 Aug 2024 09:50:25 +0000
+References: <20240828214708.619261-2-pablo@netfilter.org>
+In-Reply-To: <20240828214708.619261-2-pablo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, fw@strlen.de
 
 Hello:
 
-This patch was applied to netdev/net-next.git (main)
-by Paolo Abeni <pabeni@redhat.com>:
+This series was applied to netdev/net.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-On Tue, 27 Aug 2024 11:00:12 +0200 you wrote:
-> The sctp selftest is very slow on debug kernels.
+On Wed, 28 Aug 2024 23:47:07 +0200 you wrote:
+> Subtract network offset to skb->len before performing IPv4 header sanity
+> checks, then adjust transport offset from offset from mac header.
 > 
-> Reported-by: Jakub Kicinski <kuba@kernel.org>
-> Closes: https://lore.kernel.org/netdev/20240826192500.32efa22c@kernel.org/
-> Fixes: 4e97d521c2be ("selftests: netfilter: nft_queue.sh: sctp coverage")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+> Jorge Ortiz says:
+> 
+> When small UDP packets (< 4 bytes payload) are sent from eth0,
+> `meta l4proto udp` condition is not met because `NFT_PKTINFO_L4PROTO` is
+> not set. This happens because there is a comparison that checks if the
+> transport header offset exceeds the total length.  This comparison does
+> not take into account the fact that the skb network offset might be
+> non-zero in egress mode (e.g., 14 bytes for Ethernet header).
 > 
 > [...]
 
 Here is the summary with links:
-  - [net-next] selftests: netfilter: nft_queue.sh: reduce test file size for debug build
-    https://git.kernel.org/netdev/net-next/c/0a8b08c554da
+  - [net,1/2] netfilter: nf_tables: restore IP sanity checks for netdev/egress
+    https://git.kernel.org/netdev/net/c/5fd062891897
+  - [net,2/2] netfilter: nf_tables_ipv6: consider network offset in netdev/egress validation
+    https://git.kernel.org/netdev/net/c/70c261d50095
 
 You are awesome, thank you!
 -- 
