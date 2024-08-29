@@ -1,71 +1,69 @@
-Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
+Received: from mail-lf1-f44.google.com (mail-lf1-f44.google.com [209.85.167.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CC9346B91;
-	Thu, 29 Aug 2024 15:48:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A68181922E6;
+	Thu, 29 Aug 2024 15:48:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724946482; cv=none; b=eNed2XQMQjq9hGx+BlHKQR/cxxMOze7Wk4mkVaqcIpasGsHaDIQ5lbg2AViNhv6RG8fUOcT4K0UTtO9gk+El5KO4NLH770FbOaViQnTRHaZkv6V4TtLnw3B3V1NNX+otmvPL/DRTndJoBLbCc00hcIknmk7PG4OoYXCxbsv1SZw=
+	t=1724946483; cv=none; b=ItZyQx5onZi5gC5La8gEk3sEJM4xh7AFJyWeGRReEaVPLME8RrpbbIWeg2QWxhOXQhwAKg3y/+1ivWVoXY7JshF9EyuRLtMFd2xtAD3jnhv8iTG+gBUdYxuO0m2DhIJV7ykwMVLhXZiO2Bp/vPcCuSqstkV/e/SkGe3zFKc8Ck0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724946482; c=relaxed/simple;
-	bh=IYol8vffAanEehdxKgQtxRHvFjFEN7AzetmvEjAPKag=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=FPiOtlJT+YflXwLTzhbG5nFxLk5s4y7AClk+KPupgtOaFwIBtZkovV+DgBWGraWxeRcKu/gQIlUnkcr5KT0uJsoaUGpWgXKE5SB48Hv5wscPmN4rjWxtSNqMiLA/gB8RGKTVcY9KeNlG40XQNLVfGMsmxKfmdCt74BFZCAd2HKg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=OgJZYa3b; arc=none smtp.client-ip=209.85.218.51
+	s=arc-20240116; t=1724946483; c=relaxed/simple;
+	bh=nzRGf/HrfmWsavqKa7l/dTAqrBmmjpFAp0Jlj+w/RBw=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=niZbRRamUmwmjIpAp8mVBe2OsfMyHy6emrx34WZnIwTAHqu8QzZMX5F4V0FT0MhBzl65pTmgaN8QzMqBB4m7Lw13Lm2V1T2xOMXP3ZFZ1xSlKMhkb+bNMnz0o/x1RI4pXbzDgLyUGjVxz25yLeZIO+KYCtDr/9LrxCK/qvEBbnk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=DlYanXxg; arc=none smtp.client-ip=209.85.167.44
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OgJZYa3b"
-Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-a86cc0d10aaso99920766b.2;
-        Thu, 29 Aug 2024 08:48:00 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DlYanXxg"
+Received: by mail-lf1-f44.google.com with SMTP id 2adb3069b0e04-53345dcd377so1038298e87.2;
+        Thu, 29 Aug 2024 08:48:01 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1724946478; x=1725551278; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=SJLR2r7hoLlycJq5mFtOxpziPrZr+jGxDXRczrn6yWg=;
-        b=OgJZYa3b4bUaliaI22GShujl7ma0e7UgxstQ75+UNeaPf9L36cKJ8GbTmjr4K8kml3
-         jCH3NZap8VQlq9VOwLddKyTdRhVBfmCYP+ruAc4n4wcD7lWLgu4YsUkjgr8hAEnWW095
-         qN6op/ku1NboKPdNaLtKj8h50uXsxTquqhTyZPq/27g6lCLLrq8tSy4qegYOgffaXvrH
-         /kdQoZYaJTTpj3iadgn7RFlyBk8vFNwFcVV21PCEoeBB8mFm2OwcIIws7TIsfGYz/CAM
-         tbliIr3dOoNdFbyUY5rMRh8NOeIuJPZe96XxZ/t9q9z6j+9wa3yYl7H/EYZdidOaj+uA
-         wA/A==
+        d=gmail.com; s=20230601; t=1724946479; x=1725551279; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ILHxn7lRblRkiK0Gc7r8TIv6Xv3i9rztGnbYfkb6Dug=;
+        b=DlYanXxgR7Sm02146l9KbyR5K8SiJSOFoMO1j6RNilEs7QsUykgRtx/nEHDz1FmWD0
+         1KIdcbX/t5Rw/pSRE41lrBYUQskv9UdH1tj9thsE0HHIW0cGgcE073gTaUhSQOG98fqy
+         xteoa61lwZL/5ipgx0g7Ns5xsXRgF5LoThqyKlC7/4RyXv4xyeW/+50vs08XcWpCb6l9
+         7u7hDnykjb9gf/H0iHm8tePnHAO15QOEbwIobWRqQm4NefkZhPUfZRMiguK448g0xMb/
+         7sZrUIm85nUIxaF/hdKwZ4PTfF/Zb/bzRKI4QpdjajTQew3qocCY72ZPOvMXkNjYjvpA
+         onCQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1724946478; x=1725551278;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=SJLR2r7hoLlycJq5mFtOxpziPrZr+jGxDXRczrn6yWg=;
-        b=wqN7RB7in3MUyaidH9CeTmoeso41tCUJ7pmor6LYw4OMMNr4GHtU9f902vnJaSJY+n
-         Zu8bnxjqiuPioybQLkYAz0uumc9R6kBDO8CDKGO4Lkc3Kvk52ZzRslqoKsh2jqTcUu5o
-         HtSEaO1H5lAsmcnHxvGmCxVXDu02feawo2wsZ39srs1BaBs/aAHGSLEBHnA1sA00ghek
-         5ypf+175EvnVaAD2XQZIF8eOGJLntFp3Z/2yhv9dqKfzzycc/JkHofUy/Zuo78ykO27C
-         c4nQ2NAaC+Ajf4Wz00j5AXZYx2n14qG0n5rY4aQH1jI+MxG3/WpCdPcIh80Y1KNE56Cs
-         c3dg==
-X-Forwarded-Encrypted: i=1; AJvYcCVAL+5TdnMmLhBOEMDJXu4vgEDjaxiMLifniGWUR9xkE5kthHw3NKNtWNLr8yhUjxTZWw26keSHtXtZMAk=@vger.kernel.org, AJvYcCWgpT2dO7hAwKtEVWRn+siNYAAAfgJm6mYLEXxAGAYd0OtNQ7L8FD7SKPuj6jL0Wa3my2nZEOgS@vger.kernel.org
-X-Gm-Message-State: AOJu0YxxE0WqMvljPpm9S0F3DTnppImq9p06ZBl5qcvRNaCoUubaYSr+
-	3BMrUbgUtz/DXSz2NKopsTcYremmkrxz5UVWYAolCbLnaXa8gd2w3SRh6w==
-X-Google-Smtp-Source: AGHT+IHej6UB6RVTuXWNJJDyKDVowCjiKS0YrVG8dHDKSJ988SzOj7dTiOnFeFiagEmzk4yXFfkuFw==
-X-Received: by 2002:a17:907:9812:b0:a6f:1443:1e24 with SMTP id a640c23a62f3a-a897f91fb05mr310071066b.34.1724946477717;
-        Thu, 29 Aug 2024 08:47:57 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1724946479; x=1725551279;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=ILHxn7lRblRkiK0Gc7r8TIv6Xv3i9rztGnbYfkb6Dug=;
+        b=ME28Hg0WgYd0FlnaT+iDFgCjZ8kDQ9v8sA5RFADQ5trG79wGFUdaHNcdkeg/hJkaDA
+         xwDJvie/Lgi0sTZIEFjBeAtEvOx7oU5sHGBACM+LwRR1Eqh3N4EloWUhchk9VzxhHUGc
+         MOR9+SN/iKDcPrqu5j1BdwXNACSfku80sxD6YtcPAt6bDpDcdUT+Bak5PHwrtKPBvef1
+         2ChWit/FQjL6Uub3E+1A6Nj6r1bJ3DpbbxIwk399PwUINngemHGdZ5yQAdtC3lFif5J7
+         RkAsTtPWt3pj35OnjCqMVNdI+C7P5sgCzSzJyeqotdcQ+RoaI2/NLBon5RZOeH1B+xQ4
+         X9Ug==
+X-Forwarded-Encrypted: i=1; AJvYcCWv+RMTdX+5Yeo8TWuasvBalJ+a811Rhe8z3e7QQ0Jfjy3X0mjTnGeF7HFOLmYoehvh/zglecWh1tKMJNk=@vger.kernel.org, AJvYcCXWrxq73omEhjaNEJ3i4OjBLZEhwTWL0wfziu8AmrPVeZftGwd5YtpDdzM/MixFKyzCjcI3dJA2@vger.kernel.org
+X-Gm-Message-State: AOJu0YyaPXrE8eR1zFby1c5QL/cyDW0RUq2pLbduWcTdugfZJh6xn3Fl
+	Ukxkohu8Lcxe9puJI9Oc4V9Yf//1xOx6BrsLWksy8YtQSCsnZlHoNRlj7g==
+X-Google-Smtp-Source: AGHT+IGqi3tSnb4woeE4WPzxGfww2qKwIoAtHvtcT5uNNapseAZNZ4VcqKsxu3Rdp46UFcHwraNPfQ==
+X-Received: by 2002:a05:6512:2807:b0:52e:be84:225c with SMTP id 2adb3069b0e04-5353e5758a9mr2127153e87.33.1724946478517;
+        Thu, 29 Aug 2024 08:47:58 -0700 (PDT)
 Received: from localhost.localdomain ([46.248.82.114])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a898900f29csm93489466b.64.2024.08.29.08.47.56
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a898900f29csm93489466b.64.2024.08.29.08.47.57
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Aug 2024 08:47:57 -0700 (PDT)
+        Thu, 29 Aug 2024 08:47:58 -0700 (PDT)
 From: Uros Bizjak <ubizjak@gmail.com>
 To: netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org,
 	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Cc: Uros Bizjak <ubizjak@gmail.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>
-Subject: [PATCH v2 0/2] netfilter: nf_tables: Fix percpu address space issues in nf_tables_api.c
-Date: Thu, 29 Aug 2024 17:29:30 +0200
-Message-ID: <20240829154739.16691-1-ubizjak@gmail.com>
+Cc: Uros Bizjak <ubizjak@gmail.com>
+Subject: [PATCH v2 1/2] err.h: Add ERR_PTR_PCPU(), PTR_ERR_PCPU() and IS_ERR_PCPU() macros
+Date: Thu, 29 Aug 2024 17:29:31 +0200
+Message-ID: <20240829154739.16691-2-ubizjak@gmail.com>
 X-Mailer: git-send-email 2.42.0
+In-Reply-To: <20240829154739.16691-1-ubizjak@gmail.com>
+References: <20240829154739.16691-1-ubizjak@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -74,37 +72,54 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Use {ERR_PTR,IS_ERR,PTR_ERR}_PCPU() macros when crossing between generic
-and percpu address spaces and add __percpu annotation to *stats pointer
-to fix percpu address space issues.
+Add ERR_PTR_PCPU(), PTR_ERR_PCPU() and IS_ERR_PCPU() macros that
+operate on pointers in the percpu address space.
 
-NOTE: The patch depends on a patch that introduces *_PCPU() macros [1]
-that is on the way to mainline through the mm tree. For convience, the
-patch is included in this patch series, so CI tester is able to test
-the second patch without compile failures.
+These macros remove the need for (__force void *) function
+argument casts (to avoid sparse -Wcast-from-as warnings).
 
-[1] https://lore.kernel.org/lkml/20240818210235.33481-1-ubizjak@gmail.com/
+The patch will also avoid future build errors due to pointer address
+space mismatch with enabled strict percpu address space checks.
 
-The netfilter patch obsoletes patch [2].
+Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
+---
+ include/linux/err.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-[2] https://patchwork.ozlabs.org/project/netfilter-devel/patch/20240806102808.804619-1-ubizjak@gmail.com/
-
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>
-
-Uros Bizjak (2):
-  err.h: Add ERR_PTR_PCPU(), PTR_ERR_PCPU() and IS_ERR_PCPU() macros
-  netfilter: nf_tables: Fix percpu address space issues in
-    nf_tables_api.c
-
- include/linux/err.h           |  9 +++++++++
- net/netfilter/nf_tables_api.c | 16 ++++++++--------
- 2 files changed, 17 insertions(+), 8 deletions(-)
-
+diff --git a/include/linux/err.h b/include/linux/err.h
+index b5d9bb2a2349..a4dacd745fcf 100644
+--- a/include/linux/err.h
++++ b/include/linux/err.h
+@@ -41,6 +41,9 @@ static inline void * __must_check ERR_PTR(long error)
+ 	return (void *) error;
+ }
+ 
++/* Return the pointer in the percpu address space. */
++#define ERR_PTR_PCPU(error) ((void __percpu *)(unsigned long)ERR_PTR(error))
++
+ /**
+  * PTR_ERR - Extract the error code from an error pointer.
+  * @ptr: An error pointer.
+@@ -51,6 +54,9 @@ static inline long __must_check PTR_ERR(__force const void *ptr)
+ 	return (long) ptr;
+ }
+ 
++/* Read an error pointer from the percpu address space. */
++#define PTR_ERR_PCPU(ptr) (PTR_ERR((const void *)(__force const unsigned long)(ptr)))
++
+ /**
+  * IS_ERR - Detect an error pointer.
+  * @ptr: The pointer to check.
+@@ -61,6 +67,9 @@ static inline bool __must_check IS_ERR(__force const void *ptr)
+ 	return IS_ERR_VALUE((unsigned long)ptr);
+ }
+ 
++/* Read an error pointer from the percpu address space. */
++#define IS_ERR_PCPU(ptr) (IS_ERR((const void *)(__force const unsigned long)(ptr)))
++
+ /**
+  * IS_ERR_OR_NULL - Detect an error pointer or a null pointer.
+  * @ptr: The pointer to check.
 -- 
 2.42.0
 
