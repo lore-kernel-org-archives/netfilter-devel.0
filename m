@@ -1,49 +1,67 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com [209.85.218.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 415F2158A3C
-	for <netfilter-devel@vger.kernel.org>; Thu, 29 Aug 2024 11:34:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9815B193097
+	for <netfilter-devel@vger.kernel.org>; Thu, 29 Aug 2024 12:04:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724931270; cv=none; b=t0GL+FwyKg/0R7d4SiBC4aOh8BD7ocRJmp9sQ0KpxwVhB2/X140HuL15PTStahejnLdbODgX7L6/5ZEcnZLUc7zh5ZvENDOHXiNTxnKxiD6uBo7yk4w8XHhawS9QHA3Fj8bP+DyCDJ7lOIIRk7QI83GQSKeAohaoxVyTHgeFIRo=
+	t=1724933092; cv=none; b=HWz22qYAMN5VOKYxTTcAQCsZApzeVUNEJ37/3ZcZQsfoyukCbSqk9m7fvXVXOmNKsB9L4ZGXgi35eEg/2iobbBhkgX5Ol4ea79YneX93Isuk+POXQVrR8Rp0XKhR3+B0x8nCWt9zYLoBdvZs6NBvFZv67f9ft0OjjRB+aNjHB8w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724931270; c=relaxed/simple;
-	bh=tuhYNMrJVvj/jyzQxtLsktpmoM6Z/1vHuYRnX1ZkRfY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=OSkA1CfcnaSf+TbJNrcc7FX08BjFEfVmkAdIupL4ShpWokGPhdd1dH8sdnnB7/yi5dtPRGfvFZKHQYz5G9xI8IQ49mRR/daGBBuYzkD6tVCGsVjmj35nKstmhSRjuthIrSC2wxqHh2zxkB28HoeLlgZmoa5hxKuJej3HZp31chk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=B+Uz8wcG; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1724933092; c=relaxed/simple;
+	bh=3TV9ovRmfbIKF5feyjBePyV5R4bYPrY3+rJnxmHqztE=;
+	h=From:Date:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=caYDaMd3TNP/ZSkjveDQadyhl11eFjfknFKPAfgy/2Gmnj4EE1udBa+9oAiWcSTdN6ng0oWNvTOEoTkX3Y3sHHcliXvcgRzYexUTtmM+OIx7bvjXpccG3MfiBF+ia73Qw6Pu+mRAN5fwWWFIubcN5hTSPGVxXAdVhhHWO0mE8Xk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=googlemail.com; spf=pass smtp.mailfrom=googlemail.com; dkim=pass (2048-bit key) header.d=googlemail.com header.i=@googlemail.com header.b=gAuudSaE; arc=none smtp.client-ip=209.85.218.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=googlemail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=googlemail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="B+Uz8wcG"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=mUU5z69MXUaSde/LEMrB5ZFnzEo1Ct8TIMJ2DRCWDaI=; b=B+Uz8wcGYL66lDt6L7eB9cFgCK
-	JjLKNEIi1NrTHUPBcpori9rtoRAY4Qp1GA2n5co/KDkn4j4rNHGhXszibPDuCQgJxgQPLhRwM7l9p
-	ID1/DzqycfEF0ufL2AEiNhjIkGnKZStGC9Gy4aEAfJ9iAJVEv0e8XMa3Wsf/UQHSeZ/MROS/iQScQ
-	gngS2xl9r30mIy1EXaYBGvRtfDO8ZECTNmm3SNrznn+PLLGtXVWckneZdYyUOgS1gCzm8xE+G3HDr
-	TeP3QwpfnieES75H7W6Gsp8nzfHvNCq4ZMH1Du2+R3CwIjTcpJy8gTqk/K5EKquZcmSDJpSpuApcF
-	1G+CWwng==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1sjd0i-000000007mE-2s3l;
-	Thu, 29 Aug 2024 13:08:16 +0200
-Date: Thu, 29 Aug 2024 13:08:16 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Joshua Lant <joshualant@googlemail.com>
-Cc: netfilter-devel@vger.kernel.org, Joshua Lant <joshualant@gmail.com>
+	dkim=pass (2048-bit key) header.d=googlemail.com header.i=@googlemail.com header.b="gAuudSaE"
+Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-a86cc0d10aaso59596666b.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 29 Aug 2024 05:04:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=googlemail.com; s=20230601; t=1724933089; x=1725537889; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:to:date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=7EX40gslhdhY+NN3lrltEDo314H6/g1OwEaC0Y0GMHw=;
+        b=gAuudSaE37UxOzp+ucYwLhWyoYRHi6NtJ942s/cXVWaSyZCF0mbcx5KT7cErEOgILp
+         fvG143ScdhEK75PwYtgswlWfJTodioSx9txCnOvfUHxkIMqKRA0b17v+t6Muu6xktvMF
+         F68Q69hq1i6IDkfp37BvYzLxDOjp68rQOFhdAlNp2FBlavBA3zRdkQEsfpMXU0jxx/sz
+         2FreKP3dSl/kSua/OtAbrYnNIOhxMj2zU5xEOpjmr4O6Coxkhw+/H+DSDIGXTkH0Yz33
+         x8n6iYn+Rdc5G8xczsA/RuLY5Z1beWzDn1Y5/2wvWIcxi5xcWgdal1chc91/XdEu9YNR
+         cx+A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1724933089; x=1725537889;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:to:date:from:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=7EX40gslhdhY+NN3lrltEDo314H6/g1OwEaC0Y0GMHw=;
+        b=w7g8HSCuK6vrXQbFmlojWm+MCBsdoeZdpipQieAxTx2iJLgYvvaUEqF7+r4jGhSPun
+         5tNo0BvGZ9JyvEbFFFSVVu0jP6vZtr0zPYIidXB5VF7g252qTy+UCT1AWNIX2OJW0Mx9
+         mQv4pr0zYlbhu3Fmvca6sp1HTgx5o8E32u8PtgyyQffTVgs3UVWfBtAHe99MchG2J87o
+         Ff7Yg6Br2rFTTqe27XUw3H0NNOQw+2YemhEGMZlCVfRlLFoFUX5sVMehGDwyWaM3hsYn
+         z7PHj5EhL0ryLRpVJsIHJgLJTlODYB3Tbt2QGINb+ms9m23reWX3WrAsOY7aoA60f9jn
+         aO8A==
+X-Forwarded-Encrypted: i=1; AJvYcCUdJIRbXPSJRiYM3G3Y7yq80sVmtDPRKO7wNHzbStgELYkCwnaPsZZgjgphEWR+IS6LAVcL5aiaAjgVMaXr1Rw=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yyt3yRQNsvXJ7SxAwzGKIHEf/8+NYvKL3GFeGQhmKGz1hNnSzAD
+	gUAM3GyJOKJaFAnAVuojXszrNuKyL4rmTBg/nZCivHQGOATfft7Z
+X-Google-Smtp-Source: AGHT+IHUGT/HcTCNQknOuwRANVh4wbT/SV2Jq7azIMIwoQZJC3cmqI84/UTXsMxO3uoVAF1FYDvVPg==
+X-Received: by 2002:a17:907:3f1c:b0:a83:94bd:d913 with SMTP id a640c23a62f3a-a897f7892d1mr196590966b.10.1724933088533;
+        Thu, 29 Aug 2024 05:04:48 -0700 (PDT)
+Received: from thinkpc (shef-16-b2-v4wan-169484-cust5160.vm3.cable.virginm.net. [92.236.212.41])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a8989195e8csm71456766b.105.2024.08.29.05.04.47
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 29 Aug 2024 05:04:48 -0700 (PDT)
+From: Joshua Lant <joshualant@googlemail.com>
+X-Google-Original-From: Joshua Lant <joshualant@gmail.com>
+Date: Thu, 29 Aug 2024 13:04:46 +0100
+To: Phil Sutter <phil@nwl.cc>, Joshua Lant <joshualant@googlemail.com>,
+	netfilter-devel@vger.kernel.org
 Subject: Re: [PATCH iptables 1/1] configure: Determine if musl is used for
  build
-Message-ID: <ZtBWoImxzGRBFLs2@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Joshua Lant <joshualant@googlemail.com>,
-	netfilter-devel@vger.kernel.org, Joshua Lant <joshualant@gmail.com>
+Message-ID: <ZtBj3hmWMn5lapzA@thinkpc>
 References: <20240828124731.553911-1-joshualant@gmail.com>
  <20240828124731.553911-2-joshualant@gmail.com>
+ <ZtBWoImxzGRBFLs2@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -52,35 +70,32 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240828124731.553911-2-joshualant@gmail.com>
+In-Reply-To: <ZtBWoImxzGRBFLs2@orbyte.nwl.cc>
 
-Hi Joshua,
+Hi Phil,
 
-On Wed, Aug 28, 2024 at 01:47:31PM +0100, Joshua Lant wrote:
-> Error compiling with musl-libc:
-> The commit hash 810f8568f44f5863c2350a39f4f5c8d60f762958
-> introduces the netinet/ether.h header into xtables.h, which causes an error due
-> to the redefinition of the ethhdr struct, defined in linux/if_ether.h and
-> netinet/ether.h. This is fixed by the inclusion of -D__UAPI_DEF_ETHHDR=0 in
-> CFLAGS for musl. Automatically check for this macro, since it is defined
-> in musl but not in glibc.
+> Thanks for the patch! I tested and it may be simplified a bit:
+> 
+> [...]
+> > +	#if defined(__UAPI_DEF_ETHHDR) && __UAPI_DEF_ETHHDR == 0
+> > +		return 0;
+> > +	#else
+> > +		#error error trying musl...
+> > +	#endif
+> [...]
+> 
+> Since the non-failure case is the default, this is sufficient:
+> 
+> |       #if ! defined(__UAPI_DEF_ETHHDR) || __UAPI_DEF_ETHHDR != 0
+> |               #error error trying musl...
+> |       #endif
+> 
+> Fine with you? If so, I'll push the modified patch out.
+> 
+> Thanks, Phil
 
-Thanks for the patch! I tested and it may be simplified a bit:
+Looks good to me :)
 
-[...]
-> +	#if defined(__UAPI_DEF_ETHHDR) && __UAPI_DEF_ETHHDR == 0
-> +		return 0;
-> +	#else
-> +		#error error trying musl...
-> +	#endif
-[...]
+Cheers,
 
-Since the non-failure case is the default, this is sufficient:
-
-|       #if ! defined(__UAPI_DEF_ETHHDR) || __UAPI_DEF_ETHHDR != 0
-|               #error error trying musl...
-|       #endif
-
-Fine with you? If so, I'll push the modified patch out.
-
-Thanks, Phil
+Josh
