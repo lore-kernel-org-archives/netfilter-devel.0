@@ -1,86 +1,73 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB24A364BE
-	for <netfilter-devel@vger.kernel.org>; Thu, 29 Aug 2024 14:35:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 574F818C331;
+	Thu, 29 Aug 2024 14:53:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724942142; cv=none; b=Yo0mKrBdL+EKCi5vTSDeIoHulI5uAduvym95Rkr3k+xfI3fo/H+PsFf6StlHxuSDLDztOwH+IbkIDE9giw/VoeePpfUrlsW8ZHf1RAEK2EuoIIKgQo+rbC8NPMdHsINYG7cJoxSXtdgSXwfCBVVh1UOdtSZNGLQuSyquAU4hnXc=
+	t=1724943185; cv=none; b=BgMli6XcIjJgQ4RTMgcsqdH3BNEWASHCxDTPJlT4zfgPnjOGV0bASCwrSVOb1M1w6urEFNjwalnr7W3+rS9OrPS0uSslKP/+QLr+Uj5+692oHWDZiFHPOIiqqXLQRC4hDsNbEDuHWSv/YOltKjncbkxyxwZcVmEy4QeSf5VEMI4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724942142; c=relaxed/simple;
-	bh=7pxvZ4KKF+1q9BOjxPmLu7dYMAzqmZ9jCRf9TVopuHM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=rpjguQ+Ivnu76kHR0I8QSiJrsrEesemn1ZdrvPl0r2a8uUPW95uDY+F96h3SMKuE1RaFsbcVgGIa/6c24j3s9vTDkEsggQ4Td53+C3scjglPmgUnRSlV7JipaaXklTDbhvV2cybBX761JbPJQTBXLw2aWr5LwRLSz2NOXlN2d2A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=garver.life; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=SiUJPq/L; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=garver.life
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1724943185; c=relaxed/simple;
+	bh=y+XTkh4W6BCVe6ik0oYvCZEaUAHuGkmtcSWc6t/13pM=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=NsJDuKqTUNZUJ0DG4tX+EQ0nwNuVIYCgYIscQ5jo8MG/+ljF899zJAzlj0VT1u1C/K8wXBdtN5ufIEOn9zlt4Rqgq2pgDSRpxy+D9XqWkU2M3Jy7AfSGM9PtFq1+gOvBy6/5TC1TriHSU1K81aP+g9nFQoGoP4o0FyVEZ48giQU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=X8G+dVg5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="SiUJPq/L"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1724942138;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=/dVqqBxXvB1LxiMqpe7j5HwkydFU9DSDjkQyA5xFLys=;
-	b=SiUJPq/LtNAWFdbKGCIR78MvJq+idBDfvvh0Jy6hPRR/LufmdorvBUCYzwArF2N5iCcAe5
-	+9ZIqRE6RPJEs2QSvWefpHBiCg1CAZ4MeBWJ9IBzzYLe8e8neWZSMSt7dy+4Ud2U29w/Ge
-	KAhDRDdoWY7RCu4b4CkgOhNutQleIu0=
-Received: from mx-prod-mc-02.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-447-LiLkKvnzOI25hgFiWrF6Tw-1; Thu,
- 29 Aug 2024 10:35:35 -0400
-X-MC-Unique: LiLkKvnzOI25hgFiWrF6Tw-1
-Received: from mx-prod-int-04.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-04.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.40])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-02.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id ACD421955D55;
-	Thu, 29 Aug 2024 14:35:33 +0000 (UTC)
-Received: from localhost (unknown [10.22.17.151])
-	by mx-prod-int-04.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id 4CE2419560A3;
-	Thu, 29 Aug 2024 14:35:32 +0000 (UTC)
-Date: Thu, 29 Aug 2024 10:35:30 -0400
-From: Eric Garver <eric@garver.life>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft 1/5] cache: assert filter when calling
- nft_cache_evaluate()
-Message-ID: <ZtCHMk2ez3l-JeTt@egarver-mac>
-Mail-Followup-To: Eric Garver <eric@garver.life>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-References: <20240829113153.1553089-1-pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="X8G+dVg5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17E1EC4CEC1;
+	Thu, 29 Aug 2024 14:53:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1724943184;
+	bh=y+XTkh4W6BCVe6ik0oYvCZEaUAHuGkmtcSWc6t/13pM=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=X8G+dVg5hG0VsWhvjV1Bhu+X4Or6heyfFNsIJ+80TqLiiTTs1OfhsA00FJqOtvaqu
+	 J4g3t4P06hzxXdCukDVuKuD30FBBpHB9gQx2OrNzSE+PFSlhVJQ8cDwBN47l0H7owQ
+	 OOoAZSC2J9e6gtbpil3KF0QaCN1kask14kqMy+Tb0HZWFzs04rETSeVYw44CCP4cWD
+	 pojvEgjcse4JRXUiISGbdPyJNVk8X79Tejr+0M3RmI56Jv314/PxKJpgQcvrOncO/6
+	 jQwA5+l6VR63bWbQro2LKETwmRRsLZfI81QTjeX/QHxu3nPiJHrV9Tfdil4afotQwL
+	 uVP9GF1lbfGZQ==
+Date: Thu, 29 Aug 2024 07:53:03 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Breno Leitao <leitao@debian.org>
+Cc: fw@strlen.de, davem@davemloft.net, edumazet@google.com,
+ pabeni@redhat.com, Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef
+ Kadlecsik <kadlec@netfilter.org>, David Ahern <dsahern@kernel.org>, Shuah
+ Khan <shuah@kernel.org>, rbc@meta.com, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org, "open
+ list:NETFILTER" <coreteam@netfilter.org>, "open list:KERNEL SELFTEST
+ FRAMEWORK" <linux-kselftest@vger.kernel.org>
+Subject: Re: [PATCH nf-next v3 1/2] netfilter: Make IP_NF_IPTABLES_LEGACY
+ selectable
+Message-ID: <20240829075303.775fce1d@kernel.org>
+In-Reply-To: <ZtBIgekUyptmCqRa@gmail.com>
+References: <20240827145242.3094777-1-leitao@debian.org>
+	<20240827145242.3094777-2-leitao@debian.org>
+	<20240828074240.2abaa74c@kernel.org>
+	<Zs88pbEadxLWLLbn@gmail.com>
+	<20240828114123.3c85a9a5@kernel.org>
+	<ZtBIgekUyptmCqRa@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240829113153.1553089-1-pablo@netfilter.org>
-X-Scanned-By: MIMEDefang 3.0 on 10.30.177.40
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Thu, Aug 29, 2024 at 01:31:49PM +0200, Pablo Neira Ayuso wrote:
-> nft_cache_evaluate() always takes a non-null filter, remove superfluous
-> checks when calculating cache requirements via flags.
+On Thu, 29 Aug 2024 03:08:01 -0700 Breno Leitao wrote:
+> > There are various configs in the tree. Grep for the configs you convert
+> > from select to depends on, they will all need updating.  
 > 
-> Note that filter is still option from netlink dump path, since this can
-> be called from error path to provide hints.
+> I am looking at all files that depend on these Kconfig options, and
+> there are a lot of tests.
 > 
-> Fixes: 08725a9dc14c ("cache: filter out rules by chain")
-> Fixes: b3ed8fd8c9f3 ("cache: missing family in cache filtering")
-> Fixes: 635ee1cad8aa ("cache: filter out sets and maps that are not requested")
-> Fixes: 3f1d3912c3a6 ("cache: filter out tables that are not requested")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  src/cache.c | 16 +++++++---------
->  1 file changed, 7 insertions(+), 9 deletions(-)
+> Thinking more about the problem, it doesn't seem to be a good idea to
+> change dependency from all NF modules to NF_IPTABLES_LEGACY. In other
+> words, the `s/selects/depends on/` is the part that is causing all this
+> hassle, and it seems unnecessary.
+> 
+> That said, I would suggest we do not change the dependency, and keep the
+> "select NF_IPTABLES_LEGACY", and keep NF_IPTABLES_LEGACY user selectable.
 
-Thanks Pablo.
-
-For the series:
-
-Tested-by: Eric Garver <eric@garver.life>
-
+Good idea, sounds much simpler!
