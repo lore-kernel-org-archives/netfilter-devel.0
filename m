@@ -1,167 +1,86 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id F1BEE1922FB
-	for <netfilter-devel@vger.kernel.org>; Thu, 29 Aug 2024 11:31:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 415F2158A3C
+	for <netfilter-devel@vger.kernel.org>; Thu, 29 Aug 2024 11:34:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724931122; cv=none; b=LqOBH74E/tXZ5bXQlJtx6EHQ16hlRxYO/A1Rdw9e7zbZxRgm+4OuI/7M8Ewdx73knZ88lAA2iygUjQE0fiYajUk4YiVaRXIN06HKNVQwK2dROyMKDxa8TT7tPObjy/uMmRgI4AVnFnQdxbnv0jnFCiVl8uM1gwSpImx2Gc08dnc=
+	t=1724931270; cv=none; b=t0GL+FwyKg/0R7d4SiBC4aOh8BD7ocRJmp9sQ0KpxwVhB2/X140HuL15PTStahejnLdbODgX7L6/5ZEcnZLUc7zh5ZvENDOHXiNTxnKxiD6uBo7yk4w8XHhawS9QHA3Fj8bP+DyCDJ7lOIIRk7QI83GQSKeAohaoxVyTHgeFIRo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724931122; c=relaxed/simple;
-	bh=6AkAV5BZNNPjMkOXTpLpwChmF2ARrC/Z21WhDMqESBs=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=tBPISueTv8L2Omy3ZKEkYIb048Oaqp819YMj+Z1TAcGC0McXcqwTcyV5ytRGsbUNUu4HMAhhyKM5kaRQN7sOFp8dQaCiVLt1w0xEJdMgN827m1fDz9fIwYLglibzbv9fajpdjRFw49Pw5sx/PfYXjGk7QtrN6HzC8RSgLuHqOnY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: eric@garver.life
-Subject: [PATCH nft 4/5] cache: relax requirement for replace rule command
-Date: Thu, 29 Aug 2024 13:31:52 +0200
-Message-Id: <20240829113153.1553089-4-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20240829113153.1553089-1-pablo@netfilter.org>
-References: <20240829113153.1553089-1-pablo@netfilter.org>
+	s=arc-20240116; t=1724931270; c=relaxed/simple;
+	bh=tuhYNMrJVvj/jyzQxtLsktpmoM6Z/1vHuYRnX1ZkRfY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=OSkA1CfcnaSf+TbJNrcc7FX08BjFEfVmkAdIupL4ShpWokGPhdd1dH8sdnnB7/yi5dtPRGfvFZKHQYz5G9xI8IQ49mRR/daGBBuYzkD6tVCGsVjmj35nKstmhSRjuthIrSC2wxqHh2zxkB28HoeLlgZmoa5hxKuJej3HZp31chk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=B+Uz8wcG; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="B+Uz8wcG"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=mUU5z69MXUaSde/LEMrB5ZFnzEo1Ct8TIMJ2DRCWDaI=; b=B+Uz8wcGYL66lDt6L7eB9cFgCK
+	JjLKNEIi1NrTHUPBcpori9rtoRAY4Qp1GA2n5co/KDkn4j4rNHGhXszibPDuCQgJxgQPLhRwM7l9p
+	ID1/DzqycfEF0ufL2AEiNhjIkGnKZStGC9Gy4aEAfJ9iAJVEv0e8XMa3Wsf/UQHSeZ/MROS/iQScQ
+	gngS2xl9r30mIy1EXaYBGvRtfDO8ZECTNmm3SNrznn+PLLGtXVWckneZdYyUOgS1gCzm8xE+G3HDr
+	TeP3QwpfnieES75H7W6Gsp8nzfHvNCq4ZMH1Du2+R3CwIjTcpJy8gTqk/K5EKquZcmSDJpSpuApcF
+	1G+CWwng==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1sjd0i-000000007mE-2s3l;
+	Thu, 29 Aug 2024 13:08:16 +0200
+Date: Thu, 29 Aug 2024 13:08:16 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Joshua Lant <joshualant@googlemail.com>
+Cc: netfilter-devel@vger.kernel.org, Joshua Lant <joshualant@gmail.com>
+Subject: Re: [PATCH iptables 1/1] configure: Determine if musl is used for
+ build
+Message-ID: <ZtBWoImxzGRBFLs2@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Joshua Lant <joshualant@googlemail.com>,
+	netfilter-devel@vger.kernel.org, Joshua Lant <joshualant@gmail.com>
+References: <20240828124731.553911-1-joshualant@gmail.com>
+ <20240828124731.553911-2-joshualant@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240828124731.553911-2-joshualant@gmail.com>
 
-No need for full cache, this command relies on the rule handle which is
-not validated from userspace. Cache requirements are similar to those
-of add/create/delete rule commands.
+Hi Joshua,
 
-This speeds up incremental updates with large rulesets.
+On Wed, Aug 28, 2024 at 01:47:31PM +0100, Joshua Lant wrote:
+> Error compiling with musl-libc:
+> The commit hash 810f8568f44f5863c2350a39f4f5c8d60f762958
+> introduces the netinet/ether.h header into xtables.h, which causes an error due
+> to the redefinition of the ethhdr struct, defined in linux/if_ether.h and
+> netinet/ether.h. This is fixed by the inclusion of -D__UAPI_DEF_ETHHDR=0 in
+> CFLAGS for musl. Automatically check for this macro, since it is defined
+> in musl but not in glibc.
 
-Extend tests/coverage for rule replacement.
+Thanks for the patch! I tested and it may be simplified a bit:
 
-Fixes: 01e5c6f0ed03 ("src: add cache level flags")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/cache.c                                   |  2 +-
- .../testcases/rule_management/0004replace_0   |  8 ++-
- .../dumps/0004replace_0.json-nft              | 49 ++++++++++++++++++-
- .../rule_management/dumps/0004replace_0.nft   | 11 ++++-
- 4 files changed, 65 insertions(+), 5 deletions(-)
+[...]
+> +	#if defined(__UAPI_DEF_ETHHDR) && __UAPI_DEF_ETHHDR == 0
+> +		return 0;
+> +	#else
+> +		#error error trying musl...
+> +	#endif
+[...]
 
-diff --git a/src/cache.c b/src/cache.c
-index fce71eed3452..db7dfd96081d 100644
---- a/src/cache.c
-+++ b/src/cache.c
-@@ -495,7 +495,7 @@ int nft_cache_evaluate(struct nft_ctx *nft, struct list_head *cmds,
- 			flags = evaluate_cache_add(cmd, flags);
- 			break;
- 		case CMD_REPLACE:
--			flags = NFT_CACHE_FULL;
-+			flags = NFT_CACHE_TABLE | NFT_CACHE_SET;
- 			break;
- 		case CMD_DELETE:
- 		case CMD_DESTROY:
-diff --git a/tests/shell/testcases/rule_management/0004replace_0 b/tests/shell/testcases/rule_management/0004replace_0
-index c3329af500d3..18dc4a9fe30b 100755
---- a/tests/shell/testcases/rule_management/0004replace_0
-+++ b/tests/shell/testcases/rule_management/0004replace_0
-@@ -6,5 +6,9 @@
- set -e
- $NFT add table t
- $NFT add chain t c
--$NFT add rule t c accept	# should have handle 2
--$NFT replace rule t c handle 2 drop
-+$NFT 'add set t s1 { type ipv4_addr; }'
-+$NFT 'add set t s2 { type ipv4_addr; flags interval; }'
-+$NFT add rule t c accept        # should have handle 4
-+$NFT replace rule t c handle 4 drop
-+$NFT replace rule t c handle 4 ip saddr { 1.1.1.1, 2.2.2.2 }
-+$NFT replace rule t c handle 4 ip saddr @s2 ip daddr { 3.3.3.3, 4.4.4.4 }
-diff --git a/tests/shell/testcases/rule_management/dumps/0004replace_0.json-nft b/tests/shell/testcases/rule_management/dumps/0004replace_0.json-nft
-index 5d0b7d066e83..767e80f14ff2 100644
---- a/tests/shell/testcases/rule_management/dumps/0004replace_0.json-nft
-+++ b/tests/shell/testcases/rule_management/dumps/0004replace_0.json-nft
-@@ -22,6 +22,27 @@
-         "handle": 0
-       }
-     },
-+    {
-+      "set": {
-+        "family": "ip",
-+        "name": "s1",
-+        "table": "t",
-+        "type": "ipv4_addr",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "set": {
-+        "family": "ip",
-+        "name": "s2",
-+        "table": "t",
-+        "type": "ipv4_addr",
-+        "handle": 0,
-+        "flags": [
-+          "interval"
-+        ]
-+      }
-+    },
-     {
-       "rule": {
-         "family": "ip",
-@@ -30,7 +51,33 @@
-         "handle": 0,
-         "expr": [
-           {
--            "drop": null
-+            "match": {
-+              "op": "==",
-+              "left": {
-+                "payload": {
-+                  "protocol": "ip",
-+                  "field": "saddr"
-+                }
-+              },
-+              "right": "@s2"
-+            }
-+          },
-+          {
-+            "match": {
-+              "op": "==",
-+              "left": {
-+                "payload": {
-+                  "protocol": "ip",
-+                  "field": "daddr"
-+                }
-+              },
-+              "right": {
-+                "set": [
-+                  "3.3.3.3",
-+                  "4.4.4.4"
-+                ]
-+              }
-+            }
-           }
-         ]
-       }
-diff --git a/tests/shell/testcases/rule_management/dumps/0004replace_0.nft b/tests/shell/testcases/rule_management/dumps/0004replace_0.nft
-index e20952ef573e..803c0debb737 100644
---- a/tests/shell/testcases/rule_management/dumps/0004replace_0.nft
-+++ b/tests/shell/testcases/rule_management/dumps/0004replace_0.nft
-@@ -1,5 +1,14 @@
- table ip t {
-+	set s1 {
-+		type ipv4_addr
-+	}
-+
-+	set s2 {
-+		type ipv4_addr
-+		flags interval
-+	}
-+
- 	chain c {
--		drop
-+		ip saddr @s2 ip daddr { 3.3.3.3, 4.4.4.4 }
- 	}
- }
--- 
-2.30.2
+Since the non-failure case is the default, this is sufficient:
 
+|       #if ! defined(__UAPI_DEF_ETHHDR) || __UAPI_DEF_ETHHDR != 0
+|               #error error trying musl...
+|       #endif
+
+Fine with you? If so, I'll push the modified patch out.
+
+Thanks, Phil
