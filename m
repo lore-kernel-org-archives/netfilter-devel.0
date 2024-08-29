@@ -1,97 +1,109 @@
-Received: from mail-lf1-f42.google.com (mail-lf1-f42.google.com [209.85.167.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4091E18CC1E;
-	Thu, 29 Aug 2024 10:08:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.42
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2602218A6D1
+	for <netfilter-devel@vger.kernel.org>; Thu, 29 Aug 2024 11:31:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724926088; cv=none; b=h/1jdFjklUW6ePX7XxXgA3DISDuAp+ZVcYgThxidb4WIrL9OyM76I+5NlGAKYgo9muShiFU+jLMC32Hc8ts74pjsioY/SAKzF6P8ZTsNzEN2LXEdkmcEGfCD82u+qqyA166YHrLkz/FbxT1VHuJu578ZwLbF8zDohCr9p/eGZ7Y=
+	t=1724931121; cv=none; b=aYDmX+IRz+n83rPAX8CptX5CP3CmJjU834nO4ozdyHHRVh2r1dQfeufhrIgvWUu4eL71gl4mrsf1SA+huBUm0t3ISxOs+Oy5Rjn3DxLAG2b9uOhCkp0Foqf97kEeB8QXnNmNa760SthKKuNeO5mVb/HZenkaEYBkGI2Vkk1eLmM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724926088; c=relaxed/simple;
-	bh=v7npGnWVI06jQB/GP+WqmHASzHtfMK63ymHNNGaUS9Y=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=oFJqTEfxBWYlTw7dIEhoRPeMpGBO1HZ+BjEwCAKVXLrCy/So5bJet+9QX2oa+ezOJf09CouJyA1WiHvjCUWaIQPZHbQF07Pooq/aqhV+JgOzBwNAmB6QVlPXh7BqRhmYR7YO483tm/fA72Fmj0yHUWEBwv7JymzgJgSLxL5j/Sg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.167.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-lf1-f42.google.com with SMTP id 2adb3069b0e04-5334adf7249so645506e87.3;
-        Thu, 29 Aug 2024 03:08:06 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1724926085; x=1725530885;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=68VfpIe/gY3b5Zsqxl5bIsvzSythZF52J8UjEnejXGE=;
-        b=XCjImMkft1QWJvHeR+XzkO47uOooNgeVvZXJrZncHO+3wurLG/Mp/itLAGg3tbc5Gi
-         ppqThxJRUoUR3FevnIgew26tSmQweyFBCnkCnnbGHTwaB4a0rhnN4Fj/QrX88anXYd34
-         y/Os9loT5b6PLTBu2wgrOpKBn5CzHI6It3vAwCXBH7qSp6hINn5ewPIQhZE0AkwIuZzF
-         QlZstIOUcFX5kanIRZrFwYtqbG30SdkRbzuWJ9l4cRlmdxRLfGZu7LHy2Ad3FrlK4vvO
-         YwNym/Iy8VeM4WEGXCqzZi0fEmydqM220GuFXcNjaiSA/T2l4IuFg1K8TQL8DvnCynKh
-         4/uA==
-X-Forwarded-Encrypted: i=1; AJvYcCUobM+cTW6kP56gbxZQWGYOgnvzCK0Mj3Ryr4hGoGZMnYiPrUvru7OeeFqdZ88bNTUe3TTEWih5@vger.kernel.org, AJvYcCUv3zcQBPDpy8b73zXUi7ByDTOZVgVwyZaoLQntjadPcAydm0Zg+RncDOv6PsE8Lw5uE61wR5hHX370jOnEts2m@vger.kernel.org, AJvYcCWWvIFXh31M4xE1sL2cQjBwUg/c40+zjEjkbFSOxFwoYDABTjw8zkXjh9ueH3neAjIznDaYQ+hDkSeptjn2z2KE@vger.kernel.org, AJvYcCXdaea2AwDn06d39g+CK60AjUClll0WF3CSDDbRe4TwsXtm92aLP98e600c2ws9e5U3pnGnDAJBEQLCAcc=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz779Lk9kpY/UGZUFh/dUa7yPoqYXzkwr4jWo5+d/6c/wqZVor8
-	lINScQZpb0Uu2nsbKi2Di5E0zOUMvZuYPEl6hQ0ZNeLNxMYv3REh3wvYKA==
-X-Google-Smtp-Source: AGHT+IFmz+YxnGXgxNh++Tsg0uingdtxTTovmvly65eI0+SFc9ZOa//xepAe3YbevHsB4xnK70BHgQ==
-X-Received: by 2002:a05:6512:10d6:b0:52c:90b6:170f with SMTP id 2adb3069b0e04-5353e56eab0mr1847296e87.29.1724926084638;
-        Thu, 29 Aug 2024 03:08:04 -0700 (PDT)
-Received: from gmail.com (fwdproxy-lla-113.fbsv.net. [2a03:2880:30ff:71::face:b00c])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a89891d6dc3sm58031766b.156.2024.08.29.03.08.03
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Aug 2024 03:08:04 -0700 (PDT)
-Date: Thu, 29 Aug 2024 03:08:01 -0700
-From: Breno Leitao <leitao@debian.org>
-To: Jakub Kicinski <kuba@kernel.org>
-Cc: fw@strlen.de, davem@davemloft.net, edumazet@google.com,
-	pabeni@redhat.com, Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	David Ahern <dsahern@kernel.org>, Shuah Khan <shuah@kernel.org>,
-	rbc@meta.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	"open list:NETFILTER" <coreteam@netfilter.org>,
-	"open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>
-Subject: Re: [PATCH nf-next v3 1/2] netfilter: Make IP_NF_IPTABLES_LEGACY
- selectable
-Message-ID: <ZtBIgekUyptmCqRa@gmail.com>
-References: <20240827145242.3094777-1-leitao@debian.org>
- <20240827145242.3094777-2-leitao@debian.org>
- <20240828074240.2abaa74c@kernel.org>
- <Zs88pbEadxLWLLbn@gmail.com>
- <20240828114123.3c85a9a5@kernel.org>
+	s=arc-20240116; t=1724931121; c=relaxed/simple;
+	bh=LKvAjwyRIEJ1+bjpdLTIlYg48nqkj1QLYWyCFc7NVps=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=HHfZZsQVYKZQfhOBT3Lutg+VyTtj/SxWcpuczVYmrkV0mGaGSSii17rMwvVgMC4HUt38QBWe1rcqB9saE73LXdfglQ6rjeZv8qNAPadiGy693amTMHRNGEHxeydGMGvqE2hh+PuYYg3fP18lxZ8PILa2jOecOfzEXfN6UCOiIQs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: eric@garver.life
+Subject: [PATCH nft 1/5] cache: assert filter when calling nft_cache_evaluate()
+Date: Thu, 29 Aug 2024 13:31:49 +0200
+Message-Id: <20240829113153.1553089-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240828114123.3c85a9a5@kernel.org>
+Content-Transfer-Encoding: 8bit
 
-Hello Jakub,
+nft_cache_evaluate() always takes a non-null filter, remove superfluous
+checks when calculating cache requirements via flags.
 
-On Wed, Aug 28, 2024 at 11:41:23AM -0700, Jakub Kicinski wrote:
-> On Wed, 28 Aug 2024 08:05:09 -0700 Breno Leitao wrote:
-> > On Wed, Aug 28, 2024 at 07:42:40AM -0700, Jakub Kicinski wrote:
-> > > On Tue, 27 Aug 2024 07:52:40 -0700 Breno Leitao wrote:  
-> > > > +++ b/tools/testing/selftests/net/config  
-> > > 
-> > > You gotta check all the configs, net is now fine, but bpf still breaks.
-> > > There may be more configs we don't use in CI.  
-> > 
-> > Sure, how can I find which configs I should care about?
-> 
-> There are various configs in the tree. Grep for the configs you convert
-> from select to depends on, they will all need updating.
+Note that filter is still option from netlink dump path, since this can
+be called from error path to provide hints.
 
-I am looking at all files that depend on these Kconfig options, and
-there are a lot of tests.
+Fixes: 08725a9dc14c ("cache: filter out rules by chain")
+Fixes: b3ed8fd8c9f3 ("cache: missing family in cache filtering")
+Fixes: 635ee1cad8aa ("cache: filter out sets and maps that are not requested")
+Fixes: 3f1d3912c3a6 ("cache: filter out tables that are not requested")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/cache.c | 16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-Thinking more about the problem, it doesn't seem to be a good idea to
-change dependency from all NF modules to NF_IPTABLES_LEGACY. In other
-words, the `s/selects/depends on/` is the part that is causing all this
-hassle, and it seems unnecessary.
+diff --git a/src/cache.c b/src/cache.c
+index 72f2972f0259..8cddabdb7b98 100644
+--- a/src/cache.c
++++ b/src/cache.c
+@@ -212,18 +212,17 @@ static unsigned int evaluate_cache_list(struct nft_ctx *nft, struct cmd *cmd,
+ {
+ 	switch (cmd->obj) {
+ 	case CMD_OBJ_TABLE:
+-		if (filter)
+-			filter->list.family = cmd->handle.family;
++		filter->list.family = cmd->handle.family;
+ 		if (!cmd->handle.table.name) {
+ 			flags |= NFT_CACHE_TABLE;
+ 			break;
+-		} else if (filter) {
++		} else {
+ 			filter->list.table = cmd->handle.table.name;
+ 		}
+ 		flags |= NFT_CACHE_FULL;
+ 		break;
+ 	case CMD_OBJ_CHAIN:
+-		if (filter && cmd->handle.chain.name) {
++		if (cmd->handle.chain.name) {
+ 			filter->list.family = cmd->handle.family;
+ 			filter->list.table = cmd->handle.table.name;
+ 			filter->list.chain = cmd->handle.chain.name;
+@@ -236,7 +235,7 @@ static unsigned int evaluate_cache_list(struct nft_ctx *nft, struct cmd *cmd,
+ 		break;
+ 	case CMD_OBJ_SET:
+ 	case CMD_OBJ_MAP:
+-		if (filter && cmd->handle.table.name && cmd->handle.set.name) {
++		if (cmd->handle.table.name && cmd->handle.set.name) {
+ 			filter->list.family = cmd->handle.family;
+ 			filter->list.table = cmd->handle.table.name;
+ 			filter->list.set = cmd->handle.set.name;
+@@ -256,8 +255,7 @@ static unsigned int evaluate_cache_list(struct nft_ctx *nft, struct cmd *cmd,
+ 			flags |= NFT_CACHE_SETELEM;
+ 		break;
+ 	case CMD_OBJ_FLOWTABLE:
+-		if (filter &&
+-		    cmd->handle.table.name &&
++		if (cmd->handle.table.name &&
+ 		    cmd->handle.flowtable.name) {
+ 			filter->list.family = cmd->handle.family;
+ 			filter->list.table = cmd->handle.table.name;
+@@ -314,8 +312,6 @@ static unsigned int evaluate_cache_list(struct nft_ctx *nft, struct cmd *cmd,
+ static unsigned int evaluate_cache_reset(struct cmd *cmd, unsigned int flags,
+ 					 struct nft_cache_filter *filter)
+ {
+-	assert(filter);
+-
+ 	switch (cmd->obj) {
+ 	case CMD_OBJ_TABLE:
+ 	case CMD_OBJ_CHAIN:
+@@ -482,6 +478,8 @@ int nft_cache_evaluate(struct nft_ctx *nft, struct list_head *cmds,
+ 	unsigned int flags, batch_flags = NFT_CACHE_EMPTY;
+ 	struct cmd *cmd;
+ 
++	assert(filter);
++
+ 	list_for_each_entry(cmd, cmds, list) {
+ 		if (nft_handle_validate(cmd, msgs) < 0)
+ 			return -1;
+-- 
+2.30.2
 
-That said, I would suggest we do not change the dependency, and keep the
-"select NF_IPTABLES_LEGACY", and keep NF_IPTABLES_LEGACY user selectable.
-
-This will make the patch safer, while fixing the problem.
