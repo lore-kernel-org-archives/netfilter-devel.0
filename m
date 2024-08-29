@@ -1,43 +1,43 @@
-Received: from mail-lj1-f180.google.com (mail-lj1-f180.google.com [209.85.208.180])
+Received: from mail-ed1-f52.google.com (mail-ed1-f52.google.com [209.85.208.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDE671B6535;
-	Thu, 29 Aug 2024 16:17:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9739A1B654D;
+	Thu, 29 Aug 2024 16:17:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724948231; cv=none; b=kLsmTxR6hZCA+tCEFsnCYFU8OCrLU2TJljMkWt8v3AjQnvjnl+9YEVx7t8D43DOyG8WbNXp3JFCUSs2G/QfAE1Di9P12A++6JMI5YhUhg3XkQH1eJBaFGvoj1D1COmbIt4Yk67JL3ngUv977W1AlzXSNGxC1ri+612JX2QgRuJI=
+	t=1724948233; cv=none; b=LjW5pD5ZQxCSz9/o3vz1jMNLol1qMKXZwO3trjLirxNsSz3LZ8HjErlUFuz6rHqsxWwiBt0DDkNl3IdV0eRxbE/GZkmTeajezCtAl/vcioVJVBnqyCVKbthHodPrGf86KUjQuESaGcHAuX3wPYhT6/MbJB0IxldYQiK8TezrjE8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724948231; c=relaxed/simple;
-	bh=irLUQ4gbeTJd62aAXuvP5vhYeXx4WQ1xX/5+JoSGrU0=;
+	s=arc-20240116; t=1724948233; c=relaxed/simple;
+	bh=tiajQYn9nsePlqD4415CMV+9WOMc1VSANwqYlFxVtUg=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=RkGW5YDVvkTiGMj+E1yFpuT5YJDOl4on2kOfkdd8WVLU6SH6+db97NUNnVrmNgnMn6WmXoiqIm85kjD8HNk0Rx2dlsH2/vvAqXryzYQL+c3IjAYIonsrLWz6zD/yy30UUu/hKI3wHQAguCq24cLEjYybpinpYqxfu/4THDI/9IM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.208.180
+	 MIME-Version; b=os+y2R69hPPzJILQtvy4WGjuj2m/8PHcWMfa8balsN+cyqdqLnynrCygztBbDWaTe91h0XEhhOV6mXRKrBjtfsrzFG5TB7a6y8P89jGb0QwbIHh23avQs6nCWxp/QS6qZWcunIgeWBSxqrq7QorZAPdHKo66vBo0V9vcSzlkFJQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.208.52
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-lj1-f180.google.com with SMTP id 38308e7fff4ca-2f029e9c9cfso9923031fa.2;
-        Thu, 29 Aug 2024 09:17:09 -0700 (PDT)
+Received: by mail-ed1-f52.google.com with SMTP id 4fb4d7f45d1cf-5bed72ff443so1054441a12.1;
+        Thu, 29 Aug 2024 09:17:11 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1724948228; x=1725553028;
+        d=1e100.net; s=20230601; t=1724948230; x=1725553030;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=qkan8LeGRBctmqDZP0OyBITGW6dkD5hNUPXowO4Cr6E=;
-        b=Qr7FVBYdgY8SPJshO6yDw9lZy4ous3lk5gmK/cTzBKSo5e0h/Olu9pwC6csQrcURqm
-         CNgLoHe7qzsIewFjmnvJwlxY7GYrgdzoFWqevNss3s/QC5gqTXt/Xi6+ZOHXmLjJj0wb
-         EKHfppW6HdATCnCmkFX81NP4x/kOqw6emeQz9XA7W6NWo24vEJEhXXtDfvTxq8eXkQGU
-         70S0zS4+HVmXPn5FOmykEjOpRakEzCNrVGxEBb6a4R/ai/FStPYK70qLJ6vNTQSas1fv
-         2Em3Ke3ehOd3dfB85A6PoOx4gdggTPSpC1noGGdHMazQcOq73mD+SeJlxBFfzVjWVzQF
-         4jkQ==
-X-Forwarded-Encrypted: i=1; AJvYcCU1C22W17xsiZvY414GQxAfnHhPZUMjif6DRvFhcfEBwJmXcnAjUZ0RuOgomZUNTgl36ViDZvcvxlXhSDs=@vger.kernel.org, AJvYcCVaFeiLICOlyNXK5dYCa9FOlZZCUX7jOEQoudDm73p1gcCytpmvTtlW70c6Yj7P7DoCj/Ma2Uqb@vger.kernel.org, AJvYcCXKeOxp3foOFGjj+tJ09b4oDucXe5hgQOzq1Vkl7AA8DBHGyR4XIdMHeilt3VUkTaSYG2IewWyRpQS47SZJDCuh@vger.kernel.org
-X-Gm-Message-State: AOJu0YwvGmFZT8L6I/yX6Nh7v/vtcCGC3AJrDsjD9KKkN8oCXBgkPv9I
-	Fsuxxs0uzU2mzjxHSwZY5B8np5P9SA20gPg12MW0tR3yEgtLhAil
-X-Google-Smtp-Source: AGHT+IHPgeRnaKZDSFySv1PLJDT9l2yECzfEsYxeTwNaLrM3Rf8uebtotADgxJlxJqRPMk0cyi4SMg==
-X-Received: by 2002:a05:651c:b20:b0:2ec:4093:ec7 with SMTP id 38308e7fff4ca-2f6108937e3mr29152661fa.30.1724948227166;
-        Thu, 29 Aug 2024 09:17:07 -0700 (PDT)
-Received: from localhost (fwdproxy-lla-013.fbsv.net. [2a03:2880:30ff:d::face:b00c])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-5c226c72d40sm862319a12.31.2024.08.29.09.17.06
+        bh=i4tTQIMCvK8JaDCUUSonRDoAPxJVCvvDpjeKG9dSjwU=;
+        b=wr7VH12CmxDuo4YBvXTynAr89rzdsH0CVe3DdMvsNC6lULHali7QMaWGJMkUTfRJrT
+         7zB/yiiNOdFGwy9CySICwl9yIoQ5kSXS50N2r3ETN5RD7t6E9h3UKgPLf4q5xCCzHWW8
+         023H6cBkwKbd0xf01639wVewbMnHemhV7TTaESglcCsTFgrjUWFCWhhBvPIjqi2zTUwt
+         BJ9aU+qjVMKuUDXwr7FpNJl0NgTjxYFRdbPSg94pjdk9lTMv7+eJfvF6sXpi6YMwe6nq
+         SibIPS++rWy7LRLfnATXzj1AUycH+0ntbHgBn1UlfWoeLFnTPOFCLgtLNjrCaoRDw58l
+         sNyQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUB4pbzGqWN5iup7KjiCuaRRMvexYFKQCk9GfPaFotrFu9o6vqyc5dL9bh+kKlswa0qsGLsuyuHOUZ5AKQ=@vger.kernel.org, AJvYcCVXcPKQq3Rbc4VM1BCZDimpT5dkebGw03zmdzf6qvL2X4PavMvzdvFjlJQgVz4TuGMCrF7l3z5TtVw0RlWAKO2W@vger.kernel.org, AJvYcCXR6vo38w6v2/8Om5nylc0AsFv32KVKhbe/CQcTnW8X5QrQtXqUvYnkPX7COzSESUkU8Mton0SX@vger.kernel.org
+X-Gm-Message-State: AOJu0YyqSNpVX1Sgj6F+9ip+Y+A3rgCA2h2Cl0uoH3RYNZJHjoWGTsjZ
+	vYzFpUGxcpW1GtZKJqawJMYyw4uJNVwHVl02myfqxjjLszx2coSF
+X-Google-Smtp-Source: AGHT+IF3lPqELwq5st4WQCl0HD/aCaayvrDgmEklE4DTN8jPOXGQRz1na1bRSeVbktGDwZM+2psK3Q==
+X-Received: by 2002:a17:907:7f25:b0:a86:8166:1b0a with SMTP id a640c23a62f3a-a897fad100dmr303802666b.56.1724948229273;
+        Thu, 29 Aug 2024 09:17:09 -0700 (PDT)
+Received: from localhost (fwdproxy-lla-116.fbsv.net. [2a03:2880:30ff:74::face:b00c])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a8988feb112sm96683466b.39.2024.08.29.09.17.08
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Aug 2024 09:17:06 -0700 (PDT)
+        Thu, 29 Aug 2024 09:17:08 -0700 (PDT)
 From: Breno Leitao <leitao@debian.org>
 To: fw@strlen.de,
 	davem@davemloft.net,
@@ -52,9 +52,9 @@ Cc: rbc@meta.com,
 	linux-kernel@vger.kernel.org,
 	netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org (open list:NETFILTER)
-Subject: [PATCH nf-next v4 1/2] netfilter: Make IP6_NF_IPTABLES_LEGACY selectable
-Date: Thu, 29 Aug 2024 09:16:54 -0700
-Message-ID: <20240829161656.832208-2-leitao@debian.org>
+Subject: [PATCH nf-next v4 2/2] netfilter: Make IP_NF_IPTABLES_LEGACY selectable
+Date: Thu, 29 Aug 2024 09:16:55 -0700
+Message-ID: <20240829161656.832208-3-leitao@debian.org>
 X-Mailer: git-send-email 2.43.5
 In-Reply-To: <20240829161656.832208-1-leitao@debian.org>
 References: <20240829161656.832208-1-leitao@debian.org>
@@ -66,34 +66,33 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This option makes IP6_NF_IPTABLES_LEGACY user selectable, giving
+This option makes IP_NF_IPTABLES_LEGACY user selectable, giving
 users the option to configure iptables without enabling any other
 config.
 
 Signed-off-by: Breno Leitao <leitao@debian.org>
 ---
- net/ipv6/netfilter/Kconfig | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ net/ipv4/netfilter/Kconfig | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index f3c8e2d918e1..cbe88cc5b897 100644
---- a/net/ipv6/netfilter/Kconfig
-+++ b/net/ipv6/netfilter/Kconfig
-@@ -8,7 +8,13 @@ menu "IPv6: Netfilter Configuration"
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 1b991b889506..16507ae13736 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -12,7 +12,12 @@ config NF_DEFRAG_IPV4
  
  # old sockopt interface and eval loop
- config IP6_NF_IPTABLES_LEGACY
+ config IP_NF_IPTABLES_LEGACY
 -	tristate
-+	tristate "Legacy IP6 tables support"
-+	depends on INET && IPV6
++	tristate "Legacy IP tables support"
++	default	n
 +	select NETFILTER_XTABLES
-+	default n
 +	help
-+	  ip6tables is a general, extensible packet identification legacy framework.
++	  iptables is a general, extensible packet identification legacy framework.
 +	  This is not needed if you are using iptables over nftables (iptables-nft).
  
- config NF_SOCKET_IPV6
- 	tristate "IPv6 socket lookup support"
+ config NF_SOCKET_IPV4
+ 	tristate "IPv4 socket lookup support"
 -- 
 2.43.5
 
