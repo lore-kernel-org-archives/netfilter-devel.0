@@ -1,84 +1,66 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 233C167A0D;
-	Fri, 30 Aug 2024 17:07:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54ED51B6552;
+	Fri, 30 Aug 2024 17:23:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725037635; cv=none; b=U23fuxX1zhzK+njGEifJofSURYVwgu7/PVBGfZISePtb8bDGrwhX2D1yb5EDOanpYM2W8L1ycKRj1ztm+jdtVFTTT2b6eh/OdggEeNwyGW0BZvwiN12OSWlEVz3VPaUX5CtrNsQx4GqWgPxMZ5UU5Q66RiIOx+8ZiRPbgxxoC9U=
+	t=1725038588; cv=none; b=hqcxE0ZejbwNhsFc5ADu4eKpOA8tdnW9D900+bMAaqn+fxH2qXVV3G1xQrfRizn4YUnEcjJSjkmmBOhcPxq2hfc2LoyWovCZG6rbXW+SIjlWNP1YitREStDtsPFvsRjGm5CT2A0hv40oVhEEuQj+gMrhMV1NwZkES84vQ8yxbkc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725037635; c=relaxed/simple;
-	bh=p+Aly1DCwQO242o2hNdvPiR0AFUre9Qn/CBGycQGrE0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=kq0dhhu3m8pJTID9P9YftNrXhnkxTcZ934k+rjbwpskOzss26jANzgb27uX7OfMooRWYIDnq8emlR1njVb182GiN9o7F85c/qIanaIogPboMDFftsKf0xQODoTjNkLhUn3c0E40eSn1cKFkPGLUibZ2zZCLSY2bT2RemmwdhzHk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eDyINtfO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725038588; c=relaxed/simple;
+	bh=Brr8sN57GNWRFpPZm9az4LhuYdjGjmnwTvEbe6xkjBc=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=Vl6EXZG4EV57vzL1NPHMAvDLazE6JtUBNrwwtefT56lw8c/QES5UHqE4oS96Ctv74Ez8me6yjtcK9K/1rna/qWV0yX7h74Ojz4Uw+WYobxs9t7GDiRnh/TLjGawToi+M4k6pGkI5MI+Mcd4AZWoDVC99rvNsAjwSAncYKbI1X+I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HsW82RbW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eDyINtfO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4BF6C4CEC2;
-	Fri, 30 Aug 2024 17:07:12 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HsW82RbW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0EFDDC4CEC8;
+	Fri, 30 Aug 2024 17:23:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1725037635;
-	bh=p+Aly1DCwQO242o2hNdvPiR0AFUre9Qn/CBGycQGrE0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=eDyINtfOeCGJ6cfK1pHUonXeQLxxzVHt/17IG55AcijK/lP57HSBFGnNPfGOxf2pq
-	 aSjxElzllC4+c3Q4SYKRI7yeA2RPAPkfCP7WUBEgV2hoY/OMy6gjFHzC9j8oWpwAWV
-	 vLNdUwkOCP6pJPVXTbbidnCMfP4ua1KIlpt5xTIkHkbRjPJ0nklujWkSOQhLfkAiR3
-	 VfQckiRUc073M9Aphvpj21NFXIYcap2fUJbbLdRK0lGzG9ZDIEGO+d7YRyXLv93zro
-	 kateg7YGXENpJ1ogJNLUpS5dckvD/PuZ7bkntNXRyP4AIsQAoedUETCpeutUBhpcr/
-	 MB2fauSGn3eDA==
-Date: Fri, 30 Aug 2024 18:07:10 +0100
+	s=k20201202; t=1725038587;
+	bh=Brr8sN57GNWRFpPZm9az4LhuYdjGjmnwTvEbe6xkjBc=;
+	h=From:Subject:Date:To:Cc:From;
+	b=HsW82RbWIyP4TPZMrcq3KgD4Y8TdqSH3IIMulALn80vjCLapSeeKIvRWKi8jkIsgf
+	 Y09LCTAk7QowcupDH81JAiAqPOPVFZLIeY9kec4GGk0rn2kGRkFrJcSwmbk2UTRzh1
+	 /ZjQNp0MKE+46/Pfs8hWe95hJjNA9z5+ybb3t3JhICtsd+wmpCzvP3xptv39Z3mjwz
+	 UAn7dwh1bnDepw5G7Tw8Tq+QNjQKCp7OqaozZbu930QmEQ089ZFqIN8afnRchWYsCI
+	 BOe1U8LOr7eWKTwxWoL8PIgpNlOkiqreeO8cuGHtj3LaygK3ZxQIZ3aBaBaim4gpRI
+	 MgnU+Src46k9A==
 From: Simon Horman <horms@kernel.org>
-To: Uros Bizjak <ubizjak@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
-Subject: Re: [PATCH v2 2/2] netfilter: nf_tables: Fix percpu address space
- issues in nf_tables_api.c
-Message-ID: <20240830170710.GY1368797@kernel.org>
-References: <20240829154739.16691-1-ubizjak@gmail.com>
- <20240829154739.16691-3-ubizjak@gmail.com>
+Subject: [PATCH nf-next 0/2] netfilter: Add missing Kernel doc to headers
+Date: Fri, 30 Aug 2024 18:22:59 +0100
+Message-Id: <20240830-nf-kdoc-v1-0-b974bb701b61@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240829154739.16691-3-ubizjak@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAPP/0WYC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyDHUUlJIzE
+ vPSU3UzU4B8JSMDIxMDC2MD3bw03eyU/GRd4+SUpCRzMyML00RLJaDqgqLUtMwKsEnRSkBFeak
+ VJUqxtbUAHJeSZ2IAAAA=
+To: Pablo Neira Ayuso <pablo@netfilter.org>, 
+ Jozsef Kadlecsik <kadlec@netfilter.org>, 
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+ netdev@vger.kernel.org
+X-Mailer: b4 0.14.0
 
-On Thu, Aug 29, 2024 at 05:29:32PM +0200, Uros Bizjak wrote:
-> Compiling nf_tables_api.c results in several sparse warnings:
-> 
-> nf_tables_api.c:2077:31: warning: incorrect type in return expression (different address spaces)
-> nf_tables_api.c:2080:31: warning: incorrect type in return expression (different address spaces)
-> nf_tables_api.c:2084:31: warning: incorrect type in return expression (different address spaces)
-> 
-> nf_tables_api.c:2740:23: warning: incorrect type in assignment (different address spaces)
-> nf_tables_api.c:2752:38: warning: incorrect type in assignment (different address spaces)
-> nf_tables_api.c:2798:21: warning: incorrect type in argument 1 (different address spaces)
-> 
-> Use {ERR_PTR,IS_ERR,PTR_ERR}_PCPU() macros when crossing between generic
-> and percpu address spaces and add __percpu annotation to *stats pointer
-> to fix these warnings.
-> 
-> Found by GCC's named address space checks.
-> 
-> There were no changes in the resulting object files.
-> 
-> Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
-> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-> Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: Eric Dumazet <edumazet@google.com>
-> Cc: Jakub Kicinski <kuba@kernel.org>
-> Cc: Paolo Abeni <pabeni@redhat.com>
-> ---
-> v2: Also use {ERR_PTR,IS_ERR,PTR_ERR}_PCPU() macros.
+Hi,
 
-Reviewed-by: Simon Horman <horms@kernel.org>
+This short series addresses some minor Kernel doc problems
+in Netfilter header files.
+
+---
+Simon Horman (2):
+      netfilter: nf_tables: Add missing Kernel doc to nf_tables.h
+      netfilter: tproxy: Add missing Kernel doc to nf_tproxy.h
+
+ include/net/netfilter/nf_tables.h | 2 ++
+ include/net/netfilter/nf_tproxy.h | 1 +
+ 2 files changed, 3 insertions(+)
+
+base-commit: d2ab3bb890f6a88facf89494ce50b27ff8236d24
 
