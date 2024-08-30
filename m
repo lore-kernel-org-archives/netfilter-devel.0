@@ -1,79 +1,56 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79EDB1BAECD;
-	Fri, 30 Aug 2024 17:23:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37F2A1B81B3;
+	Fri, 30 Aug 2024 18:18:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725038592; cv=none; b=ZhDiWJNez05bXTMKRp4C5xxPjq0f0giNY/+pIz8xaoBqLPIhLoWAFyOixG7bWAOHqD/LdtZTorMlJZUSusxc/N03Q9mmmzSKYHgDV/NEvks0BTlykUxCltV8SwEvMYHyFFkJ5LCjjrXx9HyaD8SPv4CmzvoAe014rWPsViKDzig=
+	t=1725041937; cv=none; b=Cp3SijqvXXRnR7iU4UQXPwtS/Jmss0jyw9kj0pZZqlgvQ1tE3Jf26kpPjAom/9gI16aHKQPGoogEMeUvHFnh4JvL809Pos6p8D/aKDmPuNZwfEV3hG5Bfpgxy/w8gCWD/y503uaYHmqoMoP9VCvnyXaqKaL5Kjwm8D//7EUsGhs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725038592; c=relaxed/simple;
-	bh=qmS35JHQXhfUq0wqjmXPQ6Bmv30dZKpJpDOvrVZ8w6g=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=m+kR4B+96rImkfv9pBYVlRgXyrfD7jQwGrXEWcIwil6lH3K9dxQarhXzTxaSDHbH5eU5E4nwt0PrGcvk8LI3ydKmYYHKm+ICOcnZCEcGQeQFCFz9FdOQ7ognU98COYNvbTOLJCd55HuAZwYNVv10PAdzxQpry4HJUi0aYwF4aLA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=awd9PZcg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725041937; c=relaxed/simple;
+	bh=ndMxz9smi89g9vUWHsG7/pVoH9KEAp/0C+C97/k6+4I=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=ejZj+3nA1gmovfOV0TaAuwr7n/1G1lqaFcY6iDMN2p9yCCqMh4MqvZQJvkdDZGUDQgAapjno/NzXXs8B7j7NRM09u/S/QPHh1BCMhwkd5F/cYUaZomWBga6KefACZWpeCqoctaCNQZKVRms472Yj2Sc4BR8D34OughpXT9r1HBQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ns6yVLA+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="awd9PZcg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48C13C4CEC2;
-	Fri, 30 Aug 2024 17:23:10 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ns6yVLA+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 594DFC4CEC2;
+	Fri, 30 Aug 2024 18:18:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1725038592;
-	bh=qmS35JHQXhfUq0wqjmXPQ6Bmv30dZKpJpDOvrVZ8w6g=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=awd9PZcgSDwTDX675XIOfIWXpeZe4Tzv5gWFMPWCAFXDEm8J7L4D7stNoeTsd/hLQ
-	 +m4OsV5EY+IblC3XV3zX1iXggi3KUlHCeyBP/SWAtjtgs/GR//E8vKIj3zTVa52G9R
-	 pKuz9a62ZUuXmMPXZp0wDaxopfjNIa9T42teXkTSU9NKKYGLU9QcBKElCYvOPkYbvK
-	 Ip+cu/jtV+PWUD3NSgagnjIDkTDixfQ50EAWKnFJCWjrQlUKWMDj0fLA1hqzWwvQBp
-	 MGYghs5h13hi6zpnezeoIq0Ys/PU2VjiVl5tiP9G4lsJWJ5wH/5gQyh9p4z9S6R88o
-	 gpPViNlMHjGWA==
-From: Simon Horman <horms@kernel.org>
-Date: Fri, 30 Aug 2024 18:23:01 +0100
-Subject: [PATCH nf-next 2/2] netfilter: tproxy: Add missing Kernel doc to
- nf_tproxy.h
+	s=k20201202; t=1725041936;
+	bh=ndMxz9smi89g9vUWHsG7/pVoH9KEAp/0C+C97/k6+4I=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=ns6yVLA+R8LKyuI9RiuCM4wsgWsdk6GTlLLuAkHvcU5cd6dZ7xOqGZ720vocbqkwc
+	 DBMkHmLuZGOIcIsnCT1nE8ocArXLI/hB+VKTLM9gpes0nttYtv/2zosMNlkPPo+6nQ
+	 woVefq/1XqIjuvQDJtP97CzoDRMbR7hUJeUPdyPjodCtZ/0ua33+BHAL/jhJJidXhy
+	 BRkCReb0lq/SgblDKqeV3pDsbDy5NItCKgjxW+M+WufOQwDe/WUweTJP2vFQsjxQm+
+	 dJFeNY0isR8elPCIv4RsB0womcmmklX19U4KE0YSQgp5Z8zMIB4JyN3R//zpKmr5i2
+	 3u/sDD0RJ2bJA==
+Date: Fri, 30 Aug 2024 11:18:55 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Breno Leitao <leitao@debian.org>
+Cc: fw@strlen.de, davem@davemloft.net, edumazet@google.com,
+ pabeni@redhat.com, rbc@meta.com, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next v4 0/2] netfilter: Make IP_NF_IPTABLES_LEGACY
+ selectable
+Message-ID: <20240830111855.7d04cd3a@kernel.org>
+In-Reply-To: <20240829161656.832208-1-leitao@debian.org>
+References: <20240829161656.832208-1-leitao@debian.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <20240830-nf-kdoc-v1-2-b974bb701b61@kernel.org>
-References: <20240830-nf-kdoc-v1-0-b974bb701b61@kernel.org>
-In-Reply-To: <20240830-nf-kdoc-v1-0-b974bb701b61@kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>, 
- Jozsef Kadlecsik <kadlec@netfilter.org>, 
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
- netdev@vger.kernel.org
-X-Mailer: b4 0.14.0
 
-Add missing documentation of function parameter.
+On Thu, 29 Aug 2024 09:16:53 -0700 Breno Leitao wrote:
+> These two patches make IP_NF_IPTABLES_LEGACY and IP6_NF_IPTABLES_LEGACY
+> Kconfigs user selectable, avoiding creating an extra dependency by
+> enabling some other config that would select IP{6}_NF_IPTABLES_LEGACY.
 
-Flagged by ./scripts/kernel-doc -none.
-
-No functional change intended.
-Compile tested only.
-
-Signed-off-by: Simon Horman <horms@kernel.org>
----
- include/net/netfilter/nf_tproxy.h | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/include/net/netfilter/nf_tproxy.h b/include/net/netfilter/nf_tproxy.h
-index faa108b1ba67..5adf6fda11e8 100644
---- a/include/net/netfilter/nf_tproxy.h
-+++ b/include/net/netfilter/nf_tproxy.h
-@@ -36,6 +36,7 @@ __be32 nf_tproxy_laddr4(struct sk_buff *skb, __be32 user_laddr, __be32 daddr);
- 
- /**
-  * nf_tproxy_handle_time_wait4 - handle IPv4 TCP TIME_WAIT reopen redirections
-+ * @net:	The network namespace.
-  * @skb:	The skb being processed.
-  * @laddr:	IPv4 address to redirect to or zero.
-  * @lport:	TCP port to redirect to or zero.
-
+FWIW I can confirm this version causes no disturbances to known CIs.
 -- 
-2.45.2
-
+pw-bot: au
