@@ -1,35 +1,35 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 396C21BA86F;
-	Fri, 30 Aug 2024 17:23:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79EDB1BAECD;
+	Fri, 30 Aug 2024 17:23:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725038591; cv=none; b=q3GHKA/dKsQL4r5P/1eo6Wh8ERLx8CgWypWig6y3TSv668t2UjEtDycRRs4EL/PvutFLjie0LgeLoUrDVqy9jjJ6bom2ptn19o/4n3T2LemvfGWMUTWTs5Yu6XhXMf2b8/UkMjtcAV6i9LD1dSEYHvV2m28Pi+W0r275NbijRdw=
+	t=1725038592; cv=none; b=ZhDiWJNez05bXTMKRp4C5xxPjq0f0giNY/+pIz8xaoBqLPIhLoWAFyOixG7bWAOHqD/LdtZTorMlJZUSusxc/N03Q9mmmzSKYHgDV/NEvks0BTlykUxCltV8SwEvMYHyFFkJ5LCjjrXx9HyaD8SPv4CmzvoAe014rWPsViKDzig=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725038591; c=relaxed/simple;
-	bh=4GW2FIud5MLTjx7eYbpeqy1kb8YzrWkbY1gWNUIq+ts=;
+	s=arc-20240116; t=1725038592; c=relaxed/simple;
+	bh=qmS35JHQXhfUq0wqjmXPQ6Bmv30dZKpJpDOvrVZ8w6g=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=d34rUTBCqiHT5im+424Ydzu+NzwRwHE4I3PXVrV6vZvQpn3Geg9cRGw11ziXtNwKqrJEhv2w/2ZRz4ClG++mIWWGpZEExafZaOEkmEswiXVWTjN76cICgLP3eeeeWULe9Nub994Fw8iE4P2NgvRZRnoeH39pPygSyNVM9rgI8gI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TrocFJxs; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=m+kR4B+96rImkfv9pBYVlRgXyrfD7jQwGrXEWcIwil6lH3K9dxQarhXzTxaSDHbH5eU5E4nwt0PrGcvk8LI3ydKmYYHKm+ICOcnZCEcGQeQFCFz9FdOQ7ognU98COYNvbTOLJCd55HuAZwYNVv10PAdzxQpry4HJUi0aYwF4aLA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=awd9PZcg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TrocFJxs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 313D5C4CEC4;
-	Fri, 30 Aug 2024 17:23:08 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="awd9PZcg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48C13C4CEC2;
+	Fri, 30 Aug 2024 17:23:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1725038589;
-	bh=4GW2FIud5MLTjx7eYbpeqy1kb8YzrWkbY1gWNUIq+ts=;
+	s=k20201202; t=1725038592;
+	bh=qmS35JHQXhfUq0wqjmXPQ6Bmv30dZKpJpDOvrVZ8w6g=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=TrocFJxsEvzQmrxTtF24oZg0Yvs86jBS/iuLGbQoySgJeBedojdiQvvYMnvMj7rqQ
-	 xa3iG4h2lARHLH3DHkGJdMq3NrhLjqLgaOqxHZEElI90qxL0YrSYFbz328B9+mk8HC
-	 1zCFVngZ26NU5A6auwdSyEUADOBfYiDGisRm2CVpI+INM79bVr9vY97/r2ELEekjU6
-	 1Bdthgz5Vdgeumu2DQwWg1XNM16VMun9NTR9Hg4NWzAuQeLvRvpUZuRJMw+8hFlmzM
-	 vDQZEY5wK4wQSQ2PAUOxe2BYlxPt70WEHkS0WRczA6d4XKx6TfZx4OdfSV0GO/y+YS
-	 evLZfs/weWA0w==
+	b=awd9PZcgSDwTDX675XIOfIWXpeZe4Tzv5gWFMPWCAFXDEm8J7L4D7stNoeTsd/hLQ
+	 +m4OsV5EY+IblC3XV3zX1iXggi3KUlHCeyBP/SWAtjtgs/GR//E8vKIj3zTVa52G9R
+	 pKuz9a62ZUuXmMPXZp0wDaxopfjNIa9T42teXkTSU9NKKYGLU9QcBKElCYvOPkYbvK
+	 Ip+cu/jtV+PWUD3NSgagnjIDkTDixfQ50EAWKnFJCWjrQlUKWMDj0fLA1hqzWwvQBp
+	 MGYghs5h13hi6zpnezeoIq0Ys/PU2VjiVl5tiP9G4lsJWJ5wH/5gQyh9p4z9S6R88o
+	 gpPViNlMHjGWA==
 From: Simon Horman <horms@kernel.org>
-Date: Fri, 30 Aug 2024 18:23:00 +0100
-Subject: [PATCH nf-next 1/2] netfilter: nf_tables: Add missing Kernel doc
- to nf_tables.h
+Date: Fri, 30 Aug 2024 18:23:01 +0100
+Subject: [PATCH nf-next 2/2] netfilter: tproxy: Add missing Kernel doc to
+ nf_tproxy.h
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -38,7 +38,7 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20240830-nf-kdoc-v1-1-b974bb701b61@kernel.org>
+Message-Id: <20240830-nf-kdoc-v1-2-b974bb701b61@kernel.org>
 References: <20240830-nf-kdoc-v1-0-b974bb701b61@kernel.org>
 In-Reply-To: <20240830-nf-kdoc-v1-0-b974bb701b61@kernel.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>, 
@@ -49,7 +49,7 @@ Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
  netdev@vger.kernel.org
 X-Mailer: b4 0.14.0
 
-Add missing documentation of struct field and enum items.
+Add missing documentation of function parameter.
 
 Flagged by ./scripts/kernel-doc -none.
 
@@ -58,29 +58,21 @@ Compile tested only.
 
 Signed-off-by: Simon Horman <horms@kernel.org>
 ---
- include/net/netfilter/nf_tables.h | 2 ++
- 1 file changed, 2 insertions(+)
+ include/net/netfilter/nf_tproxy.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 1cc33d946d41..12ae0434ac93 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -209,6 +209,7 @@ static inline void nft_data_copy(u32 *dst, const struct nft_data *src,
-  *	@family: protocol family
-  *	@level: depth of the chains
-  *	@report: notify via unicast netlink message
-+ *	@reg_inited: bitmap of initialised registers
-  */
- struct nft_ctx {
- 	struct net			*net;
-@@ -313,6 +314,7 @@ static inline void *nft_elem_priv_cast(const struct nft_elem_priv *priv)
+diff --git a/include/net/netfilter/nf_tproxy.h b/include/net/netfilter/nf_tproxy.h
+index faa108b1ba67..5adf6fda11e8 100644
+--- a/include/net/netfilter/nf_tproxy.h
++++ b/include/net/netfilter/nf_tproxy.h
+@@ -36,6 +36,7 @@ __be32 nf_tproxy_laddr4(struct sk_buff *skb, __be32 user_laddr, __be32 daddr);
+ 
  /**
-  * enum nft_iter_type - nftables set iterator type
-  *
-+ * @NFT_ITER_UNSPEC: unspecified, to catch errors
-  * @NFT_ITER_READ: read-only iteration over set elements
-  * @NFT_ITER_UPDATE: iteration under mutex to update set element state
-  */
+  * nf_tproxy_handle_time_wait4 - handle IPv4 TCP TIME_WAIT reopen redirections
++ * @net:	The network namespace.
+  * @skb:	The skb being processed.
+  * @laddr:	IPv4 address to redirect to or zero.
+  * @lport:	TCP port to redirect to or zero.
 
 -- 
 2.45.2
