@@ -1,64 +1,55 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp.gentoo.org (woodpecker.gentoo.org [140.211.166.183])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B59307DA94;
-	Fri, 30 Aug 2024 14:09:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 182001292CE
+	for <netfilter-devel@vger.kernel.org>; Fri, 30 Aug 2024 15:31:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=140.211.166.183
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725026965; cv=none; b=dy6zBI3GqDNfIiMv2bNSpYv3fVC5GRiPtDGtXHVDYdLjkevKGbirFG/B8GHaws2cxzisy3FpLNE60QSx+LVZsIO+tyVLzGXg6sRp/wyvcv3OokfVYhB/W2LTht4bGKSeKSdLmTie4LVGWc4awzI1oeBXHFCRPOmZraAx+B88ZQ0=
+	t=1725031902; cv=none; b=d3t+JG4IdfNR9x/2TMq7S3Awno3/gne8ujZfeWZkyk+HkJINBsq+NGKl0DQWEf4X4kIe5+ifqRjOGl4g6JbNzHH8EK4QZSDK90uq+QWsytJnNlfLiwMzB5XwtNhrMezu3JZuKFw02icyvvSGZjNOndX+8imfP6gsiIrbB1j8TK8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725026965; c=relaxed/simple;
-	bh=XLrJlY3FxfBezztJFFJFbdObLSlHH3/bC2LipoSvUXA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=kagX4Pgdh/RRsMkmOodCai4mnmvyOp8QnnoBU9T7u9g/qFHHNvKKjC1CnHV7H0a0iIvPzu7uuNDmApXpiwjWuo9JfSEjGdVeAu61TjxbC266Q2UGzXlsmo25tcs77s0stI7mgsuFLJzcNrvzR9uz0TNgDbL7pHEIiBawiH1fTDA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1sk2JK-00080z-Q5; Fri, 30 Aug 2024 16:09:10 +0200
-Date: Fri, 30 Aug 2024 16:09:10 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Breno Leitao <leitao@debian.org>
-Cc: Florian Westphal <fw@strlen.de>, davem@davemloft.net,
-	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	David Ahern <dsahern@kernel.org>, rbc@meta.com,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	"open list:NETFILTER" <coreteam@netfilter.org>
-Subject: Re: [PATCH nf-next v4 1/2] netfilter: Make IP6_NF_IPTABLES_LEGACY
- selectable
-Message-ID: <20240830140910.GA30623@breakpoint.cc>
-References: <20240829161656.832208-1-leitao@debian.org>
- <20240829161656.832208-2-leitao@debian.org>
- <20240829162512.GA14214@breakpoint.cc>
- <ZtG/Ai88bIRFZZ6Y@gmail.com>
- <20240830131301.GA28856@breakpoint.cc>
- <ZtHRZwYGQDVueUlY@gmail.com>
+	s=arc-20240116; t=1725031902; c=relaxed/simple;
+	bh=OGL7mL2B+sumLdngU+FYRpLdkGDuKsZj9CEtKosKe+w=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ZrtzUEHWjbv3F2KoCtStYQvZJsA2I8s0hKYP2CmLtujF2OVe1dfS5uSBMSCnSbhysrg5oKFVfDGUK7sbzV++auUm0T1Np0sQPrAQVpIh3XPmrjib5Vo88lv463jzQKQySLNNNmBUpBGAxUB39g596XPHIAiQyiG1bt7xXXYOI2w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gentoo.org; spf=pass smtp.mailfrom=gentoo.org; arc=none smtp.client-ip=140.211.166.183
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gentoo.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gentoo.org
+From: mpagano@gentoo.org
+To: netfilter-devel@vger.kernel.org
+Cc: Mike Pagano <mpagano@gentoo.org>
+Subject: [PATCH] ipset: Fix implicit declaration of function basename
+Date: Fri, 30 Aug 2024 11:31:19 -0400
+Message-ID: <20240830153119.1136721-1-mpagano@gentoo.org>
+X-Mailer: git-send-email 2.46.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZtHRZwYGQDVueUlY@gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 
-Breno Leitao <leitao@debian.org> wrote:
-> > I thunk patch is fine, I will try to add the relevant
-> > depends-on change some time in the near future.
-> 
-> I am more than happy to do it, if you wish. I just want to decouple both
-> changes from each other.
+From: Mike Pagano <mpagano@gentoo.org>
 
-Ah, that makes sense to me.
+basename(3) is defined in libgen.h in MUSL. 
+Include libgen.h where basename(3) is used.
 
-The "depends" change would be good to have, see
-https://lore.kernel.org/netfilter-devel/20240813183202.GA13864@breakpoint.cc/
+Signed-off-by: Mike Pagano <mpagano@gentoo.org>
+---
+ src/ipset.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-(TL;DR: PREEMPT_RT requirements would need more surgery in old
- x_tables infra)
+diff --git a/src/ipset.c b/src/ipset.c
+index 162f477..d7733bf 100644
+--- a/src/ipset.c
++++ b/src/ipset.c
+@@ -15,6 +15,7 @@
+ #include <config.h>
+ #include <libipset/ipset.h>		/* ipset library */
+ #include <libipset/xlate.h>		/* translate to nftables */
++#include <libgen.h>
+ 
+ int
+ main(int argc, char *argv[])
+-- 
+2.46.0
+
