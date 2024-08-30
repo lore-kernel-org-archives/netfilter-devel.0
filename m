@@ -1,88 +1,107 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from szxga06-in.huawei.com (szxga06-in.huawei.com [45.249.212.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B882F1BF7E1;
-	Thu, 29 Aug 2024 19:50:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6442612F59C;
+	Fri, 30 Aug 2024 01:17:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.32
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724961029; cv=none; b=Efr6dfw47WfwHaq2S7qRSTH6Hq21IR8Wgz+PxOAdC/KMLBozln1WVh6ZS/M9nwPskP1Ssm81fFmB9kCAnSJ0I0lsyce3YrMga5XOFUb32E+uPh4wjq7qZxivqPrcu0KekevsAFuvbr8TEICLeQy8DBjk6P8sT/K3T8pkjaTC2KA=
+	t=1724980681; cv=none; b=HJyI+YYGqeQZVejZcBKSpvLtXTZSuW1lcRBd0uwF+yK6RCsXXcxBOLU/+fodC+teb1aOejvcj/FVuPTScGg3qyHjawDT2NYF62zuHGtZxd3DiK7+Za7us22mpqIBntW7T1gfXm+tQoWAiZPaCUK5Wh3BjMzpnqVqiG0vpILFn2I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724961029; c=relaxed/simple;
-	bh=IueMo5FCYpiperiQzC5vwu0BM6YG2Uu9bk3SW2uOugs=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=QckW7OcbyGEzUJR21VcEJGasaDvLQhEiN3y0dIDpnC8ptl+qLUOho7veM75NpSDfVr3xhnu4BjEaf+qGSiWF1NDG8hC31X284aDX+jymp9qXB/s4CyhqHNNhdIkn61ynDSYYV7Ya5x21Ig2CGZKH49cyhhzSZY4jb9l9qjDVC7U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TL/J/qpq; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TL/J/qpq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A6BEC4CEC1;
-	Thu, 29 Aug 2024 19:50:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1724961029;
-	bh=IueMo5FCYpiperiQzC5vwu0BM6YG2Uu9bk3SW2uOugs=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=TL/J/qpq32V4bL7TaGu8Y/JpAOJrVnQhQYXXgt9ouvVLoomUiqp1pYnrW3aIp3Kyy
-	 tDxDAWWk8zPmpM2+5f6OcFEr/iPRO9N5nexv9+ThNFUpJGLHPEijHeu6yyQQ2fpDvM
-	 rSK36zto2GNPeK6T7zpPgVvVIc0q/0ZdsefyWERfOVKikdmcmFm+wP0k23BugJQRYw
-	 Z6XHrIxP1SltueLxAcxUIXQ0DM56/oT614Re17JzMXg50lvQXnHZ/75GCvb1Ct6r76
-	 fHk/fhMcuNiW30iFFJw7Fb088NmQLreEaajL+M/6CJ4mt0equ0V5OMaPKOiqAdbEqC
-	 GsZhdmEp/ng3g==
-Received: from ip-10-30-226-235.us-west-2.compute.internal (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id C13EC3822D6A;
-	Thu, 29 Aug 2024 19:50:30 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=arc-20240116; t=1724980681; c=relaxed/simple;
+	bh=3evUu2oSdWg8++Ep2ljPWbekWCjYtkcC8oXqS8bDOyM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=HmYqpxvIFJQAiowisO66o656spS/5v2oJxUxRWjqZHGhGUILmGWw4qroFo910RjdQGWcOiXVN5Ar8B9JIZYC3uj/WMtYWC8x8jVgFtuqub0peWj7NSrvzREm+qtoGjUTN+YPcAqXobGiSOBKKPG+BbrZ8PJNLSPP4x/CnBu1jjs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.32
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.19.163.17])
+	by szxga06-in.huawei.com (SkyGuard) with ESMTP id 4Ww0b23TX3z1xwcn;
+	Fri, 30 Aug 2024 09:15:58 +0800 (CST)
+Received: from dggpeml500022.china.huawei.com (unknown [7.185.36.66])
+	by mail.maildlp.com (Postfix) with ESMTPS id D3F291A0188;
+	Fri, 30 Aug 2024 09:17:56 +0800 (CST)
+Received: from [10.67.111.104] (10.67.111.104) by
+ dggpeml500022.china.huawei.com (7.185.36.66) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.39; Fri, 30 Aug 2024 09:17:56 +0800
+Message-ID: <36922bd7-5174-4cf0-b7a2-5ddc77c4868d@huawei.com>
+Date: Fri, 30 Aug 2024 09:17:56 +0800
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next v2 0/6] replace deprecated strcpy with strscpy
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <172496103078.2069528.3343735639041200651.git-patchwork-notify@kernel.org>
-Date: Thu, 29 Aug 2024 19:50:30 +0000
-References: <20240828123224.3697672-1-lihongbo22@huawei.com>
-In-Reply-To: <20240828123224.3697672-1-lihongbo22@huawei.com>
-To: Hongbo Li <lihongbo22@huawei.com>
-Cc: davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
- pabeni@redhat.com, dsahern@kernel.org, ralf@linux-mips.org,
- jmaloy@redhat.com, ying.xue@windriver.com, dan.carpenter@linaro.org,
- netdev@vger.kernel.org, linux-hams@vger.kernel.org,
- netfilter-devel@vger.kernel.org
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next 2/5] net/tipc: make use of the helper macro
+ LIST_HEAD()
+To: Simon Horman <horms@kernel.org>
+CC: <davem@davemloft.net>, <dsahern@kernel.org>, <edumazet@google.com>,
+	<kuba@kernel.org>, <pabeni@redhat.com>, <jmaloy@redhat.com>,
+	<ying.xue@windriver.com>, <pablo@netfilter.org>, <kadlec@netfilter.org>,
+	<netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>
+References: <20240827100407.3914090-1-lihongbo22@huawei.com>
+ <20240827100407.3914090-3-lihongbo22@huawei.com>
+ <20240827165723.GQ1368797@kernel.org>
+Content-Language: en-US
+From: Hongbo Li <lihongbo22@huawei.com>
+In-Reply-To: <20240827165723.GQ1368797@kernel.org>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
+ dggpeml500022.china.huawei.com (7.185.36.66)
 
-Hello:
 
-This series was applied to netdev/net-next.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
 
-On Wed, 28 Aug 2024 20:32:18 +0800 you wrote:
-> The deprecated helper strcpy() performs no bounds checking on the
-> destination buffer. This could result in linear overflows beyond
-> the end of the buffer, leading to all kinds of misbehaviors.
-> The safe replacement is strscpy() [1].
+On 2024/8/28 0:57, Simon Horman wrote:
+> On Tue, Aug 27, 2024 at 06:04:04PM +0800, Hongbo Li wrote:
+>> list_head can be initialized automatically with LIST_HEAD()
+>> instead of calling INIT_LIST_HEAD(). Here we can simplify
+>> the code.
+>>
+>> Signed-off-by: Hongbo Li <lihongbo22@huawei.com>
+>> ---
+>>   net/tipc/socket.c | 6 ++----
+>>   1 file changed, 2 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/net/tipc/socket.c b/net/tipc/socket.c
+>> index 1a0cd06f0eae..9d30e362392c 100644
+>> --- a/net/tipc/socket.c
+>> +++ b/net/tipc/socket.c
+>> @@ -1009,12 +1009,11 @@ static int tipc_send_group_anycast(struct socket *sock, struct msghdr *m,
+>>   	struct tipc_member *mbr = NULL;
+>>   	struct net *net = sock_net(sk);
+>>   	u32 node, port, exclude;
+>> -	struct list_head dsts;
+>>   	int lookups = 0;
+>>   	int dstcnt, rc;
+>>   	bool cong;
+>> +	LIST_HEAD(dsts);
 > 
-> Link: https://www.kernel.org/doc/html/latest/process/deprecated.html#strcpy [1]
+> nit: Please place this new line where the old dsts line was,
+>       in order to preserve, within the context of this hunk,
+>       reverse xmas tree order - longest line to shortest -
+ok, I've learned, the reverse xmas tree order. Thank you!
+
+Thanks,
+Hongbo
+>       for local variable declarations.
 > 
-> [...]
-
-Here is the summary with links:
-  - [net-next,v2,1/6] net: prefer strscpy over strcpy
-    https://git.kernel.org/netdev/net-next/c/68016b997222
-  - [net-next,v2,2/6] net/ipv6: replace deprecated strcpy with strscpy
-    https://git.kernel.org/netdev/net-next/c/b19f69a95830
-  - [net-next,v2,3/6] net/netrom: prefer strscpy over strcpy
-    https://git.kernel.org/netdev/net-next/c/597be7bd17c3
-  - [net-next,v2,4/6] net/netfilter: replace deprecated strcpy with strscpy
-    (no matching commit)
-  - [net-next,v2,5/6] net/tipc: replace deprecated strcpy with strscpy
-    https://git.kernel.org/netdev/net-next/c/af1052fd49cc
-  - [net-next,v2,6/6] net/ipv4: net: prefer strscpy over strcpy
-    https://git.kernel.org/netdev/net-next/c/82183b03de5f
-
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+>>   
+>> -	INIT_LIST_HEAD(&dsts);
+>>   	ua->sa.type = msg_nametype(hdr);
+>>   	ua->scope = msg_lookup_scope(hdr);
+>>   
+>> @@ -1161,10 +1160,9 @@ static int tipc_send_group_mcast(struct socket *sock, struct msghdr *m,
+>>   	struct tipc_group *grp = tsk->group;
+>>   	struct tipc_msg *hdr = &tsk->phdr;
+>>   	struct net *net = sock_net(sk);
+>> -	struct list_head dsts;
+>>   	u32 dstcnt, exclude;
+>> +	LIST_HEAD(dsts);
+>>   
+>> -	INIT_LIST_HEAD(&dsts);
+>>   	ua->sa.type = msg_nametype(hdr);
+>>   	ua->scope = msg_lookup_scope(hdr);
+>>   	exclude = tipc_group_exclude(grp);
+> 
