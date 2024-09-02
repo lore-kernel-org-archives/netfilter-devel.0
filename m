@@ -1,31 +1,32 @@
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E970919E96F
-	for <netfilter-devel@vger.kernel.org>; Mon,  2 Sep 2024 12:33:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE0BE1A3026
+	for <netfilter-devel@vger.kernel.org>; Mon,  2 Sep 2024 16:41:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725280394; cv=none; b=EMTqATvzE7cFLiXd3fUo8Ew07AYxb/AEOdxgJT4lCmbDo0WAYgkfnDKJC9CeiYYk5U4e1j24V3tbJahKuDUVUgRt4oOEVMIyVe8MWBviEo0757FJ5Ftx0Yj4Ta2Zsuw6ffE3Lux+q1aFvmH6Ow1tNa7cy3KtlQVXvfTAwOooKAc=
+	t=1725295278; cv=none; b=kaEq20kJD/LLKzPgPRkc//6RMPgjoLdjXcI5Xqel30EB0J8JBzY53yc20Xu1gTcQ+RlIBpVqS+RZ/6J/wBFWTM373YDI0zAfyS9aHhDwC50fLFdO3sFjMRdxN1QBeh1elYZMpXMQhLJpAvaaEpyQvztEoEcJnuiPZdyjGFarc3w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725280394; c=relaxed/simple;
-	bh=n7gYZEbI29xouVVObOu+iksmiwmoNLY6HifBg9m7IXE=;
+	s=arc-20240116; t=1725295278; c=relaxed/simple;
+	bh=buiA11RXDC/dNafgPiKoI8qCSzyQp3IizPaigA6bdd0=;
 	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=KML+sdWOZF7ONy5SlTIDRskiJ7MS3HWBI4yLkDwCPp1FyJT/3dGz/NvEhVZV1I3uy2JC2TfGRfB2VK1fTtCfHV38VlTkz8IoOBC9YFYhG2mTI61vnCbvglz0Hiet3CiTb8zUSwc12WibXokiA07WppH1JRg7pFlNx4jdDUmQ6EI=
+	 Content-Type:Content-Disposition:In-Reply-To; b=lT1lwMLaqaOuAX99Mv+QeQ3a24xMRaWRDfBpnXoLaBznMVqnQRcxyJzybGNUtJfHguOIuGbqNF+uRw+cofBy331uFfA5cbAiRB1fLDCDF5uS045HS3yExE4AUed9Itn8w0SqdN5th3nwOQ796GEA/t1keVLpKDUBMV9JATQfLXY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=56848 helo=gnumonks.org)
+Received: from [78.30.37.63] (port=41848 helo=gnumonks.org)
 	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <pablo@gnumonks.org>)
-	id 1sl6Ex-0092cs-5l; Mon, 02 Sep 2024 14:33:05 +0200
-Date: Mon, 2 Sep 2024 14:33:01 +0200
+	id 1slA72-009HkY-Ly
+	for netfilter-devel@vger.kernel.org; Mon, 02 Sep 2024 18:41:10 +0200
+Date: Mon, 2 Sep 2024 18:41:07 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>,
-	Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: Request for comments
-Message-ID: <ZtWwfYTF1TC8UMh_@calendula>
-References: <ZtVPczkT/T9Zz0ep@slk15.local.net>
+To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] tests: shell: extend coverage for meta l4proto
+ netdev/egress matching
+Message-ID: <ZtXqo5NSP8_Wfpb_@calendula>
+References: <20240826190242.176214-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -34,38 +35,12 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <ZtVPczkT/T9Zz0ep@slk15.local.net>
+In-Reply-To: <20240826190242.176214-1-pablo@netfilter.org>
 X-Spam-Score: -1.9 (-)
 
-Hi Duncan,
-
-On Mon, Sep 02, 2024 at 03:38:59PM +1000, Duncan Roe wrote:
-> Hi Florian,
+On Mon, Aug 26, 2024 at 09:02:42PM +0200, Pablo Neira Ayuso wrote:
+> Extend coverage to match on small UDP packets from netdev/egress.
 > 
-> Recently I submitted patch series
-> https://patchwork.ozlabs.org/project/netfilter-devel/list/?series=407990 which
-> converts libnetfilter_queue to not need libnfnetlink.
-> 
-> The series re-implements all the libnfnetlink-wrapper functions so they use
-> functions from libmnl. I understand from previous correspondence that you had a
-> shot at doing the same thing a while back. With that in mind, would you be able
-> to find the time to take a look at the series and comment on it?
-> 
-> Additionally, the series re-implements the nlif_* functions from libnfnetlink.
-> conntrack-tools and ulogd also use these functions, so I wonder if they belong
-> in libmnl. Would you have an opinion on that?
-> 
-> Please disregard my use of kernel headers - I now understand the idea of cached
-> headers is to be able to do standalone builds without them. v3 would fix that.
+> While at it, cover bridge/input and bridge/output hooks too.
 
-I have huge concerns this will break existing applications for the
-benefit of nothing? Because other existing libraries rely on
-libnfnetlink.
-
-Unless he finds a way to carefully sends us patches to incrementally
-move to libmnl.
-
-I think it is more sensible to extend the new API to fill the missing
-gaps, I remember people mentioned it is too low level. With a few
-helper function it should be possible to make it as easy to use for
-simple applications a libnetfilter_queue.
+Pushed out this.
