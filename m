@@ -1,31 +1,33 @@
-Received: from mail.redfish-solutions.com (mail.redfish-solutions.com [24.116.100.90])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE2AC1A3A8D
-	for <netfilter-devel@vger.kernel.org>; Mon,  2 Sep 2024 19:43:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=24.116.100.90
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B38471A4E8D;
+	Mon,  2 Sep 2024 21:41:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725306216; cv=none; b=Tm2aqI7VNq0Nl3lTY7IQFhXioyYCo4UFwWJV5OxTaQtK4m1urlWcC3Ln0cMDVKanz71fce8tM1Jlo5PSdmqZifrG63pA9EShTe9mP6sjsaYxlE6g/ETsIeG+7/6LOjO0ZMjtc7Dk5G/H9r+gVHfrfHkY5HAXFg/vRZyluld+97w=
+	t=1725313297; cv=none; b=Ae+ZnXJJzElIW3+Uujl2fHU428FQvxlkG1FCH/lkPoU2/niQjbIuBA6vxz9YsU6iEycIz88w6UP6Hn/qj6fMB/H2XvsgybNk4SC2fU2P0brt6oSZsrzuJFndFJS+1y45ixI0++3LfiYeaXGVWFgkhAITH+AdfMKKBYvzrKVrxn4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725306216; c=relaxed/simple;
-	bh=n+psHeKJqPOWt1JvYq8WFjJrXzOm1cBzWTys5F0irTY=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=gtkL2TJgNmXovBLGXicqsIbHPm2KQbAPcPd667bdpurE6ipRXhoW3PTvmcajIufAjk542ZRau/aJZUFUtGhNh9M7V1QyzCOIWguAGoW92R2tBsKFNuK3/onPVjwlX0Jqn72q+8QhEMVTgigiPgHRQcU1rC2U5zwPiCGfVdjzZXU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=redfish-solutions.com; spf=pass smtp.mailfrom=redfish-solutions.com; arc=none smtp.client-ip=24.116.100.90
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=redfish-solutions.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redfish-solutions.com
-Received: from ubuntu22.redfish-solutions.com (ubuntu22.redfish-solutions.com [192.168.8.33])
-	(authenticated bits=0)
-	by mail.redfish-solutions.com (8.17.2/8.16.1) with ESMTPSA id 482JhOPH747003
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Mon, 2 Sep 2024 13:43:24 -0600
-From: "Philip Prindeville" <philipp@redfish-solutions.com>
-To: netfilter-devel@vger.kernel.org
-Cc: Jan Engelhardt <jengelh@inai.de>,
-        Philip Prindeville <philipp@redfish-solutions.com>
-Subject: [PATCH 1/1] asn: fix missing quiet checks in xt_asn_build
-Date: Mon,  2 Sep 2024 13:43:24 -0600
-Message-Id: <20240902194324.2948111-1-philipp@redfish-solutions.com>
-X-Mailer: git-send-email 2.34.1
+	s=arc-20240116; t=1725313297; c=relaxed/simple;
+	bh=yaAvMEPuhjkou8PiY5EZZxXR7NdbyPxmpqWzZlDZJ8A=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ZxKPYpbR+GvuO22E/b2WkRTbQE/APduPZQnPyTDXStKr1kpfi7rg2p1mHS7jtaiNBoYUDZFvkRpZVRBGVBkPmBvgA3oUz3BRs1yq8pvWEQaGmTK7SyPUOYONl7AeKyTF5uK90FKZwqPs7FiKWoZopHHVuvTSiqkfkkrsS8qOOzA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1slEng-0004nv-CI; Mon, 02 Sep 2024 23:41:28 +0200
+From: Florian Westphal <fw@strlen.de>
+To: <netdev@vger.kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	<netfilter-devel@vger.kernel.org>,
+	Florian Westphal <fw@strlen.de>,
+	Donald Hunter <donald.hunter@gmail.com>
+Subject: [PATCH v2 net-next] netlink: specs: nftables: allow decode of default firewalld ruleset
+Date: Mon,  2 Sep 2024 23:41:06 +0200
+Message-ID: <20240902214112.2549-1-fw@strlen.de>
+X-Mailer: git-send-email 2.44.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -33,97 +35,382 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.4.1 on 192.168.8.3
 
-From: Philip Prindeville <philipp@redfish-solutions.com>
+This update allows listing default firewalld ruleset on Fedora 40 via
+  tools/net/ynl/cli.py --spec \
+     Documentation/netlink/specs/nftables.yaml --dump getrule
 
-Conceivably someone might want to run a refresh of the ASN database
-from within a script, particularly an unattended script such as a cron
-job. Do not generate output in that case.
+Default ruleset uses fib, reject and objref expressions which were
+missing.
 
-Also, do not send normal (progress) output to STDERR.
+Other missing expressions can be added later.
 
-Signed-off-by: Philip Prindeville <philipp@redfish-solutions.com>
+Improve decoding while at it:
+- add bitwise, ct and lookup attributes
+- wire up the quota expression
+- translate raw verdict codes to a human reable name, e.g.
+  'code': 4294967293 becomes 'code': 'jump'.
+
+v2: forgot fib addrtype in enum list (Donald Hunter)
+
+Reviewed-by: Donald Hunter <donald.hunter@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- asn/xt_asn_build | 17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ Documentation/netlink/specs/nftables.yaml | 254 +++++++++++++++++++++-
+ 1 file changed, 250 insertions(+), 4 deletions(-)
 
-diff --git a/asn/xt_asn_build b/asn/xt_asn_build
-index 4c406799480538c03efb8a5ccb9479aef3ef3060..e5edfbf169eaeb2e0049c38db4934070ea3d5b38 100755
---- a/asn/xt_asn_build
-+++ b/asn/xt_asn_build
-@@ -12,12 +12,14 @@ use Socket qw(AF_INET AF_INET6 inet_pton);
- use warnings;
- use Text::CSV_XS; # or trade for Text::CSV
- use strict;
-+$| = 1;
+diff --git a/Documentation/netlink/specs/nftables.yaml b/Documentation/netlink/specs/nftables.yaml
+index dff2a18f3d90..4acf30cf8385 100644
+--- a/Documentation/netlink/specs/nftables.yaml
++++ b/Documentation/netlink/specs/nftables.yaml
+@@ -62,6 +62,13 @@ definitions:
+       - sdif
+       - sdifname
+       - bri-broute
++  -
++    name: bitwise-ops
++    type: enum
++    entries:
++      - bool
++      - lshift
++      - rshift
+   -
+     name: cmp-ops
+     type: enum
+@@ -125,6 +132,99 @@ definitions:
+       - object
+       - concat
+       - expr
++  -
++    name: lookup-flags
++    type: flags
++    entries:
++      - invert
++  -
++    name: ct-keys
++    type: enum
++    entries:
++      - state
++      - direction
++      - status
++      - mark
++      - secmark
++      - expiration
++      - helper
++      - l3protocol
++      - src
++      - dst
++      - protocol
++      - proto-src
++      - proto-dst
++      - labels
++      - pkts
++      - bytes
++      - avgpkt
++      - zone
++      - eventmask
++      - src-ip
++      - dst-ip
++      - src-ip6
++      - dst-ip6
++      - ct-id
++  -
++    name: ct-direction
++    type: enum
++    entries:
++      - original
++      - reply
++  -
++    name: quota-flags
++    type: flags
++    entries:
++      - invert
++      - depleted
++  -
++    name: verdict-code
++    type: enum
++    entries:
++      - name: continue
++        value: 0xffffffff
++      - name: break
++        value: 0xfffffffe
++      - name: jump
++        value: 0xfffffffd
++      - name: goto
++        value: 0xfffffffc
++      - name: return
++        value: 0xfffffffb
++      - name: drop
++        value: 0
++      - name: accept
++        value: 1
++      - name: stolen
++        value: 2
++      - name: queue
++        value: 3
++      - name: repeat
++        value: 4
++  -
++    name: fib-result
++    type: enum
++    entries:
++      - oif
++      - oifname
++      - addrtype
++  -
++    name: fib-flags
++    type: flags
++    entries:
++      - saddr
++      - daddr
++      - mark
++      - iif
++      - oif
++      - present
++  -
++    name: reject-types
++    type: enum
++    entries:
++      - icmp-unreach
++      - tcp-rst
++      - icmpx-unreach
  
- my $csv = Text::CSV_XS->new({
- 	allow_whitespace => 1,
- 	binary => 1,
- 	eol => $/,
- }); # or Text::CSV
-+my $quiet = 0;
- my $source_dir = ".";
- my $target_dir = ".";
- my $output_txt;
-@@ -27,6 +29,7 @@ my $output_txt;
- 	"D=s" => \$target_dir,
- 	"S=s" => \$source_dir,
- 	"O=s" => \$output_txt,
-+	"q" => \$quiet,
- );
+ attribute-sets:
+   -
+@@ -611,9 +711,10 @@ attribute-sets:
+         type: u64
+         byte-order: big-endian
+       -
+-        name: flags # TODO
++        name: flags
+         type: u32
+         byte-order: big-endian
++        enum: quota-flags
+       -
+         name: pad
+         type: pad
+@@ -664,6 +765,38 @@ attribute-sets:
+         name: devs
+         type: nest
+         nested-attributes: hook-dev-attrs
++  -
++    name: expr-bitwise-attrs
++    attributes:
++      -
++        name: sreg
++        type: u32
++        byte-order: big-endian
++      -
++        name: dreg
++        type: u32
++        byte-order: big-endian
++      -
++        name: len
++        type: u32
++        byte-order: big-endian
++      -
++        name: mask
++        type: nest
++        nested-attributes: data-attrs
++      -
++        name: xor
++        type: nest
++        nested-attributes: data-attrs
++      -
++        name: op
++        type: u32
++        byte-order: big-endian
++        enum: bitwise-ops
++      -
++        name: data
++        type: nest
++        nested-attributes: data-attrs
+   -
+     name: expr-cmp-attrs
+     attributes:
+@@ -698,6 +831,7 @@ attribute-sets:
+         name: code
+         type: u32
+         byte-order: big-endian
++        enum: verdict-code
+       -
+         name: chain
+         type: string
+@@ -718,6 +852,43 @@ attribute-sets:
+       -
+         name: pad
+         type: pad
++  -
++    name: expr-fib-attrs
++    attributes:
++      -
++        name: dreg
++        type: u32
++        byte-order: big-endian
++      -
++        name: result
++        type: u32
++        byte-order: big-endian
++        enum: fib-result
++      -
++        name: flags
++        type: u32
++        byte-order: big-endian
++        enum: fib-flags
++  -
++    name: expr-ct-attrs
++    attributes:
++      -
++        name: dreg
++        type: u32
++        byte-order: big-endian
++      -
++        name: key
++        type: u32
++        byte-order: big-endian
++        enum: ct-keys
++      -
++        name: direction
++        type: u8
++        enum: ct-direction
++      -
++        name: sreg
++        type: u32
++        byte-order: big-endian
+   -
+     name: expr-flow-offload-attrs
+     attributes:
+@@ -736,6 +907,31 @@ attribute-sets:
+         name: data
+         type: nest
+         nested-attributes: data-attrs
++  -
++    name: expr-lookup-attrs
++    attributes:
++      -
++        name: set
++        type: string
++        doc: Name of set to use
++      -
++        name: set id
++        type: u32
++        byte-order: big-endian
++        doc: ID of set to use
++      -
++        name: sreg
++        type: u32
++        byte-order: big-endian
++      -
++        name: dreg
++        type: u32
++        byte-order: big-endian
++      -
++        name: flags
++        type: u32
++        byte-order: big-endian
++        enum: lookup-flags
+   -
+     name: expr-meta-attrs
+     attributes:
+@@ -820,6 +1016,17 @@ attribute-sets:
+         name: csum-flags
+         type: u32
+         byte-order: big-endian
++  -
++    name: expr-reject-attrs
++    attributes:
++      -
++        name: type
++        type: u32
++        byte-order: big-endian
++        enum: reject-types
++      -
++        name: icmp-code
++        type: u8
+   -
+     name: expr-tproxy-attrs
+     attributes:
+@@ -835,13 +1042,38 @@ attribute-sets:
+         name: reg-port
+         type: u32
+         byte-order: big-endian
++  -
++    name: expr-objref-attrs
++    attributes:
++      -
++        name: imm-type
++        type: u32
++        byte-order: big-endian
++      -
++        name: imm-name
++        type: string
++        doc: object name
++      -
++        name: set-sreg
++        type: u32
++        byte-order: big-endian
++      -
++        name: set-name
++        type: string
++        doc: name of object map
++      -
++        name: set-id
++        type: u32
++        byte-order: big-endian
++        doc: id of object map
  
- if (!-d $source_dir) {
-@@ -85,8 +88,8 @@ sub collect
- 
- 		$asns{$asn}->{pool_v4}->add($cidr);
- 
--		if ($. % 4096 == 0) {
--			print STDERR "\r\e[2K$. entries";
-+		if (!$quiet && $. % 4096 == 0) {
-+			print STDOUT "\r\e[2K$. entries";
- 		}
- 
- 		if ($outfile) {
-@@ -95,7 +98,7 @@ sub collect
- 		}
- 	}
- 
--	print STDERR "\r\e[2K$. entries total\n";
-+	print STDOUT "\r\e[2K$. entries total\n" unless ($quiet);
- 
- 	close($fh);
- 
-@@ -132,8 +135,8 @@ sub collect
- 
- 		$asns{$asn}->{pool_v6}->add($cidr);
- 
--		if ($. % 4096 == 0) {
--			print STDERR "\r\e[2K$. entries";
-+		if (!$quiet && $. % 4096 == 0) {
-+			print STDOUT "\r\e[2K$. entries";
- 		}
- 
- 		if ($outfile) {
-@@ -142,7 +145,7 @@ sub collect
- 		}
- 	}
- 
--	print STDERR "\r\e[2K$. entries total\n";
-+	print STDOUT "\r\e[2K$. entries total\n" unless ($quiet);
- 
- 	close($fh);
- 
-@@ -187,7 +190,7 @@ sub writeASN
- 	printf "%5u IPv%s ranges for %s\n",
- 		scalar(@ranges),
- 		($family == AF_INET ? '4' : '6'),
--		$asn_number;
-+		$asn_number unless ($quiet);
- 
- 	my $file = "$target_dir/".$asn_number.".iv".($family == AF_INET ? '4' : '6');
- 	if (!open($fh, '>', $file)) {
+ sub-messages:
+   -
+     name: expr-ops
+     formats:
+       -
+-        value: bitwise # TODO
++        value: bitwise
++        attribute-set: expr-bitwise-attrs
+       -
+         value: cmp
+         attribute-set: expr-cmp-attrs
+@@ -849,7 +1081,11 @@ sub-messages:
+         value: counter
+         attribute-set: expr-counter-attrs
+       -
+-        value: ct # TODO
++        value: ct
++        attribute-set: expr-ct-attrs
++      -
++        value: fib
++        attribute-set: expr-fib-attrs
+       -
+         value: flow_offload
+         attribute-set: expr-flow-offload-attrs
+@@ -857,16 +1093,26 @@ sub-messages:
+         value: immediate
+         attribute-set: expr-immediate-attrs
+       -
+-        value: lookup # TODO
++        value: lookup
++        attribute-set: expr-lookup-attrs
+       -
+         value: meta
+         attribute-set: expr-meta-attrs
+       -
+         value: nat
+         attribute-set: expr-nat-attrs
++      -
++        value: objref
++        attribute-set: expr-objref-attrs
+       -
+         value: payload
+         attribute-set: expr-payload-attrs
++      -
++        value: quota
++        attribute-set: quota-attrs
++      -
++        value: reject
++        attribute-set: expr-reject-attrs
+       -
+         value: tproxy
+         attribute-set: expr-tproxy-attrs
 -- 
-2.34.1
+2.44.2
 
