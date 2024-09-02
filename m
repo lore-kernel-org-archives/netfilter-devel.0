@@ -1,92 +1,92 @@
-Received: from mail-pl1-f178.google.com (mail-pl1-f178.google.com [209.85.214.178])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A001B2D7B8
-	for <netfilter-devel@vger.kernel.org>; Mon,  2 Sep 2024 05:39:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 638E42B9BB
+	for <netfilter-devel@vger.kernel.org>; Mon,  2 Sep 2024 06:43:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725255546; cv=none; b=VXrU7yRuncO4FZZaLp8Q9/8sJrpp8/sUnWIDtt6T2ANGQF1QIezVsuTpX1p+ybYbmeZIpq7swDKI1Ey1OOuiAAE6ocnTSsLMZLML2JJE7sClDhM5HBDshV4Z6+0qRemGsoJnc0AN9rCJHh/kK4eP3xtIZp/iccMO0xRZQXOIfLQ=
+	t=1725259420; cv=none; b=DsoAQXCavpfBkmrmtCWm4qwFliCc3VIJZlkobZn9r8U4aZCkwLVQTLDSwv/3MVJNF097dyMmAAfqItz9JHE+Syn1GvSiXYnEC02cqQldIec9aYT3Nxi0gAC66+Ds4Ll9GT6EZsug6qmXV0J56jphH6SKjtaw6dTijIi2k/RPZSc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725255546; c=relaxed/simple;
-	bh=utjtaKZ5i8NaGhMWZCQCbPysyfjc8nK7JeOUPhmAu9A=;
-	h=From:Date:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=tG8NcbXgD57yCS9ylSXal8AP5W15VRgjECYQKOZ0uF48p9bP8Np/XQh/2W7sZU9XCjktfTUmcECFbZDyw0+ruRFLG9o5c42oRrqSr9Wt37dLtj0kSQcQtjLKDEBWNI+X1BMyioXRzkGN+eQbbUfnmyrqOk7Qx0HA88NNgU/WL34=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=g3Okoo7A; arc=none smtp.client-ip=209.85.214.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1725259420; c=relaxed/simple;
+	bh=vwmvdtIJgm9q9Kq7qxemj0FWsejOb4A+vZ42e2DBzZo=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=OkaMoCLe4gt7P7hR1NaGa1zJKSskqdVoy/wFA7mFSz8UolQAgfMq5j84KEDLzU1kIzO+/Iim7AAfzR6oGIqNG4v44pDWCqb56GAgGmrlNuEnRAEQt1spBhjk5Kvg4wANU1ZUENVS6GvVnDuaapycXLtHC3mo6KkVcJ8MujN6eFo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=qeaQ/K1V; arc=none smtp.client-ip=148.6.0.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="g3Okoo7A"
-Received: by mail-pl1-f178.google.com with SMTP id d9443c01a7336-2059112f0a7so733255ad.3
-        for <netfilter-devel@vger.kernel.org>; Sun, 01 Sep 2024 22:39:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1725255544; x=1725860344; darn=vger.kernel.org;
-        h=content-disposition:mime-version:mail-followup-to:reply-to
-         :message-id:subject:cc:to:date:from:sender:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=utjtaKZ5i8NaGhMWZCQCbPysyfjc8nK7JeOUPhmAu9A=;
-        b=g3Okoo7AIdtxygiajmxFlGhPXjGNEh0jCupHM2wJm3NaXOcfLYeg1ULLXxJUCdVsBI
-         9XsPoOOogIyD8Vs2vnNJyc5XDl9HrPovTk0S05YxdPAGICvVMI/4kdjFo5R9flHtTv+v
-         ui/2JupR0fVpieTsOT3xw1CuxJNXnuKhXrTAeJyip0vXk7KJfJ5Q5ZQbx8OdrHfF0i6C
-         ZAu6RD9LzPkrz5nFEHrW0pfVDBCrqS6blm4VhsHhPw/ADEXNZp3pSbBX4KAW33mXJsBl
-         hwy803xrY2Y7COosqlh/sPnhsjX5MFzW9BbxE9L2vfn9wOhueKadEFZEDQFhZnp3BToa
-         nlOA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1725255544; x=1725860344;
-        h=content-disposition:mime-version:mail-followup-to:reply-to
-         :message-id:subject:cc:to:date:from:sender:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=utjtaKZ5i8NaGhMWZCQCbPysyfjc8nK7JeOUPhmAu9A=;
-        b=Mm5eeekdv1YASFM6R1svIofKh/bqldaJF2PbPemerot8X+8FIduJfZrXqJn4voWY9r
-         9n7ucoqBNCkZew2LVShSjSZ4YoLnu7k0iOHKvd0X+ldEvX/xfd/ZW+j1fVosoZKJRlZ5
-         V11CFPbzFYTJ6yFYLDeM/4nKQwvVhWrbkmvYnWMSNo1XEypX4hhR91mEbRNIjXSHa279
-         PDxGmSLLhujByzzzKxQKnDTrtkdSEHkEvdRmspye3gUgTqvVCeQ1ZOoOyqlgPB9F5ZDJ
-         ULbmQ7k9QsLFNW2QcMMBYiIKQEjLKAo1JyZfO9baSrtpkeCoarvJjHzHftMqfEMTksQK
-         qNwQ==
-X-Gm-Message-State: AOJu0YwQANe2U6hPAwo/UZ2AakVlqHUOdgRjVObnwUd8tAX6LOfmuaSX
-	8JByUPkXM8wj13KluRIEDlHVGJpmHuFvElwYeUXqWUFamOi0C8DrzqpQYQ==
-X-Google-Smtp-Source: AGHT+IEaUhoIYWcTWQIUjjjf6tALy+9bRXDCZSqzakbxb/y8idbusm15GjzmD8PJDnj0vYu2/gimbg==
-X-Received: by 2002:a17:902:f550:b0:201:f568:b8fd with SMTP id d9443c01a7336-2050c40de86mr145130785ad.42.1725255543839;
-        Sun, 01 Sep 2024 22:39:03 -0700 (PDT)
-Received: from slk15.local.net (n175-33-111-144.meb22.vic.optusnet.com.au. [175.33.111.144])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-20554108fc5sm24184165ad.147.2024.09.01.22.39.01
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 01 Sep 2024 22:39:03 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From: Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
-Date: Mon, 2 Sep 2024 15:38:59 +1000
-To: Florian Westphal <fw@strlen.de>
-Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Request for comments
-Message-ID: <ZtVPczkT/T9Zz0ep@slk15.local.net>
-Reply-To: duncan_roe@optusnet.com.au
-Mail-Followup-To: Florian Westphal <fw@strlen.de>,
-	Netfilter Development <netfilter-devel@vger.kernel.org>
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="qeaQ/K1V"
+Received: from localhost (localhost [127.0.0.1])
+	by smtp1.kfki.hu (Postfix) with ESMTP id D5A3D3C80106;
+	Mon,  2 Sep 2024 08:33:36 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	blackhole.kfki.hu; h=mime-version:references:message-id
+	:in-reply-to:from:from:date:date:received:received:received
+	:received; s=20151130; t=1725258814; x=1727073215; bh=oNZwbHuFRV
+	sjGxP40h8mM2jUMQNAwxJIsEoqtN6hf98=; b=qeaQ/K1VEQlPpf4wUDFTU3ZAb7
+	znqejzFjB3dga1PakVvX9cfgyL2LqwQbOzTIbJadmI1LrAjpaO/Ti8bLSf8t9Dz6
+	nnKUg4if2vzPj1CCgmt0Li8ObN3uxRvoP+YtNZJ3y1W719YmMtv/9SuU5mrmb/Gx
+	ro9s74kHwNGZwvv20=
+X-Virus-Scanned: Debian amavis at smtp1.kfki.hu
+Received: from smtp1.kfki.hu ([127.0.0.1])
+ by localhost (smtp1.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
+ id xBfk-oBy0ep6; Mon,  2 Sep 2024 08:33:34 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
+	by smtp1.kfki.hu (Postfix) with ESMTP id DA7893C800FF;
+	Mon,  2 Sep 2024 08:33:33 +0200 (CEST)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+	id D4B6F343166; Mon,  2 Sep 2024 08:33:33 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by blackhole.kfki.hu (Postfix) with ESMTP id D40E4343165;
+	Mon,  2 Sep 2024 08:33:33 +0200 (CEST)
+Date: Mon, 2 Sep 2024 08:33:33 +0200 (CEST)
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Mike Pagano <mpagano@gentoo.org>
+cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] ipset: Fix implicit declaration of function basename
+In-Reply-To: <20240830153119.1136721-1-mpagano@gentoo.org>
+Message-ID: <80f6a981-94bf-795c-f0d5-ffa8cd038e69@blackhole.kfki.hu>
+References: <20240830153119.1136721-1-mpagano@gentoo.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 
-Hi Florian,
+Hi Mike,
 
-Recently I submitted patch series
-https://patchwork.ozlabs.org/project/netfilter-devel/list/?series=407990 which
-converts libnetfilter_queue to not need libnfnetlink.
+On Fri, 30 Aug 2024, mpagano@gentoo.org wrote:
 
-The series re-implements all the libnfnetlink-wrapper functions so they use
-functions from libmnl. I understand from previous correspondence that you had a
-shot at doing the same thing a while back. With that in mind, would you be able
-to find the time to take a look at the series and comment on it?
+> From: Mike Pagano <mpagano@gentoo.org>
+>
+> basename(3) is defined in libgen.h in MUSL.
+> Include libgen.h where basename(3) is used.
 
-Additionally, the series re-implements the nlif_* functions from libnfnetlink.
-conntrack-tools and ulogd also use these functions, so I wonder if they belong
-in libmnl. Would you have an opinion on that?
+Patch is applied in the ipset git tree, thank you.
 
-Please disregard my use of kernel headers - I now understand the idea of cached
-headers is to be able to do standalone builds without them. v3 would fix that.
-
-Cheers ... Duncan.
+Best regards,
+Jozsef
+> Signed-off-by: Mike Pagano <mpagano@gentoo.org>
+> ---
+> src/ipset.c | 1 +
+> 1 file changed, 1 insertion(+)
+>
+> diff --git a/src/ipset.c b/src/ipset.c
+> index 162f477..d7733bf 100644
+> --- a/src/ipset.c
+> +++ b/src/ipset.c
+> @@ -15,6 +15,7 @@
+> #include <config.h>
+> #include <libipset/ipset.h>		/* ipset library */
+> #include <libipset/xlate.h>		/* translate to nftables */
+> +#include <libgen.h>
+>
+> int
+> main(int argc, char *argv[])
+> -- 
+> 2.46.0
+>
+>
+>
