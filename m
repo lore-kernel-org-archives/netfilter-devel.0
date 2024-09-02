@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 572341A4E71
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8B50B17C9A4
 	for <netfilter-devel@vger.kernel.org>; Mon,  2 Sep 2024 23:17:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725319062; cv=none; b=q7CO82PfboYjcQA06IAiFMur0f1Eyst37+2wep51X7ept1/gM3twVKBb3XnUJpxbuJBOqfF+CeJJAoiJx7kCPLrWQufBTxG6P1djqkQyu5yl6CWWGwyurye51rOgMbHXXh+pp90EVvfF+5CDAqUC80/3QD83PPzeOg7oWhWvcC8=
+	t=1725319063; cv=none; b=Cq/H8zPK12A832GSNghWcuJTpwuFMtkQvITS60bHdA5ySKial+/za96opd68w5xnD7w8eeSEWVF8dqGONUNVmI9mV0HdnKod4TeMvnbEbDCT+v3/YcnHLxIGAzXEpuNfH7lvgy1oPY/BNbSepSH+wVgPBKDqFl2p6QDu2/O52g0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725319062; c=relaxed/simple;
-	bh=LwedWUKf/q2/HISSCoTSRpUR91jrwuC1IpSCdxzKMWA=;
+	s=arc-20240116; t=1725319063; c=relaxed/simple;
+	bh=SdXgJuiFOwXUKR22DWWCWfsh3JTjxcA/2wylPZcHQN8=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=dIXraZF6SLQ8tTmNM/bCIynBA1HoOg/2pHEuBQNlTOnbd0OUenCb1WKZnoca6IP+PEzGl3bF6bXK2Wy/3HFuKzN5Bmf1kaGtbXmSQ+h0ODzSlyQHUBPIxO7K6JYw0wJ/FZ+66vErkpcitP3+FpSjh7D+47D5OwggDzk8bxHWXAQ=
+	 MIME-Version; b=A6QNp77VGfxgWIxZjorSL/PL7pRWyEY9Ix+KejZ2AuN/tSyvoNUtB/6zc605Ui2EcNpTQTglSS23WvEPVWWEMnwPHhqhG0AkjFA+7DE4eklXZyY+hWpYU/MDAgJIJat5zQF5yXdNPgSJDoa+x0FqN3AX+0vBEN/ZWNnhRWrG8dc=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -16,9 +16,9 @@ From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: phil@nwl.cc,
 	fw@strlen.de
-Subject: [PATCH nf-next,v2 7/9] netfilter: nf_tables: consolidate timeout extension for elements
-Date: Tue,  3 Sep 2024 01:17:24 +0200
-Message-Id: <20240902231726.171964-7-pablo@netfilter.org>
+Subject: [PATCH nf-next,v2 9/9] netfilter: nf_tables: set element timeout update support
+Date: Tue,  3 Sep 2024 01:17:26 +0200
+Message-Id: <20240902231726.171964-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240902231726.171964-1-pablo@netfilter.org>
 References: <20240902231726.171964-1-pablo@netfilter.org>
@@ -30,184 +30,164 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Expiration and timeout are stored in separated set element extensions,
-but they are tightly coupled. Consolidate them in a single extension to
-simplify and prepare for set element updates.
+Store new timeout and expiration in transaction object, use them to
+update elements from .commit path. Otherwise, discard update if .abort
+path is exercised.
+
+Annotate access to timeout extension now that it can be updated while
+lockless read access is possible.
+
+Reject timeout updates on elements with no timeout extension.
+
+Element transaction remains in the 96 bytes kmalloc slab on x86_64 after
+this update.
+
+This patch requires ("netfilter: nf_tables: use timestamp to check for
+set element timeout") to make sure an element does not expire while
+transaction is ongoing.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: no changes.
-
- include/net/netfilter/nf_tables.h | 18 ++++++-------
- net/netfilter/nf_tables_api.c     | 43 ++++++++++++-------------------
- net/netfilter/nft_dynset.c        | 13 ++++------
- 3 files changed, 30 insertions(+), 44 deletions(-)
+ include/net/netfilter/nf_tables.h | 11 +++++++-
+ net/netfilter/nf_tables_api.c     | 46 ++++++++++++++++++++++++++++---
+ net/netfilter/nft_dynset.c        |  2 +-
+ 3 files changed, 53 insertions(+), 6 deletions(-)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 7a2f7417ed9e..a950a1f932bf 100644
+index ef421c6bb715..dad7cae1af6b 100644
 --- a/include/net/netfilter/nf_tables.h
 +++ b/include/net/netfilter/nf_tables.h
-@@ -683,7 +683,6 @@ void nf_tables_destroy_set(const struct nft_ctx *ctx, struct nft_set *set);
-  *	@NFT_SET_EXT_DATA: mapping data
-  *	@NFT_SET_EXT_FLAGS: element flags
-  *	@NFT_SET_EXT_TIMEOUT: element timeout
-- *	@NFT_SET_EXT_EXPIRATION: element expiration time
-  *	@NFT_SET_EXT_USERDATA: user data associated with the element
-  *	@NFT_SET_EXT_EXPRESSIONS: expressions assiciated with the element
-  *	@NFT_SET_EXT_OBJREF: stateful object reference associated with element
-@@ -695,7 +694,6 @@ enum nft_set_extensions {
- 	NFT_SET_EXT_DATA,
- 	NFT_SET_EXT_FLAGS,
- 	NFT_SET_EXT_TIMEOUT,
--	NFT_SET_EXT_EXPIRATION,
- 	NFT_SET_EXT_USERDATA,
- 	NFT_SET_EXT_EXPRESSIONS,
- 	NFT_SET_EXT_OBJREF,
-@@ -807,14 +805,14 @@ static inline u8 *nft_set_ext_flags(const struct nft_set_ext *ext)
- 	return nft_set_ext(ext, NFT_SET_EXT_FLAGS);
- }
- 
--static inline u64 *nft_set_ext_timeout(const struct nft_set_ext *ext)
--{
--	return nft_set_ext(ext, NFT_SET_EXT_TIMEOUT);
--}
-+struct nft_timeout {
-+	u64	timeout;
-+	u64	expiration;
-+};
- 
--static inline u64 *nft_set_ext_expiration(const struct nft_set_ext *ext)
-+static inline struct nft_timeout *nft_set_ext_timeout(const struct nft_set_ext *ext)
- {
--	return nft_set_ext(ext, NFT_SET_EXT_EXPIRATION);
-+	return nft_set_ext(ext, NFT_SET_EXT_TIMEOUT);
- }
- 
- static inline struct nft_userdata *nft_set_ext_userdata(const struct nft_set_ext *ext)
-@@ -830,8 +828,8 @@ static inline struct nft_set_elem_expr *nft_set_ext_expr(const struct nft_set_ex
- static inline bool __nft_set_elem_expired(const struct nft_set_ext *ext,
+@@ -829,7 +829,7 @@ static inline bool __nft_set_elem_expired(const struct nft_set_ext *ext,
  					  u64 tstamp)
  {
--	return nft_set_ext_exists(ext, NFT_SET_EXT_EXPIRATION) &&
--	       time_after_eq64(tstamp, READ_ONCE(*nft_set_ext_expiration(ext)));
-+	return nft_set_ext_exists(ext, NFT_SET_EXT_TIMEOUT) &&
-+	       time_after_eq64(tstamp, READ_ONCE(nft_set_ext_timeout(ext)->expiration));
- }
+ 	if (!nft_set_ext_exists(ext, NFT_SET_EXT_TIMEOUT) ||
+-	    nft_set_ext_timeout(ext)->timeout == 0)
++	    READ_ONCE(nft_set_ext_timeout(ext)->timeout) == 0)
+ 		return false;
  
- static inline bool nft_set_elem_expired(const struct nft_set_ext *ext)
+ 	return time_after_eq64(tstamp, READ_ONCE(nft_set_ext_timeout(ext)->expiration));
+@@ -1749,6 +1749,9 @@ struct nft_trans_elem {
+ 	struct nft_trans		nft_trans;
+ 	struct nft_set			*set;
+ 	struct nft_elem_priv		*elem_priv;
++	u64				timeout;
++	u64				expiration;
++	bool				update;
+ 	bool				bound;
+ };
+ 
+@@ -1758,6 +1761,12 @@ struct nft_trans_elem {
+ 	nft_trans_container_elem(trans)->set
+ #define nft_trans_elem_priv(trans)			\
+ 	nft_trans_container_elem(trans)->elem_priv
++#define nft_trans_elem_update(trans)			\
++	nft_trans_container_elem(trans)->update
++#define nft_trans_elem_timeout(trans)			\
++	nft_trans_container_elem(trans)->timeout
++#define nft_trans_elem_expiration(trans)		\
++	nft_trans_container_elem(trans)->expiration
+ #define nft_trans_elem_set_bound(trans)			\
+ 	nft_trans_container_elem(trans)->bound
+ 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index ee7f8c12918b..4cf2162b0d07 100644
+index 4bba454eee4c..0e784466b3a6 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -5688,12 +5688,8 @@ const struct nft_set_ext_type nft_set_ext_types[] = {
- 		.align	= __alignof__(u8),
- 	},
- 	[NFT_SET_EXT_TIMEOUT]		= {
--		.len	= sizeof(u64),
--		.align	= __alignof__(u64),
--	},
--	[NFT_SET_EXT_EXPIRATION]	= {
--		.len	= sizeof(u64),
--		.align	= __alignof__(u64),
-+		.len	= sizeof(struct nft_timeout),
-+		.align	= __alignof__(struct nft_timeout),
- 	},
- 	[NFT_SET_EXT_USERDATA]		= {
- 		.len	= sizeof(struct nft_userdata),
-@@ -5812,16 +5808,16 @@ static int nf_tables_fill_setelem(struct sk_buff *skb,
- 		         htonl(*nft_set_ext_flags(ext))))
+@@ -5813,7 +5813,7 @@ static int nf_tables_fill_setelem(struct sk_buff *skb,
  		goto nla_put_failure;
  
--	if (nft_set_ext_exists(ext, NFT_SET_EXT_TIMEOUT) &&
--	    nla_put_be64(skb, NFTA_SET_ELEM_TIMEOUT,
--			 nf_jiffies64_to_msecs(*nft_set_ext_timeout(ext)),
--			 NFTA_SET_ELEM_PAD))
--		goto nla_put_failure;
--
--	if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPIRATION)) {
-+	if (nft_set_ext_exists(ext, NFT_SET_EXT_TIMEOUT)) {
- 		u64 expires, now = get_jiffies_64();
+ 	if (nft_set_ext_exists(ext, NFT_SET_EXT_TIMEOUT)) {
+-		u64 timeout = nft_set_ext_timeout(ext)->timeout;
++		u64 timeout = READ_ONCE(nft_set_ext_timeout(ext)->timeout);
+ 		u64 set_timeout = READ_ONCE(set->timeout);
+ 		__be64 msecs = 0;
  
--		expires = READ_ONCE(*nft_set_ext_expiration(ext));
-+		if (nft_set_ext_timeout(ext)->timeout != READ_ONCE(set->timeout) &&
-+		    nla_put_be64(skb, NFTA_SET_ELEM_TIMEOUT,
-+				 nf_jiffies64_to_msecs(nft_set_ext_timeout(ext)->timeout),
-+				 NFTA_SET_ELEM_PAD))
-+			goto nla_put_failure;
+@@ -6852,6 +6852,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 	struct nft_data_desc desc;
+ 	enum nft_registers dreg;
+ 	struct nft_trans *trans;
++	bool update = false;
+ 	u64 expiration;
+ 	u64 timeout;
+ 	int err, i;
+@@ -7167,8 +7168,29 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 			     nft_set_ext_exists(ext2, NFT_SET_EXT_OBJREF) &&
+ 			     *nft_set_ext_obj(ext) != *nft_set_ext_obj(ext2)))
+ 				goto err_element_clash;
+-			else if (!(nlmsg_flags & NLM_F_EXCL))
++			else if (!(nlmsg_flags & NLM_F_EXCL)) {
+ 				err = 0;
++				if (nft_set_ext_exists(ext2, NFT_SET_EXT_TIMEOUT)) {
++					if (timeout != nft_set_ext_timeout(ext2)->timeout) {
++						nft_trans_elem_timeout(trans) = timeout;
++						if (expiration == 0)
++							expiration = timeout;
 +
-+		expires = READ_ONCE(nft_set_ext_timeout(ext)->expiration);
- 		if (time_before64(now, expires))
- 			expires -= now;
- 		else
-@@ -6493,13 +6489,14 @@ struct nft_elem_priv *nft_set_elem_init(const struct nft_set *set,
- 			       nft_set_ext_data(ext), data, set->dlen) < 0)
- 		goto err_ext_check;
- 
--	if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPIRATION)) {
--		*nft_set_ext_expiration(ext) = get_jiffies_64() + expiration;
-+	if (nft_set_ext_exists(ext, NFT_SET_EXT_TIMEOUT)) {
-+		nft_set_ext_timeout(ext)->timeout = timeout;
++						update = true;
++					}
++					if (expiration) {
++						nft_trans_elem_expiration(trans) = expiration;
++						update = true;
++					}
 +
- 		if (expiration == 0)
--			*nft_set_ext_expiration(ext) += timeout;
-+			expiration = timeout;
++					if (update) {
++						nft_trans_elem_priv(trans) = elem_priv;
++						nft_trans_elem_update(trans) = true;
++						nft_trans_commit_list_add_tail(ctx->net, trans);
++						goto err_elem_free;
++					}
++				}
++			}
+ 		} else if (err == -ENOTEMPTY) {
+ 			/* ENOTEMPTY reports overlapping between this element
+ 			 * and an existing one.
+@@ -10492,7 +10514,22 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 		case NFT_MSG_NEWSETELEM:
+ 			te = nft_trans_container_elem(trans);
+ 
+-			nft_setelem_activate(net, te->set, te->elem_priv);
++			if (te->update) {
++				const struct nft_set_ext *ext =
++					nft_set_elem_ext(te->set, te->elem_priv);
 +
-+		nft_set_ext_timeout(ext)->expiration = get_jiffies_64() + expiration;
- 	}
--	if (nft_set_ext_exists(ext, NFT_SET_EXT_TIMEOUT))
--		*nft_set_ext_timeout(ext) = timeout;
- 
- 	return elem;
- 
-@@ -7013,15 +7010,9 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	}
- 
- 	if (timeout > 0) {
--		err = nft_set_ext_add(&tmpl, NFT_SET_EXT_EXPIRATION);
-+		err = nft_set_ext_add(&tmpl, NFT_SET_EXT_TIMEOUT);
- 		if (err < 0)
- 			goto err_parse_key_end;
--
--		if (timeout != set->timeout) {
--			err = nft_set_ext_add(&tmpl, NFT_SET_EXT_TIMEOUT);
--			if (err < 0)
--				goto err_parse_key_end;
--		}
- 	}
- 
- 	if (num_exprs) {
++				if (nft_set_ext_timeout(ext)->timeout != te->timeout) {
++					WRITE_ONCE(nft_set_ext_timeout(ext)->timeout,
++						   te->timeout);
++				}
++				if (te->expiration) {
++					WRITE_ONCE(nft_set_ext_timeout(ext)->expiration,
++						   get_jiffies_64() + te->expiration);
++				}
++			} else {
++				nft_setelem_activate(net, te->set, te->elem_priv);
++			}
++
+ 			nf_tables_setelem_notify(&ctx, te->set,
+ 						 te->elem_priv,
+ 						 NFT_MSG_NEWSETELEM);
+@@ -10791,7 +10828,8 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_NEWSETELEM:
+-			if (nft_trans_elem_set_bound(trans)) {
++			if (nft_trans_elem_update(trans) ||
++			    nft_trans_elem_set_bound(trans)) {
+ 				nft_trans_destroy(trans);
+ 				break;
+ 			}
 diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index 67474fd002b2..88ea2454c6df 100644
+index e250183df713..06fb08ddc804 100644
 --- a/net/netfilter/nft_dynset.c
 +++ b/net/netfilter/nft_dynset.c
-@@ -94,9 +94,9 @@ void nft_dynset_eval(const struct nft_expr *expr,
- 	if (set->ops->update(set, &regs->data[priv->sreg_key], nft_dynset_new,
+@@ -95,7 +95,7 @@ void nft_dynset_eval(const struct nft_expr *expr,
  			     expr, regs, &ext)) {
  		if (priv->op == NFT_DYNSET_OP_UPDATE &&
--		    nft_set_ext_exists(ext, NFT_SET_EXT_EXPIRATION)) {
-+		    nft_set_ext_exists(ext, NFT_SET_EXT_TIMEOUT)) {
+ 		    nft_set_ext_exists(ext, NFT_SET_EXT_TIMEOUT) &&
+-		    nft_set_ext_timeout(ext)->timeout != 0) {
++		    READ_ONCE(nft_set_ext_timeout(ext)->timeout) != 0) {
  			timeout = priv->timeout ? : READ_ONCE(set->timeout);
--			WRITE_ONCE(*nft_set_ext_expiration(ext), get_jiffies_64() + timeout);
-+			WRITE_ONCE(nft_set_ext_timeout(ext)->expiration, get_jiffies_64() + timeout);
+ 			WRITE_ONCE(nft_set_ext_timeout(ext)->expiration, get_jiffies_64() + timeout);
  		}
- 
- 		nft_set_elem_update_expr(ext, regs, pkt);
-@@ -312,12 +312,9 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 	if (priv->num_exprs)
- 		nft_dynset_ext_add_expr(priv);
- 
--	if (set->flags & NFT_SET_TIMEOUT) {
--		if (timeout || READ_ONCE(set->timeout)) {
--			nft_set_ext_add(&priv->tmpl, NFT_SET_EXT_TIMEOUT);
--			nft_set_ext_add(&priv->tmpl, NFT_SET_EXT_EXPIRATION);
--		}
--	}
-+	if (set->flags & NFT_SET_TIMEOUT &&
-+	    (timeout || READ_ONCE(set->timeout)))
-+		nft_set_ext_add(&priv->tmpl, NFT_SET_EXT_TIMEOUT);
- 
- 	priv->timeout = timeout;
- 
 -- 
 2.30.2
 
