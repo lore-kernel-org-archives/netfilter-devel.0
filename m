@@ -1,21 +1,22 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id AB6031B12F6
-	for <netfilter-devel@vger.kernel.org>; Tue,  3 Sep 2024 12:19:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id CAFC21CA690
+	for <netfilter-devel@vger.kernel.org>; Tue,  3 Sep 2024 13:55:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725365963; cv=none; b=kgix+iz57bTm29fBAF80KLKmkKoyWFrqDoMYaPS8EkC3suQSNPIlz9fBgculECR3lMDlHeCghDB8t/1EbHznVUKRJZvLvrb4YUEbbFfmz733X42YEhtoknD7qtv76cQ8MLEfs3OGYm/F0/85ruUVLMZnnGMHMjbM5/sg5FVhS8A=
+	t=1725371742; cv=none; b=DewuDrAPIeL4wZx8olEqgP0z8DjOboBizMnFfXCqfxCYms4mkd1KnmJFNA+THIHTaXNooZO5Dsw0wbUbn3a3rUFqmHq9hggW6+Jm+zQTWuY7nrzdr8DMCdVoD5KIkKUQBFDKj2wZUpsxxwpgx7jHXDvbCiHNzZNNXOhe9hl2joo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725365963; c=relaxed/simple;
-	bh=2p7rx6HJBgt+jUF/+pQs/s50zPYMRrt0jpGbPShRN44=;
-	h=From:To:Subject:Date:Message-Id:MIME-Version; b=AQgzR8CRjfcdGNjdOMzHLkbnKehvQgEj3mbHNRfxD3LIo6cFpuoqdebUi2xToUHJKBHzVrDSydkfuMDmD5Wja+gMgvaPa9qlFZEWFAF0TXsR+hQUOzjuqzwHqtPJLs+3tWiAOdEFUT1Eia6jLTKHYduNgu9wy8f+mOWevwlGrj0=
+	s=arc-20240116; t=1725371742; c=relaxed/simple;
+	bh=wW9M6bnfXL8U4muPOYkHBnPtxwKhXksF/nJgEGGhvZ8=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=F22dNGiOqt152iTW+RW/7dogL26HRdDgNYyTq7xGDouq77veo8m/Y/kCJVIaFMBCWWHn3uRloDhs4AtaSsNG1m3C5LiSKiKFC7UCFgjh/XH4+Yg9t2a+PiXw7xsRb5ByVaKQxiIM3Au0hqWDXNfDi+fCMGP2Hmp4yhmHkyUakfw=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] libnftables: set variable array to NULL after release
-Date: Tue,  3 Sep 2024 14:19:10 +0200
-Message-Id: <20240903121910.305004-1-pablo@netfilter.org>
+Cc: fw@strlen.de
+Subject: [PATCH nf-next,v3 1/9] netfilter: nf_tables: elements with timeout below CONFIG_HZ never expire
+Date: Tue,  3 Sep 2024 15:55:25 +0200
+Message-Id: <20240903135533.2021-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -25,34 +26,31 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-User reports that:
+Element timeout that is below CONFIG_HZ never expires because the
+timeout extension is not allocated given that nf_msecs_to_jiffies64()
+returns 0. Set timeout to the minimum value to honor timeout.
 
-1. Call nft_ctx_clear_vars();
-2. Call nft_ctx_free().
-
-because nft_ctx_clear_vars() is called from nft_ctx_free().
-
-results in double free, set ctx->vars to NULL from nft_ctx_clear_vars().
-
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1772
-Fixes: 4e8dff2cb4da ("src: expose nft_ctx_clear_vars as API")
+Fixes: 8e1102d5a159 ("netfilter: nf_tables: support timeouts larger than 23 days")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/libnftables.c | 1 +
- 1 file changed, 1 insertion(+)
+v3: no changes
 
-diff --git a/src/libnftables.c b/src/libnftables.c
-index 7fc81515258d..2ae215013cb0 100644
---- a/src/libnftables.c
-+++ b/src/libnftables.c
-@@ -160,6 +160,7 @@ void nft_ctx_clear_vars(struct nft_ctx *ctx)
- 	}
- 	ctx->num_vars = 0;
- 	free(ctx->vars);
-+	ctx->vars = NULL;
+ net/netfilter/nf_tables_api.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 0a2f79346958..6de74dae50fc 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4587,7 +4587,7 @@ int nf_msecs_to_jiffies64(const struct nlattr *nla, u64 *result)
+ 		return -ERANGE;
+ 
+ 	ms *= NSEC_PER_MSEC;
+-	*result = nsecs_to_jiffies64(ms);
++	*result = nsecs_to_jiffies64(ms) ? : !!ms;
+ 	return 0;
  }
  
- EXPORT_SYMBOL(nft_ctx_add_include_path);
 -- 
 2.30.2
 
