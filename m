@@ -1,208 +1,122 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 545F44A3E
-	for <netfilter-devel@vger.kernel.org>; Tue,  3 Sep 2024 13:56:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from tarta.nabijaczleweli.xyz (tarta.nabijaczleweli.xyz [139.28.40.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F393316C453
+	for <netfilter-devel@vger.kernel.org>; Tue,  3 Sep 2024 14:53:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=139.28.40.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725371803; cv=none; b=o/xkokEWKWGdBOKkTd115UxXlkowNLXr5v+AL8adx/GYi3kSWmXFUzH/+aYPkyXtjYS790WisMBr0zIYYbnEJqKuJTVqjcrOMC20/aukhLurrbzRbQVmoEuOGakyqRSzivHS0g2CqZFoClkeyHoD8m6CRacUeuSvwQtJVyumGTk=
+	t=1725375240; cv=none; b=Ftz5FfeBjXv0i3+EdXVI/5vIVbUM6/B57YdOYB5tCwQ0H4sRowGreyeCRv0OQxVQYUid7AWv5nHJxWQ5RPP8NN84Qp76Mx7Ek7gRUPq6zT4xfa3cbcFtPyX7jT220E7r5rmn3MYluRqYXnLvY7mVhQ5lVTH3GuOWQ8jl5yKevWM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725371803; c=relaxed/simple;
-	bh=+LDj2CEunAbW9oXwiSUryPBBAphZw9JpdPOM60R6QE0=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=oVG9aKz5OcUKFlzVKCJ5dlr3bK2lbZ6YXokJhLntjP/84s93FOs/Ky5bOTx3RM+b01OQ9I/8KSejSIjBAYnuQeHEbqglna6X1RdVgJj7xCR+XodWWfAUdK+XrXnUMzsD8jeNl0mPyV7LPWFi94q4XpmMUyob9culuG5u6AHFD8E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de,
-	phil@nwl.cc
-Subject: [PATCH nf-next,v3 9/9] netfilter: nf_tables: set element timeout update support
-Date: Tue,  3 Sep 2024 15:56:35 +0200
-Message-Id: <20240903135635.2086-4-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20240903135635.2086-1-pablo@netfilter.org>
-References: <20240903135635.2086-1-pablo@netfilter.org>
+	s=arc-20240116; t=1725375240; c=relaxed/simple;
+	bh=ezV5omP0vhOTzo7g7Is8FUQm5YnwYTTgpDYXKqJShRY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=FurWvk26D4FBC3NeYzoFrvS6Ok7h7znESkJp3SeCe8aUIghgmVXBFk6QzFYmrATq9Bjrqin36NFdBMuI0XLZe8H7X+mWIAmE2g3bW96CJBsbmT51zGVTieNQWt9dWfGTN30+50BwsnDYTFY3bdJj+7R5Chz8JHyJsvtZzA3Y2OY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=nabijaczleweli.xyz; spf=pass smtp.mailfrom=nabijaczleweli.xyz; dkim=pass (2048-bit key) header.d=nabijaczleweli.xyz header.i=@nabijaczleweli.xyz header.b=CzkPufay; arc=none smtp.client-ip=139.28.40.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=nabijaczleweli.xyz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nabijaczleweli.xyz
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nabijaczleweli.xyz header.i=@nabijaczleweli.xyz header.b="CzkPufay"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=nabijaczleweli.xyz;
+	s=202405; t=1725375227;
+	bh=ezV5omP0vhOTzo7g7Is8FUQm5YnwYTTgpDYXKqJShRY=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=CzkPufay78zhGRDQ7s9nXCyLx/MZUDt+vFO9CsUGBjKGVEiNbH9YQ+M3lEnh7aGoN
+	 JZMi2YWrMF2qGh6JFQaPExOF5oDaNnZLb9fm3Y6/39cYUgLv92Ou97HLE0/lWXi4E8
+	 uDGN+62fuz9EgdSvsSgF+pMsuy8ZeD3wx0Epcq5lHXtzgZCPYVo9svQmbL3XyHtHnv
+	 dyDPzqNquxSg816JdcQfNwSct3ufvXazVkuv9kwjh9Xq9Vr9Oj4ZeeoAfpoVw6qIzx
+	 nKyPevtRgCkEXiiSrZuOxqo0ZTHpynT0nYKUc2dBEttJVf3etn3ZRgSBQ8lF0fUyn6
+	 t0DNHYw7vjpOQ==
+Received: from tarta.nabijaczleweli.xyz (unknown [192.168.1.250])
+	by tarta.nabijaczleweli.xyz (Postfix) with ESMTPSA id 05C729BC;
+	Tue,  3 Sep 2024 16:53:47 +0200 (CEST)
+Date: Tue, 3 Sep 2024 16:53:46 +0200
+From: 
+	Ahelenia =?utf-8?Q?Ziemia=C5=84ska?= <nabijaczleweli@nabijaczleweli.xyz>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] conntrack: -L doesn't take a value, so don't discard one
+ (same for -IUDGEFA)
+Message-ID: <bymeee6fsub6oz64xtykfru25aq6xx4k2agjbeabekzfobu4jd@tarta.nabijaczleweli.xyz>
+References: <hpsesrayjbjrtja3unjpw4a3tsou3vtu7yjhrcba7dfnrahwz2@tarta.nabijaczleweli.xyz>
+ <ZtbHMe6STK_W6yfA@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="tbsa56woz2mmcfhm"
+Content-Disposition: inline
+In-Reply-To: <ZtbHMe6STK_W6yfA@calendula>
+User-Agent: NeoMutt/20231221-2-4202cf-dirty
 
-Store new timeout and expiration in transaction object, use them to
-update elements from .commit path. Otherwise, discard update if .abort
-path is exercised.
 
-Use update_flags in the transaction to note whether the timeout,
-expiration, or both need to be updated.
+--tbsa56woz2mmcfhm
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Annotate access to timeout extension now that it can be updated while
-lockless read access is possible.
+On Tue, Sep 03, 2024 at 10:22:09AM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Sep 03, 2024 at 04:16:21AM +0200, Ahelenia Ziemia=C5=84ska wrote:
+> > The manual says
+> >    COMMANDS
+> >        These options specify the particular operation to perform.
+> >        Only one of them can be specified at any given time.
+> >=20
+> >        -L --dump
+> >               List connection tracking or expectation table
+> >=20
+> > So, naturally, "conntrack -Lo extended" should work,
+> > but it doesn't, it's equivalent to "conntrack -L",
+> > and you need "conntrack -L -o extended".
+> > This violates user expectations (borne of the Utility Syntax Guidelines)
+> > and contradicts the manual.
+> >=20
+> > optarg is unused, anyway. Unclear why any of these were :: at all?
+> Because this supports:
+>         -L
+>         -L conntrack
+>         -L expect
+Well that's not what :: does, though; we realise this, right?
 
-Reject timeout updates on elements with no timeout extension.
+"L::" means that getopt() will return
+  "-L", "conntrack" -> 'L',optarg=3DNULL
+  "-Lconntrack"     -> 'L',optarg=3D"conntrack"
+and the parser for -L (&c.) doesn't... use optarg.
 
-Element transaction remains in the 96 bytes kmalloc slab on x86_64 after
-this update.
+You don't parse the filter (table name? idk.) with getopt at all;
+you can test this /right now/ by running precisely the thing you outlined:
+  # conntrack -L > /dev/null
+  conntrack v1.4.7 (conntrack-tools): 137 flow entries have been shown.
+  # conntrack -L expect > /dev/null
+  conntrack v1.4.7 (conntrack-tools): 0 expectations have been shown.
+  # conntrack -Lexpect > /dev/null
+  conntrack v1.4.7 (conntrack-tools): 152 flow entries have been shown.
+and getopt returns, respectively
+  'L',optarg=3DNULL
+  'L',optarg=3DNULL; argv[optind]=3D"expect"
+  'L',optarg=3D"expect"
+=2E..and once again you discard the optarg for 'L' &c.
 
-This patch requires ("netfilter: nf_tables: use timestamp to check for
-set element timeout") to make sure an element does not expire while
-transaction is ongoing.
+--tbsa56woz2mmcfhm
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v3: use .update_flags in transaction to fix expiration updates only.
+-----BEGIN PGP SIGNATURE-----
 
- include/net/netfilter/nf_tables.h | 16 ++++++++++-
- net/netfilter/nf_tables_api.c     | 47 ++++++++++++++++++++++++++++---
- net/netfilter/nft_dynset.c        |  2 +-
- 3 files changed, 59 insertions(+), 6 deletions(-)
+iQIzBAABCgAdFiEEfWlHToQCjFzAxEFjvP0LAY0mWPEFAmbXIvgACgkQvP0LAY0m
+WPEMYQ//SVeJLkCVIhV3p2TuT/0VTbRJZ3UCwBmtwrSii1XJGVRDe5BD5TKraqzk
+7c6pg70Z7AraBnGT3Z6B/o4hTOah6AIa8VvIRj1hgdE9UDgxnhOrtuEjC/ViwFFH
+qSxiPoqaldp6A4U456QWEdSQog+gZ6bbKLVTMrI0olW7UFgNZ1Ohb1lleKRvVEgw
+HPw4atWKGXda47SgVqwDdELZfFgGemXTw7fEIguU5qUSFwUG9dd2qB4Zqb9XAgUq
+3L0rxChsWat3BOP1lT6wuY52HqGG0CIrS37qD8q2T//G9tGv09RgdlP/lNmwmAOJ
+CBdv9U/koTalToV0aOnOuy34HwoIPlsr6ZjeAcHisgXlawwswc70lDdk8JGn4M3c
+O7WXyZQJ+5KdUJANizAMMY+lR13QhRdxAX7OpT+mvmradO4QXwFvxMGBkxpFtIFW
+9szoHIHSnr+l33qP/Y5BnXTZmjJDtyC5kwMhcCWeG+/TRF6RgzYpVXA/byUoB7ih
+H/11MmTdKyftwDPraoSkri7RkXeQqilDQyU0ooxs/QDZhaEK3r3bOdN5MpRWMr/I
+Jvzz/6Ye9k49rDYRvh8zRTGdJpiEuYXZhhO5gxMNcpyQOKMBe+oWDeIqF5fiOU/Y
+G9CAAhMazw+dxFtTkKJATM5M7ZDJtYo3pKuCFMbMQP3BAo+Rzdw=
+=49ZT
+-----END PGP SIGNATURE-----
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index ef421c6bb715..e7c4112302aa 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -829,7 +829,7 @@ static inline bool __nft_set_elem_expired(const struct nft_set_ext *ext,
- 					  u64 tstamp)
- {
- 	if (!nft_set_ext_exists(ext, NFT_SET_EXT_TIMEOUT) ||
--	    nft_set_ext_timeout(ext)->timeout == 0)
-+	    READ_ONCE(nft_set_ext_timeout(ext)->timeout) == 0)
- 		return false;
- 
- 	return time_after_eq64(tstamp, READ_ONCE(nft_set_ext_timeout(ext)->expiration));
-@@ -1745,10 +1745,18 @@ struct nft_trans_table {
- #define nft_trans_table_update(trans)			\
- 	nft_trans_container_table(trans)->update
- 
-+enum nft_trans_elem_flags {
-+	NFT_TRANS_UPD_TIMEOUT		= (1 << 0),
-+	NFT_TRANS_UPD_EXPIRATION	= (1 << 1),
-+};
-+
- struct nft_trans_elem {
- 	struct nft_trans		nft_trans;
- 	struct nft_set			*set;
- 	struct nft_elem_priv		*elem_priv;
-+	u64				timeout;
-+	u64				expiration;
-+	u8				update_flags;
- 	bool				bound;
- };
- 
-@@ -1758,6 +1766,12 @@ struct nft_trans_elem {
- 	nft_trans_container_elem(trans)->set
- #define nft_trans_elem_priv(trans)			\
- 	nft_trans_container_elem(trans)->elem_priv
-+#define nft_trans_elem_update_flags(trans)		\
-+	nft_trans_container_elem(trans)->update_flags
-+#define nft_trans_elem_timeout(trans)			\
-+	nft_trans_container_elem(trans)->timeout
-+#define nft_trans_elem_expiration(trans)		\
-+	nft_trans_container_elem(trans)->expiration
- #define nft_trans_elem_set_bound(trans)			\
- 	nft_trans_container_elem(trans)->bound
- 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 36c0a107e237..82554391464f 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5809,7 +5809,7 @@ static int nf_tables_fill_setelem(struct sk_buff *skb,
- 		goto nla_put_failure;
- 
- 	if (nft_set_ext_exists(ext, NFT_SET_EXT_TIMEOUT)) {
--		u64 timeout = nft_set_ext_timeout(ext)->timeout;
-+		u64 timeout = READ_ONCE(nft_set_ext_timeout(ext)->timeout);
- 		u64 set_timeout = READ_ONCE(set->timeout);
- 		__be64 msecs = 0;
- 
-@@ -6846,6 +6846,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	struct nft_data_desc desc;
- 	enum nft_registers dreg;
- 	struct nft_trans *trans;
-+	u8 update_flags;
- 	u64 expiration;
- 	u64 timeout;
- 	int err, i;
-@@ -7157,8 +7158,30 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 			     nft_set_ext_exists(ext2, NFT_SET_EXT_OBJREF) &&
- 			     *nft_set_ext_obj(ext) != *nft_set_ext_obj(ext2)))
- 				goto err_element_clash;
--			else if (!(nlmsg_flags & NLM_F_EXCL))
-+			else if (!(nlmsg_flags & NLM_F_EXCL)) {
- 				err = 0;
-+				if (nft_set_ext_exists(ext2, NFT_SET_EXT_TIMEOUT)) {
-+					update_flags = 0;
-+					if (timeout != nft_set_ext_timeout(ext2)->timeout) {
-+						nft_trans_elem_timeout(trans) = timeout;
-+						if (expiration == 0)
-+							expiration = timeout;
-+
-+						update_flags |= NFT_TRANS_UPD_TIMEOUT;
-+					}
-+					if (expiration) {
-+						nft_trans_elem_expiration(trans) = expiration;
-+						update_flags |= NFT_TRANS_UPD_EXPIRATION;
-+					}
-+
-+					if (update_flags) {
-+						nft_trans_elem_priv(trans) = elem_priv;
-+						nft_trans_elem_update_flags(trans) = update_flags;
-+						nft_trans_commit_list_add_tail(ctx->net, trans);
-+						goto err_elem_free;
-+					}
-+				}
-+			}
- 		} else if (err == -ENOTEMPTY) {
- 			/* ENOTEMPTY reports overlapping between this element
- 			 * and an existing one.
-@@ -10482,7 +10505,22 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 		case NFT_MSG_NEWSETELEM:
- 			te = nft_trans_container_elem(trans);
- 
--			nft_setelem_activate(net, te->set, te->elem_priv);
-+			if (te->update_flags) {
-+				const struct nft_set_ext *ext =
-+					nft_set_elem_ext(te->set, te->elem_priv);
-+
-+				if (te->update_flags & NFT_TRANS_UPD_TIMEOUT) {
-+					WRITE_ONCE(nft_set_ext_timeout(ext)->timeout,
-+						   te->timeout);
-+				}
-+				if (te->update_flags & NFT_TRANS_UPD_EXPIRATION) {
-+					WRITE_ONCE(nft_set_ext_timeout(ext)->expiration,
-+						   get_jiffies_64() + te->expiration);
-+				}
-+			} else {
-+				nft_setelem_activate(net, te->set, te->elem_priv);
-+			}
-+
- 			nf_tables_setelem_notify(&ctx, te->set,
- 						 te->elem_priv,
- 						 NFT_MSG_NEWSETELEM);
-@@ -10781,7 +10819,8 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_NEWSETELEM:
--			if (nft_trans_elem_set_bound(trans)) {
-+			if (nft_trans_elem_update_flags(trans) ||
-+			    nft_trans_elem_set_bound(trans)) {
- 				nft_trans_destroy(trans);
- 				break;
- 			}
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index e250183df713..06fb08ddc804 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -95,7 +95,7 @@ void nft_dynset_eval(const struct nft_expr *expr,
- 			     expr, regs, &ext)) {
- 		if (priv->op == NFT_DYNSET_OP_UPDATE &&
- 		    nft_set_ext_exists(ext, NFT_SET_EXT_TIMEOUT) &&
--		    nft_set_ext_timeout(ext)->timeout != 0) {
-+		    READ_ONCE(nft_set_ext_timeout(ext)->timeout) != 0) {
- 			timeout = priv->timeout ? : READ_ONCE(set->timeout);
- 			WRITE_ONCE(nft_set_ext_timeout(ext)->expiration, get_jiffies_64() + timeout);
- 		}
--- 
-2.30.2
-
+--tbsa56woz2mmcfhm--
