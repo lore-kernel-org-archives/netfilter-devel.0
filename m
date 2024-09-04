@@ -1,24 +1,24 @@
-Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
+Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2420017C9AA;
-	Wed,  4 Sep 2024 09:24:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6984D1CCB2F;
+	Wed,  4 Sep 2024 09:24:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.255
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725441858; cv=none; b=u2PgdlsJGsgRiLfwihNSwS4C1Qgn8TbkI87rRc1UchQgxyfWz3Apzo3Ip58ESblV0zb0uR/vN7E1QQrRduEWu3QQUMFs1EDVYyKC7QXG/g8MPaXAeIP6fKQs4g6OgawHcRxths4k35KVjl8dye1p5k73s9e+bWLFHc6jUqLChTc=
+	t=1725441859; cv=none; b=A6NnQibp+VSiw0pVzMu9eiXcsJgQxZ7lfTCFm9JMTuuEdYOz8Ns7tKFAmT7+3cErNas+FM+nUKj3JfcN8DLtk+x2boFZhN7ncJRa8F/YseMsdLc89F8r5deQkD87ks/IuN3B42ZVAb6Tdz8adlJydUnjilzZS5JQi/OpcpEQyYw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725441858; c=relaxed/simple;
-	bh=/ccHUHyNp8wFv9njEhp4jo7AI1ResrGAiFUOk9+Tzro=;
+	s=arc-20240116; t=1725441859; c=relaxed/simple;
+	bh=Ay6Z+RGdHF92DKyohFHukGTkwKLrLjTxAfqdEIxo520=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=XMvm0ZvN4UeXdjZoDzIpEcCT4EwNWHU/0AtqtkLKl/86uILCSgXsMss6nFqcgTxhBBuSIIwnaKI5Mh+3ycl9rr8EI3i4/bbA7O55YJOGPzx7UV+uTHIXv3mF/3yXu4+iX8uYhUp1n9hW/WImelyVFpbC6uFEHWiDDd64i/3nVRE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.190
+	 MIME-Version:Content-Type; b=mM/fDGq7d2oqD2+99z0lBfqTZomrwOJI2TAEE1zd9I59XLHHET/s+JbWDikaVBJE5yLXI8Neqonmw1DbExAjlZZWTppd7bnqHSF3JlUvqDlDkQlxWD4Xo03ng4Ps4IxjqQ+YE95kVi76gI/ekpRWNs6Iw5fN7/Mnd/b5UBfUxBA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.255
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.19.163.44])
-	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4WzH9k0SVbz2DbgF;
-	Wed,  4 Sep 2024 17:23:54 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.88.194])
+	by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4WzH911G6yz1BNQK;
+	Wed,  4 Sep 2024 17:23:17 +0800 (CST)
 Received: from dggpeml500022.china.huawei.com (unknown [7.185.36.66])
-	by mail.maildlp.com (Postfix) with ESMTPS id 54ECD14011D;
+	by mail.maildlp.com (Postfix) with ESMTPS id 7C6EB1400CA;
 	Wed,  4 Sep 2024 17:24:14 +0800 (CST)
 Received: from huawei.com (10.90.53.73) by dggpeml500022.china.huawei.com
  (7.185.36.66) with Microsoft SMTP Server (version=TLS1_2,
@@ -31,9 +31,9 @@ To: <davem@davemloft.net>, <dsahern@kernel.org>, <edumazet@google.com>,
 	<horms@kernel.org>
 CC: <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
 	<lihongbo22@huawei.com>
-Subject: [PATCH net-next v2 1/5] net/ipv4: make use of the helper macro LIST_HEAD()
-Date: Wed, 4 Sep 2024 17:32:39 +0800
-Message-ID: <20240904093243.3345012-2-lihongbo22@huawei.com>
+Subject: [PATCH net-next v2 2/5] net/tipc: make use of the helper macro LIST_HEAD()
+Date: Wed, 4 Sep 2024 17:32:40 +0800
+Message-ID: <20240904093243.3345012-3-lihongbo22@huawei.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20240904093243.3345012-1-lihongbo22@huawei.com>
 References: <20240904093243.3345012-1-lihongbo22@huawei.com>
@@ -53,36 +53,46 @@ instead of calling INIT_LIST_HEAD(). Here we can simplify
 the code.
 
 Signed-off-by: Hongbo Li <lihongbo22@huawei.com>
+
 ---
- net/ipv4/ip_input.c | 6 ++----
+v2:
+  - Keep the reverse xmas tree order as Simon's suggested.
+
+v1: https://lore.kernel.org/netdev/36922bd7-5174-4cf0-b7a2-5ddc77c4868d@huawei.com/T/#m3c3c6376534474346018f583eb3637ff9ecf8a1c
+---
+ net/tipc/socket.c | 6 ++----
  1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/net/ipv4/ip_input.c b/net/ipv4/ip_input.c
-index d6fbcbd2358a..b6e7d4921309 100644
---- a/net/ipv4/ip_input.c
-+++ b/net/ipv4/ip_input.c
-@@ -596,9 +596,8 @@ static void ip_list_rcv_finish(struct net *net, struct sock *sk,
- {
- 	struct sk_buff *skb, *next, *hint = NULL;
- 	struct dst_entry *curr_dst = NULL;
--	struct list_head sublist;
-+	LIST_HEAD(sublist);
+diff --git a/net/tipc/socket.c b/net/tipc/socket.c
+index 1a0cd06f0eae..65dcbb54f55d 100644
+--- a/net/tipc/socket.c
++++ b/net/tipc/socket.c
+@@ -1009,12 +1009,11 @@ static int tipc_send_group_anycast(struct socket *sock, struct msghdr *m,
+ 	struct tipc_member *mbr = NULL;
+ 	struct net *net = sock_net(sk);
+ 	u32 node, port, exclude;
+-	struct list_head dsts;
++	LIST_HEAD(dsts);
+ 	int lookups = 0;
+ 	int dstcnt, rc;
+ 	bool cong;
  
--	INIT_LIST_HEAD(&sublist);
- 	list_for_each_entry_safe(skb, next, head, list) {
- 		struct net_device *dev = skb->dev;
- 		struct dst_entry *dst;
-@@ -646,9 +645,8 @@ void ip_list_rcv(struct list_head *head, struct packet_type *pt,
- 	struct net_device *curr_dev = NULL;
- 	struct net *curr_net = NULL;
- 	struct sk_buff *skb, *next;
--	struct list_head sublist;
-+	LIST_HEAD(sublist);
+-	INIT_LIST_HEAD(&dsts);
+ 	ua->sa.type = msg_nametype(hdr);
+ 	ua->scope = msg_lookup_scope(hdr);
  
--	INIT_LIST_HEAD(&sublist);
- 	list_for_each_entry_safe(skb, next, head, list) {
- 		struct net_device *dev = skb->dev;
- 		struct net *net = dev_net(dev);
+@@ -1161,10 +1160,9 @@ static int tipc_send_group_mcast(struct socket *sock, struct msghdr *m,
+ 	struct tipc_group *grp = tsk->group;
+ 	struct tipc_msg *hdr = &tsk->phdr;
+ 	struct net *net = sock_net(sk);
+-	struct list_head dsts;
+ 	u32 dstcnt, exclude;
++	LIST_HEAD(dsts);
+ 
+-	INIT_LIST_HEAD(&dsts);
+ 	ua->sa.type = msg_nametype(hdr);
+ 	ua->scope = msg_lookup_scope(hdr);
+ 	exclude = tipc_group_exclude(grp);
 -- 
 2.34.1
 
