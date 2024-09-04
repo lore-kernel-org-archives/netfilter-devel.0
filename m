@@ -1,119 +1,70 @@
-Received: from szxga05-in.huawei.com (szxga05-in.huawei.com [45.249.212.191])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFF8B1EBFE4;
-	Wed,  4 Sep 2024 12:45:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.191
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0C7C1D935D;
+	Wed,  4 Sep 2024 12:48:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725453966; cv=none; b=fEoOU3h1vHUJekkJ16/PbUfwqyOt+XPTz1yi8TUCf+SqbSWCaTXnjr3mvwzWPuQN0wBBDwr0u/JiL7GEWrfntcIjinAoC/psbZmeqhQ1ayRdFUCrEyaDRbXBJLg5vdJ/nJ0zmd/E/ktz8zHgmo8MkgZQgeGf2TK9tKe17lIXjCQ=
+	t=1725454141; cv=none; b=pZmjdKhvkyZI5G58NtsZ1Ih2GZYGtnESnkMIFfEHC6I13ub9vDCEi34CZA34OCh21Vt5kzyJJuUSLTrbz5bQja3FGMOp7khlYmpbRLYoEit0pv0CWMaNKQNJ9a9bD//jc0y1auN9SZtmgHgamOG2iS/cT0S05s4r7QaRt9a+ixQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725453966; c=relaxed/simple;
-	bh=cWolgnJVYu/jZYJy8UBqMypLIpR4FmQEeBseScVKGw0=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:CC:References:
-	 In-Reply-To:Content-Type; b=jLZqn3nqOfaRHyiW03XVboqt5lmZ0sB7YfPYuMWq5hbZjq84srwtY2+UlfygITpkv8+795ssuxAdaY5MK1IVeFcfAoNELxmVELXfBY7XWYgJT7J4d6umGKxB+qJEWFpOa1WT6URmQDkX4oneHrNlR5pb4GSxBp7FUxinzf1tP+o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.191
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
-Received: from mail.maildlp.com (unknown [172.19.88.214])
-	by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4WzMfS2nghz1j83j;
-	Wed,  4 Sep 2024 20:45:36 +0800 (CST)
-Received: from kwepemj200016.china.huawei.com (unknown [7.202.194.28])
-	by mail.maildlp.com (Postfix) with ESMTPS id A05921A016C;
-	Wed,  4 Sep 2024 20:45:56 +0800 (CST)
-Received: from [10.123.123.159] (10.123.123.159) by
- kwepemj200016.china.huawei.com (7.202.194.28) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Wed, 4 Sep 2024 20:45:53 +0800
-Message-ID: <002a2153-a1fd-a8c7-549f-50cd215aeb81@huawei-partners.com>
-Date: Wed, 4 Sep 2024 15:45:49 +0300
+	s=arc-20240116; t=1725454141; c=relaxed/simple;
+	bh=7nHkGu1WQn0BZSIK8Hrq3P0BLmtsI/SvosBrgbZMvoI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=YYzSQYu28o71o5aunWjSkzy3ChkAuB2EoS0WK6qQqbJ9ZcwTtok0ihCdUy4UFEtJK0+JDEZFBaWUNBSAfXDclCmZFEHBfuQNODMxWUwRR21GkMvWHYW+LMjPdzo6OTwW1jWAaKFrqagH+AuTaKsfa8ApVyMRS8kyTBJCV4hUU4U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1slpRA-0003vu-KF; Wed, 04 Sep 2024 14:48:40 +0200
+Date: Wed, 4 Sep 2024 14:48:40 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Eric Dumazet <edumazet@google.com>
+Cc: Jiawei Ye <jiawei.ye@foxmail.com>, pablo@netfilter.org,
+	kadlec@netfilter.org, davem@davemloft.net, dsahern@kernel.org,
+	kuba@kernel.org, pabeni@redhat.com, fw@strlen.de,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] netfilter: tproxy: Add RCU protection in nf_tproxy_laddr4
+Message-ID: <20240904124840.GA15053@breakpoint.cc>
+References: <tencent_DE4D2D0FE82F3CA9294AEEB3A949A44F6008@qq.com>
+ <CANn89iLQuBYht_jMx7WwtbDP-PTnhBvNu2FWW1uGnKkcqnvT+w@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH v3 12/19] selftests/landlock: Test that kernel space
- sockets are not restricted
-Content-Language: ru
-From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-To: <mic@digikod.net>
-CC: <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
-	<linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-	<netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-	<artem.kuzin@huawei.com>, <konstantin.meskhidze@huawei.com>
-References: <20240904104824.1844082-1-ivanov.mikhail1@huawei-partners.com>
- <20240904104824.1844082-13-ivanov.mikhail1@huawei-partners.com>
-In-Reply-To: <20240904104824.1844082-13-ivanov.mikhail1@huawei-partners.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml500004.china.huawei.com (7.191.163.9) To
- kwepemj200016.china.huawei.com (7.202.194.28)
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CANn89iLQuBYht_jMx7WwtbDP-PTnhBvNu2FWW1uGnKkcqnvT+w@mail.gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-9/4/2024 1:48 PM, Mikhail Ivanov wrote:
-> Add test validating that Landlock provides restriction of user space
-> sockets only.
+Eric Dumazet <edumazet@google.com> wrote:
+> On Wed, Sep 4, 2024 at 2:25 PM Jiawei Ye <jiawei.ye@foxmail.com> wrote:
+> >
+> > In the `nf_tproxy_laddr4` function, both the `__in_dev_get_rcu()` call
+> > and the `in_dev_for_each_ifa_rcu()` macro are used to access
+> > RCU-protected data structures. Previously, these accesses were not
+> > enclosed within an RCU read-side critical section, which violates RCU
+> > usage rules and can lead to race conditions, data inconsistencies, and
+> > memory corruption issues.
+> >
+> > This possible bug was identified using a static analysis tool developed
+> > by myself, specifically designed to detect RCU-related issues.
+> >
+> > To address this, `rcu_read_lock()` and `rcu_read_unlock()` are added
+> > around the RCU-protected operations in the `nf_tproxy_laddr4` function by
+> > acquiring the RCU read lock before calling `__in_dev_get_rcu()` and
+> > iterating with `in_dev_for_each_ifa_rcu()`. This change prevents
+> > potential RCU issues and adheres to proper RCU usage patterns.
 > 
-> Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-> ---
->   .../testing/selftests/landlock/socket_test.c  | 39 ++++++++++++++++++-
->   1 file changed, 38 insertions(+), 1 deletion(-)
+> Please share with us the complete  stack trace where you think rcu is not held,
+> because your static tool is unknown to us.
 > 
-> diff --git a/tools/testing/selftests/landlock/socket_test.c b/tools/testing/selftests/landlock/socket_test.c
-> index ff5ace711697..23698b8c2f4d 100644
-> --- a/tools/testing/selftests/landlock/socket_test.c
-> +++ b/tools/testing/selftests/landlock/socket_test.c
-> @@ -7,7 +7,7 @@
->   
->   #define _GNU_SOURCE
->   
-> -#include <linux/landlock.h>
-> +#include "landlock.h"
+> nf_tproxy_get_sock_v4() would have a similar issue.
 
-typo, will be fixed
+Right, all netfilter hooks assume rcu read lock is held.
 
->   #include <linux/pfkeyv2.h>
->   #include <linux/kcm.h>
->   #include <linux/can.h>
-> @@ -628,4 +628,41 @@ TEST(unsupported_af_and_prot)
->   	EXPECT_EQ(ESOCKTNOSUPPORT, test_socket(AF_UNIX, SOCK_PACKET, 0));
->   }
->   
-> +TEST(kernel_socket)
-> +{
-> +	const struct landlock_ruleset_attr ruleset_attr = {
-> +		.handled_access_socket = LANDLOCK_ACCESS_SOCKET_CREATE,
-> +	};
-> +	struct landlock_socket_attr smc_socket_create = {
-> +		.allowed_access = LANDLOCK_ACCESS_SOCKET_CREATE,
-> +		.family = AF_SMC,
-> +		.type = SOCK_STREAM,
-> +	};
-> +	int ruleset_fd;
-> +
-> +	/*
-> +	 * Checks that SMC socket is created sucessfuly without
-> +	 * landlock restrictions.
-> +	 */
-> +	ASSERT_EQ(0, test_socket(AF_SMC, SOCK_STREAM, 0));
-> +
-> +	ruleset_fd =
-> +		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
-> +	ASSERT_LE(0, ruleset_fd);
-> +
-> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_SOCKET,
-> +				       &smc_socket_create, 0));
-> +	enforce_ruleset(_metadata, ruleset_fd);
-> +	ASSERT_EQ(0, close(ruleset_fd));
-> +
-> +	/*
-> +	 * During the creation of an SMC socket, an internal service TCP socket
-> +	 * is also created (Cf. smc_create_clcsk).
-> +	 *
-> +	 * Checks that Landlock does not restrict creation of the kernel space
-> +	 * socket.
-> +	 */
-> +	EXPECT_EQ(0, test_socket(AF_SMC, SOCK_STREAM, 0));
-> +}
-> +
->   TEST_HARNESS_MAIN
+See nf_hook()/nf_hook_slow().
