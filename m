@@ -1,41 +1,65 @@
-Received: from szxga06-in.huawei.com (szxga06-in.huawei.com [45.249.212.32])
+Received: from out162-62-58-216.mail.qq.com (out162-62-58-216.mail.qq.com [162.62.58.216])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78DC91CF7B1;
-	Wed,  4 Sep 2024 10:49:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.32
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 292EF1D0174
+	for <netfilter-devel@vger.kernel.org>; Wed,  4 Sep 2024 12:30:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.62.58.216
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725446950; cv=none; b=NfVBuy5T2QX5iYES1HCDzvhaDEoWynTyayd4sRwKPl0+URZc4zTbfNjx5/E9o97yG+4NzuiCm2eDjVHo2eKTdWKj97iTs8/LbGvLcpuzYSccJBMHxHgyCblTKWutMXWxN1YRw0UMQVUS1EUztytPW5WgpSyvydfpzQydxX1IhLM=
+	t=1725453014; cv=none; b=YabDVEMKSjyWioNzoxP7UHdyZNOOGyfXUFPI7v2syPRzuv7ddMnyg2UuISB3KEWtVolwRr/6rkFOqJplxi6eAvtF9HT86OKJLEIJGFkp1BAogZQ8uXymbQkPnnYjax+cE1L21HxIPYIshrWqSmvZ+X3JS6BX/DcZg4rqKCvcNDM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725446950; c=relaxed/simple;
-	bh=320TKFw25kQyKSDRTjKicEFKtLjUgdWcjO8fDh6C8ts=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=oTyx8cOfJDNncGgxzZM/1TwOVLz04OqGlLCTFWH7J40Ff1mJg/Oo+gQEIMPkyyxSn5qBnbnwePeVaiazk5vTbDs0pAFjQIzdk98tN5XAVEqSty/MtcY8YfzWHzwNVUPaVfIvgmlRxg5fr/xAdZZw5cUiV0rh/HtcEyYvZlQ1nuI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.32
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
-Received: from mail.maildlp.com (unknown [172.19.163.44])
-	by szxga06-in.huawei.com (SkyGuard) with ESMTP id 4WzK1j3hT9z1xwMM;
-	Wed,  4 Sep 2024 18:47:05 +0800 (CST)
-Received: from kwepemj200016.china.huawei.com (unknown [7.202.194.28])
-	by mail.maildlp.com (Postfix) with ESMTPS id 463961400D7;
-	Wed,  4 Sep 2024 18:49:06 +0800 (CST)
-Received: from mscphis02103.huawei.com (10.123.65.215) by
- kwepemj200016.china.huawei.com (7.202.194.28) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Wed, 4 Sep 2024 18:49:04 +0800
-From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-To: <mic@digikod.net>
-CC: <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
-	<linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-	<netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-	<artem.kuzin@huawei.com>, <konstantin.meskhidze@huawei.com>
-Subject: [RFC PATCH v3 19/19] landlock: Document socket rule type support
-Date: Wed, 4 Sep 2024 18:48:24 +0800
-Message-ID: <20240904104824.1844082-20-ivanov.mikhail1@huawei-partners.com>
+	s=arc-20240116; t=1725453014; c=relaxed/simple;
+	bh=BzSR+iF80WBX+uueKwT7tQdRcX9cS6wGP+R5wlC6WBI=;
+	h=Message-ID:From:To:Cc:Subject:Date:MIME-Version; b=RUueaWC6s0nY86C3JtoJE+lCzLURTGsAFfR1CJN7h2spVbKJ/ig0T6c7ywmAEHT4ZZ6GT5Xc2aDjA+Ujgah2Iz8nzh/7It+KcJsHeZe6yBRrfZdWD9jIj+AceuvjlqcR7abyBFYICAbl4nzdiXWiaAQXJy3X7l6XE+tC/+EZrmQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=foxmail.com; spf=pass smtp.mailfrom=foxmail.com; dkim=pass (1024-bit key) header.d=foxmail.com header.i=@foxmail.com header.b=jJazSsVu; arc=none smtp.client-ip=162.62.58.216
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=foxmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=foxmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=foxmail.com header.i=@foxmail.com header.b="jJazSsVu"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=foxmail.com;
+	s=s201512; t=1725452702;
+	bh=mD6Sm4uUq8ujV/RDO5ndOtiCjedlBdoHLSnc4vE9J64=;
+	h=From:To:Cc:Subject:Date;
+	b=jJazSsVuDFwvW0/yagvg626+sN0F4fuX51X45mN04cZDcYveXUfWndaK241vgstPE
+	 sRhzi/Ox/aRhxTMs296dY6Bt6M7NHhpns3fWIqNj8DFM5L5og1eTEUexrDQb+s3Ss3
+	 +ifq6l8VqtL0fxTj1L+V9nNhVGorM5HuUqZ6OPEs=
+Received: from localhost.localdomain ([114.246.200.160])
+	by newxmesmtplogicsvrszb16-1.qq.com (NewEsmtp) with SMTP
+	id 4AB12AD4; Wed, 04 Sep 2024 20:18:43 +0800
+X-QQ-mid: xmsmtpt1725452323t1inlzbgz
+Message-ID: <tencent_DE4D2D0FE82F3CA9294AEEB3A949A44F6008@qq.com>
+X-QQ-XMAILINFO: MmpliBmRb3iCZG+tszeXk1rzRTEAY7Bed4qo4m+KlRYfIVoyBGpwOVX4mO77ZY
+	 b+Xqy7SLZGWfrwnRHtOZNdCwN0OniQ7xIFUh/h7DIjjwpabvomfISJlDDVQNTPZMEgs5X9jDXHVt
+	 EI6aJ0+4YZKMbbgGdZLsivYIdrX6Ntu+8P/CvzP+jBaUBDvJXQ6RbfvFbQuSFD5K5vztokPsFVvP
+	 rJx/qdevWPaI1vUP+yng0vTrlBElocp2DV3z/X3ur7ydURKBzJ2kyPsTX07Fn4Y6UmMi2Bo3scwg
+	 qoz/FupAX3gyrTLU7nfmAO+aqaZotXR8XUH0s3hv0dhPwm0vfvxMbDrEVPqZTsp9+NFSN5pDCJnR
+	 3fFSkfTi3nOaz3ovfcIrnFxXkEqsx0FQkgO4wCNSf48uT9Lel2SfYoo+3QYtnYBewEbzesiQxOVN
+	 VtY2RuwN4zCB/IqS7m5FFsWGTi7gC0OFydSJYTtxFuB2r0nC0ak9tVTG0TcEAzHI9vE9I2MIoG4k
+	 7jylnykNoETtb3+CTTCoQ6oeMkdb0WuqXpDefxtGJVbl6fCn915yRD1qYi52rsJYLRMNSr15L3/2
+	 /qS4sZ5a8X4HdrN0YhSCLrFakVTx9PkZp0Z/+i32jcy2p4eOMHKbCITYZaFg3b0ZL3SUXSJszdl9
+	 yJtMYM1jzGtNr2hnYTgvOFNbZc4AvB/IANS21jaYztmeeCizsRnel5+qSDayX/2HAHCFdSzZ/Wq4
+	 w3YCvqoEgYv1tc1vIaS+GAScGfAtixgoAToaMdNassMj3OBVNWq9h8IDspXkO/279ix7+zdDL443
+	 M4X2oCQvv35/uBifzzqsw3GadbkipXnQISvF+3fN1Iz3I6A8NvvNlDHN+2MGfSMrZbtbxAcce4dd
+	 WmNz9LbIGPB+rIbG02VImw0wrspwCZ7wuYbw+LU7ZTdk3n4KWjgTuKgN/R9QZ4gZFN2yF1XijfMK
+	 iDKB+CW4LYhfKP1VsnoDgJmhLJr45tN4wEm/Pc2lm7/+DdIbdmfmcU0HKwHOYcGQvGoNEDEWyKme
+	 Rs4Y83ST+9oJMc2RwDahIs3S/buMKkJXxGUTYMEalA8PGxdi27g9gagYQ6PS8=
+X-QQ-XMRINFO: NI4Ajvh11aEj8Xl/2s1/T8w=
+From: Jiawei Ye <jiawei.ye@foxmail.com>
+To: pablo@netfilter.org,
+	kadlec@netfilter.org,
+	davem@davemloft.net,
+	dsahern@kernel.org,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	fw@strlen.de
+Cc: netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] netfilter: tproxy: Add RCU protection in nf_tproxy_laddr4
+Date: Wed,  4 Sep 2024 12:18:42 +0000
+X-OQ-MSGID: <20240904121842.981264-1-jiawei.ye@foxmail.com>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20240904104824.1844082-1-ivanov.mikhail1@huawei-partners.com>
-References: <20240904104824.1844082-1-ivanov.mikhail1@huawei-partners.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -43,136 +67,52 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: mscpeml500004.china.huawei.com (7.188.26.250) To
- kwepemj200016.china.huawei.com (7.202.194.28)
 
-Extend documentation with socket rule type description.
+In the `nf_tproxy_laddr4` function, both the `__in_dev_get_rcu()` call
+and the `in_dev_for_each_ifa_rcu()` macro are used to access
+RCU-protected data structures. Previously, these accesses were not
+enclosed within an RCU read-side critical section, which violates RCU
+usage rules and can lead to race conditions, data inconsistencies, and
+memory corruption issues.
 
-Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+This possible bug was identified using a static analysis tool developed
+by myself, specifically designed to detect RCU-related issues.
+
+To address this, `rcu_read_lock()` and `rcu_read_unlock()` are added
+around the RCU-protected operations in the `nf_tproxy_laddr4` function by
+acquiring the RCU read lock before calling `__in_dev_get_rcu()` and
+iterating with `in_dev_for_each_ifa_rcu()`. This change prevents
+potential RCU issues and adheres to proper RCU usage patterns.
+
+Fixes: b8d19572367b ("netfilter: use in_dev_for_each_ifa_rcu")
+Signed-off-by: Jiawei Ye <jiawei.ye@foxmail.com>
 ---
- Documentation/userspace-api/landlock.rst | 46 ++++++++++++++++++++----
- 1 file changed, 40 insertions(+), 6 deletions(-)
+ net/ipv4/netfilter/nf_tproxy_ipv4.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/Documentation/userspace-api/landlock.rst b/Documentation/userspace-api/landlock.rst
-index 37dafce8038b..4bf45064faa1 100644
---- a/Documentation/userspace-api/landlock.rst
-+++ b/Documentation/userspace-api/landlock.rst
-@@ -33,7 +33,7 @@ A Landlock rule describes an action on an object which the process intends to
- perform.  A set of rules is aggregated in a ruleset, which can then restrict
- the thread enforcing it, and its future children.
+diff --git a/net/ipv4/netfilter/nf_tproxy_ipv4.c b/net/ipv4/netfilter/nf_tproxy_ipv4.c
+index 73e66a088e25..51ff9c337e71 100644
+--- a/net/ipv4/netfilter/nf_tproxy_ipv4.c
++++ b/net/ipv4/netfilter/nf_tproxy_ipv4.c
+@@ -57,8 +57,10 @@ __be32 nf_tproxy_laddr4(struct sk_buff *skb, __be32 user_laddr, __be32 daddr)
+ 		return user_laddr;
  
--The two existing types of rules are:
-+The three existing types of rules are:
+ 	laddr = 0;
++	rcu_read_lock();
+ 	indev = __in_dev_get_rcu(skb->dev);
+ 	if (!indev)
++		rcu_read_unlock();
+ 		return daddr;
  
- Filesystem rules
-     For these rules, the object is a file hierarchy,
-@@ -44,14 +44,19 @@ Network rules (since ABI v4)
-     For these rules, the object is a TCP port,
-     and the related actions are defined with `network access rights`.
+ 	in_dev_for_each_ifa_rcu(ifa, indev) {
+@@ -68,6 +70,7 @@ __be32 nf_tproxy_laddr4(struct sk_buff *skb, __be32 user_laddr, __be32 daddr)
+ 		laddr = ifa->ifa_local;
+ 		break;
+ 	}
++	rcu_read_unlock();
  
-+Socket rules (since ABI v6)
-+    For these rules, the object is a pair of an address family and a socket type,
-+    and the related actions are defined with `socket access rights`.
-+
- Defining and enforcing a security policy
- ----------------------------------------
- 
- We first need to define the ruleset that will contain our rules.
- 
- For this example, the ruleset will contain rules that only allow filesystem
--read actions and establish a specific TCP connection. Filesystem write
--actions and other TCP actions will be denied.
-+read actions, create TCP sockets and establish a specific TCP connection.
-+Filesystem write actions, creating non-TCP sockets and other TCP
-+actions will be denied.
- 
- The ruleset then needs to handle both these kinds of actions.  This is
- required for backward and forward compatibility (i.e. the kernel and user
-@@ -81,6 +86,8 @@ to be explicit about the denied-by-default access rights.
-         .handled_access_net =
-             LANDLOCK_ACCESS_NET_BIND_TCP |
-             LANDLOCK_ACCESS_NET_CONNECT_TCP,
-+        .handled_access_socket =
-+            LANDLOCK_ACCESS_SOCKET_CREATE,
-     };
- 
- Because we may not know on which kernel version an application will be
-@@ -119,6 +126,11 @@ version, and only use the available subset of access rights:
-     case 4:
-         /* Removes LANDLOCK_ACCESS_FS_IOCTL_DEV for ABI < 5 */
-         ruleset_attr.handled_access_fs &= ~LANDLOCK_ACCESS_FS_IOCTL_DEV;
-+        __attribute__((fallthrough));
-+	case 5:
-+		/* Removes socket support for ABI < 6 */
-+		ruleset_attr.handled_access_socket &=
-+			~LANDLOCK_ACCESS_SOCKET_CREATE;
-     }
- 
- This enables to create an inclusive ruleset that will contain our rules.
-@@ -170,6 +182,20 @@ for the ruleset creation, by filtering access rights according to the Landlock
- ABI version.  In this example, this is not required because all of the requested
- ``allowed_access`` rights are already available in ABI 1.
- 
-+For socket access-control, we can add a rule to allow TCP sockets creation. UNIX,
-+UDP IP and other protocols will be denied by the ruleset.
-+
-+.. code-block:: c
-+
-+    struct landlock_net_port_attr tcp_socket = {
-+        .allowed_access = LANDLOCK_ACCESS_SOCKET_CREATE,
-+        .family = AF_INET,
-+        .type = SOCK_STREAM,
-+    };
-+
-+    err = landlock_add_rule(ruleset_fd, LANDLOCK_RULE_SOCKET,
-+                            &tcp_socket, 0);
-+
- For network access-control, we can add a set of rules that allow to use a port
- number for a specific action: HTTPS connections.
- 
-@@ -186,7 +212,8 @@ number for a specific action: HTTPS connections.
- The next step is to restrict the current thread from gaining more privileges
- (e.g. through a SUID binary).  We now have a ruleset with the first rule
- allowing read access to ``/usr`` while denying all other handled accesses for
--the filesystem, and a second rule allowing HTTPS connections.
-+the filesystem, a second rule allowing TCP sockets and a third rule allowing
-+HTTPS connections.
- 
- .. code-block:: c
- 
-@@ -404,7 +431,7 @@ Access rights
- -------------
- 
- .. kernel-doc:: include/uapi/linux/landlock.h
--    :identifiers: fs_access net_access
-+    :identifiers: fs_access net_access socket_access
- 
- Creating a new ruleset
- ----------------------
-@@ -423,7 +450,7 @@ Extending a ruleset
- 
- .. kernel-doc:: include/uapi/linux/landlock.h
-     :identifiers: landlock_rule_type landlock_path_beneath_attr
--                  landlock_net_port_attr
-+                  landlock_net_port_attr landlock_socket_attr
- 
- Enforcing a ruleset
- -------------------
-@@ -541,6 +568,13 @@ earlier ABI.
- Starting with the Landlock ABI version 5, it is possible to restrict the use of
- :manpage:`ioctl(2)` using the new ``LANDLOCK_ACCESS_FS_IOCTL_DEV`` right.
- 
-+Socket support (ABI < 6)
-+-------------------------
-+
-+Starting with the Landlock ABI version 6, it is now possible to restrict
-+creation of user space sockets to only a set of allowed protocols thanks
-+to the new ``LANDLOCK_ACCESS_SOCKET_CREATE`` access right.
-+
- .. _kernel_support:
- 
- Kernel support
+ 	return laddr ? laddr : daddr;
+ }
 -- 
 2.34.1
 
