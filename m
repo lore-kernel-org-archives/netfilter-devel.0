@@ -1,38 +1,38 @@
-Received: from szxga05-in.huawei.com (szxga05-in.huawei.com [45.249.212.191])
+Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 939791CFECB;
-	Wed,  4 Sep 2024 10:48:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.191
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9614E1482E1;
+	Wed,  4 Sep 2024 10:48:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725446927; cv=none; b=NjpFGJY96Mh2wKuJm9f9ZjHtsots+eVFyXpsSC+Oyq57G/N4jknBlrLX2aH13I2MM9kYA1qKQPbzSpxA4aarAskALUiLfTBW+tPfzTCxkaXA7+pni3kiRoz/ZdaNk8aLraewiffrBdtHDLw6/8KcVe50XWjJluGddCvO+OSW3oM=
+	t=1725446928; cv=none; b=XxpRE0skhCdXQ/757DiWeDsFpC8TXbAcpJebIRoOYHzjVNvkJNvPvensz2ErmLk4pIcAAuKqYUKReQCRLLVGROY7n7tntOwXKpjBaoLCJhIwr5ryNgFmHvx55M0aUlFdbAYWRAu3DJRobQEvPoTekktg96XgFksiWTKmJZac/mE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725446927; c=relaxed/simple;
-	bh=DMWIp23DCEJuE85kq8d8o/CuzEiXpGfF0Ueszsrw4oE=;
+	s=arc-20240116; t=1725446928; c=relaxed/simple;
+	bh=G/cMFLqgfAz+tSXEyxmiE1H2LQoIMCFLFXGzTqt91ec=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=dhrgwuqAyvWigfmw2CtuhX1y5U5AvZOXX+Cg9K3TWFxgSU4RD9FvdVZc+ND7O3ObTzZqKbkQsCZVMmOr1KV3OXdVlegcK3JAVmytrxfUwUrsnihWsXKa4wQPn4FkNkNYj3KAbzga9oP/JDqVr2ImBj0cD3JElJn+3RTbwvychGk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.191
+	 MIME-Version:Content-Type; b=fwTstyQsmDFbv8kXlMiJcD+g/Pq2e5biRBQLouEAFvZKpiw8x7DTu5IjIGlm81CzjRWSztquRQjQyFrwK8Sy2gP3fOkCK1AmLHP3onLhVt3kGFdgW6sfB4oTGLZobX8eXvqgvl9ByM7L3AqGcsggrqgzvbg/NeWeIlo60ZhWAeE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.190
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
-Received: from mail.maildlp.com (unknown [172.19.88.234])
-	by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4WzJzZ6cDpz1HJ8y;
-	Wed,  4 Sep 2024 18:45:14 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.163.44])
+	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4WzJxt6ymdz20nMc;
+	Wed,  4 Sep 2024 18:43:46 +0800 (CST)
 Received: from kwepemj200016.china.huawei.com (unknown [7.202.194.28])
-	by mail.maildlp.com (Postfix) with ESMTPS id 651601402CC;
-	Wed,  4 Sep 2024 18:48:42 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 0DEAF1400D7;
+	Wed,  4 Sep 2024 18:48:44 +0800 (CST)
 Received: from mscphis02103.huawei.com (10.123.65.215) by
  kwepemj200016.china.huawei.com (7.202.194.28) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Wed, 4 Sep 2024 18:48:40 +0800
+ 15.2.1544.11; Wed, 4 Sep 2024 18:48:42 +0800
 From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
 To: <mic@digikod.net>
 CC: <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
 	<linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
 	<netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
 	<artem.kuzin@huawei.com>, <konstantin.meskhidze@huawei.com>
-Subject: [RFC PATCH v3 05/19] selftests/landlock: Test adding a rule for each unknown access
-Date: Wed, 4 Sep 2024 18:48:10 +0800
-Message-ID: <20240904104824.1844082-6-ivanov.mikhail1@huawei-partners.com>
+Subject: [RFC PATCH v3 06/19] selftests/landlock: Test adding a rule for unhandled access
+Date: Wed, 4 Sep 2024 18:48:11 +0800
+Message-ID: <20240904104824.1844082-7-ivanov.mikhail1@huawei-partners.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20240904104824.1844082-1-ivanov.mikhail1@huawei-partners.com>
 References: <20240904104824.1844082-1-ivanov.mikhail1@huawei-partners.com>
@@ -48,32 +48,32 @@ X-ClientProxiedBy: mscpeml500004.china.huawei.com (7.188.26.250) To
  kwepemj200016.china.huawei.com (7.202.194.28)
 
 Add test that validates behaviour of Landlock after rule with
-unknown access is added.
+unhandled access is added.
 
 Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
 ---
 Changes since v2:
 * Replaces EXPECT_EQ with ASSERT_EQ for close().
-* Refactors commit title.
+* Refactors commit title and message.
 
 Changes since v1:
-* Refactors commit messsage.
+* Refactors commit message.
 ---
- .../testing/selftests/landlock/socket_test.c  | 26 +++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ .../testing/selftests/landlock/socket_test.c  | 33 +++++++++++++++++++
+ 1 file changed, 33 insertions(+)
 
 diff --git a/tools/testing/selftests/landlock/socket_test.c b/tools/testing/selftests/landlock/socket_test.c
-index cb23efd3ccc9..811bdaa95a7a 100644
+index 811bdaa95a7a..d2fedfca7193 100644
 --- a/tools/testing/selftests/landlock/socket_test.c
 +++ b/tools/testing/selftests/landlock/socket_test.c
-@@ -325,4 +325,30 @@ TEST_F(protocol, socket_access_rights)
+@@ -351,4 +351,37 @@ TEST_F(protocol, rule_with_unknown_access)
  	ASSERT_EQ(0, close(ruleset_fd));
  }
  
-+TEST_F(protocol, rule_with_unknown_access)
++TEST_F(protocol, rule_with_unhandled_access)
 +{
-+	const struct landlock_ruleset_attr ruleset_attr = {
-+		.handled_access_socket = ACCESS_ALL,
++	struct landlock_ruleset_attr ruleset_attr = {
++		.handled_access_socket = LANDLOCK_ACCESS_SOCKET_CREATE,
 +	};
 +	struct landlock_socket_attr protocol = {
 +		.family = self->prot.family,
@@ -86,13 +86,20 @@ index cb23efd3ccc9..811bdaa95a7a 100644
 +		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
 +	ASSERT_LE(0, ruleset_fd);
 +
-+	for (access = 1ULL << 63; access != ACCESS_LAST; access >>= 1) {
++	for (access = 1; access > 0; access <<= 1) {
++		int err;
++
 +		protocol.allowed_access = access;
-+		EXPECT_EQ(-1,
-+			  landlock_add_rule(ruleset_fd, LANDLOCK_RULE_SOCKET,
-+					    &protocol, 0));
-+		EXPECT_EQ(EINVAL, errno);
++		err = landlock_add_rule(ruleset_fd, LANDLOCK_RULE_SOCKET,
++					&protocol, 0);
++		if (access == ruleset_attr.handled_access_socket) {
++			EXPECT_EQ(0, err);
++		} else {
++			EXPECT_EQ(-1, err);
++			EXPECT_EQ(EINVAL, errno);
++		}
 +	}
++
 +	ASSERT_EQ(0, close(ruleset_fd));
 +}
 +
