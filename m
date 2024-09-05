@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2BB491BD008;
-	Thu,  5 Sep 2024 23:29:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 651EE1BBBD8;
+	Thu,  5 Sep 2024 23:29:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725578982; cv=none; b=FwqrIUqOje/MJ2qvJ9esE5YOTXSfIymRrHzqE0QTQ7NYoynDMNzjpN0G6Kh2I0INYtStEGqfJ2lwJ7jqb8H/48+Mv7uukxLVAhDbh1/JPNmL0arMq8Nns7HD8N9OoaPMElAIYt1ZxBrd7WBI+Jbnv8KH7DzZU8bzYLfGzNHnhmo=
+	t=1725578983; cv=none; b=Cy4jPVvXAdOtLCEi9i1udQ68ErMbZbW35IMGQ3mHKJ50WCmYuTF7bNxdKgSQh/Gb3FYb6I02JsbE559uUzZmyp+NDn5TZg0AnzJFtihB/CQcSgXsr+lLBs+SXTcyS39PWwSrnL4bfa8iUDOQm0CRfFlxZDERodqQxphnQIW80lA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725578982; c=relaxed/simple;
-	bh=hyna1BK0OMNoE5QzkffmZn9442nb1Ck0SSfmTA9k81A=;
+	s=arc-20240116; t=1725578983; c=relaxed/simple;
+	bh=yaOwtLeEgVrn/6Qd1K3XmtginthgbN6a1Vonn2dzfyA=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=Iay8UmVaqM/1Cs4WnVo7pLVUiaal3pN687+4b7+dxKOBTKgcgvu8dMvM9ZA/utbwr1D/l8mB/ds9yzYZcUJITwSf1yWLfCag90UhpULndwo9bsCVuTNbA5AswwuGdAiSXoB1q2yyZJ8dJnYo31yQqkY8SqH/XdpJnBguR+hRMNw=
+	 MIME-Version; b=tndDgEabyKEt6v97rmV0E/PALrJFQRTTNafeRTsUf+qZoCEGzZw8PKm9yYSavIIWAbesEZfPcWgCLhDxKUl4CGTH6FhQMf3gni2KPV1XqZKkqgAdksgIfGA3KMkU38tvUuhHu/uNp+BDP5u6yeh+KqCR58ALzrOy9SK/i2iyG/o=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net-next 11/16] netfilter: nf_tables: remove annotation to access set timeout while holding lock
-Date: Fri,  6 Sep 2024 01:29:15 +0200
-Message-Id: <20240905232920.5481-12-pablo@netfilter.org>
+Subject: [PATCH net-next 12/16] netfilter: nft_dynset: annotate data-races around set timeout
+Date: Fri,  6 Sep 2024 01:29:16 +0200
+Message-Id: <20240905232920.5481-13-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240905232920.5481-1-pablo@netfilter.org>
 References: <20240905232920.5481-1-pablo@netfilter.org>
@@ -34,36 +34,46 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Mutex is held when adding an element, no need for READ_ONCE, remove it.
+set timeout can be read locklessly while being updated from control
+plane, add annotation.
 
 Fixes: 123b99619cca ("netfilter: nf_tables: honor set timeout and garbage collection updates")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/nft_dynset.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 6c0c6f8a08a8..571aa30918e9 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -6916,7 +6916,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 			return err;
- 	} else if (set->flags & NFT_SET_TIMEOUT &&
- 		   !(flags & NFT_SET_ELEM_INTERVAL_END)) {
--		timeout = READ_ONCE(set->timeout);
-+		timeout = set->timeout;
- 	}
+diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
+index 6920df754265..5812fd880b79 100644
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -56,7 +56,7 @@ static struct nft_elem_priv *nft_dynset_new(struct nft_set *set,
+ 	if (!atomic_add_unless(&set->nelems, 1, set->size))
+ 		return NULL;
  
- 	expiration = 0;
-@@ -7023,7 +7023,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 		if (err < 0)
- 			goto err_parse_key_end;
+-	timeout = priv->timeout ? : set->timeout;
++	timeout = priv->timeout ? : READ_ONCE(set->timeout);
+ 	elem_priv = nft_set_elem_init(set, &priv->tmpl,
+ 				      &regs->data[priv->sreg_key], NULL,
+ 				      &regs->data[priv->sreg_data],
+@@ -95,7 +95,7 @@ void nft_dynset_eval(const struct nft_expr *expr,
+ 			     expr, regs, &ext)) {
+ 		if (priv->op == NFT_DYNSET_OP_UPDATE &&
+ 		    nft_set_ext_exists(ext, NFT_SET_EXT_EXPIRATION)) {
+-			timeout = priv->timeout ? : set->timeout;
++			timeout = priv->timeout ? : READ_ONCE(set->timeout);
+ 			*nft_set_ext_expiration(ext) = get_jiffies_64() + timeout;
+ 		}
  
--		if (timeout != READ_ONCE(set->timeout)) {
-+		if (timeout != set->timeout) {
- 			err = nft_set_ext_add(&tmpl, NFT_SET_EXT_TIMEOUT);
- 			if (err < 0)
- 				goto err_parse_key_end;
+@@ -313,7 +313,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 		nft_dynset_ext_add_expr(priv);
+ 
+ 	if (set->flags & NFT_SET_TIMEOUT) {
+-		if (timeout || set->timeout) {
++		if (timeout || READ_ONCE(set->timeout)) {
+ 			nft_set_ext_add(&priv->tmpl, NFT_SET_EXT_TIMEOUT);
+ 			nft_set_ext_add(&priv->tmpl, NFT_SET_EXT_EXPIRATION);
+ 		}
 -- 
 2.30.2
 
