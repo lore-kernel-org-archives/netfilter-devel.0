@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 651EE1BBBD8;
-	Thu,  5 Sep 2024 23:29:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8E2B61BD008;
+	Thu,  5 Sep 2024 23:29:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725578983; cv=none; b=Cy4jPVvXAdOtLCEi9i1udQ68ErMbZbW35IMGQ3mHKJ50WCmYuTF7bNxdKgSQh/Gb3FYb6I02JsbE559uUzZmyp+NDn5TZg0AnzJFtihB/CQcSgXsr+lLBs+SXTcyS39PWwSrnL4bfa8iUDOQm0CRfFlxZDERodqQxphnQIW80lA=
+	t=1725578984; cv=none; b=KtxTmfzY4mNTAqf830jv8L2RcHHKRvlROMyBuX3NQycoqFCU9AkeO64jXZ/8P0Y8U1J9pyzzKznkmetMWrA9Xfb/PSJ0BJ5fc1G2gKWTjcVG+magR/LprgM9J2SyzRkUQsUV4/00cIRv9vg6bbF8yzWP3LitOhYnolUXspOdTkw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725578983; c=relaxed/simple;
-	bh=yaOwtLeEgVrn/6Qd1K3XmtginthgbN6a1Vonn2dzfyA=;
+	s=arc-20240116; t=1725578984; c=relaxed/simple;
+	bh=qXDRc5xOBeiZUAyHf7ogHvpICj3mNuTe8AvgWopzBdU=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=tndDgEabyKEt6v97rmV0E/PALrJFQRTTNafeRTsUf+qZoCEGzZw8PKm9yYSavIIWAbesEZfPcWgCLhDxKUl4CGTH6FhQMf3gni2KPV1XqZKkqgAdksgIfGA3KMkU38tvUuhHu/uNp+BDP5u6yeh+KqCR58ALzrOy9SK/i2iyG/o=
+	 MIME-Version; b=TKczNRFICIlBwWbFEc6ja+HT148V6A3pDhJYI0dfEMT02BBf/s8HOryMPtQGlg3/tsuNNPyT2eDRsi+oRjpUzwrGhGYj15YaXKXlEAgaXtz/kMaZ+qf8TlPQc6W9YSxVobLRglqLG4iPUMQGhfOcPGonm2xWy423C6JsCITrFas=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net-next 12/16] netfilter: nft_dynset: annotate data-races around set timeout
-Date: Fri,  6 Sep 2024 01:29:16 +0200
-Message-Id: <20240905232920.5481-13-pablo@netfilter.org>
+Subject: [PATCH net-next 13/16] netfilter: nf_tables: annotate data-races around element expiration
+Date: Fri,  6 Sep 2024 01:29:17 +0200
+Message-Id: <20240905232920.5481-14-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240905232920.5481-1-pablo@netfilter.org>
 References: <20240905232920.5481-1-pablo@netfilter.org>
@@ -34,46 +34,55 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-set timeout can be read locklessly while being updated from control
-plane, add annotation.
+element expiration can be read-write locklessly, it can be written by
+dynset and read from netlink dump, add annotation.
 
-Fixes: 123b99619cca ("netfilter: nf_tables: honor set timeout and garbage collection updates")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_dynset.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/net/netfilter/nf_tables.h | 2 +-
+ net/netfilter/nf_tables_api.c     | 2 +-
+ net/netfilter/nft_dynset.c        | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index c302b396e1a7..1528af3fe26f 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -835,7 +835,7 @@ static inline bool __nft_set_elem_expired(const struct nft_set_ext *ext,
+ 					  u64 tstamp)
+ {
+ 	return nft_set_ext_exists(ext, NFT_SET_EXT_EXPIRATION) &&
+-	       time_after_eq64(tstamp, *nft_set_ext_expiration(ext));
++	       time_after_eq64(tstamp, READ_ONCE(*nft_set_ext_expiration(ext)));
+ }
+ 
+ static inline bool nft_set_elem_expired(const struct nft_set_ext *ext)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 571aa30918e9..77dce3d61ae6 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5827,7 +5827,7 @@ static int nf_tables_fill_setelem(struct sk_buff *skb,
+ 	if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPIRATION)) {
+ 		u64 expires, now = get_jiffies_64();
+ 
+-		expires = *nft_set_ext_expiration(ext);
++		expires = READ_ONCE(*nft_set_ext_expiration(ext));
+ 		if (time_before64(now, expires))
+ 			expires -= now;
+ 		else
 diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index 6920df754265..5812fd880b79 100644
+index 5812fd880b79..ca4b52e68295 100644
 --- a/net/netfilter/nft_dynset.c
 +++ b/net/netfilter/nft_dynset.c
-@@ -56,7 +56,7 @@ static struct nft_elem_priv *nft_dynset_new(struct nft_set *set,
- 	if (!atomic_add_unless(&set->nelems, 1, set->size))
- 		return NULL;
- 
--	timeout = priv->timeout ? : set->timeout;
-+	timeout = priv->timeout ? : READ_ONCE(set->timeout);
- 	elem_priv = nft_set_elem_init(set, &priv->tmpl,
- 				      &regs->data[priv->sreg_key], NULL,
- 				      &regs->data[priv->sreg_data],
-@@ -95,7 +95,7 @@ void nft_dynset_eval(const struct nft_expr *expr,
- 			     expr, regs, &ext)) {
+@@ -96,7 +96,7 @@ void nft_dynset_eval(const struct nft_expr *expr,
  		if (priv->op == NFT_DYNSET_OP_UPDATE &&
  		    nft_set_ext_exists(ext, NFT_SET_EXT_EXPIRATION)) {
--			timeout = priv->timeout ? : set->timeout;
-+			timeout = priv->timeout ? : READ_ONCE(set->timeout);
- 			*nft_set_ext_expiration(ext) = get_jiffies_64() + timeout;
+ 			timeout = priv->timeout ? : READ_ONCE(set->timeout);
+-			*nft_set_ext_expiration(ext) = get_jiffies_64() + timeout;
++			WRITE_ONCE(*nft_set_ext_expiration(ext), get_jiffies_64() + timeout);
  		}
  
-@@ -313,7 +313,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 		nft_dynset_ext_add_expr(priv);
- 
- 	if (set->flags & NFT_SET_TIMEOUT) {
--		if (timeout || set->timeout) {
-+		if (timeout || READ_ONCE(set->timeout)) {
- 			nft_set_ext_add(&priv->tmpl, NFT_SET_EXT_TIMEOUT);
- 			nft_set_ext_add(&priv->tmpl, NFT_SET_EXT_EXPIRATION);
- 		}
+ 		nft_set_elem_update_expr(ext, regs, pkt);
 -- 
 2.30.2
 
