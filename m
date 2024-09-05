@@ -1,113 +1,81 @@
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7ABAF1DA105;
-	Wed,  4 Sep 2024 12:56:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50242194A61
+	for <netfilter-devel@vger.kernel.org>; Thu,  5 Sep 2024 10:58:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725454603; cv=none; b=DuS80Yqu/e7oGeC+kYjlSpR/gtzeNiM6gw3azEihN/FgAhvTxfs0/gfsrFuHb13BJIR+Ud/nNzALUUOxJ5IRMjpwSaV5fuC78vFt3EHU616ANF38gOYm2CpDyc9G5I/Uhqy147UsGC2mQfYNakjknPtfI5iYJelp5Ei3DuWS/BE=
+	t=1725533905; cv=none; b=d8yZ9PnTW72I/rhFqizfthcbXDdT88H8V0ZogwCBWtJHJJIR8Crw7xRYhQUMRJ4oWYlMHU/+lCBQz0Dim2KYVhYlsatJc3x2+d1mYXpMkB6Vl8OTANwUeDaPeIJ+XM3/EMHwplhs+YT3COvl1EL7hn2PTrqryG2YliCA9p9d5ec=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725454603; c=relaxed/simple;
-	bh=AEqqzoAnneoSB02PHYheeGp6M47QuXiRUOgCai4++r4=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:CC:References:
-	 In-Reply-To:Content-Type; b=d1Pn21ne6LbrxzLCb//sgBlsYcsPv55xGZarTMJMBkcv8ws9LG4tm6NBrpAvgQTLNYJ8ghtthiLHCLv7/ZNGrG57FP8TI61wUTMIHzB+xhhxwoF9FchLs8/nAv5wKLNMzH6tnG1425uwz7WNOq2/3W2Le2C+p0j9naGHUZVBuM8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.187
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
-Received: from mail.maildlp.com (unknown [172.19.162.254])
-	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4WzMt30fpPzyR5c;
-	Wed,  4 Sep 2024 20:55:39 +0800 (CST)
-Received: from kwepemj200016.china.huawei.com (unknown [7.202.194.28])
-	by mail.maildlp.com (Postfix) with ESMTPS id D9AB218024B;
-	Wed,  4 Sep 2024 20:56:36 +0800 (CST)
-Received: from [10.123.123.159] (10.123.123.159) by
- kwepemj200016.china.huawei.com (7.202.194.28) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Wed, 4 Sep 2024 20:56:33 +0800
-Message-ID: <655fca48-1d87-5ee2-4e8a-a94f34323c73@huawei-partners.com>
-Date: Wed, 4 Sep 2024 15:56:29 +0300
+	s=arc-20240116; t=1725533905; c=relaxed/simple;
+	bh=TaEm3I/BI1cVI96rvmOrB6dBmhhnej5s/5CMI16znxk=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=g5xAI8gIyU8yw/ko3+hsSkbNzf8YP9WUwUMRPFyz5n4WISIXOkVmgoGiWJ99gDCwQ76O1Y3rYueyDbLbaXnkOWGDqn72KpUyPRY6VgvIjlcqsX8MWpinygvbI0t1VLa5/TMn2oXygi3mRJf7nQAe0NL9gRsgS5cP2r7yBnOcIG0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1smABw-0004tg-Te; Thu, 05 Sep 2024 12:58:20 +0200
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf 1/2] netfilter: nft_socket: fix sk refcount leaks
+Date: Thu,  5 Sep 2024 12:54:46 +0200
+Message-ID: <20240905105451.28857-1-fw@strlen.de>
+X-Mailer: git-send-email 2.44.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH v1 2/4] selftests/landlock: Implement per-syscall
- microbenchmarks
-Content-Language: ru
-From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-To: <mic@digikod.net>
-CC: <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
-	<linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-	<netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-	<artem.kuzin@huawei.com>, <konstantin.meskhidze@huawei.com>
-References: <20240816005943.1832694-1-ivanov.mikhail1@huawei-partners.com>
- <20240816005943.1832694-3-ivanov.mikhail1@huawei-partners.com>
-In-Reply-To: <20240816005943.1832694-3-ivanov.mikhail1@huawei-partners.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml500004.china.huawei.com (7.191.163.9) To
- kwepemj200016.china.huawei.com (7.202.194.28)
+Content-Transfer-Encoding: 8bit
 
-8/16/2024 3:59 AM, Mikhail Ivanov wrote:> diff --git 
-a/tools/testing/selftests/landlock/bench/run.sh 
-b/tools/testing/selftests/landlock/bench/run.sh
-> index afbcbb2ba6aa..582313f689ad 100755
-> --- a/tools/testing/selftests/landlock/bench/run.sh
-> +++ b/tools/testing/selftests/landlock/bench/run.sh
-> @@ -237,14 +242,48 @@ print_overhead()
->   	done < $BASE_TRACE_DUMP
->   }
->   
-> +print_overhead_workload()
-> +{
-> +	print "\nTracing results\n"
-> +	print "===============\n"
-> +	print "cmd: "
-> +	print "%s " $WORKLOAD
-> +	print "\n"
-> +	print "syscalls: %s\n" $TRACED_SYSCALLS
-> +	print "access: %s\n" $ACCESS
-> +
-> +	print_overhead
-> +}
-> +
-> +print_overhead_microbench()
-> +{
-> +	print "\nTracing results\n"
-> +	print "===============\n"
-> +	print "cmd: Microbenchmarks\n"
-> +	print "syscalls: %s\n" $TRACED_SYSCALLS
-> +
-> +	print_overhead
-> +}
-> +
-> +form_trace_cmd()
-> +{
-> +	trace_cmd=$TRACE_CMD
-> +	trace_cmd+=" -e $1 -D $SANDBOX_DELAY -o $TMP_BUF"
-> +	trace_cmd+=" $TASKSET -c $CPU_AFFINITY"
-> +	trace_cmd+=" $NICE -n -19"
-> +
-> +	echo $trace_cmd
-> +}
-> +
->   run_traced_workload()
->   {
-> +	trace_cmd=$(form_trace_cmd $TRACED_SYSCALLS)
-> +
->   	if [ $1 == 0 ]; then
->   		output=$BASE_TRACE_DUMP
-> -		sandbox_cmd=
->   	else
->   		output=$LL_TRACE_DUMP
-> -		sandbox_cmd="$SANDBOXER_BIN $SANDBOXER_ARGS"
-> +		trace_cmd+="$SANDBOXER_BIN $SANDBOXER_ARGS"
+We must put 'sk' reference before returning.
 
-Missing space:
-	trace_cmd+=" $SANDBOXER_BIN $SANDBOXER_ARGS"
+Fixes: 039b1f4f24ec ("netfilter: nft_socket: fix erroneous socket assignment")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nft_socket.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
->   	fi
->   
->   	echo '' > $output
+diff --git a/net/netfilter/nft_socket.c b/net/netfilter/nft_socket.c
+index f30163e2ca62..765ffd6e06bc 100644
+--- a/net/netfilter/nft_socket.c
++++ b/net/netfilter/nft_socket.c
+@@ -110,13 +110,13 @@ static void nft_socket_eval(const struct nft_expr *expr,
+ 			*dest = READ_ONCE(sk->sk_mark);
+ 		} else {
+ 			regs->verdict.code = NFT_BREAK;
+-			return;
++			goto out_put_sk;
+ 		}
+ 		break;
+ 	case NFT_SOCKET_WILDCARD:
+ 		if (!sk_fullsock(sk)) {
+ 			regs->verdict.code = NFT_BREAK;
+-			return;
++			goto out_put_sk;
+ 		}
+ 		nft_socket_wildcard(pkt, regs, sk, dest);
+ 		break;
+@@ -124,7 +124,7 @@ static void nft_socket_eval(const struct nft_expr *expr,
+ 	case NFT_SOCKET_CGROUPV2:
+ 		if (!nft_sock_get_eval_cgroupv2(dest, sk, pkt, priv->level)) {
+ 			regs->verdict.code = NFT_BREAK;
+-			return;
++			goto out_put_sk;
+ 		}
+ 		break;
+ #endif
+@@ -133,6 +133,7 @@ static void nft_socket_eval(const struct nft_expr *expr,
+ 		regs->verdict.code = NFT_BREAK;
+ 	}
+ 
++out_put_sk:
+ 	if (sk != skb->sk)
+ 		sock_gen_put(sk);
+ }
+-- 
+2.44.2
+
