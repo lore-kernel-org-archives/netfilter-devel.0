@@ -1,85 +1,131 @@
-Received: from mail-il1-f176.google.com (mail-il1-f176.google.com [209.85.166.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 489A61CB31D;
-	Fri,  6 Sep 2024 14:43:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2669172BA9;
+	Fri,  6 Sep 2024 14:55:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725633836; cv=none; b=Yo8e1LTY1BYE02xnRupVXka/AZK9iLklMkXgsvvSLF024T5xK/t6JDi99vpDbdqh1TsmOnSCg2LcF0ZLg2yADvY15zJADZfJBXj++9LqUW6+L8NiyN3VqlZ8B9aByjtFQUnyFt0MnYm+yt4smvrbXKq9yN5g3VorHiwMZ2j2HrY=
+	t=1725634522; cv=none; b=i45r7Ey43p28ZwIORXodcY5Y+kJTft8R+OMvxc2LiFbA3JnsR8+wSpzFcP945ffUTAD6nwlrwX2xXIaVmNNIJ95oaqzMAjvv6TrHxjxL5jYhz6A+kBg6n8ySMoU8EJxaKGN7ETzVWhWb5tVV9NTlmOx5v1NbJe2Nl9gJJajs1iU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725633836; c=relaxed/simple;
-	bh=NhdQH1a5W6hapzmK4P0XA2IAR44oZC3J7Z1ztW+orLg=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ZuBXgNw2tbQFp/9oGNmvBWiACLCajQXxecFx5TzSVT+Q70D9RN52SQk0NilcXenC+/LdBj55vr2X61r+Oil8AoN3qWjIlPmEKv9O66HhLrDgEQqEuiJPgEQDsV8gYMGBT2YBkMEK5nSXm8YBI3Oz6yz0U7HB/Wn+NRIZfWgtins=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=cMmSrbEt; arc=none smtp.client-ip=209.85.166.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1725634522; c=relaxed/simple;
+	bh=MFuZNLwda90vW+mPXIjOs38OY9mGR52AE5fGXpmm25k=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ANh4iGCovB19yFSXCEcHNHk7GMl5bNa1eFrt+nk1xvnk9Sjrzcr44S6wBGLdke7BLznWNLF52+vOp4vofIYAeQkc9IJufyFnpup95Y6NccM7YUDfDXU5ltvwuJO7vC05SOQ7/tJaOCYEqAlF8fH4G1e/F/9y1GJF6K4Mv7QkgZs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Y3IAtx+Y; arc=none smtp.client-ip=192.198.163.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cMmSrbEt"
-Received: by mail-il1-f176.google.com with SMTP id e9e14a558f8ab-3a043869e42so8815615ab.0;
-        Fri, 06 Sep 2024 07:43:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1725633834; x=1726238634; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=NhdQH1a5W6hapzmK4P0XA2IAR44oZC3J7Z1ztW+orLg=;
-        b=cMmSrbEt6siHY3Mss6nHeOA6YLKEIooXyI86EwV1VZpqgfrz5DA8JZgn3GO0X7+27P
-         uF5Nk2oShb189dwaNC5hKhz6SKL0xxYu6eGm7kYXfxqEF4Tynb+aRbsscVIIWsHbrivb
-         MdAsKZ3L2oNBbEx1oKcnxSwKL3yY3XUBcUJxYtTK6ZAOYgHmWSX6UMLTY5Id4j06qsCb
-         KEGa1qsaX8jU2oYqFEFOwMAB2mUxzZVD9oYZaz98Ux9vtQH9QxKqovc7ihcNscqSRB7Y
-         BwL1cZrMiZ+kRAUWMXoQatakd63LHNCzZbe8e3Im09gV78NBeXCVXiBbLr/nfG9b2pZJ
-         p//g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1725633834; x=1726238634;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=NhdQH1a5W6hapzmK4P0XA2IAR44oZC3J7Z1ztW+orLg=;
-        b=N/O2UKvZfKu25WIlsatSnG4K2Iiqu4hfewWNr8aN4mr5tepR2ENilpDgpj9icPQOkt
-         i+DN7w1ooYp2HdVrImsN0QU9s3KNxwjkEZScvtIOs6QK5oCKTKbwmiU/PMW6ndgVRTGa
-         t6LfqLamNW8l1d4j/IRa7u552RDbLtFuNs1WD+vWDfp9JAlPI/kzcMivsRlshEjd9oRv
-         n4sAZngmAd4TC2utj+i1ybHotf6YqNNxgSmRFHHWV5ka0J0uZBKDRCrx1hrJUJ/AaZRi
-         8T6VTrcCR67V4Q+JmuA0GF+/vlGHaXRMnOHPL4LaE0o2oEB8a8bg5a6TgEcbV9lkq2+S
-         v7vw==
-X-Forwarded-Encrypted: i=1; AJvYcCWFVq5gmPzW6BLwd8WZP9REfI5ffHAbsah8G+bxSa75XcCiJATgexy4bwfnJcD3NzSmaMM=@vger.kernel.org, AJvYcCX+ggIiTYFMZuIq+0kUJjKOSwXb+vb6qDU50jflBqT5A+AJPGbyEv3/rXjWlxz9TG25nCE2sOKcDl03iKoX1q4J@vger.kernel.org, AJvYcCXgwSeyPUOpvI2fhSnKPFyN4iJCLdUvuuGPXHN9bA5h9kE9wDw4XySsj17AZh/5n5Ir02A7m/JQKQBCRQ==@vger.kernel.org
-X-Gm-Message-State: AOJu0YyhQqLjpWmvEfOTMyPiDdFqyX1NQg462HzKZblz8whRd7u5+/Zl
-	veYQ4Kktgn4vUjly1dhXTHF49M9nylCLThM7kFhRume3TyTZLsxi6vjxTxlukLI/LCWf005eTT6
-	W4WoJo0+D0DYixNamwaKI5eYgPgCh91gW
-X-Google-Smtp-Source: AGHT+IHlLthbmKYIA0lXdf8bkLngRRLYn9z6GK5ZajQE9FHf65MIofrSVVfFZVVYi7C6mTQ8GGJ2XTekFieonTp2n2M=
-X-Received: by 2002:a05:6e02:1b03:b0:39f:60b3:ca2e with SMTP id
- e9e14a558f8ab-3a04eb5f1f7mr24501095ab.2.1725633834252; Fri, 06 Sep 2024
- 07:43:54 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Y3IAtx+Y"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1725634521; x=1757170521;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=MFuZNLwda90vW+mPXIjOs38OY9mGR52AE5fGXpmm25k=;
+  b=Y3IAtx+YkuRWCM7NovAjjN6zcjyJ5yYBtNrEicF5e2aLRAGhq8Rhgr61
+   IQOf3dWrimUHslCuHnPtulWhGTFMxY5jtHS6+n+SJn93YSA3enuyfB9xb
+   ydJRYziumjHfsujXkxNu1J8aM3v+m8ee1n8t4l5nqFeJ0c6xIB9NPiaa4
+   kYfDLAnhZIwwgzF7p15eubkE9d/9WYSH0E/wUgOdgR3VEF38zJKE455jm
+   bNKX4+Cc9sjq8ECtUw9hZh+0GDP8bsua+imRn0bKZhITDwiP8FbaXn94X
+   bI2HAegooDkUJekNg8R+QPs/ljDqIuc9lRSM7Z9R0z9h5rjEj3O+TNEWp
+   w==;
+X-CSE-ConnectionGUID: pqNaLdhqSJK+kBNTC6TTpw==
+X-CSE-MsgGUID: 4j9Hj01uT1OUjCoMmkYjIg==
+X-IronPort-AV: E=McAfee;i="6700,10204,11187"; a="23900516"
+X-IronPort-AV: E=Sophos;i="6.10,208,1719903600"; 
+   d="scan'208";a="23900516"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Sep 2024 07:55:20 -0700
+X-CSE-ConnectionGUID: 69DWNT1tTrKmjA8uXnUubQ==
+X-CSE-MsgGUID: fXGnhljAQQGHcGChVQ28fw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.10,208,1719903600"; 
+   d="scan'208";a="70917921"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orviesa004.jf.intel.com with ESMTP; 06 Sep 2024 07:55:16 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+	id BD38613E; Fri, 06 Sep 2024 17:55:14 +0300 (EEST)
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Pavel Tikhomirov <ptikhomirov@virtuozzo.com>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	llvm@lists.linux.dev
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	David Ahern <dsahern@kernel.org>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Nathan Chancellor <nathan@kernel.org>,
+	Nick Desaulniers <ndesaulniers@google.com>,
+	Bill Wendling <morbo@google.com>,
+	Justin Stitt <justinstitt@google.com>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH net v1 1/1] netfilter: nf_reject: Fix build error when CONFIG_BRIDGE_NETFILTER=n
+Date: Fri,  6 Sep 2024 17:55:13 +0300
+Message-ID: <20240906145513.567781-1-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.43.0.rc1.1336.g36b5255a03ac
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240905165140.3105140-1-idosch@nvidia.com> <20240905165140.3105140-13-idosch@nvidia.com>
-In-Reply-To: <20240905165140.3105140-13-idosch@nvidia.com>
-From: Xin Long <lucien.xin@gmail.com>
-Date: Fri, 6 Sep 2024 10:43:42 -0400
-Message-ID: <CADvbK_dn6vs05tbwd+uOL0raj_X6HFWAGqPqNxKNpaqSmw5yug@mail.gmail.com>
-Subject: Re: [PATCH net-next 12/12] sctp: Unmask upper DSCP bits in sctp_v4_get_dst()
-To: Ido Schimmel <idosch@nvidia.com>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, kuba@kernel.org, 
-	pabeni@redhat.com, edumazet@google.com, dsahern@kernel.org, gnault@redhat.com, 
-	razor@blackwall.org, pablo@netfilter.org, kadlec@netfilter.org, 
-	marcelo.leitner@gmail.com, bridge@lists.linux.dev, 
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	linux-sctp@vger.kernel.org, bpf@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Thu, Sep 5, 2024 at 12:54=E2=80=AFPM Ido Schimmel <idosch@nvidia.com> wr=
-ote:
->
-> Unmask the upper DSCP bits when calling ip_route_output_key() so that in
-> the future it could perform the FIB lookup according to the full DSCP
-> value.
->
-> Note that the 'tos' variable holds the full DS field.
->
-> Signed-off-by: Ido Schimmel <idosch@nvidia.com>
-Reviewed-by: Xin Long <lucien.xin@gmail.com>
+In some cases (CONFIG_BRIDGE_NETFILTER=n) the pointer to IP header
+is set but not used, it prevents kernel builds with clang, `make W=1`
+and CONFIG_WERROR=y:
+
+ipv6: split nf_send_reset6() in smaller functions
+netfilter: nf_reject_ipv4: split nf_send_reset() in smaller functions
+
+net/ipv4/netfilter/nf_reject_ipv4.c:243:16: error: variable 'niph' set but not used [-Werror,-Wunused-but-set-variable]
+  243 |         struct iphdr *niph;
+      |                       ^
+net/ipv6/netfilter/nf_reject_ipv6.c:286:18: error: variable 'ip6h' set but not used [-Werror,-Wunused-but-set-variable]
+  286 |         struct ipv6hdr *ip6h;
+      |                         ^
+
+Fix these by marking respective variables with __maybe_unused as it
+seems more complicated to address that in a better way due to ifdeffery.
+
+Fixes: 8bfcdf6671b1 ("netfilter: nf_reject_ipv6: split nf_send_reset6() in smaller functions")
+Fixes: 052b9498eea5 ("netfilter: nf_reject_ipv4: split nf_send_reset() in smaller functions")
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ net/ipv4/netfilter/nf_reject_ipv4.c | 2 +-
+ net/ipv6/netfilter/nf_reject_ipv6.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
+index 04504b2b51df..0af42494ac66 100644
+--- a/net/ipv4/netfilter/nf_reject_ipv4.c
++++ b/net/ipv4/netfilter/nf_reject_ipv4.c
+@@ -240,7 +240,7 @@ void nf_send_reset(struct net *net, struct sock *sk, struct sk_buff *oldskb,
+ 		   int hook)
+ {
+ 	struct sk_buff *nskb;
+-	struct iphdr *niph;
++	struct iphdr *niph __maybe_unused;
+ 	const struct tcphdr *oth;
+ 	struct tcphdr _oth;
+ 
+diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
+index dedee264b8f6..f5ed4e779b72 100644
+--- a/net/ipv6/netfilter/nf_reject_ipv6.c
++++ b/net/ipv6/netfilter/nf_reject_ipv6.c
+@@ -283,7 +283,7 @@ void nf_send_reset6(struct net *net, struct sock *sk, struct sk_buff *oldskb,
+ 	const struct tcphdr *otcph;
+ 	unsigned int otcplen, hh_len;
+ 	const struct ipv6hdr *oip6h = ipv6_hdr(oldskb);
+-	struct ipv6hdr *ip6h;
++	struct ipv6hdr *ip6h __maybe_unused;
+ 	struct dst_entry *dst = NULL;
+ 	struct flowi6 fl6;
+ 
+-- 
+2.43.0.rc1.1336.g36b5255a03ac
+
