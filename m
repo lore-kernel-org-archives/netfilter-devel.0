@@ -1,85 +1,108 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD2D61D4152;
-	Fri,  6 Sep 2024 16:31:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D0C11CFEC9;
+	Fri,  6 Sep 2024 17:13:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725640285; cv=none; b=BncmLiSnVaqIdIImAn9vNX/Z4Plg76rMoxLbJuYiIcq0tq7DYpkffPE6wqPFwTA6mHVChNQ7kK9wFG2aYvlgXZX4zQ7AmiriCaXczp/jNal/XnD/P3cmWGOxMsrIu8ceWkOpXK4msoXyVWacNHM8pvCElcXpNiul9pno/J0cns8=
+	t=1725642809; cv=none; b=SMl6CXUH8QB/F0dAMA8U9BSpqhoJi5YDkz1jOtHuyI9zknLglRPznU9UPKErOn7CNbKJx0kgZ8mGH5ge7Iji4qmDx69zgX1z3tvhbeJFDppgEynwxhrPjlpu3DPEh10DpOSZNDE6lUu+AALkb/a6IfEy7xMXPB348+t7vmO6z8w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725640285; c=relaxed/simple;
-	bh=sC8UhjbTMx5mUtLsy+Qu/baWSi3okdi2YLVuh9ssZlE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=cCk2AwrUT/V33bTNVK4yL8Q6KjHqYnOQge7DqqwndxcOX8X3uWsy1Dlkoxucb4EzRhbRYfusjIeex45twF8MRpdqRFMDVLpeFUN0QK5Xz8In1dKAgJrrWLtGYbagzAj6vNqsEi6+ktki8MD2NORU+x5ajEfc1u67g6ncd3KXtD0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IgXAKi3m; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725642809; c=relaxed/simple;
+	bh=za9hRWAJFue3qA2/8qfDjGdwgXq/W1BfL0Az38VY1kM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=c6+eUSVwAsi9gmEkY8Dk/8OcqAeaQNlVaSeDtwEi943CrWTZt8hIzrYj2m+NtmoStOvXVUzkSztDBqeN/mM/+zOjdzEQpQzJGMra2Mk8IK0rOJmaGwHcfFRSK2nGqyNfeB8MfNLrYndPySaXsQXGDJJ4DHFGE5hbvJpBKW0/jl8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HFog4E+D; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IgXAKi3m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39737C4CEC4;
-	Fri,  6 Sep 2024 16:31:21 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HFog4E+D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3692C4CEC4;
+	Fri,  6 Sep 2024 17:13:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1725640284;
-	bh=sC8UhjbTMx5mUtLsy+Qu/baWSi3okdi2YLVuh9ssZlE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=IgXAKi3mUmPm5IjeRJs6mOzzfI32ZC0C55ovfAid6+OrGUj8BfGXVt6ecfDL5e8uA
-	 FUSwDNFfC73KFreghcJHXGoeWqoNQjbvK2w3FHmBse5hcBLlCRbooAFjcrm5P867oK
-	 fXWfwL/0+yoFvoLccJSZ/GOFndElBK7CWA8N1GnP52/RFLo7SysH3d81Mn3iIdDuBB
-	 /aI/VlQWEmoHaUoxUtQEejRUJcrV1z6wPvt23OS528T6MjneBkJsghESkFnGOqlKZC
-	 pjPmxDYj2ovprLp6YWtOC/ss39eLkmePU81pRmy74kZg9FpURQoaxzg2KVY5LAAQv3
-	 GXGUYwM9sGMzQ==
-Date: Fri, 6 Sep 2024 17:31:18 +0100
-From: Simon Horman <horms@kernel.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Felix Huettner <felix.huettner@mail.schwarz>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	llvm@lists.linux.dev, Jozsef Kadlecsik <kadlec@netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Nathan Chancellor <nathan@kernel.org>,
-	Nick Desaulniers <ndesaulniers@google.com>,
-	Bill Wendling <morbo@google.com>,
-	Justin Stitt <justinstitt@google.com>
-Subject: Re: [PATCH net v1 1/1] netfilter: conntrack: Guard possoble unused
- functions
-Message-ID: <20240906163118.GI2097826@kernel.org>
-References: <20240905203612.333421-1-andriy.shevchenko@linux.intel.com>
- <20240906162938.GH2097826@kernel.org>
+	s=k20201202; t=1725642808;
+	bh=za9hRWAJFue3qA2/8qfDjGdwgXq/W1BfL0Az38VY1kM=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=HFog4E+Ddyk1X/+lDS2YOD8HoYsrbiaXVWJMHDKK76Fj4BaEP3kzl/ig0ojYByIER
+	 NcQPadazN3d/t+eluRpnLIuWo/yHIXahwADGaZMRskL8z+GZKWDrGOmIfFr7+iv0EK
+	 rUaNZeOIXK5PT3mo25G0fNtbFmDY1v8bceg+7lz6S3bstEAyN9EYQ7NYsi920Bv0nn
+	 do67l2juJ/MulHR7CU9F9SvFAWj9kBc7csqzjWok+b8fsPIGrIk/iRguGUXpX6j8Jt
+	 4RkRTBPpCQsUzCjMcoBo5c/D+7B9ZffYeuI542pWftpxrmNHkI0CgUuB9sNkULkBWt
+	 bve0Tf9j1juNw==
+Message-ID: <a82d846d-ec87-4cb4-ab5f-86fee52e3124@kernel.org>
+Date: Fri, 6 Sep 2024 11:13:27 -0600
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240906162938.GH2097826@kernel.org>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next 00/12] Unmask upper DSCP bits - part 4 (last)
+Content-Language: en-US
+To: Ido Schimmel <idosch@nvidia.com>, netdev@vger.kernel.org
+Cc: davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, gnault@redhat.com, razor@blackwall.org,
+ pablo@netfilter.org, kadlec@netfilter.org, marcelo.leitner@gmail.com,
+ lucien.xin@gmail.com, bridge@lists.linux.dev,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ linux-sctp@vger.kernel.org, bpf@vger.kernel.org
+References: <20240905165140.3105140-1-idosch@nvidia.com>
+From: David Ahern <dsahern@kernel.org>
+In-Reply-To: <20240905165140.3105140-1-idosch@nvidia.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Fri, Sep 06, 2024 at 05:29:38PM +0100, Simon Horman wrote:
-> On Thu, Sep 05, 2024 at 11:36:12PM +0300, Andy Shevchenko wrote:
+On 9/5/24 10:51 AM, Ido Schimmel wrote:
+> tl;dr - This patchset finishes to unmask the upper DSCP bits in the IPv4
+> flow key in preparation for allowing IPv4 FIB rules to match on DSCP. No
+> functional changes are expected.
+> 
+> The TOS field in the IPv4 flow key ('flowi4_tos') is used during FIB
+> lookup to match against the TOS selector in FIB rules and routes.
+> 
+> It is currently impossible for user space to configure FIB rules that
+> match on the DSCP value as the upper DSCP bits are either masked in the
+> various call sites that initialize the IPv4 flow key or along the path
+> to the FIB core.
+> 
+> In preparation for adding a DSCP selector to IPv4 and IPv6 FIB rules, we
+> need to make sure the entire DSCP value is present in the IPv4 flow key.
+> This patchset finishes to unmask the upper DSCP bits by adjusting all
+> the callers of ip_route_output_key() to properly initialize the full
+> DSCP value in the IPv4 flow key.
+> 
+> No functional changes are expected as commit 1fa3314c14c6 ("ipv4:
+> Centralize TOS matching") moved the masking of the upper DSCP bits to
+> the core where 'flowi4_tos' is matched against the TOS selector.
+> 
+> Ido Schimmel (12):
+>   netfilter: br_netfilter: Unmask upper DSCP bits in
+>     br_nf_pre_routing_finish()
+>   ipv4: ip_gre: Unmask upper DSCP bits in ipgre_open()
+>   bpf: lwtunnel: Unmask upper DSCP bits in bpf_lwt_xmit_reroute()
+>   ipv4: icmp: Unmask upper DSCP bits in icmp_reply()
+>   ipv4: ip_tunnel: Unmask upper DSCP bits in ip_tunnel_bind_dev()
+>   ipv4: ip_tunnel: Unmask upper DSCP bits in ip_md_tunnel_xmit()
+>   ipv4: ip_tunnel: Unmask upper DSCP bits in ip_tunnel_xmit()
+>   ipv4: netfilter: Unmask upper DSCP bits in ip_route_me_harder()
+>   netfilter: nft_flow_offload: Unmask upper DSCP bits in
+>     nft_flow_route()
+>   netfilter: nf_dup4: Unmask upper DSCP bits in nf_dup_ipv4_route()
+>   ipv4: udp_tunnel: Unmask upper DSCP bits in udp_tunnel_dst_lookup()
+>   sctp: Unmask upper DSCP bits in sctp_v4_get_dst()
+> 
+>  net/bridge/br_netfilter_hooks.c  |  3 ++-
+>  net/core/lwt_bpf.c               |  3 ++-
+>  net/ipv4/icmp.c                  |  2 +-
+>  net/ipv4/ip_gre.c                |  3 ++-
+>  net/ipv4/ip_tunnel.c             | 11 ++++++-----
+>  net/ipv4/netfilter.c             |  3 ++-
+>  net/ipv4/netfilter/nf_dup_ipv4.c |  3 ++-
+>  net/ipv4/udp_tunnel_core.c       |  3 ++-
+>  net/netfilter/nft_flow_offload.c |  3 ++-
+>  net/sctp/protocol.c              |  3 ++-
+>  10 files changed, 23 insertions(+), 14 deletions(-)
+> 
 
-...
+For the set:
+Reviewed-by: David Ahern <dsahern@kernel.org>
 
-> Hi Andy,
-> 
-> Local testing seems to show that the warning is still emitted
-> for ctnetlink_label_size if CONFIG_NETFILTER_NETLINK_GLUE_CT is enabled
-> but CONFIG_NF_CONNTRACK_EVENTS is not.
-> 
-> > 
-> > Fix this by guarding possible unused functions with ifdeffery.
-> > 
-> > See also commit 6863f5643dd7 ("kbuild: allow Clang to find unused static
-> > inline functions for W=1 build").
-> > 
-> > Fixes: 4a96300cec88 ("netfilter: ctnetlink: restore inlining for netlink message size calculation")
-> 
-> I'm not sure that this qualifies as a fix, rather I think it should
-> be targeted at net-next without a Fixes tag.
-> 
-> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> 
-> ...
 
-Sorry, one more minor thing: possible is misspelt in the subject.
