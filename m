@@ -1,108 +1,169 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D0C11CFEC9;
-	Fri,  6 Sep 2024 17:13:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72C2414B956;
+	Fri,  6 Sep 2024 19:39:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725642809; cv=none; b=SMl6CXUH8QB/F0dAMA8U9BSpqhoJi5YDkz1jOtHuyI9zknLglRPznU9UPKErOn7CNbKJx0kgZ8mGH5ge7Iji4qmDx69zgX1z3tvhbeJFDppgEynwxhrPjlpu3DPEh10DpOSZNDE6lUu+AALkb/a6IfEy7xMXPB348+t7vmO6z8w=
+	t=1725651597; cv=none; b=E9/ukujxGBHJr+4XhopFfi3nSBCCm1l3GKxHJkbiH3fmy9/pHtde2oLwoD6vDyPA19c8kxTQPwbCffS9CSrOeNTODaMlCThfcioGz4QeTLdcUSKp6gLAbnNNo029BZEu+O0uyuot9TV7N5Nra9QAVAC7pE+/rZ6yuu2x0hRi160=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725642809; c=relaxed/simple;
-	bh=za9hRWAJFue3qA2/8qfDjGdwgXq/W1BfL0Az38VY1kM=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=c6+eUSVwAsi9gmEkY8Dk/8OcqAeaQNlVaSeDtwEi943CrWTZt8hIzrYj2m+NtmoStOvXVUzkSztDBqeN/mM/+zOjdzEQpQzJGMra2Mk8IK0rOJmaGwHcfFRSK2nGqyNfeB8MfNLrYndPySaXsQXGDJJ4DHFGE5hbvJpBKW0/jl8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HFog4E+D; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725651597; c=relaxed/simple;
+	bh=FForPeY29LWUkliV8Eg5m537GYP5ZUgBZsfL0V4472A=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=pctW2e0GZD+OeYfapEPXVGQaI82/ySazYtuxLdM+dZHSapqJAb0ddO3o952F3Cgpm89fLlHN09amfz4pVQHZifTyUOd/Pon11vzOYGVOtN8KXJ0XDpq3FsguqWlUgNj5IfmFUYSHQ3eqnhtaS4MthJKcm/KEzNvdfYfGMqaOL/A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=YZRqK3dx; arc=none smtp.client-ip=198.175.65.14
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HFog4E+D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3692C4CEC4;
-	Fri,  6 Sep 2024 17:13:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1725642808;
-	bh=za9hRWAJFue3qA2/8qfDjGdwgXq/W1BfL0Az38VY1kM=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=HFog4E+Ddyk1X/+lDS2YOD8HoYsrbiaXVWJMHDKK76Fj4BaEP3kzl/ig0ojYByIER
-	 NcQPadazN3d/t+eluRpnLIuWo/yHIXahwADGaZMRskL8z+GZKWDrGOmIfFr7+iv0EK
-	 rUaNZeOIXK5PT3mo25G0fNtbFmDY1v8bceg+7lz6S3bstEAyN9EYQ7NYsi920Bv0nn
-	 do67l2juJ/MulHR7CU9F9SvFAWj9kBc7csqzjWok+b8fsPIGrIk/iRguGUXpX6j8Jt
-	 4RkRTBPpCQsUzCjMcoBo5c/D+7B9ZffYeuI542pWftpxrmNHkI0CgUuB9sNkULkBWt
-	 bve0Tf9j1juNw==
-Message-ID: <a82d846d-ec87-4cb4-ab5f-86fee52e3124@kernel.org>
-Date: Fri, 6 Sep 2024 11:13:27 -0600
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="YZRqK3dx"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1725651595; x=1757187595;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=FForPeY29LWUkliV8Eg5m537GYP5ZUgBZsfL0V4472A=;
+  b=YZRqK3dxgQisWHobsBLpdmhQjYXL77Z4DqU9XLhbXM+5cYKTR0IqvkpE
+   vWVyAnIbURH8qBlGtOmjnpEREctkBOJLf5wnoFRVXlHEA4s5Oe2m4u7Yk
+   RIpwiX6wOu4llJ7kyl3p0v64PgZ1gp7X5HpBttMoVFkCwpKh6UyFbnx4V
+   VszVph0IuZVtBOjMhLLxhb8UqbGCojhvHMjxM7IrMWA75eCAJjArmr/9e
+   KQ2rLwTMgdZz50w0secgeH9wU3o/uTrSe++glcaTMLmrA9SSVnxZ6u59/
+   0DK4YenODXoMhg2eSTJtmEzvzVRZTO4iV3726IdV83Jbc/euM8iLOdyXO
+   A==;
+X-CSE-ConnectionGUID: g6UWTDZxRd+3EOzmafdcXQ==
+X-CSE-MsgGUID: vGdey4wUTt+nixQ6dolbmg==
+X-IronPort-AV: E=McAfee;i="6700,10204,11187"; a="28208292"
+X-IronPort-AV: E=Sophos;i="6.10,208,1719903600"; 
+   d="scan'208";a="28208292"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by orvoesa106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Sep 2024 12:39:54 -0700
+X-CSE-ConnectionGUID: oQ48nklUTyS1ftwghR/WXg==
+X-CSE-MsgGUID: 007zZK/2TEeQR156VEbHZg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.10,208,1719903600"; 
+   d="scan'208";a="66076663"
+Received: from lkp-server01.sh.intel.com (HELO 9c6b1c7d3b50) ([10.239.97.150])
+  by fmviesa008.fm.intel.com with ESMTP; 06 Sep 2024 12:39:52 -0700
+Received: from kbuild by 9c6b1c7d3b50 with local (Exim 4.96)
+	(envelope-from <lkp@intel.com>)
+	id 1smeo9-000BeH-35;
+	Fri, 06 Sep 2024 19:39:49 +0000
+Date: Sat, 7 Sep 2024 03:39:32 +0800
+From: kernel test robot <lkp@intel.com>
+To: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Cc: oe-kbuild-all@lists.linux.dev, Florian Westphal <fw@strlen.de>,
+	cgroups@vger.kernel.org, Nadia Pinaeva <n.m.pinaeva@gmail.com>
+Subject: Re: [PATCH nf 2/2] netfilter: nft_socket: make cgroupsv2 matching
+ work with namespaces
+Message-ID: <202409070305.pBDk8EVS-lkp@intel.com>
+References: <20240905105451.28857-2-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next 00/12] Unmask upper DSCP bits - part 4 (last)
-Content-Language: en-US
-To: Ido Schimmel <idosch@nvidia.com>, netdev@vger.kernel.org
-Cc: davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, gnault@redhat.com, razor@blackwall.org,
- pablo@netfilter.org, kadlec@netfilter.org, marcelo.leitner@gmail.com,
- lucien.xin@gmail.com, bridge@lists.linux.dev,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- linux-sctp@vger.kernel.org, bpf@vger.kernel.org
-References: <20240905165140.3105140-1-idosch@nvidia.com>
-From: David Ahern <dsahern@kernel.org>
-In-Reply-To: <20240905165140.3105140-1-idosch@nvidia.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240905105451.28857-2-fw@strlen.de>
 
-On 9/5/24 10:51 AM, Ido Schimmel wrote:
-> tl;dr - This patchset finishes to unmask the upper DSCP bits in the IPv4
-> flow key in preparation for allowing IPv4 FIB rules to match on DSCP. No
-> functional changes are expected.
-> 
-> The TOS field in the IPv4 flow key ('flowi4_tos') is used during FIB
-> lookup to match against the TOS selector in FIB rules and routes.
-> 
-> It is currently impossible for user space to configure FIB rules that
-> match on the DSCP value as the upper DSCP bits are either masked in the
-> various call sites that initialize the IPv4 flow key or along the path
-> to the FIB core.
-> 
-> In preparation for adding a DSCP selector to IPv4 and IPv6 FIB rules, we
-> need to make sure the entire DSCP value is present in the IPv4 flow key.
-> This patchset finishes to unmask the upper DSCP bits by adjusting all
-> the callers of ip_route_output_key() to properly initialize the full
-> DSCP value in the IPv4 flow key.
-> 
-> No functional changes are expected as commit 1fa3314c14c6 ("ipv4:
-> Centralize TOS matching") moved the masking of the upper DSCP bits to
-> the core where 'flowi4_tos' is matched against the TOS selector.
-> 
-> Ido Schimmel (12):
->   netfilter: br_netfilter: Unmask upper DSCP bits in
->     br_nf_pre_routing_finish()
->   ipv4: ip_gre: Unmask upper DSCP bits in ipgre_open()
->   bpf: lwtunnel: Unmask upper DSCP bits in bpf_lwt_xmit_reroute()
->   ipv4: icmp: Unmask upper DSCP bits in icmp_reply()
->   ipv4: ip_tunnel: Unmask upper DSCP bits in ip_tunnel_bind_dev()
->   ipv4: ip_tunnel: Unmask upper DSCP bits in ip_md_tunnel_xmit()
->   ipv4: ip_tunnel: Unmask upper DSCP bits in ip_tunnel_xmit()
->   ipv4: netfilter: Unmask upper DSCP bits in ip_route_me_harder()
->   netfilter: nft_flow_offload: Unmask upper DSCP bits in
->     nft_flow_route()
->   netfilter: nf_dup4: Unmask upper DSCP bits in nf_dup_ipv4_route()
->   ipv4: udp_tunnel: Unmask upper DSCP bits in udp_tunnel_dst_lookup()
->   sctp: Unmask upper DSCP bits in sctp_v4_get_dst()
-> 
->  net/bridge/br_netfilter_hooks.c  |  3 ++-
->  net/core/lwt_bpf.c               |  3 ++-
->  net/ipv4/icmp.c                  |  2 +-
->  net/ipv4/ip_gre.c                |  3 ++-
->  net/ipv4/ip_tunnel.c             | 11 ++++++-----
->  net/ipv4/netfilter.c             |  3 ++-
->  net/ipv4/netfilter/nf_dup_ipv4.c |  3 ++-
->  net/ipv4/udp_tunnel_core.c       |  3 ++-
->  net/netfilter/nft_flow_offload.c |  3 ++-
->  net/sctp/protocol.c              |  3 ++-
->  10 files changed, 23 insertions(+), 14 deletions(-)
-> 
+Hi Florian,
 
-For the set:
-Reviewed-by: David Ahern <dsahern@kernel.org>
+kernel test robot noticed the following build errors:
+
+[auto build test ERROR on netfilter-nf/main]
+
+url:    https://github.com/intel-lab-lkp/linux/commits/Florian-Westphal/netfilter-nft_socket-make-cgroupsv2-matching-work-with-namespaces/20240905-185930
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
+patch link:    https://lore.kernel.org/r/20240905105451.28857-2-fw%40strlen.de
+patch subject: [PATCH nf 2/2] netfilter: nft_socket: make cgroupsv2 matching work with namespaces
+config: arm-randconfig-002-20240907 (https://download.01.org/0day-ci/archive/20240907/202409070305.pBDk8EVS-lkp@intel.com/config)
+compiler: arm-linux-gnueabi-gcc (GCC) 14.1.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20240907/202409070305.pBDk8EVS-lkp@intel.com/reproduce)
+
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202409070305.pBDk8EVS-lkp@intel.com/
+
+All errors (new ones prefixed by >>):
+
+   net/netfilter/nft_socket.c: In function 'nft_socket_init':
+>> net/netfilter/nft_socket.c:212:23: error: implicit declaration of function 'nft_socket_cgroup_subtree_level' [-Wimplicit-function-declaration]
+     212 |                 err = nft_socket_cgroup_subtree_level();
+         |                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
+vim +/nft_socket_cgroup_subtree_level +212 net/netfilter/nft_socket.c
+
+   169	
+   170	static int nft_socket_init(const struct nft_ctx *ctx,
+   171				   const struct nft_expr *expr,
+   172				   const struct nlattr * const tb[])
+   173	{
+   174		struct nft_socket *priv = nft_expr_priv(expr);
+   175		unsigned int len;
+   176	
+   177		if (!tb[NFTA_SOCKET_DREG] || !tb[NFTA_SOCKET_KEY])
+   178			return -EINVAL;
+   179	
+   180		switch(ctx->family) {
+   181		case NFPROTO_IPV4:
+   182	#if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
+   183		case NFPROTO_IPV6:
+   184	#endif
+   185		case NFPROTO_INET:
+   186			break;
+   187		default:
+   188			return -EOPNOTSUPP;
+   189		}
+   190	
+   191		priv->key = ntohl(nla_get_be32(tb[NFTA_SOCKET_KEY]));
+   192		switch(priv->key) {
+   193		case NFT_SOCKET_TRANSPARENT:
+   194		case NFT_SOCKET_WILDCARD:
+   195			len = sizeof(u8);
+   196			break;
+   197		case NFT_SOCKET_MARK:
+   198			len = sizeof(u32);
+   199			break;
+   200	#ifdef CONFIG_CGROUPS
+   201		case NFT_SOCKET_CGROUPV2: {
+   202			unsigned int level;
+   203			int err;
+   204	
+   205			if (!tb[NFTA_SOCKET_LEVEL])
+   206				return -EINVAL;
+   207	
+   208			level = ntohl(nla_get_be32(tb[NFTA_SOCKET_LEVEL]));
+   209			if (level > 255)
+   210				return -EOPNOTSUPP;
+   211	
+ > 212			err = nft_socket_cgroup_subtree_level();
+   213			if (err < 0)
+   214				return err;
+   215	
+   216			priv->level_user = level;
+   217	
+   218			level += err;
+   219			/* Implies a giant cgroup tree */
+   220			if (WARN_ON_ONCE(level > 255))
+   221				return -EOPNOTSUPP;
+   222	
+   223			priv->level = level;
+   224			len = sizeof(u64);
+   225			break;
+   226		}
+   227	#endif
+   228		default:
+   229			return -EOPNOTSUPP;
+   230		}
+   231	
+   232		priv->len = len;
+   233		return nft_parse_register_store(ctx, tb[NFTA_SOCKET_DREG], &priv->dreg,
+   234						NULL, NFT_DATA_VALUE, len);
+   235	}
+   236	
+
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
