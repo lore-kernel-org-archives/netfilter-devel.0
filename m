@@ -1,34 +1,34 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C9F1A923;
-	Sat,  7 Sep 2024 01:20:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E19BFD512;
+	Sat,  7 Sep 2024 02:10:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725672028; cv=none; b=O+6RPs0Gpm0wzrcapJbyoquJLJmf0WLJxyrzmYLv2NAeiOBT5W/ILWrcB7Jo/4XIiG53OU8dfpL4/Y3ZDggH6JYPb+nYa576eKR4Vyno28mkPmAtYDJ5jG0NqQDb9eoUXkWimYpAWf0/DpiczNpYYGCK+dRk7cZrsJl+w6aAzRM=
+	t=1725675037; cv=none; b=QOmnfYVOCThgQLYf6kwNOanhe17aEgBHOsYTnSK9W53ZhD4jxtLeiIBLm9yYhQ2ybl1cGWUQfahgHYBV9AI/yLUK1sPMK756jnB5EB5hyH13wwKOg6mUW4f2XB7B22fAJY9f8fTaYPjxYmaLKvaE/UbWuwiOsQTQbwgjS3Vz8/Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725672028; c=relaxed/simple;
-	bh=uUL+zGRZtnm04HNhLF8GSXUtW7Ukpc5lxFlmAkYLKHI=;
+	s=arc-20240116; t=1725675037; c=relaxed/simple;
+	bh=Bvw0uTGaeVaD5TLnxxP5vTYTRvv6zuVKsP458cctXM0=;
 	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=tBnCuy6WZ+WyL1pMP4JMLZxhYSssPFyR/MoDRGjX/OncvmaYXKUlUYCwYp2jjMkORURDZ93YidwETCJ45iAeLRBErpzbGuwfZLG1xMGgZhSO4h3JhJCO959TRaJrnaSmO0WKP40H1rV46A2BaHJGRVl6yzodf24HB6VYdw6bfjs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IjPLGVe6; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=Ut/XJmrO1k7TFV0xy9WfqVyK2fN+38BsdHqp+ETUSW7iapwGM+hOrnr5BVAjWeNkPOVQiNGKZB/h8ycziZ+MXr69j9VOqXmA5Ok+p9OVAwRzb0vp/LILKI2/cfC4uIbqyOxJeS4ulqZlafcorrmT0JZvwaU3MMIVdzuPti01OQw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kbzvLyyk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IjPLGVe6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91FBEC4CEC4;
-	Sat,  7 Sep 2024 01:20:27 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kbzvLyyk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58605C4CEC4;
+	Sat,  7 Sep 2024 02:10:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1725672027;
-	bh=uUL+zGRZtnm04HNhLF8GSXUtW7Ukpc5lxFlmAkYLKHI=;
+	s=k20201202; t=1725675036;
+	bh=Bvw0uTGaeVaD5TLnxxP5vTYTRvv6zuVKsP458cctXM0=;
 	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=IjPLGVe6ttiTlST1Ahvd65UYlYraPZ4Ulglul9yKGgkE4NygquE1kYr+dp/s+eV6a
-	 kBJiWoUcafrYJ6AgoiF77Dqutt28etk30pqPf1oSjJjellhFScZmTvKB0bvPaxnE9M
-	 LT1mcN10r2gu8PpJG1ULbKaKXdnA2BZVQ2cr+D3opcLD6h4/TLCDSPza8eRtZDmWZC
-	 r5r+1CIEewuJzjL4KVUwMuIAPF+xLkt3IHFIHgkbPlaY6ql2XLy9NZokb4uTPWQQYm
-	 ai5l2igv5NJb/QpRtGpMMKgYE/08m/c7svcJJUaZuI3w5TVWqJXuT8hnDHvmOQsXEI
-	 /lvAQtv7ojrpg==
+	b=kbzvLyykRv9+4+z0OSkpU1LhMA/M7tc6vQWMhKHVNos5BNM3W7221lS3l8oasu3X7
+	 3d4a+Hrsc8PlEbEMdDb9+P8qt8Z/wB7/q8WotxXTHQ33rb48GoCqHu43bbDDqpDDxu
+	 38Zfvi/qJo0+GkjNd2oESUvbWDP3Xgd2l0nW6G5FTL/SgSQQ1DyorImKY/wtTk6xkK
+	 1064uffPVaCmqD4QQM0irKPVMK/Lfoos9awv0CJZa5umrlbckjN5ucP/piE8g1vQ0R
+	 BrgidqjhvFksXK9280UisRhQvsXq6Rrw044ueH1S6y8TGJvodIhkezLvQNrkWZXFAl
+	 xh02qmQ6mFL5g==
 Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id AE4BC3805D82;
-	Sat,  7 Sep 2024 01:20:29 +0000 (UTC)
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 70CAE3805D82;
+	Sat,  7 Sep 2024 02:10:38 +0000 (UTC)
 Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -37,48 +37,67 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next v2 0/5] make use of the helper macro LIST_HEAD()
+Subject: Re: [PATCH net-next 01/16] netfilter: ctnetlink: support CTA_FILTER for
+ flush
 From: patchwork-bot+netdevbpf@kernel.org
 Message-Id: 
- <172567202850.2574896.10941650330610310039.git-patchwork-notify@kernel.org>
-Date: Sat, 07 Sep 2024 01:20:28 +0000
-References: <20240904093243.3345012-1-lihongbo22@huawei.com>
-In-Reply-To: <20240904093243.3345012-1-lihongbo22@huawei.com>
-To: Hongbo Li <lihongbo22@huawei.com>
-Cc: davem@davemloft.net, dsahern@kernel.org, edumazet@google.com,
- kuba@kernel.org, pabeni@redhat.com, jmaloy@redhat.com,
- ying.xue@windriver.com, pablo@netfilter.org, kadlec@netfilter.org,
- horms@kernel.org, netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+ <172567503731.2582309.1861250019019937607.git-patchwork-notify@kernel.org>
+Date: Sat, 07 Sep 2024 02:10:37 +0000
+References: <20240905232920.5481-2-pablo@netfilter.org>
+In-Reply-To: <20240905232920.5481-2-pablo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, fw@strlen.de
 
 Hello:
 
 This series was applied to netdev/net-next.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-On Wed, 4 Sep 2024 17:32:38 +0800 you wrote:
-> The macro LIST_HEAD() declares a list variable and
-> initializes it, which can be used to simplify the steps
-> of list initialization, thereby simplifying the code.
-> These serials just do some equivalatent substitutions,
-> and with no functional modifications.
+On Fri,  6 Sep 2024 01:29:05 +0200 you wrote:
+> From: Changliang Wu <changliang.wu@smartx.com>
 > 
-> Changes in v2:
->   - Keep the reverse xmas tree order as Simon's and
->     Pablo's suggested.
+> From cb8aa9a, we can use kernel side filtering for dump, but
+> this capability is not available for flush.
+> 
+> This Patch allows advanced filter with CTA_FILTER for flush
 > 
 > [...]
 
 Here is the summary with links:
-  - [net-next,v2,1/5] net/ipv4: make use of the helper macro LIST_HEAD()
-    https://git.kernel.org/netdev/net-next/c/cecbe5c8c803
-  - [net-next,v2,2/5] net/tipc: make use of the helper macro LIST_HEAD()
-    https://git.kernel.org/netdev/net-next/c/e636ba1a15e7
-  - [net-next,v2,3/5] net/netfilter: make use of the helper macro LIST_HEAD()
-    https://git.kernel.org/netdev/net-next/c/8b51455bbd45
-  - [net-next,v2,4/5] net/ipv6: make use of the helper macro LIST_HEAD()
-    https://git.kernel.org/netdev/net-next/c/2a7dd251b6fe
-  - [net-next,v2,5/5] net/core: make use of the helper macro LIST_HEAD()
-    https://git.kernel.org/netdev/net-next/c/17f01391903d
+  - [net-next,01/16] netfilter: ctnetlink: support CTA_FILTER for flush
+    https://git.kernel.org/netdev/net-next/c/1ef7f50ccc6e
+  - [net-next,02/16] netfilter: nft_counter: Use u64_stats_t for statistic.
+    https://git.kernel.org/netdev/net-next/c/4a1d3acd6ea8
+  - [net-next,03/16] netfilter: Use kmemdup_array instead of kmemdup for multiple allocation
+    https://git.kernel.org/netdev/net-next/c/20eb5e7cb78c
+  - [net-next,04/16] netfilter: conntrack: Convert to use ERR_CAST()
+    https://git.kernel.org/netdev/net-next/c/09c0d0aef56b
+  - [net-next,05/16] netfilter: nf_tables: drop unused 3rd argument from validate callback ops
+    https://git.kernel.org/netdev/net-next/c/eaf9b2c875ec
+  - [net-next,06/16] netfilter: nf_tables: Correct spelling in nf_tables.h
+    https://git.kernel.org/netdev/net-next/c/85dfb34bb7d2
+  - [net-next,07/16] netfilter: nf_tables: Add missing Kernel doc
+    https://git.kernel.org/netdev/net-next/c/c362646b6fc1
+  - [net-next,08/16] netfilter: nf_tables: elements with timeout below CONFIG_HZ never expire
+    https://git.kernel.org/netdev/net-next/c/e0c47281723f
+  - [net-next,09/16] netfilter: nf_tables: reject element expiration with no timeout
+    https://git.kernel.org/netdev/net-next/c/d2dc429ecb4e
+  - [net-next,10/16] netfilter: nf_tables: reject expiration higher than timeout
+    https://git.kernel.org/netdev/net-next/c/c0f38a8c6017
+  - [net-next,11/16] netfilter: nf_tables: remove annotation to access set timeout while holding lock
+    https://git.kernel.org/netdev/net-next/c/15d8605c0cf4
+  - [net-next,12/16] netfilter: nft_dynset: annotate data-races around set timeout
+    https://git.kernel.org/netdev/net-next/c/c5ad8ed61fa8
+  - [net-next,13/16] netfilter: nf_tables: annotate data-races around element expiration
+    https://git.kernel.org/netdev/net-next/c/73d3c04b710f
+  - [net-next,14/16] netfilter: nf_tables: consolidate timeout extension for elements
+    https://git.kernel.org/netdev/net-next/c/4c5daea9af4f
+  - [net-next,15/16] netfilter: nf_tables: zero timeout means element never times out
+    https://git.kernel.org/netdev/net-next/c/8bfb74ae12fa
+  - [net-next,16/16] netfilter: nf_tables: set element timeout update support
+    https://git.kernel.org/netdev/net-next/c/4201f3938914
 
 You are awesome, thank you!
 -- 
