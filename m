@@ -1,169 +1,88 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.14])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72C2414B956;
-	Fri,  6 Sep 2024 19:39:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C9F1A923;
+	Sat,  7 Sep 2024 01:20:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725651597; cv=none; b=E9/ukujxGBHJr+4XhopFfi3nSBCCm1l3GKxHJkbiH3fmy9/pHtde2oLwoD6vDyPA19c8kxTQPwbCffS9CSrOeNTODaMlCThfcioGz4QeTLdcUSKp6gLAbnNNo029BZEu+O0uyuot9TV7N5Nra9QAVAC7pE+/rZ6yuu2x0hRi160=
+	t=1725672028; cv=none; b=O+6RPs0Gpm0wzrcapJbyoquJLJmf0WLJxyrzmYLv2NAeiOBT5W/ILWrcB7Jo/4XIiG53OU8dfpL4/Y3ZDggH6JYPb+nYa576eKR4Vyno28mkPmAtYDJ5jG0NqQDb9eoUXkWimYpAWf0/DpiczNpYYGCK+dRk7cZrsJl+w6aAzRM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725651597; c=relaxed/simple;
-	bh=FForPeY29LWUkliV8Eg5m537GYP5ZUgBZsfL0V4472A=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=pctW2e0GZD+OeYfapEPXVGQaI82/ySazYtuxLdM+dZHSapqJAb0ddO3o952F3Cgpm89fLlHN09amfz4pVQHZifTyUOd/Pon11vzOYGVOtN8KXJ0XDpq3FsguqWlUgNj5IfmFUYSHQ3eqnhtaS4MthJKcm/KEzNvdfYfGMqaOL/A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=YZRqK3dx; arc=none smtp.client-ip=198.175.65.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1725672028; c=relaxed/simple;
+	bh=uUL+zGRZtnm04HNhLF8GSXUtW7Ukpc5lxFlmAkYLKHI=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=tBnCuy6WZ+WyL1pMP4JMLZxhYSssPFyR/MoDRGjX/OncvmaYXKUlUYCwYp2jjMkORURDZ93YidwETCJ45iAeLRBErpzbGuwfZLG1xMGgZhSO4h3JhJCO959TRaJrnaSmO0WKP40H1rV46A2BaHJGRVl6yzodf24HB6VYdw6bfjs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IjPLGVe6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="YZRqK3dx"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1725651595; x=1757187595;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=FForPeY29LWUkliV8Eg5m537GYP5ZUgBZsfL0V4472A=;
-  b=YZRqK3dxgQisWHobsBLpdmhQjYXL77Z4DqU9XLhbXM+5cYKTR0IqvkpE
-   vWVyAnIbURH8qBlGtOmjnpEREctkBOJLf5wnoFRVXlHEA4s5Oe2m4u7Yk
-   RIpwiX6wOu4llJ7kyl3p0v64PgZ1gp7X5HpBttMoVFkCwpKh6UyFbnx4V
-   VszVph0IuZVtBOjMhLLxhb8UqbGCojhvHMjxM7IrMWA75eCAJjArmr/9e
-   KQ2rLwTMgdZz50w0secgeH9wU3o/uTrSe++glcaTMLmrA9SSVnxZ6u59/
-   0DK4YenODXoMhg2eSTJtmEzvzVRZTO4iV3726IdV83Jbc/euM8iLOdyXO
-   A==;
-X-CSE-ConnectionGUID: g6UWTDZxRd+3EOzmafdcXQ==
-X-CSE-MsgGUID: vGdey4wUTt+nixQ6dolbmg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11187"; a="28208292"
-X-IronPort-AV: E=Sophos;i="6.10,208,1719903600"; 
-   d="scan'208";a="28208292"
-Received: from fmviesa008.fm.intel.com ([10.60.135.148])
-  by orvoesa106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Sep 2024 12:39:54 -0700
-X-CSE-ConnectionGUID: oQ48nklUTyS1ftwghR/WXg==
-X-CSE-MsgGUID: 007zZK/2TEeQR156VEbHZg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.10,208,1719903600"; 
-   d="scan'208";a="66076663"
-Received: from lkp-server01.sh.intel.com (HELO 9c6b1c7d3b50) ([10.239.97.150])
-  by fmviesa008.fm.intel.com with ESMTP; 06 Sep 2024 12:39:52 -0700
-Received: from kbuild by 9c6b1c7d3b50 with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1smeo9-000BeH-35;
-	Fri, 06 Sep 2024 19:39:49 +0000
-Date: Sat, 7 Sep 2024 03:39:32 +0800
-From: kernel test robot <lkp@intel.com>
-To: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Cc: oe-kbuild-all@lists.linux.dev, Florian Westphal <fw@strlen.de>,
-	cgroups@vger.kernel.org, Nadia Pinaeva <n.m.pinaeva@gmail.com>
-Subject: Re: [PATCH nf 2/2] netfilter: nft_socket: make cgroupsv2 matching
- work with namespaces
-Message-ID: <202409070305.pBDk8EVS-lkp@intel.com>
-References: <20240905105451.28857-2-fw@strlen.de>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IjPLGVe6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91FBEC4CEC4;
+	Sat,  7 Sep 2024 01:20:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1725672027;
+	bh=uUL+zGRZtnm04HNhLF8GSXUtW7Ukpc5lxFlmAkYLKHI=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=IjPLGVe6ttiTlST1Ahvd65UYlYraPZ4Ulglul9yKGgkE4NygquE1kYr+dp/s+eV6a
+	 kBJiWoUcafrYJ6AgoiF77Dqutt28etk30pqPf1oSjJjellhFScZmTvKB0bvPaxnE9M
+	 LT1mcN10r2gu8PpJG1ULbKaKXdnA2BZVQ2cr+D3opcLD6h4/TLCDSPza8eRtZDmWZC
+	 r5r+1CIEewuJzjL4KVUwMuIAPF+xLkt3IHFIHgkbPlaY6ql2XLy9NZokb4uTPWQQYm
+	 ai5l2igv5NJb/QpRtGpMMKgYE/08m/c7svcJJUaZuI3w5TVWqJXuT8hnDHvmOQsXEI
+	 /lvAQtv7ojrpg==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id AE4BC3805D82;
+	Sat,  7 Sep 2024 01:20:29 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240905105451.28857-2-fw@strlen.de>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next v2 0/5] make use of the helper macro LIST_HEAD()
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <172567202850.2574896.10941650330610310039.git-patchwork-notify@kernel.org>
+Date: Sat, 07 Sep 2024 01:20:28 +0000
+References: <20240904093243.3345012-1-lihongbo22@huawei.com>
+In-Reply-To: <20240904093243.3345012-1-lihongbo22@huawei.com>
+To: Hongbo Li <lihongbo22@huawei.com>
+Cc: davem@davemloft.net, dsahern@kernel.org, edumazet@google.com,
+ kuba@kernel.org, pabeni@redhat.com, jmaloy@redhat.com,
+ ying.xue@windriver.com, pablo@netfilter.org, kadlec@netfilter.org,
+ horms@kernel.org, netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
 
-Hi Florian,
+Hello:
 
-kernel test robot noticed the following build errors:
+This series was applied to netdev/net-next.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
 
-[auto build test ERROR on netfilter-nf/main]
+On Wed, 4 Sep 2024 17:32:38 +0800 you wrote:
+> The macro LIST_HEAD() declares a list variable and
+> initializes it, which can be used to simplify the steps
+> of list initialization, thereby simplifying the code.
+> These serials just do some equivalatent substitutions,
+> and with no functional modifications.
+> 
+> Changes in v2:
+>   - Keep the reverse xmas tree order as Simon's and
+>     Pablo's suggested.
+> 
+> [...]
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Florian-Westphal/netfilter-nft_socket-make-cgroupsv2-matching-work-with-namespaces/20240905-185930
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
-patch link:    https://lore.kernel.org/r/20240905105451.28857-2-fw%40strlen.de
-patch subject: [PATCH nf 2/2] netfilter: nft_socket: make cgroupsv2 matching work with namespaces
-config: arm-randconfig-002-20240907 (https://download.01.org/0day-ci/archive/20240907/202409070305.pBDk8EVS-lkp@intel.com/config)
-compiler: arm-linux-gnueabi-gcc (GCC) 14.1.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20240907/202409070305.pBDk8EVS-lkp@intel.com/reproduce)
+Here is the summary with links:
+  - [net-next,v2,1/5] net/ipv4: make use of the helper macro LIST_HEAD()
+    https://git.kernel.org/netdev/net-next/c/cecbe5c8c803
+  - [net-next,v2,2/5] net/tipc: make use of the helper macro LIST_HEAD()
+    https://git.kernel.org/netdev/net-next/c/e636ba1a15e7
+  - [net-next,v2,3/5] net/netfilter: make use of the helper macro LIST_HEAD()
+    https://git.kernel.org/netdev/net-next/c/8b51455bbd45
+  - [net-next,v2,4/5] net/ipv6: make use of the helper macro LIST_HEAD()
+    https://git.kernel.org/netdev/net-next/c/2a7dd251b6fe
+  - [net-next,v2,5/5] net/core: make use of the helper macro LIST_HEAD()
+    https://git.kernel.org/netdev/net-next/c/17f01391903d
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202409070305.pBDk8EVS-lkp@intel.com/
-
-All errors (new ones prefixed by >>):
-
-   net/netfilter/nft_socket.c: In function 'nft_socket_init':
->> net/netfilter/nft_socket.c:212:23: error: implicit declaration of function 'nft_socket_cgroup_subtree_level' [-Wimplicit-function-declaration]
-     212 |                 err = nft_socket_cgroup_subtree_level();
-         |                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-vim +/nft_socket_cgroup_subtree_level +212 net/netfilter/nft_socket.c
-
-   169	
-   170	static int nft_socket_init(const struct nft_ctx *ctx,
-   171				   const struct nft_expr *expr,
-   172				   const struct nlattr * const tb[])
-   173	{
-   174		struct nft_socket *priv = nft_expr_priv(expr);
-   175		unsigned int len;
-   176	
-   177		if (!tb[NFTA_SOCKET_DREG] || !tb[NFTA_SOCKET_KEY])
-   178			return -EINVAL;
-   179	
-   180		switch(ctx->family) {
-   181		case NFPROTO_IPV4:
-   182	#if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
-   183		case NFPROTO_IPV6:
-   184	#endif
-   185		case NFPROTO_INET:
-   186			break;
-   187		default:
-   188			return -EOPNOTSUPP;
-   189		}
-   190	
-   191		priv->key = ntohl(nla_get_be32(tb[NFTA_SOCKET_KEY]));
-   192		switch(priv->key) {
-   193		case NFT_SOCKET_TRANSPARENT:
-   194		case NFT_SOCKET_WILDCARD:
-   195			len = sizeof(u8);
-   196			break;
-   197		case NFT_SOCKET_MARK:
-   198			len = sizeof(u32);
-   199			break;
-   200	#ifdef CONFIG_CGROUPS
-   201		case NFT_SOCKET_CGROUPV2: {
-   202			unsigned int level;
-   203			int err;
-   204	
-   205			if (!tb[NFTA_SOCKET_LEVEL])
-   206				return -EINVAL;
-   207	
-   208			level = ntohl(nla_get_be32(tb[NFTA_SOCKET_LEVEL]));
-   209			if (level > 255)
-   210				return -EOPNOTSUPP;
-   211	
- > 212			err = nft_socket_cgroup_subtree_level();
-   213			if (err < 0)
-   214				return err;
-   215	
-   216			priv->level_user = level;
-   217	
-   218			level += err;
-   219			/* Implies a giant cgroup tree */
-   220			if (WARN_ON_ONCE(level > 255))
-   221				return -EOPNOTSUPP;
-   222	
-   223			priv->level = level;
-   224			len = sizeof(u64);
-   225			break;
-   226		}
-   227	#endif
-   228		default:
-   229			return -EOPNOTSUPP;
-   230		}
-   231	
-   232		priv->len = len;
-   233		return nft_parse_register_store(ctx, tb[NFTA_SOCKET_DREG], &priv->dreg,
-   234						NULL, NFT_DATA_VALUE, len);
-   235	}
-   236	
-
+You are awesome, thank you!
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
