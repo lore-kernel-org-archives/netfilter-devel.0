@@ -1,173 +1,170 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C75F515CD64
-	for <netfilter-devel@vger.kernel.org>; Sat,  7 Sep 2024 14:53:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA585132111;
+	Sun,  8 Sep 2024 17:07:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725720815; cv=none; b=uy6RGgGDlXXpTvBKbQb2d4YCy0UplAmYWXWhr2j84swSYgDhGotG0e74AvHy0vX+EBAXx90tOVlpU3K7fiyKqbCS/DXASRT2Q9mid+nazUk2ZqsDi9SdmzHb6Z2a/FOMgRidINYhYSvAEgIajB2WYkEKkkectIY5M0d+RGLhiRY=
+	t=1725815251; cv=none; b=eo05aX/4SZKAqmFC2EKBGhyaSqnY5A0Js+lQ6BQOUnfVQZy5tsUBqp7dX9zN2UGyuoq0eQUPVajibFTORrV2kWDhtCo+Sv+GihhdNELpX9eM+weFLq/fyjE5i2gFVkxaGuw1ycLOiooMrFQPgNMP3zsXl+ko86VBkThVaXBqMnY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725720815; c=relaxed/simple;
-	bh=AM7lrTKklEpWNKJ8ObehswacxRHfagf8RG6MUx5gBRs=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=kFpSv019W9DkNHuhxBs3XhH14eNFl2LgZ3Ceo/LtkXd0eXo3eccSY2g4ftABI2yyBcLSglKriX05KmcaqeJTXnJDvP4uujihYiNlHdxoJURepD8DRBUBocw1J6/wdJy91WiXQAwdSOauPkkV3Aj89J1j/FofBZkR1iEkdlPO9CE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1smw71-0006SP-3x; Sat, 07 Sep 2024 16:08:27 +0200
-From: Florian Westphal <fw@strlen.de>
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nf v2 2/2] netfilter: nft_socket: make cgroupsv2 matching work with namespaces
-Date: Sat,  7 Sep 2024 16:07:49 +0200
-Message-ID: <20240907140824.39841-1-fw@strlen.de>
-X-Mailer: git-send-email 2.46.0
-In-Reply-To: <202409070305.pBDk8EVS-lkp@intel.com>
-References: <202409070305.pBDk8EVS-lkp@intel.com>
+	s=arc-20240116; t=1725815251; c=relaxed/simple;
+	bh=P2/0U6lW5ks2HD0ZSmhZupVFrPU9sUMaH9Nid6z7tdw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=fB1EViR7kVAIBU5aYZudMDLBZh8brXVG7V0Xl1D48g47KUHbXxa7gjcyev7Dk5EyEYH/zIiA6sgqK718TT8y0r+Ffpbo74QaL+mCgk4j6ywn4brASHn9l+2x/xOzTWqDzatv4EER45jADc68sZdTuzp89ZTXTmoseVOlEwEbqYQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=MsGFvEAy; arc=none smtp.client-ip=198.175.65.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="MsGFvEAy"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1725815249; x=1757351249;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=P2/0U6lW5ks2HD0ZSmhZupVFrPU9sUMaH9Nid6z7tdw=;
+  b=MsGFvEAyAuY1CV3U6HTfdv3yVYPSP1r50YayOnzGIbSVOh1CQ3ODWvpM
+   qO+mgzhHJuME1br5/sgC46XymZjE43Cr/PTyD7eqs5rAP+uyt4JbWzpEc
+   MnOi+sS4s2C4zoed/WsMWgu8RvIyW6xVqSy8fk6F/mtOGWB6G7ShmUdXq
+   GwuFX3UMawNDA6I91n+wfmRLv2R7OsFhACQP51j6RifKULSU9E+jYt8Xt
+   TQ7bWMUh5xiJ41W/JiFJMfc5LVgzmXv4RKEBP4qot7DrNsyQTeJFrsxyl
+   ++dyKQAiZXXuO2hIQuf4wHvhQ6zJe/KhhRirAc/T7edJ/oSA3dHTzf0/x
+   w==;
+X-CSE-ConnectionGUID: mHtItamdSyGKPK+f8e0lPQ==
+X-CSE-MsgGUID: 8U3B1Ru4TPSzLd7oxJrmXg==
+X-IronPort-AV: E=McAfee;i="6700,10204,11189"; a="47028567"
+X-IronPort-AV: E=Sophos;i="6.10,212,1719903600"; 
+   d="scan'208";a="47028567"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Sep 2024 10:07:28 -0700
+X-CSE-ConnectionGUID: iZ83Dsn3QYS6/GzGz2KYGw==
+X-CSE-MsgGUID: Ta/qcRvVSWmtx+Bm2/kzRw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.10,212,1719903600"; 
+   d="scan'208";a="66478878"
+Received: from lkp-server01.sh.intel.com (HELO 9c6b1c7d3b50) ([10.239.97.150])
+  by fmviesa008.fm.intel.com with ESMTP; 08 Sep 2024 10:07:26 -0700
+Received: from kbuild by 9c6b1c7d3b50 with local (Exim 4.96)
+	(envelope-from <lkp@intel.com>)
+	id 1snLNk-000Dkl-0t;
+	Sun, 08 Sep 2024 17:07:24 +0000
+Date: Mon, 9 Sep 2024 01:06:48 +0800
+From: kernel test robot <lkp@intel.com>
+To: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
+	Florian Westphal <fw@strlen.de>, cgroups@vger.kernel.org,
+	Nadia Pinaeva <n.m.pinaeva@gmail.com>
+Subject: Re: [PATCH nf 2/2] netfilter: nft_socket: make cgroupsv2 matching
+ work with namespaces
+Message-ID: <202409090022.jxFbbVYj-lkp@intel.com>
+References: <20240905105451.28857-2-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240905105451.28857-2-fw@strlen.de>
 
-When running in container environmment, /sys/fs/cgroup/ might not be
-the real root node of the sk-attached cgroup.
+Hi Florian,
 
-Example:
+kernel test robot noticed the following build errors:
 
-In container:
-% stat /sys//fs/cgroup/
-Device: 0,21    Inode: 2214  ..
-% stat /sys/fs/cgroup/foo
-Device: 0,21    Inode: 2264  ..
+[auto build test ERROR on netfilter-nf/main]
 
-The expectation would be for:
+url:    https://github.com/intel-lab-lkp/linux/commits/Florian-Westphal/netfilter-nft_socket-make-cgroupsv2-matching-work-with-namespaces/20240908-025647
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
+patch link:    https://lore.kernel.org/r/20240905105451.28857-2-fw%40strlen.de
+patch subject: [PATCH nf 2/2] netfilter: nft_socket: make cgroupsv2 matching work with namespaces
+config: i386-randconfig-006-20240908 (https://download.01.org/0day-ci/archive/20240909/202409090022.jxFbbVYj-lkp@intel.com/config)
+compiler: clang version 18.1.5 (https://github.com/llvm/llvm-project 617a15a9eac96088ae5e9134248d8236e34b91b1)
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20240909/202409090022.jxFbbVYj-lkp@intel.com/reproduce)
 
-  nft add rule .. socket cgroupv2 level 1 "foo" counter
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202409090022.jxFbbVYj-lkp@intel.com/
 
-to match traffic from a process that got added to "foo" via
-"echo $pid > /sys/fs/cgroup/foo/cgroup.procs".
+All errors (new ones prefixed by >>):
 
-However, 'level 3' is needed to make this work.
+>> net/netfilter/nft_socket.c:212:9: error: call to undeclared function 'nft_socket_cgroup_subtree_level'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+     212 |                 err = nft_socket_cgroup_subtree_level();
+         |                       ^
+   1 error generated.
 
-Seen from initial namespace, the complete hierarchy is:
 
-% stat /sys/fs/cgroup/system.slice/docker-.../foo
-  Device: 0,21    Inode: 2264 ..
+vim +/nft_socket_cgroup_subtree_level +212 net/netfilter/nft_socket.c
 
-i.e. hierarchy is
-0    1               2              3
-/ -> system.slice -> docker-1... -> foo
+   169	
+   170	static int nft_socket_init(const struct nft_ctx *ctx,
+   171				   const struct nft_expr *expr,
+   172				   const struct nlattr * const tb[])
+   173	{
+   174		struct nft_socket *priv = nft_expr_priv(expr);
+   175		unsigned int len;
+   176	
+   177		if (!tb[NFTA_SOCKET_DREG] || !tb[NFTA_SOCKET_KEY])
+   178			return -EINVAL;
+   179	
+   180		switch(ctx->family) {
+   181		case NFPROTO_IPV4:
+   182	#if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
+   183		case NFPROTO_IPV6:
+   184	#endif
+   185		case NFPROTO_INET:
+   186			break;
+   187		default:
+   188			return -EOPNOTSUPP;
+   189		}
+   190	
+   191		priv->key = ntohl(nla_get_be32(tb[NFTA_SOCKET_KEY]));
+   192		switch(priv->key) {
+   193		case NFT_SOCKET_TRANSPARENT:
+   194		case NFT_SOCKET_WILDCARD:
+   195			len = sizeof(u8);
+   196			break;
+   197		case NFT_SOCKET_MARK:
+   198			len = sizeof(u32);
+   199			break;
+   200	#ifdef CONFIG_CGROUPS
+   201		case NFT_SOCKET_CGROUPV2: {
+   202			unsigned int level;
+   203			int err;
+   204	
+   205			if (!tb[NFTA_SOCKET_LEVEL])
+   206				return -EINVAL;
+   207	
+   208			level = ntohl(nla_get_be32(tb[NFTA_SOCKET_LEVEL]));
+   209			if (level > 255)
+   210				return -EOPNOTSUPP;
+   211	
+ > 212			err = nft_socket_cgroup_subtree_level();
+   213			if (err < 0)
+   214				return err;
+   215	
+   216			priv->level_user = level;
+   217	
+   218			level += err;
+   219			/* Implies a giant cgroup tree */
+   220			if (WARN_ON_ONCE(level > 255))
+   221				return -EOPNOTSUPP;
+   222	
+   223			priv->level = level;
+   224			len = sizeof(u64);
+   225			break;
+   226		}
+   227	#endif
+   228		default:
+   229			return -EOPNOTSUPP;
+   230		}
+   231	
+   232		priv->len = len;
+   233		return nft_parse_register_store(ctx, tb[NFTA_SOCKET_DREG], &priv->dreg,
+   234						NULL, NFT_DATA_VALUE, len);
+   235	}
+   236	
 
-... but the container doesn't know that its "/" is the "docker-1.."
-cgroup.  Current code will retrieve the 'system.slice' cgroup node
-and store its kn->id in the destination register, so compare with
-2264 ("foo" cgroup id) will not match.
-
-Fetch "/" cgroup from ->init() and add its level to the level we try to
-extract.  cgroup root-level is 0 for the init-namespace or the level
-of the ancestor that is exposed as the cgroup root inside the container.
-
-In the above case, cgrp->level of "/" resolved in the container is 2
-(docker-1...scope/) and request for 'level 1' will get adjusted
-to fetch the actual level (3).
-
-v2: use CONFIG_SOCK_CGROUP_DATA, eval function depends on it.
-    (kernel test robot)
-
-Cc: cgroups@vger.kernel.org
-Fixes: e0bb96db96f8 ("netfilter: nft_socket: add support for cgroupsv2")
-Reported-by: Nadia Pinaeva <n.m.pinaeva@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nft_socket.c | 41 +++++++++++++++++++++++++++++++++++---
- 1 file changed, 38 insertions(+), 3 deletions(-)
-
-diff --git a/net/netfilter/nft_socket.c b/net/netfilter/nft_socket.c
-index 765ffd6e06bc..12cdff640492 100644
---- a/net/netfilter/nft_socket.c
-+++ b/net/netfilter/nft_socket.c
-@@ -9,7 +9,8 @@
- 
- struct nft_socket {
- 	enum nft_socket_keys		key:8;
--	u8				level;
-+	u8				level;		/* cgroupv2 level to extract */
-+	u8				level_user;	/* cgroupv2 level provided by userspace */
- 	u8				len;
- 	union {
- 		u8			dreg;
-@@ -53,6 +54,28 @@ nft_sock_get_eval_cgroupv2(u32 *dest, struct sock *sk, const struct nft_pktinfo
- 	memcpy(dest, &cgid, sizeof(u64));
- 	return true;
- }
-+
-+/* process context only, uses current->nsproxy. */
-+static noinline int nft_socket_cgroup_subtree_level(void)
-+{
-+	struct cgroup *cgrp = cgroup_get_from_path("/");
-+	int level;
-+
-+	if (!cgrp)
-+		return -ENOENT;
-+
-+	level = cgrp->level;
-+
-+	cgroup_put(cgrp);
-+
-+	if (WARN_ON_ONCE(level > 255))
-+		return -ERANGE;
-+
-+	if (WARN_ON_ONCE(level < 0))
-+		return -EINVAL;
-+
-+	return level;
-+}
- #endif
- 
- static struct sock *nft_socket_do_lookup(const struct nft_pktinfo *pkt)
-@@ -174,9 +197,10 @@ static int nft_socket_init(const struct nft_ctx *ctx,
- 	case NFT_SOCKET_MARK:
- 		len = sizeof(u32);
- 		break;
--#ifdef CONFIG_CGROUPS
-+#ifdef CONFIG_SOCK_CGROUP_DATA
- 	case NFT_SOCKET_CGROUPV2: {
- 		unsigned int level;
-+		int err;
- 
- 		if (!tb[NFTA_SOCKET_LEVEL])
- 			return -EINVAL;
-@@ -185,6 +209,17 @@ static int nft_socket_init(const struct nft_ctx *ctx,
- 		if (level > 255)
- 			return -EOPNOTSUPP;
- 
-+		err = nft_socket_cgroup_subtree_level();
-+		if (err < 0)
-+			return err;
-+
-+		priv->level_user = level;
-+
-+		level += err;
-+		/* Implies a giant cgroup tree */
-+		if (WARN_ON_ONCE(level > 255))
-+			return -EOPNOTSUPP;
-+
- 		priv->level = level;
- 		len = sizeof(u64);
- 		break;
-@@ -209,7 +244,7 @@ static int nft_socket_dump(struct sk_buff *skb,
- 	if (nft_dump_register(skb, NFTA_SOCKET_DREG, priv->dreg))
- 		return -1;
- 	if (priv->key == NFT_SOCKET_CGROUPV2 &&
--	    nla_put_be32(skb, NFTA_SOCKET_LEVEL, htonl(priv->level)))
-+	    nla_put_be32(skb, NFTA_SOCKET_LEVEL, htonl(priv->level_user)))
- 		return -1;
- 	return 0;
- }
 -- 
-2.46.0
-
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
