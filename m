@@ -1,170 +1,98 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f180.google.com (mail-pf1-f180.google.com [209.85.210.180])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA585132111;
-	Sun,  8 Sep 2024 17:07:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BECA81B27D
+	for <netfilter-devel@vger.kernel.org>; Mon,  9 Sep 2024 02:05:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725815251; cv=none; b=eo05aX/4SZKAqmFC2EKBGhyaSqnY5A0Js+lQ6BQOUnfVQZy5tsUBqp7dX9zN2UGyuoq0eQUPVajibFTORrV2kWDhtCo+Sv+GihhdNELpX9eM+weFLq/fyjE5i2gFVkxaGuw1ycLOiooMrFQPgNMP3zsXl+ko86VBkThVaXBqMnY=
+	t=1725847502; cv=none; b=q13G0bkfPQNlHwsErdR4kqITrO+rRGnPkaE4mngb6mvDAofOXaZUnDsIWTNyHd7SRsmNwP3MMkhUxawksS/fELO7AUfRc79CMCHjihyJldF4iZN5Zerg/CTMbupY2HZzN1L4lfaahacYEMVtVA4VZGc8H5WmfCOyVO3F/xkRyyo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725815251; c=relaxed/simple;
-	bh=P2/0U6lW5ks2HD0ZSmhZupVFrPU9sUMaH9Nid6z7tdw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fB1EViR7kVAIBU5aYZudMDLBZh8brXVG7V0Xl1D48g47KUHbXxa7gjcyev7Dk5EyEYH/zIiA6sgqK718TT8y0r+Ffpbo74QaL+mCgk4j6ywn4brASHn9l+2x/xOzTWqDzatv4EER45jADc68sZdTuzp89ZTXTmoseVOlEwEbqYQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=MsGFvEAy; arc=none smtp.client-ip=198.175.65.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1725847502; c=relaxed/simple;
+	bh=TN3/6D7pgAE7KvGZ4/yu7nzUsvlwvXxHf07yJ40981Y=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=XdEPqjLKiC+iBHYvBs+czmDzw130v38XKj1PJNaMOfUgp3LNl34LLeZKUYrh6l5O1lqRYAbuDCBO0pevW3+G1ueO1qEMML1ypzNUnC8HBRBd/IxxHWR0TD+Z0PmOvWwp7YLQtkixC1JoBI3D2sx4VF1YbV17iU7rc4TI+a2VyMk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ck15R8J9; arc=none smtp.client-ip=209.85.210.180
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="MsGFvEAy"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1725815249; x=1757351249;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=P2/0U6lW5ks2HD0ZSmhZupVFrPU9sUMaH9Nid6z7tdw=;
-  b=MsGFvEAyAuY1CV3U6HTfdv3yVYPSP1r50YayOnzGIbSVOh1CQ3ODWvpM
-   qO+mgzhHJuME1br5/sgC46XymZjE43Cr/PTyD7eqs5rAP+uyt4JbWzpEc
-   MnOi+sS4s2C4zoed/WsMWgu8RvIyW6xVqSy8fk6F/mtOGWB6G7ShmUdXq
-   GwuFX3UMawNDA6I91n+wfmRLv2R7OsFhACQP51j6RifKULSU9E+jYt8Xt
-   TQ7bWMUh5xiJ41W/JiFJMfc5LVgzmXv4RKEBP4qot7DrNsyQTeJFrsxyl
-   ++dyKQAiZXXuO2hIQuf4wHvhQ6zJe/KhhRirAc/T7edJ/oSA3dHTzf0/x
-   w==;
-X-CSE-ConnectionGUID: mHtItamdSyGKPK+f8e0lPQ==
-X-CSE-MsgGUID: 8U3B1Ru4TPSzLd7oxJrmXg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11189"; a="47028567"
-X-IronPort-AV: E=Sophos;i="6.10,212,1719903600"; 
-   d="scan'208";a="47028567"
-Received: from fmviesa008.fm.intel.com ([10.60.135.148])
-  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Sep 2024 10:07:28 -0700
-X-CSE-ConnectionGUID: iZ83Dsn3QYS6/GzGz2KYGw==
-X-CSE-MsgGUID: Ta/qcRvVSWmtx+Bm2/kzRw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.10,212,1719903600"; 
-   d="scan'208";a="66478878"
-Received: from lkp-server01.sh.intel.com (HELO 9c6b1c7d3b50) ([10.239.97.150])
-  by fmviesa008.fm.intel.com with ESMTP; 08 Sep 2024 10:07:26 -0700
-Received: from kbuild by 9c6b1c7d3b50 with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1snLNk-000Dkl-0t;
-	Sun, 08 Sep 2024 17:07:24 +0000
-Date: Mon, 9 Sep 2024 01:06:48 +0800
-From: kernel test robot <lkp@intel.com>
-To: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
-	Florian Westphal <fw@strlen.de>, cgroups@vger.kernel.org,
-	Nadia Pinaeva <n.m.pinaeva@gmail.com>
-Subject: Re: [PATCH nf 2/2] netfilter: nft_socket: make cgroupsv2 matching
- work with namespaces
-Message-ID: <202409090022.jxFbbVYj-lkp@intel.com>
-References: <20240905105451.28857-2-fw@strlen.de>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ck15R8J9"
+Received: by mail-pf1-f180.google.com with SMTP id d2e1a72fcca58-718d6ad6050so1905903b3a.0
+        for <netfilter-devel@vger.kernel.org>; Sun, 08 Sep 2024 19:05:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1725847500; x=1726452300; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:sender:from:to:cc:subject:date:message-id:reply-to;
+        bh=bkgIO8IWaPIgKI31NDJ5oBjLDgR8jvlGUnTKtpCrR6c=;
+        b=ck15R8J93u70r3OBJ8T9HdwBvszN8cOc3k9Vo9nu6V+H2JZ15EZgtg/cpktVaHWVF8
+         FSHAReHVogR7GeE8m3BdCdVtjMcMROI4zSdYJuwX0y5go/0o9W6QdEXyUAKPq4wGkS6u
+         sTG2to5YjLIiY+lUIhW1BbI61ZOiRzW0Yes1O24xKxT6cjnyUBWT6/oeos6rwsD1rWxx
+         0QyVRbcYolgY1dKv+5yFdQ82n96Tt9lvV2nql7jer3kovCyup3W05Kc0iepj79ujTgUf
+         w7YjigW+ffjysl/7QTYyLmW/WYA6u8ELNpszi9u8JMHfyJF/3y2UzH/Lju0kcrVBoB7s
+         XlrA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1725847500; x=1726452300;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:sender:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=bkgIO8IWaPIgKI31NDJ5oBjLDgR8jvlGUnTKtpCrR6c=;
+        b=Su87xmlnd/XHN/n11IadeQ428f+ErbOqwjSglbISbQtTloIPsbpJxvgwDuS5jGdT5a
+         BDn2gtPBo5jYWkwpGvalLiLueJWIdKfdERRkIKT8rd/gxxN6GeUOwi0iXuRMc7iSl+Tf
+         x8kTkrY1vK+EJMmnn8mS696nr1z/Q8ZB2qXBV0RqOdAoyms78e0eXBzwdfAKLT6EyKy+
+         gzNBO0JE0oea0bPn6d1OY74hp+Ojb8eDoIKP2gOdfkWbO1CUeI8eeQpBUe3T2wQqv4/Y
+         zgpO9m2up8RgM2Qp/B0luw3uxFGIhITxw9PPdpjyacAHj+irHbhlhP1sypzZjGLgTwFw
+         Hcuw==
+X-Gm-Message-State: AOJu0YyPs318u4UendSPqGvTsMMxuFmsPEQ62G3pKPZEWeoHSp8dmdtK
+	8zHeq9xxmpnnM2FXfWeT/xJHcn8oDtfXXvpFiCABrAWFpT0ml1hUxws98w==
+X-Google-Smtp-Source: AGHT+IFvmeUA1OqpM/6CoKInCDFu6Fpbpm1d5jAOhJCB3LP3JKNTuwN1M8cVyZD2XAHzMlECGexg+Q==
+X-Received: by 2002:a05:6a20:d806:b0:1cf:249c:72e6 with SMTP id adf61e73a8af0-1cf249c74bdmr11040497637.9.1725847499869;
+        Sun, 08 Sep 2024 19:04:59 -0700 (PDT)
+Received: from slk15.local.net (n175-33-111-144.meb22.vic.optusnet.com.au. [175.33.111.144])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-20710e33477sm24669045ad.96.2024.09.08.19.04.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 08 Sep 2024 19:04:59 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From: Duncan Roe <duncan_roe@optusnet.com.au>
+To: pablo@netfilter.org
+Cc: netfilter-devel@vger.kernel.org
+Subject: [PATCH libmnl] doc: Address warnings emitted by doxygen 1.12.0
+Date: Mon,  9 Sep 2024 12:04:54 +1000
+Message-Id: <20240909020454.20675-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.35.8
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240905105451.28857-2-fw@strlen.de>
+Content-Transfer-Encoding: 8bit
 
-Hi Florian,
+Remove now-obsolete DOT_TRANSPARENT.
+Add `nstats` to EXCLUDE_SYMBOLS (struct defined in example nfct-daemon.c).
+While being about it, remove EXPORT_SYMBOL from EXCLUDE_SYMBOLS:
+only INPUT_FILTER can suppress EXPORT_SYMBOL.
 
-kernel test robot noticed the following build errors:
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+---
+ doxygen/doxygen.cfg.in | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-[auto build test ERROR on netfilter-nf/main]
-
-url:    https://github.com/intel-lab-lkp/linux/commits/Florian-Westphal/netfilter-nft_socket-make-cgroupsv2-matching-work-with-namespaces/20240908-025647
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
-patch link:    https://lore.kernel.org/r/20240905105451.28857-2-fw%40strlen.de
-patch subject: [PATCH nf 2/2] netfilter: nft_socket: make cgroupsv2 matching work with namespaces
-config: i386-randconfig-006-20240908 (https://download.01.org/0day-ci/archive/20240909/202409090022.jxFbbVYj-lkp@intel.com/config)
-compiler: clang version 18.1.5 (https://github.com/llvm/llvm-project 617a15a9eac96088ae5e9134248d8236e34b91b1)
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20240909/202409090022.jxFbbVYj-lkp@intel.com/reproduce)
-
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202409090022.jxFbbVYj-lkp@intel.com/
-
-All errors (new ones prefixed by >>):
-
->> net/netfilter/nft_socket.c:212:9: error: call to undeclared function 'nft_socket_cgroup_subtree_level'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
-     212 |                 err = nft_socket_cgroup_subtree_level();
-         |                       ^
-   1 error generated.
-
-
-vim +/nft_socket_cgroup_subtree_level +212 net/netfilter/nft_socket.c
-
-   169	
-   170	static int nft_socket_init(const struct nft_ctx *ctx,
-   171				   const struct nft_expr *expr,
-   172				   const struct nlattr * const tb[])
-   173	{
-   174		struct nft_socket *priv = nft_expr_priv(expr);
-   175		unsigned int len;
-   176	
-   177		if (!tb[NFTA_SOCKET_DREG] || !tb[NFTA_SOCKET_KEY])
-   178			return -EINVAL;
-   179	
-   180		switch(ctx->family) {
-   181		case NFPROTO_IPV4:
-   182	#if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
-   183		case NFPROTO_IPV6:
-   184	#endif
-   185		case NFPROTO_INET:
-   186			break;
-   187		default:
-   188			return -EOPNOTSUPP;
-   189		}
-   190	
-   191		priv->key = ntohl(nla_get_be32(tb[NFTA_SOCKET_KEY]));
-   192		switch(priv->key) {
-   193		case NFT_SOCKET_TRANSPARENT:
-   194		case NFT_SOCKET_WILDCARD:
-   195			len = sizeof(u8);
-   196			break;
-   197		case NFT_SOCKET_MARK:
-   198			len = sizeof(u32);
-   199			break;
-   200	#ifdef CONFIG_CGROUPS
-   201		case NFT_SOCKET_CGROUPV2: {
-   202			unsigned int level;
-   203			int err;
-   204	
-   205			if (!tb[NFTA_SOCKET_LEVEL])
-   206				return -EINVAL;
-   207	
-   208			level = ntohl(nla_get_be32(tb[NFTA_SOCKET_LEVEL]));
-   209			if (level > 255)
-   210				return -EOPNOTSUPP;
-   211	
- > 212			err = nft_socket_cgroup_subtree_level();
-   213			if (err < 0)
-   214				return err;
-   215	
-   216			priv->level_user = level;
-   217	
-   218			level += err;
-   219			/* Implies a giant cgroup tree */
-   220			if (WARN_ON_ONCE(level > 255))
-   221				return -EOPNOTSUPP;
-   222	
-   223			priv->level = level;
-   224			len = sizeof(u64);
-   225			break;
-   226		}
-   227	#endif
-   228		default:
-   229			return -EOPNOTSUPP;
-   230		}
-   231	
-   232		priv->len = len;
-   233		return nft_parse_register_store(ctx, tb[NFTA_SOCKET_DREG], &priv->dreg,
-   234						NULL, NFT_DATA_VALUE, len);
-   235	}
-   236	
-
+diff --git a/doxygen/doxygen.cfg.in b/doxygen/doxygen.cfg.in
+index 24089ac..1c73f51 100644
+--- a/doxygen/doxygen.cfg.in
++++ b/doxygen/doxygen.cfg.in
+@@ -9,7 +9,7 @@ OPTIMIZE_OUTPUT_FOR_C  = YES
+ INPUT                  = @top_srcdir@
+ FILE_PATTERNS          = */src/*.c
+ RECURSIVE              = YES
+-EXCLUDE_SYMBOLS        = EXPORT_SYMBOL mnl_nlmsg_batch mnl_socket
++EXCLUDE_SYMBOLS        = mnl_nlmsg_batch mnl_socket nstats
+ EXAMPLE_PATTERNS       =
+ INPUT_FILTER           = "sed 's/EXPORT_SYMBOL//g'"
+ SOURCE_BROWSER         = YES
+@@ -20,4 +20,3 @@ LATEX_CMD_NAME         = latex
+ GENERATE_MAN           = YES
+ MAN_LINKS              = YES
+ HAVE_DOT               = @HAVE_DOT@
+-DOT_TRANSPARENT        = YES
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+2.39.4
+
