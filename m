@@ -1,99 +1,125 @@
-Received: from mail-ej1-f50.google.com (mail-ej1-f50.google.com [209.85.218.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45FAF8248D;
-	Mon,  9 Sep 2024 08:46:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93E541B3732;
+	Mon,  9 Sep 2024 09:26:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725871594; cv=none; b=HTlVcf1Nf1lcNxFdI/XjjuXFnGljOCCKKbH7RCVIL8e5itKxMLQ+CWxcR9nav9KAuVXM0qRRRADOqLtNWUhSg70Gn2wiqKS6JxGBfThd7xTli1Gc/G7g4ak1JcOFyRBYpXr4lDfq3bkPlO+rKmFVNiqlRI/NxdZJniAOFXWPxXE=
+	t=1725874015; cv=none; b=RWWaYZuMEkOZfTjjTi3W2e6VITfSQdIXwTG1jTn8L8Mj5vpxfjlJ1/g0BO8fdPAOppvdf7CiDfhSUHRkuv8NKQa0e1angBPvsugyUJuAG2dmJXxCiJkySq86pgZxA88m+ERQV+LrHrQa8sahkMC1ZgaodvigQQnCIvYUh3Y24Rk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725871594; c=relaxed/simple;
-	bh=8YpVFvMnp3u+NudQyo1gRrfi+EtbOf2uFD9qQCX4dwg=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=OOX+PQGen+Z6uQmW22R470PEhgM+8XBzsT8dgs5XvPwYGikeVoldf57IZKQiE81IK2b1A0rz9QLcBWrcctn+H/pEPMQu3wPBXlaLhywovpPNcDumz4sN/WD/lPcCBBq0z1KkTKnPkz+c0zBW4AyJHDVnkJeBKRxtvKsHiDTCY5o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.218.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-ej1-f50.google.com with SMTP id a640c23a62f3a-a8d2b4a5bf1so187127566b.2;
-        Mon, 09 Sep 2024 01:46:32 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1725871591; x=1726476391;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=WvP4IgFr7uYS43Nv5vKDTvOxaJwNv70XgHo4eK9tLiQ=;
-        b=bmkKaj6WIc4ZKmW10feuVLN5aBxnJv7POIXYf8zODYnCoPoizUA/KE/8bL260PzeX4
-         cjJftr/p5vXBX5KeXxWfqH0ePJAWhtcbLWr7uStVYzTKun2j4BoN0Tq6qKrchN745bi0
-         OiCzao78sJwrnIxzrmtfS+ObdwPaDEVJfbXhyQ7vQ2LR4sC0Lwk5icL/EtENkJx+QysV
-         Q/3NMtVIM6ID44Nhb2qBdbOV9fQeUzzv3Cu981GDRa4LHp0JelSD1OKzMEamp2ZMRPLe
-         TPerKyjui0X6K+MCAvMQ8K25xPCHBXD4o0Q9dccpOst6De3gyZzOZTjgdAKaJQtj7Hf5
-         8VTw==
-X-Forwarded-Encrypted: i=1; AJvYcCVrGcOH0sQBQCMgM0fINwT4qfXdjUKsF1FF77OOuKT9tteDi7B/JgrUqp6AxpEgEwDyLpmpmVgE5QP2URhiXLIj@vger.kernel.org, AJvYcCW4AY227ZjdjRRQ8xM6AzJJnEbg0k5Zy21y6yt/ApwNeShSVNXoQmjdQBNN8wZS35TwEfuyB2Wl@vger.kernel.org, AJvYcCX6LayD2274vyhGZCOCPw/l+fz1bmlGnVeGy3LzR6xf4BNQAL2jerbUvc9HyrCPGSX7VWkN/lqAIivmXSA=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyV6oZ3kSiYLFG1bH6c/1AqJbhi716kXtGl2UF250QFgqx6HMNX
-	pG5wXciQinoiDihmGRu9iG/u7vIRNy3jbrR2LBdhYecW5Zb7Arjs
-X-Google-Smtp-Source: AGHT+IEIHXrF0CvPfeVbwkGyMWiYS8VLG5DufppNzacRWPF8bZew7Om0j9ji4aJX0S+EZqyIPuaA8A==
-X-Received: by 2002:a17:907:3e05:b0:a7a:ab8a:38f with SMTP id a640c23a62f3a-a8a88841c41mr855103166b.41.1725871590464;
-        Mon, 09 Sep 2024 01:46:30 -0700 (PDT)
-Received: from localhost (fwdproxy-lla-009.fbsv.net. [2a03:2880:30ff:9::face:b00c])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a8d25979e90sm310933966b.72.2024.09.09.01.46.29
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 09 Sep 2024 01:46:29 -0700 (PDT)
-From: Breno Leitao <leitao@debian.org>
-To: fw@strlen.de,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	pablo@netfilter.org,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	David Ahern <dsahern@kernel.org>
-Cc: rbc@meta.com,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org (open list:NETFILTER)
-Subject: [PATCH nf-next v5 2/2] netfilter: Make IP_NF_IPTABLES_LEGACY selectable
-Date: Mon,  9 Sep 2024 01:46:19 -0700
-Message-ID: <20240909084620.3155679-3-leitao@debian.org>
-X-Mailer: git-send-email 2.43.5
-In-Reply-To: <20240909084620.3155679-1-leitao@debian.org>
-References: <20240909084620.3155679-1-leitao@debian.org>
+	s=arc-20240116; t=1725874015; c=relaxed/simple;
+	bh=YMfDOUXP8QWcgZnPeCfOORRIXgzJrJORZJWFxCKAw1U=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Ph9czympGyqNd4YX3g48cFN9lLCGX47X0XfBUIOotjDnpsNveFL8NEsgFo0itNYiBg7/it1M9mTikqGMIwpTDcsjmUA/YzAPS7JFyZQgWryiuY26JLJYyTme1KD+P23oBBcGqLXgb/DoeWqmyC3rfBWQt/X3hjve9QUBTtWazzE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=L+gw2Oog; arc=none smtp.client-ip=192.198.163.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="L+gw2Oog"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1725874014; x=1757410014;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=YMfDOUXP8QWcgZnPeCfOORRIXgzJrJORZJWFxCKAw1U=;
+  b=L+gw2Oog51Qe9RU40G3pMujdZGqaWTSp0K2vTKKkKL9zeYqnYXgzbBA+
+   4ebVKRb/rucjHhlXnFhyF/ajTN5a1lTmz76y8YU3almg8CzQTikxIV7nQ
+   I9ATF8HhsIQEcMCRGFhZ+GKHdm4AQ1giD1CHRjgkJxJYwZYeXma8qMq8c
+   LMNcdHMpW/47FBQX8dAgEN7dLkuVDWLFGv58lxj1fC79MxO3pxgRmJ2pD
+   RSe6SD7ARs2D0EXGnl4y5NGRghPy+9cpY2vrjnVPFYFRA28rO08SakM8l
+   peAFe1RXYcq1T8o47g4uTOmRWbgxdtHClZT6eVewepFDWRxrCOmPkvJur
+   A==;
+X-CSE-ConnectionGUID: KeNzKqyjQ/eclhR+l3gxBQ==
+X-CSE-MsgGUID: M9cNSMz4Rd2v7Trz2lVVmw==
+X-IronPort-AV: E=McAfee;i="6700,10204,11189"; a="24718765"
+X-IronPort-AV: E=Sophos;i="6.10,213,1719903600"; 
+   d="scan'208";a="24718765"
+Received: from fmviesa007.fm.intel.com ([10.60.135.147])
+  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Sep 2024 02:26:53 -0700
+X-CSE-ConnectionGUID: 9SN7b16eQ7aeQERUUwenrQ==
+X-CSE-MsgGUID: O8pxyOc7S7Gk/VEVAOIJ+w==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.10,213,1719903600"; 
+   d="scan'208";a="66324974"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by fmviesa007.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Sep 2024 02:26:42 -0700
+Received: from andy by smile.fi.intel.com with local (Exim 4.98)
+	(envelope-from <andriy.shevchenko@linux.intel.com>)
+	id 1snafP-00000006jXU-2nYN;
+	Mon, 09 Sep 2024 12:26:39 +0300
+Date: Mon, 9 Sep 2024 12:26:39 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Simon Horman <horms@kernel.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Felix Huettner <felix.huettner@mail.schwarz>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	llvm@lists.linux.dev, Jozsef Kadlecsik <kadlec@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Nathan Chancellor <nathan@kernel.org>,
+	Nick Desaulniers <ndesaulniers@google.com>,
+	Bill Wendling <morbo@google.com>,
+	Justin Stitt <justinstitt@google.com>
+Subject: Re: [PATCH net v1 1/1] netfilter: conntrack: Guard possoble unused
+ functions
+Message-ID: <Zt6_T2INKWSm7YK8@smile.fi.intel.com>
+References: <20240905203612.333421-1-andriy.shevchenko@linux.intel.com>
+ <20240906162938.GH2097826@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240906162938.GH2097826@kernel.org>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 
-This option makes IP_NF_IPTABLES_LEGACY user selectable, giving
-users the option to configure iptables without enabling any other
-config.
+On Fri, Sep 06, 2024 at 05:29:38PM +0100, Simon Horman wrote:
+> On Thu, Sep 05, 2024 at 11:36:12PM +0300, Andy Shevchenko wrote:
+> > Some of the functions may be unused, it prevents kernel builds
+> > with clang, `make W=1` and CONFIG_WERROR=y:
+> > 
+> > net/netfilter/nf_conntrack_netlink.c:657:22: error: unused function 'ctnetlink_acct_size' [-Werror,-Wunused-function]
+> >   657 | static inline size_t ctnetlink_acct_size(const struct nf_conn *ct)
+> >       |                      ^~~~~~~~~~~~~~~~~~~
+> > net/netfilter/nf_conntrack_netlink.c:667:19: error: unused function 'ctnetlink_secctx_size' [-Werror,-Wunused-function]
+> >   667 | static inline int ctnetlink_secctx_size(const struct nf_conn *ct)
+> >       |                   ^~~~~~~~~~~~~~~~~~~~~
+> > net/netfilter/nf_conntrack_netlink.c:683:22: error: unused function 'ctnetlink_timestamp_size' [-Werror,-Wunused-function]
+> >   683 | static inline size_t ctnetlink_timestamp_size(const struct nf_conn *ct)
+> >       |                      ^~~~~~~~~~~~~~~~~~~~~~~~
+> 
+> Hi Andy,
+> 
+> Local testing seems to show that the warning is still emitted
+> for ctnetlink_label_size if CONFIG_NETFILTER_NETLINK_GLUE_CT is enabled
+> but CONFIG_NF_CONNTRACK_EVENTS is not.
 
-Signed-off-by: Breno Leitao <leitao@debian.org>
----
- net/ipv4/netfilter/Kconfig | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+Hmm... Let me try that. I am using mostly x86_64_defconfig for the testing.
+The idea is to have once x86_64_defconfig to be clean with W=1 and since then
+it will be easier to enable it unconditionally for CIs for _that_ particular
+configuration(s) ("s" in case of i386_defconfig to be at the same level).
 
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index 1b991b889506..1fcbf6db40fa 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -12,7 +12,13 @@ config NF_DEFRAG_IPV4
- 
- # old sockopt interface and eval loop
- config IP_NF_IPTABLES_LEGACY
--	tristate
-+	tristate "Legacy IP tables support"
-+	default	n
-+	select NETFILTER_XTABLES
-+	help
-+	  iptables is a legacy packet classification.
-+	  This is not needed if you are using iptables over nftables
-+	  (iptables-nft).
- 
- config NF_SOCKET_IPV4
- 	tristate "IPv4 socket lookup support"
+> > Fix this by guarding possible unused functions with ifdeffery.
+> > 
+> > See also commit 6863f5643dd7 ("kbuild: allow Clang to find unused static
+> > inline functions for W=1 build").
+> > 
+> > Fixes: 4a96300cec88 ("netfilter: ctnetlink: restore inlining for netlink message size calculation")
+> 
+> I'm not sure that this qualifies as a fix, rather I think it should
+> be targeted at net-next without a Fixes tag.
+
+Okay.
+
+Thank you for the review!
+
 -- 
-2.43.5
+With Best Regards,
+Andy Shevchenko
+
 
