@@ -1,127 +1,110 @@
-Received: from mail-io1-f74.google.com (mail-io1-f74.google.com [209.85.166.74])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64C0918A925
-	for <netfilter-devel@vger.kernel.org>; Mon,  9 Sep 2024 22:48:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.74
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 196A2187FE2;
+	Tue, 10 Sep 2024 08:12:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725922122; cv=none; b=IHrnAg3u5SjfF/qQM7TpXYkAWQrzrweHU1QJHeURnnOJavwAOpbHhe+vd9MBDN4Ed7Pw11CIY5zgrK97WXMOuttud5dT7ltZTujPbRjra12TNdn51eSh246ne+HqUduKwfLayrR8LQJQ5JCd92OotGoyKQH5lKv/4GpKMmCBAc8=
+	t=1725955950; cv=none; b=SZgNBCOX9FlPKbRzHaaUuhpiOS/xYqdk4XHqj/fnIoEnPJW2UrpeuBvYrzYd99FmTjdFT0jGWzFfik0CiEf3iJMs/rDFNXCxlFyOODczYRH6bRfD0cipK23clt4tIwFHtwWvRYfYzZk3kqu5vpSSodUWWnkY+LOt+H3uUxtYCX0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725922122; c=relaxed/simple;
-	bh=rkdImjUZtrp4ImzZRS226DW6+1fYM9yBBOJuj2dWu6o=;
-	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=mC+KXiRW9v2MjZR8aWgg4bPmH39vMKaqqzf9k8of09f/iXPf8lt68HCLAIMWEq6AFqfN+07jj0o/a0JC9d7jG2SOVkBDigjQKHOG9G8JU4grlqHR9Y4pqte7x2qksuy7LwiNUIVC37eKWrq1jdwWy9ny7Y+SDhFn4f50HLTcE9s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--justinstitt.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=I+yNb2kM; arc=none smtp.client-ip=209.85.166.74
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--justinstitt.bounces.google.com
+	s=arc-20240116; t=1725955950; c=relaxed/simple;
+	bh=X6w/BPx5GBKrPXBB3CaDS2kMB9yUmJ5UQVZ/g6ar698=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=YegdEfdlTGseyYaKGYen+yqOhudxwpZEf0AXPpreiADeLEypm5QaQRXyAzO23IZUbDAC0Sg25qSYUUXzEhmxuFzpPsIP7XG43q0ro4WsV9HLOdG+lNKbwcnoU4HUGHybec8jvMgjmfOxkHxpqY3/MBsovFtn0Y0idUuY5tK4xD4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=c1JO7NKW; arc=none smtp.client-ip=198.175.65.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="I+yNb2kM"
-Received: by mail-io1-f74.google.com with SMTP id ca18e2360f4ac-82ad9fca614so496390739f.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 09 Sep 2024 15:48:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1725922120; x=1726526920; darn=vger.kernel.org;
-        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=NLDyWzTfZuqsLoIb9DG2Ov0GNSs+nA5mIhE6ZJufYmM=;
-        b=I+yNb2kMUloQgz1J5RZqZrtDFuSyw4WcBY0P/JUr11mQeUJjWKmYrRcvXTny183w/g
-         C9kwjcgDJmNssFRYi0Vl1P0ZskY85GxZTMaG1T8ijkel+Gmn+4Un27Ukwuy+NEOd37HF
-         mcQ7zUrK6ctUs+C+R/0mEuz+HRdNgxuLIs0ycNpObZRcz2J8VVtJnivK186IL7pDLvYV
-         PAVB129z87uiuUjLTsOjwyFPTzqivjbprktfPD5RZB1MlRrdAjRe9+EItPCtPCLzjXhJ
-         qH99VlhYTOvTV8Kt0C8wYAMqf2xRJE+UGxbJigyX46Kxg81GEIwqU6oyg3QgDnjq+kD4
-         T6zA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1725922120; x=1726526920;
-        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=NLDyWzTfZuqsLoIb9DG2Ov0GNSs+nA5mIhE6ZJufYmM=;
-        b=FRA3ci6ZmPx7rAu8MYMbEXTEYwvbdxqm7y3FR3QVn4akxzIZgKfkmoF0zYnIKELpJJ
-         T8Dp1IIUKYhQ5LXGb+wK9GrwjZQPOkMAOeyKL7lWnR2kgmsLoqV8KlQe3Ti2wWFBMtue
-         MkdkesmbN/NwKWsLz1CGH5SsRBb9VXtUArJ7asSUj3lpoy2+pY+6Ckuc78mIoujRkKjx
-         5vXfKda7YwEhTaXM35JJfs/h4tlDSu04BP/8biDjHiJ8Ffvqv9D2Bvd0r+k7OmCXC5t9
-         CNOiC2pLYIBoL3S3rf7Jp4z2Fvi0v9c2v8xc1mSBzjVrETdGJ8TFD0EBNhS/GoOjVvjb
-         ydvg==
-X-Gm-Message-State: AOJu0Yye427cH1Mkj0pdvAFvcDu44ZBH/HRUQ/itvhnZEkVex/LKYbVg
-	wdYFx82hz8rt0MXGv2imqqXl3XIFoQmCgOMLZ2sUrFEafnMwLUhBcIsZyUQ43gqporqRQCp+Mry
-	gAVvbe3bmsdDBHKUB61ocow==
-X-Google-Smtp-Source: AGHT+IHW9HlvXZZMt0RnOBn0kfRYjrcTlLFf/BWUyQHziXtf3ECYT6VFohieaTDTa3LBmOc4V5HiWGQM4zyJT8JI+Q==
-X-Received: from jstitt-linux1.c.googlers.com ([fda3:e722:ac3:cc00:2b:ff92:c0a8:23b5])
- (user=justinstitt job=sendgmr) by 2002:a05:6638:204a:b0:4c2:7945:5a32 with
- SMTP id 8926c6da1cb9f-4d08501de57mr562213173.5.1725922120651; Mon, 09 Sep
- 2024 15:48:40 -0700 (PDT)
-Date: Mon, 09 Sep 2024 15:48:39 -0700
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="c1JO7NKW"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1725955949; x=1757491949;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=X6w/BPx5GBKrPXBB3CaDS2kMB9yUmJ5UQVZ/g6ar698=;
+  b=c1JO7NKWOYPt8+q5NLhYkD7Z2AWl3620cVQL8IoL3rRzLUfvlsSEjQw/
+   /Jxkdp5zhH6HLT1X5OKF+mPF6I4eOptSHNATKeyOy9bUoV7UkBeLyqfQz
+   o9LW3uptwegk5DysrW4UBFfZaJY9mMy3oMHISrHKFtZpUGkWK3og6f6GH
+   fdybnE8oEFX4VIwpDCm3zp2vwgfwuf2mSQkmWV0KcMDp/slqf7xW4uD+m
+   kOxZqZkXOgKHT0NDVmColnXWZhqlhTf0HVcUnyYlK4APM3Xn4+WMilmmT
+   v0mgnZYNUOGZdMe9dhQKg1aZkEQfcxtNGQ36ZM5xequnD76f22UDx0Oxx
+   A==;
+X-CSE-ConnectionGUID: THDnvafVShaDNko6ydX6yw==
+X-CSE-MsgGUID: Wmk+4VwlQ9eQ2NsU5zNsYA==
+X-IronPort-AV: E=McAfee;i="6700,10204,11190"; a="47204529"
+X-IronPort-AV: E=Sophos;i="6.10,216,1719903600"; 
+   d="scan'208";a="47204529"
+Received: from orviesa002.jf.intel.com ([10.64.159.142])
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Sep 2024 01:12:29 -0700
+X-CSE-ConnectionGUID: fyEZI10hQyekJ/4mrj2MmQ==
+X-CSE-MsgGUID: 7C9rnatgR5+/KfxNh0wgfg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.10,216,1719903600"; 
+   d="scan'208";a="97648069"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by orviesa002.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Sep 2024 01:12:25 -0700
+Received: from andy by smile.fi.intel.com with local (Exim 4.98)
+	(envelope-from <andriy.shevchenko@linux.intel.com>)
+	id 1snvz3-000000077EJ-2djD;
+	Tue, 10 Sep 2024 11:12:21 +0300
+Date: Tue, 10 Sep 2024 11:12:21 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Simon Horman <horms@kernel.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Felix Huettner <felix.huettner@mail.schwarz>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	llvm@lists.linux.dev, Jozsef Kadlecsik <kadlec@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Nathan Chancellor <nathan@kernel.org>,
+	Nick Desaulniers <ndesaulniers@google.com>,
+	Bill Wendling <morbo@google.com>,
+	Justin Stitt <justinstitt@google.com>
+Subject: Re: [PATCH net v1 1/1] netfilter: conntrack: Guard possoble unused
+ functions
+Message-ID: <Zt__ZT-P0kUY909z@smile.fi.intel.com>
+References: <20240905203612.333421-1-andriy.shevchenko@linux.intel.com>
+ <20240906162938.GH2097826@kernel.org>
+ <Zt7B79Q3O7mNqrOl@smile.fi.intel.com>
+ <20240909151712.GZ2097826@kernel.org>
+ <Zt8V5xjrZaEvR8K5@smile.fi.intel.com>
+ <20240909183043.GE2097826@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-X-B4-Tracking: v=1; b=H4sIAEZ732YC/y2NUQrCQAxEr1LybWCtIl2vIlK2m6wGNJbsIkrp3
- RvEv3nMY2aByiZc4dwtYPyWKi912O86yPekN0YhZ+hDfwwxRKzNNM9fVG44mZAbHos8GhtqaeO TWxr/TcYQiYaUEh2GE/jobFzk8zu8XNd1A/k72yuAAAAA
-X-Developer-Key: i=justinstitt@google.com; a=ed25519; pk=tC3hNkJQTpNX/gLKxTNQKDmiQl6QjBNCGKJINqAdJsE=
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1725922119; l=2091;
- i=justinstitt@google.com; s=20230717; h=from:subject:message-id;
- bh=rkdImjUZtrp4ImzZRS226DW6+1fYM9yBBOJuj2dWu6o=; b=RpBy5WGk7841aMAXjLBUnNV+WM74QAmVjxplAH9jkIJQv+5Ll3/fWHnPQ4vkG0vDP88xEPF8T
- nCGCLbpgdzoDWhCuqbZ6sFgO7Ai3Stk/gJZ1EJbZ9wU5CpMLoIBzPon
-X-Mailer: b4 0.12.3
-Message-ID: <20240909-strncpy-net-bridge-netfilter-nft_meta_bridge-c-v1-1-946180aa7909@google.com>
-Subject: [PATCH] netfilter: nf_tables: replace deprecated strncpy with strscpy_pad
-From: Justin Stitt <justinstitt@google.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>, 
-	Roopa Prabhu <roopa@nvidia.com>, Nikolay Aleksandrov <razor@blackwall.org>, 
-	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	bridge@lists.linux.dev, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-hardening@vger.kernel.org, Justin Stitt <justinstitt@google.com>, 
-	Kees Cook <kees@kernel.org>
-Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240909183043.GE2097826@kernel.org>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 
-strncpy() is deprecated for use on NUL-terminated destination strings [1] and
-as such we should prefer more robust and less ambiguous string interfaces.
+On Mon, Sep 09, 2024 at 07:30:43PM +0100, Simon Horman wrote:
+> On Mon, Sep 09, 2024 at 06:36:07PM +0300, Andy Shevchenko wrote:
+> > On Mon, Sep 09, 2024 at 04:17:12PM +0100, Simon Horman wrote:
+> > > On Mon, Sep 09, 2024 at 12:37:51PM +0300, Andy Shevchenko wrote:
+> > > > On Fri, Sep 06, 2024 at 05:29:38PM +0100, Simon Horman wrote:
+> > > > > On Thu, Sep 05, 2024 at 11:36:12PM +0300, Andy Shevchenko wrote:
+> > > > 
+> > > > > Local testing seems to show that the warning is still emitted
+> > > > > for ctnetlink_label_size if CONFIG_NETFILTER_NETLINK_GLUE_CT is enabled
+> > 
+> > Hold on, this is not related to the patch.
+> > It might be another issue.
+> 
+> Yes, sorry, I see that now too.
+> 
+> Perhaps it can be fixed separately, something like this:
 
-In this particular instance, the usage of strncpy() is fine and works as
-expected. However, towards the goal of [2], we should consider replacing
-it with an alternative as many instances of strncpy() are bug-prone. Its
-removal from the kernel promotes better long term health for the
-codebase.
+If you make a patch, it will help somebody who has that in their configuration
+files enabled (with the other one being disabled). Note, I use x86_64_defconfig
+which doesn't have this specific issue to be occurred.
 
-The current usage of strncpy() likely just wants the NUL-padding
-behavior offered by strncpy() and doesn't care about the
-NUL-termination. Since the compiler doesn't know the size of @dest, we
-can't use strtomem_pad(). Instead, use strscpy_pad() which behaves
-functionally the same as strncpy() in this context -- as we expect
-br_dev->name to be NUL-terminated itself.
+-- 
+With Best Regards,
+Andy Shevchenko
 
-Link: https://www.kernel.org/doc/html/latest/process/deprecated.html#strncpy-on-nul-terminated-strings [1]
-Link: https://github.com/KSPP/linux/issues/90 [2]
-Link: https://manpages.debian.org/testing/linux-manual-4.8/strscpy.9.en.html
-Cc: Kees Cook <keescook@chromium.org>
-Cc: linux-hardening@vger.kernel.org
-Signed-off-by: Justin Stitt <justinstitt@google.com>
----
-Note: build-tested only.
----
- net/bridge/netfilter/nft_meta_bridge.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
-index bd4d1b4d745f..2a17e88ab8ee 100644
---- a/net/bridge/netfilter/nft_meta_bridge.c
-+++ b/net/bridge/netfilter/nft_meta_bridge.c
-@@ -63,7 +63,7 @@ static void nft_meta_bridge_get_eval(const struct nft_expr *expr,
- 		return nft_meta_get_eval(expr, regs, pkt);
- 	}
- 
--	strncpy((char *)dest, br_dev ? br_dev->name : "", IFNAMSIZ);
-+	strscpy_pad((char *)dest, br_dev ? br_dev->name : "", IFNAMSIZ);
- 	return;
- err:
- 	regs->verdict.code = NFT_BREAK;
-
----
-base-commit: 521b1e7f4cf0b05a47995b103596978224b380a8
-change-id: 20240909-strncpy-net-bridge-netfilter-nft_meta_bridge-c-09dd8aaad386
-
-Best regards,
---
-Justin Stitt <justinstitt@google.com>
 
