@@ -1,28 +1,28 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A346A18CC1D
-	for <netfilter-devel@vger.kernel.org>; Tue, 10 Sep 2024 09:48:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FA0618EFE6
+	for <netfilter-devel@vger.kernel.org>; Tue, 10 Sep 2024 09:48:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725961736; cv=none; b=SkqWgYuxTFVOP+s0jerMQScIul4sNf3QtQrdGeQ4xdksOIVAwss9UWZZCrU11QDLAwXXP04r7+zH5SedqScrvORPd4Ee5pJ2j4hLy7+s1qtAbg5qHjN/PZUbAEoD0JejkyyOF4zK/gFxrm8qzpeA8JJ2mb0ohaLJRJFV/dqwef8=
+	t=1725961739; cv=none; b=tg+iiK4CUOCernhbgbZYAeVmbD7Myzje6FyYeRJ9qoWE86Ckx+ex2WAuzmsvj4GXxJf+R/IeGeqn7Yriw7fNpLDdqnOqbiXuKTWHnd03a11Y9heXpKdv7siFT6jw5cwwQ+N8DfLlwFShUwfjX1TcaciqdASGyB9G/BRozQdaBS4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725961736; c=relaxed/simple;
-	bh=XdlZW/eHB7dLvjRGd6Yg8QIqwOwZ0DHnsnbcLZHa8FY=;
+	s=arc-20240116; t=1725961739; c=relaxed/simple;
+	bh=rLTrq5pZSZPewLPa3y2sChO89gZ9jNUErr0v/ghN5q0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=bU4q+GOGv2pWJN2tPcyPnm4mwnezuO5EDuqQSE2+tUEe7Zsc9C7J2ehfkhjxRZfD2QIxy32id3JvmHSGW7Z183mcDJ60HagILmowbe5Ttt+z62nZf9tmcKcp8SJTKzO6qD72exwESHVUgOVTq9nDtp/fQfFMnYesjH387b7G8QM=
+	 MIME-Version; b=rlTrr2Nb8sC3nNggIcQvqWSmNQQyJkSSejKlY4eOAr+nLrYBfZKGVm9mWL0WiVcQvOFt7APts+XEJnRCcfpR29Bs5es9s9v+u7/Qd/9Sq7fSat720q4tNz8RIVO+TLzSFfxwUiwRaCYJsbYpHjFIN9pN01CPUQMS1N0a/sSoPNg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1snxUS-0002Ft-0p; Tue, 10 Sep 2024 11:48:52 +0200
+	id 1snxUW-0002GA-Bi; Tue, 10 Sep 2024 11:48:56 +0200
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 1/3] netfilter: nf_nat: don't try nat source port reallocation for reverse dir clash
-Date: Tue, 10 Sep 2024 11:38:14 +0200
-Message-ID: <20240910093821.4871-2-fw@strlen.de>
+Subject: [PATCH nf-next 2/3] netfilter: conntrack: add clash resolution for reverse collisions
+Date: Tue, 10 Sep 2024 11:38:15 +0200
+Message-ID: <20240910093821.4871-3-fw@strlen.de>
 X-Mailer: git-send-email 2.44.2
 In-Reply-To: <20240910093821.4871-1-fw@strlen.de>
 References: <20240910093821.4871-1-fw@strlen.de>
@@ -34,202 +34,111 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-A conntrack entry can be inserted to the connection tracking table if there
-is no existing entry with an identical tuple in either direction.
+Given existing entry:
+ORIGIN: a:b -> c:d
+REPLY:  c:d -> a:b
 
-Example:
-INITIATOR -> NAT/PAT -> RESPONDER
+And colliding entry:
+ORIGIN: c:d -> a:b
+REPLY:  a:b -> c:d
 
-Initiator passes through NAT/PAT ("us") and SNAT is done (saddr rewrite).
-Then, later, NAT/PAT machine itself also wants to connect to RESPONDER.
+The colliding ct (and the associated skb) get dropped on insert.
+Permit this by checking if the colliding entry matches the reply
+direction.
 
-This will not work if the SNAT done earlier has same IP:PORT source pair.
+Happens when both ends send packets at same time, both requests are picked
+up as NEW, rather than NEW for the 'first' and 'ESTABLISHED' for the
+second packet.
 
-Conntrack table has:
-ORIGINAL: $IP_INITATOR:$SPORT -> $IP_RESPONDER:$DPORT
-REPLY:    $IP_RESPONDER:$DPORT -> $IP_NAT:$SPORT
+This is an esoteric condition, as ruleset must permit NEW connections
+in either direction and both peers must already have a bidirectional
+traffic flow at the time conntrack gets enabled.
 
-and new locally originating connection wants:
-ORIGINAL: $IP_NAT:$SPORT -> $IP_RESPONDER:$DPORT
-REPLY:    $IP_RESPONDER:$DPORT -> $IP_NAT:$SPORT
+Allow the 'reverse' skb to pass and assign the existing (clashing)
+entry.
 
-This is handled by the NAT engine which will do a source port reallocation
-for the locally originating connection that is colliding with an existing
-tuple by attempting a source port rewrite.
-
-This is done even if this new connection attempt did not go through a
-masquerade/snat rule.
-
-There is a rare race condition with connection-less protocols like UDP,
-where we do the port reallocation even though its not needed.
-
-This happens when new packets from the same, pre-existing flow are received
-in both directions at the exact same time on different CPUs after the
-conntrack table was flushed (or conntrack becomes active for first time).
-
-With strict ordering/single cpu, the first packet creates new ct entry and
-second packet is resolved as established reply packet.
-
-With parallel processing, both packets are picked up as new and both get
-their own ct entry.
-
-In this case, the 'reply' packet (picked up as ORIGINAL) can be mangled by
-NAT engine because a port collision is detected.
-
-This change isn't enough to prevent a packet drop later during
-nf_conntrack_confirm(), the existing clash resolution strategy will not
-detect such reverse clash case.  This is resolved by a followup patch.
+While at it, also drop the extra 'dying' check, this is already
+tested earlier by the calling function.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_nat_core.c | 120 +++++++++++++++++++++++++++++++++++-
- 1 file changed, 118 insertions(+), 2 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 56 ++++++++++++++++++++++++++++---
+ 1 file changed, 51 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 6d8da6dddf99..728d7026ebd2 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -183,7 +183,35 @@ hash_by_src(const struct net *net,
- 	return reciprocal_scale(hash, nf_nat_htable_size);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index d3cb53b008f5..5f21dc7b8e90 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -988,6 +988,56 @@ static void __nf_conntrack_insert_prepare(struct nf_conn *ct)
+ 		tstamp->start = ktime_get_real_ns();
  }
  
--/* Is this tuple already taken? (not by us) */
 +/**
-+ * nf_nat_used_tuple - check if proposed nat tuple clashes with existing entry
-+ * @tuple: proposed NAT binding
-+ * @ignored_conntrack: our (unconfirmed) conntrack entry
++ * nf_ct_match_reverse - check if ct1 and ct2 refer to identical flow
++ * @ct1: conntrack in hash table to check against
++ * @ct2: merge candidate
 + *
-+ * A conntrack entry can be inserted to the connection tracking table
-+ * if there is no existing entry with an identical tuple in either direction.
++ * returns true if ct1 and ct2 happen to refer to the same flow, but
++ * in opposing directions, i.e.
++ * ct1: a:b -> c:d
++ * ct2: c:d -> a:b
++ * for both directions.  If so, @ct2 should not have been created
++ * as the skb should have been picked up as ESTABLISHED flow.
++ * But ct1 was not yet committed to hash table before skb that created
++ * ct2 had arrived.
 + *
-+ * Example:
-+ * INITIATOR -> NAT/PAT -> RESPONDER
++ * Note we don't compare netns because ct entries in different net
++ * namespace cannot clash to begin with.
 + *
-+ * INITIATOR passes through NAT/PAT ("us") and SNAT is done (saddr rewrite).
-+ * Then, later, NAT/PAT itself also connects to RESPONDER.
-+ *
-+ * This will not work if the SNAT done earlier has same IP:PORT source pair.
-+ *
-+ * Conntrack table has:
-+ * ORIGINAL: $IP_INITIATOR:$SPORT -> $IP_RESPONDER:$DPORT
-+ * REPLY:    $IP_RESPONDER:$DPORT -> $IP_NAT:$SPORT
-+ *
-+ * and new locally originating connection wants:
-+ * ORIGINAL: $IP_NAT:$SPORT -> $IP_RESPONDER:$DPORT
-+ * REPLY:    $IP_RESPONDER:$DPORT -> $IP_NAT:$SPORT
-+ *
-+ * ... which would mean incoming packets cannot be distinguished between
-+ * the existing and the newly added entry (identical IP_CT_DIR_REPLY tuple).
-+ *
-+ * Returns true if the proposed NAT mapping collides with an existing entry.
++ * Returns true if ct1 and ct2 are identical when swapping origin/reply.
 + */
- static int
- nf_nat_used_tuple(const struct nf_conntrack_tuple *tuple,
- 		  const struct nf_conn *ignored_conntrack)
-@@ -200,6 +228,94 @@ nf_nat_used_tuple(const struct nf_conntrack_tuple *tuple,
- 	return nf_conntrack_tuple_taken(&reply, ignored_conntrack);
- }
++static bool
++nf_ct_match_reverse(const struct nf_conn *ct1, const struct nf_conn *ct2)
++{
++	u16 id1, id2;
++
++	if (!nf_ct_tuple_equal(&ct1->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
++			       &ct2->tuplehash[IP_CT_DIR_REPLY].tuple))
++		return false;
++
++	if (!nf_ct_tuple_equal(&ct1->tuplehash[IP_CT_DIR_REPLY].tuple,
++			       &ct2->tuplehash[IP_CT_DIR_ORIGINAL].tuple))
++		return false;
++
++	id1 = nf_ct_zone_id(nf_ct_zone(ct1), IP_CT_DIR_ORIGINAL);
++	id2 = nf_ct_zone_id(nf_ct_zone(ct2), IP_CT_DIR_REPLY);
++	if (id1 != id2)
++		return false;
++
++	id1 = nf_ct_zone_id(nf_ct_zone(ct1), IP_CT_DIR_REPLY);
++	id2 = nf_ct_zone_id(nf_ct_zone(ct2), IP_CT_DIR_ORIGINAL);
++
++	return id1 == id2;
++}
++
++static int nf_ct_can_merge(const struct nf_conn *ct,
++			   const struct nf_conn *loser_ct)
++{
++	return nf_ct_match(ct, loser_ct) ||
++	       nf_ct_match_reverse(ct, loser_ct);
++}
++
+ /* caller must hold locks to prevent concurrent changes */
+ static int __nf_ct_resolve_clash(struct sk_buff *skb,
+ 				 struct nf_conntrack_tuple_hash *h)
+@@ -999,11 +1049,7 @@ static int __nf_ct_resolve_clash(struct sk_buff *skb,
  
-+static bool nf_nat_allow_clash(const struct nf_conn *ct)
-+{
-+	return nf_ct_l4proto_find(nf_ct_protonum(ct))->allow_clash;
-+}
-+
-+/**
-+ * nf_nat_used_tuple_new - check if to-be-inserted conntrack collides with existing entry
-+ * @tuple: proposed NAT binding
-+ * @ignored_ct: our (unconfirmed) conntrack entry
-+ *
-+ * Same as nf_nat_used_tuple, but also check for rare clash in reverse
-+ * direction. Should be called only when @tuple has not been altered, i.e.
-+ * @ignored_conntrack will not be subject to NAT.
-+ *
-+ * Returns true if the proposed NAT mapping collides with existing entry.
-+ */
-+static noinline bool
-+nf_nat_used_tuple_new(const struct nf_conntrack_tuple *tuple,
-+		      const struct nf_conn *ignored_ct)
-+{
-+	static const unsigned long uses_nat = IPS_NAT_MASK | IPS_SEQ_ADJUST_BIT;
-+	const struct nf_conntrack_tuple_hash *thash;
-+	const struct nf_conntrack_zone *zone;
-+	struct nf_conn *ct;
-+	bool taken = true;
-+	struct net *net;
-+
-+	if (!nf_nat_used_tuple(tuple, ignored_ct))
-+		return false;
-+
-+	if (!nf_nat_allow_clash(ignored_ct))
-+		return true;
-+
-+	/* Initial choice clashes with existing conntrack.
-+	 * Check for (rare) reverse collision.
-+	 *
-+	 * This can happen when new packets are received in both directions
-+	 * at the exact same time on different CPUs.
-+	 *
-+	 * Without SMP, first packet creates new conntrack entry and second
-+	 * packet is resolved as established reply packet.
-+	 *
-+	 * With parallel processing, both packets could be picked up as
-+	 * new and both get their own ct entry allocated.
-+	 *
-+	 * If ignored_conntrack and colliding ct are not subject to NAT then
-+	 * pretend the tuple is available and let later clash resolution
-+	 * handle this at insertion time.
-+	 *
-+	 * Without it, the 'reply' packet has its source port rewritten
-+	 * by nat engine.
-+	 */
-+	if (READ_ONCE(ignored_ct->status) & uses_nat)
-+		return true;
-+
-+	net = nf_ct_net(ignored_ct);
-+	zone = nf_ct_zone(ignored_ct);
-+
-+	thash = nf_conntrack_find_get(net, zone, tuple);
-+	if (unlikely(!thash)) /* clashing entry went away */
-+		return false;
-+
-+	ct = nf_ct_tuplehash_to_ctrack(thash);
-+
-+	/* NB: IP_CT_DIR_ORIGINAL should be impossible because
-+	 * nf_nat_used_tuple() handles origin collisions.
-+	 *
-+	 * Handle remote chance other CPU confirmed its ct right after.
-+	 */
-+	if (thash->tuple.dst.dir != IP_CT_DIR_REPLY)
-+		goto out;
-+
-+	/* clashing connection subject to NAT? Retry with new tuple. */
-+	if (READ_ONCE(ct->status) & uses_nat)
-+		goto out;
-+
-+	if (nf_ct_tuple_equal(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
-+			      &ignored_ct->tuplehash[IP_CT_DIR_REPLY].tuple) &&
-+	    nf_ct_tuple_equal(&ct->tuplehash[IP_CT_DIR_REPLY].tuple,
-+			      &ignored_ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple)) {
-+		taken = false;
-+		goto out;
-+	}
-+out:
-+	nf_ct_put(ct);
-+	return taken;
-+}
-+
- static bool nf_nat_may_kill(struct nf_conn *ct, unsigned long flags)
- {
- 	static const unsigned long flags_refuse = IPS_FIXED_TIMEOUT |
-@@ -611,7 +727,7 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
- 	    !(range->flags & NF_NAT_RANGE_PROTO_RANDOM_ALL)) {
- 		/* try the original tuple first */
- 		if (nf_in_range(orig_tuple, range)) {
--			if (!nf_nat_used_tuple(orig_tuple, ct)) {
-+			if (!nf_nat_used_tuple_new(orig_tuple, ct)) {
- 				*tuple = *orig_tuple;
- 				return;
- 			}
+ 	loser_ct = nf_ct_get(skb, &ctinfo);
+ 
+-	if (nf_ct_is_dying(ct))
+-		return NF_DROP;
+-
+-	if (((ct->status & IPS_NAT_DONE_MASK) == 0) ||
+-	    nf_ct_match(ct, loser_ct)) {
++	if (nf_ct_can_merge(ct, loser_ct)) {
+ 		struct net *net = nf_ct_net(ct);
+ 
+ 		nf_conntrack_get(&ct->ct_general);
 -- 
 2.44.2
 
