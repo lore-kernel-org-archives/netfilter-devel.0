@@ -1,72 +1,57 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id AFBA91885A8;
-	Wed, 11 Sep 2024 22:25:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B753C1B5808;
+	Wed, 11 Sep 2024 22:26:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726093535; cv=none; b=bKcGWLvR5SgWdJpXNhVAWNWVeONe+gTUUE84myb6eWSZfzzBahyj7qa8KtdsD4UTngTbkXQA7r1CudhbUrBm8216KPC0NFy7KVhEXiS5K5x/okNk+v+LbwUkoIBg9wRpNJFU0O2G7EC3zoYSDFXetiNYEZcDTBWK4hzP7GjI0qY=
+	t=1726093620; cv=none; b=EROSEKgtZNcEV1Oe/gRlF7iHPIOT8OQy9fie9VYoFi9sJ3DJTLqI3nN9PWnbC6ah699N2VU0ew8N2ogYm9byROCT0C3qpS2kaWM7F/CkLZEzU7krxwg5yZ0Os5nN+wYT2+6ZO3HQzJUyT0Y83YZ9yMdvKN53Z2Aat4oFD8l9/xA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726093535; c=relaxed/simple;
-	bh=6l4+mdX9jF0qzzwZ/i+JIt707Jd481DQuvHJYsXOcBU=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=TYS0+cqv2cJj31GEtbWfrwbzi/0MV1T/mfT3Q4zhsdnN8arwtk3LC6YRUxKm6ptSsmgF64NfdvrbKQLvZjzOpUU32IMOq0BBo4fcN9NrGxIpLEuc64ruHsxS70yW3dj1yaold6hP1TRSQLq2AdeRgNfNG/M9hlOX945zaKaj0jE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+	s=arc-20240116; t=1726093620; c=relaxed/simple;
+	bh=r3DmMXq1AXFTDQFzwTFrrrEnMbuDF0efQQJ18TXLopA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=r+bMIg5MnbTkYRE9P3ZE8niyQyJUO6lPbGttPeYhPVtEw4TL8YUG+s8X23LjXKNyX7/GdorI+1Ds4jNjtTuUi/RlOpM6aVKjIAH/S3yR+3qjGvsH7F87J/sgsBQ60pEl9qmRXibI861MW+FD0CXOCyUnLQZ4rCi04Ceyz/7FYDQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=58890 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1soVnZ-007XrK-B9; Thu, 12 Sep 2024 00:26:55 +0200
+Date: Thu, 12 Sep 2024 00:26:52 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	fw@strlen.de
-Subject: [PATCH net 0/2] Netfilter fixes for net
-Date: Thu, 12 Sep 2024 00:25:18 +0200
-Message-Id: <20240911222520.3606-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+To: Lorenzo Bianconi <lorenzo@kernel.org>
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Alexei Starovoitov <ast@kernel.org>,
+	Daniel Borkmann <daniel@iogearbox.net>,
+	Kumar Kartikeya Dwivedi <memxor@gmail.com>,
+	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org, bpf@vger.kernel.org
+Subject: Re: [PATCH net] net: netfilter: move nf flowtable bpf initialization
+ in nf_flow_table_module_init()
+Message-ID: <ZuIZLHc3kvZ-lzY0@calendula>
+References: <20240911-nf-flowtable-bpf-modprob-fix-v1-1-f9fc075aafc3@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20240911-nf-flowtable-bpf-modprob-fix-v1-1-f9fc075aafc3@kernel.org>
+X-Spam-Score: -1.8 (-)
 
-Hi,
+On Wed, Sep 11, 2024 at 05:37:30PM +0200, Lorenzo Bianconi wrote:
+> Move nf flowtable bpf initialization in nf_flow_table module load
+> routine since nf_flow_table_bpf is part of nf_flow_table module and not
+> nf_flow_table_inet one. This patch allows to avoid the following kernel
+> warning running the reproducer below:
 
-The following batch contains two fixes from Florian Westphal:
+Targeting a net tree, here is my tag:
 
-Patch #1 fixes a sk refcount leak in nft_socket on mismatch.
-
-Patch #2 fixes cgroupsv2 matching from containers due to incorrect
-	 level in subtree.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-24-09-12
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit d759ee240d3c0c4a19f4d984eb21c36da76bc6ce:
-
-  Merge tag 'net-6.11-rc7' of git://git.kernel.org/pub/scm/linux/kernel/git/netdev/net (2024-09-05 17:08:01 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-24-09-12
-
-for you to fetch changes up to 7f3287db654395f9c5ddd246325ff7889f550286:
-
-  netfilter: nft_socket: make cgroupsv2 matching work with namespaces (2024-09-12 00:16:58 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 24-09-12
-
-----------------------------------------------------------------
-Florian Westphal (2):
-      netfilter: nft_socket: fix sk refcount leaks
-      netfilter: nft_socket: make cgroupsv2 matching work with namespaces
-
- net/netfilter/nft_socket.c | 48 ++++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 42 insertions(+), 6 deletions(-)
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
