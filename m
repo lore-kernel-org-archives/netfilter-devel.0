@@ -1,88 +1,87 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9617F273FC;
-	Wed, 11 Sep 2024 22:12:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id AFBFB1B29BA;
+	Wed, 11 Sep 2024 22:25:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726092731; cv=none; b=epcTlO+4DWwSI+aK9WhPMx3Az1d0P1WnMUsKa5t2CgoW9ZpvRXSxqZxW/ZIFEBRFrpPLsMJVQWGXa/Tl6aJRamuqXdEzwe6R04doUTVwGItqSzY8myIi1pB0CIqNmDWPEppJ2EhDTmFMqY2/FpZWn3+ie/yPyHeGegqzE4dcw1g=
+	t=1726093534; cv=none; b=B3dmMDjgj6LCRS1kg317SboM/PcOKuoo4Z/5fPlxaxOCwgshH8WZL/bom7xRiqqVW7BjTGJUO1YMo8yjjlH0GfhJLgKiA4qP36PtT4jj6+Duulu1b8hby8OYLk4cpX+Sa5W2RkLncQwAc3BUNSIV04HarxyAp6PNeB6jKC776Ic=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726092731; c=relaxed/simple;
-	bh=LHtNGOAmFIWxYkxjD253kuCAv0qxI1a/lzyf2ztRBUE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ADXppTvubB+X3oSr1Ce0SeEaGBzkUyC9A8lSGoyAoqvkFYDzqD06ANiSKFfbQirq9ba5oL+XYCBIW+AVH5dPddk4jBIl1sDgbPStjP4kmoji87UMJrXrYWbFxcO4CxyKSGnz28tBqDAfScsYgCNKVhTMsf+2i23Hn86AfN/NWPY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+	s=arc-20240116; t=1726093534; c=relaxed/simple;
+	bh=x8YG39c46kJmXfXVJT7hZ54SF/qD7hvSrmd+H9Ft/ok=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=MWEoNrzfCCVgwT9ugduUcy0/2lY6C1DzZhJb5unVXnbe9Xj54HsFcVBI8VwZF3CUYC8t7PP4uR6YcdMEWiGdFrLjaNhKnnW2MwM7pj0m5QPFPDaASwQQ7SC1Cz4xN/IYN3xkorcpNN5Ex5QA0iFCAI3RegKysQCR32i/2+jhcm0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=51382 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1soVZC-007Wnn-Gg; Thu, 12 Sep 2024 00:12:04 +0200
-Date: Thu, 12 Sep 2024 00:12:01 +0200
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Breno Leitao <leitao@debian.org>
-Cc: fw@strlen.de, davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-	pabeni@redhat.com, Jozsef Kadlecsik <kadlec@netfilter.org>,
-	David Ahern <dsahern@kernel.org>, rbc@meta.com,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	"open list:NETFILTER" <coreteam@netfilter.org>
-Subject: Re: [PATCH nf-next v5 1/2] netfilter: Make IP6_NF_IPTABLES_LEGACY
- selectable
-Message-ID: <ZuIVsZ813wxD6Y3Q@calendula>
-References: <20240909084620.3155679-1-leitao@debian.org>
- <20240909084620.3155679-2-leitao@debian.org>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de
+Subject: [PATCH net 1/2] netfilter: nft_socket: fix sk refcount leaks
+Date: Thu, 12 Sep 2024 00:25:19 +0200
+Message-Id: <20240911222520.3606-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20240911222520.3606-1-pablo@netfilter.org>
+References: <20240911222520.3606-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20240909084620.3155679-2-leitao@debian.org>
-X-Spam-Score: -1.9 (-)
+Content-Transfer-Encoding: 8bit
 
-One more question below.
+From: Florian Westphal <fw@strlen.de>
 
-On Mon, Sep 09, 2024 at 01:46:18AM -0700, Breno Leitao wrote:
-> This option makes IP6_NF_IPTABLES_LEGACY user selectable, giving
-> users the option to configure iptables without enabling any other
-> config.
->
-> Signed-off-by: Breno Leitao <leitao@debian.org>
-> ---
->  net/ipv6/netfilter/Kconfig | 9 ++++++++-
->  1 file changed, 8 insertions(+), 1 deletion(-)
-> 
-> diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-> index f3c8e2d918e1..425cb7a3571b 100644
-> --- a/net/ipv6/netfilter/Kconfig
-> +++ b/net/ipv6/netfilter/Kconfig
-> @@ -8,7 +8,14 @@ menu "IPv6: Netfilter Configuration"
->  
->  # old sockopt interface and eval loop
->  config IP6_NF_IPTABLES_LEGACY
-> -	tristate
-> +	tristate "Legacy IP6 tables support"
-> +	depends on INET && IPV6
-> +	select NETFILTER_XTABLES
-> +	default n
-> +	help
-> +	  ip6tables is a legacy packet classification.
+We must put 'sk' reference before returning.
 
-                                Is "packet classifier" the right term?
+Fixes: 039b1f4f24ec ("netfilter: nft_socket: fix erroneous socket assignment")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nft_socket.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-I can mangle this patch before applying, no need to send one more.
+diff --git a/net/netfilter/nft_socket.c b/net/netfilter/nft_socket.c
+index f30163e2ca62..765ffd6e06bc 100644
+--- a/net/netfilter/nft_socket.c
++++ b/net/netfilter/nft_socket.c
+@@ -110,13 +110,13 @@ static void nft_socket_eval(const struct nft_expr *expr,
+ 			*dest = READ_ONCE(sk->sk_mark);
+ 		} else {
+ 			regs->verdict.code = NFT_BREAK;
+-			return;
++			goto out_put_sk;
+ 		}
+ 		break;
+ 	case NFT_SOCKET_WILDCARD:
+ 		if (!sk_fullsock(sk)) {
+ 			regs->verdict.code = NFT_BREAK;
+-			return;
++			goto out_put_sk;
+ 		}
+ 		nft_socket_wildcard(pkt, regs, sk, dest);
+ 		break;
+@@ -124,7 +124,7 @@ static void nft_socket_eval(const struct nft_expr *expr,
+ 	case NFT_SOCKET_CGROUPV2:
+ 		if (!nft_sock_get_eval_cgroupv2(dest, sk, pkt, priv->level)) {
+ 			regs->verdict.code = NFT_BREAK;
+-			return;
++			goto out_put_sk;
+ 		}
+ 		break;
+ #endif
+@@ -133,6 +133,7 @@ static void nft_socket_eval(const struct nft_expr *expr,
+ 		regs->verdict.code = NFT_BREAK;
+ 	}
+ 
++out_put_sk:
+ 	if (sk != skb->sk)
+ 		sock_gen_put(sk);
+ }
+-- 
+2.30.2
 
-Thanks.
-
-> +	  This is not needed if you are using iptables over nftables
-> +	  (iptables-nft).
->  
->  config NF_SOCKET_IPV6
->  	tristate "IPv6 socket lookup support"
-> -- 
-> 2.43.5
-> 
