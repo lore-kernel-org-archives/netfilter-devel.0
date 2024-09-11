@@ -1,14 +1,13 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2BFB41B5801;
-	Wed, 11 Sep 2024 22:25:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id AFBA91885A8;
+	Wed, 11 Sep 2024 22:25:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726093535; cv=none; b=rOBAqz0rgdS2evtq2nkv4ZFQ6zpkfj5u35LGhkwOf3xHMHf2wIyViam5X6w+fqwG3Ir2pqLQxiST6SNaNWd+6+TgISqTQ+wkM6w3Dmy0DLuovaXObwl3yCpEM1rN4ejql3KKnvszt4sayEtHPK4gGGaCs5/uOe+GTvgHFcmXwfI=
+	t=1726093535; cv=none; b=bKcGWLvR5SgWdJpXNhVAWNWVeONe+gTUUE84myb6eWSZfzzBahyj7qa8KtdsD4UTngTbkXQA7r1CudhbUrBm8216KPC0NFy7KVhEXiS5K5x/okNk+v+LbwUkoIBg9wRpNJFU0O2G7EC3zoYSDFXetiNYEZcDTBWK4hzP7GjI0qY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1726093535; c=relaxed/simple;
-	bh=KLVzJSCHJdfmVP9t+Feu5kzxBVtR347wSEkmXO5kQ4A=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=tBZZbCxC+KogKzEIEfjtWU5g3IQ8lEbsMyBREcHzsZL9xTELiDI2Y6OJN+yZ5WezFbYzxoEA6Eh6WAP6egKwHyehvt++OHlbPRPghyXNObYS2PLFXUjetKWe5OutxqCnu/ajJBgb1qzYcmtAq33RjaiKSFvCFTSKJcVlzUzBohU=
+	bh=6l4+mdX9jF0qzzwZ/i+JIt707Jd481DQuvHJYsXOcBU=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=TYS0+cqv2cJj31GEtbWfrwbzi/0MV1T/mfT3Q4zhsdnN8arwtk3LC6YRUxKm6ptSsmgF64NfdvrbKQLvZjzOpUU32IMOq0BBo4fcN9NrGxIpLEuc64ruHsxS70yW3dj1yaold6hP1TRSQLq2AdeRgNfNG/M9hlOX945zaKaj0jE=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,12 +19,10 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 2/2] netfilter: nft_socket: make cgroupsv2 matching work with namespaces
-Date: Thu, 12 Sep 2024 00:25:20 +0200
-Message-Id: <20240911222520.3606-3-pablo@netfilter.org>
+Subject: [PATCH net 0/2] Netfilter fixes for net
+Date: Thu, 12 Sep 2024 00:25:18 +0200
+Message-Id: <20240911222520.3606-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20240911222520.3606-1-pablo@netfilter.org>
-References: <20240911222520.3606-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -34,144 +31,42 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+Hi,
 
-When running in container environmment, /sys/fs/cgroup/ might not be
-the real root node of the sk-attached cgroup.
+The following batch contains two fixes from Florian Westphal:
 
-Example:
+Patch #1 fixes a sk refcount leak in nft_socket on mismatch.
 
-In container:
-% stat /sys//fs/cgroup/
-Device: 0,21    Inode: 2214  ..
-% stat /sys/fs/cgroup/foo
-Device: 0,21    Inode: 2264  ..
+Patch #2 fixes cgroupsv2 matching from containers due to incorrect
+	 level in subtree.
 
-The expectation would be for:
+Please, pull these changes from:
 
-  nft add rule .. socket cgroupv2 level 1 "foo" counter
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-24-09-12
 
-to match traffic from a process that got added to "foo" via
-"echo $pid > /sys/fs/cgroup/foo/cgroup.procs".
+Thanks.
 
-However, 'level 3' is needed to make this work.
+----------------------------------------------------------------
 
-Seen from initial namespace, the complete hierarchy is:
+The following changes since commit d759ee240d3c0c4a19f4d984eb21c36da76bc6ce:
 
-% stat /sys/fs/cgroup/system.slice/docker-.../foo
-  Device: 0,21    Inode: 2264 ..
+  Merge tag 'net-6.11-rc7' of git://git.kernel.org/pub/scm/linux/kernel/git/netdev/net (2024-09-05 17:08:01 -0700)
 
-i.e. hierarchy is
-0    1               2              3
-/ -> system.slice -> docker-1... -> foo
+are available in the Git repository at:
 
-... but the container doesn't know that its "/" is the "docker-1.."
-cgroup.  Current code will retrieve the 'system.slice' cgroup node
-and store its kn->id in the destination register, so compare with
-2264 ("foo" cgroup id) will not match.
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-24-09-12
 
-Fetch "/" cgroup from ->init() and add its level to the level we try to
-extract.  cgroup root-level is 0 for the init-namespace or the level
-of the ancestor that is exposed as the cgroup root inside the container.
+for you to fetch changes up to 7f3287db654395f9c5ddd246325ff7889f550286:
 
-In the above case, cgrp->level of "/" resolved in the container is 2
-(docker-1...scope/) and request for 'level 1' will get adjusted
-to fetch the actual level (3).
+  netfilter: nft_socket: make cgroupsv2 matching work with namespaces (2024-09-12 00:16:58 +0200)
 
-v2: use CONFIG_SOCK_CGROUP_DATA, eval function depends on it.
-    (kernel test robot)
+----------------------------------------------------------------
+netfilter pull request 24-09-12
 
-Cc: cgroups@vger.kernel.org
-Fixes: e0bb96db96f8 ("netfilter: nft_socket: add support for cgroupsv2")
-Reported-by: Nadia Pinaeva <n.m.pinaeva@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_socket.c | 41 +++++++++++++++++++++++++++++++++++---
- 1 file changed, 38 insertions(+), 3 deletions(-)
+----------------------------------------------------------------
+Florian Westphal (2):
+      netfilter: nft_socket: fix sk refcount leaks
+      netfilter: nft_socket: make cgroupsv2 matching work with namespaces
 
-diff --git a/net/netfilter/nft_socket.c b/net/netfilter/nft_socket.c
-index 765ffd6e06bc..12cdff640492 100644
---- a/net/netfilter/nft_socket.c
-+++ b/net/netfilter/nft_socket.c
-@@ -9,7 +9,8 @@
- 
- struct nft_socket {
- 	enum nft_socket_keys		key:8;
--	u8				level;
-+	u8				level;		/* cgroupv2 level to extract */
-+	u8				level_user;	/* cgroupv2 level provided by userspace */
- 	u8				len;
- 	union {
- 		u8			dreg;
-@@ -53,6 +54,28 @@ nft_sock_get_eval_cgroupv2(u32 *dest, struct sock *sk, const struct nft_pktinfo
- 	memcpy(dest, &cgid, sizeof(u64));
- 	return true;
- }
-+
-+/* process context only, uses current->nsproxy. */
-+static noinline int nft_socket_cgroup_subtree_level(void)
-+{
-+	struct cgroup *cgrp = cgroup_get_from_path("/");
-+	int level;
-+
-+	if (!cgrp)
-+		return -ENOENT;
-+
-+	level = cgrp->level;
-+
-+	cgroup_put(cgrp);
-+
-+	if (WARN_ON_ONCE(level > 255))
-+		return -ERANGE;
-+
-+	if (WARN_ON_ONCE(level < 0))
-+		return -EINVAL;
-+
-+	return level;
-+}
- #endif
- 
- static struct sock *nft_socket_do_lookup(const struct nft_pktinfo *pkt)
-@@ -174,9 +197,10 @@ static int nft_socket_init(const struct nft_ctx *ctx,
- 	case NFT_SOCKET_MARK:
- 		len = sizeof(u32);
- 		break;
--#ifdef CONFIG_CGROUPS
-+#ifdef CONFIG_SOCK_CGROUP_DATA
- 	case NFT_SOCKET_CGROUPV2: {
- 		unsigned int level;
-+		int err;
- 
- 		if (!tb[NFTA_SOCKET_LEVEL])
- 			return -EINVAL;
-@@ -185,6 +209,17 @@ static int nft_socket_init(const struct nft_ctx *ctx,
- 		if (level > 255)
- 			return -EOPNOTSUPP;
- 
-+		err = nft_socket_cgroup_subtree_level();
-+		if (err < 0)
-+			return err;
-+
-+		priv->level_user = level;
-+
-+		level += err;
-+		/* Implies a giant cgroup tree */
-+		if (WARN_ON_ONCE(level > 255))
-+			return -EOPNOTSUPP;
-+
- 		priv->level = level;
- 		len = sizeof(u64);
- 		break;
-@@ -209,7 +244,7 @@ static int nft_socket_dump(struct sk_buff *skb,
- 	if (nft_dump_register(skb, NFTA_SOCKET_DREG, priv->dreg))
- 		return -1;
- 	if (priv->key == NFT_SOCKET_CGROUPV2 &&
--	    nla_put_be32(skb, NFTA_SOCKET_LEVEL, htonl(priv->level)))
-+	    nla_put_be32(skb, NFTA_SOCKET_LEVEL, htonl(priv->level_user)))
- 		return -1;
- 	return 0;
- }
--- 
-2.30.2
-
+ net/netfilter/nft_socket.c | 48 ++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 42 insertions(+), 6 deletions(-)
