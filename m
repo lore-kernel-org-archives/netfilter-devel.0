@@ -1,82 +1,61 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E53651A4E89;
-	Thu, 12 Sep 2024 13:50:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E7AD1AB6E9
+	for <netfilter-devel@vger.kernel.org>; Thu, 12 Sep 2024 14:27:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726149033; cv=none; b=oIIejGeGWJEatQ4dHaV1Geqvp9JpjBH2uQtOIzUcGtumX664VbpDPiSudZEe/Skm5JQFSQSX1Hp8KZrN7k3hQJP2HIgNVfueknmALjM+giqAkxMvwdjQxDQmLkIcY/S5t8J2Wi46y8nzxh8G2wlXPNCKrmbV/skho8Vas4lKxzA=
+	t=1726151244; cv=none; b=T1MUwNLpU2+m4fzqJpokhH6VL+E0ltFaE3FJkzl300jSqipPMVqUc4jKyvIuWHADOtU794/OFP88naiBrAfhHDtbHcG0F81TeGFE2hANiJHHu3/sFVDC9mdpjz+fQQ7zPIB79bIOW+SxSTXplsa2tdUfvmebf6BOrrf813+zYkE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726149033; c=relaxed/simple;
-	bh=GbVxCpbItfv5RKig6nCXjTfDmTD0G9RZJB5PwbQiktA=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=pnLroVX8mW5l/xkTHNIA3QD3cSFCUOF3GGS+ah7Z2e/wbK5bCGU+uVrmmei9MeK1NATKxu1sA86gjlSQSKRSYql/Zs2ni6vFLx8GcTa9Uz+WhCu7+Q/kKAYPZ7l/tlPMHJVZAVkQnrIKQuiw59YnbGq3Zlkk78EQQbouX+DS0hc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ix72SX3A; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ix72SX3A"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84BD8C4CEC4;
-	Thu, 12 Sep 2024 13:50:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1726149032;
-	bh=GbVxCpbItfv5RKig6nCXjTfDmTD0G9RZJB5PwbQiktA=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=ix72SX3AzaymkHMoXyajEOhuBrwkBW93Eq1wXSk7jMZXfPs/2CeBFlReOKs5umg1S
-	 ayMJCudXJHbKqu++liHqc9jj8P0DeeOYs7M1wIe4FOd2MMZ+5C4Z9QxIe3L7OPaMSS
-	 tZPoySPAbh97PxqUPhZH+wzrygKqWmCK3w+Y/eivJx9wkSfOtGanCCd/jORyAdPzzW
-	 Ine7EGJ8bbjuFsf5QoCvORGnFcogYqh/QDS6HFrS5ZHGXo5P/3/qK47uo6BVABYxAe
-	 KiXCJfHGcS4v1WE2bQogsXMLAUu2cRVxxSPXmgpXLso6FY1bkMc1UqK6pek/IthsqO
-	 53aAJp2CCplMw==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id EAFD93822D1B;
-	Thu, 12 Sep 2024 13:50:34 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=arc-20240116; t=1726151244; c=relaxed/simple;
+	bh=sw6ju6hwPhos52xHgbRy2SKanMmBrNVl4ObSVQ6WrKw=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=KN5l8RJ/6o9PIo+19o06X8dXqUOI041Nyyo0SHx2ZfzwcmOYeXTGX/N1k0vIvSUfk234B7bk3HVpzENjIHpq804B3nDTa69KhIIu8YbnWK+PzgfJFgW1x+pCm57cHB6hvZFO/fS/35Pe5Baq1JBOIvDUpgbZmqWQGNh3fqGeBF4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1sokn0-0002BS-P8; Thu, 12 Sep 2024 16:27:18 +0200
+Date: Thu, 12 Sep 2024 16:27:18 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, Eric Garver <e@erig.me>
+Subject: Re: [nf-next PATCH v3 01/16] netfilter: nf_tables: Keep deleted
+ flowtable hooks until after RCU
+Message-ID: <20240912142718.GD2892@breakpoint.cc>
+References: <20240912122148.12159-1-phil@nwl.cc>
+ <20240912122148.12159-2-phil@nwl.cc>
+ <20240912133255.GB2892@breakpoint.cc>
+ <ZuLxRi8asgeW1oLB@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net] net: netfilter: move nf flowtable bpf initialization
- in nf_flow_table_module_init()
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <172614903350.1599668.9030316910275563985.git-patchwork-notify@kernel.org>
-Date: Thu, 12 Sep 2024 13:50:33 +0000
-References: <20240911-nf-flowtable-bpf-modprob-fix-v1-1-f9fc075aafc3@kernel.org>
-In-Reply-To: <20240911-nf-flowtable-bpf-modprob-fix-v1-1-f9fc075aafc3@kernel.org>
-To: Lorenzo Bianconi <lorenzo@kernel.org>
-Cc: pablo@netfilter.org, kadlec@netfilter.org, davem@davemloft.net,
- edumazet@google.com, kuba@kernel.org, pabeni@redhat.com, ast@kernel.org,
- daniel@iogearbox.net, memxor@gmail.com, fw@strlen.de,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- netdev@vger.kernel.org, bpf@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZuLxRi8asgeW1oLB@orbyte.nwl.cc>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-Hello:
-
-This patch was applied to netdev/net.git (main)
-by Paolo Abeni <pabeni@redhat.com>:
-
-On Wed, 11 Sep 2024 17:37:30 +0200 you wrote:
-> Move nf flowtable bpf initialization in nf_flow_table module load
-> routine since nf_flow_table_bpf is part of nf_flow_table module and not
-> nf_flow_table_inet one. This patch allows to avoid the following kernel
-> warning running the reproducer below:
+Phil Sutter <phil@nwl.cc> wrote:
+> > nf_tables_flowtable_destroy() is called after the hook has been
+> > unregisted (detached from nf_hook list) and rcu grace period elapsed.
 > 
-> $modprobe nf_flow_table_inet
-> $rmmod nf_flow_table_inet
-> $modprobe nf_flow_table_inet
-> modprobe: ERROR: could not insert 'nf_flow_table_inet': Invalid argument
-> 
-> [...]
+> Yes, I didn't find a caller which didn't synchronize_rcu() before
+> calling it. Same applies to chain hooks, right?
 
-Here is the summary with links:
-  - [net] net: netfilter: move nf flowtable bpf initialization in nf_flow_table_module_init()
-    https://git.kernel.org/netdev/net/c/3e705251d998
+Sigh, there is nft_flowtable_find_dev() which iterates the nft_hook
+list from packet path.
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+So the syncrhonize_rcu is irrelevant as long as the entry
+is linked up and this patch is correct as-is.
 
+ list_del_rcu(&hook->list);
+ kfree(hook);
 
+is illegal, and I think this should add a helper that unlinks
+and then frees the entry via kfree_rcu and converts all instances
+of this pattern.
