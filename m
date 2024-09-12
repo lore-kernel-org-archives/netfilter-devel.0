@@ -1,34 +1,34 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B65C13D556;
-	Thu, 12 Sep 2024 13:50:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E53651A4E89;
+	Thu, 12 Sep 2024 13:50:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726149032; cv=none; b=V8B3OTlPaRWJYfZrdSF+XH9B2bv5/xAVNnPplLr/zA8hZqbC9RH7rRhvdzXsAz9iBit5N4sluid3gf31CclGBu3U395FY7eEIwaO6ysmzr22y64+ZCdhfnPNo+sgWBkRXMcvag5b1XLPLNjGOsXz4nY7LikHxEnBllDbxjOcfxM=
+	t=1726149033; cv=none; b=oIIejGeGWJEatQ4dHaV1Geqvp9JpjBH2uQtOIzUcGtumX664VbpDPiSudZEe/Skm5JQFSQSX1Hp8KZrN7k3hQJP2HIgNVfueknmALjM+giqAkxMvwdjQxDQmLkIcY/S5t8J2Wi46y8nzxh8G2wlXPNCKrmbV/skho8Vas4lKxzA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726149032; c=relaxed/simple;
-	bh=g+uJC+Sev/eO8N8f57gatkGyrIOD9acM6qNnMfKi4BE=;
+	s=arc-20240116; t=1726149033; c=relaxed/simple;
+	bh=GbVxCpbItfv5RKig6nCXjTfDmTD0G9RZJB5PwbQiktA=;
 	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=oQ4WLOXDHxSgh87OyiDZF5EKsoyQ5qLGIsIBgkGhKt+wHpDYUDS8cAsHtW/ZLfKgcKQtsyKml34sXrYRRJsS7NZAwacq6chYqqyNuWUQJ2z2emA67jiXsC5M97akN++UUWiH/smmuFD8vor628Wjc2PaMYg1ocpJwyiY2pq8np8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bGRSCog6; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=pnLroVX8mW5l/xkTHNIA3QD3cSFCUOF3GGS+ah7Z2e/wbK5bCGU+uVrmmei9MeK1NATKxu1sA86gjlSQSKRSYql/Zs2ni6vFLx8GcTa9Uz+WhCu7+Q/kKAYPZ7l/tlPMHJVZAVkQnrIKQuiw59YnbGq3Zlkk78EQQbouX+DS0hc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ix72SX3A; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bGRSCog6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10E76C4CEC3;
-	Thu, 12 Sep 2024 13:50:31 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ix72SX3A"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84BD8C4CEC4;
+	Thu, 12 Sep 2024 13:50:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1726149031;
-	bh=g+uJC+Sev/eO8N8f57gatkGyrIOD9acM6qNnMfKi4BE=;
+	s=k20201202; t=1726149032;
+	bh=GbVxCpbItfv5RKig6nCXjTfDmTD0G9RZJB5PwbQiktA=;
 	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=bGRSCog6CDRQ9mm+cTiiem2ZiIKkECitl+STD+9NToS3mhbtUxox114c4f0RRngB/
-	 8dFdCBFLmTELG/6J/4KFHBRhZ6mn8GmIc3Fz/apqfMFMdoNmEsEyLXpwhfFCwbjI1R
-	 iGhm5X8ebynIRAwnEb6D6dmdFwhsnDgT+Mf61i87KKkhGuMLu8YTGu+D6lzw1Dt57z
-	 H/Z2qC7Isn0pJjxsnMScD6+e4/g9CO20LtuCTWAJYii1H21Z3pLKmKN5iq5Rr2hr80
-	 U4KzQKtzAdFMdvD6qREWBF2uerRWK9CpgAyN2r6lg42wl5thzRigv2/pRP0A5D7JU8
-	 wPGQKskpxN42g==
+	b=ix72SX3AzaymkHMoXyajEOhuBrwkBW93Eq1wXSk7jMZXfPs/2CeBFlReOKs5umg1S
+	 ayMJCudXJHbKqu++liHqc9jj8P0DeeOYs7M1wIe4FOd2MMZ+5C4Z9QxIe3L7OPaMSS
+	 tZPoySPAbh97PxqUPhZH+wzrygKqWmCK3w+Y/eivJx9wkSfOtGanCCd/jORyAdPzzW
+	 Ine7EGJ8bbjuFsf5QoCvORGnFcogYqh/QDS6HFrS5ZHGXo5P/3/qK47uo6BVABYxAe
+	 KiXCJfHGcS4v1WE2bQogsXMLAUu2cRVxxSPXmgpXLso6FY1bkMc1UqK6pek/IthsqO
+	 53aAJp2CCplMw==
 Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 713203822D1B;
-	Thu, 12 Sep 2024 13:50:33 +0000 (UTC)
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id EAFD93822D1B;
+	Thu, 12 Sep 2024 13:50:34 +0000 (UTC)
 Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -37,39 +37,42 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/2] netfilter: nft_socket: fix sk refcount leaks
+Subject: Re: [PATCH net] net: netfilter: move nf flowtable bpf initialization
+ in nf_flow_table_module_init()
 From: patchwork-bot+netdevbpf@kernel.org
 Message-Id: 
- <172614903228.1599668.9462521259963772352.git-patchwork-notify@kernel.org>
-Date: Thu, 12 Sep 2024 13:50:32 +0000
-References: <20240911222520.3606-2-pablo@netfilter.org>
-In-Reply-To: <20240911222520.3606-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de
+ <172614903350.1599668.9030316910275563985.git-patchwork-notify@kernel.org>
+Date: Thu, 12 Sep 2024 13:50:33 +0000
+References: <20240911-nf-flowtable-bpf-modprob-fix-v1-1-f9fc075aafc3@kernel.org>
+In-Reply-To: <20240911-nf-flowtable-bpf-modprob-fix-v1-1-f9fc075aafc3@kernel.org>
+To: Lorenzo Bianconi <lorenzo@kernel.org>
+Cc: pablo@netfilter.org, kadlec@netfilter.org, davem@davemloft.net,
+ edumazet@google.com, kuba@kernel.org, pabeni@redhat.com, ast@kernel.org,
+ daniel@iogearbox.net, memxor@gmail.com, fw@strlen.de,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ netdev@vger.kernel.org, bpf@vger.kernel.org
 
 Hello:
 
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+This patch was applied to netdev/net.git (main)
+by Paolo Abeni <pabeni@redhat.com>:
 
-On Thu, 12 Sep 2024 00:25:19 +0200 you wrote:
-> From: Florian Westphal <fw@strlen.de>
+On Wed, 11 Sep 2024 17:37:30 +0200 you wrote:
+> Move nf flowtable bpf initialization in nf_flow_table module load
+> routine since nf_flow_table_bpf is part of nf_flow_table module and not
+> nf_flow_table_inet one. This patch allows to avoid the following kernel
+> warning running the reproducer below:
 > 
-> We must put 'sk' reference before returning.
-> 
-> Fixes: 039b1f4f24ec ("netfilter: nft_socket: fix erroneous socket assignment")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> $modprobe nf_flow_table_inet
+> $rmmod nf_flow_table_inet
+> $modprobe nf_flow_table_inet
+> modprobe: ERROR: could not insert 'nf_flow_table_inet': Invalid argument
 > 
 > [...]
 
 Here is the summary with links:
-  - [net,1/2] netfilter: nft_socket: fix sk refcount leaks
-    https://git.kernel.org/netdev/net/c/8b26ff7af8c3
-  - [net,2/2] netfilter: nft_socket: make cgroupsv2 matching work with namespaces
-    https://git.kernel.org/netdev/net/c/7f3287db6543
+  - [net] net: netfilter: move nf flowtable bpf initialization in nf_flow_table_module_init()
+    https://git.kernel.org/netdev/net/c/3e705251d998
 
 You are awesome, thank you!
 -- 
