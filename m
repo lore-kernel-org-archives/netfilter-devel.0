@@ -1,91 +1,100 @@
-Received: from xmbghk7.mail.qq.com (xmbghk7.mail.qq.com [43.163.128.47])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f50.google.com (mail-lf1-f50.google.com [209.85.167.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35C611A0BDE
-	for <netfilter-devel@vger.kernel.org>; Thu, 12 Sep 2024 12:00:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=43.163.128.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE2151A2567;
+	Thu, 12 Sep 2024 12:14:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726142416; cv=none; b=XYxjLbqNY8U3d9drCblZEACxhSMYOI/HOd+GF9PWmlGew2VsWB+I3cSL9BzjPWE9j72fuYcalG9GZ6znaPm090I9y+4m9ilSbnSt0hYSLt7suuBaPPSd3W9vUQMsDS87JKHeNCnILPXemQt6wK0nhCcsuwlfrxzBwhXsmiZgkHg=
+	t=1726143284; cv=none; b=GwHuRHhIt3emF0mTBHSL7ZRjQjSUmD/El8dpSMleKprTsDDMUZuqwe2T4oPFOOQRFLiFm264yy5bp4JU+VVhhQQgSYLogWCSYzJX7/UqWzpgd8afyPdlP2zrDM8mLbj1hqHp39SE8bKw72QuiGRyyZs6SvvszIpZSV4HG0MyYwc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726142416; c=relaxed/simple;
-	bh=AxRhtwxdMlouHBvrF6L72y4lg9fwVZJASQ0P/+pHWuE=;
-	h=Message-ID:From:To:Cc:Subject:Date:MIME-Version:Content-Type; b=mT+YsnT5jnFNWlT42zoV/JdefYu9Ut9Mjn7plQSmLPIJRZiwJ9BPn/jKxf9vE6pPJGiHY5QIYIc6g2caxexSdG4A7mnHOTX8wfbt4Tv5TuLQ3xQGCFEsRCu1AlZlmo/yqp4qxU77eU+QFvIMHM4vd86dH+vxN4G+72kgFrGC+xU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=Red54.com; spf=pass smtp.mailfrom=red54.com; dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b=z2FIwMWD; arc=none smtp.client-ip=43.163.128.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=Red54.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=red54.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b="z2FIwMWD"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
-	t=1726142391; bh=1CL0syZ2OXud57sTgIOA67UtY9dpcF7r1umhDF6Uj6w=;
-	h=From:To:Cc:Subject:Date;
-	b=z2FIwMWDolAj8W8r8wfXrl3d+6ocCcjNygBaIbRuEvKLQtY//2bbK2sknWGuyg09v
-	 zsbz5OgwF7r6cpf2M+pC6l308Ti1g3QnTN29KF9cG0lodOGPlO7Ut6ZFNcQaL+PYbZ
-	 kYcPamTuTF8Wkn74SEO7WeeVBs48BgdmpgP9+5BE=
-Received: from mail.red54.com ([2a09:bac1:31a0::16:1a0])
-	by newxmesmtplogicsvrszc5-2.qq.com (NewEsmtp) with SMTP
-	id EEC9F4EE; Thu, 12 Sep 2024 19:59:44 +0800
-X-QQ-mid: xmsmtpt1726142384t3zzabzev
-Message-ID: <tencent_FABBCCCF4EA018ED7BCF8335E5DFDEB37206@qq.com>
-X-QQ-XMAILINFO: Mc9fAEDwzgE3Ha4BhL0ZsqhZC1lJtO66j9xjJz2zg1R9U9OchXqjNrmivu3Zib
-	 y8ppJIXuQVijq25kY6ufFNmBUIS55nrMr9KmI8rD4Fczbea+xotRIZCO2/WH4OLz/V257fNp4y+R
-	 1j4aKWSxOx8q2ZeMuz+uZywPpK3wVP2OdaIP0/z9EFtDfI2d2DQUK2iYVK1UfAhURU2mnSpV0Qew
-	 1Td27GBCEJ+Q2TwAwDooWSXyHl3nnl5z0CBIXmMyF7DK7tPekfi160vRphWvZpqAY5W4enZ/rNMl
-	 HT7BpVEg423L1xRnXZ1zaWVWMC8rpF4UHVNcfC82S+YMAt6RG7otFaurtnTtL2N/HYSvs6F8meZt
-	 Is6ApJxuujAkci/iMLW4srUrVfVHRz5t5PkMNsymxbn+fFDTbYtiuMBzbbfA0JAfl+YEwjC0b+3I
-	 Dj9uuvp3beGc7HD0APQzQGd5aDCmy3pBbA1uZzkE68Y+9233JAaIR72Y29f1/lzxoE2tTHRJF6p9
-	 JTiO03eQ2qeBFRujruF9XPbthc833aTGiK58pnTnSS/fCWJ5uhFopdsm6vE13rvJbD0aVFdaikv6
-	 C+60b36WmK6VejGlKPXVodXvjJuUwbxGsJ7pcx8uiup/uBChYYGB8Os5J0I5NXLmRj1QpCkjHqpI
-	 EEMIq0W/yI3G5R43ljj3VLVKuXq41vmxFo9ovh/b1LKsiP7He7hD4vxT13tWx1imnCBtCU3zHGHi
-	 GePymfsufhqNJdhTz5vbpLVwFikcuOCP84YA2HMkyykk/+TnFZcoGZqxsRaYt+uEfmuCPm11vTT4
-	 zls3Tg+cpL6zC8y2+h5jnUAPAih1cIVVupn/4vmKfAKhz0CJd9Jmt93uqmuHVtS6Aw61HQI4/s4E
-	 IrvC8GvtyHK1G3WaGyHEqogvzNuX0EQ2SGU83qWTfk9OUFcmWd8wyRQKNodgwA0MQ7GBS8TopRrv
-	 yvG94E70jegV/vI0/t8PENQffMCvU88s+Z0woHbyWXGPKVbz+M9oA8rK78jR8Qg3IeoTihdzuGq9
-	 tsWcQiE/dvQCg0WP+Wq4Jp0rpJd3uT9+DzV8HyInPIdFqckMzW
-X-QQ-XMRINFO: NyFYKkN4Ny6FSmKK/uo/jdU=
-Sender: yeking@red54.com
-From: =?UTF-8?q?=E8=B0=A2=E8=87=B4=E9=82=A6=20=28XIE=20Zhibang=29?= <Yeking@Red54.com>
-To: netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org
-Cc: =?UTF-8?q?=E8=B0=A2=E8=87=B4=E9=82=A6=20=28XIE=20Zhibang=29?= <Yeking@Red54.com>
-Subject: [PATCH] docs: tproxy: ipt: ignore non-transparent sockets
-Date: Thu, 12 Sep 2024 11:59:33 +0000
-X-OQ-MSGID: <20240912115933.126-1-Yeking@Red54.com>
-X-Mailer: git-send-email 2.43.5
+	s=arc-20240116; t=1726143284; c=relaxed/simple;
+	bh=8p7KZcuKFWKBaLfxA+I5E9oDfDgXAwCN4bB5/v75Pv8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=e7WZ59SVKJqqy3rztsDFNwqJ/GqSksSDoZIX8t7QuSdGp3oA/5p2deplqWVhsQjR4EXMyk4JUvlFAFToXzYajMJQYohdEnBe20xwvGYwNtzVWHI7qeibzF658DYlXV+JSYaL/9OmDGHOLnWHdtNhqMYlTJHWtT/JeFxecXI0FwM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.167.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-lf1-f50.google.com with SMTP id 2adb3069b0e04-5365c060f47so1025660e87.2;
+        Thu, 12 Sep 2024 05:14:42 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1726143281; x=1726748081;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=KdHw9GQ6e2+S6Xb4WuYu0I8q6MO4LyuwN/DojR0meKY=;
+        b=pHvLIYTwxNExsNUcjzW/zoGyb6T/DLECrHAD6kaVw2xFTTZwD9+zzQlRvkSKL8oPJR
+         MQZOGHaNm5aSoOlmdcFGLIeGeUvvEB2bCI210225V4ZJ8IP/308br9fkKDmg48zl2/Fs
+         y5ab3b/vU7C3Ev0+uARh4ei0jK6wi3x3Tcd23voDrgb6gMZ9b/wqySwk/4HLomgnzULO
+         Upj2CRaujU1lzka4orH3lmcPKDxE0YLZSQhNobnGzhi79vAhcIVA5yIMYjOF2XeaIo40
+         MaWrqX3COlCQngeRcU0VXtXI4TL0jonFhVZ1RahisA+xwCnDRDXCkAOs52FVWWccHVsv
+         HjBg==
+X-Forwarded-Encrypted: i=1; AJvYcCUjvVHPjPrDfQTN90wxsw67RjQ6AYaznRvBmjZYdbMIWwttEIocnMOzALR4g0ZgJUkHA2Hwde/tESdeOkEoWZkz@vger.kernel.org, AJvYcCUrqH3durpuBezudTDurA/SOeBeC+LMFTRivs2EaNspgBNpX77fD/FHX50p8m5tkdeWPMh0L4i9QzZ0DqY=@vger.kernel.org, AJvYcCWFOYfee9sajHqbiapv4kui3tZHVT7PCrwydZbYm9X0XvrzofAZHvlKrnZ0EX5DeyTBXammnL+8@vger.kernel.org
+X-Gm-Message-State: AOJu0YzkndHpBVroBODphK3JoHUJrkiFcjyqEHhaL+bd+rZi1Z9NRXJj
+	oRuwI7QQ5rZvnzOepKA5Lj2nTxfbRSRx/3VfCYF9/lIH4rKGzRau
+X-Google-Smtp-Source: AGHT+IFQ4lgyOsageJFniboUeANrCl9n/IpwYDcONOJ66kiM2nDOjZZy+n7d1cFD0DaT7Kc3gf9gSg==
+X-Received: by 2002:a05:6512:3ca7:b0:52f:eb:aaca with SMTP id 2adb3069b0e04-53678fcebd4mr1617097e87.32.1726143280498;
+        Thu, 12 Sep 2024 05:14:40 -0700 (PDT)
+Received: from gmail.com (fwdproxy-lla-003.fbsv.net. [2a03:2880:30ff:3::face:b00c])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a8d25a2539bsm740400466b.85.2024.09.12.05.14.39
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 12 Sep 2024 05:14:40 -0700 (PDT)
+Date: Thu, 12 Sep 2024 05:14:37 -0700
+From: Breno Leitao <leitao@debian.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: fw@strlen.de, davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+	pabeni@redhat.com, Jozsef Kadlecsik <kadlec@netfilter.org>,
+	David Ahern <dsahern@kernel.org>, rbc@meta.com,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	"open list:NETFILTER" <coreteam@netfilter.org>
+Subject: Re: [PATCH nf-next v5 1/2] netfilter: Make IP6_NF_IPTABLES_LEGACY
+ selectable
+Message-ID: <20240912-colossal-uncovered-nuthatch-e1c3a8@leitao>
+References: <20240909084620.3155679-1-leitao@debian.org>
+ <20240909084620.3155679-2-leitao@debian.org>
+ <ZuIVsZ813wxD6Y3Q@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZuIVsZ813wxD6Y3Q@calendula>
 
-The iptables example was added in commit d2f26037a38a (netfilter: Add
-documentation for tproxy, 2008-10-08), but xt_socket 'transparent'
-option was added in commit a31e1ffd2231 (netfilter: xt_socket: added new
-revision of the 'socket' match supporting flags, 2009-06-09).
+On Thu, Sep 12, 2024 at 12:12:01AM +0200, Pablo Neira Ayuso wrote:
+> One more question below.
+> 
+> On Mon, Sep 09, 2024 at 01:46:18AM -0700, Breno Leitao wrote:
+> > This option makes IP6_NF_IPTABLES_LEGACY user selectable, giving
+> > users the option to configure iptables without enabling any other
+> > config.
+> >
+> > Signed-off-by: Breno Leitao <leitao@debian.org>
+> > ---
+> >  net/ipv6/netfilter/Kconfig | 9 ++++++++-
+> >  1 file changed, 8 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
+> > index f3c8e2d918e1..425cb7a3571b 100644
+> > --- a/net/ipv6/netfilter/Kconfig
+> > +++ b/net/ipv6/netfilter/Kconfig
+> > @@ -8,7 +8,14 @@ menu "IPv6: Netfilter Configuration"
+> >  
+> >  # old sockopt interface and eval loop
+> >  config IP6_NF_IPTABLES_LEGACY
+> > -	tristate
+> > +	tristate "Legacy IP6 tables support"
+> > +	depends on INET && IPV6
+> > +	select NETFILTER_XTABLES
+> > +	default n
+> > +	help
+> > +	  ip6tables is a legacy packet classification.
+> 
+>                                 Is "packet classifier" the right term?
+> 
+> I can mangle this patch before applying, no need to send one more.
 
-Now add the 'transparent' option to the iptables example to ignore
-non-transparent sockets, which is also consistent with the nft example.
-
-Signed-off-by: 谢致邦 (XIE Zhibang) <Yeking@Red54.com>
----
- Documentation/networking/tproxy.rst | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/Documentation/networking/tproxy.rst b/Documentation/networking/tproxy.rst
-index 00dc3a1a66b4..7f7c1ff6f159 100644
---- a/Documentation/networking/tproxy.rst
-+++ b/Documentation/networking/tproxy.rst
-@@ -17,7 +17,7 @@ The idea is that you identify packets with destination address matching a local
- socket on your box, set the packet mark to a certain value::
- 
-     # iptables -t mangle -N DIVERT
--    # iptables -t mangle -A PREROUTING -p tcp -m socket -j DIVERT
-+    # iptables -t mangle -A PREROUTING -p tcp -m socket --transparent -j DIVERT
-     # iptables -t mangle -A DIVERT -j MARK --set-mark 1
-     # iptables -t mangle -A DIVERT -j ACCEPT
- 
--- 
-2.30.2
-
+Thanks
+--breno
