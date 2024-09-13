@@ -1,246 +1,161 @@
-Received: from mail-yb1-f201.google.com (mail-yb1-f201.google.com [209.85.219.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F8D081720
-	for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2024 17:06:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02D844205D
+	for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2024 20:35:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726247180; cv=none; b=eNDTsOetHgYNSkzqCfrRF0yWQh5TyvDcnCBRPF0FIBDFxShGMquohvA1sP/C8PTER40PoSkSXCFojLNnOQIO1D1bwsd70xnstU049oUb3hGmhN+iAH6Z89yShk8a4fWYUXHq4IG0wPncH8ZwjZTJ7r+h+nMpck8OrZufPXeg3nI=
+	t=1726259714; cv=none; b=L4vFOMVG7MHHYx3aiWICbgO63Q7AQJ4XpaagWB0cjnHZ9RTE0t5C0XQdQCa2d7f92fJNzs7begEcazctfozvgaGqFDVycd7gtYN4NlWC7GoD6LjLykELeOPbomqxP0zWfODxgcR8K5+BqeDyQ5oAVeyvjcB+WBZpZF9eh6NaTzQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726247180; c=relaxed/simple;
-	bh=CRsmI6gxOMpsuLo45bPY23hXw9zGyGQD78sbCV3nJ6s=;
-	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=ZVPdfb6ClmQHxlJ0WAg2gfzIOmZ0s+/au4r6J/LvJcqWrqe2c7Hj6LNktAo5SgURe1a/n48tFV7ncR2t6VLYueUlOBaYVyq05B8i7IyryKB5+JymnqSSh+LfyIAKmuSKyuC5WrtrUiv5TEXquOtzA8ApYcBNgOJeTfkY10dL16Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--edumazet.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=Hx792GEJ; arc=none smtp.client-ip=209.85.219.201
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--edumazet.bounces.google.com
+	s=arc-20240116; t=1726259714; c=relaxed/simple;
+	bh=g7QiCiF+RXxvBq5q1TkRZiGUZr5uG7e/dmQQRWqEamI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=vDKPeFJZIFR/GUcHQiZOiOzW3Y48cNnuj+4DpjDTNBBn6UTZAvjqAUTN32/oS7vPp7KvRmdJBgNh3rh6+5ikpKaX47i/D8Ioq56o3OLFxok43Sj65ceBGIQ/dqvY2sDP1JZrs3l4Tg8si5GGZuNb5qn0as2immifqZ9YFJJxrVE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=hT72vOn1; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="Hx792GEJ"
-Received: by mail-yb1-f201.google.com with SMTP id 3f1490d57ef6-e1da40c6daaso3251705276.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2024 10:06:18 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1726247177; x=1726851977; darn=vger.kernel.org;
-        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=VMQEfmmM5zZqs/FvdexqNs9m62IGW0F3qftdOVgtTgw=;
-        b=Hx792GEJVOmRzXEEq3MqP4mQXmyA2+uEplfDBq+NBZgWIizz3GAWS+sleKPwf0ZUuW
-         iF2HxuIVAiWVwez2vNZtu0m56q3aeHDV90CtpKFHf+CaE5V33bZI+Q4bXBnNFvFk65yN
-         ATZ6ldMMZqmrsEPo0o8+zT9BthwuVBlxECejqyc0gDR5WLDb76kqA0PLH9TjYGsPLX+X
-         JgNGHLC52i69eHMoGQ9zRCTMSuxNLWlovR2AiJjBCsvQAXqSC754zHshb/EbOP05gNpi
-         6P6o/o64zab7ldxYuTEVG3RtedDY1uo7HFzjEfXA1daSJw3OdpVBYqCHo7o07v+Vuont
-         BtsA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1726247177; x=1726851977;
-        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=VMQEfmmM5zZqs/FvdexqNs9m62IGW0F3qftdOVgtTgw=;
-        b=bTxBfMHPRr1KTuPPnoHyDuhHFK18+WejDFhxi/FxAt6k08HoQtRxZo9UygYfFjPHvl
-         PR28A6OF83duFb0wq7fu/RyIkGtMOpkqfVhHJjSO+qh2tN/C0oMDtzew/B20YVXgdKcp
-         CMGUvIcDNymLw9oXZ83paO8CfyMAo8Y8BM+DYFSMEtKTWjDSnYWIMwwaHiYszZFjmb2m
-         sjNp/ib8VGFxsiPjDs0YRur6F+lel7ppzN2xQ4ET3OP5eeCYERR/1AJF0sQBcggZEVco
-         nKIK6rvZd4530snTDd1ozmVedxdRtHVyptUYxN66Z4sJS0XRFtYeELShMi/nZlEUrLAH
-         nz9g==
-X-Forwarded-Encrypted: i=1; AJvYcCWqjfQONw0H3khX1DZVmh+xfK3ahhOm/UwUr1npC4dr0+pXtoGgKkTYORRKIbosEgBgoh3NZt8VTzRmOH/Ucq4=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw9/7/mSboyfEOZkIWC+Y7p22gI0D2SgprpcTE9wQ+yVMfnWwbA
-	GVT2b5Z9gXzCpC7aAhyhD21G6XifHEbI43i4gzxeNPt7SiR0URnjppzHpKRjRwslDFFvf12rbLS
-	YQTGtzVCrqw==
-X-Google-Smtp-Source: AGHT+IH+hEOPIFUf35hL64NfJSvMuo2gRulrcjdy2bDnXXGH16YTKcVNMgOaDNBj/LFwj+LiFKKVQhGYnm2XVg==
-X-Received: from edumazet1.c.googlers.com ([fda3:e722:ac3:cc00:f7:ea0b:ac12:11d6])
- (user=edumazet job=sendgmr) by 2002:a25:e446:0:b0:e11:6a73:b0d with SMTP id
- 3f1490d57ef6-e1d9dc3b6c9mr8174276.6.1726247177281; Fri, 13 Sep 2024 10:06:17
- -0700 (PDT)
-Date: Fri, 13 Sep 2024 17:06:15 +0000
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="hT72vOn1"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=aOjLnizYsfQZN3KOGU6mTg2a5kH4yMqcBI/ccuy87/w=; b=hT72vOn1/dD+0oiRpMBmLHGY0F
+	dx8T0PK5fqJZf3K4d/6gRv8I5JXgulTfD1KPF49/3Ig4kQhU9yrLr0NpWTDTNqDUTO6lmi4++teJW
+	lL5n5IJTiq0/40TK/zhi4JxpxaTr2Z/R4BwWvzZHtiZ1IWEixbowLiHw17ZDZur8RDpZKf4Da+boR
+	2efyfXN4V66xTTisoQm2rdDcAGXB/Y8JMFCAYGxdBb16ZETGFimISRugLUuNx1hmPDF61AGsD2RMI
+	eieYQDifypRW2mi5bMRq1n5sojE5eVTCCyldlkL7BMGDRCpbdy8FpdQXJnnwrFh6BIW2QkcKvR+nY
+	9+Z+npeQ==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1spD0W-000000001mx-2pxK;
+	Fri, 13 Sep 2024 22:35:08 +0200
+Date: Fri, 13 Sep 2024 22:35:08 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Antonio Ojea <antonio.ojea.garcia@gmail.com>
+Cc: Florian Westphal <fw@strlen.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: nft_tproxy: make it terminal
+Message-ID: <ZuSh_Io3Yt8LkyUh@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Antonio Ojea <antonio.ojea.garcia@gmail.com>,
+	Florian Westphal <fw@strlen.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+References: <20240913102347.GA15700@breakpoint.cc>
+ <ZuQT60TznuVOHtZg@calendula>
+ <20240913104101.GA16472@breakpoint.cc>
+ <ZuQYPr3ugqG-Yz82@calendula>
+ <CABhP=tZKgrWo2oH3h=cA8KreLZtYr1TZw7EfqgGwWitWZAPqyw@mail.gmail.com>
+ <ZuQg6d9zGDZKbWBO@calendula>
+ <ZuQpbnjAoutXEFUj@orbyte.nwl.cc>
+ <ZuQx3_x6JJgzA0gS@calendula>
+ <20240913141804.GA22091@breakpoint.cc>
+ <CABhP=tYWf7-Ydi6HyOQ_syeS=k6Y9xPbSGYTSjOjhYpA=Jk-TQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-X-Mailer: git-send-email 2.46.0.662.g92d0881bb0-goog
-Message-ID: <20240913170615.3670897-1-edumazet@google.com>
-Subject: [PATCH net] netfilter: nf_reject_ipv6: fix nf_reject_ip6_tcphdr_put()
-From: Eric Dumazet <edumazet@google.com>
-To: "David S . Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>, 
-	Paolo Abeni <pabeni@redhat.com>, Pablo Neira Ayuso <pablo@netfilter.org>, 
-	Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
-	coreteam@netfilter.org, eric.dumazet@gmail.com, 
-	Eric Dumazet <edumazet@google.com>, syzbot <syzkaller@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CABhP=tYWf7-Ydi6HyOQ_syeS=k6Y9xPbSGYTSjOjhYpA=Jk-TQ@mail.gmail.com>
 
-syzbot reported that nf_reject_ip6_tcphdr_put() was possibly sending
-garbage on the four reserved tcp bits (th->res1)
+Hi Antonio,
 
-Use skb_put_zero() to clear the whole TCP header,
-as done in nf_reject_ip_tcphdr_put()
+On Fri, Sep 13, 2024 at 05:38:21PM +0200, Antonio Ojea wrote:
+> On Fri, 13 Sept 2024 at 16:18, Florian Westphal <fw@strlen.de> wrote:
+> >
+> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > > Hmm. Looking at nft_nat.c, 'accept' seems consistent with what nat
+> > > > statements do implicitly.
+> > >
+> > > Yes, and xt_TPROXY does NF_ACCEPT.
+> > >
+> > > On the other hand, I can see it does NF_DROP it socket is not
+> > > transparent, it does NFT_BREAK instead, so policy keeps evaluating the
+> > > packet.
+> >
+> > Yes, this is more flexible since you can log+drop for instance in next
+> > rule(s) to alert that proxy isn't running for example.
+> >
+> 
+> This is super useful, in the scenario that the transparent proxy takes
+> over the DNATed virtual IP, if the transparent proxy process is not
+> running the packet goes to the DNATed virtual IP so the clients don't
+> observe any disruption.
 
-BUG: KMSAN: uninit-value in nf_reject_ip6_tcphdr_put+0x688/0x6c0 net/ipv6/netfilter/nf_reject_ipv6.c:255
-  nf_reject_ip6_tcphdr_put+0x688/0x6c0 net/ipv6/netfilter/nf_reject_ipv6.c:255
-  nf_send_reset6+0xd84/0x15b0 net/ipv6/netfilter/nf_reject_ipv6.c:344
-  nft_reject_inet_eval+0x3c1/0x880 net/netfilter/nft_reject_inet.c:48
-  expr_call_ops_eval net/netfilter/nf_tables_core.c:240 [inline]
-  nft_do_chain+0x438/0x22a0 net/netfilter/nf_tables_core.c:288
-  nft_do_chain_inet+0x41a/0x4f0 net/netfilter/nft_chain_filter.c:161
-  nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
-  nf_hook_slow+0xf4/0x400 net/netfilter/core.c:626
-  nf_hook include/linux/netfilter.h:269 [inline]
-  NF_HOOK include/linux/netfilter.h:312 [inline]
-  ipv6_rcv+0x29b/0x390 net/ipv6/ip6_input.c:310
-  __netif_receive_skb_one_core net/core/dev.c:5661 [inline]
-  __netif_receive_skb+0x1da/0xa00 net/core/dev.c:5775
-  process_backlog+0x4ad/0xa50 net/core/dev.c:6108
-  __napi_poll+0xe7/0x980 net/core/dev.c:6772
-  napi_poll net/core/dev.c:6841 [inline]
-  net_rx_action+0xa5a/0x19b0 net/core/dev.c:6963
-  handle_softirqs+0x1ce/0x800 kernel/softirq.c:554
-  __do_softirq+0x14/0x1a kernel/softirq.c:588
-  do_softirq+0x9a/0x100 kernel/softirq.c:455
-  __local_bh_enable_ip+0x9f/0xb0 kernel/softirq.c:382
-  local_bh_enable include/linux/bottom_half.h:33 [inline]
-  rcu_read_unlock_bh include/linux/rcupdate.h:908 [inline]
-  __dev_queue_xmit+0x2692/0x5610 net/core/dev.c:4450
-  dev_queue_xmit include/linux/netdevice.h:3105 [inline]
-  neigh_resolve_output+0x9ca/0xae0 net/core/neighbour.c:1565
-  neigh_output include/net/neighbour.h:542 [inline]
-  ip6_finish_output2+0x2347/0x2ba0 net/ipv6/ip6_output.c:141
-  __ip6_finish_output net/ipv6/ip6_output.c:215 [inline]
-  ip6_finish_output+0xbb8/0x14b0 net/ipv6/ip6_output.c:226
-  NF_HOOK_COND include/linux/netfilter.h:303 [inline]
-  ip6_output+0x356/0x620 net/ipv6/ip6_output.c:247
-  dst_output include/net/dst.h:450 [inline]
-  NF_HOOK include/linux/netfilter.h:314 [inline]
-  ip6_xmit+0x1ba6/0x25d0 net/ipv6/ip6_output.c:366
-  inet6_csk_xmit+0x442/0x530 net/ipv6/inet6_connection_sock.c:135
-  __tcp_transmit_skb+0x3b07/0x4880 net/ipv4/tcp_output.c:1466
-  tcp_transmit_skb net/ipv4/tcp_output.c:1484 [inline]
-  tcp_connect+0x35b6/0x7130 net/ipv4/tcp_output.c:4143
-  tcp_v6_connect+0x1bcc/0x1e40 net/ipv6/tcp_ipv6.c:333
-  __inet_stream_connect+0x2ef/0x1730 net/ipv4/af_inet.c:679
-  inet_stream_connect+0x6a/0xd0 net/ipv4/af_inet.c:750
-  __sys_connect_file net/socket.c:2061 [inline]
-  __sys_connect+0x606/0x690 net/socket.c:2078
-  __do_sys_connect net/socket.c:2088 [inline]
-  __se_sys_connect net/socket.c:2085 [inline]
-  __x64_sys_connect+0x91/0xe0 net/socket.c:2085
-  x64_sys_call+0x27a5/0x3ba0 arch/x86/include/generated/asm/syscalls_64.h:43
-  do_syscall_x64 arch/x86/entry/common.c:52 [inline]
-  do_syscall_64+0xcd/0x1e0 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
+So here's a use-case for why non-terminal tproxy statement is superior
+over terminal one. :)
 
-Uninit was stored to memory at:
-  nf_reject_ip6_tcphdr_put+0x60c/0x6c0 net/ipv6/netfilter/nf_reject_ipv6.c:249
-  nf_send_reset6+0xd84/0x15b0 net/ipv6/netfilter/nf_reject_ipv6.c:344
-  nft_reject_inet_eval+0x3c1/0x880 net/netfilter/nft_reject_inet.c:48
-  expr_call_ops_eval net/netfilter/nf_tables_core.c:240 [inline]
-  nft_do_chain+0x438/0x22a0 net/netfilter/nf_tables_core.c:288
-  nft_do_chain_inet+0x41a/0x4f0 net/netfilter/nft_chain_filter.c:161
-  nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
-  nf_hook_slow+0xf4/0x400 net/netfilter/core.c:626
-  nf_hook include/linux/netfilter.h:269 [inline]
-  NF_HOOK include/linux/netfilter.h:312 [inline]
-  ipv6_rcv+0x29b/0x390 net/ipv6/ip6_input.c:310
-  __netif_receive_skb_one_core net/core/dev.c:5661 [inline]
-  __netif_receive_skb+0x1da/0xa00 net/core/dev.c:5775
-  process_backlog+0x4ad/0xa50 net/core/dev.c:6108
-  __napi_poll+0xe7/0x980 net/core/dev.c:6772
-  napi_poll net/core/dev.c:6841 [inline]
-  net_rx_action+0xa5a/0x19b0 net/core/dev.c:6963
-  handle_softirqs+0x1ce/0x800 kernel/softirq.c:554
-  __do_softirq+0x14/0x1a kernel/softirq.c:588
+> > > > > is this sufficient in your opinion? If so, I made this quick update
+> > > > > for man nft(8).
+> > > >
+> > > > Acked-by: Phil Sutter <phil@nwl.cc>
+> > > >
+> > > > In addition to that, I will update tproxy_tg_xlate() in iptables.git to
+> > > > emit a verdict, too.
+> > >
+> > > Thanks, this is very convenient.
+> >
+> > Agreed, it should append accept keyword in the translator.
+> 
+> I'm not completely following the technical details sorry.
 
-Uninit was stored to memory at:
-  nf_reject_ip6_tcphdr_put+0x2ca/0x6c0 net/ipv6/netfilter/nf_reject_ipv6.c:231
-  nf_send_reset6+0xd84/0x15b0 net/ipv6/netfilter/nf_reject_ipv6.c:344
-  nft_reject_inet_eval+0x3c1/0x880 net/netfilter/nft_reject_inet.c:48
-  expr_call_ops_eval net/netfilter/nf_tables_core.c:240 [inline]
-  nft_do_chain+0x438/0x22a0 net/netfilter/nf_tables_core.c:288
-  nft_do_chain_inet+0x41a/0x4f0 net/netfilter/nft_chain_filter.c:161
-  nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
-  nf_hook_slow+0xf4/0x400 net/netfilter/core.c:626
-  nf_hook include/linux/netfilter.h:269 [inline]
-  NF_HOOK include/linux/netfilter.h:312 [inline]
-  ipv6_rcv+0x29b/0x390 net/ipv6/ip6_input.c:310
-  __netif_receive_skb_one_core net/core/dev.c:5661 [inline]
-  __netif_receive_skb+0x1da/0xa00 net/core/dev.c:5775
-  process_backlog+0x4ad/0xa50 net/core/dev.c:6108
-  __napi_poll+0xe7/0x980 net/core/dev.c:6772
-  napi_poll net/core/dev.c:6841 [inline]
-  net_rx_action+0xa5a/0x19b0 net/core/dev.c:6963
-  handle_softirqs+0x1ce/0x800 kernel/softirq.c:554
-  __do_softirq+0x14/0x1a kernel/softirq.c:588
+In essence, tproxy statement does not set a verdict unless it fails to
+find a suitable socket. A sample ruleset illustrating this is:
 
-Uninit was created at:
-  slab_post_alloc_hook mm/slub.c:3998 [inline]
-  slab_alloc_node mm/slub.c:4041 [inline]
-  kmem_cache_alloc_node_noprof+0x6bf/0xb80 mm/slub.c:4084
-  kmalloc_reserve+0x13d/0x4a0 net/core/skbuff.c:583
-  __alloc_skb+0x363/0x7b0 net/core/skbuff.c:674
-  alloc_skb include/linux/skbuff.h:1320 [inline]
-  nf_send_reset6+0x98d/0x15b0 net/ipv6/netfilter/nf_reject_ipv6.c:327
-  nft_reject_inet_eval+0x3c1/0x880 net/netfilter/nft_reject_inet.c:48
-  expr_call_ops_eval net/netfilter/nf_tables_core.c:240 [inline]
-  nft_do_chain+0x438/0x22a0 net/netfilter/nf_tables_core.c:288
-  nft_do_chain_inet+0x41a/0x4f0 net/netfilter/nft_chain_filter.c:161
-  nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
-  nf_hook_slow+0xf4/0x400 net/netfilter/core.c:626
-  nf_hook include/linux/netfilter.h:269 [inline]
-  NF_HOOK include/linux/netfilter.h:312 [inline]
-  ipv6_rcv+0x29b/0x390 net/ipv6/ip6_input.c:310
-  __netif_receive_skb_one_core net/core/dev.c:5661 [inline]
-  __netif_receive_skb+0x1da/0xa00 net/core/dev.c:5775
-  process_backlog+0x4ad/0xa50 net/core/dev.c:6108
-  __napi_poll+0xe7/0x980 net/core/dev.c:6772
-  napi_poll net/core/dev.c:6841 [inline]
-  net_rx_action+0xa5a/0x19b0 net/core/dev.c:6963
-  handle_softirqs+0x1ce/0x800 kernel/softirq.c:554
-  __do_softirq+0x14/0x1a kernel/softirq.c:588
+| table t {
+| 	chain c {
+| 		type filter hook prerouting priority 0
+| 		tproxy to :1234 log "packet tproxied" accept
+| 		log "no socket on port 1234 or not transparent?" drop
+| 	}
+| }
 
-Fixes: c8d7b98bec43 ("netfilter: move nf_send_resetX() code to nf_reject_ipvX modules")
-Reported-by: syzbot <syzkaller@googlegroups.com>
-Signed-off-by: Eric Dumazet <edumazet@google.com>
----
- net/ipv6/netfilter/nf_reject_ipv6.c | 14 ++------------
- 1 file changed, 2 insertions(+), 12 deletions(-)
+> With my current configuration I do set an accept action
+> 
+>    udp dport 53 tproxy ip to 127.0.0.1:46659 accept
+> 
+> and I have dnat statements after that action.
 
-diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
-index dedee264b8f6c8e5155074c6788c53fdf228ca3c..b9457473c176df7a797ae9d4dabd36bcfffaa2fd 100644
---- a/net/ipv6/netfilter/nf_reject_ipv6.c
-+++ b/net/ipv6/netfilter/nf_reject_ipv6.c
-@@ -223,33 +223,23 @@ void nf_reject_ip6_tcphdr_put(struct sk_buff *nskb,
- 			      const struct tcphdr *oth, unsigned int otcplen)
- {
- 	struct tcphdr *tcph;
--	int needs_ack;
- 
- 	skb_reset_transport_header(nskb);
--	tcph = skb_put(nskb, sizeof(struct tcphdr));
-+	tcph = skb_put_zero(nskb, sizeof(struct tcphdr));
- 	/* Truncate to length (no data) */
- 	tcph->doff = sizeof(struct tcphdr)/4;
- 	tcph->source = oth->dest;
- 	tcph->dest = oth->source;
- 
- 	if (oth->ack) {
--		needs_ack = 0;
- 		tcph->seq = oth->ack_seq;
--		tcph->ack_seq = 0;
- 	} else {
--		needs_ack = 1;
- 		tcph->ack_seq = htonl(ntohl(oth->seq) + oth->syn + oth->fin +
- 				      otcplen - (oth->doff<<2));
--		tcph->seq = 0;
-+		tcph->ack = 1;
- 	}
- 
--	/* Reset flags */
--	((u_int8_t *)tcph)[13] = 0;
- 	tcph->rst = 1;
--	tcph->ack = needs_ack;
--	tcph->window = 0;
--	tcph->urg_ptr = 0;
--	tcph->check = 0;
- 
- 	/* Adjust TCP checksum */
- 	tcph->check = csum_ipv6_magic(&ipv6_hdr(nskb)->saddr,
--- 
-2.46.0.662.g92d0881bb0-goog
+For the record, your ruleset looks like this (quoting from the kselftest
+you sent me):
 
+| table inet filter {
+|        chain divert {
+|                type filter hook prerouting priority -100; policy accept;
+|                $ip_proto daddr $virtual_ip udp dport 8080 tproxy ip_proto to :12345 meta mark set 1 accept
+|        }
+|        # Removing this chain makes the first connection to succeed
+|        chain PREROUTING {
+|                type nat hook prerouting priority 1; policy accept;
+|                $ip_proto daddr $virtual_ip udp dport 8080 dnat to umgen inc mod 2 map { 0 : $ns2_ip , 1: $ns3_ip }
+|        }
+| }
+
+Foundational lecture: 'accept' verdict covers the current hook only. Like
+with iptables, if you accept in e.g. PREROUTING, INPUT may still see the
+packet. 'drop' verdict OTOH discards the packet, so no following hooks
+will see it (obviously).
+
+Your case is special because of the different types. If I interpret this
+correctly, a new connection's packet will get tproxied by divert chain
+and dnatted by PREROUTING chain (which sets up a conntrack entry). The
+second packet will hit conntrack in prerouting hook at priority -200
+(according to the big picture[1]) and your tproxy rule does not match
+anymore. The nat type chain does not see the packet as it's not a new
+connection. Maybe this explains the behaviour you're seeing.
+
+In order to avoid the inadvertent dnat of tproxied packets, terminating
+the divert chain's rule with 'drop' instead of 'accept' should do - if
+tproxy fails, it set NFT_BREAK so the packet continues and hits
+PREROUTING chain (if the connection is new).
+
+Cheers, Phil
+
+[1] https://people.netfilter.org/pablo/nf-hooks.png
