@@ -1,83 +1,132 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AB56187849;
-	Fri, 13 Sep 2024 11:17:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A38B62C80
+	for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2024 11:24:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726226257; cv=none; b=dh+41aGd94teP+KrbuY22ODLuj+9WNcHZqqSejS+i2G76pQi1/DrJ8y+UpunryCM3FZnDggQW+Qynjx3mgT14FWTkOmP4cu9oZV3oePwXBKgn0Dknnlne0TJA7IS87yz4tgFdMUGfMpjdngEP1zfqzHNkkpA2hMsU4k+fw1VLVk=
+	t=1726226674; cv=none; b=Yo/+kxMuzo0tNOcQeVVQYYH1JiPcz4fRKhr0IOjmHwuTHIgLXO1FT1D9rHLig7Tn1GwdxJg54nd095+MnVf8H2xSZAlF0t3rzqYz+pL2R3JLvDcdUX1EF0bA0/4FvzkfUhQBNrMXHMxspOfU3qsgPRnSd2B/njkViAl6nVgecfc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726226257; c=relaxed/simple;
-	bh=68sScwS5SIib1G11p6Hu/7v3V+LPBdR0qoLi2atvoIk=;
+	s=arc-20240116; t=1726226674; c=relaxed/simple;
+	bh=+66uQKoCADJkvGJ1/9NNk4VvCAr71pTBIBHP8Y9px8s=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=XF8GjSYQJd6huP5QRv3HPVixeYTMJCDABfhhSSNYAvB1tQWHMprG3TZIkk4P/irDv9Mai1L5yW+HCTZM0GglvkthbsdszAX9v1LGP30xde4HUZryMGWIGyZdzHH6uf7j2dF4ikmgyAXAB/nHfp4lgYgZDUrixQ7eKwaF3/pN1FM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=amSm8OHH; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="amSm8OHH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B20DC4CEC0;
-	Fri, 13 Sep 2024 11:17:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1726226257;
-	bh=68sScwS5SIib1G11p6Hu/7v3V+LPBdR0qoLi2atvoIk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=amSm8OHHk+ZZCy+kx4/gf8t7jUfsLnkxhQlFtLTDaCKn+QzykUnNG+XJB9rBtuZds
-	 X8bSX10FjTrLNrsbwqvjo7co4kImG/ZuMW+Di4dxeywgBZhPeU19cDCp6R7ikPSVX7
-	 apgaBHrguVmIbc7fu4VB4L4kElXaYwav9vknxzAOMMT7rUQ82cBT+mIqhGROeTK2kx
-	 k7WXCdd7nDv3NTTrlGAh5YoJ4qWY+TXVfwMPqDX0K7x0WNx5jNQ1XHbcCIz/S6v1c3
-	 AHFWXFnKoeENM6P4pEh6/bckzbJT2otXItn+RUPyvMphWwUlKCe+Sa2MMsrjgA50y5
-	 bAAWqNThLGWuQ==
-Date: Fri, 13 Sep 2024 12:17:32 +0100
-From: Simon Horman <horms@kernel.org>
-To: Justin Stitt <justinstitt@google.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Roopa Prabhu <roopa@nvidia.com>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	bridge@lists.linux.dev, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org,
-	Kees Cook <kees@kernel.org>
-Subject: Re: [PATCH] netfilter: nf_tables: replace deprecated strncpy with
- strscpy_pad
-Message-ID: <20240913111732.GV572255@kernel.org>
-References: <20240909-strncpy-net-bridge-netfilter-nft_meta_bridge-c-v1-1-946180aa7909@google.com>
+	 Content-Type:Content-Disposition:In-Reply-To; b=nkH8xqJ+mKcSSzYPrHlLq2/X+C9QyD53ySg5kcWkp03IhmS7t43W1q6xQVlLlrt/NMeXn5aS6HJQn334m8IYkMkJnoYovX2+AU7FckeT2oTauwYkYmR8iKP1jcSQw9RkCMDk264NxNDEItxx/664O/Gfl/QOrfOJjlc/bO1G6go=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=36586 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1sp4Pa-00AITK-Ch; Fri, 13 Sep 2024 13:24:28 +0200
+Date: Fri, 13 Sep 2024 13:24:25 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Antonio Ojea <antonio.ojea.garcia@gmail.com>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	phil@nwl.cc
+Subject: Re: [PATCH nf] netfilter: nft_tproxy: make it terminal
+Message-ID: <ZuQg6d9zGDZKbWBO@calendula>
+References: <20240913102023.3948-1-pablo@netfilter.org>
+ <20240913102347.GA15700@breakpoint.cc>
+ <ZuQT60TznuVOHtZg@calendula>
+ <20240913104101.GA16472@breakpoint.cc>
+ <ZuQYPr3ugqG-Yz82@calendula>
+ <CABhP=tZKgrWo2oH3h=cA8KreLZtYr1TZw7EfqgGwWitWZAPqyw@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="kXPHocxCTbB5bohl"
 Content-Disposition: inline
-In-Reply-To: <20240909-strncpy-net-bridge-netfilter-nft_meta_bridge-c-v1-1-946180aa7909@google.com>
+In-Reply-To: <CABhP=tZKgrWo2oH3h=cA8KreLZtYr1TZw7EfqgGwWitWZAPqyw@mail.gmail.com>
+X-Spam-Score: -1.9 (-)
 
-On Mon, Sep 09, 2024 at 03:48:39PM -0700, Justin Stitt wrote:
-> strncpy() is deprecated for use on NUL-terminated destination strings [1] and
-> as such we should prefer more robust and less ambiguous string interfaces.
-> 
-> In this particular instance, the usage of strncpy() is fine and works as
-> expected. However, towards the goal of [2], we should consider replacing
-> it with an alternative as many instances of strncpy() are bug-prone. Its
-> removal from the kernel promotes better long term health for the
-> codebase.
-> 
-> The current usage of strncpy() likely just wants the NUL-padding
-> behavior offered by strncpy() and doesn't care about the
-> NUL-termination. Since the compiler doesn't know the size of @dest, we
-> can't use strtomem_pad(). Instead, use strscpy_pad() which behaves
-> functionally the same as strncpy() in this context -- as we expect
-> br_dev->name to be NUL-terminated itself.
-> 
-> Link: https://www.kernel.org/doc/html/latest/process/deprecated.html#strncpy-on-nul-terminated-strings [1]
-> Link: https://github.com/KSPP/linux/issues/90 [2]
-> Link: https://manpages.debian.org/testing/linux-manual-4.8/strscpy.9.en.html
-> Cc: Kees Cook <keescook@chromium.org>
-> Cc: linux-hardening@vger.kernel.org
-> Signed-off-by: Justin Stitt <justinstitt@google.com>
-> ---
-> Note: build-tested only.
 
-Reviewed-by: Simon Horman <horms@kernel.org>
+--kXPHocxCTbB5bohl
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+
+On Fri, Sep 13, 2024 at 01:02:02PM +0200, Antonio Ojea wrote:
+> On Fri, 13 Sept 2024 at 12:47, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> >
+> > On Fri, Sep 13, 2024 at 12:41:01PM +0200, Florian Westphal wrote:
+> > > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > > On Fri, Sep 13, 2024 at 12:23:47PM +0200, Florian Westphal wrote:
+> > > > > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > > > > tproxy action must be terminal since the intent of the user to steal the
+> > > > > > traffic and redirect to the port.
+> > > > > > Align this behaviour to iptables to make it easier to migrate by issuing
+> > > > > > NF_ACCEPT for packets that are redirect to userspace process socket.
+> > > > > > Otherwise, NF_DROP packet if socket transparent flag is not set on.
+> > > > >
+> > > > > The nonterminal behaviour is intentional. This change will likely
+> > > > > break existing setups.
+> > > > >
+> > > > > nft add rule filter divert tcp dport 80 tproxy to :50080 meta mark set 1 accept
+> > > > >
+> > > > > This is a documented example.
+> > > >
+> > > > Ouch. Example could have been:
+> > > >
+> > > >   nft add rule filter divert tcp dport 80 socket transparent meta set 1 tproxy to :50080
+> > >
+> > > Yes, but its not the same.
+> > >
+> > > With the statements switched, all tcp dport 80 have the mark set.
+> > > With original example, the mark is set only if tproxy found a
+> > > transparent sk.
+> >
+> > Indeed, thanks for correcting me.
+> >
+> > I'm remembering now why this was done to provide to address the ugly
+> > mark hack that xt_TPROXY provides.
+> >
+> > While this is making harder to migrate, making it non-terminal is
+> > allowing to make more handling such as ct/meta marking after it.
+> >
+> > I think we just have to document this in man nft(8).
+> 
+> I think that at this point in time the current state can not be broken
+> based on this discussion, I just left the comment in the bugzilla
+> about the possibility but it is clear now that people that have
+> already started using this feature with nftables must not experience a
+> disruption.
+> On the other side, users that need to migrate will have to adapt more
+> things so I don't think it should be a big deal.
+> What I really think is that users should have a way to terminate
+> processing to avoid other rules to interfere with the tproxy
+> functionality
+
+It is possible to add an explicit 'accept' verdict as the example
+above displays:
+
+        tcp dport 80 tproxy to :50080 meta mark set 1 accept
+                                                      ^^^^^^
+
+is this sufficient in your opinion? If so, I made this quick update
+for man nft(8).
+
+--kXPHocxCTbB5bohl
+Content-Type: text/x-diff; charset=utf-8
+Content-Disposition: attachment; filename="nft-doc.patch"
+
+diff --git a/doc/statements.txt b/doc/statements.txt
+index 5becf0cbdbcf..3c5059ead608 100644
+--- a/doc/statements.txt
++++ b/doc/statements.txt
+@@ -604,6 +604,11 @@ table inet x {
+ }
+ -------------------------------------
+ 
++Note that the tproxy statement is non-terminal to allow post-processing of
++packets, such as updating the packet marking. This is a change in behavior
++compared to the legacy iptables TPROXY target which is terminal. To terminate
++the packet processing after the tproxy statement, remember to issue a verdict.
++
+ SYNPROXY STATEMENT
+ ~~~~~~~~~~~~~~~~~~
+ This statement will process TCP three-way-handshake parallel in netfilter
+
+--kXPHocxCTbB5bohl--
