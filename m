@@ -1,117 +1,83 @@
-Received: from mail-il1-f180.google.com (mail-il1-f180.google.com [209.85.166.180])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9129E3716D
-	for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2024 11:02:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AB56187849;
+	Fri, 13 Sep 2024 11:17:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726225362; cv=none; b=A47P2BVedAPN0UFkzCQSm69ShXFSOUjqax11tkf3l//sDZeVseOAXuJQl2Dcjfc2r9qxDhslra/hmQ54fyZNSkc8TGCu5jiyWpckXEKtlyagW15NtJ+qCgI6QkvxQdTBwnTOY6X9rZDIRNQZetRuBV9+vUuOfggnH6dCKi6rNhc=
+	t=1726226257; cv=none; b=dh+41aGd94teP+KrbuY22ODLuj+9WNcHZqqSejS+i2G76pQi1/DrJ8y+UpunryCM3FZnDggQW+Qynjx3mgT14FWTkOmP4cu9oZV3oePwXBKgn0Dknnlne0TJA7IS87yz4tgFdMUGfMpjdngEP1zfqzHNkkpA2hMsU4k+fw1VLVk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726225362; c=relaxed/simple;
-	bh=q/nbbegraOsNKa3GughEPc5EgMhmPunFeYJ3Rwr7nZI=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=H5BCcvG8dADlUpoan2TIzbclYvfrmncpKkhzETlB034cjjUzSaHf57G2+6MA1FOeFGU/l44eFEUM8laOR74Q86oOS9438JibyLVgtQD/qtLL4Er8lgKPgw09rmmZ03B8OP8T01aVcKPxyQ8h55L9ivGxMgDtefgOPQacIleCp/s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mcgWOpzZ; arc=none smtp.client-ip=209.85.166.180
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1726226257; c=relaxed/simple;
+	bh=68sScwS5SIib1G11p6Hu/7v3V+LPBdR0qoLi2atvoIk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=XF8GjSYQJd6huP5QRv3HPVixeYTMJCDABfhhSSNYAvB1tQWHMprG3TZIkk4P/irDv9Mai1L5yW+HCTZM0GglvkthbsdszAX9v1LGP30xde4HUZryMGWIGyZdzHH6uf7j2dF4ikmgyAXAB/nHfp4lgYgZDUrixQ7eKwaF3/pN1FM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=amSm8OHH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mcgWOpzZ"
-Received: by mail-il1-f180.google.com with SMTP id e9e14a558f8ab-39d2e4d73bcso8106985ab.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2024 04:02:40 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1726225359; x=1726830159; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=3gI3lReJ8dEK67Z0qFV75ztQWDKCtLAAnvVgsQT1018=;
-        b=mcgWOpzZ+OAEYFSmLk2y6FttVVTPmIFte7IgsRplQEqeIMyerP5poRJar3KoInUo6D
-         0HTOvhCUPCe+JbMcNrHVeiTZnmesDSHVND84w20zY0bQlPzbGt6xBn4GUpXGVdXRylx3
-         +nc4VjjKz/vRHSlqHGH0atlhov2jxPS/OKWPqV6KvR3dgyleR7bUl/snqumuM0kn3hgC
-         p0icfQe03kFfEqWTCP6MnOLOLgJp/8PiVNrmQFjoJvKxFH9aZwJeeCQ6G9xvJ3bJ/ZZC
-         Am6+IoUtMMKf2CP7OvA8r8FOMFxGDdDZ/x9x8+nhi+K5n44RtjMW1D7N5V4bNI2fk/FP
-         3EZA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1726225359; x=1726830159;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=3gI3lReJ8dEK67Z0qFV75ztQWDKCtLAAnvVgsQT1018=;
-        b=qtD49lLpshLMvxoSBMPwnLhCGy5GE9gQGynnX4ylFZ0C9Vp+zEx4H+JB8FFOISCtZh
-         K3w1JkshAI9J9aHUOSitj2FDLmLc4HOpd6RyQ2JEpe5TaC7uGsiu5Xxu3d0n/LDgZEC9
-         cqjryfZab1UhZjRKqElismbLZnq89k8LaQNB96T4hh3OnLkgw5FJzIMji2UTY2hBmcKH
-         ATnqmP2sqMjK+37BgESj3MWEMUiMbvVAjnVFFAOi9J2E6YYlH86IKyPkeftR8B/KNAke
-         Tsch6BAQzKsO+JGgr8bPq6JCc9Jr5GM5T34M8TyunX/2m7RhG2yxQ0mW4hT7QoILTdsQ
-         oCtg==
-X-Forwarded-Encrypted: i=1; AJvYcCV4pgfcwX64WbhoJHUTyIXr4rb4nlDYGd2oE+386wbIWIlvJsOQWJ4coJRtUTRN/0KEAM5UanCYHcNFshxaGFM=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxcLq+hMky9M9t3IvD2BuoF/j4sTSDg4Gcn0TlRG3Pb/3HEJrlo
-	XQzhfVGWD23Aotu0a/sZGrUTEsVjQzlpOvzJFzeI08kzUORC5Y98aYyTz5fvt3jH+Zx+yxKfDSM
-	8TjbH32vlgJ1OmXVkY2LrshRwJUOaRKFk
-X-Google-Smtp-Source: AGHT+IEZH8KVY7kkj/Hc59/Xye1eUNavgKnIQGphleos+2y9E7tvSIqzL4GsLgYfj5Jllzb33ZshgR1NGmihPZNiAnQ=
-X-Received: by 2002:a05:6e02:1486:b0:39f:5147:ba7b with SMTP id
- e9e14a558f8ab-3a08497f558mr67854045ab.25.1726225359646; Fri, 13 Sep 2024
- 04:02:39 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="amSm8OHH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B20DC4CEC0;
+	Fri, 13 Sep 2024 11:17:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1726226257;
+	bh=68sScwS5SIib1G11p6Hu/7v3V+LPBdR0qoLi2atvoIk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=amSm8OHHk+ZZCy+kx4/gf8t7jUfsLnkxhQlFtLTDaCKn+QzykUnNG+XJB9rBtuZds
+	 X8bSX10FjTrLNrsbwqvjo7co4kImG/ZuMW+Di4dxeywgBZhPeU19cDCp6R7ikPSVX7
+	 apgaBHrguVmIbc7fu4VB4L4kElXaYwav9vknxzAOMMT7rUQ82cBT+mIqhGROeTK2kx
+	 k7WXCdd7nDv3NTTrlGAh5YoJ4qWY+TXVfwMPqDX0K7x0WNx5jNQ1XHbcCIz/S6v1c3
+	 AHFWXFnKoeENM6P4pEh6/bckzbJT2otXItn+RUPyvMphWwUlKCe+Sa2MMsrjgA50y5
+	 bAAWqNThLGWuQ==
+Date: Fri, 13 Sep 2024 12:17:32 +0100
+From: Simon Horman <horms@kernel.org>
+To: Justin Stitt <justinstitt@google.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Roopa Prabhu <roopa@nvidia.com>,
+	Nikolay Aleksandrov <razor@blackwall.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	bridge@lists.linux.dev, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org,
+	Kees Cook <kees@kernel.org>
+Subject: Re: [PATCH] netfilter: nf_tables: replace deprecated strncpy with
+ strscpy_pad
+Message-ID: <20240913111732.GV572255@kernel.org>
+References: <20240909-strncpy-net-bridge-netfilter-nft_meta_bridge-c-v1-1-946180aa7909@google.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240913102023.3948-1-pablo@netfilter.org> <20240913102347.GA15700@breakpoint.cc>
- <ZuQT60TznuVOHtZg@calendula> <20240913104101.GA16472@breakpoint.cc> <ZuQYPr3ugqG-Yz82@calendula>
-In-Reply-To: <ZuQYPr3ugqG-Yz82@calendula>
-From: Antonio Ojea <antonio.ojea.garcia@gmail.com>
-Date: Fri, 13 Sep 2024 13:02:02 +0200
-Message-ID: <CABhP=tZKgrWo2oH3h=cA8KreLZtYr1TZw7EfqgGwWitWZAPqyw@mail.gmail.com>
-Subject: Re: [PATCH nf] netfilter: nft_tproxy: make it terminal
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org, phil@nwl.cc
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240909-strncpy-net-bridge-netfilter-nft_meta_bridge-c-v1-1-946180aa7909@google.com>
 
-On Fri, 13 Sept 2024 at 12:47, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->
-> On Fri, Sep 13, 2024 at 12:41:01PM +0200, Florian Westphal wrote:
-> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > On Fri, Sep 13, 2024 at 12:23:47PM +0200, Florian Westphal wrote:
-> > > > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > > > tproxy action must be terminal since the intent of the user to steal the
-> > > > > traffic and redirect to the port.
-> > > > > Align this behaviour to iptables to make it easier to migrate by issuing
-> > > > > NF_ACCEPT for packets that are redirect to userspace process socket.
-> > > > > Otherwise, NF_DROP packet if socket transparent flag is not set on.
-> > > >
-> > > > The nonterminal behaviour is intentional. This change will likely
-> > > > break existing setups.
-> > > >
-> > > > nft add rule filter divert tcp dport 80 tproxy to :50080 meta mark set 1 accept
-> > > >
-> > > > This is a documented example.
-> > >
-> > > Ouch. Example could have been:
-> > >
-> > >   nft add rule filter divert tcp dport 80 socket transparent meta set 1 tproxy to :50080
-> >
-> > Yes, but its not the same.
-> >
-> > With the statements switched, all tcp dport 80 have the mark set.
-> > With original example, the mark is set only if tproxy found a
-> > transparent sk.
->
-> Indeed, thanks for correcting me.
->
-> I'm remembering now why this was done to provide to address the ugly
-> mark hack that xt_TPROXY provides.
->
-> While this is making harder to migrate, making it non-terminal is
-> allowing to make more handling such as ct/meta marking after it.
->
-> I think we just have to document this in man nft(8).
+On Mon, Sep 09, 2024 at 03:48:39PM -0700, Justin Stitt wrote:
+> strncpy() is deprecated for use on NUL-terminated destination strings [1] and
+> as such we should prefer more robust and less ambiguous string interfaces.
+> 
+> In this particular instance, the usage of strncpy() is fine and works as
+> expected. However, towards the goal of [2], we should consider replacing
+> it with an alternative as many instances of strncpy() are bug-prone. Its
+> removal from the kernel promotes better long term health for the
+> codebase.
+> 
+> The current usage of strncpy() likely just wants the NUL-padding
+> behavior offered by strncpy() and doesn't care about the
+> NUL-termination. Since the compiler doesn't know the size of @dest, we
+> can't use strtomem_pad(). Instead, use strscpy_pad() which behaves
+> functionally the same as strncpy() in this context -- as we expect
+> br_dev->name to be NUL-terminated itself.
+> 
+> Link: https://www.kernel.org/doc/html/latest/process/deprecated.html#strncpy-on-nul-terminated-strings [1]
+> Link: https://github.com/KSPP/linux/issues/90 [2]
+> Link: https://manpages.debian.org/testing/linux-manual-4.8/strscpy.9.en.html
+> Cc: Kees Cook <keescook@chromium.org>
+> Cc: linux-hardening@vger.kernel.org
+> Signed-off-by: Justin Stitt <justinstitt@google.com>
+> ---
+> Note: build-tested only.
 
-I think that at this point in time the current state can not be broken
-based on this discussion, I just left the comment in the bugzilla
-about the possibility but it is clear now that people that have
-already started using this feature with nftables must not experience a
-disruption.
-On the other side, users that need to migrate will have to adapt more
-things so I don't think it should be a big deal.
-What I really think is that users should have a way to terminate
-processing to avoid other rules to interfere with the tproxy
-functionality
+Reviewed-by: Simon Horman <horms@kernel.org>
