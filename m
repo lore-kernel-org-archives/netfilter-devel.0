@@ -1,84 +1,51 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D9BCE1272A6
-	for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2024 10:20:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 856921D7E39
+	for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2024 10:23:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726222839; cv=none; b=MpKcFcVkvQwR8gOCNLgD9TBYIMB0uw9rlNpX42/Fy5VGKH05Jv8tJoR+kknDkZDhfP520URl5TijdFQdjqArj1cfnslslGqkeN30OOXEO0qMlluO989K20zlDjNJt0eVS00BVc4bs8z40J+3+asDim3Tic1nxxhXVVE5R5MkOXU=
+	t=1726223032; cv=none; b=Xb+1M0qk24Y8xR/wVKRIfmzLpt0coq4AsTrGABmRZVZBY0OJRF7TFmNK8TWsttDGftbVmZbnhnV/jtzvOa1qQ+SXybmrEnfoegEqpVyPxa+dc0+kmo8XByLBV3Zlx+NWPiuHfqekYmBh88BFGT3gFGHlCfVDfsyyWR+jJTYq8ok=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726222839; c=relaxed/simple;
-	bh=dHnt1p3WXz14t+0xciY+pxeGUIuLcByYpm6QwWgEC1Q=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=F+HxFyFbUhSECBwIgYd/vsR2bTmgOJ4binYq0QRhfH2buhU5XLFEmmJCCCG1TJQDwdijN9WIP24AjjjIzJ26zCPbNnOFPC8HZf5feuPnI1ZQZxCcsvudQHvL2jiPYuHMbfsFMBwJ9bcpAVHhqtyDTLnIPAvbjZ7ZM5eZ/vuAvhA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: antonio.ojea.garcia@gmail.com,
+	s=arc-20240116; t=1726223032; c=relaxed/simple;
+	bh=xrSt3fjmXYY+5gZYap/h1rdy20WaLOC/TJDCQZKOJww=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=FlGolmWmBx8vfYWnhZ6Ej1yh6UgyOYi5O+NOJ1vT3kSwy+u7tFPxsSzkZQTMTqTGJnwEQEqRba+6C4A9DzX1PxPTN8nq/S/hqIt65BY5m7Zhp4hwF7ilSralGpEzKVml73CEjG+LJ+SCxuQoz/WGK+VYmAhbqXohOrPQW8vu9AA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1sp3St-00046T-EB; Fri, 13 Sep 2024 12:23:47 +0200
+Date: Fri, 13 Sep 2024 12:23:47 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, antonio.ojea.garcia@gmail.com,
 	phil@nwl.cc
-Subject: [PATCH nf] netfilter: nft_tproxy: make it terminal
-Date: Fri, 13 Sep 2024 12:20:23 +0200
-Message-Id: <20240913102023.3948-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+Subject: Re: [PATCH nf] netfilter: nft_tproxy: make it terminal
+Message-ID: <20240913102347.GA15700@breakpoint.cc>
+References: <20240913102023.3948-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240913102023.3948-1-pablo@netfilter.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-tproxy action must be terminal since the intent of the user to steal the
-traffic and redirect to the port.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> tproxy action must be terminal since the intent of the user to steal the
+> traffic and redirect to the port.
+> Align this behaviour to iptables to make it easier to migrate by issuing
+> NF_ACCEPT for packets that are redirect to userspace process socket.
+> Otherwise, NF_DROP packet if socket transparent flag is not set on.
 
-Align this behaviour to iptables to make it easier to migrate by issuing
-NF_ACCEPT for packets that are redirect to userspace process socket.
-Otherwise, NF_DROP packet if socket transparent flag is not set on.
+The nonterminal behaviour is intentional. This change will likely
+break existing setups.
 
-Fixes: 4ed8eb6570a4 ("netfilter: nf_tables: Add native tproxy support")
-Reported-by: Antonio Ojea <antonio.ojea.garcia@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_tproxy.c | 18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+nft add rule filter divert tcp dport 80 tproxy to :50080 meta mark set 1 accept
 
-diff --git a/net/netfilter/nft_tproxy.c b/net/netfilter/nft_tproxy.c
-index 71412adb73d4..f3b563c379d8 100644
---- a/net/netfilter/nft_tproxy.c
-+++ b/net/netfilter/nft_tproxy.c
-@@ -74,10 +74,13 @@ static void nft_tproxy_eval_v4(const struct nft_expr *expr,
- 					   skb->dev, NF_TPROXY_LOOKUP_LISTENER);
- 	}
- 
--	if (sk && nf_tproxy_sk_is_transparent(sk))
-+	if (sk && nf_tproxy_sk_is_transparent(sk)) {
- 		nf_tproxy_assign_sock(skb, sk);
--	else
--		regs->verdict.code = NFT_BREAK;
-+		regs->verdict.code = NF_ACCEPT;
-+		return;
-+	}
-+
-+	regs->verdict.code = NF_DROP;
- }
- 
- #if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
-@@ -147,10 +150,13 @@ static void nft_tproxy_eval_v6(const struct nft_expr *expr,
- 	}
- 
- 	/* NOTE: assign_sock consumes our sk reference */
--	if (sk && nf_tproxy_sk_is_transparent(sk))
-+	if (sk && nf_tproxy_sk_is_transparent(sk)) {
- 		nf_tproxy_assign_sock(skb, sk);
--	else
--		regs->verdict.code = NFT_BREAK;
-+		regs->verdict.code = NF_ACCEPT;
-+		return;
-+	}
-+
-+	regs->verdict.code = NF_DROP;
- }
- #endif
- 
--- 
-2.30.2
-
+This is a documented example.
