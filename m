@@ -1,81 +1,121 @@
-Received: from mail-il1-f199.google.com (mail-il1-f199.google.com [209.85.166.199])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA7BB1D049D
-	for <netfilter-devel@vger.kernel.org>; Sat, 14 Sep 2024 16:12:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.199
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 905534414
+	for <netfilter-devel@vger.kernel.org>; Sat, 14 Sep 2024 22:02:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726330324; cv=none; b=GVOD6kcfiewRyTbO80crJOyySrW9VTIyp4GsD8yy8ZVjlDg8fyNEN0S3vJZnAAvPt3zovhl03jmwK27PYCC/ygPLh8Q8D5NojphXGsYycsLG5wRzIaw6sq0Tnmqo9CoaQmbYF1OKU+yZux3sl2tcw9EUTNoCtPABxD54IWA+PfQ=
+	t=1726351350; cv=none; b=s3wZwKvxOCXrTQ8Mha+/K8gp7TTN3ofB125wPuX0bdLQ4lYHnKkkB3UTCLOcN5KSGXv5gMklTiTpfqUdI02jetfRG6oE18LA+omuxJ/g1CZ3IQAyTLCYnZxa+yWUzLXSx+/jKE3+Tr9aWLX9hs5ZWEBDnwL7z9PNq+5g5rGIKQU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726330324; c=relaxed/simple;
-	bh=3/RaIZT7WdvooM9BNOa0osJLBSkrxtxxgxDPh4ZRNTU=;
-	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
-	 Content-Type; b=DVx0eDqxUJ9HxsTGwuzPr9upAstGdx99df0RHspz65FTr8H/NnpvBW/RL4XKLDQF/uYAyVgSHbqxdB02eB+CSsM/ZnpYa0UXctnf4iwKozR5L96SYZlKA0c1YuvlGUM8tWJisB/n8OKzel7g9vi0nRHRoz8SzaZr9XyhrQT6tsY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.199
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-il1-f199.google.com with SMTP id e9e14a558f8ab-3a04c2472f6so55963535ab.0
-        for <netfilter-devel@vger.kernel.org>; Sat, 14 Sep 2024 09:12:02 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1726330322; x=1726935122;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=elLGdhu/N7XTEKaqxHm49lH0bwEsUUVJ3oDAKjdaD5Q=;
-        b=dHP0KUbXebBE8tQ76KaXoT9qxIf/GJUh6dp0KEY5sSlDFZaXoqbzPDz/zrumSEkV32
-         koeYKoq1Tm3eINrNstplxEczixsWq+Fabh2Kl41H8epsSIm3wt/XK9BcVX+eP6koecWQ
-         desyRSxDRzgxnm3Rl0AJW5BQyLhp3epV00VZNFVBmBH7b0o+xT9s+WxOGpzVL2orjTMh
-         roTuduMzcg3KGKsrhTo8OgZ2cBkxB6vF6+k8+68T2n1yqSldiLMV6BAtPUEsXOa0tHv+
-         CN9+eDembrMXLs+/kRkmhd+pTzVKnEzUpJf3iugAAtNmYdPr5KfhO4rI3HvCC5y5wa8v
-         4+hw==
-X-Forwarded-Encrypted: i=1; AJvYcCXOll7YExFjtlOnAqdJlJsUbrTEcP3L+JITFsC7lTx/dUtlUHeKDgZrSj/9hAp58oZ2+1qk1A5cqVPtzDbrnS8=@vger.kernel.org
-X-Gm-Message-State: AOJu0YzwEvCuk8vzDtRsUqRacDNFQkGUNBCrmFUNIeyMY2Dpx9fbPz+M
-	/7ckClUPAspdlDGllwmyySVwUcly6UerjxmONZuJuStxDG34DZURllCw/cb+17SGKxjZz9YqW9E
-	vpzXN6qLcw9MecIe9j8+n1+Yq4eHJ2isZecpX/mgNDV3C/G4OcH22kJo=
-X-Google-Smtp-Source: AGHT+IEc++CMyi6bkWbEuObVzejUUGoJZN+8Kp9MFs8scQOh5Rafy+cL57mjP3DXHmucVMmExu3iETWNncLa6nd6JZ8MiIDzZQDF
+	s=arc-20240116; t=1726351350; c=relaxed/simple;
+	bh=Yhh9Y+qe3jaoliQiGcT+F+wlGVDp10KkRsU2nk29OI4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=T070hhBUe9H1i27naxqLPAnfNYaFN5z4pdx1DvGHCBZ6w1ZRZigSh1okyqPZcye/TuIEt20/spYIFofwnygUTxolzmvhae2VDh2z+QjUr61Lty9HwSn1QdaWcGG9iLP2Jvt++3P5T7wKismGM1sLk14OEMqKInwQOoGSS5tgBHA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1spaqX-0008DY-N1; Sun, 15 Sep 2024 00:02:25 +0200
+From: Florian Westphal <fw@strlen.de>
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] tests: shell: more ransomization for timeout parameter
+Date: Sun, 15 Sep 2024 00:02:18 +0200
+Message-ID: <20240914220222.132078-1-fw@strlen.de>
+X-Mailer: git-send-email 2.46.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:1a2e:b0:3a0:9d2c:b079 with SMTP id
- e9e14a558f8ab-3a09d2cb143mr92265ab.19.1726330321813; Sat, 14 Sep 2024
- 09:12:01 -0700 (PDT)
-Date: Sat, 14 Sep 2024 09:12:01 -0700
-In-Reply-To: <0000000000005c8e95060babfa0e@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <66e5b5d1.050a0220.115905.0008.GAE@google.com>
-Subject: Re: [syzbot] [virt?] [netfilter?] INFO: rcu detected stall in
- ip_list_rcv (6)
-From: syzbot <syzbot+45b67ef6e09a39a2cbcd@syzkaller.appspotmail.com>
-To: davem@davemloft.net, dsahern@kernel.org, edumazet@google.com, 
-	jhs@mojatatu.com, jiri@resnulli.us, kadlec@netfilter.org, kuba@kernel.org, 
-	lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pabeni@redhat.com, 
-	pablo@netfilter.org, rjw@rjwysocki.net, syzkaller-bugs@googlegroups.com, 
-	vinicius.gomes@intel.com, virtualization@lists.linux.dev, 
-	vladimir.oltean@nxp.com, xiyou.wangcong@gmail.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-syzbot suspects this issue was fixed by commit:
+Either pass no timeout argument, pass timeout+expires or omit
+timeout (uses default timeout, if any).
 
-commit e634134180885574d1fe7aa162777ba41e7fcd5b
-Author: Vladimir Oltean <vladimir.oltean@nxp.com>
-Date:   Mon May 27 15:39:54 2024 +0000
+This should not expose further kernel code to run at this time,
+but unlinke the existing (deterministic) element-update test
+case this script does have live traffic and different set types,
+including rhashtable which does async gc.
 
-    net/sched: taprio: make q->picos_per_byte available to fill_sched_entry()
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ tests/shell/testcases/transactions/30s-stress | 37 +++++++++++++++----
+ 1 file changed, 29 insertions(+), 8 deletions(-)
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=17264407980000
-start commit:   753c8608f3e5 Merge tag 'for-netdev' of https://git.kernel...
-git tree:       net-next
-kernel config:  https://syzkaller.appspot.com/x/.config?x=f8715b6ede5c4b90
-dashboard link: https://syzkaller.appspot.com/bug?extid=45b67ef6e09a39a2cbcd
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=15abc0e2e80000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=10b0c7c2e80000
+diff --git a/tests/shell/testcases/transactions/30s-stress b/tests/shell/testcases/transactions/30s-stress
+index e92b922660b8..69ceda71f490 100755
+--- a/tests/shell/testcases/transactions/30s-stress
++++ b/tests/shell/testcases/transactions/30s-stress
+@@ -290,8 +290,29 @@ available_flags()
+ 	fi
+ }
+ 
+-random_element_string=""
++random_timeout()
++{
++	local timeout=""
++	local expires
++	local r=$((RANDOM%3))
++
++	case "$r" in
++	0)
++		timeout=$((RANDOM%60))
++		timeout="timeout ${timeout}s"
++		;;
++	1)
++		timeout=$((RANDOM%60))
++		expires=$((timeout+1))
++		expires=$((RANDOM%expires))
++		timeout="timeout ${timeout}s expires ${expires}s"
++		;;
++	esac
++
++	echo -n "$timeout"
++}
+ 
++random_element_string=""
+ # create a random element.  Could cause any of the following:
+ # 1. Invalid set/map
+ # 2. Element already exists in set/map w. create
+@@ -354,17 +375,17 @@ random_elem()
+ 				r=$((RANDOM%7))
+ 				case "$r" in
+ 				0)
+-					random_element_string=" inet $table set_${cnt} { $element }"
++					random_element_string="inet $table set_${cnt} { $element }"
+ 					;;
+-				1)	random_element_string="inet $table sett${cnt} { $element timeout $((RANDOM%60))s }"
++				1)	random_element_string="inet $table sett${cnt} { $element $(random_timeout) }"
+ 					;;
+ 				2)	random_element_string="inet $table dmap_${cnt} { $element : $RANDOM }"
+ 					;;
+-				3)	random_element_string="inet $table dmapt${cnt} { $element timeout $((RANDOM%60))s : $RANDOM }"
++				3)	random_element_string="inet $table dmapt${cnt} { $element $(random_timeout) : $RANDOM }"
+ 					;;
+ 				4)	random_element_string="inet $table vmap_${cnt} { $element : `random_verdict $count` }"
+ 					;;
+-				5)	random_element_string="inet $table vmapt${cnt} { $element timeout $((RANDOM%60))s : `random_verdict $count` }"
++				5)	random_element_string="inet $table vmapt${cnt} { $element $(random_timeout) : `random_verdict $count` }"
+ 					;;
+ 				6)	random_element_string="inet $table setc${cnt} { $element }"
+ 					;;
+@@ -625,11 +646,11 @@ for table in $tables; do
+ 				esac
+ 
+ 				echo "add element inet $table set_${cnt} { $element }" >> "$tmp"
+-				echo "add element inet $table sett${cnt} { $element timeout $((RANDOM%60))s }" >> "$tmp"
++				echo "add element inet $table sett${cnt} { $element $(random_timeout) }" >> "$tmp"
+ 				echo "add element inet $table dmap_${cnt} { $element : $RANDOM }" >> "$tmp"
+-				echo "add element inet $table dmapt${cnt} { $element timeout $((RANDOM%60))s : $RANDOM }" >> "$tmp"
++				echo "add element inet $table dmapt${cnt} { $element $(random_timeout) : $RANDOM }" >> "$tmp"
+ 				echo "add element inet $table vmap_${cnt} { $element : `random_verdict $count` }" >> "$tmp"
+-				echo "add element inet $table vmapt${cnt} { $element timeout $((RANDOM%60))s : `random_verdict $count` }" >> "$tmp"
++				echo "add element inet $table vmapt${cnt} { $element $(random_timeout) : `random_verdict $count` }" >> "$tmp"
+ 			done
+ 		done
+ 	done
+-- 
+2.46.0
 
-If the result looks correct, please mark the issue as fixed by replying with:
-
-#syz fix: net/sched: taprio: make q->picos_per_byte available to fill_sched_entry()
-
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
