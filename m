@@ -1,26 +1,35 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00DF61CE71F;
-	Sat, 14 Sep 2024 11:19:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B10DE179BF;
+	Sat, 14 Sep 2024 15:21:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726312801; cv=none; b=aI+dNOya08A0lbi/78GJOkYAEWyQMGeNPlKuLMUJhZjGaGNuSyGNRTOEN9L+g54LsRvOCJ8QlS6xNp5D4ZNgg5A3+iK/7elDYfz9yi9cqwJ9UDdaVMHs+YDRSFQ5nK+poJKnZDmbIWQTkZLhERALG9sk0JiyBC4aj3JA/P4oNLo=
+	t=1726327317; cv=none; b=KoS5xIFGW9CPEu3+WXKdcR/7qwRxR6iUaF2K8EA5cM/JWaJfEjM/N/RSd4i4ijK99PWG03GYQlSKvvE2ri6BLUmKdg8gQxJZemxS9UkeCRytafCZSxNqbdLArJ5Uw9XR3uABzTycfjYwYWzVwFhJu8fZHDkQxOWQb07EFgh9hNo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726312801; c=relaxed/simple;
-	bh=B/e4582x5/eQYicpm4MVSH0gKsfgYsgnmvIVQhvpiRY=;
+	s=arc-20240116; t=1726327317; c=relaxed/simple;
+	bh=vVbuT2PkbiZL2oGC7T+8Tw6ga9ngmRsKtudtTJXUgnI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=b1HcKvAWH46O1pttwfd+kXBplvXeRbbfiwphrxFw9prBeZlMr33Ad0g3Kfh3iQvhtOHGYxp1YYsDYgwnNMjFHAZbiCANa9SJQHyOv3eVDdOk7xIgy9tYvhatgMYLTmFiEwT+udJjvCzJ8yVSFlX/3gUXKlRwTJZGhXMHERUDPWM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1spQoW-0005BJ-Ba; Sat, 14 Sep 2024 13:19:40 +0200
-Date: Sat, 14 Sep 2024 13:19:40 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Dan Carpenter <dan.carpenter@linaro.org>
-Cc: Florian Westphal <fw@strlen.de>,
+	 Content-Type:Content-Disposition:In-Reply-To; b=qZxii28dCrJuJc5YgxUDSJTCap1iJZXVh3Q5AysvHAAIuhw26QHK1TAEpadGmNMNrTC/yk8Nu7Oga/IhAuDotFZpS/hSNvab+Vt0R7wAGffSWo5SvgwaDgWqGYeqtQDlFyqPpEbOWCOQEHNp+QIpdCBnCzPtXkTFCx8rWTM/K6c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nWaN+8jm; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nWaN+8jm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1531C4CEC0;
+	Sat, 14 Sep 2024 15:21:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1726327317;
+	bh=vVbuT2PkbiZL2oGC7T+8Tw6ga9ngmRsKtudtTJXUgnI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=nWaN+8jmxXZQmoGzbOiKHglQ47GMu2Z+l01o1N+NukiwUTayXJ5sd+Gi9TDL4yml/
+	 HgzlD/r2qBF+9VXl5fL5/+PgrEqJqC8MbLzWbqzAHVReW2GzokoowdMcjiL+/f5jST
+	 jBtxb45SWFvstOK1YLrQUBI5Ov7Tbm8suYJaiS8wEtKBbZkEfXpUPTYpABCl3ZBwf0
+	 1v2s/ELNeaw+kELN5zq14BggtTGtnDMyDRocK4j0iKtehTGubfRGCZV9a9dRgbzTgH
+	 eSVpQUpPWQMsUhjn4ObnZRr56q51vAgDZIMYPWGMv0lxaXi4LoPiOMmEeVw9slms7M
+	 f8/EtKTLLt0AQ==
+Date: Sat, 14 Sep 2024 16:21:52 +0100
+From: Simon Horman <horms@kernel.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: Dan Carpenter <dan.carpenter@linaro.org>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Jozsef Kadlecsik <kadlec@netfilter.org>,
 	"David S. Miller" <davem@davemloft.net>,
@@ -31,8 +40,9 @@ Cc: Florian Westphal <fw@strlen.de>,
 	kernel-janitors@vger.kernel.org
 Subject: Re: [PATCH net] netfilter: nft_socket: Fix a NULL vs IS_ERR() bug in
  nft_socket_cgroup_subtree_level()
-Message-ID: <20240914111940.GA19902@breakpoint.cc>
+Message-ID: <20240914152152.GB11774@kernel.org>
 References: <bbc0c4e0-05cc-4f44-8797-2f4b3920a820@stanley.mountain>
+ <20240914111940.GA19902@breakpoint.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -41,14 +51,16 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <bbc0c4e0-05cc-4f44-8797-2f4b3920a820@stanley.mountain>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20240914111940.GA19902@breakpoint.cc>
 
-Dan Carpenter <dan.carpenter@linaro.org> wrote:
-> The cgroup_get_from_path() function never returns NULL, it returns error
-> pointers.  Update the error handling to match.
+On Sat, Sep 14, 2024 at 01:19:40PM +0200, Florian Westphal wrote:
+> Dan Carpenter <dan.carpenter@linaro.org> wrote:
+> > The cgroup_get_from_path() function never returns NULL, it returns error
+> > pointers.  Update the error handling to match.
+> 
+> Good news, I will retire in the next few years so I don't send shit
+> patches anymore.
+> 
+> Acked-by: Florian Westphal <fw@strlen.de>
 
-Good news, I will retire in the next few years so I don't send shit
-patches anymore.
-
-Acked-by: Florian Westphal <fw@strlen.de>
+Everyone makes mistakes, don't be too hard on yourself :)
