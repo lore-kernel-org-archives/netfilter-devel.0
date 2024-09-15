@@ -1,45 +1,34 @@
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30D85823D1;
-	Sun, 15 Sep 2024 21:22:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D4EC4779F
+	for <netfilter-devel@vger.kernel.org>; Sun, 15 Sep 2024 21:38:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726435331; cv=none; b=BZykmjQeZm4Bmf8VebBZ6nrlMTOUAoCvFKmHbfYitgMAKhMvvVTQfcQ+8Ksj/KCf2dI54MDNnymrVaEpRmaOHP46rraaM1SeC1Mn/G+PzCX6HMWX0Yy56TsyQx3LrEo2spEKB2qp0sshqZo6pfuvqaoKFDDaBwLuHyUd/X6i3sU=
+	t=1726436313; cv=none; b=UgM+uV4kRvNkds/qlD6WnCIzFRiftb/SDjhcTWo0TsfZ+Fh+hTzTr9v0FsFQHRW6wAdOxGPVq+94+aHpHMwcuNruFkQBxfSE26+lMVBE3yg2vz2O+SWcB2LGMcd8BycDZPoKjBoGo7gKEMPF6P9fjmfPmEL8PrvAIBAnUN8bBVk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726435331; c=relaxed/simple;
-	bh=uN8BuTLsECpRPRC4Gw2lbqvGL/TUi8WOUC91AGZ0qFg=;
+	s=arc-20240116; t=1726436313; c=relaxed/simple;
+	bh=cKY36x30ZxqG1kT0BinfTOv7bR9Nza6YiErOkvNroBA=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=hjqpNLDnOzzqW06+haDJToUjiMwHaeMmKDvPyLUbqOgVPpwnyzffuLORHcd2rRF2/xh84M1nAFvDI3uDYphBZ/4xYuYxQT65UP+wt5g8eUAIQWiXmQZYmvkUgh8vKnYzs3s7DZqaApf2tflGVqkvaPqy5k0xpQ9huZhwR1xzDHg=
+	 Content-Type:Content-Disposition:In-Reply-To; b=kjYjaRySprJc5Xf6WxFsyzdk0n77kISJth+Wh+SnX50Hi94+OD/0iFfzra9ShAb1EVVwbsHgKzwxU4NVUtZDGQ4jLmRAVDHteG4mWObkMpf1ZpEiftBI9uLUPrryVANyTUXsyvvshN5bl5yb2AF0BAkpKCrwQdGgjyUgYrAP8vw=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=56458 helo=gnumonks.org)
+Received: from [78.30.37.63] (port=56572 helo=gnumonks.org)
 	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <pablo@gnumonks.org>)
-	id 1spwh1-00EJcG-CH; Sun, 15 Sep 2024 23:22:05 +0200
-Date: Sun, 15 Sep 2024 23:22:02 +0200
+	id 1spwwt-00EKr5-0c; Sun, 15 Sep 2024 23:38:29 +0200
+Date: Sun, 15 Sep 2024 23:38:26 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Simon Horman <horms@kernel.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Pavel Tikhomirov <ptikhomirov@virtuozzo.com>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	llvm@lists.linux.dev, Jozsef Kadlecsik <kadlec@netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	David Ahern <dsahern@kernel.org>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Nathan Chancellor <nathan@kernel.org>,
-	Nick Desaulniers <ndesaulniers@google.com>,
-	Bill Wendling <morbo@google.com>,
-	Justin Stitt <justinstitt@google.com>
-Subject: Re: [PATCH net v1 1/1] netfilter: nf_reject: Fix build error when
- CONFIG_BRIDGE_NETFILTER=n
-Message-ID: <ZudP-mkhquCJJPXv@calendula>
-References: <20240906145513.567781-1-andriy.shevchenko@linux.intel.com>
- <20240907134837.GP2097826@kernel.org>
+To: Ahelenia =?utf-8?Q?Ziemia=C5=84ska?= <nabijaczleweli@nabijaczleweli.xyz>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] conntrack: -L doesn't take a value, so don't discard one
+ (same for -IUDGEFA)
+Message-ID: <ZudT0p40Vf0Jcjmw@calendula>
+References: <hpsesrayjbjrtja3unjpw4a3tsou3vtu7yjhrcba7dfnrahwz2@tarta.nabijaczleweli.xyz>
+ <ZtbHMe6STK_W6yfA@calendula>
+ <bymeee6fsub6oz64xtykfru25aq6xx4k2agjbeabekzfobu4jd@tarta.nabijaczleweli.xyz>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -48,56 +37,51 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20240907134837.GP2097826@kernel.org>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <bymeee6fsub6oz64xtykfru25aq6xx4k2agjbeabekzfobu4jd@tarta.nabijaczleweli.xyz>
 X-Spam-Score: -1.9 (-)
 
-Hi Simon,
+On Tue, Sep 03, 2024 at 04:53:46PM +0200, Ahelenia Ziemiańska wrote:
+> On Tue, Sep 03, 2024 at 10:22:09AM +0200, Pablo Neira Ayuso wrote:
+> > On Tue, Sep 03, 2024 at 04:16:21AM +0200, Ahelenia Ziemiańska wrote:
+> > > The manual says
+> > >    COMMANDS
+> > >        These options specify the particular operation to perform.
+> > >        Only one of them can be specified at any given time.
+> > > 
+> > >        -L --dump
+> > >               List connection tracking or expectation table
+> > > 
+> > > So, naturally, "conntrack -Lo extended" should work,
+> > > but it doesn't, it's equivalent to "conntrack -L",
+> > > and you need "conntrack -L -o extended".
+> > > This violates user expectations (borne of the Utility Syntax Guidelines)
+> > > and contradicts the manual.
+> > > 
+> > > optarg is unused, anyway. Unclear why any of these were :: at all?
+> > Because this supports:
+> >         -L
+> >         -L conntrack
+> >         -L expect
+> Well that's not what :: does, though; we realise this, right?
+> 
+> "L::" means that getopt() will return
+>   "-L", "conntrack" -> 'L',optarg=NULL
+>   "-Lconntrack"     -> 'L',optarg="conntrack"
+> and the parser for -L (&c.) doesn't... use optarg.
+> 
+> You don't parse the filter (table name? idk.) with getopt at all;
+> you can test this /right now/ by running precisely the thing you outlined:
+>   # conntrack -L > /dev/null
+>   conntrack v1.4.7 (conntrack-tools): 137 flow entries have been shown.
+>   # conntrack -L expect > /dev/null
+>   conntrack v1.4.7 (conntrack-tools): 0 expectations have been shown.
+>   # conntrack -Lexpect > /dev/null
+>   conntrack v1.4.7 (conntrack-tools): 152 flow entries have been shown.
+> and getopt returns, respectively
+>   'L',optarg=NULL
+>   'L',optarg=NULL; argv[optind]="expect"
+>   'L',optarg="expect"
+> ...and once again you discard the optarg for 'L' &c.
 
-This proposed update to address this compile time warning LGTM.
-
-Would you submit it?
-
-Thanks.
-
-On Sat, Sep 07, 2024 at 02:48:37PM +0100, Simon Horman wrote:
-[...]
-> diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
-> index 04504b2b51df..87fd945a0d27 100644
-> --- a/net/ipv4/netfilter/nf_reject_ipv4.c
-> +++ b/net/ipv4/netfilter/nf_reject_ipv4.c
-> @@ -239,9 +239,8 @@ static int nf_reject_fill_skb_dst(struct sk_buff *skb_in)
->  void nf_send_reset(struct net *net, struct sock *sk, struct sk_buff *oldskb,
->  		   int hook)
->  {
-> -	struct sk_buff *nskb;
-> -	struct iphdr *niph;
->  	const struct tcphdr *oth;
-> +	struct sk_buff *nskb;
->  	struct tcphdr _oth;
->  
->  	oth = nf_reject_ip_tcphdr_get(oldskb, &_oth, hook);
-> @@ -266,14 +265,12 @@ void nf_send_reset(struct net *net, struct sock *sk, struct sk_buff *oldskb,
->  	nskb->mark = IP4_REPLY_MARK(net, oldskb->mark);
->  
->  	skb_reserve(nskb, LL_MAX_HEADER);
-> -	niph = nf_reject_iphdr_put(nskb, oldskb, IPPROTO_TCP,
-> -				   ip4_dst_hoplimit(skb_dst(nskb)));
-> +	nf_reject_iphdr_put(nskb, oldskb, IPPROTO_TCP,
-> +			    ip4_dst_hoplimit(skb_dst(nskb)));
->  	nf_reject_ip_tcphdr_put(nskb, oldskb, oth);
->  	if (ip_route_me_harder(net, sk, nskb, RTN_UNSPEC))
->  		goto free_nskb;
->  
-> -	niph = ip_hdr(nskb);
-> -
->  	/* "Never happens" */
->  	if (nskb->len > dst_mtu(skb_dst(nskb)))
->  		goto free_nskb;
-> @@ -290,6 +287,7 @@ void nf_send_reset(struct net *net, struct sock *sk, struct sk_buff *oldskb,
->  	 */
->  	if (nf_bridge_info_exists(oldskb)) {
->  		struct ethhdr *oeth = eth_hdr(oldskb);
-> +		struct iphdr *niph = ip_hdr(nskb);
->  		struct net_device *br_indev;
->  
->  		br_indev = nf_bridge_get_physindev(oldskb, net);
+Your evaluation is correct, patch is applied, thanks.
