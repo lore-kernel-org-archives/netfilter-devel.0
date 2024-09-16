@@ -1,57 +1,70 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 702131CF96;
-	Mon, 16 Sep 2024 15:17:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E5781586DB;
+	Mon, 16 Sep 2024 15:29:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726499835; cv=none; b=K1pfPrrsPpYvqCEWRsgj2MPhpzTi6DBmymJ2AX8pFT3S6QwTcKm0MFkjkwlReCAV2yYxGx8MVOpgXIdX5xU8c/z3nWHUJMBb6OOFd9GxgUKdCtVqXokJYYksXjoRKZ/+CXN+8yXeoGl1Vjk7K0SMDJaICsFZsHx1PHVVew2VBmk=
+	t=1726500594; cv=none; b=mUGusZvEjkpcjRXLwVE525P+8HRGQM1eVYQcjA78nz3M/0hzPg9J9zXt1X6t+Tk+B3cWWt8iST4cYPUPY9h9PFS2sy1ECM2SdTo+wceTIPu6piduj8/oUpNA+Be0b4ddGBt6bOfcy0MIC7UDOZK2iLUAE36xnfH8kJ8twCsfSHg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726499835; c=relaxed/simple;
-	bh=Txos53pr9kE2IW0nRmQNNcz3mfPHCrcGkTRcAyiWRcI=;
+	s=arc-20240116; t=1726500594; c=relaxed/simple;
+	bh=MlnJdle5JwKPzYjLf3phw0YvyewBny+20yGfy84n/EI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Unf5BKmWCUA+Ne1tpBxqTFshfnlgOgAbEbDdK1+gAXG+W2wMDPlwpBS4IqG9wzH/UnQJ53+xChilExIMoFYk1ZQpg4CwO7bHINKG79NePMwXwmPPhaMT0F16I+8AVfjCJUtLDWRoHsfuoYAHysycFft1ugyJBFOZ4odPJ2GN1fI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=t7e/1De9; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=cmSgRAhD9iu62HQove6DI/8NcIraLzOvLjmqto+sGawWlWOTc0FDSRa+3NOAQJ5h1eX6i0E0Y9pydMRyO28Vtu1/06T8hJJZkeq3ip//NUCedqAmDvo1R4k99q9j45SQ0aaALVWCnh/F2qjpElHeVcHBW8Jcu8sJOAJ+/8tVKpk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=TJX5wm9J; arc=none smtp.client-ip=192.198.163.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="t7e/1De9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3F8FC4CEC4;
-	Mon, 16 Sep 2024 15:17:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1726499835;
-	bh=Txos53pr9kE2IW0nRmQNNcz3mfPHCrcGkTRcAyiWRcI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=t7e/1De98VNxJR837qITwW4ItAVFGPYHwxe6UyjVUKlUfyGkIpMngPdz4AaTBhUyp
-	 ADTt8UJCYPVEkrc08tttOOZbSQeva8aCQjVwyvEarbjjL0egjDad6wjyV1/jPJOMfC
-	 9PL5ZIj4B/Q1LmxPjqUX8ZLpoTYovcbQB0sZZRnUehHqybUXErHq6e+M5nWJsNClh0
-	 0iMCJqgwfV2qWvtjr19bE8VtnnetRcQu9o5CLOAvldj31krDUE2ISkdWS2YGzp11gZ
-	 p3HZBtmvpOeM1aQadmgvMdlJsMylKxUqyLRHw+6CmHDJAj4/OAZdStnA7FXC1nV01S
-	 TsHgAABn1PG2A==
-Date: Mon, 16 Sep 2024 16:17:09 +0100
-From: Simon Horman <horms@kernel.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="TJX5wm9J"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1726500592; x=1758036592;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=MlnJdle5JwKPzYjLf3phw0YvyewBny+20yGfy84n/EI=;
+  b=TJX5wm9JVddMpmUtMtcYS3YncCO2JSU0aGoILVua3bZA5w035vKnufp4
+   OrvU9IUJDbnx1aj3P1lmv4Ey6nrhu5zm91KVC+ZtCqA/h9tzfG8QknAAT
+   FNnJgnMNC0rpwAtyR1nROZvyf0+h3f1VIO6zH4Ch4kTAzjJyES8d7g4O5
+   GPmPYRJRrid6UDDdAfqgpeJimc+rMcCKOkAF89ySbPsVzY940tsZPKviN
+   8NvQ/CeW6TNWKpDyKEdGYa25Qnnr026o2Qspew8LvT5LdSreu99p2uvwa
+   NV9pwWtT3SyDCaezx+GwjmWBq+dogO3y2rZ8XhYzf9O9r1KktHlL+rc/E
+   A==;
+X-CSE-ConnectionGUID: uNqZllVZTyungdDHAfA5Pg==
+X-CSE-MsgGUID: lI4yKvhnQziKcCsBEZoatw==
+X-IronPort-AV: E=McAfee;i="6700,10204,11197"; a="24812896"
+X-IronPort-AV: E=Sophos;i="6.10,233,1719903600"; 
+   d="scan'208";a="24812896"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Sep 2024 08:29:52 -0700
+X-CSE-ConnectionGUID: MF6XvnWnTKWSy4D6QideRA==
+X-CSE-MsgGUID: eqncptBnTvKZCtJUhIJFtQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.10,233,1719903600"; 
+   d="scan'208";a="73729904"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by orviesa005.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Sep 2024 08:29:48 -0700
+Received: from andy by smile.fi.intel.com with local (Exim 4.98)
+	(envelope-from <andriy.shevchenko@linux.intel.com>)
+	id 1sqDfd-00000009VX1-1xi6;
+	Mon, 16 Sep 2024 18:29:45 +0300
+Date: Mon, 16 Sep 2024 18:29:45 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Simon Horman <horms@kernel.org>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Felix Huettner <felix.huettner@mail.schwarz>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	llvm@lists.linux.dev, Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
 	"David S. Miller" <davem@davemloft.net>,
 	Eric Dumazet <edumazet@google.com>,
 	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
 	Nathan Chancellor <nathan@kernel.org>,
 	Nick Desaulniers <ndesaulniers@google.com>,
 	Bill Wendling <morbo@google.com>,
-	Justin Stitt <justinstitt@google.com>
-Subject: Re: [PATCH net v1 1/1] netfilter: conntrack: Guard possoble unused
- functions
-Message-ID: <20240916151709.GA396300@kernel.org>
-References: <20240905203612.333421-1-andriy.shevchenko@linux.intel.com>
- <20240906162938.GH2097826@kernel.org>
- <Zt7B79Q3O7mNqrOl@smile.fi.intel.com>
- <20240909151712.GZ2097826@kernel.org>
- <Zt8V5xjrZaEvR8K5@smile.fi.intel.com>
- <20240909183043.GE2097826@kernel.org>
- <Zt__ZT-P0kUY909z@smile.fi.intel.com>
- <20240910094520.GB572255@kernel.org>
+	Justin Stitt <justinstitt@google.com>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, llvm@lists.linux.dev
+Subject: Re: [PATCH nf-next 0/2] netfilter: conntrack: label helpers
+ conditional compilation updates
+Message-ID: <ZuhO6XRAS0Qq3A1g@smile.fi.intel.com>
+References: <20240916-ct-ifdef-v1-0-81ef1798143b@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -60,35 +73,28 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240910094520.GB572255@kernel.org>
+In-Reply-To: <20240916-ct-ifdef-v1-0-81ef1798143b@kernel.org>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 
-On Tue, Sep 10, 2024 at 10:45:20AM +0100, Simon Horman wrote:
-> On Tue, Sep 10, 2024 at 11:12:21AM +0300, Andy Shevchenko wrote:
-> > On Mon, Sep 09, 2024 at 07:30:43PM +0100, Simon Horman wrote:
-> > > On Mon, Sep 09, 2024 at 06:36:07PM +0300, Andy Shevchenko wrote:
-> > > > On Mon, Sep 09, 2024 at 04:17:12PM +0100, Simon Horman wrote:
-> > > > > On Mon, Sep 09, 2024 at 12:37:51PM +0300, Andy Shevchenko wrote:
-> > > > > > On Fri, Sep 06, 2024 at 05:29:38PM +0100, Simon Horman wrote:
-> > > > > > > On Thu, Sep 05, 2024 at 11:36:12PM +0300, Andy Shevchenko wrote:
-> > > > > > 
-> > > > > > > Local testing seems to show that the warning is still emitted
-> > > > > > > for ctnetlink_label_size if CONFIG_NETFILTER_NETLINK_GLUE_CT is enabled
-> > > > 
-> > > > Hold on, this is not related to the patch.
-> > > > It might be another issue.
-> > > 
-> > > Yes, sorry, I see that now too.
-> > > 
-> > > Perhaps it can be fixed separately, something like this:
-> > 
-> > If you make a patch, it will help somebody who has that in their configuration
-> > files enabled (with the other one being disabled). Note, I use x86_64_defconfig
-> > which doesn't have this specific issue to be occurred.
+On Mon, Sep 16, 2024 at 04:14:40PM +0100, Simon Horman wrote:
+> Hi,
 > 
-> Thanks, I'll plan to submit a patch.
+> This short series updates conditional compilation of label helpers to:
+> 
+> 1) Compile them regardless of if CONFIG_NF_CONNTRACK_LABELS is enabled
+>    or not. It is safe to do so as the functions will always return 0 if
+>    CONFIG_NF_CONNTRACK_LABELS is not enabled.  And the compiler should
+>    optimise waway the code.  Which is the desired behaviour.
+> 
+> 2) Only compile ctnetlink_label_size if CONFIG_NF_CONNTRACK_EVENTS is
+>    enabled.  This addresses a warning about this function being unused
+>    in this case.
 
-The patch grew into two, I've posted them here:
+Both make sense to me, FWIW,
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-- [PATCH nf-next 0/2] netfilter: conntrack: label helpers conditional compilation updates
-  https://lore.kernel.org/netfilter-devel/20240916-ct-ifdef-v1-0-81ef1798143b@kernel.org/
+-- 
+With Best Regards,
+Andy Shevchenko
+
 
