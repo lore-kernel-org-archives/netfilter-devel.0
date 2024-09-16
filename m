@@ -1,100 +1,112 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E5781586DB;
-	Mon, 16 Sep 2024 15:29:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9CFA6F9DA
+	for <netfilter-devel@vger.kernel.org>; Mon, 16 Sep 2024 21:21:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726500594; cv=none; b=mUGusZvEjkpcjRXLwVE525P+8HRGQM1eVYQcjA78nz3M/0hzPg9J9zXt1X6t+Tk+B3cWWt8iST4cYPUPY9h9PFS2sy1ECM2SdTo+wceTIPu6piduj8/oUpNA+Be0b4ddGBt6bOfcy0MIC7UDOZK2iLUAE36xnfH8kJ8twCsfSHg=
+	t=1726521703; cv=none; b=Y1yOZGTG5z6px9FygeV+LfC61nMoiu8Ed+5z8rf+bLMBv2i0mKpWE6yb7NNca+4cXJwehmsDARrXjPcoe3jSabXLtnzjx4ZOzlkQ03iAlzIFQmhc3MbSXMvwovd67z+tqVIBN1CPyNML7FGoWU2TnISWYWr8VzTUcLL9y1oh6dY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726500594; c=relaxed/simple;
-	bh=MlnJdle5JwKPzYjLf3phw0YvyewBny+20yGfy84n/EI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=cmSgRAhD9iu62HQove6DI/8NcIraLzOvLjmqto+sGawWlWOTc0FDSRa+3NOAQJ5h1eX6i0E0Y9pydMRyO28Vtu1/06T8hJJZkeq3ip//NUCedqAmDvo1R4k99q9j45SQ0aaALVWCnh/F2qjpElHeVcHBW8Jcu8sJOAJ+/8tVKpk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=TJX5wm9J; arc=none smtp.client-ip=192.198.163.18
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="TJX5wm9J"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1726500592; x=1758036592;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=MlnJdle5JwKPzYjLf3phw0YvyewBny+20yGfy84n/EI=;
-  b=TJX5wm9JVddMpmUtMtcYS3YncCO2JSU0aGoILVua3bZA5w035vKnufp4
-   OrvU9IUJDbnx1aj3P1lmv4Ey6nrhu5zm91KVC+ZtCqA/h9tzfG8QknAAT
-   FNnJgnMNC0rpwAtyR1nROZvyf0+h3f1VIO6zH4Ch4kTAzjJyES8d7g4O5
-   GPmPYRJRrid6UDDdAfqgpeJimc+rMcCKOkAF89ySbPsVzY940tsZPKviN
-   8NvQ/CeW6TNWKpDyKEdGYa25Qnnr026o2Qspew8LvT5LdSreu99p2uvwa
-   NV9pwWtT3SyDCaezx+GwjmWBq+dogO3y2rZ8XhYzf9O9r1KktHlL+rc/E
-   A==;
-X-CSE-ConnectionGUID: uNqZllVZTyungdDHAfA5Pg==
-X-CSE-MsgGUID: lI4yKvhnQziKcCsBEZoatw==
-X-IronPort-AV: E=McAfee;i="6700,10204,11197"; a="24812896"
-X-IronPort-AV: E=Sophos;i="6.10,233,1719903600"; 
-   d="scan'208";a="24812896"
-Received: from orviesa005.jf.intel.com ([10.64.159.145])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Sep 2024 08:29:52 -0700
-X-CSE-ConnectionGUID: MF6XvnWnTKWSy4D6QideRA==
-X-CSE-MsgGUID: eqncptBnTvKZCtJUhIJFtQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.10,233,1719903600"; 
-   d="scan'208";a="73729904"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by orviesa005.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Sep 2024 08:29:48 -0700
-Received: from andy by smile.fi.intel.com with local (Exim 4.98)
-	(envelope-from <andriy.shevchenko@linux.intel.com>)
-	id 1sqDfd-00000009VX1-1xi6;
-	Mon, 16 Sep 2024 18:29:45 +0300
-Date: Mon, 16 Sep 2024 18:29:45 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Simon Horman <horms@kernel.org>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Nathan Chancellor <nathan@kernel.org>,
-	Nick Desaulniers <ndesaulniers@google.com>,
-	Bill Wendling <morbo@google.com>,
-	Justin Stitt <justinstitt@google.com>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, llvm@lists.linux.dev
-Subject: Re: [PATCH nf-next 0/2] netfilter: conntrack: label helpers
- conditional compilation updates
-Message-ID: <ZuhO6XRAS0Qq3A1g@smile.fi.intel.com>
-References: <20240916-ct-ifdef-v1-0-81ef1798143b@kernel.org>
+	s=arc-20240116; t=1726521703; c=relaxed/simple;
+	bh=2SQUqHcdW9ivFuiBMRiiQLcBceI99TteCLtlvZ4cG1U=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=igBIWJHPMoD/aotCQF5QS5Z2EGLihvhNANVlM/sP+VkttNwZvKIUZJRSYgUOlgstQ0PX7xEgryWliQ7F7mefupxkLGPSP2UGAm6zdMOsK5d2RmUp+Y5HwFwu+Dadvx7yRR/WCqCQya+zd30ApBnW+v/n1wkNwSNJb4qhBgxqwME=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de,
+	phil@nwl.cc,
+	antonio.ojea.garcia@gmail.com
+Subject: [PATCH nft,v2] doc: tproxy is non-terminal in nftables
+Date: Mon, 16 Sep 2024 23:21:32 +0200
+Message-Id: <20240916212132.646493-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240916-ct-ifdef-v1-0-81ef1798143b@kernel.org>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 8bit
 
-On Mon, Sep 16, 2024 at 04:14:40PM +0100, Simon Horman wrote:
-> Hi,
-> 
-> This short series updates conditional compilation of label helpers to:
-> 
-> 1) Compile them regardless of if CONFIG_NF_CONNTRACK_LABELS is enabled
->    or not. It is safe to do so as the functions will always return 0 if
->    CONFIG_NF_CONNTRACK_LABELS is not enabled.  And the compiler should
->    optimise waway the code.  Which is the desired behaviour.
-> 
-> 2) Only compile ctnetlink_label_size if CONFIG_NF_CONNTRACK_EVENTS is
->    enabled.  This addresses a warning about this function being unused
->    in this case.
+iptables TPROXY issues NF_ACCEPT while nftables tproxy allows for
+post-processing. Update examples. For more info, see:
 
-Both make sense to me, FWIW,
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+https://lore.kernel.org/netfilter-devel/ZuSh_Io3Yt8LkyUh@orbyte.nwl.cc/T/
 
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ doc/statements.txt | 44 +++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 37 insertions(+), 7 deletions(-)
+
+diff --git a/doc/statements.txt b/doc/statements.txt
+index 5becf0cbdbcf..7d4e8b34bef0 100644
+--- a/doc/statements.txt
++++ b/doc/statements.txt
+@@ -583,27 +583,57 @@ this case the rule will match for both families.
+ table ip x {
+     chain y {
+         type filter hook prerouting priority mangle; policy accept;
+-        tcp dport ntp tproxy to 1.1.1.1
+-        udp dport ssh tproxy to :2222
++        tcp dport ntp tproxy to 1.1.1.1 accept
++        udp dport ssh tproxy to :2222 accept
+     }
+ }
+ table ip6 x {
+     chain y {
+        type filter hook prerouting priority mangle; policy accept;
+-       tcp dport ntp tproxy to [dead::beef]
+-       udp dport ssh tproxy to :2222
++       tcp dport ntp tproxy to [dead::beef] accept
++       udp dport ssh tproxy to :2222 accept
+     }
+ }
+ table inet x {
+     chain y {
+         type filter hook prerouting priority mangle; policy accept;
+-        tcp dport 321 tproxy to :ssh
+-        tcp dport 99 tproxy ip to 1.1.1.1:999
+-        udp dport 155 tproxy ip6 to [dead::beef]:smux
++        tcp dport 321 tproxy to :22 accept
++        tcp dport 99 tproxy ip to 1.1.1.1:999 accept
++        udp dport 155 tproxy ip6 to [dead::beef]:smux accept
+     }
+ }
+ -------------------------------------
+ 
++Note that the tproxy statement is non-terminal to allow post-processing of
++packets. This allows packets to be logged for debugging as well as updating the
++mark to ensure that packets are delivered locally through policy routing rules.
++
++.Example ruleset for tproxy statement with logging and meta mark
++-------------------------------------
++table t {
++    chain c {
++        udp dport 9999 goto {
++            tproxy to :1234 log prefix "packet tproxied: " meta mark set 1 accept
++            log prefix "no socket on port 1234 or not transparent?: " drop
++        }
++    }
++}
++-------------------------------------
++
++As packet headers are unchanged, packets might be forwarded instead of delivered
++locally. As mentioned above, this can be avoided by adding policy routing rules
++and the packet mark.
++
++.Example policy routing rules for local redirection
++----------------------------------------------------
++ip rule add fwmark 1 lookup 100
++ip route add local 0.0.0.0/0 dev lo table 100
++----------------------------------------------------
++
++This is a change in behavior compared to the legacy iptables TPROXY target
++which is terminal. To terminate the packet processing after the tproxy
++statement, remember to issue a verdict as in the example above.
++
+ SYNPROXY STATEMENT
+ ~~~~~~~~~~~~~~~~~~
+ This statement will process TCP three-way-handshake parallel in netfilter
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.30.2
 
