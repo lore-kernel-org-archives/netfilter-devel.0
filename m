@@ -1,67 +1,53 @@
-Received: from mail-pf1-f177.google.com (mail-pf1-f177.google.com [209.85.210.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 089B43D0A9
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Sep 2024 06:24:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00A0B2D627;
+	Mon, 16 Sep 2024 07:32:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726467898; cv=none; b=YO2SgZwrVglKDHw3TFTUptc/U5pcUmOGKm3WtzDS2IO1cj6F7D0sFzInnqlkATpRZ0zThfAcqxwKtYhztt/HQpW9mqPpE9i4Ckc5NGoxvT/3UOK7ezDTmfO181AoUfOTrnHZXstqxIqp9/lisrbUXLqe/JE79sSzf1/HHrGSdzI=
+	t=1726471928; cv=none; b=OCit58+O9aYoQ9GySKzXsNRRd38BNI+BWG2cOUprvFBisQMsrMtxAgPePnGeTjQjxmZQzlBFPd43lmykGdTJJIar3b+cuFjX5zYZii3e3W1cil21KbsB9+hHL1pycovGQpbYugeupWK0G3/TkRZOQtKDSPYwyB6JOIkwclfFCw4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726467898; c=relaxed/simple;
-	bh=Lwab4ERc6wKxR4m7tesLNrG+vxB6SKCwvAo9IkgSHbA=;
-	h=From:Date:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=inco5aL6Byq7ADSUCUs+6MVYgUrjwP7l19fX20BsxrJt14HATIFQbQXiMKUklkrEzt3vZbTTEPiVd+lIUH2mxxOZhNCUoxmKJ/Sb8U2lGt0gDZ3SYpN6IUS28qP/cjQLbMVcCxuhds3cr1Q8EUfqWN4ynaRODh+NjkIjnJFwMJQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mYp8jLgP; arc=none smtp.client-ip=209.85.210.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1726471928; c=relaxed/simple;
+	bh=rawwK73KHc+Hi4MZM8n0Sa9rcbQdT3NEsFA0l6DTseE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Sh7Xnv8ZJPmayqP1467pDPJleRf16pkWcd/JPoCKng04PUf6+tkX2UbT+Yz6OadsGRGFgKZHWIa9vMGhnrZaNe8RiFABbLtHZXHAPS+yV/qhDMgojiM4pp5NX7mNGMwKVxijFczYIggbyjAHLR/Ls3yazGE0qXWU+yWggGxK5lE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IQSvmJtX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mYp8jLgP"
-Received: by mail-pf1-f177.google.com with SMTP id d2e1a72fcca58-7191fb54147so2888063b3a.2
-        for <netfilter-devel@vger.kernel.org>; Sun, 15 Sep 2024 23:24:56 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1726467896; x=1727072696; darn=vger.kernel.org;
-        h=content-disposition:mime-version:mail-followup-to:reply-to
-         :message-id:subject:cc:to:date:from:sender:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Lwab4ERc6wKxR4m7tesLNrG+vxB6SKCwvAo9IkgSHbA=;
-        b=mYp8jLgP5LdWdEiDCaodsAHxdl89M2yhpRneMLqaCrr+4MjJtHDf8XA4Db/aedSwsQ
-         t/hDOsbP/unwJn0aYakd2jRrIgkDJltq8inzSVYrKGzSj5SM4pUkPU8g5fsgLjmeyCnU
-         6XAF+7SwcPHVLIFBeZVCojtiTKcVDexMaUPv3o6gAJh+EUh0E0/YnAD397YfbYyFnQ2Y
-         noQA+aardWlVWqt4G7xTCn374CK8/34iJSUN+MBQeDtbaf4GKrAL/RaKniWhajRFXudB
-         xKujmszfEHZIYtAnY6YfhO3gqzGyTwY6Z9KEk4rhFyy6ItPis5nVqW+K2XBzgMTKCWrV
-         Hgrg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1726467896; x=1727072696;
-        h=content-disposition:mime-version:mail-followup-to:reply-to
-         :message-id:subject:cc:to:date:from:sender:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=Lwab4ERc6wKxR4m7tesLNrG+vxB6SKCwvAo9IkgSHbA=;
-        b=boARtccFoN4ndvZzvgLdVVq6V8wDhOUuT9jOCZhhFaut7m1xE7GSEKzSGVjZEU0pJk
-         57rE4OmK1HhSWWEmrJ99e2UYK90ibwdkzRxfgAdXl8oY7Pc5NgFAWze3JuRqgzVZkbJj
-         pC6ZYbPZ4BUwxRGbdG1ZJrbQCY9T038MHsUlQQYFcxazKspisVp9ykLtLdJqPlMCiDHx
-         MB0zry6MReNxHs5xHeqRv4V8yg5vtvdLsprWRSRu/5+Ur3wqf8mTzZ8DUib6pwpEs594
-         Ww29988rDkAoSlJaq+zZSO8+NW1UTtL8dmk22TORKO1m3sxBLDC2knjTv3xrcLfUvcaH
-         cceg==
-X-Gm-Message-State: AOJu0Yz/Jg8aad24irPKswA8u9aQaFtPHsobHnm6qNEn7Z8d/LzL9YY3
-	f7Ti7abHPqM+gS0O8+pmQMTckKAKg7coRJLoWcWsiudOn7naUPvC2jFzqQ==
-X-Google-Smtp-Source: AGHT+IHnnEogSLHnEy66wyvY78DyLYb340mKCZpgCf2yFnS4/ryPthRxl8yr6Xi4XZWas5FmqDhrBg==
-X-Received: by 2002:a05:6a00:1ac6:b0:714:2198:26bd with SMTP id d2e1a72fcca58-71926081831mr23385430b3a.11.1726467896225;
-        Sun, 15 Sep 2024 23:24:56 -0700 (PDT)
-Received: from slk15.local.net (n175-33-111-144.meb22.vic.optusnet.com.au. [175.33.111.144])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-71944b9ac05sm3110447b3a.155.2024.09.15.23.24.54
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 15 Sep 2024 23:24:55 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From: Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
-Date: Mon, 16 Sep 2024 16:24:52 +1000
-To: webmaster@netfilter.org
-Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: "libmnl" project doxygen-generated documentation
-Message-ID: <ZufPNH0p/G7IMK1T@slk15.local.net>
-Reply-To: duncan_roe@optusnet.com.au
-Mail-Followup-To: webmaster@netfilter.org,
-	Netfilter Development <netfilter-devel@vger.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IQSvmJtX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D447C4CECD;
+	Mon, 16 Sep 2024 07:32:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1726471927;
+	bh=rawwK73KHc+Hi4MZM8n0Sa9rcbQdT3NEsFA0l6DTseE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=IQSvmJtXjehuA2jjX3qvcicIwhLgMnYqCl7I7rnBlog4aOWSufBy4l46xx6zofryF
+	 R2n1E7NKwEYF99xQC3kJrG1eFa4ZWEYvusKHMk8FgeP7BKUXkr/NuOqGJkhPM4AAeQ
+	 QHXvKIzlFo+nOk7mN4WFs+G8WNDLP+ISNh1ew8t1hF2xqfsUoZclfTc+MnR/HDYiil
+	 K8ET215/Tl/PGv0cJcC7D4ZoVcU7bm7dZOgzjsFJ9Rlc/Nb4PKomXXbeTkGuPqCi7i
+	 B7yhfhg0Cozm+uOuOTDSkud2qjZSWbIBin2+HHnIsyCJ4PF7/SK8sT3xzyRij1uhPN
+	 J80nJjHBqGmPQ==
+Date: Mon, 16 Sep 2024 08:32:01 +0100
+From: Simon Horman <horms@kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Pavel Tikhomirov <ptikhomirov@virtuozzo.com>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	llvm@lists.linux.dev, Jozsef Kadlecsik <kadlec@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	David Ahern <dsahern@kernel.org>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Nathan Chancellor <nathan@kernel.org>,
+	Nick Desaulniers <ndesaulniers@google.com>,
+	Bill Wendling <morbo@google.com>,
+	Justin Stitt <justinstitt@google.com>
+Subject: Re: [PATCH net v1 1/1] netfilter: nf_reject: Fix build error when
+ CONFIG_BRIDGE_NETFILTER=n
+Message-ID: <20240916073201.GF167971@kernel.org>
+References: <20240906145513.567781-1-andriy.shevchenko@linux.intel.com>
+ <20240907134837.GP2097826@kernel.org>
+ <ZudP-mkhquCJJPXv@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -70,15 +56,20 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <ZudP-mkhquCJJPXv@calendula>
 
-Hi webmaster,
+On Sun, Sep 15, 2024 at 11:22:02PM +0200, Pablo Neira Ayuso wrote:
+> Hi Simon,
+> 
+> This proposed update to address this compile time warning LGTM.
+> 
+> Would you submit it?
 
-The documentation on the project website is for libmnl 1.0.4 but the
-current release is 1.0.5.
+Hi Pablo,
 
-This is particularly unfortunate as function documentation is broken (absent)
-in 1.0.4 but fixed in 1.0.5.
+Yes, it is on my todo list for today.
+Sorry for not getting to it sooner.
 
-Please update at your convenience,
-
-Cheers ... Duncan.
+I plan to post a patch for this to nf-next.
+But let me know if you prefer a patch for nf, net,
+or some other course of action.
