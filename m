@@ -1,14 +1,13 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id CD128188A13;
-	Tue, 17 Sep 2024 20:25:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 531E718BC04;
+	Tue, 17 Sep 2024 20:25:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726604711; cv=none; b=Xj4pQ9/Txylrbnw91BKFgkl9K3fhJhFcPh+v+DJMBN5JpRCsBE0hIbt0BgmXkyV4xyFJk/BbDR0TSXiDwLT2470QTw6k2j8NtyO0BWiwfa0xmSOVzTsP3gAZPl9GS6P+70mMGJaqkq8WrlcBe8Ikg0T/GvalLtCpXtC60eb9DL4=
+	t=1726604722; cv=none; b=P/DoQ66yN+yNeUAHwmwDooT8Kl/38Cr+UFbBod0FdO8SwQgyrL8h8tujKxdoD6TDn7wunH5kjl8WxOzZlXrY2ZIaHxxCtuj4TY6lZTNVTC7asuboCLUjlZQsy4deovRYs24tzkC6OszcNpfq+saFPh7v1Ru5L7k0PSEuZThYETQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726604711; c=relaxed/simple;
-	bh=GQTKXw2Dt8tQ7qGbOc14G83unSK/xuy2z76gVBzEvHI=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=bokYcF4RRonyTJwMSoByK5AndKTevzTKEK7Hi+uVidVioT1xIgIT9X6emMVcVeplZOIMQp3QnDASUsc5JSgNuRjogUAsZVrNMJZc3HTD5zfW2s+CG9Ci2NbP7+BVxc/SDWbIXOq+Q8VwrVaH2ruEcuS2OAorZ00TYefofevR/G0=
+	s=arc-20240116; t=1726604722; c=relaxed/simple;
+	bh=CTIiK67uomhTXWSFR3HE5b3HTxr58OoFFxNQg8etoR4=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=vGaeKlQVe93RCee2KUmBrWpCDDmDmHKuhIYeRQrvzRGq2kisT8zZ2pvQd8RcGzEG2PfdXXmwWf0lQPzXHxnS6dFZaXfWRCYrAPXtry1KdxYUDx/JF7/OWp7wrox1yQ71kmu/0hzCUdiHZedVlMPG6Nslz/HtDfVuGkehCb0ZVeA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -17,12 +16,10 @@ To: netfilter-devel@vger.kernel.org
 Cc: gregkh@linuxfoundation.org,
 	sashal@kernel.org,
 	stable@vger.kernel.org
-Subject: [PATCH -stable,6.1 2/2] netfilter: nf_tables: missing iterator type in lookup walk
-Date: Tue, 17 Sep 2024 22:25:04 +0200
-Message-Id: <20240917202504.176664-3-pablo@netfilter.org>
+Subject: [PATCH -stable,5.15 0/2] Netfilter fixes for -stable
+Date: Tue, 17 Sep 2024 22:25:13 +0200
+Message-Id: <20240917202515.179699-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20240917202504.176664-1-pablo@netfilter.org>
-References: <20240917202504.176664-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,44 +28,30 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-commit efefd4f00c967d00ad7abe092554ffbb70c1a793 upstream.
+Hi Greg, Sasha,
 
-Add missing decorator type to lookup expression and tighten WARN_ON_ONCE
-check in pipapo to spot earlier that this is unset.
+This batch contains a backport for fixes for 5.15-stable:
 
-Fixes: 29b359cf6d95 ("netfilter: nft_set_pipapo: walk over current view on netlink dump")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_lookup.c     | 1 +
- net/netfilter/nft_set_pipapo.c | 3 ++-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+The following list shows the backported patches, I am using original commit
+IDs for reference:
 
-diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
-index 33daee2e54c5..fc0ac535d0d8 100644
---- a/net/netfilter/nft_lookup.c
-+++ b/net/netfilter/nft_lookup.c
-@@ -211,6 +211,7 @@ static int nft_lookup_validate(const struct nft_ctx *ctx,
- 		return 0;
- 
- 	iter.genmask	= nft_genmask_next(ctx->net);
-+	iter.type	= NFT_ITER_UPDATE;
- 	iter.skip	= 0;
- 	iter.count	= 0;
- 	iter.err	= 0;
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index 8cce39411619..8336f2052f22 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -2046,7 +2046,8 @@ static void nft_pipapo_walk(const struct nft_ctx *ctx, struct nft_set *set,
- 	const struct nft_pipapo_field *f;
- 	int i, r;
- 
--	WARN_ON_ONCE(iter->type == NFT_ITER_UNSPEC);
-+	WARN_ON_ONCE(iter->type != NFT_ITER_READ &&
-+		     iter->type != NFT_ITER_UPDATE);
- 
- 	rcu_read_lock();
- 	if (iter->type == NFT_ITER_READ)
--- 
+1) 29b359cf6d95 ("netfilter: nft_set_pipapo: walk over current view on netlink dump")
+
+2) efefd4f00c96 ("netfilter: nf_tables: missing iterator type in lookup walk")
+
+Please, apply,
+Thanks
+
+Pablo Neira Ayuso (2):
+  netfilter: nft_set_pipapo: walk over current view on netlink dump
+  netfilter: nf_tables: missing iterator type in lookup walk
+
+ include/net/netfilter/nf_tables.h | 13 +++++++++++++
+ net/netfilter/nf_tables_api.c     |  5 +++++
+ net/netfilter/nft_lookup.c        |  1 +
+ net/netfilter/nft_set_pipapo.c    |  6 ++++--
+ 4 files changed, 23 insertions(+), 2 deletions(-)
+
+--
 2.30.2
 
