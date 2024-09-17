@@ -1,52 +1,30 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E483017C99B
-	for <netfilter-devel@vger.kernel.org>; Tue, 17 Sep 2024 21:27:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 417131531C5
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 Sep 2024 21:36:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726608452; cv=none; b=qeqZ/aSc7Pf/o8HknfkhiQMjAI7EZZIWS/6frNzx3M1nP6YYjCX3DeTCMgqF4bwpOtbfpiUTnUWj8vN+rqFOpyHNFFpDyKnPRMhQjUQirpGaGwkb78kNbBhAbcOdjyQWA3jJvQXReQsXdILdd5KFELs4tVsZPumgZGk5s8Zd204=
+	t=1726608991; cv=none; b=flacNue74DY94eHKhwTsTAKU+ZVg6Zg2FHdBtdPwL24jIY7k/9uwzJd+6b9UShsTXNh9nOB/Q7fhoxKhWNjZ7svUPaO0nhoIqOboJWSrBIPKp7Bozy3DjUPJTw6vn1KHSBI2Xnbn8rT2Ff94ANbqEgltwnZn8hPIcIgoMBsWx0g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726608452; c=relaxed/simple;
-	bh=y1Z0jELrJRvqA4LJ3skhcaimsN//DTEpOD0tQNx9k6A=;
+	s=arc-20240116; t=1726608991; c=relaxed/simple;
+	bh=B0tj4K4JTdBLH9yZ2AxHJ16diR2X7F6591dKVP6URT8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=o7iASueYZAC0tJKhzuw+bMkGBWYNUcdXeXUHE0d0kZ/LwLUORxXzm6wHh+mMmbzzFYD7mHxU/UrWAQvLgp32iHK/BQaW8EdkmblQ8kobitoBYLSACy3mtLPnzNE5CQYWoZwPgkCA+eXP8N1GMHuyekC4jo04z7Q++3cbZjOL2BY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=TYh0/20w; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="TYh0/20w"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=iUDtw4Vzno3l9GtKJmFrL4V6L1MSXOPgWjkkIL2sN0Q=; b=TYh0/20w8TsZYnEoQBnyOyNo5Y
-	kxFyDf0ARTi1X/h9orHmGhe1afYAFlEpDuXQdAFCQbK3gX5l10VGp3RnfcR0RKgzY2BU26xV+jK2O
-	PmEkjnAOQntW+UgSUG3SjxSPQoFtPI8OtykDI+hgtuLytHpwchoVKL5S51kDKYYUTF7RlNSHLsUiB
-	jWkjpDwwrna2k1xn+cMr79d+H7bOrGo6dNbemg4SkhXGOWYPy4g2SS0TvlCfIpIzHnqsJy/QN1i+I
-	+B+ctVVSn/aD3EjSH0Oja6vwF327f2u85r1L6uMU7+9+PTgnPrgE7uoQsjZ1Yq0NY6Cg8BtuypCRb
-	LuQhotTg==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1sqfjE-0000000010l-3X8F;
-	Tue, 17 Sep 2024 23:27:20 +0200
-Date: Tue, 17 Sep 2024 23:27:20 +0200
-From: Phil Sutter <phil@nwl.cc>
+	 Content-Type:Content-Disposition:In-Reply-To; b=kt8ZSMpN4ou4DTDezEDHG7XnrjGcie/8nA398I5C19pKDuIAx2DBwLwKLPnBo5sfbenzuVuCeev1nBOi/uR8pQhMWQ1J8GsvWpR+TXzAefsAdAlCDWMcPNP8EQ89fnK3p8lrJu9NTcTwymJy5jzr+DCErLIJs339hi6SrG95i4M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1sqfru-0007ff-QL; Tue, 17 Sep 2024 23:36:18 +0200
+Date: Tue, 17 Sep 2024 23:36:18 +0200
+From: Florian Westphal <fw@strlen.de>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-	Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [iptables RFC PATCH 8/8] nft: Support compat extensions in rule
- userdata
-Message-ID: <Zun0OGdvhX4nLD7i@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-	Jan Engelhardt <jengelh@inai.de>
-References: <20240731222703.22741-1-phil@nwl.cc>
- <20240731222703.22741-9-phil@nwl.cc>
- <Zudb80USN6GGG05T@calendula>
+Cc: netfilter-devel@vger.kernel.org, phil@nwl.cc, fw@strlen.de
+Subject: Re: [PATCH nf] netfilter: nf_tables: use rcu chain hook list
+ iterator from netlink dump path
+Message-ID: <20240917213618.GB24956@breakpoint.cc>
+References: <20240917211934.312403-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -55,85 +33,12 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <Zudb80USN6GGG05T@calendula>
+In-Reply-To: <20240917211934.312403-1-pablo@netfilter.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-Hi Pablo,
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Lockless iteration over the list of hooks is possible from the netlink
+> dump path while updates can occur. Use the rcu variant to iterate over
+> the hook list as is done for flow table hooks.
 
-On Mon, Sep 16, 2024 at 12:13:07AM +0200, Pablo Neira Ayuso wrote:
-> I have no better idea to cope with this forward compatibility
-> requirements.
-
-From my point of view, it's the best approach among the bad ones (i.e.,
-those not providing compatibility for old binaries out of the box).
-
-> On Thu, Aug 01, 2024 at 12:27:03AM +0200, Phil Sutter wrote:
-> > Add a mechanism providing forward compatibility for the current and
-> > future versions of iptables-nft (and all other nft-variants) by
-> > annotating nftnl rules with the extensions they were created for.
-> >
-> > Upon nftnl rule parsing failure, warn about the situation and perform a
-> > second attempt loading the respective compat extensions instead of the
-> > native expressions which replace them.
-> 
-> OK, so this is last resort to interpret the rule.
-
-It is. I had your concerns regarding crafted compat payload in rules in
-mind with this. The downside is that we may make subtle changes to VM
-code which the old binary won't detect and ignore. Maybe I could feature
-it via flag or env var to prefer the userdata extensions. WDYT?
-
-> > The foundational assumption is that libxtables extensions are stable
-> > and thus the VM code created on their behalf does not need to be.
-> 
-> OK, this requires xtables API becomes frozen forever.
-
-Well, not more than it has been: Take iptables-legacy for instance: An
-old version may see a newer extension revision than it has support for,
-so will fail just like iptables-nft with native code it can't parse. So
-effectively iptables-nft becomes *as compatible as* the same version of
-iptables-legacy.
-Another perspective to this: Extension development gradually slows down
-which we'll leverage while at the same time support increased
-development in nftables itself and conversion of extensions to VM code.
-
-> > Since nftnl rule userdata attributes are restricted to 255 bytes, the
-> > implementation focusses on low memory consumption. Therefore, extensions
-> > which remain in the rule as compat expressions are not also added to
-> > userdata. In turn, extensions in userdata are annotated by start and end
-> > expression number they are replacing. Also, the actual payload is
-> > zipped using zlib.
-> 
-> Binary layout is better than storing text in the userdata area.
-> 
-> Is this zlib approach sufficient to cope with ebtables among
-> extension? Maybe that one is excluded because it is using the set
-> infrastructure since the beginning.
-
-Yes, among is not an issue because ebtables-nft never implemented this
-as extension.
-
-> I guess you already checked for worst case to make sure compression
-> always allows to make things fit into 255 bytes?
-
-Well, we don't convert too many extensions to nftables anymore since
-Florian reverted a bunch as a quick countermeasure against the compat
-complaints. Things will certainly get worse, but the question is mostly
-how many different extensions will "the largest rule" have. I added some
-debug output and in shell testsuite for instance the largest compat_ext
-userdata I see is 68 bytes. I was able to craft a rule which uses 159
-bytes though:
-
-iptables-nft -A FORWARD \
-	-m limit --limit 1000/hour \
-	-p udp -m udp --sport 1024:65535 --dport 4:65535 \
-	-m mark --mark 0xfeedcafe/0xfeedcafe \
-	-j NFLOG --nflog-group 23 \
-	         --nflog-prefix "this is a damn long log prefix"
-
-The current implementation calls xtables_error() if nftnl_udata_put()
-fails. Maybe a better error path would be to only warn the user and not
-add compat_ext to userdata. Guess it depends on whether this should be
-enabled by default or only upon request - if user asks for compat_ext,
-failing to do so should be fatal.
-
-Cheers, Phil
+Thanks for following up, this indeed needs _rcu variant.
