@@ -1,114 +1,151 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
+Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A47818952B;
-	Wed, 18 Sep 2024 13:55:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A20A218B478;
+	Wed, 18 Sep 2024 13:55:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.255
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726667723; cv=none; b=mq2bK4xVozdF6LmlDhPRX3BsRZLnWvTBthzXiC+v0yhSN7qfSdku1rHztxhDnQpCP1cqHELcA45UuLnIBasNjqzKhEPzNuXd4BvcmwrVU1etsQRwNDL7/wsk+Id8i9zXjvhUWDzZVvoASSCwuMsn/MUkUbAam1fy9ibjA7TQZsQ=
+	t=1726667744; cv=none; b=tX9r+eBh0Eqfz1H+bh1yUVzEHHHlqOi1zGz1oR8DZCPTTS9YlE5+s9HGkGThCIWHDBrix/ZA7imSGdgRmdzKNtPzb+4U/79QhjDf942IyKtTqb+cVXmGEcWOak/W4JzMkBxoDq4mXx6yYOl097zukn8gTLs0jLm4AqYVP7LtWME=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726667723; c=relaxed/simple;
-	bh=86vDqK2x0ER6NDvUrKKmlLDQ0tfjJ5Et5if/AV9scEY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Gk0TyS/23xHHl/A+cAYB5/ZzRgz6PPxqXoPj/hfdl92KjEeLuMKdcLGOQeL5Y4tPtOMGeki7oov7xPmIaSJ4q+27FE3Bl9cUb7A2OtYmd/TD8v1EZaZGZjtGgUu14Zj86W1VlXFl27XwWlIJcJni/5fUqMMMUA5HV2U33drWtzY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=V5+KC3Bi; arc=none smtp.client-ip=198.175.65.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="V5+KC3Bi"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1726667722; x=1758203722;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=86vDqK2x0ER6NDvUrKKmlLDQ0tfjJ5Et5if/AV9scEY=;
-  b=V5+KC3BiRSJT7L5q/964K573A4Fmu8z7nwFWRVj1CDZiIke0lodx3Yd0
-   4LjCTQAgEkRkHW5rtfOTvkme2Y5EyigMJ964HZrgBBCZCWFXthdLvCj4P
-   2trt/J6Ernnn4oxBsW75eW+suwdxshReUlfP4vrLDuL7OkObUT6x/3Nbw
-   /SV5pBcEbN3LKLBDdSVF/DXM0QLo65JAQLzN4iFxVG/Lb9d7qBgstLg+q
-   WUoUbaYgaq+/wlq27SNlxjZj2iGVWBKB/WHydkuEIOBu3q6B/3Q/TRLtM
-   hBipHS06U5vdzLCPAcqa5rCndHDC2YTzN5Don8wi94HPEi1IkSte484Lw
-   g==;
-X-CSE-ConnectionGUID: VsA44QOWRQGT79VD+Ci2hw==
-X-CSE-MsgGUID: avt3SzbpTXin3YKcEKKS9g==
-X-IronPort-AV: E=McAfee;i="6700,10204,11199"; a="36940749"
-X-IronPort-AV: E=Sophos;i="6.10,238,1719903600"; 
-   d="scan'208";a="36940749"
-Received: from fmviesa001.fm.intel.com ([10.60.135.141])
-  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Sep 2024 06:55:21 -0700
-X-CSE-ConnectionGUID: UHPVH35YSSuP8YZSa0yZEw==
-X-CSE-MsgGUID: zsjxup1lSJSosZTWEJl6PA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.10,238,1719903600"; 
-   d="scan'208";a="100402367"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by fmviesa001.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Sep 2024 06:55:18 -0700
-Received: from andy by smile.fi.intel.com with local (Exim 4.98)
-	(envelope-from <andriy.shevchenko@linux.intel.com>)
-	id 1sqv9H-0000000ACEi-2vDZ;
-	Wed, 18 Sep 2024 16:55:15 +0300
-Date: Wed, 18 Sep 2024 16:55:15 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Simon Horman <horms@kernel.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Nathan Chancellor <nathan@kernel.org>,
-	Nick Desaulniers <ndesaulniers@google.com>,
-	Bill Wendling <morbo@google.com>,
-	Justin Stitt <justinstitt@google.com>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, llvm@lists.linux.dev
-Subject: Re: [PATCH nf-next 0/2] netfilter: conntrack: label helpers
- conditional compilation updates
-Message-ID: <Zurbw1-Fl0EfdC0l@smile.fi.intel.com>
-References: <20240916-ct-ifdef-v1-0-81ef1798143b@kernel.org>
- <Zuq-7kULeAMPRmFg@calendula>
+	s=arc-20240116; t=1726667744; c=relaxed/simple;
+	bh=4g5LbF2jsryqv6b1VJibeqyspCm9tp416dwH7lyZE1c=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=q7pdIskSh/mR7hwo14WXYOqdwoFeftMKyGFmHMGX7wU+5EmPE7/zS+dR0xaJHifGBnM83HCaG66kHumXS5SsLt+TEgaQlZ3vKwvmgXiSmvLUemJCwxV4w2vr2oB53a+CuDmMuLA69ebIDlam10FiuQiLA4TWk+G32DkvbGVoiFg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.255
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
+Received: from mail.maildlp.com (unknown [172.19.163.252])
+	by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4X805x5c2Mz1T7dH;
+	Wed, 18 Sep 2024 21:35:49 +0800 (CST)
+Received: from kwepemj200016.china.huawei.com (unknown [7.202.194.28])
+	by mail.maildlp.com (Postfix) with ESMTPS id B507A1800A7;
+	Wed, 18 Sep 2024 21:37:05 +0800 (CST)
+Received: from [10.123.123.159] (10.123.123.159) by
+ kwepemj200016.china.huawei.com (7.202.194.28) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Wed, 18 Sep 2024 21:37:01 +0800
+Message-ID: <810a169f-4d79-8a59-d58a-bba496b5f68a@huawei-partners.com>
+Date: Wed, 18 Sep 2024 16:36:57 +0300
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Zuq-7kULeAMPRmFg@calendula>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH v3 11/19] selftests/landlock: Test unsupported
+ protocol restriction
+Content-Language: ru
+To: =?UTF-8?Q?G=C3=BCnther_Noack?= <gnoack@google.com>
+CC: <mic@digikod.net>, <willemdebruijn.kernel@gmail.com>,
+	<gnoack3000@gmail.com>, <linux-security-module@vger.kernel.org>,
+	<netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
+	<yusongping@huawei.com>, <artem.kuzin@huawei.com>,
+	<konstantin.meskhidze@huawei.com>
+References: <20240904104824.1844082-1-ivanov.mikhail1@huawei-partners.com>
+ <20240904104824.1844082-12-ivanov.mikhail1@huawei-partners.com>
+ <ZurNgJKzG-oWL3Tq@google.com>
+From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+In-Reply-To: <ZurNgJKzG-oWL3Tq@google.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: lhrpeml100004.china.huawei.com (7.191.162.219) To
+ kwepemj200016.china.huawei.com (7.202.194.28)
 
-On Wed, Sep 18, 2024 at 01:52:14PM +0200, Pablo Neira Ayuso wrote:
-> On Mon, Sep 16, 2024 at 04:14:40PM +0100, Simon Horman wrote:
-> > Hi,
-> > 
-> > This short series updates conditional compilation of label helpers to:
-> > 
-> > 1) Compile them regardless of if CONFIG_NF_CONNTRACK_LABELS is enabled
-> >    or not. It is safe to do so as the functions will always return 0 if
-> >    CONFIG_NF_CONNTRACK_LABELS is not enabled.  And the compiler should
-> >    optimise waway the code.  Which is the desired behaviour.
-> > 
-> > 2) Only compile ctnetlink_label_size if CONFIG_NF_CONNTRACK_EVENTS is
-> >    enabled.  This addresses a warning about this function being unused
-> >    in this case.
+On 9/18/2024 3:54 PM, Günther Noack wrote:
+> On Wed, Sep 04, 2024 at 06:48:16PM +0800, Mikhail Ivanov wrote:
+>> Add test validating that Landlock doesn't wrongfully
+>> return EACCES for unsupported address family and protocol.
+>>
+>> Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+>> ---
+>> Changes since v1:
+>> * Adds socket(2) error code check when ruleset is not established.
+>> * Tests unsupported family for error code consistency.
+>> * Renames test to `unsupported_af_and_prot`.
+>> * Refactors commit title and message.
+>> * Minor fixes.
+>> ---
+>>   .../testing/selftests/landlock/socket_test.c  | 47 +++++++++++++++++++
+>>   1 file changed, 47 insertions(+)
+>>
+>> diff --git a/tools/testing/selftests/landlock/socket_test.c b/tools/testing/selftests/landlock/socket_test.c
+>> index 047603abc5a7..ff5ace711697 100644
+>> --- a/tools/testing/selftests/landlock/socket_test.c
+>> +++ b/tools/testing/selftests/landlock/socket_test.c
+>> @@ -581,4 +581,51 @@ TEST_F(prot_outside_range, add_rule)
+>>   	ASSERT_EQ(0, close(ruleset_fd));
+>>   }
+>>   
+>> +TEST(unsupported_af_and_prot)
 > 
-> Patch 1)
-> 
-> -#ifdef CONFIG_NF_CONNTRACK_LABELS
->  static inline int ctnetlink_label_size(const struct nf_conn *ct)
-> 
-> Patch 2)
-> 
-> +#ifdef CONFIG_NF_CONNTRACK_EVENTS
->  static inline int ctnetlink_label_size(const struct nf_conn *ct)
-> 
-> They both refer to ctnetlink_label_size(), #ifdef check is not
-> correct.
+> Nit: If I am reading this test correctly, the point is to make sure that for
+> unsuported (EAFNOSUPPORT and ESOCKTNOSUPPORT) combinations of "family" and
+> "type", socket(2) returns the same error code, independent of whether that
+> combination is restricted with Landlock or not.  Maybe we could make it more
+> clear from the test name or a brief docstring that this is about error code
+> compatibility when calling socket() under from within a Landlock domain?
 
-But the first one touches more, no?
+Agreed, thanks for the nit! I think that docstring would be more
+appropriate here (similar to the kernel_socket test).
 
--- 
-With Best Regards,
-Andy Shevchenko
+> 
+>> +{
+>> +	const struct landlock_ruleset_attr ruleset_attr = {
+>> +		.handled_access_socket = LANDLOCK_ACCESS_SOCKET_CREATE,
+>> +	};
+>> +	struct landlock_socket_attr socket_af_unsupported = {
+>> +		.allowed_access = LANDLOCK_ACCESS_SOCKET_CREATE,
+>> +		.family = AF_UNSPEC,
+>> +		.type = SOCK_STREAM,
+>> +	};
+>> +	struct landlock_socket_attr socket_prot_unsupported = {
+>                                             ^^^^
+> Here and in the test name: Should this say "type" instead of "prot"?
+> It seems that the part that is unsupported here is the socket(2) "type"
+> argument, not the "protocol" argument?
 
+You're right, this naming is more more suitable for the EPROTONOSUPPORT.
+I'll extend this test by adding a separate check for this error code.
 
+> 
+>> +		.allowed_access = LANDLOCK_ACCESS_SOCKET_CREATE,
+>> +		.family = AF_UNIX,
+>> +		.type = SOCK_PACKET,
+>> +	};
+>> +	int ruleset_fd;
+>> +
+>> +	/* Tries to create a socket when ruleset is not established. */
+>> +	ASSERT_EQ(EAFNOSUPPORT, test_socket(AF_UNSPEC, SOCK_STREAM, 0));
+>> +	ASSERT_EQ(ESOCKTNOSUPPORT, test_socket(AF_UNIX, SOCK_PACKET, 0));
+>> +
+>> +	ruleset_fd =
+>> +		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
+>> +	ASSERT_LE(0, ruleset_fd);
+>> +
+>> +	EXPECT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_SOCKET,
+>> +				       &socket_af_unsupported, 0));
+>> +	EXPECT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_SOCKET,
+>> +				       &socket_prot_unsupported, 0));
+>> +	enforce_ruleset(_metadata, ruleset_fd);
+>> +	ASSERT_EQ(0, close(ruleset_fd));
+>> +
+>> +	/* Tries to create a socket when protocols are allowed. */
+>> +	EXPECT_EQ(EAFNOSUPPORT, test_socket(AF_UNSPEC, SOCK_STREAM, 0));
+>> +	EXPECT_EQ(ESOCKTNOSUPPORT, test_socket(AF_UNIX, SOCK_PACKET, 0));
+>> +
+>> +	ruleset_fd =
+>> +		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
+>> +	ASSERT_LE(0, ruleset_fd);
+>> +	enforce_ruleset(_metadata, ruleset_fd);
+>> +	ASSERT_EQ(0, close(ruleset_fd));
+>> +
+>> +	/* Tries to create a socket when protocols are restricted. */
+>> +	EXPECT_EQ(EAFNOSUPPORT, test_socket(AF_UNSPEC, SOCK_STREAM, 0));
+>> +	EXPECT_EQ(ESOCKTNOSUPPORT, test_socket(AF_UNIX, SOCK_PACKET, 0));
+>> +}
+>> +
+>>   TEST_HARNESS_MAIN
+>> -- 
+>> 2.34.1
+>>
