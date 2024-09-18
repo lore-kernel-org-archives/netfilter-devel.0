@@ -1,49 +1,49 @@
-Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
+Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A291418A95C;
-	Wed, 18 Sep 2024 22:16:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.165.32
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9FB118A95C;
+	Wed, 18 Sep 2024 22:16:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.177.32
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726697778; cv=none; b=q0ALR9vC2Vnbbcpf5htSX6lziYTI2zlyBuuOU05nxHG7No9Ymwj95QmQHkeoFXQViOlVNpuYtX9mgHoHXwzepOLR5ntvC2MRJ1Q7rYBVlKpndRjw2mP/He8F++U/wwGZEFLgzi13HQ8aQAKZZ0eqmLjUQ9KjyY3vyOWg/kzYHNA=
+	t=1726697786; cv=none; b=U+TqBjES7XdQfErd6+kt8ARAXxNNiNdgJJlqcqJrrUJ8Hz2zALccE1autgyNUxZxTe567zLTlYxCB+gWceKmZlx9/oQAEWNctjbBSoIgcbeWLcrExz9wVje8wBkGVN0NREmoSnqJAwnMDwQyHGhwoEFVBXOxA9JgpQ0ev5YFJuA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726697778; c=relaxed/simple;
-	bh=r7Y1Y2E+Gp2luY5Thlsc8wRuOtf5bn75VMNIO0Zx3HQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=GkorKpqdx/Ic9Ca1oaPGNxgN7q+/Dqhv4JQ8FFmOW6MxzExMgdynrQ/ljlEAE0yrx9qwMpdFsYSkMvIFTUcR1+TnbQuGEoQKZsziAo4OlnoExhtIUTeBZrxOxoJyK9Hv/PW65IKCfeHa63yzgjlFGaW1OBcs3mR0YFNMWJM5YmI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=KQhduQOL; arc=none smtp.client-ip=205.220.165.32
+	s=arc-20240116; t=1726697786; c=relaxed/simple;
+	bh=wBfyVDTM4HxUWEumQ92G2BrTF2fcsl+GXJK9ANXl0kY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=TxbAKhI+v/DCOQTCJwPmAG2CvQJ6XKS6thA9D4GVA+FbibqohRujlbqp+vEFAOioAZFDPsGxe7Q8GWVdrvtSxRAmrUVVr5L1aA69CFQqkXlfdodxlTftB5c0EQk25hNHuwcPlTong+KONlRRIFT9ydsIxLjAsxk7dkHHAtpn2Q4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=i+0/G7Kf; arc=none smtp.client-ip=205.220.177.32
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="KQhduQOL"
-Received: from pps.filterd (m0246627.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 48IJmSWw007126;
-	Wed, 18 Sep 2024 22:15:19 GMT
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="i+0/G7Kf"
+Received: from pps.filterd (m0333520.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 48IJmJ6N003445;
+	Wed, 18 Sep 2024 22:15:37 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=
 	from:to:cc:subject:date:message-id:mime-version
-	:content-transfer-encoding; s=corp-2023-11-20; bh=dU5WtacE8fAPDt
-	tE9ww7c6j0VSOJyXfNd4KFu/E6iBg=; b=KQhduQOLonA2TwxiQ0fzjlglDGv82J
-	a7hbGGzWjwurm11vl43mEfPAJN8XoFDX2A9kekngNx0SSm/sYFBqNPOyTuc6/QDJ
-	MQN16Hb/4xjVQHjewkaQ3wWUL4GP3EuOgTmq+VGpKw/eKv0spgCrtyuBceDlinE8
-	qhEBtxHizhr7r84SEgaeaz3RncswZcv7lwNLnuwMsFjCv6S+zoGeb3ba/cRghZAs
-	kHMEticHkZtgSReORb7pyaflis9DZ9fHeYe5592Fi7KVy6d3nFf4kbjP/byf2kjM
-	uf7Nnnnd4nhLgIrCqN1NxNyDGkxd6j4eHTQO6RPhJmDwqySLFSEZT3nA==
-Received: from phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta02.appoci.oracle.com [147.154.114.232])
-	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 41n3nsjmj9-1
+	:content-transfer-encoding; s=corp-2023-11-20; bh=BoBRjT/5TPEIOU
+	QqCqZcR52ehPc2DIZ0J/t6HtH3Toc=; b=i+0/G7KfA0eV7tqcOkGLNMprROk7se
+	+be1csTkFlI8fRDR3gokhuNWNkkSvNn3QQ0CQee7Bwl8I6PbQijBAady7tOFktjq
+	Uf3K8PSag2I6DwbyHo7ThRWO8wvVxFmemjR4uvtCyy6SVRf6ukzV0QzuAl+g/hTr
+	GWTvcOCUgSAEOPePD0mhIWohpLRc4lUxEP/prvWh+lCAkxGIFyh9csaz7ULWSkc1
+	CaLZzqVJ/zB/tJHOWl7m7/6tX5SLH2usTc+iLUYD7vqblqrXSIVdjQQMmKCbpSH2
+	l6Wc0YUBBNhSJdttFZ9HceSZZv3ZKM8wP1kMbYOxHw+Sy5n+nc+/q1ug==
+Received: from iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta02.appoci.oracle.com [147.154.18.20])
+	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 41n3nftjab-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 18 Sep 2024 22:15:19 +0000 (GMT)
-Received: from pps.filterd (phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
-	by phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com (8.18.1.2/8.18.1.2) with ESMTP id 48ILhIfq018072;
-	Wed, 18 Sep 2024 22:15:18 GMT
+	Wed, 18 Sep 2024 22:15:37 +0000 (GMT)
+Received: from pps.filterd (iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
+	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (8.18.1.2/8.18.1.2) with ESMTP id 48IK6nkP008263;
+	Wed, 18 Sep 2024 22:15:36 GMT
 Received: from pps.reinject (localhost [127.0.0.1])
-	by phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTPS id 41nycyp3cy-1
+	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTPS id 41nyfe020t-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 18 Sep 2024 22:15:18 +0000
-Received: from phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 48IMDUQ6008274;
-	Wed, 18 Sep 2024 22:15:17 GMT
+	Wed, 18 Sep 2024 22:15:36 +0000
+Received: from iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 48IMFZiN039058;
+	Wed, 18 Sep 2024 22:15:35 GMT
 Received: from ca-dev112.us.oracle.com (ca-dev112.us.oracle.com [10.129.136.47])
-	by phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTP id 41nycyp3c2-1;
-	Wed, 18 Sep 2024 22:15:17 +0000
+	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTP id 41nyfe01yx-1;
+	Wed, 18 Sep 2024 22:15:35 +0000
 From: Saeed Mirzamohammadi <saeed.mirzamohammadi@oracle.com>
 To: 
 Cc: saeed.mirzamohammadi@oracle.com, Florian Westphal <fw@strlen.de>,
@@ -58,9 +58,9 @@ Cc: saeed.mirzamohammadi@oracle.com, Florian Westphal <fw@strlen.de>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: [PATCH 5.10.y 1/1] inet: inet_defrag: prevent sk release while still in use
-Date: Wed, 18 Sep 2024 15:15:11 -0700
-Message-ID: <20240918221514.3080008-1-saeed.mirzamohammadi@oracle.com>
+Subject: [PATCH 5.4.y 1/1] inet: inet_defrag: prevent sk release while still in use
+Date: Wed, 18 Sep 2024 15:15:29 -0700
+Message-ID: <20240918221532.3080036-1-saeed.mirzamohammadi@oracle.com>
 X-Mailer: git-send-email 2.45.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -72,12 +72,12 @@ Content-Transfer-Encoding: 8bit
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1051,Hydra:6.0.680,FMLib:17.12.60.29
  definitions=2024-09-18_14,2024-09-18_01,2024-09-02_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 adultscore=0
- spamscore=0 mlxscore=0 phishscore=0 malwarescore=0 bulkscore=0
- suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 mlxlogscore=999
+ malwarescore=0 suspectscore=0 mlxscore=0 phishscore=0 bulkscore=0
+ spamscore=0 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.12.0-2408220000 definitions=main-2409180147
-X-Proofpoint-GUID: _aZLz6XwNRVRcVu7xcI1y-hqpziO2De4
-X-Proofpoint-ORIG-GUID: _aZLz6XwNRVRcVu7xcI1y-hqpziO2De4
+X-Proofpoint-GUID: Ot4cPpUb2RzTDbIi2uuWMKu45G4SJWrJ
+X-Proofpoint-ORIG-GUID: Ot4cPpUb2RzTDbIi2uuWMKu45G4SJWrJ
 
 From: Florian Westphal <fw@strlen.de>
 
@@ -143,7 +143,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
 (cherry picked from commit 7d0567842b78390dd9b60f00f1d8f838d540e325)
 
 CVE: CVE-2024-26921
-Cc: stable@vger.kernel.org # 5.10
+Cc: stable@vger.kernel.org # 5.4
 
 Signed-off-by: Saeed Mirzamohammadi <saeed.mirzamohammadi@oracle.com>
 ---
@@ -156,10 +156,10 @@ Signed-off-by: Saeed Mirzamohammadi <saeed.mirzamohammadi@oracle.com>
  create mode 100644 net/core/sock_destructor.h
 
 diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index 31755d496b01d..31ae4b74d4352 100644
+index 29ccc33a1c627..3191d0ffc6e9a 100644
 --- a/include/linux/skbuff.h
 +++ b/include/linux/skbuff.h
-@@ -733,10 +733,7 @@ struct sk_buff {
+@@ -704,10 +704,7 @@ struct sk_buff {
  		struct list_head	list;
  	};
  
@@ -384,7 +384,7 @@ index fad803d2d711e..ec2264adf2a6a 100644
  	/* Lookup (or create) queue header */
  	qp = ip_find(net, ip_hdr(skb), user, vif);
 diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index c129ad334eb39..8c2163f95711c 100644
+index fed9666a2f7da..cab68c63ea65e 100644
 --- a/net/ipv6/netfilter/nf_conntrack_reasm.c
 +++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
 @@ -296,6 +296,7 @@ static int nf_ct_frag6_queue(struct frag_queue *fq, struct sk_buff *skb,
@@ -395,7 +395,7 @@ index c129ad334eb39..8c2163f95711c 100644
  	return -EINPROGRESS;
  
  insert_error:
-@@ -471,7 +472,6 @@ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
+@@ -461,7 +462,6 @@ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
  	hdr = ipv6_hdr(skb);
  	fhdr = (struct frag_hdr *)skb_transport_header(skb);
  
