@@ -1,219 +1,148 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id A7CE42E64B
-	for <netfilter-devel@vger.kernel.org>; Wed, 18 Sep 2024 12:19:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from mail-ej1-f73.google.com (mail-ej1-f73.google.com [209.85.218.73])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD623183CDE
+	for <netfilter-devel@vger.kernel.org>; Wed, 18 Sep 2024 12:42:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.73
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726661994; cv=none; b=FnDskA+JT4KkAJGpUdUrMvcOuVDSSAXplbCiZ59JD991L0P6YZQ29MHmQJJHu+geNIOoUrLnxOj/lD8xpAtav8rZzLSN8Z7lbb+amd6D2YGHco0Gni0vjtXY7/hvqGc9Ls+s+5pAPledmUwIUg9jCAWimLf/oTYOuU4vMIkq/I4=
+	t=1726663353; cv=none; b=JYe9u9nsKJzJopdjMOXGIpb8TFwIlwBUcpCLZqUKX8yvD1cdpLL4VIgw6ena/32AOYeLYsSWN12z9QYAutR22aOdOk6LZ1s0v1mSab6Nymj+cYHyuZrZOHDWEtYwI5eNKRGkITaCIbHusEfRwA5UNXpfEsCLLkYdLu7J1v5CEAY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726661994; c=relaxed/simple;
-	bh=Al5ycvVB0iaiGkUYV9X18/im1qmYs2DCsLO5aCNOvHU=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=XlaT6fNkulLH5E4H/8q4Xf4NtXdfjJd0W6d5iVMWNHEwkUUl3RvJs1mQiPCPbwSX71J5MpeOL+qdJ+YUbWLnH5lYwa1vD2AzS4s/rOVpNErMq1wvC5kuMEfPzJqLcqu08OEc7jB3luJRL7h+q/oD1rKh9Hwx0gcwH2r48F0H/q0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: vasily.averin@linux.dev
-Subject: [PATCH nf,v2] netfilter: nf_tables: missing objects with no memcg accounting
-Date: Wed, 18 Sep 2024 14:19:45 +0200
-Message-Id: <20240918121945.15702-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+	s=arc-20240116; t=1726663353; c=relaxed/simple;
+	bh=YuyzMJS60HutvgbpoJTpxl2qOeZhR7R3VcbTf7ngxec=;
+	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
+	 To:Cc:Content-Type; b=t7kc6IDOULX6Vb/CsxodfDG4ZaDDDPsL8P/wSzNoGyHGQ9x+huweH9bY2fYqak6fIEbQBEp3NrCJ6qAFP/opoonSKY/ystw6mcnDIpmlIduu0voC9tqjHabUnI0iTx0Idjru1D4nAzY58Dao9Z49reZFnUrF/15xp1Zd6WvgVX8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=Wh0F0EHV; arc=none smtp.client-ip=209.85.218.73
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="Wh0F0EHV"
+Received: by mail-ej1-f73.google.com with SMTP id a640c23a62f3a-a8a9094c973so530962066b.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Sep 2024 05:42:30 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1726663349; x=1727268149; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:from:subject:message-id:references
+         :mime-version:in-reply-to:date:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=gGJ0f/kEihxaf9XHRtf990oQq84zNlc7esDTrAZ7XRI=;
+        b=Wh0F0EHVMsj0xvEW/WZabcJD1nS8lgOiBSg+g2FzSMLgy8D3AifZ64SfpL3ikMFGG7
+         1585UitnRs6mUZJDApD6zLiqweOAQe9D42XKZfcr6QMIAjo8UZ2Osh+i+Qrxu2LmzNzE
+         KDF8fPEI4LzZfUVp52MA4gd4VGDBjEIaM+18muVj8pF5CGr488b4R+ONHi8aG0mbxPlT
+         FIJp5gLRdk8HKWKghBco0accHqUuB6JdWCIXr5B6lBfUe9e1hH58mZO5TKjrHzMQoGTH
+         SI9/vW2ARiGYKw7g348EfsS/ejyCsZUD2y6N56AB3wgdanovhT8AlNeE2nGQg8ydHRM6
+         qYpw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1726663349; x=1727268149;
+        h=content-transfer-encoding:cc:to:from:subject:message-id:references
+         :mime-version:in-reply-to:date:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=gGJ0f/kEihxaf9XHRtf990oQq84zNlc7esDTrAZ7XRI=;
+        b=eKUeeu6cqRkzo08xE5tvFy345QC9mmWiFRtrurZDQAwUimKQrn1bCx+WJGiFhIJaiv
+         7b1uAE05il1QK+qSzznqzh1cJ8hbTrQgrSlQPRTH+tl9rDC/BekoXAh/fpg9irMfyj7O
+         meVOB1ML07HoXFmUYVi4KMY1oadFKacnDdVeM7kKthlOQrhqaA0ajNR8TIf5LzVUkKVi
+         xIYCv0QAZLSTYl2TUAB2CEmysYmgtUhrHDvJMzscUikcpgTACyGOV6lA8zVWtL6JngVr
+         lBfUSKYHVtZPxHC2sH9Wacz3Ye4U7cAkC9d/KWqtzdPFIDmsSx9I/vjTc4R1FzIM8aZF
+         Gb8w==
+X-Forwarded-Encrypted: i=1; AJvYcCVS+s0BeLx/dJNhnxLRLxl3GKy9+ASmGTVHJnsERlyJWzGSSP6ephKmlPSCcZ4Ry+hycynsZdCd6kosLjphAbA=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyTsZcMVOjCC5SCJcGBRCyOxLUMLcIw+dQIRjL0sWIIj/In/JPn
+	4wKv5X4x9cBjoK8ucbto5EIVFRbRXcXFDSdvloR9R+amcWUMWfxfMu5hwZQfP4cfDNWxYy+obLG
+	pmQ==
+X-Google-Smtp-Source: AGHT+IFl21qxhmyOXUg8lNc9sb+HkGJIE4koHAaq0dLwgaVvB8XbDGHG9iih5tbFXBeKdxYrwTeThjtybT4=
+X-Received: from swim.c.googlers.com ([fda3:e722:ac3:cc00:31:98fb:c0a8:1605])
+ (user=gnoack job=sendgmr) by 2002:a17:906:dd4:b0:a86:6d4e:57c0 with SMTP id
+ a640c23a62f3a-a90295ceaa8mr1026666b.10.1726663348975; Wed, 18 Sep 2024
+ 05:42:28 -0700 (PDT)
+Date: Wed, 18 Sep 2024 14:42:26 +0200
+In-Reply-To: <20240904104824.1844082-8-ivanov.mikhail1@huawei-partners.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
+References: <20240904104824.1844082-1-ivanov.mikhail1@huawei-partners.com> <20240904104824.1844082-8-ivanov.mikhail1@huawei-partners.com>
+Message-ID: <ZurKsk0LHrIxCoV9@google.com>
+Subject: Re: [RFC PATCH v3 07/19] selftests/landlock: Test adding a rule for
+ empty access
+From: "=?utf-8?Q?G=C3=BCnther?= Noack" <gnoack@google.com>
+To: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+Cc: mic@digikod.net, willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com, 
+	linux-security-module@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, yusongping@huawei.com, 
+	artem.kuzin@huawei.com, konstantin.meskhidze@huawei.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Several ruleset objects are still not using GFP_KERNEL_ACCOUNT for
-memory accounting, update them. This includes:
+On Wed, Sep 04, 2024 at 06:48:12PM +0800, Mikhail Ivanov wrote:
+> Add test that validates behaviour of Landlock after rule with
+> empty access is added.
+>=20
+> Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+> ---
+> Changes since v2:
+> * Renames protocol.inval into protocol.rule_with_empty_access.
+> * Replaces ASSERT_EQ with EXPECT_EQ for landlock_add_rule().
+> * Closes ruleset_fd.
+> * Refactors commit message and title.
+> * Minor fixes.
+>=20
+> Changes since v1:
+> * Refactors commit message.
+> ---
+>  .../testing/selftests/landlock/socket_test.c  | 33 +++++++++++++++++++
+>  1 file changed, 33 insertions(+)
+>=20
+> diff --git a/tools/testing/selftests/landlock/socket_test.c b/tools/testi=
+ng/selftests/landlock/socket_test.c
+> index d2fedfca7193..d323f649a183 100644
+> --- a/tools/testing/selftests/landlock/socket_test.c
+> +++ b/tools/testing/selftests/landlock/socket_test.c
+> @@ -384,4 +384,37 @@ TEST_F(protocol, rule_with_unhandled_access)
+>  	ASSERT_EQ(0, close(ruleset_fd));
+>  }
+> =20
+> +TEST_F(protocol, rule_with_empty_access)
+> +{
+> +	const struct landlock_ruleset_attr ruleset_attr =3D {
+> +		.handled_access_socket =3D LANDLOCK_ACCESS_SOCKET_CREATE
+> +	};
+> +	struct landlock_socket_attr protocol_allowed =3D {
+> +		.allowed_access =3D LANDLOCK_ACCESS_SOCKET_CREATE,
+> +		.family =3D self->prot.family,
+> +		.type =3D self->prot.type,
+> +	};
+> +	struct landlock_socket_attr protocol_denied =3D {
+> +		.allowed_access =3D 0,
+> +		.family =3D self->prot.family,
+> +		.type =3D self->prot.type,
+> +	};
+> +	int ruleset_fd;
+> +
+> +	ruleset_fd =3D
+> +		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
+> +	ASSERT_LE(0, ruleset_fd);
+> +
+> +	/* Checks zero access value. */
+> +	EXPECT_EQ(-1, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_SOCKET,
+> +					&protocol_denied, 0));
+> +	EXPECT_EQ(ENOMSG, errno);
+> +
+> +	/* Adds with legitimate value. */
+> +	EXPECT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_SOCKET,
+> +				       &protocol_allowed, 0));
 
-- catchall elements
-- compat match large info area
-- log prefix
-- meta secctx
-- numgen counters
-- pipapo set backend datastructure
-- tunnel private objects
+In my mind, the check with the legitimate rule is probably already done in =
+other
+places and does not strictly need to be duplicated here.
 
-Fixes: 33758c891479 ("memcg: enable accounting for nft objects")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: a more complete version.
+But up to you, it's fine either way. :)
 
- net/netfilter/nf_tables_api.c  |  2 +-
- net/netfilter/nft_compat.c     |  6 +++---
- net/netfilter/nft_log.c        |  2 +-
- net/netfilter/nft_meta.c       |  2 +-
- net/netfilter/nft_numgen.c     |  2 +-
- net/netfilter/nft_set_pipapo.c | 13 +++++++------
- net/netfilter/nft_tunnel.c     |  5 +++--
- 7 files changed, 17 insertions(+), 15 deletions(-)
+Reviewed-by: G=C3=BCnther Noack <gnoack@google.com>
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 8f073e6c772a..a24fe62650a7 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -6684,7 +6684,7 @@ static int nft_setelem_catchall_insert(const struct net *net,
- 		}
- 	}
- 
--	catchall = kmalloc(sizeof(*catchall), GFP_KERNEL);
-+	catchall = kmalloc(sizeof(*catchall), GFP_KERNEL_ACCOUNT);
- 	if (!catchall)
- 		return -ENOMEM;
- 
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index 52cdfee17f73..7ca4f0d21fe2 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -535,7 +535,7 @@ nft_match_large_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	struct xt_match *m = expr->ops->data;
- 	int ret;
- 
--	priv->info = kmalloc(XT_ALIGN(m->matchsize), GFP_KERNEL);
-+	priv->info = kmalloc(XT_ALIGN(m->matchsize), GFP_KERNEL_ACCOUNT);
- 	if (!priv->info)
- 		return -ENOMEM;
- 
-@@ -808,7 +808,7 @@ nft_match_select_ops(const struct nft_ctx *ctx,
- 		goto err;
- 	}
- 
--	ops = kzalloc(sizeof(struct nft_expr_ops), GFP_KERNEL);
-+	ops = kzalloc(sizeof(struct nft_expr_ops), GFP_KERNEL_ACCOUNT);
- 	if (!ops) {
- 		err = -ENOMEM;
- 		goto err;
-@@ -898,7 +898,7 @@ nft_target_select_ops(const struct nft_ctx *ctx,
- 		goto err;
- 	}
- 
--	ops = kzalloc(sizeof(struct nft_expr_ops), GFP_KERNEL);
-+	ops = kzalloc(sizeof(struct nft_expr_ops), GFP_KERNEL_ACCOUNT);
- 	if (!ops) {
- 		err = -ENOMEM;
- 		goto err;
-diff --git a/net/netfilter/nft_log.c b/net/netfilter/nft_log.c
-index 5defe6e4fd98..e35588137995 100644
---- a/net/netfilter/nft_log.c
-+++ b/net/netfilter/nft_log.c
-@@ -163,7 +163,7 @@ static int nft_log_init(const struct nft_ctx *ctx,
- 
- 	nla = tb[NFTA_LOG_PREFIX];
- 	if (nla != NULL) {
--		priv->prefix = kmalloc(nla_len(nla) + 1, GFP_KERNEL);
-+		priv->prefix = kmalloc(nla_len(nla) + 1, GFP_KERNEL_ACCOUNT);
- 		if (priv->prefix == NULL)
- 			return -ENOMEM;
- 		nla_strscpy(priv->prefix, nla, nla_len(nla) + 1);
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 8c8eb14d647b..05cd1e6e6a2f 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -952,7 +952,7 @@ static int nft_secmark_obj_init(const struct nft_ctx *ctx,
- 	if (tb[NFTA_SECMARK_CTX] == NULL)
- 		return -EINVAL;
- 
--	priv->ctx = nla_strdup(tb[NFTA_SECMARK_CTX], GFP_KERNEL);
-+	priv->ctx = nla_strdup(tb[NFTA_SECMARK_CTX], GFP_KERNEL_ACCOUNT);
- 	if (!priv->ctx)
- 		return -ENOMEM;
- 
-diff --git a/net/netfilter/nft_numgen.c b/net/netfilter/nft_numgen.c
-index 7d29db7c2ac0..bd058babfc82 100644
---- a/net/netfilter/nft_numgen.c
-+++ b/net/netfilter/nft_numgen.c
-@@ -66,7 +66,7 @@ static int nft_ng_inc_init(const struct nft_ctx *ctx,
- 	if (priv->offset + priv->modulus - 1 < priv->offset)
- 		return -EOVERFLOW;
- 
--	priv->counter = kmalloc(sizeof(*priv->counter), GFP_KERNEL);
-+	priv->counter = kmalloc(sizeof(*priv->counter), GFP_KERNEL_ACCOUNT);
- 	if (!priv->counter)
- 		return -ENOMEM;
- 
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index eb4c4a4ac7ac..7be342b495f5 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -663,7 +663,7 @@ static int pipapo_realloc_mt(struct nft_pipapo_field *f,
- 	    check_add_overflow(rules, extra, &rules_alloc))
- 		return -EOVERFLOW;
- 
--	new_mt = kvmalloc_array(rules_alloc, sizeof(*new_mt), GFP_KERNEL);
-+	new_mt = kvmalloc_array(rules_alloc, sizeof(*new_mt), GFP_KERNEL_ACCOUNT);
- 	if (!new_mt)
- 		return -ENOMEM;
- 
-@@ -936,7 +936,7 @@ static void pipapo_lt_bits_adjust(struct nft_pipapo_field *f)
- 		return;
- 	}
- 
--	new_lt = kvzalloc(lt_size + NFT_PIPAPO_ALIGN_HEADROOM, GFP_KERNEL);
-+	new_lt = kvzalloc(lt_size + NFT_PIPAPO_ALIGN_HEADROOM, GFP_KERNEL_ACCOUNT);
- 	if (!new_lt)
- 		return;
- 
-@@ -1212,7 +1212,7 @@ static int pipapo_realloc_scratch(struct nft_pipapo_match *clone,
- 		scratch = kzalloc_node(struct_size(scratch, map,
- 						   bsize_max * 2) +
- 				       NFT_PIPAPO_ALIGN_HEADROOM,
--				       GFP_KERNEL, cpu_to_node(i));
-+				       GFP_KERNEL_ACCOUNT, cpu_to_node(i));
- 		if (!scratch) {
- 			/* On failure, there's no need to undo previous
- 			 * allocations: this means that some scratch maps have
-@@ -1427,7 +1427,7 @@ static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old)
- 	struct nft_pipapo_match *new;
- 	int i;
- 
--	new = kmalloc(struct_size(new, f, old->field_count), GFP_KERNEL);
-+	new = kmalloc(struct_size(new, f, old->field_count), GFP_KERNEL_ACCOUNT);
- 	if (!new)
- 		return NULL;
- 
-@@ -1457,7 +1457,7 @@ static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old)
- 		new_lt = kvzalloc(src->groups * NFT_PIPAPO_BUCKETS(src->bb) *
- 				  src->bsize * sizeof(*dst->lt) +
- 				  NFT_PIPAPO_ALIGN_HEADROOM,
--				  GFP_KERNEL);
-+				  GFP_KERNEL_ACCOUNT);
- 		if (!new_lt)
- 			goto out_lt;
- 
-@@ -1470,7 +1470,8 @@ static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old)
- 
- 		if (src->rules > 0) {
- 			dst->mt = kvmalloc_array(src->rules_alloc,
--						 sizeof(*src->mt), GFP_KERNEL);
-+						 sizeof(*src->mt),
-+						 GFP_KERNEL_ACCOUNT);
- 			if (!dst->mt)
- 				goto out_mt;
- 
-diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
-index 60a76e6e348e..5c6ed68cc6e0 100644
---- a/net/netfilter/nft_tunnel.c
-+++ b/net/netfilter/nft_tunnel.c
-@@ -509,13 +509,14 @@ static int nft_tunnel_obj_init(const struct nft_ctx *ctx,
- 			return err;
- 	}
- 
--	md = metadata_dst_alloc(priv->opts.len, METADATA_IP_TUNNEL, GFP_KERNEL);
-+	md = metadata_dst_alloc(priv->opts.len, METADATA_IP_TUNNEL,
-+				GFP_KERNEL_ACCOUNT);
- 	if (!md)
- 		return -ENOMEM;
- 
- 	memcpy(&md->u.tun_info, &info, sizeof(info));
- #ifdef CONFIG_DST_CACHE
--	err = dst_cache_init(&md->u.tun_info.dst_cache, GFP_KERNEL);
-+	err = dst_cache_init(&md->u.tun_info.dst_cache, GFP_KERNEL_ACCOUNT);
- 	if (err < 0) {
- 		metadata_dst_free(md);
- 		return err;
--- 
-2.30.2
-
+> +
+> +	ASSERT_EQ(0, close(ruleset_fd));
+> +}
+> +
+>  TEST_HARNESS_MAIN
+> --=20
+> 2.34.1
+>=20
