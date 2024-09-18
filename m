@@ -1,49 +1,49 @@
-Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
+Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF5ED1CB30D;
-	Wed, 18 Sep 2024 22:13:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.177.32
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A291418A95C;
+	Wed, 18 Sep 2024 22:16:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.165.32
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726697629; cv=none; b=XyT/SE4laUUMrVoeviZSfhnw4fRNhmRvqY1EoysKLSU3mEfq2he09lZN2rJ8r8eu44x3Vf6gW1weNVJRQ9OJ/hQ5IThmHHefxORwsXU7twjkQNQ9rS3S296+og1IO9MOpsWWm3KpelCiV0MHXMS9EWyJQqzPKE/qx7EfJKurUlI=
+	t=1726697778; cv=none; b=q0ALR9vC2Vnbbcpf5htSX6lziYTI2zlyBuuOU05nxHG7No9Ymwj95QmQHkeoFXQViOlVNpuYtX9mgHoHXwzepOLR5ntvC2MRJ1Q7rYBVlKpndRjw2mP/He8F++U/wwGZEFLgzi13HQ8aQAKZZ0eqmLjUQ9KjyY3vyOWg/kzYHNA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726697629; c=relaxed/simple;
-	bh=MYDtXZH5GC+kN+l+1VuhRFHhin6WvjjJmNkW7Zex45k=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=WwP+UMeDQ6CxpXJO+BYBTF2xY7sYTBVbrId0oT70UGqC7Q6I4CGQXAnRrjcVxU7k3ytul/9LlbhQWh2OPsyel6AWnGCa50wgOim4LNDJKScnnZPFX3X4gZ+UXjJDGtFbSphWG44E+jDw4ZtJlXLZ4EyhsB+2GUUmQEdfxezY1B0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=fcHceVoK; arc=none smtp.client-ip=205.220.177.32
+	s=arc-20240116; t=1726697778; c=relaxed/simple;
+	bh=r7Y1Y2E+Gp2luY5Thlsc8wRuOtf5bn75VMNIO0Zx3HQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=GkorKpqdx/Ic9Ca1oaPGNxgN7q+/Dqhv4JQ8FFmOW6MxzExMgdynrQ/ljlEAE0yrx9qwMpdFsYSkMvIFTUcR1+TnbQuGEoQKZsziAo4OlnoExhtIUTeBZrxOxoJyK9Hv/PW65IKCfeHa63yzgjlFGaW1OBcs3mR0YFNMWJM5YmI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=KQhduQOL; arc=none smtp.client-ip=205.220.165.32
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="fcHceVoK"
-Received: from pps.filterd (m0246632.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 48IJmKGm010047;
-	Wed, 18 Sep 2024 22:12:46 GMT
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="KQhduQOL"
+Received: from pps.filterd (m0246627.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 48IJmSWw007126;
+	Wed, 18 Sep 2024 22:15:19 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=
 	from:to:cc:subject:date:message-id:mime-version
-	:content-transfer-encoding; s=corp-2023-11-20; bh=ktHcNUIpZvm0fh
-	8L1aIpXFWZ779Z5GHASlQSDemViwI=; b=fcHceVoKoXBvUqvsiYVMNWzqSNKVlC
-	F1slFqk0BHtNLa+hG23jx4G8P8VMF6U0PMMVPuTY7N0jTScVlTAxmzH3EFXpGwE4
-	RJcyBck0/vDhvzwXYHRrcC2FJZcEswi9Vht9je3oCDRlciLiMmIUfzDba20TAXHC
-	GQEjeCXbwyQJ6niGxFu6T/+pIyOiNYWO2E3VurwZ2gTIXClogYWpTyhwFJ4LGCZO
-	OfEYPMt+z+lIvR51zZ7ecHNpiMnSawiiwkQYY9VjYfR0KJHgFwyM+MBkGOOiXwGX
-	AOIOVdDDmi2wSgANoDxCsFxJnCn3UY7OBfjud0/T9jP7xsdw6MWsOQqA==
-Received: from phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta01.appoci.oracle.com [138.1.114.2])
-	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 41n3rk2cs7-1
+	:content-transfer-encoding; s=corp-2023-11-20; bh=dU5WtacE8fAPDt
+	tE9ww7c6j0VSOJyXfNd4KFu/E6iBg=; b=KQhduQOLonA2TwxiQ0fzjlglDGv82J
+	a7hbGGzWjwurm11vl43mEfPAJN8XoFDX2A9kekngNx0SSm/sYFBqNPOyTuc6/QDJ
+	MQN16Hb/4xjVQHjewkaQ3wWUL4GP3EuOgTmq+VGpKw/eKv0spgCrtyuBceDlinE8
+	qhEBtxHizhr7r84SEgaeaz3RncswZcv7lwNLnuwMsFjCv6S+zoGeb3ba/cRghZAs
+	kHMEticHkZtgSReORb7pyaflis9DZ9fHeYe5592Fi7KVy6d3nFf4kbjP/byf2kjM
+	uf7Nnnnd4nhLgIrCqN1NxNyDGkxd6j4eHTQO6RPhJmDwqySLFSEZT3nA==
+Received: from phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta02.appoci.oracle.com [147.154.114.232])
+	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 41n3nsjmj9-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 18 Sep 2024 22:12:46 +0000 (GMT)
-Received: from pps.filterd (phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
-	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (8.18.1.2/8.18.1.2) with ESMTP id 48IKqNfH010466;
-	Wed, 18 Sep 2024 22:12:45 GMT
+	Wed, 18 Sep 2024 22:15:19 +0000 (GMT)
+Received: from pps.filterd (phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
+	by phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com (8.18.1.2/8.18.1.2) with ESMTP id 48ILhIfq018072;
+	Wed, 18 Sep 2024 22:15:18 GMT
 Received: from pps.reinject (localhost [127.0.0.1])
-	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTPS id 41nyb8x0a4-1
+	by phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTPS id 41nycyp3cy-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 18 Sep 2024 22:12:45 +0000
-Received: from phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 48IMCiIH038557;
-	Wed, 18 Sep 2024 22:12:44 GMT
+	Wed, 18 Sep 2024 22:15:18 +0000
+Received: from phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 48IMDUQ6008274;
+	Wed, 18 Sep 2024 22:15:17 GMT
 Received: from ca-dev112.us.oracle.com (ca-dev112.us.oracle.com [10.129.136.47])
-	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTP id 41nyb8x09t-1;
-	Wed, 18 Sep 2024 22:12:44 +0000
+	by phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTP id 41nycyp3c2-1;
+	Wed, 18 Sep 2024 22:15:17 +0000
 From: Saeed Mirzamohammadi <saeed.mirzamohammadi@oracle.com>
 To: 
 Cc: saeed.mirzamohammadi@oracle.com, Florian Westphal <fw@strlen.de>,
@@ -58,9 +58,9 @@ Cc: saeed.mirzamohammadi@oracle.com, Florian Westphal <fw@strlen.de>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: [PATCH 5.15.y 1/1] inet: inet_defrag: prevent sk release while still in use
-Date: Wed, 18 Sep 2024 15:12:28 -0700
-Message-ID: <20240918221230.3079874-1-saeed.mirzamohammadi@oracle.com>
+Subject: [PATCH 5.10.y 1/1] inet: inet_defrag: prevent sk release while still in use
+Date: Wed, 18 Sep 2024 15:15:11 -0700
+Message-ID: <20240918221514.3080008-1-saeed.mirzamohammadi@oracle.com>
 X-Mailer: git-send-email 2.45.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -72,12 +72,12 @@ Content-Transfer-Encoding: 8bit
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1051,Hydra:6.0.680,FMLib:17.12.60.29
  definitions=2024-09-18_14,2024-09-18_01,2024-09-02_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 bulkscore=0
- adultscore=0 malwarescore=0 suspectscore=0 phishscore=0 spamscore=0
- mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 adultscore=0
+ spamscore=0 mlxscore=0 phishscore=0 malwarescore=0 bulkscore=0
+ suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.12.0-2408220000 definitions=main-2409180147
-X-Proofpoint-ORIG-GUID: L41KKXkU7Z3G-KqMIeF3n8OR9OQ6ySY8
-X-Proofpoint-GUID: L41KKXkU7Z3G-KqMIeF3n8OR9OQ6ySY8
+X-Proofpoint-GUID: _aZLz6XwNRVRcVu7xcI1y-hqpziO2De4
+X-Proofpoint-ORIG-GUID: _aZLz6XwNRVRcVu7xcI1y-hqpziO2De4
 
 From: Florian Westphal <fw@strlen.de>
 
@@ -143,30 +143,23 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
 (cherry picked from commit 7d0567842b78390dd9b60f00f1d8f838d540e325)
 
 CVE: CVE-2024-26921
-Cc: stable@vger.kernel.org # 5.15
+Cc: stable@vger.kernel.org # 5.10
 
 Signed-off-by: Saeed Mirzamohammadi <saeed.mirzamohammadi@oracle.com>
 ---
- include/linux/skbuff.h                  |  7 +--
+ include/linux/skbuff.h                  |  5 +-
+ net/core/sock_destructor.h              | 12 +++++
  net/ipv4/inet_fragment.c                | 70 ++++++++++++++++++++-----
  net/ipv4/ip_fragment.c                  |  2 +-
  net/ipv6/netfilter/nf_conntrack_reasm.c |  2 +-
- 4 files changed, 60 insertions(+), 21 deletions(-)
+ 5 files changed, 72 insertions(+), 19 deletions(-)
+ create mode 100644 net/core/sock_destructor.h
 
 diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index b230c422dc3b9..7f52562fac19c 100644
+index 31755d496b01d..31ae4b74d4352 100644
 --- a/include/linux/skbuff.h
 +++ b/include/linux/skbuff.h
-@@ -660,8 +660,6 @@ typedef unsigned char *sk_buff_data_t;
-  *	@rbnode: RB tree node, alternative to next/prev for netem/tcp
-  *	@list: queue head
-  *	@sk: Socket we are owned by
-- *	@ip_defrag_offset: (aka @sk) alternate use of @sk, used in
-- *		fragmentation management
-  *	@dev: Device we arrived on/are leaving by
-  *	@dev_scratch: (aka @dev) alternate use of @dev when @dev would be %NULL
-  *	@cb: Control buffer. Free for use by every layer. Put private vars here
-@@ -778,10 +776,7 @@ struct sk_buff {
+@@ -733,10 +733,7 @@ struct sk_buff {
  		struct list_head	list;
  	};
  
@@ -178,8 +171,26 @@ index b230c422dc3b9..7f52562fac19c 100644
  
  	union {
  		ktime_t		tstamp;
+diff --git a/net/core/sock_destructor.h b/net/core/sock_destructor.h
+new file mode 100644
+index 0000000000000..2f396e6bfba5a
+--- /dev/null
++++ b/net/core/sock_destructor.h
+@@ -0,0 +1,12 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++#ifndef _NET_CORE_SOCK_DESTRUCTOR_H
++#define _NET_CORE_SOCK_DESTRUCTOR_H
++#include <net/tcp.h>
++
++static inline bool is_skb_wmem(const struct sk_buff *skb)
++{
++	return skb->destructor == sock_wfree ||
++	       skb->destructor == __sock_wfree ||
++	       (IS_ENABLED(CONFIG_INET) && skb->destructor == tcp_wfree);
++}
++#endif
 diff --git a/net/ipv4/inet_fragment.c b/net/ipv4/inet_fragment.c
-index 341096807100c..7e38170111999 100644
+index e0e8a65d561ec..12ef3cb26676d 100644
 --- a/net/ipv4/inet_fragment.c
 +++ b/net/ipv4/inet_fragment.c
 @@ -24,6 +24,8 @@
@@ -199,7 +210,7 @@ index 341096807100c..7e38170111999 100644
  };
  
  #define FRAG_CB(skb)		((struct ipfrag_skb_cb *)((skb)->cb))
-@@ -390,12 +393,12 @@ int inet_frag_queue_insert(struct inet_frag_queue *q, struct sk_buff *skb,
+@@ -359,12 +362,12 @@ int inet_frag_queue_insert(struct inet_frag_queue *q, struct sk_buff *skb,
  	 */
  	if (!last)
  		fragrun_create(q, skb);  /* First fragment. */
@@ -215,7 +226,7 @@ index 341096807100c..7e38170111999 100644
  			fragrun_append_to_last(q, skb);
  		else
  			fragrun_create(q, skb);
-@@ -412,13 +415,13 @@ int inet_frag_queue_insert(struct inet_frag_queue *q, struct sk_buff *skb,
+@@ -381,13 +384,13 @@ int inet_frag_queue_insert(struct inet_frag_queue *q, struct sk_buff *skb,
  
  			parent = *rbn;
  			curr = rb_to_skb(parent);
@@ -232,7 +243,7 @@ index 341096807100c..7e38170111999 100644
  				 end <= curr_run_end)
  				return IPFRAG_DUP;
  			else
-@@ -432,7 +435,7 @@ int inet_frag_queue_insert(struct inet_frag_queue *q, struct sk_buff *skb,
+@@ -401,7 +404,7 @@ int inet_frag_queue_insert(struct inet_frag_queue *q, struct sk_buff *skb,
  		rb_insert_color(&skb->rbnode, &q->rb_fragments);
  	}
  
@@ -241,7 +252,7 @@ index 341096807100c..7e38170111999 100644
  
  	return IPFRAG_OK;
  }
-@@ -442,13 +445,28 @@ void *inet_frag_reasm_prepare(struct inet_frag_queue *q, struct sk_buff *skb,
+@@ -411,13 +414,28 @@ void *inet_frag_reasm_prepare(struct inet_frag_queue *q, struct sk_buff *skb,
  			      struct sk_buff *parent)
  {
  	struct sk_buff *fp, *head = skb_rb_first(&q->rb_fragments);
@@ -273,7 +284,7 @@ index 341096807100c..7e38170111999 100644
  		FRAG_CB(fp)->next_frag = FRAG_CB(skb)->next_frag;
  		if (RB_EMPTY_NODE(&skb->rbnode))
  			FRAG_CB(parent)->next_frag = fp;
-@@ -457,6 +475,12 @@ void *inet_frag_reasm_prepare(struct inet_frag_queue *q, struct sk_buff *skb,
+@@ -426,6 +444,12 @@ void *inet_frag_reasm_prepare(struct inet_frag_queue *q, struct sk_buff *skb,
  					&q->rb_fragments);
  		if (q->fragments_tail == skb)
  			q->fragments_tail = fp;
@@ -286,7 +297,7 @@ index 341096807100c..7e38170111999 100644
  		skb_morph(skb, head);
  		FRAG_CB(skb)->next_frag = FRAG_CB(head)->next_frag;
  		rb_replace_node(&head->rbnode, &skb->rbnode,
-@@ -464,13 +488,13 @@ void *inet_frag_reasm_prepare(struct inet_frag_queue *q, struct sk_buff *skb,
+@@ -433,13 +457,13 @@ void *inet_frag_reasm_prepare(struct inet_frag_queue *q, struct sk_buff *skb,
  		consume_skb(head);
  		head = skb;
  	}
@@ -302,7 +313,7 @@ index 341096807100c..7e38170111999 100644
  
  	delta += head->truesize;
  	if (delta)
-@@ -486,7 +510,7 @@ void *inet_frag_reasm_prepare(struct inet_frag_queue *q, struct sk_buff *skb,
+@@ -455,7 +479,7 @@ void *inet_frag_reasm_prepare(struct inet_frag_queue *q, struct sk_buff *skb,
  
  		clone = alloc_skb(0, GFP_ATOMIC);
  		if (!clone)
@@ -311,7 +322,7 @@ index 341096807100c..7e38170111999 100644
  		skb_shinfo(clone)->frag_list = skb_shinfo(head)->frag_list;
  		skb_frag_list_init(head);
  		for (i = 0; i < skb_shinfo(head)->nr_frags; i++)
-@@ -503,6 +527,21 @@ void *inet_frag_reasm_prepare(struct inet_frag_queue *q, struct sk_buff *skb,
+@@ -472,6 +496,21 @@ void *inet_frag_reasm_prepare(struct inet_frag_queue *q, struct sk_buff *skb,
  		nextp = &skb_shinfo(head)->frag_list;
  	}
  
@@ -333,7 +344,7 @@ index 341096807100c..7e38170111999 100644
  	return nextp;
  }
  EXPORT_SYMBOL(inet_frag_reasm_prepare);
-@@ -510,6 +549,8 @@ EXPORT_SYMBOL(inet_frag_reasm_prepare);
+@@ -479,6 +518,8 @@ EXPORT_SYMBOL(inet_frag_reasm_prepare);
  void inet_frag_reasm_finish(struct inet_frag_queue *q, struct sk_buff *head,
  			    void *reasm_data, bool try_coalesce)
  {
@@ -342,7 +353,7 @@ index 341096807100c..7e38170111999 100644
  	struct sk_buff **nextp = (struct sk_buff **)reasm_data;
  	struct rb_node *rbn;
  	struct sk_buff *fp;
-@@ -572,6 +613,9 @@ void inet_frag_reasm_finish(struct inet_frag_queue *q, struct sk_buff *head,
+@@ -541,6 +582,9 @@ void inet_frag_reasm_finish(struct inet_frag_queue *q, struct sk_buff *head,
  	skb_mark_not_on_list(head);
  	head->prev = NULL;
  	head->tstamp = q->stamp;
@@ -373,10 +384,10 @@ index fad803d2d711e..ec2264adf2a6a 100644
  	/* Lookup (or create) queue header */
  	qp = ip_find(net, ip_hdr(skb), user, vif);
 diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index 2e5b090d7c89f..0ec5ec5a5b45a 100644
+index c129ad334eb39..8c2163f95711c 100644
 --- a/net/ipv6/netfilter/nf_conntrack_reasm.c
 +++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -297,6 +297,7 @@ static int nf_ct_frag6_queue(struct frag_queue *fq, struct sk_buff *skb,
+@@ -296,6 +296,7 @@ static int nf_ct_frag6_queue(struct frag_queue *fq, struct sk_buff *skb,
  	}
  
  	skb_dst_drop(skb);
@@ -384,7 +395,7 @@ index 2e5b090d7c89f..0ec5ec5a5b45a 100644
  	return -EINPROGRESS;
  
  insert_error:
-@@ -472,7 +473,6 @@ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
+@@ -471,7 +472,6 @@ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
  	hdr = ipv6_hdr(skb);
  	fhdr = (struct frag_hdr *)skb_transport_header(skb);
  
