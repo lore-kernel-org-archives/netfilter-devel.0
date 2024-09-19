@@ -1,73 +1,76 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9E9C199956;
-	Thu, 19 Sep 2024 10:08:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B556D168BD
+	for <netfilter-devel@vger.kernel.org>; Thu, 19 Sep 2024 10:44:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726740499; cv=none; b=FAwv4CDLFzxoMObhOMNNR4GVB2CpSIrHY9GaW+nAfSJ99EfQShrlLbdbRrPpy/42DPUsrssrxA1+SxMcWmYn9X06TRTi60EItRTV1/QfEE3kfWzXqX/y8/qtvha7z2oWN7Unh1p2i8DXWnmA4itDKSNl+x8/Oiz952yNWn0gkVk=
+	t=1726742650; cv=none; b=YoXK5DbukTOjX0gpCjAr43UjgYH8U8DWaQoYviCcRZhdQdatI0S0uiSb3N59soCrzktfGKcYiHNSBH9j78x39ZO90tnd/Tqt99wJrWAUucFPirCfMbGLut8zht/MuhJvW0i9VXEFNjk6nBERSrfg8zJ1Z1KpjrhRNd+VF8046Hc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726740499; c=relaxed/simple;
-	bh=iQHq5X10ZfpzHxsR132EfJBHxX3P8U3sauM6BcLU8Ko=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=JyTx6CM2Y48jtVesnTWN2qmvy+Pwtnft0nX6b7wSeGsXNWBFbtsrbF/6FjUk1r5zbJGCX70MKgQcETVSrq0r1Y0n0MZwbmcwk0SIYnEqUCXJ/MFo5NaPpP5tqPi97kwZnP0jYy0gLm+CXpyo3tVJZSTt/Ifs1B4v862ifvT+46Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=48768 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1srE52-003A0F-GJ; Thu, 19 Sep 2024 12:08:10 +0200
-Date: Thu, 19 Sep 2024 12:08:07 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Breno Leitao <leitao@debian.org>
-Cc: fw@strlen.de, davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-	pabeni@redhat.com, rbc@meta.com, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next v5 0/2] netfilter: Make IP_NF_IPTABLES_LEGACY
- selectable
-Message-ID: <Zuv4B89z3YUOU0rj@calendula>
-References: <20240909084620.3155679-1-leitao@debian.org>
- <Zuq12avxPonafdvv@calendula>
- <20240919-refreshing-grinning-leopard-8f8ca7@leitao>
+	s=arc-20240116; t=1726742650; c=relaxed/simple;
+	bh=vB06LzafELi1DtD+VjDu6fLDt/zuNI2pJ+xIKiCId7U=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=pazejAW6VYatk1umdIIT3FQ6pgnGnxvHpr85amEIctzpncL/kl0+dh9zUcWfhMtHeEypseC80w8GBXMFMj6qoQY/tbetYr+JpacMLGlo5eWTUszvLiCrdjz3mqTWrB5uTASd3+hcz6JVhQyeweP1FdHvnSlia32E38sbY1/eRaQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=RzluevfL; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="RzluevfL"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=tFuiyzpSN6voI2M/A/4zlfNW5jiOfb5RlOaqM1kvvWg=; b=RzluevfLzw/q3hnk/1fcK9vkMT
+	dwDpayaQrm5PpCJ8EYqhxF5k9YFprJynddElhera4mHqqUV3EfzwIW6CU0WJkAvyHmX+sDPTjR/y9
+	8mAMPD2HmgpOQAaouc+QnGz1tBLG7zlmlQTwGT1tTUm2AUwfO59JQYFdcfGkwwoAxyEZ5ePRJx4uq
+	qPpxNtXUhkO8JAd7JRMPoV7SiC1AyYrKtDIi1C7nnivUM1lYrqy7CR/5NBsTUz8YBM9xUuycTFurw
+	N7akrfRgUusEpU8chDn6PYmjJBThkUlyY344DkMAL6LKf5Ud1jM2DSA1rBBSbAi978uuLAHkYmPpt
+	idyILWtA==;
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1srEdk-0000000023q-1mKx;
+	Thu, 19 Sep 2024 12:44:00 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: [nf PATCH] selftests: netfilter: Avoid hanging ipvs.sh
+Date: Thu, 19 Sep 2024 12:43:56 +0200
+Message-ID: <20240919104356.20298-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20240919-refreshing-grinning-leopard-8f8ca7@leitao>
-X-Spam-Score: -1.9 (-)
+Content-Transfer-Encoding: 8bit
 
-On Thu, Sep 19, 2024 at 02:31:12AM -0700, Breno Leitao wrote:
-> Hello Pablo,
-> 
-> On Wed, Sep 18, 2024 at 01:13:29PM +0200, Pablo Neira Ayuso wrote:
-> > On Mon, Sep 09, 2024 at 01:46:17AM -0700, Breno Leitao wrote:
-> > > These two patches make IP_NF_IPTABLES_LEGACY and IP6_NF_IPTABLES_LEGACY
-> > > Kconfigs user selectable, avoiding creating an extra dependency by
-> > > enabling some other config that would select IP{6}_NF_IPTABLES_LEGACY.
-> > 
-> > This needs a v6. There is also:
-> > 
-> > BRIDGE_NF_EBTABLES_LEGACY
-> > 
-> > We have more copy and paste in the bridge.
-> > 
-> > Would you submit a single patch covering this too?
-> 
-> Sure, I am more than happy to work on this one and also on
-> IP_NF_ARPTABLES.
-> 
-> Would you like a v6 with all the four changes, or, two extra patches and
-> keep this thread ready for merge?
+If the client can't reach the server, the latter remains listening
+forever. Kill it after 3s of waiting.
 
-One single patch is fine, thanks.
+Fixes: 867d2190799ab ("selftests: netfilter: add ipvs test script")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ tools/testing/selftests/net/netfilter/ipvs.sh | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-> PS: I am in LPC and in Kernel Recipes next week, I might not be able to
-> do it until next week.
-> 
-> Thanks
+diff --git a/tools/testing/selftests/net/netfilter/ipvs.sh b/tools/testing/selftests/net/netfilter/ipvs.sh
+index 4ceee9fb3949..59d7aecbd887 100755
+--- a/tools/testing/selftests/net/netfilter/ipvs.sh
++++ b/tools/testing/selftests/net/netfilter/ipvs.sh
+@@ -107,6 +107,10 @@ client_connect() {
+ }
+ 
+ verify_data() {
++	waitpid -t 3 "${server_pid}"
++	if [ $? -eq 3 ]; then
++		kill "${server_pid}"
++	fi
+ 	wait "${server_pid}"
+ 	cmp "$infile" "$outfile" 2>/dev/null
+ }
+-- 
+2.43.0
+
