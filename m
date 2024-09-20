@@ -1,54 +1,106 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F7FC11CA9;
-	Fri, 20 Sep 2024 16:10:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6F6416A94F
+	for <netfilter-devel@vger.kernel.org>; Fri, 20 Sep 2024 20:23:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726848637; cv=none; b=YiMvFzPIoVBtlKm4DGp8rs5R7jPU0kgKYXu5NpeE/t0fMPjX4G2vHJPxKp+XvbQZGtP3I7SXVzLmgsunaXn7qG7L2B9bM/dHMgUPpAquLBNUZMV79vxiJZSFFVkF7R6oAFRd76Ged9UVXXHp2r7KVz9u/WaRup1BMWyceoISPvY=
+	t=1726863841; cv=none; b=oukxfDOCC2MIbiW86m6b64aKpqWk1/YZcCI5n04qtIzMXlD6FdwLIE9Cr6H0vqfjhoLzyHULt/KNGiRitaqwDqq57chVrzfXE3d0KL1OGSpYkiGswNo9TeHmauQM4IfeF4mOSt2bJdV8RgNPWpmJK5zEY3x8qvcXoK/Mo6GKpy0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726848637; c=relaxed/simple;
-	bh=KjpPeZkBuxH8lsrHDzxyYpX5hyYv26XHOkxvl+zAWPQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=uxqyvvtMB/x+GA2w0+FknWsjS9CFCwv9vUk1/vIUDn0VPsUoC0NW14bBPv3vgIdPYD7SDd/Ypd9drPPyY9nOzs1FinQiqni2N8cFSkbeP+0JmAxSRqoh19X8ub7GprUgYSGSQLnGA45HEzg78D89oa78ElstuM+3PM6bYlYfE2g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=41210 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1srgD7-006n9e-LZ; Fri, 20 Sep 2024 18:10:23 +0200
-Date: Fri, 20 Sep 2024 18:10:20 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: stable@vger.kernel.org,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: stable request: netfilter:  make cgroupsv2 matching work with
- namespaces
-Message-ID: <Zu2ebGu9vSXxp6cw@calendula>
-References: <20240920101146.GA10413@breakpoint.cc>
+	s=arc-20240116; t=1726863841; c=relaxed/simple;
+	bh=Mj3ULNJTBhjPqq1CZTIaexRT5N3czg39T18K4bQNDaA=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=SlrQWacQPw/xhAMduImeiAhESGur8QF3yKiBFH/XYWC885TMtvSePlG54rSVVnSMuPlrjzGJr95v1HdgP0JPNTgX/hOIRFSxwrlsUj5YFEjjEZZ8MHaoUJ5Ga5T3byrlENf0Ok6DP+uNuGhv54ww69wPzgcFROh8FCvFN+ZlrHI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=ORJFo4j9; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="ORJFo4j9"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=6rGI0WC3iRclcNdSk/jWWybMNLgGOetAn8fZWpU+IBo=; b=ORJFo4j9ZC9r3iQIP0KxikBtVa
+	WX9sBG9wxglsUSyEHWUaPDQHWxZMfqWUkcgb+xSBWxYxRPGk0sofeRV/miaRHo8E6DqoQXVIHXeb5
+	wS1uXCecOw8NFasZH1QBbwXOo+9Rv5p4WHne/zDQ7eDuFrUbLqDMCq/M3PxUauyKVVMmy6hCO/89p
+	WhIIjs1HFik4fPPtrEf4+YwU2ja6BmHR6BwI6/16TkwLok3mC1j1CBtnL32JWWJg24wznZyOjnw+v
+	uC7aqnIMtZQajaIFE8Si14A6J58t4fi90zpVyY/xsDh0HV4htKi0ClPIxM9jaIfdJHmZOFizGrCOP
+	s1BQWsZA==;
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1srkAQ-000000006Hv-49aO;
+	Fri, 20 Sep 2024 22:23:51 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org,
+	Florian Westphal <fw@strlen.de>,
+	Eric Garver <e@erig.me>
+Subject: [nf-next PATCH v4 09/16] netfilter: nf_tables: Drop __nft_unregister_flowtable_net_hooks()
+Date: Fri, 20 Sep 2024 22:23:40 +0200
+Message-ID: <20240920202347.28616-10-phil@nwl.cc>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20240920202347.28616-1-phil@nwl.cc>
+References: <20240920202347.28616-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20240920101146.GA10413@breakpoint.cc>
-X-Spam-Score: -1.9 (-)
+Content-Transfer-Encoding: 8bit
 
-On Fri, Sep 20, 2024 at 12:11:46PM +0200, Florian Westphal wrote:
-> Hello,
-> 
-> please consider picking up:
-> 7f3287db6543 ("netfilter: nft_socket: make cgroupsv2 matching work with namespaces")
-> and its followup fix,
-> 7052622fccb1 ("netfilter: nft_socket: Fix a NULL vs IS_ERR() bug in nft_socket_cgroup_subtree_level()")
->
-> It should cherry-pick fine for 6.1 and later.
-> I'm not sure a 5.15 backport is worth it, as its not a crash fix and
-> noone has reported this problem so far with a 5.15 kernel.
+The function is a 1:1 copy of nft_netdev_unregister_hooks(), use the
+latter in its place.
 
-I can take of these backports.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ net/netfilter/nf_tables_api.c | 20 ++------------------
+ 1 file changed, 2 insertions(+), 18 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 3721f4636e0a..7a721df27f12 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -8560,25 +8560,10 @@ static void nft_unregister_flowtable_hook(struct net *net,
+ 				    FLOW_BLOCK_UNBIND);
+ }
+ 
+-static void __nft_unregister_flowtable_net_hooks(struct net *net,
+-						 struct list_head *hook_list,
+-					         bool release_netdev)
+-{
+-	struct nft_hook *hook, *next;
+-
+-	list_for_each_entry_safe(hook, next, hook_list, list) {
+-		nf_unregister_net_hook(net, &hook->ops);
+-		if (release_netdev) {
+-			list_del(&hook->list);
+-			kfree_rcu(hook, rcu);
+-		}
+-	}
+-}
+-
+ static void nft_unregister_flowtable_net_hooks(struct net *net,
+ 					       struct list_head *hook_list)
+ {
+-	__nft_unregister_flowtable_net_hooks(net, hook_list, false);
++	nft_netdev_unregister_hooks(net, hook_list, false);
+ }
+ 
+ static int nft_register_flowtable_ops(struct net *net,
+@@ -11473,8 +11458,7 @@ static void __nft_release_hook(struct net *net, struct nft_table *table)
+ 	list_for_each_entry(chain, &table->chains, list)
+ 		__nf_tables_unregister_hook(net, table, chain, true);
+ 	list_for_each_entry(flowtable, &table->flowtables, list)
+-		__nft_unregister_flowtable_net_hooks(net, &flowtable->hook_list,
+-						     true);
++		nft_netdev_unregister_hooks(net, &flowtable->hook_list, true);
+ }
+ 
+ static void __nft_release_hooks(struct net *net)
+-- 
+2.43.0
+
