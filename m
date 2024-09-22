@@ -1,114 +1,76 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47A782C6BB
-	for <netfilter-devel@vger.kernel.org>; Sun, 22 Sep 2024 10:48:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AED70745CB;
+	Sun, 22 Sep 2024 21:13:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727002109; cv=none; b=SiGnzQFwjRYKeh5slHDgdlr5kq1J2qRE8QOuFHvFRpCDXbhIpYMyLjyNi8J3MN8Gsgy5o/Vr5IE6hm7lA+qRYAoMQx09KTa/iNqa1dOSXIy+duGPuV2nZlB6M0b1Qrxk0uwcNsBdpcEQFRbqdopGWy3w8Hf7VYHeVFXS/1GyfWM=
+	t=1727039599; cv=none; b=b1DfgRfGgGsFNEHxzH355I6EYL06v1+mE3YSTZathFM0OfOfuSoi6j3mJ5Hn2esuYIBVFCsnV1xx8JqjbJhq/jwDSoN6Gf8P+9bdX1KHu2WfsQbYZ15HBTGFG0CQBiH68a0he80mH+Hgq90hGtIbPDuKrmuicAnIZtZm9VfbLbw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727002109; c=relaxed/simple;
-	bh=IaRd/b7DVX3WS9qyF2K47Trh1urF1L7BabGTa1REMf4=;
+	s=arc-20240116; t=1727039599; c=relaxed/simple;
+	bh=gkUfyCEyStS2izTtvpfZiyUL5tUDETyPehUxD8S3VzU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=dyHRvlHzy+zseooweIoOSnpcI9+UrZr5wW3Ct8HKYcCy2jmAN8+ahdxvhStfmS1D/McE1ZRbKtopa01kAVM8VmzR1WHg56GsomwZk/EdHtBYSahC8DmM3lZy9qK/Lk1m2zYJnbEdQlUPu2krenBXb/YgPHr2EeOse0ztvDsAS3s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=XV9k3jxo; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="XV9k3jxo"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=QX2PADVIG5ZutjnBXhcwAoi81jWcdwiIc0Y9bt898E4=; b=XV9k3jxodqQ0mMUGoDiZOexF7E
-	FtRECcEfqdB6ryoD6GS5CPEG5p4v6KM45asoHFiplWWb4puW0ZjGgbEOwuB6W8BQO9dybVsani+YA
-	ZU1RkwltY38tO7rvbF5aNW/L/4xq9FA4LmC3HFwB2zE9NwGZDlRrsLuKBYs1ogjqgtd2mD/vd8nNz
-	nNoYkdlNwLpavqB+O3fRcGU0I39pVJwzNIpz7upXkYKd0LjXI0U3D+BmsgzcnxqBpqeKVEXiBAZSv
-	W+6aODCi0IOV6qMrv4uqzqx12odba8+2FlUBRqiutNZIKvhztToTO24TqceXjeZi7iSYjl3cPk8jj
-	S9/Lz8lw==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1ssK8X-000000004Of-0Bf4;
-	Sun, 22 Sep 2024 12:48:17 +0200
-Date: Sun, 22 Sep 2024 12:48:16 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, Eric Garver <e@erig.me>
-Subject: Re: [nf-next PATCH v4 13/16] netfilter: nf_tables: Handle
- NETDEV_CHANGENAME events
-Message-ID: <Zu_18Az4-Boh9aCv@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, Eric Garver <e@erig.me>
-References: <20240920202347.28616-1-phil@nwl.cc>
- <20240920202347.28616-14-phil@nwl.cc>
- <20240922073224.GA32587@breakpoint.cc>
+	 Content-Type:Content-Disposition:In-Reply-To; b=okw9Uhf5PKn5O1yMqd2AzvLxjcsyJ928xatWlhb1Ribt+P7aPerZOmAbU/6fgAGXezMVcLzQ2f5p45JB+k5M1fXpaEn21B4b9Zuld+B8e1w87EnxvTXFXvzdv5mxC4mJ+8HkYjK44Ge13424HWcQnKA56WmhE3b83qtg6eYzsOE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=38090 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1ssTt8-00CnH3-Qe; Sun, 22 Sep 2024 23:13:05 +0200
+Date: Sun, 22 Sep 2024 23:13:01 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Uros Bizjak <ubizjak@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
+Subject: Re: [PATCH v2 0/2] netfilter: nf_tables: Fix percpu address space
+ issues in nf_tables_api.c
+Message-ID: <ZvCIXZTx6iRFG373@calendula>
+References: <20240829154739.16691-1-ubizjak@gmail.com>
+ <Ztc16pw4r3Tf_U7h@calendula>
+ <CAFULd4bUoeviAnomH38rGRa55KSkz3_L49Jqw3Tit4UCdywpnQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20240922073224.GA32587@breakpoint.cc>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAFULd4bUoeviAnomH38rGRa55KSkz3_L49Jqw3Tit4UCdywpnQ@mail.gmail.com>
+X-Spam-Score: -1.8 (-)
 
-On Sun, Sep 22, 2024 at 09:32:24AM +0200, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
-> > For the sake of simplicity, treat them like consecutive NETDEV_REGISTER
-> > and NETDEV_UNREGISTER events. If the new name matches a hook spec and
-> > registration fails, escalate the error and keep things as they are.
-> > 
-> > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> > ---
-> > Changes since v3:
-> > - Register first and handle errors to avoid having unregistered the
-> >   device but registration fails.
-> > ---
-> >  net/netfilter/nf_tables_api.c    | 5 +++++
-> >  net/netfilter/nft_chain_filter.c | 5 +++++
-> >  2 files changed, 10 insertions(+)
-> > 
-> > diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> > index 2684990dd3dc..4d40c1905735 100644
-> > --- a/net/netfilter/nf_tables_api.c
-> > +++ b/net/netfilter/nf_tables_api.c
-> > @@ -9371,6 +9371,11 @@ static int nf_tables_flowtable_event(struct notifier_block *this,
-> >  	struct nft_table *table;
-> >  	struct net *net;
-> >  
-> > +	if (event == NETDEV_CHANGENAME) {
-> > +		if (nf_tables_flowtable_event(this, NETDEV_REGISTER, ptr))
-> > +			return NOTIFY_BAD;
-> > +		event = NETDEV_UNREGISTER;
-> > +	}
+On Sun, Sep 22, 2024 at 11:04:56AM +0200, Uros Bizjak wrote:
+> On Tue, Sep 3, 2024 at 6:14 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> >
+> > Hi,
+> >
+> > On Thu, Aug 29, 2024 at 05:29:30PM +0200, Uros Bizjak wrote:
+> > > Use {ERR_PTR,IS_ERR,PTR_ERR}_PCPU() macros when crossing between generic
+> > > and percpu address spaces and add __percpu annotation to *stats pointer
+> > > to fix percpu address space issues.
+> >
+> > IIRC, you submitted patch 1/2 in this series to the mm tree.
+> >
+> > Let us know if this patch gets upstreamed via MM tree (if mm
+> > maintainers are fine with it) or maybe MM maintainers prefer an
+> > alternative path for this.
 > 
-> Consider flowtable that should claim devices "pv*".
-> You get CHANGENAME, device name is, say, pv5.
+> Dear maintainers,
 > 
-> Device name is registered in nf_tables_flowtable_event().
-> Then, event is set to UNREGISTER.
-> 
-> AFAICS this may unreg the device again immediately, as unreg part
-> only compares device pointer and we can't be sure the device was
-> part of any flowtable when CHANGENAME was triggered.
-> 
-> So I think nf_tables_flowtable_event() must handle CHANGENAME
-> directly, first check if any flowtable holds the device at this time,
-> then check if we need to register it with a new name, and do unreg
-> only if it was previously part of any flowtable.
-> 
-> Same logic needed for netdev chains.
-> 
-> Does that make sense?
+> I would just like to inform you that patch 1/2 got mainlined [1] as
+> commit a759e37fb467.
 
-Oh, you're right: Registering the device again (with new name) then
-searching *all* flowtables for the device and unregistering it will
-undo the previous registration, too! This obviously needs proper
-testing, too.
+Thanks for your follow up to notify this, I will place this in
+nf-next.
 
-Thanks, Phil
+> [1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=a759e37fb46708029c9c3c56c3b62e6f24d85cf5
+> 
+> Best regards,
+> Uros.
