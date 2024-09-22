@@ -1,76 +1,75 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AED70745CB;
-	Sun, 22 Sep 2024 21:13:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2712D768EF
+	for <netfilter-devel@vger.kernel.org>; Sun, 22 Sep 2024 22:16:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727039599; cv=none; b=b1DfgRfGgGsFNEHxzH355I6EYL06v1+mE3YSTZathFM0OfOfuSoi6j3mJ5Hn2esuYIBVFCsnV1xx8JqjbJhq/jwDSoN6Gf8P+9bdX1KHu2WfsQbYZ15HBTGFG0CQBiH68a0he80mH+Hgq90hGtIbPDuKrmuicAnIZtZm9VfbLbw=
+	t=1727043383; cv=none; b=PO7PPrE9oWEwEa2EyniJRT2mIg77Ww5UCXIlNqfWuScQ+3oQt4w0QLZqf+290tDl4/wu6FVw2p8Mv5wzV1o9S442gMCwQnYxDIQWZEXPCH4nxX5+Rur7coz/32AryybOGIn3ddf8D32BasClFrPXd4kP9Kmtd9ceTGbthZ4KLN4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727039599; c=relaxed/simple;
-	bh=gkUfyCEyStS2izTtvpfZiyUL5tUDETyPehUxD8S3VzU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=okw9Uhf5PKn5O1yMqd2AzvLxjcsyJ928xatWlhb1Ribt+P7aPerZOmAbU/6fgAGXezMVcLzQ2f5p45JB+k5M1fXpaEn21B4b9Zuld+B8e1w87EnxvTXFXvzdv5mxC4mJ+8HkYjK44Ge13424HWcQnKA56WmhE3b83qtg6eYzsOE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=38090 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1ssTt8-00CnH3-Qe; Sun, 22 Sep 2024 23:13:05 +0200
-Date: Sun, 22 Sep 2024 23:13:01 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Uros Bizjak <ubizjak@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
-Subject: Re: [PATCH v2 0/2] netfilter: nf_tables: Fix percpu address space
- issues in nf_tables_api.c
-Message-ID: <ZvCIXZTx6iRFG373@calendula>
-References: <20240829154739.16691-1-ubizjak@gmail.com>
- <Ztc16pw4r3Tf_U7h@calendula>
- <CAFULd4bUoeviAnomH38rGRa55KSkz3_L49Jqw3Tit4UCdywpnQ@mail.gmail.com>
+	s=arc-20240116; t=1727043383; c=relaxed/simple;
+	bh=B46wpAZUsQKurH4iPpqCqnfkKOkWjIIRQpFqyN6INjY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=cJYuA2W+4/VmfiSS/i51L0ZFmoCotp8UIRYnv7DVlKdeHJ7JjIxq/3t0B9kakDoLG8T7XC8tlETF//TR6TMT6gPPLWQPI1P0pGgE1YY3MKxP+rvvUvhWZ4eqB9VrjGC7NKh6L0XGR/dkNmuObzC72DOP/cHIbca6Xzy3Jil2hHY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1ssUsF-0004Bu-QR; Mon, 23 Sep 2024 00:16:11 +0200
+From: Florian Westphal <fw@strlen.de>
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH libnftnl] expr: dynset: validate expressions are of nested type
+Date: Mon, 23 Sep 2024 00:16:02 +0200
+Message-ID: <20240922221606.425225-1-fw@strlen.de>
+X-Mailer: git-send-email 2.46.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAFULd4bUoeviAnomH38rGRa55KSkz3_L49Jqw3Tit4UCdywpnQ@mail.gmail.com>
-X-Spam-Score: -1.8 (-)
 
-On Sun, Sep 22, 2024 at 11:04:56AM +0200, Uros Bizjak wrote:
-> On Tue, Sep 3, 2024 at 6:14 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> >
-> > Hi,
-> >
-> > On Thu, Aug 29, 2024 at 05:29:30PM +0200, Uros Bizjak wrote:
-> > > Use {ERR_PTR,IS_ERR,PTR_ERR}_PCPU() macros when crossing between generic
-> > > and percpu address spaces and add __percpu annotation to *stats pointer
-> > > to fix percpu address space issues.
-> >
-> > IIRC, you submitted patch 1/2 in this series to the mm tree.
-> >
-> > Let us know if this patch gets upstreamed via MM tree (if mm
-> > maintainers are fine with it) or maybe MM maintainers prefer an
-> > alternative path for this.
-> 
-> Dear maintainers,
-> 
-> I would just like to inform you that patch 1/2 got mainlined [1] as
-> commit a759e37fb467.
+This was not handled in the switch statement so far.
+Also, use proper max value, SET_MAX is larger than whats is needed for
+parsing.
 
-Thanks for your follow up to notify this, I will place this in
-nf-next.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/expr/dynset.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-> [1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=a759e37fb46708029c9c3c56c3b62e6f24d85cf5
-> 
-> Best regards,
-> Uros.
+diff --git a/src/expr/dynset.c b/src/expr/dynset.c
+index 8a159f8ff520..9d2bfe5e206b 100644
+--- a/src/expr/dynset.c
++++ b/src/expr/dynset.c
+@@ -118,7 +118,7 @@ static int nftnl_expr_dynset_cb(const struct nlattr *attr, void *data)
+ 	const struct nlattr **tb = data;
+ 	int type = mnl_attr_get_type(attr);
+ 
+-	if (mnl_attr_type_valid(attr, NFTA_SET_MAX) < 0)
++	if (mnl_attr_type_valid(attr, NFTA_DYNSET_MAX) < 0)
+ 		return MNL_CB_OK;
+ 
+ 	switch (type) {
+@@ -139,6 +139,7 @@ static int nftnl_expr_dynset_cb(const struct nlattr *attr, void *data)
+ 			abi_breakage();
+ 		break;
+ 	case NFTA_DYNSET_EXPR:
++	case NFTA_DYNSET_EXPRESSIONS:
+ 		if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0)
+ 			abi_breakage();
+ 		break;
+@@ -225,7 +226,7 @@ static int
+ nftnl_expr_dynset_parse(struct nftnl_expr *e, struct nlattr *attr)
+ {
+ 	struct nftnl_expr_dynset *dynset = nftnl_expr_data(e);
+-	struct nlattr *tb[NFTA_SET_MAX+1] = {};
++	struct nlattr *tb[NFTA_DYNSET_MAX+1] = {};
+ 	struct nftnl_expr *expr, *next;
+ 	int ret = 0;
+ 
+-- 
+2.46.1
+
