@@ -1,78 +1,179 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtpbg154.qq.com (smtpbg154.qq.com [15.184.224.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 278B82CCC2
-	for <netfilter-devel@vger.kernel.org>; Mon, 23 Sep 2024 10:03:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9492195809;
+	Mon, 23 Sep 2024 10:06:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=15.184.224.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727085834; cv=none; b=g1ZLkPk7aEiilZbzYq62zecBGzk/pHEuaxMYWkecdinrEfvQ9v5HE5IjMCM5cmv2eXvoBB9KZAXPeNNZNd91VlYNi3May28xf30DM02knNLrbS3Nnurz3vHXESORumVDVJ2US9ddH1fUpv9xcbfw7f0BHxxs3gDNPx+EwVhHPFc=
+	t=1727085972; cv=none; b=Kc/eRQC0UkRnn6mYY5198r7yPY0+Cz/cTlZ61hjDOWDCmRrTQnyCrv1UeXyLMWlH9wPiAZUMvf26pLPJSrBibixiMtiBwZE1XBQLKTF2C41t4PqZIjW8J4pyrNXYs3SAzgqT1fEGCuOT3IX/lB1ieuy/6UhDmq2nXvbCO7h2NQA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727085834; c=relaxed/simple;
-	bh=rxjxCF1z0GAJIcqzju9gkqTcA+QRIRQdaHO5cQ9xTOQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=JHnx9YRIV+nGF1yM5aKRSFCQPPBPShw8OApK50ZzlHJY7NByXbg2t+cZpsoqq9EbYxRmiej8Xs5ojm5uIaqH/hlU1mBFDErTrdv9HCoc8DZvWJPjsy8e5ddT+I+jmeJi+6voEacCepJa6skhIz/SlLAvkNlgee35wVJ/Y5lcYmA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1ssfv0-00086H-PO; Mon, 23 Sep 2024 12:03:46 +0200
-Date: Mon, 23 Sep 2024 12:03:46 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Chris Mi <cmi@nvidia.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Ali Abdallah <aabdallah@suse.de>, netfilter-devel@vger.kernel.org
-Subject: Re: ct hardware offload ignores RST packet
-Message-ID: <20240923100346.GA27491@breakpoint.cc>
-References: <704c2c3e-6760-4231-8ac8-ad7da41946d9@nvidia.com>
+	s=arc-20240116; t=1727085972; c=relaxed/simple;
+	bh=5++EG5YPR8G36zcQsH8ZUeN+eishUBKNaNN9MgfrI14=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=phH3bgzDhAuv8BGVMremvHOapV+7wNPI0hcSPZm5joYyHDeouUpeA7233lzjNdvNOa09Qg705H4FXd5Zs3lW1qi6+UGAlqHD2cwh3M3w4z0aVJxmu0fjrntotZampWToJYYfTvjIdNY0bcG/25p195x6QZqrxItzq/aa+Sunang=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com; spf=pass smtp.mailfrom=uniontech.com; dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b=iwf/esCn; arc=none smtp.client-ip=15.184.224.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=uniontech.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b="iwf/esCn"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=uniontech.com;
+	s=onoh2408; t=1727085955;
+	bh=BBFkSpdkqkXzOv7hw0jDfkWRq2N7z6ltN378fMvMfd0=;
+	h=Message-ID:Date:MIME-Version:Subject:To:From;
+	b=iwf/esCnQY0IUxVjZWI/Opzdqdj9jhNpRukqQTwpttbJmi1dGHp1KaSGbbD+bGf7k
+	 FfJW8EDcJR3Nr13ZsTvI1fnn7d0JejMLsVZGKmTmU47T5knByQhO0x8OJ0HFRASnkp
+	 SvqqF1oMFEHV5zKIMzYGAfpS+RpoOQVEdeEpS62s=
+X-QQ-mid: bizesmtpsz13t1727085952teleyq
+X-QQ-Originating-IP: DWjoYKT1vymwUPdyRIsvl3RwFkVa8GXG3DpnfPbDnkg=
+Received: from [10.20.254.18] ( [113.57.152.160])
+	by bizesmtp.qq.com (ESMTP) with 
+	id ; Mon, 23 Sep 2024 18:05:50 +0800 (CST)
+X-QQ-SSF: 0000000000000000000000000000000
+X-QQ-GoodBg: 1
+X-BIZMAIL-ID: 13227385092718996023
+Message-ID: <80515DEDE931DC2A+7fa48c7a-2955-4afb-821f-a0108a72009f@uniontech.com>
+Date: Mon, 23 Sep 2024 18:05:51 +0800
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <704c2c3e-6760-4231-8ac8-ad7da41946d9@nvidia.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] net/bridge: Optimizing read-write locks in ebtables.c
+To: Eric Dumazet <edumazet@google.com>
+Cc: pablo@netfilter.org, kadlec@netfilter.org, roopa@nvidia.com,
+ razor@blackwall.org, davem@davemloft.net, kuba@kernel.org,
+ pabeni@redhat.com, netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ bridge@lists.linux.dev, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <EC5AC714C75A855E+20240923091535.77865-1-yushengjin@uniontech.com>
+ <CANn89i+4wbef3k6at_Kf+8MBmU4HhE9nxMRvROR_OxsZptffjA@mail.gmail.com>
+From: yushengjin <yushengjin@uniontech.com>
+In-Reply-To: <CANn89i+4wbef3k6at_Kf+8MBmU4HhE9nxMRvROR_OxsZptffjA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-QQ-SENDSIZE: 520
+Feedback-ID: bizesmtpsz:uniontech.com:qybglogicsvrsz:qybglogicsvrsz4a-0
 
-Chris Mi <cmi@nvidia.com> wrote:
-> Hi Pablo & Ali,
-> 
-> Our customer reported an issue. I found that it can be reproduced like
-> this. If the tcp client program sets socketopt linger to 0, when the client
-> program exits, RST packet will be sent instead of FIN.
-> 
-> But this RST packet doesn't match the expected sequence, server will
-> ignore it and the ct entry will be in ESTABLISHED state for 5 days.
-> It seems like an expected behavior due to commit [1].
-> 
-> We found another commit [2] in recent kernel. We tried to set
-> nf_conntrack_tcp_ignore_invalid_rst to 1.
-> It doesn't work as well. And the commit message is too short. We don't
-> know what's the usecase for it.
-> 
-> In our case, if we have the following diff, ct will be closed normally:
-> 
-> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c
-> b/net/netfilter/nf_conntrack_proto_tcp.c
-> index ae493599a3ef..04c0e5a86990 100644
-> --- a/net/netfilter/nf_conntrack_proto_tcp.c
-> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-> @@ -1218,7 +1218,8 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
->                         /* ... RST sequence number doesn't match exactly,
-> keep
->                          * established state to allow a possible challenge
-> ACK.
->                          */
-> -                       new_state = old_state;
-> +                       if (!tn->tcp_ignore_invalid_rst)
-> +                               new_state = old_state;
 
-Can you test if a call to
-nf_tcp_handle_invalid() here resolves the problem as well?
-Intent would be to reduce timeout but keep connecton state
-as-is.
+在 23/9/2024 下午5:29, Eric Dumazet 写道:
+> On Mon, Sep 23, 2024 at 11:16 AM yushengjin <yushengjin@uniontech.com> wrote:
+>> When conducting WRK testing, the CPU usage rate of the testing machine was
+>> 100%. forwarding through a bridge, if the network load is too high, it may
+>> cause abnormal load on the ebt_do_table of the kernel ebtable module, leading
+>> to excessive soft interrupts and sometimes even directly causing CPU soft
+>> deadlocks.
+>>
+>> After analysis, it was found that the code of ebtables had not been optimized
+>> for a long time, and the read-write locks inside still existed. However, other
+>> arp/ip/ip6 tables had already been optimized a lot, and performance bottlenecks
+>> in read-write locks had been discovered a long time ago.
+>>
+>> Ref link: https://lore.kernel.org/lkml/20090428092411.5331c4a1@nehalam/
+>>
+>> So I referred to arp/ip/ip6 modification methods to optimize the read-write
+>> lock in ebtables.c.
+>>
+>> test method:
+>> 1) Test machine creates bridge :
+>> ``` bash
+>> brctl addbr br-a
+>> brctl addbr br-b
+>> brctl addif br-a enp1s0f0 enp1s0f1
+>> brctl addif br-b enp130s0f0 enp130s0f1
+>> ifconfig br-a up
+>> ifconfig br-b up
+>> ```
+>> 2) Testing with another machine:
+>> ``` bash
+>> ulimit -n 2048
+>> ./wrk -t48 -c2000 -d6000 -R10000 -s request.lua http://4.4.4.2:80/4k.html &
+>> ./wrk -t48 -c2000 -d6000 -R10000 -s request.lua http://5.5.5.2:80/4k.html &
+>> ```
+>>
+>> Signed-off-by: yushengjin <yushengjin@uniontech.com>
+>> ---
+>>   include/linux/netfilter_bridge/ebtables.h |  47 +++++++-
+>>   net/bridge/netfilter/ebtables.c           | 132 ++++++++++++++++------
+>>   2 files changed, 145 insertions(+), 34 deletions(-)
+>>
+>> diff --git a/include/linux/netfilter_bridge/ebtables.h b/include/linux/netfilter_bridge/ebtables.h
+>> index fd533552a062..dd52dea20fb8 100644
+>> --- a/include/linux/netfilter_bridge/ebtables.h
+>> +++ b/include/linux/netfilter_bridge/ebtables.h
+>> @@ -93,7 +93,6 @@ struct ebt_table {
+>>          char name[EBT_TABLE_MAXNAMELEN];
+>>          struct ebt_replace_kernel *table;
+>>          unsigned int valid_hooks;
+>> -       rwlock_t lock;
+>>          /* the data used by the kernel */
+>>          struct ebt_table_info *private;
+>>          struct nf_hook_ops *ops;
+>> @@ -124,4 +123,50 @@ static inline bool ebt_invalid_target(int target)
+>>
+>>   int ebt_register_template(const struct ebt_table *t, int(*table_init)(struct net *net));
+>>   void ebt_unregister_template(const struct ebt_table *t);
+>> +
+>> +/**
+>> + * ebt_recseq - recursive seqcount for netfilter use
+>> + *
+>> + * Packet processing changes the seqcount only if no recursion happened
+>> + * get_counters() can use read_seqcount_begin()/read_seqcount_retry(),
+>> + * because we use the normal seqcount convention :
+>> + * Low order bit set to 1 if a writer is active.
+>> + */
+>> +DECLARE_PER_CPU(seqcount_t, ebt_recseq);
+>> +
+>> +/**
+>> + * ebt_write_recseq_begin - start of a write section
+>> + *
+>> + * Begin packet processing : all readers must wait the end
+>> + * 1) Must be called with preemption disabled
+>> + * 2) softirqs must be disabled too (or we should use this_cpu_add())
+>> + * Returns :
+>> + *  1 if no recursion on this cpu
+>> + *  0 if recursion detected
+>> + */
+>> +static inline unsigned int ebt_write_recseq_begin(void)
+>> +{
+>> +       unsigned int addend;
+>> +
+>> +       addend = (__this_cpu_read(ebt_recseq.sequence) + 1) & 1;
+>> +
+>> +       __this_cpu_add(ebt_recseq.sequence, addend);
+>> +       smp_mb();
+>> +
+>> +       return addend;
+>> +}
+>> +
+>> +/**
+>> + * ebt_write_recseq_end - end of a write section
+>> + * @addend: return value from previous ebt_write_recseq_begin()
+>> + *
+>> + * End packet processing : all readers can proceed
+>> + * 1) Must be called with preemption disabled
+>> + * 2) softirqs must be disabled too (or we should use this_cpu_add())
+>> + */
+>> +static inline void ebt_write_recseq_end(unsigned int addend)
+>> +{
+>> +       smp_wmb();
+>> +       __this_cpu_add(ebt_recseq.sequence, addend);
+>> +}
+> Why not reusing xt_recseq, xt_write_recseq_begin(), xt_write_recseq_end(),
+> instead of copy/pasting them ?
+>
+> This was added in
+>
+> commit 7f5c6d4f665bb57a19a34ce1fb16cc708c04f219    netfilter: get rid
+> of atomic ops in fast path
+They used different seqcounts, I'm worried it might have an impact.
+>
+> If this is an include mess, just move them in a separate include file.
 
-I don't think we should force customers to tweak sysctls to
-make expiry work as intended.
+Can i copy  ebt_write_recseq_begin(), ebt_write_recseq_endend to
+include/linux/netfilter/x_tables.h ?
+
+Or add a parameter in xt_write_recseq_begin() , xt_write_recseq_end()  to
+clarify whether it is xt_recseq or ebt_recseq.
+
+
