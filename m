@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id C9C8713D516;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id C9CDD13D518;
 	Tue, 24 Sep 2024 20:14:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727208858; cv=none; b=rGZB98OaJSaE+bZyB1LYXL2H3dQZZwRLHZwyEcHigKSNt9xeIlgLH6rFEPfJfbmDPHP06qkus3eAnIOn9Q7NtMgWiH1+oFt8R3Aag/ghS1MIziK9iDrKY3FH6nTCqQk2vzlNFeEVk8qN7C2PHmYgfokcWzcifPajH7/3kN+kMVY=
+	t=1727208858; cv=none; b=AdYDh3V5xBpe3b+nJeLsoE4f9CZCkrV5F2h+SXYgKrIVYzXa3hVr30NJcEgImiBtxDMu9ZprYuVLMaJu1llgN/G4e9GCEocrJhvTYeGaLT36IGZ0Bs/d2j4faQsPoyTrsrcXp0Eo96oq2lsmiqm3W9L7s/HXiwuVU73AlUSmqvg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1727208858; c=relaxed/simple;
-	bh=iw5rqZhlyRRvWig+zMEW4R2IZGqmW6nnfjeUJSwKezE=;
+	bh=sCWwNCFKtnxwvMe4XKLynhsxhNZs7Z8kEBkeVQ9aFCY=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=MIuM2sA8WPSOHVaQKfHvuQOimy//alYaA1m31WAIpClhAGhMZPOGH5YTi8GKYB1Sbd8ONsr0LGZb+FxRMGieJ6Ry/OK5yN/6vzCwPo3hQAFL2oz7pC9bb2zyXGlD4uOOZC31/NgU7P0sGPAd0H22QDybd+bALCeGJINI2PVbtGw=
+	 MIME-Version; b=FJzg+oU/QSLBwiisdvedfS4V28Z/0GkC//lPYNBzPYqJBZbJyw93nFa8NaJQvmailU0dtCTs2pebHkJr2fhSDDfquBv7SI42ZhsY5Ek9Q59O3dX/IJ6Mqvcal6MAEUqCMYvU+XEAMxd7MHBlHFMf801fkEInkdUJUtwqLOiA6A4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 06/14] docs: tproxy: ignore non-transparent sockets in iptables
-Date: Tue, 24 Sep 2024 22:13:53 +0200
-Message-Id: <20240924201401.2712-7-pablo@netfilter.org>
+Subject: [PATCH net 07/14] netfilter: nf_tables: Keep deleted flowtable hooks until after RCU
+Date: Tue, 24 Sep 2024 22:13:54 +0200
+Message-Id: <20240924201401.2712-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240924201401.2712-1-pablo@netfilter.org>
 References: <20240924201401.2712-1-pablo@netfilter.org>
@@ -32,38 +32,35 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: 谢致邦 (XIE Zhibang) <Yeking@Red54.com>
+From: Phil Sutter <phil@nwl.cc>
 
-The iptables example was added in commit d2f26037a38a (netfilter: Add
-documentation for tproxy, 2008-10-08), but xt_socket 'transparent'
-option was added in commit a31e1ffd2231 (netfilter: xt_socket: added new
-revision of the 'socket' match supporting flags, 2009-06-09).
+Documentation of list_del_rcu() warns callers to not immediately free
+the deleted list item. While it seems not necessary to use the
+RCU-variant of list_del() here in the first place, doing so seems to
+require calling kfree_rcu() on the deleted item as well.
 
-Now add the 'transparent' option to the iptables example to ignore
-non-transparent sockets, which is also consistent with the nft example.
-
-Signed-off-by: 谢致邦 (XIE Zhibang) <Yeking@Red54.com>
+Fixes: 3f0465a9ef02 ("netfilter: nf_tables: dynamically allocate hooks per net_device in flowtables")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- Documentation/networking/tproxy.rst | 2 +-
+ net/netfilter/nf_tables_api.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/networking/tproxy.rst b/Documentation/networking/tproxy.rst
-index 00dc3a1a66b4..7f7c1ff6f159 100644
---- a/Documentation/networking/tproxy.rst
-+++ b/Documentation/networking/tproxy.rst
-@@ -17,7 +17,7 @@ The idea is that you identify packets with destination address matching a local
- socket on your box, set the packet mark to a certain value::
- 
-     # iptables -t mangle -N DIVERT
--    # iptables -t mangle -A PREROUTING -p tcp -m socket -j DIVERT
-+    # iptables -t mangle -A PREROUTING -p tcp -m socket --transparent -j DIVERT
-     # iptables -t mangle -A DIVERT -j MARK --set-mark 1
-     # iptables -t mangle -A DIVERT -j ACCEPT
- 
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 57259b5f3ef5..042080aeb46c 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -9207,7 +9207,7 @@ static void nf_tables_flowtable_destroy(struct nft_flowtable *flowtable)
+ 		flowtable->data.type->setup(&flowtable->data, hook->ops.dev,
+ 					    FLOW_BLOCK_UNBIND);
+ 		list_del_rcu(&hook->list);
+-		kfree(hook);
++		kfree_rcu(hook, rcu);
+ 	}
+ 	kfree(flowtable->name);
+ 	module_put(flowtable->data.type->owner);
 -- 
 2.30.2
 
