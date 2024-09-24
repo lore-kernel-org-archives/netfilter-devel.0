@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2F88013213A;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 069DE13777F;
 	Tue, 24 Sep 2024 20:14:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727208857; cv=none; b=pRyG4hdMVDckr+X2WCaQTZTJHwPbdvyfRFcibBEeOiHAtgZn4j5MOZb/0VR35nJx4tWJi7pxHME2epydCMvW8vYHPegf29lxEw15rXFBJGQVUBYZJ1vogX1A5EOXZiACOJxeEDti3Nig2xZ/sUwggr8pXNcgQo6jD329aLpwp7o=
+	t=1727208857; cv=none; b=mGhv4p/0PkPE8TNxvvEnwFm0sroiG4yYw6ZogMoDM9Ff8C9f1ZIgUDnVKVcE4JHju5CZ87S+efhfcq9WKMxbDagFWMRi21LiA7u+tgqg+r1FNdEIibA94x8tKyb8l2cu2q5O/4ClkMRmCusicqS/sweOIzp62t07H/Aqh4pjvmg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1727208857; c=relaxed/simple;
-	bh=XznoHcZlbLFueoOqgZlH5Nw0Gvd+zlIYBdOvi4nvDXk=;
+	bh=wwPfZcRPCpDK0eMDciPOCzC6tsFFV51elnumNmN25Tc=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=kDJltAJKQXi1lqJJRf4zluSBdArBFJiMZ34oubhJHM6IAkalSNfepho+ty5/74kuynX9YD6BkYjuQK5Gwm0t7Qww95chao0vPWY11eYMs8QT61EUUSbpuau/z741mcU40fqzQ63Kt/bxIajrZV86pQZc9ApM/TqXqvQpJQu27zc=
+	 MIME-Version; b=tfNdDz/DG4cjxEYQej92bgSqGDaFt966AeDF5TZB1YCq1cq6vjp5FuXSKMaPBl2ae6690hjjqfLNUabb6JOh28kjix0jfCdDdUb08LnXYJj5r/ettZygIllp7q1FOMV1aPknMYts9fH+K8EUoHT01/PdA1o9ZnnezqPUamAcy/E=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 03/14] selftests: netfilter: add reverse-clash resolution test case
-Date: Tue, 24 Sep 2024 22:13:50 +0200
-Message-Id: <20240924201401.2712-4-pablo@netfilter.org>
+Subject: [PATCH net 04/14] selftests: netfilter: nft_tproxy.sh: add tcp tests
+Date: Tue, 24 Sep 2024 22:13:51 +0200
+Message-Id: <20240924201401.2712-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240924201401.2712-1-pablo@netfilter.org>
 References: <20240924201401.2712-1-pablo@netfilter.org>
@@ -34,229 +34,691 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+From: Antonio Ojea <aojea@google.com>
 
-Add test program that is sending UDP packets in both directions
-and check that packets arrive without source port modification.
+The TPROXY functionality is widely used, however, there are only mptcp
+selftests covering this feature.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+The selftests represent the most common scenarios and can also be used
+as selfdocumentation of the feature.
+
+UDP and TCP testcases are split in different files because of the
+different nature of the protocols, specially due to the challenges that
+present to reliable test UDP due to the connectionless nature of the
+protocol. UDP only covers the scenarios involving the prerouting hook.
+
+The UDP tests are signfinicantly slower than the TCP ones, hence they
+use a larger timeout, it takes 20 seconds to run the full UDP suite
+on a 48 vCPU Intel(R) Xeon(R) CPU @2.60GHz.
+
+Signed-off-by: Antonio Ojea <aojea@google.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
  .../testing/selftests/net/netfilter/Makefile  |   2 +
- .../net/netfilter/conntrack_reverse_clash.c   | 125 ++++++++++++++++++
- .../net/netfilter/conntrack_reverse_clash.sh  |  51 +++++++
- 3 files changed, 178 insertions(+)
- create mode 100644 tools/testing/selftests/net/netfilter/conntrack_reverse_clash.c
- create mode 100755 tools/testing/selftests/net/netfilter/conntrack_reverse_clash.sh
+ tools/testing/selftests/net/netfilter/config  |   1 +
+ .../selftests/net/netfilter/nft_tproxy_tcp.sh | 358 ++++++++++++++++++
+ .../selftests/net/netfilter/nft_tproxy_udp.sh | 262 +++++++++++++
+ 4 files changed, 623 insertions(+)
+ create mode 100755 tools/testing/selftests/net/netfilter/nft_tproxy_tcp.sh
+ create mode 100755 tools/testing/selftests/net/netfilter/nft_tproxy_udp.sh
 
 diff --git a/tools/testing/selftests/net/netfilter/Makefile b/tools/testing/selftests/net/netfilter/Makefile
-index d13fb5ea3e89..98535c60b195 100644
+index 98535c60b195..e6c9e777fead 100644
 --- a/tools/testing/selftests/net/netfilter/Makefile
 +++ b/tools/testing/selftests/net/netfilter/Makefile
-@@ -13,6 +13,7 @@ TEST_PROGS += conntrack_ipip_mtu.sh
- TEST_PROGS += conntrack_tcp_unreplied.sh
- TEST_PROGS += conntrack_sctp_collision.sh
- TEST_PROGS += conntrack_vrf.sh
-+TEST_PROGS += conntrack_reverse_clash.sh
- TEST_PROGS += ipvs.sh
- TEST_PROGS += nf_conntrack_packetdrill.sh
- TEST_PROGS += nf_nat_edemux.sh
-@@ -36,6 +37,7 @@ TEST_GEN_PROGS = conntrack_dump_flush
- 
- TEST_GEN_FILES = audit_logread
- TEST_GEN_FILES += connect_close nf_queue
-+TEST_GEN_FILES += conntrack_reverse_clash
- TEST_GEN_FILES += sctp_collision
- 
- include ../../lib.mk
-diff --git a/tools/testing/selftests/net/netfilter/conntrack_reverse_clash.c b/tools/testing/selftests/net/netfilter/conntrack_reverse_clash.c
-new file mode 100644
-index 000000000000..507930cee8cb
---- /dev/null
-+++ b/tools/testing/selftests/net/netfilter/conntrack_reverse_clash.c
-@@ -0,0 +1,125 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Needs something like:
-+ *
-+ * iptables -t nat -A POSTROUTING -o nomatch -j MASQUERADE
-+ *
-+ * so NAT engine attaches a NAT null-binding to each connection.
-+ *
-+ * With unmodified kernels, child or parent will exit with
-+ * "Port number changed" error, even though no port translation
-+ * was requested.
-+ */
-+
-+#include <errno.h>
-+#include <stdbool.h>
-+#include <stdint.h>
-+#include <stdio.h>
-+#include <string.h>
-+#include <stdlib.h>
-+#include <time.h>
-+#include <unistd.h>
-+#include <arpa/inet.h>
-+#include <sys/socket.h>
-+#include <sys/wait.h>
-+
-+#define LEN 512
-+#define PORT 56789
-+#define TEST_TIME 5
-+
-+static void die(const char *e)
-+{
-+	perror(e);
-+	exit(111);
-+}
-+
-+static void die_port(uint16_t got, uint16_t want)
-+{
-+	fprintf(stderr, "Port number changed, wanted %d got %d\n", want, ntohs(got));
-+	exit(1);
-+}
-+
-+static int udp_socket(void)
-+{
-+	static const struct timeval tv = {
-+		.tv_sec = 1,
-+	};
-+	int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-+
-+	if (fd < 0)
-+		die("socket");
-+
-+	setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
-+	return fd;
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	struct sockaddr_in sa1 = {
-+		.sin_family = AF_INET,
-+	};
-+	struct sockaddr_in sa2 = {
-+		.sin_family = AF_INET,
-+	};
-+	int s1, s2, status;
-+	time_t end, now;
-+	socklen_t plen;
-+	char buf[LEN];
-+	bool child;
-+
-+	sa1.sin_port = htons(PORT);
-+	sa2.sin_port = htons(PORT + 1);
-+
-+	s1 = udp_socket();
-+	s2 = udp_socket();
-+
-+	inet_pton(AF_INET, "127.0.0.11", &sa1.sin_addr);
-+	inet_pton(AF_INET, "127.0.0.12", &sa2.sin_addr);
-+
-+	if (bind(s1, (struct sockaddr *)&sa1, sizeof(sa1)) < 0)
-+		die("bind 1");
-+	if (bind(s2, (struct sockaddr *)&sa2, sizeof(sa2)) < 0)
-+		die("bind 2");
-+
-+	child = fork() == 0;
-+
-+	now = time(NULL);
-+	end = now + TEST_TIME;
-+
-+	while (now < end) {
-+		struct sockaddr_in peer;
-+		socklen_t plen = sizeof(peer);
-+
-+		now = time(NULL);
-+
-+		if (child) {
-+			if (sendto(s1, buf, LEN, 0, (struct sockaddr *)&sa2, sizeof(sa2)) != LEN)
-+				continue;
-+
-+			if (recvfrom(s2, buf, LEN, 0, (struct sockaddr *)&peer, &plen) < 0)
-+				die("child recvfrom");
-+
-+			if (peer.sin_port != htons(PORT))
-+				die_port(peer.sin_port, PORT);
-+		} else {
-+			if (sendto(s2, buf, LEN, 0, (struct sockaddr *)&sa1, sizeof(sa1)) != LEN)
-+				continue;
-+
-+			if (recvfrom(s1, buf, LEN, 0, (struct sockaddr *)&peer, &plen) < 0)
-+				die("parent recvfrom");
-+
-+			if (peer.sin_port != htons((PORT + 1)))
-+				die_port(peer.sin_port, PORT + 1);
-+		}
-+	}
-+
-+	if (child)
-+		return 0;
-+
-+	wait(&status);
-+
-+	if (WIFEXITED(status))
-+		return WEXITSTATUS(status);
-+
-+	return 1;
-+}
-diff --git a/tools/testing/selftests/net/netfilter/conntrack_reverse_clash.sh b/tools/testing/selftests/net/netfilter/conntrack_reverse_clash.sh
+@@ -27,6 +27,8 @@ TEST_PROGS += nft_nat.sh
+ TEST_PROGS += nft_nat_zones.sh
+ TEST_PROGS += nft_queue.sh
+ TEST_PROGS += nft_synproxy.sh
++TEST_PROGS += nft_tproxy_tcp.sh
++TEST_PROGS += nft_tproxy_udp.sh
+ TEST_PROGS += nft_zones_many.sh
+ TEST_PROGS += rpath.sh
+ TEST_PROGS += xt_string.sh
+diff --git a/tools/testing/selftests/net/netfilter/config b/tools/testing/selftests/net/netfilter/config
+index b2dd4db45215..c5fe7b34eaf1 100644
+--- a/tools/testing/selftests/net/netfilter/config
++++ b/tools/testing/selftests/net/netfilter/config
+@@ -81,6 +81,7 @@ CONFIG_NFT_QUEUE=m
+ CONFIG_NFT_QUOTA=m
+ CONFIG_NFT_REDIR=m
+ CONFIG_NFT_SYNPROXY=m
++CONFIG_NFT_TPROXY=m
+ CONFIG_VETH=m
+ CONFIG_VLAN_8021Q=m
+ CONFIG_XFRM_USER=m
+diff --git a/tools/testing/selftests/net/netfilter/nft_tproxy_tcp.sh b/tools/testing/selftests/net/netfilter/nft_tproxy_tcp.sh
 new file mode 100755
-index 000000000000..a24c896347a8
+index 000000000000..e208fb03eeb7
 --- /dev/null
-+++ b/tools/testing/selftests/net/netfilter/conntrack_reverse_clash.sh
-@@ -0,0 +1,51 @@
++++ b/tools/testing/selftests/net/netfilter/nft_tproxy_tcp.sh
+@@ -0,0 +1,358 @@
 +#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
++#
++# This tests tproxy on the following scenario:
++#
++#                         +------------+
++# +-------+               |  nsrouter  |                  +-------+
++# |ns1    |.99          .1|            |.1             .99|    ns2|
++# |   eth0|---------------|veth0  veth1|------------------|eth0   |
++# |       |  10.0.1.0/24  |            |   10.0.2.0/24    |       |
++# +-------+  dead:1::/64  |    veth2   |   dead:2::/64    +-------+
++#                         +------------+
++#                                |.1
++#                                |
++#                                |
++#                                |                        +-------+
++#                                |                     .99|    ns3|
++#                                +------------------------|eth0   |
++#                                       10.0.3.0/24       |       |
++#                                       dead:3::/64       +-------+
++#
++# The tproxy implementation acts as an echo server so the client
++# must receive the same message it sent if it has been proxied.
++# If is not proxied the servers return PONG_NS# with the number
++# of the namespace the server is running.
++#
++# shellcheck disable=SC2162,SC2317
 +
 +source lib.sh
++ret=0
++timeout=5
 +
 +cleanup()
 +{
++	ip netns pids "$ns1" | xargs kill 2>/dev/null
++	ip netns pids "$ns2" | xargs kill 2>/dev/null
++	ip netns pids "$ns3" | xargs kill 2>/dev/null
++	ip netns pids "$nsrouter" | xargs kill 2>/dev/null
++
 +	cleanup_all_ns
 +}
 +
-+checktool "nft --version" "run test without nft"
-+checktool "conntrack --version" "run test without conntrack"
++checktool "nft --version" "test without nft tool"
++checktool "socat -h" "run test without socat"
 +
 +trap cleanup EXIT
++setup_ns ns1 ns2 ns3 nsrouter
 +
-+setup_ns ns0
++if ! ip link add veth0 netns "$nsrouter" type veth peer name eth0 netns "$ns1" > /dev/null 2>&1; then
++    echo "SKIP: No virtual ethernet pair device support in kernel"
++    exit $ksft_skip
++fi
++ip link add veth1 netns "$nsrouter" type veth peer name eth0 netns "$ns2"
++ip link add veth2 netns "$nsrouter" type veth peer name eth0 netns "$ns3"
 +
-+# make loopback connections get nat null bindings assigned
-+ip netns exec "$ns0" nft -f - <<EOF
-+table ip nat {
-+        chain POSTROUTING {
-+                type nat hook postrouting priority srcnat; policy accept;
-+                oifname "nomatch" counter packets 0 bytes 0 masquerade
-+        }
++ip -net "$nsrouter" link set veth0 up
++ip -net "$nsrouter" addr add 10.0.1.1/24 dev veth0
++ip -net "$nsrouter" addr add dead:1::1/64 dev veth0 nodad
++
++ip -net "$nsrouter" link set veth1 up
++ip -net "$nsrouter" addr add 10.0.2.1/24 dev veth1
++ip -net "$nsrouter" addr add dead:2::1/64 dev veth1 nodad
++
++ip -net "$nsrouter" link set veth2 up
++ip -net "$nsrouter" addr add 10.0.3.1/24 dev veth2
++ip -net "$nsrouter" addr add dead:3::1/64 dev veth2 nodad
++
++ip -net "$ns1" link set eth0 up
++ip -net "$ns2" link set eth0 up
++ip -net "$ns3" link set eth0 up
++
++ip -net "$ns1" addr add 10.0.1.99/24 dev eth0
++ip -net "$ns1" addr add dead:1::99/64 dev eth0 nodad
++ip -net "$ns1" route add default via 10.0.1.1
++ip -net "$ns1" route add default via dead:1::1
++
++ip -net "$ns2" addr add 10.0.2.99/24 dev eth0
++ip -net "$ns2" addr add dead:2::99/64 dev eth0 nodad
++ip -net "$ns2" route add default via 10.0.2.1
++ip -net "$ns2" route add default via dead:2::1
++
++ip -net "$ns3" addr add 10.0.3.99/24 dev eth0
++ip -net "$ns3" addr add dead:3::99/64 dev eth0 nodad
++ip -net "$ns3" route add default via 10.0.3.1
++ip -net "$ns3" route add default via dead:3::1
++
++ip netns exec "$nsrouter" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
++ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
++ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth1.forwarding=1 > /dev/null
++ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth2.forwarding=1 > /dev/null
++
++test_ping() {
++  if ! ip netns exec "$ns1" ping -c 1 -q 10.0.2.99 > /dev/null; then
++	return 1
++  fi
++
++  if ! ip netns exec "$ns1" ping -c 1 -q dead:2::99 > /dev/null; then
++	return 2
++  fi
++
++  if ! ip netns exec "$ns1" ping -c 1 -q 10.0.3.99 > /dev/null; then
++	return 1
++  fi
++
++  if ! ip netns exec "$ns1" ping -c 1 -q dead:3::99 > /dev/null; then
++	return 2
++  fi
++
++  return 0
++}
++
++test_ping_router() {
++  if ! ip netns exec "$ns1" ping -c 1 -q 10.0.2.1 > /dev/null; then
++	return 3
++  fi
++
++  if ! ip netns exec "$ns1" ping -c 1 -q dead:2::1 > /dev/null; then
++	return 4
++  fi
++
++  return 0
++}
++
++
++listener_ready()
++{
++	local ns="$1"
++	local port="$2"
++	local proto="$3"
++	ss -N "$ns" -ln "$proto" -o "sport = :$port" | grep -q "$port"
++}
++
++test_tproxy()
++{
++	local traffic_origin="$1"
++	local ip_proto="$2"
++	local expect_ns1_ns2="$3"
++	local expect_ns1_ns3="$4"
++	local expect_nsrouter_ns2="$5"
++	local expect_nsrouter_ns3="$6"
++
++	# derived variables
++	local testname="test_${ip_proto}_tcp_${traffic_origin}"
++	local socat_ipproto
++	local ns1_ip
++	local ns2_ip
++	local ns3_ip
++	local ns2_target
++	local ns3_target
++	local nftables_subject
++	local ip_command
++
++	# socat 1.8.0 has a bug that requires to specify the IP family to bind (fixed in 1.8.0.1)
++	case $ip_proto in
++	"ip")
++		socat_ipproto="-4"
++		ns1_ip=10.0.1.99
++		ns2_ip=10.0.2.99
++		ns3_ip=10.0.3.99
++		ns2_target="tcp:$ns2_ip:8080"
++		ns3_target="tcp:$ns3_ip:8080"
++		nftables_subject="ip daddr $ns2_ip tcp dport 8080"
++		ip_command="ip"
++	;;
++	"ip6")
++		socat_ipproto="-6"
++		ns1_ip=dead:1::99
++		ns2_ip=dead:2::99
++		ns3_ip=dead:3::99
++		ns2_target="tcp:[$ns2_ip]:8080"
++		ns3_target="tcp:[$ns3_ip]:8080"
++		nftables_subject="ip6 daddr $ns2_ip tcp dport 8080"
++		ip_command="ip -6"
++	;;
++	*)
++	echo "FAIL: unsupported protocol"
++	exit 255
++	;;
++	esac
++
++	case $traffic_origin in
++	# to capture the local originated traffic we need to mark the outgoing
++	# traffic so the policy based routing rule redirects it and can be processed
++	# in the prerouting chain.
++	"local")
++		nftables_rules="
++flush ruleset
++table inet filter {
++	chain divert {
++		type filter hook prerouting priority 0; policy accept;
++		$nftables_subject tproxy $ip_proto to :12345 meta mark set 1 accept
++	}
++	chain output {
++		type route hook output priority 0; policy accept;
++		$nftables_subject meta mark set 1 accept
++	}
++}"
++	;;
++	"forward")
++		nftables_rules="
++flush ruleset
++table inet filter {
++	chain divert {
++		type filter hook prerouting priority 0; policy accept;
++		$nftables_subject tproxy $ip_proto to :12345 meta mark set 1 accept
++	}
++}"
++	;;
++	*)
++	echo "FAIL: unsupported parameter for traffic origin"
++	exit 255
++	;;
++	esac
++
++	# shellcheck disable=SC2046 # Intended splitting of ip_command
++	ip netns exec "$nsrouter" $ip_command rule add fwmark 1 table 100
++	ip netns exec "$nsrouter" $ip_command route add local "${ns2_ip}" dev lo table 100
++	echo "$nftables_rules" | ip netns exec "$nsrouter" nft -f /dev/stdin
++
++	timeout "$timeout" ip netns exec "$nsrouter" socat "$socat_ipproto" tcp-listen:12345,fork,ip-transparent SYSTEM:"cat" 2>/dev/null &
++	local tproxy_pid=$!
++
++	timeout "$timeout" ip netns exec "$ns2" socat "$socat_ipproto" tcp-listen:8080,fork SYSTEM:"echo PONG_NS2" 2>/dev/null &
++	local server2_pid=$!
++
++	timeout "$timeout" ip netns exec "$ns3" socat "$socat_ipproto" tcp-listen:8080,fork SYSTEM:"echo PONG_NS3" 2>/dev/null &
++	local server3_pid=$!
++
++	busywait "$BUSYWAIT_TIMEOUT" listener_ready "$nsrouter" 12345 "-t"
++	busywait "$BUSYWAIT_TIMEOUT" listener_ready "$ns2" 8080 "-t"
++	busywait "$BUSYWAIT_TIMEOUT" listener_ready "$ns3" 8080 "-t"
++
++	local result
++	# request from ns1 to ns2 (forwarded traffic)
++	result=$(echo I_M_PROXIED | ip netns exec "$ns1" socat -t 2 -T 2 STDIO "$ns2_target")
++	if [ "$result" == "$expect_ns1_ns2" ] ;then
++		echo "PASS: tproxy test $testname: ns1 got reply \"$result\" connecting to ns2"
++	else
++		echo "ERROR: tproxy test $testname: ns1 got reply \"$result\" connecting to ns2, not \"${expect_ns1_ns2}\" as intended"
++		ret=1
++	fi
++
++	# request from ns1 to ns3(forwarded traffic)
++	result=$(echo I_M_PROXIED | ip netns exec "$ns1" socat -t 2 -T 2 STDIO "$ns3_target")
++	if [ "$result" = "$expect_ns1_ns3" ] ;then
++		echo "PASS: tproxy test $testname: ns1 got reply \"$result\" connecting to ns3"
++	else
++		echo "ERROR: tproxy test $testname: ns1 got reply \"$result\" connecting to ns3, not \"$expect_ns1_ns3\" as intended"
++		ret=1
++	fi
++
++	# request from nsrouter to ns2 (localy originated traffic)
++	result=$(echo I_M_PROXIED | ip netns exec "$nsrouter" socat -t 2 -T 2 STDIO "$ns2_target")
++	if [ "$result" == "$expect_nsrouter_ns2" ] ;then
++		echo "PASS: tproxy test $testname: nsrouter got reply \"$result\" connecting to ns2"
++	else
++		echo "ERROR: tproxy test $testname: nsrouter got reply \"$result\" connecting to ns2, not \"$expect_nsrouter_ns2\" as intended"
++		ret=1
++	fi
++
++	# request from nsrouter to ns3 (localy originated traffic)
++	result=$(echo I_M_PROXIED | ip netns exec "$nsrouter" socat -t 2 -T 2 STDIO "$ns3_target")
++	if [ "$result" = "$expect_nsrouter_ns3" ] ;then
++		echo "PASS: tproxy test $testname: nsrouter got reply \"$result\" connecting to ns3"
++	else
++		echo "ERROR: tproxy test $testname: nsrouter got reply \"$result\" connecting to ns3, not \"$expect_nsrouter_ns3\"  as intended"
++		ret=1
++	fi
++
++	# cleanup
++	kill "$tproxy_pid" "$server2_pid" "$server3_pid" 2>/dev/null
++	# shellcheck disable=SC2046 # Intended splitting of ip_command
++	ip netns exec "$nsrouter" $ip_command rule del fwmark 1 table 100
++	ip netns exec "$nsrouter" $ip_command route flush table 100
++}
++
++
++test_ipv4_tcp_forward()
++{
++	local traffic_origin="forward"
++	local ip_proto="ip"
++	local expect_ns1_ns2="I_M_PROXIED"
++	local expect_ns1_ns3="PONG_NS3"
++	local expect_nsrouter_ns2="PONG_NS2"
++	local expect_nsrouter_ns3="PONG_NS3"
++
++	test_tproxy     "$traffic_origin" \
++			"$ip_proto" \
++			"$expect_ns1_ns2" \
++			"$expect_ns1_ns3" \
++			"$expect_nsrouter_ns2" \
++			"$expect_nsrouter_ns3"
++}
++
++test_ipv4_tcp_local()
++{
++	local traffic_origin="local"
++	local ip_proto="ip"
++	local expect_ns1_ns2="I_M_PROXIED"
++	local expect_ns1_ns3="PONG_NS3"
++	local expect_nsrouter_ns2="I_M_PROXIED"
++	local expect_nsrouter_ns3="PONG_NS3"
++
++	test_tproxy     "$traffic_origin" \
++			"$ip_proto" \
++			"$expect_ns1_ns2" \
++			"$expect_ns1_ns3" \
++			"$expect_nsrouter_ns2" \
++			"$expect_nsrouter_ns3"
++}
++
++test_ipv6_tcp_forward()
++{
++	local traffic_origin="forward"
++	local ip_proto="ip6"
++	local expect_ns1_ns2="I_M_PROXIED"
++	local expect_ns1_ns3="PONG_NS3"
++	local expect_nsrouter_ns2="PONG_NS2"
++	local expect_nsrouter_ns3="PONG_NS3"
++
++	test_tproxy     "$traffic_origin" \
++			"$ip_proto" \
++			"$expect_ns1_ns2" \
++			"$expect_ns1_ns3" \
++			"$expect_nsrouter_ns2" \
++			"$expect_nsrouter_ns3"
++}
++
++test_ipv6_tcp_local()
++{
++	local traffic_origin="local"
++	local ip_proto="ip6"
++	local expect_ns1_ns2="I_M_PROXIED"
++	local expect_ns1_ns3="PONG_NS3"
++	local expect_nsrouter_ns2="I_M_PROXIED"
++	local expect_nsrouter_ns3="PONG_NS3"
++
++	test_tproxy     "$traffic_origin" \
++			"$ip_proto" \
++			"$expect_ns1_ns2" \
++			"$expect_ns1_ns3" \
++			"$expect_nsrouter_ns2" \
++			"$expect_nsrouter_ns3"
++}
++
++if test_ping; then
++	# queue bypass works (rules were skipped, no listener)
++	echo "PASS: ${ns1} can reach ${ns2}"
++else
++	echo "FAIL: ${ns1} cannot reach ${ns2}: $ret" 1>&2
++	exit $ret
++fi
++
++test_ipv4_tcp_forward
++test_ipv4_tcp_local
++test_ipv6_tcp_forward
++test_ipv6_tcp_local
++
++exit $ret
+diff --git a/tools/testing/selftests/net/netfilter/nft_tproxy_udp.sh b/tools/testing/selftests/net/netfilter/nft_tproxy_udp.sh
+new file mode 100755
+index 000000000000..d16de13fe5a7
+--- /dev/null
++++ b/tools/testing/selftests/net/netfilter/nft_tproxy_udp.sh
+@@ -0,0 +1,262 @@
++#!/bin/bash
++#
++# This tests tproxy on the following scenario:
++#
++#                         +------------+
++# +-------+               |  nsrouter  |                  +-------+
++# |ns1    |.99          .1|            |.1             .99|    ns2|
++# |   eth0|---------------|veth0  veth1|------------------|eth0   |
++# |       |  10.0.1.0/24  |            |   10.0.2.0/24    |       |
++# +-------+  dead:1::/64  |    veth2   |   dead:2::/64    +-------+
++#                         +------------+
++#                                |.1
++#                                |
++#                                |
++#                                |                        +-------+
++#                                |                     .99|    ns3|
++#                                +------------------------|eth0   |
++#                                       10.0.3.0/24       |       |
++#                                       dead:3::/64       +-------+
++#
++# The tproxy implementation acts as an echo server so the client
++# must receive the same message it sent if it has been proxied.
++# If is not proxied the servers return PONG_NS# with the number
++# of the namespace the server is running.
++# shellcheck disable=SC2162,SC2317
++
++source lib.sh
++ret=0
++# UDP is slow
++timeout=15
++
++cleanup()
++{
++	ip netns pids "$ns1" | xargs kill 2>/dev/null
++	ip netns pids "$ns2" | xargs kill 2>/dev/null
++	ip netns pids "$ns3" | xargs kill 2>/dev/null
++	ip netns pids "$nsrouter" | xargs kill 2>/dev/null
++
++	cleanup_all_ns
++}
++
++checktool "nft --version" "test without nft tool"
++checktool "socat -h" "run test without socat"
++
++trap cleanup EXIT
++setup_ns ns1 ns2 ns3 nsrouter
++
++if ! ip link add veth0 netns "$nsrouter" type veth peer name eth0 netns "$ns1" > /dev/null 2>&1; then
++    echo "SKIP: No virtual ethernet pair device support in kernel"
++    exit $ksft_skip
++fi
++ip link add veth1 netns "$nsrouter" type veth peer name eth0 netns "$ns2"
++ip link add veth2 netns "$nsrouter" type veth peer name eth0 netns "$ns3"
++
++ip -net "$nsrouter" link set veth0 up
++ip -net "$nsrouter" addr add 10.0.1.1/24 dev veth0
++ip -net "$nsrouter" addr add dead:1::1/64 dev veth0 nodad
++
++ip -net "$nsrouter" link set veth1 up
++ip -net "$nsrouter" addr add 10.0.2.1/24 dev veth1
++ip -net "$nsrouter" addr add dead:2::1/64 dev veth1 nodad
++
++ip -net "$nsrouter" link set veth2 up
++ip -net "$nsrouter" addr add 10.0.3.1/24 dev veth2
++ip -net "$nsrouter" addr add dead:3::1/64 dev veth2 nodad
++
++ip -net "$ns1" link set eth0 up
++ip -net "$ns2" link set eth0 up
++ip -net "$ns3" link set eth0 up
++
++ip -net "$ns1" addr add 10.0.1.99/24 dev eth0
++ip -net "$ns1" addr add dead:1::99/64 dev eth0 nodad
++ip -net "$ns1" route add default via 10.0.1.1
++ip -net "$ns1" route add default via dead:1::1
++
++ip -net "$ns2" addr add 10.0.2.99/24 dev eth0
++ip -net "$ns2" addr add dead:2::99/64 dev eth0 nodad
++ip -net "$ns2" route add default via 10.0.2.1
++ip -net "$ns2" route add default via dead:2::1
++
++ip -net "$ns3" addr add 10.0.3.99/24 dev eth0
++ip -net "$ns3" addr add dead:3::99/64 dev eth0 nodad
++ip -net "$ns3" route add default via 10.0.3.1
++ip -net "$ns3" route add default via dead:3::1
++
++ip netns exec "$nsrouter" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
++ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
++ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth1.forwarding=1 > /dev/null
++ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth2.forwarding=1 > /dev/null
++
++test_ping() {
++  if ! ip netns exec "$ns1" ping -c 1 -q 10.0.2.99 > /dev/null; then
++	return 1
++  fi
++
++  if ! ip netns exec "$ns1" ping -c 1 -q dead:2::99 > /dev/null; then
++	return 2
++  fi
++
++  if ! ip netns exec "$ns1" ping -c 1 -q 10.0.3.99 > /dev/null; then
++	return 1
++  fi
++
++  if ! ip netns exec "$ns1" ping -c 1 -q dead:3::99 > /dev/null; then
++	return 2
++  fi
++
++  return 0
++}
++
++test_ping_router() {
++  if ! ip netns exec "$ns1" ping -c 1 -q 10.0.2.1 > /dev/null; then
++	return 3
++  fi
++
++  if ! ip netns exec "$ns1" ping -c 1 -q dead:2::1 > /dev/null; then
++	return 4
++  fi
++
++  return 0
++}
++
++
++listener_ready()
++{
++	local ns="$1"
++	local port="$2"
++	local proto="$3"
++	ss -N "$ns" -ln "$proto" -o "sport = :$port" | grep -q "$port"
++}
++
++test_tproxy_udp_forward()
++{
++	local ip_proto="$1"
++
++	local expect_ns1_ns2="I_M_PROXIED"
++	local expect_ns1_ns3="PONG_NS3"
++	local expect_nsrouter_ns2="PONG_NS2"
++	local expect_nsrouter_ns3="PONG_NS3"
++
++	# derived variables
++	local testname="test_${ip_proto}_udp_forward"
++	local socat_ipproto
++	local ns1_ip
++	local ns2_ip
++	local ns3_ip
++	local ns1_ip_port
++	local ns2_ip_port
++	local ns3_ip_port
++	local ip_command
++
++	# socat 1.8.0 has a bug that requires to specify the IP family to bind (fixed in 1.8.0.1)
++	case $ip_proto in
++	"ip")
++		socat_ipproto="-4"
++		ns1_ip=10.0.1.99
++		ns2_ip=10.0.2.99
++		ns3_ip=10.0.3.99
++		ns1_ip_port="$ns1_ip:18888"
++		ns2_ip_port="$ns2_ip:8080"
++		ns3_ip_port="$ns3_ip:8080"
++		ip_command="ip"
++	;;
++	"ip6")
++		socat_ipproto="-6"
++		ns1_ip=dead:1::99
++		ns2_ip=dead:2::99
++		ns3_ip=dead:3::99
++		ns1_ip_port="[$ns1_ip]:18888"
++		ns2_ip_port="[$ns2_ip]:8080"
++		ns3_ip_port="[$ns3_ip]:8080"
++		ip_command="ip -6"
++	;;
++	*)
++	echo "FAIL: unsupported protocol"
++	exit 255
++	;;
++	esac
++
++	# shellcheck disable=SC2046 # Intended splitting of ip_command
++	ip netns exec "$nsrouter" $ip_command rule add fwmark 1 table 100
++	ip netns exec "$nsrouter" $ip_command route add local "$ns2_ip" dev lo table 100
++	ip netns exec "$nsrouter" nft -f /dev/stdin <<EOF
++flush ruleset
++table inet filter {
++	chain divert {
++		type filter hook prerouting priority 0; policy accept;
++		$ip_proto daddr $ns2_ip udp dport 8080 tproxy $ip_proto to :12345 meta mark set 1 accept
++	}
 +}
 +EOF
 +
-+do_flush()
-+{
-+	local end
-+	local now
++	timeout "$timeout" ip netns exec "$nsrouter" socat -u "$socat_ipproto" udp-listen:12345,fork,ip-transparent,reuseport udp:"$ns1_ip_port",ip-transparent,reuseport,bind="$ns2_ip_port" 2>/dev/null &
++	local tproxy_pid=$!
 +
-+	now=$(date +%s)
-+	end=$((now + 5))
++	timeout "$timeout" ip netns exec "$ns2" socat "$socat_ipproto" udp-listen:8080,fork SYSTEM:"echo PONG_NS2" 2>/dev/null &
++	local server2_pid=$!
 +
-+	while [ $now -lt $end ];do
-+		ip netns exec "$ns0" conntrack -F 2>/dev/null
-+		now=$(date +%s)
-+	done
++	timeout "$timeout" ip netns exec "$ns3" socat "$socat_ipproto" udp-listen:8080,fork SYSTEM:"echo PONG_NS3" 2>/dev/null &
++	local server3_pid=$!
++
++	busywait "$BUSYWAIT_TIMEOUT" listener_ready "$nsrouter" 12345 "-u"
++	busywait "$BUSYWAIT_TIMEOUT" listener_ready "$ns2" 8080 "-u"
++	busywait "$BUSYWAIT_TIMEOUT" listener_ready "$ns3" 8080 "-u"
++
++	local result
++	# request from ns1 to ns2 (forwarded traffic)
++	result=$(echo I_M_PROXIED | ip netns exec "$ns1" socat -t 2 -T 2 STDIO udp:"$ns2_ip_port",sourceport=18888)
++	if [ "$result" == "$expect_ns1_ns2" ] ;then
++		echo "PASS: tproxy test $testname: ns1 got reply \"$result\" connecting to ns2"
++	else
++		echo "ERROR: tproxy test $testname: ns1 got reply \"$result\" connecting to ns2, not \"${expect_ns1_ns2}\" as intended"
++		ret=1
++	fi
++
++	# request from ns1 to ns3 (forwarded traffic)
++	result=$(echo I_M_PROXIED | ip netns exec "$ns1" socat -t 2 -T 2 STDIO udp:"$ns3_ip_port")
++	if [ "$result" = "$expect_ns1_ns3" ] ;then
++		echo "PASS: tproxy test $testname: ns1 got reply \"$result\" connecting to ns3"
++	else
++		echo "ERROR: tproxy test $testname: ns1 got reply \"$result\" connecting to ns3, not \"$expect_ns1_ns3\" as intended"
++		ret=1
++	fi
++
++	# request from nsrouter to ns2 (localy originated traffic)
++	result=$(echo I_M_PROXIED | ip netns exec "$nsrouter" socat -t 2 -T 2 STDIO udp:"$ns2_ip_port")
++	if [ "$result" == "$expect_nsrouter_ns2" ] ;then
++		echo "PASS: tproxy test $testname: nsrouter got reply \"$result\" connecting to ns2"
++	else
++		echo "ERROR: tproxy test $testname: nsrouter got reply \"$result\" connecting to ns2, not \"$expect_nsrouter_ns2\" as intended"
++		ret=1
++	fi
++
++	# request from nsrouter to ns3 (localy originated traffic)
++	result=$(echo I_M_PROXIED | ip netns exec "$nsrouter" socat -t 2 -T 2 STDIO udp:"$ns3_ip_port")
++	if [ "$result" = "$expect_nsrouter_ns3" ] ;then
++		echo "PASS: tproxy test $testname: nsrouter got reply \"$result\" connecting to ns3"
++	else
++		echo "ERROR: tproxy test $testname: nsrouter got reply \"$result\" connecting to ns3, not \"$expect_nsrouter_ns3\"  as intended"
++		ret=1
++	fi
++
++	# cleanup
++	kill "$tproxy_pid" "$server2_pid" "$server3_pid" 2>/dev/null
++	# shellcheck disable=SC2046 # Intended splitting of ip_command
++	ip netns exec "$nsrouter" $ip_command rule del fwmark 1 table 100
++	ip netns exec "$nsrouter" $ip_command route flush table 100
 +}
 +
-+do_flush &
 +
-+if ip netns exec "$ns0" ./conntrack_reverse_clash; then
-+	echo "PASS: No SNAT performed for null bindings"
++if test_ping; then
++	# queue bypass works (rules were skipped, no listener)
++	echo "PASS: ${ns1} can reach ${ns2}"
 +else
-+	echo "ERROR: SNAT performed without any matching snat rule"
-+	exit 1
++	echo "FAIL: ${ns1} cannot reach ${ns2}: $ret" 1>&2
++	exit $ret
 +fi
 +
-+exit 0
++test_tproxy_udp_forward "ip"
++test_tproxy_udp_forward "ip6"
++
++exit $ret
 -- 
 2.30.2
 
