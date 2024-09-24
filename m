@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id EC53B13D8B4;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1FCE213DBBE;
 	Tue, 24 Sep 2024 20:14:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727208858; cv=none; b=SlOry0bgd0RA7lbZaLovPlvYw4vtxdDwNQk1TTiLnelYK5sdWXwllXcWucSsnd3K8ZWR7BV6DYd2KMSxBD0dKMUacjOfDe433yzGNeDmQAv0dNgn8oAhy/MnYk2gt+RY+yrEQgAYpl7LlQT2Sej+1sIgfvVpHp5GMTjd/StT3U8=
+	t=1727208858; cv=none; b=l5ghDDdSpTQ/e6SNyA5ackgJtmvulzlkmYJN6g+JVcjQLFYohS+8MkYWwnv5gLwSifSHsGQ7DeUYWwiW8jGp6xn/+NU/zVslctNsp5l8HBtT6ZfySxxEjFqKhrM7l+6BrucNru+sbjY98c/w3qcrVej9lNiBWVVSUug4OHHSOfs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1727208858; c=relaxed/simple;
-	bh=BIHBpMFZA+VLGFCRlyfVxoT4sx3J8q/NIwfNHE8phP0=;
+	bh=DldtpoddQ31OJ50MLYMrl2nPFunvsEu8IolvO7djYBw=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=uziy7BgG+tUICbSfWTfkFiReeATmKNMOGP1z8n4z9Rvlx+mrsbjazwt2KyAw1OJUIyLpOX8SeDtVXGEzHWDaTbd/N0v9w52Yasos8TpvlAyLnEdorVhBecRz2hkz6sQlavmS1jUFYaOIVgGISy458jZyWi+3I7DU1K1z+II59vE=
+	 MIME-Version; b=WjXNlRJD2ai0iKmOG+72a6yNa/u2E4LNtCfZdjUWCTgsdH/lD8nZjsP6X4rPlCmlAhDEhZkczBF1TWAI5jESu9nz1Ff7h3z4PhblW2yHryIxlzStYdwVscP30zmLVb+SfrtjSPAUfw/rifkdLBwOVHcoiAxRjS4Mag3rRHAweOA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 05/14] netfilter: ctnetlink: Guard possible unused functions
-Date: Tue, 24 Sep 2024 22:13:52 +0200
-Message-Id: <20240924201401.2712-6-pablo@netfilter.org>
+Subject: [PATCH net 09/14] netfilter: ctnetlink: compile ctnetlink_label_size with CONFIG_NF_CONNTRACK_EVENTS
+Date: Tue, 24 Sep 2024 22:13:56 +0200
+Message-Id: <20240924201401.2712-10-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240924201401.2712-1-pablo@netfilter.org>
 References: <20240924201401.2712-1-pablo@netfilter.org>
@@ -34,54 +34,80 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+From: Simon Horman <horms@kernel.org>
 
-Some of the functions may be unused (CONFIG_NETFILTER_NETLINK_GLUE_CT=n
-and CONFIG_NF_CONNTRACK_EVENTS=n), it prevents kernel builds with clang,
-`make W=1` and CONFIG_WERROR=y:
+Only provide ctnetlink_label_size when it is used,
+which is when CONFIG_NF_CONNTRACK_EVENTS is configured.
 
-net/netfilter/nf_conntrack_netlink.c:657:22: error: unused function 'ctnetlink_acct_size' [-Werror,-Wunused-function]
-  657 | static inline size_t ctnetlink_acct_size(const struct nf_conn *ct)
-      |                      ^~~~~~~~~~~~~~~~~~~
-net/netfilter/nf_conntrack_netlink.c:667:19: error: unused function 'ctnetlink_secctx_size' [-Werror,-Wunused-function]
-  667 | static inline int ctnetlink_secctx_size(const struct nf_conn *ct)
-      |                   ^~~~~~~~~~~~~~~~~~~~~
-net/netfilter/nf_conntrack_netlink.c:683:22: error: unused function 'ctnetlink_timestamp_size' [-Werror,-Wunused-function]
-  683 | static inline size_t ctnetlink_timestamp_size(const struct nf_conn *ct)
-      |                      ^~~~~~~~~~~~~~~~~~~~~~~~
+Flagged by clang-18 W=1 builds as:
 
-Fix this by guarding possible unused functions with ifdeffery.
+.../nf_conntrack_netlink.c:385:19: warning: unused function 'ctnetlink_label_size' [-Wunused-function]
+  385 | static inline int ctnetlink_label_size(const struct nf_conn *ct)
+      |                   ^~~~~~~~~~~~~~~~~~~~
 
-See also commit 6863f5643dd7 ("kbuild: allow Clang to find unused static
-inline functions for W=1 build").
+The condition on CONFIG_NF_CONNTRACK_LABELS being removed by
+this patch guards compilation of non-trivial implementations
+of ctnetlink_dump_labels() and ctnetlink_label_size().
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Simon Horman <horms@kernel.org>
+However, this is not necessary as each of these functions
+will always return 0 if CONFIG_NF_CONNTRACK_LABELS is not defined
+as each function starts with the equivalent of:
+
+	struct nf_conn_labels *labels = nf_ct_labels_find(ct);
+
+	if (!labels)
+		return 0;
+
+And nf_ct_labels_find always returns NULL if CONFIG_NF_CONNTRACK_LABELS
+is not enabled.  So I believe that the compiler optimises the code away
+in such cases anyway.
+
+Found by inspection.
+Compile tested only.
+
+Originally splitted in two patches, Pablo Neira Ayuso collapsed them and
+added Fixes: tag.
+
+Fixes: 0ceabd83875b ("netfilter: ctnetlink: deliver labels to userspace")
+Link: https://lore.kernel.org/netfilter-devel/20240909151712.GZ2097826@kernel.org/
+Signed-off-by: Simon Horman <horms@kernel.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_netlink.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_netlink.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
 diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 123e2e933e9b..8fd2b9e392a7 100644
+index 8fd2b9e392a7..6a1239433830 100644
 --- a/net/netfilter/nf_conntrack_netlink.c
 +++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -652,7 +652,6 @@ static size_t ctnetlink_proto_size(const struct nf_conn *ct)
- 
- 	return len + len4;
- }
--#endif
- 
- static inline size_t ctnetlink_acct_size(const struct nf_conn *ct)
- {
-@@ -690,6 +689,7 @@ static inline size_t ctnetlink_timestamp_size(const struct nf_conn *ct)
- 	return 0;
+@@ -382,7 +382,7 @@ static int ctnetlink_dump_secctx(struct sk_buff *skb, const struct nf_conn *ct)
+ #define ctnetlink_dump_secctx(a, b) (0)
  #endif
+ 
+-#ifdef CONFIG_NF_CONNTRACK_LABELS
++#ifdef CONFIG_NF_CONNTRACK_EVENTS
+ static inline int ctnetlink_label_size(const struct nf_conn *ct)
+ {
+ 	struct nf_conn_labels *labels = nf_ct_labels_find(ct);
+@@ -391,6 +391,7 @@ static inline int ctnetlink_label_size(const struct nf_conn *ct)
+ 		return 0;
+ 	return nla_total_size(sizeof(labels->bits));
  }
 +#endif
  
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
- static size_t ctnetlink_nlmsg_size(const struct nf_conn *ct)
+ static int
+ ctnetlink_dump_labels(struct sk_buff *skb, const struct nf_conn *ct)
+@@ -411,10 +412,6 @@ ctnetlink_dump_labels(struct sk_buff *skb, const struct nf_conn *ct)
+ 
+ 	return 0;
+ }
+-#else
+-#define ctnetlink_dump_labels(a, b) (0)
+-#define ctnetlink_label_size(a)	(0)
+-#endif
+ 
+ #define master_tuple(ct) &(ct->master->tuplehash[IP_CT_DIR_ORIGINAL].tuple)
+ 
 -- 
 2.30.2
 
