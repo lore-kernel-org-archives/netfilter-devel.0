@@ -1,131 +1,78 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99F161D5AD4
-	for <netfilter-devel@vger.kernel.org>; Wed, 25 Sep 2024 20:33:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A97D0DDA0
+	for <netfilter-devel@vger.kernel.org>; Wed, 25 Sep 2024 22:47:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727296397; cv=none; b=qdN+NuigaMsI2zAeXwfZ8rlvFWeTGfFo5ZqXNboUTrUhkn57U6hde2HVKs69LoRhM+6my5jTGFY+2NnhMjmFECQmk1jykwns19/T/YuAmWWZ9ZTAqUyjx18qPvhv74YkTOda739XvOshwD7LL7raj1EZHo1v39iI97QeDbsIYw8=
+	t=1727304455; cv=none; b=h47clq9KQz4w1yHw8rE5q9XHUy6/9L3aPXr/O/B9Uo9K4WlAQLmTA9icjXZGtGRqyXEUVMeSMS/MNMnF16fLP5FPKAUt81O9ISWMvXu6j5IUnsSd6gj/bBYsFWfh5xCgARi/rp54BUe/WwL90hShY2WVAiEQpaT//xA+SSFgcLk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727296397; c=relaxed/simple;
-	bh=JO4gMsutdAq6tKak7EICEjRDdnkKY5Q0/JpULC/ACFg=;
+	s=arc-20240116; t=1727304455; c=relaxed/simple;
+	bh=/9ssXvUZcvmHN5OAb5g1AFhz0Ffn9wRQVnq5IHXLLhI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SORoDXD7Lqtv6fNObHofR7cWWqvrXDklypz8lGHL7/s/zBW155eWHzf0SA8zdRUdmVw3MPN0S5xvChlfXuuHa03S7xGBqUcoqwZS4jhBEKHxsasPzEtkKPSQuTFuVZoNJEcSz7iPm0kSL6ysD7jJV8/fL90rV+rNdc1LX5HqXv4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=50602 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1stYh3-000aea-1W; Wed, 25 Sep 2024 22:33:03 +0200
-Date: Wed, 25 Sep 2024 22:32:59 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Ahelenia =?utf-8?Q?Ziemia=C5=84ska?= <nabijaczleweli@nabijaczleweli.xyz>
+	 Content-Type:Content-Disposition:In-Reply-To; b=DdC9+lvR7kOubFE1CSr8d3/MZK+QmiMRXweTUDPIgnvuKpa5ZEUndLB5cF6bof+teeZlYSUw+wHPbKXuY5dl+JKrezR4fwtfIFfnIc1QpyTDQBIhJelhcQUYLmDOAFgCf1m7Imzx4L8dFSNFB5qsOtuyQOQ5F5/fksf8Qgci1CA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=nNWUBYDa; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="nNWUBYDa"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=A6XzgIzfjDqxLTNJObFsSjzNA7xtjsoAKSlFJe1POsA=; b=nNWUBYDaCddUiknX7jUjxsJ60b
+	RXzTBR6WxsnsbbIW7lxUFaIPWgVIdbH1u1Q3WSZWAK85xNVgy/qhBxXhWOEPuSbBpld1zs62Y9LH8
+	iOvwbkMDfccsSa03SgKYiqR1VCkF8ySU7sCF5QARztVcw6PE7b7gJ5jPvIXfKfIMj/OIPRusOOv39
+	unRIoYQHkzu90IEGLE/O4AxzVSKVHnwAohUX8psSidjN8AH9Aafgix/tnqY5KwjWMhjI3AWtStBXO
+	loQiAw+Wt6o7dhI/oUtXnvXsUcJKLvnT1iUsxvlO7TTp09NPIxD0aqMQXD2AuViQXk+aS7G/S2TAQ
+	tNggsyag==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1stanC-000000004Kb-0cVv;
+	Thu, 26 Sep 2024 00:47:30 +0200
+Date: Thu, 26 Sep 2024 00:47:30 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] conntrack: -L doesn't take a value, so don't discard one
- (same for -IUDGEFA)
-Message-ID: <ZvRze9JEBJ28ityC@calendula>
-References: <hpsesrayjbjrtja3unjpw4a3tsou3vtu7yjhrcba7dfnrahwz2@tarta.nabijaczleweli.xyz>
- <ZtbHMe6STK_W6yfA@calendula>
- <bymeee6fsub6oz64xtykfru25aq6xx4k2agjbeabekzfobu4jd@tarta.nabijaczleweli.xyz>
- <ZvQj_TOKcN7A9kmz@calendula>
- <qe4cxltrompmuajfgfkedrecefkyy2eopi3erttlm7c3xigs2g@tarta.nabijaczleweli.xyz>
+Subject: Re: [PATCH nft,v2 5/7] cache: consolidate reset command
+Message-ID: <ZvSTAoV3thoJlKRw@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+References: <20240826085455.163392-1-pablo@netfilter.org>
+ <20240826085455.163392-6-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <qe4cxltrompmuajfgfkedrecefkyy2eopi3erttlm7c3xigs2g@tarta.nabijaczleweli.xyz>
-X-Spam-Score: -1.9 (-)
+In-Reply-To: <20240826085455.163392-6-pablo@netfilter.org>
 
-On Wed, Sep 25, 2024 at 05:11:01PM +0200, Ahelenia Ziemiańska wrote:
-> On Wed, Sep 25, 2024 at 04:53:49PM +0200, Pablo Neira Ayuso wrote:
-> > On Tue, Sep 03, 2024 at 04:53:46PM +0200, Ahelenia Ziemiańska wrote:
-> > > On Tue, Sep 03, 2024 at 10:22:09AM +0200, Pablo Neira Ayuso wrote:
-> > > > On Tue, Sep 03, 2024 at 04:16:21AM +0200, Ahelenia Ziemiańska wrote:
-> > > > > The manual says
-> > > > >    COMMANDS
-> > > > >        These options specify the particular operation to perform.
-> > > > >        Only one of them can be specified at any given time.
-> > > > > 
-> > > > >        -L --dump
-> > > > >               List connection tracking or expectation table
-> > > > > 
-> > > > > So, naturally, "conntrack -Lo extended" should work,
-> > > > > but it doesn't, it's equivalent to "conntrack -L",
-> > > > > and you need "conntrack -L -o extended".
-> > > > > This violates user expectations (borne of the Utility Syntax Guidelines)
-> > > > > and contradicts the manual.
-> > > > > 
-> > > > > optarg is unused, anyway. Unclear why any of these were :: at all?
-> > > > Because this supports:
-> > > >         -L
-> > > >         -L conntrack
-> > > >         -L expect
-> > > Well that's not what :: does, though; we realise this, right?
-> > > 
-> > > "L::" means that getopt() will return
-> > >   "-L", "conntrack" -> 'L',optarg=NULL
-> > >   "-Lconntrack"     -> 'L',optarg="conntrack"
-> > > and the parser for -L (&c.) doesn't... use optarg.
-> > Are you sure it does not use optarg?
-> > 
-> > static unsigned int check_type(int argc, char *argv[])
-> > {
-> >         const char *table = get_optional_arg(argc, argv);
-> > 
-> > and get_optional_arg() uses optarg.
-> 
-> This I've missed, but actually my diagnosis still holds:
->   static unsigned int check_type(int argc, char *argv[])
->   {
->   	const char *table = get_optional_arg(argc, argv);
->   
->   	/* default to conntrack subsystem if nothing has been specified. */
->   	if (table == NULL)
->   		return CT_TABLE_CONNTRACK;
-> 
->   static char *get_optional_arg(int argc, char *argv[])
->   {
->   	char *arg = NULL;
->   
->   	/* Nasty bug or feature in getopt_long ?
->   	 * It seems that it behaves badly with optional arguments.
->   	 * Fortunately, I just stole the fix from iptables ;) */
->   	if (optarg)
->   		return arg;
-> 
-> So, if you say -Lanything, then
->   optarg=anything
->   get_optional_arg=(null)
-> (notice that it says "return arg;", not "return optarg;",
->  i.e. this is "return NULL").
-> 
-> It /doesn't/ use optarg, because it explicitly treats an optarg as no optarg.
-> 
-> It's unclear to me what the comment is referencing,
-> but I'm assuming some sort of confusion with what :: does?
-> Anyway, that if(){ can be removed now, since it can never be taken now.
+Hi Pablo,
 
-The issue that I'm observing is that
+On Mon, Aug 26, 2024 at 10:54:53AM +0200, Pablo Neira Ayuso wrote:
+> Reset command does not utilize the cache infrastructure.
 
-# conntrack -Lconntrack
+This commit changes audit log output for some reason. At least I see
+tools/testing/selftests/net/netfilter/nft_audit.sh failing and git
+bisect pointed at it. The relevant kselftest output is:
 
-now optarg is NULL after your patch, so 'conntrack' is ignored, so it
-falls back to list the conntrack table.
+# testing for cmd: nft reset rules ... FAIL
+#  table=t1 family=2 entries=3 op=nft_reset_rule
+#  table=t2 family=2 entries=3 op=nft_reset_rule
+#  table=t2 family=2 entries=3 op=nft_reset_rule
+# -table=t2 family=2 entries=180 op=nft_reset_rule
+# +table=t2 family=2 entries=186 op=nft_reset_rule
+#  table=t2 family=2 entries=188 op=nft_reset_rule
+# -table=t2 family=2 entries=135 op=nft_reset_rule
+# +table=t2 family=2 entries=129 op=nft_reset_rule
 
-Then, this breaks:
+I don't know why entries value changes and whether it is expected or
+not. Could you perhaps have a look?
 
-# conntrack -Lexpect
-conntrack v1.4.9 (conntrack-tools): Bad parameter `xpect'
-Try `conntrack -h' or 'conntrack --help' for more information.
-
-Maybe your patch needs an extension to deal with this case too?
-
-Regarding your question, this parser is old and I shamelessly took it
-from the original iptables to make syntax similar.
+Cheers, Phil
