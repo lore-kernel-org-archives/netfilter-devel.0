@@ -1,110 +1,61 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A7571D5AA5;
-	Wed, 25 Sep 2024 12:18:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0F69192B88;
+	Wed, 25 Sep 2024 12:20:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727266724; cv=none; b=UXBAYArw0ZEddM936LknKdJSvOvl5nxvbHz4bV8Th/YmcLeet2uDIB+NYY9ZXWE2h09Y+UgF+GFsao+AllVKIv29yQru0Wv7GxtLt3iCfkga+RDCUUP6g2u5E6ZnXY/EOt0cgCwlErQJifKl/aU8oA2YLMqOUKdxfvXonkpwjrY=
+	t=1727266854; cv=none; b=UyK9pIfoYgThnuLEg2rT8G/LMLL2LzY9epRue4M/A6WiwHjRe+AJoj3zZoBUIOqFArptzGJramvdNNW5C7P1Yc8Tg4NGSL4CBaRmui5vQXq7NsSmu/OxoBB1TkrwDazRp97OedOkHyiX47HhFgqNhlraTNJsLm/Pi423un2KwGk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727266724; c=relaxed/simple;
-	bh=s3YSUa2IiULzJiw6XSiOlweurXkEkKS09tKVZbzxjAI=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=FA1dWCPizvrr6uOaactPj8nVuWhyflHgpBpIALwHO885EssDvp3WQYNpq3dz97daq6KszLi2b9f9sUcxohdjuTyM70JnJJhhBHOrP43Klyd7EToF1S/3zuE3+IFpQW76M2OZZDoFKCV/DLSF8NjL4EmO2KQp+R7yMIIF/IS/6B8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=57572 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1stQyX-0006n8-DN; Wed, 25 Sep 2024 14:18:35 +0200
-Date: Wed, 25 Sep 2024 14:18:32 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: netfilter@vger.kernel.org, netfilter-announce@lists.netfilter.org,
-	lwn@lwn.net
-Subject: [ANNOUNCE] libnetfilter_conntrack 1.1.0 release
-Message-ID: <ZvP_mG-yKnnNOlkB@calendula>
+	s=arc-20240116; t=1727266854; c=relaxed/simple;
+	bh=1fgXmgd0c9VaeNQxq8yAVPMcbGNTaset1jrDO3tVaJo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=OmUF3ScdPhrfC+ip0VW74kN4dS8y7Y2GNbgsFNB5eLcmPejx1QIthLGwH8xm7Ko4/ifE6WyVxjodQBh4aCUSbA32FDyVMZ704lolQpgwz8oRTO1SPZx9ffCsJ464+wByC9swgu2CuzEQ8+eXRCM+Tgxb6tvzI/Kgv2Y+JFCMnnc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1stR0b-00033Z-HU; Wed, 25 Sep 2024 14:20:41 +0200
+Date: Wed, 25 Sep 2024 14:20:41 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Sasha Levin <sashal@kernel.org>, linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+	kadlec@netfilter.org, davem@davemloft.net, edumazet@google.com,
+	kuba@kernel.org, pabeni@redhat.com, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org
+Subject: Re: [PATCH AUTOSEL 6.11 049/244] netfilter: nf_tables: don't
+ initialize registers in nft_do_chain()
+Message-ID: <20240925122041.GA8444@breakpoint.cc>
+References: <20240925113641.1297102-1-sashal@kernel.org>
+ <20240925113641.1297102-49-sashal@kernel.org>
+ <ZvP6-utbwqWmP5_0@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="LUh22oYdKkjy2MC5"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-X-Spam-Score: -1.9 (-)
+In-Reply-To: <ZvP6-utbwqWmP5_0@calendula>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Hi Sasha,
+> 
+> This commit requires:
+> 
+> commit 14fb07130c7ddd257e30079b87499b3f89097b09
+> Author: Florian Westphal <fw@strlen.de>
+> Date:   Tue Aug 20 11:56:13 2024 +0200
+> 
+>     netfilter: nf_tables: allow loads only when register is initialized
+> 
+> so either drop it or pull-in this dependency for 6.11
 
---LUh22oYdKkjy2MC5
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+It should be dropped, its crazy to pull the dependency into
+stable.
 
-Hi!
-
-The Netfilter project presents:
-
-        libnetfilter_conntrack 1.1.0
-
-This release includes:
-
-- Enhancements for filtering dump and flush commands,
-  see struct nfct_filter_dump and nfct_nlmsg_build_filter().
-- ctnetlink event BPF fixes (endianness issue, IPv6 matching) and
-  enhancements (zone matching).
-- fix for musl compilation.
-
-See ChangeLog that comes attached to this email for more details.
-
-You can download it from:
-
-https://www.netfilter.org/projects/libnetfilter_conntrack/downloads.html
-
-NB: This release has switched to tar.xz files.
-
---LUh22oYdKkjy2MC5
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: attachment;
-	filename="changes-libnetfilter_conntrack-1.1.0.txt"
-
-Felix Huettner (2):
-      dump: support filtering by zone
-      conntrack: support flush filtering
-
-Jeremy Sowden (5):
-      conntrack: fix BPF code for filtering on big-endian architectures
-      conntrack: simplify calculation of `struct sock_fprog` length
-      conntrack: increase the length of `l4proto_map`
-      Ignore `configure~`
-      conntrack: fix BPF for filtering IPv6 addresses
-
-Pablo Neira Ayuso (7):
-      conntrack: add sanity check to netlink socket filter API
-      src: reverse calloc() invocation
-      conntrack: api: bail out if setting up filter for flush/dump fails
-      conntrack: mnl: clean up check for mismatching l3num and tuple filter
-      conntrack: update link to git repository
-      src: remove unused parameter from build functions
-      libnetfilter_conntrack: bump version to 1.1.0
-
-Peter Fordham (1):
-      configure: C99 compatibility issues
-
-Phil Sutter (3):
-      expect/conntrack: Avoid spurious covscan overrun warning
-      Makefile: Create LZMA-compressed dist-files
-      conntrack: bsf: Do not return -1 on failure
-
-Priyankar Jain (1):
-      conntrack: Add zone filtering for conntrack events
-
-Robert Marko (1):
-      conntrack: fix build with kernel 5.15 and musl
-
-Romain Bellan (2):
-      Adding NFCT_FILTER_DUMP_TUPLE in filter_dump_attr, using kernel CTA_FILTER API
-      utils: add NFCT_FILTER_DUMP_TUPLE example
-
-
---LUh22oYdKkjy2MC5--
+Is there a way to indicate 'stable: never' in changelogs?
