@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5CF0E1AF4F7;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5F2F51AF4F9;
 	Thu, 26 Sep 2024 11:07:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727348858; cv=none; b=GoXJKHcSf6eqQbMRCAGnrfl+JhNd2OFmBns1tCxKwELO6lafhlGHkV9MyLLmsG9wT0In2e1g08AZfhhPpnfOFfGa+GyVH9uFnccDIuO8WGhf2i3UUOT6OQbBhW8ckcb0cKKE+E2cPygtNJndfp+KXoQmpkQ3XN7b0/AWzvr36dk=
+	t=1727348858; cv=none; b=bV61kK5jxMZR0OyL3xInoJqVRTMDS8JO2bnPEOPaoS4ECpUbguTlV6PEeecSas+DhoUBw/tYRw1ql4RKOEAkGepJwYiZFRLf1+1+PaCVjUBj8VahbN+mJrim/4U9AUQjJbyNHW6YBAxVF2HtFcW+HFeBUfSJksCIXiswwgjR3MA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1727348858; c=relaxed/simple;
-	bh=7GTRjcrDHdtxAeMHhSUqmgkei9QeFrE8d18fxEId5dU=;
+	bh=fmfU+KM0WUkqeEHd60UTyWvyljaDniOOrl2STGpZ+1I=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=dg4oz51Y6jFGUnV9BcbD6PtrWzziyJJdH2bBL6BTBZUymI55ztu/RACqG6CnvnjUZCc7Xi+dSib0IJQyDJgj3Rcz2yx5sMzsX5uGPQq0GMuVZbtN673sy9/ZM2zik2gvyFfRTXMjISFDpbR4AeWxjBpZTcylTf7YB7ibk0dtIlo=
+	 MIME-Version; b=hAC6+BaaZzy9FJfVTJCgsrEG7UY6jo5x03bBc9FfAFKHuRbt3EGFuqvcqWWAlbnjdkQJqoBVW6pxRVpqtFUAFYbiFAH8mgKoVyfULKK1p/2l1bZ6DZVRfTuRkmcA2R006Y31X+c02mpoxNqiUbYsKrTDed3VCWQ9nY9vOUQ5lmY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 08/14] netfilter: nf_reject: Fix build warning when CONFIG_BRIDGE_NETFILTER=n
-Date: Thu, 26 Sep 2024 13:07:11 +0200
-Message-Id: <20240926110717.102194-9-pablo@netfilter.org>
+Subject: [PATCH net 12/14] netfilter: nfnetlink_queue: remove old clash resolution logic
+Date: Thu, 26 Sep 2024 13:07:15 +0200
+Message-Id: <20240926110717.102194-13-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240926110717.102194-1-pablo@netfilter.org>
 References: <20240926110717.102194-1-pablo@netfilter.org>
@@ -34,109 +34,188 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Simon Horman <horms@kernel.org>
+From: Florian Westphal <fw@strlen.de>
 
-If CONFIG_BRIDGE_NETFILTER is not enabled, which is the case for x86_64
-defconfig, then building nf_reject_ipv4.c and nf_reject_ipv6.c with W=1
-using gcc-14 results in the following warnings, which are treated as
-errors:
+For historical reasons there are two clash resolution spots in
+netfilter, one in nfnetlink_queue and one in conntrack core.
 
-net/ipv4/netfilter/nf_reject_ipv4.c: In function 'nf_send_reset':
-net/ipv4/netfilter/nf_reject_ipv4.c:243:23: error: variable 'niph' set but not used [-Werror=unused-but-set-variable]
-  243 |         struct iphdr *niph;
-      |                       ^~~~
-cc1: all warnings being treated as errors
-net/ipv6/netfilter/nf_reject_ipv6.c: In function 'nf_send_reset6':
-net/ipv6/netfilter/nf_reject_ipv6.c:286:25: error: variable 'ip6h' set but not used [-Werror=unused-but-set-variable]
-  286 |         struct ipv6hdr *ip6h;
-      |                         ^~~~
-cc1: all warnings being treated as errors
+nfnetlink_queue one was added first: If a colliding entry is found, NAT
+NAT transformation is reversed by calling nat engine again with altered
+tuple.
 
-Address this by reducing the scope of these local variables to where
-they are used, which is code only compiled when CONFIG_BRIDGE_NETFILTER
-enabled.
+See commit 368982cd7d1b ("netfilter: nfnetlink_queue: resolve clash for
+unconfirmed conntracks") for details.
 
-Compile tested and run through netfilter selftests.
+One problem is that nf_reroute() won't take an action if the queueing
+doesn't occur in the OUTPUT hook, i.e. when queueing in forward or
+postrouting, packet will be sent via the wrong path.
 
-Reported-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Closes: https://lore.kernel.org/netfilter-devel/20240906145513.567781-1-andriy.shevchenko@linux.intel.com/
-Signed-off-by: Simon Horman <horms@kernel.org>
+Another problem is that the scenario addressed (2nd UDP packet sent with
+identical addresses while first packet is still being processed) can also
+occur without any nfqueue involvement due to threaded resolvers doing
+A and AAAA requests back-to-back.
+
+This lead us to add clash resolution logic to the conntrack core, see
+commit 6a757c07e51f ("netfilter: conntrack: allow insertion of clashing
+entries").  Instead of fixing the nfqueue based logic, lets remove it
+and let conntrack core handle this instead.
+
+Retain the ->update hook for sake of nfqueue based conntrack helpers.
+We could axe this hook completely but we'd have to split confirm and
+helper logic again, see commit ee04805ff54a ("netfilter: conntrack: make
+conntrack userspace helpers work again").
+
+This SHOULD NOT be backported to kernels earlier than v5.6; they lack
+adequate clash resolution handling.
+
+Patch was originally written by Pablo Neira Ayuso.
+
+Reported-by: Antonio Ojea <aojea@google.com>
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1766
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Tested-by: Antonio Ojea <aojea@google.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/nf_reject_ipv4.c | 10 ++++------
- net/ipv6/netfilter/nf_reject_ipv6.c |  5 ++---
- 2 files changed, 6 insertions(+), 9 deletions(-)
+ include/linux/netfilter.h         |  4 --
+ net/netfilter/nf_conntrack_core.c | 85 -------------------------------
+ net/netfilter/nf_nat_core.c       |  1 -
+ 3 files changed, 90 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
-index 04504b2b51df..87fd945a0d27 100644
---- a/net/ipv4/netfilter/nf_reject_ipv4.c
-+++ b/net/ipv4/netfilter/nf_reject_ipv4.c
-@@ -239,9 +239,8 @@ static int nf_reject_fill_skb_dst(struct sk_buff *skb_in)
- void nf_send_reset(struct net *net, struct sock *sk, struct sk_buff *oldskb,
- 		   int hook)
- {
--	struct sk_buff *nskb;
--	struct iphdr *niph;
- 	const struct tcphdr *oth;
-+	struct sk_buff *nskb;
- 	struct tcphdr _oth;
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 2683b2b77612..2b8aac2c70ad 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -376,15 +376,11 @@ int nf_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
+ struct nf_conn;
+ enum nf_nat_manip_type;
+ struct nlattr;
+-enum ip_conntrack_dir;
  
- 	oth = nf_reject_ip_tcphdr_get(oldskb, &_oth, hook);
-@@ -266,14 +265,12 @@ void nf_send_reset(struct net *net, struct sock *sk, struct sk_buff *oldskb,
- 	nskb->mark = IP4_REPLY_MARK(net, oldskb->mark);
+ struct nf_nat_hook {
+ 	int (*parse_nat_setup)(struct nf_conn *ct, enum nf_nat_manip_type manip,
+ 			       const struct nlattr *attr);
+ 	void (*decode_session)(struct sk_buff *skb, struct flowi *fl);
+-	unsigned int (*manip_pkt)(struct sk_buff *skb, struct nf_conn *ct,
+-				  enum nf_nat_manip_type mtype,
+-				  enum ip_conntrack_dir dir);
+ 	void (*remove_nat_bysrc)(struct nf_conn *ct);
+ };
  
- 	skb_reserve(nskb, LL_MAX_HEADER);
--	niph = nf_reject_iphdr_put(nskb, oldskb, IPPROTO_TCP,
--				   ip4_dst_hoplimit(skb_dst(nskb)));
-+	nf_reject_iphdr_put(nskb, oldskb, IPPROTO_TCP,
-+			    ip4_dst_hoplimit(skb_dst(nskb)));
- 	nf_reject_ip_tcphdr_put(nskb, oldskb, oth);
- 	if (ip_route_me_harder(net, sk, nskb, RTN_UNSPEC))
- 		goto free_nskb;
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 7c63fbfb8c1d..9db3e2b0b1c3 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -2197,80 +2197,6 @@ static void nf_conntrack_attach(struct sk_buff *nskb, const struct sk_buff *skb)
+ 	nf_conntrack_get(skb_nfct(nskb));
+ }
  
--	niph = ip_hdr(nskb);
+-static int __nf_conntrack_update(struct net *net, struct sk_buff *skb,
+-				 struct nf_conn *ct,
+-				 enum ip_conntrack_info ctinfo)
+-{
+-	const struct nf_nat_hook *nat_hook;
+-	struct nf_conntrack_tuple_hash *h;
+-	struct nf_conntrack_tuple tuple;
+-	unsigned int status;
+-	int dataoff;
+-	u16 l3num;
+-	u8 l4num;
 -
- 	/* "Never happens" */
- 	if (nskb->len > dst_mtu(skb_dst(nskb)))
- 		goto free_nskb;
-@@ -290,6 +287,7 @@ void nf_send_reset(struct net *net, struct sock *sk, struct sk_buff *oldskb,
- 	 */
- 	if (nf_bridge_info_exists(oldskb)) {
- 		struct ethhdr *oeth = eth_hdr(oldskb);
-+		struct iphdr *niph = ip_hdr(nskb);
- 		struct net_device *br_indev;
+-	l3num = nf_ct_l3num(ct);
+-
+-	dataoff = get_l4proto(skb, skb_network_offset(skb), l3num, &l4num);
+-	if (dataoff <= 0)
+-		return NF_DROP;
+-
+-	if (!nf_ct_get_tuple(skb, skb_network_offset(skb), dataoff, l3num,
+-			     l4num, net, &tuple))
+-		return NF_DROP;
+-
+-	if (ct->status & IPS_SRC_NAT) {
+-		memcpy(tuple.src.u3.all,
+-		       ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3.all,
+-		       sizeof(tuple.src.u3.all));
+-		tuple.src.u.all =
+-			ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u.all;
+-	}
+-
+-	if (ct->status & IPS_DST_NAT) {
+-		memcpy(tuple.dst.u3.all,
+-		       ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.u3.all,
+-		       sizeof(tuple.dst.u3.all));
+-		tuple.dst.u.all =
+-			ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.u.all;
+-	}
+-
+-	h = nf_conntrack_find_get(net, nf_ct_zone(ct), &tuple);
+-	if (!h)
+-		return NF_ACCEPT;
+-
+-	/* Store status bits of the conntrack that is clashing to re-do NAT
+-	 * mangling according to what it has been done already to this packet.
+-	 */
+-	status = ct->status;
+-
+-	nf_ct_put(ct);
+-	ct = nf_ct_tuplehash_to_ctrack(h);
+-	nf_ct_set(skb, ct, ctinfo);
+-
+-	nat_hook = rcu_dereference(nf_nat_hook);
+-	if (!nat_hook)
+-		return NF_ACCEPT;
+-
+-	if (status & IPS_SRC_NAT) {
+-		unsigned int verdict = nat_hook->manip_pkt(skb, ct,
+-							   NF_NAT_MANIP_SRC,
+-							   IP_CT_DIR_ORIGINAL);
+-		if (verdict != NF_ACCEPT)
+-			return verdict;
+-	}
+-
+-	if (status & IPS_DST_NAT) {
+-		unsigned int verdict = nat_hook->manip_pkt(skb, ct,
+-							   NF_NAT_MANIP_DST,
+-							   IP_CT_DIR_ORIGINAL);
+-		if (verdict != NF_ACCEPT)
+-			return verdict;
+-	}
+-
+-	return NF_ACCEPT;
+-}
+-
+ /* This packet is coming from userspace via nf_queue, complete the packet
+  * processing after the helper invocation in nf_confirm().
+  */
+@@ -2334,17 +2260,6 @@ static int nf_conntrack_update(struct net *net, struct sk_buff *skb)
+ 	if (!ct)
+ 		return NF_ACCEPT;
  
- 		br_indev = nf_bridge_get_physindev(oldskb, net);
-diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
-index dedee264b8f6..69a78550261f 100644
---- a/net/ipv6/netfilter/nf_reject_ipv6.c
-+++ b/net/ipv6/netfilter/nf_reject_ipv6.c
-@@ -283,7 +283,6 @@ void nf_send_reset6(struct net *net, struct sock *sk, struct sk_buff *oldskb,
- 	const struct tcphdr *otcph;
- 	unsigned int otcplen, hh_len;
- 	const struct ipv6hdr *oip6h = ipv6_hdr(oldskb);
--	struct ipv6hdr *ip6h;
- 	struct dst_entry *dst = NULL;
- 	struct flowi6 fl6;
+-	if (!nf_ct_is_confirmed(ct)) {
+-		int ret = __nf_conntrack_update(net, skb, ct, ctinfo);
+-
+-		if (ret != NF_ACCEPT)
+-			return ret;
+-
+-		ct = nf_ct_get(skb, &ctinfo);
+-		if (!ct)
+-			return NF_ACCEPT;
+-	}
+-
+ 	return nf_confirm_cthelper(skb, ct, ctinfo);
+ }
  
-@@ -339,8 +338,7 @@ void nf_send_reset6(struct net *net, struct sock *sk, struct sk_buff *oldskb,
- 	nskb->mark = fl6.flowi6_mark;
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index d9ea2c26f309..4085c436e306 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -1324,7 +1324,6 @@ static const struct nf_nat_hook nat_hook = {
+ #ifdef CONFIG_XFRM
+ 	.decode_session		= __nf_nat_decode_session,
+ #endif
+-	.manip_pkt		= nf_nat_manip_pkt,
+ 	.remove_nat_bysrc	= nf_nat_cleanup_conntrack,
+ };
  
- 	skb_reserve(nskb, hh_len + dst->header_len);
--	ip6h = nf_reject_ip6hdr_put(nskb, oldskb, IPPROTO_TCP,
--				    ip6_dst_hoplimit(dst));
-+	nf_reject_ip6hdr_put(nskb, oldskb, IPPROTO_TCP, ip6_dst_hoplimit(dst));
- 	nf_reject_ip6_tcphdr_put(nskb, oldskb, otcph, otcplen);
- 
- 	nf_ct_attach(nskb, oldskb);
-@@ -355,6 +353,7 @@ void nf_send_reset6(struct net *net, struct sock *sk, struct sk_buff *oldskb,
- 	 */
- 	if (nf_bridge_info_exists(oldskb)) {
- 		struct ethhdr *oeth = eth_hdr(oldskb);
-+		struct ipv6hdr *ip6h = ipv6_hdr(nskb);
- 		struct net_device *br_indev;
- 
- 		br_indev = nf_bridge_get_physindev(oldskb, net);
 -- 
 2.30.2
 
