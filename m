@@ -1,46 +1,46 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9BE01ABEDD
-	for <netfilter-devel@vger.kernel.org>; Thu, 26 Sep 2024 09:57:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 841081AC897
+	for <netfilter-devel@vger.kernel.org>; Thu, 26 Sep 2024 09:57:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727344622; cv=none; b=oTT5JsWnha9ryCCSjLmdA6HrJF6nzrRFkE6inJU3JXynOcuS592sasaCTC32lHofQ4SUo4e7rcJiAEfJuLatTPiIiuRmaidSsgyeMhEUurjEr2Goc4VSyaLQjHhvh17t5b2Xj5o2EVOswGKbkpSMW0nVAAcoUaXVkcD/0/JJDqE=
+	t=1727344623; cv=none; b=hHtgiI5Eappk6Dh3hC2pKsTPMwX9y8ff3o9qETG3nHCs5hU1FPGUajc4hYFOXqsehFDhAyZ7e9P5BULxqPP6hbDL3FfbY5310Uu4pV7txwVk0aJsaGvieWg0uept3m/5dlsM2Iy0HYEHO3qPDuWZYD4V9A448gM0oZ6y6h+/rsk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727344622; c=relaxed/simple;
-	bh=tSrOG1gvwhStvLvNbGNi0McYWSZgY1lNpvAntK1JKdE=;
+	s=arc-20240116; t=1727344623; c=relaxed/simple;
+	bh=caGLcvYK12iZEFo7Zq1jH91eIGKp4jmCyuyso0VTRcE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=gRwoaB7526KiqUszlnnI68VgyBoOV4uJdJoCI4WRyavS5DU3kqCu6RAJzbLGF2fzD4s1YiLLukt6wcokuV3BJ5C6Efb7pSDiixYkv5N1YLFQRNeU5uxyIGeZsLaq0Y1aoHMPlEXn34DlEI3bIZelO5qefASoxyBcKVt8r7W4mCY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=bKA2jtmH; arc=none smtp.client-ip=151.80.46.58
+	 MIME-Version; b=jvi4dzVsS0eL/1IONjd8D+fGvtU0p9fFOwle3uv9E8a+VXIA0vn0zIPb7PnlXZOZUnYnlDUnPNoqhsJLVy2JFYH1u4sAEXhB0JTadHognIyIfVQJLkTK1DWTa7+1yVYyfr2WjJE5l/B61AaVAhaoi/UKaf4rTx0+gW1I1LZfggg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=i7gLgkzM; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="bKA2jtmH"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="i7gLgkzM"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=Hp0a6PTjwsx8zC4II4aN9IsxsJg6WSdeG9rSCYNoHiI=; b=bKA2jtmHfEFQXW29CSBGB6J4QV
-	0Ud+puFYiDTqVczhaXnQq4LLmXWOSV9qf2rjC5vMQR/RXFTR6soZS3DAQu0isbo+f0ELutroNJzY4
-	FxudyYc98aenLpPg4/Nw/9MQIJvZm7mGYaOozT2OOd2JdC7jGqBtfseubEhR/drLaMbHnPi9W8OlV
-	YrdJuCocR5v1z3OW2/rZ8kUSE0v9thQ+mE6Nf/03JtY3LGkZf/mwB3I0bRlqkZHukonbyZrjrYfqi
-	yS4A453NfG1pQDHSXPUyFlz51P8OOBd99nT5fbdtilxue/Q4R8/JQI0gzeFz+Tg7KfXX2OVp/H6ra
-	qs+v+GXw==;
+	bh=SAsePu84j49dhGYZ3vROPI7oGjyoLOpdsnuFHDLX+vQ=; b=i7gLgkzMxEqqLeuQQYQcZRt+kR
+	blkp+CbCAk21xrC6ikMumMGj2+2U5m79zxG9lzYAoSYF3WKdEq8+716SU60BIKApaniwZKTxjDjw8
+	P7RdllzsUw6C6pupPxZRDLsVlak98G77neWuMw2/KkPIkv0WU9eCNkYApZgX2/lbYwx6NxF4mqve+
+	9p4pRhZxqhH5+AqNwrWaA/aWg20KDQMitlIrFmNapNdK2HYt95z7jTX+GPFueFRHzvj8R+wp51Q4q
+	8yrgyzm5+5kVz8DML0a9tmR1sWlPaBoyytsk9/tA00zqb/UkAfKKD13nlTa9UiY/1ra61X9cOmiqc
+	O/B8Lxag==;
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1stlF5-000000006HM-1bQJ;
-	Thu, 26 Sep 2024 11:56:59 +0200
+	id 1stlF5-000000006HT-3yAT;
+	Thu, 26 Sep 2024 11:57:00 +0200
 From: Phil Sutter <phil@nwl.cc>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org,
 	Florian Westphal <fw@strlen.de>,
 	Eric Garver <e@erig.me>
-Subject: [nf-next PATCH v5 14/18] netfilter: nf_tables: Wrap netdev notifiers
-Date: Thu, 26 Sep 2024 11:56:39 +0200
-Message-ID: <20240926095643.8801-15-phil@nwl.cc>
+Subject: [nf-next PATCH v5 06/18] netfilter: nf_tables: Simplify chain netdev notifier
+Date: Thu, 26 Sep 2024 11:56:31 +0200
+Message-ID: <20240926095643.8801-7-phil@nwl.cc>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20240926095643.8801-1-phil@nwl.cc>
 References: <20240926095643.8801-1-phil@nwl.cc>
@@ -52,142 +52,82 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Handling NETDEV_CHANGENAME events has to traverse all chains/flowtables
-twice, prepare for this. No functional change intended.
+With conditional chain deletion gone, callback code simplifies: Instead
+of filling an nft_ctx object, just pass basechain to the per-chain
+function. Also plain list_for_each_entry() is safe now.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
 Changes since v4:
 - New patch.
 ---
- net/netfilter/nf_tables_api.c    | 34 ++++++++++++++++++----------
- net/netfilter/nft_chain_filter.c | 38 ++++++++++++++++++++------------
- 2 files changed, 46 insertions(+), 26 deletions(-)
+ net/netfilter/nft_chain_filter.c | 21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 74df6048a892..77d0efbad641 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -9363,13 +9363,28 @@ static int nft_flowtable_event(unsigned long event, struct net_device *dev,
- 	return 0;
- }
- 
-+static int __nf_tables_flowtable_event(unsigned long event,
-+				       struct net_device *dev)
-+{
-+	struct nftables_pernet *nft_net = nft_pernet(dev_net(dev));
-+	struct nft_flowtable *flowtable;
-+	struct nft_table *table;
-+
-+	list_for_each_entry(table, &nft_net->tables, list) {
-+		list_for_each_entry(flowtable, &table->flowtables, list) {
-+			if (nft_flowtable_event(event, dev, flowtable))
-+				return 1;
-+		}
-+	}
-+	return 0;
-+}
-+
- static int nf_tables_flowtable_event(struct notifier_block *this,
- 				     unsigned long event, void *ptr)
- {
- 	struct net_device *dev = netdev_notifier_info_to_dev(ptr);
--	struct nft_flowtable *flowtable;
- 	struct nftables_pernet *nft_net;
--	struct nft_table *table;
-+	int ret = NOTIFY_DONE;
- 	struct net *net;
- 
- 	if (event != NETDEV_REGISTER &&
-@@ -9379,17 +9394,12 @@ static int nf_tables_flowtable_event(struct notifier_block *this,
- 	net = dev_net(dev);
- 	nft_net = nft_pernet(net);
- 	mutex_lock(&nft_net->commit_mutex);
--	list_for_each_entry(table, &nft_net->tables, list) {
--		list_for_each_entry(flowtable, &table->flowtables, list) {
--			if (nft_flowtable_event(event, dev, flowtable)) {
--				mutex_unlock(&nft_net->commit_mutex);
--				return NOTIFY_BAD;
--			}
--		}
--	}
--	mutex_unlock(&nft_net->commit_mutex);
- 
--	return NOTIFY_DONE;
-+	if (__nf_tables_flowtable_event(event, dev))
-+		ret = NOTIFY_BAD;
-+
-+	mutex_unlock(&nft_net->commit_mutex);
-+	return ret;
- }
- 
- static struct notifier_block nf_tables_flowtable_notifier = {
 diff --git a/net/netfilter/nft_chain_filter.c b/net/netfilter/nft_chain_filter.c
-index b1aa2d469776..073bafdf56c0 100644
+index 543f258b7c6b..19a553550c76 100644
 --- a/net/netfilter/nft_chain_filter.c
 +++ b/net/netfilter/nft_chain_filter.c
-@@ -361,21 +361,14 @@ static int nft_netdev_event(unsigned long event, struct net_device *dev,
- 	return 0;
- }
+@@ -319,17 +319,16 @@ static const struct nft_chain_type nft_chain_filter_netdev = {
+ };
  
--static int nf_tables_netdev_event(struct notifier_block *this,
--				  unsigned long event, void *ptr)
-+static int __nf_tables_netdev_event(unsigned long event, struct net_device *dev)
+ static void nft_netdev_event(unsigned long event, struct net_device *dev,
+-			     struct nft_ctx *ctx)
++			     struct nft_base_chain *basechain)
  {
--	struct net_device *dev = netdev_notifier_info_to_dev(ptr);
+-	struct nft_base_chain *basechain = nft_base_chain(ctx->chain);
+ 	struct nft_hook *hook;
+ 
+ 	list_for_each_entry(hook, &basechain->hook_list, list) {
+ 		if (hook->ops.dev != dev)
+ 			continue;
+ 
+-		if (!(ctx->chain->table->flags & NFT_TABLE_F_DORMANT))
+-			nf_unregister_net_hook(ctx->net, &hook->ops);
++		if (!(basechain->chain.table->flags & NFT_TABLE_F_DORMANT))
++			nf_unregister_net_hook(dev_net(dev), &hook->ops);
+ 
+ 		list_del_rcu(&hook->list);
+ 		kfree_rcu(hook, rcu);
+@@ -343,25 +342,20 @@ static int nf_tables_netdev_event(struct notifier_block *this,
+ 	struct net_device *dev = netdev_notifier_info_to_dev(ptr);
  	struct nft_base_chain *basechain;
  	struct nftables_pernet *nft_net;
- 	struct nft_chain *chain;
+-	struct nft_chain *chain, *nr;
++	struct nft_chain *chain;
  	struct nft_table *table;
+-	struct nft_ctx ctx = {
+-		.net	= dev_net(dev),
+-	};
  
--	if (event != NETDEV_REGISTER &&
--	    event != NETDEV_UNREGISTER)
--		return NOTIFY_DONE;
--
- 	nft_net = nft_pernet(dev_net(dev));
--	mutex_lock(&nft_net->commit_mutex);
+ 	if (event != NETDEV_UNREGISTER)
+ 		return NOTIFY_DONE;
+ 
+-	nft_net = nft_pernet(ctx.net);
++	nft_net = nft_pernet(dev_net(dev));
+ 	mutex_lock(&nft_net->commit_mutex);
  	list_for_each_entry(table, &nft_net->tables, list) {
  		if (table->family != NFPROTO_NETDEV &&
  		    table->family != NFPROTO_INET)
-@@ -390,15 +383,32 @@ static int nf_tables_netdev_event(struct notifier_block *this,
+ 			continue;
+ 
+-		ctx.family = table->family;
+-		ctx.table = table;
+-		list_for_each_entry_safe(chain, nr, &table->chains, list) {
++		list_for_each_entry(chain, &table->chains, list) {
+ 			if (!nft_is_base_chain(chain))
+ 				continue;
+ 
+@@ -370,8 +364,7 @@ static int nf_tables_netdev_event(struct notifier_block *this,
  			    basechain->ops.hooknum != NF_INET_INGRESS)
  				continue;
  
--			if (nft_netdev_event(event, dev, basechain)) {
--				mutex_unlock(&nft_net->commit_mutex);
--				return NOTIFY_BAD;
--			}
-+			if (nft_netdev_event(event, dev, basechain))
-+				return 1;
+-			ctx.chain = chain;
+-			nft_netdev_event(event, dev, &ctx);
++			nft_netdev_event(event, dev, basechain);
  		}
  	}
--	mutex_unlock(&nft_net->commit_mutex);
-+	return 0;
-+}
-+
-+static int nf_tables_netdev_event(struct notifier_block *this,
-+				  unsigned long event, void *ptr)
-+{
-+	struct net_device *dev = netdev_notifier_info_to_dev(ptr);
-+	struct nftables_pernet *nft_net;
-+	int ret = NOTIFY_DONE;
-+
-+	if (event != NETDEV_REGISTER &&
-+	    event != NETDEV_UNREGISTER)
-+		return NOTIFY_DONE;
- 
--	return NOTIFY_DONE;
-+	nft_net = nft_pernet(dev_net(dev));
-+	mutex_lock(&nft_net->commit_mutex);
-+
-+	if (__nf_tables_netdev_event(event, dev))
-+		ret = NOTIFY_BAD;
-+
-+	mutex_unlock(&nft_net->commit_mutex);
-+	return ret;
- }
- 
- static struct notifier_block nf_tables_netdev_notifier = {
+ 	mutex_unlock(&nft_net->commit_mutex);
 -- 
 2.43.0
 
