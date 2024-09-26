@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5CDE61AF4F2;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5CE411AF4F3;
 	Thu, 26 Sep 2024 11:07:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727348857; cv=none; b=ZZUXPHzUEUcLSMRCPqI1v51hdXDOoxChFj+82z+3hq8z5R0o0NaISZfL12M6iAqziGDfri7Od6h7IfpRHIZ7pyGofme1F/pQsgXDPBV55bqvD9woT2B1ZB0gLOCautWUbPj0jrg8WCXM1PoRqJDsN/omejVh9ogiPbNAWe0J6uA=
+	t=1727348858; cv=none; b=MyJBfqhy+igS76a/G/sXBrLYqF63189OJFMacjoY7SENyxsRjxZ3cxHNJJLf61PpwhxbydSeaD7Ax3L93fhd4xhZyh2gjyirmDjb5Enmoc8uTLnn8LI+qx8QYg2drLMoS+MFHiSq9kLbd4aPqZ00i16AuR2dv/uVHg/2wyzhtU8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727348857; c=relaxed/simple;
-	bh=d0J+XOjoXL27hbOrukUJ95qoYSMyTJSXYFMwK47w3SQ=;
+	s=arc-20240116; t=1727348858; c=relaxed/simple;
+	bh=sCWwNCFKtnxwvMe4XKLynhsxhNZs7Z8kEBkeVQ9aFCY=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=FIVeLPCsAtOtQWCEr2GW4bi1HM3twDOE3mR4svXYmj4oUB5H4JyEsRRn1NNiWO/65iNB+F4XSXUirZo5XfRgk+wv7KsmZPkyZChyQFqYA+9EGs1Gf+1WVla1HYzfEWZv6q7hHigtqUeuaa4OwROj6zAZU3VkDooeKc1wM3q02Dc=
+	 MIME-Version; b=RBElKz7QVxS+tfYIK/XWI5exDqljS53eZzS3L9nCCtiWGa37DTLEI0Bfy4X1V2V9Cu0UeLymXTAZafKP7AZc0PEJO1iz2zrjN0iBYkZvTTj5DRxrgoKH4OyziX0f41/TPnRJ++Ydt9RF6vsmTGjjYWkg5o9TMjM0Vy6J0iG+yHo=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 10/14] netfilter: nf_tables: use rcu chain hook list iterator from netlink dump path
-Date: Thu, 26 Sep 2024 13:07:13 +0200
-Message-Id: <20240926110717.102194-11-pablo@netfilter.org>
+Subject: [PATCH net 07/14] netfilter: nf_tables: Keep deleted flowtable hooks until after RCU
+Date: Thu, 26 Sep 2024 13:07:10 +0200
+Message-Id: <20240926110717.102194-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240926110717.102194-1-pablo@netfilter.org>
 References: <20240926110717.102194-1-pablo@netfilter.org>
@@ -34,30 +34,33 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Lockless iteration over hook list is possible from netlink dump path,
-use rcu variant to iterate over the hook list as is done with flowtable
-hooks.
+From: Phil Sutter <phil@nwl.cc>
 
-Fixes: b9703ed44ffb ("netfilter: nf_tables: support for adding new devices to an existing netdev chain")
-Reported-by: Phil Sutter <phil@nwl.cc>
+Documentation of list_del_rcu() warns callers to not immediately free
+the deleted list item. While it seems not necessary to use the
+RCU-variant of list_del() here in the first place, doing so seems to
+require calling kfree_rcu() on the deleted item as well.
+
+Fixes: 3f0465a9ef02 ("netfilter: nf_tables: dynamically allocate hooks per net_device in flowtables")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
  net/netfilter/nf_tables_api.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 042080aeb46c..8f073e6c772a 100644
+index 57259b5f3ef5..042080aeb46c 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -1849,7 +1849,7 @@ static int nft_dump_basechain_hook(struct sk_buff *skb, int family,
- 		if (!hook_list)
- 			hook_list = &basechain->hook_list;
- 
--		list_for_each_entry(hook, hook_list, list) {
-+		list_for_each_entry_rcu(hook, hook_list, list) {
- 			if (!first)
- 				first = hook;
- 
+@@ -9207,7 +9207,7 @@ static void nf_tables_flowtable_destroy(struct nft_flowtable *flowtable)
+ 		flowtable->data.type->setup(&flowtable->data, hook->ops.dev,
+ 					    FLOW_BLOCK_UNBIND);
+ 		list_del_rcu(&hook->list);
+-		kfree(hook);
++		kfree_rcu(hook, rcu);
+ 	}
+ 	kfree(flowtable->name);
+ 	module_put(flowtable->data.type->owner);
 -- 
 2.30.2
 
