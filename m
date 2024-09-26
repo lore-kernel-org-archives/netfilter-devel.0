@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5CEBD1AF4F4;
-	Thu, 26 Sep 2024 11:07:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3F65B1AFB3A;
+	Thu, 26 Sep 2024 11:07:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727348859; cv=none; b=SnBENiD7XNPaBs0THuTWdbWBFz4cLq6r1GR3GgO9t6EERKFJ1NftgBWRBPQPx7RfJSlZbwMe/ia/O8mAq5iQupizAva39msS3sVuLH8edPVNBabv74wPqP282BYVFr7zUoqjGr+Exr6gE8M4NaWE2dNXsM13X3umtm5q3WrGo9c=
+	t=1727348860; cv=none; b=UBjYObZ8sIAIktbwy3ZebUnJfuBXssMIZ03AUd5WGcRSG/+ElipIOrVWelyGvJTCC3Gcd9KhoGnw8T75US/OrO0XhHddV+Hwf+WbkAEFrFUpiqA+dOmDM4kiNj4K7yekDCxNgchJzRdFtPPWoLVuuRRSOC3DgVt9ReH9nn9gqQ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727348859; c=relaxed/simple;
-	bh=mKkE6S19DKhdFD9pV4wguIfAYkvqf6jVoDbU1CvR4Mc=;
+	s=arc-20240116; t=1727348860; c=relaxed/simple;
+	bh=1yeclIVINjCmQyvbEhbpgimAY2FVP+s61qlE1JY1m5I=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=rckS4JfGNGyjiLGhh+ve00R4Gzkx4IjJiN+Ca5t8LCrJeUcdxlPheq5kpQOO3B/A1DFqdHmO5mT+PILptipVnSCEFl707/VGnjk8JhJTKPtJsN1fobFb1tyE2vC1TA/1LiuqjEt5pA9quubxrFy3jE5WntVevqTs566ORjn/jJw=
+	 MIME-Version; b=OdNwKz23Cv+1wK715H/db/RXMuyGMQXUKt8ZsX1yCEIlxynh7hnqi48RCP0WVlocL1mzHv+ZdZeCLv3P7U9iQYLeMuCS5RbvxsXvMjPrc1KMIPEG/jNTCgdzJ6JS+7EJXRHBoQLjPTxvIhCK7ff81siRGk6Vlat2mbt1wFjXaDk=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 11/14] netfilter: nf_tables: missing objects with no memcg accounting
-Date: Thu, 26 Sep 2024 13:07:14 +0200
-Message-Id: <20240926110717.102194-12-pablo@netfilter.org>
+Subject: [PATCH net 13/14] kselftest: add test for nfqueue induced conntrack race
+Date: Thu, 26 Sep 2024 13:07:16 +0200
+Message-Id: <20240926110717.102194-14-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20240926110717.102194-1-pablo@netfilter.org>
 References: <20240926110717.102194-1-pablo@netfilter.org>
@@ -34,192 +34,173 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Several ruleset objects are still not using GFP_KERNEL_ACCOUNT for
-memory accounting, update them. This includes:
+From: Florian Westphal <fw@strlen.de>
 
-- catchall elements
-- compat match large info area
-- log prefix
-- meta secctx
-- numgen counters
-- pipapo set backend datastructure
-- tunnel private objects
+The netfilter race happens when two packets with the same tuple are DNATed
+and enqueued with nfqueue in the postrouting hook.
 
-Fixes: 33758c891479 ("memcg: enable accounting for nft objects")
+Once one of the packet is reinjected it may be DNATed again to a different
+destination, but the conntrack entry remains the same and the return packet
+was dropped.
+
+Based on earlier patch from Antonio Ojea.
+
+Link: https://bugzilla.netfilter.org/show_bug.cgi?id=1766
+Co-developed-by: Antonio Ojea <aojea@google.com>
+Signed-off-by: Antonio Ojea <aojea@google.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c  |  2 +-
- net/netfilter/nft_compat.c     |  6 +++---
- net/netfilter/nft_log.c        |  2 +-
- net/netfilter/nft_meta.c       |  2 +-
- net/netfilter/nft_numgen.c     |  2 +-
- net/netfilter/nft_set_pipapo.c | 13 +++++++------
- net/netfilter/nft_tunnel.c     |  5 +++--
- 7 files changed, 17 insertions(+), 15 deletions(-)
+ .../selftests/net/netfilter/nft_queue.sh      | 92 ++++++++++++++++++-
+ 1 file changed, 91 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 8f073e6c772a..a24fe62650a7 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -6684,7 +6684,7 @@ static int nft_setelem_catchall_insert(const struct net *net,
- 		}
- 	}
+diff --git a/tools/testing/selftests/net/netfilter/nft_queue.sh b/tools/testing/selftests/net/netfilter/nft_queue.sh
+index d66e3c4dfec6..a9d109fcc15c 100755
+--- a/tools/testing/selftests/net/netfilter/nft_queue.sh
++++ b/tools/testing/selftests/net/netfilter/nft_queue.sh
+@@ -31,7 +31,7 @@ modprobe -q sctp
  
--	catchall = kmalloc(sizeof(*catchall), GFP_KERNEL);
-+	catchall = kmalloc(sizeof(*catchall), GFP_KERNEL_ACCOUNT);
- 	if (!catchall)
- 		return -ENOMEM;
+ trap cleanup EXIT
  
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index 52cdfee17f73..7ca4f0d21fe2 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -535,7 +535,7 @@ nft_match_large_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	struct xt_match *m = expr->ops->data;
- 	int ret;
+-setup_ns ns1 ns2 nsrouter
++setup_ns ns1 ns2 ns3 nsrouter
  
--	priv->info = kmalloc(XT_ALIGN(m->matchsize), GFP_KERNEL);
-+	priv->info = kmalloc(XT_ALIGN(m->matchsize), GFP_KERNEL_ACCOUNT);
- 	if (!priv->info)
- 		return -ENOMEM;
+ TMPFILE0=$(mktemp)
+ TMPFILE1=$(mktemp)
+@@ -48,6 +48,7 @@ if ! ip link add veth0 netns "$nsrouter" type veth peer name eth0 netns "$ns1" >
+     exit $ksft_skip
+ fi
+ ip link add veth1 netns "$nsrouter" type veth peer name eth0 netns "$ns2"
++ip link add veth2 netns "$nsrouter" type veth peer name eth0 netns "$ns3"
  
-@@ -808,7 +808,7 @@ nft_match_select_ops(const struct nft_ctx *ctx,
- 		goto err;
- 	}
+ ip -net "$nsrouter" link set veth0 up
+ ip -net "$nsrouter" addr add 10.0.1.1/24 dev veth0
+@@ -57,8 +58,13 @@ ip -net "$nsrouter" link set veth1 up
+ ip -net "$nsrouter" addr add 10.0.2.1/24 dev veth1
+ ip -net "$nsrouter" addr add dead:2::1/64 dev veth1 nodad
  
--	ops = kzalloc(sizeof(struct nft_expr_ops), GFP_KERNEL);
-+	ops = kzalloc(sizeof(struct nft_expr_ops), GFP_KERNEL_ACCOUNT);
- 	if (!ops) {
- 		err = -ENOMEM;
- 		goto err;
-@@ -898,7 +898,7 @@ nft_target_select_ops(const struct nft_ctx *ctx,
- 		goto err;
- 	}
++ip -net "$nsrouter" link set veth2 up
++ip -net "$nsrouter" addr add 10.0.3.1/24 dev veth2
++ip -net "$nsrouter" addr add dead:3::1/64 dev veth2 nodad
++
+ ip -net "$ns1" link set eth0 up
+ ip -net "$ns2" link set eth0 up
++ip -net "$ns3" link set eth0 up
  
--	ops = kzalloc(sizeof(struct nft_expr_ops), GFP_KERNEL);
-+	ops = kzalloc(sizeof(struct nft_expr_ops), GFP_KERNEL_ACCOUNT);
- 	if (!ops) {
- 		err = -ENOMEM;
- 		goto err;
-diff --git a/net/netfilter/nft_log.c b/net/netfilter/nft_log.c
-index 5defe6e4fd98..e35588137995 100644
---- a/net/netfilter/nft_log.c
-+++ b/net/netfilter/nft_log.c
-@@ -163,7 +163,7 @@ static int nft_log_init(const struct nft_ctx *ctx,
+ ip -net "$ns1" addr add 10.0.1.99/24 dev eth0
+ ip -net "$ns1" addr add dead:1::99/64 dev eth0 nodad
+@@ -70,6 +76,11 @@ ip -net "$ns2" addr add dead:2::99/64 dev eth0 nodad
+ ip -net "$ns2" route add default via 10.0.2.1
+ ip -net "$ns2" route add default via dead:2::1
  
- 	nla = tb[NFTA_LOG_PREFIX];
- 	if (nla != NULL) {
--		priv->prefix = kmalloc(nla_len(nla) + 1, GFP_KERNEL);
-+		priv->prefix = kmalloc(nla_len(nla) + 1, GFP_KERNEL_ACCOUNT);
- 		if (priv->prefix == NULL)
- 			return -ENOMEM;
- 		nla_strscpy(priv->prefix, nla, nla_len(nla) + 1);
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 8c8eb14d647b..05cd1e6e6a2f 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -952,7 +952,7 @@ static int nft_secmark_obj_init(const struct nft_ctx *ctx,
- 	if (tb[NFTA_SECMARK_CTX] == NULL)
- 		return -EINVAL;
++ip -net "$ns3" addr add 10.0.3.99/24 dev eth0
++ip -net "$ns3" addr add dead:3::99/64 dev eth0 nodad
++ip -net "$ns3" route add default via 10.0.3.1
++ip -net "$ns3" route add default via dead:3::1
++
+ load_ruleset() {
+ 	local name=$1
+ 	local prio=$2
+@@ -473,6 +484,83 @@ EOF
+ 	check_output_files "$TMPINPUT" "$TMPFILE1" "sctp output"
+ }
  
--	priv->ctx = nla_strdup(tb[NFTA_SECMARK_CTX], GFP_KERNEL);
-+	priv->ctx = nla_strdup(tb[NFTA_SECMARK_CTX], GFP_KERNEL_ACCOUNT);
- 	if (!priv->ctx)
- 		return -ENOMEM;
++udp_listener_ready()
++{
++	ss -S -N "$1" -uln -o "sport = :12345" | grep -q 12345
++}
++
++output_files_written()
++{
++	test -s "$1" && test -s "$2"
++}
++
++test_udp_ct_race()
++{
++        ip netns exec "$nsrouter" nft -f /dev/stdin <<EOF
++flush ruleset
++table inet udpq {
++	chain prerouting {
++		type nat hook prerouting priority dstnat - 5; policy accept;
++		ip daddr 10.6.6.6 udp dport 12345 counter dnat to numgen inc mod 2 map { 0 : 10.0.2.99, 1 : 10.0.3.99 }
++	}
++        chain postrouting {
++		type filter hook postrouting priority srcnat - 5; policy accept;
++		udp dport 12345 counter queue num 12
++        }
++}
++EOF
++	:> "$TMPFILE1"
++	:> "$TMPFILE2"
++
++	timeout 10 ip netns exec "$ns2" socat UDP-LISTEN:12345,fork OPEN:"$TMPFILE1",trunc &
++	local rpid1=$!
++
++	timeout 10 ip netns exec "$ns3" socat UDP-LISTEN:12345,fork OPEN:"$TMPFILE2",trunc &
++	local rpid2=$!
++
++	ip netns exec "$nsrouter" ./nf_queue -q 12 -d 1000 &
++	local nfqpid=$!
++
++	busywait "$BUSYWAIT_TIMEOUT" udp_listener_ready "$ns2"
++	busywait "$BUSYWAIT_TIMEOUT" udp_listener_ready "$ns3"
++	busywait "$BUSYWAIT_TIMEOUT" nf_queue_wait "$nsrouter" 12
++
++	# Send two packets, one should end up in ns1, other in ns2.
++	# This is because nfqueue will delay packet for long enough so that
++	# second packet will not find existing conntrack entry.
++	echo "Packet 1" | ip netns exec "$ns1" socat STDIN UDP-DATAGRAM:10.6.6.6:12345,bind=0.0.0.0:55221
++	echo "Packet 2" | ip netns exec "$ns1" socat STDIN UDP-DATAGRAM:10.6.6.6:12345,bind=0.0.0.0:55221
++
++	busywait 10000 output_files_written "$TMPFILE1" "$TMPFILE2"
++
++	kill "$nfqpid"
++
++	if ! ip netns exec "$nsrouter" bash -c 'conntrack -L -p udp --dport 12345 2>/dev/null | wc -l | grep -q "^1"'; then
++		echo "FAIL: Expected One udp conntrack entry"
++		ip netns exec "$nsrouter" conntrack -L -p udp --dport 12345
++		ret=1
++	fi
++
++	if ! ip netns exec "$nsrouter" nft delete table inet udpq; then
++		echo "FAIL: Could not delete udpq table"
++		ret=1
++		return
++	fi
++
++	NUMLINES1=$(wc -l < "$TMPFILE1")
++	NUMLINES2=$(wc -l < "$TMPFILE2")
++
++	if [ "$NUMLINES1" -ne 1 ] || [ "$NUMLINES2" -ne 1 ]; then
++		ret=1
++		echo "FAIL: uneven udp packet distribution: $NUMLINES1 $NUMLINES2"
++		echo -n "$TMPFILE1: ";cat "$TMPFILE1"
++		echo -n "$TMPFILE2: ";cat "$TMPFILE2"
++		return
++	fi
++
++	echo "PASS: both udp receivers got one packet each"
++}
++
+ test_queue_removal()
+ {
+ 	read tainted_then < /proc/sys/kernel/tainted
+@@ -512,6 +600,7 @@ EOF
+ ip netns exec "$nsrouter" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
+ ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
+ ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth1.forwarding=1 > /dev/null
++ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth2.forwarding=1 > /dev/null
  
-diff --git a/net/netfilter/nft_numgen.c b/net/netfilter/nft_numgen.c
-index 7d29db7c2ac0..bd058babfc82 100644
---- a/net/netfilter/nft_numgen.c
-+++ b/net/netfilter/nft_numgen.c
-@@ -66,7 +66,7 @@ static int nft_ng_inc_init(const struct nft_ctx *ctx,
- 	if (priv->offset + priv->modulus - 1 < priv->offset)
- 		return -EOVERFLOW;
+ load_ruleset "filter" 0
  
--	priv->counter = kmalloc(sizeof(*priv->counter), GFP_KERNEL);
-+	priv->counter = kmalloc(sizeof(*priv->counter), GFP_KERNEL_ACCOUNT);
- 	if (!priv->counter)
- 		return -ENOMEM;
+@@ -549,6 +638,7 @@ test_tcp_localhost_connectclose
+ test_tcp_localhost_requeue
+ test_sctp_forward
+ test_sctp_output
++test_udp_ct_race
  
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index eb4c4a4ac7ac..7be342b495f5 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -663,7 +663,7 @@ static int pipapo_realloc_mt(struct nft_pipapo_field *f,
- 	    check_add_overflow(rules, extra, &rules_alloc))
- 		return -EOVERFLOW;
- 
--	new_mt = kvmalloc_array(rules_alloc, sizeof(*new_mt), GFP_KERNEL);
-+	new_mt = kvmalloc_array(rules_alloc, sizeof(*new_mt), GFP_KERNEL_ACCOUNT);
- 	if (!new_mt)
- 		return -ENOMEM;
- 
-@@ -936,7 +936,7 @@ static void pipapo_lt_bits_adjust(struct nft_pipapo_field *f)
- 		return;
- 	}
- 
--	new_lt = kvzalloc(lt_size + NFT_PIPAPO_ALIGN_HEADROOM, GFP_KERNEL);
-+	new_lt = kvzalloc(lt_size + NFT_PIPAPO_ALIGN_HEADROOM, GFP_KERNEL_ACCOUNT);
- 	if (!new_lt)
- 		return;
- 
-@@ -1212,7 +1212,7 @@ static int pipapo_realloc_scratch(struct nft_pipapo_match *clone,
- 		scratch = kzalloc_node(struct_size(scratch, map,
- 						   bsize_max * 2) +
- 				       NFT_PIPAPO_ALIGN_HEADROOM,
--				       GFP_KERNEL, cpu_to_node(i));
-+				       GFP_KERNEL_ACCOUNT, cpu_to_node(i));
- 		if (!scratch) {
- 			/* On failure, there's no need to undo previous
- 			 * allocations: this means that some scratch maps have
-@@ -1427,7 +1427,7 @@ static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old)
- 	struct nft_pipapo_match *new;
- 	int i;
- 
--	new = kmalloc(struct_size(new, f, old->field_count), GFP_KERNEL);
-+	new = kmalloc(struct_size(new, f, old->field_count), GFP_KERNEL_ACCOUNT);
- 	if (!new)
- 		return NULL;
- 
-@@ -1457,7 +1457,7 @@ static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old)
- 		new_lt = kvzalloc(src->groups * NFT_PIPAPO_BUCKETS(src->bb) *
- 				  src->bsize * sizeof(*dst->lt) +
- 				  NFT_PIPAPO_ALIGN_HEADROOM,
--				  GFP_KERNEL);
-+				  GFP_KERNEL_ACCOUNT);
- 		if (!new_lt)
- 			goto out_lt;
- 
-@@ -1470,7 +1470,8 @@ static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old)
- 
- 		if (src->rules > 0) {
- 			dst->mt = kvmalloc_array(src->rules_alloc,
--						 sizeof(*src->mt), GFP_KERNEL);
-+						 sizeof(*src->mt),
-+						 GFP_KERNEL_ACCOUNT);
- 			if (!dst->mt)
- 				goto out_mt;
- 
-diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
-index 60a76e6e348e..5c6ed68cc6e0 100644
---- a/net/netfilter/nft_tunnel.c
-+++ b/net/netfilter/nft_tunnel.c
-@@ -509,13 +509,14 @@ static int nft_tunnel_obj_init(const struct nft_ctx *ctx,
- 			return err;
- 	}
- 
--	md = metadata_dst_alloc(priv->opts.len, METADATA_IP_TUNNEL, GFP_KERNEL);
-+	md = metadata_dst_alloc(priv->opts.len, METADATA_IP_TUNNEL,
-+				GFP_KERNEL_ACCOUNT);
- 	if (!md)
- 		return -ENOMEM;
- 
- 	memcpy(&md->u.tun_info, &info, sizeof(info));
- #ifdef CONFIG_DST_CACHE
--	err = dst_cache_init(&md->u.tun_info.dst_cache, GFP_KERNEL);
-+	err = dst_cache_init(&md->u.tun_info.dst_cache, GFP_KERNEL_ACCOUNT);
- 	if (err < 0) {
- 		metadata_dst_free(md);
- 		return err;
+ # should be last, adds vrf device in ns1 and changes routes
+ test_icmp_vrf
 -- 
 2.30.2
 
