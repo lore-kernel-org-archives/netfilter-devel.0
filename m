@@ -1,221 +1,100 @@
-Received: from tarta.nabijaczleweli.xyz (tarta.nabijaczleweli.xyz [139.28.40.42])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 236341A4E85
-	for <netfilter-devel@vger.kernel.org>; Thu, 26 Sep 2024 08:29:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=139.28.40.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CE63192595
+	for <netfilter-devel@vger.kernel.org>; Thu, 26 Sep 2024 09:41:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727339346; cv=none; b=HaIelUC2Q6l8RZ8I2ebZ8Ow9HpGuECdI5TYVQXud2+huGp8CkmiWsOz6GALZlConud2/LxNP1KoBYiPIyTCzmP8CtQCa93Rz5uIvoc+/qEo21aJVv8mznb2EovdnqcvWA8aKJCKvwPRmL1eTVB0Hs/Q/mfZV9uw+/f1I74WSRqo=
+	t=1727343706; cv=none; b=m76RB/pWS5EdpXLH73oYSihqwjEOn7gM6vQ4/Kdyfd36iR65iiqzWIPIZsgGTXfyhHX5JizF4Vmtz5V2DYwlZC2T43ujMShK7YPE3QHFqiOcMu3JDc2MyhKVNuLEYFO2Erk5YHHsO/cgnJqRh1fdE/U2NyUQUvMFJnSNs82KK+c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727339346; c=relaxed/simple;
-	bh=B7UtaNMesEKHA3qpkuikxjp/SzHX8a1zyseN79LfMbw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=iHqPoLn4GRNX880E4OU+6pAGF0VN/NcpWuhwMJBN+aRW5lwImGPWzBuWHAW8TySKngRSB1G8qzDkg6Dd9bMbcqtwRmuKrEnwWyg0RCGA5j4NIzwnsDQ+qtVMLCGmt61lhjyz3zPzAH2qSEt1c6DkcSi2xYz3yrDBlowX4CHMd0s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=nabijaczleweli.xyz; spf=pass smtp.mailfrom=nabijaczleweli.xyz; dkim=pass (2048-bit key) header.d=nabijaczleweli.xyz header.i=@nabijaczleweli.xyz header.b=IZnZQ2Pw; arc=none smtp.client-ip=139.28.40.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=nabijaczleweli.xyz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nabijaczleweli.xyz
+	s=arc-20240116; t=1727343706; c=relaxed/simple;
+	bh=7KjcE0B1b3Lo+UG6zGvriAp6T9t+938/9Ug99PMsz3w=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=mLiPhFMVjWX0m8OxYUdLzGN5wYXJQmr9nKX+l2gmy+janhFehFRI8WftsNOaqFXHQFZi63HO1gFTjFH7A3egn23lHL0VKdg1vExaaV3JqErDQz+Hiqzx/vWIZt/HSBymDqdwFz40WjOllhBgOI17NtEcsV43nmE1ycEAulhdR3s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=dplgDuQ6; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nabijaczleweli.xyz header.i=@nabijaczleweli.xyz header.b="IZnZQ2Pw"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=nabijaczleweli.xyz;
-	s=202405; t=1727339339;
-	bh=B7UtaNMesEKHA3qpkuikxjp/SzHX8a1zyseN79LfMbw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=IZnZQ2PwBu+VV3H6ziUdaiyFl+yT/twV6dCcja0Xe5JWvDpNMKyGHTvQAJIDSXsgD
-	 Up5c7EpE2UmVL2xeTnpyC/dIJ5xtGkMJS8t1lkT8O4boXe4P0e151dpGgU0fqQOICe
-	 ySGLNL+IjhAn8gQY/5JZs0MzqR2jB4+yDtDSptC42vOngosybEO5FsEQoFlTkoaLxu
-	 5wHN1epBd3GvXpygReUr6ENbcBewJ9pcjWKxkbbnGMH5aO4TWndJgHD+/tHAfWyad4
-	 pR3g+sSCPMlOwEb5W4CjMrkfjYkBQqy0240xNNJzlntO0eIyJkCKVWKwXMvFIhgZOk
-	 AoM3yUwjI6LRQ==
-Received: from tarta.nabijaczleweli.xyz (unknown [192.168.1.250])
-	by tarta.nabijaczleweli.xyz (Postfix) with ESMTPSA id 32714E6C;
-	Thu, 26 Sep 2024 10:28:59 +0200 (CEST)
-Date: Thu, 26 Sep 2024 10:28:58 +0200
-From: =?utf-8?B?0L3QsNCx?= <nabijaczleweli@nabijaczleweli.xyz>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] conntrack: -L doesn't take a value, so don't discard one
- (same for -IUDGEFA)
-Message-ID: <2pdkunyljqasunwbqeofqdetpda2xfdqtyrqg6sqr4efwuwzlq@tarta.nabijaczleweli.xyz>
-References: <hpsesrayjbjrtja3unjpw4a3tsou3vtu7yjhrcba7dfnrahwz2@tarta.nabijaczleweli.xyz>
- <ZtbHMe6STK_W6yfA@calendula>
- <bymeee6fsub6oz64xtykfru25aq6xx4k2agjbeabekzfobu4jd@tarta.nabijaczleweli.xyz>
- <ZvQj_TOKcN7A9kmz@calendula>
- <qe4cxltrompmuajfgfkedrecefkyy2eopi3erttlm7c3xigs2g@tarta.nabijaczleweli.xyz>
- <ZvRze9JEBJ28ityC@calendula>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="dplgDuQ6"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1727343704;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=duedYL0F/SZtcaJ/2ctYIidXMcsINgd6fgzdoKb7MGU=;
+	b=dplgDuQ6i4d2DP6H7Ji6Z55GxBowjR8Ln/5BN0Yzq63YwnrqkTuPZbuHsSOCZgtGjMuczY
+	Y9L7B5ftdZEpepzrONR2++1YDOTSDEHrtvm99vZ69rZGWvt4ySdqTMFLG5aLbFeLq6mLxP
+	vRG8WkASPm2BhLz2RehhR48WjdXRFjo=
+Received: from mail-wr1-f71.google.com (mail-wr1-f71.google.com
+ [209.85.221.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-455-LfdwIK2oMiqBmCZD7k_gxQ-1; Thu, 26 Sep 2024 05:41:42 -0400
+X-MC-Unique: LfdwIK2oMiqBmCZD7k_gxQ-1
+Received: by mail-wr1-f71.google.com with SMTP id ffacd0b85a97d-374beb23f35so313266f8f.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 26 Sep 2024 02:41:42 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1727343701; x=1727948501;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=duedYL0F/SZtcaJ/2ctYIidXMcsINgd6fgzdoKb7MGU=;
+        b=YB53U/96JLnPFnrqeOe4hlfnqnoMkzqxztU46zNrNG/FglaFOhNmjQs+z7KvI/J2G4
+         UdzYV51dZN/wQI986OI9OjIcGeN/2razc+kiU/NyPFUrcu9evo0sgX492dulZUw6y+qH
+         FWuXEoOfV8smY8329Uri/H4OuJ7n14zG9JEthNbUNrxZo/lQ+VsBu7UjyGjfigGK6+WA
+         hnYA2TfFVNisbQkAqNFiY8bZpzCaFv4kv5giEQtsNv81vj3vjzOKaa8gYY8ehKkAObgb
+         P/8Wi6/Qv6VOH5j0DB7KMAXomOJXdtKS8+uZQLZq4L4EbOvBaymeIfQSMWzVxqN2ZYYh
+         jkLw==
+X-Forwarded-Encrypted: i=1; AJvYcCVTpJRr9OzbwLOq83PFL3SJpRIS7iMhQCFy8P8Ld2iI9XrYBkOIJ7fx4Vze278VH7RrD9TgaNCT77TZIvzxtBk=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzHalJ3cS/edFWIjbHNtFFAi+vTB5ZBLp8qnpfeBAmfnlWylYTv
+	tazJRu/Fw2k34hhOhAu+wqla2zr2043amEialhnKwyVJ1sNlHgGw9cjK6WH6gZJlQ0ZiICCTpaF
+	sdCe6gDWSEql/MLjtK0CYeGieCQAKblIVqe8Vtq5KufvIj1ZQNSIlPgl9PyRxhnerAw==
+X-Received: by 2002:adf:f5cc:0:b0:374:c31e:971a with SMTP id ffacd0b85a97d-37cc22c292amr3012478f8f.0.1727343701344;
+        Thu, 26 Sep 2024 02:41:41 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IGbNFmaQ62WOIINYfB3CeWV9VfSJOSRt842DmCJ3cUVE5vR4WBvRiBLHJBBmQvDyTZzZ/7Axw==
+X-Received: by 2002:adf:f5cc:0:b0:374:c31e:971a with SMTP id ffacd0b85a97d-37cc22c292amr3012459f8f.0.1727343700913;
+        Thu, 26 Sep 2024 02:41:40 -0700 (PDT)
+Received: from ?IPV6:2a0d:3341:b089:3810:f39e:a72d:6cbc:c72b? ([2a0d:3341:b089:3810:f39e:a72d:6cbc:c72b])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-37cbc2a8b55sm5994446f8f.17.2024.09.26.02.41.39
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 26 Sep 2024 02:41:40 -0700 (PDT)
+Message-ID: <c51519c0-c493-4408-9938-5fb650b4ed8b@redhat.com>
+Date: Thu, 26 Sep 2024 11:41:38 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="rmhl4kx6wum44llv"
-Content-Disposition: inline
-In-Reply-To: <ZvRze9JEBJ28ityC@calendula>
-User-Agent: NeoMutt/20231221-2-4202cf-dirty
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net 00/14] Netfilter fixes for net
+To: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter-devel@vger.kernel.org,
+ fw@strlen.de
+Cc: davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+ edumazet@google.com, fw@strlen.de
+References: <20240924201401.2712-1-pablo@netfilter.org>
+Content-Language: en-US
+From: Paolo Abeni <pabeni@redhat.com>
+In-Reply-To: <20240924201401.2712-1-pablo@netfilter.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
+On 9/24/24 22:13, Pablo Neira Ayuso wrote:
+> The following patchset contains Netfilter fixes for net:
+> 
+> Patch #1 and #2 handle an esoteric scenario: Given two tasks sending UDP
+> packets to one another, two packets of the same flow in each direction
+> handled by different CPUs that result in two conntrack objects in NEW
+> state, where reply packet loses race. Then, patch #3 adds a testcase for
+> this scenario. Series from Florian Westphal.
 
---rmhl4kx6wum44llv
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Kdoc complains against the lack of documentation for the return value in 
+the first 2 patches: 'Returns' should be '@Return'.
 
-On Wed, Sep 25, 2024 at 10:32:59PM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Sep 25, 2024 at 05:11:01PM +0200, Ahelenia Ziemia=C5=84ska wrote:
-> > On Wed, Sep 25, 2024 at 04:53:49PM +0200, Pablo Neira Ayuso wrote:
-> > > On Tue, Sep 03, 2024 at 04:53:46PM +0200, Ahelenia Ziemia=C5=84ska wr=
-ote:
-> > > > On Tue, Sep 03, 2024 at 10:22:09AM +0200, Pablo Neira Ayuso wrote:
-> > > > > On Tue, Sep 03, 2024 at 04:16:21AM +0200, Ahelenia Ziemia=C5=84sk=
-a wrote:
-> > > > > > The manual says
-> > > > > >    COMMANDS
-> > > > > >        These options specify the particular operation to perfor=
-m.
-> > > > > >        Only one of them can be specified at any given time.
-> > > > > >=20
-> > > > > >        -L --dump
-> > > > > >               List connection tracking or expectation table
-> > > > > >=20
-> > > > > > So, naturally, "conntrack -Lo extended" should work,
-> > > > > > but it doesn't, it's equivalent to "conntrack -L",
-> > > > > > and you need "conntrack -L -o extended".
-> > > > > > This violates user expectations (borne of the Utility Syntax Gu=
-idelines)
-> > > > > > and contradicts the manual.
-> > > > > >=20
-> > > > > > optarg is unused, anyway. Unclear why any of these were :: at a=
-ll?
-> > > > > Because this supports:
-> > > > >         -L
-> > > > >         -L conntrack
-> > > > >         -L expect
-> > > > Well that's not what :: does, though; we realise this, right?
-> > > >=20
-> > > > "L::" means that getopt() will return
-> > > >   "-L", "conntrack" -> 'L',optarg=3DNULL
-> > > >   "-Lconntrack"     -> 'L',optarg=3D"conntrack"
-> > > > and the parser for -L (&c.) doesn't... use optarg.
-> > > Are you sure it does not use optarg?
-> > >=20
-> > > static unsigned int check_type(int argc, char *argv[])
-> > > {
-> > >         const char *table =3D get_optional_arg(argc, argv);
-> > >=20
-> > > and get_optional_arg() uses optarg.
-> > This I've missed, but actually my diagnosis still holds:
-> >   static unsigned int check_type(int argc, char *argv[])
-> >   {
-> >   	const char *table =3D get_optional_arg(argc, argv);
-> >  =20
-> >   	/* default to conntrack subsystem if nothing has been specified. */
-> >   	if (table =3D=3D NULL)
-> >   		return CT_TABLE_CONNTRACK;
-> >=20
-> >   static char *get_optional_arg(int argc, char *argv[])
-> >   {
-> >   	char *arg =3D NULL;
-> >  =20
-> >   	/* Nasty bug or feature in getopt_long ?
-> >   	 * It seems that it behaves badly with optional arguments.
-> >   	 * Fortunately, I just stole the fix from iptables ;) */
-> >   	if (optarg)
-> >   		return arg;
-> >=20
-> > So, if you say -Lanything, then
-> >   optarg=3Danything
-> >   get_optional_arg=3D(null)
-> > (notice that it says "return arg;", not "return optarg;",
-> >  i.e. this is "return NULL").
-> >=20
-> > It /doesn't/ use optarg, because it explicitly treats an optarg as no o=
-ptarg.
-> >=20
-> > It's unclear to me what the comment is referencing,
-> > but I'm assuming some sort of confusion with what :: does?
-> > Anyway, that if(){ can be removed now, since it can never be taken now.
-> Then, this breaks:
-> # conntrack -Lexpect
-> conntrack v1.4.9 (conntrack-tools): Bad parameter `xpect'
-> Try `conntrack -h' or 'conntrack --help' for more information.
->=20
-> Maybe your patch needs an extension to deal with this case too?
+If you could repost a new revision soon, I could possibly still include 
+it in today PR (delaying the latter a bit).
 
-This doesn't "break", this is equivalent to conntrack -L -e xpect.
-It's now correct. This was the crux of the patch, actually.
+Thanks!
 
-Compare the manual:
-  SYNOPSIS
-    conntrack -L [table] [options] [-z]
-  COMMANDS
-    -L --dump     List connection tracking or expectation table
-  PARAMETERS
-    -e, --event-mask [ALL|NEW|UPDATES|DESTROY][,...]
-                  Set the bitmask of events that are to be generated by the=
- in-kernel ctnetlink event code.  Using this parameter, you can reduce the =
-event messages  generated
-                  by the kernel to the types that you are actually interest=
-ed in.  This option can only be used in conjunction with "-E, --event".
+Paolo
 
-Previously, it /was/ broken: conntrack -Lexpect was as-if --dump=3Dexpect
-(also not legal since --dump doesn't take an argument),
-and the "expect" was ignored, so it was equivalent to conntrack -L.
-You can trivially validate this by running an older version.
-
-(Well, --dump=3Dexpect /is/ accepted. And ignored.
- So fix that too with s/optional_argument/no_argument/ (or s/2/0/).
- I didn't actually look at the longopts before.)
-
-> The issue that I'm observing is that
->   # conntrack -Lconntrack
-> now optarg is NULL after your patch, so 'conntrack' is ignored, so it
-> falls back to list the conntrack table.
-
-What do you mean "now". That shit was always ignored.
-You can read trace the calls yourself if you don't believe my analysis.
-Now it behaves as-documented (-L -c onntrack).
-
-And, per
-                case 'c':
-                        options |=3D opt2type[c];
-                        nfct_set_attr_u32(tmpl->ct,
-                                          opt2attr[c],
-                                          strtoul(optarg, NULL, 0));
-                        break;
--c onntrack is equivalent to -c 0.
-This is also obviously wrong.
-
-I will repeat this and you can confirm this once more
-(or refer back to my analysis above):
-for all of -LIUDGEFA, an optional parameter was accepted, and always discar=
-ded.
-It now isn't, and behaves as-expected per the USG
-("the USG" is an annoying way to say "how getopt() works".
-
-> Regarding your question, this parser is old and I shamelessly took it
-> from the original iptables to make syntax similar.
-So you have someone to blame it on when it turns out to be dysfunctional.
-But you also have a huge parser that doesn't work.
-Win some/lose some, I suppose.
-
---rmhl4kx6wum44llv
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEfWlHToQCjFzAxEFjvP0LAY0mWPEFAmb1G0YACgkQvP0LAY0m
-WPEUAQ//XFmDLmzrocMBhVLuyw4hvPCh1QTmYWz1nLZLbLpxF6sQwshaCFEx3ooW
-A+kGxDVdQhw92nNLWnHMML8qrPne3PFeMrr3cgJ+FIzmF2mKcjUzMa8XjuttZdR+
-75+eLLXN1tUUvR4Ndetol1d6zFzsK6aM9i35b+VIocRXPxgsm5cmxHWZS81xy6IY
-hxENw+tZnjE9PTQ2JwJAdz6atgXWjJUJGJzbZ9dzC9gp4CYAELbUqXfghcqJkr+h
-mDajTwp1RGLRreOB2HmQ097/B0UAL7BV7K7h22Fno3xNaDTKfx2zbkpn2dAZg+1p
-QWMlWeymxCK53yjlS+WCqcdKQSRSRoPQQmEzJtXoeqnpGQHj3QWd6hnnl0N2Z99z
-4uFmCchEtGVdIhKC6QDkz8G+ll4IH9NbValeZ1NmLgtlkyA6lwcmhsI71cuas6rD
-ejZ5QWtnqaRTDjm1YBkwuqAoH62WAhH45HcO/aUXjJEQYuPIgP0llkXIF33JrwEu
-pTkaqh5N48AHQgbozB5wCDJSFAM3HDN2hZpjC6qOVruot28g2x46bDJXJYtyN2zK
-zafsiScbYcsvWQu/LT0MD0/urlP8r79jXH2cHIrQmlGYzXQTWagDsZrD9gilEPmk
-W8/1oVijINTmjMDxnF0Jx7usGk2GB7seMIFX7yUWTmg4ZgtvGsg=
-=iByF
------END PGP SIGNATURE-----
-
---rmhl4kx6wum44llv--
