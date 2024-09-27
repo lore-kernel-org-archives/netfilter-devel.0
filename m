@@ -1,37 +1,36 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4481815854D;
-	Fri, 27 Sep 2024 06:56:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2272208D7;
+	Fri, 27 Sep 2024 07:45:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727420180; cv=none; b=d9nRwNBWY1fHqMp+agLOweuw5w0KT468QQ9arP4oBlzuaVPdsG9NMyfEPh4pcwBUwQWUyzwowzt/rYZdAdONX7lTHE9zwhe+srkF8SeoePmHPgYWNAlV7OYyrMh7TrntsS0Eghy1K0gYcMCMiiQQZPRup4D6JRLAqLJTmI8GTEU=
+	t=1727423118; cv=none; b=ZoAj4dx4XNPb9euN35E+1YQHgBp96dPVvJJzYQEtXkbY2GNqMXtNVycFeIIltB+ScsimET70ywm5wMjuqF11UmYH9Dc56dIsF3uuFsd4MhXeo2WEgj53I7DWMQR7ta8bg9b7FHw5R143ToA1aqjuH+trp9m3gnY3OkivR2fbnfs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727420180; c=relaxed/simple;
-	bh=WdMFmeU3Y2QwmftoIxuugDuR3ydbfT8qtz7eor0PU+I=;
+	s=arc-20240116; t=1727423118; c=relaxed/simple;
+	bh=rBgOSWaCJbouiaRTqHjhkGz0iyAJZ4V5lZ0PrKkhQ+E=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=DJWLkWs1BJzSHY20BQ0Wf3mOOV4dmLDZX8TxxVhEeY8fg+ip4GYH9q9G50U32rB7JVUkgY4OJ1862dwqCWBhxiBx4QCsFPIc4oSDwnGeLAUiBx/ta7/rl0SAvy40QICTo4dFyAQ4riTNS+Dh0RVku4DOFW7adRgFAptEi5hwMxg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=dVR6puLk; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=dOyqEKeN7OCNLOT6PShITmDJRrgMqrugJFpjFDRZBCvnWPB84i/vezC4jLiPr+3nviq2N7zleZaS947aq1UbVvFZgZcII1FjZCGoXz1DQKB7E9MMZaINqUBxwngZ7TBDH0jbLIP8Mm813TAGhUttVtq5EXmuWJITU208x1ZHqjs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=nYjo2oDW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="dVR6puLk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69842C4CEC4;
-	Fri, 27 Sep 2024 06:56:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="nYjo2oDW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4080C4CEC4;
+	Fri, 27 Sep 2024 07:45:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1727420178;
-	bh=WdMFmeU3Y2QwmftoIxuugDuR3ydbfT8qtz7eor0PU+I=;
+	s=korg; t=1727423118;
+	bh=rBgOSWaCJbouiaRTqHjhkGz0iyAJZ4V5lZ0PrKkhQ+E=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=dVR6puLkqCCZyHEMc4OTBxdfoiQsTgP/47hu9fO2w1RHdCv309lpgww32UWnTKUlY
-	 QlLBC9mkyZtqCQuRYhLYue5kalk3oJrdjjYdU3PhVKrwZNCDmrywe4z0je9Qd7oFii
-	 TqEtQyTCv06+GB3Qcbij5lPZyQYAMo1IspMWFKS0=
-Date: Fri, 27 Sep 2024 08:56:06 +0200
+	b=nYjo2oDWZ/nMDzao3gyi4Gr91qTMR4P7PVJRMM8pZZFMctr2c+xuFEKX8x6NnZIHV
+	 LLyOvk3jb+RNq2fqlCLu0n6ZnIjoysJy7jb4fWBBMAhnXnbFNyGf0NfmWVv4gogFUI
+	 nGLgtPvTOcVvL+D5OLo07RmuIQs8hvCK7JrbzqXc=
+Date: Fri, 27 Sep 2024 09:45:06 +0200
 From: Greg KH <gregkh@linuxfoundation.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: stable@vger.kernel.org,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: stable request: netfilter:  make cgroupsv2 matching work with
- namespaces
-Message-ID: <2024092758-mutation-subplot-07fa@gregkh>
-References: <20240920101146.GA10413@breakpoint.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, sashal@kernel.org,
+	stable@vger.kernel.org
+Subject: Re: [PATCH -stable,5.10 0/2]  Netfilter fixes for -stable
+Message-ID: <2024092758-hula-delouse-6c18@gregkh>
+References: <20240917202550.188220-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -40,21 +39,20 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240920101146.GA10413@breakpoint.cc>
+In-Reply-To: <20240917202550.188220-1-pablo@netfilter.org>
 
-On Fri, Sep 20, 2024 at 12:11:46PM +0200, Florian Westphal wrote:
-> Hello,
+On Tue, Sep 17, 2024 at 10:25:48PM +0200, Pablo Neira Ayuso wrote:
+> Hi Greg, Sasha,
 > 
-> please consider picking up:
-> 7f3287db6543 ("netfilter: nft_socket: make cgroupsv2 matching work with namespaces")
-> and its followup fix,
-> 7052622fccb1 ("netfilter: nft_socket: Fix a NULL vs IS_ERR() bug in nft_socket_cgroup_subtree_level()")
+> This batch contains a backport for fixes for 5.10-stable:
 > 
-> It should cherry-pick fine for 6.1 and later.
-> I'm not sure a 5.15 backport is worth it, as its not a crash fix and
-> noone has reported this problem so far with a 5.15 kernel.
+> The following list shows the backported patches, I am using original commit
+> IDs for reference:
 > 
+> 1) 29b359cf6d95 ("netfilter: nft_set_pipapo: walk over current view on netlink dump")
+> 
+> 2) efefd4f00c96 ("netfilter: nf_tables: missing iterator type in lookup walk")
 
-Now queued up for 6.1 and newer, thanks.
+All backports now queued up, thanks!
 
 greg k-h
