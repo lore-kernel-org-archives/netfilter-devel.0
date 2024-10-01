@@ -1,67 +1,67 @@
-Received: from mail-ej1-f73.google.com (mail-ej1-f73.google.com [209.85.218.73])
+Received: from mail-yb1-f202.google.com (mail-yb1-f202.google.com [209.85.219.202])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 263391BB6B6
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Oct 2024 07:09:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.73
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB4811BE25A
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Oct 2024 07:56:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.202
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727766592; cv=none; b=n9bvFgdceynJeBMLgSjzOuaZ6G0OISEZ3aS5L4FTtw0sLFbXWOurWaTIw0853PYSpCuvyteIUTWMasHG93jzIC56nhgYXzLuCvaf1QbQnzNNJ0vr1KnkZ3kUvmB8sokEUu3eGGF1fsvQA55vPYGEeBfWWKfX6IK4p5gQ1n5KVEo=
+	t=1727769417; cv=none; b=Ar4aykYu2qAJwP60LVKEdNiAubh2iKLt1rkIlyrl9+1qdqOBCQIS3wKIlTa/HrgB8FpZJ6K/9CPaAUttfx6vXG1rbbE5RzvHhKXxz5jnMXRB6XtFbKAokNvKkzjsm5o1xfOf5UdwVSFEHHj2oZRpAE3xcWx/oBKC3u0QRjvW9dg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727766592; c=relaxed/simple;
-	bh=EEfUkg12zVayrkF97+wBeybXQSiAExWRBd2BS7YcViM=;
+	s=arc-20240116; t=1727769417; c=relaxed/simple;
+	bh=D1JTQfrWYlxg+oug+vUqLOQZmsnSJiIy/5H/1jFqavI=;
 	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=oIcCc6/8hC0HaP15429SuoHNdCkcvX/dxm4aobDNC3JCid02gPW+UeTrqSKb4j3TElOYxEz3lbz8wVBTqdDp7JqgrRIL3qGEJeTTg4lfFsNRqXXkV7fFk2QsuUiLAZ94ls/bMZwHFWB/dX/PMi27DlNSCX+ummL29kSSgOWRve4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=bk2QhsSH; arc=none smtp.client-ip=209.85.218.73
+	 To:Cc:Content-Type; b=dnTfCBbitTRe87HkbsUUdl2onhB+cAHVp/d0Eg07TSp+3OHHv69s7GxSCObkvRn5jwyW/UlwysEq0neqkBGOD4AXj3ma5so2Uo1lBNutGzsIjFgAY9yY7F65yu24EWkf42kU3FFCZgv1RZ0D3fy1oqxMehYNBtkT/nIaOBS5Rjo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=hk1A4nyY; arc=none smtp.client-ip=209.85.219.202
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="bk2QhsSH"
-Received: by mail-ej1-f73.google.com with SMTP id a640c23a62f3a-a8d2ecdf414so391144166b.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 01 Oct 2024 00:09:49 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="hk1A4nyY"
+Received: by mail-yb1-f202.google.com with SMTP id 3f1490d57ef6-e249fafe1ebso9107157276.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 01 Oct 2024 00:56:55 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1727766588; x=1728371388; darn=vger.kernel.org;
+        d=google.com; s=20230601; t=1727769415; x=1728374215; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:from:subject:message-id:references
          :mime-version:in-reply-to:date:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=G98NvXM62YT0B0WJqga1aEPWf2fMI/P8gKqX00JsaWE=;
-        b=bk2QhsSH38N4UAxhEtUB72e65ixpvjBwARbkieNPWVAY6MIRTaE/RZxoQ9i+ZXtwkW
-         6aMioBa3IuCSh1LxCsz+PArTk0iAcBS1Lb4e5r7D183qW+NkvyPhotyQoRwmTjnSc9am
-         QfL5Vubi85A9ze2RM5c9Gec4D13OsOdY80qe8CoTNP1vh4u+XXuX4lIZyH+4Jc9sE9Oj
-         bFZTN5U2TTfYdM+U4VN9iua2GEthNBOKqDs9VXNBoid3dqgQKZtN3dqVhqKhZS8K4Jme
-         oK/zL141fxftRZTomiuF/jq/uUlY/8KHclR/C6LzV3qMtrnfj1uHwOVZRoEMss06R2Es
-         gjOQ==
+        bh=2YLIpnISBu8vBhPoCOC0VxpYUv2HSm5uj0+OgXD1P1w=;
+        b=hk1A4nyYtoELYYoGP6gVEgMLdRSQmfN9EAFU0RnlmJjvUbPzmpD9P2+9UltciGpJcc
+         HMxNsRNTG4/FBmrOubycwqKyTp6OcqAQr79vDiLhE73Syu5tk8jRZaZDm473Iu/T7mZ6
+         ftt80xX6OlhBY62T+AonMiAAH5GSZpBwUHTNSZT6JKOZUKI/rFlaYfDtkpH799H8ZczI
+         i7LH0fJt36kErwFDBKxGsXs9JDtM+qF8UxxoKieU0YAke/xZ0gjyrz7KzQRX14yRXiE9
+         HOwyYq7te5nLbEWk0geEfp6HcHgqAmaTDZ2CyYNstE2g53jpApxF5ewOlUWfZEB9vi7O
+         SFqQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1727766588; x=1728371388;
+        d=1e100.net; s=20230601; t=1727769415; x=1728374215;
         h=content-transfer-encoding:cc:to:from:subject:message-id:references
          :mime-version:in-reply-to:date:x-gm-message-state:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=G98NvXM62YT0B0WJqga1aEPWf2fMI/P8gKqX00JsaWE=;
-        b=OXpMP+DJapt5F6a0yeiP1BynxV0oirQD4lIK8XFREdqC8b6qLKT1rHE4DHhr0SqLcx
-         SH+f2oORmraRS55XMyEtAWdTic3C5X7VMtEt5pblPS1N+cUCwBEpTbgDsSeWWAL2FWYH
-         t7DSc5KOB31GVWu/ADbsYCCnE2/aZdtbuia2o/zhcuVYy66qYWROg144L5N1WZ5Mwr0M
-         nwlykU46my4G6lJzxtZwdxka+UnZj3JW5eYiYD833g04oOHE4z9tPDZifZNwDBQVUpn/
-         Xa+cCAi1OroLy9MXNisR1KWlBxPVSkjh0pwpbJLtY2wNgyx94xvm1jPz8JnHKKEaF01g
-         8nYQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUeQNxJZ5OrJGUZA5uiwxwSQBSNWLkH/mbFJwuXEbpUtWhgnSMMyYu3rsAzaBZIJlTt/ySZCBPi2SmZERgZ1ho=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxg9KSLqsMGINyM+c6SzOdLyTdSLX69dJph4SJ3ZhBl65ChZgC4
-	xKKnZ/Rcbb3cJcWA0Lg0I+oew/GpVs6P9XSECigOQeEBjV0XtN7vQWtV6e4oQVpp46GUoK3Ltud
-	m+Q==
-X-Google-Smtp-Source: AGHT+IEFa2kdnyeozPEZpXPOZxvw+akB2zSXUlpMW74Sj1ivjTUlFPXTAwMlPI6ebFhigkPVCITJN5sj1kw=
+        bh=2YLIpnISBu8vBhPoCOC0VxpYUv2HSm5uj0+OgXD1P1w=;
+        b=U0Z9VQzZBwuWgIZJOO3Kn+e8qFcRB1e/nI9RM4fZEXaNd5QTsVk9NauZjo1nKBwhgl
+         UMtih2HNehFQx0CZUr7yXVmUv5Tg1lgTn+QKSQYWEbnN8m/iMT06mMO7AJ3LLo5O1fDH
+         KM7QRUvRnyfgHaCinJDF3TqRkvM/ONPmImLIC+lgNYoPp1NC4tjG3RuXHcIHTqHR+ez7
+         9uTsU9r7A8WT5HEN6DbDb12MYJ+81etoqCckV0HgLXviWrEWMFUUhfifVhwlhy9+iARC
+         9tYqrAsyH+5Ua8dYXAEpUTExTLCea461q0A0fv31DaTH4ZEpsT5mqxjqpI81k/hIS7k7
+         pchg==
+X-Forwarded-Encrypted: i=1; AJvYcCW10lgppEwITVPjLxvdbZ9ClNibtZ9iQvvTGV/R8fuXbLGIIYVkoa3w0HKR6izk01FPU3pj7C6/QhqhSxor8/c=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz49z22e6v7PJ418CoE7UOUu4OhPs2hvAaVj5huK7n3ZYDL8vEO
+	2tHkhjQKNsfUo1hBxguPMgoexMkddQODMt5ak6keFO54PyNetRl2gACTyrVu0U9cKbwdArLI8bs
+	EFg==
+X-Google-Smtp-Source: AGHT+IGrHwUo0pc+SGt+eG2rbtdwipm7/Eg7KBwJTogtJiz6n0iyNnSjCk9Mp4ukj5ZYb1jp3Gh60YAy+2Q=
 X-Received: from swim.c.googlers.com ([fda3:e722:ac3:cc00:31:98fb:c0a8:1605])
- (user=gnoack job=sendgmr) by 2002:a17:906:d214:b0:a8a:7d59:346d with SMTP id
- a640c23a62f3a-a93c4aab81dmr660266b.10.1727766588055; Tue, 01 Oct 2024
- 00:09:48 -0700 (PDT)
-Date: Tue, 1 Oct 2024 09:09:46 +0200
-In-Reply-To: <20240904104824.1844082-20-ivanov.mikhail1@huawei-partners.com>
+ (user=gnoack job=sendgmr) by 2002:a25:9e09:0:b0:e24:96b1:696 with SMTP id
+ 3f1490d57ef6-e2604b0f4f6mr12271276.1.1727769414837; Tue, 01 Oct 2024 00:56:54
+ -0700 (PDT)
+Date: Tue, 1 Oct 2024 09:56:52 +0200
+In-Reply-To: <20240904104824.1844082-19-ivanov.mikhail1@huawei-partners.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0
-References: <20240904104824.1844082-1-ivanov.mikhail1@huawei-partners.com> <20240904104824.1844082-20-ivanov.mikhail1@huawei-partners.com>
-Message-ID: <ZvufroAFgLp_vZcF@google.com>
-Subject: Re: [RFC PATCH v3 19/19] landlock: Document socket rule type support
+References: <20240904104824.1844082-1-ivanov.mikhail1@huawei-partners.com> <20240904104824.1844082-19-ivanov.mikhail1@huawei-partners.com>
+Message-ID: <ZvurRJ4mGsRufmEl@google.com>
+Subject: Re: [RFC PATCH v3 18/19] samples/landlock: Support socket protocol restrictions
 From: "=?utf-8?Q?G=C3=BCnther?= Noack" <gnoack@google.com>
 To: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
 Cc: mic@digikod.net, willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com, 
@@ -71,192 +71,291 @@ Cc: mic@digikod.net, willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com,
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 
-Hello!
-
-On Wed, Sep 04, 2024 at 06:48:24PM +0800, Mikhail Ivanov wrote:
-> Extend documentation with socket rule type description.
->
+On Wed, Sep 04, 2024 at 06:48:23PM +0800, Mikhail Ivanov wrote:
+> Add socket protocol control support in sandboxer demo. It's possible
+> to allow a sandboxer to create sockets with specified family and type
+> values. This is controlled with the new LL_SOCKET_CREATE environment
+> variable. Single token in this variable looks like this:
+> 'FAMILY.TYPE', where FAMILY and TYPE are integers corresponding to the
+> number of address family and socket type.
+>=20
+> Add parse_socket_protocol() method to parse socket family and type
+> strings into integers.
+>=20
+> Change LANDLOCK_ABI_LAST to 6.
+>=20
 > Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
 > ---
->  Documentation/userspace-api/landlock.rst | 46 ++++++++++++++++++++----
->  1 file changed, 40 insertions(+), 6 deletions(-)
+> Changes since v2:
+> * Changes representation of socket protocol in LL_SOCKET_CREATE into
+>   pair of integer values.
+> * Changes commit message.
+> * Minor fixes.
 >=20
-> diff --git a/Documentation/userspace-api/landlock.rst b/Documentation/use=
-rspace-api/landlock.rst
-> index 37dafce8038b..4bf45064faa1 100644
-> --- a/Documentation/userspace-api/landlock.rst
-> +++ b/Documentation/userspace-api/landlock.rst
-> @@ -33,7 +33,7 @@ A Landlock rule describes an action on an object which =
-the process intends to
->  perform.  A set of rules is aggregated in a ruleset, which can then rest=
-rict
->  the thread enforcing it, and its future children.
+> Changes since v1:
+> * Refactors get_socket_protocol(). Rename it to parse_socket_protocol().
+> * Changes LANDLOCK_ABI_LAST to 6 since ioctl patchlist updated it to 5.
+> * Refactors commit message.
+> * Formats with clang-format.
+> * Minor changes.
+> ---
+>  samples/landlock/sandboxer.c | 108 ++++++++++++++++++++++++++++++-----
+>  1 file changed, 95 insertions(+), 13 deletions(-)
+>=20
+> diff --git a/samples/landlock/sandboxer.c b/samples/landlock/sandboxer.c
+> index d4dba9e4ce89..1669095f9373 100644
+> --- a/samples/landlock/sandboxer.c
+> +++ b/samples/landlock/sandboxer.c
+> @@ -14,6 +14,7 @@
+>  #include <fcntl.h>
+>  #include <linux/landlock.h>
+>  #include <linux/prctl.h>
+> +#include <linux/socket.h>
+>  #include <stddef.h>
+>  #include <stdio.h>
+>  #include <stdlib.h>
+> @@ -55,8 +56,11 @@ static inline int landlock_restrict_self(const int rul=
+eset_fd,
+>  #define ENV_FS_RW_NAME "LL_FS_RW"
+>  #define ENV_TCP_BIND_NAME "LL_TCP_BIND"
+>  #define ENV_TCP_CONNECT_NAME "LL_TCP_CONNECT"
+> +#define ENV_SOCKET_CREATE_NAME "LL_SOCKET_CREATE"
+>  #define ENV_DELIMITER ":"
 > =20
-> -The two existing types of rules are:
-> +The three existing types of rules are:
-> =20
->  Filesystem rules
->      For these rules, the object is a file hierarchy,
-> @@ -44,14 +44,19 @@ Network rules (since ABI v4)
->      For these rules, the object is a TCP port,
->      and the related actions are defined with `network access rights`.
-> =20
-> +Socket rules (since ABI v6)
-> +    For these rules, the object is a pair of an address family and a soc=
-ket type,
-> +    and the related actions are defined with `socket access rights`.
+> +#define ENV_TOKEN_INTERNAL_DELIMITER "."
 > +
->  Defining and enforcing a security policy
->  ----------------------------------------
+>  static int parse_path(char *env_path, const char ***const path_list)
+>  {
+>  	int i, num_paths =3D 0;
+> @@ -209,6 +213,65 @@ static int populate_ruleset_net(const char *const en=
+v_var, const int ruleset_fd,
+>  	return ret;
+>  }
 > =20
->  We first need to define the ruleset that will contain our rules.
+> +static int populate_ruleset_socket(const char *const env_var,
+> +				   const int ruleset_fd,
+> +				   const __u64 allowed_access)
+> +{
+> +	int ret =3D 1;
+> +	char *env_protocol_name, *strprotocol, *strfamily, *strtype;
+> +	unsigned long long family_ull, type_ull;
+> +	struct landlock_socket_attr protocol =3D {
+> +		.allowed_access =3D allowed_access,
+> +	};
+> +
+> +	env_protocol_name =3D getenv(env_var);
+> +	if (!env_protocol_name)
+> +		return 0;
+> +	env_protocol_name =3D strdup(env_protocol_name);
+> +	unsetenv(env_var);
+> +
+> +	while ((strprotocol =3D strsep(&env_protocol_name, ENV_DELIMITER))) {
+> +		strfamily =3D strsep(&strprotocol, ENV_TOKEN_INTERNAL_DELIMITER);
+> +		strtype =3D strsep(&strprotocol, ENV_TOKEN_INTERNAL_DELIMITER);
+
+This works with strings such as "123:456:foobar", because you are using str=
+sep()
+twice on strprotocol; this looks unintentional?
+
+
+> +
+> +		if (!strtype) {
+> +			fprintf(stderr,
+> +				"Failed to extract socket protocol with "
+> +				"unspecified type value\n");
+> +			goto out_free_name;
+> +		}
+> +
+> +		if (str2num(strfamily, &family_ull)) {
+> +			fprintf(stderr,
+> +				"Failed to convert \"%s\" into a number\n",
+> +				strfamily);
+> +			goto out_free_name;
+> +		}
+> +		if (str2num(strtype, &type_ull)) {
+> +			fprintf(stderr,
+> +				"Failed to convert \"%s\" into a number\n",
+> +				strtype);
+> +			goto out_free_name;
+> +		}
+> +		protocol.family =3D (int)family_ull;
+> +		protocol.type =3D (int)type_ull;
+> +
+> +		if (landlock_add_rule(ruleset_fd, LANDLOCK_RULE_SOCKET,
+> +				      &protocol, 0)) {
+> +			fprintf(stderr,
+> +				"Failed to update the ruleset with "
+> +				"family \"%s\" and type \"%s\": %s\n",
+> +				strfamily, strtype, strerror(errno));
+> +			goto out_free_name;
+> +		}
+> +	}
+> +	ret =3D 0;
+> +
+> +out_free_name:
+> +	free(env_protocol_name);
+> +	return ret;
+> +}
+> +
+>  /* clang-format off */
 > =20
->  For this example, the ruleset will contain rules that only allow filesys=
-tem
-> -read actions and establish a specific TCP connection. Filesystem write
-> -actions and other TCP actions will be denied.
-> +read actions, create TCP sockets and establish a specific TCP connection=
-.
-> +Filesystem write actions, creating non-TCP sockets and other TCP
-> +actions will be denied.
+>  #define ACCESS_FS_ROUGHLY_READ ( \
+> @@ -233,14 +296,14 @@ static int populate_ruleset_net(const char *const e=
+nv_var, const int ruleset_fd,
 > =20
->  The ruleset then needs to handle both these kinds of actions.  This is
->  required for backward and forward compatibility (i.e. the kernel and use=
-r
-> @@ -81,6 +86,8 @@ to be explicit about the denied-by-default access right=
-s.
->          .handled_access_net =3D
->              LANDLOCK_ACCESS_NET_BIND_TCP |
->              LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +        .handled_access_socket =3D
-> +            LANDLOCK_ACCESS_SOCKET_CREATE,
->      };
+>  /* clang-format on */
 > =20
->  Because we may not know on which kernel version an application will be
-> @@ -119,6 +126,11 @@ version, and only use the available subset of access=
- rights:
->      case 4:
->          /* Removes LANDLOCK_ACCESS_FS_IOCTL_DEV for ABI < 5 */
->          ruleset_attr.handled_access_fs &=3D ~LANDLOCK_ACCESS_FS_IOCTL_DE=
-V;
-> +        __attribute__((fallthrough));
+> -#define LANDLOCK_ABI_LAST 5
+> +#define LANDLOCK_ABI_LAST 6
+> =20
+>  int main(const int argc, char *const argv[], char *const *const envp)
+>  {
+>  	const char *cmd_path;
+>  	char *const *cmd_argv;
+>  	int ruleset_fd, abi;
+> -	char *env_port_name;
+> +	char *env_optional_name;
+>  	__u64 access_fs_ro =3D ACCESS_FS_ROUGHLY_READ,
+>  	      access_fs_rw =3D ACCESS_FS_ROUGHLY_READ | ACCESS_FS_ROUGHLY_WRITE=
+;
+> =20
+> @@ -248,18 +311,19 @@ int main(const int argc, char *const argv[], char *=
+const *const envp)
+>  		.handled_access_fs =3D access_fs_rw,
+>  		.handled_access_net =3D LANDLOCK_ACCESS_NET_BIND_TCP |
+>  				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
+> +		.handled_access_socket =3D LANDLOCK_ACCESS_SOCKET_CREATE,
+>  	};
+> =20
+>  	if (argc < 2) {
+>  		fprintf(stderr,
+> -			"usage: %s=3D\"...\" %s=3D\"...\" %s=3D\"...\" %s=3D\"...\"%s "
+> +			"usage: %s=3D\"...\" %s=3D\"...\" %s=3D\"...\" %s=3D\"...\" %s=3D\"..=
+.\"%s "
+>  			"<cmd> [args]...\n\n",
+>  			ENV_FS_RO_NAME, ENV_FS_RW_NAME, ENV_TCP_BIND_NAME,
+> -			ENV_TCP_CONNECT_NAME, argv[0]);
+> +			ENV_TCP_CONNECT_NAME, ENV_SOCKET_CREATE_NAME, argv[0]);
+>  		fprintf(stderr,
+>  			"Execute a command in a restricted environment.\n\n");
+>  		fprintf(stderr,
+> -			"Environment variables containing paths and ports "
+> +			"Environment variables containing paths, ports and protocols "
+>  			"each separated by a colon:\n");
+>  		fprintf(stderr,
+>  			"* %s: list of paths allowed to be used in a read-only way.\n",
+> @@ -268,7 +332,7 @@ int main(const int argc, char *const argv[], char *co=
+nst *const envp)
+>  			"* %s: list of paths allowed to be used in a read-write way.\n\n",
+>  			ENV_FS_RW_NAME);
+>  		fprintf(stderr,
+> -			"Environment variables containing ports are optional "
+> +			"Environment variables containing ports or protocols are optional "
+>  			"and could be skipped.\n");
+>  		fprintf(stderr,
+>  			"* %s: list of ports allowed to bind (server).\n",
+> @@ -276,15 +340,19 @@ int main(const int argc, char *const argv[], char *=
+const *const envp)
+>  		fprintf(stderr,
+>  			"* %s: list of ports allowed to connect (client).\n",
+>  			ENV_TCP_CONNECT_NAME);
+> +		fprintf(stderr,
+> +			"* %s: list of socket protocols allowed to be created.\n",
+> +			ENV_SOCKET_CREATE_NAME);
+
+Might be worth listing some example values for this parameter, e.g. for TCP=
+/IP
+and UDP/IP?  This is also needed to make it clear that these can't be given=
+ by
+name, but only by number.
+
+
+>  		fprintf(stderr,
+>  			"\nexample:\n"
+>  			"%s=3D\"${PATH}:/lib:/usr:/proc:/etc:/dev/urandom\" "
+>  			"%s=3D\"/dev/null:/dev/full:/dev/zero:/dev/pts:/tmp\" "
+>  			"%s=3D\"9418\" "
+>  			"%s=3D\"80:443\" "
+> +			"%s=3D\"10.2:1.1\" "
+>  			"%s bash -i\n\n",
+>  			ENV_FS_RO_NAME, ENV_FS_RW_NAME, ENV_TCP_BIND_NAME,
+> -			ENV_TCP_CONNECT_NAME, argv[0]);
+> +			ENV_TCP_CONNECT_NAME, ENV_SOCKET_CREATE_NAME, argv[0]);
+>  		fprintf(stderr,
+>  			"This sandboxer can use Landlock features "
+>  			"up to ABI version %d.\n",
+> @@ -351,7 +419,11 @@ int main(const int argc, char *const argv[], char *c=
+onst *const envp)
+>  	case 4:
+>  		/* Removes LANDLOCK_ACCESS_FS_IOCTL_DEV for ABI < 5 */
+>  		ruleset_attr.handled_access_fs &=3D ~LANDLOCK_ACCESS_FS_IOCTL_DEV;
+> -
+> +		__attribute__((fallthrough));
 > +	case 5:
 > +		/* Removes socket support for ABI < 6 */
 > +		ruleset_attr.handled_access_socket &=3D
 > +			~LANDLOCK_ACCESS_SOCKET_CREATE;
+>  		fprintf(stderr,
+>  			"Hint: You should update the running kernel "
+>  			"to leverage Landlock features "
+> @@ -371,18 +443,23 @@ int main(const int argc, char *const argv[], char *=
+const *const envp)
+>  	access_fs_rw &=3D ruleset_attr.handled_access_fs;
+> =20
+>  	/* Removes bind access attribute if not supported by a user. */
+> -	env_port_name =3D getenv(ENV_TCP_BIND_NAME);
+> -	if (!env_port_name) {
+> +	env_optional_name =3D getenv(ENV_TCP_BIND_NAME);
+> +	if (!env_optional_name) {
+>  		ruleset_attr.handled_access_net &=3D
+>  			~LANDLOCK_ACCESS_NET_BIND_TCP;
+>  	}
+>  	/* Removes connect access attribute if not supported by a user. */
+> -	env_port_name =3D getenv(ENV_TCP_CONNECT_NAME);
+> -	if (!env_port_name) {
+> +	env_optional_name =3D getenv(ENV_TCP_CONNECT_NAME);
+> +	if (!env_optional_name) {
+>  		ruleset_attr.handled_access_net &=3D
+>  			~LANDLOCK_ACCESS_NET_CONNECT_TCP;
+>  	}
+> -
+> +	/* Removes socket create access attribute if not supported by a user. *=
+/
 
-When I patched this in, the indentation of this "case" was off, compared to=
- the
-rest of the code example.  (The code example uses spaces for indentation, n=
-ot
-tabs.)
+Phrasing nit: I would say "requested by a user"?
 
->      }
-> =20
->  This enables to create an inclusive ruleset that will contain our rules.
-> @@ -170,6 +182,20 @@ for the ruleset creation, by filtering access rights=
- according to the Landlock
->  ABI version.  In this example, this is not required because all of the r=
-equested
->  ``allowed_access`` rights are already available in ABI 1.
-> =20
-> +For socket access-control, we can add a rule to allow TCP sockets creati=
-on. UNIX,
-> +UDP IP and other protocols will be denied by the ruleset.
-> +
-> +.. code-block:: c
-> +
-> +    struct landlock_net_port_attr tcp_socket =3D {
-> +        .allowed_access =3D LANDLOCK_ACCESS_SOCKET_CREATE,
-> +        .family =3D AF_INET,
-> +        .type =3D SOCK_STREAM,
-> +    };
-> +
-> +    err =3D landlock_add_rule(ruleset_fd, LANDLOCK_RULE_SOCKET,
-> +                            &tcp_socket, 0);
-> +
+(And maybe also in the two cases above)
 
-IMHO, the length of the "Defining and enforcing a security policy" section =
-is
-slowly getting out of hand.  This was easier to follow when it was only fil=
-e
-system rules. -- I wonder whether we should split this up in subsections fo=
-r the
-individual steps to give this a more logical outline, e.g.
 
-* Creating a ruleset
-* Adding rules to the ruleset
-  * Adding a file system rule
-  * Adding a network rule
-  * Adding a socket rule
-* Enforcing the ruleset
-
->  For network access-control, we can add a set of rules that allow to use =
-a port
->  number for a specific action: HTTPS connections.
+> +	env_optional_name =3D getenv(ENV_SOCKET_CREATE_NAME);
+> +	if (!env_optional_name) {
+> +		ruleset_attr.handled_access_socket &=3D
+> +			~LANDLOCK_ACCESS_SOCKET_CREATE;
+> +	}
+>  	ruleset_fd =3D
+>  		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
+>  	if (ruleset_fd < 0) {
+> @@ -406,6 +483,11 @@ int main(const int argc, char *const argv[], char *c=
+onst *const envp)
+>  		goto err_close_ruleset;
+>  	}
 > =20
-> @@ -186,7 +212,8 @@ number for a specific action: HTTPS connections.
->  The next step is to restrict the current thread from gaining more privil=
-eges
->  (e.g. through a SUID binary).  We now have a ruleset with the first rule
->  allowing read access to ``/usr`` while denying all other handled accesse=
-s for
-> -the filesystem, and a second rule allowing HTTPS connections.
-> +the filesystem, a second rule allowing TCP sockets and a third rule allo=
-wing
-> +HTTPS connections.
-> =20
->  .. code-block:: c
-> =20
-> @@ -404,7 +431,7 @@ Access rights
->  -------------
-> =20
->  .. kernel-doc:: include/uapi/linux/landlock.h
-> -    :identifiers: fs_access net_access
-> +    :identifiers: fs_access net_access socket_access
-> =20
->  Creating a new ruleset
->  ----------------------
-> @@ -423,7 +450,7 @@ Extending a ruleset
-> =20
->  .. kernel-doc:: include/uapi/linux/landlock.h
->      :identifiers: landlock_rule_type landlock_path_beneath_attr
-> -                  landlock_net_port_attr
-> +                  landlock_net_port_attr landlock_socket_attr
-> =20
->  Enforcing a ruleset
->  -------------------
-> @@ -541,6 +568,13 @@ earlier ABI.
->  Starting with the Landlock ABI version 5, it is possible to restrict the=
- use of
->  :manpage:`ioctl(2)` using the new ``LANDLOCK_ACCESS_FS_IOCTL_DEV`` right=
-.
-> =20
-> +Socket support (ABI < 6)
-> +-------------------------
+> +	if (populate_ruleset_socket(ENV_SOCKET_CREATE_NAME, ruleset_fd,
+> +				    LANDLOCK_ACCESS_SOCKET_CREATE)) {
+> +		goto err_close_ruleset;
+> +	}
 > +
-> +Starting with the Landlock ABI version 6, it is now possible to restrict
-> +creation of user space sockets to only a set of allowed protocols thanks
-> +to the new ``LANDLOCK_ACCESS_SOCKET_CREATE`` access right.
-> +
->  .. _kernel_support:
-> =20
->  Kernel support
+>  	if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0)) {
+>  		perror("Failed to restrict privileges");
+>  		goto err_close_ruleset;
 > --=20
 > 2.34.1
 >=20
 
-There is a section further below called "Network support" that talks about =
+As I also said on the Documentation patch, please remember to double check =
 the
-need for CONFIG_INET in order to add a network rule.  Do similar restrictio=
-ns
-apply to the socket rules as well?  Maybe this should be added to the secti=
-on.
+places where the ABI number is mentioned, after rebasing on Tahera's "scope=
+d"
+patches.
 
-Please don't forget -- Tahera Fahimi's "scoped" patches have landed in
-linux-next by now, so we will need to rebase and bump the ABI version one h=
-igher
-than before.
-
-Thanks,
 =E2=80=94G=C3=BCnther
