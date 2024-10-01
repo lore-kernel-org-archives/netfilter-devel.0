@@ -1,98 +1,72 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66D361CEADA
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Oct 2024 18:46:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88E861C1740
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Oct 2024 19:48:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727808382; cv=none; b=AsVTDmRyYTMg2W/JTH/V/yhaMzQq5K4Rh9O7tSSLxD6Vx14AvfkMGUu4QNKJbSIJ0bxoD2JJLFd4DMpWUHRKfyQwq7L0nJUVB3Xu0lLDlKkMxMRz+HDFi5LZ8SIA4HULZIyHsdJsgPvwAHXua3aIdRhQcQJUGO4NkubEVJd6WK4=
+	t=1727812133; cv=none; b=p/RSZbAsRp3jbJoqPtWtqxAL8e/sZnrltNUir5UD6Ew3K9HX3MZY553EhHGFKihhOcEE5ueZ3yQmL/a5XzXM6AXOelfsdjXJZNjqEywFa8U2K2T0GE5i+y7aXbxgHF/GvKj/PWGDiPptr0GdYfWmkczyWrDu1rBWKUfFMkry7YI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727808382; c=relaxed/simple;
-	bh=drmq/sc8sAWgVxzinrDYW2tNvq2tqAXWsGlXLwwd7/0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gzSpfooxd+/g7p86FRzpvCKBGwekAERMwSKjnt//jzJkQ1DngWy28/Uh5mIAPusYzwewg5PTvf47WvBc+v88tIXR+Ta8Bv4WU3ADAsBbC6/Bw0jWkbGFbXvvNoSz1pyo5eZr+Kqu1Mby+ioA9IpyoMeMRg8MqGcGILzMx7ZE3HU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=59880 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1svhsz-00AEr2-CL; Tue, 01 Oct 2024 20:46:15 +0200
-Date: Tue, 1 Oct 2024 20:46:12 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [libnftnl PATCH] rule: Don't append a newline when printing a
- rule
-Message-ID: <ZvxDdJzlL5JpyG2t@calendula>
-References: <20241001175034.14037-1-phil@nwl.cc>
+	s=arc-20240116; t=1727812133; c=relaxed/simple;
+	bh=iFrWnBdvbOZcQMeX16xTXEixTniZkUC0QBIollIKoGg=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=bDCAvtOMnP+iv1gNtmmbErCGgqBIDDc8NCz4CMTeh5md08ajitOP54Xu5Cmf+aSOWW38wwYovW8QStNfSYJhNjz5jQezUsLNT4k5KiVZso5PqHCS6m3t/NZvxij3aJNJxI0FRpiBtjYy0qrPEGZlksOQCszs2O77S5pyB3iG1SU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=aCIIaDp5; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="aCIIaDp5"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=mQasNn4CImzWIbsDno/Jik716jkl4yTDln3lTHyXLRY=; b=aCIIaDp5w2ZHgfHBlnIcK1jFo6
+	BqirS0QnJI94XZ3Lhds4/OkmmBVU5/0CN5b8ZrZu2Ts9lyCZiehzhP+8JkeQ9hxaSloSqb4awiMrR
+	qBLtSaMF6pLLTByeAcueQz2d+0KpG3c9DAkxUGTkEV+Dhu0vXwjVoLqFc1nWurMMWscvemg3RX0NJ
+	hHtZl0Oo0/8txmksbadIkTq70mqQSuONl3Kc5zNL/FnbhGxXQkAKLAwdG2acduuL20wOJJppA1291
+	FNA9KDwKt7Cm9KNbkU7nMT4uQR84FggwBeTjfoDEgExDTOjnB962Sfv5ZDCA43XfG0LTQOtTe86Lb
+	h5Kq8esw==;
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1svirY-0000000046e-184v
+	for netfilter-devel@vger.kernel.org;
+	Tue, 01 Oct 2024 21:48:48 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH] tests: shell: Adjust for recent changes in libnftnl
+Date: Tue,  1 Oct 2024 21:48:44 +0200
+Message-ID: <20241001194844.17817-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20241001175034.14037-1-phil@nwl.cc>
-X-Spam-Score: -1.9 (-)
+Content-Transfer-Encoding: 8bit
 
-On Tue, Oct 01, 2024 at 07:45:22PM +0200, Phil Sutter wrote:
-> Since commit c759027a526ac, printed rules may or may not end with a
-> newline depending on whether userdata was present or not. Deal with this
-> inconsistency by avoiding the trailing newline in all cases.
+libnftnl commit a96d5a338f24e ("rule: Don't append a newline when
+printing a rule") affected nft (and iptables-nft) debug output in that
+no extra newline is appended to rule bytecode output anymore. Tolerate
+this in the sole test case it breaks by ignoring changes to blank lines.
 
-LGTM, thanks Phil.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> Fixes: c759027a526ac ("rule, set_elem: remove trailing \n in userdata snprintf")
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
-> ---
-> This supersedes the previous patch with subject: Partially revert "rule,
-> set_elem: remove trailing \n in userdata snprintf" by solving the
-> problem in the opposite direction. As correctly assessed by Pablo, this
-> way is consistent with other printers.
-> 
-> I tested the change with nftables and iptables testsuites. It breaks a
-> single test in the latter which compares full ruleset debug output
-> against a record. To fix that, one could just pass --ignore-blank-lines
-> parameter to the diff call.
-> ---
->  src/rule.c | 10 ++++------
->  1 file changed, 4 insertions(+), 6 deletions(-)
-> 
-> diff --git a/src/rule.c b/src/rule.c
-> index 811d5a213f835..c22918a8f3527 100644
-> --- a/src/rule.c
-> +++ b/src/rule.c
-> @@ -573,23 +573,21 @@ static int nftnl_rule_snprintf_default(char *buf, size_t remain,
->  		sep = " ";
->  	}
->  
-> -	ret = snprintf(buf + offset, remain, "\n");
-> -	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
-> -
->  	list_for_each_entry(expr, &r->expr_list, head) {
-> -		ret = snprintf(buf + offset, remain, "  [ %s ", expr->ops->name);
-> +		ret = snprintf(buf + offset, remain,
-> +			       "\n  [ %s ", expr->ops->name);
->  		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
->  
->  		ret = nftnl_expr_snprintf(buf + offset, remain, expr,
->  					     type, flags);
->  		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
->  
-> -		ret = snprintf(buf + offset, remain, "]\n");
-> +		ret = snprintf(buf + offset, remain, "]");
->  		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
->  	}
->  
->  	if (r->user.len) {
-> -		ret = snprintf(buf + offset, remain, "  userdata = { ");
-> +		ret = snprintf(buf + offset, remain, "\n  userdata = { ");
->  		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
->  
->  		for (i = 0; i < r->user.len; i++) {
-> -- 
-> 2.43.0
-> 
+diff --git a/iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0 b/iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0
+index 34802cc26aad4..bfceed4976f18 100755
+--- a/iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0
++++ b/iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0
+@@ -343,4 +343,4 @@ filter() {
+ 	awk '/^table /{exit} /^(  \[|$)/{print}'
+ }
+ 
+-diff -u -Z <(filter <<< "$EXPECT") <(nft --debug=netlink list ruleset | filter)
++diff -u -Z -B <(filter <<< "$EXPECT") <(nft --debug=netlink list ruleset | filter)
+-- 
+2.43.0
+
