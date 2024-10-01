@@ -1,361 +1,240 @@
-Received: from mail-yb1-f202.google.com (mail-yb1-f202.google.com [209.85.219.202])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from NAM11-CO1-obe.outbound.protection.outlook.com (mail-co1nam11on2043.outbound.protection.outlook.com [40.107.220.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB4811BE25A
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Oct 2024 07:56:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.202
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727769417; cv=none; b=Ar4aykYu2qAJwP60LVKEdNiAubh2iKLt1rkIlyrl9+1qdqOBCQIS3wKIlTa/HrgB8FpZJ6K/9CPaAUttfx6vXG1rbbE5RzvHhKXxz5jnMXRB6XtFbKAokNvKkzjsm5o1xfOf5UdwVSFEHHj2oZRpAE3xcWx/oBKC3u0QRjvW9dg=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727769417; c=relaxed/simple;
-	bh=D1JTQfrWYlxg+oug+vUqLOQZmsnSJiIy/5H/1jFqavI=;
-	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=dnTfCBbitTRe87HkbsUUdl2onhB+cAHVp/d0Eg07TSp+3OHHv69s7GxSCObkvRn5jwyW/UlwysEq0neqkBGOD4AXj3ma5so2Uo1lBNutGzsIjFgAY9yY7F65yu24EWkf42kU3FFCZgv1RZ0D3fy1oqxMehYNBtkT/nIaOBS5Rjo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=hk1A4nyY; arc=none smtp.client-ip=209.85.219.202
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E16D11A254B
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Oct 2024 08:05:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.220.43
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1727769905; cv=fail; b=IDJ+9gHTuCXiz0juJG9UBsB45sWNMzLIOuvbh6WkqrnsOLLUDSjZRuf68RrGpQwAptKuRsJ+Qf8PVIWm/JDym489RRwmXBbeHbXmmZ3N5BJwiDKYmSYW/6od0OmEbDNZUXlZVKfs2sYqBE2sCc+Kn7QCerfwmL9cRtxuDs+9hJA=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1727769905; c=relaxed/simple;
+	bh=0SlcPHcmclEA/mR9pg0DQBVYaQvQb4anRrLIZMuaFa8=;
+	h=References:From:To:CC:Subject:Date:In-Reply-To:Message-ID:
+	 MIME-Version:Content-Type; b=C5Xiz1xfC4ifPFHiSqRx1jOTSMFS2dnGqkUyfc0XXNDkYo2Dg1qLM8naag+DenM8hs5Sc/yS9gbkQSb0eoexWf33xSJTXgNAlg+HJy95vz3z/jiYnQmYsTzQWX39JbZd/Es9suf2Kw24z9B/mb10beVdTwCjK3JsBTknhMXzv34=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=pW2yfwQA; arc=fail smtp.client-ip=40.107.220.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="hk1A4nyY"
-Received: by mail-yb1-f202.google.com with SMTP id 3f1490d57ef6-e249fafe1ebso9107157276.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 01 Oct 2024 00:56:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1727769415; x=1728374215; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:from:subject:message-id:references
-         :mime-version:in-reply-to:date:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=2YLIpnISBu8vBhPoCOC0VxpYUv2HSm5uj0+OgXD1P1w=;
-        b=hk1A4nyYtoELYYoGP6gVEgMLdRSQmfN9EAFU0RnlmJjvUbPzmpD9P2+9UltciGpJcc
-         HMxNsRNTG4/FBmrOubycwqKyTp6OcqAQr79vDiLhE73Syu5tk8jRZaZDm473Iu/T7mZ6
-         ftt80xX6OlhBY62T+AonMiAAH5GSZpBwUHTNSZT6JKOZUKI/rFlaYfDtkpH799H8ZczI
-         i7LH0fJt36kErwFDBKxGsXs9JDtM+qF8UxxoKieU0YAke/xZ0gjyrz7KzQRX14yRXiE9
-         HOwyYq7te5nLbEWk0geEfp6HcHgqAmaTDZ2CyYNstE2g53jpApxF5ewOlUWfZEB9vi7O
-         SFqQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1727769415; x=1728374215;
-        h=content-transfer-encoding:cc:to:from:subject:message-id:references
-         :mime-version:in-reply-to:date:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=2YLIpnISBu8vBhPoCOC0VxpYUv2HSm5uj0+OgXD1P1w=;
-        b=U0Z9VQzZBwuWgIZJOO3Kn+e8qFcRB1e/nI9RM4fZEXaNd5QTsVk9NauZjo1nKBwhgl
-         UMtih2HNehFQx0CZUr7yXVmUv5Tg1lgTn+QKSQYWEbnN8m/iMT06mMO7AJ3LLo5O1fDH
-         KM7QRUvRnyfgHaCinJDF3TqRkvM/ONPmImLIC+lgNYoPp1NC4tjG3RuXHcIHTqHR+ez7
-         9uTsU9r7A8WT5HEN6DbDb12MYJ+81etoqCckV0HgLXviWrEWMFUUhfifVhwlhy9+iARC
-         9tYqrAsyH+5Ua8dYXAEpUTExTLCea461q0A0fv31DaTH4ZEpsT5mqxjqpI81k/hIS7k7
-         pchg==
-X-Forwarded-Encrypted: i=1; AJvYcCW10lgppEwITVPjLxvdbZ9ClNibtZ9iQvvTGV/R8fuXbLGIIYVkoa3w0HKR6izk01FPU3pj7C6/QhqhSxor8/c=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz49z22e6v7PJ418CoE7UOUu4OhPs2hvAaVj5huK7n3ZYDL8vEO
-	2tHkhjQKNsfUo1hBxguPMgoexMkddQODMt5ak6keFO54PyNetRl2gACTyrVu0U9cKbwdArLI8bs
-	EFg==
-X-Google-Smtp-Source: AGHT+IGrHwUo0pc+SGt+eG2rbtdwipm7/Eg7KBwJTogtJiz6n0iyNnSjCk9Mp4ukj5ZYb1jp3Gh60YAy+2Q=
-X-Received: from swim.c.googlers.com ([fda3:e722:ac3:cc00:31:98fb:c0a8:1605])
- (user=gnoack job=sendgmr) by 2002:a25:9e09:0:b0:e24:96b1:696 with SMTP id
- 3f1490d57ef6-e2604b0f4f6mr12271276.1.1727769414837; Tue, 01 Oct 2024 00:56:54
- -0700 (PDT)
-Date: Tue, 1 Oct 2024 09:56:52 +0200
-In-Reply-To: <20240904104824.1844082-19-ivanov.mikhail1@huawei-partners.com>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="pW2yfwQA"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=NYjTXEF/IjJYRcwVUSlhuLFlPecj05kmS30X6wCeF/qy1JYwtaEgSzR/JOHdAfBqtkDXjvZHRLzSHI6nBDlNFCcewKU4qHnvAO4KjrV1cr+1yb8HqjKX0HB7HRjTL8x6jkO3OFtqKRLq9PXZlUCecJmI2ZhzXGvZklCbdHtIHF5PMHngBtKINzPz13elCJVORnhkLrUv+8RcspifkCvPNr+vS2+UJJWz+n82bOnnVAMgz8SBlLp3PMhIDFe9q2moKcrd1zRUa06kQRSadyfwL86fFNI741eR5faVDC8Q53qEmIx5gf/lgdKlSlYLW+SCz9FRXXofw4wKEhckmoqE7w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=ZywV2PfIuJEV7C9dHbaimThc0P6wvG9MviM+4VnJUF0=;
+ b=Ah8n0Mzz0UlvDfUwv4GekUroVNzyO9LfsquchAwyr46nBxNoNUSb3UbUQuEp2gJGD/yikvtU8i2GdhTDGkiYUoVC6T4+rQnlakywmr7mod5Zo4afIvkqLyWubrjO3fcSmxzNSWVFcqKOtClbx+VKVPUiN5hAhMdlS6ng8l9alP6V4KVIpgJ6LCW5wcV98ZUwVU0A7pMi0AWXh3vrRU9wynvWTroW+TaVH0ly53Kku0NuqTIqMyRsUsyxMQXQrjt/72bY4EtO7JNQL64YEYaba+eBQPuuPgYypbobb6+j5mpEJvFJJon4wZ8c0x+dCQ5W1Ks5m0lzvbD2nJu9UaI10Q==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.160) smtp.rcpttodomain=strlen.de smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=ZywV2PfIuJEV7C9dHbaimThc0P6wvG9MviM+4VnJUF0=;
+ b=pW2yfwQAJb5YRCGQywlsgsEhV+XfhcxcoQwWVcZSoJhq4W0Q0LyBEHnRQn6OtRXR0ekJTQ9K+SvGZvxNreO50JTZcgC7ZSsrLbVpps0+yCxc8rxCaAUtJ+DVT+5N3qOPLrADL9Heb6crHR+xt39ZErBwjBet8zptkNHibnEhReOSCI3PIBn7ya1G35eGt4CkfWS8t2YGFsCjG1yzwszMP2La2hc7CGdk4IcXp8mWvmm27SXVh9h/yqsY6siypiMnTQ+lHcjrhxhYnNwomfwnv19Q0r/OCCDNgGSVwEUnpJrRYFU3iFCeSbl/H5IhPGcApGnyEIdCGH0OUQnxYEFMJQ==
+Received: from BN7PR06CA0055.namprd06.prod.outlook.com (2603:10b6:408:34::32)
+ by CH3PR12MB8545.namprd12.prod.outlook.com (2603:10b6:610:163::8) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8005.27; Tue, 1 Oct
+ 2024 08:04:57 +0000
+Received: from BN2PEPF00004FC1.namprd04.prod.outlook.com
+ (2603:10b6:408:34:cafe::32) by BN7PR06CA0055.outlook.office365.com
+ (2603:10b6:408:34::32) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8005.27 via Frontend
+ Transport; Tue, 1 Oct 2024 08:04:57 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.160) by
+ BN2PEPF00004FC1.mail.protection.outlook.com (10.167.243.187) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.8026.11 via Frontend Transport; Tue, 1 Oct 2024 08:04:56 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
+ (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.4; Tue, 1 Oct 2024
+ 01:04:39 -0700
+Received: from fedora (10.126.230.35) by rnnvmail201.nvidia.com (10.129.68.8)
+ with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.4; Tue, 1 Oct 2024
+ 01:04:32 -0700
+References: <20240731063551.1577681-1-danieller@nvidia.com>
+ <ZqnkZM1rddu3xpS4@orbyte.nwl.cc>
+ <DM6PR12MB4516F083558D7AB3466FAF9ED8752@DM6PR12MB4516.namprd12.prod.outlook.com>
+ <Zvp9NShxCERRPDdi@calendula> <ZvqD1CmbNg_UAGQY@calendula>
+ <20240930134509.489b54df@kernel.org> <ZvqeEa_37KEmL8li@calendula>
+ <87cyklm7i2.fsf@nvidia.com> <ZvrZciPsfppMf9dl@calendula>
+ <ZvrbgAHBWknkk2fe@calendula>
+User-agent: mu4e 1.8.14; emacs 29.4
+From: Petr Machata <petrm@nvidia.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+CC: Petr Machata <petrm@nvidia.com>, Jakub Kicinski <kuba@kernel.org>,
+	Danielle Ratson <danieller@nvidia.com>, Phil Sutter <phil@nwl.cc>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"fw@strlen.de" <fw@strlen.de>, mlxsw <mlxsw@nvidia.com>
+Subject: Re: [PATCH libmnl] src: attr: Add mnl_attr_get_uint() function
+Date: Tue, 1 Oct 2024 09:51:43 +0200
+In-Reply-To: <ZvrbgAHBWknkk2fe@calendula>
+Message-ID: <874j5wmepi.fsf@nvidia.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-References: <20240904104824.1844082-1-ivanov.mikhail1@huawei-partners.com> <20240904104824.1844082-19-ivanov.mikhail1@huawei-partners.com>
-Message-ID: <ZvurRJ4mGsRufmEl@google.com>
-Subject: Re: [RFC PATCH v3 18/19] samples/landlock: Support socket protocol restrictions
-From: "=?utf-8?Q?G=C3=BCnther?= Noack" <gnoack@google.com>
-To: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-Cc: mic@digikod.net, willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com, 
-	linux-security-module@vger.kernel.org, netdev@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, yusongping@huawei.com, 
-	artem.kuzin@huawei.com, konstantin.meskhidze@huawei.com
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, Sep 04, 2024 at 06:48:23PM +0800, Mikhail Ivanov wrote:
-> Add socket protocol control support in sandboxer demo. It's possible
-> to allow a sandboxer to create sockets with specified family and type
-> values. This is controlled with the new LL_SOCKET_CREATE environment
-> variable. Single token in this variable looks like this:
-> 'FAMILY.TYPE', where FAMILY and TYPE are integers corresponding to the
-> number of address family and socket type.
->=20
-> Add parse_socket_protocol() method to parse socket family and type
-> strings into integers.
->=20
-> Change LANDLOCK_ABI_LAST to 6.
->=20
-> Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-> ---
-> Changes since v2:
-> * Changes representation of socket protocol in LL_SOCKET_CREATE into
->   pair of integer values.
-> * Changes commit message.
-> * Minor fixes.
->=20
-> Changes since v1:
-> * Refactors get_socket_protocol(). Rename it to parse_socket_protocol().
-> * Changes LANDLOCK_ABI_LAST to 6 since ioctl patchlist updated it to 5.
-> * Refactors commit message.
-> * Formats with clang-format.
-> * Minor changes.
-> ---
->  samples/landlock/sandboxer.c | 108 ++++++++++++++++++++++++++++++-----
->  1 file changed, 95 insertions(+), 13 deletions(-)
->=20
-> diff --git a/samples/landlock/sandboxer.c b/samples/landlock/sandboxer.c
-> index d4dba9e4ce89..1669095f9373 100644
-> --- a/samples/landlock/sandboxer.c
-> +++ b/samples/landlock/sandboxer.c
-> @@ -14,6 +14,7 @@
->  #include <fcntl.h>
->  #include <linux/landlock.h>
->  #include <linux/prctl.h>
-> +#include <linux/socket.h>
->  #include <stddef.h>
->  #include <stdio.h>
->  #include <stdlib.h>
-> @@ -55,8 +56,11 @@ static inline int landlock_restrict_self(const int rul=
-eset_fd,
->  #define ENV_FS_RW_NAME "LL_FS_RW"
->  #define ENV_TCP_BIND_NAME "LL_TCP_BIND"
->  #define ENV_TCP_CONNECT_NAME "LL_TCP_CONNECT"
-> +#define ENV_SOCKET_CREATE_NAME "LL_SOCKET_CREATE"
->  #define ENV_DELIMITER ":"
-> =20
-> +#define ENV_TOKEN_INTERNAL_DELIMITER "."
-> +
->  static int parse_path(char *env_path, const char ***const path_list)
->  {
->  	int i, num_paths =3D 0;
-> @@ -209,6 +213,65 @@ static int populate_ruleset_net(const char *const en=
-v_var, const int ruleset_fd,
->  	return ret;
->  }
-> =20
-> +static int populate_ruleset_socket(const char *const env_var,
-> +				   const int ruleset_fd,
-> +				   const __u64 allowed_access)
-> +{
-> +	int ret =3D 1;
-> +	char *env_protocol_name, *strprotocol, *strfamily, *strtype;
-> +	unsigned long long family_ull, type_ull;
-> +	struct landlock_socket_attr protocol =3D {
-> +		.allowed_access =3D allowed_access,
-> +	};
-> +
-> +	env_protocol_name =3D getenv(env_var);
-> +	if (!env_protocol_name)
-> +		return 0;
-> +	env_protocol_name =3D strdup(env_protocol_name);
-> +	unsetenv(env_var);
-> +
-> +	while ((strprotocol =3D strsep(&env_protocol_name, ENV_DELIMITER))) {
-> +		strfamily =3D strsep(&strprotocol, ENV_TOKEN_INTERNAL_DELIMITER);
-> +		strtype =3D strsep(&strprotocol, ENV_TOKEN_INTERNAL_DELIMITER);
-
-This works with strings such as "123:456:foobar", because you are using str=
-sep()
-twice on strprotocol; this looks unintentional?
+MIME-Version: 1.0
+Content-Type: text/plain
+X-ClientProxiedBy: rnnvmail201.nvidia.com (10.129.68.8) To
+ rnnvmail201.nvidia.com (10.129.68.8)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BN2PEPF00004FC1:EE_|CH3PR12MB8545:EE_
+X-MS-Office365-Filtering-Correlation-Id: 9824c298-568e-4494-46d3-08dce1efbd61
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|82310400026|36860700013|1800799024|376014;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?WY7JrZ0iv2NGb+Ta41FHmffOVyJS9G8fzdlvQQR32MlFY0md+j1n5DnIXi7F?=
+ =?us-ascii?Q?KqaR2Gb/B+r3vR2AeqgViCSmAAAg7ATrCnLlZ+IGGf93ggBBQEz2PyN/tYvE?=
+ =?us-ascii?Q?N1vsmJE6mfKW1V+4pRQLi1/k5+U/kq1EbIVju1PsnuTH8Eizxy7ZdwbW4mDx?=
+ =?us-ascii?Q?Sju9b4lQfO+MEWpJzxuaKMhKWHYD2FAyIoBnUpqXkkfNUPhKKvXo4tSFGPV0?=
+ =?us-ascii?Q?IGZV0+HMqrrOzg94UvHOoGzR9QMIc5K6zkRcsMUagIqf6oP3+OCK5BgsyT37?=
+ =?us-ascii?Q?rG9VIjZ+V8g9iQzU0ke9r/HoZCQv6tg4lhvmxFAZuVpJssYCY9zw9xcnFSve?=
+ =?us-ascii?Q?19X+r/avfYWR72VnmY4w3lJInL6fyCxVZz3uf8+7+4k/BzOD32LiM9E2V0EX?=
+ =?us-ascii?Q?E7lzOcpRAxUZQqefp87P35LP3Ol4YylOvDQDBBMhS+l9KF+Zr01QkwExvKcM?=
+ =?us-ascii?Q?gPNkrCxjankGH7qVUeFueyia96QkREb5pcyYzNNsJgnO5002kHyfh4/YVDhL?=
+ =?us-ascii?Q?uKdOFmr+fou9NDygmvi3negne7ylDouuOZVr65H2rCa4yLbBIAz1iBiAbhH9?=
+ =?us-ascii?Q?WnthfVEUBZB8fpjFpLxPuulztb5dhK4GUtmKHz/j/b2imITl+nXNOwhFJ5Zj?=
+ =?us-ascii?Q?tfALS59VD71EelvyRVlileO6xNayx06+LUA6ZprYIQDLlsHubDu8wI0MVDf3?=
+ =?us-ascii?Q?AOOAPUCSFsls71KsQROwxgyF1txUGhlf1T3T+1RwjMDrEvz4kUZZPY3tCK/a?=
+ =?us-ascii?Q?vpp/W0Ku/5IBl83bevDadV7Nr1wvQn+8HBk2p3/X/1XVufTWHGcoHfobm1vU?=
+ =?us-ascii?Q?M7ZqTW+BfBYa1pIYZ7psFiLAjVRoR397Ztvm4ci0nrUX1FWAO0N/7kAvfzyS?=
+ =?us-ascii?Q?bLwVb+nvupMLan3147mUBF/Th5egWHv2C1gI9JJgbLW1ooIO0GyMKz1uIjBA?=
+ =?us-ascii?Q?l5qmgPDWhwbw9JzD2xZU61UPSjRzjAvjmX/3/PgI/MhBbXhGW2wFV7ONHPLj?=
+ =?us-ascii?Q?OvklHvYhNDhx0SOkysxDJ7D/ZXh0+QJn6RuGgUifey/PuOAE/H1a+it4SFyL?=
+ =?us-ascii?Q?nzz8HCIuWrfoMrjbES8R7+/6M984dWhZuWOb6lFH8iEJlbtBXfHy8Of3a11A?=
+ =?us-ascii?Q?Yb2ZI885nlspXAA5m/+XQwF3asKcqOsOM6TaxfPcrP8xameiUYxDW+LQricX?=
+ =?us-ascii?Q?/UUnVRqeJUK3Oo8I4/rpxOxp30Hd4WXHKMRlqhuLuZyMEFludii2KySNExJV?=
+ =?us-ascii?Q?L7BTFWrUUw1pUF0YZ5h7sp/ix0tgfAA3dSm/Xgv8IkC+YlrZKDGODzrlEpCJ?=
+ =?us-ascii?Q?0U2ie0CHdiB9CLXl4qKKEg243/hiVScYwvmv0/aMtuDc3dHdfiJMXn3YnuNW?=
+ =?us-ascii?Q?3uRy/nENakMLdlgZAkXYrkc4w0E6c0ZfRHfHtjZyL7keu/q8PZoJDkrrtH39?=
+ =?us-ascii?Q?W1yo8ne6JFQ7SWmqYWjADsZhCULTZh4t?=
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(36860700013)(1800799024)(376014);DIR:OUT;SFP:1101;
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Oct 2024 08:04:56.7032
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 9824c298-568e-4494-46d3-08dce1efbd61
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BN2PEPF00004FC1.namprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB8545
 
 
-> +
-> +		if (!strtype) {
-> +			fprintf(stderr,
-> +				"Failed to extract socket protocol with "
-> +				"unspecified type value\n");
-> +			goto out_free_name;
-> +		}
-> +
-> +		if (str2num(strfamily, &family_ull)) {
-> +			fprintf(stderr,
-> +				"Failed to convert \"%s\" into a number\n",
-> +				strfamily);
-> +			goto out_free_name;
-> +		}
-> +		if (str2num(strtype, &type_ull)) {
-> +			fprintf(stderr,
-> +				"Failed to convert \"%s\" into a number\n",
-> +				strtype);
-> +			goto out_free_name;
-> +		}
-> +		protocol.family =3D (int)family_ull;
-> +		protocol.type =3D (int)type_ull;
-> +
-> +		if (landlock_add_rule(ruleset_fd, LANDLOCK_RULE_SOCKET,
-> +				      &protocol, 0)) {
-> +			fprintf(stderr,
-> +				"Failed to update the ruleset with "
-> +				"family \"%s\" and type \"%s\": %s\n",
-> +				strfamily, strtype, strerror(errno));
-> +			goto out_free_name;
-> +		}
-> +	}
-> +	ret =3D 0;
-> +
-> +out_free_name:
-> +	free(env_protocol_name);
-> +	return ret;
-> +}
-> +
->  /* clang-format off */
-> =20
->  #define ACCESS_FS_ROUGHLY_READ ( \
-> @@ -233,14 +296,14 @@ static int populate_ruleset_net(const char *const e=
-nv_var, const int ruleset_fd,
-> =20
->  /* clang-format on */
-> =20
-> -#define LANDLOCK_ABI_LAST 5
-> +#define LANDLOCK_ABI_LAST 6
-> =20
->  int main(const int argc, char *const argv[], char *const *const envp)
->  {
->  	const char *cmd_path;
->  	char *const *cmd_argv;
->  	int ruleset_fd, abi;
-> -	char *env_port_name;
-> +	char *env_optional_name;
->  	__u64 access_fs_ro =3D ACCESS_FS_ROUGHLY_READ,
->  	      access_fs_rw =3D ACCESS_FS_ROUGHLY_READ | ACCESS_FS_ROUGHLY_WRITE=
-;
-> =20
-> @@ -248,18 +311,19 @@ int main(const int argc, char *const argv[], char *=
-const *const envp)
->  		.handled_access_fs =3D access_fs_rw,
->  		.handled_access_net =3D LANDLOCK_ACCESS_NET_BIND_TCP |
->  				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> +		.handled_access_socket =3D LANDLOCK_ACCESS_SOCKET_CREATE,
->  	};
-> =20
->  	if (argc < 2) {
->  		fprintf(stderr,
-> -			"usage: %s=3D\"...\" %s=3D\"...\" %s=3D\"...\" %s=3D\"...\"%s "
-> +			"usage: %s=3D\"...\" %s=3D\"...\" %s=3D\"...\" %s=3D\"...\" %s=3D\"..=
-.\"%s "
->  			"<cmd> [args]...\n\n",
->  			ENV_FS_RO_NAME, ENV_FS_RW_NAME, ENV_TCP_BIND_NAME,
-> -			ENV_TCP_CONNECT_NAME, argv[0]);
-> +			ENV_TCP_CONNECT_NAME, ENV_SOCKET_CREATE_NAME, argv[0]);
->  		fprintf(stderr,
->  			"Execute a command in a restricted environment.\n\n");
->  		fprintf(stderr,
-> -			"Environment variables containing paths and ports "
-> +			"Environment variables containing paths, ports and protocols "
->  			"each separated by a colon:\n");
->  		fprintf(stderr,
->  			"* %s: list of paths allowed to be used in a read-only way.\n",
-> @@ -268,7 +332,7 @@ int main(const int argc, char *const argv[], char *co=
-nst *const envp)
->  			"* %s: list of paths allowed to be used in a read-write way.\n\n",
->  			ENV_FS_RW_NAME);
->  		fprintf(stderr,
-> -			"Environment variables containing ports are optional "
-> +			"Environment variables containing ports or protocols are optional "
->  			"and could be skipped.\n");
->  		fprintf(stderr,
->  			"* %s: list of ports allowed to bind (server).\n",
-> @@ -276,15 +340,19 @@ int main(const int argc, char *const argv[], char *=
-const *const envp)
->  		fprintf(stderr,
->  			"* %s: list of ports allowed to connect (client).\n",
->  			ENV_TCP_CONNECT_NAME);
-> +		fprintf(stderr,
-> +			"* %s: list of socket protocols allowed to be created.\n",
-> +			ENV_SOCKET_CREATE_NAME);
+Pablo Neira Ayuso <pablo@netfilter.org> writes:
 
-Might be worth listing some example values for this parameter, e.g. for TCP=
-/IP
-and UDP/IP?  This is also needed to make it clear that these can't be given=
- by
-name, but only by number.
+> On Mon, Sep 30, 2024 at 07:01:42PM +0200, Pablo Neira Ayuso wrote:
+>> On Mon, Sep 30, 2024 at 06:25:17PM +0200, Petr Machata wrote:
+>> > 
+>> > Pablo Neira Ayuso <pablo@netfilter.org> writes:
+>> > 
+>> > > On Mon, Sep 30, 2024 at 01:45:09PM +0200, Jakub Kicinski wrote:
+>> > >> On Mon, 30 Sep 2024 12:56:20 +0200 Pablo Neira Ayuso wrote:
+>> > >> > On Mon, Sep 30, 2024 at 12:28:08PM +0200, Pablo Neira Ayuso wrote:
+>> > >> > > On Sun, Sep 29, 2024 at 10:42:44AM +0000, Danielle Ratson wrote:  
+>> > >> > > > Hi,
+>> > >> > > > 
+>> > >> > > > Is there a plan to build a new version soon? 
+>> > >> > > > I am asking since I am planning to use this function in ethtool.  
+>> > >> > > 
+>> > >> > > ASAP  
+>> > >> > 
+>> > >> > but one question before... Is this related to NLA_UINT in the kernel?
+>> > >> > 
+>> > >> > /**
+>> > >> >  * nla_put_uint - Add a variable-size unsigned int to a socket buffer
+>> > >> >  * @skb: socket buffer to add attribute to
+>> > >> >  * @attrtype: attribute type
+>> > >> >  * @value: numeric value
+>> > >> >  */
+>> > >> > static inline int nla_put_uint(struct sk_buff *skb, int attrtype, u64 value)
+>> > >> > {
+>> > >> >         u64 tmp64 = value;
+>> > >> >         u32 tmp32 = value;
+>> > >> > 
+>> > >> >         if (tmp64 == tmp32)
+>> > >> >                 return nla_put_u32(skb, attrtype, tmp32);
+>> > >> >         return nla_put(skb, attrtype, sizeof(u64), &tmp64);
+>> > >> > }
+>> > >> > 
+>> > >> > if I'm correct, it seems kernel always uses either u32 or u64.
+>> > >> > 
+>> > >> > Userspace assumes u8 and u16 are possible though:
+>> > >> > 
+>> > >> > +/**
+>> > >> > + * mnl_attr_get_uint - returns 64-bit unsigned integer attribute.
+>> > >> > + * \param attr pointer to netlink attribute
+>> > >> > + *
+>> > >> > + * This function returns the 64-bit value of the attribute payload.
+>> > >> > + */
+>> > >> > +EXPORT_SYMBOL uint64_t mnl_attr_get_uint(const struct nlattr *attr)
+>> > >> > +{
+>> > >> > +       switch (mnl_attr_get_payload_len(attr)) {
+>> > >> > +       case sizeof(uint8_t):
+>> > >> > +               return mnl_attr_get_u8(attr);
+>> > >> > +       case sizeof(uint16_t):
+>> > >> > +               return mnl_attr_get_u16(attr);
+>> > >> > +       case sizeof(uint32_t):
+>> > >> > +               return mnl_attr_get_u32(attr);
+>> > >> > +       case sizeof(uint64_t):
+>> > >> > +               return mnl_attr_get_u64(attr);
+>> > >> > +       }
+>> > >> > +
+>> > >> > +       return -1ULL;
+>> > >> > +}
+>> > >> > 
+>> > >> > Or this is an attempt to provide a helper that allows you fetch for
+>> > >> > payload value of 2^3..2^6 bytes?
+>> > >> 
+>> > >> No preference here, FWIW. Looks like this patch does a different thing
+>> > >> than the kernel. But maybe a broader "automatic" helper is useful for
+>> > >> user space code.
+>> > >
+>> > > Not sure. @Danielle: could you clarify your intention?
+>> > 
+>> > This follows the iproute2 helper, where I was asked to support >32-bit
+>> > fields purely as a service to the users, so that one helper can be used
+>> > for any integral field.
+>> 
+>> Which helper are your referring to? Is it modeled after NLA_UINT?
+>> 
+>> I don't think this patch is fine. This also returns -1ULL so there is
+>> no way to know if size is not correct or payload length is 64 bits
+>> using UINT64_MAX?
 
+That's no different from the other mnl_attr_get_uX() helpers that just
+assume the user has passed in the right attribute type.
 
->  		fprintf(stderr,
->  			"\nexample:\n"
->  			"%s=3D\"${PATH}:/lib:/usr:/proc:/etc:/dev/urandom\" "
->  			"%s=3D\"/dev/null:/dev/full:/dev/zero:/dev/pts:/tmp\" "
->  			"%s=3D\"9418\" "
->  			"%s=3D\"80:443\" "
-> +			"%s=3D\"10.2:1.1\" "
->  			"%s bash -i\n\n",
->  			ENV_FS_RO_NAME, ENV_FS_RW_NAME, ENV_TCP_BIND_NAME,
-> -			ENV_TCP_CONNECT_NAME, argv[0]);
-> +			ENV_TCP_CONNECT_NAME, ENV_SOCKET_CREATE_NAME, argv[0]);
->  		fprintf(stderr,
->  			"This sandboxer can use Landlock features "
->  			"up to ABI version %d.\n",
-> @@ -351,7 +419,11 @@ int main(const int argc, char *const argv[], char *c=
-onst *const envp)
->  	case 4:
->  		/* Removes LANDLOCK_ACCESS_FS_IOCTL_DEV for ABI < 5 */
->  		ruleset_attr.handled_access_fs &=3D ~LANDLOCK_ACCESS_FS_IOCTL_DEV;
-> -
-> +		__attribute__((fallthrough));
-> +	case 5:
-> +		/* Removes socket support for ABI < 6 */
-> +		ruleset_attr.handled_access_socket &=3D
-> +			~LANDLOCK_ACCESS_SOCKET_CREATE;
->  		fprintf(stderr,
->  			"Hint: You should update the running kernel "
->  			"to leverage Landlock features "
-> @@ -371,18 +443,23 @@ int main(const int argc, char *const argv[], char *=
-const *const envp)
->  	access_fs_rw &=3D ruleset_attr.handled_access_fs;
-> =20
->  	/* Removes bind access attribute if not supported by a user. */
-> -	env_port_name =3D getenv(ENV_TCP_BIND_NAME);
-> -	if (!env_port_name) {
-> +	env_optional_name =3D getenv(ENV_TCP_BIND_NAME);
-> +	if (!env_optional_name) {
->  		ruleset_attr.handled_access_net &=3D
->  			~LANDLOCK_ACCESS_NET_BIND_TCP;
->  	}
->  	/* Removes connect access attribute if not supported by a user. */
-> -	env_port_name =3D getenv(ENV_TCP_CONNECT_NAME);
-> -	if (!env_port_name) {
-> +	env_optional_name =3D getenv(ENV_TCP_CONNECT_NAME);
-> +	if (!env_optional_name) {
->  		ruleset_attr.handled_access_net &=3D
->  			~LANDLOCK_ACCESS_NET_CONNECT_TCP;
->  	}
-> -
-> +	/* Removes socket create access attribute if not supported by a user. *=
-/
+> I found it:
+>
+> static inline __u64 rta_getattr_uint(const struct rtattr *rta)
 
-Phrasing nit: I would say "requested by a user"?
+That's the one.
 
-(And maybe also in the two cases above)
+> This only has one user in the tree so far, right?
 
+Well, two, but yeah, the u8 / u16 stuff is not currently used.
 
-> +	env_optional_name =3D getenv(ENV_SOCKET_CREATE_NAME);
-> +	if (!env_optional_name) {
-> +		ruleset_attr.handled_access_socket &=3D
-> +			~LANDLOCK_ACCESS_SOCKET_CREATE;
-> +	}
->  	ruleset_fd =3D
->  		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
->  	if (ruleset_fd < 0) {
-> @@ -406,6 +483,11 @@ int main(const int argc, char *const argv[], char *c=
-onst *const envp)
->  		goto err_close_ruleset;
->  	}
-> =20
-> +	if (populate_ruleset_socket(ENV_SOCKET_CREATE_NAME, ruleset_fd,
-> +				    LANDLOCK_ACCESS_SOCKET_CREATE)) {
-> +		goto err_close_ruleset;
-> +	}
-> +
->  	if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0)) {
->  		perror("Failed to restrict privileges");
->  		goto err_close_ruleset;
-> --=20
-> 2.34.1
->=20
+> include/libnetlink.h:static inline __u64 rta_getattr_uint(const struct rtattr *rta)
+> ip/ipnexthop.c:                 nh_grp_stats->packets = rta_getattr_uint(rta);
+> ip/ipnexthop.c:                 nh_grp_stats->packets_hw = rta_getattr_uint(rta);
+>
+> is this attribute for ipnexthop of NLA_UINT type?
 
-As I also said on the Documentation patch, please remember to double check =
-the
-places where the ABI number is mentioned, after rebasing on Tahera's "scope=
-d"
-patches.
-
-=E2=80=94G=C3=BCnther
+Yeah, both NHA_GROUP_STATS_ENTRY_PACKETS and
+NHA_GROUP_STATS_ENTRY_PACKETS_HW are NLA_UINT.
