@@ -1,13 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2D152215F7C;
-	Wed,  2 Oct 2024 20:24:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A07DC1D0E3F;
+	Wed,  2 Oct 2024 20:24:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727900675; cv=none; b=ZlpS/BIs8YSX0rh+fE0apc3tl3c0KkrERkZVD5tr0adkkghEm8XxnTdVLY6eJ4w7D5wpE8xu6twdtJClAZ+ksMKhThlnirnjsNMZbbtqWCrKcNOljJunQov6S8XAl2EsK5jG3AFc5kzoioGNVS4mQd7crBqe6dcDyew1QT+ZytA=
+	t=1727900675; cv=none; b=aXeaPorOBphk2Puqm1dHw5G40juPz24Q6j6/rG6qG4Ko++nYxtpfZ2G3q/0aMp6HBFJpbR1Y/fRpvAOTUQiLor84tlYNaGfOcaVad1Bx5Am9kSmsGxun2eRf+tU/rAJmdPIknqqQpKzKYB7DTUiJmGlmAth7wLQ4Qam/ctdt51g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1727900675; c=relaxed/simple;
-	bh=M/wS5qOlbHxG0TKdNeWXqt/qdNOUTgl5pG06WeWEOpY=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=NtxO+t/D0vB8XrWO1z/J4m7CRIYLmvm37J0fcu65ngAgezfG5D/VLgJnAGUVYtuxXP3PY9z7ceAyAE8yA+FnOJRcpcrL0RrnvodEyHBC0Ava4+PlKg6kplvcE6693Q1Ly25SNFx+/qVJpgYbxE2F5HfTqj3rik0q3fvx9icKv4Q=
+	bh=hDKMkPdbp3S0NMC8eG9ouAjbmt8DyTriwlVAn7yftSI=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=LV78EdSHnW1+ueUDCCQLRAerves0R2cSrkv6DMvFEjr6bNILCnWymuEd32+LNvazP2yqizn49O1gRgNpXsoDlX8krFUo5R1aRnrj4g/96i9yNuK8bDn7gXE8jwhjdOeBhg+G+aH/UGqtoM27Ugubs3NsoAgZVY7nAJKS10OYtjY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -19,10 +20,12 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 0/4] Netfilter fixes for net
-Date: Wed,  2 Oct 2024 22:24:17 +0200
-Message-Id: <20241002202421.1281311-1-pablo@netfilter.org>
+Subject: [PATCH net 1/4] netfilter: uapi: NFTA_FLOWTABLE_HOOK is NLA_NESTED
+Date: Wed,  2 Oct 2024 22:24:18 +0200
+Message-Id: <20241002202421.1281311-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20241002202421.1281311-1-pablo@netfilter.org>
+References: <20241002202421.1281311-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,59 +34,30 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Phil Sutter <phil@nwl.cc>
 
-The following patchset contains Netfilter fixes for net:
+Fix the comment which incorrectly defines it as NLA_U32.
 
-1) Fix incorrect documentation in uapi/linux/netfilter/nf_tables.h
-   regarding flowtable hooks, from Phil Sutter.
+Fixes: 3b49e2e94e6e ("netfilter: nf_tables: add flow table netlink frontend")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/uapi/linux/netfilter/nf_tables.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-2) Fix nft_audit.sh selftests with newer nft binaries, due to different
-   (valid) audit output, also from Phil.
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index d6476ca5d7a6..9e9079321380 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1694,7 +1694,7 @@ enum nft_flowtable_flags {
+  *
+  * @NFTA_FLOWTABLE_TABLE: name of the table containing the expression (NLA_STRING)
+  * @NFTA_FLOWTABLE_NAME: name of this flow table (NLA_STRING)
+- * @NFTA_FLOWTABLE_HOOK: netfilter hook configuration(NLA_U32)
++ * @NFTA_FLOWTABLE_HOOK: netfilter hook configuration (NLA_NESTED)
+  * @NFTA_FLOWTABLE_USE: number of references to this flow table (NLA_U32)
+  * @NFTA_FLOWTABLE_HANDLE: object handle (NLA_U64)
+  * @NFTA_FLOWTABLE_FLAGS: flags (NLA_U32)
+-- 
+2.30.2
 
-3) Disable BH when duplicating packets via nf_dup infrastructure,
-   otherwise race on nf_skb_duplicated for locally generated traffic.
-   From Eric.
-
-4) Missing return in callback of selftest C program, from zhang jiao.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-24-10-02
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit aef3a58b06fa9d452ba863999ac34be1d0c65172:
-
-  Merge tag 'nf-24-09-26' of git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf (2024-09-26 15:47:11 +0200)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-24-10-02
-
-for you to fetch changes up to 10dbd23633f0433f8d13c2803d687b36a675ef60:
-
-  selftests: netfilter: Add missing return value (2024-09-27 13:59:12 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 24-10-02
-
-----------------------------------------------------------------
-Eric Dumazet (1):
-      netfilter: nf_tables: prevent nf_skb_duplicated corruption
-
-Phil Sutter (2):
-      netfilter: uapi: NFTA_FLOWTABLE_HOOK is NLA_NESTED
-      selftests: netfilter: Fix nft_audit.sh for newer nft binaries
-
-zhang jiao (1):
-      selftests: netfilter: Add missing return value
-
- include/uapi/linux/netfilter/nf_tables.h           |  2 +-
- net/ipv4/netfilter/nf_dup_ipv4.c                   |  7 ++-
- net/ipv6/netfilter/nf_dup_ipv6.c                   |  7 ++-
- .../selftests/net/netfilter/conntrack_dump_flush.c |  1 +
- tools/testing/selftests/net/netfilter/nft_audit.sh | 57 +++++++++++-----------
- 5 files changed, 41 insertions(+), 33 deletions(-)
