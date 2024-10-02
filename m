@@ -1,92 +1,91 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C010D1D173A
-	for <netfilter-devel@vger.kernel.org>; Wed,  2 Oct 2024 19:39:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E64E81720
+	for <netfilter-devel@vger.kernel.org>; Wed,  2 Oct 2024 19:55:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727897945; cv=none; b=DlP5VlXLKlons3Jx6dTDeEnFDWuAFk0+zxXmkHwq32C3eCnQIGExLLv7um+UKj54Uk7a5GF9SvtuGJrjwvMo3SR0Ovhqqt2HFw85Fcl1xOZ+ATEdeHKvVrKlfKvqpyPyAEQ1ZDb09M/3sS9zdpdfx7oMAv76h5aunt/pZ/h/Icw=
+	t=1727898935; cv=none; b=WXSaNL8W3nYq1oHaGOBsKIgZKMTEghfLvXGnXoCOkgQDVdUvaaTU8pAwcNcBRyj40+Fe4vCNYCfl1Dh8ql2LoJum1/tm0vuuyMJiUgM1//TRDqIHybSMywfWxLcZNdkuT+yraLwtuogAnD08k8jcTbMrOa+AQvwkEzCFumCfEKw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727897945; c=relaxed/simple;
-	bh=eLNda0Wnk+IMfrpjF6NFArZJ4iLcMpBxjUM2NkduRVU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=UFz4dDAg/XDZyQ3DtQjfdZW4gog3PAgFAhMnj1hzbx4Ih+hPDgjFQgCBEPohb2kxY7/9lS6aocRZAwBjpXf7xzhprv50DcdUthYtrbvxIdlmvqZbjJOefjVTnWGZsaTLO5vu1tMrv6xK4JXTdpaZoIY72EtrRQw9tk65lpf+pgU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=dsbraUPJ; arc=none smtp.client-ip=151.80.46.58
+	s=arc-20240116; t=1727898935; c=relaxed/simple;
+	bh=kIlL5fjI5nttF4240+DzoZ8/ofwOPLrLyvb2bGW5H8s=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=B49pKH3vUQFdRNwA2Uq+q7a6OA9wmQ3LB31MdN1FG8zKJK9zhGsBSNsg9DukEFGI2Q/pAXPQR/nWOxrgfn1lvJcEuCKaZ86TWUJ1I/XzjAkqUGAtdO5RXWO6G9LLWiplDzRymBvSCQmLoPjQU/WZJfAmjqrsMUNkDKA6zZk211k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=k26HYe7z; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="dsbraUPJ"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="k26HYe7z"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=hAZ75g/LWhELt0dEh5Q/uOCIuhCuQx4iRWkWGP75SQ4=; b=dsbraUPJvJ4E/bprmY40juoWj0
-	wthPqbkT0TNM6/Dk3Lw4vSH4R0VOtk1Q4dlvN53ag2tEEk6fAbLu9Xjjq8qARxILdxO25peFXn9m8
-	e1rvAAQZ7+VTy4G1/pACrSD56pUEdGdfxhoqw6ykF7TK5uXDiYhrj75jLcJXabeLtKKkct4xAS/tT
-	a6/o8vRidt7OFt2lL4SxOX1C7I+x0L4jZD2edytNPe/cPu34IZnnhajEKV3JXYAXEg2aAb2kAUqtO
-	bZfCd0FQDODrLlYddI9Mo/rkW34aXbgQq7zIP86Xm6svlNU+RmKPBq9WlzaqViz+Ep/vvoiEit+Nn
-	WplHIVnA==;
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	bh=b9d3WMrxp4CE/3CkLEVa7jZuncSf1sD//oyMkt5JuQ0=; b=k26HYe7zlrmrQEQ0GCpLGXx7kU
+	pHtIN7oK4KezRHNZYKfweBss0wO0ivN9sgSZK5/olty2yW/AgoDlm7TLtfIo1STPB5bFTsZwfKRy2
+	vULGF176GTATkYLiyG2b6w9ObG/bva2wM/PDguRsquKiYOcGqqJmMzy4oRmnyrE0dmo4NbcstZbK0
+	0a1rUOdIZ3j6pPXg90n5OBxfet3wvDrxHq1OeDGQEtCmspkEELz3LfYgzqKCqjZ6JNQnqbbNEY1Xf
+	5ffmTGsYEujr6R2IyvUtvlB/YG0Pj1ObN8PIGlSJ1d8oy3eygsAQ3ASv1BXYbnwYV7vDkXijXLq8C
+	vAR1LlwQ==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1sw5Be-0000000031Q-1sUT;
-	Wed, 02 Oct 2024 21:39:02 +0200
+	id 1sw5Rb-000000004Pl-3iGE;
+	Wed, 02 Oct 2024 21:55:31 +0200
+Date: Wed, 2 Oct 2024 21:55:31 +0200
 From: Phil Sutter <phil@nwl.cc>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 4/9] tests: monitor: Run in own netns
-Date: Wed,  2 Oct 2024 21:38:48 +0200
-Message-ID: <20241002193853.13818-5-phil@nwl.cc>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20241002193853.13818-1-phil@nwl.cc>
+Subject: Re: [nft PATCH 9/9] monitor: Support NFT_MSG_(NEW|DEL)DEV events
+Message-ID: <Zv2lM4oSU190U_mS@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
 References: <20241002193853.13818-1-phil@nwl.cc>
+ <20241002193853.13818-10-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20241002193853.13818-10-phil@nwl.cc>
 
-Have the script call itself prefixed by unshare. This won't prevent
-clashing test case contents, but at least leave the host netns alone.
+On Wed, Oct 02, 2024 at 09:38:53PM +0200, Phil Sutter wrote:
+[...]
+>  tests/monitor/testcases/chain-netdev.t     | 66 ++++++++++++++++++++++
+>  tests/monitor/testcases/flowtable-simple.t | 56 ++++++++++++++++++
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- tests/monitor/run-tests.sh | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+And as foretold in patch 4, the new chain-netdev.t clashes with similar
+content in flowtable-simple.t. To avoid this, both need a trivial
+adjustment:
 
-diff --git a/tests/monitor/run-tests.sh b/tests/monitor/run-tests.sh
-index f1ac790acf80c..214512d269e8d 100755
---- a/tests/monitor/run-tests.sh
-+++ b/tests/monitor/run-tests.sh
-@@ -120,6 +120,14 @@ echo_run_test() {
- 	return $rc
- }
- 
-+netns=true
-+for arg in "$@"; do
-+	[[ "$arg" == "--no-netns" ]] && netns=false
-+done
-+if $netns; then
-+	exec unshare -n $0 --no-netns "$@"
-+fi
-+
- testcases=""
- while [ -n "$1" ]; do
- 	case "$1" in
-@@ -131,6 +139,9 @@ while [ -n "$1" ]; do
- 		test_json=true
- 		shift
- 		;;
-+	--no-netns)
-+		shift
-+		;;
- 	-H|--host)
- 		nft=nft
- 		shift
--- 
-2.43.0
+diff --git a/tests/monitor/testcases/chain-netdev.t b/tests/monitor/testcases/chain-netdev.t
+index 3c004af0cd855..414040045dd20 100644
+--- a/tests/monitor/testcases/chain-netdev.t
++++ b/tests/monitor/testcases/chain-netdev.t
+@@ -48,6 +48,7 @@ I add chain netdev t c2 { type filter hook ingress devices = { wald* } priority
+ @ ip link del wild23
+ I delete chain netdev t c
+ I delete chain netdev t c2
++@ ip link del wald42
+ O add chain netdev t c { type filter hook ingress devices = { wild* } priority 0; policy accept; }
+ O add chain netdev t c2 { type filter hook ingress devices = { wald* } priority 0; policy accept; }
+ O add device chain netdev t c hook wild* { wild23 }
+diff --git a/tests/monitor/testcases/flowtable-simple.t b/tests/monitor/testcases/flowtable-simple.t
+index 113b15f20d1dc..2c82f4907ed93 100644
+--- a/tests/monitor/testcases/flowtable-simple.t
++++ b/tests/monitor/testcases/flowtable-simple.t
+@@ -48,6 +48,7 @@ I add flowtable ip t ft2 { hook ingress priority 0; devices = { wald* }; }
+ @ ip link del wild23
+ I delete flowtable ip t ft
+ I delete flowtable ip t ft2
++@ ip link del wald42
+ O add flowtable ip t ft { hook ingress priority 0; devices = { wild* }; }
+ O add flowtable ip t ft2 { hook ingress priority 0; devices = { wald* }; }
+ O add device flowtable ip t ft hook wild* { wild23 }
 
+I'll wait for feedback before including this in a v2.
+Sorry for the mess.
