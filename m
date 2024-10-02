@@ -1,44 +1,44 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A48F1D173A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F2181DB93C
 	for <netfilter-devel@vger.kernel.org>; Wed,  2 Oct 2024 19:38:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727897940; cv=none; b=tNlbb/IkdMOMuilHSmA0q6jpSLlBqbkd79LCsO8s8KWwJ5wLQgLN8p1gUiGrsCMXeTEsao/wl7zQqAPwuwxtdQ8xBtQ+jA6iS762aUIxmbgJv5M3oQtAI4gdWyNfCl4HwpgV50gr/KzWqLttmpkTP37Fq6YeZoaiBfw4EB13/V4=
+	t=1727897941; cv=none; b=keHA+M7WFWoBh3/wPAATVZPFc7UCgKW6W/y9pDPOS0fAjvXrDvy/NiU3jMEEKVyAr19cIoU9in7uxbPdWgLM7aWOOAem7bUsMiX+jky3D+MoqvrRnj25W6k0ciE4Kl7ppSVjwHDZj5yiYU5MffpOSy+sy4v/wE7roIuuwOURxMM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727897940; c=relaxed/simple;
-	bh=tkITBLXaBNCmUlQG1kOlkhIw8JVZpPiXeIE8QafDVok=;
+	s=arc-20240116; t=1727897941; c=relaxed/simple;
+	bh=zMiExvh9Mg5h60VIoDVHrkIK+Ou8E6+80mqx4GfhnWE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=sYRWKc4FllaDrzrG+APU5WZp25L6P3vw8foAgESBJzdV1KPGVS8akap7n5Trmtxj5Udk3lwFXr/2GgGziRimLEtDL1eeTRQt6FDXR1wvmvramettK3kAlprlmMpJq0Iop6ENewUNcdT3iLp09Y0sXXlYWJhQTsQXdNNhMWMgac8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=e28bWNfj; arc=none smtp.client-ip=151.80.46.58
+	 MIME-Version; b=TcUs9b0f8txGIaplsKPu1g46DWSjPYCy+m0c7TIpC6lxQ8nByGF17GSEqhcWk3oRTuUAwsDcztbk/F1TeuwyPkWZzbExgG6f3a+GsKWtzeC1868dUKNsbK6MoQ90xoaSMFPOMBNavNVCMe1HWk37uuSy55F/Kgb6d+C/+JQVw2k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=P8VjmBTs; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="e28bWNfj"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="P8VjmBTs"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=Iv0viVwM4zRZjTBOd8ED+p0XahLKdgVU0tvc17PtuQ4=; b=e28bWNfjcgwARLF5nkGN9E7E1n
-	8xsfbCcidiBz3Odnm2IrYt2sauUYXoQnbRMtOJ9T5ckXpDbs0c5ehBtNWnZqxqjamxVZR3kaFYFA/
-	on/8aldKHlDRJGdqE9RHeIyM1PFS4jbRuMcw+5xXV1NqO6ccgfFmzMHeaYA8jkHlH57X6ONXqVa1b
-	zcWIyrBOLaC+vX9QFjUqumG5pVLnU91/4fSoayypvziUJ/UdgK6TFwj12hFBXVYc/2k8ohpbhGJWr
-	PxfnUwyUozSItfL+eZPbLXLrSRH9Ud4a0I3qSd/yHbra/yys70rstZSbs7igUHHvPGbTgArHr/poI
-	YzRVtpmA==;
+	bh=Ub0ncQrXcos+Vtndci6TpolefcmtT3BLb8v5TL+7wkQ=; b=P8VjmBTswEn0GySQnBuNkvFEpD
+	UYvBS6OCB470nd73ocN47a5OU3P2GfKA+uIsp5lkECxL044JSpY7bz0nMcxBaFf4CRZyVw6QdS/fI
+	4NKheyp0puCYmon5uOab9nuVYnl+6VeH0Utd1xaGREmH6oTMq//8Sg7UvkH8UOHZghu5Q4ZJsrv1v
+	zVCL5xUHQzGTMcHkyBwPn14wCYH4TYg1GLT2tuqpWfmLvxEleEmyyzTIIsbMfUlH1f1II80+0mBF2
+	pTiijEaLSGmAGM++AcztaxR+T05DtVOGoQ8SrNc1tZHULb2G1/iSWmCY3VlXmiEk+G+ABRFNpBetf
+	axInmazA==;
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1sw5BZ-0000000030Z-3dzP;
-	Wed, 02 Oct 2024 21:38:57 +0200
+	id 1sw5Ba-0000000030e-1sY6;
+	Wed, 02 Oct 2024 21:38:58 +0200
 From: Phil Sutter <phil@nwl.cc>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 5/9] mnl: Support simple wildcards in netdev hooks
-Date: Wed,  2 Oct 2024 21:38:49 +0200
-Message-ID: <20241002193853.13818-6-phil@nwl.cc>
+Subject: [nft PATCH 8/9] tests: monitor: Support running external commands
+Date: Wed,  2 Oct 2024 21:38:52 +0200
+Message-ID: <20241002193853.13818-9-phil@nwl.cc>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20241002193853.13818-1-phil@nwl.cc>
 References: <20241002193853.13818-1-phil@nwl.cc>
@@ -50,71 +50,120 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-When building NFTA_FLOWTABLE_HOOK_DEVS, NFTA_HOOK_DEV or NFTA_HOOK_DEVS
-attributes, detect trailing asterisks in interface names and reduce
-attribute length accordingly. Kernel will use strncmp(), effectively
-performing a prefix search this way.
+Accept '@'-prefixed lines mixed in between 'I'-prefixed ones and apply
+nft input and run commands in specified ordering.
 
-Deserialization (i.e., appending asterisk to interface names which don't
-include a trailing nul-char) happens in libnftnl.
+To keep things simple, ignore such test cases when in echo mode for now.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/mnl.c | 19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ tests/monitor/run-tests.sh | 61 ++++++++++++++++++++++++++++++++++----
+ 1 file changed, 56 insertions(+), 5 deletions(-)
 
-diff --git a/src/mnl.c b/src/mnl.c
-index db53a60b43cb9..4faf027ce1027 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -787,18 +787,24 @@ static void mnl_nft_chain_devs_build(struct nlmsghdr *nlh, struct cmd *cmd)
- {
- 	const struct expr *dev_expr = cmd->chain->dev_expr;
- 	const struct nft_dev *dev_array;
-+	int i, len, num_devs = 0;
- 	struct nlattr *nest_dev;
--	int i, num_devs = 0;
- 
- 	dev_array = nft_dev_array(dev_expr, &num_devs);
- 	if (num_devs == 1) {
- 		cmd_add_loc(cmd, nlh->nlmsg_len, dev_array[0].location);
--		mnl_attr_put_strz(nlh, NFTA_HOOK_DEV, dev_array[0].ifname);
-+		len = strlen(dev_array[0].ifname) + 1;
-+		if (dev_array[0].ifname[len - 2] == '*')
-+			len -= 2;
-+		mnl_attr_put(nlh, NFTA_HOOK_DEV, len, dev_array[0].ifname);
- 	} else {
- 		nest_dev = mnl_attr_nest_start(nlh, NFTA_HOOK_DEVS);
- 		for (i = 0; i < num_devs; i++) {
- 			cmd_add_loc(cmd, nlh->nlmsg_len, dev_array[i].location);
--			mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME, dev_array[i].ifname);
-+			len = strlen(dev_array[i].ifname) + 1;
-+			if (dev_array[i].ifname[len - 2] == '*')
-+				len -= 2;
-+			mnl_attr_put(nlh, NFTA_DEVICE_NAME, len, dev_array[i].ifname);
- 			mnl_attr_nest_end(nlh, nest_dev);
- 		}
+diff --git a/tests/monitor/run-tests.sh b/tests/monitor/run-tests.sh
+index 214512d269e8d..36fc800c10520 100755
+--- a/tests/monitor/run-tests.sh
++++ b/tests/monitor/run-tests.sh
+@@ -59,6 +59,44 @@ json_output_filter() { # (filename)
+ 	# unify handle values
+ 	sed -i -e 's/\("handle":\) [0-9][0-9]*/\1 0/g' "$1"
+ }
++apply_commands_from_file() { # (command_file)
++	grep -q '^# run: ' $1 || {
++		$nft -f - <$1 || {
++			err "nft command failed!"
++			return 1
++		}
++		return 0
++	}
++	local nft_cmd=""
++	local sep=""
++	local line=""
++	while read line; do
++		[[ $line =~ ^#\ run: ]] || {
++			nft_cmd+="$sep$line"
++			sep="; "
++			continue
++		}
++		[[ -n $nft_cmd ]] && {
++			$nft -f - <<<"$nft_cmd" || {
++				err "nft command failed!"
++				return 1
++			}
++		}
++		nft_cmd=""
++		sep=""
++		${line#\# run: } || {
++			err "custom command failed!"
++			return 1
++		}
++	done <$1
++	[[ -n $nft_cmd ]] && {
++		$nft -f - <<<"$nft_cmd" || {
++			err "nft command failed!"
++			return 1
++		}
++	}
++	return 0
++}
+ monitor_run_test() {
+ 	monitor_output=$(mktemp -p $testdir)
+ 	monitor_args=""
+@@ -74,10 +112,7 @@ monitor_run_test() {
+ 		echo "command file:"
+ 		cat $command_file
  	}
-@@ -1999,14 +2005,17 @@ static void mnl_nft_ft_devs_build(struct nlmsghdr *nlh, struct cmd *cmd)
- {
- 	const struct expr *dev_expr = cmd->flowtable->dev_expr;
- 	const struct nft_dev *dev_array;
-+	int i, len, num_devs = 0;
- 	struct nlattr *nest_dev;
--	int i, num_devs= 0;
- 
- 	dev_array = nft_dev_array(dev_expr, &num_devs);
- 	nest_dev = mnl_attr_nest_start(nlh, NFTA_FLOWTABLE_HOOK_DEVS);
- 	for (i = 0; i < num_devs; i++) {
- 		cmd_add_loc(cmd, nlh->nlmsg_len, dev_array[i].location);
--		mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME, dev_array[i].ifname);
-+		len = strlen(dev_array[i].ifname) + 1;
-+		if (dev_array[i].ifname[len - 2] == '*')
-+			len -= 2;
-+		mnl_attr_put(nlh, NFTA_DEVICE_NAME, len, dev_array[i].ifname);
+-	$nft -f - <$command_file || {
+-		err "nft command failed!"
+-		rc=1
+-	}
++	apply_commands_from_file $command_file || rc=1
+ 	sleep 0.5
+ 	kill $monitor_pid
+ 	wait >/dev/null 2>&1
+@@ -103,6 +138,17 @@ echo_run_test() {
+ 		echo "command file:"
+ 		cat $command_file
  	}
++	grep -q '^# run: ' $command_file && {
++		$debug && {
++			echo "skipping unsuitable test case in command file:"
++			cat $command_file
++		}
++		rm $command_file
++		rm $output_file
++		touch $command_file
++		touch $output_file
++		return 0
++	}
+ 	$nft -nn -e -f - <$command_file >$echo_output || {
+ 		err "nft command failed!"
+ 		rc=1
+@@ -182,18 +228,23 @@ for variant in $variants; do
+ 		# O add table ip t
+ 		# I add chain ip t c
+ 		# O add chain ip t c
++		# I <nft input1>
++		# @ <command to run after nft input1>
++		# I <nft input2>
++		# O ...
  
- 	mnl_attr_nest_end(nlh, nest_dev);
+ 		$nft flush ruleset
+ 
+ 		input_complete=false
+ 		while read dir line; do
+ 			case $dir in
+-			I)
++			I|@)
+ 				$input_complete && {
+ 					$run_test
+ 					let "rc += $?"
+ 				}
+ 				input_complete=false
++				[[ $dir == '@' ]] && line="# run: $line"
+ 				cmd_append "$line"
+ 				;;
+ 			O)
 -- 
 2.43.0
 
