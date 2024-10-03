@@ -1,476 +1,177 @@
-Received: from mail-ej1-f74.google.com (mail-ej1-f74.google.com [209.85.218.74])
+Received: from mail-io1-f71.google.com (mail-io1-f71.google.com [209.85.166.71])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E56CE1DFFB
-	for <netfilter-devel@vger.kernel.org>; Thu,  3 Oct 2024 15:59:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.74
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAC8D1A7073
+	for <netfilter-devel@vger.kernel.org>; Thu,  3 Oct 2024 16:14:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.71
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727971170; cv=none; b=pfWLTtNx2fQhhIvKY3qyqR8F6lT0MP9ksHDFIexsuIKVb38kYKcsZffRfSm1ok5lyEsns3QerjIdAD1PZzJbofPAvuKdEAc7Qxpffg8etM/L3tBd8xW1Fnk0SHyEeg6mKsKKziWxkWLFQs22cSMnvQYi4eqCkmkAqFcGK11tJlc=
+	t=1727972069; cv=none; b=r0pmvJsOFdWnBQ/6hTlAMBDUwDtipil14QbjizqnG++pp2sX8PGTFxiY6AJrbUr4JrjPRiR4Lw50sFhx9ozDcWS36+zIJ9STIHjfE19w4D0CcdGzLkbYTvoPO8yPy7MC8nKBuKu1wdlzchabKep1yT1jrV2oSI075YuLek5UbGQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727971170; c=relaxed/simple;
-	bh=KxHO2XCKrP/rWiF2GVnhzdTXLhhc+5GMYqHrpmS1UOE=;
-	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=kFxm+5P/DwXOqGIjf+7+InCd4dfRGLnPWP5n5cjwPMJhoaVwr5kDpDEckMq4oslO3qpHZyqVsTE9cB2CJRUQ2DpSzqvRWbn3d86C7eNlH1uZ7qoBd9gGBQOU15PCqOTSJDvHI2lLU7Rnqb0WEZuNtLK+KmbIh6CCfY/uA0I9+uU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=pLzw8MWa; arc=none smtp.client-ip=209.85.218.74
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="pLzw8MWa"
-Received: by mail-ej1-f74.google.com with SMTP id a640c23a62f3a-a8b6ed71659so60619066b.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 03 Oct 2024 08:59:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1727971164; x=1728575964; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:from:subject:message-id:references
-         :mime-version:in-reply-to:date:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=A9TgHWHQLia5GRsXkWuEDP827SlaTWaSQAx/yquFKgA=;
-        b=pLzw8MWaIIFOXbLt7fXi4I9v0DFfukfkIlYhpR9QsvzVWiF8E6xwSDvbY8b41hTMs3
-         enccPWmVaJwpqalOoXcqSSF3cNwtSYxE9RSlKeO+wfWvWeJYnz3I6GEgGjwocdBiEfFB
-         BKCB3rzpGFZV+K4ovzcPF35lEPDtOBnDtEEty6tNGxLX1ypGhpbv1A//2emrZJBK8GGK
-         ez3BfZsEPdXOqwpK3f8UmZUn3kIBDO7xmjxRT5JTLgcq+O1I7hvkdjxM+fBlC4fLMkxe
-         bqWevgT1aD/1Is9naYBda5RUN5avDaksZjo8UTL+k3CimUb+5bhgH+nLtR/f7kpQG3XX
-         +SlA==
+	s=arc-20240116; t=1727972069; c=relaxed/simple;
+	bh=Q43Nn+nRDdSbLdmoFxzYjL6331eikpFp9tPn2TbBuiE=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=U156K4dXVSJV2kzJSEsrDi0QaictwcqqGQ+DhXux0lMf1pJsrl1o0E4TfXx0baZsco3HLy/WC0PdpGpEdZU2MKg22ac+KkbTWU2wSf1S6LyUxBKFLkwmpJ9VnqpMi1pr7nc8MW63i8+UFV4MjZxIEGXxgcOeoZA1+gGRAkFFhps=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.71
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-io1-f71.google.com with SMTP id ca18e2360f4ac-82ce3316d51so101768239f.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 03 Oct 2024 09:14:27 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1727971164; x=1728575964;
-        h=content-transfer-encoding:cc:to:from:subject:message-id:references
-         :mime-version:in-reply-to:date:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=A9TgHWHQLia5GRsXkWuEDP827SlaTWaSQAx/yquFKgA=;
-        b=k2j2K7jpP9gMKBaiSJuVUWA4FusFPMSgChl/IYTG/5RvZizmwoaw+aeQTwtvbeqJUv
-         qenMUVVyJnv5x+2X9tbvldKPNB7UB+s95ufYyaJYdPi9DlH6hsbwD0m1alfs7q9kg54D
-         o5QXgAxaTKmM1c3kSV2lA+W6xEuqgwDghHXVU+Bi83VeqF8Js4Jaz6Es8ETwuXD/QgBM
-         28X9Mmq/0ILFeAPlpGwItj56XiYkDIceaPZ60NwuOWBA1IrZOkj2a8P5YKhvB3A7KrEw
-         oI0h/D4rhYPMuwfwPllocJbL/sQk8l8vVa8xFjvrdDi6+SGeF5cy5V5Wb64mztRcFnN0
-         9BoA==
-X-Forwarded-Encrypted: i=1; AJvYcCXgon5chfI2kUnTLQZ28NFLDKymJxD+32cvqdOZ8/QCPWDfaigt51lrlGPZxUQI6tzxtcO2HPiNQwFbgO7x+n0=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx0o8Z7O/9XJEv+XXW9NfuobJ3WN47DL6LSYFrCdF4Jm5iafJ2t
-	cijRaElMfW/07i7zmYl16PRVJX5z7UfGIFIuK0HbD7y67x3wv0iMox0E3CxiSZiURcXCikL+9hS
-	UiA==
-X-Google-Smtp-Source: AGHT+IGGImLedCWhoatJh7Lpnh+FYmKsi+kl7jwvqwXwtJA6Nyjs9rQuy2+ezLZ8cy32FZfF7VNW834Ygb4=
-X-Received: from swim.c.googlers.com ([fda3:e722:ac3:cc00:31:98fb:c0a8:1605])
- (user=gnoack job=sendgmr) by 2002:a17:906:f842:b0:a8a:7c56:554c with SMTP id
- a640c23a62f3a-a98f821b538mr297966b.5.1727971156437; Thu, 03 Oct 2024 08:59:16
- -0700 (PDT)
-Date: Thu, 3 Oct 2024 17:59:14 +0200
-In-Reply-To: <20241003143932.2431249-3-ivanov.mikhail1@huawei-partners.com>
+        d=1e100.net; s=20230601; t=1727972067; x=1728576867;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=qTPs2W9AuhEyIZxezQD0f+MtBNpMI6U9HXy5kw/im2I=;
+        b=PY4XECDg1DWdSoyQZnC3k1qAOfKlMY6RQ14HNY4RBDPl6RbdGfiQ5+sJNm4WDbWe8H
+         oGARlYVB3FjVY0wLqgdAQT5ZcR2fuxntHfBkr5IH/9lkBR3iZy3WnsFtd3XLVMsQxHAL
+         V5wmkSaRPz0rbZNyoLdiWuxuKsZs+kdhu2t5cRF7D1vTRZhxuvs1x3Oqwet05Re/e01O
+         qkwVkOH1AoTXk5V4yjQmEZL/QFmvqeBzNjXfq08iizqipC38uh0DYdMy8HgL3x5qXJbo
+         j4Pz0E7MwF2LdFkMycTEPBnuAfg1OrHWNjuH8sCpYAgOMMKlm76Blj3FOEK6mqI9t99N
+         RzGg==
+X-Forwarded-Encrypted: i=1; AJvYcCWK1AFYsa8bVI4b3TMsmhFvypX0r/0sRuwsDZW3xG0Ej+I5fxCWNKO9aYW+o0fH+DKdHiUy9WysE7vAyE1Achg=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxmp/AOrId+Ea+W+BPlsN0wCLkgpmwPJZBTrWYD1zybcFjjERd3
+	PCsiGW2Yyf5EwTZ/X8hxEqxain2N7a5qqJgDN6ePjmsqdcudbog5norPSPAJzzalwhlYvmUPc/2
+	s1UXIAd1axj5whb/vO6cXylGBg9mDkgzkbEln3y/WrRliYeuOzpHCDBo=
+X-Google-Smtp-Source: AGHT+IGqxnJc4MF9EmIwdRctewFC6Fc6ArE6osuDIWG7YfiOTD0mRcrVfe8kJ86Jsy4VOJybW/Gdvar+IxAHI3CwcMMcKFy9k/d+
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-References: <20241003143932.2431249-1-ivanov.mikhail1@huawei-partners.com> <20241003143932.2431249-3-ivanov.mikhail1@huawei-partners.com>
-Message-ID: <Zv6_Uitud0OzxKTn@google.com>
-Subject: Re: [RFC PATCH v1 2/2] selftests/landlock: Test non-TCP INET
- connection-based protocols
-From: "=?utf-8?Q?G=C3=BCnther?= Noack" <gnoack@google.com>
-To: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-Cc: mic@digikod.net, willemdebruijn.kernel@gmail.com, 
-	linux-security-module@vger.kernel.org, netdev@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, yusongping@huawei.com, 
-	artem.kuzin@huawei.com, konstantin.meskhidze@huawei.com
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+X-Received: by 2002:a92:cdaf:0:b0:3a0:8d2f:2914 with SMTP id
+ e9e14a558f8ab-3a36594abadmr70909295ab.23.1727972067026; Thu, 03 Oct 2024
+ 09:14:27 -0700 (PDT)
+Date: Thu, 03 Oct 2024 09:14:26 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <66fec2e2.050a0220.9ec68.0047.GAE@google.com>
+Subject: [syzbot] [netfilter?] WARNING in xt_cluster_mt (2)
+From: syzbot <syzbot+256c348558aa5cf611a9@syzkaller.appspotmail.com>
+To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
+	kadlec@netfilter.org, kuba@kernel.org, linux-kernel@vger.kernel.org, 
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pabeni@redhat.com, 
+	pablo@netfilter.org, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-On Thu, Oct 03, 2024 at 10:39:32PM +0800, Mikhail Ivanov wrote:
-> Extend protocol fixture with test suits for MPTCP, SCTP and SMC protocols=
-.
-> Add all options required by this protocols in config.
->=20
-> Extend protocol_variant structure with protocol field (Cf. socket(2)).
->=20
-> Refactor is_restricted() helper and add few helpers to check struct
-> protocol_variant on specific protocols.
->=20
-> Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-> ---
->  tools/testing/selftests/landlock/common.h   |   1 +
->  tools/testing/selftests/landlock/config     |   5 +
->  tools/testing/selftests/landlock/net_test.c | 212 ++++++++++++++++++--
->  3 files changed, 198 insertions(+), 20 deletions(-)
->=20
-> diff --git a/tools/testing/selftests/landlock/common.h b/tools/testing/se=
-lftests/landlock/common.h
-> index 61056fa074bb..40a2def50b83 100644
-> --- a/tools/testing/selftests/landlock/common.h
-> +++ b/tools/testing/selftests/landlock/common.h
-> @@ -234,6 +234,7 @@ enforce_ruleset(struct __test_metadata *const _metada=
-ta, const int ruleset_fd)
->  struct protocol_variant {
->  	int domain;
->  	int type;
-> +	int protocol;
->  };
-> =20
->  struct service_fixture {
-> diff --git a/tools/testing/selftests/landlock/config b/tools/testing/self=
-tests/landlock/config
-> index 29af19c4e9f9..73b01d7d0881 100644
-> --- a/tools/testing/selftests/landlock/config
-> +++ b/tools/testing/selftests/landlock/config
-> @@ -1,8 +1,12 @@
->  CONFIG_CGROUPS=3Dy
->  CONFIG_CGROUP_SCHED=3Dy
->  CONFIG_INET=3Dy
-> +CONFIG_INFINIBAND=3Dy
-> +CONFIG_IP_SCTP=3Dy
->  CONFIG_IPV6=3Dy
->  CONFIG_KEYS=3Dy
-> +CONFIG_MPTCP=3Dy
-> +CONFIG_MPTCP_IPV6=3Dy
->  CONFIG_NET=3Dy
->  CONFIG_NET_NS=3Dy
->  CONFIG_OVERLAY_FS=3Dy
-> @@ -10,6 +14,7 @@ CONFIG_PROC_FS=3Dy
->  CONFIG_SECURITY=3Dy
->  CONFIG_SECURITY_LANDLOCK=3Dy
->  CONFIG_SHMEM=3Dy
-> +CONFIG_SMC=3Dy
->  CONFIG_SYSFS=3Dy
->  CONFIG_TMPFS=3Dy
->  CONFIG_TMPFS_XATTR=3Dy
-> diff --git a/tools/testing/selftests/landlock/net_test.c b/tools/testing/=
-selftests/landlock/net_test.c
-> index 4e0aeb53b225..dbe77d436281 100644
-> --- a/tools/testing/selftests/landlock/net_test.c
-> +++ b/tools/testing/selftests/landlock/net_test.c
-> @@ -36,6 +36,17 @@ enum sandbox_type {
->  	TCP_SANDBOX,
->  };
-> =20
-> +/* Checks if IPPROTO_SMC is present for compatibility reasons. */
-> +#if !defined(__alpha__) && defined(IPPROTO_SMC)
-> +#define SMC_SUPPORTED 1
-> +#else
-> +#define SMC_SUPPORTED 0
-> +#endif
-> +
-> +#ifndef IPPROTO_SMC
-> +#define IPPROTO_SMC 256
-> +#endif
-> +
->  static int set_service(struct service_fixture *const srv,
->  		       const struct protocol_variant prot,
->  		       const unsigned short index)
-> @@ -85,19 +96,37 @@ static void setup_loopback(struct __test_metadata *co=
-nst _metadata)
->  	clear_ambient_cap(_metadata, CAP_NET_ADMIN);
->  }
-> =20
-> +static bool prot_is_inet_stream(const struct protocol_variant *const pro=
-t)
-> +{
-> +	return (prot->domain =3D=3D AF_INET || prot->domain =3D=3D AF_INET6) &&
-> +	       prot->type =3D=3D SOCK_STREAM;
-> +}
-> +
-> +static bool prot_is_tcp(const struct protocol_variant *const prot)
-> +{
-> +	return prot_is_inet_stream(prot) &&
-> +	       (prot->protocol =3D=3D IPPROTO_TCP || prot->protocol =3D=3D IPPR=
-OTO_IP);
-> +}
-> +
-> +static bool prot_is_sctp(const struct protocol_variant *const prot)
-> +{
-> +	return prot_is_inet_stream(prot) && prot->protocol =3D=3D IPPROTO_SCTP;
-> +}
-> +
-> +static bool prot_is_smc(const struct protocol_variant *const prot)
-> +{
-> +	return prot_is_inet_stream(prot) && prot->protocol =3D=3D IPPROTO_SMC;
-> +}
-> +
-> +static bool prot_is_unix_stream(const struct protocol_variant *const pro=
-t)
-> +{
-> +	return prot->domain =3D=3D AF_UNIX && prot->type =3D=3D SOCK_STREAM;
-> +}
-> +
->  static bool is_restricted(const struct protocol_variant *const prot,
->  			  const enum sandbox_type sandbox)
->  {
-> -	switch (prot->domain) {
-> -	case AF_INET:
-> -	case AF_INET6:
-> -		switch (prot->type) {
-> -		case SOCK_STREAM:
-> -			return sandbox =3D=3D TCP_SANDBOX;
-> -		}
-> -		break;
-> -	}
-> -	return false;
-> +	return prot_is_tcp(prot) && sandbox =3D=3D TCP_SANDBOX;
->  }
-> =20
->  static int socket_variant(const struct service_fixture *const srv)
-> @@ -105,7 +134,7 @@ static int socket_variant(const struct service_fixtur=
-e *const srv)
->  	int ret;
-> =20
->  	ret =3D socket(srv->protocol.domain, srv->protocol.type | SOCK_CLOEXEC,
-> -		     0);
-> +		     srv->protocol.protocol);
->  	if (ret < 0)
->  		return -errno;
->  	return ret;
-> @@ -124,7 +153,7 @@ static socklen_t get_addrlen(const struct service_fix=
-ture *const srv,
->  		return sizeof(srv->ipv4_addr);
-> =20
->  	case AF_INET6:
-> -		if (minimal)
-> +		if (minimal && !prot_is_sctp(&srv->protocol))
->  			return SIN6_LEN_RFC2133;
->  		return sizeof(srv->ipv6_addr);
-> =20
-> @@ -271,6 +300,11 @@ FIXTURE_SETUP(protocol)
->  		.type =3D SOCK_STREAM,
->  	};
-> =20
-> +#if !SMC_SUPPORTED
-> +	if (prot_is_smc(&variant->prot))
-> +		SKIP(return, "SMC protocol is not supported.");
-> +#endif
-> +
->  	disable_caps(_metadata);
-> =20
->  	ASSERT_EQ(0, set_service(&self->srv0, variant->prot, 0));
-> @@ -299,6 +333,39 @@ FIXTURE_VARIANT_ADD(protocol, no_sandbox_with_ipv4_t=
-cp) {
->  	},
->  };
-> =20
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(protocol, no_sandbox_with_ipv4_mptcp) {
-> +	/* clang-format on */
-> +	.sandbox =3D NO_SANDBOX,
-> +	.prot =3D {
-> +		.domain =3D AF_INET,
-> +		.type =3D SOCK_STREAM,
-> +		.protocol =3D IPPROTO_MPTCP,
-> +	},
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(protocol, no_sandbox_with_ipv4_sctp) {
-> +	/* clang-format on */
-> +	.sandbox =3D NO_SANDBOX,
-> +	.prot =3D {
-> +		.domain =3D AF_INET,
-> +		.type =3D SOCK_STREAM,
-> +		.protocol =3D IPPROTO_SCTP,
-> +	},
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(protocol, no_sandbox_with_ipv4_smc) {
-> +	/* clang-format on */
-> +	.sandbox =3D NO_SANDBOX,
-> +	.prot =3D {
-> +		.domain =3D AF_INET,
-> +		.type =3D SOCK_STREAM,
-> +		.protocol =3D IPPROTO_SMC,
-> +	},
-> +};
-> +
->  /* clang-format off */
->  FIXTURE_VARIANT_ADD(protocol, no_sandbox_with_ipv6_tcp) {
->  	/* clang-format on */
-> @@ -309,6 +376,39 @@ FIXTURE_VARIANT_ADD(protocol, no_sandbox_with_ipv6_t=
-cp) {
->  	},
->  };
-> =20
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(protocol, no_sandbox_with_ipv6_mptcp) {
-> +	/* clang-format on */
-> +	.sandbox =3D NO_SANDBOX,
-> +	.prot =3D {
-> +		.domain =3D AF_INET6,
-> +		.type =3D SOCK_STREAM,
-> +		.protocol =3D IPPROTO_MPTCP,
-> +	},
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(protocol, no_sandbox_with_ipv6_sctp) {
-> +	/* clang-format on */
-> +	.sandbox =3D NO_SANDBOX,
-> +	.prot =3D {
-> +		.domain =3D AF_INET6,
-> +		.type =3D SOCK_STREAM,
-> +		.protocol =3D IPPROTO_SCTP,
-> +	},
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(protocol, no_sandbox_with_ipv6_smc) {
-> +	/* clang-format on */
-> +	.sandbox =3D NO_SANDBOX,
-> +	.prot =3D {
-> +		.domain =3D AF_INET6,
-> +		.type =3D SOCK_STREAM,
-> +		.protocol =3D IPPROTO_SMC,
-> +	},
-> +};
-> +
->  /* clang-format off */
->  FIXTURE_VARIANT_ADD(protocol, no_sandbox_with_ipv4_udp) {
->  	/* clang-format on */
-> @@ -359,6 +459,39 @@ FIXTURE_VARIANT_ADD(protocol, tcp_sandbox_with_ipv4_=
-tcp) {
->  	},
->  };
-> =20
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(protocol, tcp_sandbox_with_ipv4_mptcp) {
-> +	/* clang-format on */
-> +	.sandbox =3D TCP_SANDBOX,
-> +	.prot =3D {
-> +		.domain =3D AF_INET,
-> +		.type =3D SOCK_STREAM,
-> +		.protocol =3D IPPROTO_MPTCP,
-> +	},
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(protocol, tcp_sandbox_with_ipv4_sctp) {
-> +	/* clang-format on */
-> +	.sandbox =3D TCP_SANDBOX,
-> +	.prot =3D {
-> +		.domain =3D AF_INET,
-> +		.type =3D SOCK_STREAM,
-> +		.protocol =3D IPPROTO_SCTP,
-> +	},
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(protocol, tcp_sandbox_with_ipv4_smc) {
-> +	/* clang-format on */
-> +	.sandbox =3D TCP_SANDBOX,
-> +	.prot =3D {
-> +		.domain =3D AF_INET,
-> +		.type =3D SOCK_STREAM,
-> +		.protocol =3D IPPROTO_SMC,
-> +	},
-> +};
-> +
->  /* clang-format off */
->  FIXTURE_VARIANT_ADD(protocol, tcp_sandbox_with_ipv6_tcp) {
->  	/* clang-format on */
-> @@ -369,6 +502,39 @@ FIXTURE_VARIANT_ADD(protocol, tcp_sandbox_with_ipv6_=
-tcp) {
->  	},
->  };
-> =20
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(protocol, tcp_sandbox_with_ipv6_mptcp) {
-> +	/* clang-format on */
-> +	.sandbox =3D TCP_SANDBOX,
-> +	.prot =3D {
-> +		.domain =3D AF_INET6,
-> +		.type =3D SOCK_STREAM,
-> +		.protocol =3D IPPROTO_MPTCP,
-> +	},
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(protocol, tcp_sandbox_with_ipv6_sctp) {
-> +	/* clang-format on */
-> +	.sandbox =3D TCP_SANDBOX,
-> +	.prot =3D {
-> +		.domain =3D AF_INET6,
-> +		.type =3D SOCK_STREAM,
-> +		.protocol =3D IPPROTO_SCTP,
-> +	},
-> +};
-> +
-> +/* clang-format off */
-> +FIXTURE_VARIANT_ADD(protocol, tcp_sandbox_with_ipv6_smc) {
-> +	/* clang-format on */
-> +	.sandbox =3D TCP_SANDBOX,
-> +	.prot =3D {
-> +		.domain =3D AF_INET6,
-> +		.type =3D SOCK_STREAM,
-> +		.protocol =3D IPPROTO_SMC,
-> +	},
-> +};
-> +
->  /* clang-format off */
->  FIXTURE_VARIANT_ADD(protocol, tcp_sandbox_with_ipv4_udp) {
->  	/* clang-format on */
-> @@ -663,7 +829,7 @@ TEST_F(protocol, bind_unspec)
-> =20
->  	/* Allowed bind on AF_UNSPEC/INADDR_ANY. */
->  	ret =3D bind_variant(bind_fd, &self->unspec_any0);
-> -	if (variant->prot.domain =3D=3D AF_INET) {
-> +	if (variant->prot.domain =3D=3D AF_INET && !prot_is_sctp(&variant->prot=
-)) {
->  		EXPECT_EQ(0, ret)
->  		{
->  			TH_LOG("Failed to bind to unspec/any socket: %s",
-> @@ -689,7 +855,7 @@ TEST_F(protocol, bind_unspec)
-> =20
->  	/* Denied bind on AF_UNSPEC/INADDR_ANY. */
->  	ret =3D bind_variant(bind_fd, &self->unspec_any0);
-> -	if (variant->prot.domain =3D=3D AF_INET) {
-> +	if (variant->prot.domain =3D=3D AF_INET && !prot_is_sctp(&variant->prot=
-)) {
->  		if (is_restricted(&variant->prot, variant->sandbox)) {
->  			EXPECT_EQ(-EACCES, ret);
->  		} else {
-> @@ -727,6 +893,10 @@ TEST_F(protocol, connect_unspec)
->  	int bind_fd, client_fd, status;
->  	pid_t child;
-> =20
-> +	if (prot_is_smc(&variant->prot))
-> +		SKIP(return, "SMC does not properly handles disconnect "
-> +			     "in the case of fallback to TCP");
-> +
->  	/* Specific connection tests. */
->  	bind_fd =3D socket_variant(&self->srv0);
->  	ASSERT_LE(0, bind_fd);
-> @@ -769,17 +939,18 @@ TEST_F(protocol, connect_unspec)
-> =20
->  		/* Disconnects already connected socket, or set peer. */
->  		ret =3D connect_variant(connect_fd, &self->unspec_any0);
-> -		if (self->srv0.protocol.domain =3D=3D AF_UNIX &&
-> -		    self->srv0.protocol.type =3D=3D SOCK_STREAM) {
-> +		if (prot_is_unix_stream(&variant->prot)) {
->  			EXPECT_EQ(-EINVAL, ret);
-> +		} else if (prot_is_sctp(&variant->prot)) {
-> +			EXPECT_EQ(-EOPNOTSUPP, ret);
->  		} else {
->  			EXPECT_EQ(0, ret);
->  		}
-> =20
->  		/* Tries to reconnect, or set peer. */
->  		ret =3D connect_variant(connect_fd, &self->srv0);
-> -		if (self->srv0.protocol.domain =3D=3D AF_UNIX &&
-> -		    self->srv0.protocol.type =3D=3D SOCK_STREAM) {
-> +		if (prot_is_unix_stream(&variant->prot) ||
-> +		    prot_is_sctp(&variant->prot)) {
->  			EXPECT_EQ(-EISCONN, ret);
->  		} else {
->  			EXPECT_EQ(0, ret);
-> @@ -796,9 +967,10 @@ TEST_F(protocol, connect_unspec)
->  		}
-> =20
->  		ret =3D connect_variant(connect_fd, &self->unspec_any0);
-> -		if (self->srv0.protocol.domain =3D=3D AF_UNIX &&
-> -		    self->srv0.protocol.type =3D=3D SOCK_STREAM) {
-> +		if (prot_is_unix_stream(&variant->prot)) {
->  			EXPECT_EQ(-EINVAL, ret);
-> +		} else if (prot_is_sctp(&variant->prot)) {
-> +			EXPECT_EQ(-EOPNOTSUPP, ret);
->  		} else {
->  			/* Always allowed to disconnect. */
->  			EXPECT_EQ(0, ret);
-> --=20
-> 2.34.1
->=20
+Hello,
 
-Looks good.
+syzbot found the following issue on:
 
-Reviewed-by: G=C3=BCnther Noack <gnoack@google.com>
+HEAD commit:    da3ea35007d0 Linux 6.11-rc7
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=10462807980000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=61d235cb8d15001c
+dashboard link: https://syzkaller.appspot.com/bug?extid=256c348558aa5cf611a9
+compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=14462807980000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=17b21bc7980000
+
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/46118740ac64/disk-da3ea350.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/435bba6270f6/vmlinux-da3ea350.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/e93b731ca115/bzImage-da3ea350.xz
+
+Bisection is inconclusive: the first bad commit could be any of:
+
+40fc165304f0 usb: host: xhci-rcar: Add XHCI_TRUST_TX_LENGTH quirk
+e82adc1074a7 usb: typec: Fix unchecked return value
+976daf9d1199 usb: typec: tcpm: Try PD-2.0 if sink does not respond to 3.0 source-caps
+
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=1209449f980000
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+256c348558aa5cf611a9@syzkaller.appspotmail.com
+
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 11 at net/netfilter/xt_cluster.c:72 xt_cluster_is_multicast_addr net/netfilter/xt_cluster.c:72 [inline]
+WARNING: CPU: 0 PID: 11 at net/netfilter/xt_cluster.c:72 xt_cluster_mt+0x196/0x780 net/netfilter/xt_cluster.c:104
+Modules linked in:
+CPU: 0 UID: 0 PID: 11 Comm: kworker/u8:0 Not tainted 6.11.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 08/06/2024
+Workqueue: ipv6_addrconf addrconf_dad_work
+RIP: 0010:xt_cluster_is_multicast_addr net/netfilter/xt_cluster.c:72 [inline]
+RIP: 0010:xt_cluster_mt+0x196/0x780 net/netfilter/xt_cluster.c:104
+Code: f0 00 00 00 23 2b bf e0 00 00 00 89 ee e8 32 ee a1 f7 81 fd e0 00 00 00 75 1c e8 e5 e9 a1 f7 e9 83 00 00 00 e8 db e9 a1 f7 90 <0f> 0b 90 eb 0c e8 d0 e9 a1 f7 eb 05 e8 c9 e9 a1 f7 4d 8d af 80 00
+RSP: 0018:ffffc90000006c88 EFLAGS: 00010246
+RAX: ffffffff89f1a2d5 RBX: 0000000000000007 RCX: ffff88801ced3c00
+RDX: 0000000000000100 RSI: ffffffff8fd2a440 RDI: 0000000000000007
+RBP: ffffc90000006e68 R08: 0000000000000001 R09: ffffffff89f1a1c4
+R10: 0000000000000002 R11: ffff88801ced3c00 R12: dffffc0000000000
+R13: 1ffff92000159c18 R14: ffffc90000ace140 R15: ffff8880251bf280
+FS:  0000000000000000(0000) GS:ffff8880b8800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007efc6d6b6440 CR3: 000000000e734000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ ebt_do_match net/bridge/netfilter/ebtables.c:109 [inline]
+ ebt_do_table+0x174b/0x2a40 net/bridge/netfilter/ebtables.c:230
+ nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
+ nf_hook_slow+0xc3/0x220 net/netfilter/core.c:626
+ nf_hook include/linux/netfilter.h:269 [inline]
+ NF_HOOK+0x2a7/0x460 include/linux/netfilter.h:312
+ __br_forward+0x489/0x660 net/bridge/br_forward.c:115
+ br_handle_frame_finish+0x18ba/0x1fe0 net/bridge/br_input.c:215
+ br_nf_hook_thresh+0x472/0x590
+ br_nf_pre_routing_finish_ipv6+0xaa0/0xdd0
+ NF_HOOK include/linux/netfilter.h:314 [inline]
+ br_nf_pre_routing_ipv6+0x379/0x770 net/bridge/br_netfilter_ipv6.c:184
+ nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
+ nf_hook_bridge_pre net/bridge/br_input.c:277 [inline]
+ br_handle_frame+0x9fd/0x1530 net/bridge/br_input.c:424
+ __netif_receive_skb_core+0x13e8/0x4570 net/core/dev.c:5555
+ __netif_receive_skb_one_core net/core/dev.c:5659 [inline]
+ __netif_receive_skb+0x12f/0x650 net/core/dev.c:5775
+ process_backlog+0x662/0x15b0 net/core/dev.c:6108
+ __napi_poll+0xcb/0x490 net/core/dev.c:6772
+ napi_poll net/core/dev.c:6841 [inline]
+ net_rx_action+0x89b/0x1240 net/core/dev.c:6963
+ handle_softirqs+0x2c4/0x970 kernel/softirq.c:554
+ do_softirq+0x11b/0x1e0 kernel/softirq.c:455
+ </IRQ>
+ <TASK>
+ __local_bh_enable_ip+0x1bb/0x200 kernel/softirq.c:382
+ local_bh_enable include/linux/bottom_half.h:33 [inline]
+ rcu_read_unlock_bh include/linux/rcupdate.h:908 [inline]
+ __dev_queue_xmit+0x1763/0x3e90 net/core/dev.c:4450
+ neigh_output include/net/neighbour.h:542 [inline]
+ ip6_finish_output2+0x1001/0x1730 net/ipv6/ip6_output.c:141
+ ip6_finish_output+0x41e/0x810 net/ipv6/ip6_output.c:226
+ NF_HOOK include/linux/netfilter.h:314 [inline]
+ ndisc_send_skb+0xab2/0x1380 net/ipv6/ndisc.c:511
+ ndisc_send_ns+0xcc/0x160 net/ipv6/ndisc.c:669
+ addrconf_dad_work+0xb45/0x16f0 net/ipv6/addrconf.c:4282
+ process_one_work kernel/workqueue.c:3231 [inline]
+ process_scheduled_works+0xa2c/0x1830 kernel/workqueue.c:3312
+ worker_thread+0x86d/0xd10 kernel/workqueue.c:3389
+ kthread+0x2f0/0x390 kernel/kthread.c:389
+ ret_from_fork+0x4b/0x80 arch/x86/kernel/process.c:147
+ ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:244
+ </TASK>
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
