@@ -1,68 +1,97 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from a3.inai.de (a3.inai.de [144.76.212.145])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B78B6A8D2
-	for <netfilter-devel@vger.kernel.org>; Thu,  3 Oct 2024 18:38:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F7F21AB506
+	for <netfilter-devel@vger.kernel.org>; Thu,  3 Oct 2024 18:57:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=144.76.212.145
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727980693; cv=none; b=P84zgxAMih8T6/SrbKqKNilPCHx2Z3rOT4uq6OphCqHtQAm1VQyFmAG5zl+AOYlvvafF4AabrhxLy8swz+bJne8Zh5NEMBrpHWpFsSW5wrDIBy0Qd/lkp20BswpJHLmy1ZWRy/UrM7jGUrsXbx0y8ds4PFgnGsUSOlVeK3E6FQw=
+	t=1727981828; cv=none; b=puFN4yw8X7h4zJYM3vfXY4aEClDgNOolwqv8qjOJ+5+XEZhYX3gxq+AP35EC/vOFrF187Opo5mX8s0yOWI374NaoB8yWGdmVTioU5NHWCgEac2exkdY1M1Not4LsxIb2c8IDMb3vU4RI/8/fBH+TOoVw3FqceoX6Wu3+wIttSFc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727980693; c=relaxed/simple;
-	bh=ICcN1EBvAz51jrItT31p6P2w9MfqQ10cPI07baOXLIU=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Qzz/b/qL7JlNtflRfsYAfrh5Xefk9F1Kj5Jo7PeGII8hnXCEfrMi0ee8XC3YtOBBO8uziE8msEbkfFQtUeVGU3q74id3/8/kW/FoEr/b0IH7Y1tgYr+dHPYKYIFlSPJlr6mpTFjtb0SKr2i8T2uJuSyCYOD06pc5xpr5gPRQfdo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1swQiB-0005rH-SQ; Thu, 03 Oct 2024 20:38:03 +0200
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: syzkaller-bugs@googlegroups.com,
-	Florian Westphal <fw@strlen.de>,
-	syzbot+256c348558aa5cf611a9@syzkaller.appspotmail.com
-Subject: [PATCH nf] netfilter: xt_cluster: restrict to ip/ip6tables
-Date: Thu,  3 Oct 2024 20:30:46 +0200
-Message-ID: <20241003183053.8555-1-fw@strlen.de>
-X-Mailer: git-send-email 2.45.2
+	s=arc-20240116; t=1727981828; c=relaxed/simple;
+	bh=NrGyKcI8Uhc4TaixU7kdkIJzi4FSZCtcVHabJ51ZBBU=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=MpflJaG4xbMtxT1rwf/IzbsajgGAFodzhguQPvELv3lgd7ximBSFopHGPZWOe6pBmLwOstUKTSX9k42CpEi/B1qo10He5AzsycsAkGH6RfRlp0Ke4yBOcA7GdDMr2LJu9l3cTEM4U04UUwovWuls7l4ziezmf7gVhO1vXjeiR8g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=inai.de; spf=fail smtp.mailfrom=inai.de; arc=none smtp.client-ip=144.76.212.145
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=inai.de
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=inai.de
+Received: by a3.inai.de (Postfix, from userid 25121)
+	id E6D83100448A49; Thu,  3 Oct 2024 20:50:12 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by a3.inai.de (Postfix) with ESMTP id E52541100A8C0F;
+	Thu,  3 Oct 2024 20:50:12 +0200 (CEST)
+Date: Thu, 3 Oct 2024 20:50:12 +0200 (CEST)
+From: Jan Engelhardt <ej@inai.de>
+To: Florian Westphal <fw@strlen.de>
+cc: netfilter-devel@vger.kernel.org, syzkaller-bugs@googlegroups.com, 
+    syzbot+256c348558aa5cf611a9@syzkaller.appspotmail.com
+Subject: Re: [PATCH nf] netfilter: xt_cluster: enable ebtables operation?
+In-Reply-To: <20241003183053.8555-1-fw@strlen.de>
+Message-ID: <0n89n176-p660-1953-3sn7-0q4rn8359sso@vanv.qr>
+References: <20241003183053.8555-1-fw@strlen.de>
+User-Agent: Alpine 2.26 (LSU 649 2022-06-02)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 
-Restrict this match to iptables/ip6tables.
-syzbot managed to call it via ebtables:
 
- WARNING: CPU: 0 PID: 11 at net/netfilter/xt_cluster.c:72 xt_cluster_mt+0x196/0x780
- [..]
- ebt_do_table+0x174b/0x2a40
+On Thursday 2024-10-03 20:30, Florian Westphal wrote:
+>
+>Module registers to NFPROTO_UNSPEC, but it assumes ipv4/ipv6 packet
+>processing.  As this is only useful to restrict locally terminating
+>TCP/UDP traffic, reject non-ip families at rule load time.
+>
+>@@ -124,6 +124,14 @@ static int xt_cluster_mt_checkentry(const struct xt_mtchk_param *par)
+> 	struct xt_cluster_match_info *info = par->matchinfo;
+> 	int ret;
+> 
+>+	switch (par->family) {
+>+	case NFPROTO_IPV4:
+>+	case NFPROTO_IPV6:
+>+		break;
+>+	default:
+>+		return -EAFNOSUPPORT;
+>+	}
 
-Module registers to NFPROTO_UNSPEC, but it assumes ipv4/ipv6 packet
-processing.  As this is only useful to restrict locally terminating
-TCP/UDP traffic, reject non-ip families at rule load time.
+I wonder if we could just implement the logic for it.
+Like this patch [untested!]:
 
-Reported-by: syzbot+256c348558aa5cf611a9@syzkaller.appspotmail.com
-Tested-by: syzbot+256c348558aa5cf611a9@syzkaller.appspotmail.com
-Fixes: 0269ea493734 ("netfilter: xtables: add cluster match")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+
+From d534984879b9b3c4b8cf536cad1044c29b843a2d Mon Sep 17 00:00:00 2001
+From: Jan Engelhardt <jengelh@inai.de>
+Date: Thu, 3 Oct 2024 20:49:02 +0200
+Subject: [PATCH] xt_cluster: add logic for use from NFPROTO_BRIDGE
+
+Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 ---
- net/netfilter/xt_cluster.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ net/netfilter/xt_cluster.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
 diff --git a/net/netfilter/xt_cluster.c b/net/netfilter/xt_cluster.c
-index a047a545371e..fa45af1c48a9 100644
+index a047a545371e..cf4a74d68577 100644
 --- a/net/netfilter/xt_cluster.c
 +++ b/net/netfilter/xt_cluster.c
-@@ -124,6 +124,14 @@ static int xt_cluster_mt_checkentry(const struct xt_mtchk_param *par)
+@@ -68,6 +68,9 @@ xt_cluster_is_multicast_addr(const struct sk_buff *skb, u_int8_t family)
+ 	case NFPROTO_IPV6:
+ 		is_multicast = ipv6_addr_is_multicast(&ipv6_hdr(skb)->daddr);
+ 		break;
++	case NFPROTO_BRIDGE:
++		is_multicast = is_multicast_ether_addr(eth_hdr(skb)->h_dest);
++		break;
+ 	default:
+ 		WARN_ON(1);
+ 		break;
+@@ -124,6 +127,15 @@ static int xt_cluster_mt_checkentry(const struct xt_mtchk_param *par)
  	struct xt_cluster_match_info *info = par->matchinfo;
  	int ret;
  
 +	switch (par->family) {
 +	case NFPROTO_IPV4:
 +	case NFPROTO_IPV6:
++	case NFPROTO_BRIDGE:
 +		break;
 +	default:
 +		return -EAFNOSUPPORT;
@@ -72,5 +101,5 @@ index a047a545371e..fa45af1c48a9 100644
  		pr_info_ratelimited("you have exceeded the maximum number of cluster nodes (%u > %u)\n",
  				    info->total_nodes, XT_CLUSTER_NODES_MAX);
 -- 
-2.45.2
+2.46.1
 
