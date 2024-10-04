@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC17B20A5C2;
-	Fri,  4 Oct 2024 18:26:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2897F1D9686;
+	Fri,  4 Oct 2024 18:28:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728066389; cv=none; b=cPDgqmjyAobA3tvl5MFCTdeeosuG4IV7T1fFqpLpYtBFbkWGUG7Snatc1yNeOSd8WO+TOULCfd0g8YWv9j71NRQfqCNlsW0PZyZF271Vgnv2emp0xlMQ3EpV+DXCAGllRZ3xpoGZ3ZY5FlmAzKPxqsW678SFqHy2yBSTG2EHQ0w=
+	t=1728066498; cv=none; b=MHdK+SYPeYWpIvcnbG3siWdMCN251HT3oyTeol05YQ3e1N61cVEyuEzk+ZnUI6eG4/0zyepIOCQip5PCOm1Pk+luXjJEA43nvJO3FQ/Zma8BGtL4rMSREsHzLB8Wp8GphLKMFxkMqXnywZMEVf57CyarAN3ZMZ6i+M0IKbkQ/Go=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728066389; c=relaxed/simple;
+	s=arc-20240116; t=1728066498; c=relaxed/simple;
 	bh=NrzXJZDx0dptT72YikNWgimxGvTxxOJTbTzoheB5UfA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=jRguFCg4+gN7D54CZltjayGs5YzKxoVKam7NP7V5XO3L4MyHvo7qd33OEf2Gs3jN6rKtyggHgdooQ04GlpdH6q6m2LzKy/zeRc2UcF1vjVCxw5VE6K9ojMhfzQKavE4xkq4LfmI3Kok+r/9jbfinjyfhVcP4S9qWrEEi+op+oEQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=uhSI1O3p; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=FJ6J2lZVnKHaSiWfzFMr+xG2Fds539k4umXSGKpjjcsrbqy/C0MG+rDW8cy2IFNXZcx/31JOO01Bo4XCW8eAyc2hYyLD7W2SShr77KRgtQBOXosqHSTp1AQVC9ztXzd9x6RzPtKzkN/LkloHvbRIhZy8ZCWixROl26VmwSOzyTw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=em8JRunR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="uhSI1O3p"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12BCEC4CECC;
-	Fri,  4 Oct 2024 18:26:27 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="em8JRunR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75585C4CECE;
+	Fri,  4 Oct 2024 18:28:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1728066389;
+	s=k20201202; t=1728066498;
 	bh=NrzXJZDx0dptT72YikNWgimxGvTxxOJTbTzoheB5UfA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=uhSI1O3pX9mhN4kn1eRmGihl94Cfr6wbJ8A+kbSC0DmhlWJB0QQqc9TkDXhTaR7C+
-	 BGjBRvEEqayj+lminn9ebWLsyN0bY9OHXoyIgQKAICbYua6LYu5uYBo0Q6stBnFdYG
-	 Pn0FCsO+9GxkWpjgPcRrhTgjEuvQA+9/9rRcbaho/ZFiPralQt6F4a5NufQLdo4xE6
-	 5hZh7KnMSCzLrh9hF4c18c1bwxwmvsOxN3kzzM0lr6/vgFn97MGEwdRvs7rWe3URqJ
-	 mNwRAHHpeq+nBP5/pAmdq/9ei9yucwflgcK8bHpFmYgzq5MBs0pZBiXytsVHxCmqbZ
-	 YbKAnOUuJrAcQ==
+	b=em8JRunRYTQHOstMmuOt5M7fQBkoMX63efcN3pWi2iQTY75xzf1M+EukHCi/06qIQ
+	 JbgL9fG2N1oWeM1WspsdgLKm2Q2qFarEweu/Uc5RJaV7bS8scHHjECOTtyG7nq8/P9
+	 NpYxS4MN7VyxfV3sNdUYVxSNNhVrl9f4qIRt9ccF9cM9abEpSyH/C2Wv/JjG9mCIti
+	 tMdK4aF7CTfeuX10BiLRsVS2fovsU1bXiuoa+88boVFm/IP2Fx3vsjLajdeKATridu
+	 kY5wPgVas5LFU03zaQkKFUXqHG+QBhio+USBJ8aRdi/pnWHgrCE4S2/1K4fgFJfu08
+	 5eV7TY5qEk55A==
 From: Sasha Levin <sashal@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org
@@ -42,12 +42,12 @@ Cc: Simon Horman <horms@kernel.org>,
 	netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org,
 	netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.6 47/58] netfilter: nf_reject: Fix build warning when CONFIG_BRIDGE_NETFILTER=n
-Date: Fri,  4 Oct 2024 14:24:20 -0400
-Message-ID: <20241004182503.3672477-47-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.1 33/42] netfilter: nf_reject: Fix build warning when CONFIG_BRIDGE_NETFILTER=n
+Date: Fri,  4 Oct 2024 14:26:44 -0400
+Message-ID: <20241004182718.3673735-33-sashal@kernel.org>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20241004182503.3672477-1-sashal@kernel.org>
-References: <20241004182503.3672477-1-sashal@kernel.org>
+In-Reply-To: <20241004182718.3673735-1-sashal@kernel.org>
+References: <20241004182718.3673735-1-sashal@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -56,7 +56,7 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.6.54
+X-stable-base: Linux 6.1.112
 Content-Transfer-Encoding: 8bit
 
 From: Simon Horman <horms@kernel.org>
