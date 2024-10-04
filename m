@@ -1,67 +1,76 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2D0A13DDD3;
-	Fri,  4 Oct 2024 11:15:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DE2E21B424
+	for <netfilter-devel@vger.kernel.org>; Fri,  4 Oct 2024 13:18:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728040502; cv=none; b=DeoXB1rNkjYKYFF/I2ChepplcCJ9/Jw8Nf5Niy1Evg+s+BnP4QhBwd2ZbjJ70UMJVNtqlv/qfrOLPQzpd/cg2fZGVkFb7Sd1lXBO/tHIAT1Emb1Hnxm2M++86Z+lut8VwFZiFBaV3EBL5PfuBnAhtOMSl/g0ZRmkit8/jaEam0Q=
+	t=1728047920; cv=none; b=hAIf+8Rg2i52ikSXUKrefbCb5bGD2tsRJ1rWEvgLwdffDDoNkDyh2Pqv1Vk8vtmhxeSe6IrmE+S1+Vg/BQtxpe3yJ0OFIUyWu+9Vp3sZXXxTNb9upSlGDrCl52VkMBnv7c3QoEkSH7N9VGksG9q+PdRyIWw/oG7jL5ZNpccry8A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728040502; c=relaxed/simple;
-	bh=LW23ndT1CxeC4h6uYTBagZ3oCm4WR+VrDPZOUEWaIBI=;
+	s=arc-20240116; t=1728047920; c=relaxed/simple;
+	bh=JrHSIN5WNO3lr8sH/M6/+9K8Grb3fpSCldrBJYDu3i4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Mwd6jSgXxOqPglwuUugYZ1MLBm6f+U+Oa3QTDbRUVA+/FfOSk+wZzZLCUb4XvFVJXGQVNA6DMacJf/aINee/rte6nuWf9v0vaibdNyDxbL+BF4dTH9qDTKCvAn0YlBFegZe2oIIgUyJa6QOe6t+fFYC2tLOgYVI/jowKXFKXdH8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=54078 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1swgGt-00FAWP-Bk; Fri, 04 Oct 2024 13:14:57 +0200
-Date: Fri, 4 Oct 2024 13:14:54 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Justin Stitt <justinstitt@google.com>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Roopa Prabhu <roopa@nvidia.com>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	bridge@lists.linux.dev, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org,
-	Kees Cook <kees@kernel.org>
-Subject: Re: [PATCH] netfilter: nf_tables: replace deprecated strncpy with
- strscpy_pad
-Message-ID: <Zv_OLpeDYCPiPH19@calendula>
-References: <20240909-strncpy-net-bridge-netfilter-nft_meta_bridge-c-v1-1-946180aa7909@google.com>
+	 Content-Type:Content-Disposition:In-Reply-To; b=KGOMFUiY0683kQrXo/9UIRkS2de/yCghS6r+YGt4CixiTvxbsc1zw6qMTl9dvaCVcfBOAqPkeKwNqwco6EFFuSB+CLFY11xDTISHiJrAMxvn6pqnXja0p48mpHmZnfjDCyG1tYCurGFEjuB8WoZDx7J8hxtpBVHeoHYP1TVR1h0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=VyhvfPfr; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="VyhvfPfr"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=JrHSIN5WNO3lr8sH/M6/+9K8Grb3fpSCldrBJYDu3i4=; b=VyhvfPfrskEiIUXFz4fUnmZgZu
+	qjJrlJ3Rwv52zqwHGNZgnU+bEJt44EYjDRsauIZK0iXN0t0/GBVv1PbRRkKvIX/MYpOgRy9z4OmeB
+	sY4d06iIrGXotevEDgu3Ds5CAGYmugFFhk4ONw9zdLGDn7Y5opH5iwMGRTFe6jqCQ81g82YoElBIU
+	LayrDSjJSxKv7MpPdcioACjv5Orm4HnTictIluqnF2jZRCvpV+CuJ6KMNxcu7WFvgNVrVGi6gprpz
+	Aja3RzmWBNxRqXIdb81BsHRf/uwToNUMp8SbJqDqyRURHL16bSRBkCEcxjpicPAeYXKyq+Q8ROqLg
+	oJBRiE6w==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1swiCS-000000005Za-2vAZ;
+	Fri, 04 Oct 2024 15:18:28 +0200
+Date: Fri, 4 Oct 2024 15:18:28 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Duncan Roe <duncan_roe@optusnet.com.au>
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH libnetfilter_queue] build: add missing backslash to
+ build_man.sh
+Message-ID: <Zv_rJM6_dyCVA7KU@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Duncan Roe <duncan_roe@optusnet.com.au>, pablo@netfilter.org,
+	netfilter-devel@vger.kernel.org
+References: <20241004040639.14989-1-duncan_roe@optusnet.com.au>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240909-strncpy-net-bridge-netfilter-nft_meta_bridge-c-v1-1-946180aa7909@google.com>
-X-Spam-Score: -1.8 (-)
+In-Reply-To: <20241004040639.14989-1-duncan_roe@optusnet.com.au>
 
-On Mon, Sep 09, 2024 at 03:48:39PM -0700, Justin Stitt wrote:
-> strncpy() is deprecated for use on NUL-terminated destination strings [1] and
-> as such we should prefer more robust and less ambiguous string interfaces.
-> 
-> In this particular instance, the usage of strncpy() is fine and works as
-> expected. However, towards the goal of [2], we should consider replacing
-> it with an alternative as many instances of strncpy() are bug-prone. Its
-> removal from the kernel promotes better long term health for the
-> codebase.
-> 
-> The current usage of strncpy() likely just wants the NUL-padding
-> behavior offered by strncpy() and doesn't care about the
-> NUL-termination. Since the compiler doesn't know the size of @dest, we
-> can't use strtomem_pad(). Instead, use strscpy_pad() which behaves
-> functionally the same as strncpy() in this context -- as we expect
-> br_dev->name to be NUL-terminated itself.
+Hi Duncan,
 
-Applied to nf-next
+On Fri, Oct 04, 2024 at 02:06:39PM +1000, Duncan Roe wrote:
+> Search for exact match of ".RI" had a '\' to escape '.' from the regexp
+> parser but was missing another '\' to escape the 1st '\' from shell.
+> Had not yet caused a problem but might as well do things correctly.
+
+Your patch looks correct and bash(1) confirms the need for escaping:
+
+"If any part of word is quoted, the delimiter is the result of quote
+removal on word, and the lines in the here-document are not expanded. If
+word is unquoted, all lines of the here-document are subjected to
+parameter expansion, command substitution, and arithmetic expansion, the
+character sequence \<newline> is ignored, and \ must be used to quote
+the characters \, $, and `."
+
+This holds another interesting detail, though: By quoting your
+delimiter, you may disable expansion entirely which might improve
+readability in those ed commands?
+
+Cheers, Phil
