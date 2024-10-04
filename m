@@ -1,34 +1,38 @@
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C615159565
-	for <netfilter-devel@vger.kernel.org>; Fri,  4 Oct 2024 10:30:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6341B146D6E;
+	Fri,  4 Oct 2024 11:13:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728037820; cv=none; b=tMxbCs4E+8fdVMscsVBGuyadqNb9rYQXca3uXMokiD7mqifPxsV+aNZd9QX7dMJW1odjTyRHwsaFhB1qdAMPtFpb/wq6U/qPQ8p7v9+0hZNePpYM3KO/BtGolLBClQel2zVmuDiiQvOpLPUhIjfGZkFYUPu5u/a1ws/BXPc0phs=
+	t=1728040427; cv=none; b=CprRq3g3bGHQx25atY2WNOON1tB4t4IB5rRnT1v5i/PJNniV2Cv/fNNI8JZjt+dPJMh3O79QdFtcfQnbasSH5WyueCQKmGnYDjKSxu9wStvL2RQ3hCqRCgFEtIiuTCK0bo8PxzeRyARf+yQSRVRdHQ5+4qGQXmqW4Wpcqhf7XYc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728037820; c=relaxed/simple;
-	bh=hh1yIlzGXXxoQQ04PCYvd7k2KZBsi2kEUhi+D9EU0gs=;
+	s=arc-20240116; t=1728040427; c=relaxed/simple;
+	bh=l24gZDr21kjM3jQ8UIAm6vu1SP/Iy+tb7aNtN3d4/z8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=NdO+HHnzr97Zamc3Zlt1C5zRCXJGfpL4N9Q7vq9aY1gHINIAUKbx2i5LGajgTsb8NT58C1atZbaFb8/POxQd495X2KqNpT6+KlcrdXLPxXJl0Mizhpy+P2Oh2wQ2R8hULxb0EnccSuahjxdyNTjow35OS53yTRCP16C2BQRgHqY=
+	 Content-Type:Content-Disposition:In-Reply-To; b=Sd68BH8eBsy3LHFEBh+ohgwj11Y3ZUk1ojM9UmQx0wFt3quGmT4DQ/jEu9haI+hzOVlQptfxQn6YidHFSFOKDqsrhwifVLNLmDJS8MnhjbQTXrZjf6XIOAVzwNPpt6K6hKsvtRFmDRavhnW5TS30ThZ1GNxYvad8omEuTeFDWhc=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=53964 helo=gnumonks.org)
+Received: from [78.30.37.63] (port=54068 helo=gnumonks.org)
 	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <pablo@gnumonks.org>)
-	id 1swfZZ-00F7Pa-0V; Fri, 04 Oct 2024 12:30:10 +0200
-Date: Fri, 4 Oct 2024 12:30:08 +0200
+	id 1swgFf-00FASe-2W; Fri, 04 Oct 2024 13:13:41 +0200
+Date: Fri, 4 Oct 2024 13:13:38 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jan Engelhardt <ej@inai.de>
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	syzkaller-bugs@googlegroups.com,
-	syzbot+256c348558aa5cf611a9@syzkaller.appspotmail.com
-Subject: Re: [PATCH nf] netfilter: xt_cluster: enable ebtables operation?
-Message-ID: <Zv_DsCw1P0UcQvCU@calendula>
-References: <20241003183053.8555-1-fw@strlen.de>
- <0n89n176-p660-1953-3sn7-0q4rn8359sso@vanv.qr>
+To: Uros Bizjak <ubizjak@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
+Subject: Re: [PATCH v2 2/2] netfilter: nf_tables: Fix percpu address space
+ issues in nf_tables_api.c
+Message-ID: <Zv_N4vhjAw2-n6gp@calendula>
+References: <20240829154739.16691-1-ubizjak@gmail.com>
+ <20240829154739.16691-3-ubizjak@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,31 +41,28 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <0n89n176-p660-1953-3sn7-0q4rn8359sso@vanv.qr>
-X-Spam-Score: -1.9 (-)
+In-Reply-To: <20240829154739.16691-3-ubizjak@gmail.com>
+X-Spam-Score: -1.8 (-)
 
-On Thu, Oct 03, 2024 at 08:50:12PM +0200, Jan Engelhardt wrote:
+On Thu, Aug 29, 2024 at 05:29:32PM +0200, Uros Bizjak wrote:
+> Compiling nf_tables_api.c results in several sparse warnings:
 > 
-> On Thursday 2024-10-03 20:30, Florian Westphal wrote:
-> >
-> >Module registers to NFPROTO_UNSPEC, but it assumes ipv4/ipv6 packet
-> >processing.  As this is only useful to restrict locally terminating
-> >TCP/UDP traffic, reject non-ip families at rule load time.
-> >
-> >@@ -124,6 +124,14 @@ static int xt_cluster_mt_checkentry(const struct xt_mtchk_param *par)
-> > 	struct xt_cluster_match_info *info = par->matchinfo;
-> > 	int ret;
-> > 
-> >+	switch (par->family) {
-> >+	case NFPROTO_IPV4:
-> >+	case NFPROTO_IPV6:
-> >+		break;
-> >+	default:
-> >+		return -EAFNOSUPPORT;
-> >+	}
+> nf_tables_api.c:2077:31: warning: incorrect type in return expression (different address spaces)
+> nf_tables_api.c:2080:31: warning: incorrect type in return expression (different address spaces)
+> nf_tables_api.c:2084:31: warning: incorrect type in return expression (different address spaces)
 > 
-> I wonder if we could just implement the logic for it.
-> Like this patch [untested!]:
+> nf_tables_api.c:2740:23: warning: incorrect type in assignment (different address spaces)
+> nf_tables_api.c:2752:38: warning: incorrect type in assignment (different address spaces)
+> nf_tables_api.c:2798:21: warning: incorrect type in argument 1 (different address spaces)
+> 
+> Use {ERR_PTR,IS_ERR,PTR_ERR}_PCPU() macros when crossing between generic
+> and percpu address spaces and add __percpu annotation to *stats pointer
+> to fix these warnings.
+> 
+> Found by GCC's named address space checks.
+> 
+> There were no changes in the resulting object files.
 
-Thanks, I considered this too, I don't think it is worth to support
-this for ebtables, I don't have a use case for this.
+ERR_PTR,IS_ERR,PTR_ERR}_PCPU() dependency is now in nf-next.git.
+
+Applied, thanks
