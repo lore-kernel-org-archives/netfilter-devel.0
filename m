@@ -1,137 +1,264 @@
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8836B1E377A;
-	Fri,  4 Oct 2024 18:17:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91F661E7C0D;
+	Fri,  4 Oct 2024 18:20:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728065836; cv=none; b=W+joByGUxkLmnvPROyBP8+sSjfIZ9Puw9zZlKPLQSp8S6NLCnrFvLQIPRsomOW+gzBm9Zd9YaTUMb4ABx6VO5OwJhJi7EoxFJM3S02+43dS2VR7e6r5PKCvzVGlEjHaE8254DUN9gBmS41drn8XBiGJGGzf/XhceT9IZXEWjvRY=
+	t=1728066021; cv=none; b=UIQ8F7qrKx5MubrO1bracBwICFfjDvpReow+ssBCHQcHDuvX4plhQiUMd69EqTfXnmdzkWKxDbIe5Mm+NTRfIrUKxhOybcpw84pvtm1bFYHZpLMdBai8AHSY5BD0mlvRry5FrIOnHgnaCBXN2Tq7txk5pn/zLTX37ci3Rg6gtZw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728065836; c=relaxed/simple;
-	bh=+0QIs1lN858F6dyCNvNENg78JbK9LWa9tkRBTY11Skw=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=R1uyiv/qyQvb9VQD//UeVNMVc5S+xVtyTzTAQVC0gnnfZTB6A+cPj1RJaPraLT0otvtJ+re68WqeeeHMqd3ZOqDkDhABh48l0krlIVjZwn4tfcYA9BoIOjDWfbFbWSw54GDQeDCcShKric0zAZJBLUwi2CWyazwVRFuWRm+puQs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.187
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
-Received: from mail.maildlp.com (unknown [172.19.163.48])
-	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4XKxYj5Gv2zySgr;
-	Sat,  5 Oct 2024 02:15:53 +0800 (CST)
-Received: from kwepemj200016.china.huawei.com (unknown [7.202.194.28])
-	by mail.maildlp.com (Postfix) with ESMTPS id E8A4618007C;
-	Sat,  5 Oct 2024 02:17:04 +0800 (CST)
-Received: from [10.123.123.159] (10.123.123.159) by
- kwepemj200016.china.huawei.com (7.202.194.28) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Sat, 5 Oct 2024 02:17:01 +0800
-Message-ID: <0774e9f1-994f-1131-17f9-7dd8eb96738f@huawei-partners.com>
-Date: Fri, 4 Oct 2024 21:16:56 +0300
+	s=arc-20240116; t=1728066021; c=relaxed/simple;
+	bh=UoREA1gRIdfQBsHi0CWufZCyDNTMXVKrLh/hCnPluYE=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=om1yoavilzkZ3Q9xyAQ8TbeaPSIr0dDfpTkz8SJXPEfmtusFaNTllo4TMoEjkAbD8gA5DLlkVeGMvO22xzleDSduw2hCM3qGc0l64bfCPgsodtO/uGkIiLAGVjOrk2iEPrfnd6wzqfuh99mdHLPIaNI2dA+qB+D+8xfBNw/GSbY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LVsJr4fR; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LVsJr4fR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16158C4CECC;
+	Fri,  4 Oct 2024 18:20:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1728066021;
+	bh=UoREA1gRIdfQBsHi0CWufZCyDNTMXVKrLh/hCnPluYE=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=LVsJr4fRDuKRjlsZa62O0Mle2i2/hyurdg2+twosXMHDYtSQtlvGBTn02DuMKmSDt
+	 JVvEYTHLrIZUTq3gl2czv6EGhTXolqSR6b4WvmkoAAw5STwS27TG3J/48TO7OE+CiA
+	 aqGQ/KNha4KG0bPuibGTvZQbKTavDrkEI9k9WvwuFKLJsOcVik6s2hyrBf91vGNVMr
+	 gN4hFyER6M0cxlNuaOkQNk5nOlfszgqBhMW/jmIXh7Rl83t0Ca7BNtSRcn/D/FFTW7
+	 lzybInYaEG+k7UFqMhpKStGE5OoG6TGcymoBvaFet9LMtJhcy14g2woYVG7Ve4E+Zw
+	 66uVl4B2TsWtA==
+From: Sasha Levin <sashal@kernel.org>
+To: linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org
+Cc: Florian Westphal <fw@strlen.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Sasha Levin <sashal@kernel.org>,
+	kadlec@netfilter.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 6.11 59/76] netfilter: nf_nat: don't try nat source port reallocation for reverse dir clash
+Date: Fri,  4 Oct 2024 14:17:16 -0400
+Message-ID: <20241004181828.3669209-59-sashal@kernel.org>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20241004181828.3669209-1-sashal@kernel.org>
+References: <20241004181828.3669209-1-sashal@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH v1 1/2] landlock: Fix non-TCP sockets restriction
-Content-Language: ru
-To: =?UTF-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
-CC: <gnoack@google.com>, <willemdebruijn.kernel@gmail.com>,
-	<linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-	<netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-	<artem.kuzin@huawei.com>, <konstantin.meskhidze@huawei.com>, Matthieu Buffet
-	<matthieu@buffet.re>
-References: <20241003143932.2431249-1-ivanov.mikhail1@huawei-partners.com>
- <20241003143932.2431249-2-ivanov.mikhail1@huawei-partners.com>
- <20241003.wie1aiphaeCh@digikod.net>
- <8f023c51-bac1-251e-0f40-24dbe2bba729@huawei-partners.com>
- <20241004.rel9ja7IeDo4@digikod.net>
-From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-In-Reply-To: <20241004.rel9ja7IeDo4@digikod.net>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+X-stable: review
+X-Patchwork-Hint: Ignore
+X-stable-base: Linux 6.11.2
 Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: lhrpeml100004.china.huawei.com (7.191.162.219) To
- kwepemj200016.china.huawei.com (7.202.194.28)
 
-On 10/4/2024 1:13 PM, Mickaël Salaün wrote:
-> On Fri, Oct 04, 2024 at 12:30:02AM +0300, Mikhail Ivanov wrote:
->> On 10/3/2024 8:45 PM, Mickaël Salaün wrote:
->>> Please also add Matthieu in Cc for the network patch series.
->>>
->>> On Thu, Oct 03, 2024 at 10:39:31PM +0800, Mikhail Ivanov wrote:
->>>> Do not check TCP access right if socket protocol is not IPPROTO_TCP.
->>>> LANDLOCK_ACCESS_NET_BIND_TCP and LANDLOCK_ACCESS_NET_CONNECT_TCP
->>>> should not restrict bind(2) and connect(2) for non-TCP protocols
->>>> (SCTP, MPTCP, SMC).
->>>>
->>>> Closes: https://github.com/landlock-lsm/linux/issues/40
->>>> Fixes: fff69fb03dde ("landlock: Support network rules with TCP bind and connect")
->>>> Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
->>>> ---
->>>>    security/landlock/net.c | 2 +-
->>>>    1 file changed, 1 insertion(+), 1 deletion(-)
->>>>
->>>> diff --git a/security/landlock/net.c b/security/landlock/net.c
->>>> index bc3d943a7118..6f59dd98bb13 100644
->>>> --- a/security/landlock/net.c
->>>> +++ b/security/landlock/net.c
->>>> @@ -68,7 +68,7 @@ static int current_check_access_socket(struct socket *const sock,
->>>>    		return -EACCES;
->>>>    	/* Checks if it's a (potential) TCP socket. */
->>>
->>> We can extend this comment to explain that we don't use sk_is_tcp()
->>> because we need to handle the AF_UNSPEC case.
->>
->> Indeed, I'll do this.
+From: Florian Westphal <fw@strlen.de>
 
-I've noticed that we still should check sk->sk_family = AF_INET{,6}
-here (so sk_is_tcp() is suitable). AF_UNSPEC can be only related to
-addresses and we should not provide any checks (for address) if socket
-is unrestrictable (i.e. it's not TCP). It's not useful and might lead to
-error incosistency for non-TCP sockets.
+[ Upstream commit d8f84a9bc7c4e07fdc4edc00f9e868b8db974ccb ]
 
-Btw, I suppose we can improve error consistency by bringing more checks
-from INET/TCP stack. For example it may be useful to return EISCONN
-instead of EACCES while connect(2) is called on a connected socket.
+A conntrack entry can be inserted to the connection tracking table if there
+is no existing entry with an identical tuple in either direction.
 
-This should be done really carefully and only for some useful cases.
-Anyway it's not related to the current patch (since it's not a bug).
+Example:
+INITIATOR -> NAT/PAT -> RESPONDER
 
->>
->>>
->>>> -	if (sock->type != SOCK_STREAM)
->>>> +	if (sock->type != SOCK_STREAM || sock->sk->sk_protocol != IPPROTO_TCP)
->>>
->>> I think we should check sock->sk->sk_type instead of sock->type (even if
->>> it should be the same).  To make it simpler, we should only use sk in
->>> current_check_access_socket():
->>> struct sock *sk = sock->sk;
->>
->> Agreed.
->>
->>>
->>> Could you please also do s/__sk_common\.skc_/sk_/g ?
->>
->> Ofc
->>
->> Btw, there is probably incorrect read of skc_family in this function
->> [1]. I'll add READ_ONCE for sk->sk_family.
->>
->> [1] https://lore.kernel.org/all/20240202095404.183274-1-edumazet@google.com/
-> 
-> I think it should not be a bug with the current code (IPv6 -> IPV4, and
-> socket vs. sock) but we should indeed use READ_ONCE() (and add this link
-> to the commit message).
+Initiator passes through NAT/PAT ("us") and SNAT is done (saddr rewrite).
+Then, later, NAT/PAT machine itself also wants to connect to RESPONDER.
 
-ok
+This will not work if the SNAT done earlier has same IP:PORT source pair.
 
-> 
->>
->>>
->>>>    		return 0;
->>>>    	/* Checks for minimal header length to safely read sa_family. */
->>>> -- 
->>>> 2.34.1
->>>>
->>>>
->>
+Conntrack table has:
+ORIGINAL: $IP_INITATOR:$SPORT -> $IP_RESPONDER:$DPORT
+REPLY:    $IP_RESPONDER:$DPORT -> $IP_NAT:$SPORT
+
+and new locally originating connection wants:
+ORIGINAL: $IP_NAT:$SPORT -> $IP_RESPONDER:$DPORT
+REPLY:    $IP_RESPONDER:$DPORT -> $IP_NAT:$SPORT
+
+This is handled by the NAT engine which will do a source port reallocation
+for the locally originating connection that is colliding with an existing
+tuple by attempting a source port rewrite.
+
+This is done even if this new connection attempt did not go through a
+masquerade/snat rule.
+
+There is a rare race condition with connection-less protocols like UDP,
+where we do the port reallocation even though its not needed.
+
+This happens when new packets from the same, pre-existing flow are received
+in both directions at the exact same time on different CPUs after the
+conntrack table was flushed (or conntrack becomes active for first time).
+
+With strict ordering/single cpu, the first packet creates new ct entry and
+second packet is resolved as established reply packet.
+
+With parallel processing, both packets are picked up as new and both get
+their own ct entry.
+
+In this case, the 'reply' packet (picked up as ORIGINAL) can be mangled by
+NAT engine because a port collision is detected.
+
+This change isn't enough to prevent a packet drop later during
+nf_conntrack_confirm(), the existing clash resolution strategy will not
+detect such reverse clash case.  This is resolved by a followup patch.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/netfilter/nf_nat_core.c | 120 +++++++++++++++++++++++++++++++++++-
+ 1 file changed, 118 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 016c816d91cbc..c212b1b137222 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -183,7 +183,35 @@ hash_by_src(const struct net *net,
+ 	return reciprocal_scale(hash, nf_nat_htable_size);
+ }
+ 
+-/* Is this tuple already taken? (not by us) */
++/**
++ * nf_nat_used_tuple - check if proposed nat tuple clashes with existing entry
++ * @tuple: proposed NAT binding
++ * @ignored_conntrack: our (unconfirmed) conntrack entry
++ *
++ * A conntrack entry can be inserted to the connection tracking table
++ * if there is no existing entry with an identical tuple in either direction.
++ *
++ * Example:
++ * INITIATOR -> NAT/PAT -> RESPONDER
++ *
++ * INITIATOR passes through NAT/PAT ("us") and SNAT is done (saddr rewrite).
++ * Then, later, NAT/PAT itself also connects to RESPONDER.
++ *
++ * This will not work if the SNAT done earlier has same IP:PORT source pair.
++ *
++ * Conntrack table has:
++ * ORIGINAL: $IP_INITIATOR:$SPORT -> $IP_RESPONDER:$DPORT
++ * REPLY:    $IP_RESPONDER:$DPORT -> $IP_NAT:$SPORT
++ *
++ * and new locally originating connection wants:
++ * ORIGINAL: $IP_NAT:$SPORT -> $IP_RESPONDER:$DPORT
++ * REPLY:    $IP_RESPONDER:$DPORT -> $IP_NAT:$SPORT
++ *
++ * ... which would mean incoming packets cannot be distinguished between
++ * the existing and the newly added entry (identical IP_CT_DIR_REPLY tuple).
++ *
++ * @return: true if the proposed NAT mapping collides with an existing entry.
++ */
+ static int
+ nf_nat_used_tuple(const struct nf_conntrack_tuple *tuple,
+ 		  const struct nf_conn *ignored_conntrack)
+@@ -200,6 +228,94 @@ nf_nat_used_tuple(const struct nf_conntrack_tuple *tuple,
+ 	return nf_conntrack_tuple_taken(&reply, ignored_conntrack);
+ }
+ 
++static bool nf_nat_allow_clash(const struct nf_conn *ct)
++{
++	return nf_ct_l4proto_find(nf_ct_protonum(ct))->allow_clash;
++}
++
++/**
++ * nf_nat_used_tuple_new - check if to-be-inserted conntrack collides with existing entry
++ * @tuple: proposed NAT binding
++ * @ignored_ct: our (unconfirmed) conntrack entry
++ *
++ * Same as nf_nat_used_tuple, but also check for rare clash in reverse
++ * direction. Should be called only when @tuple has not been altered, i.e.
++ * @ignored_conntrack will not be subject to NAT.
++ *
++ * @return: true if the proposed NAT mapping collides with existing entry.
++ */
++static noinline bool
++nf_nat_used_tuple_new(const struct nf_conntrack_tuple *tuple,
++		      const struct nf_conn *ignored_ct)
++{
++	static const unsigned long uses_nat = IPS_NAT_MASK | IPS_SEQ_ADJUST_BIT;
++	const struct nf_conntrack_tuple_hash *thash;
++	const struct nf_conntrack_zone *zone;
++	struct nf_conn *ct;
++	bool taken = true;
++	struct net *net;
++
++	if (!nf_nat_used_tuple(tuple, ignored_ct))
++		return false;
++
++	if (!nf_nat_allow_clash(ignored_ct))
++		return true;
++
++	/* Initial choice clashes with existing conntrack.
++	 * Check for (rare) reverse collision.
++	 *
++	 * This can happen when new packets are received in both directions
++	 * at the exact same time on different CPUs.
++	 *
++	 * Without SMP, first packet creates new conntrack entry and second
++	 * packet is resolved as established reply packet.
++	 *
++	 * With parallel processing, both packets could be picked up as
++	 * new and both get their own ct entry allocated.
++	 *
++	 * If ignored_conntrack and colliding ct are not subject to NAT then
++	 * pretend the tuple is available and let later clash resolution
++	 * handle this at insertion time.
++	 *
++	 * Without it, the 'reply' packet has its source port rewritten
++	 * by nat engine.
++	 */
++	if (READ_ONCE(ignored_ct->status) & uses_nat)
++		return true;
++
++	net = nf_ct_net(ignored_ct);
++	zone = nf_ct_zone(ignored_ct);
++
++	thash = nf_conntrack_find_get(net, zone, tuple);
++	if (unlikely(!thash)) /* clashing entry went away */
++		return false;
++
++	ct = nf_ct_tuplehash_to_ctrack(thash);
++
++	/* NB: IP_CT_DIR_ORIGINAL should be impossible because
++	 * nf_nat_used_tuple() handles origin collisions.
++	 *
++	 * Handle remote chance other CPU confirmed its ct right after.
++	 */
++	if (thash->tuple.dst.dir != IP_CT_DIR_REPLY)
++		goto out;
++
++	/* clashing connection subject to NAT? Retry with new tuple. */
++	if (READ_ONCE(ct->status) & uses_nat)
++		goto out;
++
++	if (nf_ct_tuple_equal(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
++			      &ignored_ct->tuplehash[IP_CT_DIR_REPLY].tuple) &&
++	    nf_ct_tuple_equal(&ct->tuplehash[IP_CT_DIR_REPLY].tuple,
++			      &ignored_ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple)) {
++		taken = false;
++		goto out;
++	}
++out:
++	nf_ct_put(ct);
++	return taken;
++}
++
+ static bool nf_nat_may_kill(struct nf_conn *ct, unsigned long flags)
+ {
+ 	static const unsigned long flags_refuse = IPS_FIXED_TIMEOUT |
+@@ -611,7 +727,7 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 	    !(range->flags & NF_NAT_RANGE_PROTO_RANDOM_ALL)) {
+ 		/* try the original tuple first */
+ 		if (nf_in_range(orig_tuple, range)) {
+-			if (!nf_nat_used_tuple(orig_tuple, ct)) {
++			if (!nf_nat_used_tuple_new(orig_tuple, ct)) {
+ 				*tuple = *orig_tuple;
+ 				return;
+ 			}
+-- 
+2.43.0
+
