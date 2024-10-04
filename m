@@ -1,93 +1,119 @@
-Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp-bc0a.mail.infomaniak.ch (smtp-bc0a.mail.infomaniak.ch [45.157.188.10])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41E40175AD
-	for <netfilter-devel@vger.kernel.org>; Fri,  4 Oct 2024 04:06:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03C3614AD3A
+	for <netfilter-devel@vger.kernel.org>; Fri,  4 Oct 2024 10:13:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.157.188.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728014806; cv=none; b=gc7fftkZKtYE6yvbQ+CZbYnvAD9fMig0oqcnA9xhf0MdK2pDpPYB61y8UpWGC4FStA+CVmd8wLyoJtjSX2yyouPVvZxQR41aC6XZ3Ne0h6zJozwQmvmpibz3IHcQymhxE1JGDBZ+SZ0PQ0RHyTcEU2F2WbR/IaCXA+YhKpXFuGo=
+	t=1728036824; cv=none; b=F/eoOtwbAo5W5dTbBk8wGQ7cLjz/B7+KAfofjJN4+XRfoDMnP1LbPOg1s/knT2sMT6jaEnM1+FsQlMITfBDDapmZGC6L+CRTI6QbkP+FmQ2bpk81Y820hK4vfOBHqiQcU7apJ/goRUpOWty4s+YdLsRwB2TT0phhfvcNpeRUilc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728014806; c=relaxed/simple;
-	bh=SkFUGu3RJgNDAgWWtzwpSX5jwjj/+lICGgY0vj31aq4=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=ZunQHWT2uepTw4/MxA1h9bE3BG6DM3tlnsyskd9q+bk5qG9QuiR6yiuGSOaju4Kyxv4tSoOhw/ZHSHvs2W6xsQkPPCccc6mAC5SW3LsmTtlHhNXd3qQ72Q1OOVAy3Xm0u6ZVASrvdmJuxpJKzBf6w/zPWfcXAQtcTQhvkY8124Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NUPi5TH2; arc=none smtp.client-ip=209.85.214.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1728036824; c=relaxed/simple;
+	bh=bUFKWpGhuHRDtfCZqSYM/ze1RxFi/q9nGlZp5xS3B50=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=tTo6YkSHle+gj4RAtvpCDW34alwKhAYFQ9diTBSwNX/Jq6zEjeFylzXdtCPu2GWLZIVo2QZSvwJ8QdDaKfifqKOLpe0q28wuVYuu2p8gUBErRcWtltJsg3Kc14AJ9bYghVljvxW09ywYykBv2qYL8H6yIauZkVOcYyjqLLSS13c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net; spf=pass smtp.mailfrom=digikod.net; dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b=bdKx133V; arc=none smtp.client-ip=45.157.188.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=digikod.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NUPi5TH2"
-Received: by mail-pl1-f179.google.com with SMTP id d9443c01a7336-20b84bfbdfcso18889365ad.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 03 Oct 2024 21:06:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1728014805; x=1728619605; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:sender:from:to:cc:subject:date:message-id:reply-to;
-        bh=hQBl82AtYAODTlpLpocCCyvYuMbdLpJ8P3Deen4XcSw=;
-        b=NUPi5TH2z+2uLvYRDQTtxAge8SnSReFcwz6J2B93JeqIFBHUnneOOVqG0xKwcc0Alr
-         +5irmWiZ7j+jnYRATrFIv3vb1Qy4pV96DZTYLAr8kgQB2gpBbMMF4YLiRhwoGZZJIqkA
-         qdzJKxw5marKmALqr6GvFNAuPKocQX3z3xK6AKzSL4T5AUAnl40twud+TVeiX927Qt9O
-         O3wlCBwVJvwoy1IECmqVYNoYTcRNXHOh7lzYzI/nFvmew5prSsfcEQNxIy9R7OlBo8Pk
-         IkVJOyOvOUhLmo9KaI89JuDGSFyOm0VYmUF6hjg0VGScN0rkrcY7zz33ggqbxu3Wcyhc
-         IHNQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1728014805; x=1728619605;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:sender:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=hQBl82AtYAODTlpLpocCCyvYuMbdLpJ8P3Deen4XcSw=;
-        b=ApaOZlS816H3imhIyDsOKvGOSrzKYcqkBxlw5BLX04lA9eP+Lw+Z8dZLqLwjo4s6Cr
-         CV4za8nUQpr30+ChIXr9D/VoRhZC8UIWJhInYd/YTnBkAd3//54exH28HBxT7jcQYaMZ
-         9gkdkFQkC09e1R6tQ/M5R5Ste70ElZeASC8FkK2NnkTdq6XSxzBruHCfM4ozWikmdLxi
-         03EDv9qBl0OVaOldSlaI/sKUuznCNXngiH2n/iptjYEOj/t78ISicecN9n5DmWB54D0u
-         3Og7b3z5o33KgC2JFxKmovDq2A21QtZDwlY8XdhVvQFUJ/J7uWtWhe5qAj5FTfdMeluo
-         iDyg==
-X-Gm-Message-State: AOJu0YzkHF8GDo3QJ08ntFzQ1aapZZU5udfPqNivNAoibu5uiNctiPs8
-	Nrlovca2NVe52nlAxMC4vbhyoFcU+4WZ/fIRsHjyCICRho3f7w5gRD1sng==
-X-Google-Smtp-Source: AGHT+IGXKIhFUC21ykR4WkidhwXujvB0E1tgLMA/pIQBLvHd9Qv2ZnyvuuL1lu9EuZr+zHrl1seLhA==
-X-Received: by 2002:a17:903:41cb:b0:20b:a8ad:9b0c with SMTP id d9443c01a7336-20bff37b136mr21564035ad.3.1728014804590;
-        Thu, 03 Oct 2024 21:06:44 -0700 (PDT)
-Received: from slk15.local.net (n175-33-111-144.meb22.vic.optusnet.com.au. [175.33.111.144])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-20bef707115sm16027105ad.267.2024.10.03.21.06.42
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 03 Oct 2024 21:06:44 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From: Duncan Roe <duncan_roe@optusnet.com.au>
-To: pablo@netfilter.org
-Cc: netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_queue] build: add missing backslash to build_man.sh
-Date: Fri,  4 Oct 2024 14:06:39 +1000
-Message-Id: <20241004040639.14989-1-duncan_roe@optusnet.com.au>
-X-Mailer: git-send-email 2.35.8
+	dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b="bdKx133V"
+Received: from smtp-3-0001.mail.infomaniak.ch (smtp-3-0001.mail.infomaniak.ch [10.4.36.108])
+	by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4XKks740lFzJkK;
+	Fri,  4 Oct 2024 12:13:31 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=digikod.net;
+	s=20191114; t=1728036811;
+	bh=cqBQ9GK30wBQ0mr0f5EWQqndSVgF06uTkPIX5PaNsLs=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=bdKx133Vy6xqJ40PSAv+hx1dx30i9BPFY3RphqDoJPa4e9HYgxHHpc4GUz0cvXHKU
+	 I2HFhO08WqOavyPqNVcvjGdk0PHvXLOiP16v6en3RrPbZy7gyjIJvWm7lPQUOtAdbO
+	 Dt2n7HZx9XZ5weBPl0jKAm1LXV6+D7wZ6wZreG70=
+Received: from unknown by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4XKks66FGyzf58;
+	Fri,  4 Oct 2024 12:13:30 +0200 (CEST)
+Date: Fri, 4 Oct 2024 12:13:26 +0200
+From: =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
+To: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+Cc: gnoack@google.com, willemdebruijn.kernel@gmail.com, 
+	linux-security-module@vger.kernel.org, netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+	yusongping@huawei.com, artem.kuzin@huawei.com, konstantin.meskhidze@huawei.com, 
+	Matthieu Buffet <matthieu@buffet.re>
+Subject: Re: [RFC PATCH v1 1/2] landlock: Fix non-TCP sockets restriction
+Message-ID: <20241004.rel9ja7IeDo4@digikod.net>
+References: <20241003143932.2431249-1-ivanov.mikhail1@huawei-partners.com>
+ <20241003143932.2431249-2-ivanov.mikhail1@huawei-partners.com>
+ <20241003.wie1aiphaeCh@digikod.net>
+ <8f023c51-bac1-251e-0f40-24dbe2bba729@huawei-partners.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <8f023c51-bac1-251e-0f40-24dbe2bba729@huawei-partners.com>
+X-Infomaniak-Routing: alpha
 
-Search for exact match of ".RI" had a '\' to escape '.' from the regexp
-parser but was missing another '\' to escape the 1st '\' from shell.
-Had not yet caused a problem but might as well do things correctly.
+On Fri, Oct 04, 2024 at 12:30:02AM +0300, Mikhail Ivanov wrote:
+> On 10/3/2024 8:45 PM, Mickaël Salaün wrote:
+> > Please also add Matthieu in Cc for the network patch series.
+> > 
+> > On Thu, Oct 03, 2024 at 10:39:31PM +0800, Mikhail Ivanov wrote:
+> > > Do not check TCP access right if socket protocol is not IPPROTO_TCP.
+> > > LANDLOCK_ACCESS_NET_BIND_TCP and LANDLOCK_ACCESS_NET_CONNECT_TCP
+> > > should not restrict bind(2) and connect(2) for non-TCP protocols
+> > > (SCTP, MPTCP, SMC).
+> > > 
+> > > Closes: https://github.com/landlock-lsm/linux/issues/40
+> > > Fixes: fff69fb03dde ("landlock: Support network rules with TCP bind and connect")
+> > > Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+> > > ---
+> > >   security/landlock/net.c | 2 +-
+> > >   1 file changed, 1 insertion(+), 1 deletion(-)
+> > > 
+> > > diff --git a/security/landlock/net.c b/security/landlock/net.c
+> > > index bc3d943a7118..6f59dd98bb13 100644
+> > > --- a/security/landlock/net.c
+> > > +++ b/security/landlock/net.c
+> > > @@ -68,7 +68,7 @@ static int current_check_access_socket(struct socket *const sock,
+> > >   		return -EACCES;
+> > >   	/* Checks if it's a (potential) TCP socket. */
+> > 
+> > We can extend this comment to explain that we don't use sk_is_tcp()
+> > because we need to handle the AF_UNSPEC case.
+> 
+> Indeed, I'll do this.
+> 
+> > 
+> > > -	if (sock->type != SOCK_STREAM)
+> > > +	if (sock->type != SOCK_STREAM || sock->sk->sk_protocol != IPPROTO_TCP)
+> > 
+> > I think we should check sock->sk->sk_type instead of sock->type (even if
+> > it should be the same).  To make it simpler, we should only use sk in
+> > current_check_access_socket():
+> > struct sock *sk = sock->sk;
+> 
+> Agreed.
+> 
+> > 
+> > Could you please also do s/__sk_common\.skc_/sk_/g ?
+> 
+> Ofc
+> 
+> Btw, there is probably incorrect read of skc_family in this function
+> [1]. I'll add READ_ONCE for sk->sk_family.
+> 
+> [1] https://lore.kernel.org/all/20240202095404.183274-1-edumazet@google.com/
 
-Fixes: 6d17e6daa175
-Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
----
- doxygen/build_man.sh | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I think it should not be a bug with the current code (IPv6 -> IPV4, and
+socket vs. sock) but we should indeed use READ_ONCE() (and add this link
+to the commit message).
 
-diff --git a/doxygen/build_man.sh b/doxygen/build_man.sh
-index c0124e2..8f1852a 100755
---- a/doxygen/build_man.sh
-+++ b/doxygen/build_man.sh
-@@ -43,7 +43,7 @@ rename_real_pages(){
-   do
-     j=$(ed -s $i <<////
- /Functions/+1;.#
--/^\.RI/;.#
-+/^\\.RI/;.#
- .,.s/^.*\\\\fB//
- .,.s/\\\\.*//
- .,.w /dev/stdout
--- 
-2.39.4
-
+> 
+> > 
+> > >   		return 0;
+> > >   	/* Checks for minimal header length to safely read sa_family. */
+> > > -- 
+> > > 2.34.1
+> > > 
+> > > 
+> 
