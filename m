@@ -1,363 +1,119 @@
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f43.google.com (mail-ed1-f43.google.com [209.85.208.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 829A2156F54;
-	Sat,  5 Oct 2024 17:54:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 298B51798C;
+	Sat,  5 Oct 2024 18:23:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728150856; cv=none; b=gdQTpTzsF7Oa7RL0srP34w4iN9WjjQnSRxu+YUM5KyhCID3MOo+l+Tgi2ocCVRSS6DvJkCrjbwyCudiB2iqAiHroEZzrsOLqPiS0BYsS7cEK8g9hLT990Own2sw98zUMeNq1aQDd0Inzjqtb3DUy8oIv4FJsn+JVJElQ8nR1IpY=
+	t=1728152582; cv=none; b=d8vTS8MOOXokS18nOahTJu/7mbE1iSIMqDB9RW0feLvY4LrzUJKZJkhA7ldvinc24EUXTnRGRm5nk2rRQ7xhTxKcQo6tu4tU+QNGavf1pS/2wsnJN0srxr4+8rlL4QMt3P7nDsPsXrb5SF0JBcV5vhKnGPAIad/Yia2m3RJwcU0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728150856; c=relaxed/simple;
-	bh=B4Ya4cScZRzBO0sIB0J5E2IbXD2MHurV5fH20It/wQY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=hf1uBgjTYQ3CEp3Td314rGSHm/LO7j29ujUS+lctdSqOKe0BeoMq53Iq+dP8HBeWPvbcYV9SQbCvfr2fWpi84vM/RXbnFnWZjSa6sy9rasn0bmbn8vSHkOSxc8GGtez6IO2Po1IkHeAPykXBjaPygstAh7O3V33A2deB+e82e1E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.188
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
-Received: from mail.maildlp.com (unknown [172.19.163.174])
-	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4XLXzK1yxNzfclq;
-	Sun,  6 Oct 2024 01:51:41 +0800 (CST)
-Received: from kwepemj200016.china.huawei.com (unknown [7.202.194.28])
-	by mail.maildlp.com (Postfix) with ESMTPS id 473721402CA;
-	Sun,  6 Oct 2024 01:54:03 +0800 (CST)
-Received: from [10.123.123.159] (10.123.123.159) by
- kwepemj200016.china.huawei.com (7.202.194.28) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Sun, 6 Oct 2024 01:53:59 +0800
-Message-ID: <47ff2457-59e2-b08e-0bb4-5d7c70be2ad1@huawei-partners.com>
-Date: Sat, 5 Oct 2024 20:53:55 +0300
+	s=arc-20240116; t=1728152582; c=relaxed/simple;
+	bh=2vC7ZGx6N4XTlI98Fc4pDJ4we1lj8z+fyLZnvj/jHKU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=EDvbeiwntsIoeuKrR0lYxKbHnUnzbekoko9ULXrN2LkQbkt5sj9pjB+rhJ2TMFyScBkdcU7csB6GO6CK1b/rPW+wa/acog2ySgAFR6LD+8qx56u5RUg7s7tjlJVOMHZKz5WzY3r3cCq5vM6HeOfq8J5wLx4bvV7dSddhCHXMW4Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=PYgexb6c; arc=none smtp.client-ip=209.85.208.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PYgexb6c"
+Received: by mail-ed1-f43.google.com with SMTP id 4fb4d7f45d1cf-5c8af23a4fcso3762966a12.0;
+        Sat, 05 Oct 2024 11:23:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1728152579; x=1728757379; darn=vger.kernel.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=Fg2B5McyqQ1FvD0AsheeXltyP/0qxdRQE36MLXD3lfs=;
+        b=PYgexb6cS0w0gRYfCzx6cA0kjTKYGpEFp5z60M1wqCDUc5KAPQlp/QT+Bz4qsc/A+U
+         iG8ToRz4IVICUIWdb5Bjv9dZhUlLUKtfUZEIFn+gKJ8vAbKS+iRYEkzBpPMf7SqcuAXb
+         pgocRjqy/X4Aoro2bIwIwjG+8YAe6wFYSfdTijporA9escyLYcd+KgGBY2fRYGupAKd3
+         yxwq0ROrgTnyXjWz1lt6rNJNGW8WmRbxRA4y6YyZF0qL6LbzEn1vmcLTIGnNJ1fkS4BK
+         4+V97jjOC9GVAfY7T98xweYDNlGa6dIqkZceriC/TZ3+MvXssjEBc7OIg52PeNdzHXM9
+         KRKw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1728152579; x=1728757379;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=Fg2B5McyqQ1FvD0AsheeXltyP/0qxdRQE36MLXD3lfs=;
+        b=KraAmFgsQFA9RSetNF8A5nQ4Q01nejmquYJOQ64Rn1DNsaD3RCgqxuS/sK47WMsQRE
+         mwD1suTZBE9WjkEJ0wsMsuhpolEQqy54SH1BD6WcHBUJaXD5J0ET5OuMfVT/bWpiwNk1
+         /KPR4xRzlk8PyBP3HydLPdUhf+PwdMSvX3+C+Mt3k6DT1RRElB1PbjXmXQ3pOb2j70Gf
+         FGVyDm+V11Qj3MpadydZkx4vkAZNWaYOAzBbAvKt9rf5ByOcn5NoohspW7B63/7PTASh
+         5Y8/2i+9P8+gq9+y6xu6vdCstn+k4tVJd0jioCajQz19HjqfcLjkJz8OVdsn117WNTzE
+         v5VA==
+X-Forwarded-Encrypted: i=1; AJvYcCUEPOJDplTZs656cA5/W5e+pyrLfWHglELDqLdIM5qFTn7B55R4OzrjpzQbsbjh+qOdgTIOa3SwYGJ4GSAvhqza@vger.kernel.org, AJvYcCUKbZ50n/yMCl7A1xXzjBXTEFVRS9z0RHEfbo3WqzWu5yFdJadKFSPb4wjnHsYLn7tRI2n/jn6v@vger.kernel.org, AJvYcCVRtuT8P0j7Ael3o7q5bZE9hvrfuh4mAodS0SAp2f89fj/jnsjDFdhTx0I4mT9o1q8VB5nWVXpMLJWiyg3+wiheib4PXzE=@vger.kernel.org
+X-Gm-Message-State: AOJu0YydTg9fGPKq2NfDifXthMaj7FRoJ5Y8gNF4JrALfxMRM4NWCgVl
+	vQh1beQtSGDs8Xp+EWmU96mEgMHIO/etJg5D7Sz2HiY/tWj6kPPk
+X-Google-Smtp-Source: AGHT+IEbHEnpL+z00inE3UhZTdLEnCAOL3r3r6w2MDp27aZmerm+HYqUtVcDnQIBbt5MnEAUB/Ho+A==
+X-Received: by 2002:a17:906:c10f:b0:a99:4162:4e42 with SMTP id a640c23a62f3a-a994162606bmr167179366b.37.1728152579060;
+        Sat, 05 Oct 2024 11:22:59 -0700 (PDT)
+Received: from localhost ([2a02:168:59f0:1:b0ab:dd5e:5c82:86b0])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a993fd777e6sm85186766b.79.2024.10.05.11.22.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 05 Oct 2024 11:22:58 -0700 (PDT)
+Date: Sat, 5 Oct 2024 20:22:54 +0200
+From: =?iso-8859-1?Q?G=FCnther?= Noack <gnoack3000@gmail.com>
+To: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+Cc: mic@digikod.net, willemdebruijn.kernel@gmail.com,
+	linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, yusongping@huawei.com,
+	artem.kuzin@huawei.com, konstantin.meskhidze@huawei.com
+Subject: Re: [RFC PATCH v2 2/9] landlock: Support TCP listen access-control
+Message-ID: <20241005.e820f4fae74e@gnoack.org>
+References: <20240814030151.2380280-1-ivanov.mikhail1@huawei-partners.com>
+ <20240814030151.2380280-3-ivanov.mikhail1@huawei-partners.com>
+ <20241005.bd6123d170b4@gnoack.org>
+ <47ff2457-59e2-b08e-0bb4-5d7c70be2ad1@huawei-partners.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH v2 2/9] landlock: Support TCP listen access-control
-Content-Language: ru
-To: =?UTF-8?Q?G=C3=BCnther_Noack?= <gnoack3000@gmail.com>
-CC: <mic@digikod.net>, <willemdebruijn.kernel@gmail.com>,
-	<linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-	<netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-	<artem.kuzin@huawei.com>, <konstantin.meskhidze@huawei.com>
-References: <20240814030151.2380280-1-ivanov.mikhail1@huawei-partners.com>
- <20240814030151.2380280-3-ivanov.mikhail1@huawei-partners.com>
- <20241005.bd6123d170b4@gnoack.org>
-From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-In-Reply-To: <20241005.bd6123d170b4@gnoack.org>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: lhrpeml500004.china.huawei.com (7.191.163.9) To
- kwepemj200016.china.huawei.com (7.202.194.28)
+In-Reply-To: <47ff2457-59e2-b08e-0bb4-5d7c70be2ad1@huawei-partners.com>
 
-On 10/5/2024 7:56 PM, Günther Noack wrote:
-> Hello!
+On Sat, Oct 05, 2024 at 08:53:55PM +0300, Mikhail Ivanov wrote:
+> On 10/5/2024 7:56 PM, Günther Noack wrote:
+> > On Wed, Aug 14, 2024 at 11:01:44AM +0800, Mikhail Ivanov wrote:
+> > > +	port = htons(inet_sk(sk)->inet_num);
+> > > +	release_sock(sk);
+> > > +	return check_access_socket(dom, port, LANDLOCK_ACCESS_NET_LISTEN_TCP);
+> > 
+> > Nit: The last two lines could just be
+> > 
+> >    err = check_access_socket(...);
+> > 
+> > and then you would only need the release_sock(sk) call in one place.
+> > (And maybe rename the goto label accordingly.)
+> This split was done in order to not hold socket lock while doing some
+> Landlock-specific logic. It might be identical in performance to
+> your suggestion, but I thought that (1) security module should have as
+> little impact on network stack as possible and (2) it is more
+> clear that locking is performed only for a few socket state checks which
+> are not related to the access control.
 > 
-> On Wed, Aug 14, 2024 at 11:01:44AM +0800, Mikhail Ivanov wrote:
->> LANDLOCK_ACCESS_NET_BIND_TCP is useful to limit the scope of "bindable"
->> ports to forbid a malicious sandboxed process to impersonate a legitimate
->> server process. However, bind(2) might be used by (TCP) clients to set the
->> source port to a (legitimate) value. Controlling the ports that can be
->> used for listening would allow (TCP) clients to explicitly bind to ports
->> that are forbidden for listening.
->>
->> Such control is implemented with a new LANDLOCK_ACCESS_NET_LISTEN_TCP
->> access right that restricts listening on undesired ports with listen(2).
->>
->> It's worth noticing that this access right doesn't affect changing
->> backlog value using listen(2) on already listening socket.
->>
->> * Create new LANDLOCK_ACCESS_NET_LISTEN_TCP flag.
->> * Add hook to socket_listen(), which checks whether the socket is allowed
->>    to listen on a binded local port.
->> * Add check_tcp_socket_can_listen() helper, which validates socket
->>    attributes before the actual access right check.
->> * Update `struct landlock_net_port_attr` documentation with control of
->>    binding to ephemeral port with listen(2) description.
->> * Change ABI version to 6.
->>
->> Closes: https://github.com/landlock-lsm/linux/issues/15
->> Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
->> ---
->>
->> Changes since v1:
->> * Refactors 'struct landlock_net_port_attr' documentation.
->> * Fixes check_tcp_socket_can_listen() description.
->> * Adds lockdep_assert_held() into check_tcp_socket_can_listen().
->> * Minor fixes.
->> ---
->>   include/uapi/linux/landlock.h                | 26 ++++--
->>   security/landlock/limits.h                   |  2 +-
->>   security/landlock/net.c                      | 98 ++++++++++++++++++++
->>   security/landlock/syscalls.c                 |  2 +-
->>   tools/testing/selftests/landlock/base_test.c |  2 +-
->>   5 files changed, 119 insertions(+), 11 deletions(-)
->>
->> diff --git a/include/uapi/linux/landlock.h b/include/uapi/linux/landlock.h
->> index 2c8dbc74b955..f7dd6949c50b 100644
->> --- a/include/uapi/linux/landlock.h
->> +++ b/include/uapi/linux/landlock.h
->> @@ -111,14 +111,20 @@ struct landlock_net_port_attr {
->>   	/**
->>   	 * @port: Network port in host endianness.
->>   	 *
->> -	 * It should be noted that port 0 passed to :manpage:`bind(2)` will bind
->> -	 * to an available port from the ephemeral port range.  This can be
->> -	 * configured with the ``/proc/sys/net/ipv4/ip_local_port_range`` sysctl
->> -	 * (also used for IPv6).
->> +	 * Some socket operations will fall back to using a port from the ephemeral port
->> +	 * range, if no specific port is requested by the caller.  Among others, this
->> +	 * happens in the following cases:
->>   	 *
->> -	 * A Landlock rule with port 0 and the ``LANDLOCK_ACCESS_NET_BIND_TCP``
->> -	 * right means that requesting to bind on port 0 is allowed and it will
->> -	 * automatically translate to binding on the related port range.
->> +	 * - :manpage:`bind(2)` is invoked with a socket address that uses port 0.
->> +	 * - :manpage:`listen(2)` is invoked on a socket without previously calling
->> +	 *   :manpage:`bind(2)`.
->> +	 *
->> +	 * These two actions, which implicitly use an ephemeral port, can be allowed with
->> +	 * a Landlock rule with port 0 and the ``LANDLOCK_ACCESS_NET_BIND_TCP`` /
->> +	 * ``LANDLOCK_ACCESS_NET_LISTEN_TCP`` right.
->> +	 *
->> +	 * The ephemeral port range is configured in the
->> +	 * ``/proc/sys/net/ipv4/ip_local_port_range`` sysctl (also used for IPv6).
->>   	 */
->>   	__u64 port;
->>   };
->> @@ -259,7 +265,7 @@ struct landlock_net_port_attr {
->>    * DOC: net_access
->>    *
->>    * Network flags
->> - * ~~~~~~~~~~~~~~~~
->> + * ~~~~~~~~~~~~~
->>    *
->>    * These flags enable to restrict a sandboxed process to a set of network
->>    * actions. This is supported since the Landlock ABI version 4.
->> @@ -269,9 +275,13 @@ struct landlock_net_port_attr {
->>    * - %LANDLOCK_ACCESS_NET_BIND_TCP: Bind a TCP socket to a local port.
->>    * - %LANDLOCK_ACCESS_NET_CONNECT_TCP: Connect an active TCP socket to
->>    *   a remote port.
->> + * - %LANDLOCK_ACCESS_NET_LISTEN_TCP: Listen for TCP socket connections on
->> + *   a local port. This access right is available since the sixth version
->> + *   of the Landlock ABI.
->>    */
->>   /* clang-format off */
->>   #define LANDLOCK_ACCESS_NET_BIND_TCP			(1ULL << 0)
->>   #define LANDLOCK_ACCESS_NET_CONNECT_TCP			(1ULL << 1)
->> +#define LANDLOCK_ACCESS_NET_LISTEN_TCP			(1ULL << 2)
->>   /* clang-format on */
->>   #endif /* _UAPI_LINUX_LANDLOCK_H */
->> diff --git a/security/landlock/limits.h b/security/landlock/limits.h
->> index 4eb643077a2a..2ef147389474 100644
->> --- a/security/landlock/limits.h
->> +++ b/security/landlock/limits.h
->> @@ -22,7 +22,7 @@
->>   #define LANDLOCK_MASK_ACCESS_FS		((LANDLOCK_LAST_ACCESS_FS << 1) - 1)
->>   #define LANDLOCK_NUM_ACCESS_FS		__const_hweight64(LANDLOCK_MASK_ACCESS_FS)
->>   
->> -#define LANDLOCK_LAST_ACCESS_NET	LANDLOCK_ACCESS_NET_CONNECT_TCP
->> +#define LANDLOCK_LAST_ACCESS_NET	LANDLOCK_ACCESS_NET_LISTEN_TCP
->>   #define LANDLOCK_MASK_ACCESS_NET	((LANDLOCK_LAST_ACCESS_NET << 1) - 1)
->>   #define LANDLOCK_NUM_ACCESS_NET		__const_hweight64(LANDLOCK_MASK_ACCESS_NET)
->>   
->> diff --git a/security/landlock/net.c b/security/landlock/net.c
->> index 669ba260342f..0e494b46d086 100644
->> --- a/security/landlock/net.c
->> +++ b/security/landlock/net.c
->> @@ -6,10 +6,12 @@
->>    * Copyright © 2022-2023 Microsoft Corporation
->>    */
->>   
->> +#include <net/sock.h>
->>   #include <linux/in.h>
->>   #include <linux/net.h>
->>   #include <linux/socket.h>
->>   #include <net/ipv6.h>
->> +#include <net/tcp.h>
->>   
->>   #include "common.h"
->>   #include "cred.h"
->> @@ -194,9 +196,105 @@ static int hook_socket_connect(struct socket *const sock,
->>   					   LANDLOCK_ACCESS_NET_CONNECT_TCP);
->>   }
->>   
->> +/*
->> + * Checks that socket state and attributes are correct for listen.
->> + * Returns 0 on success and -EINVAL otherwise.
->> + *
->> + * This checker requires sock->sk to be locked.
->> + */
->> +static int check_tcp_socket_can_listen(struct socket *const sock)
->> +{
->> +	struct sock *sk = sock->sk;
->> +	unsigned char cur_sk_state;
->> +	const struct tcp_ulp_ops *icsk_ulp_ops;
->> +
->> +	lockdep_assert_held(&sk->sk_lock.slock);
->> +
->> +	/* Allows only unconnected TCP socket to listen (cf. inet_listen). */
->> +	if (sock->state != SS_UNCONNECTED)
->> +		return -EINVAL;
->> +
->> +	cur_sk_state = sk->sk_state;
->> +	/*
->> +	 * Checks sock state. This is needed to ensure consistency with inet stack
->> +	 * error handling (cf. __inet_listen_sk).
->> +	 */
->> +	if (WARN_ON_ONCE(!((1 << cur_sk_state) & (TCPF_CLOSE | TCPF_LISTEN))))
->> +		return -EINVAL;
->> +
->> +	icsk_ulp_ops = inet_csk(sk)->icsk_ulp_ops;
->> +
->> +	/*
->> +	 * ULP (Upper Layer Protocol) stands for protocols which are higher than
->> +	 * transport protocol in OSI model. Linux has an infrastructure that
->> +	 * allows TCP sockets to support logic of some ULP (e.g. TLS ULP).
->> +	 *
->> +	 * Sockets can listen only if ULP control hook has clone method
->> +	 * (cf. inet_csk_listen_start)
->> +	 */
->> +	if (icsk_ulp_ops && !icsk_ulp_ops->clone)
->> +		return -EINVAL;
->> +	return 0;
->> +}
->> +
->> +static int hook_socket_listen(struct socket *const sock, const int backlog)
->> +{
->> +	int err = 0;
->> +	int family;
->> +	__be16 port;
->> +	struct sock *sk;
->> +	const struct landlock_ruleset *const dom = get_current_net_domain();
->> +
->> +	if (!dom)
->> +		return 0;
->> +	if (WARN_ON_ONCE(dom->num_layers < 1))
->> +		return -EACCES;
->> +
->> +	/* Checks if it's a (potential) TCP socket. */
->> +	if (sock->type != SOCK_STREAM)
->> +		return 0;
->> +
->> +	sk = sock->sk;
->> +	family = sk->__sk_common.skc_family;
->> +	/*
->> +	 * Socket cannot be assigned AF_UNSPEC because this type is used only
->> +	 * in the context of addresses.
->> +	 *
->> +	 * Doesn't restrict listening for non-TCP sockets.
->> +	 */
->> +	if (family != AF_INET && family != AF_INET6)
->> +		return 0;
-> 
-> I imagine that we'll need the "protocol" comparison as well, in line
-> with your fix for the bind() and connect() functionality at
-> https://lore.kernel.org/all/20241003143932.2431249-1-ivanov.mikhail1@huawei-partners.com/
-> ?
+> I'll add this explanation with a comment if you agree that everything is
+> correct.
 
-Yes, this check (and one above for SOCK_STREAM) should be replaced with
-sk_is_tcp() [1].
 
-[1] 
-https://lore.kernel.org/all/0774e9f1-994f-1131-17f9-7dd8eb96738f@huawei-partners.com/
+IMHO, when you grab a lock in this function, it is clear that you'd
+unconditionally want to release it before you return from the
+function, and that in C, the normal way to guarantee unconditional
+cleanup work would be to apply the "single exit point" rule.
 
-> 
->> +
->> +	lock_sock(sk);
-> 
-> The socket gets locked twice when doing listen() -- first it is locked
-> by the security hook, then released again, then locked again by the
-> actual listen() implementation and then released again.
-> 
-> What if the protected values change in between the two times when the
-> lock is held?  What is the reasoning for why this is safe?  (This
-> might be worth a comment in the code to explain, IMHO.)
+That being said, the scenario is simple enough here that it's not a
+big issue in my eyes.  It was more of a minor nit about having more
+than one place where the lock has to be released.  Either way is fine
+(and also should not require excessive comments :)).
 
-If some of these values change, inet_listen() will simply return
-the appropriate error code (consistent with these checks). Since
-hook_socket_listen() does not cause any socket changes, this scenario is
-equivalent to a normal listen(2) call.
+> > > +
+> > > +release_nocheck:
+> > > +	release_sock(sk);
+> > > +	return err;
+> > > +}
 
-I'll add an appropriate comment, thanks!
-
-> 
->> +	/*
->> +	 * Calling listen(2) for a listening socket does nothing with its state and
->> +	 * only changes backlog value (cf. __inet_listen_sk). Checking of listen
->> +	 * access right is not required.
->> +	 */
->> +	if (sk->sk_state == TCP_LISTEN)
->> +		goto release_nocheck;
->> +
->> +	/*
->> +	 * Checks socket state to not wrongfully return -EACCES instead
->> +	 * of -EINVAL.
->> +	 */
->> +	err = check_tcp_socket_can_listen(sock);
->> +	if (unlikely(err))
->> +		goto release_nocheck;
->> +
->> +	port = htons(inet_sk(sk)->inet_num);
->> +	release_sock(sk);
->> +	return check_access_socket(dom, port, LANDLOCK_ACCESS_NET_LISTEN_TCP);
-> 
-> Nit: The last two lines could just be
-> 
->    err = check_access_socket(...);
-> 
-> and then you would only need the release_sock(sk) call in one place.
-> (And maybe rename the goto label accordingly.)
-This split was done in order to not hold socket lock while doing some
-Landlock-specific logic. It might be identical in performance to
-your suggestion, but I thought that (1) security module should have as
-little impact on network stack as possible and (2) it is more
-clear that locking is performed only for a few socket state checks which
-are not related to the access control.
-
-I'll add this explanation with a comment if you agree that everything is
-correct.
-
-> 
->> +
->> +release_nocheck:
->> +	release_sock(sk);
->> +	return err;
->> +}
->> +
->>   static struct security_hook_list landlock_hooks[] __ro_after_init = {
->>   	LSM_HOOK_INIT(socket_bind, hook_socket_bind),
->>   	LSM_HOOK_INIT(socket_connect, hook_socket_connect),
->> +	LSM_HOOK_INIT(socket_listen, hook_socket_listen),
->>   };
->>   
->>   __init void landlock_add_net_hooks(void)
->> diff --git a/security/landlock/syscalls.c b/security/landlock/syscalls.c
->> index ccc8bc6c1584..328198e8a9f5 100644
->> --- a/security/landlock/syscalls.c
->> +++ b/security/landlock/syscalls.c
->> @@ -149,7 +149,7 @@ static const struct file_operations ruleset_fops = {
->>   	.write = fop_dummy_write,
->>   };
->>   
->> -#define LANDLOCK_ABI_VERSION 5
->> +#define LANDLOCK_ABI_VERSION 6
->>   
->>   /**
->>    * sys_landlock_create_ruleset - Create a new ruleset
->> diff --git a/tools/testing/selftests/landlock/base_test.c b/tools/testing/selftests/landlock/base_test.c
->> index 3b26bf3cf5b9..1bc16fde2e8a 100644
->> --- a/tools/testing/selftests/landlock/base_test.c
->> +++ b/tools/testing/selftests/landlock/base_test.c
->> @@ -76,7 +76,7 @@ TEST(abi_version)
->>   	const struct landlock_ruleset_attr ruleset_attr = {
->>   		.handled_access_fs = LANDLOCK_ACCESS_FS_READ_FILE,
->>   	};
->> -	ASSERT_EQ(5, landlock_create_ruleset(NULL, 0,
->> +	ASSERT_EQ(6, landlock_create_ruleset(NULL, 0,
->>   					     LANDLOCK_CREATE_RULESET_VERSION));
->>   
->>   	ASSERT_EQ(-1, landlock_create_ruleset(&ruleset_attr, 0,
->> -- 
->> 2.34.1
->>
+–Günther
