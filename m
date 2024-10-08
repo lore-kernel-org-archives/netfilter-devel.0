@@ -1,93 +1,81 @@
-Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCA4618BC19
-	for <netfilter-devel@vger.kernel.org>; Mon,  7 Oct 2024 22:50:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99B881DDC15
+	for <netfilter-devel@vger.kernel.org>; Tue,  8 Oct 2024 11:34:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728341447; cv=none; b=VMUNoVvbM35BNvjqw5GFOs3iamsT2iDVdWX96qa6I8NXR9X7HYnBytyP/cXrOAlbvw8ALGSULOjuJdkkKRhjaYAbPKWZNfh4S/TdwMv0468AFihYt+qzcBC6sBWeUIsN5WWgBJOC99Dwn27jwAXNZRHuf9/5gpNgsIuGuBtAIfY=
+	t=1728387293; cv=none; b=qyOJicU4GjmRS4/LrCfTwPyRTmocAKiDzSbiEOreg1j9eIHn21//3hHUbtGJxv15mXCtvg0Val4ojtqn0bJahsr32qV24qDl9e0QVycV8sFxBfcrvskQHIPwuVHbqzuvKlDyxPfEzitBxoEgc5N4oiAFHSMtbpRBoduM5ViiH34=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728341447; c=relaxed/simple;
-	bh=916ByeMBhbwhUpLrqm9a5f7EyTxTlZPsB/rJDe71CQo=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=t8i8WH+gEO6BZ5KCDAcrhgoVPus6ebCD5CcIDaDuzs9iaQJFmSf8VIoq416uBZrqsetIBz0n1F/JFBCuGPV72A0hx9iHg0PqzLc0b2VfbEN5NDn+rdUX1FV4MzpgX2yqwHgo8P0wOw6ZkpCupLNPlckBi/ESnWvl8rbq+/IaLco=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XU5Ld9au; arc=none smtp.client-ip=209.85.216.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XU5Ld9au"
-Received: by mail-pj1-f51.google.com with SMTP id 98e67ed59e1d1-2e0af6e5da9so3682218a91.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 07 Oct 2024 15:50:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1728341444; x=1728946244; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=916ByeMBhbwhUpLrqm9a5f7EyTxTlZPsB/rJDe71CQo=;
-        b=XU5Ld9auocCj/SR+D58UQoaAckHuZW8PZ1FcL3x6hbNZEuJMvHS2AJbui3sLlAFQ9Q
-         GZOfHDTcxGGven1k7ZxYaJo+OuWghaAu4s1t41b0ERl1L2fcdXwVRyVpDpCGJyhcSH5e
-         2oKueibiSnbvSeafPmoRfMlxYuPfNMrQCsTZDqUr6qrfiSNVk8LpJNj4Xn9JHHuQEvoR
-         e8wuHPWgHoD8t9LYi5DCx4lRKJxd/GNvzIcdNo4D1z973NGH41NVpLkV4tijxm1SdvvS
-         PxWxWwjAupwq+hjwZmz8hXAHf9sGrKS1aH2+ZM8mrURwrLUcvssxY1jCQE3jEKqTSXuP
-         z3Ow==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1728341444; x=1728946244;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=916ByeMBhbwhUpLrqm9a5f7EyTxTlZPsB/rJDe71CQo=;
-        b=rHSKUYfeQT+RNRkGsS0b4hJnq9G0PYJFMyRTgNGsD1BNmnmMz9cfzYTFtI/s4QYT6V
-         C2WzOAgpFZrqchJrcNP9pUbuMQi/C/pCVyj5ba4zdyfb6yR+fhxuMUa6aD1c+cgQi9kz
-         vnwQwQp6PsTgBlLVfPKP4+a7Tf7th6Eyovd9hntwJKcUZg9IMO6ZuAHSb5EgLh7Juql9
-         cQLrB504aZSJK58MwKz0eiCPyH3e0kEHuAEi4JpJ3KI8el/HuMLe5PvGFGy73VXFTg3C
-         5MxaXL8G5/wL9co9xzrxAztXAzPKsCGjHBQOvxz4b0zVWfH0to4Nr8BgYLMuGDQevtYn
-         j7yg==
-X-Forwarded-Encrypted: i=1; AJvYcCV0LN/JiXx8FQS+WBDF8iEIZqrI+tiHaxVWZsMfnPVQVABCuYTyMhgQnpcUMY3b/gM2rfq2tB0TyMvSWAGMQ+I=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxNn4keH6nsncVscnFi4sBiQp2yNncKGIh4ICXWdBrv6l4tPb6w
-	lcdBjREGi7SerzdlyCvUe75ZNg0IngpFA/rO8iHmUpmxmR09qcYHBk/WwQ==
-X-Google-Smtp-Source: AGHT+IGYfSX8Ud1aUDOMN3ESWhsRGEOyr9VnTxlLlx6XxNdPm+DO16+GYAyj5aYW8Lx6mU3S9Qg7Sw==
-X-Received: by 2002:a17:90b:294:b0:2c8:e888:26a2 with SMTP id 98e67ed59e1d1-2e1e6224842mr16980341a91.13.1728341444141;
-        Mon, 07 Oct 2024 15:50:44 -0700 (PDT)
-Received: from slk15.local.net (n175-33-111-144.meb22.vic.optusnet.com.au. [175.33.111.144])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-2e1e83ca284sm7767201a91.11.2024.10.07.15.50.41
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 07 Oct 2024 15:50:43 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From: Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
-Date: Tue, 8 Oct 2024 09:50:39 +1100
-To: Phil Sutter <phil@nwl.cc>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libnetfilter_queue] build: add missing backslash to
- build_man.sh
-Message-ID: <ZwRlv2f01Yl8osav@slk15.local.net>
-Reply-To: duncan_roe@optusnet.com.au
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <20241004040639.14989-1-duncan_roe@optusnet.com.au>
- <Zv_rJM6_dyCVA7KU@orbyte.nwl.cc>
- <ZwMi1knK7rqs+iEy@slk15.local.net>
- <ZwPS-3s2-wUcVBzU@orbyte.nwl.cc>
+	s=arc-20240116; t=1728387293; c=relaxed/simple;
+	bh=sE7iluNS0nCJsB/X+A8WJbwChuhDiTvtCEB8E4MRf9A=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=MZCQZxPX9hMg+6eLQCQV7+LAXfNuPNumIO6RoE6NRQxASe1xpJx6U9JN8a2C9EOB9leufN5wPhKxDzWCm3nTNtreJ4XjGfF0zJ/oZlWj2rCgtY3jiIv/n+9+1KwgfU3cygZevNw8PclI7ZN914V5VAIHUksbwAHwg+1Da8wwTR8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=44176 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1sy89l-008HMl-TM; Tue, 08 Oct 2024 13:13:36 +0200
+Date: Tue, 8 Oct 2024 13:13:32 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH libnftnl 1/5] expr: add and use incomplete tag
+Message-ID: <ZwUT3LGOMW_PPXFr@calendula>
+References: <20241007094943.7544-1-fw@strlen.de>
+ <20241007094943.7544-2-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <ZwPS-3s2-wUcVBzU@orbyte.nwl.cc>
+In-Reply-To: <20241007094943.7544-2-fw@strlen.de>
+X-Spam-Score: -1.9 (-)
 
-On Mon, Oct 07, 2024 at 02:24:27PM +0200, Phil Sutter wrote:
-> That's odd - while the shell will have to unquote the delimiter, it
-> should have less work with the content. Are you sure this is not just
-> noise you were measuring?
+On Mon, Oct 07, 2024 at 11:49:34AM +0200, Florian Westphal wrote:
+> Extend netlink dump decoder functions to set
+> expr->incomplete marker if there are unrecognized attributes
+> set in the kernel dump.
 >
-It sure surprised the hell out of me. I do know a bit about eperimental
-technique having studied honours physics, so I reversed the test a few times.
-The unquoted delimiter was always faster. The difference was very small but
-statistically significant.
+> This can be used by frontend tools to provide a warning to the user
+> that the rule dump might be incomplete.
 
-Cheers ... Duncan.
+This is to handle old binary and new kernel scenario, correct?
+
+I think it is hard to know if this attribute is fundamental to rise a
+warning from libnftnl. It could be just an new attribute that can be
+ignored by userspace or not? I think libnftables (higher layer) knows
+better what to do in this case, if such new attribute is required or
+not.
+
+Or maybe this is a different issue?
+
+> diff --git a/src/expr/bitwise.c b/src/expr/bitwise.c
+> index e99131a090ed..46346712e462 100644
+> --- a/src/expr/bitwise.c
+> +++ b/src/expr/bitwise.c
+> @@ -97,9 +97,6 @@ static int nftnl_expr_bitwise_cb(const struct nlattr *attr, void *data)
+>  	const struct nlattr **tb = data;
+>  	int type = mnl_attr_get_type(attr);
+
+Why not simplify with:
+
+	if (mnl_attr_type_valid(attr, NFTA_BITWISE_MAX) < 0) {
+		tb[NFTA_BITWISE_UNSPEC] = attr;
+		return MNL_CB_OK;
+        }
+
+I think it is intentional you are doing this at a later stage.
+
+> -	if (mnl_attr_type_valid(attr, NFTA_BITWISE_MAX) < 0)
+> -		return MNL_CB_OK;
+> -
+>  	switch(type) {
+>  	case NFTA_BITWISE_SREG:
+>  	case NFTA_BITWISE_DREG:
