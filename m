@@ -1,49 +1,22 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A87B0192B70
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Oct 2024 11:48:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D26F91922F4
+	for <netfilter-devel@vger.kernel.org>; Wed,  9 Oct 2024 13:44:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728474512; cv=none; b=fcwS5lTlGsPo622VPwzZOcu6P4EIPn9kLmrhrIqmtpTk3RhtwyR+WKdIeej864CRZQy/Hc36WTGy1OzwoMH0Kp9FEbND5sHsopFRlJXKQDj5Sx3naEVMUZkWvL9zuzqYrlNdOkMIBVvJNNF+XclZFMyKjVIN6lCoCNdN25hge80=
+	t=1728481475; cv=none; b=I3gdF0HTRLmRUAINEwGIy5Vf4jdndvKjuXkJWe6BhU2MIalAhbWY6HKFY1dZVReEDY/ddRWYw2+nmV0mvhayGloZikSnMccGNTY39SFI9kix5OiE1qdl4tHJ2OLSC/YxnzkOmB9eHs86CrPZo2TokiMzuuo/f4la6SfLW6dTXjg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728474512; c=relaxed/simple;
-	bh=wtElI0F6yzzooS17SBwvlGM0NfjP7ftzg3UCWAsSQAA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=syP7M3cMlIc/aZm8kZWxUwjxYhRI+FcWgFJnyM1ONnxBkXEWqkvM7IXFiGM6oBNnXewHS3exZODGtHVHgPFz64B96QF+HTp/S3nPGJwzkaEta06b8uo2H7Ya3a7OSQLuua7hFygZpAwAizDr4PVBGw/h9ia+tooiRXP5wVgbhDs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=lcSpOdZY; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="lcSpOdZY"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=HEPp5XVt1Haj1mCjxu9jUcP/pXgPMNrx6lgEwveTQZo=; b=lcSpOdZYEFpXzQSLPaWLXVp9OB
-	3fpaMDYI8z/g1uEylRvCKN0UkUO2lYkznLBTOS7lqXCyUefRO6DvwelvF5LRYGLCQlDHGm/gBFUbs
-	/jB9U3UIe9MTBXVMAphPDMp+vLPPwhzhz4BSjwkCE0fT/r/4K7B8FLddZdgnW+wwiypgOCeSbmvwr
-	BcOEl3ktLCGoraSiDLRkHm414eC/ySqzu+rqmJC1Gw13yIH29++RAbOViud82TMqe1/5D9gbUwFe6
-	16qjUaPCla1aeqDLFgGJ4Y7V4pZsYigvBfa177YkH+xXC8noRHI4SXMV9xCJDdCVomUDEqCm7nrsz
-	qt5eey8w==;
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1syVB7-000000008I5-05Xo;
-	Wed, 09 Oct 2024 13:48:29 +0200
-From: Phil Sutter <phil@nwl.cc>
+	s=arc-20240116; t=1728481475; c=relaxed/simple;
+	bh=+9vSfw7NIvvIH2+EBvJ5EJAI2oH8t4WJjs6E2hkaxiA=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=WtrVo4dlOxku3VfPGhZmJgyNFo8Ktk9RThcFdTlgC0kijJ+A0Lx6CS++ks6S2o1/JU9zlHAJk57hB3eQK1THK+nH4jN80VagaTFdDtkECz2WbFqB5X4CHszeoO4ewLM0T6DSVHGOq4S+DDcZ+D1yMeIzpKi8IvGmrCGrN050naQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Cc: Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jan Engelhardt <jengelh@inai.de>
-Subject: [iptables PATCH v2 8/8] tests: iptables-test: Add nft-compat variant
-Date: Wed,  9 Oct 2024 13:48:19 +0200
-Message-ID: <20241009114819.15379-9-phil@nwl.cc>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20241009114819.15379-1-phil@nwl.cc>
-References: <20241009114819.15379-1-phil@nwl.cc>
+Subject: [PATCH nft,v2] libnftables: remove set element uncollapse for error reporting
+Date: Wed,  9 Oct 2024 15:44:27 +0200
+Message-Id: <20241009134427.3487792-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -52,55 +25,193 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Test iptables-nft with forced compat extension restore as third modus
-operandi.
+Error reporting works fine with recent -stable kernels:
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+ # cat ruleset.nft
+ add table ip x
+ add chain ip x y
+ add set ip x y { type ipv4_addr; }
+ create element ip x y { 1.1.1.1 }
+ create element ip x y { 1.1.1.1 }
+
+ # nft -f ruleset.nft
+ ruleset.nft:5:25-31: Error: Could not process rule: File exists
+ create element ip x y { 1.1.1.1 }
+                         ^^^^^^^
+
+which is provided by this small "fix":
+
+ commit b53c116642502b0c85ecef78bff4f826a7dd4145
+ Author: Pablo Neira Ayuso <pablo@netfilter.org>
+ Date:   Fri May 20 00:02:06 2022 +0200
+
+    netfilter: nf_tables: set element extended ACK reporting support
+
+no need to relate commands via sequence number, ditch this expensive
+workaround in userspace.
+
+Release collapsed commands from list since they contain no elements
+anymore.
+
+Fixes: 498a5f0c219d ("rule: collapse set element commands")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- iptables-test.py | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+v2: release empty command object after collapsing elements.
 
-diff --git a/iptables-test.py b/iptables-test.py
-index 77278925d7217..53af5e1150cfa 100755
---- a/iptables-test.py
-+++ b/iptables-test.py
-@@ -570,6 +570,8 @@ STDERR_IS_TTY = sys.stderr.isatty()
-                         help='Check for missing tests')
-     parser.add_argument('-n', '--nftables', action='store_true',
-                         help='Test iptables-over-nftables')
-+    parser.add_argument('--compat', action='store_true',
-+                        help='Test iptables-over-nftables in forced compat mode')
-     parser.add_argument('-N', '--netns', action='store_const',
-                         const='____iptables-container-test',
-                         help='Test netnamespace path')
-@@ -589,8 +591,10 @@ STDERR_IS_TTY = sys.stderr.isatty()
-         variants.append("legacy")
-     if args.nftables:
-         variants.append("nft")
-+    if args.compat:
-+        variants.append("nft-compat")
-     if len(variants) == 0:
--        variants = [ "legacy", "nft" ]
-+        variants = [ "legacy", "nft", "nft-compat" ]
+ include/cmd.h        |  2 +-
+ include/expression.h |  1 -
+ include/rule.h       |  1 -
+ src/cmd.c            | 42 +++++-------------------------------------
+ src/libnftables.c    |  7 +------
+ src/rule.c           |  1 -
+ 6 files changed, 7 insertions(+), 47 deletions(-)
+
+diff --git a/include/cmd.h b/include/cmd.h
+index 92a4152bbaea..360d32d0099f 100644
+--- a/include/cmd.h
++++ b/include/cmd.h
+@@ -7,7 +7,7 @@ void nft_cmd_error(struct netlink_ctx *ctx, struct cmd *cmd,
  
-     if os.getuid() != 0:
-         print("You need to be root to run this, sorry", file=sys.stderr)
-@@ -609,8 +613,14 @@ STDERR_IS_TTY = sys.stderr.isatty()
-     total_passed = 0
-     total_tests = 0
-     for variant in variants:
-+
-+        exec_infix = variant
-+        if variant == "nft-compat":
-+            os.putenv("XTABLES_COMPAT", "2")
-+            exec_infix = "nft"
-+
-         global EXECUTABLE
--        EXECUTABLE = "xtables-" + variant + "-multi"
-+        EXECUTABLE = "xtables-" + exec_infix + "-multi"
+ void nft_cmd_expand(struct cmd *cmd);
+ void nft_cmd_post_expand(struct cmd *cmd);
+-bool nft_cmd_collapse(struct list_head *cmds);
++void nft_cmd_collapse(struct list_head *cmds);
+ void nft_cmd_uncollapse(struct list_head *cmds);
  
-         test_files = 0
-         tests = 0
+ #endif
+diff --git a/include/expression.h b/include/expression.h
+index 8982110cce95..da2f693e72d3 100644
+--- a/include/expression.h
++++ b/include/expression.h
+@@ -255,7 +255,6 @@ struct expr {
+ 	enum expr_types		etype:8;
+ 	enum ops		op:8;
+ 	unsigned int		len;
+-	struct cmd		*cmd;
+ 
+ 	union {
+ 		struct {
+diff --git a/include/rule.h b/include/rule.h
+index 5b3e12b5d7dc..a1628d82d275 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -718,7 +718,6 @@ struct cmd {
+ 	enum cmd_obj		obj;
+ 	struct handle		handle;
+ 	uint32_t		seqnum;
+-	struct list_head	collapse_list;
+ 	union {
+ 		void		*data;
+ 		struct expr	*expr;
+diff --git a/src/cmd.c b/src/cmd.c
+index 9a572b5660c7..7f3728d74cbe 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -460,11 +460,10 @@ void nft_cmd_expand(struct cmd *cmd)
+ 	}
+ }
+ 
+-bool nft_cmd_collapse(struct list_head *cmds)
++void nft_cmd_collapse(struct list_head *cmds)
+ {
+ 	struct cmd *cmd, *next, *elems = NULL;
+ 	struct expr *expr, *enext;
+-	bool collapse = false;
+ 
+ 	list_for_each_entry_safe(cmd, next, cmds, list) {
+ 		if (cmd->op != CMD_ADD &&
+@@ -498,43 +497,12 @@ bool nft_cmd_collapse(struct list_head *cmds)
+ 			continue;
+ 		}
+ 
+-		collapse = true;
+-		list_for_each_entry_safe(expr, enext, &cmd->expr->expressions, list) {
+-			expr->cmd = cmd;
++		list_for_each_entry_safe(expr, enext, &cmd->expr->expressions, list)
+ 			list_move_tail(&expr->list, &elems->expr->expressions);
+-		}
+-		elems->expr->size += cmd->expr->size;
+-		list_move_tail(&cmd->list, &elems->collapse_list);
+-	}
+-
+-	return collapse;
+-}
+-
+-void nft_cmd_uncollapse(struct list_head *cmds)
+-{
+-	struct cmd *cmd, *cmd_next, *collapse_cmd, *collapse_cmd_next;
+-	struct expr *expr, *next;
+ 
+-	list_for_each_entry_safe(cmd, cmd_next, cmds, list) {
+-		if (list_empty(&cmd->collapse_list))
+-			continue;
+-
+-		assert(cmd->obj == CMD_OBJ_ELEMENTS);
+-
+-		list_for_each_entry_safe(expr, next, &cmd->expr->expressions, list) {
+-			if (!expr->cmd)
+-				continue;
+-
+-			list_move_tail(&expr->list, &expr->cmd->expr->expressions);
+-			cmd->expr->size--;
+-			expr->cmd = NULL;
+-		}
+-
+-		list_for_each_entry_safe(collapse_cmd, collapse_cmd_next, &cmd->collapse_list, list) {
+-			if (cmd->elem.set)
+-				collapse_cmd->elem.set = set_get(cmd->elem.set);
++		elems->expr->size += cmd->expr->size;
+ 
+-			list_add(&collapse_cmd->list, &cmd->list);
+-		}
++		list_del(&cmd->list);
++		cmd_free(cmd);
+ 	}
+ }
+diff --git a/src/libnftables.c b/src/libnftables.c
+index 2ae215013cb0..1ea5640e81be 100644
+--- a/src/libnftables.c
++++ b/src/libnftables.c
+@@ -513,7 +513,6 @@ static int nft_evaluate(struct nft_ctx *nft, struct list_head *msgs,
+ {
+ 	struct nft_cache_filter *filter;
+ 	struct cmd *cmd, *next;
+-	bool collapsed = false;
+ 	unsigned int flags;
+ 	int err = 0;
+ 
+@@ -529,8 +528,7 @@ static int nft_evaluate(struct nft_ctx *nft, struct list_head *msgs,
+ 
+ 	nft_cache_filter_fini(filter);
+ 
+-	if (nft_cmd_collapse(cmds))
+-		collapsed = true;
++	nft_cmd_collapse(cmds);
+ 
+ 	list_for_each_entry(cmd, cmds, list) {
+ 		if (cmd->op != CMD_ADD &&
+@@ -553,9 +551,6 @@ static int nft_evaluate(struct nft_ctx *nft, struct list_head *msgs,
+ 		}
+ 	}
+ 
+-	if (collapsed)
+-		nft_cmd_uncollapse(cmds);
+-
+ 	if (err < 0 || nft->state->nerrs)
+ 		return -1;
+ 
+diff --git a/src/rule.c b/src/rule.c
+index 9bc160ec0d88..9536e68c7524 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1332,7 +1332,6 @@ struct cmd *cmd_alloc(enum cmd_ops op, enum cmd_obj obj,
+ 	cmd->attr     = xzalloc_array(NFT_NLATTR_LOC_MAX,
+ 				      sizeof(struct nlerr_loc));
+ 	cmd->attr_array_len = NFT_NLATTR_LOC_MAX;
+-	init_list_head(&cmd->collapse_list);
+ 
+ 	return cmd;
+ }
 -- 
-2.43.0
+2.30.2
 
