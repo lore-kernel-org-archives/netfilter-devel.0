@@ -1,44 +1,47 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3C7318FDAF
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Oct 2024 10:50:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE39C18FC80
+	for <netfilter-devel@vger.kernel.org>; Wed,  9 Oct 2024 10:50:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728471052; cv=none; b=rfHcTuVYZED3J2bjgHkhacMZzt9PBiIzKUW+q2JtVd7ja078VKZX9C4ajSsv9iK8ZRGJqJA0s+wo6gB7JD5lesO3oIvfb8Tn+KVox5lAJ0JqgBsN1Jn7V21+9unlOaOyqZZ3zoxgVu9QDC9x2T6yYdUP2hyOeVLSxSH/T197ex4=
+	t=1728471052; cv=none; b=LINwPEGrFzoURcr5os2KSZ3ooWZ3PHBHBCiZ1Ghjt/SzyAzGJzvlXBo+91FVUw/oKiKeGqlFwct6ndsOvr3qS07Ei8R73TqRvcox/6DoDoL+CZ2QShkxlcOx4npSp9W7HKCSlhYDjFGUBeDT39KNq91VTUBaYGSeaRirERo2x/w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1728471052; c=relaxed/simple;
-	bh=tnaooQaY5QB/8BnnsjBwdORRWyyC4j1t2hoCfr4BJTU=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=eIpdQJDi+WpgU42sLdUyDA31pkKvJWMwQMFfR/hgz30PC7z3Q7lYrsq726G0Tw5JiYI/ZTvSicJdAZOCzduzsEllW9k6mASg4fYeoBm912NHGvPSa4BvAQPB1psEsyEP/+8kF0PImUdp4DJ++rA/iHi3JMF9Ua2SZV5Hvmeq+5Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=fUNAILA2; arc=none smtp.client-ip=151.80.46.58
+	bh=Q67xt6+sh/W2uvcqWYF+FsycwyS451FId+sFUqgkouA=;
+	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=ROV41ZeJpCRUt7gS4qliT8cs/hK17qIxnrt4B5x5wUwvO5Zh8GUlCjYsv/hTNOn6ueBw8NnwPn/EfajXhRgNDiCEcXTrRLbB2aTIJwmxP8+Q5H3tE4enO+9IlKifHahxDgCL7wClCm6H3/POXAxtKOdBX0jJkCFNdWdJc/Il8rA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=M4TLwxgo; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="fUNAILA2"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="M4TLwxgo"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=yxWVzGd9sQTBMLuTQHSEkkyhJs/O2J+2NcYeE0+QwLQ=; b=fUNAILA2ZJAplOSUhfwq/w2/bX
-	HuGDyGELAKeJIlh7dzkOjSGfu1evJpy1kdcKXab1n2mdG/iCKlHsmQZBKtgM8PA2A6Zd2EsjjwKC5
-	mC+njQ089zxDJPurw29xe9yG1Girho3DiSVp6IP5cU1UBRdoCzL5xuoJIaP4Z2e1R/j3ahpHrVPan
-	P5IJ5HvveTpJRMWGUJ8x7ihyYR+IHwQZN2FzgWTKfkZEoUEY8c5UUbMznuoLGrjS32vunzpWGeaQd
-	FxR4DR7WW4Z74FLx3CiJlzmk12ufWuCwEUArIXV/v49hyYTrLiqZjzWriCXem2eU7F3kpzzvLgEm7
-	qXnwXl+w==;
+	bh=d0oB95qNqMDTHziMIMuSyCYcjQGdxjjHgmoEeHLgpC4=; b=M4TLwxgozjByoiIYvhJ0kop/Wx
+	c6M/GaoFm5kUf5MWS/WOVaDQ1Ls2Y5iSkK+dYbR51p5ZDuWFN7XcS9MzS+erJS8+lZbsz8abbdfqu
+	0/Qu2w2zfycVVJO4jh1yskj1q3uIfe3rAZCDuNRYYSC5fw5w8RqZFBcujRwzxP46raQJ/YcjX+Ikn
+	E5ZbODj3LV6OUoE6Mha+jpOyMhRT6n25prU/bH/RmNnmvTU0BIkEjVfW+SSiMZZxZXQFpxVFvh/HR
+	XK6+w/Gp3mWmfbqMma6ChSFMHBvTaivovbL/TBT4LGqihhJNGddKABBYpAbw9hYkkerwq6nBgEyHP
+	f+9aNtFQ==;
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1syUHC-000000007QE-01CL
+	id 1syUHD-000000007QU-0lDV
 	for netfilter-devel@vger.kernel.org;
-	Wed, 09 Oct 2024 12:50:42 +0200
+	Wed, 09 Oct 2024 12:50:43 +0200
 From: Phil Sutter <phil@nwl.cc>
 To: netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 0/5] Some minor fixes
-Date: Wed,  9 Oct 2024 12:50:32 +0200
-Message-ID: <20241009105037.30114-1-phil@nwl.cc>
+Subject: [iptables PATCH 3/5] man: ebtables-nft.8: Note that --concurrent is a NOP
+Date: Wed,  9 Oct 2024 12:50:35 +0200
+Message-ID: <20241009105037.30114-4-phil@nwl.cc>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20241009105037.30114-1-phil@nwl.cc>
+References: <20241009105037.30114-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -47,23 +50,29 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Correct some things I noticed while working on something else. Nothing
-depends on those, so push them separately.
+For obvious reasons, ebtables-nft does not need file-based locking to
+prevent concurrency.
 
-Phil Sutter (5):
-  tests: iptables-test: Append stderr output to log file
-  man: xtables-legacy.8: Join two paragraphs
-  man: ebtables-nft.8: Note that --concurrent is a NOP
-  gitignore: Ignore generated arptables-translate.8
-  xshared: iptables does not support '-b'
+Fixes: 1939cbc25e6f5 ("doc: Adjust ebtables man page")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ iptables/ebtables-nft.8 | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
- iptables-test.py          | 6 ++++++
- iptables/.gitignore       | 1 +
- iptables/ebtables-nft.8   | 3 ++-
- iptables/xshared.h        | 2 +-
- iptables/xtables-legacy.8 | 1 -
- 5 files changed, 10 insertions(+), 3 deletions(-)
-
+diff --git a/iptables/ebtables-nft.8 b/iptables/ebtables-nft.8
+index 29c7d9faf8106..8698165024de1 100644
+--- a/iptables/ebtables-nft.8
++++ b/iptables/ebtables-nft.8
+@@ -358,7 +358,8 @@ When talking to the kernel, use this
+ to try to automatically load missing kernel modules.
+ .TP
+ .B --concurrent
+-Use a file lock to support concurrent scripts updating the ebtables kernel tables.
++This would use a file lock to support concurrent scripts updating the ebtables
++kernel tables. It is not needed with \fBebtables-nft\fP though and thus ignored.
+ 
+ .SS
+ RULE SPECIFICATIONS
 -- 
 2.43.0
 
