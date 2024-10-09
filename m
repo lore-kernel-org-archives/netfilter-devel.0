@@ -1,113 +1,147 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-io1-f69.google.com (mail-io1-f69.google.com [209.85.166.69])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F64238DD6;
-	Tue,  8 Oct 2024 20:02:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27E7816D9DF
+	for <netfilter-devel@vger.kernel.org>; Wed,  9 Oct 2024 07:47:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.69
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728417746; cv=none; b=XnZ8GUmHQfB9wZhIN03KB7n7quy50H1Zd6twTmkUVMEu0ZT61Si5ZosCKqSW6//FJaU0brsRGvp+Ie1eG3XTHvftGI8WmiQGjwcQ6qS089FeSzIs9LT9Z0vz+FtPgsnOmlbnEW1yaKICXBJ64i8+J3oGcHtK9LAHaiOr7rYHwBM=
+	t=1728460047; cv=none; b=eRhjLwRs2P+RtFQeGkja466t+mwOFK2gY0Ok8ZfZXhyFEIzeh2HQl/dugz9X9pK6YaMzdTdExiAyzUIbB89oyIq9ZP+lMRdh0JN+IE8bSizDIw6bYJpCRA6K7vpMLmL5zI9oaXcEMz4obTR7DYbzaHYlBFzQiad7DKRTSY3yzJw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728417746; c=relaxed/simple;
-	bh=mwnu9JDu0/QJ39vaeqgzPRoqn/uQOdBvX8cshH9rI2M=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Q1cIcYBCVNp+r5958RzSWAtJhnMaiL5euuPCKQL5pMVioAfzAKJmSrJQfUO+/nVOgA0zSrCyJn09aeVYiT0aPRQcVCNb+KSJhjVGS4i/ECavHN/HZ+tMCE8xMs/wjbKDP0+2kwoHE0THApl+GH01VNEjRNUD+yG2eIQHyk3R5hY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=rN+E6v8u; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="rN+E6v8u"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AAF43C4CEC7;
-	Tue,  8 Oct 2024 20:02:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1728417745;
-	bh=mwnu9JDu0/QJ39vaeqgzPRoqn/uQOdBvX8cshH9rI2M=;
-	h=Date:From:To:Cc:Subject:Reply-To:References:In-Reply-To:From;
-	b=rN+E6v8uF4ioUNKLIm91KJY7WajT816xax0xLKmMg82r/VdNKxRi2SuPyaYp5mvMp
-	 3iEUmIoUxBqAzw3S+3xHFwxDjNUXJ1ms4vvTgy40qSQdbS1e5YsXgihqx/FlfH41CR
-	 B5yXHM1xV2RQDH8pdQ+oYSffGAkWue72wxmp8FzHSdYe8F0+gQDgEtxtt3iMaFayap
-	 QQgLNNDuCW4krxkjKxBJa5Jy1wKnBCXJ8lwHOvYQ4u/HYgc6yow8XGPEF6rU7+hsiS
-	 Kkfhf7h/1UX7Uoiu1m8M2TLxAcmXcKHBMcjwCNjgHqioPraMS1As8rwzYnC/B4K15R
-	 l1T7CHnBap8VA==
-Received: by paulmck-ThinkPad-P17-Gen-1.home (Postfix, from userid 1000)
-	id 56F9BCE0DD1; Tue,  8 Oct 2024 13:02:25 -0700 (PDT)
-Date: Tue, 8 Oct 2024 13:02:25 -0700
-From: "Paul E. McKenney" <paulmck@kernel.org>
-To: Vlastimil Babka <vbabka@suse.cz>
-Cc: Uladzislau Rezki <urezki@gmail.com>,
-	"Jason A. Donenfeld" <Jason@zx2c4.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Julia Lawall <Julia.Lawall@inria.fr>, linux-block@vger.kernel.org,
-	kernel-janitors@vger.kernel.org, bridge@lists.linux.dev,
-	linux-trace-kernel@vger.kernel.org,
-	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
-	kvm@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	"Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Nicholas Piggin <npiggin@gmail.com>, netdev@vger.kernel.org,
-	wireguard@lists.zx2c4.com, linux-kernel@vger.kernel.org,
-	ecryptfs@vger.kernel.org, Neil Brown <neilb@suse.de>,
-	Olga Kornievskaia <kolga@netapp.com>, Dai Ngo <Dai.Ngo@oracle.com>,
-	Tom Talpey <tom@talpey.com>, linux-nfs@vger.kernel.org,
-	linux-can@vger.kernel.org, Lai Jiangshan <jiangshanlai@gmail.com>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	kasan-dev <kasan-dev@googlegroups.com>
-Subject: Re: [PATCH 00/14] replace call_rcu by kfree_rcu for simple
- kmem_cache_free callback
-Message-ID: <acf7a96b-facb-469b-8079-edbec7770780@paulmck-laptop>
-Reply-To: paulmck@kernel.org
-References: <36c60acd-543e-48c5-8bd2-6ed509972d28@suse.cz>
- <ZnFT1Czb8oRb0SE7@pc636>
- <5c8b2883-962f-431f-b2d3-3632755de3b0@paulmck-laptop>
- <9967fdfa-e649-456d-a0cb-b4c4bf7f9d68@suse.cz>
- <6dad6e9f-e0ca-4446-be9c-1be25b2536dd@paulmck-laptop>
- <4cba4a48-902b-4fb6-895c-c8e6b64e0d5f@suse.cz>
- <ZnVInAV8BXhgAjP_@pc636>
- <df0716ac-c995-498c-83ee-b8c25302f9ed@suse.cz>
- <b3d9710a-805e-4e37-8295-b5ec1133d15c@paulmck-laptop>
- <37807ec7-d521-4f01-bcfc-a32650d5de25@suse.cz>
+	s=arc-20240116; t=1728460047; c=relaxed/simple;
+	bh=UXHinkOY94ThFAFVLGUNMyAmpLG+i0kcbARjnwRivDc=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=qOCTks/b2djHTogQfzDYJee9SVqqgijsPHif40Ffmtzv93uuT56VXkxqVIfy6SqkSy3daDQd5HN4LCO8B6ECl2qw1uWkV/Mx3RrdTqCpAoy5dwe7qC0NECg3Mc6qNogyzmfzcrWGcapVgC2jqA7Wke1xkg4kdPZ4fzR1JdH1smU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.69
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-io1-f69.google.com with SMTP id ca18e2360f4ac-8353d53e853so87853139f.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 09 Oct 2024 00:47:26 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1728460045; x=1729064845;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=z7MVKMrr7sE1cZHiHRDlGfSko2JGv+xv2UHq22/5JtA=;
+        b=DDTvrC0oXkyl45MxOQX8I+TXbiO6Z+3V4TzFXVK/4u/IZVIUf12sSVzxdEx8zImczv
+         jJ9/QNE3ZJxnjpfb9Ouha+erdSm75jlN/YMzFbPEGqwHG7FuGWgvvC0z6d9iR2kFLgvl
+         vByhvZIGeYg7LY7M4vBDbwKRCvOOEuAhE4COzLqFUUI+VS5cegAvJ2hruPMrVKHlsBNB
+         DsnKwwua65SMh7mg/L70n7NrIqLDe01LyUOH9gErHFfInME0dnF1StVJb7LWTY+8KyMI
+         sHs5y+g7vbG4LFBgQ4R0Wh/QvAaxh3sKaTeK+zOle6k8COnH7aCIo6q7j+wSAYH66S8C
+         pFrQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXBLoxopN7lSr5ldxYSyHlZ8Ksoi9nrSuX9YlbH4CnuO3Ejova7QmijNsmEJcyX1/Q89K1nfV8rchPrxtJiXpU=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxhaHAWIlCMv5+HVZ5TK7w1TCweINUrgQ/9TzFZja51jZGasnMr
+	+sxrRDcE9QuDPYAPQydG7PPznkkUClqtU6/uGMuYzVV5rwbe6C0SFevd1fy8oJoNH7cj/i+0oLk
+	Z2HAjEHxxJLtIr3hSaFjqUXBfuL7HP3nwHDq6inE5qzQUKXaXJ2Q4AuE=
+X-Google-Smtp-Source: AGHT+IE/H9HfGa47dTrP4jZRVzNp4L4IUSOVG/DCmz0hKK3xVz99KXfKO0bePVHnvz6HATumgWauwPb6+9A/j6nVzdoHd8HpOBjw
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <37807ec7-d521-4f01-bcfc-a32650d5de25@suse.cz>
+X-Received: by 2002:a05:6e02:154a:b0:3a1:a20f:c09c with SMTP id
+ e9e14a558f8ab-3a397d2c553mr15393175ab.22.1728460045344; Wed, 09 Oct 2024
+ 00:47:25 -0700 (PDT)
+Date: Wed, 09 Oct 2024 00:47:25 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6706350d.050a0220.840ef.000e.GAE@google.com>
+Subject: [syzbot] [netfilter?] WARNING in __nf_unregister_net_hook (7)
+From: syzbot <syzbot+90c2972f9dd6cdcf7b07@syzkaller.appspotmail.com>
+To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
+	kadlec@netfilter.org, kuba@kernel.org, linux-kernel@vger.kernel.org, 
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pabeni@redhat.com, 
+	pablo@netfilter.org, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-On Tue, Oct 08, 2024 at 06:41:12PM +0200, Vlastimil Babka wrote:
-> On 7/24/24 15:53, Paul E. McKenney wrote:
-> > On Mon, Jul 15, 2024 at 10:39:38PM +0200, Vlastimil Babka wrote:
-> >> On 6/21/24 11:32 AM, Uladzislau Rezki wrote:
-> >> > On Wed, Jun 19, 2024 at 11:28:13AM +0200, Vlastimil Babka wrote:
-> >> > One question. Maybe it is already late but it is better to ask rather than not.
-> >> > 
-> >> > What do you think if we have a small discussion about it on the LPC 2024 as a
-> >> > topic? It might be it is already late or a schedule is set by now. Or we fix
-> >> > it by a conference time.
-> >> > 
-> >> > Just a thought.
-> >> 
-> >> Sorry for the late reply. The MM MC turned out to be so packed I didn't even
-> >> propose a slab topic. We could discuss in hallway track or a BOF, but
-> >> hopefully if the current direction taken by my RFC brings no unexpected
-> >> surprise, and the necessary RCU barrier side is also feasible, this will be
-> >> settled by time of plumbers.
-> > 
-> > That would be even better!
-> > 
-> > 							Thanx, Paul
-> 
-> Hah, so it was close but my hope was fulfilled in the end!
+Hello,
 
-Nice, and thank you!!!
+syzbot found the following issue on:
 
-							Thanx, Paul
+HEAD commit:    9234a2549cb6 net: phy: bcm84881: Fix some error handling p..
+git tree:       net
+console output: https://syzkaller.appspot.com/x/log.txt?x=10833bd0580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=f95955e3f7b5790c
+dashboard link: https://syzkaller.appspot.com/bug?extid=90c2972f9dd6cdcf7b07
+compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
 
-> commit bdf56c7580d267a123cc71ca0f2459c797b76fde
-> Merge: efdfcd40ad5e ecc4d6af979b
-> Author: Linus Torvalds <torvalds@linux-foundation.org>
-> Date:   Wed Sep 18 08:53:53 2024 +0200
-> 
->     Merge tag 'slab-for-6.12' of
-> git://git.kernel.org/pub/scm/linux/kernel/git/vbabka/slab
-> 
-> So that was at 8:53 Vienna time, and Plumbers started at 10:00...
+Unfortunately, I don't have any reproducer for this issue yet.
+
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/05a4f5ae2b6e/disk-9234a254.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/157bcf16a614/vmlinux-9234a254.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/1f5a2485a15e/bzImage-9234a254.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+90c2972f9dd6cdcf7b07@syzkaller.appspotmail.com
+
+------------[ cut here ]------------
+hook not found, pf 2 num 0
+WARNING: CPU: 0 PID: 11707 at net/netfilter/core.c:517 __nf_unregister_net_hook+0x482/0x800 net/netfilter/core.c:517
+Modules linked in:
+CPU: 0 UID: 0 PID: 11707 Comm: syz.4.1852 Not tainted 6.12.0-rc1-syzkaller-00147-g9234a2549cb6 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/13/2024
+RIP: 0010:__nf_unregister_net_hook+0x482/0x800 net/netfilter/core.c:517
+Code: 01 90 48 8b 44 24 10 0f b6 04 28 84 c0 0f 85 6d 03 00 00 48 8b 04 24 8b 10 48 c7 c7 a0 3f 13 8d 8b 74 24 1c e8 5f ff 7b f7 90 <0f> 0b 90 90 e9 39 01 00 00 e8 f0 02 bb f7 e9 5e fc ff ff e8 e6 02
+RSP: 0018:ffffc9000486ef00 EFLAGS: 00010246
+RAX: 789495961ce19900 RBX: ffff888069756a00 RCX: 0000000000040000
+RDX: ffffc9000c6f5000 RSI: 00000000000026ab RDI: 00000000000026ac
+RBP: dffffc0000000000 R08: ffffffff8155daa2 R09: 1ffff110170c519a
+R10: dffffc0000000000 R11: ffffed10170c519b R12: ffff88802715d940
+R13: ffff88802715ea50 R14: 0000000000000004 R15: ffff888067836800
+FS:  00007f3bff1fb6c0(0000) GS:ffff8880b8600000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f3bff1faf98 CR3: 000000007f7ca000 CR4: 00000000003526f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ nf_unregister_net_hook+0x98/0xe0 net/netfilter/core.c:535
+ __nf_tables_unregister_hook net/netfilter/nf_tables_api.c:384 [inline]
+ nf_tables_unregister_hook net/netfilter/nf_tables_api.c:391 [inline]
+ nft_table_disable+0x305/0x3c0 net/netfilter/nf_tables_api.c:1221
+ nf_tables_table_disable net/netfilter/nf_tables_api.c:1253 [inline]
+ nf_tables_commit+0x4e7e/0x91e0 net/netfilter/nf_tables_api.c:10415
+ nfnetlink_rcv_batch net/netfilter/nfnetlink.c:574 [inline]
+ nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:647 [inline]
+ nfnetlink_rcv+0xc77/0x2ab0 net/netfilter/nfnetlink.c:665
+ netlink_unicast_kernel net/netlink/af_netlink.c:1331 [inline]
+ netlink_unicast+0x7f6/0x990 net/netlink/af_netlink.c:1357
+ netlink_sendmsg+0x8e4/0xcb0 net/netlink/af_netlink.c:1901
+ sock_sendmsg_nosec net/socket.c:729 [inline]
+ __sock_sendmsg+0x221/0x270 net/socket.c:744
+ ____sys_sendmsg+0x52a/0x7e0 net/socket.c:2602
+ ___sys_sendmsg net/socket.c:2656 [inline]
+ __sys_sendmsg+0x292/0x380 net/socket.c:2685
+ do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+ do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7f3bfe37dff9
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f3bff1fb038 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00007f3bfe535f80 RCX: 00007f3bfe37dff9
+RDX: 0000000000040010 RSI: 0000000020000240 RDI: 0000000000000003
+RBP: 00007f3bfe3f0296 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 0000000000000000 R14: 00007f3bfe535f80 R15: 00007fff127040d8
+ </TASK>
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
