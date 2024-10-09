@@ -1,13 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 74352161313;
-	Wed,  9 Oct 2024 21:39:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D61641E1A14;
+	Wed,  9 Oct 2024 21:39:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728509946; cv=none; b=HV9k5wMKhphRPw1mN566iLFrmvHOsH0rlDeM6q9REBquTPyZrRxT10Av48MrBABTTvDTGrjsAamxF9dF0oFIenoN3KxjcJUf7tRqD7nVU/WRos/jhIOfKYwH3Ukzoom17l4mnJp8ICIdRCk8qAuixNB/PCbZOJxNEJI022oq93Y=
+	t=1728509947; cv=none; b=LgnxXeW3sZZtPvwP4aD/zlknlHm0XSK5sfqQNZ4qYM1o+a7JXS3r9HKMrPo57+4CPwQamsvo8iOZK3MtEQqMvUY943c52TLJUXMYsT4Am+1IWCg9b2kDeiQ6aHnCfKEPw+/8SWdS+e4p2X8LAvjDY59bRmPSOn95n0GQ0+OFL/8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728509946; c=relaxed/simple;
-	bh=b4oPjxZh2/RUjTPIuUlJCnctWWy61oGAIvx7IsP0yls=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=aeMqekIDMU5OqYEZuHsoUNBcHH81S6ji/dGRVdgi/udhLF7b4yRg8sN/8QF4/GLX/4KtvouIXo57ZL2P/scM8gIjyDf27+V7rUdNF2/qINv2B6OsKLg7XMrTpNaAXpH0d2kz6x+IZGDUZBREQl9x5zw8T6afu32fcNMd8eUjqXA=
+	s=arc-20240116; t=1728509947; c=relaxed/simple;
+	bh=cyRvjgt8aNDaX/Ur722LwwvdsjsJSPxhZVpFD3PFIjA=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=UtB1OEUMdGpsdwxXA5U+GI/x/+CmcATjU9QHGIVxO/L10SbRf7SFXIveJj0yXhNWA6+50Gm24mO2q7Eb/PzwM6fosr3rSFe0bGH51VlbDUC8pnjo3oxvDz2mE7yDeyODdOicYSTNi9jtATJCe3WKeKloVBzqT4YL1QO30Ot4PMA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -19,10 +20,12 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 0/3] Netfilter fixes for net
-Date: Wed,  9 Oct 2024 23:38:55 +0200
-Message-Id: <20241009213858.3565808-1-pablo@netfilter.org>
+Subject: [PATCH net 2/3] netfilter: fib: check correct rtable in vrf setups
+Date: Wed,  9 Oct 2024 23:38:57 +0200
+Message-Id: <20241009213858.3565808-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20241009213858.3565808-1-pablo@netfilter.org>
+References: <20241009213858.3565808-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,63 +34,75 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Florian Westphal <fw@strlen.de>
 
-The following patchset contains Netfilter fixes for net:
+We need to init l3mdev unconditionally, else main routing table is searched
+and incorrect result is returned unless strict (iif keyword) matching is
+requested.
 
-1) Restrict xtables extensions to families that are safe, syzbot found
-   a way to combine ebtables with extensions that are never used by
-   userspace tools. From Florian Westphal.
+Next patch adds a selftest for this.
 
-2) Set l3mdev inconditionally whenever possible in nft_fib to fix lookup
-   mismatch, also from Florian.
+Fixes: 2a8a7c0eaa87 ("netfilter: nft_fib: Fix for rpath check with VRF devices")
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1761
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/ipv4/netfilter/nft_fib_ipv4.c | 4 +---
+ net/ipv6/netfilter/nft_fib_ipv6.c | 5 +++--
+ 2 files changed, 4 insertions(+), 5 deletions(-)
 
-Please, pull these changes from:
+diff --git a/net/ipv4/netfilter/nft_fib_ipv4.c b/net/ipv4/netfilter/nft_fib_ipv4.c
+index 00da1332bbf1..09fff5d424ef 100644
+--- a/net/ipv4/netfilter/nft_fib_ipv4.c
++++ b/net/ipv4/netfilter/nft_fib_ipv4.c
+@@ -65,6 +65,7 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 		.flowi4_scope = RT_SCOPE_UNIVERSE,
+ 		.flowi4_iif = LOOPBACK_IFINDEX,
+ 		.flowi4_uid = sock_net_uid(nft_net(pkt), NULL),
++		.flowi4_l3mdev = l3mdev_master_ifindex_rcu(nft_in(pkt)),
+ 	};
+ 	const struct net_device *oif;
+ 	const struct net_device *found;
+@@ -83,9 +84,6 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 	else
+ 		oif = NULL;
+ 
+-	if (priv->flags & NFTA_FIB_F_IIF)
+-		fl4.flowi4_l3mdev = l3mdev_master_ifindex_rcu(oif);
+-
+ 	if (nft_hook(pkt) == NF_INET_PRE_ROUTING &&
+ 	    nft_fib_is_loopback(pkt->skb, nft_in(pkt))) {
+ 		nft_fib_store_result(dest, priv, nft_in(pkt));
+diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
+index 36dc14b34388..c9f1634b3838 100644
+--- a/net/ipv6/netfilter/nft_fib_ipv6.c
++++ b/net/ipv6/netfilter/nft_fib_ipv6.c
+@@ -41,8 +41,6 @@ static int nft_fib6_flowi_init(struct flowi6 *fl6, const struct nft_fib *priv,
+ 	if (ipv6_addr_type(&fl6->daddr) & IPV6_ADDR_LINKLOCAL) {
+ 		lookup_flags |= RT6_LOOKUP_F_IFACE;
+ 		fl6->flowi6_oif = get_ifindex(dev ? dev : pkt->skb->dev);
+-	} else if (priv->flags & NFTA_FIB_F_IIF) {
+-		fl6->flowi6_l3mdev = l3mdev_master_ifindex_rcu(dev);
+ 	}
+ 
+ 	if (ipv6_addr_type(&fl6->saddr) & IPV6_ADDR_UNICAST)
+@@ -75,6 +73,8 @@ static u32 __nft_fib6_eval_type(const struct nft_fib *priv,
+ 	else if (priv->flags & NFTA_FIB_F_OIF)
+ 		dev = nft_out(pkt);
+ 
++	fl6.flowi6_l3mdev = l3mdev_master_ifindex_rcu(dev);
++
+ 	nft_fib6_flowi_init(&fl6, priv, pkt, dev, iph);
+ 
+ 	if (dev && nf_ipv6_chk_addr(nft_net(pkt), &fl6.daddr, dev, true))
+@@ -165,6 +165,7 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 		.flowi6_iif = LOOPBACK_IFINDEX,
+ 		.flowi6_proto = pkt->tprot,
+ 		.flowi6_uid = sock_net_uid(nft_net(pkt), NULL),
++		.flowi6_l3mdev = l3mdev_master_ifindex_rcu(nft_in(pkt)),
+ 	};
+ 	struct rt6_info *rt;
+ 	int lookup_flags;
+-- 
+2.30.2
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-24-10-09
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 983e35ce2e1ee4037f6f5d5398dfc107b22ad569:
-
-  net: hns3/hns: Update the maintainer for the HNS3/HNS ethernet driver (2024-10-09 13:40:42 +0100)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-24-10-09
-
-for you to fetch changes up to c6a0862bee696cfb236a4e160a7f376c0ecdcf0c:
-
-  selftests: netfilter: conntrack_vrf.sh: add fib test case (2024-10-09 23:31:15 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 24-10-09
-
-----------------------------------------------------------------
-Florian Westphal (3):
-      netfilter: xtables: avoid NFPROTO_UNSPEC where needed
-      netfilter: fib: check correct rtable in vrf setups
-      selftests: netfilter: conntrack_vrf.sh: add fib test case
-
- net/ipv4/netfilter/nft_fib_ipv4.c                  |   4 +-
- net/ipv6/netfilter/nft_fib_ipv6.c                  |   5 +-
- net/netfilter/xt_CHECKSUM.c                        |  33 +++++--
- net/netfilter/xt_CLASSIFY.c                        |  16 +++-
- net/netfilter/xt_CONNSECMARK.c                     |  36 ++++---
- net/netfilter/xt_CT.c                              | 106 ++++++++++++++-------
- net/netfilter/xt_IDLETIMER.c                       |  59 ++++++++----
- net/netfilter/xt_LED.c                             |  39 +++++---
- net/netfilter/xt_NFLOG.c                           |  36 ++++---
- net/netfilter/xt_RATEEST.c                         |  39 +++++---
- net/netfilter/xt_SECMARK.c                         |  27 +++++-
- net/netfilter/xt_TRACE.c                           |  35 ++++---
- net/netfilter/xt_addrtype.c                        |  15 ++-
- net/netfilter/xt_cluster.c                         |  33 +++++--
- net/netfilter/xt_connbytes.c                       |   4 +-
- net/netfilter/xt_connlimit.c                       |  39 +++++---
- net/netfilter/xt_connmark.c                        |  28 +++++-
- net/netfilter/xt_mark.c                            |  42 ++++++--
- .../selftests/net/netfilter/conntrack_vrf.sh       |  33 +++++++
- 19 files changed, 459 insertions(+), 170 deletions(-)
