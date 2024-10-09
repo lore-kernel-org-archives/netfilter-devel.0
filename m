@@ -1,217 +1,84 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D26F91922F4
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Oct 2024 13:44:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from mail.w13.tutanota.de (mail.w13.tutanota.de [185.205.69.213])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C678B1EA73
+	for <netfilter-devel@vger.kernel.org>; Wed,  9 Oct 2024 14:09:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.205.69.213
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728481475; cv=none; b=I3gdF0HTRLmRUAINEwGIy5Vf4jdndvKjuXkJWe6BhU2MIalAhbWY6HKFY1dZVReEDY/ddRWYw2+nmV0mvhayGloZikSnMccGNTY39SFI9kix5OiE1qdl4tHJ2OLSC/YxnzkOmB9eHs86CrPZo2TokiMzuuo/f4la6SfLW6dTXjg=
+	t=1728483000; cv=none; b=iZidd9ulk7DnvW0XP4PRX3f4IFJRDujjyQHZAm9GjINiQxhiebxnk81ZcYWPhFSI53JErebbtmiN+5Fnn91qM1lnxbegrXx6feJA6gwrg7IFXktFVeNJKy2xlU2o/SP2BbAN9TS9a44710jK8IyzvgRnIL2JhoYNP0x/179o5LI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728481475; c=relaxed/simple;
-	bh=+9vSfw7NIvvIH2+EBvJ5EJAI2oH8t4WJjs6E2hkaxiA=;
-	h=From:To:Subject:Date:Message-Id:MIME-Version; b=WtrVo4dlOxku3VfPGhZmJgyNFo8Ktk9RThcFdTlgC0kijJ+A0Lx6CS++ks6S2o1/JU9zlHAJk57hB3eQK1THK+nH4jN80VagaTFdDtkECz2WbFqB5X4CHszeoO4ewLM0T6DSVHGOq4S+DDcZ+D1yMeIzpKi8IvGmrCGrN050naQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft,v2] libnftables: remove set element uncollapse for error reporting
-Date: Wed,  9 Oct 2024 15:44:27 +0200
-Message-Id: <20241009134427.3487792-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+	s=arc-20240116; t=1728483000; c=relaxed/simple;
+	bh=PuDWCrXfOzQ9HlJzjyMVk31zGFoYIopPGc0uhxi6LVk=;
+	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
+	 MIME-Version:Content-Type; b=HV0luJFiXQQ20AlBcjMvVWh6nsD7LeVG+SScuHHUdnYCcgG0yqNGLu/Koo1UGJRJJCMgDW/ih6kx0eVfrySN/H87VJcAW2fZv0tthfn5Mz2f0Oy6En4aTDU5cMtE+RgmIGSatk+pKQK6ftkhwpLJfhD/QkC7pe7dDlOD+QRDvts=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=tutanota.com; spf=pass smtp.mailfrom=tutanota.com; dkim=pass (2048-bit key) header.d=tutanota.com header.i=@tutanota.com header.b=m8o6y/KZ; arc=none smtp.client-ip=185.205.69.213
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=tutanota.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=tutanota.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=tutanota.com header.i=@tutanota.com header.b="m8o6y/KZ"
+Received: from tutadb.w10.tutanota.de (w10.api.tuta.com [IPv6:fd:ac::d:10])
+	by mail.w13.tutanota.de (Postfix) with ESMTP id DAC092AF380A;
+	Wed,  9 Oct 2024 16:09:50 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1728482990;
+	s=s1; d=tutanota.com;
+	h=From:From:To:To:Subject:Subject:Content-Description:Content-ID:Content-Type:Content-Type:Content-Transfer-Encoding:Content-Transfer-Encoding:Cc:Cc:Date:Date:In-Reply-To:In-Reply-To:MIME-Version:MIME-Version:Message-ID:Message-ID:Reply-To:References:References:Sender;
+	bh=PuDWCrXfOzQ9HlJzjyMVk31zGFoYIopPGc0uhxi6LVk=;
+	b=m8o6y/KZEDJ/8QWG295S06Tvwxg+S7TC9+QzWiMa1bsEnKOPT07PVI9YjMvh37A/
+	CbfMiyNRNTEJT/B6Zh0x0ytelmoC1W9Cim3G5UH6n3B6mTnWpr5N+RcmCY6lvQPBSHR
+	T4fBJqmeUc0rgf7Bwt6pp+ZBYpR6VJi5LgP4yPqdVomsoFYGa1kzZtV6bTJIxHK0fRC
+	KOlQnmeupefNDg637so664rNRORiTXgDZt5819xf9SBG1aLFKUKfQzaJZVmPGPl6D9I
+	ML4isj49WNOiZ+KcVHWvYN30CJQ4T1X++qN7zWLX3voMnh9PRB+veI3D+5dS5j799BC
+	DXtJsLg/GA==
+Date: Wed, 9 Oct 2024 16:09:50 +0200 (CEST)
+From: Nicola Serafini <n.serafini@tutanota.com>
+To: Phil Sutter <phil@nwl.cc>
+Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>
+Message-ID: <O8lSdoG--B-9@tutanota.com>
+In-Reply-To: <ZwZkQ0vngLf_ZaiZ@orbyte.nwl.cc>
+References: <O8kMltx--B-9@tutanota.com> <ZwZkQ0vngLf_ZaiZ@orbyte.nwl.cc>
+Subject: Re: Argument -S (--list-rules) in ebtables
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Error reporting works fine with recent -stable kernels:
+Hello Phil, many thanks for your answer.
 
- # cat ruleset.nft
- add table ip x
- add chain ip x y
- add set ip x y { type ipv4_addr; }
- create element ip x y { 1.1.1.1 }
- create element ip x y { 1.1.1.1 }
+I believe I will switch to ebtables-save.
 
- # nft -f ruleset.nft
- ruleset.nft:5:25-31: Error: Could not process rule: File exists
- create element ip x y { 1.1.1.1 }
-                         ^^^^^^^
 
-which is provided by this small "fix":
+Thanks!
 
- commit b53c116642502b0c85ecef78bff4f826a7dd4145
- Author: Pablo Neira Ayuso <pablo@netfilter.org>
- Date:   Fri May 20 00:02:06 2022 +0200
+--
+Nicola
 
-    netfilter: nf_tables: set element extended ACK reporting support
 
-no need to relate commands via sequence number, ditch this expensive
-workaround in userspace.
 
-Release collapsed commands from list since they contain no elements
-anymore.
+9 oct 2024, 13:08 por phil@nwl.cc:
 
-Fixes: 498a5f0c219d ("rule: collapse set element commands")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: release empty command object after collapsing elements.
-
- include/cmd.h        |  2 +-
- include/expression.h |  1 -
- include/rule.h       |  1 -
- src/cmd.c            | 42 +++++-------------------------------------
- src/libnftables.c    |  7 +------
- src/rule.c           |  1 -
- 6 files changed, 7 insertions(+), 47 deletions(-)
-
-diff --git a/include/cmd.h b/include/cmd.h
-index 92a4152bbaea..360d32d0099f 100644
---- a/include/cmd.h
-+++ b/include/cmd.h
-@@ -7,7 +7,7 @@ void nft_cmd_error(struct netlink_ctx *ctx, struct cmd *cmd,
- 
- void nft_cmd_expand(struct cmd *cmd);
- void nft_cmd_post_expand(struct cmd *cmd);
--bool nft_cmd_collapse(struct list_head *cmds);
-+void nft_cmd_collapse(struct list_head *cmds);
- void nft_cmd_uncollapse(struct list_head *cmds);
- 
- #endif
-diff --git a/include/expression.h b/include/expression.h
-index 8982110cce95..da2f693e72d3 100644
---- a/include/expression.h
-+++ b/include/expression.h
-@@ -255,7 +255,6 @@ struct expr {
- 	enum expr_types		etype:8;
- 	enum ops		op:8;
- 	unsigned int		len;
--	struct cmd		*cmd;
- 
- 	union {
- 		struct {
-diff --git a/include/rule.h b/include/rule.h
-index 5b3e12b5d7dc..a1628d82d275 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -718,7 +718,6 @@ struct cmd {
- 	enum cmd_obj		obj;
- 	struct handle		handle;
- 	uint32_t		seqnum;
--	struct list_head	collapse_list;
- 	union {
- 		void		*data;
- 		struct expr	*expr;
-diff --git a/src/cmd.c b/src/cmd.c
-index 9a572b5660c7..7f3728d74cbe 100644
---- a/src/cmd.c
-+++ b/src/cmd.c
-@@ -460,11 +460,10 @@ void nft_cmd_expand(struct cmd *cmd)
- 	}
- }
- 
--bool nft_cmd_collapse(struct list_head *cmds)
-+void nft_cmd_collapse(struct list_head *cmds)
- {
- 	struct cmd *cmd, *next, *elems = NULL;
- 	struct expr *expr, *enext;
--	bool collapse = false;
- 
- 	list_for_each_entry_safe(cmd, next, cmds, list) {
- 		if (cmd->op != CMD_ADD &&
-@@ -498,43 +497,12 @@ bool nft_cmd_collapse(struct list_head *cmds)
- 			continue;
- 		}
- 
--		collapse = true;
--		list_for_each_entry_safe(expr, enext, &cmd->expr->expressions, list) {
--			expr->cmd = cmd;
-+		list_for_each_entry_safe(expr, enext, &cmd->expr->expressions, list)
- 			list_move_tail(&expr->list, &elems->expr->expressions);
--		}
--		elems->expr->size += cmd->expr->size;
--		list_move_tail(&cmd->list, &elems->collapse_list);
--	}
--
--	return collapse;
--}
--
--void nft_cmd_uncollapse(struct list_head *cmds)
--{
--	struct cmd *cmd, *cmd_next, *collapse_cmd, *collapse_cmd_next;
--	struct expr *expr, *next;
- 
--	list_for_each_entry_safe(cmd, cmd_next, cmds, list) {
--		if (list_empty(&cmd->collapse_list))
--			continue;
--
--		assert(cmd->obj == CMD_OBJ_ELEMENTS);
--
--		list_for_each_entry_safe(expr, next, &cmd->expr->expressions, list) {
--			if (!expr->cmd)
--				continue;
--
--			list_move_tail(&expr->list, &expr->cmd->expr->expressions);
--			cmd->expr->size--;
--			expr->cmd = NULL;
--		}
--
--		list_for_each_entry_safe(collapse_cmd, collapse_cmd_next, &cmd->collapse_list, list) {
--			if (cmd->elem.set)
--				collapse_cmd->elem.set = set_get(cmd->elem.set);
-+		elems->expr->size += cmd->expr->size;
- 
--			list_add(&collapse_cmd->list, &cmd->list);
--		}
-+		list_del(&cmd->list);
-+		cmd_free(cmd);
- 	}
- }
-diff --git a/src/libnftables.c b/src/libnftables.c
-index 2ae215013cb0..1ea5640e81be 100644
---- a/src/libnftables.c
-+++ b/src/libnftables.c
-@@ -513,7 +513,6 @@ static int nft_evaluate(struct nft_ctx *nft, struct list_head *msgs,
- {
- 	struct nft_cache_filter *filter;
- 	struct cmd *cmd, *next;
--	bool collapsed = false;
- 	unsigned int flags;
- 	int err = 0;
- 
-@@ -529,8 +528,7 @@ static int nft_evaluate(struct nft_ctx *nft, struct list_head *msgs,
- 
- 	nft_cache_filter_fini(filter);
- 
--	if (nft_cmd_collapse(cmds))
--		collapsed = true;
-+	nft_cmd_collapse(cmds);
- 
- 	list_for_each_entry(cmd, cmds, list) {
- 		if (cmd->op != CMD_ADD &&
-@@ -553,9 +551,6 @@ static int nft_evaluate(struct nft_ctx *nft, struct list_head *msgs,
- 		}
- 	}
- 
--	if (collapsed)
--		nft_cmd_uncollapse(cmds);
--
- 	if (err < 0 || nft->state->nerrs)
- 		return -1;
- 
-diff --git a/src/rule.c b/src/rule.c
-index 9bc160ec0d88..9536e68c7524 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -1332,7 +1332,6 @@ struct cmd *cmd_alloc(enum cmd_ops op, enum cmd_obj obj,
- 	cmd->attr     = xzalloc_array(NFT_NLATTR_LOC_MAX,
- 				      sizeof(struct nlerr_loc));
- 	cmd->attr_array_len = NFT_NLATTR_LOC_MAX;
--	init_list_head(&cmd->collapse_list);
- 
- 	return cmd;
- }
--- 
-2.30.2
+> Hi Nicola,
+>
+> On Wed, Oct 09, 2024 at 10:22:16AM +0200, Nicola Serafini wrote:
+>
+>> Hi list, I noticed that ebtables command line utility has not a "-S (--l=
+ist-rules)" argument which is widely=C2=A0adopted by the other command line=
+ tools (arptables, iptables).
+>>
+>> I think it can be useful for many reasons, so I'm here to ask whether it=
+ was deliberately omitted or not and why.
+>>
+>
+> Ebtables' UI is different in so many aspects, I find it rather
+> interesting that there are shared options with iptables. ;)
+>
+> In iptables.git, ebtables-nft already has support for -S option
+> (although undocumented), so next release will enable this feature for
+> you (unless you stick to ebtables-legacy).
+>
+> Cheers, Phil
+>
 
