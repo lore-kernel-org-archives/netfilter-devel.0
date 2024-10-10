@@ -1,92 +1,117 @@
-Received: from mail-wm1-f47.google.com (mail-wm1-f47.google.com [209.85.128.47])
+Received: from mail-wr1-f46.google.com (mail-wr1-f46.google.com [209.85.221.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 489E11311AC
-	for <netfilter-devel@vger.kernel.org>; Thu, 10 Oct 2024 06:27:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5A9D1BE86F
+	for <netfilter-devel@vger.kernel.org>; Thu, 10 Oct 2024 11:11:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728541633; cv=none; b=Rn2BnPH+4Uj0jOcHXbiBYD2PUiaqX+MLlJY1K2FErGKboFAq3Ktal2srMDDwTtBc5Wo9VVruJDI4efay+6dupYE36kUPl33XKmE//TfgCQqkaKUjvj1s4lh416z27rxC/NOuiY3MHMS4XiZJ7XEwFEOyH2t7oDa0yOKJVXzkcAA=
+	t=1728558683; cv=none; b=GhG/Qc0ybHyr4ezfHLCZTQo1R3bl5FBWovR4U23z6qAI/Mx85eLYCw3g7wsfmwQ45kvGojR2LHTUlMdd0/EIjXqyNiHlBwrrIdnlufXOgf8MWgOKeCkKM85AaDsEqP8P0SXjMUyGtTOmsS914NqeOjF+jzWVKlmpKiYpGI84XME=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728541633; c=relaxed/simple;
-	bh=DJaQzZsVBQ4pNi7ZfXCLZjYApmeH7omoEawSV46OekY=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=b5WEa2XHL86J4VUB+V/QqVU9W5XpKV3N7S3C4tsmZGaSlQizWLx+1dUKymlNYA0tos5BnqpEc2be6x/+ljEt/bRD7QMi2jpzCRUyc1AMYpvCzuoff3Dpp4RLoOye8ZHHcHJNexxDmwhiWi6fmNBhQFIWtwOclk5wXEezecgGyrg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sigma-star.at; spf=pass smtp.mailfrom=sigma-star.at; dkim=pass (2048-bit key) header.d=sigma-star.at header.i=@sigma-star.at header.b=ZfsLnDF6; arc=none smtp.client-ip=209.85.128.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sigma-star.at
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sigma-star.at
+	s=arc-20240116; t=1728558683; c=relaxed/simple;
+	bh=o7IbsV8dylo0DqvCTlAmi71UtXd2b2Wz+sRenj+c4ik=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=rMsXfwPcuAw09Yciae3GlU+3F9+QZHhiTDNHys5X7DsE2DDUb83sSPDr4/PbGxYoQycGLQqo9N8PxH/zHIU5Sa5nqVwo4hzqRRiluo/xlszXiSjxGvY/y3Uj54oNduInZZokqYJ387STjB/KUSATLmOsjEGz4L0wml8g88wgyxI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=cF6+9nO+; arc=none smtp.client-ip=209.85.221.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=sigma-star.at header.i=@sigma-star.at header.b="ZfsLnDF6"
-Received: by mail-wm1-f47.google.com with SMTP id 5b1f17b1804b1-431195c3538so779045e9.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 09 Oct 2024 23:27:11 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="cF6+9nO+"
+Received: by mail-wr1-f46.google.com with SMTP id ffacd0b85a97d-37d41894a32so502550f8f.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Oct 2024 04:11:21 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sigma-star.at; s=google; t=1728541630; x=1729146430; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=DJaQzZsVBQ4pNi7ZfXCLZjYApmeH7omoEawSV46OekY=;
-        b=ZfsLnDF61UXFMl8AK0angBwqckqkAaMa0AzAYdffj+2vILcH6nWEv/bPvDDb1A9X0F
-         upMTJfOnfrv0yZxRdoqMfVhOalvD+lqSxAXFEpYvjQgTJez6G4BY1TXWTpUx4JxH6jOp
-         yHm+Y8o3YypBsqaZm2cbNrXY9tMHRvVDZTDC5WuP86GM05leNEKtY6BoG66dG6Oclv2a
-         dCWlHy823tQ8+WnRHS97j+crSXZZbs9AWSDMGd8OJWjEKvz5jPS7UIViJ7xBzFyniM9e
-         9jGqtE5A8hTV/mGMAoRIA8z0kthx+kUnmnROrJrrtSA4LJiDLgCAQkLuYPset/RaisLt
-         co3Q==
+        d=suse.com; s=google; t=1728558680; x=1729163480; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=Pj084TxEUBCtkebrhLItrb8eMC+iySDPMO5qLZMCJy8=;
+        b=cF6+9nO+h1cJVliIfu7VG1TXbWBu69thgYgOMLNF0VFBXKep+g8xd/LxJpTGeYzFSi
+         N9Q0zfaoI5zovwat/Sqlta0XUotqtcy4DyCPK1u05WF1TiRaiQ94qdh96OcEPeP+MuYv
+         Zk10BXkW1Wj03Iykc16PugS1JyirCQkV5ErZ3+d1mMEM1lLYzy6Jt/ZUnpJgvgCMI5pR
+         +mZtYOxZIgnDduHzbryHsr5f/hn1IZMmjjDblSWms56QMg+sM6d4MQTCo2IhAXqQ7sZQ
+         lHCSKce1HeIpNl7jYgekFmU9Nb/d0FWwPlFN/yTBR3ZfF2CfqmVT9RDHdffxsBsCK2LZ
+         ZsRA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1728541630; x=1729146430;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=DJaQzZsVBQ4pNi7ZfXCLZjYApmeH7omoEawSV46OekY=;
-        b=RwWvWR1YOax1AS1ke0eFqqOfNeyKDqydSszcdauSeiBctKhdW3/44RowNUstGLcEAk
-         jQE17GcYudCEemJZwlMn8weTc2iBLwXLSa/w6tCTbGIgf2G4YK73sfgYQ5RmbuQQtLpM
-         6Aem3LxbwGMeu3/Ikyp8xDxY4oOl3QLI40JsHQ+mY5b6Mq/ULZfw7jKlb2ni7SUWjqNI
-         tHXo7XlJCEQxBGIti0aT6F3Y5ub263pOClIWN4K7MHn46WMTjvngJarBEYnrfQC01OpS
-         I/Qm+LGuLHUv9VcceqICvqBRBTCbrHSJlfXIEG9kbhfE9//zsF70w16RMa2jYp61p8Fs
-         Z81Q==
-X-Gm-Message-State: AOJu0YwSj39ZI6wV7lPx5lzzr1tCF2Or5+Xe+EIV44mXJC6M/0CeD6jW
-	WF03AFzbLvtblKx52nwsE/ruJG3x4Sb00yncd9v4yvUqDGBxofFhEnXzgfMDk4Y=
-X-Google-Smtp-Source: AGHT+IG8trf13n+jWHkfYQNs0jAXGzamsgifjFl/jzbdieZPwE+y/eV5VgK4wziB5cnE6mkuFWH/oA==
-X-Received: by 2002:a05:600c:444c:b0:42f:310f:de9 with SMTP id 5b1f17b1804b1-430ccf43d90mr33030595e9.15.1728541629718;
-        Wed, 09 Oct 2024 23:27:09 -0700 (PDT)
-Received: from blindfold.localnet ([82.150.214.1])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-37d4b79f896sm601043f8f.87.2024.10.09.23.27.08
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 09 Oct 2024 23:27:09 -0700 (PDT)
-From: Richard Weinberger <richard@sigma-star.at>
-To: Richard Weinberger <richard@nod.at>, upstream@sigma-star.at
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, pabeni@redhat.com, kuba@kernel.org, edumazet@google.com, davem@davemloft.net, kadlec@netfilter.org, pablo@netfilter.org, rgb@redhat.com, paul@paul-moore.com, upstream+net@sigma-star.at, Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] netfilter: Record uid and gid in xt_AUDIT
-Date: Thu, 10 Oct 2024 08:27:08 +0200
-Message-ID: <3048359.FXINqZMJnI@somecomputer>
-In-Reply-To: <20241009213345.GC3714@breakpoint.cc>
-References: <20241009203218.26329-1-richard@nod.at> <20241009213345.GC3714@breakpoint.cc>
+        d=1e100.net; s=20230601; t=1728558680; x=1729163480;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=Pj084TxEUBCtkebrhLItrb8eMC+iySDPMO5qLZMCJy8=;
+        b=xHlwTFAY/9P0BF1gQrCDkMbROS+JNf/O5JqhOEV7LmNOxvL27H0BZKzfh+RVPiVj5+
+         i60qmWk8VluLPvQ5r4V97woQHla12/ZikLxZ1IqwpT1xlzd34I54qv2sbLpFFBSrHqC1
+         8Tak6+mzWCPquFEt3p/WHck7JwbVTGOJdyJ1AoXdVe+scuH6bLEkFjB+HKtzlh0VYqc2
+         BDv2GR2lOl5mkJQQkOc80EebpuyNBECOT1Ua7+8Kb0IyLiGPxfdbp9yFmDPQ05x94Y4d
+         oWEkbSmz3y/aitXXi8ek2iZww2C4TzpILraH06UmMAYHQaEPjnDueZAHD+Vxv94TrWvw
+         q63A==
+X-Forwarded-Encrypted: i=1; AJvYcCXaFSj3QKtaeibz/CTV582n9feipXMK6NiYARLA8QBhJvFm0e8f7xZA4mT0VwzqFOaJuNaOxVWn2tcwzALngiE=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxCXMbtsOfIwAJm1RDo03i4cBasRYyACPEgeA1hxKuHeBHF10Vf
+	lfFnX7t5ck9SIG9moxewftCr0qf/tvmDT45QaLQEeBwteYd3JJUXrLPCo2WjQcU=
+X-Google-Smtp-Source: AGHT+IGFcpGSj3fyXg0OM+eoZ1SokyGRjRn/y2uZRlAa4M0Rr9RImyGRJONGFcLhHHZv9+AKcDMzaw==
+X-Received: by 2002:adf:ee82:0:b0:37d:4660:c027 with SMTP id ffacd0b85a97d-37d481d2633mr2359261f8f.24.1728558679904;
+        Thu, 10 Oct 2024 04:11:19 -0700 (PDT)
+Received: from [10.202.96.10] ([202.127.77.110])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-20c8bad3379sm7742455ad.22.2024.10.10.04.11.17
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 10 Oct 2024 04:11:18 -0700 (PDT)
+Message-ID: <67704d32-d61c-41ec-93ec-95db02b46be7@suse.com>
+Date: Thu, 10 Oct 2024 19:11:15 +0800
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="UTF-8"
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] nf_conntrack_proto_udp: do not accept packets with
+ IPS_NAT_CLASH
+To: Florian Westphal <fw@strlen.de>
+Cc: Hannes Reinecke <hare@kernel.org>, Pablo Neira Ayuso
+ <pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>,
+ netfilter-devel@vger.kernel.org, Michal Kubecek <mkubecek@suse.de>
+References: <20240930085326.144396-1-hare@kernel.org>
+ <20240930092926.GA13391@breakpoint.cc>
+ <776f0b5c-7c2d-4668-a29e-38559fc0ee45@suse.com>
+ <20241008164517.GA15971@breakpoint.cc>
+Content-Language: en-US
+From: Yadan Fan <ydfan@suse.com>
+In-Reply-To: <20241008164517.GA15971@breakpoint.cc>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Am Mittwoch, 9. Oktober 2024, 23:33:45 CEST schrieb Florian Westphal:
-> There is no need to follow ->file backpointer anymore, see
-> 6acc5c2910689fc6ee181bf63085c5efff6a42bd and
-> 86741ec25462e4c8cdce6df2f41ead05568c7d5e,
-> "net: core: Add a UID field to struct sock.".
+On 10/9/24 00:45, Florian Westphal wrote:
+> Yadan Fan <ydfan@suse.com> wrote:
+>> On 9/30/24 17:29, Florian Westphal wrote:
+>>> Hannes Reinecke <hare@kernel.org> wrote:
+>>>> Commit c46172147ebb changed the logic when to move to ASSURED if
+>>>> a NAT CLASH is detected. In particular, it moved to ASSURED even
+>>>> if a NAT CLASH had been detected,
+>>>
+>>> I'm not following.  The code you are removing returns early
+>>> for nat clash case.
+>>>
+>>> Where does it move to assured if nat clash is detected?
+>>>
+>>>> However, under high load this caused the timeout to happen too
+>>>> slow causing an IPVS malfunction.
+>>>
+>>> Can you elaborate?
+>>
+>> Hi Florian,
+>>
+>> We have a customer who encountered an issue that UDP packets kept in
+>> UNREPLIED in conntrack table when there is large number of UDP packets
+>> sent from their application, the application send packets through multiple
+>> threads,
+>> it caused NAT clash because the same SNATs were used for multiple
+>> connections setup,
+>> so that initial packets will be flagged with IPS_NAT_CLASH, and this snippet
+>> of codes
+>> just makes IPS_NAT_CLASH flagged packets never be marked as ASSURED, which
+>> caused
+>> all subsequent UDP packets got dropped.
+> 
+> I think the only thing remaining is to rewrite the commit message to
+> say that not setting assured will drop NAT_CLASH replies in case server
+> is very busy and early_drop logic kicks in.
 
-Oh, neat!
-=20
-> I think we could streamline all the existing paths that fetch uid
-> from sock->file to not do that and use sock_net_uid() instead as well.
-=20
-Also xt_owner?
-
-Thanks,
-//richard
-
-=2D-=20
-=E2=80=8B=E2=80=8B=E2=80=8B=E2=80=8B=E2=80=8Bsigma star gmbh | Eduard-Bodem=
-=2DGasse 6, 6020 Innsbruck, AUT
-UID/VAT Nr: ATU 66964118 | FN: 374287y
-
-
+Thanks, I will submit a new patch with the new commit message
+continuing the work from Hannes.
