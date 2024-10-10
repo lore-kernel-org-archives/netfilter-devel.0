@@ -1,125 +1,99 @@
-Received: from mail-yw1-f172.google.com (mail-yw1-f172.google.com [209.85.128.172])
+Received: from mail-wr1-f54.google.com (mail-wr1-f54.google.com [209.85.221.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5CF91CDFD8
-	for <netfilter-devel@vger.kernel.org>; Thu, 10 Oct 2024 19:14:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0079B15B0F2
+	for <netfilter-devel@vger.kernel.org>; Thu, 10 Oct 2024 20:09:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728587652; cv=none; b=Sy8+TcCyD0JrKVf0wJlgmeBr2nWp6fAwba6rjulq6+4K4EhzKfqEVjGcXReI9sGtGTz6IvZFsblyykz0edUp7whHe7yceDG3kuw8w9vjKOxvBfuMAl6l+5CZsFPXdHNMW3nE+vG4s2nq1fgEXQnWL/q/8xwfC+NcHAVUWaI07CI=
+	t=1728590993; cv=none; b=AYl1UxgcqtbrOdBrKQuPkS8jUOfTIx/sSejtJG6yh8HIr4vRw4FT6nlC5IG12GiO3AMGkGCoLlMtlc5GD3GVEO4AatVnWtFwA3dGqGgS3EqJZWgcf/AIwLGgmMhA+XR49/QvBTUjLM6wN/b1K0hTp3sDPshLR9pL6+BB3IUyAC8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728587652; c=relaxed/simple;
-	bh=9J2YZOewo+gdC+S01tNmNL+06a41vIYYBHxKTP6AoZ0=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Rtgo8uyUUG6XMjwB/o7Tiv/IZH97ZIJbRD5+68gAhJG3Wi601FswnVxxX/5MuTRqUx/XQTjfQqKJkeJCTNCAoQBhvdNkPfNyNwrb8HG78rkYm4xiTqYNwE5ng4u5HN124ExHxxC1Zc+j/4fSHwstWnaG4eWGBYUcxEBRH/pojAE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=M1+xncv2; arc=none smtp.client-ip=209.85.128.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
+	s=arc-20240116; t=1728590993; c=relaxed/simple;
+	bh=hfP8kIySYPoXGp3X3utwwBQMk8qm/KR8k9kaAp2Ign8=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=Jp3UtBgAAJACWsxgENyKo5o0UrwjlepaELZdnAUySzSvybYKVZQ80nXH46T8bkqd+z2Q/LYkGEHcX6mJfU1LA+HXKIiD7hj2lhIad8p6PBtoEbHcsQp5SfYdND8bJTZ5WMlXlQmNYk0fv4HMSL+zdbo0Iu5JAGi6PEGIw/HOjmQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sigma-star.at; spf=pass smtp.mailfrom=sigma-star.at; dkim=pass (2048-bit key) header.d=sigma-star.at header.i=@sigma-star.at header.b=fvm1hmXw; arc=none smtp.client-ip=209.85.221.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sigma-star.at
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sigma-star.at
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="M1+xncv2"
-Received: by mail-yw1-f172.google.com with SMTP id 00721157ae682-6e2e41bd08bso15499947b3.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Oct 2024 12:14:10 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=sigma-star.at header.i=@sigma-star.at header.b="fvm1hmXw"
+Received: by mail-wr1-f54.google.com with SMTP id ffacd0b85a97d-37d43a9bc03so720340f8f.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Oct 2024 13:09:51 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore.com; s=google; t=1728587650; x=1729192450; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
+        d=sigma-star.at; s=google; t=1728590990; x=1729195790; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=J6Pg6F94tMjt4Hzd0hbiOJ9IN5nlvNjG3qJM+Incf8Y=;
-        b=M1+xncv2b0E6e1amM7U3ZuPbA7r9Iqh3YGPqXg79nKJTppswu5Ar1d7dDyHsvcR9H6
-         9kEApomQqMlwwd/qGWB2eC339+sFkcpz45hp4lX3Z0inJcwy8fET7AoSm+ZpOVKBmY9/
-         w52SfAfYDdE16n6Ve8abZMXWexhlqz/GVccUaDuYcPBJEBr7zIYDlrx2x7PpxjeHuqmL
-         FBPpgULGwWpjXCJ7z1JCmSIOGC5aKDRrn2JpKKuuQLdnELpgYkByYxVQuC2rXVJz+V8p
-         Mg9ujGmLpd+EqRLzxANQyl0hFsCl6qxm6+4IKOaDc66VputxU2vKxvDLyiqkZymiFBJ5
-         xvNA==
+        bh=hfP8kIySYPoXGp3X3utwwBQMk8qm/KR8k9kaAp2Ign8=;
+        b=fvm1hmXw6bUalnThjM0e5af94TvjIExG7S3vti0VzYleuEr5eM6nNQ3FpKImTvAYIM
+         FDEhySG2BNeU8yDpxLuFxsfd9+Q4PjRdgEBXaVf9KDFP02eFnyNcARz654Tcg7Wquatp
+         BlICzt0i5mIpFkNHPp077Pz9VSReFZYLiOsIoaGWXUDb8WkAghKYlBysWC+aphWYIJK/
+         ZVYb7UeDU73niHRZ14eJ8D5lBIaGa7gHbt/+xJYbp32K65SZJ+20yUtHFN2bnHs1z2Gb
+         jpBRhPEDWfRwgRXW20CeAuGwFgwf48OlOTxAwNRHPleSimv2hs6yXjXmClrj8CYqJg8c
+         KJJw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1728587650; x=1729192450;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+        d=1e100.net; s=20230601; t=1728590990; x=1729195790;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=J6Pg6F94tMjt4Hzd0hbiOJ9IN5nlvNjG3qJM+Incf8Y=;
-        b=Ls3Kq8qX73MTbiGQyaGNzl4H+Dvo/5T6Ohl+wXIU+BoZgjAWjU0QcYJipn5pTt6FuK
-         2ifpWaZy8rU7Z21FF2IFSbX0IkCy/SxM8uL3b8YxaBhiKK8DmPocXEPfesujOqjWbvW6
-         w9uLSime9G0DpahMcf7anrBSfyZW4dZCAWHiZbNVgzSuV3ZFPw6AYXPvlDXSa5y4xwfx
-         1PkqSnGAa0UGBq+5+AGhXQ+G6DfsUlGzzQ5Z0AobTfRO0b0D1apccSYncEdtwGbMNrQQ
-         GsSOqrlFsQt5mBUJOxot/SJAm7/bYGu457cv/+YFZBVTK78qyufeUjVM6ycdB1OhizJc
-         xP+Q==
-X-Forwarded-Encrypted: i=1; AJvYcCU/f7B+/VsDdM96/XufFFfqP50oJEwiAorzyK+0h/+e8UJzMKCvYqGFZEpZ0iCRVyx7mo/L3MmXP9qsJtwigCk=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxULZ/pULSSCRRGkyEs+KHuBtqU77gCa2x8XW5o6ry+hmx6N+hy
-	Ul2oRZFERgMg6W1LUv6YH6Pi+c7iURbRl9XiBLas5cq5ksLC7PzHwz5Eukgh0jFgdPa01fvWJOy
-	MNwDQWTHLKMM0GtiHA3N1b40p9Q3sWhezXaaq
-X-Google-Smtp-Source: AGHT+IHnv4orDez7mVyaCamNo5riXD5so7ejl6e+p+Fw01YmHomhmfIG+INttnHTWDIYhyHZKQAoeiK3WGnlHJxdHNw=
-X-Received: by 2002:a05:690c:7602:b0:6dd:fb47:2184 with SMTP id
- 00721157ae682-6e322121ac1mr65921917b3.13.1728587649945; Thu, 10 Oct 2024
- 12:14:09 -0700 (PDT)
+        bh=hfP8kIySYPoXGp3X3utwwBQMk8qm/KR8k9kaAp2Ign8=;
+        b=KJAVmXM0WXwoNxP9LNSsWXbETttzhfokm9I4gUxwki17VhXc3WKNuEqTTC5bgL5Suk
+         BYvAHIeX43KM3tb1YhJaKbPtg6Qdf+x7OdpFK7eVa4NrSzYwRei2uaonj9X8Sj9Uu5w1
+         C48AyOu6sPjabsDelyG2WG500P6z4LeSw/SzLgQGHjfGc7fq+zSaxGVqP8Lqv9d4fFuE
+         MBCK8f7Y54dzJgYZ97zkZGwqBpom/CGw3T2D50+y1Lkyc3q9TrAnCoZhIFZGKpmx5XhQ
+         sWoAeacrQjUfr1cM+lEfY6LIAyPx+A4YYu3Be0ldsreauXPIJ1ffmzj7Tkx0rxhfTGb1
+         nBgg==
+X-Forwarded-Encrypted: i=1; AJvYcCWHJS34gdk17GtUbm80GdyZyvtO+T8Wck0q/Lg92iyhnsuV/i7zlxIf4BPhpy1pcrbYg4oeI5G1yUXNIt9Wk9w=@vger.kernel.org
+X-Gm-Message-State: AOJu0YygwZQeGjbp6utOWlwHVsotf7wxEJQ8prO3kPyEZt3fp1US8TTp
+	7zGkmb/CkFxxy1ZMmnyRvZMHHhDYvgpS96tpMB59frwIoA5or2LOYt0Yl2q3HBI=
+X-Google-Smtp-Source: AGHT+IHvYbcRjbuHgWljkcZYeI7PgKjgFCQUwV/nJm9bloQDOoNiOZTe1Ek1HHrlNApudatd2qiKag==
+X-Received: by 2002:a5d:4389:0:b0:37d:5113:cdff with SMTP id ffacd0b85a97d-37d552967a0mr171577f8f.37.1728590990144;
+        Thu, 10 Oct 2024 13:09:50 -0700 (PDT)
+Received: from blindfold.localnet (84-115-238-31.cable.dynamic.surfer.at. [84.115.238.31])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-430ccf204f7sm57729835e9.2.2024.10.10.13.09.49
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 10 Oct 2024 13:09:49 -0700 (PDT)
+From: Richard Weinberger <richard@sigma-star.at>
+To: Florian Westphal <fw@strlen.de>
+Cc: Richard Weinberger <richard@nod.at>, upstream@sigma-star.at, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, pabeni@redhat.com, kuba@kernel.org, edumazet@google.com, davem@davemloft.net, kadlec@netfilter.org, pablo@netfilter.org, rgb@redhat.com, paul@paul-moore.com, upstream+net@sigma-star.at, Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH] netfilter: Record uid and gid in xt_AUDIT
+Date: Thu, 10 Oct 2024 22:09:48 +0200
+Message-ID: <5243306.KhUVIng19X@somecomputer>
+In-Reply-To: <20241010134827.GC30424@breakpoint.cc>
+References: <20241009203218.26329-1-richard@nod.at> <3048359.FXINqZMJnI@somecomputer> <20241010134827.GC30424@breakpoint.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241009203218.26329-1-richard@nod.at> <20241009213345.GC3714@breakpoint.cc>
- <CAHC9VhSFHQtg357WLoLrkN8wpPxDRmD_qA55NHOUEwFpE_pbrg@mail.gmail.com>
- <20241009223409.GE3714@breakpoint.cc> <CAHC9VhTC=KAXe6w9xTG_rY4zAnNvPv-brQ7cTYftcty866inCw@mail.gmail.com>
- <20241010175925.GA11964@breakpoint.cc>
-In-Reply-To: <20241010175925.GA11964@breakpoint.cc>
-From: Paul Moore <paul@paul-moore.com>
-Date: Thu, 10 Oct 2024 15:13:59 -0400
-Message-ID: <CAHC9VhTW0nsoZk3bkfLU5WaGoJhK544+35Cap6=dzv=td_+OPA@mail.gmail.com>
-Subject: Re: [PATCH] netfilter: Record uid and gid in xt_AUDIT
-To: Florian Westphal <fw@strlen.de>
-Cc: Richard Weinberger <richard@nod.at>, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org, pabeni@redhat.com, 
-	kuba@kernel.org, edumazet@google.com, davem@davemloft.net, 
-	kadlec@netfilter.org, pablo@netfilter.org, rgb@redhat.com, 
-	upstream+net@sigma-star.at
-Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"
 
-On Thu, Oct 10, 2024 at 1:59=E2=80=AFPM Florian Westphal <fw@strlen.de> wro=
-te:
-> Paul Moore <paul@paul-moore.com> wrote:
-> > Correct me if I'm wrong, but by using from_kXid(&init_user_ns, Xid) we
-> > get the ID number that is correct for the init namespace, yes?  If so,
-> > that's what we want as right now all of the audit records, filters,
-> > etc. are intended to be set from the context of the initial namespace.
->
-> Seems to be the case, from_kuid() kdoc says
-> 'There is always a mapping into the initial user_namespace.'.
->
-> I'm confused because of the various means of dealing with this:
-> 9847371a84b0 ("netfilter: Allow xt_owner in any user namespace")
->
-> Does: make_kgid(net->user_ns, ... and also rejects rule-add if
-> net->user_ns !=3D current_user_ns().  As this is for matching userids,
-> this makes sense to me, any userns will 'just work' for normal uid/gid
-> matching.
->
-> a6c6796c7127 ("userns: Convert cls_flow to work with user namespaces enab=
-led")
-> Does: from_kuid(&init_user_ns, ... and rejects rule adds if sk_user_ns(NE=
-TLINK_CB(in_skb).ssk) !=3D &init_user_ns)
->
-> Seems just a more conservative solution to the former one.
->
-> 8c6e2a941ae7 ("userns: Convert xt_LOG to print socket kuids and kgids as =
-uids and gids")
-> ... which looks like the proposed xt_AUDIT change.
->
-> As I do not know what the use case is for xt_AUDIT rules residing in
-> another, possibly unprivileged network namespace not managed by root-root=
- user,
-> I can't say if its right, but it should do the right thing.
->
-> Sorry for the noise.
+Am Donnerstag, 10. Oktober 2024, 15:48:27 CEST schrieb Florian Westphal:
+> Richard Weinberger <richard@sigma-star.at> wrote:
+> > Am Mittwoch, 9. Oktober 2024, 23:33:45 CEST schrieb Florian Westphal:
+> > > There is no need to follow ->file backpointer anymore, see
+> > > 6acc5c2910689fc6ee181bf63085c5efff6a42bd and
+> > > 86741ec25462e4c8cdce6df2f41ead05568c7d5e,
+> > > "net: core: Add a UID field to struct sock.".
+> >=20
+> > Oh, neat!
 
-No worries, it was a fair question and discussion about this is rarely
-a bad thing as it can get rather complicated somewhat quickly.  With
-audit our current philosophy is that we try to do our logging and run
-the filters within the context of the host/initial namespace for the
-sake of consistency.  Of course this introduces some limitations and
-"hide" some details specific to a child namespace, but it's the only
-solution we could think of that allows the current kernel audit
-implementation to behave in a comprehensive and sane manner across all
-the various namespace/container solutions.
+I gave sock_net_uid() a try, but I kinda fail.
 
---=20
-paul-moore.com
+Maybe I have wrong expectations.
+e.g. I expected that sock_net_uid() will return 1000 when
+uid 1000 does something like: unshare -Umr followed by a veth connection
+to the host (initial user/net namespace).
+Shouldn't on the host side a forwarded skb have a ->dev that belongs uid
+1000's net namespace?
+
+Thanks,
+//richard
+
+=2D-=20
+=E2=80=8B=E2=80=8B=E2=80=8B=E2=80=8B=E2=80=8Bsigma star gmbh | Eduard-Bodem=
+=2DGasse 6, 6020 Innsbruck, AUT
+UID/VAT Nr: ATU 66964118 | FN: 374287y
+
+
