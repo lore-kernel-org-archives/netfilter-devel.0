@@ -1,28 +1,31 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6102A1C9DD8
-	for <netfilter-devel@vger.kernel.org>; Thu, 10 Oct 2024 14:01:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCE5D19B5AC
+	for <netfilter-devel@vger.kernel.org>; Thu, 10 Oct 2024 16:34:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728568878; cv=none; b=sm7hQNm+CRf7PGm9ZfxaQ8NYF+2nVxPKk3Il6bJtnC0821wfYYMrcp48j0TZaEwF/Vu/BLS49sRFzvoVFcmJztHheykV9/HBN+tgypQr1wKicUvQaLsvoOvDCSavp/A0DCpdn9ubkTFNf8SGH4/tS8yCi6bfFA2c2z6TfKe9SuQ=
+	t=1728578066; cv=none; b=bW6he8vhhgXko0lVW2HuYhn0i0ojosIfT4MJlqFj5xAOE3GgQaX8NTx/4leDzNtyV9BoB9+bIITSsut0gqHBifZapwmSiGlf8VMNF7jNeEMKbtO+JDASmLftUddcNXRIQOGNUfb7oxZ5wkIGxBpxFH4Noqcz4zSzB7KI+UvfTk4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728568878; c=relaxed/simple;
-	bh=7Sg0qOCUoD8fWpfmdA2GSdXinNFe+bu7VelvSQDaQnI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=LxSVxLLRKjDhldlBuiH+eC6Ki8wqNkOQELPl+LoFBOAiWz7yj1BTwpq08iVBgws3N4/k6kJpKgk8qSXuoGkFRsGCasMrlvtJZDJ9D4/PJzGy46KUsTLJxWvuO7aAONqbRl4D2iVyDljO8o0MJwcOcZQkSiKYb+TBKiG3YTx38sY=
+	s=arc-20240116; t=1728578066; c=relaxed/simple;
+	bh=TVF7TBx5N5OgMUQNbqVHB2rmXlW3TzhngSp9KRT7q/I=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=JuljVE3PG9HedPNRQOe1Oveb173tffv1Az3F61HFVwHBYUz/HQ8nQP5iYT3pEO9t5ZOHP4z6Hux2DCuH9BEHUQ39ICm3oT8QXf23Qci4aBn4jCTZBUJqi+h/C4NGjfwmcj3HfWzGNOHG5LSS/pq+ogTHQWpcbeMkXbhD78ykiP0=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1sytj7-00018e-H2; Thu, 10 Oct 2024 16:01:13 +0200
+	id 1syw7I-0002gj-LP; Thu, 10 Oct 2024 18:34:20 +0200
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] doc: extend description of fib expression
-Date: Thu, 10 Oct 2024 15:37:42 +0200
-Message-ID: <20241010133745.28765-1-fw@strlen.de>
-X-Mailer: git-send-email 2.45.2
+Cc: syzkaller-bugs@googlegroups.com,
+	Florian Westphal <fw@strlen.de>,
+	Eric Dumazet <edumazet@google.com>,
+	"Lai, Yi" <yi1.lai@linux.intel.com>
+Subject: [PATCH nf] netfilter: bpf: must hold reference on net namespace
+Date: Thu, 10 Oct 2024 18:34:05 +0200
+Message-ID: <20241010163414.797374-1-fw@strlen.de>
+X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,126 +34,63 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Describe the input keys and the result types.
-Mention which input keys are mandatory and which keys are mutually
-exclusive.
+BUG: KASAN: slab-use-after-free in __nf_unregister_net_hook+0x640/0x6b0
+Read of size 8 at addr ffff8880106fe400 by task repro/72=
+bpf_nf_link_release+0xda/0x1e0
+bpf_link_free+0x139/0x2d0
+bpf_link_release+0x68/0x80
+__fput+0x414/0xb60
 
-Describe which hooks can be used with the various lookup modifiers
-and extend the examples with more information on fib expression
-capabilities.
+Eric says:
+ It seems that bpf was able to defer the __nf_unregister_net_hook()
+ after exit()/close() time.
+ Perhaps a netns reference is missing, because the netns has been
+ dismantled/freed already.
+ bpf_nf_link_attach() does :
+ link->net = net;
+ But I do not see a reference being taken on net.
 
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1663
+Add such a reference and release it after hook unreg.
+Note that I was unable to get syzbot reproducer to work, so I
+do not know if this resolves this splat.
+
+Fixes: 84601d6ee68a ("bpf: add bpf_link support for BPF_NETFILTER programs")
+Diagnosed-by: Eric Dumazet <edumazet@google.com>
+Reported-by: Lai, Yi <yi1.lai@linux.intel.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- doc/primary-expression.txt | 75 ++++++++++++++++++++++++++++++++------
- 1 file changed, 63 insertions(+), 12 deletions(-)
+ net/netfilter/nf_bpf_link.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/doc/primary-expression.txt b/doc/primary-expression.txt
-index 782494bda6f3..1cc06f3466b8 100644
---- a/doc/primary-expression.txt
-+++ b/doc/primary-expression.txt
-@@ -310,17 +310,48 @@ table inet x {
- FIB EXPRESSIONS
- ~~~~~~~~~~~~~~~
- [verse]
--*fib* {*saddr* | *daddr* | *mark* | *iif* | *oif*} [*.* ...] {*oif* | *oifname* | *type*}
-+*fib* 'FIB_TUPLE' 'FIB_RESULT'
-+'FIB_TUPLE' := { *saddr* | *daddr*} [ *.* { *iif* | *oif* } *.* *mark* ]
-+'FIB_RESULT'  := { *oif* | *oifname* | *type* }
+diff --git a/net/netfilter/nf_bpf_link.c b/net/netfilter/nf_bpf_link.c
+index 5257d5e7eb09..e5e79a08c10b 100644
+--- a/net/netfilter/nf_bpf_link.c
++++ b/net/netfilter/nf_bpf_link.c
+@@ -23,6 +23,7 @@ static unsigned int nf_hook_run_bpf(void *bpf_prog, struct sk_buff *skb,
+ struct bpf_nf_link {
+ 	struct bpf_link link;
+ 	struct nf_hook_ops hook_ops;
++	netns_tracker ns_tracker;
+ 	struct net *net;
+ 	u32 dead;
+ 	const struct nf_defrag_hook *defrag_hook;
+@@ -120,6 +121,7 @@ static void bpf_nf_link_release(struct bpf_link *link)
+ 	if (!cmpxchg(&nf_link->dead, 0, 1)) {
+ 		nf_unregister_net_hook(nf_link->net, &nf_link->hook_ops);
+ 		bpf_nf_disable_defrag(nf_link);
++		put_net_track(nf_link->net, &nf_link->ns_tracker);
+ 	}
+ }
  
--A fib expression queries the fib (forwarding information base) to obtain
--information such as the output interface index a particular address would use.
--The input is a tuple of elements that is used as input to the fib lookup
--functions.
+@@ -257,6 +259,8 @@ int bpf_nf_link_attach(const union bpf_attr *attr, struct bpf_prog *prog)
+ 		return err;
+ 	}
  
--.fib expression specific types
-+A fib expression queries the fib (forwarding information base) to obtain information
-+such as the output interface index.
++	get_net_track(net, &link->ns_tracker, GFP_KERNEL);
 +
-+The first arguments to the *fib* expression are the input keys to be passed to the fib lookup function.
-+One of *saddr* or *daddr* is mandatory, they are also mutually exclusive.
-+
-+*mark*, *iif* and *oif* keywords are optional modifiers to influence the search result, see
-+the *FIB_TUPLE* keyword table below for a description.
-+The *iif* and *oif* tuple keywords are also mutually exclusive.
-+
-+The last argument to the *fib* expression is the desired result type.
-+
-+*oif* asks to obtain the interface index that would be used to send packets to the packets source
-+(*saddr* key) or destination (*daddr* key).  If no routing entry is found, the returned interface
-+index is 0.
-+
-+*oifname* is like *oif*, but it fills the interface name instead.  This is useful to check dynamic
-+interfaces such as ppp devices.  If no entry is found, an empty interface name is returned.
-+
-+*type* returns the address type such as unicast or multicast.
-+
-+.FIB_TUPLE keywords
- [options="header"]
- |==================
--|Keyword| Description| Type
-+|flag| Description
-+|daddr| Perform a normal route lookup: search fib for route to the *destination address* of the packet.
-+|saddr| Perform a reverse route lookup: search the fib for route to the *source address* of the packet.
-+|mark | consider the packet mark (nfmark) when querying the fib.
-+|iif  | fail fib lookup unless route exists and its output interface is identical to the packets input interface
-+|oif  | fail fib lookup unless route exists and its output interface is identical to the packets output interface.  This flag can only be used with the *type* result.
-+
-+|=======================
-+
-+.FIB_RESULT keywords
-+[options="header"]
-+|==================
-+|Keyword| Description| Result Type
- |oif|
- Output interface index|
- integer (32 bit)
-@@ -334,20 +365,40 @@ fib_addrtype
+ 	return bpf_link_settle(&link_primer);
+ }
  
- Use *nft* *describe* *fib_addrtype* to get a list of all address types.
- 
-+The *oif* and *oifname* result is only valid in the *prerouting*, *input* and *forward* hooks.
-+The *type* can be queried from any one of *prerouting*, *input*, *forward* *output* and *postrouting*.
-+
-+For *type*, the presence of the *iif* keyword in the 'FIB_TUPLE' modifiers restrict the available
-+hooks to those where the packet is associated with an incoming interface, i.e. *prerouting*, *input* and *forward*.
-+Likewise, the *oif* keyword in the 'FIB_TUPLE' modifier list will limit the available hooks to
-+*forward*, *output* and *postrouting*.
-+
- .Using fib expressions
- ----------------------
- # drop packets without a reverse path
- filter prerouting fib saddr . iif oif missing drop
- 
--In this example, 'saddr . iif' looks up routing information based on the source address and the input interface.
--oif picks the output interface index from the routing information.
-+In this example, 'saddr . iif' looks up a route to the *source address* of the packet and restricts matching
-+results to the interface that the packet arrived on, then stores the output interface index from the obtained
-+fib route result.
-+
- If no route was found for the source address/input interface combination, the output interface index is zero.
--In case the input interface is specified as part of the input key, the output interface index is always the same as the input interface index or zero.
--If only 'saddr oif' is given, then oif can be any interface index or zero.
-+Hence, this rule will drop all packets that do not have a strict reverse path (hypothetical reply packet
-+would be sent via the interface the tested packet arrived on).
-+
-+If only 'saddr oif' is used as the input key, then this rule would only drop packets where the fib cannot
-+find a route. In most setups this will never drop packets because the default route is returned.
- 
--# drop packets to address not configured on incoming interface
-+# drop packets if the destination ip address is not configured on the incoming interface
- filter prerouting fib daddr . iif type != { local, broadcast, multicast } drop
- 
-+This queries the fib based on the current packets' destination address and the incoming interface.
-+
-+If the packet is sent to a unicast address that is configured on a different interface, then the packet
-+will be dropped as such an address would be classified as 'unicast' type.
-+Without the 'iif' modifier, any address configured on the local machine is 'local', and unicast addresses
-+not configured on any interface would return the type 'unicast'.
-+
- # perform lookup in a specific 'blackhole' table (0xdead, needs ip appropriate ip rule)
- filter prerouting meta mark set 0xdead fib daddr . mark type vmap { blackhole : drop, prohibit : jump prohibited, unreachable : drop }
- ----------------------
 -- 
-2.45.2
+2.47.0
 
