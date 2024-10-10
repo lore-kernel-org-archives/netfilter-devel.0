@@ -1,92 +1,142 @@
-Received: from mail-wr1-f43.google.com (mail-wr1-f43.google.com [209.85.221.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 935A01E1325
-	for <netfilter-devel@vger.kernel.org>; Thu, 10 Oct 2024 20:40:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEAE21A704B;
+	Thu, 10 Oct 2024 23:31:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728592829; cv=none; b=THEGbm4qR031s6RwVGRjh5GD33/jq9AUaCpdoh9/mMfQfKzrOZQQk9ZQ50zv/gSIdVNpmgyUsw9MzgosVR21fepOllerM6iSBv4g7VgbcX4g+h4xfua1QyRXhWe3EUTZehO9knDim7I+pt94v98RPcvx8wVi6EZ4G3wtride1+s=
+	t=1728603118; cv=none; b=DTDbwah5eolVZLnGK+hUersheZ96P0gzKsJxg+o/pZofRpAe/2G10dGkfk7bMYzFG/A3styXJZ5XVZpX9qi/bOxngmPEJqO1mlTelCVqrye+Romo3kUE7yxNJnfUXa6PzQzcuZ5CV0ByzmF9fPlL/Lxi9vKlK6rDGLI6ak1A7v8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728592829; c=relaxed/simple;
-	bh=zkZ6yU7DAD7YlmNJhmdip7MiifrOdjdqdbURkrcZAYA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=AjVyn1O+ntLoCHTTohj47evxZzpS4frnStw3nubUgmryRKp/F2aIIYZVb9NEYlQc9PxCXzf7msTmwte9xWbN5wnE8FDVRV/nlBxw88arL6OZjqm8R3+SjX6bCTB8IIPKJSmlB7S9USXCPxDtjAtyzzrNfj5rq8hTEsSs8BdUwgI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sigma-star.at; spf=pass smtp.mailfrom=sigma-star.at; dkim=pass (2048-bit key) header.d=sigma-star.at header.i=@sigma-star.at header.b=Vb26OtuE; arc=none smtp.client-ip=209.85.221.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sigma-star.at
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sigma-star.at
+	s=arc-20240116; t=1728603118; c=relaxed/simple;
+	bh=2gPLz6z2ycy12l0rGhWRv6cSxR91h7i2zrHIqZRDp88=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=NKUikv/qEMhxztDmwqEnewrKyGsPjDa+dHvytqBZI4QbTT7A86Y/oAAKHp0xiuKjowaygJRdpvbl/Vrpy7VRJqbyt3CwYhVGqC8Uv9EDSms4tKwZiq4NRKiwUrWx0XXQbS2lZAxl7D7T6OGSGt5eyKWOPVKyVtiwksz5mJcP3XA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ob8C/Owi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=sigma-star.at header.i=@sigma-star.at header.b="Vb26OtuE"
-Received: by mail-wr1-f43.google.com with SMTP id ffacd0b85a97d-37d51055097so461044f8f.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Oct 2024 13:40:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sigma-star.at; s=google; t=1728592825; x=1729197625; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=rO42RQZBShP/lWCFh96DLSqblFSQl/8nGpu3kPW9gUQ=;
-        b=Vb26OtuEA5psk8oKRqbL9ncjFN+fSdcc05gol3AShlW2GBEilMuCE6vjNCikA1j0av
-         eWCcEDeJpfgjg0IYatYWao+zQpeqOYdbX1rTPuNPto9IPiRQ1i71tx1Oy1eTbnFgTVZK
-         lCj63PU0FWQphuTL4NmojGHEjHrlBTCtzL0u/fkNzI7EoiDptj01HX4ejt5TpvtehKBH
-         4DnXHvkq3zpeSbAl3osmghVDT1OlCL4tRuzRcehauHhq/MudRbtdgsW6ilXKiHvwNFnp
-         aQsSHKcfMlRUxwQk9FOLyhUoMa2aIpkvni8hbR2vHTchk71lgYxig+asFofWr470cchd
-         P0zg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1728592825; x=1729197625;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=rO42RQZBShP/lWCFh96DLSqblFSQl/8nGpu3kPW9gUQ=;
-        b=FQU33ynggOl6LZWnhvSPOmD3BukYvcXHcyFNrPxe3pDi4nKaXuca1bG4pMDjRmitkv
-         JEUi/rdTP7qW0cq5rjkg1u3WRkZuzeuFbKIk5RGcW5WYmL+e9YI3RQ90vpVGu+7L5vGM
-         wdbWbn8bOmsg4iXgQrGhspN428pnMxu6FQkQnOQSioxIdyOPkv5p3ffI3BAEZAPeAy3j
-         cm48Vnv4lCghbPukWbKb5XSpEWqJ/j1UE7r0SAoMq+eHnfcDrYgRuQQ+F33Beq+/71Tz
-         HVD+KpL7txVr+cK2nk3TI8/cv2KcQAO/ShmSy7aUisVpFu+hVX7+4DVEqU1jrvbJIuYc
-         CelQ==
-X-Forwarded-Encrypted: i=1; AJvYcCWgLTvMDplF0TxTYfgnMrzO5Q/P7KJ+FLXVOR5TjNwpAR4bP7/kX8x1FGBhKvHHNp30JHEMmmFAZVoAAIrYewk=@vger.kernel.org
-X-Gm-Message-State: AOJu0YzPYTdtgPJ4v0PUhn+iqDTDLOVoaAOOpy948HuAr1XWonT4+sNC
-	6JwzLjLk8CS++tRQQFFy4tvcibdLwVEnVZ9R8E94n9qhIyAiyDkFAxWp6AIZg2U=
-X-Google-Smtp-Source: AGHT+IHxYd9hOLDOuUcfxARzg6HTs3XT+7x6QJejf/5EJIDnBLsxJtYDpjq4FC6Qz2lH63Rfd81qjQ==
-X-Received: by 2002:a5d:4591:0:b0:37d:498a:a233 with SMTP id ffacd0b85a97d-37d552ee198mr196344f8f.43.1728592824756;
-        Thu, 10 Oct 2024 13:40:24 -0700 (PDT)
-Received: from blindfold.localnet (84-115-238-31.cable.dynamic.surfer.at. [84.115.238.31])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-37d4b6a8928sm2339875f8f.7.2024.10.10.13.40.23
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 10 Oct 2024 13:40:24 -0700 (PDT)
-From: Richard Weinberger <richard@sigma-star.at>
-To: Paul Moore <paul@paul-moore.com>
-Cc: Richard Weinberger <richard@nod.at>, upstream@sigma-star.at, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, pabeni@redhat.com, kuba@kernel.org, edumazet@google.com, davem@davemloft.net, kadlec@netfilter.org, pablo@netfilter.org, rgb@redhat.com, upstream+net@sigma-star.at, audit@vger.kernel.org, linux-security-module@vger.kernel.org
-Subject: Re: [PATCH] netfilter: Record uid and gid in xt_AUDIT
-Date: Thu, 10 Oct 2024 22:40:22 +0200
-Message-ID: <5924990.Vcsy2DjxtS@somecomputer>
-In-Reply-To: <CAHC9VhRDZVJbhCbVkfs8NC=vAx-QdQwX_jMq51xzoTxFuxSXLg@mail.gmail.com>
-References: <20241009203218.26329-1-richard@nod.at> <4370155.VQJxnDRnGh@somecomputer> <CAHC9VhRDZVJbhCbVkfs8NC=vAx-QdQwX_jMq51xzoTxFuxSXLg@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ob8C/Owi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4713C4CEC5;
+	Thu, 10 Oct 2024 23:31:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1728603118;
+	bh=2gPLz6z2ycy12l0rGhWRv6cSxR91h7i2zrHIqZRDp88=;
+	h=From:Date:Subject:To:Cc:From;
+	b=Ob8C/OwiqYDLzrh83az+uOwNtteqM+DdviUs6Q5NDQWOl+r0wEOTEADtXOe3TM+YJ
+	 hhNE0TqMcIllojy2N3eOfx6SdYOhwEfClbzzROCPvD1ObloYmLy7unPgFjxWLXz63N
+	 r+rTpr1wVF5F0OdM8SUicKTejTxuX4nJCWeCRYFxOmlJQDCtjVkBlFVRIYujuoWL5G
+	 M7enSMogi6BOUUkAQdItEq7S4Z1kEnw72cbqlshRW+uUpGZ46IvDfSfQgMoq+99pir
+	 2MWVDgqBpHJfjGRX6iHBKE1iQ6ffeV6uKiuTVDwwOYzfjGIcCoSOYrV1sYW+X0Fg8D
+	 baCq2trceffOg==
+From: Lorenzo Bianconi <lorenzo@kernel.org>
+Date: Fri, 11 Oct 2024 01:31:32 +0200
+Subject: [PATCH net] netfilter: nf_tables: Fix memory leak in
+ nf_flow_offload_xdp_setup()
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20241011-flowtable-xdp-memleak-v1-1-b32aacb65b99@kernel.org>
+X-B4-Tracking: v=1; b=H4sIANNjCGcC/x3MywqAIBBA0V+JWTeg9oD6lWhhOtWQPdAoIfr3p
+ OVZ3PtAIM8UoM0e8HRx4H1LkHkGZtbbRMg2GZRQpRRS4uj2+9SDI4z2wJVWR3pBURlrS6NUUTe
+ Q2sPTyPH/dv37fmMTJENnAAAA
+X-Change-ID: 20241011-flowtable-xdp-memleak-05cdd4c22369
+To: Pablo Neira Ayuso <pablo@netfilter.org>, 
+ Jozsef Kadlecsik <kadlec@netfilter.org>, 
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+ Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
+ Jesper Dangaard Brouer <hawk@kernel.org>, 
+ John Fastabend <john.fastabend@gmail.com>, Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+ netdev@vger.kernel.org, bpf@vger.kernel.org, 
+ Lorenzo Bianconi <lorenzo@kernel.org>
+X-Mailer: b4 0.14.2
 
-Am Donnerstag, 10. Oktober 2024, 21:09:31 CEST schrieb Paul Moore:
-> However, as part of that commit we also dropped a number of fields
-> because it wasn't clear that anyone cared about them and if we were
-> going to (re)normalize the NETFILTER_PKT record we figured it would be
-> best to start small and re-add fields as needed to satisfy user
-> requirements.  I'm working under the assumption that if you've taken
-> the time to draft a patch and test it, you have a legitimate need :)
+nf_flow_offload_xdp_setup routine allocates/removes entries in
+nf_xdp_hashtable hash running FLOW_BLOCK_BIND/FLOW_BLOCK_UNBIND
+commands. In the current codebase we have an FLOW_BLOCK_BIND/
+FLOW_BLOCK_UNBIND unbalance since we do not run FLOW_BLOCK_UNBIND in
+__nft_unregister_flowtable_net_hooks() triggering the following error
+reported by kmeamlak:
 
-I'm currently exploring ways to log reliable what users/containers
-create what network connections.
-So, netfilter+conntrack+xt_AUDIT seemed legit to me.
+[<00000000be65a589>] __kmalloc_cache_noprof+0x280/0x310
+[<00000000c6569ad4>] nf_flow_offload_xdp_setup+0x70/0x8d0 [nf_flow_table]
+[<000000001efe6e35>] nf_flow_table_offload_setup+0x324/0x610 [nf_flow_table]
+[<000000005d9c9ad6>] nft_register_flowtable_net_hooks+0x3f4/0x890 [nf_tables]
+[<00000000de9071ee>] nf_tables_newflowtable+0xf61/0x18c0 [nf_tables]
+[<00000000924f5d86>] nfnetlink_rcv_batch+0x12c1/0x1c50 [nfnetlink]
+[<000000003fa07104>] nfnetlink_rcv+0x2a3/0x320 [nfnetlink]
+[<000000009fd1c990>] netlink_unicast+0x588/0x7f0
+[<00000000ee126795>] netlink_sendmsg+0x702/0xba0
+[<000000000ddf29fb>] ____sys_sendmsg+0x7cd/0x9a0
+[<0000000027b80416>] ___sys_sendmsg+0xd6/0x140
+[<00000000edfe1eb5>] __sys_sendmsg+0xba/0x150
+[<000000009d5eb571>] do_syscall_64+0x47/0x110
+[<0000000077c3a21e>] entry_SYSCALL_64_after_hwframe+0x76/0x7e
 
-Thanks,
-//richard
+Fix the issue running FLOW_BLOCK_UNBIND command in
+__nft_unregister_flowtable_net_hooks() if the nft_hook is removed.
 
-=2D-=20
-=E2=80=8B=E2=80=8B=E2=80=8B=E2=80=8B=E2=80=8Bsigma star gmbh | Eduard-Bodem=
-=2DGasse 6, 6020 Innsbruck, AUT
-UID/VAT Nr: ATU 66964118 | FN: 374287y
+Fixes: 89cc8f1c5f22 ("netfilter: nf_tables: Add flowtable map for xdp offload")
+Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+---
+ net/netfilter/nf_tables_api.c | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index a24fe62650a753be872a2051b34ff0aba27ef8c4..53357b61700b01048e840154dffd55a2c05062c1 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -8546,14 +8546,18 @@ static void nft_unregister_flowtable_hook(struct net *net,
+ }
+ 
+ static void __nft_unregister_flowtable_net_hooks(struct net *net,
+-						 struct list_head *hook_list,
+-					         bool release_netdev)
++						 struct nft_flowtable *flowtable,
++						 struct list_head *hook_list)
+ {
+ 	struct nft_hook *hook, *next;
+ 
+ 	list_for_each_entry_safe(hook, next, hook_list, list) {
++		if (flowtable)
++			flowtable->data.type->setup(&flowtable->data,
++						    hook->ops.dev,
++						    FLOW_BLOCK_UNBIND);
+ 		nf_unregister_net_hook(net, &hook->ops);
+-		if (release_netdev) {
++		if (flowtable) {
+ 			list_del(&hook->list);
+ 			kfree_rcu(hook, rcu);
+ 		}
+@@ -8563,7 +8567,7 @@ static void __nft_unregister_flowtable_net_hooks(struct net *net,
+ static void nft_unregister_flowtable_net_hooks(struct net *net,
+ 					       struct list_head *hook_list)
+ {
+-	__nft_unregister_flowtable_net_hooks(net, hook_list, false);
++	__nft_unregister_flowtable_net_hooks(net, NULL, hook_list);
+ }
+ 
+ static int nft_register_flowtable_net_hooks(struct net *net,
+@@ -11459,8 +11463,8 @@ static void __nft_release_hook(struct net *net, struct nft_table *table)
+ 	list_for_each_entry(chain, &table->chains, list)
+ 		__nf_tables_unregister_hook(net, table, chain, true);
+ 	list_for_each_entry(flowtable, &table->flowtables, list)
+-		__nft_unregister_flowtable_net_hooks(net, &flowtable->hook_list,
+-						     true);
++		__nft_unregister_flowtable_net_hooks(net, flowtable,
++						     &flowtable->hook_list);
+ }
+ 
+ static void __nft_release_hooks(struct net *net)
+
+---
+base-commit: 1d227fcc72223cbdd34d0ce13541cbaab5e0d72f
+change-id: 20241011-flowtable-xdp-memleak-05cdd4c22369
+
+Best regards,
+-- 
+Lorenzo Bianconi <lorenzo@kernel.org>
 
