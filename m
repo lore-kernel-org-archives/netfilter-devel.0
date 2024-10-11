@@ -1,218 +1,60 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E27AE5228
-	for <netfilter-devel@vger.kernel.org>; Fri, 11 Oct 2024 01:09:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE8893232;
+	Fri, 11 Oct 2024 01:27:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728608956; cv=none; b=s/Vb7T9hgp3Jzv46DiqAux/HVppgQx1ws8p7nGWQXLn3/vKcpp5G+1D1+4zcpVQzjPYBX2N6w4hQ2Xdw9YmAt2AokT7GXgOU90uM3ZDjIVbZY4okdFQ7X3QN+1s8Jlk0XqB/X+5AdepaIMlsVlmNgV1lhXxEKRcrkXyXyZ/WWis=
+	t=1728610040; cv=none; b=odJdD2k9DJaWgs45IY2+1f4QkaVVsssbOsRR0cZ+sQxQPcG8XLgv4RKfn2HWrl9/GqAe+5G9JlFU1gnLNNh4tZAw0UzgUN2YauSeTtzPSXd0VCSzOaS70SIIzJVdzqb70KmYBD3EF7ODtbEA+NLZDX+w7Y2nd32onMQEQKV2Om4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728608956; c=relaxed/simple;
-	bh=H8iAfleHsxYZxiX7079X/S8g9yU8+dHkP8zG4o+9uy0=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=fuIN5ikd7kUkAShaacV+EZdtCjkmNGKmIpuDdFcp14/mlGK/HS1Gd2YzYHbqnlftARuMVxMI30vCHmk5M3qmNIfe0Eb6DKG0KbKNW87YEgAtL6ivzYLbDCeOEVFsg9cKxWZdmLV/xFSJ1Ic0IsNHHJqB5W1/S4ht5b614OXDGLU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+	s=arc-20240116; t=1728610040; c=relaxed/simple;
+	bh=nowPLvX4qMf0EM9WoC/4E/uvhJXTmb8BQzf8baINVr0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=oO/IvUhe7SpPgfCYoQvQJlvugx9T5PMjqcLS18fE4iJ05YhFVNPAQGLyy3ZTTuwzdH779U49UIXig8Be55qkxjKgkLw32I4VCmSz4+bcAlcXPWKNAKyuVbtUZJG2RH4Cqa3ckbWFASt63gUVqm2gS9+NsNtsSng5O7UpMj2kisQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1sz49Z-0006yq-At; Fri, 11 Oct 2024 03:09:13 +0200
+	(envelope-from <fw@strlen.de>)
+	id 1sz4Qz-00076a-Tg; Fri, 11 Oct 2024 03:27:13 +0200
+Date: Fri, 11 Oct 2024 03:27:13 +0200
 From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v2 5/5] netfilter: nf_tables: allocate element update information dynamically
-Date: Fri, 11 Oct 2024 02:33:03 +0200
-Message-ID: <20241011003315.5017-6-fw@strlen.de>
-X-Mailer: git-send-email 2.45.2
-In-Reply-To: <20241011003315.5017-1-fw@strlen.de>
-References: <20241011003315.5017-1-fw@strlen.de>
+To: Richard Weinberger <richard@sigma-star.at>
+Cc: Florian Westphal <fw@strlen.de>, Richard Weinberger <richard@nod.at>,
+	upstream@sigma-star.at, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, pabeni@redhat.com, kuba@kernel.org,
+	edumazet@google.com, davem@davemloft.net, kadlec@netfilter.org,
+	pablo@netfilter.org, rgb@redhat.com, paul@paul-moore.com,
+	upstream+net@sigma-star.at
+Subject: Re: [PATCH] netfilter: Record uid and gid in xt_AUDIT
+Message-ID: <20241011012713.GA27167@breakpoint.cc>
+References: <20241009203218.26329-1-richard@nod.at>
+ <3048359.FXINqZMJnI@somecomputer>
+ <20241010134827.GC30424@breakpoint.cc>
+ <5243306.KhUVIng19X@somecomputer>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5243306.KhUVIng19X@somecomputer>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-Move the timeout/expire/flag members from nft_trans_one_elem struct into
-a dybamically allocated structure, only needed when timeout update was
-requested.
+Richard Weinberger <richard@sigma-star.at> wrote:
+> Maybe I have wrong expectations.
+> e.g. I expected that sock_net_uid() will return 1000 when
+> uid 1000 does something like: unshare -Umr followed by a veth connection
+> to the host (initial user/net namespace).
+> Shouldn't on the host side a forwarded skb have a ->dev that belongs uid
+> 1000's net namespace?
 
-This halves size of nft_trans_one_elem struct and allows to compact up to
-124 elements in one transaction container rather than 62.
+You mean skb->sk?  dev doesn't make much sense in this context to me.
+Else, please clarify.
 
-This halves memory requirements for a large flush or insert transaction,
-where ->update remains NULL.
-
-Care has to be taken to release the extra data in all spots, including
-abort path.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- v2: nft_trans_set_elem_destroy must skip entries with NULL priv field,
- those were update requests that have been handled already during
- error unwinding.
-
- include/net/netfilter/nf_tables.h | 10 +++--
- net/netfilter/nf_tables_api.c     | 61 ++++++++++++++++++++-----------
- 2 files changed, 46 insertions(+), 25 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 2a2631edab2b..1caf142900fe 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1754,11 +1754,15 @@ enum nft_trans_elem_flags {
- 	NFT_TRANS_UPD_EXPIRATION	= (1 << 1),
- };
- 
--struct nft_trans_one_elem {
--	struct nft_elem_priv		*priv;
-+struct nft_elem_update {
- 	u64				timeout;
- 	u64				expiration;
--	u8				update_flags;
-+	u8				flags;
-+};
-+
-+struct nft_trans_one_elem {
-+	struct nft_elem_priv		*priv;
-+	struct nft_elem_update		*update;
- };
- 
- struct nft_trans_elem {
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index acd574986647..2c98005daf84 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -6665,7 +6665,8 @@ static void nft_trans_set_elem_destroy(const struct nft_ctx *ctx, struct nft_tra
- 	int i;
- 
- 	for (i = 0; i < te->nelems; i++) {
--		if (te->elems[i].update_flags)
-+		/* skip update request, see nft_trans_elems_new_abort() */
-+		if (!te->elems[i].priv)
- 			continue;
- 
- 		__nft_set_elem_destroy(ctx, te->set, te->elems[i].priv, true);
-@@ -6856,24 +6857,28 @@ static void nft_trans_elem_update(const struct nft_set *set,
- 				  const struct nft_trans_one_elem *elem)
- {
- 	const struct nft_set_ext *ext = nft_set_elem_ext(set, elem->priv);
-+	const struct nft_elem_update *update = elem->update;
- 
--	if (elem->update_flags & NFT_TRANS_UPD_TIMEOUT)
--		WRITE_ONCE(nft_set_ext_timeout(ext)->timeout, elem->timeout);
-+	if (update->flags & NFT_TRANS_UPD_TIMEOUT)
-+		WRITE_ONCE(nft_set_ext_timeout(ext)->timeout, update->timeout);
- 
--	if (elem->update_flags & NFT_TRANS_UPD_EXPIRATION)
--		WRITE_ONCE(nft_set_ext_timeout(ext)->expiration, get_jiffies_64() + elem->expiration);
-+	if (update->flags & NFT_TRANS_UPD_EXPIRATION)
-+		WRITE_ONCE(nft_set_ext_timeout(ext)->expiration, get_jiffies_64() + update->expiration);
- }
- 
- static void nft_trans_elems_activate(const struct nft_ctx *ctx,
--				     const struct nft_trans_elem *te)
-+				     struct nft_trans_elem *te)
- {
- 	int i;
- 
- 	for (i = 0; i < te->nelems; i++) {
--		const struct nft_trans_one_elem *elem = &te->elems[i];
-+		struct nft_trans_one_elem *elem = &te->elems[i];
- 
--		if (elem->update_flags) {
-+		if (elem->update) {
- 			nft_trans_elem_update(te->set, elem);
-+			kfree(elem->update);
-+			elem->update = NULL;
-+			elem->priv = NULL;
- 			continue;
- 		}
- 
-@@ -6971,6 +6976,8 @@ static void nft_trans_elems_remove(const struct nft_ctx *ctx,
- 	int i;
- 
- 	for (i = 0; i < te->nelems; i++) {
-+		WARN_ON_ONCE(te->elems[i].update);
-+
- 		nf_tables_setelem_notify(ctx, te->set,
- 					 te->elems[i].priv,
- 					 te->nft_trans.msg_type);
-@@ -7019,7 +7026,6 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	struct nft_data_desc desc;
- 	enum nft_registers dreg;
- 	struct nft_trans *trans;
--	u8 update_flags;
- 	u64 expiration;
- 	u64 timeout;
- 	int err, i;
-@@ -7334,26 +7340,32 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 			else if (!(nlmsg_flags & NLM_F_EXCL)) {
- 				err = 0;
- 				if (nft_set_ext_exists(ext2, NFT_SET_EXT_TIMEOUT)) {
--					struct nft_trans_one_elem *update;
--
--					update = &nft_trans_container_elem(trans)->elems[0];
-+					struct nft_elem_update update = { };
- 
--					update_flags = 0;
- 					if (timeout != nft_set_ext_timeout(ext2)->timeout) {
--						update->timeout = timeout;
-+						update.timeout = timeout;
- 						if (expiration == 0)
- 							expiration = timeout;
- 
--						update_flags |= NFT_TRANS_UPD_TIMEOUT;
-+						update.flags |= NFT_TRANS_UPD_TIMEOUT;
- 					}
- 					if (expiration) {
--						update->expiration = expiration;
--						update_flags |= NFT_TRANS_UPD_EXPIRATION;
-+						update.expiration = expiration;
-+						update.flags |= NFT_TRANS_UPD_EXPIRATION;
- 					}
- 
--					if (update_flags) {
--						update->priv = elem_priv;
--						update->update_flags = update_flags;
-+					if (update.flags) {
-+						struct nft_trans_one_elem *ue;
-+
-+						ue = &nft_trans_container_elem(trans)->elems[0];
-+
-+						ue->update = kmemdup(&update, sizeof(update), GFP_KERNEL);
-+						if (!ue->update) {
-+							err = -ENOMEM;
-+							goto err_element_clash;
-+						}
-+
-+						ue->priv = elem_priv;
- 						nft_trans_commit_list_add_elem(ctx->net, trans, GFP_KERNEL);
- 						goto err_elem_free;
- 					}
-@@ -7521,14 +7533,19 @@ void nft_setelem_data_deactivate(const struct net *net,
-  * Returns true if set had been added to (i.e., elements need to be removed again).
-  */
- static bool nft_trans_elems_new_abort(const struct nft_ctx *ctx,
--				      const struct nft_trans_elem *te)
-+				      struct nft_trans_elem *te)
- {
- 	bool removed = false;
- 	int i;
- 
- 	for (i = 0; i < te->nelems; i++) {
--		if (te->elems[i].update_flags)
-+		if (te->elems[i].update) {
-+			kfree(te->elems[i].update);
-+			te->elems[i].update = NULL;
-+			/* Update request, so do not release this element */
-+			te->elems[i].priv = NULL;
- 			continue;
-+		}
- 
- 		if (!te->set->ops->abort || nft_setelem_is_catchall(te->set, te->elems[i].priv))
- 			nft_setelem_remove(ctx->net, te->set, te->elems[i].priv);
--- 
-2.45.2
-
+ip stack orphans incoming skbs, i.e. skb->sk is gone, see skb_orphan()
+call in ip_rcv_core().  So when packet enters init_net prerouting hook,
+association with originating netns or sk is not present anymore.
