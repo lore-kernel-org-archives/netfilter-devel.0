@@ -1,99 +1,101 @@
-Received: from mail-wr1-f53.google.com (mail-wr1-f53.google.com [209.85.221.53])
+Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com [209.85.208.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1002F2194BE
-	for <netfilter-devel@vger.kernel.org>; Fri, 11 Oct 2024 13:12:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D2AF21859C
+	for <netfilter-devel@vger.kernel.org>; Fri, 11 Oct 2024 13:36:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728652338; cv=none; b=WW1+VaxGjGf10eyihTDbukzDqNgkCoFx/5cV7xw7kkmCiUhMhvszd9WZKaptiJREne+iZaSZLVhbw5ZXFHTSoIbohmJRdnTl1Iz8EtvbiTNGf8EVATWOcy2ep4pRZutVuhfMvfyUcHDEAKUxZQv90lD57EhkquSrXlHp43Gu3Vw=
+	t=1728653766; cv=none; b=XkjySgQKbOt4aKb2tdDpvlfY7oK9zfTvekx9W3qiHWOYwveQpvEmq+j0tglzJp+cqxvKcQLpRcoObFZFpx+SBvB/d9JzqhJg+leWvn+CQ/RPdAbpXI303q+Nv9hZTEr8QSkzuhaTLkX9gzkitY9MiYxYcHCGcmfvrr/LHT2izXY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728652338; c=relaxed/simple;
-	bh=G8qGUaGJGZv/c5eUN39o5VdKnPXF7QYCJgzm+5GU8XU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=MQDy/S8tF1DotPm7c79r9SfSDPcBYYtsjaMMJwuUUkgX+HgxvFkNglWjTCOsi+rBTm5oA1jyKRCKveyoVpBjB6XRYP8kGwVL9cvfgb7PXJC9THrZ9RwvlSO242eCs13jYrZ91HS4Lq1NOTYocRR6dXH2kb1OQCtm9pw9ofedRik=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sigma-star.at; spf=pass smtp.mailfrom=sigma-star.at; dkim=pass (2048-bit key) header.d=sigma-star.at header.i=@sigma-star.at header.b=j5uzEnLP; arc=none smtp.client-ip=209.85.221.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sigma-star.at
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sigma-star.at
+	s=arc-20240116; t=1728653766; c=relaxed/simple;
+	bh=fMCZau7gECEVM+5ONrqnW08JDEIw3bqxhNrPBgPYtn4=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=enFnHV8GMk0Fnnyco42+EbxgH5bni1f9W1ReC5nOEdt4WZ+ZcHvuC8C/weY62YTtBkxpJHfNS5f3zH/f4VfNmHRkmKek8p0lj+rK7rar6zRwPeR/O4zJfj0D0Cay/CppStwJX0WcUi643q9NkeBc2fuKw5KoO2BP5adlL5HbETM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=rWWaaNEE; arc=none smtp.client-ip=209.85.208.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=sigma-star.at header.i=@sigma-star.at header.b="j5uzEnLP"
-Received: by mail-wr1-f53.google.com with SMTP id ffacd0b85a97d-37cea34cb57so1248069f8f.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 11 Oct 2024 06:12:15 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="rWWaaNEE"
+Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-5c937b5169cso2684009a12.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 11 Oct 2024 06:36:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sigma-star.at; s=google; t=1728652334; x=1729257134; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+        d=google.com; s=20230601; t=1728653763; x=1729258563; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=rv8NzxNpQPLVEaMv8BkCOMn4dFl6HxQWItjo4gHc8S8=;
-        b=j5uzEnLP+NxO2FN1pLSct/PEYg5aXOD/Gidh0A/4nXmKSTmw2lKNacxBVX5kfr+7T0
-         aATR7c6z4RokLw9hCkPbT9zK74oaHkrAWRcievEiwPe5T83zQUUN8YvhAZSSRXwzGTDp
-         d3b0CBDYix9YtwGJ+/uH5icbPwY04DVW5yMtrvGigdzf9GNHJIJxmPzJcUblhXzE4700
-         U5i6s6JK/qp5+RO/a+CYPQsiB3sxc+Vx0043Ex3WArF8EOXeduN3/YpMZJ2ci90nxedy
-         R/Gd0gH4doOQ48Yux0QWNDiC2NFJ4rTHtFcWpW6C0AXDKnxnNasmh8b6e0bfhXkuaH5z
-         xnQw==
+        bh=USKluxq12zfRKzFCFxLdF2rYYusVf4YZxk/RTGqb4f8=;
+        b=rWWaaNEEyKK8kpnOTIp/leU0UgH5TlcYPCqeg/qqOLkFYIDtV/ifKTS3QFnatxYVye
+         9vbfy83y14HUZFek4QJU/xVotvU4WJ6CBlARjiUvTQiCTtBL4NMcrwx1mNlXewOnAIOz
+         ah0dyOfaAW8zk/mNy7I34RhW95dUK3+OqxdHVSyfWORiwA/fP/DLaRrXFrh7m7wsKeR/
+         Yuig/wmnxqFgH5ScTjB0JQEtCzmVU2dk7OYp+5LaOhd4prlVUGJSZmUk170ustAjzh8Z
+         +/ESs+TlaHB0wd4JxCWUGRcWflidwzUXif/o/+Pc3zLmKCNjiCVTbKX3QblTqk68l4wP
+         oW+Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1728652334; x=1729257134;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+        d=1e100.net; s=20230601; t=1728653763; x=1729258563;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=rv8NzxNpQPLVEaMv8BkCOMn4dFl6HxQWItjo4gHc8S8=;
-        b=K+ZwBE7PoG4GAC693w75PKEulmOxJ8au7s8haMHfRr/W0mVIaCFLt+oLEeOgU9J/ir
-         InUTPfe3c+IQGBwS80h1co3upyfJsDn1LZ8RdufoevjKuXsnB1l+GXPgbZe6aON0ErSH
-         3r0m0h6q27KCwIElnY4BXTlOLJpocTOFs78ABAQpHYP35cLn34UVl6lq7XkGJBoHGy6z
-         0uJQq+FhmiQw8LO65fvCQ1rKhFa5Ng/EQuLanetFwxZJ7ELScswNOhTJvdFJIbiOFXNL
-         tw9wHdIBPFx0nmSGgxVZJVfIscGVfDTaa+bAMgtUfkMbb8w3YOZuSsLXMv9mFQGLH4qc
-         l8lg==
-X-Forwarded-Encrypted: i=1; AJvYcCX7kqb6Z89Vocwo1UIC5Da5ArpZady9qpwLjbMED+Z2r6jZb3mzao2jXvLc4edOVNv1R6QxbYqcxUxBuZ/kGbg=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw3nQSUlujuD76Sv2DqWVbXZrK3VJG/qqtETSpXCB3dItBAy+H/
-	ZJyv4NYvrHXzlSNfHE++1jRZryYHlqO/obZoR29t8c9nw1VAlSkuRQavkNtyFXo=
-X-Google-Smtp-Source: AGHT+IFwPySkw7rAoJTYAStSldgDhY3jVOzIh7W2cIvSY2yJOw89fNE5yWdDJXb+a0dmn/DcMb9dKQ==
-X-Received: by 2002:a5d:68c5:0:b0:37d:46a8:ad4e with SMTP id ffacd0b85a97d-37d551b9740mr1930481f8f.15.1728652333936;
-        Fri, 11 Oct 2024 06:12:13 -0700 (PDT)
-Received: from blindfold.localnet (84-115-238-31.cable.dynamic.surfer.at. [84.115.238.31])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-37d4b7ee49bsm3909731f8f.100.2024.10.11.06.12.12
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 11 Oct 2024 06:12:13 -0700 (PDT)
-From: Richard Weinberger <richard@sigma-star.at>
-To: Florian Westphal <fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>, Richard Weinberger <richard@nod.at>, upstream@sigma-star.at, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, pabeni@redhat.com, kuba@kernel.org, edumazet@google.com, davem@davemloft.net, kadlec@netfilter.org, pablo@netfilter.org, rgb@redhat.com, paul@paul-moore.com, upstream+net@sigma-star.at
-Subject: Re: [PATCH] netfilter: Record uid and gid in xt_AUDIT
-Date: Fri, 11 Oct 2024 15:12:12 +0200
-Message-ID: <1884121.lUd5UmjTVT@somecomputer>
-In-Reply-To: <20241011012713.GA27167@breakpoint.cc>
-References: <20241009203218.26329-1-richard@nod.at> <5243306.KhUVIng19X@somecomputer> <20241011012713.GA27167@breakpoint.cc>
+        bh=USKluxq12zfRKzFCFxLdF2rYYusVf4YZxk/RTGqb4f8=;
+        b=BxdQeqVvInVrI3m9kLQDptePQkdMIZl2+oMiMUl18oJ5juGToFF7MoKRuC6Yv7KoJr
+         ndCPElvLkd801igD6IMQJaGH7FJdva16IdpwKBTNRB3d2ej3l33q7R/Ozmps6QvaY+ct
+         hQs1fkNNAaQkEvzxSN9xw/CnPPPkzWYogt0h5QnauaGqBpt3BMx+IsTVwfIsr1rmMMQN
+         nxIsgf08nDDjYCOuS0+bctb5vm3FdnlfbxQSZx/Kmsn+7J5//ayUsCc6WOOqzGM1qZU3
+         sCR5vHqc8EQQB4QXzHKudjNXZlx6+qUASfObJVSqkyJQCv3JwLFXo/cyBPli6TX7nSMb
+         6hGw==
+X-Gm-Message-State: AOJu0Yxp6CV/wlDZwPRQsNWrvhCbruRrDn86AbZyRS1Bb552SB7L3XWJ
+	sSCxYrx0OimuDLTlbbGRTRLhuoLrQLTsSKDux5Obm/tTAIPHwH04hMSDZJUGEpZOxWZCfFcSmoq
+	e3Ra2/rk8uePcBqbo5KFXn2rQGGd/xRVfc88s
+X-Google-Smtp-Source: AGHT+IGSnoZa7RfGo90q6KOd8EjhaO24ftD7wtjE4dw4KgcMJn22Pk3uJkP/w8Tlv2Nm47JMFnDdAkHWzE63JS6x6Yw=
+X-Received: by 2002:a05:6402:d06:b0:5c5:c2a7:d535 with SMTP id
+ 4fb4d7f45d1cf-5c947590d49mr2402610a12.16.1728653762429; Fri, 11 Oct 2024
+ 06:36:02 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+References: <20241010163414.797374-1-fw@strlen.de>
+In-Reply-To: <20241010163414.797374-1-fw@strlen.de>
+From: Eric Dumazet <edumazet@google.com>
+Date: Fri, 11 Oct 2024 15:35:49 +0200
+Message-ID: <CANn89iJV-du+t1zJBJq1b=NtuSEn+mzFSXZKuAbae1UgyypQmA@mail.gmail.com>
+Subject: Re: [PATCH nf] netfilter: bpf: must hold reference on net namespace
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, syzkaller-bugs@googlegroups.com, 
+	"Lai, Yi" <yi1.lai@linux.intel.com>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Am Freitag, 11. Oktober 2024, 03:27:13 CEST schrieb Florian Westphal:
-> Richard Weinberger <richard@sigma-star.at> wrote:
-> > Maybe I have wrong expectations.
-> > e.g. I expected that sock_net_uid() will return 1000 when
-> > uid 1000 does something like: unshare -Umr followed by a veth connection
-> > to the host (initial user/net namespace).
-> > Shouldn't on the host side a forwarded skb have a ->dev that belongs uid
-> > 1000's net namespace?
->=20
-> You mean skb->sk?  dev doesn't make much sense in this context to me.
-> Else, please clarify.
+On Thu, Oct 10, 2024 at 6:34=E2=80=AFPM Florian Westphal <fw@strlen.de> wro=
+te:
+>
+> BUG: KASAN: slab-use-after-free in __nf_unregister_net_hook+0x640/0x6b0
+> Read of size 8 at addr ffff8880106fe400 by task repro/72=3D
+> bpf_nf_link_release+0xda/0x1e0
+> bpf_link_free+0x139/0x2d0
+> bpf_link_release+0x68/0x80
+> __fput+0x414/0xb60
+>
+> Eric says:
+>  It seems that bpf was able to defer the __nf_unregister_net_hook()
+>  after exit()/close() time.
+>  Perhaps a netns reference is missing, because the netns has been
+>  dismantled/freed already.
+>  bpf_nf_link_attach() does :
+>  link->net =3D net;
+>  But I do not see a reference being taken on net.
+>
+> Add such a reference and release it after hook unreg.
+> Note that I was unable to get syzbot reproducer to work, so I
+> do not know if this resolves this splat.
+>
+> Fixes: 84601d6ee68a ("bpf: add bpf_link support for BPF_NETFILTER program=
+s")
+> Diagnosed-by: Eric Dumazet <edumazet@google.com>
+> Reported-by: Lai, Yi <yi1.lai@linux.intel.com>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-Well, this was a brain fart on my side.
-I wondered about the sock_net_uid(net, NULL) case and wrongly assumed
-that a skb I see in the outer namespace can have a skb->dev from another
-namespace.
-It would be awesome to have some information about
-the originating net namespace.
+SGTM, thanks !
 
-Thanks,
-//richard
-
-=2D-=20
-=E2=80=8B=E2=80=8B=E2=80=8B=E2=80=8B=E2=80=8Bsigma star gmbh | Eduard-Bodem=
-=2DGasse 6, 6020 Innsbruck, AUT
-UID/VAT Nr: ATU 66964118 | FN: 374287y
-
-
+Reviewed-by: Eric Dumazet <edumazet@google.com>
