@@ -1,101 +1,125 @@
-Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com [209.85.208.47])
+Received: from mail-yw1-f172.google.com (mail-yw1-f172.google.com [209.85.128.172])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D2AF21859C
-	for <netfilter-devel@vger.kernel.org>; Fri, 11 Oct 2024 13:36:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 687BC1CFEC8;
+	Fri, 11 Oct 2024 19:33:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728653766; cv=none; b=XkjySgQKbOt4aKb2tdDpvlfY7oK9zfTvekx9W3qiHWOYwveQpvEmq+j0tglzJp+cqxvKcQLpRcoObFZFpx+SBvB/d9JzqhJg+leWvn+CQ/RPdAbpXI303q+Nv9hZTEr8QSkzuhaTLkX9gzkitY9MiYxYcHCGcmfvrr/LHT2izXY=
+	t=1728675185; cv=none; b=uBlmKhcAwwXxQfW+RUEO5nBpYgqdZKS6xWwfXQbf+ROi3GghlhWVzeF/FbeYTxJ02s0VnsJ5W0a4eeN+LXBccPeVglyfFYW3p/aEpg0ReSWF9dxx3GddXkSmgs8BWLBLDh7tw0AfrG07NPlNmrqYt8xV5uKsXQnadoSKa+xMEsI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728653766; c=relaxed/simple;
-	bh=fMCZau7gECEVM+5ONrqnW08JDEIw3bqxhNrPBgPYtn4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=enFnHV8GMk0Fnnyco42+EbxgH5bni1f9W1ReC5nOEdt4WZ+ZcHvuC8C/weY62YTtBkxpJHfNS5f3zH/f4VfNmHRkmKek8p0lj+rK7rar6zRwPeR/O4zJfj0D0Cay/CppStwJX0WcUi643q9NkeBc2fuKw5KoO2BP5adlL5HbETM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=rWWaaNEE; arc=none smtp.client-ip=209.85.208.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	s=arc-20240116; t=1728675185; c=relaxed/simple;
+	bh=ipzMIamMroJVib8WZKOfbImQgAiOGGAWnBtSO52PkAI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=FlB2CxYlkDUM7a2pBYvgCr6BQG3BhxSrZcnZ0z0wxJW8ZJFYX4UshxUJorG1/++QxfTgOBpIcdNDJPt81gyGgJVnHLWJ63stUZoZY8dClQmuU6+oa02ez6C5Q77HDIuYWcQS4ESmqQ91MM7RlqS6eyyBQx2q7PjWAnQqORQL4zU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Lkvb84yC; arc=none smtp.client-ip=209.85.128.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="rWWaaNEE"
-Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-5c937b5169cso2684009a12.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 11 Oct 2024 06:36:04 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Lkvb84yC"
+Received: by mail-yw1-f172.google.com with SMTP id 00721157ae682-6e2772f7df9so22101187b3.2;
+        Fri, 11 Oct 2024 12:33:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1728653763; x=1729258563; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=USKluxq12zfRKzFCFxLdF2rYYusVf4YZxk/RTGqb4f8=;
-        b=rWWaaNEEyKK8kpnOTIp/leU0UgH5TlcYPCqeg/qqOLkFYIDtV/ifKTS3QFnatxYVye
-         9vbfy83y14HUZFek4QJU/xVotvU4WJ6CBlARjiUvTQiCTtBL4NMcrwx1mNlXewOnAIOz
-         ah0dyOfaAW8zk/mNy7I34RhW95dUK3+OqxdHVSyfWORiwA/fP/DLaRrXFrh7m7wsKeR/
-         Yuig/wmnxqFgH5ScTjB0JQEtCzmVU2dk7OYp+5LaOhd4prlVUGJSZmUk170ustAjzh8Z
-         +/ESs+TlaHB0wd4JxCWUGRcWflidwzUXif/o/+Pc3zLmKCNjiCVTbKX3QblTqk68l4wP
-         oW+Q==
+        d=gmail.com; s=20230601; t=1728675183; x=1729279983; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=cnRAe7a+r04KhLzqcnP2xNTdSejhtipAKUJmwQ7OKDY=;
+        b=Lkvb84yCQrmR+LGqjd7QsMMOU8uKBIg2+RHKrKdZISU2ebUzRdWPvnl88+2aFf8Ejj
+         fU4KXqUDEOCbOaaH7Zm6OmHxlx5OFoaXApxJkKlRPjKRoc0vszNFmCntAw+/lIhkHlKO
+         EmQ3OmBL2PWplPTQEwkf4ahouOBO4lsZKM8kT2PrLWh/k8np7MkklRdFfEv6DdbjbWdI
+         Jh4OBwu0Db3glYqKkdG9GlpPkF4X5WtlcLqlTE13LRAix0T8Rd3P97ZC1u05zu130QUw
+         WRYYtDA5aAWO9rlnjLHFGjarhD6t9DMWx811P4gHvAUHJRiEIu+8dcR6RNVTbOGsHx5D
+         OgWw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1728653763; x=1729258563;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=USKluxq12zfRKzFCFxLdF2rYYusVf4YZxk/RTGqb4f8=;
-        b=BxdQeqVvInVrI3m9kLQDptePQkdMIZl2+oMiMUl18oJ5juGToFF7MoKRuC6Yv7KoJr
-         ndCPElvLkd801igD6IMQJaGH7FJdva16IdpwKBTNRB3d2ej3l33q7R/Ozmps6QvaY+ct
-         hQs1fkNNAaQkEvzxSN9xw/CnPPPkzWYogt0h5QnauaGqBpt3BMx+IsTVwfIsr1rmMMQN
-         nxIsgf08nDDjYCOuS0+bctb5vm3FdnlfbxQSZx/Kmsn+7J5//ayUsCc6WOOqzGM1qZU3
-         sCR5vHqc8EQQB4QXzHKudjNXZlx6+qUASfObJVSqkyJQCv3JwLFXo/cyBPli6TX7nSMb
-         6hGw==
-X-Gm-Message-State: AOJu0Yxp6CV/wlDZwPRQsNWrvhCbruRrDn86AbZyRS1Bb552SB7L3XWJ
-	sSCxYrx0OimuDLTlbbGRTRLhuoLrQLTsSKDux5Obm/tTAIPHwH04hMSDZJUGEpZOxWZCfFcSmoq
-	e3Ra2/rk8uePcBqbo5KFXn2rQGGd/xRVfc88s
-X-Google-Smtp-Source: AGHT+IGSnoZa7RfGo90q6KOd8EjhaO24ftD7wtjE4dw4KgcMJn22Pk3uJkP/w8Tlv2Nm47JMFnDdAkHWzE63JS6x6Yw=
-X-Received: by 2002:a05:6402:d06:b0:5c5:c2a7:d535 with SMTP id
- 4fb4d7f45d1cf-5c947590d49mr2402610a12.16.1728653762429; Fri, 11 Oct 2024
- 06:36:02 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1728675183; x=1729279983;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=cnRAe7a+r04KhLzqcnP2xNTdSejhtipAKUJmwQ7OKDY=;
+        b=imGV7jMl3jilRsvKsbmnDS3qg9LEZFZKglRqxYQUdDJ2MIZSElL4oqmFCar3qyAEW9
+         8JPYXz5Z2eR8+XUEOf02DJY6kPXE6W6gDVAImQhKGdj/0leGqiBWEr5+fbqzJ+Vo+DSv
+         U8qhSVhJ70MNTe5yniMigKcrnmsYs9PTTQh8z7f0+32u2cXaiDSx20Kffoblby7XZFMj
+         t5+U8ZdhGxjEhkYGg4gvuy6sg9PPZECY2wQgFu7FSSkQbCk3fKBhqYa3tI7YFzyh3nuO
+         t37gtXkNdAS1NEOQ+ypVH/+mYliKchbKoY2d/r46Npe2ozUwj/Oqg64+9gnBmGD0iMob
+         NIYw==
+X-Forwarded-Encrypted: i=1; AJvYcCVFcIw9BkVwjPThNujwwAjFM4Kg6sc7aZt+69F/QeCGNQ9KAmpPRvGRWjTD+A2PINWL2zivru4spKP6VIeU5O0f@vger.kernel.org, AJvYcCVuto12Lp1+/J6bF/F59GMMPqIrRcuO8XfYbTc6uZJqG1G6raJXV32l9e8/lcU9zTJnpT/bczjnaxyZ4xAgv58Q@vger.kernel.org, AJvYcCWW5huPf0gzqgax/vzKPTYUeQfdlyj9B7DzXvzq43GwmXEprDB2zEAIDzkoUWLxIqEnvbZV6vtv@vger.kernel.org, AJvYcCXloGj2nUfjvGPAX+NTDe/lVDhCOroer2dDb6KrqpVQVgl063P7wjqykfd8QFKhICg29Tqt8Mcb6HY1sls=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxRuo9H5yK3U5wD1GrNgjYZLPDuRep+po78GnnwMEGNcv+gYHoV
+	V3fUapa9/kIHIEoFPH/du0HqVQQWS2KMAl/aaL53JajZNn/00RqkiIPx7AQS
+X-Google-Smtp-Source: AGHT+IHUPz0/Ui9FHEUoyCsEepGvC04qtfgoEazw4dYTo7Nv26hgnb+DNJN/rIvMcadhU+XpZWty1g==
+X-Received: by 2002:a05:690c:56ca:b0:6e3:1487:8554 with SMTP id 00721157ae682-6e347c6b70emr26611997b3.37.1728675182822;
+        Fri, 11 Oct 2024 12:33:02 -0700 (PDT)
+Received: from dev-ubuntu-0.. (104-15-236-76.lightspeed.rlghnc.sbcglobal.net. [104.15.236.76])
+        by smtp.googlemail.com with ESMTPSA id 00721157ae682-6e332c6f3b6sm7199127b3.115.2024.10.11.12.33.01
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 11 Oct 2024 12:33:02 -0700 (PDT)
+From: Tyrone Wu <wudevelops@gmail.com>
+To: bpf@vger.kernel.org,
+	wudevelops@gmail.com
+Cc: pablo@netfilter.org,
+	kadlec@netfilter.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	andrii@kernel.org,
+	eddyz87@gmail.com,
+	mykolal@fb.com,
+	ast@kernel.org,
+	daniel@iogearbox.net,
+	martin.lau@linux.dev,
+	song@kernel.org,
+	yonghong.song@linux.dev,
+	john.fastabend@gmail.com,
+	kpsingh@kernel.org,
+	sdf@fomichev.me,
+	haoluo@google.com,
+	jolsa@kernel.org,
+	shuah@kernel.org,
+	riel@surriel.com,
+	shakeel.butt@linux.dev,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-kselftest@vger.kernel.org,
+	kernel-patches-bot@fb.com
+Subject: [PATCH bpf v1 1/2] bpf: fix link info netfilter flags to populate defrag flag
+Date: Fri, 11 Oct 2024 19:32:51 +0000
+Message-ID: <20241011193252.178997-1-wudevelops@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241010163414.797374-1-fw@strlen.de>
-In-Reply-To: <20241010163414.797374-1-fw@strlen.de>
-From: Eric Dumazet <edumazet@google.com>
-Date: Fri, 11 Oct 2024 15:35:49 +0200
-Message-ID: <CANn89iJV-du+t1zJBJq1b=NtuSEn+mzFSXZKuAbae1UgyypQmA@mail.gmail.com>
-Subject: Re: [PATCH nf] netfilter: bpf: must hold reference on net namespace
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, syzkaller-bugs@googlegroups.com, 
-	"Lai, Yi" <yi1.lai@linux.intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Thu, Oct 10, 2024 at 6:34=E2=80=AFPM Florian Westphal <fw@strlen.de> wro=
-te:
->
-> BUG: KASAN: slab-use-after-free in __nf_unregister_net_hook+0x640/0x6b0
-> Read of size 8 at addr ffff8880106fe400 by task repro/72=3D
-> bpf_nf_link_release+0xda/0x1e0
-> bpf_link_free+0x139/0x2d0
-> bpf_link_release+0x68/0x80
-> __fput+0x414/0xb60
->
-> Eric says:
->  It seems that bpf was able to defer the __nf_unregister_net_hook()
->  after exit()/close() time.
->  Perhaps a netns reference is missing, because the netns has been
->  dismantled/freed already.
->  bpf_nf_link_attach() does :
->  link->net =3D net;
->  But I do not see a reference being taken on net.
->
-> Add such a reference and release it after hook unreg.
-> Note that I was unable to get syzbot reproducer to work, so I
-> do not know if this resolves this splat.
->
-> Fixes: 84601d6ee68a ("bpf: add bpf_link support for BPF_NETFILTER program=
-s")
-> Diagnosed-by: Eric Dumazet <edumazet@google.com>
-> Reported-by: Lai, Yi <yi1.lai@linux.intel.com>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+This patch correctly populates the `bpf_link_info.netfilter.flags` field
+when user passes the `BPF_F_NETFILTER_IP_DEFRAG` flag.
 
-SGTM, thanks !
+Fixes: 84601d6ee68a ("bpf: add bpf_link support for BPF_NETFILTER programs")
+Signed-off-by: Tyrone Wu <wudevelops@gmail.com>
+---
+ net/netfilter/nf_bpf_link.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Reviewed-by: Eric Dumazet <edumazet@google.com>
+diff --git a/net/netfilter/nf_bpf_link.c b/net/netfilter/nf_bpf_link.c
+index 5257d5e7eb09..797fe8a9971e 100644
+--- a/net/netfilter/nf_bpf_link.c
++++ b/net/netfilter/nf_bpf_link.c
+@@ -150,11 +150,12 @@ static int bpf_nf_link_fill_link_info(const struct bpf_link *link,
+ 				      struct bpf_link_info *info)
+ {
+ 	struct bpf_nf_link *nf_link = container_of(link, struct bpf_nf_link, link);
++	const struct nf_defrag_hook *hook = nf_link->defrag_hook;
+ 
+ 	info->netfilter.pf = nf_link->hook_ops.pf;
+ 	info->netfilter.hooknum = nf_link->hook_ops.hooknum;
+ 	info->netfilter.priority = nf_link->hook_ops.priority;
+-	info->netfilter.flags = 0;
++	info->netfilter.flags = hook ? BPF_F_NETFILTER_IP_DEFRAG : 0;
+ 
+ 	return 0;
+ }
+-- 
+2.43.0
+
