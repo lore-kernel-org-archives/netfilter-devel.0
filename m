@@ -1,58 +1,68 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD7A3288D1;
-	Sat, 12 Oct 2024 17:25:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC93642AB3
+	for <netfilter-devel@vger.kernel.org>; Sat, 12 Oct 2024 20:20:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728753925; cv=none; b=IXd6p0gJjoS7QNybuZHdJEY5r37ADTva2aq2KsYSZ+zYSRpcKn8IfUuUPDE10BNb+vzTmr2nenpPNnglzzAxqqq/T36sWIsjrCH3frmMuS0L4Vi/dwhc3K1kZSleEGmSDLi64lz2q7gzPgmvF4owXzDLO9kBumhXF5CwaAfBZ9k=
+	t=1728764407; cv=none; b=dqQk6J6NJBJQQeauaocOIufOPh1Ld6PiUyEkRRYZ9IDFldcnRr5yiqT9Dz2twpVnVSQGOr0KEkpmTK9JI0k5sC4bSX/Zmd3g7y+0biUE69KKwThDSsrQrUFc9TRKMbt/NvZKWT+rQMWf+f5gR+GTwCaFsr1zMCE4BP9nmdnPV5Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728753925; c=relaxed/simple;
-	bh=hN3yW09dTYTaAm2PBdbduDnflAutXpKoyA1DizezECk=;
+	s=arc-20240116; t=1728764407; c=relaxed/simple;
+	bh=uYUE88S+GNMp+LEd4oADkO0eIzBUOkm5QFu9Hl9omQU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RVKRdZ5PODmFGu+Jlcdad71fir0VRsKTkZLi+2QKtPoZtqB67cjB8kwBxGf/82e90UeZsahl8E6gXUnUjkDdrMgLtdEM+ReWRtLa9Jvz+Y0QFV/nEA5mVWvT64wWd3J1YTCVWGS3LWHQiQRoxYAhJw4EM2kM+dWZDtboIpW5CAg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=55420 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1szfrf-001f9L-Ec; Sat, 12 Oct 2024 19:25:17 +0200
-Date: Sat, 12 Oct 2024 19:25:14 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Breno Leitao <leitao@debian.org>
-Cc: fw@strlen.de, davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-	pabeni@redhat.com, Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Roopa Prabhu <roopa@nvidia.com>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	David Ahern <dsahern@kernel.org>, rbc@meta.com,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	"open list:NETFILTER" <coreteam@netfilter.org>,
-	"open list:ETHERNET BRIDGE" <bridge@lists.linux.dev>
-Subject: Re: [PATCH nf-next v6] netfilter: Make legacy configs user selectable
-Message-ID: <Zwqw-pL7LGFtMJQq@calendula>
-References: <20240930095855.453342-1-leitao@debian.org>
+	 Content-Type:Content-Disposition:In-Reply-To; b=eN9eF9hEt/Tzb3/7WpBhnDKHy2BMk5jQuzDmfcSNOccaSD5Dg4IPM2VMUKojL+KVxd6Ld5spQbxSxESGRWs14y2gkkvf4V4kjb5+GHAv9D0PBaV29hZ4ZJS/yQZsgeRl92KX2t0iF61Rv3eRkJzfz3YfuB5IwTA/UBDmA4Kr0d4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=PdiKWh7H; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="PdiKWh7H"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=8NT2IQaQc0WfD3oXFWbpdCquNp3aDwOXfTLDQUlasJo=; b=PdiKWh7HdQAln11ngyIYamCreC
+	iVZgkbS+z0aiTCzAa3wrYK7fmQFpsGB9T+yTOXnHjyBSgDEt/WlX7Rp8WzrOSXldwWDlRlhLp4CzH
+	CdSSj6QdwBc4fY6a2b1dCM1wBZ84cnG/NjcYym2D9FLZsLTiJfBAlmtVQjWAYKY3e/VrLb5W6k891
+	eT4QHDbKd9rEvx1BDso+GebCRxpQKFy3FOtFK1aP1KLyaw1sK/YYvG7vbefjYfeMqnWYR0Up/jWTf
+	ULg9XsTgnmEPWXQH0OeeraoAdjvHPXo/PmiCnJoZPmor/8TJrYQvElncQu+EnujT3q+MYaoYnItH2
+	9WizAujA==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1sziBg-0000000020u-2phF;
+	Sat, 12 Oct 2024 21:54:04 +0200
+Date: Sat, 12 Oct 2024 21:54:04 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH libmnl] build: do not build documentation automatically
+Message-ID: <ZwrT3JOmxLigw9gC@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+References: <20241012171521.33453-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240930095855.453342-1-leitao@debian.org>
-X-Spam-Score: -1.9 (-)
+In-Reply-To: <20241012171521.33453-1-pablo@netfilter.org>
 
-On Mon, Sep 30, 2024 at 02:58:54AM -0700, Breno Leitao wrote:
-> This option makes legacy Netfilter Kconfig user selectable, giving users
-> the option to configure iptables without enabling any other config.
+Hi Pablo,
+
+On Sat, Oct 12, 2024 at 07:15:21PM +0200, Pablo Neira Ayuso wrote:
+> Make it option, after this update it is still possible to build the
+> documentation on demand via:
 > 
-> Make the following KConfig entries user selectable:
->  * BRIDGE_NF_EBTABLES_LEGACY
->  * IP_NF_ARPTABLES
->  * IP_NF_IPTABLES_LEGACY
->  * IP6_NF_IPTABLES_LEGACY
+>  cd doxygen
+>  make
 
-Applied, thanks
+This is rather unelegant in an autotools-project. You probably did
+consider setting 'with_doxygen=no' in configure.ac line 48, why did you
+choose this way?
+
+Cheers, Phil
