@@ -1,73 +1,54 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6B6B1946B
-	for <netfilter-devel@vger.kernel.org>; Sat, 12 Oct 2024 20:38:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D163812C478
+	for <netfilter-devel@vger.kernel.org>; Sat, 12 Oct 2024 21:26:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728765502; cv=none; b=jQb51S8S/1y605CD+AK3dcTehoUo0L8gkTBclSLP41bTxvsUxM2MJ0xsjMt0VQ+HeuB6QrTEz2Hoxv0NILAGwPoa4Hs7EbKngXiOFgRbM02FaYSttRAHx+bJHIJ3Y1li9WjrUVH8lfvlmfGrpFnx/Z02PnhdfWayOPANinojQuQ=
+	t=1728768402; cv=none; b=JWxkgudLKs5J27tVZmdCUj8OG+nLo1hCNui7NZOQOfFGkjxejObUQMHRzR/V/uThaDA+1kPsBTqGlUhRVlpDnT2AbZnb5xmmAP2tpY46xQDvorWXqYjdJeO1757YNvPym87aBXsV1C/ymMd4/gemOn4P4ruWvI4G1IIiRCrPUik=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728765502; c=relaxed/simple;
-	bh=kXqltlst689AQPuAE1FdYZDaI1aQKCu6yZIb9K/unN8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=l9zC+hUE7ecxbzluvGiIk0ra0bw76kP4MgwREBsi1EvB58W5wh/U4GG2VPxIepKxCl4ijnwoVpWerAnq1AvwakiyNAtpn51O6Whtoluo9EsdXa4VVehYvivWSMthcvk9iZtBz1WVeMc0JMMCZ6da06s3XX9rhamP2wSXar8YMOo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1szisS-000861-Sz; Sat, 12 Oct 2024 22:38:16 +0200
-Date: Sat, 12 Oct 2024 22:38:16 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next 0/4] netfilter: use skb_drop_reason in more places
-Message-ID: <20241012203816.GA31099@breakpoint.cc>
-References: <20241002155550.15016-1-fw@strlen.de>
- <ZwqDI5JcQi5fMa46@calendula>
- <20241012144216.GA21920@breakpoint.cc>
- <ZwqY8Rm74MO_UMM8@calendula>
- <20241012155448.GB21920@breakpoint.cc>
- <Zwqnvy78DX0Mi_us@calendula>
+	s=arc-20240116; t=1728768402; c=relaxed/simple;
+	bh=KBrTdw51ucNLvrnEbzhAd2Mq21K5dZtUQJlGUDL2rzQ=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=rM1ATr3ud1i1pS7riB+C+lNjeNlemhgyVTz/wVc2967Ko0pFrclK0KRhVD349P8JITYEi6mYzSt1WRx+AMUYgxUuWyexu62n48imLuA+zQtpCHgmnD456ONHjfIdfwbyIsOmg3wMp2T//r0YglxWv4cOZkLD/AluTQ2I9TgyNyE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=34792 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1szjdC-0024VO-1R; Sat, 12 Oct 2024 23:26:36 +0200
+Date: Sat, 12 Oct 2024 23:26:32 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH libmnl] build: do not build documentation automatically
+Message-ID: <ZwrpiAv1PHEp1rwY@calendula>
+References: <20241012171521.33453-1-pablo@netfilter.org>
+ <ZwrT3JOmxLigw9gC@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <Zwqnvy78DX0Mi_us@calendula>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <ZwrT3JOmxLigw9gC@orbyte.nwl.cc>
+X-Spam-Score: -1.9 (-)
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > I did not yet add new enum values or a dedicated nf namespace
-> > (enum skb_drop_reason_subsys), because I did not see a reason and
-> > wasn't sure if we'd need sub-subsystems (nf_tables, conntrack, nat,
-> > whatever).
+On Sat, Oct 12, 2024 at 09:54:04PM +0200, Phil Sutter wrote:
+> Hi Pablo,
 > 
-> Does this mean values exposed through tracing infrastructure can
-> change or these are part of uapi?
-
-The enum has had values added (not just appended), so its not considered
-uapi.
-
-> From what I read from you, I
-> understand it is possible to change SKB_DROP_REASON_NETFILTER_DROP to
-> a more specific sub-subsystem tag in the future without issues.
-
-Thats correct.
-
-> > If you like, I can add NF_FREE_SKB(skb, errno) and rework this
-> > set to use that?
+> On Sat, Oct 12, 2024 at 07:15:21PM +0200, Pablo Neira Ayuso wrote:
+> > Make it option, after this update it is still possible to build the
+> > documentation on demand via:
+> > 
+> >  cd doxygen
+> >  make
 > 
-> Not strong about this. I was exploring if it should be possible to
-> remove (repetitive) information in the code that can be assumed to be
-> implicit, I still like the word "REASON" in the macro for grepping.
+> This is rather unelegant in an autotools-project. You probably did
+> consider setting 'with_doxygen=no' in configure.ac line 48, why did you
+> choose this way?
 
-Yes, common name is good.
-
-> I think we can just move on with this series as-is if you prefer and
-> add new macros incrementally to refine.
-
-I think we can refine later if there are use-cases for that.
+--with-doxygen=no would do try trick, yes.
