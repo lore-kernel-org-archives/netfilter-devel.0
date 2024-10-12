@@ -1,67 +1,75 @@
-Received: from mail-pl1-f173.google.com (mail-pl1-f173.google.com [209.85.214.173])
+Received: from mail-pl1-f178.google.com (mail-pl1-f178.google.com [209.85.214.178])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66897DDAB
-	for <netfilter-devel@vger.kernel.org>; Sat, 12 Oct 2024 01:30:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7865614286
+	for <netfilter-devel@vger.kernel.org>; Sat, 12 Oct 2024 04:08:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728696621; cv=none; b=M4MESDuGYtWuDozyj/nsbHbeLPFydNXLrgNOZVczqBrS3eDFlhRekGvpoyZ8pR7jacXYEHkwZORt7Fij7FAiG1K4OYWFNY2w5RUjZKy6UprwlldCxbwL7hoKCL2jCbTkp5Ku4dlu2uFe9wTQ8+299hgozkVd5sDmlmTvb12Cq2c=
+	t=1728706112; cv=none; b=TIIYd+L76zElsUviT+vNWWF7SHWN6llpEDWFlUOfh/r+09N/i8Qjx1oKzTjGUibdCq7A8nhtF1rqGjRUa52oHFRsM6M27/NAXj7vTbtC1sppjI2CgbonUxGAteqbNIvA0vlrB+zsAlVAyuAOF1VD6RFq30iBN9PcRrVp9RoAl/Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728696621; c=relaxed/simple;
-	bh=yR0cZavi31forZPCUv8N1llGxre8NbH3sc9o5jZZZKU=;
-	h=From:Date:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=TU2OJ3BQ5lK76HZisXtREHu52ZPN4uPk2/OcoDPe/IFfvB9i5Jn81pcJPfGkXH1xDcOx7xxI3wHqaMKY6aM4ysg2FQKsakN15Kygur7MC1+z5UQmL1+OWhLDxrEEhVSk4/9EQf/YD0ylV6h9n8BFO9fBoT/LgD7ZDEXq4O9vqJg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=DF4eD5mw; arc=none smtp.client-ip=209.85.214.173
+	s=arc-20240116; t=1728706112; c=relaxed/simple;
+	bh=JJwV2oxVp6yNg+K6DgnJ6t+kMUOM7woJQ0xjrJo100M=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=oh3GHI3NAKg1/OAgvbVOrptR3hgwbfsMRtvM8Y+5/GGOL77CUsswjY946uDkCdWGxmZOH7hQ5Kk2lpZeSgt9lO+IkljyjMMaAZJ+OatvqiXtz9aO38qU4EeDQhfFJ6PfXqHH85TvEAn7NpZJ407Ff7dvQW54azYVNYH5XuEYPbs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EoeGkmAz; arc=none smtp.client-ip=209.85.214.178
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DF4eD5mw"
-Received: by mail-pl1-f173.google.com with SMTP id d9443c01a7336-20bb610be6aso27244245ad.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 11 Oct 2024 18:30:19 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EoeGkmAz"
+Received: by mail-pl1-f178.google.com with SMTP id d9443c01a7336-20c9978a221so20688085ad.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 11 Oct 2024 21:08:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1728696618; x=1729301418; darn=vger.kernel.org;
-        h=content-disposition:mime-version:mail-followup-to:reply-to
-         :message-id:subject:cc:to:date:from:sender:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=e9Y2Tzg1D2kBZfXj3D/39407vacvG/N+ASA/h5QSgxM=;
-        b=DF4eD5mw7IWPadm59CqQd14Gr1Slj5KcqmtQEBJ7UD0ilgSAzB8p3wF+jsO131ympT
-         NpBX20K0cKvsiHlGzoeGqR/vF1bGi9rCrvCPmPwp6GyP5JdZ8Sl3C5NKCAu9y5ivwE7K
-         bkX3/t1jI/mDxS+obud8uf5udYL5Ykigm9eoEHz+2VK7jVHLysaWUsY827Xn0WhLozgc
-         FgLwNmqYtILHNdNDhvQvuCPGLD7VDX+6p5ynouL5juDoQR6AiRIvKPrqF5/Uwvi2AvpE
-         ODnpLtwc2jcCf3C19yUfVKa5gxSc0hv0uiPXS2Ad8MjLF5D0FFVsY8+qSYx6YwCbaF60
-         p4vQ==
+        d=gmail.com; s=20230601; t=1728706110; x=1729310910; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references
+         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=JJwV2oxVp6yNg+K6DgnJ6t+kMUOM7woJQ0xjrJo100M=;
+        b=EoeGkmAzWjoCNeQspm8/et/ksSV4/jF/yUF6X8gUi7xSouHEhQJSuRpDO2kYwHZzIC
+         FlOS63JD7o8Pw8Eh3V5qYARTo/baQVQ8c2AMwqhjnX/mljbDfIs2zwkHr6BauaZTEaex
+         xUdjCKFbNtYZJXlGCRL8Ifuq4JzIs6nxbVwS8i1BioqYswwhdco3tcSBns5HeYXcOnVr
+         gKqE8H576drcr13Eg1LeVxjQxiK0Z2IifNjLNUJV5HDJeb6nMfeYST4Luy2JsCZ8vqFG
+         nplb5UBRE7gDATPlVouslsuXinDtYnX85bx1B3VTiPCXewijmg6FwQtG6VTtrYZqf3vq
+         OZNw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1728696618; x=1729301418;
-        h=content-disposition:mime-version:mail-followup-to:reply-to
-         :message-id:subject:cc:to:date:from:sender:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=e9Y2Tzg1D2kBZfXj3D/39407vacvG/N+ASA/h5QSgxM=;
-        b=mW5RCGXbatQS/8K5eqD9Pndp0sf+yJ6DBND79jwNNGOZGIz3MyYpfox8byWSKCCSGk
-         /KWl3mE+ykn/emZPjPglPcTW+MgF1BWYsFhZSCNqS7tji6+l93KgT4ndGO0lduBtIWAE
-         c7wNic9ZCHD108i3VuuSZgJzQqU3rrusYEwqN5yNe4HatGs4gq9C5/v+8V+1m19zkjc1
-         NuzagWtK/oeSzip2gskhIznqTRK8xHEx/tXk6ZNqGHGl2yXp/4L+wFeRxz787LN1eJj6
-         sdF2BXFQnYJ5GTArGkwEIC2gLMgz5wOXNN1sKU4V0gIuiAadY2oj3KNOL6hm5h48Y5i+
-         KCIw==
-X-Gm-Message-State: AOJu0YyByIwoT1XuC4hQWd/YbD7DIA1Eyf+J/kv5uTkfGxpUPyxMy5dw
-	hhZ+uOQMWfpT+yH23zsgnK4FdQ3u+WANC+Ob6wO91O45t16VadYYkhWOQA==
-X-Google-Smtp-Source: AGHT+IE5zf4nMD9Cgm5gD+t0+Y0uWdERCXFyVMXVmBvQ2CRZzvlmHsHNS2gVcfKAafShOZujbvewuA==
-X-Received: by 2002:a17:903:2985:b0:20c:5263:247a with SMTP id d9443c01a7336-20ca16bdcb4mr62526655ad.38.1728696618386;
-        Fri, 11 Oct 2024 18:30:18 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1728706110; x=1729310910;
+        h=in-reply-to:content-disposition:mime-version:references
+         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=JJwV2oxVp6yNg+K6DgnJ6t+kMUOM7woJQ0xjrJo100M=;
+        b=fdurrzIQ+SiqM4xgSYDn3aaigBmEwoI/jTbksaikk15y+D16dpGqo3ACvO/4wrD5c7
+         bu/ml7s+hOUQ7Jk07v0vn/CHjTdjG69lK23ALLd9W27RZGwirr898vjuIFa26uzmjuO+
+         IqwIZ1WJ7Kt5vu0Uyi8PTAYQ2KNzgDazQlq844p3DU9ai3430WkSSKQbGjS77j7tta3Y
+         Ct9RSkwqNh9Z7mlR3yqvElw+YruukNTR5u2e/ec00WXzL/tsLCG7eRXkHjzfzWh7pyGu
+         sb9pkJijVo3HoLi8g8L5tYgENZA4pzetvqnK9Jjugzx45I44vsVj4AsQg4XYFlSX6ZD8
+         9/eA==
+X-Forwarded-Encrypted: i=1; AJvYcCUivFqKyvbbc4GFD5knmxWoMKy1z+5NDsOLwbezhBdIUK3hHB0yGTNpumkwCxNDcU83+Tft/DelA1Hcm5wmSxM=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxj0rhEoYrJRKoQauHgNbkxJwDLWazFvgfKEHLFg252sE7W9R+z
+	TbxuWzZMQEaFP+7MknHWohCeUAbggbgnZVt0feMvebvZWIs1xjHDmFyr9w==
+X-Google-Smtp-Source: AGHT+IHOVxIXu+lgotAeDL2SWjY5KY77vHUtP36k6Q/DaiHcrcYQNoYIz8ECNHDd93MYN0K9s+zu0Q==
+X-Received: by 2002:a17:902:d504:b0:20c:5cb1:ddf0 with SMTP id d9443c01a7336-20ca142a258mr74079785ad.10.1728706109733;
+        Fri, 11 Oct 2024 21:08:29 -0700 (PDT)
 Received: from slk15.local.net (n175-33-111-144.meb22.vic.optusnet.com.au. [175.33.111.144])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-20c8bc1c692sm29687105ad.110.2024.10.11.18.30.16
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-20c8c212ff5sm30933455ad.190.2024.10.11.21.08.27
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 11 Oct 2024 18:30:17 -0700 (PDT)
+        Fri, 11 Oct 2024 21:08:29 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From: Duncan Roe <duncan_roe@optusnet.com.au>
 X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
-Date: Sat, 12 Oct 2024 12:30:14 +1100
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Building libnetfilter_queue has required kernel headers for some time
-Message-ID: <ZwnRJreuOMiQqU0A@slk15.local.net>
-Reply-To: duncan_roe@optusnet.com.au
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+Date: Sat, 12 Oct 2024 15:08:25 +1100
+To: Phil Sutter <phil@nwl.cc>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libnetfilter_queue] build: add missing backslash to
+ build_man.sh
+Message-ID: <Zwn2OfIZW0sqE2Yd@slk15.local.net>
+Reply-To: duncan_roe@optusnet.com.au
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <20241004040639.14989-1-duncan_roe@optusnet.com.au>
+ <Zv_rJM6_dyCVA7KU@orbyte.nwl.cc>
+ <ZwMi1knK7rqs+iEy@slk15.local.net>
+ <ZwPS-3s2-wUcVBzU@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -70,56 +78,19 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <ZwPS-3s2-wUcVBzU@orbyte.nwl.cc>
 
-Hi Pablo,
+Hi Phil,
 
-Just to clear up a misconception:
+On Mon, Oct 07, 2024 at 02:24:27PM +0200, Phil Sutter wrote:
+> On Mon, Oct 07, 2024 at 10:52:54AM +1100, Duncan Roe wrote:
+> > I'm happy to do it either way, LMK your preference.
+>
+> I don't have any, just stumbled upon this feature when checking for
+> when/why unescaped backslashes are interpreted or not.
+>
+I'll leave it as_is then.
 
-On Tue, Aug 10, 2021 at 06:09:06PM +0200, Pablo Neira Ayuso wrote:
-> To ensure that a project compiles standalone (without the need for the
-> system kernel header files), you can cache a copy of the header in
-> your software tree (we use this trick for a while in userspace
-> netfilter software).
-
-The concept of a standalone build without kernel headers might have been valid
-once, but is invalid nowadays.
-
-I tried uninstalling the `kernel-headers` package and building.
-I got the following 2 errors from multiple source files:
-| In file included from /usr/include/errno.h:28,
-|                  from libnetfilter_queue.c:29:
-| /usr/include/bits/errno.h:26:11: fatal error: linux/errno.h: No such file or directory
-|    26 | # include <linux/errno.h>
-|       |           ^~~~~~~~~~~~~~~
-| In file included from /usr/include/sys/socket.h:33,
-|                  from /usr/include/netinet/in.h:23,
-|                  from /usr/include/arpa/inet.h:22,
-|                  from nlmsg.c:9:
-| /usr/include/bits/socket.h:354:11: fatal error: asm/socket.h: No such file or directory
-|   354 | # include <asm/socket.h>
-|       |           ^~~~~~~~~~~~~~
-
-To see if an older version of glibc didn't use kernel headers, I tried a build
-from my Slackware 14.2 VM (2016-06-30). It failed in ./configure:
-| checking how to run the C preprocessor... /lib/cpp
-| configure: error: in `/dimstar/usr/src/libnetfilter_queue':
-| configure: error: C preprocessor "/lib/cpp" fails sanity check
-| See `config.log' for more details
-config.log shows:
-| | /* end confdefs.h.  */
-| | #ifdef __STDC__
-| | # include <limits.h>
-| | #else
-| | # include <assert.h>
-| | #endif
-| |                    Syntax error
-| configure:8489: /lib/cpp  conftest.c
-| In file included from /usr/include/bits/posix1_lim.h:160:0,
-|                  from /usr/include/limits.h:143,
-|                  from /usr/lib64/gcc/x86_64-slackware-linux/5.3.0/include-fixed/limits.h:168,
-|                  from /usr/lib64/gcc/x86_64-slackware-linux/5.3.0/include-fixed/syslimits.h:7,
-|                  from /usr/lib64/gcc/x86_64-slackware-linux/5.3.0/include-fixed/limits.h:34,
-|                  from conftest.c:12:
-| /usr/include/bits/local_lim.h:38:26: fatal error: linux/limits.h: No such file or directory
+Can somebody please apply this patch?
 
 Cheers ... Duncan.
