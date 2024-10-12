@@ -1,64 +1,55 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24A851482F5
-	for <netfilter-devel@vger.kernel.org>; Sat, 12 Oct 2024 10:31:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7BD21E511
+	for <netfilter-devel@vger.kernel.org>; Sat, 12 Oct 2024 13:42:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728729095; cv=none; b=UwcToU/rnAcZN9oUE29O01AX/+0CQGgYshtd+gTvDgq1rfYqDT4PCLOEfLnT2nWnTQ1+KELY/i99Q52lbRm7sTio74fRanuC2yoL3ufJw7mYa9XkssNrmo79BM+CTVfdkuKVZ4nxGytPgRaWj8XRxrs+GtdeVaaEotZLn2Xir2w=
+	t=1728740544; cv=none; b=FVEzTVoqQfTGxC+s7Rwc6LG5jP3Osl529v0aPvy471DRksQQWZOzTsc7hfbzd7CCNSzQxdO+a5H/TJ6xEEpbR8x5UcZEG87vzqA3T6xq1Z51t3VhvWm86HqyvgKwLao/qKb+RLZerWMwB1bZQFQaUjufgM2dm4QvCZ+ZpDRDSfo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728729095; c=relaxed/simple;
-	bh=1/JGmkwFzSw2vSbW1AGZmVApuV+dtWqA39Uh+kn7m5I=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=N+cWClQjETm7BwmbJXnyK1g+QczCGzjazwv22KDOUEx9mfK3ezn27WMnxTnw8fDr4k+FX2nGY8XVluWEs23fGsTKk4a5QIHNooIFUYMomleDFgkEJZig38GLHCZbd/HgXGMr2O4qZonEECkgtk1g+1ixjZSAYZIuJZQh7u+yiYY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=RNYQ5qr7; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="RNYQ5qr7"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=ZZeNqGaUbBxh871fMgj1VkxnhK+5IuS0yVc5CT8KtaA=; b=RNYQ5qr7GLxrh6OZBot5ImPPjM
-	KMtvIRut5KL1nvhU9M7+uXRpm4XnBI06HG/g+w7LNiSZsAiw/RW6dPjs9UFKO8kIMD0La9igJ00eU
-	6uEBvrKBzmwyb6mgxbeUygeZPsodqTPPCtSYQ2O0zeGRp8NDPTxPOAr5DxxhdHFDr6Z1nKmYPr1rW
-	Uc7stlnrUEFBSN9r4/Nxcg2Tb2YRI/wKnadQ1jLf4/bPdrDZP0oCktDhQFJGZ6/PTQG1qafZifS4y
-	6UnIHZq0jgDUYwlCkH19CwswgoFO+jOcpEscF6LMw6Bm3oRFgsoir8EYHi1pqh7LBOnfU2GznEOw0
-	FkM9iWOQ==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1szZPA-000000003zB-2zjO;
-	Sat, 12 Oct 2024 12:31:24 +0200
-Date: Sat, 12 Oct 2024 12:31:24 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Duncan Roe <duncan_roe@optusnet.com.au>
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH libnetfilter_queue] build: add missing backslash to
- build_man.sh
-Message-ID: <ZwpP_HuPrGSSOidp@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Duncan Roe <duncan_roe@optusnet.com.au>, pablo@netfilter.org,
-	netfilter-devel@vger.kernel.org
-References: <20241004040639.14989-1-duncan_roe@optusnet.com.au>
+	s=arc-20240116; t=1728740544; c=relaxed/simple;
+	bh=l0m/tcuGayZo0t/we876R6Aew/Bdgg84ORR0PMK0p9s=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=WPnpN0PnfzPXeCStATj8ynbmd8+qCQ3E6pQOrFW/MpQU4tV8Ayn4n67mYEzhFuFFFiLuq+HvYz7I1vB5Xb8fUGy0bgaiEBzL8gpH4qpjSbMe18CtMomg8OM6bQyOPpuVk6Hv2mEWvJB0UR8Pf2d5tCxVqmKJ6aWR6dzU51OuipU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=38130 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1szcNi-001HPg-EB
+	for netfilter-devel@vger.kernel.org; Sat, 12 Oct 2024 15:42:08 +0200
+Date: Sat, 12 Oct 2024 15:42:05 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: Building libnetfilter_queue has required kernel headers for some
+ time
+Message-ID: <Zwp8rQz-HKZPz9co@calendula>
+References: <ZwnRJreuOMiQqU0A@slk15.local.net>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20241004040639.14989-1-duncan_roe@optusnet.com.au>
+In-Reply-To: <ZwnRJreuOMiQqU0A@slk15.local.net>
+X-Spam-Score: -1.9 (-)
 
-On Fri, Oct 04, 2024 at 02:06:39PM +1000, Duncan Roe wrote:
-> Search for exact match of ".RI" had a '\' to escape '.' from the regexp
-> parser but was missing another '\' to escape the 1st '\' from shell.
-> Had not yet caused a problem but might as well do things correctly.
+On Sat, Oct 12, 2024 at 12:30:14PM +1100, Duncan Roe wrote:
+> Hi Pablo,
 > 
-> Fixes: 6d17e6daa175
-> Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+> Just to clear up a misconception:
+> 
+> On Tue, Aug 10, 2021 at 06:09:06PM +0200, Pablo Neira Ayuso wrote:
+> > To ensure that a project compiles standalone (without the need for the
+> > system kernel header files), you can cache a copy of the header in
+> > your software tree (we use this trick for a while in userspace
+> > netfilter software).
+> 
+> The concept of a standalone build without kernel headers might have been valid
+> once, but is invalid nowadays.
 
-Patch applied, thanks!
+I am referring to netlink uapi files...
