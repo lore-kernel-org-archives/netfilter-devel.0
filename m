@@ -1,101 +1,76 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1AA621B95B
-	for <netfilter-devel@vger.kernel.org>; Sat, 12 Oct 2024 15:30:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E7DE28370
+	for <netfilter-devel@vger.kernel.org>; Sat, 12 Oct 2024 15:42:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728747012; cv=none; b=VQSvW97lnk6h4F+DRugUIw0nHj2zlP3pPSrY1V7B6BNan+l90ktNOzGdnqt1qUD5NFGUKezOsWvgmJ4ONorjfuOfbR5dihgYGdsPV6eRkzIL1k2uLUydyDmfQIYOwfANxH7HpeSjiVXXIGwc4sSrEGN09bmHe1zY60FyL0VhVY8=
+	t=1728747772; cv=none; b=nxL5t/hlcEsjLffwN+lt7jA4ZikKAM17qrVZhnXpqU+eHWHDsdrj5/kBwhBGmX8wV/So7IaFuHbSOXZD+mKzhWX59BADUbLkpxQkUpGqiypO8phymmGQx2mbR7uCm7acBoTb7npN9eK5jztKWsfrc1hHs+nd+p1c7vLfdfM13I4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728747012; c=relaxed/simple;
-	bh=bUp3gp7A+XHgeQeFEIUO+EKCkmOSnQQUjHJiG9MU9Lk=;
-	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=B0ekyi+nWBMvMz6/G1tXFmTIw19+9lAuSaC8AklDfAXK9rvz1fstv8U5jrhlMgAu80o9iRZRejWE9O4MvH9kgGCyap0CRSbSSb/f5zWPyAL3OitEqCvZW5LXZIoCC1zKCgs7glAq+Yc5OhFHHubG7nrjKSYEcadRImIFQGVPMLM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+	s=arc-20240116; t=1728747772; c=relaxed/simple;
+	bh=2ct4y/1gwlOlJx6nOUKP7qbg7uN50GZNAF2syVGoAwM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=q42f5eXlPKUgFkyl/bzqn29VjX+x498hiInyNHq9UFmgsBx6FhL7+0XZ7D8JdR5nGIG8ulxPYfwd5Ok50QMM7WuR/exvhfD0NIcDibKvsClFbDIzqV72Sed4beiyYFN/4mkJAQhU/HCDPn+/Eyaf199kk5jnmhGW1Qrd2twggzw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=40572 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1szeGQ-001Tk7-MT; Sat, 12 Oct 2024 17:42:44 +0200
+Date: Sat, 12 Oct 2024 17:42:41 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH conntrack 3/3] tests: conntrack: missing space before option
-Date: Sat, 12 Oct 2024 17:29:57 +0200
-Message-Id: <20241012152957.30724-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20241012152957.30724-1-pablo@netfilter.org>
-References: <20241012152957.30724-1-pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next 0/4] netfilter: use skb_drop_reason in more places
+Message-ID: <ZwqY8Rm74MO_UMM8@calendula>
+References: <20241002155550.15016-1-fw@strlen.de>
+ <ZwqDI5JcQi5fMa46@calendula>
+ <20241012144216.GA21920@breakpoint.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20241012144216.GA21920@breakpoint.cc>
+X-Spam-Score: -1.9 (-)
 
-Recent updates make the conntrack parser slightly more robust. A few
-test lines include:
+On Sat, Oct 12, 2024 at 04:42:16PM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > One question regarding this series.
+> > 
+> > Most spots still rely on EPERM which is the default reason for
+> > NF_DROP.
+> 
+> core converts NF_DROP to EPERM if no errno value is set, correct.
+> 
+> > I wonder if it is worth updating all these spots to use NF_DROP_REASON
+> > with EPERM. I think patchset becomes smaller if it is only used to
+> > provide a better reason than EPERM.
+> 
+> I'm not following, sorry.  What do you mean?
+> 
+> This is not about errno.  NF_DROP_REASON() calls kfree_skb, so tooling
+> can show location other than nf_hook_slow().
 
-... -w 11-s 2001:DB8::1.1.1.1 ...
+Right.
 
-where space is missing. These are typos rather than valid input.
+> Or do you mean using a different macro that always sets EPERM?
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- tests/conntrack/testsuite/09dumpopt | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+Maybe remove SKB_DROP_REASON_NETFILTER_DROP from macro, so line is
+shorter?
 
-diff --git a/tests/conntrack/testsuite/09dumpopt b/tests/conntrack/testsuite/09dumpopt
-index c1e0e6ed376d..9dcd51f81638 100644
---- a/tests/conntrack/testsuite/09dumpopt
-+++ b/tests/conntrack/testsuite/09dumpopt
-@@ -25,7 +25,7 @@
- # delete reverse
- -D -w 11 -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 ; OK
- # delete v6 conntrack
---D -w 11-s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 ; OK
-+-D -w 11 -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 ; OK
- # delete icmp ping request entry
- -D -w 11 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; OK
- # delete old entries
-@@ -33,7 +33,7 @@
- # delete reverse
- -D -w 10 -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 ; OK
- # delete v6 conntrack
---D -w 10-s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 ; OK
-+-D -w 10 -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 ; OK
- # delete icmp ping request entry
- -D -w 10 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; OK
- #
-@@ -64,7 +64,7 @@
- # delete reverse
- -D -w 11 -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 ; OK
- # delete v6 conntrack
---D -w 11-s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 ; OK
-+-D -w 11 -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 ; OK
- # delete icmp ping request entry
- -D -w 11 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; OK
- # delete old entries
-@@ -72,7 +72,7 @@
- # delete reverse
- -D -w 10 -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 ; BAD
- # delete v6 conntrack
---D -w 10-s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 ; BAD
-+-D -w 10 -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 ; BAD
- # delete icmp ping request entry
- -D -w 10 -u SEEN_REPLY -s 1.1.1.1 -d 2.2.2.2 -r 2.2.2.2 -q 1.1.1.1 -p icmp --icmp-type 8 --icmp-code 0 --icmp-id 1226 ; BAD
- #
-@@ -161,13 +161,13 @@
- # IGMP
- -D -w 10 -s 0.0.0.0 -d 224.0.0.22 -r 224.0.0.22 -q 0.0.0.0 -p 2 ; OK
- # Some fency protocol
---D -w 10  -s 0.0.0.0 -d 224.0.0.22 -r 224.0.0.22 -q 0.0.0.0 -p 200 ; OK
-+-D -w 10 -s 0.0.0.0 -d 224.0.0.22 -r 224.0.0.22 -q 0.0.0.0 -p 200 ; OK
- # Some fency protocol with IPv6
- -D -w 10 -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p 200 ; OK
- # Delete stuff in zone 11, should succeed
- # IGMP
- -D -w 11 -s 0.0.0.0 -d 224.0.0.22 -r 224.0.0.22 -q 0.0.0.0 -p 2 ; OK
- # Some fency protocol
---D -w 11  -s 0.0.0.0 -d 224.0.0.22 -r 224.0.0.22 -q 0.0.0.0 -p 200 ; OK
-+-D -w 11 -s 0.0.0.0 -d 224.0.0.22 -r 224.0.0.22 -q 0.0.0.0 -p 200 ; OK
- # Some fency protocol with IPv6
- -D -w 11 -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p 200 ; OK
--- 
-2.30.2
+        NF_DROP_REASON(pkt->skb, -EPERM)
 
+And add a new macro for br_netfilter NF_BR_DROP_REASON which does not
+always sets SKB_DROP_REASON_NETFILTER_DROP? (Pick a better name for
+this new macro if you like).
+
+Or you think the existing generic long version of NF_DROP_REASON is
+convenient to have?
+
+Thanks
