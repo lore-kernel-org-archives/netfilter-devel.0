@@ -1,177 +1,125 @@
-Received: from mail-yw1-f181.google.com (mail-yw1-f181.google.com [209.85.128.181])
+Received: from mail-pl1-f173.google.com (mail-pl1-f173.google.com [209.85.214.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 948D61D0433;
-	Fri, 11 Oct 2024 19:33:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66897DDAB
+	for <netfilter-devel@vger.kernel.org>; Sat, 12 Oct 2024 01:30:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728675188; cv=none; b=tokToSJvczxPpvflZh/bFgTIBS8t1l3YQhVFr5mhtl7dElhAOC2oNE5+gHDLeeTQ5aNviBoRHYFQJqJQJcs+AJbRDy5zYP8Y8UwcCpQFdoQrW+BilzzkvDqAQ/xMCAih5Q6mHS6mqVOk+0XvbTp0eCIiPwlVHI/7fduHkOnA6mk=
+	t=1728696621; cv=none; b=M4MESDuGYtWuDozyj/nsbHbeLPFydNXLrgNOZVczqBrS3eDFlhRekGvpoyZ8pR7jacXYEHkwZORt7Fij7FAiG1K4OYWFNY2w5RUjZKy6UprwlldCxbwL7hoKCL2jCbTkp5Ku4dlu2uFe9wTQ8+299hgozkVd5sDmlmTvb12Cq2c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728675188; c=relaxed/simple;
-	bh=Ds+rtLhrKjivgzwXwvlCGH6IUzyK3YJZdokxICABi5w=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=RqnS6DiPt3d5j7R3GFodoma8fa8xwRkAwxc/nCYUVxvKPi9nkxgAfb4VYDbvAoKkFMJvMMFgAGNdvEDAus+WN6WhdazS6P+LbNBelFQTrgwedysRrkX0cEcMPhtMkOBxrY0sY/zz2+wXiOpOj+pM/DhVh3QhNNz0qeR0v1JXXRI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=J1rHam6u; arc=none smtp.client-ip=209.85.128.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+	s=arc-20240116; t=1728696621; c=relaxed/simple;
+	bh=yR0cZavi31forZPCUv8N1llGxre8NbH3sc9o5jZZZKU=;
+	h=From:Date:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=TU2OJ3BQ5lK76HZisXtREHu52ZPN4uPk2/OcoDPe/IFfvB9i5Jn81pcJPfGkXH1xDcOx7xxI3wHqaMKY6aM4ysg2FQKsakN15Kygur7MC1+z5UQmL1+OWhLDxrEEhVSk4/9EQf/YD0ylV6h9n8BFO9fBoT/LgD7ZDEXq4O9vqJg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=DF4eD5mw; arc=none smtp.client-ip=209.85.214.173
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="J1rHam6u"
-Received: by mail-yw1-f181.google.com with SMTP id 00721157ae682-6e129c01b04so20565867b3.1;
-        Fri, 11 Oct 2024 12:33:06 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DF4eD5mw"
+Received: by mail-pl1-f173.google.com with SMTP id d9443c01a7336-20bb610be6aso27244245ad.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 11 Oct 2024 18:30:19 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1728675185; x=1729279985; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+        d=gmail.com; s=20230601; t=1728696618; x=1729301418; darn=vger.kernel.org;
+        h=content-disposition:mime-version:mail-followup-to:reply-to
+         :message-id:subject:cc:to:date:from:sender:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=sdAnCzT1tEcd7rHqnIUWhK8S7C7ggzWXQDUDyBxWWgQ=;
-        b=J1rHam6uQh3MKH2sYF4k+ZRdWxyV+VWUbA0k3b8E3BggfhLPamS6r4TIJXjxas49Ng
-         nrofCdbO11r+oiGqTG2jKc3HLXSSZQ/5w9X2MOt/0ogbquZbh9ml1Oq5JFt6f/T27VDx
-         9O712D0M7XzxDTgPTVGaqLliCMzlQWu4upz7FLLC9chu0VLGMrjSeGHMkXXr+err6pNa
-         h1sVlSsmS9j/xpKpCfjHnNvnL4hgU6jIUtOxAk0ZaSUl0JkWBp8SyBAeJcNpZ00CE1go
-         xGxwDoO0pGYRtEC9DAmJr/WQgJhOiCK0aTGPzLf+9fw38e1IMiDCnF3BGjoGvPL4saj7
-         sAVw==
+        bh=e9Y2Tzg1D2kBZfXj3D/39407vacvG/N+ASA/h5QSgxM=;
+        b=DF4eD5mw7IWPadm59CqQd14Gr1Slj5KcqmtQEBJ7UD0ilgSAzB8p3wF+jsO131ympT
+         NpBX20K0cKvsiHlGzoeGqR/vF1bGi9rCrvCPmPwp6GyP5JdZ8Sl3C5NKCAu9y5ivwE7K
+         bkX3/t1jI/mDxS+obud8uf5udYL5Ykigm9eoEHz+2VK7jVHLysaWUsY827Xn0WhLozgc
+         FgLwNmqYtILHNdNDhvQvuCPGLD7VDX+6p5ynouL5juDoQR6AiRIvKPrqF5/Uwvi2AvpE
+         ODnpLtwc2jcCf3C19yUfVKa5gxSc0hv0uiPXS2Ad8MjLF5D0FFVsY8+qSYx6YwCbaF60
+         p4vQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1728675185; x=1729279985;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=sdAnCzT1tEcd7rHqnIUWhK8S7C7ggzWXQDUDyBxWWgQ=;
-        b=AHhEplAMlr5lr055ISKBgDf0p9mtCDNF9QaXbTLkZnHzcGv3RIssyCPUSEj2CX2bCF
-         YZjCkAwvZOID6g84DNQj6tpnMlELm0HRMe4c/uYJpGRv6rle44xUU/SeAfiViVgxUk78
-         yIb5BC4eBH06K6iOqr3aSS+PxYtNh8g47pqY7W/vfQLlUiU3oHKm3IJ3TY2mBMi0Ohk+
-         A+E0UUTyHzkDUOOCm64iJEGus9Cd+FNzXVZ7MfdLNvdzjQ4TUKLuh41bU5hjPL+gCAOs
-         v8as9/hjtZnJ/B5zUh9KnUMaibrWY1A+e+ealNc1Nu6nxMoBpYrlzgeK4we4izL8bl7K
-         EwUA==
-X-Forwarded-Encrypted: i=1; AJvYcCVA/Zoj8DyZgY7TBdRKmpQfrhQ3oc8UNOec9YiDUldBO5odPbt0qWnX35OiNlTSqPDkx5fzd7J9@vger.kernel.org, AJvYcCW4d+thBAwDKoU9Dq04ZzKKzVRfI/AaJzzf6qGOi+XCSb/dCm7hW2VCN6AYgxql5z7vnsu14SiFW0pdoqZh5l1R@vger.kernel.org, AJvYcCWMhCCPl3pH9/kbEOskhoB3strQPhI1cEJFDwyzYSberJYqNMU7VSILAr72cW9X1GVZpDWhoI7rwOgry+oqmm9B@vger.kernel.org, AJvYcCWZ9ySKJk7vQgkuiH+PDAdBzRRgSS+p2bNHrmO2HUPLxGRtpZX8UEic3QXMgpIz4XI5kE/yorxoQTVOSwg=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw/5bZj8wnThxvYdp76hkXwe+CdjHveaZzEn/z3SWa9xdyunE5q
-	jQ/sgrtAPrjnMUc9IqkViWPAP5FhK46TZQ/SwJqbTabJbqbWnKUC2HUDgujZ
-X-Google-Smtp-Source: AGHT+IGxfrWyXC0QpDM2sh4vtw0dUvoTbJRseu/40lD+LrrD4Q1ucLOricYle+vETBE/3q0fDdDhGg==
-X-Received: by 2002:a05:690c:45c8:b0:6dd:c6e1:7570 with SMTP id 00721157ae682-6e3644c0162mr7818447b3.34.1728675185410;
-        Fri, 11 Oct 2024 12:33:05 -0700 (PDT)
-Received: from dev-ubuntu-0.. (104-15-236-76.lightspeed.rlghnc.sbcglobal.net. [104.15.236.76])
-        by smtp.googlemail.com with ESMTPSA id 00721157ae682-6e332c6f3b6sm7199127b3.115.2024.10.11.12.33.04
+        d=1e100.net; s=20230601; t=1728696618; x=1729301418;
+        h=content-disposition:mime-version:mail-followup-to:reply-to
+         :message-id:subject:cc:to:date:from:sender:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=e9Y2Tzg1D2kBZfXj3D/39407vacvG/N+ASA/h5QSgxM=;
+        b=mW5RCGXbatQS/8K5eqD9Pndp0sf+yJ6DBND79jwNNGOZGIz3MyYpfox8byWSKCCSGk
+         /KWl3mE+ykn/emZPjPglPcTW+MgF1BWYsFhZSCNqS7tji6+l93KgT4ndGO0lduBtIWAE
+         c7wNic9ZCHD108i3VuuSZgJzQqU3rrusYEwqN5yNe4HatGs4gq9C5/v+8V+1m19zkjc1
+         NuzagWtK/oeSzip2gskhIznqTRK8xHEx/tXk6ZNqGHGl2yXp/4L+wFeRxz787LN1eJj6
+         sdF2BXFQnYJ5GTArGkwEIC2gLMgz5wOXNN1sKU4V0gIuiAadY2oj3KNOL6hm5h48Y5i+
+         KCIw==
+X-Gm-Message-State: AOJu0YyByIwoT1XuC4hQWd/YbD7DIA1Eyf+J/kv5uTkfGxpUPyxMy5dw
+	hhZ+uOQMWfpT+yH23zsgnK4FdQ3u+WANC+Ob6wO91O45t16VadYYkhWOQA==
+X-Google-Smtp-Source: AGHT+IE5zf4nMD9Cgm5gD+t0+Y0uWdERCXFyVMXVmBvQ2CRZzvlmHsHNS2gVcfKAafShOZujbvewuA==
+X-Received: by 2002:a17:903:2985:b0:20c:5263:247a with SMTP id d9443c01a7336-20ca16bdcb4mr62526655ad.38.1728696618386;
+        Fri, 11 Oct 2024 18:30:18 -0700 (PDT)
+Received: from slk15.local.net (n175-33-111-144.meb22.vic.optusnet.com.au. [175.33.111.144])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-20c8bc1c692sm29687105ad.110.2024.10.11.18.30.16
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 11 Oct 2024 12:33:05 -0700 (PDT)
-From: Tyrone Wu <wudevelops@gmail.com>
-To: bpf@vger.kernel.org,
-	wudevelops@gmail.com
-Cc: pablo@netfilter.org,
-	kadlec@netfilter.org,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	andrii@kernel.org,
-	eddyz87@gmail.com,
-	mykolal@fb.com,
-	ast@kernel.org,
-	daniel@iogearbox.net,
-	martin.lau@linux.dev,
-	song@kernel.org,
-	yonghong.song@linux.dev,
-	john.fastabend@gmail.com,
-	kpsingh@kernel.org,
-	sdf@fomichev.me,
-	haoluo@google.com,
-	jolsa@kernel.org,
-	shuah@kernel.org,
-	riel@surriel.com,
-	shakeel.butt@linux.dev,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-kselftest@vger.kernel.org,
-	kernel-patches-bot@fb.com
-Subject: [PATCH bpf v1 2/2] selftests/bpf: add asserts for netfilter link info
-Date: Fri, 11 Oct 2024 19:32:52 +0000
-Message-ID: <20241011193252.178997-2-wudevelops@gmail.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20241011193252.178997-1-wudevelops@gmail.com>
-References: <20241011193252.178997-1-wudevelops@gmail.com>
+        Fri, 11 Oct 2024 18:30:17 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From: Duncan Roe <duncan_roe@optusnet.com.au>
+X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
+Date: Sat, 12 Oct 2024 12:30:14 +1100
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Building libnetfilter_queue has required kernel headers for some time
+Message-ID: <ZwnRJreuOMiQqU0A@slk15.local.net>
+Reply-To: duncan_roe@optusnet.com.au
+Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Development <netfilter-devel@vger.kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Add assertions/tests to verify `bpf_link_info` fields for netfilter link
-are correctly populated.
+Hi Pablo,
 
-Signed-off-by: Tyrone Wu <wudevelops@gmail.com>
----
- .../bpf/prog_tests/netfilter_link_attach.c    | 40 ++++++++++++++++++-
- 1 file changed, 38 insertions(+), 2 deletions(-)
+Just to clear up a misconception:
 
-diff --git a/tools/testing/selftests/bpf/prog_tests/netfilter_link_attach.c b/tools/testing/selftests/bpf/prog_tests/netfilter_link_attach.c
-index 4297a2a4cb11..5bf98ab2e17f 100644
---- a/tools/testing/selftests/bpf/prog_tests/netfilter_link_attach.c
-+++ b/tools/testing/selftests/bpf/prog_tests/netfilter_link_attach.c
-@@ -26,10 +26,43 @@ static const struct nf_link_test nf_hook_link_tests[] = {
- 
- 	{ .pf = NFPROTO_INET, .priority = 1, .name = "invalid-inet-not-supported", },
- 
--	{ .pf = NFPROTO_IPV4, .priority = -10000, .expect_success = true, .name = "attach ipv4", },
--	{ .pf = NFPROTO_IPV6, .priority =  10001, .expect_success = true, .name = "attach ipv6", },
-+	{
-+		.pf = NFPROTO_IPV4,
-+		.hooknum = NF_INET_POST_ROUTING,
-+		.priority = -10000,
-+		.flags = 0,
-+		.expect_success = true,
-+		.name = "attach ipv4",
-+	},
-+	{
-+		.pf = NFPROTO_IPV6,
-+		.hooknum = NF_INET_FORWARD,
-+		.priority =  10001,
-+		.flags = BPF_F_NETFILTER_IP_DEFRAG,
-+		.expect_success = true,
-+		.name = "attach ipv6",
-+	},
- };
- 
-+static void verify_netfilter_link_info(struct bpf_link *link, const struct nf_link_test nf_expected)
-+{
-+	struct bpf_link_info info;
-+	__u32 len = sizeof(info);
-+	int err, fd;
-+
-+	memset(&info, 0, len);
-+
-+	fd = bpf_link__fd(link);
-+	err = bpf_link_get_info_by_fd(fd, &info, &len);
-+	ASSERT_OK(err, "get_link_info");
-+
-+	ASSERT_EQ(info.type, BPF_LINK_TYPE_NETFILTER, "info link type");
-+	ASSERT_EQ(info.netfilter.pf, nf_expected.pf, "info nf protocol family");
-+	ASSERT_EQ(info.netfilter.hooknum, nf_expected.hooknum, "info nf hooknum");
-+	ASSERT_EQ(info.netfilter.priority, nf_expected.priority, "info nf priority");
-+	ASSERT_EQ(info.netfilter.flags, nf_expected.flags, "info nf flags");
-+}
-+
- void test_netfilter_link_attach(void)
- {
- 	struct test_netfilter_link_attach *skel;
-@@ -63,6 +96,7 @@ void test_netfilter_link_attach(void)
- 
- 			if (!ASSERT_OK_PTR(link, "program attach successful"))
- 				continue;
-+			verify_netfilter_link_info(link, nf_hook_link_tests[i]);
- 
- 			link2 = bpf_program__attach_netfilter(prog, &opts);
- 			ASSERT_ERR_PTR(link2, "attach program with same pf/hook/priority");
-@@ -73,6 +107,8 @@ void test_netfilter_link_attach(void)
- 			link2 = bpf_program__attach_netfilter(prog, &opts);
- 			if (!ASSERT_OK_PTR(link2, "program reattach successful"))
- 				continue;
-+			verify_netfilter_link_info(link2, nf_hook_link_tests[i]);
-+
- 			if (!ASSERT_OK(bpf_link__destroy(link2), "link destroy"))
- 				break;
- 		} else {
--- 
-2.43.0
+On Tue, Aug 10, 2021 at 06:09:06PM +0200, Pablo Neira Ayuso wrote:
+> To ensure that a project compiles standalone (without the need for the
+> system kernel header files), you can cache a copy of the header in
+> your software tree (we use this trick for a while in userspace
+> netfilter software).
 
+The concept of a standalone build without kernel headers might have been valid
+once, but is invalid nowadays.
+
+I tried uninstalling the `kernel-headers` package and building.
+I got the following 2 errors from multiple source files:
+| In file included from /usr/include/errno.h:28,
+|                  from libnetfilter_queue.c:29:
+| /usr/include/bits/errno.h:26:11: fatal error: linux/errno.h: No such file or directory
+|    26 | # include <linux/errno.h>
+|       |           ^~~~~~~~~~~~~~~
+| In file included from /usr/include/sys/socket.h:33,
+|                  from /usr/include/netinet/in.h:23,
+|                  from /usr/include/arpa/inet.h:22,
+|                  from nlmsg.c:9:
+| /usr/include/bits/socket.h:354:11: fatal error: asm/socket.h: No such file or directory
+|   354 | # include <asm/socket.h>
+|       |           ^~~~~~~~~~~~~~
+
+To see if an older version of glibc didn't use kernel headers, I tried a build
+from my Slackware 14.2 VM (2016-06-30). It failed in ./configure:
+| checking how to run the C preprocessor... /lib/cpp
+| configure: error: in `/dimstar/usr/src/libnetfilter_queue':
+| configure: error: C preprocessor "/lib/cpp" fails sanity check
+| See `config.log' for more details
+config.log shows:
+| | /* end confdefs.h.  */
+| | #ifdef __STDC__
+| | # include <limits.h>
+| | #else
+| | # include <assert.h>
+| | #endif
+| |                    Syntax error
+| configure:8489: /lib/cpp  conftest.c
+| In file included from /usr/include/bits/posix1_lim.h:160:0,
+|                  from /usr/include/limits.h:143,
+|                  from /usr/lib64/gcc/x86_64-slackware-linux/5.3.0/include-fixed/limits.h:168,
+|                  from /usr/lib64/gcc/x86_64-slackware-linux/5.3.0/include-fixed/syslimits.h:7,
+|                  from /usr/lib64/gcc/x86_64-slackware-linux/5.3.0/include-fixed/limits.h:34,
+|                  from conftest.c:12:
+| /usr/include/bits/local_lim.h:38:26: fatal error: linux/limits.h: No such file or directory
+
+Cheers ... Duncan.
