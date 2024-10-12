@@ -1,62 +1,66 @@
-Received: from mail-pf1-f169.google.com (mail-pf1-f169.google.com [209.85.210.169])
+Received: from mail-pf1-f173.google.com (mail-pf1-f173.google.com [209.85.210.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D50715530F
-	for <netfilter-devel@vger.kernel.org>; Sat, 12 Oct 2024 23:09:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.169
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B003719CC25
+	for <netfilter-devel@vger.kernel.org>; Sat, 12 Oct 2024 23:09:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728774568; cv=none; b=kK1l0XCOZqMQwsVZuCT3x+GJnAlpyZDaojl2/t7Iqvg1xc+mSJu13F1x9C7m11DBTlVCRL48wtAzovBjwao+tqoVue4BBlud/DcxC5MpliQUOhclnYzM1AHVO+24LN5pHQTR55E2noP1wJEDJW7jVa+nc0Cq6UNMaJL21PkMsN0=
+	t=1728774570; cv=none; b=EucIcbk9gL67sEMzOpMY6jJsEifbX1BM8bHVzjqhXzrbQ9+mhiW5oT90moFnqyRAh/uAEi9HBwQYPzbSTXnsTVlQheWqiQOyLYZPAHUQhlv9YJeEza3EybUlYG2NldDS1sGWZ6oOQpxY94bGYzX65fVcW0WRNx1Tb3jD63VJW0k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728774568; c=relaxed/simple;
-	bh=oT3IG2KkE3egHlL301nk5JpktdZ4FrVZddUC7k/xrA4=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=qxH5O0CAIW4yPku62HNDkoet3Q2mFlEkNDKvMLKQufmUGzSfjNHrw+uaXoJsrSYxLWEaaKyJgwcBczimx7seAdN7jArmo4GOL6Zx36upgAyLffvziezXR3AZO5UGadan2RItVvNqhgSf61VgMx9uys8QUVGKVy8x0g4tnnDw8mk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Ig5hNquy; arc=none smtp.client-ip=209.85.210.169
+	s=arc-20240116; t=1728774570; c=relaxed/simple;
+	bh=Tnja4z7mKISn7j88gvHcN8MRxXIVuqW14vgtfqd+M7c=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=nzq2RsOzlMTMQr5YZ5pgd89EydPHIBixd26NR9FnYzZO23p3AcfPxJZzdLa3vRW4CghF7JJ56MTBR3+S0zYAb4rma5pMpvZNvYyNPMxX8YaCDe2vv5GzMoyYt5CxqsPqH7BbX93aUwD0l/GILqGV5dsSWnsBGszTUuN5nkN+NxQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=LeWcJJEb; arc=none smtp.client-ip=209.85.210.173
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Ig5hNquy"
-Received: by mail-pf1-f169.google.com with SMTP id d2e1a72fcca58-71e5a1c9071so168862b3a.0
-        for <netfilter-devel@vger.kernel.org>; Sat, 12 Oct 2024 16:09:22 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LeWcJJEb"
+Received: by mail-pf1-f173.google.com with SMTP id d2e1a72fcca58-71e3fce4a60so1099804b3a.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 12 Oct 2024 16:09:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1728774562; x=1729379362; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:sender:from:to:cc:subject:date:message-id:reply-to;
-        bh=Wbd3EjhtjM6YSnkHR+TWwGsnX/G4RQNv3NCHg22l5lQ=;
-        b=Ig5hNquyWOQnyW+0VJF7zChKZTUb+Ev58mYGEnK/zv+F/Y8brxpBegaRDE4Co/6+dc
-         VRVTh+t/rzSUVD+BRiCZa40tJBSbXt4PU3fYBK38/gQsOgr9DlfqIR0GGo95D9aedLGz
-         VYssxEfFn/ZbyWWMhx21dHZNAZW01xxnjskLX0bHiK4380ADejGH5No0H8tRfazNdQPl
-         y5JBrxK2NTCOrz/TY0VYjmwWvPs6WafpN7MJxrh8satOsmbhccjW7dwtjkVUryndMVzS
-         7JlCpl7pSFch8r72NCS/QLdxPUObNRk+Qhs++C8yyXjAYN00VQQRi2N/wIZ6bg7v8KnE
-         kYNQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1728774562; x=1729379362;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:sender:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20230601; t=1728774567; x=1729379367; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Wbd3EjhtjM6YSnkHR+TWwGsnX/G4RQNv3NCHg22l5lQ=;
-        b=wS4JXUiLUdqhtKG/OK7A23XtR38gPoc1H0mnOw3xf6/c2mGz69IFhaUS1GZSFd5xcd
-         ZRSK222X+tDrnEJuLmqlazoQqIC3jUoWV++y3gZDO3iIVvMGcOMKb6tfBkrJ9IspE3p5
-         PoYgAcP3sNe2j1vl/sngZj/gYkg3RPcVf7mTmkmDatyqjJMDAhV+11492NzPW2KyQIHo
-         iB89Pwl3bRfAj3iiJu8Z/olNCjVjwTXAXu0BBvqTlQLoB1c8JQ3SBHiYMN6l7WXlv8M0
-         0H0ti+AsIAJqGn/vQDYO/Iwu5rjaKDdft5bhlVDAKfxbSsMBs/H3T/5UsL2QGgVd00H4
-         hnpw==
-X-Gm-Message-State: AOJu0YzhS4a1p2UCtHcd5yHN0m+qIqFrnXkbCCsblHMmFIR6FwEymab7
-	epRoq+9dHWX4MhXYCUdpt3HoyBpNzXUEGMKudYkFwSOvRYG9Cb1pfMV7tA==
-X-Google-Smtp-Source: AGHT+IGBurb5gVB78BQ/I2OEran96j9xP2zigRRuqcMilV3tbiofqQp14HLSeL1So305Ubt6KSjBoQ==
-X-Received: by 2002:a05:6a00:3d52:b0:71e:620:8e0a with SMTP id d2e1a72fcca58-71e37e28291mr11100514b3a.5.1728774562355;
-        Sat, 12 Oct 2024 16:09:22 -0700 (PDT)
+        bh=dVTwAdalhzDndSJVPJ2g6UNWS4gcZv4toBrasYb+7Do=;
+        b=LeWcJJEbWlr3FfI4JSE6ml2uGsrq1h1bI3NMEhpGqu+K9LMRBWC7aPh5lsDJS4GbF1
+         PsSmo2eS/yDfGtMn/EWci5zatRuMNXFQqMWyaIdZDAsyFlLjdF5D9BvaaL0P+a5EGx2G
+         XwZKM1SntcpO8XOaYtWlWVvK46T4hsOsfEDP7weiTchg6EUyZPlf89fVWMuNLeK2Pc1P
+         PxHzmKx9GcywIc5IAjVH3JRvjE+nfwIcrhpk1lNTwZ0LBOno48RjhEe/fH4G1xOlgfiq
+         v7PfeWLJ0WNdIJZ9JtLXx8I+obbdbXZ2NHC41V347wEWo4ZsdIYBITtxZMjzuRZY6I6q
+         7TYA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1728774567; x=1729379367;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:sender:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=dVTwAdalhzDndSJVPJ2g6UNWS4gcZv4toBrasYb+7Do=;
+        b=i9SLDyXwsNJikN34+FwzmKBKShzvEueqnW232g6febOHyNxSL9JB8WKfsgI73qMppi
+         eRmADiLBL3pQTHSaDcXmADvYpvc6R+TVlgk7JcBxdUymfTm1kqVUTiZnhGtFwL6QCZvS
+         b1fyMBLrkeOol6GROCB8OkLRrldCJXbdl7YcVzjp+YmF+DoVp5Iwdj8YMOKIYH2eXV67
+         0tDNxQS6T63imr3NHdoDayGEPY6GiJemX66xE6I2fH395LE1pEKn0bIZsJ9FSQhcO5A0
+         xUcjxBwpQXLCEEdvcnBGge4PTqG64DAG9Q9efoji8t1UqfcdecqKig4ipk0Fx57bbt2O
+         g0SQ==
+X-Gm-Message-State: AOJu0YxSmO4T/7pqGbMehuH1IBAk0FeG4aSf7tvbAGhuzoumo6HWz2Up
+	UotUnskiCqmnelnlcS01Dq/wsRcV2PwlYxqRbI5LpYdGr0XP2lim0vZsTA==
+X-Google-Smtp-Source: AGHT+IEDMOwytsmd+/oghOxbpLSgajrGsqCQGKK5yzW2t/GDffax4d15QXrNc95uhkY7ZmlUYTT+dg==
+X-Received: by 2002:a05:6a21:e8d:b0:1d8:a260:fd75 with SMTP id adf61e73a8af0-1d8bcf00c49mr11656742637.7.1728774566833;
+        Sat, 12 Oct 2024 16:09:26 -0700 (PDT)
 Received: from slk15.local.net (n175-33-111-144.meb22.vic.optusnet.com.au. [175.33.111.144])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-71e2aab5bf9sm4854195b3a.145.2024.10.12.16.09.20
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-71e2aab5bf9sm4854195b3a.145.2024.10.12.16.09.24
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 12 Oct 2024 16:09:21 -0700 (PDT)
+        Sat, 12 Oct 2024 16:09:26 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From: Duncan Roe <duncan_roe@optusnet.com.au>
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_queue v3 00/15] Convert libnetfilter_queue to not need libnfnetlink
-Date: Sun, 13 Oct 2024 10:09:02 +1100
-Message-Id: <20241012230917.11467-1-duncan_roe@optusnet.com.au>
+Subject: [PATCH libnetfilter_queue v3 02/15] src: Convert nfq_open_nfnl() to use libmnl
+Date: Sun, 13 Oct 2024 10:09:04 +1100
+Message-Id: <20241012230917.11467-3-duncan_roe@optusnet.com.au>
 X-Mailer: git-send-email 2.35.8
+In-Reply-To: <20241012230917.11467-1-duncan_roe@optusnet.com.au>
+References: <20241012230917.11467-1-duncan_roe@optusnet.com.au>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -65,88 +69,105 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The general method is to make the opaque struct nfq_handle contain fully
-populated libnfnetlink-style and libmnl-style handles.
-Patch 1 (nfq_open()) and patch 2 (nfq_open_nfnl()) sets this up.
-Patch 3 (nfq_close()) cleans it away.
-Patches 3-10 convert the other nfq_* functions that used to use
-  libnfnetlink, except for the nfq_get_*_name functions that need nlif.
-Patches 11-13 provide all the nlif_* functions that libnfnetlink used to
-  offer, converted to use libmnl.
-Patch 14 removes all use of and reference to header files provided by
-  libnfnetlink. It provides prototypes as required.
-Patch 15 removes libnfnetlink as a private library.
+__nfq_open_nfnl() manufactures a libmnl handle if called by
+nfq_open_nfnl().
+Replace calls to nfnl_subsys_open() and nfnl_callback_register() with
+inline code.
 
-There is a tester for this patchset at
-https://github.com/duncan-roe/nfqnltester
-Some of the tests require checking out different branches,
-e.g. for testing the effect of loading libraries in a diffrernt order.
-There is more info in the README. In particular I checked that nlif still
-works with -lnfnetlink coming first
-(app will use libnfnetlink's functions).
-
-The nlif functions sit a little uneasily in libnetfilter_queue.
-ulogd2 and conntrack-tools both use them so perhaps they would
-be better placed in libmnl.
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
 ---
- Changes in v3:
- - Remove new kernel header includes as promised in
-   https://www.spinics.net/lists/netfilter-devel/msg87916.html
-   (The status of the v2 series changed to "Changes Requested":
-    I'm guessing that was because of that promise).
- - Remove more libnfnetlink references
- - Rebase on master commit f05b188
-
+ Changes in v3: (none)
+ 
  Changes in v2:
- - 11/32 (Fix checkpatch whitespace and block comment warnings) is
-   subsumed into previous patches
- - 22/32 becomes 14
- - 21/32 becomes 15
- - 12/32 & 17/32 become 11, but rtnl.c is not copied
- - 14/32 & 16/32 become 12
- - 19/32 & (some of) 32/32 become 13
- - The only changes to linux_list.h are to fix or suppress checkpatch errors.
-   There is no attempt to document the circular linked list functions
-   and macros, so no changes to build_man.sh. That is how the rest of the
-   patches disappear.
- - Other changes are documented in the individual patches
+ - Pretty much re-written as per updated commit message. In particular:
+   - Don't clear message sequencing - original didn't do that.
+   - Don't close the socket in any error path since it was open on entry.
+ src/libnetfilter_queue.c | 56 ++++++++++++++++++++++++++++++++--------
+ 1 file changed, 45 insertions(+), 11 deletions(-)
 
-Duncan Roe (15):
-  src: Convert nfq_open() to use libmnl
-  src: Convert nfq_open_nfnl() to use libmnl
-  src: Convert nfq_close() to use libmnl
-  src: Convert nfq_create_queue(), nfq_bind_pf() & nfq_unbind_pf() to
-    use libmnl
-  src: Convert nfq_set_queue_flags(), nfq_set_queue_maxlen() &
-    nfq_set_mode() to use libmnl
-  src: Convert nfq_handle_packet(), nfq_get_secctx(), nfq_get_payload()
-    and all the nfq_get_ functions to use libmnl
-  src: Convert nfq_set_verdict() and nfq_set_verdict2() to use libmnl if
-    there is no data
-  src: Incorporate nfnl_rcvbufsiz() in libnetfilter_queue
-  src: Convert nfq_fd() to use libmnl
-  src: Convert remaining nfq_* functions to use libmnl
-  src: Copy nlif-related files from libnfnetlink
-  doc: Add iftable.c to the doxygen system
-  src: Convert all nlif_* functions to use libmnl
-  include: Use libmnl.h instead of libnfnetlink.h
-  build: Remove libnfnetlink from the build
-
- Make_global.am                                |   2 +-
- configure.ac                                  |   1 -
- doxygen/Makefile.am                           |   1 +
- doxygen/doxygen.cfg.in                        |   6 +
- .../libnetfilter_queue/libnetfilter_queue.h   |  38 +-
- include/libnetfilter_queue/linux_list.h       | 730 ++++++++++++++++++
- .../linux_nfnetlink_queue.h                   |   3 +-
- libnetfilter_queue.pc.in                      |   2 -
- src/Makefile.am                               |   3 +-
- src/iftable.c                                 | 373 +++++++++
- src/libnetfilter_queue.c                      | 543 ++++++++-----
- 11 files changed, 1512 insertions(+), 190 deletions(-)
- create mode 100644 include/libnetfilter_queue/linux_list.h
- create mode 100644 src/iftable.c
-
+diff --git a/src/libnetfilter_queue.c b/src/libnetfilter_queue.c
+index f366198..bfb6482 100644
+--- a/src/libnetfilter_queue.c
++++ b/src/libnetfilter_queue.c
+@@ -484,33 +484,67 @@ static struct nfq_handle *__nfq_open_nfnl(struct nfnl_handle *nfnlh,
+ 	};
+ 	struct nfq_handle *h;
+ 	int err;
++	int i;
++	uint32_t new_subscriptions;
+ 
+ 	h = qh ? qh : calloc(1, sizeof(*h));
+ 	if (!h)
+ 		return NULL;
+ 
++	if (!qh) {
++		/* Manufacture the libmnl handle */
++		h->nl = calloc(1, sizeof(*h->nl));
++		if (!h->nl)
++			goto out_free;
++		h->nl->fd = nfnlh->fd;
++		h->nl->addr = nfnlh->local;
++	}
+ 	h->nfnlh = nfnlh;
+ 
+-	h->nfnlssh = nfnl_subsys_open(h->nfnlh, NFNL_SUBSYS_QUEUE,
+-				      NFQNL_MSG_MAX, 0);
+-	if (!h->nfnlssh) {
++	/* Replace nfnl_subsys_open() with code adapted from libnfnetlink */
++	h->nfnlssh = &h->nfnlh->subsys[NFNL_SUBSYS_QUEUE];
++	if (h->nfnlssh->cb) {
++		errno = EBUSY;
++		goto out_free;
++	}
++	h->nfnlssh->cb = calloc(NFQNL_MSG_MAX, sizeof(*(h->nfnlssh->cb)));
++	if (!h->nfnlssh->cb) {
+ 		/* FIXME: nfq_errno */
+ 		goto out_free;
+ 	}
++	h->nfnlssh->nfnlh = h->nfnlh;
++	h->nfnlssh->cb_count = NFQNL_MSG_MAX;
++	h->nfnlssh->subsys_id = NFNL_SUBSYS_QUEUE;
++
++	/* Replacement code for recalc_rebind_subscriptions() */
++	new_subscriptions = nfnlh->subscriptions;
++	for (i = 0; i < NFNL_MAX_SUBSYS; i++)
++		new_subscriptions |= nfnlh->subsys[i].subscriptions;
++	nfnlh->local.nl_groups = new_subscriptions;
++	err = bind(nfnlh->fd, (struct sockaddr *)&nfnlh->local,
++		   sizeof(nfnlh->local));
++	if (err == -1) {
++		free(h->nfnlssh->cb);
++		h->nfnlssh->cb = NULL;
++		goto out_free;
++	}
++	h->nfnlssh->subscriptions = new_subscriptions;
+ 
+ 	pkt_cb.data = h;
+-	err = nfnl_callback_register(h->nfnlssh, NFQNL_MSG_PACKET, &pkt_cb);
+-	if (err < 0) {
+-		nfq_errno = err;
+-		goto out_close;
+-	}
++	/* Replacement code for nfnl_callback_register()
++	 * The only error return from nfnl_callback_register() is not possible
++	 * here: NFQNL_MSG_PACKET (= 0) will be less than h->nfnlssh->cb_count
++	 * (set to NFQNL_MSG_MAX (= 4) a few lines back).
++	 */
++	memcpy(&h->nfnlssh->cb[NFQNL_MSG_PACKET], &pkt_cb, sizeof(pkt_cb));
+ 
+ 	return h;
+-out_close:
+-	nfnl_subsys_close(h->nfnlssh);
+ out_free:
+-	if (!qh)
++	if (!qh) {
++		if (h->nl)
++			free(h->nl);
+ 		free(h);
++	}
+ 	return NULL;
+ }
+ 
 -- 
 2.35.8
 
