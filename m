@@ -1,54 +1,108 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D163812C478
-	for <netfilter-devel@vger.kernel.org>; Sat, 12 Oct 2024 21:26:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 08FB817579
+	for <netfilter-devel@vger.kernel.org>; Sat, 12 Oct 2024 22:00:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728768402; cv=none; b=JWxkgudLKs5J27tVZmdCUj8OG+nLo1hCNui7NZOQOfFGkjxejObUQMHRzR/V/uThaDA+1kPsBTqGlUhRVlpDnT2AbZnb5xmmAP2tpY46xQDvorWXqYjdJeO1757YNvPym87aBXsV1C/ymMd4/gemOn4P4ruWvI4G1IIiRCrPUik=
+	t=1728770440; cv=none; b=UJe8P8GaoGq1EqAfHwVi9KnCHI0S5nV5+ebecQXsonNC4v4VyZ0mdpOt7AaHoTFj5SYXLylYRbefX3PGJWJi0ELRNevjlnoiVv0b8HSyXTnIUXfBGmI7GNrLqZ4fp/5Pqk9E5x9S0HBHg6g+NACOQ+Dz0ZvaDcyYBuyr5DoJcNo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728768402; c=relaxed/simple;
-	bh=KBrTdw51ucNLvrnEbzhAd2Mq21K5dZtUQJlGUDL2rzQ=;
-	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=rM1ATr3ud1i1pS7riB+C+lNjeNlemhgyVTz/wVc2967Ko0pFrclK0KRhVD349P8JITYEi6mYzSt1WRx+AMUYgxUuWyexu62n48imLuA+zQtpCHgmnD456ONHjfIdfwbyIsOmg3wMp2T//r0YglxWv4cOZkLD/AluTQ2I9TgyNyE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+	s=arc-20240116; t=1728770440; c=relaxed/simple;
+	bh=DU8scetYoE7qvgQxEyzArtALivZkHiGDO3szM+V0b24=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Z3IENabBE/pQNBuiY7jZj8yaETbp9k6pUf7ss16tlvxVYtHFE/b7EdUwgHO1o21iNnCptEjVCZDaTFEk3vEhXfigGRzyx/998zF63CorZrmWH6xHWd0qfq22eNtIIeV2eihppjMHvfGRArkK/BgmF/9yrTvMe8HejB0Kh+i1VXU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=34792 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1szjdC-0024VO-1R; Sat, 12 Oct 2024 23:26:36 +0200
-Date: Sat, 12 Oct 2024 23:26:32 +0200
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH libmnl] build: do not build documentation automatically
-Message-ID: <ZwrpiAv1PHEp1rwY@calendula>
-References: <20241012171521.33453-1-pablo@netfilter.org>
- <ZwrT3JOmxLigw9gC@orbyte.nwl.cc>
+To: netfilter-devel@vger.kernel.org
+Cc: jeremy@azazel.net
+Subject: [PATCH conntrack,v2 1/2] conntrack: improve --secmark,--id,--zone parser
+Date: Sun, 13 Oct 2024 00:00:29 +0200
+Message-Id: <20241012220030.51402-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <ZwrT3JOmxLigw9gC@orbyte.nwl.cc>
-X-Spam-Score: -1.9 (-)
+Content-Transfer-Encoding: 8bit
 
-On Sat, Oct 12, 2024 at 09:54:04PM +0200, Phil Sutter wrote:
-> Hi Pablo,
-> 
-> On Sat, Oct 12, 2024 at 07:15:21PM +0200, Pablo Neira Ayuso wrote:
-> > Make it option, after this update it is still possible to build the
-> > documentation on demand via:
-> > 
-> >  cd doxygen
-> >  make
-> 
-> This is rather unelegant in an autotools-project. You probably did
-> consider setting 'with_doxygen=no' in configure.ac line 48, why did you
-> choose this way?
+strtoul() is called with no error checking at all, add a helper
+function to validate input is correct for values less than
+UINT32_MAX.
 
---with-doxygen=no would do try trick, yes.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: - remove value == 0 && errno == ERANGE check
+    - add assert to remember this only supports max up to UINT32_MAX
+
+ src/conntrack.c | 35 +++++++++++++++++++++++++++++------
+ 1 file changed, 29 insertions(+), 6 deletions(-)
+
+diff --git a/src/conntrack.c b/src/conntrack.c
+index 9fa49869b553..18829dbf79bc 100644
+--- a/src/conntrack.c
++++ b/src/conntrack.c
+@@ -1213,6 +1213,26 @@ parse_parameter_mask(const char *arg, unsigned int *status, unsigned int *mask,
+ 		exit_error(PARAMETER_PROBLEM, "Bad parameter `%s'", arg);
+ }
+ 
++static int parse_value(const char *str, uint32_t *ret, uint64_t max)
++{
++	char *endptr;
++	uint64_t val;
++
++	assert(max <= UINT32_MAX);
++
++	errno = 0;
++	val = strtoul(str, &endptr, 0);
++	if (endptr == str ||
++	    *endptr != '\0' ||
++	    (val == ULONG_MAX && errno == ERANGE) ||
++	    val > max)
++		return -1;
++
++	*ret = val;
++
++	return 0;
++}
++
+ static void
+ parse_u32_mask(const char *arg, struct u32_mask *m)
+ {
+@@ -2918,6 +2938,7 @@ static void do_parse(struct ct_cmd *ct_cmd, int argc, char *argv[])
+ 	struct ct_tmpl *tmpl;
+ 	int res = 0, partial;
+ 	union ct_address ad;
++	uint32_t value;
+ 	int c, cmd;
+ 
+ 	/* we release these objects in the exit_error() path. */
+@@ -3078,17 +3099,19 @@ static void do_parse(struct ct_cmd *ct_cmd, int argc, char *argv[])
+ 		case 'w':
+ 		case '(':
+ 		case ')':
++			if (parse_value(optarg, &value, UINT16_MAX) < 0)
++				exit_error(OTHER_PROBLEM, "unexpected value '%s' with -%c option", optarg, c);
++
+ 			options |= opt2type[c];
+-			nfct_set_attr_u16(tmpl->ct,
+-					  opt2attr[c],
+-					  strtoul(optarg, NULL, 0));
++			nfct_set_attr_u16(tmpl->ct, opt2attr[c], value);
+ 			break;
+ 		case 'i':
+ 		case 'c':
++			if (parse_value(optarg, &value, UINT32_MAX) < 0)
++				exit_error(OTHER_PROBLEM, "unexpected value '%s' with -%c option", optarg, c);
++
+ 			options |= opt2type[c];
+-			nfct_set_attr_u32(tmpl->ct,
+-					  opt2attr[c],
+-					  strtoul(optarg, NULL, 0));
++			nfct_set_attr_u32(tmpl->ct, opt2attr[c], value);
+ 			break;
+ 		case 'm':
+ 			options |= opt2type[c];
+-- 
+2.30.2
+
