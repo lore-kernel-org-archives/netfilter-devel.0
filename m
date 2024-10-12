@@ -1,76 +1,63 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E7DE28370
-	for <netfilter-devel@vger.kernel.org>; Sat, 12 Oct 2024 15:42:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D5A92745B
+	for <netfilter-devel@vger.kernel.org>; Sat, 12 Oct 2024 15:54:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728747772; cv=none; b=nxL5t/hlcEsjLffwN+lt7jA4ZikKAM17qrVZhnXpqU+eHWHDsdrj5/kBwhBGmX8wV/So7IaFuHbSOXZD+mKzhWX59BADUbLkpxQkUpGqiypO8phymmGQx2mbR7uCm7acBoTb7npN9eK5jztKWsfrc1hHs+nd+p1c7vLfdfM13I4=
+	t=1728748493; cv=none; b=joykRZLNnKnXJb3NigyG5ZqgQ0ql/pGeEcQeOyaVWc4MIpTmGf1VH2N97gFa/wbHQDgZavDJKYeVMv56yIcFLBpj4Ij1ixQCZ0fdYyx/883nghhmIRf8jfIIRxiCh+vbbcmTOSFCSxYVWyF2Bp2RdoveTlYA3XggQiQr87yhuGA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728747772; c=relaxed/simple;
-	bh=2ct4y/1gwlOlJx6nOUKP7qbg7uN50GZNAF2syVGoAwM=;
+	s=arc-20240116; t=1728748493; c=relaxed/simple;
+	bh=092pq89Jr9E5ZBu5askBIUBMnBROc6hbiJpD/jz9DFw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=q42f5eXlPKUgFkyl/bzqn29VjX+x498hiInyNHq9UFmgsBx6FhL7+0XZ7D8JdR5nGIG8ulxPYfwd5Ok50QMM7WuR/exvhfD0NIcDibKvsClFbDIzqV72Sed4beiyYFN/4mkJAQhU/HCDPn+/Eyaf199kk5jnmhGW1Qrd2twggzw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=40572 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1szeGQ-001Tk7-MT; Sat, 12 Oct 2024 17:42:44 +0200
-Date: Sat, 12 Oct 2024 17:42:41 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=ntNqz4BR6UazAomGfq06JjFOzIQI378hKazB29J4ucjpGkyJiCaeVTcFx4T743AMunNhp11YLZp/oijzm+TrFyWpN2L+bah8eK2zpUueH6aqPylUx6tsa53CTEJhJfftpCdnccfnW0ZF9sa4Y5rcigMLUWAV1CPZdce9AyOMsc4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1szeS8-0006pu-D2; Sat, 12 Oct 2024 17:54:48 +0200
+Date: Sat, 12 Oct 2024 17:54:48 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
 Subject: Re: [PATCH nf-next 0/4] netfilter: use skb_drop_reason in more places
-Message-ID: <ZwqY8Rm74MO_UMM8@calendula>
+Message-ID: <20241012155448.GB21920@breakpoint.cc>
 References: <20241002155550.15016-1-fw@strlen.de>
  <ZwqDI5JcQi5fMa46@calendula>
  <20241012144216.GA21920@breakpoint.cc>
+ <ZwqY8Rm74MO_UMM8@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20241012144216.GA21920@breakpoint.cc>
-X-Spam-Score: -1.9 (-)
+In-Reply-To: <ZwqY8Rm74MO_UMM8@calendula>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-On Sat, Oct 12, 2024 at 04:42:16PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > One question regarding this series.
-> > 
-> > Most spots still rely on EPERM which is the default reason for
-> > NF_DROP.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > Or do you mean using a different macro that always sets EPERM?
 > 
-> core converts NF_DROP to EPERM if no errno value is set, correct.
+> Maybe remove SKB_DROP_REASON_NETFILTER_DROP from macro, so line is
+> shorter?
 > 
-> > I wonder if it is worth updating all these spots to use NF_DROP_REASON
-> > with EPERM. I think patchset becomes smaller if it is only used to
-> > provide a better reason than EPERM.
+>         NF_DROP_REASON(pkt->skb, -EPERM)
 > 
-> I'm not following, sorry.  What do you mean?
-> 
-> This is not about errno.  NF_DROP_REASON() calls kfree_skb, so tooling
-> can show location other than nf_hook_slow().
+> And add a new macro for br_netfilter NF_BR_DROP_REASON which does not
+> always sets SKB_DROP_REASON_NETFILTER_DROP? (Pick a better name for
+> this new macro if you like).
 
-Right.
+NF_DROP_REASON is already in the tree and currently most users use
+something other than SKB_DROP_REASON_NETFILTER_DROP.
 
-> Or do you mean using a different macro that always sets EPERM?
+I did not yet add new enum values or a dedicated nf namespace
+(enum skb_drop_reason_subsys), because I did not see a reason and
+wasn't sure if we'd need sub-subsystems (nf_tables, conntrack, nat,
+whatever).
 
-Maybe remove SKB_DROP_REASON_NETFILTER_DROP from macro, so line is
-shorter?
+If you like, I can add NF_FREE_SKB(skb, errno) and rework this
+set to use that?
 
-        NF_DROP_REASON(pkt->skb, -EPERM)
-
-And add a new macro for br_netfilter NF_BR_DROP_REASON which does not
-always sets SKB_DROP_REASON_NETFILTER_DROP? (Pick a better name for
-this new macro if you like).
-
-Or you think the existing generic long version of NF_DROP_REASON is
-convenient to have?
-
-Thanks
