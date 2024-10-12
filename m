@@ -1,81 +1,64 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2FAD01CA94
-	for <netfilter-devel@vger.kernel.org>; Sat, 12 Oct 2024 17:15:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE63A5FEE4
+	for <netfilter-devel@vger.kernel.org>; Sat, 12 Oct 2024 17:24:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728753330; cv=none; b=qdRCWpM/zD9M9eZWUUB8/necPcjDAsPtEJ63RL0NbvgBWL9ypmeggpYXX+0TZ29IGDS/vJfh1iSs05xti3fGjdJxkJNVOjEN/Dia/V/qoHYXJCu+PTaITrW3TWiiaHb6BeGqbNNQraxxrRc9A1Fj6SWwLCKfnATDUGYn2jtJdGY=
+	t=1728753902; cv=none; b=SD7zNxfSSxC5XSL5fsTMYTPCP5E1HiqL/ntIexrlQ92IJ+sQxKui36fCYu6s+mB2HvbD5yVUVdiz7b8CJ8rPB1jRviyeQs5zr1bqr54rduHNRMpT8aZU+RnX1KsMuolawzrGtIxT5TvDn8NZM5k0Vtedd356Ow9RjWfd9Mb/nDM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728753330; c=relaxed/simple;
-	bh=sqEcZChAcbrKWDZegw9Nc5rSqBkMlDB4r+Uy00qXeVk=;
-	h=From:To:Subject:Date:Message-Id:MIME-Version; b=odTiyYj5YqhFqmvzjYY+Bx0ZUlSWw97hjUak+dwPPK3Echufgkjl+Xenrwj8s+6p4cGNMnN5KsG+KZQ3EP5j3NaMGSSuCS+6qZIGijNV5jixIq3uhvhckEPPbz2BB4UQrOGaLewhm6QyGT/DSZR8hJbtBwmUr2prBfd1Klv32JA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+	s=arc-20240116; t=1728753902; c=relaxed/simple;
+	bh=Lq5ek6hbCvi89zAIHebtTh8mMbZlv9rBejPU4a+9Akw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=tLt5GDQyw9GYG347LGhPCkbpBQPaZKnINwac58gCuIQwoZYku1fDMfO78tSHVWPJBlXKavvQ5Ky6SEwoLlYNr31vtX+HRG6pIPcU62NMKKlcJrkDAKer4sOxDzYnifqgo3CVI3FBX+r0Iisa8gL7wZo5qSPxi3Zge4AiIS8KDiI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=38342 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1szfrL-001f82-GN; Sat, 12 Oct 2024 19:24:57 +0200
+Date: Sat, 12 Oct 2024 19:24:54 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH libmnl] build: do not build documentation automatically
-Date: Sat, 12 Oct 2024 19:15:21 +0200
-Message-Id: <20241012171521.33453-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next v2 0/5] netfilter: nf_tables: reduce set element
+ transaction size
+Message-ID: <Zwqw5jghI10XgpIl@calendula>
+References: <20241011003315.5017-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20241011003315.5017-1-fw@strlen.de>
+X-Spam-Score: -1.9 (-)
 
-Make it option, after this update it is still possible to build the
-documentation on demand via:
+On Fri, Oct 11, 2024 at 02:32:58AM +0200, Florian Westphal wrote:
+> v2: only change is in patch 3, and by extension, the last one:
+> During transaction abort, we need to handle an aggregate container to
+> contain both new set elements and updates.  The latter must be
+> skipped, else we remove element that already existed at start of the
+> transaction.
+> 
+> original cover letter:
+> 
+> When doing a flush on a set or mass adding/removing elements from a
+> set, each element needs to allocate 96 bytes to hold the transactional
+> state.
+> 
+> In such cases, virtually all the information in struct nft_trans_elem
+> is the same.
+> 
+> Change nft_trans_elem to a flex-array, i.e. a single nft_trans_elem
+> can hold multiple set element pointers.
+> 
+> The number of elements that can be stored in one nft_trans_elem is limited
+> by the slab allocator, this series limits the compaction to at most 62
+> elements as it caps the reallocation to 2048 bytes of memory.
 
- cd doxygen
- make
-
-if ./configure found doxygen. Otherwise, no need to build documentation
-when building from source.
-
-Update README to include this information.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- Makefile.am |  2 +-
- README      | 10 ++++++++++
- 2 files changed, 11 insertions(+), 1 deletion(-)
-
-diff --git a/Makefile.am b/Makefile.am
-index 94e6935d6138..6ec1a7b98827 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -2,7 +2,7 @@ include $(top_srcdir)/Make_global.am
- 
- ACLOCAL_AMFLAGS = -I m4
- 
--SUBDIRS = src include examples doxygen
-+SUBDIRS = src include examples
- DIST_SUBDIRS = src include examples doxygen
- 
- pkgconfigdir = $(libdir)/pkgconfig
-diff --git a/README b/README
-index 317a2c6ad1d6..c82dedd2266a 100644
---- a/README
-+++ b/README
-@@ -23,6 +23,16 @@ forced to use them.
- You can find several example files under examples/ that you can compile by
- invoking `make check'.
- 
-+= Documentation =
-+
-+If ./configure reports that doxygen has been found, then you can build
-+documentation through:
-+
-+	cd doxygen
-+	make
-+
-+then, open doxygen/html/index.html in your browser.
-+
- = Contributing =
- 
- Please submit any patches to <netfilter-devel@vger.kernel.org>.
--- 
-2.30.2
-
+Applied to nf-next, thanks Florian
