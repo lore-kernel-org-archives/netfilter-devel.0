@@ -1,33 +1,33 @@
 Received: from mail3-relais-sop.national.inria.fr (mail3-relais-sop.national.inria.fr [192.134.164.104])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2FA31A4E99;
-	Sun, 13 Oct 2024 20:18:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56B771A7047;
+	Sun, 13 Oct 2024 20:18:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.134.164.104
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728850706; cv=none; b=hGc2HkrLoCV9lkhJsPIKr3RMOefSrdTzZZpMkn7mCZNfrF2tBjpPXZ3JzItzoXlQIjUZL8jHc8/MZdYV2s3FsNFPUu7f8NJsjUltOGSkmtOmUizabNxJZpVP7uQ/wfHyRNezB1B9XLnlQ3QZOKTMQshJ/cQA/o+laNedZWok4uw=
+	t=1728850706; cv=none; b=oEWYSHl6GdLnzYOIkWhECXbWStPQukOIOs9O/IQpeV7FXM5aou0DWeSjW9jCWLCkZx0dQO+ywpMDHDGCtK9Rp8GBcqQHOJpLeQ+Bi1t8l/5dSE8Sr3WlXbz7WNYLhEviivVNuKSjBQu0uz/Fi8Os0mmWblwUqTrmlYmgr9gXI78=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1728850706; c=relaxed/simple;
-	bh=kNXkjJaFwYhP4JaG5wcv6WRNM+t/UfeD4oTesH2vCxg=;
+	bh=nPI1KUY0y5ZVvOVYmqwiOP/3+JXV4M/eGrJnRpqjMF8=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=QS30UotCeYtvUpz4ncSz7z0UobM7W1puZxR4aX56X5IUzV80GHjRlVkzf3XbszcEdJrJ6UcvY5CNn5RflqYmbcKlQc7pmL3l6eiwwQy7YtU9xPNJoJtNJNeBfiQ76HFJjp6jRNmIlJ29Xe1ofqi+R5Q9nBf8hgRq42qIZPPEyuI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=inria.fr; spf=pass smtp.mailfrom=inria.fr; dkim=pass (1024-bit key) header.d=inria.fr header.i=@inria.fr header.b=fOBXgGt8; arc=none smtp.client-ip=192.134.164.104
+	 MIME-Version; b=D50SXLN+bimzWOgfgnBVnXgP1Q6yIy8S4eQYUWDNOifntNCqrRyn9s2559hvKqbHnLeKaJcNDPzKFtfjPXb0S/xB5gQE4l9AdhnXlUWvAOOJqjAacPjlhyjAY5E2FrgL2aatoPKOiYTVusCrJlY/d+hxOOnSr4YTIqxQffyzlOc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=inria.fr; spf=pass smtp.mailfrom=inria.fr; dkim=pass (1024-bit key) header.d=inria.fr header.i=@inria.fr header.b=SYsDZHEK; arc=none smtp.client-ip=192.134.164.104
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=inria.fr
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=inria.fr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=inria.fr header.i=@inria.fr header.b="fOBXgGt8"
+	dkim=pass (1024-bit key) header.d=inria.fr header.i=@inria.fr header.b="SYsDZHEK"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
   d=inria.fr; s=dc;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=MNKkUeKCiQIK6dfMVXhTuefn2rNn5Ihui1VbyZEV5N0=;
-  b=fOBXgGt8Wgg4jLiCDM5kSigZXFtw6tJ+TR0lOaG+BawlHN6/NVRuQqeU
-   sz20AqFdWrA8+0sEjfhi9/Wi91O+d6c/juvl23zUQXAQ5a1Y3xMUc75kZ
-   yJXjfJC7Aahnqb9IguAE23Yj0CQ8ggoyTsv5rELL/g+Jm+ZiBeX6P2ted
-   4=;
+  bh=kFW/hho3zfoBYZLXkHEk+t9EhY0lm+H2Lt9PvPsPfwY=;
+  b=SYsDZHEKMDyhdntWfCHsALfPcQV5BxGmPv/NgmkM4HM+brzN3PdbUPZw
+   qdH1cro9zCjtVxjM8aqctbkcmGBjNLeBYUv7UiSsPKxX0z3nYe8zLmW9c
+   jgmuoHiGUihei+PCyXp+hnGPwr0UTHdvKAEEx1X3+NGQyJpZK70V1dka/
+   U=;
 Authentication-Results: mail3-relais-sop.national.inria.fr; dkim=none (message not signed) header.i=none; spf=SoftFail smtp.mailfrom=Julia.Lawall@inria.fr; dmarc=fail (p=none dis=none) d=inria.fr
 X-IronPort-AV: E=Sophos;i="6.11,201,1725314400"; 
-   d="scan'208";a="98968291"
+   d="scan'208";a="98968292"
 Received: from i80.paris.inria.fr (HELO i80.paris.inria.fr.) ([128.93.90.48])
   by mail3-relais-sop.national.inria.fr with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Oct 2024 22:18:01 +0200
 From: Julia Lawall <Julia.Lawall@inria.fr>
@@ -44,9 +44,9 @@ Cc: kernel-janitors@vger.kernel.org,
 	coreteam@netfilter.org,
 	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH 16/17] netfilter: expect: replace call_rcu by kfree_rcu for simple kmem_cache_free callback
-Date: Sun, 13 Oct 2024 22:17:03 +0200
-Message-Id: <20241013201704.49576-17-Julia.Lawall@inria.fr>
+Subject: [PATCH 17/17] netfilter: xt_hashlimit: replace call_rcu by kfree_rcu for simple kmem_cache_free callback
+Date: Sun, 13 Oct 2024 22:17:04 +0200
+Message-Id: <20241013201704.49576-18-Julia.Lawall@inria.fr>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20241013201704.49576-1-Julia.Lawall@inria.fr>
 References: <20241013201704.49576-1-Julia.Lawall@inria.fr>
@@ -68,31 +68,31 @@ The changes were made using Coccinelle.
 Signed-off-by: Julia Lawall <Julia.Lawall@inria.fr>
 
 ---
- net/netfilter/nf_conntrack_expect.c |   10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+ net/netfilter/xt_hashlimit.c |    9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 21fa550966f0..9dcaef6f3663 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -367,18 +367,10 @@ void nf_ct_expect_init(struct nf_conntrack_expect *exp, unsigned int class,
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 0859b8f76764..c2b9b954eb53 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -256,18 +256,11 @@ dsthash_alloc_init(struct xt_hashlimit_htable *ht,
+ 	return ent;
  }
- EXPORT_SYMBOL_GPL(nf_ct_expect_init);
  
--static void nf_ct_expect_free_rcu(struct rcu_head *head)
+-static void dsthash_free_rcu(struct rcu_head *head)
 -{
--	struct nf_conntrack_expect *exp;
+-	struct dsthash_ent *ent = container_of(head, struct dsthash_ent, rcu);
 -
--	exp = container_of(head, struct nf_conntrack_expect, rcu);
--	kmem_cache_free(nf_ct_expect_cachep, exp);
+-	kmem_cache_free(hashlimit_cachep, ent);
 -}
 -
- void nf_ct_expect_put(struct nf_conntrack_expect *exp)
+ static inline void
+ dsthash_free(struct xt_hashlimit_htable *ht, struct dsthash_ent *ent)
  {
- 	if (refcount_dec_and_test(&exp->use))
--		call_rcu(&exp->rcu, nf_ct_expect_free_rcu);
-+		kfree_rcu(exp, rcu);
+ 	hlist_del_rcu(&ent->node);
+-	call_rcu(&ent->rcu, dsthash_free_rcu);
++	kfree_rcu(ent, rcu);
+ 	ht->count--;
  }
- EXPORT_SYMBOL_GPL(nf_ct_expect_put);
- 
+ static void htable_gc(struct work_struct *work);
 
