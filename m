@@ -1,33 +1,33 @@
 Received: from mail3-relais-sop.national.inria.fr (mail3-relais-sop.national.inria.fr [192.134.164.104])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 233941A0B1A;
-	Sun, 13 Oct 2024 20:18:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2FA31A4E99;
+	Sun, 13 Oct 2024 20:18:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.134.164.104
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728850704; cv=none; b=SCxMmuVs22ed4ZPYujwtETbDqTfIEfl0qwXZ3liHGz/iSiH+tosWdMLRKWDV4mzNVmBdgUMAZRiD7L7EUGpSU/eN64dYDjVl1HvTScVwGr/BF7/kLkdl3LAR4xjsxIBAKDAHQUffbOgWdA0PFlrg/csWOzEWHzcgEPHzBuZ3oxE=
+	t=1728850706; cv=none; b=hGc2HkrLoCV9lkhJsPIKr3RMOefSrdTzZZpMkn7mCZNfrF2tBjpPXZ3JzItzoXlQIjUZL8jHc8/MZdYV2s3FsNFPUu7f8NJsjUltOGSkmtOmUizabNxJZpVP7uQ/wfHyRNezB1B9XLnlQ3QZOKTMQshJ/cQA/o+laNedZWok4uw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728850704; c=relaxed/simple;
-	bh=DQyIN9G/mibNG2Z+E7ru3Rp35+OYcqnr/9mPvGNa+vU=;
+	s=arc-20240116; t=1728850706; c=relaxed/simple;
+	bh=kNXkjJaFwYhP4JaG5wcv6WRNM+t/UfeD4oTesH2vCxg=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=PitqqbroUyzmOE7NQdCGjMPmJrscKFtw8Ks+zPYwNo5jyPspKYTuRf6Vb9t8Lb+uv2Hpr5ex5eZh/IKZ+3brYfBL++lx6Rxx3ScevTyAKUpHlNRzciDw2KF1Xn1hvMKqndC4xdsI+MPKGJSmiz+R5Gg2VgXQYdZpAD+qOE0sJV4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=inria.fr; spf=pass smtp.mailfrom=inria.fr; dkim=pass (1024-bit key) header.d=inria.fr header.i=@inria.fr header.b=IrHkH9nj; arc=none smtp.client-ip=192.134.164.104
+	 MIME-Version; b=QS30UotCeYtvUpz4ncSz7z0UobM7W1puZxR4aX56X5IUzV80GHjRlVkzf3XbszcEdJrJ6UcvY5CNn5RflqYmbcKlQc7pmL3l6eiwwQy7YtU9xPNJoJtNJNeBfiQ76HFJjp6jRNmIlJ29Xe1ofqi+R5Q9nBf8hgRq42qIZPPEyuI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=inria.fr; spf=pass smtp.mailfrom=inria.fr; dkim=pass (1024-bit key) header.d=inria.fr header.i=@inria.fr header.b=fOBXgGt8; arc=none smtp.client-ip=192.134.164.104
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=inria.fr
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=inria.fr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=inria.fr header.i=@inria.fr header.b="IrHkH9nj"
+	dkim=pass (1024-bit key) header.d=inria.fr header.i=@inria.fr header.b="fOBXgGt8"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
   d=inria.fr; s=dc;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=OmvFRdBgQ9mucvU+eufo2e2dqSURiDoArUZisEbnCAw=;
-  b=IrHkH9njN1+OVcwemgQKBL/Rp2eru/6QTGtd2zLxuwkXohfNMRkeluds
-   HlaZWXABjJbWajzXwtxFaqzLHpdoAmsDHgGTx8y9D0Hm4zlluhKQBGmXJ
-   +SZQNkyyc89MjbQsfqC6/tVJdW+H+WDVwGpwzsdgngWJ749QfuabDnRz/
-   Q=;
+  bh=MNKkUeKCiQIK6dfMVXhTuefn2rNn5Ihui1VbyZEV5N0=;
+  b=fOBXgGt8Wgg4jLiCDM5kSigZXFtw6tJ+TR0lOaG+BawlHN6/NVRuQqeU
+   sz20AqFdWrA8+0sEjfhi9/Wi91O+d6c/juvl23zUQXAQ5a1Y3xMUc75kZ
+   yJXjfJC7Aahnqb9IguAE23Yj0CQ8ggoyTsv5rELL/g+Jm+ZiBeX6P2ted
+   4=;
 Authentication-Results: mail3-relais-sop.national.inria.fr; dkim=none (message not signed) header.i=none; spf=SoftFail smtp.mailfrom=Julia.Lawall@inria.fr; dmarc=fail (p=none dis=none) d=inria.fr
 X-IronPort-AV: E=Sophos;i="6.11,201,1725314400"; 
-   d="scan'208";a="98968290"
+   d="scan'208";a="98968291"
 Received: from i80.paris.inria.fr (HELO i80.paris.inria.fr.) ([128.93.90.48])
   by mail3-relais-sop.national.inria.fr with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Oct 2024 22:18:01 +0200
 From: Julia Lawall <Julia.Lawall@inria.fr>
@@ -44,9 +44,9 @@ Cc: kernel-janitors@vger.kernel.org,
 	coreteam@netfilter.org,
 	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH 15/17] netfilter: nf_conncount: replace call_rcu by kfree_rcu for simple kmem_cache_free callback
-Date: Sun, 13 Oct 2024 22:17:02 +0200
-Message-Id: <20241013201704.49576-16-Julia.Lawall@inria.fr>
+Subject: [PATCH 16/17] netfilter: expect: replace call_rcu by kfree_rcu for simple kmem_cache_free callback
+Date: Sun, 13 Oct 2024 22:17:03 +0200
+Message-Id: <20241013201704.49576-17-Julia.Lawall@inria.fr>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20241013201704.49576-1-Julia.Lawall@inria.fr>
 References: <20241013201704.49576-1-Julia.Lawall@inria.fr>
@@ -68,35 +68,31 @@ The changes were made using Coccinelle.
 Signed-off-by: Julia Lawall <Julia.Lawall@inria.fr>
 
 ---
- net/netfilter/nf_conncount.c |   10 +---------
+ net/netfilter/nf_conntrack_expect.c |   10 +---------
  1 file changed, 1 insertion(+), 9 deletions(-)
 
-diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index 4890af4dc263..6a7a6c2d6ebc 100644
---- a/net/netfilter/nf_conncount.c
-+++ b/net/netfilter/nf_conncount.c
-@@ -275,14 +275,6 @@ bool nf_conncount_gc_list(struct net *net,
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 21fa550966f0..9dcaef6f3663 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -367,18 +367,10 @@ void nf_ct_expect_init(struct nf_conntrack_expect *exp, unsigned int class,
  }
- EXPORT_SYMBOL_GPL(nf_conncount_gc_list);
+ EXPORT_SYMBOL_GPL(nf_ct_expect_init);
  
--static void __tree_nodes_free(struct rcu_head *h)
+-static void nf_ct_expect_free_rcu(struct rcu_head *head)
 -{
--	struct nf_conncount_rb *rbconn;
+-	struct nf_conntrack_expect *exp;
 -
--	rbconn = container_of(h, struct nf_conncount_rb, rcu_head);
--	kmem_cache_free(conncount_rb_cachep, rbconn);
+-	exp = container_of(head, struct nf_conntrack_expect, rcu);
+-	kmem_cache_free(nf_ct_expect_cachep, exp);
 -}
 -
- /* caller must hold tree nf_conncount_locks[] lock */
- static void tree_nodes_free(struct rb_root *root,
- 			    struct nf_conncount_rb *gc_nodes[],
-@@ -295,7 +287,7 @@ static void tree_nodes_free(struct rb_root *root,
- 		spin_lock(&rbconn->list.list_lock);
- 		if (!rbconn->list.count) {
- 			rb_erase(&rbconn->node, root);
--			call_rcu(&rbconn->rcu_head, __tree_nodes_free);
-+			kfree_rcu(rbconn, rcu_head);
- 		}
- 		spin_unlock(&rbconn->list.list_lock);
- 	}
+ void nf_ct_expect_put(struct nf_conntrack_expect *exp)
+ {
+ 	if (refcount_dec_and_test(&exp->use))
+-		call_rcu(&exp->rcu, nf_ct_expect_free_rcu);
++		kfree_rcu(exp, rcu);
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_expect_put);
+ 
 
