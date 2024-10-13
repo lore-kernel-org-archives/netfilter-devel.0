@@ -1,132 +1,65 @@
-Received: from mail-pf1-f174.google.com (mail-pf1-f174.google.com [209.85.210.174])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5426313D29A
-	for <netfilter-devel@vger.kernel.org>; Sat, 12 Oct 2024 23:09:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34D09335D3
+	for <netfilter-devel@vger.kernel.org>; Sun, 13 Oct 2024 08:21:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728774599; cv=none; b=LAJvnsFh21SFyt1r+gKeBNGTUlyts4r8dEoc+OY3+nuTXcApI4m10lD2+JViyi2ZDPsUG2wCDOeoXnULbJLbtKjYU/VMLdZuAG9Pjxuxxl0r4X5u8qPzsWXv5/7ZS69p3/0dDQ4BJs54JLYosC95Vl04jxuZCWawOttKrdlWPhg=
+	t=1728807694; cv=none; b=XoZYl3hT8muyU+LbD/CMArLccCP7E6b224Z7s7jstjJBDEP3IjpZLk0NxJipQmjOPnLHQ//N6uArTLekCJx2phQ6uJWRy4P6sL69IqLm1E/3msIEeQEwnP61+5Uvx5VoZtlHk6scTTeTIMvRYs6IJUVbMxGB7AL7GVTul+/zIVM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728774599; c=relaxed/simple;
-	bh=Gz8yL3O+Vo03l/rDIikrDVqq4lhCPeRPZ3EXLKj1bZY=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=pC4MH4APJMPGU6kedVkWUGHZ5LlV/amzTr8jCqXVUaz41BwI7ip/hM35u5T11ibx56iZTwlukVMvL4eA385LX8oZ/3+PerG0MMMn8ICD3+BXpHSDMPBk2TX/pqfSvC4L/y9KKTBbRrsOWRw5/V0DllKh+HvVWm454PjJnYGB4K0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=JAe3bArH; arc=none smtp.client-ip=209.85.210.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="JAe3bArH"
-Received: by mail-pf1-f174.google.com with SMTP id d2e1a72fcca58-71e580256c2so248048b3a.3
-        for <netfilter-devel@vger.kernel.org>; Sat, 12 Oct 2024 16:09:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1728774597; x=1729379397; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=+woaX/kz0i+zZjaFmPWAfc+jsPO0Wn6eUxHNT7FQPYc=;
-        b=JAe3bArHI8PiA0kPLAgnNzj5JrCdC7K3SSJcn77Sf8BoIPDrv43EpJBW/Fbtd6OoAh
-         X0/ks1m7WypHURwZ/KXXSa52xAtpcFzPBBB5MuHoOYP7t98KV+UuvtG86R7gFOncRzg/
-         MPit92xhvnGJPFfYqqEeQHi+ifDy7S3ANdClEnrJXYCFWOUiiBA1vllHzqHXMXbvMFvD
-         sRB44ISR/MHn0on+rAEqzNgx1Ub3exMkRxcitm8nlZExuaWHgfm7p6k9m6G11GYo6ygK
-         7qAFFz4/En/PgQkHGDZFGo3APVFR71+vT8XET725KB/7iKA02TMQ3N++NcowJAiwPmN6
-         8HUg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1728774597; x=1729379397;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:sender:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=+woaX/kz0i+zZjaFmPWAfc+jsPO0Wn6eUxHNT7FQPYc=;
-        b=b2Lq0pigA328ajMJcE1mAGmH1EXhMzmEJ1QsofcYoflceMQOHe/FZmxp0q7fWE39bp
-         YO6Bi7KDVACPETG0qFRKnwXVxwNmJRHf+nvtIOkvwHbqodwqplYbEY8TYhQcrCdtLDSJ
-         01PjFn2iLdT310qb34hGc5K27d7kCT3kw46SrYEUYinCjI169Boda/H+Tal70uSnVkEx
-         mZSNTxzrdE5LAWbvAu+FQGQFYtouv0csJkNNZZWAEMO69ojh0LI7pWSfeRxYYivi+xdY
-         DPpoFF8fRw0B/TA6iTyKS7dtvH53/0h7dsKlYJrbWzjLm+ImGsp5QuAphg+zvTbk7V/D
-         K/1g==
-X-Gm-Message-State: AOJu0YwPgRPoLiosKBYD8lJREhYsFzpi+2QljxfVlqP5xBeb5HFgwWgh
-	eXHAc9HYg1uq2rhaFqvA370MSvZDrq7Or/aDAarpkoVVkqcNS5L7KozTeA==
-X-Google-Smtp-Source: AGHT+IG3+3X7xp7RYkFAKsF/KJFm6Byz3P4szyebg0BBt83Wips26NQiiY18Vkd2/Kb/gr1JiI7Fbw==
-X-Received: by 2002:a05:6a21:38c:b0:1d8:aca5:ea86 with SMTP id adf61e73a8af0-1d8bcf42336mr10295779637.23.1728774597558;
-        Sat, 12 Oct 2024 16:09:57 -0700 (PDT)
-Received: from slk15.local.net (n175-33-111-144.meb22.vic.optusnet.com.au. [175.33.111.144])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-71e2aab5bf9sm4854195b3a.145.2024.10.12.16.09.55
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 12 Oct 2024 16:09:57 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From: Duncan Roe <duncan_roe@optusnet.com.au>
-To: pablo@netfilter.org
-Cc: netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_queue v3 15/15] build: Remove libnfnetlink from the build
-Date: Sun, 13 Oct 2024 10:09:17 +1100
-Message-Id: <20241012230917.11467-16-duncan_roe@optusnet.com.au>
-X-Mailer: git-send-email 2.35.8
-In-Reply-To: <20241012230917.11467-1-duncan_roe@optusnet.com.au>
-References: <20241012230917.11467-1-duncan_roe@optusnet.com.au>
+	s=arc-20240116; t=1728807694; c=relaxed/simple;
+	bh=Tts9DnzOwh3xcnxyZf7zoFEj6sf8FVI0qhsvxG2zjHE=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=I1fwm2XGJwjc0vO4uUVPQlMw/g6zyqpx8IFVS6P8PQ9E5FjZxIybJLbH9DfJlAwV8oTFXSs0Wtgbz9CKEqEEm0AkMgCTT4GX54fAlKUpLA85bodzezIa2WFtUPtKJ+McFGR+U/5uAkMKJNCF712LCd5DpgK8ssJ5NYHM6dqyRr0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=35804 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1sztqv-003EGI-RB; Sun, 13 Oct 2024 10:21:28 +0200
+Date: Sun, 13 Oct 2024 10:21:24 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH libmnl] build: do not build documentation automatically
+Message-ID: <ZwuDBGBiRqw0e2L3@calendula>
+References: <20241012171521.33453-1-pablo@netfilter.org>
+ <ZwrT3JOmxLigw9gC@orbyte.nwl.cc>
+ <ZwrpiAv1PHEp1rwY@calendula>
+ <ZwsANQhOyYrEGTip@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <ZwsANQhOyYrEGTip@orbyte.nwl.cc>
+X-Spam-Score: -1.9 (-)
 
-libnfnetlink was a "private library" - always loaded whether user apps
-used it or not. Remove it now it is no longer needed.
+On Sun, Oct 13, 2024 at 01:03:17AM +0200, Phil Sutter wrote:
+> On Sat, Oct 12, 2024 at 11:26:32PM +0200, Pablo Neira Ayuso wrote:
+> > On Sat, Oct 12, 2024 at 09:54:04PM +0200, Phil Sutter wrote:
+> > > Hi Pablo,
+> > > 
+> > > On Sat, Oct 12, 2024 at 07:15:21PM +0200, Pablo Neira Ayuso wrote:
+> > > > Make it option, after this update it is still possible to build the
+> > > > documentation on demand via:
+> > > > 
+> > > >  cd doxygen
+> > > >  make
+> > > 
+> > > This is rather unelegant in an autotools-project. You probably did
+> > > consider setting 'with_doxygen=no' in configure.ac line 48, why did you
+> > > choose this way?
+> > 
+> > --with-doxygen=no would do try trick, yes.
+> 
+> Not sure if it was clear, but I meant to change the default in
+> configure.ac, so users will have to pass --with-doxygen=yes if they
+> want to build these docs. I guess that's the most intuitive way for
+> users.
 
-Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
----
- v3: no change
-
- v2: This was patch 21/32. No changes.
-
- Make_global.am           | 2 +-
- configure.ac             | 1 -
- libnetfilter_queue.pc.in | 2 --
- src/Makefile.am          | 2 +-
- 4 files changed, 2 insertions(+), 5 deletions(-)
-
-diff --git a/Make_global.am b/Make_global.am
-index 91da5da..4d8a58e 100644
---- a/Make_global.am
-+++ b/Make_global.am
-@@ -1,2 +1,2 @@
--AM_CPPFLAGS = -I${top_srcdir}/include ${LIBNFNETLINK_CFLAGS} ${LIBMNL_CFLAGS}
-+AM_CPPFLAGS = -I${top_srcdir}/include ${LIBMNL_CFLAGS}
- AM_CFLAGS = -Wall ${GCC_FVISIBILITY_HIDDEN}
-diff --git a/configure.ac b/configure.ac
-index 7359fba..ba7b15f 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -42,7 +42,6 @@ case "$host" in
- esac
- 
- dnl Dependencies
--PKG_CHECK_MODULES([LIBNFNETLINK], [libnfnetlink >= 0.0.41])
- PKG_CHECK_MODULES([LIBMNL], [libmnl >= 1.0.3])
- 
- AS_IF([test "$enable_man_pages" = no -a "$enable_html_doc" = no],
-diff --git a/libnetfilter_queue.pc.in b/libnetfilter_queue.pc.in
-index 9c6c2c4..1927a8a 100644
---- a/libnetfilter_queue.pc.in
-+++ b/libnetfilter_queue.pc.in
-@@ -9,8 +9,6 @@ Name: libnetfilter_queue
- Description: netfilter userspace packet queueing library
- URL: http://netfilter.org/projects/libnetfilter_queue/
- Version: @VERSION@
--Requires: libnfnetlink
- Conflicts:
- Libs: -L${libdir} -lnetfilter_queue
--Libs.private: @LIBNFNETLINK_LIBS@
- Cflags: -I${includedir}
-diff --git a/src/Makefile.am b/src/Makefile.am
-index a6813e8..e5e1d66 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -39,4 +39,4 @@ libnetfilter_queue_la_SOURCES = libnetfilter_queue.c	\
- 				extra/pktbuff.c		\
- 				extra/udp.c
- 
--libnetfilter_queue_la_LIBADD  = ${LIBNFNETLINK_LIBS} ${LIBMNL_LIBS}
-+libnetfilter_queue_la_LIBADD  = ${LIBMNL_LIBS}
--- 
-2.35.8
-
+Thanks, I will submit a patch to change default.
