@@ -1,59 +1,59 @@
-Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
+Received: from mail-ed1-f48.google.com (mail-ed1-f48.google.com [209.85.208.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7029783CC1
-	for <netfilter-devel@vger.kernel.org>; Mon, 14 Oct 2024 06:35:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28E5013FD83
+	for <netfilter-devel@vger.kernel.org>; Mon, 14 Oct 2024 06:37:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728887732; cv=none; b=bh8PG/cH470lsPcFcUxP/zDdVeYJOzCDQnqpxiE6oafhvbLaD23xfgs3a3plCWWMbx86xkCXXWeOYSkJrD+TXKp3HZLmoJjNMApQL3PS8WT7DK51+Y6FqrkbEzxuYd5hEvY/CTEYGVg/5d/UOgo3TrY8zSa0fEnguDm1GLieKag=
+	t=1728887822; cv=none; b=T7lbsK3H4D6qRfQOGnO+4JDBuLXoJs6Wbpjg/DdUZsB+0Em7dMma+5IB6XSh8I+jQDabiLsphQ8eiAqtYFgKxdXPSKtAUAJp7UG56nl9cG6xg/IRC9Az/CpC9mqdNi214j04EanTstu866w90cXFPrpKWOOmz8jH507zWDiH/x8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728887732; c=relaxed/simple;
-	bh=ZGBoVdbwgat/NxUEjyYnv4uZ19nNnybh9UIeSIN7bUE=;
+	s=arc-20240116; t=1728887822; c=relaxed/simple;
+	bh=HLEWN8F2imePOAbI3obQsi4luEyITeU3XTYrIFTHsg0=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=NkM5z7jgF7WN0CfElQd/DQom6J2fFSfpfVluNzh3nUICp2gDFNvvfuvqBoANlz3tvGxStBphfxDE08A32tLySwWGQVXhohJRYSbLduWhDIxNeNaF3XmxckVnwJ8Uxe+AOxXNAranoYxHj9Ba0IJqK8okAbR1Y4qJ0s6Q+LShFdA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=blackwall.org; spf=none smtp.mailfrom=blackwall.org; dkim=pass (2048-bit key) header.d=blackwall-org.20230601.gappssmtp.com header.i=@blackwall-org.20230601.gappssmtp.com header.b=oZjV7se+; arc=none smtp.client-ip=209.85.218.44
+	 In-Reply-To:Content-Type; b=ObDPKbVLEfLgr6Cr3mNZT+2FQqBGE2d5AtSfdnumB4mEHYqDsrF89li693ua02CfdBFqG4EONIsUmJ1nA+KZ93Do7iJ8HRixuFmgKSswhP4dNrDExp3xA24ztOpa4dQGENCijMEtkRffUDiVqWArrO07cqB0xXj1SHuJM4L3o8A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=blackwall.org; spf=none smtp.mailfrom=blackwall.org; dkim=pass (2048-bit key) header.d=blackwall-org.20230601.gappssmtp.com header.i=@blackwall-org.20230601.gappssmtp.com header.b=GysHt8y2; arc=none smtp.client-ip=209.85.208.48
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=blackwall.org
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=blackwall.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=blackwall-org.20230601.gappssmtp.com header.i=@blackwall-org.20230601.gappssmtp.com header.b="oZjV7se+"
-Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-a9a1b71d7ffso5930366b.1
-        for <netfilter-devel@vger.kernel.org>; Sun, 13 Oct 2024 23:35:30 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=blackwall-org.20230601.gappssmtp.com header.i=@blackwall-org.20230601.gappssmtp.com header.b="GysHt8y2"
+Received: by mail-ed1-f48.google.com with SMTP id 4fb4d7f45d1cf-5c94dd7e1c0so3526119a12.0
+        for <netfilter-devel@vger.kernel.org>; Sun, 13 Oct 2024 23:37:00 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=blackwall-org.20230601.gappssmtp.com; s=20230601; t=1728887729; x=1729492529; darn=vger.kernel.org;
+        d=blackwall-org.20230601.gappssmtp.com; s=20230601; t=1728887819; x=1729492619; darn=vger.kernel.org;
         h=content-transfer-encoding:in-reply-to:from:content-language
          :references:cc:to:subject:user-agent:mime-version:date:message-id
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=EzkqcrvTVaKqpqDByKdgad826mxzpVo//v8QIefMOL8=;
-        b=oZjV7se+MygIvrpcqkj1fVVSQjt60aQ7CiM+JUr6kHJeTXlb/iAjysm2vlfAnsUODv
-         lQx3ft0MZJOuumMJHSWgWYgu2qKemVeXb5PBoKx0/mrvAWh/8/RHSElFGesjriNh70u/
-         JEhMNQUvWLseauVOt4/zVYhrr8/l+H82CwFK7hWjGh2d3L13a1/3gp8071MNALWj1kib
-         o0o8dju8wb1zHeYuJttJ72tNQ7a/yimpjjnr+hFaOzy3XSaYFp+/QrURpE4J/wCW/N3S
-         1zqTdxSuejztMbyv+DBcHhvpkqhnrWPyVa686DZxtBfW4ylStj5sDD+uRDRM2iGsvn4W
-         CLSA==
+        bh=n/x9sCHASM4Rf3zEKoLCrNEGmjLCGHbguwi/XAkNj6o=;
+        b=GysHt8y2C60BmbYUzxvv5Vo3ZoT+hLp0zff03hmsbCr++tlGBjkyB/w6vHfSjCIbL7
+         s6Z/ccoHnOxVqBoexj5rS5Wl1JXnnyrx0yLqz43BeR6FJt7MOTlF7LO4bQsFBIHcpPza
+         Gmp3aAvXdC2iZuH3xcBKM9sloqwpYB6IuYaHAzEdDl+O05streuDPoWECn3U777l+Hig
+         107f061ZHr4z9YbTx2x90jYgosI1Y6S8FxBpcEqzvL3Sko9V4EFunHPjU2/gNfLDZc3V
+         gCYaCaw4TNRJ5NK4wEAhMoryZjRTUnbb/0cSM6xvNF4Ohsu2MTHOYhMAPhvi9M5KQN6a
+         Ehww==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1728887729; x=1729492529;
+        d=1e100.net; s=20230601; t=1728887819; x=1729492619;
         h=content-transfer-encoding:in-reply-to:from:content-language
          :references:cc:to:subject:user-agent:mime-version:date:message-id
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=EzkqcrvTVaKqpqDByKdgad826mxzpVo//v8QIefMOL8=;
-        b=hVTy1+Lw6T/+rpE2loFYI8zaj9gjLdGPSJ08M+2jv0WZjoiX0yhHpjLpjWDcoEaRxB
-         B1avf99IcxmIfzEX2/4TcGjE7MXkJ63185aunv+S2hR2VbAM36hANt4NMoaIK30XAT8k
-         HoowvWrlGPY1cBwVjnjB8aL8qNSHUKKaBbl0GwEdnvvMpHuK6PnE0BynJGI00gJvqgYA
-         b33b0xzTityvrFVx82dG5E9E4Zecn9rD+jGDovEk4LHph2medWYrwYurbVjkcU0xBIK+
-         +uxH2+pNLZOAsyztXO904E79+ZT9uCYuwonFFJ/fiCE33w8uwBMkDOFn6YycELsLxwmX
-         UpKA==
-X-Forwarded-Encrypted: i=1; AJvYcCXv+CyDAgGxsCGudslbNKsPkf434u8Brm4GE7juPj4IfjEvZzHLEEi1CkZuUGR+6hZP5kzGZgSFDCMdiwgQUmE=@vger.kernel.org
-X-Gm-Message-State: AOJu0YykA0jljPzCNHuurbs/Nnu1zzBwVoGU1+B85n4YkNgE8lOPrIpv
-	0s6awCJ69nCjW116dZKmGUW14fOxBOUhA/HH5W7WJf+MREYS27RoXO81wPEm4Z8=
-X-Google-Smtp-Source: AGHT+IHtsfhY77d2hmhJ/UeBZXQQAahrdwUCAyfXzQzRvrPqdSAngDAVOM6fkmoaHNagJzIo6u/AkQ==
-X-Received: by 2002:a17:907:d01:b0:a99:403e:2578 with SMTP id a640c23a62f3a-a99b9313475mr1017156666b.5.1728887728814;
-        Sun, 13 Oct 2024 23:35:28 -0700 (PDT)
+        bh=n/x9sCHASM4Rf3zEKoLCrNEGmjLCGHbguwi/XAkNj6o=;
+        b=a7o9rakOt9r3I/tufRunLjgILGnWhIAlvqzDD22kPXebQRUPxcVW15zM7gIQlsCO+w
+         N5OuglYsImcIzOUxda7+xdYvZNjtScIOFwdef8uoP9h3uv12uXG5vWO34JzTncukXyrl
+         r2kHggTOYBtQ/K93MYXMMNcGVLiZN/XHVsc7hNY3vg+QqdkWEyIQ21ivD3QUTG00E3ud
+         AyCagBSBxCJAYsipi0HCx0DJw5o8CK//TCXasyBKbYzpgUaoCw+ZRNn9+hy7AbVV0WWE
+         CnTUezAC6pne8rvn0fpeKB94OW5ZZzXPaAnup4yX8q5YYCshPkOmT0zjsPH3DFN73rzt
+         OUYg==
+X-Forwarded-Encrypted: i=1; AJvYcCUP6i2i+9+GwTXXMeXGe9AFo4rh9jRJ2X6od+FyeAK7ybEdt/o8owgAQZb6uor1bepqBBcxurJo3MCp2adkvIs=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxdrMTblhtZdiNu9RX4SetVScZ3Y0Q0hcsXL7C4IeRk09nOzDxD
+	88bbidxSahLhAWvjnxd6vfWB3IVFhMT+B2OLPlSR9GOer7SopBRI6pwZAg53zNI=
+X-Google-Smtp-Source: AGHT+IHOmz4mXDYoNl9wKMY13pPq7T3XsGapXwSYgN3NOm+dxPajvUmbY2eZ6VnNrvCAhA5bOXjuSw==
+X-Received: by 2002:a17:907:ea2:b0:a9a:33c:f6e1 with SMTP id a640c23a62f3a-a9a033cf8b4mr405516566b.5.1728887819334;
+        Sun, 13 Oct 2024 23:36:59 -0700 (PDT)
 Received: from [192.168.0.245] ([62.73.69.208])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a99ee8da1besm278784766b.216.2024.10.13.23.35.27
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a99fcb57647sm206072266b.129.2024.10.13.23.36.57
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 13 Oct 2024 23:35:28 -0700 (PDT)
-Message-ID: <9f9f3cf0-7a78-40f1-b8d5-f06a2d428210@blackwall.org>
-Date: Mon, 14 Oct 2024 09:35:26 +0300
+        Sun, 13 Oct 2024 23:36:58 -0700 (PDT)
+Message-ID: <6c0154a9-b21d-4f1d-af74-19690dad68a6@blackwall.org>
+Date: Mon, 14 Oct 2024 09:36:57 +0300
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -61,8 +61,8 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH RFC v1 net-next 00/12] bridge-fastpath and related
- improvements
+Subject: Re: [PATCH RFC v1 net-next 04/12] bridge:
+ br_vlan_fill_forward_path_pvid: Add port to port
 To: Eric Woudstra <ericwouds@gmail.com>, "David S. Miller"
  <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
  Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
@@ -80,115 +80,59 @@ Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
  bridge@lists.linux.dev, linux-arm-kernel@lists.infradead.org,
  linux-mediatek@lists.infradead.org
 References: <20241013185509.4430-1-ericwouds@gmail.com>
+ <20241013185509.4430-5-ericwouds@gmail.com>
 Content-Language: en-US
 From: Nikolay Aleksandrov <razor@blackwall.org>
-In-Reply-To: <20241013185509.4430-1-ericwouds@gmail.com>
+In-Reply-To: <20241013185509.4430-5-ericwouds@gmail.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 13/10/2024 21:54, Eric Woudstra wrote:
-> This patchset makes it possible to set up a (hardware offloaded) fastpath
-> for bridged interfaces.
+On 13/10/2024 21:55, Eric Woudstra wrote:
+> Lookup vlan group from bridge port, if it is passed as argument.
 > 
+> Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
+> ---
+>  net/bridge/br_private.h | 1 +
+>  net/bridge/br_vlan.c    | 6 +++++-
+>  2 files changed, 6 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/bridge/br_private.h b/net/bridge/br_private.h
+> index d4bedc87b1d8..8da7798f9368 100644
+> --- a/net/bridge/br_private.h
+> +++ b/net/bridge/br_private.h
+> @@ -1581,6 +1581,7 @@ bool br_vlan_can_enter_range(const struct net_bridge_vlan *v_curr,
+>  			     const struct net_bridge_vlan *range_end);
+>  
+>  void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
+> +				    struct net_bridge_port *p,
+>  				    struct net_device_path_ctx *ctx,
+>  				    struct net_device_path *path);
+>  int br_vlan_fill_forward_path_mode(struct net_bridge *br,
 
-The subject and this sentence are misleading, you're talking about netfilter bridge
-fastpath offload, please mention it in both places. When you just say bridge fast
-path, I think of the software fast path.
+You haven't updated the !CONFIG_BRIDGE_VLAN_FILTERING version of this helper.
 
-> To set up the fastpath with offloading, add this extra flowtable:
-> 
-> table bridge filter {
->         flowtable fb {
->                 hook ingress priority filter
->                 devices = { lan0, lan1, lan2, lan3, lan4, wlan0, wlan1 }
->                 flags offload
->         }
->         chain forward {
->                 type filter hook forward priority filter; policy accept;
-> 		ct state established flow add @fb
->         }
-> }
-> 
-> Creating a separate fastpath for bridges.
-> 
->          forward fastpath bypass
->  .----------------------------------------.
-> /                                          \
-> |                        IP - forwarding    |
-> |                       /                \  v
-> |                      /                  wan ...
-> |                     /
-> |                     |
-> |                     |
-> |                   brlan.1
-> |                     |
-> |    +-------------------------------+
-> |    |           vlan 1              |
-> |    |                               |
-> |    |     brlan (vlan-filtering)    |
-> |    +---------------+               |
-> |    |  DSA-SWITCH   |               |
-> |    |               |    vlan 1     |
-> |    |               |      to       |
-> |    |   vlan 1      |   untagged    |
-> |    +---------------+---------------+
-> .         /                   \
->  ------>lan0                 wlan1
->         .  ^                 ^
->         .  |                 |
->         .  \_________________/
->         .  bridge fastpath bypass
->         .
->         ^
->      vlan 1 tagged packets
-> 
-> To have the ability to handle xmit direct with outgoing encaps in the
-> bridge fastpass bypass, we need to be able to handle them without going
-> through vlan/pppoe devices. So I've applied, amended and squashed wenxu's
-> patchset. This patch also makes it possible to egress from vlan-filtering
-> brlan to lan0 with vlan tagged packets, if the bridge master port is doing
-> the vlan tagging, instead of the vlan-device. Without this patch, this is
-> not possible in the bridge-fastpath and also not in the forward-fastpath,
-> as seen in the figure above.
-> 
-> There are also some more fixes for filling in the forward path. These
-> fixes also apply to for the forward-fastpath. They include handling
-> DEV_PATH_MTK_WDMA in nft_dev_path_info() and avoiding
-> DEV_PATH_BR_VLAN_UNTAG_HW for bridges with ports that use dsa.
-> 
-> Conntrack bridge only tracks untagged and 802.1q. To make the bridge
-> fastpath experience more similar to the forward fastpath experience,
-> I've added double vlan, pppoe and pppoe-in-q tagged packets to bridge
-> conntrack and to bridge filter chain.
-> 
-> Eric Woudstra (12):
->   netfilter: nf_flow_table_offload: Add nf_flow_encap_push() for xmit
->     direct
->   netfilter: bridge: Add conntrack double vlan and pppoe
->   netfilter: nft_chain_filter: Add bridge double vlan and pppoe
->   bridge: br_vlan_fill_forward_path_pvid: Add port to port
->   bridge: br_fill_forward_path add port to port
->   net: core: dev: Add dev_fill_bridge_path()
->   netfilter :nf_flow_table_offload: Add nf_flow_rule_bridge()
->   netfilter: nf_flow_table_inet: Add nf_flowtable_type flowtable_bridge
->   netfilter: nft_flow_offload: Add NFPROTO_BRIDGE to validate
->   netfilter: nft_flow_offload: Add DEV_PATH_MTK_WDMA to
->     nft_dev_path_info()
->   bridge: br_vlan_fill_forward_path_mode no _UNTAG_HW for dsa
->   netfilter: nft_flow_offload: Add bridgeflow to nft_flow_offload_eval()
-> 
->  include/linux/netdevice.h                  |   2 +
->  include/net/netfilter/nf_flow_table.h      |   3 +
->  net/bridge/br_device.c                     |  20 ++-
->  net/bridge/br_private.h                    |   2 +
->  net/bridge/br_vlan.c                       |  24 +++-
->  net/bridge/netfilter/nf_conntrack_bridge.c |  86 ++++++++++--
->  net/core/dev.c                             |  77 +++++++++--
->  net/netfilter/nf_flow_table_inet.c         |  13 ++
->  net/netfilter/nf_flow_table_ip.c           |  96 ++++++++++++-
->  net/netfilter/nf_flow_table_offload.c      |  13 ++
->  net/netfilter/nft_chain_filter.c           |  20 ++-
->  net/netfilter/nft_flow_offload.c           | 154 +++++++++++++++++++--
->  12 files changed, 463 insertions(+), 47 deletions(-)
-> 
+> diff --git a/net/bridge/br_vlan.c b/net/bridge/br_vlan.c
+> index 9c2fffb827ab..1830d7d617cd 100644
+> --- a/net/bridge/br_vlan.c
+> +++ b/net/bridge/br_vlan.c
+> @@ -1441,6 +1441,7 @@ int br_vlan_get_pvid_rcu(const struct net_device *dev, u16 *p_pvid)
+>  EXPORT_SYMBOL_GPL(br_vlan_get_pvid_rcu);
+>  
+>  void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
+> +				    struct net_bridge_port *p,
+>  				    struct net_device_path_ctx *ctx,
+>  				    struct net_device_path *path)
+>  {
+> @@ -1453,7 +1454,10 @@ void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
+>  	if (!br_opt_get(br, BROPT_VLAN_ENABLED))
+>  		return;
+>  
+> -	vg = br_vlan_group(br);
+> +	if (p)
+> +		vg = nbp_vlan_group(p);
+> +	else
+> +		vg = br_vlan_group(br);
+>  
+>  	if (idx >= 0 &&
+>  	    ctx->vlan[idx].proto == br->vlan_proto) {
 
