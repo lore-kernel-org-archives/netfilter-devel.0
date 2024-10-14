@@ -1,13 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D9BE2132117;
-	Mon, 14 Oct 2024 11:14:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id BB2E915DBBA;
+	Mon, 14 Oct 2024 11:14:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728904470; cv=none; b=JmxkL/PTOCosU04q2ORsbly7e0dv+XOhEmbZZ8YBtQDMTK4CpeE3ctAhCwi1zhTYi000/eic0CYeCHcZWj3k8l1bXqDUnyRTFvDbtsqEC3tuQkZ41sx6eSaFSVw26Ls1vYSad/OvN/bkOVEa+PnPkf9PQ6wTz3ChESXlrlYc8yM=
+	t=1728904470; cv=none; b=gpxn+RFqJLf7VrxPpzdirNtCHxgW77zqgzzg/7TB7cWBH3xk2qivS/+8EMsns1Z75ECp2RQ4TPa8xVmPFKXTEfxPebsd40ArEyWVyMM4fWZzOPAACdiTCOwi+g5GOVvUu9R/KDkMqcO1PDhV3u3WJxtkS7AvFoOFxhmmI6LWdgI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1728904470; c=relaxed/simple;
-	bh=m3oA3DjQG0zAgXDJR6EQNfJPvp53CEpoyvjfzeSTx1I=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=cm5zJI4LNHzZHGIsuWMhUC/yMOitrB0dDxWDJSCu6fEQC56Ui1o6BfjGj5ldIY1ERiINGIrtv91SzYU+TljmcqN/cA7kkhDhM0SlJ2SqfmhuZ4FkGeRiGDmKp4dP6DPQylzTCNqA7gyUoT4ZnoQI1D1YdnHeGJc7rlqVmadL2ZQ=
+	bh=FCPtCk4CbWFDou0Q9B78YNMopnFHk8hDYJhakoxBbdE=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=FRBXzrZ2FeBNihkEl4qGGiaCx+TFBG/v8yloW9kYUNDTl7AqeQvqA+DSVqhW7ZoMaW564SUf2fz/lRSxxKV+DIUyf5uW0Yh0iPpDVeXmf1DN0GvQiiPBJNIcd1XTHagR/4PAKdTpzpvsGTOlhwbN9VTGz7cCjFUZ6/FVkzID1Fs=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -19,10 +20,12 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net-next 0/9] Netfilter updates for net-net
-Date: Mon, 14 Oct 2024 13:14:11 +0200
-Message-Id: <20241014111420.29127-1-pablo@netfilter.org>
+Subject: [PATCH net-next 2/9] netfilter: nf_tables: replace deprecated strncpy with strscpy_pad
+Date: Mon, 14 Oct 2024 13:14:13 +0200
+Message-Id: <20241014111420.29127-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20241014111420.29127-1-pablo@netfilter.org>
+References: <20241014111420.29127-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,87 +34,49 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Justin Stitt <justinstitt@google.com>
 
-The following series contains Netfilter updates for net-next:
+strncpy() is deprecated for use on NUL-terminated destination strings [1] and
+as such we should prefer more robust and less ambiguous string interfaces.
 
-1) Fix sparse warning in nf_tables related to use of percpu counters,
-   from Uros Bizjak.
+In this particular instance, the usage of strncpy() is fine and works as
+expected. However, towards the goal of [2], we should consider replacing
+it with an alternative as many instances of strncpy() are bug-prone. Its
+removal from the kernel promotes better long term health for the
+codebase.
 
-2) use strscpy_pad in nft_meta_bridge, from Justin Stitt.
+The current usage of strncpy() likely just wants the NUL-padding
+behavior offered by strncpy() and doesn't care about the
+NUL-termination. Since the compiler doesn't know the size of @dest, we
+can't use strtomem_pad(). Instead, use strscpy_pad() which behaves
+functionally the same as strncpy() in this context -- as we expect
+br_dev->name to be NUL-terminated itself.
 
-3) A series from patch #3 to patch #7 to reduce memory footprint of set
-   element transactions, Florian Westphal says:
+Link: https://www.kernel.org/doc/html/latest/process/deprecated.html#strncpy-on-nul-terminated-strings [1]
+Link: https://github.com/KSPP/linux/issues/90 [2]
+Link: https://manpages.debian.org/testing/linux-manual-4.8/strscpy.9.en.html
+Cc: Kees Cook <keescook@chromium.org>
+Cc: linux-hardening@vger.kernel.org
+Signed-off-by: Justin Stitt <justinstitt@google.com>
+Reviewed-by: Simon Horman <horms@kernel.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/bridge/netfilter/nft_meta_bridge.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-   When doing a flush on a set or mass adding/removing elements from a
-   set, each element needs to allocate 96 bytes to hold the transactional
-   state.
+diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
+index d12a221366d6..5adced1e7d0c 100644
+--- a/net/bridge/netfilter/nft_meta_bridge.c
++++ b/net/bridge/netfilter/nft_meta_bridge.c
+@@ -63,7 +63,7 @@ static void nft_meta_bridge_get_eval(const struct nft_expr *expr,
+ 		return nft_meta_get_eval(expr, regs, pkt);
+ 	}
+ 
+-	strncpy((char *)dest, br_dev ? br_dev->name : "", IFNAMSIZ);
++	strscpy_pad((char *)dest, br_dev ? br_dev->name : "", IFNAMSIZ);
+ 	return;
+ err:
+ 	regs->verdict.code = NFT_BREAK;
+-- 
+2.30.2
 
-   In such cases, virtually all the information in struct nft_trans_elem
-   is the same.
-
-   Change nft_trans_elem to a flex-array, i.e. a single nft_trans_elem
-   can hold multiple set element pointers.
-
-   The number of elements that can be stored in one nft_trans_elem is limited
-   by the slab allocator, this series limits the compaction to at most 62
-   elements as it caps the reallocation to 2048 bytes of memory.
-
-4) Document legacy toggles for xtables packet classifiers, from
-   Bruno Leitao.
-
-5) Use kfree_rcu() instead of call_rcu() + kmem_cache_free(), from Julia Lawall.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-24-10-14
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit f66ebf37d69cc700ca884c6a18c2258caf8b151b:
-
-  Merge git://git.kernel.org/pub/scm/linux/kernel/git/netdev/net (2024-10-03 10:05:55 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-24-10-14
-
-for you to fetch changes up to 9539446cc659e390942b46df871f8abdd4750999:
-
-  netfilter: replace call_rcu by kfree_rcu for simple kmem_cache_free callback (2024-10-14 12:30:20 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 24-10-14
-
-----------------------------------------------------------------
-Breno Leitao (1):
-      netfilter: Make legacy configs user selectable
-
-Florian Westphal (5):
-      netfilter: nf_tables: prefer nft_trans_elem_alloc helper
-      netfilter: nf_tables: add nft_trans_commit_list_add_elem helper
-      netfilter: nf_tables: prepare for multiple elements in nft_trans_elem structure
-      netfilter: nf_tables: switch trans_elem to real flex array
-      netfilter: nf_tables: allocate element update information dynamically
-
-Julia Lawall (1):
-      netfilter: replace call_rcu by kfree_rcu for simple kmem_cache_free callback
-
-Justin Stitt (1):
-      netfilter: nf_tables: replace deprecated strncpy with strscpy_pad
-
-Uros Bizjak (1):
-      netfilter: nf_tables: Fix percpu address space issues in nf_tables_api.c
-
- include/net/netfilter/nf_tables.h      |  25 +--
- net/bridge/netfilter/Kconfig           |   8 +-
- net/bridge/netfilter/nft_meta_bridge.c |   2 +-
- net/ipv4/netfilter/Kconfig             |  16 +-
- net/ipv6/netfilter/Kconfig             |   9 +-
- net/netfilter/nf_conncount.c           |  10 +-
- net/netfilter/nf_conntrack_expect.c    |  10 +-
- net/netfilter/nf_tables_api.c          | 370 +++++++++++++++++++++++++--------
- net/netfilter/xt_hashlimit.c           |   9 +-
- 9 files changed, 330 insertions(+), 129 deletions(-)
