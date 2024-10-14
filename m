@@ -1,132 +1,80 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 59F7D1A4F34;
-	Mon, 14 Oct 2024 11:14:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E81F13C3D3
+	for <netfilter-devel@vger.kernel.org>; Mon, 14 Oct 2024 11:20:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728904474; cv=none; b=WiK7R6s5RBGL8YzBP0QGA5Slkc1bMP79tyhihQa3bRtTG4OhtbDYzsLtOr1FKHP0Ns7uw9EFXvLaK/W2YzX346SJBi3uZB2yKPfGk1rk5jilmAh06/6WTFtiEJzcsZstpDtXdr4ev+nNBXho33f711mnxXztsyjW0sMthjhsLMs=
+	t=1728904841; cv=none; b=qm1ylokU/ZUWv3bVuOXX40laSWv6KgQxVV6QbI+CukSfDf2wDabXyUVq6Xl4aplgcGYqI6jpGAEGllKabHC+3fwrJKyzixSo0Cmezqq7wDWc8zr/TxEMUYqHyNC36zf+0Y24Etllg7lAcNajEmU3u5Oh4+TyYCjHZkIHBOrA3xo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728904474; c=relaxed/simple;
-	bh=1GrudrhIV6eBfIdpQvWB6IvF86UzOLzBrncdKE0RLbY=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=oNib9YNvVoL2LuMvPFieUlLisRSIR+Pfs+mimoeS4sMZxAfqRs0YL3S7cdy5U0qP6PnN8H7w1tP0KokO0iLAmfEYfvzbUanzipNXrMQETQwYvYZ9EHEjsDQum/OqiybMfi8THsC1acmDqtSITpsd6vhRo/1P2HDpp0efmgVrxi0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+	s=arc-20240116; t=1728904841; c=relaxed/simple;
+	bh=Diu2sa6mv15hdd8aDr/GZT+W2NFecHexL9IvioAT/fg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=EtkpFfKzX3xqjKt9nIIOYDoYcHJ85IriUdXDHbu+30j/WG6zBWYzkXdZJT+ZeLx71+eKuCTaY0K5if4rCBe9KxuFTb9IY7OU1I8DS9FsziVhbENL8jL8/+KRt3vDkokaI017/b1IbIFpL38L4sH1kCem2s1CqnZyltcoJX4OvfY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=43674 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1t0J7k-006GcA-PE; Mon, 14 Oct 2024 13:20:31 +0200
+Date: Mon, 14 Oct 2024 13:20:27 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	fw@strlen.de
-Subject: [PATCH net-next 9/9] netfilter: replace call_rcu by kfree_rcu for simple kmem_cache_free callback
-Date: Mon, 14 Oct 2024 13:14:20 +0200
-Message-Id: <20241014111420.29127-10-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20241014111420.29127-1-pablo@netfilter.org>
-References: <20241014111420.29127-1-pablo@netfilter.org>
+To: Jan Engelhardt <ej@inai.de>
+Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libmnl] build: do not build documentation automatically
+Message-ID: <Zwz-e5ef9uyTG6Yv@calendula>
+References: <20241012171521.33453-1-pablo@netfilter.org>
+ <ZwzOgRoMzOiNfgn0@slk15.local.net>
+ <ZwzRn6EQpRJWxYA-@calendula>
+ <n4r27125-61q3-r7p2-ns82-77334r0oo3s3@vanv.qr>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <n4r27125-61q3-r7p2-ns82-77334r0oo3s3@vanv.qr>
+X-Spam-Score: -1.8 (-)
 
-From: Julia Lawall <Julia.Lawall@inria.fr>
+On Mon, Oct 14, 2024 at 01:12:02PM +0200, Jan Engelhardt wrote:
+[...]
+> Having worked extensively with wxWidgets (also doxygenated) in the past 
+> however, I found that when the API is large, needs frequent lookup, 
+> documentation has many pages, and online retrieval latency becomes a 
+> factor, I prefer a local copy as a quality-of-live improvement.
 
-Since SLOB was removed and since
-commit 6c6c47b063b5 ("mm, slab: call kvfree_rcu_barrier() from kmem_cache_destroy()"),
-it is not necessary to use call_rcu when the callback only performs
-kmem_cache_free. Use kfree_rcu() directly.
+For reference, there is one online available at:
 
-The changes were made using Coccinelle.
+https://www.netfilter.org/projects/libmnl/doxygen/html/
 
-Signed-off-by: Julia Lawall <Julia.Lawall@inria.fr>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conncount.c        | 10 +---------
- net/netfilter/nf_conntrack_expect.c | 10 +---------
- net/netfilter/xt_hashlimit.c        |  9 +--------
- 3 files changed, 3 insertions(+), 26 deletions(-)
+for the current release.
 
-diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index 4890af4dc263..6a7a6c2d6ebc 100644
---- a/net/netfilter/nf_conncount.c
-+++ b/net/netfilter/nf_conncount.c
-@@ -275,14 +275,6 @@ bool nf_conncount_gc_list(struct net *net,
- }
- EXPORT_SYMBOL_GPL(nf_conncount_gc_list);
- 
--static void __tree_nodes_free(struct rcu_head *h)
--{
--	struct nf_conncount_rb *rbconn;
--
--	rbconn = container_of(h, struct nf_conncount_rb, rcu_head);
--	kmem_cache_free(conncount_rb_cachep, rbconn);
--}
--
- /* caller must hold tree nf_conncount_locks[] lock */
- static void tree_nodes_free(struct rb_root *root,
- 			    struct nf_conncount_rb *gc_nodes[],
-@@ -295,7 +287,7 @@ static void tree_nodes_free(struct rb_root *root,
- 		spin_lock(&rbconn->list.list_lock);
- 		if (!rbconn->list.count) {
- 			rb_erase(&rbconn->node, root);
--			call_rcu(&rbconn->rcu_head, __tree_nodes_free);
-+			kfree_rcu(rbconn, rcu_head);
- 		}
- 		spin_unlock(&rbconn->list.list_lock);
- 	}
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 21fa550966f0..9dcaef6f3663 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -367,18 +367,10 @@ void nf_ct_expect_init(struct nf_conntrack_expect *exp, unsigned int class,
- }
- EXPORT_SYMBOL_GPL(nf_ct_expect_init);
- 
--static void nf_ct_expect_free_rcu(struct rcu_head *head)
--{
--	struct nf_conntrack_expect *exp;
--
--	exp = container_of(head, struct nf_conntrack_expect, rcu);
--	kmem_cache_free(nf_ct_expect_cachep, exp);
--}
--
- void nf_ct_expect_put(struct nf_conntrack_expect *exp)
- {
- 	if (refcount_dec_and_test(&exp->use))
--		call_rcu(&exp->rcu, nf_ct_expect_free_rcu);
-+		kfree_rcu(exp, rcu);
- }
- EXPORT_SYMBOL_GPL(nf_ct_expect_put);
- 
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 0859b8f76764..c2b9b954eb53 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -256,18 +256,11 @@ dsthash_alloc_init(struct xt_hashlimit_htable *ht,
- 	return ent;
- }
- 
--static void dsthash_free_rcu(struct rcu_head *head)
--{
--	struct dsthash_ent *ent = container_of(head, struct dsthash_ent, rcu);
--
--	kmem_cache_free(hashlimit_cachep, ent);
--}
--
- static inline void
- dsthash_free(struct xt_hashlimit_htable *ht, struct dsthash_ent *ent)
- {
- 	hlist_del_rcu(&ent->node);
--	call_rcu(&ent->rcu, dsthash_free_rcu);
-+	kfree_rcu(ent, rcu);
- 	ht->count--;
- }
- static void htable_gc(struct work_struct *work);
--- 
-2.30.2
+[...]
+> Removals are a powerful action that is seldomly undone at the distro
+> levels, so it can be regarded as the final say (well, in "95% of
+> cases").
+[...]
+> Hiding stuff behind a configure knob is not a removal though,
+> so it is not too big a deal.
 
+Exactly.
+
+> >Moreover, documentation is specifically designed for developers who
+> >are engaged in the technical aspects. Most users of this software are
+> >building it because it is a dependency for their software.
+>                                             ^^^^^^^^^^^^^^
+> 
+> The way it's phrased makes those users users of the libmnl API (i.e.
+> developers), and documentation is warranted.
+> 
+> (The following statement would be more accurate:
+> 
+> >Most users of this software are
+> >building it because it is a dependency for someone else's software
+> >they want to utilize.
+
+That sounds more precise, yes.
