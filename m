@@ -1,60 +1,81 @@
-Received: from mail-ej1-f50.google.com (mail-ej1-f50.google.com [209.85.218.50])
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 711A214373F
-	for <netfilter-devel@vger.kernel.org>; Mon, 14 Oct 2024 06:59:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7207A147C9B;
+	Mon, 14 Oct 2024 07:23:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728889200; cv=none; b=kNYxd6QdM4BMsGQdHYfwdclmICVDjWbJm6d0tOVyTBdTVvrXf+qSLrkeSXoyil8zspSlioZ0TN9SWyNXbn0/5jzX9FzIokRlgxWskJT477r7UD1K3XgrGarY4YkcPgGKLPfNaZPBE5cfl8VxU/uTp5za+W6QZgnBIpO78TRvzF4=
+	t=1728890627; cv=none; b=XM2Is9xSF2G2pOhz0+NBF0SfEu12IZC+trSh2wmCR09Sp4uQkGI7aoZsLBrEECnZWleqlDQ8xFPUE11X68rgGN3DcutZmDa2+qUf6O+MMyLoY19OT90rJhc1hFeezFlk9bf1Lih5HQVRr8iXhqLBISfZihXqmk0J3rWTTXUpqtk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728889200; c=relaxed/simple;
-	bh=xKtOQZK5HutUaVl6kbbOU9Qu7Ar2joczRXup5ujyrgE=;
+	s=arc-20240116; t=1728890627; c=relaxed/simple;
+	bh=XDDNqOs+9kF4n9ZRWjwLdBt5dBQWI36CL6nSXRyOzVg=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=kxEtVjLnOAb52YDDTlF4pggeTj+CzmsugHmJQFaFEbRYKmIqpGla3QAw+BdgWwxd4rDRCThqodF5DNvPsTsXuICREzylfu8HUYAl2tmKZ/UZBhCnK8spO7d/ZBjHizpH44/6SvRIwimtBIrnUeqtZ0ODMMvgr+feSAZf2tFzsmg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=blackwall.org; spf=none smtp.mailfrom=blackwall.org; dkim=pass (2048-bit key) header.d=blackwall-org.20230601.gappssmtp.com header.i=@blackwall-org.20230601.gappssmtp.com header.b=KqfUwbpq; arc=none smtp.client-ip=209.85.218.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=blackwall.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=blackwall.org
+	 In-Reply-To:Content-Type; b=CUQZ1WPiY8G8rkmwpd3sZBgpnH9dgt32n5kYl/zAGSY7Hf/jCUrqL9CJGiOnvEX2egBU5gmEwKDfXNs4gRJKh8uo31bG1oCh3i+scZrB3hflGQZMTkkXY8lu8Hp2WMSrLzb5bQYsZUag0AAXa5RPm65DL9I5UW+YTwfVsBr9rWk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=wmLzUqry; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=8B2uogma; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=QMCwjEci; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=g8B+pbcD; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=blackwall-org.20230601.gappssmtp.com header.i=@blackwall-org.20230601.gappssmtp.com header.b="KqfUwbpq"
-Received: by mail-ej1-f50.google.com with SMTP id a640c23a62f3a-a99b1f43aceso525954966b.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 13 Oct 2024 23:59:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=blackwall-org.20230601.gappssmtp.com; s=20230601; t=1728889197; x=1729493997; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=SbvyoL9Luo/70/PTVBa7h557couwK2dRn3xz6x5mHho=;
-        b=KqfUwbpqQ1gzt++iVRYbKYodeC5q6EqZM81NuUSPt94AA7DSrvMhhpTOvmCC6Omt7E
-         eZ8uPiw6rmjA+UaqjWoOVrwEub0lgjTjv9KZx7ydj14aChqkaldxgu1/8qs8HPowIifu
-         DcdFuCgwrAxzP++14QY6RJ/DMzzsOb5VcDqt9CslirzHEL3Gh72eKnQ6iWuUJoT2HDgx
-         8tbJyi6X2CkkwEYriX1kMTWCjKk4Abfz5K52eXeHA86HIACWgBd8gwnht+Ky8pJroc2y
-         TZdO4PKQnEpvAK9Z2eS/bWDKR3fsG1O31VPRau8Vvidxl7O3BR9vG5hVGqdES2AHdrn1
-         UY1g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1728889197; x=1729493997;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=SbvyoL9Luo/70/PTVBa7h557couwK2dRn3xz6x5mHho=;
-        b=VHwSTHJUrOM1B17mHz5eJ9RC3xAF9Mib2vTPeRv/5I4U3uVIu0Tom6icLf3eRDAtCI
-         1J66GkESBPqZMbFDUthLleGNBfezhe1xBrSZtXtZ9Skl2qQc10Qx+4GfJTJeTbsVu268
-         hMF7FsIu8YEyeOUlQTp2QpZZik+V+OtNZV5/Tskjxj81v//X1ZA9RY3KaLjqznA0X3/S
-         putdKInwqlc4a3FEv5xrKzCPjKat25FoqG2Mo0YTNi823AQ53XTi32GEfeIHk2NIfeKT
-         XqG4Z6IIRVYvY1wp5zqU3J6r8g4RJSHyEK7U74uUiu6ZWDwfToilorKwp87UIAr35EM8
-         NAdA==
-X-Forwarded-Encrypted: i=1; AJvYcCUO4bgV91e1whermj5GV9ubsfkFFW6qC2IL+cdvW9fnpujMtSbrGTRDRc8KYQQte2q9NAWc5uBzIhUU1ss3Yqs=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz6l3luW/dPKpIUvCeVR1vpJI4D5XADYsh7l3jO/HHVkPwueNzZ
-	rrNjdlYXSdoV/pAx6t0pyz91LqkTTMog+jykGr0nTJ6xw/dDJ/XOQordlcJlQPvLTp2UgqX24or
-	iHVs=
-X-Google-Smtp-Source: AGHT+IGOUfK99ago/evOrlGj0pi4YFg7EEKNgJdbazY59vps+t6ylGtngYjJWYkKZ58+i22OdP1stg==
-X-Received: by 2002:a17:906:eec7:b0:a77:ab9e:9202 with SMTP id a640c23a62f3a-a99a0eb9349mr1327215166b.4.1728889196586;
-        Sun, 13 Oct 2024 23:59:56 -0700 (PDT)
-Received: from [192.168.0.245] ([62.73.69.208])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a9a13f42e8bsm62471966b.58.2024.10.13.23.59.55
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 13 Oct 2024 23:59:56 -0700 (PDT)
-Message-ID: <c3678626-7f5c-4446-9b4d-2650ddf5d5a6@blackwall.org>
-Date: Mon, 14 Oct 2024 09:59:54 +0300
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="wmLzUqry";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="8B2uogma";
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="QMCwjEci";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="g8B+pbcD"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 7EC6F1FE70;
+	Mon, 14 Oct 2024 07:23:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1728890623; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=nTA5yF9Sm4WYFWyv5NEJ9W7uWongasQxrKyS3T0wnGY=;
+	b=wmLzUqryu3+nu0aNPmIgUdCxxlbRHOaCJJ4aW9nWIgcapbvVnW74biH9zM3YJkQMjKCHYB
+	hc1jUsv7hXESXivGqRZ4YAnjS5V/Le2fIhz5vODPPjWL4mSH9F9Wdct9PFP+LoIVPPmIEU
+	/SEV9LNH8H0kx2LuAVzK2bgIqUL6RkM=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1728890623;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=nTA5yF9Sm4WYFWyv5NEJ9W7uWongasQxrKyS3T0wnGY=;
+	b=8B2uogmaifx6kPuAsihSTzWy0QBrq+cF7POR+Pr/Cl9ueWu9m2t9MzfV8wTlTjwt9DYtxg
+	sSnJ+OXT/eVGeaCw==
+Authentication-Results: smtp-out2.suse.de;
+	dkim=pass header.d=suse.cz header.s=susede2_rsa header.b=QMCwjEci;
+	dkim=pass header.d=suse.cz header.s=susede2_ed25519 header.b=g8B+pbcD
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1728890622; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=nTA5yF9Sm4WYFWyv5NEJ9W7uWongasQxrKyS3T0wnGY=;
+	b=QMCwjEciPq5R0jBPJdRjEpJ/csX3Q7YjoU/85baaqJoQCCcmQ0mE+g4DNyqQvkBpBQ4cmG
+	Ml2ePeKj68qciYOP27ynh5aZSl7EtTm9pXwu9rHzPt9G40DOf0ahiGhog737qaPxm6fGp2
+	AdrsH/opBXRhTcPxhY2gy2rpTxCWnwo=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1728890622;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=nTA5yF9Sm4WYFWyv5NEJ9W7uWongasQxrKyS3T0wnGY=;
+	b=g8B+pbcDY+qZRoZvnqEkFaX+4cXbtvavIpxDcqX/yUW2vdAoQAO0k1koTozPbfxsP0I1Yr
+	cpc3DFoYSX+4TRCw==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 4D5BD13A51;
+	Mon, 14 Oct 2024 07:23:42 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id m4WMEv7GDGeZXAAAD6G6ig
+	(envelope-from <vbabka@suse.cz>); Mon, 14 Oct 2024 07:23:42 +0000
+Message-ID: <9312d41b-9d84-4ff1-a33c-e4c2b496bd10@suse.cz>
+Date: Mon, 14 Oct 2024 09:23:41 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -62,173 +83,114 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH RFC v1 net-next 06/12] net: core: dev: Add
- dev_fill_bridge_path()
-To: Eric Woudstra <ericwouds@gmail.com>, "David S. Miller"
- <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Pablo Neira Ayuso <pablo@netfilter.org>,
- Jozsef Kadlecsik <kadlec@netfilter.org>, Roopa Prabhu <roopa@nvidia.com>,
- Matthias Brugger <matthias.bgg@gmail.com>,
- AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
- Jiri Pirko <jiri@resnulli.us>,
- Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
- Lorenzo Bianconi <lorenzo@kernel.org>,
- Frank Wunderlich <frank-w@public-files.de>,
- Daniel Golle <daniel@makrotopia.org>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- bridge@lists.linux.dev, linux-arm-kernel@lists.infradead.org,
- linux-mediatek@lists.infradead.org
-References: <20241013185509.4430-1-ericwouds@gmail.com>
- <20241013185509.4430-7-ericwouds@gmail.com>
+Subject: Re: [PATCH 00/17] replace call_rcu by kfree_rcu for simple
+ kmem_cache_free callback
 Content-Language: en-US
-From: Nikolay Aleksandrov <razor@blackwall.org>
-In-Reply-To: <20241013185509.4430-7-ericwouds@gmail.com>
+To: Julia Lawall <Julia.Lawall@inria.fr>, linux-nfs@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, paulmck@kernel.org,
+ Tom Talpey <tom@talpey.com>, Dai Ngo <Dai.Ngo@oracle.com>,
+ Olga Kornievskaia <okorniev@redhat.com>, Neil Brown <neilb@suse.de>,
+ linux-can@vger.kernel.org, bridge@lists.linux.dev,
+ b.a.t.m.a.n@lists.open-mesh.org, linux-kernel@vger.kernel.org,
+ wireguard@lists.zx2c4.com, netdev@vger.kernel.org, ecryptfs@vger.kernel.org,
+ linux-block@vger.kernel.org, Nicholas Piggin <npiggin@gmail.com>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>,
+ Naveen N Rao <naveen@kernel.org>, Madhavan Srinivasan <maddy@linux.ibm.com>,
+ linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+References: <20241013201704.49576-1-Julia.Lawall@inria.fr>
+From: Vlastimil Babka <vbabka@suse.cz>
+Autocrypt: addr=vbabka@suse.cz; keydata=
+ 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
+ EP+ylKVEKb0Q2A==
+In-Reply-To: <20241013201704.49576-1-Julia.Lawall@inria.fr>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
+X-Rspamd-Queue-Id: 7EC6F1FE70
+X-Spam-Level: 
+X-Spamd-Result: default: False [-4.51 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_DKIM_ALLOW(-0.20)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	FREEMAIL_ENVRCPT(0.00)[gmail.com];
+	URIBL_BLOCKED(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns];
+	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	ARC_NA(0.00)[];
+	RCPT_COUNT_TWELVE(0.00)[24];
+	FUZZY_BLOCKED(0.00)[rspamd.com];
+	MIME_TRACE(0.00)[0:+];
+	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	FREEMAIL_CC(0.00)[vger.kernel.org,kernel.org,talpey.com,oracle.com,redhat.com,suse.de,lists.linux.dev,lists.open-mesh.org,lists.zx2c4.com,gmail.com,csgroup.eu,linux.ibm.com,lists.ozlabs.org,netfilter.org];
+	RCVD_TLS_ALL(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	TO_DN_SOME(0.00)[];
+	MID_RHS_MATCH_FROM(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	DKIM_TRACE(0.00)[suse.cz:+];
+	ASN(0.00)[asn:25478, ipnet:::/0, country:RU];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,suse.cz:email,suse.cz:dkim,suse.cz:mid]
+X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
+X-Rspamd-Action: no action
+X-Spam-Score: -4.51
+X-Spam-Flag: NO
 
-On 13/10/2024 21:55, Eric Woudstra wrote:
-> New function dev_fill_bridge_path(), similar to dev_fill_forward_path().
-> It handles starting from a bridge port instead of the bridge master.
-> The structures ctx and nft_forward_info need to be already filled in with
-> the (vlan) encaps.
+On 10/13/24 22:16, Julia Lawall wrote:
+> Since SLOB was removed and since
+> commit 6c6c47b063b5 ("mm, slab: call kvfree_rcu_barrier() from kmem_cache_destroy()"),
+> it is not necessary to use call_rcu when the callback only performs
+> kmem_cache_free. Use kfree_rcu() directly.
 > 
-> Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
-> ---
->  include/linux/netdevice.h |  2 +
->  net/core/dev.c            | 77 ++++++++++++++++++++++++++++++++-------
->  2 files changed, 66 insertions(+), 13 deletions(-)
-> 
-> diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-> index e87b5e488325..9d80f650345e 100644
-> --- a/include/linux/netdevice.h
-> +++ b/include/linux/netdevice.h
-> @@ -3069,6 +3069,8 @@ void dev_remove_offload(struct packet_offload *po);
->  
->  int dev_get_iflink(const struct net_device *dev);
->  int dev_fill_metadata_dst(struct net_device *dev, struct sk_buff *skb);
-> +int dev_fill_bridge_path(struct net_device_path_ctx *ctx,
-> +			 struct net_device_path_stack *stack);
->  int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
->  			  struct net_device_path_stack *stack);
->  struct net_device *__dev_get_by_flags(struct net *net, unsigned short flags,
-> diff --git a/net/core/dev.c b/net/core/dev.c
-> index cd479f5f22f6..49959c4904fc 100644
-> --- a/net/core/dev.c
-> +++ b/net/core/dev.c
-> @@ -713,44 +713,95 @@ static struct net_device_path *dev_fwd_path(struct net_device_path_stack *stack)
->  	return &stack->path[k];
->  }
->  
-> -int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
-> -			  struct net_device_path_stack *stack)
-> +static int dev_fill_forward_path_common(struct net_device_path_ctx *ctx,
-> +					struct net_device_path_stack *stack)
->  {
->  	const struct net_device *last_dev;
-> -	struct net_device_path_ctx ctx = {
-> -		.dev	= dev,
-> -	};
->  	struct net_device_path *path;
->  	int ret = 0;
->  
-> -	memcpy(ctx.daddr, daddr, sizeof(ctx.daddr));
-> -	stack->num_paths = 0;
-> -	while (ctx.dev && ctx.dev->netdev_ops->ndo_fill_forward_path) {
-> -		last_dev = ctx.dev;
-> +	while (ctx->dev && ctx->dev->netdev_ops->ndo_fill_forward_path) {
-> +		last_dev = ctx->dev;
->  		path = dev_fwd_path(stack);
->  		if (!path)
->  			return -1;
->  
->  		memset(path, 0, sizeof(struct net_device_path));
-> -		ret = ctx.dev->netdev_ops->ndo_fill_forward_path(&ctx, path);
-> +		ret = ctx->dev->netdev_ops->ndo_fill_forward_path(ctx, path);
->  		if (ret < 0)
->  			return -1;
->  
-> -		if (WARN_ON_ONCE(last_dev == ctx.dev))
-> +		if (WARN_ON_ONCE(last_dev == ctx->dev))
->  			return -1;
->  	}
->  
-> -	if (!ctx.dev)
-> +	if (!ctx->dev)
->  		return ret;
->  
->  	path = dev_fwd_path(stack);
->  	if (!path)
->  		return -1;
->  	path->type = DEV_PATH_ETHERNET;
-> -	path->dev = ctx.dev;
-> +	path->dev = ctx->dev;
-> +
-> +	return ret;
-> +}
-> +
-> +int dev_fill_bridge_path(struct net_device_path_ctx *ctx,
-> +			 struct net_device_path_stack *stack)
-> +{
-> +	const struct net_device *last_dev, *br_dev;
-> +	struct net_device_path *path;
-> +	int ret = 0;
-> +
-> +	stack->num_paths = 0;
-> +
-> +	if (!ctx->dev || !netif_is_bridge_port(ctx->dev))
-> +		return -1;
-> +
-> +	br_dev = netdev_master_upper_dev_get_rcu((struct net_device *)ctx->dev);
-> +	if (!br_dev || !br_dev->netdev_ops->ndo_fill_forward_path)
-> +		return -1;
-> +
-> +	last_dev = ctx->dev;
-> +	path = dev_fwd_path(stack);
-> +	if (!path)
-> +		return -1;
-> +
-> +	memset(path, 0, sizeof(struct net_device_path));
-> +	ret = br_dev->netdev_ops->ndo_fill_forward_path(ctx, path);
-> +	if (ret < 0)
-> +		return -1;
-> +
-> +	if (!ctx->dev || WARN_ON_ONCE(last_dev == ctx->dev))
-> +		return -1;
-> +
-> +	if (!netif_is_bridge_master(ctx->dev))
+> The changes were done using the following Coccinelle semantic patch.
+> This semantic patch is designed to ignore cases where the callback
+> function is used in another way.
 
-hmm, do we expect ctx->dev to be a bridge master? Looking at
-br_fill_forward_path, it seems to be == fdb->dst->dev which
-should be the target port
+Thanks, LGTM!
 
-> +		return dev_fill_forward_path_common(ctx, stack);
-> +
-> +	path = dev_fwd_path(stack);
-> +	if (!path)
-> +		return -1;
-> +	path->type = DEV_PATH_ETHERNET;
-> +	path->dev = ctx->dev;
->  
->  	return ret;
->  }
-> +EXPORT_SYMBOL_GPL(dev_fill_bridge_path);
-> +
-> +int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
-> +			  struct net_device_path_stack *stack)
-> +{
-> +	struct net_device_path_ctx ctx = {
-> +		.dev	= dev,
-> +	};
-> +
-> +	memcpy(ctx.daddr, daddr, sizeof(ctx.daddr));
-> +
-> +	stack->num_paths = 0;
-> +
-> +	return dev_fill_forward_path_common(&ctx, stack);
-> +}
->  EXPORT_SYMBOL_GPL(dev_fill_forward_path);
->  
->  /**
+For the series:
+
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 
