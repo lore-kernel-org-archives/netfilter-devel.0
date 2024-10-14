@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id BB2E915DBBA;
-	Mon, 14 Oct 2024 11:14:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id DCD1B19F11F;
+	Mon, 14 Oct 2024 11:14:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728904470; cv=none; b=gpxn+RFqJLf7VrxPpzdirNtCHxgW77zqgzzg/7TB7cWBH3xk2qivS/+8EMsns1Z75ECp2RQ4TPa8xVmPFKXTEfxPebsd40ArEyWVyMM4fWZzOPAACdiTCOwi+g5GOVvUu9R/KDkMqcO1PDhV3u3WJxtkS7AvFoOFxhmmI6LWdgI=
+	t=1728904471; cv=none; b=UBnpclFbFiRfnxRcax5U6Sz5RXRLqwIgmc1T5gUS1zBoQ/y0Q/IRCJa1GLf1PRzlU4M3M4QdtqsCkxQo12ibAnRwFXS6kBJPPEMMuTFNxilEMH4u5cxdw1DVWQUKl7jPYLOWOOC1PvzG2XuvWHq0v8+F7E53bEcNN/IphfXE934=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728904470; c=relaxed/simple;
-	bh=FCPtCk4CbWFDou0Q9B78YNMopnFHk8hDYJhakoxBbdE=;
+	s=arc-20240116; t=1728904471; c=relaxed/simple;
+	bh=ifMvoQSFzBxO0fcod2MXbMid4k6jlcT8Pao/OTL/C4o=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=FRBXzrZ2FeBNihkEl4qGGiaCx+TFBG/v8yloW9kYUNDTl7AqeQvqA+DSVqhW7ZoMaW564SUf2fz/lRSxxKV+DIUyf5uW0Yh0iPpDVeXmf1DN0GvQiiPBJNIcd1XTHagR/4PAKdTpzpvsGTOlhwbN9VTGz7cCjFUZ6/FVkzID1Fs=
+	 MIME-Version; b=LBlU11v6S3TipvGBFur2S3yy+EbSP+r0uBtdHcog2xp+6NXmTqmenn7+Piyxatg8x/fm8tcRmgreR0Ql6lctPrElYJeRMzHjd0euc7KQtIxNz/7YA4orzFbtOyKqlWIaNMxhi0ZHqfB4/e90XQ4bPm1XX4lYg1ltjBc/opdPLMk=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net-next 2/9] netfilter: nf_tables: replace deprecated strncpy with strscpy_pad
-Date: Mon, 14 Oct 2024 13:14:13 +0200
-Message-Id: <20241014111420.29127-3-pablo@netfilter.org>
+Subject: [PATCH net-next 4/9] netfilter: nf_tables: add nft_trans_commit_list_add_elem helper
+Date: Mon, 14 Oct 2024 13:14:15 +0200
+Message-Id: <20241014111420.29127-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20241014111420.29127-1-pablo@netfilter.org>
 References: <20241014111420.29127-1-pablo@netfilter.org>
@@ -34,49 +34,91 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Justin Stitt <justinstitt@google.com>
+From: Florian Westphal <fw@strlen.de>
 
-strncpy() is deprecated for use on NUL-terminated destination strings [1] and
-as such we should prefer more robust and less ambiguous string interfaces.
+Add and use a wrapper to append trans_elem structures to the
+transaction log.
 
-In this particular instance, the usage of strncpy() is fine and works as
-expected. However, towards the goal of [2], we should consider replacing
-it with an alternative as many instances of strncpy() are bug-prone. Its
-removal from the kernel promotes better long term health for the
-codebase.
+Unlike the existing helper, pass a gfp_t to indicate if sleeping
+is allowed.
 
-The current usage of strncpy() likely just wants the NUL-padding
-behavior offered by strncpy() and doesn't care about the
-NUL-termination. Since the compiler doesn't know the size of @dest, we
-can't use strtomem_pad(). Instead, use strscpy_pad() which behaves
-functionally the same as strncpy() in this context -- as we expect
-br_dev->name to be NUL-terminated itself.
+This will be used by a followup patch to realloc nft_trans_elem
+structures after they gain a flexible array member to reduce
+number of such container structures on the transaction list.
 
-Link: https://www.kernel.org/doc/html/latest/process/deprecated.html#strncpy-on-nul-terminated-strings [1]
-Link: https://github.com/KSPP/linux/issues/90 [2]
-Link: https://manpages.debian.org/testing/linux-manual-4.8/strscpy.9.en.html
-Cc: Kees Cook <keescook@chromium.org>
-Cc: linux-hardening@vger.kernel.org
-Signed-off-by: Justin Stitt <justinstitt@google.com>
-Reviewed-by: Simon Horman <horms@kernel.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/bridge/netfilter/nft_meta_bridge.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_tables_api.c | 21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
-diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
-index d12a221366d6..5adced1e7d0c 100644
---- a/net/bridge/netfilter/nft_meta_bridge.c
-+++ b/net/bridge/netfilter/nft_meta_bridge.c
-@@ -63,7 +63,7 @@ static void nft_meta_bridge_get_eval(const struct nft_expr *expr,
- 		return nft_meta_get_eval(expr, regs, pkt);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 30331688301e..99bf8abb7ffb 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -421,6 +421,17 @@ static void nft_trans_commit_list_add_tail(struct net *net, struct nft_trans *tr
+ 	}
+ }
+ 
++static void nft_trans_commit_list_add_elem(struct net *net, struct nft_trans *trans,
++					   gfp_t gfp)
++{
++	WARN_ON_ONCE(trans->msg_type != NFT_MSG_NEWSETELEM &&
++	             trans->msg_type != NFT_MSG_DELSETELEM);
++
++	might_alloc(gfp);
++
++	nft_trans_commit_list_add_tail(net, trans);
++}
++
+ static int nft_trans_table_add(struct nft_ctx *ctx, int msg_type)
+ {
+ 	struct nft_trans *trans;
+@@ -7183,7 +7194,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 					if (update_flags) {
+ 						nft_trans_elem_priv(trans) = elem_priv;
+ 						nft_trans_elem_update_flags(trans) = update_flags;
+-						nft_trans_commit_list_add_tail(ctx->net, trans);
++						nft_trans_commit_list_add_elem(ctx->net, trans, GFP_KERNEL);
+ 						goto err_elem_free;
+ 					}
+ 				}
+@@ -7207,7 +7218,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
  	}
  
--	strncpy((char *)dest, br_dev ? br_dev->name : "", IFNAMSIZ);
-+	strscpy_pad((char *)dest, br_dev ? br_dev->name : "", IFNAMSIZ);
- 	return;
- err:
- 	regs->verdict.code = NFT_BREAK;
+ 	nft_trans_elem_priv(trans) = elem.priv;
+-	nft_trans_commit_list_add_tail(ctx->net, trans);
++	nft_trans_commit_list_add_elem(ctx->net, trans, GFP_KERNEL);
+ 	return 0;
+ 
+ err_set_full:
+@@ -7424,7 +7435,7 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
+ 	nft_setelem_data_deactivate(ctx->net, set, elem.priv);
+ 
+ 	nft_trans_elem_priv(trans) = elem.priv;
+-	nft_trans_commit_list_add_tail(ctx->net, trans);
++	nft_trans_commit_list_add_elem(ctx->net, trans, GFP_KERNEL);
+ 	return 0;
+ 
+ fail_ops:
+@@ -7460,7 +7471,7 @@ static int nft_setelem_flush(const struct nft_ctx *ctx,
+ 	nft_setelem_data_deactivate(ctx->net, set, elem_priv);
+ 	nft_trans_elem_set(trans) = set;
+ 	nft_trans_elem_priv(trans) = elem_priv;
+-	nft_trans_commit_list_add_tail(ctx->net, trans);
++	nft_trans_commit_list_add_elem(ctx->net, trans, GFP_ATOMIC);
+ 
+ 	return 0;
+ }
+@@ -7477,7 +7488,7 @@ static int __nft_set_catchall_flush(const struct nft_ctx *ctx,
+ 
+ 	nft_setelem_data_deactivate(ctx->net, set, elem_priv);
+ 	nft_trans_elem_priv(trans) = elem_priv;
+-	nft_trans_commit_list_add_tail(ctx->net, trans);
++	nft_trans_commit_list_add_elem(ctx->net, trans, GFP_KERNEL);
+ 
+ 	return 0;
+ }
 -- 
 2.30.2
 
