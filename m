@@ -1,119 +1,121 @@
-Received: from a3.inai.de (a3.inai.de [144.76.212.145])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 336C1156F3A
-	for <netfilter-devel@vger.kernel.org>; Mon, 14 Oct 2024 11:12:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=144.76.212.145
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id BB33417BECA;
+	Mon, 14 Oct 2024 11:14:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728904340; cv=none; b=WzyvP9SG1FTzVB+o/FXxjG1tmJXO7QGAdhHqh08JdNzpuwAND436yY1poiSYiYi+es6jcG+7yfjXe36N/Ev/SJl0aWvZhG0BdnJ96GpF0UF8ce/XqQ+XtQ++tvi9ghg996JCXY3qWyVOi7K3KI84SQ2SrcZxjFEJy81InztkqEE=
+	t=1728904469; cv=none; b=ha99KXQ+iLXPwnbg+7j/6sl7stR3nBdOcQ8mtKoD7ovs/3YBe2QIYppNd8QIaQWg8RYXzwTljmVUu2lweoyijRbZNv64FwZQmW0nN3jC1Nhc8nHe281caA1PVJHl0Hcsug3Or1VR6R9T3X1qRu/zF4jB8T6PTYtoxrdJEA25wBA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728904340; c=relaxed/simple;
-	bh=JCDMh6s+9Dw0oAy/bcn+Scib5aGRF1yGPLg55qjrXdI=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=jBPbbKvBT8NPz3rPWcIF8Jbw+Pjowu1VjUVCQiJoleYxdPgJL9WtjrAa4C06wh4AGyjdzEljkj29zYu1HVbIVYVrTWu8kiB71vsuItRJPuqHyLxRByUpFy4/dAZekjPQddTbEpxN+cMkxuBIQnqXea30pyw34aAuCuwk2LS3J/c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=inai.de; spf=fail smtp.mailfrom=inai.de; arc=none smtp.client-ip=144.76.212.145
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=inai.de
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=inai.de
-Received: by a3.inai.de (Postfix, from userid 25121)
-	id 0B0E010041713A; Mon, 14 Oct 2024 13:12:02 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by a3.inai.de (Postfix) with ESMTP id 0AC4A1100B1489;
-	Mon, 14 Oct 2024 13:12:02 +0200 (CEST)
-Date: Mon, 14 Oct 2024 13:12:02 +0200 (CEST)
-From: Jan Engelhardt <ej@inai.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-cc: Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libmnl] build: do not build documentation automatically
-In-Reply-To: <ZwzRn6EQpRJWxYA-@calendula>
-Message-ID: <n4r27125-61q3-r7p2-ns82-77334r0oo3s3@vanv.qr>
-References: <20241012171521.33453-1-pablo@netfilter.org> <ZwzOgRoMzOiNfgn0@slk15.local.net> <ZwzRn6EQpRJWxYA-@calendula>
-User-Agent: Alpine 2.26 (LSU 649 2022-06-02)
+	s=arc-20240116; t=1728904469; c=relaxed/simple;
+	bh=kj4opEKkbC23Nkk+DhAR5RFISU84LX1aLJJ3F/yuDog=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=avdvcHgy/ruPbNnLOpLwBNr1799GBH6lBU/4NPpVkLap0uOfUAtU7f9YHyC7sIaPpaBm1QRrFHlWbU9RnV6Or7OBywjVhvZtr5tH35IluwIYmXd7wHpdCznpC8+CPR1TalMDuK1U+FPBwO5F2N09EnPxJkcqZOMtug0Fm8YPM1w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de
+Subject: [PATCH net-next 1/9] netfilter: nf_tables: Fix percpu address space issues in nf_tables_api.c
+Date: Mon, 14 Oct 2024 13:14:12 +0200
+Message-Id: <20241014111420.29127-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20241014111420.29127-1-pablo@netfilter.org>
+References: <20241014111420.29127-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 
+From: Uros Bizjak <ubizjak@gmail.com>
 
->Duncan Roe wrote:
->> 
->> Distributors typically use the default config to make a package. That would mean
->> libmnl would go out without any documentation, hardly an encouragement to use
->> it.
+Compiling nf_tables_api.c results in several sparse warnings:
 
-It is true that distros commonly go with upstream default. When the 
-upstream default is on "auto" however, it becomes a distro default,
-which, due to a blank recipe, quickly becomes "no-documentation".
-(Because of this, openSUSE was embarassingly not building libmnl-doc.)
+nf_tables_api.c:2077:31: warning: incorrect type in return expression (different address spaces)
+nf_tables_api.c:2080:31: warning: incorrect type in return expression (different address spaces)
+nf_tables_api.c:2084:31: warning: incorrect type in return expression (different address spaces)
 
-As to whether that is an impediment to creating libmnl-exercising 
-software, I cannot say.
+nf_tables_api.c:2740:23: warning: incorrect type in assignment (different address spaces)
+nf_tables_api.c:2752:38: warning: incorrect type in assignment (different address spaces)
+nf_tables_api.c:2798:21: warning: incorrect type in argument 1 (different address spaces)
 
-Having worked extensively with wxWidgets (also doxygenated) in the past 
-however, I found that when the API is large, needs frequent lookup, 
-documentation has many pages, and online retrieval latency becomes a 
-factor, I prefer a local copy as a quality-of-live improvement.
+Use {ERR_PTR,IS_ERR,PTR_ERR}_PCPU() macros when crossing between generic
+and percpu address spaces and add __percpu annotation to *stats pointer
+to fix these warnings.
 
+Found by GCC's named address space checks.
 
-On Monday 2024-10-14 10:09, Pablo Neira Ayuso wrote:
->
->We do not have control over the specific items that distributors
->choose to include in their packages.
->[...] the final decisions regarding package contents
->rest solely with the distributors.
+There were no changes in the resulting object files.
 
-Well, not quite.
+Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
+Reviewed-by: Simon Horman <horms@kernel.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-Removals are a powerful action that is seldomly undone at the distro
-levels, so it can be regarded as the final say (well, in "95% of
-cases"). Think of:
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index a24fe62650a7..6552ec616745 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2082,14 +2082,14 @@ static struct nft_stats __percpu *nft_stats_alloc(const struct nlattr *attr)
+ 	err = nla_parse_nested_deprecated(tb, NFTA_COUNTER_MAX, attr,
+ 					  nft_counter_policy, NULL);
+ 	if (err < 0)
+-		return ERR_PTR(err);
++		return ERR_PTR_PCPU(err);
+ 
+ 	if (!tb[NFTA_COUNTER_BYTES] || !tb[NFTA_COUNTER_PACKETS])
+-		return ERR_PTR(-EINVAL);
++		return ERR_PTR_PCPU(-EINVAL);
+ 
+ 	newstats = netdev_alloc_pcpu_stats(struct nft_stats);
+ 	if (newstats == NULL)
+-		return ERR_PTR(-ENOMEM);
++		return ERR_PTR_PCPU(-ENOMEM);
+ 
+ 	/* Restore old counters on this cpu, no problem. Per-cpu statistics
+ 	 * are not exposed to userspace.
+@@ -2533,10 +2533,10 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 
+ 		if (nla[NFTA_CHAIN_COUNTERS]) {
+ 			stats = nft_stats_alloc(nla[NFTA_CHAIN_COUNTERS]);
+-			if (IS_ERR(stats)) {
++			if (IS_ERR_PCPU(stats)) {
+ 				nft_chain_release_hook(&hook);
+ 				kfree(basechain);
+-				return PTR_ERR(stats);
++				return PTR_ERR_PCPU(stats);
+ 			}
+ 			rcu_assign_pointer(basechain->stats, stats);
+ 		}
+@@ -2650,7 +2650,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 	struct nft_table *table = ctx->table;
+ 	struct nft_chain *chain = ctx->chain;
+ 	struct nft_chain_hook hook = {};
+-	struct nft_stats *stats = NULL;
++	struct nft_stats __percpu *stats = NULL;
+ 	struct nft_hook *h, *next;
+ 	struct nf_hook_ops *ops;
+ 	struct nft_trans *trans;
+@@ -2746,8 +2746,8 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 		}
+ 
+ 		stats = nft_stats_alloc(nla[NFTA_CHAIN_COUNTERS]);
+-		if (IS_ERR(stats)) {
+-			err = PTR_ERR(stats);
++		if (IS_ERR_PCPU(stats)) {
++			err = PTR_ERR_PCPU(stats);
+ 			goto err_hooks;
+ 		}
+ 	}
+-- 
+2.30.2
 
-* deprecated C APIs (distros would rather patch consumer programs to
-  work with the new ones)
-
-* GNOME desktop, which is infamous for removing stuff due to
-  confusion ([1])
-[1] https://medium.com/@fulalas/gnome-linux-a-complete-disaster-feb27b13a5c2
-
-Hiding stuff behind a configure knob is not a removal though,
-so it is not too big a deal.
-
-
->Moreover, documentation is specifically designed for developers who
->are engaged in the technical aspects. Most users of this software are
->building it because it is a dependency for their software.
-                                            ^^^^^^^^^^^^^^
-
-The way it's phrased makes those users users of the libmnl API (i.e.
-developers), and documentation is warranted.
-
-(The following statement would be more accurate:
-
->Most users of this software are
->building it because it is a dependency for someone else's software
->they want to utilize.
-
-
-Anyway, looking at what distros _are_ doing is an indicator what
-"users" (intermediate consumers, or users at the end of the build
-chain) desire and what is worth doing upstream somehow.
-
-* ICU manages documentation separately; in a sense you could see
-  this as --enable-doc=no. The ICU APIs are however apparently
-  complicated enough that documentation is desirable to have
-  available, and so you do find libicu-doc/icu-doc in distros.
-
-* the closer a software is to the bootstrap core, and the more
-  outrageous the build requirements for some (sub)component(s) are,
-  there more likely it is for those (sub)component(s) to be built in
-  a two-phase build or be completely omitted due to complexity.
-
-	* texlive
-	* pandoc
-	* ant/maven
-	* rust/ghc/go
-
-docbook/asciidoc seems right on the edge (because of its potential
-to depend on a latex backend), but doxygen seems easy.
