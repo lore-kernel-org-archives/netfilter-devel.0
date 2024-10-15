@@ -1,62 +1,107 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 410821B2181;
-	Tue, 15 Oct 2024 15:25:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E141C227BB2;
+	Tue, 15 Oct 2024 18:00:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729005950; cv=none; b=HlbgbYMKFFiP3CwadIoajaBM+pKkHNGsPt2jdyVfoo6IHkfkzO46USq8bIgaya7zfjB/mNTPt8RgELlhL9K0O2dm4H4URz/3xHkF1TfDyAtth3Empr8IBZE1ujoLLnyPApUoGHNG4Vcri4OYj1uLruOPcFpL5TN+cZj13TShm24=
+	t=1729015236; cv=none; b=c2jM7eQf+0bM8GNsN0K0c8xvMPt61E/2NrY2Ji/f21jm7rFdjacLmRS1p/bRlmLIx8lfpoR0IT9LDGHxwImrbK6QAONEI+nS+1ZV8hQTQDaCEDMTub2sW3ukrp6+FucIDo1Z3Uual3L7+XxQLRUL+J6LN90SAmKGBGBhNEEghcc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729005950; c=relaxed/simple;
-	bh=18FzEMnBgSIbTxs/2tPjdrl1WVdNoL/WjTV3lxGaRPE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=OssepQefgUg3L+2y00zzbm/+xqSqt6+8w2OIYXGt+WyC5EFDOQlTOScORk/OytRnC1d4Y6n7kkUgaNqWoI5OY7vIJXTA+vAMbxHRg0rXiS6MVsAjQr3BYGsjm5qNprEbICgfLHRE4vKzKu4JWj2DnPlzR7xtcmH6uEqJuUe7RkM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1t0jQI-0007LE-9k; Tue, 15 Oct 2024 17:25:22 +0200
-Date: Tue, 15 Oct 2024 17:25:22 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Tyrone Wu <wudevelops@gmail.com>
-Cc: bpf@vger.kernel.org, pablo@netfilter.org, kadlec@netfilter.org,
-	davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-	pabeni@redhat.com, andrii@kernel.org, eddyz87@gmail.com,
-	mykolal@fb.com, ast@kernel.org, daniel@iogearbox.net,
-	martin.lau@linux.dev, song@kernel.org, yonghong.song@linux.dev,
-	john.fastabend@gmail.com, kpsingh@kernel.org, sdf@fomichev.me,
-	haoluo@google.com, jolsa@kernel.org, shuah@kernel.org,
-	riel@surriel.com, shakeel.butt@linux.dev,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-kselftest@vger.kernel.org, kernel-patches-bot@fb.com
-Subject: Re: [PATCH bpf v1 1/2] bpf: fix link info netfilter flags to
- populate defrag flag
-Message-ID: <Zw6JYuga41DyoVjt@strlen.de>
-References: <20241011193252.178997-1-wudevelops@gmail.com>
+	s=arc-20240116; t=1729015236; c=relaxed/simple;
+	bh=Sa6sgGhK0f0PdlrPB+pJBNsb8BQKXN13Ox+Haom2HEI=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=rOFWgFWCtnk4LDFVUepGg8Wdy5Obtp+5s6OFL/CKc93EQ78wKLcV8yACYzyKZHbBSDn4msnMRW6rT+3pbIZk4GVmnDCCR4IfDsjaOgXsftc4jryiei/ZLr8Iz/rBr3IP4aTlKeDtL8Gn2khJfxmAkplpQf/mEBGFmBMOIKGqFFI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KuGT0VK8; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KuGT0VK8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAE2EC4CEC7;
+	Tue, 15 Oct 2024 18:00:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1729015235;
+	bh=Sa6sgGhK0f0PdlrPB+pJBNsb8BQKXN13Ox+Haom2HEI=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=KuGT0VK8S5iZkpWwdj4icg6/wNAAUrBPevfh4SZqoijO/LK0M//4+TxvzWdvkTnPh
+	 ej10iYjREMrmMJ2Gu5Npr2RUIAnkdhPsv3wpjIS9oD4lasA8tAu3GCw1fTFYauLrpu
+	 3RuHOcS958KJIGxUYsp0ERB1QMGW0dSsPNdQ80PsrTJLr49xkilO6b+UUnJ05d1/wn
+	 JClelGibXCeLsadFDN2D9J1PR77WpKnQ3JH6qPkguuPszYj5ShJSHAIV1To4/BfUf4
+	 6EO69W5HKU6Kiqfv8lDFOsDsbIiS0OIBybyVPrn0xkepuW1lWPDAUwAp49hj4XETun
+	 TYtKkZ3F14U8g==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 33D453809A8A;
+	Tue, 15 Oct 2024 18:00:42 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20241011193252.178997-1-wudevelops@gmail.com>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH 00/17] replace call_rcu by kfree_rcu for simple
+ kmem_cache_free callback
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <172901524099.1243233.14809044192149107515.git-patchwork-notify@kernel.org>
+Date: Tue, 15 Oct 2024 18:00:40 +0000
+References: <20241013201704.49576-1-Julia.Lawall@inria.fr>
+In-Reply-To: <20241013201704.49576-1-Julia.Lawall@inria.fr>
+To: Julia Lawall <julia.lawall@inria.fr>
+Cc: linux-nfs@vger.kernel.org, kernel-janitors@vger.kernel.org,
+ vbabka@suse.cz, paulmck@kernel.org, tom@talpey.com, Dai.Ngo@oracle.com,
+ okorniev@redhat.com, neilb@suse.de, linux-can@vger.kernel.org,
+ bridge@lists.linux.dev, b.a.t.m.a.n@lists.open-mesh.org,
+ linux-kernel@vger.kernel.org, wireguard@lists.zx2c4.com,
+ netdev@vger.kernel.org, ecryptfs@vger.kernel.org,
+ linux-block@vger.kernel.org, npiggin@gmail.com, christophe.leroy@csgroup.eu,
+ naveen@kernel.org, maddy@linux.ibm.com, linuxppc-dev@lists.ozlabs.org,
+ kvm@vger.kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org
 
-Tyrone Wu <wudevelops@gmail.com> wrote:
-> This patch correctly populates the `bpf_link_info.netfilter.flags` field
-> when user passes the `BPF_F_NETFILTER_IP_DEFRAG` flag.
+Hello:
 
-Indeed, thanks for fixing this.
-Patch and testcase look good, but one nit:
+This series was applied to netdev/net-next.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
 
-> Fixes: 84601d6ee68a ("bpf: add bpf_link support for BPF_NETFILTER programs")
+On Sun, 13 Oct 2024 22:16:47 +0200 you wrote:
+> Since SLOB was removed and since
+> commit 6c6c47b063b5 ("mm, slab: call kvfree_rcu_barrier() from kmem_cache_destroy()"),
+> it is not necessary to use call_rcu when the callback only performs
+> kmem_cache_free. Use kfree_rcu() directly.
+> 
+> The changes were done using the following Coccinelle semantic patch.
+> This semantic patch is designed to ignore cases where the callback
+> function is used in another way.
+> 
+> [...]
 
-BPF_F_NETFILTER_IP_DEFRAG flag was added in
-91721c2d02d3 ("netfilter: bpf: Support BPF_F_NETFILTER_IP_DEFRAG in netfilter link"), that was a bit later than the initial support.
+Here is the summary with links:
+  - [01/17] wireguard: allowedips: replace call_rcu by kfree_rcu for simple kmem_cache_free callback
+    (no matching commit)
+  - [02/17] ipv4: replace call_rcu by kfree_rcu for simple kmem_cache_free callback
+    https://git.kernel.org/netdev/net-next/c/497e17d80759
+  - [03/17] inetpeer: replace call_rcu by kfree_rcu for simple kmem_cache_free callback
+    https://git.kernel.org/netdev/net-next/c/bb5810d4236b
+  - [04/17] ipv6: replace call_rcu by kfree_rcu for simple kmem_cache_free callback
+    https://git.kernel.org/netdev/net-next/c/85e48bcf294c
+  - [05/17] xfrm6_tunnel: replace call_rcu by kfree_rcu for simple kmem_cache_free callback
+    (no matching commit)
+  - [06/17] batman-adv: replace call_rcu by kfree_rcu for simple kmem_cache_free callback
+    (no matching commit)
+  - [08/17] net: bridge: replace call_rcu by kfree_rcu for simple kmem_cache_free callback
+    https://git.kernel.org/netdev/net-next/c/4ac64e570c33
+  - [10/17] can: gw: replace call_rcu by kfree_rcu for simple kmem_cache_free callback
+    (no matching commit)
+  - [14/17] kcm: replace call_rcu by kfree_rcu for simple kmem_cache_free callback
+    https://git.kernel.org/netdev/net-next/c/7bb3ecbc2b6b
+  - [15/17] netfilter: nf_conncount: replace call_rcu by kfree_rcu for simple kmem_cache_free callback
+    (no matching commit)
+  - [16/17] netfilter: expect: replace call_rcu by kfree_rcu for simple kmem_cache_free callback
+    (no matching commit)
+  - [17/17] netfilter: xt_hashlimit: replace call_rcu by kfree_rcu for simple kmem_cache_free callback
+    (no matching commit)
 
-Other than that,
-Acked-by: Florian Westphal <fw@strlen.de>
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
