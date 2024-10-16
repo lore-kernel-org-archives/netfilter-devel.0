@@ -1,150 +1,102 @@
-Received: from nbd.name (nbd.name [46.4.11.11])
+Received: from mail.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AF3A1F5854;
-	Tue, 15 Oct 2024 19:45:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.4.11.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9CEF1097B;
+	Wed, 16 Oct 2024 00:57:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=150.107.74.76
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729021511; cv=none; b=u/q6URYJJ7JonsTK039+PdeVuMF6eE0g/ckcGyvijxcrZKz82bMfREXsnUEuLNVnhlPKQ6l7BARQA6w0h4oJ/c/89OobT3NmQn+rQf6PkJkHZ/JN/pRbAb7p8yADsS017CXT5mhmC7XxULU7sztHMSp8gZ0EYf+A57pKbxWq+Zg=
+	t=1729040271; cv=none; b=e56IrgXkmljGT7g5DA8Lc9zQkeWhY2ynn8WT2+Vs5RfMi65vw7vk4dYPVNuiHZ7zY5ld/OlyJtY3Pokhb/3SswtEUNPrqwurb9EGMcZiFzNlnc/IKO7ikmHB8u5VIcTSBiuiEh9knsTQSXGQiqHLZd5hhSIIZ3WSVQLBzJH2sk8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729021511; c=relaxed/simple;
-	bh=Jxw4wtlEr6vIs5MfVc+/KOu5i1arbajJ5xkHL+jGtOE=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=J0bwyjJgFiqjXzdhadv9lxijemKeO6Y7I0OE7XCaF3IHExtLsrT93SAU1m3byjTsvTCApT9ZYRSgfguax/CoaIBtMXAJY5L8JDd0T+koMWWPipIosJNJ6j+p5soc983/P7WHqEXLmaDr3QgsATUVsKagxeP0LR9ZGe9TVVrVwqk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=nbd.name; spf=none smtp.mailfrom=nbd.name; dkim=pass (1024-bit key) header.d=nbd.name header.i=@nbd.name header.b=q0UQPzEo; arc=none smtp.client-ip=46.4.11.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=nbd.name
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=nbd.name
+	s=arc-20240116; t=1729040271; c=relaxed/simple;
+	bh=cUnKhKkXjfWul3ilTqcHV8hlqkYS5CiTuIlhw+xHBPE=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type; b=Flzk3s6yefLWkphDDtSi7m21IoCgcBdn/6scTYd5q9KUKtPBP3umboyY+54vGovP5JWmhajz97KaXAMvFZSO/xXcOIdtkbcZu6WFdJPxZ/G77+C6VxH1Wg6jfXMDcmVpMm87UXulxmQsJr6GJzVCcef99v+iKI2O9QRL0ZnPziU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=canb.auug.org.au; spf=pass smtp.mailfrom=canb.auug.org.au; dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b=ntW/JMEd; arc=none smtp.client-ip=150.107.74.76
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=canb.auug.org.au
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=canb.auug.org.au
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=nbd.name header.i=@nbd.name header.b="q0UQPzEo"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nbd.name;
-	s=20160729; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
-	References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
-	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-	Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
-	List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=bwhtgi8DcQyDJ8FWIikvDQQ5XGGnfVqxrzGDPV+2pkY=; b=q0UQPzEohGuorgdFB4IwQpx1yq
-	GxIVNS6g41P3QuqbKLt22y2lwrJpodiLo3mk1Nfrqv1Pvurq6zvOI6tXrm3k0Jw0mz0PZJ2QosunQ
-	lE8xR87+5HHebNwe5uSRwkWAYPaWlOsY9QT8x5IZqBTh+xQKQeojq94bdj/swJAkyv9k=;
-Received: from p54ae9bfc.dip0.t-ipconnect.de ([84.174.155.252] helo=nf.local)
-	by ds12 with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-	(Exim 4.96)
-	(envelope-from <nbd@nbd.name>)
-	id 1t0nTR-009Kvt-0i;
-	Tue, 15 Oct 2024 21:44:53 +0200
-Message-ID: <a7ab80d5-ff49-4277-ba73-db46547a8a8e@nbd.name>
-Date: Tue, 15 Oct 2024 21:44:52 +0200
+	dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b="ntW/JMEd"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canb.auug.org.au;
+	s=201702; t=1729040262;
+	bh=MRYBgXgUSgi++5OBq9VNbC3h2psOne0GV22uzyKcVR4=;
+	h=Date:From:To:Cc:Subject:From;
+	b=ntW/JMEdsYnT/aBlIpSI0lJCNX+5fU99vgf9UVkZQL5r74OI/kACd0bPdRhhL/ulU
+	 HQQvIvlHCsWWqhCKtOE68XGPsKplugWz148UADoXgQnEo7Lyd8+DFNyGQft/D/u9qT
+	 +50QBNR+xlrSgTaf1RQq/9/pucStYbM62GYbdnUhRLXp4OI2xb8mxq/SaxlSPqiKAO
+	 6Hgdr4jE8/QV1A0S6nDqUFpzPj8Lh0f4V9FBdsMQ0avw4nKW3xn9ticRp8k2ss1yhV
+	 3xC9WWkAr48EYq3Pe/ALwHHJcoHtQN8yuklVoxSPLFul0fMfzOsATxwMlIvBZwrH2u
+	 nQqLEfHZ8+88A==
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(Client did not present a certificate)
+	by mail.ozlabs.org (Postfix) with ESMTPSA id 4XSsyF6kgLz4wx5;
+	Wed, 16 Oct 2024 11:57:41 +1100 (AEDT)
+Date: Wed, 16 Oct 2024 11:57:41 +1100
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+To: Simon Horman <horms@verge.net.au>, Pablo Neira Ayuso
+ <pablo@netfilter.org>
+Cc: NetFilter <netfilter-devel@vger.kernel.org>, Linux Kernel Mailing List
+ <linux-kernel@vger.kernel.org>, Linux Next Mailing List
+ <linux-next@vger.kernel.org>
+Subject: linux-next: duplicate patches in the ipvs-next tree
+Message-ID: <20241016115741.785992f1@canb.auug.org.au>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH RFC v1 net-next 00/12] bridge-fastpath and related
- improvements
-To: Eric Woudstra <ericwouds@gmail.com>,
- Nikolay Aleksandrov <razor@blackwall.org>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Pablo Neira Ayuso <pablo@netfilter.org>,
- Jozsef Kadlecsik <kadlec@netfilter.org>, Roopa Prabhu <roopa@nvidia.com>,
- Matthias Brugger <matthias.bgg@gmail.com>,
- AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
- Jiri Pirko <jiri@resnulli.us>,
- Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
- Lorenzo Bianconi <lorenzo@kernel.org>,
- Frank Wunderlich <frank-w@public-files.de>,
- Daniel Golle <daniel@makrotopia.org>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- bridge@lists.linux.dev, linux-arm-kernel@lists.infradead.org,
- linux-mediatek@lists.infradead.org
-References: <20241013185509.4430-1-ericwouds@gmail.com>
- <9f9f3cf0-7a78-40f1-b8d5-f06a2d428210@blackwall.org>
- <a07cadd3-a8ff-4d1c-9dca-27a5dba907c3@gmail.com>
- <0b0a92f2-2e80-429c-8fcd-d4dc162e6e1f@nbd.name>
- <137aa23a-db21-43c2-8fb0-608cfe221356@gmail.com>
-From: Felix Fietkau <nbd@nbd.name>
-Content-Language: en-US
-Autocrypt: addr=nbd@nbd.name; keydata=
- xsDiBEah5CcRBADIY7pu4LIv3jBlyQ/2u87iIZGe6f0f8pyB4UjzfJNXhJb8JylYYRzIOSxh
- ExKsdLCnJqsG1PY1mqTtoG8sONpwsHr2oJ4itjcGHfn5NJSUGTbtbbxLro13tHkGFCoCr4Z5
- Pv+XRgiANSpYlIigiMbOkide6wbggQK32tC20QxUIwCg4k6dtV/4kwEeiOUfErq00TVqIiEE
- AKcUi4taOuh/PQWx/Ujjl/P1LfJXqLKRPa8PwD4j2yjoc9l+7LptSxJThL9KSu6gtXQjcoR2
- vCK0OeYJhgO4kYMI78h1TSaxmtImEAnjFPYJYVsxrhay92jisYc7z5R/76AaELfF6RCjjGeP
- wdalulG+erWju710Bif7E1yjYVWeA/9Wd1lsOmx6uwwYgNqoFtcAunDaMKi9xVQW18FsUusM
- TdRvTZLBpoUAy+MajAL+R73TwLq3LnKpIcCwftyQXK5pEDKq57OhxJVv1Q8XkA9Dn1SBOjNB
- l25vJDFAT9ntp9THeDD2fv15yk4EKpWhu4H00/YX8KkhFsrtUs69+vZQwc0cRmVsaXggRmll
- dGthdSA8bmJkQG5iZC5uYW1lPsJgBBMRAgAgBQJGoeQnAhsjBgsJCAcDAgQVAggDBBYCAwEC
- HgECF4AACgkQ130UHQKnbvXsvgCgjsAIIOsY7xZ8VcSm7NABpi91yTMAniMMmH7FRenEAYMa
- VrwYTIThkTlQzsFNBEah5FQQCACMIep/hTzgPZ9HbCTKm9xN4bZX0JjrqjFem1Nxf3MBM5vN
- CYGBn8F4sGIzPmLhl4xFeq3k5irVg/YvxSDbQN6NJv8o+tP6zsMeWX2JjtV0P4aDIN1pK2/w
- VxcicArw0VYdv2ZCarccFBgH2a6GjswqlCqVM3gNIMI8ikzenKcso8YErGGiKYeMEZLwHaxE
- Y7mTPuOTrWL8uWWRL5mVjhZEVvDez6em/OYvzBwbkhImrryF29e3Po2cfY2n7EKjjr3/141K
- DHBBdgXlPNfDwROnA5ugjjEBjwkwBQqPpDA7AYPvpHh5vLbZnVGu5CwG7NAsrb2isRmjYoqk
- wu++3117AAMFB/9S0Sj7qFFQcD4laADVsabTpNNpaV4wAgVTRHKV/kC9luItzwDnUcsZUPdQ
- f3MueRJ3jIHU0UmRBG3uQftqbZJj3ikhnfvyLmkCNe+/hXhPu9sGvXyi2D4vszICvc1KL4RD
- aLSrOsROx22eZ26KqcW4ny7+va2FnvjsZgI8h4sDmaLzKczVRIiLITiMpLFEU/VoSv0m1F4B
- FtRgoiyjFzigWG0MsTdAN6FJzGh4mWWGIlE7o5JraNhnTd+yTUIPtw3ym6l8P+gbvfoZida0
- TspgwBWLnXQvP5EDvlZnNaKa/3oBes6z0QdaSOwZCRA3QSLHBwtgUsrT6RxRSweLrcabwkkE
- GBECAAkFAkah5FQCGwwACgkQ130UHQKnbvW2GgCeMncXpbbWNT2AtoAYICrKyX5R3iMAoMhw
- cL98efvrjdstUfTCP2pfetyN
-In-Reply-To: <137aa23a-db21-43c2-8fb0-608cfe221356@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; boundary="Sig_/l=e2Vy6GThhGR5jBmb=yWd=";
+ protocol="application/pgp-signature"; micalg=pgp-sha256
 
-On 15.10.24 15:32, Eric Woudstra wrote:
-> 
-> 
-> On 10/15/24 2:16 PM, Felix Fietkau wrote:
->> Hi Eric,
->> 
->> On 14.10.24 20:29, Eric Woudstra wrote:
->>> It would be no problem for me to change the subject and body, if you
->>> think that is better.
->>>
->>> The thing is, these patches actually make it possible to set up a fully
->>> functional software fastpath between bridged interfaces. Only after the
->>> software fastpath is set up and functional, it can be offloaded, which
->>> happens to by my personal motivation to write this patch-set.
->>>
->>> If the offload flag is set in the flowtable, the software fastpath will
->>> be offloaded. But in this patch-set, there is nothing that changes
->>> anything there, the existing code is used unchanged.
->> 
->> FWIW, a while back, I also wanted to add a software fast path for the
->> bridge layer to the kernel, also with the intention of using it for
->> hardware offload. It wasn't accepted back then, because (if I remember
->> correctly) people didn't want any extra complexity in the network stack
->> to make the bridge layer faster.
-> 
-> Hello Felix,
-> 
-> I think this patch-set is a clear showcase it is not very complex at
-> all. The core of making it possible only consists a few patches. Half of
-> this patch-set involves improvements that also apply to the
-> forward-fastpath.
+--Sig_/l=e2Vy6GThhGR5jBmb=yWd=
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-It's definitely an interesting approach. How does it deal with devices 
-roaming from one bridge port to another? I couldn't find that in the code.
+Hi all,
 
->> Because of that, I created this piece of software:
->> https://github.com/nbd168/bridger
->> 
->> It uses an eBPF TC classifier for discovering flows and handling the
->> software fast path, and also creates hardware offload rules for flows.
->> With that, hardware offloading for bridged LAN->WLAN flows is fully
->> supported on MediaTek hardware with upstream kernels.
->> 
->> - Felix
-> 
-> Thanks, I've seen that already. Nice piece of software, but I'm not
-> running openwrt. I would like to see a solution implemented in the
-> kernel, so any operating system can use it.
+The following commits are also in the netfilter-next tree as different
+commits (but the same patches):
 
-Makes sense. By the way, bridger can easily be built for non-OpenWrt 
-systems too. The only library that's actually needed is libubox - that 
-one is small and can be linked in statically. ubus support is fully 
-optional and not necessary for standard cases.
+  3478b99fc515 ("netfilter: nf_tables: prefer nft_trans_elem_alloc helper")
+  73e467915aab ("netfilter: nf_tables: replace deprecated strncpy with strs=
+cpy_pad")
+  0398cffb7459 ("netfilter: nf_tables: Fix percpu address space issues in n=
+f_tables_api.c")
+  cb3d289366b0 ("netfilter: Make legacy configs user selectable")
 
-- Felix
+These are commits
+
+  08e52cccae11 ("netfilter: nf_tables: prefer nft_trans_elem_alloc helper")
+  544dded8cb63 ("netfilter: nf_tables: replace deprecated strncpy with strs=
+cpy_pad")
+  0741f5559354 ("netfilter: nf_tables: Fix percpu address space issues in n=
+f_tables_api.c")
+  6c959fd5e173 ("netfilter: Make legacy configs user selectable")
+
+in the netfilter-next tree.
+
+These have already caused an unnecessary conflict due to further commits
+in the ipvs-next tree.  Maybe you could share a stable branch?
+
+--=20
+Cheers,
+Stephen Rothwell
+
+--Sig_/l=e2Vy6GThhGR5jBmb=yWd=
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmcPD4UACgkQAVBC80lX
+0GxQFwf/VZs+GxgXy7HvuXZnZqy2srbQvG4Ezl4qWHUf0GKGVuGR19Wp1TrLm/18
+usoDkcL7wGkhlrJwwPEA3VtrxMlYMJXbhxXlAtXyItTwNSSdxWiruAAE5vmKcigm
+Bd/dgzzwQ7azo0PexghJq9IUX72XM98S2yc8dXtQEG++2aDj752qyQ0XzdekElQp
+5DALjqWXvkVmV0c+UC/ndMuS/+zyXQHj/BeOaCKyO5m2ksnyhzhST+8Z/TZH4V5Z
+S8uo2dSXUUhW9vAG8sFNAWWpqegt7kPYctUOYJPgrBz7W7Ct7uWVPpHYFqy37fQn
+LxO+Sj36vXP8QkXzZmLJTlOUAT0QiQ==
+=MSDA
+-----END PGP SIGNATURE-----
+
+--Sig_/l=e2Vy6GThhGR5jBmb=yWd=--
