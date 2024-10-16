@@ -1,218 +1,135 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 085A120C008
-	for <netfilter-devel@vger.kernel.org>; Wed, 16 Oct 2024 14:32:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E079208D7A;
+	Wed, 16 Oct 2024 14:32:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729089123; cv=none; b=WNnleQT2JZE2/2yzYLDhvYSWsZJVaEDJZQ9dqVtE9XDhAl7rmmPSWezf88beNW7iYoUK2yP5kp6LIgwRiIhhDUidY1zj2mGeo1yXwcy9JPR2vfJcU0UgovkdyyN7oJicmnSWSaha+07a08r6V53N+hxS4LXaaRnSJQq0G4FvpPA=
+	t=1729089132; cv=none; b=jCZNl9Qr7s7V9vX2AJMt+6EEB4rFfph8tiFnpWogz0rHjHOJN109EdzvRGOzLMoWl1854vWt9d2ujcurw2ypbsdFPn8EPy25tkSpuY0/kFvKonLK1r+WYViqy75yBwgYBoTfw0B/8jxHkn4MRYvoImNeSFeT35WwHVLVGh/a/Og=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729089123; c=relaxed/simple;
-	bh=1czqXAOmH5x1JD75X5X+F+XqgU/kwa9rKBLONGeMuvk=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=YgiC/lHubkHzenCej7IgM3nTcQ2l4jUgt7UPCazA9gEF7P4XAbvhRg2tDU7D35UO0EOo+R8rjpzRRF7kzenaaXmL29Oir/WV7f17r32wu7bgx7XGJEjYhF3ZSt7InuPjKR9KruYlK3Lmg3mMVTDvsBYFKQs2dQxvty1mSW/vEr0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1t154C-0002BT-DQ; Wed, 16 Oct 2024 16:32:00 +0200
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v3 5/5] netfilter: nf_tables: allocate element update information dynamically
-Date: Wed, 16 Oct 2024 15:19:12 +0200
-Message-ID: <20241016131917.17193-6-fw@strlen.de>
-X-Mailer: git-send-email 2.45.2
-In-Reply-To: <20241016131917.17193-1-fw@strlen.de>
-References: <20241016131917.17193-1-fw@strlen.de>
+	s=arc-20240116; t=1729089132; c=relaxed/simple;
+	bh=MUBjfKfvAsRsCJe+7h2NNv4bqINVdYqmH7t/ggr/tQ0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=kCsvBbJm1TuaDu9k5nMwnq/IAIH/a60q7V9JddOsnTmyw8gfui8PslG1wf2bPDOqWPq1Hl3FJ3HyjGL6VRLcIh+gyZaVwhd93KANFKH8l7kVSu2wmJ9IxH8Kb6SZ5PfOxXCtsata8/pm/dVCoMGkhXJvKDgMOZCZX6YeAlfZmaE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=44964 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1t154B-00CEWL-NE; Wed, 16 Oct 2024 16:32:01 +0200
+Date: Wed, 16 Oct 2024 16:31:59 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Rongguang Wei <clementwei90@163.com>
+Cc: netfilter-devel@vger.kernel.org, kadlec@netfilter.org,
+	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
+	Rongguang Wei <weirongguang@kylinos.cn>
+Subject: Re: [PATCH v1] netfilter: x_tables: fix ordering of get and update
+ table private
+Message-ID: <Zw_OXzBgfFULaEzs@calendula>
+References: <20241016030909.64932-1-clementwei90@163.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20241016030909.64932-1-clementwei90@163.com>
+X-Spam-Score: -1.9 (-)
 
-Move the timeout/expire/flag members from nft_trans_one_elem struct into
-a dybamically allocated structure, only needed when timeout update was
-requested.
+On Wed, Oct 16, 2024 at 11:09:09AM +0800, Rongguang Wei wrote:
+> From: Rongguang Wei <weirongguang@kylinos.cn>
+> 
+> Meet a kernel panic in ipt_do_table:
+> PANIC: "Unable to handle kernel paging request at virtual address 00706f746b736564"
 
-This halves size of nft_trans_one_elem struct and allows to compact up to
-124 elements in one transaction container rather than 62.
+This patch is no correct.
 
-This halves memory requirements for a large flush or insert transaction,
-where ->update remains NULL.
+> and the stack is:
+>      PC: ffff5e1dbecf0750  [ipt_do_table+1432]
+>      LR: ffff5e1dbecf04e4  [ipt_do_table+812]
+>      SP: ffff8021f7643370  PSTATE: 20400009
+>     X29: ffff8021f7643390  X28: ffff802900c3990c  X27: ffffa0405245a000
+>     X26: ffff80400ad645a8  X25: ffffa0201c4d8000  X24: ffff5e1dbed00228
+>     X23: ffff80400ad64738  X22: 0000000000000000  X21: ffff80400ad64000
+>     X20: ffff802114980ae8  X19: ffff8021f7643570  X18: 00000007ea9ec175
+>     X17: 0000fffde7b52460  X16: ffff5e1e181e8f20  X15: 0000fffd9a0ae078
+>     X14: 610d273b56961dbc  X13: 0a08010100007ecb  X12: f5011880fd874f59
+>     X11: ffff5e1dbed10600  X10: ffffa0405245a000   X9: 569b063f004015d5
+>      X8: ffff80400ad64738   X7: 0000000000010002   X6: 0000000000000000
+>      X5: 0000000000000000   X4: 0000000000000000   X3: 0000000000000000
+>      X2: 0000000000000000   X1: 2e706f746b736564   X0: ffff80400ad65850
+> [ffff8021f7643390] ipt_do_table at ffff5e1dbecf074c [ip_tables]
+> [ffff8021f76434d0] iptable_filter_hook at ffff5e1dbfe700a4 [iptable_filter]
+> [ffff8021f76434f0] nf_hook_slow at ffff5e1e18c31c2c
+> [ffff8021f7643530] ip_forward at ffff5e1e18c41924
+> [ffff8021f76435a0] ip_rcv_finish at ffff5e1e18c3fddc
+> [ffff8021f76435d0] ip_rcv at ffff5e1e18c40214
+> [ffff8021f7643630] __netif_receive_skb_one_core at ffff5e1e18bbbed4
+> [ffff8021f7643670] __netif_receive_skb at ffff5e1e18bbbf3c
+> [ffff8021f7643690] process_backlog at ffff5e1e18bbd52c
+> [ffff8021f76436f0] __napi_poll at ffff5e1e18bbc464
+> [ffff8021f7643730] net_rx_action at ffff5e1e18bbc9a8
+> 
+> The panic happend in ipt_do_table function:
+> 
+> 	private = READ_ONCE(table->private);
+> 	jumpstack  = (struct ipt_entry **)private->jumpstack[cpu];
+> 	[...]
+> 	jumpstack[stackid++] = e;	// panic here
+> 
+> In vmcore, the cpu is 4, I read the private->jumpstack[cpu] is 007365325f6b6365,
+> this address between user and kernel address ranges which caused kernel panic.
+> Also the kmem shows that the private->jumpstack address is free.
+> It looks like we get a UAF address here.
+> 
+> But in xt_replace_table function:
+> 
+> 	private = table->private;
+> 	[...]
+> 	smp_wmb();
+> 	table->private = newtable_info;
+> 	smp_mb();
+> 
+> It seems no chance to get a free private member in ipt_do_table.
+> May have a ordering error which looks impossible:
+> 
+> 	smp_wmb();
+> 	table->private = newtable_info;
+> 	private = table->private;
+> 	smp_mb();
 
-Care has to be taken to release the extra data in all spots, including
-abort path.
+Makes no sense to me.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- v3: adjust for changes in earlier patch, nft_trans_elems_add() can
- now kfree() the update pointer unconditionally.
+> we get table->private after we set new table->private. After that, the
+> private was free in xt_free_table_info and also used in ipt_do_table.
+> Here use READ_ONCE to ensure we get private before we set the new one.
 
- include/net/netfilter/nf_tables.h | 10 ++++--
- net/netfilter/nf_tables_api.c     | 57 +++++++++++++++++++------------
- 2 files changed, 43 insertions(+), 24 deletions(-)
+You better enable CONFIG_KASAN there and similar instrumentation to
+check what really is going on there.
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 2a2631edab2b..1caf142900fe 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1754,11 +1754,15 @@ enum nft_trans_elem_flags {
- 	NFT_TRANS_UPD_EXPIRATION	= (1 << 1),
- };
- 
--struct nft_trans_one_elem {
--	struct nft_elem_priv		*priv;
-+struct nft_elem_update {
- 	u64				timeout;
- 	u64				expiration;
--	u8				update_flags;
-+	u8				flags;
-+};
-+
-+struct nft_trans_one_elem {
-+	struct nft_elem_priv		*priv;
-+	struct nft_elem_update		*update;
- };
- 
- struct nft_trans_elem {
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 5e038051c112..8662df68b03f 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -6665,7 +6665,8 @@ static void nft_trans_set_elem_destroy(const struct nft_ctx *ctx, struct nft_tra
- 	int i;
- 
- 	for (i = 0; i < te->nelems; i++) {
--		if (te->elems[i].update_flags)
-+		/* skip update request, see nft_trans_elems_new_abort() */
-+		if (!te->elems[i].priv)
- 			continue;
- 
- 		__nft_set_elem_destroy(ctx, te->set, te->elems[i].priv, true);
-@@ -6856,12 +6857,13 @@ static void nft_trans_elem_update(const struct nft_set *set,
- 				  const struct nft_trans_one_elem *elem)
- {
- 	const struct nft_set_ext *ext = nft_set_elem_ext(set, elem->priv);
-+	const struct nft_elem_update *update = elem->update;
- 
--	if (elem->update_flags & NFT_TRANS_UPD_TIMEOUT)
--		WRITE_ONCE(nft_set_ext_timeout(ext)->timeout, elem->timeout);
-+	if (update->flags & NFT_TRANS_UPD_TIMEOUT)
-+		WRITE_ONCE(nft_set_ext_timeout(ext)->timeout, update->timeout);
- 
--	if (elem->update_flags & NFT_TRANS_UPD_EXPIRATION)
--		WRITE_ONCE(nft_set_ext_timeout(ext)->expiration, get_jiffies_64() + elem->expiration);
-+	if (update->flags & NFT_TRANS_UPD_EXPIRATION)
-+		WRITE_ONCE(nft_set_ext_timeout(ext)->expiration, get_jiffies_64() + update->expiration);
- }
- 
- static void nft_trans_elems_add(const struct nft_ctx *ctx,
-@@ -6870,15 +6872,16 @@ static void nft_trans_elems_add(const struct nft_ctx *ctx,
- 	int i;
- 
- 	for (i = 0; i < te->nelems; i++) {
--		const struct nft_trans_one_elem *elem = &te->elems[i];
-+		struct nft_trans_one_elem *elem = &te->elems[i];
- 
--		if (elem->update_flags)
-+		if (elem->update)
- 			nft_trans_elem_update(te->set, elem);
- 		else
- 			nft_setelem_activate(ctx->net, te->set, elem->priv);
- 
- 		nf_tables_setelem_notify(ctx, te->set, elem->priv,
- 					 NFT_MSG_NEWSETELEM);
-+		kfree(elem->update);
- 	}
- }
- 
-@@ -6970,6 +6973,8 @@ static void nft_trans_elems_remove(const struct nft_ctx *ctx,
- 	int i;
- 
- 	for (i = 0; i < te->nelems; i++) {
-+		WARN_ON_ONCE(te->elems[i].update);
-+
- 		nf_tables_setelem_notify(ctx, te->set,
- 					 te->elems[i].priv,
- 					 te->nft_trans.msg_type);
-@@ -7018,7 +7023,6 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	struct nft_data_desc desc;
- 	enum nft_registers dreg;
- 	struct nft_trans *trans;
--	u8 update_flags;
- 	u64 expiration;
- 	u64 timeout;
- 	int err, i;
-@@ -7333,26 +7337,32 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 			else if (!(nlmsg_flags & NLM_F_EXCL)) {
- 				err = 0;
- 				if (nft_set_ext_exists(ext2, NFT_SET_EXT_TIMEOUT)) {
--					struct nft_trans_one_elem *update;
--
--					update = &nft_trans_container_elem(trans)->elems[0];
-+					struct nft_elem_update update = { };
- 
--					update_flags = 0;
- 					if (timeout != nft_set_ext_timeout(ext2)->timeout) {
--						update->timeout = timeout;
-+						update.timeout = timeout;
- 						if (expiration == 0)
- 							expiration = timeout;
- 
--						update_flags |= NFT_TRANS_UPD_TIMEOUT;
-+						update.flags |= NFT_TRANS_UPD_TIMEOUT;
- 					}
- 					if (expiration) {
--						update->expiration = expiration;
--						update_flags |= NFT_TRANS_UPD_EXPIRATION;
-+						update.expiration = expiration;
-+						update.flags |= NFT_TRANS_UPD_EXPIRATION;
- 					}
- 
--					if (update_flags) {
--						update->priv = elem_priv;
--						update->update_flags = update_flags;
-+					if (update.flags) {
-+						struct nft_trans_one_elem *ue;
-+
-+						ue = &nft_trans_container_elem(trans)->elems[0];
-+
-+						ue->update = kmemdup(&update, sizeof(update), GFP_KERNEL);
-+						if (!ue->update) {
-+							err = -ENOMEM;
-+							goto err_element_clash;
-+						}
-+
-+						ue->priv = elem_priv;
- 						nft_trans_commit_list_add_elem(ctx->net, trans, GFP_KERNEL);
- 						goto err_elem_free;
- 					}
-@@ -7520,14 +7530,19 @@ void nft_setelem_data_deactivate(const struct net *net,
-  * Returns true if set had been added to (i.e., elements need to be removed again).
-  */
- static bool nft_trans_elems_new_abort(const struct nft_ctx *ctx,
--				      const struct nft_trans_elem *te)
-+				      struct nft_trans_elem *te)
- {
- 	bool removed = false;
- 	int i;
- 
- 	for (i = 0; i < te->nelems; i++) {
--		if (te->elems[i].update_flags)
-+		if (te->elems[i].update) {
-+			kfree(te->elems[i].update);
-+			te->elems[i].update = NULL;
-+			/* Update request, so do not release this element */
-+			te->elems[i].priv = NULL;
- 			continue;
-+		}
- 
- 		if (!te->set->ops->abort || nft_setelem_is_catchall(te->set, te->elems[i].priv))
- 			nft_setelem_remove(ctx->net, te->set, te->elems[i].priv);
--- 
-2.45.2
-
+> Signed-off-by: Rongguang Wei <weirongguang@kylinos.cn>
+> ---
+>  net/netfilter/x_tables.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+> index da5d929c7c85..1ce7a4f268d6 100644
+> --- a/net/netfilter/x_tables.c
+> +++ b/net/netfilter/x_tables.c
+> @@ -1399,7 +1399,7 @@ xt_replace_table(struct xt_table *table,
+>  
+>  	/* Do the substitution. */
+>  	local_bh_disable();
+> -	private = table->private;
+> +	private = READ_ONCE(table->private);
+>  
+>  	/* Check inside lock: is the old number correct? */
+>  	if (num_counters != private->number) {
+> -- 
+> 2.25.1
+> 
+> 
