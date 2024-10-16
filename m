@@ -1,94 +1,91 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f169.google.com (mail-pg1-f169.google.com [209.85.215.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A25DE215F4B
-	for <netfilter-devel@vger.kernel.org>; Wed, 16 Oct 2024 20:05:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E203215F42
+	for <netfilter-devel@vger.kernel.org>; Wed, 16 Oct 2024 20:40:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729109115; cv=none; b=Jga1GSaG83Gbtqlkrl4EL7klvMkYWq+V74TjfcfWqH0KZs7u4DTjs7kF9+XdJrlBLam5P0uC906wuBhFTb3BmN8TWEMAEDX+fObUbph1uBUG0SOatOYV4WlV6OroGDcxC2QfJHECPcwTnFx4psUA7VsYrIz/CEAZ8ubH/JF8QfY=
+	t=1729111209; cv=none; b=FP/3Y5okNQiDokTSrqDzMPcw5WfjWnthMwv3ZkXDRE7TC6oC44XkaMsPAl7ARENABXTU5vjkiFsSLK7Lowd26nHYVrcZkVv6EM1nPB9UvaLrMvfj52bICJft0GxEXdXEr6DCq4LkXLL9sXRwRWqtclGH/qHJjz63m8U+pyKI/Xk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729109115; c=relaxed/simple;
-	bh=zf/Ow7URyDM0lqM0qQp7Grqt+CbJBv8+sJmNFfAdQpE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=QCbrT7dzhKITmJifgo0XvFWDxVNqq+V1aw4nsIPCkLG++eH/87QyGQWW8Yx20UInx4iOWBRUXF7L6vVvjJmudc5I5Raq4vSQxvVAvrQT+/s7ZwpKHGgzsWlCTQ2jyD5HppdIMGokqhOXLpbGrq8rJ76QrUyx6kZJENYENxV00AI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=l0CKD2nq; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1729111209; c=relaxed/simple;
+	bh=+ZhmjY733F1gROFYepfH+/BCr+cGlFRNdGmMnzv/Ph8=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=YJ3kv/fqr6HzZBH9TY2MWF0Cw49ZvliTzQ+eTA9/hWyeSTuiUUuPS7Wd3xWRA1ewMpuCRYHHmRTcCp/1qhny6uLePR7dxWg4Ab5tTQf/HgXU6jL723FJj96r91FIpYrz14WIbLwK+zcq0b+Aj0oDMqcp0keFEMcy0pHm3R/CszQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mojatatu.com; spf=none smtp.mailfrom=mojatatu.com; dkim=pass (2048-bit key) header.d=mojatatu-com.20230601.gappssmtp.com header.i=@mojatatu-com.20230601.gappssmtp.com header.b=AM57Dk1k; arc=none smtp.client-ip=209.85.215.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mojatatu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=mojatatu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="l0CKD2nq"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=PpvO3akHpQIy58M17Xk4ja0HwX8ucHmViLG/CZIeSO4=; b=l0CKD2nqsiQAinzLEHhxKWxYLZ
-	QQl3UdbzhalKGHGGX9ld8w7i3vZ/N8UH/7EyfBfR8SUM1meQtb0T6Rdk9vp/8XRwI8fqWcnNgGRzC
-	KxmbRlVZ+dsStgeVMsA8/CZxM9ewDSWE0raLa01Tr1a146v8ZnnPLA/GI7MP69VkfEiZzcNZFJ90R
-	rQAP3ldO+XLSJ7CRuOqpH1mnGkk7Qw+PSbjGspcJ9J61RjfDZ+I6ujnZHIzpIhnf7aktg+GnPqeOP
-	VS2+or7GkwCy219MfrSuVRpO7hu3phSSTMp9CVaiHRC9cv7Q9lJ0yYW89AU0yEhQAkjJikme99PXy
-	9aAkFWbA==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1t1AGc-000000000wr-2Eqv;
-	Wed, 16 Oct 2024 22:05:10 +0200
-Date: Wed, 16 Oct 2024 22:05:10 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Jan Engelhardt <ej@inai.de>
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [RFC libnftnl/nft 0/5] nftables: indicate presence of
- unsupported netlink attributes
-Message-ID: <ZxAcdux4eQXeMiXB@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>, Jan Engelhardt <ej@inai.de>,
-	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-References: <20241007094943.7544-1-fw@strlen.de>
- <Zw_yzLizGDGzhFRg@orbyte.nwl.cc>
- <45r97p82-s222-1286-6636-25p3631qq10o@vanv.qr>
+	dkim=pass (2048-bit key) header.d=mojatatu-com.20230601.gappssmtp.com header.i=@mojatatu-com.20230601.gappssmtp.com header.b="AM57Dk1k"
+Received: by mail-pg1-f169.google.com with SMTP id 41be03b00d2f7-7ea78037b7eso217305a12.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 16 Oct 2024 13:40:08 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=mojatatu-com.20230601.gappssmtp.com; s=20230601; t=1729111208; x=1729716008; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=MEKOnh1s2+0Rhw9pEZcf4Hw/wzdiXLK0w21/+OOxAS0=;
+        b=AM57Dk1kulhp+iUb2dXt9CjNnCjXs3HjIihLmB1tmD5yzn3BP899NA1hH6dgLvZSYx
+         MU7fibYMBwDo33TBc0GGC9nFS55o5Oo9YiesTMOGSk6EVEDQuARZcKRmQUNWuN06yHuv
+         gG7oq2XOUzdNrc2ZiOOV+iE81iDr+jipUME1IFxKkB79aRefByOix49PXytKioGNvOex
+         PWM4E1nwcQVjN8lbcauSQNiQihixUx72+23HK21xAp8TsTs9e/gF37LmYMUr01ZMHYUc
+         8cXMSGCvepU/FXBVNRl7rul/y5nJ1Ei/BXJOOQUl5cCOSnwB5zlTrNlPb4Rz+Lgfabnk
+         lGEQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1729111208; x=1729716008;
+        h=cc:to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=MEKOnh1s2+0Rhw9pEZcf4Hw/wzdiXLK0w21/+OOxAS0=;
+        b=TGidP7CqTfhXBJ5WtAEoS87V13LQtcfIq7r9mgcGnfINK3b0nKmi4EclvJbgfO7csU
+         5VNhPRkBa91JAUwsaUe8+ks5TnD2Ef4K9cH/2w/coYshbJmfL9gD8caNpzSu0EF5aQrs
+         v1m1dXQbY1ptt61VxH6qq1skBI0+FlZvavsdH4nSvMdTQBX+nQESH20otaNE2TkrPFC9
+         Yg9/7j4QS+Y00kjidNpZXf5+hooSmgklnZ6MsfLhGa0YHHmvLuFuceAZX9dbSSwjN0w7
+         8gzrmhV+Li7E+HlF6l0diH+vCBA1DXP1N9FJhk1TnECgrne6UT/JgxT0Y4JdC0EsRX+p
+         Pfjg==
+X-Forwarded-Encrypted: i=1; AJvYcCVfAjkTkhuHF6+VVvGKRPnwVKEYXDDOHkzMrvcSK99ReSjmeoV7Lv4ODci0RLIJnJJPdCgv0ynQCNgNyZBtKRg=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw/a0cySMgYyFoUnFB7d61IR6FJ6BNFYbjsHyYIHTWRtnq6xlkf
+	FTU9So8ad9E0zwnEUR69ngjpCJSiIMpVPu6YRHOGGezyscag6C7bpIsYvruwCHyEX8DrppKeuFX
+	sXw1k6fjPcBYU/6GtUqFW4WhOGj3TjyRS3s2R
+X-Google-Smtp-Source: AGHT+IEbFFROjL1FU0OCz7I4lJZn5uKKHUhDn7xSQ7tnQ99D4R9aHpb71O/gXX3HUDgGL1eJ9e6IjJEbslXU5A37su4=
+X-Received: by 2002:a05:6a20:db0c:b0:1d3:293d:4c5a with SMTP id
+ adf61e73a8af0-1d8bcf3e6e8mr25964774637.22.1729111207840; Wed, 16 Oct 2024
+ 13:40:07 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <45r97p82-s222-1286-6636-25p3631qq10o@vanv.qr>
+From: Jamal Hadi Salim <jhs@mojatatu.com>
+Date: Wed, 16 Oct 2024 16:39:56 -0400
+Message-ID: <CAM0EoM=G_eRhdCgMX--H=U+9phAbxwyW4-Y3W+t_ZFtgQCqkPA@mail.gmail.com>
+Subject: 0x19: Dates And Location for upcoming conference
+To: people <people@netdevconf.info>
+Cc: Linux Kernel Network Developers <netdev@vger.kernel.org>, Christie Geldart <christie@ambedia.com>, 
+	Kimberley Jeffries <kimberleyjeffries@gmail.com>, 
+	Lael Santos <lael.santos@expertisesolutions.com.br>, 
+	"board@netdevconf.org" <board@netdevconf.info>, lwn@lwn.net, 
+	linux-wireless <linux-wireless@vger.kernel.org>, netfilter-devel@vger.kernel.org, 
+	lartc@vger.kernel.org, Kathy Giori <kathy.giori@gmail.com>, 
+	=?UTF-8?B?UnXFvmljYSBQZWppxIc=?= <Ruzica.Pejic@algebra.hr>, 
+	=?UTF-8?B?S3Jpc3RpbmEgSXbEjWnEhw==?= <Kristina.IvcicBrajkovic@algebra.hr>, 
+	=?UTF-8?Q?Mislav_Balkovi=C4=87?= <Mislav.Balkovic@algebra.hr>, 
+	Bruno Banelli <bruno.banelli@sartura.hr>
+Content-Type: text/plain; charset="UTF-8"
 
-On Wed, Oct 16, 2024 at 09:28:46PM +0200, Jan Engelhardt wrote:
-> 
-> On Wednesday 2024-10-16 19:07, Phil Sutter wrote:
-> >On Mon, Oct 07, 2024 at 11:49:33AM +0200, Florian Westphal wrote:
-> >[...]
-> >> Extend libnftnl to also make an annotation when a known expression has
-> >> an unknown attribute included in the dump, then extend nftables to also
-> >> display this to the user.
-> >
-> >We must be careful with this and LIBVERSION updates. I'm looking at
-> >libnftnl-1.2.0 which gained support for NFTA_TABLE_OWNER,
-> >NFTA_SOCKET_LEVEL, etc. but did not update LIBVERSION at all - OK,
-> >that's probably a bug. But there is also libnftnl-1.1.9 with similar
-> >additions (NFTA_{DYNSET,SET,SET_ELEM}_EXPRESSIONS) and a LIBVERSION
-> >update in the compatible range (15:0:4 -> 16:0:5).
-> 
-> From 1.1.8 to 1.1.9, there were a bunch of function additions:
-> 
-> +void nftnl_expr_add_expr(struct nftnl_expr *expr, uint32_t type, struct nftnl_expr *e);
-> +int nftnl_expr_expr_foreach(const struct nftnl_expr *e,
-> +                           int (*cb)(struct nftnl_expr *e, void *data),
-> +                           void *data);
-> 
-> No such modifications (of this kind, or any stronger kind) were made between
-> 1.1.9 to 1.2.0, hence there was no LIBVERSION update.
+Hi,
 
-Ah, you're right! No libnftnl.map update, so no newly exported symbols.
-The ABI must be identical between the two and thus LIBVERSION remaining
-the same is correct.
+This is a pre-announcement on behalf of the NetDev Society so folks
+can plan travel etc.
 
-> Expanding the enum{} generally does not change the ABI unless the underlying
-> type changes (which it did not in this instance).
+Netdev conf 0x19 is going to be a hybrid conference.  We will be
+updating you with more details in the near future on the exact
+coordinates. Either watch https://netdevconf.info/0x19/ or join
+people@ mailing list[1] for more frequent updates.
 
-I got confused by the added nftnl object attributes, but the data
-structures are hidden for a reason and the getter/setter mechanism
-allows for exactly these changes to happen under the surface.
+Netdev 0x19 is scheduled to be in Zagreb - Croatia March 10th-14th.
 
-Thanks for clarifying!
+Be ready to share your work with the community. CFS coming soon.
+
+sincerely,
+Netdev Society Board:
+Roopa Prabhu, Shrijeet Mukherjee, Tom Herbert, Jamal Hadi Salim
+
+[1] https://lists.netdevconf.info/postorius/lists/people.netdevconf.info/
