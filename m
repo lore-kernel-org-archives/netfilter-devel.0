@@ -1,83 +1,77 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC435205E23;
-	Wed, 16 Oct 2024 17:08:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F46318BC33
+	for <netfilter-devel@vger.kernel.org>; Wed, 16 Oct 2024 18:34:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729098526; cv=none; b=hQrM4gIZIgyjYqdY77WQf+DBYneDlDjjZ8B8PbE1tCLVHcmxlBBlMU7QUXuCS/MsRe3O/jA7d4Pq/tPHk+pARVfKhPo+yuobUW8QKOl5tdzp0fRn9IO0lkRhjjYYKREwF47zZELUKTmaCFOgMj7eCrf2LWUZsOM9RQhXeQ5ZQvY=
+	t=1729103660; cv=none; b=FzC7Sdc3d9w2iHOIaHkAgp2YCOxGcLQ9uFslPKVAUYlnOMZwDODGJM+nXDquHxgNGl7xGMNjqcWi948/2F1rf/h9A6oD5hHpkHjYi69zhYX9tLWMBCfL7AfigfR6jhlJuZkKUQ1iihVETaSPbzEunPbxMGJWTS6MYKmbGOqGLT8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729098526; c=relaxed/simple;
-	bh=xPKTHC6TAd6WhauoRzwJwU5j5gcUbdI/FpSG6faFCIA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=TO7JxMgnM1hZiqqu+s6jbR6NYsHdGIVfFcCL0ZDMW5+KLgLMR5fha+XKskEbl25K2EEqmUbXcGhcsPk194+iUDq3ttkPEeJWv95p7PSC/ACglBQUICHmTAUtmz9hTb4EeRRcRZfibyT9b1vTHhqtvre5RHPJ9v6wkpme7Xh3uU8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gz5VV2f3; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gz5VV2f3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2145EC4CEC5;
-	Wed, 16 Oct 2024 17:08:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1729098526;
-	bh=xPKTHC6TAd6WhauoRzwJwU5j5gcUbdI/FpSG6faFCIA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=gz5VV2f3aIIgTnJKVfld3Vn6NM4eybTs5bck1xwPO2lR9y2t45j8/p/XpJ7V3QCcN
-	 qVqzY3bzRyn09NZhvUTGMc4NqAHu5H/0dE4Nc3uzkC6bmeHgabB7+/Fs7cs1+v1oy7
-	 O5Iae1g96rYk8w3pL/efYXdUYHfnKy8PTRzPahTWqpb2CqF0DcbNUR9ySFTCGqXX8F
-	 JRifEGOMby8eElTk4hvM6MWYwYFvM1w2+haRkTZbmTCcxS70Ex/kFQKfWtHaWM4bkq
-	 KhI9zi/UUzCylTpWqb0JbqOCB55PJD/lc9U1UxgBcrvPgFy8HUrXzvrMZaAtqW8xkx
-	 skdJ92+1LiKTg==
-Date: Wed, 16 Oct 2024 18:08:42 +0100
-From: Simon Horman <horms@kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	NetFilter <netfilter-devel@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Linux Next Mailing List <linux-next@vger.kernel.org>
-Subject: Re: linux-next: duplicate patches in the ipvs-next tree
-Message-ID: <20241016170842.GA214065@kernel.org>
-References: <20241016115741.785992f1@canb.auug.org.au>
- <Zw9p7_31EESN64RQ@calendula>
+	s=arc-20240116; t=1729103660; c=relaxed/simple;
+	bh=Kz9u8vRouLI3ZZUMWLkZt4mnTDfQkhZuRmXLw3xhPIY=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=bN+Bhvg9Bcb/0jd/j1y2wcp7azHPfSEyaYbTS+LNeK6TOBbuNzH9GJl/p6u0w7FkYfUhsTbio/c2EVD8SKqOehZnIBEmFeGvllMcJhT89wgtGlZGR29Kg0MLiXGU/UeI8QbMdYAmEvtMu+8Fv7qcnoDJUdukZSAnIhszWvGG6Ns=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=57258 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1t18qa-00Cj3G-MC; Wed, 16 Oct 2024 20:34:14 +0200
+Date: Wed, 16 Oct 2024 20:34:12 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+	netfilter-devel@vger.kernel.org
+Subject: Re: [RFC libnftnl/nft 0/5] nftables: indicate presence of
+ unsupported netlink attributes
+Message-ID: <ZxAHJO_amh8cIDaR@calendula>
+References: <20241007094943.7544-1-fw@strlen.de>
+ <Zw_yzLizGDGzhFRg@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <Zw9p7_31EESN64RQ@calendula>
+In-Reply-To: <Zw_yzLizGDGzhFRg@orbyte.nwl.cc>
+X-Spam-Score: -1.9 (-)
 
-On Wed, Oct 16, 2024 at 09:23:27AM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Oct 16, 2024 at 11:57:41AM +1100, Stephen Rothwell wrote:
-> > Hi all,
-> > 
-> > The following commits are also in the netfilter-next tree as different
-> > commits (but the same patches):
-> > 
-> >   3478b99fc515 ("netfilter: nf_tables: prefer nft_trans_elem_alloc helper")
-> >   73e467915aab ("netfilter: nf_tables: replace deprecated strncpy with strscpy_pad")
-> >   0398cffb7459 ("netfilter: nf_tables: Fix percpu address space issues in nf_tables_api.c")
-> >   cb3d289366b0 ("netfilter: Make legacy configs user selectable")
-> > 
-> > These are commits
-> > 
-> >   08e52cccae11 ("netfilter: nf_tables: prefer nft_trans_elem_alloc helper")
-> >   544dded8cb63 ("netfilter: nf_tables: replace deprecated strncpy with strscpy_pad")
-> >   0741f5559354 ("netfilter: nf_tables: Fix percpu address space issues in nf_tables_api.c")
-> >   6c959fd5e173 ("netfilter: Make legacy configs user selectable")
-> > 
-> > in the netfilter-next tree.
-> > 
-> > These have already caused an unnecessary conflict due to further commits
-> > in the ipvs-next tree.  Maybe you could share a stable branch?
+On Wed, Oct 16, 2024 at 07:07:24PM +0200, Phil Sutter wrote:
+> On Mon, Oct 07, 2024 at 11:49:33AM +0200, Florian Westphal wrote:
+> [...]
+> > Extend libnftnl to also make an annotation when a known expression has
+> > an unknown attribute included in the dump, then extend nftables to also
+> > display this to the user.
 > 
-> That was the result of a rebase, moving forward I will keep PR in a
-> separated branch until they are merged upstream to avoid this
-> situation.
+> We must be careful with this and LIBVERSION updates. I'm looking at
+> libnftnl-1.2.0 which gained support for NFTA_TABLE_OWNER,
+> NFTA_SOCKET_LEVEL, etc. but did not update LIBVERSION at all - OK,
+> that's probably a bug. But there is also libnftnl-1.1.9 with similar
+> additions (NFTA_{DYNSET,SET,SET_ELEM}_EXPRESSIONS) and a LIBVERSION
+> update in the compatible range (15:0:4 -> 16:0:5).
 
-Hi,
+LIBVERSION talks about libnftnl API, not netlink attributes?
+Probably 1.1.9 got any API update while 1.20 did not?
 
-I have force-pushed ipvs-next so it now matches netfilter-next.
-I expect that should resolve this problem.
+> We may increase incomplete marker correctness by treating support for
+> any new attribute an incompatible update. Given that we often have
+> dependencies between libnftnl and nftables for other things, it may not
+> be too much of a downside though.
 
-Thanks!
+15:0:4 -> 16:0:5 means new API is available while older are still
+supported, so old nftables can use this library binary safely.
+
+You mean, we should reset age, considering c:0:a?
+
+> > Debug out out will include the [incomplete] tag for each affected
+> > expression.
+> 
+> Looking at the impact this series has for such situations, I want to
+> make the iptables-nft compat extension stuff depend on it for better
+> detection of incompatible rule content.
+> 
+> Thanks, Phil
+> 
