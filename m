@@ -1,28 +1,28 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B01B120C49A
-	for <netfilter-devel@vger.kernel.org>; Wed, 16 Oct 2024 14:31:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88C0920C014
+	for <netfilter-devel@vger.kernel.org>; Wed, 16 Oct 2024 14:31:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729089113; cv=none; b=pP2rfukmRrtAidSEJ9EUPWH+fHOZXUCSyVdLZl8BSaa21D3iFjl2I/O5DTLNhA5BRqePBEZufK2B2NF5BWdQM9pMS3ps2j/g62rYhHy/toizFvF7FFRzOxK1phAjzqGjSDvzpgPqhpTP7FRykVD3k5OTPm3FaHcO28Hlg9zKR7M=
+	t=1729089115; cv=none; b=lJ4tClO6Ujz0K7dJhg4pTJKBpO4Wp8nVfHTaF7PRBEPelaBGUfLTqSzjZyRvGKw34ktqXGw1IWE/7So3ob2dGwgYNQmrhG3CKKhJaOBYT2xkM6B/dqM/7eQUs+fcsW31din0lbYqHk0mA8CUMAwt8fgz7XMwUkterpypGSn1zis=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729089113; c=relaxed/simple;
-	bh=vWbGV+voYq4G45eDCqt/Ii382FCADW69bVABBsXG3bY=;
+	s=arc-20240116; t=1729089115; c=relaxed/simple;
+	bh=mrcMwvMvrMHRX0OTdbMJWaTkHIJCHw7ZYamQburPs2A=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=P9bEqYmo7eSVO611Fz7G8wY2iP0HF8U56+nfCTW0Pkn17D4Jr+EeVKS4LjMuiBIddM0jWbPayBs+jpnsyzsgDsT7K4N4VjQSEizQo7GIEIL9iaH+zy4RDVw0/Ha1fhl2jkEoWdT/SeFkfinI8U/oJBpEEl97PwWhgsBFuKOUuls=
+	 MIME-Version; b=OM9m3yHBNMBOdmSS4C/PxBsWIW0XvwtbUQGxYtJ5ZEO3m9BPoTYl3p7iEkVkyZW8bzP0LQStk8dWKTEKksvvMp927dRqEicK1ERPbqxc+glpN8uWp+8v+s23wFQvfk6i6/+eyzhGmgIfUQHbaugfXusRIiCq8BrFFeHSwW0lwKg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1t153w-0002Ak-5I; Wed, 16 Oct 2024 16:31:44 +0200
+	id 1t1544-0002B7-99; Wed, 16 Oct 2024 16:31:52 +0200
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v3 1/5] netfilter: nf_tables: add nft_trans_commit_list_add_elem helper
-Date: Wed, 16 Oct 2024 15:19:08 +0200
-Message-ID: <20241016131917.17193-2-fw@strlen.de>
+Subject: [PATCH nf-next v3 3/5] netfiler: nf_tables: preemitve fix for audit failure
+Date: Wed, 16 Oct 2024 15:19:10 +0200
+Message-ID: <20241016131917.17193-4-fw@strlen.de>
 X-Mailer: git-send-email 2.45.2
 In-Reply-To: <20241016131917.17193-1-fw@strlen.de>
 References: <20241016131917.17193-1-fw@strlen.de>
@@ -34,90 +34,73 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add and use a wrapper to append trans_elem structures to the
-transaction log.
+Nftables audit log unfortunately leaks implementation detail, the
+transaction log size, to userspace.
 
-Unlike the existing helper, pass a gfp_t to indicate if sleeping
-is allowed.
+Without this, nft_audit.sh selftest fails once subsequenct NEW/DELELEM
+transactions can be compressed.
 
-This will be used by a followup patch to realloc nft_trans_elem
-structures after they gain a flexible array member to reduce
-number of such container structures on the transaction list.
+Thus increment the audit counter by the number of elements to keep
+the output identical.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- No changes in v3.
+ v3: this patch is new to prevent nft_audit.sh from breaking
+ after next patch.
 
- net/netfilter/nf_tables_api.c | 21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ net/netfilter/nf_tables_api.c | 23 ++++++++++++++++++++---
+ 1 file changed, 20 insertions(+), 3 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 30331688301e..10f9403b45da 100644
+index d88adbd96ebe..bcb069057a53 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -421,6 +421,17 @@ static void nft_trans_commit_list_add_tail(struct net *net, struct nft_trans *tr
+@@ -10373,9 +10373,26 @@ static void nf_tables_commit_audit_free(struct list_head *adl)
  	}
  }
  
-+static void nft_trans_commit_list_add_elem(struct net *net, struct nft_trans *trans,
-+					   gfp_t gfp)
++/* Silly, but existing test audit test cases require a count
++ * value derived from the (INTERNAL!) transaction log length.
++ *
++ * Thus, compaction of NEW/DELSETELEM breaks such tests.
++ */
++static unsigned int nf_tables_commit_audit_entrycount(const struct nft_trans *trans)
 +{
-+	WARN_ON_ONCE(trans->msg_type != NFT_MSG_NEWSETELEM &&
-+		     trans->msg_type != NFT_MSG_DELSETELEM);
++	switch (trans->msg_type) {
++	case NFT_MSG_NEWSETELEM:
++	case NFT_MSG_DELSETELEM:
++		return nft_trans_container_elem(trans)->nelems;
++	}
 +
-+	might_alloc(gfp);
-+
-+	nft_trans_commit_list_add_tail(net, trans);
++	return 1;
 +}
 +
- static int nft_trans_table_add(struct nft_ctx *ctx, int msg_type)
+ static void nf_tables_commit_audit_collect(struct list_head *adl,
+-					   struct nft_table *table, u32 op)
++					   const struct nft_trans *trans, u32 op)
  {
- 	struct nft_trans *trans;
-@@ -7183,7 +7194,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 					if (update_flags) {
- 						nft_trans_elem_priv(trans) = elem_priv;
- 						nft_trans_elem_update_flags(trans) = update_flags;
--						nft_trans_commit_list_add_tail(ctx->net, trans);
-+						nft_trans_commit_list_add_elem(ctx->net, trans, GFP_KERNEL);
- 						goto err_elem_free;
- 					}
- 				}
-@@ -7207,7 +7218,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	}
++	const struct nft_table *table = trans->table;
+ 	struct nft_audit_data *adp;
  
- 	nft_trans_elem_priv(trans) = elem.priv;
--	nft_trans_commit_list_add_tail(ctx->net, trans);
-+	nft_trans_commit_list_add_elem(ctx->net, trans, GFP_KERNEL);
- 	return 0;
- 
- err_set_full:
-@@ -7424,7 +7435,7 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
- 	nft_setelem_data_deactivate(ctx->net, set, elem.priv);
- 
- 	nft_trans_elem_priv(trans) = elem.priv;
--	nft_trans_commit_list_add_tail(ctx->net, trans);
-+	nft_trans_commit_list_add_elem(ctx->net, trans, GFP_KERNEL);
- 	return 0;
- 
- fail_ops:
-@@ -7460,7 +7471,7 @@ static int nft_setelem_flush(const struct nft_ctx *ctx,
- 	nft_setelem_data_deactivate(ctx->net, set, elem_priv);
- 	nft_trans_elem_set(trans) = set;
- 	nft_trans_elem_priv(trans) = elem_priv;
--	nft_trans_commit_list_add_tail(ctx->net, trans);
-+	nft_trans_commit_list_add_elem(ctx->net, trans, GFP_ATOMIC);
- 
- 	return 0;
+ 	list_for_each_entry(adp, adl, list) {
+@@ -10385,7 +10402,7 @@ static void nf_tables_commit_audit_collect(struct list_head *adl,
+ 	WARN_ONCE(1, "table=%s not expected in commit list", table->name);
+ 	return;
+ found:
+-	adp->entries++;
++	adp->entries += nf_tables_commit_audit_entrycount(trans);
+ 	if (!adp->op || adp->op > op)
+ 		adp->op = op;
  }
-@@ -7477,7 +7488,7 @@ static int __nft_set_catchall_flush(const struct nft_ctx *ctx,
+@@ -10544,7 +10561,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
  
- 	nft_setelem_data_deactivate(ctx->net, set, elem_priv);
- 	nft_trans_elem_priv(trans) = elem_priv;
--	nft_trans_commit_list_add_tail(ctx->net, trans);
-+	nft_trans_commit_list_add_elem(ctx->net, trans, GFP_KERNEL);
+ 		nft_ctx_update(&ctx, trans);
  
- 	return 0;
- }
+-		nf_tables_commit_audit_collect(&adl, table, trans->msg_type);
++		nf_tables_commit_audit_collect(&adl, trans, trans->msg_type);
+ 		switch (trans->msg_type) {
+ 		case NFT_MSG_NEWTABLE:
+ 			if (nft_trans_table_update(trans)) {
 -- 
 2.45.2
 
