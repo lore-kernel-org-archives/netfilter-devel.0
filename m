@@ -1,105 +1,85 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 659F2207A3B
-	for <netfilter-devel@vger.kernel.org>; Wed, 16 Oct 2024 14:36:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75E7854F95;
+	Wed, 16 Oct 2024 15:10:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729089387; cv=none; b=O3ceFlvLgp3JI5oHMc0IC51f55CWz7o8dvKfcw3K93/bG0wqeO5mmYiHzuHRGdYI+ID3cNEUWdNGtrnPSdFouGjEV742tBMnFOvV3SkY/0c32LGqM/FZ0nWy6yZFw0/4Q3H40T/af7flM43kPFhMeGqYypxHA+Ig+lm/JZcSOGs=
+	t=1729091427; cv=none; b=q8C3Xsb939Clk52YEoM07rhwnyqZaCmEizfMQW6+tDnsnuear/sVWUu/zCsG41iZ+togk1vGxhI2dDQzIWCnhGCyl6V9k1r6jr0lz5vJsvyfJIOx+jQze/X1tFweDSaCoNJgc6QHtGMt2AvXOe65Y5EhPMn9WvgG+JU5qhCf8jA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729089387; c=relaxed/simple;
-	bh=Qc6ITKsZ7ChUtIRjQ0VfthnlZ4aVFZjvzs1ho0XkzxQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=hCFZl4SC7pDgMgreiTv9eCwy1K3Ca7FwXbiUSVyS3m7zjF14ZdnuBhLAezb6xFuddDZr67qA+qmWf233CjmnTziBlx/EoGNnrCpwLq8c6REHgkNG+OLbpOwCAhjqWr9NKueZeX7jxPXEsRpFm9kAmcrtmqIdYPV/dLB7IIjFBn8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=44432 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1t158O-00CFMe-Bm; Wed, 16 Oct 2024 16:36:22 +0200
-Date: Wed, 16 Oct 2024 16:36:19 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next v3 0/5] netfilter: nf_tables: reduce set element
- transaction size
-Message-ID: <Zw_PY7MXqNDOWE71@calendula>
-References: <20241016131917.17193-1-fw@strlen.de>
+	s=arc-20240116; t=1729091427; c=relaxed/simple;
+	bh=NTgGD59qf94Xj0J2P9c0n6Kdata3dVUb0roq94UWpPU=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=O2ImJ+dZXTjQrwvvylN32uqXVp4QRf1ma1H/2NV1njFD6mxso0937fOkqNgiVfCd/KKLZlNHSfyOerh22xkRHLm5+dl/02z7GEytElqQZ11j6p5AefOyV3fzZt7oDRRUQPppxOlvgC/iNwy+OB+/QnfOUizmDLDkHC8VX7X5mBM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=noabd1xE; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="noabd1xE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E871DC4CEC5;
+	Wed, 16 Oct 2024 15:10:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1729091426;
+	bh=NTgGD59qf94Xj0J2P9c0n6Kdata3dVUb0roq94UWpPU=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=noabd1xEt62dUzoOmnlBp08TTUQhdvGSGIeAqMo93CNTvaKfJzQcaDfgyOcCZeQ+1
+	 O289FTBhdLNmupFNkmVb8piMN66INPzxbCCqdscKs2QM2CWGkRYqs/1OWVxI3UMsTh
+	 9BP32y4QC4ki8tytD+iwjVJN1iBovcEr6JMi9XAzIBV1Biak6mIx0xPvP7zA0f5vMg
+	 S+x4+EZ6A/TE8G9OMMTZ78Cn2Jq8Tvk1P3gysqHK1d0zHrRl2Lny2Be3SNZT0DUx9T
+	 4FOL732vnx2a+tpEvZACyE/Wsa6kOoyz7Cbii5btbjFShiImr8tAHSaCJPxW33PDAi
+	 1ctUjk11N6neg==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 70CCC3822D30;
+	Wed, 16 Oct 2024 15:10:32 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20241016131917.17193-1-fw@strlen.de>
-X-Spam-Score: -1.9 (-)
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH bpf v1 1/2] bpf: fix link info netfilter flags to populate
+ defrag flag
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <172909143125.1848445.4811107844774285676.git-patchwork-notify@kernel.org>
+Date: Wed, 16 Oct 2024 15:10:31 +0000
+References: <20241011193252.178997-1-wudevelops@gmail.com>
+In-Reply-To: <20241011193252.178997-1-wudevelops@gmail.com>
+To: Tyrone Wu <wudevelops@gmail.com>
+Cc: bpf@vger.kernel.org, pablo@netfilter.org, kadlec@netfilter.org,
+ davem@davemloft.net, edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+ andrii@kernel.org, eddyz87@gmail.com, mykolal@fb.com, ast@kernel.org,
+ daniel@iogearbox.net, martin.lau@linux.dev, song@kernel.org,
+ yonghong.song@linux.dev, john.fastabend@gmail.com, kpsingh@kernel.org,
+ sdf@fomichev.me, haoluo@google.com, jolsa@kernel.org, shuah@kernel.org,
+ riel@surriel.com, shakeel.butt@linux.dev, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-kselftest@vger.kernel.org, kernel-patches-bot@fb.com
 
-On Wed, Oct 16, 2024 at 03:19:07PM +0200, Florian Westphal wrote:
-> v3:
-> I failed to realize that nft_audit leaks one implementation detail
-> to userspace: the length of the transaction log.
-> 
-> This is bad, but I do not know if we can change things to make
-> nft_audit NOT do that.  Hence add a new workaround patch that
-> inflates the length based on the number of set elements in the
-> container structure.
+Hello:
 
-It actually shows the number of entries that have been updated, right?
+This series was applied to bpf/bpf.git (master)
+by Daniel Borkmann <daniel@iogearbox.net>:
 
-Before this series, there was a 1:1 mapping between transaction and
-objects so it was easier to infer it from the number of transaction
-objects.
+On Fri, 11 Oct 2024 19:32:51 +0000 you wrote:
+> This patch correctly populates the `bpf_link_info.netfilter.flags` field
+> when user passes the `BPF_F_NETFILTER_IP_DEFRAG` flag.
+> 
+> Fixes: 84601d6ee68a ("bpf: add bpf_link support for BPF_NETFILTER programs")
+> Signed-off-by: Tyrone Wu <wudevelops@gmail.com>
+> ---
+>  net/netfilter/nf_bpf_link.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
 
-> Also fix up notifications, for update case, notifications were
-> skipped but currently newsetelem notifications are done even if
-> existing set element is updated.
-> 
-> Most patches are unchanged.
-> "prefer nft_trans_elem_alloc helper" is already upstreamed so
-> its dropped from this batch.
-> 
-> 
-> v2: only change is in patch 3, and by extension, the last one:
-> During transaction abort, we need to handle an aggregate container to
-> contain both new set elements and updates.  The latter must be
-> skipped, else we remove element that already existed at start of the
-> transaction.
-> 
-> original cover letter:
-> 
-> When doing a flush on a set or mass adding/removing elements from a
-> set, each element needs to allocate 96 bytes to hold the transactional
-> state.
-> 
-> In such cases, virtually all the information in struct nft_trans_elem
-> is the same.
-> 
-> Change nft_trans_elem to a flex-array, i.e. a single nft_trans_elem
-> can hold multiple set element pointers.
-> 
-> The number of elements that can be stored in one nft_trans_elem is limited
-> by the slab allocator, this series limits the compaction to at most 62
-> elements as it caps the reallocation to 2048 bytes of memory.
-> 
-> 
-> 
-> Florian Westphal (5):
->   netfilter: nf_tables: add nft_trans_commit_list_add_elem helper
->   netfilter: nf_tables: prepare for multiple elements in nft_trans_elem
->     structure
->   netfiler: nf_tables: preemitve fix for audit failure
->   netfilter: nf_tables: switch trans_elem to real flex array
->   netfilter: nf_tables: allocate element update information dynamically
-> 
->  include/net/netfilter/nf_tables.h |  25 +-
->  net/netfilter/nf_tables_api.c     | 368 +++++++++++++++++++++++-------
->  2 files changed, 304 insertions(+), 89 deletions(-)
-> 
-> -- 
-> 2.45.2
-> 
-> 
+Here is the summary with links:
+  - [bpf,v1,1/2] bpf: fix link info netfilter flags to populate defrag flag
+    https://git.kernel.org/bpf/bpf/c/92f3715e1eba
+  - [bpf,v1,2/2] selftests/bpf: add asserts for netfilter link info
+    https://git.kernel.org/bpf/bpf/c/2aa587fd6659
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
