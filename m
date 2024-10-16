@@ -1,66 +1,94 @@
-Received: from a3.inai.de (a3.inai.de [144.76.212.145])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E512B1865ED
-	for <netfilter-devel@vger.kernel.org>; Wed, 16 Oct 2024 19:41:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=144.76.212.145
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A25DE215F4B
+	for <netfilter-devel@vger.kernel.org>; Wed, 16 Oct 2024 20:05:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729107704; cv=none; b=IfqN4EhfeXf7av+SGUPqBvZZRGyFBe3FuN3p0iuUaEEvx8NuNepOrEm80jd3WxxwHj2EVWVPl6cqiK1QA43I0mOQdnOE3pWidjLFglniTuFOw7MmPLfqWzxzMjDo2qkfgnGrTExgwuKjnhi2P8U2vLZqGEbSUXcvuh3YQstV5mo=
+	t=1729109115; cv=none; b=Jga1GSaG83Gbtqlkrl4EL7klvMkYWq+V74TjfcfWqH0KZs7u4DTjs7kF9+XdJrlBLam5P0uC906wuBhFTb3BmN8TWEMAEDX+fObUbph1uBUG0SOatOYV4WlV6OroGDcxC2QfJHECPcwTnFx4psUA7VsYrIz/CEAZ8ubH/JF8QfY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729107704; c=relaxed/simple;
-	bh=PNjPWhBSt/K7GJieSj2CHPa4gOpEq3aRrowRVfJ8MpU=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=l/kSOZdo8zUpCtW4RD7b0JNlpupPt+2izH5sJrESUbJ9xYPUnE93GNyHUPgCaDJ9eWzQ1wAk+23todP7QO5j0rsEkHY83B5zrdrcd1rzCOeiHwPUq7jYlb30YF2f7glAJ1aU2zMTsjnUPv4kZGhHuYRcVNUTv2HyD5NSaLtj/Bs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=inai.de; spf=fail smtp.mailfrom=inai.de; arc=none smtp.client-ip=144.76.212.145
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=inai.de
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=inai.de
-Received: by a3.inai.de (Postfix, from userid 25121)
-	id AABFB1003D14DE; Wed, 16 Oct 2024 21:41:37 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by a3.inai.de (Postfix) with ESMTP id A914C1100A4396;
-	Wed, 16 Oct 2024 21:41:37 +0200 (CEST)
-Date: Wed, 16 Oct 2024 21:41:37 +0200 (CEST)
-From: Jan Engelhardt <ej@inai.de>
-To: Phil Sutter <phil@nwl.cc>
-cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, 
-    netfilter-devel@vger.kernel.org
-Subject: Re: [RFC libnftnl/nft 0/5] nftables: indicate presence of unsupported
- netlink attributes
-In-Reply-To: <ZxAORZJ3t4o04KUl@orbyte.nwl.cc>
-Message-ID: <6139s271-82o6-np6r-19qo-8s4n53p20652@vanv.qr>
-References: <20241007094943.7544-1-fw@strlen.de> <Zw_yzLizGDGzhFRg@orbyte.nwl.cc> <ZxAHJO_amh8cIDaR@calendula> <ZxAORZJ3t4o04KUl@orbyte.nwl.cc>
-User-Agent: Alpine 2.26 (LSU 649 2022-06-02)
+	s=arc-20240116; t=1729109115; c=relaxed/simple;
+	bh=zf/Ow7URyDM0lqM0qQp7Grqt+CbJBv8+sJmNFfAdQpE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=QCbrT7dzhKITmJifgo0XvFWDxVNqq+V1aw4nsIPCkLG++eH/87QyGQWW8Yx20UInx4iOWBRUXF7L6vVvjJmudc5I5Raq4vSQxvVAvrQT+/s7ZwpKHGgzsWlCTQ2jyD5HppdIMGokqhOXLpbGrq8rJ76QrUyx6kZJENYENxV00AI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=l0CKD2nq; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="l0CKD2nq"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=PpvO3akHpQIy58M17Xk4ja0HwX8ucHmViLG/CZIeSO4=; b=l0CKD2nqsiQAinzLEHhxKWxYLZ
+	QQl3UdbzhalKGHGGX9ld8w7i3vZ/N8UH/7EyfBfR8SUM1meQtb0T6Rdk9vp/8XRwI8fqWcnNgGRzC
+	KxmbRlVZ+dsStgeVMsA8/CZxM9ewDSWE0raLa01Tr1a146v8ZnnPLA/GI7MP69VkfEiZzcNZFJ90R
+	rQAP3ldO+XLSJ7CRuOqpH1mnGkk7Qw+PSbjGspcJ9J61RjfDZ+I6ujnZHIzpIhnf7aktg+GnPqeOP
+	VS2+or7GkwCy219MfrSuVRpO7hu3phSSTMp9CVaiHRC9cv7Q9lJ0yYW89AU0yEhQAkjJikme99PXy
+	9aAkFWbA==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1t1AGc-000000000wr-2Eqv;
+	Wed, 16 Oct 2024 22:05:10 +0200
+Date: Wed, 16 Oct 2024 22:05:10 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Jan Engelhardt <ej@inai.de>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [RFC libnftnl/nft 0/5] nftables: indicate presence of
+ unsupported netlink attributes
+Message-ID: <ZxAcdux4eQXeMiXB@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>, Jan Engelhardt <ej@inai.de>,
+	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+References: <20241007094943.7544-1-fw@strlen.de>
+ <Zw_yzLizGDGzhFRg@orbyte.nwl.cc>
+ <45r97p82-s222-1286-6636-25p3631qq10o@vanv.qr>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <45r97p82-s222-1286-6636-25p3631qq10o@vanv.qr>
 
+On Wed, Oct 16, 2024 at 09:28:46PM +0200, Jan Engelhardt wrote:
+> 
+> On Wednesday 2024-10-16 19:07, Phil Sutter wrote:
+> >On Mon, Oct 07, 2024 at 11:49:33AM +0200, Florian Westphal wrote:
+> >[...]
+> >> Extend libnftnl to also make an annotation when a known expression has
+> >> an unknown attribute included in the dump, then extend nftables to also
+> >> display this to the user.
+> >
+> >We must be careful with this and LIBVERSION updates. I'm looking at
+> >libnftnl-1.2.0 which gained support for NFTA_TABLE_OWNER,
+> >NFTA_SOCKET_LEVEL, etc. but did not update LIBVERSION at all - OK,
+> >that's probably a bug. But there is also libnftnl-1.1.9 with similar
+> >additions (NFTA_{DYNSET,SET,SET_ELEM}_EXPRESSIONS) and a LIBVERSION
+> >update in the compatible range (15:0:4 -> 16:0:5).
+> 
+> From 1.1.8 to 1.1.9, there were a bunch of function additions:
+> 
+> +void nftnl_expr_add_expr(struct nftnl_expr *expr, uint32_t type, struct nftnl_expr *e);
+> +int nftnl_expr_expr_foreach(const struct nftnl_expr *e,
+> +                           int (*cb)(struct nftnl_expr *e, void *data),
+> +                           void *data);
+> 
+> No such modifications (of this kind, or any stronger kind) were made between
+> 1.1.9 to 1.2.0, hence there was no LIBVERSION update.
 
-On Wednesday 2024-10-16 21:04, Phil Sutter wrote:
->> 
->> > We may increase incomplete marker correctness by treating support for
->> > any new attribute an incompatible update. Given that we often have
->> > dependencies between libnftnl and nftables for other things, it may not
->> > be too much of a downside though.
->> 
->> 15:0:4 -> 16:0:5 means new API is available while older are still
->> supported, so old nftables can use this library binary safely.
->
->Yes, and my concern is if one installs this newer libnftnl, behaviour of
->incomplete marker will change despite the same old nftables package
->being in place which doesn't handle the new kernel attribute.
+Ah, you're right! No libnftnl.map update, so no newly exported symbols.
+The ABI must be identical between the two and thus LIBVERSION remaining
+the same is correct.
 
-LIBVERSION is all about ABI/interface, not documented/observed behavior.
+> Expanding the enum{} generally does not change the ABI unless the underlying
+> type changes (which it did not in this instance).
 
-If, for example,
-prime_factors@MATHLIB_v15(60000) yielded {2, 3, 5} but
-prime_factors@MATHLIB_v16(60000) yields  {2,2,2,2,2, 3, 5,5,5,5},
-perhaps one should devise a new function name to capture the new behavior.
+I got confused by the added nftnl object attributes, but the data
+structures are hidden for a reason and the getter/setter mechanism
+allows for exactly these changes to happen under the surface.
 
-If a library merely passes through data from another entity (another library,
-or in this case, the kernel), the function should have been specified
-(documented) to potentially output unrecognized objects, and require of
-any function users to deal with the situation amicably.
+Thanks for clarifying!
