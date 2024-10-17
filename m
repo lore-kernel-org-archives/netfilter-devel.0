@@ -1,65 +1,91 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CB061DED6A
-	for <netfilter-devel@vger.kernel.org>; Thu, 17 Oct 2024 15:52:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B0641DEFD9;
+	Thu, 17 Oct 2024 16:24:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729180348; cv=none; b=hTSTxOpRzbqtKzf/Zr8rxNRL+I0qkFdMoED5EkUDlf40Gl25rUTKcojEEQ7es6o5fESWXV6aWYN80TFPb2LbyRAV+0Z2bxuygGvqmFMr9yvQGBkH8jzhcNLxqmtNFxkgZBU14xLZ5RtIvhb+NRYlo53v0KrhRoHbTs+jLQ1Dgl8=
+	t=1729182251; cv=none; b=QPowVUVDB0TvycNeaX2uwOPJwfqaR2pC5yZq6aS8ZECLgfnbdW7zrt3yelm9xUfo7/0dNLXTitdBaJyZUL0JViIpwmfcus/SxswJEmdiEOBXau2Dp5uFj95xUU4Qlo5LOyfXvUHV1ymr+ODj53kVi5cK3AYwYHoNDRkToGsqsgI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729180348; c=relaxed/simple;
-	bh=B7QJFcHL+/J+LArZnTcmD6xqNooVFRvrytfOR6np0v8=;
+	s=arc-20240116; t=1729182251; c=relaxed/simple;
+	bh=FIJQtuVoNTAvb6Y1oymLg85tDSfnvin/mxeeP3WOMAM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=FWLdcQH341jvYmnA8mYasTRrSBZI740hztj5IUXheacw0pNEG4R+cr4nEBYeH8V8dlF5o4S6YjBxGeqDN0VaTWXx/7djBhmq++kI/dRtnM4VRc3p6azU9jIX5mpXeLcCu4yaliyoD3QWb3xyCwch9OcOadz79rJ1GF1za/bRSb4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=Z0E8r8c9; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="Z0E8r8c9"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=uAWpiz5lzF5H2m8aE2jWtRgKkGSpbr7SLE2lek7WURo=; b=Z0E8r8c9AGSx1HCN3Oo5NVgOdH
-	Fu1k9D4jWEjm+pUU5h50ylTbFTyI13F5HQxNKp2CWheZDvtxo2OQfSQoU7rodIsRCq29Mk5Sg1m+G
-	LyKIZ6NQFLr3swEHcgKXStJ2pq+UdAohtxy3eKC/LM5XXupDogNj+Y0jE7Q7fs98ygSPJqplKegdt
-	Y09KGAtj2E6u44x1oCntGO7BNB1SQOB/y3wT5Fb98NLremQMKi9EqfTPBphEN4LRthSue6pa5xDA6
-	RMf3QWpKUZXoXAeI7YCQKx6UyKUs8iCqSLSYvD9PcDB4VoVqPoJYE3EsXOF585CS39/HcY6UPZ72A
-	VA7eSOkQ==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1t1SnO-000000001lZ-2tfx;
-	Thu, 17 Oct 2024 17:52:14 +0200
-Date: Thu, 17 Oct 2024 17:52:14 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: i@hack3r.moe
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nftables] libnftables-json: fix raw payload expression
- documentation
-Message-ID: <ZxEyrg_iGZZupTkI@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>, i@hack3r.moe,
-	netfilter-devel@vger.kernel.org
-References: <20241017-libnftables-json-doc-fix-v1-1-c0d2efca1ab2@hack3r.moe>
+	 Content-Type:Content-Disposition:In-Reply-To; b=KUWDFSeJdCTWZbt8h5AszISuhIvYAIUBRg350HsY6vKlS0+sgpyQopQMaquRUctouyzCMAlJjwYycC9VchvHeOrTdDo+9E85ID+zNF0kk5WSLREdUPJ8OBiD5Zj4DDU+Ek5CrgpIXFe/usQWvODAunwp7aa4fcluH7tH8kqoFs0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=44352 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1t1TI8-00FNjo-GJ; Thu, 17 Oct 2024 18:24:02 +0200
+Date: Thu, 17 Oct 2024 18:23:59 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, paul@paul-moore.com, rgb@redhat.com,
+	audit@vger.kernel.org
+Subject: Re: [PATCH nf-next v3 0/5] netfilter: nf_tables: reduce set element
+ transaction size
+Message-ID: <ZxE6H03jhdp3gONB@calendula>
+References: <20241016131917.17193-1-fw@strlen.de>
+ <Zw_PY7MXqNDOWE71@calendula>
+ <20241016161044.GC6576@breakpoint.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20241017-libnftables-json-doc-fix-v1-1-c0d2efca1ab2@hack3r.moe>
+In-Reply-To: <20241016161044.GC6576@breakpoint.cc>
+X-Spam-Score: -1.9 (-)
 
-On Thu, Oct 17, 2024 at 11:33:17PM +0800, Eric Long via B4 Relay wrote:
-> From: Eric Long <i@hack3r.moe>
+Cc'ing audit ML.
+
+On Wed, Oct 16, 2024 at 06:10:44PM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > This is bad, but I do not know if we can change things to make
+> > > nft_audit NOT do that.  Hence add a new workaround patch that
+> > > inflates the length based on the number of set elements in the
+> > > container structure.
+> > 
+> > It actually shows the number of entries that have been updated, right?
+> > 
+> > Before this series, there was a 1:1 mapping between transaction and
+> > objects so it was easier to infer it from the number of transaction
+> > objects.
 > 
-> Raw payload expression accesses payload data in bits, not bytes.
+> Yes, but... for element add (but not create), we used to not do anything
+> (no-op), so we did not allocate a new transaction and pretend request
+> did not exist.
 
-Patch applied after adding your Signed-off-by and a Fixes: tag. Please
-keep in mind at least the former is required for submitted patches, and
-the latter not just a nuisance since tooling may depend on it for
-backporting.
+You refer to element updates above, those used to be elided, yes. Now
+they are shown. I think that is correct.
 
-Thanks, Phil
+> Now we can enter update path, so we do allocate a transaction, hence,
+> audit record changes.
+>
+> What if we add an internal special-case 'flush' op in the future?
+
+You mean, if 'flush' does not get expanded to one delete transaction
+for each element. Yes, that would require to look at ->nelems as in
+this patch.
+
+> It will break, and the workaround added in this series needs to be
+> extended.
+> 
+> Same for an other change that could elide a transaction request, or,
+> add expand something to multiple ones (as flush currently does).
+> 
+> Its doesn't *break* audit, but it changes the output.
+
+My understanding is that audit is exposing the entries that have been
+added/updated/deleted, which is already sparse: Note that nftables
+audit works at 'table' granurality.
+
+IIRC, one of the audit maintainers mentioned it should be possible to
+add chain and set to the audit logs in the future, such change would
+necessarily change the audit logs output.
+
+Thanks.
