@@ -1,150 +1,622 @@
-Received: from nbd.name (nbd.name [46.4.11.11])
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB9DF1D88CA;
-	Thu, 17 Oct 2024 09:17:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.4.11.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E79251DB375;
+	Thu, 17 Oct 2024 11:05:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729156665; cv=none; b=Q74K6E2HT/hohVpDCdDdaUPgFpSIengB4gmJRQbSiMIRgDW8DOk9HSDw+JByNmrMpCdUquxcrDmlhyE57kMmIl57FNwaOVTcNeDKxrrZhu8f73p1Or6fddX1T1up/5S8yX90FTGV3YmZd9FbAG0xk92dKgPBiuW1+5yIl2KyEMA=
+	t=1729163132; cv=none; b=G71N6IzIh8MDBWgaTGjNinWyFtODKDvAjCLXba51Wl0F+nS+LwHokcI+N7hpFNr8mSelAxO0jWoUvWB3O+Elzmd0gRqzGxHp+MOP85qZk1JHAfJiExls3GHtvXtUUeoPbNBqrRTUKUTVUogsSYurMmPVHNxLkujFbw9K/2sNHds=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729156665; c=relaxed/simple;
-	bh=LtUdGluhJQnO5q9WMuZrsQssfT2AVjf8JPJtouetojY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=rxwJtpw4SGh56Tap/KeMjOwKHnjSERY6s+Cm53WTB7DBxu3IRQBVm7qNFKkI9iCPZPwP7l6PPwU1IKjaAtD1T2Rmd867tuWKls2iFjMBJ4swnzCsxM/+/r7WpAtiIXz4NZ4XIbDA3Wsw9ciFZy9I54DqltHso6bVvO4ypZhQwEo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=nbd.name; spf=none smtp.mailfrom=nbd.name; dkim=pass (1024-bit key) header.d=nbd.name header.i=@nbd.name header.b=OgRzISqj; arc=none smtp.client-ip=46.4.11.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=nbd.name
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=nbd.name
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=nbd.name header.i=@nbd.name header.b="OgRzISqj"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nbd.name;
-	s=20160729; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
-	References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
-	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-	Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
-	List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=vyyN1RNPlXPbDrkywEKlZ9/QZaS+KKztH3bMbKcpF+4=; b=OgRzISqjEiT64CW5kkJjlVrIyE
-	Iv+yEA9FPWAumsPKtJ2BfmK1spk6A6bCflS2xdf8BbbgZbF7D5gCxoa8p1EpoKPgDGk8fMVtE6dZK
-	gJIhN7qKY9lhY1YAmDgBtI5kvhfSpockOoJtSQ2kNRvufy979o9fkP9Urj66qzQJCdIo=;
-Received: from p4ff13b65.dip0.t-ipconnect.de ([79.241.59.101] helo=nf.local)
-	by ds12 with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-	(Exim 4.96)
-	(envelope-from <nbd@nbd.name>)
-	id 1t1Md4-00Amar-0Z;
-	Thu, 17 Oct 2024 11:17:10 +0200
-Message-ID: <b5739f78-9cd5-4fd0-ae63-d80a5a37aaf0@nbd.name>
-Date: Thu, 17 Oct 2024 11:17:09 +0200
+	s=arc-20240116; t=1729163132; c=relaxed/simple;
+	bh=t7H/Rq6n7uB1I3Xia70uPuWVPgSiLz0kxBTxCTdy7GA=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=tw19oUO98cCte23Jqg2mOOZzTinqbFGvdz9xBbmC9z9YzJ4wwu9yPXj8/C8ODvQx/XNF2BcuxXSOGT/3AUhK0F1jagVrNikCEvjlCwQv0kEBPs1JKDGaRMERpsbb0T7EbAyAEKFK7ntSV8DR6mqv8P41VAM/o86bbdgWpePMo7E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=45.249.212.188
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
+Received: from mail.maildlp.com (unknown [172.19.163.48])
+	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4XTlL92GbdzfdH4;
+	Thu, 17 Oct 2024 19:02:57 +0800 (CST)
+Received: from kwepemj200016.china.huawei.com (unknown [7.202.194.28])
+	by mail.maildlp.com (Postfix) with ESMTPS id CEE7A18007C;
+	Thu, 17 Oct 2024 19:05:24 +0800 (CST)
+Received: from mscphis02103.huawei.com (10.123.65.215) by
+ kwepemj200016.china.huawei.com (7.202.194.28) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Thu, 17 Oct 2024 19:05:22 +0800
+From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+To: <mic@digikod.net>, <gnoack@google.com>
+CC: <willemdebruijn.kernel@gmail.com>, <matthieu@buffet.re>,
+	<linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+	<netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+	<artem.kuzin@huawei.com>, <konstantin.meskhidze@huawei.com>
+Subject: [RFC PATCH v2 3/8] landlock: Fix inconsistency of errors for TCP actions
+Date: Thu, 17 Oct 2024 19:04:49 +0800
+Message-ID: <20241017110454.265818-4-ivanov.mikhail1@huawei-partners.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20241017110454.265818-1-ivanov.mikhail1@huawei-partners.com>
+References: <20241017110454.265818-1-ivanov.mikhail1@huawei-partners.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH RFC v1 net-next 00/12] bridge-fastpath and related
- improvements
-To: Eric Woudstra <ericwouds@gmail.com>,
- Nikolay Aleksandrov <razor@blackwall.org>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Pablo Neira Ayuso <pablo@netfilter.org>,
- Jozsef Kadlecsik <kadlec@netfilter.org>, Roopa Prabhu <roopa@nvidia.com>,
- Matthias Brugger <matthias.bgg@gmail.com>,
- AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
- Jiri Pirko <jiri@resnulli.us>,
- Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
- Lorenzo Bianconi <lorenzo@kernel.org>,
- Frank Wunderlich <frank-w@public-files.de>,
- Daniel Golle <daniel@makrotopia.org>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- bridge@lists.linux.dev, linux-arm-kernel@lists.infradead.org,
- linux-mediatek@lists.infradead.org
-References: <20241013185509.4430-1-ericwouds@gmail.com>
- <9f9f3cf0-7a78-40f1-b8d5-f06a2d428210@blackwall.org>
- <a07cadd3-a8ff-4d1c-9dca-27a5dba907c3@gmail.com>
- <0b0a92f2-2e80-429c-8fcd-d4dc162e6e1f@nbd.name>
- <137aa23a-db21-43c2-8fb0-608cfe221356@gmail.com>
- <a7ab80d5-ff49-4277-ba73-db46547a8a8e@nbd.name>
- <d7d48102-4c52-4161-a21c-4d5b42539fbb@gmail.com>
-From: Felix Fietkau <nbd@nbd.name>
-Content-Language: en-US
-Autocrypt: addr=nbd@nbd.name; keydata=
- xsDiBEah5CcRBADIY7pu4LIv3jBlyQ/2u87iIZGe6f0f8pyB4UjzfJNXhJb8JylYYRzIOSxh
- ExKsdLCnJqsG1PY1mqTtoG8sONpwsHr2oJ4itjcGHfn5NJSUGTbtbbxLro13tHkGFCoCr4Z5
- Pv+XRgiANSpYlIigiMbOkide6wbggQK32tC20QxUIwCg4k6dtV/4kwEeiOUfErq00TVqIiEE
- AKcUi4taOuh/PQWx/Ujjl/P1LfJXqLKRPa8PwD4j2yjoc9l+7LptSxJThL9KSu6gtXQjcoR2
- vCK0OeYJhgO4kYMI78h1TSaxmtImEAnjFPYJYVsxrhay92jisYc7z5R/76AaELfF6RCjjGeP
- wdalulG+erWju710Bif7E1yjYVWeA/9Wd1lsOmx6uwwYgNqoFtcAunDaMKi9xVQW18FsUusM
- TdRvTZLBpoUAy+MajAL+R73TwLq3LnKpIcCwftyQXK5pEDKq57OhxJVv1Q8XkA9Dn1SBOjNB
- l25vJDFAT9ntp9THeDD2fv15yk4EKpWhu4H00/YX8KkhFsrtUs69+vZQwc0cRmVsaXggRmll
- dGthdSA8bmJkQG5iZC5uYW1lPsJgBBMRAgAgBQJGoeQnAhsjBgsJCAcDAgQVAggDBBYCAwEC
- HgECF4AACgkQ130UHQKnbvXsvgCgjsAIIOsY7xZ8VcSm7NABpi91yTMAniMMmH7FRenEAYMa
- VrwYTIThkTlQzsFNBEah5FQQCACMIep/hTzgPZ9HbCTKm9xN4bZX0JjrqjFem1Nxf3MBM5vN
- CYGBn8F4sGIzPmLhl4xFeq3k5irVg/YvxSDbQN6NJv8o+tP6zsMeWX2JjtV0P4aDIN1pK2/w
- VxcicArw0VYdv2ZCarccFBgH2a6GjswqlCqVM3gNIMI8ikzenKcso8YErGGiKYeMEZLwHaxE
- Y7mTPuOTrWL8uWWRL5mVjhZEVvDez6em/OYvzBwbkhImrryF29e3Po2cfY2n7EKjjr3/141K
- DHBBdgXlPNfDwROnA5ugjjEBjwkwBQqPpDA7AYPvpHh5vLbZnVGu5CwG7NAsrb2isRmjYoqk
- wu++3117AAMFB/9S0Sj7qFFQcD4laADVsabTpNNpaV4wAgVTRHKV/kC9luItzwDnUcsZUPdQ
- f3MueRJ3jIHU0UmRBG3uQftqbZJj3ikhnfvyLmkCNe+/hXhPu9sGvXyi2D4vszICvc1KL4RD
- aLSrOsROx22eZ26KqcW4ny7+va2FnvjsZgI8h4sDmaLzKczVRIiLITiMpLFEU/VoSv0m1F4B
- FtRgoiyjFzigWG0MsTdAN6FJzGh4mWWGIlE7o5JraNhnTd+yTUIPtw3ym6l8P+gbvfoZida0
- TspgwBWLnXQvP5EDvlZnNaKa/3oBes6z0QdaSOwZCRA3QSLHBwtgUsrT6RxRSweLrcabwkkE
- GBECAAkFAkah5FQCGwwACgkQ130UHQKnbvW2GgCeMncXpbbWNT2AtoAYICrKyX5R3iMAoMhw
- cL98efvrjdstUfTCP2pfetyN
-In-Reply-To: <d7d48102-4c52-4161-a21c-4d5b42539fbb@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: mscpeml500003.china.huawei.com (7.188.49.51) To
+ kwepemj200016.china.huawei.com (7.202.194.28)
 
-On 16.10.24 17:59, Eric Woudstra wrote:
-> 
-> 
-> On 10/15/24 9:44 PM, Felix Fietkau wrote:
->> On 15.10.24 15:32, Eric Woudstra wrote:
->>>
->>>
->>> On 10/15/24 2:16 PM, Felix Fietkau wrote:
->>>> Hi Eric,
->>>>
->>>> On 14.10.24 20:29, Eric Woudstra wrote:
->>>>> It would be no problem for me to change the subject and body, if you
->>>>> think that is better.
->>>>>
->>>>> The thing is, these patches actually make it possible to set up a fully
->>>>> functional software fastpath between bridged interfaces. Only after the
->>>>> software fastpath is set up and functional, it can be offloaded, which
->>>>> happens to by my personal motivation to write this patch-set.
->>>>>
->>>>> If the offload flag is set in the flowtable, the software fastpath will
->>>>> be offloaded. But in this patch-set, there is nothing that changes
->>>>> anything there, the existing code is used unchanged.
->>>>
->>>> FWIW, a while back, I also wanted to add a software fast path for the
->>>> bridge layer to the kernel, also with the intention of using it for
->>>> hardware offload. It wasn't accepted back then, because (if I remember
->>>> correctly) people didn't want any extra complexity in the network stack
->>>> to make the bridge layer faster.
->>>
->>> Hello Felix,
->>>
->>> I think this patch-set is a clear showcase it is not very complex at
->>> all. The core of making it possible only consists a few patches. Half of
->>> this patch-set involves improvements that also apply to the
->>> forward-fastpath.
->> 
->> It's definitely an interesting approach. How does it deal with devices
->> roaming from one bridge port to another? I couldn't find that in the code.
-> 
-> It is handled in the same manner when dealing with the forward-fastpath,
-> with the aid of conntrack. If roaming is problematic, then it would be
-> for both the forward-fastpath and the bridge-fastpath. I have a topic on
-> the banana-pi forum about this patch-set, so I think long discussions
-> about additional details we could have there, keeping the mailing list
-> more clean.
+Add two helpers for TCP bind/connect accesses, which will serve to perform
+action-specific network stack level checks and safely extract the port from
+the address.
 
-You forgot to include a link to the forum topic :)
+Return -EAFNOSUPPORT instead of -EINVAL in sin_family checks.
 
-By the way, based on some reports that I received, I do believe that the 
-existing forwarding fastpath also doesn't handle roaming properly.
-I just didn't have the time to properly look into that yet.
+Check socket state before validating address for TCP connect access. This
+is necessary to follow the error order of network stack.
 
-- Felix
+Read sk_family value from socket structure with READ_ONCE to safely handle
+IPV6_ADDRFORM case (see [1]).
+
+[1] https://lore.kernel.org/all/20240202095404.183274-1-edumazet@google.com/
+
+Fixes: fff69fb03dde ("landlock: Support network rules with TCP bind and connect")
+Signed-off-by: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+---
+ security/landlock/net.c | 543 +++++++++++++++++++++++-----------------
+ 1 file changed, 315 insertions(+), 228 deletions(-)
+ rewrite security/landlock/net.c (37%)
+
+diff --git a/security/landlock/net.c b/security/landlock/net.c
+dissimilarity index 37%
+index a3142f9b15ee..06791aba9196 100644
+--- a/security/landlock/net.c
++++ b/security/landlock/net.c
+@@ -1,228 +1,315 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * Landlock LSM - Network management and hooks
+- *
+- * Copyright © 2022-2023 Huawei Tech. Co., Ltd.
+- * Copyright © 2022-2023 Microsoft Corporation
+- */
+-
+-#include <linux/in.h>
+-#include <linux/net.h>
+-#include <linux/socket.h>
+-#include <net/ipv6.h>
+-
+-#include "common.h"
+-#include "cred.h"
+-#include "limits.h"
+-#include "net.h"
+-#include "ruleset.h"
+-
+-int landlock_append_net_rule(struct landlock_ruleset *const ruleset,
+-			     const u16 port, access_mask_t access_rights)
+-{
+-	int err;
+-	const struct landlock_id id = {
+-		.key.data = (__force uintptr_t)htons(port),
+-		.type = LANDLOCK_KEY_NET_PORT,
+-	};
+-
+-	BUILD_BUG_ON(sizeof(port) > sizeof(id.key.data));
+-
+-	/* Transforms relative access rights to absolute ones. */
+-	access_rights |= LANDLOCK_MASK_ACCESS_NET &
+-			 ~landlock_get_net_access_mask(ruleset, 0);
+-
+-	mutex_lock(&ruleset->lock);
+-	err = landlock_insert_rule(ruleset, id, access_rights);
+-	mutex_unlock(&ruleset->lock);
+-
+-	return err;
+-}
+-
+-static const struct landlock_ruleset *get_current_net_domain(void)
+-{
+-	const union access_masks any_net = {
+-		.net = ~0,
+-	};
+-
+-	return landlock_match_ruleset(landlock_get_current_domain(), any_net);
+-}
+-
+-static int check_access_port(const struct landlock_ruleset *const dom,
+-			     __be16 port, access_mask_t access_request)
+-{
+-	layer_mask_t layer_masks[LANDLOCK_NUM_ACCESS_NET] = {};
+-	const struct landlock_rule *rule;
+-	struct landlock_id id = {
+-		.type = LANDLOCK_KEY_NET_PORT,
+-	};
+-
+-	id.key.data = (__force uintptr_t)port;
+-	BUILD_BUG_ON(sizeof(port) > sizeof(id.key.data));
+-
+-	rule = landlock_find_rule(dom, id);
+-	access_request = landlock_init_layer_masks(
+-		dom, access_request, &layer_masks, LANDLOCK_KEY_NET_PORT);
+-	if (landlock_unmask_layers(rule, access_request, &layer_masks,
+-				   ARRAY_SIZE(layer_masks)))
+-		return 0;
+-
+-	return -EACCES;
+-}
+-
+-static int hook_socket_bind(struct socket *const sock,
+-			    struct sockaddr *const address, const int addrlen)
+-{
+-	__be16 port;
+-	struct sock *const sk = sock->sk;
+-	const struct landlock_ruleset *const dom = get_current_net_domain();
+-
+-	if (!dom)
+-		return 0;
+-	if (WARN_ON_ONCE(dom->num_layers < 1))
+-		return -EACCES;
+-
+-	if (sk_is_tcp(sk)) {
+-		/* Checks for minimal header length to safely read sa_family. */
+-		if (addrlen < offsetofend(typeof(*address), sa_family))
+-			return -EINVAL;
+-
+-		switch (address->sa_family) {
+-		case AF_UNSPEC:
+-		case AF_INET:
+-			if (addrlen < sizeof(struct sockaddr_in))
+-				return -EINVAL;
+-			port = ((struct sockaddr_in *)address)->sin_port;
+-			break;
+-
+-#if IS_ENABLED(CONFIG_IPV6)
+-		case AF_INET6:
+-			if (addrlen < SIN6_LEN_RFC2133)
+-				return -EINVAL;
+-			port = ((struct sockaddr_in6 *)address)->sin6_port;
+-			break;
+-#endif /* IS_ENABLED(CONFIG_IPV6) */
+-
+-		default:
+-			return 0;
+-		}
+-
+-		/*
+-		 * For compatibility reason, accept AF_UNSPEC for bind
+-		 * accesses (mapped to AF_INET) only if the address is
+-		 * INADDR_ANY (cf. __inet_bind).  Checking the address is
+-		 * required to not wrongfully return -EACCES instead of
+-		 * -EAFNOSUPPORT.
+-		 *
+-		 * We could return 0 and let the network stack handle these
+-		 * checks, but it is safer to return a proper error and test
+-		 * consistency thanks to kselftest.
+-		 */
+-		if (address->sa_family == AF_UNSPEC) {
+-			/* addrlen has already been checked for AF_UNSPEC. */
+-			const struct sockaddr_in *const sockaddr =
+-				(struct sockaddr_in *)address;
+-
+-			if (sk->sk_family != AF_INET)
+-				return -EINVAL;
+-
+-			if (sockaddr->sin_addr.s_addr != htonl(INADDR_ANY))
+-				return -EAFNOSUPPORT;
+-		} else {
+-			/*
+-			 * Checks sa_family consistency to not wrongfully return
+-			 * -EACCES instead of -EINVAL.  Valid sa_family changes are
+-			 * only (from AF_INET or AF_INET6) to AF_UNSPEC.
+-			 *
+-			 * We could return 0 and let the network stack handle this
+-			 * check, but it is safer to return a proper error and test
+-			 * consistency thanks to kselftest.
+-			 */
+-			if (address->sa_family != sk->sk_family)
+-				return -EINVAL;
+-		}
+-		return check_access_port(dom, port,
+-					 LANDLOCK_ACCESS_NET_BIND_TCP);
+-	}
+-	return 0;
+-}
+-
+-static int hook_socket_connect(struct socket *const sock,
+-			       struct sockaddr *const address,
+-			       const int addrlen)
+-{
+-	__be16 port;
+-	struct sock *const sk = sock->sk;
+-	const struct landlock_ruleset *const dom = get_current_net_domain();
+-
+-	if (!dom)
+-		return 0;
+-	if (WARN_ON_ONCE(dom->num_layers < 1))
+-		return -EACCES;
+-
+-	if (sk_is_tcp(sk)) {
+-		/* Checks for minimal header length to safely read sa_family. */
+-		if (addrlen < offsetofend(typeof(*address), sa_family))
+-			return -EINVAL;
+-
+-		switch (address->sa_family) {
+-		case AF_UNSPEC:
+-		case AF_INET:
+-			if (addrlen < sizeof(struct sockaddr_in))
+-				return -EINVAL;
+-			port = ((struct sockaddr_in *)address)->sin_port;
+-			break;
+-
+-#if IS_ENABLED(CONFIG_IPV6)
+-		case AF_INET6:
+-			if (addrlen < SIN6_LEN_RFC2133)
+-				return -EINVAL;
+-			port = ((struct sockaddr_in6 *)address)->sin6_port;
+-			break;
+-#endif /* IS_ENABLED(CONFIG_IPV6) */
+-
+-		default:
+-			return 0;
+-		}
+-
+-		/*
+-		 * Connecting to an address with AF_UNSPEC dissolves the TCP
+-		 * association, which have the same effect as closing the
+-		 * connection while retaining the socket object (i.e., the file
+-		 * descriptor).  As for dropping privileges, closing
+-		 * connections is always allowed.
+-		 *
+-		 * For a TCP access control system, this request is legitimate.
+-		 * Let the network stack handle potential inconsistencies and
+-		 * return -EINVAL if needed.
+-		 */
+-		if (address->sa_family == AF_UNSPEC)
+-			return 0;
+-		/*
+-		 * Checks sa_family consistency to not wrongfully return
+-		 * -EACCES instead of -EINVAL.  Valid sa_family changes are
+-		 * only (from AF_INET or AF_INET6) to AF_UNSPEC.
+-		 *
+-		 * We could return 0 and let the network stack handle this
+-		 * check, but it is safer to return a proper error and test
+-		 * consistency thanks to kselftest.
+-		 */
+-		if (address->sa_family != sk->sk_family)
+-			return -EINVAL;
+-
+-		return check_access_port(dom, port,
+-					 LANDLOCK_ACCESS_NET_CONNECT_TCP);
+-	}
+-	return 0;
+-}
+-
+-static struct security_hook_list landlock_hooks[] __ro_after_init = {
+-	LSM_HOOK_INIT(socket_bind, hook_socket_bind),
+-	LSM_HOOK_INIT(socket_connect, hook_socket_connect),
+-};
+-
+-__init void landlock_add_net_hooks(void)
+-{
+-	security_add_hooks(landlock_hooks, ARRAY_SIZE(landlock_hooks),
+-			   &landlock_lsmid);
+-}
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * Landlock LSM - Network management and hooks
++ *
++ * Copyright © 2022-2023 Huawei Tech. Co., Ltd.
++ * Copyright © 2022-2023 Microsoft Corporation
++ */
++
++#include <linux/in.h>
++#include <linux/net.h>
++#include <linux/socket.h>
++#include <net/ipv6.h>
++
++#include "common.h"
++#include "cred.h"
++#include "limits.h"
++#include "net.h"
++#include "ruleset.h"
++
++int landlock_append_net_rule(struct landlock_ruleset *const ruleset,
++			     const u16 port, access_mask_t access_rights)
++{
++	int err;
++	const struct landlock_id id = {
++		.key.data = (__force uintptr_t)htons(port),
++		.type = LANDLOCK_KEY_NET_PORT,
++	};
++
++	BUILD_BUG_ON(sizeof(port) > sizeof(id.key.data));
++
++	/* Transforms relative access rights to absolute ones. */
++	access_rights |= LANDLOCK_MASK_ACCESS_NET &
++			 ~landlock_get_net_access_mask(ruleset, 0);
++
++	mutex_lock(&ruleset->lock);
++	err = landlock_insert_rule(ruleset, id, access_rights);
++	mutex_unlock(&ruleset->lock);
++
++	return err;
++}
++
++static const struct landlock_ruleset *get_current_net_domain(void)
++{
++	const union access_masks any_net = {
++		.net = ~0,
++	};
++
++	return landlock_match_ruleset(landlock_get_current_domain(), any_net);
++}
++
++static int check_access_port(const struct landlock_ruleset *const dom,
++			     __be16 port, access_mask_t access_request)
++{
++	layer_mask_t layer_masks[LANDLOCK_NUM_ACCESS_NET] = {};
++	const struct landlock_rule *rule;
++	struct landlock_id id = {
++		.type = LANDLOCK_KEY_NET_PORT,
++	};
++
++	id.key.data = (__force uintptr_t)port;
++	BUILD_BUG_ON(sizeof(port) > sizeof(id.key.data));
++
++	rule = landlock_find_rule(dom, id);
++	access_request = landlock_init_layer_masks(
++		dom, access_request, &layer_masks, LANDLOCK_KEY_NET_PORT);
++	if (landlock_unmask_layers(rule, access_request, &layer_masks,
++				   ARRAY_SIZE(layer_masks)))
++		return 0;
++
++	return -EACCES;
++}
++
++/*
++ * Checks that TCP @sock and @address attributes are correct for bind(2).
++ *
++ * On success, extracts port from @address in @port and returns 0.
++ *
++ * This validation is consistent with network stack and returns the error
++ * in the order corresponding to the order of errors from the network stack.
++ * It's required to not wrongfully return -EACCES instead of meaningful network
++ * stack level errors. Consistency is tested with kselftest.
++ *
++ * This helper does not provide consistency of error codes for BPF filter
++ * (if any).
++ */
++static int
++check_tcp_bind_consistency_and_get_port(struct socket *const sock,
++					struct sockaddr *const address,
++					const int addrlen, __be16 *port)
++{
++	/* IPV6_ADDRFORM can change sk->sk_family under us. */
++	switch (READ_ONCE(sock->sk->sk_family)) {
++	case AF_INET:
++		const struct sockaddr_in *const addr =
++			(struct sockaddr_in *)address;
++
++		/* Cf. inet_bind_sk(). */
++		if (addrlen < sizeof(struct sockaddr_in))
++			return -EINVAL;
++		/*
++		 * For compatibility reason, accept AF_UNSPEC for bind
++		 * accesses (mapped to AF_INET) only if the address is
++		 * INADDR_ANY (cf. __inet_bind).
++		 */
++		if (addr->sin_family != AF_INET) {
++			if (addr->sin_family != AF_UNSPEC ||
++			    addr->sin_addr.s_addr != htonl(INADDR_ANY))
++				return -EAFNOSUPPORT;
++		}
++		*port = ((struct sockaddr_in *)address)->sin_port;
++		break;
++#if IS_ENABLED(CONFIG_IPV6)
++	case AF_INET6:
++		/* Cf. inet6_bind_sk(). */
++		if (addrlen < SIN6_LEN_RFC2133)
++			return -EINVAL;
++		/* Cf. __inet6_bind(). */
++		if (address->sa_family != AF_INET6)
++			return -EAFNOSUPPORT;
++		*port = ((struct sockaddr_in6 *)address)->sin6_port;
++		break;
++#endif /* IS_ENABLED(CONFIG_IPV6) */
++	default:
++		WARN_ON_ONCE(0);
++		return -EACCES;
++	}
++	return 0;
++}
++
++/*
++ * Checks that TCP @sock and @address attributes are correct for connect(2).
++ *
++ * On success, extracts port from @address in @port and returns 0.
++ *
++ * This validation is consistent with network stack and returns the error
++ * in the order corresponding to the order of errors from the network stack.
++ * It's required to not wrongfully return -EACCES instead of meaningful network
++ * stack level error. Consistency is partially tested with kselftest.
++ *
++ * This helper does not provide consistency of error codes for BPF filter
++ * (if any).
++ *
++ * The function holds socket lock while checking the socket state.
++ */
++static int
++check_tcp_connect_consistency_and_get_port(struct socket *const sock,
++					   struct sockaddr *const address,
++					   const int addrlen, __be16 *port)
++{
++	int err = 0;
++	struct sock *const sk = sock->sk;
++
++	/* Cf. __inet_stream_connect(). */
++	lock_sock(sk);
++	switch (sock->state) {
++	default:
++		err = -EINVAL;
++		break;
++	case SS_CONNECTED:
++		err = -EISCONN;
++		break;
++	case SS_CONNECTING:
++		/*
++		 * Calling connect(2) on nonblocking socket with SYN_SENT or SYN_RECV
++		 * state immediately returns -EISCONN and -EALREADY (Cf. __inet_stream_connect()).
++		 *
++		 * This check is not tested with kselftests.
++		 */
++		if ((sock->file->f_flags & O_NONBLOCK) &&
++		    ((1 << sk->sk_state) & (TCPF_SYN_SENT | TCPF_SYN_RECV))) {
++			if (inet_test_bit(DEFER_CONNECT, sk))
++				err = -EISCONN;
++			else
++				err = -EALREADY;
++			break;
++		}
++
++		/*
++		 * Current state is possible in two cases:
++		 * 1. connect(2) is called upon nonblocking socket and previous
++		 *    connection attempt was closed by RST packet (therefore socket is
++		 *    in TCP_CLOSE state). In this case connect(2) calls
++		 *    sk_prot->disconnect(), changes socket state and increases number
++		 *    of disconnects.
++		 * 2. connect(2) is called twice upon socket with TCP_FASTOPEN_CONNECT
++		 *    option set. If socket state is TCP_CLOSE connect(2) does the
++		 *    same logic as in point 1 case. Otherwise connect(2) may freeze
++		 *    after inet_wait_for_connect() call since SYN was never sent.
++		 *
++		 * For both this cases Landlock cannot provide error consistency since
++		 * 1. Both cases involve executing some network stack logic and changing
++		 *    the socket state.
++		 * 2. It cannot omit access check and allow network stack handle error
++		 *    consistency since socket can change its state to SS_UNCONNECTED
++		 *    before it will be locked again in inet_stream_connect().
++		 *
++		 * Therefore it is only possible to return 0 and check access right with
++		 * check_access_port() helper.
++		 */
++		release_sock(sk);
++		return 0;
++	case SS_UNCONNECTED:
++		if (sk->sk_state != TCP_CLOSE)
++			err = -EISCONN;
++		break;
++	}
++	release_sock(sk);
++
++	if (err)
++		return err;
++
++	/* IPV6_ADDRFORM can change sk->sk_family under us. */
++	switch (READ_ONCE(sk->sk_family)) {
++	case AF_INET:
++		/* Cf. tcp_v4_connect(). */
++		if (addrlen < sizeof(struct sockaddr_in))
++			return -EINVAL;
++		if (address->sa_family != AF_INET)
++			return -EAFNOSUPPORT;
++
++		*port = ((struct sockaddr_in *)address)->sin_port;
++		break;
++#if IS_ENABLED(CONFIG_IPV6)
++	case AF_INET6:
++		/* Cf. tcp_v6_connect(). */
++		if (addrlen < SIN6_LEN_RFC2133)
++			return -EINVAL;
++		if (address->sa_family != AF_INET6)
++			return -EAFNOSUPPORT;
++
++		*port = ((struct sockaddr_in6 *)address)->sin6_port;
++		break;
++#endif /* IS_ENABLED(CONFIG_IPV6) */
++	default:
++		WARN_ON_ONCE(0);
++		return -EACCES;
++	}
++
++	return 0;
++}
++
++static int hook_socket_bind(struct socket *const sock,
++			    struct sockaddr *const address, const int addrlen)
++{
++	int err;
++	__be16 port;
++	const struct landlock_ruleset *const dom = get_current_net_domain();
++
++	if (!dom)
++		return 0;
++	if (WARN_ON_ONCE(dom->num_layers < 1))
++		return -EACCES;
++
++	if (sk_is_tcp(sock->sk)) {
++		err = check_tcp_bind_consistency_and_get_port(sock, address,
++							      addrlen, &port);
++		if (err)
++			return err;
++		return check_access_port(dom, port,
++					 LANDLOCK_ACCESS_NET_BIND_TCP);
++	}
++	return 0;
++}
++
++static int hook_socket_connect(struct socket *const sock,
++			       struct sockaddr *const address,
++			       const int addrlen)
++{
++	int err;
++	__be16 port;
++	const struct landlock_ruleset *const dom = get_current_net_domain();
++
++	if (!dom)
++		return 0;
++	if (WARN_ON_ONCE(dom->num_layers < 1))
++		return -EACCES;
++
++	if (sk_is_tcp(sock->sk)) {
++		/* Checks for minimal header length to safely read sa_family. */
++		if (addrlen < sizeof(address->sa_family))
++			return -EINVAL;
++		/*
++		 * Connecting to an address with AF_UNSPEC dissolves the TCP
++		 * association, which have the same effect as closing the
++		 * connection while retaining the socket object (i.e., the file
++		 * descriptor).  As for dropping privileges, closing
++		 * connections is always allowed.
++		 *
++		 * For a TCP access control system, this request is legitimate.
++		 * Let the network stack handle potential inconsistencies and
++		 * return -EINVAL if needed.
++		 */
++		if (address->sa_family == AF_UNSPEC)
++			return 0;
++
++		err = check_tcp_connect_consistency_and_get_port(
++			sock, address, addrlen, &port);
++		if (err)
++			return err;
++		return check_access_port(dom, port,
++					 LANDLOCK_ACCESS_NET_CONNECT_TCP);
++	}
++	return 0;
++}
++
++static struct security_hook_list landlock_hooks[] __ro_after_init = {
++	LSM_HOOK_INIT(socket_bind, hook_socket_bind),
++	LSM_HOOK_INIT(socket_connect, hook_socket_connect),
++};
++
++__init void landlock_add_net_hooks(void)
++{
++	security_add_hooks(landlock_hooks, ARRAY_SIZE(landlock_hooks),
++			   &landlock_lsmid);
++}
+-- 
+2.34.1
+
