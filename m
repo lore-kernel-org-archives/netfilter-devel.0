@@ -1,100 +1,80 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 0132D1DCB2C;
-	Thu, 17 Oct 2024 12:34:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFEDF1DD862;
+	Thu, 17 Oct 2024 12:39:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729168472; cv=none; b=sz9mdsuyZDrQprpWAANF5xHFZL39pBJo8tU5c7c11rDSxesK6NokM1sqmuJmsnAln7rGyLTvxAmxPnNjO9qYp6U64dbx2eQyFEqgaShnq6DNBf08nmq/jv/ZJtxLgwet2rHKkmH5TWLUO/KqnenNR6jNU5VlscTAoqULuBJx1w0=
+	t=1729168770; cv=none; b=s9b/5KD3yAI5cKijS/DfRITI1sgwJOOPg04JHPFZT+NsL8M/91AB2j/tsbWzRKdTLa2H0b2I51UVixvYyM2wgANsUbvItQk5ei3DCktzYFsdCLxdWS34crekaKxAWiwpaHcKf2tlAkGZRZINthe4W4eFQCNJRxogqCKyzhVGH+s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729168472; c=relaxed/simple;
-	bh=gE/KGPEvM1V9/wAW3ScJUD3z+1VvJN5NaMa+a0gpYF8=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=sYMx5LMFQ7WU5abBzhxXkdef4IojtndNVliWlGaSonqcMsuhDgMGThVKaUHb1pB31mhaurLsxUXNGk+OzJn2aulLGSJSrsQVktCwdxsi65eiSrwfccZqP2FmhTDKFAtcCBN0AcPU6rk3iA/n/UGFXA6bUmFqZUVxV4ElvBLZv+E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+	s=arc-20240116; t=1729168770; c=relaxed/simple;
+	bh=58ZH9EysMGctJs6VFMx8+biSi2sHaIk63WBGxe5Y220=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=kfDoTLgVwiw3CPOXBfT1YqVUlJ2LFw2yS0huVGzuxQyGX6rYRzyV3VuYQu6fD/TZs6VP13dkDOipPUVsze/Nt4vr0BJ5w9oJbS74NvUR0D4o/1DIeRAXLPC3k9VlpkjqAOg5L+CxTeez+OrGT3Xr0iqNhx3x6MuC6/7gGk3az8k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=43634 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1t1Pmg-00Eunf-4s; Thu, 17 Oct 2024 14:39:20 +0200
+Date: Thu, 17 Oct 2024 14:39:17 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	fw@strlen.de
-Subject: [PATCH net 1/1] netfilter: bpf: must hold reference on net namespace
-Date: Thu, 17 Oct 2024 14:34:13 +0200
-Message-Id: <20241017123413.4306-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20241017123413.4306-1-pablo@netfilter.org>
-References: <20241017123413.4306-1-pablo@netfilter.org>
+To: Felix Fietkau <nbd@nbd.name>
+Cc: Eric Woudstra <ericwouds@gmail.com>,
+	Nikolay Aleksandrov <razor@blackwall.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Roopa Prabhu <roopa@nvidia.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+	Jiri Pirko <jiri@resnulli.us>,
+	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+	Lorenzo Bianconi <lorenzo@kernel.org>,
+	Frank Wunderlich <frank-w@public-files.de>,
+	Daniel Golle <daniel@makrotopia.org>, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, bridge@lists.linux.dev,
+	linux-arm-kernel@lists.infradead.org,
+	linux-mediatek@lists.infradead.org
+Subject: Re: [PATCH RFC v1 net-next 00/12] bridge-fastpath and related
+ improvements
+Message-ID: <ZxEFdX1uoBYSFhBF@calendula>
+References: <20241013185509.4430-1-ericwouds@gmail.com>
+ <9f9f3cf0-7a78-40f1-b8d5-f06a2d428210@blackwall.org>
+ <a07cadd3-a8ff-4d1c-9dca-27a5dba907c3@gmail.com>
+ <0b0a92f2-2e80-429c-8fcd-d4dc162e6e1f@nbd.name>
+ <137aa23a-db21-43c2-8fb0-608cfe221356@gmail.com>
+ <a7ab80d5-ff49-4277-ba73-db46547a8a8e@nbd.name>
+ <d7d48102-4c52-4161-a21c-4d5b42539fbb@gmail.com>
+ <b5739f78-9cd5-4fd0-ae63-d80a5a37aaf0@nbd.name>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <b5739f78-9cd5-4fd0-ae63-d80a5a37aaf0@nbd.name>
+X-Spam-Score: -1.9 (-)
 
-From: Florian Westphal <fw@strlen.de>
+On Thu, Oct 17, 2024 at 11:17:09AM +0200, Felix Fietkau wrote:
+[...]
+> By the way, based on some reports that I received, I do believe that the
+> existing forwarding fastpath also doesn't handle roaming properly.
+> I just didn't have the time to properly look into that yet.
 
-BUG: KASAN: slab-use-after-free in __nf_unregister_net_hook+0x640/0x6b0
-Read of size 8 at addr ffff8880106fe400 by task repro/72=
-bpf_nf_link_release+0xda/0x1e0
-bpf_link_free+0x139/0x2d0
-bpf_link_release+0x68/0x80
-__fput+0x414/0xb60
+I think it should work for the existing forwarding fastpath.
 
-Eric says:
- It seems that bpf was able to defer the __nf_unregister_net_hook()
- after exit()/close() time.
- Perhaps a netns reference is missing, because the netns has been
- dismantled/freed already.
- bpf_nf_link_attach() does :
- link->net = net;
- But I do not see a reference being taken on net.
+- If computer roams from different port, packets follow classic path,
+  then new flow entry is created. The flow old entry expires after 30
+  seconds.
+- If route is stale, flow entry is also removed.
 
-Add such a reference and release it after hook unreg.
-Note that I was unable to get syzbot reproducer to work, so I
-do not know if this resolves this splat.
+Maybe I am missing another possible scenario?
 
-Fixes: 84601d6ee68a ("bpf: add bpf_link support for BPF_NETFILTER programs")
-Diagnosed-by: Eric Dumazet <edumazet@google.com>
-Reported-by: Lai, Yi <yi1.lai@linux.intel.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Reviewed-by: Eric Dumazet <edumazet@google.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_bpf_link.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/net/netfilter/nf_bpf_link.c b/net/netfilter/nf_bpf_link.c
-index 5257d5e7eb09..e5e79a08c10b 100644
---- a/net/netfilter/nf_bpf_link.c
-+++ b/net/netfilter/nf_bpf_link.c
-@@ -23,6 +23,7 @@ static unsigned int nf_hook_run_bpf(void *bpf_prog, struct sk_buff *skb,
- struct bpf_nf_link {
- 	struct bpf_link link;
- 	struct nf_hook_ops hook_ops;
-+	netns_tracker ns_tracker;
- 	struct net *net;
- 	u32 dead;
- 	const struct nf_defrag_hook *defrag_hook;
-@@ -120,6 +121,7 @@ static void bpf_nf_link_release(struct bpf_link *link)
- 	if (!cmpxchg(&nf_link->dead, 0, 1)) {
- 		nf_unregister_net_hook(nf_link->net, &nf_link->hook_ops);
- 		bpf_nf_disable_defrag(nf_link);
-+		put_net_track(nf_link->net, &nf_link->ns_tracker);
- 	}
- }
- 
-@@ -257,6 +259,8 @@ int bpf_nf_link_attach(const union bpf_attr *attr, struct bpf_prog *prog)
- 		return err;
- 	}
- 
-+	get_net_track(net, &link->ns_tracker, GFP_KERNEL);
-+
- 	return bpf_link_settle(&link_primer);
- }
- 
--- 
-2.30.2
-
+Thanks.
