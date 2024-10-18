@@ -1,84 +1,147 @@
-Received: from mail-wr1-f42.google.com (mail-wr1-f42.google.com [209.85.221.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp-42af.mail.infomaniak.ch (smtp-42af.mail.infomaniak.ch [84.16.66.175])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AD8120402F
-	for <netfilter-devel@vger.kernel.org>; Fri, 18 Oct 2024 17:32:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8CF4204025
+	for <netfilter-devel@vger.kernel.org>; Fri, 18 Oct 2024 18:08:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=84.16.66.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729272730; cv=none; b=EkuYFi9eyelnHTVuf3K6KS0tI17CSeKk7tPNSqfLPTEJQ4J4RIba1DB3mVtwfEXo/lb0OSgRWKmJUZ0hjXgteJ5GhcOXAHtCyLxy9HfXPD9o2VQCLtz1X0GZBzFvOk588V0Q+BVPBhkrnUrSueOMXOwVugspIYDB+ZEwmUTVqOI=
+	t=1729274904; cv=none; b=a2RWFKXqP5LnFFwphBHQTZE+6dwA/eFT1T3Ze9ojUT0apbe9udSphslJp70Aj57mKEEX12kay7G9hcuWUNXfSFV2K/jHtBLxZqvJKmtTxGEsqyN9uRRIOQuLl68IitO0iV96s1rvyWPnvclPtg5DUc0pNje0VNV3BYakVfbjI0g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729272730; c=relaxed/simple;
-	bh=ZDNe4EoJkf/NTI16rB8s2nptcI5WCsAG5/CIj6chawg=;
-	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=g82ywSxVLGGlXfDIG0hd+B3+bX1z03CKFiEy2RrxFSjw68zCyiAlw5x4xQg/NbMlo3JQUyKj1u+Dec7GrRs+YpNKJNymzYeMoSlGcYaIVkfqoNN+C+uEXiO/ZxpoAk4sXuPw3pMOGv6RkkxAGZM/fei1NwvKpwFhuQidW6QEjSs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=geexology.com; spf=pass smtp.mailfrom=geexology.com; dkim=pass (2048-bit key) header.d=geexology-com.20230601.gappssmtp.com header.i=@geexology-com.20230601.gappssmtp.com header.b=0iro5a9f; arc=none smtp.client-ip=209.85.221.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=geexology.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=geexology.com
+	s=arc-20240116; t=1729274904; c=relaxed/simple;
+	bh=b8RDOb0eqMg8kr7/h2Rvqmv6d6GX6jwaOxyJBbHi39I=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=iG+ufM2snF6unXOP+tStjM83XO71WkWFlQqR3jawHM+9lqnWIKVpw/IlbJzow08b7IYQUY5TJok+YRx7RBEkRKt+CCnUjv3cAMjCbqr31KJajmmmKSBpG+8yan4VzDjHz17g5AsALbnu0p84Vq4DN8MNMZq29DHOwrbm9GPzTlk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net; spf=pass smtp.mailfrom=digikod.net; dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b=LQd7RQqY; arc=none smtp.client-ip=84.16.66.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=digikod.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=geexology-com.20230601.gappssmtp.com header.i=@geexology-com.20230601.gappssmtp.com header.b="0iro5a9f"
-Received: by mail-wr1-f42.google.com with SMTP id ffacd0b85a97d-37d495d217bso2232706f8f.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Oct 2024 10:32:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=geexology-com.20230601.gappssmtp.com; s=20230601; t=1729272726; x=1729877526; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:reply-to:mime-version:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=r3KTpoPfawcr4EZRtryeoMzkWozNa4TDFm7fO/2KthI=;
-        b=0iro5a9f9zFAJNJDZrnkXdMa+R8WPdJ8OJG+CdRHlDjfGC5LK/hoO1d7Hq/AxhSW+/
-         S6Ka4iJowA7/xGWefrn1HmMR3QX72WhQcIynaXb4fKjthjlscNZybFnjl1+ZHV1ln4ke
-         sEpOS6EiDOkwRfZzEcnx2qVhF3XfizxuCNNyHJQ040Dvg5o2zMyvtni71A+rwZGmvKCp
-         2XlBFr9yB9i3WwESaiSgU9TVYPkO0aTn144Qadw7V6meoROJXTszrLtOucR54hh70oM3
-         yt6s4+DQQL/R6y/tv9ayE2GgmTWGMotIE8uQhFkNdcWY+BOLKOxY8yHOTmyPY2hua6SB
-         BUQw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1729272726; x=1729877526;
-        h=cc:to:subject:message-id:date:from:reply-to:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=r3KTpoPfawcr4EZRtryeoMzkWozNa4TDFm7fO/2KthI=;
-        b=CVuKDqJ7PvwbIQiA8M664Ka0yQ0B6WuV7i8DiRo0ETO/V1VxxSlnIF0yMWhU3E0r0b
-         T+8rfjWoeaipmDAqpDfpIqd704Ek0BFeQnGcn76i0wfUnR5SWJ3pALiMuRpsZEWrTKqE
-         Hz6cPXfi6AuRSsDu/8Artn0DNCX766qHuEjGIgqDDI/t7KsByNYYmT8VL8mlMqeGPriZ
-         Ok81kbKOD29JfsNpBMNP/Uub/7Iy+F9Mo05+AGJFd4B91xQ6SkF6PbobYUkLAxGweEDF
-         kR4I1BxQhr/aykzatyihLyY/hT18QnA+dtGmcbBlXdrp1E3ev5cVtRg+AGEET7iCFuka
-         L0NQ==
-X-Gm-Message-State: AOJu0Yyaf/2J0v0ZObTGU27PjbZFwNseptH0KJI230gpz3Epz0r+gXpO
-	oktOFOkf71wSuvDFh2oQ3jzUMgKOG3P789MbriDyEJjuX4JJ7rdUHC3LuilW7770SoZjMGPwzOs
-	f7NDrBlAVt4MliPwbJQ//YXGwco7M5yWKhpOw
-X-Google-Smtp-Source: AGHT+IHv28sHijUf6jwlEORDaw8A81AN0Nf1nkfQ7GEiWy/uQaL+KTHzg/srThsbqXgVpV3A0488MhKi2UIGp7kAxYc=
-X-Received: by 2002:a5d:424c:0:b0:37d:51b7:5e08 with SMTP id
- ffacd0b85a97d-37ea21d8fbdmr2627033f8f.18.1729272726184; Fri, 18 Oct 2024
- 10:32:06 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b="LQd7RQqY"
+Received: from smtp-4-0001.mail.infomaniak.ch (smtp-4-0001.mail.infomaniak.ch [10.7.10.108])
+	by smtp-4-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4XVXkN3lLNzgmj;
+	Fri, 18 Oct 2024 20:08:12 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=digikod.net;
+	s=20191114; t=1729274892;
+	bh=KEYQT5PqdF1JYcj4P2uuZFLVTpuMdKZe8EXn59nZbKw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=LQd7RQqYMPUrGzcA8/jm7IUkseYIIA4NA3fGRyC88MUo4RLMBFuOy9CF+h9Qo28BY
+	 YXzwwHFm83C5dE6Apmzy8vTi9G2x973pxxtpoBYKF3UoyjpqhZL8xZfMx7VQ3TpOKO
+	 DNyZgWtvPR7IKd5ONkSyZYCd/9tb+XO7BmARcaeI=
+Received: from unknown by smtp-4-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4XVXkL6rspzLv4;
+	Fri, 18 Oct 2024 20:08:10 +0200 (CEST)
+Date: Fri, 18 Oct 2024 20:08:10 +0200
+From: =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
+To: Matthieu Baerts <matttbe@kernel.org>
+Cc: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>, 
+	gnoack@google.com, willemdebruijn.kernel@gmail.com, matthieu@buffet.re, 
+	linux-security-module@vger.kernel.org, netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+	yusongping@huawei.com, artem.kuzin@huawei.com, konstantin.meskhidze@huawei.com, 
+	MPTCP Linux <mptcp@lists.linux.dev>
+Subject: Re: [RFC PATCH v2 1/8] landlock: Fix non-TCP sockets restriction
+Message-ID: <20241018.Kahdeik0aaCh@digikod.net>
+References: <20241017110454.265818-1-ivanov.mikhail1@huawei-partners.com>
+ <20241017110454.265818-2-ivanov.mikhail1@huawei-partners.com>
+ <49bc2227-d8e1-4233-8bc4-4c2f0a191b7c@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Reply-To: fredr@gxize.net
-From: Fred Richards <fredr@geexology.com>
-Date: Fri, 18 Oct 2024 13:31:55 -0400
-Message-ID: <CANPzkXkRKf1a6ZvOJU=m3NwW4B0gQnQSRggw=ZnK6kBYmqLtBw@mail.gmail.com>
-Subject: strange error from the xt_mark module for kernels 6.1.113 & 6.11.4
-To: pablo@netfilter.or
-Cc: netfilter-devel@vger.kernel.org, kadlec@netfilter.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <49bc2227-d8e1-4233-8bc4-4c2f0a191b7c@kernel.org>
+X-Infomaniak-Routing: alpha
 
-Hello,
-I have a homelab with a bunch of rocky vms where I use the elrepo
-kernel-ml kernel, noticed this morning an error with the xt_mark
-module, saying it doesn't recognize the --xor-mark option ...
+On Thu, Oct 17, 2024 at 02:59:48PM +0200, Matthieu Baerts wrote:
+> Hi Mikhail and Landlock maintainers,
+> 
+> +cc MPTCP list.
 
-E1018 15:18:11.083644       1 proxier.go:1432] "Failed to execute
-iptables-restore" err=<        exit status 2: Warning: Extension MARK
-revision 0 not supported, missing kernel module?
-ip6tables-restore v1.8.8 (nf_tables): unknown option "--xor-mark"
-  Error occurred at line: 11        Try `ip6tables-restore -h' or
-'ip6tables-restore --help' for more information.
+Thanks, we should include this list in the next series.
 
-I think it has to do with this commit but I could be terribly wrong:
+> 
+> On 17/10/2024 13:04, Mikhail Ivanov wrote:
+> > Do not check TCP access right if socket protocol is not IPPROTO_TCP.
+> > LANDLOCK_ACCESS_NET_BIND_TCP and LANDLOCK_ACCESS_NET_CONNECT_TCP
+> > should not restrict bind(2) and connect(2) for non-TCP protocols
+> > (SCTP, MPTCP, SMC).
+> 
+> Thank you for the patch!
+> 
+> I'm part of the MPTCP team, and I'm wondering if MPTCP should not be
+> treated like TCP here. MPTCP is an extension to TCP: on the wire, we can
+> see TCP packets with extra TCP options. On Linux, there is indeed a
+> dedicated MPTCP socket (IPPROTO_MPTCP), but that's just internal,
+> because we needed such dedicated socket to talk to the userspace.
+> 
+> I don't know Landlock well, but I think it is important to know that an
+> MPTCP socket can be used to discuss with "plain" TCP packets: the kernel
+> will do a fallback to "plain" TCP if MPTCP is not supported by the other
+> peer or by a middlebox. It means that with this patch, if TCP is blocked
+> by Landlock, someone can simply force an application to create an MPTCP
+> socket -- e.g. via LD_PRELOAD -- and bypass the restrictions. It will
+> certainly work, even when connecting to a peer not supporting MPTCP.
+> 
+> Please note that I'm not against this modification -- especially here
+> when we remove restrictions around MPTCP sockets :) -- I'm just saying
+> it might be less confusing for users if MPTCP is considered as being
+> part of TCP. A bit similar to what someone would do with a firewall: if
+> TCP is blocked, MPTCP is blocked as well.
 
-...
-   netfilter: xtables: avoid NFPROTO_UNSPEC where needed
-   [ Upstream commit 0bfcb7b71e735560077a42847f69597ec7dcc326 ]
-...
-It's only those two newest kernels with that commit, if I revert back
-to the prior version, the application (kube-proxy for kubernetes)
-operates correctly.
+Good point!  I don't know well MPTCP but I think you're right.  Given
+it's close relationship with TCP and the fallback mechanism, it would
+make sense for users to not make a difference and it would avoid bypass
+of misleading restrictions.  Moreover the Landlock rules are simple and
+only control TCP ports, not peer addresses, which seems to be the main
+evolution of MPTCP.
+
+> 
+> I understand that a future goal might probably be to have dedicated
+> restrictions for MPTCP and the other stream protocols (and/or for all
+> stream protocols like it was before this patch), but in the meantime, it
+> might be less confusing considering MPTCP as being part of TCP (I'm not
+> sure about the other stream protocols).
+
+We need to take a closer look at the other stream protocols indeed.
+
+> 
+> 
+> > sk_is_tcp() is used for this to check address family of the socket
+> > before doing INET-specific address length validation. This is required
+> > for error consistency.
+> > 
+> > Closes: https://github.com/landlock-lsm/linux/issues/40
+> > Fixes: fff69fb03dde ("landlock: Support network rules with TCP bind and connect")
+> 
+> I don't know how fixes are considered in Landlock, but should this patch
+> be considered as a fix? It might be surprising for someone who thought
+> all "stream" connections were blocked to have them unblocked when
+> updating to a minor kernel version, no?
+
+Indeed.  The main issue was with the semantic/definition of
+LANDLOCK_ACCESS_FS_NET_{CONNECT,BIND}_TCP.  We need to synchronize the
+code with the documentation, one way or the other, preferably following
+the principle of least astonishment.
+
+> 
+> (Personally, I would understand such behaviour change when upgrading to
+> a major version, and still, maybe only if there were alternatives to
+
+This "fix" needs to be backported, but we're not clear yet on what it
+should be. :)
+
+> continue having the same behaviour, e.g. a way to restrict all stream
+> sockets the same way, or something per stream socket. But that's just me
+> :) )
+
+The documentation and the initial idea was to control TCP bind and
+connect.  The kernel implementation does more than that, so we need to
+synthronize somehow.
+
+> 
+> Cheers,
+> Matt
+> -- 
+> Sponsored by the NGI0 Core fund.
+> 
+> 
