@@ -1,106 +1,103 @@
-Received: from mail-lj1-f181.google.com (mail-lj1-f181.google.com [209.85.208.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DEA610F2
-	for <netfilter-devel@vger.kernel.org>; Fri, 18 Oct 2024 07:06:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB36B13A88A;
+	Fri, 18 Oct 2024 09:43:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729235188; cv=none; b=dJOq2mcsHJW1HEpEm8w8I4lM8sfiR35U6FGVlUFgvxF5EJ5+vREZhiFmGuCVjNz5tGU9nn8D4PQ+dRbVezZ3KiLJrJjdcEzbfk5wACykDjimjoYH+iotWhD/DpS/szeGkQoajd45bEPocJBLVkxBVqc3X6efp99P/ocPSEKHpA8=
+	t=1729244586; cv=none; b=odsrilnzM3z9zfAYqJ8XEY3gfQrB6l8HB48t0+pZrkgQX+fPWfHueAhLMiadRr2nozgbeRRGd5mK1myE+mhVjkTDce1PgekRPfwo02ooM9ldquBOIrc3PoGUqwy74bV3Xlu5hFacPgwood8u4cBo/lxZVPhwJDQDSS14mTzysDI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729235188; c=relaxed/simple;
-	bh=+LXYPc6hzDz1apqRx1+djjFCpV4f5yKQDtoRJZwRfQo=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=td8sQBNG9SrCLM1bREkFSRXKIPM9kFYXD7NTPFa42cnqH/3/zdRs9K5ih9Klj4bjj6dxBaJ3LmKEXKeQ3UgG1Dtjmr3B3UP+Ra284g9snJldiSLaosDcM2GQJKH3LS7MT0YMJCfU2KY1utXNEhSgxUC0DTVS/4e/pluBEXH78ks=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=iQZsvUnU; arc=none smtp.client-ip=209.85.208.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	s=arc-20240116; t=1729244586; c=relaxed/simple;
+	bh=fLIrvQDX07IoKF46VFq158a7yUx1ZCpiEymxP3YbaIA=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=VNbUqM2lKi0j+r2uGLXkYhIJiUytPquwoBznAGqPgqa/OT6oPvAHZAuwUgCztZs4DFrdgG25ayd5B7hRKZIg1WjG6GhgRyUecLDgqm8w//nYdnneMbuy8c1+0HCuHlkwIR9VkT2/Oo1y/lM/w5jGY/c7pqobmlg16Q/hG7Wsfp4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ttm/+w35; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="iQZsvUnU"
-Received: by mail-lj1-f181.google.com with SMTP id 38308e7fff4ca-2fb5be4381dso20276601fa.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Oct 2024 00:06:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1729235185; x=1729839985; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=0sDh29tgBDN/eY+37mHiEnkCsD41OoxLIQqVYqiE06Y=;
-        b=iQZsvUnUysgG3+Zmnrbp5TRbC0CZ3fHEb/lgnOGF/jnk25GYxwi2uCAnB17D1LldGf
-         nixY9VIT0l4P7YQOKfsz/+NgUwv8F/YkhhQ57zM9TZMxJxdmua92yr8gB+jFmfb4Rk1I
-         zjGNW0LwkXZsaXFdzgYY1lV8Yyn/mjqMg4ZtC01kMnVYaOMQwx5vLKACIYfJIk5jUwLm
-         hdUnWmMtkGnql09wFJ1a48CKD9nZMz15NL3g8sRi08b6bqOhhwcxqAP0BkawJ4r0zEUf
-         jeBDJ1Ryb3+/pVgLu19to+7/sppIfeDQ4SmR8HqJNh7I10oZ/bGGFfedihPfZZqn6oN6
-         XFiQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1729235185; x=1729839985;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=0sDh29tgBDN/eY+37mHiEnkCsD41OoxLIQqVYqiE06Y=;
-        b=kPt5IOORfHqzWTCuTfNGFTYHovH9U+5IjcpsVOrG9/Bkss34FLI4YcWSDUrndEkVTU
-         Af1be9jBBxzShaoE34M3sW51ICPvv57TnYn2QduOI5twIwnjEvpAioZgYZqf2qVrda4c
-         zLalhfk7nSkESdvJZeSqcJsU807ZTHxOA/0uc3Ybieyh2oUVMhF2Lc8EYhGOoPRXhC80
-         zjgItzPtuNzAKI4rh47Wfd8n8ZVGLBfhWbXH6kvPxu9CEE4T5xOc0dHpv9O6ZKWdhhIY
-         heuQH4xm5buoO3EgRwhSvCcJUcdhEwfx3mAUhzUdRwsUFLozhLoljumleNyN45n7H1hK
-         VWrw==
-X-Forwarded-Encrypted: i=1; AJvYcCXuJjj/X9HuWBl0j+6Hu5PvuhXvqRgRhSqoZ7wD0f4YWfJYfGwAy47PVPf6hdyBwGMXmm6HWwiQWz1SpiEB3Xs=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxhA+pdN8lN2tG9Uw/CIEpYOxemEm6dvznvCul9YFEcgK/+Tvbs
-	ikS9wdGTZWAGh+KLU3CINmZm8LE/paWf5DccnOQK9oCfoOdx1U6AeVK0GXoIm5KaKKl9qEMEarT
-	smUufLgj284vogrd1M9/Vgq0AWOHHqcmXMTwO
-X-Google-Smtp-Source: AGHT+IEID67jPLeUKh1bY4LIIgpCPYkyWpP4dlriYtHZlSy5ZWcIWo8EO6dx3Mc7MG9Ne0bnLTtz+chQnd/X6Cdop5k=
-X-Received: by 2002:a05:651c:1543:b0:2fb:65c8:b4ca with SMTP id
- 38308e7fff4ca-2fb83226659mr5746961fa.40.1729235185149; Fri, 18 Oct 2024
- 00:06:25 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ttm/+w35"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0FA3C4CEC3;
+	Fri, 18 Oct 2024 09:43:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1729244585;
+	bh=fLIrvQDX07IoKF46VFq158a7yUx1ZCpiEymxP3YbaIA=;
+	h=From:Date:Subject:To:Cc:From;
+	b=Ttm/+w35PWgvY/wiDeBn0di87HB3K+xVy0Vh0d9yNyLgBhdSyEM/eEpRfmvfytQH+
+	 dHZKqYioESVaFmBpLh3TIR2h7oeg8XGERgD5c4WcnribPvm4CRQ75jYhPnKxUuViah
+	 YujFEaJwXZ6upg3U8XeU1JulArdlnjC8kIXN0AQuoxs2DX+lH0q/jsdEQgqAhbeyos
+	 umf+0WZAoZ46QYHNocYMECj8PDWZjcrLm47xQ7misCSIDt/2BXE7/8vG+knhT5nqDu
+	 xL73qKWGuDr/YG7ZFlGhestMkJ60RepDaEMASv4Z113IJC7R9hHhcbLIS0GttO2Mn1
+	 yez06pSMnbE/A==
+From: Simon Horman <horms@kernel.org>
+Date: Fri, 18 Oct 2024 10:42:58 +0100
+Subject: [PATCH nf-next] netfilter: bpf: Pass string literal as format
+ argument of request_module()
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CA+nYHL-daCTUG=G0CaAMyabf9LkUYa6HnjhUCYLoJTm2FfMdsQ@mail.gmail.com>
-In-Reply-To: <CA+nYHL-daCTUG=G0CaAMyabf9LkUYa6HnjhUCYLoJTm2FfMdsQ@mail.gmail.com>
-From: Eric Dumazet <edumazet@google.com>
-Date: Fri, 18 Oct 2024 09:06:12 +0200
-Message-ID: <CANn89iJ4EwLU2H4CntDbufc3ZRS9-BZrO0vXGxYosx4ELq8PgA@mail.gmail.com>
-Subject: Re: KASAN: use-after-free Read in __nf_hook_entries_try_shrink
-To: Xia Chu <jiangmo9@gmail.com>
-Cc: pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de, 
-	davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com, 
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	syzkaller@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20241018-nf-mod-fmt-v1-1-b5a275d6861c@kernel.org>
+X-B4-Tracking: v=1; b=H4sIAKEtEmcC/x2MQQqAIBAAvyJ7bkEtMPpKdKhcaw9qaEQg/j3pO
+ DAzBTIlpgyTKJDo4cwxNFCdgP1cw0HItjFoqQcl1YjBoY8Wnb/RaNsbKVe92Q1acCVy/P6zGZo
+ X6L1hqfUDXk1BCWUAAAA=
+To: Pablo Neira Ayuso <pablo@netfilter.org>, 
+ Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc: "David S. Miller" <davem@davemloft.net>, 
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
+ Paolo Abeni <pabeni@redhat.com>, Nathan Chancellor <nathan@kernel.org>, 
+ Nick Desaulniers <ndesaulniers@google.com>, 
+ Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>, 
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+ netdev@vger.kernel.org, bpf@vger.kernel.org, llvm@lists.linux.dev
+X-Mailer: b4 0.14.0
 
-On Fri, Oct 18, 2024 at 9:00=E2=80=AFAM Xia Chu <jiangmo9@gmail.com> wrote:
->
-> Hi,
->
-> We would like to report the following bug which has been found by our mod=
-ified version of syzkaller.
->
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D
-> description: KASAN: use-after-free Read in __nf_hook_entries_try_shrink
-> affected file: net/netfilter/core.c
-> kernel version: 5.8.0-rc4
-> kernel commit: 0aea6d5c5be33ce94c16f9ab2f64de1f481f424b
-> git tree: upstream
-> kernel config: attached
-> crash reproducer: attached
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D
-> Crash log:
-> BUG: KASAN: use-after-free in hooks_validate net/netfilter/core.c:177 [in=
-line]
-> BUG: KASAN: use-after-free in __nf_hook_entries_try_shrink+0x3c0/0x470 ne=
-t/netfilter/core.c:260
-> Read of size 4 at addr ffff888067fe4220 by task kworker/u4:2/126
->
-> CPU: 1 PID: 126 Comm: kworker/u4:2 Tainted: G        W         5.8.0-rc4+=
- #1
+Both gcc-14 and clang-18 report that passing a non-string literal as the
+format argument of request_module() is potentially insecure.
 
-This is an old version of linux, not supported.
+E.g. clang-18 says:
 
-What do you expect from us ?
+.../nf_bpf_link.c:46:24: warning: format string is not a string literal (potentially insecure) [-Wformat-security]
+   46 |                 err = request_module(mod);
+      |                                      ^~~
+.../kmod.h:25:55: note: expanded from macro 'request_module'
+   25 | #define request_module(mod...) __request_module(true, mod)
+      |                                                       ^~~
+.../nf_bpf_link.c:46:24: note: treat the string as an argument to avoid this
+   46 |                 err = request_module(mod);
+      |                                      ^
+      |                                      "%s",
+.../kmod.h:25:55: note: expanded from macro 'request_module'
+   25 | #define request_module(mod...) __request_module(true, mod)
+      |                                                       ^
+
+It is always the case where the contents of mod is safe to pass as the
+format argument. That is, in my understanding, it never contains any
+format escape sequences.
+
+But, it seems better to be safe than sorry. And, as a bonus, compiler
+output becomes less verbose by addressing this issue as suggested by
+clang-18.
+
+No functional change intended.
+Compile tested only.
+
+Signed-off-by: Simon Horman <horms@kernel.org>
+---
+ net/netfilter/nf_bpf_link.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_bpf_link.c b/net/netfilter/nf_bpf_link.c
+index 5257d5e7eb09..6b9c9d71906d 100644
+--- a/net/netfilter/nf_bpf_link.c
++++ b/net/netfilter/nf_bpf_link.c
+@@ -42,7 +42,7 @@ get_proto_defrag_hook(struct bpf_nf_link *link,
+ 	hook = rcu_dereference(*ptr_global_hook);
+ 	if (!hook) {
+ 		rcu_read_unlock();
+-		err = request_module(mod);
++		err = request_module("%s", mod);
+ 		if (err)
+ 			return ERR_PTR(err < 0 ? err : -EINVAL);
+ 
+
