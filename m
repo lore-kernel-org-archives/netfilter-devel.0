@@ -1,106 +1,84 @@
-Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
+Received: from mail-wr1-f42.google.com (mail-wr1-f42.google.com [209.85.221.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90F271C242D
-	for <netfilter-devel@vger.kernel.org>; Fri, 18 Oct 2024 16:25:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AD8120402F
+	for <netfilter-devel@vger.kernel.org>; Fri, 18 Oct 2024 17:32:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729268727; cv=none; b=qVPoNnHiYSycqBKy5cX9cV0I88fKataNZb+4CeI4dEWQK8hSOrzULVoTgN/RDRfDITZg+5LE6W65Qj1Wq57/XJz6klBtgY/vCkes+FpkpbIB8adAUrXnDsl/3p2Z9rOS7gqVkN10LKaQHpxYFOefSFlnAWS4cjfQvAlIAGhgt1c=
+	t=1729272730; cv=none; b=EkuYFi9eyelnHTVuf3K6KS0tI17CSeKk7tPNSqfLPTEJQ4J4RIba1DB3mVtwfEXo/lb0OSgRWKmJUZ0hjXgteJ5GhcOXAHtCyLxy9HfXPD9o2VQCLtz1X0GZBzFvOk588V0Q+BVPBhkrnUrSueOMXOwVugspIYDB+ZEwmUTVqOI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729268727; c=relaxed/simple;
-	bh=Qm8FJuHRRwls/WqAeoFpruf5JFERUa8R5bqjrs0EgM8=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=i1ugxBfdauU8QW7eMbBJR3FVgwKg2++/DLOvUYqJvSS1p6S5Kyz4PTav+EmjTsSYMwx6jjuYeBZxuuCrzcgZT0K4GW0x1tC1F7wTngoiX1lqCLk5BeSSQcBOQNkDe9HPI0tQxefyBtR0n+45VwcDbtQrPVTNsJGRcw/ojggqBeI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cloudflare.com; spf=pass smtp.mailfrom=cloudflare.com; dkim=pass (2048-bit key) header.d=cloudflare.com header.i=@cloudflare.com header.b=RjVsYvhM; arc=none smtp.client-ip=209.85.128.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cloudflare.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cloudflare.com
+	s=arc-20240116; t=1729272730; c=relaxed/simple;
+	bh=ZDNe4EoJkf/NTI16rB8s2nptcI5WCsAG5/CIj6chawg=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=g82ywSxVLGGlXfDIG0hd+B3+bX1z03CKFiEy2RrxFSjw68zCyiAlw5x4xQg/NbMlo3JQUyKj1u+Dec7GrRs+YpNKJNymzYeMoSlGcYaIVkfqoNN+C+uEXiO/ZxpoAk4sXuPw3pMOGv6RkkxAGZM/fei1NwvKpwFhuQidW6QEjSs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=geexology.com; spf=pass smtp.mailfrom=geexology.com; dkim=pass (2048-bit key) header.d=geexology-com.20230601.gappssmtp.com header.i=@geexology-com.20230601.gappssmtp.com header.b=0iro5a9f; arc=none smtp.client-ip=209.85.221.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=geexology.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=geexology.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloudflare.com header.i=@cloudflare.com header.b="RjVsYvhM"
-Received: by mail-wm1-f53.google.com with SMTP id 5b1f17b1804b1-4315e62afe0so16986025e9.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Oct 2024 09:25:25 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=geexology-com.20230601.gappssmtp.com header.i=@geexology-com.20230601.gappssmtp.com header.b="0iro5a9f"
+Received: by mail-wr1-f42.google.com with SMTP id ffacd0b85a97d-37d495d217bso2232706f8f.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 18 Oct 2024 10:32:07 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloudflare.com; s=google09082023; t=1729268724; x=1729873524; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=ch5DeSK41qqOXt5fRprznhl/8uUUV8RtaTKJ1Y7/r7I=;
-        b=RjVsYvhM3Mc6wlYizbegi02tKxbPVH4ARBoMpGYGbVcZ1PlKTvAi2NItrmqbIMoHRx
-         6SkYNKF4XlL1UjxyZdBzoOC+ncnsXvti806U2Qy0yO2DDvRa4qMpobeBvcyautEay/AC
-         r1uMxur7+sjjXazk+pHhaPuFW/iQmCc588iLHCJbpuuvYlfRZo1X6I4Jt/nFH2w2C6Qj
-         aFxIwhlvVoQxWEh9tb3YlOhLvS13KKb6qnvxnGFsa5ELOHwvrMrQzlVGcbcVJfXTt3y/
-         mSWpgsCQjWOL+3SZtcf4l3I3s6TUUCCuIV9xPAbOUkg5CgdIedd5twRP8WEaNPTkM4pZ
-         ZTCw==
+        d=geexology-com.20230601.gappssmtp.com; s=20230601; t=1729272726; x=1729877526; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:reply-to:mime-version:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=r3KTpoPfawcr4EZRtryeoMzkWozNa4TDFm7fO/2KthI=;
+        b=0iro5a9f9zFAJNJDZrnkXdMa+R8WPdJ8OJG+CdRHlDjfGC5LK/hoO1d7Hq/AxhSW+/
+         S6Ka4iJowA7/xGWefrn1HmMR3QX72WhQcIynaXb4fKjthjlscNZybFnjl1+ZHV1ln4ke
+         sEpOS6EiDOkwRfZzEcnx2qVhF3XfizxuCNNyHJQ040Dvg5o2zMyvtni71A+rwZGmvKCp
+         2XlBFr9yB9i3WwESaiSgU9TVYPkO0aTn144Qadw7V6meoROJXTszrLtOucR54hh70oM3
+         yt6s4+DQQL/R6y/tv9ayE2GgmTWGMotIE8uQhFkNdcWY+BOLKOxY8yHOTmyPY2hua6SB
+         BUQw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1729268724; x=1729873524;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=ch5DeSK41qqOXt5fRprznhl/8uUUV8RtaTKJ1Y7/r7I=;
-        b=aSpwQbK2fiHAVvpMeco+rA/GP6r1iGz2AcfHFdmZt9kl8+jv9Bsd3LkYxlFpYz1Bxo
-         z80GJ02T6Axm/5Z4TuDIRJ8lBi9HeIHYKzrOxSfhv4HObvV6jIEn+pqVX0poPVyW3FLe
-         y08iPG7fbcq49SLMmdJm13+s06yS4LU6c2UGFTwgjitIpASfTix4wMRTxBp94vYwqLVX
-         7Wuh/F7HJ5jmlhjw1p3ZmljSgG7tnN2zlva9WbqWN0ofaWMw028aY+i89k8Q5dQ0nt6l
-         3qKjdx9GfGr8JbYKxes9Lkjmu33TjJrZidFM0bgg6h88zysQ8g7uyzGYcujDr4o9np46
-         ZM4w==
-X-Forwarded-Encrypted: i=1; AJvYcCXa3UITDKrmh1DDZM/rHtgYb/Z/9WdRdgSPU/5Odf586i+LcEebk5vnAw5HmKGbIq2a989U9fkjFIXM5qAJTbQ=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yzxjww+n0nkMVbcKytpWycSiOdopxnd7lSxKzpE0eT46EXYuVn+
-	XWZcSVJYhrNSsmI7SpKK3Rd3jQavhMaeQm6ca+orK+EwCHR5WLxhaf51nMWqBG0UxQDbFTay2X6
-	rmxW9CGuUDMA=
-X-Google-Smtp-Source: AGHT+IG55NayxS0oQBlxGjkszsHyKw5MDiOhDqS4zbVLWOMuBB2ZIxTPFLk3EVur+Ss+hgvqAJlzvw==
-X-Received: by 2002:a05:600c:3553:b0:426:647b:1bfc with SMTP id 5b1f17b1804b1-431616a0b1emr25002345e9.30.1729268723752;
-        Fri, 18 Oct 2024 09:25:23 -0700 (PDT)
-Received: from localhost.localdomain ([104.28.214.4])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-431606c64b8sm31178715e9.38.2024.10.18.09.25.21
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Fri, 18 Oct 2024 09:25:23 -0700 (PDT)
-From: Ignat Korchagin <ignat@cloudflare.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	davem@davemloft.net,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Florian Westphal <fw@strlen.de>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: kernel-team@cloudflare.com,
-	Ignat Korchagin <ignat@cloudflare.com>,
-	stable@vger.kernel.org
-Subject: [PATCH net] netfilter: xtables: fix a bad copypaste in xt_nflog module
-Date: Fri, 18 Oct 2024 17:25:17 +0100
-Message-Id: <20241018162517.39154-1-ignat@cloudflare.com>
-X-Mailer: git-send-email 2.39.5 (Apple Git-154)
+        d=1e100.net; s=20230601; t=1729272726; x=1729877526;
+        h=cc:to:subject:message-id:date:from:reply-to:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=r3KTpoPfawcr4EZRtryeoMzkWozNa4TDFm7fO/2KthI=;
+        b=CVuKDqJ7PvwbIQiA8M664Ka0yQ0B6WuV7i8DiRo0ETO/V1VxxSlnIF0yMWhU3E0r0b
+         T+8rfjWoeaipmDAqpDfpIqd704Ek0BFeQnGcn76i0wfUnR5SWJ3pALiMuRpsZEWrTKqE
+         Hz6cPXfi6AuRSsDu/8Artn0DNCX766qHuEjGIgqDDI/t7KsByNYYmT8VL8mlMqeGPriZ
+         Ok81kbKOD29JfsNpBMNP/Uub/7Iy+F9Mo05+AGJFd4B91xQ6SkF6PbobYUkLAxGweEDF
+         kR4I1BxQhr/aykzatyihLyY/hT18QnA+dtGmcbBlXdrp1E3ev5cVtRg+AGEET7iCFuka
+         L0NQ==
+X-Gm-Message-State: AOJu0Yyaf/2J0v0ZObTGU27PjbZFwNseptH0KJI230gpz3Epz0r+gXpO
+	oktOFOkf71wSuvDFh2oQ3jzUMgKOG3P789MbriDyEJjuX4JJ7rdUHC3LuilW7770SoZjMGPwzOs
+	f7NDrBlAVt4MliPwbJQ//YXGwco7M5yWKhpOw
+X-Google-Smtp-Source: AGHT+IHv28sHijUf6jwlEORDaw8A81AN0Nf1nkfQ7GEiWy/uQaL+KTHzg/srThsbqXgVpV3A0488MhKi2UIGp7kAxYc=
+X-Received: by 2002:a5d:424c:0:b0:37d:51b7:5e08 with SMTP id
+ ffacd0b85a97d-37ea21d8fbdmr2627033f8f.18.1729272726184; Fri, 18 Oct 2024
+ 10:32:06 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Reply-To: fredr@gxize.net
+From: Fred Richards <fredr@geexology.com>
+Date: Fri, 18 Oct 2024 13:31:55 -0400
+Message-ID: <CANPzkXkRKf1a6ZvOJU=m3NwW4B0gQnQSRggw=ZnK6kBYmqLtBw@mail.gmail.com>
+Subject: strange error from the xt_mark module for kernels 6.1.113 & 6.11.4
+To: pablo@netfilter.or
+Cc: netfilter-devel@vger.kernel.org, kadlec@netfilter.org
+Content-Type: text/plain; charset="UTF-8"
 
-For the nflog_tg_reg struct under the CONFIG_IP6_NF_IPTABLES switch
-family should probably be NFPROTO_IPV6
+Hello,
+I have a homelab with a bunch of rocky vms where I use the elrepo
+kernel-ml kernel, noticed this morning an error with the xt_mark
+module, saying it doesn't recognize the --xor-mark option ...
 
-Fixes: 0bfcb7b71e73 ("netfilter: xtables: avoid NFPROTO_UNSPEC where needed")
-Cc: stable@vger.kernel.org
-Signed-off-by: Ignat Korchagin <ignat@cloudflare.com>
----
- net/netfilter/xt_NFLOG.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+E1018 15:18:11.083644       1 proxier.go:1432] "Failed to execute
+iptables-restore" err=<        exit status 2: Warning: Extension MARK
+revision 0 not supported, missing kernel module?
+ip6tables-restore v1.8.8 (nf_tables): unknown option "--xor-mark"
+  Error occurred at line: 11        Try `ip6tables-restore -h' or
+'ip6tables-restore --help' for more information.
 
-diff --git a/net/netfilter/xt_NFLOG.c b/net/netfilter/xt_NFLOG.c
-index d80abd6ccaf8..6dcf4bc7e30b 100644
---- a/net/netfilter/xt_NFLOG.c
-+++ b/net/netfilter/xt_NFLOG.c
-@@ -79,7 +79,7 @@ static struct xt_target nflog_tg_reg[] __read_mostly = {
- 	{
- 		.name       = "NFLOG",
- 		.revision   = 0,
--		.family     = NFPROTO_IPV4,
-+		.family     = NFPROTO_IPV6,
- 		.checkentry = nflog_tg_check,
- 		.destroy    = nflog_tg_destroy,
- 		.target     = nflog_tg,
--- 
-2.39.5
+I think it has to do with this commit but I could be terribly wrong:
 
+...
+   netfilter: xtables: avoid NFPROTO_UNSPEC where needed
+   [ Upstream commit 0bfcb7b71e735560077a42847f69597ec7dcc326 ]
+...
+It's only those two newest kernels with that commit, if I revert back
+to the prior version, the application (kube-proxy for kubernetes)
+operates correctly.
