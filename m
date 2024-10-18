@@ -1,92 +1,93 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9718340862
-	for <netfilter-devel@vger.kernel.org>; Fri, 18 Oct 2024 12:08:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E38CF9F8;
+	Fri, 18 Oct 2024 12:29:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729253310; cv=none; b=mNCRI6tmatAZAO7TicP3HXWx+DnhZjPtyVrvTIuLpHeQGj+mvWEJe3/8t5sj9v56OK10OsxZXDkl5+D8rw2lM7JObJGb1hUdAAU93em3syaQ1g7TTtcieMaVgEjzRm3NldZSzHgp86aA47Bb0HDxTrpsbSLLmkMZaG5vBTBDghk=
+	t=1729254599; cv=none; b=sC/OeJiQsM2sIZwWNQcjAWkGNoQC/YMneNgskVs7Al9hb7i18NlRb3wK8YyTJfKWvsqd21f1vd5Rw6UqjdmAHEOKqPlFF/CnKsy2O6nvlHK6tlFgn2yt3O+qv9MN7OddKMZojfNShsot67Z17YEnSjAdMIkwgmXql/tHsrh0PFk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729253310; c=relaxed/simple;
-	bh=oIKuqnXYSnbNTlZpd90Dx/swAIWYzkTMlbgcd6EDKUs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Hc9H7ksNN+jYvaRj4WTDae85JLvx9Dha1Z5K5sitZ8H2o5851p6JWYOHNYXQu24XBRRQTyjt46RT28FHdj/lcIoLaLjN/YCcepoPtELSaflwMuVpWztd3B7xYhN8BRePALXIcmSLKrbd51MbFKtyMv+be4V214TIL3hF+FVRU1w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1t1lmL-0007jX-Sh; Fri, 18 Oct 2024 14:08:25 +0200
-Date: Fri, 18 Oct 2024 14:08:25 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] doc: extend description of fib expression
-Message-ID: <20241018120825.GC28324@breakpoint.cc>
-References: <20241010133745.28765-1-fw@strlen.de>
- <ZwqlbhdH4Fw__daA@calendula>
+	s=arc-20240116; t=1729254599; c=relaxed/simple;
+	bh=HLjQKmdaYxfy+8LnQVOaIQoMvuAC/MShmNTH0mnP6Gc=;
+	h=Content-Type:MIME-Version:In-Reply-To:References:Subject:From:Cc:
+	 To:Date:Message-ID; b=Vc09TVFW5YC/CEvtPwL1uK0uE0B6NtsZi8NiScVvXEiUiJdWykpstpmfYWlrrqfbTVw3OoWE/j72haPFRulvLOxEVLEvqaSrm7c97gT3AL7bjkYPg9Od5M5bWkO3FldjplPk+1pnD3/DhbVzUTk5YS/urDX+6wQ5gfOMrOzuG6I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DtzUUyeC; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DtzUUyeC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36102C4CEC3;
+	Fri, 18 Oct 2024 12:29:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1729254598;
+	bh=HLjQKmdaYxfy+8LnQVOaIQoMvuAC/MShmNTH0mnP6Gc=;
+	h=In-Reply-To:References:Subject:From:Cc:To:Date:From;
+	b=DtzUUyeC51vOuVASHib2mwMSVPbHWlCu+bBFYRxWb4UZ1KQfm2d7Uc5EDuyXxLlKY
+	 iiLRvAjSAO5ved8NR3eTX6agpPgc8YjkaoYEawUOJ/ovaSQkN/lWu9WPorgJbRnLji
+	 xTz6mqx+/CIeqgQzqKAfN9IscOMwO5hqOBvGu/k4gmDezNkBYmfn+ea7h1bZJpCPiK
+	 gL2ZgrBirQSNz0fMyZC1jMDDxGJqnbICpLBQfIqcXbfV59+Uv5u/e2OF2Nv/yqBtJP
+	 Unur8Md4EKLJyTdEfN+udx93z9JLR6JILhEJh8RkoLU8AFBIZ1PP5FQiog/cdl9kJr
+	 QmFHozuTcbQGg==
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZwqlbhdH4Fw__daA@calendula>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20241017072534.127519-1-liujing@cmss.chinamobile.com>
+References: <20241017072534.127519-1-liujing@cmss.chinamobile.com>
+Subject: Re: [PATCH] selftests: netfilter: remove unused rplnlh parameter
+From: Antoine Tenart <atenart@kernel.org>
+Cc: kadlec@netfilter.org, davem@davemloft.net, edumazet@google.com, kuba@kernel.org, pabeni@redhat.com, shuah@kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, netdev@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-kernel@vger.kernel.org, Liu Jing <liujing@cmss.chinamobile.com>
+To: Liu Jing <liujing@cmss.chinamobile.com>, pablo@netfilter.org
+Date: Fri, 18 Oct 2024 14:29:54 +0200
+Message-ID: <172925459485.589680.8839743987026835475@kwain.local>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > -|Keyword| Description| Type
-> > +|flag| Description
-> > +|daddr| Perform a normal route lookup: search fib for route to the *destination address* of the packet.
-> > +|saddr| Perform a reverse route lookup: search the fib for route to the *source address* of the packet.
-> > +|mark | consider the packet mark (nfmark) when querying the fib.
-> > +|iif  | fail fib lookup unless route exists and its output interface is identical to the packets input interface
-> 
-> maybe easier to understand?
-> 
->            if fib lookups provides a route then check its output interface is identical to the packets *input* interface.
-> 
-> > +|oif  | fail fib lookup unless route exists and its output interface is identical to the packets output interface.
-> 
->            if fib lookups provides a route then check its output interface is identical to the packets *output* interface.
+Quoting Liu Jing (2024-10-17 09:25:34)
+> The rplnlh parameter is not used in many functions, so delete it.
+>=20
+> Signed-off-by: Liu Jing <liujing@cmss.chinamobile.com>
+> ---
+>  tools/testing/selftests/net/netfilter/conntrack_dump_flush.c | 5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
+>=20
+> diff --git a/tools/testing/selftests/net/netfilter/conntrack_dump_flush.c=
+ b/tools/testing/selftests/net/netfilter/conntrack_dump_flush.c
+> index bd9317bf5ada..e03ddc60b5d4 100644
+> --- a/tools/testing/selftests/net/netfilter/conntrack_dump_flush.c
+> +++ b/tools/testing/selftests/net/netfilter/conntrack_dump_flush.c
+> @@ -96,7 +96,6 @@ static int conntrack_data_insert(struct mnl_socket *soc=
+k, struct nlmsghdr *nlh,
+>                                  uint16_t zone)
+>  {
+>         char buf[MNL_SOCKET_BUFFER_SIZE];
+> -       struct nlmsghdr *rplnlh;
+>         unsigned int portid;
+>         int err, ret;
 
-Its better, updated, thanks.
+While at it, it seems 'err' is not used as well. In the two other
+functions as well.
 
-> > This flag can only be used with the *type* result.
-> 
-> Are you sure 'oif' can only be used with type? I can see NFTA_FIB_F_OIF is available in nft_fib4_eval()
-> 
->         if (priv->flags & NFTA_FIB_F_OIF)
->                 oif = nft_out(pkt);
->         else if (priv->flags & NFTA_FIB_F_IIF)
->                 oif = nft_in(pkt);
->         else
->                 oif = NULL;
+Thanks!
+Antoine
 
-Seems to be dead code.  nft_fib_init() has:
-        switch (priv->result) {
-        case NFT_FIB_RESULT_OIF:
-                if (priv->flags & NFTA_FIB_F_OIF)
-                        return -EINVAL;
-                len = sizeof(int);
-                break;
-        case NFT_FIB_RESULT_OIFNAME:
-                if (priv->flags & NFTA_FIB_F_OIF)
-                        return -EINVAL;
-                len = IFNAMSIZ;
-
-
-since _OIF and _OIFNAME was restricted to prerouting, nf hookfn has NULL
-output interface, so there is nothing we could compare against.
-
-Now its available in forward too so it could be selectively relaxed for
-this, but, what is the use case?
-
-Do a RPF in forward, then we need to compare vs. incoming interface.
-
-But for outgoing interface, we'd do a normal route lookup, but the stack
-already did that for us (as packet is already being forwarded).
-
-So what would be the desired outcome for a 'fib daddr . oif' check?
+> @@ -212,7 +211,7 @@ static int count_entries(const struct nlmsghdr *nlh, =
+void *data)
+>  static int conntracK_count_zone(struct mnl_socket *sock, uint16_t zone)
+>  {
+>         char buf[MNL_SOCKET_BUFFER_SIZE];
+> -       struct nlmsghdr *nlh, *rplnlh;
+> +       struct nlmsghdr *nlh;
+>         struct nfgenmsg *nfh;
+>         struct nlattr *nest;
+>         unsigned int portid;
+> @@ -259,7 +258,7 @@ static int conntracK_count_zone(struct mnl_socket *so=
+ck, uint16_t zone)
+>  static int conntrack_flush_zone(struct mnl_socket *sock, uint16_t zone)
+>  {
+>         char buf[MNL_SOCKET_BUFFER_SIZE];
+> -       struct nlmsghdr *nlh, *rplnlh;
+> +       struct nlmsghdr *nlh;
+>         struct nfgenmsg *nfh;
+>         struct nlattr *nest;
+>         unsigned int portid;
