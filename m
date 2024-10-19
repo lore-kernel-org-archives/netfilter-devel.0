@@ -1,172 +1,110 @@
-Received: from mail-lf1-f45.google.com (mail-lf1-f45.google.com [209.85.167.45])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from forward102d.mail.yandex.net (forward102d.mail.yandex.net [178.154.239.213])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52A2120E319;
-	Fri, 18 Oct 2024 18:53:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 684D03207;
+	Sat, 19 Oct 2024 05:05:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.154.239.213
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729277620; cv=none; b=Er+lF951nbFmI28oFnCv1w2sJirxDQKwI+8hM1oUnuCW7CLY64jSX3FnHZtYnJCG0yPWRXXVfpbUB3HcV8Hc+m3sqsga+8I0Ibe6FkzWH8TIqKuTtlVYnoG+LZHXNHUvB3QdM/5MpBiTA6M1ow2+ZpNUfcf+K7OEVA6/LaabhjA=
+	t=1729314335; cv=none; b=TNO5/4sRZztI2CETGrI27AG1F5phO2WKufpE41PYP9+HPV3oXQNZPtF95xdazY73TmLt4iiTN/3npKt4q2LWvJnHGBJMk2GZEgAbzwEJxRGqh3YEnttry2B4dTLgwMi9KYRTOrA/LXevoTLtl677XzQHs643fuz5ti/ThuCTHzs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729277620; c=relaxed/simple;
-	bh=wfRkbDUEGNL++oybIfRhyLJViztO7ln5vIkSu4O5LH4=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=kpl3MoErRyx7BMfZ+uK/1LwmDqVpW4B8oIixrlkw3Yby8bMh3+W+1c7l8GMuJ2zoW2E7g8st+2bMkPwUN9uKWwSS//91H09vNSZhB79cSTtotnPappvFbuQsGb9RCkLjwB2aBJsyBCFCNvyEl9n5vt7FAa9b7YDdzHubDKiIIms=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=m+jYa6wI; arc=none smtp.client-ip=209.85.167.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1729314335; c=relaxed/simple;
+	bh=pzcp7AuVQDeoAjqOJS1Gci/darE5YR8LLwrxlUJTyCc=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=LAdEQluKK3Aek61pvhAegrfP2DSgJdH9Cw6ijiaVAp12cCSO1U0yj04c0/BpeYrhCu6J9BaJRFDrSG41ZDhrhJJr4Y/GMlhOmGnjiUxabnfYcs2YG+V/Nm4qmLHF4FGPbcWzzhlcLHPQ3VjmgPq6zffQRfSu2jfs9MA1g5tVGJ8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=0upti.me; spf=pass smtp.mailfrom=0upti.me; dkim=pass (1024-bit key) header.d=0upti.me header.i=@0upti.me header.b=ftvN4ATL; arc=none smtp.client-ip=178.154.239.213
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=0upti.me
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=0upti.me
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="m+jYa6wI"
-Received: by mail-lf1-f45.google.com with SMTP id 2adb3069b0e04-539f4d8ef84so2787645e87.0;
-        Fri, 18 Oct 2024 11:53:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1729277616; x=1729882416; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:content-language:from
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=N+C37RFzcILnMsZFYBuRVkaO1NAcl0ehLYM/0ikIXvM=;
-        b=m+jYa6wIG3NKSZ1FOWqroxGNQ5c2zusFJMmzoFyCR0pH7YHzvB0WYhLShIQxcM5gLI
-         3yyZePuEJAJcXyXrtSIZ3iTd+F9R1EKX6j2HQwDAFoTwHZzaWhNFL4m7QaMhkR3TOisd
-         0t0Uazp/kvEI7wfq5I7xk2m65dELxOQX2m0/nCLsUkfMEJoUbfkw5I/oSnu6RihrQaZw
-         3IXL7sxmrJcQ07klDseAqQSeXzlY06gLJjQnwFT4yzEKZMEfi+TRvSUFczOxCvZgEi2V
-         6EdhUNd34Mt1xm+BrRvWvbGltGzqbKtuIhn+hTjAbmx5Onk/YZYsukJTV8iUWRW2X41/
-         C3sw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1729277616; x=1729882416;
-        h=content-transfer-encoding:in-reply-to:content-language:from
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=N+C37RFzcILnMsZFYBuRVkaO1NAcl0ehLYM/0ikIXvM=;
-        b=J4v8l28uS9hADn4A6MVtIMd9iu7Xy/Fqpz07v8ChmGl/c15+S07NMWD1m4eCdwiwqR
-         DkwYbjtsIOdVLO3P9DR3OcbHg+JhliXMhXS3xp5apLh6rCTEG0ILAhAs9nRaO/VpSc3x
-         TvcYFbFbDbFkI615R58RvLm0uV97GCvFeTeQbTeurC2iuU6UWt5vKM4o/Lnw0kmDqAnK
-         90B7uvGIye6o+/m5/Rdv1rT38+P75nr2hdktZHyarplqnQhALNdChuyhFhEjHsf9i84C
-         KKETg+tk7ng/eo++R0DT6LYsTCj+9S7awPaNRhXlCTdMLdOBTyCncbOr7iPvoW1moHcO
-         +qiQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVrHHxhYlg8sl3w9ogsDff/HSnkmMP0oU+ogN+KyrNSQBFd29y1qoy7P147bfhUxl/4MjHnrv+I@vger.kernel.org, AJvYcCWEiTRBg8d/VhRXgUOg00ayR/SbgNWQ0SENcAKE5nGZE4kdlCaEo9kJZi+rOnVcEPBtr9vubTCKXN70u2c=@vger.kernel.org, AJvYcCWo5OtvZfP1dZI1Zrah0QYPisIOUHEtRWcW40zvGBN6Tl2a753hprj/qKBmNpkgTGQuIbzcBkKJjqun+UqXyo62@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz507ricOuiXZiLdIAzCiUPVF7+V5LDU5EHgM/YxNocCOA1PWaf
-	oOsftE5jGh6918fQfE1rQEX1xhH2SxMIm4kFwMLJ6+EUbE4qEt1A
-X-Google-Smtp-Source: AGHT+IFTECmpui4bEAd6LfXlK56bk60zCpZroN7QeGRG8HvefwSVsCLjpZDdolPkBbtIu2/ZZR22ag==
-X-Received: by 2002:a05:6512:2352:b0:539:fc45:a292 with SMTP id 2adb3069b0e04-53a154fa754mr2044964e87.43.1729277616138;
-        Fri, 18 Oct 2024 11:53:36 -0700 (PDT)
-Received: from ?IPV6:2001:1c00:20d:1300:1b1c:4449:176a:89ea? (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-5ca0b08c3easm1036170a12.50.2024.10.18.11.53.35
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 18 Oct 2024 11:53:35 -0700 (PDT)
-Message-ID: <56c3d435-e93c-405c-9bf5-e9ea9c038d13@gmail.com>
-Date: Fri, 18 Oct 2024 20:53:33 +0200
+	dkim=pass (1024-bit key) header.d=0upti.me header.i=@0upti.me header.b="ftvN4ATL"
+Received: from mail-nwsmtp-smtp-production-main-90.myt.yp-c.yandex.net (mail-nwsmtp-smtp-production-main-90.myt.yp-c.yandex.net [IPv6:2a02:6b8:c12:540d:0:640:a455:0])
+	by forward102d.mail.yandex.net (Yandex) with ESMTPS id 1FAF2609B7;
+	Sat, 19 Oct 2024 08:05:29 +0300 (MSK)
+Received: by mail-nwsmtp-smtp-production-main-90.myt.yp-c.yandex.net (smtp/Yandex) with ESMTPSA id J5HMSoDXwSw0-MjPoKqZb;
+	Sat, 19 Oct 2024 08:05:28 +0300
+X-Yandex-Fwd: 1
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=0upti.me; s=mail;
+	t=1729314328; bh=2k2iS9iboQwDKwqPbtLjVnIVDV2C8spGP5e6zIWx4Pk=;
+	h=Cc:Message-Id:To:From:Date:Subject;
+	b=ftvN4ATLWURwRMHl2E9Z7385tfDjh00ZteL8yEs1gkWS6FBrddTigsdUuATzbTRJn
+	 R0UVIs0RJa3keGhApPx7Xe1Xdxlr6BIS4kEI7qUkyY9CtDxUdAmdIrzBfbFiTIxu8t
+	 /VwwufWj5d9VgWqZmaWir0Zh0EyyzaYQuGQZswhw=
+Authentication-Results: mail-nwsmtp-smtp-production-main-90.myt.yp-c.yandex.net; dkim=pass header.i=@0upti.me
+From: Ilya Katsnelson <me@0upti.me>
+Date: Sat, 19 Oct 2024 08:05:07 +0300
+Subject: [PATCH v2] netfilter: xtables: fix typo causing some targets to
+ not load on IPv6
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH RFC v1 net-next 02/12] netfilter: bridge: Add conntrack
- double vlan and pppoe
-To: Vladimir Oltean <olteanv@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>, Pablo Neira Ayuso <pablo@netfilter.org>,
- Jozsef Kadlecsik <kadlec@netfilter.org>, Roopa Prabhu <roopa@nvidia.com>,
- Nikolay Aleksandrov <razor@blackwall.org>,
- Matthias Brugger <matthias.bgg@gmail.com>,
- AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
- Jiri Pirko <jiri@resnulli.us>,
- Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
- Lorenzo Bianconi <lorenzo@kernel.org>,
- Frank Wunderlich <frank-w@public-files.de>,
- Daniel Golle <daniel@makrotopia.org>, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org, bridge@lists.linux.dev,
- linux-arm-kernel@lists.infradead.org, linux-mediatek@lists.infradead.org
-References: <20241013185509.4430-1-ericwouds@gmail.com>
- <20241013185509.4430-3-ericwouds@gmail.com>
- <20241018131754.ikrrnsspjsu5ppfz@skbuf>
-From: Eric Woudstra <ericwouds@gmail.com>
-Content-Language: en-US
-In-Reply-To: <20241018131754.ikrrnsspjsu5ppfz@skbuf>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <20241019-xtables-typos-v2-1-6b8b1735dc8e@0upti.me>
+X-B4-Tracking: v=1; b=H4sIAAI+E2cC/3XMywrCMBCF4VcpszaSCYrRle8hXeQytQPalCSGl
+ pJ3N3bv8j9wvg0SRaYEt26DSIUTh6mFOnTgRjM9SbBvDUqqE0rUYsnGviiJvM4hCT+Q8VZbVMp
+ D+8yRBl5279G3HjnlENedL/hb/0kFBQqpzBkv+uokubv8zJmPb4K+1voFHOcGiKkAAAA=
+X-Change-ID: 20241018-xtables-typos-dfeadb8b122d
+To: Pablo Neira Ayuso <pablo@netfilter.org>, 
+ Jozsef Kadlecsik <kadlec@netfilter.org>, 
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+ Florian Westphal <fw@strlen.de>, Sasha Levin <sashal@kernel.org>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+ netdev@vger.kernel.org, linux-kernel@vger.kernel.org, ignat@cloudflare.com, 
+ Phil Sutter <phil@nwl.cc>, Ilya Katsnelson <me@0upti.me>
+X-Mailer: b4 0.14.2
+X-Yandex-Filter: 1
 
+These were added with the wrong family in 4cdc55e, which seems
+to just have been a typo, but now ip6tables rules with --set-mark
+don't work anymore, which is pretty bad.
 
+Fixes: 0bfcb7b71e73 ("netfilter: xtables: avoid NFPROTO_UNSPEC where needed")
+Reviewed-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Ilya Katsnelson <me@0upti.me>
+---
+Changes in v2:
+- Fixed a typo in the commit message (that's karma).
+- Replaced a reference to backport commit.
+- Link to v1: https://lore.kernel.org/r/20241018-xtables-typos-v1-1-02a51789c0ec@0upti.me
+---
+ net/netfilter/xt_NFLOG.c | 2 +-
+ net/netfilter/xt_mark.c  | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-On 10/18/24 3:17 PM, Vladimir Oltean wrote:
-> On Sun, Oct 13, 2024 at 08:54:58PM +0200, Eric Woudstra wrote:
->> This adds the capability to conntrack 802.1ad, QinQ, PPPoE and PPPoE-in-Q
->> packets that are passing a bridge.
->>
->> Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
->> ---
-> 
-> Whatever you choose to do forward with these patches, please squash this
-> build fix here (you can drop my authorship info and commit message):
+diff --git a/net/netfilter/xt_NFLOG.c b/net/netfilter/xt_NFLOG.c
+index d80abd6ccaf8f71fa70605fef7edada827a19ceb..6dcf4bc7e30b2ae364a1cd9ac8df954a90905c52 100644
+--- a/net/netfilter/xt_NFLOG.c
++++ b/net/netfilter/xt_NFLOG.c
+@@ -79,7 +79,7 @@ static struct xt_target nflog_tg_reg[] __read_mostly = {
+ 	{
+ 		.name       = "NFLOG",
+ 		.revision   = 0,
+-		.family     = NFPROTO_IPV4,
++		.family     = NFPROTO_IPV6,
+ 		.checkentry = nflog_tg_check,
+ 		.destroy    = nflog_tg_destroy,
+ 		.target     = nflog_tg,
+diff --git a/net/netfilter/xt_mark.c b/net/netfilter/xt_mark.c
+index f76fe04fc9a4e19f18ac323349ba6f22a00eafd7..65b965ca40ea7ea5d9feff381b433bf267a424c4 100644
+--- a/net/netfilter/xt_mark.c
++++ b/net/netfilter/xt_mark.c
+@@ -62,7 +62,7 @@ static struct xt_target mark_tg_reg[] __read_mostly = {
+ 	{
+ 		.name           = "MARK",
+ 		.revision       = 2,
+-		.family         = NFPROTO_IPV4,
++		.family         = NFPROTO_IPV6,
+ 		.target         = mark_tg,
+ 		.targetsize     = sizeof(struct xt_mark_tginfo2),
+ 		.me             = THIS_MODULE,
 
-Thanks, I had already fixed the errors from patchwork.kernel.org->checks
-for the next version of the rfc patch. This is indeed one of them.
+---
+base-commit: 75aa74d52f43e75d0beb20572f98529071b700e5
+change-id: 20241018-xtables-typos-dfeadb8b122d
 
-> From e73315196c3143de2af2fe39e3b0e95391849d6c Mon Sep 17 00:00:00 2001
-> From: Vladimir Oltean <vladimir.oltean@nxp.com>
-> Date: Fri, 18 Oct 2024 13:59:27 +0300
-> Subject: [PATCH] netfilter: bridge: fix build failures in nf_ct_bridge_pre()
-> 
-> clang-16 fails to build, stating:
-> 
-> net/bridge/netfilter/nf_conntrack_bridge.c:257:3: error: expected expression
->                 struct ppp_hdr {
->                 ^
-> net/bridge/netfilter/nf_conntrack_bridge.c:262:20: error: use of undeclared identifier 'ph'
->                 data_len = ntohs(ph->hdr.length) - 2;
->                                  ^
-> net/bridge/netfilter/nf_conntrack_bridge.c:262:20: error: use of undeclared identifier 'ph'
-> net/bridge/netfilter/nf_conntrack_bridge.c:262:20: error: use of undeclared identifier 'ph'
-> net/bridge/netfilter/nf_conntrack_bridge.c:262:20: error: use of undeclared identifier 'ph'
-> net/bridge/netfilter/nf_conntrack_bridge.c:265:11: error: use of undeclared identifier 'ph'
->                 switch (ph->proto) {
->                         ^
-> 
-> net/bridge/netfilter/nf_conntrack_bridge.c:278:3: error: expected expression
->                 struct vlan_hdr *vhdr = (struct vlan_hdr *)(skb->data);
->                 ^
-> net/bridge/netfilter/nf_conntrack_bridge.c:283:17: error: use of undeclared identifier 'vhdr'
->                 inner_proto = vhdr->h_vlan_encapsulated_proto;
->                               ^
-> 
-> One cannot have variable declarations placed this way in a switch/case
-> statement, a new scope must be opened.
-> 
-> Signed-off-by: Vladimir Oltean <vladimir.oltean@nxp.com>
-> ---
->  net/bridge/netfilter/nf_conntrack_bridge.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
-> index fb2f79396aa0..31e2bcd71735 100644
-> --- a/net/bridge/netfilter/nf_conntrack_bridge.c
-> +++ b/net/bridge/netfilter/nf_conntrack_bridge.c
-> @@ -253,7 +253,7 @@ static unsigned int nf_ct_bridge_pre(void *priv, struct sk_buff *skb,
->  		return NF_ACCEPT;
->  
->  	switch (skb->protocol) {
-> -	case htons(ETH_P_PPP_SES):
-> +	case htons(ETH_P_PPP_SES): {
->  		struct ppp_hdr {
->  			struct pppoe_hdr hdr;
->  			__be16 proto;
-> @@ -273,7 +273,8 @@ static unsigned int nf_ct_bridge_pre(void *priv, struct sk_buff *skb,
->  			return NF_ACCEPT;
->  		}
->  		break;
-> -	case htons(ETH_P_8021Q):
-> +	}
-> +	case htons(ETH_P_8021Q): {
->  		struct vlan_hdr *vhdr = (struct vlan_hdr *)(skb->data);
->  
->  		data_len = 0xffffffff;
-> @@ -281,6 +282,7 @@ static unsigned int nf_ct_bridge_pre(void *priv, struct sk_buff *skb,
->  		outer_proto = skb->protocol;
->  		inner_proto = vhdr->h_vlan_encapsulated_proto;
->  		break;
-> +	}
->  	default:
->  		data_len = 0xffffffff;
->  		break;
+Best regards,
+-- 
+Ilya Katsnelson <me@0upti.me>
+
