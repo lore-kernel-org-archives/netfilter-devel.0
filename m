@@ -1,202 +1,413 @@
-Received: from mail-io1-f70.google.com (mail-io1-f70.google.com [209.85.166.70])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E8261C27
-	for <netfilter-devel@vger.kernel.org>; Sun, 20 Oct 2024 17:31:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.70
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7C05A440C
+	for <netfilter-devel@vger.kernel.org>; Sun, 20 Oct 2024 22:47:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729445495; cv=none; b=ufIorf2Ftfweap4l3dOebqMiHo2xrqp3upSS4TufIJT5wOxU6jLje5FI4KGokCLDYUI9FpZfWqAoW7swBB/rdlJXpLUz0mDZDjs6pSt+4zM9B+18qGCBk9jS0Zep3WIxK9NxYGEnR4zq+TtN2smlJqe3hfa1GMDTWjZjC6HkKQk=
+	t=1729464437; cv=none; b=YXbE3DiOP7O2cIGlZhEx8wVxkhBhaGo6YGQeQWoCshKrVh3dalTVzdssTn3ZCxA0VeKI/Y+miT3V+oFYZXyPrYjgi2g6Th6HehFQoOuCqZU9mlKTKc1jSJm0a6qyBNt97G5Vz1mC9rWwEsvnxDG8ZfA+LyEpOe8qAFy0LxQrioc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729445495; c=relaxed/simple;
-	bh=9hKdqgeJDJCuOcBei7hsYCz+qsa7iZAapvAOJwGGIuM=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=bqjbuHiOTDiLZmwO+qiOEMXlJ8kB08pA5mUX8DqubTdo9QveZu+KCcgI/R/uw6dzQ2eAI0yqSpc0ZIp/z1WiYAV7+69eovLUu0eMkLGcxiJcX7w1ZH3h26z+CFoKwdyrwU6ahS6s2RceLPqjfIZgJXI+BfuzM/4NzM1ZQAK/e7o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.70
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-io1-f70.google.com with SMTP id ca18e2360f4ac-83ac0354401so203160639f.3
-        for <netfilter-devel@vger.kernel.org>; Sun, 20 Oct 2024 10:31:33 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1729445492; x=1730050292;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=iQIh6BYWEDQVGkT8omPhhBP+AcZOobW8LWB5GcTjMwY=;
-        b=HAM80cE0nsAMgO00KR5tXDMkeu/EPOdmMQd4QGzirM0efKQotuJIBQYX7fSFWDkMK7
-         xXp/w+mxLTG1quFUimlKeRKFsV+jn+3nqB5vLt+4FLBA1ZqYRyHdfUvGVASssbPfdIRC
-         fw3D0ft40T0TraH4w9kVqIvDBn6u7ZVFMdKe6aygx/VdmM5UEbcy/542nBQKWJnQVU3V
-         xLZGrs7PNiTYFDO3gyv7bZVLErnl2Q8eSitqn2pfgs1PK9FhgIojCfVy5YFO7Gvpp7qd
-         h7QfHlg7QXV44wuXsq7KeiV2yG7P73vptO5YPOHdzhVw6wlaZ2WqtJ50mYVApsTZEdnY
-         4PzQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVo19TsJhar0eMJoxD5uAaAfvcMEjXNzZ4P5RzCOgdF2uQa4uzPeXVjdDjllK28KGSgbtaZhTJD6V3qhV8DPA4=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxp+Dc8NsPKvPBXLzDMyVyzA1b7rT0HcmqQxnfg07OD5MEnEvIr
-	yvZdNBIPZu7+2np3lghvh1wt2NDf8KRpExuFGaH6fDfO4RCt6TGY5Es72WcdHD2pdXMam1HqSVq
-	RFjD1Y7+HKaegT+4KrL08KOXVSM0XwbnOXoRjAnYnC3+cPcrGEGgMWjs=
-X-Google-Smtp-Source: AGHT+IE+30P0kfox4ZfqTO46KDXioj/OiMVWC/USDwWvtOpKEVp+dOA+nxcE8Dk/yOhulJUX17+SIs/XGM77vWL31TpPueNKW8rv
+	s=arc-20240116; t=1729464437; c=relaxed/simple;
+	bh=mJ/0EnVZvbcCURb/RFXzrJZdja3xPyOQ7GObN9Bb/OE=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=OTCkVOVeDlxgqm/nAgEp3hA99THPl610yxm371zx+v0eyn0YV+d50zJJ0Rd+CyDJJe+J/p/1WSp2Ndu+rm9j7Iw3oJkQEpH5DKn0YdUSkpctrK1KaQOj9nf+pMDmrwLaSbegSvXzQzAd3l1x7nH4maRVuhQ0X9PM1vX/THli/Ds=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: phil@nwl.cc,
+	fw@strlen.de
+Subject: [PATCH iptables] tests: iptables-test: extend coverage for ip6tables
+Date: Mon, 21 Oct 2024 00:47:07 +0200
+Message-Id: <20241020224707.69249-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:1a83:b0:3a0:c23f:9647 with SMTP id
- e9e14a558f8ab-3a3f4046c67mr76366855ab.1.1729445492417; Sun, 20 Oct 2024
- 10:31:32 -0700 (PDT)
-Date: Sun, 20 Oct 2024 10:31:32 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <67153e74.050a0220.3d9749.000c.GAE@google.com>
-Subject: [syzbot] [netfilter?] INFO: task hung in do_arpt_get_ctl (2)
-From: syzbot <syzbot+47dcc37219cf4421eec6@syzkaller.appspotmail.com>
-To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
-	kadlec@netfilter.org, kuba@kernel.org, linux-kernel@vger.kernel.org, 
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pabeni@redhat.com, 
-	pablo@netfilter.org, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-Hello,
+Update iptables-test.py to run libxt_*.t both for iptables and
+ip6tables. This update requires changes in the existing tests.
 
-syzbot found the following issue on:
+* Rename libxt_*.t into libipt_*.t and add libip6_*.t variant.
 
-HEAD commit:    2f87d0916ce0 Merge tag 'trace-ringbuffer-v6.12-rc3' of git..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=13d23887980000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=cfbd94c114a3d407
-dashboard link: https://syzkaller.appspot.com/bug?extid=47dcc37219cf4421eec6
-compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=103b7727980000
+- TEE
+- TPROXY
+- connlimit
+- conntrack
+- iprange
+- ipvs
+- policy
+- recent
 
-Downloadable assets:
-disk image (non-bootable): https://storage.googleapis.com/syzbot-assets/7feb34a89c2a/non_bootable_disk-2f87d091.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/2704ba6867a8/vmlinux-2f87d091.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/9f7121fd532b/bzImage-2f87d091.xz
+* Rename the following libxt_*.t to libipt_*.t since they are IPv4
+  specific:
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+47dcc37219cf4421eec6@syzkaller.appspotmail.com
+- standard
+- osf
 
-INFO: task syz-executor:5236 blocked for more than 143 seconds.
-      Not tainted 6.12.0-rc3-syzkaller-00044-g2f87d0916ce0 #0
-"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-task:syz-executor    state:D stack:20608 pid:5236  tgid:5236  ppid:5230   flags:0x00000000
-Call Trace:
- <TASK>
- context_switch kernel/sched/core.c:5322 [inline]
- __schedule+0x1895/0x4b30 kernel/sched/core.c:6682
- __schedule_loop kernel/sched/core.c:6759 [inline]
- schedule+0x14b/0x320 kernel/sched/core.c:6774
- schedule_preempt_disabled+0x13/0x30 kernel/sched/core.c:6831
- __mutex_lock_common kernel/locking/mutex.c:684 [inline]
- __mutex_lock+0x6a7/0xd70 kernel/locking/mutex.c:752
- xt_find_table_lock+0x4c/0x3b0 net/netfilter/x_tables.c:1243
- xt_request_find_table_lock+0x26/0x100 net/netfilter/x_tables.c:1285
- get_info net/ipv4/netfilter/arp_tables.c:808 [inline]
- do_arpt_get_ctl+0x904/0x16b0 net/ipv4/netfilter/arp_tables.c:1452
- nf_getsockopt+0x299/0x2c0 net/netfilter/nf_sockopt.c:116
- ip_getsockopt+0x222/0x2e0 net/ipv4/ip_sockglue.c:1777
- tcp_getsockopt+0x163/0x1c0 net/ipv4/tcp.c:4670
- do_sock_getsockopt+0x3c4/0x7e0 net/socket.c:2396
- __sys_getsockopt+0x267/0x330 net/socket.c:2425
- __do_sys_getsockopt net/socket.c:2435 [inline]
- __se_sys_getsockopt net/socket.c:2432 [inline]
- __x64_sys_getsockopt+0xb5/0xd0 net/socket.c:2432
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7f766ed7fd3a
-RSP: 002b:00007ffc9412c6b8 EFLAGS: 00000246 ORIG_RAX: 0000000000000037
-RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 00007f766ed7fd3a
-RDX: 0000000000000060 RSI: 0000000000000000 RDI: 0000000000000003
-RBP: 00007ffc9412c6d0 R08: 00007ffc9412c6cc R09: 00007ffc9412cab7
-R10: 00007ffc9412c6d0 R11: 0000000000000246 R12: 00007ffc9412c6cc
-R13: 00000000000481ce R14: 00000000000481a7 R15: 00007ffc9412cdf0
- </TASK>
+* Remove IPv4 specific test in libxt_mark.t
 
-Showing all locks held in the system:
-1 lock held by khungtaskd/25:
- #0: ffffffff8e937de0 (rcu_read_lock){....}-{1:2}, at: rcu_lock_acquire include/linux/rcupdate.h:337 [inline]
- #0: ffffffff8e937de0 (rcu_read_lock){....}-{1:2}, at: rcu_read_lock include/linux/rcupdate.h:849 [inline]
- #0: ffffffff8e937de0 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x55/0x2a0 kernel/locking/lockdep.c:6720
-1 lock held by kswapd0/79:
-1 lock held by klogd/4585:
- #0: ffffffff8ea37160 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim mm/page_alloc.c:3907 [inline]
- #0: ffffffff8ea37160 (fs_reclaim){+.+.}-{0:0}, at: __alloc_pages_direct_reclaim+0xd4/0x3c0 mm/page_alloc.c:3932
-1 lock held by dhcpcd/4810:
- #0: ffffffff8ea37160 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim mm/page_alloc.c:3907 [inline]
- #0: ffffffff8ea37160 (fs_reclaim){+.+.}-{0:0}, at: __alloc_pages_direct_reclaim+0xd4/0x3c0 mm/page_alloc.c:3932
-2 locks held by getty/4897:
- #0: ffff88801ebb90a0 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_ref_wait+0x25/0x70 drivers/tty/tty_ldisc.c:243
- #1: ffffc9000039b2f0 (&ldata->atomic_read_lock){+.+.}-{3:3}, at: n_tty_read+0x6a6/0x1e00 drivers/tty/n_tty.c:2211
-2 locks held by syz-execprog/5134:
- #0: ffff88803e1ae8a8 (mapping.invalidate_lock){++++}-{3:3}, at: filemap_invalidate_lock_shared include/linux/fs.h:870 [inline]
- #0: ffff88803e1ae8a8 (mapping.invalidate_lock){++++}-{3:3}, at: filemap_fault+0xd54/0x1950 mm/filemap.c:3350
- #1: ffffffff8ea37160 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim mm/page_alloc.c:3907 [inline]
- #1: ffffffff8ea37160 (fs_reclaim){+.+.}-{0:0}, at: __alloc_pages_direct_reclaim+0xd4/0x3c0 mm/page_alloc.c:3932
-1 lock held by syz-executor/5126:
- #0: ffffffff8ea37160 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim mm/page_alloc.c:3907 [inline]
- #0: ffffffff8ea37160 (fs_reclaim){+.+.}-{0:0}, at: __alloc_pages_direct_reclaim+0xd4/0x3c0 mm/page_alloc.c:3932
-2 locks held by syz-executor/5231:
- #0: ffff8880006f29b8 (&vma->vm_lock->lock){++++}-{3:3}, at: vma_start_read include/linux/mm.h:704 [inline]
- #0: ffff8880006f29b8 (&vma->vm_lock->lock){++++}-{3:3}, at: lock_vma_under_rcu+0x34b/0x790 mm/memory.c:6228
- #1: ffffffff8ea37160 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim mm/page_alloc.c:3907 [inline]
- #1: ffffffff8ea37160 (fs_reclaim){+.+.}-{0:0}, at: __alloc_pages_direct_reclaim+0xd4/0x3c0 mm/page_alloc.c:3932
-1 lock held by syz-executor/5232:
- #0: ffff88801bba2458 (&xt[i].mutex){+.+.}-{3:3}, at: xt_find_table_lock+0x4c/0x3b0 net/netfilter/x_tables.c:1243
-2 locks held by syz-executor/5233:
- #0: ffff88801198f220 (&vma->vm_lock->lock){++++}-{3:3}, at: vma_start_read include/linux/mm.h:704 [inline]
- #0: ffff88801198f220 (&vma->vm_lock->lock){++++}-{3:3}, at: lock_vma_under_rcu+0x34b/0x790 mm/memory.c:6228
- #1: ffffffff8ea37160 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim mm/page_alloc.c:3907 [inline]
- #1: ffffffff8ea37160 (fs_reclaim){+.+.}-{0:0}, at: __alloc_pages_direct_reclaim+0xd4/0x3c0 mm/page_alloc.c:3932
-2 locks held by syz-executor/5234:
- #0: ffff88801bba2458 (&xt[i].mutex){+.+.}-{3:3}, at: xt_find_table_lock+0x4c/0x3b0 net/netfilter/x_tables.c:1243
- #1: ffffffff8ea37160 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim mm/page_alloc.c:3907 [inline]
- #1: ffffffff8ea37160 (fs_reclaim){+.+.}-{0:0}, at: __alloc_pages_direct_reclaim+0xd4/0x3c0 mm/page_alloc.c:3932
-2 locks held by syz-executor/5235:
- #0: ffff88803c3ac808 (&vma->vm_lock->lock){++++}-{3:3}, at: vma_start_read include/linux/mm.h:704 [inline]
- #0: ffff88803c3ac808 (&vma->vm_lock->lock){++++}-{3:3}, at: lock_vma_under_rcu+0x34b/0x790 mm/memory.c:6228
- #1: ffffffff8ea37160 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim mm/page_alloc.c:3907 [inline]
- #1: ffffffff8ea37160 (fs_reclaim){+.+.}-{0:0}, at: __alloc_pages_direct_reclaim+0xd4/0x3c0 mm/page_alloc.c:3932
-1 lock held by syz-executor/5236:
- #0: ffff88801bba2458 (&xt[i].mutex){+.+.}-{3:3}, at: xt_find_table_lock+0x4c/0x3b0 net/netfilter/x_tables.c:1243
-
-=============================================
-
-NMI backtrace for cpu 0
-CPU: 0 UID: 0 PID: 25 Comm: khungtaskd Not tainted 6.12.0-rc3-syzkaller-00044-g2f87d0916ce0 #0
-Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2~bpo12+1 04/01/2014
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:94 [inline]
- dump_stack_lvl+0x241/0x360 lib/dump_stack.c:120
- nmi_cpu_backtrace+0x49c/0x4d0 lib/nmi_backtrace.c:113
- nmi_trigger_cpumask_backtrace+0x198/0x320 lib/nmi_backtrace.c:62
- trigger_all_cpu_backtrace include/linux/nmi.h:162 [inline]
- check_hung_uninterruptible_tasks kernel/hung_task.c:223 [inline]
- watchdog+0xff4/0x1040 kernel/hung_task.c:379
- kthread+0x2f0/0x390 kernel/kthread.c:389
- ret_from_fork+0x4b/0x80 arch/x86/kernel/process.c:147
- ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:244
- </TASK>
-
-
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+ extensions/libip6t_TEE.t                      |  4 ++
+ extensions/libip6t_TPROXY.t                   |  5 ++
+ extensions/libip6t_connlimit.t                | 16 +++++
+ extensions/libip6t_conntrack.t                | 55 ++++++++++++++++
+ extensions/libip6t_iprange.t                  | 11 ++++
+ extensions/libip6t_ipvs.t                     | 20 ++++++
+ extensions/libip6t_policy.t                   |  8 +++
+ extensions/libip6t_recent.t                   | 11 ++++
+ extensions/{libxt_TEE.t => libipt_TEE.t}      |  0
+ .../{libxt_TPROXY.t => libipt_TPROXY.t}       |  0
+ .../{libxt_connlimit.t => libipt_connlimit.t} |  0
+ .../{libxt_conntrack.t => libipt_conntrack.t} |  0
+ .../{libxt_iprange.t => libipt_iprange.t}     |  0
+ extensions/{libxt_ipvs.t => libipt_ipvs.t}    |  0
+ extensions/{libxt_osf.t => libipt_osf.t}      |  0
+ .../{libxt_policy.t => libipt_policy.t}       |  0
+ .../{libxt_recent.t => libipt_recent.t}       |  0
+ .../{libxt_standard.t => libipt_standard.t}   |  0
+ extensions/libxt_mark.t                       |  2 +-
+ iptables-test.py                              | 64 +++++++++++++------
+ 20 files changed, 174 insertions(+), 22 deletions(-)
+ create mode 100644 extensions/libip6t_TEE.t
+ create mode 100644 extensions/libip6t_TPROXY.t
+ create mode 100644 extensions/libip6t_connlimit.t
+ create mode 100644 extensions/libip6t_conntrack.t
+ create mode 100644 extensions/libip6t_iprange.t
+ create mode 100644 extensions/libip6t_ipvs.t
+ create mode 100644 extensions/libip6t_policy.t
+ create mode 100644 extensions/libip6t_recent.t
+ rename extensions/{libxt_TEE.t => libipt_TEE.t} (100%)
+ rename extensions/{libxt_TPROXY.t => libipt_TPROXY.t} (100%)
+ rename extensions/{libxt_connlimit.t => libipt_connlimit.t} (100%)
+ rename extensions/{libxt_conntrack.t => libipt_conntrack.t} (100%)
+ rename extensions/{libxt_iprange.t => libipt_iprange.t} (100%)
+ rename extensions/{libxt_ipvs.t => libipt_ipvs.t} (100%)
+ rename extensions/{libxt_osf.t => libipt_osf.t} (100%)
+ rename extensions/{libxt_policy.t => libipt_policy.t} (100%)
+ rename extensions/{libxt_recent.t => libipt_recent.t} (100%)
+ rename extensions/{libxt_standard.t => libipt_standard.t} (100%)
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+diff --git a/extensions/libip6t_TEE.t b/extensions/libip6t_TEE.t
+new file mode 100644
+index 000000000000..fcaa3c2664ca
+--- /dev/null
++++ b/extensions/libip6t_TEE.t
+@@ -0,0 +1,4 @@
++:INPUT,FORWARD,OUTPUT
++-j TEE --gateway 2001:db8::1;=;OK
++-j TEE ! --gateway 2001:db8::1;;FAIL
++-j TEE;;FAIL
+diff --git a/extensions/libip6t_TPROXY.t b/extensions/libip6t_TPROXY.t
+new file mode 100644
+index 000000000000..5af67542f1bd
+--- /dev/null
++++ b/extensions/libip6t_TPROXY.t
+@@ -0,0 +1,5 @@
++:PREROUTING
++*mangle
++-j TPROXY --on-port 12345 --on-ip 2001:db8::1 --tproxy-mark 0x23/0xff;;FAIL
++-p udp -j TPROXY --on-port 12345 --on-ip 2001:db8::1 --tproxy-mark 0x23/0xff;=;OK
++-p tcp -m tcp --dport 2342 -j TPROXY --on-port 12345 --on-ip 2001:db8::1 --tproxy-mark 0x23/0xff;=;OK
+diff --git a/extensions/libip6t_connlimit.t b/extensions/libip6t_connlimit.t
+new file mode 100644
+index 000000000000..8b7b3677b56d
+--- /dev/null
++++ b/extensions/libip6t_connlimit.t
+@@ -0,0 +1,16 @@
++:INPUT,FORWARD,OUTPUT
++-m connlimit --connlimit-upto 0;-m connlimit --connlimit-upto 0 --connlimit-mask 128 --connlimit-saddr;OK
++-m connlimit --connlimit-upto 4294967295 --connlimit-mask 128 --connlimit-saddr;=;OK
++-m connlimit --connlimit-upto 4294967296 --connlimit-mask 128 --connlimit-saddr;;FAIL
++-m connlimit --connlimit-upto -1;;FAIL
++-m connlimit --connlimit-above 0;-m connlimit --connlimit-above 0 --connlimit-mask 128 --connlimit-saddr;OK
++-m connlimit --connlimit-above 4294967295 --connlimit-mask 128 --connlimit-saddr;=;OK
++-m connlimit --connlimit-above 4294967296 --connlimit-mask 128 --connlimit-saddr;;FAIL
++-m connlimit --connlimit-above -1;;FAIL
++-m connlimit --connlimit-upto 1 --conlimit-above 1;;FAIL
++-m connlimit --connlimit-above 10 --connlimit-saddr;-m connlimit --connlimit-above 10 --connlimit-mask 128 --connlimit-saddr;OK
++-m connlimit --connlimit-above 10 --connlimit-daddr;-m connlimit --connlimit-above 10 --connlimit-mask 128 --connlimit-daddr;OK
++-m connlimit --connlimit-above 10 --connlimit-saddr --connlimit-daddr;;FAIL
++-m connlimit --connlimit-above 10 --connlimit-mask 128 --connlimit-saddr;=;OK
++-m connlimit --connlimit-above 10 --connlimit-mask 128 --connlimit-daddr;=;OK
++-m connlimit;;FAIL
+diff --git a/extensions/libip6t_conntrack.t b/extensions/libip6t_conntrack.t
+new file mode 100644
+index 000000000000..9dd8b5799779
+--- /dev/null
++++ b/extensions/libip6t_conntrack.t
+@@ -0,0 +1,55 @@
++:INPUT,FORWARD,OUTPUT
++-m conntrack --ctstate NEW;=;OK
++-m conntrack --ctstate NEW,ESTABLISHED;=;OK
++-m conntrack --ctstate NEW,RELATED,ESTABLISHED;=;OK
++-m conntrack --ctstate INVALID;=;OK
++-m conntrack --ctstate UNTRACKED;=;OK
++-m conntrack --ctstate SNAT,DNAT;=;OK
++-m conntrack --ctstate wrong;;FAIL
++# should we convert this to output "tcp" instead of 6?
++-m conntrack --ctproto tcp;-m conntrack --ctproto 6;OK
++-m conntrack --ctorigsrc 2001:db8::1;=;OK
++-m conntrack --ctorigdst 2001:db8::1;=;OK
++-m conntrack --ctreplsrc 2001:db8::1;=;OK
++-m conntrack --ctrepldst 2001:db8::1;=;OK
++-m conntrack --ctexpire 0;=;OK
++-m conntrack --ctexpire 4294967295;=;OK
++-m conntrack --ctexpire 0:4294967295;=;OK
++-m conntrack --ctexpire 42949672956;;FAIL
++-m conntrack --ctexpire -1;;FAIL
++-m conntrack --ctexpire 3:3;-m conntrack --ctexpire 3;OK
++-m conntrack --ctexpire 4:3;;FAIL
++-m conntrack --ctdir ORIGINAL;=;OK
++-m conntrack --ctdir REPLY;=;OK
++-m conntrack --ctstatus NONE;=;OK
++-m conntrack --ctstatus CONFIRMED;=;OK
++-m conntrack --ctstatus ASSURED;=;OK
++-m conntrack --ctstatus EXPECTED;=;OK
++-m conntrack --ctstatus SEEN_REPLY;=;OK
++-m conntrack;;FAIL
++-m conntrack --ctproto 0;;FAIL
++-m conntrack ! --ctproto 0;;FAIL
++-m conntrack --ctorigsrcport :;-m conntrack --ctorigsrcport 0:65535;OK
++-m conntrack --ctorigsrcport :4;-m conntrack --ctorigsrcport 0:4;OK
++-m conntrack --ctorigsrcport 4:;-m conntrack --ctorigsrcport 4:65535;OK
++-m conntrack --ctorigsrcport 3:4;=;OK
++-m conntrack --ctorigsrcport 4:4;-m conntrack --ctorigsrcport 4;OK
++-m conntrack --ctorigsrcport 4:3;;FAIL
++-m conntrack --ctreplsrcport :;-m conntrack --ctreplsrcport 0:65535;OK
++-m conntrack --ctreplsrcport :4;-m conntrack --ctreplsrcport 0:4;OK
++-m conntrack --ctreplsrcport 4:;-m conntrack --ctreplsrcport 4:65535;OK
++-m conntrack --ctreplsrcport 3:4;=;OK
++-m conntrack --ctreplsrcport 4:4;-m conntrack --ctreplsrcport 4;OK
++-m conntrack --ctreplsrcport 4:3;;FAIL
++-m conntrack --ctorigdstport :;-m conntrack --ctorigdstport 0:65535;OK
++-m conntrack --ctorigdstport :4;-m conntrack --ctorigdstport 0:4;OK
++-m conntrack --ctorigdstport 4:;-m conntrack --ctorigdstport 4:65535;OK
++-m conntrack --ctorigdstport 3:4;=;OK
++-m conntrack --ctorigdstport 4:4;-m conntrack --ctorigdstport 4;OK
++-m conntrack --ctorigdstport 4:3;;FAIL
++-m conntrack --ctrepldstport :;-m conntrack --ctrepldstport 0:65535;OK
++-m conntrack --ctrepldstport :4;-m conntrack --ctrepldstport 0:4;OK
++-m conntrack --ctrepldstport 4:;-m conntrack --ctrepldstport 4:65535;OK
++-m conntrack --ctrepldstport 3:4;=;OK
++-m conntrack --ctrepldstport 4:4;-m conntrack --ctrepldstport 4;OK
++-m conntrack --ctrepldstport 4:3;;FAIL
+diff --git a/extensions/libip6t_iprange.t b/extensions/libip6t_iprange.t
+new file mode 100644
+index 000000000000..94cf41139744
+--- /dev/null
++++ b/extensions/libip6t_iprange.t
+@@ -0,0 +1,11 @@
++:INPUT,FORWARD,OUTPUT
++-m iprange --src-range 2001:db8::1-2001:db8::10;=;OK
++-m iprange ! --src-range 2001:db8::1-2001:db8::10;=;OK
++-m iprange --dst-range 2001:db8::1-2001:db8::10;=;OK
++-m iprange ! --dst-range 2001:db8::1-2001:db8::10;=;OK
++# it shows -A INPUT -m iprange --src-range 2001:db8::1-2001:db8::1, should we support this?
++# ERROR: should fail: ip6tables -A INPUT -m iprange --src-range 2001:db8::1
++# -m iprange --src-range 2001:db8::1;;FAIL
++# ERROR: should fail: ip6tables -A INPUT -m iprange --dst-range 2001:db8::1
++#-m iprange --dst-range 2001:db8::1;;FAIL
++-m iprange;;FAIL
+diff --git a/extensions/libip6t_ipvs.t b/extensions/libip6t_ipvs.t
+new file mode 100644
+index 000000000000..8d528f130d90
+--- /dev/null
++++ b/extensions/libip6t_ipvs.t
+@@ -0,0 +1,20 @@
++:INPUT,FORWARD,OUTPUT
++-m ipvs --ipvs;=;OK
++-m ipvs ! --ipvs;=;OK
++-m ipvs --vproto tcp;-m ipvs --vproto 6;OK
++-m ipvs ! --vproto TCP;-m ipvs ! --vproto 6;OK
++-m ipvs --vproto 23;=;OK
++-m ipvs --vaddr 2001:db8::1;=;OK
++-m ipvs ! --vaddr 2001:db8::/64;=;OK
++-m ipvs --vport http;-m ipvs --vport 80;OK
++-m ipvs ! --vport ssh;-m ipvs ! --vport 22;OK
++-m ipvs --vport 22;=;OK
++-m ipvs ! --vport 443;=;OK
++-m ipvs --vdir ORIGINAL;=;OK
++-m ipvs --vdir REPLY;=;OK
++-m ipvs --vmethod GATE;=;OK
++-m ipvs ! --vmethod IPIP;=;OK
++-m ipvs --vmethod MASQ;=;OK
++-m ipvs --vportctl 21;=;OK
++-m ipvs ! --vportctl 21;=;OK
++-m ipvs --vproto 6 --vaddr 2001:db8::/64 --vport 22 --vdir ORIGINAL --vmethod GATE;=;OK
+diff --git a/extensions/libip6t_policy.t b/extensions/libip6t_policy.t
+new file mode 100644
+index 000000000000..95dad19c142f
+--- /dev/null
++++ b/extensions/libip6t_policy.t
+@@ -0,0 +1,8 @@
++:INPUT,FORWARD
++-m policy --dir in --pol ipsec;=;OK
++-m policy --dir in --pol ipsec --proto ipcomp;=;OK
++-m policy --dir in --pol ipsec --strict;;FAIL
++-m policy --dir in --pol ipsec --strict --reqid 1 --spi 0x1 --proto ipcomp;=;OK
++-m policy --dir in --pol ipsec --strict --reqid 1 --spi 0x1 --proto esp --mode tunnel --tunnel-dst 2001:db8::/32 --tunnel-src 2001:db8::/32 --next --reqid 2;=;OK
++-m policy --dir in --pol ipsec --strict --reqid 1 --spi 0x1 --proto esp --tunnel-dst 2001:db8::/32;;FAIL
++-m policy --dir in --pol ipsec --strict --reqid 1 --spi 0x1 --proto ipcomp --mode tunnel --tunnel-dst 2001:db8::/32 --tunnel-src 2001:db8::/32 --next --reqid 2;=;OK
+diff --git a/extensions/libip6t_recent.t b/extensions/libip6t_recent.t
+new file mode 100644
+index 000000000000..1ecad5aff83b
+--- /dev/null
++++ b/extensions/libip6t_recent.t
+@@ -0,0 +1,11 @@
++:INPUT,FORWARD,OUTPUT
++-m recent --set;-m recent --set --name DEFAULT --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource;OK
++-m recent --rcheck --hitcount 8 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource;=;OK
++-m recent --rcheck --hitcount 12 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource;=;OK
++-m recent --update --rttl;-m recent --update --rttl --name DEFAULT --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource;OK
++-m recent --set --rttl;;FAIL
++-m recent --rcheck --hitcount 999 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource;;FAIL
++# nonsensical, but all should load successfully:
++-m recent --rcheck --hitcount 3 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource -m recent --rcheck --hitcount 4 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource;=;OK
++-m recent --rcheck --hitcount 4 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource -m recent --rcheck --hitcount 4 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource;=;OK
++-m recent --rcheck --hitcount 8 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource -m recent --rcheck --hitcount 12 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource;=;OK
+diff --git a/extensions/libxt_TEE.t b/extensions/libipt_TEE.t
+similarity index 100%
+rename from extensions/libxt_TEE.t
+rename to extensions/libipt_TEE.t
+diff --git a/extensions/libxt_TPROXY.t b/extensions/libipt_TPROXY.t
+similarity index 100%
+rename from extensions/libxt_TPROXY.t
+rename to extensions/libipt_TPROXY.t
+diff --git a/extensions/libxt_connlimit.t b/extensions/libipt_connlimit.t
+similarity index 100%
+rename from extensions/libxt_connlimit.t
+rename to extensions/libipt_connlimit.t
+diff --git a/extensions/libxt_conntrack.t b/extensions/libipt_conntrack.t
+similarity index 100%
+rename from extensions/libxt_conntrack.t
+rename to extensions/libipt_conntrack.t
+diff --git a/extensions/libxt_iprange.t b/extensions/libipt_iprange.t
+similarity index 100%
+rename from extensions/libxt_iprange.t
+rename to extensions/libipt_iprange.t
+diff --git a/extensions/libxt_ipvs.t b/extensions/libipt_ipvs.t
+similarity index 100%
+rename from extensions/libxt_ipvs.t
+rename to extensions/libipt_ipvs.t
+diff --git a/extensions/libxt_osf.t b/extensions/libipt_osf.t
+similarity index 100%
+rename from extensions/libxt_osf.t
+rename to extensions/libipt_osf.t
+diff --git a/extensions/libxt_policy.t b/extensions/libipt_policy.t
+similarity index 100%
+rename from extensions/libxt_policy.t
+rename to extensions/libipt_policy.t
+diff --git a/extensions/libxt_recent.t b/extensions/libipt_recent.t
+similarity index 100%
+rename from extensions/libxt_recent.t
+rename to extensions/libipt_recent.t
+diff --git a/extensions/libxt_standard.t b/extensions/libipt_standard.t
+similarity index 100%
+rename from extensions/libxt_standard.t
+rename to extensions/libipt_standard.t
+diff --git a/extensions/libxt_mark.t b/extensions/libxt_mark.t
+index 12c058655f6b..b8dc3cb31aec 100644
+--- a/extensions/libxt_mark.t
++++ b/extensions/libxt_mark.t
+@@ -5,4 +5,4 @@
+ -m mark --mark 4294967296;;FAIL
+ -m mark --mark -1;;FAIL
+ -m mark;;FAIL
+--s 1.2.0.0/15 -m mark --mark 0x0/0xff0;=;OK
++-m mark --mark 0x0/0xff0;=;OK
+diff --git a/iptables-test.py b/iptables-test.py
+index 77278925d721..15e1112e6cbe 100755
+--- a/iptables-test.py
++++ b/iptables-test.py
+@@ -385,7 +385,7 @@ def run_test_file_fast(iptables, filename, netns):
+ 
+     return tests
+ 
+-def run_test_file(filename, netns):
++def _run_test_file(iptables, filename, netns):
+     '''
+     Runs a test file
+ 
+@@ -398,26 +398,6 @@ def run_test_file(filename, netns):
+     if not filename.endswith(".t"):
+         return 0, 0
+ 
+-    if "libipt_" in filename:
+-        iptables = IPTABLES
+-    elif "libip6t_" in filename:
+-        iptables = IP6TABLES
+-    elif "libxt_"  in filename:
+-        iptables = IPTABLES
+-    elif "libarpt_" in filename:
+-        # only supported with nf_tables backend
+-        if EXECUTABLE != "xtables-nft-multi":
+-           return 0, 0
+-        iptables = ARPTABLES
+-    elif "libebt_" in filename:
+-        # only supported with nf_tables backend
+-        if EXECUTABLE != "xtables-nft-multi":
+-           return 0, 0
+-        iptables = EBTABLES
+-    else:
+-        # default to iptables if not known prefix
+-        iptables = IPTABLES
+-
+     fast_failed = False
+     if fast_run_possible(filename):
+         tests = run_test_file_fast(iptables, filename, netns)
+@@ -511,6 +491,48 @@ def run_test_file(filename, netns):
+     f.close()
+     return tests, passed
+ 
++def run_test_file(filename, netns):
++    '''
++    Runs a test file
++
++    :param filename: name of the file with the test rules
++    :param netns: network namespace to perform test run in
++    '''
++    #
++    # if this is not a test file, skip.
++    #
++    if not filename.endswith(".t"):
++        return 0, 0
++
++    if "libipt_" in filename:
++        xtables = [ IPTABLES ]
++    elif "libip6t_" in filename:
++        xtables = [ IP6TABLES ]
++    elif "libxt_"  in filename:
++        xtables = [ IPTABLES, IP6TABLES ]
++    elif "libarpt_" in filename:
++        # only supported with nf_tables backend
++        if EXECUTABLE != "xtables-nft-multi":
++           return 0, 0
++        xtables = [ ARPTABLES ]
++    elif "libebt_" in filename:
++        # only supported with nf_tables backend
++        if EXECUTABLE != "xtables-nft-multi":
++           return 0, 0
++        xtables = [ EBTABLES ]
++    else:
++        # default to iptables if not known prefix
++        xtables = [ IPTABLES ]
++
++    tests = 0
++    passed = 0
++    for iptables in xtables:
++        file_tests, file_passed =  _run_test_file(iptables, filename, netns)
++        if file_tests:
++            tests += file_tests
++            passed += file_passed
++
++    return tests, passed
+ 
+ def show_missing():
+     '''
+-- 
+2.30.2
 
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want syzbot to run the reproducer, reply with:
-#syz test: git://repo/address.git branch-or-commit-hash
-If you attach or paste a git patch, syzbot will apply it before testing.
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
