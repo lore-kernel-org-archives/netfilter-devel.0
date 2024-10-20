@@ -1,40 +1,35 @@
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 422F8EAF1;
-	Sun, 20 Oct 2024 12:50:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E30619259A;
+	Sun, 20 Oct 2024 12:51:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729428654; cv=none; b=IGC25THb1Tc31xoPIMU+zxT4cUZOXiFhPut5UWT0uLJwwbguBclL08qQ2Vggblqjt3QyW5BfI746OxHcN+drIJ6vVQE3qpQdWp9L9yNSQ4ShHK5UugzO6ZyI6H2srw6WEZVNrLh1JzgVEldsdYIEsJ8yrBMkftzKmcCIJHbU7gQ=
+	t=1729428684; cv=none; b=QzC52X3evxky5e8nISaye8YR4IaBSCwXNnguBTreY46l1pBrquKD92gbamW/cysgOgCvw/7X/9d8TpJ2pS4PmmY4e1vCkz2kq0YpGSsuOkL4JrtsULELyml8kqqeTmYT8bIm5ysWPSalk2F2m63g4ysetwmh7ci9YY6Jd43iPhs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729428654; c=relaxed/simple;
-	bh=5NoiOWSGjB70ADUGlkznvbky5DNSmBZn+X2aeN9vnpk=;
+	s=arc-20240116; t=1729428684; c=relaxed/simple;
+	bh=c/hpHiuA2DnZLM8D/ULsBIPjRDrwFh+KZtRkJrdlpaI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=TMS+ijURT5zg/VagneZ0a5IX2mLCNTz0nBHE+ZpcrnhmBMCsmwca1sFqGtEuq6f1YrvUxQNUUvC5W4HKxXDtzaODExOKPti3A/357KpTv+g3oLT0p8t6HYkTjUET2LgghQFhdDjqR50xdHcOvb6xYXMy6SQFr1x4qHLRzFbiXhE=
+	 Content-Type:Content-Disposition:In-Reply-To; b=YwUQ7H0Lb9YhmNE2IeEXVqb/lxA1a9Oop1jOJwzH+tbD/+a0K+9Eq702nX8wKrCiB9Bq2lEuDSgzqc+N3AULdQgiJ6aH4ji4pOMkNM33/LOxKeV7djAiw6V9Ai1n1O7epjYRV9IeYQ+S0wuDRO1j9MiI8fVgNotK4qhnmOR21Gg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=46920 helo=gnumonks.org)
+Received: from [78.30.37.63] (port=46922 helo=gnumonks.org)
 	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <pablo@gnumonks.org>)
-	id 1t2VOO-006uEz-8s; Sun, 20 Oct 2024 14:50:46 +0200
-Date: Sun, 20 Oct 2024 14:50:43 +0200
+	id 1t2VOw-006uHD-1g; Sun, 20 Oct 2024 14:51:20 +0200
+Date: Sun, 20 Oct 2024 14:51:17 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Ilya Katsnelson <me@0upti.me>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Florian Westphal <fw@strlen.de>, Sasha Levin <sashal@kernel.org>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	ignat@cloudflare.com, stable@vger.kernel.org,
-	Phil Sutter <phil@nwl.cc>
-Subject: Re: [PATCH v3] netfilter: xtables: fix a bunch of typos causing some
- targets to not load on IPv6
-Message-ID: <ZxT8ow0auDTe-TDA@calendula>
-References: <20241019-xtables-typos-v3-1-66dd2eaacf2f@0upti.me>
+To: Krzysztof =?utf-8?Q?Ol=C4=99dzki?= <ole@ans.pl>
+Cc: Florian Westphal <fw@strlen.de>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	stable@vger.kernel.org,
+	netfilter-devel <netfilter-devel@vger.kernel.org>
+Subject: Re: 6.6.57-stable regression: "netfilter: xtables: avoid
+ NFPROTO_UNSPEC where needed" broke NFLOG on IPv6
+Message-ID: <ZxT8xZNJIzCcNKnA@calendula>
+References: <8eb81c74-4311-4d87-9c13-be6a99c94e2f@ans.pl>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -43,23 +38,26 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20241019-xtables-typos-v3-1-66dd2eaacf2f@0upti.me>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <8eb81c74-4311-4d87-9c13-be6a99c94e2f@ans.pl>
 X-Spam-Score: -1.9 (-)
 
-On Sat, Oct 19, 2024 at 09:18:38PM +0300, Ilya Katsnelson wrote:
-> diff --git a/net/netfilter/xt_TRACE.c b/net/netfilter/xt_TRACE.c
-> index f3fa4f11348cd8ad796ce94f012cd48aa7a9020f..2a029b4adbcadf95e493b153f613a210624a9101 100644
-> --- a/net/netfilter/xt_TRACE.c
-> +++ b/net/netfilter/xt_TRACE.c
-> @@ -49,6 +49,7 @@ static struct xt_target trace_tg_reg[] __read_mostly = {
->  		.target		= trace_tg,
->  		.checkentry	= trace_tg_check,
->  		.destroy	= trace_tg_destroy,
-> +		.me         = THIS_MODULE,
+Hi,
 
-indentation is not correct.
->  	},
->  #endif
->  };
+On Sat, Oct 19, 2024 at 10:22:01PM -0700, Krzysztof Olędzki wrote:
+> Hi,
+> 
+> After upgrading to 6.6.57 I noticed that my IPv6 firewall config failed to load.
+> 
+> Quick investigation flagged NFLOG to be the issue:
+> 
+> # ip6tables -I INPUT -j NFLOG
+> Warning: Extension NFLOG revision 0 not supported, missing kernel module?
+> ip6tables: No chain/target/match by that name.
+> 
+> The regression is caused by the following commit:
+> https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable-rc.git/commit/?h=linux-6.6.y&id=997f67d813ce0cf5eb3cdb8f124da68141e91b6c
+
+Yes, this is the proposed incremental fix.
 
 https://patchwork.ozlabs.org/project/netfilter-devel/patch/20241020124951.180350-1-pablo@netfilter.org/
