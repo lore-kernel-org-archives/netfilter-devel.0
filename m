@@ -1,47 +1,47 @@
 Received: from azazel.net (taras.nevrast.org [35.176.194.208])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C73B2209B
-	for <netfilter-devel@vger.kernel.org>; Mon, 21 Oct 2024 19:10:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F1AB1F8EEC
+	for <netfilter-devel@vger.kernel.org>; Mon, 21 Oct 2024 19:29:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729537869; cv=none; b=haM0iLk5g1XdzAYNoa9R0moMZq+z1In936K4zyTBUP07d5PWp/yJIyAQ4CHX0MM1RJIcX/gkA6jZiTFsyjCffhnQ7Azd/9gWjYS/iIiP5a4Bn/leQscaWaCwbMKI6PsP49iiIbaVvSVCmSNjuQC2WEusmm4pFWfVtptC/IulJBk=
+	t=1729538976; cv=none; b=jyFQBfxDfajfcTmGI0JEQql/VKhVsO8/TqEEVScxDlc7PbxopYsa+QhJKGOdx6W1mizYdKmzdURl83qB0PVXZWRElEohngwdWwe6ZrMA3ZVbefZVuT8q2ICQZtHwzzJEY2N2SycS56JXhi/wk/b6Eq4vhqECK8cV0zlhGXMhNuE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729537869; c=relaxed/simple;
-	bh=yTLkUUBWdl45fddl6tU9JlBOvh9JoQo6OThdQWC5ZVQ=;
+	s=arc-20240116; t=1729538976; c=relaxed/simple;
+	bh=fw0uAG0Y5/R1KngxNhlxN9D23soerl1mKSSMtG8+VgY=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=WQHU/S+v2qeQi3SAPy8TkIfbnWaFqXC1V5JyuPlH8zEcF2ECXsIayWCb1In97leGnI1a0jSgTEDdnuQy7qOh6GLsiMMPQL4RCO3yxT+f06K3Bo3dZLpYqF46j/X+iUbaKnHQPGdsppmos45QDn/XhRVauN3eilaryufLV4N+t94=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=CBipstEu; arc=none smtp.client-ip=35.176.194.208
+	 Content-Type:Content-Disposition:In-Reply-To; b=ZHnqwxDa2pXVKjiJI0tpmCmKfBGJ7yGPLk68sUcPTJySOQX30BqTeOg8JZqZ4NezBEnOoVS536jSPvA4UI3Sj9wHVktOPH917dcx9lV6TUsbKgHx/bdSfdekzSAvYF6wrnV7VD2mWkKoQ5yymjG2Lgj87trTDs9u4MhJrXWKXgo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=AWML1nfC; arc=none smtp.client-ip=35.176.194.208
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="CBipstEu"
+	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="AWML1nfC"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
 	s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
 	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=fVOil9tnbcauDymXgHCwsSf1/WrmGm8/0C1ObeqP9Jc=; b=CBipstEugwd/85qJursJFH+ozP
-	KoyIluY0VS5uyMhBgdRflCI08cU+1ECZPbkCedKfjiR399Mj7NaN4CO8MPb5l8hWYTxfPs52/gh9d
-	nTFk9SIe3iXJ3kd4XR5cbIifj4/2DEizNZFu522hzldzIxCw9g4lXgohzV0wbtqsHi7VE+Af/XFt2
-	WOnJis3WWoRN1lR/9aKYKBUBHVA/KBrtYckhT4XSPvewtot1epqakla/bccCv0ChvwZJXNll2Yyuh
-	z4oeeGGGHl/tJsNIEotbx5WkNP56TigiqXrsb83/xRUo9AYrViDhtqHyVpcYLnLfGdbG/FmFRajtU
-	i/w7Pa3A==;
+	bh=KNMtlhFKEhZb48P1MP4lq5TJjGbT5wYDkq/U2RkR7r4=; b=AWML1nfC7dGpyyr68ZH1zKlP16
+	BPQv2j/ufLbyXclOP9/0zcNh3AHwFmC0styLzLPG15zbYmrfW0Evfqxpwx+RlwY2iXXwKQjVVXNAC
+	TO0bwCYYZdQVc5b4YojaBXoaHd67rrnVj+6KrB6QheMrjZcDS4uzP0IYwtCcb9TPImv/MfXUnwjH0
+	B4+6fxd677SSpHH/jeu9avcZjqbSia4vmZ4R/b7SdhjT5p4bNLtK9II+R6uvoGVTsL0st03FJrOsl
+	a5UMruLH6TtNYv8bwn6HVwLzSmqPHXRiC0zwUzi0j/YFQc9zTvw/Mhrqh9YGQ7J7zVJvz5IToLH6X
+	sbd4Z0Gg==;
 Received: from celephais.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] helo=celephais.dreamlands)
 	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.96)
 	(envelope-from <jeremy@azazel.net>)
-	id 1t2xnt-002f9M-1t;
-	Mon, 21 Oct 2024 20:10:57 +0100
-Date: Mon, 21 Oct 2024 20:10:56 +0100
+	id 1t2xnb-002f99-1i;
+	Mon, 21 Oct 2024 20:10:39 +0100
+Date: Mon, 21 Oct 2024 20:10:38 +0100
 From: Jeremy Sowden <jeremy@azazel.net>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH conntrack,v2 2/2] conntrack: improve --mark parser
-Message-ID: <20241021191056.GB1028786@celephais.dreamlands>
+Subject: Re: [PATCH conntrack,v2 1/2] conntrack: improve
+ --secmark,--id,--zone parser
+Message-ID: <20241021191038.GA1028786@celephais.dreamlands>
 References: <20241012220030.51402-1-pablo@netfilter.org>
- <20241012220030.51402-2-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -49,118 +49,128 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="fnNLzFIhFsV91iWR"
+	protocol="application/pgp-signature"; boundary="la+/81FvE8cgTN+I"
 Content-Disposition: inline
-In-Reply-To: <20241012220030.51402-2-pablo@netfilter.org>
+In-Reply-To: <20241012220030.51402-1-pablo@netfilter.org>
 X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
 X-SA-Exim-Mail-From: jeremy@azazel.net
 X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 
 
---fnNLzFIhFsV91iWR
+--la+/81FvE8cgTN+I
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On 2024-10-13, at 00:00:30 +0200, Pablo Neira Ayuso wrote:
-> Enhance helper function to parse mark and mask (if available), bail out
-> if input is not correct.
+On 2024-10-13, at 00:00:29 +0200, Pablo Neira Ayuso wrote:
+> strtoul() is called with no error checking at all, add a helper
+> function to validate input is correct for values less than
+> UINT32_MAX.
 >=20
 > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 > ---
 > v2: - remove value =3D=3D 0 && errno =3D=3D ERANGE check
->=20
->  src/conntrack.c | 34 +++++++++++++++++++++++++++-------
->  1 file changed, 27 insertions(+), 7 deletions(-)
->=20
-> diff --git a/src/conntrack.c b/src/conntrack.c
-> index 18829dbf79bc..5bd966cad657 100644
-> --- a/src/conntrack.c
-> +++ b/src/conntrack.c
-> @@ -1233,17 +1233,35 @@ static int parse_value(const char *str, uint32_t =
-*ret, uint64_t max)
->  	return 0;
->  }
-> =20
-> -static void
-> +static int
->  parse_u32_mask(const char *arg, struct u32_mask *m)
->  {
-> -	char *end;
-> +	uint64_t val, mask;
-> +	char *endptr;
-> +
-> +	val =3D strtoul(arg, &endptr, 0);
-> +	if (endptr =3D=3D arg ||
-> +	    (*endptr !=3D '\0' && *endptr !=3D '/') ||
-> +	    (val =3D=3D ULONG_MAX && errno =3D=3D ERANGE) ||
-> +	    val > UINT32_MAX)
-> +		return -1;
-> =20
-> -	m->value =3D (uint32_t) strtoul(arg, &end, 0);
-> +	m->value =3D val;
-> =20
-> -	if (*end =3D=3D '/')
-> -		m->mask =3D (uint32_t) strtoul(end+1, NULL, 0);
-> -	else
-> +	if (*endptr =3D=3D '/') {
-> +		mask =3D (uint32_t) strtoul(endptr + 1, &endptr, 0);
-                       ^^^^^^^^^^
+>     - add assert to remember this only supports max up to UINT32_MAX
 
-No need for this cast.
+LGTM.
 
 J.
 
-> +		if (endptr =3D=3D arg ||
-> +		    *endptr !=3D '\0' ||
-> +		    (val =3D=3D ULONG_MAX && errno =3D=3D ERANGE) ||
-> +		    val > UINT32_MAX)
-> +			return -1;
-> +
-> +		m->mask =3D mask;
-> +	} else {
->  		m->mask =3D ~0;
-> +	}
-> +
-> +	return 0;
+>  src/conntrack.c | 35 +++++++++++++++++++++++++++++------
+>  1 file changed, 29 insertions(+), 6 deletions(-)
+>=20
+> diff --git a/src/conntrack.c b/src/conntrack.c
+> index 9fa49869b553..18829dbf79bc 100644
+> --- a/src/conntrack.c
+> +++ b/src/conntrack.c
+> @@ -1213,6 +1213,26 @@ parse_parameter_mask(const char *arg, unsigned int=
+ *status, unsigned int *mask,
+>  		exit_error(PARAMETER_PROBLEM, "Bad parameter `%s'", arg);
 >  }
 > =20
->  static int
-> @@ -3115,7 +3133,9 @@ static void do_parse(struct ct_cmd *ct_cmd, int arg=
+> +static int parse_value(const char *str, uint32_t *ret, uint64_t max)
+> +{
+> +	char *endptr;
+> +	uint64_t val;
+> +
+> +	assert(max <=3D UINT32_MAX);
+> +
+> +	errno =3D 0;
+> +	val =3D strtoul(str, &endptr, 0);
+> +	if (endptr =3D=3D str ||
+> +	    *endptr !=3D '\0' ||
+> +	    (val =3D=3D ULONG_MAX && errno =3D=3D ERANGE) ||
+> +	    val > max)
+> +		return -1;
+> +
+> +	*ret =3D val;
+> +
+> +	return 0;
+> +}
+> +
+>  static void
+>  parse_u32_mask(const char *arg, struct u32_mask *m)
+>  {
+> @@ -2918,6 +2938,7 @@ static void do_parse(struct ct_cmd *ct_cmd, int arg=
 c, char *argv[])
->  			break;
->  		case 'm':
->  			options |=3D opt2type[c];
-> -			parse_u32_mask(optarg, &tmpl->mark);
-> +			if (parse_u32_mask(optarg, &tmpl->mark) < 0)
+>  	struct ct_tmpl *tmpl;
+>  	int res =3D 0, partial;
+>  	union ct_address ad;
+> +	uint32_t value;
+>  	int c, cmd;
+> =20
+>  	/* we release these objects in the exit_error() path. */
+> @@ -3078,17 +3099,19 @@ static void do_parse(struct ct_cmd *ct_cmd, int a=
+rgc, char *argv[])
+>  		case 'w':
+>  		case '(':
+>  		case ')':
+> +			if (parse_value(optarg, &value, UINT16_MAX) < 0)
 > +				exit_error(OTHER_PROBLEM, "unexpected value '%s' with -%c option", o=
 ptarg, c);
 > +
->  			tmpl->filter_mark_kernel.val =3D tmpl->mark.value;
->  			tmpl->filter_mark_kernel.mask =3D tmpl->mark.mask;
->  			tmpl->filter_mark_kernel_set =3D true;
+>  			options |=3D opt2type[c];
+> -			nfct_set_attr_u16(tmpl->ct,
+> -					  opt2attr[c],
+> -					  strtoul(optarg, NULL, 0));
+> +			nfct_set_attr_u16(tmpl->ct, opt2attr[c], value);
+>  			break;
+>  		case 'i':
+>  		case 'c':
+> +			if (parse_value(optarg, &value, UINT32_MAX) < 0)
+> +				exit_error(OTHER_PROBLEM, "unexpected value '%s' with -%c option", o=
+ptarg, c);
+> +
+>  			options |=3D opt2type[c];
+> -			nfct_set_attr_u32(tmpl->ct,
+> -					  opt2attr[c],
+> -					  strtoul(optarg, NULL, 0));
+> +			nfct_set_attr_u32(tmpl->ct, opt2attr[c], value);
+>  			break;
+>  		case 'm':
+>  			options |=3D opt2type[c];
 > --=20
 > 2.30.2
 >=20
 
---fnNLzFIhFsV91iWR
+--la+/81FvE8cgTN+I
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmcWpz8ACgkQKYasCr3x
-BA1eQQ/6A5bB9+nZVl1tg/s63hYplJKX/+3h88vlk99gfj6eNQgVX7xob1o22r7u
-BEoM4ha+mHtPLNvUjfAL3PdxC8TGrIOUwoo3lOisLWX0kasMUP2t2ip+2wZMZ6BE
-G91qXBaf96Iypp3MjF2+mv5b8B+L6Re6fR4etUlaWu9P3Y3CdJQRMU3hUVSscDKp
-IWTIxhpddZbQEsUvOiPcAQeeKsq/1hyUEFRZXJFFGJPqoipnUviOaFDR7wgy0ixJ
-slwcnlDrax+m0SSDpoe+EJP4wtFstlBfmd22loa6mGFXuId+rQqfYwfE9GRX8n0Q
-Uo28ivSkgTbZy97rgiHt/hojmFG6V+YasFYeDGrw2jewjr9ZhuBp88Q8xqpnKowz
-vDmRxszBeCfQ/b3vz15eE/RWgU1oWwXDAj0vFxa1v5Gq88aYBXbdUVbIpiGW7gnA
-BNYFk0b3e+6JLQ5S0BWNFzMPfvYVHTVnvoSooEjeKENuHOjQWYbGsgtCNVDw8/Ev
-iXKf2I5DUmD5vKFrLufxhe6DNSh1BsXEUkBlFkwC+ov96w0ohS/d6m2JimSwHv+6
-qCPUOApegfywN3eh70/uVt4HWh94w4WdvMYzEZA5g5civ2TAU1OqwRbDX3HayzUf
-52ZEsIiLZaTTIVs5xB0IRkhHIhQNJIYfgqFd/UmKN0G0Uz7ikWA=
-=d5+s
+iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmcWpw0ACgkQKYasCr3x
+BA0EKxAAlm0Ngk+9FWHL8VUHapxYg9N5+KM9Yb1PpEYF9kMIENh7c5TSK1v0H90S
+AmYl/SaJW8uPZrZe+zWbVxCZBfRj1iNQh1tCI9tn4kXcdPVbOn01mbDClASDMDSW
+O12uIAafq7ArszwfMz7nhTdV4QNGULhUhl9iYM7uIrwSvE13ZpBPGmgh4TpV7J4P
+UBPTcLfJU0ttSh1GzT/+4EoVZC+hq4Iz7DZOuqJmsOOamQEFTNk8eKpOIeC0Qll8
+plz8iGFvFGC7UUojF/7vhGBefuSgedEv55gCVoVcgy/ViEa8Zb+QRZU95xvaP3nt
+lBgVDI44LpNc+WAPh8J+dnaWCfXGiZ5liUOHo7DVlZSRcBE9OJ9c+VeENPOj1fCD
+MHJ0ThWo1/HGwD0a5droj0ner/O0pnGtY4p7WHdIWDQFMNb6eLxmQKWH7wH1/L5a
+uzBlH4/efEivXWPoyob0VjJKdabWOBBIngEpx5zyGcDBJJNYdgthfy9PhpldzHBv
+eVzF3JGwwzcbm35biHlWTKrdXNpgl7e+MTchXQgTJiKjhb4oXccHfZXukJyAbIcr
+1yYD3sU5Hc0aNeOzn7sxicetRk5/N9JCVnvPY6oL6G+CbVGgxCfpqjsaNeY5Q8Tj
+iX25DHwZjb2zFWFpS7MX5CaVozC1ol1PXTKfHW4XtFk42+04Mm4=
+=up6U
 -----END PGP SIGNATURE-----
 
---fnNLzFIhFsV91iWR--
+--la+/81FvE8cgTN+I--
