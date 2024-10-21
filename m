@@ -1,413 +1,108 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7C05A440C
-	for <netfilter-devel@vger.kernel.org>; Sun, 20 Oct 2024 22:47:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from smtp.emenem.pl (cmyk.emenem.pl [217.79.154.63])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E9CFA92F;
+	Mon, 21 Oct 2024 02:58:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.79.154.63
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729464437; cv=none; b=YXbE3DiOP7O2cIGlZhEx8wVxkhBhaGo6YGQeQWoCshKrVh3dalTVzdssTn3ZCxA0VeKI/Y+miT3V+oFYZXyPrYjgi2g6Th6HehFQoOuCqZU9mlKTKc1jSJm0a6qyBNt97G5Vz1mC9rWwEsvnxDG8ZfA+LyEpOe8qAFy0LxQrioc=
+	t=1729479490; cv=none; b=XvI0F0otKtAon0wK06DoiBcf0214yOSWKCdRufVL5oi+JhXC7IJhEFmT7JB1NiAjAh4+Qooml97zKzFn1Y9U+qrtl1X1RwQimDf1VBollfop0BrMCBT6bHLQ0zOMwy4StEcw+/le7uRQNH4FHMHwptyq0xYhQMHGzpG9Lyqrapo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729464437; c=relaxed/simple;
-	bh=mJ/0EnVZvbcCURb/RFXzrJZdja3xPyOQ7GObN9Bb/OE=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=OTCkVOVeDlxgqm/nAgEp3hA99THPl610yxm371zx+v0eyn0YV+d50zJJ0Rd+CyDJJe+J/p/1WSp2Ndu+rm9j7Iw3oJkQEpH5DKn0YdUSkpctrK1KaQOj9nf+pMDmrwLaSbegSvXzQzAd3l1x7nH4maRVuhQ0X9PM1vX/THli/Ds=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: phil@nwl.cc,
-	fw@strlen.de
-Subject: [PATCH iptables] tests: iptables-test: extend coverage for ip6tables
-Date: Mon, 21 Oct 2024 00:47:07 +0200
-Message-Id: <20241020224707.69249-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+	s=arc-20240116; t=1729479490; c=relaxed/simple;
+	bh=gvnhP3QR2v/zK5Lm6aagczIw/TFzfWmYcKiZFGwl2KI=;
+	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
+	 In-Reply-To:Content-Type; b=ld32+tHT/qF33LGYsfJ3sYOd5d0fAY428uI4LTdQkxN1JXY/jbo+rs9p2yBJCs15ndHIbu4SWeMCMHS4TAFgr7NFsVzSpiyJEAE2QXAxFMijSEV7XvfW1dizYgHmM43s6xZehSQoFhp420eV+Zx5oN3lw1RC/jmiqA9PgEVz+Wg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ans.pl; spf=none smtp.mailfrom=ans.pl; dkim=pass (1024-bit key) header.d=ans.pl header.i=@ans.pl header.b=Anz6nZFF; arc=none smtp.client-ip=217.79.154.63
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ans.pl
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ans.pl
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=ans.pl header.i=@ans.pl header.b="Anz6nZFF"
+X-Virus-Scanned: amavisd-new at emenem.pl
+Received: from [192.168.1.10] (c-98-45-176-131.hsd1.ca.comcast.net [98.45.176.131])
+	(authenticated bits=0)
+	by cmyk.emenem.pl (8.17.1.9/8.17.1.9) with ESMTPSA id 49L2vmNd024121
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NO);
+	Mon, 21 Oct 2024 04:57:50 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ans.pl; s=20190507;
+	t=1729479472; bh=3wqb91UsdampFD5fRrQ9mHDNugrdeONpWtaLAOGbpjA=;
+	h=Date:Subject:From:To:Cc:References:In-Reply-To;
+	b=Anz6nZFF/IQ8xBjeZY+43+whTOWA2tUxLwdHaPJ1Bnqrmam2pKR6c5GtIO5AVBFoe
+	 mW55AKn1qGT/ssnmnwzlHy7WEqMA90p5IGYjjeJcof42dCTRSuPI7eT+D6SSAknsEF
+	 mrOAqsl1R88OVqeEzJWUY9YdSfu6b1e3IbC7cBIY=
+Message-ID: <74317861-2cff-424b-a3db-8b214cec5f70@ans.pl>
+Date: Sun, 20 Oct 2024 19:57:47 -0700
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: 6.6.57-stable regression: "netfilter: xtables: avoid
+ NFPROTO_UNSPEC where needed" broke NFLOG on IPv6
+From: =?UTF-8?Q?Krzysztof_Ol=C4=99dzki?= <ole@ans.pl>
+To: Florian Westphal <fw@strlen.de>, Pablo Neira Ayuso <pablo@netfilter.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ilya Katsnelson <me@0upti.me>, Phil Sutter <phil@nwl.cc>
+Cc: stable@vger.kernel.org, netfilter-devel
+ <netfilter-devel@vger.kernel.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+References: <8eb81c74-4311-4d87-9c13-be6a99c94e2f@ans.pl>
+Content-Language: en-US
+In-Reply-To: <8eb81c74-4311-4d87-9c13-be6a99c94e2f@ans.pl>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Update iptables-test.py to run libxt_*.t both for iptables and
-ip6tables. This update requires changes in the existing tests.
+On 19.10.2024 at 22:22, Krzysztof Olędzki wrote:
+> Hi,
+> 
+> After upgrading to 6.6.57 I noticed that my IPv6 firewall config failed to load.
+> 
+> Quick investigation flagged NFLOG to be the issue:
+> 
+> # ip6tables -I INPUT -j NFLOG
+> Warning: Extension NFLOG revision 0 not supported, missing kernel module?
+> ip6tables: No chain/target/match by that name.
+> 
+> The regression is caused by the following commit:
+> https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable-rc.git/commit/?h=linux-6.6.y&id=997f67d813ce0cf5eb3cdb8f124da68141e91b6c
+> 
+> More precisely, the bug is in the change below:
+> 
+> +#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+> +	{
+> +		.name       = "NFLOG",
+> +		.revision   = 0,
+> +		.family     = NFPROTO_IPV4,
+> +		.checkentry = nflog_tg_check,
+> +		.destroy    = nflog_tg_destroy,
+> +		.target     = nflog_tg,
+> +		.targetsize = sizeof(struct xt_nflog_info),
+> +		.me         = THIS_MODULE,
+> +	},
+> +#endif
+> 
+> Replacing NFPROTO_IPV4 with NFPROTO_IPV6 fixed the issue.
+> 
+> Looking at the commit, it seems that at least one more target (MARK) may be also impacted:
+> 
+> +#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+> +	{
+> +		.name           = "MARK",
+> +		.revision       = 2,
+> +		.family         = NFPROTO_IPV4,
+> +		.target         = mark_tg,
+> +		.targetsize     = sizeof(struct xt_mark_tginfo2),
+> +		.me             = THIS_MODULE,
+> +	},
+> +#endif
+> 
+> The same errors seem to be present in the main tree:
+>  https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=0bfcb7b71e735560077a42847f69597ec7dcc326
+> 
+> I also suspect other -stable trees may be impacted by the same issue.
 
-* Rename libxt_*.t into libipt_*.t and add libip6_*.t variant.
+Seems like this is already being taken care of:
 
-- TEE
-- TPROXY
-- connlimit
-- conntrack
-- iprange
-- ipvs
-- policy
-- recent
+https://lore.kernel.org/netdev/ZxT8ow0auDTe-TDA@calendula/T/#t
 
-* Rename the following libxt_*.t to libipt_*.t since they are IPv4
-  specific:
-
-- standard
-- osf
-
-* Remove IPv4 specific test in libxt_mark.t
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- extensions/libip6t_TEE.t                      |  4 ++
- extensions/libip6t_TPROXY.t                   |  5 ++
- extensions/libip6t_connlimit.t                | 16 +++++
- extensions/libip6t_conntrack.t                | 55 ++++++++++++++++
- extensions/libip6t_iprange.t                  | 11 ++++
- extensions/libip6t_ipvs.t                     | 20 ++++++
- extensions/libip6t_policy.t                   |  8 +++
- extensions/libip6t_recent.t                   | 11 ++++
- extensions/{libxt_TEE.t => libipt_TEE.t}      |  0
- .../{libxt_TPROXY.t => libipt_TPROXY.t}       |  0
- .../{libxt_connlimit.t => libipt_connlimit.t} |  0
- .../{libxt_conntrack.t => libipt_conntrack.t} |  0
- .../{libxt_iprange.t => libipt_iprange.t}     |  0
- extensions/{libxt_ipvs.t => libipt_ipvs.t}    |  0
- extensions/{libxt_osf.t => libipt_osf.t}      |  0
- .../{libxt_policy.t => libipt_policy.t}       |  0
- .../{libxt_recent.t => libipt_recent.t}       |  0
- .../{libxt_standard.t => libipt_standard.t}   |  0
- extensions/libxt_mark.t                       |  2 +-
- iptables-test.py                              | 64 +++++++++++++------
- 20 files changed, 174 insertions(+), 22 deletions(-)
- create mode 100644 extensions/libip6t_TEE.t
- create mode 100644 extensions/libip6t_TPROXY.t
- create mode 100644 extensions/libip6t_connlimit.t
- create mode 100644 extensions/libip6t_conntrack.t
- create mode 100644 extensions/libip6t_iprange.t
- create mode 100644 extensions/libip6t_ipvs.t
- create mode 100644 extensions/libip6t_policy.t
- create mode 100644 extensions/libip6t_recent.t
- rename extensions/{libxt_TEE.t => libipt_TEE.t} (100%)
- rename extensions/{libxt_TPROXY.t => libipt_TPROXY.t} (100%)
- rename extensions/{libxt_connlimit.t => libipt_connlimit.t} (100%)
- rename extensions/{libxt_conntrack.t => libipt_conntrack.t} (100%)
- rename extensions/{libxt_iprange.t => libipt_iprange.t} (100%)
- rename extensions/{libxt_ipvs.t => libipt_ipvs.t} (100%)
- rename extensions/{libxt_osf.t => libipt_osf.t} (100%)
- rename extensions/{libxt_policy.t => libipt_policy.t} (100%)
- rename extensions/{libxt_recent.t => libipt_recent.t} (100%)
- rename extensions/{libxt_standard.t => libipt_standard.t} (100%)
-
-diff --git a/extensions/libip6t_TEE.t b/extensions/libip6t_TEE.t
-new file mode 100644
-index 000000000000..fcaa3c2664ca
---- /dev/null
-+++ b/extensions/libip6t_TEE.t
-@@ -0,0 +1,4 @@
-+:INPUT,FORWARD,OUTPUT
-+-j TEE --gateway 2001:db8::1;=;OK
-+-j TEE ! --gateway 2001:db8::1;;FAIL
-+-j TEE;;FAIL
-diff --git a/extensions/libip6t_TPROXY.t b/extensions/libip6t_TPROXY.t
-new file mode 100644
-index 000000000000..5af67542f1bd
---- /dev/null
-+++ b/extensions/libip6t_TPROXY.t
-@@ -0,0 +1,5 @@
-+:PREROUTING
-+*mangle
-+-j TPROXY --on-port 12345 --on-ip 2001:db8::1 --tproxy-mark 0x23/0xff;;FAIL
-+-p udp -j TPROXY --on-port 12345 --on-ip 2001:db8::1 --tproxy-mark 0x23/0xff;=;OK
-+-p tcp -m tcp --dport 2342 -j TPROXY --on-port 12345 --on-ip 2001:db8::1 --tproxy-mark 0x23/0xff;=;OK
-diff --git a/extensions/libip6t_connlimit.t b/extensions/libip6t_connlimit.t
-new file mode 100644
-index 000000000000..8b7b3677b56d
---- /dev/null
-+++ b/extensions/libip6t_connlimit.t
-@@ -0,0 +1,16 @@
-+:INPUT,FORWARD,OUTPUT
-+-m connlimit --connlimit-upto 0;-m connlimit --connlimit-upto 0 --connlimit-mask 128 --connlimit-saddr;OK
-+-m connlimit --connlimit-upto 4294967295 --connlimit-mask 128 --connlimit-saddr;=;OK
-+-m connlimit --connlimit-upto 4294967296 --connlimit-mask 128 --connlimit-saddr;;FAIL
-+-m connlimit --connlimit-upto -1;;FAIL
-+-m connlimit --connlimit-above 0;-m connlimit --connlimit-above 0 --connlimit-mask 128 --connlimit-saddr;OK
-+-m connlimit --connlimit-above 4294967295 --connlimit-mask 128 --connlimit-saddr;=;OK
-+-m connlimit --connlimit-above 4294967296 --connlimit-mask 128 --connlimit-saddr;;FAIL
-+-m connlimit --connlimit-above -1;;FAIL
-+-m connlimit --connlimit-upto 1 --conlimit-above 1;;FAIL
-+-m connlimit --connlimit-above 10 --connlimit-saddr;-m connlimit --connlimit-above 10 --connlimit-mask 128 --connlimit-saddr;OK
-+-m connlimit --connlimit-above 10 --connlimit-daddr;-m connlimit --connlimit-above 10 --connlimit-mask 128 --connlimit-daddr;OK
-+-m connlimit --connlimit-above 10 --connlimit-saddr --connlimit-daddr;;FAIL
-+-m connlimit --connlimit-above 10 --connlimit-mask 128 --connlimit-saddr;=;OK
-+-m connlimit --connlimit-above 10 --connlimit-mask 128 --connlimit-daddr;=;OK
-+-m connlimit;;FAIL
-diff --git a/extensions/libip6t_conntrack.t b/extensions/libip6t_conntrack.t
-new file mode 100644
-index 000000000000..9dd8b5799779
---- /dev/null
-+++ b/extensions/libip6t_conntrack.t
-@@ -0,0 +1,55 @@
-+:INPUT,FORWARD,OUTPUT
-+-m conntrack --ctstate NEW;=;OK
-+-m conntrack --ctstate NEW,ESTABLISHED;=;OK
-+-m conntrack --ctstate NEW,RELATED,ESTABLISHED;=;OK
-+-m conntrack --ctstate INVALID;=;OK
-+-m conntrack --ctstate UNTRACKED;=;OK
-+-m conntrack --ctstate SNAT,DNAT;=;OK
-+-m conntrack --ctstate wrong;;FAIL
-+# should we convert this to output "tcp" instead of 6?
-+-m conntrack --ctproto tcp;-m conntrack --ctproto 6;OK
-+-m conntrack --ctorigsrc 2001:db8::1;=;OK
-+-m conntrack --ctorigdst 2001:db8::1;=;OK
-+-m conntrack --ctreplsrc 2001:db8::1;=;OK
-+-m conntrack --ctrepldst 2001:db8::1;=;OK
-+-m conntrack --ctexpire 0;=;OK
-+-m conntrack --ctexpire 4294967295;=;OK
-+-m conntrack --ctexpire 0:4294967295;=;OK
-+-m conntrack --ctexpire 42949672956;;FAIL
-+-m conntrack --ctexpire -1;;FAIL
-+-m conntrack --ctexpire 3:3;-m conntrack --ctexpire 3;OK
-+-m conntrack --ctexpire 4:3;;FAIL
-+-m conntrack --ctdir ORIGINAL;=;OK
-+-m conntrack --ctdir REPLY;=;OK
-+-m conntrack --ctstatus NONE;=;OK
-+-m conntrack --ctstatus CONFIRMED;=;OK
-+-m conntrack --ctstatus ASSURED;=;OK
-+-m conntrack --ctstatus EXPECTED;=;OK
-+-m conntrack --ctstatus SEEN_REPLY;=;OK
-+-m conntrack;;FAIL
-+-m conntrack --ctproto 0;;FAIL
-+-m conntrack ! --ctproto 0;;FAIL
-+-m conntrack --ctorigsrcport :;-m conntrack --ctorigsrcport 0:65535;OK
-+-m conntrack --ctorigsrcport :4;-m conntrack --ctorigsrcport 0:4;OK
-+-m conntrack --ctorigsrcport 4:;-m conntrack --ctorigsrcport 4:65535;OK
-+-m conntrack --ctorigsrcport 3:4;=;OK
-+-m conntrack --ctorigsrcport 4:4;-m conntrack --ctorigsrcport 4;OK
-+-m conntrack --ctorigsrcport 4:3;;FAIL
-+-m conntrack --ctreplsrcport :;-m conntrack --ctreplsrcport 0:65535;OK
-+-m conntrack --ctreplsrcport :4;-m conntrack --ctreplsrcport 0:4;OK
-+-m conntrack --ctreplsrcport 4:;-m conntrack --ctreplsrcport 4:65535;OK
-+-m conntrack --ctreplsrcport 3:4;=;OK
-+-m conntrack --ctreplsrcport 4:4;-m conntrack --ctreplsrcport 4;OK
-+-m conntrack --ctreplsrcport 4:3;;FAIL
-+-m conntrack --ctorigdstport :;-m conntrack --ctorigdstport 0:65535;OK
-+-m conntrack --ctorigdstport :4;-m conntrack --ctorigdstport 0:4;OK
-+-m conntrack --ctorigdstport 4:;-m conntrack --ctorigdstport 4:65535;OK
-+-m conntrack --ctorigdstport 3:4;=;OK
-+-m conntrack --ctorigdstport 4:4;-m conntrack --ctorigdstport 4;OK
-+-m conntrack --ctorigdstport 4:3;;FAIL
-+-m conntrack --ctrepldstport :;-m conntrack --ctrepldstport 0:65535;OK
-+-m conntrack --ctrepldstport :4;-m conntrack --ctrepldstport 0:4;OK
-+-m conntrack --ctrepldstport 4:;-m conntrack --ctrepldstport 4:65535;OK
-+-m conntrack --ctrepldstport 3:4;=;OK
-+-m conntrack --ctrepldstport 4:4;-m conntrack --ctrepldstport 4;OK
-+-m conntrack --ctrepldstport 4:3;;FAIL
-diff --git a/extensions/libip6t_iprange.t b/extensions/libip6t_iprange.t
-new file mode 100644
-index 000000000000..94cf41139744
---- /dev/null
-+++ b/extensions/libip6t_iprange.t
-@@ -0,0 +1,11 @@
-+:INPUT,FORWARD,OUTPUT
-+-m iprange --src-range 2001:db8::1-2001:db8::10;=;OK
-+-m iprange ! --src-range 2001:db8::1-2001:db8::10;=;OK
-+-m iprange --dst-range 2001:db8::1-2001:db8::10;=;OK
-+-m iprange ! --dst-range 2001:db8::1-2001:db8::10;=;OK
-+# it shows -A INPUT -m iprange --src-range 2001:db8::1-2001:db8::1, should we support this?
-+# ERROR: should fail: ip6tables -A INPUT -m iprange --src-range 2001:db8::1
-+# -m iprange --src-range 2001:db8::1;;FAIL
-+# ERROR: should fail: ip6tables -A INPUT -m iprange --dst-range 2001:db8::1
-+#-m iprange --dst-range 2001:db8::1;;FAIL
-+-m iprange;;FAIL
-diff --git a/extensions/libip6t_ipvs.t b/extensions/libip6t_ipvs.t
-new file mode 100644
-index 000000000000..8d528f130d90
---- /dev/null
-+++ b/extensions/libip6t_ipvs.t
-@@ -0,0 +1,20 @@
-+:INPUT,FORWARD,OUTPUT
-+-m ipvs --ipvs;=;OK
-+-m ipvs ! --ipvs;=;OK
-+-m ipvs --vproto tcp;-m ipvs --vproto 6;OK
-+-m ipvs ! --vproto TCP;-m ipvs ! --vproto 6;OK
-+-m ipvs --vproto 23;=;OK
-+-m ipvs --vaddr 2001:db8::1;=;OK
-+-m ipvs ! --vaddr 2001:db8::/64;=;OK
-+-m ipvs --vport http;-m ipvs --vport 80;OK
-+-m ipvs ! --vport ssh;-m ipvs ! --vport 22;OK
-+-m ipvs --vport 22;=;OK
-+-m ipvs ! --vport 443;=;OK
-+-m ipvs --vdir ORIGINAL;=;OK
-+-m ipvs --vdir REPLY;=;OK
-+-m ipvs --vmethod GATE;=;OK
-+-m ipvs ! --vmethod IPIP;=;OK
-+-m ipvs --vmethod MASQ;=;OK
-+-m ipvs --vportctl 21;=;OK
-+-m ipvs ! --vportctl 21;=;OK
-+-m ipvs --vproto 6 --vaddr 2001:db8::/64 --vport 22 --vdir ORIGINAL --vmethod GATE;=;OK
-diff --git a/extensions/libip6t_policy.t b/extensions/libip6t_policy.t
-new file mode 100644
-index 000000000000..95dad19c142f
---- /dev/null
-+++ b/extensions/libip6t_policy.t
-@@ -0,0 +1,8 @@
-+:INPUT,FORWARD
-+-m policy --dir in --pol ipsec;=;OK
-+-m policy --dir in --pol ipsec --proto ipcomp;=;OK
-+-m policy --dir in --pol ipsec --strict;;FAIL
-+-m policy --dir in --pol ipsec --strict --reqid 1 --spi 0x1 --proto ipcomp;=;OK
-+-m policy --dir in --pol ipsec --strict --reqid 1 --spi 0x1 --proto esp --mode tunnel --tunnel-dst 2001:db8::/32 --tunnel-src 2001:db8::/32 --next --reqid 2;=;OK
-+-m policy --dir in --pol ipsec --strict --reqid 1 --spi 0x1 --proto esp --tunnel-dst 2001:db8::/32;;FAIL
-+-m policy --dir in --pol ipsec --strict --reqid 1 --spi 0x1 --proto ipcomp --mode tunnel --tunnel-dst 2001:db8::/32 --tunnel-src 2001:db8::/32 --next --reqid 2;=;OK
-diff --git a/extensions/libip6t_recent.t b/extensions/libip6t_recent.t
-new file mode 100644
-index 000000000000..1ecad5aff83b
---- /dev/null
-+++ b/extensions/libip6t_recent.t
-@@ -0,0 +1,11 @@
-+:INPUT,FORWARD,OUTPUT
-+-m recent --set;-m recent --set --name DEFAULT --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource;OK
-+-m recent --rcheck --hitcount 8 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource;=;OK
-+-m recent --rcheck --hitcount 12 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource;=;OK
-+-m recent --update --rttl;-m recent --update --rttl --name DEFAULT --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource;OK
-+-m recent --set --rttl;;FAIL
-+-m recent --rcheck --hitcount 999 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource;;FAIL
-+# nonsensical, but all should load successfully:
-+-m recent --rcheck --hitcount 3 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource -m recent --rcheck --hitcount 4 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource;=;OK
-+-m recent --rcheck --hitcount 4 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource -m recent --rcheck --hitcount 4 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource;=;OK
-+-m recent --rcheck --hitcount 8 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource -m recent --rcheck --hitcount 12 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource;=;OK
-diff --git a/extensions/libxt_TEE.t b/extensions/libipt_TEE.t
-similarity index 100%
-rename from extensions/libxt_TEE.t
-rename to extensions/libipt_TEE.t
-diff --git a/extensions/libxt_TPROXY.t b/extensions/libipt_TPROXY.t
-similarity index 100%
-rename from extensions/libxt_TPROXY.t
-rename to extensions/libipt_TPROXY.t
-diff --git a/extensions/libxt_connlimit.t b/extensions/libipt_connlimit.t
-similarity index 100%
-rename from extensions/libxt_connlimit.t
-rename to extensions/libipt_connlimit.t
-diff --git a/extensions/libxt_conntrack.t b/extensions/libipt_conntrack.t
-similarity index 100%
-rename from extensions/libxt_conntrack.t
-rename to extensions/libipt_conntrack.t
-diff --git a/extensions/libxt_iprange.t b/extensions/libipt_iprange.t
-similarity index 100%
-rename from extensions/libxt_iprange.t
-rename to extensions/libipt_iprange.t
-diff --git a/extensions/libxt_ipvs.t b/extensions/libipt_ipvs.t
-similarity index 100%
-rename from extensions/libxt_ipvs.t
-rename to extensions/libipt_ipvs.t
-diff --git a/extensions/libxt_osf.t b/extensions/libipt_osf.t
-similarity index 100%
-rename from extensions/libxt_osf.t
-rename to extensions/libipt_osf.t
-diff --git a/extensions/libxt_policy.t b/extensions/libipt_policy.t
-similarity index 100%
-rename from extensions/libxt_policy.t
-rename to extensions/libipt_policy.t
-diff --git a/extensions/libxt_recent.t b/extensions/libipt_recent.t
-similarity index 100%
-rename from extensions/libxt_recent.t
-rename to extensions/libipt_recent.t
-diff --git a/extensions/libxt_standard.t b/extensions/libipt_standard.t
-similarity index 100%
-rename from extensions/libxt_standard.t
-rename to extensions/libipt_standard.t
-diff --git a/extensions/libxt_mark.t b/extensions/libxt_mark.t
-index 12c058655f6b..b8dc3cb31aec 100644
---- a/extensions/libxt_mark.t
-+++ b/extensions/libxt_mark.t
-@@ -5,4 +5,4 @@
- -m mark --mark 4294967296;;FAIL
- -m mark --mark -1;;FAIL
- -m mark;;FAIL
---s 1.2.0.0/15 -m mark --mark 0x0/0xff0;=;OK
-+-m mark --mark 0x0/0xff0;=;OK
-diff --git a/iptables-test.py b/iptables-test.py
-index 77278925d721..15e1112e6cbe 100755
---- a/iptables-test.py
-+++ b/iptables-test.py
-@@ -385,7 +385,7 @@ def run_test_file_fast(iptables, filename, netns):
- 
-     return tests
- 
--def run_test_file(filename, netns):
-+def _run_test_file(iptables, filename, netns):
-     '''
-     Runs a test file
- 
-@@ -398,26 +398,6 @@ def run_test_file(filename, netns):
-     if not filename.endswith(".t"):
-         return 0, 0
- 
--    if "libipt_" in filename:
--        iptables = IPTABLES
--    elif "libip6t_" in filename:
--        iptables = IP6TABLES
--    elif "libxt_"  in filename:
--        iptables = IPTABLES
--    elif "libarpt_" in filename:
--        # only supported with nf_tables backend
--        if EXECUTABLE != "xtables-nft-multi":
--           return 0, 0
--        iptables = ARPTABLES
--    elif "libebt_" in filename:
--        # only supported with nf_tables backend
--        if EXECUTABLE != "xtables-nft-multi":
--           return 0, 0
--        iptables = EBTABLES
--    else:
--        # default to iptables if not known prefix
--        iptables = IPTABLES
--
-     fast_failed = False
-     if fast_run_possible(filename):
-         tests = run_test_file_fast(iptables, filename, netns)
-@@ -511,6 +491,48 @@ def run_test_file(filename, netns):
-     f.close()
-     return tests, passed
- 
-+def run_test_file(filename, netns):
-+    '''
-+    Runs a test file
-+
-+    :param filename: name of the file with the test rules
-+    :param netns: network namespace to perform test run in
-+    '''
-+    #
-+    # if this is not a test file, skip.
-+    #
-+    if not filename.endswith(".t"):
-+        return 0, 0
-+
-+    if "libipt_" in filename:
-+        xtables = [ IPTABLES ]
-+    elif "libip6t_" in filename:
-+        xtables = [ IP6TABLES ]
-+    elif "libxt_"  in filename:
-+        xtables = [ IPTABLES, IP6TABLES ]
-+    elif "libarpt_" in filename:
-+        # only supported with nf_tables backend
-+        if EXECUTABLE != "xtables-nft-multi":
-+           return 0, 0
-+        xtables = [ ARPTABLES ]
-+    elif "libebt_" in filename:
-+        # only supported with nf_tables backend
-+        if EXECUTABLE != "xtables-nft-multi":
-+           return 0, 0
-+        xtables = [ EBTABLES ]
-+    else:
-+        # default to iptables if not known prefix
-+        xtables = [ IPTABLES ]
-+
-+    tests = 0
-+    passed = 0
-+    for iptables in xtables:
-+        file_tests, file_passed =  _run_test_file(iptables, filename, netns)
-+        if file_tests:
-+            tests += file_tests
-+            passed += file_passed
-+
-+    return tests, passed
- 
- def show_missing():
-     '''
--- 
-2.30.2
-
+Krzysztof
