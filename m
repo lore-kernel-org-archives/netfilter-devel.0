@@ -1,72 +1,118 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD12C140E38
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Oct 2024 11:22:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7B2013D516
+	for <netfilter-devel@vger.kernel.org>; Tue, 22 Oct 2024 11:34:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729596134; cv=none; b=drWAMvGxLT7qEVSsoK6Wv7nQbP6hNgpf6oPGhbdizCpnRQAqjMRD0JURiCMWd4fURYQkhWhuQVP9aL+tMWPfABeoCGwsM5XAkuWbETKua/vmcJG6KKq2dtZLDtk8Ue7UoJV1sMsnAMVC2P6ZwzHb/9OAGvPD1iWaInYTeHRHVak=
+	t=1729596893; cv=none; b=JEYPM2FT5YT1aWYShYqe0Yi89EPn+9lMOD9mY9OQM2glDxejqv1z7b0pS7cD2m+5nahkP5pTh6ATWxVPDSHFsvXbFIXbsK2uUfU3b2SY/d7Ha6oA0iQZAYxq411Zl9Mu3Mtw7fQ490soOpDQt44OjAkCaNBMhUgSu+B5OmEmVQs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729596134; c=relaxed/simple;
-	bh=rZTPhZf43arJdj4S9a1/rAgYmLiFz7MwApIAjYWGGJY=;
+	s=arc-20240116; t=1729596893; c=relaxed/simple;
+	bh=/MmlDsMErRpYXX9WqwVhbiUvD6OeOKcOEDASovHGIbo=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gnzozP3MMbz0MCL+xQxOcWZSO0LOFMXpmgxCPu8ABGmOKCGvV7I5u89iW301H7FVu+OkblX1T9WSu9wTQTB8cSd5tAT/ytcGzXwGNTeyBrTnlC6Z/5fRwwf6AQWpIj0vvHUHVHJ0HvkAZCHV5YV09zKfvMfJrTMirZ4Oe21/OBI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=IZUMCHVy; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="IZUMCHVy"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=/O8QybhE1SoGofL/+PAI/lNgdRwH/diUGKaW+AIrDQs=; b=IZUMCHVystL4nZ66qSjtMIO4XU
-	w7MqQq4f/ZPwW1eS8dYQLQy6ARkCYUNnnJG9rayHe23BkYDRqOAvKCxgWsWP+l4SJqD7JI72Xcl+0
-	LTSdOk1NwAO+tHo2Z3vTkrPlfFy9F5fJhZDmaPH8927m6ABMzW8eMmswJWf26BfrgDLANIHWzVkqU
-	r/Sh6NKDx8or/BCWxEjypAjJApWMoSEUiVMEFmXQ2sKVt1mnYuf6eN3F7LwAmEzhbsCbgFnmUZtwT
-	jySgmkUtLNXkM0T9PZk/j/1xTfF5NQ+DEEwMxIUfQG39Qg8rr6nhF0T1kiCT4mZH2VE3qJIgl/2ll
-	Xp2P2u6A==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1t3Cxf-000000005Cf-17u6;
-	Tue, 22 Oct 2024 13:22:03 +0200
-Date: Tue, 22 Oct 2024 13:22:03 +0200
-From: Phil Sutter <phil@nwl.cc>
+	 Content-Type:Content-Disposition:In-Reply-To; b=ZlGgt2N10g/1pB/64fbEaN0F1mNm6gY3Cdalr8I+y4r3DmqWccQaXgS/P0rZWAwm2hjtqWuzwo7wZ3z1mNeBMOmyWi8pkRtPBBOORqfWHfhwFPAYmFMJNY01UHgN2ef2SA4qzfeqR36RTvT3nIEYWVxaVHTqYK4jCR6aCqGnIj8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=34686 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1t3D9r-00DXKs-CS; Tue, 22 Oct 2024 13:34:41 +0200
+Date: Tue, 22 Oct 2024 13:34:37 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, Eric Garver <e@erig.me>
-Subject: Re: [nf-next PATCH v5 00/18] Dynamic hook interface binding
-Message-ID: <ZxeK2yu1NYyIAczQ@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, Eric Garver <e@erig.me>
-References: <20240926095643.8801-1-phil@nwl.cc>
- <20241021130544.GA15761@breakpoint.cc>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] doc: extend description of fib expression
+Message-ID: <ZxeNzTZLxw1NdgL2@calendula>
+References: <20241010133745.28765-1-fw@strlen.de>
+ <ZwqlbhdH4Fw__daA@calendula>
+ <20241018120825.GC28324@breakpoint.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20241021130544.GA15761@breakpoint.cc>
+In-Reply-To: <20241018120825.GC28324@breakpoint.cc>
+X-Spam-Score: -1.8 (-)
 
-Hi Florian,
-
-On Mon, Oct 21, 2024 at 03:05:44PM +0200, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
+On Fri, Oct 18, 2024 at 02:08:25PM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > -|Keyword| Description| Type
+> > > +|flag| Description
+> > > +|daddr| Perform a normal route lookup: search fib for route to the *destination address* of the packet.
+> > > +|saddr| Perform a reverse route lookup: search the fib for route to the *source address* of the packet.
+> > > +|mark | consider the packet mark (nfmark) when querying the fib.
+> > > +|iif  | fail fib lookup unless route exists and its output interface is identical to the packets input interface
+> > 
+> > maybe easier to understand?
+> > 
+> >            if fib lookups provides a route then check its output interface is identical to the packets *input* interface.
+> > 
+> > > +|oif  | fail fib lookup unless route exists and its output interface is identical to the packets output interface.
+> > 
+> >            if fib lookups provides a route then check its output interface is identical to the packets *output* interface.
 > 
-> I started to review this, I would suggest to apply the first 10 patches
-> for the next net-next PR so that its exposed to wider audience.
+> Its better, updated, thanks.
+> 
+> > > This flag can only be used with the *type* result.
+> > 
+> > Are you sure 'oif' can only be used with type? I can see NFTA_FIB_F_OIF is available in nft_fib4_eval()
+> > 
+> >         if (priv->flags & NFTA_FIB_F_OIF)
+> >                 oif = nft_out(pkt);
+> >         else if (priv->flags & NFTA_FIB_F_IIF)
+> >                 oif = nft_in(pkt);
+> >         else
+> >                 oif = NULL;
+> 
+> Seems to be dead code.  nft_fib_init() has:
+>         switch (priv->result) {
+>         case NFT_FIB_RESULT_OIF:
+>                 if (priv->flags & NFTA_FIB_F_OIF)
+>                         return -EINVAL;
+>                 len = sizeof(int);
+>                 break;
+>         case NFT_FIB_RESULT_OIFNAME:
+>                 if (priv->flags & NFTA_FIB_F_OIF)
+>                         return -EINVAL;
+>                 len = IFNAMSIZ;
+> 
+> 
+> since _OIF and _OIFNAME was restricted to prerouting, nf hookfn has NULL
+> output interface, so there is nothing we could compare against.
+> 
+> Now its available in forward too so it could be selectively relaxed for
+> this, but, what is the use case?
+> 
+> Do a RPF in forward, then we need to compare vs. incoming interface.
 
-Maybe worth noting that patches 7, 8 and 9 are rather pointless if not
-followed up by the remaining ones. Patch 10 OTOH may apply to HEAD by
-itself.
+This is for an esoteric scenario: Policy-based routing using input
+interface as key. The fib rule for RPF does not work from prerouting
+because iif cannot be inferred, there is no way to know if route in
+the reverse direction exists until the route lookup for this direction
+is done.
 
-Should I prepare a series with just patches 1-6 and 10 for nf-next?
+commit be8be04e5ddb9842d4ff2c1e4eaeec6ca801c573
+Author: Pablo Neira Ayuso <pablo@netfilter.org>
+Date:   Thu Mar 31 17:14:47 2022 +0200
 
-Thanks, Phil
+    netfilter: nft_fib: reverse path filter for policy-based routing on iif
+
+    If policy-based routing using the iif selector is used, then the fib
+    expression fails to look up for the reverse path from the prerouting
+    hook because the input interface cannot be inferred. In order to support
+    this scenario, extend the fib expression to allow to use after the route
+    lookup, from the forward hook.
+
+> But for outgoing interface, we'd do a normal route lookup, but the stack
+> already did that for us (as packet is already being forwarded).
+>
+> So what would be the desired outcome for a 'fib daddr . oif' check?
+
+Hm, this always evaluates true from forward and any later hook.
+
+I missing now, what is the point of . oif in general?
