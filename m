@@ -1,76 +1,59 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48BEF19ABC2
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Oct 2024 12:30:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D5511E495
+	for <netfilter-devel@vger.kernel.org>; Tue, 22 Oct 2024 13:00:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729600262; cv=none; b=XvvdDDEDCGx2YrzgPKne35cp3sHIOXLZzxB6iYRnj8rBB3FFB9cS/aSphYYoi2MuVkJSV2UmaEyx8RBxAt6B3cT/VdXjes0JhfWim2bO1VKUrXYvwF6UycQLJ9Pdo1/shXPjncwMyjmLBghpZ6VbKVZxbEIzWBaCHxY7Fq5SFEk=
+	t=1729602057; cv=none; b=B3zc8IdvqL8biWJay29gDYh/yVHoKzpnnOWkhxmWz7m9CghopdPrOkYR9d+fXkcl2OApXUmAoElfYhRdMNEmNiptuCbl3ASk0H8Watsu61yL57cNRty787279XOZv8jV7FZmfsHyjt7fdokig9IRUo8FCOCbyQ3uAALZ8Vhrlgc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729600262; c=relaxed/simple;
-	bh=3+li1n6hgvfyGmjzDGWPjJD2TA+KqGhcyms00zbOHZI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=lcLB/bbWoOEWdQ2rCwN+QimjCE+DFZbEtKIoLM3OqRct702a5U+ph8OIduCW5edp9DL7mFA/xzQEdwZ7QGozOKDj5B4WOzzIBaVllpFPVPtEsmuGr2YAW7Po6TDiTIWoL7YfyhF78DeNeTadrsOVnmkNM8WlShzuZSoSsngOjZ4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=ZuYSoxFY; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="ZuYSoxFY"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=URSVfL8N+d+DMho/XfxrDO0SvbjJdeVJp9G8h5TD+lY=; b=ZuYSoxFYjE+BVJzckfCckBhA1n
-	GX59Iv+YucKhebp3KPEkfeb600aujOVdOyjc6dTzSJmKrebM2l3npEfApne2o6WYdSr1hQXTXUsex
-	biRVg2pJOq+ro+5y54Egg7+fir8lYfn3qvl3dIM3iXfXjY8o1tKlApp1YJvTcA8ue/56sioN5rdw7
-	nkSyKkFUPRdoD8gRoET2ewV1oEPeSwIfD0yZBBqGdmJXPlnNuNFV2oPV49ico8md8Yanfml8KhYt8
-	eUqQV6ZHpSQD0q7veIiS1xhW51TeMwvwZlmsQYNxopUHbucmoyWIHPDYqs4Fy/PXh45O848f6FpyS
-	XtPvsznA==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1t3E2L-000000006Wv-3kSg;
-	Tue, 22 Oct 2024 14:30:58 +0200
-Date: Tue, 22 Oct 2024 14:30:57 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
-Subject: Re: [PATCH iptables] tests: iptables-test: extend coverage for
- ip6tables
-Message-ID: <ZxebAVfZ_aDSNeb4@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, fw@strlen.de
-References: <20241020224707.69249-1-pablo@netfilter.org>
+	s=arc-20240116; t=1729602057; c=relaxed/simple;
+	bh=VB3N33/36N82WikDpUJw4b/CKuIQapvopyUClhi+ToI=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=br4gQ2oOb08ImfKtp6Fc9K24y0c61J9garE4BMJESLoW+HwgBixCkRb8cJJMzWJuFJuKmIEQHm5bHZx6nhufFVY8ir6cA98jbQEDYrn4tTLN9SsmwjKa/Xo2oraVVog6Ln61V6FOqmPeT1ajXIKkb/B/xcJSV22e1OVGWrj5E4w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=49958 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1t3EVE-00DkkY-0B; Tue, 22 Oct 2024 15:00:51 +0200
+Date: Tue, 22 Oct 2024 15:00:46 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+	netfilter-devel@vger.kernel.org, Eric Garver <e@erig.me>
+Subject: Re: [nf-next PATCH v5 00/18] Dynamic hook interface binding
+Message-ID: <Zxeh82DzdEjuh5m6@calendula>
+References: <20240926095643.8801-1-phil@nwl.cc>
+ <20241021130544.GA15761@breakpoint.cc>
+ <ZxeK2yu1NYyIAczQ@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20241020224707.69249-1-pablo@netfilter.org>
+In-Reply-To: <ZxeK2yu1NYyIAczQ@orbyte.nwl.cc>
+X-Spam-Score: -1.9 (-)
 
-Hi Pablo,
+On Tue, Oct 22, 2024 at 01:22:03PM +0200, Phil Sutter wrote:
+> Hi Florian,
+> 
+> On Mon, Oct 21, 2024 at 03:05:44PM +0200, Florian Westphal wrote:
+> > Phil Sutter <phil@nwl.cc> wrote:
+> > 
+> > I started to review this, I would suggest to apply the first 10 patches
+> > for the next net-next PR so that its exposed to wider audience.
+> 
+> Maybe worth noting that patches 7, 8 and 9 are rather pointless if not
+> followed up by the remaining ones. Patch 10 OTOH may apply to HEAD by
+> itself.
+> 
+> Should I prepare a series with just patches 1-6 and 10 for nf-next?
 
-On Mon, Oct 21, 2024 at 12:47:07AM +0200, Pablo Neira Ayuso wrote:
-> Update iptables-test.py to run libxt_*.t both for iptables and
-> ip6tables. This update requires changes in the existing tests.
+Please, post them so I have a chance to review this smaller batch.
 
-Thanks for working on this! I see a few things we could still improve:
-
-- Output prints libxt tests twice. Maybe append the command name?
-- The copying of libxt into libipt and libip6t creates some redundancy
-  depending on test content. Maybe keep the non-specific ones in a libxt
-  test file?
-- I noticed there are some remains of supporting '-4' and '-6' flags in
-  iptables-test.py but it is unused and seems broken. One could revive
-  it to keep everything in libxt files, prefixing the specific tests
-  accordingly. I'll give this a try to see how much work it is to
-  implement support for.
-- With your patch applied, 20 rules fail (in both variants). Is this
-  expected or a bug on my side?
-
-Cheers, Phil
+Thanks
