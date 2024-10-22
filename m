@@ -1,33 +1,31 @@
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46F0919D881
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Oct 2024 13:06:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A550F2BCF8
+	for <netfilter-devel@vger.kernel.org>; Tue, 22 Oct 2024 13:07:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729602364; cv=none; b=DCaJqO0cMMCzzsz10BQUx12gkrvHZjaW3vLZgg47EgfbOIYCJMqv4HZWESEeqoDaSZPDtG886PYne/+h1fsPyzkQWSCl9/Qs9ncT+FMcIHEzNhAC95/w/GHcs2Kfm71GelI1Y8rLxTtgCtkJzpdMiFaa068BPVnxXg/5gFnk6Bo=
+	t=1729602446; cv=none; b=DlQUwUqMnv5TqN4Jes/s99YKWnU5dPwivABRB8xQVPe7l6zOt9+KM7i0rMX4fWOi3OxUT66dpiDpdZz4asuR2UATCv7pUTBy7QIwjz5/5+bfuMcr1xFT9HOJKn8WIeD75RFc5QbipGUlJyIaR53dPsQ+64tfXL5vrl9e0RRfUyA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729602364; c=relaxed/simple;
-	bh=p3PdcNJvzccJvIGPkbhHqVNBSa2yyT2HQySGHC0uqzY=;
-	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=JAHAICiKx8MuLN1u4TOSnjzVykHNofBaf1HJde0KUjTjtkRcpAqx/FwIZAiq29EBOxEjX8tz+mryUozW2vTa6Q4JJUmk2yoNADAFOct1pDn4dpvYIROvg1CJaZ5rv3Bo0s5JCedi+FtNg75PhsjxExO2QqbMhUCu6d/VGlaDfxc=
+	s=arc-20240116; t=1729602446; c=relaxed/simple;
+	bh=+PTQfl7TaoEaTuQFMZH1MzK0E2/8OslZ25hxt5bTVc0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=qnvndXYmEg1cCJOpWMbNohQhfxAcvbPoI0SBrUogQsGK3orcmj6b9JSe7tt/hJ317ffZ/BKyes2nO1MCSY3j8MGUkzDuT9xwfLhrWObZks94KNhl7r3FeFojpjNIyfx9rLGS2SCJT7VVwU1Cy652QG4FF+D/woGM0MXcKy8t6kU=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=37784 helo=gnumonks.org)
+Received: from [78.30.37.63] (port=56652 helo=gnumonks.org)
 	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <pablo@gnumonks.org>)
-	id 1t3EaD-00DlFl-TV; Tue, 22 Oct 2024 15:05:59 +0200
-Date: Tue, 22 Oct 2024 15:05:57 +0200
+	id 1t3EbY-00DlKR-Fg; Tue, 22 Oct 2024 15:07:22 +0200
+Date: Tue, 22 Oct 2024 15:07:19 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
-	fw@strlen.de
-Subject: Re: [PATCH iptables] tests: iptables-test: extend coverage for
- ip6tables
-Message-ID: <ZxejNVQd_5Iak34X@calendula>
-References: <20241020224707.69249-1-pablo@netfilter.org>
- <ZxebAVfZ_aDSNeb4@orbyte.nwl.cc>
+To: Phil Sutter <phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+Subject: Re: [libnftnl PATCH] src/utils: Add a common dev_array parser
+Message-ID: <Zxejh_KRhd81uWSC@calendula>
+References: <20241016164223.21280-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -36,40 +34,24 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <ZxebAVfZ_aDSNeb4@orbyte.nwl.cc>
-X-Spam-Score: -1.7 (-)
+In-Reply-To: <20241016164223.21280-1-phil@nwl.cc>
+X-Spam-Score: -1.9 (-)
 
-On Tue, Oct 22, 2024 at 02:30:57PM +0200, Phil Sutter wrote:
-> Hi Pablo,
+On Wed, Oct 16, 2024 at 06:42:23PM +0200, Phil Sutter wrote:
+> Parsing of dev_array fields in flowtable and chain are identical, merge
+> them into a shared function nftnl_parse_devs() which does a quick scan
+> through the nested attributes to check validity and calculate required
+> array size instead of calling realloc() as needed.
 > 
-> On Mon, Oct 21, 2024 at 12:47:07AM +0200, Pablo Neira Ayuso wrote:
-> > Update iptables-test.py to run libxt_*.t both for iptables and
-> > ip6tables. This update requires changes in the existing tests.
-> 
-> Thanks for working on this! I see a few things we could still improve:
-> 
-> - Output prints libxt tests twice. Maybe append the command name?
+> This required to align structs nftnl_chain and nftnl_flowtable field
+> dev_array_len types, though uint32_t should match the size of int on
+> both 32 and 64 bit architectures.
 
-OK, I can just make it print it once.
+Maybe go the extra mile and add an internal object for string arrays:
 
-> - The copying of libxt into libipt and libip6t creates some redundancy
->   depending on test content. Maybe keep the non-specific ones in a libxt
->   test file?
+struct nftnl_str_array {
+        const char      **array;
+        uint32_t        len;
+};
 
-I can take a look at what is common and keep it in libxt_ , I quickly
-splitted and convert.
-
-> - I noticed there are some remains of supporting '-4' and '-6' flags in
->   iptables-test.py but it is unused and seems broken. One could revive
->   it to keep everything in libxt files, prefixing the specific tests
->   accordingly. I'll give this a try to see how much work it is to
->   implement support for.
-
-Not sure it is worth, but your call.
-
-> - With your patch applied, 20 rules fail (in both variants). Is this
->   expected or a bug on my side?
-
-Maybe you don't have the NFLOG, mark and TRACE fix that is missing?
-
-I don't see this in v2 of this patch + kernel fix.
+and use it in chain and flowtable?
