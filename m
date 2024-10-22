@@ -1,81 +1,144 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f195.google.com (mail-yw1-f195.google.com [209.85.128.195])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DA0F154BE9;
-	Tue, 22 Oct 2024 07:57:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 231CE137747;
+	Tue, 22 Oct 2024 08:46:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.195
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729583877; cv=none; b=XZ7zDOBm1fjnE6zbn7RXAGZMTcsW0NU1Nio+rccSnQmP/x7W1svPcJRwoBO9U9H6REq9DbtmjVYHSxZ4kxdwMlYo00kTj6hYt2AIqX/+eIPtnQzIa7blzAANQOPvbR0uomucnWO1UkT+RYSPzRu5Pgk37iLaENntQGXNyyr+Mgk=
+	t=1729586817; cv=none; b=sN6oDrKXNjRZhATEmkPXXRNLVFj91Zy5EKZhTRrl3OhZvvoR0fqLcNsNxWQj1BCYFI7IHuf5gG5Gy2O6yfbV9834DsxXPl2r6HtKPDVV81MeqLvVj+bXW40chl9WiB6E33VnA9yBkliP5wd5vHYWRk3/D8yFoCelKVLhSUoYYQ0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729583877; c=relaxed/simple;
-	bh=Iqo4lzOBXmrv03GoOvT9l2S0oqCHH2VPeft4eUtSyx0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=CLRP9VHIsa/j8kQ79daO+9Y16VDAR4ZARLcHGyHmXcJo1J/UK/ax9dTnGPntZs/bh9wTCHVS+hR9vkuTJrjbbrsZr1DE2y2lDoksK5591TiHt85V2ktYHK5FOSQNPZVW5VN6SBxJ8/kiup0L+nMRY57f26g0c4rPwd7ppa5+oKo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=51358 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1t39m0-00D1hv-0e; Tue, 22 Oct 2024 09:57:50 +0200
-Date: Tue, 22 Oct 2024 09:57:47 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Linux regressions mailing list <regressions@lists.linux.dev>,
-	netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-	edumazet@google.com, fw@strlen.de,
-	"stable@vger.kernel.org" <stable@vger.kernel.org>
-Subject: Re: [PATCH net 2/2] netfilter: xtables: fix typo causing some
- targets not to load on IPv6
-Message-ID: <Zxda-7wzYe6WypX5@calendula>
-References: <20241021094536.81487-1-pablo@netfilter.org>
- <20241021094536.81487-3-pablo@netfilter.org>
- <8cd31ad2-7351-4275-ab11-bca6494f408a@leemhuis.info>
- <2024102259-armadillo-riveter-0e7d@gregkh>
+	s=arc-20240116; t=1729586817; c=relaxed/simple;
+	bh=KoxzzeJo6etocqx2b/o+OlOXOv6uNN7rqTozMtP8LX4=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=ZEd5JBzbFyduy/ee3uvUW0eH+8AuEuZdONDvsCB2D2sR0LeBwD1UihB1CaUqmWRqHiMKTOE9SD2gF+JTyJKLDzN2FPgMm7iQchtEACxMwu9V3ZJZqLrgrkSZDrc++oAI3ANIgHLFoSxFPjuxx6auN4VPA5DumJkbSrD8wMm49Hc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=f3sz6Tss; arc=none smtp.client-ip=209.85.128.195
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="f3sz6Tss"
+Received: by mail-yw1-f195.google.com with SMTP id 00721157ae682-6e38ebcc0abso58682267b3.2;
+        Tue, 22 Oct 2024 01:46:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1729586815; x=1730191615; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=UUFrYT1eNOid4dqFuQyZap0oTpnRGPS1wGDonRnbV+Y=;
+        b=f3sz6TsskkMLkxbWVZYYpXmCpStSEutAQ1CfwXpPc2n3z7qjpD34HGUFgdzfmM0+H5
+         d1xhaOxB/WMFrKtc5v7oQ22aJPZsiTpT4ezSNu3d+DAxNbtgJbcCI7MTxctpeRyI9khN
+         72Vv+hxkkET9qFsvY32OAuKI4Ue8FETXAJ5KOGv1ld3J6VvvOaXkUmtcUuODc9vZj1xs
+         fT3tvaSZRNouSrtlGiLeUeaIM7NjjBoz6NAGEYaQH7Ce9YK2eFb07pkOywZBlq1X7JKx
+         Hj/bi3ALVvL7hEKIl9lElUydJx8SWDA5NG1s/kUiGe77sikehveVxW4ARCE5RpefVLo/
+         GV8g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1729586815; x=1730191615;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=UUFrYT1eNOid4dqFuQyZap0oTpnRGPS1wGDonRnbV+Y=;
+        b=rz7a8XNlCaku0RFN21CA/FsqWvIT+ArTk4hwu2gA8nLsTdntoUYajTRpJHgNd1kcLe
+         x7p0A3CjRuXCfKqB5/dSlskvUiOOuace/iwqdZZRTU7NQEpSQESJEd12Ro55aYaiuGz1
+         l3UECzvuobzhR5E/beDiVGNFgdi6T8Pjw8LgZxI2CM9B4bC44Dd1FW7hmdg/BxO6nRmZ
+         lqwOX8d0VqNeZkDTbPxEso/+25TyJnSC008J6QnM89GJ/oWyGTt61bi8dJgDcNc5s7Vn
+         dke1KJNtWfJyi2mOWqKKyyJsdvhOcQP5E0RZmbl0+BWuddB3SI7TtDU972/1NVfNXGik
+         tEdw==
+X-Forwarded-Encrypted: i=1; AJvYcCUPmTrQic0DerTIBLiAQ9AJHECtbjt2qtjDBFBopsoCscQKEFleOmGfXlQZBdK18ihPJdaLWYRe@vger.kernel.org, AJvYcCUQ9qLNq0dVtdlv/GuNam3iOuAaKARQN68umxnGwpd6ByWaqCgnaYRa3EE+D0up5Hg6KxX3xIAjhz7xxyIY@vger.kernel.org, AJvYcCW2b04eZ+Zv7LtlERuvFwbNiTSsGW6Z4EoHivUZBz8AuetNAILCo++smyF9off5EF4VgJ4=@vger.kernel.org, AJvYcCXfLWgf8fT4tK9s22jcJKOWbCFlfl2ogjhF8faQ986Kp7n+6qTJtrlXSHpaS7sgq4uu3yKotaOKJqiDahxoFQfN@vger.kernel.org
+X-Gm-Message-State: AOJu0YwMOOl7gU5iMpMziA0kcgCedhYvw+wJTc0otyRv1fhHMu+VVwyQ
+	RAV0xJn1a+W9o3bXFmXXodpTtxIAxwnZ3SlLVjMHQjLUIsLd1UyOTXSouik43dWbrrjyIXS6uXS
+	4lpcvqg1MHHML1y5jlKs47nnEcuE=
+X-Google-Smtp-Source: AGHT+IGa70DbIzj17jnQMKvxrqZzKAIwpBsupiT5kH056AnnXaak0bg1EodNANRT8iYvRLR4hMiz9fU4XeAZxEwSSaU=
+X-Received: by 2002:a05:690c:f8f:b0:6d3:f9a6:e29c with SMTP id
+ 00721157ae682-6e5bf9a0846mr134520257b3.12.1729586814908; Tue, 22 Oct 2024
+ 01:46:54 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <2024102259-armadillo-riveter-0e7d@gregkh>
-X-Spam-Score: -1.7 (-)
+References: <20241015140800.159466-1-dongml2@chinatelecom.cn>
+ <20241015140800.159466-3-dongml2@chinatelecom.cn> <71a20e24-10e8-42a8-8509-7e704aff9c5c@redhat.com>
+In-Reply-To: <71a20e24-10e8-42a8-8509-7e704aff9c5c@redhat.com>
+From: Menglong Dong <menglong8.dong@gmail.com>
+Date: Tue, 22 Oct 2024 16:47:50 +0800
+Message-ID: <CADxym3b6gat7Xs20oN12xsYNSGM3zaJkGirzGv57jA-+Kyr7+A@mail.gmail.com>
+Subject: Re: [PATCH net-next v3 02/10] net: ip: make fib_validate_source()
+ return drop reason
+To: Paolo Abeni <pabeni@redhat.com>
+Cc: davem@davemloft.net, edumazet@google.com, kuba@kernel.org, 
+	dsahern@kernel.org, pablo@netfilter.org, kadlec@netfilter.org, 
+	roopa@nvidia.com, razor@blackwall.org, gnault@redhat.com, 
+	bigeasy@linutronix.de, idosch@nvidia.com, ast@kernel.org, 
+	dongml2@chinatelecom.cn, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+	bridge@lists.linux.dev, bpf@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Greg,
+On Mon, Oct 21, 2024 at 6:20=E2=80=AFPM Paolo Abeni <pabeni@redhat.com> wro=
+te:
+>
+> On 10/15/24 16:07, Menglong Dong wrote:
+> > diff --git a/include/net/ip_fib.h b/include/net/ip_fib.h
+> > index 90ff815f212b..b3f7a1562140 100644
+> > --- a/include/net/ip_fib.h
+> > +++ b/include/net/ip_fib.h
+> > @@ -452,13 +452,16 @@ int __fib_validate_source(struct sk_buff *skb, __=
+be32 src, __be32 dst,
+> >                         dscp_t dscp, int oif, struct net_device *dev,
+> >                         struct in_device *idev, u32 *itag);
+> >
+> > -static inline int
+> > +static inline enum skb_drop_reason
+> >  fib_validate_source(struct sk_buff *skb, __be32 src, __be32 dst,
+> >                   dscp_t dscp, int oif, struct net_device *dev,
+> >                   struct in_device *idev, u32 *itag)
+> >  {
+> > -     return __fib_validate_source(skb, src, dst, dscp, oif, dev, idev,
+> > -                                  itag);
+> > +     int err =3D __fib_validate_source(skb, src, dst, dscp, oif, dev, =
+idev,
+> > +                                     itag);
+> > +     if (err < 0)
+> > +             return -err;
+> > +     return SKB_NOT_DROPPED_YET;
+> >  }
+>
+> It looks like the code churn in patch 1 is not needed??? You could just
+> define here a fib_validate_source_reason() helper doing the above, and
+> replace fib_validate_source with the the new helper as needed. Would
+> that work?
+>
 
-On Tue, Oct 22, 2024 at 09:44:19AM +0200, Greg KH wrote:
-> On Tue, Oct 22, 2024 at 09:39:38AM +0200, Linux regression tracking (Thorsten Leemhuis) wrote:
-> > [CCing Greg and the stable list, to ensure he is aware of this, as well
-> > as the regressions list]
-> > 
-> > On 21.10.24 11:45, Pablo Neira Ayuso wrote:
-> > > - There is no NFPROTO_IPV6 family for mark and NFLOG.
-> > > - TRACE is also missing module autoload with NFPROTO_IPV6.
-> > > 
-> > > This results in ip6tables failing to restore a ruleset. This issue has been
-> > > reported by several users providing incomplete patches.
-> > > 
-> > > Very similar to Ilya Katsnelson's patch including a missing chunk in the
-> > > TRACE extension.
-> > > 
-> > > Fixes: 0bfcb7b71e73 ("netfilter: xtables: avoid NFPROTO_UNSPEC where needed")
-> > > [...]
-> > 
-> > Just FYI as the culprit recently hit various stable series (v6.11.4,
-> > v6.6.57, v6.1.113, v5.15.168) quite a few reports came in that look like
-> > issues that might be fixed by this to my untrained eyes. I suppose they
-> > won't tell you anything new and maybe you even have seen them, but on
-> > the off-chance that this might not be the case you can find them here:
-> > 
-> > https://bugzilla.kernel.org/show_bug.cgi?id=219397
-> > https://bugzilla.kernel.org/show_bug.cgi?id=219402
-> > https://bugzilla.kernel.org/show_bug.cgi?id=219409
-> 
-> Is this commit in linux-next yet?  I looked yesterday but couldn't find
-> it anywhere...
+Of course, that works fine. I'm just trying to find a graceful way
+for this part. Defining a fib_validate_source_reason() here looks
+nice too, and we can ignore the 1st patch. I'll do it this way in
+the next version.
 
-Not yet, there is a pending PR to reach netdev.git at this moment.
+Thanks!
+Menglong Dong
+
+> > @@ -1785,9 +1785,10 @@ static int __mkroute_input(struct sk_buff *skb, =
+const struct fib_result *res,
+> >               return -EINVAL;
+> >       }
+> >
+> > -     err =3D fib_validate_source(skb, saddr, daddr, dscp, FIB_RES_OIF(=
+*res),
+> > -                               in_dev->dev, in_dev, &itag);
+> > +     err =3D __fib_validate_source(skb, saddr, daddr, dscp, FIB_RES_OI=
+F(*res),
+> > +                                 in_dev->dev, in_dev, &itag);
+> >       if (err < 0) {
+> > +             err =3D -EINVAL;
+> >               ip_handle_martian_source(in_dev->dev, in_dev, skb, daddr,
+> >                                        saddr);
+>
+> I'm sorry for not noticing this issue before, but must preserve (at
+> least) the -EXDEV error code from the unpatched version or RP Filter MIB
+> accounting in ip_rcv_finish_core() will be fooled.
+>
+> Thanks,
+>
+> Paolo
+>
