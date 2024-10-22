@@ -1,33 +1,24 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D031B19C547;
-	Tue, 22 Oct 2024 15:23:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id E67881B86D5
+	for <netfilter-devel@vger.kernel.org>; Tue, 22 Oct 2024 15:30:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729610639; cv=none; b=XwFsC7XOYBz4jGgBoa11FAA2tGeRs8LISOjgMSdaGckBlR9xiS4kopCBvG5VdHAI5mz3vLf0m2yF8UpZNfdjHlAi/NP6SbYuT0GXZCuBhUGmRWFBpNCHhOYxc7t76r9z7k3NZd6IENvLA35O4+Le6rsLE+h1ZA75JRC1CRPXs8A=
+	t=1729611051; cv=none; b=H8wdkc+x8oDPc9pn+BtJi3gI87ds558uksQ612UOIk0wWcr7xLxWXiR3sAfjxD41icDdxLvo6ghMHr4VfMr0KtwI/XtnRUEnoYUyhcemNNxgHa61UWw5KLrBgFsYcTKp1LtbK/0RzawEwqOBEgmutYv25itpLfaIRdbW3iIkGlk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729610639; c=relaxed/simple;
-	bh=OTodVjqQkcoVjtPea+cWFU6tnjAm1M+tQr7XzBI+L+I=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=XTSwpzPk1cwjxEEtnRRmmMJ/pNcNTvy6ylq/PhCvv5TO53JBpt6zrV8qhqIaPa/ARVM4EfgJVbACR7V+8KtIqti56iusgeVLxmvaKGTO35q7sjQ+Hu2FM0LDbL7B9DU1cDnpkWEegsz88KY1BDvTNBBh1RoHsC0Zorr1AuQxc/U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1t3GjV-0001du-LL; Tue, 22 Oct 2024 17:23:41 +0200
-From: Florian Westphal <fw@strlen.de>
-To: <netdev@vger.kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	<netfilter-devel@vger.kernel.org>,
-	Florian Westphal <fw@strlen.de>
-Subject: [PATCH net] selftests: netfilter: nft_flowtable.sh: make first pass deterministic
-Date: Tue, 22 Oct 2024 17:23:18 +0200
-Message-ID: <20241022152324.13554-1-fw@strlen.de>
-X-Mailer: git-send-email 2.45.2
+	s=arc-20240116; t=1729611051; c=relaxed/simple;
+	bh=UNsKr/tpTDK9FjI3O4qyqGM/cXpOPq5qYyYPu0rNHWc=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=ZfHg2nAXjJXQHTSEkXPoxBdyjZrbFArs+3tWDj2sylt57tTXE7i/gLhwX+hzy4PAmm6rcgcoX4YgTtTS2fqozQZ0prPm4pQDQkQqdufGQwI+XgyY2Y2jy64ppfC0gbQRBfrilDc+TjDpiIio5jRjTuZE4lDjGLrmquXs0LbrjZ0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: phil@nwl.cc,
+	fw@strlen.de
+Subject: [PATCH iptables,v3] tests: iptables-test: extend coverage for ip6tables
+Date: Tue, 22 Oct 2024 17:30:42 +0200
+Message-Id: <20241022153042.214643-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -36,145 +27,568 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The CI occasionaly encounters a failing test run.  Example:
- # PASS: ipsec tunnel mode for ns1/ns2
- # re-run with random mtus: -o 10966 -l 19499 -r 31322
- # PASS: flow offloaded for ns1/ns2
-[..]
- # FAIL: ipsec tunnel ... counter 1157059 exceeds expected value 878489
+Update iptables-test.py to run libxt_*.t both for iptables and
+ip6tables. For libxt_*.t tests, display result only once after last run
+test run (usually ip6tables), so no two result lines are printed. This
+update requires changes in the existing tests.
 
-This script will re-exec itself, on the second run, random MTUs are
-chosen for the involved links.  This is done so we can cover different
-combinations (large mtu on client, small on server, link has lowest
-mtu, etc).
+* Rename libxt_*.t into libipt_*.t and add libip6_*.t variant.
 
-Furthermore, file size is random, even for the first run.
+- TEE
+- TPROXY
+- connlimit
+- conntrack
+- iprange
+- ipvs
+- policy
+- recent
 
-Rework this script and always use the same file size on initial run so
-that at least the first round can be expected to have reproducible
-behavior.
+* Rename the following libxt_*.t to libipt_*.t since they are IPv4
+  specific:
 
-Second round will use random mtu/filesize.
+- standard
+- osf
 
-Raise the failure limit to that of the file size, this should avoid all
-errneous test errors.  Currently, first fin will remove the offload, so if
-one peer is already closing remaining data is handled by classic path,
-which result in larger-than-expected counter and a test failure.
+* Remove IPv4 specific test in libxt_mark.t
 
-Given packet path also counts tcp/ip headers, in case offload is
-completely broken this test will still fail (as expected).
-
-The test counter limit could be made more strict again in the future
-once flowtable can keep a connection in offloaded state until FINs
-in both directions were seen.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- If you prefer you can also apply this to net-next instead.
+v3: - consolidate common tests in libxt_*.t files, per Phil Sutter
+    - print test result only once when successful, per Phil Sutter
 
- .../selftests/net/netfilter/nft_flowtable.sh  | 39 ++++++++++---------
- 1 file changed, 21 insertions(+), 18 deletions(-)
+ extensions/libip6t_TEE.t                      |  3 +
+ extensions/libip6t_TPROXY.t                   |  5 ++
+ extensions/libip6t_connlimit.t                | 16 +++++
+ extensions/libip6t_conntrack.t                |  5 ++
+ extensions/libip6t_iprange.t                  | 10 +++
+ extensions/libip6t_ipvs.t                     |  4 ++
+ extensions/libip6t_policy.t                   |  4 ++
+ extensions/libip6t_recent.t                   | 10 +++
+ extensions/libipt_TEE.t                       |  3 +
+ .../{libxt_TPROXY.t => libipt_TPROXY.t}       |  0
+ extensions/libipt_connlimit.t                 | 11 +++
+ extensions/libipt_conntrack.t                 |  5 ++
+ extensions/libipt_iprange.t                   | 10 +++
+ extensions/libipt_ipvs.t                      |  4 ++
+ extensions/{libxt_osf.t => libipt_osf.t}      |  0
+ extensions/libipt_policy.t                    |  4 ++
+ extensions/libipt_recent.t                    | 10 +++
+ extensions/libipt_standard.t                  | 21 ++++++
+ extensions/libxt_TEE.t                        |  2 -
+ extensions/libxt_connlimit.t                  | 10 ---
+ extensions/libxt_conntrack.t                  |  4 --
+ extensions/libxt_iprange.t                    |  9 ---
+ extensions/libxt_ipvs.t                       |  3 -
+ extensions/libxt_mark.t                       |  2 +-
+ extensions/libxt_policy.t                     |  3 -
+ extensions/libxt_recent.t                     |  9 ---
+ extensions/libxt_standard.t                   | 19 -----
+ iptables-test.py                              | 72 +++++++++++++------
+ 28 files changed, 175 insertions(+), 83 deletions(-)
+ create mode 100644 extensions/libip6t_TEE.t
+ create mode 100644 extensions/libip6t_TPROXY.t
+ create mode 100644 extensions/libip6t_connlimit.t
+ create mode 100644 extensions/libip6t_conntrack.t
+ create mode 100644 extensions/libip6t_iprange.t
+ create mode 100644 extensions/libip6t_ipvs.t
+ create mode 100644 extensions/libip6t_policy.t
+ create mode 100644 extensions/libip6t_recent.t
+ create mode 100644 extensions/libipt_TEE.t
+ rename extensions/{libxt_TPROXY.t => libipt_TPROXY.t} (100%)
+ create mode 100644 extensions/libipt_connlimit.t
+ create mode 100644 extensions/libipt_conntrack.t
+ create mode 100644 extensions/libipt_iprange.t
+ create mode 100644 extensions/libipt_ipvs.t
+ rename extensions/{libxt_osf.t => libipt_osf.t} (100%)
+ create mode 100644 extensions/libipt_policy.t
+ create mode 100644 extensions/libipt_recent.t
+ create mode 100644 extensions/libipt_standard.t
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_flowtable.sh b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-index b3995550856a..a4ee5496f2a1 100755
---- a/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-@@ -71,6 +71,8 @@ omtu=9000
- lmtu=1500
- rmtu=2000
+diff --git a/extensions/libip6t_TEE.t b/extensions/libip6t_TEE.t
+new file mode 100644
+index 000000000000..8e668290280e
+--- /dev/null
++++ b/extensions/libip6t_TEE.t
+@@ -0,0 +1,3 @@
++:INPUT,FORWARD,OUTPUT
++-j TEE --gateway 2001:db8::1;=;OK
++-j TEE ! --gateway 2001:db8::1;;FAIL
+diff --git a/extensions/libip6t_TPROXY.t b/extensions/libip6t_TPROXY.t
+new file mode 100644
+index 000000000000..5af67542f1bd
+--- /dev/null
++++ b/extensions/libip6t_TPROXY.t
+@@ -0,0 +1,5 @@
++:PREROUTING
++*mangle
++-j TPROXY --on-port 12345 --on-ip 2001:db8::1 --tproxy-mark 0x23/0xff;;FAIL
++-p udp -j TPROXY --on-port 12345 --on-ip 2001:db8::1 --tproxy-mark 0x23/0xff;=;OK
++-p tcp -m tcp --dport 2342 -j TPROXY --on-port 12345 --on-ip 2001:db8::1 --tproxy-mark 0x23/0xff;=;OK
+diff --git a/extensions/libip6t_connlimit.t b/extensions/libip6t_connlimit.t
+new file mode 100644
+index 000000000000..8b7b3677b56d
+--- /dev/null
++++ b/extensions/libip6t_connlimit.t
+@@ -0,0 +1,16 @@
++:INPUT,FORWARD,OUTPUT
++-m connlimit --connlimit-upto 0;-m connlimit --connlimit-upto 0 --connlimit-mask 128 --connlimit-saddr;OK
++-m connlimit --connlimit-upto 4294967295 --connlimit-mask 128 --connlimit-saddr;=;OK
++-m connlimit --connlimit-upto 4294967296 --connlimit-mask 128 --connlimit-saddr;;FAIL
++-m connlimit --connlimit-upto -1;;FAIL
++-m connlimit --connlimit-above 0;-m connlimit --connlimit-above 0 --connlimit-mask 128 --connlimit-saddr;OK
++-m connlimit --connlimit-above 4294967295 --connlimit-mask 128 --connlimit-saddr;=;OK
++-m connlimit --connlimit-above 4294967296 --connlimit-mask 128 --connlimit-saddr;;FAIL
++-m connlimit --connlimit-above -1;;FAIL
++-m connlimit --connlimit-upto 1 --conlimit-above 1;;FAIL
++-m connlimit --connlimit-above 10 --connlimit-saddr;-m connlimit --connlimit-above 10 --connlimit-mask 128 --connlimit-saddr;OK
++-m connlimit --connlimit-above 10 --connlimit-daddr;-m connlimit --connlimit-above 10 --connlimit-mask 128 --connlimit-daddr;OK
++-m connlimit --connlimit-above 10 --connlimit-saddr --connlimit-daddr;;FAIL
++-m connlimit --connlimit-above 10 --connlimit-mask 128 --connlimit-saddr;=;OK
++-m connlimit --connlimit-above 10 --connlimit-mask 128 --connlimit-daddr;=;OK
++-m connlimit;;FAIL
+diff --git a/extensions/libip6t_conntrack.t b/extensions/libip6t_conntrack.t
+new file mode 100644
+index 000000000000..462d4e619bb6
+--- /dev/null
++++ b/extensions/libip6t_conntrack.t
+@@ -0,0 +1,5 @@
++:INPUT,FORWARD,OUTPUT
++-m conntrack --ctorigsrc 2001:db8::1;=;OK
++-m conntrack --ctorigdst 2001:db8::1;=;OK
++-m conntrack --ctreplsrc 2001:db8::1;=;OK
++-m conntrack --ctrepldst 2001:db8::1;=;OK
+diff --git a/extensions/libip6t_iprange.t b/extensions/libip6t_iprange.t
+new file mode 100644
+index 000000000000..b98f2c29539b
+--- /dev/null
++++ b/extensions/libip6t_iprange.t
+@@ -0,0 +1,10 @@
++:INPUT,FORWARD,OUTPUT
++-m iprange --src-range 2001:db8::1-2001:db8::10;=;OK
++-m iprange ! --src-range 2001:db8::1-2001:db8::10;=;OK
++-m iprange --dst-range 2001:db8::1-2001:db8::10;=;OK
++-m iprange ! --dst-range 2001:db8::1-2001:db8::10;=;OK
++# it shows -A INPUT -m iprange --src-range 2001:db8::1-2001:db8::1, should we support this?
++# ERROR: should fail: ip6tables -A INPUT -m iprange --src-range 2001:db8::1
++# -m iprange --src-range 2001:db8::1;;FAIL
++# ERROR: should fail: ip6tables -A INPUT -m iprange --dst-range 2001:db8::1
++#-m iprange --dst-range 2001:db8::1;;FAIL
+diff --git a/extensions/libip6t_ipvs.t b/extensions/libip6t_ipvs.t
+new file mode 100644
+index 000000000000..ff7d9d81ba9e
+--- /dev/null
++++ b/extensions/libip6t_ipvs.t
+@@ -0,0 +1,4 @@
++:INPUT,FORWARD,OUTPUT
++-m ipvs --vaddr 2001:db8::1;=;OK
++-m ipvs ! --vaddr 2001:db8::/64;=;OK
++-m ipvs --vproto 6 --vaddr 2001:db8::/64 --vport 22 --vdir ORIGINAL --vmethod GATE;=;OK
+diff --git a/extensions/libip6t_policy.t b/extensions/libip6t_policy.t
+new file mode 100644
+index 000000000000..06ed71b5c4ff
+--- /dev/null
++++ b/extensions/libip6t_policy.t
+@@ -0,0 +1,4 @@
++:INPUT,FORWARD
++-m policy --dir in --pol ipsec --strict --reqid 1 --spi 0x1 --proto esp --mode tunnel --tunnel-dst 2001:db8::/32 --tunnel-src 2001:db8::/32 --next --reqid 2;=;OK
++-m policy --dir in --pol ipsec --strict --reqid 1 --spi 0x1 --proto esp --tunnel-dst 2001:db8::/32;;FAIL
++-m policy --dir in --pol ipsec --strict --reqid 1 --spi 0x1 --proto ipcomp --mode tunnel --tunnel-dst 2001:db8::/32 --tunnel-src 2001:db8::/32 --next --reqid 2;=;OK
+diff --git a/extensions/libip6t_recent.t b/extensions/libip6t_recent.t
+new file mode 100644
+index 000000000000..55ae8dd5f526
+--- /dev/null
++++ b/extensions/libip6t_recent.t
+@@ -0,0 +1,10 @@
++:INPUT,FORWARD,OUTPUT
++-m recent --set;-m recent --set --name DEFAULT --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource;OK
++-m recent --rcheck --hitcount 8 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource;=;OK
++-m recent --rcheck --hitcount 12 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource;=;OK
++-m recent --update --rttl;-m recent --update --rttl --name DEFAULT --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource;OK
++-m recent --rcheck --hitcount 65536 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource;;FAIL
++# nonsensical, but all should load successfully:
++-m recent --rcheck --hitcount 3 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource -m recent --rcheck --hitcount 4 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource;=;OK
++-m recent --rcheck --hitcount 4 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource -m recent --rcheck --hitcount 4 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource;=;OK
++-m recent --rcheck --hitcount 8 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource -m recent --rcheck --hitcount 12 --name foo --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource;=;OK
+diff --git a/extensions/libipt_TEE.t b/extensions/libipt_TEE.t
+new file mode 100644
+index 000000000000..23dceada5e3b
+--- /dev/null
++++ b/extensions/libipt_TEE.t
+@@ -0,0 +1,3 @@
++:INPUT,FORWARD,OUTPUT
++-j TEE --gateway 1.1.1.1;=;OK
++-j TEE ! --gateway 1.1.1.1;;FAIL
+diff --git a/extensions/libxt_TPROXY.t b/extensions/libipt_TPROXY.t
+similarity index 100%
+rename from extensions/libxt_TPROXY.t
+rename to extensions/libipt_TPROXY.t
+diff --git a/extensions/libipt_connlimit.t b/extensions/libipt_connlimit.t
+new file mode 100644
+index 000000000000..245a47849e73
+--- /dev/null
++++ b/extensions/libipt_connlimit.t
+@@ -0,0 +1,11 @@
++:INPUT,FORWARD,OUTPUT
++-m connlimit --connlimit-upto 0;-m connlimit --connlimit-upto 0 --connlimit-mask 32 --connlimit-saddr;OK
++-m connlimit --connlimit-upto 4294967295 --connlimit-mask 32 --connlimit-saddr;=;OK
++-m connlimit --connlimit-upto 4294967296 --connlimit-mask 32 --connlimit-saddr;;FAIL
++-m connlimit --connlimit-above 0;-m connlimit --connlimit-above 0 --connlimit-mask 32 --connlimit-saddr;OK
++-m connlimit --connlimit-above 4294967295 --connlimit-mask 32 --connlimit-saddr;=;OK
++-m connlimit --connlimit-above 4294967296 --connlimit-mask 32 --connlimit-saddr;;FAIL
++-m connlimit --connlimit-above 10 --connlimit-saddr;-m connlimit --connlimit-above 10 --connlimit-mask 32 --connlimit-saddr;OK
++-m connlimit --connlimit-above 10 --connlimit-daddr;-m connlimit --connlimit-above 10 --connlimit-mask 32 --connlimit-daddr;OK
++-m connlimit --connlimit-above 10 --connlimit-mask 32 --connlimit-saddr;=;OK
++-m connlimit --connlimit-above 10 --connlimit-mask 32 --connlimit-daddr;=;OK
+diff --git a/extensions/libipt_conntrack.t b/extensions/libipt_conntrack.t
+new file mode 100644
+index 000000000000..d70ab71fe957
+--- /dev/null
++++ b/extensions/libipt_conntrack.t
+@@ -0,0 +1,5 @@
++:INPUT,FORWARD,OUTPUT
++-m conntrack --ctorigsrc 1.1.1.1;=;OK
++-m conntrack --ctorigdst 1.1.1.1;=;OK
++-m conntrack --ctreplsrc 1.1.1.1;=;OK
++-m conntrack --ctrepldst 1.1.1.1;=;OK
+diff --git a/extensions/libipt_iprange.t b/extensions/libipt_iprange.t
+new file mode 100644
+index 000000000000..8b4434176e5d
+--- /dev/null
++++ b/extensions/libipt_iprange.t
+@@ -0,0 +1,10 @@
++:INPUT,FORWARD,OUTPUT
++-m iprange --src-range 1.1.1.1-1.1.1.10;=;OK
++-m iprange ! --src-range 1.1.1.1-1.1.1.10;=;OK
++-m iprange --dst-range 1.1.1.1-1.1.1.10;=;OK
++-m iprange ! --dst-range 1.1.1.1-1.1.1.10;=;OK
++# it shows -A INPUT -m iprange --src-range 1.1.1.1-1.1.1.1, should we support this?
++# ERROR: should fail: iptables -A INPUT -m iprange --src-range 1.1.1.1
++# -m iprange --src-range 1.1.1.1;;FAIL
++# ERROR: should fail: iptables -A INPUT -m iprange --dst-range 1.1.1.1
++#-m iprange --dst-range 1.1.1.1;;FAIL
+diff --git a/extensions/libipt_ipvs.t b/extensions/libipt_ipvs.t
+new file mode 100644
+index 000000000000..bb23ccf2462a
+--- /dev/null
++++ b/extensions/libipt_ipvs.t
+@@ -0,0 +1,4 @@
++:INPUT,FORWARD,OUTPUT
++-m ipvs --vaddr 1.2.3.4;=;OK
++-m ipvs ! --vaddr 1.2.3.4/255.255.255.0;-m ipvs ! --vaddr 1.2.3.4/24;OK
++-m ipvs --vproto 6 --vaddr 1.2.3.4/16 --vport 22 --vdir ORIGINAL --vmethod GATE;=;OK
+diff --git a/extensions/libxt_osf.t b/extensions/libipt_osf.t
+similarity index 100%
+rename from extensions/libxt_osf.t
+rename to extensions/libipt_osf.t
+diff --git a/extensions/libipt_policy.t b/extensions/libipt_policy.t
+new file mode 100644
+index 000000000000..1fa3dcfd096b
+--- /dev/null
++++ b/extensions/libipt_policy.t
+@@ -0,0 +1,4 @@
++:INPUT,FORWARD
++-m policy --dir in --pol ipsec --strict --reqid 1 --spi 0x1 --proto esp --mode tunnel --tunnel-dst 10.0.0.0/8 --tunnel-src 10.0.0.0/8 --next --reqid 2;=;OK
++-m policy --dir in --pol ipsec --strict --reqid 1 --spi 0x1 --proto esp --tunnel-dst 10.0.0.0/8;;FAIL
++-m policy --dir in --pol ipsec --strict --reqid 1 --spi 0x1 --proto ipcomp --mode tunnel --tunnel-dst 10.0.0.0/8 --tunnel-src 10.0.0.0/8 --next --reqid 2;=;OK
+diff --git a/extensions/libipt_recent.t b/extensions/libipt_recent.t
+new file mode 100644
+index 000000000000..764a415d4c6b
+--- /dev/null
++++ b/extensions/libipt_recent.t
+@@ -0,0 +1,10 @@
++:INPUT,FORWARD,OUTPUT
++-m recent --set;-m recent --set --name DEFAULT --mask 255.255.255.255 --rsource;OK
++-m recent --rcheck --hitcount 8 --name foo --mask 255.255.255.255 --rsource;=;OK
++-m recent --rcheck --hitcount 12 --name foo --mask 255.255.255.255 --rsource;=;OK
++-m recent --update --rttl;-m recent --update --rttl --name DEFAULT --mask 255.255.255.255 --rsource;OK
++-m recent --rcheck --hitcount 65536 --name foo --mask 255.255.255.255 --rsource;;FAIL
++# nonsensical, but all should load successfully:
++-m recent --rcheck --hitcount 3 --name foo --mask 255.255.255.255 --rsource -m recent --rcheck --hitcount 4 --name foo --mask 255.255.255.255 --rsource;=;OK
++-m recent --rcheck --hitcount 4 --name foo --mask 255.255.255.255 --rsource -m recent --rcheck --hitcount 4 --name foo --mask 255.255.255.255 --rsource;=;OK
++-m recent --rcheck --hitcount 8 --name foo --mask 255.255.255.255 --rsource -m recent --rcheck --hitcount 12 --name foo --mask 255.255.255.255 --rsource;=;OK
+diff --git a/extensions/libipt_standard.t b/extensions/libipt_standard.t
+new file mode 100644
+index 000000000000..4eb144d1cc30
+--- /dev/null
++++ b/extensions/libipt_standard.t
+@@ -0,0 +1,21 @@
++:INPUT,FORWARD,OUTPUT
++-s 127.0.0.1/32 -d 0.0.0.0/8 -j DROP;=;OK
++! -s 0.0.0.0 -j ACCEPT;! -s 0.0.0.0/32 -j ACCEPT;OK
++! -d 0.0.0.0/32 -j ACCEPT;=;OK
++-s 0.0.0.0/24 -j RETURN;=;OK
++-s 10.11.12.13/8;-s 10.0.0.0/8;OK
++-s 10.11.12.13/9;-s 10.0.0.0/9;OK
++-s 10.11.12.13/10;-s 10.0.0.0/10;OK
++-s 10.11.12.13/11;-s 10.0.0.0/11;OK
++-s 10.11.12.13/12;-s 10.0.0.0/12;OK
++-s 10.11.12.13/30;-s 10.11.12.12/30;OK
++-s 10.11.12.13/31;-s 10.11.12.12/31;OK
++-s 10.11.12.13/32;-s 10.11.12.13/32;OK
++-s 10.11.12.13/255.0.0.0;-s 10.0.0.0/8;OK
++-s 10.11.12.13/255.128.0.0;-s 10.0.0.0/9;OK
++-s 10.11.12.13/255.0.255.0;-s 10.0.12.0/255.0.255.0;OK
++-s 10.11.12.13/255.0.12.0;-s 10.0.12.0/255.0.12.0;OK
++:FORWARD
++--protocol=tcp --source=1.2.3.4 --destination=5.6.7.8/32 --in-interface=eth0 --out-interface=eth1 --jump=ACCEPT;-s 1.2.3.4/32 -d 5.6.7.8/32 -i eth0 -o eth1 -p tcp -j ACCEPT;OK
++-ptcp -s1.2.3.4 -d5.6.7.8/32 -ieth0 -oeth1 -jACCEPT;-s 1.2.3.4/32 -d 5.6.7.8/32 -i eth0 -o eth1 -p tcp -j ACCEPT;OK
++-i + -d 1.2.3.4;-d 1.2.3.4/32;OK
+diff --git a/extensions/libxt_TEE.t b/extensions/libxt_TEE.t
+index ce8b103e0dc2..3c7b929cac4c 100644
+--- a/extensions/libxt_TEE.t
++++ b/extensions/libxt_TEE.t
+@@ -1,4 +1,2 @@
+ :INPUT,FORWARD,OUTPUT
+--j TEE --gateway 1.1.1.1;=;OK
+--j TEE ! --gateway 1.1.1.1;;FAIL
+ -j TEE;;FAIL
+diff --git a/extensions/libxt_connlimit.t b/extensions/libxt_connlimit.t
+index 366cea745c65..79d08748a4cf 100644
+--- a/extensions/libxt_connlimit.t
++++ b/extensions/libxt_connlimit.t
+@@ -1,16 +1,6 @@
+ :INPUT,FORWARD,OUTPUT
+--m connlimit --connlimit-upto 0;-m connlimit --connlimit-upto 0 --connlimit-mask 32 --connlimit-saddr;OK
+--m connlimit --connlimit-upto 4294967295 --connlimit-mask 32 --connlimit-saddr;=;OK
+--m connlimit --connlimit-upto 4294967296 --connlimit-mask 32 --connlimit-saddr;;FAIL
+ -m connlimit --connlimit-upto -1;;FAIL
+--m connlimit --connlimit-above 0;-m connlimit --connlimit-above 0 --connlimit-mask 32 --connlimit-saddr;OK
+--m connlimit --connlimit-above 4294967295 --connlimit-mask 32 --connlimit-saddr;=;OK
+--m connlimit --connlimit-above 4294967296 --connlimit-mask 32 --connlimit-saddr;;FAIL
+ -m connlimit --connlimit-above -1;;FAIL
+ -m connlimit --connlimit-upto 1 --conlimit-above 1;;FAIL
+--m connlimit --connlimit-above 10 --connlimit-saddr;-m connlimit --connlimit-above 10 --connlimit-mask 32 --connlimit-saddr;OK
+--m connlimit --connlimit-above 10 --connlimit-daddr;-m connlimit --connlimit-above 10 --connlimit-mask 32 --connlimit-daddr;OK
+ -m connlimit --connlimit-above 10 --connlimit-saddr --connlimit-daddr;;FAIL
+--m connlimit --connlimit-above 10 --connlimit-mask 32 --connlimit-saddr;=;OK
+--m connlimit --connlimit-above 10 --connlimit-mask 32 --connlimit-daddr;=;OK
+ -m connlimit;;FAIL
+diff --git a/extensions/libxt_conntrack.t b/extensions/libxt_conntrack.t
+index 5e27ddce4fe6..2377a0168d77 100644
+--- a/extensions/libxt_conntrack.t
++++ b/extensions/libxt_conntrack.t
+@@ -8,10 +8,6 @@
+ -m conntrack --ctstate wrong;;FAIL
+ # should we convert this to output "tcp" instead of 6?
+ -m conntrack --ctproto tcp;-m conntrack --ctproto 6;OK
+--m conntrack --ctorigsrc 1.1.1.1;=;OK
+--m conntrack --ctorigdst 1.1.1.1;=;OK
+--m conntrack --ctreplsrc 1.1.1.1;=;OK
+--m conntrack --ctrepldst 1.1.1.1;=;OK
+ -m conntrack --ctexpire 0;=;OK
+ -m conntrack --ctexpire 4294967295;=;OK
+ -m conntrack --ctexpire 0:4294967295;=;OK
+diff --git a/extensions/libxt_iprange.t b/extensions/libxt_iprange.t
+index 6fd98be65602..83a67d117ed3 100644
+--- a/extensions/libxt_iprange.t
++++ b/extensions/libxt_iprange.t
+@@ -1,11 +1,2 @@
+ :INPUT,FORWARD,OUTPUT
+--m iprange --src-range 1.1.1.1-1.1.1.10;=;OK
+--m iprange ! --src-range 1.1.1.1-1.1.1.10;=;OK
+--m iprange --dst-range 1.1.1.1-1.1.1.10;=;OK
+--m iprange ! --dst-range 1.1.1.1-1.1.1.10;=;OK
+-# it shows -A INPUT -m iprange --src-range 1.1.1.1-1.1.1.1, should we support this?
+-# ERROR: should fail: iptables -A INPUT -m iprange --src-range 1.1.1.1
+-# -m iprange --src-range 1.1.1.1;;FAIL
+-# ERROR: should fail: iptables -A INPUT -m iprange --dst-range 1.1.1.1
+-#-m iprange --dst-range 1.1.1.1;;FAIL
+ -m iprange;;FAIL
+diff --git a/extensions/libxt_ipvs.t b/extensions/libxt_ipvs.t
+index c2acc6668d1b..a76a69670d89 100644
+--- a/extensions/libxt_ipvs.t
++++ b/extensions/libxt_ipvs.t
+@@ -4,8 +4,6 @@
+ -m ipvs --vproto tcp;-m ipvs --vproto 6;OK
+ -m ipvs ! --vproto TCP;-m ipvs ! --vproto 6;OK
+ -m ipvs --vproto 23;=;OK
+--m ipvs --vaddr 1.2.3.4;=;OK
+--m ipvs ! --vaddr 1.2.3.4/255.255.255.0;-m ipvs ! --vaddr 1.2.3.4/24;OK
+ -m ipvs --vport http;-m ipvs --vport 80;OK
+ -m ipvs ! --vport ssh;-m ipvs ! --vport 22;OK
+ -m ipvs --vport 22;=;OK
+@@ -17,4 +15,3 @@
+ -m ipvs --vmethod MASQ;=;OK
+ -m ipvs --vportctl 21;=;OK
+ -m ipvs ! --vportctl 21;=;OK
+--m ipvs --vproto 6 --vaddr 1.2.3.4/16 --vport 22 --vdir ORIGINAL --vmethod GATE;=;OK
+diff --git a/extensions/libxt_mark.t b/extensions/libxt_mark.t
+index 12c058655f6b..b8dc3cb31aec 100644
+--- a/extensions/libxt_mark.t
++++ b/extensions/libxt_mark.t
+@@ -5,4 +5,4 @@
+ -m mark --mark 4294967296;;FAIL
+ -m mark --mark -1;;FAIL
+ -m mark;;FAIL
+--s 1.2.0.0/15 -m mark --mark 0x0/0xff0;=;OK
++-m mark --mark 0x0/0xff0;=;OK
+diff --git a/extensions/libxt_policy.t b/extensions/libxt_policy.t
+index 6524122bcf79..fea708bbd930 100644
+--- a/extensions/libxt_policy.t
++++ b/extensions/libxt_policy.t
+@@ -3,6 +3,3 @@
+ -m policy --dir in --pol ipsec --proto ipcomp;=;OK
+ -m policy --dir in --pol ipsec --strict;;FAIL
+ -m policy --dir in --pol ipsec --strict --reqid 1 --spi 0x1 --proto ipcomp;=;OK
+--m policy --dir in --pol ipsec --strict --reqid 1 --spi 0x1 --proto esp --mode tunnel --tunnel-dst 10.0.0.0/8 --tunnel-src 10.0.0.0/8 --next --reqid 2;=;OK
+--m policy --dir in --pol ipsec --strict --reqid 1 --spi 0x1 --proto esp --tunnel-dst 10.0.0.0/8;;FAIL
+--m policy --dir in --pol ipsec --strict --reqid 1 --spi 0x1 --proto ipcomp --mode tunnel --tunnel-dst 10.0.0.0/8 --tunnel-src 10.0.0.0/8 --next --reqid 2;=;OK
+diff --git a/extensions/libxt_recent.t b/extensions/libxt_recent.t
+index 3b0dd9fa29c9..6c2cbd23f6fb 100644
+--- a/extensions/libxt_recent.t
++++ b/extensions/libxt_recent.t
+@@ -1,11 +1,2 @@
+ :INPUT,FORWARD,OUTPUT
+--m recent --set;-m recent --set --name DEFAULT --mask 255.255.255.255 --rsource;OK
+--m recent --rcheck --hitcount 8 --name foo --mask 255.255.255.255 --rsource;=;OK
+--m recent --rcheck --hitcount 12 --name foo --mask 255.255.255.255 --rsource;=;OK
+--m recent --update --rttl;-m recent --update --rttl --name DEFAULT --mask 255.255.255.255 --rsource;OK
+ -m recent --set --rttl;;FAIL
+--m recent --rcheck --hitcount 65536 --name foo --mask 255.255.255.255 --rsource;;FAIL
+-# nonsensical, but all should load successfully:
+--m recent --rcheck --hitcount 3 --name foo --mask 255.255.255.255 --rsource -m recent --rcheck --hitcount 4 --name foo --mask 255.255.255.255 --rsource;=;OK
+--m recent --rcheck --hitcount 4 --name foo --mask 255.255.255.255 --rsource -m recent --rcheck --hitcount 4 --name foo --mask 255.255.255.255 --rsource;=;OK
+--m recent --rcheck --hitcount 8 --name foo --mask 255.255.255.255 --rsource -m recent --rcheck --hitcount 12 --name foo --mask 255.255.255.255 --rsource;=;OK
+diff --git a/extensions/libxt_standard.t b/extensions/libxt_standard.t
+index 7c83cfa3ba23..947e92afd930 100644
+--- a/extensions/libxt_standard.t
++++ b/extensions/libxt_standard.t
+@@ -1,28 +1,9 @@
+ :INPUT,FORWARD,OUTPUT
+--s 127.0.0.1/32 -d 0.0.0.0/8 -j DROP;=;OK
+-! -s 0.0.0.0 -j ACCEPT;! -s 0.0.0.0/32 -j ACCEPT;OK
+-! -d 0.0.0.0/32 -j ACCEPT;=;OK
+--s 0.0.0.0/24 -j RETURN;=;OK
+ -p tcp -j ACCEPT;=;OK
+ ! -p udp -j ACCEPT;=;OK
+ -j DROP;=;OK
+ -j ACCEPT;=;OK
+ -j RETURN;=;OK
+ ! -p 0 -j ACCEPT;=;FAIL
+--s 10.11.12.13/8;-s 10.0.0.0/8;OK
+--s 10.11.12.13/9;-s 10.0.0.0/9;OK
+--s 10.11.12.13/10;-s 10.0.0.0/10;OK
+--s 10.11.12.13/11;-s 10.0.0.0/11;OK
+--s 10.11.12.13/12;-s 10.0.0.0/12;OK
+--s 10.11.12.13/30;-s 10.11.12.12/30;OK
+--s 10.11.12.13/31;-s 10.11.12.12/31;OK
+--s 10.11.12.13/32;-s 10.11.12.13/32;OK
+--s 10.11.12.13/255.0.0.0;-s 10.0.0.0/8;OK
+--s 10.11.12.13/255.128.0.0;-s 10.0.0.0/9;OK
+--s 10.11.12.13/255.0.255.0;-s 10.0.12.0/255.0.255.0;OK
+--s 10.11.12.13/255.0.12.0;-s 10.0.12.0/255.0.12.0;OK
+ :FORWARD
+---protocol=tcp --source=1.2.3.4 --destination=5.6.7.8/32 --in-interface=eth0 --out-interface=eth1 --jump=ACCEPT;-s 1.2.3.4/32 -d 5.6.7.8/32 -i eth0 -o eth1 -p tcp -j ACCEPT;OK
+--ptcp -s1.2.3.4 -d5.6.7.8/32 -ieth0 -oeth1 -jACCEPT;-s 1.2.3.4/32 -d 5.6.7.8/32 -i eth0 -o eth1 -p tcp -j ACCEPT;OK
+--i + -d 1.2.3.4;-d 1.2.3.4/32;OK
+ -i + -p tcp;-p tcp;OK
+diff --git a/iptables-test.py b/iptables-test.py
+index 77278925d721..3f77d1ec2fdc 100755
+--- a/iptables-test.py
++++ b/iptables-test.py
+@@ -385,7 +385,7 @@ def run_test_file_fast(iptables, filename, netns):
  
-+filesize=$((2 * 1024 * 1024))
-+
- usage(){
- 	echo "nft_flowtable.sh [OPTIONS]"
- 	echo
-@@ -81,12 +83,13 @@ usage(){
- 	exit 1
- }
+     return tests
  
--while getopts "o:l:r:" o
-+while getopts "o:l:r:s:" o
- do
- 	case $o in
- 		o) omtu=$OPTARG;;
- 		l) lmtu=$OPTARG;;
- 		r) rmtu=$OPTARG;;
-+		s) filesize=$OPTARG;;
- 		*) usage;;
- 	esac
- done
-@@ -217,18 +220,10 @@ ns2out=$(mktemp)
+-def run_test_file(filename, netns):
++def _run_test_file(iptables, filename, netns, print_result):
+     '''
+     Runs a test file
  
- make_file()
- {
--	name=$1
+@@ -398,30 +398,10 @@ def run_test_file(filename, netns):
+     if not filename.endswith(".t"):
+         return 0, 0
+ 
+-    if "libipt_" in filename:
+-        iptables = IPTABLES
+-    elif "libip6t_" in filename:
+-        iptables = IP6TABLES
+-    elif "libxt_"  in filename:
+-        iptables = IPTABLES
+-    elif "libarpt_" in filename:
+-        # only supported with nf_tables backend
+-        if EXECUTABLE != "xtables-nft-multi":
+-           return 0, 0
+-        iptables = ARPTABLES
+-    elif "libebt_" in filename:
+-        # only supported with nf_tables backend
+-        if EXECUTABLE != "xtables-nft-multi":
+-           return 0, 0
+-        iptables = EBTABLES
+-    else:
+-        # default to iptables if not known prefix
+-        iptables = IPTABLES
 -
--	SIZE=$((RANDOM % (1024 * 128)))
--	SIZE=$((SIZE + (1024 * 8)))
--	TSIZE=$((SIZE * 1024))
--
--	dd if=/dev/urandom of="$name" bs=1024 count=$SIZE 2> /dev/null
-+	name="$1"
-+	sz="$2"
+     fast_failed = False
+     if fast_run_possible(filename):
+         tests = run_test_file_fast(iptables, filename, netns)
+-        if tests > 0:
++        if tests > 0 and print_result:
+             print(filename + ": " + maybe_colored('green', "OK", STDOUT_IS_TTY))
+             return tests, tests
+         fast_failed = True
+@@ -502,7 +482,7 @@ def run_test_file(filename, netns):
  
--	SIZE=$((RANDOM % 1024))
--	SIZE=$((SIZE + 128))
--	TSIZE=$((TSIZE + SIZE))
--	dd if=/dev/urandom conf=notrunc of="$name" bs=1 count=$SIZE 2> /dev/null
-+	head -c "$sz" < /dev/urandom > "$name"
- }
+     if netns:
+         execute_cmd("ip netns del " + netns, filename)
+-    if total_test_passed:
++    if total_test_passed and print_result:
+         suffix = ""
+         if fast_failed:
+             suffix = maybe_colored('red', " but fast mode failed!", STDOUT_IS_TTY)
+@@ -511,6 +491,52 @@ def run_test_file(filename, netns):
+     f.close()
+     return tests, passed
  
- check_counters()
-@@ -246,18 +241,18 @@ check_counters()
- 	local fs
- 	fs=$(du -sb "$nsin")
- 	local max_orig=${fs%%/*}
--	local max_repl=$((max_orig/4))
-+	local max_repl=$((max_orig))
- 
- 	# flowtable fastpath should bypass normal routing one, i.e. the counters in forward hook
- 	# should always be lower than the size of the transmitted file (max_orig).
- 	if [ "$orig_cnt" -gt "$max_orig" ];then
--		echo "FAIL: $what: original counter $orig_cnt exceeds expected value $max_orig" 1>&2
-+		echo "FAIL: $what: original counter $orig_cnt exceeds expected value $max_orig, reply counter $repl_cnt" 1>&2
- 		ret=1
- 		ok=0
- 	fi
- 
- 	if [ "$repl_cnt" -gt $max_repl ];then
--		echo "FAIL: $what: reply counter $repl_cnt exceeds expected value $max_repl" 1>&2
-+		echo "FAIL: $what: reply counter $repl_cnt exceeds expected value $max_repl, original counter $orig_cnt" 1>&2
- 		ret=1
- 		ok=0
- 	fi
-@@ -455,7 +450,7 @@ test_tcp_forwarding_nat()
- 	return $lret
- }
- 
--make_file "$nsin"
-+make_file "$nsin" "$filesize"
- 
- # First test:
- # No PMTU discovery, nsr1 is expected to fragment packets from ns1 to ns2 as needed.
-@@ -664,8 +659,16 @@ if [ "$1" = "" ]; then
- 	l=$(((RANDOM%mtu) + low))
- 	r=$(((RANDOM%mtu) + low))
- 
--	echo "re-run with random mtus: -o $o -l $l -r $r"
--	$0 -o "$o" -l "$l" -r "$r"
-+	MINSIZE=$((2 *  1000 * 1000))
-+	MAXSIZE=$((64 * 1000 * 1000))
++def run_test_file(filename, netns):
++    '''
++    Runs a test file
 +
-+	filesize=$(((RANDOM * RANDOM) % MAXSIZE))
-+	if [ "$filesize" -lt "$MINSIZE" ]; then
-+		filesize=$((filesize+MINSIZE))
-+	fi
++    :param filename: name of the file with the test rules
++    :param netns: network namespace to perform test run in
++    '''
++    #
++    # if this is not a test file, skip.
++    #
++    if not filename.endswith(".t"):
++        return 0, 0
 +
-+	echo "re-run with random mtus and file size: -o $o -l $l -r $r -s $filesize"
-+	$0 -o "$o" -l "$l" -r "$r" -s "$filesize"
- fi
++    if "libipt_" in filename:
++        xtables = [ IPTABLES ]
++    elif "libip6t_" in filename:
++        xtables = [ IP6TABLES ]
++    elif "libxt_"  in filename:
++        xtables = [ IPTABLES, IP6TABLES ]
++    elif "libarpt_" in filename:
++        # only supported with nf_tables backend
++        if EXECUTABLE != "xtables-nft-multi":
++           return 0, 0
++        xtables = [ ARPTABLES ]
++    elif "libebt_" in filename:
++        # only supported with nf_tables backend
++        if EXECUTABLE != "xtables-nft-multi":
++           return 0, 0
++        xtables = [ EBTABLES ]
++    else:
++        # default to iptables if not known prefix
++        xtables = [ IPTABLES ]
++
++    tests = 0
++    passed = 0
++    print_result = False
++    for index, iptables in enumerate(xtables):
++        if index == len(xtables) - 1:
++            print_result = True
++
++        file_tests, file_passed = _run_test_file(iptables, filename, netns, print_result)
++        if file_tests:
++            tests += file_tests
++            passed += file_passed
++
++    return tests, passed
  
- exit $ret
+ def show_missing():
+     '''
 -- 
-2.45.2
+2.30.2
 
