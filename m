@@ -1,76 +1,72 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D6BD19ADBF;
-	Tue, 22 Oct 2024 10:50:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD12C140E38
+	for <netfilter-devel@vger.kernel.org>; Tue, 22 Oct 2024 11:22:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729594225; cv=none; b=I7ZG4CdJ7ACQijeKbUKudACHvk2iH+zO6eox+i+QchwRvia+S7vW+mo6SrT8XCAymf4RDe4N/SgtZJ/OILnuVmtXnbpoTb6lRD+2tV34f0VEWTx6HE4B1vCTRsWF7/wfUunp0ZaIl/LVRzEztgF8cdqAmdrkV1MOQ1xQ7oZhLT4=
+	t=1729596134; cv=none; b=drWAMvGxLT7qEVSsoK6Wv7nQbP6hNgpf6oPGhbdizCpnRQAqjMRD0JURiCMWd4fURYQkhWhuQVP9aL+tMWPfABeoCGwsM5XAkuWbETKua/vmcJG6KKq2dtZLDtk8Ue7UoJV1sMsnAMVC2P6ZwzHb/9OAGvPD1iWaInYTeHRHVak=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729594225; c=relaxed/simple;
-	bh=gtai55HkwxYZfoMnSDnSAsj/PHQAOWKTEW7Fma1XVbM=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=e+HdBwetIPtQMIEcWtI9GRBa4P1KaImTiSlbCuvcjmcEd6hNfSF5U0hX9iMGemNdZyrB3hVzr73+l902MlkMyxm5c6AoRw1wzq+C3b3rF0SfdCUxJPe2joykPcAScFSKL7xqqZq3mS5uPkYxOmeWPT/W1+DmxxtiP2Xq9P5JRxs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kR43Yr4K; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729596134; c=relaxed/simple;
+	bh=rZTPhZf43arJdj4S9a1/rAgYmLiFz7MwApIAjYWGGJY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=gnzozP3MMbz0MCL+xQxOcWZSO0LOFMXpmgxCPu8ABGmOKCGvV7I5u89iW301H7FVu+OkblX1T9WSu9wTQTB8cSd5tAT/ytcGzXwGNTeyBrTnlC6Z/5fRwwf6AQWpIj0vvHUHVHJ0HvkAZCHV5YV09zKfvMfJrTMirZ4Oe21/OBI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=IZUMCHVy; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kR43Yr4K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D9D4C4CEEA;
-	Tue, 22 Oct 2024 10:50:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1729594225;
-	bh=gtai55HkwxYZfoMnSDnSAsj/PHQAOWKTEW7Fma1XVbM=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=kR43Yr4KSeVBQSLIxcIo9ziVgB4UMc610uI/cnSqxyEJorWIGbCYEkBigsddnzDdb
-	 03GjVPHsu1Dg0S3gtG4SyXK8xKvTlhEUMt36isemJe780GQEga2Vax7+QqLqlcvzxc
-	 kKACiB2c6zfZhDWcL3jiM/Gm0/PebPDptYvW9oF7q606CO1HznJASH9vTF48alwAsV
-	 B/59BiqamMb2ZJirvECBAYWGEiuiO/iTjyUgf50SBwVv/1avIR2h6lxT2NcHFUZm5N
-	 PMjRZ2Lef4J1vgtzy8iG15Xm6LhjU7xsOojme6TPL50BqoE68DArCwXGJv2DXgQbLo
-	 hi0XKdjrHLFVg==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 70B2D3809A8A;
-	Tue, 22 Oct 2024 10:50:32 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="IZUMCHVy"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=/O8QybhE1SoGofL/+PAI/lNgdRwH/diUGKaW+AIrDQs=; b=IZUMCHVystL4nZ66qSjtMIO4XU
+	w7MqQq4f/ZPwW1eS8dYQLQy6ARkCYUNnnJG9rayHe23BkYDRqOAvKCxgWsWP+l4SJqD7JI72Xcl+0
+	LTSdOk1NwAO+tHo2Z3vTkrPlfFy9F5fJhZDmaPH8927m6ABMzW8eMmswJWf26BfrgDLANIHWzVkqU
+	r/Sh6NKDx8or/BCWxEjypAjJApWMoSEUiVMEFmXQ2sKVt1mnYuf6eN3F7LwAmEzhbsCbgFnmUZtwT
+	jySgmkUtLNXkM0T9PZk/j/1xTfF5NQ+DEEwMxIUfQG39Qg8rr6nhF0T1kiCT4mZH2VE3qJIgl/2ll
+	Xp2P2u6A==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1t3Cxf-000000005Cf-17u6;
+	Tue, 22 Oct 2024 13:22:03 +0200
+Date: Tue, 22 Oct 2024 13:22:03 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, Eric Garver <e@erig.me>
+Subject: Re: [nf-next PATCH v5 00/18] Dynamic hook interface binding
+Message-ID: <ZxeK2yu1NYyIAczQ@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Florian Westphal <fw@strlen.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, Eric Garver <e@erig.me>
+References: <20240926095643.8801-1-phil@nwl.cc>
+ <20241021130544.GA15761@breakpoint.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 0/1] Netfilter fixes for net
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <172959423123.927462.18180587610240591445.git-patchwork-notify@kernel.org>
-Date: Tue, 22 Oct 2024 10:50:31 +0000
-References: <20241017123413.4306-1-pablo@netfilter.org>
-In-Reply-To: <20241017123413.4306-1-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20241021130544.GA15761@breakpoint.cc>
 
-Hello:
+Hi Florian,
 
-This patch was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
-
-On Thu, 17 Oct 2024 14:34:12 +0200 you wrote:
-> Hi,
+On Mon, Oct 21, 2024 at 03:05:44PM +0200, Florian Westphal wrote:
+> Phil Sutter <phil@nwl.cc> wrote:
 > 
-> The following series contains one fix:
-> 
-> syzkaller managed to triger UaF due to missing reference on netns in
-> bpf infrastructure, from Florian Westphal.
-> 
-> [...]
+> I started to review this, I would suggest to apply the first 10 patches
+> for the next net-next PR so that its exposed to wider audience.
 
-Here is the summary with links:
-  - [net,1/1] netfilter: bpf: must hold reference on net namespace
-    https://git.kernel.org/netdev/net/c/1230fe7ad397
+Maybe worth noting that patches 7, 8 and 9 are rather pointless if not
+followed up by the remaining ones. Patch 10 OTOH may apply to HEAD by
+itself.
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+Should I prepare a series with just patches 1-6 and 10 for nf-next?
 
-
+Thanks, Phil
