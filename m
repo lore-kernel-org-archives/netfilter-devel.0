@@ -1,78 +1,61 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AB0319ABD5
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Oct 2024 13:17:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4DCE19D8AD
+	for <netfilter-devel@vger.kernel.org>; Tue, 22 Oct 2024 13:48:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729603078; cv=none; b=dqMZPm29I3UIsKxZYjGp6QKWjybg/RR16yBPVDE/pKFrX3gJbNFiNP1VcCjbpNYi2C4huFdJxoK5Dy9gxOw+xg+ZD3ihTIUTEjTh2rqno2Xtb7NSDzqQb6WyPQuTMB+qJSShgHmT+lfM9LJQp16+OdW7OBxUZDAU9D8lVkx4QpM=
+	t=1729604900; cv=none; b=W2VO/JHVXT5IHev0Sa7J+R+z1Y8e+Qc4GbxymrY/601JbIMQWTZnpsLaW0fYTsLkQY5UjglZdt4RT8MgVreXv4XOCini+WVLByjA89khR3vWZzFugMS1uJAFp81JKCLCQsZlI8zuQsfCUJiCSVrKvM9XOFC4MUJfR0o6JJJF8kg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729603078; c=relaxed/simple;
-	bh=Jh0+HmOCrepVMgjFJLBSI1k+D0rvQVLUmnaCH8mTOhQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=WRNg7GOjYqTGAxuHeIrIR1pOeKDX4zn9HiX2YjPgP7iHGfoN7Rc6UQ72GXs7j0NNT4QuInWfnfMtqIBm/UfRf27iauJe2K+kaYuBNJtg/G0gZjSZAkpCzJXKxGnisGB0CZGPvKg8nDdKNBcPCJriXfRhiYwTdHYpfGxsGkp1TiQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=URu+iFB7; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="URu+iFB7"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=YZqCvmBBsEGSfHbS8ho/6hCgOd1KnqkurxmU2qoBx3I=; b=URu+iFB7ZA3VbGPM2DIlxJQdcL
-	+OfJ+P8c5i4dWc8aNOL2hgBueLOtWECEQ8civbkwGijE91dfzj1VNqGfRegDFFs1frtMdl3NEhW2k
-	LxqdGJhGiktbyXdTnNwqzDK9yVm7Q6R05U15bYlZNw6hYDk1P3d2aJZy13yRyECOT3UTFA4wrl7mF
-	YQoiqKJi+6mwXKHyUgxWEOClu9lP+/VNWVf2jEm/oNTjimxCoJ2NUn2+TN2LNKujxZ2vV1jBBJVO4
-	MckzbkZgRQPB41mp49mxFNMLouHHg5Lb45oR35weVdenMBTgaPaNt9JT4TAkex466PUOvyaO7xHkj
-	V1HV3fAw==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1t3Elm-000000007LV-2tiv;
-	Tue, 22 Oct 2024 15:17:54 +0200
-Date: Tue, 22 Oct 2024 15:17:54 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-Subject: Re: [libnftnl PATCH] src/utils: Add a common dev_array parser
-Message-ID: <ZxemApONbVWrFoQB@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-References: <20241016164223.21280-1-phil@nwl.cc>
- <Zxejh_KRhd81uWSC@calendula>
+	s=arc-20240116; t=1729604900; c=relaxed/simple;
+	bh=JEm1QP9DmmwQQ1IuWdrFjoso7SbjNIO3X07fiM13VYQ=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=lYw1/tCS1idXbem1cL/6H1io3zvFs/iEERtULXi7FZ3IdekVNkg8wEDcGh2lUKI59QLVjuxd2GGTsPKUclLJkStN1Zll57z9vTpJHcfBdQIomhw9ExedgliY3+a4KywZAuEeGDaom/dQTH/J5cU5jMX/sLf64508qO2QbpbOC4Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=58722 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1t3FF7-00DsZ3-Iy; Tue, 22 Oct 2024 15:48:15 +0200
+Date: Tue, 22 Oct 2024 15:48:12 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
+	fw@strlen.de
+Subject: Re: [PATCH iptables] tests: iptables-test: extend coverage for
+ ip6tables
+Message-ID: <ZxetHFXRj08Jipu0@calendula>
+References: <20241020224707.69249-1-pablo@netfilter.org>
+ <ZxebAVfZ_aDSNeb4@orbyte.nwl.cc>
+ <ZxejsR2ph2CSnYjD@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <Zxejh_KRhd81uWSC@calendula>
+In-Reply-To: <ZxejsR2ph2CSnYjD@orbyte.nwl.cc>
+X-Spam-Score: -1.9 (-)
 
-On Tue, Oct 22, 2024 at 03:07:19PM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Oct 16, 2024 at 06:42:23PM +0200, Phil Sutter wrote:
-> > Parsing of dev_array fields in flowtable and chain are identical, merge
-> > them into a shared function nftnl_parse_devs() which does a quick scan
-> > through the nested attributes to check validity and calculate required
-> > array size instead of calling realloc() as needed.
-> > 
-> > This required to align structs nftnl_chain and nftnl_flowtable field
-> > dev_array_len types, though uint32_t should match the size of int on
-> > both 32 and 64 bit architectures.
+On Tue, Oct 22, 2024 at 03:08:01PM +0200, Phil Sutter wrote:
+> On Tue, Oct 22, 2024 at 02:30:58PM +0200, Phil Sutter wrote:
+> [...]
+> > - With your patch applied, 20 rules fail (in both variants). Is this
+> >   expected or a bug on my side?
 > 
-> Maybe go the extra mile and add an internal object for string arrays:
+> OK, so most failures are caused by my test kernel not having
+> CONFIG_IP_VS_IPV6 enabled.
 > 
-> struct nftnl_str_array {
->         const char      **array;
->         uint32_t        len;
-> };
-> 
-> and use it in chain and flowtable?
+> Apart from that, there is a minor bug in introduced libip6t_recent.t in
+> that it undoes commit d859b91e6f3ed ("extensions: recent: New kernels
+> support 999 hits") by accident. More interesting though, it's reported
+> twice, once for fast mode and once for normal mode. I'll see how I can
+> turn off error reporting in fast mode, failing tests are repeated
+> anyway.
 
-ACK, will do.
+Would you point me to the relevant line in the libip6t_recent.t?
 
-Thanks, Phil
+Thanks.
