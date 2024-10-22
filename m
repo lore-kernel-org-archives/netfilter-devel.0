@@ -1,114 +1,141 @@
-Received: from mail-lj1-f193.google.com (mail-lj1-f193.google.com [209.85.208.193])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F9C227735;
-	Tue, 22 Oct 2024 08:49:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.193
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABF8A19923D;
+	Tue, 22 Oct 2024 08:57:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729586988; cv=none; b=P/8STgMGl4wOgIDo+lalhVh1Nc5zv63UN+oModqqIhQHiHnTdoZyG2oWNAftJ65Spl4upWoV5yBIm3p1anSHB937/+8baW3UWn4O7cd71dTN+w2kp3MqmtA+upDDajiJXFBR9SvqPhshu11P/B0d7kekkx1bie6upmL+phz8SlE=
+	t=1729587458; cv=none; b=NLgUJ2GlDSldq2Y9jbXwelaQvlo/A1qnRM6XPWooIN3CAS8Ullns3LJE3JNyJmSX/C04BKAalRQ43g1lYTHd0oUIAS9J/Q8LNnUii8FQayD52x0Q1u9D4tto3GfbJHhrQL5omoOj/JNSb4btLyrNQAGebtjX9kclwb6ZpkHWyVs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729586988; c=relaxed/simple;
-	bh=VmBJLc5YwrovcjmjVJSAnkQ1H6CTGhFHDhc1H9J1qnU=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=WNse9aV1A0TexPZf/oz3iMiosbon8zuTPy1JWifAE1bGf6g8k/dwYrsHZccZtizKKwcgFAWkd1n2Li9ePgxR/6BdeeWPY9WZ/6xAP95a8tg6bYE2PtfMvcPfRLreMw/6/GG2BqO7fuO4yx9WGsy/g/SS9NsvHi1pRUcfIEJK1nk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KH+gtNEB; arc=none smtp.client-ip=209.85.208.193
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KH+gtNEB"
-Received: by mail-lj1-f193.google.com with SMTP id 38308e7fff4ca-2fb6110c8faso54618921fa.1;
-        Tue, 22 Oct 2024 01:49:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1729586985; x=1730191785; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=+pOfCiSieyO3TQ+yRCELl0+ufCyFVvkQ7MbO+0NA5No=;
-        b=KH+gtNEB9F/H4FQCBqEL6IqGlNuUtGHYFthtwOh36G3fe8X+kXPB+HkS8V81vEu2tH
-         EN6IGmkMcQgC55LnaOkaKV4Fx7Cnc0MzuUtHX8UI6baDB8zAnXbTTZH0ZT0b6pITcHC7
-         6zGE3lkQLVifL33X5T1y/iA4UuxVSN1/n6XITI/0q3p4uxFXn6vC5VFlzwGLrQO72PVd
-         wkSK2Y3VIi/9Ief1sJA+pIuOYE6Cz20tXDic7PObmXwldKfOqf1HRqJtqfMf8g1scMkj
-         nfANKpIlLLrZDbGFOxbxzubnU20iShjowSCFvpbjkunjfO5n1ei9bRu0QGOWihx0VWXD
-         NE2w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1729586985; x=1730191785;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=+pOfCiSieyO3TQ+yRCELl0+ufCyFVvkQ7MbO+0NA5No=;
-        b=L10HK4Grj61ZAC9N9UpNI1jTIS/nUlZZuYTrf7wRE52atsb7B49FEGnLqdKNkMtznb
-         +ygZBvZaAr+wm33PJyOf+1i94iKiWfIHqUnZ1lkjHlEQZWITGHpEXw3mYDlMpbXicBJM
-         PGvXu+Gd4cNHXjuoIsLeSo3ybW6TELXhkz5pjaA165egM6Vgt8QdBdiwSWEWvVLrTp8C
-         OzKUTOtOSgftg/6cXCqJMGtUp4Gi3R0Xx2M5iW7XTeuk/9CV+odNqSnU2HBm3SFFtMrb
-         LDCPb2nn4Kb4GuanNacUTHE41mNebDf47kugjTvl+ciFYiDOChnjIT1RLSG2wrmwwLLM
-         +/9Q==
-X-Forwarded-Encrypted: i=1; AJvYcCUPR6Xxd54en/oOGZt3EwpJWtoYvmYrqQkCyM/o2zhWKEOHFvp8HyycTsNU71UjOlzz9E2+npoR@vger.kernel.org, AJvYcCUsFyYtIwudtD6eIuWctLziRVMGfWXGQC2sK8dwPUyAaioiiUrn3C8ZR2Om519Vbfi3Y0r/CwMgdT63rfQC15CA@vger.kernel.org, AJvYcCWD7l+gvpC7KtokH1wsBx5xICGMk7Z6g+5Um5/DlJxvfXrf6BQ9DpZW8i6ERImDUs0BuJg=@vger.kernel.org, AJvYcCXEq8CfcL4Uw7N8RvJ0NdnqH8yjkbsbhLifUecHRnBSnTsX9dAwfiEFw+3PX3jP4sDY3OF/6yyLeKXyoEY2@vger.kernel.org
-X-Gm-Message-State: AOJu0YzfIS+YJ3kVwBIi0RCQj229MBu0AJmtCAxyFdouF+TDmiE9pOqz
-	YGgnPyWwsdOk83fu6N0me/1i5pNb3n5KvWLD4xlJjUzcLNxDCnd7Nv9u5hh2khRKLxJ1TdyWpEX
-	SCldNJfw9wLFH2z9ncyfxpFXUeNE=
-X-Google-Smtp-Source: AGHT+IFKl3tfsMju7iYF30A7gBpjOZyrqMNthNqd+kPzl1ymRdMCkJ/IFXR1TES+Mv3Jjwg/Hwd37FmQx1Tu4AZ9ptg=
-X-Received: by 2002:a2e:be87:0:b0:2fb:55b2:b199 with SMTP id
- 38308e7fff4ca-2fb83281b86mr72476071fa.37.1729586982785; Tue, 22 Oct 2024
- 01:49:42 -0700 (PDT)
+	s=arc-20240116; t=1729587458; c=relaxed/simple;
+	bh=CSDIdrsCl4FE8/0Omz+BP48e9uK4dqAaWfIDnDhupAI=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=WXzguizmhDZkG8qRcTKP1CYsRqUXn0OIjqQtBJDv/8ikRAM/wsdiz//gDKs1Sdh/kD/ICLidx+A/SKsKd7zahT11YlRub4mlHmfrF5s4XcjE0v+8oTO3/9sMTOliUiLlmYyI7Uft8ZN7Qn/2029h7OU877aNLgd8PrC3Oz5+lXA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.190
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.19.162.112])
+	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4XXmJB0bd8z20qdB;
+	Tue, 22 Oct 2024 16:56:42 +0800 (CST)
+Received: from kwepemd100023.china.huawei.com (unknown [7.221.188.33])
+	by mail.maildlp.com (Postfix) with ESMTPS id A28861400CB;
+	Tue, 22 Oct 2024 16:57:32 +0800 (CST)
+Received: from localhost.localdomain (10.175.104.82) by
+ kwepemd100023.china.huawei.com (7.221.188.33) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Tue, 22 Oct 2024 16:57:31 +0800
+From: Dong Chenchen <dongchenchen2@huawei.com>
+To: <pablo@netfilter.org>, <kadlec@netfilter.org>, <davem@davemloft.net>,
+	<edumazet@google.com>, <kuba@kernel.org>, <pabeni@redhat.com>,
+	<fw@strlen.de>, <kuniyu@amazon.com>
+CC: <netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>,
+	<yuehaibing@huawei.com>, Dong Chenchen <dongchenchen2@huawei.com>
+Subject: [PATCH net] net: netfilter: Fix use-after-free in get_info()
+Date: Tue, 22 Oct 2024 16:57:53 +0800
+Message-ID: <20241022085753.2069639-1-dongchenchen2@huawei.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241015140800.159466-1-dongml2@chinatelecom.cn>
- <20241015140800.159466-6-dongml2@chinatelecom.cn> <20d9ed5f-abde-43ee-854f-48a9f69e9c04@redhat.com>
-In-Reply-To: <20d9ed5f-abde-43ee-854f-48a9f69e9c04@redhat.com>
-From: Menglong Dong <menglong8.dong@gmail.com>
-Date: Tue, 22 Oct 2024 16:50:36 +0800
-Message-ID: <CADxym3atdr5Rm1CU8_AU1XaczraYN7ihTJWQiqxaStmD4iETog@mail.gmail.com>
-Subject: Re: [PATCH net-next v3 05/10] net: ip: make ip_route_input_slow()
- return drop reasons
-To: Paolo Abeni <pabeni@redhat.com>
-Cc: davem@davemloft.net, edumazet@google.com, kuba@kernel.org, 
-	dsahern@kernel.org, pablo@netfilter.org, kadlec@netfilter.org, 
-	roopa@nvidia.com, razor@blackwall.org, gnault@redhat.com, 
-	bigeasy@linutronix.de, idosch@nvidia.com, ast@kernel.org, 
-	dongml2@chinatelecom.cn, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	bridge@lists.linux.dev, bpf@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
+ kwepemd100023.china.huawei.com (7.221.188.33)
 
-On Mon, Oct 21, 2024 at 6:52=E2=80=AFPM Paolo Abeni <pabeni@redhat.com> wro=
-te:
->
-> On 10/15/24 16:07, Menglong Dong wrote:
-> > @@ -2316,19 +2327,25 @@ static int ip_route_input_slow(struct sk_buff *=
-skb, __be32 daddr, __be32 saddr,
-> >               err =3D -EHOSTUNREACH;
-> >               goto no_route;
-> >       }
-> > -     if (res->type !=3D RTN_UNICAST)
-> > +     if (res->type !=3D RTN_UNICAST) {
-> > +             reason =3D SKB_DROP_REASON_IP_INVALID_DEST;
-> >               goto martian_destination;
-> > +     }
-> >
-> >  make_route:
-> >       err =3D ip_mkroute_input(skb, res, in_dev, daddr, saddr, dscp, fl=
-keys);
-> > -out: return err;
-> > +     if (!err)
-> > +             reason =3D SKB_NOT_DROPPED_YET;
-> > +
-> > +out: return reason;
->
-> Since you are touching this line, please rewrite the code with a more
-> natural indentation:
->
-> out:
->         return reason;
->
+ip6table_nat module unload has refcnt warning for UAF. call trace is:
 
-Okay!
+WARNING: CPU: 1 PID: 379 at kernel/module/main.c:853 module_put+0x6f/0x80
+Modules linked in: ip6table_nat(-)
+CPU: 1 UID: 0 PID: 379 Comm: ip6tables Not tainted 6.12.0-rc4-00047-gc2ee9f594da8-dirty #205
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996),
+BIOS rel-1.13.0-0-gf21b5a4aeb02-prebuilt.qemu.org 04/01/2014
+RIP: 0010:module_put+0x6f/0x80
+Call Trace:
+ <TASK>
+ get_info+0x128/0x180
+ do_ip6t_get_ctl+0x6a/0x430
+ nf_getsockopt+0x46/0x80
+ ipv6_getsockopt+0xb9/0x100
+ rawv6_getsockopt+0x42/0x190
+ do_sock_getsockopt+0xaa/0x180
+ __sys_getsockopt+0x70/0xc0
+ __x64_sys_getsockopt+0x20/0x30
+ do_syscall_64+0xa2/0x1a0
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
 
-> Thanks,
->
-> Paolo
->
+Concurrent execution of module unload and get_info() trigered the warning.
+The root cause is as follows:
+
+cpu0				      cpu1
+module_exit
+//mod->state = MODULE_STATE_GOING
+  ip6table_nat_exit
+    xt_unregister_template
+    //remove table from templ list
+				      getinfo()
+					  t = xt_find_table_lock
+						list_for_each_entry(tmpl, &xt_templates[af]...)
+							if (strcmp(tmpl->name, name))
+								continue;  //table not found
+							try_module_get
+						list_for_each_entry(t, &xt_net->tables[af]...)
+							return t;  //not get refcnt
+					  module_put(t->me) //uaf
+    unregister_pernet_subsys
+    //remove table from xt_net list
+
+While xt_table module was going away and has been removed from
+xt_templates list, we couldnt get refcnt of xt_table->me. Skip
+the re-traversal of xt_net->tables list to fix it.
+
+Fixes: c22921df777d ("netfilter: iptables: Fix potential null-ptr-deref in ip6table_nat_table_init().")
+Signed-off-by: Dong Chenchen <dongchenchen2@huawei.com>
+---
+ net/netfilter/x_tables.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index da5d929c7c85..359c880ecb07 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1239,6 +1239,7 @@ struct xt_table *xt_find_table_lock(struct net *net, u_int8_t af,
+ 	struct module *owner = NULL;
+ 	struct xt_template *tmpl;
+ 	struct xt_table *t;
++	int err = -ENOENT;
+ 
+ 	mutex_lock(&xt[af].mutex);
+ 	list_for_each_entry(t, &xt_net->tables[af], list)
+@@ -1247,8 +1248,6 @@ struct xt_table *xt_find_table_lock(struct net *net, u_int8_t af,
+ 
+ 	/* Table doesn't exist in this netns, check larval list */
+ 	list_for_each_entry(tmpl, &xt_templates[af], list) {
+-		int err;
+-
+ 		if (strcmp(tmpl->name, name))
+ 			continue;
+ 		if (!try_module_get(tmpl->me))
+@@ -1267,6 +1266,9 @@ struct xt_table *xt_find_table_lock(struct net *net, u_int8_t af,
+ 		break;
+ 	}
+ 
++	if (err < 0)
++		goto out;
++
+ 	/* and once again: */
+ 	list_for_each_entry(t, &xt_net->tables[af], list)
+ 		if (strcmp(t->name, name) == 0)
+@@ -1275,7 +1277,7 @@ struct xt_table *xt_find_table_lock(struct net *net, u_int8_t af,
+ 	module_put(owner);
+  out:
+ 	mutex_unlock(&xt[af].mutex);
+-	return ERR_PTR(-ENOENT);
++	return ERR_PTR(err);
+ }
+ EXPORT_SYMBOL_GPL(xt_find_table_lock);
+ 
+-- 
+2.25.1
+
