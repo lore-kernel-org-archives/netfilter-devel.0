@@ -1,155 +1,170 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb1-f174.google.com (mail-yb1-f174.google.com [209.85.219.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E7EA139580;
-	Tue, 22 Oct 2024 15:33:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7620C1B86CF
+	for <netfilter-devel@vger.kernel.org>; Tue, 22 Oct 2024 16:25:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729611212; cv=none; b=uFM6ixBhN91++tkjfEtCtL/E+sDb74naWN8p7TxgkWfcUb5sPevQl98uqVxgNwdLQKQhFnKfYxUv/Q8U6gt5w9JsKn4I1zQb6Nx6J459fO6OBoNTpmTGh5Gv3VwHNc6uy3VrWUoSa7g+iyHAybLDneTtvP4ja5zTtWJKqXtqtgA=
+	t=1729614349; cv=none; b=lPSAKKMb9dyCT867NSGZ9oKgZJIU/9NBshfPxaPrqqleW/X9EtXy41KfrSjwgpFMcWLovummmKQ9cBxw+n+ZtkzuDP2+6XpO7t6n51ScGaFVIbIHpRK7F96EOQfzSDF4UyxEQzVSwVGx7yawgDvUaMA6clBzJx/rc7zkWxB/NDc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729611212; c=relaxed/simple;
-	bh=JAcUXImlGaxQw1VcdDVM5id5Wu8GNV5AfGianwvJiz0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=LxPhCbNy5RH/MZG3Rgf5m2KuGy3BH0kSLNZmQBXBYSmy2mTU/E3lgvs+MPXkZWHPbtTBC3Tq2L4jC6JeywK6XQQ7T/GI4ETC/JUbSy/RXBI1UFAIVW9e2KL3SpkHsYIQGKl3kMIzYrpOtFb46cM8S+RLxLLcl0WqYuE/vDIeiQI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oMddI/nX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729614349; c=relaxed/simple;
+	bh=x/EpTFWcpafdx4yQZpuOCX0QNjRr/XNDp+88mspQTb4=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=PVYwAYIG11st9jZlFpZJslg6pX4oC9Uml3odJaq6E+x3Phv3xG5CA+0PDRBAesU4fPjiaOindlF2h1Yzl/fwOxWVuOt89B30TXTg66SNh1xLijWPwglN1VG/vm+6BtRxv9zYhoiZVpdn/pAq15SKUZGhaCASOxq7USPJWx+4rrc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=Sm/BRd7m; arc=none smtp.client-ip=209.85.219.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oMddI/nX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5E5EC4CEC3;
-	Tue, 22 Oct 2024 15:33:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1729611212;
-	bh=JAcUXImlGaxQw1VcdDVM5id5Wu8GNV5AfGianwvJiz0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=oMddI/nXQBS+kSD25XSrV9C9kQe2pfPAiUJ9y9JGejSkUpO1fE+YpNsQ7eyhad8vg
-	 TRhYCOR45ldF4pR5p380ozJNXGnfr+Eki6FAESbCmZU4rByH3446XyPzP3lIKa6ZYx
-	 PMXGbCLWfnE9qP1Lb/TQ/1UNDtk8Oqh5Xbe+aOX/SOsZYg6dffnLqZUpL2ysF+flF0
-	 ibvOTeU7Ibdio/xlT3qDiXeqquEJp6UubLp/7sCkgcnLngZ7abd89k0w50qRKCK1WE
-	 HGvrnSTMhdMM6DAQzjjszYCNnITocIE20Y2iZejumjoAhC2TBiGmj54EYuL3XonyXD
-	 2nJqMh3Nm1CAg==
-Date: Tue, 22 Oct 2024 16:33:27 +0100
-From: Simon Horman <horms@kernel.org>
-To: Dong Chenchen <dongchenchen2@huawei.com>
-Cc: pablo@netfilter.org, kadlec@netfilter.org, davem@davemloft.net,
-	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-	fw@strlen.de, kuniyu@amazon.com, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, yuehaibing@huawei.com
-Subject: Re: [PATCH net] net: netfilter: Fix use-after-free in get_info()
-Message-ID: <20241022153327.GW402847@kernel.org>
-References: <20241022085753.2069639-1-dongchenchen2@huawei.com>
+	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="Sm/BRd7m"
+Received: by mail-yb1-f174.google.com with SMTP id 3f1490d57ef6-e2974743675so5404719276.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 22 Oct 2024 09:25:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore.com; s=google; t=1729614346; x=1730219146; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=/FcFULehhwAxlgpbjAQH5GvQbdOX1Yt9+//ukehIaF4=;
+        b=Sm/BRd7mkh6HX69sr8olD+37sceM+80v6PrS5EcixOUU4a2KrTmJLi8DNJWSaQbDrz
+         s/qt43XcXrFCV1qws3+Me8WMWnv38bMJDU5osONzZSMte+FicqIxbDlgZuj8wG8P+ow9
+         b7I3Gjg9B5548gxue+hXFQ1TE1hNJ0f3YlSKG1A/K0InLhxyJ47C3oMertlGIipoiHK0
+         FB5Yqk/upwwqdyQIbYwLr/UzzzJ9f47VMYFd8PRHjqkVxzNg1/PbbILBtXNcdht7xLsO
+         RX3l04zioRt8zZa4MhTRybqfw6l92WMtcvRGBFSYb3jHfTQETBw//8qDBeqv2hv6M7bZ
+         c3UQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1729614346; x=1730219146;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=/FcFULehhwAxlgpbjAQH5GvQbdOX1Yt9+//ukehIaF4=;
+        b=pI6MV4Ix6iJmuM6EHxPMjFB+oTlLvb+REN2gVDNT3NKfTLP1MG49InG2rgqo3b/VG0
+         /jB1TrRqNwmqmVWxLXDTB95WJ3xOMTSNm7HFUVQoQ2bnpt1FyFan7T22VfSc9zjA/Ydu
+         stFOtPr+kc6Jb2vONpV9Hrkblhrc6QjnWobKV9BLNyuv0YlSDHI5RqS/64EIWDvLATXb
+         z3W0CLt/osmaLrTc3VpkfxBc+GYgo3lpdkfc0DiGUJqRVwJxkkB8op1ojVz0p6eGlA6I
+         GmRGpkMduztSpFXXJPd2IMUYX6zJhWI8pLqC0Cx5LHHhVeRZvDYFQ5cJ1AC6069S/r1V
+         Eahw==
+X-Forwarded-Encrypted: i=1; AJvYcCUEmdsokFBWc5YA2zUmgI3H2u/aRmcrjs+EpPHb+PQXD+0IyHT6ZyLYbS5X9dLYzmpwmV75d8xIqDsTTsPtow4=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzbqWCAfK2sV5dk/XPh72tk5TrezrFxyXfQgXqiLmhJdGRrq4qj
+	pFMfqDtvVzKFOXg9d5x2hyJobGowLSqjqjIKO/lXmtiNIvW1uMKQx2QeoZ54fC+Jo8+6rNrqTCn
+	/fqtzE6rPiSE8+Ib9MZyCHQwiZle/ydegRIgF
+X-Google-Smtp-Source: AGHT+IHmXg9dtHAkm/7oEMwvTrSAmrcx0Tkk5Vpql4w7fIuSXGrdcLHvVQoR+ZoH/iPhezQ76TFTXoN23QB1mIW32CM=
+X-Received: by 2002:a05:6902:2603:b0:e29:2ab7:6c03 with SMTP id
+ 3f1490d57ef6-e2e271bb480mr2927136276.33.1729614346507; Tue, 22 Oct 2024
+ 09:25:46 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20241022085753.2069639-1-dongchenchen2@huawei.com>
+References: <20241014151450.73674-2-casey@schaufler-ca.com>
+ <dad74779768e7c00d2a3c9bf8c60045d@paul-moore.com> <bab1de2e-0205-40dd-af3e-5956ff349948@schaufler-ca.com>
+In-Reply-To: <bab1de2e-0205-40dd-af3e-5956ff349948@schaufler-ca.com>
+From: Paul Moore <paul@paul-moore.com>
+Date: Tue, 22 Oct 2024 12:25:35 -0400
+Message-ID: <CAHC9VhQ0mBKz-y33+xV-de+hjA-wMbcv9+VmBXWiPjk5Ygz2eQ@mail.gmail.com>
+Subject: Re: [PATCH v2 1/6] LSM: Ensure the correct LSM context releaser
+To: Casey Schaufler <casey@schaufler-ca.com>
+Cc: linux-security-module@vger.kernel.org, jmorris@namei.org, serge@hallyn.com, 
+	keescook@chromium.org, john.johansen@canonical.com, 
+	penguin-kernel@i-love.sakura.ne.jp, stephen.smalley.work@gmail.com, 
+	linux-kernel@vger.kernel.org, selinux@vger.kernel.org, mic@digikod.net, 
+	linux-integrity@vger.kernel.org, netdev@vger.kernel.org, 
+	audit@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+	linux-nfs@vger.kernel.org, Todd Kjos <tkjos@google.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Oct 22, 2024 at 04:57:53PM +0800, Dong Chenchen wrote:
-> ip6table_nat module unload has refcnt warning for UAF. call trace is:
-> 
-> WARNING: CPU: 1 PID: 379 at kernel/module/main.c:853 module_put+0x6f/0x80
-> Modules linked in: ip6table_nat(-)
-> CPU: 1 UID: 0 PID: 379 Comm: ip6tables Not tainted 6.12.0-rc4-00047-gc2ee9f594da8-dirty #205
-> Hardware name: QEMU Standard PC (i440FX + PIIX, 1996),
-> BIOS rel-1.13.0-0-gf21b5a4aeb02-prebuilt.qemu.org 04/01/2014
-> RIP: 0010:module_put+0x6f/0x80
-> Call Trace:
->  <TASK>
->  get_info+0x128/0x180
->  do_ip6t_get_ctl+0x6a/0x430
->  nf_getsockopt+0x46/0x80
->  ipv6_getsockopt+0xb9/0x100
->  rawv6_getsockopt+0x42/0x190
->  do_sock_getsockopt+0xaa/0x180
->  __sys_getsockopt+0x70/0xc0
->  __x64_sys_getsockopt+0x20/0x30
->  do_syscall_64+0xa2/0x1a0
->  entry_SYSCALL_64_after_hwframe+0x77/0x7f
-> 
-> Concurrent execution of module unload and get_info() trigered the warning.
-> The root cause is as follows:
-> 
-> cpu0				      cpu1
-> module_exit
-> //mod->state = MODULE_STATE_GOING
->   ip6table_nat_exit
->     xt_unregister_template
->     //remove table from templ list
-> 				      getinfo()
-> 					  t = xt_find_table_lock
-> 						list_for_each_entry(tmpl, &xt_templates[af]...)
-> 							if (strcmp(tmpl->name, name))
-> 								continue;  //table not found
-> 							try_module_get
-> 						list_for_each_entry(t, &xt_net->tables[af]...)
-> 							return t;  //not get refcnt
-> 					  module_put(t->me) //uaf
->     unregister_pernet_subsys
->     //remove table from xt_net list
-> 
-> While xt_table module was going away and has been removed from
-> xt_templates list, we couldnt get refcnt of xt_table->me. Skip
-> the re-traversal of xt_net->tables list to fix it.
-> 
-> Fixes: c22921df777d ("netfilter: iptables: Fix potential null-ptr-deref in ip6table_nat_table_init().")
-> Signed-off-by: Dong Chenchen <dongchenchen2@huawei.com>
-> ---
->  net/netfilter/x_tables.c | 8 +++++---
->  1 file changed, 5 insertions(+), 3 deletions(-)
-> 
-> diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-> index da5d929c7c85..359c880ecb07 100644
-> --- a/net/netfilter/x_tables.c
-> +++ b/net/netfilter/x_tables.c
-> @@ -1239,6 +1239,7 @@ struct xt_table *xt_find_table_lock(struct net *net, u_int8_t af,
->  	struct module *owner = NULL;
->  	struct xt_template *tmpl;
->  	struct xt_table *t;
-> +	int err = -ENOENT;
->  
->  	mutex_lock(&xt[af].mutex);
->  	list_for_each_entry(t, &xt_net->tables[af], list)
-> @@ -1247,8 +1248,6 @@ struct xt_table *xt_find_table_lock(struct net *net, u_int8_t af,
->  
->  	/* Table doesn't exist in this netns, check larval list */
->  	list_for_each_entry(tmpl, &xt_templates[af], list) {
-> -		int err;
-> -
->  		if (strcmp(tmpl->name, name))
->  			continue;
->  		if (!try_module_get(tmpl->me))
-> @@ -1267,6 +1266,9 @@ struct xt_table *xt_find_table_lock(struct net *net, u_int8_t af,
->  		break;
->  	}
->  
-> +	if (err < 0)
-> +		goto out;
-> +
->  	/* and once again: */
->  	list_for_each_entry(t, &xt_net->tables[af], list)
->  		if (strcmp(t->name, name) == 0)
-> @@ -1275,7 +1277,7 @@ struct xt_table *xt_find_table_lock(struct net *net, u_int8_t af,
->  	module_put(owner);
+On Mon, Oct 21, 2024 at 7:58=E2=80=AFPM Casey Schaufler <casey@schaufler-ca=
+.com> wrote:
+> On 10/21/2024 4:39 PM, Paul Moore wrote:
+> > On Oct 14, 2024 Casey Schaufler <casey@schaufler-ca.com> wrote:
+> >> Add a new lsm_context data structure to hold all the information about=
+ a
+> >> "security context", including the string, its size and which LSM alloc=
+ated
+> >> the string. The allocation information is necessary because LSMs have
+> >> different policies regarding the lifecycle of these strings. SELinux
+> >> allocates and destroys them on each use, whereas Smack provides a poin=
+ter
+> >> to an entry in a list that never goes away.
+> >>
+> >> Update security_release_secctx() to use the lsm_context instead of a
+> >> (char *, len) pair. Change its callers to do likewise.  The LSMs
+> >> supporting this hook have had comments added to remind the developer
+> >> that there is more work to be done.
+> >>
+> >> The BPF security module provides all LSM hooks. While there has yet to
+> >> be a known instance of a BPF configuration that uses security contexts=
+,
+> >> the possibility is real. In the existing implementation there is
+> >> potential for multiple frees in that case.
+> >>
+> >> Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
+> >> Cc: linux-integrity@vger.kernel.org
+> >> Cc: netdev@vger.kernel.org
+> >> Cc: audit@vger.kernel.org
+> >> Cc: netfilter-devel@vger.kernel.org
+> >> To: Pablo Neira Ayuso <pablo@netfilter.org>
+> >> Cc: linux-nfs@vger.kernel.org
+> >> Cc: Todd Kjos <tkjos@google.com>
+> >> Reviewed-by: Serge Hallyn <sergeh@kernel.org>
+> >> ---
+> >>  drivers/android/binder.c                | 24 ++++++-------
+> >>  fs/ceph/xattr.c                         |  6 +++-
+> >>  fs/nfs/nfs4proc.c                       |  8 +++--
+> >>  fs/nfsd/nfs4xdr.c                       |  8 +++--
+> >>  include/linux/lsm_hook_defs.h           |  2 +-
+> >>  include/linux/security.h                | 35 +++++++++++++++++--
+> >>  include/net/scm.h                       | 11 +++---
+> >>  kernel/audit.c                          | 30 ++++++++---------
+> >>  kernel/auditsc.c                        | 23 +++++++------
+> >>  net/ipv4/ip_sockglue.c                  | 10 +++---
+> >>  net/netfilter/nf_conntrack_netlink.c    | 10 +++---
+> >>  net/netfilter/nf_conntrack_standalone.c |  9 +++--
+> >>  net/netfilter/nfnetlink_queue.c         | 13 ++++---
+> >>  net/netlabel/netlabel_unlabeled.c       | 45 +++++++++++-------------=
+-
+> >>  net/netlabel/netlabel_user.c            | 11 +++---
+> >>  security/apparmor/include/secid.h       |  2 +-
+> >>  security/apparmor/secid.c               | 11 ++++--
+> >>  security/security.c                     |  8 ++---
+> >>  security/selinux/hooks.c                | 11 ++++--
+> >>  19 files changed, 167 insertions(+), 110 deletions(-)
+> > ..
+> >
+> >> diff --git a/net/netlabel/netlabel_unlabeled.c b/net/netlabel/netlabel=
+_unlabeled.c
+> >> index 1bc2d0890a9f..8303bbcfc543 100644
+> >> --- a/net/netlabel/netlabel_unlabeled.c
+> >> +++ b/net/netlabel/netlabel_unlabeled.c
+> >> @@ -1127,14 +1122,14 @@ static int netlbl_unlabel_staticlist_gen(u32 c=
+md,
+> >>              secid =3D addr6->secid;
+> >>      }
+> >>
+> >> -    ret_val =3D security_secid_to_secctx(secid, &secctx, &secctx_len)=
+;
+> >> +    ret_val =3D security_secid_to_secctx(secid, &ctx.context, &ctx.le=
+n);
+> >>      if (ret_val !=3D 0)
+> >>              goto list_cb_failure;
+> >>      ret_val =3D nla_put(cb_arg->skb,
+> >>                        NLBL_UNLABEL_A_SECCTX,
+> >> -                      secctx_len,
+> >> -                      secctx);
+> >> -    security_release_secctx(secctx, secctx_len);
+> >> +                      ctx.len,
+> >> +                      ctx.context);
+> > Nitpicky alignment issue; please keep the arguments aligned as they
+> > are currently.
+>
+> Not a problem, although it looks like it's correct to me. I'll check to m=
+ake sure.
 
-Hi Dong Chenchen,
+Thanks.  It's likely just an oddity due to tabs rendering a bit odd in
+the diff, I usually check that but maybe I didn't/forgot here.  Not a
+major problem either way, I only mentioned it because I was commenting
+on other patches in the series.
 
-I'm unsure if this can happen in practice, although I guess so else the
-module_put() call above is never reached. In any case, previously if we got
-to this line then the function would return ERR_PTR(-ENOENT).  But now it
-will return ERR_PTR(0). Which although valid often indicates a bug.
-
-Flagged by Smatch.
-
->   out:
->  	mutex_unlock(&xt[af].mutex);
-> -	return ERR_PTR(-ENOENT);
-> +	return ERR_PTR(err);
->  }
->  EXPORT_SYMBOL_GPL(xt_find_table_lock);
->  
-> -- 
-> 2.25.1
-> 
-> 
+--=20
+paul-moore.com
