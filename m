@@ -1,153 +1,604 @@
-Received: from mail-wr1-f45.google.com (mail-wr1-f45.google.com [209.85.221.45])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78266211C
-	for <netfilter-devel@vger.kernel.org>; Wed, 23 Oct 2024 17:16:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 378721E51D
+	for <netfilter-devel@vger.kernel.org>; Wed, 23 Oct 2024 20:00:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729703791; cv=none; b=JTuwhDop6RgZYgec4PlsMfyZEDXG4hPfLpaATpLLU2SaDz0/HIrRp/JPAc8FzdupDtF7ZbbRVqFpviSpmIzNU/OKb2p6ewlxrdGQw1YscNIF6cJfFAFb/+EvDId9bcO0uAOdPBTfMTi/J2zPgqx+Knjooxv4oTvSAeYHHQlG3/s=
+	t=1729713656; cv=none; b=ueHnBNEkj7zn7bA3X7D/F0x5MzOxN/ryqDwooJj3OUzhX05M7AdtL8FnqbhX3wAeW63ACJRICvRs77iNneDj0dCJS2iTn5snlYuPb6Lsu7q4ZVRw+dkco52quTqjb2vmto8K/DK1MmO+aSqhortDScgUklvfH1g4RBslxQe1skg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729703791; c=relaxed/simple;
-	bh=Uv3hkCr5Ps2yRPW2MYv7ATs5YRMkTHa0nqeF+L4acfE=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To; b=YS5p5vPwdblLcy2ql3SyQR3hSZUkNpJqOA+D4gaPiC/pQvO4rWRsAocZGABEaP5AYsQgi7IAIrHRNPaJTOKxQSUHZuB3k/mer5IiuEQg/md8dg4YxDnmkoza8zCRXXS+QIHpfxQ4+OS6hMNw91xvt5CyBIpIt4wLjqtyA9M5UlQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=RDslFYwX; arc=none smtp.client-ip=209.85.221.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
+	s=arc-20240116; t=1729713656; c=relaxed/simple;
+	bh=RGWO+9MRP451jT0vvTl13KjTwnZUkYswgg54JdEutJw=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=L94fgZ85YcztRF92q2BGgiDOtT/hjyNFBr1xD0EplEKgcY5HJFs7dCankZ7+v/JjcnVA0fmzIyFlvaA35Bpb6Df/ZdMUTRddfpvNmLt47XyHFSkWSKNBGgczahtNmI7/FunXP9aU8AjBXk78fFZfKb2FwZHRMXlsZNneZRY+Axc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=jREjqdIV; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="RDslFYwX"
-Received: by mail-wr1-f45.google.com with SMTP id ffacd0b85a97d-37d43a9bc03so4976460f8f.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 23 Oct 2024 10:16:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1729703788; x=1730308588; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:message-id:subject:cc
-         :to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=OljP4PdWV2R3StPPy5+/cJKVw4Vph1NJkS5of3TSma0=;
-        b=RDslFYwXpLpysTPGDY8UayI6rpoyHJ3Nrt5ZTa+vBY0IUYn64ShjkpQ26BWxGCg+qj
-         EGeA8eOcGuP1yBaNgaZHhrHrNwI5Ho4V6/9g6BUljvyfHvL8/oxn2JiuZNRRkBJpcIAK
-         vcRd7Pi1X666BrPTJwF+r7EKbfWZd9Pw0aH/NB9H/nMjDA5WE7A11LtqTgCw35D/5+P8
-         dqljaRvwCwgIEgSb2PUU+M3MpLQ57oDm9uoIrXn1C15sNRvARF1UCsaqsm8vH3vs0dLc
-         jR/gRi6JwsVGygznrk+6lIylQ7gBW+TQZX2dEhtzCGWS6vBc7mydrL3BXqyBAdBF5HJV
-         astQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1729703788; x=1730308588;
-        h=in-reply-to:content-disposition:mime-version:message-id:subject:cc
-         :to:from:date:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=OljP4PdWV2R3StPPy5+/cJKVw4Vph1NJkS5of3TSma0=;
-        b=iSmEOCHIGNjCchaMJjwtBDfG1dFiU/G54+ZQfctqlx0F54w6ULEukQ77Gu4QN9GzRa
-         cLuTWpBw2TsBEcF25FxgdjqjPVVn5cnHkiAyF8YYkYec72pSckC/IMySVA9Gy5Vfnlvh
-         dxa7tq/KGsxPvM4wO7NBbod/Di4spF3nIdkeKkA+eVpuMeovQyLM+Tx0fLqIy1QVYQuu
-         gsXCQf4Ik3zj2BnAABUVO5JtLoVwE5+XMArzJE0yz+QGYwnEDKPX5BbGCNmsnldGJSmC
-         YqD8x+ZDN1V0IcB1wUQhKNJByCHz4akGfvpZzH0WHDZu8bFC1XF1482kMT9YHscg+RG5
-         /exQ==
-X-Forwarded-Encrypted: i=1; AJvYcCX2/Ax39jBVB+T/HzhsflQkEs0PDJXpOJSMg8pKma9Gx2/147D/nFd6xJeL05ct9T8j9wZbOctDtG9IdDl50DY=@vger.kernel.org
-X-Gm-Message-State: AOJu0YymttY65gn4mTWXnCZD6K0n1ULQQFMWIIrXt2cFmC7s9B8ARVou
-	rPvKWH7iSq6BJ11g268/r6Pg4L1Vi1IR5KKpRPNtC7KbfDYUhMBu1xOJiZHEQPI=
-X-Google-Smtp-Source: AGHT+IHuawpuTA3FdkKB3grmiiT77MshEcjs2fsxx4eyqV28W03YuXYVz0wzAjnd/bp4vmWf9SSucg==
-X-Received: by 2002:a5d:6102:0:b0:37d:509e:8742 with SMTP id ffacd0b85a97d-37efceee7d5mr2251003f8f.1.1729703787648;
-        Wed, 23 Oct 2024 10:16:27 -0700 (PDT)
-Received: from localhost ([41.210.147.101])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-37ee0b9c6b0sm9307877f8f.109.2024.10.23.10.16.26
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 23 Oct 2024 10:16:27 -0700 (PDT)
-Date: Wed, 23 Oct 2024 20:16:21 +0300
-From: Dan Carpenter <dan.carpenter@linaro.org>
-To: oe-kbuild@lists.linux.dev, Dong Chenchen <dongchenchen2@huawei.com>,
-	pablo@netfilter.org, kadlec@netfilter.org, davem@davemloft.net,
-	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-	fw@strlen.de, kuniyu@amazon.com
-Cc: lkp@intel.com, oe-kbuild-all@lists.linux.dev,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	yuehaibing@huawei.com, Dong Chenchen <dongchenchen2@huawei.com>
-Subject: Re: [PATCH net] net: netfilter: Fix use-after-free in get_info()
-Message-ID: <01b2bdd1-39f4-43d1-a7e6-f8e8061175a4@stanley.mountain>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="jREjqdIV"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=pcnppAfU89A68DZbDxfF8abTaoAVYld0skgI7m8Sn5c=; b=jREjqdIVK/jOwVvDLOESL/0mgZ
+	/xVz1WGjIud3ar4/KawVF3CFRZBfJIGGdxpVVl0y+ku67193CZ51zH9fYlDZf1G3irotaZPR6AjZX
+	0jkarfIdni4OqikruRKCYUxsBI61AQxoEU4dsoSp4f5VO9QpihBPpHYZzmcruFeQXYSeFQcgvkFHu
+	Cr50t4LWi2WRYhZscZY9udpN67KNz9sNfvMA9cByudNffcvmKjnosbJvGB7CkLDdXbeDgv7Jf0RnO
+	UxZVd7xM0joddIdcAuFHILwxOLB06NW7dbMqQM4bLo1E8tv3tyxc2T2WP+i+qGiatDBsMRjCDQIuz
+	R6es/6Ww==;
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1t3hXG-000000000bx-3Wtu;
+	Wed, 23 Oct 2024 22:00:51 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: [libnftnl PATCH] Introduce struct nftnl_str_array
+Date: Wed, 23 Oct 2024 22:00:49 +0200
+Message-ID: <20241023200049.22598-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20241022085753.2069639-1-dongchenchen2@huawei.com>
+Content-Transfer-Encoding: 8bit
 
-Hi Dong,
+This data structure holds an array of allocated strings for use in
+nftnl_chain and nftnl_flowtable structs. For convenience, implement
+functions to clear, populate and iterate over contents.
 
-kernel test robot noticed the following build warnings:
+While at it, extend chain and flowtable tests to cover these attributes,
+too.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Dong-Chenchen/net-netfilter-Fix-use-after-free-in-get_info/20241022-165936
-base:   net/main
-patch link:    https://lore.kernel.org/r/20241022085753.2069639-1-dongchenchen2%40huawei.com
-patch subject: [PATCH net] net: netfilter: Fix use-after-free in get_info()
-config: x86_64-randconfig-161-20241023 (https://download.01.org/0day-ci/archive/20241024/202410240020.Cqi2d68p-lkp@intel.com/config)
-compiler: clang version 18.1.8 (https://github.com/llvm/llvm-project 3b5b5c1ec4a3095ab096dd780e84d7ab81f3d7ff)
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ include/internal.h         |  1 +
+ src/Makefile.am            |  1 +
+ src/chain.c                | 90 ++++++------------------------------
+ src/flowtable.c            | 94 ++++++--------------------------------
+ src/utils.c                |  1 +
+ tests/nft-chain-test.c     | 37 ++++++++++++++-
+ tests/nft-flowtable-test.c | 21 +++++++++
+ 7 files changed, 86 insertions(+), 159 deletions(-)
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
-| Closes: https://lore.kernel.org/r/202410240020.Cqi2d68p-lkp@intel.com/
-
-smatch warnings:
-net/netfilter/x_tables.c:1280 xt_find_table_lock() warn: passing zero to 'ERR_PTR'
-
-vim +/ERR_PTR +1280 net/netfilter/x_tables.c
-
-03d13b6868a261 Florian Westphal  2017-12-08  1234  /* Find table by name, grabs mutex & ref.  Returns ERR_PTR on error. */
-76108cea065cda Jan Engelhardt    2008-10-08  1235  struct xt_table *xt_find_table_lock(struct net *net, u_int8_t af,
-76108cea065cda Jan Engelhardt    2008-10-08  1236  				    const char *name)
-2e4e6a17af35be Harald Welte      2006-01-12  1237  {
-1d610d4d31a8ed Florian Westphal  2021-04-01  1238  	struct xt_pernet *xt_net = net_generic(net, xt_pernet_id);
-fdacd57c79b79a Florian Westphal  2021-08-03  1239  	struct module *owner = NULL;
-fdacd57c79b79a Florian Westphal  2021-08-03  1240  	struct xt_template *tmpl;
-fdacd57c79b79a Florian Westphal  2021-08-03  1241  	struct xt_table *t;
-f4f502d5a8ea29 Dong Chenchen     2024-10-22  1242  	int err = -ENOENT;
-2e4e6a17af35be Harald Welte      2006-01-12  1243  
-7926dbfa4bc14e Pablo Neira Ayuso 2014-07-31  1244  	mutex_lock(&xt[af].mutex);
-1d610d4d31a8ed Florian Westphal  2021-04-01  1245  	list_for_each_entry(t, &xt_net->tables[af], list)
-2e4e6a17af35be Harald Welte      2006-01-12  1246  		if (strcmp(t->name, name) == 0 && try_module_get(t->me))
-2e4e6a17af35be Harald Welte      2006-01-12  1247  			return t;
-b9e69e12739718 Florian Westphal  2016-02-25  1248  
-fdacd57c79b79a Florian Westphal  2021-08-03  1249  	/* Table doesn't exist in this netns, check larval list */
-fdacd57c79b79a Florian Westphal  2021-08-03  1250  	list_for_each_entry(tmpl, &xt_templates[af], list) {
-fdacd57c79b79a Florian Westphal  2021-08-03  1251  		if (strcmp(tmpl->name, name))
-b9e69e12739718 Florian Westphal  2016-02-25  1252  			continue;
-fdacd57c79b79a Florian Westphal  2021-08-03  1253  		if (!try_module_get(tmpl->me))
-03d13b6868a261 Florian Westphal  2017-12-08  1254  			goto out;
-fdacd57c79b79a Florian Westphal  2021-08-03  1255  
-fdacd57c79b79a Florian Westphal  2021-08-03  1256  		owner = tmpl->me;
-fdacd57c79b79a Florian Westphal  2021-08-03  1257  
-b9e69e12739718 Florian Westphal  2016-02-25  1258  		mutex_unlock(&xt[af].mutex);
-fdacd57c79b79a Florian Westphal  2021-08-03  1259  		err = tmpl->table_init(net);
-03d13b6868a261 Florian Westphal  2017-12-08  1260  		if (err < 0) {
-fdacd57c79b79a Florian Westphal  2021-08-03  1261  			module_put(owner);
-03d13b6868a261 Florian Westphal  2017-12-08  1262  			return ERR_PTR(err);
-b9e69e12739718 Florian Westphal  2016-02-25  1263  		}
-b9e69e12739718 Florian Westphal  2016-02-25  1264  
-b9e69e12739718 Florian Westphal  2016-02-25  1265  		mutex_lock(&xt[af].mutex);
-b9e69e12739718 Florian Westphal  2016-02-25  1266  		break;
-b9e69e12739718 Florian Westphal  2016-02-25  1267  	}
-b9e69e12739718 Florian Westphal  2016-02-25  1268  
-f4f502d5a8ea29 Dong Chenchen     2024-10-22  1269  	if (err < 0)
-f4f502d5a8ea29 Dong Chenchen     2024-10-22  1270  		goto out;
-f4f502d5a8ea29 Dong Chenchen     2024-10-22  1271  
-b9e69e12739718 Florian Westphal  2016-02-25  1272  	/* and once again: */
-1d610d4d31a8ed Florian Westphal  2021-04-01  1273  	list_for_each_entry(t, &xt_net->tables[af], list)
-b9e69e12739718 Florian Westphal  2016-02-25  1274  		if (strcmp(t->name, name) == 0)
-b9e69e12739718 Florian Westphal  2016-02-25  1275  			return t;
-
-ret it zero here, but if we fail to find the name then we should set ret =
--ENOENT;
-
-b9e69e12739718 Florian Westphal  2016-02-25  1276  
-fdacd57c79b79a Florian Westphal  2021-08-03  1277  	module_put(owner);
-b9e69e12739718 Florian Westphal  2016-02-25  1278   out:
-9e19bb6d7a0959 Ingo Molnar       2006-03-25  1279  	mutex_unlock(&xt[af].mutex);
-f4f502d5a8ea29 Dong Chenchen     2024-10-22 @1280  	return ERR_PTR(err);
-2e4e6a17af35be Harald Welte      2006-01-12  1281  }
-
+diff --git a/include/internal.h b/include/internal.h
+index 1f96731589c04..b8fc7f129c76e 100644
+--- a/include/internal.h
++++ b/include/internal.h
+@@ -12,5 +12,6 @@
+ #include "expr.h"
+ #include "expr_ops.h"
+ #include "rule.h"
++#include "str_array.h"
+ 
+ #endif /* _LIBNFTNL_INTERNAL_H_ */
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 3cd259c04d1c3..1c38d00c4e180 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -17,6 +17,7 @@ libnftnl_la_SOURCES = utils.c		\
+ 		      rule.c		\
+ 		      set.c		\
+ 		      set_elem.c	\
++		      str_array.c	\
+ 		      ruleset.c		\
+ 		      udata.c		\
+ 		      expr.c		\
+diff --git a/src/chain.c b/src/chain.c
+index 0b68939fe21a7..c9fbc3a87314b 100644
+--- a/src/chain.c
++++ b/src/chain.c
+@@ -37,8 +37,7 @@ struct nftnl_chain {
+ 	const char	*type;
+ 	const char	*table;
+ 	const char	*dev;
+-	const char	**dev_array;
+-	int		dev_array_len;
++	struct nftnl_str_array	dev_array;
+ 	uint32_t	family;
+ 	uint32_t	policy;
+ 	uint32_t	hooknum;
+@@ -117,7 +116,6 @@ EXPORT_SYMBOL(nftnl_chain_free);
+ void nftnl_chain_free(const struct nftnl_chain *c)
+ {
+ 	struct nftnl_rule *r, *tmp;
+-	int i;
+ 
+ 	list_for_each_entry_safe(r, tmp, &c->rule_list, head)
+ 		nftnl_rule_free(r);
+@@ -132,12 +130,8 @@ void nftnl_chain_free(const struct nftnl_chain *c)
+ 		xfree(c->dev);
+ 	if (c->flags & (1 << NFTNL_CHAIN_USERDATA))
+ 		xfree(c->user.data);
+-	if (c->flags & (1 << NFTNL_CHAIN_DEVICES)) {
+-		for (i = 0; i < c->dev_array_len; i++)
+-			xfree(c->dev_array[i]);
+-
+-		xfree(c->dev_array);
+-	}
++	if (c->flags & (1 << NFTNL_CHAIN_DEVICES))
++		nftnl_str_array_clear((struct nftnl_str_array *)&c->dev_array);
+ 	xfree(c);
+ }
+ 
+@@ -150,8 +144,6 @@ bool nftnl_chain_is_set(const struct nftnl_chain *c, uint16_t attr)
+ EXPORT_SYMBOL(nftnl_chain_unset);
+ void nftnl_chain_unset(struct nftnl_chain *c, uint16_t attr)
+ {
+-	int i;
+-
+ 	if (!(c->flags & (1 << attr)))
+ 		return;
+ 
+@@ -181,9 +173,7 @@ void nftnl_chain_unset(struct nftnl_chain *c, uint16_t attr)
+ 		xfree(c->dev);
+ 		break;
+ 	case NFTNL_CHAIN_DEVICES:
+-		for (i = 0; i < c->dev_array_len; i++)
+-			xfree(c->dev_array[i]);
+-		xfree(c->dev_array);
++		nftnl_str_array_clear(&c->dev_array);
+ 		break;
+ 	case NFTNL_CHAIN_USERDATA:
+ 		xfree(c->user.data);
+@@ -212,9 +202,6 @@ EXPORT_SYMBOL(nftnl_chain_set_data);
+ int nftnl_chain_set_data(struct nftnl_chain *c, uint16_t attr,
+ 			 const void *data, uint32_t data_len)
+ {
+-	const char **dev_array;
+-	int len = 0, i;
+-
+ 	nftnl_assert_attr_exists(attr, NFTNL_CHAIN_MAX);
+ 	nftnl_assert_validate(data, nftnl_chain_validate, attr, data_len);
+ 
+@@ -256,24 +243,8 @@ int nftnl_chain_set_data(struct nftnl_chain *c, uint16_t attr,
+ 		return nftnl_set_str_attr(&c->dev, &c->flags,
+ 					  attr, data, data_len);
+ 	case NFTNL_CHAIN_DEVICES:
+-		dev_array = (const char **)data;
+-		while (dev_array[len] != NULL)
+-			len++;
+-
+-		if (c->flags & (1 << NFTNL_CHAIN_DEVICES)) {
+-			for (i = 0; i < c->dev_array_len; i++)
+-				xfree(c->dev_array[i]);
+-			xfree(c->dev_array);
+-		}
+-
+-		c->dev_array = calloc(len + 1, sizeof(char *));
+-		if (!c->dev_array)
++		if (nftnl_str_array_set(&c->dev_array, data) < 0)
+ 			return -1;
+-
+-		for (i = 0; i < len; i++)
+-			c->dev_array[i] = strdup(dev_array[i]);
+-
+-		c->dev_array_len = len;
+ 		break;
+ 	case NFTNL_CHAIN_FLAGS:
+ 		memcpy(&c->chain_flags, data, sizeof(c->chain_flags));
+@@ -385,7 +356,7 @@ const void *nftnl_chain_get_data(const struct nftnl_chain *c, uint16_t attr,
+ 		return c->dev;
+ 	case NFTNL_CHAIN_DEVICES:
+ 		*data_len = 0;
+-		return &c->dev_array[0];
++		return c->dev_array.array;
+ 	case NFTNL_CHAIN_FLAGS:
+ 		*data_len = sizeof(uint32_t);
+ 		return &c->chain_flags;
+@@ -493,11 +464,11 @@ void nftnl_chain_nlmsg_build_payload(struct nlmsghdr *nlh, const struct nftnl_ch
+ 		mnl_attr_put_strz(nlh, NFTA_HOOK_DEV, c->dev);
+ 	else if (c->flags & (1 << NFTNL_CHAIN_DEVICES)) {
+ 		struct nlattr *nest_dev;
++		const char *dev;
+ 
+ 		nest_dev = mnl_attr_nest_start(nlh, NFTA_HOOK_DEVS);
+-		for (i = 0; i < c->dev_array_len; i++)
+-			mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME,
+-					  c->dev_array[i]);
++		nftnl_str_array_foreach(dev, &c->dev_array, i)
++			mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME, dev);
+ 		mnl_attr_nest_end(nlh, nest_dev);
+ 	}
+ 
+@@ -664,42 +635,6 @@ static int nftnl_chain_parse_hook_cb(const struct nlattr *attr, void *data)
+ 	return MNL_CB_OK;
+ }
+ 
+-static int nftnl_chain_parse_devs(struct nlattr *nest, struct nftnl_chain *c)
+-{
+-	const char **dev_array, **tmp;
+-	int len = 0, size = 8;
+-	struct nlattr *attr;
+-
+-	dev_array = calloc(8, sizeof(char *));
+-	if (!dev_array)
+-		return -1;
+-
+-	mnl_attr_for_each_nested(attr, nest) {
+-		if (mnl_attr_get_type(attr) != NFTA_DEVICE_NAME)
+-			goto err;
+-		dev_array[len++] = strdup(mnl_attr_get_str(attr));
+-		if (len >= size) {
+-			tmp = realloc(dev_array, size * 2 * sizeof(char *));
+-			if (!tmp)
+-				goto err;
+-
+-			size *= 2;
+-			memset(&tmp[len], 0, (size - len) * sizeof(char *));
+-			dev_array = tmp;
+-		}
+-	}
+-
+-	c->dev_array = dev_array;
+-	c->dev_array_len = len;
+-
+-	return 0;
+-err:
+-	while (len--)
+-		xfree(dev_array[len]);
+-	xfree(dev_array);
+-	return -1;
+-}
+-
+ static int nftnl_chain_parse_hook(struct nlattr *attr, struct nftnl_chain *c)
+ {
+ 	struct nlattr *tb[NFTA_HOOK_MAX+1] = {};
+@@ -723,7 +658,7 @@ static int nftnl_chain_parse_hook(struct nlattr *attr, struct nftnl_chain *c)
+ 		c->flags |= (1 << NFTNL_CHAIN_DEV);
+ 	}
+ 	if (tb[NFTA_HOOK_DEVS]) {
+-		ret = nftnl_chain_parse_devs(tb[NFTA_HOOK_DEVS], c);
++		ret = nftnl_parse_devs(&c->dev_array, tb[NFTA_HOOK_DEVS]);
+ 		if (ret < 0)
+ 			return -1;
+ 		c->flags |= (1 << NFTNL_CHAIN_DEVICES);
+@@ -823,6 +758,7 @@ static int nftnl_chain_snprintf_default(char *buf, size_t remain,
+ 					const struct nftnl_chain *c)
+ {
+ 	int ret, offset = 0, i;
++	const char *dev;
+ 
+ 	ret = snprintf(buf, remain, "%s %s %s use %u",
+ 		       nftnl_family2str(c->family), c->table, c->name, c->use);
+@@ -854,9 +790,9 @@ static int nftnl_chain_snprintf_default(char *buf, size_t remain,
+ 			ret = snprintf(buf + offset, remain, " dev { ");
+ 			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+ 
+-			for (i = 0; i < c->dev_array_len; i++) {
++			nftnl_str_array_foreach(dev, &c->dev_array, i) {
+ 				ret = snprintf(buf + offset, remain, " %s ",
+-					       c->dev_array[i]);
++					       dev);
+ 				SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+ 			}
+ 			ret = snprintf(buf + offset, remain, " } ");
+diff --git a/src/flowtable.c b/src/flowtable.c
+index 41a1456bb19b2..2a8d374541b0b 100644
+--- a/src/flowtable.c
++++ b/src/flowtable.c
+@@ -26,8 +26,7 @@ struct nftnl_flowtable {
+ 	uint32_t		hooknum;
+ 	int32_t			prio;
+ 	uint32_t		size;
+-	const char		**dev_array;
+-	uint32_t		dev_array_len;
++	struct nftnl_str_array	dev_array;
+ 	uint32_t		ft_flags;
+ 	uint32_t		use;
+ 	uint32_t		flags;
+@@ -43,18 +42,12 @@ struct nftnl_flowtable *nftnl_flowtable_alloc(void)
+ EXPORT_SYMBOL(nftnl_flowtable_free);
+ void nftnl_flowtable_free(const struct nftnl_flowtable *c)
+ {
+-	int i;
+-
+ 	if (c->flags & (1 << NFTNL_FLOWTABLE_NAME))
+ 		xfree(c->name);
+ 	if (c->flags & (1 << NFTNL_FLOWTABLE_TABLE))
+ 		xfree(c->table);
+-	if (c->flags & (1 << NFTNL_FLOWTABLE_DEVICES)) {
+-		for (i = 0; i < c->dev_array_len; i++)
+-			xfree(c->dev_array[i]);
+-
+-		xfree(c->dev_array);
+-	}
++	if (c->flags & (1 << NFTNL_FLOWTABLE_DEVICES))
++		nftnl_str_array_clear((struct nftnl_str_array *)&c->dev_array);
+ 	xfree(c);
+ }
+ 
+@@ -67,8 +60,6 @@ bool nftnl_flowtable_is_set(const struct nftnl_flowtable *c, uint16_t attr)
+ EXPORT_SYMBOL(nftnl_flowtable_unset);
+ void nftnl_flowtable_unset(struct nftnl_flowtable *c, uint16_t attr)
+ {
+-	int i;
+-
+ 	if (!(c->flags & (1 << attr)))
+ 		return;
+ 
+@@ -87,9 +78,7 @@ void nftnl_flowtable_unset(struct nftnl_flowtable *c, uint16_t attr)
+ 	case NFTNL_FLOWTABLE_HANDLE:
+ 		break;
+ 	case NFTNL_FLOWTABLE_DEVICES:
+-		for (i = 0; i < c->dev_array_len; i++)
+-			xfree(c->dev_array[i]);
+-		xfree(c->dev_array);
++		nftnl_str_array_clear(&c->dev_array);
+ 		break;
+ 	default:
+ 		return;
+@@ -111,9 +100,6 @@ EXPORT_SYMBOL(nftnl_flowtable_set_data);
+ int nftnl_flowtable_set_data(struct nftnl_flowtable *c, uint16_t attr,
+ 			     const void *data, uint32_t data_len)
+ {
+-	const char **dev_array;
+-	int len = 0, i;
+-
+ 	nftnl_assert_attr_exists(attr, NFTNL_FLOWTABLE_MAX);
+ 	nftnl_assert_validate(data, nftnl_flowtable_validate, attr, data_len);
+ 
+@@ -135,24 +121,8 @@ int nftnl_flowtable_set_data(struct nftnl_flowtable *c, uint16_t attr,
+ 		memcpy(&c->family, data, sizeof(c->family));
+ 		break;
+ 	case NFTNL_FLOWTABLE_DEVICES:
+-		dev_array = (const char **)data;
+-		while (dev_array[len] != NULL)
+-			len++;
+-
+-		if (c->flags & (1 << NFTNL_FLOWTABLE_DEVICES)) {
+-			for (i = 0; i < c->dev_array_len; i++)
+-				xfree(c->dev_array[i]);
+-			xfree(c->dev_array);
+-		}
+-
+-		c->dev_array = calloc(len + 1, sizeof(char *));
+-		if (!c->dev_array)
++		if (nftnl_str_array_set(&c->dev_array, data) < 0)
+ 			return -1;
+-
+-		for (i = 0; i < len; i++)
+-			c->dev_array[i] = strdup(dev_array[i]);
+-
+-		c->dev_array_len = len;
+ 		break;
+ 	case NFTNL_FLOWTABLE_SIZE:
+ 		memcpy(&c->size, data, sizeof(c->size));
+@@ -230,7 +200,7 @@ const void *nftnl_flowtable_get_data(const struct nftnl_flowtable *c,
+ 		return &c->family;
+ 	case NFTNL_FLOWTABLE_DEVICES:
+ 		*data_len = 0;
+-		return &c->dev_array[0];
++		return c->dev_array.array;
+ 	case NFTNL_FLOWTABLE_SIZE:
+ 		*data_len = sizeof(int32_t);
+ 		return &c->size;
+@@ -325,12 +295,11 @@ void nftnl_flowtable_nlmsg_build_payload(struct nlmsghdr *nlh,
+ 
+ 	if (c->flags & (1 << NFTNL_FLOWTABLE_DEVICES)) {
+ 		struct nlattr *nest_dev;
++		const char *dev;
+ 
+ 		nest_dev = mnl_attr_nest_start(nlh, NFTA_FLOWTABLE_HOOK_DEVS);
+-		for (i = 0; i < c->dev_array_len; i++) {
+-			mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME,
+-					  c->dev_array[i]);
+-		}
++		nftnl_str_array_foreach(dev, &c->dev_array, i)
++			mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME, dev);
+ 		mnl_attr_nest_end(nlh, nest_dev);
+ 	}
+ 
+@@ -402,43 +371,6 @@ static int nftnl_flowtable_parse_hook_cb(const struct nlattr *attr, void *data)
+ 	return MNL_CB_OK;
+ }
+ 
+-static int nftnl_flowtable_parse_devs(struct nlattr *nest,
+-				      struct nftnl_flowtable *c)
+-{
+-	const char **dev_array, **tmp;
+-	int len = 0, size = 8;
+-	struct nlattr *attr;
+-
+-	dev_array = calloc(8, sizeof(char *));
+-	if (!dev_array)
+-		return -1;
+-
+-	mnl_attr_for_each_nested(attr, nest) {
+-		if (mnl_attr_get_type(attr) != NFTA_DEVICE_NAME)
+-			goto err;
+-		dev_array[len++] = strdup(mnl_attr_get_str(attr));
+-		if (len >= size) {
+-			tmp = realloc(dev_array, size * 2 * sizeof(char *));
+-			if (!tmp)
+-				goto err;
+-
+-			size *= 2;
+-			memset(&tmp[len], 0, (size - len) * sizeof(char *));
+-			dev_array = tmp;
+-		}
+-	}
+-
+-	c->dev_array = dev_array;
+-	c->dev_array_len = len;
+-
+-	return 0;
+-err:
+-	while (len--)
+-		xfree(dev_array[len]);
+-	xfree(dev_array);
+-	return -1;
+-}
+-
+ static int nftnl_flowtable_parse_hook(struct nlattr *attr, struct nftnl_flowtable *c)
+ {
+ 	struct nlattr *tb[NFTA_FLOWTABLE_HOOK_MAX + 1] = {};
+@@ -456,7 +388,8 @@ static int nftnl_flowtable_parse_hook(struct nlattr *attr, struct nftnl_flowtabl
+ 		c->flags |= (1 << NFTNL_FLOWTABLE_PRIO);
+ 	}
+ 	if (tb[NFTA_FLOWTABLE_HOOK_DEVS]) {
+-		ret = nftnl_flowtable_parse_devs(tb[NFTA_FLOWTABLE_HOOK_DEVS], c);
++		ret = nftnl_parse_devs(&c->dev_array,
++				       tb[NFTA_FLOWTABLE_HOOK_DEVS]);
+ 		if (ret < 0)
+ 			return -1;
+ 		c->flags |= (1 << NFTNL_FLOWTABLE_DEVICES);
+@@ -587,6 +520,7 @@ static int nftnl_flowtable_snprintf_default(char *buf, size_t remain,
+ 					    const struct nftnl_flowtable *c)
+ {
+ 	int ret, offset = 0, i;
++	const char *dev;
+ 
+ 	ret = snprintf(buf, remain, "flow table %s %s use %u size %u flags %x",
+ 		       c->table, c->name, c->use, c->size, c->ft_flags);
+@@ -602,9 +536,9 @@ static int nftnl_flowtable_snprintf_default(char *buf, size_t remain,
+ 			ret = snprintf(buf + offset, remain, " dev { ");
+ 			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+ 
+-			for (i = 0; i < c->dev_array_len; i++) {
++			nftnl_str_array_foreach(dev, &c->dev_array, i) {
+ 				ret = snprintf(buf + offset, remain, " %s ",
+-					       c->dev_array[i]);
++					       dev);
+ 				SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+ 			}
+ 			ret = snprintf(buf + offset, remain, " } ");
+diff --git a/src/utils.c b/src/utils.c
+index 2f1ffd6227583..157b15f7afe8d 100644
+--- a/src/utils.c
++++ b/src/utils.c
+@@ -19,6 +19,7 @@
+ 
+ #include <libnftnl/common.h>
+ 
++#include <libmnl/libmnl.h>
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
+ 
+diff --git a/tests/nft-chain-test.c b/tests/nft-chain-test.c
+index 35a65be8d1587..64c506eb62a15 100644
+--- a/tests/nft-chain-test.c
++++ b/tests/nft-chain-test.c
+@@ -23,9 +23,25 @@ static void print_err(const char *msg)
+ 	printf("\033[31mERROR:\e[0m %s\n", msg);
+ }
+ 
+-static void cmp_nftnl_chain(struct nftnl_chain *a, struct nftnl_chain *b)
++static void cmp_devices(const char * const *adevs,
++			const char * const *bdevs)
+ {
++	int i;
++
++	if (!adevs && !bdevs)
++		return;
++	if (!!adevs ^ !!bdevs)
++		print_err("Chain devices mismatches");
++	for (i = 0; adevs[i] && bdevs[i]; i++) {
++		if (strcmp(adevs[i], bdevs[i]))
++			break;
++	}
++	if (adevs[i] || bdevs[i])
++		print_err("Chain devices mismatches");
++}
+ 
++static void cmp_nftnl_chain(struct nftnl_chain *a, struct nftnl_chain *b)
++{
+ 	if (strcmp(nftnl_chain_get_str(a, NFTNL_CHAIN_NAME),
+ 		   nftnl_chain_get_str(b, NFTNL_CHAIN_NAME)) != 0)
+ 		print_err("Chain name mismatches");
+@@ -59,13 +75,17 @@ static void cmp_nftnl_chain(struct nftnl_chain *a, struct nftnl_chain *b)
+ 	if (strcmp(nftnl_chain_get_str(a, NFTNL_CHAIN_TYPE),
+ 		   nftnl_chain_get_str(b, NFTNL_CHAIN_TYPE)) != 0)
+ 		print_err("Chain type mismatches");
+-	if (strcmp(nftnl_chain_get_str(a, NFTNL_CHAIN_DEV),
++	if (nftnl_chain_is_set(a, NFTNL_CHAIN_DEV) &&
++	    strcmp(nftnl_chain_get_str(a, NFTNL_CHAIN_DEV),
+ 		   nftnl_chain_get_str(b, NFTNL_CHAIN_DEV)) != 0)
+ 		print_err("Chain device mismatches");
++	cmp_devices(nftnl_chain_get_array(a, NFTNL_CHAIN_DEVICES),
++		    nftnl_chain_get_array(b, NFTNL_CHAIN_DEVICES));
+ }
+ 
+ int main(int argc, char *argv[])
+ {
++	const char *devs[] = { "eth0", "eth1", "eth2", NULL };
+ 	struct nftnl_chain *a, *b;
+ 	char buf[4096];
+ 	struct nlmsghdr *nlh;
+@@ -97,6 +117,19 @@ int main(int argc, char *argv[])
+ 
+ 	cmp_nftnl_chain(a, b);
+ 
++	/* repeat test with multiple devices */
++
++	nftnl_chain_unset(a, NFTNL_CHAIN_DEV);
++	nftnl_chain_set_array(a, NFTNL_CHAIN_DEVICES, devs);
++
++	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, AF_INET, 0, 1234);
++	nftnl_chain_nlmsg_build_payload(nlh, a);
++
++	if (nftnl_chain_nlmsg_parse(nlh, b) < 0)
++		print_err("parsing problems");
++
++	cmp_nftnl_chain(a, b);
++
+ 	nftnl_chain_free(a);
+ 	nftnl_chain_free(b);
+ 
+diff --git a/tests/nft-flowtable-test.c b/tests/nft-flowtable-test.c
+index 8ab8d4c5347a4..49bc0a1c5e043 100644
+--- a/tests/nft-flowtable-test.c
++++ b/tests/nft-flowtable-test.c
+@@ -13,6 +13,23 @@ static void print_err(const char *msg)
+ 	printf("\033[31mERROR:\e[0m %s\n", msg);
+ }
+ 
++static void cmp_devices(const char * const *adevs,
++			const char * const *bdevs)
++{
++	int i;
++
++	if (!adevs && !bdevs)
++		return;
++	if (!!adevs ^ !!bdevs)
++		print_err("Flowtable devices mismatches");
++	for (i = 0; adevs[i] && bdevs[i]; i++) {
++		if (strcmp(adevs[i], bdevs[i]))
++			break;
++	}
++	if (adevs[i] || bdevs[i])
++		print_err("Flowtable devices mismatches");
++}
++
+ static void cmp_nftnl_flowtable(struct nftnl_flowtable *a, struct nftnl_flowtable *b)
+ {
+ 	if (strcmp(nftnl_flowtable_get_str(a, NFTNL_FLOWTABLE_NAME),
+@@ -44,10 +61,13 @@ static void cmp_nftnl_flowtable(struct nftnl_flowtable *a, struct nftnl_flowtabl
+ 	if (nftnl_flowtable_get_u64(a, NFTNL_FLOWTABLE_HANDLE) !=
+ 	    nftnl_flowtable_get_u64(b, NFTNL_FLOWTABLE_HANDLE))
+ 		print_err("Flowtable handle mismatches");
++	cmp_devices(nftnl_flowtable_get_array(a, NFTNL_FLOWTABLE_DEVICES),
++		    nftnl_flowtable_get_array(b, NFTNL_FLOWTABLE_DEVICES));
+ }
+ 
+ int main(int argc, char *argv[])
+ {
++	const char *devs[] = { "eth0", "eth1", "eth2", NULL };
+ 	struct nftnl_flowtable *a, *b;
+ 	char buf[4096];
+ 	struct nlmsghdr *nlh;
+@@ -66,6 +86,7 @@ int main(int argc, char *argv[])
+ 	nftnl_flowtable_set_u32(a, NFTNL_FLOWTABLE_SIZE, 0x89016745);
+ 	nftnl_flowtable_set_u32(a, NFTNL_FLOWTABLE_FLAGS, 0x45016723);
+ 	nftnl_flowtable_set_u64(a, NFTNL_FLOWTABLE_HANDLE, 0x2345016789);
++	nftnl_flowtable_set_array(a, NFTNL_FLOWTABLE_DEVICES, devs);
+ 
+ 	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_NEWFLOWTABLE, AF_INET,
+ 				    0, 1234);
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+2.47.0
 
