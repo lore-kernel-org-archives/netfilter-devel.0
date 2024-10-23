@@ -1,45 +1,85 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from sonic307-8.consmr.mail.bf2.yahoo.com (sonic307-8.consmr.mail.bf2.yahoo.com [74.6.134.47])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06322154BE0
-	for <netfilter-devel@vger.kernel.org>; Wed, 23 Oct 2024 20:21:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 367231EF925
+	for <netfilter-devel@vger.kernel.org>; Wed, 23 Oct 2024 21:22:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.6.134.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729714885; cv=none; b=mgj3flh4TcvfTrfcrlMXMTFHG3fbaiBAtQxtLhrKJTzEzDhyKIMj6miCsp54jxFXFOjCBdbyRsdKzg8zPxi254bdjkFjsyMzjnrGhpuzWbSr1H62cOZr0ua5GDsTtvOE8A82ns0ErMGvtFJh+GUqeGfR6oOYKpxEQSX5Ui94I/0=
+	t=1729718533; cv=none; b=PWDQ1C2/qzjar2kUeOClXOBD9q8d70ykiWRcRic3tiEKrG4ZWyRzvY/0JyeT++bitVn0ZHm5Ftx0RR/nGUZva9rJb8PnDwZ3xph4+mpoJxC26oFc01vYs0CUR6A2t1Pi0HoYcLVACBm//AVSEqSGrppM5F8qbM4sHzrBI8HoUB4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729714885; c=relaxed/simple;
-	bh=Eh5bHU9TfcgJ+rEGqlJ/PZLRhXV+pxaV7Ma75vd2aTg=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=EfUBBYb5jBFo47dQxkGoe5jzYgzieTxsvfm3tyDAU/FxGkF600PV18tTlKRMlTNVkj7ZL+1YgBWd9BfA3l50TzDUhaFW0SqLMvKIgJMi0DGrBJG8qGO3BUDRCxip+bdxMKN01hXbjDaGxP7kx5IfgjDlEO2GZrPQDF4FRytoVDE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=B/ubpft2; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1729718533; c=relaxed/simple;
+	bh=YZWYVEpdDudKVViWqIIgs8eGsTpS1TRwYy6vpzmkKxw=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=l7y/Y8OMdL9MgEOgEE5mhxQvQmR57WMddhIhdBnONOPr6SvZKSbG/VJiqkrz7AbOUg4/HXQfKZfxL9YwO7r1z0isTcF9LHVXpQjSbrakWwGCyy8KGpJKFvKp3KbyK0ZnZ8h+qk42s8FOUerJJIr8tlwfHlsT42vkFzmSWy1uSTc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=schaufler-ca.com; spf=none smtp.mailfrom=schaufler-ca.com; dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b=MiaIajkx; arc=none smtp.client-ip=74.6.134.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=schaufler-ca.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=schaufler-ca.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="B/ubpft2"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=7EtdqkRn5q2tXPp8ndd362g9TwcJGeDFmF4woZj3zlk=; b=B/ubpft2ushnEnbUPJ8uubi1Ae
-	uZRfxX12R+tISso28maIGY9hPu0hbLChWatNKHjEJd3c+leSfd6tSyiHwwlCxBaOHxcyDU5oV3tvA
-	voNgTIU81HsSrwIHkZ6HySL0ogyx0TAaX+i3E8ej2kTW9PY2xNOMYhdAp4u+BpVM+rFc9xsfw6lYy
-	xzc/v1ax/L+njk548PtjgqYNzGHCXulxGx5uQAs3GBxDYiQEia7Doe8wNSX5n86r3qfIvZPgWH/8G
-	s6kxdu45M3L37+zYpX5Xq4ZH7elrr12+bC8R9+e4udmmj4SybCZudbVAsQBJfl487Jf+0VbpKaAHF
-	XGLHTcxg==;
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1t3hr7-000000000zt-0pP1;
-	Wed, 23 Oct 2024 22:21:21 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org,
-	Florian Westphal <fw@strlen.de>
-Subject: [libnftnl PATCH v2] Introduce struct nftnl_str_array
-Date: Wed, 23 Oct 2024 22:21:04 +0200
-Message-ID: <20241023202119.27681-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.47.0
+	dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b="MiaIajkx"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1729718527; bh=EAfsMeurPhmE2qzmidqx44B7cc3fBEKQHF530i2eVjM=; h=From:To:Cc:Subject:Date:In-Reply-To:References:From:Subject:Reply-To; b=MiaIajkxffrpG4nUl9zCTUTre839aQGwYK3cdCfDjNR0rhJA3douwsv3jdUT+FaupsMkBqNQHSRX7YAfVr/RMra3tV8v1vFxuHRToeDlre6Jdk2fVJoqxva4Y2uQkXR4BdmqXjVaVngiMX+0+KkoTa5/1xtEgLJZ0deQ/eLIqq5rMummdeFn80wpP3O4wkeABsyXhWSV4Bch/Qgm7oOiOJhOgrm+2oMBCWgZDBxeLB20SKgI2W72CZfMJ0219Gj16QhRwJrayGR7sDLYav8KF033F4EA1PtOpC/hZi/itAmkrIoo0q7sv3UoGyUqtfZB8ITNbxmHvIy2u4I/1Y0OQg==
+X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1729718527; bh=JPe8wcZBKEP/MekfOhS44DxMaqUowMBGpgWstOQkJlF=; h=X-Sonic-MF:From:To:Subject:Date:From:Subject; b=bhNz0zrBxlHWfda3w249tSlpuzUSq58mL3lQaJetVNwdp68RVyOlQXt42VVgDC9YigGD1MCGI5qo3J0AiSzhdWkupBLIbsNb/K/rl+2K7r8hAz+7na9jDZ4P+9n30cz60WKwM11UgyxL4Q7bUBYWvfCm3/stog+RuOt4fX5kDt6zmBF7y5qpoEwUtyCwIqV/yZUu90mk8HPY8+NqaP+iEKOPuXIJTdOd1ESYFB9t4Ib+kzBVs+/p5ixKXHcx3g7aO93mWdc3NLUHmtNg/5DfLzkpc+T7i8fQte+aFVZA/fHDRpPkALvBtJACFTAotrBO94vu75Z36wdEIAjmp27AjA==
+X-YMail-OSG: twIrnm4VM1mHcF4lqFK2P45CX.ZCI0VxSxXpLe.Smy21tuN9GsAwciG1zSyDsQo
+ RnEMFXA8QicpXkB_sTdFuGsQc8ecRKV1hE6SVPYwI8gRT1iS8D_YeCR43k66jYjeMQdIgTtigKcq
+ epF.CX8x6xPA2HFhahyq6HEI7YJtMLNMm2jyoJ7FuOST1SzdhxEkUE5MUlJFlxBPkojDhgeI8ZoD
+ BdeXJaTov9CntK6oN2Jf_9Xp8cFBIXQ1oYS0JAe2WKzqcN0o4R1Fo5VuCJ..I_pAUcv_mdX2SwM9
+ .V.oBcdCGHMitSqvLQ1eNtHNna.GVGBppXZG6t23uwn2X4uRmvJVtYouVPnfJCBjzDIkvrZfeMtg
+ ISzSX3apM1XjmQ_2fHEQD6eTxWTQdhlbdcxal31A19uVuNnsVhWSjGC1xmJlI37xd3N6WWPuGBKl
+ Zf_U5Ew5RFBk76KjtW9WHAQDxU4JL98o5o5CH.zx9nWscMlzY9v1tBF.JBgRtX8GogxjnA6.fuoH
+ Qhz_AFHtNcnvQiC6ZYikZx5_64TaUMUok7vWqxbGAj0pq4__yDgS5VRMF92Ba7O0TYc8gr9uqzwS
+ iWIEEJUIeWtjTqenWYqxgCZFsG9IF.F5gEKV.cvB4WF.Op79W0YUykiVOAgdQT_HqOL0QoW3H5lT
+ eIJkT2FZdjU8wb0BawzSedQRLb5XxaE0CDz3Yx3dG7cCjJCBMQuAlNHZ3dvPZcocK8tKK6jyay5w
+ PT0s0TNvJMDnHKFlLOyeoSFI2ziggnc0eKfhVhn80iC.mhaENlDvNwOqqlX0jks4l0GQvGi0k0fY
+ 2WJYUcITyTgR2YCyEsjguUPGSdP8thybw1oiuegdlEWnhfycNEYHfH9HryGvXWeOoPEm2Re13Let
+ E7UzJTyYbHHbec9d7tr6fwcJlHmOfBs3KKy1nyiUYpYIOMgaK0Ah8S.wUKzeYC4NL2rCOO8Wj2Zg
+ AGFwhl6Lz0bVa1AkLXMGe16tL.SkKVH4m.n0VuZV2o8HVY2qfDHIW7BADJf7iTC4f2t2XcYt0Zsd
+ Lm9XAj0S5rzFuQlRNJbvDy3xN3mQZ3Bw_fvbqMx8OqKwRY1_TKvePWx7pjdgeum8.9I63x1iBhy4
+ wWRgS9VKZwo4dOWOoma6mmsld_cU5yMZjLQAjU6KeicDISLbqPNKL2eqaN_tY8rQ4nago4e8Dq3F
+ K2Z_WtU_VO7L4mxNwFo18KBIEgSTiuvKaWT8AYeLLvKeE_ZEBRzP3VViVyz7pyqT2pDokrkmwxnC
+ e3jxq2BlEpl0zUVRvYIjZ8QPe1_7C2blkfWE3uMr_IoDyRtDKw7DaUmkHd_NiDQ2e7jL5H4q9FpK
+ CA0_65yY_8l_MKmIOuZmNuVr_8t5xa2oPiMMsu5NcPTSXubQSfmyC8zRAmEitsYSGaZ8zGv6LVd.
+ OXXpm4rHlB_h9PRTPg2GUJs5fkQQiFTv4yue1wWxIbBoDMcfMkaMnOAVte5PufXxYieykDfu3x2p
+ 6jK2a9ZPGBKLFNDJTIAJir5F0NkTtE_8IjdnPPXrF6QlEo.NGdTEKyhaGg7sS4WL5QLR4wDmzsND
+ YPanQ27jtFmWs6AFv56ylCG1szJmgDpgYogECGnkXjdJIJWbV6F_pgRmP6og4sBn6MBjlM6SRcG9
+ opIWB_m5EeY.Rn1kWvfsjiC8cfCNXVbk0hQYPOl.gLgNtjfL1oHUiOQ60FTewvNLm.czz5E_nmki
+ FHFnzcDwyxZL1vqyvP2oTPNBtTBupDwNAdvJZN9D6tdISBCpzGbH7rpM2VtFb7.QxCw7ykC21DO2
+ 2xTDtJW_Fhb50Eps5djqVeE5iQPu7y3LfGiliSbsQVWiV.WwENiVRg7LeXvSfaXoW5aEQhuDbvDz
+ 1tPmK_H18jFtk7DTgvGcg2ELzrQdaavApK9ys0vM3vsHGVqJUHm.Ba6GDNub0tjqltWRI0ouNj7U
+ SCBZld6MF0eD3artlCeAevBXHhATCqJOBV4VIIP_Its_zs3T6ubKrknex_w2vKFf6aDXc7QeyiuH
+ VMbTG7yRID6jqbujBDTV3mFbA3sGS1f6IJ33_eZUhs6gSxKie3NJsp.eSzYPbWWQHfy.BcrDvQqv
+ C7XN8IRal5wQaOMsjnaEZGPdcFvckXi2NgI9uh..sl907sYfNIMbdSQ9HlfHzvE_adPRxAfC7oWt
+ z.ilpK.DZyklxS59X7EKt.CYb9g5us2s3bDiYEy_AzBIHVrseseSfoMQJhA0K6o0M3kkIz_Y.K5L
+ WGysBdRuhEb2_2iLiQYq47H2gGrqlLAwQ2HOb3wmwYm9ZrApHJ12HriGdJJgfOJa8anE5tE50HyV
+ W0XmiPpjMPJvbQ5BSSkAqMiBPYacW964-
+X-Sonic-MF: <casey@schaufler-ca.com>
+X-Sonic-ID: 9f85a4ae-666d-4262-85e3-4e99743f8f73
+Received: from sonic.gate.mail.ne1.yahoo.com by sonic307.consmr.mail.bf2.yahoo.com with HTTP; Wed, 23 Oct 2024 21:22:07 +0000
+Received: by hermes--production-gq1-5dd4b47f46-5xsmt (Yahoo Inc. Hermes SMTP Server) with ESMTPA ID 8a7972f72a0226c80fd86fd6bd5371c9;
+          Wed, 23 Oct 2024 21:22:03 +0000 (UTC)
+From: Casey Schaufler <casey@schaufler-ca.com>
+To: casey@schaufler-ca.com,
+	paul@paul-moore.com,
+	linux-security-module@vger.kernel.org
+Cc: jmorris@namei.org,
+	serge@hallyn.com,
+	keescook@chromium.org,
+	john.johansen@canonical.com,
+	penguin-kernel@i-love.sakura.ne.jp,
+	stephen.smalley.work@gmail.com,
+	linux-kernel@vger.kernel.org,
+	selinux@vger.kernel.org,
+	mic@digikod.net,
+	linux-integrity@vger.kernel.org,
+	netdev@vger.kernel.org,
+	audit@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	linux-nfs@vger.kernel.org,
+	Todd Kjos <tkjos@google.com>
+Subject: [PATCH v3 1/5] LSM: Ensure the correct LSM context releaser
+Date: Wed, 23 Oct 2024 14:21:54 -0700
+Message-ID: <20241023212158.18718-2-casey@schaufler-ca.com>
+X-Mailer: git-send-email 2.46.0
+In-Reply-To: <20241023212158.18718-1-casey@schaufler-ca.com>
+References: <20241023212158.18718-1-casey@schaufler-ca.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -48,638 +88,789 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This data structure holds an array of allocated strings for use in
-nftnl_chain and nftnl_flowtable structs. For convenience, implement
-functions to clear, populate and iterate over contents.
+Add a new lsm_context data structure to hold all the information about a
+"security context", including the string, its size and which LSM allocated
+the string. The allocation information is necessary because LSMs have
+different policies regarding the lifecycle of these strings. SELinux
+allocates and destroys them on each use, whereas Smack provides a pointer
+to an entry in a list that never goes away.
 
-While at it, extend chain and flowtable tests to cover these attributes,
-too.
+Update security_release_secctx() to use the lsm_context instead of a
+(char *, len) pair. Change its callers to do likewise.  The LSMs
+supporting this hook have had comments added to remind the developer
+that there is more work to be done.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+The BPF security module provides all LSM hooks. While there has yet to
+be a known instance of a BPF configuration that uses security contexts,
+the possibility is real. In the existing implementation there is
+potential for multiple frees in that case.
+
+Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
+Cc: linux-integrity@vger.kernel.org
+Cc: netdev@vger.kernel.org
+Cc: audit@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: linux-nfs@vger.kernel.org
+Cc: Todd Kjos <tkjos@google.com>
 ---
-Changes since v1:
-- Add missing src/str_array.c
----
- include/internal.h         |  1 +
- src/Makefile.am            |  1 +
- src/chain.c                | 90 ++++++------------------------------
- src/flowtable.c            | 94 ++++++--------------------------------
- src/str_array.c            | 69 ++++++++++++++++++++++++++++
- src/utils.c                |  1 +
- tests/nft-chain-test.c     | 37 ++++++++++++++-
- tests/nft-flowtable-test.c | 21 +++++++++
- 8 files changed, 155 insertions(+), 159 deletions(-)
- create mode 100644 src/str_array.c
+ drivers/android/binder.c                | 24 +++++++--------
+ fs/ceph/xattr.c                         |  6 +++-
+ fs/nfs/nfs4proc.c                       |  8 +++--
+ fs/nfsd/nfs4xdr.c                       |  8 +++--
+ include/linux/lsm_hook_defs.h           |  2 +-
+ include/linux/security.h                | 35 ++++++++++++++++++++--
+ include/net/scm.h                       | 11 +++----
+ kernel/audit.c                          | 30 +++++++++----------
+ kernel/auditsc.c                        | 23 +++++++-------
+ net/ipv4/ip_sockglue.c                  | 10 +++----
+ net/netfilter/nf_conntrack_netlink.c    | 10 +++----
+ net/netfilter/nf_conntrack_standalone.c |  9 +++---
+ net/netfilter/nfnetlink_queue.c         | 13 +++++---
+ net/netlabel/netlabel_unlabeled.c       | 40 +++++++++++--------------
+ net/netlabel/netlabel_user.c            | 11 ++++---
+ security/apparmor/include/secid.h       |  2 +-
+ security/apparmor/secid.c               | 11 +++++--
+ security/security.c                     |  8 ++---
+ security/selinux/hooks.c                | 11 +++++--
+ 19 files changed, 165 insertions(+), 107 deletions(-)
 
-diff --git a/include/internal.h b/include/internal.h
-index 1f96731589c04..b8fc7f129c76e 100644
---- a/include/internal.h
-+++ b/include/internal.h
-@@ -12,5 +12,6 @@
- #include "expr.h"
- #include "expr_ops.h"
- #include "rule.h"
-+#include "str_array.h"
+diff --git a/drivers/android/binder.c b/drivers/android/binder.c
+index 978740537a1a..d4229bf6f789 100644
+--- a/drivers/android/binder.c
++++ b/drivers/android/binder.c
+@@ -3011,8 +3011,7 @@ static void binder_transaction(struct binder_proc *proc,
+ 	struct binder_context *context = proc->context;
+ 	int t_debug_id = atomic_inc_return(&binder_last_id);
+ 	ktime_t t_start_time = ktime_get();
+-	char *secctx = NULL;
+-	u32 secctx_sz = 0;
++	struct lsm_context lsmctx;
+ 	struct list_head sgc_head;
+ 	struct list_head pf_head;
+ 	const void __user *user_buffer = (const void __user *)
+@@ -3291,7 +3290,8 @@ static void binder_transaction(struct binder_proc *proc,
+ 		size_t added_size;
  
- #endif /* _LIBNFTNL_INTERNAL_H_ */
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 3cd259c04d1c3..1c38d00c4e180 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -17,6 +17,7 @@ libnftnl_la_SOURCES = utils.c		\
- 		      rule.c		\
- 		      set.c		\
- 		      set_elem.c	\
-+		      str_array.c	\
- 		      ruleset.c		\
- 		      udata.c		\
- 		      expr.c		\
-diff --git a/src/chain.c b/src/chain.c
-index 0b68939fe21a7..c9fbc3a87314b 100644
---- a/src/chain.c
-+++ b/src/chain.c
-@@ -37,8 +37,7 @@ struct nftnl_chain {
- 	const char	*type;
- 	const char	*table;
- 	const char	*dev;
--	const char	**dev_array;
--	int		dev_array_len;
-+	struct nftnl_str_array	dev_array;
- 	uint32_t	family;
- 	uint32_t	policy;
- 	uint32_t	hooknum;
-@@ -117,7 +116,6 @@ EXPORT_SYMBOL(nftnl_chain_free);
- void nftnl_chain_free(const struct nftnl_chain *c)
- {
- 	struct nftnl_rule *r, *tmp;
--	int i;
- 
- 	list_for_each_entry_safe(r, tmp, &c->rule_list, head)
- 		nftnl_rule_free(r);
-@@ -132,12 +130,8 @@ void nftnl_chain_free(const struct nftnl_chain *c)
- 		xfree(c->dev);
- 	if (c->flags & (1 << NFTNL_CHAIN_USERDATA))
- 		xfree(c->user.data);
--	if (c->flags & (1 << NFTNL_CHAIN_DEVICES)) {
--		for (i = 0; i < c->dev_array_len; i++)
--			xfree(c->dev_array[i]);
--
--		xfree(c->dev_array);
--	}
-+	if (c->flags & (1 << NFTNL_CHAIN_DEVICES))
-+		nftnl_str_array_clear((struct nftnl_str_array *)&c->dev_array);
- 	xfree(c);
- }
- 
-@@ -150,8 +144,6 @@ bool nftnl_chain_is_set(const struct nftnl_chain *c, uint16_t attr)
- EXPORT_SYMBOL(nftnl_chain_unset);
- void nftnl_chain_unset(struct nftnl_chain *c, uint16_t attr)
- {
--	int i;
--
- 	if (!(c->flags & (1 << attr)))
- 		return;
- 
-@@ -181,9 +173,7 @@ void nftnl_chain_unset(struct nftnl_chain *c, uint16_t attr)
- 		xfree(c->dev);
- 		break;
- 	case NFTNL_CHAIN_DEVICES:
--		for (i = 0; i < c->dev_array_len; i++)
--			xfree(c->dev_array[i]);
--		xfree(c->dev_array);
-+		nftnl_str_array_clear(&c->dev_array);
- 		break;
- 	case NFTNL_CHAIN_USERDATA:
- 		xfree(c->user.data);
-@@ -212,9 +202,6 @@ EXPORT_SYMBOL(nftnl_chain_set_data);
- int nftnl_chain_set_data(struct nftnl_chain *c, uint16_t attr,
- 			 const void *data, uint32_t data_len)
- {
--	const char **dev_array;
--	int len = 0, i;
--
- 	nftnl_assert_attr_exists(attr, NFTNL_CHAIN_MAX);
- 	nftnl_assert_validate(data, nftnl_chain_validate, attr, data_len);
- 
-@@ -256,24 +243,8 @@ int nftnl_chain_set_data(struct nftnl_chain *c, uint16_t attr,
- 		return nftnl_set_str_attr(&c->dev, &c->flags,
- 					  attr, data, data_len);
- 	case NFTNL_CHAIN_DEVICES:
--		dev_array = (const char **)data;
--		while (dev_array[len] != NULL)
--			len++;
--
--		if (c->flags & (1 << NFTNL_CHAIN_DEVICES)) {
--			for (i = 0; i < c->dev_array_len; i++)
--				xfree(c->dev_array[i]);
--			xfree(c->dev_array);
--		}
--
--		c->dev_array = calloc(len + 1, sizeof(char *));
--		if (!c->dev_array)
-+		if (nftnl_str_array_set(&c->dev_array, data) < 0)
- 			return -1;
--
--		for (i = 0; i < len; i++)
--			c->dev_array[i] = strdup(dev_array[i]);
--
--		c->dev_array_len = len;
- 		break;
- 	case NFTNL_CHAIN_FLAGS:
- 		memcpy(&c->chain_flags, data, sizeof(c->chain_flags));
-@@ -385,7 +356,7 @@ const void *nftnl_chain_get_data(const struct nftnl_chain *c, uint16_t attr,
- 		return c->dev;
- 	case NFTNL_CHAIN_DEVICES:
- 		*data_len = 0;
--		return &c->dev_array[0];
-+		return c->dev_array.array;
- 	case NFTNL_CHAIN_FLAGS:
- 		*data_len = sizeof(uint32_t);
- 		return &c->chain_flags;
-@@ -493,11 +464,11 @@ void nftnl_chain_nlmsg_build_payload(struct nlmsghdr *nlh, const struct nftnl_ch
- 		mnl_attr_put_strz(nlh, NFTA_HOOK_DEV, c->dev);
- 	else if (c->flags & (1 << NFTNL_CHAIN_DEVICES)) {
- 		struct nlattr *nest_dev;
-+		const char *dev;
- 
- 		nest_dev = mnl_attr_nest_start(nlh, NFTA_HOOK_DEVS);
--		for (i = 0; i < c->dev_array_len; i++)
--			mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME,
--					  c->dev_array[i]);
-+		nftnl_str_array_foreach(dev, &c->dev_array, i)
-+			mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME, dev);
- 		mnl_attr_nest_end(nlh, nest_dev);
+ 		security_cred_getsecid(proc->cred, &secid);
+-		ret = security_secid_to_secctx(secid, &secctx, &secctx_sz);
++		ret = security_secid_to_secctx(secid, &lsmctx.context,
++					       &lsmctx.len);
+ 		if (ret) {
+ 			binder_txn_error("%d:%d failed to get security context\n",
+ 				thread->pid, proc->pid);
+@@ -3300,7 +3300,7 @@ static void binder_transaction(struct binder_proc *proc,
+ 			return_error_line = __LINE__;
+ 			goto err_get_secctx_failed;
+ 		}
+-		added_size = ALIGN(secctx_sz, sizeof(u64));
++		added_size = ALIGN(lsmctx.len, sizeof(u64));
+ 		extra_buffers_size += added_size;
+ 		if (extra_buffers_size < added_size) {
+ 			binder_txn_error("%d:%d integer overflow of extra_buffers_size\n",
+@@ -3334,23 +3334,23 @@ static void binder_transaction(struct binder_proc *proc,
+ 		t->buffer = NULL;
+ 		goto err_binder_alloc_buf_failed;
  	}
+-	if (secctx) {
++	if (lsmctx.context) {
+ 		int err;
+ 		size_t buf_offset = ALIGN(tr->data_size, sizeof(void *)) +
+ 				    ALIGN(tr->offsets_size, sizeof(void *)) +
+ 				    ALIGN(extra_buffers_size, sizeof(void *)) -
+-				    ALIGN(secctx_sz, sizeof(u64));
++				    ALIGN(lsmctx.len, sizeof(u64));
  
-@@ -664,42 +635,6 @@ static int nftnl_chain_parse_hook_cb(const struct nlattr *attr, void *data)
- 	return MNL_CB_OK;
- }
- 
--static int nftnl_chain_parse_devs(struct nlattr *nest, struct nftnl_chain *c)
--{
--	const char **dev_array, **tmp;
--	int len = 0, size = 8;
--	struct nlattr *attr;
--
--	dev_array = calloc(8, sizeof(char *));
--	if (!dev_array)
--		return -1;
--
--	mnl_attr_for_each_nested(attr, nest) {
--		if (mnl_attr_get_type(attr) != NFTA_DEVICE_NAME)
--			goto err;
--		dev_array[len++] = strdup(mnl_attr_get_str(attr));
--		if (len >= size) {
--			tmp = realloc(dev_array, size * 2 * sizeof(char *));
--			if (!tmp)
--				goto err;
--
--			size *= 2;
--			memset(&tmp[len], 0, (size - len) * sizeof(char *));
--			dev_array = tmp;
--		}
--	}
--
--	c->dev_array = dev_array;
--	c->dev_array_len = len;
--
--	return 0;
--err:
--	while (len--)
--		xfree(dev_array[len]);
--	xfree(dev_array);
--	return -1;
--}
--
- static int nftnl_chain_parse_hook(struct nlattr *attr, struct nftnl_chain *c)
- {
- 	struct nlattr *tb[NFTA_HOOK_MAX+1] = {};
-@@ -723,7 +658,7 @@ static int nftnl_chain_parse_hook(struct nlattr *attr, struct nftnl_chain *c)
- 		c->flags |= (1 << NFTNL_CHAIN_DEV);
+ 		t->security_ctx = t->buffer->user_data + buf_offset;
+ 		err = binder_alloc_copy_to_buffer(&target_proc->alloc,
+ 						  t->buffer, buf_offset,
+-						  secctx, secctx_sz);
++						  lsmctx.context, lsmctx.len);
+ 		if (err) {
+ 			t->security_ctx = 0;
+ 			WARN_ON(1);
+ 		}
+-		security_release_secctx(secctx, secctx_sz);
+-		secctx = NULL;
++		security_release_secctx(&lsmctx);
++		lsmctx.context = NULL;
  	}
- 	if (tb[NFTA_HOOK_DEVS]) {
--		ret = nftnl_chain_parse_devs(tb[NFTA_HOOK_DEVS], c);
-+		ret = nftnl_parse_devs(&c->dev_array, tb[NFTA_HOOK_DEVS]);
- 		if (ret < 0)
- 			return -1;
- 		c->flags |= (1 << NFTNL_CHAIN_DEVICES);
-@@ -823,6 +758,7 @@ static int nftnl_chain_snprintf_default(char *buf, size_t remain,
- 					const struct nftnl_chain *c)
- {
- 	int ret, offset = 0, i;
-+	const char *dev;
+ 	t->buffer->debug_id = t->debug_id;
+ 	t->buffer->transaction = t;
+@@ -3394,7 +3394,7 @@ static void binder_transaction(struct binder_proc *proc,
+ 	off_end_offset = off_start_offset + tr->offsets_size;
+ 	sg_buf_offset = ALIGN(off_end_offset, sizeof(void *));
+ 	sg_buf_end_offset = sg_buf_offset + extra_buffers_size -
+-		ALIGN(secctx_sz, sizeof(u64));
++		ALIGN(lsmctx.len, sizeof(u64));
+ 	off_min = 0;
+ 	for (buffer_offset = off_start_offset; buffer_offset < off_end_offset;
+ 	     buffer_offset += sizeof(binder_size_t)) {
+@@ -3773,8 +3773,8 @@ static void binder_transaction(struct binder_proc *proc,
+ 	binder_alloc_free_buf(&target_proc->alloc, t->buffer);
+ err_binder_alloc_buf_failed:
+ err_bad_extra_size:
+-	if (secctx)
+-		security_release_secctx(secctx, secctx_sz);
++	if (lsmctx.context)
++		security_release_secctx(&lsmctx);
+ err_get_secctx_failed:
+ 	kfree(tcomplete);
+ 	binder_stats_deleted(BINDER_STAT_TRANSACTION_COMPLETE);
+diff --git a/fs/ceph/xattr.c b/fs/ceph/xattr.c
+index e066a556eccb..f7996770cc2c 100644
+--- a/fs/ceph/xattr.c
++++ b/fs/ceph/xattr.c
+@@ -1446,12 +1446,16 @@ int ceph_security_init_secctx(struct dentry *dentry, umode_t mode,
  
- 	ret = snprintf(buf, remain, "%s %s %s use %u",
- 		       nftnl_family2str(c->family), c->table, c->name, c->use);
-@@ -854,9 +790,9 @@ static int nftnl_chain_snprintf_default(char *buf, size_t remain,
- 			ret = snprintf(buf + offset, remain, " dev { ");
- 			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
- 
--			for (i = 0; i < c->dev_array_len; i++) {
-+			nftnl_str_array_foreach(dev, &c->dev_array, i) {
- 				ret = snprintf(buf + offset, remain, " %s ",
--					       c->dev_array[i]);
-+					       dev);
- 				SNPRINTF_BUFFER_SIZE(ret, remain, offset);
- 			}
- 			ret = snprintf(buf + offset, remain, " } ");
-diff --git a/src/flowtable.c b/src/flowtable.c
-index 41a1456bb19b2..2a8d374541b0b 100644
---- a/src/flowtable.c
-+++ b/src/flowtable.c
-@@ -26,8 +26,7 @@ struct nftnl_flowtable {
- 	uint32_t		hooknum;
- 	int32_t			prio;
- 	uint32_t		size;
--	const char		**dev_array;
--	uint32_t		dev_array_len;
-+	struct nftnl_str_array	dev_array;
- 	uint32_t		ft_flags;
- 	uint32_t		use;
- 	uint32_t		flags;
-@@ -43,18 +42,12 @@ struct nftnl_flowtable *nftnl_flowtable_alloc(void)
- EXPORT_SYMBOL(nftnl_flowtable_free);
- void nftnl_flowtable_free(const struct nftnl_flowtable *c)
+ void ceph_release_acl_sec_ctx(struct ceph_acl_sec_ctx *as_ctx)
  {
--	int i;
--
- 	if (c->flags & (1 << NFTNL_FLOWTABLE_NAME))
- 		xfree(c->name);
- 	if (c->flags & (1 << NFTNL_FLOWTABLE_TABLE))
- 		xfree(c->table);
--	if (c->flags & (1 << NFTNL_FLOWTABLE_DEVICES)) {
--		for (i = 0; i < c->dev_array_len; i++)
--			xfree(c->dev_array[i]);
--
--		xfree(c->dev_array);
--	}
-+	if (c->flags & (1 << NFTNL_FLOWTABLE_DEVICES))
-+		nftnl_str_array_clear((struct nftnl_str_array *)&c->dev_array);
- 	xfree(c);
++#ifdef CONFIG_CEPH_FS_SECURITY_LABEL
++	struct lsm_context scaff; /* scaffolding */
++#endif
+ #ifdef CONFIG_CEPH_FS_POSIX_ACL
+ 	posix_acl_release(as_ctx->acl);
+ 	posix_acl_release(as_ctx->default_acl);
+ #endif
+ #ifdef CONFIG_CEPH_FS_SECURITY_LABEL
+-	security_release_secctx(as_ctx->sec_ctx, as_ctx->sec_ctxlen);
++	lsmcontext_init(&scaff, as_ctx->sec_ctx, as_ctx->sec_ctxlen, 0);
++	security_release_secctx(&scaff);
+ #endif
+ #ifdef CONFIG_FS_ENCRYPTION
+ 	kfree(as_ctx->fscrypt_auth);
+diff --git a/fs/nfs/nfs4proc.c b/fs/nfs/nfs4proc.c
+index cd2fbde2e6d7..76776d716744 100644
+--- a/fs/nfs/nfs4proc.c
++++ b/fs/nfs/nfs4proc.c
+@@ -138,8 +138,12 @@ nfs4_label_init_security(struct inode *dir, struct dentry *dentry,
+ static inline void
+ nfs4_label_release_security(struct nfs4_label *label)
+ {
+-	if (label)
+-		security_release_secctx(label->label, label->len);
++	struct lsm_context scaff; /* scaffolding */
++
++	if (label) {
++		lsmcontext_init(&scaff, label->label, label->len, 0);
++		security_release_secctx(&scaff);
++	}
  }
- 
-@@ -67,8 +60,6 @@ bool nftnl_flowtable_is_set(const struct nftnl_flowtable *c, uint16_t attr)
- EXPORT_SYMBOL(nftnl_flowtable_unset);
- void nftnl_flowtable_unset(struct nftnl_flowtable *c, uint16_t attr)
+ static inline u32 *nfs4_bitmask(struct nfs_server *server, struct nfs4_label *label)
  {
--	int i;
--
- 	if (!(c->flags & (1 << attr)))
- 		return;
+diff --git a/fs/nfsd/nfs4xdr.c b/fs/nfsd/nfs4xdr.c
+index f118921250c3..537ad363d70a 100644
+--- a/fs/nfsd/nfs4xdr.c
++++ b/fs/nfsd/nfs4xdr.c
+@@ -3653,8 +3653,12 @@ nfsd4_encode_fattr4(struct svc_rqst *rqstp, struct xdr_stream *xdr,
  
-@@ -87,9 +78,7 @@ void nftnl_flowtable_unset(struct nftnl_flowtable *c, uint16_t attr)
- 	case NFTNL_FLOWTABLE_HANDLE:
- 		break;
- 	case NFTNL_FLOWTABLE_DEVICES:
--		for (i = 0; i < c->dev_array_len; i++)
--			xfree(c->dev_array[i]);
--		xfree(c->dev_array);
-+		nftnl_str_array_clear(&c->dev_array);
- 		break;
- 	default:
- 		return;
-@@ -111,9 +100,6 @@ EXPORT_SYMBOL(nftnl_flowtable_set_data);
- int nftnl_flowtable_set_data(struct nftnl_flowtable *c, uint16_t attr,
- 			     const void *data, uint32_t data_len)
- {
--	const char **dev_array;
--	int len = 0, i;
--
- 	nftnl_assert_attr_exists(attr, NFTNL_FLOWTABLE_MAX);
- 	nftnl_assert_validate(data, nftnl_flowtable_validate, attr, data_len);
+ out:
+ #ifdef CONFIG_NFSD_V4_SECURITY_LABEL
+-	if (args.context)
+-		security_release_secctx(args.context, args.contextlen);
++	if (args.context) {
++		struct lsm_context scaff; /* scaffolding */
++
++		lsmcontext_init(&scaff, args.context, args.contextlen, 0);
++		security_release_secctx(&scaff);
++	}
+ #endif /* CONFIG_NFSD_V4_SECURITY_LABEL */
+ 	kfree(args.acl);
+ 	if (tempfh) {
+diff --git a/include/linux/lsm_hook_defs.h b/include/linux/lsm_hook_defs.h
+index eb2937599cb0..c13df23132eb 100644
+--- a/include/linux/lsm_hook_defs.h
++++ b/include/linux/lsm_hook_defs.h
+@@ -300,7 +300,7 @@ LSM_HOOK(int, -EOPNOTSUPP, secid_to_secctx, u32 secid, char **secdata,
+ LSM_HOOK(int, -EOPNOTSUPP, lsmprop_to_secctx, struct lsm_prop *prop,
+ 	 char **secdata, u32 *seclen)
+ LSM_HOOK(int, 0, secctx_to_secid, const char *secdata, u32 seclen, u32 *secid)
+-LSM_HOOK(void, LSM_RET_VOID, release_secctx, char *secdata, u32 seclen)
++LSM_HOOK(void, LSM_RET_VOID, release_secctx, struct lsm_context *cp)
+ LSM_HOOK(void, LSM_RET_VOID, inode_invalidate_secctx, struct inode *inode)
+ LSM_HOOK(int, 0, inode_notifysecctx, struct inode *inode, void *ctx, u32 ctxlen)
+ LSM_HOOK(int, 0, inode_setsecctx, struct dentry *dentry, void *ctx, u32 ctxlen)
+diff --git a/include/linux/security.h b/include/linux/security.h
+index fd690fa73162..1a3ca02224e8 100644
+--- a/include/linux/security.h
++++ b/include/linux/security.h
+@@ -225,6 +225,37 @@ extern unsigned long dac_mmap_min_addr;
+ #define dac_mmap_min_addr	0UL
+ #endif
  
-@@ -135,24 +121,8 @@ int nftnl_flowtable_set_data(struct nftnl_flowtable *c, uint16_t attr,
- 		memcpy(&c->family, data, sizeof(c->family));
- 		break;
- 	case NFTNL_FLOWTABLE_DEVICES:
--		dev_array = (const char **)data;
--		while (dev_array[len] != NULL)
--			len++;
--
--		if (c->flags & (1 << NFTNL_FLOWTABLE_DEVICES)) {
--			for (i = 0; i < c->dev_array_len; i++)
--				xfree(c->dev_array[i]);
--			xfree(c->dev_array);
--		}
--
--		c->dev_array = calloc(len + 1, sizeof(char *));
--		if (!c->dev_array)
-+		if (nftnl_str_array_set(&c->dev_array, data) < 0)
- 			return -1;
--
--		for (i = 0; i < len; i++)
--			c->dev_array[i] = strdup(dev_array[i]);
--
--		c->dev_array_len = len;
- 		break;
- 	case NFTNL_FLOWTABLE_SIZE:
- 		memcpy(&c->size, data, sizeof(c->size));
-@@ -230,7 +200,7 @@ const void *nftnl_flowtable_get_data(const struct nftnl_flowtable *c,
- 		return &c->family;
- 	case NFTNL_FLOWTABLE_DEVICES:
- 		*data_len = 0;
--		return &c->dev_array[0];
-+		return c->dev_array.array;
- 	case NFTNL_FLOWTABLE_SIZE:
- 		*data_len = sizeof(int32_t);
- 		return &c->size;
-@@ -325,12 +295,11 @@ void nftnl_flowtable_nlmsg_build_payload(struct nlmsghdr *nlh,
- 
- 	if (c->flags & (1 << NFTNL_FLOWTABLE_DEVICES)) {
- 		struct nlattr *nest_dev;
-+		const char *dev;
- 
- 		nest_dev = mnl_attr_nest_start(nlh, NFTA_FLOWTABLE_HOOK_DEVS);
--		for (i = 0; i < c->dev_array_len; i++) {
--			mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME,
--					  c->dev_array[i]);
--		}
-+		nftnl_str_array_foreach(dev, &c->dev_array, i)
-+			mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME, dev);
- 		mnl_attr_nest_end(nlh, nest_dev);
- 	}
- 
-@@ -402,43 +371,6 @@ static int nftnl_flowtable_parse_hook_cb(const struct nlattr *attr, void *data)
- 	return MNL_CB_OK;
- }
- 
--static int nftnl_flowtable_parse_devs(struct nlattr *nest,
--				      struct nftnl_flowtable *c)
--{
--	const char **dev_array, **tmp;
--	int len = 0, size = 8;
--	struct nlattr *attr;
--
--	dev_array = calloc(8, sizeof(char *));
--	if (!dev_array)
--		return -1;
--
--	mnl_attr_for_each_nested(attr, nest) {
--		if (mnl_attr_get_type(attr) != NFTA_DEVICE_NAME)
--			goto err;
--		dev_array[len++] = strdup(mnl_attr_get_str(attr));
--		if (len >= size) {
--			tmp = realloc(dev_array, size * 2 * sizeof(char *));
--			if (!tmp)
--				goto err;
--
--			size *= 2;
--			memset(&tmp[len], 0, (size - len) * sizeof(char *));
--			dev_array = tmp;
--		}
--	}
--
--	c->dev_array = dev_array;
--	c->dev_array_len = len;
--
--	return 0;
--err:
--	while (len--)
--		xfree(dev_array[len]);
--	xfree(dev_array);
--	return -1;
--}
--
- static int nftnl_flowtable_parse_hook(struct nlattr *attr, struct nftnl_flowtable *c)
- {
- 	struct nlattr *tb[NFTA_FLOWTABLE_HOOK_MAX + 1] = {};
-@@ -456,7 +388,8 @@ static int nftnl_flowtable_parse_hook(struct nlattr *attr, struct nftnl_flowtabl
- 		c->flags |= (1 << NFTNL_FLOWTABLE_PRIO);
- 	}
- 	if (tb[NFTA_FLOWTABLE_HOOK_DEVS]) {
--		ret = nftnl_flowtable_parse_devs(tb[NFTA_FLOWTABLE_HOOK_DEVS], c);
-+		ret = nftnl_parse_devs(&c->dev_array,
-+				       tb[NFTA_FLOWTABLE_HOOK_DEVS]);
- 		if (ret < 0)
- 			return -1;
- 		c->flags |= (1 << NFTNL_FLOWTABLE_DEVICES);
-@@ -587,6 +520,7 @@ static int nftnl_flowtable_snprintf_default(char *buf, size_t remain,
- 					    const struct nftnl_flowtable *c)
- {
- 	int ret, offset = 0, i;
-+	const char *dev;
- 
- 	ret = snprintf(buf, remain, "flow table %s %s use %u size %u flags %x",
- 		       c->table, c->name, c->use, c->size, c->ft_flags);
-@@ -602,9 +536,9 @@ static int nftnl_flowtable_snprintf_default(char *buf, size_t remain,
- 			ret = snprintf(buf + offset, remain, " dev { ");
- 			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
- 
--			for (i = 0; i < c->dev_array_len; i++) {
-+			nftnl_str_array_foreach(dev, &c->dev_array, i) {
- 				ret = snprintf(buf + offset, remain, " %s ",
--					       c->dev_array[i]);
-+					       dev);
- 				SNPRINTF_BUFFER_SIZE(ret, remain, offset);
- 			}
- 			ret = snprintf(buf + offset, remain, " } ");
-diff --git a/src/str_array.c b/src/str_array.c
-new file mode 100644
-index 0000000000000..2ffc158569000
---- /dev/null
-+++ b/src/str_array.c
-@@ -0,0 +1,69 @@
 +/*
-+ * (C) 2024 Red Hat GmbH
-+ * Author: Phil Sutter <phil@nwl.cc>
-+ *
-+ * SPDX-License-Identifier: GPL-2.0-or-later
++ * A "security context" is the text representation of
++ * the information used by LSMs.
++ * This structure contains the string, its length, and which LSM
++ * it is useful for.
 + */
-+#include <libmnl/libmnl.h>
-+#include <linux/netfilter/nf_tables.h>
++struct lsm_context {
++	char	*context;	/* Provided by the module */
++	u32	len;
++	int	id;		/* Identifies the module */
++};
 +
-+#include "str_array.h"
-+#include "utils.h"
-+
-+void nftnl_str_array_clear(struct nftnl_str_array *sa)
++/**
++ * lsmcontext_init - initialize an lsmcontext structure.
++ * @cp: Pointer to the context to initialize
++ * @context: Initial context, or NULL
++ * @size: Size of context, or 0
++ * @id: Which LSM provided the context
++ *
++ * Fill in the lsmcontext from the provided information.
++ * This is a scaffolding function that will be removed when
++ * lsm_context integration is complete.
++ */
++static inline void lsmcontext_init(struct lsm_context *cp, char *context,
++				   u32 size, int id)
 +{
-+	while (sa->len > 0)
-+		free(sa->array[--sa->len]);
-+	free(sa->array);
-+	sa->array = NULL;
++	cp->id = id;
++	cp->context = context;
++	cp->len = size;
 +}
 +
-+int nftnl_str_array_set(struct nftnl_str_array *sa, const char * const *array)
-+{
-+	int len = 0;
-+
-+	while (array[len])
-+		len++;
-+
-+	nftnl_str_array_clear(sa);
-+	sa->array = calloc(len + 1, sizeof(char *));
-+	if (!sa->array)
-+		return -1;
-+
-+	while (sa->len < len) {
-+		sa->array[sa->len] = strdup(array[sa->len]);
-+		if (!sa->array[sa->len]) {
-+			nftnl_str_array_clear(sa);
-+			return -1;
-+		}
-+		sa->len++;
-+	}
-+	return 0;
-+}
-+
-+int nftnl_parse_devs(struct nftnl_str_array *sa, const struct nlattr *nest)
-+{
-+	struct nlattr *attr;
-+	int len = 0;
-+
-+	mnl_attr_for_each_nested(attr, nest) {
-+		if (mnl_attr_get_type(attr) != NFTA_DEVICE_NAME)
-+			return -1;
-+		len++;
-+	}
-+
-+	nftnl_str_array_clear(sa);
-+	sa->array = calloc(len + 1, sizeof(char *));
-+	if (!sa->array)
-+		return -1;
-+
-+	mnl_attr_for_each_nested(attr, nest) {
-+		sa->array[sa->len] = strdup(mnl_attr_get_str(attr));
-+		if (!sa->array[sa->len]) {
-+			nftnl_str_array_clear(sa);
-+			return -1;
-+		}
-+		sa->len++;
-+	}
-+	return 0;
-+}
-diff --git a/src/utils.c b/src/utils.c
-index 2f1ffd6227583..157b15f7afe8d 100644
---- a/src/utils.c
-+++ b/src/utils.c
-@@ -19,6 +19,7 @@
- 
- #include <libnftnl/common.h>
- 
-+#include <libmnl/libmnl.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
- 
-diff --git a/tests/nft-chain-test.c b/tests/nft-chain-test.c
-index 35a65be8d1587..64c506eb62a15 100644
---- a/tests/nft-chain-test.c
-+++ b/tests/nft-chain-test.c
-@@ -23,9 +23,25 @@ static void print_err(const char *msg)
- 	printf("\033[31mERROR:\e[0m %s\n", msg);
+ /*
+  * Values used in the task_security_ops calls
+  */
+@@ -556,7 +587,7 @@ int security_ismaclabel(const char *name);
+ int security_secid_to_secctx(u32 secid, char **secdata, u32 *seclen);
+ int security_lsmprop_to_secctx(struct lsm_prop *prop, char **secdata, u32 *seclen);
+ int security_secctx_to_secid(const char *secdata, u32 seclen, u32 *secid);
+-void security_release_secctx(char *secdata, u32 seclen);
++void security_release_secctx(struct lsm_context *cp);
+ void security_inode_invalidate_secctx(struct inode *inode);
+ int security_inode_notifysecctx(struct inode *inode, void *ctx, u32 ctxlen);
+ int security_inode_setsecctx(struct dentry *dentry, void *ctx, u32 ctxlen);
+@@ -1545,7 +1576,7 @@ static inline int security_secctx_to_secid(const char *secdata,
+ 	return -EOPNOTSUPP;
  }
  
--static void cmp_nftnl_chain(struct nftnl_chain *a, struct nftnl_chain *b)
-+static void cmp_devices(const char * const *adevs,
-+			const char * const *bdevs)
+-static inline void security_release_secctx(char *secdata, u32 seclen)
++static inline void security_release_secctx(struct lsm_context *cp)
  {
-+	int i;
-+
-+	if (!adevs && !bdevs)
-+		return;
-+	if (!!adevs ^ !!bdevs)
-+		print_err("Chain devices mismatches");
-+	for (i = 0; adevs[i] && bdevs[i]; i++) {
-+		if (strcmp(adevs[i], bdevs[i]))
-+			break;
+ }
+ 
+diff --git a/include/net/scm.h b/include/net/scm.h
+index 0d35c7c77a74..f75449e1d876 100644
+--- a/include/net/scm.h
++++ b/include/net/scm.h
+@@ -105,16 +105,17 @@ static __inline__ int scm_send(struct socket *sock, struct msghdr *msg,
+ #ifdef CONFIG_SECURITY_NETWORK
+ static inline void scm_passec(struct socket *sock, struct msghdr *msg, struct scm_cookie *scm)
+ {
+-	char *secdata;
+-	u32 seclen;
++	struct lsm_context ctx;
+ 	int err;
+ 
+ 	if (test_bit(SOCK_PASSSEC, &sock->flags)) {
+-		err = security_secid_to_secctx(scm->secid, &secdata, &seclen);
++		err = security_secid_to_secctx(scm->secid, &ctx.context,
++					       &ctx.len);
+ 
+ 		if (!err) {
+-			put_cmsg(msg, SOL_SOCKET, SCM_SECURITY, seclen, secdata);
+-			security_release_secctx(secdata, seclen);
++			put_cmsg(msg, SOL_SOCKET, SCM_SECURITY, ctx.len,
++				 ctx.context);
++			security_release_secctx(&ctx);
+ 		}
+ 	}
+ }
+diff --git a/kernel/audit.c b/kernel/audit.c
+index d2797e8fe182..bafd8fd2b1f3 100644
+--- a/kernel/audit.c
++++ b/kernel/audit.c
+@@ -1221,8 +1221,7 @@ static int audit_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	struct audit_buffer	*ab;
+ 	u16			msg_type = nlh->nlmsg_type;
+ 	struct audit_sig_info   *sig_data;
+-	char			*ctx = NULL;
+-	u32			len;
++	struct lsm_context	lsmctx;
+ 
+ 	err = audit_netlink_ok(skb, msg_type);
+ 	if (err)
+@@ -1472,27 +1471,29 @@ static int audit_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 		break;
+ 	}
+ 	case AUDIT_SIGNAL_INFO:
+-		len = 0;
+ 		if (lsmprop_is_set(&audit_sig_lsm)) {
+-			err = security_lsmprop_to_secctx(&audit_sig_lsm, &ctx,
+-							 &len);
++			err = security_lsmprop_to_secctx(&audit_sig_lsm,
++							 &lsmctx.context,
++							 &lsmctx.len);
+ 			if (err)
+ 				return err;
+ 		}
+-		sig_data = kmalloc(struct_size(sig_data, ctx, len), GFP_KERNEL);
++		sig_data = kmalloc(struct_size(sig_data, ctx, lsmctx.len),
++				   GFP_KERNEL);
+ 		if (!sig_data) {
+ 			if (lsmprop_is_set(&audit_sig_lsm))
+-				security_release_secctx(ctx, len);
++				security_release_secctx(&lsmctx);
+ 			return -ENOMEM;
+ 		}
+ 		sig_data->uid = from_kuid(&init_user_ns, audit_sig_uid);
+ 		sig_data->pid = audit_sig_pid;
+ 		if (lsmprop_is_set(&audit_sig_lsm)) {
+-			memcpy(sig_data->ctx, ctx, len);
+-			security_release_secctx(ctx, len);
++			memcpy(sig_data->ctx, lsmctx.context, lsmctx.len);
++			security_release_secctx(&lsmctx);
+ 		}
+ 		audit_send_reply(skb, seq, AUDIT_SIGNAL_INFO, 0, 0,
+-				 sig_data, struct_size(sig_data, ctx, len));
++				 sig_data, struct_size(sig_data, ctx,
++						       lsmctx.len));
+ 		kfree(sig_data);
+ 		break;
+ 	case AUDIT_TTY_GET: {
+@@ -2180,23 +2181,22 @@ void audit_log_key(struct audit_buffer *ab, char *key)
+ int audit_log_task_context(struct audit_buffer *ab)
+ {
+ 	struct lsm_prop prop;
+-	char *ctx = NULL;
+-	unsigned len;
++	struct lsm_context ctx;
+ 	int error;
+ 
+ 	security_current_getlsmprop_subj(&prop);
+ 	if (!lsmprop_is_set(&prop))
+ 		return 0;
+ 
+-	error = security_lsmprop_to_secctx(&prop, &ctx, &len);
++	error = security_lsmprop_to_secctx(&prop, &ctx.context, &ctx.len);
+ 	if (error) {
+ 		if (error != -EINVAL)
+ 			goto error_path;
+ 		return 0;
+ 	}
+ 
+-	audit_log_format(ab, " subj=%s", ctx);
+-	security_release_secctx(ctx, len);
++	audit_log_format(ab, " subj=%s", ctx.context);
++	security_release_secctx(&ctx);
+ 	return 0;
+ 
+ error_path:
+diff --git a/kernel/auditsc.c b/kernel/auditsc.c
+index f28fd513d047..c196dd4c9b54 100644
+--- a/kernel/auditsc.c
++++ b/kernel/auditsc.c
+@@ -1098,8 +1098,7 @@ static int audit_log_pid_context(struct audit_context *context, pid_t pid,
+ 				 char *comm)
+ {
+ 	struct audit_buffer *ab;
+-	char *ctx = NULL;
+-	u32 len;
++	struct lsm_context ctx;
+ 	int rc = 0;
+ 
+ 	ab = audit_log_start(context, GFP_KERNEL, AUDIT_OBJ_PID);
+@@ -1110,12 +1109,12 @@ static int audit_log_pid_context(struct audit_context *context, pid_t pid,
+ 			 from_kuid(&init_user_ns, auid),
+ 			 from_kuid(&init_user_ns, uid), sessionid);
+ 	if (lsmprop_is_set(prop)) {
+-		if (security_lsmprop_to_secctx(prop, &ctx, &len)) {
++		if (security_lsmprop_to_secctx(prop, &ctx.context, &ctx.len)) {
+ 			audit_log_format(ab, " obj=(none)");
+ 			rc = 1;
+ 		} else {
+-			audit_log_format(ab, " obj=%s", ctx);
+-			security_release_secctx(ctx, len);
++			audit_log_format(ab, " obj=%s", ctx.context);
++			security_release_secctx(&ctx);
+ 		}
+ 	}
+ 	audit_log_format(ab, " ocomm=");
+@@ -1371,6 +1370,7 @@ static void audit_log_time(struct audit_context *context, struct audit_buffer **
+ 
+ static void show_special(struct audit_context *context, int *call_panic)
+ {
++	struct lsm_context lsmcxt;
+ 	struct audit_buffer *ab;
+ 	int i;
+ 
+@@ -1401,7 +1401,8 @@ static void show_special(struct audit_context *context, int *call_panic)
+ 				*call_panic = 1;
+ 			} else {
+ 				audit_log_format(ab, " obj=%s", ctx);
+-				security_release_secctx(ctx, len);
++				lsmcontext_init(&lsmcxt, ctx, len, 0);
++				security_release_secctx(&lsmcxt);
+ 			}
+ 		}
+ 		if (context->ipc.has_perm) {
+@@ -1560,15 +1561,15 @@ static void audit_log_name(struct audit_context *context, struct audit_names *n,
+ 				 MAJOR(n->rdev),
+ 				 MINOR(n->rdev));
+ 	if (lsmprop_is_set(&n->oprop)) {
+-		char *ctx = NULL;
+-		u32 len;
++		struct lsm_context ctx;
+ 
+-		if (security_lsmprop_to_secctx(&n->oprop, &ctx, &len)) {
++		if (security_lsmprop_to_secctx(&n->oprop, &ctx.context,
++					       &ctx.len)) {
+ 			if (call_panic)
+ 				*call_panic = 2;
+ 		} else {
+-			audit_log_format(ab, " obj=%s", ctx);
+-			security_release_secctx(ctx, len);
++			audit_log_format(ab, " obj=%s", ctx.context);
++			security_release_secctx(&ctx);
+ 		}
+ 	}
+ 
+diff --git a/net/ipv4/ip_sockglue.c b/net/ipv4/ip_sockglue.c
+index cf377377b52d..a8180dcc2a32 100644
+--- a/net/ipv4/ip_sockglue.c
++++ b/net/ipv4/ip_sockglue.c
+@@ -128,20 +128,20 @@ static void ip_cmsg_recv_checksum(struct msghdr *msg, struct sk_buff *skb,
+ 
+ static void ip_cmsg_recv_security(struct msghdr *msg, struct sk_buff *skb)
+ {
+-	char *secdata;
+-	u32 seclen, secid;
++	struct lsm_context ctx;
++	u32 secid;
+ 	int err;
+ 
+ 	err = security_socket_getpeersec_dgram(NULL, skb, &secid);
+ 	if (err)
+ 		return;
+ 
+-	err = security_secid_to_secctx(secid, &secdata, &seclen);
++	err = security_secid_to_secctx(secid, &ctx.context, &ctx.len);
+ 	if (err)
+ 		return;
+ 
+-	put_cmsg(msg, SOL_IP, SCM_SECURITY, seclen, secdata);
+-	security_release_secctx(secdata, seclen);
++	put_cmsg(msg, SOL_IP, SCM_SECURITY, ctx.len, ctx.context);
++	security_release_secctx(&ctx);
+ }
+ 
+ static void ip_cmsg_recv_dstaddr(struct msghdr *msg, struct sk_buff *skb)
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 6a1239433830..86a57a3afdd6 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -357,10 +357,10 @@ static int ctnetlink_dump_mark(struct sk_buff *skb, const struct nf_conn *ct,
+ static int ctnetlink_dump_secctx(struct sk_buff *skb, const struct nf_conn *ct)
+ {
+ 	struct nlattr *nest_secctx;
+-	int len, ret;
+-	char *secctx;
++	struct lsm_context ctx;
++	int ret;
+ 
+-	ret = security_secid_to_secctx(ct->secmark, &secctx, &len);
++	ret = security_secid_to_secctx(ct->secmark, &ctx.context, &ctx.len);
+ 	if (ret)
+ 		return 0;
+ 
+@@ -369,13 +369,13 @@ static int ctnetlink_dump_secctx(struct sk_buff *skb, const struct nf_conn *ct)
+ 	if (!nest_secctx)
+ 		goto nla_put_failure;
+ 
+-	if (nla_put_string(skb, CTA_SECCTX_NAME, secctx))
++	if (nla_put_string(skb, CTA_SECCTX_NAME, ctx.context))
+ 		goto nla_put_failure;
+ 	nla_nest_end(skb, nest_secctx);
+ 
+ 	ret = 0;
+ nla_put_failure:
+-	security_release_secctx(secctx, len);
++	security_release_secctx(&ctx);
+ 	return ret;
+ }
+ #else
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 7d4f0fa8b609..5f7fd23b7afe 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -172,17 +172,16 @@ static void ct_seq_stop(struct seq_file *s, void *v)
+ #ifdef CONFIG_NF_CONNTRACK_SECMARK
+ static void ct_show_secctx(struct seq_file *s, const struct nf_conn *ct)
+ {
++	struct lsm_context ctx;
+ 	int ret;
+-	u32 len;
+-	char *secctx;
+ 
+-	ret = security_secid_to_secctx(ct->secmark, &secctx, &len);
++	ret = security_secid_to_secctx(ct->secmark, &ctx.context, &ctx.len);
+ 	if (ret)
+ 		return;
+ 
+-	seq_printf(s, "secctx=%s ", secctx);
++	seq_printf(s, "secctx=%s ", ctx.context);
+ 
+-	security_release_secctx(secctx, len);
++	security_release_secctx(&ctx);
+ }
+ #else
+ static inline void ct_show_secctx(struct seq_file *s, const struct nf_conn *ct)
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index d2773ce9b585..37757cd77cf1 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -567,6 +567,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 	enum ip_conntrack_info ctinfo = 0;
+ 	const struct nfnl_ct_hook *nfnl_ct;
+ 	bool csum_verify;
++	struct lsm_context scaff; /* scaffolding */
+ 	char *secdata = NULL;
+ 	u32 seclen = 0;
+ 	ktime_t tstamp;
+@@ -810,8 +811,10 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 	}
+ 
+ 	nlh->nlmsg_len = skb->len;
+-	if (seclen)
+-		security_release_secctx(secdata, seclen);
++	if (seclen) {
++		lsmcontext_init(&scaff, secdata, seclen, 0);
++		security_release_secctx(&scaff);
 +	}
-+	if (adevs[i] || bdevs[i])
-+		print_err("Chain devices mismatches");
-+}
+ 	return skb;
  
-+static void cmp_nftnl_chain(struct nftnl_chain *a, struct nftnl_chain *b)
-+{
- 	if (strcmp(nftnl_chain_get_str(a, NFTNL_CHAIN_NAME),
- 		   nftnl_chain_get_str(b, NFTNL_CHAIN_NAME)) != 0)
- 		print_err("Chain name mismatches");
-@@ -59,13 +75,17 @@ static void cmp_nftnl_chain(struct nftnl_chain *a, struct nftnl_chain *b)
- 	if (strcmp(nftnl_chain_get_str(a, NFTNL_CHAIN_TYPE),
- 		   nftnl_chain_get_str(b, NFTNL_CHAIN_TYPE)) != 0)
- 		print_err("Chain type mismatches");
--	if (strcmp(nftnl_chain_get_str(a, NFTNL_CHAIN_DEV),
-+	if (nftnl_chain_is_set(a, NFTNL_CHAIN_DEV) &&
-+	    strcmp(nftnl_chain_get_str(a, NFTNL_CHAIN_DEV),
- 		   nftnl_chain_get_str(b, NFTNL_CHAIN_DEV)) != 0)
- 		print_err("Chain device mismatches");
-+	cmp_devices(nftnl_chain_get_array(a, NFTNL_CHAIN_DEVICES),
-+		    nftnl_chain_get_array(b, NFTNL_CHAIN_DEVICES));
- }
- 
- int main(int argc, char *argv[])
- {
-+	const char *devs[] = { "eth0", "eth1", "eth2", NULL };
- 	struct nftnl_chain *a, *b;
- 	char buf[4096];
- 	struct nlmsghdr *nlh;
-@@ -97,6 +117,19 @@ int main(int argc, char *argv[])
- 
- 	cmp_nftnl_chain(a, b);
- 
-+	/* repeat test with multiple devices */
-+
-+	nftnl_chain_unset(a, NFTNL_CHAIN_DEV);
-+	nftnl_chain_set_array(a, NFTNL_CHAIN_DEVICES, devs);
-+
-+	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, AF_INET, 0, 1234);
-+	nftnl_chain_nlmsg_build_payload(nlh, a);
-+
-+	if (nftnl_chain_nlmsg_parse(nlh, b) < 0)
-+		print_err("parsing problems");
-+
-+	cmp_nftnl_chain(a, b);
-+
- 	nftnl_chain_free(a);
- 	nftnl_chain_free(b);
- 
-diff --git a/tests/nft-flowtable-test.c b/tests/nft-flowtable-test.c
-index 8ab8d4c5347a4..49bc0a1c5e043 100644
---- a/tests/nft-flowtable-test.c
-+++ b/tests/nft-flowtable-test.c
-@@ -13,6 +13,23 @@ static void print_err(const char *msg)
- 	printf("\033[31mERROR:\e[0m %s\n", msg);
- }
- 
-+static void cmp_devices(const char * const *adevs,
-+			const char * const *bdevs)
-+{
-+	int i;
-+
-+	if (!adevs && !bdevs)
-+		return;
-+	if (!!adevs ^ !!bdevs)
-+		print_err("Flowtable devices mismatches");
-+	for (i = 0; adevs[i] && bdevs[i]; i++) {
-+		if (strcmp(adevs[i], bdevs[i]))
-+			break;
+ nla_put_failure:
+@@ -819,8 +822,10 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 	kfree_skb(skb);
+ 	net_err_ratelimited("nf_queue: error creating packet message\n");
+ nlmsg_failure:
+-	if (seclen)
+-		security_release_secctx(secdata, seclen);
++	if (seclen) {
++		lsmcontext_init(&scaff, secdata, seclen, 0);
++		security_release_secctx(&scaff);
 +	}
-+	if (adevs[i] || bdevs[i])
-+		print_err("Flowtable devices mismatches");
-+}
-+
- static void cmp_nftnl_flowtable(struct nftnl_flowtable *a, struct nftnl_flowtable *b)
- {
- 	if (strcmp(nftnl_flowtable_get_str(a, NFTNL_FLOWTABLE_NAME),
-@@ -44,10 +61,13 @@ static void cmp_nftnl_flowtable(struct nftnl_flowtable *a, struct nftnl_flowtabl
- 	if (nftnl_flowtable_get_u64(a, NFTNL_FLOWTABLE_HANDLE) !=
- 	    nftnl_flowtable_get_u64(b, NFTNL_FLOWTABLE_HANDLE))
- 		print_err("Flowtable handle mismatches");
-+	cmp_devices(nftnl_flowtable_get_array(a, NFTNL_FLOWTABLE_DEVICES),
-+		    nftnl_flowtable_get_array(b, NFTNL_FLOWTABLE_DEVICES));
+ 	return NULL;
  }
  
- int main(int argc, char *argv[])
- {
-+	const char *devs[] = { "eth0", "eth1", "eth2", NULL };
- 	struct nftnl_flowtable *a, *b;
- 	char buf[4096];
- 	struct nlmsghdr *nlh;
-@@ -66,6 +86,7 @@ int main(int argc, char *argv[])
- 	nftnl_flowtable_set_u32(a, NFTNL_FLOWTABLE_SIZE, 0x89016745);
- 	nftnl_flowtable_set_u32(a, NFTNL_FLOWTABLE_FLAGS, 0x45016723);
- 	nftnl_flowtable_set_u64(a, NFTNL_FLOWTABLE_HANDLE, 0x2345016789);
-+	nftnl_flowtable_set_array(a, NFTNL_FLOWTABLE_DEVICES, devs);
+diff --git a/net/netlabel/netlabel_unlabeled.c b/net/netlabel/netlabel_unlabeled.c
+index 1bc2d0890a9f..921fa8eeb451 100644
+--- a/net/netlabel/netlabel_unlabeled.c
++++ b/net/netlabel/netlabel_unlabeled.c
+@@ -374,8 +374,7 @@ int netlbl_unlhsh_add(struct net *net,
+ 	struct net_device *dev;
+ 	struct netlbl_unlhsh_iface *iface;
+ 	struct audit_buffer *audit_buf = NULL;
+-	char *secctx = NULL;
+-	u32 secctx_len;
++	struct lsm_context ctx;
  
- 	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_NEWFLOWTABLE, AF_INET,
- 				    0, 1234);
+ 	if (addr_len != sizeof(struct in_addr) &&
+ 	    addr_len != sizeof(struct in6_addr))
+@@ -439,10 +438,10 @@ int netlbl_unlhsh_add(struct net *net,
+ 	rcu_read_unlock();
+ 	if (audit_buf != NULL) {
+ 		if (security_secid_to_secctx(secid,
+-					     &secctx,
+-					     &secctx_len) == 0) {
+-			audit_log_format(audit_buf, " sec_obj=%s", secctx);
+-			security_release_secctx(secctx, secctx_len);
++					     &ctx.context,
++					     &ctx.len) == 0) {
++			audit_log_format(audit_buf, " sec_obj=%s", ctx.context);
++			security_release_secctx(&ctx);
+ 		}
+ 		audit_log_format(audit_buf, " res=%u", ret_val == 0 ? 1 : 0);
+ 		audit_log_end(audit_buf);
+@@ -473,8 +472,7 @@ static int netlbl_unlhsh_remove_addr4(struct net *net,
+ 	struct netlbl_unlhsh_addr4 *entry;
+ 	struct audit_buffer *audit_buf;
+ 	struct net_device *dev;
+-	char *secctx;
+-	u32 secctx_len;
++	struct lsm_context ctx;
+ 
+ 	spin_lock(&netlbl_unlhsh_lock);
+ 	list_entry = netlbl_af4list_remove(addr->s_addr, mask->s_addr,
+@@ -495,9 +493,9 @@ static int netlbl_unlhsh_remove_addr4(struct net *net,
+ 		dev_put(dev);
+ 		if (entry != NULL &&
+ 		    security_secid_to_secctx(entry->secid,
+-					     &secctx, &secctx_len) == 0) {
+-			audit_log_format(audit_buf, " sec_obj=%s", secctx);
+-			security_release_secctx(secctx, secctx_len);
++					     &ctx.context, &ctx.len) == 0) {
++			audit_log_format(audit_buf, " sec_obj=%s", ctx.context);
++			security_release_secctx(&ctx);
+ 		}
+ 		audit_log_format(audit_buf, " res=%u", entry != NULL ? 1 : 0);
+ 		audit_log_end(audit_buf);
+@@ -534,8 +532,7 @@ static int netlbl_unlhsh_remove_addr6(struct net *net,
+ 	struct netlbl_unlhsh_addr6 *entry;
+ 	struct audit_buffer *audit_buf;
+ 	struct net_device *dev;
+-	char *secctx;
+-	u32 secctx_len;
++	struct lsm_context ctx;
+ 
+ 	spin_lock(&netlbl_unlhsh_lock);
+ 	list_entry = netlbl_af6list_remove(addr, mask, &iface->addr6_list);
+@@ -555,9 +552,9 @@ static int netlbl_unlhsh_remove_addr6(struct net *net,
+ 		dev_put(dev);
+ 		if (entry != NULL &&
+ 		    security_secid_to_secctx(entry->secid,
+-					     &secctx, &secctx_len) == 0) {
+-			audit_log_format(audit_buf, " sec_obj=%s", secctx);
+-			security_release_secctx(secctx, secctx_len);
++					     &ctx.context, &ctx.len) == 0) {
++			audit_log_format(audit_buf, " sec_obj=%s", ctx.context);
++			security_release_secctx(&ctx);
+ 		}
+ 		audit_log_format(audit_buf, " res=%u", entry != NULL ? 1 : 0);
+ 		audit_log_end(audit_buf);
+@@ -1069,10 +1066,9 @@ static int netlbl_unlabel_staticlist_gen(u32 cmd,
+ 	int ret_val = -ENOMEM;
+ 	struct netlbl_unlhsh_walk_arg *cb_arg = arg;
+ 	struct net_device *dev;
++	struct lsm_context ctx;
+ 	void *data;
+ 	u32 secid;
+-	char *secctx;
+-	u32 secctx_len;
+ 
+ 	data = genlmsg_put(cb_arg->skb, NETLINK_CB(cb_arg->nl_cb->skb).portid,
+ 			   cb_arg->seq, &netlbl_unlabel_gnl_family,
+@@ -1127,14 +1123,14 @@ static int netlbl_unlabel_staticlist_gen(u32 cmd,
+ 		secid = addr6->secid;
+ 	}
+ 
+-	ret_val = security_secid_to_secctx(secid, &secctx, &secctx_len);
++	ret_val = security_secid_to_secctx(secid, &ctx.context, &ctx.len);
+ 	if (ret_val != 0)
+ 		goto list_cb_failure;
+ 	ret_val = nla_put(cb_arg->skb,
+ 			  NLBL_UNLABEL_A_SECCTX,
+-			  secctx_len,
+-			  secctx);
+-	security_release_secctx(secctx, secctx_len);
++			  ctx.len,
++			  ctx.context);
++	security_release_secctx(&ctx);
+ 	if (ret_val != 0)
+ 		goto list_cb_failure;
+ 
+diff --git a/net/netlabel/netlabel_user.c b/net/netlabel/netlabel_user.c
+index 81635a13987b..f5e7a9919df1 100644
+--- a/net/netlabel/netlabel_user.c
++++ b/net/netlabel/netlabel_user.c
+@@ -84,8 +84,7 @@ struct audit_buffer *netlbl_audit_start_common(int type,
+ 					       struct netlbl_audit *audit_info)
+ {
+ 	struct audit_buffer *audit_buf;
+-	char *secctx;
+-	u32 secctx_len;
++	struct lsm_context ctx;
+ 
+ 	if (audit_enabled == AUDIT_OFF)
+ 		return NULL;
+@@ -99,10 +98,10 @@ struct audit_buffer *netlbl_audit_start_common(int type,
+ 			 audit_info->sessionid);
+ 
+ 	if (lsmprop_is_set(&audit_info->prop) &&
+-	    security_lsmprop_to_secctx(&audit_info->prop, &secctx,
+-				       &secctx_len) == 0) {
+-		audit_log_format(audit_buf, " subj=%s", secctx);
+-		security_release_secctx(secctx, secctx_len);
++	    security_lsmprop_to_secctx(&audit_info->prop, &ctx.context,
++				       &ctx.len) == 0) {
++		audit_log_format(audit_buf, " subj=%s", ctx.context);
++		security_release_secctx(&ctx);
+ 	}
+ 
+ 	return audit_buf;
+diff --git a/security/apparmor/include/secid.h b/security/apparmor/include/secid.h
+index cc6d1c9f4a47..8b92f90b6921 100644
+--- a/security/apparmor/include/secid.h
++++ b/security/apparmor/include/secid.h
+@@ -29,7 +29,7 @@ int apparmor_secid_to_secctx(u32 secid, char **secdata, u32 *seclen);
+ int apparmor_lsmprop_to_secctx(struct lsm_prop *prop, char **secdata,
+ 			       u32 *seclen);
+ int apparmor_secctx_to_secid(const char *secdata, u32 seclen, u32 *secid);
+-void apparmor_release_secctx(char *secdata, u32 seclen);
++void apparmor_release_secctx(struct lsm_context *cp);
+ 
+ 
+ int aa_alloc_secid(struct aa_label *label, gfp_t gfp);
+diff --git a/security/apparmor/secid.c b/security/apparmor/secid.c
+index 6350d107013a..8d9ced8cdffd 100644
+--- a/security/apparmor/secid.c
++++ b/security/apparmor/secid.c
+@@ -120,9 +120,16 @@ int apparmor_secctx_to_secid(const char *secdata, u32 seclen, u32 *secid)
+ 	return 0;
+ }
+ 
+-void apparmor_release_secctx(char *secdata, u32 seclen)
++void apparmor_release_secctx(struct lsm_context *cp)
+ {
+-	kfree(secdata);
++	/*
++	 * stacking scaffolding:
++	 * When it is possible for more than one LSM to provide a
++	 * release hook, do this check:
++	 * if (cp->id == LSM_ID_APPARMOR || cp->id == LSM_ID_UNDEF)
++	 */
++
++	kfree(cp->context);
+ }
+ 
+ /**
+diff --git a/security/security.c b/security/security.c
+index 0003d5ace5cc..0c9c3a02704b 100644
+--- a/security/security.c
++++ b/security/security.c
+@@ -4365,14 +4365,14 @@ EXPORT_SYMBOL(security_secctx_to_secid);
+ 
+ /**
+  * security_release_secctx() - Free a secctx buffer
+- * @secdata: secctx
+- * @seclen: length of secctx
++ * @cp: the security context
+  *
+  * Release the security context.
+  */
+-void security_release_secctx(char *secdata, u32 seclen)
++void security_release_secctx(struct lsm_context *cp)
+ {
+-	call_void_hook(release_secctx, secdata, seclen);
++	call_void_hook(release_secctx, cp);
++	memset(cp, 0, sizeof(*cp));
+ }
+ EXPORT_SYMBOL(security_release_secctx);
+ 
+diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
+index 025b60c5b605..1503d398c87d 100644
+--- a/security/selinux/hooks.c
++++ b/security/selinux/hooks.c
+@@ -6624,9 +6624,16 @@ static int selinux_secctx_to_secid(const char *secdata, u32 seclen, u32 *secid)
+ 				       secid, GFP_KERNEL);
+ }
+ 
+-static void selinux_release_secctx(char *secdata, u32 seclen)
++static void selinux_release_secctx(struct lsm_context *cp)
+ {
+-	kfree(secdata);
++	/*
++	 * stacking scaffolding:
++	 * When it is possible for more than one LSM to provide a
++	 * release hook, do this check:
++	 * if (cp->id == LSM_ID_SELINUX || cp->id == LSM_ID_UNDEF)
++	 */
++
++	kfree(cp->context);
+ }
+ 
+ static void selinux_inode_invalidate_secctx(struct inode *inode)
 -- 
-2.47.0
+2.46.0
 
