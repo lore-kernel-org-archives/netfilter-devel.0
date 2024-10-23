@@ -1,43 +1,44 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 378721E51D
-	for <netfilter-devel@vger.kernel.org>; Wed, 23 Oct 2024 20:00:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E888A1E51D
+	for <netfilter-devel@vger.kernel.org>; Wed, 23 Oct 2024 20:07:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729713656; cv=none; b=ueHnBNEkj7zn7bA3X7D/F0x5MzOxN/ryqDwooJj3OUzhX05M7AdtL8FnqbhX3wAeW63ACJRICvRs77iNneDj0dCJS2iTn5snlYuPb6Lsu7q4ZVRw+dkco52quTqjb2vmto8K/DK1MmO+aSqhortDScgUklvfH1g4RBslxQe1skg=
+	t=1729714028; cv=none; b=TVleR/8X8PZ4q6X2d9BB4QRS+lIWh/72byucm8xz1QDAmHFFBDwTnBKnT2IE5AN0mngZXl/a+rWBpOidUoVElck7JykFtNf9Uvv+qmfFJ+RKcBnY8QTgy71v2gsHWQIeKursMaVyTlE9MkCdldic5kWrn2tzgM0az8R08kwM3co=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729713656; c=relaxed/simple;
-	bh=RGWO+9MRP451jT0vvTl13KjTwnZUkYswgg54JdEutJw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=L94fgZ85YcztRF92q2BGgiDOtT/hjyNFBr1xD0EplEKgcY5HJFs7dCankZ7+v/JjcnVA0fmzIyFlvaA35Bpb6Df/ZdMUTRddfpvNmLt47XyHFSkWSKNBGgczahtNmI7/FunXP9aU8AjBXk78fFZfKb2FwZHRMXlsZNneZRY+Axc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=jREjqdIV; arc=none smtp.client-ip=151.80.46.58
+	s=arc-20240116; t=1729714028; c=relaxed/simple;
+	bh=NUebTff7U3dr/2ftbs8iGVGVAID8Lpp3NTKa/9VaC6k=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=rLKSewNdfVhoWY6MJH6OlNJQdsrUPNVt1MwwyqS+8AdZwh4Pif+xRh2WYsLbk7jlZe3fEimn/pveq4puWQluhLeCfCemVwWQTdi7jNiGEqOuVsMtIn7LLcGf/nD1ysb/POxYnAhcP0qwdeA/teX/5X2QhtusTggzFSg9PvXZ1B0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=XNWsZh3C; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="jREjqdIV"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="XNWsZh3C"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+	s=mail2022; h=Content-Transfer-Encoding:Content-Type:MIME-Version:Message-ID:
+	Date:Subject:Cc:To:From:Sender:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=pcnppAfU89A68DZbDxfF8abTaoAVYld0skgI7m8Sn5c=; b=jREjqdIVK/jOwVvDLOESL/0mgZ
-	/xVz1WGjIud3ar4/KawVF3CFRZBfJIGGdxpVVl0y+ku67193CZ51zH9fYlDZf1G3irotaZPR6AjZX
-	0jkarfIdni4OqikruRKCYUxsBI61AQxoEU4dsoSp4f5VO9QpihBPpHYZzmcruFeQXYSeFQcgvkFHu
-	Cr50t4LWi2WRYhZscZY9udpN67KNz9sNfvMA9cByudNffcvmKjnosbJvGB7CkLDdXbeDgv7Jf0RnO
-	UxZVd7xM0joddIdcAuFHILwxOLB06NW7dbMqQM4bLo1E8tv3tyxc2T2WP+i+qGiatDBsMRjCDQIuz
-	R6es/6Ww==;
+	bh=jUC0PIKUZ2BmwQgWUoTcWlyVPN7KHEgX436NHB4qFes=; b=XNWsZh3Com/il/XDDz/kxIi+v2
+	salSWqr2/idDkgmqmenWklfrEyEnof6PRw1ttrgVbGrGxHZbKScsCITfJ24fAhguzaNoQdYe4E5UC
+	BYN6oGZS8SZ1C009ssx6TM8qy660AbeaMr6EVwAwpH1g5h4MLruDcjwGpyteDP5FB50p96PXA5Lup
+	Sw2SUaIjfxvW1CUlgPHfNJJzStZBKKqvYsUtnx0ygnxZOO9cg9PeCwRODB6mPiymEmhx/Dk/kkKxs
+	6LTBR1NmM4L0F1Pb++LtFDN3n5Psk4YbUmKegSLFbetVm21ab1J/pknOQVaKkS9gttGTvjDZcwHTb
+	3C9dYJjg==;
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1t3hXG-000000000bx-3Wtu;
-	Wed, 23 Oct 2024 22:00:51 +0200
+	id 1t3hdE-000000000h6-37ho;
+	Wed, 23 Oct 2024 22:07:01 +0200
 From: Phil Sutter <phil@nwl.cc>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: [libnftnl PATCH] Introduce struct nftnl_str_array
-Date: Wed, 23 Oct 2024 22:00:49 +0200
-Message-ID: <20241023200049.22598-1-phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org,
+	Jan Engelhardt <ej@inai.de>
+Subject: [libnftnl PATCH] Use SPDX License Identifiers in headers
+Date: Wed, 23 Oct 2024 22:06:57 +0200
+Message-ID: <20241023200658.24205-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -45,560 +46,2177 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-This data structure holds an array of allocated strings for use in
-nftnl_chain and nftnl_flowtable structs. For convenience, implement
-functions to clear, populate and iterate over contents.
+Replace the copyright notice in header comments by an equivalent
+SPDX-License-Identifier string. Drop a following empty line if at the
+bottom of the comment. Leave any other header comment content in place.
 
-While at it, extend chain and flowtable tests to cover these attributes,
-too.
+This also fixes for an incomplete notice in examples/nft-ruleset-get.c
+since commit c335442eefcca ("src: incorrect header refers to GPLv2
+only").
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- include/internal.h         |  1 +
- src/Makefile.am            |  1 +
- src/chain.c                | 90 ++++++------------------------------
- src/flowtable.c            | 94 ++++++--------------------------------
- src/utils.c                |  1 +
- tests/nft-chain-test.c     | 37 ++++++++++++++-
- tests/nft-flowtable-test.c | 21 +++++++++
- 7 files changed, 86 insertions(+), 159 deletions(-)
+ examples/nft-chain-add.c               | 5 +----
+ examples/nft-chain-del.c               | 5 +----
+ examples/nft-chain-get.c               | 5 +----
+ examples/nft-compat-get.c              | 5 +----
+ examples/nft-ct-expectation-add.c      | 5 +----
+ examples/nft-ct-expectation-del.c      | 5 +----
+ examples/nft-ct-expectation-get.c      | 5 +----
+ examples/nft-ct-helper-add.c           | 5 +----
+ examples/nft-ct-helper-del.c           | 5 +----
+ examples/nft-ct-helper-get.c           | 5 +----
+ examples/nft-ct-timeout-add.c          | 5 +----
+ examples/nft-ct-timeout-del.c          | 5 +----
+ examples/nft-ct-timeout-get.c          | 5 +----
+ examples/nft-events.c                  | 5 +----
+ examples/nft-map-add.c                 | 5 +----
+ examples/nft-obj-add.c                 | 5 +----
+ examples/nft-obj-del.c                 | 5 +----
+ examples/nft-obj-get.c                 | 5 +----
+ examples/nft-rule-add.c                | 5 +----
+ examples/nft-rule-ct-expectation-add.c | 5 +----
+ examples/nft-rule-ct-helper-add.c      | 5 +----
+ examples/nft-rule-ct-timeout-add.c     | 5 +----
+ examples/nft-rule-del.c                | 5 +----
+ examples/nft-rule-get.c                | 5 +----
+ examples/nft-ruleset-get.c             | 5 +----
+ examples/nft-set-add.c                 | 5 +----
+ examples/nft-set-del.c                 | 5 +----
+ examples/nft-set-elem-add.c            | 5 +----
+ examples/nft-set-elem-del.c            | 5 +----
+ examples/nft-set-elem-get.c            | 5 +----
+ examples/nft-set-get.c                 | 5 +----
+ examples/nft-table-add.c               | 5 +----
+ examples/nft-table-del.c               | 5 +----
+ examples/nft-table-get.c               | 5 +----
+ examples/nft-table-upd.c               | 5 +----
+ src/batch.c                            | 5 +----
+ src/chain.c                            | 5 +----
+ src/common.c                           | 5 +----
+ src/expr.c                             | 5 +----
+ src/expr/bitwise.c                     | 5 +----
+ src/expr/byteorder.c                   | 5 +----
+ src/expr/cmp.c                         | 5 +----
+ src/expr/connlimit.c                   | 5 +----
+ src/expr/counter.c                     | 5 +----
+ src/expr/ct.c                          | 5 +----
+ src/expr/data_reg.c                    | 5 +----
+ src/expr/dup.c                         | 5 +----
+ src/expr/dynset.c                      | 5 +----
+ src/expr/exthdr.c                      | 5 +----
+ src/expr/fib.c                         | 5 +----
+ src/expr/fwd.c                         | 5 +----
+ src/expr/hash.c                        | 6 +-----
+ src/expr/immediate.c                   | 5 +----
+ src/expr/inner.c                       | 5 +----
+ src/expr/last.c                        | 5 +----
+ src/expr/limit.c                       | 5 +----
+ src/expr/log.c                         | 5 +----
+ src/expr/lookup.c                      | 5 +----
+ src/expr/masq.c                        | 5 +----
+ src/expr/match.c                       | 5 +----
+ src/expr/meta.c                        | 5 +----
+ src/expr/nat.c                         | 5 +----
+ src/expr/numgen.c                      | 6 +-----
+ src/expr/objref.c                      | 5 +----
+ src/expr/payload.c                     | 5 +----
+ src/expr/queue.c                       | 6 +-----
+ src/expr/quota.c                       | 5 +----
+ src/expr/range.c                       | 5 +----
+ src/expr/redir.c                       | 5 +----
+ src/expr/reject.c                      | 5 +----
+ src/expr/rt.c                          | 5 +----
+ src/expr/socket.c                      | 5 +----
+ src/expr/target.c                      | 5 +----
+ src/expr/tproxy.c                      | 5 +----
+ src/expr/tunnel.c                      | 5 +----
+ src/expr/xfrm.c                        | 5 +----
+ src/gen.c                              | 5 +----
+ src/obj/counter.c                      | 5 +----
+ src/obj/ct_expect.c                    | 5 +----
+ src/obj/ct_helper.c                    | 5 +----
+ src/obj/ct_timeout.c                   | 5 +----
+ src/obj/limit.c                        | 5 +----
+ src/obj/quota.c                        | 5 +----
+ src/obj/secmark.c                      | 5 +----
+ src/obj/tunnel.c                       | 5 +----
+ src/object.c                           | 5 +----
+ src/rule.c                             | 5 +----
+ src/ruleset.c                          | 5 +----
+ src/set.c                              | 5 +----
+ src/set_elem.c                         | 5 +----
+ src/table.c                            | 5 +----
+ src/trace.c                            | 5 +----
+ src/udata.c                            | 5 +----
+ src/utils.c                            | 5 +----
+ tests/nft-chain-test.c                 | 6 +-----
+ tests/nft-expr_bitwise-test.c          | 5 +----
+ tests/nft-expr_byteorder-test.c        | 6 +-----
+ tests/nft-expr_cmp-test.c              | 6 +-----
+ tests/nft-expr_counter-test.c          | 6 +-----
+ tests/nft-expr_ct-test.c               | 6 +-----
+ tests/nft-expr_dup-test.c              | 6 +-----
+ tests/nft-expr_exthdr-test.c           | 6 +-----
+ tests/nft-expr_fwd-test.c              | 6 +-----
+ tests/nft-expr_hash-test.c             | 6 +-----
+ tests/nft-expr_immediate-test.c        | 6 +-----
+ tests/nft-expr_limit-test.c            | 6 +-----
+ tests/nft-expr_log-test.c              | 6 +-----
+ tests/nft-expr_lookup-test.c           | 6 +-----
+ tests/nft-expr_masq-test.c             | 6 +-----
+ tests/nft-expr_match-test.c            | 6 +-----
+ tests/nft-expr_meta-test.c             | 6 +-----
+ tests/nft-expr_nat-test.c              | 6 +-----
+ tests/nft-expr_numgen-test.c           | 6 +-----
+ tests/nft-expr_objref-test.c           | 6 +-----
+ tests/nft-expr_payload-test.c          | 6 +-----
+ tests/nft-expr_queue-test.c            | 6 +-----
+ tests/nft-expr_quota-test.c            | 6 +-----
+ tests/nft-expr_range-test.c            | 6 +-----
+ tests/nft-expr_redir-test.c            | 6 +-----
+ tests/nft-expr_reject-test.c           | 6 +-----
+ tests/nft-expr_target-test.c           | 6 +-----
+ tests/nft-object-test.c                | 6 +-----
+ tests/nft-rule-test.c                  | 6 +-----
+ tests/nft-set-test.c                   | 6 +-----
+ tests/nft-table-test.c                 | 6 +-----
+ 125 files changed, 125 insertions(+), 533 deletions(-)
 
-diff --git a/include/internal.h b/include/internal.h
-index 1f96731589c04..b8fc7f129c76e 100644
---- a/include/internal.h
-+++ b/include/internal.h
-@@ -12,5 +12,6 @@
- #include "expr.h"
- #include "expr_ops.h"
- #include "rule.h"
-+#include "str_array.h"
+diff --git a/examples/nft-chain-add.c b/examples/nft-chain-add.c
+index 13be982324180..fc2e939dae8b4 100644
+--- a/examples/nft-chain-add.c
++++ b/examples/nft-chain-add.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-chain-del.c b/examples/nft-chain-del.c
+index 3cd483ea6c027..ea10a8aed97c3 100644
+--- a/examples/nft-chain-del.c
++++ b/examples/nft-chain-del.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-chain-get.c b/examples/nft-chain-get.c
+index 612f58be7553c..57835e55d393c 100644
+--- a/examples/nft-chain-get.c
++++ b/examples/nft-chain-get.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-compat-get.c b/examples/nft-compat-get.c
+index 8f00cbf5b8242..657cf1b30f50a 100644
+--- a/examples/nft-compat-get.c
++++ b/examples/nft-compat-get.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-ct-expectation-add.c b/examples/nft-ct-expectation-add.c
+index d9b9cdb2f68b8..34a80670e3b58 100644
+--- a/examples/nft-ct-expectation-add.c
++++ b/examples/nft-ct-expectation-add.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2019 by Stéphane Veyret <sveyret@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
- #endif /* _LIBNFTNL_INTERNAL_H_ */
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 3cd259c04d1c3..1c38d00c4e180 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -17,6 +17,7 @@ libnftnl_la_SOURCES = utils.c		\
- 		      rule.c		\
- 		      set.c		\
- 		      set_elem.c	\
-+		      str_array.c	\
- 		      ruleset.c		\
- 		      udata.c		\
- 		      expr.c		\
+ #include <time.h>
+diff --git a/examples/nft-ct-expectation-del.c b/examples/nft-ct-expectation-del.c
+index 67dbd4777ed03..802b5680dcd67 100644
+--- a/examples/nft-ct-expectation-del.c
++++ b/examples/nft-ct-expectation-del.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2019 by Stéphane Veyret <sveyret@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdlib.h>
+diff --git a/examples/nft-ct-expectation-get.c b/examples/nft-ct-expectation-get.c
+index 12c1350024c6a..653eaf435728c 100644
+--- a/examples/nft-ct-expectation-get.c
++++ b/examples/nft-ct-expectation-get.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2019 by Stéphane Veyret <sveyret@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdlib.h>
+diff --git a/examples/nft-ct-helper-add.c b/examples/nft-ct-helper-add.c
+index 397443ba74db3..ae5c8109c82b3 100644
+--- a/examples/nft-ct-helper-add.c
++++ b/examples/nft-ct-helper-add.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012-2016 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdlib.h>
+diff --git a/examples/nft-ct-helper-del.c b/examples/nft-ct-helper-del.c
+index fda3026cd69b9..30c3269a086c4 100644
+--- a/examples/nft-ct-helper-del.c
++++ b/examples/nft-ct-helper-del.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-ct-helper-get.c b/examples/nft-ct-helper-get.c
+index 34134af196a83..33a3bf557801f 100644
+--- a/examples/nft-ct-helper-get.c
++++ b/examples/nft-ct-helper-get.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-ct-timeout-add.c b/examples/nft-ct-timeout-add.c
+index 4c2052ea75cc6..6ee2827de6ec7 100644
+--- a/examples/nft-ct-timeout-add.c
++++ b/examples/nft-ct-timeout-add.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012-2016 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdlib.h>
+diff --git a/examples/nft-ct-timeout-del.c b/examples/nft-ct-timeout-del.c
+index 4581c3986fda7..def48c8045fcb 100644
+--- a/examples/nft-ct-timeout-del.c
++++ b/examples/nft-ct-timeout-del.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-ct-timeout-get.c b/examples/nft-ct-timeout-get.c
+index 18aed52e987e4..1c85c217645b2 100644
+--- a/examples/nft-ct-timeout-get.c
++++ b/examples/nft-ct-timeout-get.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-events.c b/examples/nft-events.c
+index 8aab90a118242..ee2b7709fc236 100644
+--- a/examples/nft-events.c
++++ b/examples/nft-events.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-map-add.c b/examples/nft-map-add.c
+index e5ce664af6b5b..8c38085e18808 100644
+--- a/examples/nft-map-add.c
++++ b/examples/nft-map-add.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2016 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdlib.h>
+diff --git a/examples/nft-obj-add.c b/examples/nft-obj-add.c
+index f526b3c085772..1cb6769e549cc 100644
+--- a/examples/nft-obj-add.c
++++ b/examples/nft-obj-add.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012-2016 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdlib.h>
+diff --git a/examples/nft-obj-del.c b/examples/nft-obj-del.c
+index ae4f703146180..b582240e7355b 100644
+--- a/examples/nft-obj-del.c
++++ b/examples/nft-obj-del.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-obj-get.c b/examples/nft-obj-get.c
+index e560ed008f848..385208e019ede 100644
+--- a/examples/nft-obj-get.c
++++ b/examples/nft-obj-get.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-rule-add.c b/examples/nft-rule-add.c
+index 7d13b92f6ef55..19915544554fe 100644
+--- a/examples/nft-rule-add.c
++++ b/examples/nft-rule-add.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-rule-ct-expectation-add.c b/examples/nft-rule-ct-expectation-add.c
+index 07c8306d9154c..377eb68a6de14 100644
+--- a/examples/nft-rule-ct-expectation-add.c
++++ b/examples/nft-rule-ct-expectation-add.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2019 by Stéphane Veyret <sveyret@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdlib.h>
+diff --git a/examples/nft-rule-ct-helper-add.c b/examples/nft-rule-ct-helper-add.c
+index 594e6ba8e6ddc..a9d92bb93d215 100644
+--- a/examples/nft-rule-ct-helper-add.c
++++ b/examples/nft-rule-ct-helper-add.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-rule-ct-timeout-add.c b/examples/nft-rule-ct-timeout-add.c
+index 0953cb4a396f1..b89918aa84316 100644
+--- a/examples/nft-rule-ct-timeout-add.c
++++ b/examples/nft-rule-ct-timeout-add.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-rule-del.c b/examples/nft-rule-del.c
+index cb085ff10b3bb..15bfaaaf22223 100644
+--- a/examples/nft-rule-del.c
++++ b/examples/nft-rule-del.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-rule-get.c b/examples/nft-rule-get.c
+index 8da5b59ae372c..be85639fea5db 100644
+--- a/examples/nft-rule-get.c
++++ b/examples/nft-rule-get.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-ruleset-get.c b/examples/nft-ruleset-get.c
+index 34ebe1fb6155c..269f469734b1d 100644
+--- a/examples/nft-ruleset-get.c
++++ b/examples/nft-ruleset-get.c
+@@ -5,10 +5,7 @@
+  *
+  * Copyright (c) 2013 Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdlib.h>
+diff --git a/examples/nft-set-add.c b/examples/nft-set-add.c
+index 109e33a75ac0e..821a85c2878f1 100644
+--- a/examples/nft-set-add.c
++++ b/examples/nft-set-add.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2013 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-set-del.c b/examples/nft-set-del.c
+index 5e8dea975a739..dfee6ba4402b2 100644
+--- a/examples/nft-set-del.c
++++ b/examples/nft-set-del.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-set-elem-add.c b/examples/nft-set-elem-add.c
+index 4b8b37c086a43..4df8d3ff0ca4a 100644
+--- a/examples/nft-set-elem-add.c
++++ b/examples/nft-set-elem-add.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2013 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-set-elem-del.c b/examples/nft-set-elem-del.c
+index 1e6c90df81687..aeb1efc19514b 100644
+--- a/examples/nft-set-elem-del.c
++++ b/examples/nft-set-elem-del.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2013 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-set-elem-get.c b/examples/nft-set-elem-get.c
+index 7f99a602b0317..97d47708c4bc2 100644
+--- a/examples/nft-set-elem-get.c
++++ b/examples/nft-set-elem-get.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-set-get.c b/examples/nft-set-get.c
+index 48a0699cad2ba..ac9b3faf40b2a 100644
+--- a/examples/nft-set-get.c
++++ b/examples/nft-set-get.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-table-add.c b/examples/nft-table-add.c
+index 3d54e0e5d5097..0b4433a82a51f 100644
+--- a/examples/nft-table-add.c
++++ b/examples/nft-table-add.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-table-del.c b/examples/nft-table-del.c
+index 44f0b1f0e0902..0f8589e926dbc 100644
+--- a/examples/nft-table-del.c
++++ b/examples/nft-table-del.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-table-get.c b/examples/nft-table-get.c
+index 58eca9c1f32e2..82f50ffa6be8e 100644
+--- a/examples/nft-table-get.c
++++ b/examples/nft-table-get.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/examples/nft-table-upd.c b/examples/nft-table-upd.c
+index 7346636d5d47b..36bb470c95c7f 100644
+--- a/examples/nft-table-upd.c
++++ b/examples/nft-table-upd.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/src/batch.c b/src/batch.c
+index 8a9c6f910f1d5..e26af42a4761b 100644
+--- a/src/batch.c
++++ b/src/batch.c
+@@ -1,10 +1,7 @@
+ /*
+  * Copyright (c) 2013-2015 Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include "internal.h"
 diff --git a/src/chain.c b/src/chain.c
-index 0b68939fe21a7..c9fbc3a87314b 100644
+index c9fbc3a87314b..b772968d5a43c 100644
 --- a/src/chain.c
 +++ b/src/chain.c
-@@ -37,8 +37,7 @@ struct nftnl_chain {
- 	const char	*type;
- 	const char	*table;
- 	const char	*dev;
--	const char	**dev_array;
--	int		dev_array_len;
-+	struct nftnl_str_array	dev_array;
- 	uint32_t	family;
- 	uint32_t	policy;
- 	uint32_t	hooknum;
-@@ -117,7 +116,6 @@ EXPORT_SYMBOL(nftnl_chain_free);
- void nftnl_chain_free(const struct nftnl_chain *c)
- {
- 	struct nftnl_rule *r, *tmp;
--	int i;
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/src/common.c b/src/common.c
+index ec84fa0db541f..0a20bcab51c94 100644
+--- a/src/common.c
++++ b/src/common.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
- 	list_for_each_entry_safe(r, tmp, &c->rule_list, head)
- 		nftnl_rule_free(r);
-@@ -132,12 +130,8 @@ void nftnl_chain_free(const struct nftnl_chain *c)
- 		xfree(c->dev);
- 	if (c->flags & (1 << NFTNL_CHAIN_USERDATA))
- 		xfree(c->user.data);
--	if (c->flags & (1 << NFTNL_CHAIN_DEVICES)) {
--		for (i = 0; i < c->dev_array_len; i++)
--			xfree(c->dev_array[i]);
--
--		xfree(c->dev_array);
--	}
-+	if (c->flags & (1 << NFTNL_CHAIN_DEVICES))
-+		nftnl_str_array_clear((struct nftnl_str_array *)&c->dev_array);
- 	xfree(c);
- }
+ #include <stdlib.h>
+diff --git a/src/expr.c b/src/expr.c
+index 4e32189c6e8d0..cf9dbebdc3993 100644
+--- a/src/expr.c
++++ b/src/expr.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/src/expr/bitwise.c b/src/expr/bitwise.c
+index e99131a090ed7..11146e0f5ad98 100644
+--- a/src/expr/bitwise.c
++++ b/src/expr/bitwise.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/src/expr/byteorder.c b/src/expr/byteorder.c
+index 383e80d57b442..9f4e0fa9cdeca 100644
+--- a/src/expr/byteorder.c
++++ b/src/expr/byteorder.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/src/expr/cmp.c b/src/expr/cmp.c
+index d1f0f64a56b3b..4a5e2867124e7 100644
+--- a/src/expr/cmp.c
++++ b/src/expr/cmp.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/src/expr/connlimit.c b/src/expr/connlimit.c
+index fcac8bf170ac4..e514fc4e58cf6 100644
+--- a/src/expr/connlimit.c
++++ b/src/expr/connlimit.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2018 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
-@@ -150,8 +144,6 @@ bool nftnl_chain_is_set(const struct nftnl_chain *c, uint16_t attr)
- EXPORT_SYMBOL(nftnl_chain_unset);
- void nftnl_chain_unset(struct nftnl_chain *c, uint16_t attr)
- {
--	int i;
--
- 	if (!(c->flags & (1 << attr)))
- 		return;
+ #include <stdio.h>
+diff --git a/src/expr/counter.c b/src/expr/counter.c
+index cef911908981c..314d66ba3f0ab 100644
+--- a/src/expr/counter.c
++++ b/src/expr/counter.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/src/expr/ct.c b/src/expr/ct.c
+index bea0522d89372..12bed80369988 100644
+--- a/src/expr/ct.c
++++ b/src/expr/ct.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/src/expr/data_reg.c b/src/expr/data_reg.c
+index d2ccf2e8dc682..2abee599594b6 100644
+--- a/src/expr/data_reg.c
++++ b/src/expr/data_reg.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/src/expr/dup.c b/src/expr/dup.c
+index 28d686b1351b8..0dacdce4f54b1 100644
+--- a/src/expr/dup.c
++++ b/src/expr/dup.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2015 Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
-@@ -181,9 +173,7 @@ void nftnl_chain_unset(struct nftnl_chain *c, uint16_t attr)
- 		xfree(c->dev);
- 		break;
- 	case NFTNL_CHAIN_DEVICES:
--		for (i = 0; i < c->dev_array_len; i++)
--			xfree(c->dev_array[i]);
--		xfree(c->dev_array);
-+		nftnl_str_array_clear(&c->dev_array);
- 		break;
- 	case NFTNL_CHAIN_USERDATA:
- 		xfree(c->user.data);
-@@ -212,9 +202,6 @@ EXPORT_SYMBOL(nftnl_chain_set_data);
- int nftnl_chain_set_data(struct nftnl_chain *c, uint16_t attr,
- 			 const void *data, uint32_t data_len)
- {
--	const char **dev_array;
--	int len = 0, i;
--
- 	nftnl_assert_attr_exists(attr, NFTNL_CHAIN_MAX);
- 	nftnl_assert_validate(data, nftnl_chain_validate, attr, data_len);
+ #include <stdio.h>
+diff --git a/src/expr/dynset.c b/src/expr/dynset.c
+index 9d2bfe5e206b1..485f34c0fb598 100644
+--- a/src/expr/dynset.c
++++ b/src/expr/dynset.c
+@@ -1,10 +1,7 @@
+ /*
+  * Copyright (c) 2014, 2015 Patrick McHardy <kaber@trash.net>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
-@@ -256,24 +243,8 @@ int nftnl_chain_set_data(struct nftnl_chain *c, uint16_t attr,
- 		return nftnl_set_str_attr(&c->dev, &c->flags,
- 					  attr, data, data_len);
- 	case NFTNL_CHAIN_DEVICES:
--		dev_array = (const char **)data;
--		while (dev_array[len] != NULL)
--			len++;
--
--		if (c->flags & (1 << NFTNL_CHAIN_DEVICES)) {
--			for (i = 0; i < c->dev_array_len; i++)
--				xfree(c->dev_array[i]);
--			xfree(c->dev_array);
--		}
--
--		c->dev_array = calloc(len + 1, sizeof(char *));
--		if (!c->dev_array)
-+		if (nftnl_str_array_set(&c->dev_array, data) < 0)
- 			return -1;
--
--		for (i = 0; i < len; i++)
--			c->dev_array[i] = strdup(dev_array[i]);
--
--		c->dev_array_len = len;
- 		break;
- 	case NFTNL_CHAIN_FLAGS:
- 		memcpy(&c->chain_flags, data, sizeof(c->chain_flags));
-@@ -385,7 +356,7 @@ const void *nftnl_chain_get_data(const struct nftnl_chain *c, uint16_t attr,
- 		return c->dev;
- 	case NFTNL_CHAIN_DEVICES:
- 		*data_len = 0;
--		return &c->dev_array[0];
-+		return c->dev_array.array;
- 	case NFTNL_CHAIN_FLAGS:
- 		*data_len = sizeof(uint32_t);
- 		return &c->chain_flags;
-@@ -493,11 +464,11 @@ void nftnl_chain_nlmsg_build_payload(struct nlmsghdr *nlh, const struct nftnl_ch
- 		mnl_attr_put_strz(nlh, NFTA_HOOK_DEV, c->dev);
- 	else if (c->flags & (1 << NFTNL_CHAIN_DEVICES)) {
- 		struct nlattr *nest_dev;
-+		const char *dev;
+ #include "internal.h"
+diff --git a/src/expr/exthdr.c b/src/expr/exthdr.c
+index 453902c230173..3711566ab9b81 100644
+--- a/src/expr/exthdr.c
++++ b/src/expr/exthdr.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/src/expr/fib.c b/src/expr/fib.c
+index 20bc125aa3adf..aceaa261fde4d 100644
+--- a/src/expr/fib.c
++++ b/src/expr/fib.c
+@@ -2,10 +2,7 @@
+  * (C) 2016 Red Hat GmbH
+  * Author: Florian Westphal <fw@strlen.de>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
- 		nest_dev = mnl_attr_nest_start(nlh, NFTA_HOOK_DEVS);
--		for (i = 0; i < c->dev_array_len; i++)
--			mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME,
--					  c->dev_array[i]);
-+		nftnl_str_array_foreach(dev, &c->dev_array, i)
-+			mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME, dev);
- 		mnl_attr_nest_end(nlh, nest_dev);
- 	}
+ #include <stdio.h>
+diff --git a/src/expr/fwd.c b/src/expr/fwd.c
+index 04cb089a7146e..df09ffcbdd338 100644
+--- a/src/expr/fwd.c
++++ b/src/expr/fwd.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2015 Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
-@@ -664,42 +635,6 @@ static int nftnl_chain_parse_hook_cb(const struct nlattr *attr, void *data)
- 	return MNL_CB_OK;
- }
+ #include <stdio.h>
+diff --git a/src/expr/hash.c b/src/expr/hash.c
+index eb44b2ea9bb69..ddfdef760e624 100644
+--- a/src/expr/hash.c
++++ b/src/expr/hash.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2016 by Laura Garcia <nevola@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
--static int nftnl_chain_parse_devs(struct nlattr *nest, struct nftnl_chain *c)
--{
--	const char **dev_array, **tmp;
--	int len = 0, size = 8;
--	struct nlattr *attr;
--
--	dev_array = calloc(8, sizeof(char *));
--	if (!dev_array)
--		return -1;
--
--	mnl_attr_for_each_nested(attr, nest) {
--		if (mnl_attr_get_type(attr) != NFTA_DEVICE_NAME)
--			goto err;
--		dev_array[len++] = strdup(mnl_attr_get_str(attr));
--		if (len >= size) {
--			tmp = realloc(dev_array, size * 2 * sizeof(char *));
--			if (!tmp)
--				goto err;
--
--			size *= 2;
--			memset(&tmp[len], 0, (size - len) * sizeof(char *));
--			dev_array = tmp;
--		}
--	}
--
--	c->dev_array = dev_array;
--	c->dev_array_len = len;
--
--	return 0;
--err:
--	while (len--)
--		xfree(dev_array[len]);
--	xfree(dev_array);
--	return -1;
--}
--
- static int nftnl_chain_parse_hook(struct nlattr *attr, struct nftnl_chain *c)
- {
- 	struct nlattr *tb[NFTA_HOOK_MAX+1] = {};
-@@ -723,7 +658,7 @@ static int nftnl_chain_parse_hook(struct nlattr *attr, struct nftnl_chain *c)
- 		c->flags |= (1 << NFTNL_CHAIN_DEV);
- 	}
- 	if (tb[NFTA_HOOK_DEVS]) {
--		ret = nftnl_chain_parse_devs(tb[NFTA_HOOK_DEVS], c);
-+		ret = nftnl_parse_devs(&c->dev_array, tb[NFTA_HOOK_DEVS]);
- 		if (ret < 0)
- 			return -1;
- 		c->flags |= (1 << NFTNL_CHAIN_DEVICES);
-@@ -823,6 +758,7 @@ static int nftnl_chain_snprintf_default(char *buf, size_t remain,
- 					const struct nftnl_chain *c)
- {
- 	int ret, offset = 0, i;
-+	const char *dev;
+ #include <stdio.h>
+diff --git a/src/expr/immediate.c b/src/expr/immediate.c
+index ab1276a1772cc..216230ce51b6d 100644
+--- a/src/expr/immediate.c
++++ b/src/expr/immediate.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/src/expr/inner.c b/src/expr/inner.c
+index 4f66e944ec91a..920e68cfdd342 100644
+--- a/src/expr/inner.c
++++ b/src/expr/inner.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012-2022 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
- 	ret = snprintf(buf, remain, "%s %s %s use %u",
- 		       nftnl_family2str(c->family), c->table, c->name, c->use);
-@@ -854,9 +790,9 @@ static int nftnl_chain_snprintf_default(char *buf, size_t remain,
- 			ret = snprintf(buf + offset, remain, " dev { ");
- 			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+ #include "internal.h"
+diff --git a/src/expr/last.c b/src/expr/last.c
+index 8e5b88ebb96be..ab9f117986bd4 100644
+--- a/src/expr/last.c
++++ b/src/expr/last.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2016 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
--			for (i = 0; i < c->dev_array_len; i++) {
-+			nftnl_str_array_foreach(dev, &c->dev_array, i) {
- 				ret = snprintf(buf + offset, remain, " %s ",
--					       c->dev_array[i]);
-+					       dev);
- 				SNPRINTF_BUFFER_SIZE(ret, remain, offset);
- 			}
- 			ret = snprintf(buf + offset, remain, " } ");
-diff --git a/src/flowtable.c b/src/flowtable.c
-index 41a1456bb19b2..2a8d374541b0b 100644
---- a/src/flowtable.c
-+++ b/src/flowtable.c
-@@ -26,8 +26,7 @@ struct nftnl_flowtable {
- 	uint32_t		hooknum;
- 	int32_t			prio;
- 	uint32_t		size;
--	const char		**dev_array;
--	uint32_t		dev_array_len;
-+	struct nftnl_str_array	dev_array;
- 	uint32_t		ft_flags;
- 	uint32_t		use;
- 	uint32_t		flags;
-@@ -43,18 +42,12 @@ struct nftnl_flowtable *nftnl_flowtable_alloc(void)
- EXPORT_SYMBOL(nftnl_flowtable_free);
- void nftnl_flowtable_free(const struct nftnl_flowtable *c)
- {
--	int i;
--
- 	if (c->flags & (1 << NFTNL_FLOWTABLE_NAME))
- 		xfree(c->name);
- 	if (c->flags & (1 << NFTNL_FLOWTABLE_TABLE))
- 		xfree(c->table);
--	if (c->flags & (1 << NFTNL_FLOWTABLE_DEVICES)) {
--		for (i = 0; i < c->dev_array_len; i++)
--			xfree(c->dev_array[i]);
--
--		xfree(c->dev_array);
--	}
-+	if (c->flags & (1 << NFTNL_FLOWTABLE_DEVICES))
-+		nftnl_str_array_clear((struct nftnl_str_array *)&c->dev_array);
- 	xfree(c);
- }
+ #include <stdio.h>
+diff --git a/src/expr/limit.c b/src/expr/limit.c
+index 5b821081eb20d..a5277be220839 100644
+--- a/src/expr/limit.c
++++ b/src/expr/limit.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/src/expr/log.c b/src/expr/log.c
+index 18ec2b64a5b93..c0c4649ac9ced 100644
+--- a/src/expr/log.c
++++ b/src/expr/log.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/src/expr/lookup.c b/src/expr/lookup.c
+index 21a7fcef40413..52003b202d728 100644
+--- a/src/expr/lookup.c
++++ b/src/expr/lookup.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/src/expr/masq.c b/src/expr/masq.c
+index e0565db66fe16..f5ba72b532f6d 100644
+--- a/src/expr/masq.c
++++ b/src/expr/masq.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2014 by Arturo Borrero Gonzalez <arturo@debian.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
-@@ -67,8 +60,6 @@ bool nftnl_flowtable_is_set(const struct nftnl_flowtable *c, uint16_t attr)
- EXPORT_SYMBOL(nftnl_flowtable_unset);
- void nftnl_flowtable_unset(struct nftnl_flowtable *c, uint16_t attr)
- {
--	int i;
--
- 	if (!(c->flags & (1 << attr)))
- 		return;
+ #include <stdio.h>
+diff --git a/src/expr/match.c b/src/expr/match.c
+index 8c1bc74a1ce19..c6d67c342ab70 100644
+--- a/src/expr/match.c
++++ b/src/expr/match.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/src/expr/meta.c b/src/expr/meta.c
+index 136a450b6e976..dcba17df1e8ff 100644
+--- a/src/expr/meta.c
++++ b/src/expr/meta.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/src/expr/nat.c b/src/expr/nat.c
+index 1235ba45b694d..7809cd42a69ac 100644
+--- a/src/expr/nat.c
++++ b/src/expr/nat.c
+@@ -2,10 +2,7 @@
+  * (C) 2012-2014 Pablo Neira Ayuso <pablo@netfilter.org>
+  * (C) 2012 Intel Corporation
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * Authors:
+  * 	Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+diff --git a/src/expr/numgen.c b/src/expr/numgen.c
+index c015b8847aa48..ffab04f392e6a 100644
+--- a/src/expr/numgen.c
++++ b/src/expr/numgen.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2016 by Laura Garcia <nevola@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
-@@ -87,9 +78,7 @@ void nftnl_flowtable_unset(struct nftnl_flowtable *c, uint16_t attr)
- 	case NFTNL_FLOWTABLE_HANDLE:
- 		break;
- 	case NFTNL_FLOWTABLE_DEVICES:
--		for (i = 0; i < c->dev_array_len; i++)
--			xfree(c->dev_array[i]);
--		xfree(c->dev_array);
-+		nftnl_str_array_clear(&c->dev_array);
- 		break;
- 	default:
- 		return;
-@@ -111,9 +100,6 @@ EXPORT_SYMBOL(nftnl_flowtable_set_data);
- int nftnl_flowtable_set_data(struct nftnl_flowtable *c, uint16_t attr,
- 			     const void *data, uint32_t data_len)
- {
--	const char **dev_array;
--	int len = 0, i;
--
- 	nftnl_assert_attr_exists(attr, NFTNL_FLOWTABLE_MAX);
- 	nftnl_assert_validate(data, nftnl_flowtable_validate, attr, data_len);
+ #include <stdio.h>
+diff --git a/src/expr/objref.c b/src/expr/objref.c
+index 00538057222b5..7da351d8029b1 100644
+--- a/src/expr/objref.c
++++ b/src/expr/objref.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2016 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
-@@ -135,24 +121,8 @@ int nftnl_flowtable_set_data(struct nftnl_flowtable *c, uint16_t attr,
- 		memcpy(&c->family, data, sizeof(c->family));
- 		break;
- 	case NFTNL_FLOWTABLE_DEVICES:
--		dev_array = (const char **)data;
--		while (dev_array[len] != NULL)
--			len++;
--
--		if (c->flags & (1 << NFTNL_FLOWTABLE_DEVICES)) {
--			for (i = 0; i < c->dev_array_len; i++)
--				xfree(c->dev_array[i]);
--			xfree(c->dev_array);
--		}
--
--		c->dev_array = calloc(len + 1, sizeof(char *));
--		if (!c->dev_array)
-+		if (nftnl_str_array_set(&c->dev_array, data) < 0)
- 			return -1;
--
--		for (i = 0; i < len; i++)
--			c->dev_array[i] = strdup(dev_array[i]);
--
--		c->dev_array_len = len;
- 		break;
- 	case NFTNL_FLOWTABLE_SIZE:
- 		memcpy(&c->size, data, sizeof(c->size));
-@@ -230,7 +200,7 @@ const void *nftnl_flowtable_get_data(const struct nftnl_flowtable *c,
- 		return &c->family;
- 	case NFTNL_FLOWTABLE_DEVICES:
- 		*data_len = 0;
--		return &c->dev_array[0];
-+		return c->dev_array.array;
- 	case NFTNL_FLOWTABLE_SIZE:
- 		*data_len = sizeof(int32_t);
- 		return &c->size;
-@@ -325,12 +295,11 @@ void nftnl_flowtable_nlmsg_build_payload(struct nlmsghdr *nlh,
+ #include <stdio.h>
+diff --git a/src/expr/payload.c b/src/expr/payload.c
+index 35cd10c31b98a..fab2506d8b0d9 100644
+--- a/src/expr/payload.c
++++ b/src/expr/payload.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/src/expr/queue.c b/src/expr/queue.c
+index 09220c4a1138c..ce5959b2bf3d1 100644
+--- a/src/expr/queue.c
++++ b/src/expr/queue.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Eric Leblond <eric@regit.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
- 	if (c->flags & (1 << NFTNL_FLOWTABLE_DEVICES)) {
- 		struct nlattr *nest_dev;
-+		const char *dev;
+ #include <stdio.h>
+diff --git a/src/expr/quota.c b/src/expr/quota.c
+index ddf232f9f3acd..2fc987199886d 100644
+--- a/src/expr/quota.c
++++ b/src/expr/quota.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2016 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
- 		nest_dev = mnl_attr_nest_start(nlh, NFTA_FLOWTABLE_HOOK_DEVS);
--		for (i = 0; i < c->dev_array_len; i++) {
--			mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME,
--					  c->dev_array[i]);
--		}
-+		nftnl_str_array_foreach(dev, &c->dev_array, i)
-+			mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME, dev);
- 		mnl_attr_nest_end(nlh, nest_dev);
- 	}
+ #include <stdio.h>
+diff --git a/src/expr/range.c b/src/expr/range.c
+index 96bb140119b66..e57298057b581 100644
+--- a/src/expr/range.c
++++ b/src/expr/range.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2016 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
-@@ -402,43 +371,6 @@ static int nftnl_flowtable_parse_hook_cb(const struct nlattr *attr, void *data)
- 	return MNL_CB_OK;
- }
+ #include "internal.h"
+diff --git a/src/expr/redir.c b/src/expr/redir.c
+index 9971306130fb0..3adc7b6965461 100644
+--- a/src/expr/redir.c
++++ b/src/expr/redir.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2014 by Arturo Borrero Gonzalez <arturo@debian.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
--static int nftnl_flowtable_parse_devs(struct nlattr *nest,
--				      struct nftnl_flowtable *c)
--{
--	const char **dev_array, **tmp;
--	int len = 0, size = 8;
--	struct nlattr *attr;
--
--	dev_array = calloc(8, sizeof(char *));
--	if (!dev_array)
--		return -1;
--
--	mnl_attr_for_each_nested(attr, nest) {
--		if (mnl_attr_get_type(attr) != NFTA_DEVICE_NAME)
--			goto err;
--		dev_array[len++] = strdup(mnl_attr_get_str(attr));
--		if (len >= size) {
--			tmp = realloc(dev_array, size * 2 * sizeof(char *));
--			if (!tmp)
--				goto err;
--
--			size *= 2;
--			memset(&tmp[len], 0, (size - len) * sizeof(char *));
--			dev_array = tmp;
--		}
--	}
--
--	c->dev_array = dev_array;
--	c->dev_array_len = len;
--
--	return 0;
--err:
--	while (len--)
--		xfree(dev_array[len]);
--	xfree(dev_array);
--	return -1;
--}
--
- static int nftnl_flowtable_parse_hook(struct nlattr *attr, struct nftnl_flowtable *c)
- {
- 	struct nlattr *tb[NFTA_FLOWTABLE_HOOK_MAX + 1] = {};
-@@ -456,7 +388,8 @@ static int nftnl_flowtable_parse_hook(struct nlattr *attr, struct nftnl_flowtabl
- 		c->flags |= (1 << NFTNL_FLOWTABLE_PRIO);
- 	}
- 	if (tb[NFTA_FLOWTABLE_HOOK_DEVS]) {
--		ret = nftnl_flowtable_parse_devs(tb[NFTA_FLOWTABLE_HOOK_DEVS], c);
-+		ret = nftnl_parse_devs(&c->dev_array,
-+				       tb[NFTA_FLOWTABLE_HOOK_DEVS]);
- 		if (ret < 0)
- 			return -1;
- 		c->flags |= (1 << NFTNL_FLOWTABLE_DEVICES);
-@@ -587,6 +520,7 @@ static int nftnl_flowtable_snprintf_default(char *buf, size_t remain,
- 					    const struct nftnl_flowtable *c)
- {
- 	int ret, offset = 0, i;
-+	const char *dev;
+ #include <stdio.h>
+diff --git a/src/expr/reject.c b/src/expr/reject.c
+index 9090db3f697a7..582841183d4f3 100644
+--- a/src/expr/reject.c
++++ b/src/expr/reject.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2013 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/src/expr/rt.c b/src/expr/rt.c
+index ff4fd03c8f1b1..92a2f190be471 100644
+--- a/src/expr/rt.c
++++ b/src/expr/rt.c
+@@ -1,10 +1,7 @@
+ /*
+  * Copyright (c) 2016 Anders K. Pedersen <akp@cohaesio.com>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
- 	ret = snprintf(buf, remain, "flow table %s %s use %u size %u flags %x",
- 		       c->table, c->name, c->use, c->size, c->ft_flags);
-@@ -602,9 +536,9 @@ static int nftnl_flowtable_snprintf_default(char *buf, size_t remain,
- 			ret = snprintf(buf + offset, remain, " dev { ");
- 			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+ #include <stdio.h>
+diff --git a/src/expr/socket.c b/src/expr/socket.c
+index 7a25cdf806d12..ef27dd90ad65d 100644
+--- a/src/expr/socket.c
++++ b/src/expr/socket.c
+@@ -1,10 +1,7 @@
+ /*
+  * Copyright (c) 2018 Máté Eckl <ecklm94@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
--			for (i = 0; i < c->dev_array_len; i++) {
-+			nftnl_str_array_foreach(dev, &c->dev_array, i) {
- 				ret = snprintf(buf + offset, remain, " %s ",
--					       c->dev_array[i]);
-+					       dev);
- 				SNPRINTF_BUFFER_SIZE(ret, remain, offset);
- 			}
- 			ret = snprintf(buf + offset, remain, " } ");
+ #include <stdio.h>
+diff --git a/src/expr/target.c b/src/expr/target.c
+index 8259a20a66cb5..eeea588205e81 100644
+--- a/src/expr/target.c
++++ b/src/expr/target.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/src/expr/tproxy.c b/src/expr/tproxy.c
+index 9391ce880cd3b..742a9b7050497 100644
+--- a/src/expr/tproxy.c
++++ b/src/expr/tproxy.c
+@@ -1,10 +1,7 @@
+ /*
+  * Copyright (c) 2018 Máté Eckl <ecklm94@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include "internal.h"
+diff --git a/src/expr/tunnel.c b/src/expr/tunnel.c
+index 861e56dd64c27..2d6a0606a8860 100644
+--- a/src/expr/tunnel.c
++++ b/src/expr/tunnel.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2018 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/src/expr/xfrm.c b/src/expr/xfrm.c
+index 2585579c3b549..a47d3316139ab 100644
+--- a/src/expr/xfrm.c
++++ b/src/expr/xfrm.c
+@@ -1,8 +1,5 @@
+ /*
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/src/gen.c b/src/gen.c
+index 88efbaaba9acc..b8323611c5a7b 100644
+--- a/src/gen.c
++++ b/src/gen.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012-2014 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ #include "internal.h"
+ 
+diff --git a/src/obj/counter.c b/src/obj/counter.c
+index 19e09ed41a94a..ec3ce32423abf 100644
+--- a/src/obj/counter.c
++++ b/src/obj/counter.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012-2016 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/src/obj/ct_expect.c b/src/obj/ct_expect.c
+index b4d6faa810eab..0c465e65daa25 100644
+--- a/src/obj/ct_expect.c
++++ b/src/obj/ct_expect.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2019 by Stéphane Veyret <sveyret@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <arpa/inet.h>
+diff --git a/src/obj/ct_helper.c b/src/obj/ct_helper.c
+index 1feccf20b01b2..8b9a3d0176c53 100644
+--- a/src/obj/ct_helper.c
++++ b/src/obj/ct_helper.c
+@@ -2,10 +2,7 @@
+  * (C) 2017 Red Hat GmbH
+  * Author: Florian Westphal <fw@strlen.de>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/src/obj/ct_timeout.c b/src/obj/ct_timeout.c
+index b9b688ec7c4bc..1aa7d1dc0d5ea 100644
+--- a/src/obj/ct_timeout.c
++++ b/src/obj/ct_timeout.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2018 by Harsha Sharma <harshasharmaiitr@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/src/obj/limit.c b/src/obj/limit.c
+index cbf30b480b8fa..227100efd6c33 100644
+--- a/src/obj/limit.c
++++ b/src/obj/limit.c
+@@ -1,10 +1,7 @@
+ /*
+  * Copyright (c) 2017 Pablo M. Bermudo Garay <pablombg@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/src/obj/quota.c b/src/obj/quota.c
+index 526db8e42caa8..a6499eabaa717 100644
+--- a/src/obj/quota.c
++++ b/src/obj/quota.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012-2016 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/src/obj/secmark.c b/src/obj/secmark.c
+index eea96647cff72..9241d7ea8ac1c 100644
+--- a/src/obj/secmark.c
++++ b/src/obj/secmark.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012-2016 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/src/obj/tunnel.c b/src/obj/tunnel.c
+index 03094109db442..af26b96f7003c 100644
+--- a/src/obj/tunnel.c
++++ b/src/obj/tunnel.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2018 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/src/object.c b/src/object.c
+index 9d150315d487d..3d386a7791d82 100644
+--- a/src/object.c
++++ b/src/object.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012-2016 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ #include "internal.h"
+ 
+diff --git a/src/rule.c b/src/rule.c
+index c22918a8f3527..b4124bc66edcd 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/src/ruleset.c b/src/ruleset.c
+index 185aa48737e50..af7ce433c6136 100644
+--- a/src/ruleset.c
++++ b/src/ruleset.c
+@@ -3,10 +3,7 @@
+  * (C) 2013 by Arturo Borrero Gonzalez <arturo@debian.org>
+  * (C) 2013 by Alvaro Neira Ayuso <alvaroneay@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/src/set.c b/src/set.c
+index 75ad64e038502..0da11eeaf7b55 100644
+--- a/src/set.c
++++ b/src/set.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/src/set_elem.c b/src/set_elem.c
+index 9207a0dbd6899..3b5dcc1c74686 100644
+--- a/src/set_elem.c
++++ b/src/set_elem.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/src/table.c b/src/table.c
+index b1b164cbbcedc..10c513c4f9f0f 100644
+--- a/src/table.c
++++ b/src/table.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+diff --git a/src/trace.c b/src/trace.c
+index f4264377508e8..b299599ee91de 100644
+--- a/src/trace.c
++++ b/src/trace.c
+@@ -2,10 +2,7 @@
+  * (C) 2015 Red Hat GmbH
+  * Author: Florian Westphal <fw@strlen.de>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ #include "internal.h"
+ 
+diff --git a/src/udata.c b/src/udata.c
+index e9bfc35e624c6..1e801d53e6e52 100644
+--- a/src/udata.c
++++ b/src/udata.c
+@@ -2,10 +2,7 @@
+  * (C) 2012-2016 by Pablo Neira Ayuso <pablo@netfilter.org>
+  * (C) 2016 by Carlos Falgueras García <carlosfg@riseup.net>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <libnftnl/udata.h>
 diff --git a/src/utils.c b/src/utils.c
-index 2f1ffd6227583..157b15f7afe8d 100644
+index 157b15f7afe8d..9c947b3b18607 100644
 --- a/src/utils.c
 +++ b/src/utils.c
-@@ -19,6 +19,7 @@
+@@ -2,10 +2,7 @@
+  * (C) 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
+  * (C) 2013 by Arturo Borrero Gonzalez <arturo@debian.org>
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published
+- * by the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
- #include <libnftnl/common.h>
- 
-+#include <libmnl/libmnl.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
- 
+ #include <internal.h>
 diff --git a/tests/nft-chain-test.c b/tests/nft-chain-test.c
-index 35a65be8d1587..64c506eb62a15 100644
+index 64c506eb62a15..12ebd9ffa8b3f 100644
 --- a/tests/nft-chain-test.c
 +++ b/tests/nft-chain-test.c
-@@ -23,9 +23,25 @@ static void print_err(const char *msg)
- 	printf("\033[31mERROR:\e[0m %s\n", msg);
- }
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
--static void cmp_nftnl_chain(struct nftnl_chain *a, struct nftnl_chain *b)
-+static void cmp_devices(const char * const *adevs,
-+			const char * const *bdevs)
- {
-+	int i;
-+
-+	if (!adevs && !bdevs)
-+		return;
-+	if (!!adevs ^ !!bdevs)
-+		print_err("Chain devices mismatches");
-+	for (i = 0; adevs[i] && bdevs[i]; i++) {
-+		if (strcmp(adevs[i], bdevs[i]))
-+			break;
-+	}
-+	if (adevs[i] || bdevs[i])
-+		print_err("Chain devices mismatches");
-+}
+ #include <stdio.h>
+diff --git a/tests/nft-expr_bitwise-test.c b/tests/nft-expr_bitwise-test.c
+index 44c4bf06f0410..46e5e6d3b2475 100644
+--- a/tests/nft-expr_bitwise-test.c
++++ b/tests/nft-expr_bitwise-test.c
+@@ -1,10 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  *
+  */
  
-+static void cmp_nftnl_chain(struct nftnl_chain *a, struct nftnl_chain *b)
-+{
- 	if (strcmp(nftnl_chain_get_str(a, NFTNL_CHAIN_NAME),
- 		   nftnl_chain_get_str(b, NFTNL_CHAIN_NAME)) != 0)
- 		print_err("Chain name mismatches");
-@@ -59,13 +75,17 @@ static void cmp_nftnl_chain(struct nftnl_chain *a, struct nftnl_chain *b)
- 	if (strcmp(nftnl_chain_get_str(a, NFTNL_CHAIN_TYPE),
- 		   nftnl_chain_get_str(b, NFTNL_CHAIN_TYPE)) != 0)
- 		print_err("Chain type mismatches");
--	if (strcmp(nftnl_chain_get_str(a, NFTNL_CHAIN_DEV),
-+	if (nftnl_chain_is_set(a, NFTNL_CHAIN_DEV) &&
-+	    strcmp(nftnl_chain_get_str(a, NFTNL_CHAIN_DEV),
- 		   nftnl_chain_get_str(b, NFTNL_CHAIN_DEV)) != 0)
- 		print_err("Chain device mismatches");
-+	cmp_devices(nftnl_chain_get_array(a, NFTNL_CHAIN_DEVICES),
-+		    nftnl_chain_get_array(b, NFTNL_CHAIN_DEVICES));
- }
+diff --git a/tests/nft-expr_byteorder-test.c b/tests/nft-expr_byteorder-test.c
+index 30e64c0eb6100..209384ee27c26 100644
+--- a/tests/nft-expr_byteorder-test.c
++++ b/tests/nft-expr_byteorder-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
- int main(int argc, char *argv[])
- {
-+	const char *devs[] = { "eth0", "eth1", "eth2", NULL };
- 	struct nftnl_chain *a, *b;
- 	char buf[4096];
- 	struct nlmsghdr *nlh;
-@@ -97,6 +117,19 @@ int main(int argc, char *argv[])
+ #include <stdio.h>
+diff --git a/tests/nft-expr_cmp-test.c b/tests/nft-expr_cmp-test.c
+index 0bab67b851a81..9d0a4a419da2a 100644
+--- a/tests/nft-expr_cmp-test.c
++++ b/tests/nft-expr_cmp-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
- 	cmp_nftnl_chain(a, b);
+ #include <stdio.h>
+diff --git a/tests/nft-expr_counter-test.c b/tests/nft-expr_counter-test.c
+index 81c3fe10d74b3..03fdc6f5ff2cd 100644
+--- a/tests/nft-expr_counter-test.c
++++ b/tests/nft-expr_counter-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
-+	/* repeat test with multiple devices */
-+
-+	nftnl_chain_unset(a, NFTNL_CHAIN_DEV);
-+	nftnl_chain_set_array(a, NFTNL_CHAIN_DEVICES, devs);
-+
-+	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, AF_INET, 0, 1234);
-+	nftnl_chain_nlmsg_build_payload(nlh, a);
-+
-+	if (nftnl_chain_nlmsg_parse(nlh, b) < 0)
-+		print_err("parsing problems");
-+
-+	cmp_nftnl_chain(a, b);
-+
- 	nftnl_chain_free(a);
- 	nftnl_chain_free(b);
+ #include <stdio.h>
+diff --git a/tests/nft-expr_ct-test.c b/tests/nft-expr_ct-test.c
+index 548a426dd8464..f0df609593932 100644
+--- a/tests/nft-expr_ct-test.c
++++ b/tests/nft-expr_ct-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
-diff --git a/tests/nft-flowtable-test.c b/tests/nft-flowtable-test.c
-index 8ab8d4c5347a4..49bc0a1c5e043 100644
---- a/tests/nft-flowtable-test.c
-+++ b/tests/nft-flowtable-test.c
-@@ -13,6 +13,23 @@ static void print_err(const char *msg)
- 	printf("\033[31mERROR:\e[0m %s\n", msg);
- }
+ #include <stdio.h>
+diff --git a/tests/nft-expr_dup-test.c b/tests/nft-expr_dup-test.c
+index 0c5df9a9b7d44..12dcf7f8a95be 100644
+--- a/tests/nft-expr_dup-test.c
++++ b/tests/nft-expr_dup-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
-+static void cmp_devices(const char * const *adevs,
-+			const char * const *bdevs)
-+{
-+	int i;
-+
-+	if (!adevs && !bdevs)
-+		return;
-+	if (!!adevs ^ !!bdevs)
-+		print_err("Flowtable devices mismatches");
-+	for (i = 0; adevs[i] && bdevs[i]; i++) {
-+		if (strcmp(adevs[i], bdevs[i]))
-+			break;
-+	}
-+	if (adevs[i] || bdevs[i])
-+		print_err("Flowtable devices mismatches");
-+}
-+
- static void cmp_nftnl_flowtable(struct nftnl_flowtable *a, struct nftnl_flowtable *b)
- {
- 	if (strcmp(nftnl_flowtable_get_str(a, NFTNL_FLOWTABLE_NAME),
-@@ -44,10 +61,13 @@ static void cmp_nftnl_flowtable(struct nftnl_flowtable *a, struct nftnl_flowtabl
- 	if (nftnl_flowtable_get_u64(a, NFTNL_FLOWTABLE_HANDLE) !=
- 	    nftnl_flowtable_get_u64(b, NFTNL_FLOWTABLE_HANDLE))
- 		print_err("Flowtable handle mismatches");
-+	cmp_devices(nftnl_flowtable_get_array(a, NFTNL_FLOWTABLE_DEVICES),
-+		    nftnl_flowtable_get_array(b, NFTNL_FLOWTABLE_DEVICES));
- }
+ #include <stdio.h>
+diff --git a/tests/nft-expr_exthdr-test.c b/tests/nft-expr_exthdr-test.c
+index b2c72b7357c6a..46e1fda5d178c 100644
+--- a/tests/nft-expr_exthdr-test.c
++++ b/tests/nft-expr_exthdr-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
- int main(int argc, char *argv[])
- {
-+	const char *devs[] = { "eth0", "eth1", "eth2", NULL };
- 	struct nftnl_flowtable *a, *b;
- 	char buf[4096];
- 	struct nlmsghdr *nlh;
-@@ -66,6 +86,7 @@ int main(int argc, char *argv[])
- 	nftnl_flowtable_set_u32(a, NFTNL_FLOWTABLE_SIZE, 0x89016745);
- 	nftnl_flowtable_set_u32(a, NFTNL_FLOWTABLE_FLAGS, 0x45016723);
- 	nftnl_flowtable_set_u64(a, NFTNL_FLOWTABLE_HANDLE, 0x2345016789);
-+	nftnl_flowtable_set_array(a, NFTNL_FLOWTABLE_DEVICES, devs);
+ #include <stdio.h>
+diff --git a/tests/nft-expr_fwd-test.c b/tests/nft-expr_fwd-test.c
+index 825dad3a456bd..7b6c7ebe054cd 100644
+--- a/tests/nft-expr_fwd-test.c
++++ b/tests/nft-expr_fwd-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
  
- 	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_NEWFLOWTABLE, AF_INET,
- 				    0, 1234);
+ #include <stdio.h>
+diff --git a/tests/nft-expr_hash-test.c b/tests/nft-expr_hash-test.c
+index 6644bb7f3ac0d..ba60d3f5862f5 100644
+--- a/tests/nft-expr_hash-test.c
++++ b/tests/nft-expr_hash-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2016 by Laura Garcia <nevola@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/tests/nft-expr_immediate-test.c b/tests/nft-expr_immediate-test.c
+index 5027813626b1d..b4f8663905aec 100644
+--- a/tests/nft-expr_immediate-test.c
++++ b/tests/nft-expr_immediate-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/tests/nft-expr_limit-test.c b/tests/nft-expr_limit-test.c
+index 38aaf56551e97..07049f734f89f 100644
+--- a/tests/nft-expr_limit-test.c
++++ b/tests/nft-expr_limit-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/tests/nft-expr_log-test.c b/tests/nft-expr_log-test.c
+index 275ffaefc3772..9f0f33be28c48 100644
+--- a/tests/nft-expr_log-test.c
++++ b/tests/nft-expr_log-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/tests/nft-expr_lookup-test.c b/tests/nft-expr_lookup-test.c
+index 9b7052565d6e9..8ec77e6c1b8b2 100644
+--- a/tests/nft-expr_lookup-test.c
++++ b/tests/nft-expr_lookup-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/tests/nft-expr_masq-test.c b/tests/nft-expr_masq-test.c
+index 09179149421e2..be78de0583637 100644
+--- a/tests/nft-expr_masq-test.c
++++ b/tests/nft-expr_masq-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/tests/nft-expr_match-test.c b/tests/nft-expr_match-test.c
+index fdeacc488e288..67defffd0cb50 100644
+--- a/tests/nft-expr_match-test.c
++++ b/tests/nft-expr_match-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/tests/nft-expr_meta-test.c b/tests/nft-expr_meta-test.c
+index 2f03fb16f7b80..564bff8aa7e52 100644
+--- a/tests/nft-expr_meta-test.c
++++ b/tests/nft-expr_meta-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/tests/nft-expr_nat-test.c b/tests/nft-expr_nat-test.c
+index 3a365dd307c26..f67423d71cad1 100644
+--- a/tests/nft-expr_nat-test.c
++++ b/tests/nft-expr_nat-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/tests/nft-expr_numgen-test.c b/tests/nft-expr_numgen-test.c
+index 94df50f6e40c5..f3041d96981dd 100644
+--- a/tests/nft-expr_numgen-test.c
++++ b/tests/nft-expr_numgen-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2016 by Laura Garcia <nevola@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/tests/nft-expr_objref-test.c b/tests/nft-expr_objref-test.c
+index 9e698df38e255..b0fa3eee910a9 100644
+--- a/tests/nft-expr_objref-test.c
++++ b/tests/nft-expr_objref-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/tests/nft-expr_payload-test.c b/tests/nft-expr_payload-test.c
+index aec17106ef0fa..c17894b315ca2 100644
+--- a/tests/nft-expr_payload-test.c
++++ b/tests/nft-expr_payload-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/tests/nft-expr_queue-test.c b/tests/nft-expr_queue-test.c
+index d007b98a71391..463d2ff5673c9 100644
+--- a/tests/nft-expr_queue-test.c
++++ b/tests/nft-expr_queue-test.c
+@@ -3,11 +3,7 @@
+  *
+  * Based on test framework by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/tests/nft-expr_quota-test.c b/tests/nft-expr_quota-test.c
+index a3eb2e3c45f3c..a94659704ad90 100644
+--- a/tests/nft-expr_quota-test.c
++++ b/tests/nft-expr_quota-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2016 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/tests/nft-expr_range-test.c b/tests/nft-expr_range-test.c
+index 6ef896beb08a8..dd3bfda1dbb3d 100644
+--- a/tests/nft-expr_range-test.c
++++ b/tests/nft-expr_range-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/tests/nft-expr_redir-test.c b/tests/nft-expr_redir-test.c
+index 8e1f30c433325..9b9cd6c823ef9 100644
+--- a/tests/nft-expr_redir-test.c
++++ b/tests/nft-expr_redir-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/tests/nft-expr_reject-test.c b/tests/nft-expr_reject-test.c
+index 049401da1565c..e7df2100e34bd 100644
+--- a/tests/nft-expr_reject-test.c
++++ b/tests/nft-expr_reject-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/tests/nft-expr_target-test.c b/tests/nft-expr_target-test.c
+index a5172064c13b2..601021bea378f 100644
+--- a/tests/nft-expr_target-test.c
++++ b/tests/nft-expr_target-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/tests/nft-object-test.c b/tests/nft-object-test.c
+index d2ca444153419..2bb445f2ee484 100644
+--- a/tests/nft-object-test.c
++++ b/tests/nft-object-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/tests/nft-rule-test.c b/tests/nft-rule-test.c
+index 3a92223f0e910..9df2097895e01 100644
+--- a/tests/nft-rule-test.c
++++ b/tests/nft-rule-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/tests/nft-set-test.c b/tests/nft-set-test.c
+index 66916fe0d5238..fedf0f3e17b77 100644
+--- a/tests/nft-set-test.c
++++ b/tests/nft-set-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
+diff --git a/tests/nft-table-test.c b/tests/nft-table-test.c
+index 53cf3d198a16a..82f9da2b4ec1a 100644
+--- a/tests/nft-table-test.c
++++ b/tests/nft-table-test.c
+@@ -1,11 +1,7 @@
+ /*
+  * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
++ * SPDX-License-Identifier: GPL-2.0-or-later
+  */
+ 
+ #include <stdio.h>
 -- 
 2.47.0
 
