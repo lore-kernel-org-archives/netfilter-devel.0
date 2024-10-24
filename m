@@ -1,25 +1,38 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 36E151EF08A
-	for <netfilter-devel@vger.kernel.org>; Wed, 23 Oct 2024 22:27:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6BC52C9A;
+	Thu, 24 Oct 2024 01:46:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729722463; cv=none; b=h8JQlT1YQV6rvyNQlyDoMSCaDNxwpClV6n7eo/Bl+dFs8HqXX82xUZL+AGayLiLkPxPqK70YaxHqks5tFycqivMSsKjCP7gV0xbblB0s3QiqjYkm4WHXSlSXg3v65yGzR5yEsUvemaPuHs9/MXWrWj5P8QQPo7NcBbBsW4oNtEI=
+	t=1729734414; cv=none; b=tPth/FTAeOrriEIk8IyN2daTQbyp57OQSHoD8O8aMmB0tIrFmjSG7vSxKR8BdsqV/FvWh8D1c6ia/7FAKPiLsh4O5fBqlxocO826HNX/eA6yQ6Ryjabseb2ANoTWwuU7tRPjWMbCfy3WQWBON13kFYjbStMLlVDXfTJ8N+cli3g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729722463; c=relaxed/simple;
-	bh=DddyR2D/cVzjTGvtWp5hDwcHEENOfvY2tqK7+FgSWgA=;
-	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=MewKTfdk76JW8XcatbGQKoeiu0up+dZgvWwbsIMjyuwChKGdlajhKXcc7i/FdpWhbkUq7w71DyuJXw4cBQKrZCP1OKSXWsUUHZ+6rGYrexnaqTjUr7PeF7lalcd0k7778hNc7vmCZpx+eGr8nhLDldPvZEqI6rmo0vu6XuGgDdA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 2/4] mnl: update cmd_add_loc() to take struct nlmsghdr
-Date: Thu, 24 Oct 2024 00:27:25 +0200
-Message-Id: <20241023222727.251229-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20241023222727.251229-1-pablo@netfilter.org>
-References: <20241023222727.251229-1-pablo@netfilter.org>
+	s=arc-20240116; t=1729734414; c=relaxed/simple;
+	bh=JJ3pxSuWPTEwJ9w0DNfAWH/58BCS2BCuUzUwJsNLduA=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=UgM6xyh0HZl4s+57hfsC7e+xsTPC66BEpH/IOqo1UUR48RVycKEz7i9HEu6Oxck82Pto+v5085TIB3t4gAl8r3Es17qfG9whl46FaOYGwkhCN5WNapTpHvqA5kXyo8P528lhHlEo8sCYUZOPlYpahSYVNa9CtEalJy+LBcmYW+A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.190
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.19.163.17])
+	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4XYpdW6JlWz2FbJM;
+	Thu, 24 Oct 2024 09:45:19 +0800 (CST)
+Received: from kwepemd100023.china.huawei.com (unknown [7.221.188.33])
+	by mail.maildlp.com (Postfix) with ESMTPS id D2ACE1A0188;
+	Thu, 24 Oct 2024 09:46:43 +0800 (CST)
+Received: from localhost.localdomain (10.175.104.82) by
+ kwepemd100023.china.huawei.com (7.221.188.33) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Thu, 24 Oct 2024 09:46:42 +0800
+From: Dong Chenchen <dongchenchen2@huawei.com>
+To: <pablo@netfilter.org>, <kadlec@netfilter.org>, <davem@davemloft.net>,
+	<edumazet@google.com>, <kuba@kernel.org>, <pabeni@redhat.com>,
+	<fw@strlen.de>, <kuniyu@amazon.com>
+CC: <netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>,
+	<yuehaibing@huawei.com>, Dong Chenchen <dongchenchen2@huawei.com>
+Subject: [PATCH net v2] net: netfilter: Fix use-after-free in get_info()
+Date: Thu, 24 Oct 2024 09:47:01 +0800
+Message-ID: <20241024014701.2086286-1-dongchenchen2@huawei.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -27,303 +40,76 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
+ kwepemd100023.china.huawei.com (7.221.188.33)
 
-To prepare for a fix for very large sets.
+ip6table_nat module unload has refcnt warning for UAF. call trace is:
 
-No functional change is intended.
+WARNING: CPU: 1 PID: 379 at kernel/module/main.c:853 module_put+0x6f/0x80
+Modules linked in: ip6table_nat(-)
+CPU: 1 UID: 0 PID: 379 Comm: ip6tables Not tainted 6.12.0-rc4-00047-gc2ee9f594da8-dirty #205
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996),
+BIOS rel-1.13.0-0-gf21b5a4aeb02-prebuilt.qemu.org 04/01/2014
+RIP: 0010:module_put+0x6f/0x80
+Call Trace:
+ <TASK>
+ get_info+0x128/0x180
+ do_ip6t_get_ctl+0x6a/0x430
+ nf_getsockopt+0x46/0x80
+ ipv6_getsockopt+0xb9/0x100
+ rawv6_getsockopt+0x42/0x190
+ do_sock_getsockopt+0xaa/0x180
+ __sys_getsockopt+0x70/0xc0
+ __x64_sys_getsockopt+0x20/0x30
+ do_syscall_64+0xa2/0x1a0
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Concurrent execution of module unload and get_info() trigered the warning.
+The root cause is as follows:
+
+cpu0				      cpu1
+module_exit
+//mod->state = MODULE_STATE_GOING
+  ip6table_nat_exit
+    xt_unregister_template
+	kfree(t)
+	//removed from templ_list
+				      getinfo()
+					  t = xt_find_table_lock
+						list_for_each_entry(tmpl, &xt_templates[af]...)
+							if (strcmp(tmpl->name, name))
+								continue;  //table not found
+							try_module_get
+						list_for_each_entry(t, &xt_net->tables[af]...)
+							return t;  //not get refcnt
+					  module_put(t->me) //uaf
+    unregister_pernet_subsys
+    //remove table from xt_net list
+
+While xt_table module was going away and has been removed from
+xt_templates list, we couldnt get refcnt of xt_table->me. Check
+module in xt_net->tables list re-traversal to fix it.
+
+Fixes: fdacd57c79b7 ("netfilter: x_tables: never register tables by default")
+Signed-off-by: Dong Chenchen <dongchenchen2@huawei.com>
 ---
- include/cmd.h |  2 +-
- src/cmd.c     |  4 +--
- src/mnl.c     | 77 +++++++++++++++++++++++++--------------------------
- 3 files changed, 41 insertions(+), 42 deletions(-)
+ net/netfilter/x_tables.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/cmd.h b/include/cmd.h
-index 0a8779b1ea19..cf7e43bf46ec 100644
---- a/include/cmd.h
-+++ b/include/cmd.h
-@@ -1,7 +1,7 @@
- #ifndef _NFT_CMD_H_
- #define _NFT_CMD_H_
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index da5d929c7c85..709840612f0d 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1269,7 +1269,7 @@ struct xt_table *xt_find_table_lock(struct net *net, u_int8_t af,
  
--void cmd_add_loc(struct cmd *cmd, uint16_t offset, const struct location *loc);
-+void cmd_add_loc(struct cmd *cmd, const struct nlmsghdr *nlh, const struct location *loc);
- struct mnl_err;
- void nft_cmd_error(struct netlink_ctx *ctx, struct cmd *cmd,
- 		   struct mnl_err *err);
-diff --git a/src/cmd.c b/src/cmd.c
-index e010dcb8113e..78a2aa3025ed 100644
---- a/src/cmd.c
-+++ b/src/cmd.c
-@@ -17,14 +17,14 @@
- #include <errno.h>
- #include <cache.h>
+ 	/* and once again: */
+ 	list_for_each_entry(t, &xt_net->tables[af], list)
+-		if (strcmp(t->name, name) == 0)
++		if (strcmp(t->name, name) == 0 && owner == t->me)
+ 			return t;
  
--void cmd_add_loc(struct cmd *cmd, uint16_t offset, const struct location *loc)
-+void cmd_add_loc(struct cmd *cmd, const struct nlmsghdr *nlh, const struct location *loc)
- {
- 	if (cmd->num_attrs >= cmd->attr_array_len) {
- 		cmd->attr_array_len *= 2;
- 		cmd->attr = xrealloc(cmd->attr, sizeof(struct nlerr_loc) * cmd->attr_array_len);
- 	}
- 
--	cmd->attr[cmd->num_attrs].offset = offset;
-+	cmd->attr[cmd->num_attrs].offset = nlh->nlmsg_len;
- 	cmd->attr[cmd->num_attrs].location = loc;
- 	cmd->num_attrs++;
- }
-diff --git a/src/mnl.c b/src/mnl.c
-index c1691da2e51b..42d1b0d87ec1 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -474,7 +474,7 @@ static int mnl_nft_expr_build_cb(struct nftnl_expr *nle, void *data)
- 
- 	eloc = nft_expr_loc_find(nle, ctx->lctx);
- 	if (eloc)
--		cmd_add_loc(cmd, nlh->nlmsg_len, eloc->loc);
-+		cmd_add_loc(cmd, nlh, eloc->loc);
- 
- 	nest = mnl_attr_nest_start(nlh, NFTA_LIST_ELEM);
- 	nftnl_expr_build_payload(nlh, nle);
-@@ -527,9 +527,9 @@ int mnl_nft_rule_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 				    cmd->handle.family,
- 				    NLM_F_CREATE | flags, ctx->seqnum);
- 
--	cmd_add_loc(cmd, nlh->nlmsg_len, &h->table.location);
-+	cmd_add_loc(cmd, nlh, &h->table.location);
- 	mnl_attr_put_strz(nlh, NFTA_RULE_TABLE, h->table.name);
--	cmd_add_loc(cmd, nlh->nlmsg_len, &h->chain.location);
-+	cmd_add_loc(cmd, nlh, &h->chain.location);
- 
- 	if (h->chain_id)
- 		mnl_attr_put_u32(nlh, NFTA_RULE_CHAIN_ID, htonl(h->chain_id));
-@@ -578,11 +578,11 @@ int mnl_nft_rule_replace(struct netlink_ctx *ctx, struct cmd *cmd)
- 				    cmd->handle.family,
- 				    NLM_F_REPLACE | flags, ctx->seqnum);
- 
--	cmd_add_loc(cmd, nlh->nlmsg_len, &h->table.location);
-+	cmd_add_loc(cmd, nlh, &h->table.location);
- 	mnl_attr_put_strz(nlh, NFTA_RULE_TABLE, h->table.name);
--	cmd_add_loc(cmd, nlh->nlmsg_len, &h->chain.location);
-+	cmd_add_loc(cmd, nlh, &h->chain.location);
- 	mnl_attr_put_strz(nlh, NFTA_RULE_CHAIN, h->chain.name);
--	cmd_add_loc(cmd, nlh->nlmsg_len, &h->handle.location);
-+	cmd_add_loc(cmd, nlh, &h->handle.location);
- 	mnl_attr_put_u64(nlh, NFTA_RULE_HANDLE, htobe64(h->handle.id));
- 
- 	mnl_nft_rule_build_ctx_init(&rule_ctx, nlh, cmd, &lctx);
-@@ -621,14 +621,14 @@ int mnl_nft_rule_del(struct netlink_ctx *ctx, struct cmd *cmd)
- 				    nftnl_rule_get_u32(nlr, NFTNL_RULE_FAMILY),
- 				    0, ctx->seqnum);
- 
--	cmd_add_loc(cmd, nlh->nlmsg_len, &h->table.location);
-+	cmd_add_loc(cmd, nlh, &h->table.location);
- 	mnl_attr_put_strz(nlh, NFTA_RULE_TABLE, h->table.name);
- 	if (h->chain.name) {
--		cmd_add_loc(cmd, nlh->nlmsg_len, &h->chain.location);
-+		cmd_add_loc(cmd, nlh, &h->chain.location);
- 		mnl_attr_put_strz(nlh, NFTA_RULE_CHAIN, h->chain.name);
- 	}
- 	if (h->handle.id) {
--		cmd_add_loc(cmd, nlh->nlmsg_len, &h->handle.location);
-+		cmd_add_loc(cmd, nlh, &h->handle.location);
- 		mnl_attr_put_u64(nlh, NFTA_RULE_HANDLE, htobe64(h->handle.id));
- 	}
- 
-@@ -792,12 +792,12 @@ static void mnl_nft_chain_devs_build(struct nlmsghdr *nlh, struct cmd *cmd)
- 
- 	dev_array = nft_dev_array(dev_expr, &num_devs);
- 	if (num_devs == 1) {
--		cmd_add_loc(cmd, nlh->nlmsg_len, dev_array[0].location);
-+		cmd_add_loc(cmd, nlh, dev_array[0].location);
- 		mnl_attr_put_strz(nlh, NFTA_HOOK_DEV, dev_array[0].ifname);
- 	} else {
- 		nest_dev = mnl_attr_nest_start(nlh, NFTA_HOOK_DEVS);
- 		for (i = 0; i < num_devs; i++) {
--			cmd_add_loc(cmd, nlh->nlmsg_len, dev_array[i].location);
-+			cmd_add_loc(cmd, nlh, dev_array[i].location);
- 			mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME, dev_array[i].ifname);
- 			mnl_attr_nest_end(nlh, nest_dev);
- 		}
-@@ -842,9 +842,9 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 				    cmd->handle.family,
- 				    NLM_F_CREATE | flags, ctx->seqnum);
- 
--	cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->handle.table.location);
-+	cmd_add_loc(cmd, nlh, &cmd->handle.table.location);
- 	mnl_attr_put_strz(nlh, NFTA_CHAIN_TABLE, cmd->handle.table.name);
--	cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->handle.chain.location);
-+	cmd_add_loc(cmd, nlh, &cmd->handle.chain.location);
- 
- 	if (!cmd->chain || !(cmd->chain->flags & CHAIN_F_BINDING)) {
- 		mnl_attr_put_strz(nlh, NFTA_CHAIN_NAME, cmd->handle.chain.name);
-@@ -861,7 +861,7 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 	if (cmd->chain && cmd->chain->policy) {
- 		mpz_export_data(&policy, cmd->chain->policy->value,
- 				BYTEORDER_HOST_ENDIAN, sizeof(int));
--		cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->chain->policy->location);
-+		cmd_add_loc(cmd, nlh, &cmd->chain->policy->location);
- 		mnl_attr_put_u32(nlh, NFTA_CHAIN_POLICY, htonl(policy));
- 	}
- 
-@@ -873,7 +873,7 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 		struct nlattr *nest;
- 
- 		if (cmd->chain->type.str) {
--			cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->chain->type.loc);
-+			cmd_add_loc(cmd, nlh, &cmd->chain->type.loc);
- 			mnl_attr_put_strz(nlh, NFTA_CHAIN_TYPE, cmd->chain->type.str);
- 		}
- 
-@@ -949,13 +949,13 @@ int mnl_nft_chain_del(struct netlink_ctx *ctx, struct cmd *cmd)
- 				    cmd->handle.family,
- 				    0, ctx->seqnum);
- 
--	cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->handle.table.location);
-+	cmd_add_loc(cmd, nlh, &cmd->handle.table.location);
- 	mnl_attr_put_strz(nlh, NFTA_CHAIN_TABLE, cmd->handle.table.name);
- 	if (cmd->handle.chain.name) {
--		cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->handle.chain.location);
-+		cmd_add_loc(cmd, nlh, &cmd->handle.chain.location);
- 		mnl_attr_put_strz(nlh, NFTA_CHAIN_NAME, cmd->handle.chain.name);
- 	} else if (cmd->handle.handle.id) {
--		cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->handle.handle.location);
-+		cmd_add_loc(cmd, nlh, &cmd->handle.handle.location);
- 		mnl_attr_put_u64(nlh, NFTA_CHAIN_HANDLE,
- 				 htobe64(cmd->handle.handle.id));
- 	}
-@@ -1077,7 +1077,7 @@ int mnl_nft_table_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 				    cmd->handle.family,
- 				    flags, ctx->seqnum);
- 
--	cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->handle.table.location);
-+	cmd_add_loc(cmd, nlh, &cmd->handle.table.location);
- 	mnl_attr_put_strz(nlh, NFTA_TABLE_NAME, cmd->handle.table.name);
- 	nftnl_table_nlmsg_build_payload(nlh, nlt);
- 	nftnl_table_free(nlt);
-@@ -1106,10 +1106,10 @@ int mnl_nft_table_del(struct netlink_ctx *ctx, struct cmd *cmd)
- 			            cmd->handle.family, 0, ctx->seqnum);
- 
- 	if (cmd->handle.table.name) {
--		cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->handle.table.location);
-+		cmd_add_loc(cmd, nlh, &cmd->handle.table.location);
- 		mnl_attr_put_strz(nlh, NFTA_TABLE_NAME, cmd->handle.table.name);
- 	} else if (cmd->handle.handle.id) {
--		cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->handle.handle.location);
-+		cmd_add_loc(cmd, nlh, &cmd->handle.handle.location);
- 		mnl_attr_put_u64(nlh, NFTA_TABLE_HANDLE,
- 				 htobe64(cmd->handle.handle.id));
- 	}
-@@ -1325,9 +1325,9 @@ int mnl_nft_set_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 				    h->family,
- 				    NLM_F_CREATE | flags, ctx->seqnum);
- 
--	cmd_add_loc(cmd, nlh->nlmsg_len, &h->table.location);
-+	cmd_add_loc(cmd, nlh, &h->table.location);
- 	mnl_attr_put_strz(nlh, NFTA_SET_TABLE, h->table.name);
--	cmd_add_loc(cmd, nlh->nlmsg_len, &h->set.location);
-+	cmd_add_loc(cmd, nlh, &h->set.location);
- 	mnl_attr_put_strz(nlh, NFTA_SET_NAME, h->set.name);
- 
- 	nftnl_set_nlmsg_build_payload(nlh, nls);
-@@ -1359,13 +1359,13 @@ int mnl_nft_set_del(struct netlink_ctx *ctx, struct cmd *cmd)
- 				    h->family,
- 				    0, ctx->seqnum);
- 
--	cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->handle.table.location);
-+	cmd_add_loc(cmd, nlh, &cmd->handle.table.location);
- 	mnl_attr_put_strz(nlh, NFTA_SET_TABLE, cmd->handle.table.name);
- 	if (h->set.name) {
--		cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->handle.set.location);
-+		cmd_add_loc(cmd, nlh, &cmd->handle.set.location);
- 		mnl_attr_put_strz(nlh, NFTA_SET_NAME, cmd->handle.set.name);
- 	} else if (h->handle.id) {
--		cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->handle.handle.location);
-+		cmd_add_loc(cmd, nlh, &cmd->handle.handle.location);
- 		mnl_attr_put_u64(nlh, NFTA_SET_HANDLE,
- 				 htobe64(cmd->handle.handle.id));
- 	}
-@@ -1544,9 +1544,9 @@ int mnl_nft_obj_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 				    NFT_MSG_NEWOBJ, cmd->handle.family,
- 				    NLM_F_CREATE | flags, ctx->seqnum);
- 
--	cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->handle.table.location);
-+	cmd_add_loc(cmd, nlh, &cmd->handle.table.location);
- 	mnl_attr_put_strz(nlh, NFTA_OBJ_TABLE, cmd->handle.table.name);
--	cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->handle.obj.location);
-+	cmd_add_loc(cmd, nlh, &cmd->handle.obj.location);
- 	mnl_attr_put_strz(nlh, NFTA_OBJ_NAME, cmd->handle.obj.name);
- 
- 	nftnl_obj_nlmsg_build_payload(nlh, nlo);
-@@ -1577,14 +1577,14 @@ int mnl_nft_obj_del(struct netlink_ctx *ctx, struct cmd *cmd, int type)
- 				    msg_type, cmd->handle.family,
- 				    0, ctx->seqnum);
- 
--	cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->handle.table.location);
-+	cmd_add_loc(cmd, nlh, &cmd->handle.table.location);
- 	mnl_attr_put_strz(nlh, NFTA_OBJ_TABLE, cmd->handle.table.name);
- 
- 	if (cmd->handle.obj.name) {
--		cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->handle.obj.location);
-+		cmd_add_loc(cmd, nlh, &cmd->handle.obj.location);
- 		mnl_attr_put_strz(nlh, NFTA_OBJ_NAME, cmd->handle.obj.name);
- 	} else if (cmd->handle.handle.id) {
--		cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->handle.handle.location);
-+		cmd_add_loc(cmd, nlh, &cmd->handle.handle.location);
- 		mnl_attr_put_u64(nlh, NFTA_OBJ_HANDLE,
- 				 htobe64(cmd->handle.handle.id));
- 	}
-@@ -1764,7 +1764,7 @@ next:
- 	list_for_each_entry_from(expr, &set->expressions, list) {
- 		nlse = alloc_nftnl_setelem(set, expr);
- 
--		cmd_add_loc(cmd, nlh->nlmsg_len, &expr->location);
-+		cmd_add_loc(cmd, nlh, &expr->location);
- 		nest2 = mnl_attr_nest_start(nlh, ++i);
- 		nftnl_set_elem_nlmsg_build_payload(nlh, nlse);
- 		mnl_attr_nest_end(nlh, nest2);
-@@ -2005,7 +2005,7 @@ static void mnl_nft_ft_devs_build(struct nlmsghdr *nlh, struct cmd *cmd)
- 	dev_array = nft_dev_array(dev_expr, &num_devs);
- 	nest_dev = mnl_attr_nest_start(nlh, NFTA_FLOWTABLE_HOOK_DEVS);
- 	for (i = 0; i < num_devs; i++) {
--		cmd_add_loc(cmd, nlh->nlmsg_len, dev_array[i].location);
-+		cmd_add_loc(cmd, nlh, dev_array[i].location);
- 		mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME, dev_array[i].ifname);
- 	}
- 
-@@ -2037,9 +2037,9 @@ int mnl_nft_flowtable_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 				    NFT_MSG_NEWFLOWTABLE, cmd->handle.family,
- 				    NLM_F_CREATE | flags, ctx->seqnum);
- 
--	cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->handle.table.location);
-+	cmd_add_loc(cmd, nlh, &cmd->handle.table.location);
- 	mnl_attr_put_strz(nlh, NFTA_FLOWTABLE_TABLE, cmd->handle.table.name);
--	cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->handle.flowtable.location);
-+	cmd_add_loc(cmd, nlh, &cmd->handle.flowtable.location);
- 	mnl_attr_put_strz(nlh, NFTA_FLOWTABLE_NAME, cmd->handle.flowtable.name);
- 
- 	nftnl_flowtable_nlmsg_build_payload(nlh, flo);
-@@ -2086,16 +2086,15 @@ int mnl_nft_flowtable_del(struct netlink_ctx *ctx, struct cmd *cmd)
- 				    msg_type, cmd->handle.family,
- 				    0, ctx->seqnum);
- 
--	cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->handle.table.location);
-+	cmd_add_loc(cmd, nlh, &cmd->handle.table.location);
- 	mnl_attr_put_strz(nlh, NFTA_FLOWTABLE_TABLE, cmd->handle.table.name);
- 
- 	if (cmd->handle.flowtable.name) {
--		cmd_add_loc(cmd, nlh->nlmsg_len,
--			    &cmd->handle.flowtable.location);
-+		cmd_add_loc(cmd, nlh, &cmd->handle.flowtable.location);
- 		mnl_attr_put_strz(nlh, NFTA_FLOWTABLE_NAME,
- 				  cmd->handle.flowtable.name);
- 	} else if (cmd->handle.handle.id) {
--		cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->handle.handle.location);
-+		cmd_add_loc(cmd, nlh, &cmd->handle.handle.location);
- 		mnl_attr_put_u64(nlh, NFTA_FLOWTABLE_HANDLE,
- 				 htobe64(cmd->handle.handle.id));
- 	}
+ 	module_put(owner);
 -- 
-2.30.2
+2.25.1
 
