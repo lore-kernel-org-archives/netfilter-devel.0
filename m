@@ -1,71 +1,76 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A953C1C07D8
-	for <netfilter-devel@vger.kernel.org>; Thu, 24 Oct 2024 10:41:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id DDA841D1E68
+	for <netfilter-devel@vger.kernel.org>; Thu, 24 Oct 2024 16:02:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729766469; cv=none; b=lDdNYWA80UIMS1TM2ldgTHRngEUZ0jEBsQH0MQqv50kPVE1QkmpUWzun++kWqG3SNRF8IncSQS2+ZEhsLN+RSTvkNUhRYw6OSTomcl0EnkCTtIc86sB3kQnJoYLkxbCuyWAynCvw7zb3onqQA5nh44BzUiqnrpE+9Y62og20Ho0=
+	t=1729785778; cv=none; b=ZwvC7Io1B7eR03eqYtCuVDaQmSDt6USJVKcqQKWZvSX4DB+9tevLdMtBoJtMkWR6hw3rjU78/cYdJcJOZTAe2AB4xaRyiEW9MwvvMLHSCgSAJK9RDaFBOllT7Jt+l/BNeq1DIMll9I+FWEisSeQcqINpO3aen18bX4Vnj6YHb9Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729766469; c=relaxed/simple;
-	bh=D67y5SU324u6LPh3DdNNpdI20yQ6W/3eNBQY30nGw70=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=YuD1w4i3++MauahqObesyEbAht7sO453ZZPYIXMfS4jG3YZINxt9g1+82ks69XnKr2kN3qaFfrWkg4MEBD7ZUaKcLfmb5f/Da82VHzjQIn5UWwtdwF7ZBF2AKJsxJSUfINU4kccxhcDB2pMiKi790ZIj1rO/L1F5TXCDy3buLT0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1t3vH5-00072s-Kp; Thu, 24 Oct 2024 12:41:03 +0200
-Date: Thu, 24 Oct 2024 12:41:03 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] doc: extend description of fib expression
-Message-ID: <20241024104103.GA25923@breakpoint.cc>
-References: <20241010133745.28765-1-fw@strlen.de>
- <ZwqlbhdH4Fw__daA@calendula>
- <20241018120825.GC28324@breakpoint.cc>
- <ZxeNzTZLxw1NdgL2@calendula>
+	s=arc-20240116; t=1729785778; c=relaxed/simple;
+	bh=RQ/vL190qJtOMX1ifH+OCfhXucvTzj1geBMUq++jscc=;
+	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=V8H1VuR49e09kodevbZ8I0upAN677RjocSmi7Ga08K12va6RSvBsgaQuNeF/n+JyAa3z7C4Wek+8X8cDzO36SZ8eD6YPLomgHAY5MWrYL6M1J9p0mjQkvuDGd0wsED7kRd4ZhaeEaD+4OEbNTCGGwd77wCfLhjsWLYv/w5I++Aw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nft,v2 3/4] rule: netlink attribute offset is uint32_t for struct nlerr_loc
+Date: Thu, 24 Oct 2024 18:02:49 +0200
+Message-Id: <20241024160250.871045-3-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20241024160250.871045-1-pablo@netfilter.org>
+References: <20241024160250.871045-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZxeNzTZLxw1NdgL2@calendula>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote> > since _OIF and _OIFNAME was restricted to prerouting, nf hookfn has NULL
-> > output interface, so there is nothing we could compare against.
-> > 
-> > Now its available in forward too so it could be selectively relaxed for
-> > this, but, what is the use case?
-> > 
-> > Do a RPF in forward, then we need to compare vs. incoming interface.
-> 
-> This is for an esoteric scenario: Policy-based routing using input
-> interface as key. The fib rule for RPF does not work from prerouting
-> because iif cannot be inferred, there is no way to know if route in
-> the reverse direction exists until the route lookup for this direction
-> is done.
+The maximum netlink message length (nlh->nlmsg_len) is uint32_t, struct
+nlerr_loc stores the offset to the netlink attribute which must be
+uint32_t, not uint16_t.
 
-Yes, that internally sets fibs iif to the oif.
+While at it, remove check for zero netlink attribute offset in
+nft_cmd_error() which should not ever happen, likely this check was
+there to prevent the uint16_t offset overflow.
 
-> > But for outgoing interface, we'd do a normal route lookup, but the stack
-> > already did that for us (as packet is already being forwarded).
-> >
-> > So what would be the desired outcome for a 'fib daddr . oif' check?
-> 
-> Hm, this always evaluates true from forward and any later hook.
-> 
-> I missing now, what is the point of . oif in general?
+Fixes: f8aec603aa7e ("src: initial extended netlink error reporting")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: remove check for zero offset in nft_cmd_error().
 
-Its for use with the 'type' output, i.e. consult fib to determine
-the type of the daddr (multicast, broadcast etc).
+ include/rule.h | 2 +-
+ src/cmd.c      | 2 --
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-I don't see an application for the fib case, with exception
-of the 'rpf lookup in forward' case.
+diff --git a/include/rule.h b/include/rule.h
+index a1628d82d275..3fcfa445d103 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -695,7 +695,7 @@ void monitor_free(struct monitor *m);
+ #define NFT_NLATTR_LOC_MAX 32
+ 
+ struct nlerr_loc {
+-	uint16_t		offset;
++	uint32_t		offset;
+ 	const struct location	*location;
+ };
+ 
+diff --git a/src/cmd.c b/src/cmd.c
+index 78a2aa3025ed..0c7a43edd73a 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -323,8 +323,6 @@ void nft_cmd_error(struct netlink_ctx *ctx, struct cmd *cmd,
+ 	uint32_t i;
+ 
+ 	for (i = 0; i < cmd->num_attrs; i++) {
+-		if (!cmd->attr[i].offset)
+-			break;
+ 		if (cmd->attr[i].offset == err->offset)
+ 			loc = cmd->attr[i].location;
+ 	}
+-- 
+2.30.2
 
