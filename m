@@ -1,42 +1,32 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75EF41CBE91;
-	Thu, 24 Oct 2024 09:37:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A953C1C07D8
+	for <netfilter-devel@vger.kernel.org>; Thu, 24 Oct 2024 10:41:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729762640; cv=none; b=BI/zWDTfrjrRDVBwHWRWg+5Rc4oT/fohpgW2PjIVfVq0fBsMXqYPDNqXqa3tJy+jeEim1u9PbTEhlMbqpWOiFHpCNFRUCh6lGBElyjb85krxfrYE85mr8rBgcklnGkgRenFVfk70fvSNfUWdusqhhPdy1lfBB+IrhlMpTk+WTVo=
+	t=1729766469; cv=none; b=lDdNYWA80UIMS1TM2ldgTHRngEUZ0jEBsQH0MQqv50kPVE1QkmpUWzun++kWqG3SNRF8IncSQS2+ZEhsLN+RSTvkNUhRYw6OSTomcl0EnkCTtIc86sB3kQnJoYLkxbCuyWAynCvw7zb3onqQA5nh44BzUiqnrpE+9Y62og20Ho0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729762640; c=relaxed/simple;
-	bh=7q5cze3Bj0cHVtRyxcwQfGbsZrOBofAuoclFOmnUXLc=;
+	s=arc-20240116; t=1729766469; c=relaxed/simple;
+	bh=D67y5SU324u6LPh3DdNNpdI20yQ6W/3eNBQY30nGw70=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=IwyvZ7kfYSkzfser841G1dnMlfxiymonqQz2mvOP8NMxq84X1ZZ7VYs4L0Cd8wZVi7tMPxAj2udupzcMNEkSEGZfRTZ7FFE1nFnL4hQ7tkeqeeLbGvUrWvDYOPw/fjCLzM+bEeL/XzhtiVwV0O3Xe2snQdgvWl28WxZbA1W4+bc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RCsvb9M0; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RCsvb9M0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FBABC4CEC7;
-	Thu, 24 Oct 2024 09:37:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1729762640;
-	bh=7q5cze3Bj0cHVtRyxcwQfGbsZrOBofAuoclFOmnUXLc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=RCsvb9M0UNs/cqbkELlQtgBLP/ZC7jIVjsNqjClMocMYLV1vHlV5bSLS9rmfvkOEK
-	 14kM64MiWhk6h+iRx5eCBVAyON1XseK/w310GFfOnSShf2zlmBumNen8j/veiFguoX
-	 TWcSoSngaNIvYRB0in00QuKu/H1DPfXSoYIzAogcPNBVyJXrAb6kwQ3QdOChZ3x2pL
-	 5KzMJfhO8+jSajq7WytRhcJyg/3rBZeR/ZG4UXAxQTdFEmetvMP/jK2SQvj7GO2qk1
-	 i7BJ0aNqdACBeyELaEzJ5dZR2FUqYQWQ3M9UpWjWef15rp4WTtB0kmFleKqZA9Z5un
-	 W/EpbpokfsOJw==
-Date: Thu, 24 Oct 2024 10:37:16 +0100
-From: Simon Horman <horms@kernel.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH net] selftests: netfilter: nft_flowtable.sh: make first
- pass deterministic
-Message-ID: <20241024093716.GK402847@kernel.org>
-References: <20241022152324.13554-1-fw@strlen.de>
+	 Content-Type:Content-Disposition:In-Reply-To; b=YuD1w4i3++MauahqObesyEbAht7sO453ZZPYIXMfS4jG3YZINxt9g1+82ks69XnKr2kN3qaFfrWkg4MEBD7ZUaKcLfmb5f/Da82VHzjQIn5UWwtdwF7ZBF2AKJsxJSUfINU4kccxhcDB2pMiKi790ZIj1rO/L1F5TXCDy3buLT0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1t3vH5-00072s-Kp; Thu, 24 Oct 2024 12:41:03 +0200
+Date: Thu, 24 Oct 2024 12:41:03 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] doc: extend description of fib expression
+Message-ID: <20241024104103.GA25923@breakpoint.cc>
+References: <20241010133745.28765-1-fw@strlen.de>
+ <ZwqlbhdH4Fw__daA@calendula>
+ <20241018120825.GC28324@breakpoint.cc>
+ <ZxeNzTZLxw1NdgL2@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -45,54 +35,37 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20241022152324.13554-1-fw@strlen.de>
+In-Reply-To: <ZxeNzTZLxw1NdgL2@calendula>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-On Tue, Oct 22, 2024 at 05:23:18PM +0200, Florian Westphal wrote:
-> The CI occasionaly encounters a failing test run.  Example:
->  # PASS: ipsec tunnel mode for ns1/ns2
->  # re-run with random mtus: -o 10966 -l 19499 -r 31322
->  # PASS: flow offloaded for ns1/ns2
-> [..]
->  # FAIL: ipsec tunnel ... counter 1157059 exceeds expected value 878489
+Pablo Neira Ayuso <pablo@netfilter.org> wrote> > since _OIF and _OIFNAME was restricted to prerouting, nf hookfn has NULL
+> > output interface, so there is nothing we could compare against.
+> > 
+> > Now its available in forward too so it could be selectively relaxed for
+> > this, but, what is the use case?
+> > 
+> > Do a RPF in forward, then we need to compare vs. incoming interface.
 > 
-> This script will re-exec itself, on the second run, random MTUs are
-> chosen for the involved links.  This is done so we can cover different
-> combinations (large mtu on client, small on server, link has lowest
-> mtu, etc).
-> 
-> Furthermore, file size is random, even for the first run.
-> 
-> Rework this script and always use the same file size on initial run so
-> that at least the first round can be expected to have reproducible
-> behavior.
-> 
-> Second round will use random mtu/filesize.
-> 
-> Raise the failure limit to that of the file size, this should avoid all
-> errneous test errors.  Currently, first fin will remove the offload, so if
-> one peer is already closing remaining data is handled by classic path,
-> which result in larger-than-expected counter and a test failure.
-> 
-> Given packet path also counts tcp/ip headers, in case offload is
-> completely broken this test will still fail (as expected).
-> 
-> The test counter limit could be made more strict again in the future
-> once flowtable can keep a connection in offloaded state until FINs
-> in both directions were seen.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  If you prefer you can also apply this to net-next instead.
+> This is for an esoteric scenario: Policy-based routing using input
+> interface as key. The fib rule for RPF does not work from prerouting
+> because iif cannot be inferred, there is no way to know if route in
+> the reverse direction exists until the route lookup for this direction
+> is done.
 
-Hi Florian,
+Yes, that internally sets fibs iif to the oif.
 
-No preference on my side.
-But if it is for net, then we'll need a fixes tag.
-Which you can simply add by responding with it to this email.
-(I think it has to start at the beginning of the line.)
+> > But for outgoing interface, we'd do a normal route lookup, but the stack
+> > already did that for us (as packet is already being forwarded).
+> >
+> > So what would be the desired outcome for a 'fib daddr . oif' check?
+> 
+> Hm, this always evaluates true from forward and any later hook.
+> 
+> I missing now, what is the point of . oif in general?
 
-In any case,
+Its for use with the 'type' output, i.e. consult fib to determine
+the type of the daddr (multicast, broadcast etc).
 
-Reviewed-by: Simon Horman <horms@kernel.org>
+I don't see an application for the fib case, with exception
+of the 'rpf lookup in forward' case.
 
-...
