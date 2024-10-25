@@ -1,59 +1,133 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from esa12.hc1455-7.c3s2.iphmx.com (esa12.hc1455-7.c3s2.iphmx.com [139.138.37.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B5B81B392C
-	for <netfilter-devel@vger.kernel.org>; Thu, 24 Oct 2024 23:22:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 254F813635E;
+	Fri, 25 Oct 2024 01:40:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=139.138.37.100
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729812162; cv=none; b=in+sVrwX8PYndncN2VP59RKVL4to7dT7xCu0oqOWlIAioBTeIwoH+MVf9TDtqjWRHi1+U1ew72W6glVPkaNlfflYnSLdqLMb6uLgNBept407Zrdi2xcKDaVdC00Eh58a/JNwg8ujZwD52dhpwDffgg6SqtsFnnofN9/MyhOXj8g=
+	t=1729820455; cv=none; b=SbGpng6qA20HJImEwTDxQaWp8oCjKxSIw7OWBWRQ8hQIItMJpVUQQ5HXmpEmVN42eljwTOYfPfXB2wCM51gasyzbVm7oEfUi/wnKwU7Z0bk04QRq+8dvte1zhkTJLXUY7Bvx62vXUx3lzWQlxIvgWBB08A4l/JPBvZSwJurxGUw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729812162; c=relaxed/simple;
-	bh=2p/112EE+U7PY80TwESyaD069SCvirWc1mLBsTz3QrQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=nQdOk1l/RUv1jQ4vFXM6P/oHw/4OcxllxFoqhFmCVqGCw5MM41hxxjGTGCD4c5WC9la5raHgZpvSpqlhCuiTWWGuchvhrl7qvTfODqQaS1YVIvf9pihVcP5rUY7jQvQ4s+3qqvnQ7BOXpiw6AInXE9EXT24m09OJncn479tN8lc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1t479y-0006BT-M3; Fri, 25 Oct 2024 01:22:30 +0200
-Date: Fri, 25 Oct 2024 01:22:30 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Matthieu Baerts <matttbe@kernel.org>, netfilter-devel@vger.kernel.org,
+	s=arc-20240116; t=1729820455; c=relaxed/simple;
+	bh=ae6TCmCFNHLPjh3lVn88hVsBGGUKX7j2CwNOT/CU5Vk=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=TEguw1UBC072d5NBHGDUwv7N0ON2uUl7/bM6pV+aGoe/oQfshcN8Pxq6uYmE5NxpDyLRYpqvU8pHTjjtUG19zFGVQPoqSPNQJXKJPYudvciuBs+3UuFAY6CU0xNj2IFwXF2xeez1YD9ij2Ie30kMr1kkckd1lNrvB1xWvL8jETY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com; spf=pass smtp.mailfrom=fujitsu.com; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=D1S3Ku6j; arc=none smtp.client-ip=139.138.37.100
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="D1S3Ku6j"
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj2;
+  t=1729820452; x=1761356452;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=ae6TCmCFNHLPjh3lVn88hVsBGGUKX7j2CwNOT/CU5Vk=;
+  b=D1S3Ku6jgmS0FTC7T5F/4LEGuoHBt3EkK/QagMY+51Y1bV6jsFXEyOtY
+   y2Jj7oazDEOEShgrLdssMq+mdWHonT7gind/RaK4Slc4Zi21r/qYbAMT1
+   Gjufl3ndBsRu1vxz35yQUw5dA/I5IMfH5S14yXCPkpUgqhUCSzXj87Pqd
+   /olylQY+NbkvbehzDA49QSmj9Y94MiOgHNM+c7Z23Z/Qlni/BscGPg2UF
+   DEa5ZhCakUyKWTsQhTc0D8SRqR9n7lE12B/NIL/lX4S84P/+8EDYAYSQL
+   i9iCR9AGzEpHEag+z91QaV+7Ff5lQJfMLW/qAD9rN8P7BG3Z3HgXADhps
+   w==;
+X-CSE-ConnectionGUID: 7/DHaTp1QmOwV+qGRk3qug==
+X-CSE-MsgGUID: /tCirz76TRCDnhBRXA7+kQ==
+X-IronPort-AV: E=McAfee;i="6700,10204,11235"; a="156895126"
+X-IronPort-AV: E=Sophos;i="6.11,230,1725289200"; 
+   d="scan'208";a="156895126"
+Received: from unknown (HELO yto-r2.gw.nic.fujitsu.com) ([218.44.52.218])
+  by esa12.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Oct 2024 10:39:38 +0900
+Received: from yto-m4.gw.nic.fujitsu.com (yto-nat-yto-m4.gw.nic.fujitsu.com [192.168.83.67])
+	by yto-r2.gw.nic.fujitsu.com (Postfix) with ESMTP id D28B3C68E1;
+	Fri, 25 Oct 2024 10:39:35 +0900 (JST)
+Received: from kws-ab3.gw.nic.fujitsu.com (kws-ab3.gw.nic.fujitsu.com [192.51.206.21])
+	by yto-m4.gw.nic.fujitsu.com (Postfix) with ESMTP id 08A95D3F14;
+	Fri, 25 Oct 2024 10:39:35 +0900 (JST)
+Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
+	by kws-ab3.gw.nic.fujitsu.com (Postfix) with ESMTP id 76EE72007955B;
+	Fri, 25 Oct 2024 10:39:34 +0900 (JST)
+Received: from iaas-rdma.. (unknown [10.167.135.44])
+	by edo.cn.fujitsu.com (Postfix) with ESMTP id 6D3501A000B;
+	Fri, 25 Oct 2024 09:39:33 +0800 (CST)
+From: Li Zhijian <lizhijian@fujitsu.com>
+To: linux-kselftest@vger.kernel.org
+Cc: shuah@kernel.org,
+	linux-kernel@vger.kernel.org,
+	Li Zhijian <lizhijian@fujitsu.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
-	coreteam@netfilter.org
-Subject: Re: Netfilter: suspicious RCU usage in __nft_rule_lookup
-Message-ID: <20241024232230.GA23717@breakpoint.cc>
-References: <da27f17f-3145-47af-ad0f-7fd2a823623e@kernel.org>
- <ZxqKkVCnyOqHjFq-@calendula>
- <ZxqQAIlQx8C1E6FK@calendula>
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org
+Subject: [PATCH for-next 4/7] selftests/net: Add missing gitignore file
+Date: Fri, 25 Oct 2024 09:40:07 +0800
+Message-ID: <20241025014010.6533-4-lizhijian@fujitsu.com>
+X-Mailer: git-send-email 2.44.0
+In-Reply-To: <20241025014010.6533-1-lizhijian@fujitsu.com>
+References: <20241025014010.6533-1-lizhijian@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZxqQAIlQx8C1E6FK@calendula>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-28752.003
+X-TM-AS-User-Approved-Sender: Yes
+X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-28752.003
+X-TMASE-Result: 10--7.130600-10.000000
+X-TMASE-MatchedRID: SzbEz7SZt2shiKpapiFQUqoXHZz/dXlxTJDl9FKHbrmwcSh5kytY+Wlr
+	rhfytIG3ue7scXXMXXbOw1q4IOi+g+VaI0j/eUAP9Ib/6w+1lWTVBDonH99+VkYUijfAB7a8Sdp
+	3nQlC6CvONlqzU5N8Te4nDl0cg6mq0ekSi+00U24ReM8i8p3vgKAyvPZuBdRcACF5TKaad1+CE8
+	twEnUQ06GvCFqoKSwTgDLqnrRlXrbIDt27MLDp0t0H8LFZNFG7bkV4e2xSge5ohlAZXykbpgAyO
+	Vzm89Qseu6ZNp10bbJxAl0R7Q6QvhyFdNnda6Rv
+X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> 
-> this comment below is also not valid anymore:
-> 
-> /* called with rcu_read_lock held */
-> static struct sk_buff *
-> nf_tables_getrule_single(u32 portid, const struct nfnl_info *info,
->                          const struct nlattr * const nla[], bool reset)
+Compiled binary files should be added to .gitignore
+'git status' complains:
+   Untracked files:
+   (use "git add <file>..." to include in what will be committed)
+         net/netfilter/conntrack_reverse_clash
 
-Yes, either called with rcu read lock or commit mutex held.
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
+---
+Cc: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org
+Cc: netdev@vger.kernel.org
+---
+Hello,
+Cover letter is here.
 
-> This is not the only spot that can trigger rcu splats.
+This patch set aims to make 'git status' clear after 'make' and 'make
+run_tests' for kselftests.
+---
+V2:
+  split as a separate patch from a small one [0]
+  [0] https://lore.kernel.org/linux-kselftest/20241015010817.453539-1-lizhijian@fujitsu.com/
+---
+ tools/testing/selftests/net/netfilter/.gitignore | 1 +
+ 1 file changed, 1 insertion(+)
 
-Agree.  Will you make a patch or should I take a look?
-I'm leaning towards a common helper that can pass the
-right lockdep annotation, i.e. pass nft_net as arg to
-document when RCU or transaction semantics apply.
+diff --git a/tools/testing/selftests/net/netfilter/.gitignore b/tools/testing/selftests/net/netfilter/.gitignore
+index 0a64d6d0e29a..eef8d5784e94 100644
+--- a/tools/testing/selftests/net/netfilter/.gitignore
++++ b/tools/testing/selftests/net/netfilter/.gitignore
+@@ -4,3 +4,4 @@ connect_close
+ conntrack_dump_flush
+ sctp_collision
+ nf_queue
++conntrack_reverse_clash
+-- 
+2.44.0
+
