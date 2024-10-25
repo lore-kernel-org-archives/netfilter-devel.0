@@ -1,39 +1,36 @@
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E9DC18BC1C
-	for <netfilter-devel@vger.kernel.org>; Fri, 25 Oct 2024 10:26:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CDF71D54C7
+	for <netfilter-devel@vger.kernel.org>; Fri, 25 Oct 2024 10:35:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729852015; cv=none; b=LOdMDrQ4PhPPbhr1N+5B9yvMPcxUDMwO1ydQRCuo36U7gVu4/Geo5YweIdMPzECl503fUBlQXuOPSikCB1xNUfHTozFq6VxwyDdtH8H47QDwF0iYMpEaWwRl2uF0uwYHgTcSqn84NEUtQIarf/8VzhTi+pWGE8HmQkV/fQvonlM=
+	t=1729852515; cv=none; b=eibXi3Dci8qIYK2OH28yQ5wFEgzDL+SoZ/Vw95nedV2oaCHJq53qf7WDW1n3r4VGHfF0k8mY5i17FIRb89eqX1pUtf6Rh6JF2Mc33BrixhYZ2DCIBLBrAc6wSyVXafu8PXlvEaANZ+X1tBPEfSLIZA81Fr8UxxI6kxx4hf8OVjs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729852015; c=relaxed/simple;
-	bh=wVrFjVrn/x/atj01oCFmkK9JuMNBrOt9u038a9RovP8=;
-	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=GOdDHSw0bpUT2TETezFV2m+MUt1dudh973mUmzEziDfQ0ATa9amLaJLenRI1UetwAFLo5BOXCtLiuTIiYg9LBPAUyug+QsPTUHris2v4L4sMHNBQhirbMQ4yJfEQrbNfnIKoJA4Ik7AzZuI5Wzfzrr7me082d4PEdpKSRoWSuGk=
+	s=arc-20240116; t=1729852515; c=relaxed/simple;
+	bh=sM6di1QgZacA3fpY2alHR7XjELVcUMJ8QwTYk6wuvPQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=j/W2BzJzgPIMH9ffJvxhIjwEWLjC7CqiE+3GpdSb26tNy1CFENN03sYwZYi1sOsGs8F0ImIAB6STLQJfPUgjiGm5GKhSH8uQUpLSIGq73Stf4lxFdidOo72oxbwOkLj+GtAWQrkQeVvkhKk3FGojmOXHUX0U79vcRHdO9JCjGtw=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=34136 helo=gnumonks.org)
+Received: from [78.30.37.63] (port=32798 helo=gnumonks.org)
 	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <pablo@gnumonks.org>)
-	id 1t4HWq-007LOV-NP; Fri, 25 Oct 2024 12:26:50 +0200
-Date: Fri, 25 Oct 2024 12:26:47 +0200
+	id 1t4Hev-007N5q-CH; Fri, 25 Oct 2024 12:35:11 +0200
+Date: Fri, 25 Oct 2024 12:35:08 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
-	Matthieu Baerts <matttbe@kernel.org>,
-	netfilter-devel@vger.kernel.org,
-	Jozsef Kadlecsik <kadlec@netfilter.org>, coreteam@netfilter.org
+To: Florian Westphal <fw@strlen.de>
+Cc: Matthieu Baerts <matttbe@kernel.org>, netfilter-devel@vger.kernel.org,
+	Jozsef Kadlecsik <kadlec@netfilter.org>, Phil Sutter <phil@nwl.cc>,
+	coreteam@netfilter.org
 Subject: Re: Netfilter: suspicious RCU usage in __nft_rule_lookup
-Message-ID: <ZxtyZ8-jVGuGCU2K@calendula>
+Message-ID: <Zxt0XLj4OZPE-fx4@calendula>
 References: <da27f17f-3145-47af-ad0f-7fd2a823623e@kernel.org>
  <ZxqKkVCnyOqHjFq-@calendula>
  <ZxqQAIlQx8C1E6FK@calendula>
  <20241024232230.GA23717@breakpoint.cc>
- <40d071e1-4c13-49c9-8cac-14c1377eaf86@kernel.org>
- <20241025092356.GA11843@breakpoint.cc>
- <Zxto-TvgUAa1p9N9@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -42,50 +39,26 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <Zxto-TvgUAa1p9N9@orbyte.nwl.cc>
-X-Spam-Score: -1.9 (-)
+In-Reply-To: <20241024232230.GA23717@breakpoint.cc>
+X-Spam-Score: -1.8 (-)
 
-On Fri, Oct 25, 2024 at 11:46:33AM +0200, Phil Sutter wrote:
-> On Fri, Oct 25, 2024 at 11:23:56AM +0200, Florian Westphal wrote:
-> > Matthieu Baerts <matttbe@kernel.org> wrote:
-> > > While at it, I had a question related to the rules' list: in
-> > > __nft_release_basechain() from the same nf_tables_api.c file, list's
-> > > entries are not removed with the _rcu variant → is it OK to do that
-> > > because this function is only called last at the cleanup time, when no
-> > > other readers can iterate over the list? So similar to what is done in
-> > > __nft_release_table()?
+On Fri, Oct 25, 2024 at 01:22:30AM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 > > 
-> > Looks like __nft_release_basechain() is broken from start, I don't see
-> > how it can work, it doesn't call synchronize_rcu or anything like that
-> > afaics.
+> > this comment below is also not valid anymore:
 > > 
-> > No idea what to do here.
+> > /* called with rcu_read_lock held */
+> > static struct sk_buff *
+> > nf_tables_getrule_single(u32 portid, const struct nfnl_info *info,
+> >                          const struct nlattr * const nla[], bool reset)
 > 
-> It will vanish with my name-based netdev hooks series (the second part).
-> I could prepare a patch for nf/stable which merely kills that function -
-> dropping netdev-family chains upon removal of last interface is
-> inconsistent wrt. flowtables which remain in place.
+> Yes, either called with rcu read lock or commit mutex held.
+> 
+> > This is not the only spot that can trigger rcu splats.
+> 
+> Agree.  Will you make a patch or should I take a look?
+> I'm leaning towards a common helper that can pass the
+> right lockdep annotation, i.e. pass nft_net as arg to
+> document when RCU or transaction semantics apply.
 
-I like the idea of keeping the basechain in place. With chain update
-support, it makes sense to add a basechain then update it with the
-devices to hook in.
-
-But chain device updates are only recently supported:
-
-b9703ed44ffbfba85c103b9de01886a225e14b38
-Author: Pablo Neira Ayuso <pablo@netfilter.org>
-Date:   Fri Apr 21 00:34:31 2023 +0200
-
-    netfilter: nf_tables: support for adding new devices to an existing netdev chain
-
-that is, in older kernels, this chain would remain unused because
-updates are not be possible.
-
-> Another alternative might be to call synchronize_rcu() in there, but it
-> slows down interface teardown AIUI.
-
-Else unregister objects from lists under mutex then call_rcu() to
-release them.
-
-Then, take you patch so new kernel don't remove the basechain.
+Please, go ahead if you have the time. Thanks.
