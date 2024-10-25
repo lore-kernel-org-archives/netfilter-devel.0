@@ -1,29 +1,28 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C66170815
-	for <netfilter-devel@vger.kernel.org>; Fri, 25 Oct 2024 13:54:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84A5E1DAC90
+	for <netfilter-devel@vger.kernel.org>; Fri, 25 Oct 2024 13:54:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729864472; cv=none; b=jSS/nuyRZbcYKkOAeklQjXdWZVbBlns8lm4DhUXtfHKNSvX+MPXUplBgpJOEIwoGdnNT6tU7zE3hrOdUFfX3zATqkY6mdXqoLjajKxcN8EMilXf2U+DQazT/wvw24zTQVry5ZGGoI6y9ktuJk/oWkMSHe4VXnSIcA3Hrb2zpZ8g=
+	t=1729864476; cv=none; b=i7ItEazFdk9zOo36Vfvb72IWDGGZuzBhpebmSmWbP2el7VMZrJQ0910koBSTAK4+Luq8CkpnCNIygIZWAXp4U6sWELT4k0+qXjFFdYo1SR4ATHQN6gf42sjy3u9KcwmI31FtkoY5orGSpfSlZRympv+yQngTkhHXHXrTAv7OMvk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729864472; c=relaxed/simple;
-	bh=edcKmTZWq/05F00iJGvIiEwicZ3A9/V1zzfuqamumT0=;
+	s=arc-20240116; t=1729864476; c=relaxed/simple;
+	bh=pYyctc1xPQXOhaaLfzU/AKDry39/Djl3pF7x+sPndeE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ir23HcNSM2KNOpojoFO9JOlxJ/oukX3ySe5wzaNZbdASi/oSKlCtcOxiQClkHmGuMh9oUdL4J9e8mOweHejpti9vKpKh3uALNc2ne70PYdxUHk89xKh4cI9bE50dkhrXhHuLOqoswyD7BLgPicHo15/YyCRVTvQJhzr5ttZOK5E=
+	 MIME-Version; b=cTc/bN/PnB5x5DEYRbdNue0tXpFadv5aTSJpXOb5wwTwcOl80dbocEHrsHjAu2XmpfAcn1PHzetc7fZ8fp5n+YmCTG1LKSFgEEw0aC5R1Dk3TOpJcs8gSQfdjs053OjgfzFgd1w7Nw7GoOgPicSXpQQadLTNhh1brmCIC1Hsjdg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1t4Kln-0005xh-SX; Fri, 25 Oct 2024 15:54:27 +0200
+	id 1t4Klr-0005xu-Vj; Fri, 25 Oct 2024 15:54:32 +0200
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	Matthieu Baerts <matttbe@kernel.org>
-Subject: [PATCH nf-next 1/7] netfilter: nf_tables: avoid false-positive lockdep splat on rule deletion
-Date: Fri, 25 Oct 2024 15:32:18 +0200
-Message-ID: <20241025133230.22491-2-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next 2/7] netfilter: nf_tables: avoid false-positive lockdep splats with sets
+Date: Fri, 25 Oct 2024 15:32:19 +0200
+Message-ID: <20241025133230.22491-3-fw@strlen.de>
 X-Mailer: git-send-email 2.45.2
 In-Reply-To: <20241025133230.22491-1-fw@strlen.de>
 References: <20241025133230.22491-1-fw@strlen.de>
@@ -35,123 +34,124 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-On rule delete we get:
- WARNING: suspicious RCU usage
- net/netfilter/nf_tables_api.c:3420 RCU-list traversed in non-reader section!!
- 1 lock held by iptables/134:
-   #0: ffff888008c4fcc8 (&nft_net->commit_mutex){+.+.}-{3:3}, at: nf_tables_valid_genid (include/linux/jiffies.h:101) nf_tables
+Same as previous patch.  All set handling functions here can be called
+with transaction mutex held (but not the rcu read lock).
 
-Code is fine, no other CPU can change the list because we're holding
-transaction mutex.
+The transaction mutex prevents concurrent add/delete, so this is fine.
 
-Pass the needed lockdep annotation to the iterator and fix
-two comments for functions that are no longer restricted to rcu-only
-context.
-
-This is enough to resolve rule delete, but there are several other
-missing annotations, added in followup-patches.
-
-Fixes: 28875945ba98 ("rcu: Add support for consolidated-RCU reader checking")
-Reported-by: Matthieu Baerts <matttbe@kernel.org>
-Closes: https://lore.kernel.org/netfilter-devel/da27f17f-3145-47af-ad0f-7fd2a823623e@kernel.org/
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_tables_api.c | 23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+ net/netfilter/nf_tables_api.c | 27 ++++++++++++++++-----------
+ 1 file changed, 16 insertions(+), 11 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 30331688301e..80c285ac7e07 100644
+index 80c285ac7e07..a51731d76401 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -3411,13 +3411,15 @@ void nft_expr_destroy(const struct nft_ctx *ctx, struct nft_expr *expr)
-  * Rules
-  */
+@@ -3986,7 +3986,8 @@ int nft_set_catchall_validate(const struct nft_ctx *ctx, struct nft_set *set)
+ 	struct nft_set_ext *ext;
+ 	int ret = 0;
  
--static struct nft_rule *__nft_rule_lookup(const struct nft_chain *chain,
-+static struct nft_rule *__nft_rule_lookup(const struct net *net,
-+					  const struct nft_chain *chain,
- 					  u64 handle)
+-	list_for_each_entry_rcu(catchall, &set->catchall_list, list) {
++	list_for_each_entry_rcu(catchall, &set->catchall_list, list,
++				lockdep_commit_lock_is_held(ctx->net)) {
+ 		ext = nft_set_elem_ext(set, catchall->elem);
+ 		if (!nft_set_elem_active(ext, dummy_iter.genmask))
+ 			continue;
+@@ -4459,7 +4460,8 @@ static const struct nla_policy nft_set_desc_policy[NFTA_SET_DESC_MAX + 1] = {
+ 	[NFTA_SET_DESC_CONCAT]		= NLA_POLICY_NESTED_ARRAY(nft_concat_policy),
+ };
+ 
+-static struct nft_set *nft_set_lookup(const struct nft_table *table,
++static struct nft_set *nft_set_lookup(const struct net *net,
++				      const struct nft_table *table,
+ 				      const struct nlattr *nla, u8 genmask)
  {
- 	struct nft_rule *rule;
- 
- 	// FIXME: this sucks
--	list_for_each_entry_rcu(rule, &chain->rules, list) {
-+	list_for_each_entry_rcu(rule, &chain->rules, list,
-+				lockdep_commit_lock_is_held(net)) {
- 		if (handle == rule->handle)
- 			return rule;
- 	}
-@@ -3425,13 +3427,14 @@ static struct nft_rule *__nft_rule_lookup(const struct nft_chain *chain,
- 	return ERR_PTR(-ENOENT);
- }
- 
--static struct nft_rule *nft_rule_lookup(const struct nft_chain *chain,
-+static struct nft_rule *nft_rule_lookup(const struct net *net,
-+					const struct nft_chain *chain,
- 					const struct nlattr *nla)
- {
+ 	struct nft_set *set;
+@@ -4467,7 +4469,8 @@ static struct nft_set *nft_set_lookup(const struct nft_table *table,
  	if (nla == NULL)
  		return ERR_PTR(-EINVAL);
  
--	return __nft_rule_lookup(chain, be64_to_cpu(nla_get_be64(nla)));
-+	return __nft_rule_lookup(net, chain, be64_to_cpu(nla_get_be64(nla)));
- }
+-	list_for_each_entry_rcu(set, &table->sets, list) {
++	list_for_each_entry_rcu(set, &table->sets, list,
++				lockdep_commit_lock_is_held(net)) {
+ 		if (!nla_strcmp(nla, set->name) &&
+ 		    nft_active_genmask(set, genmask))
+ 			return set;
+@@ -4517,7 +4520,7 @@ struct nft_set *nft_set_lookup_global(const struct net *net,
+ {
+ 	struct nft_set *set;
  
- static const struct nla_policy nft_rule_policy[NFTA_RULE_MAX + 1] = {
-@@ -3732,7 +3735,7 @@ static int nf_tables_dump_rules_done(struct netlink_callback *cb)
- 	return 0;
- }
+-	set = nft_set_lookup(table, nla_set_name, genmask);
++	set = nft_set_lookup(net, table, nla_set_name, genmask);
+ 	if (IS_ERR(set)) {
+ 		if (!nla_set_id)
+ 			return set;
+@@ -4893,7 +4896,7 @@ static int nf_tables_getset(struct sk_buff *skb, const struct nfnl_info *info,
+ 	if (!nla[NFTA_SET_TABLE])
+ 		return -EINVAL;
  
--/* called with rcu_read_lock held */
-+/* Caller must hold rcu read lock or transaction mutex */
- static struct sk_buff *
- nf_tables_getrule_single(u32 portid, const struct nfnl_info *info,
- 			 const struct nlattr * const nla[], bool reset)
-@@ -3759,7 +3762,7 @@ nf_tables_getrule_single(u32 portid, const struct nfnl_info *info,
- 		return ERR_CAST(chain);
+-	set = nft_set_lookup(table, nla[NFTA_SET_NAME], genmask);
++	set = nft_set_lookup(net, table, nla[NFTA_SET_NAME], genmask);
+ 	if (IS_ERR(set)) {
+ 		NL_SET_BAD_ATTR(extack, nla[NFTA_SET_NAME]);
+ 		return PTR_ERR(set);
+@@ -5229,7 +5232,7 @@ static int nf_tables_newset(struct sk_buff *skb, const struct nfnl_info *info,
+ 
+ 	nft_ctx_init(&ctx, net, skb, info->nlh, family, table, NULL, nla);
+ 
+-	set = nft_set_lookup(table, nla[NFTA_SET_NAME], genmask);
++	set = nft_set_lookup(net, table, nla[NFTA_SET_NAME], genmask);
+ 	if (IS_ERR(set)) {
+ 		if (PTR_ERR(set) != -ENOENT) {
+ 			NL_SET_BAD_ATTR(extack, nla[NFTA_SET_NAME]);
+@@ -5431,7 +5434,7 @@ static int nf_tables_delset(struct sk_buff *skb, const struct nfnl_info *info,
+ 		set = nft_set_lookup_byhandle(table, attr, genmask);
+ 	} else {
+ 		attr = nla[NFTA_SET_NAME];
+-		set = nft_set_lookup(table, attr, genmask);
++		set = nft_set_lookup(net, table, attr, genmask);
  	}
  
--	rule = nft_rule_lookup(chain, nla[NFTA_RULE_HANDLE]);
-+	rule = nft_rule_lookup(net, chain, nla[NFTA_RULE_HANDLE]);
- 	if (IS_ERR(rule)) {
- 		NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_HANDLE]);
- 		return ERR_CAST(rule);
-@@ -4057,7 +4060,7 @@ static int nf_tables_newrule(struct sk_buff *skb, const struct nfnl_info *info,
+ 	if (IS_ERR(set)) {
+@@ -5495,7 +5498,8 @@ static int nft_set_catchall_bind_check(const struct nft_ctx *ctx,
+ 	struct nft_set_ext *ext;
+ 	int ret = 0;
  
- 	if (nla[NFTA_RULE_HANDLE]) {
- 		handle = be64_to_cpu(nla_get_be64(nla[NFTA_RULE_HANDLE]));
--		rule = __nft_rule_lookup(chain, handle);
-+		rule = __nft_rule_lookup(net, chain, handle);
- 		if (IS_ERR(rule)) {
- 			NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_HANDLE]);
- 			return PTR_ERR(rule);
-@@ -4079,7 +4082,7 @@ static int nf_tables_newrule(struct sk_buff *skb, const struct nfnl_info *info,
+-	list_for_each_entry_rcu(catchall, &set->catchall_list, list) {
++	list_for_each_entry_rcu(catchall, &set->catchall_list, list,
++				lockdep_commit_lock_is_held(ctx->net)) {
+ 		ext = nft_set_elem_ext(set, catchall->elem);
+ 		if (!nft_set_elem_active(ext, genmask))
+ 			continue;
+@@ -6261,7 +6265,7 @@ static int nft_set_dump_ctx_init(struct nft_set_dump_ctx *dump_ctx,
+ 		return PTR_ERR(table);
+ 	}
  
- 		if (nla[NFTA_RULE_POSITION]) {
- 			pos_handle = be64_to_cpu(nla_get_be64(nla[NFTA_RULE_POSITION]));
--			old_rule = __nft_rule_lookup(chain, pos_handle);
-+			old_rule = __nft_rule_lookup(net, chain, pos_handle);
- 			if (IS_ERR(old_rule)) {
- 				NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_POSITION]);
- 				return PTR_ERR(old_rule);
-@@ -4296,7 +4299,7 @@ static int nf_tables_delrule(struct sk_buff *skb, const struct nfnl_info *info,
+-	set = nft_set_lookup(table, nla[NFTA_SET_ELEM_LIST_SET], genmask);
++	set = nft_set_lookup(net, table, nla[NFTA_SET_ELEM_LIST_SET], genmask);
+ 	if (IS_ERR(set)) {
+ 		NL_SET_BAD_ATTR(extack, nla[NFTA_SET_ELEM_LIST_SET]);
+ 		return PTR_ERR(set);
+@@ -7493,7 +7497,8 @@ static int nft_set_catchall_flush(const struct nft_ctx *ctx,
+ 	struct nft_set_ext *ext;
+ 	int ret = 0;
  
- 	if (chain) {
- 		if (nla[NFTA_RULE_HANDLE]) {
--			rule = nft_rule_lookup(chain, nla[NFTA_RULE_HANDLE]);
-+			rule = nft_rule_lookup(info->net, chain, nla[NFTA_RULE_HANDLE]);
- 			if (IS_ERR(rule)) {
- 				if (PTR_ERR(rule) == -ENOENT &&
- 				    NFNL_MSG_TYPE(info->nlh->nlmsg_type) == NFT_MSG_DESTROYRULE)
-@@ -8101,7 +8104,7 @@ static int nf_tables_dump_obj_done(struct netlink_callback *cb)
- 	return 0;
- }
+-	list_for_each_entry_rcu(catchall, &set->catchall_list, list) {
++	list_for_each_entry_rcu(catchall, &set->catchall_list, list,
++				lockdep_commit_lock_is_held(ctx->net)) {
+ 		ext = nft_set_elem_ext(set, catchall->elem);
+ 		if (!nft_set_elem_active(ext, genmask))
+ 			continue;
+@@ -7543,7 +7548,7 @@ static int nf_tables_delsetelem(struct sk_buff *skb,
+ 		return PTR_ERR(table);
+ 	}
  
--/* called with rcu_read_lock held */
-+/* Caller must hold rcu read lock or transaction mutex */
- static struct sk_buff *
- nf_tables_getobj_single(u32 portid, const struct nfnl_info *info,
- 			const struct nlattr * const nla[], bool reset)
+-	set = nft_set_lookup(table, nla[NFTA_SET_ELEM_LIST_SET], genmask);
++	set = nft_set_lookup(net, table, nla[NFTA_SET_ELEM_LIST_SET], genmask);
+ 	if (IS_ERR(set)) {
+ 		NL_SET_BAD_ATTR(extack, nla[NFTA_SET_ELEM_LIST_SET]);
+ 		return PTR_ERR(set);
 -- 
 2.45.2
 
