@@ -1,28 +1,28 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9ED8C4A1B
-	for <netfilter-devel@vger.kernel.org>; Fri, 25 Oct 2024 13:54:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB2924A1B
+	for <netfilter-devel@vger.kernel.org>; Fri, 25 Oct 2024 13:54:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729864479; cv=none; b=Ep3AasJ5OjTe4nJid2nQojaWw0uS4iQJSz7swK6bvxVkM1nlwe+qvr+EBZHpJ2r7xRqjXBS1uF3fv0S1Qc7UFpubrPR08RhOzwXr2HLi6wRa/WezyIakqn/cPZKZfWNnDlAkGBZZjUN3aMl4Kmf0nuXLTtjTGH/J7GdvHq3Rh60=
+	t=1729864483; cv=none; b=hB2xX9NYIjUqIpsC7/NF6HVNZu4elTDDek0xzC8Aa7wlSoBk1DN6ILaGs0sgzEZI3dY5454jTw0c1MxlR5La4ROQyi1nGHyZbQn5c0iZb6S2mKnqQlv//QA6qnrIPkCXYyvK0hkfhgdn3Gte2MKK6e5nG5sAEPLrvafzn303Rzk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729864479; c=relaxed/simple;
-	bh=+Y+7V5h8CMo2PAdYPx9r8lIlLGTO1FwSzJ06h0wklXw=;
+	s=arc-20240116; t=1729864483; c=relaxed/simple;
+	bh=MspoTOWAqQWgmHe/rKvVTtD8BVuZ6+t8ddAICGB2wrg=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=DJ5T6OQ6byoyHmuCrupblHDe75/s2WlOCtpHYwdIhRIQ841zOYdvJ2Cd7r/lOBCvP6AYjteoTG09xSoFJY1NowsO2oBt0zSMaPa1n3RSviTNS208WjLGM4GnVlcLeUMOTscyydNameQjxkRSlteuY646KFT+DSy0QHOAWEcJcv8=
+	 MIME-Version; b=sxXOJv+n4M39YPM1S5kNUjzYzafGcIUvJ0wUs6ZbUvMhxzpTg9BhfU7R2oAHX5llnHqX8c3NRs7+GH5ITTgznzZr3MjoSgiQ3vcKBUB9WjBtGUUbny8Q+83Dw6jq/9rQNFsl4kHcQuXaxn7XBJyY5WK/qmhmGFCOOzLm1h5m8+E=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1t4Klw-0005y6-1q; Fri, 25 Oct 2024 15:54:36 +0200
+	id 1t4Km0-0005yT-4B; Fri, 25 Oct 2024 15:54:40 +0200
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 3/7] netfilter: nf_tables: avoid false-positive lockdep splats with flowtables
-Date: Fri, 25 Oct 2024 15:32:20 +0200
-Message-ID: <20241025133230.22491-4-fw@strlen.de>
+Subject: [PATCH nf-next 4/7] netfilter: nf_tables: avoid false-positive lockdep splats in set walker
+Date: Fri, 25 Oct 2024 15:32:21 +0200
+Message-ID: <20241025133230.22491-5-fw@strlen.de>
 X-Mailer: git-send-email 2.45.2
 In-Reply-To: <20241025133230.22491-1-fw@strlen.de>
 References: <20241025133230.22491-1-fw@strlen.de>
@@ -34,102 +34,69 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The transaction mutex prevents concurrent add/delete, its ok to iterate
-those lists outside of rcu read side critical sections.
+Its not possible to add or delete elements from hash and bitmap sets,
+as long as caller is holding the transaction mutex, so its ok to iterate
+the list outside of rcu read side critical section.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_tables.h |  3 ++-
- net/netfilter/nf_tables_api.c     | 15 +++++++++------
- net/netfilter/nft_flow_offload.c  |  4 ++--
- 3 files changed, 13 insertions(+), 9 deletions(-)
+ net/netfilter/nft_set_bitmap.c | 10 ++++++----
+ net/netfilter/nft_set_hash.c   |  3 ++-
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 91ae20cb7648..c1513bd14568 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1463,7 +1463,8 @@ struct nft_flowtable {
- 	struct nf_flowtable		data;
- };
+diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
+index 1caa04619dc6..12390d2e994f 100644
+--- a/net/netfilter/nft_set_bitmap.c
++++ b/net/netfilter/nft_set_bitmap.c
+@@ -88,13 +88,15 @@ bool nft_bitmap_lookup(const struct net *net, const struct nft_set *set,
+ }
  
--struct nft_flowtable *nft_flowtable_lookup(const struct nft_table *table,
-+struct nft_flowtable *nft_flowtable_lookup(const struct net *net,
-+					   const struct nft_table *table,
- 					   const struct nlattr *nla,
- 					   u8 genmask);
- 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index a51731d76401..9e367e134691 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -8378,12 +8378,14 @@ static const struct nla_policy nft_flowtable_policy[NFTA_FLOWTABLE_MAX + 1] = {
- 	[NFTA_FLOWTABLE_FLAGS]		= { .type = NLA_U32 },
- };
- 
--struct nft_flowtable *nft_flowtable_lookup(const struct nft_table *table,
-+struct nft_flowtable *nft_flowtable_lookup(const struct net *net,
-+					   const struct nft_table *table,
- 					   const struct nlattr *nla, u8 genmask)
+ static struct nft_bitmap_elem *
+-nft_bitmap_elem_find(const struct nft_set *set, struct nft_bitmap_elem *this,
++nft_bitmap_elem_find(const struct net *net,
++		     const struct nft_set *set, struct nft_bitmap_elem *this,
+ 		     u8 genmask)
  {
- 	struct nft_flowtable *flowtable;
+ 	const struct nft_bitmap *priv = nft_set_priv(set);
+ 	struct nft_bitmap_elem *be;
  
--	list_for_each_entry_rcu(flowtable, &table->flowtables, list) {
-+	list_for_each_entry_rcu(flowtable, &table->flowtables, list,
-+				lockdep_commit_lock_is_held(net)) {
- 		if (!nla_strcmp(nla, flowtable->name) &&
- 		    nft_active_genmask(flowtable, genmask))
- 			return flowtable;
-@@ -8739,7 +8741,7 @@ static int nf_tables_newflowtable(struct sk_buff *skb,
- 		return PTR_ERR(table);
- 	}
+-	list_for_each_entry_rcu(be, &priv->list, head) {
++	list_for_each_entry_rcu(be, &priv->list, head,
++				lockdep_is_held(&nft_pernet(net)->commit_mutex)) {
+ 		if (memcmp(nft_set_ext_key(&be->ext),
+ 			   nft_set_ext_key(&this->ext), set->klen) ||
+ 		    !nft_set_elem_active(&be->ext, genmask))
+@@ -132,7 +134,7 @@ static int nft_bitmap_insert(const struct net *net, const struct nft_set *set,
+ 	u8 genmask = nft_genmask_next(net);
+ 	u32 idx, off;
  
--	flowtable = nft_flowtable_lookup(table, nla[NFTA_FLOWTABLE_NAME],
-+	flowtable = nft_flowtable_lookup(net, table, nla[NFTA_FLOWTABLE_NAME],
- 					 genmask);
- 	if (IS_ERR(flowtable)) {
- 		err = PTR_ERR(flowtable);
-@@ -8933,7 +8935,7 @@ static int nf_tables_delflowtable(struct sk_buff *skb,
- 		flowtable = nft_flowtable_lookup_byhandle(table, attr, genmask);
- 	} else {
- 		attr = nla[NFTA_FLOWTABLE_NAME];
--		flowtable = nft_flowtable_lookup(table, attr, genmask);
-+		flowtable = nft_flowtable_lookup(net, table, attr, genmask);
- 	}
+-	be = nft_bitmap_elem_find(set, new, genmask);
++	be = nft_bitmap_elem_find(net, set, new, genmask);
+ 	if (be) {
+ 		*elem_priv = &be->priv;
+ 		return -EEXIST;
+@@ -201,7 +203,7 @@ nft_bitmap_deactivate(const struct net *net, const struct nft_set *set,
  
- 	if (IS_ERR(flowtable)) {
-@@ -9003,7 +9005,8 @@ static int nf_tables_fill_flowtable_info(struct sk_buff *skb, struct net *net,
- 	if (!hook_list)
- 		hook_list = &flowtable->hook_list;
+ 	nft_bitmap_location(set, elem->key.val.data, &idx, &off);
  
--	list_for_each_entry_rcu(hook, hook_list, list) {
-+	list_for_each_entry_rcu(hook, hook_list, list,
-+				lockdep_commit_lock_is_held(net)) {
- 		if (nla_put_string(skb, NFTA_DEVICE_NAME, hook->ops.dev->name))
- 			goto nla_put_failure;
- 	}
-@@ -9145,7 +9148,7 @@ static int nf_tables_getflowtable(struct sk_buff *skb,
- 		return PTR_ERR(table);
- 	}
+-	be = nft_bitmap_elem_find(set, this, genmask);
++	be = nft_bitmap_elem_find(net, set, this, genmask);
+ 	if (!be)
+ 		return NULL;
  
--	flowtable = nft_flowtable_lookup(table, nla[NFTA_FLOWTABLE_NAME],
-+	flowtable = nft_flowtable_lookup(net, table, nla[NFTA_FLOWTABLE_NAME],
- 					 genmask);
- 	if (IS_ERR(flowtable)) {
- 		NL_SET_BAD_ATTR(extack, nla[NFTA_FLOWTABLE_NAME]);
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index 2f732fae5a83..65199c23c75c 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -409,8 +409,8 @@ static int nft_flow_offload_init(const struct nft_ctx *ctx,
- 	if (!tb[NFTA_FLOW_TABLE_NAME])
- 		return -EINVAL;
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index daa56dda737a..65bd291318f2 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -647,7 +647,8 @@ static void nft_hash_walk(const struct nft_ctx *ctx, struct nft_set *set,
+ 	int i;
  
--	flowtable = nft_flowtable_lookup(ctx->table, tb[NFTA_FLOW_TABLE_NAME],
--					 genmask);
-+	flowtable = nft_flowtable_lookup(ctx->net, ctx->table,
-+					 tb[NFTA_FLOW_TABLE_NAME], genmask);
- 	if (IS_ERR(flowtable))
- 		return PTR_ERR(flowtable);
+ 	for (i = 0; i < priv->buckets; i++) {
+-		hlist_for_each_entry_rcu(he, &priv->table[i], node) {
++		hlist_for_each_entry_rcu(he, &priv->table[i], node,
++					 lockdep_is_held(&nft_pernet(ctx->net)->commit_mutex)) {
+ 			if (iter->count < iter->skip)
+ 				goto cont;
  
 -- 
 2.45.2
