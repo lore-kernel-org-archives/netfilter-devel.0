@@ -1,28 +1,28 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C573A1F7552
-	for <netfilter-devel@vger.kernel.org>; Fri, 25 Oct 2024 13:54:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC91E70815
+	for <netfilter-devel@vger.kernel.org>; Fri, 25 Oct 2024 13:54:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729864487; cv=none; b=NKCX+WjWnffKbv9CDjFF68onkkNke28tbbgIOz+nGpQWlz+ioZa+19F6s4TkqiQmoiXK0IEwDV/sYNKa1oG3gRuo4SdIyfsSZMJJ8gdZQSvYvtEPho9K5rjqsWyLCKxYe3EFC0gE3vwNSdZ2L05GVAZKT/C6ghOYulX7KyZWZUI=
+	t=1729864492; cv=none; b=cQmMM3sf0GITHN60gtmG5KD4SH3NILcms2ia81u+QBmW+SXlWlyNkiOxVR6+qSY0s8l1knIhVtDSGTDW+r4JeDHhHzxGsuGvWfZpre94IB2NLZbyxSiRCkevKv3Hb+ZenIpJ1jaTt9R5mqVm2lxub6SOsitJSN/qYkQ+r/ndnVw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729864487; c=relaxed/simple;
-	bh=ExSLpnX/J1+JLDV6tP/zV2ges0YT42GfXqtBZXBhDW0=;
+	s=arc-20240116; t=1729864492; c=relaxed/simple;
+	bh=oLHR+2fxXzcoz/5ppkj8RXhLNKtcGgh+YEK3a4pxvfA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=mZwWrbyg9Rlm7kzoAZlpIpxlD5Sl9ZQoKDVcGXGTQ6eCgUmZ94YJuxm0ZH3TbTKZwZT1sFPgjmYLoFjJzbx6d39FXEz0EuuMv/ANiiiCVGYuXnbDnvddjVgkTIsF8H8sAPwLhLPYSp7egY/oS57BC6hgvXGgiiGMp5QDXfTwtN8=
+	 MIME-Version; b=E/3dCIXsX/xUKSAsLYH5fQPSz3mhMB6TbnrrnGIoU7EDuCOJoSzngc8CtY7eOvJwonffuyxSTmw4jxkaysCgHglPOddoi8yP0h1mRv3Gw4/t+yWSCRiyi+aTFhmKsvi/yl98ma7934f+ydpIievzbY3dOKOSPIYw0qmZHxbvh4A=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1t4Km4-0005yo-6K; Fri, 25 Oct 2024 15:54:44 +0200
+	id 1t4Km8-0005yz-85; Fri, 25 Oct 2024 15:54:48 +0200
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 5/7] netfilter: nf_tables: avoid false-positive lockdep splats with basechain hook
-Date: Fri, 25 Oct 2024 15:32:22 +0200
-Message-ID: <20241025133230.22491-6-fw@strlen.de>
+Subject: [PATCH nf-next 6/7] netfilter: nf_tables: must hold rcu read lock while iterating expression type list
+Date: Fri, 25 Oct 2024 15:32:23 +0200
+Message-ID: <20241025133230.22491-7-fw@strlen.de>
 X-Mailer: git-send-email 2.45.2
 In-Reply-To: <20241025133230.22491-1-fw@strlen.de>
 References: <20241025133230.22491-1-fw@strlen.de>
@@ -34,47 +34,73 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Like previous patches: iteration is ok if the lost cannot be altered in
-parallel.
+nft shell tests trigger:
+ WARNING: suspicious RCU usage
+ net/netfilter/nf_tables_api.c:3125 RCU-list traversed in non-reader section!!
+ 1 lock held by nft/2068:
+  #0: ffff888106c6f8c8 (&nft_net->commit_mutex){+.+.}-{4:4}, at: nf_tables_valid_genid+0x3c/0xf0
 
+But the transaction mutex doesn't protect this list, the nfnl subsystem
+mutex would, but we can't acquire it here without risk of ABBA
+deadlocks.
+
+Acquire the rcu read lock and also reject any types that reside in
+modules, we'd need to extend this to hold a module reference.
+
+Fixes: 3a07327d10a0 ("netfilter: nft_inner: support for inner tunnel header matching")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_tables_api.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ net/netfilter/nf_tables_api.c | 24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 9e367e134691..3b5154f2dd79 100644
+index 3b5154f2dd79..3db4457f46a2 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -1824,7 +1824,8 @@ static int nft_dump_stats(struct sk_buff *skb, struct nft_stats __percpu *stats)
- 	return -ENOSPC;
+@@ -3296,25 +3296,37 @@ int nft_expr_inner_parse(const struct nft_ctx *ctx, const struct nlattr *nla,
+ 	if (!tb[NFTA_EXPR_DATA] || !tb[NFTA_EXPR_NAME])
+ 		return -EINVAL;
+ 
++	rcu_read_lock();
++
+ 	type = __nft_expr_type_get(ctx->family, tb[NFTA_EXPR_NAME]);
+-	if (!type)
+-		return -ENOENT;
++	if (!type) {
++		err = -ENOENT;
++		goto out_unlock;
++	}
+ 
+-	if (!type->inner_ops)
+-		return -EOPNOTSUPP;
++	if (!type->inner_ops || !type->owner) {
++		err = -EOPNOTSUPP;
++		goto out_unlock;
++	}
+ 
+ 	err = nla_parse_nested_deprecated(info->tb, type->maxattr,
+ 					  tb[NFTA_EXPR_DATA],
+ 					  type->policy, NULL);
+ 	if (err < 0)
+-		goto err_nla_parse;
++		goto out_unlock;
+ 
+ 	info->attr = nla;
+ 	info->ops = type->inner_ops;
+ 
++	/* At this time only meta and payload are supported, both are
++	 * builtin.  Therefore we can get away without a module
++	 * reference.
++	 */
++	rcu_read_unlock();
+ 	return 0;
+ 
+-err_nla_parse:
++out_unlock:
++	rcu_read_unlock();
+ 	return err;
  }
  
--static int nft_dump_basechain_hook(struct sk_buff *skb, int family,
-+static int nft_dump_basechain_hook(struct sk_buff *skb,
-+				   const struct net *net, int family,
- 				   const struct nft_base_chain *basechain,
- 				   const struct list_head *hook_list)
- {
-@@ -1849,7 +1850,8 @@ static int nft_dump_basechain_hook(struct sk_buff *skb, int family,
- 		if (!hook_list)
- 			hook_list = &basechain->hook_list;
- 
--		list_for_each_entry_rcu(hook, hook_list, list) {
-+		list_for_each_entry_rcu(hook, hook_list, list,
-+					lockdep_commit_lock_is_held(net)) {
- 			if (!first)
- 				first = hook;
- 
-@@ -1900,7 +1902,7 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
- 		const struct nft_base_chain *basechain = nft_base_chain(chain);
- 		struct nft_stats __percpu *stats;
- 
--		if (nft_dump_basechain_hook(skb, family, basechain, hook_list))
-+		if (nft_dump_basechain_hook(skb, net, family, basechain, hook_list))
- 			goto nla_put_failure;
- 
- 		if (nla_put_be32(skb, NFTA_CHAIN_POLICY,
 -- 
 2.45.2
 
