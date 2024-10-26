@@ -1,65 +1,51 @@
-Received: from www4.stratanet.com (www4.stratanet.com [67.213.225.162])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A77DC17C9E8
-	for <netfilter-devel@vger.kernel.org>; Fri, 25 Oct 2024 20:18:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=67.213.225.162
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2D2213B294
+	for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2024 09:35:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729887505; cv=none; b=cI3FGbdZaCXqALRUM9EjM+7GaB28zQOYwaIz2LS685qwvd9sQOImis25zyvFNdA18DnO+XtSd3t1sTB3DylW6pF0OHgLd3U11Qf+XGGgqgeqQFm4ggi3H2WN0V0dPKXKZhXCQGgaYvhZKMdDKZWf8puUri/O4o/Fs/qXi7htjeM=
+	t=1729935360; cv=none; b=OArF6SVFKoRjtMCbel+EeadNMW9LKVZZ8CM4bLctjpwx3rDHAydWfptF495nTw6wFYlsPaJPHxOwTnfvS6zWE1xISK1rTM/UiuRKsaT5BNlDYMJP1uvpPE/ZBSRj6cBlfx4Zw3lY5ySvLKJlL769xjGyz6GlyJEdKYC617YXmhU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729887505; c=relaxed/simple;
-	bh=OD8n3cTa2GC73iDchoI0BLzBaopgC/+gShrumD9KsM4=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=DjDAw3uVT2P+fhvb9XdnRQsDEbj0AAWnm0flK8BRL4DQdky8XYbWSTR+SCV4zH8RtvONtgZ/jx7CxCtyQLzAywKh3lwoBMywInaDvsHpJ3R6R5HEt6/Eq6v346J3jvsZINBJxyANZXiVuCmHM4Jd1313wsqyrMKUoAgcULWuKSk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=cataumetca.org; spf=fail smtp.mailfrom=cataumetca.org; arc=none smtp.client-ip=67.213.225.162
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=cataumetca.org
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=cataumetca.org
-Received: from ec2-35-93-161-92.us-west-2.compute.amazonaws.com ([35.93.161.92]:52675)
-	by www4.stratanet.com with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
-	(Exim 4.98)
-	(envelope-from <info@cataumetca.org>)
-	id 1t4QlJ-0000000DOzK-3kR9
-	for netfilter-devel@vger.kernel.org;
-	Fri, 25 Oct 2024 14:18:22 -0600
-From: Chan Moo Bahk <info@cataumetca.org>
-To: netfilter-devel@vger.kernel.org
-Subject: =?UTF-8?B?QlVTSU5FU1PCoExBVU5DSCA=?=
-Date: 25 Oct 2024 20:18:21 +0000
-Message-ID: <20241025201820.AE0B551DC8DBC4CC@cataumetca.org>
+	s=arc-20240116; t=1729935360; c=relaxed/simple;
+	bh=qxxkg0CosTgG0WgJdZVSX/q4AYOde1B0Ff6OU0bEieI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=TFf+zYZHWiCck5QWyKBp4jwa4JQDbmjGKitYMG0SOhjFL9rPNIip3YUnABYoodKbNiwbPq4sOibqFK48IWxRYC/gFj2//VgPPCmyEVkdVF77vs1N1C25IbOPhOkLligsj9PEiR/fwQTkcXOM6eNyPvIjiMFrVcZBs8MB+v7TdBs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1t4dD2-0007Wl-90; Sat, 26 Oct 2024 11:35:48 +0200
+Date: Sat, 26 Oct 2024 11:35:48 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Matthieu Baerts <matttbe@kernel.org>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next 1/7] netfilter: nf_tables: avoid false-positive
+ lockdep splat on rule deletion
+Message-ID: <20241026093548.GA28662@breakpoint.cc>
+References: <20241025133230.22491-1-fw@strlen.de>
+ <20241025133230.22491-2-fw@strlen.de>
+ <3f40f462-2b54-4eeb-9fbb-1f76ab43f440@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - www4.stratanet.com
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - cataumetca.org
-X-Get-Message-Sender-Via: www4.stratanet.com: authenticated_id: northeasternofficesupply@northeasternofficesupply.com
-X-Authenticated-Sender: www4.stratanet.com: northeasternofficesupply@northeasternofficesupply.com
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3f40f462-2b54-4eeb-9fbb-1f76ab43f440@kernel.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-Good day sir/madam,
+Matthieu Baerts <matttbe@kernel.org> wrote:
+> > This is enough to resolve rule delete, but there are several other
+> > missing annotations, added in followup-patches.
+> 
+> Thank you for the patch! (and sorry for having somehow pushed you to
+> open the pandora box for the other cases :) )
 
-I am Chan Moo Bahk. I have a lucrative business proposal deal I'd=20
-like to discuss with you. I am representing a group of=20
-prospective investors in the USA, Europe and Asian continent.
+Right, I still saw more splats when running nftables tests, but those
+were in other places of network stack (outside netfilter land).
 
-We are seeking a professional with whom we can be involved in=20
-partnership overseas, who also has the ability to manage an=20
-investment portfolio in your country. If you indicate interest,=20
-send a reply only via ChanMooBahk@mail.com for more details so=20
-you can have a better knowledge of who you are dealing with.
-
-I look forward to your response if this appeals to you.
-
-Regards
-
-Chan Moo Bahk.
-ChanMooBahk@mail.com 
+I will have a look next week.
