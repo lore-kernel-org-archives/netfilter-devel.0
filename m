@@ -1,24 +1,21 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5E67955E73
-	for <netfilter-devel@vger.kernel.org>; Mon, 28 Oct 2024 16:22:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7D7FF18FC65
+	for <netfilter-devel@vger.kernel.org>; Mon, 28 Oct 2024 22:17:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730132544; cv=none; b=C9Z7GhKxrLC+5QkCW9VSCjcQLflmae4MHLT+rcYuEGEAVI/I1Ijk14dfD2tWSBd7zljoT/ILB8MKKnzlq7RN9XWO+leyVy31YbWuEuJqxb5q4aQxpoVFC/n0fEPz3JyvKz0IEricS94D+/cykl2/FA+qkr+AC2oewcyOw0WZKhw=
+	t=1730153844; cv=none; b=RW1NbN3VpYrGHOlQNfZq2+KUrdTp1CPAID6v/2QOgpERxleDuZu5aHypdGEdzO1uJpbx8Kulf3kapPWPD0oc4AjLSBq4PEtbvqrgH2uymSBtlXZZ9gAEfUSnns0Vhggc1U5vSz3kfw6Ee3L9sGp/bLlqneY6bZPNEOjl+4s4TtY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730132544; c=relaxed/simple;
-	bh=nvTJOq6oizIxETif140+eu4ms2I9z9K3AS3s3n1I+c0=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=u7Y9Rge9rk8uoGbvC8W8O1T5/gSS1ZTkPibl+V1oUfwMkg0FHHxz2rhizgUiJHTVfbIPdhjmxVx3GEhB1Ira1gnle5zSGBpOlKKOJGpVD+1nRtTZEvhmSubHbHO/z4c7yFkqs20/gQzBxmecKcEs/pCBinblqlPT1JZDdYm/4rY=
+	s=arc-20240116; t=1730153844; c=relaxed/simple;
+	bh=hPSORu8X84wHamJsSnuT0+lTJu1yarz+EC2HLEomrxY=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=GOOEvY77bjkIjGV0aU5sajhQCBNXf1q1otFfv1mCpKSGxblf+e2fzHSlXzDG0dC+JFcUSTQTji+9ABssdnO0IIK+nQdNgGrd3Ye3ivHt5kyVcPeiXzDfb58l7kN2pBnfCRtDW0jm6a+SkwkA0V+W+fR7+5PDTAx0Lw2SN4MerJY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de,
-	phil@nwl.cc,
-	matttbe@kernel.org
-Subject: [PATCH nf,v2] netfilter: nf_tables: wait for rcu grace period on net_device removal
-Date: Mon, 28 Oct 2024 17:22:14 +0100
-Message-Id: <20241028162214.177671-1-pablo@netfilter.org>
+Subject: [PATCH nft] tests: shell: move device to different namespace
+Date: Mon, 28 Oct 2024 23:17:14 +0100
+Message-Id: <20241028221714.1428-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -28,106 +25,60 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-8c873e219970 ("netfilter: core: free hooks with call_rcu") removed
-synchronize_net() call when unregistering basechain hook, however,
-net_device removal event handler for the NFPROTO_NETDEV was not updated
-to wait for RCU grace period.
+This actually triggers a UNREGISTER event, it is similar to existing
+tests, but add this test to improve coverage for this scenario.
 
-Note that 835b803377f5 ("netfilter: nf_tables_netdev: unregister hooks
-on net_device removal") does not remove basechain rules on device
-removal, it was just a bit later that I was hinted to remove rules on
-net_device removal, see 5ebe0b0eec9d ("netfilter: nf_tables: destroy
-basechain and rules on netdevice removal").
-
-Fixes: 835b803377f5 ("netfilter: nf_tables_netdev: unregister hooks on net_device removal")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: use maybe_get_net() otherwise reftracker reports uaf.
+ .../shell/testcases/chains/netdev_move_device | 39 +++++++++++++++++++
+ 1 file changed, 39 insertions(+)
+ create mode 100755 tests/shell/testcases/chains/netdev_move_device
 
- include/net/netfilter/nf_tables.h |  2 ++
- net/netfilter/nf_tables_api.c     | 32 +++++++++++++++++++++++++------
- 2 files changed, 28 insertions(+), 6 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 91ae20cb7648..8dd8e278843d 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1120,6 +1120,7 @@ struct nft_chain {
- 	char				*name;
- 	u16				udlen;
- 	u8				*udata;
-+	struct rcu_head			rcu_head;
- 
- 	/* Only used during control plane commit phase: */
- 	struct nft_rule_blob		*blob_next;
-@@ -1282,6 +1283,7 @@ struct nft_table {
- 	struct list_head		sets;
- 	struct list_head		objects;
- 	struct list_head		flowtables;
-+	possible_net_t			net;
- 	u64				hgenerator;
- 	u64				handle;
- 	u32				use;
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index a24fe62650a7..e226d8d0ca4e 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1495,6 +1495,7 @@ static int nf_tables_newtable(struct sk_buff *skb, const struct nfnl_info *info,
- 	INIT_LIST_HEAD(&table->sets);
- 	INIT_LIST_HEAD(&table->objects);
- 	INIT_LIST_HEAD(&table->flowtables);
-+	write_pnet(&table->net, net);
- 	table->family = family;
- 	table->flags = flags;
- 	table->handle = ++nft_net->table_handle;
-@@ -11430,22 +11431,41 @@ int nft_data_dump(struct sk_buff *skb, int attr, const struct nft_data *data,
- }
- EXPORT_SYMBOL_GPL(nft_data_dump);
- 
--int __nft_release_basechain(struct nft_ctx *ctx)
-+static void __nft_release_basechain_rcu(struct rcu_head *head)
- {
-+	struct nft_chain *chain = container_of(head, struct nft_chain, rcu_head);
- 	struct nft_rule *rule, *nr;
-+	struct nft_ctx ctx = {
-+		.family	= chain->table->family,
-+		.net	= read_pnet(&chain->table->net),
-+	};
+diff --git a/tests/shell/testcases/chains/netdev_move_device b/tests/shell/testcases/chains/netdev_move_device
+new file mode 100755
+index 000000000000..a2948d8d287f
+--- /dev/null
++++ b/tests/shell/testcases/chains/netdev_move_device
+@@ -0,0 +1,39 @@
++#!/bin/bash
 +
-+	list_for_each_entry_safe(rule, nr, &chain->rules, list) {
-+		list_del(&rule->list);
-+		nf_tables_rule_release(&ctx, rule);
-+	}
-+	nf_tables_chain_destroy(chain);
-+	put_net(ctx.net);
++set -e
++
++rnd=$(mktemp -u XXXXXXXX)
++ns1="nft1-$rnd"
++
++cleanup() {
++	ip netns del "$ns1"
++	ip link del d0 &>/dev/null || :
 +}
++trap 'cleanup' EXIT
 +
-+int __nft_release_basechain(struct nft_ctx *ctx)
-+{
-+	struct nft_rule *rule;
- 
- 	if (WARN_ON(!nft_is_base_chain(ctx->chain)))
- 		return 0;
- 
-+	if (!maybe_get_net(ctx->net))
-+		return 0;
++RULESET="table netdev x {
++	chain x {}
++	chain w {
++		ip daddr 8.7.6.0/24 counter
++	}
++	chain y {
++		type filter hook ingress device d0 priority 0;
++		ip saddr { 1.2.3.4, 2.3.4.5 } counter
++		ip daddr vmap { 5.4.3.0/24 : jump w, 8.9.0.0/24 : jump x }
++	}
++}"
 +
- 	nf_tables_unregister_hook(ctx->net, ctx->chain->table, ctx->chain);
--	list_for_each_entry_safe(rule, nr, &ctx->chain->rules, list) {
--		list_del(&rule->list);
-+	list_for_each_entry(rule, &ctx->chain->rules, list)
- 		nft_use_dec(&ctx->chain->use);
--		nf_tables_rule_release(ctx, rule);
--	}
++ip netns add $ns1
++ip link add d0 type dummy
++$NFT -f - <<< $RULESET
 +
- 	nft_chain_del(ctx->chain);
- 	nft_use_dec(&ctx->table->use);
--	nf_tables_chain_destroy(ctx->chain);
++# move device to $ns1 triggers UNREGISTER event
++ip link set d0 netns $ns1
 +
-+	call_rcu(&ctx->chain->rcu_head, __nft_release_basechain_rcu);
- 
- 	return 0;
- }
++$NFT delete table netdev x
++
++# a simple test that also triggers UNREGISTER event
++ip netns add $ns1
++ip -netns $ns1 link add d0 type dummy
++ip netns exec $ns1 $NFT -f - <<< $RULESET
++cleanup
 -- 
 2.30.2
 
