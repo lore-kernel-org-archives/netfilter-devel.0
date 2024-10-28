@@ -1,31 +1,35 @@
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA2741EE012
-	for <netfilter-devel@vger.kernel.org>; Mon, 28 Oct 2024 22:59:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51C31188CDC
+	for <netfilter-devel@vger.kernel.org>; Mon, 28 Oct 2024 23:05:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730156370; cv=none; b=mzQNWo+MswtFy17De9BfE81rJ4qrt/pWFQ6jXGD44bsrJna0lGskQjxblq4/KUNr8nwKywf7kKayvPGlvcf9v4WMActTjHbkcCgAmkh2/cxGAO+H3i1r+NK06lwaeupSGUGwmZCVrK9Y2MtWVVubqVQedTgdkIZEjvJHOLmk684=
+	t=1730156738; cv=none; b=tHVQNP4jO/cAGRZEYhMN7xYNfrMHj86M9ybjmExurUEbWYLyIYaSAXzDuS9XrvmES7R/o0mfi0hPDYR75NEX/rnnqL95GCWhdFi1yDKdrW+VlYpkfRMtnuQoZtZ6RY+5Ei1G4Y54biycSjZsysXw99DSZrfvZPsY2hHfRMRCWC4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730156370; c=relaxed/simple;
-	bh=lB9GUg+Gvuc6tlJgEyBNmO3RxxEVqbIl+Se4eRAoqu4=;
+	s=arc-20240116; t=1730156738; c=relaxed/simple;
+	bh=tbaEkHS/bs4iBtPlsIQHCGiRJB8Yg7r68t6WE2Tj814=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=tTnM6EHY9oBsmzEl8PrvccuAzVzEYLVyRZdBh9nZsLaD014BeAopOVJNWfS2ui/knk5DVut+ET/piqr+HUsgsPkcBPYduuC11s215eSyGkAyafMkUS+sQbg1vWmCJCk62OqTtDr7SRtflTCSW1AUNTa0MfkfEPQMeS32/RQrups=
+	 Content-Type:Content-Disposition:In-Reply-To; b=VfTJB9NOs0dsDGQ8uPy0zfX3mDjosf0TBoXPcqkKUzUrLOJDghQg/NTgkBS3y/c9E3Cd6EuxrakJYvSw5BRzQu8WHXb/NzcHe7PJ24mJVqOE+9amsijXeGZCZdUWaCaGwicfE7O4DG+wBxx7y52ggpeBE9JsKNzzD1eL8ym5bYs=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=36396 helo=gnumonks.org)
+Received: from [78.30.37.63] (port=47492 helo=gnumonks.org)
 	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <pablo@gnumonks.org>)
-	id 1t5Yho-004qYN-6Y; Mon, 28 Oct 2024 23:59:26 +0100
-Date: Mon, 28 Oct 2024 23:59:23 +0100
+	id 1t5Ynk-004qt9-DE; Tue, 29 Oct 2024 00:05:34 +0100
+Date: Tue, 29 Oct 2024 00:05:31 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-Subject: Re: [libnftnl PATCH v2] Introduce struct nftnl_str_array
-Message-ID: <ZyAXS49_WEHaXBRa@calendula>
-References: <20241023202119.27681-1-phil@nwl.cc>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] doc: extend description of fib expression
+Message-ID: <ZyAYu3rHBhCgwO0I@calendula>
+References: <20241010133745.28765-1-fw@strlen.de>
+ <ZwqlbhdH4Fw__daA@calendula>
+ <20241018120825.GC28324@breakpoint.cc>
+ <ZxeNzTZLxw1NdgL2@calendula>
+ <20241024104103.GA25923@breakpoint.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -34,51 +38,48 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20241023202119.27681-1-phil@nwl.cc>
-X-Spam-Score: -1.9 (-)
+In-Reply-To: <20241024104103.GA25923@breakpoint.cc>
+X-Spam-Score: -1.8 (-)
 
-On Wed, Oct 23, 2024 at 10:21:04PM +0200, Phil Sutter wrote:
-[...]
-> @@ -325,12 +295,11 @@ void nftnl_flowtable_nlmsg_build_payload(struct nlmsghdr *nlh,
->  
->  	if (c->flags & (1 << NFTNL_FLOWTABLE_DEVICES)) {
->  		struct nlattr *nest_dev;
-> +		const char *dev;
->  
->  		nest_dev = mnl_attr_nest_start(nlh, NFTA_FLOWTABLE_HOOK_DEVS);
-> -		for (i = 0; i < c->dev_array_len; i++) {
-> -			mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME,
-> -					  c->dev_array[i]);
-> -		}
-> +		nftnl_str_array_foreach(dev, &c->dev_array, i)
+On Thu, Oct 24, 2024 at 12:41:03PM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote> > since _OIF and _OIFNAME was restricted to prerouting, nf hookfn has NULL
+> > > output interface, so there is nothing we could compare against.
+> > > 
+> > > Now its available in forward too so it could be selectively relaxed for
+> > > this, but, what is the use case?
+> > > 
+> > > Do a RPF in forward, then we need to compare vs. incoming interface.
+> > 
+> > This is for an esoteric scenario: Policy-based routing using input
+> > interface as key. The fib rule for RPF does not work from prerouting
+> > because iif cannot be inferred, there is no way to know if route in
+> > the reverse direction exists until the route lookup for this direction
+> > is done.
+> 
+> Yes, that internally sets fibs iif to the oif.
 
-Where is this nftnl_str_array_foreach defined? I don't find it in this
-patch.
+Yes, oif is used for the reverse lookup as iif.
 
-[...]
-> +void nftnl_str_array_clear(struct nftnl_str_array *sa)
-> +{
-> +	while (sa->len > 0)
-> +		free(sa->array[--sa->len]);
-> +	free(sa->array);
-> +	sa->array = NULL;
+> > > But for outgoing interface, we'd do a normal route lookup, but the stack
+> > > already did that for us (as packet is already being forwarded).
+> > >
+> > > So what would be the desired outcome for a 'fib daddr . oif' check?
+> > 
+> > Hm, this always evaluates true from forward and any later hook.
+> > 
+> > I missing now, what is the point of . oif in general?
+> 
+> Its for use with the 'type' output, i.e. consult fib to determine
+> the type of the daddr (multicast, broadcast etc).
 
-This is new, I'm fine with this, but it is only defensive, right?
-This stale reference would not be reached because attribute flag is
-cleared.
+Is it possible to use skb_dst for this case to safe the fib lookup?
+This is not possible because it depends on the fib tuple, correct?
 
-> +}
-[...]
-> diff --git a/src/utils.c b/src/utils.c
-> index 2f1ffd6227583..157b15f7afe8d 100644
-> --- a/src/utils.c
-> +++ b/src/utils.c
-> @@ -19,6 +19,7 @@
->  
->  #include <libnftnl/common.h>
->  
-> +#include <libmnl/libmnl.h>
->  #include <linux/netfilter.h>
->  #include <linux/netfilter/nf_tables.h>
+> I don't see an application for the fib case, with exception
+> of the 'rpf lookup in forward' case.
 
-Remove this chunk? It looks unrelated.
+OK.
+
+New patch round to address my silly nitpicks?
+
+Thanks
