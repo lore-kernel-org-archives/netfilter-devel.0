@@ -1,35 +1,28 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55C7A206E9D;
-	Tue, 29 Oct 2024 18:30:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE3EA2076B1
+	for <netfilter-devel@vger.kernel.org>; Tue, 29 Oct 2024 20:14:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730226635; cv=none; b=Za0rN7UtsMfA1r2eKbf4OiWDnZqe7GfHDsjoOh8FyI5jVQQksubXSZFUNNEYIdunjuHL8vmQw7MM5T9HUKQf9XuyO7MKX2qqGWt2pTG8zj7o7XzI2Okg1KgAaLD1mWRgA97+bV7G2m5sF2Y3F81WQrJrZty66X1QWHHbFIkXNqg=
+	t=1730232882; cv=none; b=teb3MQpDCLQHt3Nu1ubtczzdpYwZaz6Jf3u2QDCLVEc44iPA8loM52N3aFzp4BMBr8wVoiaaXvoWkxejcnbZxEblus6hcexJwoLyIPDLyV3dfW/Eygiwk4kOJ7Ii1yqingGRVgyDMR9JAUfPhz4pY6huRTgy9JlZwYO5/hRW54w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730226635; c=relaxed/simple;
-	bh=Pfc85nbiHEIfgvnySvDgIjQELfRGWpLGUR9MrNG1G6E=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=eL+BveaCcpRdY0M8FeE+YHuFxykh4TMTZ397Luh6iM3/0vNb6vVU7WhDPPDxl9hADXqle1OF0wlENddwhd7lbFX6XazJYKk6nG6R4GJxgLfW7dUed4i1ET4k0EAvJeUjGQ+8iS87Jc9YncBunNhredmt9ZeJeMhYxqMka0yfmX0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZAl14pdc; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZAl14pdc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D82DFC4CEE7;
-	Tue, 29 Oct 2024 18:30:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1730226634;
-	bh=Pfc85nbiHEIfgvnySvDgIjQELfRGWpLGUR9MrNG1G6E=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=ZAl14pdcFcQeEwPrMuQ6e51X1VC7exQB/a5u7FjoA/xmbRv/pYNgjrEijzU3/dLMu
-	 hg7vKOpefKkoFGXEP46aSPfGuF0HFME8o+4ztTIeWfxOuUQ01tEBHlNPKqPuwBb3Do
-	 mdV0aWMh44jUUiUG+QtfCHllC2LtPiLcdVEXoex3wSWNv7GRzkEEz+iy0aHgxGpuhp
-	 bCCc6H0R99OYmnQcMELCFUc8fd+Ryhp5KrNj4tAtO2h7AZYsG07MgOF0yRPuZI9dUk
-	 84h984+tDdHE76L7HVm0GrjWWLPZb0ekKDqZwuFBYZlmBa8zoUAbsVOeq3p9Gn+pQy
-	 rRWBo6IcFlHkg==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id ADD9F380AC08;
-	Tue, 29 Oct 2024 18:30:43 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=arc-20240116; t=1730232882; c=relaxed/simple;
+	bh=/ZZ8G/lGMJe/j6YyeRXHjRfGx1Pcn5CYAOPayUDLuYc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=RH1ZNRR7CE6IxgIudI+8L80FLUC0pv2SuB/0CnaQAHhE4DbG0zVLdl+7jy4HEC1u9xIqtwh+wT4mfXZCNIJVB54lLEczmmoZBCwpjkeI9Mmj21c9AIX01npbeR+tVdVH45fD9iZSzEoWLb37mBi6nVACbJyU5t5PKTBgAaKekcs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1t5sbt-0002mI-Q3; Tue, 29 Oct 2024 21:14:37 +0100
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] tests: monitor: fix up test case breakage
+Date: Tue, 29 Oct 2024 21:12:19 +0100
+Message-ID: <20241029201221.17865-1-fw@strlen.de>
+X-Mailer: git-send-email 2.45.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,40 +30,57 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net] selftests: netfilter: nft_flowtable.sh: make first pass
- deterministic
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <173022664223.781637.3768453317314234157.git-patchwork-notify@kernel.org>
-Date: Tue, 29 Oct 2024 18:30:42 +0000
-References: <20241022152324.13554-1-fw@strlen.de>
-In-Reply-To: <20241022152324.13554-1-fw@strlen.de>
-To: Florian Westphal <fw@strlen.de>
-Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
- edumazet@google.com, kuba@kernel.org, netfilter-devel@vger.kernel.org
 
-Hello:
+Monitor test fails:
 
-This patch was applied to netdev/net.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
+echo: running tests from file set-simple.t
+echo output differs!
+--- /tmp/tmp.FGtiyL99bB/tmp.2QxLSjzQqk  2024-10-29 20:54:41.308293201 +0100
++++ /tmp/tmp.FGtiyL99bB/tmp.A5rp0Z0dBJ  2024-10-29 20:54:41.317293201 +0100
+@@ -1,2 +1,3 @@
+-add element ip t portrange { 1024-65535 }
+ add element ip t portrange { 100-200 }
++add element ip t portrange { 1024-65535 }
++# new generation 510 by process 129009 (nft)
 
-On Tue, 22 Oct 2024 17:23:18 +0200 you wrote:
-> The CI occasionaly encounters a failing test run.  Example:
->  # PASS: ipsec tunnel mode for ns1/ns2
->  # re-run with random mtus: -o 10966 -l 19499 -r 31322
->  # PASS: flow offloaded for ns1/ns2
-> [..]
->  # FAIL: ipsec tunnel ... counter 1157059 exceeds expected value 878489
-> 
-> [...]
+I also noticed -j mode did not work correctly, add missing json annotations
+in set-concat-interval.t while at it.
 
-Here is the summary with links:
-  - [net] selftests: netfilter: nft_flowtable.sh: make first pass deterministic
-    https://git.kernel.org/netdev/net/c/c59d72d0a4fb
+Fixes: 20f1c60ac8c8 ("src: collapse set element commands from parser")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ tests/monitor/testcases/set-concat-interval.t | 3 +++
+ tests/monitor/testcases/set-simple.t          | 5 +++--
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-You are awesome, thank you!
+diff --git a/tests/monitor/testcases/set-concat-interval.t b/tests/monitor/testcases/set-concat-interval.t
+index 763dc319f0d1..75f38280bf82 100644
+--- a/tests/monitor/testcases/set-concat-interval.t
++++ b/tests/monitor/testcases/set-concat-interval.t
+@@ -10,3 +10,6 @@ I add map ip t s { typeof udp length . @ih,32,32 : verdict; flags interval; elem
+ O add map ip t s { typeof udp length . @ih,32,32 : verdict; flags interval; }
+ O add element ip t s { 20-80 . 0x14 : accept }
+ O add element ip t s { 1-10 . 0xa : drop }
++J {"add": {"map": {"family": "ip", "name": "s", "table": "t", "type": ["integer", "integer"], "handle": 0, "map": "verdict", "flags": ["interval"]}}}
++J {"add": {"element": {"family": "ip", "table": "t", "name": "s", "elem": {"set": [[{"concat": [{"range": [20, 80]}, 20]}, {"accept": null}]]}}}}
++J {"add": {"element": {"family": "ip", "table": "t", "name": "s", "elem": {"set": [[{"concat": [{"range": [1, 10]}, 10]}, {"drop": null}]]}}}}
+diff --git a/tests/monitor/testcases/set-simple.t b/tests/monitor/testcases/set-simple.t
+index 8ca4f32463fd..6853a0ebbb0c 100644
+--- a/tests/monitor/testcases/set-simple.t
++++ b/tests/monitor/testcases/set-simple.t
+@@ -37,9 +37,10 @@ J {"add": {"element": {"family": "ip", "table": "t", "name": "portrange", "elem"
+ # make sure half open before other element works
+ I add element ip t portrange { 1024-65535 }
+ I add element ip t portrange { 100-200 }
+-O -
+-J {"add": {"element": {"family": "ip", "table": "t", "name": "portrange", "elem": {"set": [{"range": [1024, 65535]}]}}}}
++O add element ip t portrange { 100-200 }
++O add element ip t portrange { 1024-65535 }
+ J {"add": {"element": {"family": "ip", "table": "t", "name": "portrange", "elem": {"set": [{"range": [100, 200]}]}}}}
++J {"add": {"element": {"family": "ip", "table": "t", "name": "portrange", "elem": {"set": [{"range": [1024, 65535]}]}}}}
+ 
+ # make sure deletion of elements works
+ I delete element ip t portrange { 0-10 }
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.45.2
 
