@@ -1,135 +1,166 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B99F8206E61;
-	Tue, 29 Oct 2024 21:30:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3F28B2076B2
+	for <netfilter-devel@vger.kernel.org>; Tue, 29 Oct 2024 21:30:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730237404; cv=none; b=ox4P9iFYKRupq0h92Yv5bRRadZyj0wn5trxM8wgTyaGJRZsIhQ07HXF737/UKRHar9uQG6D0MITA2MANsfcP6l8ScqeBOuKFU7XJszZOGNfpcrc8htuekpPglyxyAv5adnwRvzrITtDcViH+KYkV//KufD9bnhcx0Lz6D3OPc0Q=
+	t=1730237434; cv=none; b=uudX/cd0E2Hktl+2W91J3HqlEZfCJ2xQXW9oEpYaUDICIM7eOFIu20slCp/IF5/O4HqSujW6wuR3W+fUkOIr/gJg8MpU0pyPzjVBnfyn3tL3ZEYJhO9pjdcAe2ekZEUvYa+aGbtQ/UYQVO45Gu1nOwuAB8kOnbiTLY9T0c0896Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730237404; c=relaxed/simple;
-	bh=Mqn9O4xvpTW1HHOcatck9tYVt4w30aybpr+CRQaaIGg=;
-	h=From:Date:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=KhKHplyqLakPvd2tBKjuUTKyOUFDnU0f95EQaH+Pk/5RJ+4iKeF68J7MJU1OUXLV60x7JAnyM83vo2djp+0heFC7o4MkDusc3XmUyKd18evnIhEI8SoKr1wbEflGzT24vKyVa8Tf28s5ODJljRNSz6udCvlF6VsMSTZd49ar7V4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=vGCm08jv; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="vGCm08jv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBC6DC4CEE5;
-	Tue, 29 Oct 2024 21:30:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1730237404;
-	bh=Mqn9O4xvpTW1HHOcatck9tYVt4w30aybpr+CRQaaIGg=;
-	h=From:Date:To:cc:Subject:In-Reply-To:References:From;
-	b=vGCm08jvIxbC+ljeFbZVwupK47pzGmsybO74lkH1pbhtD76zKwBHiO0hRY5IIVf7J
-	 PWfhYbVwe3kDGWtcxEuo09H39uapWG6PFaif1df2oqOukC/xrzRfsK3HBloyytA8BZ
-	 oUx6P9aevpw4IzozKERnAmqRXwNst7EFj0Rx3Qym2FTj62l/g1bYeuQj1iM36IqTRW
-	 150O0AKpUD79IlHSIr9ls1/KDfKMAZzLi2M1TfTCQ4MsKPSi65b8xhC6BXb1X31akP
-	 K4lDYysqdZXVwEHo0D2iNuwEJ2+pK5dc/yviZ7BacOXFuIpTJ20Drg98DN0rK+WxSY
-	 3EjzNmtqim2XA==
-From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ij@kernel.org>
-Date: Tue, 29 Oct 2024 23:29:58 +0200 (EET)
-To: Chia-Yu Chang <chia-yu.chang@nokia-bell-labs.com>
-cc: netdev@vger.kernel.org, davem@davemloft.net, edumazet@google.com, 
-    kuba@kernel.org, pabeni@redhat.com, dsahern@kernel.org, 
-    netfilter-devel@vger.kernel.org, kadlec@netfilter.org, 
-    coreteam@netfilter.org, pablo@netfilter.org, bpf@vger.kernel.org, 
-    joel.granados@kernel.org, linux-fsdevel@vger.kernel.org, kees@kernel.org, 
-    mcgrof@kernel.org, ncardwell@google.com, 
-    koen.de_schepper@nokia-bell-labs.com, g.white@CableLabs.com, 
-    ingemar.s.johansson@ericsson.com, mirja.kuehlewind@ericsson.com, 
-    cheshire@apple.com, rs.ietf@gmx.at, Jason_Livingood@comcast.com, 
-    vidhi_goel@apple.com
-Subject: Re: [PATCH v4 net-next 14/14] net: sysctl: introduce sysctl
- SYSCTL_FIVE
-In-Reply-To: <20241021215910.59767-15-chia-yu.chang@nokia-bell-labs.com>
-Message-ID: <06fe294a-8c7c-36a7-7244-dcdab26adcf3@kernel.org>
-References: <20241021215910.59767-1-chia-yu.chang@nokia-bell-labs.com> <20241021215910.59767-15-chia-yu.chang@nokia-bell-labs.com>
+	s=arc-20240116; t=1730237434; c=relaxed/simple;
+	bh=rhpDF7jHp44L8bPypKLSqvr8mSNCGfTL5XovRqpbdDw=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=k4nXaHI1wnI5pQLtIa/sqP0iSrdssP2lJZL6W1Jw0gy4p+q96VEKZpDs3mBlHG75Ll0AzyCs8UL08ICi2IZq+TH4BbhKovhUg+PbCNHS/RYJX4QIZaIytduIi9O1a1S0yzMZ87s8GiceRdV4b4NsmlH9t99dAlotL8XnoX5xRPo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de,
+	matttbe@kernel.org,
+	phil@nwl.cc
+Subject: [PATCH nf,v3] netfilter: nf_tables: wait for rcu grace period on net_device removal
+Date: Tue, 29 Oct 2024 22:30:20 +0100
+Message-Id: <20241029213020.2281177-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 
-On Mon, 21 Oct 2024, chia-yu.chang@nokia-bell-labs.com wrote:
+8c873e219970 ("netfilter: core: free hooks with call_rcu") removed
+synchronize_net() call when unregistering basechain hook, however,
+net_device removal event handler for the NFPROTO_NETDEV was not updated
+to wait for RCU grace period.
 
-> From: Chia-Yu Chang <chia-yu.chang@nokia-bell-labs.com>
-> 
-> Add SYSCTL_FIVE for new AccECN feedback modes of net.ipv4.tcp_ecn.
-> 
-> Signed-off-by: Chia-Yu Chang <chia-yu.chang@nokia-bell-labs.com>
-> ---
->  include/linux/sysctl.h | 17 +++++++++--------
->  kernel/sysctl.c        |  3 ++-
->  2 files changed, 11 insertions(+), 9 deletions(-)
-> 
-> diff --git a/include/linux/sysctl.h b/include/linux/sysctl.h
-> index aa4c6d44aaa0..37c95a70c10e 100644
-> --- a/include/linux/sysctl.h
-> +++ b/include/linux/sysctl.h
-> @@ -37,21 +37,22 @@ struct ctl_table_root;
->  struct ctl_table_header;
->  struct ctl_dir;
->  
-> -/* Keep the same order as in fs/proc/proc_sysctl.c */
-> +/* Keep the same order as in kernel/sysctl.c */
->  #define SYSCTL_ZERO			((void *)&sysctl_vals[0])
->  #define SYSCTL_ONE			((void *)&sysctl_vals[1])
->  #define SYSCTL_TWO			((void *)&sysctl_vals[2])
->  #define SYSCTL_THREE			((void *)&sysctl_vals[3])
->  #define SYSCTL_FOUR			((void *)&sysctl_vals[4])
-> -#define SYSCTL_ONE_HUNDRED		((void *)&sysctl_vals[5])
-> -#define SYSCTL_TWO_HUNDRED		((void *)&sysctl_vals[6])
-> -#define SYSCTL_ONE_THOUSAND		((void *)&sysctl_vals[7])
-> -#define SYSCTL_THREE_THOUSAND		((void *)&sysctl_vals[8])
-> -#define SYSCTL_INT_MAX			((void *)&sysctl_vals[9])
-> +#define SYSCTL_FIVE			((void *)&sysctl_vals[5])
-> +#define SYSCTL_ONE_HUNDRED		((void *)&sysctl_vals[6])
-> +#define SYSCTL_TWO_HUNDRED		((void *)&sysctl_vals[7])
-> +#define SYSCTL_ONE_THOUSAND		((void *)&sysctl_vals[8])
-> +#define SYSCTL_THREE_THOUSAND		((void *)&sysctl_vals[9])
-> +#define SYSCTL_INT_MAX			((void *)&sysctl_vals[10])
->  
->  /* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and GID */
-> -#define SYSCTL_MAXOLDUID		((void *)&sysctl_vals[10])
-> -#define SYSCTL_NEG_ONE			((void *)&sysctl_vals[11])
-> +#define SYSCTL_MAXOLDUID		((void *)&sysctl_vals[11])
-> +#define SYSCTL_NEG_ONE			((void *)&sysctl_vals[12])
->  
->  extern const int sysctl_vals[];
->  
-> diff --git a/kernel/sysctl.c b/kernel/sysctl.c
-> index 79e6cb1d5c48..68b6ca67a0c6 100644
-> --- a/kernel/sysctl.c
-> +++ b/kernel/sysctl.c
-> @@ -82,7 +82,8 @@
->  #endif
->  
->  /* shared constants to be used in various sysctls */
-> -const int sysctl_vals[] = { 0, 1, 2, 3, 4, 100, 200, 1000, 3000, INT_MAX, 65535, -1 };
-> +const int sysctl_vals[] = { 0, 1, 2, 3, 4, 5, 100, 200, 1000, 3000, INT_MAX,
-> +			   65535, -1 };
->  EXPORT_SYMBOL(sysctl_vals);
->  
->  const unsigned long sysctl_long_vals[] = { 0, 1, LONG_MAX };
+Note that 835b803377f5 ("netfilter: nf_tables_netdev: unregister hooks
+on net_device removal") does not remove basechain rules on device
+removal, it was just a bit later that I was hinted to remove rules on
+net_device removal, see 5ebe0b0eec9d ("netfilter: nf_tables: destroy
+basechain and rules on netdevice removal").
 
-Hi,
+Use rcu callback to release basechain but add a slow path by calling
+synchronize_rcu() if reference on netns cannot be taken, because
+basechain can be seen from this path:
 
-I know I suggested you to put this change into this first batch of 
-AccECN patches but I've since come to other thoughts.
+ cleanup_net()
+  default_device_exit_batch()
+   unregister_netdevice_many_notify()
+    notifier_call_chain()
+     nf_tables_netdev_event()
+      __nft_release_basechain()
 
-I think this should be moved to very tail of AccECN changes in the series
-and joined together with the part of change which allows setting 
-net.ipv4.tcp_ecn to those higher values. Currently the latter is done in 
-the AccECN negotion patch (IIRC) but that part should be moved into a 
-separate patch with this change only after all AccECN patches have been 
-included to prevent enabling AccECN in incomplete form.
+nftables/tests/shell can trigger this path occasionally.
 
-(This comment is orthogonal to Paolo's suggestion to use static constant.
-So whichever form is chosen, it should be with the net.ipv4.tcp_ecn 
-change at the end of AccECN changes.)
+While at it, turn WARN_ON() into WARN_ON_ONCE().
 
+Fixes: 835b803377f5 ("netfilter: nf_tables_netdev: unregister hooks on net_device removal")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v3: slow synchronize_rcu() path for what it looks like a corner case.
+    I'm not particularly happy with this special case.
+
+ include/net/netfilter/nf_tables.h |  2 ++
+ net/netfilter/nf_tables_api.c     | 48 ++++++++++++++++++++++++++++---
+ 2 files changed, 46 insertions(+), 4 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 91ae20cb7648..8dd8e278843d 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1120,6 +1120,7 @@ struct nft_chain {
+ 	char				*name;
+ 	u16				udlen;
+ 	u8				*udata;
++	struct rcu_head			rcu_head;
+ 
+ 	/* Only used during control plane commit phase: */
+ 	struct nft_rule_blob		*blob_next;
+@@ -1282,6 +1283,7 @@ struct nft_table {
+ 	struct list_head		sets;
+ 	struct list_head		objects;
+ 	struct list_head		flowtables;
++	possible_net_t			net;
+ 	u64				hgenerator;
+ 	u64				handle;
+ 	u32				use;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index a24fe62650a7..f79d2c74c389 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1495,6 +1495,7 @@ static int nf_tables_newtable(struct sk_buff *skb, const struct nfnl_info *info,
+ 	INIT_LIST_HEAD(&table->sets);
+ 	INIT_LIST_HEAD(&table->objects);
+ 	INIT_LIST_HEAD(&table->flowtables);
++	write_pnet(&table->net, net);
+ 	table->family = family;
+ 	table->flags = flags;
+ 	table->handle = ++nft_net->table_handle;
+@@ -11430,14 +11431,14 @@ int nft_data_dump(struct sk_buff *skb, int attr, const struct nft_data *data,
+ }
+ EXPORT_SYMBOL_GPL(nft_data_dump);
+ 
+-int __nft_release_basechain(struct nft_ctx *ctx)
++static int __nft_release_basechain_slow(struct nft_ctx *ctx)
+ {
+ 	struct nft_rule *rule, *nr;
+ 
+-	if (WARN_ON(!nft_is_base_chain(ctx->chain)))
+-		return 0;
+-
+ 	nf_tables_unregister_hook(ctx->net, ctx->chain->table, ctx->chain);
++
++	synchronize_rcu();
++
+ 	list_for_each_entry_safe(rule, nr, &ctx->chain->rules, list) {
+ 		list_del(&rule->list);
+ 		nft_use_dec(&ctx->chain->use);
+@@ -11449,6 +11450,45 @@ int __nft_release_basechain(struct nft_ctx *ctx)
+ 
+ 	return 0;
+ }
++
++static void __nft_release_basechain_rcu(struct rcu_head *head)
++{
++	struct nft_chain *chain = container_of(head, struct nft_chain, rcu_head);
++	struct nft_rule *rule, *nr;
++	struct nft_ctx ctx = {
++		.family	= chain->table->family,
++		.net	= read_pnet(&chain->table->net),
++	};
++
++	list_for_each_entry_safe(rule, nr, &chain->rules, list) {
++		list_del(&rule->list);
++		nf_tables_rule_release(&ctx, rule);
++	}
++	nf_tables_chain_destroy(chain);
++	put_net(ctx.net);
++}
++
++int __nft_release_basechain(struct nft_ctx *ctx)
++{
++	struct nft_rule *rule;
++
++	if (WARN_ON_ONCE(!nft_is_base_chain(ctx->chain)))
++		return 0;
++
++	if (unlikely(!maybe_get_net(ctx->net)))
++		return __nft_release_basechain_slow(ctx);
++
++	nf_tables_unregister_hook(ctx->net, ctx->chain->table, ctx->chain);
++	list_for_each_entry(rule, &ctx->chain->rules, list)
++		nft_use_dec(&ctx->chain->use);
++
++	nft_chain_del(ctx->chain);
++	nft_use_dec(&ctx->table->use);
++
++	call_rcu(&ctx->chain->rcu_head, __nft_release_basechain_rcu);
++
++	return 0;
++}
+ EXPORT_SYMBOL_GPL(__nft_release_basechain);
+ 
+ static void __nft_release_hook(struct net *net, struct nft_table *table)
 -- 
- i.
+2.30.2
 
