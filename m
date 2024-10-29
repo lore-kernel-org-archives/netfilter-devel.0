@@ -1,77 +1,84 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 291761DF728
-	for <netfilter-devel@vger.kernel.org>; Tue, 29 Oct 2024 11:19:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 058FF1DED5A
+	for <netfilter-devel@vger.kernel.org>; Tue, 29 Oct 2024 11:29:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730200748; cv=none; b=sEvFIOLol+L0LESOlayzfKVGc/N+ymP8je4a74EqyND9UvkZnSZZUHCFvgdZykrhJ4n+qNzHTFRnjkEyf9C8n3y6y51eJFOZK68AciPMglvYEPNxbKShT4S8R3nxrSuFCjBN6tD6kUUISdUd6P99Pj4GmLd8SWVBF2DQlNvLrS4=
+	t=1730201392; cv=none; b=AianZ04TIclCWoc7tHpAAHyb7CyFKBItNb0RoU5kVv0HgLJ3EcHtBXGoMnrAiiABMTNfCRCunXjfqG6+NIYjqXoBipM6trAA/W421rJb5bI6iFi8ppmTPuE4XyP8VDpV/GTUTk07Py3clmsOmqXjXYLHf8deiREU17t4N9GsKw4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730200748; c=relaxed/simple;
-	bh=n7n69YXvuFK7u9Fopu3hvmG5gFklxkneUIiEFkIaEkA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Ntd6vHlRHHlkZAJT0Ju7232SNZ7krnxj/EL9uU3D8sm/OyP9CPyPsS/s+EPBT2P69iV9dh+1MWQKjjBw1FCNO+y1+lfGbkTUlmKsZcuca11+MGg4DvxExXZawTPxzTUbgcgqNoH9vxEWXZ5PBbru4i0CiTFUReEOSFzm+m/lhWM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1t5kFW-0006ed-VH; Tue, 29 Oct 2024 12:18:58 +0100
-Date: Tue, 29 Oct 2024 12:18:58 +0100
-From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	Nadia Pinaeva <n.m.pinaeva@gmail.com>
-Subject: Re: [PATCH nf-next] netfilter: conntrack: collect start time as
- early as possible
-Message-ID: <20241029111858.GA25003@breakpoint.cc>
-References: <20241026105030.75254-1-fw@strlen.de>
- <ZyAZogr_F4GlCpPo@calendula>
- <20241029071624.GA16983@breakpoint.cc>
- <ZyCwlAhyQMLh_q-M@calendula>
+	s=arc-20240116; t=1730201392; c=relaxed/simple;
+	bh=pKsAV2ZC+8Pp+ERKhMt23qrI1Fcqwrg1fBclJdL5qcc=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=i/PZmXg3gCxd9lfM/1gW+9VZ/5ZuWqjDcc1hdlhQYW/4voUZZfT1s3npElbf0NUqyJr9CSIr+Q5sRtEpien/sJ21HhLErso/OjJBrd1bn6mAd0T2Anzehb2RJ/P3HqQbBHtZGZGGeQAhBo6mTEiuVO02eLdFXQci1jGoeoYgaVY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=koYErdIy; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="koYErdIy"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=f5BWkhB3vSi/fYYZI5Lu3kMXSVztIajAMINjNPv1A38=; b=koYErdIyVDYrHgVShwEioV5ilQ
+	P1dhCgOp42B/HyIZctZ3qkSDBxqbtM5a6X/5i/AGaCHOj31NXtWVUOvABmltNZOn2+d2kGqN3z8tF
+	Mt/JdkzarsXZsqLxK1VOyFxRtlSPWYbB5c6vsUS8MCKRve1U1yYKpikTOXnZTGvChi0+gFIkFstID
+	U58HHlCqHADT5YtLRCMTGfy3zIhbFlIODHMEKJX9x1X5KgQDpHl/b/O4K2kgUuZoaxkC/7Yd6aTmq
+	BMFlbcEeNEvpITgJmvwlkR1SjSCxItZHLw7FJ9bvQhIoJ9pbVtYtfqmkK8YxnafCW2q02K4F2uYAP
+	mG0ZsyFQ==;
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1t5kPt-000000006aP-2yDt
+	for netfilter-devel@vger.kernel.org;
+	Tue, 29 Oct 2024 12:29:41 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH] tests: shell: Fix for 'make distcheck'
+Date: Tue, 29 Oct 2024 12:29:38 +0100
+Message-ID: <20241029112938.19873-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZyCwlAhyQMLh_q-M@calendula>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > I delayed this to insertion time because packet could dropped before,
-> > > rendering this conntrack timestamp useless? There is no event
-> > > reporting for conntrack that never get confirmed.
-> > 
-> > Sure, but the "issue" is that the reported start time doesn't account
-> > for a possible delay.  I did not measure huge delta before/after this
-> > patch but if you have e.g. nfqueue in between alloc+confirm then the
-> > start timestamp will account for that delay after this patch.
-> 
-> I see. I think the question is what this start timestamp is. For me,
-> it is the start time since the conntrack is _confirmed_ which is what
-> we expose to userspace via ctnetlink and /proc interface.
+The target performs a "VPATH build", so built binaries are not put into
+the same directory tree as the test script itself. For lack of a better
+way to detect this, assume $PWD in this situation remains being the
+build tree's TLD and check if binaries are present in there.
 
-Sure, its a question on definition as to what "flow start time" means.
-See below for yet another proposal.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ iptables/tests/shell/run-tests.sh | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-> Is this user trying to trying to profile nfqueue? Why does this user
-> assume conntrack allocation time is the right spot to push the
-> timestamp on the ct?
+diff --git a/iptables/tests/shell/run-tests.sh b/iptables/tests/shell/run-tests.sh
+index 1125690583b46..2ad259c21644c 100755
+--- a/iptables/tests/shell/run-tests.sh
++++ b/iptables/tests/shell/run-tests.sh
+@@ -87,6 +87,17 @@ if [ "$HOST" != "y" ]; then
+ 	XTABLES_LEGACY_MULTI="$(dirname $0)/../../xtables-legacy-multi"
+ 
+ 	export XTABLES_LIBDIR=${TESTDIR}/../../../extensions
++
++	# maybe this is 'make distcheck' calling us from a build tree
++	if [ ! -e "$XTABLES_NFT_MULTI" -a \
++	     ! -e "$XTABLES_LEGACY_MULTI" -a \
++	     -e "./iptables/xtables-nft-multi" -a \
++	     -e "./iptables/xtables-legacy-multi" ]; then
++		msg_warn "Running in separate build-tree, using binaries from $PWD/iptables"
++		XTABLES_NFT_MULTI="$PWD/iptables/xtables-nft-multi"
++		XTABLES_LEGACY_MULTI="$PWD/iptables/xtables-legacy-multi"
++		export XTABLES_LIBDIR="$PWD/extensions"
++	fi
+ else
+ 	XTABLES_NFT_MULTI="xtables-nft-multi"
+ 	XTABLES_LEGACY_MULTI="xtables-legacy-multi"
+-- 
+2.47.0
 
-If I understood correctly its about using conntrack events + timestamp
-extension to get (passive) RTT measurements.
-
-> On top of this, at that time I made this, I measured ~20-25%
-> performance drop to get this accurate timestamp, probably this is
-> cheaper now in modern equipment?
-
-I think cost depends on the clock source, hopefully most systems do not
-have a too expensive one nowadays.
-
-What about using skb_tstamp() first?  If skb already had rx tstamp
-enabled, we'd get an even more accurate start time (packet arrival),
-even before ct got allocated.
