@@ -1,69 +1,65 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1268B208237
-	for <netfilter-devel@vger.kernel.org>; Tue, 29 Oct 2024 22:27:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C67FB190665;
+	Tue, 29 Oct 2024 23:33:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730240872; cv=none; b=psosuqiIIBi73TrZeNM876g/ziFHcucUZXVSLEDOwAUgtk4m5HL18BKTWvv4j58KIgycVIlP/2TgGvvsMGbHp1kn7lmm3kD6viV8nOSj5X15lMEbH8hKf2lgSH9KGqx2C7tD/fZY3EzFYOmAVi9nqX8XIG2vBWnR1oNaKscTkXE=
+	t=1730244827; cv=none; b=WEmq5h2z5QvZIE/v5GsCp6+Da4w61GBGXcGI9FT7f7tmfYbUxVe9RnKK1NCfxLgHjoErfEQA4h/v3uBPBMXgrLttqYI+FT9PXcEU42Re7LUlt111SJbC9hHw4BfPK3Z69uTarXC3b3EvgTKnaFV32mFholWJMzFeJl4KAA+IBQU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730240872; c=relaxed/simple;
-	bh=WTlKzcZKILEhacywPH0pqtzUQT7AUHLTpyhj9qk4PqY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Yp1jNUOzQLZZqsSXq3k52Q3WusJn7maZN4ViFx+ChEAtM8vzWCliRlEgrKQvbAcDVHPsINAIh2oTT0lFeEaeXDaV4Go8ZQR96f4ZDgO0LrqUnGqNk62+3N+vrSHthIPoQU1FygrWCU58Pq15muPmZzfVGEB2Ya5ESXz+2cSiTLI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=mfIYCKVw; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1730244827; c=relaxed/simple;
+	bh=yHTmnEDobpeaBdAjL2m1Muml6fIMSZI5JfvgmlPZQJs=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=miivwHK+tRDNXcVgW9txndriwIzy6UpQoFO2P9eA7//Nk9O9oFLAm6Gu5Z33xAeuLSMCMVuvOLrRKzVlBxNDIEoAcJPX0uycl1ndWvePuQ/+cYk61sHGbCgae6w/21PEGOlsuc4yvyCKHH6JB8qTHOjD4jxIIdswEvx9TY9oUa0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Cylx7kcr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="mfIYCKVw"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=/HgzCHvdUB4A+GbOppCkUonBaVQGbE3lPaPflCH1sdg=; b=mfIYCKVw3UmDQqGFZy7rzVO7tl
-	uAPmfgt5qyOZy6nvMnkqFfK7RGfEL35N0nUXKVbqvbuZe+9Xt3iUZlGH5EIoSJlsDD8mj7763LAMR
-	r9gRYqeDfyz5c72YvbFk2hICScWpfg79uA1V1otDTBOHYsWljbF5/tWugTxaLrIS6Fsvmm71HqsGb
-	EIRqPtWX7DUxwTM4CWiDso9sUdiEMvVGpVqti9xvH1wArFp9iF6ohtUFZ/Dvbjgl33FJBI17aiKx8
-	FS68FBbGE1Yb9bia+cvGEhGHAhejC00KvOo2UTB9F4AOW5tGmlzGQhL485D8Mi9Yt4tfmoQrbNKUd
-	6YtH0FHA==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1t5ugl-000000008Jt-1AU6;
-	Tue, 29 Oct 2024 23:27:47 +0100
-Date: Tue, 29 Oct 2024 23:27:47 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-Subject: Re: [libnftnl PATCH v4] Introduce struct nftnl_str_array
-Message-ID: <ZyFhY-SLt9Au9a0y@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-References: <20241029152919.20293-1-phil@nwl.cc>
- <ZyFUUqzGmBnr071n@calendula>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Cylx7kcr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDD6EC4CECD;
+	Tue, 29 Oct 2024 23:33:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1730244827;
+	bh=yHTmnEDobpeaBdAjL2m1Muml6fIMSZI5JfvgmlPZQJs=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=Cylx7kcrJVTzZUZGoQc2s4qzGvuOHoIx3IdCZ3MO0aiyuly5KYRMfH/dDoYl6Xfgw
+	 /de+C/Q2YhQ/J1Jok1O6PykWaS5HzTmzGyyjVz7XgbT/abiDe6MIFUzRI3bj8Z+KMv
+	 92fCjT1qtH4kNqIL76HowWrybWBqrFTBReqjoOGhJo3gIJ6OWnoY8SZnW036+/7P1f
+	 wpYngs+FGU+eaAqtAZiHdeiLlRL5Is6WU6W4gWX+hTVvIbhl3OWKsv9IQp83RAn0fp
+	 8xgwNUbz8b13mK8iHJHbyD+lxlBnDrWGNTUivuzah35fzWyi4E5RpA2Q7mjmM9cdGg
+	 vpICEwW3ClkMA==
+Date: Tue, 29 Oct 2024 16:33:45 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Li Zhijian <lizhijian@fujitsu.com>
+Cc: linux-kselftest@vger.kernel.org, shuah@kernel.org,
+ linux-kernel@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
+ Jozsef Kadlecsik <kadlec@netfilter.org>, "David S. Miller"
+ <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Paolo Abeni
+ <pabeni@redhat.com>, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, netdev@vger.kernel.org
+Subject: Re: [PATCH for-next 4/7] selftests/net: Add missing gitignore file
+Message-ID: <20241029163345.19ff1bc0@kernel.org>
+In-Reply-To: <20241025014010.6533-4-lizhijian@fujitsu.com>
+References: <20241025014010.6533-1-lizhijian@fujitsu.com>
+	<20241025014010.6533-4-lizhijian@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZyFUUqzGmBnr071n@calendula>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Tue, Oct 29, 2024 at 10:32:02PM +0100, Pablo Neira Ayuso wrote:
-> On Tue, Oct 29, 2024 at 04:28:58PM +0100, Phil Sutter wrote:
-> > This data structure holds an array of allocated strings for use in
-> > nftnl_chain and nftnl_flowtable structs. For convenience, implement
-> > functions to clear, populate and iterate over contents.
-> > 
-> > While at it, extend chain and flowtable tests to cover these attributes,
-> > too.
-> > 
-> > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> 
-> Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
+On Fri, 25 Oct 2024 09:40:07 +0800 Li Zhijian wrote:
+> diff --git a/tools/testing/selftests/net/netfilter/.gitignore b/tools/testing/selftests/net/netfilter/.gitignore
+> index 0a64d6d0e29a..eef8d5784e94 100644
+> --- a/tools/testing/selftests/net/netfilter/.gitignore
+> +++ b/tools/testing/selftests/net/netfilter/.gitignore
+> @@ -4,3 +4,4 @@ connect_close
+>  conntrack_dump_flush
+>  sctp_collision
+>  nf_queue
+> +conntrack_reverse_clash
 
-Patch applied, thanks for your review!
+This gitignore file appears to be sorted, please move the new entry up
+into the right place and repost as a standalone patch (not part of a
+series) so that its easier to netfilter maintainers to pick it up.
