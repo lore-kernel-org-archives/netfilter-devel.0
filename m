@@ -1,33 +1,35 @@
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E0C81DF989
-	for <netfilter-devel@vger.kernel.org>; Tue, 29 Oct 2024 09:48:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F4497464
+	for <netfilter-devel@vger.kernel.org>; Tue, 29 Oct 2024 09:53:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730195332; cv=none; b=qRmFpwy9pflN3RF3mj2evBwD/hi5Hk9SjOKE/dKG/kEcuLHojbQBNHbNTnKgys7+MUr4tVUw71QI4ua4ZrZ8QDxDl+vHKXlXvqtF6YWp3KGekCa+9PlEpaiwg/YgPtLJc3E9haT3/bOupv+KgU/OgeIoaSW2ziRjqCO3/8bkK58=
+	t=1730195612; cv=none; b=nvE0485pwsEbLS1bvo7Pn49Je3MfvhzfQ6sgBaI+J4UobJlzNwP7WttqWB2Xekeou2jUWoKR98mkLC3aGUkJoWQNLzt9Z33H0dE1eROr6lQwu/RQ/cMau8WBDFraKrStMIn4LIcO5p4hcpeCewKFyiCb6fEkY8JZmb7rbmJLVFQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730195332; c=relaxed/simple;
-	bh=lJa/t4sDF5ro77BvNn1Pz3Z4naoXMJeAH+JbAyCaiPo=;
+	s=arc-20240116; t=1730195612; c=relaxed/simple;
+	bh=T6WFMTQRNmuJpcFIcSV6iVf7Of5BXbL7QaqWLO8a7+k=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=DYPtAhQ70Qc55NEegKt7ihl3xEsP22O+HerVi8MOmL9jZMUOyGN3G8ymwgHZRAxXNb/029WQifIu2a8qngil6d/pGdp+sVQIEqNxptYmZgYAXCNVzjduHe/khhNpMrYq2LVpPINT+N0l4J6XNrjU4grPvr9aWxnekPe+v8qHWc4=
+	 Content-Type:Content-Disposition:In-Reply-To; b=ZEt4BDDCKZdqZORDB5A47dzEMuLXSnSnYE4ZfvGmsX0htR4HHoKJk9b8lyP+VebRigfEnd4xiVEyKtOYfvxnSjWMA0vvdEU++8vcWxwsOxm1cpo7UdYkmUDLSBd/N/L6aoI2qC9rZUsZB+TppxoRdiXdPMus2jW4PXXjrd6SwqI=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=55038 helo=gnumonks.org)
+Received: from [78.30.37.63] (port=33156 helo=gnumonks.org)
 	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <pablo@gnumonks.org>)
-	id 1t5iqA-006fui-9E; Tue, 29 Oct 2024 10:48:44 +0100
-Date: Tue, 29 Oct 2024 10:48:40 +0100
+	id 1t5iuj-006gKx-1s; Tue, 29 Oct 2024 10:53:27 +0100
+Date: Tue, 29 Oct 2024 10:53:24 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] tests: shell: don't rely on writable test directory
-Message-ID: <ZyCveExccCSaK4sA@calendula>
-References: <20241022140956.8160-1-fw@strlen.de>
- <ZyAeJ0lvifWevOuM@calendula>
- <20241029071401.GA16769@breakpoint.cc>
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>,
+	Nadia Pinaeva <n.m.pinaeva@gmail.com>
+Subject: Re: [PATCH nf-next] netfilter: conntrack: collect start time as
+ early as possible
+Message-ID: <ZyCwlAhyQMLh_q-M@calendula>
+References: <20241026105030.75254-1-fw@strlen.de>
+ <ZyAZogr_F4GlCpPo@calendula>
+ <20241029071624.GA16983@breakpoint.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -36,38 +38,44 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20241029071401.GA16769@breakpoint.cc>
-X-Spam-Score: -1.9 (-)
+In-Reply-To: <20241029071624.GA16983@breakpoint.cc>
+X-Spam-Score: -1.8 (-)
 
-On Tue, Oct 29, 2024 at 08:14:01AM +0100, Florian Westphal wrote:
+On Tue, Oct 29, 2024 at 08:16:24AM +0100, Florian Westphal wrote:
 > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Tue, Oct 22, 2024 at 04:09:54PM +0200, Florian Westphal wrote:
-> > >  tmpfile1=$(mktemp -p .)
-> > > -if [ ! -w $tmpfile1 ] ; then
-> > > +if [ ! -w "$tmpfile1" ] ; then
-> > >          echo "Failed to create tmp file" >&2
-> > > -        exit 0
-> > > +        exit 77
-> > >  fi
-> > >  
-> > > +trap "rm -rf $tmpfile1 $tmpfile2" EXIT # cleanup if aborted
-> > > +set -e
-> > > +
-> > >  tmpfile2=$(mktemp -p .)
-> > > -if [ ! -w $tmpfile2 ] ; then
-> > > +if [ ! -w "$tmpfile2" ] ; then
-> > >          echo "Failed to create tmp file" >&2
-> > >          exit 0
+> > On Sat, Oct 26, 2024 at 12:50:13PM +0200, Florian Westphal wrote:
+> > > Sample start time at allocation time, not when the conntrack entry
+> > > is inserted into the hashtable.
 > > 
-> > this does not return 77, see below...
+> > Back at the time, long time ago, I remember to have measured a
+> > performance impact on this.
 > 
-> I only changed first invocation, if pwd is ro, that will
-> have failed already.
+> You mean when enabling timestamp + conntracks get dropped before
+> confirm, correct?
 
-Right.
+Yes.
 
-> I can make that consistent if you prefer.
+> > > In most cases this makes very little difference, but there are
+> > > cases where there is significant delay beteen allocation and
+> > > confirmation, e.g. when packets get queued to userspace.
+> > 
+> > I delayed this to insertion time because packet could dropped before,
+> > rendering this conntrack timestamp useless? There is no event
+> > reporting for conntrack that never get confirmed.
+> 
+> Sure, but the "issue" is that the reported start time doesn't account
+> for a possible delay.  I did not measure huge delta before/after this
+> patch but if you have e.g. nfqueue in between alloc+confirm then the
+> start timestamp will account for that delay after this patch.
 
-Sure, go ahead and push this out if it helps you with virtme-ng
+I see. I think the question is what this start timestamp is. For me,
+it is the start time since the conntrack is _confirmed_ which is what
+we expose to userspace via ctnetlink and /proc interface.
 
-Thanks!
+Is this user trying to trying to profile nfqueue? Why does this user
+assume conntrack allocation time is the right spot to push the
+timestamp on the ct?
+
+On top of this, at that time I made this, I measured ~20-25%
+performance drop to get this accurate timestamp, probably this is
+cheaper now in modern equipment?
