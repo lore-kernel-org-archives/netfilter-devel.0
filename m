@@ -1,30 +1,31 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63FCA1E2303
-	for <netfilter-devel@vger.kernel.org>; Wed, 30 Oct 2024 09:45:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA6F61E32C5
+	for <netfilter-devel@vger.kernel.org>; Wed, 30 Oct 2024 10:41:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730281533; cv=none; b=llPsgQrSPB8Bcbq+0cFXvNl9gpr9vOpAq81etKAI/DVrtJstWUmDOQC2JP6Lsp/rYvvu+8nE38Ynxz6FKAr4fRey8Za5DDMOGTb/aUTFuqxfo/qmyN8zDF4nUlh499mZF+xfrXNvFTIW+0EbKiRXeiz+L77B2gd5ShAjWa+vCdQ=
+	t=1730284866; cv=none; b=hir1D4o3ntpytduJEtZU+3bXuG+Lka9b0N0V2PwVcECGG1THcBERNMBKbIyJvXGHSKEgEfruofhmMNNNtaEK9aR+9VUyKuKG4ULBFnI2ML8ymhfROsfSEH9hWbIoWjsP3BBL5uwSGconLoWDS/Y69QWkeR9Ls/9XneUjZt388hk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730281533; c=relaxed/simple;
-	bh=CTE1mxbDAu0KR9KDHSxdir37XZBdiT8zvVPjfrEj94Y=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=CrDN+VJO5pgFCPEQ/FOYntw9e6eG4IDVTG6zEW8VUZSfUhM86vQVE0hxazvyplka1NLtkFw/tYcAnCfFIJr6kV4PxskWyjo3LL/+tnlMN92b9jq37CgbzLTcU7XQ74/5bGM0QpZFR6TDb68uER+KPKFjBB1vnMisHhTXCb88ds0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1t65Gb-0000mi-Hd; Wed, 30 Oct 2024 10:45:29 +0100
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 nf-next 7/7] netfilter: nf_tables: must hold rcu read lock while iterating object type list
-Date: Wed, 30 Oct 2024 10:40:44 +0100
-Message-ID: <20241030094053.13118-8-fw@strlen.de>
-X-Mailer: git-send-email 2.45.2
-In-Reply-To: <20241030094053.13118-1-fw@strlen.de>
+	s=arc-20240116; t=1730284866; c=relaxed/simple;
+	bh=VU7TTpJ1OpZwRCY8FxMiIlmCdgobUoutrX7v87TNBwk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=XB9XJ4OJge/vpwzMGAmb4ZfCdQFFFYACsC9VCDupOouenlxz8+twYQLK9p17Mnp7T91AhPpFNMH5uX1BQ/hs7DJVOtEBD5XVF6monXbOEwAS6krzEuStD+0No+MYd1Af0Y/pmy4BgSABED+/IoE4qXDtmuaudVaeyDUwHXDIOcM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=53242 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1t668I-00Aw1w-3c; Wed, 30 Oct 2024 11:41:00 +0100
+Date: Wed, 30 Oct 2024 11:40:56 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v2 nf-next 0/7] netfilter: nf_tables: avoid
+ PROVE_RCU_LIST splats
+Message-ID: <ZyINOAO_Pl1QKQQL@calendula>
 References: <20241030094053.13118-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -32,65 +33,38 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20241030094053.13118-1-fw@strlen.de>
+X-Spam-Score: -1.9 (-)
 
-Update of stateful object triggers:
-WARNING: suspicious RCU usage
-net/netfilter/nf_tables_api.c:7759 RCU-list traversed in non-reader section!!
+On Wed, Oct 30, 2024 at 10:40:37AM +0100, Florian Westphal wrote:
+> v2: fix typo in commit message & fix inverted logic in patch 6.
+> No other changes.
+> 
+> Mathieu reported a lockdep splat on rule deletion with
+> CONFIG_RCU_LIST=y.
+> 
+> Unfortunately there are many more errors, and not all are false positives.
+> 
+> First patches pass lockdep_commit_lock_is_held() to the rcu list traversal
+> macro so that those splats are avoided.
+> 
+> The last two patches are real code change as opposed to
+> 'pass the transaction mutex to relax rcu check':
+>
+> Those two lists are not protected by transaction mutex so could be altered
+> in parallel.
 
-other info that might help us debug this:
-rcu_scheduler_active = 2, debug_locks = 1
-1 lock held by nft/3060:
- #0: ffff88810f0578c8 (&nft_net->commit_mutex){+.+.}-{4:4}, [..]
+Such list is altered via module load.
 
-... but this list is not protected by the transaction mutex but the
-nfnl nftables subsystem mutex.
+> Aside from context these patches could be applied in any order.
+> 
+> This targets nf-next because these are long-standing issues.
 
-Switch to nft_obj_type_get which will acquire rcu read lock,
-bump refcount, and returns the result.
+Series looks good to me.
 
-Fixes: dad3bdeef45f ("netfilter: nf_tables: fix memory leak during stateful obj update").
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_tables_api.c | 13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+I am compiling/running test, I am going to prepare a PR with this
+series.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index c588cab98260..1583d50c65b7 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -7809,9 +7809,7 @@ static int nf_tables_updobj(const struct nft_ctx *ctx,
- 	struct nft_trans *trans;
- 	int err = -ENOMEM;
- 
--	if (!try_module_get(type->owner))
--		return -ENOENT;
--
-+	/* caller must have obtained type->owner reference. */
- 	trans = nft_trans_alloc(ctx, NFT_MSG_NEWOBJ,
- 				sizeof(struct nft_trans_obj));
- 	if (!trans)
-@@ -7879,15 +7877,16 @@ static int nf_tables_newobj(struct sk_buff *skb, const struct nfnl_info *info,
- 		if (info->nlh->nlmsg_flags & NLM_F_REPLACE)
- 			return -EOPNOTSUPP;
- 
--		type = __nft_obj_type_get(objtype, family);
--		if (WARN_ON_ONCE(!type))
--			return -ENOENT;
--
- 		if (!obj->ops->update)
- 			return 0;
- 
-+		type = nft_obj_type_get(net, objtype, family);
-+		if (WARN_ON_ONCE(!type))
-+			return -ENOENT;
-+
- 		nft_ctx_init(&ctx, net, skb, info->nlh, family, table, NULL, nla);
- 
-+		/* type->owner reference is put when transaction object is released. */
- 		return nf_tables_updobj(&ctx, type, nla[NFTA_OBJ_DATA], obj);
- 	}
- 
--- 
-2.45.2
-
+Thanks
