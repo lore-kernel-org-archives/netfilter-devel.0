@@ -1,137 +1,117 @@
-Received: from esa9.hc1455-7.c3s2.iphmx.com (esa9.hc1455-7.c3s2.iphmx.com [139.138.36.223])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f194.google.com (mail-yw1-f194.google.com [209.85.128.194])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3852E3C14;
-	Wed, 30 Oct 2024 01:00:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=139.138.36.223
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 540FE42A8B;
+	Wed, 30 Oct 2024 01:34:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.194
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730250046; cv=none; b=RbNOWNfqcjiKVx8615XrDjUszIxYdO+lrzXoGWu3I8II5gXxxfLml2c04jLzyEhtTpyS4XMPOL1hiIHVfWrs9jtNEL0qsH0pkdgU500/OKliW9WgZv1vhJYEiNzKKU4uan+IvOkTadRORDetVWBNJivC6fn6oaaL9IFUwrfrm5Q=
+	t=1730252064; cv=none; b=lnsnTcyzlcXS125vqHSQd5kvWb+NdJsCWbhDS07O3SdM6esZ6IGKIDu2Zqr4D+1ee/UZtW6lWJ4ys++czKa6VWdiKbVJQR8lRs2eIblgbE2bVl9QJCFxFxjMAwo228g6h5jZrfYTu2KEuK1HrGQZnPdBpFOOFYqBjFYkCJEE8zI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730250046; c=relaxed/simple;
-	bh=od59CaTPcXAt5fo3ZaO6rvMZ1g5AHGLeUgTuhqAeGVU=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=gVSaGCoNCT4dUU7hI0FkOD27Z86aQMVxOt0BZGc+2Dj78TTRWuSM6BqyF/wiI9oGiIEzv8ZqNvdDI3+ssNxxsSSWG5ZViv/uXi4ZPblcrsT9QJAn74RZMyvTluY0YhGhTeAijmi5g1ZPBxBXrydbu1ql6YUPeC24Q4Lh9WEcAlw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com; spf=pass smtp.mailfrom=fujitsu.com; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=GKfHp9Aj; arc=none smtp.client-ip=139.138.36.223
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
+	s=arc-20240116; t=1730252064; c=relaxed/simple;
+	bh=Yp66zOjBTkqdw1eyRFLXESGFpMB8EYkX1+UgnwBfc1A=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=RWjex5CQ4inD5C1APjoXWlZPTTQw2OW1qQQTlehfzP1WhcdW3ayisrQ8P6Bh9wEVKxPg61zjUuL4+O1+myaIzFSRF+WNR+TsfAxIICnS316t90Ar1IbSZ0xs+KUACWwPxQvd/eB5vTDS/axKKx79K6dn5OWd21QkkvwCsV4vKTs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=lG+7G+C2; arc=none smtp.client-ip=209.85.128.194
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="GKfHp9Aj"
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj2;
-  t=1730250045; x=1761786045;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=od59CaTPcXAt5fo3ZaO6rvMZ1g5AHGLeUgTuhqAeGVU=;
-  b=GKfHp9AjIz8PZIQt0PT9cdM9dXN1Wqi28z9Qm6n2ilyaBaItpNZiMzK2
-   llKMBWWyf03YtaQLnQvuUiqhw7YyS31dn7/CDFXo6HSiijEHSTuPE0OGt
-   OpvY9ZeJjrMXhpOofdTbuSaQzZw4iRePqui6rnxQfLEwwe7HS1G4tiksE
-   zSvMxK2iDrSkhqUQqqv7VNDQ33HxbVNkel/PW5XyJWsVHTsHhAAImvsc8
-   /Ng8DGh9NFFYkbZhFbOsF5qYTB3afABOjRck2+adLiriHp5BKCzLpZHh2
-   J+nfJ449O8qhPpx5VXLS3EydjK6siW8RlnfnUmygLL4JS3zWOzhCa/+9x
-   A==;
-X-CSE-ConnectionGUID: Il4evkucS4KFMvK1w5c3WA==
-X-CSE-MsgGUID: Q2HKdES+RmWdjNZp+7dWRA==
-X-IronPort-AV: E=McAfee;i="6700,10204,11240"; a="166793493"
-X-IronPort-AV: E=Sophos;i="6.11,243,1725289200"; 
-   d="scan'208";a="166793493"
-Received: from unknown (HELO yto-r2.gw.nic.fujitsu.com) ([218.44.52.218])
-  by esa9.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Oct 2024 09:59:32 +0900
-Received: from yto-m4.gw.nic.fujitsu.com (yto-nat-yto-m4.gw.nic.fujitsu.com [192.168.83.67])
-	by yto-r2.gw.nic.fujitsu.com (Postfix) with ESMTP id E8E89C68E8;
-	Wed, 30 Oct 2024 09:59:29 +0900 (JST)
-Received: from kws-ab3.gw.nic.fujitsu.com (kws-ab3.gw.nic.fujitsu.com [192.51.206.21])
-	by yto-m4.gw.nic.fujitsu.com (Postfix) with ESMTP id 36B5DD5047;
-	Wed, 30 Oct 2024 09:59:29 +0900 (JST)
-Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
-	by kws-ab3.gw.nic.fujitsu.com (Postfix) with ESMTP id CF0D220079562;
-	Wed, 30 Oct 2024 09:59:28 +0900 (JST)
-Received: from iaas-rdma.. (unknown [10.167.135.44])
-	by edo.cn.fujitsu.com (Postfix) with ESMTP id 9D78F1A000A;
-	Wed, 30 Oct 2024 08:59:27 +0800 (CST)
-From: Li Zhijian <lizhijian@fujitsu.com>
-To: linux-kselftest@vger.kernel.org,
-	netdev@vger.kernel.org
-Cc: shuah@kernel.org,
-	linux-kernel@vger.kernel.org,
-	Li Zhijian <lizhijian@fujitsu.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org
-Subject: [PATCH v3] selftests/net: Add missing gitignore file
-Date: Wed, 30 Oct 2024 09:00:02 +0800
-Message-ID: <20241030010002.400238-1-lizhijian@fujitsu.com>
-X-Mailer: git-send-email 2.44.0
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lG+7G+C2"
+Received: by mail-yw1-f194.google.com with SMTP id 00721157ae682-6ea051d04caso24839427b3.0;
+        Tue, 29 Oct 2024 18:34:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1730252061; x=1730856861; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=h//5h0dIiAWAEjEnhgHy2Bo5TCA+6MH9QdtoE5g4NIQ=;
+        b=lG+7G+C2yV24Le/crfyiM4sgb0LBOWehHWgCXCKyATzxs1eYgEJy5sQKBb8b/4sj/r
+         s8AfmaufxXzA2f8zOt6kwW0DBISoscL8Z5+Rgpog6z75uczxuQUsmY94qi3CcZ4L+3Aw
+         SnrFqNCNW5ijJ37Jwysj2TGYyDNR9F/apleHygsY1fMwUZAd/kA4+f/0UKcCZjfWEkpD
+         4pNGoOYpn26NY4WCdj1BOwBcnmoztsmB0BgU5wrA3jVSfDFAF+Ia8NvRREXuQhHAkb5u
+         KqOkdTcjOtfD1oHzFwM03KON1U4Z7/6cHMrYLUh5TTjfwHga24VPrFL6KR7/CIGN2RRZ
+         953w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1730252061; x=1730856861;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=h//5h0dIiAWAEjEnhgHy2Bo5TCA+6MH9QdtoE5g4NIQ=;
+        b=corDT3OWX8BPABPGPO6WCEh4xL0vfWpNanjQjXMCbr+eBC/xfYS0wEah8MmGqqKX3X
+         +oSYXYScdqytzL94rzDc7kxqScpCI8/BWGMdtuARMRHD22Yb0ggBL5a6O8XMVrtTqFAC
+         /3Pabg1MZYUMxnAt0c77zFbkvLfCI5TEw+ApcCT8L1EKNRiNm78F3IFAKw5X6z+CZ+tX
+         gkeU0FFMZtFQBnAyCYEQAHH7ilImPw7xK4wQ7ttNr0Idr0wJ4eTgP7vqpmMV4zNkWim+
+         AL8iBs5c7DjrTxQ++KkvRShxgn6pfJf0UNZWgJMCEuvowhpMejjzx0JqwNnvpL3/bq3+
+         vgsQ==
+X-Forwarded-Encrypted: i=1; AJvYcCU7/Xxra4SRAlYjSPGI6azK68mDd0KuVdQ6wPrQVmpL2qznWRcIjjrueFNkKxN8hnqFtUs=@vger.kernel.org, AJvYcCUVkLvIraTxPWNz2MgnoP0LWEFaA/4JjFheJ46sHEVYqECQneh5NNLVIwekNEy6lQhbk+Md7/dvaOMLx39ucnEf@vger.kernel.org, AJvYcCXZGtWtGe4Btz1NgIVRykP1IxGTUK0pvt/LKUKFpVH8U9EKI1TpcKDwAObN2Uj+z1whq72JGG21@vger.kernel.org, AJvYcCXmEscEkzOTjEUjllDalZefBc20B3t0HzX0qqzby+tm9zpmjwZ3rKLSYVRlMExGAk/9+bifD1Tr8da0gF9/@vger.kernel.org
+X-Gm-Message-State: AOJu0YxivOhuzmp7if9VRq0fDzSQ9ikpl6eX0DsnF6LVkScCrmM7sA69
+	Bj0rdwcUTlaobfC1Y4jXW5eGtU7LRTeIdxC4Nk5LY5FW413hmVG85XjkCad8aAMzQUtSNQELCOv
+	S2XMuhF1sHn4losttLsgTfVVMeYA=
+X-Google-Smtp-Source: AGHT+IGmt0v/jSWrgx/76rpboLxL9IobAr7TI03JuBHGd40YJIScAQ5UnmQr1bHYch2Zxftv5X/RAJg5pl62ieHQRyE=
+X-Received: by 2002:a05:690c:39d:b0:6ea:3313:fa1b with SMTP id
+ 00721157ae682-6ea3313fc65mr28460797b3.46.1730252061300; Tue, 29 Oct 2024
+ 18:34:21 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-28762.003
-X-TM-AS-User-Approved-Sender: Yes
-X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-28762.003
-X-TMASE-Result: 10--10.200800-10.000000
-X-TMASE-MatchedRID: a3KJLn6RIiIhiKpapiFQUqoXHZz/dXlxTJDl9FKHbrmwcSh5kytY+Wlr
-	rhfytIG3ue7scXXMXXbOw1q4IOi+g+VaI0j/eUAP9Ib/6w+1lWTVBDonH99+VkYUijfAB7a8Sdp
-	3nQlC6CvONlqzU5N8TV5k1j3tRqCQZB7FaQ6KQ99O5y1KmK5bJTZlY6a4lRLZSGcP+0SEjFBAPN
-	HJ6d1lGx63ztJ0rJm/nagtny7ZPcQfE8yM4pjsD67rlQMPRoOCxEHRux+uk8h+ICquNi0WJKxPa
-	V9/KHBB+Z6nLjaSWHAwVhpxqsrjNJRD0+ifpY+DftwZ3X11IV0=
-X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
+References: <20241024093348.353245-1-dongml2@chinatelecom.cn> <20241029170341.1b351225@kernel.org>
+In-Reply-To: <20241029170341.1b351225@kernel.org>
+From: Menglong Dong <menglong8.dong@gmail.com>
+Date: Wed, 30 Oct 2024 09:35:24 +0800
+Message-ID: <CADxym3bUKBuMkaG3NiQHavkgScLxRAgkSSmk-KbuYpMepSYDzw@mail.gmail.com>
+Subject: Re: [PATCH bpf-next v4 0/9] net: ip: add drop reasons to input route
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: pabeni@redhat.com, davem@davemloft.net, edumazet@google.com, 
+	dsahern@kernel.org, pablo@netfilter.org, kadlec@netfilter.org, 
+	roopa@nvidia.com, razor@blackwall.org, gnault@redhat.com, 
+	bigeasy@linutronix.de, idosch@nvidia.com, ast@kernel.org, 
+	dongml2@chinatelecom.cn, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+	bridge@lists.linux.dev, bpf@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Compiled binary files should be added to .gitignore
-'git status' complains:
-   Untracked files:
-   (use "git add <file>..." to include in what will be committed)
-         net/netfilter/conntrack_reverse_clash
+On Wed, Oct 30, 2024 at 8:03=E2=80=AFAM Jakub Kicinski <kuba@kernel.org> wr=
+ote:
+>
+> On Thu, 24 Oct 2024 17:33:39 +0800 Menglong Dong wrote:
+> > In this series, we mainly add some skb drop reasons to the input path o=
+f
+> > ip routing, and we make the following functions return drop reasons:
+> >
+> >   fib_validate_source()
+> >   ip_route_input_mc()
+> >   ip_mc_validate_source()
+> >   ip_route_input_slow()
+> >   ip_route_input_rcu()
+> >   ip_route_input_noref()
+> >   ip_route_input()
+> >   ip_mkroute_input()
+> >   __mkroute_input()
+> >   ip_route_use_hint()
+> >
+> > And following new skb drop reasons are added:
+> >
+> >   SKB_DROP_REASON_IP_LOCAL_SOURCE
+> >   SKB_DROP_REASON_IP_INVALID_SOURCE
+> >   SKB_DROP_REASON_IP_LOCALNET
+> >   SKB_DROP_REASON_IP_INVALID_DEST
+>
+> We're "a bit" behind on patches after my vacation, so no real review
+> here, but please repost with net-next in the subject. The test
+> automation trusts the tree designation and bpf-next is no longer
+> based on net-next. So this doesn't apply.
 
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
----
-Cc: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org
-Cc: netdev@vger.kernel.org
----
-Hello,
-Cover letter is here.
+I was wondering how the conflict, which was checked by bpf-ci,
+happened, as there was no conflict between this series and
+net-next. And now I see, I just tagged a wrong branch for this
+series. Sorry about that, and I'll resend it to the right branch.
 
-This patch set aims to make 'git status' clear after 'make' and 'make
-run_tests' for kselftests.
----
-V3:
-  sort the files
+Thanks!
+Menglong Dong
 
-V2:
-  split as a separate patch from a small one [0]
-  [0] https://lore.kernel.org/linux-kselftest/20241015010817.453539-1-lizhijian@fujitsu.com/
 
-Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
----
- tools/testing/selftests/net/netfilter/.gitignore | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/tools/testing/selftests/net/netfilter/.gitignore b/tools/testing/selftests/net/netfilter/.gitignore
-index 0a64d6d0e29a..64c4f8d9aa6c 100644
---- a/tools/testing/selftests/net/netfilter/.gitignore
-+++ b/tools/testing/selftests/net/netfilter/.gitignore
-@@ -2,5 +2,6 @@
- audit_logread
- connect_close
- conntrack_dump_flush
-+conntrack_reverse_clash
- sctp_collision
- nf_queue
--- 
-2.44.0
-
+> --
+> pw-bot: cr
