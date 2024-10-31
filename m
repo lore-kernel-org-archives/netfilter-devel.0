@@ -1,271 +1,232 @@
-Received: from EUR05-DB8-obe.outbound.protection.outlook.com (mail-db8eur05on2073.outbound.protection.outlook.com [40.107.20.73])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3D8A1A2872;
-	Thu, 31 Oct 2024 15:44:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.20.73
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730389453; cv=fail; b=j98veyo11DI3kKb0V+j/JoZryl6KWEC0rd1g2N8E3Lz53cv/G4DhYLSXXaJb5HLt6ih218eANAzVslIlNJ+53KuXoNUR9hcjH8hiTCmUXYvT3q+wAM9esKAFAYWExcahqtrZ4+f43+bAtRbmMy8g4g2s0gtK9AtJCuU74dP9RvU=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730389453; c=relaxed/simple;
-	bh=XSkXE2PVLUXmfkjPTX7DXJ1SMnRlydGTAgUxngGbcXQ=;
-	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=huyV39aAvzgxvM4XXiKEpjbc/Sx+wIHplcmCG6p8H4y2Fxgc+MV6+CkKtp9HM/dPSGmMyxWMkJEzZMCJkXjCAqosRfCoTvRBPS/I+p9CXWoCNA7pp6j4HV77EwDHo5k1znayV9FWjgJOcOtlvjbNh8jmfRtcDSRkYlBKTiOrGiE=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nokia-bell-labs.com; spf=fail smtp.mailfrom=nokia-bell-labs.com; dkim=pass (2048-bit key) header.d=nokia-bell-labs.com header.i=@nokia-bell-labs.com header.b=mTvh0cvt; arc=fail smtp.client-ip=40.107.20.73
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nokia-bell-labs.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nokia-bell-labs.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nokia-bell-labs.com header.i=@nokia-bell-labs.com header.b="mTvh0cvt"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=sFpKdA2ajXU7MrHp3XyeFGhvL7x6GsQxOYaXwQFBw55N0DW1kossRsvZw9B3fqutXFseXuw4GORApZm030Wt4i0cDgzWWoSQ3t2jQ/g181hKI7w4MFJOwVBLbiLwbhRKAagMpN3518k0koznMoFeWtRfCRU+kgb3SM69yocqlhDgC9P1wNVkxFrMKSFP/LMNgvOhK9K457QgvcihTOfwf5BWTxL8AplCAzjR5v1MtQldWCLkt5/ZGlfHVP9L8WIiN+r9rTC9pgdivpn44CLaQHkM4L49AQ3YiRQlmxzRrwvGI/KmuE5eDmsmYLGasP1wgrlUd2+hCy1p2C7O206XKg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=j+40//l1ZFFQiYjwD89l7TBWBEZ3FLu91Cmh76Xllwc=;
- b=WrjbAcnzClYGhLTbx0NAEx9dJeyqkthdWQoG8Mec0jmexpYc+wWT3Os1N9EanU2t0JBqUBsviBtei7ynz73pQIYHj1XBraawx15G4hG4ok8jqICdTFU7JwEE2L31Y2aLcxIfOyUjHxbnPvPDQwyJGAuoTPDiwNuOI01K2JkylgBIwKFYu5pH/aq/5EEFpwmu1aG0lohLkqNtrXchOR9dLvIXeVa9Q/+fE9+DqG6AR65oJun7/PIWrEfdALGaSdxKN5NEIOTDEg2QNPsAXKQlRv7u7dmJVQS84f7bJtXrKkbeJvohIvmYMOkBkRhQNQFmW2Z8UQLge/8Bl5O6CvLLVg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nokia-bell-labs.com; dmarc=pass action=none
- header.from=nokia-bell-labs.com; dkim=pass header.d=nokia-bell-labs.com;
- arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nokia-bell-labs.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=j+40//l1ZFFQiYjwD89l7TBWBEZ3FLu91Cmh76Xllwc=;
- b=mTvh0cvtlyW9jrFIL45DO5s+nZSHmX0FPzzKCFN0XePr0zOYYQ3w7giQyc7o5hUT0QZxg0gXDRq3/eJy/XsunpIWVuUrRZNbfkmsa3lq8Y3obJy0NMaVrCBwXGYbAtzqCeQp4CnLURm4TEvbN/zTCG0fYeJkgaJ0M/2rasm2QQ+PEaxcBBjH77nJdoVjpxpceiyuIGo4f62nio/sFhMdOsJtG/eq93xyCozM+W11RzAzBuufNaya1ROukzvxongmzCo2f3VUURp6sO79kdryN/DA4yCco8OUBasLFmy5CpXKElYQSI3ZDmmSdao3KOVcyE8g8+htpAL1rq/sFkzJrw==
-Received: from PAXPR07MB7984.eurprd07.prod.outlook.com (2603:10a6:102:133::12)
- by AM7PR07MB6962.eurprd07.prod.outlook.com (2603:10a6:20b:1bb::22) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8093.32; Thu, 31 Oct
- 2024 15:44:08 +0000
-Received: from PAXPR07MB7984.eurprd07.prod.outlook.com
- ([fe80::b7f8:dc0a:7e8d:56]) by PAXPR07MB7984.eurprd07.prod.outlook.com
- ([fe80::b7f8:dc0a:7e8d:56%6]) with mapi id 15.20.8093.027; Thu, 31 Oct 2024
- 15:44:07 +0000
-From: "Chia-Yu Chang (Nokia)" <chia-yu.chang@nokia-bell-labs.com>
-To: Joel Granados <joel.granados@kernel.org>
-CC: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "davem@davemloft.net"
-	<davem@davemloft.net>, "edumazet@google.com" <edumazet@google.com>,
-	"kuba@kernel.org" <kuba@kernel.org>, "pabeni@redhat.com" <pabeni@redhat.com>,
-	"dsahern@kernel.org" <dsahern@kernel.org>, "netfilter-devel@vger.kernel.org"
-	<netfilter-devel@vger.kernel.org>, "kadlec@netfilter.org"
-	<kadlec@netfilter.org>, "coreteam@netfilter.org" <coreteam@netfilter.org>,
-	"pablo@netfilter.org" <pablo@netfilter.org>, "bpf@vger.kernel.org"
-	<bpf@vger.kernel.org>, "linux-fsdevel@vger.kernel.org"
-	<linux-fsdevel@vger.kernel.org>, "kees@kernel.org" <kees@kernel.org>,
-	"mcgrof@kernel.org" <mcgrof@kernel.org>, "ij@kernel.org" <ij@kernel.org>,
-	"ncardwell@google.com" <ncardwell@google.com>, "Koen De Schepper (Nokia)"
-	<koen.de_schepper@nokia-bell-labs.com>, "g.white@cablelabs.com"
-	<g.white@cablelabs.com>, "ingemar.s.johansson@ericsson.com"
-	<ingemar.s.johansson@ericsson.com>, "mirja.kuehlewind@ericsson.com"
-	<mirja.kuehlewind@ericsson.com>, "cheshire@apple.com" <cheshire@apple.com>,
-	"rs.ietf@gmx.at" <rs.ietf@gmx.at>, "Jason_Livingood@comcast.com"
-	<Jason_Livingood@comcast.com>, "vidhi_goel@apple.com" <vidhi_goel@apple.com>
-Subject: RE: [PATCH v4 net-next 14/14] net: sysctl: introduce sysctl
- SYSCTL_FIVE
-Thread-Topic: [PATCH v4 net-next 14/14] net: sysctl: introduce sysctl
- SYSCTL_FIVE
-Thread-Index: AQHbJASIFUksbv4MTU2TzyQWLbR4BbKg9M8AgAAaUcA=
-Date: Thu, 31 Oct 2024 15:44:07 +0000
-Message-ID:
- <PAXPR07MB7984B50A4A61AB10F95C96A2A3552@PAXPR07MB7984.eurprd07.prod.outlook.com>
-References: <20241021215910.59767-1-chia-yu.chang@nokia-bell-labs.com>
- <20241021215910.59767-15-chia-yu.chang@nokia-bell-labs.com>
- <qnrzl4tjlgw5rzlvxavr3pt7fhkslnm4dd62q7uqzb3mfoa2jg@fuayx77rfcs6>
-In-Reply-To: <qnrzl4tjlgw5rzlvxavr3pt7fhkslnm4dd62q7uqzb3mfoa2jg@fuayx77rfcs6>
-Accept-Language: en-GB, en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nokia-bell-labs.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: PAXPR07MB7984:EE_|AM7PR07MB6962:EE_
-x-ms-office365-filtering-correlation-id: ac7747d0-a6b3-4120-70ac-08dcf9c2db16
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam:
- BCL:0;ARA:13230040|366016|376014|7416014|1800799024|38070700018;
-x-microsoft-antispam-message-info:
- =?us-ascii?Q?pUJfsW1EIC4aqFpBneDZAfwZ9JFOZB+YJ2m9pgLtu/60iMiSAZtbud8DQx4P?=
- =?us-ascii?Q?FGFh35hnGp4my2U6E6YEXLqntu18euyEMv3wJ8ch6QTlfKgDuiC/oV3P8p2U?=
- =?us-ascii?Q?M9+GvsQZOAtPWLmIvaUSh1neuIkXtRX8XZAEd2FVKcNGlL4O+Bio8HBQr10X?=
- =?us-ascii?Q?UHwDeCOZWURfnNpupeiDA8G3sbOV82M+4dn+xyLMoWYW9rlt+0YuT7PEYpjB?=
- =?us-ascii?Q?VaF6htqL1fGQctLuhF/kukk/643WWpTQre8sYPxF0KMiL+h2l5rT1fy6urBw?=
- =?us-ascii?Q?ueQnaT/hOL8HFfJ9reIsHfZR0Kgup17dlNkHbNObMi1FrpSJsYXPbJdtVY61?=
- =?us-ascii?Q?5fB7fyZJd63+PVKhoDECE9z+ScPrZXycehWiu+sXI0ZbOAkT14Zo3+i2SLEn?=
- =?us-ascii?Q?C5cBxLaAtNovWtZ8HzspUSlgTAUDsw0y0it7uS4KkkoIzavULuRAFEZ36nCi?=
- =?us-ascii?Q?+y5LLUi7ogc/4pRyjg4g7rTc8OqyvxUV0NeOBrhDqkXf8wLbF5x7YMxHDcRA?=
- =?us-ascii?Q?l/hYPEE3L8HhhXuCLas7psEpsD+d7k/Lc2IDVHHUE3RmS2IT3Wqaj8nu8C9f?=
- =?us-ascii?Q?A6Wh/B9i1f9tYgygQzY3CcV1Pm2j18csi1TQ0615AZO71ftvta2GlAX+7fH7?=
- =?us-ascii?Q?ubcxOPLb/XQauUhxBcQa1T3iYHLpK0jz2oJ2dFCWSVFYmtNA3QVoVYT/Fq9E?=
- =?us-ascii?Q?V1BuczvO9krw7o4pP99WHQIJiVClF7y5a2mSBu8oMCG3dEmbFvwAx0FxlvEO?=
- =?us-ascii?Q?6D4aNiDILyTTKVePhftOeb/83VJJFGaIF/IqH8Q2u2AvuKUUdVXKDfapjvx2?=
- =?us-ascii?Q?mStL0o/l/IWAuAacZtM6G7UQ1lJiOKK7ort/Ub1W+mCHjjASySV2xhBQLk+a?=
- =?us-ascii?Q?3rUTpwj2VJMS3sVZc+7fN5A7rYSaJo8XnH61xqtqumBgWdl2eTxwmz+JFQgE?=
- =?us-ascii?Q?S0yb+USHJCay28L3GMzaFVSbK/OaM3m+pwb1Uns+PfPpLiffjhPe8rPGoF5G?=
- =?us-ascii?Q?UBDIR8i8t0xL3fHMWigd7RfKvwn4aBYRNZ4GLZ5MRALgHS8O03KWk3xCQBkq?=
- =?us-ascii?Q?uErwBwFsUqapIXKdW63/JDgp1OSjXHeAlvFnv4VgVogjaSCq8tHP0fJFHSHe?=
- =?us-ascii?Q?hvf7b6OgIYAraOMtSzgmrzON3JoyqNOtv2q3r7t71eZ0L+XLq8R6jkHbaZY3?=
- =?us-ascii?Q?RjrePvw5Xuga8zA/IsBpU7iR/2Ox2NzCDn6jM+v+KHcPeTNbVWD36pc7Y6/0?=
- =?us-ascii?Q?lqoLRMGXhpFMBCuF2ewqkVWixHeujtdaNj1qewSIrdedhKsw3Tn65rULH68E?=
- =?us-ascii?Q?85KQa5PsCMEmUMKcG/6vIqbH?=
-x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PAXPR07MB7984.eurprd07.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(7416014)(1800799024)(38070700018);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?us-ascii?Q?BB8ZpdnDlveGjyAcWbTvQMoGjtO/FweexP8/lQtOGgsmP4tEvZpq/n0nBaXZ?=
- =?us-ascii?Q?w0dMF62iv5Irpca/MIiuYZ7uz/A7zBnvJ8+6rYJl1f0BPLhXtlPJaQ+OpBtR?=
- =?us-ascii?Q?Hr7GWoA0Q1ubWy6lEsZ6gx6Xu7NRx2RQq+xul7AaH7BqE2abCdGY+okFX0X8?=
- =?us-ascii?Q?G++K8NDx20PthAWiCwKn9tEk5Yhn6e03uSG480yFIJMyUr/1VErpFtmfDmHM?=
- =?us-ascii?Q?1DSZ87QW0CbGivwYdW/lQlpdawP7CAypCF9Nie9kWoA/ceA5D5uQcdXZ/5+V?=
- =?us-ascii?Q?ih4P48hOoiq4rFl2EN58B+IJnPXne8XplH7FM6s4eIaMa1xoOxHjk7k4Wgid?=
- =?us-ascii?Q?pDtXgEA2jy+lCk1Ha8kAFGxQ4sPSFvrr6OhLrhOw5YcxOIdQxRWKegouyV+Y?=
- =?us-ascii?Q?X9JQQjFXmsKCLBRY+Fc7yTPpZnEaBr0EgwDHt/oV0NW6X3zVB8bflImtLfBa?=
- =?us-ascii?Q?srC7zLzYIhl3jvl6lFD2jEJavZ0Qc/I48HugYmPOJBW3Fwfuytqn3b9OjNVx?=
- =?us-ascii?Q?bHs0Id4nhBFNkDmXMaofrGwtwYga0xaXWcAmRDiYCn7/BK1i4ezxX9tAQPUR?=
- =?us-ascii?Q?shfH0w6nmJzm+m44pqf5VpUskyYNvnIY/qNAN7URZcD9o0LEUnBPxmrtkQYj?=
- =?us-ascii?Q?wfsPdI2kYOkotHarxzNMgWHKAbJha3Vxyqf4UuvHuGTp6zh6FeTWWTsUIA3o?=
- =?us-ascii?Q?XlBHw12P6oqbucSlWrGtChuL69SaE4vFDWa7Bf3LkT65OyGSyemXrKgAGA5u?=
- =?us-ascii?Q?oZRx99J3aHgurzHzF+kvnZmF6uqB/IpfmTXB/bqgS9EgTu+eFDBHlHKtUKUG?=
- =?us-ascii?Q?IKBgEp7CsbvHXUmB2TN3WP7BKkY64pLor7Ico3k4G8FXCaERZu6wtfaHdFLB?=
- =?us-ascii?Q?dddhcICA5O2R0PPlrlCLJMI1gyShxOcbYr0WeCxd74J7XmclXLmO639SIjnU?=
- =?us-ascii?Q?sdavfGNHFixQS4r5l03QzdF0pHTcr8aQ7J7TVeIM8iItkygQuDXo+/TVRh6B?=
- =?us-ascii?Q?O4W4F1wV5LYBSlmzc3KN3B63wW+N0hI1zSj4n+ZYaB7gnOaYaUMP5NpZzsbC?=
- =?us-ascii?Q?3lQBBehBh+yyLhRHpYJ/qRfnhLkYimTcJT4VGqGb1/Yv2dR/ePwqJwkU0/fF?=
- =?us-ascii?Q?++g7g2a5it9AhfZxnNHpzMh1isNGPbVluV/fRMbo5OVqjxyHPXzu3Jx9r0io?=
- =?us-ascii?Q?iqTwdOGy6wxik655EF6rELWzrglTSE+jYiFyP+m4FF6fPCo9pAXX/OCGq5MF?=
- =?us-ascii?Q?GlHdHFIkRRhhyvPZRTwGezRvrGrrZ3fTg4nK3S0pjFVNirYOGJupyVFDGMYW?=
- =?us-ascii?Q?TWzFBosak/+esUZUqgyfP+p7UlMZTcXyeFhxuTYdUUYUltkf26RJ0PMDu1Aa?=
- =?us-ascii?Q?9GxyonZIFKau13RKfsuqF572zrfMCMxqcq40/UfmLvh7ov4bmWXORJERnhLR?=
- =?us-ascii?Q?Ur+BWPxLPGZEJqaFOVZXUCf5L+4MdzN9Hc7rp7TUacQcJz7W/L9BslN0YsaZ?=
- =?us-ascii?Q?++g7oraXbtFuXfTbQqrJwZmM9EZrNaMiqXcun+Z66wbaDGhqSTlAqHbCjaJq?=
- =?us-ascii?Q?QmetXG3VOqu7nQt9GpEQCZIBF2tJCzPLOeHGs9mnNeA3fd4iXW51kcWoLE1r?=
- =?us-ascii?Q?dw=3D=3D?=
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC68B1BCA1C;
+	Thu, 31 Oct 2024 16:21:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1730391720; cv=none; b=T/z/V9IQOZXvIGh5lGBgQm07YQxbKPv2B+7tXTYu2/pJgAOkDHflOQZMvo/7s89F+Wu6AYY5t6IC8uF7MyH5uK+Wl4xzSdGzWsI+L82t3JsAsjIzz13OymPfJiaibgl22sKtEU/hTvVxTmHRffc4bmV2IgLrB0S+qkmdeH2KJco=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1730391720; c=relaxed/simple;
+	bh=p/bsuflYohrgMd2pyA4rxn/ZvnOCH4iDYm+W5B7U/84=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=A+O+1/SxQJIt75j5liwHztkzYK/9DJw2SRePYmVaIkcVcxtHx7RK0kCqIK9NIDHh3UF9EmtDMtSBxW+2Sm9+qMxmXuh6ir5qPPcgtqyjcyFzMBHgfUkRBhjymSQdXQclY8+mskj3amF1fTJBjw3/i8NYcwMvvwqMracEgxIsY6s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
+Received: from mail.maildlp.com (unknown [172.18.186.31])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4XfTf0017xz6GDty;
+	Fri,  1 Nov 2024 00:16:56 +0800 (CST)
+Received: from mscpeml500004.china.huawei.com (unknown [7.188.26.250])
+	by mail.maildlp.com (Postfix) with ESMTPS id A16AC140133;
+	Fri,  1 Nov 2024 00:21:48 +0800 (CST)
+Received: from [10.123.123.159] (10.123.123.159) by
+ mscpeml500004.china.huawei.com (7.188.26.250) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1258.34; Thu, 31 Oct 2024 19:21:46 +0300
+Message-ID: <62336067-18c2-3493-d0ec-6dd6a6d3a1b5@huawei-partners.com>
+Date: Thu, 31 Oct 2024 19:21:44 +0300
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-OriginatorOrg: nokia-bell-labs.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: PAXPR07MB7984.eurprd07.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: ac7747d0-a6b3-4120-70ac-08dcf9c2db16
-X-MS-Exchange-CrossTenant-originalarrivaltime: 31 Oct 2024 15:44:07.4367
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 5d471751-9675-428d-917b-70f44f9630b0
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: wMPd9eZkArmUOzzFk9YSujlvM3VI9TMjioTW8DY+69QFv6ebNazQVCtzeVHhxGAKi/ZsA3QmfsVqfQ+i5wSZYuhFBVRRHNSE4uvFrqTbqdlotmqydC5rE0IbXlrqxL3o
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM7PR07MB6962
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH v2 1/8] landlock: Fix non-TCP sockets restriction
+Content-Language: ru
+To: =?UTF-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>, Matthieu Baerts
+	<matttbe@kernel.org>
+CC: <gnoack@google.com>, <willemdebruijn.kernel@gmail.com>,
+	<matthieu@buffet.re>, <linux-security-module@vger.kernel.org>,
+	<netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
+	<yusongping@huawei.com>, <artem.kuzin@huawei.com>,
+	<konstantin.meskhidze@huawei.com>, MPTCP Linux <mptcp@lists.linux.dev>
+References: <20241017110454.265818-1-ivanov.mikhail1@huawei-partners.com>
+ <20241017110454.265818-2-ivanov.mikhail1@huawei-partners.com>
+ <49bc2227-d8e1-4233-8bc4-4c2f0a191b7c@kernel.org>
+ <20241018.Kahdeik0aaCh@digikod.net>
+From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+In-Reply-To: <20241018.Kahdeik0aaCh@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: lhrpeml100012.china.huawei.com (7.191.174.184) To
+ mscpeml500004.china.huawei.com (7.188.26.250)
 
-Hi Paolo and Joel,
+On 10/18/2024 9:08 PM, Mickaël Salaün wrote:
+> On Thu, Oct 17, 2024 at 02:59:48PM +0200, Matthieu Baerts wrote:
+>> Hi Mikhail and Landlock maintainers,
+>>
+>> +cc MPTCP list.
+> 
+> Thanks, we should include this list in the next series.
+> 
+>>
+>> On 17/10/2024 13:04, Mikhail Ivanov wrote:
+>>> Do not check TCP access right if socket protocol is not IPPROTO_TCP.
+>>> LANDLOCK_ACCESS_NET_BIND_TCP and LANDLOCK_ACCESS_NET_CONNECT_TCP
+>>> should not restrict bind(2) and connect(2) for non-TCP protocols
+>>> (SCTP, MPTCP, SMC).
+>>
+>> Thank you for the patch!
+>>
+>> I'm part of the MPTCP team, and I'm wondering if MPTCP should not be
+>> treated like TCP here. MPTCP is an extension to TCP: on the wire, we can
+>> see TCP packets with extra TCP options. On Linux, there is indeed a
+>> dedicated MPTCP socket (IPPROTO_MPTCP), but that's just internal,
+>> because we needed such dedicated socket to talk to the userspace.
+>>
+>> I don't know Landlock well, but I think it is important to know that an
+>> MPTCP socket can be used to discuss with "plain" TCP packets: the kernel
+>> will do a fallback to "plain" TCP if MPTCP is not supported by the other
+>> peer or by a middlebox. It means that with this patch, if TCP is blocked
+>> by Landlock, someone can simply force an application to create an MPTCP
+>> socket -- e.g. via LD_PRELOAD -- and bypass the restrictions. It will
+>> certainly work, even when connecting to a peer not supporting MPTCP.
+>>
+>> Please note that I'm not against this modification -- especially here
+>> when we remove restrictions around MPTCP sockets :) -- I'm just saying
+>> it might be less confusing for users if MPTCP is considered as being
+>> part of TCP. A bit similar to what someone would do with a firewall: if
+>> TCP is blocked, MPTCP is blocked as well.
+> 
+> Good point!  I don't know well MPTCP but I think you're right.  Given
+> it's close relationship with TCP and the fallback mechanism, it would
+> make sense for users to not make a difference and it would avoid bypass
+> of misleading restrictions.  Moreover the Landlock rules are simple and
+> only control TCP ports, not peer addresses, which seems to be the main
+> evolution of MPTCP. >
+>>
+>> I understand that a future goal might probably be to have dedicated
+>> restrictions for MPTCP and the other stream protocols (and/or for all
+>> stream protocols like it was before this patch), but in the meantime, it
+>> might be less confusing considering MPTCP as being part of TCP (I'm not
+>> sure about the other stream protocols).
+> 
+> We need to take a closer look at the other stream protocols indeed.
+Hello! Sorry for the late reply, I was on a small business trip.
 
-	We will remove this patch as we check this will be only used by tcp_ecn in=
- the upcoming patch.
+Thanks a lot for this catch, without doubt MPTCP should be controlled
+with TCP access rights.
 
-Brs,
-Chia-Yu
+In that case, we should reconsider current semantics of TCP control.
 
------Original Message-----
-From: Joel Granados <joel.granados@kernel.org>=20
-Sent: Thursday, October 31, 2024 3:09 PM
-To: Chia-Yu Chang (Nokia) <chia-yu.chang@nokia-bell-labs.com>
-Cc: netdev@vger.kernel.org; davem@davemloft.net; edumazet@google.com; kuba@=
-kernel.org; pabeni@redhat.com; dsahern@kernel.org; netfilter-devel@vger.ker=
-nel.org; kadlec@netfilter.org; coreteam@netfilter.org; pablo@netfilter.org;=
- bpf@vger.kernel.org; linux-fsdevel@vger.kernel.org; kees@kernel.org; mcgro=
-f@kernel.org; ij@kernel.org; ncardwell@google.com; Koen De Schepper (Nokia)=
- <koen.de_schepper@nokia-bell-labs.com>; g.white@cablelabs.com; ingemar.s.j=
-ohansson@ericsson.com; mirja.kuehlewind@ericsson.com; cheshire@apple.com; r=
-s.ietf@gmx.at; Jason_Livingood@comcast.com; vidhi_goel@apple.com
-Subject: Re: [PATCH v4 net-next 14/14] net: sysctl: introduce sysctl SYSCTL=
-_FIVE
+Currently, it looks like this:
+* LANDLOCK_ACCESS_NET_BIND_TCP: Bind a TCP socket to a local port.
+* LANDLOCK_ACCESS_NET_CONNECT_TCP: Connect an active TCP socket to a
+   remote port.
 
-[Some people who received this message don't often get email from joel.gran=
-ados@kernel.org. Learn why this is important at https://aka.ms/LearnAboutSe=
-nderIdentification ]
+According to these definitions only TCP sockets should be restricted and
+this is already provided by Landlock (considering observing commit)
+(assuming that "TCP socket" := user space socket of IPPROTO_TCP
+protocol).
 
-CAUTION: This is an external email. Please be very careful when clicking li=
-nks or opening attachments. See the URL nok.it/ext for additional informati=
-on.
+AFAICS the two objectives of TCP access rights are to control
+(1) which ports can be used for sending or receiving TCP packets
+     (including SYN, ACK or other service packets).
+(2) which ports can be used to establish TCP connection (performed by
+     kernel network stack on server or client side).
 
+In most cases denying (2) cause denying (1). Sending or receiving TCP
+packets without initial 3-way handshake is only possible on RAW [1] or
+PACKET [2] sockets. Usage of such sockets requires root privilligies, so
+there is no point to control them with Landlock.
 
+Therefore Landlock should only take care about case (2). For now
+(please correct me if I'm wrong), we only considered control of
+connection performed on user space plain TCP sockets (created with
+IPPROTO_TCP).
 
-On Mon, Oct 21, 2024 at 11:59:10PM +0200, chia-yu.chang@nokia-bell-labs.com=
- wrote:
-> From: Chia-Yu Chang <chia-yu.chang@nokia-bell-labs.com>
->
-> Add SYSCTL_FIVE for new AccECN feedback modes of net.ipv4.tcp_ecn.
->
-> Signed-off-by: Chia-Yu Chang <chia-yu.chang@nokia-bell-labs.com>
-> ---
->  include/linux/sysctl.h | 17 +++++++++--------
->  kernel/sysctl.c        |  3 ++-
->  2 files changed, 11 insertions(+), 9 deletions(-)
->
-> diff --git a/include/linux/sysctl.h b/include/linux/sysctl.h index=20
-> aa4c6d44aaa0..37c95a70c10e 100644
-> --- a/include/linux/sysctl.h
-> +++ b/include/linux/sysctl.h
-> @@ -37,21 +37,22 @@ struct ctl_table_root;  struct ctl_table_header; =20
-> struct ctl_dir;
->
-> -/* Keep the same order as in fs/proc/proc_sysctl.c */
-> +/* Keep the same order as in kernel/sysctl.c */
->  #define SYSCTL_ZERO                  ((void *)&sysctl_vals[0])
->  #define SYSCTL_ONE                   ((void *)&sysctl_vals[1])
->  #define SYSCTL_TWO                   ((void *)&sysctl_vals[2])
->  #define SYSCTL_THREE                 ((void *)&sysctl_vals[3])
->  #define SYSCTL_FOUR                  ((void *)&sysctl_vals[4])
-> -#define SYSCTL_ONE_HUNDRED           ((void *)&sysctl_vals[5])
-> -#define SYSCTL_TWO_HUNDRED           ((void *)&sysctl_vals[6])
-> -#define SYSCTL_ONE_THOUSAND          ((void *)&sysctl_vals[7])
-> -#define SYSCTL_THREE_THOUSAND                ((void *)&sysctl_vals[8])
-> -#define SYSCTL_INT_MAX                       ((void *)&sysctl_vals[9])
-> +#define SYSCTL_FIVE                  ((void *)&sysctl_vals[5])
-Is it necessary to insert the value instead of appending it to the end of s=
-ysctl_vals? I would actually consider Paolo Abeni's suggestion to just use =
-a constant if you are using it only in one place.
+TCP kernel sockets are generally used in the following ways:
+* in a couple of other user space protocols (MPTCP, SMC, RDS)
+* in a few network filesystems (e.g. NFS communication over TCP)
 
-> +#define SYSCTL_ONE_HUNDRED           ((void *)&sysctl_vals[6])
-> +#define SYSCTL_TWO_HUNDRED           ((void *)&sysctl_vals[7])
-> +#define SYSCTL_ONE_THOUSAND          ((void *)&sysctl_vals[8])
-> +#define SYSCTL_THREE_THOUSAND                ((void *)&sysctl_vals[9])
-> +#define SYSCTL_INT_MAX                       ((void *)&sysctl_vals[10])
->
->  /* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and=
- GID */
-> -#define SYSCTL_MAXOLDUID             ((void *)&sysctl_vals[10])
-> -#define SYSCTL_NEG_ONE                       ((void *)&sysctl_vals[11])
-> +#define SYSCTL_MAXOLDUID             ((void *)&sysctl_vals[11])
-> +#define SYSCTL_NEG_ONE                       ((void *)&sysctl_vals[12])
->
->  extern const int sysctl_vals[];
->
-> diff --git a/kernel/sysctl.c b/kernel/sysctl.c index=20
-> 79e6cb1d5c48..68b6ca67a0c6 100644
-> --- a/kernel/sysctl.c
-> +++ b/kernel/sysctl.c
-> @@ -82,7 +82,8 @@
->  #endif
->
->  /* shared constants to be used in various sysctls */ -const int=20
-> sysctl_vals[] =3D { 0, 1, 2, 3, 4, 100, 200, 1000, 3000, INT_MAX, 65535,=
-=20
-> -1 };
-> +const int sysctl_vals[] =3D { 0, 1, 2, 3, 4, 5, 100, 200, 1000, 3000, IN=
-T_MAX,
-> +                        65535, -1 };
->  EXPORT_SYMBOL(sysctl_vals);
->
->  const unsigned long sysctl_long_vals[] =3D { 0, 1, LONG_MAX };
-> --
-> 2.34.1
->
+For the second case TCP connection is currently not restricted by
+Landlock. This approach is may be correct, since NFS should not have
+access to a plain TCP communication and TCP restriction of NFS may
+be too implicit. Nevertheless, I think that restriction via current
+access rights should be considered.
 
---
+For the first case, each protocol use TCP differently, so they should
+be considered separately.
 
-Joel Granados
+In the case of MPTCP TCP internal sockets are used to establish
+connection and exchange data between two network interfaces. MPTCP
+allows to have multiple TCP connections between two MPTCP sockets by
+connecting different network interfaces (e.g. WIFI and 3G).
+
+Shared Memory Communication is a protocol that allows TCP applications
+transparently use RDMA for communication [3]. TCP internal socket is
+used to exchange service CLC messages when establishing SMC connection
+(which seems harmless for sandboxing) and for communication in the case
+of fallback. Fallback happens only if RDMA communication became
+impossible (e.g. if RDMA capable RNIC card went down on host or peer
+side). So, preventing TCP communication may be achieved by controlling
+fallback mechanism.
+
+Reliable Datagram Socket is connectionless protocol implemented by
+Oracle [4]. It uses TCP stack or Infiniband to reliably deliever
+datagrams. For every sendmsg(2), recvmsg(2) it establishes TCP
+connection and use it to deliever splitted message.
+
+In comparison with previous protocols, RDS sockets cannot be binded or
+connected to special TCP ports (e.g. with bind(2), connect(2)). 16385
+port is assigned to receiving side and sending side is binded to the
+port allocated by the kernel (by using zero as port number).
+
+It may be useful to restrict RDS-over-TCP with current access rights,
+since it allows to perform TCP communication from user-space. But it
+would be only possible to fully allow or deny sending/receiving
+(since used ports are not controlled from user space).
+
+Restricting any TCP connection in the kernel is probably simplest
+design, but we should consider above cases to provide the most useful
+one.
+
+[1] https://man7.org/linux/man-pages/man7/raw.7.html
+[2] https://man7.org/linux/man-pages/man7/packet.7.html
+[3] https://datatracker.ietf.org/doc/html/rfc7609
+[4] https://oss.oracle.com/projects/rds/dist/documentation/rds-3.1-spec.html
+
+> 
+>>
+>>
+>>> sk_is_tcp() is used for this to check address family of the socket
+>>> before doing INET-specific address length validation. This is required
+>>> for error consistency.
+>>>
+>>> Closes: https://github.com/landlock-lsm/linux/issues/40
+>>> Fixes: fff69fb03dde ("landlock: Support network rules with TCP bind and connect")
+>>
+>> I don't know how fixes are considered in Landlock, but should this patch
+>> be considered as a fix? It might be surprising for someone who thought
+>> all "stream" connections were blocked to have them unblocked when
+>> updating to a minor kernel version, no?
+> 
+> Indeed.  The main issue was with the semantic/definition of
+> LANDLOCK_ACCESS_FS_NET_{CONNECT,BIND}_TCP.  We need to synchronize the
+> code with the documentation, one way or the other, preferably following
+> the principle of least astonishment.
+> 
+>>
+>> (Personally, I would understand such behaviour change when upgrading to
+>> a major version, and still, maybe only if there were alternatives to
+> 
+> This "fix" needs to be backported, but we're not clear yet on what it
+> should be. :)
+> 
+>> continue having the same behaviour, e.g. a way to restrict all stream
+>> sockets the same way, or something per stream socket. But that's just me
+>> :) )
+> 
+> The documentation and the initial idea was to control TCP bind and
+> connect.  The kernel implementation does more than that, so we need to
+> synthronize somehow.
+> 
+>>
+>> Cheers,
+>> Matt
+>> -- 
+>> Sponsored by the NGI0 Core fund.
+>>
+>>
