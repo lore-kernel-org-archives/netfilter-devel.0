@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 0C1FC19925D;
-	Thu, 31 Oct 2024 10:01:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A4B94199936;
+	Thu, 31 Oct 2024 10:01:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730368887; cv=none; b=nDv5upVMvlFvEFRF5KHZPR9tZUkUHb/Spv1Ts37hIMZjFyVdMYcft/nKgRPKhk/9qODcGSuzDt/BfFPiaIuUax4uAvlOv8uvSEGuvTa3ZOt6HmevkXcqvwdfI1otw+KxHf6+BU2fP6LbJ3hjaeCakbEaTQ0ls4o3S/MT86gVhp4=
+	t=1730368888; cv=none; b=Sd/finCUGSg1QE+GFSThJzjY9vKpR//SOz9IAKaUAHIb8CyLPyfrUwNtvT8yeIs2X7DGkBf3eFbLpTN08cx3SLDEv/OfVxFHp5sjnI5NM92+3qSWjxxa/2yPBTWngJ1f/RuHMwp06pTuYc+/f3nUxjuzxQ184dgcfWgeitGj368=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730368887; c=relaxed/simple;
-	bh=wVRTrWiIbds7p0oRXM3JkntNU0FVah64IXh8GSUFh9c=;
+	s=arc-20240116; t=1730368888; c=relaxed/simple;
+	bh=n2YCcxRWAkMaCAzg5bpKKhTVz0sdILj8PWv2IcBG+lI=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=pGlspWib/uE+J6cC9Z6LfY2IydODWv6cc79+I8SBY/5tcZnTTQr5K9AKJ8DVuyY+Bp19s2/4BB3opoTJ2/PMfSeVaQ+NQpSk2l8M+G2KbLTeaCNmgZFdG1zDItH1hT5de2oNV34G4m9DbZ4pDULa4mwAbsK+r9aMHIssJKRAf/4=
+	 MIME-Version; b=pZMKUGare8/73pCuLPIxmYGk/OkvUYlnMQwOy4JFWmcC8E44s0dViyra/O8LJLD+sG2SFLVwo8LDcJKOogch5KeLKrsFYVTAGvhaD1U5djpWg/XyJJrlYzsv+IQy6Vmjx7ba43V6JJE03v1yDTseqIM3iO4oVDaAVopb8KGjFLI=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 1/4] selftests: netfilter: remove unused parameter
-Date: Thu, 31 Oct 2024 11:01:14 +0100
-Message-Id: <20241031100117.152995-2-pablo@netfilter.org>
+Subject: [PATCH net 4/4] netfilter: nft_payload: sanitize offset and length before calling skb_checksum()
+Date: Thu, 31 Oct 2024 11:01:17 +0100
+Message-Id: <20241031100117.152995-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20241031100117.152995-1-pablo@netfilter.org>
 References: <20241031100117.152995-1-pablo@netfilter.org>
@@ -34,46 +34,33 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Liu Jing <liujing@cmss.chinamobile.com>
+If access to offset + length is larger than the skbuff length, then
+skb_checksum() triggers BUG_ON().
 
-err is never used, remove it.
+skb_checksum() internally subtracts the length parameter while iterating
+over skbuff, BUG_ON(len) at the end of it checks that the expected
+length to be included in the checksum calculation is fully consumed.
 
-Signed-off-by: Liu Jing <liujing@cmss.chinamobile.com>
+Fixes: 7ec3f7b47b8d ("netfilter: nft_payload: add packet mangling support")
+Reported-by: Slavin Liu <slavin-ayu@qq.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- .../testing/selftests/net/netfilter/conntrack_dump_flush.c  | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ net/netfilter/nft_payload.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/tools/testing/selftests/net/netfilter/conntrack_dump_flush.c b/tools/testing/selftests/net/netfilter/conntrack_dump_flush.c
-index dc056fec993b..254ff03297f0 100644
---- a/tools/testing/selftests/net/netfilter/conntrack_dump_flush.c
-+++ b/tools/testing/selftests/net/netfilter/conntrack_dump_flush.c
-@@ -98,7 +98,7 @@ static int conntrack_data_insert(struct mnl_socket *sock, struct nlmsghdr *nlh,
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
- 	struct nlmsghdr *rplnlh;
- 	unsigned int portid;
--	int err, ret;
-+	int ret;
- 
- 	portid = mnl_socket_get_portid(sock);
- 
-@@ -217,7 +217,7 @@ static int conntracK_count_zone(struct mnl_socket *sock, uint16_t zone)
- 	struct nfgenmsg *nfh;
- 	struct nlattr *nest;
- 	unsigned int portid;
--	int err, ret;
-+	int ret;
- 
- 	portid = mnl_socket_get_portid(sock);
- 
-@@ -264,7 +264,7 @@ static int conntrack_flush_zone(struct mnl_socket *sock, uint16_t zone)
- 	struct nfgenmsg *nfh;
- 	struct nlattr *nest;
- 	unsigned int portid;
--	int err, ret;
-+	int ret;
- 
- 	portid = mnl_socket_get_portid(sock);
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index 330609a76fb2..7dfc5343dae4 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -904,6 +904,9 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
+ 	    ((priv->base != NFT_PAYLOAD_TRANSPORT_HEADER &&
+ 	      priv->base != NFT_PAYLOAD_INNER_HEADER) ||
+ 	     skb->ip_summed != CHECKSUM_PARTIAL)) {
++		if (offset + priv->len > skb->len)
++			goto err;
++
+ 		fsum = skb_checksum(skb, offset, priv->len, 0);
+ 		tsum = csum_partial(src, priv->len, 0);
  
 -- 
 2.30.2
