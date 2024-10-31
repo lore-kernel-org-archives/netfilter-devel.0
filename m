@@ -1,64 +1,104 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 466341C8FD2
-	for <netfilter-devel@vger.kernel.org>; Thu, 31 Oct 2024 21:59:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id F36A21CC8A8
+	for <netfilter-devel@vger.kernel.org>; Thu, 31 Oct 2024 22:04:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730411964; cv=none; b=gMiNP2eqGOAgpKU+JlOZtEIc2RdIDzVnTvnA6ilw9yzwjoGCYKlKmGrWsmDcjIIFOeLvGsX7f3xOyr1HwKSUL1dVC31G9yEHcMibDiXnGArrc4cWzR6C4WS2p/ivTogM4YUbEd4g5BUMGHGpBy+UCm7Ax46lV+VEbzO+cMvkG2Q=
+	t=1730412266; cv=none; b=MJQg9lPQcsKaK835ApBakjhJVYQBSF7DTaQpcUItj8wMzG5hiFVo3VUezvkG2s+xIc5ws1VR22v8hSMbA6Ncncwd9aTj43Uctn4uZ4x3Ve887K9glpKJkO2cOgsug25n+TDqxzQc5J5rWeg1BOAkKvTrJw+0JfFgAHuQsmX3xWg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730411964; c=relaxed/simple;
-	bh=/27NwBE57pWoIqxKhlCujuhujLBSWS4KMCWdXTpVi+k=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=mcXu1geRLy0z+WqP+RmU51H6TR7QBgGRzUZHXeZcGYAcjYnjobSycpSW61AXxp76TeeJOMING1hvXG2gHheaNZZKIwfrI1cCAdTfPzHuz9WeMaO0WL6RXFP6YeS/lj3Ym90lxQDAclZTT9sMHx+6YupUmv95D87QbuEyW/Z+gUg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+	s=arc-20240116; t=1730412266; c=relaxed/simple;
+	bh=XxnIei9ISJf1VNFh9E+9TXMqBkrcNpcqG3JEcdT52Ps=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=A69YGQ1H4KSoaWJ0ci1B2LzDfBOh7ByTue4uMY0YQmn+TbiVyotgGBQHBjFpKO4Mbkex4CltipJD59rjHl/SJY/Th7ObR6n8d/k5BgXVsyC/4ax7hAC8JqvfbYadjgfoZQwNGvRZIJqMY1wuBqrygkuu6YEQ7F5bBqmCAp3aDHI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=51524 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1t6dC9-00H5or-J3; Thu, 31 Oct 2024 22:59:15 +0100
-Date: Thu, 31 Oct 2024 22:59:08 +0100
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH v2 nf-next 0/7] netfilter: nf_tables: avoid
- PROVE_RCU_LIST splats
-Message-ID: <ZyP9rJlHagxOnCum@calendula>
-References: <20241030094053.13118-1-fw@strlen.de>
- <ZyP7Q94DCbwBmobU@calendula>
- <20241031215645.GB4460@breakpoint.cc>
+To: netfilter-devel@vger.kernel.org
+Cc: phil@nwl.cc,
+	eric@garver.life
+Subject: [PATCH nft] json: collapse set element commands from parser
+Date: Thu, 31 Oct 2024 23:04:11 +0100
+Message-Id: <20241031220411.165942-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20241031215645.GB4460@breakpoint.cc>
-X-Spam-Score: -1.9 (-)
+Content-Transfer-Encoding: 8bit
 
-On Thu, Oct 31, 2024 at 10:56:45PM +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > This targets nf-next because these are long-standing issues.
-> > 
-> > This series breaks inner matching, I can see tests/shell reports:
-> > 
-> > I: conf: NFT_TEST_HAVE_inner_matching=n
-> 
-> Uh, didn't i fix this in v2?  V1 had a bug in patch 6:
-> 
-> +       if (!type->inner_ops || type->owner) {
-> +               err = -EOPNOTSUPP;
-> 
-> 
-> V1 had !type->owner, which causes feature probe to fail and the test to
-> skip (it skips builtin instead of module...).
-> 
-> I re-tested, I get:
-> I: conf: NFT_TEST_HAVE_inner_matching=y
+Update json parser to collapse {add,create} element commands to reduce
+memory consumption in the case of large sets defined by one element per
+command:
 
-Thanks for your quick reply. Let me retry again, perhaps I took the
-wrong batch from patchwork. I will keep you posted.
+{"nftables": [{"add": {"element": {"family": "ip", "table": "x", "name":
+"y", "elem": [{"set": ["1.1.0.0"]}]}}},...]}
+
+Add CTX_F_COLLAPSED flag to report that command has been collapsed.
+
+This patch reduces memory consumption by ~32% this case.
+
+Fixes: 20f1c60ac8c8 ("src: collapse set element commands from parser")
+Reported-by: Eric Garver <eric@garver.life>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+Side note: While profiling, I can still see lots json objects, this
+results in memory consumption that is 5 times than native
+representation. Error reporting is also lagging behind, it should be
+possible to add a json_t pointer to struct location to relate
+expressions and json objects.
+
+ src/parser_json.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/src/parser_json.c b/src/parser_json.c
+index 37ec34cb7796..68c0600df085 100644
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -18,6 +18,7 @@
+ #include <netlink.h>
+ #include <parser.h>
+ #include <rule.h>
++#include <cmd.h>
+ #include <sctp_chunk.h>
+ #include <socket.h>
+ 
+@@ -49,6 +50,7 @@
+ #define CTX_F_SES	(1 << 6)	/* set_elem_expr_stmt */
+ #define CTX_F_MAP	(1 << 7)	/* LHS of map_expr */
+ #define CTX_F_CONCAT	(1 << 8)	/* inside concat_expr */
++#define CTX_F_COLLAPSED	(1 << 9)
+ 
+ struct json_ctx {
+ 	struct nft_ctx *nft;
+@@ -3490,6 +3492,15 @@ static struct cmd *json_parse_cmd_add_element(struct json_ctx *ctx,
+ 		handle_free(&h);
+ 		return NULL;
+ 	}
++
++	if ((op == CMD_CREATE || op == CMD_ADD) &&
++	    nft_cmd_collapse_elems(op, ctx->cmds, &h, expr)) {
++		handle_free(&h);
++		expr_free(expr);
++		ctx->flags |= CTX_F_COLLAPSED;
++		return NULL;
++	}
++
+ 	return cmd_alloc(op, cmd_obj, &h, int_loc, expr);
+ }
+ 
+@@ -4319,6 +4330,11 @@ static int __json_parse(struct json_ctx *ctx)
+ 		cmd = json_parse_cmd(ctx, value);
+ 
+ 		if (!cmd) {
++			if (ctx->flags & CTX_F_COLLAPSED) {
++				ctx->flags &= ~CTX_F_COLLAPSED;
++				continue;
++			}
++
+ 			json_error(ctx, "Parsing command array at index %zd failed.", index);
+ 			return -1;
+ 		}
+-- 
+2.30.2
+
