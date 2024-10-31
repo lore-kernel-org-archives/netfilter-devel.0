@@ -1,82 +1,76 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D4628479;
-	Thu, 31 Oct 2024 11:20:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05CF919DF62
+	for <netfilter-devel@vger.kernel.org>; Thu, 31 Oct 2024 13:07:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730373623; cv=none; b=IAqhrbEiNxOasGEeLXxuesfbrP9k84cObBbNjb/43r6gnJHAcPcJB7yRbIxnZL0TlTY2w+tfFimdPuCQUDkvj+A0PgkJeE2ug7TIlKh0Zz9K8z33nw7+1iPwB90sarYox4N7cOz3HiH8h4BCv40FRQszsnjLm11tRTVuPCxQ8U0=
+	t=1730380055; cv=none; b=Oamu99DeB3je+ykv+BaHlosdMQqahwDl5O3xq80Io72i46NLHQgDHHNxxOlr0vKBYfUqjXmAVAEf9CUmTwhnIDbDt8kHdZJO5Ak/KAgASiDOvVL81WI1aQWt1AJZAzj39GkvwvjDOCWsJVM/h4X0B69KctdNYoCTOsZ75I0naGg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730373623; c=relaxed/simple;
-	bh=bcUV1oO0taCkOr+m0J9rZ3aYP2Ij3NCj+Qi0cbZ1QC0=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=j7rhfHTC0GBsiLQHm2WNX69suOi9qy9NylajuC2AO+kwziIJjWX6jrTSlr+y6GxS8Ded1AV9nh2c8iNJTRVpvjKr9BLYZ4/Hf+c9M+lZ/7gcV2phI2Xqm6UuGWy554uOLXKWpdsrjHQVLCR6A/VjYBDE+cPigXSfMPjqmXcuo3c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FEgcAG8l; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730380055; c=relaxed/simple;
+	bh=ftHsxWYBKh23h0X3nZAkt1maV+ukmCIaJQgz6qiWnPA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=FJEjfoEKEvS1ns6ac6bFo2XWqhcpahBQhbrXbRwPSjwSYEpenJFIArQUf0xTRt4VKI86Jxg3fxhsQFUcLRMXhf+d4Mo8+atF+GqEIi/NNcyDsk/TSFDVNTMJLbrb+K3pS8ub7cIhpiHkX+GCNhsDPifT2okB/QJRH8Ylm6n8Qq4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=FiHDkvC1; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FEgcAG8l"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B16AC4DE09;
-	Thu, 31 Oct 2024 11:20:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1730373623;
-	bh=bcUV1oO0taCkOr+m0J9rZ3aYP2Ij3NCj+Qi0cbZ1QC0=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=FEgcAG8lUZsicgOUPX1Jm5pfpmILWtRYmPgBNS5Qybk0+KHjsW4ehPnWqZr5wHbkg
-	 jNjDp4XIztLsf5//M483Hc9cS3IL4mlN3C7/PL2Ext0sD3PLTg9feFZOCoPp+qKReK
-	 j4C7coNHzW+XHaLw+79k7yZGrdUSgk0rFbCyasoRQElHerFpwUDpi0eYo+kJoUjuzS
-	 mXE4swuI69foNZNe6eAcxvvh+oJdiK5uOiNsSut6UevSWKABdbGj5+tmpLCLkkQ3LB
-	 oJSJdKt28xt6+PZ2FD0/U8hYs8mqSMIB069ku8MLNfMPP+SQ5cRdZqZLtE7r24S5Bl
-	 UlmoyJiHWSf1Q==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 33D58380AC02;
-	Thu, 31 Oct 2024 11:20:32 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="FiHDkvC1"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=5xCMiGQexnBtfyoxcdrbaCQWqD7oKAD7KWGJ7ZsX9Aw=; b=FiHDkvC1GDENXBeVfcA3xPj4m+
+	zDkBXHP+7uQOW9FIs15jLjIj5AhtxvciLoOoym7UYMWhuyyxhJgmes/XuddvWOjPtvOKNNqiAWjcR
+	ccTKDkOdpyK+w1MznEEZuksJYmqkteOvDmFF28gC6ncKoAKSq8NFYqeFHM2spjKFM7Ss6YUBpnife
+	URU9h3qb7YHuA4lUwl9m9WmY3NkmMey0PC1IB+Gj6ZG/8aBJkbTwmBKt0F/5YmF/f2PYp5P5veoMT
+	3G3ngdZwvLE0mGXWO69NRZyH3fefRu1YmN8WYkhHKweVeLB+hgJZiGYf+F0nVShH+K1eA4jifwqgA
+	jSBqs5NA==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1t6UtX-000000007h5-3FaR;
+	Thu, 31 Oct 2024 14:07:23 +0100
+Date: Thu, 31 Oct 2024 14:07:23 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] tests: monitor: fix up test case breakage
+Message-ID: <ZyOBC-BKwa1JqTwa@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Florian Westphal <fw@strlen.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+References: <20241029201221.17865-1-fw@strlen.de>
+ <ZyJ4w02pdiv2LpvW@orbyte.nwl.cc>
+ <ZyKnPxdGwh1X3AwT@calendula>
+ <ZyKxY6WZJrKioMDt@calendula>
+ <20241030232914.GA31019@breakpoint.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 0/4] Netfilter fixes for net
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <173037363103.1933707.12664103566543266487.git-patchwork-notify@kernel.org>
-Date: Thu, 31 Oct 2024 11:20:31 +0000
-References: <20241031100117.152995-1-pablo@netfilter.org>
-In-Reply-To: <20241031100117.152995-1-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20241030232914.GA31019@breakpoint.cc>
 
-Hello:
-
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
-
-On Thu, 31 Oct 2024 11:01:13 +0100 you wrote:
-> Hi,
+On Thu, Oct 31, 2024 at 12:29:14AM +0100, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > I can also revert the patch if you don't like, but it is saving _a
+> > lot_ of memory from userspace for the silly one element per line case.
 > 
-> The following patchset contains Netfilter fixes for net:
-> 
-> 1) Remove unused parameters in conntrack_dump_flush.c used by
->    selftests, from Liu Jing.
-> 
-> [...]
+> I think your patch is fine, the question is if we should ditch the
+> test case instead of reordering the expected output.
 
-Here is the summary with links:
-  - [net,1/4] selftests: netfilter: remove unused parameter
-    https://git.kernel.org/netdev/net/c/76342e842587
-  - [net,2/4] netfilter: Fix use-after-free in get_info()
-    https://git.kernel.org/netdev/net/c/f48d258f0ac5
-  - [net,3/4] netfilter: nf_reject_ipv6: fix potential crash in nf_send_reset6()
-    https://git.kernel.org/netdev/net/c/4ed234fe793f
-  - [net,4/4] netfilter: nft_payload: sanitize offset and length before calling skb_checksum()
-    https://git.kernel.org/netdev/net/c/d5953d680f7e
+ACK, that was my thought. Looking at the test case and seeing how later
+tests depend on these elements being present, dropping it is not
+practical though. We could reorder the I lines to match output, but the
+commit is upstream already, so ... nevermind. :)
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+Thanks for the fix and clarification, guys!
 
-
+Cheers, Phil
