@@ -1,55 +1,55 @@
-Received: from mail-yw1-f169.google.com (mail-yw1-f169.google.com [209.85.128.169])
+Received: from mail-yb1-f174.google.com (mail-yb1-f174.google.com [209.85.219.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C8911C9DD8
-	for <netfilter-devel@vger.kernel.org>; Fri,  1 Nov 2024 16:35:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.169
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 875D21AC88B
+	for <netfilter-devel@vger.kernel.org>; Fri,  1 Nov 2024 16:42:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730478950; cv=none; b=LZraneLDx7EEEg+SkH9SVt10qkwTOBBCqc626VXmfmD/O9OP5O/p0TUAdJ4ue4S6nHlhVH2Uzm25RRGaRDavWgyZaX3VI5uiSpGi3JoR5qiEyf/PNhaGCe1hY2boAkCLgLgmAErzL56h7Jh1pymNBUygN1im2z7676y/p8Z+Dzo=
+	t=1730479364; cv=none; b=Wi5JX7GFVpLnMi8/U8zovVCeyCxNBXkcrZVdARzlIbAxgU4PhGwutrxLwBDPwkef7G58FE6eaXWIPtQYnaIBhD3K02YB/YG58+tnnrJpWF659A62KNB3/HGQFaWI73f17TZcJKHlVWMzq4w3K5P2QftDJGKypapNiF58yzqc5so=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730478950; c=relaxed/simple;
-	bh=fKMkT3TROxajQdsDVduoRSDDqZfstQrOXKZmdCJ1I64=;
+	s=arc-20240116; t=1730479364; c=relaxed/simple;
+	bh=bdl1QU1TO9smfZlcjavKeh83DDahAr/viN7jpcXBk5k=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=uswrv/V5UXs0uHdCtlTdY+kPGlpds5mzHInX+NBCo9OmJkiXYjPfrqb1TDbzDYcD+kG2zluI+mnNd7OSZO03mvauDBINdBYtRy1V1Pkxotb4NRs43DJma+D4dD9gQRDcKbwQnY4I7aBI2B2phctZZhR+Z5h3tNFtoZY6BBxocn0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=bRuIjr5f; arc=none smtp.client-ip=209.85.128.169
+	 To:Cc:Content-Type; b=iwNsiJ6N52WEXRhv7aoiGODpW5D5LoMR76+fVzDpUpDbN6ylTRT+eX6aZmm/hBZs4cySRyZ8LhB+WcZ/m8x4kC8Xg8kyblQ+LyMD/UEb0GH05wEPXu3NxD6iYrvttHappUZcvbdv90332vknnQhw9zNKiStD/z9n8gkyC9yMb/A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=VYfqtx9n; arc=none smtp.client-ip=209.85.219.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="bRuIjr5f"
-Received: by mail-yw1-f169.google.com with SMTP id 00721157ae682-6ea0b25695dso17770937b3.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 01 Nov 2024 09:35:47 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="VYfqtx9n"
+Received: by mail-yb1-f174.google.com with SMTP id 3f1490d57ef6-e2e444e355fso2602436276.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 01 Nov 2024 09:42:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore.com; s=google; t=1730478947; x=1731083747; darn=vger.kernel.org;
+        d=paul-moore.com; s=google; t=1730479361; x=1731084161; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=fKMkT3TROxajQdsDVduoRSDDqZfstQrOXKZmdCJ1I64=;
-        b=bRuIjr5fyIpuR+g//5cQ7KobRapXnOK+/oGwb+Z1cJ/x9D6gyeBEqzSwQv04CUpnBE
-         21zOHTwC5eI86xVZ5C8za4bTn1Xf0j4fwHKg2bYF9Qd9XlV/kdOmPZs6F5VvzpKkNhg9
-         VjSVCo+MTVtMfOURS0cFA8bgl+DDiefWeqs+zp5lWJufPVuZihP2Mx4vHJcDbmq5eKlK
-         VWTB9cMfQCNJ+z6z3u3MaGfuhSxmz4g0kMfcFZjqU3HBcAIw/LNxoZJZCMQPOkhfGYlG
-         v0XqoRSr9Rqp8JRqckXIIfVw7ID8rtYF3RYYIFQ1h3hcmEctoO6sAFxdWlFZTnpaSstF
-         znMQ==
+        bh=bdl1QU1TO9smfZlcjavKeh83DDahAr/viN7jpcXBk5k=;
+        b=VYfqtx9nPvwxjeNA2O+gya3m+TvMduWac+RbsuNMk22voUhZb7wMdf+xsxnfDZS3MP
+         G7/QScRRGjcvFjhIsLiGKDytElrhns/2RnUJneUMzAoDe3b4uMxtxMmLs6Qa+AyQwbwn
+         hFOXIZx+O4TdNyW/i9RCP/WLEYgf+qHjk2rglGBLuIVhyphy6ete2y6qou6+ZOzuKA4h
+         GEBnu/qEarDy0rH8yeQQKtMBsqIm9hYHp0aLADN19qwJExWGNteC8HfumB8VYbqOasia
+         YQ5TKINwYYkvzjqFEYeLqqN7NhY46d9dUPbGvSqB7zCYIrT94UynPJwoxEz3hryqbJfB
+         RGqw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1730478947; x=1731083747;
+        d=1e100.net; s=20230601; t=1730479361; x=1731084161;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=fKMkT3TROxajQdsDVduoRSDDqZfstQrOXKZmdCJ1I64=;
-        b=WefJS+NHEFFZatzzIKQ5aDY1cNmtqpC6JJH2SQEhzmsoZgNAogiaXvT+rB0RRG+g3I
-         jXP/vMnGen01LfMZSnTch4o3HYwVAgfVCUKMZs0X7koNKno3nLDDenwYrIrtUwoy/8Ba
-         khg0PbQ1Ic2nP7nSJjs4cS/zos+gxiK9ZFoscnVRtvmC1g90cpHj6O4wrWhTJwG33HNu
-         6A5+/GaRmebNIwx1h4A9owBAu1HGd/v4GYvEpAVVi0kyMxZf/9evniMUVIu0SEDYVS/R
-         gdu6S4iF21GZxnLTJ+7vMbxUI2eyiRjtNtpMnuFxhu90YGWhNKLuzD3uMzy1Bfrs5ehN
-         TYKw==
-X-Forwarded-Encrypted: i=1; AJvYcCVNcRP0f8rPggVTXMt0HWWK8ERcd/rJq/ukVZwlTOB5ZSJGgow7WOfk+c/FxqpmPmQXpS1P689VryzHBOc6Zw0=@vger.kernel.org
-X-Gm-Message-State: AOJu0YzwOXR4oCaYV9XnRsfpOp3E8uGyJmapGlIbL1400gPFp3Go/g+w
-	gTVh5s1psexmyZPSVqoP9WSX8f2qzcBxd8vyhXzg1D2tfUVa+MazQUrxUxPydzLUR0bdDWwCmDC
-	39YKg4LLPwkaYeWkSfl3cIvX9h77hsz/KeXvy
-X-Google-Smtp-Source: AGHT+IFs+kETWVMdVLzqFgUtLrU9XlTE9u5Wi5RoR1NsOxwN6KBMzdgC6ppcFP/VZqUNKPiNClL5fIAcn0D39qR/XrM=
-X-Received: by 2002:a05:690c:87:b0:6e3:410e:bb84 with SMTP id
- 00721157ae682-6e9d89950d4mr214759077b3.20.1730478946984; Fri, 01 Nov 2024
- 09:35:46 -0700 (PDT)
+        bh=bdl1QU1TO9smfZlcjavKeh83DDahAr/viN7jpcXBk5k=;
+        b=Y+HqcsumzjkVnss8ftvkeAUlDidQobUhJ01h/FzhSWo4a9RqKHjSebbw3SVVs3pYmU
+         kH+3rkFBV2t5fPvsPQoaBAznP+mVkrvl+WLYSBv/BIs50f2d2PWmOst+70Y45rsNVfAJ
+         6O84U2YjRgy1XE8mOBsZ9Yr5h/uQiJDAmHfq1YNBEABYyRbzb314BTR8883lNYYOxjzy
+         CtIxBd+p8+pKAvIimbELepk7HawC+tS2jftly2THwuEeqEYSa3DZYcyz3IfSCb0p93jl
+         cNqk2n3IHgjRxtpAuRqjfmbqZyd7wreOq9iisxDGm6XdOrqxGxIEHHaxBEsUQNfPSO+w
+         aESg==
+X-Forwarded-Encrypted: i=1; AJvYcCXWP6NUt/e8ULrM9z5dt8gR2fJCb4luu7ze0+J6plcDeVWNQ8u5xuEV3mSNDBHXLA3882T6hz1t/pcMJjYs4yE=@vger.kernel.org
+X-Gm-Message-State: AOJu0YwSrG69OghRCp+AqGxl2CKmndaVwx0W2/M9arokzqMraVttpIme
+	Fl9az8Q/ol3iqRMmDjQGzU68TZ0J/KDwI3mrKjKtrvqRriS5luarPHf1mkkpmUpklklXekoozrs
+	1dydkpraRTQK00oTWGhu+8WfHHb91M4C4MKBH
+X-Google-Smtp-Source: AGHT+IG9mMz1RBUHXYHb/KKXWnOdSpX/tW+Owz4me+P1+nRvR/UjY6v7IpSbecbnAja/zhUSQpxNQyrM8+BVM9tybAM=
+X-Received: by 2002:a05:6902:641:b0:e30:c97d:2fd9 with SMTP id
+ 3f1490d57ef6-e3301836be1mr3682602276.24.1730479361585; Fri, 01 Nov 2024
+ 09:42:41 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -60,10 +60,11 @@ References: <20241023212158.18718-3-casey@schaufler-ca.com>
  <68a956fa44249434dedf7d13cd949b35@paul-moore.com> <ZyQPfFvPD72rx4ME@calendula>
  <ZyQRgL_jWdvKgRl-@calendula> <dd727620-9823-4701-aaf1-080b03fb6ccd@schaufler-ca.com>
  <ZySCeoe3kVqKTyUh@calendula> <6a405591-40c5-4db6-bed5-8133a80b55f7@schaufler-ca.com>
-In-Reply-To: <6a405591-40c5-4db6-bed5-8133a80b55f7@schaufler-ca.com>
+ <CAHC9VhRZg5ODurJrXWbZ+DaAdEGVJYn9MhNi+bV0f4Di12P5xA@mail.gmail.com>
+In-Reply-To: <CAHC9VhRZg5ODurJrXWbZ+DaAdEGVJYn9MhNi+bV0f4Di12P5xA@mail.gmail.com>
 From: Paul Moore <paul@paul-moore.com>
-Date: Fri, 1 Nov 2024 12:35:35 -0400
-Message-ID: <CAHC9VhRZg5ODurJrXWbZ+DaAdEGVJYn9MhNi+bV0f4Di12P5xA@mail.gmail.com>
+Date: Fri, 1 Nov 2024 12:42:30 -0400
+Message-ID: <CAHC9VhQ+ig=GY1CeVGj1OrsyZtMAMBwst03b-oZ+eC2mLnqjNg@mail.gmail.com>
 Subject: Re: [PATCH v3 2/5] LSM: Replace context+len with lsm_context
 To: Casey Schaufler <casey@schaufler-ca.com>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>, linux-security-module@vger.kernel.org, 
@@ -76,25 +77,37 @@ Cc: Pablo Neira Ayuso <pablo@netfilter.org>, linux-security-module@vger.kernel.o
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Nov 1, 2024 at 12:14=E2=80=AFPM Casey Schaufler <casey@schaufler-ca=
-.com> wrote:
+On Fri, Nov 1, 2024 at 12:35=E2=80=AFPM Paul Moore <paul@paul-moore.com> wr=
+ote:
+> On Fri, Nov 1, 2024 at 12:14=E2=80=AFPM Casey Schaufler <casey@schaufler-=
+ca.com> wrote:
+> > On 11/1/2024 12:25 AM, Pablo Neira Ayuso wrote:
+> > > On Thu, Oct 31, 2024 at 04:58:13PM -0700, Casey Schaufler wrote:
+> > >> On 10/31/2024 4:23 PM, Pablo Neira Ayuso wrote:
+> > >>> On Fri, Nov 01, 2024 at 12:15:16AM +0100, Pablo Neira Ayuso wrote:
+> > >>>> Hi Paul,
+> > >>>>
+> > >>>> This patch breaks nf_conntrack_netlink, Casey mentioned that he wi=
+ll
+> > >>>> post another series.
+> > >> I have a fix, it is pretty simple. How about I send a 6/5 patch for =
+it?
+> > > No idea. I don't know what is the status of this series. I would
+> > > suggest to repost a new series.
+> >
+> > I will post v4 shortly. Thanks for the feedback.
 >
-> On 11/1/2024 12:25 AM, Pablo Neira Ayuso wrote:
-> > On Thu, Oct 31, 2024 at 04:58:13PM -0700, Casey Schaufler wrote:
-> >> On 10/31/2024 4:23 PM, Pablo Neira Ayuso wrote:
-> >>> On Fri, Nov 01, 2024 at 12:15:16AM +0100, Pablo Neira Ayuso wrote:
-> >>>> Hi Paul,
-> >>>>
-> >>>> This patch breaks nf_conntrack_netlink, Casey mentioned that he will
-> >>>> post another series.
-> >> I have a fix, it is pretty simple. How about I send a 6/5 patch for it=
-?
-> > No idea. I don't know what is the status of this series. I would
-> > suggest to repost a new series.
->
-> I will post v4 shortly. Thanks for the feedback.
+> Please just post a fix against v2 using lsm/dev as a base.
 
-Please just post a fix against v2 using lsm/dev as a base.
+That should have been "against *v3* using lsm/dev as a base".
+
+Also, since I didn't explicitly mention it, if I don't see a fix by
+dinner time tonight (US East Coast), I'll revert this patchset, but
+I'd like to avoid that if possible.
+
+Sorry for the screw-up on my end folks, I was trying to get things
+done before Halloween kicked off and it looks like I was a bit too
+hasty in my review/merging.
 
 --=20
 paul-moore.com
