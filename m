@@ -1,124 +1,110 @@
-Received: from mail-wm1-f47.google.com (mail-wm1-f47.google.com [209.85.128.47])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B08F1E495
-	for <netfilter-devel@vger.kernel.org>; Fri,  1 Nov 2024 07:07:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AFE786252;
+	Fri,  1 Nov 2024 07:25:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730444883; cv=none; b=FUxb4KttUq8M5bUyEEUdIt0uX2uOX2wwO7s2YvjnDV3E8KpqTJL3Je/3FwKAMFXm4cHCmVtw9kXnnkarNVeEVvjMFoXf8KwNRZjxvl8SSh58iFOQW95QKWelHbAM4kRaMgLtxanNfC2gChZg/UOLrXw5tU1loRVQokv5QJLL9eo=
+	t=1730445967; cv=none; b=OkYXnNN13OHaqK4uHMMH3kiytH3cCe8oUyTnlzDL4gMqdnPnZxEnfiqYEOfvWm6Jt/EzzoykQUyDM5ltKZM0REKLlyioCW1bbR3W9u+37REMIFk6Fi/MJ2S8r9Idv6YJTLZi01xG+1QeVxYzwJRHk3Q724sDqfurDE7PHRCyZQQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730444883; c=relaxed/simple;
-	bh=JutYPB/3oXVJH99Pr39tDq9r5sOqucdhb6oQbo/MObs=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To; b=d8qZvV0ouNatYivZLxdc+VvgPuuwV8SVvn/8jlq/SDGQAtTa+AZoZEUYF857bnWtrjnQzYYozaDJuemaBvwqf3wuzbNJUVqqCpJxB0iLdIMazNrxA44uLJxEVDdHgfgXuhvV7awrOd3iLFlwyx4Foc8+0fJU6oRcqdEvL8fFHcA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=yM/dKyWs; arc=none smtp.client-ip=209.85.128.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="yM/dKyWs"
-Received: by mail-wm1-f47.google.com with SMTP id 5b1f17b1804b1-4316cce103dso18289015e9.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 01 Nov 2024 00:07:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1730444878; x=1731049678; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:message-id:subject:cc
-         :to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=S+Ifb642LkdinlwnAChfN9N1WVHKlmNGlParRQonuAM=;
-        b=yM/dKyWs1uCzW9o52EMIYBulaFrnVVV9iJu4Yb1qEj6XEU6Sf0OIsRwBnLTITEXht7
-         ez+NF3YVTuO2bPeNNiMEAPTt3Jndsi34N4IbV48jHnVKA7bV2D+ftkzIFCYvDgxjOiso
-         Jw/Rq/5UtEJRVuEZ+5qHGiihb9AVRV5CRBGWU/LePa1HyybbsgCM1UXs9fHnIWsQwYoR
-         HgZ2cptjMYWOBQUtCZyat9msfbEWxiP384rhBov9YsKFXVLq1pFzzzdM/oMxf8s2H3Mm
-         DC6bxszCLyBrLWqd1CvMRE0yUuH8vbjUptNGLFMep21gYOocEGQtSnBmPXkDMOnWvCCy
-         XA6A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1730444878; x=1731049678;
-        h=in-reply-to:content-disposition:mime-version:message-id:subject:cc
-         :to:from:date:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=S+Ifb642LkdinlwnAChfN9N1WVHKlmNGlParRQonuAM=;
-        b=lxasVGW0S/2c5Yf/wyXxgOa6hpDWREY0Pzb4jdcMSaJ22jm3T1pUyKr8JNdW/eu135
-         hMqII3sjTVC109pg6KkiJz48Oquut3GqqLTYQdUIQC/tKct9kATq1k1Rx+Qckdn/iWA7
-         g00J87ZyCGlAnbli1gtnszrWKXn118zj1QBlEQkZrrH85t5UzZk3o/dFFPNpRuJbvLn+
-         vqw6/z5dPvFMqSB8kO3QyV2ghQCGvUAHIF2DChX3I/4ReUqxnn0Q/Pp/F6V7J8ZWLdFh
-         oIVBYACE53bJgAl3SDSOKouOBQ1Vk+hr0HplRM8MKtQUjJU+veS2Kj80pOTT+eZI5ULD
-         6UyA==
-X-Forwarded-Encrypted: i=1; AJvYcCWfK5/IoA2IMnx0VJGHgSLqRdcDe8u8ey+1LBEhNKc9gc8bYSQqTI+CTIo2FREyrlybCQirGen33Nf8dJSPgt4=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy3Ysew7nuwoz91lM33B6JrAa2utcyXyHaZkC3a8BTqtkiAZOT4
-	KWld/e4MFAn4tySsC9ntDzPQAxpCA4lu3lGldmboaDL8y4p2Z2MRXiS4RvWF/TI=
-X-Google-Smtp-Source: AGHT+IHZkKwuSaJjnxtpYOWRHPKIO6H6fHtNmW5nRFRDs0p02yK/SaVhAKY0QGc50Lrs/f2CtIFgBQ==
-X-Received: by 2002:a05:6000:1f8c:b0:37d:2de3:bf8a with SMTP id ffacd0b85a97d-381c7a6bcb4mr2189000f8f.26.1730444877770;
-        Fri, 01 Nov 2024 00:07:57 -0700 (PDT)
-Received: from localhost ([196.207.164.177])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-431bb79429asm77103985e9.1.2024.11.01.00.07.56
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 01 Nov 2024 00:07:57 -0700 (PDT)
-Date: Fri, 1 Nov 2024 10:07:54 +0300
-From: Dan Carpenter <dan.carpenter@linaro.org>
-To: oe-kbuild@lists.linux.dev, Florian Westphal <fw@strlen.de>,
-	netfilter-devel@vger.kernel.org
-Cc: lkp@intel.com, oe-kbuild-all@lists.linux.dev,
-	Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v2 nf-next 7/7] netfilter: nf_tables: must hold rcu read
- lock while iterating object type list
-Message-ID: <b052e0ad-4b89-4f79-855d-5ed9766168e4@stanley.mountain>
+	s=arc-20240116; t=1730445967; c=relaxed/simple;
+	bh=9KsNjW73/rwnA/MCFDoVKZvKFbcg6J+eV9177kx9fzA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=iZcepl1DiKb4+6PK0UtR+OQDq61+kbXqGiqYYqc6lr96Mi28xmy7u7Nz//NIRLqAbq0Gdimm9TEZ3SM4qI5oYmUtBUFNr6AwINjvzF1R4a/OvrBKW08chQSM0qT8vLbWyJjq6j0JgVA3MGEiuSoLz4QQ2rbNmZcgqlJ00GZs/Z4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=48922 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1t6m2W-001NQn-1M; Fri, 01 Nov 2024 08:25:50 +0100
+Date: Fri, 1 Nov 2024 08:25:46 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Casey Schaufler <casey@schaufler-ca.com>
+Cc: Paul Moore <paul@paul-moore.com>, linux-security-module@vger.kernel.org,
+	jmorris@namei.org, serge@hallyn.com, keescook@chromium.org,
+	john.johansen@canonical.com, penguin-kernel@i-love.sakura.ne.jp,
+	stephen.smalley.work@gmail.com, linux-kernel@vger.kernel.org,
+	selinux@vger.kernel.org, mic@digikod.net, netdev@vger.kernel.org,
+	audit@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Todd Kjos <tkjos@google.com>
+Subject: Re: [PATCH v3 2/5] LSM: Replace context+len with lsm_context
+Message-ID: <ZySCeoe3kVqKTyUh@calendula>
+References: <20241023212158.18718-3-casey@schaufler-ca.com>
+ <68a956fa44249434dedf7d13cd949b35@paul-moore.com>
+ <ZyQPfFvPD72rx4ME@calendula>
+ <ZyQRgL_jWdvKgRl-@calendula>
+ <dd727620-9823-4701-aaf1-080b03fb6ccd@schaufler-ca.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20241030094053.13118-8-fw@strlen.de>
+In-Reply-To: <dd727620-9823-4701-aaf1-080b03fb6ccd@schaufler-ca.com>
+X-Spam-Score: -1.9 (-)
 
-Hi Florian,
+On Thu, Oct 31, 2024 at 04:58:13PM -0700, Casey Schaufler wrote:
+> On 10/31/2024 4:23 PM, Pablo Neira Ayuso wrote:
+> > On Fri, Nov 01, 2024 at 12:15:16AM +0100, Pablo Neira Ayuso wrote:
+> >> Hi Paul,
+> >>
+> >> This patch breaks nf_conntrack_netlink, Casey mentioned that he will
+> >> post another series.
+> 
+> I have a fix, it is pretty simple. How about I send a 6/5 patch for it?
 
-kernel test robot noticed the following build warnings:
+No idea. I don't know what is the status of this series. I would
+suggest to repost a new series.
 
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+> Or, if you want to fix it yourself, in ctnetlink_secctx_size() remove the
+> declaration of "len" and replace its use in the return with "ret".
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Florian-Westphal/netfilter-nf_tables-avoid-false-positive-lockdep-splat-on-rule-deletion/20241030-174657
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
-patch link:    https://lore.kernel.org/r/20241030094053.13118-8-fw%40strlen.de
-patch subject: [PATCH v2 nf-next 7/7] netfilter: nf_tables: must hold rcu read lock while iterating object type list
-config: s390-randconfig-r073-20241031 (https://download.01.org/0day-ci/archive/20241101/202411010754.SLk5GvT6-lkp@intel.com/config)
-compiler: s390-linux-gcc (GCC) 14.1.0
+No, sorry, I won't do that.
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
-| Closes: https://lore.kernel.org/r/202411010754.SLk5GvT6-lkp@intel.com/
+Thanks.
 
-New smatch warnings:
-net/netfilter/nf_tables_api.c:7886 nf_tables_newobj() warn: 'type' is an error pointer or valid
-
-vim +/type +7886 net/netfilter/nf_tables_api.c
-
-7dab8ee3b6e7ec8 Pablo Neira Ayuso          2021-04-23  7879  		if (info->nlh->nlmsg_flags & NLM_F_REPLACE)
-d62d0ba97b58031 Fernando Fernandez Mancera 2019-08-26  7880  			return -EOPNOTSUPP;
-d62d0ba97b58031 Fernando Fernandez Mancera 2019-08-26  7881  
-84b1a0c0140a9a9 Pablo Neira Ayuso          2024-03-05  7882  		if (!obj->ops->update)
-84b1a0c0140a9a9 Pablo Neira Ayuso          2024-03-05  7883  			return 0;
-84b1a0c0140a9a9 Pablo Neira Ayuso          2024-03-05  7884  
-2a7dbf052c3b79b Florian Westphal           2024-10-30  7885  		type = nft_obj_type_get(net, objtype, family);
-2a7dbf052c3b79b Florian Westphal           2024-10-30 @7886  		if (WARN_ON_ONCE(!type))
-
-s/!type/IS_ERR(type)/
-
-2a7dbf052c3b79b Florian Westphal           2024-10-30  7887  			return -ENOENT;
-2a7dbf052c3b79b Florian Westphal           2024-10-30  7888  
-7dab8ee3b6e7ec8 Pablo Neira Ayuso          2021-04-23  7889  		nft_ctx_init(&ctx, net, skb, info->nlh, family, table, NULL, nla);
-d62d0ba97b58031 Fernando Fernandez Mancera 2019-08-26  7890  
-2a7dbf052c3b79b Florian Westphal           2024-10-30  7891  		/* type->owner reference is put when transaction object is released. */
-d62d0ba97b58031 Fernando Fernandez Mancera 2019-08-26  7892  		return nf_tables_updobj(&ctx, type, nla[NFTA_OBJ_DATA], obj);
-e50092404c1bc7a Pablo Neira Ayuso          2016-11-28  7893  	}
-e50092404c1bc7a Pablo Neira Ayuso          2016-11-28  7894  
-7dab8ee3b6e7ec8 Pablo Neira Ayuso          2021-04-23  7895  	nft_ctx_init(&ctx, net, skb, info->nlh, family, table, NULL, nla);
-e50092404c1bc7a Pablo Neira Ayuso          2016-11-28  7896  
-1689f25924ada8f Pablo Neira Ayuso          2023-06-28  7897  	if (!nft_use_inc(&table->use))
-1689f25924ada8f Pablo Neira Ayuso          2023-06-28  7898  		return -EMFILE;
-
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
-
+> > Please, see:
+> >
+> > https://lore.kernel.org/netfilter-devel/ZxpxZuErvXSLApsf@calendula/
+> >
+> >> On Thu, Oct 31, 2024 at 06:53:38PM -0400, Paul Moore wrote:
+> >>> On Oct 23, 2024 Casey Schaufler <casey@schaufler-ca.com> wrote:
+> >>>> Replace the (secctx,seclen) pointer pair with a single
+> >>>> lsm_context pointer to allow return of the LSM identifier
+> >>>> along with the context and context length. This allows
+> >>>> security_release_secctx() to know how to release the
+> >>>> context. Callers have been modified to use or save the
+> >>>> returned data from the new structure.
+> >>>>
+> >>>> security_secid_to_secctx() and security_lsmproc_to_secctx()
+> >>>> will now return the length value on success instead of 0.
+> >>>>
+> >>>> Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
+> >>>> Cc: netdev@vger.kernel.org
+> >>>> Cc: audit@vger.kernel.org
+> >>>> Cc: netfilter-devel@vger.kernel.org
+> >>>> Cc: Todd Kjos <tkjos@google.com>
+> >>>> ---
+> >>>>  drivers/android/binder.c                |  5 ++-
+> >>>>  include/linux/lsm_hook_defs.h           |  5 ++-
+> >>>>  include/linux/security.h                |  9 +++---
+> >>>>  include/net/scm.h                       |  5 ++-
+> >>>>  kernel/audit.c                          |  9 +++---
+> >>>>  kernel/auditsc.c                        | 16 ++++------
+> >>>>  net/ipv4/ip_sockglue.c                  |  4 +--
+> >>>>  net/netfilter/nf_conntrack_netlink.c    |  8 ++---
+> >>>>  net/netfilter/nf_conntrack_standalone.c |  4 +--
+> >>>>  net/netfilter/nfnetlink_queue.c         | 27 +++++++---------
+> >>>>  net/netlabel/netlabel_unlabeled.c       | 14 +++------
+> >>>>  net/netlabel/netlabel_user.c            |  3 +-
+> >>>>  security/apparmor/include/secid.h       |  5 ++-
+> >>>>  security/apparmor/secid.c               | 26 +++++++--------
+> >>>>  security/security.c                     | 34 +++++++++-----------
+> >>>>  security/selinux/hooks.c                | 23 +++++++++++---
+> >>>>  security/smack/smack_lsm.c              | 42 +++++++++++++++----------
+> >>>>  17 files changed, 118 insertions(+), 121 deletions(-)
+> >>> See my note on patch 1/5, merging into lsm/dev.
