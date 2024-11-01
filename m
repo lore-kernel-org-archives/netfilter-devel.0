@@ -1,123 +1,108 @@
-Received: from mail-ua1-f53.google.com (mail-ua1-f53.google.com [209.85.222.53])
+Received: from sonic306-8.consmr.mail.bf2.yahoo.com (sonic306-8.consmr.mail.bf2.yahoo.com [74.6.132.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0814B1CCEED
-	for <netfilter-devel@vger.kernel.org>; Fri,  1 Nov 2024 17:54:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2BD014F132
+	for <netfilter-devel@vger.kernel.org>; Fri,  1 Nov 2024 18:53:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.6.132.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730483696; cv=none; b=N50ITIK8rccKs1ls65wyvX7STrcWjkJiYopQBbWm8EIrqGJy7pGOaH2g/2RAykY5W6ueS1a4Z3eqT9yStSiVsRrloDYPxap+kmqwDMwFNSmnSkq+KmCeeAhM2Rlyl5jNOmsQaPZoNZm85bSv8Opl5Pu3ec71IK+9Z64NRWdNTCM=
+	t=1730487202; cv=none; b=MczMdv22+3+NEM3hZBLFTEY3IyizOsDdiGgKWs9ecGhVtrsg+fFwBna0DHKheJOWTskYR01otNgn4zpve3se72qU/9VMHZPi2SyVOSgb+cw3dkPZ/ztBQdq21RJY0kQBLMCxDYHvC+wNciQV+bj2OrPpLRXWbadUMPSiBz2x1SM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730483696; c=relaxed/simple;
-	bh=XuRVQd+uI/fEZIMs+isDw/LGu3FojnLyngs9SvWfAbQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=koVXulAguOeiIH6XiNOWjApWYB3/IL8RBd04W3cIEcsgzq83/75lg0ZT4+fislcZ/FXO9Hppc+JDtHLfIOHdLbzC1VYEX77ZUMpBQ8HLTl0GaXVp5cY6yiOBDY+DSIx2sk+BmlT5iLX3/yh/Pvl2vqpwP2v2bWfLjqaKoEg90T4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=Bxfcj5jq; arc=none smtp.client-ip=209.85.222.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
+	s=arc-20240116; t=1730487202; c=relaxed/simple;
+	bh=bN8gp4j72EUevDhsxd4gzbwq9leOjFY972xpGM0NYJI=;
+	h=Message-ID:Date:MIME-Version:To:Cc:From:Subject:Content-Type:
+	 References; b=nyf5pirs+VWGh7ilCUQBoasAtayZKLSCWNVW+8BjdKZ34f08VoP3OKkpvc0qZ2kVntd5/CMYV9PowGz1pfoRLcZf8qvMcpswZVlud2WEh4G9ntLv8qoQraeYTwPQIcQDSEcWeuDhxWBAe+f4gyYhplf2ZsdeqlMhurhLleaghVA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=schaufler-ca.com; spf=none smtp.mailfrom=schaufler-ca.com; dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b=k9f2EBzW; arc=none smtp.client-ip=74.6.132.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=schaufler-ca.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=schaufler-ca.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="Bxfcj5jq"
-Received: by mail-ua1-f53.google.com with SMTP id a1e0cc1a2514c-85054107836so603993241.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 01 Nov 2024 10:54:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore.com; s=google; t=1730483694; x=1731088494; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=XuRVQd+uI/fEZIMs+isDw/LGu3FojnLyngs9SvWfAbQ=;
-        b=Bxfcj5jqjhoXFeGMFLaVHza5iJgkjyIuJaeZS4e6KR8kIIJC5+IYXTH4u8gRR/xsPr
-         bPIs7J3sDjrN2CqtoE0p8/nK6rLg84aZh1ADRhyY+RjMy07HNuflxG1aYvZIG+drH7Ui
-         iNKwDWcxUQvc+jQatdYyP71a0pTtkKIh/6j+YCT3j8tWj2xxLvCLVVlCK1FWqTAkux9/
-         Nmf+ch0FHo6+/2YxyztE2FRE0tII2Hr1Qge3KspYaLT363R/QbjmlunQbAHnMQsdLsQp
-         DB9lE6KAMrT0OY/8Z4OUkJnMb1ETupOVag2lZxORLPGu6NG3xOIX+uGIqrUhK3WWSBy3
-         Ju2w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1730483694; x=1731088494;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=XuRVQd+uI/fEZIMs+isDw/LGu3FojnLyngs9SvWfAbQ=;
-        b=wE2NLYVkBqAiP+LdmLJ266OayOOfYTKDgK8w95vH0LeSpkVnWgCu8quH8jHrhd4UPd
-         qWM8KaQcs6BwzgDiYqFZ2S6PTXlTNqsy9IdcYkavcnogZ7v5gs5FnS4jTEEcCDj31hTF
-         Rbb7NEK1cLArJBlRbZ0s6vneavm5ffgMusqBNmk3A+E5kWw5gabo8nk90oqtLvkBsAco
-         zdHip3ZWD6G/ECNWN95ZYXSN1PzNfkpIhN4JFs/KyjWsHeaEAZUGcqF1eGFmqXnS1oXE
-         M5uzqk6WeYTRISLQDQ1ekdVQ2WCOfZkYrT1ic8h3y1Ca8msD0kufzU2Nd2/RrH6xklvp
-         Kc3Q==
-X-Forwarded-Encrypted: i=1; AJvYcCXz07bk7jpw7CfYgSDG1fmFDj+wrs5agaWD1y82NBNLMaU36hACwzTx6AfJhEWw1oRdA/e6JxMpznfL7r7xkXU=@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywba81KnSlfgjgs8RqdljbleosK0q4jCsMOrWiqf3a7dCBqV2kw
-	KlpLC8toauPHZOp36arIBwCWsxMhUkxGTG0AxvKC62RWxyw2vvUJhZdk8LMhlzDA79TfqfUnWNK
-	T8pOGsw7wtQv9LYhX9w8NgM9ez7lm+Hlp4uJa
-X-Google-Smtp-Source: AGHT+IGsE4qjrOhlqC4OJb9cUFtYG/Io0uUOjSSRLwaJ/zVTvuHnCYeP5oQx993rVYYkkRD54yed9fa034djjSzDRQ4=
-X-Received: by 2002:a05:6102:41a1:b0:4a3:ac2b:bfff with SMTP id
- ada2fe7eead31-4a962ef5a46mr4954235137.22.1730483693833; Fri, 01 Nov 2024
- 10:54:53 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b="k9f2EBzW"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1730487198; bh=wRBStz0H1vyrUwZM4QNQCXlCE3wbJ4brQL8yJ3xO8rU=; h=Date:To:Cc:From:Subject:References:From:Subject:Reply-To; b=k9f2EBzWoMLkA4OYwZedPA/bJ+g+wO3OyR7d0qRyUtG0WThjOiezx4McKKjIRcIIM+vvxHnG7QMBPYHDh2N2hfW7drbW6h/2f3G/+XaFH+VNkjNPp1Co/iu2pB5lENLdsGLfarfUXNYpuSv+eRm2PTbN7C8MKzfP+ZfEOVFONnMQu2JssJwQ3nt7mphars5ulpXSVlNAMDmyF8JlP8Gm+csO0VObbBxQhiAVHko1Sqxs6XdXlGSv63RhKlnM5QBq7mxUxaDbgy8MMnOK9KTWsOet2IGHCNcfULlvUROeGz4bGiRj2Mv6nF0jld8FxvcaU7I6NrudPlIHen+HWtNeiQ==
+X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1730487198; bh=d2wGX6MwIL23MWKrFgpl7dX4kmpQhvgYbqIVX0EgQnf=; h=X-Sonic-MF:Date:To:From:Subject:From:Subject; b=J22IRSnOefyop9De7UaEhFvvQC/iacb+HxoDtHTakATELVpB+Wv/htEiaCLb/sPIUXF1IsCw0p3ebCq2RK11cmoHFvUqx5rEti/FxcWE4jsOmGLod2A7wwFJsbagJv6Qjaj7H5ixMVA6eSK4u6UZffj+mU3fPvg+yz2d/jvEvNJw/8PwCEifSbWFgN6sdaZRVOI8FacU01Wt1ZpbiCi/cexnMNyM0Lt1xzunmHxyP6tQlLhisZQvIfV5SAbM4GRkgoNOExhLaiq0rkMnM9I869Dk+QWID75S8dp8tru7osSpu5OkpjTahmAHKlZhuJIYHFYus/CdJLaLaQzdq4aSNg==
+X-YMail-OSG: angl1LYVM1lMFDIxGOPhHR8TYPqk0ZEY1C5CvGfdV7I1EuIBS2dam1DQvkBpK8F
+ pTVJsqXGBKc0PLNbxHGnJbNlQDLmAb5Bx.wkPFzy8p6rg3GlcWBBmNXCsdebbWHU8bjGRvb1Du6U
+ LshHdrHk_xcuWSd_Mt6EpNG.b2MGfoRKNmlLLr_CJGX8l.oEmB5PVmF3.8ukKtTjkP7fiUvs5VIP
+ mlMJREN5QSYeqlhKMfGwegdl.hEIjtozKStypEOQsCKExwvD0zSceyaU02r6Iu3j1qZVTJCK3373
+ jHEeQt47woZQMsjGGEj1CS6cI.8Jo_9V2ToD7m7.pmylt27AohndyQxFqUd28ZiVrDsRX7Cghm3R
+ 6utbN88x7Csq2cHGu7U8Is2QYx9Oe9s_Wrn7uX0rPbq4rDwkNI36Wh.Kbj_9R_FPt2e9Lm3GBqtS
+ 5ZoDv56VCHvLoGV8Fz9DAWeuTnhZX.6QI4KJ8MiHeCDZkiPTU9a8iqUvdqTFYIcPfKDAEMqPas7R
+ DwYGesdYZeBldUM.hgLHSj1tEkxuOs9zR3bw2EDw2B32y.g10BE4gK7eTi2TaZLcq1DFiDuykuBB
+ Uk0o7t83BWaloqtU_U0EgyYS.rwgjTck2zu6zyj_kticNQ_kEwRGa4OlehdmnDQ2GoOOgE68yX1c
+ 1YXtfF6NIp9z7.lgQ104c3C87.jRBGHd4lwM5fGrZw0G_7n0aYz9S0zgRzwDavKTxXsVuCSD2zgx
+ g6ZVEo_vb5wQr_7OLidilPo8FFMqCTzCi_i5SiNj_9RuEvEjEthNWUdnZ3y9qLuJq_V.dMUUcVn2
+ 7MZ_s8EnP01_YlZuhruofc0a8cUi_dlXI9xOYoxI5dzhKXgz4SPcfGHrYoZT3.ChXYk8fQwIX9aR
+ ZpKgIsrpig9KWqk0UVz6PnKnOdOz_9ZxDBx9.HIRvO5JyQNnTnfsdcUIeJBj_2jqziP9wk.PUYIv
+ mew5Anc8gjjl764P8fdT7zQEIhdd22E3ex24DVbsrxCi833HDzwtu3g90rQtC8w6Q.HGK5zuI6iy
+ Fxr884aFc6QkICU3E80FWhs.p8KxuTkEXrDvOnAKZbGkenim1A0Z05BRwq6Os4QN5c05DMCAJK90
+ xaswHQkyiWm1CIsXPNf2cwWBAFKwd3hqKLbolYP.wDv0rqTpu7YrmTlgDSkk7BL7ps3cNZhR9W7T
+ 5zyjkuEtFbuHgz9D.9hY7K3uZJA4SSmnn5pqoExSktDPzDL6aGnP__qA7gV.NtxrKovbKgtmnVvH
+ 0Tj5CF3MaRnO4LXRrOvFIHYLyflcGLzn6DrXy5bIqq4ckXoJAHM5e.CKeYydnPOV_JEKTBJXh7sl
+ Zf31qgKNKZ_zM1KBIDc_8Y7OHlP1nntQmof4uy5lVsSICGFuZ4Z4s7QZxliqwq0.kuhhFwo5jSBx
+ bnqvqlx.YKG08VvQUtAxMVMIn7n.Z_5Ao41Mb8FdsRIkgcRyWKuM64YebhBpHJC6FwGrbZanaEHD
+ EPf7PkGj_Ee2TYxVkjTkMTuz0V_ypeUlVn5PvTjLNqbwumonbjjP2YjD8TqRPNEJKeI1Xz_7pqKi
+ 8EdSUY02LEIpmO4UrDNKaBq9dj0SeMedm4iTVaApzYwM8FsqZSnjGwWPkq_CbZEWy5zqRo6ATjDC
+ v_WaBq1yBNWPdsJORUC5bk9cHvUDkS1ATV97thiDZftRnywcsH2D5dmAtzvzqnCtqnc9s7HVrMDT
+ AS4AzWe8lzRj7NqdYqrbEKxBZJKHk5HSNA5A_MxL6ATtXMgpbnUZc6bprygmM8IDLKv6NZ3f0cYY
+ yNkBe9JlUpKyAwVLTPlDhrqQ8Su00Y.woVL2bJA4n7DMQLOSg9DulbDV.dxZBqJUhgK5X96.9WEK
+ IY4cCkY0dFMVvYP2wtZIl2sVVjaImtZXUk9cFfZdM4wB7U.sfEaFY7HIIizPGP5f_uslxaHHqnaE
+ CKLBWNAs7jpzY1rlS5yMpsz5NOTb9bjgy81QIUPkkfMKowC_jt3MUR5jOX6On_bg2OMUplU85LWO
+ eb.HXTawyz0sVxJ6qTNPi9VwTv2rtWDqFJIijQ8acsRdhB8Szi3Dg4cjXs5TaMw5eVb6zoQSNA.4
+ TSRyMj9lxJ2gZDwu9LHNUhLyvHSArEXBLw41Xma4jYShtgwZlmTLZCQoHP8UcZFa.EQAdnsOxh_Q
+ ZcxnzS4zWzKwxwbj91odTq5QQvn.riq04mvbiqGGo2i8hSsohmeEKsuGKUcw9O4M3xBDTHqucQkk
+ QPv_BTNkieYcMwEoFOTs5SWpYZ2KZ2.nxaAv8tmQ2SgMExBRJ
+X-Sonic-MF: <casey@schaufler-ca.com>
+X-Sonic-ID: a1a18b20-a3d6-46ba-890c-12ab0b36a078
+Received: from sonic.gate.mail.ne1.yahoo.com by sonic306.consmr.mail.bf2.yahoo.com with HTTP; Fri, 1 Nov 2024 18:53:18 +0000
+Received: by hermes--production-gq1-5dd4b47f46-xx4tp (Yahoo Inc. Hermes SMTP Server) with ESMTPA ID f7457943832abdf25af6efb5327bb6ce;
+          Fri, 01 Nov 2024 18:43:06 +0000 (UTC)
+Message-ID: <97463c75-2edd-47e0-b081-a235891bee6e@schaufler-ca.com>
+Date: Fri, 1 Nov 2024 11:43:03 -0700
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241023212158.18718-3-casey@schaufler-ca.com>
- <68a956fa44249434dedf7d13cd949b35@paul-moore.com> <ZyQPfFvPD72rx4ME@calendula>
- <ZyQRgL_jWdvKgRl-@calendula> <dd727620-9823-4701-aaf1-080b03fb6ccd@schaufler-ca.com>
- <ZySCeoe3kVqKTyUh@calendula> <6a405591-40c5-4db6-bed5-8133a80b55f7@schaufler-ca.com>
- <CAHC9VhRZg5ODurJrXWbZ+DaAdEGVJYn9MhNi+bV0f4Di12P5xA@mail.gmail.com>
- <CAHC9VhQ+ig=GY1CeVGj1OrsyZtMAMBwst03b-oZ+eC2mLnqjNg@mail.gmail.com> <6fd788a9-b051-4c5e-8618-362a8632cb97@schaufler-ca.com>
-In-Reply-To: <6fd788a9-b051-4c5e-8618-362a8632cb97@schaufler-ca.com>
-From: Paul Moore <paul@paul-moore.com>
-Date: Fri, 1 Nov 2024 13:54:42 -0400
-Message-ID: <CAHC9VhQA0L-H-9BPhXCFKMpgs4_Xk+fOip7L7s98wRK-UhS43A@mail.gmail.com>
-Subject: Re: [PATCH v3 2/5] LSM: Replace context+len with lsm_context
-To: Casey Schaufler <casey@schaufler-ca.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, linux-security-module@vger.kernel.org, 
-	jmorris@namei.org, serge@hallyn.com, keescook@chromium.org, 
-	john.johansen@canonical.com, penguin-kernel@i-love.sakura.ne.jp, 
-	stephen.smalley.work@gmail.com, linux-kernel@vger.kernel.org, 
-	selinux@vger.kernel.org, mic@digikod.net, netdev@vger.kernel.org, 
-	audit@vger.kernel.org, netfilter-devel@vger.kernel.org, 
-	Todd Kjos <tkjos@google.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Content-Language: en-US
+To: Paul Moore <paul@paul-moore.com>,
+ LSM List <linux-security-module@vger.kernel.org>,
+ Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, Casey Schaufler <casey@schaufler-ca.com>
+From: Casey Schaufler <casey@schaufler-ca.com>
+Subject: [PATCH lsm/dev] netfilter: Use correct length value in
+ ctnetlink_secctx_size
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+References: <97463c75-2edd-47e0-b081-a235891bee6e.ref@schaufler-ca.com>
+X-Mailer: WebService/1.1.22806 mail.backend.jedi.jws.acl:role.jedi.acl.token.atz.jws.hermes.yahoo
 
-On Fri, Nov 1, 2024 at 12:59=E2=80=AFPM Casey Schaufler <casey@schaufler-ca=
-.com> wrote:
-> On 11/1/2024 9:42 AM, Paul Moore wrote:
-> > On Fri, Nov 1, 2024 at 12:35=E2=80=AFPM Paul Moore <paul@paul-moore.com=
-> wrote:
-> >> On Fri, Nov 1, 2024 at 12:14=E2=80=AFPM Casey Schaufler <casey@schaufl=
-er-ca.com> wrote:
-> >>> On 11/1/2024 12:25 AM, Pablo Neira Ayuso wrote:
-> >>>> On Thu, Oct 31, 2024 at 04:58:13PM -0700, Casey Schaufler wrote:
-> >>>>> On 10/31/2024 4:23 PM, Pablo Neira Ayuso wrote:
-> >>>>>> On Fri, Nov 01, 2024 at 12:15:16AM +0100, Pablo Neira Ayuso wrote:
-> >>>>>>> Hi Paul,
-> >>>>>>>
-> >>>>>>> This patch breaks nf_conntrack_netlink, Casey mentioned that he w=
-ill
-> >>>>>>> post another series.
-> >>>>> I have a fix, it is pretty simple. How about I send a 6/5 patch for=
- it?
-> >>>> No idea. I don't know what is the status of this series. I would
-> >>>> suggest to repost a new series.
-> >>> I will post v4 shortly. Thanks for the feedback.
-> >> Please just post a fix against v2 using lsm/dev as a base.
-> > That should have been "against *v3* using lsm/dev as a base".
-> >
-> > Also, since I didn't explicitly mention it, if I don't see a fix by
-> > dinner time tonight (US East Coast), I'll revert this patchset, but
-> > I'd like to avoid that if possible.
->
-> I will have this as quickly as I can. The patch is easy, but the overhead
-> may slow it down a bit. I should have it in time to avoid the revert.
+Use the correct value for the context length returned by
+security_secid_to_secctx().
 
-It turns out there is no rush on this as it looks like the Rust
-bindings are going to be the one that ends up pushing this out past
-the next merge window as there is a conflict with changes to the Rust
-LSM helpers in the VFS tree.
+Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
+---
+ net/netfilter/nf_conntrack_netlink.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-We still obviously need to the fix, so please keep going with the fix
-based against v3; I'm going to move the v3 patchset from lsm/dev to
-lsm/dev-staging, this will still allow for the usual LSM testing but
-will shield it from linux-next.
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index dd74d4c67c69..edf08cc89f17 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -663,14 +663,14 @@ static inline size_t ctnetlink_acct_size(const struct nf_conn *ct)
+ static inline int ctnetlink_secctx_size(const struct nf_conn *ct)
+ {
+ #ifdef CONFIG_NF_CONNTRACK_SECMARK
+-	int len, ret;
++	int ret;
+ 
+ 	ret = security_secid_to_secctx(ct->secmark, NULL);
+ 	if (ret < 0)
+ 		return 0;
+ 
+ 	return nla_total_size(0) /* CTA_SECCTX */
+-	       + nla_total_size(sizeof(char) * len); /* CTA_SECCTX_NAME */
++	       + nla_total_size(sizeof(char) * ret); /* CTA_SECCTX_NAME */
+ #else
+ 	return 0;
+ #endif
 
---=20
-paul-moore.com
