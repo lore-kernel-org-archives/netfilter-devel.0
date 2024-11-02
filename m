@@ -1,376 +1,101 @@
-Received: from mail-wr1-f44.google.com (mail-wr1-f44.google.com [209.85.221.44])
+Received: from sonic313-22.consmr.mail.bf2.yahoo.com (sonic313-22.consmr.mail.bf2.yahoo.com [74.6.133.196])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71E2513BACC
-	for <netfilter-devel@vger.kernel.org>; Sat,  2 Nov 2024 09:21:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 191E915E5B5
+	for <netfilter-devel@vger.kernel.org>; Sat,  2 Nov 2024 19:48:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.6.133.196
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730539269; cv=none; b=eVfzO58tlsIxjvwmFxXLAUjNl0sPSS9hnGhMeVsJRHT3mNPXwSiUEUJ2BTo/y29KCbpEALuJyiwOFOqkKnpeIIvtbTYLozBNAy+3DJr2oVBBNgHCFQc5s+Q606rxBxyEeD46Ni2DSCdy4hoSoCHHafBkA8EWn6g75E54PV0Pb+w=
+	t=1730576884; cv=none; b=p6qrhVyWRWGO2CezgrLdPOHVhQzEH4G2ZKXWUkqGvWEnFcOdP50/FHzRi9cjX3or/uOS0fkngCy7t6dfMpkGTpOLTAVeBmgHSoc8ruRS3vcVciEYpHwkZ773h+qOIXPUT3Xxu5ChbiemhubjbPk6a5h8BINeaT3YLKJhtz6PqJE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730539269; c=relaxed/simple;
-	bh=w22LUvthbZk6Lf7jOvei+3bDuqvxLjVUl0tNc5PhvU4=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=NICtbcyGWKuXfKDl+DPAQj1btns1ThmZp7a9a5O0V3pGjMFAqfPCShEHth0y3MqwONmtfK3W3AgVtSiGyBCpOqlTsP87AN5ZTDqmXIxDuKa29lv7nXWchzOZKJXPUhYOYlN8GEu3xIZRGDpANipgrukwxkFkGtBkb15d/cH/+NA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=jSuxjRtS; arc=none smtp.client-ip=209.85.221.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
+	s=arc-20240116; t=1730576884; c=relaxed/simple;
+	bh=7TaV/c+5EWmmeLmt6cb/HRqJJBvxZYqOAM7Gvnlu1Ac=;
+	h=Message-ID:Date:MIME-Version:To:From:Subject:Cc:Content-Type:
+	 References; b=YX294UBqLZwPuxAZbvaGHZt3PopzZ/VuXaZSCx+Dq85AGFB023me0dgAtT1Ux+WuMkRwfWDJEDMiqJSW8X4VrfrFBYKS5FcQC5+x6Yae9t/7RMvGQiDv6lzql1CwaulgQpewqqXVcsErCjBDCRhuvNxijIhLaaZMmS7QzVGIxW8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=schaufler-ca.com; spf=none smtp.mailfrom=schaufler-ca.com; dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b=mXm+ESKm; arc=none smtp.client-ip=74.6.133.196
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=schaufler-ca.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=schaufler-ca.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="jSuxjRtS"
-Received: by mail-wr1-f44.google.com with SMTP id ffacd0b85a97d-37d533b5412so1551714f8f.2
-        for <netfilter-devel@vger.kernel.org>; Sat, 02 Nov 2024 02:21:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1730539266; x=1731144066; darn=vger.kernel.org;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=nu9DvEcKZv5ZezUC7BOwrL636I8dMtNCD7hmhISm43M=;
-        b=jSuxjRtS2hh4vFv/Fogvd5ux+TleJ6Etr21yh+kgGXRMocKsNQEAqFfkO1ATmRP4+D
-         J3S+HnyisF/8r5yH0pQmN5nKYgBF/evpGIP4CsuDQkuLE5vurM+7QJvgrtr9AJ/xF/K+
-         2OUSUrh5XfLZQxWL7SyzRVklBOT2ddVl4iLlnX8N2YXzfMnPXu1ewEa3T7HGPf+fyZgy
-         1fRniCDJztPBCXIH3HGzv7C9W5jGnwukpEj+LDsoj7L7PykDQGJlb1hzkrhS5Zi4b/2h
-         65WF2Xdl58ddVoid8F83T3sJKcOgZf+AT181NVxd0yknOO82YRJp13cPQYb5krKPBn/F
-         bTQw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1730539266; x=1731144066;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=nu9DvEcKZv5ZezUC7BOwrL636I8dMtNCD7hmhISm43M=;
-        b=UiPXTNdNs+ap9JzffBi7vldxa4sm/xFOksDHRK4/NNKkKtTmhSqIZxzCJ3pG5HNq5I
-         VB568k0WQ+ewHW1irpJ96GbbTAHOoSXdK7eEYLVfL0KJcEVu07iN1/I+qtF0PoCpwGHv
-         7GUdeXBsSr0276bQCHrFGiMU3Js4pNlGBX+4VEeeuI0LU2wLpKxIXEPDpFcA+yb9h5Td
-         hpR4Qia83wk1wAKW9aTSbzGK5tB6Jb0cCn6b5RUFTKaHe87TLznCYsOIwEhvHD6LyZAI
-         3sWheNasOaPA8/6lN1eE9/CSrsd7AOVPyRuYOxJV5A5zc/eKPNSBtwZfAOo+PiZXX+dq
-         zTFw==
-X-Gm-Message-State: AOJu0Yzm4b04lQa49/xD435Elxt4IBXfY9CGDeMfyraYf6HFINQEFdcx
-	IwJdHXdR+xHB5N2rx6gywB5Jkbqbgium3JMQgwDWaI5JzIKIhZuaJVgD/IUvDSM=
-X-Google-Smtp-Source: AGHT+IGp/pNrYxiLC63ItvPKSu8TCo1i4m3JKA4KHd8FCLSmArYF8VgYz5mnhk7/7qKc51J4gl4PGw==
-X-Received: by 2002:a5d:4441:0:b0:374:c56e:1d44 with SMTP id ffacd0b85a97d-3806121fdf9mr17064437f8f.48.1730539265431;
-        Sat, 02 Nov 2024 02:21:05 -0700 (PDT)
-Received: from localhost ([196.207.164.177])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-381c113de0esm7520154f8f.85.2024.11.02.02.21.04
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 02 Nov 2024 02:21:05 -0700 (PDT)
-Date: Sat, 2 Nov 2024 12:21:01 +0300
-From: Dan Carpenter <dan.carpenter@linaro.org>
-To: Casey Schaufler <casey@schaufler-ca.com>
-Cc: netfilter-devel@vger.kernel.org
-Subject: [bug report] lsm: replace context+len with lsm_context
-Message-ID: <549fd50d-a631-4103-bfe2-e842de387163@stanley.mountain>
+	dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b="mXm+ESKm"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1730576874; bh=UNaZ9mHktBR/5iT5lq+P5PzMIOjBTxIWBynAJr6XJV8=; h=Date:To:From:Subject:Cc:References:From:Subject:Reply-To; b=mXm+ESKmAfYEb/ToL1qX7va0W07L/Iu+CiOpR5FN2Cm3VXBDYvBf4GU3mSEvAq/eM2er4ReJpvKt203By9mF13vX9FXwVozvj5lRMP52old4hOq8yltdm1W5Z94TvYb5P2YiEHpPWWzljT9rEDD0bwrNEek+lQTbLRKqaKmLSpS2ZUiKeENC2srlcCRmnUPu0vPUWfgl9BpcW7BH5DlgUXYvy7hFJHWO7b865gpWPxxSvHDxedae3uHf/5mOb9ci+IPExh2fw/WFkSl9IUzoEA2qUwD6MmbWSFQOxVrJN1Yvh9xcl1PwmS+moSuiPl7lg7Oc04L6+/l0ZPvw6QvX2w==
+X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1730576874; bh=fmAumJjtz70CQY3RsEdlmGXbWmgFe/14tOguEly67tx=; h=X-Sonic-MF:Date:To:From:Subject:From:Subject; b=IpL6D81NyE1tYubWuJmKUKRlSM0x38hU+XZCqxqpyYa1LkgbTFq/Z6z2EXpcSyL4U6d4++OSufw0KX+KJFy1Ss8q22Z/1LjGKZUYN73EEd0yHnVRIR0wLnJp1y4+bVqzMDKgCjbAgNboOG3SLj3P64Gx7FnAjk/s/hXaSJ7F0xbKoHV5phkPZczmTtePjXtsBrskEbf3yq1VOMlGm7LcwCqAZw3E7ZC7MPYFAwUeuIN7pSn/F+9fO/FACOw+ZPdFGkXCfCOT0OT4hGZz7uhvcYrGRz/aDqOcEpvihd+5SQrJB2PsEc942ZUnxX48koDSqDnqwRQw1c/rv6TPdgNN+g==
+X-YMail-OSG: p299_18VM1mn7kFyg2HJ1Iy1lbgNf0nirWB6qzb2.J10z1BuHCH7bVu56lbJvLp
+ UmHFEAkFYwAalxP7PkZ_GXkbQO_w8.qnB_B0e3ZIhpZMTv4BrCRfQxNLU4cAkLrSA4bf00WWR2u.
+ _CLXtLYuRKvDyw1GnugahtAku3_O2CWaRVxIlaSKchlh.pr72m52dBX.Enpj6fuZD5Er4UJd7k8Y
+ sHKYRH08nKG.2y_DKQzOpZsgP52.xfy0hcH7OBgXMkRm1j0CqlG2bqGCQ7rNs0vaO4O__yWY56r4
+ I0SY.VUTQHD.osJVhOm9X1l3a_Ezj54f4KcQJWVvqoV.bcF98aHdJSUkLzlf.QljObBP6JzAH6bv
+ yIgox94N2c_NxtS9sZjjQmpMnOo74o_xbGDagA4oSVtA6UU4OleGQWZEL1_L1LscNO4egg1buawB
+ nqAta04gQIB4_FRYYJRpOEWft7JOYKPNJD6CxTVUmSnpvejFoWUlMmSJYyGk.WwAh9qWYCx_E23w
+ VNsOd5pYk_EdRwsede1TaMKOCK4a14G7cYBEoP_AAn6bPgHm9ObHGZu0Bi3pyZYz7HNXKTgwonqV
+ xLyoFhDpt.KBViwTQPILPlXQTY1NjwhFXHfXs7B5NL0lz325v0SaDeT1GMGOS0aT14oA5.XHdrg7
+ EDtUalicHYrx11WpimpebTp65IPwsA6cF8B8yG1.XUn6NZwUNGuYFlkh.ec46U9m6wjlq5Zq8Z8A
+ 8CodlhcMElDqk3HMjX1dFpXnsc9LpfeOGyZse8dIV76_IZSo3OliFiduR9Q1EDfnwlhm7lXtzx0Z
+ S9GJeeg307UldYXUf3NqrobPcsUjjjjh1VQZ1G5rRiIr48.NMZK.DoyP.WPKfnX.VFppHphU56Yk
+ sJXdDYpP7Of.ocSxygLLpKSurmXpdGe2XI9hIvQ68ZsjH4mnXuvFoXthR5ne270qszBmGlBgvQYo
+ PTmG7mq5.fgssQ3AO_ddh.4OLMEBiGdVllCNvbsiRREGUuPDwvZcFfmG2Y1pfIutrsyvFvyuw5UW
+ ja.CjA.ODrqI6zi.6rQ8fBCFYHkzB1Dp6POgtwncevoTESM3UlRauNlyyWdZESGmWKl2S4usXRdL
+ _e1xbHMw_L_SUO9lON_90Uug2sPnbKnkh6lxycWtPKtCFr5boV_4wMBQ_oV_UygHJmhLTXah.LTp
+ TVlHaujyNBxLBglE2vl.JS_73QS7s5vf9he6ZO7DbYl_GITUlkprG_RvLB3ROOeM8cMPbofQUxtY
+ vOy249iEHe63iQzBlu8H99et6GI2pwfo0yMVn4_leanlddXGVNDVjR.TEtsXR_91okiJXhZIAp12
+ yUcGDnNYryI9L7g2Tae1TzdO8pMoDxIqP5DfibR.DVDLzRalD_FZUdgD8tM9eEHhDZ92e7ZvMmQZ
+ pD_azK3IedbdpYhKsLzksW9VOmYkngjuuKgWvWsSGe5rdK_j6oQKgyWWuccQO6jgcUxku2GWkrq4
+ iIcot_Oj4PnCd1qRMsvX9sGBwu.SCK12sJexWBQgDyPKS39KvLuPNchMNS3oiatreUy6pvMsRNtz
+ ylQJ0sKRzcYxSPrJFmaK4wzLmsJa6Why0PN2rk.6g6fVsjnT3vFnwLTfM1L9JTFrOf1xE4RtazZS
+ BF2SNmGsRrvyGlgLFK8Pc_2usLLsedeOR0yPoiI0o4n7fvDv5Yz5EpgY9EzJyg5240szJG_MxAE5
+ l4rI7f.BSWSnJGYRz_2S1An0n2X2Su76qKRC_2sbnD4myNkiTOSG3V0BAfjFTEKD6cBQe4V9C3kq
+ cdceRLO2aaNLGfzKSmUqRW8_nK2CgiQX6qQYyNxtnCTfm8x5dwPAlIoykQw3FmlEUoyQ.gwOtIqO
+ wxLmq65QFlbbyM7EDMKOsmVe0l3Nc.iGkEb986xelV_5HHSCCrqmgLJ5wKM37Ena7fMtLemEn82l
+ PwdReY6TQrlxq6ST0H6WSiBEz_h72v6YSHlW21BhQ_l040YnFWxPwTTsRuw4JW127V0wHJQY5EGz
+ Sf7pAZXDG4j8d07K9KefPfvDtz1LtaHpJCZm1S7nKMkn4Imywga4yNjcca5VIcpAheBZ7M1nbNDQ
+ u6cYOTI1lSUu..tdeGObdIiphweDIctkROlS9_6lgNm.5DH_Dj8TYznbWSAybWrq0sRRC4YBr7kR
+ 857qHEfLYl2NbfP_qrCE8GTdwmMYgdk5gyBBgRt7u..Ujxqx3KXrJtOEqcq9mZEUfYqU7va9SyOd
+ QVN6alF8oJ0WfFZucxQemrNjTM3M8hrU1MwGAVzT9RBg-
+X-Sonic-MF: <casey@schaufler-ca.com>
+X-Sonic-ID: 23079028-eb34-471b-933a-e411a3f4bc40
+Received: from sonic.gate.mail.ne1.yahoo.com by sonic313.consmr.mail.bf2.yahoo.com with HTTP; Sat, 2 Nov 2024 19:47:54 +0000
+Received: by hermes--production-gq1-5dd4b47f46-5kxd4 (Yahoo Inc. Hermes SMTP Server) with ESMTPA ID be2540088e62290e816fabcf92eccdf0;
+          Sat, 02 Nov 2024 19:37:37 +0000 (UTC)
+Message-ID: <55401269-240e-43ca-83fa-97b089de5f19@schaufler-ca.com>
+Date: Sat, 2 Nov 2024 12:37:36 -0700
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+User-Agent: Mozilla Thunderbird
+Content-Language: en-US
+To: Paul Moore <paul@paul-moore.com>, Pablo Neira Ayuso <pablo@netfilter.org>
+From: Casey Schaufler <casey@schaufler-ca.com>
+Subject: [Patch lsm/dev-staging] selinux: Fix pointer use in
+ selinux_dentry_init_security
+Cc: netfilter-devel@vger.kernel.org,
+ LSM List <linux-security-module@vger.kernel.org>,
+ Casey Schaufler <casey@schaufler-ca.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+References: <55401269-240e-43ca-83fa-97b089de5f19.ref@schaufler-ca.com>
+X-Mailer: WebService/1.1.22806 mail.backend.jedi.jws.acl:role.jedi.acl.token.atz.jws.hermes.yahoo
 
-Hello Casey Schaufler,
+The cast used while calling security_sid_to_context() is just wrong.
+Use the address of the pointer instead.
 
-Commit 95a3c11eb670 ("lsm: replace context+len with lsm_context")
-from Oct 23, 2024 (linux-next), leads to the following Smatch static
-checker warning:
+Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
+---
+ security/selinux/hooks.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-  net/netfilter/nfnetlink_queue.c:646 nfqnl_build_packet_message()
-  warn: always true condition '(seclen >= 0) => (0-u32max >= 0)'
+diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
+index 996e765b6823..93d2773bfda5 100644
+--- a/security/selinux/hooks.c
++++ b/security/selinux/hooks.c
+@@ -2886,8 +2886,7 @@ static int selinux_dentry_init_security(struct dentry *dentry, int mode,
+ 		*xattr_name = XATTR_NAME_SELINUX;
+ 
+ 	cp->id = LSM_ID_SELINUX;
+-	return security_sid_to_context(newsid, (char **)cp->context,
+-				       &cp->len);
++	return security_sid_to_context(newsid, &cp->context, &cp->len);
+ }
+ 
+ static int selinux_dentry_create_files_as(struct dentry *dentry, int mode,
 
-  net/netfilter/nfnetlink_queue.c:813 nfqnl_build_packet_message()
-  warn: always true condition '(seclen >= 0) => (0-u32max >= 0)'
-
-  net/netfilter/nfnetlink_queue.c:822 nfqnl_build_packet_message()
-  warn: always true condition '(seclen >= 0) => (0-u32max >= 0)'
-
-net/netfilter/nfnetlink_queue.c
-   551  static struct sk_buff *
-   552  nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
-   553                             struct nf_queue_entry *entry,
-   554                             __be32 **packet_id_ptr)
-   555  {
-   556          size_t size;
-   557          size_t data_len = 0, cap_len = 0;
-   558          unsigned int hlen = 0;
-   559          struct sk_buff *skb;
-   560          struct nlattr *nla;
-   561          struct nfqnl_msg_packet_hdr *pmsg;
-   562          struct nlmsghdr *nlh;
-   563          struct sk_buff *entskb = entry->skb;
-   564          struct net_device *indev;
-   565          struct net_device *outdev;
-   566          struct nf_conn *ct = NULL;
-   567          enum ip_conntrack_info ctinfo = 0;
-   568          const struct nfnl_ct_hook *nfnl_ct;
-   569          bool csum_verify;
-   570          struct lsm_context ctx;
-   571          u32 seclen = 0;
-                ^^^^^^^^^^
-
-   572          ktime_t tstamp;
-   573  
-   574          size = nlmsg_total_size(sizeof(struct nfgenmsg))
-   575                  + nla_total_size(sizeof(struct nfqnl_msg_packet_hdr))
-   576                  + nla_total_size(sizeof(u_int32_t))     /* ifindex */
-   577                  + nla_total_size(sizeof(u_int32_t))     /* ifindex */
-   578  #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-   579                  + nla_total_size(sizeof(u_int32_t))     /* ifindex */
-   580                  + nla_total_size(sizeof(u_int32_t))     /* ifindex */
-   581  #endif
-   582                  + nla_total_size(sizeof(u_int32_t))     /* mark */
-   583                  + nla_total_size(sizeof(u_int32_t))     /* priority */
-   584                  + nla_total_size(sizeof(struct nfqnl_msg_packet_hw))
-   585                  + nla_total_size(sizeof(u_int32_t))     /* skbinfo */
-   586  #if IS_ENABLED(CONFIG_CGROUP_NET_CLASSID)
-   587                  + nla_total_size(sizeof(u_int32_t))     /* classid */
-   588  #endif
-   589                  + nla_total_size(sizeof(u_int32_t));    /* cap_len */
-   590  
-   591          tstamp = skb_tstamp_cond(entskb, false);
-   592          if (tstamp)
-   593                  size += nla_total_size(sizeof(struct nfqnl_msg_packet_timestamp));
-   594  
-   595          size += nfqnl_get_bridge_size(entry);
-   596  
-   597          if (entry->state.hook <= NF_INET_FORWARD ||
-   598             (entry->state.hook == NF_INET_POST_ROUTING && entskb->sk == NULL))
-   599                  csum_verify = !skb_csum_unnecessary(entskb);
-   600          else
-   601                  csum_verify = false;
-   602  
-   603          outdev = entry->state.out;
-   604  
-   605          switch ((enum nfqnl_config_mode)READ_ONCE(queue->copy_mode)) {
-   606          case NFQNL_COPY_META:
-   607          case NFQNL_COPY_NONE:
-   608                  break;
-   609  
-   610          case NFQNL_COPY_PACKET:
-   611                  if (!(queue->flags & NFQA_CFG_F_GSO) &&
-   612                      entskb->ip_summed == CHECKSUM_PARTIAL &&
-   613                      nf_queue_checksum_help(entskb))
-   614                          return NULL;
-   615  
-   616                  data_len = READ_ONCE(queue->copy_range);
-   617                  if (data_len > entskb->len)
-   618                          data_len = entskb->len;
-   619  
-   620                  hlen = skb_zerocopy_headlen(entskb);
-   621                  hlen = min_t(unsigned int, hlen, data_len);
-   622                  size += sizeof(struct nlattr) + hlen;
-   623                  cap_len = entskb->len;
-   624                  break;
-   625          }
-   626  
-   627          nfnl_ct = rcu_dereference(nfnl_ct_hook);
-   628  
-   629  #if IS_ENABLED(CONFIG_NF_CONNTRACK)
-   630          if (queue->flags & NFQA_CFG_F_CONNTRACK) {
-   631                  if (nfnl_ct != NULL) {
-   632                          ct = nf_ct_get(entskb, &ctinfo);
-   633                          if (ct != NULL)
-   634                                  size += nfnl_ct->build_size(ct);
-   635                  }
-   636          }
-   637  #endif
-   638  
-   639          if (queue->flags & NFQA_CFG_F_UID_GID) {
-   640                  size += (nla_total_size(sizeof(u_int32_t))      /* uid */
-   641                          + nla_total_size(sizeof(u_int32_t)));   /* gid */
-   642          }
-   643  
-   644          if ((queue->flags & NFQA_CFG_F_SECCTX) && entskb->sk) {
-   645                  seclen = nfqnl_get_sk_secctx(entskb, &ctx);
-
-nfqnl_get_sk_secctx() returns negative error codes.  It needs to be changed ot
-int as well instead of u32.
-
-   646                  if (seclen >= 0)
-   647                          size += nla_total_size(seclen);
-   648          }
-   649  
-   650          skb = alloc_skb(size, GFP_ATOMIC);
-   651          if (!skb) {
-   652                  skb_tx_error(entskb);
-   653                  goto nlmsg_failure;
-   654          }
-   655  
-   656          nlh = nfnl_msg_put(skb, 0, 0,
-   657                             nfnl_msg_type(NFNL_SUBSYS_QUEUE, NFQNL_MSG_PACKET),
-   658                             0, entry->state.pf, NFNETLINK_V0,
-   659                             htons(queue->queue_num));
-   660          if (!nlh) {
-   661                  skb_tx_error(entskb);
-   662                  kfree_skb(skb);
-   663                  goto nlmsg_failure;
-   664          }
-   665  
-   666          nla = __nla_reserve(skb, NFQA_PACKET_HDR, sizeof(*pmsg));
-   667          pmsg = nla_data(nla);
-   668          pmsg->hw_protocol       = entskb->protocol;
-   669          pmsg->hook              = entry->state.hook;
-   670          *packet_id_ptr          = &pmsg->packet_id;
-   671  
-   672          indev = entry->state.in;
-   673          if (indev) {
-   674  #if !IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-   675                  if (nla_put_be32(skb, NFQA_IFINDEX_INDEV, htonl(indev->ifindex)))
-   676                          goto nla_put_failure;
-   677  #else
-   678                  if (entry->state.pf == PF_BRIDGE) {
-   679                          /* Case 1: indev is physical input device, we need to
-   680                           * look for bridge group (when called from
-   681                           * netfilter_bridge) */
-   682                          if (nla_put_be32(skb, NFQA_IFINDEX_PHYSINDEV,
-   683                                           htonl(indev->ifindex)) ||
-   684                          /* this is the bridge group "brX" */
-   685                          /* rcu_read_lock()ed by __nf_queue */
-   686                              nla_put_be32(skb, NFQA_IFINDEX_INDEV,
-   687                                           htonl(br_port_get_rcu(indev)->br->dev->ifindex)))
-   688                                  goto nla_put_failure;
-   689                  } else {
-   690                          int physinif;
-   691  
-   692                          /* Case 2: indev is bridge group, we need to look for
-   693                           * physical device (when called from ipv4) */
-   694                          if (nla_put_be32(skb, NFQA_IFINDEX_INDEV,
-   695                                           htonl(indev->ifindex)))
-   696                                  goto nla_put_failure;
-   697  
-   698                          physinif = nf_bridge_get_physinif(entskb);
-   699                          if (physinif &&
-   700                              nla_put_be32(skb, NFQA_IFINDEX_PHYSINDEV,
-   701                                           htonl(physinif)))
-   702                                  goto nla_put_failure;
-   703                  }
-   704  #endif
-   705          }
-   706  
-   707          if (outdev) {
-   708  #if !IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-   709                  if (nla_put_be32(skb, NFQA_IFINDEX_OUTDEV, htonl(outdev->ifindex)))
-   710                          goto nla_put_failure;
-   711  #else
-   712                  if (entry->state.pf == PF_BRIDGE) {
-   713                          /* Case 1: outdev is physical output device, we need to
-   714                           * look for bridge group (when called from
-   715                           * netfilter_bridge) */
-   716                          if (nla_put_be32(skb, NFQA_IFINDEX_PHYSOUTDEV,
-   717                                           htonl(outdev->ifindex)) ||
-   718                          /* this is the bridge group "brX" */
-   719                          /* rcu_read_lock()ed by __nf_queue */
-   720                              nla_put_be32(skb, NFQA_IFINDEX_OUTDEV,
-   721                                           htonl(br_port_get_rcu(outdev)->br->dev->ifindex)))
-   722                                  goto nla_put_failure;
-   723                  } else {
-   724                          int physoutif;
-   725  
-   726                          /* Case 2: outdev is bridge group, we need to look for
-   727                           * physical output device (when called from ipv4) */
-   728                          if (nla_put_be32(skb, NFQA_IFINDEX_OUTDEV,
-   729                                           htonl(outdev->ifindex)))
-   730                                  goto nla_put_failure;
-   731  
-   732                          physoutif = nf_bridge_get_physoutif(entskb);
-   733                          if (physoutif &&
-   734                              nla_put_be32(skb, NFQA_IFINDEX_PHYSOUTDEV,
-   735                                           htonl(physoutif)))
-   736                                  goto nla_put_failure;
-   737                  }
-   738  #endif
-   739          }
-   740  
-   741          if (entskb->mark &&
-   742              nla_put_be32(skb, NFQA_MARK, htonl(entskb->mark)))
-   743                  goto nla_put_failure;
-   744  
-   745          if (entskb->priority &&
-   746              nla_put_be32(skb, NFQA_PRIORITY, htonl(entskb->priority)))
-   747                  goto nla_put_failure;
-   748  
-   749          if (indev && entskb->dev &&
-   750              skb_mac_header_was_set(entskb) &&
-   751              skb_mac_header_len(entskb) != 0) {
-   752                  struct nfqnl_msg_packet_hw phw;
-   753                  int len;
-   754  
-   755                  memset(&phw, 0, sizeof(phw));
-   756                  len = dev_parse_header(entskb, phw.hw_addr);
-   757                  if (len) {
-   758                          phw.hw_addrlen = htons(len);
-   759                          if (nla_put(skb, NFQA_HWADDR, sizeof(phw), &phw))
-   760                                  goto nla_put_failure;
-   761                  }
-   762          }
-   763  
-   764          if (nfqnl_put_bridge(entry, skb) < 0)
-   765                  goto nla_put_failure;
-   766  
-   767          if (entry->state.hook <= NF_INET_FORWARD && tstamp) {
-   768                  struct nfqnl_msg_packet_timestamp ts;
-   769                  struct timespec64 kts = ktime_to_timespec64(tstamp);
-   770  
-   771                  ts.sec = cpu_to_be64(kts.tv_sec);
-   772                  ts.usec = cpu_to_be64(kts.tv_nsec / NSEC_PER_USEC);
-   773  
-   774                  if (nla_put(skb, NFQA_TIMESTAMP, sizeof(ts), &ts))
-   775                          goto nla_put_failure;
-   776          }
-   777  
-   778          if ((queue->flags & NFQA_CFG_F_UID_GID) && entskb->sk &&
-   779              nfqnl_put_sk_uidgid(skb, entskb->sk) < 0)
-   780                  goto nla_put_failure;
-   781  
-   782          if (nfqnl_put_sk_classid(skb, entskb->sk) < 0)
-   783                  goto nla_put_failure;
-   784  
-   785          if (seclen && nla_put(skb, NFQA_SECCTX, ctx.len, ctx.context))
-                    ^^^^^^
-This doesn't look right.
-
-
-   786                  goto nla_put_failure;
-   787  
-   788          if (ct && nfnl_ct->build(skb, ct, ctinfo, NFQA_CT, NFQA_CT_INFO) < 0)
-   789                  goto nla_put_failure;
-   790  
-   791          if (cap_len > data_len &&
-   792              nla_put_be32(skb, NFQA_CAP_LEN, htonl(cap_len)))
-   793                  goto nla_put_failure;
-   794  
-   795          if (nfqnl_put_packet_info(skb, entskb, csum_verify))
-   796                  goto nla_put_failure;
-   797  
-   798          if (data_len) {
-   799                  struct nlattr *nla;
-   800  
-   801                  if (skb_tailroom(skb) < sizeof(*nla) + hlen)
-   802                          goto nla_put_failure;
-   803  
-   804                  nla = skb_put(skb, sizeof(*nla));
-   805                  nla->nla_type = NFQA_PAYLOAD;
-   806                  nla->nla_len = nla_attr_size(data_len);
-   807  
-   808                  if (skb_zerocopy(skb, entskb, data_len, hlen))
-   809                          goto nla_put_failure;
-   810          }
-   811  
-   812          nlh->nlmsg_len = skb->len;
-   813          if (seclen >= 0)
-                    ^^^^^^^^^^^
-
-   814                  security_release_secctx(&ctx);
-   815          return skb;
-   816  
-   817  nla_put_failure:
-   818          skb_tx_error(entskb);
-   819          kfree_skb(skb);
-   820          net_err_ratelimited("nf_queue: error creating packet message\n");
-   821  nlmsg_failure:
-   822          if (seclen >= 0)
-                    ^^^^^^^^^^^
-
-   823                  security_release_secctx(&ctx);
-   824          return NULL;
-   825  }
-
-
-
-regards,
-dan carpenter
