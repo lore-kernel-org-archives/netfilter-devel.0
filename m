@@ -1,101 +1,224 @@
-Received: from sonic313-22.consmr.mail.bf2.yahoo.com (sonic313-22.consmr.mail.bf2.yahoo.com [74.6.133.196])
+Received: from mail-yb1-f178.google.com (mail-yb1-f178.google.com [209.85.219.178])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 191E915E5B5
-	for <netfilter-devel@vger.kernel.org>; Sat,  2 Nov 2024 19:48:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.6.133.196
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA87E1632E6
+	for <netfilter-devel@vger.kernel.org>; Sun,  3 Nov 2024 10:26:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730576884; cv=none; b=p6qrhVyWRWGO2CezgrLdPOHVhQzEH4G2ZKXWUkqGvWEnFcOdP50/FHzRi9cjX3or/uOS0fkngCy7t6dfMpkGTpOLTAVeBmgHSoc8ruRS3vcVciEYpHwkZ773h+qOIXPUT3Xxu5ChbiemhubjbPk6a5h8BINeaT3YLKJhtz6PqJE=
+	t=1730629610; cv=none; b=RxA0vAHFXWrmugqatHRYUvpImIItn63OfyJ3CCZsdEiEAJuYotk4am7h02HEmgjLREtlAy9WePusKeKts/Vq0usBtzRpKJLXPe3n9x0Ioe42jte9uj97NZGz7IPfWNkEtrpzPr2vaE4e7vrRTAk7QA4xfjzOle0B0PKnZOiSUbc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730576884; c=relaxed/simple;
-	bh=7TaV/c+5EWmmeLmt6cb/HRqJJBvxZYqOAM7Gvnlu1Ac=;
-	h=Message-ID:Date:MIME-Version:To:From:Subject:Cc:Content-Type:
-	 References; b=YX294UBqLZwPuxAZbvaGHZt3PopzZ/VuXaZSCx+Dq85AGFB023me0dgAtT1Ux+WuMkRwfWDJEDMiqJSW8X4VrfrFBYKS5FcQC5+x6Yae9t/7RMvGQiDv6lzql1CwaulgQpewqqXVcsErCjBDCRhuvNxijIhLaaZMmS7QzVGIxW8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=schaufler-ca.com; spf=none smtp.mailfrom=schaufler-ca.com; dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b=mXm+ESKm; arc=none smtp.client-ip=74.6.133.196
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=schaufler-ca.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=schaufler-ca.com
+	s=arc-20240116; t=1730629610; c=relaxed/simple;
+	bh=QUmUiueTyLgkWorH9TuvJu3oFeZGfHnq+OYy46EADT4=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=aOx56Ji0ChQ66qyp6m68n1+MAJJVPhRd6/PPC+s/NaIRQK/t2uWg8EoG1dzFOs0K9hAsvOiC9DjcuZUB+zqdqnDvGpy/+Iv1EittBVoZyV/rdXsGnpcsvEj8VM9JizoNvbFBWCitvCO/Hj0TDUztUJ8YQ8F3KrbapS0sfRTpsg0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=GpeO05u7; arc=none smtp.client-ip=209.85.219.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b="mXm+ESKm"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1730576874; bh=UNaZ9mHktBR/5iT5lq+P5PzMIOjBTxIWBynAJr6XJV8=; h=Date:To:From:Subject:Cc:References:From:Subject:Reply-To; b=mXm+ESKmAfYEb/ToL1qX7va0W07L/Iu+CiOpR5FN2Cm3VXBDYvBf4GU3mSEvAq/eM2er4ReJpvKt203By9mF13vX9FXwVozvj5lRMP52old4hOq8yltdm1W5Z94TvYb5P2YiEHpPWWzljT9rEDD0bwrNEek+lQTbLRKqaKmLSpS2ZUiKeENC2srlcCRmnUPu0vPUWfgl9BpcW7BH5DlgUXYvy7hFJHWO7b865gpWPxxSvHDxedae3uHf/5mOb9ci+IPExh2fw/WFkSl9IUzoEA2qUwD6MmbWSFQOxVrJN1Yvh9xcl1PwmS+moSuiPl7lg7Oc04L6+/l0ZPvw6QvX2w==
-X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1730576874; bh=fmAumJjtz70CQY3RsEdlmGXbWmgFe/14tOguEly67tx=; h=X-Sonic-MF:Date:To:From:Subject:From:Subject; b=IpL6D81NyE1tYubWuJmKUKRlSM0x38hU+XZCqxqpyYa1LkgbTFq/Z6z2EXpcSyL4U6d4++OSufw0KX+KJFy1Ss8q22Z/1LjGKZUYN73EEd0yHnVRIR0wLnJp1y4+bVqzMDKgCjbAgNboOG3SLj3P64Gx7FnAjk/s/hXaSJ7F0xbKoHV5phkPZczmTtePjXtsBrskEbf3yq1VOMlGm7LcwCqAZw3E7ZC7MPYFAwUeuIN7pSn/F+9fO/FACOw+ZPdFGkXCfCOT0OT4hGZz7uhvcYrGRz/aDqOcEpvihd+5SQrJB2PsEc942ZUnxX48koDSqDnqwRQw1c/rv6TPdgNN+g==
-X-YMail-OSG: p299_18VM1mn7kFyg2HJ1Iy1lbgNf0nirWB6qzb2.J10z1BuHCH7bVu56lbJvLp
- UmHFEAkFYwAalxP7PkZ_GXkbQO_w8.qnB_B0e3ZIhpZMTv4BrCRfQxNLU4cAkLrSA4bf00WWR2u.
- _CLXtLYuRKvDyw1GnugahtAku3_O2CWaRVxIlaSKchlh.pr72m52dBX.Enpj6fuZD5Er4UJd7k8Y
- sHKYRH08nKG.2y_DKQzOpZsgP52.xfy0hcH7OBgXMkRm1j0CqlG2bqGCQ7rNs0vaO4O__yWY56r4
- I0SY.VUTQHD.osJVhOm9X1l3a_Ezj54f4KcQJWVvqoV.bcF98aHdJSUkLzlf.QljObBP6JzAH6bv
- yIgox94N2c_NxtS9sZjjQmpMnOo74o_xbGDagA4oSVtA6UU4OleGQWZEL1_L1LscNO4egg1buawB
- nqAta04gQIB4_FRYYJRpOEWft7JOYKPNJD6CxTVUmSnpvejFoWUlMmSJYyGk.WwAh9qWYCx_E23w
- VNsOd5pYk_EdRwsede1TaMKOCK4a14G7cYBEoP_AAn6bPgHm9ObHGZu0Bi3pyZYz7HNXKTgwonqV
- xLyoFhDpt.KBViwTQPILPlXQTY1NjwhFXHfXs7B5NL0lz325v0SaDeT1GMGOS0aT14oA5.XHdrg7
- EDtUalicHYrx11WpimpebTp65IPwsA6cF8B8yG1.XUn6NZwUNGuYFlkh.ec46U9m6wjlq5Zq8Z8A
- 8CodlhcMElDqk3HMjX1dFpXnsc9LpfeOGyZse8dIV76_IZSo3OliFiduR9Q1EDfnwlhm7lXtzx0Z
- S9GJeeg307UldYXUf3NqrobPcsUjjjjh1VQZ1G5rRiIr48.NMZK.DoyP.WPKfnX.VFppHphU56Yk
- sJXdDYpP7Of.ocSxygLLpKSurmXpdGe2XI9hIvQ68ZsjH4mnXuvFoXthR5ne270qszBmGlBgvQYo
- PTmG7mq5.fgssQ3AO_ddh.4OLMEBiGdVllCNvbsiRREGUuPDwvZcFfmG2Y1pfIutrsyvFvyuw5UW
- ja.CjA.ODrqI6zi.6rQ8fBCFYHkzB1Dp6POgtwncevoTESM3UlRauNlyyWdZESGmWKl2S4usXRdL
- _e1xbHMw_L_SUO9lON_90Uug2sPnbKnkh6lxycWtPKtCFr5boV_4wMBQ_oV_UygHJmhLTXah.LTp
- TVlHaujyNBxLBglE2vl.JS_73QS7s5vf9he6ZO7DbYl_GITUlkprG_RvLB3ROOeM8cMPbofQUxtY
- vOy249iEHe63iQzBlu8H99et6GI2pwfo0yMVn4_leanlddXGVNDVjR.TEtsXR_91okiJXhZIAp12
- yUcGDnNYryI9L7g2Tae1TzdO8pMoDxIqP5DfibR.DVDLzRalD_FZUdgD8tM9eEHhDZ92e7ZvMmQZ
- pD_azK3IedbdpYhKsLzksW9VOmYkngjuuKgWvWsSGe5rdK_j6oQKgyWWuccQO6jgcUxku2GWkrq4
- iIcot_Oj4PnCd1qRMsvX9sGBwu.SCK12sJexWBQgDyPKS39KvLuPNchMNS3oiatreUy6pvMsRNtz
- ylQJ0sKRzcYxSPrJFmaK4wzLmsJa6Why0PN2rk.6g6fVsjnT3vFnwLTfM1L9JTFrOf1xE4RtazZS
- BF2SNmGsRrvyGlgLFK8Pc_2usLLsedeOR0yPoiI0o4n7fvDv5Yz5EpgY9EzJyg5240szJG_MxAE5
- l4rI7f.BSWSnJGYRz_2S1An0n2X2Su76qKRC_2sbnD4myNkiTOSG3V0BAfjFTEKD6cBQe4V9C3kq
- cdceRLO2aaNLGfzKSmUqRW8_nK2CgiQX6qQYyNxtnCTfm8x5dwPAlIoykQw3FmlEUoyQ.gwOtIqO
- wxLmq65QFlbbyM7EDMKOsmVe0l3Nc.iGkEb986xelV_5HHSCCrqmgLJ5wKM37Ena7fMtLemEn82l
- PwdReY6TQrlxq6ST0H6WSiBEz_h72v6YSHlW21BhQ_l040YnFWxPwTTsRuw4JW127V0wHJQY5EGz
- Sf7pAZXDG4j8d07K9KefPfvDtz1LtaHpJCZm1S7nKMkn4Imywga4yNjcca5VIcpAheBZ7M1nbNDQ
- u6cYOTI1lSUu..tdeGObdIiphweDIctkROlS9_6lgNm.5DH_Dj8TYznbWSAybWrq0sRRC4YBr7kR
- 857qHEfLYl2NbfP_qrCE8GTdwmMYgdk5gyBBgRt7u..Ujxqx3KXrJtOEqcq9mZEUfYqU7va9SyOd
- QVN6alF8oJ0WfFZucxQemrNjTM3M8hrU1MwGAVzT9RBg-
-X-Sonic-MF: <casey@schaufler-ca.com>
-X-Sonic-ID: 23079028-eb34-471b-933a-e411a3f4bc40
-Received: from sonic.gate.mail.ne1.yahoo.com by sonic313.consmr.mail.bf2.yahoo.com with HTTP; Sat, 2 Nov 2024 19:47:54 +0000
-Received: by hermes--production-gq1-5dd4b47f46-5kxd4 (Yahoo Inc. Hermes SMTP Server) with ESMTPA ID be2540088e62290e816fabcf92eccdf0;
-          Sat, 02 Nov 2024 19:37:37 +0000 (UTC)
-Message-ID: <55401269-240e-43ca-83fa-97b089de5f19@schaufler-ca.com>
-Date: Sat, 2 Nov 2024 12:37:36 -0700
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GpeO05u7"
+Received: by mail-yb1-f178.google.com with SMTP id 3f1490d57ef6-e30eca40c44so2771543276.2
+        for <netfilter-devel@vger.kernel.org>; Sun, 03 Nov 2024 02:26:48 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1730629608; x=1731234408; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=EasSarsLrqHBu3iO5TQx8bLTVVIDAwHfCyzDu3AhM0s=;
+        b=GpeO05u7SSSTsM0f6oCFWxsBUHjzJSRaDy+d6Zib24ad7vai5flUlJbEHJjC3u1KVw
+         3qEsskXz4Fnv2/Vxh2e5InH227ab2nQMoH/BT1AgjZBmIObf0KSA5WZGO5783ajD5h5m
+         whA28cP3clj677eAV0UKN8gNr7m+lSyKVt6xzZw2QR92IjlVYnRMDJaHInN2XXj8rHs+
+         mPzDYFjXq7B8UHkM7unM406J/s2JQC4CKC4C/xVgv1fDj92xg/mpnq91Tp0K5Ykg8hbB
+         TBER7gvIroPE0w4VfNGgpKhM8U0RQb3wgo7jYihb471+X3ha2WiM+MAoT1Yl8/Xrdpjv
+         aVLQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1730629608; x=1731234408;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=EasSarsLrqHBu3iO5TQx8bLTVVIDAwHfCyzDu3AhM0s=;
+        b=exs/Xt5eSiclZNucS2O9X809d9o0OeSDqoLSwb1/1m+wgP96wvs69cuMZ+DzByrS0P
+         iSuu9AwSKa9nxsE8VvfxExg9Na43pBRR3RshfmNEHLzRK4k2/UZRSsSuVqqvaVKWCmJT
+         PrMTE0NP5rwyIXnJsMbJxZcFQxHA6ZNLDf/XbQqGK5IaEXZdyEAJoPFzoNzrXjL5Nuqs
+         3NPOybbxW2eLRK2JUK4xDNl3YLEqhzAgO8Z6EP7ASHsmljuhQ6ROQFcAEYofc3Di5Vfs
+         6Tca6AZKdw/ATDBfWg5pkH9RqJzxKZjiH+zXldP38JAkBta5V9Xhy3/orGzHHx0I4mXY
+         o0mg==
+X-Gm-Message-State: AOJu0YyzCfKACqu7+vhKcCJLdJ3U6fjST4uiZKjmRdxpQbGH9qfqREv0
+	2Rnw0BFYIT9+WgOmf7AduVuwN38wWyKNgDWnpgEHcrKimy7/ROr6g58qJUehamFeXyf1d3WOacj
+	uJWKgZ52226Ghyw0bzQjjlPzhgMC2ZxSf
+X-Google-Smtp-Source: AGHT+IFCtEAA8jDf4CIyKLFa5P2I9nWmPSLGaxM01gvUdEcqofTGvaTEs6FRsnIlQqBhvpAahWbeke1mKJXiA4aSSJU=
+X-Received: by 2002:a05:6902:c08:b0:e28:f3e7:d92b with SMTP id
+ 3f1490d57ef6-e3087b66629mr26279436276.24.1730629607506; Sun, 03 Nov 2024
+ 02:26:47 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Content-Language: en-US
-To: Paul Moore <paul@paul-moore.com>, Pablo Neira Ayuso <pablo@netfilter.org>
-From: Casey Schaufler <casey@schaufler-ca.com>
-Subject: [Patch lsm/dev-staging] selinux: Fix pointer use in
- selinux_dentry_init_security
-Cc: netfilter-devel@vger.kernel.org,
- LSM List <linux-security-module@vger.kernel.org>,
- Casey Schaufler <casey@schaufler-ca.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-References: <55401269-240e-43ca-83fa-97b089de5f19.ref@schaufler-ca.com>
-X-Mailer: WebService/1.1.22806 mail.backend.jedi.jws.acl:role.jedi.acl.token.atz.jws.hermes.yahoo
+References: <20241030131232.15524-1-fw@strlen.de>
+In-Reply-To: <20241030131232.15524-1-fw@strlen.de>
+From: Nadia Pinaeva <n.m.pinaeva@gmail.com>
+Date: Sun, 3 Nov 2024 11:26:36 +0100
+Message-ID: <CAOiXEcfv9Gi9Xehws0TOM_VrtH4yKQ4G1Xg9_Q+G8bT_pk-2_A@mail.gmail.com>
+Subject: Re: [PATCH nf-next v2] netfilter: conntrack: collect start time as
+ early as possible
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-The cast used while calling security_sid_to_context() is just wrong.
-Use the address of the pointer instead.
+I would like to provide some more context from the user point of view.
+I am working on a tool that allows collecting network performance
+metrics by using conntrack events.
+Start time of a conntrack entry is used to evaluate seen_reply
+latency, therefore the sooner it is timestamped, the better the
+precision is.
+In particular, when using this tool to compare the performance of the
+same feature implemented using iptables/nftables/OVS it is crucial
+to have the entry timestamped earlier to see any difference.
 
-Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
----
- security/selinux/hooks.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+I am not sure if current timestamping logic is used for anything, but
+changing it would definitely help with my use case.
+I am happy to provide more details, if you have any questions.
 
-diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
-index 996e765b6823..93d2773bfda5 100644
---- a/security/selinux/hooks.c
-+++ b/security/selinux/hooks.c
-@@ -2886,8 +2886,7 @@ static int selinux_dentry_init_security(struct dentry *dentry, int mode,
- 		*xattr_name = XATTR_NAME_SELINUX;
- 
- 	cp->id = LSM_ID_SELINUX;
--	return security_sid_to_context(newsid, (char **)cp->context,
--				       &cp->len);
-+	return security_sid_to_context(newsid, &cp->context, &cp->len);
- }
- 
- static int selinux_dentry_create_files_as(struct dentry *dentry, int mode,
+Nadia Pinaeva
 
+
+On Wed, 30 Oct 2024 at 14:18, Florian Westphal <fw@strlen.de> wrote:
+>
+> Sample start time at allocation time, not when the conntrack entry is
+> inserted into the hashtable.
+>
+> In most cases this makes very little difference, but there are cases where
+> there is significant delay beteen allocation and confirmation, e.g. when
+> packets get queued to userspace to when there are many (iptables) rules
+> that need to be evaluated.
+>
+> Sampling as early as possible exposes this extra delay to userspace.
+> Before this, conntrack start time is the time when we insert into the
+> table, at that time all of prerouting/input (or forward/postrouting)
+> processing has already happened.
+>
+> v2: if skb has a suitable timestamp set, use that.  This makes flow start
+> time to be either initial receive time of skb or the conntrack allocation.
+>
+> Reported-by: Nadia Pinaeva <n.m.pinaeva@gmail.com>
+> Fixes: a992ca2a0498 ("netfilter: nf_conntrack_tstamp: add flow-based timestamp extension")
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  include/net/netfilter/nf_conntrack_timestamp.h | 12 ++++++------
+>  net/netfilter/nf_conntrack_core.c              | 18 +++---------------
+>  net/netfilter/nf_conntrack_netlink.c           |  6 +-----
+>  3 files changed, 10 insertions(+), 26 deletions(-)
+>
+> diff --git a/include/net/netfilter/nf_conntrack_timestamp.h b/include/net/netfilter/nf_conntrack_timestamp.h
+> index 57138d974a9f..5b6273058384 100644
+> --- a/include/net/netfilter/nf_conntrack_timestamp.h
+> +++ b/include/net/netfilter/nf_conntrack_timestamp.h
+> @@ -23,18 +23,18 @@ struct nf_conn_tstamp *nf_conn_tstamp_find(const struct nf_conn *ct)
+>  #endif
+>  }
+>
+> -static inline
+> -struct nf_conn_tstamp *nf_ct_tstamp_ext_add(struct nf_conn *ct, gfp_t gfp)
+> +static inline void nf_ct_tstamp_ext_add(struct nf_conn *ct, u64 tstamp_ns, gfp_t gfp)
+>  {
+>  #ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
+>         struct net *net = nf_ct_net(ct);
+> +       struct nf_conn_tstamp *tstamp;
+>
+>         if (!net->ct.sysctl_tstamp)
+> -               return NULL;
+> +               return;
+>
+> -       return nf_ct_ext_add(ct, NF_CT_EXT_TSTAMP, gfp);
+> -#else
+> -       return NULL;
+> +       tstamp = nf_ct_ext_add(ct, NF_CT_EXT_TSTAMP, gfp);
+> +       if (tstamp)
+> +               tstamp->start = tstamp_ns ? tstamp_ns : ktime_get_real_ns();
+>  #endif
+>  };
+>
+> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+> index 9db3e2b0b1c3..33bc99356453 100644
+> --- a/net/netfilter/nf_conntrack_core.c
+> +++ b/net/netfilter/nf_conntrack_core.c
+> @@ -976,18 +976,6 @@ static void nf_ct_acct_merge(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
+>         }
+>  }
+>
+> -static void __nf_conntrack_insert_prepare(struct nf_conn *ct)
+> -{
+> -       struct nf_conn_tstamp *tstamp;
+> -
+> -       refcount_inc(&ct->ct_general.use);
+> -
+> -       /* set conntrack timestamp, if enabled. */
+> -       tstamp = nf_conn_tstamp_find(ct);
+> -       if (tstamp)
+> -               tstamp->start = ktime_get_real_ns();
+> -}
+> -
+>  /**
+>   * nf_ct_match_reverse - check if ct1 and ct2 refer to identical flow
+>   * @ct1: conntrack in hash table to check against
+> @@ -1111,7 +1099,7 @@ static int nf_ct_resolve_clash_harder(struct sk_buff *skb, u32 repl_idx)
+>          */
+>         loser_ct->status |= IPS_FIXED_TIMEOUT | IPS_NAT_CLASH;
+>
+> -       __nf_conntrack_insert_prepare(loser_ct);
+> +       refcount_inc(&loser_ct->ct_general.use);
+>
+>         /* fake add for ORIGINAL dir: we want lookups to only find the entry
+>          * already in the table.  This also hides the clashing entry from
+> @@ -1295,7 +1283,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+>            weird delay cases. */
+>         ct->timeout += nfct_time_stamp;
+>
+> -       __nf_conntrack_insert_prepare(ct);
+> +       refcount_inc(&ct->ct_general.use);
+>
+>         /* Since the lookup is lockless, hash insertion must be done after
+>          * starting the timer and setting the CONFIRMED bit. The RCU barriers
+> @@ -1782,7 +1770,7 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+>                                       GFP_ATOMIC);
+>
+>         nf_ct_acct_ext_add(ct, GFP_ATOMIC);
+> -       nf_ct_tstamp_ext_add(ct, GFP_ATOMIC);
+> +       nf_ct_tstamp_ext_add(ct, ktime_to_ns(skb_tstamp(skb)), GFP_ATOMIC);
+>         nf_ct_labels_ext_add(ct);
+>
+>  #ifdef CONFIG_NF_CONNTRACK_EVENTS
+> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+> index 6a1239433830..1761cd3a84e2 100644
+> --- a/net/netfilter/nf_conntrack_netlink.c
+> +++ b/net/netfilter/nf_conntrack_netlink.c
+> @@ -2239,7 +2239,6 @@ ctnetlink_create_conntrack(struct net *net,
+>         struct nf_conn *ct;
+>         int err = -EINVAL;
+>         struct nf_conntrack_helper *helper;
+> -       struct nf_conn_tstamp *tstamp;
+>         u64 timeout;
+>
+>         ct = nf_conntrack_alloc(net, zone, otuple, rtuple, GFP_ATOMIC);
+> @@ -2303,7 +2302,7 @@ ctnetlink_create_conntrack(struct net *net,
+>                 goto err2;
+>
+>         nf_ct_acct_ext_add(ct, GFP_ATOMIC);
+> -       nf_ct_tstamp_ext_add(ct, GFP_ATOMIC);
+> +       nf_ct_tstamp_ext_add(ct, 0, GFP_ATOMIC);
+>         nf_ct_ecache_ext_add(ct, 0, 0, GFP_ATOMIC);
+>         nf_ct_labels_ext_add(ct);
+>         nfct_seqadj_ext_add(ct);
+> @@ -2365,9 +2364,6 @@ ctnetlink_create_conntrack(struct net *net,
+>                 __set_bit(IPS_EXPECTED_BIT, &ct->status);
+>                 ct->master = master_ct;
+>         }
+> -       tstamp = nf_conn_tstamp_find(ct);
+> -       if (tstamp)
+> -               tstamp->start = ktime_get_real_ns();
+>
+>         err = nf_conntrack_hash_check_insert(ct);
+>         if (err < 0)
+> --
+> 2.45.2
+>
