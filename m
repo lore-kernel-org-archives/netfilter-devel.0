@@ -1,38 +1,32 @@
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1F492EAE4
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Nov 2024 16:45:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A897717C7CE
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Nov 2024 16:51:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730825123; cv=none; b=JWcQwA8YF9T6t9Qsm17xPuQA2wU6NUNklAXkxbkc29a3I8F8Z0kvPqh4//NsdfDRc49XtesyAWYGcUAOgPBo/vOuutIIdGokQUKZlr9U5ESdswKvQOU+YnH48AjaaOuhteu2+Z5uG3YoHPviyJW0HA+RdmQEaZ10RhY20NZhEZs=
+	t=1730825504; cv=none; b=uI+ZSOPNa9XLELGdeOFCt7/ZGnWbiovet1x/NBxilnaqkzEXp3OMXD9O1fhyKZ93JzekiwNZ3Mpv9Fr4oI1VzZsR5mdynLIpo/tlbOqBUzV9mGsCWUkJ6ORcYTamYuvAt1+sEwLMLFbq5RgryFyHT0gmXbgLfQ+uZj5U7J3PyZo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730825123; c=relaxed/simple;
-	bh=jlVrZZyHq3A6DgAQeG8LMpDhjO3Z8KcB2fhwF6Fhpxk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=kqeq+KLcAUc1DJAUbnVcUqnK6gIjpWMLuUqGooT+1oqiObxycjI+VunMXZdtAOq5huVTuibUjLBJBhzrK4KjGh9koRFgAh3q2kJp5cfKqr2j6vGVMym521OR0f73EzWPJEFhnvitsW3nHBo6RFv3y2kL2h9a6MFYN0Es5Fbx01w=
+	s=arc-20240116; t=1730825504; c=relaxed/simple;
+	bh=xZc794cAOIMv+e5pl+6wXqpYtv+lC5rt24ydLxS0OJo=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=L0bgK6eEmfShIMyic6Ykb413mxjuJZi6KYkbr7crVuz88b21C3XImYYkJx51fQ8UiaytdNAv2ltNV6HO3kNorx1XqpA5CtpNcQLEYTPyVuap3fXg9yRea9FikdaxU3vpmocjDImKeTsS+nCNFw+6ztQJ+ReAmKP03qsrInps3wQ=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=48228 helo=gnumonks.org)
+Received: from [78.30.37.63] (port=55372 helo=gnumonks.org)
 	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <pablo@gnumonks.org>)
-	id 1t8Mg8-005Us4-5f; Tue, 05 Nov 2024 17:45:18 +0100
-Date: Tue, 5 Nov 2024 17:45:15 +0100
+	id 1t8MmG-005WgC-Se; Tue, 05 Nov 2024 17:51:40 +0100
+Date: Tue, 5 Nov 2024 17:51:35 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: Nadia Pinaeva <n.m.pinaeva@gmail.com>, netfilter-devel@vger.kernel.org,
-	Antonio Ojea <antonio.ojea.garcia@gmail.com>
-Subject: Re: [PATCH nf-next v2] netfilter: conntrack: collect start time as
- early as possible
-Message-ID: <ZypLmxmAb_Hp2HBS@calendula>
-References: <20241030131232.15524-1-fw@strlen.de>
- <CAOiXEcfv9Gi9Xehws0TOM_VrtH4yKQ4G1Xg9_Q+G8bT_pk-2_A@mail.gmail.com>
- <ZypDF4Suic4REwM8@calendula>
- <20241105162346.GA9442@breakpoint.cc>
- <ZypHs3XO4J2QKGJ-@calendula>
- <20241105163308.GA9779@breakpoint.cc>
+To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
+	eric@garver.life
+Subject: Re: [PATCH nft] json: collapse set element commands from parser
+Message-ID: <ZypNF7HzKrjl0w9s@calendula>
+References: <20241031220411.165942-1-pablo@netfilter.org>
+ <ZyofFLveeueZuJPH@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -41,30 +35,58 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20241105163308.GA9779@breakpoint.cc>
-X-Spam-Score: -1.9 (-)
+In-Reply-To: <ZyofFLveeueZuJPH@orbyte.nwl.cc>
+X-Spam-Score: -1.7 (-)
 
-On Tue, Nov 05, 2024 at 05:33:08PM +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > It will help for SEEN_REPLY.  But I don't see how it will avoid this
-> > > patch.
+Hi Phil,
+
+On Tue, Nov 05, 2024 at 02:35:16PM +0100, Phil Sutter wrote:
+> On Thu, Oct 31, 2024 at 11:04:11PM +0100, Pablo Neira Ayuso wrote:
+> > Update json parser to collapse {add,create} element commands to reduce
+> > memory consumption in the case of large sets defined by one element per
+> > command:
 > > 
-> > Not current time from ctnetlink, but use the ecache extension to store
-> > the timestamp when the conntrack is allocated, ecache is already
-> > initialized from init_conntrack() path.
+> > {"nftables": [{"add": {"element": {"family": "ip", "table": "x", "name":
+> > "y", "elem": [{"set": ["1.1.0.0"]}]}}},...]}
 > 
-> OK, so we do ktime_get_real() twice.
-> I think its way worse than this proposal, but okay.
+> Thanks for the fix!
+> 
+> > Add CTX_F_COLLAPSED flag to report that command has been collapsed.
+> 
+> I had come up with a similar solution (but did not find time to submit
+> it last week). My solution to the "what to return" problem was to
+> introduce a 'static struct cmd cmd_nop' and return its address. Your
+> flag way is fine, too from my PoV.
 
-My proposal is to add more well-known "fixed points" to get numbers.
-At this stage, there is start= and stop= ktimestamps, where start=
-represents insertion to hashes (confirmation time). I think this adds
-more ktimestamp point that can be enabled to collect numbers in an
-optional fashion, both two timestamps do not need to be turned on
-necessarily.
+OK, I'm going to push it out then.
 
-> I'll work on this.
+> > This patch reduces memory consumption by ~32% this case.
+> > 
+> > Fixes: 20f1c60ac8c8 ("src: collapse set element commands from parser")
+> > Reported-by: Eric Garver <eric@garver.life>
+> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > ---
+> > Side note: While profiling, I can still see lots json objects, this
+> > results in memory consumption that is 5 times than native
+> > representation. Error reporting is also lagging behind, it should be
+> > possible to add a json_t pointer to struct location to relate
+> > expressions and json objects.
+> 
+> I can have a look at mem use if I find spare time (TM).
 
-Thanks, I'd rather convince you this is the way to go, if after
-quickly sketching a patchset you think it is not worth for more
-reasons, we can revisit.
+I understand, that is always the issue.
+
+> We already record links between struct cmd and json_t objects for echo
+> mode (and only then). The problem with error reporting in my opinion is
+> the lack of location data in json_t. You might remember, I tried to
+> extend libjansson to our needs but my MR[1] is being ignored for more
+> than a year now. Should we just ship an extended copy in nftables?
+
+Do you still have the link with your proposal around? I don't find it
+in my notes anymore.
+
+IIRC the rejection came from concerns about increasing memory usage
+for our specific usecase, that was an extra pointer to store location,
+correct?
+
+Thanks.
