@@ -1,65 +1,52 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94C01383
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Nov 2024 23:03:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F7AE20D4FA
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Nov 2024 23:10:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730847834; cv=none; b=ED/GkV/ZpDIsdIo/IaCxEjqyZhOHXSouXj03qROoa/tAvRUtrGpie7p6dmctL+t/9XxMYHlibM8Ibj5KkC58x/HpzATAP5Q8yyBNGTOUr5sKBLrCnAaETrP9bFAnT3JysUmljdqJotTpvAiB6d49Y5BCA04PgZGRnjQeKDx/BQg=
+	t=1730848212; cv=none; b=FasLr+3eBK6kZMT4zDFposKHzwXpo9CSZbX+9Y9W34oKDssRzeJeib3KtydindQWAoAUz6zCoXvPzlshKrWKujPhBBa6PXD4qvVBC0/KSoCKf2upQ7MeugJ5wlkgsaKud9skYVExzEQHJCA51GNiCOoBzjJvep9kOVzrc7lm7Qo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730847834; c=relaxed/simple;
-	bh=7rOYFiej2DzW9/XMLF/bHp+APUELGAo3jNsb64uz9gk=;
-	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=GoYxb3izn7C4OzQopE52j1yzqKlWbhTZ4yacMYGjEAnlyAsg2MtObEarb9mEPySjjvnEuFEZFglh3mgHQcCj7ywnvWdsH+u2OX8pFF+sQJg8VsXTrsH8GyWj/rrs72c+SfLvJmgSzFrSDOxog8OyVlQyPGqBtUr5XFXZR63gcsk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=KMbiNYXc; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="KMbiNYXc"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:To:From:Date:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=C9Ic7Z17dRMdfA9ZVLaIs6IFhOwCBb59smYCd3DV758=; b=KMbiNYXcuhxSF90A3ILH2FjAzF
-	DXIqPpWbYgs+vnUgSV76P6IB4yjUuyATFWUfejUzI6qjmonRjPGLKvg0q0Xi/bxXcB/356hSUdO8G
-	SRikDFIhy9B0OcD6SW0Ywi+N48TKl0bGvmaKpY9japBrpRwWFU8UIHGquewm94eYdLmS4r8NhDM0Y
-	d51yBXfY3+eYWlvBZ7qz2rcu6Ezm4tMmf+v/riA3JylDopi2+vs+5JYJ5PUx/2fkokILkVEK/SPT2
-	q8USqLMHFoKQTfdNy/nEXhsPbdhDBDZ04edoO2RWz/L931BsFBXLOn2IHiZTU+/F5o5SzliEnZyiZ
-	E0KnlgXA==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1t8SaV-000000005M5-0Etp
-	for netfilter-devel@vger.kernel.org;
-	Wed, 06 Nov 2024 00:03:51 +0100
-Date: Wed, 6 Nov 2024 00:03:51 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH 1/2] tests: iptables-test: Properly assert rule
- deletion errors
-Message-ID: <ZyqkV3Po3zf27ROp@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	netfilter-devel@vger.kernel.org
-References: <20241105203611.11182-1-phil@nwl.cc>
+	s=arc-20240116; t=1730848212; c=relaxed/simple;
+	bh=5FtVSyJt8cN3rH1QIuDbGavIWfw6nJpW3fj9exEXTnk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ZKYSNy1moGCUCXttwteyx1EQxEiUjGbpozCf4zBr3uo3q3sRoc64htU6wusuPryIU5UVlc7z+r0CXh9b3EZoveg6m9kdYgvwwAfXqVh2sKV3vhMqF4cYaUMK2rZ0y/r/IzSGc+4TiaE9kC/p7d9mzTgzxN2njN+PAG+FgieEwe4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=59454 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1t8SgU-006mJ5-R9; Wed, 06 Nov 2024 00:10:04 +0100
+Date: Wed, 6 Nov 2024 00:10:02 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [conntrack-tools PATCH] src: Eliminate warnings with
+ -Wcalloc-transposed-args
+Message-ID: <Zyqlyj0FKU7XeUD5@calendula>
+References: <20241105215450.6122-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20241105203611.11182-1-phil@nwl.cc>
+In-Reply-To: <20241105215450.6122-1-phil@nwl.cc>
+X-Spam-Score: -1.9 (-)
 
-On Tue, Nov 05, 2024 at 09:36:10PM +0100, Phil Sutter wrote:
-> Capture any non-zero return code, iptables not necessarily returns 1 on
-> error.
-> 
-> A known issue with trying to delete a rule by spec is the unsupported
-> --set-counters option. Strip it before deleting the rule.
-> 
-> Fixes: c8b7aaabbe1fc ("add iptables unit test infrastructure")
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+On Tue, Nov 05, 2024 at 10:54:50PM +0100, Phil Sutter wrote:
+> calloc() expects the number of elements in the first parameter, not the
+> second. Swap them and while at it drop one pointless cast (the function
+> returns a void pointer anyway).
 
-Series applied.
+BTW, will you add
+
+-Wcalloc-transposed-args
+
+to Makefile.am?
+
+Thanks
