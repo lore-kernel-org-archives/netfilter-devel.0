@@ -1,92 +1,70 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3A3D1D63FB
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Nov 2024 13:35:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A490C1714AF
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Nov 2024 16:09:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730813728; cv=none; b=G+2eIMmCDRWdp4y4zggSoer9WwLBHp8CjDu3aZ4D9k8Sxwe5vo4LPHNQAJ8lDvqlFzUWA+4Yl7ZmBd21UWZKF8qDBfcv257jzvU0F0sfp11u+QAweVJZPndrmFB6hG81Yl8LSBfQLOvmh3DGKtz5yZWYzTSr40MNQXsW6opVzz0=
+	t=1730822945; cv=none; b=EjuyngpvG2wINRpLWEfE3SQJ8AS445bSHeIo5LASqYhOWj5FAT0LRE0D740bPTpozjFqEl+hhgN+SHTLR2X/pf0i6Bl1BNxEUHBfI4KMVHKsfBXxgfkcjtt4pTnSWDrb9RZbwxoUJxtJja112jxyI5Zqqz6oBF58VM0Nbk69/7c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730813728; c=relaxed/simple;
-	bh=JYm+3OEoolEjK6xfRf6X3ET7qLWJR6ME/sLFhFl1zIk=;
+	s=arc-20240116; t=1730822945; c=relaxed/simple;
+	bh=NBoc1Ddw74udr6YLS7tEXD0goioolsSyryFUu5d7rq8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=d5f1pDDt1P6pTaLQPAJmFSTgWnTKJusEmlEdx4GbxUzG+tsPi9q9PEAjpGr7B8oal3gI8JCc2ZRc7qNuVHdUKTaYQyHA/3fPLxDBVTZSMD0IeU3zfLn27NWGal5uC4/CWjSDctHXCwVR3aY9sIOBg+reY3qQCqtE8IkepnSQfHE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=F3uzWN/x; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="F3uzWN/x"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=m+9MIzzU/v2n+ITgCzmvyMvj1AVOmjFnS74N4XBF/ZQ=; b=F3uzWN/xEPQSue2vTs+vLi5J8c
-	cy6UHYyMlsJtsKUQxkgM/PuBJbGzkTTW7UnoW1eDWAUlt+zcrvZso3c2bJ2VpavKFY8CRfjziT0U9
-	kAmp0Hhee+lGa1Lm9k6C9knGyihAe8CDLW003vANpJVGpqUKlRWvW6nYJA5QsccYt5SsPzn+T4Zjl
-	Gv7ekqjboRGU7z4MUac6J2n4ijd4KyVvd6Hvw2jz2AQdhuBKmzYQ9sbiMmVCrx6EgS060HUq/7qFp
-	CBnXazwukLGTbew1GMMZ93OnBm9AfCGN+LVvLdrWlXwXbqEs4y9UHbY7YMDaAgHiqteVgtXTCye0Z
-	Pl6+qXTg==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1t8JiG-000000003Nr-3y7Q;
-	Tue, 05 Nov 2024 14:35:16 +0100
-Date: Tue, 5 Nov 2024 14:35:16 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, eric@garver.life
-Subject: Re: [PATCH nft] json: collapse set element commands from parser
-Message-ID: <ZyofFLveeueZuJPH@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, eric@garver.life
-References: <20241031220411.165942-1-pablo@netfilter.org>
+	 Content-Type:Content-Disposition:In-Reply-To; b=pYxatO4xipeGwgYeM1aLSb99AILKnJmgL1ZjEwd8JQ9crDDpxID47CbKwr368tbRra+bE+uL4yxwb9LsXXJ+wHVE5rIRFKNlhaK4hVaekv6cjHwAzsUpqoRSHCuOgf4mT+7gB+w4ahhxNoEVUYCES5U+BV4SzUjEPMQKdJq3/J8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=60182 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1t8M6y-005MIZ-Nw; Tue, 05 Nov 2024 17:08:59 +0100
+Date: Tue, 5 Nov 2024 17:08:55 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Nadia Pinaeva <n.m.pinaeva@gmail.com>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	Antonio Ojea <antonio.ojea.garcia@gmail.com>
+Subject: Re: [PATCH nf-next v2] netfilter: conntrack: collect start time as
+ early as possible
+Message-ID: <ZypDF4Suic4REwM8@calendula>
+References: <20241030131232.15524-1-fw@strlen.de>
+ <CAOiXEcfv9Gi9Xehws0TOM_VrtH4yKQ4G1Xg9_Q+G8bT_pk-2_A@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20241031220411.165942-1-pablo@netfilter.org>
+In-Reply-To: <CAOiXEcfv9Gi9Xehws0TOM_VrtH4yKQ4G1Xg9_Q+G8bT_pk-2_A@mail.gmail.com>
+X-Spam-Score: -1.9 (-)
 
-On Thu, Oct 31, 2024 at 11:04:11PM +0100, Pablo Neira Ayuso wrote:
-> Update json parser to collapse {add,create} element commands to reduce
-> memory consumption in the case of large sets defined by one element per
-> command:
+Hi Nadia,
+
+On Sun, Nov 03, 2024 at 11:26:36AM +0100, Nadia Pinaeva wrote:
+> I would like to provide some more context from the user point of view.
+> I am working on a tool that allows collecting network performance
+> metrics by using conntrack events.
+> Start time of a conntrack entry is used to evaluate seen_reply
+> latency, therefore the sooner it is timestamped, the better the
+> precision is.
+> In particular, when using this tool to compare the performance of the
+> same feature implemented using iptables/nftables/OVS it is crucial
+> to have the entry timestamped earlier to see any difference.
 > 
-> {"nftables": [{"add": {"element": {"family": "ip", "table": "x", "name":
-> "y", "elem": [{"set": ["1.1.0.0"]}]}}},...]}
+> I am not sure if current timestamping logic is used for anything, but
+> changing it would definitely help with my use case.
+> I am happy to provide more details, if you have any questions.
 
-Thanks for the fix!
+The start time will be accurate. However, stop time will not be very
+accurate: the netlink message containing the SEEN_REPLY status flag
+can sit in the socket queue for some quite time until the userspace
+software has a chance to receive and parse it.
 
-> Add CTX_F_COLLAPSED flag to report that command has been collapsed.
+@Florian: Would you explore instead to extend the nf_conntrack_ecache
+infrastructure to allow to provide timestamps for netlink events? This
+can be enabled via toggle. That would allow to have a more accurate
+delta between two events messages.
 
-I had come up with a similar solution (but did not find time to submit
-it last week). My solution to the "what to return" problem was to
-introduce a 'static struct cmd cmd_nop' and return its address. Your
-flag way is fine, too from my PoV.
-
-> This patch reduces memory consumption by ~32% this case.
-> 
-> Fixes: 20f1c60ac8c8 ("src: collapse set element commands from parser")
-> Reported-by: Eric Garver <eric@garver.life>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> Side note: While profiling, I can still see lots json objects, this
-> results in memory consumption that is 5 times than native
-> representation. Error reporting is also lagging behind, it should be
-> possible to add a json_t pointer to struct location to relate
-> expressions and json objects.
-
-I can have a look at mem use if I find spare time (TM).
-
-We already record links between struct cmd and json_t objects for echo
-mode (and only then). The problem with error reporting in my opinion is
-the lack of location data in json_t. You might remember, I tried to
-extend libjansson to our needs but my MR[1] is being ignored for more
-than a year now. Should we just ship an extended copy in nftables?
-
-Cheers, Phil
+Thanks.
