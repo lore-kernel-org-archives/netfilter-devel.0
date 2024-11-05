@@ -1,91 +1,75 @@
-Received: from mail-yb1-f171.google.com (mail-yb1-f171.google.com [209.85.219.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 970D121621B
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Nov 2024 21:29:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F9C6383
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Nov 2024 21:33:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730842156; cv=none; b=iAy1J3sK5iSL3ObjGlO6qyAZ1PKl/K1FJEUZhyrXuaMSDNIESuvvw2GrVEz6x2HlElnqK1eNXcihZpPJjitNpMFs8ft2rCNisICSuR288qINs71oYchTwEmVHYvw+mdY41HJgMxAg3mSGiqpyHVf3w8NsyPq/dqQrbs21VkFI+U=
+	t=1730842398; cv=none; b=Wm98G5OcCPOqfD6FJMSSySm4NRMHlOw+ioo5++9R4ReYd8O4hV+LMTXyqYNIWwuZuZ8MKHmYBHCeDGrM//MFC1UP8YmUEfU2Mm4xYsK8Zh4kAEzzlpnsCWg7aazFyRhmKaXuSZzq2Z0K3PS1yROz1vOtyMa1Tiq2bfuGmWi8I/4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730842156; c=relaxed/simple;
-	bh=oyupIWVCNbG6nZyet7ZY97/axFE8juePohjXg4awVWM=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Xtbi5zPg8gSGpTyacdNL2rbhU85VE2NwrkqMahFS+93bd54IHMRCHYypqDpq5YAsXL7Kf3fdhPMaGdxFygOimqK4rOlprgOfRQ4gzL2XhwUokwj8BMITmuEe7oQEHOaUocNkq+lTgXDSj5pRBkQN6KEwy+03oJ8FWGNAjIdw8Bk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=Mw2FgVlS; arc=none smtp.client-ip=209.85.219.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
+	s=arc-20240116; t=1730842398; c=relaxed/simple;
+	bh=Un78mYqrHze5CoW2QMyt4SQdCHdeEfgbvp723NFrHUg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=VuAc3ARWjNe89PijfM2He/gBQa9xBeRiyJ5QpL5egvMnHPN7Rheyg1rvDgwMzm2yUmBzvyOFslpxPqcNjNBZO0tIhZd+XdXvP/4pia5UCP4L+Os4+YgwGogPpfFqQY5/WjBHYMvEZptdsacIBVnpe36B3nEHzKwOKvqsdhxSifc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=P8F9wIfJ; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="Mw2FgVlS"
-Received: by mail-yb1-f171.google.com with SMTP id 3f1490d57ef6-e30d517c82fso5447538276.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 05 Nov 2024 13:29:14 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore.com; s=google; t=1730842153; x=1731446953; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=XNuaPCY23vejYYQ3mN0NTRsMOB1o3Eo9eQ3O6OLcmbQ=;
-        b=Mw2FgVlS8KnLi4gDC1siHvYPylCaeOuKGT2xS75uc8LFx+uKNMt6995Iz8dhD9FBS8
-         Prwl/mL+CaDu/yMs6DZjiAPuNWA/w0wF3jq7EVyFWeCbDh4TjP+AAbTcn5co82L1KaVQ
-         B4swLle7LGfhxgzM3GQdU+qj+3tor9smkqi+SxoY9h+bLtsk2DSydw9uWLX0UMEv6w/l
-         cOPwYNxmx3HHXg7hwehpdjegkHicVvp4BjCnQGpeyUTCtYJYThRqJEFd1r705Tq3SzO6
-         rGrtm/4GbN1LVgCZ7j7JHxEVBRENtBs7yoZeTOkdQChRs3ksREV6543RNSKeNChcSz/J
-         HR/w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1730842153; x=1731446953;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=XNuaPCY23vejYYQ3mN0NTRsMOB1o3Eo9eQ3O6OLcmbQ=;
-        b=B92HcMrUKw0dZq4FIf83QZM/49HhwaZQdNNXc3Si2ZFzJpab3KnChSa4BlabbQ8lHj
-         fSVPV4fRVbzR2kGKoa544pJiY+kW3SuMPMrIatGtzitvnK/rteU4a6HekKiY8RBXLIMb
-         lrOQ1xhOChGAItAXj8QC3hn+3uv4y4n/D+c+2m7den3nLjNPFVpRaAe8Sq/yy/D+s2vl
-         7WLbSJU/xrCOwjrhhjbcoq1gpN+j+q6NxekU0/qiDSEe2KbitfnNF3KIOdXAWX577Gfu
-         5PciJxj40feAoIiZpGIsBnEHmAOuEWsW895elluinwxkDcdcokR851mBGaiaftH/1QLM
-         5hew==
-X-Forwarded-Encrypted: i=1; AJvYcCWP5ZKPygBB4Ud8gclFaAiP3ilA8W57rzjvtXoF/ixM2lSoHguTeCPsRtV5G7SSE0k9zsKVA+fKOWQmFekipy4=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx7wl0HTJV7vx5uXJUviB4/51zAwzQqn+HTy9PfrONIJ1mEDHtv
-	Qac2gWVHgFerOGQsXmm4VkBTiSYyPOuJLCpqwsrDobjIMO1R5tv7Xtlvclx7B74x8CoCEMnE8MO
-	zVePUHiAjlzTM4kmEyeF59+DW+SnbaMBG8JxW
-X-Google-Smtp-Source: AGHT+IFo7jb8lP2Z+4a/T0GbVpP69I/MQLR+mNGDVCTSIG/20sXx7EyA6QZTbj3IONBRPsZqaGCUpeGIlJp6qhw8TJw=
-X-Received: by 2002:a05:6902:1541:b0:e33:1061:fbf8 with SMTP id
- 3f1490d57ef6-e331061fe92mr15357527276.41.1730842153479; Tue, 05 Nov 2024
- 13:29:13 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="P8F9wIfJ"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=TVF9fP0CVMHrirgEY3GKN+Fg8Ly6kYJejd4UDRF/HW4=; b=P8F9wIfJJc65PG/oW3nNU/dofW
+	cJvfLg1/QhiNF2ps5AjMv4eMADp6UM28279rVwDtcZprp7s2MIZG5+/ZQN9cSD6uhbO/nzbCty7N0
+	niPcBmqLkl14fZaIPJWQoxM4U1pMr3XZX+iHCkXPjQlzEj0nNxJ+Qqrv8DbPcW5CUzx/OwC6LPfFE
+	8RQ8U7NYSmibdZjphhbrudrhxE0ev2sc8ZnPiP12ToDYMkjLGevJwhv01Zjwnf7q6bouVXrcFZJCI
+	fOwiMJSgQguQX9JRnOwm6cp2DcOZVmg5xcP0KZWKh2ylL9C1c5i/W8VRlWycHkN+4veovjBSplsMn
+	UOBpAwEg==;
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1t8RAo-000000003sw-1OAf;
+	Tue, 05 Nov 2024 22:33:14 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: [conntrack-tools PATCH] conntrack: Fix for ENOENT in mnl_nfct_delete_cb()
+Date: Tue,  5 Nov 2024 22:33:10 +0100
+Message-ID: <20241105213310.24726-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <549fd50d-a631-4103-bfe2-e842de387163@stanley.mountain>
- <Zyn9oJ9oxltqbK0x@calendula> <06e25ad3-bb68-416c-8f19-5bdedf38029e@schaufler-ca.com>
-In-Reply-To: <06e25ad3-bb68-416c-8f19-5bdedf38029e@schaufler-ca.com>
-From: Paul Moore <paul@paul-moore.com>
-Date: Tue, 5 Nov 2024 16:29:02 -0500
-Message-ID: <CAHC9VhRdk2qgsc4OGn6zkqXYraRgE_Bz8zLKGRmXCm0fjaJj0Q@mail.gmail.com>
-Subject: Re: [bug report] lsm: replace context+len with lsm_context
-To: Casey Schaufler <casey@schaufler-ca.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Dan Carpenter <dan.carpenter@linaro.org>, 
-	netfilter-devel@vger.kernel.org, 
-	LSM List <linux-security-module@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Tue, Nov 5, 2024 at 3:09=E2=80=AFPM Casey Schaufler <casey@schaufler-ca.=
-com> wrote:
-> On 11/5/2024 3:12 AM, Pablo Neira Ayuso wrote:
-> > Hi,
-> >
-> > There is another issue in this recent series, see below.
-> >
-> > This needs another follow up.
->
-> Dan Carpenter sent a patch:
->
-> https://lore.kernel.org/lkml/b226a01a-2545-4b67-9cc6-59cfa0ffabbc@schaufl=
-er-ca.com/
+Align behaviour with that of mnl_nfct_update_cb(): Just free the
+nf_conntrack object and return. Do not increment counter variable, and
+certainly do not try to print an uninitialized buffer.
 
-... and I've been slacking so far this week.  I'm reviewing and
-merging these fixes now.
+Fixes: a7abf3f5dc7c4 ("conntrack: skip ENOENT when -U/-D finds a stale conntrack entry")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ src/conntrack.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---=20
-paul-moore.com
+diff --git a/src/conntrack.c b/src/conntrack.c
+index a51a3ef82fcfc..52ba4ac5e44f7 100644
+--- a/src/conntrack.c
++++ b/src/conntrack.c
+@@ -2030,7 +2030,7 @@ static int mnl_nfct_delete_cb(const struct nlmsghdr *nlh, void *data)
+ 	if (res < 0) {
+ 		/* the entry has vanish in middle of the delete */
+ 		if (errno == ENOENT)
+-			goto done;
++			goto destroy_ok;
+ 		exit_error(OTHER_PROBLEM,
+ 			   "Operation failed: %s",
+ 			   err2str(errno, CT_DELETE));
+-- 
+2.47.0
+
