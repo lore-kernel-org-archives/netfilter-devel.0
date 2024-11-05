@@ -1,63 +1,72 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C74B1D88DC
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Nov 2024 23:15:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E29BF216204
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Nov 2024 23:17:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730848505; cv=none; b=m3ogd+NzgYrXi4iGEHVCKTtvSlQCz130a6EA0gctkkSEoJ3eD+ks5vs7EnmVHa6Wm5hdcf4EfAjsLmAyjfatJDv2AFxkOFYqwGcsSRQ7gym+JcpnDmtcoT5h0VOL9HHax1Qd/uN7UhNurMopYg/XZQsb9SspbvQEARUlKQoyERA=
+	t=1730848656; cv=none; b=QeBa29dqj7C1ohL1x+5cmkIP7SeroZ7JOiWqFsCBEEq3Y2BQ3Lzd4XDjohEV3EBcJBJlzwWX68Wrnl8jJcFZme3zuCMND1gGd+juf/6sM1nRz8Vh9oL1vwkVzW1cmFkeD0vj9EtJskoOjBwrsh4pdTbul2In96UIMleDSN4MrwE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730848505; c=relaxed/simple;
-	bh=yIBf1L4p6DHIf2dS5bAEJdl8vMXCM0U8cFgbQdCdK40=;
+	s=arc-20240116; t=1730848656; c=relaxed/simple;
+	bh=7Jy4ZaxlXj1hd+/etvFJGk5HvXOo3di0xCoUrW21LBg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=HCRdGLgz0H290M8sAxtrO/UYUeNk63FWCK93tudHxKAToNiM2LaYpopPEQfi8wJkCwM9S7f9cMWgMpTvGTWF0UKPTKRi7mgsnNf4c2wif29/WyBEcthJ3yzqtlozOA+FOBhqZDy2V5yPXWOkpZbZjZRdM4v8Ou1Se/deD0VhwuE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=38862 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1t8SlF-006oAy-KC; Wed, 06 Nov 2024 00:14:59 +0100
-Date: Wed, 6 Nov 2024 00:14:56 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
+	 Content-Type:Content-Disposition:In-Reply-To; b=pL/8aby/rM/+KhizoAepkygvY4uJnxBLfrE1f7JxIc0fPeTFLHRMVAA5C/HK21MMD7yRbO0ndOU07M6dAeaBzUug8WZV/3eiQkbYHmlY3x7D1NocB4afV4zDHHel2h2avVP6ZRltl69QDmOOTvXI5G7UeNR1ydXLQkRIup93OCw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=VK6MubuB; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="VK6MubuB"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=szb4gem0CTgtAEO8hM1b6FjlLZz1RdzsrZYsIOy/7yY=; b=VK6MubuBmRWZyODWbluM9a4N+g
+	QlHfJL5YNLSP5FopLEs+RuqMg5hyDmbFajtQdrOqIFTZUZit0zfpJ5oFGRJIMyog2P74qUlFl+7Ao
+	OcBhlEMINcj9xkqPLmIqJ1oJFyey8nP3rHgHAY35ozj+zWIj/P5JJd07sqabS2BJAKoRhgPf0vTBg
+	BdSPeqft4zZEp+8czmyGfg5d4EM5OF3EWqN8ON1D/7XaEFf7X+W5pO2mrWO5nirdFObaq+7vueQQG
+	eoeTsw6N/K5ovCI87YQQjIt4JyucFaW8Pgj9m1R0J695MlIjNc8pdeC1usS/ZKK0NJXz+to9AbqF2
+	O06qf0BQ==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1t8Snl-000000005XA-04Ma;
+	Wed, 06 Nov 2024 00:17:33 +0100
+Date: Wed, 6 Nov 2024 00:17:32 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next v3 0/7] netfilter: nf_tables: avoid
- PROVE_RCU_LIST splats
-Message-ID: <Zyqm8Ld3c3qvNX7I@calendula>
-References: <20241104094126.16917-1-fw@strlen.de>
+Subject: Re: [conntrack-tools PATCH] src: Eliminate warnings with
+ -Wcalloc-transposed-args
+Message-ID: <ZyqnjF-rGIfSCrte@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+References: <20241105215450.6122-1-phil@nwl.cc>
+ <Zyqlyj0FKU7XeUD5@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20241104094126.16917-1-fw@strlen.de>
-X-Spam-Score: -1.9 (-)
+In-Reply-To: <Zyqlyj0FKU7XeUD5@calendula>
 
-On Mon, Nov 04, 2024 at 10:41:12AM +0100, Florian Westphal wrote:
-> v3: don't check for type->owner and add comment saying check on
-> inner_ops is enough.
-> Use IS_ERR() instead of ptr == NULL in patch 7/7.
-> No other changes.
+On Wed, Nov 06, 2024 at 12:10:02AM +0100, Pablo Neira Ayuso wrote:
+> On Tue, Nov 05, 2024 at 10:54:50PM +0100, Phil Sutter wrote:
+> > calloc() expects the number of elements in the first parameter, not the
+> > second. Swap them and while at it drop one pointless cast (the function
+> > returns a void pointer anyway).
 > 
-> Mathieu reported a lockdep splat on rule deletion with
-> CONFIG_RCU_LIST=y.
+> BTW, will you add
 > 
-> Unfortunately there are many more errors, and not all are false positives.
+> -Wcalloc-transposed-args
 > 
-> First patches pass lockdep_commit_lock_is_held() to the rcu list traversal
-> macro so that those splats are avoided.
-> 
-> The last two patches are real code change as opposed to
-> 'pass the transaction mutex to relax rcu check':
-> 
-> Those two lists are not protected by transaction mutex so could be altered
-> in parallel in case of module load/removal.
+> to Makefile.am?
 
-I have placed this series in nf-next testing branch.
+The gcc-14.2.1_p20240921 here seems to have this enabled by default. I
+did not pass any special configure or make options.
 
-Thanks Florian.
+Cheers, Phil
