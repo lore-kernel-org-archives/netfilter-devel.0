@@ -1,83 +1,167 @@
-Received: from mail-io1-f46.google.com (mail-io1-f46.google.com [209.85.166.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8BF11D14E3;
-	Tue,  5 Nov 2024 10:42:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.46
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A820A1D2F46
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Nov 2024 11:07:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730803322; cv=none; b=ivqov4LHaf7SfcOzzjtpW1oMEKvREGq6eiPNmM0kPHuGnnI0qXIILgFZ2dGWJ36+D4PJHLdQECdDy4rUODiMxJ/SLsOodWulLBfSKQF3HVLUWiN18O7FvSV+Ha+pt4Mawu0GxyEg1tyBybqA6G29BFmNPa+/5Z2m9qUVSFYOiIQ=
+	t=1730804858; cv=none; b=O8VEHFRooq6exRF2xtw2ZzPxN8A72IqYJHe1494+zDwNo1U8jVMaH6XuVm6qXMivIt3Dq60e2PIoqBktoy6PgRJ+xY1Q4iT9WAVs7YYf2maqiHzHdlwL/Ucq7mkEajQL8PCQQpvFJoJfOfJAKSAU0F/Om4NCVYwnGtgeAcB16YA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730803322; c=relaxed/simple;
-	bh=BnS26AQg0SzshMgXPfzFYflSzpoZ8i/wb+ElcH4CSFQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=CXoV/hrHuZxVnAABTaoH8ei2PTI6qr6ea/GxNkWq4/JUm1GdDo8Y5zmjMuBP8rkWXzKvdyVXuJqWcfENjWhbfNyL6Az6qwdSyP0EUC1CI/iBRjkHroOnDN/K0eC9KfO0PPhfSQE4TQahYHoOxsmI/P/XgnkjaJnlXY4sYQinT38=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=eBCzuuyo; arc=none smtp.client-ip=209.85.166.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eBCzuuyo"
-Received: by mail-io1-f46.google.com with SMTP id ca18e2360f4ac-83aac75fcceso178118839f.0;
-        Tue, 05 Nov 2024 02:42:00 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1730803320; x=1731408120; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=66RM71Gk3IyyATVOHZt3+CHfu8uUND2pDAurbR6NNrg=;
-        b=eBCzuuyo6xbT+Hv2A+BnmknyEQ7PPxyHuBbKln4CGNVibMgfH7jn7tBwh6WfYR8aWE
-         NfpSu5z3HhKPmu3zxVH0kiIyOP+5EAn2AhDH4mFG7MvaB3p76+th/zxmsCS52+YJ8uhF
-         5jFbg4GP5Y/jdkri3X8AD6tqFg/lGEYk5i0Jc63nx+xTZwiECXdpYd44ygg0Tw1CUCOj
-         P+k99bZ/AOlWG8zvFoFkzKLK94lgkJN0Q/HYFC8Pihgo93GNdgDwpz1C+bjGsjMj4DaQ
-         uIVXRnZm8WrIbZxltNixzn+E53Lr5n7sOV8ActRToZovxlo8lhy3HCnUvO5E8HbRdlt3
-         NKRQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1730803320; x=1731408120;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=66RM71Gk3IyyATVOHZt3+CHfu8uUND2pDAurbR6NNrg=;
-        b=t4WOZ6Ri+SJIWtA84Pp/rDH0WwLO/qYnq5fdPt/OVMWaLiwRBirVk+KCewYdXtikam
-         rMImygkiSq49bH/3k8j41qo8NuR2pNDHQlTDodTFvAFZbbx7RHEwKv/h4wJmUElnu0Pe
-         QM9SFTJXD60fl7/UUkd1yonjKkFr2D8WXN27X+cKxT8YyPM5WWoXhXDVU+ILa8vAwEv6
-         ElUJ6AVP8ias/ZACPu6eXcZtspMqlq9C9d3WxPJLRsDi0IIQ7bOO8Lvh+o1C7dB9VBg6
-         f5BVIXG9zSIoT0SoG1etPxCr63h8aLctQZHrcmlFA5xvtibQvJTdwPY5QjzMW6PGEDV8
-         pKAQ==
-X-Forwarded-Encrypted: i=1; AJvYcCXlakQ2CB4aG7WFP1a/Ub5rlwZLufqSC9AxjEfbfj9jh7FCMzGhOEnmX2eBai8ZWNSP1GCB07q1D1Pxfz0nGUM=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwztEwV37wdKVwOmm94EDX44PhMY7zO1SSGvVeB2vWqP7qtExQz
-	H8SKrTGvQhM1CXUe48qEwZLysi+/T+hsU0KTqbb3hWP3aZnp+nitZiDKlvf+ML311evQJTOZb++
-	q4ASbiWRzjA/Ipp9s9yYRJQy/NZa7iyGGk8IZCA==
-X-Google-Smtp-Source: AGHT+IFxFl9HfElWCj3B2D3gRKMV4N7I9cImN+qOXwAUqNcAjmcyLes4Hv4gmYSF+HGHIZ3vTOpqe3Vu3a8tPqangiU=
-X-Received: by 2002:a05:6e02:b41:b0:3a0:a311:6773 with SMTP id
- e9e14a558f8ab-3a6b035dc3emr144590665ab.21.1730803319901; Tue, 05 Nov 2024
- 02:41:59 -0800 (PST)
+	s=arc-20240116; t=1730804858; c=relaxed/simple;
+	bh=i9mTeSxXqgFaf1inIygJuaKqj2DSPMniaH/5lfqfoNA=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=E/178T5JIxyvHBCYPi36rCfVEneI/uVG0g9a2+uasaR0LJGHbuhtzGN8Lmd/a09y5KzKrWNlHcPCI6Z6vttUTMwN/d0RpEoGSXCkvhprTVM06MP1mjEds4CojZb4R0hXkb20fGMUY25ezDDVLyCEGjSPBqD2DzGJqUn7zLhvnQo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de,
+	phil@nwl.cc,
+	matttbe@kernel.org
+Subject: [PATCH nf,v4] netfilter: nf_tables: wait for rcu grace period on net_device removal
+Date: Tue,  5 Nov 2024 12:07:22 +0100
+Message-Id: <20241105110722.461771-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241104142821.2608-1-fw@strlen.de>
-In-Reply-To: <20241104142821.2608-1-fw@strlen.de>
-From: Antonio Ojea <antonio.ojea.garcia@gmail.com>
-Date: Tue, 5 Nov 2024 10:41:23 +0000
-Message-ID: <CABhP=tbOnrUaN1kT9Q0R=xJ-8XsasxfwjLN22sCyLxpHSR3YAw@mail.gmail.com>
-Subject: Re: [PATCH net-next] selftests: netfilter: nft_queue.sh: fix warnings
- with socat 1.8.0.0
-To: Florian Westphal <fw@strlen.de>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-On Mon, 4 Nov 2024 at 14:30, Florian Westphal <fw@strlen.de> wrote:
->
-> Updated to a more recent socat release and saw this:
->  socat E xioopen_ipdgram_listen(): unknown address family 0
->  socat W address is opened in read-write mode but only supports read-only
->
-> First error is avoided via pf=ipv4 option, second one via -u
-> (unidirectional) mode.
->
->
+8c873e219970 ("netfilter: core: free hooks with call_rcu") removed
+synchronize_net() call when unregistering basechain hook, however,
+net_device removal event handler for the NFPROTO_NETDEV was not updated
+to wait for RCU grace period.
 
-Yeah, I hit that in  7e37e0e , I ended adding the "-4" and "-6" flags
-because it was easier to me to reuse the test code, but this LGTM
+Note that 835b803377f5 ("netfilter: nf_tables_netdev: unregister hooks
+on net_device removal") does not remove basechain rules on device
+removal, I was hinted to remove rules on net_device removal later, see
+5ebe0b0eec9d ("netfilter: nf_tables: destroy basechain and rules on
+netdevice removal").
 
-> # socat 1.8.0 has a bug that requires to specify the IP family to bind (fixed in 1.8.0.1)
+Although NETDEV_UNREGISTER event is guaranteed to be handled after
+synchronize_net() call, this path needs to wait for rcu grace period via
+rcu callback to release basechain hooks if netns is alive because an
+ongoing netlink dump could be in progress (sockets hold a reference on
+the netns).
+
+Note that nf_tables_pre_exit_net() unregisters and releases basechain
+hooks but it is possible to see NETDEV_UNREGISTER at a later stage in
+the netns exit path, eg. veth peer device in another netns:
+
+ cleanup_net()
+  default_device_exit_batch()
+   unregister_netdevice_many_notify()
+    notifier_call_chain()
+     nf_tables_netdev_event()
+      __nft_release_basechain()
+
+In this particular case, same rule of thumb applies: if netns is alive,
+then wait for rcu grace period because netlink dump in the other netns
+could be in progress. Otherwise, if the other netns is going away then
+no netlink dump can be in progress and basechain hooks can be released
+inmediately.
+
+While at it, turn WARN_ON() into WARN_ON_ONCE() for the basechain
+validation, which should not ever happen.
+
+Fixes: 835b803377f5 ("netfilter: nf_tables_netdev: unregister hooks on net_device removal")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v4: - no need for slow synchronize_rcu() path.
+
+ include/net/netfilter/nf_tables.h |  2 ++
+ net/netfilter/nf_tables_api.c     | 41 +++++++++++++++++++++++++------
+ 2 files changed, 36 insertions(+), 7 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 91ae20cb7648..8dd8e278843d 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1120,6 +1120,7 @@ struct nft_chain {
+ 	char				*name;
+ 	u16				udlen;
+ 	u8				*udata;
++	struct rcu_head			rcu_head;
+ 
+ 	/* Only used during control plane commit phase: */
+ 	struct nft_rule_blob		*blob_next;
+@@ -1282,6 +1283,7 @@ struct nft_table {
+ 	struct list_head		sets;
+ 	struct list_head		objects;
+ 	struct list_head		flowtables;
++	possible_net_t			net;
+ 	u64				hgenerator;
+ 	u64				handle;
+ 	u32				use;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index a24fe62650a7..588a2757986c 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1495,6 +1495,7 @@ static int nf_tables_newtable(struct sk_buff *skb, const struct nfnl_info *info,
+ 	INIT_LIST_HEAD(&table->sets);
+ 	INIT_LIST_HEAD(&table->objects);
+ 	INIT_LIST_HEAD(&table->flowtables);
++	write_pnet(&table->net, net);
+ 	table->family = family;
+ 	table->flags = flags;
+ 	table->handle = ++nft_net->table_handle;
+@@ -11430,22 +11431,48 @@ int nft_data_dump(struct sk_buff *skb, int attr, const struct nft_data *data,
+ }
+ EXPORT_SYMBOL_GPL(nft_data_dump);
+ 
+-int __nft_release_basechain(struct nft_ctx *ctx)
++static void __nft_release_basechain_now(struct nft_ctx *ctx)
+ {
+ 	struct nft_rule *rule, *nr;
+ 
+-	if (WARN_ON(!nft_is_base_chain(ctx->chain)))
+-		return 0;
+-
+-	nf_tables_unregister_hook(ctx->net, ctx->chain->table, ctx->chain);
+ 	list_for_each_entry_safe(rule, nr, &ctx->chain->rules, list) {
+ 		list_del(&rule->list);
+-		nft_use_dec(&ctx->chain->use);
+ 		nf_tables_rule_release(ctx, rule);
+ 	}
++	nf_tables_chain_destroy(ctx->chain);
++}
++
++static void nft_release_basechain_rcu(struct rcu_head *head)
++{
++	struct nft_chain *chain = container_of(head, struct nft_chain, rcu_head);
++	struct nft_ctx ctx = {
++		.family	= chain->table->family,
++		.chain	= chain,
++		.net	= read_pnet(&chain->table->net),
++	};
++
++	__nft_release_basechain_now(&ctx);
++	put_net(ctx.net);
++}
++
++int __nft_release_basechain(struct nft_ctx *ctx)
++{
++	struct nft_rule *rule;
++
++	if (WARN_ON_ONCE(!nft_is_base_chain(ctx->chain)))
++		return 0;
++
++	nf_tables_unregister_hook(ctx->net, ctx->chain->table, ctx->chain);
++	list_for_each_entry(rule, &ctx->chain->rules, list)
++		nft_use_dec(&ctx->chain->use);
++
+ 	nft_chain_del(ctx->chain);
+ 	nft_use_dec(&ctx->table->use);
+-	nf_tables_chain_destroy(ctx->chain);
++
++	if (maybe_get_net(ctx->net))
++		call_rcu(&ctx->chain->rcu_head, nft_release_basechain_rcu);
++	else
++		__nft_release_basechain_now(ctx);
+ 
+ 	return 0;
+ }
+-- 
+2.30.2
+
