@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2A99F20E306;
-	Wed,  6 Nov 2024 23:46:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 489EC20EA26;
+	Wed,  6 Nov 2024 23:46:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730936806; cv=none; b=XWylYeQeQygopIel9xAYi7zrHpOoVmaGg80ige+DKpiaqJuAKzrUDTv1cgwJZ7qAoFTVpUgGDK6C2LlmMdE+lhPXpkCZTMQc80yPz3PfU4uNZIcDQHEKUjlWWCM91bJs08PDBMoUPkDnAsKnhRagqFnGtT/VM+ZElaStpOqKWbU=
+	t=1730936806; cv=none; b=sAJxIJ9DDXBVmJPX0Tl70i5Clhl0RkYQkKhywy3iQcGpHy3T3OmvotZuEwhJ7clKbJcIPAFFrk4QQ+k6WH6cC7s5EZWPcB5PdJTTgR3+tlECuz3qevRYMGcP/9VcQtqm22lKwlRJHQkWW6whPnObxOmMRTrx5lqsUCk26k3EMIU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1730936806; c=relaxed/simple;
-	bh=lmA1M+nRgDRNH7jgOfdg8eDIR/GW143ObDBeIRDcuN8=;
+	bh=G1adiYwVMrktORMer56qqXyb91XcP+g6hjmFt5htjaA=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=TEh/UbFT0gNp5E7Ov4TEKzUNNvUMrjgz37TowaWxYljRPrd+swoS2YVjMHErFA+XUM21UGC2CBxD2B9vv2746WbPAnV2K1poTIr/4vL3iDldSaXFbJL5ri9YBbSBaSmTZO9u2pMoI+zBdHSrVGaNEN4yrclZ+psbcj8hK1FLRmQ=
+	 MIME-Version; b=n0imwvqnWVM1eTgC1BtIzLjwfMJfS4/yzFfG8x5ki0eI16oeMYXrC+jM+Nwg/G/REmpcfl8wXeoRTyaM19gURhufXnHuKIMsOS0NnwUB9oUATVSkdQskdjQ8uCMepnNqDjd0EW5Q2mwez71UlUg4GKujW7YCDI0eaIdnHB2AloE=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net-next 05/11] netfilter: nf_tables: avoid false-positive lockdep splat on rule deletion
-Date: Thu,  7 Nov 2024 00:46:19 +0100
-Message-Id: <20241106234625.168468-6-pablo@netfilter.org>
+Subject: [PATCH net-next 10/11] netfilter: nf_tables: must hold rcu read lock while iterating expression type list
+Date: Thu,  7 Nov 2024 00:46:24 +0100
+Message-Id: <20241106234625.168468-11-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20241106234625.168468-1-pablo@netfilter.org>
 References: <20241106234625.168468-1-pablo@netfilter.org>
@@ -36,125 +36,76 @@ Content-Transfer-Encoding: 8bit
 
 From: Florian Westphal <fw@strlen.de>
 
-On rule delete we get:
+nft shell tests trigger:
  WARNING: suspicious RCU usage
- net/netfilter/nf_tables_api.c:3420 RCU-list traversed in non-reader section!!
- 1 lock held by iptables/134:
-   #0: ffff888008c4fcc8 (&nft_net->commit_mutex){+.+.}-{3:3}, at: nf_tables_valid_genid (include/linux/jiffies.h:101) nf_tables
+ net/netfilter/nf_tables_api.c:3125 RCU-list traversed in non-reader section!!
+ 1 lock held by nft/2068:
+  #0: ffff888106c6f8c8 (&nft_net->commit_mutex){+.+.}-{4:4}, at: nf_tables_valid_genid+0x3c/0xf0
 
-Code is fine, no other CPU can change the list because we're holding
-transaction mutex.
+But the transaction mutex doesn't protect this list, the nfnl subsystem
+mutex would, but we can't acquire it here without risk of ABBA
+deadlocks.
 
-Pass the needed lockdep annotation to the iterator and fix
-two comments for functions that are no longer restricted to rcu-only
-context.
+Acquire the rcu read lock to avoid this issue.
 
-This is enough to resolve rule delete, but there are several other
-missing annotations, added in followup-patches.
+v3: add a comment that explains the ->inner_ops check implies
+expression is builtin and lack of a module owner reference is ok.
 
-Fixes: 28875945ba98 ("rcu: Add support for consolidated-RCU reader checking")
-Reported-by: Matthieu Baerts <matttbe@kernel.org>
-Tested-by: Matthieu Baerts <matttbe@kernel.org>
-Closes: https://lore.kernel.org/netfilter-devel/da27f17f-3145-47af-ad0f-7fd2a823623e@kernel.org/
+Fixes: 3a07327d10a0 ("netfilter: nft_inner: support for inner tunnel header matching")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+ net/netfilter/nf_tables_api.c | 24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 30331688301e..80c285ac7e07 100644
+index 3b5154f2dd79..de8e48a5c62d 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -3411,13 +3411,15 @@ void nft_expr_destroy(const struct nft_ctx *ctx, struct nft_expr *expr)
-  * Rules
-  */
+@@ -3296,25 +3296,37 @@ int nft_expr_inner_parse(const struct nft_ctx *ctx, const struct nlattr *nla,
+ 	if (!tb[NFTA_EXPR_DATA] || !tb[NFTA_EXPR_NAME])
+ 		return -EINVAL;
  
--static struct nft_rule *__nft_rule_lookup(const struct nft_chain *chain,
-+static struct nft_rule *__nft_rule_lookup(const struct net *net,
-+					  const struct nft_chain *chain,
- 					  u64 handle)
- {
- 	struct nft_rule *rule;
++	rcu_read_lock();
++
+ 	type = __nft_expr_type_get(ctx->family, tb[NFTA_EXPR_NAME]);
+-	if (!type)
+-		return -ENOENT;
++	if (!type) {
++		err = -ENOENT;
++		goto out_unlock;
++	}
  
- 	// FIXME: this sucks
--	list_for_each_entry_rcu(rule, &chain->rules, list) {
-+	list_for_each_entry_rcu(rule, &chain->rules, list,
-+				lockdep_commit_lock_is_held(net)) {
- 		if (handle == rule->handle)
- 			return rule;
- 	}
-@@ -3425,13 +3427,14 @@ static struct nft_rule *__nft_rule_lookup(const struct nft_chain *chain,
- 	return ERR_PTR(-ENOENT);
- }
+-	if (!type->inner_ops)
+-		return -EOPNOTSUPP;
++	if (!type->inner_ops) {
++		err = -EOPNOTSUPP;
++		goto out_unlock;
++	}
  
--static struct nft_rule *nft_rule_lookup(const struct nft_chain *chain,
-+static struct nft_rule *nft_rule_lookup(const struct net *net,
-+					const struct nft_chain *chain,
- 					const struct nlattr *nla)
- {
- 	if (nla == NULL)
- 		return ERR_PTR(-EINVAL);
+ 	err = nla_parse_nested_deprecated(info->tb, type->maxattr,
+ 					  tb[NFTA_EXPR_DATA],
+ 					  type->policy, NULL);
+ 	if (err < 0)
+-		goto err_nla_parse;
++		goto out_unlock;
  
--	return __nft_rule_lookup(chain, be64_to_cpu(nla_get_be64(nla)));
-+	return __nft_rule_lookup(net, chain, be64_to_cpu(nla_get_be64(nla)));
- }
+ 	info->attr = nla;
+ 	info->ops = type->inner_ops;
  
- static const struct nla_policy nft_rule_policy[NFTA_RULE_MAX + 1] = {
-@@ -3732,7 +3735,7 @@ static int nf_tables_dump_rules_done(struct netlink_callback *cb)
++	/* No module reference will be taken on type->owner.
++	 * Presence of type->inner_ops implies that the expression
++	 * is builtin, so it cannot go away.
++	 */
++	rcu_read_unlock();
  	return 0;
+ 
+-err_nla_parse:
++out_unlock:
++	rcu_read_unlock();
+ 	return err;
  }
  
--/* called with rcu_read_lock held */
-+/* Caller must hold rcu read lock or transaction mutex */
- static struct sk_buff *
- nf_tables_getrule_single(u32 portid, const struct nfnl_info *info,
- 			 const struct nlattr * const nla[], bool reset)
-@@ -3759,7 +3762,7 @@ nf_tables_getrule_single(u32 portid, const struct nfnl_info *info,
- 		return ERR_CAST(chain);
- 	}
- 
--	rule = nft_rule_lookup(chain, nla[NFTA_RULE_HANDLE]);
-+	rule = nft_rule_lookup(net, chain, nla[NFTA_RULE_HANDLE]);
- 	if (IS_ERR(rule)) {
- 		NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_HANDLE]);
- 		return ERR_CAST(rule);
-@@ -4057,7 +4060,7 @@ static int nf_tables_newrule(struct sk_buff *skb, const struct nfnl_info *info,
- 
- 	if (nla[NFTA_RULE_HANDLE]) {
- 		handle = be64_to_cpu(nla_get_be64(nla[NFTA_RULE_HANDLE]));
--		rule = __nft_rule_lookup(chain, handle);
-+		rule = __nft_rule_lookup(net, chain, handle);
- 		if (IS_ERR(rule)) {
- 			NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_HANDLE]);
- 			return PTR_ERR(rule);
-@@ -4079,7 +4082,7 @@ static int nf_tables_newrule(struct sk_buff *skb, const struct nfnl_info *info,
- 
- 		if (nla[NFTA_RULE_POSITION]) {
- 			pos_handle = be64_to_cpu(nla_get_be64(nla[NFTA_RULE_POSITION]));
--			old_rule = __nft_rule_lookup(chain, pos_handle);
-+			old_rule = __nft_rule_lookup(net, chain, pos_handle);
- 			if (IS_ERR(old_rule)) {
- 				NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_POSITION]);
- 				return PTR_ERR(old_rule);
-@@ -4296,7 +4299,7 @@ static int nf_tables_delrule(struct sk_buff *skb, const struct nfnl_info *info,
- 
- 	if (chain) {
- 		if (nla[NFTA_RULE_HANDLE]) {
--			rule = nft_rule_lookup(chain, nla[NFTA_RULE_HANDLE]);
-+			rule = nft_rule_lookup(info->net, chain, nla[NFTA_RULE_HANDLE]);
- 			if (IS_ERR(rule)) {
- 				if (PTR_ERR(rule) == -ENOENT &&
- 				    NFNL_MSG_TYPE(info->nlh->nlmsg_type) == NFT_MSG_DESTROYRULE)
-@@ -8101,7 +8104,7 @@ static int nf_tables_dump_obj_done(struct netlink_callback *cb)
- 	return 0;
- }
- 
--/* called with rcu_read_lock held */
-+/* Caller must hold rcu read lock or transaction mutex */
- static struct sk_buff *
- nf_tables_getobj_single(u32 portid, const struct nfnl_info *info,
- 			const struct nlattr * const nla[], bool reset)
 -- 
 2.30.2
 
