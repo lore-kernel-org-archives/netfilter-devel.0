@@ -1,63 +1,67 @@
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F2B3208981
-	for <netfilter-devel@vger.kernel.org>; Wed,  6 Nov 2024 23:11:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 081AC209F20
+	for <netfilter-devel@vger.kernel.org>; Wed,  6 Nov 2024 23:34:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730934719; cv=none; b=PYsrRQNriJF4wv1xcv5ILC2s0zO/yf9txXhqmrog1wDtzJgZC+ppOKOebfsyNMHAhYgJsr176o6g5Zn1TkOzvQNkxOm8uUWjFhNiONziHt+Mp/9XkKkLNV9LNZXqdx6/wM2JvF7HYVxCUzrPeHkbugWWTclgpOp7k2d8XpgxgF8=
+	t=1730936089; cv=none; b=UbmzqyZUpctedlnDx79XosyspeMHOkPG4DeRvAOiCQxcEvMTUVknKns6lWrdbFMTbC1KrdeSer/e2uR16/bePUE/B8ltCGgF7srEvVfa2XjZwa+3Vp0vB2Bz72gcKdWgaTJglB9xjQVLQoO6DYCkwMqNLQMOsAOD1NX0jd3x8oI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730934719; c=relaxed/simple;
-	bh=HlXoYwUQ7+8MYthkh2KQV4lOyFdK3UNWmsIrn8ICmqs=;
+	s=arc-20240116; t=1730936089; c=relaxed/simple;
+	bh=ZYJf5CUms0sD1r124E8qRdtvqAqjIV66cxgfbB7Nb88=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=JbHLu3dgV/gDtJscktmUZsDq3k7MzfSnO4Xdv0059RRbyy4XaakTQYZen8uR4yHxJeFGhWqE2SjxPgOO8tvyTT0epX/jSij2zWZHaHnRGlu5AzhZe3GBIzSELv/w+lqkodSvLki86KageCwtJ+qhSy6jFJMsc7rYQWCUUTwYXqQ=
+	 Content-Type:Content-Disposition:In-Reply-To; b=GnukTchp67u0sd/4TZ16LFcJvBIVgxIXqI0TwSNBdJLmiwSbOrCWjBWhxAW5FhoT81eKg6ev+Px/x69j4PqambRo3kQeAVacOrH0Zyhap77J6D4ItALkqAEdGtKIucclu37svJmFAF4umfZ+HzK+I6tGMJEtEbdVRF8MUa0k/5I=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=60094 helo=gnumonks.org)
+Received: from [78.30.37.63] (port=38272 helo=gnumonks.org)
 	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <pablo@gnumonks.org>)
-	id 1t8pBm-00Bhwl-4F; Thu, 07 Nov 2024 00:11:52 +0100
-Date: Thu, 7 Nov 2024 00:11:48 +0100
+	id 1t8pXs-00BmWK-Lc; Thu, 07 Nov 2024 00:34:43 +0100
+Date: Thu, 7 Nov 2024 00:34:39 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: Florian Westphal <fw@strlen.de>
 Cc: netfilter-devel@vger.kernel.org
 Subject: Re: [PATCH nft] src: allow to map key to nfqueue number
-Message-ID: <Zyv3tBgF9jW5D0v-@calendula>
+Message-ID: <Zyv9D385olTWUv1k@calendula>
 References: <20241025074729.12412-1-fw@strlen.de>
  <Zytu_YJeGyF-RaxI@calendula>
  <20241106135244.GA11098@breakpoint.cc>
  <20241106143253.GA12653@breakpoint.cc>
  <ZyuTa9lmkXRAvSfn@calendula>
+ <Zyv3tBgF9jW5D0v-@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="gu4Y/oIARLFVpfrF"
+Content-Type: multipart/mixed; boundary="97RK8zAqwqPRzyw7"
 Content-Disposition: inline
-In-Reply-To: <ZyuTa9lmkXRAvSfn@calendula>
+In-Reply-To: <Zyv3tBgF9jW5D0v-@calendula>
 X-Spam-Score: -1.8 (-)
 
 
---gu4Y/oIARLFVpfrF
+--97RK8zAqwqPRzyw7
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 
-On Wed, Nov 06, 2024 at 05:03:55PM +0100, Pablo Neira Ayuso wrote:
-> I can take a look later today based on your patch, I think I can reuse
-> 90% of it, it is just a subtle detail what I am referring to.
+On Thu, Nov 07, 2024 at 12:11:53AM +0100, Pablo Neira Ayuso wrote:
+> On Wed, Nov 06, 2024 at 05:03:55PM +0100, Pablo Neira Ayuso wrote:
+> > I can take a look later today based on your patch, I think I can reuse
+> > 90% of it, it is just a subtle detail what I am referring to.
+> 
+> See attachment, not better than your proposal, just a different focus.
 
-See attachment, not better than your proposal, just a different focus.
+Actually, this attachment.
 
---gu4Y/oIARLFVpfrF
+--97RK8zAqwqPRzyw7
 Content-Type: text/x-diff; charset=utf-8
 Content-Disposition: attachment;
 	filename="0001-src-allow-to-map-key-to-nfqueue-number.patch"
 
-From 26a7503fd5dadf0425515f5647add64a2a9eb404 Mon Sep 17 00:00:00 2001
+From bf41080edeb3a35e02991ca3ba020a9c79925e12 Mon Sep 17 00:00:00 2001
 From: Florian Westphal <fw@strlen.de>
 Date: Fri, 25 Oct 2024 09:47:25 +0200
 Subject: [PATCH] src: allow to map key to nfqueue number
@@ -67,10 +71,10 @@ The parser side is easy, but the reverse direction (listing) is not.
 
 'queue' is a statement, it doesn't have an expression.
 
-Add a generic 'queue_type' datatype as a TYPE_TYPEOF shim to the real
-basetype with constant expressions, this is used only for udata
-build/parse, it stores the "key" (the parser token, here "queue") as
-udata in kernel and can then restore the original key.
+Add a generic 'queue_type' datatype as a shim to the real basetype with
+constant expressions, this is used only for udata build/parse, it stores
+the "key" (the parser token, here "queue") as udata in kernel and can
+then restore the original key.
 
 Add a dumpfile to validate parser & output.
 
@@ -83,33 +87,34 @@ Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1455
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/datatype.h                            |  3 +
- src/datatype.c                                | 17 ++++
+ include/datatype.h                            |  4 +-
+ src/datatype.c                                | 18 +++++
  src/expression.c                              | 80 +++++++++++++++++++
  src/json.                                     |  0
  src/netlink.c                                 |  6 +-
  src/parser_bison.y                            |  4 +
  tests/shell/testcases/nft-f/dumps/nfqueue.nft | 11 +++
  tests/shell/testcases/nft-f/nfqueue           |  6 ++
- 8 files changed, 126 insertions(+), 1 deletion(-)
+ 8 files changed, 127 insertions(+), 2 deletions(-)
  create mode 100644 src/json.
  create mode 100644 tests/shell/testcases/nft-f/dumps/nfqueue.nft
  create mode 100755 tests/shell/testcases/nft-f/nfqueue
 
 diff --git a/include/datatype.h b/include/datatype.h
-index 75d6d6b8c628..61c6bf595e9e 100644
+index 75d6d6b8c628..8b950f9165a5 100644
 --- a/include/datatype.h
 +++ b/include/datatype.h
-@@ -102,6 +102,8 @@ enum datatypes {
- };
- #define TYPE_MAX		(__TYPE_MAX - 1)
- 
-+#define TYPE_TYPEOF		__TYPE_MAX
-+
- #define TYPE_BITS		6
- #define TYPE_MASK		((1 << TYPE_BITS) - 1)
- 
-@@ -271,6 +273,7 @@ extern const struct datatype boolean_type;
+@@ -140,7 +140,8 @@ struct parse_ctx;
+ struct datatype {
+ 	uint32_t			type;
+ 	enum byteorder			byteorder:8;
+-	uint32_t			alloc:1;
++	uint32_t			alloc:1,
++					is_typeof:1;
+ 	unsigned int			size;
+ 	unsigned int			subtypes;
+ 	const char			*name;
+@@ -271,6 +272,7 @@ extern const struct datatype boolean_type;
  extern const struct datatype priority_type;
  extern const struct datatype policy_type;
  extern const struct datatype cgroupv2_type;
@@ -118,10 +123,10 @@ index 75d6d6b8c628..61c6bf595e9e 100644
  /* private datatypes for reject statement. */
  extern const struct datatype reject_icmp_code_type;
 diff --git a/src/datatype.c b/src/datatype.c
-index ea73eaf9a691..c9c5a198bd3b 100644
+index ea73eaf9a691..0c13bbd4270e 100644
 --- a/src/datatype.c
 +++ b/src/datatype.c
-@@ -505,6 +505,23 @@ const struct datatype xinteger_type = {
+@@ -505,6 +505,24 @@ const struct datatype xinteger_type = {
  	.parse		= integer_type_parse,
  };
  
@@ -135,7 +140,8 @@ index ea73eaf9a691..c9c5a198bd3b 100644
 + * basetype is used for elements.
 +*/
 +const struct datatype queue_type = {
-+	.type		= TYPE_TYPEOF,
++	.type		= TYPE_INTEGER,
++	.is_typeof	= 1,
 +	.name		= "queue",
 +	.desc		= "queue",
 +	.basetype	= &integer_type,
@@ -247,7 +253,7 @@ diff --git a/src/json. b/src/json.
 new file mode 100644
 index 000000000000..e69de29bb2d1
 diff --git a/src/netlink.c b/src/netlink.c
-index 25ee3419772b..68e7da68ed68 100644
+index 25ee3419772b..36140fb63d6f 100644
 --- a/src/netlink.c
 +++ b/src/netlink.c
 @@ -1466,7 +1466,11 @@ key_end:
@@ -256,7 +262,7 @@ index 25ee3419772b..68e7da68ed68 100644
  					  NFT_REG_VERDICT : NFT_REG_1);
 -		datatype_set(data, set->data->dtype);
 +
-+		if (set->data->dtype->type == TYPE_TYPEOF)
++		if (set->data->dtype->is_typeof)
 +			datatype_set(data, set->data->dtype->basetype);
 +		else
 +			datatype_set(data, set->data->dtype);
@@ -311,4 +317,4 @@ index 000000000000..07820b7c4fdd
 2.30.2
 
 
---gu4Y/oIARLFVpfrF--
+--97RK8zAqwqPRzyw7--
