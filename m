@@ -1,44 +1,44 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE0201E04AC
-	for <netfilter-devel@vger.kernel.org>; Wed,  6 Nov 2024 16:42:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54176204F94
+	for <netfilter-devel@vger.kernel.org>; Wed,  6 Nov 2024 16:42:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730911368; cv=none; b=IAPA7pfUM5vYBC6gECExPvw7RHwkGqR3Kn53+spQu6moi8/OX/sbuItfTc5HJv9LhtpNA4k9K8LKAgXT8dVtUyhpJdx0prpA82DbdHRZn04n3kTUmK9yBwQ6GPOd4JEEQ1eLoOh02TQ0iuw6wYDmfjkc7KrjqZepfe0P7k9XzGY=
+	t=1730911368; cv=none; b=jic2bEnJjwP1MGQ1zjMQHEn/dTVntEqoC0cvTz4IY75i5qX6iMiFG+gxgBDaYgtzDyIfXHNA17IAb7shz+3zJUURgQllwy5X3b22W8H3R6DK31h8wYbsZy76M7qekWJl1eudx0XPnZC9hDQAvkp1le106T5I4qLBxPoY8M6zn2A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1730911368; c=relaxed/simple;
-	bh=DsiOkyrRfUFgWXPsgtU2O3D3jscBPf++45HlhjeDzqU=;
+	bh=VHm+zxD+9dcuMBPyVIwLn5GeHISHVDrFQBifQRg1DIY=;
 	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=W3LMSCZ15+fLJDR6uqyoxwY/R1aUSvqlUU3dL1bOPHWrFH6wfOaCBODJH9HkS9/kAsg8wof6nv5RF33A0+png2uJEWhIr6M2W5JAxTXkOM9OsAqiZh7jygIP8jvUFCiKGsam0qN0iXLkyHnC+DBsZNjJKM5lkKVtgVcdWE3QZF0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=piAlpwGA; arc=none smtp.client-ip=151.80.46.58
+	 MIME-Version; b=NrYcai1FURQi80Hxd/h+RmY49o/KsgMNNVPaiIT+I0/1/nKQtmyawoLfjEYj3NDkOXfrochdR8JXdfrFb2xIoWH2c52JEt3whFaeyyFLGPyCsivXtYVGwGutp/u7R/eLn136QuLscIqPb8VFTBbIBCj6aC2S5lKGHRxmTe9kVkA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=jJND9TUx; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="piAlpwGA"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="jJND9TUx"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=shWelwBIoOw6pjFDL487LlVa6trGDV8qMzSJEHrguFU=; b=piAlpwGAwSlbqX7ew2xNkoxkfv
-	XKunmu+Kh1C/8bxMojdk/02SEQwyNjq641hvMN4RMV/DFp/HPoIaObx5gBoNNsgwjWdjuJtieAfCP
-	cSIZO92rP1cv/uX8OXRppgrbZ0QFgxO2/mi799gsaMA9dEZNyPFLbLVVQ9ds3/5muwIaNp3Z+YrG+
-	xle3OBevi78wbeVo3r5jYEHjmWbBe2DxJNBgOw1xkzwqMs0pPXzBuMkaVXEpcwVCq3hn/3X5woNzD
-	hjIWe/xnaVHwdYncyPZ7uahiPbqOWrdJzuAipkEO+m6wVYg64QfMyF6KrGFL/c78Dvp56qf//8iHB
-	IH8qv+Sg==;
+	bh=tyIkU1Ig/MT+ZMqvM5Yf01oljtjCNhqh2pmM7nCaq64=; b=jJND9TUxAHQagyPhAxG1THxdZf
+	VUl0UOzuqnRfnsdj1B5TNzrLeswLSz/YlEbyp3v1hsSuXkNp5JY87jPB8iDU4K4FIrw93bVL1yfiS
+	bY1F3oX2AsCjOKLDAcQ7PyFReVjL4E41F+CF21+5qQCrpzmgpDyhc7jI6AZBlmVAWo6p1TidRmD7h
+	H3GrEZDfImP+LQ9PCKRi5D+wZdJBSVGTTrpDwmpRzWyW+gl20zHxEhIpMY6Y41h/SYaRY1SN4PXIH
+	mcWOWpMh64owAQkfZEKihW31dlhK8XZCLtUr368+VKwK8j9+aS5sh98fADLuoCHhXeLC1NOX1ZMaz
+	1qMxP3QA==;
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1t8j77-000000005P0-0mve
+	id 1t8j78-000000005PD-3TK8
 	for netfilter-devel@vger.kernel.org;
-	Wed, 06 Nov 2024 17:42:37 +0100
+	Wed, 06 Nov 2024 17:42:38 +0100
 From: Phil Sutter <phil@nwl.cc>
 To: netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 3/5] tests: iptables-test: Fix for 'make distcheck'
-Date: Wed,  6 Nov 2024 17:42:30 +0100
-Message-ID: <20241106164232.3384-3-phil@nwl.cc>
+Subject: [iptables PATCH 5/5] Makefile.am: Revert to old serial test harness
+Date: Wed,  6 Nov 2024 17:42:32 +0100
+Message-ID: <20241106164232.3384-5-phil@nwl.cc>
 X-Mailer: git-send-email 2.47.0
 In-Reply-To: <20241106164232.3384-1-phil@nwl.cc>
 References: <20241106164232.3384-1-phil@nwl.cc>
@@ -50,51 +50,29 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This was a tricky one: Since called from VPATH topdir, extensions/ do
-not contain test files at all. The script consequently passed since 0
-tests failed (of 0 in total).
+Running the different testsuites in parallel is dangerous since despite
+running in different netns, legacy iptables still synchronizes via the
+common XTABLES_LOCKFILE.
 
-Fix this by introducing TESTS_PATH which is extensions/ below the directory
-of the running iptables-test.py. Keep EXTENSIONS_PATH as-is: The built
-extensions are indeed there and XTABLES_LIBDIR must point to them.
-
+Fixes: e1eaa04e31e44 ("Makefile.am: Integrate testsuites")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables-test.py | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ Makefile.am | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/iptables-test.py b/iptables-test.py
-index 141fec7b4ed16..66db552185bc3 100755
---- a/iptables-test.py
-+++ b/iptables-test.py
-@@ -30,6 +30,7 @@ EBTABLES_SAVE = "ebtables-save"
- #IP6TABLES_SAVE = ['xtables-save','-6']
+diff --git a/Makefile.am b/Makefile.am
+index 299ab46d7b8e2..d0ba059c00110 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -1,7 +1,7 @@
+ # -*- Makefile -*-
  
- EXTENSIONS_PATH = "extensions"
-+TESTS_PATH = os.path.join(os.path.dirname(sys.argv[0]), "extensions")
- LOGFILE="/tmp/iptables-test.log"
- log_file = None
+ ACLOCAL_AMFLAGS  = -I m4
+-AUTOMAKE_OPTIONS = foreign subdir-objects dist-xz no-dist-gzip
++AUTOMAKE_OPTIONS = foreign subdir-objects dist-xz no-dist-gzip serial-tests
  
-@@ -558,7 +559,7 @@ STDERR_IS_TTY = sys.stderr.isatty()
-     '''
-     Show the list of missing test files
-     '''
--    file_list = os.listdir(EXTENSIONS_PATH)
-+    file_list = os.listdir(TESTS_PATH)
-     testfiles = [i for i in file_list if i.endswith('.t')]
-     libfiles = [i for i in file_list
-                 if i.startswith('lib') and i.endswith('.c')]
-@@ -669,8 +670,8 @@ STDERR_IS_TTY = sys.stderr.isatty()
-         if args.filename:
-             file_list = args.filename
-         else:
--            file_list = [os.path.join(EXTENSIONS_PATH, i)
--                         for i in os.listdir(EXTENSIONS_PATH)
-+            file_list = [os.path.join(TESTS_PATH, i)
-+                         for i in os.listdir(TESTS_PATH)
-                          if i.endswith('.t')]
-             file_list.sort()
- 
+ SUBDIRS          = libiptc libxtables
+ if ENABLE_DEVEL
 -- 
 2.47.0
 
