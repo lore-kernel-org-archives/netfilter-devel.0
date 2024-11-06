@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 012D91DE3DE;
-	Wed,  6 Nov 2024 23:46:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 013911DED51;
+	Wed,  6 Nov 2024 23:46:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730936804; cv=none; b=CuRZ9XBSpabixaQAjPC0Ld2HQnk/WI0Ph96XZXyEyRQd+FnVlEDKrNjSY5BcanU/X9bEiBUtaV7WbY4WqY4Y6HVlihzekNM6bzl9AEWvnxpIdrZmefdqs5QlyDRAz9CjchxJAit16cKDaPnDnQm4D96sIX0ffgZ3bJBHnUTpHg0=
+	t=1730936804; cv=none; b=rhIE7n5TtX5N9PVRKNWD8YfLs6nk6NldMFkfqrI4l8CzshUaaPrSKQyPGRY8rTG8IbiUokmyHs32eO/IoAtteCYbpbQeTmlu2k2RAQG4+JQkYNnTGqkEdt7FFdSRI0CeVhh50J2Z0wsxZeHGdBeEVsQgPX2rOfKkT9qk/3tIiAs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1730936804; c=relaxed/simple;
-	bh=FCPtCk4CbWFDou0Q9B78YNMopnFHk8hDYJhakoxBbdE=;
+	bh=sDy6e0NOO8bufxr2+M672puIVSIYTU5coulkomP+7xM=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=BoLOh67WflhE47XXeZ0oFqa/rbWO/e6fb1hOQht/e3OaYPRpoF+8zFV0WdXlpp8bqIo6SWczas277/+uS9jRUGGP1EJwSZId4GU4kyif+Yg+PnohploHQFzix9YlhVrxWMlCbN1eZLZxvksvbSp27LJwRWiSVjyC5D+CArcD34c=
+	 MIME-Version; b=slJ8TbveAdlc91U9WjzEtDew9Gmor8f3Xtb54sBDfCmAIPCGMaDcMK6bDon5lfYKIGVOdg9pgYZCWkXd4htTiD28z8brxhhx+ztd/gybxEKF0R4NBwxw61JY+niKOaFnWyrzGbHR6VDcQzoYTXCXGZ4KJARPmiGdwzszxERdCx8=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net-next 03/11] netfilter: nf_tables: replace deprecated strncpy with strscpy_pad
-Date: Thu,  7 Nov 2024 00:46:17 +0100
-Message-Id: <20241106234625.168468-4-pablo@netfilter.org>
+Subject: [PATCH net-next 01/11] netfilter: Make legacy configs user selectable
+Date: Thu,  7 Nov 2024 00:46:15 +0100
+Message-Id: <20241106234625.168468-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20241106234625.168468-1-pablo@netfilter.org>
 References: <20241106234625.168468-1-pablo@netfilter.org>
@@ -34,49 +34,98 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Justin Stitt <justinstitt@google.com>
+From: Breno Leitao <leitao@debian.org>
 
-strncpy() is deprecated for use on NUL-terminated destination strings [1] and
-as such we should prefer more robust and less ambiguous string interfaces.
+This option makes legacy Netfilter Kconfig user selectable, giving users
+the option to configure iptables without enabling any other config.
 
-In this particular instance, the usage of strncpy() is fine and works as
-expected. However, towards the goal of [2], we should consider replacing
-it with an alternative as many instances of strncpy() are bug-prone. Its
-removal from the kernel promotes better long term health for the
-codebase.
+Make the following KConfig entries user selectable:
+ * BRIDGE_NF_EBTABLES_LEGACY
+ * IP_NF_ARPTABLES
+ * IP_NF_IPTABLES_LEGACY
+ * IP6_NF_IPTABLES_LEGACY
 
-The current usage of strncpy() likely just wants the NUL-padding
-behavior offered by strncpy() and doesn't care about the
-NUL-termination. Since the compiler doesn't know the size of @dest, we
-can't use strtomem_pad(). Instead, use strscpy_pad() which behaves
-functionally the same as strncpy() in this context -- as we expect
-br_dev->name to be NUL-terminated itself.
-
-Link: https://www.kernel.org/doc/html/latest/process/deprecated.html#strncpy-on-nul-terminated-strings [1]
-Link: https://github.com/KSPP/linux/issues/90 [2]
-Link: https://manpages.debian.org/testing/linux-manual-4.8/strscpy.9.en.html
-Cc: Kees Cook <keescook@chromium.org>
-Cc: linux-hardening@vger.kernel.org
-Signed-off-by: Justin Stitt <justinstitt@google.com>
-Reviewed-by: Simon Horman <horms@kernel.org>
+Signed-off-by: Breno Leitao <leitao@debian.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/bridge/netfilter/nft_meta_bridge.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/bridge/netfilter/Kconfig |  8 +++++++-
+ net/ipv4/netfilter/Kconfig   | 16 ++++++++++++++--
+ net/ipv6/netfilter/Kconfig   |  9 ++++++++-
+ 3 files changed, 29 insertions(+), 4 deletions(-)
 
-diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
-index d12a221366d6..5adced1e7d0c 100644
---- a/net/bridge/netfilter/nft_meta_bridge.c
-+++ b/net/bridge/netfilter/nft_meta_bridge.c
-@@ -63,7 +63,7 @@ static void nft_meta_bridge_get_eval(const struct nft_expr *expr,
- 		return nft_meta_get_eval(expr, regs, pkt);
- 	}
+diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
+index 104c0125e32e..f16bbbbb9481 100644
+--- a/net/bridge/netfilter/Kconfig
++++ b/net/bridge/netfilter/Kconfig
+@@ -41,7 +41,13 @@ config NF_CONNTRACK_BRIDGE
  
--	strncpy((char *)dest, br_dev ? br_dev->name : "", IFNAMSIZ);
-+	strscpy_pad((char *)dest, br_dev ? br_dev->name : "", IFNAMSIZ);
- 	return;
- err:
- 	regs->verdict.code = NFT_BREAK;
+ # old sockopt interface and eval loop
+ config BRIDGE_NF_EBTABLES_LEGACY
+-	tristate
++	tristate "Legacy EBTABLES support"
++	depends on BRIDGE && NETFILTER_XTABLES
++	default n
++	help
++	 Legacy ebtables packet/frame classifier.
++	 This is not needed if you are using ebtables over nftables
++	 (iptables-nft).
+ 
+ menuconfig BRIDGE_NF_EBTABLES
+ 	tristate "Ethernet Bridge tables (ebtables) support"
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 1b991b889506..ef8009281da5 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -12,7 +12,13 @@ config NF_DEFRAG_IPV4
+ 
+ # old sockopt interface and eval loop
+ config IP_NF_IPTABLES_LEGACY
+-	tristate
++	tristate "Legacy IP tables support"
++	default	n
++	select NETFILTER_XTABLES
++	help
++	  iptables is a legacy packet classifier.
++	  This is not needed if you are using iptables over nftables
++	  (iptables-nft).
+ 
+ config NF_SOCKET_IPV4
+ 	tristate "IPv4 socket lookup support"
+@@ -318,7 +324,13 @@ endif # IP_NF_IPTABLES
+ 
+ # ARP tables
+ config IP_NF_ARPTABLES
+-	tristate
++	tristate "Legacy ARPTABLES support"
++	depends on NETFILTER_XTABLES
++	default n
++	help
++	  arptables is a legacy packet classifier.
++	  This is not needed if you are using arptables over nftables
++	  (iptables-nft).
+ 
+ config NFT_COMPAT_ARP
+ 	tristate
+diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
+index f3c8e2d918e1..e087a8e97ba7 100644
+--- a/net/ipv6/netfilter/Kconfig
++++ b/net/ipv6/netfilter/Kconfig
+@@ -8,7 +8,14 @@ menu "IPv6: Netfilter Configuration"
+ 
+ # old sockopt interface and eval loop
+ config IP6_NF_IPTABLES_LEGACY
+-	tristate
++	tristate "Legacy IP6 tables support"
++	depends on INET && IPV6
++	select NETFILTER_XTABLES
++	default n
++	help
++	  ip6tables is a legacy packet classifier.
++	  This is not needed if you are using iptables over nftables
++	  (iptables-nft).
+ 
+ config NF_SOCKET_IPV6
+ 	tristate "IPv6 socket lookup support"
 -- 
 2.30.2
 
