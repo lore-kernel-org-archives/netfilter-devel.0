@@ -1,34 +1,34 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D0BD18BBB9;
-	Wed,  6 Nov 2024 01:40:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04BE61D95AA;
+	Wed,  6 Nov 2024 02:20:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730857229; cv=none; b=tEDqJNb8yPoz81ZVR90ERSMvFiWez7KkIGoowSQBBQEiT/IGaNUk79KxTTiZZO2du959rsiMGDb8esz57Tzi5BzK8golnpspt8aTk0D5qaypwbA43I3vgU7CohWVdzg9VZUYzhNwl+JPsjO/dJZB8sBrUzikVOy7S0grG6eJkZI=
+	t=1730859631; cv=none; b=LNT7fvjvbYD5tAdPsPT/WS0u0lG2etQ9YAJkNPepMEQg44bRJxRkPTMdHcAaoihHjx4mHrhAay5YJjP+PwTzu4pORHAKIAFVUEDGycSVTD+T+smmwGVpqEF1HNBMWsgJMjCXIwbpzTzBv5aoV59FB3ltxQRNdendX72IFZDQolc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730857229; c=relaxed/simple;
-	bh=esOnjkeufN8HAPgjP5fkn+3SUM3+jIm1xlaaK6Sx+ns=;
+	s=arc-20240116; t=1730859631; c=relaxed/simple;
+	bh=lpFvM7OZwrkLaZJSn+dHV7eCffsP/oorN980LuDH8Io=;
 	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=HQQnbisAEdI5HabTORVHsHCGktWfU2MPI3+5TVUHgmCtAsxkzdSEl+i6Wbg9ANduZ9+2lGhQt1twUiqZmSdzyhdYriAiAc98zZK77KcCuoTDGh2KvwxiM0n75BFDRA3QLKzi5QVTAMiCIKVcrTWVa6VZ4qExLZtzihcjqTJ/whE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aITdy0qr; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=bImEhU6nRjdpTlkBOL/ze3oTDvAsSLTviBa18NwN6HSPH5T3x8JsVzg2O6bi/12m46+LQBBDkO5TA95SoIYn8tp+PnRD+4muH4c2CTmlBv7z+SURSdboCXI1/cj3i8vV32z/Bg4x8XINnLNrnllMsveqZiMDle/Yxm8/mWN8pLA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JrMPUMEr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aITdy0qr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCA1AC4CECF;
-	Wed,  6 Nov 2024 01:40:28 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JrMPUMEr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91EF2C4CECF;
+	Wed,  6 Nov 2024 02:20:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1730857228;
-	bh=esOnjkeufN8HAPgjP5fkn+3SUM3+jIm1xlaaK6Sx+ns=;
+	s=k20201202; t=1730859630;
+	bh=lpFvM7OZwrkLaZJSn+dHV7eCffsP/oorN980LuDH8Io=;
 	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=aITdy0qr3NafHRwWdPWIzf1OVlqZgNQX8jtQltYDCTl6063O6Mffjrv6TG73w0Hk9
-	 u2F1Z/D8WvTv8kjIJqBvapfhdIhry1a6+7OeRTs8Y7ZKtYFPejgCTktnsRrVH0vN+7
-	 pagV/8e6F9gBRUytiVNh+On2qtDkTgvYa9eht/xwpqS5leukK/nnnfBY6huh7lOCwX
-	 quNd4oBy0BhtHaprF8jyo3MwuD2QnewVkTB1lWNGBQ+S2dOhyQb2/JCLRYb1e3agvU
-	 S5Gjfnkk/6y0sp0GzKrJkudVRp0o6kZbjcVNbpZdFKlVNZm34mB8xWAcapI6TRKQ63
-	 3ia/jU+8SHswg==
+	b=JrMPUMErMh8a2pLqs55pnHEt8rNUjAHtRt/kSweik6nOIehepqcS0/+nY/9UK7Mgv
+	 kwOPJru++S/fCx1RU8DVbXSN+ywX1TRxDri1xc3zdFURNzC0dhf2nkIhF/zm9IW1lu
+	 JSyKzszC5P0mCJkPbVmj9hpRk/sgs89sc/6MTiXXXqqbI8Tr5X7nN/XFrKPsDW8loE
+	 7MldDaJW5MZ4DHMwR+J2Qng4Y6FX6T5Wk3npyugYWHiGXSZYDLV2Lbh3/aSGnwZfuo
+	 mO9hL96u9LhZ919fOeuX0j5TKeI+8cmIN0+huk6oTM3JQ37A0Csndj+OQ8OhDiIVKD
+	 0iOoZn85zIQuw==
 Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id EB0D93809A80;
-	Wed,  6 Nov 2024 01:40:38 +0000 (UTC)
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id ADC953809A80;
+	Wed,  6 Nov 2024 02:20:40 +0000 (UTC)
 Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -37,39 +37,36 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next] selftests: net: include lib/sh/*.sh with lib.sh
+Subject: Re: [PATCH net-next] selftests: netfilter: run conntrack_dump_flush in
+ netns
 From: patchwork-bot+netdevbpf@kernel.org
 Message-Id: 
- <173085723778.759302.10510309486670038114.git-patchwork-notify@kernel.org>
-Date: Wed, 06 Nov 2024 01:40:37 +0000
-References: <20241104-net-next-selftests-lib-sh-deps-v1-1-7c9f7d939fc2@kernel.org>
-In-Reply-To: <20241104-net-next-selftests-lib-sh-deps-v1-1-7c9f7d939fc2@kernel.org>
-To: Matthieu Baerts <matttbe@kernel.org>
-Cc: mptcp@lists.linux.dev, davem@davemloft.net, edumazet@google.com,
- kuba@kernel.org, pabeni@redhat.com, horms@kernel.org, shuah@kernel.org,
- martineau@kernel.org, geliang@kernel.org, pablo@netfilter.org,
- kadlec@netfilter.org, petrm@nvidia.com, netdev@vger.kernel.org,
- linux-kselftest@vger.kernel.org, linux-kernel@vger.kernel.org,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+ <173085963950.771890.5162812398917192565.git-patchwork-notify@kernel.org>
+Date: Wed, 06 Nov 2024 02:20:39 +0000
+References: <20241104142529.2352-1-fw@strlen.de>
+In-Reply-To: <20241104142529.2352-1-fw@strlen.de>
+To: Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
 
 Hello:
 
 This patch was applied to netdev/net-next.git (main)
 by Jakub Kicinski <kuba@kernel.org>:
 
-On Mon, 04 Nov 2024 12:34:26 +0100 you wrote:
-> Recently, the net/lib.sh file has been modified to include defer.sh from
-> net/lib/sh/ directory. The Makefile from net/lib has been modified
-> accordingly, but not the ones from the sub-targets using net/lib.sh.
+On Mon,  4 Nov 2024 15:25:24 +0100 you wrote:
+> This test will fail if the initial namespace has conntrack
+> active due to unexpected number of flows returned on dump:
 > 
-> Because of that, the new file is not installed as expected when
-> installing the Forwarding, MPTCP, and Netfilter targets, e.g.
+>   conntrack_dump_flush.c:451:test_flush_by_zone:Expected ret (7) == 2 (2)
+>   test_flush_by_zone: Test failed
+>   FAIL  conntrack_dump_flush.test_flush_by_zone
+>   not ok 2 conntrack_dump_flush.test_flush_by_zone
 > 
 > [...]
 
 Here is the summary with links:
-  - [net-next] selftests: net: include lib/sh/*.sh with lib.sh
-    https://git.kernel.org/netdev/net-next/c/f72aa1b27628
+  - [net-next] selftests: netfilter: run conntrack_dump_flush in netns
+    https://git.kernel.org/netdev/net-next/c/fc49b804967e
 
 You are awesome, thank you!
 -- 
