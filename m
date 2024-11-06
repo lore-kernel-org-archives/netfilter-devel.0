@@ -1,70 +1,75 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73159204942
-	for <netfilter-devel@vger.kernel.org>; Wed,  6 Nov 2024 16:04:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6F4E13C67C
+	for <netfilter-devel@vger.kernel.org>; Wed,  6 Nov 2024 16:42:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730909045; cv=none; b=dvb85MjXJ7OTy9DORppjQ/sZEzEStu62AhrZ/vjqyHtOoxgSathB50N0kQCUzVs4V0iPj3579Qti65zSBXt6JI4tSjMVRwnuSg6sdAed/0wiCOHvST6MubVYClrKgpnPLv/C6eIc5Ep1b7K/S0vglXQTLpR4dI/n11Trh9FrX78=
+	t=1730911367; cv=none; b=NhJhoBIgBPtcqJaU2de2tDun1Sx1MhrZ2gYbIjKsZZUHvFQZ5Za6QBkOZ8wOdK2moYd66yrqIVl1X/s/DHHdByYgx/aFfL0DGkWYFfKrqEwf7kHYhjo9CVa1vhsroLp3XPO3kfzUZfIlziDOQ+UhtEK6F1e1N83U1fQJWDaFeRw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730909045; c=relaxed/simple;
-	bh=Ycom8FHE6G2fbZHJzGs5LQ5IQrGdfgSPdKxrwziCKXk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=WZP+ILx1MAxNZbi7PY20w1o89xx7jSYJKrSw2NQc4HcMPnWkOnduu3mZjdejLeSQef9NNtE29CxHkGAqtA9BBtrHzq1pLrODd2xKHw/32Xr2kzb+EJhmY8veLwILzYa7RXf7WDPa0aOPydR/xiwyeL/6fnX5jxqi77UAMFZAmK0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=60590 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1t8iVg-00AG3Y-Ed; Wed, 06 Nov 2024 17:03:58 +0100
-Date: Wed, 6 Nov 2024 17:03:55 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] src: allow to map key to nfqueue number
-Message-ID: <ZyuTa9lmkXRAvSfn@calendula>
-References: <20241025074729.12412-1-fw@strlen.de>
- <Zytu_YJeGyF-RaxI@calendula>
- <20241106135244.GA11098@breakpoint.cc>
- <20241106143253.GA12653@breakpoint.cc>
+	s=arc-20240116; t=1730911367; c=relaxed/simple;
+	bh=ljqzVcnu61wG/tWomQqyPQ/A1Y0zLh9zpJJNiz0b7BI=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=oYMi462zIRmjTPAz+eaz80tnOLBy0oN+9r8oTVDWRuAyryX5+rn8yRMLW9bXi/xGw64VcRxbK202UPU8U4seOuEEbZYPRUeaIh9SOyUU2ZrT1TiNKZsXNiQPmQaiSsWIvIBgwCzMAUnmtw4b8yfR9X1MKuEs1dUASeh/EGkHmwc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=Zp9lfKlC; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="Zp9lfKlC"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=fihzXb6abj/sD++g6BjFlBPmhwbcL8TQpHn/E9tGni0=; b=Zp9lfKlCjiaXXLHM1ujjWn3pwI
+	He9UiguURV76uQV5yhJqWDAoMz8XSAJGJDHM3B4wXKPKOtQUUOdJTLPH4FHbop0uW5TBHZLz6ghUv
+	HihGoZoqOvgFJQgyXgi1gMEYXTZX3ep89sadsKtCa6eB29rxdQI/5gEk0Yjxl137VeOYGSa1WUxbs
+	8L5slw2tPZcXI8kH7J7ym+P4p1xkUl659BRD/PTuVD5isb93Fon4IhwrC3ma82UtFKA22Rq3CeUP1
+	oAVBu9a1F5Jkq18Mx5fEt7XNR4PJQqu4u/MZ7pnAK7jZyg9+F2BmXuoRczVDk2lRIyMRilsq/rUsp
+	hgjZLa7Q==;
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1t8j76-000000005Ou-2eOK
+	for netfilter-devel@vger.kernel.org;
+	Wed, 06 Nov 2024 17:42:36 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH 1/5] tests: shell: iptables/0010-wait_0 is unreliable
+Date: Wed,  6 Nov 2024 17:42:28 +0100
+Message-ID: <20241106164232.3384-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20241106143253.GA12653@breakpoint.cc>
-X-Spam-Score: -1.8 (-)
+Content-Transfer-Encoding: 8bit
 
-Hi Florian,
+Sometimes the test would fail, especially after removing
+/run/xtables.lock file. Looks like the supposedly blocking
+iptables-restore coproc sometimes takes a moment to set things up.
 
-On Wed, Nov 06, 2024 at 03:32:53PM +0100, Florian Westphal wrote:
-> Florian Westphal <fw@strlen.de> wrote:
-> > > From userdata path it should be possible to check for this special
-> > > internal queue_datatype then encode the queue number type in the TLV.
-> > 
-> > I have no idea how to do any of this.  I don't even know what a "queue number
-> > type" is.
-> > 
-> > How on earth do i flip the data type on postprocessing without any idea
-> > what "2 octets worth of data" is?
-> 
-> You seem to dislike EXPR_TYPE; I tried to sketch something but i would
-> turn EXPR_VALUE into EXPR_TYPE, including EXPR_TYPEOF_NFQUEUE_ID and
-> the udata build/parse functions, with the addition of a
-> 
->  /* Dummy alias of integer_type for nf_queue id numbers */
->  const struct datatype integer_queue_type = {
-> 
-> that has no actual function except to override what constant_expr_print()
-> ends up doing.
+Fixes: 63ab5b8906f69 ("iptables-legacy: Fix for mandatory lock waiting")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ iptables/tests/shell/testcases/iptables/0010-wait_0 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I am fine with your patch, it is perfectly fine to address this in
-this way. I just proposed a different way to handle this special case.
+diff --git a/iptables/tests/shell/testcases/iptables/0010-wait_0 b/iptables/tests/shell/testcases/iptables/0010-wait_0
+index 4481f966ce435..37a7a58fc5dca 100755
+--- a/iptables/tests/shell/testcases/iptables/0010-wait_0
++++ b/iptables/tests/shell/testcases/iptables/0010-wait_0
+@@ -11,7 +11,7 @@ esac
+ 
+ coproc RESTORE { $XT_MULTI iptables-restore; }
+ echo "*filter" >&${RESTORE[1]}
+-
++sleep 0.5
+ 
+ $XT_MULTI iptables -A FORWARD -j ACCEPT &
+ ipt_pid=$!
+-- 
+2.47.0
 
-I can take a look later today based on your patch, I think I can reuse
-90% of it, it is just a subtle detail what I am referring to.
