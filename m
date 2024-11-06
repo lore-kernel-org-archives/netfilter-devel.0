@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B70CD1E04AC;
-	Wed,  6 Nov 2024 23:46:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 012D91DE3DE;
+	Wed,  6 Nov 2024 23:46:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730936804; cv=none; b=S8S4sO1zt6pu1GKMIAiO0iranaPEZC7e+3HEr5wkAWZV06CxWq9X2IsTThqbXIL7nkvu93uUraFfmmHXBtuVtRNyUWwXqI2Y38GcgcsNhBQMA7KWy3sMok8ny/qJ5FAQvWKSOhZVTNCnGYpTGx+zCgo5BwuX7yVk58mahrfiOvU=
+	t=1730936804; cv=none; b=CuRZ9XBSpabixaQAjPC0Ld2HQnk/WI0Ph96XZXyEyRQd+FnVlEDKrNjSY5BcanU/X9bEiBUtaV7WbY4WqY4Y6HVlihzekNM6bzl9AEWvnxpIdrZmefdqs5QlyDRAz9CjchxJAit16cKDaPnDnQm4D96sIX0ffgZ3bJBHnUTpHg0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1730936804; c=relaxed/simple;
-	bh=AEaA0JJR/WksV/gnncrFfBOzBvc7oT8d74oY4m+0b44=;
+	bh=FCPtCk4CbWFDou0Q9B78YNMopnFHk8hDYJhakoxBbdE=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=EFwXxXLnR5qTqgSKTW+kEIuQZgyxyhoR5SHvN0xi2nA7n69LtJrSShY3KV57YaE+Zu8PtAkfF81+Jc+f0x7sZFgWwAaGTvYUtf02gpOG0BUTta3lwcxvp2F4kHNAw+700Iu0jTLr/cSbPwLSisrebp+TkTX3NcbOT0UMQcpJMxM=
+	 MIME-Version; b=BoLOh67WflhE47XXeZ0oFqa/rbWO/e6fb1hOQht/e3OaYPRpoF+8zFV0WdXlpp8bqIo6SWczas277/+uS9jRUGGP1EJwSZId4GU4kyif+Yg+PnohploHQFzix9YlhVrxWMlCbN1eZLZxvksvbSp27LJwRWiSVjyC5D+CArcD34c=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net-next 04/11] netfilter: nf_tables: prefer nft_trans_elem_alloc helper
-Date: Thu,  7 Nov 2024 00:46:18 +0100
-Message-Id: <20241106234625.168468-5-pablo@netfilter.org>
+Subject: [PATCH net-next 03/11] netfilter: nf_tables: replace deprecated strncpy with strscpy_pad
+Date: Thu,  7 Nov 2024 00:46:17 +0100
+Message-Id: <20241106234625.168468-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20241106234625.168468-1-pablo@netfilter.org>
 References: <20241106234625.168468-1-pablo@netfilter.org>
@@ -34,46 +34,49 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+From: Justin Stitt <justinstitt@google.com>
 
-Reduce references to sizeof(struct nft_trans_elem).
-Preparation patch to move this to a flexiable array to store
-elem references.
+strncpy() is deprecated for use on NUL-terminated destination strings [1] and
+as such we should prefer more robust and less ambiguous string interfaces.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+In this particular instance, the usage of strncpy() is fine and works as
+expected. However, towards the goal of [2], we should consider replacing
+it with an alternative as many instances of strncpy() are bug-prone. Its
+removal from the kernel promotes better long term health for the
+codebase.
+
+The current usage of strncpy() likely just wants the NUL-padding
+behavior offered by strncpy() and doesn't care about the
+NUL-termination. Since the compiler doesn't know the size of @dest, we
+can't use strtomem_pad(). Instead, use strscpy_pad() which behaves
+functionally the same as strncpy() in this context -- as we expect
+br_dev->name to be NUL-terminated itself.
+
+Link: https://www.kernel.org/doc/html/latest/process/deprecated.html#strncpy-on-nul-terminated-strings [1]
+Link: https://github.com/KSPP/linux/issues/90 [2]
+Link: https://manpages.debian.org/testing/linux-manual-4.8/strscpy.9.en.html
+Cc: Kees Cook <keescook@chromium.org>
+Cc: linux-hardening@vger.kernel.org
+Signed-off-by: Justin Stitt <justinstitt@google.com>
+Reviewed-by: Simon Horman <horms@kernel.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ net/bridge/netfilter/nft_meta_bridge.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 6552ec616745..30331688301e 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -6409,7 +6409,7 @@ static void nf_tables_setelem_notify(const struct nft_ctx *ctx,
- 	nfnetlink_set_err(net, portid, NFNLGRP_NFTABLES, -ENOBUFS);
- }
+diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
+index d12a221366d6..5adced1e7d0c 100644
+--- a/net/bridge/netfilter/nft_meta_bridge.c
++++ b/net/bridge/netfilter/nft_meta_bridge.c
+@@ -63,7 +63,7 @@ static void nft_meta_bridge_get_eval(const struct nft_expr *expr,
+ 		return nft_meta_get_eval(expr, regs, pkt);
+ 	}
  
--static struct nft_trans *nft_trans_elem_alloc(struct nft_ctx *ctx,
-+static struct nft_trans *nft_trans_elem_alloc(const struct nft_ctx *ctx,
- 					      int msg_type,
- 					      struct nft_set *set)
- {
-@@ -7471,13 +7471,11 @@ static int __nft_set_catchall_flush(const struct nft_ctx *ctx,
- {
- 	struct nft_trans *trans;
- 
--	trans = nft_trans_alloc_gfp(ctx, NFT_MSG_DELSETELEM,
--				    sizeof(struct nft_trans_elem), GFP_KERNEL);
-+	trans = nft_trans_elem_alloc(ctx, NFT_MSG_DELSETELEM, set);
- 	if (!trans)
- 		return -ENOMEM;
- 
- 	nft_setelem_data_deactivate(ctx->net, set, elem_priv);
--	nft_trans_elem_set(trans) = set;
- 	nft_trans_elem_priv(trans) = elem_priv;
- 	nft_trans_commit_list_add_tail(ctx->net, trans);
- 
+-	strncpy((char *)dest, br_dev ? br_dev->name : "", IFNAMSIZ);
++	strscpy_pad((char *)dest, br_dev ? br_dev->name : "", IFNAMSIZ);
+ 	return;
+ err:
+ 	regs->verdict.code = NFT_BREAK;
 -- 
 2.30.2
 
