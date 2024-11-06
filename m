@@ -1,154 +1,223 @@
-Received: from mail-yw1-f195.google.com (mail-yw1-f195.google.com [209.85.128.195])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A304A1DF97E;
-	Wed,  6 Nov 2024 11:58:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.195
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 123241FCC44
+	for <netfilter-devel@vger.kernel.org>; Wed,  6 Nov 2024 12:39:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730894293; cv=none; b=KWRsIILTv6x8A8mBsZOSJMWgAzZL/3DXF56nBa69aTdPW+EByvAahiJd9APN4vGzubPDVsrZ1/+dfr/ccMFEVHlFcKZYntg7YS2vCCrkJRWcVyIHv8m4s2pv0+hJDOfNGanOY+ibmg7s7s51Lluf3EUPKL66mFhaQvlzKlPd2Po=
+	t=1730896749; cv=none; b=R1IYC4Ahw+QXhN/XRwILWmMh9xLb8r3TaMIq+WRZt2VZnQpLs9K84eF7CxG8XGq/RVmtn3ZePidVZrIoSdIuC2WEfOvmeWheT2sXEbP5iCNgOe57NZPQiUu+0ote2ktFbw95OPV2tABL5ZziAcRAKXFptcgrzrRjlg7khl+XS5E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730894293; c=relaxed/simple;
-	bh=lPtdyFjSX7/UnqsyuM5h54naOd6rYeJQC1kkvUSDPdg=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=C+MktolMKXMqHgoJ+yU6S8/UMWHahDlaOqsbdZ8LCCoYr7wGpIbqmo28XVDLH6xkOXSXtBJ4PFwlqsEcHUwROKETRc3mQLdchG7SWdEqeb07UuMJs1+G5c1lbwlTsgBTsoEOWQSoi8ncKfU8T9Zb8N0Q7lKdPUDKPsQPwWIblwI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Wa0zQf9r; arc=none smtp.client-ip=209.85.128.195
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Wa0zQf9r"
-Received: by mail-yw1-f195.google.com with SMTP id 00721157ae682-6ea50585bf2so70141787b3.3;
-        Wed, 06 Nov 2024 03:58:11 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1730894290; x=1731499090; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=VAqjHxmUrO89VjVjpuY++87pz4fEOVeyoRet1eIwJ2o=;
-        b=Wa0zQf9rrLCvAwQ5d14mvBeuc8Vy5SADkiZxHg27F5vaNiOdl1netCiGu4FeTeoKGi
-         yyvzHo05tjX+hoMOTbjxz1RU+BJSYvCI+7hSJm/xT8UMwIxVWFFND4lTOlQ9e2K9/z5b
-         fykV4heCNgU1i0SjotFgIIXWbiaQPqfX4SIlVMWrNWHIRqmrQupH4ik7LmT6XZE87yiU
-         QFJ32x5IXSnJyBJqaA6RKy+hMlSCkfLU7lAoEmtip3FEPLK0H1mnTjauPsv6aLWBe4ex
-         HDvOy1G/BuuIVrd3o0qOSvXin7A1pja2oKlqq1SvRsgHDbmLkVvn3YY4yxCIToovufjW
-         umCg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1730894290; x=1731499090;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=VAqjHxmUrO89VjVjpuY++87pz4fEOVeyoRet1eIwJ2o=;
-        b=TgpVJjwmWQivACxuxnaMljFg56Q7qqsUlTCu+70OgNHDkLe0zfNDzVFmgNyzbtH3Ah
-         w6qHndltCL5UEPZDJCjroeHbJAk5tT16qQZ7mCedxrIwLD8BLW8VOwAeNHEjAu9pTPF4
-         XugITG1J/f1paRxoPLzp2EBLW1QejWkdB+inT5dJItQRK7TtVgZuMAmBnHNJL1tf2eDr
-         0KuD5jAnl0GLb+pyVdNCtfHgu3Yv8gkRXMJerqfoZq7mVFIIgNLs5RwJFjeSzgxG7Fvj
-         7uDKcu5GqI6wJDEQ/9dV65YHEItEZLQ/K043zOhpH6AHw9vXv8+dkvCPFv8/bcbf2n9k
-         JXuA==
-X-Forwarded-Encrypted: i=1; AJvYcCUo+WaWLfygJtZ3ylYAZ1fardzd0V5nDHAXdnJhDpOKebw95FS6ZjeIV5Gm1nnYUGu5TKouQ3uz8+M/l2gax9RZ@vger.kernel.org, AJvYcCV48u8f5Pn2BBpCFrNL2sQNVJW6NVj4fEOSRgqG/5DOZOrqMxBcBDOTnC41efnTAK0G6lA=@vger.kernel.org, AJvYcCVawiQ70dphkzfwwh6TOm+2tNSOHdZ2z23SgI0a5DoW+N/8eJW2xYTPnmNFvMpqbJXCtPwJkfxQQsq2XkRb@vger.kernel.org, AJvYcCVr/eWrNFUAaTdtnJQw4xMC0Kg0xB1twyKhU1aLKrKZoAd4W1w2+Z8Hin8GOfQBf7pK2KlGX2qL@vger.kernel.org
-X-Gm-Message-State: AOJu0YwOIqjJCYeAgxrQHeoQzsOEX7ihL8JPZe8cGEyp+kPYe1/Sjn0O
-	GKSabsMonFUHpivlkOETKzVyFaJkxZiWWFMXgtlLD1gOCDgk0CTgFZ5F8iYJAIewRYzpMj/de8w
-	Y1GrgQFvWp2kmQA6rjunxE2Yl3Zs=
-X-Google-Smtp-Source: AGHT+IEicBeNuuKcBuxj8PHbVAzeh5q36ut7RhJLw1zsm8LW4+5N2cnbcMPl7qD+TVVga0oNtp2Xo5uEhULkgazh6rI=
-X-Received: by 2002:a05:690c:6c88:b0:6e3:3dbc:ca60 with SMTP id
- 00721157ae682-6ea64a9f24bmr191545627b3.8.1730894290438; Wed, 06 Nov 2024
- 03:58:10 -0800 (PST)
+	s=arc-20240116; t=1730896749; c=relaxed/simple;
+	bh=is2QXXB8aB/l+UjKXDVPwNFrDxyA9O6Un2tVgQn+jF4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Ik7UbeYjfCyBEbhRzUOW/4L5GuWmW7KCs6rKXzQA6JcvAXdwj7npj9DL9nXqvmnVkY5nUTC6dYzrWc6YICYoa6WBU4II+/FkhAaROr9T17oL+bD7+U4IGptn0BkHy+Eb4ugvLvKGTv3qet7IDVgtjbBgF4lhL308jCmR36wE46A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1t8fJP-0002Uw-Ps; Wed, 06 Nov 2024 13:39:03 +0100
+Date: Wed, 6 Nov 2024 13:39:03 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>, Nadia Pinaeva <n.m.pinaeva@gmail.com>,
+	netfilter-devel@vger.kernel.org,
+	Antonio Ojea <antonio.ojea.garcia@gmail.com>
+Subject: Re: [PATCH nf-next v2] netfilter: conntrack: collect start time as
+ early as possible
+Message-ID: <20241106123903.GA6941@breakpoint.cc>
+References: <20241105162346.GA9442@breakpoint.cc>
+ <ZypHs3XO4J2QKGJ-@calendula>
+ <20241105163308.GA9779@breakpoint.cc>
+ <ZypLmxmAb_Hp2HBS@calendula>
+ <20241105173247.GA10152@breakpoint.cc>
+ <ZyqoReoNkhz_fo3p@calendula>
+ <20241106082644.GA474@breakpoint.cc>
+ <Zyspid81oTuwYtcQ@calendula>
+ <20241106083438.GA1738@breakpoint.cc>
+ <ZysyaqYhMEOzdWFm@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241030014145.1409628-1-dongml2@chinatelecom.cn>
- <20241030014145.1409628-10-dongml2@chinatelecom.cn> <8f83725e-1ea9-438f-8ab1-ff528ca761fb@redhat.com>
-In-Reply-To: <8f83725e-1ea9-438f-8ab1-ff528ca761fb@redhat.com>
-From: Menglong Dong <menglong8.dong@gmail.com>
-Date: Wed, 6 Nov 2024 19:59:18 +0800
-Message-ID: <CADxym3YK5QYHs8oFwY8FQdcpuQSSY5N=Pj8N40U+vaUdi4er-w@mail.gmail.com>
-Subject: Re: [PATCH RESEND net-next v4 9/9] net: ip: make ip_route_use_hint()
- return drop reasons
-To: Paolo Abeni <pabeni@redhat.com>
-Cc: davem@davemloft.net, edumazet@google.com, kuba@kernel.org, 
-	horms@kernel.org, dsahern@kernel.org, pablo@netfilter.org, 
-	kadlec@netfilter.org, roopa@nvidia.com, razor@blackwall.org, 
-	gnault@redhat.com, bigeasy@linutronix.de, hawk@kernel.org, idosch@nvidia.com, 
-	dongml2@chinatelecom.cn, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	bridge@lists.linux.dev, bpf@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZysyaqYhMEOzdWFm@calendula>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-On Tue, Nov 5, 2024 at 7:28=E2=80=AFPM Paolo Abeni <pabeni@redhat.com> wrot=
-e:
->
-> On 10/30/24 02:41, Menglong Dong wrote:
-> > diff --git a/net/ipv4/route.c b/net/ipv4/route.c
-> > index e248e5577d0e..7f969c865c81 100644
-> > --- a/net/ipv4/route.c
-> > +++ b/net/ipv4/route.c
-> > @@ -2142,28 +2142,34 @@ ip_mkroute_input(struct sk_buff *skb, struct fi=
-b_result *res,
-> >   * assuming daddr is valid and the destination is not a local broadcas=
-t one.
-> >   * Uses the provided hint instead of performing a route lookup.
-> >   */
-> > -int ip_route_use_hint(struct sk_buff *skb, __be32 daddr, __be32 saddr,
-> > -                   dscp_t dscp, struct net_device *dev,
-> > -                   const struct sk_buff *hint)
-> > +enum skb_drop_reason
-> > +ip_route_use_hint(struct sk_buff *skb, __be32 daddr, __be32 saddr,
-> > +               dscp_t dscp, struct net_device *dev,
-> > +               const struct sk_buff *hint)
-> >  {
-> > +     enum skb_drop_reason reason =3D SKB_DROP_REASON_NOT_SPECIFIED;
-> >       struct in_device *in_dev =3D __in_dev_get_rcu(dev);
-> >       struct rtable *rt =3D skb_rtable(hint);
-> >       struct net *net =3D dev_net(dev);
-> > -     enum skb_drop_reason reason;
-> > -     int err =3D -EINVAL;
-> >       u32 tag =3D 0;
-> >
-> >       if (!in_dev)
-> > -             return -EINVAL;
-> > +             return reason;
-> >
-> > -     if (ipv4_is_multicast(saddr) || ipv4_is_lbcast(saddr))
-> > +     if (ipv4_is_multicast(saddr) || ipv4_is_lbcast(saddr)) {
-> > +             reason =3D SKB_DROP_REASON_IP_INVALID_SOURCE;
-> >               goto martian_source;
-> > +     }
-> >
-> > -     if (ipv4_is_zeronet(saddr))
-> > +     if (ipv4_is_zeronet(saddr)) {
-> > +             reason =3D SKB_DROP_REASON_IP_INVALID_SOURCE;
-> >               goto martian_source;
-> > +     }
-> >
-> > -     if (ipv4_is_loopback(saddr) && !IN_DEV_NET_ROUTE_LOCALNET(in_dev,=
- net))
-> > +     if (ipv4_is_loopback(saddr) && !IN_DEV_NET_ROUTE_LOCALNET(in_dev,=
- net)) {
-> > +             reason =3D IP_LOCALNET;
-> >               goto martian_source;
-> > +     }
-> >
-> >       if (rt->rt_type !=3D RTN_LOCAL)
-> >               goto skip_validate_source;
->
-> Please explicitly replace also the
->
->         return 0;
->
-> with
->
->         return SKB_NOT_DROPPED_YET;
->
-> So that is clear the drop reason is always specified.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Wed, Nov 06, 2024 at 09:34:38AM +0100, Florian Westphal wrote:
+> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > > Can you clarify?  Do you mean skb_tstamp() vs ktime_get_real_ns()
+> > > > or tstamp sampling in general?
+> > > 
+> > > I am referring to ktime_get_real_ns(), I remember to have measured
+> > > 25%-30% performance drop when this is used, but I have not refreshed
+> > > those numbers for long time.
+> > >
+> > > As for skb_tstamp(), I have to dig in the cost of it.
+> > 
+> > Its not about the cost, its about the sampling method.
+> > If skb has the rx timestamp, then the event will reflect the skb
+> > creation/rx time, not the "event time".  Did that make sense?
+> 
+> I think ktime_get_real_ns() needs to be used to get the "event time",
+> I am afraid skb_tstamp() is not useful.
 
-Okay!
+What do you make of this?  Still untested.
 
-Thanks!
-Menglong Dong
+It reuses the "timestamp" sysctl, so event only gets timestamped
+if thats also enabled.
 
+If timestamp is on and ecache is off, there is no overhead since
+no eache extension is added to begin with.
 
-> Thanks,
->
-> Paolo
->
+diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
+index 0c1dac318e02..8e7580e93a74 100644
+--- a/include/net/netfilter/nf_conntrack_ecache.h
++++ b/include/net/netfilter/nf_conntrack_ecache.h
+@@ -20,6 +20,9 @@ enum nf_ct_ecache_state {
+ 
+ struct nf_conntrack_ecache {
+ 	unsigned long cache;		/* bitops want long */
++#ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
++	u64 timestamp;			/* event timestamp, in nanoseconds */
++#endif
+ 	u16 ctmask;			/* bitmask of ct events to be delivered */
+ 	u16 expmask;			/* bitmask of expect events to be delivered */
+ 	u32 missed;			/* missed events */
+@@ -108,6 +111,14 @@ nf_conntrack_event_cache(enum ip_conntrack_events event, struct nf_conn *ct)
+ 	if (e == NULL)
+ 		return;
+ 
++#ifdef NF_CONNTRACK_TIMESTAMP
++	/* renew only if this is the first cached event, so that the
++	 * timestamp reflects the first, not the last, generated event.
++	 */
++	if (e->timestamp && READ_ONCE(e->cache) == 0)
++		e->timestamp = ktime_get_real_ns();
++#endif
++
+ 	set_bit(event, &e->cache);
+ #endif
+ }
+diff --git a/include/uapi/linux/netfilter/nfnetlink_conntrack.h b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
+index c2ac7269acf7..43233af75b9d 100644
+--- a/include/uapi/linux/netfilter/nfnetlink_conntrack.h
++++ b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
+@@ -57,6 +57,7 @@ enum ctattr_type {
+ 	CTA_SYNPROXY,
+ 	CTA_FILTER,
+ 	CTA_STATUS_MASK,
++	CTA_TIMESTAMP_EVENT,
+ 	__CTA_MAX
+ };
+ #define CTA_MAX (__CTA_MAX - 1)
+diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
+index 69948e1d6974..007510d6ed75 100644
+--- a/net/netfilter/nf_conntrack_ecache.c
++++ b/net/netfilter/nf_conntrack_ecache.c
+@@ -162,6 +162,14 @@ static int __nf_conntrack_eventmask_report(struct nf_conntrack_ecache *e,
+ 	return ret;
+ }
+ 
++static void nf_ct_ecache_tstamp_refresh(struct nf_conntrack_ecache *e)
++{
++#ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
++	if (e->timestamp)
++		e->timestamp = ktime_get_real_ns();
++#endif
++}
++
+ int nf_conntrack_eventmask_report(unsigned int events, struct nf_conn *ct,
+ 				  u32 portid, int report)
+ {
+@@ -186,6 +194,8 @@ int nf_conntrack_eventmask_report(unsigned int events, struct nf_conn *ct,
+ 	/* This is a resent of a destroy event? If so, skip missed */
+ 	missed = e->portid ? 0 : e->missed;
+ 
++	nf_ct_ecache_tstamp_refresh(e);
++
+ 	ret = __nf_conntrack_eventmask_report(e, events, missed, &item);
+ 	if (unlikely(ret < 0 && (events & (1 << IPCT_DESTROY)))) {
+ 		/* This is a destroy event that has been triggered by a process,
+@@ -297,6 +307,16 @@ void nf_conntrack_ecache_work(struct net *net, enum nf_ct_ecache_state state)
+ 	}
+ }
+ 
++static void nf_ct_ecache_tstamp_new(const struct nf_conn *ct, struct nf_conntrack_ecache *e)
++{
++#ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
++	if (nf_ct_ext_exist(ct, NF_CT_EXT_TSTAMP))
++		e->timestamp = ktime_get_real_ns();
++	else
++		e->timestamp = 0;
++#endif
++}
++
+ bool nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp)
+ {
+ 	struct net *net = nf_ct_net(ct);
+@@ -326,6 +346,7 @@ bool nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp
+ 
+ 	e = nf_ct_ext_add(ct, NF_CT_EXT_ECACHE, gfp);
+ 	if (e) {
++		nf_ct_ecache_tstamp_new(ct, e);
+ 		e->ctmask  = ctmask;
+ 		e->expmask = expmask;
+ 	}
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 272eec61c931..2baeaaba0769 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -382,6 +382,19 @@ static int ctnetlink_dump_secctx(struct sk_buff *skb, const struct nf_conn *ct)
+ #define ctnetlink_dump_secctx(a, b) (0)
+ #endif
+ 
++static int
++ctnetlink_dump_event_timestamp(struct sk_buff *skb, const struct nf_conn *ct)
++{
++#ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
++	const struct nf_conntrack_ecache *e = nf_ct_ecache_find(ct);
++
++	if (e && e->timestamp)
++		return nla_put_be64(skb, CTA_TIMESTAMP_EVENT, e->timestamp,
++				   CTA_TIMESTAMP_PAD);
++#endif
++	return 0;
++}
++
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
+ static inline int ctnetlink_label_size(const struct nf_conn *ct)
+ {
+@@ -717,6 +730,9 @@ static size_t ctnetlink_nlmsg_size(const struct nf_conn *ct)
+ #endif
+ 	       + ctnetlink_proto_size(ct)
+ 	       + ctnetlink_label_size(ct)
++#ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
++	       + nla_total_size(sizeof(u64)) /* CTA_TIMESTAMP_EVENT */
++#endif
+ 	       ;
+ }
+ 
+@@ -838,6 +854,10 @@ ctnetlink_conntrack_event(unsigned int events, const struct nf_ct_event *item)
+ 	if (ctnetlink_dump_mark(skb, ct, events & (1 << IPCT_MARK)))
+ 		goto nla_put_failure;
+ #endif
++
++	if (ctnetlink_dump_event_timestamp(skb, ct))
++		goto nla_put_failure;
++
+ 	nlmsg_end(skb, nlh);
+ 	err = nfnetlink_send(skb, net, item->portid, group, item->report,
+ 			     GFP_ATOMIC);
+@@ -1557,6 +1577,7 @@ static const struct nla_policy ct_nla_policy[CTA_MAX+1] = {
+ 				    .len = NF_CT_LABELS_MAX_SIZE },
+ 	[CTA_FILTER]		= { .type = NLA_NESTED },
+ 	[CTA_STATUS_MASK]	= { .type = NLA_U32 },
++	[CTA_TIMESTAMP_EVENT]	= { .type = NLA_REJECT },
+ };
+ 
+ static int ctnetlink_flush_iterate(struct nf_conn *ct, void *data)
