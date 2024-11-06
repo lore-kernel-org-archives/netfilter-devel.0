@@ -1,58 +1,79 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42C13216458
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Nov 2024 23:21:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D0BD18BBB9;
+	Wed,  6 Nov 2024 01:40:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730848889; cv=none; b=H1ZuvjLSZQhfM72LD2i7XtIGo+nCSXmA75vxZ9Aypd21U437kXMNX1IoOjqUvozkJCL7suKYk3otbshWN3QoRXSwV4qhkzvbsVaGunqjVnqyk6hVX8ogt8fn9bn9RgGWrv4q6g0HxL8RxbkCc1j59kZA0uL080ELV4ETQnHh2QU=
+	t=1730857229; cv=none; b=tEDqJNb8yPoz81ZVR90ERSMvFiWez7KkIGoowSQBBQEiT/IGaNUk79KxTTiZZO2du959rsiMGDb8esz57Tzi5BzK8golnpspt8aTk0D5qaypwbA43I3vgU7CohWVdzg9VZUYzhNwl+JPsjO/dJZB8sBrUzikVOy7S0grG6eJkZI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730848889; c=relaxed/simple;
-	bh=Kpbtk66mUUXcvQdJs7QxwafOOE4b6VWfRbVB/jQWyg4=;
-	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=I1e/GymDHLEQsVJqJtt5LXC0H0bTQFx/nI1r2LQOlYkTp3z4rM4VC+GyZ85QPIcJNyoa5I7ylBinnHgjIPCb8+/qrxz6PPVI29FNUdn/lUIsiwknpBXFaRxPOXSggd7rntXWyvAD6GBhkZoMWioQrtaGdEIKZJ9nWm6tFFIpUd0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=53320 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1t8SrR-006pzL-OF; Wed, 06 Nov 2024 00:21:23 +0100
-Date: Wed, 6 Nov 2024 00:21:21 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [conntrack-tools PATCH] src: Eliminate warnings with
- -Wcalloc-transposed-args
-Message-ID: <ZyqocRah5QRXwr19@calendula>
-References: <20241105215450.6122-1-phil@nwl.cc>
- <Zyqlyj0FKU7XeUD5@calendula>
- <ZyqnjF-rGIfSCrte@orbyte.nwl.cc>
+	s=arc-20240116; t=1730857229; c=relaxed/simple;
+	bh=esOnjkeufN8HAPgjP5fkn+3SUM3+jIm1xlaaK6Sx+ns=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=HQQnbisAEdI5HabTORVHsHCGktWfU2MPI3+5TVUHgmCtAsxkzdSEl+i6Wbg9ANduZ9+2lGhQt1twUiqZmSdzyhdYriAiAc98zZK77KcCuoTDGh2KvwxiM0n75BFDRA3QLKzi5QVTAMiCIKVcrTWVa6VZ4qExLZtzihcjqTJ/whE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aITdy0qr; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aITdy0qr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCA1AC4CECF;
+	Wed,  6 Nov 2024 01:40:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1730857228;
+	bh=esOnjkeufN8HAPgjP5fkn+3SUM3+jIm1xlaaK6Sx+ns=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=aITdy0qr3NafHRwWdPWIzf1OVlqZgNQX8jtQltYDCTl6063O6Mffjrv6TG73w0Hk9
+	 u2F1Z/D8WvTv8kjIJqBvapfhdIhry1a6+7OeRTs8Y7ZKtYFPejgCTktnsRrVH0vN+7
+	 pagV/8e6F9gBRUytiVNh+On2qtDkTgvYa9eht/xwpqS5leukK/nnnfBY6huh7lOCwX
+	 quNd4oBy0BhtHaprF8jyo3MwuD2QnewVkTB1lWNGBQ+S2dOhyQb2/JCLRYb1e3agvU
+	 S5Gjfnkk/6y0sp0GzKrJkudVRp0o6kZbjcVNbpZdFKlVNZm34mB8xWAcapI6TRKQ63
+	 3ia/jU+8SHswg==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id EB0D93809A80;
+	Wed,  6 Nov 2024 01:40:38 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <ZyqnjF-rGIfSCrte@orbyte.nwl.cc>
-X-Spam-Score: -1.9 (-)
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next] selftests: net: include lib/sh/*.sh with lib.sh
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <173085723778.759302.10510309486670038114.git-patchwork-notify@kernel.org>
+Date: Wed, 06 Nov 2024 01:40:37 +0000
+References: <20241104-net-next-selftests-lib-sh-deps-v1-1-7c9f7d939fc2@kernel.org>
+In-Reply-To: <20241104-net-next-selftests-lib-sh-deps-v1-1-7c9f7d939fc2@kernel.org>
+To: Matthieu Baerts <matttbe@kernel.org>
+Cc: mptcp@lists.linux.dev, davem@davemloft.net, edumazet@google.com,
+ kuba@kernel.org, pabeni@redhat.com, horms@kernel.org, shuah@kernel.org,
+ martineau@kernel.org, geliang@kernel.org, pablo@netfilter.org,
+ kadlec@netfilter.org, petrm@nvidia.com, netdev@vger.kernel.org,
+ linux-kselftest@vger.kernel.org, linux-kernel@vger.kernel.org,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org
 
-On Wed, Nov 06, 2024 at 12:17:32AM +0100, Phil Sutter wrote:
-> On Wed, Nov 06, 2024 at 12:10:02AM +0100, Pablo Neira Ayuso wrote:
-> > On Tue, Nov 05, 2024 at 10:54:50PM +0100, Phil Sutter wrote:
-> > > calloc() expects the number of elements in the first parameter, not the
-> > > second. Swap them and while at it drop one pointless cast (the function
-> > > returns a void pointer anyway).
-> > 
-> > BTW, will you add
-> > 
-> > -Wcalloc-transposed-args
-> > 
-> > to Makefile.am?
+Hello:
+
+This patch was applied to netdev/net-next.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
+
+On Mon, 04 Nov 2024 12:34:26 +0100 you wrote:
+> Recently, the net/lib.sh file has been modified to include defer.sh from
+> net/lib/sh/ directory. The Makefile from net/lib has been modified
+> accordingly, but not the ones from the sub-targets using net/lib.sh.
 > 
-> The gcc-14.2.1_p20240921 here seems to have this enabled by default. I
-> did not pass any special configure or make options.
+> Because of that, the new file is not installed as expected when
+> installing the Forwarding, MPTCP, and Netfilter targets, e.g.
+> 
+> [...]
 
-I was expecting something like this, thanks for confirming.
+Here is the summary with links:
+  - [net-next] selftests: net: include lib/sh/*.sh with lib.sh
+    https://git.kernel.org/netdev/net-next/c/f72aa1b27628
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
