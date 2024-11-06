@@ -1,134 +1,314 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD6EC20C47E
-	for <netfilter-devel@vger.kernel.org>; Wed,  6 Nov 2024 21:37:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F2B3208981
+	for <netfilter-devel@vger.kernel.org>; Wed,  6 Nov 2024 23:11:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730929063; cv=none; b=dH2B3/IiEf2KrENDFg3nraQ1p+1PZqtBrSv8MVJgM+b9vB7mLnXC1B1lbvhHeksTrdnBNv09v0A/nv/h1wPqZGKyT6Or5uDOBj4ydTwVtKRuZWt/9zBJ7WKobAc6s0yWcECPGyiLmiOaQQ/XILlhumJwB9dXxTBlmQTEneuC1yk=
+	t=1730934719; cv=none; b=PYsrRQNriJF4wv1xcv5ILC2s0zO/yf9txXhqmrog1wDtzJgZC+ppOKOebfsyNMHAhYgJsr176o6g5Zn1TkOzvQNkxOm8uUWjFhNiONziHt+Mp/9XkKkLNV9LNZXqdx6/wM2JvF7HYVxCUzrPeHkbugWWTclgpOp7k2d8XpgxgF8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730929063; c=relaxed/simple;
-	bh=ns67C/BQnqLU+rMKxn2lZJhID9Ubh/mo990c7FfSSd8=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=KXJw4FLwQHQ4xu5/g9dQ1t+17Xt1iUCRup8P6fbjmOisgJiKjuGfvzT/NnGlrtb/VmPOR+orjHYjAMDEoekLw915ZBw+yeL0y27m8hP7O06sHnOwUjjE9HtuPk2zuwz4G2DUgLT8JkG0F7MC8FHGdqEaJZgOXLxN+92Sgd/sXXg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=CCwYEMYr; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="CCwYEMYr"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1730929060;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type;
-	bh=YV3axQsGEJ50qpHJdWfIL4Kylk3egm3V/oNR8O82ej0=;
-	b=CCwYEMYrXYl64P1tLV0yCUWk4DBrSqdjX76ZByMvzYK77818BKrwdkIQl7FVUVumbqfQRY
-	DfrTQJeDwTs1P7mnQDFw1O7OtNJNl2a8AxuQDxXNP4vSykprclYd6jdFvEDvBMz7MaE8CN
-	eu68+4qtNy4uh+xkCSY/0Mlz8zo6708=
-Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
- [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-312-Z3JRMh9-OdSCvXHvrZxP0Q-1; Wed, 06 Nov 2024 16:37:39 -0500
-X-MC-Unique: Z3JRMh9-OdSCvXHvrZxP0Q-1
-X-Mimecast-MFC-AGG-ID: Z3JRMh9-OdSCvXHvrZxP0Q
-Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-4314a22ed8bso1877165e9.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 06 Nov 2024 13:37:37 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1730929056; x=1731533856;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=YV3axQsGEJ50qpHJdWfIL4Kylk3egm3V/oNR8O82ej0=;
-        b=tWS1TBJPuJ8tW8rTc2LZoPK6tXsA0sMn4qbjUSP+54aRXH8G28cPPDOqMM76d5kIgY
-         xvDWBfHlkfZ0PKzwNrSq6Gsj+44GiCleoU9It2U6iOY1UZfE9u0OetVqbsKDxRK0bqX1
-         T2kZSkHu5y9lzBi/D87ix2++UXf8jseLUJe9K99cTbxthv2GNK43g995Et3bSJ2+JXGr
-         cQ5P/qSQrF8QYNaU7nwv+/Dxqssa4l9HrFz0o+iazoqoOnSHTiKzx1TgXQpImKlse1mS
-         lyhkDf5lm/3aP1dd9mjn3y1xh404oXhXzypPb6H5cV6MGJvX/tyRVnQxWR/X54UvMDdn
-         mvUQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUD1Fcx8BiKpnk1wOgtP7AH8CmJneXmICUS2NJ6QNSqcUFi0+GweG2cpn49lS3pOA1+edFLBdYqKEQknIK0U2M=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyYV04Wl02ED5RHS+HofjOgKFwWdmYElLLRr6zwXFSioK2wdFX+
-	Mk4YAnUuPSgQ2gkpqi6Z6Euw70yEAdweRHHc/sc9RtmT7FbuF8dzrjOzqIDetVT4Nn35LUoCAEc
-	1sD/8AEdd+c6VjXBDF9PVCY2ytVxddeHM+w7gBAISZtz6o0ix+As6l9jY/896g4oOEg==
-X-Received: by 2002:a5d:64ae:0:b0:37c:d11f:c591 with SMTP id ffacd0b85a97d-381be776602mr20876074f8f.17.1730929056506;
-        Wed, 06 Nov 2024 13:37:36 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IEbkpQFHUZRdXmo+dnhte4YYrdw5L2sWqP9Fq7zpQvehKn9Ej9pPuiDg3MYJtL7c++nP6QDCg==
-X-Received: by 2002:a5d:64ae:0:b0:37c:d11f:c591 with SMTP id ffacd0b85a97d-381be776602mr20876057f8f.17.1730929056046;
-        Wed, 06 Nov 2024 13:37:36 -0800 (PST)
-Received: from debian (2a01cb058d23d60051d26877cf512a7d.ipv6.abo.wanadoo.fr. [2a01:cb05:8d23:d600:51d2:6877:cf51:2a7d])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-381c10e747csm20226026f8f.64.2024.11.06.13.37.34
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 06 Nov 2024 13:37:35 -0800 (PST)
-Date: Wed, 6 Nov 2024 22:37:32 +0100
-From: Guillaume Nault <gnault@redhat.com>
-To: David Miller <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>, Eric Dumazet <edumazet@google.com>
-Cc: netdev@vger.kernel.org, Simon Horman <horms@kernel.org>,
-	David Ahern <dsahern@kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Roopa Prabhu <roopa@nvidia.com>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	bridge@lists.linux.dev, Ido Schimmel <idosch@nvidia.com>
-Subject: [PATCH net-next] ipv4: Prepare ip_route_output() to future
- .flowi4_tos conversion.
-Message-ID: <0f10d031dd44c70aae9bc6e19391cb30d5c2fe71.1730928699.git.gnault@redhat.com>
+	s=arc-20240116; t=1730934719; c=relaxed/simple;
+	bh=HlXoYwUQ7+8MYthkh2KQV4lOyFdK3UNWmsIrn8ICmqs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=JbHLu3dgV/gDtJscktmUZsDq3k7MzfSnO4Xdv0059RRbyy4XaakTQYZen8uR4yHxJeFGhWqE2SjxPgOO8tvyTT0epX/jSij2zWZHaHnRGlu5AzhZe3GBIzSELv/w+lqkodSvLki86KageCwtJ+qhSy6jFJMsc7rYQWCUUTwYXqQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
+Received: from [78.30.37.63] (port=60094 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1t8pBm-00Bhwl-4F; Thu, 07 Nov 2024 00:11:52 +0100
+Date: Thu, 7 Nov 2024 00:11:48 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] src: allow to map key to nfqueue number
+Message-ID: <Zyv3tBgF9jW5D0v-@calendula>
+References: <20241025074729.12412-1-fw@strlen.de>
+ <Zytu_YJeGyF-RaxI@calendula>
+ <20241106135244.GA11098@breakpoint.cc>
+ <20241106143253.GA12653@breakpoint.cc>
+ <ZyuTa9lmkXRAvSfn@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="gu4Y/oIARLFVpfrF"
+Content-Disposition: inline
+In-Reply-To: <ZyuTa9lmkXRAvSfn@calendula>
+X-Spam-Score: -1.8 (-)
+
+
+--gu4Y/oIARLFVpfrF
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 
-Convert the "tos" parameter of ip_route_output() to dscp_t. This way
-we'll have a dscp_t value directly available when .flowi4_tos will
-eventually be converted to dscp_t.
+On Wed, Nov 06, 2024 at 05:03:55PM +0100, Pablo Neira Ayuso wrote:
+> I can take a look later today based on your patch, I think I can reuse
+> 90% of it, it is just a subtle detail what I am referring to.
 
-All ip_route_output() callers but one set this "tos" parameter to 0 and
-therefore don't need to be adapted to the new prototype.
+See attachment, not better than your proposal, just a different focus.
 
-Only br_nf_pre_routing_finish() needs conversion. It can just use
-ip4h_dscp() to get the DSCP field from the IPv4 header.
+--gu4Y/oIARLFVpfrF
+Content-Type: text/x-diff; charset=utf-8
+Content-Disposition: attachment;
+	filename="0001-src-allow-to-map-key-to-nfqueue-number.patch"
 
-Signed-off-by: Guillaume Nault <gnault@redhat.com>
+From 26a7503fd5dadf0425515f5647add64a2a9eb404 Mon Sep 17 00:00:00 2001
+From: Florian Westphal <fw@strlen.de>
+Date: Fri, 25 Oct 2024 09:47:25 +0200
+Subject: [PATCH] src: allow to map key to nfqueue number
+
+Allow to specify a numeric queue id as part of a map.
+The parser side is easy, but the reverse direction (listing) is not.
+
+'queue' is a statement, it doesn't have an expression.
+
+Add a generic 'queue_type' datatype as a TYPE_TYPEOF shim to the real
+basetype with constant expressions, this is used only for udata
+build/parse, it stores the "key" (the parser token, here "queue") as
+udata in kernel and can then restore the original key.
+
+Add a dumpfile to validate parser & output.
+
+JSON support is missing because JSON allow typeof only since quite
+recently.
+
+Joint work with Pablo.
+
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1455
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/route.h             | 6 +++---
- net/bridge/br_netfilter_hooks.c | 2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ include/datatype.h                            |  3 +
+ src/datatype.c                                | 17 ++++
+ src/expression.c                              | 80 +++++++++++++++++++
+ src/json.                                     |  0
+ src/netlink.c                                 |  6 +-
+ src/parser_bison.y                            |  4 +
+ tests/shell/testcases/nft-f/dumps/nfqueue.nft | 11 +++
+ tests/shell/testcases/nft-f/nfqueue           |  6 ++
+ 8 files changed, 126 insertions(+), 1 deletion(-)
+ create mode 100644 src/json.
+ create mode 100644 tests/shell/testcases/nft-f/dumps/nfqueue.nft
+ create mode 100755 tests/shell/testcases/nft-f/nfqueue
 
-diff --git a/include/net/route.h b/include/net/route.h
-index 586e59f7ed8a..0a690adfdff5 100644
---- a/include/net/route.h
-+++ b/include/net/route.h
-@@ -156,12 +156,12 @@ static inline struct rtable *ip_route_output_key(struct net *net, struct flowi4
-  * structure is only partially set, it may bypass some fib-rules.
-  */
- static inline struct rtable *ip_route_output(struct net *net, __be32 daddr,
--					     __be32 saddr, u8 tos, int oif,
--					     __u8 scope)
-+					     __be32 saddr, dscp_t dscp,
-+					     int oif, __u8 scope)
- {
- 	struct flowi4 fl4 = {
- 		.flowi4_oif = oif,
--		.flowi4_tos = tos,
-+		.flowi4_tos = inet_dscp_to_dsfield(dscp),
- 		.flowi4_scope = scope,
- 		.daddr = daddr,
- 		.saddr = saddr,
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 17a5f5923d61..7f2f40cef5fe 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -406,7 +406,7 @@ static int br_nf_pre_routing_finish(struct net *net, struct sock *sk, struct sk_
- 				goto free_skb;
+diff --git a/include/datatype.h b/include/datatype.h
+index 75d6d6b8c628..61c6bf595e9e 100644
+--- a/include/datatype.h
++++ b/include/datatype.h
+@@ -102,6 +102,8 @@ enum datatypes {
+ };
+ #define TYPE_MAX		(__TYPE_MAX - 1)
  
- 			rt = ip_route_output(net, iph->daddr, 0,
--					     iph->tos & INET_DSCP_MASK, 0,
-+					     ip4h_dscp(iph), 0,
- 					     RT_SCOPE_UNIVERSE);
- 			if (!IS_ERR(rt)) {
- 				/* - Bridged-and-DNAT'ed traffic doesn't
++#define TYPE_TYPEOF		__TYPE_MAX
++
+ #define TYPE_BITS		6
+ #define TYPE_MASK		((1 << TYPE_BITS) - 1)
+ 
+@@ -271,6 +273,7 @@ extern const struct datatype boolean_type;
+ extern const struct datatype priority_type;
+ extern const struct datatype policy_type;
+ extern const struct datatype cgroupv2_type;
++extern const struct datatype queue_type;
+ 
+ /* private datatypes for reject statement. */
+ extern const struct datatype reject_icmp_code_type;
+diff --git a/src/datatype.c b/src/datatype.c
+index ea73eaf9a691..c9c5a198bd3b 100644
+--- a/src/datatype.c
++++ b/src/datatype.c
+@@ -505,6 +505,23 @@ const struct datatype xinteger_type = {
+ 	.parse		= integer_type_parse,
+ };
+ 
++static void queue_type_print(const struct expr *expr, struct output_ctx *octx)
++{
++	nft_gmp_print(octx, "queue");
++}
++
++/* Dummy queue_type for set declaration with typeof, see
++ * constant_expr_build_udata and constant_expr_parse_udata,
++ * basetype is used for elements.
++*/
++const struct datatype queue_type = {
++	.type		= TYPE_TYPEOF,
++	.name		= "queue",
++	.desc		= "queue",
++	.basetype	= &integer_type,
++	.print		= queue_type_print,
++};
++
+ static void string_type_print(const struct expr *expr, struct output_ctx *octx)
+ {
+ 	unsigned int len = div_round_up(expr->len, BITS_PER_BYTE);
+diff --git a/src/expression.c b/src/expression.c
+index c0cb7f22eb73..62786f483eed 100644
+--- a/src/expression.c
++++ b/src/expression.c
+@@ -371,6 +371,84 @@ struct expr *variable_expr_alloc(const struct location *loc,
+ 	return expr;
+ }
+ 
++#define NFTNL_UDATA_CONSTANT_TYPE 0
++#define NFTNL_UDATA_CONSTANT_MAX NFTNL_UDATA_CONSTANT_TYPE
++
++#define CONSTANT_EXPR_NFQUEUE_ID 0
++
++static int constant_expr_build_udata(struct nftnl_udata_buf *udbuf,
++				     const struct expr *expr)
++{
++	uint32_t type;
++
++	if (expr->dtype == &queue_type)
++		type = CONSTANT_EXPR_NFQUEUE_ID;
++	else
++		return -1;
++
++	if (!nftnl_udata_put_u32(udbuf, NFTNL_UDATA_CONSTANT_TYPE, type))
++		return -1;
++
++	return 0;
++}
++
++static int constant_parse_udata(const struct nftnl_udata *attr, void *data)
++{
++	const struct nftnl_udata **ud = data;
++	uint8_t type = nftnl_udata_type(attr);
++	uint8_t len = nftnl_udata_len(attr);
++	uint32_t value;
++
++	switch (type) {
++	case NFTNL_UDATA_CONSTANT_TYPE:
++		if (len != sizeof(uint32_t))
++			return -1;
++
++		value = nftnl_udata_get_u32(attr);
++		switch (value) {
++		case CONSTANT_EXPR_NFQUEUE_ID:
++			break;
++		default:
++			return -1;
++		}
++		break;
++	default:
++		return 0;
++	}
++
++	ud[type] = attr;
++
++	return 0;
++}
++
++static struct expr *constant_expr_parse_udata(const struct nftnl_udata *attr)
++{
++	const struct nftnl_udata *ud[NFTNL_UDATA_CONSTANT_MAX + 1] = {};
++	const struct datatype *dtype = NULL;
++	uint32_t type;
++	int err;
++
++	err = nftnl_udata_parse(nftnl_udata_get(attr), nftnl_udata_len(attr),
++				constant_parse_udata, ud);
++	if (err < 0)
++		return NULL;
++
++	if (!ud[NFTNL_UDATA_CONSTANT_TYPE])
++		return NULL;
++
++	type = nftnl_udata_get_u32(ud[NFTNL_UDATA_CONSTANT_TYPE]);
++	switch (type) {
++	case CONSTANT_EXPR_NFQUEUE_ID:
++		dtype = &queue_type;
++		break;
++	default:
++		break;
++	}
++
++	return constant_expr_alloc(&internal_location, dtype, BYTEORDER_HOST_ENDIAN,
++				   16, NULL);
++}
++
+ static void constant_expr_print(const struct expr *expr,
+ 				 struct output_ctx *octx)
+ {
+@@ -401,6 +479,8 @@ static const struct expr_ops constant_expr_ops = {
+ 	.cmp		= constant_expr_cmp,
+ 	.clone		= constant_expr_clone,
+ 	.destroy	= constant_expr_destroy,
++	.build_udata	= constant_expr_build_udata,
++	.parse_udata	= constant_expr_parse_udata,
+ };
+ 
+ struct expr *constant_expr_alloc(const struct location *loc,
+diff --git a/src/json. b/src/json.
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/src/netlink.c b/src/netlink.c
+index 25ee3419772b..68e7da68ed68 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -1466,7 +1466,11 @@ key_end:
+ 		data = netlink_alloc_data(&netlink_location, &nld,
+ 					  set->data->dtype->type == TYPE_VERDICT ?
+ 					  NFT_REG_VERDICT : NFT_REG_1);
+-		datatype_set(data, set->data->dtype);
++
++		if (set->data->dtype->type == TYPE_TYPEOF)
++			datatype_set(data, set->data->dtype->basetype);
++		else
++			datatype_set(data, set->data->dtype);
+ 		data->byteorder = set->data->byteorder;
+ 
+ 		if (set->data->dtype->subtypes) {
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 602fc60e6de3..6e6f3cf8335d 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -2173,6 +2173,10 @@ typeof_data_expr	:	INTERVAL	typeof_expr
+ 			{
+ 				$$ = $1;
+ 			}
++			|	QUEUE
++			{
++				$$ = constant_expr_alloc(&@$, &queue_type, BYTEORDER_HOST_ENDIAN, 16, NULL);
++			}
+ 			;
+ 
+ typeof_expr		:	primary_expr
+diff --git a/tests/shell/testcases/nft-f/dumps/nfqueue.nft b/tests/shell/testcases/nft-f/dumps/nfqueue.nft
+new file mode 100644
+index 000000000000..7fe3ca669544
+--- /dev/null
++++ b/tests/shell/testcases/nft-f/dumps/nfqueue.nft
+@@ -0,0 +1,11 @@
++table inet t {
++	map get_queue_id {
++		typeof ip saddr . ip daddr . tcp dport : queue
++		elements = { 127.0.0.1 . 127.0.0.1 . 22 : 1,
++			     127.0.0.1 . 127.0.0.2 . 22 : 2 }
++	}
++
++	chain test {
++		queue flags bypass to ip saddr . ip daddr . tcp dport map @get_queue_id
++	}
++}
+diff --git a/tests/shell/testcases/nft-f/nfqueue b/tests/shell/testcases/nft-f/nfqueue
+new file mode 100755
+index 000000000000..07820b7c4fdd
+--- /dev/null
++++ b/tests/shell/testcases/nft-f/nfqueue
+@@ -0,0 +1,6 @@
++#!/bin/bash
++
++set -e
++dumpfile=$(dirname $0)/dumps/$(basename $0).nft
++
++$NFT -f "$dumpfile"
 -- 
-2.39.2
+2.30.2
 
+
+--gu4Y/oIARLFVpfrF--
