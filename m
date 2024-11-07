@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 716C9186E58;
-	Thu,  7 Nov 2024 19:28:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0244194AD6;
+	Thu,  7 Nov 2024 19:32:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731007694; cv=none; b=JusanHsaXtbA0RGafg5CS5ys38O4wzAUbxRar8IzC8YAvaeeQpBEhtzpUpkZxLigW7nCxw3rD8jnEpU8DKRagrkXHscT96t+VsZ41govpDmsZI5R8li9okCEM2ra4oQf3RSG0pL2h0pkbP2sjA1I8xckDaVtMTYlSQ6uul9nUI0=
+	t=1731007979; cv=none; b=tKwh1MY7x4LcqtMCQmxe54Tkkx2yGGmJWXcxs0hdmYsKm6tmqg7m/RSR1j9dPy/2nywT3eajcscxky06Jao7Q087NAxhlE6sUL5N168IgNOoNx8lZQGdXWS8DkDtCZC7RUO499qGj+YuhGNc3Ov4mzcZNnDCLc8i0mgQCsy0ynk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731007694; c=relaxed/simple;
-	bh=gjKC0WrGDW+KN0KMiorOLOy1s/sDoGsYYTGztXkVg2o=;
+	s=arc-20240116; t=1731007979; c=relaxed/simple;
+	bh=39GPFKw/G3anFjOTu3aS5+3SF3Xb0WGH5xeMiKYrbMY=;
 	h=From:Date:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=eCEevCIZmFBFJDJDdHwEYTJalCZsUsABQk556CuBWz6LgTevJS30+6bfmOltzFDIWHDCUN0xYdm/aC02+len9rONirCO0bUQdOZzl9JT3z2FjEETJWIizm73k5yAqSq2u5EQFiFoqS+n7RtFTZSN7agx18oRlo/nTYZ+TPuMOac=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fx8Ea+O6; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=TKme1YEpdV0i2pxq3HiWUwE9BjYPEavzmyghr8T/yGVcguL3555RUPkNogM6JqwyNZ5DEc3cjI+FMdDIp3IQ+UQ6Rz7I1SknzhRnG5nmtAMByZeK0wc9WFVeiafcaz1THMMbMTxrWzRMNO9MlWv+1qXtH1o6tSMa6rqVKcG3Ihg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=a33Jb7UH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fx8Ea+O6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B42AEC4CECC;
-	Thu,  7 Nov 2024 19:28:13 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="a33Jb7UH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE334C4CED2;
+	Thu,  7 Nov 2024 19:32:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1731007694;
-	bh=gjKC0WrGDW+KN0KMiorOLOy1s/sDoGsYYTGztXkVg2o=;
+	s=k20201202; t=1731007979;
+	bh=39GPFKw/G3anFjOTu3aS5+3SF3Xb0WGH5xeMiKYrbMY=;
 	h=From:Date:To:cc:Subject:In-Reply-To:References:From;
-	b=fx8Ea+O6OFcWwtSAz01uM72GKTBELMLFXNI3zDkOFC5HgIgradH13YdERHUfk9zOn
-	 aOXOaMo0mrtEDp9UmEUyaDH9QsviT/LzhVSKHvF0o5ZPlYaty1VriZPOP2IORmxMCd
-	 yCDi1aRSGkSKqH72QBPhH7v6eh6UgzX0MXfeNRzKz20pGWvzTd1lrTOF/V/PNGNsLG
-	 FOkfCj0dDT/lUmJXdQsRFrsd3Fbp0jAdcPZ3jT4X1bav5K/NraFBNCp5eMTeBezWgd
-	 FacaePiFHr/hDK9hfAVFridTxeV35XfuKMm/JNRlgAkAb6m82/8Y6RA67NocSQTLhQ
-	 E/pFUGsm3Fs1g==
+	b=a33Jb7UHlml7RmTADLXE2JO/mlxosSmG1wfFO/2qonBF01IzsrlmPLZaxfNLc+KbC
+	 kymtVqHpzD1xSK5/emekLnhBcBVyavbRRUnBlLp892XouHinqH3snAYi/ye0dfpjKN
+	 0RthdELdHJZM04ozRUk7cfNi5KZeqW61nUBvWIADdFARa4rrsfyUZ9SEXGyTa8PSHV
+	 jJpRrtJLfZHWaYEieYKYdF2H7y1+kFH1tjwKbwEH/Nl/Ym+q6PWLMUppGGvg5MgDMr
+	 z38Dr5dtbbeVCqqBYSI5w9KwKzbrgn3LDlDfLKXo7hZWak+U26+72o97aX0csG0TwI
+	 ezx/gqmqbeT6g==
 From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ij@kernel.org>
-Date: Thu, 7 Nov 2024 21:28:08 +0200 (EET)
+Date: Thu, 7 Nov 2024 21:32:54 +0200 (EET)
 To: Eric Dumazet <edumazet@google.com>
 cc: chia-yu.chang@nokia-bell-labs.com, netdev@vger.kernel.org, 
     dsahern@gmail.com, davem@davemloft.net, dsahern@kernel.org, 
@@ -39,27 +39,25 @@ cc: chia-yu.chang@nokia-bell-labs.com, netdev@vger.kernel.org,
     ingemar.s.johansson@ericsson.com, mirja.kuehlewind@ericsson.com, 
     cheshire@apple.com, rs.ietf@gmx.at, Jason_Livingood@comcast.com, 
     vidhi_goel@apple.com
-Subject: Re: [PATCH v5 net-next 09/13] gro: prevent ACE field corruption &
- better AccECN handling
-In-Reply-To: <CANn89i+9USaOthY3yaJPT-cbfAcP0re2bbGbWU7SqOSYEW2CMw@mail.gmail.com>
-Message-ID: <37429ace-59c0-21d2-bcc8-54033794e789@kernel.org>
-References: <20241105100647.117346-1-chia-yu.chang@nokia-bell-labs.com> <20241105100647.117346-10-chia-yu.chang@nokia-bell-labs.com> <CANn89i+9USaOthY3yaJPT-cbfAcP0re2bbGbWU7SqOSYEW2CMw@mail.gmail.com>
+Subject: Re: [PATCH v5 net-next 01/13] tcp: reorganize tcp_in_ack_event()
+ and tcp_count_delivered()
+In-Reply-To: <CANn89iLEC4Gwr1P8x3tpFVFObvB4nM5xt0F=nRBNe1hqYOLU9A@mail.gmail.com>
+Message-ID: <fd509ff1-c97a-625f-6423-cf24871cf124@kernel.org>
+References: <20241105100647.117346-1-chia-yu.chang@nokia-bell-labs.com> <20241105100647.117346-2-chia-yu.chang@nokia-bell-labs.com> <CANn89iLEC4Gwr1P8x3tpFVFObvB4nM5xt0F=nRBNe1hqYOLU9A@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; BOUNDARY="8323328-1269263136-1731006228=:1016"
-Content-ID: <5066e8e1-c21f-235d-ed7d-1d0e4fd9d6a4@kernel.org>
+Content-Type: multipart/mixed; boundary="8323328-1036980939-1731007974=:1016"
 
   This message is in MIME format.  The first part should be readable text,
   while the remaining parts are likely unreadable without MIME-aware tools.
 
---8323328-1269263136-1731006228=:1016
-Content-Type: text/plain; CHARSET=UTF-8
+--8323328-1036980939-1731007974=:1016
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <dc0d38c4-970a-d4b7-79ba-cbd99ef3e7ef@kernel.org>
 
 On Thu, 7 Nov 2024, Eric Dumazet wrote:
 
@@ -68,119 +66,68 @@ m> wrote:
 > >
 > > From: Ilpo J=C3=A4rvinen <ij@kernel.org>
 > >
-> > There are important differences in how the CWR field behaves
-> > in RFC3168 and AccECN. With AccECN, CWR flag is part of the
-> > ACE counter and its changes are important so adjust the flags
-> > changed mask accordingly.
+> > - Move tcp_count_delivered() earlier and split tcp_count_delivered_ce()
+> >   out of it
+> > - Move tcp_in_ack_event() later
+> > - While at it, remove the inline from tcp_in_ack_event() and let
+> >   the compiler to decide
 > >
-> > Also, if CWR is there, set the Accurate ECN GSO flag to avoid
-> > corrupting CWR flag somewhere.
+> > Accurate ECN's heuristics does not know if there is going
+> > to be ACE field based CE counter increase or not until after
+> > rtx queue has been processed. Only then the number of ACKed
+> > bytes/pkts is available. As CE or not affects presence of
+> > FLAG_ECE, that information for tcp_in_ack_event is not yet
+> > available in the old location of the call to tcp_in_ack_event().
 > >
 > > Signed-off-by: Ilpo J=C3=A4rvinen <ij@kernel.org>
 > > Signed-off-by: Chia-Yu Chang <chia-yu.chang@nokia-bell-labs.com>
 > > ---
-> >  net/ipv4/tcp_offload.c | 4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> >  net/ipv4/tcp_input.c | 56 +++++++++++++++++++++++++-------------------
+> >  1 file changed, 32 insertions(+), 24 deletions(-)
 > >
-> > diff --git a/net/ipv4/tcp_offload.c b/net/ipv4/tcp_offload.c
-> > index 0b05f30e9e5f..f59762d88c38 100644
-> > --- a/net/ipv4/tcp_offload.c
-> > +++ b/net/ipv4/tcp_offload.c
-> > @@ -329,7 +329,7 @@ struct sk_buff *tcp_gro_receive(struct list_head *h=
-ead, struct sk_buff *skb,
-> >         th2 =3D tcp_hdr(p);
-> >         flush =3D (__force int)(flags & TCP_FLAG_CWR);
-> >         flush |=3D (__force int)((flags ^ tcp_flag_word(th2)) &
-> > -                 ~(TCP_FLAG_CWR | TCP_FLAG_FIN | TCP_FLAG_PSH));
-> > +                 ~(TCP_FLAG_FIN | TCP_FLAG_PSH));
-> >         flush |=3D (__force int)(th->ack_seq ^ th2->ack_seq);
-> >         for (i =3D sizeof(*th); i < thlen; i +=3D 4)
-> >                 flush |=3D *(u32 *)((u8 *)th + i) ^
-> > @@ -405,7 +405,7 @@ void tcp_gro_complete(struct sk_buff *skb)
-> >         shinfo->gso_segs =3D NAPI_GRO_CB(skb)->count;
-> >
-> >         if (th->cwr)
-> > -               shinfo->gso_type |=3D SKB_GSO_TCP_ECN;
-> > +               shinfo->gso_type |=3D SKB_GSO_TCP_ACCECN;
+> > diff --git a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
+> > index 5bdf13ac26ef..fc52eab4fcc9 100644
+> > --- a/net/ipv4/tcp_input.c
+> > +++ b/net/ipv4/tcp_input.c
+
+> > @@ -3856,12 +3861,23 @@ static void tcp_process_tlp_ack(struct sock *sk=
+, u32 ack, int flag)
+> >         }
 > >  }
-> >  EXPORT_SYMBOL(tcp_gro_complete);
 > >
+> > -static inline void tcp_in_ack_event(struct sock *sk, u32 flags)
+> > +static void tcp_in_ack_event(struct sock *sk, int flag)
+> >  {
+> >         const struct inet_connection_sock *icsk =3D inet_csk(sk);
+> >
+> > -       if (icsk->icsk_ca_ops->in_ack_event)
+> > -               icsk->icsk_ca_ops->in_ack_event(sk, flags);
+> > +       if (icsk->icsk_ca_ops->in_ack_event) {
+> > +               u32 ack_ev_flags =3D 0;
+> > +
+> > +               if (flag & FLAG_WIN_UPDATE)
+> > +                       ack_ev_flags |=3D CA_ACK_WIN_UPDATE;
+> > +               if (flag & FLAG_SLOWPATH) {
+> > +                       ack_ev_flags =3D CA_ACK_SLOWPATH;
 >=20
-> I do not really understand this patch. How a GRO engine can know which
-> ECN variant the peers are using ?
-
-Hi Eric,
-
-Thanks for taking a look.
-
-GRO doesn't know. Setting SKB_GSO_TCP_ECN in case of not knowing can=20
-result in header change that corrupts ACE field. Thus, GRO has to assume=20
-the RFC3168 CWR offloading trick cannot be used anymore (unless it tracks=
-=20
-the connection and knows the bits are used for RFC3168 which is something=
-=20
-nobody is going to do).
-
-The main point of SKB_GSO_TCP_ACCECN is to prevent SKB_GSO_TCP_ECN or=20
-NETIF_F_TSO_ECN offloading to be used for the skb as it would corrupt ACE=
-=20
-field value.
-
-SKB_GSO_TCP_ACCECN doesn't allow CWR bits change within a super-skb but=20
-the same CWR flag should be repeated for all segments. In a sense, it's=20
-simpler than RFC3168 offloading.
-
-> SKB_GSO_TCP_ECN is also used from other points, what is your plan ?
+> This is removing the potential CA_ACK_WIN_UPDATE, I would suggest :
 >=20
-> git grep -n SKB_GSO_TCP_ECN
-> drivers/net/ethernet/hisilicon/hns3/hns3_enet.c:3888:
-> skb_shinfo(skb)->gso_type |=3D SKB_GSO_TCP_ECN;
-> drivers/net/ethernet/mellanox/mlx5/core/en_rx.c:1291:
-> skb_shinfo(skb)->gso_type |=3D SKB_GSO_TCP_ECN;
-> drivers/net/ethernet/mellanox/mlx5/core/en_rx.c:1312:
-> skb_shinfo(skb)->gso_type |=3D SKB_GSO_TCP_ECN;
+> ack_ev_flags |=3D CA_ACK_SLOWPATH;
 
-These looked like they should be just changed to set SKB_GSO_TCP_ACCECN=20
-instead.
-
-I don't anymore recall why I didn't change those when I made this patch=20
-long time ago, perhaps it was just an oversight or things have changed=20
-somehow since then.
-
-> include/linux/netdevice.h:5061: BUILD_BUG_ON(SKB_GSO_TCP_ECN !=3D
-> (NETIF_F_TSO_ECN >> NETIF_F_GSO_SHIFT));
-> include/linux/skbuff.h:664:     SKB_GSO_TCP_ECN =3D 1 << 2,
-
-Not relevant.
-
-> include/linux/virtio_net.h:88:                  gso_type |=3D SKB_GSO_TCP=
-_ECN;
-> include/linux/virtio_net.h:161:         switch (gso_type & ~SKB_GSO_TCP_E=
-CN) {
-> include/linux/virtio_net.h:226:         if (sinfo->gso_type & SKB_GSO_TCP=
-_ECN)
-
-These need to be looked further what's going on as UAPI is also involved=20
-here.
-
-> net/ipv4/tcp_offload.c:404:             shinfo->gso_type |=3D SKB_GSO_TCP=
-_ECN;
-
-This was changed above. :-)
-
-> net/ipv4/tcp_output.c:389: skb_shinfo(skb)->gso_type |=3D SKB_GSO_TCP_ECN=
-;
-
-I'm pretty sure this relates to sending side which will be taken care by=20
-a later patch in the full series (not among these preparatory patches).
-
-
-FYI, these TSO/GSO/GRO changes are what I was most unsure myself if I=20
-got everything right when I was working with this series a few years back=
-=20
-so please keep that in mind while reviewing so my lack of knowledge=20
-doesn't end up breaking something. :-)
+Yes, a good catch.
 
 --=20
  i.
---8323328-1269263136-1731006228=:1016--
+
+
+> > +                       if (flag & FLAG_ECE)
+> > +                               ack_ev_flags |=3D CA_ACK_ECE;
+> > +               }
+> > +
+> > +               icsk->icsk_ca_ops->in_ack_event(sk, ack_ev_flags);
+> > +       }
+> >  }
+> >
+> >
+>=20
+--8323328-1036980939-1731007974=:1016--
