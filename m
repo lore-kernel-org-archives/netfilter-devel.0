@@ -1,67 +1,68 @@
 Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0E821E1A25
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Nov 2024 10:20:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7564C1EF0AC
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Nov 2024 10:23:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730974816; cv=none; b=kmvq6JcqDhDJl70i4Pk/uq5wAV8COA3CekFXU95HZiaM/VUJaGephVVeI6Gz7v+Z6NH7pXolMmXClGicK79Ecbp0D144MrPR1qdB8ohhOTQw42Y45PE6xNdCs77Su3CAWVkN2ef4XvbYkTAVKH2Fy4jdz0E1fV87xHp0gYtFhqs=
+	t=1730975011; cv=none; b=NpnlUkQA/nUXiCF8zQ5MvGwml5sE34tfqYCjBFocUoGt6v7MRS9jJAbeFKgwKR1+GcE8gDZSehxdlKaJMpXuyzRkW7fMgfmTBzbcbsDvyQoIi7kIMw7GlAxgP9a1lgVfuDyMO9/ZF9X8zgJwI4dahAY3Y6teLAT/M7umtU+eUQ8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730974816; c=relaxed/simple;
-	bh=bUxECVvtmUIJzXf5AGWp9FhEUdjGnW1lzOApTrKw1zo=;
+	s=arc-20240116; t=1730975011; c=relaxed/simple;
+	bh=7ZtzEE3cX7LI8cG8C0aJCAqfGdnEG0uEG1GW0zfufec=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=AWCb5BjZ3zVOYFYiLux7sTV8IOJCgflUK2voApzqXmZ0Ec0CKvrR/W+Cm1OW3mA/8vQhWslvtzK1Lhy1OkKl1BkUQ6PvLJaRNmAAzYZmzU/l/RMRU3MQL3HqFYhE8qQaPhIq4vpa/SRPsmK+Q5yL+n2+PpYVjhR7DGcwAc7hUS8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=KDxG3uPC; arc=none smtp.client-ip=209.85.208.42
+	 To:Cc:Content-Type; b=JzZAQxl5T0rgo0eXiw46DaeUkSQr6Gox8i67OoSWoeICKlnPJY+RHwaujO6qbjTr1ZtKoJdNB5toYePLmsCEMJ6AxeHSJME9JXWNUgcQzuGWqfaajjtggxTM1rcwWhtpts8H0BERzWqaBz2DkVJPHHMzxkLFenp8/ijeTnka+aY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=e0QyFQdj; arc=none smtp.client-ip=209.85.208.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="KDxG3uPC"
-Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-5c9454f3bfaso947221a12.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 07 Nov 2024 02:20:14 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="e0QyFQdj"
+Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-5c937b5169cso1486757a12.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 07 Nov 2024 02:23:29 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1730974813; x=1731579613; darn=vger.kernel.org;
+        d=google.com; s=20230601; t=1730975008; x=1731579808; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=FYkYxsCTkmOBoiYKXh4ZEjpdsXpKEPnOsWN6My0/IN8=;
-        b=KDxG3uPCQBtQP6pyIiemjLfQFKi51+a9g45kJykQ1M7qqHDBz/LoDllMnRWp6uxUh7
-         wQmNH9/wAZIHCXhnchzmn1bVHWORSRZ+oHo6h6r/PvfQim5DYQM6/4GFJMb6tOOscX91
-         pkjoqa+An9CiAql8UETuclxiXpsTN1ZtSGQv8HeBzIlgsyvQL49Re6qL7Zsv2l9c7F7W
-         ynmPPC59VRe1SCavxIHB/PEM7hfMDRDU3GX7th75mMjDJm5zvg9+E0pnyypsibGETjur
-         uFdfpmJAUjKnCe7T/k2fxNcrF/Jo1t/PQOFSWJeyS41l+awUmfwTLrNdIfhNRfVGLAoa
-         xosQ==
+        bh=7ZtzEE3cX7LI8cG8C0aJCAqfGdnEG0uEG1GW0zfufec=;
+        b=e0QyFQdjAletkQTWsUI3DCaQig4SKm//Wy4tUdSgyUPAH+fjI7SijN4LlD5SAX/Ze/
+         9cEhMK8tyK8XKuAH/2WE3deE3nLphlmQY2uh0x1oNthygoPAd5PCL/UIiUy1k/kISE6n
+         YO/98conYEjhVw17WmTIgp59mYURek0e6Ru4SrXK1doKgkwKHjT0YTMlbA3LfNhl6RiV
+         kHxpIYqM/2r/T7Eb7UYGJ/NrP4nl9oTMh05xLFfV2vuiwanMgQfiFTpI5oTY2ueHQqmT
+         8wuFwzD2VXXX1suZU0PbvepPB5hulnti0D9YYUxDo/segarbZRh/bEF8KS4eaZaW1TQe
+         MCVw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1730974813; x=1731579613;
+        d=1e100.net; s=20230601; t=1730975008; x=1731579808;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=FYkYxsCTkmOBoiYKXh4ZEjpdsXpKEPnOsWN6My0/IN8=;
-        b=H9etCYTs0IQZB80Y6eZ0PSQ7B2+Ksyo6yjRJGKfxmV9ydj2BeXoCley8FmNsqXpkfK
-         5tx/f//v4sv/VccUA5WcOXFgpUuItYWAcuu71bIDY2sRrkqJd9ziHrwfk1U9QhmDC24n
-         7LVbSx4SgVRnF1j87oDx+xYbd0s/O9n6Q+EfpocVZl7XMTNTOZWeYjuWthx/U8S+Pd2Y
-         fOHC/xbIXJOcPBxtQ7Qt/WuTwQV9kGOIkyYscc3HXSyhLDbWJG9DM2NHIrzvpBJkjMQ9
-         G9nb6Dw7horjazhdz9n5uiB8ZkTBg5d9q/ock3drDcDYHP1ebQlKQ0KLR4ysoJmcNY6E
-         Ui1Q==
-X-Forwarded-Encrypted: i=1; AJvYcCX9O2LcM0i+04WnO0biCpakEotc8F3RzQMHgfzQdeLnimFjsKAc8NpuIcSrxWnjxY2uep499N6jteFMGr4XZTA=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxhQT9xw/9+VbRSeGjiueeJm8P25c6cX2JaC8OhUOzt8gjqF01w
-	K6nHPTqi60PIUvJv/NmxMGGvSo2PqqDZy+GtVP4sH29aW9r5xQ5fqYEC0vEKgJbb/eoUIOMntsa
-	umL2zMp1c52u9B5GAHKEhI/jkYL736LiOlsxN
-X-Google-Smtp-Source: AGHT+IEU7BzKwJ7pIKK0HTYYkeJhG9pSpe6xSVtPpm7vbqKR9LQ1JnPQTbahhd3bffBAr5k3cN7r3J7YdMHmn1Qs1UE=
-X-Received: by 2002:a05:6402:84f:b0:5ce:c7ca:70ca with SMTP id
- 4fb4d7f45d1cf-5cec7ca71a0mr14020115a12.34.1730974813080; Thu, 07 Nov 2024
- 02:20:13 -0800 (PST)
+        bh=7ZtzEE3cX7LI8cG8C0aJCAqfGdnEG0uEG1GW0zfufec=;
+        b=Etg1nd/DAROaVSRWr4++jef/e6rbCYEHzdXPqpoXiMlackhsOEUPxZraGh9+voXj/w
+         YMofQ2bNazYq0XDSvn/hKr84nx51FoyVaZJW5n9TPsE5d+QuRhyb1VzdwSVWZCnuAlgf
+         N58RmIsWAcFa+Iv5HcF6mo2Pr1lIrqNd2RW3nN7uv/P3mk0+phvNecLLlvybZwep0+eY
+         2e8TOujmGEvqigiEs59RD0YqeH+6dZaJLWDCSJTxAYDQOA86n8p9rOOO7uXyH6EWGpq4
+         d8BUY+wiP+A/8iycyl9ajEz3nmXEsLbwRDjTfmnah94cdX736EThXUJBM0ZXQ3+CoYYC
+         AY7Q==
+X-Forwarded-Encrypted: i=1; AJvYcCUNu2ejH659B0r0qu8m0QTeiN9yS73vQ2d3J8SRdaCaqELa1YmUyhVY9AcDOhMagNaH5Fo3FsTc4/L1D2booyI=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzJwn2JT/AKpe2nRu3YETzIalRraxKK92CFUaX9CICPKqtFuULu
+	z5yyqNq4Aa0wTp3+WBlQN1YfvXsQ44l0xETYHuAYTkRKQHBY59GFyAb0DTDAp08Xzb+meM67Wuf
+	W5JRmRsHjXzFK6uy3QWrLFYQBXaLGNbt7/Iiv
+X-Google-Smtp-Source: AGHT+IEjPlnFJBkIXr+gYq+0XbuErwY+eFjj9KQZR7oaUbTB4s1CmRvF6yWvRP/fnciWUVqcWyd4dNYHdLh/nvchRtE=
+X-Received: by 2002:a05:6402:348e:b0:5ce:de0f:e59b with SMTP id
+ 4fb4d7f45d1cf-5cf06732c58mr679270a12.1.1730975004033; Thu, 07 Nov 2024
+ 02:23:24 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241105100647.117346-1-chia-yu.chang@nokia-bell-labs.com> <20241105100647.117346-4-chia-yu.chang@nokia-bell-labs.com>
-In-Reply-To: <20241105100647.117346-4-chia-yu.chang@nokia-bell-labs.com>
+References: <20241105100647.117346-1-chia-yu.chang@nokia-bell-labs.com> <20241105100647.117346-5-chia-yu.chang@nokia-bell-labs.com>
+In-Reply-To: <20241105100647.117346-5-chia-yu.chang@nokia-bell-labs.com>
 From: Eric Dumazet <edumazet@google.com>
-Date: Thu, 7 Nov 2024 11:20:01 +0100
-Message-ID: <CANn89iJiaAuuHntM2j-FvtbM+g90GHft5BgaNxOZ58jkpzP3UQ@mail.gmail.com>
-Subject: Re: [PATCH v5 net-next 03/13] tcp: use BIT() macro in include/net/tcp.h
+Date: Thu, 7 Nov 2024 11:23:12 +0100
+Message-ID: <CANn89iKvpMANAsAtZzCa=udur+Q+5Ae6z8YrcjybiB+W68Z+Mw@mail.gmail.com>
+Subject: Re: [PATCH v5 net-next 04/13] tcp: extend TCP flags to allow AE
+ bit/ACE field
 To: chia-yu.chang@nokia-bell-labs.com
 Cc: netdev@vger.kernel.org, dsahern@gmail.com, davem@davemloft.net, 
 	dsahern@kernel.org, pabeni@redhat.com, joel.granados@kernel.org, 
@@ -77,18 +78,15 @@ Content-Transfer-Encoding: quoted-printable
 On Tue, Nov 5, 2024 at 11:07=E2=80=AFAM <chia-yu.chang@nokia-bell-labs.com>=
  wrote:
 >
-> From: Chia-Yu Chang <chia-yu.chang@nokia-bell-labs.com>
+> From: Ilpo J=C3=A4rvinen <ij@kernel.org>
 >
-> Use BIT() macro for TCP flags field and TCP congestion control
-> flags that will be used by the congestion control algorithm.
+> With AccECN, there's one additional TCP flag to be used (AE)
+> and ACE field that overloads the definition of AE, CWR, and
+> ECE flags. As tcp_flags was previously only 1 byte, the
+> byte-order stuff needs to be added to it's handling.
 >
-> No functional changes.
->
+> Signed-off-by: Ilpo J=C3=A4rvinen <ij@kernel.org>
 > Signed-off-by: Chia-Yu Chang <chia-yu.chang@nokia-bell-labs.com>
-> Reviewed-by: Ilpo J=C3=A4rvinen <ij@kernel.org>
 > ---
->  include/net/tcp.h | 21 +++++++++++----------
->  1 file changed, 11 insertions(+), 10 deletions(-)
-
 
 Reviewed-by: Eric Dumazet <edumazet@google.com>
