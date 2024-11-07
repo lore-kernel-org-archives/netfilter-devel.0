@@ -1,92 +1,158 @@
-Received: from mail-io1-f51.google.com (mail-io1-f51.google.com [209.85.166.51])
+Received: from mail-pf1-f193.google.com (mail-pf1-f193.google.com [209.85.210.193])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C027A210186
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Nov 2024 12:55:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0F4B210198;
+	Thu,  7 Nov 2024 12:56:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.193
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730984154; cv=none; b=L1nNKhk1sX59aFCox21XRKYPR6z8L9HMxG5ZCmQLdGqHVTE16NsYMYiSO69CpSlBqQS/EfgOd77mOSc1T/VWA9BfrjiuRvPG4O4n6skY5Z5slyD08fQVoYS8vjwr5W4VXEHzyGs6NqM6EnP6yuI1mdELzxkIkJ1xi5BtECS5D0o=
+	t=1730984200; cv=none; b=MKnPT9zD7Jp64YoN2VAEY0DDCC1HUApOnYInvZqPbDX/uWklD4SLro9gZQzWSPPOcMATbtTxyR+NppXuscIMk1/HGf7GxnsEK2Ngu+A+6lON5q75hFyFSM5PAunpP687NrTxSabrx+1l0MsE52SVpKss24ts+CRzj/GpThGu15o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730984154; c=relaxed/simple;
-	bh=MNGuxclNZEl8wDL9mnqdwaXSxv3EbzjWppbI5JuQjko=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=bF+OJ9QETQgZOj6qHX9jz9+E3yeCqpcs3k8YqX5hhPWYgrRW2XkuNvEMhG4JLH3ENT+q91eCumTLCezj1F22QidK1OdCz2Bxp56N4mN16jFv0EXW8N7ppT4HmWBUnfXWDkcaTb0QPrQbzh/QQ2NSrZAojZpn8siaLXbWtpKomto=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=mTgeyjuH; arc=none smtp.client-ip=209.85.166.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	s=arc-20240116; t=1730984200; c=relaxed/simple;
+	bh=90LuHD8laAu8s+2lzOXwrI1PNKvtP9Qf1hO/C06hHiA=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=igUJF5Q7X/LpNwZdy58mY2JZBQq0Q1sOekR6TGcTQs+wzAwZ4Q+425RWvQc2whRhjwaKqCJtvGGrRcTMwgZwMhf+tizKKCW76cbiV15Kp96NBM9fJZsMfZYOKTC8ccFS2FXEKzZYgi+uSYjkKgO6kbq012F3r8r+nA16pV6yW3c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SwdYUcVX; arc=none smtp.client-ip=209.85.210.193
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="mTgeyjuH"
-Received: by mail-io1-f51.google.com with SMTP id ca18e2360f4ac-83ab21c26e5so34479139f.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 07 Nov 2024 04:55:52 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SwdYUcVX"
+Received: by mail-pf1-f193.google.com with SMTP id d2e1a72fcca58-71e5130832aso644958b3a.0;
+        Thu, 07 Nov 2024 04:56:37 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1730984152; x=1731588952; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=MNGuxclNZEl8wDL9mnqdwaXSxv3EbzjWppbI5JuQjko=;
-        b=mTgeyjuHYPIEnHh/8SsxDKAwXYop+nczr95YtrvJlldFgn/GqQpJG+pYqynSdJf790
-         LtDO3Aredb3UKsIVLt3yH/xbSDfTZTgJIZMOHnsNfTmOuebFlMLK6BrJesduUz4g1fW2
-         GdLns5j/CieAzcmOeMLY7Ew5iTCEX8pc/MsnAz6sbYaS1FeBCSmeVMnDwH0TUJzuZ35o
-         njZrl7Y7t8y/BKAqogkECoiuoMYvV0epmd7Q25szYDH2G/y5WvTi85isj43z2d8timT8
-         3h5727Hhu9/XjTa/69T13Hurh1WwkbcQz+d3KFUeawvfbKFdCVQkvnJ7AIsjnG0lzLRZ
-         JyeQ==
+        d=gmail.com; s=20230601; t=1730984197; x=1731588997; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=UdA7nsCFTrN7tSAJGLMrxfIWlfUIz0l1LxRNiQDm5GY=;
+        b=SwdYUcVX7XCdGKsHHJ5fOVxauPK5ka2h8D6TkmIltEyfRVN3M8K+Fqgw8Y27F97Vfg
+         utPCvIDDbKwRn83nJaiOvBy1oQkpMb2vLSWyBMMy2qN574+nTY13CThtQPHoh+a9HT/V
+         aPAQtX3gaKWNA0AsPPz/ke6MmNq6TDwJe4D0owobgP/If3s4R+lwM4u9G6aH3g4GiVbU
+         d+V2p1iNUDE2E54gCehJgIOR+wuWa9JOG2HwDeYRntjwb15N0vTOJoiaq7/KJydnmuoF
+         LcfQ9K91nLRUrA00lLfr3qWYhq8/u7FUJp/JEPUeP6uydr62bp9iu4wFce2ypLdWsMZs
+         NWVA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1730984152; x=1731588952;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=MNGuxclNZEl8wDL9mnqdwaXSxv3EbzjWppbI5JuQjko=;
-        b=c5FoGLike9b9NYuSNwRK12DvsvuM1V0l5UjvwaPJAGgjgq7XwPUS4U8s76IusmbOlN
-         G8HcRyNUy5hq/4MH12nh/VgcVwB9FbBTutRoz+bXrArTWXxu7V+MIVt+Qkod5fYcH2T5
-         6Ytf61rYbEM//eY12J4uyyzcyS16vNV6H9JGC0/ERj4ntizCzDnKOsc/Pkt3k/rX3KWA
-         3+hEpV731Ram6fezy1T2ZVm38ksvlFQlfftqDhpWL9nbk9fGy3l9Bsu0quZaPSPZ6zOX
-         nPtjrUNn1qwUVOVaQeeGceFJyfYHwYAjmyNUAwcTs5VwMFNWpxC7OCFJXnw37XUIzUdN
-         dGfA==
-X-Forwarded-Encrypted: i=1; AJvYcCWb1ISaxkyx3WIx7jQpxK23svcgQuXgqPc3XhRF8tLyMyzZlyxg4VJls3p/CKm02ZPGBUZLgJmOpXNK6Ap9Q2c=@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywqi5bY4DPK84TzrQToXY+hgI+vQ/MlolVhpFkWxwP/wPq+1pfA
-	vEzkvgGqQMcCvOWpdyY6YNcAzTqP1ZwW0SjWgF6Ri5zrgIwHgJWEPGisKmRbgxYwmdIFvTRHkrs
-	5Hy+Lnjxdqx2MyOzoM8MKdV9iDi+6+2GQtiDO
-X-Google-Smtp-Source: AGHT+IEr2kqryj3CHwPojAnrjT77oI+p2eagCFy4Mf/8qI/k5/pCuHJHt5YAM3upHDoOFWeA2megF3ZaleOAMRi88yA=
-X-Received: by 2002:a05:6602:3fc5:b0:83a:db84:41a8 with SMTP id
- ca18e2360f4ac-83b1c4b4febmr5159706739f.10.1730984151674; Thu, 07 Nov 2024
- 04:55:51 -0800 (PST)
+        d=1e100.net; s=20230601; t=1730984197; x=1731588997;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=UdA7nsCFTrN7tSAJGLMrxfIWlfUIz0l1LxRNiQDm5GY=;
+        b=Q6lFo95I5HSSL1PNv1zmVYP0seFuv+G5WdZNqm7qr+EusN9/CHMbpEaxEMOA/6l0yd
+         Fzdqcu2d6mETCRLbjwqpVxorGM82zcBqEXWFkosQSQmnhPnd8BXyiL6xrtmLEmlATZmk
+         KK+YntoWe77PCDZj1YrQxG/CPvdQOJdNw2q4FPGobv+G+MlQZ+3rk/NpyE7i+mtbdrnI
+         DyOuC0JZCMOpyESSI6bAUGzsPS8sl09sVCS86fW9NclvHBlIc7HVQFYQDpAw2jxd82S3
+         1EkxcPGS6LYmELteo5SmmU9aRKaBAuwbZVDHqpQ9/KJfAEitMqXQmCyBxbAITZRDdg/D
+         qelA==
+X-Forwarded-Encrypted: i=1; AJvYcCUNMiwLDQrApEAmsFSUvACkp9xKeOXpBQOdnXG/myF6QCi/wdQHvPV+9QoA/ITGksh9WYSEfcgYBV0sJwaRF6yC@vger.kernel.org, AJvYcCURoJY6x6UqwSQuBqQx4I/UZnClVb8O1V20pepQjIPlmth9j8KwGyNHFACKx8UBOW2CX0z1gPvN@vger.kernel.org, AJvYcCUUnhHsJBOltsm38fiHwROBjOKZB6iHIuz0+3P6hixuRaOLhuU8JIgO4SOZp5eV31Vu7I4=@vger.kernel.org, AJvYcCXY1ir9jFN5NcJy0xy6rGCvFLW3WHUjSuOMXyZN8Ab+louiALklPJxcZUUE/b3o7CjWCdmQmdgDtShMvoBD@vger.kernel.org
+X-Gm-Message-State: AOJu0YzNiLviUwnh/bQI1qxmKADlvJ30XAMkHn3snRNxEm7wwQtjMVRg
+	35tbvzvc6Vn8qsh5hRDIY/wA41l0zXmP24orHorZT7k7CGZi4f4Z
+X-Google-Smtp-Source: AGHT+IEzr1IifU6MMH+fx8wH4FyqoykSy74KB4WKiRH4KzZnH1+yiCSFlPrFXP4KUGKs3piToboQvA==
+X-Received: by 2002:a05:6a00:987:b0:71e:6ed:9108 with SMTP id d2e1a72fcca58-720c9883499mr30639483b3a.2.1730984196934;
+        Thu, 07 Nov 2024 04:56:36 -0800 (PST)
+Received: from localhost.localdomain ([43.129.25.208])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7240785ffeesm1441651b3a.3.2024.11.07.04.56.29
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 07 Nov 2024 04:56:36 -0800 (PST)
+From: Menglong Dong <menglong8.dong@gmail.com>
+X-Google-Original-From: Menglong Dong <dongml2@chinatelecom.cn>
+To: pabeni@redhat.com
+Cc: davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	horms@kernel.org,
+	dsahern@kernel.org,
+	pablo@netfilter.org,
+	kadlec@netfilter.org,
+	roopa@nvidia.com,
+	razor@blackwall.org,
+	gnault@redhat.com,
+	bigeasy@linutronix.de,
+	hawk@kernel.org,
+	idosch@nvidia.com,
+	dongml2@chinatelecom.cn,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	bridge@lists.linux.dev,
+	bpf@vger.kernel.org
+Subject: [PATCH net-next v5 0/9] net: ip: add drop reasons to input route
+Date: Thu,  7 Nov 2024 20:55:52 +0800
+Message-Id: <20241107125601.1076814-1-dongml2@chinatelecom.cn>
+X-Mailer: git-send-email 2.39.5
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241105100647.117346-1-chia-yu.chang@nokia-bell-labs.com> <20241105100647.117346-12-chia-yu.chang@nokia-bell-labs.com>
-In-Reply-To: <20241105100647.117346-12-chia-yu.chang@nokia-bell-labs.com>
-From: Eric Dumazet <edumazet@google.com>
-Date: Thu, 7 Nov 2024 13:55:39 +0100
-Message-ID: <CANn89i+yj5DGj=OF58Uez6m0xt1n-6bi=vnG7PX1frBPWm+eNw@mail.gmail.com>
-Subject: Re: [PATCH v5 net-next 11/13] tcp: allow ECN bits in TOS/traffic class
-To: chia-yu.chang@nokia-bell-labs.com
-Cc: netdev@vger.kernel.org, dsahern@gmail.com, davem@davemloft.net, 
-	dsahern@kernel.org, pabeni@redhat.com, joel.granados@kernel.org, 
-	kuba@kernel.org, andrew+netdev@lunn.ch, horms@kernel.org, pablo@netfilter.org, 
-	kadlec@netfilter.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	ij@kernel.org, ncardwell@google.com, koen.de_schepper@nokia-bell-labs.com, 
-	g.white@cablelabs.com, ingemar.s.johansson@ericsson.com, 
-	mirja.kuehlewind@ericsson.com, cheshire@apple.com, rs.ietf@gmx.at, 
-	Jason_Livingood@comcast.com, vidhi_goel@apple.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Tue, Nov 5, 2024 at 11:07=E2=80=AFAM <chia-yu.chang@nokia-bell-labs.com>=
- wrote:
->
-> From: Ilpo J=C3=A4rvinen <ij@kernel.org>
->
-> AccECN connection's last ACK cannot retain ECT(1) as the bits
-> are always cleared causing the packet to switch into another
-> service queue.
->
-> This effectively adds a finer-grained filtering for ECN bits
-> so that acceptable TW ACKs can retain the bits.
+In this series, we mainly add some skb drop reasons to the input path of
+ip routing, and we make the following functions return drop reasons:
 
-Too cryptic changelog.
+  fib_validate_source()
+  ip_route_input_mc()
+  ip_mc_validate_source()
+  ip_route_input_slow()
+  ip_route_input_rcu()
+  ip_route_input_noref()
+  ip_route_input()
+  ip_mkroute_input()
+  __mkroute_input()
+  ip_route_use_hint()
 
-Please add more explanations, because I could not really understand
-the intent of this patch.
+And following new skb drop reasons are added:
+
+  SKB_DROP_REASON_IP_LOCAL_SOURCE
+  SKB_DROP_REASON_IP_INVALID_SOURCE
+  SKB_DROP_REASON_IP_LOCALNET
+  SKB_DROP_REASON_IP_INVALID_DEST
+
+Changes since v4:
+- in the 6th patch: remove the unneeded "else" in ip_expire()
+- in the 8th patch: delete the unneeded comment in __mkroute_input()
+- in the 9th patch: replace "return 0" with "return SKB_NOT_DROPPED_YET"
+  in ip_route_use_hint()
+
+Changes since v3:
+- don't refactor fib_validate_source/__fib_validate_source, and introduce
+  a wrapper for fib_validate_source() instead in the 1st patch.
+- some small adjustment in the 4-7 patches
+
+Changes since v2:
+- refactor fib_validate_source and __fib_validate_source to make
+  fib_validate_source return drop reasons
+- add the 9th and 10th patches to make this series cover the input route
+  code path
+
+Changes since v1:
+- make ip_route_input_noref/ip_route_input_rcu/ip_route_input_slow return
+  drop reasons, instead of passing a local variable to their function
+  arguments.
+
+Menglong Dong (9):
+  net: ip: make fib_validate_source() support drop reasons
+  net: ip: make ip_route_input_mc() return drop reason
+  net: ip: make ip_mc_validate_source() return drop reason
+  net: ip: make ip_route_input_slow() return drop reasons
+  net: ip: make ip_route_input_rcu() return drop reasons
+  net: ip: make ip_route_input_noref() return drop reasons
+  net: ip: make ip_route_input() return drop reasons
+  net: ip: make ip_mkroute_input/__mkroute_input return drop reasons
+  net: ip: make ip_route_use_hint() return drop reasons
+
+ include/net/dropreason-core.h   |  26 ++++
+ include/net/ip_fib.h            |  12 ++
+ include/net/route.h             |  34 ++---
+ net/bridge/br_netfilter_hooks.c |  11 +-
+ net/core/lwt_bpf.c              |   6 +-
+ net/ipv4/fib_frontend.c         |  17 ++-
+ net/ipv4/icmp.c                 |   2 +-
+ net/ipv4/ip_fragment.c          |  11 +-
+ net/ipv4/ip_input.c             |  20 ++-
+ net/ipv4/ip_options.c           |   2 +-
+ net/ipv4/route.c                | 211 ++++++++++++++++++--------------
+ net/ipv6/seg6_local.c           |  14 +--
+ 12 files changed, 225 insertions(+), 141 deletions(-)
+
+-- 
+2.39.5
+
