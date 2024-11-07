@@ -1,68 +1,67 @@
-Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com [209.85.208.47])
+Received: from mail-ed1-f45.google.com (mail-ed1-f45.google.com [209.85.208.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 141CF1DB534
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Nov 2024 12:41:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD4A520D4F0
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Nov 2024 12:42:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730983273; cv=none; b=pYXGiuax2sY934K0jf7vtOSHfNE0Hod9guVcSsEVKTOBDxMpFgKV86oeeXZbwSfO2R/5Z6uVk6bPTeyQB8UFqqo6gBeq5FhXHzfay/e3KluPiIF8eFu26bpDJUbpnKuX22KXt6KZ74avUUPczUJxNOz0jOiVuDAcm59vbPZKl/Q=
+	t=1730983323; cv=none; b=Gbv5XjQrwM0OPIQG8tRo4PykeuAIvv7noLaPR8KkGdjg3h/TIdoewrk+twgTDpl4PdXM9Gui67QlwyNTM7NznFErOC4iwxvyN/svKt4a7MzIkX4yZZMndz7M0MR8WuLiyvv6NlmTbr8Qa/rJcfyRtrM/mUcEcNhffUlDddU8KYE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730983273; c=relaxed/simple;
-	bh=0xOH2DwmBPvkKs25IRRpA5/+QjtzVAPgcJqdgeso+zw=;
+	s=arc-20240116; t=1730983323; c=relaxed/simple;
+	bh=eszVer7v5MZOo9DIIYGY54udjtPIR+aDB9DkBBxxPlE=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Aum9Ux4TKnV6dlMIrq7Y88n0Z496EdejJiDlgLzDcphotcBOjpjkG9rA2N5h/bX+w1MTXYgMdX1yAOBn30MRYrfX+jBtldQGMaJ2LHj4Iqlo8qbRxmM026I74xSojEZL0+FjJJ5hFsX3/xmrQsBJhe3muvZO/9GBnYMAtbSGmoI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=CE9wZduG; arc=none smtp.client-ip=209.85.208.47
+	 To:Cc:Content-Type; b=UMGO2zB1HP2H3MGVSq7iydk75qNx1URjC5wp5VDW9va39nlI9f7cvdgiYOpKc35vLhvyRCSXAPLDxCp6HaZReDgfjfxYxjHTrjPLLCnKwY6QXBd5v2p2PVQEgfnbF0+mXUwFwjCOYdJGkQPod/9J5u3TwcR8Pp4zNLt+mwYLEDE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=BM/02SW9; arc=none smtp.client-ip=209.85.208.45
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="CE9wZduG"
-Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-5cefc36c5d4so1199531a12.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 07 Nov 2024 04:41:11 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="BM/02SW9"
+Received: by mail-ed1-f45.google.com with SMTP id 4fb4d7f45d1cf-5c9693dc739so1279788a12.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 07 Nov 2024 04:42:01 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1730983270; x=1731588070; darn=vger.kernel.org;
+        d=google.com; s=20230601; t=1730983320; x=1731588120; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=ivVKRH2yr9svH6beGCk8O17xcGU1F9I4JcusPh/IoEQ=;
-        b=CE9wZduG8m5Zt0621niAxhZce2FmkDv1QHP+PcgKVe0+KAtP4deykks/xFrAV/SFZt
-         pkiGu6AcvyaFS39IDEJ/mrqtK78lMN+dDQESxDCaiM5GhslHVROLR4Wy82gcIXhp1k3B
-         6qYzGIRekN3ulif17OSGRVK8HMzAWEMOj770jJOKFnpyj0hJxb+3S52zk4FZK1wx5tNP
-         0B/VMURqTTry6t8Kqse23o2+oe5irukxGBPvrp3BCrsaKMt3ZURUQFrB5z3lhhT7seGi
-         bn17QTOIIB0JQ1nMPDm0dnkndAnVwMbBj25ogm+IlYeSKTj3C7nuN1sk6A3sCH1ApK7J
-         K94A==
+        bh=eszVer7v5MZOo9DIIYGY54udjtPIR+aDB9DkBBxxPlE=;
+        b=BM/02SW9Q2TWDfyfzNzCko0eNNQs6Ze6FC8cafjxc7/gZecBTnhXIiPK9nGCxWWscC
+         eSp8zmFzlMrZIALbYnJSkiq5xV99Ybq8FDzgrMt8C+KacD7rvBx3UZewczDPyGT7PPmU
+         X3IeN9FxrHXV2TGIqP7ulim2QZTUa/fUJN8HtGqmuYHbt7Hv7yQq7d8TW690UyqYpVVZ
+         oLNAtCWXlRITPFproY0VI+bJ0/u2EiW1psDgnb+iyOG/CDrDCN6teqUWqFjLUzTYgbeW
+         X8iWG8ig/O7iB7haw7thlzr7AJFm71/toPU/6fgYJNEoFkIG/vTV2pj0tMYpxvg+SlAV
+         5tAQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1730983270; x=1731588070;
+        d=1e100.net; s=20230601; t=1730983320; x=1731588120;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=ivVKRH2yr9svH6beGCk8O17xcGU1F9I4JcusPh/IoEQ=;
-        b=g3vcf8iilzHQHGZ/V7mjGwJJphUpr//rn2KhksDVzrRk/XtMDD8Cz/mD10hKvgVaTx
-         Nx32+o0sD0J6pRfslZRTDWNOCaBQZpZGoGcyKS8Oib6k8Cnxvd1NjqPrlpwDEN2u7+4t
-         UcS5Oqdugrqe0Kyv5fOkyUN/ldbZXE9jGSGVgv74qWPyPLyMaQHOzneRYQaImDJNNGwh
-         tMq1AUf/kkbb3GPUEovMJU1qmV6jVjAi9VyBcQVn+C3cWrDtBYcEyy3nMDriRq4mFPz6
-         L0g5AAma88zSDfM4wZZEwd0OlV2E64V4s6BD2BFDHNQpuatkR56g9nNx3sPEiZl/FRVu
-         AVQQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVjuoafWjNEo6u7Io/HsKrA9w0x0kkUY7nPUDM1ZOYzdKDPq78TWUGcqvXwWRxM6sGZUlEbLDgNnuc9vzRWmkU=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw43BBmgS1+XAlyHs6FbNmPNmhpb7jM7thCxUFNIdcs+zNn+vIy
-	qgyYd4Q38K0naa6rUkUiMUX1fFQxNVPYFFlQ2/7xZvo0rv+Km2s5XuhophJOSsdAgiXj5PBAWaW
-	cEIwHI+W5gjn3PtUZsCwKiVHuJfzlTtpG9B43
-X-Google-Smtp-Source: AGHT+IHJfRifTh/VChuwfeR/jbYQWJZwkubJtQhT0PzG7sH947f2RX0vvvURIGGKney4qTqvLB52PLKMjkyZqME6nf8=
-X-Received: by 2002:a05:6402:1d4a:b0:5cb:acdc:b245 with SMTP id
- 4fb4d7f45d1cf-5ceb9282a67mr20231225a12.17.1730983270122; Thu, 07 Nov 2024
- 04:41:10 -0800 (PST)
+        bh=eszVer7v5MZOo9DIIYGY54udjtPIR+aDB9DkBBxxPlE=;
+        b=tHqdKcyVmOjogdN4YA83gyYOiDQJFMvlU6EpHBy6PDDFD5Fc2JShlwEi+xrBY9u6YK
+         CKacfLm/bHs5jSM3kXtfTQfxMeRIu+FyUTOmu/GB1o+DRZ39knnD0efNVL1lDSZXWVKV
+         Rpp3WRjdGX8sTMnAFfQ1u0TDCz3nXeIhxW3M5ngL3XYYcyy3v4RGCCJSDWJJdd4u89Vt
+         hrXkJQrq8uog8HWlvVCZd8gEIIrLCUx2oBLkC2AHVpnGnkIPCYwQNMwDjw4oo4aFQeA1
+         pBxFYKaz3d9T0+PS9aznhc/M3FvEctS4kGErsouY5/0h7PggGw3mLdKo16E7z8xF+f5f
+         zGrQ==
+X-Forwarded-Encrypted: i=1; AJvYcCX5Dk3va9VE2ffuj1UQ1wEKr8plopQdb70LsDJhplVzMeDEtH+jKHpj0SRpeb81d0sq3biexVZiIxKtnyWrYtQ=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz/21RBRCHh/fHXgHhh+ljKt1bimPgthvZ66CmI/mWpBpuVuSCc
+	AV/XifFv9zm+uPOpj0HOFnIdUNDGz47Pax9WpGEi6nfbldJWOsIO+XaMN6BxwCG/o7XVa01Q/Ts
+	VlDQg8bUDukQo7g2isIBDTLxVrnyFU7vOJ9LP
+X-Google-Smtp-Source: AGHT+IEL7BA48iGiB0onh6CZQgBTepxdP23ToRimZkZPRQGzqbCFprp2kxPExb0PKC2m/vGnut0zUfqphh494iJlqjI=
+X-Received: by 2002:a05:6402:d0e:b0:5c9:76f3:7d46 with SMTP id
+ 4fb4d7f45d1cf-5ceb928c9damr15768331a12.21.1730983320099; Thu, 07 Nov 2024
+ 04:42:00 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241105100647.117346-1-chia-yu.chang@nokia-bell-labs.com> <20241105100647.117346-10-chia-yu.chang@nokia-bell-labs.com>
-In-Reply-To: <20241105100647.117346-10-chia-yu.chang@nokia-bell-labs.com>
+References: <20241105100647.117346-1-chia-yu.chang@nokia-bell-labs.com> <20241105100647.117346-9-chia-yu.chang@nokia-bell-labs.com>
+In-Reply-To: <20241105100647.117346-9-chia-yu.chang@nokia-bell-labs.com>
 From: Eric Dumazet <edumazet@google.com>
-Date: Thu, 7 Nov 2024 13:40:58 +0100
-Message-ID: <CANn89i+9USaOthY3yaJPT-cbfAcP0re2bbGbWU7SqOSYEW2CMw@mail.gmail.com>
-Subject: Re: [PATCH v5 net-next 09/13] gro: prevent ACE field corruption &
- better AccECN handling
+Date: Thu, 7 Nov 2024 13:41:48 +0100
+Message-ID: <CANn89i+wgm3DQafFygTQgqwX8p7AGmrBz1b0nocejrw-=xnhDQ@mail.gmail.com>
+Subject: Re: [PATCH v5 net-next 08/13] gso: AccECN support
 To: chia-yu.chang@nokia-bell-labs.com
 Cc: netdev@vger.kernel.org, dsahern@gmail.com, davem@davemloft.net, 
 	dsahern@kernel.org, pabeni@redhat.com, joel.granados@kernel.org, 
@@ -80,66 +79,27 @@ On Tue, Nov 5, 2024 at 11:07=E2=80=AFAM <chia-yu.chang@nokia-bell-labs.com>=
 >
 > From: Ilpo J=C3=A4rvinen <ij@kernel.org>
 >
-> There are important differences in how the CWR field behaves
-> in RFC3168 and AccECN. With AccECN, CWR flag is part of the
-> ACE counter and its changes are important so adjust the flags
-> changed mask accordingly.
+> Handling the CWR flag differs between RFC 3168 ECN and AccECN.
+> With RFC 3168 ECN aware TSO (NETIF_F_TSO_ECN) CWR flag is cleared
+> starting from 2nd segment which is incompatible how AccECN handles
+> the CWR flag. Such super-segments are indicated by SKB_GSO_TCP_ECN.
+> With AccECN, CWR flag (or more accurately, the ACE field that also
+> includes ECE & AE flags) changes only when new packet(s) with CE
+> mark arrives so the flag should not be changed within a super-skb.
+> The new skb/feature flags are necessary to prevent such TSO engines
+> corrupting AccECN ACE counters by clearing the CWR flag (if the
+> CWR handling feature cannot be turned off).
 >
-> Also, if CWR is there, set the Accurate ECN GSO flag to avoid
-> corrupting CWR flag somewhere.
+> If NIC is completely unaware of RFC3168 ECN (doesn't support
+> NETIF_F_TSO_ECN) or its TSO engine can be set to not touch CWR flag
+> despite supporting also NETIF_F_TSO_ECN, TSO could be safely used
+> with AccECN on such NIC. This should be evaluated per NIC basis
+> (not done in this patch series for any NICs).
+>
+> For the cases, where TSO cannot keep its hands off the CWR flag,
+> a GSO fallback is provided by this patch.
 >
 > Signed-off-by: Ilpo J=C3=A4rvinen <ij@kernel.org>
 > Signed-off-by: Chia-Yu Chang <chia-yu.chang@nokia-bell-labs.com>
-> ---
->  net/ipv4/tcp_offload.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/net/ipv4/tcp_offload.c b/net/ipv4/tcp_offload.c
-> index 0b05f30e9e5f..f59762d88c38 100644
-> --- a/net/ipv4/tcp_offload.c
-> +++ b/net/ipv4/tcp_offload.c
-> @@ -329,7 +329,7 @@ struct sk_buff *tcp_gro_receive(struct list_head *hea=
-d, struct sk_buff *skb,
->         th2 =3D tcp_hdr(p);
->         flush =3D (__force int)(flags & TCP_FLAG_CWR);
->         flush |=3D (__force int)((flags ^ tcp_flag_word(th2)) &
-> -                 ~(TCP_FLAG_CWR | TCP_FLAG_FIN | TCP_FLAG_PSH));
-> +                 ~(TCP_FLAG_FIN | TCP_FLAG_PSH));
->         flush |=3D (__force int)(th->ack_seq ^ th2->ack_seq);
->         for (i =3D sizeof(*th); i < thlen; i +=3D 4)
->                 flush |=3D *(u32 *)((u8 *)th + i) ^
-> @@ -405,7 +405,7 @@ void tcp_gro_complete(struct sk_buff *skb)
->         shinfo->gso_segs =3D NAPI_GRO_CB(skb)->count;
->
->         if (th->cwr)
-> -               shinfo->gso_type |=3D SKB_GSO_TCP_ECN;
-> +               shinfo->gso_type |=3D SKB_GSO_TCP_ACCECN;
->  }
->  EXPORT_SYMBOL(tcp_gro_complete);
->
 
-I do not really understand this patch. How a GRO engine can know which
-ECN variant the peers are using ?
-
-SKB_GSO_TCP_ECN is also used from other points, what is your plan ?
-
-git grep -n SKB_GSO_TCP_ECN
-drivers/net/ethernet/hisilicon/hns3/hns3_enet.c:3888:
-skb_shinfo(skb)->gso_type |=3D SKB_GSO_TCP_ECN;
-drivers/net/ethernet/mellanox/mlx5/core/en_rx.c:1291:
-skb_shinfo(skb)->gso_type |=3D SKB_GSO_TCP_ECN;
-drivers/net/ethernet/mellanox/mlx5/core/en_rx.c:1312:
-skb_shinfo(skb)->gso_type |=3D SKB_GSO_TCP_ECN;
-include/linux/netdevice.h:5061: BUILD_BUG_ON(SKB_GSO_TCP_ECN !=3D
-(NETIF_F_TSO_ECN >> NETIF_F_GSO_SHIFT));
-include/linux/skbuff.h:664:     SKB_GSO_TCP_ECN =3D 1 << 2,
-include/linux/virtio_net.h:88:                  gso_type |=3D SKB_GSO_TCP_E=
-CN;
-include/linux/virtio_net.h:161:         switch (gso_type & ~SKB_GSO_TCP_ECN=
-) {
-include/linux/virtio_net.h:226:         if (sinfo->gso_type & SKB_GSO_TCP_E=
-CN)
-net/ipv4/tcp_offload.c:404:             shinfo->gso_type |=3D SKB_GSO_TCP_E=
-CN;
-net/ipv4/tcp_output.c:389:
-skb_shinfo(skb)->gso_type |=3D SKB_GSO_TCP_ECN;
+Reviewed-by: Eric Dumazet <edumazet@google.com>
