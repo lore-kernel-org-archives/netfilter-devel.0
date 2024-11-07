@@ -1,64 +1,90 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58554185B56
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Nov 2024 17:33:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99C8813AA3F
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Nov 2024 17:46:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731000811; cv=none; b=D8f1kSqjkvcT4zQQgHKRpUXFLmN6jvereH3J5nTJWL26GK1eklKRAP6U878nfKbcC4byXXCXuaBinJ2NgNX+Q4HOoJphnmMrHfPzy7I9CVl+N75SA1jVL927Z24xv+1acnZLMKn0nVtThLXyHocXDfSgjDBA7V89fpp47HVgkf4=
+	t=1731001601; cv=none; b=MI/mFdXh0/hWTZSGSPicXqfFL/Z6XX2YU8w8vZ+PMynxoCn/o2aDRSDxU6k994Mo7oXERPjC0gJ3v/W/j4SUGgaXPJYM82Jo2aai0P06CT0EBFr8UJgWaezCO1AhhQu7JlfJPI7dPxI2Yy54Qd7PoTO2SkermRrG3WempkZ0X3Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731000811; c=relaxed/simple;
-	bh=xSlyG0t06zAHAefo88/wwHPOHl5xI4FMjwor8itpGlU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=aYVUPkZjtj2dhOfSIU5XshVUxWTojRm1fLiVVCI6phxZGTtqymWLscLwBLtN13ZWv1CNbSEm2asEto+P9fCYdvb6FVURGix3u6yHeqXa6zqghSM/FXo0jebesRunZQ3VwV4+KVMsOjJkOgzQ73eRhj50UnZsngp3jccb5xh8sDo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=d+1lA4h+; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="d+1lA4h+"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=pWo5ra9W8npV+Tbl8j7zGF8tnFPdfwJbJlhask9fp38=; b=d+1lA4h+2Q8Y7BlMjf6gWzQtAz
-	0iIBWmp3uQt0+UPribyszMKEdnbKt8vtqM6WqMuoYtRIlP7u7svqJLNNb+nvzNvwdxFxyJ4MXy48I
-	geB8DGSwfFRH0stZ5hgm73splYcGmCUKCw8Eao2ESI5Wofw0Ko1bn+cXqkkXqnhFULej+UCyFKek8
-	CnD2DyWTe+5NaTBUS9J4xFms/PIkYWmhnRY5s6VVssTbl0v3jQvhVt/E52ThJaxEJVN3sUkdUvwDm
-	pAlJa7p4Ik/BJAPjBAVd3pa4s7skc0OPEv9TJ1nCozo+0sKjqpDz9W0CAFmXua8kbKguG12WfRLLf
-	BXtn6cew==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1t96Nq-0000000067H-3nUO;
-	Thu, 07 Nov 2024 18:33:27 +0100
-Date: Thu, 7 Nov 2024 18:33:26 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-Subject: Re: [nft PATCH] tests: monitor: Become $PWD agnostic
-Message-ID: <Zyz55j3XMzjUpIpg@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-References: <20241107134636.9069-1-phil@nwl.cc>
+	s=arc-20240116; t=1731001601; c=relaxed/simple;
+	bh=wo4RxHw+yOJ8gms3H4L6O3nlxKiD91f2AegEY1JegTI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Bfis2SFab5Cu4pVQHGhD5UaHFYAo5wrf8iPTqa7vuS7egTbQZrvyY1rcSozEQXTv545R2uVBFZdWPlJEFQdgGASyGACyKga9x06YgHXLzPEahbCiGnAe7AynXTMmRrohX43OBsgsp1GnSvMlYj4n3YEZkKZyakU9WuPdY0ItRzw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1t96aa-0007Kh-M0; Thu, 07 Nov 2024 18:46:36 +0100
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next v4 0/5] netfilter: nf_tables: reduce set element transaction size
+Date: Thu,  7 Nov 2024 18:44:04 +0100
+Message-ID: <20241107174415.4690-1-fw@strlen.de>
+X-Mailer: git-send-email 2.45.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20241107134636.9069-1-phil@nwl.cc>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Nov 07, 2024 at 02:46:36PM +0100, Phil Sutter wrote:
-> The call to 'cd' is problematic since later the script tries to 'exec
-> unshare -n $0'. This is not the only problem though: Individual test
-> cases specified on command line are expected to be relative to the
-> script's directory, too. Just get rid of these nonsensical restrictions.
-> 
-> Reported-by: Florian Westphal <fw@strlen.de>
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+v4: fix a typo in patch 3 commit message.
+    rebase on nf-next:main.
 
-Patch applied.
+No other changes.
+
+Changes in v3:
+I failed to realize that nft_audit leaks one implementation detail
+to userspace: the length of the transaction log.
+This gets fixed by patch 3 which adds needed helper to increment
+the count variable by the number of elements carried by the compacted
+set update.
+
+Also fix up notifications, for update case, notifications were
+skipped but currently newsetelem notifications are done even if
+existing set element is updated.
+
+Most patches are unchanged.
+"prefer nft_trans_elem_alloc helper" is already upstreamed so
+its dropped from this batch.
+
+v2: only change is in patch 3, and by extension, the last one:
+During transaction abort, we need to handle an aggregate container to
+contain both new set elements and updates.  The latter must be
+skipped, else we remove element that already existed at start of the
+transaction.
+
+original cover letter:
+
+When doing a flush on a set or mass adding/removing elements from a
+set, each element needs to allocate 96 bytes to hold the transactional
+state.
+
+In such cases, virtually all the information in struct nft_trans_elem
+is the same.
+
+Change nft_trans_elem to a flex-array, i.e. a single nft_trans_elem
+can hold multiple set element pointers.
+
+The number of elements that can be stored in one nft_trans_elem is limited
+by the slab allocator, this series limits the compaction to at most 62
+elements as it caps the reallocation to 2048 bytes of memory.
+
+Florian Westphal (5):
+  netfilter: nf_tables: add nft_trans_commit_list_add_elem helper
+  netfilter: nf_tables: prepare for multiple elements in nft_trans_elem
+    structure
+  netfilter: nf_tables: preemptive fix for audit selftest failure
+  netfilter: nf_tables: switch trans_elem to real flex array
+  netfilter: nf_tables: allocate element update information dynamically
+
+ include/net/netfilter/nf_tables.h |  25 +-
+ net/netfilter/nf_tables_api.c     | 368 +++++++++++++++++++++++-------
+ 2 files changed, 304 insertions(+), 89 deletions(-)
+
+-- 
+2.45.2
+
