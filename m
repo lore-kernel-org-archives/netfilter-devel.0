@@ -1,144 +1,100 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0845921018C;
-	Thu,  7 Nov 2024 11:50:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3835829CE8;
+	Thu,  7 Nov 2024 12:00:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730980235; cv=none; b=toiyYcGTMaJP8BRSkkxlNckFB6wnGTAGwUNAuYTKLTBCtaTbWeU7PLSB9cax+NGn45ICAgUJ73ewRD3KA2888zcK+VDykGlsBQC/rivGGrmSbI9zTYBTjLLBcaiyLwA5Ku/yAvp3dImT/JrGsL1EkpMX33UcNZVqd5CHRICGKm0=
+	t=1730980822; cv=none; b=U9iVqFrV4ndUKu9u6ZG7Y91KngEguxanC6wnYo55QpYil3jH+8KumWe61W/W0XKGvMKutqoT40xwXf0a9hZarzdncFyYa0lfm67uo240EvMe848YlLSHpHpC6N25Sig5SKk/3ozJqKfEHaXRh+6yFZrtgjzfUy6OxJ2mWWO91/w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730980235; c=relaxed/simple;
-	bh=unrDUK7EuHXUPbfJ13rQqin9fhrr9yIkm6BHGuTqL9I=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=GT8zPcpl8uW7/48jk1zIxuUXN+UCAPQm3+SiAYZtHvuoc91XXJSlpN8/+ysZd8aw27WqM53Zx1DPZwMltHSELKTKssP6T7CaaXEc3LI9TMPHxq6/ieb2QMchSnvvwMF+Q7ccFcWeDF9HgwTrg9QPvxCcwVWahYZ1XcuZhrZ7SCM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=42192 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1t90eT-00ECKH-GN; Thu, 07 Nov 2024 12:26:15 +0100
-Date: Thu, 7 Nov 2024 12:26:12 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Paolo Abeni <pabeni@redhat.com>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org, kuba@kernel.org, edumazet@google.com,
-	fw@strlen.de
-Subject: Re: [PATCH net 1/1] netfilter: nf_tables: wait for rcu grace period
- on net_device removal
-Message-ID: <Zyyj1KUDDJXEJjkd@calendula>
-References: <20241106235853.169747-1-pablo@netfilter.org>
- <20241106235853.169747-2-pablo@netfilter.org>
- <362a90d1-a331-4bcc-8f14-495baf5c2309@redhat.com>
+	s=arc-20240116; t=1730980822; c=relaxed/simple;
+	bh=kMlZNNjGdqNjNmWbRWRq6OA7ugoN85rBSVa5GoQGYj4=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=mr/8X7aSq5ESji+lesXR6N7kUEGyta+L0UrC8Ez2xW7qi2xYcTz9FqEA2ueCCXPU/2RXP2t7ZMj5c+pN9x65HgWZyqprucPMC5/Ig5h56SVsTSIvRFnhHumE80USLmlLz7vIpulRBVm3Dh8eTFPQX9y0pc731qrIUZpL2Fzzlv4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PUq3GjPC; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PUq3GjPC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C472EC4CECC;
+	Thu,  7 Nov 2024 12:00:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1730980821;
+	bh=kMlZNNjGdqNjNmWbRWRq6OA7ugoN85rBSVa5GoQGYj4=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=PUq3GjPCOsb5FeCJBLpL05zUpyV4Rl8R9J210w1x6SEV5ZyHIviTJox2/g8ESEDhO
+	 cfs0HM4wWJYxhYKmpC5wiHqoL9tZ7eoy3CjqiAEGZzW4SL18fL3lLQPCQ+oWqf2/1I
+	 Dfaz2sPXaHKHkmB1cyUeLJNJAmpQhi2ksMsfDqyeMv/nkud2QLySXNTxnG1iDVkQ/m
+	 RhKEvEWwLrhWZdcKKPeMFMRNoGM0+Tv9RHRAANCRQrUxqvNeG8n4vJOCNn1SRkExWG
+	 JUOGvx1/1wCmhKY5vX+Aa8+nd0tvKCeS6PJhy2d/qsBs/96kOg3/T0W2X1CKRciYfr
+	 Xls1YLi9cCchQ==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 3429B3809A80;
+	Thu,  7 Nov 2024 12:00:32 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <362a90d1-a331-4bcc-8f14-495baf5c2309@redhat.com>
-X-Spam-Score: -1.9 (-)
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next 01/11] netfilter: Make legacy configs user selectable
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <173098083100.1632973.8651936222963627218.git-patchwork-notify@kernel.org>
+Date: Thu, 07 Nov 2024 12:00:31 +0000
+References: <20241106234625.168468-2-pablo@netfilter.org>
+In-Reply-To: <20241106234625.168468-2-pablo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, fw@strlen.de
 
-On Thu, Nov 07, 2024 at 11:55:47AM +0100, Paolo Abeni wrote:
-> Hi,
-> On 11/7/24 00:58, Pablo Neira Ayuso wrote:
-> > 8c873e219970 ("netfilter: core: free hooks with call_rcu") removed
-> > synchronize_net() call when unregistering basechain hook, however,
-> > net_device removal event handler for the NFPROTO_NETDEV was not updated
-> > to wait for RCU grace period.
-> > 
-> > Note that 835b803377f5 ("netfilter: nf_tables_netdev: unregister hooks
-> > on net_device removal") does not remove basechain rules on device
-> > removal, I was hinted to remove rules on net_device removal later, see
-> > 5ebe0b0eec9d ("netfilter: nf_tables: destroy basechain and rules on
-> > netdevice removal").
-> > 
-> > Although NETDEV_UNREGISTER event is guaranteed to be handled after
-> > synchronize_net() call, this path needs to wait for rcu grace period via
-> > rcu callback to release basechain hooks if netns is alive because an
-> > ongoing netlink dump could be in progress (sockets hold a reference on
-> > the netns).
-> > 
-> > Note that nf_tables_pre_exit_net() unregisters and releases basechain
-> > hooks but it is possible to see NETDEV_UNREGISTER at a later stage in
-> > the netns exit path, eg. veth peer device in another netns:
-> > 
-> >  cleanup_net()
-> >   default_device_exit_batch()
-> >    unregister_netdevice_many_notify()
-> >     notifier_call_chain()
-> >      nf_tables_netdev_event()
-> >       __nft_release_basechain()
-> > 
-> > In this particular case, same rule of thumb applies: if netns is alive,
-> > then wait for rcu grace period because netlink dump in the other netns
-> > could be in progress. Otherwise, if the other netns is going away then
-> > no netlink dump can be in progress and basechain hooks can be released
-> > inmediately.
-> > 
-> > While at it, turn WARN_ON() into WARN_ON_ONCE() for the basechain
-> > validation, which should not ever happen.
-> > 
-> > Fixes: 835b803377f5 ("netfilter: nf_tables_netdev: unregister hooks on net_device removal")
-> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > ---
-> >  include/net/netfilter/nf_tables.h |  2 ++
-> >  net/netfilter/nf_tables_api.c     | 41 +++++++++++++++++++++++++------
-> >  2 files changed, 36 insertions(+), 7 deletions(-)
-> > 
-> > diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-> > index 91ae20cb7648..8dd8e278843d 100644
-> > --- a/include/net/netfilter/nf_tables.h
-> > +++ b/include/net/netfilter/nf_tables.h
-> > @@ -1120,6 +1120,7 @@ struct nft_chain {
-> >  	char				*name;
-> >  	u16				udlen;
-> >  	u8				*udata;
-> > +	struct rcu_head			rcu_head;
+Hello:
+
+This series was applied to netdev/net-next.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
+
+On Thu,  7 Nov 2024 00:46:15 +0100 you wrote:
+> From: Breno Leitao <leitao@debian.org>
 > 
-> I'm sorry to be pedantic but the CI is complaining about the lack of
-> kdoc for this field...
+> This option makes legacy Netfilter Kconfig user selectable, giving users
+> the option to configure iptables without enabling any other config.
 > 
-> >  
-> >  	/* Only used during control plane commit phase: */
-> >  	struct nft_rule_blob		*blob_next;
-> > @@ -1282,6 +1283,7 @@ struct nft_table {
-> >  	struct list_head		sets;
-> >  	struct list_head		objects;
-> >  	struct list_head		flowtables;
-> > +	possible_net_t			net;
-> 
-> ... and this one ...
-> 
-> >  	u64				hgenerator;
-> >  	u64				handle;
-> >  	u32				use;
+> Make the following KConfig entries user selectable:
+>  * BRIDGE_NF_EBTABLES_LEGACY
+>  * IP_NF_ARPTABLES
+>  * IP_NF_IPTABLES_LEGACY
+>  * IP6_NF_IPTABLES_LEGACY
 > 
 > [...]
-> > +static void nft_release_basechain_rcu(struct rcu_head *head)
-> > +{
-> > +	struct nft_chain *chain = container_of(head, struct nft_chain, rcu_head);
-> > +	struct nft_ctx ctx = {
-> > +		.family	= chain->table->family,
-> > +		.chain	= chain,
-> > +		.net	= read_pnet(&chain->table->net),
-> > +	};
-> > +
-> > +	__nft_release_basechain_now(&ctx);
-> > +	put_net(ctx.net);
-> 
-> ... and also about deprecated API usage here, the put_net_tracker()
-> version should be preferred.
->
-> Given this change will likely land on very old trees I guess the tracker
-> conversion is better handled as a follow-up net-next patch.
 
-Agreed.
+Here is the summary with links:
+  - [net-next,01/11] netfilter: Make legacy configs user selectable
+    https://git.kernel.org/netdev/net-next/c/6c959fd5e173
+  - [net-next,02/11] netfilter: nf_tables: Fix percpu address space issues in nf_tables_api.c
+    https://git.kernel.org/netdev/net-next/c/0741f5559354
+  - [net-next,03/11] netfilter: nf_tables: replace deprecated strncpy with strscpy_pad
+    https://git.kernel.org/netdev/net-next/c/544dded8cb63
+  - [net-next,04/11] netfilter: nf_tables: prefer nft_trans_elem_alloc helper
+    https://git.kernel.org/netdev/net-next/c/08e52cccae11
+  - [net-next,05/11] netfilter: nf_tables: avoid false-positive lockdep splat on rule deletion
+    https://git.kernel.org/netdev/net-next/c/9adbb4198bf6
+  - [net-next,06/11] netfilter: nf_tables: avoid false-positive lockdep splats with sets
+    https://git.kernel.org/netdev/net-next/c/8f5f3786dba7
+  - [net-next,07/11] netfilter: nf_tables: avoid false-positive lockdep splats with flowtables
+    https://git.kernel.org/netdev/net-next/c/b3e8f29d6b45
+  - [net-next,08/11] netfilter: nf_tables: avoid false-positive lockdep splats in set walker
+    https://git.kernel.org/netdev/net-next/c/28b7a6b84c0a
+  - [net-next,09/11] netfilter: nf_tables: avoid false-positive lockdep splats with basechain hook
+    https://git.kernel.org/netdev/net-next/c/3567146b94af
+  - [net-next,10/11] netfilter: nf_tables: must hold rcu read lock while iterating expression type list
+    https://git.kernel.org/netdev/net-next/c/ee666a541ed9
+  - [net-next,11/11] netfilter: nf_tables: must hold rcu read lock while iterating object type list
+    https://git.kernel.org/netdev/net-next/c/cddc04275f95
 
-> Would you mind addressing the kdoc above? Today PR will be handled by
-> Jakub quite later, so there is a bit of time.
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-I will fix kdoc and resubmit.
+
