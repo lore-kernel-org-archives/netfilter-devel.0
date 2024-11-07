@@ -1,35 +1,30 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B91E217F21;
-	Thu,  7 Nov 2024 19:40:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01F1B186E58
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Nov 2024 19:43:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731008421; cv=none; b=FK0o1kVSGIpE1Lzcmi25xtZ0uTFlRA5d35aehEkOjp5o1EEmsXbR9Bv4pW8aACXCTAIP+DOm8QO5Rgl+I6F/lPCCBDs52dFVbEmn+rgshZDCmGb1oBRy+n52KQJjg6AMjTJk8luq7ifXQeJ/2ZDI8BxV6n8PTW7K5MtcYevQoZI=
+	t=1731008626; cv=none; b=KbkrTFsOBvpMhaBxpULL5goSnapf+d5S3+si7XnbwKQ50QbFTTe6j8KtNGNKynqOJcQ0fpGaz/OyGr2keSwJzLHjyxac6juwd/xG8bSBH2N+kROnH7AcHdhF2ACUqw1xL3AqPJNj+s6+kO7cuAK4kFiQcnEf4gvgoU8iBE+K54M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731008421; c=relaxed/simple;
-	bh=IWvqkmTISTARZW0y3rN5iLDc3lj9CpSikNJUn4V2T2A=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=jARD3Hf9ToMiWuEy23wdeZNpAM9fEHrxzqr4PGOlHdWy+YDjFjrs+qD0pERdAZ+sZbXmSdBXHnXAGLKHIEh4BbTPulnBblfM4nFgsIyhP0w1XlrUBaE1yy9Zrbbr/qYh3Y15Iq9pFrJFS3rl5Fp1ipP1WSL2Q+JVr8RdIDWv4gc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Er5cwivK; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Er5cwivK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFBA1C4CED3;
-	Thu,  7 Nov 2024 19:40:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1731008420;
-	bh=IWvqkmTISTARZW0y3rN5iLDc3lj9CpSikNJUn4V2T2A=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=Er5cwivKMuEEAWYBP8V80Wo1Yk2uTHAiDvMF9sfrny17jJpVfK5siM5dNs2Jw5hFI
-	 tqpuMoT55ZfPIOSoSAnvK1dSJ1I7QvmSc3GEoNqGAGt5SZiRGPR8rteuUp5r9ErtXa
-	 gQfpBFB8MWhN+iDjg1paKniFzyDwhufAohWAdl6ye0OleUMG5TX3IPZMHHw9o8p2UJ
-	 x80ifmvyfY0HiyTgadV67oYRPwe8rah1TQ3FEC313JgtNKf0GADdwWkdg6bKNO7Mlp
-	 d0oauorayYPrOEeX/v/Z6KX8oedPuEjR9+y4Ohqhz3CTeM5ZrOpEvlCh1PxjXhXa41
-	 OfMaERBsreXGQ==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 33D7D3809A80;
-	Thu,  7 Nov 2024 19:40:31 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=arc-20240116; t=1731008626; c=relaxed/simple;
+	bh=Z/x7pkCcPhDxoZmX4lyzAnVKCrlD4ds1IPbDyDvQuhA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=AC1pphDNoCxCVZNXU9EkueXUCk/HxLb3Uto+aZalXXvOO53LjimOI3Zp3QHmSHdjIOpzIvm80bnFPCuZnD7Ipr9HVgT35mG0a5cKZTXEoUNKXdBQFQRXgKPqqtKDSCEjQFRA+A2Sg/ozCuSqckBaBpHPXr/OTd3iVFjkrPQ5jz0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1t98Pt-0008AK-Ty; Thu, 07 Nov 2024 20:43:41 +0100
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>,
+	Nadia Pinaeva <n.m.pinaeva@gmail.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf-next] netfilter: conntrack: add conntrack event timestamp
+Date: Thu,  7 Nov 2024 20:41:14 +0100
+Message-ID: <20241107194117.32116-1-fw@strlen.de>
+X-Mailer: git-send-email 2.45.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,45 +32,210 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/1] netfilter: nf_tables: wait for rcu grace period on
- net_device removal
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <173100843000.2072933.7866260416336178549.git-patchwork-notify@kernel.org>
-Date: Thu, 07 Nov 2024 19:40:30 +0000
-References: <20241107113212.116634-2-pablo@netfilter.org>
-In-Reply-To: <20241107113212.116634-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de
 
-Hello:
+Nadia Pinaeva writes:
+  I am working on a tool that allows collecting network performance
+  metrics by using conntrack events.
+  Start time of a conntrack entry is used to evaluate seen_reply
+  latency, therefore the sooner it is timestamped, the better the
+  precision is.
+  In particular, when using this tool to compare the performance of the
+  same feature implemented using iptables/nftables/OVS it is crucial
+  to have the entry timestamped earlier to see any difference.
 
-This patch was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+At this time, conntrack events can only get timestamped at recv time in
+userspace, so there can be some delay between the event being generated
+and the userspace process consuming the message.
 
-On Thu,  7 Nov 2024 12:32:12 +0100 you wrote:
-> 8c873e219970 ("netfilter: core: free hooks with call_rcu") removed
-> synchronize_net() call when unregistering basechain hook, however,
-> net_device removal event handler for the NFPROTO_NETDEV was not updated
-> to wait for RCU grace period.
-> 
-> Note that 835b803377f5 ("netfilter: nf_tables_netdev: unregister hooks
-> on net_device removal") does not remove basechain rules on device
-> removal, I was hinted to remove rules on net_device removal later, see
-> 5ebe0b0eec9d ("netfilter: nf_tables: destroy basechain and rules on
-> netdevice removal").
-> 
-> [...]
+There is sys/net/netfilter/nf_conntrack_timestamp, which adds a
+64bit timestamp (ns resolution) that records start and stop times,
+but its not suited for this either, start time is the 'hashtable insertion
+time', not 'conntrack allocation time'.
 
-Here is the summary with links:
-  - [net,1/1] netfilter: nf_tables: wait for rcu grace period on net_device removal
-    https://git.kernel.org/netdev/net/c/c03d278fdf35
+There is concern that moving the start-time moment to conntrack
+allocation will add overhead in case of flooding, where conntrack
+entries are allocated and released right away without getting inserted
+into the hashtable.
 
-You are awesome, thank you!
+Also, even if this was changed it would not with events other than
+new (start time) and destroy (stop time).
+
+Pablo suggested to add new CTA_TIMESTAMP_EVENT, this adds this feature.
+The timestamp is recorded in case both events are requested and the
+sys/net/netfilter/nf_conntrack_timestamp toggle is enabled.
+
+Reported-by: Nadia Pinaeva <n.m.pinaeva@gmail.com>
+Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ Changes since last RFC:
+  - fix ifdef in nf_conntrack_event_cache, it missed CONFIG_ prefix,
+  making cpp remove the event update
+  - missing cpu_to_be64 when placing the timestamp into the netlink
+  message
+  - use local64_t to avoid load/store tearing on 32bit platforms.
+  one cpu might be reading e->timestamp to place it in netlink
+  message while other CPU is updating e->timestamp.
+
+ include/net/netfilter/nf_conntrack_ecache.h   | 11 ++++++++
+ .../linux/netfilter/nfnetlink_conntrack.h     |  1 +
+ net/netfilter/nf_conntrack_ecache.c           | 23 +++++++++++++++++
+ net/netfilter/nf_conntrack_netlink.c          | 25 +++++++++++++++++++
+ 4 files changed, 60 insertions(+)
+
+diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
+index 0c1dac318e02..8f2e375c76d6 100644
+--- a/include/net/netfilter/nf_conntrack_ecache.h
++++ b/include/net/netfilter/nf_conntrack_ecache.h
+@@ -20,6 +20,9 @@ enum nf_ct_ecache_state {
+ 
+ struct nf_conntrack_ecache {
+ 	unsigned long cache;		/* bitops want long */
++#ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
++	local64_t timestamp;		/* event timestamp, in nanoseconds */
++#endif
+ 	u16 ctmask;			/* bitmask of ct events to be delivered */
+ 	u16 expmask;			/* bitmask of expect events to be delivered */
+ 	u32 missed;			/* missed events */
+@@ -108,6 +111,14 @@ nf_conntrack_event_cache(enum ip_conntrack_events event, struct nf_conn *ct)
+ 	if (e == NULL)
+ 		return;
+ 
++#ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
++	/* renew only if this is the first cached event, so that the
++	 * timestamp reflects the first, not the last, generated event.
++	 */
++	if (local64_read(&e->timestamp) && READ_ONCE(e->cache) == 0)
++		local64_set(&e->timestamp, ktime_get_real_ns());
++#endif
++
+ 	set_bit(event, &e->cache);
+ #endif
+ }
+diff --git a/include/uapi/linux/netfilter/nfnetlink_conntrack.h b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
+index c2ac7269acf7..43233af75b9d 100644
+--- a/include/uapi/linux/netfilter/nfnetlink_conntrack.h
++++ b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
+@@ -57,6 +57,7 @@ enum ctattr_type {
+ 	CTA_SYNPROXY,
+ 	CTA_FILTER,
+ 	CTA_STATUS_MASK,
++	CTA_TIMESTAMP_EVENT,
+ 	__CTA_MAX
+ };
+ #define CTA_MAX (__CTA_MAX - 1)
+diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
+index 69948e1d6974..af68c64acaab 100644
+--- a/net/netfilter/nf_conntrack_ecache.c
++++ b/net/netfilter/nf_conntrack_ecache.c
+@@ -162,6 +162,14 @@ static int __nf_conntrack_eventmask_report(struct nf_conntrack_ecache *e,
+ 	return ret;
+ }
+ 
++static void nf_ct_ecache_tstamp_refresh(struct nf_conntrack_ecache *e)
++{
++#ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
++	if (local64_read(&e->timestamp))
++		local64_set(&e->timestamp, ktime_get_real_ns());
++#endif
++}
++
+ int nf_conntrack_eventmask_report(unsigned int events, struct nf_conn *ct,
+ 				  u32 portid, int report)
+ {
+@@ -186,6 +194,8 @@ int nf_conntrack_eventmask_report(unsigned int events, struct nf_conn *ct,
+ 	/* This is a resent of a destroy event? If so, skip missed */
+ 	missed = e->portid ? 0 : e->missed;
+ 
++	nf_ct_ecache_tstamp_refresh(e);
++
+ 	ret = __nf_conntrack_eventmask_report(e, events, missed, &item);
+ 	if (unlikely(ret < 0 && (events & (1 << IPCT_DESTROY)))) {
+ 		/* This is a destroy event that has been triggered by a process,
+@@ -297,6 +307,18 @@ void nf_conntrack_ecache_work(struct net *net, enum nf_ct_ecache_state state)
+ 	}
+ }
+ 
++static void nf_ct_ecache_tstamp_new(const struct nf_conn *ct, struct nf_conntrack_ecache *e)
++{
++#ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
++	u64 ts = 0;
++
++	if (nf_ct_ext_exist(ct, NF_CT_EXT_TSTAMP))
++		ts = ktime_get_real_ns();
++
++	local64_set(&e->timestamp, ts);
++#endif
++}
++
+ bool nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp)
+ {
+ 	struct net *net = nf_ct_net(ct);
+@@ -326,6 +348,7 @@ bool nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp
+ 
+ 	e = nf_ct_ext_add(ct, NF_CT_EXT_ECACHE, gfp);
+ 	if (e) {
++		nf_ct_ecache_tstamp_new(ct, e);
+ 		e->ctmask  = ctmask;
+ 		e->expmask = expmask;
+ 	}
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 36168f8b6efa..e09445a2f1fa 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -382,6 +382,23 @@ static int ctnetlink_dump_secctx(struct sk_buff *skb, const struct nf_conn *ct)
+ #define ctnetlink_dump_secctx(a, b) (0)
+ #endif
+ 
++static int
++ctnetlink_dump_event_timestamp(struct sk_buff *skb, const struct nf_conn *ct)
++{
++#ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
++	const struct nf_conntrack_ecache *e = nf_ct_ecache_find(ct);
++
++	if (e) {
++		u64 ts = local64_read(&e->timestamp);
++
++		if (ts)
++			return nla_put_be64(skb, CTA_TIMESTAMP_EVENT,
++					    cpu_to_be64(ts), CTA_TIMESTAMP_PAD);
++	}
++#endif
++	return 0;
++}
++
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
+ static inline int ctnetlink_label_size(const struct nf_conn *ct)
+ {
+@@ -717,6 +734,9 @@ static size_t ctnetlink_nlmsg_size(const struct nf_conn *ct)
+ #endif
+ 	       + ctnetlink_proto_size(ct)
+ 	       + ctnetlink_label_size(ct)
++#ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
++	       + nla_total_size(sizeof(u64)) /* CTA_TIMESTAMP_EVENT */
++#endif
+ 	       ;
+ }
+ 
+@@ -838,6 +858,10 @@ ctnetlink_conntrack_event(unsigned int events, const struct nf_ct_event *item)
+ 	if (ctnetlink_dump_mark(skb, ct, events & (1 << IPCT_MARK)))
+ 		goto nla_put_failure;
+ #endif
++
++	if (ctnetlink_dump_event_timestamp(skb, ct))
++		goto nla_put_failure;
++
+ 	nlmsg_end(skb, nlh);
+ 	err = nfnetlink_send(skb, net, item->portid, group, item->report,
+ 			     GFP_ATOMIC);
+@@ -1557,6 +1581,7 @@ static const struct nla_policy ct_nla_policy[CTA_MAX+1] = {
+ 				    .len = NF_CT_LABELS_MAX_SIZE },
+ 	[CTA_FILTER]		= { .type = NLA_NESTED },
+ 	[CTA_STATUS_MASK]	= { .type = NLA_U32 },
++	[CTA_TIMESTAMP_EVENT]	= { .type = NLA_REJECT },
+ };
+ 
+ static int ctnetlink_flush_iterate(struct nf_conn *ct, void *data)
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.45.2
 
