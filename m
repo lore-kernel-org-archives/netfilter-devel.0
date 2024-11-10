@@ -1,303 +1,120 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f67.google.com (mail-wm1-f67.google.com [209.85.128.67])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37D9B19D88F;
-	Sat,  9 Nov 2024 21:39:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78C9213D600
+	for <netfilter-devel@vger.kernel.org>; Sun, 10 Nov 2024 11:16:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.67
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731188344; cv=none; b=KhPEb8nf0myq+HQS1beVtE/gtnUMDL/adwUBwWgx9Ljypb7B0ObcX2uM2absugFfEvNeJYQn68zV1+za9/dUN9CtTH7E6mqR3ayedjWBOCC7DfzJ+GGXrIPnwD54JLYtulbcwXBzEbSX9v3M/N6Hvz/TL6ZNA+s9o+klhUiwuEo=
+	t=1731237421; cv=none; b=rd94979mcb3nU6cyHRHSH1YRdEpEp6EHyLjRu6Lp5Wi60CLTXDfI8iSNlNv05F+r6nvy/tf5DjI7UtxGfojjM0kcS9ExMUipp6jQTjXSlRejBXfmNe12xsHqZ3YLgr5/rN9GmZzB9QddU8TqlFBYhgwLrPcmn/GCw+U3hrbq5Zk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731188344; c=relaxed/simple;
-	bh=3ivJDVR/IiK9Pz6kCOt7aV6TK4uN/fU2uSzeItVkkW0=;
-	h=From:Date:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=PsH4MybY/O+BQvijf2doMwjZGEylWj67ToXLPMiZl+Qs8osKXWe8ltz4rnj+nUkSumWgf7WE9dG78B3uzzxSFp9LU88jEhy57D6HENJrsUJ4vPkM6qVVciTZHGAEbWyCQHebkcdlmeqV6CM56/c7pZbMk9TH1Yu82jzXlPlnyTo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=tZPBwXEY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731237421; c=relaxed/simple;
+	bh=tpzV2q/50D3760J6uKtweytmsfUzU7l4MS1KnjlHSqg=;
+	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
+	 In-Reply-To:Content-Type; b=BQBMnzI0ur2mPhl4jfwLtxlv+6wF71BVx7wbTvdoRACSNoFv85TZRq6YGOeUCfDz+trLwYgyRn+x9F9UU0xMhwDyw3rBXHYvIdAHLp5ylj6Pc2ktyL1IGTTGZKAtNBp1YLmi3j5gK8OvLu6si3EQhV823z8n1mlO00E4O0JW8C4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=MQXH8UTg; arc=none smtp.client-ip=209.85.128.67
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="tZPBwXEY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45176C4CECE;
-	Sat,  9 Nov 2024 21:39:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1731188343;
-	bh=3ivJDVR/IiK9Pz6kCOt7aV6TK4uN/fU2uSzeItVkkW0=;
-	h=From:Date:To:cc:Subject:In-Reply-To:References:From;
-	b=tZPBwXEYp2JwRqZVnxYJ1HF9CUoi4SOjmcqIpoaPLnQkU9cDQImQZ9DACRgiM9QTL
-	 svpJos8+Zb+NiopvlChTVRI9p9oy+opnPtchPbn7yokdnjyyfibQRsYle5UmtOVjVK
-	 G9A8OAN8phWZQ2XOHZea95+8lQ1NDSzzbXQ7d4WlNTMbVDji3GXXJBPxtXQd3DqGB8
-	 f6NxmVMldNJPl56G49w/NAYZHcbyTUENapVN94ENEs+oY4Oz8LZ5D5+lxnmXvx/An+
-	 ciRTGhhrpoEvD3eTFWorfR20hl/RsIkMVvQplUIIGwoaj1plwaki5n2OeUCVmgZH3e
-	 o6odSq7zyFlhQ==
-From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ij@kernel.org>
-Date: Sat, 9 Nov 2024 23:38:58 +0200 (EET)
-To: Neal Cardwell <ncardwell@google.com>
-cc: Chia-Yu Chang <chia-yu.chang@nokia-bell-labs.com>, netdev@vger.kernel.org, 
-    dsahern@gmail.com, davem@davemloft.net, edumazet@google.com, 
-    dsahern@kernel.org, pabeni@redhat.com, joel.granados@kernel.org, 
-    kuba@kernel.org, andrew+netdev@lunn.ch, horms@kernel.org, 
-    pablo@netfilter.org, kadlec@netfilter.org, netfilter-devel@vger.kernel.org, 
-    coreteam@netfilter.org, koen.de_schepper@nokia-bell-labs.com, 
-    g.white@cablelabs.com, ingemar.s.johansson@ericsson.com, 
-    mirja.kuehlewind@ericsson.com, cheshire@apple.com, rs.ietf@gmx.at, 
-    Jason_Livingood@comcast.com, vidhi_goel@apple.com, 
-    Bob Briscoe <ietf@bobbriscoe.net>
-Subject: Re: [PATCH v5 net-next 08/13] gso: AccECN support
-In-Reply-To: <CADVnQym4VF9dmV9Q4GGXXoBr-0nNrM181rSZFR2cNJv+MDGO8w@mail.gmail.com>
-Message-ID: <246379fa-a651-03f0-d1b2-b1091f4e14e8@kernel.org>
-References: <20241105100647.117346-1-chia-yu.chang@nokia-bell-labs.com> <20241105100647.117346-9-chia-yu.chang@nokia-bell-labs.com> <661b9e25-0237-ef1f-e2fa-86ca52f676a2@kernel.org> <CADVnQym4VF9dmV9Q4GGXXoBr-0nNrM181rSZFR2cNJv+MDGO8w@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="MQXH8UTg"
+Received: by mail-wm1-f67.google.com with SMTP id 5b1f17b1804b1-43193678216so34366805e9.0
+        for <netfilter-devel@vger.kernel.org>; Sun, 10 Nov 2024 03:16:59 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=suse.com; s=google; t=1731237418; x=1731842218; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:content-language:references
+         :cc:to:from:subject:user-agent:mime-version:date:message-id:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=3w6Ve//DovfLrFxkEMYSPB+GqT7SVpJIvOnce0hUe5A=;
+        b=MQXH8UTgMmojgayZ79bcElpfGoUg9HIQuSdj2AhSuCS2pdvMI4IT4eKiYdAup1Qj7H
+         qfLcU689x7SMEXUu1Q7oJNtkzimwLB20KqprnRgZYLSP1nHosdmgkIWmNQLteJ4HUHKr
+         tVG6O+1tbS0yGVz/mKoD6bgl7InVCvduDF5VFvXanjcXZahZgGX1wF7Midp+cUapUMzE
+         3rc63CCozkZIe+WYP7ZgOGz2grp8o5AjpNl8e7Gen1n5sx2TV8FRjqiiMYMfb1kiKUzn
+         kCWJB7g0DXo5opP4KjlcKFOTivF2a/iPlWd7hKfMoZGgCjeZzYQI5FTd/9lMopmDnPYE
+         WnPA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1731237418; x=1731842218;
+        h=content-transfer-encoding:in-reply-to:content-language:references
+         :cc:to:from:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=3w6Ve//DovfLrFxkEMYSPB+GqT7SVpJIvOnce0hUe5A=;
+        b=iI/ULNSUcdNvARhajttoH1baSaXBe9YwH2SzeOoELMWiIYDHgeQ5IColH5Oxla6PQm
+         FllnA0VKfTED/zDKR2tOh+Op4tCeYpNcBO1FMHo2ZFbTiICyv/HafnVR8a1GPO/ep0CF
+         evz82Dr4ppqEOXWxOfKQ8BLIl5rRIHfCXRMHtksy8pRzHSZ1FAJPxMCsbXZ/D2i1uwZQ
+         hNL4qSYY4Eb65CO9bJdGOhp0vl4Sv+76iPr9rfQuNeHbzqI9rhAPYT85v37EOBR3Og3d
+         pVsVgZgLlp6HtNYN/rEM65JhORf4e4Y9wq6GnXkXHJtq4ScZobmrr3n24p67ZlIbBg+z
+         BqwQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVdAi3ciAVDovlN0+9lY9lzZ27hcSXqwmz2j/a8Qrwkssq/5+w1QaZX/ELUbIsAlBpU59WhHR4a89Trw7n+jiQ=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyVtxrKaGdo0pTn50hXsGfyVIVu96b2iWqQP2vgdEw9tXIPU6RT
+	6+nd6EqdGPJZdVKZXnwJso9COOY50y+tHlH4w9+6ZyVq1V21Sef1dn0jEA/t5sM=
+X-Google-Smtp-Source: AGHT+IEpxoOOpKWXGZTpyJk07IvY4K3qEPn5njX8ML6walu2l2kv3UOWuO0yORDo0uQ7KzZS3zMM1g==
+X-Received: by 2002:a5d:5f41:0:b0:37d:4f1b:35d with SMTP id ffacd0b85a97d-381f188c1d7mr7489496f8f.48.1731237417671;
+        Sun, 10 Nov 2024 03:16:57 -0800 (PST)
+Received: from [10.202.64.22] ([202.127.77.110])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-21177de0872sm58427905ad.110.2024.11.10.03.16.49
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 10 Nov 2024 03:16:57 -0800 (PST)
+Message-ID: <636e7228-2848-4507-84ec-be62d0e8b9a4@suse.com>
+Date: Sun, 10 Nov 2024 19:16:47 +0800
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; BOUNDARY="8323328-468571206-1731187719=:1016"
-Content-ID: <2ebad6fa-56f9-b27b-5c2b-75037c78f34d@kernel.org>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] nf_conntrack_proto_udp: Set ASSURED for NAT_CLASH entries
+ to avoid packets dropped
+From: Yadan Fan <ydfan@suse.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>, netfilter-devel@vger.kernel.org,
+ Michal Kubecek <mkubecek@suse.de>, Hannes Reinecke <hare@kernel.org>
+References: <fd991e87-a97b-49af-892f-685b93833bd8@suse.com>
+Content-Language: en-US
+In-Reply-To: <fd991e87-a97b-49af-892f-685b93833bd8@suse.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi,
 
---8323328-468571206-1731187719=:1016
-Content-Type: text/plain; CHARSET=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <2aa45649-f36a-32e1-5e78-622692603dc0@kernel.org>
+This patch is still not processed further:
 
-On Sat, 9 Nov 2024, Neal Cardwell wrote:
+https://patchwork.ozlabs.org/project/netfilter-devel/list/?submitter=89472
 
-> On Sat, Nov 9, 2024 at 5:09=E2=80=AFAM Ilpo J=C3=A4rvinen <ij@kernel.org>=
- wrote:
-> >
-> > On Tue, 5 Nov 2024, chia-yu.chang@nokia-bell-labs.com wrote:
-> >
-> > > From: Ilpo J=C3=A4rvinen <ij@kernel.org>
-> > >
-> > > Handling the CWR flag differs between RFC 3168 ECN and AccECN.
-> > > With RFC 3168 ECN aware TSO (NETIF_F_TSO_ECN) CWR flag is cleared
-> > > starting from 2nd segment which is incompatible how AccECN handles
-> > > the CWR flag. Such super-segments are indicated by SKB_GSO_TCP_ECN.
-> > > With AccECN, CWR flag (or more accurately, the ACE field that also
-> > > includes ECE & AE flags) changes only when new packet(s) with CE
-> > > mark arrives so the flag should not be changed within a super-skb.
-> > > The new skb/feature flags are necessary to prevent such TSO engines
-> > > corrupting AccECN ACE counters by clearing the CWR flag (if the
-> > > CWR handling feature cannot be turned off).
-> > >
-> > > If NIC is completely unaware of RFC3168 ECN (doesn't support
-> > > NETIF_F_TSO_ECN) or its TSO engine can be set to not touch CWR flag
-> > > despite supporting also NETIF_F_TSO_ECN, TSO could be safely used
-> > > with AccECN on such NIC. This should be evaluated per NIC basis
-> > > (not done in this patch series for any NICs).
-> > >
-> > > For the cases, where TSO cannot keep its hands off the CWR flag,
-> > > a GSO fallback is provided by this patch.
-> > >
-> > > Signed-off-by: Ilpo J=C3=A4rvinen <ij@kernel.org>
-> > > Signed-off-by: Chia-Yu Chang <chia-yu.chang@nokia-bell-labs.com>
-> > > ---
-> > >  include/linux/netdev_features.h | 8 +++++---
-> > >  include/linux/netdevice.h       | 2 ++
-> > >  include/linux/skbuff.h          | 2 ++
-> > >  net/ethtool/common.c            | 1 +
-> > >  net/ipv4/tcp_offload.c          | 6 +++++-
-> > >  5 files changed, 15 insertions(+), 4 deletions(-)
-> > >
-> > > diff --git a/include/linux/netdev_features.h b/include/linux/netdev_f=
-eatures.h
-> > > index 66e7d26b70a4..c59db449bcf0 100644
-> > > --- a/include/linux/netdev_features.h
-> > > +++ b/include/linux/netdev_features.h
-> > > @@ -53,12 +53,12 @@ enum {
-> > >       NETIF_F_GSO_UDP_BIT,            /* ... UFO, deprecated except t=
-untap */
-> > >       NETIF_F_GSO_UDP_L4_BIT,         /* ... UDP payload GSO (not UFO=
-) */
-> > >       NETIF_F_GSO_FRAGLIST_BIT,               /* ... Fraglist GSO */
-> > > +     NETIF_F_GSO_ACCECN_BIT,         /* TCP AccECN w/ TSO (no clear =
-CWR) */
-> > >       /**/NETIF_F_GSO_LAST =3D          /* last bit, see GSO_MASK */
-> > > -             NETIF_F_GSO_FRAGLIST_BIT,
-> > > +             NETIF_F_GSO_ACCECN_BIT,
-> > >
-> > >       NETIF_F_FCOE_CRC_BIT,           /* FCoE CRC32 */
-> > >       NETIF_F_SCTP_CRC_BIT,           /* SCTP checksum offload */
-> > > -     __UNUSED_NETIF_F_37,
-> > >       NETIF_F_NTUPLE_BIT,             /* N-tuple filters supported */
-> > >       NETIF_F_RXHASH_BIT,             /* Receive hashing offload */
-> > >       NETIF_F_RXCSUM_BIT,             /* Receive checksumming offload=
- */
-> > > @@ -128,6 +128,7 @@ enum {
-> > >  #define NETIF_F_SG           __NETIF_F(SG)
-> > >  #define NETIF_F_TSO6         __NETIF_F(TSO6)
-> > >  #define NETIF_F_TSO_ECN              __NETIF_F(TSO_ECN)
-> > > +#define NETIF_F_GSO_ACCECN   __NETIF_F(GSO_ACCECN)
-> > >  #define NETIF_F_TSO          __NETIF_F(TSO)
-> > >  #define NETIF_F_VLAN_CHALLENGED      __NETIF_F(VLAN_CHALLENGED)
-> > >  #define NETIF_F_RXFCS                __NETIF_F(RXFCS)
-> > > @@ -210,7 +211,8 @@ static inline int find_next_netdev_feature(u64 fe=
-ature, unsigned long start)
-> > >                                NETIF_F_TSO_ECN | NETIF_F_TSO_MANGLEID=
-)
-> > >
-> > >  /* List of features with software fallbacks. */
-> > > -#define NETIF_F_GSO_SOFTWARE (NETIF_F_ALL_TSO | NETIF_F_GSO_SCTP |  =
-      \
-> > > +#define NETIF_F_GSO_SOFTWARE (NETIF_F_ALL_TSO | \
-> > > +                              NETIF_F_GSO_ACCECN | NETIF_F_GSO_SCTP =
-| \
-> > >                                NETIF_F_GSO_UDP_L4 | NETIF_F_GSO_FRAGL=
-IST)
-> > >
-> > >  /*
-> > > diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-> > > index 6e0f8e4aeb14..480d915b3bdb 100644
-> > > --- a/include/linux/netdevice.h
-> > > +++ b/include/linux/netdevice.h
-> > > @@ -5076,6 +5076,8 @@ static inline bool net_gso_ok(netdev_features_t=
- features, int gso_type)
-> > >       BUILD_BUG_ON(SKB_GSO_UDP !=3D (NETIF_F_GSO_UDP >> NETIF_F_GSO_S=
-HIFT));
-> > >       BUILD_BUG_ON(SKB_GSO_UDP_L4 !=3D (NETIF_F_GSO_UDP_L4 >> NETIF_F=
-_GSO_SHIFT));
-> > >       BUILD_BUG_ON(SKB_GSO_FRAGLIST !=3D (NETIF_F_GSO_FRAGLIST >> NET=
-IF_F_GSO_SHIFT));
-> > > +     BUILD_BUG_ON(SKB_GSO_TCP_ACCECN !=3D
-> > > +                  (NETIF_F_GSO_ACCECN >> NETIF_F_GSO_SHIFT));
-> > >
-> > >       return (features & feature) =3D=3D feature;
-> > >  }
-> > > diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-> > > index 48f1e0fa2a13..530cb325fb86 100644
-> > > --- a/include/linux/skbuff.h
-> > > +++ b/include/linux/skbuff.h
-> > > @@ -694,6 +694,8 @@ enum {
-> > >       SKB_GSO_UDP_L4 =3D 1 << 17,
-> > >
-> > >       SKB_GSO_FRAGLIST =3D 1 << 18,
-> > > +
-> > > +     SKB_GSO_TCP_ACCECN =3D 1 << 19,
-> > >  };
-> > >
-> > >  #if BITS_PER_LONG > 32
-> > > diff --git a/net/ethtool/common.c b/net/ethtool/common.c
-> > > index 0d62363dbd9d..5c3ba2dfaa74 100644
-> > > --- a/net/ethtool/common.c
-> > > +++ b/net/ethtool/common.c
-> > > @@ -32,6 +32,7 @@ const char netdev_features_strings[NETDEV_FEATURE_C=
-OUNT][ETH_GSTRING_LEN] =3D {
-> > >       [NETIF_F_TSO_BIT] =3D              "tx-tcp-segmentation",
-> > >       [NETIF_F_GSO_ROBUST_BIT] =3D       "tx-gso-robust",
-> > >       [NETIF_F_TSO_ECN_BIT] =3D          "tx-tcp-ecn-segmentation",
-> > > +     [NETIF_F_GSO_ACCECN_BIT] =3D       "tx-tcp-accecn-segmentation"=
-,
-> > >       [NETIF_F_TSO_MANGLEID_BIT] =3D     "tx-tcp-mangleid-segmentatio=
-n",
-> > >       [NETIF_F_TSO6_BIT] =3D             "tx-tcp6-segmentation",
-> > >       [NETIF_F_FSO_BIT] =3D              "tx-fcoe-segmentation",
-> > > diff --git a/net/ipv4/tcp_offload.c b/net/ipv4/tcp_offload.c
-> > > index 2308665b51c5..0b05f30e9e5f 100644
-> > > --- a/net/ipv4/tcp_offload.c
-> > > +++ b/net/ipv4/tcp_offload.c
-> > > @@ -139,6 +139,7 @@ struct sk_buff *tcp_gso_segment(struct sk_buff *s=
-kb,
-> > >       struct sk_buff *gso_skb =3D skb;
-> > >       __sum16 newcheck;
-> > >       bool ooo_okay, copy_destructor;
-> > > +     bool ecn_cwr_mask;
-> > >       __wsum delta;
-> > >
-> > >       th =3D tcp_hdr(skb);
-> > > @@ -198,6 +199,8 @@ struct sk_buff *tcp_gso_segment(struct sk_buff *s=
-kb,
-> > >
-> > >       newcheck =3D ~csum_fold(csum_add(csum_unfold(th->check), delta)=
-);
-> > >
-> > > +     ecn_cwr_mask =3D !!(skb_shinfo(gso_skb)->gso_type & SKB_GSO_TCP=
-_ACCECN);
-> > > +
-> > >       while (skb->next) {
-> > >               th->fin =3D th->psh =3D 0;
-> > >               th->check =3D newcheck;
-> > > @@ -217,7 +220,8 @@ struct sk_buff *tcp_gso_segment(struct sk_buff *s=
-kb,
-> > >               th =3D tcp_hdr(skb);
-> > >
-> > >               th->seq =3D htonl(seq);
-> > > -             th->cwr =3D 0;
-> > > +
-> > > +             th->cwr &=3D ecn_cwr_mask;
-> >
-> > Hi all,
-> >
-> > I started to wonder if this approach would avoid CWR corruption without
-> > need to introduce the SKB_GSO_TCP_ACCECN flag at all:
-> >
-> > - Never set SKB_GSO_TCP_ECN for any skb
-> > - Split CWR segment on TCP level before sending. While this causes need=
- to
-> > split the super skb, it's once per RTT thing so does not sound very
-> > significant (compare e.g. with SACK that cause split on every ACK)
-> > - Remove th->cwr cleaning from GSO (the above line)
-> > - Likely needed: don't negotiate HOST/GUEST_ECN in virtio
-> >
-> > I think that would prevent offloading treating CWR flag as RFC3168 and =
-CWR
-> > would be just copied as is like a normal flag which is required to not
-> > corrupt it. In practice, RFC3168 style traffic would just not combine
-> > anything with the CWR'ed packet as CWRs are singletons with RFC3168.
-> >
-> > Would that work? It sure sounds too simple to work but I cannot
-> > immediately see why it would not.
->=20
-> The above description just seems to describe the dynamics for the
-> RFC3168 case (since it mentions the CWR bit being set as just a "once
-> per RTT thing").
+May I ask when this patch is planed to be merged?
 
-For RFC3168 ECN case, that will still hold.
+Thanks,
+Yadan Fan
 
-I think the misunderstanding was from this, I meant to only briefly say
-how this would impact TCP using RFC3168 ECN. It needs to split CWR segment=
-=20
-to own skb to not share skb with non-CWR segments and that even is=20
-infrequent enough (one per RTT) that it doesn't sound a bad compromise.
+On 10/10/24 20:19, Yadan Fan wrote:
+> c46172147ebb brought the logic that never setting ASSURED to drop NAT_CLASH replies
+> in case server is very busy and early_drop logic kicks in.
+> 
+> However, this will drop all subsequent UDP packets that sent through multiple threads
+> of application, we already had a customer reported this issue that impacts their business,
+> so deleting this logic to avoid this issue at the moment.
+> 
+> Fixes: c46172147ebb ("netfilter: conntrack: do not auto-delete clash entries on reply")
+> 
+> Signed-off-by: Yadan Fan <ydfan@suse.com>
+> ---
+>  net/netfilter/nf_conntrack_proto_udp.c | 4 ----
+>  1 file changed, 4 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
+> index 0030fbe8885c..def3e06430eb 100644
+> --- a/net/netfilter/nf_conntrack_proto_udp.c
+> +++ b/net/netfilter/nf_conntrack_proto_udp.c
+> @@ -116,10 +116,6 @@ int nf_conntrack_udp_packet(struct nf_conn *ct,
+>  
+>  		nf_ct_refresh_acct(ct, ctinfo, skb, extra);
+>  
+> -		/* never set ASSURED for IPS_NAT_CLASH, they time out soon */
+> -		if (unlikely((status & IPS_NAT_CLASH)))
+> -			return NF_ACCEPT;
+> -
+>  		/* Also, more likely to be important, and not a probe */
+>  		if (stream && !test_and_set_bit(IPS_ASSURED_BIT, &ct->status))
+>  			nf_conntrack_event_cache(IPCT_ASSURED, ct);
 
-> Ilpo, can you please describe how AccECN traffic would be handled in
-> your design proposal? (Since with established AccECN connections the
-> CWR bit is part of the ACE counter and may be set on roughly half of
-> outgoing data skbs...)
-
-TSO (and GSO) RFC3168 ECN offloading takes an skb, puts CWR only into=20
-the first segment and the rest of the skb are sent without it.
-
-What we want for AccECN is to never combine CWR and non-CWR skbs. The=20
-question is just how to achieve this.
-
-My idea is to instead of this SKB_GSO_TCP_ACCECN flag split those skbs=20
-always apart on TCP level (RFC3168 case) and to adapt GRO to not set=20
-SKB_GSO_TCP_ECN either (the latter should already be done by this series).=
-=20
-
-When SKB_GSO_TCP_ECN is not set by TCP nor GRO anymore, is that enough to=
-=20
-prevent HW offloading CWR in the RFC3168 way? That is, will the HW offload=
-=20
-still mess with CWR flag or does HW offloading honor the lack of=20
-SKB_GSO_TCP_ECN (I'm not sure about the answer as I've not dealt with NICs=
-=20
-on that level)? If the HW offloading keeps its hands off from CWR, then=20
-there would be no need for this new flag.
-
-GSO case is handled by simply removing CWR mangling from the code.
-
-
-Well, I now went to read some random NIC drivers and I suspect the answer=
-=20
-is that HW offloading will still mess with CWR, given the lack of code=20
-that would be depending on that gso_type flag... So I guess my idea is a=20
-dead-end and SKB_GSO_TCP_ACCECN flag is needed to prevent HW offloads from=
-=20
-seeing the CWR'ed skb.
-
-> Sorry if I'm misunderstanding something...
-
---=20
- i.
---8323328-468571206-1731187719=:1016--
+-- 
+Yadan Fan,
+SUSE L3
