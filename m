@@ -1,60 +1,103 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 873D6158555
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Nov 2024 10:38:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EB661BC58;
+	Mon, 11 Nov 2024 14:48:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731321524; cv=none; b=rkDmfBELNo6GE+/CbkgCcoyKaj7Amti93seA0OBxPZGALuTwy3iGPXVfVrtBzlFq51E3A3Or8DXudwti2HA818ar01XXX8+8mYFEYkybCc8hwfNMgtLqJxYsrpMIRuPqXN2OoKKn1e4N7c5SYm7ZnJyg38rwsr3ztXkC/alAy/o=
+	t=1731336498; cv=none; b=Xi2aDDn8ytBuR2vt932FfVbo8J9tVrubZrYM+Q43OyV5maO1iLmk92EVCDsZJxz3beqzY6ImA6Px54LPi0oojYC5qPV+g0u14ZtLFbFfWZs45zzPgaj8mE9QKYgf++3cNW+scZr8pn6bX2fpNzptuo71ZHNUeECNFlxJGCG5YTY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731321524; c=relaxed/simple;
-	bh=hI7J5zF4MRRRJorEoOvrTdT0CgLpNMzOiuWoYT9nntU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=tRkxSVmCzgkVj/DbYAr8VTJ2n0Mi3mziDORPvXP7oK3Y1vl2YP9teR2JMYy2JEHgYfGIlzHcboWA0cbJA0TbHwxB2WK4yZZWkXh9FrxZv7M+2hsETTb5WiPcpItIQnVfiEaaedkbG0yCHEY7DUUyF6TMT5muSH+gEojffXAq+1k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=42308 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1tARoZ-001bgf-Ut; Mon, 11 Nov 2024 11:38:38 +0100
-Date: Mon, 11 Nov 2024 11:38:35 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] src: allow to map key to nfqueue number
-Message-ID: <ZzHeq3qclcVgQZgE@calendula>
-References: <20241025074729.12412-1-fw@strlen.de>
- <Zytu_YJeGyF-RaxI@calendula>
- <20241106135244.GA11098@breakpoint.cc>
- <20241106143253.GA12653@breakpoint.cc>
- <ZyuTa9lmkXRAvSfn@calendula>
- <Zyv3tBgF9jW5D0v-@calendula>
- <Zyv9D385olTWUv1k@calendula>
- <20241108120854.GA23569@breakpoint.cc>
+	s=arc-20240116; t=1731336498; c=relaxed/simple;
+	bh=fwBFnUI7zZAzmO8sGg3BYlDlfcXoixbrHRm+40n+lk8=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=ZKy5nr1tbAarD0wu5DW6ilpMggxC0evDJDCeFT7zi/mnH/CfhqdnXfjrJTUyfcGeSk4IjEzDErWnvDiqIaphpC3NEaDyu/hxmiCt4NEijlmFoFLc5Q8WKUsZrR8h4oqIKR5EYUT+wcOZjSfJ0ue2IPJN1kkjnJ2lZc19uZNsfVc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MHb+9qJb; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MHb+9qJb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B33DDC4CECF;
+	Mon, 11 Nov 2024 14:48:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1731336497;
+	bh=fwBFnUI7zZAzmO8sGg3BYlDlfcXoixbrHRm+40n+lk8=;
+	h=From:Date:Subject:To:Cc:From;
+	b=MHb+9qJbPFk1ZvtJbEhgbvy/3dWUgRZNdD9IbJDZJh9o0OKScN3QKwPovXbuL07UE
+	 jo6QDtCZqvGPNsBi3mF8/By6cKGPsKyh57GYVpnmKsh7mrCz4XA3ddzD/pGppySn97
+	 /4i9ovM3kg96GOdibKIZMwOekArm5kBpCspSSK05KGSy1MRDaGuZwPjasCr+IkjO1S
+	 Oe1GttwMyxzg9D+sEBiA/73PqWwy9jZFiEgMJny7wDD0JYi7RkqcXxvDHL5FQYOkvg
+	 6pYtcAX+DyprUfKFz2G11DjVlC3wNWN5b+TWy4uVCt3GrT+B+wFA4rllo2PK5Jsiys
+	 a95zJCh0spvmQ==
+From: Simon Horman <horms@kernel.org>
+Date: Mon, 11 Nov 2024 14:47:51 +0000
+Subject: [PATCH nf-next] netfilter: bpf: Pass string literal as format
+ argument of request_module()
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20241108120854.GA23569@breakpoint.cc>
-X-Spam-Score: -1.8 (-)
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20241111-nf-bpf-fmt-v1-1-5f061b6fe35b@kernel.org>
+X-B4-Tracking: v=1; b=H4sIABYZMmcC/x2MSwqAMAwFryJZG2iL4Ocq4kJrollYpRUpSO9uc
+ HYD894LiaJQgqF6IdIjSc6gYusK/D6HjVBWdXDGNVbBwLhcjHzcSN60zvez7ZhBB1cklvyfjaB
+ doHzDVMoH7c0P0mUAAAA=
+To: Pablo Neira Ayuso <pablo@netfilter.org>, 
+ Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc: "David S. Miller" <davem@davemloft.net>, 
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
+ Paolo Abeni <pabeni@redhat.com>, Nathan Chancellor <nathan@kernel.org>, 
+ Nick Desaulniers <ndesaulniers@google.com>, 
+ Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>, 
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+ netdev@vger.kernel.org, linux-kernel@vger.kernel.org, bpf@vger.kernel.org, 
+ llvm@lists.linux.dev
+X-Mailer: b4 0.14.0
 
-On Fri, Nov 08, 2024 at 01:08:54PM +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Thu, Nov 07, 2024 at 12:11:53AM +0100, Pablo Neira Ayuso wrote:
-> > > On Wed, Nov 06, 2024 at 05:03:55PM +0100, Pablo Neira Ayuso wrote:
-> > > > I can take a look later today based on your patch, I think I can reuse
-> > > > 90% of it, it is just a subtle detail what I am referring to.
-> > > 
-> > > See attachment, not better than your proposal, just a different focus.
-> > 
-> > Actually, this attachment.
-> 
-> Just apply this.
+Both gcc-14 and clang-18 report that passing a non-string literal as the
+format argument of request_module() is potentially insecure.
 
-Done.
+E.g. clang-18 says:
+
+.../nf_bpf_link.c:46:24: warning: format string is not a string literal (potentially insecure) [-Wformat-security]
+   46 |                 err = request_module(mod);
+      |                                      ^~~
+.../kmod.h:25:55: note: expanded from macro 'request_module'
+   25 | #define request_module(mod...) __request_module(true, mod)
+      |                                                       ^~~
+.../nf_bpf_link.c:46:24: note: treat the string as an argument to avoid this
+   46 |                 err = request_module(mod);
+      |                                      ^
+      |                                      "%s",
+.../kmod.h:25:55: note: expanded from macro 'request_module'
+   25 | #define request_module(mod...) __request_module(true, mod)
+      |                                                       ^
+
+It is always the case where the contents of mod is safe to pass as the
+format argument. That is, in my understanding, it never contains any
+format escape sequences.
+
+But, it seems better to be safe than sorry. And, as a bonus, compiler
+output becomes less verbose by addressing this issue as suggested by
+clang-18.
+
+Compile tested only.
+
+Signed-off-by: Simon Horman <horms@kernel.org>
+---
+ net/netfilter/nf_bpf_link.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_bpf_link.c b/net/netfilter/nf_bpf_link.c
+index 3d64a4511fcf..06b084844700 100644
+--- a/net/netfilter/nf_bpf_link.c
++++ b/net/netfilter/nf_bpf_link.c
+@@ -43,7 +43,7 @@ get_proto_defrag_hook(struct bpf_nf_link *link,
+ 	hook = rcu_dereference(*ptr_global_hook);
+ 	if (!hook) {
+ 		rcu_read_unlock();
+-		err = request_module(mod);
++		err = request_module("%s", mod);
+ 		if (err)
+ 			return ERR_PTR(err < 0 ? err : -EINVAL);
+ 
+
