@@ -1,62 +1,61 @@
-Received: from mail-oi1-f179.google.com (mail-oi1-f179.google.com [209.85.167.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-00007101.pphosted.com (mx0a-00007101.pphosted.com [148.163.135.28])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF01D13AA38
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Nov 2024 02:56:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4303513A258;
+	Mon, 11 Nov 2024 06:52:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.135.28
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731293776; cv=none; b=IrkXxI8HTjoSxgA1yU1ctNxhxM7H5yzzcaP6z5UQsWD6ksn1hGcYgPdyDSW0pj4Ai4N/nHPzySgNciw3qCHZJliCGPVN92UjzqUNofsBKnKCh7mWua4s5WdQ1ttjJZFARiYuM4ALPn+Z+uYqpjBU5W55MO4Baoo8cPGAbICRhz4=
+	t=1731307945; cv=none; b=AOw74ahlIWGnMgQvwG/e/7eiiH0S7dlmAJdRsbKm9p3MJHOQSPSbi2ppiN9DBBcfb/XCWpnDE4jIayY2oPGhjx1EX4tOPFLqC0oXQSaY2sZSyS19psXnOhUN+HbvwbogdNMUKOi/WT6bsysq4pXaQO0Yeo0Vd9lqCBlErmkFQiU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731293776; c=relaxed/simple;
-	bh=9vMYhTGwxZigWPW2lz5Q3zBZvgtUn3cz1zx35sQq6rE=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=YbuKYsySJsduDza3akhLb8AdZXnoaDzkqas0Zsdy8QZ+ihH1OgVU0WOj/oxwwJdjkR+LTzrowGtGzUkNx9SV8OhsbGbm66e9WmfHG/k5bz9y0wtnfvmLWClIQboEC7yJK8yQW2+V5yToUuw4GIWqxVuywo8XGQySKlJNxTYnBNs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ClW8Jrhb; arc=none smtp.client-ip=209.85.167.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1731307945; c=relaxed/simple;
+	bh=+U9r4++8vWNjOGgBUQp+LAiKwhXMBYkOY0XY8YYEC9E=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=qlu1NWowkQR9IdPaACODCsihZYiOmnV8OjnpnpwEj0LY43du1fr2UjjrAs3xu2c7b7wE0gCWFJNi/y9ukBlXhgN7MZ1zQp7NKIrejX/9HEfsX3uoQrroO5w95CQNTrBU0QMb9zarDESJUQFiNkgefVcxKLpq2eaWN21YSq1EFlU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=illinois.edu; spf=pass smtp.mailfrom=illinois.edu; dkim=pass (2048-bit key) header.d=illinois.edu header.i=@illinois.edu header.b=IC9DwOE0; arc=none smtp.client-ip=148.163.135.28
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=illinois.edu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=illinois.edu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ClW8Jrhb"
-Received: by mail-oi1-f179.google.com with SMTP id 5614622812f47-3e5f9712991so1871354b6e.2
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 Nov 2024 18:56:14 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1731293774; x=1731898574; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:sender:from:to:cc:subject:date:message-id:reply-to;
-        bh=2diC79ik6CJBwZXHFlP0PRY0Q2Hef89MjOtDBTUBWo8=;
-        b=ClW8Jrhb67yyvqQbcbSSyHlKsZiQ5L/RRG6jWs4QtI5N7I8uRhV3Tu0sSDrVBOYK0C
-         nkxJonrDflPMxagfZ+ZwHE0icaYyEE8ag7J8sOIxjhZymVVjQ0o+2KoYsaOSQ2lMG0ci
-         6b4JJCpREfebN3tGyXRykEi9eJi84wiwutkxvzCFT+mWRNR7/TEKwvfTe19SVyAqOsVO
-         UhuYIY3F5bDys22XlPcxhUnTzBs7LnvPRaL+XikrqQS9S6JODJ+6m/NA9wmJ/GWrIWtl
-         XOjRfkP3dPEOp7ju2eYLNFe2v833cAfdlOf4qVmY/r4Gz2LhQ0u3/KoSp4AQKVAN9hzu
-         jOaQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1731293774; x=1731898574;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:sender:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=2diC79ik6CJBwZXHFlP0PRY0Q2Hef89MjOtDBTUBWo8=;
-        b=IxmwxnqlX63C0iEyWV6Wn5VPxVWbF04rNymAlMtFE1zafGLvPp2twjztCdX+ZMbour
-         Gk/UmcA8e013HeOftT66wXC66iZI7lL3rxZ8GCeuuKCKMMaxkZVwKpWvfqxm5Ck+Y59R
-         cKsnfihfUshAZHA2rQa2biYP+iwKDohq+/ZOuSJTCcUE2byJ4mPrCnGCScY4eBFlLum4
-         0wns5COVYS3reEStkDOCmMMN+wifvreGTYGAWSHtSW14mZeiwB7gPNxmJGE5VLxviXUN
-         0GMQWDod9GYO6BTTdpfuGKntkB3xSvOeB6OdtZzmyO5kuMGyzunzP23KC4M13fly2dWa
-         vPsQ==
-X-Gm-Message-State: AOJu0YyrgSDX5mgeDBKHFxp5K1W2pd1mujDp7KiDvtGxTr18h93cOgbE
-	g8pa2kfmfnd+5e6NarHs9JbXxKDea0pIIAKQ1W5ayL+OozvX3Uhs/rjM8A==
-X-Google-Smtp-Source: AGHT+IFHAz9Lqa4xYuuBNmhNVUksNuN02brxFmU83tDWqaN/hzJIhAwuUHk7PQvUe0QQi9zH+PbjaA==
-X-Received: by 2002:a05:6808:f13:b0:3e6:769:354e with SMTP id 5614622812f47-3e7946ab754mr9628847b6e.25.1731293773757;
-        Sun, 10 Nov 2024 18:56:13 -0800 (PST)
-Received: from slk15.local.net (n175-33-111-144.meb22.vic.optusnet.com.au. [175.33.111.144])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-7f41f643e9asm7422237a12.59.2024.11.10.18.56.11
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 10 Nov 2024 18:56:13 -0800 (PST)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From: Duncan Roe <duncan_roe@optusnet.com.au>
-To: pablo@netfilter.org
-Cc: netfilter-devel@vger.kernel.org
-Subject: [PATCH libmnl] whitespace: remove spacing irregularities
-Date: Mon, 11 Nov 2024 13:56:08 +1100
-Message-Id: <20241111025608.8683-1-duncan_roe@optusnet.com.au>
-X-Mailer: git-send-email 2.35.8
+	dkim=pass (2048-bit key) header.d=illinois.edu header.i=@illinois.edu header.b="IC9DwOE0"
+Received: from pps.filterd (m0166255.ppops.net [127.0.0.1])
+	by mx0a-00007101.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 4AB51htV012128;
+	Mon, 11 Nov 2024 06:51:40 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=illinois.edu; h=
+	cc:content-transfer-encoding:date:from:message-id:mime-version
+	:subject:to; s=campusrelays; bh=G00Djb/CrG1My6IT3+uwf8Xvk9Zx1GAj
+	nDsHf77FZaI=; b=IC9DwOE0Ek905R3uX7ynL6WI4sy41z9nZz38I7mDia5SOX2p
+	jTyOms47q3dLorFVNEs8Qpt5M4GgM/6Qn7Ru+IH7vWEIF2xk3qaTNR3tPsChVCRi
+	f96iF39Lq9jOVEoPX6O9LRCWhK3COxuRYdDHB/vyCpKCsXQTlLEN6kYjmOHJ4d8t
+	5KH3I6VhRcFfyQVOzBxqMeDwG/0Kkzh6ja0LPVYzgw1HZVizTLQ8pCcSchc6lWC2
+	hJ0MQ/l5DbcnSKi3I3gRk8uPRz6bDeah8DSLZ7qr5q1WDmaR6L5+ZRc4XFvpdVp/
+	26sXh/7tuZdpg9lWBcoPqDndCtnplqIiu8Y+Cg==
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-00007101.pphosted.com (PPS) with ESMTPS id 42t0dy3632-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 11 Nov 2024 06:51:39 +0000 (GMT)
+Received: from m0166255.ppops.net (m0166255.ppops.net [127.0.0.1])
+	by pps.reinject (8.18.0.8/8.18.0.8) with ESMTP id 4AB6pd0M003663;
+	Mon, 11 Nov 2024 06:51:39 GMT
+Received: from localhost.localdomain (oasis.cs.illinois.edu [130.126.137.13])
+	by mx0a-00007101.pphosted.com (PPS) with ESMTP id 42t0dy362v-1;
+	Mon, 11 Nov 2024 06:51:38 +0000 (GMT)
+From: Jinghao Jia <jinghao7@illinois.edu>
+To: Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>, Nathan Chancellor <nathan@kernel.org>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        Bill Wendling <morbo@google.com>,
+        Justin Stitt <justinstitt@google.com>, Kees Cook <kees@kernel.org>
+Cc: netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org, llvm@lists.linux.dev,
+        Jinghao Jia <jinghao7@illinois.edu>, kernel test robot <lkp@intel.com>,
+        Ruowen Qin <ruqin@redhat.com>
+Subject: [PATCH] ipvs: fix UB due to uninitialized stack access in ip_vs_protocol_init()
+Date: Mon, 11 Nov 2024 00:51:05 -0600
+Message-ID: <20241111065105.82431-1-jinghao7@illinois.edu>
+X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -64,102 +63,120 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Proofpoint-GUID: ePDWI69DVPRvmLg5drIxgZ6AhaoctuzM
+X-Proofpoint-ORIG-GUID: UtEpqJ5p1NH21y5diKtFX63ZyGgD1z6l
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1051,Hydra:6.0.680,FMLib:17.12.62.30
+ definitions=2024-10-05_03,2024-10-04_01,2024-09-30_01
+X-Spam-Details: rule=cautious_plus_nq_notspam policy=cautious_plus_nq score=0 adultscore=0
+ mlxlogscore=999 priorityscore=1501 malwarescore=0 clxscore=1011
+ lowpriorityscore=0 bulkscore=0 mlxscore=0 spamscore=0 phishscore=0
+ suspectscore=0 impostorscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.19.0-2409260000 definitions=main-2411110057
+X-Spam-Score: 0
+X-Spam-OrigSender: jinghao7@illinois.edu
+X-Spam-Bar: 
 
-Two distinct actions:
- 1. Remove trailing spaces and tabs.
- 2. Remove spaces that are followed by a tab, inserting extra tabs
-    as required.
-Action 2 is only performed in the indent region of a line.
+Under certain kernel configurations when building with Clang/LLVM, the
+compiler does not generate a return or jump as the terminator
+instruction for ip_vs_protocol_init(), triggering the following objtool
+warning during build time:
 
-Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+  vmlinux.o: warning: objtool: ip_vs_protocol_init() falls through to next function __initstub__kmod_ip_vs_rr__935_123_ip_vs_rr_init6()
+
+At runtime, this either causes an oops when trying to load the ipvs
+module or a boot-time panic if ipvs is built-in. This same issue has
+been reported by the Intel kernel test robot previously.
+
+Digging deeper into both LLVM and the kernel code reveals this to be a
+undefined behavior problem. ip_vs_protocol_init() uses a on-stack buffer
+of 64 chars to store the registered protocol names and leaves it
+uninitialized after definition. The function calls strnlen() when
+concatenating protocol names into the buffer. With CONFIG_FORTIFY_SOURCE
+strnlen() performs an extra step to check whether the last byte of the
+input char buffer is a null character (commit 3009f891bb9f ("fortify:
+Allow strlen() and strnlen() to pass compile-time known lengths")).
+This, together with possibly other configurations, cause the following
+IR to be generated:
+
+  define hidden i32 @ip_vs_protocol_init() local_unnamed_addr #5 section ".init.text" align 16 !kcfi_type !29 {
+    %1 = alloca [64 x i8], align 16
+    ...
+
+  14:                                               ; preds = %11
+    %15 = getelementptr inbounds i8, ptr %1, i64 63
+    %16 = load i8, ptr %15, align 1
+    %17 = tail call i1 @llvm.is.constant.i8(i8 %16)
+    %18 = icmp eq i8 %16, 0
+    %19 = select i1 %17, i1 %18, i1 false
+    br i1 %19, label %20, label %23
+
+  20:                                               ; preds = %14
+    %21 = call i64 @strlen(ptr noundef nonnull dereferenceable(1) %1) #23
+    ...
+
+  23:                                               ; preds = %14, %11, %20
+    %24 = call i64 @strnlen(ptr noundef nonnull dereferenceable(1) %1, i64 noundef 64) #24
+    ...
+  }
+
+The above code calculates the address of the last char in the buffer
+(value %15) and then loads from it (value %16). Because the buffer is
+never initialized, the LLVM GVN pass marks value %16 as undefined:
+
+  %13 = getelementptr inbounds i8, ptr %1, i64 63
+  br i1 undef, label %14, label %17
+
+This gives later passes (SCCP, in particular) to more DCE opportunities
+by propagating the undef value further, and eventually removes
+everything after the load on the uninitialized stack location:
+
+  define hidden i32 @ip_vs_protocol_init() local_unnamed_addr #0 section ".init.text" align 16 !kcfi_type !11 {
+    %1 = alloca [64 x i8], align 16
+    ...
+
+  12:                                               ; preds = %11
+    %13 = getelementptr inbounds i8, ptr %1, i64 63
+    unreachable
+  }
+
+In this way, the generated native code will just fall through to the
+next function, as LLVM does not generate any code for the unreachable IR
+instruction and leaves the function without a terminator.
+
+Zero the on-stack buffer to avoid this possible UB.
+
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202402100205.PWXIz1ZK-lkp@intel.com/
+Co-developed-by: Ruowen Qin <ruqin@redhat.com>
+Signed-off-by: Ruowen Qin <ruqin@redhat.com>
+Signed-off-by: Jinghao Jia <jinghao7@illinois.edu>
 ---
- include/linux/netlink.h | 6 +++---
- src/callback.c          | 4 ++--
- src/socket.c            | 6 +++---
- 3 files changed, 8 insertions(+), 8 deletions(-)
+ net/netfilter/ipvs/ip_vs_proto.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/include/linux/netlink.h b/include/linux/netlink.h
-index ced0e1a..7c26175 100644
---- a/include/linux/netlink.h
-+++ b/include/linux/netlink.h
-@@ -14,7 +14,7 @@
- #define NETLINK_SELINUX		7	/* SELinux event notifications */
- #define NETLINK_ISCSI		8	/* Open-iSCSI */
- #define NETLINK_AUDIT		9	/* auditing */
--#define NETLINK_FIB_LOOKUP	10	
-+#define NETLINK_FIB_LOOKUP	10
- #define NETLINK_CONNECTOR	11
- #define NETLINK_NETFILTER	12	/* netfilter subsystem */
- #define NETLINK_IP6_FW		13
-@@ -29,13 +29,13 @@
+diff --git a/net/netfilter/ipvs/ip_vs_proto.c b/net/netfilter/ipvs/ip_vs_proto.c
+index f100da4ba3bc..a9fd1d3fc2cb 100644
+--- a/net/netfilter/ipvs/ip_vs_proto.c
++++ b/net/netfilter/ipvs/ip_vs_proto.c
+@@ -340,7 +340,7 @@ void __net_exit ip_vs_protocol_net_cleanup(struct netns_ipvs *ipvs)
  
- #define NETLINK_INET_DIAG	NETLINK_SOCK_DIAG
+ int __init ip_vs_protocol_init(void)
+ {
+-	char protocols[64];
++	char protocols[64] = { 0 };
+ #define REGISTER_PROTOCOL(p)			\
+ 	do {					\
+ 		register_ip_vs_protocol(p);	\
+@@ -348,8 +348,6 @@ int __init ip_vs_protocol_init(void)
+ 		strcat(protocols, (p)->name);	\
+ 	} while (0)
  
--#define MAX_LINKS 32		
-+#define MAX_LINKS 32
- 
- struct sockaddr_nl {
- 	__kernel_sa_family_t	nl_family;	/* AF_NETLINK	*/
- 	unsigned short	nl_pad;		/* zero		*/
- 	__u32		nl_pid;		/* port ID	*/
--       	__u32		nl_groups;	/* multicast groups mask */
-+	__u32		nl_groups;	/* multicast groups mask */
- };
- 
- struct nlmsghdr {
-diff --git a/src/callback.c b/src/callback.c
-index f5349c3..703ae80 100644
---- a/src/callback.c
-+++ b/src/callback.c
-@@ -21,7 +21,7 @@ static int mnl_cb_error(const struct nlmsghdr *nlh, void *data)
- 	const struct nlmsgerr *err = mnl_nlmsg_get_payload(nlh);
- 
- 	if (nlh->nlmsg_len < mnl_nlmsg_size(sizeof(struct nlmsgerr))) {
--		errno = EBADMSG; 
-+		errno = EBADMSG;
- 		return MNL_CB_ERROR;
- 	}
- 	/* Netlink subsystems returns the errno value with different signess */
-@@ -73,7 +73,7 @@ static inline int __mnl_cb_run(const void *buf, size_t numbytes,
- 		}
- 
- 		/* netlink data message handling */
--		if (nlh->nlmsg_type >= NLMSG_MIN_TYPE) { 
-+		if (nlh->nlmsg_type >= NLMSG_MIN_TYPE) {
- 			if (cb_data){
- 				ret = cb_data(nlh, data);
- 				if (ret <= MNL_CB_STOP)
-diff --git a/src/socket.c b/src/socket.c
-index 85b6bcc..60ba2cd 100644
---- a/src/socket.c
-+++ b/src/socket.c
-@@ -206,7 +206,7 @@ EXPORT_SYMBOL int mnl_socket_bind(struct mnl_socket *nl, unsigned int groups,
- 
- 	addr_len = sizeof(nl->addr);
- 	ret = getsockname(nl->fd, (struct sockaddr *) &nl->addr, &addr_len);
--	if (ret < 0)	
-+	if (ret < 0)
- 		return ret;
- 
- 	if (addr_len != sizeof(nl->addr)) {
-@@ -226,7 +226,7 @@ EXPORT_SYMBOL int mnl_socket_bind(struct mnl_socket *nl, unsigned int groups,
-  * \param buf buffer containing the netlink message to be sent
-  * \param len number of bytes in the buffer that you want to send
-  *
-- * On error, it returns -1 and errno is appropriately set. Otherwise, it 
-+ * On error, it returns -1 and errno is appropriately set. Otherwise, it
-  * returns the number of bytes sent.
-  */
- EXPORT_SYMBOL ssize_t mnl_socket_sendto(const struct mnl_socket *nl,
-@@ -235,7 +235,7 @@ EXPORT_SYMBOL ssize_t mnl_socket_sendto(const struct mnl_socket *nl,
- 	static const struct sockaddr_nl snl = {
- 		.nl_family = AF_NETLINK
- 	};
--	return sendto(nl->fd, buf, len, 0, 
-+	return sendto(nl->fd, buf, len, 0,
- 		      (struct sockaddr *) &snl, sizeof(snl));
- }
- 
+-	protocols[0] = '\0';
+-	protocols[2] = '\0';
+ #ifdef CONFIG_IP_VS_PROTO_TCP
+ 	REGISTER_PROTOCOL(&ip_vs_protocol_tcp);
+ #endif
 -- 
-2.46.2
+2.47.0
 
