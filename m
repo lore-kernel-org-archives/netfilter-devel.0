@@ -1,167 +1,103 @@
-Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 337AF18A6BF
-	for <netfilter-devel@vger.kernel.org>; Tue, 12 Nov 2024 10:03:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4503821FD95;
+	Tue, 12 Nov 2024 10:50:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731405829; cv=none; b=TeOiVXQnO33NZdEG7CxUpHVAtEPVqw773C+c4cCzt6QNll4fnHvtDFsZK/+wOHcfCNrfFgQxLp7B7TFRhnbMInprEeD1v88CRGbIaoyxpFcjd0x3XPKc+xc21i9Qos+7T94Bj/ZUBtej3r5JrGz+N8mHC9U/egDIsoN1tkaBxzE=
+	t=1731408622; cv=none; b=HrfXnxf2DEIKMddbkKmaOo4HKwdTeLUdXpVo+5RrEsO8MGsFLOnnkH8eUkMma0eL50oWmkqU/KhpWEJRaZVKse04OyCjcX87btTday3V3W9iMQtZ4g6I3iYZbz7svwDWeQ63bV6BNC/mcVGRluAj8ZnI+RhjYNVq/TVqeNWVqE0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731405829; c=relaxed/simple;
-	bh=AfijD7bJCJegDVJb9doH4aKt85yfX3drG5swjIEqV/I=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=QdKCRcMmqosOxKz/FU6Ri9NcHBHGIKvjmIJseeKESRZyJQEOA/Lr1Dwp95yQZ9c7z6l4M4mrjszeh5V14vTqx3+uUDZY051LusRG1EX2W/TbCwVw2iE+EgLCSmCJUjDiwNfuH3hoFo4iYhBjqQeodjE6XJOScm0T6izcodqnQEI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NEIQsW8p; arc=none smtp.client-ip=209.85.214.180
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1731408622; c=relaxed/simple;
+	bh=KJ2F7sc2bf+xv1D/2D+hIJxzrNK6jbesAQAvmCnlx5o=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=B9nRZdzVNo/D2NQPKOrepGYW72r2oLLk0a4tp1XUCdToke6L7v13kX0EcSEP8zGtVmdo3znXPMW8/bt8Fbn1lX4WbbYp4Ed1xJj2415MqaarC/wV3FTQ67QW4eMTICMLGKbjDy/EIEaDkElvM8+JA2R5vCbU8meQtFcYtVr9F4Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oRouAyQD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NEIQsW8p"
-Received: by mail-pl1-f180.google.com with SMTP id d9443c01a7336-20cdbe608b3so54864085ad.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 Nov 2024 02:03:47 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1731405826; x=1732010626; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=DKAW/5mS4sIWJfWJBGPlCs4ZQv0oRG04rODoHn5qDX4=;
-        b=NEIQsW8pF1hg9n94LDaX6V6A2KC7uWPsYt4ovtfzlV4bflh2vHW4FcclUDAGjR21e5
-         k7ecPBOh7Otn3/mw/9fKu32FeO7FU/GefwYeaT0tavN1ZeUZbH4iFbKN8F6m07MU3USs
-         yZCGs30PWTfzO0pP3nbJ5uZf4eMxBK3O3GOScWIio8U0Czuv+LLThTFTJjfquxvOcD3g
-         4/Xs/acTtvV7HUvTMSwCdzo9MSTzFdgsrZX3qVWbbfedr1lgxeZCCwXRRfRCyc7kD7LT
-         lRs99opHpjxLHpIO6udrAAmlYNoxbrzFWQzP45EwyaO8jNYeODYaQ2o2waNa3KEzU41b
-         NLxw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1731405826; x=1732010626;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=DKAW/5mS4sIWJfWJBGPlCs4ZQv0oRG04rODoHn5qDX4=;
-        b=ZvJ5eeeEzRSf/G6Qr9UQEwHG3uAToBCo7uM8tOFVu9EQ+h0/1DwNt6GeRcQn0eIf4w
-         DyJqswBUDIGXVnyFg7HxOh2/V2jVTNwUCmr0I21HM4iBORqTkaUIdYWqCgh1GmsaMPLR
-         lb2I2S8kOB2mi/13+Vnqn3M76j5D5hw0h/pmvc30rf6yHbmNezTn/DUlnj3j6NFeVElS
-         34f9P/Y4f8H1+xW2VRUHEhoLNSDespbxKaoY9XLWd/r69cS2r0dRUOVNxALTqXdMs5yR
-         zcRVdfuXgL7dA4O9IaAX149j6OfEleiOMOUx7Tl7C5FxhUI6r1SxCdxJ4Nkz/hyEdELg
-         HYDQ==
-X-Gm-Message-State: AOJu0YzkxQnkxPra5N9cVDryz8+nZ+vTJxuHpZ4eglM6Ze9+sUCk2WN6
-	VMjiRlOBnFH3Lt4Zzez7AUIuZCmjLyLU5gk+LM1GAMRviQc/94bwLciqPg==
-X-Google-Smtp-Source: AGHT+IGDVEd2QWpNLKe4d66Oj7UjvRgT6Q4GRbML3qolKDEbSS47P1AB4YOxiLAszjEIsUdMyI+7KQ==
-X-Received: by 2002:a17:903:228b:b0:20c:5533:36da with SMTP id d9443c01a7336-211ab9ccf30mr25962725ad.42.1731405826356;
-        Tue, 12 Nov 2024 02:03:46 -0800 (PST)
-Received: from slk15.local.net (n175-33-111-144.meb22.vic.optusnet.com.au. [175.33.111.144])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-21177e4148esm88277825ad.125.2024.11.12.02.03.44
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 12 Nov 2024 02:03:45 -0800 (PST)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From: Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
-Date: Tue, 12 Nov 2024 21:03:42 +1100
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libmnl] whitespace: remove spacing irregularities
-Message-ID: <ZzMn/kNbAymOjeaZ@slk15.local.net>
-Reply-To: duncan_roe@optusnet.com.au
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <20241111025608.8683-1-duncan_roe@optusnet.com.au>
- <ZzHcsEYWLdt_j0Iy@calendula>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oRouAyQD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFDE4C4CECD;
+	Tue, 12 Nov 2024 10:50:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1731408621;
+	bh=KJ2F7sc2bf+xv1D/2D+hIJxzrNK6jbesAQAvmCnlx5o=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=oRouAyQDUPBGdu5xet77fXKCQrGNTYLitrbvb3S9EB8YGWSfVX2Y1zPewarNRQVcd
+	 40OkvXMnkRyfBGS+SLsq/HQuaJaFLmjRCoen/ST58PNlV+EEIMv6+y49b8Nqqvd2GT
+	 i2ecONHDXWVRwZBpCc66xPCt3/LJICE5+5AQpMAkLLCedezx9KWJnt4bf9Z+90gMHD
+	 axbfQfTRI2G3ushpeQq+aOj6m49tpmxEVXliMd7sEpkeqZ1U8EkhLlJ2eiTlKkMMyW
+	 SNimJ0v5/d2gevDQ6juWhEypqWvp4ZnGwjFRsiB8p9CdbELP8Ks0xwl/3HGBdNA78f
+	 AJXjpuEFTRLYw==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 33DEC3809A80;
+	Tue, 12 Nov 2024 10:50:33 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZzHcsEYWLdt_j0Iy@calendula>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next v5 0/9] net: ip: add drop reasons to input route
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <173140863199.479628.7032457382507846655.git-patchwork-notify@kernel.org>
+Date: Tue, 12 Nov 2024 10:50:31 +0000
+References: <20241107125601.1076814-1-dongml2@chinatelecom.cn>
+In-Reply-To: <20241107125601.1076814-1-dongml2@chinatelecom.cn>
+To: Menglong Dong <menglong8.dong@gmail.com>
+Cc: pabeni@redhat.com, davem@davemloft.net, edumazet@google.com,
+ kuba@kernel.org, horms@kernel.org, dsahern@kernel.org, pablo@netfilter.org,
+ kadlec@netfilter.org, roopa@nvidia.com, razor@blackwall.org,
+ gnault@redhat.com, bigeasy@linutronix.de, hawk@kernel.org, idosch@nvidia.com,
+ dongml2@chinatelecom.cn, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, bridge@lists.linux.dev, bpf@vger.kernel.org
 
-Hi Pablo,
+Hello:
 
-On Mon, Nov 11, 2024 at 11:30:08AM +0100, Pablo Neira Ayuso wrote:
-> On Mon, Nov 11, 2024 at 01:56:08PM +1100, Duncan Roe wrote:
-> > Two distinct actions:
-> >  1. Remove trailing spaces and tabs.
-> >  2. Remove spaces that are followed by a tab, inserting extra tabs
-> >     as required.
-> > Action 2 is only performed in the indent region of a line.
-> >
-> > Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
-> > ---
-> >  include/linux/netlink.h | 6 +++---
-> >  src/callback.c          | 4 ++--
-> >  src/socket.c            | 6 +++---
-> >  3 files changed, 8 insertions(+), 8 deletions(-)
->
-> Submit uapi/netlink.h update upstream via netdev@
->
-> This is a cached copy of uapi/netlink.h
->
-> If I take this, the extra line spaces and indentation will come back
-> sooner or later.
->
-> Thanks.
+This series was applied to netdev/net-next.git (main)
+by Paolo Abeni <pabeni@redhat.com>:
 
-Thanks for that advice, I've submitted a v2 which only fixes spacing in 2
-.c files. The .c files are the ones giving me grief because q, the editor I
-use, is configured to fix spacing on saving any file. I could change the
-configuration but would rather not.
+On Thu,  7 Nov 2024 20:55:52 +0800 you wrote:
+> In this series, we mainly add some skb drop reasons to the input path of
+> ip routing, and we make the following functions return drop reasons:
+> 
+>   fib_validate_source()
+>   ip_route_input_mc()
+>   ip_mc_validate_source()
+>   ip_route_input_slow()
+>   ip_route_input_rcu()
+>   ip_route_input_noref()
+>   ip_route_input()
+>   ip_mkroute_input()
+>   __mkroute_input()
+>   ip_route_use_hint()
+> 
+> [...]
 
-As for uapi/linux/netlink.h, well hmm. One of the q editor's "party tricks"
-is to go through the entire kernel tree correcting all the space irregularities.
-I've wondered about sending a kernel-wide patch except there are a few
-sources which seem to assume 4-char tabs: I'd leave them out for now.
+Here is the summary with links:
+  - [net-next,v5,1/9] net: ip: make fib_validate_source() support drop reasons
+    https://git.kernel.org/netdev/net-next/c/37653a0b8a6f
+  - [net-next,v5,2/9] net: ip: make ip_route_input_mc() return drop reason
+    https://git.kernel.org/netdev/net-next/c/c6c670784b86
+  - [net-next,v5,3/9] net: ip: make ip_mc_validate_source() return drop reason
+    https://git.kernel.org/netdev/net-next/c/d46f827016d8
+  - [net-next,v5,4/9] net: ip: make ip_route_input_slow() return drop reasons
+    https://git.kernel.org/netdev/net-next/c/5b92112acd8e
+  - [net-next,v5,5/9] net: ip: make ip_route_input_rcu() return drop reasons
+    https://git.kernel.org/netdev/net-next/c/61b95c70f344
+  - [net-next,v5,6/9] net: ip: make ip_route_input_noref() return drop reasons
+    https://git.kernel.org/netdev/net-next/c/82d9983ebeb8
+  - [net-next,v5,7/9] net: ip: make ip_route_input() return drop reasons
+    https://git.kernel.org/netdev/net-next/c/50038bf38e65
+  - [net-next,v5,8/9] net: ip: make ip_mkroute_input/__mkroute_input return drop reasons
+    https://git.kernel.org/netdev/net-next/c/d9340d1e0277
+  - [net-next,v5,9/9] net: ip: make ip_route_use_hint() return drop reasons
+    https://git.kernel.org/netdev/net-next/c/479aed04e84a
 
-q finds 120 space-irregular files under uapi/linux alone, but obviously only a
-few are appropriate for netdev@.
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-Just these 2?
 
-| include/uapi/linux/netlink.h                        |   6 +++---
-| include/uapi/linux/rtnetlink.h                      |   8 ++++----
-
-Or these as well?
-
-| include/uapi/linux/netfilter/nf_conntrack_common.h  |   2 +-
-| include/uapi/linux/netfilter/nfnetlink.h            |   6 +++---
-| include/uapi/linux/netfilter/nfnetlink_compat.h     |   8 ++++----
-| include/uapi/linux/netfilter/x_tables.h             |   4 ++--
-| include/uapi/linux/netfilter/xt_NFQUEUE.h           |   2 +-
-| include/uapi/linux/netfilter/xt_ecn.h               |   2 +-
-| include/uapi/linux/netfilter_arp/arp_tables.h       |   2 +-
-| include/uapi/linux/netfilter_bridge.h               |   2 +-
-| include/uapi/linux/netfilter_bridge/ebt_802_3.h     |   2 +-
-| include/uapi/linux/netfilter_bridge/ebt_among.h     |   4 ++--
-| include/uapi/linux/netfilter_bridge/ebt_vlan.h      |   2 +-
-| include/uapi/linux/netfilter_bridge/ebtables.h      |  10 +++++-----
-| include/uapi/linux/netfilter_ipv4.h                 |   2 +-
-| include/uapi/linux/netfilter_ipv4/ip_tables.h       |   2 +-
-| include/uapi/linux/netfilter_ipv4/ipt_ECN.h         |   2 +-
-| include/uapi/linux/netfilter_ipv6.h                 |   4 ++--
-| include/uapi/linux/netfilter_ipv6/ip6_tables.h      |   6 +++---
-| include/uapi/linux/netfilter_ipv6/ip6t_ipv6header.h |   2 +-
-
-and what about this lot?
-
-| include/uapi/linux/ax25.h                           |  14 +++++++-------
-| include/uapi/linux/icmpv6.h                         |  24 ++++++++++++------------
-| include/uapi/linux/if.h                             |   6 +++---
-| include/uapi/linux/if_eql.h                         |   2 +-
-| include/uapi/linux/if_hippi.h                       |   6 +++---
-| include/uapi/linux/if_plip.h                        |   2 +-
-| include/uapi/linux/if_pppox.h                       |  14 +++++++-------
-| include/uapi/linux/if_slip.h                        |   8 ++++----
-| include/uapi/linux/if_tun.h                         |   8 ++++----
-| include/uapi/linux/if_vlan.h                        |   6 +++---
-| include/uapi/linux/in.h                             |   2 +-
-| include/uapi/linux/in6.h                            |   8 ++++----
-| include/uapi/linux/inet_diag.h                      |   2 +-
-| include/uapi/linux/ip.h                             |   2 +-
-| include/uapi/linux/ipv6.h                           |   4 ++--
-| include/uapi/linux/ipv6_route.h                     |   6 +++---
-| include/uapi/linux/netdevice.h                      |  14 +++++++-------
-| include/uapi/linux/ppp_defs.h                       |   2 +-
-| include/uapi/linux/sockios.h                        |   8 ++++----
-| include/uapi/linux/x25.h                            |   4 ++--
-
-Any advice greatly appreciated,
-
-Cheers ... Duncan.
