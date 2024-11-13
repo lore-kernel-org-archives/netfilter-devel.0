@@ -1,34 +1,32 @@
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 193401FB3D4
-	for <netfilter-devel@vger.kernel.org>; Wed, 13 Nov 2024 10:19:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0B3526AEC
+	for <netfilter-devel@vger.kernel.org>; Wed, 13 Nov 2024 11:01:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731493150; cv=none; b=lc21EbNDEGNfJ6ndUsBTV2KvTXkaxWgFPIEjEZcs6Th+WTBZzwX3aB3Hw9kOnILvGimGCJDDF/S/TKpwDFLgsIE/6Qz5Ru+NzDYchxyACJ/hwbwHmZ3+/A+ky7y92J1sF6P8U2chjenFWMn1z3rAGkE92Q1Rdct11wsyL/TCTBs=
+	t=1731495676; cv=none; b=CAkq5mnAFE8erptkBW7p+rsdYEgsRN2dbugJhTztIcpkllH2iqv/IzWyN97K6rPQTcIS5ho3eAwRjObHOlmfSq4h1DmiR3dsJsfBszNgHmjDZx14c+29+AArHMKGK2o772sEz1eQMISUq+qrJ39kSXBi0EwwViQnuK1M6SURJOM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731493150; c=relaxed/simple;
-	bh=EjoMYsMwYCQBKD7CxrdLoCzg9pI13tWyWORpkmA+/hY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=HetnSb+zFVO2H19ujC2pFEFawFwpyqwqdFIfKufVJU/ZGYd7vVkzhmWh5qtnsdA7GZWOkgcO37lXIuT6Q8v8bc6hLU/9Iunl+n6yHoL15L4okHYFdlUciORwX709Bq5eDsQmYFw0VcI7CdXUwWd2VzniDhi5Hd9i/JFMaCotono=
+	s=arc-20240116; t=1731495676; c=relaxed/simple;
+	bh=Muqx94YtTl7dYl/RN3oGUmZOQV4pNR2uXo2B3SrUezw=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=FHFnfgmDlHtU5h9Nveikk6CHXgzVoWoe+BTZLe8p9kAHIxUcsmMlYFuHhut0zZ2zwn7IigUpWNq2vHdqFpWgqJMZUrMF9SO7RV6QrmWyBFuenXO9mDwR2ZEs2vAyZ/wpaNyDmjjSgt+GNh5McXy6bmThcpgepTgaRi6O1/pF1qM=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=36830 helo=gnumonks.org)
+Received: from [78.30.37.63] (port=46720 helo=gnumonks.org)
 	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <pablo@gnumonks.org>)
-	id 1tBASk-00DfGe-Gq; Wed, 13 Nov 2024 11:19:04 +0100
-Date: Wed, 13 Nov 2024 11:19:01 +0100
+	id 1tBB7U-00DokO-OJ; Wed, 13 Nov 2024 12:01:11 +0100
+Date: Wed, 13 Nov 2024 12:01:07 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next v4 0/5] netfilter: nf_tables: reduce set element
- transaction size
-Message-ID: <ZzR9FTrhjt08QoKG@calendula>
-References: <20241107174415.4690-1-fw@strlen.de>
- <ZzOhkNh58vkHW62c@calendula>
- <20241112204436.GA32766@breakpoint.cc>
+To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
+	eric@garver.life
+Subject: Re: [PATCH nft] json: collapse set element commands from parser
+Message-ID: <ZzSG8xWKI5Re0Xcy@calendula>
+References: <20241031220411.165942-1-pablo@netfilter.org>
+ <ZzPAE3Gj6qoA8ZAk@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,37 +35,62 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20241112204436.GA32766@breakpoint.cc>
-X-Spam-Score: -1.9 (-)
+In-Reply-To: <ZzPAE3Gj6qoA8ZAk@orbyte.nwl.cc>
+X-Spam-Score: -0.8 (/)
 
-On Tue, Nov 12, 2024 at 09:44:36PM +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > >nftables audit log format unfortunately leaks an implementation detail, the
-> > >transaction log size, to userspace:
-> > >
-> > >    table=t1 family=2 entries=4 op=nft_register_set
-> > >                      ~~~~~~~~~
-> > >
-> > >This 'entries' key is the number of transactions that will be applied.
-> > 
-> > To my understanding, entries= is the number of entries that are either
-> > added or updated in this transaction.
-> > 
-> > Before this patch, there was a 1:1 mapping between transaction and
-> > elements, now this is not the case anymore.
-> > 
-> > If entries= exposes only the number of transactions, then this becomes
-> > useless to userspace?
+Hi Phil,
+
+On Tue, Nov 12, 2024 at 09:52:35PM +0100, Phil Sutter wrote:
+> Hi Pablo,
 > 
-> Hmm, I would need to know what this is supposed to be.
-> Its not going to be the same in either case,
-> iptables-legacy -A ... vs iptables-nft -A won't result in same
-> entries due to the whole-table-replace paradigm and introduction
-> of "update" mechanism also changes entries count.
+> On Thu, Oct 31, 2024 at 11:04:11PM +0100, Pablo Neira Ayuso wrote:
+> > Side note: While profiling, I can still see lots json objects, this
+> > results in memory consumption that is 5 times than native
+> > representation. Error reporting is also lagging behind, it should be
+> > possible to add a json_t pointer to struct location to relate
+> > expressions and json objects.
+> 
+> I can't quite reproduce this. When restoring a ruleset with ~12.7k
+> elements in individual standard syntax commands, valgrind prints:
+> 
+> | HEAP SUMMARY:
+> |     in use at exit: 59,802 bytes in 582 blocks
+> |   total heap usage: 954,970 allocs,
+> |                     954,388 frees,
+> |                  18,300,874 bytes allocated
+> 
+> Repeating the same in JSON syntax, I get:
+> 
+> | HEAP SUMMARY:
+> |     in use at exit: 61,592 bytes in 647 blocks
+> |   total heap usage: 1,200,164 allocs,
+> |                     1,199,517 frees,
+> |                    38,612,257 bytes allocated
+> 
+> So this is 38MB vs 18MB? At least far from the mentioned 5 times. Would
+> you mind sharing how you got to that number?
+> 
+> Please kindly find my reproducers attached for reference.
 
-Right, there is a change between -legacy and -nft regarding audit.
+I am using valgrind --tool=massif to measure memory consumption in
+userspace.
 
-> I think its fine now, but please feel free to rewrite the commit
-> message if you think its needed.
+I used these two files:
 
-Thanks, I will make an edit.
+- set-init.json-nft, to create the table and set.
+- set-65535.nft-json, to create a small set with 64K elements.
+
+then I run:
+
+valgrind --tool=massif nft -f set-65535.nft-json
+
+there is a tool:
+
+ms_print massif.out.XYZ
+
+At "peak time" in heap memory consumption, I can see 60% is consumed
+in json objects.
+
+I am looking at the commands and expressions to reduce memory
+consumption there. The result of that work will also help json
+support.
