@@ -1,153 +1,84 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-il1-f198.google.com (mail-il1-f198.google.com [209.85.166.198])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 516B126AEC
-	for <netfilter-devel@vger.kernel.org>; Wed, 13 Nov 2024 11:04:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B856A1FDFB1
+	for <netfilter-devel@vger.kernel.org>; Wed, 13 Nov 2024 11:07:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.198
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731495850; cv=none; b=dsXqfZuRiFSPq7QQxs0BrhNcF2o0gwtZyyy0QtjyIt+umR/VdB1LDC3kq761inaMsnTqeyA2zoDll30Xz0D9muL441d6KEc3M8AlBSpivB5HhNau4yzKkt4Vx/toyusUi40oqfwrFqhs4Mx2kbjVY+iIuK2TRuSSyoCyVeSSOg4=
+	t=1731496046; cv=none; b=Te9+eBrw6J0Km+votDl5wl5P0f850Cqu8zW1LJ5qv6CQ6hR3YKfjTDrAiMI+2u9nrKMGUuYjxYcI/KXAAXRz5vpfyrXhfmEZxQwD7ALg8kx1uGebLeGDA/XtjfGR0rJmLonQqfleJKsEJbdumZXi5ue3SCDSoBdpewDfqchRp0A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731495850; c=relaxed/simple;
-	bh=t275FfR2CrHSuDBgQFiewPSWXuvaSwA0ku0pUFTMYkA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=GaAjOCM3OFx5y87Lcpw580OZ1vY0+iBEGH3JWTkjk2tNdpKMe2O2MhG0KNl1ljPiQAKPIHFdE6mZ/qjtOVMC41OzdrLVYGKSRbS7JaEb7xmFHd/HuzbejWHTlxdYqiismZg1ki/ViRjiDCAWpEjHFuKvoK/6DuHS3z1DNUeQDKs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1tBBAL-00059m-5E; Wed, 13 Nov 2024 12:04:05 +0100
-Date: Wed, 13 Nov 2024 12:04:05 +0100
-From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next v4 4/5] netfilter: nf_tables: switch trans_elem
- to real flex array
-Message-ID: <20241113110405.GA19651@breakpoint.cc>
-References: <20241107174415.4690-1-fw@strlen.de>
- <20241107174415.4690-5-fw@strlen.de>
- <ZzR8W7oQ_3wD-osu@calendula>
+	s=arc-20240116; t=1731496046; c=relaxed/simple;
+	bh=3nNM0RWOHRwOh7vCR5bAGUb3yt8DqN9rgmZNmyv+1dA=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=DYCjLAO9xvGHhNhDb7ItOmlaPNTlb9IymRURLw1KT0Avz/QAH3kCbieAkD66ce9mVCkPXB6wETHVHavN/AEItETMbXQc985O19tH5wi5jzB5EGcOWc9iAyWNP2cr/+zfHiaeElQ/pimOR0OpH9HPWKrxXzbvG7hxa76huR34/lc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.198
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-il1-f198.google.com with SMTP id e9e14a558f8ab-3a3e1ef9102so80005315ab.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 13 Nov 2024 03:07:24 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1731496044; x=1732100844;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=DwSOEAvBktMgftzuxBHvBD9aUQ+nzTMLZyoeTaPM0CE=;
+        b=Z87ruMv6q1lB/wOdwLc2UePf5YuSRGa6B+sBzg3SnDhA0iHwsAumOJfzaYgDVS3sgu
+         1LZtNf4TsdWj9SUgiRcO2VTEA8g8MnCBXw/8S8rkP1vqKbG/GsvUdHQ7qhZUrVOoNsSm
+         Ge/M5+r9hxcK2UEi+qdC0HGGg0BKLiGXOGBjsLbyMT/3EXeON68cxtIZ7rW+sGnvsG/S
+         VlXzo//p5MYaazrRRiDqPNlyf0j3cV9EUGRObnR128Hm+JChgM39YwjxR0f1sp90a8XW
+         LIss9ns6nBzIJXrmPYCB7YK+8qPABLpWmUE1nKtmqh7vvdPBsVCtQ8zj/WHi1q7fBd93
+         5e2A==
+X-Forwarded-Encrypted: i=1; AJvYcCXgxA4j0YjZuz+AtgeP5waIdtx02Q335vV0dCi8HDb+lOo+6g9xLr2AzZN6VyNzsN/yVfgCQNjzz1kXIJ0WUpw=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxEHla9I2HdkFQ8qqjSmYGOQcx8FyA24VA+7ttch7NNS5AHiJUj
+	sMj/5cJPo/VSV0VscK2Fhl+VOIcYjpf5hi9b8839B4e3JuxBcp995qXxS5V3MgIugxEK35IlGO1
+	/YoUmn3MsOKq0eYgb29PjCQD9Z0FBfdGb3ROR8wTunLtVnIM7yhSEfPk=
+X-Google-Smtp-Source: AGHT+IHc+ihD1CVYxIdzETMaxBkZllwA44W9mPFRV4QkVI/dOD/r9sngDbwP1exuFO+kJoaz8wB0v7JQPSv6nZFBRR6bZVgtedxn
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZzR8W7oQ_3wD-osu@calendula>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Received: by 2002:a92:680d:0:b0:3a7:18ac:1fd1 with SMTP id
+ e9e14a558f8ab-3a718ac209fmr10563875ab.2.1731496043720; Wed, 13 Nov 2024
+ 03:07:23 -0800 (PST)
+Date: Wed, 13 Nov 2024 03:07:23 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6734886b.050a0220.2a2fcc.0008.GAE@google.com>
+Subject: [syzbot] Monthly netfilter report (Nov 2024)
+From: syzbot <syzbot+lista609c7c1ef075b5cd57f@syzkaller.appspotmail.com>
+To: kadlec@netfilter.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, pablo@netfilter.org, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> I'm making another pass on this series, a few thing I would like to
-> ask, see below.
-> 
-> On Thu, Nov 07, 2024 at 06:44:08PM +0100, Florian Westphal wrote:
-> > diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> > index bdf5ba21c76d..e96e538fe2eb 100644
-> > --- a/net/netfilter/nf_tables_api.c
-> > +++ b/net/netfilter/nf_tables_api.c
-> > @@ -25,6 +25,7 @@
-> >  
-> >  #define NFT_MODULE_AUTOLOAD_LIMIT (MODULE_NAME_LEN - sizeof("nft-expr-255-"))
-> >  #define NFT_SET_MAX_ANONLEN 16
-> > +#define NFT_MAX_SET_NELEMS ((2048 - sizeof(struct nft_trans_elem)) / sizeof(struct nft_trans_one_elem))
-> 
-> This NFT_MAX_SET_NELEMS is to stay in a specific kmalloc-X?
-> 
-> What is the logic behind this NFT_MAX_SET_NELEMS?
+Hello netfilter maintainers/developers,
 
-I want to avoid making huge kmalloc requests, plus avoid huge krealloc
-overhead.
+This is a 31-day syzbot report for the netfilter subsystem.
+All related reports/information can be found at:
+https://syzkaller.appspot.com/upstream/s/netfilter
 
-I think that kmalloc-2048 slab is a good fit.
-I can add a comment, or increase to kmalloc-4096 but I'd prefer to
-not go over that, since kmalloc allocations > 1 page are more prone
-to allocation failure.
+During the period, 2 new issues were detected and 1 were fixed.
+In total, 10 issues are still open and 177 have already been fixed.
 
-> >  unsigned int nf_tables_net_id __read_mostly;
-> >  
-> > @@ -391,6 +392,69 @@ static void nf_tables_unregister_hook(struct net *net,
-> >  	return __nf_tables_unregister_hook(net, table, chain, false);
-> >  }
-> >  
-> > +static bool nft_trans_collapse_set_elem_allowed(const struct nft_trans_elem *a, const struct nft_trans_elem *b)
-> > +{
-> > +	return a->set == b->set && a->bound == b->bound && a->nelems < NFT_MAX_SET_NELEMS;
-> 
-> I think this a->bound == b->bound check defensive.
-> 
-> This code is collapsing only two consecutive transactions, the one at
-> the tail (where nelems > 1) and the new transaction (where nelems ==
-> 1).
+Some of the still happening issues:
 
-Yes.
+Ref Crashes Repro Title
+<1> 117     Yes   INFO: rcu detected stall in gc_worker (3)
+                  https://syzkaller.appspot.com/bug?extid=eec403943a2a2455adaa
+<2> 47      Yes   INFO: rcu detected stall in NF_HOOK (2)
+                  https://syzkaller.appspot.com/bug?extid=34c2df040c6cfa15fdfe
+<3> 45      Yes   BUG: soft lockup in batadv_iv_send_outstanding_bat_ogm_packet
+                  https://syzkaller.appspot.com/bug?extid=572f6e36bc6ee6f16762
 
-> bound state should only change in case there is a NEWRULE transaction
-> in between.
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-Yes.
+To disable reminders for individual bugs, reply with the following command:
+#syz set <Ref> no-reminders
 
-> I am trying to find a error scenario where a->bound == b->bound
-> evaluates false. I considered the following:
-> 
->    newelem -> newrule -> newelem
-> 
-> where newrule has these expressions:
-> 
->    lookup -> error
-> 
-> in this case, newrule error path is exercised:
-> 
->    nft_rule_expr_deactivate(&ctx, rule, NFT_TRANS_PREPARE_ERROR);
-> 
-> this calls nf_tables_deactivate_set() that calls
-> nft_set_trans_unbind(), then a->bound is restored to false. Rule is
-> released and no transaction is added.
-> 
-> Because if this succeeds:
-> 
->    newelem -> newrule -> newelem
-> 
-> then no element collapsing can happen, because we only collapse what
-> is at the tail.
-> 
-> TLDR; Check does not harm, but it looks unlikely to happen to me.
+To change bug's subsystems, reply with:
+#syz set <Ref> subsystems: new-subsystem
 
-Yes, its defensive check.  I could add a comment.
-The WARN_ON_ONCE for trans->nelems != 1 exists for same reason.
-
-> > +}
-> > +
-> > +static bool nft_trans_collapse_set_elem(struct nftables_pernet *nft_net,
-> > +					struct nft_trans_elem *tail,
-> > +					struct nft_trans_elem *trans,
-> > +					gfp_t gfp)
-> > +{
-> > +	unsigned int nelems, old_nelems = tail->nelems;
-> > +	struct nft_trans_elem *new_trans;
-> > +
-> > +	if (!nft_trans_collapse_set_elem_allowed(tail, trans))
-> > +		return false;
-> > +
-> > +	if (WARN_ON_ONCE(trans->nelems != 1))
-> > +		return false;
-> > +
-> > +	if (check_add_overflow(old_nelems, trans->nelems, &nelems))
-> > +		return false;
-> > +
-> > +	/* krealloc might free tail which invalidates list pointers */
-> > +	list_del_init(&tail->nft_trans.list);
-> > +
-> > +	new_trans = krealloc(tail, struct_size(tail, elems, nelems), gfp);
-> > +	if (!new_trans) {
-> > +		list_add_tail(&tail->nft_trans.list, &nft_net->commit_list);
-> > +		return false;
-> > +	}
-> > +
-> > +	INIT_LIST_HEAD(&new_trans->nft_trans.list);
-> 
-> This initialization is also defensive, this element is added via
-> list_add_tail().
-
-Yes, the first arg to list_add(_tail) can live without initialisation.
+You may send multiple commands in a single email message.
