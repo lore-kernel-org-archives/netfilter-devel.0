@@ -1,14 +1,13 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id A75B61FAC5D;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 88EAB1F9EC7;
 	Thu, 14 Nov 2024 13:05:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731589513; cv=none; b=G/3O/ranOpu/VDoEikuNMqpbvTt4gB7fZL/Dw/61lsCUlwkJCV4VHp0ii6ncPxB6UlATNFckEljQxgLsfoWxHgD3oxXNMYNe0YPIXxoYwAjN+dn6+DCuZjnJ9WI/ssk7OQQfGM92VfY1QxJkr0gtLRJq92kBD+Whx0qNuPfBOTc=
+	t=1731589514; cv=none; b=iuxUB/QlbZLf76321SjBL0ZGLg0pnMNHA2R9tDMc0X+I+YobUbW+RjSBJ9tc9gSXZjrAmRBhkNA7VA0pftn5Q8E4xvMe5t/MYq1LXfBRp5rI1Y93+u0tFP367zXUOHASYhlQWLj4gUdm2F3eJI8fD65+Uq/1RvbIV/swD5KukBk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731589513; c=relaxed/simple;
-	bh=QPUiEAZl3lzHLwvEjSCy0Y1PfyOgnhOXErZmHXPZ0zk=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=UtHgzjCKVD+7L39qKPaKFrKf3Ea6eIDPZtF26frr+u3I8o5IDiKHgNejBQV3kzJ7xfjGDEtUKzpTxBFACbAG73VXLe0f+skpoH1CMLPzfUT1mQa4kyuoO720IAtNiuIajitDPP3k41Ua/oThrnsEwZBhvWdoct3ay3OuWc4nITY=
+	s=arc-20240116; t=1731589514; c=relaxed/simple;
+	bh=e5D2qOgFKSBwHV7XhRukm34CjjDqrco4rYeRnDSVQ3w=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=acNvmARs0B9KkmdfIyZ+m+TkLGRmU6/ZhNrZBiuZ+NipNHQC/nprrG3fbi3v0J4g1V5W5pWhBl6KyA2DiyTi/ovo6xVOei++yvjIAvlON8FkhEu8IgHQUrLIEmP6ZD0IMChaPHGkmMMRljoT+jAoQldRgYgffWH8bpUtAXQk404=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,12 +19,10 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 2/3] selftests: netfilter: Fix missing return values in conntrack_dump_flush
-Date: Thu, 14 Nov 2024 13:57:22 +0100
-Message-Id: <20241114125723.82229-3-pablo@netfilter.org>
+Subject: [PATCH net 0/3] Netfilter fixes for net
+Date: Thu, 14 Nov 2024 13:57:20 +0100
+Message-Id: <20241114125723.82229-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20241114125723.82229-1-pablo@netfilter.org>
-References: <20241114125723.82229-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -34,48 +31,52 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: guanjing <guanjing@cmss.chinamobile.com>
+Hi,
 
-Fix the bug of some functions were missing return values.
+The following patchset contains Netfilter fixes for net:
 
-Fixes: eff3c558bb7e ("netfilter: ctnetlink: support filtering by zone")
-Signed-off-by: Guan Jing <guanjing@cmss.chinamobile.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- .../testing/selftests/net/netfilter/conntrack_dump_flush.c  | 6 ++++++
- 1 file changed, 6 insertions(+)
+1) Update .gitignore in selftest to skip conntrack_reverse_clash,
+   from Li Zhijian.
 
-diff --git a/tools/testing/selftests/net/netfilter/conntrack_dump_flush.c b/tools/testing/selftests/net/netfilter/conntrack_dump_flush.c
-index 254ff03297f0..5f827e10717d 100644
---- a/tools/testing/selftests/net/netfilter/conntrack_dump_flush.c
-+++ b/tools/testing/selftests/net/netfilter/conntrack_dump_flush.c
-@@ -43,6 +43,8 @@ static int build_cta_tuple_v4(struct nlmsghdr *nlh, int type,
- 	mnl_attr_nest_end(nlh, nest_proto);
- 
- 	mnl_attr_nest_end(nlh, nest);
-+
-+	return 0;
- }
- 
- static int build_cta_tuple_v6(struct nlmsghdr *nlh, int type,
-@@ -71,6 +73,8 @@ static int build_cta_tuple_v6(struct nlmsghdr *nlh, int type,
- 	mnl_attr_nest_end(nlh, nest_proto);
- 
- 	mnl_attr_nest_end(nlh, nest);
-+
-+	return 0;
- }
- 
- static int build_cta_proto(struct nlmsghdr *nlh)
-@@ -90,6 +94,8 @@ static int build_cta_proto(struct nlmsghdr *nlh)
- 	mnl_attr_nest_end(nlh, nest_proto);
- 
- 	mnl_attr_nest_end(nlh, nest);
-+
-+	return 0;
- }
- 
- static int conntrack_data_insert(struct mnl_socket *sock, struct nlmsghdr *nlh,
--- 
-2.30.2
+2) Fix conntrack_dump_flush return values, from Guan Jing.
 
+3) syzbot found that ipset's bitmap type does not properly checks for
+   bitmap's first ip, from Jeongjun Park.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-24-11-14
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 50ae879de107ca2fe2ca99180f6ba95770f32a62:
+
+  Merge tag 'nf-24-10-31' of git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf (2024-10-31 12:13:08 +0100)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-24-11-14
+
+for you to fetch changes up to 35f56c554eb1b56b77b3cf197a6b00922d49033d:
+
+  netfilter: ipset: add missing range check in bitmap_ip_uadt (2024-11-14 13:47:26 +0100)
+
+----------------------------------------------------------------
+netfilter pull request 24-11-14
+
+----------------------------------------------------------------
+Jeongjun Park (1):
+      netfilter: ipset: add missing range check in bitmap_ip_uadt
+
+Li Zhijian (1):
+      selftests: netfilter: Add missing gitignore file
+
+guanjing (1):
+      selftests: netfilter: Fix missing return values in conntrack_dump_flush
+
+ net/netfilter/ipset/ip_set_bitmap_ip.c                       | 7 ++-----
+ tools/testing/selftests/net/netfilter/.gitignore             | 1 +
+ tools/testing/selftests/net/netfilter/conntrack_dump_flush.c | 6 ++++++
+ 3 files changed, 9 insertions(+), 5 deletions(-)
