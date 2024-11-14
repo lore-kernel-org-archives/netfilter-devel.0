@@ -1,74 +1,64 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D6DF18BC2C;
-	Thu, 14 Nov 2024 12:09:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 88F0A1FAC4A;
+	Thu, 14 Nov 2024 13:05:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731586154; cv=none; b=DkNNTuNvrrfwHFUJZ0XdxzvgWLBWHv2qxHLCFsgEJ+9fFRgtfHHX6AhvAYVkQbS8W0Kqq0UD4ZxKUqtfqbViBbcrMZVoCsj8VI2Ko+aztuqAatnN1MnyrtSl2zpzZoCq+USFM1dygD5QbB17r9CMGCzSFQC7cvAaXF58MFNPRVQ=
+	t=1731589513; cv=none; b=qL18XHgtci4rcLOcfqvjhYayR/twbCbJRCBk0LfQt1P1odQzlXPu3mmT4QrGgJWx7ARdUVPnNbUyItuKeRGNh0hscokLL6OQUdy8eo9WLGh2UIrZOj2qTsPmvwMc/yQs5IyHRtBofT1VcQmYWhtJau/mwxpcJVRkdq1uKp1zO6o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731586154; c=relaxed/simple;
-	bh=zFjM9nD1eEcwNAhJr7GI0uPQTnedXfW/j65cRd8uHaU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SVjkd4JQKLCcMLNPNCv0WmJ405AMbciNQXQc/yUhqrIfZC1FxmRXZk0/QcEezWjdj2TBm6LDNYbQVk00u+7cqwfXosojecyEqxBta8yAvJ2F9AJ9ecGrwXzJnTxYz1TvuqguA0/gtJ6gMveKlJPyyupYSYrkCO6e6H1rlie013U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+	s=arc-20240116; t=1731589513; c=relaxed/simple;
+	bh=WBK+wBYscKRT42FriCCjmW+aJF/c7VxM45CwP46g7ls=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=A2+qSLYTa4su+QIeFpPVv/ypD5s0KsX28FLA5b/voE3pACVn3biik3A/xMJ6YFy7cEU+cb9l30cYCZ0u/ZeGVBO/+3WztKaYWi7w5sbd011LSVeeDmoGR4zt0svDhWRe+XIXSwE2sYp1ZoPvhxe/DI9VetCnvWuw+5bAB6YRN8o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=39690 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1tBYep-002ARd-BK; Thu, 14 Nov 2024 13:09:09 +0100
-Date: Thu, 14 Nov 2024 13:09:05 +0100
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Cc: Paolo Abeni <pabeni@redhat.com>, Jeongjun Park <aha310510@gmail.com>,
-	davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-	horms@kernel.org, kaber@trash.net, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org,
-	syzbot+58c872f7790a4d2ac951@syzkaller.appspotmail.com
-Subject: Re: [PATCH net v2] netfilter: ipset: add missing range check in
- bitmap_ip_uadt
-Message-ID: <ZzXoYcxjSpejl9pC@calendula>
-References: <20241113130209.22376-1-aha310510@gmail.com>
- <ff1c1622-a57c-471e-b41f-8fb4cb2f233d@redhat.com>
- <ZzXfDDNSeO0vh1US@calendula>
- <759eccdd-f75b-f3a7-8686-d4c49c72df41@blackhole.kfki.hu>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de
+Subject: [PATCH net 1/3] selftests: netfilter: Add missing gitignore file
+Date: Thu, 14 Nov 2024 13:57:21 +0100
+Message-Id: <20241114125723.82229-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20241114125723.82229-1-pablo@netfilter.org>
+References: <20241114125723.82229-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <759eccdd-f75b-f3a7-8686-d4c49c72df41@blackhole.kfki.hu>
-X-Spam-Score: -1.9 (-)
+Content-Transfer-Encoding: 8bit
 
-On Thu, Nov 14, 2024 at 12:46:29PM +0100, Jozsef Kadlecsik wrote:
-> On Thu, 14 Nov 2024, Pablo Neira Ayuso wrote:
-> 
-> > On Thu, Nov 14, 2024 at 12:10:05PM +0100, Paolo Abeni wrote:
-> > > On 11/13/24 14:02, Jeongjun Park wrote:
-> > > > When tb[IPSET_ATTR_IP_TO] is not present but tb[IPSET_ATTR_CIDR] exists,
-> > > > the values of ip and ip_to are slightly swapped. Therefore, the range check
-> > > > for ip should be done later, but this part is missing and it seems that the
-> > > > vulnerability occurs.
-> > > > 
-> > > > So we should add missing range checks and remove unnecessary range checks.
-> > > > 
-> > > > Cc: <stable@vger.kernel.org>
-> > > > Reported-by: syzbot+58c872f7790a4d2ac951@syzkaller.appspotmail.com
-> > > > Fixes: 72205fc68bd1 ("netfilter: ipset: bitmap:ip set type support")
-> > > > Signed-off-by: Jeongjun Park <aha310510@gmail.com>
-> > > 
-> > > @Pablo, @Jozsef: despite the subj prefix, I guess this should go via
-> > > your tree. Please LMK if you prefer otherwise.
-> > 
-> > Patch LGTM. I am waiting for Jozsef to acknowledge this fix.
-> 
-> Sorry for the delay at acking the patch. Please apply it to the stable 
-> branches too because those are affected as well.
+From: Li Zhijian <lizhijian@fujitsu.com>
 
-No problem, preparing PR. Thanks Jozsef.
+Compiled binary files should be added to .gitignore
+'git status' complains:
+   Untracked files:
+   (use "git add <file>..." to include in what will be committed)
+         net/netfilter/conntrack_reverse_clash
+
+Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ tools/testing/selftests/net/netfilter/.gitignore | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/tools/testing/selftests/net/netfilter/.gitignore b/tools/testing/selftests/net/netfilter/.gitignore
+index 0a64d6d0e29a..64c4f8d9aa6c 100644
+--- a/tools/testing/selftests/net/netfilter/.gitignore
++++ b/tools/testing/selftests/net/netfilter/.gitignore
+@@ -2,5 +2,6 @@
+ audit_logread
+ connect_close
+ conntrack_dump_flush
++conntrack_reverse_clash
+ sctp_collision
+ nf_queue
+-- 
+2.30.2
+
