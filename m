@@ -1,75 +1,126 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 180D51B3948
-	for <netfilter-devel@vger.kernel.org>; Fri, 15 Nov 2024 11:57:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id CCC151BB6A0;
+	Fri, 15 Nov 2024 13:32:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731671845; cv=none; b=ZU2K1qNrLd1jPo2NByEQlmEyUy8IE0RoMtWLEX0NfoyLZwNKOyTzzHaT5+isWfbEc9N5b/h9CQJcjde7/L+aoSTGllJ0twFC7bAreFY+T/fpvXd1GrH/2cZQSGrQxbW8SwleTb400QNESvaPftMwGTM7o5QXhIrvIaDSXfTViQ0=
+	t=1731677541; cv=none; b=dsMUF4QQCRsVC/em1jBB7/J5AY1p6f9TzapL6ZjsbwcC4o0lkwPgJfQnEuUiIMuGIx2hWrpEMYl9nDCDS0Kj1PcGcVTluI61OBUPjZc6k+so6W4jxh8Cf1gqn5kIEE5hklpBq3C0jHtLMFeWyUVQEDJQdUHBjFS6K+i+C7GNteA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731671845; c=relaxed/simple;
-	bh=PxszF+wk2NzuqnL+n8A5smw7kz46uQHGD2oKaXH1d88=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=J2QR1Bmj54kjIvc9Se4gtHDeKdQH2ZNSdPtNBBmtm0+NJOBLGRNyxxBEavjNtWs4BD8U75Z/odC8zHa+vlyYOEL+GAw5gz2a+C+KQkPUk31IHo8RxBxKgr6kRCzD+uPixpLFXhJm28dCuq3SKiYOkNynTunm3I+ro814EdjEMR8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
+	s=arc-20240116; t=1731677541; c=relaxed/simple;
+	bh=ZEWQJ6AcVNMHQ5Fzqr1gxhbHqZu7vODLWQFHegteBIA=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=RvUsekF84B3BR/Exo2R6FzAQSfnF+zVgE8yTkQUo+8vtD3KVnMJPnUW+NQqt3yX+nExUqSr7/PVo80eolekaY07gbXHdOQUQszon3dMXsg6Me1eGHEfzeLMNqZt2tepQcvkGolKXONE/zLY2ajCmJDVh6ZFkRWpCb7Nvzl0c/Kc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.37.63] (port=41826 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1tBuwo-007svI-5y; Fri, 15 Nov 2024 12:57:12 +0100
-Date: Fri, 15 Nov 2024 12:57:09 +0100
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	Eric Garver <e@erig.me>
-Subject: Re: [nf-next PATCH v6 0/7] Dynamic hook interface binding part 1
-Message-ID: <Zzc3FV4FG8a6px7z@calendula>
-References: <20241023145730.16896-1-phil@nwl.cc>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de
+Subject: [PATCH net-next 00/14] Netfilter updates for net-next
+Date: Fri, 15 Nov 2024 14:31:53 +0100
+Message-Id: <20241115133207.8907-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20241023145730.16896-1-phil@nwl.cc>
-X-Spam-Score: -1.9 (-)
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-Hi Phil,
+Hi,
 
-Sorry for slowness.
+The following patchset contains Netfilter updates for net-next:
 
-On Wed, Oct 23, 2024 at 04:57:23PM +0200, Phil Sutter wrote:
-> Changes since v5:
-> - Extract the initial set of patches making netdev hooks name-based as
->   suggested by Florian.
-> - Drop Fixes: tag from patch 1: It is not correct (the pointless check
->   existed before that commit already) and it is rather an optimization
->   than fixing a bug.
-> 
-> This series makes netdev hooks store the interface name spec they were
-> created for and establishes this stored name as the key identifier. The
-> previous one which is the hook's 'ops.dev' pointer is thereby freed to
-> vanish, so a vanishing netdev no longer has to drag the hook along with
-> it. (Patches 2-4)
-> 
-> Furthermore, it aligns behaviour of netdev-family chains with that of
-> flowtables in situations of vanishing interfaces. When previously a
-> chain losing its last interface was torn down and deleted, it may now
-> remain in place (albeit with no remaining interfaces). (Patch 5)
-> 
-> Patch 6 is a cleanup following patch 5, patches 1 and 7 are independent
-> code simplifications.
+1) Extended netlink error reporting if nfnetlink attribute parser fails,
+   from Donald Hunter.
 
-Patch 1-4 can be integrated, they are relatively small.
+2) Incorrect request_module() module, from Simon Horman.
 
-Patches 5-6 will need a rebase due to my fix in that path.
+3) A series of patches to reduce memory consumption for set element transactions.
+   Florian Westphal says:
 
-Patch 7 is probably uncovering an issue with flowtable hardware
-offload support, because I suspect _UNBIND is not called from that
-path, I need to have a look.
+"When doing a flush on a set or mass adding/removing elements from a
+set, each element needs to allocate 96 bytes to hold the transactional
+state.
 
-I am inclined to postpone this batch to the next development cycle.
+In such cases, virtually all the information in struct nft_trans_elem
+is the same.
+
+Change nft_trans_elem to a flex-array, i.e. a single nft_trans_elem
+can hold multiple set element pointers.
+
+The number of elements that can be stored in one nft_trans_elem is limited
+by the slab allocator, this series limits the compaction to at most 62
+elements as it caps the reallocation to 2048 bytes of memory."
+
+4) A series of patches to prepare the transition to dscp_t in .flowi_tos.
+   From Guillaume Nault.
+
+5) Support for bitwise operations with two source registers,
+   from Jeremy Sowden.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-24-11-15
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 544070db6c8b0c403e4c6befbc76b52831b897da:
+
+  Merge branch 'mlx5-esw-qos-refactor-and-shampo-cleanup' (2024-11-11 19:28:20 -0800)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-24-11-15
+
+for you to fetch changes up to b0ccf4f53d968e794a4ea579d5135cc1aaf1a53f:
+
+  netfilter: bitwise: add support for doing AND, OR and XOR directly (2024-11-15 12:07:04 +0100)
+
+----------------------------------------------------------------
+netfilter pull request 24-11-15
+
+----------------------------------------------------------------
+Donald Hunter (1):
+      netfilter: nfnetlink: Report extack policy errors for batched ops
+
+Florian Westphal (5):
+      netfilter: nf_tables: add nft_trans_commit_list_add_elem helper
+      netfilter: nf_tables: prepare for multiple elements in nft_trans_elem structure
+      netfilter: nf_tables: prepare nft audit for set element compaction
+      netfilter: nf_tables: switch trans_elem to real flex array
+      netfilter: nf_tables: allocate element update information dynamically
+
+Guillaume Nault (5):
+      netfilter: ipv4: Convert ip_route_me_harder() to dscp_t.
+      netfilter: flow_offload: Convert nft_flow_route() to dscp_t.
+      netfilter: rpfilter: Convert rpfilter_mt() to dscp_t.
+      netfilter: nft_fib: Convert nft_fib4_eval() to dscp_t.
+      netfilter: nf_dup4: Convert nf_dup_ipv4_route() to dscp_t.
+
+Jeremy Sowden (2):
+      netfilter: bitwise: rename some boolean operation functions
+      netfilter: bitwise: add support for doing AND, OR and XOR directly
+
+Simon Horman (1):
+      netfilter: bpf: Pass string literal as format argument of request_module()
+
+ include/net/netfilter/nf_tables.h        |  25 +-
+ include/uapi/linux/netfilter/nf_tables.h |  18 +-
+ net/ipv4/netfilter.c                     |   2 +-
+ net/ipv4/netfilter/ipt_rpfilter.c        |   2 +-
+ net/ipv4/netfilter/nf_dup_ipv4.c         |   2 +-
+ net/ipv4/netfilter/nft_fib_ipv4.c        |   3 +-
+ net/netfilter/nf_bpf_link.c              |   2 +-
+ net/netfilter/nf_tables_api.c            | 385 ++++++++++++++++++++++++-------
+ net/netfilter/nfnetlink.c                |   2 +-
+ net/netfilter/nft_bitwise.c              | 166 ++++++++++---
+ net/netfilter/nft_flow_offload.c         |   4 +-
+ 11 files changed, 484 insertions(+), 127 deletions(-)
