@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B53BD1C729B;
-	Fri, 15 Nov 2024 13:32:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id BB2CC1CD213;
+	Fri, 15 Nov 2024 13:32:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731677543; cv=none; b=BnKZq/+CUKa4dLKg1Qvk3eP9zoaz4zaIaVcFy6BMsKj8Ft3t/RMbMEiKtsf5GnRWakX9df6cNZ/HCz2RzOkUFwc0sv0ci7ZOEjsHSR+vE9cgG4JZiNLCMi6f/C9G+YiN0dIs3tXB79sYvT8QQcj1xwuogGTzwUn5ZWGf+Fo55Sw=
+	t=1731677544; cv=none; b=IvGj0Hy4d+Ihe7yswLAIF28f4Db+ytLG8DlgoKt41Rc5sW5pv4KeRfVftDLm+DGIIGReeKMRY1iWdXrQ/VL6MeJviJgPmV3ljTEEJuzt0dxIgSgEopHjKwgkPIm9Hd+2de15LWjSV2gPGAZkPvF9PHW/sHpVDXXAyeTnvppvVHc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731677543; c=relaxed/simple;
-	bh=RtrkiSFAEdcqIvvNeaw42D6GpVAtHtdX/hDCvlAwdP0=;
+	s=arc-20240116; t=1731677544; c=relaxed/simple;
+	bh=AeYqxV4k8SsN68NRq6U751zU4sGPlP6WAkGt/O3vNeY=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=O2nO6NfYF+u8xeuBukCUt0WMuPstwgCQNVlmBwnI5xyaonPz3h5D9B141EaO0JNuE6Bv6M4uVdc2FMVMbtLgI8Ykg9xXEjiXntHyz26vK8+1/3K/MGhNbJ3B27LWeyBNoSdn7WPAei+Jv4MFl1KEc7/6lL8rlkP58IgpRyIXnYk=
+	 MIME-Version; b=hfIZbcMT8VWqf8Y6OlCHoy/fkUW+iziWETJsXf33fKAOkaPubNCnkOG0/SW/u1BzuAE3ROvaUJlrhrQQXxiDv+gpnlfs0lJLbXv0g6EDC/NFB+u1p1YKafwf9f/AU2I1VGCq5osWzqKMeYihEDmJpYBi+xCrPXzdYd0Yu5wS56s=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net-next 02/14] netfilter: bpf: Pass string literal as format argument of request_module()
-Date: Fri, 15 Nov 2024 14:31:55 +0100
-Message-Id: <20241115133207.8907-3-pablo@netfilter.org>
+Subject: [PATCH net-next 05/14] netfilter: nf_tables: prepare nft audit for set element compaction
+Date: Fri, 15 Nov 2024 14:31:58 +0100
+Message-Id: <20241115133207.8907-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20241115133207.8907-1-pablo@netfilter.org>
 References: <20241115133207.8907-1-pablo@netfilter.org>
@@ -32,60 +32,85 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Simon Horman <horms@kernel.org>
+From: Florian Westphal <fw@strlen.de>
 
-Both gcc-14 and clang-18 report that passing a non-string literal as the
-format argument of request_module() is potentially insecure.
+nftables audit log format emits the number of added/deleted rules, sets,
+set elements and so on, to userspace:
 
-E.g. clang-18 says:
+    table=t1 family=2 entries=4 op=nft_register_set
+                      ~~~~~~~~~
 
-.../nf_bpf_link.c:46:24: warning: format string is not a string literal (potentially insecure) [-Wformat-security]
-   46 |                 err = request_module(mod);
-      |                                      ^~~
-.../kmod.h:25:55: note: expanded from macro 'request_module'
-   25 | #define request_module(mod...) __request_module(true, mod)
-      |                                                       ^~~
-.../nf_bpf_link.c:46:24: note: treat the string as an argument to avoid this
-   46 |                 err = request_module(mod);
-      |                                      ^
-      |                                      "%s",
-.../kmod.h:25:55: note: expanded from macro 'request_module'
-   25 | #define request_module(mod...) __request_module(true, mod)
-      |                                                       ^
+At this time, the 'entries' key is the number of transactions that will
+be applied.
 
-It is always the case where the contents of mod is safe to pass as the
-format argument. That is, in my understanding, it never contains any
-format escape sequences.
+The upcoming set element compression will coalesce subsequent
+adds/deletes to the same set requests in the same transaction
+request to conseve memory.
 
-But, it seems better to be safe than sorry. And, as a bonus, compiler
-output becomes less verbose by addressing this issue as suggested by
-clang-18.
+Without this patch, we'd under-report the number of altered elements.
 
-Compile tested only.
+Increment the audit counter by the number of elements to keep the reported
+entries value the same.
 
-Signed-off-by: Simon Horman <horms@kernel.org>
-Reviewed-by: Toke Høiland-Jørgensen <toke@redhat.com>
+Without this, nft_audit.sh selftest fails because the recorded
+(expected) entries key is smaller than the expected one.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_bpf_link.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_tables_api.c | 21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nf_bpf_link.c b/net/netfilter/nf_bpf_link.c
-index 3d64a4511fcf..06b084844700 100644
---- a/net/netfilter/nf_bpf_link.c
-+++ b/net/netfilter/nf_bpf_link.c
-@@ -43,7 +43,7 @@ get_proto_defrag_hook(struct bpf_nf_link *link,
- 	hook = rcu_dereference(*ptr_global_hook);
- 	if (!hook) {
- 		rcu_read_unlock();
--		err = request_module(mod);
-+		err = request_module("%s", mod);
- 		if (err)
- 			return ERR_PTR(err < 0 ? err : -EINVAL);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 0882f78c2204..5b5178841553 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -10398,9 +10398,24 @@ static void nf_tables_commit_audit_free(struct list_head *adl)
+ 	}
+ }
  
++/* nft audit emits the number of elements that get added/removed/updated,
++ * so NEW/DELSETELEM needs to increment based on the total elem count.
++ */
++static unsigned int nf_tables_commit_audit_entrycount(const struct nft_trans *trans)
++{
++	switch (trans->msg_type) {
++	case NFT_MSG_NEWSETELEM:
++	case NFT_MSG_DELSETELEM:
++		return nft_trans_container_elem(trans)->nelems;
++	}
++
++	return 1;
++}
++
+ static void nf_tables_commit_audit_collect(struct list_head *adl,
+-					   struct nft_table *table, u32 op)
++					   const struct nft_trans *trans, u32 op)
+ {
++	const struct nft_table *table = trans->table;
+ 	struct nft_audit_data *adp;
+ 
+ 	list_for_each_entry(adp, adl, list) {
+@@ -10410,7 +10425,7 @@ static void nf_tables_commit_audit_collect(struct list_head *adl,
+ 	WARN_ONCE(1, "table=%s not expected in commit list", table->name);
+ 	return;
+ found:
+-	adp->entries++;
++	adp->entries += nf_tables_commit_audit_entrycount(trans);
+ 	if (!adp->op || adp->op > op)
+ 		adp->op = op;
+ }
+@@ -10569,7 +10584,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 
+ 		nft_ctx_update(&ctx, trans);
+ 
+-		nf_tables_commit_audit_collect(&adl, table, trans->msg_type);
++		nf_tables_commit_audit_collect(&adl, trans, trans->msg_type);
+ 		switch (trans->msg_type) {
+ 		case NFT_MSG_NEWTABLE:
+ 			if (nft_trans_table_update(trans)) {
 -- 
 2.30.2
 
