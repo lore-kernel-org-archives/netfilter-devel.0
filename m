@@ -1,105 +1,157 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76508824BD;
-	Fri, 15 Nov 2024 22:20:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9771D19006F;
+	Fri, 15 Nov 2024 22:35:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=150.107.74.76
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731709222; cv=none; b=QNLNe0M1f5ryMnlr7D2Cd3u+4ODJYUdHIaUQPVnoH0v1e/dOXDLgLFgG9q39Q20bPM5JirCr9/VPgpsbzwsE1QpbTeaaVP7bfZu871y8nyOBrYW02nsf4c3p6OB1EWoZnCQ4Wq4U1tIeXeIMo+VLGqGEWmQRgcHZUr4djx3k3+k=
+	t=1731710120; cv=none; b=JXptJlHi1Id4KP80J8CTqzdHVs0dG0JCgUvB8IQSqRibCsUxarLYK+325NViLMK6sHpLuJg8tlAAFJXNyaBg2oqKEZAwCZAZ3GvK0J1hjuxwU/Ta95gbs2lHgOA8PQui2ibYD96y2PvRX8EzeDPTRCY5bTpgXX2iKKz3eSoI1QQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731709222; c=relaxed/simple;
-	bh=B+2xRedtL/liNFw5J11WdSIGow4Ng61KZCkJd6ZdxsI=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=tMKaCRV8ZEitmTcH73c5htX9SMxIQiFoDNEAHefvQaAZAXtEIiJ4yu5zO6BlGmddADSBbS3eNKRCzwfhy4eIgozAQ86yyuPp8kFuaNKqrLX11qZBjvwvSEpq2//2Va52VAy4/yYe1ay/UZibT5J1bqF30/TRXgfkX7XGO19ecn4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GvQC2ciw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731710120; c=relaxed/simple;
+	bh=+t6HMsXZCpufnx+SeJ8pzSOk6H3+rWVdCSUVuVIaTEM=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=FS2hjeJxt2JXk9huM2INrZyX24ivyUGGGixjPNUsDH10asr065PjrdWeMKSaH2J1AFBGVDO9e0ZV3Ndj6mat/UCI2TVn4HCtyJFrejml8qnrspn9VirQl1YVi09vfyXZ95s6YKQHOQO4A97pEod2DqXi/kSvc+2bYi+g+pJZ3qw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=canb.auug.org.au; spf=pass smtp.mailfrom=canb.auug.org.au; dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b=TBKjQ+jw; arc=none smtp.client-ip=150.107.74.76
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=canb.auug.org.au
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=canb.auug.org.au
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GvQC2ciw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7ACFC4CECF;
-	Fri, 15 Nov 2024 22:20:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1731709222;
-	bh=B+2xRedtL/liNFw5J11WdSIGow4Ng61KZCkJd6ZdxsI=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=GvQC2ciwB6frXDhJqaeRX5j055GFdvN/04YMXfQQMYOx7tsmpPQ4pZotHkhxsZnYv
-	 8PiwZve1vgD4GLnVdi7yD1bMPr6NEUfvAy7Q0kzyXu6HI67M2vfTF8sSbi+rh9ClnL
-	 2WZELIhQuNrc5aHqvlbargTPBxbEKbe0IRDIPMFAlGbOotFqncWAjBDeVTFQ9FxLgF
-	 NPQ2pUdY+60uaTIQtVx7a4XSDKLiz7nu9SKHb4Yko8c2+AWYyQMdOINywHbrHnyBmO
-	 GhXmdEAkhBA3KPkV9ok8ETNLJB4XAIM/smLZwxUKfAZgvCzDyFgDjMiIj7JOqbpflY
-	 IEGKtMTWPgwng==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id EAFD63809A80;
-	Fri, 15 Nov 2024 22:20:33 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b="TBKjQ+jw"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canb.auug.org.au;
+	s=201702; t=1731710109;
+	bh=8q2Y3qiG3ZOOjZQQW66Agp5RO04F9uaeWnu9irwI8zs=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=TBKjQ+jwynGqippSpjmesy2LJHz5G28IT7vT4TaT88JCuw46fBO3BDRAIPv6hRM7/
+	 XbOWv6yTpIGUBOHVpD+GgH5bOcDzYCKCOUCxtFJITpudgYieUI+GdoU8psZqrHYs9B
+	 plWGzIOASib2U9DXo1e9xJXfQHkgKNH8Cirh/o/LRzKV85o+Cp3r3eBc9AZ3AQZa0F
+	 DYP1RPyQiMfC70ZKaMZkgpPnHyLFqXq1SQIh8oIfiAurmRjt4FWX01yMlsvyocz2uk
+	 oad7uD2rsh8nj5e0aZSH5jUluHbC7REOnBIrLNo1QEsXfDYgF3levquGraIQNcBhLm
+	 5y9gdjsr1Cmwg==
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (prime256v1) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(Client did not present a certificate)
+	by mail.ozlabs.org (Postfix) with ESMTPSA id 4XqsKD5FnLz4x3p;
+	Sat, 16 Nov 2024 09:34:56 +1100 (AEDT)
+Date: Sat, 16 Nov 2024 09:34:58 +1100
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+To: Easwar Hariharan <eahariha@linux.microsoft.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik
+ <kadlec@netfilter.org>, "David S. Miller" <davem@davemloft.net>, Eric
+ Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo
+ Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, Julia Lawall
+ <Julia.Lawall@inria.fr>, Nicolas Palix <nicolas.palix@imag.fr>, Daniel Mack
+ <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert
+ Jarzmik <robert.jarzmik@free.fr>, Russell King <linux@armlinux.org.uk>,
+ Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
+ Alexander Gordeev <agordeev@linux.ibm.com>, Christian Borntraeger
+ <borntraeger@linux.ibm.com>, Sven Schnelle <svens@linux.ibm.com>, Ofir
+ Bitton <obitton@habana.ai>, Oded Gabbay <ogabbay@kernel.org>, Lucas De
+ Marchi <lucas.demarchi@intel.com>, Thomas =?UTF-8?B?SGVsbHN0csO2bQ==?=
+ <thomas.hellstrom@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>,
+ Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard
+ <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, David Airlie
+ <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>, Jeroen de Borst
+ <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>,
+ Shailend Chand <shailend@google.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
+ James Smart <james.smart@broadcom.com>, Dick Kennedy
+ <dick.kennedy@broadcom.com>, "James E.J. Bottomley"
+ <James.Bottomley@HansenPartnership.com>, "Martin K. Petersen"
+ <martin.petersen@oracle.com>, Roger Pau =?UTF-8?B?TW9ubsOp?=
+ <roger.pau@citrix.com>, Jens Axboe <axboe@kernel.dk>, Kalle Valo
+ <kvalo@kernel.org>, Jeff Johnson <jjohnson@kernel.org>, Catalin Marinas
+ <catalin.marinas@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Jack
+ Wang <jinpu.wang@cloud.ionos.com>, Marcel Holtmann <marcel@holtmann.org>,
+ Johan Hedberg <johan.hedberg@gmail.com>, Luiz Augusto von Dentz
+ <luiz.dentz@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Florian Fainelli <florian.fainelli@broadcom.com>, Ray Jui
+ <rjui@broadcom.com>, Scott Branden <sbranden@broadcom.com>, Broadcom
+ internal kernel review list <bcm-kernel-feedback-list@broadcom.com>, Xiubo
+ Li <xiubli@redhat.com>, Ilya Dryomov <idryomov@gmail.com>, Josh Poimboeuf
+ <jpoimboe@kernel.org>, Jiri Kosina <jikos@kernel.org>, Miroslav Benes
+ <mbenes@suse.cz>, Petr Mladek <pmladek@suse.com>, Joe Lawrence
+ <joe.lawrence@redhat.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai
+ <tiwai@suse.com>, Lucas Stach <l.stach@pengutronix.de>, Russell King
+ <linux+etnaviv@armlinux.org.uk>, Christian Gmeiner
+ <christian.gmeiner@gmail.com>, Louis Peens <louis.peens@corigine.com>,
+ Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>, Naveen N Rao
+ <naveen@kernel.org>, Madhavan Srinivasan <maddy@linux.ibm.com>,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ netdev@vger.kernel.org, linux-kernel@vger.kernel.org, cocci@inria.fr,
+ linux-arm-kernel@lists.infradead.org, linux-s390@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, intel-xe@lists.freedesktop.org,
+ linux-scsi@vger.kernel.org, xen-devel@lists.xenproject.org,
+ linux-block@vger.kernel.org, linux-wireless@vger.kernel.org,
+ ath11k@lists.infradead.org, linux-mm@kvack.org,
+ linux-bluetooth@vger.kernel.org, linux-staging@lists.linux.dev,
+ linux-rpi-kernel@lists.infradead.org, ceph-devel@vger.kernel.org,
+ live-patching@vger.kernel.org, linux-sound@vger.kernel.org,
+ etnaviv@lists.freedesktop.org, oss-drivers@corigine.com,
+ linuxppc-dev@lists.ozlabs.org, Anna-Maria Behnsen
+ <anna-maria@linutronix.de>
+Subject: Re: [PATCH v2 01/21] netfilter: conntrack: Cleanup timeout
+ definitions
+Message-ID: <20241116093458.4aa19a0e@canb.auug.org.au>
+In-Reply-To: <20241115-converge-secs-to-jiffies-v2-1-911fb7595e79@linux.microsoft.com>
+References: <20241115-converge-secs-to-jiffies-v2-0-911fb7595e79@linux.microsoft.com>
+	<20241115-converge-secs-to-jiffies-v2-1-911fb7595e79@linux.microsoft.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next 01/14] netfilter: nfnetlink: Report extack policy
- errors for batched ops
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <173170923276.2750070.17765103576205976526.git-patchwork-notify@kernel.org>
-Date: Fri, 15 Nov 2024 22:20:32 +0000
-References: <20241115133207.8907-2-pablo@netfilter.org>
-In-Reply-To: <20241115133207.8907-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de
+Content-Type: multipart/signed; boundary="Sig_/gpyLfQXA_rG=N5QDCu3kL6w";
+ protocol="application/pgp-signature"; micalg=pgp-sha256
 
-Hello:
+--Sig_/gpyLfQXA_rG=N5QDCu3kL6w
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-This series was applied to netdev/net-next.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+Hi Easwar,
 
-On Fri, 15 Nov 2024 14:31:54 +0100 you wrote:
-> From: Donald Hunter <donald.hunter@gmail.com>
-> 
-> The nftables batch processing does not currently populate extack with
-> policy errors. Fix this by passing extack when parsing batch messages.
-> 
-> Signed-off-by: Donald Hunter <donald.hunter@gmail.com>
-> Reviewed-by: Simon Horman <horms@kernel.org>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> 
-> [...]
+On Fri, 15 Nov 2024 21:26:18 +0000 Easwar Hariharan <eahariha@linux.microso=
+ft.com> wrote:
+>
+>  static const unsigned int sctp_timeouts[SCTP_CONNTRACK_MAX] =3D {
+> -	[SCTP_CONNTRACK_CLOSED]			=3D 10 SECS,
+> -	[SCTP_CONNTRACK_COOKIE_WAIT]		=3D 3 SECS,
+> -	[SCTP_CONNTRACK_COOKIE_ECHOED]		=3D 3 SECS,
+> -	[SCTP_CONNTRACK_ESTABLISHED]		=3D 210 SECS,
+> -	[SCTP_CONNTRACK_SHUTDOWN_SENT]		=3D 3 SECS,
+> -	[SCTP_CONNTRACK_SHUTDOWN_RECD]		=3D 3 SECS,
+> -	[SCTP_CONNTRACK_SHUTDOWN_ACK_SENT]	=3D 3 SECS,
+> -	[SCTP_CONNTRACK_HEARTBEAT_SENT]		=3D 30 SECS,
+> +	[SCTP_CONNTRACK_CLOSED]			=3D secs_to_jiffies(10),
+> +	[SCTP_CONNTRACK_COOKIE_WAIT]		=3D secs_to_jiffies(3),
+> +	[SCTP_CONNTRACK_COOKIE_ECHOED]		=3D secs_to_jiffies(3),
+> +	[SCTP_CONNTRACK_ESTABLISHED]		=3D secs_to_jiffies(210),
+> +	[SCTP_CONNTRACK_SHUTDOWN_SENT]		=3D secs_to_jiffies(3),
+> +	[SCTP_CONNTRACK_SHUTDOWN_RECD]		=3D secs_to_jiffies(3),
+> +	[SCTP_CONNTRACK_SHUTDOWN_ACK_SENT]	=3D secs_to_jiffies(3),
+> +	[SCTP_CONNTRACK_HEARTBEAT_SENT]		=3D secs_to_jiffies(3),
 
-Here is the summary with links:
-  - [net-next,01/14] netfilter: nfnetlink: Report extack policy errors for batched ops
-    https://git.kernel.org/netdev/net-next/c/3f5495962824
-  - [net-next,02/14] netfilter: bpf: Pass string literal as format argument of request_module()
-    https://git.kernel.org/netdev/net-next/c/8340b0056ac7
-  - [net-next,03/14] netfilter: nf_tables: add nft_trans_commit_list_add_elem helper
-    https://git.kernel.org/netdev/net-next/c/4ee29181216d
-  - [net-next,04/14] netfilter: nf_tables: prepare for multiple elements in nft_trans_elem structure
-    https://git.kernel.org/netdev/net-next/c/a8ee6b900c14
-  - [net-next,05/14] netfilter: nf_tables: prepare nft audit for set element compaction
-    https://git.kernel.org/netdev/net-next/c/466c9b3b2a92
-  - [net-next,06/14] netfilter: nf_tables: switch trans_elem to real flex array
-    https://git.kernel.org/netdev/net-next/c/b0c49466043a
-  - [net-next,07/14] netfilter: nf_tables: allocate element update information dynamically
-    https://git.kernel.org/netdev/net-next/c/508180850b73
-  - [net-next,08/14] netfilter: ipv4: Convert ip_route_me_harder() to dscp_t.
-    https://git.kernel.org/netdev/net-next/c/0608746f95b2
-  - [net-next,09/14] netfilter: flow_offload: Convert nft_flow_route() to dscp_t.
-    https://git.kernel.org/netdev/net-next/c/6f9615a6e686
-  - [net-next,10/14] netfilter: rpfilter: Convert rpfilter_mt() to dscp_t.
-    https://git.kernel.org/netdev/net-next/c/f694ce6de589
-  - [net-next,11/14] netfilter: nft_fib: Convert nft_fib4_eval() to dscp_t.
-    https://git.kernel.org/netdev/net-next/c/f12b67cc7d1b
-  - [net-next,12/14] netfilter: nf_dup4: Convert nf_dup_ipv4_route() to dscp_t.
-    https://git.kernel.org/netdev/net-next/c/f0d839c13ed5
-  - [net-next,13/14] netfilter: bitwise: rename some boolean operation functions
-    https://git.kernel.org/netdev/net-next/c/a12143e6084c
-  - [net-next,14/14] netfilter: bitwise: add support for doing AND, OR and XOR directly
-    https://git.kernel.org/netdev/net-next/c/b0ccf4f53d96
+You have changed this last timeout from 30 seconds to 3 (presumably
+just a copy and paste error).
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+--=20
+Cheers,
+Stephen Rothwell
 
+--Sig_/gpyLfQXA_rG=N5QDCu3kL6w
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmc3zJIACgkQAVBC80lX
+0Gw+jggAlx/FpdCsBUGWHj/3D1FyMKcJOE8x+VIKqw9c10Hqa/DPZEAcUaXlmvJJ
+1NS+WrDFLS34ZiI4SbtosexC7tobHh/TkpamqrN+fG8STjNbtTVLYQ8QiWT/NCDx
+IeMkpH/EiSg0ow+0U1XenGHORnkKPdtLr7lxlRq1R7ylUYNZK0eDlX4r2dwmOLYg
+r0lFld/TwA434BDqTqj8KzVt9p1k2QiHm+LUntdk7Xu/Rlami4y/+Bahn9gmN3ji
+wRFxXLzm6upqhGxP5RYNyz3FB0oQgUvILDpklyPzzLTZW+L+bPkhgY5RZTFXpk9k
+KeR+GZcOjbCNU/RaWT8zDXVC32LJaw==
+=DzpI
+-----END PGP SIGNATURE-----
+
+--Sig_/gpyLfQXA_rG=N5QDCu3kL6w--
