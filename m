@@ -1,34 +1,33 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id AD9531FEFB0;
-	Fri, 15 Nov 2024 21:22:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id E16BE1DDA0E;
+	Fri, 15 Nov 2024 21:22:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731705775; cv=none; b=MlkJ4oye+WAPq4C9dvvAcsOQ241ABHPXEhN0mf/0JbpibJ36pro1CPCrzd3yFwh/6wC2oAUaccTa+IZdp/XXbr1RY7x+ovDduz9P4KO/sWiJ2rfebska7ZFzdonAysje23FUbmW7IELleKIHfmb22ko9HBeT8J/hGYhKQqRf1Mg=
+	t=1731705776; cv=none; b=T7ENfcC4LRIIBIqtkYplcnuZUhXH9FwMRzmbU0Inor37nk64mlYXMs3/qfTHLFTGAUndG7fe3rBen7LHlgaJxVro22A1vzR1YimkMiKfs0O8fE6Q/K702H5rAigZJuVmlUGnEj8/u0s9GuxpFUFx4pHS6Ap/8Na+swh8eHh9Ic4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731705775; c=relaxed/simple;
-	bh=ouZH/eqLcI05kQ2bWTH1hWKo7+EXHrUIZkYnBfgk4Pg=;
+	s=arc-20240116; t=1731705776; c=relaxed/simple;
+	bh=PGTKzE2OLedyrb1pEhlcviJeQ6l9AViRa7x8F6q0TSU=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=jG6BAD24Pz/H77TKpgOOnwPPtVxT5ssmaGILqDJsRQYRlyzcN1mgPFeqU+rualpii2UZ+SUVTadv0o+LqQeKdADFoGA0Sxzd8lFlkywRFf21phKAV8wT2sBm/7c9X+uVmgoyXOAHLKz601ss9Naj9WyU2Y7G4fF8/ZU2moEors4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=PrkdMSJs; arc=none smtp.client-ip=13.77.154.182
+	 In-Reply-To:To:Cc; b=Qr3+OziNJFuswsPvArBluiwrudRLIca8nTdhj9o74757rJLQo3/L+3RIp2Auc2Da0GxKXX6R+nT/qfENDQWkpmtUlzxo9W42Kk2Y6Z/bbyuw2ujkb3mre2LgJB18j1Uj8mxCbg98NxTn+MFZQG9OOuMdM3FoFvjTRoANso4R/Hc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=LFvj1omr; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="PrkdMSJs"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="LFvj1omr"
 Received: from eahariha-devbox.internal.cloudapp.net (unknown [40.91.112.99])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 4F33820BEBD7;
+	by linux.microsoft.com (Postfix) with ESMTPSA id C5D5B20BEBF7;
 	Fri, 15 Nov 2024 13:22:45 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 4F33820BEBD7
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com C5D5B20BEBF7
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
 	s=default; t=1731705765;
-	bh=DTjXQ8JEnxKHPkRfiey8gv8xkSCkh1L+oMakOx6bumQ=;
+	bh=7RgevXzVOF2wd0QHaqg8sKSXBh3tNnxEZNLAJYHO4/0=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=PrkdMSJsCXq7e/LVXAIqADh6VOx2LSK3q8Voqjd439eNhh8b6N4u5aB1nfKzAe2Tm
-	 +kT+vzsuhI8O0/+YRjBVlaEQ5kmFrot1X5DGJclM8+YlYZkjA4xQVjB3ZX/xX3Lrsj
-	 FbrAa2GDIV5JdurdApM8LMcIFqaWmUwvCMzOiXGc=
+	b=LFvj1omrNM0zZtGffox7sgW5nc9dJZdVTA81Dj/wcPv/4s/wuIVOvUvfZbveDvw4y
+	 FuotwM7kePQ1S+NtqBMYs5hCFuKfxjTKCfLm2hLOBes2vr8zw1wp6TV7hkDlej16jx
+	 Fb+baeYINJlZ9BwwcItDzf5jhfC0bccWbyd+vUuI=
 From: Easwar Hariharan <eahariha@linux.microsoft.com>
-Date: Fri, 15 Nov 2024 21:22:46 +0000
-Subject: [PATCH 16/22] Bluetooth: MGMT: Convert timeouts to
- secs_to_jiffies()
+Date: Fri, 15 Nov 2024 21:22:48 +0000
+Subject: [PATCH 18/22] ceph: Convert timeouts to secs_to_jiffies()
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,7 +36,7 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20241115-converge-secs-to-jiffies-v1-16-19aadc34941b@linux.microsoft.com>
+Message-Id: <20241115-converge-secs-to-jiffies-v1-18-19aadc34941b@linux.microsoft.com>
 References: <20241115-converge-secs-to-jiffies-v1-0-19aadc34941b@linux.microsoft.com>
 In-Reply-To: <20241115-converge-secs-to-jiffies-v1-0-19aadc34941b@linux.microsoft.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>, 
@@ -121,22 +120,22 @@ Changes made with the following Coccinelle rules:
 
 Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
 ---
- net/bluetooth/mgmt.c | 2 +-
+ fs/ceph/quota.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/bluetooth/mgmt.c b/net/bluetooth/mgmt.c
-index a429661b676a83ec2d34ed7e228195f39a153f9f..ca89c26d04ec64869e6b99de099d343f4c548ce5 100644
---- a/net/bluetooth/mgmt.c
-+++ b/net/bluetooth/mgmt.c
-@@ -209,7 +209,7 @@ static const u16 mgmt_untrusted_events[] = {
- 	MGMT_EV_EXP_FEATURE_CHANGED,
- };
- 
--#define CACHE_TIMEOUT	msecs_to_jiffies(2 * 1000)
-+#define CACHE_TIMEOUT	secs_to_jiffies(2)
- 
- #define ZERO_KEY "\x00\x00\x00\x00\x00\x00\x00\x00" \
- 		 "\x00\x00\x00\x00\x00\x00\x00\x00"
+diff --git a/fs/ceph/quota.c b/fs/ceph/quota.c
+index 06ee397e0c3a6172592e62dba95cd267cfff0db1..d90eda19bcc4618f98bfed833c10a6071cf2e2ac 100644
+--- a/fs/ceph/quota.c
++++ b/fs/ceph/quota.c
+@@ -166,7 +166,7 @@ static struct inode *lookup_quotarealm_inode(struct ceph_mds_client *mdsc,
+ 	if (IS_ERR(in)) {
+ 		doutc(cl, "Can't lookup inode %llx (err: %ld)\n", realm->ino,
+ 		      PTR_ERR(in));
+-		qri->timeout = jiffies + msecs_to_jiffies(60 * 1000); /* XXX */
++		qri->timeout = jiffies + secs_to_jiffies(60); /* XXX */
+ 	} else {
+ 		qri->timeout = 0;
+ 		qri->inode = in;
 
 -- 
 2.34.1
