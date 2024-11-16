@@ -1,61 +1,48 @@
-Received: from mail-pl1-f177.google.com (mail-pl1-f177.google.com [209.85.214.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from pandora.armlinux.org.uk (pandora.armlinux.org.uk [78.32.30.218])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B5A75C96;
-	Sat, 16 Nov 2024 14:28:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62D79C8C7;
+	Sat, 16 Nov 2024 16:24:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=78.32.30.218
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731767290; cv=none; b=IBSuLZjRWsG60mhRFoATqqdYKBbUolmIEPWmYwpHtzyVUcfHlkFs9JgCWAGZMBWV+fGGTTf//ugrzxLUR273tu49+DUYUWL+K0KS5K0632RTJ68rrLm39c1IHvjoVgpk2O7wdD924n9teGnf2Xxtw6TX1iLnBxE0MvoTBgj1DqU=
+	t=1731774251; cv=none; b=eUms1XMw/0N3UvP/5j4ylOvS5vau5ZH3JXX/T471HwwyJWRK9CmxZJpsfIEQgl3qtjohDk/Za7+wpz4nHS57myAHtyJuQv71pUznkvlLnXAOg9SZcDpf8eUaxUUntsys0qETCBAckDg0iDpMmb9zx9gDxjSFBm2WMT4JP9xeQkA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731767290; c=relaxed/simple;
-	bh=/+BRHFKtDv5OOism7HoKo3mEcQ5eSgwW2lahIdxhs3c=;
+	s=arc-20240116; t=1731774251; c=relaxed/simple;
+	bh=ur4279Lg4Jkiv5ioc4Um20xDbX+FLxdWzXYF38k8Nsc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=hKIGFV3bxBHrBpKKtY+Nhj+gUWEtMGfMgjK8uYAqAPEljcAY2/haQQ6ikSA7m5lQxuX7fYlMtxVRq+veIUIZZ3QaAXnskd3tTwpGEk6EzjhS4P2qIVknUlEwRW77R5Dm62sK0c82fNBiCnLlc8AQgF2yTBhPyli1OVvkfxkjAgg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=B8WFeiLz; arc=none smtp.client-ip=209.85.214.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=mDRAczN8B1UmIAs8F0Kz++/1x2553vHyDLjD0V/zJb0Bql2BPPeCcCaxItWOrSGZSYiFgLqZLIVGrAd7ywRW2A9/TAjoj2l/84XxRRwzPTdGvpJBT3IHtV+cFDocH0PT6DZ4bLaVdfAaD0pCWcyiebmsixGO3QIYEh6bZsKJRoU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=armlinux.org.uk; spf=none smtp.mailfrom=armlinux.org.uk; dkim=pass (2048-bit key) header.d=armlinux.org.uk header.i=@armlinux.org.uk header.b=c/DwxpEA; arc=none smtp.client-ip=78.32.30.218
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=armlinux.org.uk
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=armlinux.org.uk
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="B8WFeiLz"
-Received: by mail-pl1-f177.google.com with SMTP id d9443c01a7336-20c805a0753so27111925ad.0;
-        Sat, 16 Nov 2024 06:28:08 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1731767288; x=1732372088; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=6raVG2PvM5oLKZI+o1c1xQV1UUm9z+1CyTiZkqupZ5U=;
-        b=B8WFeiLzVAFnvgw53SVK3mXRRbN3z80eFp+/a2Levj2SrJb95YDj2B8jGjEFgArXTX
-         oqikPvJFJ5Sx2l3Gr2Vq6yZ7q8FdR1tthPuGaxernotBlrmzhVTkgpZSaQX0h3a/2zNI
-         q1YPaUHU5b2Kyb8Wi/tK/7CV9m3tDMjoKhUeG8pJirP68uU9Ee8Zj4ErKTVEc3X64HI2
-         gD8lb2BlWR312x2YfWtUnkdpxFsR1bu6udSZTKnSYYFWEKSzxwVDv3jtSyLrPmaOmRDZ
-         cEVoJD1Ty+AnlT3E3qPb3BwiI1A4HhoxPeaTAHvA/n83uEIK86YRhUuoOnF5wL9/n24Q
-         FvKw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1731767288; x=1732372088;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=6raVG2PvM5oLKZI+o1c1xQV1UUm9z+1CyTiZkqupZ5U=;
-        b=ggz9PXN/mAM578vSzshdLGVyLY/0V4AKuxQf+a4OGZyF/2hmxQhvjA6fHcz/2VjRHO
-         /Vmawo+n+0sCQNXaqe4itKzymON2hqh1SDz+uMu3+rZYu7LHbitCLGpFRtW5G4hZtnXb
-         JdlOcSx6Zxo0//QEuoetBO3oWbTo5bnd43kvHd+NuaFO/9txSneXvhyErv/zsj8mRQLD
-         Cj4+apCMl2Otp37BY9KVapZpncoTL6Kzpihm9IiRDIXloTVubbGgtFrBXRT04iEJqqmx
-         KhOcio/AOBIfAH3TTb29Xtpb1H0OZ7dr3rh6TPlKLVppPYU9bbS/QJc7p1bqGiQWRMKV
-         JV2w==
-X-Forwarded-Encrypted: i=1; AJvYcCUL6vQ/hTaAbwcvyA6hatggiicr39Bc7W5phcyS5Bv4DeCTlba890cx5KqHhXzuypVry1nojA6sB74oPdp2l3bk@vger.kernel.org, AJvYcCXCV5iFjoP47+FZeO9kFhrFomBPw8kJhQjm4tNT/BnyIamO46fTp2lj9taNqwQpzxw1HQaoYhSf@vger.kernel.org, AJvYcCXddEOf3tJfj+jHI73h35VsGRF1XKVz/rH5yO+SAOKX+x9jHGqsG+QRzcV6GnP2vO2wXB1E01KhEwFj5jy2Aw==@vger.kernel.org
-X-Gm-Message-State: AOJu0YxkdcVi1WVMajyEQWooPNwsvul/eXYqhSZR7I5ZMRlFVQXp8j0R
-	VNMUibY99RsFD1Yo7gS2yCB3IaXN/hIW65vHihrr8x9/+5QmPSDD
-X-Google-Smtp-Source: AGHT+IEZwHw2wToo5anBV/zM0NtW9PAvoZG8HT9AVZD2y3uvmuv1B88Z4M0nJ0KNaPpXvpjqAmQN6A==
-X-Received: by 2002:a17:903:944:b0:211:e9c0:31c6 with SMTP id d9443c01a7336-211e9c0344fmr48014405ad.12.1731767287791;
-        Sat, 16 Nov 2024 06:28:07 -0800 (PST)
-Received: from hoboy.vegasvil.org ([2600:1700:2430:6f6f:e2d5:5eff:fea5:802f])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-211d0ec7b9csm28436735ad.73.2024.11.16.06.28.06
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 16 Nov 2024 06:28:07 -0800 (PST)
-Date: Sat, 16 Nov 2024 06:28:04 -0800
-From: Richard Cochran <richardcochran@gmail.com>
+	dkim=pass (2048-bit key) header.d=armlinux.org.uk header.i=@armlinux.org.uk header.b="c/DwxpEA"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=armlinux.org.uk; s=pandora-2019; h=Sender:In-Reply-To:Content-Type:
+	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
+	Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
+	List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+	bh=EalHJFRoCP7b1Ph196PU6hDFcS9BrRYGeJ156HOiPDE=; b=c/DwxpEAaOMyfP7HPhIZvJ4i7R
+	2L27n2h6b6pVSsubAULxW3oXEm/MdtI9vqFKAyqy0AXcnMPDEL3Cyau2xVE60WOW0r0SYPJrhXF0z
+	U082tLTvfW8imCuV//9EJNECF3WCA9AkKbFXcoEHlX5/GXlduutsVys8SjF3csfzf/X/RJb1aDfT3
+	A2Y9nA4NVfDFqqgwKNFUMjXGuTQXwIyKt1dy7Bo7/UiWxpQhJBAooPJds4Vefzu6nPkDpVaoHd6Rx
+	6ktktOGO3i5zpN5Ibu2lWGOGw6heIVO0i5hjjg7g6/Nu3sZxWSSnU8fQorAthh84vXnQhpATP3RVv
+	4O5/x9eg==;
+Received: from shell.armlinux.org.uk ([fd8f:7570:feb6:1:5054:ff:fe00:4ec]:52222)
+	by pandora.armlinux.org.uk with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.96)
+	(envelope-from <linux@armlinux.org.uk>)
+	id 1tCLac-0007OI-3D;
+	Sat, 16 Nov 2024 16:24:03 +0000
+Received: from linux by shell.armlinux.org.uk with local (Exim 4.96)
+	(envelope-from <linux@shell.armlinux.org.uk>)
+	id 1tCLaZ-0003FM-0s;
+	Sat, 16 Nov 2024 16:23:59 +0000
+Date: Sat, 16 Nov 2024 16:23:59 +0000
+From: "Russell King (Oracle)" <linux@armlinux.org.uk>
 To: Jakub Kicinski <kuba@kernel.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org, edumazet@google.com,
-	pabeni@redhat.com, pablo@netfilter.org, linux@armlinux.org.uk,
+	pabeni@redhat.com, pablo@netfilter.org, richardcochran@gmail.com,
 	johannes@sipsolutions.net, loic.poulain@linaro.org,
 	ryazanov.s.a@gmail.com, dsahern@kernel.org, wintera@linux.ibm.com,
 	hawk@kernel.org, ilias.apalodimas@linaro.org, jhs@mojatatu.com,
@@ -63,7 +50,7 @@ Cc: davem@davemloft.net, netdev@vger.kernel.org, edumazet@google.com,
 	przemyslaw.kitszel@intel.com, netfilter-devel@vger.kernel.org,
 	linux-wireless@vger.kernel.org
 Subject: Re: [PATCH net-next] net: reformat kdoc return statements
-Message-ID: <Zzir9EH83f2jRgQU@hoboy.vegasvil.org>
+Message-ID: <ZzjHH-L-ylLe0YhU@shell.armlinux.org.uk>
 References: <20241115163612.904906-1-kuba@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -74,6 +61,7 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <20241115163612.904906-1-kuba@kernel.org>
+Sender: Russell King (Oracle) <linux@armlinux.org.uk>
 
 On Fri, Nov 15, 2024 at 08:36:12AM -0800, Jakub Kicinski wrote:
 > kernel-doc -Wall warns about missing Return: statement for non-void
@@ -87,14 +75,14 @@ On Fri, Nov 15, 2024 at 08:36:12AM -0800, Jakub Kicinski wrote:
 > false positives. So add them. This is mostly done with a sed script,
 > and removing the unnecessary cases (mostly the comments which aren't
 > kdoc).
-> 
-> Signed-off-by: Jakub Kicinski <kuba@kernel.org>
-> ---
-> LMK if I should have split this into smaller chunks, I don't really
-> expect much review here, TBH.
-> ---
-> CC: pablo@netfilter.org
-> CC: linux@armlinux.org.uk
-> CC: richardcochran@gmail.com
 
-Acked-by: Richard Cochran <richardcochran@gmail.com>
+I wonder about this... I suspect it's going to be a constant battle to
+ensure that docs use Return: or Returns: because it's not "natural"
+when writing documentation.
+
+Maybe the tooling should accept a sentence starting "Return(s?)" and
+convert it to "Return(s):" in generated documentation?
+
+-- 
+RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
+FTTP is here! 80Mbps down 10Mbps up. Decent connectivity at last!
