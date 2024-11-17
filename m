@@ -1,73 +1,69 @@
-Received: from mail-ej1-f52.google.com (mail-ej1-f52.google.com [209.85.218.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EDD3F9D6
-	for <netfilter-devel@vger.kernel.org>; Sat, 16 Nov 2024 21:11:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FE3C1885A5;
+	Sun, 17 Nov 2024 12:04:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=150.107.74.76
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731791499; cv=none; b=Bn71uZg/2VxJr9Kx5CC91g0i/Zf+kYlkPNc3pHKcuR5spJWC+OkC3m0lz4K1pTljKtUppLqpIEFuugf9mdWDwmL9VTbEQNzawkQCYsZx9pXDszmnPOAiWDAGwO3QBJ54hKWgShQNCR0tFkdT+o6emM+8doAFY/IdvM2BWcM6/rY=
+	t=1731845066; cv=none; b=E3OUlUdEmIDEBQYnBYNErJoDcOQ/LN7pCV2xioLDnSwdNh/aGYb1Dwjm4fykRt9CT5JXO+hyfn3xi0B0USD97BB0Fxn+sEyuXmFVQFEtdtJ6tX//EjpJKFG5i9TLnRBb0Ul/weencjIKbEfef26z77dHQHRW7cPjRGnLkR4jOGs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731791499; c=relaxed/simple;
-	bh=Jja5oyLx+Cflb4/t1Z8mfccq/Zrs3NNCaktHei5QWv0=;
-	h=MIME-Version:From:Date:Message-ID:Subject:To:Content-Type; b=HqRZVwzIdOnCpA/d/PA0ulFhmpW2mq9vP/Vtqo8hKh9LPUKXHkCGL27lR6I8iyxCfg4jJTGylaTudCN+h1XhqOxnvCk3RVi/sjYXFpY1LcY3gy8czl+wadpixB70zi1GFZ1t5p6qVxAsfsHwHrMDlvT9LgeNTYGDtB3WbBRuMnI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QkPDKGYm; arc=none smtp.client-ip=209.85.218.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1731845066; c=relaxed/simple;
+	bh=H6Q/+kkZnvVk8G0hRNlWD8uGHYHGc/V8PwsN7PfAurg=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=MhpWE9ng4LFFDiXR/Vmz3mkdbN4ryriW4f33Pnxur91l8rG2j6tiJGZBGjFPi9Ne4+eWX8URrXuVhuNQSABixFpbbXFO3n9tC/0gWmdPJB/v2lgC8grPBjfKm6zuafnN46DXVg8qGtv2rMSZnqKWAV1nPE6VCjxdFhbBie2n5ZU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ellerman.id.au; spf=pass smtp.mailfrom=ellerman.id.au; dkim=pass (2048-bit key) header.d=ellerman.id.au header.i=@ellerman.id.au header.b=bHCwnzmC; arc=none smtp.client-ip=150.107.74.76
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ellerman.id.au
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ellerman.id.au
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QkPDKGYm"
-Received: by mail-ej1-f52.google.com with SMTP id a640c23a62f3a-a9f1d76dab1so500220766b.0
-        for <netfilter-devel@vger.kernel.org>; Sat, 16 Nov 2024 13:11:38 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1731791494; x=1732396294; darn=vger.kernel.org;
-        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=Jja5oyLx+Cflb4/t1Z8mfccq/Zrs3NNCaktHei5QWv0=;
-        b=QkPDKGYmpAEyWS2XPOThKFY+r/azO9XSAGKH2tpVjmJqJVG7uYVw4qlT/1zoeZwb5I
-         TZcZPeRNSwHA10pbAq/2+joSoyYq4p59XOEIl8P2kuLzzqLs6WPL1Cny/aNlbU+5LnOC
-         H3WbARTLoDn2XHxaSb7qmri8LTM82M8H0lVwJ+xOTrKYeBAHCt75XJBQo9hUXE26ENdI
-         sVlkptnmNN8Auj4Hn4h0qDOT8LvZAP6+KgXu98QyqTIwCRRBfevddEerQe9bpMy4lnne
-         TFAWYNSiPmY6WHIURmo8xX6K7nTrIRfbNtVlRBog5EiGnmWPQ/cNF1a1QYMd7rCfWLP+
-         Wecg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1731791494; x=1732396294;
-        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=Jja5oyLx+Cflb4/t1Z8mfccq/Zrs3NNCaktHei5QWv0=;
-        b=NTqtIrCGFk15pr0xqF92ABUrOL906y+iRSgGFXk3qqS4nr92O6YDHO/mYTfSfiXq+u
-         j85AMYWDdD5DnC8Aizy7yRAjg2ejp+UHCHk9xHXc8v8qh2funW3yk7cMrnwi7BD+uaoL
-         hxLl7e5xEso9gPr14TZF0tNnS+HTdiuaXgoByGbNRwiAJm63EoX+kiiRHaZnaUeVWtzg
-         t9ahvsuePcMhtsPQv9BYJ9y0jt6OHXSt/5Ly+twZ6B2cqbn5mKVNqbGj2QK+Khmgi13F
-         htpVCWa/6/w5wVyb7WgmjCpE/KLktylQhiIL3uYfJjJAYXjDAYo1vc0X8ybafad8AKvL
-         FOZw==
-X-Gm-Message-State: AOJu0YxydUG/xI9miL7hhNf3wYgFK7inrqcPZzDSX+yvaSyLzLeovSxx
-	FWC90ERr7xYvFDhK3D/STlU4tzYuax713gMRp4dt/Q0xj8REyD3zbqE67lFAw6Nq0kV21vpywjz
-	g2nQ2dg2l043gb3PYyH2R/QvvGCf7aLox
-X-Google-Smtp-Source: AGHT+IHTUIwUO12/XjP6hCCuJ4pna27dK4K+1Hg7OKFtqlnRW6jRik0RF/9eP6m+B6BZIU3+V+R42vInJgRGP8A6sLM=
-X-Received: by 2002:a17:906:6a07:b0:a9e:471e:ce4a with SMTP id
- a640c23a62f3a-aa4833e8cfbmr686503366b.11.1731791493893; Sat, 16 Nov 2024
- 13:11:33 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=ellerman.id.au header.i=@ellerman.id.au header.b="bHCwnzmC"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ellerman.id.au;
+	s=201909; t=1731845059;
+	bh=tllPr++YWNmN/ICehcrJsGBTpJU5ev+6G1o94E8aVEA=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
+	b=bHCwnzmC4Wn699TTaIvMmA7oqAQUCB0vBZAcYQFnrPziGiTbunbYU+CXdS38yDvH6
+	 YU112WNOjKnnI7JSMJzmw/a0svprG00zS9a6LPP4NJJT/jjzlFbVdAm/RM/h/U+tns
+	 TsykHb5IN7FOSJM573KL+qqNfifuTL8r1hG6UNvh5joUZD+KBNkc1Fn7IYJrs5Ptwk
+	 QPaqtA4agDbcLESUFhw4fys+mFWvc6kPxuKH/D9lsAIxlZt3ypiZTruEU9Mv61lufm
+	 a1hIO9QaUkphJcq/soI8cLFSVRrGlaI+MEFOmOa7tMCM3TlCNsxG9p8p3+SqPMR261
+	 Neh+mkXQjvunQ==
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(Client did not present a certificate)
+	by mail.ozlabs.org (Postfix) with ESMTPSA id 4XrqDc2cRjz4xdS;
+	Sun, 17 Nov 2024 23:04:16 +1100 (AEDT)
+From: Michael Ellerman <patch-notifications@ellerman.id.au>
+To: linux-nfs@vger.kernel.org, Julia Lawall <Julia.Lawall@inria.fr>
+Cc: kernel-janitors@vger.kernel.org, vbabka@suse.cz, paulmck@kernel.org, Tom Talpey <tom@talpey.com>, Dai Ngo <Dai.Ngo@oracle.com>, Olga Kornievskaia <okorniev@redhat.com>, Neil Brown <neilb@suse.de>, linux-can@vger.kernel.org, bridge@lists.linux.dev, b.a.t.m.a.n@lists.open-mesh.org, linux-kernel@vger.kernel.org, wireguard@lists.zx2c4.com, netdev@vger.kernel.org, ecryptfs@vger.kernel.org, linux-block@vger.kernel.org, Nicholas Piggin <npiggin@gmail.com>, Christophe Leroy <christophe.leroy@csgroup.eu>, Naveen N Rao <naveen@kernel.org>, Madhavan Srinivasan <maddy@linux.ibm.com>, linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+In-Reply-To: <20241013201704.49576-1-Julia.Lawall@inria.fr>
+References: <20241013201704.49576-1-Julia.Lawall@inria.fr>
+Subject: Re: (subset) [PATCH 00/17] replace call_rcu by kfree_rcu for simple kmem_cache_free callback
+Message-Id: <173184457524.887714.2708612402334434298.b4-ty@ellerman.id.au>
+Date: Sun, 17 Nov 2024 22:56:15 +1100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: Jim Morrison <evyatark2@gmail.com>
-Date: Sat, 16 Nov 2024 23:11:22 +0200
-Message-ID: <CACSr4mSaw+M65HpZE+_Rotp=YuWugU9h0vokGyb-14pvoc+-Xw@mail.gmail.com>
-Subject: DSA and netfilter interaction.
-To: netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 
-In net/dsa/user.c in the function dsa_user_setup_tc() when TC_SETUP_FT
-command arrives, dsa_user_setup_ft_block() will be called which calls
-ndo_setup_tc() for the conduit device.
+On Sun, 13 Oct 2024 22:16:47 +0200, Julia Lawall wrote:
+> Since SLOB was removed and since
+> commit 6c6c47b063b5 ("mm, slab: call kvfree_rcu_barrier() from kmem_cache_destroy()"),
+> it is not necessary to use call_rcu when the callback only performs
+> kmem_cache_free. Use kfree_rcu() directly.
+> 
+> The changes were done using the following Coccinelle semantic patch.
+> This semantic patch is designed to ignore cases where the callback
+> function is used in another way.
+> 
+> [...]
 
-What is the rationale behind this design? Why isn't the corresponding
-dsa_switch_ops::port_setup_tc() called?
+Applied to powerpc/topic/ppc-kvm.
 
-More specifically, what is the conduit driver expected to do when it
-receives the TC_SETUP_FT from the DSA subsystem?
+[13/17] KVM: PPC: replace call_rcu by kfree_rcu for simple kmem_cache_free callback
+        https://git.kernel.org/powerpc/c/1db6a4e8a3fc8ccaa4690272935e02831dc6d40d
 
-It seems to me that the conduit's driver can't do much as it doesn't
-even know for which switch port this ndo_setup_tc() was called.
+cheers
