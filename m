@@ -1,69 +1,107 @@
-Received: from mail.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f46.google.com (mail-wm1-f46.google.com [209.85.128.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FE3C1885A5;
-	Sun, 17 Nov 2024 12:04:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=150.107.74.76
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C189610D;
+	Mon, 18 Nov 2024 00:51:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731845066; cv=none; b=E3OUlUdEmIDEBQYnBYNErJoDcOQ/LN7pCV2xioLDnSwdNh/aGYb1Dwjm4fykRt9CT5JXO+hyfn3xi0B0USD97BB0Fxn+sEyuXmFVQFEtdtJ6tX//EjpJKFG5i9TLnRBb0Ul/weencjIKbEfef26z77dHQHRW7cPjRGnLkR4jOGs=
+	t=1731891068; cv=none; b=FQo0kee7A57rxivtYRAO++BH6wwOsXdVOzxzMu/N6sdV5eMrFbviYXsDXIdRVaTQtVQuCLNADW2BEH7vMdVqx4J/Ur0mN1w3G33uf+Ouhgy1Sbrpq4fQ1dLd2FmWNZ76JAKsMNh+s9F7R2tAzvIivIz8cieMD15GiNUkZCORWXE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731845066; c=relaxed/simple;
-	bh=H6Q/+kkZnvVk8G0hRNlWD8uGHYHGc/V8PwsN7PfAurg=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=MhpWE9ng4LFFDiXR/Vmz3mkdbN4ryriW4f33Pnxur91l8rG2j6tiJGZBGjFPi9Ne4+eWX8URrXuVhuNQSABixFpbbXFO3n9tC/0gWmdPJB/v2lgC8grPBjfKm6zuafnN46DXVg8qGtv2rMSZnqKWAV1nPE6VCjxdFhbBie2n5ZU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ellerman.id.au; spf=pass smtp.mailfrom=ellerman.id.au; dkim=pass (2048-bit key) header.d=ellerman.id.au header.i=@ellerman.id.au header.b=bHCwnzmC; arc=none smtp.client-ip=150.107.74.76
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ellerman.id.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ellerman.id.au
+	s=arc-20240116; t=1731891068; c=relaxed/simple;
+	bh=gRfPS2fC3FpKaUHwr0q3NS+21KLRBFX5lozTsyknUBk=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Hw+3y+EiHv4/AB9p6ofublKSRziERxPaKV2aNHz7Va70mIETPzYHHn90zTg4bq89Z42NOi+fJMsTSi8wOEF9UgJftpDxOeWnjJ28Xz+kX5IF+ySdMAc96r5VAewRI6HQ18Gw2DlaCZB6XDdZYXE11g6w/uR/X3uEbTk85gI17F4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QO1adpD3; arc=none smtp.client-ip=209.85.128.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ellerman.id.au header.i=@ellerman.id.au header.b="bHCwnzmC"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ellerman.id.au;
-	s=201909; t=1731845059;
-	bh=tllPr++YWNmN/ICehcrJsGBTpJU5ev+6G1o94E8aVEA=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
-	b=bHCwnzmC4Wn699TTaIvMmA7oqAQUCB0vBZAcYQFnrPziGiTbunbYU+CXdS38yDvH6
-	 YU112WNOjKnnI7JSMJzmw/a0svprG00zS9a6LPP4NJJT/jjzlFbVdAm/RM/h/U+tns
-	 TsykHb5IN7FOSJM573KL+qqNfifuTL8r1hG6UNvh5joUZD+KBNkc1Fn7IYJrs5Ptwk
-	 QPaqtA4agDbcLESUFhw4fys+mFWvc6kPxuKH/D9lsAIxlZt3ypiZTruEU9Mv61lufm
-	 a1hIO9QaUkphJcq/soI8cLFSVRrGlaI+MEFOmOa7tMCM3TlCNsxG9p8p3+SqPMR261
-	 Neh+mkXQjvunQ==
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(Client did not present a certificate)
-	by mail.ozlabs.org (Postfix) with ESMTPSA id 4XrqDc2cRjz4xdS;
-	Sun, 17 Nov 2024 23:04:16 +1100 (AEDT)
-From: Michael Ellerman <patch-notifications@ellerman.id.au>
-To: linux-nfs@vger.kernel.org, Julia Lawall <Julia.Lawall@inria.fr>
-Cc: kernel-janitors@vger.kernel.org, vbabka@suse.cz, paulmck@kernel.org, Tom Talpey <tom@talpey.com>, Dai Ngo <Dai.Ngo@oracle.com>, Olga Kornievskaia <okorniev@redhat.com>, Neil Brown <neilb@suse.de>, linux-can@vger.kernel.org, bridge@lists.linux.dev, b.a.t.m.a.n@lists.open-mesh.org, linux-kernel@vger.kernel.org, wireguard@lists.zx2c4.com, netdev@vger.kernel.org, ecryptfs@vger.kernel.org, linux-block@vger.kernel.org, Nicholas Piggin <npiggin@gmail.com>, Christophe Leroy <christophe.leroy@csgroup.eu>, Naveen N Rao <naveen@kernel.org>, Madhavan Srinivasan <maddy@linux.ibm.com>, linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-In-Reply-To: <20241013201704.49576-1-Julia.Lawall@inria.fr>
-References: <20241013201704.49576-1-Julia.Lawall@inria.fr>
-Subject: Re: (subset) [PATCH 00/17] replace call_rcu by kfree_rcu for simple kmem_cache_free callback
-Message-Id: <173184457524.887714.2708612402334434298.b4-ty@ellerman.id.au>
-Date: Sun, 17 Nov 2024 22:56:15 +1100
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QO1adpD3"
+Received: by mail-wm1-f46.google.com with SMTP id 5b1f17b1804b1-4316a44d1bbso20408725e9.3;
+        Sun, 17 Nov 2024 16:51:05 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1731891064; x=1732495864; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=G5OQZ+l9iJdKWwxA6WTwfv2vxQ6XtYMiuqoHYPo5RXc=;
+        b=QO1adpD3W+NiYL3LUFJ7JsiAQ/+YaNFYAT6FNB9xwDFw7/7DABnDIduRfFVX+MtdgB
+         3AH5+/CWljUxNSakLeNJwNxQ8Z96WeaDXu0Zg/HLKIkFt8Qk0MFHLMNeP1aW3J8vG8KK
+         ByZHHryri0Yx+XENhUXrb/ngq5eap4ap4HGL1EJBXuKdlKueaHGX+Vl4YGNTL96pEDLJ
+         uDzcRHfC/LXGU+p1oWlFsl9KYranIjx7pp9M5BZ6Z6WnH/h++Y0xwrTWA484scKIaci5
+         G2if/XaDSwvBMsc57HBve9zoIku9cKaHpYUtoB0O/Jx/Mh4mZDuH9tIFtIUZJsQqLvYJ
+         bhcg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1731891064; x=1732495864;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=G5OQZ+l9iJdKWwxA6WTwfv2vxQ6XtYMiuqoHYPo5RXc=;
+        b=StvIAmVxeDTJeHiULP62T7gNe8B8qqOoqQHsYclnYqEQjjQqGa2L2mge0wqWn+sli6
+         eebqshk9mN5IFa5K1fvShRnp+oP+q4Qj3Ey0Ed7ilomtBlzW/kyzJdLUKbRHxlddf03N
+         f4gm6LSPjHZQOuVLw9LNWdFNchIAGEBmF99DNfCUp320SdjoxQFeUHHRjvwLFMCLVAmP
+         DpGjWxABkkcJruMRkHbODoTy8jbpdbWeGg9E7kMbxmteRp54rEyIA7w3idf5pBGx+Ag0
+         X4YFBeU/k/E1YrtZlLqXBvkYXt2beH+YksImgSqjVzNuvuhzyVfcuf2yCzYoleKOKJX9
+         XXDg==
+X-Forwarded-Encrypted: i=1; AJvYcCU1KICUC7bjxGPTltMLcjEB5PkkpfXMBwOMaLBfev7YlKqT/r3gD9N+SIsCTKuOB/HO8tt6Srg3KEb3/RGLRA==@vger.kernel.org, AJvYcCWZyMI7Z/lhMQqanTSBI279XHQ8qpfk7h+oEUi5yMgyFtXkWHDkzQFQUgferFZec1rQyuPKhqXLdX4AxQoES6h3@vger.kernel.org
+X-Gm-Message-State: AOJu0Yymy783hMX7iTFCOPyPhgfN/vFN9AjLYOWzQCDrC86bKsgJThYY
+	Oc7dM0E9lHYzJb9WN2Y6urAtUgpRpowmGMBD5UBibOGqEEhY5zox
+X-Google-Smtp-Source: AGHT+IHLISc727Ye5cl1x4+qPCaEeTksNA8IBK/zuzu7E/FlX0dK/Ylqsb6BswIzwlMOneUusyteCQ==
+X-Received: by 2002:a05:600c:4693:b0:431:55af:a22f with SMTP id 5b1f17b1804b1-432df72c9e7mr91430075e9.13.1731891064366;
+        Sun, 17 Nov 2024 16:51:04 -0800 (PST)
+Received: from [192.168.0.2] ([69.6.8.124])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-432da265668sm137741345e9.10.2024.11.17.16.51.01
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 17 Nov 2024 16:51:03 -0800 (PST)
+Message-ID: <3b44c07e-1e1a-40de-8e99-56e16c6345b5@gmail.com>
+Date: Mon, 18 Nov 2024 02:51:37 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next] net: reformat kdoc return statements
+To: Jakub Kicinski <kuba@kernel.org>, davem@davemloft.net
+Cc: netdev@vger.kernel.org, edumazet@google.com, pabeni@redhat.com,
+ pablo@netfilter.org, linux@armlinux.org.uk, richardcochran@gmail.com,
+ johannes@sipsolutions.net, loic.poulain@linaro.org, dsahern@kernel.org,
+ wintera@linux.ibm.com, hawk@kernel.org, ilias.apalodimas@linaro.org,
+ jhs@mojatatu.com, jiri@resnulli.us, ecree.xilinx@gmail.com,
+ przemyslaw.kitszel@intel.com, netfilter-devel@vger.kernel.org,
+ linux-wireless@vger.kernel.org
+References: <20241115163612.904906-1-kuba@kernel.org>
+Content-Language: en-US
+From: Sergey Ryazanov <ryazanov.s.a@gmail.com>
+In-Reply-To: <20241115163612.904906-1-kuba@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On Sun, 13 Oct 2024 22:16:47 +0200, Julia Lawall wrote:
-> Since SLOB was removed and since
-> commit 6c6c47b063b5 ("mm, slab: call kvfree_rcu_barrier() from kmem_cache_destroy()"),
-> it is not necessary to use call_rcu when the callback only performs
-> kmem_cache_free. Use kfree_rcu() directly.
+On 15.11.2024 18:36, Jakub Kicinski wrote:
+> kernel-doc -Wall warns about missing Return: statement for non-void
+> functions. We have a number of kdocs in our headers which are missing
+> the colon, IOW they use
+>   * Return some value
+> or
+>   * Returns some value
 > 
-> The changes were done using the following Coccinelle semantic patch.
-> This semantic patch is designed to ignore cases where the callback
-> function is used in another way.
+> Having the colon makes some sense, it should help kdoc parser avoid
+> false positives. So add them. This is mostly done with a sed script,
+> and removing the unnecessary cases (mostly the comments which aren't
+> kdoc).
 > 
-> [...]
+> Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+> ---
+> LMK if I should have split this into smaller chunks, I don't really
+> expect much review here, TBH.
+> ---
+> CC: pablo@netfilter.org
+> CC: linux@armlinux.org.uk
+> CC: richardcochran@gmail.com
+> CC: johannes@sipsolutions.net
+> CC: loic.poulain@linaro.org
+> CC: ryazanov.s.a@gmail.com
 
-Applied to powerpc/topic/ppc-kvm.
+For the WWAN part:
 
-[13/17] KVM: PPC: replace call_rcu by kfree_rcu for simple kmem_cache_free callback
-        https://git.kernel.org/powerpc/c/1db6a4e8a3fc8ccaa4690272935e02831dc6d40d
-
-cheers
+Acked-by: Sergey Ryazanov <ryazanov.s.a@gmail.com>
