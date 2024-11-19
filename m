@@ -1,94 +1,114 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D0ED81514FB
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 Nov 2024 12:37:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CA5D1514FB
+	for <netfilter-devel@vger.kernel.org>; Tue, 19 Nov 2024 13:20:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732019837; cv=none; b=U8yerLRcFkpbaGc92epbNn6r6qJr253zew0+ST+VYfCNC5ehc6s67XHLETAq522czay0/moRVRNTykHG1DhihlHTtT6+jNYKEIVihYzVLxAsq6Mww4xBDzq8uJJtDoGXbFvmAqbY2nzDHjS8RL6easD7sNyyQtjOiX4bAS9ooxg=
+	t=1732022443; cv=none; b=Q1ZU8G4GTjUFGnGaNn10GKdaACcHtuOq9a+IkaPRlf7tPfIZtBPSx0qI1L+WsMfOTutX9d8DR6dBIG13/YPp/ZmWaFp3wcrq8LybmpfhEVEbxYNY3Cl4ciRWEw5F50UCGp2cWgIzHqy4sQBkWf5apnGgihYagxa7rccByfw2qW0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732019837; c=relaxed/simple;
-	bh=eM4eG76YX7QtoYtfCMxzrlp83EwGaYo4aIvc7Vdro5I=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=JvgfzL7b5OWHvFNqUEO6khi7VeMvdUJPHUKDQKokcbfTg6lMzpoenx4uqNYtXzpXTXH/QXBprEC/R91M5nDnU1zlC/aLgFdChUB/utBWAY98hrt+jIeCxIFq2ZQXWRfApZHgqgwPotP/fw2S0hq0QCvWrhZRjt7lBVJxk2XnRZk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: jeremy@azazel.net
-Subject: [PATCH libnftnl 1/2] include: add new bitwise boolean attributes to nf_tables.h
-Date: Tue, 19 Nov 2024 13:37:07 +0100
-Message-Id: <20241119123708.185552-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+	s=arc-20240116; t=1732022443; c=relaxed/simple;
+	bh=v4iLRcAr7qQ3b/lqBkZjsCgmmzhYaadmykTZG8hTMZI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=MHw1cRiA3yzrM85YU+NnWxL4f0VqbU6xKiE0vXiQuKBvaUXor0k/yaC/rVUuf0V0nKMwrX3SpH9qu18/TTEbNNc/JDCFmTn8aqZ0jNy4FEcu7qjPZfoPLVTIFuKbL5a3KcNVT59kyEDQYK0WtB9rZu3dEzkEvhNj5eVrV1PKj00=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=n/qFNhus; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="n/qFNhus"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=rNGJwDqX8EwaGBPt7mLbbsWoMFwtpQgCeulPaFpHHy4=; b=n/qFNhus2JLI6oCDmV9L46LgeL
+	b0PXhO5KKGAmwf3BGwCkuKYVlXMgTeRP0wRQ6WFkcWJQUoZkLTSXbQWbBImqriD7NrpKjzjwfPXEF
+	iVIBXV1p3dLA0Xiap6WIk92pJm4ScjUih4KecluFAC5oMH6eXfOUVpTnBaeQRop64LnOyFZr6DItF
+	pRqpFOy2Y2RhFv9TT2dqFRYTyIwkLdfrhzVyJu0GVLvD2/d++f54cvWRMgbTQBe84McIuF8oc3n/5
+	qVUYDIdluS0AJdLBtI22tiCxmkOqb+31GXAKwyDskwpDUh6veS3JmJmLJhBSZVT+4au9me0hybyXQ
+	i+k648Uw==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1tDO9f-0000000019X-0tMi;
+	Tue, 19 Nov 2024 14:20:31 +0100
+Date: Tue, 19 Nov 2024 14:20:31 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Jeremy Sowden <jeremy@azazel.net>
+Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>,
+	Eric Garver <eric@garver.life>
+Subject: Re: [PATCH iptables] nft: fix interface comparisons in `-C` commands
+Message-ID: <ZzyQn9E0cPi7t98b@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Jeremy Sowden <jeremy@azazel.net>,
+	Netfilter Devel <netfilter-devel@vger.kernel.org>,
+	Eric Garver <eric@garver.life>
+References: <20241118135650.510715-1-jeremy@azazel.net>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20241118135650.510715-1-jeremy@azazel.net>
 
-From: Jeremy Sowden <jeremy@azazel.net>
+Hi Jeremy,
 
-The kernel now has native support for AND, OR and XOR bitwise
-operations.
+On Mon, Nov 18, 2024 at 01:56:50PM +0000, Jeremy Sowden wrote:
+[...]
+> Remove the mask parameters from `is_same_interfaces`.  Add a test-case.
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-rebase on top of git HEAD
+Thanks for the fix and test-case!
 
- include/linux/netfilter/nf_tables.h | 17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+Some remarks below:
 
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index 9e9079321380..1e95b5469f7c 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -564,16 +564,27 @@ enum nft_immediate_attributes {
- /**
-  * enum nft_bitwise_ops - nf_tables bitwise operations
-  *
-- * @NFT_BITWISE_BOOL: mask-and-xor operation used to implement NOT, AND, OR and
-- *                    XOR boolean operations
-+ * @NFT_BITWISE_BOOL: mask-and-xor operation used to implement NOT, AND, OR
-+ *                    and XOR boolean operations
-  * @NFT_BITWISE_LSHIFT: left-shift operation
-  * @NFT_BITWISE_RSHIFT: right-shift operation
-+ * @NFT_BITWISE_AND: and operation
-+ * @NFT_BITWISE_OR: or operation
-+ * @NFT_BITWISE_XOR: xor operation
-  */
- enum nft_bitwise_ops {
- 	NFT_BITWISE_BOOL,
- 	NFT_BITWISE_LSHIFT,
- 	NFT_BITWISE_RSHIFT,
-+	NFT_BITWISE_AND,
-+	NFT_BITWISE_OR,
-+	NFT_BITWISE_XOR,
- };
-+/*
-+ * Old name for NFT_BITWISE_MASK_XOR, predating the addition of NFT_BITWISE_AND,
-+ * NFT_BITWISE_OR and NFT_BITWISE_XOR.  Retained for backwards-compatibility.
-+ */
-+#define NFT_BITWISE_BOOL NFT_BITWISE_MASK_XOR
- 
- /**
-  * enum nft_bitwise_attributes - nf_tables bitwise expression netlink attributes
-@@ -586,6 +597,7 @@ enum nft_bitwise_ops {
-  * @NFTA_BITWISE_OP: type of operation (NLA_U32: nft_bitwise_ops)
-  * @NFTA_BITWISE_DATA: argument for non-boolean operations
-  *                     (NLA_NESTED: nft_data_attributes)
-+ * @NFTA_BITWISE_SREG2: second source register (NLA_U32: nft_registers)
-  *
-  * The bitwise expression supports boolean and shift operations.  It implements
-  * the boolean operations by performing the following operation:
-@@ -609,6 +621,7 @@ enum nft_bitwise_attributes {
- 	NFTA_BITWISE_XOR,
- 	NFTA_BITWISE_OP,
- 	NFTA_BITWISE_DATA,
-+	NFTA_BITWISE_SREG2,
- 	__NFTA_BITWISE_MAX
- };
- #define NFTA_BITWISE_MAX	(__NFTA_BITWISE_MAX - 1)
--- 
-2.30.2
+[...]
+>  bool is_same_interfaces(const char *a_iniface, const char *a_outiface,
+> -			unsigned const char *a_iniface_mask,
+> -			unsigned const char *a_outiface_mask,
+> -			const char *b_iniface, const char *b_outiface,
+> -			unsigned const char *b_iniface_mask,
+> -			unsigned const char *b_outiface_mask)
+> +			const char *b_iniface, const char *b_outiface)
+>  {
+>  	int i;
+>  
+>  	for (i = 0; i < IFNAMSIZ; i++) {
+> -		if (a_iniface_mask[i] != b_iniface_mask[i]) {
+> -			DEBUGP("different iniface mask %x, %x (%d)\n",
+> -			a_iniface_mask[i] & 0xff, b_iniface_mask[i] & 0xff, i);
+> -			return false;
+> -		}
+> -		if ((a_iniface[i] & a_iniface_mask[i])
+> -		    != (b_iniface[i] & b_iniface_mask[i])) {
+> +		if (a_iniface[i] != b_iniface[i]) {
+>  			DEBUGP("different iniface\n");
+>  			return false;
+>  		}
+> -		if (a_outiface_mask[i] != b_outiface_mask[i]) {
+> -			DEBUGP("different outiface mask\n");
+> -			return false;
+> -		}
+> -		if ((a_outiface[i] & a_outiface_mask[i])
+> -		    != (b_outiface[i] & b_outiface_mask[i])) {
+> +		if (a_outiface[i] != b_outiface[i]) {
+>  			DEBUGP("different outiface\n");
+>  			return false;
+>  		}
 
+My draft fix converts this to strncmp() calls, I don't think we should
+inspect bytes past the NUL-char. Usually we parse into a zeroed
+iptables_command_state, but if_indextoname(3P) does not define output
+buffer contents apart from "shall place in this buffer the name of the
+interface", so it may put garbage in there (although unlikely).
+
+Another thing is a potential follow-up: There are remains in
+nft_arp_post_parse() and ipv6_post_parse(), needless filling of the mask
+buffers. They may be dropped along with the now unused mask fields in
+struct xtables_args.
+
+WDYT?
+
+Thanks, Phil
