@@ -1,94 +1,23 @@
-Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4ABFB1CBE97;
-	Tue, 19 Nov 2024 10:19:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.51
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D4ECD13B780
+	for <netfilter-devel@vger.kernel.org>; Tue, 19 Nov 2024 12:32:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732011580; cv=none; b=EOPdv0OpTZXjySrFs6hqqUH6Z7YE456CXAIa+au8S6p2IQ3+qA8n/tjwFvCbPvHEgKqe0cCy14KtPpF4FNLstvHIo8xiiNqDjy1UWq1puUTM42EhirC8PNpKmE2BUhmcCS9LdneVdP6xytTe41ZWgdYMjWe29fzfQhG3W7HJdgs=
+	t=1732019540; cv=none; b=ClxyT1mXeUDtqwaiFwAEPJVOzvn27J6HwCzFNULRGkaWWnowaoG8l4i5/pY908qgcOS43z1ij/sMmL/pCMLkIIzIysL2HIiYNLN9b/GYZZaonjSWjemqVwjpceFA10vHGpEglj2KbXtWVJn/ui04OPR9SiEnRaaw0adc5xV5joM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732011580; c=relaxed/simple;
-	bh=h2EDobtYGuZ0p694lv+rpbiRRIT5cXJ238jQIT1Juig=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=i7B2uhN3BL2NZLoe7kv81fN2B9A0i3wln8CI7usMsIgbdenl346PBQalyaUsAjDClcStmX1ExZb4oFmvgueY2SWI7iq5U6UXCAnlqgk0OGfvWo4ouvdXdVqimrDi2jic1P4CJqCXIzrTtzEybbv6s8ia5BAN1jPOLRlNQfYfmzU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=khDWNxpR; arc=none smtp.client-ip=209.85.218.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="khDWNxpR"
-Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-a9a6acac4c3so124380866b.0;
-        Tue, 19 Nov 2024 02:19:38 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1732011577; x=1732616377; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=93tHMoq61etCefqeI7/L8ZHaQMS3jaPhjtyND24xOo0=;
-        b=khDWNxpRgDPYX6faCdFzCZ10sVTDzBTUxBsH0tLabXCy+yNGYSE0Dh/OrM6po8oOO5
-         OBlkbjx9s7xQg+dH4tjbcIbZ4you12sHjHJi+p0eUhPpV+6VhalnOQz000/f0dWpoAOz
-         1A1g3TDOoCjfxe9h+IPiJjyXxI7LH2ivK7dBVb+dT4zCQ3wsgzCOwTyhOKYQLSuG1YnJ
-         exnofe25/I439t8ABBSzLifKi/YpBwPLpQQv6QUV+eGAnMY/zv+Q5LUJuvo/zdmn7i5t
-         dZ5/S9PMfCTZ7s0qGwPwhuRfPZLW7mscAVLK52ydBEC/x2HlplTRna6jK1ZH42/LAVod
-         jjDg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1732011577; x=1732616377;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=93tHMoq61etCefqeI7/L8ZHaQMS3jaPhjtyND24xOo0=;
-        b=wExuLVUx7OHrqcr3l4iNp0Us7QzzMtat/W5rOifRwsd49QnOns0hzxkg3Tk1XAbC0K
-         EOhrkK6bTKdA/bX9/r4kf5BPvISedhwKhtlOSZZYXDqzFW6v5d3C9ssn+tB0hvf/gxvV
-         V40ATos+CljfIdhbeBHrz2+L0I9LLjm9oRh1dMF/fkT9SzWnZQMo6v+lySsc+ttUCwAw
-         kPzDKzfYspB3nAgB/RitxfJlRjJafMUuHFxQ1Q/B0FTt1HF4hJhgtmMwo18mjMm9MVIx
-         cINNi4PmKVwioBaCKnfULfU78zNKHI0BoMjRF0VRR8Vj4Unn+/cpr63zwB6LGWFGnEeO
-         0/Hw==
-X-Forwarded-Encrypted: i=1; AJvYcCUQX/nl2WCcNws1wb3+cuYfitaFE3e/b1C1cvizDqExGWXKxWdxqfAZegtjvSc3OQZ0rk6c+gtMCeVHtpI=@vger.kernel.org, AJvYcCV1dxs1b7y5LfPXXgDq/yJcr2QtzVKvI12CzTCkKQ0VSXDBzJwifMORXN1wYfGOMmrg5pkQoXeOLD0zV1CaY5fq@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxw36Fuf2yReNVcdheGkCrlnoyNVDPIYytPNe3Gp70WJuF5EV0k
-	xzIReAfg3hEQvZJ2m+rfSCYlLt96hFfas1WD4nh+5FVAwMajQhVx
-X-Google-Smtp-Source: AGHT+IHFjm7z288du+sLPkPh9NWZ67RgYD8wK05AuA3EyPac75+11d1DSFwwXFLi3Yq64iVpPPRciw==
-X-Received: by 2002:a17:907:a4e:b0:a99:c9a4:a4d5 with SMTP id a640c23a62f3a-aa483482762mr1446252966b.29.1732011576580;
-        Tue, 19 Nov 2024 02:19:36 -0800 (PST)
-Received: from corebook.localdomain (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-aa20e081574sm634875566b.179.2024.11.19.02.19.35
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 19 Nov 2024 02:19:36 -0800 (PST)
-From: Eric Woudstra <ericwouds@gmail.com>
-To: "David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Jiri Pirko <jiri@resnulli.us>,
-	Ivan Vecera <ivecera@redhat.com>,
-	Roopa Prabhu <roopa@nvidia.com>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-	David Ahern <dsahern@kernel.org>,
-	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-	Lorenzo Bianconi <lorenzo@kernel.org>,
-	Joe Damato <jdamato@fastly.com>,
-	Alexander Lobakin <aleksander.lobakin@intel.com>,
-	Vladimir Oltean <olteanv@gmail.com>,
-	"Frank Wunderlich" <frank-w@public-files.de>,
-	Daniel Golle <daniel@makrotopia.org>
-Cc: netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	bridge@lists.linux.dev,
-	linux-arm-kernel@lists.infradead.org,
-	linux-mediatek@lists.infradead.org,
-	Eric Woudstra <ericwouds@gmail.com>
-Subject: [PATCH RFC v2 net-next 14/14] netfilter: nft_flow_offload: Add bridgeflow to nft_flow_offload_eval()
-Date: Tue, 19 Nov 2024 11:19:06 +0100
-Message-ID: <20241119101906.862680-15-ericwouds@gmail.com>
-X-Mailer: git-send-email 2.45.2
-In-Reply-To: <20241119101906.862680-1-ericwouds@gmail.com>
-References: <20241119101906.862680-1-ericwouds@gmail.com>
+	s=arc-20240116; t=1732019540; c=relaxed/simple;
+	bh=tDFTZGMuSsvdO0g4f+//rG6zALXUJEUAh9Cz58gq+Sc=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=AcYJmNWFDddAc080yC6gOcxqtvODDlYLaFwFiEd8HPC9wLbFp206Cl2i4jTYXjaqydQsQyd+cOpAovKdEPCpIK4ob92Fa4E/PekTvO/OMkFIyK5n9jT+uF8dJwfAf4gK0xn90ElpAuozwv81ZwkM+al8+xA7qyqnkvUe3MmpxDs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: jeremy@azazel.net
+Subject: [PATCH nft] src: allow binop expressions with variable right-hand operands
+Date: Tue, 19 Nov 2024 13:31:58 +0100
+Message-Id: <20241119123158.185298-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -97,198 +26,1016 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Edit nft_flow_offload_eval() to make it possible to handle a flowtable of
-the nft bridge family.
+From: Jeremy Sowden <jeremy@azazel.net>
 
-Use nft_flow_offload_bridge_init() to fill the flow tuples. It uses
-nft_dev_fill_bridge_path() in each direction.
+Hitherto, the kernel has required constant values for the `xor` and
+`mask` attributes of boolean bitwise expressions.  This has meant that
+the right-hand operand of a boolean binop must be constant.  Now the
+kernel has support for AND, OR and XOR operations with right-hand
+operands passed via registers, we can relax this restriction.  Allow
+non-constant right-hand operands if the left-hand operand is not
+constant, e.g.:
 
-Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
+  ct mark & 0xffff0000 | meta mark & 0xffff
+
+The kernel now supports performing AND, OR and XOR operations directly,
+on one register and an immediate value or on two registers, so we need
+to be able to generate and parse bitwise boolean expressions of this
+form.
+
+If a boolean operation has a constant RHS, we continue to send a
+mask-and-xor expression to the kernel.
+
+Add tests for {ct,meta} mark with variable RHS operands.
+
+JSON support is also included.
+
+This requires Linux kernel >= 6.13-rc.
+
+[ Originally posted as patch 1/8 and 6/8 which has been collapsed and
+  simplified to focus on initial {ct,meta} mark support. Tests have
+  been extracted from 8/8 including a tests/py fix to payload output
+  due to incorrect output in original patchset. JSON support has been
+  extracted from patch 7/8 --pablo]
+
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_flow_offload.c | 144 +++++++++++++++++++++++++++++--
- 1 file changed, 139 insertions(+), 5 deletions(-)
+Only {ct,meta} mark statement support at this stage so kernel space
+support for multiregister bitwise gains a users.
 
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index ed0e9b499971..b17a3ef79852 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -196,6 +196,131 @@ static bool nft_flowtable_find_dev(const struct net_device *dev,
- 	return found;
+I took the freedom to collapse several patches for easier git
+annotate/blame later on, just a personal taste decision, original series
+was already very good. So any bug in this patch is likely of mine.
+
+This includes a few subtle/small fixes in the original series:
+
+- Swap left and right hand sides if constant is on the lhs of the binary op.
+  e.g. ct mark set 0x1 | meta mark
+- Incorrect bytecode in ct.t.payload which is coming from a fix already
+  in nftables v1.1.1.
+
+@@ -50,8 +50,8 @@ ip6 test-ip6 output
+   [ ct load mark => reg 1 ]
+   [ payload load 2b @ network header + 0 => reg 2 ]
+   [ bitwise reg 2 = ( reg 2 & 0x0000c00f ) ^ 0x00000000 ]
++  [ byteorder reg 2 = ntoh(reg 2, 2, 2) ]
+   [ bitwise reg 2 = ( reg 2 >> 0x00000006 ) ]
+-  [ byteorder reg 2 = ntoh(reg 2, 2, 1) ]
+   [ bitwise reg 1 = ( reg 1 | reg 2 ) ]
+   [ bitwise reg 1 = ( reg 1 & 0xfffffdff ) ^ 0x00000200 ]
+   [ ct set mark with reg 1 ]
+
+payload statement, including {ip,ip6} dscp, will be posted as a different
+patch/series recovering Jeremy's work, this is also important.
+
+ include/linux/netfilter/nf_tables.h           | 19 +++++-
+ src/evaluate.c                                | 52 ++++++++++-----
+ src/netlink_delinearize.c                     | 64 ++++++++++++++-----
+ src/netlink_linearize.c                       | 61 +++++++++++++++---
+ src/parser_json.c                             |  4 +-
+ tests/py/any/ct.t                             |  3 +
+ tests/py/any/ct.t.json                        | 60 +++++++++++++++++
+ tests/py/any/ct.t.payload                     | 15 +++++
+ tests/py/inet/meta.t                          |  2 +
+ tests/py/inet/meta.t.json                     | 37 +++++++++++
+ tests/py/inet/meta.t.payload                  |  9 +++
+ tests/py/ip/ct.t                              |  2 +
+ tests/py/ip/ct.t.json                         | 32 ++++++++++
+ tests/py/ip/ct.t.payload                      | 11 ++++
+ tests/py/ip6/ct.t                             |  1 +
+ tests/py/ip6/ct.t.json                        | 32 ++++++++++
+ tests/py/ip6/ct.t.payload                     | 12 ++++
+ .../shell/testcases/bitwise/0040mark_binop_10 | 11 ++++
+ .../shell/testcases/bitwise/0040mark_binop_11 | 11 ++++
+ .../shell/testcases/bitwise/0040mark_binop_12 | 11 ++++
+ .../shell/testcases/bitwise/0040mark_binop_13 | 11 ++++
+ .../testcases/bitwise/0044payload_binop_2     | 11 ++++
+ .../testcases/bitwise/0044payload_binop_5     | 11 ++++
+ .../bitwise/dumps/0040mark_binop_10.nft       |  6 ++
+ .../bitwise/dumps/0040mark_binop_11.nft       |  6 ++
+ .../bitwise/dumps/0040mark_binop_12.nft       |  6 ++
+ .../bitwise/dumps/0040mark_binop_13.nft       |  6 ++
+ .../bitwise/dumps/0044payload_binop_2.nft     |  6 ++
+ .../bitwise/dumps/0044payload_binop_5.nft     |  6 ++
+ 29 files changed, 472 insertions(+), 46 deletions(-)
+ create mode 100755 tests/shell/testcases/bitwise/0040mark_binop_10
+ create mode 100755 tests/shell/testcases/bitwise/0040mark_binop_11
+ create mode 100755 tests/shell/testcases/bitwise/0040mark_binop_12
+ create mode 100755 tests/shell/testcases/bitwise/0040mark_binop_13
+ create mode 100755 tests/shell/testcases/bitwise/0044payload_binop_2
+ create mode 100755 tests/shell/testcases/bitwise/0044payload_binop_5
+ create mode 100644 tests/shell/testcases/bitwise/dumps/0040mark_binop_10.nft
+ create mode 100644 tests/shell/testcases/bitwise/dumps/0040mark_binop_11.nft
+ create mode 100644 tests/shell/testcases/bitwise/dumps/0040mark_binop_12.nft
+ create mode 100644 tests/shell/testcases/bitwise/dumps/0040mark_binop_13.nft
+ create mode 100644 tests/shell/testcases/bitwise/dumps/0044payload_binop_2.nft
+ create mode 100644 tests/shell/testcases/bitwise/dumps/0044payload_binop_5.nft
+
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index c62e6ac56398..f57963e89fd1 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -557,16 +557,27 @@ enum nft_immediate_attributes {
+ /**
+  * enum nft_bitwise_ops - nf_tables bitwise operations
+  *
+- * @NFT_BITWISE_BOOL: mask-and-xor operation used to implement NOT, AND, OR and
+- *                    XOR boolean operations
++ * @NFT_BITWISE_MASK_XOR: mask-and-xor operation used to implement NOT, AND, OR
++ *                        and XOR boolean operations
+  * @NFT_BITWISE_LSHIFT: left-shift operation
+  * @NFT_BITWISE_RSHIFT: right-shift operation
++ * @NFT_BITWISE_AND: and operation
++ * @NFT_BITWISE_OR: or operation
++ * @NFT_BITWISE_XOR: xor operation
+  */
+ enum nft_bitwise_ops {
+-	NFT_BITWISE_BOOL,
++	NFT_BITWISE_MASK_XOR,
+ 	NFT_BITWISE_LSHIFT,
+ 	NFT_BITWISE_RSHIFT,
++	NFT_BITWISE_AND,
++	NFT_BITWISE_OR,
++	NFT_BITWISE_XOR,
+ };
++/*
++ * Old name for NFT_BITWISE_MASK_XOR, predating the addition of NFT_BITWISE_AND,
++ * NFT_BITWISE_OR and NFT_BITWISE_XOR.  Retained for backwards-compatibility.
++ */
++#define NFT_BITWISE_BOOL NFT_BITWISE_MASK_XOR
+ 
+ /**
+  * enum nft_bitwise_attributes - nf_tables bitwise expression netlink attributes
+@@ -579,6 +590,7 @@ enum nft_bitwise_ops {
+  * @NFTA_BITWISE_OP: type of operation (NLA_U32: nft_bitwise_ops)
+  * @NFTA_BITWISE_DATA: argument for non-boolean operations
+  *                     (NLA_NESTED: nft_data_attributes)
++ * @NFTA_BITWISE_SREG2: second source register (NLA_U32: nft_registers)
+  *
+  * The bitwise expression supports boolean and shift operations.  It implements
+  * the boolean operations by performing the following operation:
+@@ -602,6 +614,7 @@ enum nft_bitwise_attributes {
+ 	NFTA_BITWISE_XOR,
+ 	NFTA_BITWISE_OP,
+ 	NFTA_BITWISE_DATA,
++	NFTA_BITWISE_SREG2,
+ 	__NFTA_BITWISE_MAX
+ };
+ #define NFTA_BITWISE_MAX	(__NFTA_BITWISE_MAX - 1)
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 593a0140e92a..cd3619a2517c 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1487,16 +1487,18 @@ static int expr_evaluate_bitwise(struct eval_ctx *ctx, struct expr **expr)
+ 	op->byteorder = byteorder;
+ 	op->len	      = max_len;
+ 
+-	if (expr_is_constant(left))
++	if (expr_is_constant(left) && expr_is_constant(op->right))
+ 		return constant_binop_simplify(ctx, expr);
+ 	return 0;
  }
  
-+static int nft_dev_fill_bridge_path(struct flow_offload *flow,
-+				    struct nft_flowtable *ft,
-+				    const struct nft_pktinfo *pkt,
-+				    enum ip_conntrack_dir dir,
-+				    const struct net_device *src_dev,
-+				    const struct net_device *dst_dev,
-+				    unsigned char *src_ha,
-+				    unsigned char *dst_ha)
-+{
-+	struct flow_offload_tuple_rhash *th = flow->tuplehash;
-+	struct net_device_path_stack stack;
-+	struct net_device_path_ctx ctx = {};
-+	struct nft_forward_info info = {};
-+	int i, j = 0;
-+
-+	for (i = th[dir].tuple.encap_num - 1; i >= 0 ; i--) {
-+		if (info.num_encaps >= NF_FLOW_TABLE_ENCAP_MAX)
-+			return -1;
-+
-+		if (th[dir].tuple.in_vlan_ingress & BIT(i))
-+			continue;
-+
-+		info.encap[info.num_encaps].id = th[dir].tuple.encap[i].id;
-+		info.encap[info.num_encaps].proto = th[dir].tuple.encap[i].proto;
-+		info.num_encaps++;
-+
-+		if (th[dir].tuple.encap[i].proto == htons(ETH_P_PPP_SES))
-+			continue;
-+
-+		if (ctx.num_vlans >= NET_DEVICE_PATH_VLAN_MAX)
-+			return -1;
-+		ctx.vlan[ctx.num_vlans].id = th[dir].tuple.encap[i].id;
-+		ctx.vlan[ctx.num_vlans].proto = th[dir].tuple.encap[i].proto;
-+		ctx.num_vlans++;
-+	}
-+	ctx.dev = src_dev;
-+	ether_addr_copy(ctx.daddr, dst_ha);
-+
-+	if (dev_fill_bridge_path(&ctx, &stack) < 0)
-+		return -1;
-+
-+	nft_dev_path_info(&stack, &info, dst_ha, &ft->data);
-+
-+	if (!info.indev || info.indev != dst_dev)
-+		return -1;
-+
-+	th[!dir].tuple.iifidx = info.indev->ifindex;
-+	for (i = info.num_encaps - 1; i >= 0; i--) {
-+		th[!dir].tuple.encap[j].id = info.encap[i].id;
-+		th[!dir].tuple.encap[j].proto = info.encap[i].proto;
-+		if (info.ingress_vlans & BIT(i))
-+			th[!dir].tuple.in_vlan_ingress |= BIT(j);
-+		j++;
-+	}
-+	th[!dir].tuple.encap_num = info.num_encaps;
-+
-+	th[dir].tuple.mtu = dst_dev->mtu;
-+	ether_addr_copy(th[dir].tuple.out.h_source, src_ha);
-+	ether_addr_copy(th[dir].tuple.out.h_dest, dst_ha);
-+	th[dir].tuple.out.ifidx = info.outdev->ifindex;
-+	th[dir].tuple.out.hw_ifidx = info.hw_outdev->ifindex;
-+	th[dir].tuple.xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
-+
-+	return 0;
-+}
-+
-+static int nft_flow_offload_bridge_init(struct flow_offload *flow,
-+					const struct nft_pktinfo *pkt,
-+					enum ip_conntrack_dir dir,
-+					struct nft_flowtable *ft)
-+{
-+	struct ethhdr *eth = eth_hdr(pkt->skb);
-+	struct flow_offload_tuple *tuple;
-+	const struct net_device *out_dev;
-+	const struct net_device *in_dev;
-+	struct pppoe_hdr *phdr;
-+	struct vlan_hdr *vhdr;
-+	int err, i = 0;
-+
-+	in_dev = nft_in(pkt);
-+	if (!in_dev || !nft_flowtable_find_dev(in_dev, ft))
-+		return -1;
-+
-+	out_dev = nft_out(pkt);
-+	if (!out_dev || !nft_flowtable_find_dev(out_dev, ft))
-+		return -1;
-+
-+	tuple =  &flow->tuplehash[!dir].tuple;
-+
-+	if (skb_vlan_tag_present(pkt->skb)) {
-+		tuple->encap[i].id = skb_vlan_tag_get(pkt->skb);
-+		tuple->encap[i].proto = pkt->skb->vlan_proto;
-+		i++;
-+	}
-+	switch (pkt->skb->protocol) {
-+	case htons(ETH_P_8021Q):
-+		vhdr = (struct vlan_hdr *)skb_network_header(pkt->skb);
-+		tuple->encap[i].id = ntohs(vhdr->h_vlan_TCI);
-+		tuple->encap[i].proto = pkt->skb->protocol;
-+		i++;
-+		break;
-+	case htons(ETH_P_PPP_SES):
-+		phdr = (struct pppoe_hdr *)skb_network_header(pkt->skb);
-+		tuple->encap[i].id = ntohs(phdr->sid);
-+		tuple->encap[i].proto = pkt->skb->protocol;
-+		i++;
-+		break;
-+	}
-+	tuple->encap_num = i;
-+
-+	err = nft_dev_fill_bridge_path(flow, ft, pkt, !dir, out_dev, in_dev,
-+				       eth->h_dest, eth->h_source);
-+	if (err < 0)
-+		return err;
-+
-+	memset(tuple->encap, 0, sizeof(tuple->encap));
-+
-+	err = nft_dev_fill_bridge_path(flow, ft, pkt, dir, in_dev, out_dev,
-+				       eth->h_source, eth->h_dest);
-+	if (err < 0)
-+		return err;
-+
-+	return 0;
-+}
-+
- static void nft_dev_forward_path(struct nf_flow_route *route,
- 				 const struct nf_conn *ct,
- 				 enum ip_conntrack_dir dir,
-@@ -306,6 +431,7 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ /*
+- * Binop expression: both sides must be of integer base type. The left
+- * hand side may be either constant or non-constant; in case its constant
+- * it must be a singleton. The ride hand side must always be a constant
+- * singleton.
++ * Binop expression: both sides must be of integer base type. The left-hand side
++ * may be either constant or non-constant; if it is constant, it must be a
++ * singleton.  For bitwise operations, the right-hand side must be constant if
++ * the left-hand side is constant; the right-hand side may be constant or
++ * non-constant, if the left-hand side is non-constant; for shifts, the
++ * right-hand side must be constant; if it is constant, it must be a singleton.
+  */
+ static int expr_evaluate_binop(struct eval_ctx *ctx, struct expr **expr)
  {
- 	struct nft_flow_offload *priv = nft_expr_priv(expr);
- 	struct nf_flowtable *flowtable = &priv->flowtable->data;
-+	bool routing = (flowtable->type->family != NFPROTO_BRIDGE);
- 	struct tcphdr _tcph, *tcph = NULL;
- 	struct nf_flow_route route = {};
- 	enum ip_conntrack_info ctinfo;
-@@ -359,14 +485,20 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
- 		goto out;
+@@ -1527,6 +1529,13 @@ static int expr_evaluate_binop(struct eval_ctx *ctx, struct expr **expr)
+ 		return -1;
+ 	right = op->right;
  
- 	dir = CTINFO2DIR(ctinfo);
--	if (nft_flow_route(pkt, ct, &route, dir, priv->flowtable) < 0)
--		goto err_flow_route;
-+	if (routing) {
-+		if (nft_flow_route(pkt, ct, &route, dir, priv->flowtable) < 0)
-+			goto err_flow_route;
++	/* evaluation expects constant to the right hand side. */
++	if (expr_is_constant(left) && !expr_is_constant(right)) {
++		range_expr_swap_values(op);
++		left = op->left;
++		right = op->right;
 +	}
++
+ 	switch (expr_basetype(left)->type) {
+ 	case TYPE_INTEGER:
+ 	case TYPE_STRING:
+@@ -1544,17 +1553,6 @@ static int expr_evaluate_binop(struct eval_ctx *ctx, struct expr **expr)
+ 					 "for %s expressions",
+ 					 sym, expr_name(left));
  
- 	flow = flow_offload_alloc(ct);
- 	if (!flow)
- 		goto err_flow_alloc;
+-	if (!expr_is_constant(right))
+-		return expr_binary_error(ctx->msgs, right, op,
+-					 "Right hand side of binary operation "
+-					 "(%s) must be constant", sym);
+-
+-	if (!expr_is_singleton(right))
+-		return expr_binary_error(ctx->msgs, left, op,
+-					 "Binary operation (%s) is undefined "
+-					 "for %s expressions",
+-					 sym, expr_name(right));
+-
+ 	if (!datatype_equal(expr_basetype(left), expr_basetype(right)))
+ 		return expr_binary_error(ctx->msgs, left, op,
+ 					 "Binary operation (%s) with different base types "
+@@ -1564,11 +1562,33 @@ static int expr_evaluate_binop(struct eval_ctx *ctx, struct expr **expr)
+ 	switch (op->op) {
+ 	case OP_LSHIFT:
+ 	case OP_RSHIFT:
++		if (!expr_is_constant(right))
++			return expr_binary_error(ctx->msgs, right, op,
++						 "Right hand side of binary operation "
++						 "(%s) must be constant", sym);
++
++		if (!expr_is_singleton(right))
++			return expr_binary_error(ctx->msgs, left, op,
++						 "Binary operation (%s) is undefined "
++						 "for %s expressions",
++						 sym, expr_name(right));
++
+ 		ret = expr_evaluate_shift(ctx, expr);
+ 		break;
+ 	case OP_AND:
+ 	case OP_XOR:
+ 	case OP_OR:
++		if (expr_is_constant(left) && !expr_is_constant(right))
++			return expr_binary_error(ctx->msgs, right, op,
++						 "Right hand side of binary operation "
++						 "(%s) must be constant", sym);
++
++		if (expr_is_constant(right) && !expr_is_singleton(right))
++			return expr_binary_error(ctx->msgs, left, op,
++						 "Binary operation (%s) is undefined "
++						 "for %s expressions",
++						 sym, expr_name(right));
++
+ 		ret = expr_evaluate_bitwise(ctx, expr);
+ 		break;
+ 	default:
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index e3d9cfbbede5..db8b6bbe13e8 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -455,12 +455,12 @@ static void netlink_parse_lookup(struct netlink_parse_ctx *ctx,
+ 	ctx->stmt = expr_stmt_alloc(loc, expr);
+ }
  
--	flow_offload_route_init(flow, &route);
-+	if (routing)
-+		flow_offload_route_init(flow, &route);
-+	else
-+		if (nft_flow_offload_bridge_init(flow, pkt, dir, priv->flowtable) < 0)
-+			goto err_flow_route;
+-static struct expr *netlink_parse_bitwise_bool(struct netlink_parse_ctx *ctx,
+-					       const struct location *loc,
+-					       const struct nftnl_expr *nle,
+-					       enum nft_registers sreg,
+-					       struct expr *left)
+-
++static struct expr *
++netlink_parse_bitwise_mask_xor(struct netlink_parse_ctx *ctx,
++			       const struct location *loc,
++			       const struct nftnl_expr *nle,
++			       enum nft_registers sreg,
++			       struct expr *left)
+ {
+ 	struct nft_data_delinearize nld;
+ 	struct expr *expr, *mask, *xor, *or;
+@@ -520,10 +520,39 @@ static struct expr *netlink_parse_bitwise_bool(struct netlink_parse_ctx *ctx,
+ 	return expr;
+ }
  
- 	if (tcph) {
- 		ct->proto.tcp.seen[0].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
-@@ -419,8 +551,10 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
- err_flow_add:
- 	flow_offload_free(flow);
- err_flow_alloc:
--	dst_release(route.tuple[dir].dst);
--	dst_release(route.tuple[!dir].dst);
-+	if (routing) {
-+		dst_release(route.tuple[dir].dst);
-+		dst_release(route.tuple[!dir].dst);
++static struct expr *netlink_parse_bitwise_bool(struct netlink_parse_ctx *ctx,
++					       const struct location *loc,
++					       const struct nftnl_expr *nle,
++					       enum nft_bitwise_ops op,
++					       enum nft_registers sreg,
++					       struct expr *left)
++{
++	enum nft_registers sreg2;
++	struct expr *right, *expr;
++
++	sreg2 = netlink_parse_register(nle, NFTNL_EXPR_BITWISE_SREG2);
++	right = netlink_get_register(ctx, loc, sreg2);
++	if (right == NULL) {
++		netlink_error(ctx, loc,
++			      "Bitwise expression has no right-hand expression");
++		return NULL;
 +	}
- err_flow_route:
- 	clear_bit(IPS_OFFLOAD_BIT, &ct->status);
- out:
++
++	expr = binop_expr_alloc(loc,
++				op == NFT_BITWISE_XOR ? OP_XOR :
++				op == NFT_BITWISE_AND ? OP_AND : OP_OR,
++				left, right);
++
++	if (left->len > 0)
++		expr->len = left->len;
++
++	return expr;
++}
++
+ static struct expr *netlink_parse_bitwise_shift(struct netlink_parse_ctx *ctx,
+ 						const struct location *loc,
+ 						const struct nftnl_expr *nle,
+-						enum ops op,
++						enum nft_bitwise_ops op,
+ 						enum nft_registers sreg,
+ 						struct expr *left)
+ {
+@@ -534,7 +563,9 @@ static struct expr *netlink_parse_bitwise_shift(struct netlink_parse_ctx *ctx,
+ 	right = netlink_alloc_value(loc, &nld);
+ 	right->byteorder = BYTEORDER_HOST_ENDIAN;
+ 
+-	expr = binop_expr_alloc(loc, op, left, right);
++	expr = binop_expr_alloc(loc,
++				op == NFT_BITWISE_LSHIFT ? OP_LSHIFT : OP_RSHIFT,
++				left, right);
+ 	expr->len = nftnl_expr_get_u32(nle, NFTNL_EXPR_BITWISE_LEN) * BITS_PER_BYTE;
+ 
+ 	return expr;
+@@ -558,16 +589,19 @@ static void netlink_parse_bitwise(struct netlink_parse_ctx *ctx,
+ 	op = nftnl_expr_get_u32(nle, NFTNL_EXPR_BITWISE_OP);
+ 
+ 	switch (op) {
+-	case NFT_BITWISE_BOOL:
+-		expr = netlink_parse_bitwise_bool(ctx, loc, nle, sreg,
+-						  left);
++	case NFT_BITWISE_MASK_XOR:
++		expr = netlink_parse_bitwise_mask_xor(ctx, loc, nle, sreg,
++						      left);
+ 		break;
+-	case NFT_BITWISE_LSHIFT:
+-		expr = netlink_parse_bitwise_shift(ctx, loc, nle, OP_LSHIFT,
+-						   sreg, left);
++	case NFT_BITWISE_XOR:
++	case NFT_BITWISE_AND:
++	case NFT_BITWISE_OR:
++		expr = netlink_parse_bitwise_bool(ctx, loc, nle, op,
++						  sreg, left);
+ 		break;
++	case NFT_BITWISE_LSHIFT:
+ 	case NFT_BITWISE_RSHIFT:
+-		expr = netlink_parse_bitwise_shift(ctx, loc, nle, OP_RSHIFT,
++		expr = netlink_parse_bitwise_shift(ctx, loc, nle, op,
+ 						   sreg, left);
+ 		break;
+ 	default:
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index 77bc51493293..42310115f02e 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -664,9 +664,9 @@ static void combine_binop(mpz_t mask, mpz_t xor, const mpz_t m, const mpz_t x)
+ 	mpz_and(mask, mask, m);
+ }
+ 
+-static void netlink_gen_shift(struct netlink_linearize_ctx *ctx,
+-			      const struct expr *expr,
+-			      enum nft_registers dreg)
++static void netlink_gen_bitwise_shift(struct netlink_linearize_ctx *ctx,
++				      const struct expr *expr,
++				      enum nft_registers dreg)
+ {
+ 	enum nft_bitwise_ops op = expr->op == OP_LSHIFT ?
+ 		NFT_BITWISE_LSHIFT : NFT_BITWISE_RSHIFT;
+@@ -691,9 +691,9 @@ static void netlink_gen_shift(struct netlink_linearize_ctx *ctx,
+ 	nft_rule_add_expr(ctx, nle, &expr->location);
+ }
+ 
+-static void netlink_gen_bitwise(struct netlink_linearize_ctx *ctx,
+-				const struct expr *expr,
+-				enum nft_registers dreg)
++static void netlink_gen_bitwise_mask_xor(struct netlink_linearize_ctx *ctx,
++					 const struct expr *expr,
++					 enum nft_registers dreg)
+ {
+ 	struct expr *binops[NFT_MAX_EXPR_RECURSION];
+ 	struct nftnl_expr *nle;
+@@ -709,7 +709,7 @@ static void netlink_gen_bitwise(struct netlink_linearize_ctx *ctx,
+ 	mpz_init(tmp);
+ 
+ 	binops[n++] = left = (struct expr *) expr;
+-	while (left->etype == EXPR_BINOP && left->left != NULL &&
++	while (left->etype == EXPR_BINOP && left->left != NULL && expr_is_constant(left->right) &&
+ 	       (left->op == OP_AND || left->op == OP_OR || left->op == OP_XOR)) {
+ 		if (n == array_size(binops))
+ 			BUG("NFT_MAX_EXPR_RECURSION limit reached");
+@@ -747,7 +747,7 @@ static void netlink_gen_bitwise(struct netlink_linearize_ctx *ctx,
+ 	nle = alloc_nft_expr("bitwise");
+ 	netlink_put_register(nle, NFTNL_EXPR_BITWISE_SREG, dreg);
+ 	netlink_put_register(nle, NFTNL_EXPR_BITWISE_DREG, dreg);
+-	nftnl_expr_set_u32(nle, NFTNL_EXPR_BITWISE_OP, NFT_BITWISE_BOOL);
++	nftnl_expr_set_u32(nle, NFTNL_EXPR_BITWISE_OP, NFT_BITWISE_MASK_XOR);
+ 	nftnl_expr_set_u32(nle, NFTNL_EXPR_BITWISE_LEN, len);
+ 
+ 	netlink_gen_raw_data(mask, expr->byteorder, len, &nld);
+@@ -763,6 +763,44 @@ static void netlink_gen_bitwise(struct netlink_linearize_ctx *ctx,
+ 	nft_rule_add_expr(ctx, nle, &expr->location);
+ }
+ 
++static void netlink_gen_bitwise_bool(struct netlink_linearize_ctx *ctx,
++				     const struct expr *expr,
++				     enum nft_registers dreg)
++{
++	enum nft_registers sreg2;
++	struct nftnl_expr *nle;
++	unsigned int len;
++
++	nle = alloc_nft_expr("bitwise");
++
++	switch (expr->op) {
++	case OP_XOR:
++		nftnl_expr_set_u32(nle, NFTNL_EXPR_BITWISE_OP, NFT_BITWISE_XOR);
++		break;
++	case OP_AND:
++		nftnl_expr_set_u32(nle, NFTNL_EXPR_BITWISE_OP, NFT_BITWISE_AND);
++		break;
++	case OP_OR:
++		nftnl_expr_set_u32(nle, NFTNL_EXPR_BITWISE_OP, NFT_BITWISE_OR);
++		break;
++	default:
++		BUG("invalid binary operation %u\n", expr->op);
++	}
++
++	netlink_gen_expr(ctx, expr->left, dreg);
++	netlink_put_register(nle, NFTNL_EXPR_BITWISE_SREG, dreg);
++	netlink_put_register(nle, NFTNL_EXPR_BITWISE_DREG, dreg);
++
++	sreg2 = get_register(ctx, expr->right);
++	netlink_gen_expr(ctx, expr->right, sreg2);
++	netlink_put_register(nle, NFTNL_EXPR_BITWISE_SREG2, sreg2);
++
++	len = div_round_up(expr->len, BITS_PER_BYTE);
++	nftnl_expr_set_u32(nle, NFTNL_EXPR_BITWISE_LEN, len);
++
++	nftnl_rule_add_expr(ctx->nlr, nle);
++}
++
+ static void netlink_gen_binop(struct netlink_linearize_ctx *ctx,
+ 			      const struct expr *expr,
+ 			      enum nft_registers dreg)
+@@ -770,10 +808,13 @@ static void netlink_gen_binop(struct netlink_linearize_ctx *ctx,
+ 	switch(expr->op) {
+ 	case OP_LSHIFT:
+ 	case OP_RSHIFT:
+-		netlink_gen_shift(ctx, expr, dreg);
++		netlink_gen_bitwise_shift(ctx, expr, dreg);
+ 		break;
+ 	default:
+-		netlink_gen_bitwise(ctx, expr, dreg);
++		if (expr_is_constant(expr->right))
++			netlink_gen_bitwise_mask_xor(ctx, expr, dreg);
++		else
++			netlink_gen_bitwise_bool(ctx, expr, dreg);
+ 		break;
+ 	}
+ }
+diff --git a/src/parser_json.c b/src/parser_json.c
+index bae2c3c099e9..5ac5f0270d32 100644
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -1557,12 +1557,12 @@ static struct expr *json_parse_expr(struct json_ctx *ctx, json_t *root)
+ 		{ "ip option", json_parse_ip_option_expr, CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_MANGLE | CTX_F_SES | CTX_F_CONCAT },
+ 		{ "sctp chunk", json_parse_sctp_chunk_expr, CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_MANGLE | CTX_F_SES | CTX_F_CONCAT },
+ 		{ "dccp option", json_parse_dccp_option_expr, CTX_F_PRIMARY },
+-		{ "meta", json_parse_meta_expr, CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_MANGLE | CTX_F_SES | CTX_F_MAP | CTX_F_CONCAT },
++		{ "meta", json_parse_meta_expr, CTX_F_RHS | CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_MANGLE | CTX_F_SES | CTX_F_MAP | CTX_F_CONCAT },
+ 		{ "osf", json_parse_osf_expr, CTX_F_STMT | CTX_F_PRIMARY | CTX_F_MAP | CTX_F_CONCAT },
+ 		{ "ipsec", json_parse_xfrm_expr, CTX_F_PRIMARY | CTX_F_MAP | CTX_F_CONCAT },
+ 		{ "socket", json_parse_socket_expr, CTX_F_PRIMARY | CTX_F_CONCAT },
+ 		{ "rt", json_parse_rt_expr, CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP | CTX_F_CONCAT },
+-		{ "ct", json_parse_ct_expr, CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_MANGLE | CTX_F_SES | CTX_F_MAP | CTX_F_CONCAT },
++		{ "ct", json_parse_ct_expr, CTX_F_RHS | CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_MANGLE | CTX_F_SES | CTX_F_MAP | CTX_F_CONCAT },
+ 		{ "numgen", json_parse_numgen_expr, CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP | CTX_F_CONCAT },
+ 		/* below two are hash expr */
+ 		{ "jhash", json_parse_hash_expr, CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP | CTX_F_CONCAT },
+diff --git a/tests/py/any/ct.t b/tests/py/any/ct.t
+index f73fa4e7aedb..0059e49c1188 100644
+--- a/tests/py/any/ct.t
++++ b/tests/py/any/ct.t
+@@ -40,7 +40,9 @@ ct mark and 0x23 == 0x11;ok;ct mark & 0x00000023 == 0x00000011
+ ct mark and 0x3 != 0x1;ok;ct mark & 0x00000003 != 0x00000001
+ ct mark xor 0x23 == 0x11;ok;ct mark 0x00000032
+ ct mark xor 0x3 != 0x1;ok;ct mark != 0x00000002
++
+ ct mark set ct mark or 0x00000001;ok;ct mark set ct mark | 0x00000001
++ct mark set 0x00000001 or ct mark;ok;ct mark set ct mark | 0x00000001
+ 
+ ct mark 0x00000032;ok
+ ct mark != 0x00000032;ok
+@@ -61,6 +63,7 @@ ct mark set 0x11;ok;ct mark set 0x00000011
+ ct mark set mark;ok;ct mark set meta mark
+ ct mark set (meta mark | 0x10) << 8;ok;ct mark set (meta mark | 0x00000010) << 8
+ ct mark set mark map { 1 : 10, 2 : 20, 3 : 30 };ok;ct mark set meta mark map { 0x00000003 : 0x0000001e, 0x00000002 : 0x00000014, 0x00000001 : 0x0000000a}
++ct mark set ct mark and 0xffff0000 or meta mark and 0xffff;ok;ct mark set ct mark & 0xffff0000 | meta mark & 0x0000ffff
+ 
+ ct mark set {0x11333, 0x11};fail
+ ct zone set {123, 127};fail
+diff --git a/tests/py/any/ct.t.json b/tests/py/any/ct.t.json
+index a2a06025992c..ef3500008ca6 100644
+--- a/tests/py/any/ct.t.json
++++ b/tests/py/any/ct.t.json
+@@ -560,6 +560,29 @@
+     }
+ ]
+ 
++# ct mark set 0x00000001 or ct mark
++[
++    {
++        "mangle": {
++            "key": {
++                "ct": {
++                    "key": "mark"
++                }
++            },
++            "value": {
++                "|": [
++                    {
++                        "ct": {
++                            "key": "mark"
++                        }
++                    },
++                    1
++                ]
++            }
++        }
++    }
++]
++
+ # ct mark 0x00000032
+ [
+     {
+@@ -817,6 +840,43 @@
+     }
+ ]
+ 
++# ct mark set ct mark and 0xffff0000 or meta mark and 0xffff
++[
++    {
++        "mangle": {
++            "key": {
++                "ct": {
++                    "key": "mark"
++                }
++            },
++            "value": {
++                "|": [
++                    {
++                        "&": [
++                            {
++                                "ct": {
++                                    "key": "mark"
++                                }
++                            },
++                            4294901760
++                        ]
++                    },
++                    {
++                        "&": [
++                            {
++                                "meta": {
++                                    "key": "mark"
++                                }
++                            },
++                            65535
++                        ]
++                    }
++                ]
++            }
++        }
++    }
++]
++
+ # ct expiration 30s
+ [
+     {
+diff --git a/tests/py/any/ct.t.payload b/tests/py/any/ct.t.payload
+index ed868e53277d..14385cf7ead2 100644
+--- a/tests/py/any/ct.t.payload
++++ b/tests/py/any/ct.t.payload
+@@ -336,6 +336,15 @@ ip test-ip4 output
+   [ lookup reg 1 set __map%d dreg 1 ]
+   [ ct set mark with reg 1 ]
+ 
++# ct mark set ct mark and 0xffff0000 or meta mark and 0xffff
++ip
++  [ ct load mark => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0xffff0000 ) ^ 0x00000000 ]
++  [ meta load mark => reg 2 ]
++  [ bitwise reg 2 = ( reg 2 & 0x0000ffff ) ^ 0x00000000 ]
++  [ bitwise reg 1 = ( reg 1 | reg 2 ) ]
++  [ ct set mark with reg 1 ]
++
+ # ct original bytes > 100000
+ ip test-ip4 output
+   [ ct load bytes => reg 1 , dir original ]
+@@ -497,6 +506,12 @@ ip test-ip4 output
+   [ bitwise reg 1 = ( reg 1 & 0xfffffffe ) ^ 0x00000001 ]
+   [ ct set mark with reg 1 ]
+ 
++# ct mark set 0x00000001 or ct mark
++ip test-ip4 output
++  [ ct load mark => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0xfffffffe ) ^ 0x00000001 ]
++  [ ct set mark with reg 1 ]
++
+ # ct id 12345
+ ip test-ip4 output
+   [ ct load unknown => reg 1 ]
+diff --git a/tests/py/inet/meta.t b/tests/py/inet/meta.t
+index 7d2515c97f47..5c5c11d4aa9e 100644
+--- a/tests/py/inet/meta.t
++++ b/tests/py/inet/meta.t
+@@ -31,3 +31,5 @@ meta mark set ip dscp;ok
+ meta mark set ip dscp | 0x40;ok
+ meta mark set ip6 dscp;ok
+ meta mark set ip6 dscp | 0x40;ok
++
++meta mark set ct mark and 0xffff0000 or meta mark and 0xffff;ok;meta mark set ct mark & 0xffff0000 | meta mark & 0x0000ffff
+diff --git a/tests/py/inet/meta.t.json b/tests/py/inet/meta.t.json
+index 0fee165ff18a..4352b963885b 100644
+--- a/tests/py/inet/meta.t.json
++++ b/tests/py/inet/meta.t.json
+@@ -236,6 +236,43 @@
+     }
+ ]
+ 
++# meta mark set ct mark and 0xffff0000 or meta mark and 0xffff
++[
++    {
++        "mangle": {
++            "key": {
++                "meta": {
++                    "key": "mark"
++                }
++            },
++            "value": {
++                "|": [
++                    {
++                        "&": [
++                            {
++                                "ct": {
++                                    "key": "mark"
++                                }
++                            },
++                            4294901760
++                        ]
++                    },
++                    {
++                        "&": [
++                            {
++                                "meta": {
++                                    "key": "mark"
++                                }
++                            },
++                            65535
++                        ]
++                    }
++                ]
++            }
++        }
++    }
++]
++
+ # meta protocol ip udp dport 67
+ [
+     {
+diff --git a/tests/py/inet/meta.t.payload b/tests/py/inet/meta.t.payload
+index 7184fa0c0c9d..04dfbd8fbd33 100644
+--- a/tests/py/inet/meta.t.payload
++++ b/tests/py/inet/meta.t.payload
+@@ -80,6 +80,15 @@ inet test-inet input
+   [ bitwise reg 1 = ( reg 1 >> 0x00000008 ) ]
+   [ meta set mark with reg 1 ]
+ 
++# meta mark set ct mark and 0xffff0000 or meta mark and 0xffff
++inet test-inet input
++  [ ct load mark => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0xffff0000 ) ^ 0x00000000 ]
++  [ meta load mark => reg 2 ]
++  [ bitwise reg 2 = ( reg 2 & 0x0000ffff ) ^ 0x00000000 ]
++  [ bitwise reg 1 = ( reg 1 | reg 2 ) ]
++  [ meta set mark with reg 1 ]
++
+ # meta protocol ip udp dport 67
+ inet test-inet input
+   [ meta load protocol => reg 1 ]
+diff --git a/tests/py/ip/ct.t b/tests/py/ip/ct.t
+index a0a222893dd0..523d02442d2e 100644
+--- a/tests/py/ip/ct.t
++++ b/tests/py/ip/ct.t
+@@ -28,9 +28,11 @@ meta mark set ct original saddr . meta mark map { 1.1.1.1 . 0x00000014 : 0x00000
+ meta mark set ct original ip saddr . meta mark map { 1.1.1.1 . 0x00000014 : 0x0000001e };ok
+ ct original saddr . meta mark { 1.1.1.1 . 0x00000014 };fail
+ ct original ip saddr . meta mark { 1.1.1.1 . 0x00000014 };ok
++
+ ct mark set ip dscp << 2 | 0x10;ok
+ ct mark set ip dscp << 26 | 0x10;ok
+ ct mark set ip dscp & 0x0f << 1;ok;ct mark set ip dscp & af33
+ ct mark set ip dscp & 0x0f << 2;ok;ct mark set ip dscp & 0x3c
+ ct mark set ip dscp | 0x04;ok
+ ct mark set ip dscp | 1 << 20;ok;ct mark set ip dscp | 0x100000
++ct mark set ct mark | ip dscp | 0x200 counter;ok;ct mark set ct mark | ip dscp | 0x00000200 counter
+diff --git a/tests/py/ip/ct.t.json b/tests/py/ip/ct.t.json
+index 915632aef076..9e60f7e22148 100644
+--- a/tests/py/ip/ct.t.json
++++ b/tests/py/ip/ct.t.json
+@@ -479,3 +479,35 @@
+         }
+     }
+ ]
++
++# ct mark set ct mark | ip dscp | 0x200 counter
++[
++    {
++        "mangle": {
++            "key": {
++                "ct": {
++                    "key": "mark"
++                }
++            },
++            "value": {
++                "|": [
++                  {
++                    "ct": {
++                      "key": "mark"
++                    }
++                  },
++                  {
++                    "payload": {
++                      "protocol": "ip",
++                      "field": "dscp"
++                    }
++                  },
++                  512
++                ]
++            }
++        }
++    },
++    {
++        "counter": null
++    }
++]
+diff --git a/tests/py/ip/ct.t.payload b/tests/py/ip/ct.t.payload
+index 692011d0f860..823de5974228 100644
+--- a/tests/py/ip/ct.t.payload
++++ b/tests/py/ip/ct.t.payload
+@@ -134,3 +134,14 @@ ip test-ip4 output
+   [ bitwise reg 1 = ( reg 1 >> 0x00000002 ) ]
+   [ bitwise reg 1 = ( reg 1 & 0xffefffff ) ^ 0x00100000 ]
+   [ ct set mark with reg 1 ]
++
++# ct mark set ct mark | ip dscp | 0x200 counter
++ip test-ip4 output
++  [ ct load mark => reg 1 ]
++  [ payload load 1b @ network header + 1 => reg 2 ]
++  [ bitwise reg 2 = ( reg 2 & 0x000000fc ) ^ 0x00000000 ]
++  [ bitwise reg 2 = ( reg 2 >> 0x00000002 ) ]
++  [ bitwise reg 1 = ( reg 1 | reg 2 ) ]
++  [ bitwise reg 1 = ( reg 1 & 0xfffffdff ) ^ 0x00000200 ]
++  [ ct set mark with reg 1 ]
++  [ counter pkts 0 bytes 0 ]
+diff --git a/tests/py/ip6/ct.t b/tests/py/ip6/ct.t
+index c06fd6a0441d..1617c68b6da2 100644
+--- a/tests/py/ip6/ct.t
++++ b/tests/py/ip6/ct.t
+@@ -7,3 +7,4 @@ ct mark set ip6 dscp << 26 | 0x10;ok
+ ct mark set ip6 dscp | 0x04;ok
+ ct mark set ip6 dscp | 0xff000000;ok
+ ct mark set ip6 dscp & 0x0f << 2;ok;ct mark set ip6 dscp & 0x3c
++ct mark set ct mark | ip6 dscp | 0x200 counter;ok;ct mark set ct mark | ip6 dscp | 0x00000200 counter
+diff --git a/tests/py/ip6/ct.t.json b/tests/py/ip6/ct.t.json
+index 7d8c88bb09cb..2633c2b9433c 100644
+--- a/tests/py/ip6/ct.t.json
++++ b/tests/py/ip6/ct.t.json
+@@ -291,3 +291,35 @@
+         }
+     }
+ ]
++
++# ct mark set ct mark | ip6 dscp | 0x200 counter
++[
++    {
++        "mangle": {
++            "key": {
++                "ct": {
++                    "key": "mark"
++                }
++            },
++            "value": {
++                "|": [
++                  {
++                    "ct": {
++                      "key": "mark"
++                    }
++                  },
++                  {
++                    "payload": {
++                      "protocol": "ip6",
++                      "field": "dscp"
++                    }
++                  },
++                  512
++                ]
++            }
++        }
++    },
++    {
++        "counter": null
++    }
++]
+diff --git a/tests/py/ip6/ct.t.payload b/tests/py/ip6/ct.t.payload
+index 944208f2dde4..a7a56d4be80b 100644
+--- a/tests/py/ip6/ct.t.payload
++++ b/tests/py/ip6/ct.t.payload
+@@ -44,3 +44,15 @@ ip6 test-ip6 output
+   [ bitwise reg 1 = ( reg 1 >> 0x00000006 ) ]
+   [ bitwise reg 1 = ( reg 1 & 0x0000003c ) ^ 0x00000000 ]
+   [ ct set mark with reg 1 ]
++
++# ct mark set ct mark | ip6 dscp | 0x200 counter
++ip6 test-ip6 output
++  [ ct load mark => reg 1 ]
++  [ payload load 2b @ network header + 0 => reg 2 ]
++  [ bitwise reg 2 = ( reg 2 & 0x0000c00f ) ^ 0x00000000 ]
++  [ byteorder reg 2 = ntoh(reg 2, 2, 2) ]
++  [ bitwise reg 2 = ( reg 2 >> 0x00000006 ) ]
++  [ bitwise reg 1 = ( reg 1 | reg 2 ) ]
++  [ bitwise reg 1 = ( reg 1 & 0xfffffdff ) ^ 0x00000200 ]
++  [ ct set mark with reg 1 ]
++  [ counter pkts 0 bytes 0 ]
+diff --git a/tests/shell/testcases/bitwise/0040mark_binop_10 b/tests/shell/testcases/bitwise/0040mark_binop_10
+new file mode 100755
+index 000000000000..8e9bc6ad4329
+--- /dev/null
++++ b/tests/shell/testcases/bitwise/0040mark_binop_10
+@@ -0,0 +1,11 @@
++#!/bin/bash
++
++set -e
++
++RULESET="
++  add table t
++  add chain t c { type filter hook output priority filter; }
++  add rule t c ct mark set ct mark and 0xffff0000 or meta mark and 0xffff
++"
++
++$NFT -f - <<< "$RULESET"
+diff --git a/tests/shell/testcases/bitwise/0040mark_binop_11 b/tests/shell/testcases/bitwise/0040mark_binop_11
+new file mode 100755
+index 000000000000..7825b0827851
+--- /dev/null
++++ b/tests/shell/testcases/bitwise/0040mark_binop_11
+@@ -0,0 +1,11 @@
++#!/bin/bash
++
++set -e
++
++RULESET="
++  add table t
++  add chain t c { type filter hook input priority filter; }
++  add rule t c meta mark set ct mark and 0xffff0000 or meta mark and 0xffff
++"
++
++$NFT -f - <<< "$RULESET"
+diff --git a/tests/shell/testcases/bitwise/0040mark_binop_12 b/tests/shell/testcases/bitwise/0040mark_binop_12
+new file mode 100755
+index 000000000000..aa27cdc5303c
+--- /dev/null
++++ b/tests/shell/testcases/bitwise/0040mark_binop_12
+@@ -0,0 +1,11 @@
++#!/bin/bash
++
++set -e
++
++RULESET="
++  add table ip6 t
++  add chain ip6 t c { type filter hook output priority filter; }
++  add rule ip6 t c ct mark set ct mark and 0xffff0000 or meta mark and 0xffff
++"
++
++$NFT -f - <<< "$RULESET"
+diff --git a/tests/shell/testcases/bitwise/0040mark_binop_13 b/tests/shell/testcases/bitwise/0040mark_binop_13
+new file mode 100755
+index 000000000000..53a7e2ec6c6f
+--- /dev/null
++++ b/tests/shell/testcases/bitwise/0040mark_binop_13
+@@ -0,0 +1,11 @@
++#!/bin/bash
++
++set -e
++
++RULESET="
++  add table ip6 t
++  add chain ip6 t c { type filter hook input priority filter; }
++  add rule ip6 t c meta mark set ct mark and 0xffff0000 or meta mark and 0xffff
++"
++
++$NFT -f - <<< "$RULESET"
+diff --git a/tests/shell/testcases/bitwise/0044payload_binop_2 b/tests/shell/testcases/bitwise/0044payload_binop_2
+new file mode 100755
+index 000000000000..2d09d24479d0
+--- /dev/null
++++ b/tests/shell/testcases/bitwise/0044payload_binop_2
+@@ -0,0 +1,11 @@
++#!/bin/bash
++
++set -e
++
++RULESET="
++  add table t
++  add chain t c { type filter hook output priority filter; }
++  add rule t c ct mark set ct mark | ip dscp | 0x200 counter
++"
++
++$NFT -f - <<< "$RULESET"
+diff --git a/tests/shell/testcases/bitwise/0044payload_binop_5 b/tests/shell/testcases/bitwise/0044payload_binop_5
+new file mode 100755
+index 000000000000..aa82cd1c299e
+--- /dev/null
++++ b/tests/shell/testcases/bitwise/0044payload_binop_5
+@@ -0,0 +1,11 @@
++#!/bin/bash
++
++set -e
++
++RULESET="
++  add table ip6 t
++  add chain ip6 t c { type filter hook output priority filter; }
++  add rule ip6 t c ct mark set ct mark | ip6 dscp | 0x200 counter
++"
++
++$NFT -f - <<< "$RULESET"
+diff --git a/tests/shell/testcases/bitwise/dumps/0040mark_binop_10.nft b/tests/shell/testcases/bitwise/dumps/0040mark_binop_10.nft
+new file mode 100644
+index 000000000000..5566f7298461
+--- /dev/null
++++ b/tests/shell/testcases/bitwise/dumps/0040mark_binop_10.nft
+@@ -0,0 +1,6 @@
++table ip t {
++	chain c {
++		type filter hook output priority filter; policy accept;
++		ct mark set ct mark & 0xffff0000 | meta mark & 0x0000ffff
++	}
++}
+diff --git a/tests/shell/testcases/bitwise/dumps/0040mark_binop_11.nft b/tests/shell/testcases/bitwise/dumps/0040mark_binop_11.nft
+new file mode 100644
+index 000000000000..719980d55341
+--- /dev/null
++++ b/tests/shell/testcases/bitwise/dumps/0040mark_binop_11.nft
+@@ -0,0 +1,6 @@
++table ip t {
++	chain c {
++		type filter hook input priority filter; policy accept;
++		meta mark set ct mark & 0xffff0000 | meta mark & 0x0000ffff
++	}
++}
+diff --git a/tests/shell/testcases/bitwise/dumps/0040mark_binop_12.nft b/tests/shell/testcases/bitwise/dumps/0040mark_binop_12.nft
+new file mode 100644
+index 000000000000..bd589fe549f7
+--- /dev/null
++++ b/tests/shell/testcases/bitwise/dumps/0040mark_binop_12.nft
+@@ -0,0 +1,6 @@
++table ip6 t {
++	chain c {
++		type filter hook output priority filter; policy accept;
++		ct mark set ct mark & 0xffff0000 | meta mark & 0x0000ffff
++	}
++}
+diff --git a/tests/shell/testcases/bitwise/dumps/0040mark_binop_13.nft b/tests/shell/testcases/bitwise/dumps/0040mark_binop_13.nft
+new file mode 100644
+index 000000000000..2b046b128fb2
+--- /dev/null
++++ b/tests/shell/testcases/bitwise/dumps/0040mark_binop_13.nft
+@@ -0,0 +1,6 @@
++table ip6 t {
++	chain c {
++		type filter hook input priority filter; policy accept;
++		meta mark set ct mark & 0xffff0000 | meta mark & 0x0000ffff
++	}
++}
+diff --git a/tests/shell/testcases/bitwise/dumps/0044payload_binop_2.nft b/tests/shell/testcases/bitwise/dumps/0044payload_binop_2.nft
+new file mode 100644
+index 000000000000..ed347bb2788a
+--- /dev/null
++++ b/tests/shell/testcases/bitwise/dumps/0044payload_binop_2.nft
+@@ -0,0 +1,6 @@
++table ip t {
++	chain c {
++		type filter hook output priority filter; policy accept;
++		ct mark set ct mark | ip dscp | 0x00000200 counter packets 0 bytes 0
++	}
++}
+diff --git a/tests/shell/testcases/bitwise/dumps/0044payload_binop_5.nft b/tests/shell/testcases/bitwise/dumps/0044payload_binop_5.nft
+new file mode 100644
+index 000000000000..ccdb93d74a9a
+--- /dev/null
++++ b/tests/shell/testcases/bitwise/dumps/0044payload_binop_5.nft
+@@ -0,0 +1,6 @@
++table ip6 t {
++	chain c {
++		type filter hook output priority filter; policy accept;
++		ct mark set ct mark | ip6 dscp | 0x00000200 counter packets 0 bytes 0
++	}
++}
 -- 
-2.45.2
+2.30.2
 
