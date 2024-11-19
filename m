@@ -1,168 +1,127 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9AB5A1CC174
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 Nov 2024 15:42:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DE3253363
+	for <netfilter-devel@vger.kernel.org>; Tue, 19 Nov 2024 16:09:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732030977; cv=none; b=hDvKJW4jIrlOFHVjiomxetAxOMdsjMx4Ik1OjpJoOIlYDIISWeHYWZhUuLVaSIn5oyLCOX+QdF4+5AGcmKuT+wcie+JvKNoPRJn7Zt9iqcnzlXKcHX+s7V51X5JzkdDFojWHJ5d98Sky4VVkWOnG57oYE61x3tfUVU6WEnT271E=
+	t=1732032564; cv=none; b=G5821aEDLc34XblnSMPqjSMeLfdtUBjr0PUGUhHWYG38XqRK+t7q1t1g6cW+KMWR7lRIU5Un1zXHZ5kP0Cx2tj6JXu2ACF9KY3O7zpL6ur8axbzzy7iLcwID7vAwB42X/dzOvddVDhIBRiAti6VVraFbfzVkNqkAXxcaP9jyhdk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732030977; c=relaxed/simple;
-	bh=dwavaD1y6DIQrEAPLhgOZIDSO/CpQysaXzjvThudLkE=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=trxkbrXcL1Mf0ZXBWP9jZb6naRg0jB7MG0/QfNQbQMaUh+nqcZy7/KxDicd3dohqyDWeQpzc/XF4LKy+KN7DmVOtbvJfkBAzg5l7bm7eHeAPKBUIav5dFnyaZomD0/3pkexKRx5M4bp5tLUjwNDDQkPi5WDcqXG2ec7tbggYxRo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: jeremy@azazel.net
-Subject: [PATCH libnftnl,v2 5/5] tests: bitwise: add tests for new boolean operations
-Date: Tue, 19 Nov 2024 16:42:45 +0100
-Message-Id: <20241119154245.442961-6-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20241119154245.442961-1-pablo@netfilter.org>
-References: <20241119154245.442961-1-pablo@netfilter.org>
+	s=arc-20240116; t=1732032564; c=relaxed/simple;
+	bh=cyfJveTXf2n5YSnUZ6fPRgBhIh6oax1Nbn+FH43eeO0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=gIMAkvqgNZnOxdiallDrNhhiHpjidVQu3Ba1Wx+nqf/mCChZ7nXcyUWGaNE4DTb7dVFV4w8XTm16T1JqYmLevTDyVRneDXWyVrzj/3sXjmP3hylMiSMPl6xImWxVGGFzyIXROEdRuOoGguFdT/NaWRPxxCtHg6bOHgWQvnY+yMU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=GQ8zS4Vw; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="GQ8zS4Vw"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=iP+iblIVmOTmSVSU8q6FhskaIw+2fVqoINwBB9DmNmY=; b=GQ8zS4VwDtm7LxagQu0zzGcwiY
+	foMhrui1NFu+PF/q8MqeUpIrjA3adkbiNnQgPJmIyDJ3gX9DS6fQP5i/WE88AEkch7Z92/RyrAXcU
+	vr0n/WuGINL8CGfhb5GMC2KXsaBXWoU1kFoVPA7wSCuy3eXQ1Y7sMgHxhLcrNtP/gN3NWzKkz4Fg3
+	7p+DjH9rTxfNVlisPmlegYjtA1Vjf9R4hWcZ9Qg9nDlf0xQEiKZtwT/X0qVMySjmEt1ved5Ap+UIm
+	pqgVPGU3zn+QGOX01+fr24b4yglCzxI05w3ZHZBTFlWBiNaGvHy/eJzy5aFDDdGDAemstl5vaQxWw
+	rEqVAXrg==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1tDQmz-0000000044R-1Ecj;
+	Tue, 19 Nov 2024 17:09:17 +0100
+Date: Tue, 19 Nov 2024 17:09:17 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	Eric Garver <e@erig.me>
+Subject: Re: [nf-next PATCH v6 0/7] Dynamic hook interface binding part 1
+Message-ID: <Zzy4LTNe4a4bepmX@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	Eric Garver <e@erig.me>
+References: <20241023145730.16896-1-phil@nwl.cc>
+ <Zzc3FV4FG8a6px7z@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Zzc3FV4FG8a6px7z@calendula>
 
-From: Jeremy Sowden <jeremy@azazel.net>
+Hi Pablo,
 
-We already have tests for mask-and-xor operations with constant RHS
-operands.  Add tests for new operations with variable RHS operands.
+On Fri, Nov 15, 2024 at 12:57:09PM +0100, Pablo Neira Ayuso wrote:
+> Sorry for slowness.
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- tests/nft-expr_bitwise-test.c | 105 ++++++++++++++++++++++++++++++++++
- 1 file changed, 105 insertions(+)
+No worries!
 
-diff --git a/tests/nft-expr_bitwise-test.c b/tests/nft-expr_bitwise-test.c
-index 0f3c26d2495a..784619e1d9c1 100644
---- a/tests/nft-expr_bitwise-test.c
-+++ b/tests/nft-expr_bitwise-test.c
-@@ -196,6 +196,99 @@ static void test_rshift(void)
- 	test_shift(NFT_BITWISE_RSHIFT);
- }
- 
-+static void cmp_nftnl_expr_bool(const char *opname,
-+				const struct nftnl_expr *rule_a,
-+				const struct nftnl_expr *rule_b)
-+{
-+	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_BITWISE_DREG) !=
-+	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_BITWISE_DREG))
-+		print_err(opname, "Expr BITWISE_DREG mismatches");
-+	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_BITWISE_SREG) !=
-+	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_BITWISE_SREG))
-+		print_err(opname, "Expr BITWISE_SREG mismatches");
-+	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_BITWISE_SREG2) !=
-+	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_BITWISE_SREG2))
-+		print_err(opname, "Expr BITWISE_SREG2 mismatches");
-+	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_BITWISE_OP) !=
-+	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_BITWISE_OP))
-+		print_err(opname, "Expr BITWISE_OP mismatches");
-+	if (nftnl_expr_get_u16(rule_a, NFTNL_EXPR_BITWISE_LEN) !=
-+	    nftnl_expr_get_u16(rule_b, NFTNL_EXPR_BITWISE_LEN))
-+		print_err(opname, "Expr BITWISE_LEN mismatches");
-+}
-+
-+static void test_bool(enum nft_bitwise_ops op)
-+{
-+	struct nftnl_rule *a, *b;
-+	struct nftnl_expr *ex;
-+	struct nlmsghdr *nlh;
-+	char buf[4096];
-+	struct nftnl_expr_iter *iter_a, *iter_b;
-+	struct nftnl_expr *rule_a, *rule_b;
-+	const char *opname =
-+		op == NFT_BITWISE_AND ? "and" :
-+		op == NFT_BITWISE_OR  ? "or"  : "xor";
-+
-+	a = nftnl_rule_alloc();
-+	b = nftnl_rule_alloc();
-+	if (a == NULL || b == NULL)
-+		print_err(opname, "OOM");
-+	ex = nftnl_expr_alloc("bitwise");
-+	if (ex == NULL)
-+		print_err(opname, "OOM");
-+
-+	nftnl_expr_set_u32(ex, NFTNL_EXPR_BITWISE_SREG, 0x12345678);
-+	nftnl_expr_set_u32(ex, NFTNL_EXPR_BITWISE_SREG2, 0x90abcdef);
-+	nftnl_expr_set_u32(ex, NFTNL_EXPR_BITWISE_DREG, 0x78123456);
-+	nftnl_expr_set_u32(ex, NFTNL_EXPR_BITWISE_OP, op);
-+	nftnl_expr_set_u32(ex, NFTNL_EXPR_BITWISE_LEN, 0x56781234);
-+
-+	nftnl_rule_add_expr(a, ex);
-+
-+	nlh = nftnl_rule_nlmsg_build_hdr(buf, NFT_MSG_NEWRULE, AF_INET, 0, 1234);
-+	nftnl_rule_nlmsg_build_payload(nlh, a);
-+
-+	if (nftnl_rule_nlmsg_parse(nlh, b) < 0)
-+		print_err(opname, "parsing problems");
-+
-+	iter_a = nftnl_expr_iter_create(a);
-+	iter_b = nftnl_expr_iter_create(b);
-+	if (iter_a == NULL || iter_b == NULL)
-+		print_err(opname, "OOM");
-+
-+	rule_a = nftnl_expr_iter_next(iter_a);
-+	rule_b = nftnl_expr_iter_next(iter_b);
-+	if (rule_a == NULL || rule_b == NULL)
-+		print_err(opname, "OOM");
-+
-+	if (nftnl_expr_iter_next(iter_a) != NULL ||
-+	    nftnl_expr_iter_next(iter_b) != NULL)
-+		print_err(opname, "More 1 expr.");
-+
-+	nftnl_expr_iter_destroy(iter_a);
-+	nftnl_expr_iter_destroy(iter_b);
-+
-+	cmp_nftnl_expr_bool(opname, rule_a, rule_b);
-+
-+	nftnl_rule_free(a);
-+	nftnl_rule_free(b);
-+}
-+
-+static void test_and(void)
-+{
-+	test_bool(NFT_BITWISE_AND);
-+}
-+
-+static void test_or(void)
-+{
-+	test_bool(NFT_BITWISE_OR);
-+}
-+
-+static void test_xor(void)
-+{
-+	test_bool(NFT_BITWISE_XOR);
-+}
-+
- int main(int argc, char *argv[])
- {
- 	test_mask_xor();
-@@ -210,6 +303,18 @@ int main(int argc, char *argv[])
- 	if (!test_ok)
- 		exit(EXIT_FAILURE);
- 
-+	test_and();
-+	if (!test_ok)
-+		exit(EXIT_FAILURE);
-+
-+	test_or();
-+	if (!test_ok)
-+		exit(EXIT_FAILURE);
-+
-+	test_xor();
-+	if (!test_ok)
-+		exit(EXIT_FAILURE);
-+
- 	printf("%s: \033[32mOK\e[0m\n", argv[0]);
- 	return EXIT_SUCCESS;
- }
--- 
-2.30.2
+> On Wed, Oct 23, 2024 at 04:57:23PM +0200, Phil Sutter wrote:
+> > Changes since v5:
+> > - Extract the initial set of patches making netdev hooks name-based as
+> >   suggested by Florian.
+> > - Drop Fixes: tag from patch 1: It is not correct (the pointless check
+> >   existed before that commit already) and it is rather an optimization
+> >   than fixing a bug.
+> > 
+> > This series makes netdev hooks store the interface name spec they were
+> > created for and establishes this stored name as the key identifier. The
+> > previous one which is the hook's 'ops.dev' pointer is thereby freed to
+> > vanish, so a vanishing netdev no longer has to drag the hook along with
+> > it. (Patches 2-4)
+> > 
+> > Furthermore, it aligns behaviour of netdev-family chains with that of
+> > flowtables in situations of vanishing interfaces. When previously a
+> > chain losing its last interface was torn down and deleted, it may now
+> > remain in place (albeit with no remaining interfaces). (Patch 5)
+> > 
+> > Patch 6 is a cleanup following patch 5, patches 1 and 7 are independent
+> > code simplifications.
+> 
+> Patch 1-4 can be integrated, they are relatively small.
+> 
+> Patches 5-6 will need a rebase due to my fix in that path.
+> 
+> Patch 7 is probably uncovering an issue with flowtable hardware
+> offload support, because I suspect _UNBIND is not called from that
+> path, I need to have a look.
 
+Checking callers of nft_unregister_flowtable_net_hooks():
+
+nf_tables_commit() calls it for DELFLOWTABLE, code-paths differ for
+flowtable updates or complete deletions: With the latter,
+nft_commit_release() calls nf_tables_flowtable_destroy() which does the
+UNBIND. So if deleting individual interfaces from an offloaded flowtable
+is supported, we may miss the UNBIND there.
+
+__nf_tables_abort() calls it for NEWFLOWTABLE. The hooks should have
+been bound by nf_tables_newflowtable() (or nft_flowtable_update(),
+respectively) so this seems like missing UNBIND there.
+
+Now about __nft_release_hook, I see:
+
+nf_tables_pre_exit_net
+-> __nft_release_hooks
+  -> __nft_release_hook
+
+Do we have to UNBIND at netns exit?
+
+There is also:
+
+nft_rcv_nl_event
+-> __nft_release_hook
+
+I don't see where hooks of flowtables in owner flag tables are unbound.
+
+> I am inclined to postpone this batch to the next development cycle.
+
+FWIW, the bugs are older than my trivial function elimination. But
+indeed, the above needs more attention than the new feature.
+
+Cheers, Phil
