@@ -1,27 +1,27 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C463617F7
-	for <netfilter-devel@vger.kernel.org>; Wed, 20 Nov 2024 11:25:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6536D19D06B
+	for <netfilter-devel@vger.kernel.org>; Wed, 20 Nov 2024 11:26:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732101962; cv=none; b=QZ3FnIMlMokeUR3EPwoppRKZTBJ9jphhkJhPa4uDyuKqe3x0/GkgtcglC4StRAgQxAMpDzkvUow3106njtZbrYIRC3QTQglrCZ34u1tyBxf6i6kSsLDd6CKTBLcgv5RdWYIpO9l2GgMV7a+B5wY/unb+9oKDwFeOIyFLQoFSpc4=
+	t=1732101993; cv=none; b=cbrQNSyKTed6o2V2+6z6mKat9R72knTyBuBU9lRFeu8SZlU+88y0vaVKPxCNcz3haOD+qht2wIeU3ROnUfBm1Q+uvLQmqZ/SM4nw7TTwnCKdqEaj+Wwbrbn2PzMK2WWgAstzC2l02Kg/gvm6lvJE9YCJebx6XXRIbpBIz0qXtMo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732101962; c=relaxed/simple;
-	bh=OY71PspaRC0MaoRYOROn1QHWIaW+P2N4w3jLiqLHac0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=qoWwXqb0fmdSFwauY52fT9Z/kt6bGZALUbevOnmcZMb5UolBEKt9VyQ93d2hQS5xRvHsFKbxw1jCx07tf25f5IjJSO02V0dvgNWH/ixcaVKdwddHo5CvVGzrrRQtMBkgkHTVs2x3piU2PMqeCBvsDs8M2xy1/Mhl14g4d92OXi4=
+	s=arc-20240116; t=1732101993; c=relaxed/simple;
+	bh=IYvw/ly7hkVnPeLgez6TrcQJzkRFV1o0t1YZvaGQY5c=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=tRD/aOap1SGW7Ny9iEN61dkjborgmjqcHHExE0KaKvoNimFoKoywtb/9emELED8bg1qokypGfyq7woSLh1T/S9YZIYzp3JuWBBtG/Pjovygaop82ofoQvZJm2unfIh00iGpLPXRkNJKruPy2jaM+8BiiuI4wDrLGLOn4KrDBZYM=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1tDiqL-0004cM-Q7; Wed, 20 Nov 2024 12:25:57 +0100
+	id 1tDiqr-0004cf-PT; Wed, 20 Nov 2024 12:26:29 +0100
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH libnftnl] set: dump set backend name (hash, rbtree...) and elem count, if available
-Date: Wed, 20 Nov 2024 11:01:48 +0100
-Message-ID: <20241120100151.10953-1-fw@strlen.de>
+Subject: [PATCH nft 1/2] tests/py: prepare for set debug change
+Date: Wed, 20 Nov 2024 11:02:15 +0100
+Message-ID: <20241120100221.11001-1-fw@strlen.de>
 X-Mailer: git-send-email 2.45.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -31,133 +31,63 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-In case kernel provided the information do include it in debug dump:
+Next patch will make initial set dump from kernel emit set debug
+information, so the obtained netlink debug file won't match what is
+recorded in tests/py.
 
-nft --debug=netlink list ruleset
-family 2 s t 0 backend nft_set_rhash_type
-family 2 __set0 t 3 size 3 backend nft_set_hash_fast_type nelems 3
-family 2 __set1 t 3 size 2 backend nft_set_bitmap_type nelems 2
-[..]
+Furthermore, as the python add rules for each of the family the test is
+for, subsequent dump will include debug information of the other/previous
+families.
+
+Change the script to skip all unrelated information to only compare the
+relevant set element information and the generated expressions.
+
+This change still finds changes in [ expr ... ] and set elem debug output.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/linux/netfilter/nf_tables.h |  4 ++++
- include/set.h                       |  2 ++
- src/set.c                           | 24 ++++++++++++++++++++++++
- 3 files changed, 30 insertions(+)
+ tests/py/nft-test.py | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index 9e9079321380..c91117d60c94 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -394,6 +394,8 @@ enum nft_set_field_attributes {
-  * @NFTA_SET_HANDLE: set handle (NLA_U64)
-  * @NFTA_SET_EXPR: set expression (NLA_NESTED: nft_expr_attributes)
-  * @NFTA_SET_EXPRESSIONS: list of expressions (NLA_NESTED: nft_list_attributes)
-+ * @NFTA_SET_OPSNAME: set backend type (NLA_STRING)
-+ * @NFTA_SET_NELEMS: number of set elements (NLA_U32)
-  */
- enum nft_set_attributes {
- 	NFTA_SET_UNSPEC,
-@@ -415,6 +417,8 @@ enum nft_set_attributes {
- 	NFTA_SET_HANDLE,
- 	NFTA_SET_EXPR,
- 	NFTA_SET_EXPRESSIONS,
-+	NFTA_SET_OPSNAME,
-+	NFTA_SET_NELEMS,
- 	__NFTA_SET_MAX
- };
- #define NFTA_SET_MAX		(__NFTA_SET_MAX - 1)
-diff --git a/include/set.h b/include/set.h
-index 55018b6b9ba9..3c7949d67425 100644
---- a/include/set.h
-+++ b/include/set.h
-@@ -11,6 +11,7 @@ struct nftnl_set {
- 	uint32_t		set_flags;
- 	const char		*table;
- 	const char		*name;
-+	const char		*opsname;
- 	uint64_t		handle;
- 	uint32_t		key_type;
- 	uint32_t		key_len;
-@@ -31,6 +32,7 @@ struct nftnl_set {
- 	struct list_head	element_list;
+diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
+index 7acdb77f2d0a..ea70f19b196d 100755
+--- a/tests/py/nft-test.py
++++ b/tests/py/nft-test.py
+@@ -717,17 +717,20 @@ def payload_check(payload_buffer, file, cmd):
+         return False
  
- 	uint32_t		flags;
-+	uint32_t		nelems;
- 	uint32_t		gc_interval;
- 	uint64_t		timeout;
- 	struct list_head	expr_list;
-diff --git a/src/set.c b/src/set.c
-index 75ad64e03850..c35c2472375a 100644
---- a/src/set.c
-+++ b/src/set.c
-@@ -63,6 +63,8 @@ void nftnl_set_free(const struct nftnl_set *s)
- 		list_del(&elem->head);
- 		nftnl_set_elem_free(elem);
- 	}
+     for lineno, want_line in enumerate(payload_buffer):
++        # skip irreleant parts, such as "ip test-ipv4 output"
++        if want_line.find("[") < 0 or want_line.find("]") < 0:
++             continue
 +
-+	xfree(s->opsname);
- 	xfree(s);
- }
+         line = file.readline()
++        while line.find("[") < 0 or line.find("]") < 0:
++            line = file.readline()
++            if line == "":
++                break
  
-@@ -383,6 +385,8 @@ struct nftnl_set *nftnl_set_clone(const struct nftnl_set *set)
- 		list_add_tail(&newelem->head, &newset->element_list);
- 	}
+         if want_line == line:
+             i += 1
+             continue
  
-+	newset->opsname = NULL;
-+
- 	return newset;
- err:
- 	nftnl_set_free(newset);
-@@ -525,6 +529,7 @@ static int nftnl_set_parse_attr_cb(const struct nlattr *attr, void *data)
- 	switch(type) {
- 	case NFTA_SET_TABLE:
- 	case NFTA_SET_NAME:
-+	case NFTA_SET_OPSNAME:
- 		if (mnl_attr_validate(attr, MNL_TYPE_STRING) < 0)
- 			abi_breakage();
- 		break;
-@@ -540,6 +545,7 @@ static int nftnl_set_parse_attr_cb(const struct nlattr *attr, void *data)
- 	case NFTA_SET_ID:
- 	case NFTA_SET_POLICY:
- 	case NFTA_SET_GC_INTERVAL:
-+	case NFTA_SET_NELEMS:
- 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
- 			abi_breakage();
- 		break;
-@@ -740,6 +746,14 @@ int nftnl_set_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_set *s)
- 		s->flags |= (1 << NFTNL_SET_EXPRESSIONS);
- 	}
+-        if want_line.find('[') < 0 and line.find('[') < 0:
+-            continue
+-        if want_line.find(']') < 0 and line.find(']') < 0:
+-            continue
+-
+         if payload_check_set_elems(want_line, line):
+             continue
  
-+	if (tb[NFTA_SET_OPSNAME]) {
-+		xfree(s->opsname);
-+		s->opsname = strdup(mnl_attr_get_str(tb[NFTA_SET_OPSNAME]));
-+	}
-+
-+	if (tb[NFTA_SET_NELEMS])
-+		s->nelems = ntohl(mnl_attr_get_u32(tb[NFTA_SET_NELEMS]));
-+
- 	s->family = nfg->nfgen_family;
- 	s->flags |= (1 << NFTNL_SET_FAMILY);
- 
-@@ -804,6 +818,16 @@ static int nftnl_set_snprintf_default(char *buf, size_t remain,
- 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
- 	}
- 
-+	if (s->opsname) {
-+		ret = snprintf(buf + offset, remain, " backend %s", s->opsname);
-+		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
-+	}
-+
-+	if (s->nelems) {
-+		ret = snprintf(buf + offset, remain, " nelems %u", s->nelems);
-+		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
-+	}
-+
- 	/* Empty set? Skip printinf of elements */
- 	if (list_empty(&s->element_list))
- 		return offset;
+@@ -877,6 +880,8 @@ def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
+                     gotf.write("# %s\n" % rule[0])
+                     while True:
+                         line = payload_log.readline()
++                        if line.startswith("family "):
++                            continue
+                         if line == "":
+                             break
+                         gotf.write(line)
 -- 
 2.47.0
 
