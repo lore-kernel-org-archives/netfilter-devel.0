@@ -1,116 +1,111 @@
-Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F256427447;
-	Thu, 21 Nov 2024 15:24:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.37
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 167E116130B
+	for <netfilter-devel@vger.kernel.org>; Thu, 21 Nov 2024 17:05:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732202669; cv=none; b=uEwHfaVehNapKqUmQpwstFAMGMcyuN1PLojm5tPKIxF9BuoQBmBFpHil03AINqc6id3bS42FrCRHjMTwgb9OcACbDTYPaGNIr04PMfJxc0CQ7qG4cfYhIIsSh6nix7XXvZTALRam+3F22pC6y0ZKSS3kriPrsL7gsEbYgVXZwrA=
+	t=1732208710; cv=none; b=P96/vaDJ1ExSViY3nVzc3qOuvaw3xf/rh6h/Vl+QYLzUN1XFsbKYgDXR3Uy1iFs5sP3CPX6y/hGDKtK1mPdaGdUEuciwzg+rK/sz+3RYM3YhaqY06brwkMCNhDOmntQNdTK9MyG5iN4kHsNuAz7QUPCqJjrlS7KEAr65UF3bMeg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732202669; c=relaxed/simple;
-	bh=7Zx2yBPzpQPZys9FtYhLvm+JYV+pYduZxHC4bcYUS3o=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=UCyyZbjsEts3NcYtIUfFwwZ3JAUPAE1mZgPI0zpM60KNmrq9wUnjQBq4LlTfdLMI3Xrrqz9q6EF0SfmYIDZ8H5qkwHQGqsdzgxq6wSL80dy2FewKQsZ7eEN7RvDdrBIYtzjVfiDJxLxUeGEqSNSzQlJuyNNcjMk5SeAaIk8Hhyw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (1024-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=F/EpqzNP; arc=none smtp.client-ip=193.238.174.37
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	s=arc-20240116; t=1732208710; c=relaxed/simple;
+	bh=C6h1d5ZueEV654e6b+VD1phHPIAh1wdFb3V9IiDMH10=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=RKmJq+1GESo83+/5IJSM8xCPEeYZYjBNtoSnnOT/7CqibkiCdd6dddZz2yuxta1yjRuGOMhKMrtOq83x4xiRZ4cDE8hIYhNR7NawK/N/biQFaJaPbrJCuoySR9RhDdi37wPlEXmVNowln0bVTnOlX+JhgJm9Bp+izCpOxC+e4as=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=cCpYbgO9; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="F/EpqzNP"
-Received: from mg.ssi.bg (localhost [127.0.0.1])
-	by mg.ssi.bg (Proxmox) with ESMTP id 4CD9980CD9;
-	Thu, 21 Nov 2024 17:24:19 +0200 (EET)
-Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
-	by mg.ssi.bg (Proxmox) with ESMTPS;
-	Thu, 21 Nov 2024 17:24:18 +0200 (EET)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by ink.ssi.bg (Postfix) with ESMTPSA id 15AC53027E6;
-	Thu, 21 Nov 2024 17:24:09 +0200 (EET)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=ssi.bg; s=ink;
-	t=1732202650; bh=7Zx2yBPzpQPZys9FtYhLvm+JYV+pYduZxHC4bcYUS3o=;
-	h=Date:From:To:cc:Subject:In-Reply-To:References;
-	b=F/EpqzNPvknBT/zP/P8tPlKwkcFc4obCKi/QHVU+SI1KO7MEFJJyL605Y+UMCxVSU
-	 pKUA3vmyX4jiJPq5gMITmhAI3alvrroyZ/2IBJ5W+nfbMhwg2mgWSXJ+knywvLyLBJ
-	 wJbAUz55kZ2tALxP685UyhBueV5mhMHWPImme+YI=
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.1/8.17.1) with ESMTP id 4ALFNuTQ040696;
-	Thu, 21 Nov 2024 17:23:58 +0200
-Date: Thu, 21 Nov 2024 17:23:56 +0200 (EET)
-From: Julian Anastasov <ja@ssi.bg>
-To: Jinghao Jia <jinghao7@illinois.edu>
-cc: Simon Horman <horms@verge.net.au>, Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Nathan Chancellor <nathan@kernel.org>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Bill Wendling <morbo@google.com>,
-        Justin Stitt <justinstitt@google.com>, Kees Cook <kees@kernel.org>,
-        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel <linux-kernel@vger.kernel.org>, llvm@lists.linux.dev,
-        kernel test robot <lkp@intel.com>, Ruowen Qin <ruqin@redhat.com>
-Subject: Re: [PATCH] ipvs: fix UB due to uninitialized stack access in
- ip_vs_protocol_init()
-In-Reply-To: <a271e479-2a78-44b5-868d-3edc1f6c102a@illinois.edu>
-Message-ID: <10eddab8-ebc3-083d-f912-d4aebcf9f9e6@ssi.bg>
-References: <20241111065105.82431-1-jinghao7@illinois.edu> <f97ef69b-a15e-03ab-5e24-c1dfd3c4542b@ssi.bg> <a271e479-2a78-44b5-868d-3edc1f6c102a@illinois.edu>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="cCpYbgO9"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:To:From:Date:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=PxYvjGRvTGZKH1SlXz+Kn+5Qs3bloLgdO9c/vm8dzY8=; b=cCpYbgO9VSTJEI4frSWzDj+Vrm
+	VSpbFbtFhJWlhwYAEha+lLFa+zM+24l1fdGZWkWTCiZPdNzX6tLolEVQoL+kuBdYM54dB1Ym8lQA/
+	bPJdljRNzHbuPFAx4gUQiTYNPatIjz3wVFD9Fcai64X+9f+FElscTIXv5hvxahfn0+WDwxo2KsptY
+	x0T1Ne73KVRZfe0DoaVTUV3lqKgIul3WmQcGKMIeZBWRJjf+GpgolK/450+WdkUoUKUHk1P6XjnQ2
+	thGy0HWgsB0fcKyzLT2LQ/IfbpYfRuSAfGhGzPI/BGf9w96wE5bxEjtroKb2yES7J9FiFpmBUPNwb
+	XbkGVKgg==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1tEAbv-000000008Mb-48ed;
+	Thu, 21 Nov 2024 18:04:56 +0100
+Date: Thu, 21 Nov 2024 18:04:55 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	Eric Garver <e@erig.me>
+Subject: Re: [nf-next PATCH v6 0/7] Dynamic hook interface binding part 1
+Message-ID: <Zz9oN_OBdCQ1wlQf@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	Eric Garver <e@erig.me>
+References: <20241023145730.16896-1-phil@nwl.cc>
+ <Zzc3FV4FG8a6px7z@calendula>
+ <Zzy4LTNe4a4bepmX@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Zzy4LTNe4a4bepmX@orbyte.nwl.cc>
 
+Hi,
 
-	Hello,
-
-On Tue, 19 Nov 2024, Jinghao Jia wrote:
-
-> On 11/18/24 6:41 AM, Julian Anastasov wrote:
-> > 
-> > On Mon, 11 Nov 2024, Jinghao Jia wrote:
-> > 
-> >> Under certain kernel configurations when building with Clang/LLVM, the
-> >> compiler does not generate a return or jump as the terminator
-> >> instruction for ip_vs_protocol_init(), triggering the following objtool
-> >> warning during build time:
-> >>
-> >>   vmlinux.o: warning: objtool: ip_vs_protocol_init() falls through to next function __initstub__kmod_ip_vs_rr__935_123_ip_vs_rr_init6()
-> >>
-...
-> >> This gives later passes (SCCP, in particular) to more DCE opportunities
+On Tue, Nov 19, 2024 at 05:09:17PM +0100, Phil Sutter wrote:
+[...]
+> Checking callers of nft_unregister_flowtable_net_hooks():
 > 
-> One small request: if you could help us remove the extra "to" in the above
-> sentence when committing this patch, it would be great.
+> nf_tables_commit() calls it for DELFLOWTABLE, code-paths differ for
+> flowtable updates or complete deletions: With the latter,
+> nft_commit_release() calls nf_tables_flowtable_destroy() which does the
+> UNBIND. So if deleting individual interfaces from an offloaded flowtable
+> is supported, we may miss the UNBIND there.
 > 
-...
-> > 	Looks good to me, thanks! I assume it is for
-> > net-next/nf-next, right?
+> __nf_tables_abort() calls it for NEWFLOWTABLE. The hooks should have
+> been bound by nf_tables_newflowtable() (or nft_flowtable_update(),
+> respectively) so this seems like missing UNBIND there.
 > 
-> I am actually not familiar with the netfilter trees. IMHO this should also be
-> back-ported to the stable kernels -- I wonder if net-next/nf-next is a good
-> tree for this?
+> Now about __nft_release_hook, I see:
+> 
+> nf_tables_pre_exit_net
+> -> __nft_release_hooks
+>   -> __nft_release_hook
+> 
+> Do we have to UNBIND at netns exit?
+> 
+> There is also:
+> 
+> nft_rcv_nl_event
+> -> __nft_release_hook
+> 
+> I don't see where hooks of flowtables in owner flag tables are unbound.
 
-	Then may be it is better to send [PATCHv2 net] after fixing
-the above "to" and selecting proper commit for a Fixes line (probably
-the initial commit 1da177e4c3f4 ?).
+So I validated these findings by adding printks to BIND and UNBIND calls
+and performing these actions:
 
-> >> -	char protocols[64];
-> >> +	char protocols[64] = { 0 };
-> >>  #define REGISTER_PROTOCOL(p)			\
-> >>  	do {					\
-> >>  		register_ip_vs_protocol(p);	\
-> >> @@ -348,8 +348,6 @@ int __init ip_vs_protocol_init(void)
-> >>  		strcat(protocols, (p)->name);	\
-> >>  	} while (0)
-> >>  
-> >> -	protocols[0] = '\0';
-> >> -	protocols[2] = '\0';
-> >>  #ifdef CONFIG_IP_VS_PROTO_TCP
-> >>  	REGISTER_PROTOCOL(&ip_vs_protocol_tcp);
-> >>  #endif
+- Delete an interface from a flowtable with multiple interfaces
 
-Regards
+- Add a (device to a) flowtable with --check flag
 
---
-Julian Anastasov <ja@ssi.bg>
+- Delete a netns containing a flowtable
 
+- In an interactive nft session, create a table with owner flag and
+  flowtable inside, then quit
+
+All these cases cause imbalance between BIND and UNBIND calls. Looking
+at possible fixes, I wonder how things are supposed to be: When deleting
+a flowtable, nf_tables_commit will unregister hooks (via
+nf_unregister_net_hook), but not unlink/free them. Then, in
+nft_commit_release, the UNBIND happens along with unlink/free. Is this
+the correct process? Namely unregister and wait for RCU grace period
+before performing UNBIND? Or is this arbitrary and combining unregister
+with UBIND is OK in all cases?
+
+Cheers, Phil
