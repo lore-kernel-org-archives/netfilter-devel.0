@@ -1,85 +1,116 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A09D41ABEB4
-	for <netfilter-devel@vger.kernel.org>; Thu, 21 Nov 2024 15:12:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F256427447;
+	Thu, 21 Nov 2024 15:24:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.37
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732201964; cv=none; b=a98cCuC6MXYaMpm520Ttri65A9/FaLC5Dcu5LopubRJl3DIGtIei6MS0XiAUOOBS+1b51EumPms1XoUasLSAZ0r2V4Bw8GIymhlA2rw1sLy/23d5fg2VdJGJy0d6m7enKhNWdotP8wjFZSEuiSN+o9+b6Ejoy5pskR4AC7ACnMg=
+	t=1732202669; cv=none; b=uEwHfaVehNapKqUmQpwstFAMGMcyuN1PLojm5tPKIxF9BuoQBmBFpHil03AINqc6id3bS42FrCRHjMTwgb9OcACbDTYPaGNIr04PMfJxc0CQ7qG4cfYhIIsSh6nix7XXvZTALRam+3F22pC6y0ZKSS3kriPrsL7gsEbYgVXZwrA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732201964; c=relaxed/simple;
-	bh=Y0LAWQ10pejoapC+9RjrTrZ97R0/5BBfnd6Lu2R7Mfw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ocYLGKxQVVUmJ9jO6KBTStuZtPgRfZ0RfmHOeOLEmDXHT351Sa5qv53YWKCtEkREQwT+2uygfWuMpZ9EqKHRHO6IGuKUF+2Yq9KXoeq3EZ4J6+wzfBXbaC2smnfnqmxxAW5bTQtvuXj+qR7KZtLJq8uyZ1Kj9kvwucvJCwZLwIw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.39.247] (port=40136 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1tE8rC-00AkR2-3u; Thu, 21 Nov 2024 16:12:36 +0100
-Date: Thu, 21 Nov 2024 16:12:32 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft 2/2] debug: include kernel set information on cache
- fill
-Message-ID: <Zz9N4CmuiLxQpaAH@calendula>
-References: <20241120100221.11001-1-fw@strlen.de>
- <20241120100221.11001-2-fw@strlen.de>
- <Zz5w6NPQ2XsJrpHG@calendula>
- <20241120233854.GB31921@breakpoint.cc>
- <20241121092427.GA12619@breakpoint.cc>
- <Zz8EzBW2kzaq4jXr@calendula>
- <20241121120242.GB12619@breakpoint.cc>
+	s=arc-20240116; t=1732202669; c=relaxed/simple;
+	bh=7Zx2yBPzpQPZys9FtYhLvm+JYV+pYduZxHC4bcYUS3o=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=UCyyZbjsEts3NcYtIUfFwwZ3JAUPAE1mZgPI0zpM60KNmrq9wUnjQBq4LlTfdLMI3Xrrqz9q6EF0SfmYIDZ8H5qkwHQGqsdzgxq6wSL80dy2FewKQsZ7eEN7RvDdrBIYtzjVfiDJxLxUeGEqSNSzQlJuyNNcjMk5SeAaIk8Hhyw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (1024-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=F/EpqzNP; arc=none smtp.client-ip=193.238.174.37
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="F/EpqzNP"
+Received: from mg.ssi.bg (localhost [127.0.0.1])
+	by mg.ssi.bg (Proxmox) with ESMTP id 4CD9980CD9;
+	Thu, 21 Nov 2024 17:24:19 +0200 (EET)
+Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
+	by mg.ssi.bg (Proxmox) with ESMTPS;
+	Thu, 21 Nov 2024 17:24:18 +0200 (EET)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by ink.ssi.bg (Postfix) with ESMTPSA id 15AC53027E6;
+	Thu, 21 Nov 2024 17:24:09 +0200 (EET)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=ssi.bg; s=ink;
+	t=1732202650; bh=7Zx2yBPzpQPZys9FtYhLvm+JYV+pYduZxHC4bcYUS3o=;
+	h=Date:From:To:cc:Subject:In-Reply-To:References;
+	b=F/EpqzNPvknBT/zP/P8tPlKwkcFc4obCKi/QHVU+SI1KO7MEFJJyL605Y+UMCxVSU
+	 pKUA3vmyX4jiJPq5gMITmhAI3alvrroyZ/2IBJ5W+nfbMhwg2mgWSXJ+knywvLyLBJ
+	 wJbAUz55kZ2tALxP685UyhBueV5mhMHWPImme+YI=
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.1/8.17.1) with ESMTP id 4ALFNuTQ040696;
+	Thu, 21 Nov 2024 17:23:58 +0200
+Date: Thu, 21 Nov 2024 17:23:56 +0200 (EET)
+From: Julian Anastasov <ja@ssi.bg>
+To: Jinghao Jia <jinghao7@illinois.edu>
+cc: Simon Horman <horms@verge.net.au>, Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Nathan Chancellor <nathan@kernel.org>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        Bill Wendling <morbo@google.com>,
+        Justin Stitt <justinstitt@google.com>, Kees Cook <kees@kernel.org>,
+        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel <linux-kernel@vger.kernel.org>, llvm@lists.linux.dev,
+        kernel test robot <lkp@intel.com>, Ruowen Qin <ruqin@redhat.com>
+Subject: Re: [PATCH] ipvs: fix UB due to uninitialized stack access in
+ ip_vs_protocol_init()
+In-Reply-To: <a271e479-2a78-44b5-868d-3edc1f6c102a@illinois.edu>
+Message-ID: <10eddab8-ebc3-083d-f912-d4aebcf9f9e6@ssi.bg>
+References: <20241111065105.82431-1-jinghao7@illinois.edu> <f97ef69b-a15e-03ab-5e24-c1dfd3c4542b@ssi.bg> <a271e479-2a78-44b5-868d-3edc1f6c102a@illinois.edu>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20241121120242.GB12619@breakpoint.cc>
-X-Spam-Score: -1.9 (-)
+Content-Type: text/plain; charset=US-ASCII
 
-On Thu, Nov 21, 2024 at 01:02:42PM +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > Only options I see is to add a feature test file for this support,
-> > > and then either disabling dump validation if it failed or adding
-> > > additonal/alternative dump file.
+
+	Hello,
+
+On Tue, 19 Nov 2024, Jinghao Jia wrote:
+
+> On 11/18/24 6:41 AM, Julian Anastasov wrote:
 > > 
-> > Oh right, tests!
+> > On Mon, 11 Nov 2024, Jinghao Jia wrote:
 > > 
-> > Probably tests/shell can be workaround to remove # count X before
-> > comparing output.
-> > 
-> > It won't look nice, but I think tests/shell can carry on this burden.
-> > This means # count N will not be checked in old and new kernels.
-> > 
-> > To validate # count N, we can still rely on tests/py and the debug
-> > output as you propose.
-> > 
-> > Not great, but does this sound sensible to you?
+> >> Under certain kernel configurations when building with Clang/LLVM, the
+> >> compiler does not generate a return or jump as the terminator
+> >> instruction for ip_vs_protocol_init(), triggering the following objtool
+> >> warning during build time:
+> >>
+> >>   vmlinux.o: warning: objtool: ip_vs_protocol_init() falls through to next function __initstub__kmod_ip_vs_rr__935_123_ip_vs_rr_init6()
+> >>
+...
+> >> This gives later passes (SCCP, in particular) to more DCE opportunities
 > 
-> 1. Add new feature test
-> 2. Update dump files to include "# count xxx"
-> 3. when diff -u fails, do postprocess on recorded
->    dump file, i.e. sed s/# count.*//g 
-> 4. repeat diff with postprocessed recorded dump
->    if ok -> ok, else dump failure
+> One small request: if you could help us remove the extra "to" in the above
+> sentence when committing this patch, it would be great.
 > 
-> Does that sound ok?
+...
+> > 	Looks good to me, thanks! I assume it is for
+> > net-next/nf-next, right?
+> 
+> I am actually not familiar with the netfilter trees. IMHO this should also be
+> back-ported to the stable kernels -- I wonder if net-next/nf-next is a good
+> tree for this?
 
-OK, still one more aspect I'd like to discuss.
+	Then may be it is better to send [PATCHv2 net] after fixing
+the above "to" and selecting proper commit for a Fixes line (probably
+the initial commit 1da177e4c3f4 ?).
 
-> AFAICS we only need to update < 10 dump files,
-> so churn is not too bad.
->
-> Alternative is to always store postprocessed
-> dumps and then always run sed before diff, but I think
-> its better to do the extra mile.
+> >> -	char protocols[64];
+> >> +	char protocols[64] = { 0 };
+> >>  #define REGISTER_PROTOCOL(p)			\
+> >>  	do {					\
+> >>  		register_ip_vs_protocol(p);	\
+> >> @@ -348,8 +348,6 @@ int __init ip_vs_protocol_init(void)
+> >>  		strcat(protocols, (p)->name);	\
+> >>  	} while (0)
+> >>  
+> >> -	protocols[0] = '\0';
+> >> -	protocols[2] = '\0';
+> >>  #ifdef CONFIG_IP_VS_PROTO_TCP
+> >>  	REGISTER_PROTOCOL(&ip_vs_protocol_tcp);
+> >>  #endif
 
-rbtree going leaks a raw count of independent interval values which is
-going to be awkward to the user.
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
+
