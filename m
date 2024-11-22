@@ -1,210 +1,338 @@
-Received: from mail-yw1-f202.google.com (mail-yw1-f202.google.com [209.85.128.202])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0b-00007101.pphosted.com (mx0b-00007101.pphosted.com [148.163.139.28])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BE528BE7
-	for <netfilter-devel@vger.kernel.org>; Fri, 22 Nov 2024 17:45:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.202
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732297542; cv=none; b=gLD793/r3R9K59fpEXKeQhv5DLNa1T7jpZUp8c5t7uIaNVKJ+modko3Nbxmd/BNk0RJoD2rImZthrTw2utL25j70BF1lx2YfUu7QOLKV4ENMT1+GVSpfw/w7LQalI9zjy58XMurIHy+yS7oQkle8omxdNLXseA6FHduVGQeAK/U=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732297542; c=relaxed/simple;
-	bh=GzDOHvjcxzQzuwVAI8aacTcXN5qiXjiblZ5GPw3Jb3Y=;
-	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=EA2U1R8Bqne/pxHcsPXbJkdj10TvNw7kvk8ozvQ/4K+TRP+ZXZi6His0W+iPYSMfzgqRlp/pmp+4yDMypisGzXz0e+2Cb11EklP+eWf9PbZwUsTKquoeYUu9PHWuSPSbiefC0xgQS2VdzFqJZzE30qxdJGm5qq1aFVFd0gjul1I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=vRpdBDfe; arc=none smtp.client-ip=209.85.128.202
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90C92158DA3;
+	Fri, 22 Nov 2024 18:03:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=148.163.139.28
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1732298631; cv=fail; b=D71MRwMX27U8RS3Vy185/aEl1u49sHl4jdh5Br92dzdxnJSthwvveCwAqSQcUr7OWqIb8TssijGDVldxn3bTs7eYmUytrYvhv9F40lCrPXxpISB0hh16nVpUZY/2G/vt8h1ZyAao2doT5K5OEw3MSD/iucBXyjPnsgFkUhHWMwk=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1732298631; c=relaxed/simple;
+	bh=bhXYs+2Sroe4blji3ut+V6UOTAfvgEwVzFagLigoVbc=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=jzDlgsKB7VhX1967tMZvJKxR4AHWG1fgmOA5o3QG9a0RNkypxYK2gL6oiXoha0Jyoa8Nqp3ppbaxBL4/l1se1Q3CWr9uwo86xn6nM27d5rKKSAuAURzOM2l8t7z5zr9lFbanr7RW+/SeYof2iTHi2iJFixPGE/vf3UFD/qN9XC8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=illinois.edu; spf=pass smtp.mailfrom=illinois.edu; dkim=pass (2048-bit key) header.d=illinois.edu header.i=@illinois.edu header.b=Adzrv1cE; arc=fail smtp.client-ip=148.163.139.28
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=illinois.edu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=illinois.edu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="vRpdBDfe"
-Received: by mail-yw1-f202.google.com with SMTP id 00721157ae682-6eec33c5c50so41838807b3.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 22 Nov 2024 09:45:40 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1732297539; x=1732902339; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:from:subject:message-id:references
-         :mime-version:in-reply-to:date:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=2veOvqcd8OHbMSkqCARfAafTZ6QmJgZjD8FJhS72cj8=;
-        b=vRpdBDfeZKirbaifT7cm6tGWj+NmTJqH2PcBSHg15AvkOuBDbM0DReW9stZGADx4tU
-         ZV91SL7cuwoCB7ODiAe4BwQYWQ+KM8qa3bpc/G1Or56Eu5f+IO5nRuKq+PlfdBh62/v5
-         Bp1wQhzbdZZE1OtVVQzHRY5tyv4KD/Om1LvD9Mjo1qQQN7KmQjR9DPm4wSZoV66phdxM
-         hRETn6JuqnOrve0nMcTeNqemT6ZhYPTJmV+vyqUCnO4bP95aagoEiFJYpbxyX1Buzht0
-         cm1QaxXbDqefieOv98LUvcmMN2eq/wtuLAWCPBJs5uD8AvbTRC8FNAyFmX/Abjx23AOz
-         qdWw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1732297539; x=1732902339;
-        h=content-transfer-encoding:cc:to:from:subject:message-id:references
-         :mime-version:in-reply-to:date:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=2veOvqcd8OHbMSkqCARfAafTZ6QmJgZjD8FJhS72cj8=;
-        b=Dl3lOGgAHDjwqsvtPevhSqFsEuWNRUZVyAcaHGcuhVtNeSrKd3VBl9FjLeWX4UVmW/
-         IM2oEvfqQd5WNvRQ6IoczeHbhaEgjqNOLosLlrXOa9PuMF4gdplrsR+j6jvL0yXVxYWY
-         8g1XgOMhXkpBx3AEoUdup5WmFKq9sdYAz3QxQWfrXmvEH3ymB2SAgH35/RMAiffC/f73
-         6fc0sD0I/uPMc0jgxxnCs67RZ52rI2uBmyVoN0hD/F3LEl74hv5EwrkOxpr1rGSjaNry
-         uUISMnZHpklNlQKLH1ahkqmHgG7kmdz2XCjk2OW1+WJxQcQErkkTWOixBPUV6tK6qJWQ
-         rvng==
-X-Forwarded-Encrypted: i=1; AJvYcCXuMwdSIzDpM6XwTqCiDpWoriQtQbydJqfQL3m6J5ndB3ALDg8v5TjUXQoZKEjjA57WrERc/KrWlUML+OUw00E=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxf5ylk8Z0yMOKXurao0YtIkjqVOUSKJZenNHS/DK+XsYAJk62s
-	dylCo6Na3Zo0/oD98D506XPkuNkiEe78r51vmWLFN9tO4V7DwwP/onJamknl/pMG4AWgT5btnqr
-	IlA==
-X-Google-Smtp-Source: AGHT+IHpEH/kPLV9idcYzJND6POdq3yx44U5bnV0sZuSwFiXFLFRZYwm6InrSGcTHIk7sCXgXu9JFIe7vzc=
-X-Received: from swim.c.googlers.com ([fda3:e722:ac3:cc00:31:98fb:c0a8:1605])
- (user=gnoack job=sendgmr) by 2002:a25:d802:0:b0:e38:1f5f:485a with SMTP id
- 3f1490d57ef6-e38f8acc967mr1566276.1.1732297539121; Fri, 22 Nov 2024 09:45:39
- -0800 (PST)
-Date: Fri, 22 Nov 2024 18:45:36 +0100
-In-Reply-To: <ea026af8-bc29-709c-7e04-e145d01fd825@huawei-partners.com>
+	dkim=pass (2048-bit key) header.d=illinois.edu header.i=@illinois.edu header.b="Adzrv1cE"
+Received: from pps.filterd (m0166260.ppops.net [127.0.0.1])
+	by mx0b-00007101.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 4AMHSG8X032047;
+	Fri, 22 Nov 2024 18:03:17 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=illinois.edu; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=campusrelays;
+	 bh=Ur4zSmTzGmmYOv76CDETOG3DpgK28+D4jYyhcxIb6bA=; b=Adzrv1cEfgMe
+	nsLXlps1vdDtbNMHhon4bnGpp3EwHTvf4R3++Yu1OyCwCRlqCJwkDmzKZ66u6JSN
+	/ToiNLnzZlbU9jE9TKWTscVA/A/fVEo50Eyl7SqpFAnMtReBBvbLBWK1WHZmkvvc
+	XSlPvVNyHm2zYZaiuPxA1/ZfA9VeZYWObYF9yT3OqM9Y6af7gYvbs1sCqCx5rBlz
+	jYqQk1smF/pXvl/yHpdxytY/Sw3mNs0mcyQyrDRZF/oTzsQ1PAFBN7nE+NMhAT5U
+	hjDxRqgzaqXSPVHfK8C9PviDZcH72zrdW7P9rc31ek+MNhk6NyplDNF7F2Oa8YEu
+	3C2dOowFOg==
+Received: from nam10-mw2-obe.outbound.protection.outlook.com (mail-mw2nam10lp2042.outbound.protection.outlook.com [104.47.55.42])
+	by mx0b-00007101.pphosted.com (PPS) with ESMTPS id 432wf30vm1-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 22 Nov 2024 18:03:17 +0000 (GMT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=s3YqrqJ9orxARW2GWOgHFM38hmKm4ks7wMcS0dyYS5MlBjV6TECsBBTbGZjpEjHwwufyDmMMDMcKB+gREKbtkYDWuUlpTp/QYgKgE7ol/w7uOTxzB0Jm+HC67aP4p3eeVoUFil1S23pEKAGULm51NA3iOXsydFiAeM/Anjl0K6kKWjdCrkgCipXzEz9RxXPCyfeagsz690pWeBuH68r+/WsXQTPv+q+SfKV79gqsePJ8paoPfcErKhaFZgz+CAxzXwUzbOPB9twr1y1sQj/QQsgXgbaRcGFBQCD6tTdaFhkRMC+9cGgyyfJFC/UIOjQF2GnV+tc77hM7I2EKbJvs5g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Ur4zSmTzGmmYOv76CDETOG3DpgK28+D4jYyhcxIb6bA=;
+ b=Z79FXFacQkBOJbyzCCfh6fBZcWr744sD6hhKNLrOJkezNZZOcUs27dktgooai2Re2dvrP7SOlfhqAHLGkYg9ctCwkV1Sq2fp91pHpPtKQ8LglxHAA/80COBl60K8DKZioSIHEZHgF8mVCSPZ1M+8dpXTBVvguNQil+oE/iMDvJhvrvVNj+qrfQFH74ELdBMY55Nw2eAEm5wNrPsUx+xtALjWeL+e2PlhVjCXIppJHvig+H6uJpIIG8LHHQZ1C99GLzr2ONgJaETfDiqVPbhO+E87ggftkekHxEzNXU0KgPbbfZ4ku2SQNozlJKgp69v/AZXDVliC3F0KdNt8G+kDMw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=illinois.edu; dmarc=pass action=none header.from=illinois.edu;
+ dkim=pass header.d=illinois.edu; arc=none
+Received: from IA1PR11MB7272.namprd11.prod.outlook.com (2603:10b6:208:428::8)
+ by SA0PR11MB4544.namprd11.prod.outlook.com (2603:10b6:806:92::18) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8158.27; Fri, 22 Nov
+ 2024 18:02:57 +0000
+Received: from IA1PR11MB7272.namprd11.prod.outlook.com
+ ([fe80::74b2:6bb6:a99c:9222]) by IA1PR11MB7272.namprd11.prod.outlook.com
+ ([fe80::74b2:6bb6:a99c:9222%6]) with mapi id 15.20.8158.024; Fri, 22 Nov 2024
+ 18:02:48 +0000
+Message-ID: <298cf980-b66e-4806-ad6b-8cfff4c3dd81@illinois.edu>
+Date: Fri, 22 Nov 2024 12:02:46 -0600
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 net] ipvs: fix UB due to uninitialized stack access in
+ ip_vs_protocol_init()
+To: Julian Anastasov <ja@ssi.bg>
+Cc: Simon Horman <horms@verge.net.au>,
+        Pablo Neira Ayuso
+ <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>, Nathan Chancellor <nathan@kernel.org>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        Bill Wendling
+ <morbo@google.com>,
+        Justin Stitt <justinstitt@google.com>, Kees Cook <kees@kernel.org>,
+        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org, llvm@lists.linux.dev,
+        kernel test robot <lkp@intel.com>, Ruowen Qin <ruqin@redhat.com>
+References: <20241122045257.27452-1-jinghao7@illinois.edu>
+ <c65f0110-f5bf-c841-710e-2932cceec25a@ssi.bg>
+Content-Language: en-US
+From: Jinghao Jia <jinghao7@illinois.edu>
+In-Reply-To: <c65f0110-f5bf-c841-710e-2932cceec25a@ssi.bg>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: CH0PR07CA0030.namprd07.prod.outlook.com
+ (2603:10b6:610:32::35) To IA1PR11MB7272.namprd11.prod.outlook.com
+ (2603:10b6:208:428::8)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-References: <20240904104824.1844082-1-ivanov.mikhail1@huawei-partners.com>
- <20240904104824.1844082-2-ivanov.mikhail1@huawei-partners.com> <ea026af8-bc29-709c-7e04-e145d01fd825@huawei-partners.com>
-Message-ID: <Z0DDQKACIRRDRZRE@google.com>
-Subject: Re: [RFC PATCH v3 01/19] landlock: Support socket access-control
-From: "=?utf-8?Q?G=C3=BCnther?= Noack" <gnoack@google.com>
-To: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-Cc: mic@digikod.net, willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com, 
-	linux-security-module@vger.kernel.org, netdev@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, yusongping@huawei.com, 
-	artem.kuzin@huawei.com, konstantin.meskhidze@huawei.com
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: IA1PR11MB7272:EE_|SA0PR11MB4544:EE_
+X-MS-Office365-Filtering-Correlation-Id: 5d22399f-720b-4b48-d7df-08dd0b1fdfb9
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|7416014|376014|366016;
+X-Microsoft-Antispam-Message-Info:
+	=?utf-8?B?bVQrb3BUc1Y4dkF2NEJxZkRVc2QweFZLdUwvMjNldko3b3FoekpSdW1hcEhG?=
+ =?utf-8?B?MmlRT2VIdDA4NjNnRlZSQytORFlCU3F3QU0xelRQN0ZOWTlIMnVVMk9EeGVs?=
+ =?utf-8?B?VDUvM0w4MnorYythTUM1Tm1Gcjl6UzRGRDlsbUFkTWJiRGhYOTNsTURHOFR3?=
+ =?utf-8?B?RkRvNEczdU1aVzNlOCtYd2M3Yk1JY3lad0txalFHMVYyTlZoaUFuVXkvTjlO?=
+ =?utf-8?B?cWg2blhMazdTUWZkR2ZSRytXVlNRNXRBWi92ZFZmcEVWT1RFb0N2MG1ZYU5X?=
+ =?utf-8?B?N2t0VDNkeFlWTDBUV1BLcHRCN0ZXaE0zYW12dmVqS1RLMFZjK3pqZDN3Z0Fo?=
+ =?utf-8?B?cFphSHZqc0VpS1pHWVo3ejBSMXRRZmxidnR6TVpsaHB3Vmx4a0FJNCtLVExZ?=
+ =?utf-8?B?Q2I5eHNXMWtBTWZ0YVEvTFpiOUlYclEwK1A0VS9iZHpuSGRvbXI3VTlWc0d5?=
+ =?utf-8?B?cW5mUGhuUXZyTzNwS3U1MFU3cHJnbERZWVR4b3NkQStuMDQwd1VqUUtNck53?=
+ =?utf-8?B?SHdrSHFqc0dWbytKcVM5WnFuVCs2QWc4ZXBHMkk5RW9EanRNZnFiNEltOXd3?=
+ =?utf-8?B?eXpCUkh2UTlZR2VFVXpYbytZSnZ5MFBhVHVpT3hDVHJUNVY2b1pUYkhoZTQ1?=
+ =?utf-8?B?cHNaUm1OSVRqVllqWjR3WVF0WTZSRUZiUEdwTG1oNStNa2lJNzhpSXVMUDhU?=
+ =?utf-8?B?QkpEdGFoU1pnaEZpTTlCQ3NjZk1rNENMY2N1NENVcVVYMkVHR2VzUVM3UGZO?=
+ =?utf-8?B?N2VYRW92N1NjbE13K0pCOUNQOTF6VGkwVVBSRHRxY3NYRDc1SU1yb1NMbVRH?=
+ =?utf-8?B?bWhKSHhnaXNaVmJkeEZvbThFemRaSUc0bEg0MGJsZHg1MW1UY0tjdkJsTG5K?=
+ =?utf-8?B?YjVscHdXSm5adUFTV09mTWt6TnREaXFnV2ozWDg1c1crelN1em9oUFhtMFFB?=
+ =?utf-8?B?aG5iY3dRaXg2RWVlbE5NNGpBc1hHdFp1ZzBSNEhqdHpJL1ByVHQ0cHpMNWRi?=
+ =?utf-8?B?UStFRHJEUmFLZldYVm50bldXb24rS0JLNTdnQjRuNjBFMEJxK3FuNmZsZEJB?=
+ =?utf-8?B?ZlRxcDBPYi9BZUdDMDladGRsZ1REUmY1YkV1NW1KdExhM04xOTJpUDl0ci94?=
+ =?utf-8?B?NWYxQ0VWVTVhUW5xNkZEWVh6SmNYc1VabUQ1a2FrR3ZubW13VDJRMUIwTi9V?=
+ =?utf-8?B?WndBcDg0MG5jQ3FIRXpEbElkSjJGMTRza2N1TG0rOG56THR5RHhKa2R3V2or?=
+ =?utf-8?B?S0JFL3BrbjRnNGtWS3VOcDNKTmVvcEhWb1M5UjNMR1JVTHUwZjBYczNrS1ZU?=
+ =?utf-8?B?UEgxY081YlRFTTJzZTVnQUd3N2FJL0VZbFkva3BHaE9vWloxTU5KVTNrNFo0?=
+ =?utf-8?B?R3ArbVdCWGtkMktHbG02cHgvYnZDN2k3YnQ4dnArZ2JwVUF1WHc3L0NFdldl?=
+ =?utf-8?B?Q3h4bGJjZ3A5WFVURDlxalZaa21XLzJjZjR6RVVtc3VJMGJZaFBsY0M3QmV1?=
+ =?utf-8?B?VjcyL2dBV0F4SGhFMGJYTjdYZkhPMjlVQzZYQmRwbVhFeFZUUVlST3lNTlZB?=
+ =?utf-8?B?SzZvTFRCMVNic2JqQ2pQYVkyaC93bnVPMnVTbDEyTjZWUjQrYnlubVA4b29D?=
+ =?utf-8?B?ZmhtR1dERHVtRzJRTFFjRGxoTlpWKy9TMzIxa0ZyaHlLeVpwT3NUbzk1WjNu?=
+ =?utf-8?B?OHlyZmR3ZXVtNitPYmtBZmJrRG5aTHFtcWZYZFRRR0p1RUlkZ0RSeHJQSEhk?=
+ =?utf-8?Q?0lvvAfQ+bqumx4qyoY=3D?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:IA1PR11MB7272.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(366016);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?T3FLTFR6R2ltdzdmdWdpZjd5UDBXQ2YwaU92bTh4aHRESTF0eXlBdXNWWitH?=
+ =?utf-8?B?QWNINENsN28yanViV1BDcC9RLzlRa1pKOVBpWmNIazFhQ0lBeFg2bHRzelI1?=
+ =?utf-8?B?WEdjNzBUV0pUM2FSZW1KMS8wL3d1R1ppcmxmeWJOb2VmemlXNUJpME5NbXd2?=
+ =?utf-8?B?UC9sMHUrT3lnWlY5R2hMU1ZVN1pZdXNlRXdtblhTNm9jd2I3WnNKejZXeWpZ?=
+ =?utf-8?B?VFdqejd3T1JvNEhXUy9SRW5ZaUo3YU1lYnY3aElVeHFVVWFDY0cvSDlaWTk5?=
+ =?utf-8?B?OVh0c3d0WWgxVzhXZitjeGxGSXhDdmxDa3ptWEdpL2RPUENTWTI0SXJUdS9E?=
+ =?utf-8?B?RnRmaklrejlyMUNnZW9uUUdFcDZxUDZGNWdrUGUzeUZPTktka2xyVzM1QWFm?=
+ =?utf-8?B?Q3hRUUFGUXdScWV3K3VvRWZCV1BOUzRGUkR4VWgwTDFQalpsM0pXWG5acDIw?=
+ =?utf-8?B?R2RFRFNsNVZ2SU81Yk5DZHhiUWVNL0gxNHMwNlB2ZjVWa2FOQ25NQk94bDhG?=
+ =?utf-8?B?dFp3ZUlVMWcxeVp6RS94Y2JnSHhNQnREdEhJRmtLR0VQR2pPUitiNUlrYUFm?=
+ =?utf-8?B?MXo0MS9rNG5YUUk5VkxZdTFWeld3UzBPaUlaeXBONkVEdWJQbTlBcFg5TmFZ?=
+ =?utf-8?B?eGwyVnowWFFkQXN6d29XbEc0NnNRRUdMSEJOcE5zUWxuSVl2eFR3bkNBRitV?=
+ =?utf-8?B?RVRGYzJyMVFiT2RXQk9qY1NaMW1udG14Q3gwRDRhZWp1M0RFNFRGcDYvbVZi?=
+ =?utf-8?B?WjJvcEd1OFgwN0g4amd3TUVSUDVKamtyOHkranBockRtOStvL1J4K3lDYXIz?=
+ =?utf-8?B?bnpMQ2QwSmRFMHFJYkpTSUJJR045cWxpRit6Q05CajV3cWN0MjJ5Tk9UcXFK?=
+ =?utf-8?B?R08vQWhCY0l1TUQwK1VKM2hwREo5TXRZREJ4SjVVdWJqd3JrQTRRMHVLRVpE?=
+ =?utf-8?B?NGZtRmMxR1g0MlJZL2FSUE1qVlNhS0ZqaVJnN2plS0JpK05WN1dQblpNSFdn?=
+ =?utf-8?B?eEcycW5MT3JIWE5QOXNkVktXNVQxdGNCZFBWR1ZXQ0FMMzF3elNQNE9CeGpn?=
+ =?utf-8?B?cHU4UUg2T1F1YXhOWjNiZWE5MTlmQmM4SVA5SHk4cGFZd0pXSU91TjRjUDkw?=
+ =?utf-8?B?WUYrQk5kTlZ4RHdUcEViVmtNL3RWQVY2d015QW15SkZOaDg2VUZCeUZDblUz?=
+ =?utf-8?B?NXphaTNuUzFsZm1xU2J2eE4rY0Q3d29UaU1MYVBtR0JBVzF4RTJzMCtxZ1dy?=
+ =?utf-8?B?YkdyQWxrVWtjM2VZeHNWMG1oeUM2c1RnU0xmdGNXekJpMkx3dmhUQWhFQ01D?=
+ =?utf-8?B?TWJVQmxkTndCeFNubzdXV1BONnBIcnIxdXVkNkV6RUxrRU5RVXo2L1JrQ05o?=
+ =?utf-8?B?a295djc4VGQ5ZzJLSnVqVWFCdG55V1VwRVNIa1Boak9UVEpLajBpdURZRmRJ?=
+ =?utf-8?B?ZGRZTHR2ZE9MeXRTb1EyS2pNeXNPQXlEZkVYS2srT3BEaGEycWNjclN3aDdn?=
+ =?utf-8?B?dXJWVGNuYUJ2VjBTOUFaY05PZzE5QTJPTUdTY2FxZ1VlTmRYekJSVW1FT1gx?=
+ =?utf-8?B?M3gwdHRIMkJNWDVjZDQ5WEN3ZUxENGVuS1hmd2ZMQ1dHSi9yWHl3WmQ4UlNU?=
+ =?utf-8?B?OTA0d21GNXFCK3ljUGt3eFlBNDNQNDV6VnpTTE1nUjIzc2lTcENLV0IyR2JO?=
+ =?utf-8?B?R1poTCtISzMvV3ZZMUthaEd3Z3ptMDdNd3lXZEZBMlpaV2F5YnVjUjdWcjA0?=
+ =?utf-8?B?K0llcVEya2J0MW80VUR5aitrY2dPZC9rT2gxdElCQWd3OE1QWXZOY095SE5a?=
+ =?utf-8?B?YjY5RiszQm02VlZSN2hJMDZDR3p0WWU3Q3d6M3dJZ00rc3EyZzB4WlllZURz?=
+ =?utf-8?B?QjB3RDduQ2QxaG9zeHpNNUlyQTgzSlFOczVMMmgvYmJjT1pRNHlWakJkeHVL?=
+ =?utf-8?B?ajIwQXB3QW9ZWlBoSVNhT3dmOGp2Qk45RmdxYVB0a2I4S3VGWDVBYmNTa1Zw?=
+ =?utf-8?B?bWc0N21LT3BMR0pwa1JjK3BEeTVzWURlZHVYUEk3a0tIcDdNOXFUbEdZZ3VV?=
+ =?utf-8?B?L3l2MURIeXd0TVk4RzFIQldtVHFQK0hYUlBqQmhBSEVZcEd2NmJ0NGtCME1Y?=
+ =?utf-8?Q?L5O6gTMJDlEpo6JFbANKN9BbI?=
+X-OriginatorOrg: illinois.edu
+X-MS-Exchange-CrossTenant-Network-Message-Id: 5d22399f-720b-4b48-d7df-08dd0b1fdfb9
+X-MS-Exchange-CrossTenant-AuthSource: IA1PR11MB7272.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Nov 2024 18:02:48.4050
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 44467e6f-462c-4ea2-823f-7800de5434e3
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: kxFrNuz59S45GU1KlpnAgY43LUOPwHkfeI4cfG8JkVUtOm3wixQBzNfHFPM1K5nBKBGSW8mi0/6I9bNm35F9XA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA0PR11MB4544
+X-Proofpoint-GUID: Ny9gz6qUE9CkW8fpybex1LcnVTrUUa5p
+X-Proofpoint-ORIG-GUID: Ny9gz6qUE9CkW8fpybex1LcnVTrUUa5p
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1051,Hydra:6.0.680,FMLib:17.12.62.30
+ definitions=2024-10-05_03,2024-10-04_01,2024-09-30_01
+X-Spam-Details: rule=cautious_plus_nq_notspam policy=cautious_plus_nq score=0
+ suspectscore=0 clxscore=1015 priorityscore=1501 lowpriorityscore=0
+ mlxscore=0 bulkscore=0 malwarescore=0 impostorscore=0 spamscore=0
+ phishscore=0 adultscore=0 mlxlogscore=999 classifier=spam adjust=0
+ reason=mlx scancount=1 engine=8.19.0-2409260000
+ definitions=main-2411220152
+X-Spam-Score: 0
+X-Spam-OrigSender: jinghao7@illinois.edu
+X-Spam-Bar: 
 
-Hello Mikhail,
+Hi Julian,
 
-sorry for the delayed response;
-I am very happy to see activity on this patch set! :)
+On 11/22/24 5:43 AM, Julian Anastasov wrote:
+> 
+> 	Hello,
+> 
+> On Thu, 21 Nov 2024, Jinghao Jia wrote:
+> 
+>> Under certain kernel configurations when building with Clang/LLVM, the
+>> compiler does not generate a return or jump as the terminator
+>> instruction for ip_vs_protocol_init(), triggering the following objtool
+>> warning during build time:
+>>
+>>   vmlinux.o: warning: objtool: ip_vs_protocol_init() falls through to next function __initstub__kmod_ip_vs_rr__935_123_ip_vs_rr_init6()
+>>
+>> At runtime, this either causes an oops when trying to load the ipvs
+>> module or a boot-time panic if ipvs is built-in. This same issue has
+>> been reported by the Intel kernel test robot previously.
+>>
+>> Digging deeper into both LLVM and the kernel code reveals this to be a
+>> undefined behavior problem. ip_vs_protocol_init() uses a on-stack buffer
+>> of 64 chars to store the registered protocol names and leaves it
+>> uninitialized after definition. The function calls strnlen() when
+>> concatenating protocol names into the buffer. With CONFIG_FORTIFY_SOURCE
+>> strnlen() performs an extra step to check whether the last byte of the
+>> input char buffer is a null character (commit 3009f891bb9f ("fortify:
+>> Allow strlen() and strnlen() to pass compile-time known lengths")).
+>> This, together with possibly other configurations, cause the following
+>> IR to be generated:
+>>
+>>   define hidden i32 @ip_vs_protocol_init() local_unnamed_addr #5 section ".init.text" align 16 !kcfi_type !29 {
+>>     %1 = alloca [64 x i8], align 16
+>>     ...
+>>
+>>   14:                                               ; preds = %11
+>>     %15 = getelementptr inbounds i8, ptr %1, i64 63
+>>     %16 = load i8, ptr %15, align 1
+>>     %17 = tail call i1 @llvm.is.constant.i8(i8 %16)
+>>     %18 = icmp eq i8 %16, 0
+>>     %19 = select i1 %17, i1 %18, i1 false
+>>     br i1 %19, label %20, label %23
+>>
+>>   20:                                               ; preds = %14
+>>     %21 = call i64 @strlen(ptr noundef nonnull dereferenceable(1) %1) #23
+>>     ...
+>>
+>>   23:                                               ; preds = %14, %11, %20
+>>     %24 = call i64 @strnlen(ptr noundef nonnull dereferenceable(1) %1, i64 noundef 64) #24
+>>     ...
+>>   }
+>>
+>> The above code calculates the address of the last char in the buffer
+>> (value %15) and then loads from it (value %16). Because the buffer is
+>> never initialized, the LLVM GVN pass marks value %16 as undefined:
+>>
+>>   %13 = getelementptr inbounds i8, ptr %1, i64 63
+>>   br i1 undef, label %14, label %17
+>>
+>> This gives later passes (SCCP, in particular) more DCE opportunities by
+>> propagating the undef value further, and eventually removes everything
+>> after the load on the uninitialized stack location:
+>>
+>>   define hidden i32 @ip_vs_protocol_init() local_unnamed_addr #0 section ".init.text" align 16 !kcfi_type !11 {
+>>     %1 = alloca [64 x i8], align 16
+>>     ...
+>>
+>>   12:                                               ; preds = %11
+>>     %13 = getelementptr inbounds i8, ptr %1, i64 63
+>>     unreachable
+>>   }
+>>
+>> In this way, the generated native code will just fall through to the
+>> next function, as LLVM does not generate any code for the unreachable IR
+>> instruction and leaves the function without a terminator.
+>>
+>> Zero the on-stack buffer to avoid this possible UB.
+>>
+>> Changelog:
+>> ---
+> 
+> 	You can not add --- before the following headers.
+> 'git am file.patch' can show the result of applying the patch.
 
-On Mon, Nov 11, 2024 at 07:29:49PM +0300, Mikhail Ivanov wrote:
-> On 9/4/2024 1:48 PM, Mikhail Ivanov wrote:
-> > Landlock implements the `LANDLOCK_RULE_NET_PORT` rule type, which provi=
-des
-> > fine-grained control of actions for a specific protocol. Any action or
-> > protocol that is not supported by this rule can not be controlled. As a
-> > result, protocols for which fine-grained control is not supported can b=
-e
-> > used in a sandboxed system and lead to vulnerabilities or unexpected
-> > behavior.
-> >=20
-> > Controlling the protocols used will allow to use only those that are
-> > necessary for the system and/or which have fine-grained Landlock contro=
-l
-> > through others types of rules (e.g. TCP bind/connect control with
-> > `LANDLOCK_RULE_NET_PORT`, UNIX bind control with
-> > `LANDLOCK_RULE_PATH_BENEATH`). Consider following examples:
-> >=20
-> > * Server may want to use only TCP sockets for which there is fine-grain=
-ed
-> >    control of bind(2) and connect(2) actions [1].
-> > * System that does not need a network or that may want to disable netwo=
-rk
-> >    for security reasons (e.g. [2]) can achieve this by restricting the =
-use
-> >    of all possible protocols.
-> >=20
-> > This patch implements such control by restricting socket creation in a
-> > sandboxed process.
-> >=20
-> > Add `LANDLOCK_RULE_SOCKET` rule type that restricts actions on sockets.
-> > This rule uses values of address family and socket type (Cf. socket(2))
-> > to determine sockets that should be restricted. This is represented in =
-a
-> > landlock_socket_attr struct:
-> >=20
-> >    struct landlock_socket_attr {
-> >      __u64 allowed_access;
-> >      int family; /* same as domain in socket(2) */
-> >      int type; /* see socket(2) */
-> >    };
->=20
-> Hello! I'd like to consider another approach to define this structure
-> before sending the next version of this patchset.
->=20
-> Currently, it has following possible issues:
->=20
-> First of all, there is a lack of protocol granularity. It's impossible
-> to (for example) deny creation of ICMP and SCTP sockets and allow TCP
-> and UDP. Since the values of address family and socket type do not
-> completely define the protocol for the restriction, we may gain
-> incomplete control of the network actions. AFAICS, this is limited to
-> only a couple of IP protocol cases (e.g. it's impossible to deny SCTP
-> and SMC sockets to only allow TCP, deny ICMP and allow UDP).
->=20
-> But one of the main advantages of socket access rights is the ability to
-> allow only those protocols for which there is a fine-grained control
-> over their actions (TCP bind/connect). It can be inconvenient
-> (and unsafe) for SCTP to be unrestricted, while sandboxed process only
-> needs TCP sockets.
+Oops my bad -- have never done a patch with changelogs inside the commit
+message.
 
-That is a good observation which I had missed.
+> 
+>> v1 -> v2:
+>> v1: https://urldefense.com/v3/__https://lore.kernel.org/lkml/20241111065105.82431-1-jinghao7@illinois.edu/__;!!DZ3fjg!45RxVgl4P0t8X0Vx6JFjX8J0xtWPfXijFBJTXvQ6B89xyEQqWT53QYyG9Ztlo3lfyadT2FdfZexm$ 
+>> * Fix small error in commit message
+>> * Address Julian's feedback:
+>>   * Make this patch target the net tree rather than net-next
+>>   * Add a "Fixes" tag for the initial git commit
+>>
+>> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+>> Reported-by: kernel test robot <lkp@intel.com>
+>> Closes: https://urldefense.com/v3/__https://lore.kernel.org/oe-kbuild-all/202402100205.PWXIz1ZK-lkp@intel.com/__;!!DZ3fjg!45RxVgl4P0t8X0Vx6JFjX8J0xtWPfXijFBJTXvQ6B89xyEQqWT53QYyG9Ztlo3lfyadT2Ko7xLwQ$ 
+>> Co-developed-by: Ruowen Qin <ruqin@redhat.com>
+>> Signed-off-by: Ruowen Qin <ruqin@redhat.com>
+>> Signed-off-by: Jinghao Jia <jinghao7@illinois.edu>
+>> ---
+> 
+> 	Please send v3, you can move your changelog here,
+> after the above ---
 
-I agree with your analysis, I also see the main use case of socket()
-restrictions in:
+Sounds good! I will roll out a v3 later today.
 
- (a) restricting socket creating altogether
- (b) only permitting socket types for which there is fine grained control
+> 
+>>  net/netfilter/ipvs/ip_vs_proto.c | 4 +---
+>>  1 file changed, 1 insertion(+), 3 deletions(-)
+>>
+>> diff --git a/net/netfilter/ipvs/ip_vs_proto.c b/net/netfilter/ipvs/ip_vs_proto.c
+>> index f100da4ba3bc..a9fd1d3fc2cb 100644
+>> --- a/net/netfilter/ipvs/ip_vs_proto.c
+>> +++ b/net/netfilter/ipvs/ip_vs_proto.c
+>> @@ -340,7 +340,7 @@ void __net_exit ip_vs_protocol_net_cleanup(struct netns_ipvs *ipvs)
+>>  
+>>  int __init ip_vs_protocol_init(void)
+>>  {
+>> -	char protocols[64];
+>> +	char protocols[64] = { 0 };
+>>  #define REGISTER_PROTOCOL(p)			\
+>>  	do {					\
+>>  		register_ip_vs_protocol(p);	\
+>> @@ -348,8 +348,6 @@ int __init ip_vs_protocol_init(void)
+>>  		strcat(protocols, (p)->name);	\
+>>  	} while (0)
+>>  
+>> -	protocols[0] = '\0';
+>> -	protocols[2] = '\0';
+>>  #ifdef CONFIG_IP_VS_PROTO_TCP
+>>  	REGISTER_PROTOCOL(&ip_vs_protocol_tcp);
+>>  #endif
+>> -- 
+>> 2.47.0
+> 
+> Regards
+> 
+> --
+> Julian Anastasov <ja@ssi.bg>
+> 
 
-and I also agree that it would be very surprising when the same socket type=
-s
-that provide fine grained control would also open the door for unrestricted
-access to SMC, SCTP or other protocols.  We should instead strive for a
-socket() access control with which these additional protocols weren't
-accessible.
-
-
-> Adding protocol (Cf. socket(2)) field was considered a bit during the
-> initial discussion:
-> https://lore.kernel.org/all/CABi2SkVWU=3DWxb2y3fP702twyHBD3kVoySPGSz2X22V=
-ckvcHeXw@mail.gmail.com/
-
-So adding "protocol" to the rule attributes would suffice to restrict the u=
-se of
-SMC and SCTP then?  (Sorry, I lost context on these protocols a bit in the
-meantime, I was so far under the impression that these were using different
-values for family and type than TCP and UDP do.)
-
-
-> Secondly, I'm not really sure if socket type granularity is required
-> for most of the protocols. It may be more convenient for the end user
-> to be able to completely restrict the address family without specifying
-> whether restriction is dedicated to stream or dgram sockets (e.g. for
-> BLUETOOTH, VSOCK sockets). However, this is not a big issue for the
-> current design, since address family can be restricted by specifying
-> type =3D SOCK_TYPE_MASK.
-
-Whether the user is adding one rule to permit AF_INET+*, or whether the use=
-r is
-adding two rules to permit (1) AF_INET+SOCK_STREAM and (2) AF_INET+SOCK_DGR=
-AM,
-that does not seem like a big deal to me as long as the list of such
-combinations is so low?
-
-
-> I suggest implementing something close to selinux socket classes for the
-> struct landlock_socket_attr (Cf. socket_type_to_security_class()). This
-> will provide protocol granularity and may be simpler and more convenient
-> in the terms of determining access rights. WDYT?
-
-I see that this is a longer switch statement that maps to this enum, it wou=
-ld be
-an additional data table that would have to be documented separately for us=
-ers.
-
-Do you have an example for how such a "security class enum" would map to th=
-e
-combinations of family, type and socket for the protocols discussed above?
-
-If this is just a matter of actually mapping (family, type, protocol)
-combinations in a more flexible way, could we get away by allowing a specia=
-l
-"wildcard" value for the "protocol" field, when it is used within a ruleset=
-?
-Then the LSM would have to look up whether there is a rule for (family, typ=
-e,
-protocol) and the only change would be that it now needs to also check whet=
-her
-there is a rule for (family, type, *)?
-
-=E2=80=94G=C3=BCnther
+Best,
+Jinghao
