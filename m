@@ -1,138 +1,94 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv1-f54.google.com (mail-qv1-f54.google.com [209.85.219.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B6F380604
-	for <netfilter-devel@vger.kernel.org>; Fri, 22 Nov 2024 18:18:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BF7B176AAE
+	for <netfilter-devel@vger.kernel.org>; Fri, 22 Nov 2024 22:05:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732299498; cv=none; b=SWn7XedvoCF/X1U9Q/YMDgF86O//9tctqenvStbclKUhnHKdfSN1fi7ujvkeEMqJMJuybsDFTzQOmyMh1o7J95Mzowkthbg+v+q7s4JTvn2hdc8AWWEkyYXgSBvjdtZ5PnHRUe06pYhX2VqpAusfdt81XlvHEEmBWq1U7WCU+cA=
+	t=1732313103; cv=none; b=Ars781TOlW8Es3WsCYcT4BpcRVvqFPm4QKj3aoGJStbI/Myaj7C1RIMKXkFLzZUUJCSHOsNSMfzSP0Aabzdr2aqhlDQ000Z3u+LjuLw1AgkYCrClFluam/E8GTiHiet4V47dELcYqQS4K7zArrCLTM1hmtXIwQiMzckj4/yiO5w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732299498; c=relaxed/simple;
-	bh=X8gNt6WpiJobdZO1wgKocZlXDz4ib1z1QMTRJBkGacQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ewJiXPunqxhzmDSeUEJUVk3L5G1sDx67fn0Wp+ZBcGRqZ5zjemqLiAGzWidn0U6pU8TVL/5seiRKRFzPIGoiCx6oMZN8bjENhD7dolC14fJMgqsNcf9tmVaU5AD7vsnLDwcN5q15JfFGLeHK1iUayaQVWY1QTOdW1v9yyiVwhXM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=jQg9aCnC; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1732313103; c=relaxed/simple;
+	bh=fcw6YODCoECXzfeWxXSl6j04gE6jDRvUIKhLCJhPe8g=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=eIu6+sjI7/WDB9Vs5cQFrz9VEMQTh5+fSKsQFhgRBdKV/cVhDlnEEOwbTBTxfYZh0b3itF8bcQyA1v5fXkU6nJYlaPqENnP9S7uUJVzaVEy5S+tT2nXUrjIbyUN5nsqs4v4gpozjqRhAAXDYG5DhWo/S7HnHL8esEACjAn/7/aw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kkPjFWm7; arc=none smtp.client-ip=209.85.219.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="jQg9aCnC"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=P4tPFSYpSu3HZOtrJiVf2+h8yzGR8iJVBk509+iYjSc=; b=jQg9aCnCFIcGx0wOvgMW5PicFp
-	cFfdLsEqb4E2aNwlUFwiUhUoyfBvS/hrk0VJ98uJM75lW75L36ko158qGNqtz1L5e+K3qv/LZyG2v
-	vp5D1nCNJDYO5Tz4m9qFMOtkB9uaey53zxfBGPXr5wclKxH0C0WHDoAcyrkjVwYMyT/cLU1DDFyeJ
-	rl4af6I8PLA0cSOYaGE8R7uF6whX1pEN8XYPqGoHphQ4aKnLx0IRRai9tbXWqJ6CpPAOw3C50Iz7o
-	vAA31aZUjUwcGo6xvMkOTOkIPt9nm3a8MGY35fcauJ3p3JlxHEIVT6cP/AQHuQjyrOVl2tmXFrVDV
-	7KB0vYkg==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1tEYEH-000000000hI-2hjT;
-	Fri, 22 Nov 2024 19:18:05 +0100
-Date: Fri, 22 Nov 2024 19:18:05 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	Eric Garver <e@erig.me>
-Subject: Re: [nf-next PATCH v6 0/7] Dynamic hook interface binding part 1
-Message-ID: <Z0DK3WKKfg3YEUPR@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	Eric Garver <e@erig.me>
-References: <20241023145730.16896-1-phil@nwl.cc>
- <Zzc3FV4FG8a6px7z@calendula>
- <Zzy4LTNe4a4bepmX@orbyte.nwl.cc>
- <Zz9oN_OBdCQ1wlQf@orbyte.nwl.cc>
- <Z0CJkzhOls1Dr4N2@calendula>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kkPjFWm7"
+Received: by mail-qv1-f54.google.com with SMTP id 6a1803df08f44-6d41eeca2d6so17593406d6.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 22 Nov 2024 14:05:01 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1732313100; x=1732917900; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=nrFdnCjgOzIlIVVDoe2qGrJrB+2UzDVpUvYZfE1THVI=;
+        b=kkPjFWm7yCjO3giUfW7CCHpKcbi7OvP44Q1k+nBO5FDQQeR7tH6bynDxv+C6GvGF0Q
+         6VlzTgOSS4TWYr3MbQuQ+woZC5xcKkxR4rDSu7oQhF8lwv65f1Wsr22G/7ugZttsE7om
+         6/C4MjbZew3N/T5aTKletvG6CYNSSGPlE99+zIrYALngL1zw+nN8NM0evCF8JToAMGYD
+         9umzkCeK28H3rSror3SB0ip/XFfJS4hXqTW+FQ9O9XB1dNBT4lE6bIhsHOzb0vonilbc
+         LDuPfSpG4x2u0DiUZRiN8MrBJobNhZDEuiue/7jXX2o3CeRdH3Y2aC6LQOa8liP/hjgb
+         5yog==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1732313100; x=1732917900;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=nrFdnCjgOzIlIVVDoe2qGrJrB+2UzDVpUvYZfE1THVI=;
+        b=i25T3BhM2hPXhtY0jabd/P1aZ+/PtxlTJGEPbd8knFE2TRhiwzD6mNNcQcKLmVmaa+
+         S2Izk/9XEfgt3e1feuKp8dsZ0d9akxsXPwZwYPvIfvNiIpa5FeDmMSEopQwsPtQUW+d0
+         kPPueNmKUHK8ZAerSNwGgZ1z/elp5+V0V8JVkP/fBgXb7qkONorzVsRl9bK5yGKchUtm
+         H81uNKWG6R+3A6cc2QUF7nCDHIZVlN+XmwThUrvnquls1WBr3HLMZqjO7QfBN/NIXrbf
+         vBLejyFyQxPoGVcn898xfbrx2txGRJX517pfocsl4IdrrHSIf34L9PE+aYJNp173W7Om
+         1cYA==
+X-Gm-Message-State: AOJu0YzRbqgwygWPldDlNu5xSEhoDrsuDtPSlqHAEaVdwyOG+yq+HQ3A
+	N9s8jRjE5Sb4Qr/c2LslozmBtnQoHwXn5U1oEZ5QWQ+uk94lH0NtnslQjQ==
+X-Gm-Gg: ASbGncswHeYs1V7JVfDPHasudy0saMnS8lGDiHkf+JkfnvAfZgmhvN66C/Yn1jqs1Nw
+	tbcNsVWZvC/cFHT/YSwl9+qQxt3rhWJcXOwsVkpIQ6JciFk5v4Ki058ciVpvoYHi8PgP7Ba+4pj
+	1KGQ2CrUPBLMDpjbLgIBD/vXYiSPL5N2xTNSk8ua+MtOJ39N2ELkWG/owPR7G4Ix1AR415U+8pT
+	xPXC2AXnQF+ESesXh+AOCEcj/KlF+8SlD4=
+X-Google-Smtp-Source: AGHT+IGGey4s9f0cJXwAaHQLjbwYyitNVrO2BQJCqWmOtDJwNxrYapT9cVet3feFqNnoNFEnAIZk4Q==
+X-Received: by 2002:a05:6214:490:b0:6cd:ed0b:3392 with SMTP id 6a1803df08f44-6d45134039emr69237386d6.39.1732313100583;
+        Fri, 22 Nov 2024 14:05:00 -0800 (PST)
+Received: from fedora.. ([2607:fea8:79d7:c400::b8f9])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-6d451b244e6sm14871006d6.91.2024.11.22.14.04.59
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 22 Nov 2024 14:05:00 -0800 (PST)
+From: Donald Yandt <donald.yandt@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Cc: Donald Yandt <donald.yandt@gmail.com>
+Subject: [PATCH nft] mnl: fix basehook comparison
+Date: Fri, 22 Nov 2024 17:04:49 -0500
+Message-ID: <20241122220449.63682-1-donald.yandt@gmail.com>
+X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Z0CJkzhOls1Dr4N2@calendula>
+Content-Transfer-Encoding: 8bit
 
-On Fri, Nov 22, 2024 at 02:39:31PM +0100, Pablo Neira Ayuso wrote:
-> On Thu, Nov 21, 2024 at 06:04:55PM +0100, Phil Sutter wrote:
-> > Hi,
-> > 
-> > On Tue, Nov 19, 2024 at 05:09:17PM +0100, Phil Sutter wrote:
-> > [...]
-> > > Checking callers of nft_unregister_flowtable_net_hooks():
-> > > 
-> > > nf_tables_commit() calls it for DELFLOWTABLE, code-paths differ for
-> > > flowtable updates or complete deletions: With the latter,
-> > > nft_commit_release() calls nf_tables_flowtable_destroy() which does the
-> > > UNBIND. So if deleting individual interfaces from an offloaded flowtable
-> > > is supported, we may miss the UNBIND there.
-> > > 
-> > > __nf_tables_abort() calls it for NEWFLOWTABLE. The hooks should have
-> > > been bound by nf_tables_newflowtable() (or nft_flowtable_update(),
-> > > respectively) so this seems like missing UNBIND there.
-> > > 
-> > > Now about __nft_release_hook, I see:
-> > > 
-> > > nf_tables_pre_exit_net
-> > > -> __nft_release_hooks
-> > >   -> __nft_release_hook
-> > > 
-> > > Do we have to UNBIND at netns exit?
-> > > 
-> > > There is also:
-> > > 
-> > > nft_rcv_nl_event
-> > > -> __nft_release_hook
-> > > 
-> > > I don't see where hooks of flowtables in owner flag tables are unbound.
-> > 
-> > So I validated these findings by adding printks to BIND and UNBIND calls
-> > and performing these actions:
-> > 
-> > - Delete an interface from a flowtable with multiple interfaces
-> > 
-> > - Add a (device to a) flowtable with --check flag
-> > 
-> > - Delete a netns containing a flowtable
-> > 
-> > - In an interactive nft session, create a table with owner flag and
-> >   flowtable inside, then quit
-> > 
-> > All these cases cause imbalance between BIND and UNBIND calls. Looking
-> > at possible fixes, I wonder how things are supposed to be: When deleting
-> > a flowtable, nf_tables_commit will unregister hooks (via
-> > nf_unregister_net_hook), but not unlink/free them. Then, in
-> > nft_commit_release, the UNBIND happens along with unlink/free. Is this
-> > the correct process? Namely unregister and wait for RCU grace period
-> > before performing UNBIND? Or is this arbitrary and combining unregister
-> > with UBIND is OK in all cases?
-> 
-> Thanks for the detailed report.
-> 
-> Basically, add/delete interface to an existing flowtable is not
-> supported by hardware offload at this stage, one option is to reject
-> this by now.
+When comparing two hooks, if both device names are null,
+the comparison should return true, as they are considered equal.
 
-Oh, that's interesting news! Is it sufficient to reject flowtable
-updates if nf_flowtable::flags has NF_FLOWTABLE_HW_OFFLOAD bit set?
+Signed-off-by: Donald Yandt <donald.yandt@gmail.com>
+---
+ src/mnl.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> Then, netns integration was never considered, because it was not clear
-> to me how hardware offload mix with containers at this stage. This
-> needs to be fixed. Same applies interactive nft session (owner flag).
+diff --git a/src/mnl.c b/src/mnl.c
+index 828006c4..88fac5bd 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -2204,7 +2204,7 @@ static bool basehook_eq(const struct basehook *prev, const struct basehook *hook
+ 	if (prev->devname != NULL && hook->devname != NULL)
+ 		return strcmp(prev->devname, hook->devname) == 0;
+ 
+-	if (prev->devname == NULL && prev->devname == NULL)
++	if (prev->devname == NULL && hook->devname == NULL)
+ 		return true;
+ 
+ 	return false;
+-- 
+2.47.0
 
-Those two should be unproblematic though, both netns exit and owner exit
-cause full flowtable deletion - basically same mechanism as for regular
-'nft delete flowtable' should suffice.
-
-> This is my mess, let me post a fix so we can soonish clean the way for
-> you to follow up on your effort to allow for dynamic interface
-> bindings in the next merge window once this fix gets to net.git.
-
-Sure, thanks!
-
-Cheers, Phil
