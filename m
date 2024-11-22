@@ -1,203 +1,210 @@
-Received: from mail-il1-f199.google.com (mail-il1-f199.google.com [209.85.166.199])
+Received: from mail-yw1-f202.google.com (mail-yw1-f202.google.com [209.85.128.202])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E9B5745F2
-	for <netfilter-devel@vger.kernel.org>; Fri, 22 Nov 2024 14:42:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.199
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BE528BE7
+	for <netfilter-devel@vger.kernel.org>; Fri, 22 Nov 2024 17:45:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.202
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732286551; cv=none; b=TnBpGUSgU5hL6dWh6odLbqPpEf6SLCkJhh/6H9J29lSIvsfUsy7GNU+UWKPqS3MHYO3O0M9R4V7CQK9wfaO5ouYs8hUOqNKxir1Dzorv1XrH91FUkEjmhsYj65ROcmrTFJ9T3haMJqcc6dgRrdQxEbu30T2ovqoV2rGNIKZTbZo=
+	t=1732297542; cv=none; b=gLD793/r3R9K59fpEXKeQhv5DLNa1T7jpZUp8c5t7uIaNVKJ+modko3Nbxmd/BNk0RJoD2rImZthrTw2utL25j70BF1lx2YfUu7QOLKV4ENMT1+GVSpfw/w7LQalI9zjy58XMurIHy+yS7oQkle8omxdNLXseA6FHduVGQeAK/U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732286551; c=relaxed/simple;
-	bh=BIEsS5LsD4by/EhQhvRWIE3r/czFlXo23B/i/vdCbG0=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=FDDuE4xUBRSgQnWRCqHAWA1gZb50k481m8pjRPA7cHa+txPEtdr63/LpBzwmwF1LgypZenbUZpDGVavGhP2slsmly0cgZYafSreIreNdVgusiB6b0AX5eBcJrMk3jkhA1ZjGOKYZgE76oIHdpzlHaQmHyg5h5U0+laWCqesz/6A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.199
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-il1-f199.google.com with SMTP id e9e14a558f8ab-3a79039ae30so22397445ab.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 22 Nov 2024 06:42:29 -0800 (PST)
+	s=arc-20240116; t=1732297542; c=relaxed/simple;
+	bh=GzDOHvjcxzQzuwVAI8aacTcXN5qiXjiblZ5GPw3Jb3Y=;
+	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
+	 To:Cc:Content-Type; b=EA2U1R8Bqne/pxHcsPXbJkdj10TvNw7kvk8ozvQ/4K+TRP+ZXZi6His0W+iPYSMfzgqRlp/pmp+4yDMypisGzXz0e+2Cb11EklP+eWf9PbZwUsTKquoeYUu9PHWuSPSbiefC0xgQS2VdzFqJZzE30qxdJGm5qq1aFVFd0gjul1I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=vRpdBDfe; arc=none smtp.client-ip=209.85.128.202
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--gnoack.bounces.google.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="vRpdBDfe"
+Received: by mail-yw1-f202.google.com with SMTP id 00721157ae682-6eec33c5c50so41838807b3.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 22 Nov 2024 09:45:40 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1732297539; x=1732902339; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:from:subject:message-id:references
+         :mime-version:in-reply-to:date:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=2veOvqcd8OHbMSkqCARfAafTZ6QmJgZjD8FJhS72cj8=;
+        b=vRpdBDfeZKirbaifT7cm6tGWj+NmTJqH2PcBSHg15AvkOuBDbM0DReW9stZGADx4tU
+         ZV91SL7cuwoCB7ODiAe4BwQYWQ+KM8qa3bpc/G1Or56Eu5f+IO5nRuKq+PlfdBh62/v5
+         Bp1wQhzbdZZE1OtVVQzHRY5tyv4KD/Om1LvD9Mjo1qQQN7KmQjR9DPm4wSZoV66phdxM
+         hRETn6JuqnOrve0nMcTeNqemT6ZhYPTJmV+vyqUCnO4bP95aagoEiFJYpbxyX1Buzht0
+         cm1QaxXbDqefieOv98LUvcmMN2eq/wtuLAWCPBJs5uD8AvbTRC8FNAyFmX/Abjx23AOz
+         qdWw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1732286548; x=1732891348;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=HREFpr2frQJtKc/0gF+LMIRtVsh+wEdJTnHfyu0RbuM=;
-        b=bWsYEhUInyfPapZez16qSkNYOlqe8V5xO1ReuDeMihlVLTUUWLj9oMxtDzIW4z82H1
-         micFrahzolU6Ql1huk+Xt/NSaiURbmkHaGF83AYGKxXz3xMp3ruwQPUrRGxfRZwglf+b
-         pyaq/R0kt4KZr49TIRUKOgQ+xRbCIKKqdKu8koZEFlnKmuZ1QDc2FeIL5M/MuAHhrhgg
-         kX3zQ1juVrqvf2X2sKGH9muehg6IUK96OCjEbruqjPLv0mCuiXcUZVuB/n3z5evkZKzr
-         KdP/VtncZUzxXFzmeIAUaqdJXgi3Ll1a7vEBRrvj0nYWYeKFe4H86Tzf/uEdXJp1k6JW
-         q6Vg==
-X-Forwarded-Encrypted: i=1; AJvYcCVvGmw171qAGRPRhTttJp8esQQSTx54TXv4AW3CbxsQJTOOm+1qZBKkp3yzApSU6ThbI3R1yY9EfMQf33+ruC4=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyRXuhceOiNKKfsK2vTIgKLGkadoQ6sR/ncVhbMbZSs/IygPwb2
-	wjAcZ45a836zragNNvBjGtgkHUWAPxXTTKSVDG/EBNJ9bsGiV4EYre985e8+ms5yCKIDB0Apen4
-	ErjATOSqMz+Sz/VmUeKT9XcN2cEjv24IWSPHGWhd8ZZ2zF/E87db15O4=
-X-Google-Smtp-Source: AGHT+IGbXUYw3Kwjx0hw4KKuy2WKwNuZ+/BKDPjA2T2Hn3hL4ksW0iLcQ8/sjUrHRK/GuSqEy7KOeguwLdSbBxZe+35sIIIee0Es
+        d=1e100.net; s=20230601; t=1732297539; x=1732902339;
+        h=content-transfer-encoding:cc:to:from:subject:message-id:references
+         :mime-version:in-reply-to:date:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=2veOvqcd8OHbMSkqCARfAafTZ6QmJgZjD8FJhS72cj8=;
+        b=Dl3lOGgAHDjwqsvtPevhSqFsEuWNRUZVyAcaHGcuhVtNeSrKd3VBl9FjLeWX4UVmW/
+         IM2oEvfqQd5WNvRQ6IoczeHbhaEgjqNOLosLlrXOa9PuMF4gdplrsR+j6jvL0yXVxYWY
+         8g1XgOMhXkpBx3AEoUdup5WmFKq9sdYAz3QxQWfrXmvEH3ymB2SAgH35/RMAiffC/f73
+         6fc0sD0I/uPMc0jgxxnCs67RZ52rI2uBmyVoN0hD/F3LEl74hv5EwrkOxpr1rGSjaNry
+         uUISMnZHpklNlQKLH1ahkqmHgG7kmdz2XCjk2OW1+WJxQcQErkkTWOixBPUV6tK6qJWQ
+         rvng==
+X-Forwarded-Encrypted: i=1; AJvYcCXuMwdSIzDpM6XwTqCiDpWoriQtQbydJqfQL3m6J5ndB3ALDg8v5TjUXQoZKEjjA57WrERc/KrWlUML+OUw00E=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxf5ylk8Z0yMOKXurao0YtIkjqVOUSKJZenNHS/DK+XsYAJk62s
+	dylCo6Na3Zo0/oD98D506XPkuNkiEe78r51vmWLFN9tO4V7DwwP/onJamknl/pMG4AWgT5btnqr
+	IlA==
+X-Google-Smtp-Source: AGHT+IHpEH/kPLV9idcYzJND6POdq3yx44U5bnV0sZuSwFiXFLFRZYwm6InrSGcTHIk7sCXgXu9JFIe7vzc=
+X-Received: from swim.c.googlers.com ([fda3:e722:ac3:cc00:31:98fb:c0a8:1605])
+ (user=gnoack job=sendgmr) by 2002:a25:d802:0:b0:e38:1f5f:485a with SMTP id
+ 3f1490d57ef6-e38f8acc967mr1566276.1.1732297539121; Fri, 22 Nov 2024 09:45:39
+ -0800 (PST)
+Date: Fri, 22 Nov 2024 18:45:36 +0100
+In-Reply-To: <ea026af8-bc29-709c-7e04-e145d01fd825@huawei-partners.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:16c5:b0:3a7:87f2:b010 with SMTP id
- e9e14a558f8ab-3a79acf9b88mr40033755ab.5.1732286548639; Fri, 22 Nov 2024
- 06:42:28 -0800 (PST)
-Date: Fri, 22 Nov 2024 06:42:28 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <67409854.050a0220.363a1b.013f.GAE@google.com>
-Subject: [syzbot] [netfilter?] KMSAN: uninit-value in ip6table_mangle_hook (3)
-From: syzbot <syzbot+6023ea32e206eef7920a@syzkaller.appspotmail.com>
-To: coreteam@netfilter.org, davem@davemloft.net, dsahern@kernel.org, 
-	edumazet@google.com, horms@kernel.org, kadlec@netfilter.org, kuba@kernel.org, 
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+References: <20240904104824.1844082-1-ivanov.mikhail1@huawei-partners.com>
+ <20240904104824.1844082-2-ivanov.mikhail1@huawei-partners.com> <ea026af8-bc29-709c-7e04-e145d01fd825@huawei-partners.com>
+Message-ID: <Z0DDQKACIRRDRZRE@google.com>
+Subject: Re: [RFC PATCH v3 01/19] landlock: Support socket access-control
+From: "=?utf-8?Q?G=C3=BCnther?= Noack" <gnoack@google.com>
+To: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+Cc: mic@digikod.net, willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com, 
+	linux-security-module@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, yusongping@huawei.com, 
+	artem.kuzin@huawei.com, konstantin.meskhidze@huawei.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hello,
+Hello Mikhail,
 
-syzbot found the following issue on:
+sorry for the delayed response;
+I am very happy to see activity on this patch set! :)
 
-HEAD commit:    2e1b3cc9d7f7 Merge tag 'arm-fixes-6.12-2' of git://git.ker..
-git tree:       upstream
-console+strace: https://syzkaller.appspot.com/x/log.txt?x=105e0d87980000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=6fdf74cce377223b
-dashboard link: https://syzkaller.appspot.com/bug?extid=6023ea32e206eef7920a
-compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=165d5d5f980000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=145e0d87980000
+On Mon, Nov 11, 2024 at 07:29:49PM +0300, Mikhail Ivanov wrote:
+> On 9/4/2024 1:48 PM, Mikhail Ivanov wrote:
+> > Landlock implements the `LANDLOCK_RULE_NET_PORT` rule type, which provi=
+des
+> > fine-grained control of actions for a specific protocol. Any action or
+> > protocol that is not supported by this rule can not be controlled. As a
+> > result, protocols for which fine-grained control is not supported can b=
+e
+> > used in a sandboxed system and lead to vulnerabilities or unexpected
+> > behavior.
+> >=20
+> > Controlling the protocols used will allow to use only those that are
+> > necessary for the system and/or which have fine-grained Landlock contro=
+l
+> > through others types of rules (e.g. TCP bind/connect control with
+> > `LANDLOCK_RULE_NET_PORT`, UNIX bind control with
+> > `LANDLOCK_RULE_PATH_BENEATH`). Consider following examples:
+> >=20
+> > * Server may want to use only TCP sockets for which there is fine-grain=
+ed
+> >    control of bind(2) and connect(2) actions [1].
+> > * System that does not need a network or that may want to disable netwo=
+rk
+> >    for security reasons (e.g. [2]) can achieve this by restricting the =
+use
+> >    of all possible protocols.
+> >=20
+> > This patch implements such control by restricting socket creation in a
+> > sandboxed process.
+> >=20
+> > Add `LANDLOCK_RULE_SOCKET` rule type that restricts actions on sockets.
+> > This rule uses values of address family and socket type (Cf. socket(2))
+> > to determine sockets that should be restricted. This is represented in =
+a
+> > landlock_socket_attr struct:
+> >=20
+> >    struct landlock_socket_attr {
+> >      __u64 allowed_access;
+> >      int family; /* same as domain in socket(2) */
+> >      int type; /* see socket(2) */
+> >    };
+>=20
+> Hello! I'd like to consider another approach to define this structure
+> before sending the next version of this patchset.
+>=20
+> Currently, it has following possible issues:
+>=20
+> First of all, there is a lack of protocol granularity. It's impossible
+> to (for example) deny creation of ICMP and SCTP sockets and allow TCP
+> and UDP. Since the values of address family and socket type do not
+> completely define the protocol for the restriction, we may gain
+> incomplete control of the network actions. AFAICS, this is limited to
+> only a couple of IP protocol cases (e.g. it's impossible to deny SCTP
+> and SMC sockets to only allow TCP, deny ICMP and allow UDP).
+>=20
+> But one of the main advantages of socket access rights is the ability to
+> allow only those protocols for which there is a fine-grained control
+> over their actions (TCP bind/connect). It can be inconvenient
+> (and unsafe) for SCTP to be unrestricted, while sandboxed process only
+> needs TCP sockets.
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/08456e37db58/disk-2e1b3cc9.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/cc957f7ba80b/vmlinux-2e1b3cc9.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/7579fe72ed89/bzImage-2e1b3cc9.xz
+That is a good observation which I had missed.
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+6023ea32e206eef7920a@syzkaller.appspotmail.com
+I agree with your analysis, I also see the main use case of socket()
+restrictions in:
 
-=====================================================
-BUG: KMSAN: uninit-value in ip6t_mangle_out net/ipv6/netfilter/ip6table_mangle.c:56 [inline]
-BUG: KMSAN: uninit-value in ip6table_mangle_hook+0x97d/0x9c0 net/ipv6/netfilter/ip6table_mangle.c:72
- ip6t_mangle_out net/ipv6/netfilter/ip6table_mangle.c:56 [inline]
- ip6table_mangle_hook+0x97d/0x9c0 net/ipv6/netfilter/ip6table_mangle.c:72
- nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
- nf_hook_slow+0xf4/0x400 net/netfilter/core.c:626
- nf_hook include/linux/netfilter.h:269 [inline]
- __ip6_local_out+0x5ac/0x640 net/ipv6/output_core.c:143
- ip6_local_out+0x4c/0x210 net/ipv6/output_core.c:153
- ip6tunnel_xmit+0x129/0x460 include/net/ip6_tunnel.h:161
- ip6_tnl_xmit+0x341a/0x3860 net/ipv6/ip6_tunnel.c:1281
- __gre6_xmit+0x14b9/0x1550 net/ipv6/ip6_gre.c:815
- ip6gre_xmit_ipv4 net/ipv6/ip6_gre.c:839 [inline]
- ip6gre_tunnel_xmit+0x18f7/0x2030 net/ipv6/ip6_gre.c:922
- __netdev_start_xmit include/linux/netdevice.h:4928 [inline]
- netdev_start_xmit include/linux/netdevice.h:4937 [inline]
- xmit_one net/core/dev.c:3588 [inline]
- dev_hard_start_xmit+0x247/0xa20 net/core/dev.c:3604
- sch_direct_xmit+0x399/0xd40 net/sched/sch_generic.c:343
- __dev_xmit_skb net/core/dev.c:3825 [inline]
- __dev_queue_xmit+0x2fcf/0x56d0 net/core/dev.c:4398
- dev_queue_xmit include/linux/netdevice.h:3094 [inline]
- packet_xmit+0x9c/0x6c0 net/packet/af_packet.c:276
- packet_snd net/packet/af_packet.c:3145 [inline]
- packet_sendmsg+0x908b/0xa370 net/packet/af_packet.c:3177
- sock_sendmsg_nosec net/socket.c:729 [inline]
- __sock_sendmsg+0x30f/0x380 net/socket.c:744
- __sys_sendto+0x645/0x7f0 net/socket.c:2214
- __do_sys_sendto net/socket.c:2226 [inline]
- __se_sys_sendto net/socket.c:2222 [inline]
- __x64_sys_sendto+0x125/0x1d0 net/socket.c:2222
- x64_sys_call+0x3373/0x3ba0 arch/x86/include/generated/asm/syscalls_64.h:45
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xcd/0x1e0 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
+ (a) restricting socket creating altogether
+ (b) only permitting socket types for which there is fine grained control
 
-Uninit was stored to memory at:
- ip6_tnl_xmit+0x34f7/0x3860 net/ipv6/ip6_tunnel.c:1277
- __gre6_xmit+0x14b9/0x1550 net/ipv6/ip6_gre.c:815
- ip6gre_xmit_ipv4 net/ipv6/ip6_gre.c:839 [inline]
- ip6gre_tunnel_xmit+0x18f7/0x2030 net/ipv6/ip6_gre.c:922
- __netdev_start_xmit include/linux/netdevice.h:4928 [inline]
- netdev_start_xmit include/linux/netdevice.h:4937 [inline]
- xmit_one net/core/dev.c:3588 [inline]
- dev_hard_start_xmit+0x247/0xa20 net/core/dev.c:3604
- sch_direct_xmit+0x399/0xd40 net/sched/sch_generic.c:343
- __dev_xmit_skb net/core/dev.c:3825 [inline]
- __dev_queue_xmit+0x2fcf/0x56d0 net/core/dev.c:4398
- dev_queue_xmit include/linux/netdevice.h:3094 [inline]
- packet_xmit+0x9c/0x6c0 net/packet/af_packet.c:276
- packet_snd net/packet/af_packet.c:3145 [inline]
- packet_sendmsg+0x908b/0xa370 net/packet/af_packet.c:3177
- sock_sendmsg_nosec net/socket.c:729 [inline]
- __sock_sendmsg+0x30f/0x380 net/socket.c:744
- __sys_sendto+0x645/0x7f0 net/socket.c:2214
- __do_sys_sendto net/socket.c:2226 [inline]
- __se_sys_sendto net/socket.c:2222 [inline]
- __x64_sys_sendto+0x125/0x1d0 net/socket.c:2222
- x64_sys_call+0x3373/0x3ba0 arch/x86/include/generated/asm/syscalls_64.h:45
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xcd/0x1e0 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-Uninit was created at:
- slab_post_alloc_hook mm/slub.c:4091 [inline]
- slab_alloc_node mm/slub.c:4134 [inline]
- __do_kmalloc_node mm/slub.c:4263 [inline]
- __kmalloc_node_track_caller_noprof+0x6c7/0xf90 mm/slub.c:4283
- kmalloc_reserve+0x23e/0x4a0 net/core/skbuff.c:609
- pskb_expand_head+0x226/0x1a60 net/core/skbuff.c:2275
- skb_realloc_headroom+0x140/0x2b0 net/core/skbuff.c:2355
- ip6_tnl_xmit+0x2106/0x3860 net/ipv6/ip6_tunnel.c:1227
- __gre6_xmit+0x14b9/0x1550 net/ipv6/ip6_gre.c:815
- ip6gre_xmit_ipv4 net/ipv6/ip6_gre.c:839 [inline]
- ip6gre_tunnel_xmit+0x18f7/0x2030 net/ipv6/ip6_gre.c:922
- __netdev_start_xmit include/linux/netdevice.h:4928 [inline]
- netdev_start_xmit include/linux/netdevice.h:4937 [inline]
- xmit_one net/core/dev.c:3588 [inline]
- dev_hard_start_xmit+0x247/0xa20 net/core/dev.c:3604
- sch_direct_xmit+0x399/0xd40 net/sched/sch_generic.c:343
- __dev_xmit_skb net/core/dev.c:3825 [inline]
- __dev_queue_xmit+0x2fcf/0x56d0 net/core/dev.c:4398
- dev_queue_xmit include/linux/netdevice.h:3094 [inline]
- packet_xmit+0x9c/0x6c0 net/packet/af_packet.c:276
- packet_snd net/packet/af_packet.c:3145 [inline]
- packet_sendmsg+0x908b/0xa370 net/packet/af_packet.c:3177
- sock_sendmsg_nosec net/socket.c:729 [inline]
- __sock_sendmsg+0x30f/0x380 net/socket.c:744
- __sys_sendto+0x645/0x7f0 net/socket.c:2214
- __do_sys_sendto net/socket.c:2226 [inline]
- __se_sys_sendto net/socket.c:2222 [inline]
- __x64_sys_sendto+0x125/0x1d0 net/socket.c:2222
- x64_sys_call+0x3373/0x3ba0 arch/x86/include/generated/asm/syscalls_64.h:45
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xcd/0x1e0 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-CPU: 1 UID: 0 PID: 5819 Comm: syz-executor359 Not tainted 6.12.0-rc6-syzkaller-00077-g2e1b3cc9d7f7 #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/13/2024
-=====================================================
+and I also agree that it would be very surprising when the same socket type=
+s
+that provide fine grained control would also open the door for unrestricted
+access to SMC, SCTP or other protocols.  We should instead strive for a
+socket() access control with which these additional protocols weren't
+accessible.
 
 
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+> Adding protocol (Cf. socket(2)) field was considered a bit during the
+> initial discussion:
+> https://lore.kernel.org/all/CABi2SkVWU=3DWxb2y3fP702twyHBD3kVoySPGSz2X22V=
+ckvcHeXw@mail.gmail.com/
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+So adding "protocol" to the rule attributes would suffice to restrict the u=
+se of
+SMC and SCTP then?  (Sorry, I lost context on these protocols a bit in the
+meantime, I was so far under the impression that these were using different
+values for family and type than TCP and UDP do.)
 
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
 
-If you want syzbot to run the reproducer, reply with:
-#syz test: git://repo/address.git branch-or-commit-hash
-If you attach or paste a git patch, syzbot will apply it before testing.
+> Secondly, I'm not really sure if socket type granularity is required
+> for most of the protocols. It may be more convenient for the end user
+> to be able to completely restrict the address family without specifying
+> whether restriction is dedicated to stream or dgram sockets (e.g. for
+> BLUETOOTH, VSOCK sockets). However, this is not a big issue for the
+> current design, since address family can be restricted by specifying
+> type =3D SOCK_TYPE_MASK.
 
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
+Whether the user is adding one rule to permit AF_INET+*, or whether the use=
+r is
+adding two rules to permit (1) AF_INET+SOCK_STREAM and (2) AF_INET+SOCK_DGR=
+AM,
+that does not seem like a big deal to me as long as the list of such
+combinations is so low?
 
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
 
-If you want to undo deduplication, reply with:
-#syz undup
+> I suggest implementing something close to selinux socket classes for the
+> struct landlock_socket_attr (Cf. socket_type_to_security_class()). This
+> will provide protocol granularity and may be simpler and more convenient
+> in the terms of determining access rights. WDYT?
+
+I see that this is a longer switch statement that maps to this enum, it wou=
+ld be
+an additional data table that would have to be documented separately for us=
+ers.
+
+Do you have an example for how such a "security class enum" would map to th=
+e
+combinations of family, type and socket for the protocols discussed above?
+
+If this is just a matter of actually mapping (family, type, protocol)
+combinations in a more flexible way, could we get away by allowing a specia=
+l
+"wildcard" value for the "protocol" field, when it is used within a ruleset=
+?
+Then the LSM would have to look up whether there is a rule for (family, typ=
+e,
+protocol) and the only change would be that it now needs to also check whet=
+her
+there is a rule for (family, type, *)?
+
+=E2=80=94G=C3=BCnther
