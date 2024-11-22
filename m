@@ -1,520 +1,192 @@
-Received: from mail-il1-f200.google.com (mail-il1-f200.google.com [209.85.166.200])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0b-00007101.pphosted.com (mx0b-00007101.pphosted.com [148.163.139.28])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9523EC4
-	for <netfilter-devel@vger.kernel.org>; Fri, 22 Nov 2024 00:02:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.200
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD9552309A3;
+	Fri, 22 Nov 2024 04:54:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.139.28
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732233745; cv=none; b=DQalG1vTDu6RyWqPURUz9eNgt6jsZvyKXsQBFVnfXwFHkG1twX1BZY/R0PmYUAGbWCGBnRfQmvb8PvBbOx/8VtFIjC28lKWUeYYfVzVlpALhwNPAmYj+fhtdlEGf1X8UsD0DqROhRpnRNiJayk+iW24G+dE/2TjYvAvgdxi6zqo=
+	t=1732251243; cv=none; b=mpAwPVqavjmXrN+Vw7vg/62ZNixvq47GN2HiJzuIk9eSG6TCADVXAVvYe929u6+eWqYq17DFHSkAKmGqs4UP/qh39fK/f27faEH8HewBOMB0iWfbU02iKPbEN0SGLAlKU8mW6rauMg9+2D3eQsTE+Qir/W2QUr1pB55C4qpa+9I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732233745; c=relaxed/simple;
-	bh=zPNsngUrW8SuQCUC+d9uvaCWxxOh0Robx3W3qXyId9Q=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=dvz6s6bOMwRwbwv6suT5CPdEMMhTKAtlY5pzpBf+GvrLgG3rFUDw27tNANx4hDKyYDdnqeoAw1K9C8ew90UyCiaM3rRMho0NzhInZFQAKHp2bksNEdSHTzDp21L/q/2Kwuojs1TD5e47pcX4BhmUmQEAZNBEy36hDmEMjef6CgY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.200
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-il1-f200.google.com with SMTP id e9e14a558f8ab-3a77fad574cso13535765ab.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Nov 2024 16:02:22 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1732233742; x=1732838542;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=ELCqlXYQXHWugF/K5LLj7RS+1lCa8OMBZmX+A9KMV0Q=;
-        b=cNcH3DXuzPZcm2e79Idj75oQoCsuU0o90zxE22UsGUPt1y4Ic+Rh9jhIqpRsb940gG
-         cgBsXibah9OzwuS1wyrJycgBcU1jZwMuDOd0T/dfgdZ79qeugfxYf4Ppgs7Jlu3tRePH
-         oAMzfqJtvYFIoep2NZ8XtZXyudvFe98C5D6IWtd8qXvev6FxLwqbW94IxUbghUwFtPuZ
-         p00IDXNZsxzFzSk5N1gmj4lFU7nWTjFSTrdjThZbUbKgmQOcXGFJPKvn6Pu458VxbWQ3
-         CG8MWuQTcSFF6tjlzBAZTYotVO71st5HeFLb6Nc25/wYtPKjtFsU41amCr7brvu0JbE7
-         SONA==
-X-Forwarded-Encrypted: i=1; AJvYcCX/JI0jPFtOoxwmtQuOioxKX13R5v+spBbrGv0OX+sDYGJqccpm/kOdynq6JE2SDnL54TgSpD6TXBkmltB+pVk=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw0Ua+XRhmyNvX1ImvSXYVbD6G8BHvALHDy2n+RlC2+cdJIn6Sc
-	A5vp6OlLWKHWG1mJLvQaZ6MkYwI02roJB1q3IWXwAAtH2BHxqvuvp7j0KbxACodVFa6JG/ZPIp/
-	LD7i6hEu9ovz0slqXwpWZ6U6thy+TQ53fghe/XZDN0xoB33+oAHZArnI=
-X-Google-Smtp-Source: AGHT+IFrhkvwA9BDIyJ3ZtLI5uSkjICy1EnXOW6/o/asoQTVP8NlKGJL/8tASg0d4q4IrL5YW74eVVxtObX1THmvLRrZxr8angNo
+	s=arc-20240116; t=1732251243; c=relaxed/simple;
+	bh=GMaHCGleSOQxiJxTHlVL9PaaVm7nxmdgWbSaE90XeM4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=FJq7Bt8kX9fXrv40uuE76Rg3yfa1+2xrgUN66bQ/gEto4YbN7qBjPWp5cHVSrgKU2DiNtu14zHixlv3JnWjg419YArly5QT/3AUs2EyuLEB1uzBqLK/q9VzZL7hhmldtxCkgDWNwAr8ViuEc3/CN19wxbCbYHWPxs0qXTvnqxe4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=illinois.edu; spf=pass smtp.mailfrom=illinois.edu; dkim=pass (2048-bit key) header.d=illinois.edu header.i=@illinois.edu header.b=a3v2yKpV; arc=none smtp.client-ip=148.163.139.28
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=illinois.edu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=illinois.edu
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=illinois.edu header.i=@illinois.edu header.b="a3v2yKpV"
+Received: from pps.filterd (m0166260.ppops.net [127.0.0.1])
+	by mx0b-00007101.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 4AM3wiai015054;
+	Fri, 22 Nov 2024 04:53:11 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=illinois.edu; h=
+	cc:content-transfer-encoding:date:from:message-id:mime-version
+	:subject:to; s=campusrelays; bh=M6/FufPVvCmmC25b8oENqCCuZgyvk0Xk
+	1/pLeLp70m8=; b=a3v2yKpVbfJRf9QirliCD5jV0Ge0Gf71BLjhmrUohzCGzI8k
+	1fI/vqo5NHCzIfR0YdSBN6RrHg9nhIuiOAwiCzX28qUIlQDSd5QiQefhi219AXea
+	fZsEltVzOX4Btck+3g0pRmWJWZuaecJ98T2X9Fh7EPV2/EGdL0U7bHzefAWT6MO3
+	65a4LlG8xqj2tp1yhYJy+wq4GWRGb8x8Yt3f0y2empQWUoOU5gDchto/kDYgUNp/
+	5L/Db29XyEnKBSYH/KxOKlDWiX1QjGAZ5EDwglZQrxBXWXL1hfVzhrU+s740W9vB
+	+Ho2Q8kCoOaFbT07mjpGMvHqV4mgytf3lZ6+RQ==
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0b-00007101.pphosted.com (PPS) with ESMTPS id 431yuy8mq8-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 22 Nov 2024 04:53:10 +0000 (GMT)
+Received: from m0166260.ppops.net (m0166260.ppops.net [127.0.0.1])
+	by pps.reinject (8.18.0.8/8.18.0.8) with ESMTP id 4AM4mFUk019718;
+	Fri, 22 Nov 2024 04:53:10 GMT
+Received: from localhost.localdomain (oasis.cs.illinois.edu [130.126.137.13])
+	by mx0b-00007101.pphosted.com (PPS) with ESMTP id 431yuy8mq5-1;
+	Fri, 22 Nov 2024 04:53:10 +0000 (GMT)
+From: Jinghao Jia <jinghao7@illinois.edu>
+To: Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>, Nathan Chancellor <nathan@kernel.org>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        Bill Wendling <morbo@google.com>,
+        Justin Stitt <justinstitt@google.com>, Kees Cook <kees@kernel.org>
+Cc: netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org, llvm@lists.linux.dev,
+        Jinghao Jia <jinghao7@illinois.edu>, kernel test robot <lkp@intel.com>,
+        Ruowen Qin <ruqin@redhat.com>
+Subject: [PATCH v2 net] ipvs: fix UB due to uninitialized stack access in ip_vs_protocol_init()
+Date: Thu, 21 Nov 2024 22:52:57 -0600
+Message-ID: <20241122045257.27452-1-jinghao7@illinois.edu>
+X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a92:c56a:0:b0:3a7:6825:409d with SMTP id
- e9e14a558f8ab-3a79ab8d47dmr10712425ab.0.1732233742100; Thu, 21 Nov 2024
- 16:02:22 -0800 (PST)
-Date: Thu, 21 Nov 2024 16:02:22 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <673fca0e.050a0220.363a1b.012a.GAE@google.com>
-Subject: [syzbot] [netfilter?] BUG: using smp_processor_id() in preemptible
- code in nft_inner_eval
-From: syzbot <syzbot+84d0441b9860f0d63285@syzkaller.appspotmail.com>
-To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
-	horms@kernel.org, kadlec@netfilter.org, kuba@kernel.org, 
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-ORIG-GUID: dEH4go68XiYNgMywoM7tnrJZfxVJfS1U
+X-Proofpoint-GUID: eGPE2fUII21SyMbkJ8sFtdJoeo6eqYU_
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1051,Hydra:6.0.680,FMLib:17.12.62.30
+ definitions=2024-10-05_03,2024-10-04_01,2024-09-30_01
+X-Spam-Details: rule=cautious_plus_nq_notspam policy=cautious_plus_nq score=0 bulkscore=0
+ phishscore=0 lowpriorityscore=0 mlxlogscore=999 malwarescore=0
+ impostorscore=0 suspectscore=0 spamscore=0 priorityscore=1501 mlxscore=0
+ clxscore=1015 adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.19.0-2409260000 definitions=main-2411220039
+X-Spam-Score: 0
+X-Spam-OrigSender: jinghao7@illinois.edu
+X-Spam-Bar: 
 
-Hello,
+Under certain kernel configurations when building with Clang/LLVM, the
+compiler does not generate a return or jump as the terminator
+instruction for ip_vs_protocol_init(), triggering the following objtool
+warning during build time:
 
-syzbot found the following issue on:
+  vmlinux.o: warning: objtool: ip_vs_protocol_init() falls through to next function __initstub__kmod_ip_vs_rr__935_123_ip_vs_rr_init6()
 
-HEAD commit:    43fb83c17ba2 Merge tag 'soc-arm-6.13' of git://git.kernel...
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=17da1b78580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=e796b1bf154f93a7
-dashboard link: https://syzkaller.appspot.com/bug?extid=84d0441b9860f0d63285
-compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
+At runtime, this either causes an oops when trying to load the ipvs
+module or a boot-time panic if ipvs is built-in. This same issue has
+been reported by the Intel kernel test robot previously.
 
-Unfortunately, I don't have any reproducer for this issue yet.
+Digging deeper into both LLVM and the kernel code reveals this to be a
+undefined behavior problem. ip_vs_protocol_init() uses a on-stack buffer
+of 64 chars to store the registered protocol names and leaves it
+uninitialized after definition. The function calls strnlen() when
+concatenating protocol names into the buffer. With CONFIG_FORTIFY_SOURCE
+strnlen() performs an extra step to check whether the last byte of the
+input char buffer is a null character (commit 3009f891bb9f ("fortify:
+Allow strlen() and strnlen() to pass compile-time known lengths")).
+This, together with possibly other configurations, cause the following
+IR to be generated:
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/cdcbc016316b/disk-43fb83c1.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/f82505daa7c2/vmlinux-43fb83c1.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/74b0b41d70c6/bzImage-43fb83c1.xz
+  define hidden i32 @ip_vs_protocol_init() local_unnamed_addr #5 section ".init.text" align 16 !kcfi_type !29 {
+    %1 = alloca [64 x i8], align 16
+    ...
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+84d0441b9860f0d63285@syzkaller.appspotmail.com
+  14:                                               ; preds = %11
+    %15 = getelementptr inbounds i8, ptr %1, i64 63
+    %16 = load i8, ptr %15, align 1
+    %17 = tail call i1 @llvm.is.constant.i8(i8 %16)
+    %18 = icmp eq i8 %16, 0
+    %19 = select i1 %17, i1 %18, i1 false
+    br i1 %19, label %20, label %23
 
-check_preemption_disabled: 3425 callbacks suppressed
-BUG: using smp_processor_id() in preemptible [00000000] code: syz.3.1627/12102
-caller is nft_inner_eval+0xda/0x18e0 net/netfilter/nft_inner.c:251
-CPU: 1 UID: 0 PID: 12102 Comm: syz.3.1627 Not tainted 6.12.0-syzkaller-03657-g43fb83c17ba2 #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/30/2024
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:94 [inline]
- dump_stack_lvl+0x241/0x360 lib/dump_stack.c:120
- check_preemption_disabled+0x10e/0x120 lib/smp_processor_id.c:49
- nft_inner_eval+0xda/0x18e0 net/netfilter/nft_inner.c:251
- expr_call_ops_eval net/netfilter/nf_tables_core.c:240 [inline]
- nft_do_chain+0x4ad/0x1da0 net/netfilter/nf_tables_core.c:288
- nft_do_chain_ipv4+0x202/0x320 net/netfilter/nft_chain_filter.c:23
- nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
- nf_hook_slow+0xc3/0x220 net/netfilter/core.c:626
- nf_hook+0x2c4/0x450 include/linux/netfilter.h:269
- NF_HOOK_COND include/linux/netfilter.h:302 [inline]
- ip_output+0x185/0x230 net/ipv4/ip_output.c:434
- ip_local_out net/ipv4/ip_output.c:130 [inline]
- ip_send_skb+0x74/0x100 net/ipv4/ip_output.c:1496
- udp_send_skb+0xab6/0x1630 net/ipv4/udp.c:984
- udp_sendmsg+0x1c21/0x2a60 net/ipv4/udp.c:1272
- sock_sendmsg_nosec net/socket.c:711 [inline]
- __sock_sendmsg+0x1a6/0x270 net/socket.c:726
- ____sys_sendmsg+0x52a/0x7e0 net/socket.c:2581
- ___sys_sendmsg net/socket.c:2635 [inline]
- __sys_sendmmsg+0x36a/0x720 net/socket.c:2724
- __do_sys_sendmmsg net/socket.c:2751 [inline]
- __se_sys_sendmmsg net/socket.c:2748 [inline]
- __x64_sys_sendmmsg+0xa0/0xb0 net/socket.c:2748
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7f1c1ff7e819
-Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007f1c20db5038 EFLAGS: 00000246 ORIG_RAX: 0000000000000133
-RAX: ffffffffffffffda RBX: 00007f1c20135fa0 RCX: 00007f1c1ff7e819
-RDX: 000000000000002d RSI: 0000000020007fc0 RDI: 0000000000000007
-RBP: 00007f1c1fff175e R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
-R13: 0000000000000000 R14: 00007f1c20135fa0 R15: 00007ffef663cd18
- </TASK>
-BUG: using smp_processor_id() in preemptible [00000000] code: syz.3.1627/12102
-caller is nft_inner_eval+0xda/0x18e0 net/netfilter/nft_inner.c:251
-CPU: 0 UID: 0 PID: 12102 Comm: syz.3.1627 Not tainted 6.12.0-syzkaller-03657-g43fb83c17ba2 #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/30/2024
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:94 [inline]
- dump_stack_lvl+0x241/0x360 lib/dump_stack.c:120
- check_preemption_disabled+0x10e/0x120 lib/smp_processor_id.c:49
- nft_inner_eval+0xda/0x18e0 net/netfilter/nft_inner.c:251
- expr_call_ops_eval net/netfilter/nf_tables_core.c:240 [inline]
- nft_do_chain+0x4ad/0x1da0 net/netfilter/nf_tables_core.c:288
- nft_do_chain_ipv4+0x202/0x320 net/netfilter/nft_chain_filter.c:23
- nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
- nf_hook_slow+0xc3/0x220 net/netfilter/core.c:626
- nf_hook+0x2c4/0x450 include/linux/netfilter.h:269
- NF_HOOK_COND include/linux/netfilter.h:302 [inline]
- ip_output+0x185/0x230 net/ipv4/ip_output.c:434
- ip_local_out net/ipv4/ip_output.c:130 [inline]
- ip_send_skb+0x74/0x100 net/ipv4/ip_output.c:1496
- udp_send_skb+0xab6/0x1630 net/ipv4/udp.c:984
- udp_sendmsg+0x1c21/0x2a60 net/ipv4/udp.c:1272
- sock_sendmsg_nosec net/socket.c:711 [inline]
- __sock_sendmsg+0x1a6/0x270 net/socket.c:726
- ____sys_sendmsg+0x52a/0x7e0 net/socket.c:2581
- ___sys_sendmsg net/socket.c:2635 [inline]
- __sys_sendmmsg+0x36a/0x720 net/socket.c:2724
- __do_sys_sendmmsg net/socket.c:2751 [inline]
- __se_sys_sendmmsg net/socket.c:2748 [inline]
- __x64_sys_sendmmsg+0xa0/0xb0 net/socket.c:2748
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7f1c1ff7e819
-Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007f1c20db5038 EFLAGS: 00000246 ORIG_RAX: 0000000000000133
-RAX: ffffffffffffffda RBX: 00007f1c20135fa0 RCX: 00007f1c1ff7e819
-RDX: 000000000000002d RSI: 0000000020007fc0 RDI: 0000000000000007
-RBP: 00007f1c1fff175e R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
-R13: 0000000000000000 R14: 00007f1c20135fa0 R15: 00007ffef663cd18
- </TASK>
-BUG: using smp_processor_id() in preemptible [00000000] code: syz.3.1627/12102
-caller is nft_inner_eval+0xda/0x18e0 net/netfilter/nft_inner.c:251
-CPU: 0 UID: 0 PID: 12102 Comm: syz.3.1627 Not tainted 6.12.0-syzkaller-03657-g43fb83c17ba2 #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/30/2024
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:94 [inline]
- dump_stack_lvl+0x241/0x360 lib/dump_stack.c:120
- check_preemption_disabled+0x10e/0x120 lib/smp_processor_id.c:49
- nft_inner_eval+0xda/0x18e0 net/netfilter/nft_inner.c:251
- expr_call_ops_eval net/netfilter/nf_tables_core.c:240 [inline]
- nft_do_chain+0x4ad/0x1da0 net/netfilter/nf_tables_core.c:288
- nft_do_chain_ipv4+0x202/0x320 net/netfilter/nft_chain_filter.c:23
- nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
- nf_hook_slow+0xc3/0x220 net/netfilter/core.c:626
- nf_hook+0x2c4/0x450 include/linux/netfilter.h:269
- NF_HOOK_COND include/linux/netfilter.h:302 [inline]
- ip_output+0x185/0x230 net/ipv4/ip_output.c:434
- ip_local_out net/ipv4/ip_output.c:130 [inline]
- ip_send_skb+0x74/0x100 net/ipv4/ip_output.c:1496
- udp_send_skb+0xab6/0x1630 net/ipv4/udp.c:984
- udp_sendmsg+0x1c21/0x2a60 net/ipv4/udp.c:1272
- sock_sendmsg_nosec net/socket.c:711 [inline]
- __sock_sendmsg+0x1a6/0x270 net/socket.c:726
- ____sys_sendmsg+0x52a/0x7e0 net/socket.c:2581
- ___sys_sendmsg net/socket.c:2635 [inline]
- __sys_sendmmsg+0x36a/0x720 net/socket.c:2724
- __do_sys_sendmmsg net/socket.c:2751 [inline]
- __se_sys_sendmmsg net/socket.c:2748 [inline]
- __x64_sys_sendmmsg+0xa0/0xb0 net/socket.c:2748
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7f1c1ff7e819
-Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007f1c20db5038 EFLAGS: 00000246 ORIG_RAX: 0000000000000133
-RAX: ffffffffffffffda RBX: 00007f1c20135fa0 RCX: 00007f1c1ff7e819
-RDX: 000000000000002d RSI: 0000000020007fc0 RDI: 0000000000000007
-RBP: 00007f1c1fff175e R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
-R13: 0000000000000000 R14: 00007f1c20135fa0 R15: 00007ffef663cd18
- </TASK>
-BUG: using smp_processor_id() in preemptible [00000000] code: syz.3.1627/12102
-caller is nft_inner_eval+0xda/0x18e0 net/netfilter/nft_inner.c:251
-CPU: 0 UID: 0 PID: 12102 Comm: syz.3.1627 Not tainted 6.12.0-syzkaller-03657-g43fb83c17ba2 #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/30/2024
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:94 [inline]
- dump_stack_lvl+0x241/0x360 lib/dump_stack.c:120
- check_preemption_disabled+0x10e/0x120 lib/smp_processor_id.c:49
- nft_inner_eval+0xda/0x18e0 net/netfilter/nft_inner.c:251
- expr_call_ops_eval net/netfilter/nf_tables_core.c:240 [inline]
- nft_do_chain+0x4ad/0x1da0 net/netfilter/nf_tables_core.c:288
- nft_do_chain_ipv4+0x202/0x320 net/netfilter/nft_chain_filter.c:23
- nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
- nf_hook_slow+0xc3/0x220 net/netfilter/core.c:626
- nf_hook+0x2c4/0x450 include/linux/netfilter.h:269
- NF_HOOK_COND include/linux/netfilter.h:302 [inline]
- ip_output+0x185/0x230 net/ipv4/ip_output.c:434
- ip_local_out net/ipv4/ip_output.c:130 [inline]
- ip_send_skb+0x74/0x100 net/ipv4/ip_output.c:1496
- udp_send_skb+0xab6/0x1630 net/ipv4/udp.c:984
- udp_sendmsg+0x1c21/0x2a60 net/ipv4/udp.c:1272
- sock_sendmsg_nosec net/socket.c:711 [inline]
- __sock_sendmsg+0x1a6/0x270 net/socket.c:726
- ____sys_sendmsg+0x52a/0x7e0 net/socket.c:2581
- ___sys_sendmsg net/socket.c:2635 [inline]
- __sys_sendmmsg+0x36a/0x720 net/socket.c:2724
- __do_sys_sendmmsg net/socket.c:2751 [inline]
- __se_sys_sendmmsg net/socket.c:2748 [inline]
- __x64_sys_sendmmsg+0xa0/0xb0 net/socket.c:2748
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7f1c1ff7e819
-Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007f1c20db5038 EFLAGS: 00000246 ORIG_RAX: 0000000000000133
-RAX: ffffffffffffffda RBX: 00007f1c20135fa0 RCX: 00007f1c1ff7e819
-RDX: 000000000000002d RSI: 0000000020007fc0 RDI: 0000000000000007
-RBP: 00007f1c1fff175e R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
-R13: 0000000000000000 R14: 00007f1c20135fa0 R15: 00007ffef663cd18
- </TASK>
-BUG: using smp_processor_id() in preemptible [00000000] code: syz.3.1627/12102
-caller is nft_inner_eval+0xda/0x18e0 net/netfilter/nft_inner.c:251
-CPU: 0 UID: 0 PID: 12102 Comm: syz.3.1627 Not tainted 6.12.0-syzkaller-03657-g43fb83c17ba2 #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/30/2024
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:94 [inline]
- dump_stack_lvl+0x241/0x360 lib/dump_stack.c:120
- check_preemption_disabled+0x10e/0x120 lib/smp_processor_id.c:49
- nft_inner_eval+0xda/0x18e0 net/netfilter/nft_inner.c:251
- expr_call_ops_eval net/netfilter/nf_tables_core.c:240 [inline]
- nft_do_chain+0x4ad/0x1da0 net/netfilter/nf_tables_core.c:288
- nft_do_chain_ipv4+0x202/0x320 net/netfilter/nft_chain_filter.c:23
- nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
- nf_hook_slow+0xc3/0x220 net/netfilter/core.c:626
- nf_hook+0x2c4/0x450 include/linux/netfilter.h:269
- NF_HOOK_COND include/linux/netfilter.h:302 [inline]
- ip_output+0x185/0x230 net/ipv4/ip_output.c:434
- ip_local_out net/ipv4/ip_output.c:130 [inline]
- ip_send_skb+0x74/0x100 net/ipv4/ip_output.c:1496
- udp_send_skb+0xab6/0x1630 net/ipv4/udp.c:984
- udp_sendmsg+0x1c21/0x2a60 net/ipv4/udp.c:1272
- sock_sendmsg_nosec net/socket.c:711 [inline]
- __sock_sendmsg+0x1a6/0x270 net/socket.c:726
- ____sys_sendmsg+0x52a/0x7e0 net/socket.c:2581
- ___sys_sendmsg net/socket.c:2635 [inline]
- __sys_sendmmsg+0x36a/0x720 net/socket.c:2724
- __do_sys_sendmmsg net/socket.c:2751 [inline]
- __se_sys_sendmmsg net/socket.c:2748 [inline]
- __x64_sys_sendmmsg+0xa0/0xb0 net/socket.c:2748
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7f1c1ff7e819
-Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007f1c20db5038 EFLAGS: 00000246 ORIG_RAX: 0000000000000133
-RAX: ffffffffffffffda RBX: 00007f1c20135fa0 RCX: 00007f1c1ff7e819
-RDX: 000000000000002d RSI: 0000000020007fc0 RDI: 0000000000000007
-RBP: 00007f1c1fff175e R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
-R13: 0000000000000000 R14: 00007f1c20135fa0 R15: 00007ffef663cd18
- </TASK>
-BUG: using smp_processor_id() in preemptible [00000000] code: syz.3.1627/12102
-caller is nft_inner_eval+0xda/0x18e0 net/netfilter/nft_inner.c:251
-CPU: 0 UID: 0 PID: 12102 Comm: syz.3.1627 Not tainted 6.12.0-syzkaller-03657-g43fb83c17ba2 #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/30/2024
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:94 [inline]
- dump_stack_lvl+0x241/0x360 lib/dump_stack.c:120
- check_preemption_disabled+0x10e/0x120 lib/smp_processor_id.c:49
- nft_inner_eval+0xda/0x18e0 net/netfilter/nft_inner.c:251
- expr_call_ops_eval net/netfilter/nf_tables_core.c:240 [inline]
- nft_do_chain+0x4ad/0x1da0 net/netfilter/nf_tables_core.c:288
- nft_do_chain_ipv4+0x202/0x320 net/netfilter/nft_chain_filter.c:23
- nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
- nf_hook_slow+0xc3/0x220 net/netfilter/core.c:626
- nf_hook+0x2c4/0x450 include/linux/netfilter.h:269
- NF_HOOK_COND include/linux/netfilter.h:302 [inline]
- ip_output+0x185/0x230 net/ipv4/ip_output.c:434
- ip_local_out net/ipv4/ip_output.c:130 [inline]
- ip_send_skb+0x74/0x100 net/ipv4/ip_output.c:1496
- udp_send_skb+0xab6/0x1630 net/ipv4/udp.c:984
- udp_sendmsg+0x1c21/0x2a60 net/ipv4/udp.c:1272
- sock_sendmsg_nosec net/socket.c:711 [inline]
- __sock_sendmsg+0x1a6/0x270 net/socket.c:726
- ____sys_sendmsg+0x52a/0x7e0 net/socket.c:2581
- ___sys_sendmsg net/socket.c:2635 [inline]
- __sys_sendmmsg+0x36a/0x720 net/socket.c:2724
- __do_sys_sendmmsg net/socket.c:2751 [inline]
- __se_sys_sendmmsg net/socket.c:2748 [inline]
- __x64_sys_sendmmsg+0xa0/0xb0 net/socket.c:2748
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7f1c1ff7e819
-Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007f1c20db5038 EFLAGS: 00000246 ORIG_RAX: 0000000000000133
-RAX: ffffffffffffffda RBX: 00007f1c20135fa0 RCX: 00007f1c1ff7e819
-RDX: 000000000000002d RSI: 0000000020007fc0 RDI: 0000000000000007
-RBP: 00007f1c1fff175e R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
-R13: 0000000000000000 R14: 00007f1c20135fa0 R15: 00007ffef663cd18
- </TASK>
-BUG: using smp_processor_id() in preemptible [00000000] code: syz.3.1627/12102
-caller is nft_inner_eval+0xda/0x18e0 net/netfilter/nft_inner.c:251
-CPU: 0 UID: 0 PID: 12102 Comm: syz.3.1627 Not tainted 6.12.0-syzkaller-03657-g43fb83c17ba2 #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/30/2024
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:94 [inline]
- dump_stack_lvl+0x241/0x360 lib/dump_stack.c:120
- check_preemption_disabled+0x10e/0x120 lib/smp_processor_id.c:49
- nft_inner_eval+0xda/0x18e0 net/netfilter/nft_inner.c:251
- expr_call_ops_eval net/netfilter/nf_tables_core.c:240 [inline]
- nft_do_chain+0x4ad/0x1da0 net/netfilter/nf_tables_core.c:288
- nft_do_chain_ipv4+0x202/0x320 net/netfilter/nft_chain_filter.c:23
- nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
- nf_hook_slow+0xc3/0x220 net/netfilter/core.c:626
- nf_hook+0x2c4/0x450 include/linux/netfilter.h:269
- NF_HOOK_COND include/linux/netfilter.h:302 [inline]
- ip_output+0x185/0x230 net/ipv4/ip_output.c:434
- ip_local_out net/ipv4/ip_output.c:130 [inline]
- ip_send_skb+0x74/0x100 net/ipv4/ip_output.c:1496
- udp_send_skb+0xab6/0x1630 net/ipv4/udp.c:984
- udp_sendmsg+0x1c21/0x2a60 net/ipv4/udp.c:1272
- sock_sendmsg_nosec net/socket.c:711 [inline]
- __sock_sendmsg+0x1a6/0x270 net/socket.c:726
- ____sys_sendmsg+0x52a/0x7e0 net/socket.c:2581
- ___sys_sendmsg net/socket.c:2635 [inline]
- __sys_sendmmsg+0x36a/0x720 net/socket.c:2724
- __do_sys_sendmmsg net/socket.c:2751 [inline]
- __se_sys_sendmmsg net/socket.c:2748 [inline]
- __x64_sys_sendmmsg+0xa0/0xb0 net/socket.c:2748
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7f1c1ff7e819
-Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007f1c20db5038 EFLAGS: 00000246 ORIG_RAX: 0000000000000133
-RAX: ffffffffffffffda RBX: 00007f1c20135fa0 RCX: 00007f1c1ff7e819
-RDX: 000000000000002d RSI: 0000000020007fc0 RDI: 0000000000000007
-RBP: 00007f1c1fff175e R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
-R13: 0000000000000000 R14: 00007f1c20135fa0 R15: 00007ffef663cd18
- </TASK>
-BUG: using smp_processor_id() in preemptible [00000000] code: syz.3.1627/12102
-caller is nft_inner_eval+0xda/0x18e0 net/netfilter/nft_inner.c:251
-CPU: 0 UID: 0 PID: 12102 Comm: syz.3.1627 Not tainted 6.12.0-syzkaller-03657-g43fb83c17ba2 #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/30/2024
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:94 [inline]
- dump_stack_lvl+0x241/0x360 lib/dump_stack.c:120
- check_preemption_disabled+0x10e/0x120 lib/smp_processor_id.c:49
- nft_inner_eval+0xda/0x18e0 net/netfilter/nft_inner.c:251
- expr_call_ops_eval net/netfilter/nf_tables_core.c:240 [inline]
- nft_do_chain+0x4ad/0x1da0 net/netfilter/nf_tables_core.c:288
- nft_do_chain_ipv4+0x202/0x320 net/netfilter/nft_chain_filter.c:23
- nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
- nf_hook_slow+0xc3/0x220 net/netfilter/core.c:626
- nf_hook+0x2c4/0x450 include/linux/netfilter.h:269
- NF_HOOK_COND include/linux/netfilter.h:302 [inline]
- ip_output+0x185/0x230 net/ipv4/ip_output.c:434
- ip_local_out net/ipv4/ip_output.c:130 [inline]
- ip_send_skb+0x74/0x100 net/ipv4/ip_output.c:1496
- udp_send_skb+0xab6/0x1630 net/ipv4/udp.c:984
- udp_sendmsg+0x1c21/0x2a60 net/ipv4/udp.c:1272
- sock_sendmsg_nosec net/socket.c:711 [inline]
- __sock_sendmsg+0x1a6/0x270 net/socket.c:726
- ____sys_sendmsg+0x52a/0x7e0 net/socket.c:2581
- ___sys_sendmsg net/socket.c:2635 [inline]
- __sys_sendmmsg+0x36a/0x720 net/socket.c:2724
- __do_sys_sendmmsg net/socket.c:2751 [inline]
- __se_sys_sendmmsg net/socket.c:2748 [inline]
- __x64_sys_sendmmsg+0xa0/0xb0 net/socket.c:2748
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7f1c1ff7e819
-Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007f1c20db5038 EFLAGS: 00000246 ORIG_RAX: 0000000000000133
-RAX: ffffffffffffffda RBX: 00007f1c20135fa0 RCX: 00007f1c1ff7e819
-RDX: 000000000000002d RSI: 0000000020007fc0 RDI: 0000000000000007
-RBP: 00007f1c1fff175e R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
-R13: 0000000000000000 R14: 00007f1c20135fa0 R15: 00007ffef663cd18
- </TASK>
-BUG: using smp_processor_id() in preemptible [00000000] code: syz.3.1627/12102
-caller is nft_inner_eval+0xda/0x18e0 net/netfilter/nft_inner.c:251
-CPU: 0 UID: 0 PID: 12102 Comm: syz.3.1627 Not tainted 6.12.0-syzkaller-03657-g43fb83c17ba2 #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/30/2024
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:94 [inline]
- dump_stack_lvl+0x241/0x360 lib/dump_stack.c:120
- check_preemption_disabled+0x10e/0x120 lib/smp_processor_id.c:49
- nft_inner_eval+0xda/0x18e0 net/netfilter/nft_inner.c:251
- expr_call_ops_eval net/netfilter/nf_tables_core.c:240 [inline]
- nft_do_chain+0x4ad/0x1da0 net/netfilter/nf_tables_core.c:288
- nft_do_chain_ipv4+0x202/0x320 net/netfilter/nft_chain_filter.c:23
- nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
- nf_hook_slow+0xc3/0x220 net/netfilter/core.c:626
- nf_hook+0x2c4/0x450 include/linux/netfilter.h:269
- NF_HOOK_COND include/linux/netfilter.h:302 [inline]
- ip_output+0x185/0x230 net/ipv4/ip_output.c:434
- ip_local_out net/ipv4/ip_output.c:130 [inline]
- ip_send_skb+0x74/0x100 net/ipv4/ip_output.c:1496
- udp_send_skb+0xab6/0x1630 net/ipv4/udp.c:984
- udp_sendmsg+0x1c21/0x2a60 net/ipv4/udp.c:1272
- sock_sendmsg_nosec net/socket.c:711 [inline]
- __sock_sendmsg+0x1a6/0x270 net/socket.c:726
- ____sys_sendmsg+0x52a/0x7e0 net/socket.c:2581
- ___sys_sendmsg net/socket.c:2635 [inline]
- __sys_sendmmsg+0x36a/0x720 net/socket.c:2724
- __do_sys_sendmmsg net/socket.c:2751 [inline]
- __se_sys_sendmmsg net/socket.c:2748 [inline]
- __x64_sys_sendmmsg+0xa0/0xb0 net/socket.c:2748
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7f1c1ff7e819
-Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007f1c20db5038 EFLAGS: 00000246 ORIG_RAX: 0000000000000133
-RAX: ffffffffffffffda RBX: 00007f1c20135fa0 RCX: 00007f1c1ff7e819
-RDX: 000000000000002d RSI: 0000000020007fc0 RDI: 0000000000000007
-RBP: 00007f1c1fff175e R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
-R13: 0000000000000000 R14: 00007f1c20135fa0 R15: 00007ffef663cd18
- </TASK>
-BUG: using smp_processor_id() in preemptible [00000000] code: syz.3.1627/12102
-caller is nft_inner_eval+0xda/0x18e0 net/netfilter/nft_inner.c:251
-CPU: 1 UID: 0 PID: 12102 Comm: syz.3.1627 Not tainted 6.12.0-syzkaller-03657-g43fb83c17ba2 #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/30/2024
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:94 [inline]
- dump_stack_lvl+0x241/0x360 lib/dump_stack.c:120
- check_preemption_disabled+0x10e/0x120 lib/smp_processor_id.c:49
- nft_inner_eval+0xda/0x18e0 net/netfilter/nft_inner.c:251
- expr_call_ops_eval net/netfilter/nf_tables_core.c:240 [inline]
- nft_do_chain+0x4ad/0x1da0 net/netfilter/nf_tables_core.c:288
- nft_do_chain_ipv4+0x202/0x320 net/netfilter/nft_chain_filter.c:23
- nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
- nf_hook_slow+0xc3/0x220 net/netfilter/core.c:626
- nf_hook+0x2c4/0x450 include/linux/netfilter.h:269
- NF_HOOK_COND include/linux/netfilter.h:302 [inline]
- ip_output+0x185/0x230 net/ipv4/ip_output.c:434
- ip_local_out net/ipv4/ip_output.c:130 [inline]
- ip_send_skb+0x74/0x100 net/ipv4/ip_output.c:1496
- udp_send_skb+0xab6/0x1630 net/ipv4/udp.c:984
- udp_sendmsg+0x1c21/0x2a60 net/ipv4/udp.c:1272
- sock_sendmsg_nosec net/socket.c:711 [inline]
- __sock_sendmsg+0x1a6/0x270 net/socket.c:726
- ____sys_sendmsg+0x52a/0x7e0 net/socket.c:2581
- ___sys_sendmsg net/socket.c:2635 [inline]
- __sys_sendmmsg+0x36a/0x720 net/socket.c:2724
- __do_sys_sendmmsg net/socket.c:2751 [inline]
- __se_sys_sendmmsg net/socket.c:2748 [inline]
- __x64_sys_sendmmsg+0xa0/0xb0 net/socket.c:2748
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7f1c1ff7e819
-Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007f1c20db5038 EFLAGS: 00000246 ORIG_RAX: 0000000000000133
-RAX: ffffffffffffffda RBX: 00007f1c20135fa0 RCX: 00007f1c1ff7e819
-RDX: 000000000000002d RSI: 0000000020007fc0 RDI: 0000000000000007
-RBP: 00007f1c1fff175e R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
-R13: 0000000000000000 R14: 00007f1c20135fa0 R15: 00007ffef663cd18
- </TASK>
+  20:                                               ; preds = %14
+    %21 = call i64 @strlen(ptr noundef nonnull dereferenceable(1) %1) #23
+    ...
 
+  23:                                               ; preds = %14, %11, %20
+    %24 = call i64 @strnlen(ptr noundef nonnull dereferenceable(1) %1, i64 noundef 64) #24
+    ...
+  }
 
+The above code calculates the address of the last char in the buffer
+(value %15) and then loads from it (value %16). Because the buffer is
+never initialized, the LLVM GVN pass marks value %16 as undefined:
+
+  %13 = getelementptr inbounds i8, ptr %1, i64 63
+  br i1 undef, label %14, label %17
+
+This gives later passes (SCCP, in particular) more DCE opportunities by
+propagating the undef value further, and eventually removes everything
+after the load on the uninitialized stack location:
+
+  define hidden i32 @ip_vs_protocol_init() local_unnamed_addr #0 section ".init.text" align 16 !kcfi_type !11 {
+    %1 = alloca [64 x i8], align 16
+    ...
+
+  12:                                               ; preds = %11
+    %13 = getelementptr inbounds i8, ptr %1, i64 63
+    unreachable
+  }
+
+In this way, the generated native code will just fall through to the
+next function, as LLVM does not generate any code for the unreachable IR
+instruction and leaves the function without a terminator.
+
+Zero the on-stack buffer to avoid this possible UB.
+
+Changelog:
 ---
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+v1 -> v2:
+v1: https://lore.kernel.org/lkml/20241111065105.82431-1-jinghao7@illinois.edu/
+* Fix small error in commit message
+* Address Julian's feedback:
+  * Make this patch target the net tree rather than net-next
+  * Add a "Fixes" tag for the initial git commit
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202402100205.PWXIz1ZK-lkp@intel.com/
+Co-developed-by: Ruowen Qin <ruqin@redhat.com>
+Signed-off-by: Ruowen Qin <ruqin@redhat.com>
+Signed-off-by: Jinghao Jia <jinghao7@illinois.edu>
+---
+ net/netfilter/ipvs/ip_vs_proto.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
+diff --git a/net/netfilter/ipvs/ip_vs_proto.c b/net/netfilter/ipvs/ip_vs_proto.c
+index f100da4ba3bc..a9fd1d3fc2cb 100644
+--- a/net/netfilter/ipvs/ip_vs_proto.c
++++ b/net/netfilter/ipvs/ip_vs_proto.c
+@@ -340,7 +340,7 @@ void __net_exit ip_vs_protocol_net_cleanup(struct netns_ipvs *ipvs)
+ 
+ int __init ip_vs_protocol_init(void)
+ {
+-	char protocols[64];
++	char protocols[64] = { 0 };
+ #define REGISTER_PROTOCOL(p)			\
+ 	do {					\
+ 		register_ip_vs_protocol(p);	\
+@@ -348,8 +348,6 @@ int __init ip_vs_protocol_init(void)
+ 		strcat(protocols, (p)->name);	\
+ 	} while (0)
+ 
+-	protocols[0] = '\0';
+-	protocols[2] = '\0';
+ #ifdef CONFIG_IP_VS_PROTO_TCP
+ 	REGISTER_PROTOCOL(&ip_vs_protocol_tcp);
+ #endif
+-- 
+2.47.0
 
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
