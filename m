@@ -1,107 +1,195 @@
-Received: from mxct.zte.com.cn (mxct.zte.com.cn [58.251.27.85])
+Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1266B199EB7;
-	Mon, 25 Nov 2024 12:35:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=58.251.27.85
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB6F91BC9EE
+	for <netfilter-devel@vger.kernel.org>; Mon, 25 Nov 2024 17:59:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.37
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732538126; cv=none; b=A5ivhiAXa5Lz8Yo9+gC3eEx2bYza5/ZXIZV0S5s+X+EBcYUIHrD5Ojj4zOtG9OhcvMLTGxz8qqkCpGq54fUeC68ok0awcDh7u22h2zfLoqyyc3y5zMLUXlN9vtMCBU1ROMCQsFy7P/IHGQwIAceK5wo5WftYb7k91Gx4xPznvG8=
+	t=1732557597; cv=none; b=eGVacKJrGty82n6Wk6+9kr8a2O4gJOnOlWoq2YpAGPsPmNw4OW0BIVwGp43gnr7GnvKDsTUrUYTYSCY2zX3qvvvsTRu8X29e+6ag0yIpOGDmWzxtxz3zhnIiY4I7q+sE7hf8D1Nrm8hgNSDBehn0R/IR8Ff86Q84r83uXxwOblE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732538126; c=relaxed/simple;
-	bh=781+yCySlpYE5vvfbpkHr67FCJbGg137ey0HVLO6iso=;
-	h=Date:Message-ID:Mime-Version:From:To:Cc:Subject:Content-Type; b=euopgg0XqrgLPmoTUMTxY4+JspS9pLi7XzeTD7B0eK8t6Q9JnhuJcKXfaonJs5Fnlt0V4JtV9xDz2M/UEyQpTru7oHSeZVPMIvBmo9dL1m6Ukm7o2HSCFl8w4hu80COznZcsDXKXPhq6CmRr5bF6zN79qSu3LvAK39Unr/Lnuak=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zte.com.cn; spf=pass smtp.mailfrom=zte.com.cn; arc=none smtp.client-ip=58.251.27.85
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zte.com.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zte.com.cn
-Received: from mxde.zte.com.cn (unknown [10.35.20.165])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by mxct.zte.com.cn (FangMail) with ESMTPS id 4XxlM40LMYzkYR;
-	Mon, 25 Nov 2024 20:26:56 +0800 (CST)
-Received: from mxhk.zte.com.cn (unknown [192.168.250.138])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mxde.zte.com.cn (FangMail) with ESMTPS id 4XxlLy2YMwz54Bgm;
-	Mon, 25 Nov 2024 20:26:50 +0800 (CST)
-Received: from mse-fl1.zte.com.cn (unknown [10.5.228.132])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by mxhk.zte.com.cn (FangMail) with ESMTPS id 4XxlLm6nsZz5B1Kr;
-	Mon, 25 Nov 2024 20:26:40 +0800 (CST)
-Received: from njy2app02.zte.com.cn ([10.40.13.116])
-	by mse-fl1.zte.com.cn with SMTP id 4APCQUXA001900;
-	Mon, 25 Nov 2024 20:26:30 +0800 (+08)
-	(envelope-from jiang.kun2@zte.com.cn)
-Received: from mapi (njy2app03[null])
-	by mapi (Zmail) with MAPI id mid204;
-	Mon, 25 Nov 2024 20:26:34 +0800 (CST)
-Date: Mon, 25 Nov 2024 20:26:34 +0800 (CST)
-X-Zmail-TransId: 2afb67446cfaffffffffd2a-58291
-X-Mailer: Zmail v1.0
-Message-ID: <20241125202634242hoMPn5q_ViCvJA9BygRYX@zte.com.cn>
+	s=arc-20240116; t=1732557597; c=relaxed/simple;
+	bh=V5N4wSUZrBPuCZ/XKy+HU1S/9iyK0UN1290lQKfMNms=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=F3sQMqekQTwAlla21t4X6hOCBL3vuCSbO5il3ia/4l4Cvt3J4FiBMcdHU859mJYIIBW+6MkBHrcopxRsDMi38190Ct1CWcxoFG5luIZi1mNyuDarRhJOp4Fjxtn7gVfaoZgY5DDfNjq5ZxmL2iGve8Xjeofcy60nlbDgdQXnXpE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (1024-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=Vz/y+APZ; arc=none smtp.client-ip=193.238.174.37
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="Vz/y+APZ"
+Received: from mg.ssi.bg (localhost [127.0.0.1])
+	by mg.ssi.bg (Proxmox) with ESMTP id 9FD5B80CD9
+	for <netfilter-devel@vger.kernel.org>; Mon, 25 Nov 2024 19:59:47 +0200 (EET)
+Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
+	by mg.ssi.bg (Proxmox) with ESMTPS
+	for <netfilter-devel@vger.kernel.org>; Mon, 25 Nov 2024 19:59:46 +0200 (EET)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by ink.ssi.bg (Postfix) with ESMTPSA id 37359303248;
+	Mon, 25 Nov 2024 19:59:32 +0200 (EET)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=ssi.bg; s=ink;
+	t=1732557574; bh=V5N4wSUZrBPuCZ/XKy+HU1S/9iyK0UN1290lQKfMNms=;
+	h=Date:From:To:cc:Subject:In-Reply-To:References;
+	b=Vz/y+APZW/fp7aSEDdYfl2HL12Ly4g47GuG9/uZ/SjF4n62iUW75Tjpzj8PC0DwwR
+	 KcjpelfK5wYlaKZaIbK2BecBEjiMSKOgG00anIJR5J3r+prqsxqiDA1iasgVg+kfJw
+	 aBCV8gKnx5cEDFNNupYNs/xwB5yEWAPT3ilabObE=
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.1/8.17.1) with ESMTP id 4APHxJKD053777;
+	Mon, 25 Nov 2024 19:59:21 +0200
+Date: Mon, 25 Nov 2024 19:59:19 +0200 (EET)
+From: Julian Anastasov <ja@ssi.bg>
+To: Jinghao Jia <jinghao7@illinois.edu>
+cc: Simon Horman <horms@verge.net.au>, Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>, Nathan Chancellor <nathan@kernel.org>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        Bill Wendling <morbo@google.com>,
+        Justin Stitt <justinstitt@google.com>, Kees Cook <kees@kernel.org>,
+        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org, llvm@lists.linux.dev,
+        kernel test robot <lkp@intel.com>, Ruowen Qin <ruqin@redhat.com>
+Subject: Re: [PATCH v3 net] ipvs: fix UB due to uninitialized stack access
+ in ip_vs_protocol_init()
+In-Reply-To: <20241123094256.28887-1-jinghao7@illinois.edu>
+Message-ID: <8b210ce9-19d8-eefd-fc86-febdc33394f6@ssi.bg>
+References: <20241123094256.28887-1-jinghao7@illinois.edu>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-From: <jiang.kun2@zte.com.cn>
-To: <pablo@netfilter.org>, <kadlec@netfilter.org>, <davem@davemloft.net>,
-        <edumazet@google.com>, <kuba@kernel.org>, <pabeni@redhat.com>,
-        <horms@kernel.org>, <netfilter-devel@vger.kernel.org>,
-        <coreteam@netfilter.org>, <netdev@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
-Cc: <tu.qiang35@zte.com.cn>, <xu.xin16@zte.com.cn>
-Subject: =?UTF-8?B?W1BBVENIIGxpbnV4LW5leHRdIG5ldGZpbHRlcjogbmZfdGFibGVzOiByZW1vdmUgdGhlIGdlbm1hc2sgcGFyYW1ldGVy?=
-Content-Type: text/plain;
-	charset="UTF-8"
-X-MAIL:mse-fl1.zte.com.cn 4APCQUXA001900
-X-Fangmail-Anti-Spam-Filtered: true
-X-Fangmail-MID-QID: 67446D0E.003/4XxlM40LMYzkYR
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 
-From: tuqiang <tu.qiang35@zte.com.cn>
 
-The genmask parameter is not used within the nf_tables_addchain function
- body. It should be removed to simplify the function parameter list.
+	Hello,
 
-Signed-off-by: tuqiang <tu.qiang35@zte.com.cn>
-Signed-off-by: Jiang Kun <jiang.kun2@zte.com.cn>
-Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Simon Horman <horms@kernel.org>
----
- net/netfilter/nf_tables_api.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+On Sat, 23 Nov 2024, Jinghao Jia wrote:
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 588a2757986c..e9925473c34a 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2496,9 +2496,8 @@ int nft_chain_add(struct nft_table *table, struct nft_chain *chain)
+> Under certain kernel configurations when building with Clang/LLVM, the
+> compiler does not generate a return or jump as the terminator
+> instruction for ip_vs_protocol_init(), triggering the following objtool
+> warning during build time:
+> 
+>   vmlinux.o: warning: objtool: ip_vs_protocol_init() falls through to next function __initstub__kmod_ip_vs_rr__935_123_ip_vs_rr_init6()
+> 
+> At runtime, this either causes an oops when trying to load the ipvs
+> module or a boot-time panic if ipvs is built-in. This same issue has
+> been reported by the Intel kernel test robot previously.
+> 
+> Digging deeper into both LLVM and the kernel code reveals this to be a
+> undefined behavior problem. ip_vs_protocol_init() uses a on-stack buffer
+> of 64 chars to store the registered protocol names and leaves it
+> uninitialized after definition. The function calls strnlen() when
+> concatenating protocol names into the buffer. With CONFIG_FORTIFY_SOURCE
+> strnlen() performs an extra step to check whether the last byte of the
+> input char buffer is a null character (commit 3009f891bb9f ("fortify:
+> Allow strlen() and strnlen() to pass compile-time known lengths")).
+> This, together with possibly other configurations, cause the following
+> IR to be generated:
+> 
+>   define hidden i32 @ip_vs_protocol_init() local_unnamed_addr #5 section ".init.text" align 16 !kcfi_type !29 {
+>     %1 = alloca [64 x i8], align 16
+>     ...
+> 
+>   14:                                               ; preds = %11
+>     %15 = getelementptr inbounds i8, ptr %1, i64 63
+>     %16 = load i8, ptr %15, align 1
+>     %17 = tail call i1 @llvm.is.constant.i8(i8 %16)
+>     %18 = icmp eq i8 %16, 0
+>     %19 = select i1 %17, i1 %18, i1 false
+>     br i1 %19, label %20, label %23
+> 
+>   20:                                               ; preds = %14
+>     %21 = call i64 @strlen(ptr noundef nonnull dereferenceable(1) %1) #23
+>     ...
+> 
+>   23:                                               ; preds = %14, %11, %20
+>     %24 = call i64 @strnlen(ptr noundef nonnull dereferenceable(1) %1, i64 noundef 64) #24
+>     ...
+>   }
+> 
+> The above code calculates the address of the last char in the buffer
+> (value %15) and then loads from it (value %16). Because the buffer is
+> never initialized, the LLVM GVN pass marks value %16 as undefined:
+> 
+>   %13 = getelementptr inbounds i8, ptr %1, i64 63
+>   br i1 undef, label %14, label %17
+> 
+> This gives later passes (SCCP, in particular) more DCE opportunities by
+> propagating the undef value further, and eventually removes everything
+> after the load on the uninitialized stack location:
+> 
+>   define hidden i32 @ip_vs_protocol_init() local_unnamed_addr #0 section ".init.text" align 16 !kcfi_type !11 {
+>     %1 = alloca [64 x i8], align 16
+>     ...
+> 
+>   12:                                               ; preds = %11
+>     %13 = getelementptr inbounds i8, ptr %1, i64 63
+>     unreachable
+>   }
+> 
+> In this way, the generated native code will just fall through to the
+> next function, as LLVM does not generate any code for the unreachable IR
+> instruction and leaves the function without a terminator.
+> 
+> Zero the on-stack buffer to avoid this possible UB.
+> 
+> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+> Reported-by: kernel test robot <lkp@intel.com>
+> Closes: https://lore.kernel.org/oe-kbuild-all/202402100205.PWXIz1ZK-lkp@intel.com/
+> Co-developed-by: Ruowen Qin <ruqin@redhat.com>
+> Signed-off-by: Ruowen Qin <ruqin@redhat.com>
+> Signed-off-by: Jinghao Jia <jinghao7@illinois.edu>
 
- static u64 chain_id;
+	Looks good to me, thanks!
 
--static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
--			      u8 policy, u32 flags,
--			      struct netlink_ext_ack *extack)
-+static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 policy,
-+			      u32 flags, struct netlink_ext_ack *extack)
- {
- 	const struct nlattr * const *nla = ctx->nla;
- 	struct nft_table *table = ctx->table;
-@@ -2936,7 +2935,7 @@ static int nf_tables_newchain(struct sk_buff *skb, const struct nfnl_info *info,
- 					  extack);
- 	}
+Acked-by: Julian Anastasov <ja@ssi.bg>
 
--	return nf_tables_addchain(&ctx, family, genmask, policy, flags, extack);
-+	return nf_tables_addchain(&ctx, family, policy, flags, extack);
- }
+> ---
+> Changelog:
+> v2 -> v3:
+> v2: https://lore.kernel.org/lkml/20241122045257.27452-1-jinghao7@illinois.edu/
+> * Fix changelog format based on Julian's feedback
+> 
+> v1 -> v2:
+> v1: https://lore.kernel.org/lkml/20241111065105.82431-1-jinghao7@illinois.edu/
+> * Fix small error in commit message
+> * Address Julian's feedback:
+>   * Make this patch target the net tree rather than net-next
+>   * Add a "Fixes" tag for the initial git commit
+> 
+>  net/netfilter/ipvs/ip_vs_proto.c | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_proto.c b/net/netfilter/ipvs/ip_vs_proto.c
+> index f100da4ba3bc..a9fd1d3fc2cb 100644
+> --- a/net/netfilter/ipvs/ip_vs_proto.c
+> +++ b/net/netfilter/ipvs/ip_vs_proto.c
+> @@ -340,7 +340,7 @@ void __net_exit ip_vs_protocol_net_cleanup(struct netns_ipvs *ipvs)
+>  
+>  int __init ip_vs_protocol_init(void)
+>  {
+> -	char protocols[64];
+> +	char protocols[64] = { 0 };
+>  #define REGISTER_PROTOCOL(p)			\
+>  	do {					\
+>  		register_ip_vs_protocol(p);	\
+> @@ -348,8 +348,6 @@ int __init ip_vs_protocol_init(void)
+>  		strcat(protocols, (p)->name);	\
+>  	} while (0)
+>  
+> -	protocols[0] = '\0';
+> -	protocols[2] = '\0';
+>  #ifdef CONFIG_IP_VS_PROTO_TCP
+>  	REGISTER_PROTOCOL(&ip_vs_protocol_tcp);
+>  #endif
+> -- 
+> 2.47.0
 
- static int nft_delchain_hook(struct nft_ctx *ctx,
--- 
-2.18.4
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
+
