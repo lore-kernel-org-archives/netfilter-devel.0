@@ -1,22 +1,23 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 62DAD1FA27E
-	for <netfilter-devel@vger.kernel.org>; Wed, 27 Nov 2024 13:10:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8CB371FCCE4
+	for <netfilter-devel@vger.kernel.org>; Wed, 27 Nov 2024 13:17:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732713024; cv=none; b=OzlEsyOpcA+X1EgtfRnoQuRIV9XHw9RJ7JFz2a6HBgqD5MBWL7fnCbZ6UvL+RFtyc0ff4WwOnQPu/EK4ez9d1yyzkksZVMiOTmwuXUTZc4niHYNsG6ZVulotWALd3oY73/O7pnvBa9bWfVAfQM6oHn2PkrOk6+7US4vGXCO1V00=
+	t=1732713444; cv=none; b=n7XyZZN20g+stmPhnQFMKVsG9e7t10NYda6KMIZycmY+84UCuwlE7MpqEvxYopv6GGw0Wr4eUnoSOBGq9mODQTEAWfa3hsnWXoj3MKWH0lDh0C91aCqcxjCGRdfn5y+y1+p/Atxr+8DKA8q8A4u70KS3YFDRoNzNfgx4uD/Ih7M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732713024; c=relaxed/simple;
-	bh=7c4m6ve+h/t3zY6ly5W1AqG83XUllwgsT1BNFJf3yFo=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=oyDUf/3WTa7pfP595oplgWCAH987/EI10aJ4AAW47Zu4hN53DFFb5KqCehZjoWeM3w8fjzuUDuIrkq9/i6kBHl351ppruRtR/JQz3B1EQF+De/cknsPVjPcXJmNtRuO/1eBQmL0x2z+ICIJndDnzE+a/4QmBNGoFBzmlFGOzRgs=
+	s=arc-20240116; t=1732713444; c=relaxed/simple;
+	bh=bshXp0tJViZ9l+RZxppxV2CB3CVNUqSxp9sLNmTH7/8=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=u+BBWaytuNMla9GLO6bMr0kvdH65ODotrzu1aPtmMhTXU0B654TzT+miKwCTRiuZ07OK3+5QnT/aRVwilqgHlVjXWpvb+JKaFaeqLVpcHileMeQhNOapycFw5I50Slz8STMPYohvaGxyLejmiiq/YcCrQln78Rq3LQdt02duyLg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de
+Cc: fw@strlen.de,
+	syzbot+84d0441b9860f0d63285@syzkaller.appspotmail.com
 Subject: [PATCH nf] netfilter: nft_inner: incorrect percpu area handling under softirq
-Date: Wed, 27 Nov 2024 14:10:06 +0100
-Message-Id: <20241127131007.353182-1-pablo@netfilter.org>
+Date: Wed, 27 Nov 2024 14:17:16 +0100
+Message-Id: <20241127131716.353482-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -37,6 +38,8 @@ again in such case.
 Reported-by: syzbot+84d0441b9860f0d63285@syzkaller.appspotmail.com
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
+Just reposting and Cc'ing syzbot.
+
  include/net/netfilter/nf_tables_core.h |  1 +
  net/netfilter/nft_inner.c              | 56 ++++++++++++++++++++------
  2 files changed, 45 insertions(+), 12 deletions(-)
