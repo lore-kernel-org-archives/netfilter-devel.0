@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id A4FEB19E99F;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4583B19E838;
 	Thu, 28 Nov 2024 12:38:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732797534; cv=none; b=i4/vRpT+z7AG67QQckv8+eqDpclj8MO7P/0Eb6QNaNwyZH2/FmyhDqDm7s9VY1B8dK5qgpcxCGLwXXh+LtxTxMYtJL15xbqU1zmJz61xR+wXLnfgaw50g+uUcoBO2Q/fITVHB+qc/hmE5ZXKtaFSZJ2O0x5QUZRy758nOer1jG0=
+	t=1732797534; cv=none; b=oK/Ri6vir/iWQf1T+dXu9AYfzsOLkHRpzkFVmA6jhRUjSs0FvNH+3kGaL8/1BgbieqyuwgVilocpGiXvd0bdg95Bx0uFBbocBrUhUxUnlPahNta26ZQytkXlMlMd7wqSnN8I3pWCpEaa+KPt4/+6Je4aMVOWVCnNsXnXMS/rISA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1732797534; c=relaxed/simple;
-	bh=Dbh1CCRz3yQVAW160iaVaG6axGjlYsQxXydfTbWClS0=;
+	bh=QkK+4o+GxL8Vwgw3KI84zT5wXflQ89/VDVRsXipyGzA=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=ShM014e5V19ULTg4LPYEscm4tNsTBH5xSx9i+vZtqgiHdTn2pE2xfrVo+qSwq/dJWnVf+OaHcztVxJ5Ca+htFWbMKJrvpctyGSlBFKqsOtzf3ymxgvGxhQNwCzE7HbfK9D9oV7DaXT3+EHNH0AYaN3w8G1ZDTYn3i39IG4kqFiY=
+	 MIME-Version; b=e+OdoLDpHb2sVa1lMDygoNQhBeDijhIeQmu+pFjearq9VzSVA34VT7n8FswyxJRpV0PaSV08EPnZWoLhty63JMg8YWFqq/rNM6q35zowpEYUlzM12aFftpsgaFfvi/tkNebf2/AdiZXTrbnyrjFwBnme4MEWvwffoZSY++cN5JY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 4/4] netfilter: nft_inner: incorrect percpu area handling under softirq
-Date: Thu, 28 Nov 2024 13:38:40 +0100
-Message-Id: <20241128123840.49034-5-pablo@netfilter.org>
+Subject: [PATCH net 3/4] netfilter: nft_socket: remove WARN_ON_ONCE on maximum cgroup level
+Date: Thu, 28 Nov 2024 13:38:39 +0100
+Message-Id: <20241128123840.49034-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20241128123840.49034-1-pablo@netfilter.org>
 References: <20241128123840.49034-1-pablo@netfilter.org>
@@ -34,146 +34,31 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Softirq can interrupt packet from process context which walks over the
-percpu area.
+cgroup maximum depth is INT_MAX by default, there is a cgroup toggle to
+restrict this maximum depth to a more reasonable value not to harm
+performance. Remove unnecessary WARN_ON_ONCE which is reachable from
+userspace.
 
-Add routines to disable bh while restoring and saving the tunnel parser
-context from percpu area to stack. Add a skbuff owner for this percpu
-area to catch softirq interference to exercise the packet tunnel parser
-again in such case.
-
-Reported-by: syzbot+84d0441b9860f0d63285@syzkaller.appspotmail.com
-Fixes: 3a07327d10a0 ("netfilter: nft_inner: support for inner tunnel header matching")
+Fixes: 7f3287db6543 ("netfilter: nft_socket: make cgroupsv2 matching work with namespaces")
+Reported-by: syzbot+57bac0866ddd99fe47c0@syzkaller.appspotmail.com
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables_core.h |  1 +
- net/netfilter/nft_inner.c              | 56 ++++++++++++++++++++------
- 2 files changed, 45 insertions(+), 12 deletions(-)
+ net/netfilter/nft_socket.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
-index ff27cb2e1662..dae0e7592934 100644
---- a/include/net/netfilter/nf_tables_core.h
-+++ b/include/net/netfilter/nf_tables_core.h
-@@ -161,6 +161,7 @@ enum {
- };
+diff --git a/net/netfilter/nft_socket.c b/net/netfilter/nft_socket.c
+index f5da0c1775f2..35d0409b0095 100644
+--- a/net/netfilter/nft_socket.c
++++ b/net/netfilter/nft_socket.c
+@@ -68,7 +68,7 @@ static noinline int nft_socket_cgroup_subtree_level(void)
  
- struct nft_inner_tun_ctx {
-+	struct sk_buff *skb;	/* percpu area owner */
- 	u16	type;
- 	u16	inner_tunoff;
- 	u16	inner_lloff;
-diff --git a/net/netfilter/nft_inner.c b/net/netfilter/nft_inner.c
-index 928312d01eb1..fcaa126ac8da 100644
---- a/net/netfilter/nft_inner.c
-+++ b/net/netfilter/nft_inner.c
-@@ -210,35 +210,65 @@ static int nft_inner_parse(const struct nft_inner *priv,
- 			   struct nft_pktinfo *pkt,
- 			   struct nft_inner_tun_ctx *tun_ctx)
- {
--	struct nft_inner_tun_ctx ctx = {};
- 	u32 off = pkt->inneroff;
+ 	cgroup_put(cgrp);
  
- 	if (priv->flags & NFT_INNER_HDRSIZE &&
--	    nft_inner_parse_tunhdr(priv, pkt, &ctx, &off) < 0)
-+	    nft_inner_parse_tunhdr(priv, pkt, tun_ctx, &off) < 0)
- 		return -1;
+-	if (WARN_ON_ONCE(level > 255))
++	if (level > 255)
+ 		return -ERANGE;
  
- 	if (priv->flags & (NFT_INNER_LL | NFT_INNER_NH)) {
--		if (nft_inner_parse_l2l3(priv, pkt, &ctx, off) < 0)
-+		if (nft_inner_parse_l2l3(priv, pkt, tun_ctx, off) < 0)
- 			return -1;
- 	} else if (priv->flags & NFT_INNER_TH) {
--		ctx.inner_thoff = off;
--		ctx.flags |= NFT_PAYLOAD_CTX_INNER_TH;
-+		tun_ctx->inner_thoff = off;
-+		tun_ctx->flags |= NFT_PAYLOAD_CTX_INNER_TH;
- 	}
- 
--	*tun_ctx = ctx;
- 	tun_ctx->type = priv->type;
-+	tun_ctx->skb = pkt->skb;
- 	pkt->flags |= NFT_PKTINFO_INNER_FULL;
- 
- 	return 0;
- }
- 
-+static bool nft_inner_restore_tun_ctx(const struct nft_pktinfo *pkt,
-+				      struct nft_inner_tun_ctx *tun_ctx)
-+{
-+	struct nft_inner_tun_ctx *this_cpu_tun_ctx;
-+
-+	local_bh_disable();
-+	this_cpu_tun_ctx = this_cpu_ptr(&nft_pcpu_tun_ctx);
-+	if (this_cpu_tun_ctx->skb != pkt->skb) {
-+		local_bh_enable();
-+		return false;
-+	}
-+	*tun_ctx = *this_cpu_tun_ctx;
-+	local_bh_enable();
-+
-+	return true;
-+}
-+
-+static void nft_inner_save_tun_ctx(const struct nft_pktinfo *pkt,
-+				   const struct nft_inner_tun_ctx *tun_ctx)
-+{
-+	struct nft_inner_tun_ctx *this_cpu_tun_ctx;
-+
-+	local_bh_disable();
-+	this_cpu_tun_ctx = this_cpu_ptr(&nft_pcpu_tun_ctx);
-+	*this_cpu_tun_ctx = *tun_ctx;
-+	local_bh_enable();
-+}
-+
- static bool nft_inner_parse_needed(const struct nft_inner *priv,
- 				   const struct nft_pktinfo *pkt,
--				   const struct nft_inner_tun_ctx *tun_ctx)
-+				   struct nft_inner_tun_ctx *tun_ctx)
- {
- 	if (!(pkt->flags & NFT_PKTINFO_INNER_FULL))
- 		return true;
- 
-+	if (!nft_inner_restore_tun_ctx(pkt, tun_ctx))
-+		return true;
-+
- 	if (priv->type != tun_ctx->type)
- 		return true;
- 
-@@ -248,27 +278,29 @@ static bool nft_inner_parse_needed(const struct nft_inner *priv,
- static void nft_inner_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 			   const struct nft_pktinfo *pkt)
- {
--	struct nft_inner_tun_ctx *tun_ctx = this_cpu_ptr(&nft_pcpu_tun_ctx);
- 	const struct nft_inner *priv = nft_expr_priv(expr);
-+	struct nft_inner_tun_ctx tun_ctx = {};
- 
- 	if (nft_payload_inner_offset(pkt) < 0)
- 		goto err;
- 
--	if (nft_inner_parse_needed(priv, pkt, tun_ctx) &&
--	    nft_inner_parse(priv, (struct nft_pktinfo *)pkt, tun_ctx) < 0)
-+	if (nft_inner_parse_needed(priv, pkt, &tun_ctx) &&
-+	    nft_inner_parse(priv, (struct nft_pktinfo *)pkt, &tun_ctx) < 0)
- 		goto err;
- 
- 	switch (priv->expr_type) {
- 	case NFT_INNER_EXPR_PAYLOAD:
--		nft_payload_inner_eval((struct nft_expr *)&priv->expr, regs, pkt, tun_ctx);
-+		nft_payload_inner_eval((struct nft_expr *)&priv->expr, regs, pkt, &tun_ctx);
- 		break;
- 	case NFT_INNER_EXPR_META:
--		nft_meta_inner_eval((struct nft_expr *)&priv->expr, regs, pkt, tun_ctx);
-+		nft_meta_inner_eval((struct nft_expr *)&priv->expr, regs, pkt, &tun_ctx);
- 		break;
- 	default:
- 		WARN_ON_ONCE(1);
- 		goto err;
- 	}
-+	nft_inner_save_tun_ctx(pkt, &tun_ctx);
-+
- 	return;
- err:
- 	regs->verdict.code = NFT_BREAK;
+ 	if (WARN_ON_ONCE(level < 0))
 -- 
 2.30.2
 
