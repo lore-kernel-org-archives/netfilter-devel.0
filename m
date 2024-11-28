@@ -1,118 +1,170 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C6CE4F20C
-	for <netfilter-devel@vger.kernel.org>; Thu, 28 Nov 2024 12:27:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A084F19CCEA
+	for <netfilter-devel@vger.kernel.org>; Thu, 28 Nov 2024 12:28:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732796828; cv=none; b=ebbEeFajVbtRYcAOIQFHjwlodBieFaQ6QpsGF+IU2prrydNWSdzXfIyDzFWXoxPfNf/bINJDhAcP4J9UPd50J98PYr1YsWNw8OAgR7FvzIPZB08VmKVut+RMBFBvJtDnsfnHHwypkAQv8Ao1ukscB7zu4C/hKqJsZ6ovsazqZLI=
+	t=1732796938; cv=none; b=ar9NaRQLw/TzrL9wb8Ebhs4DkYGUbmyPC2sv6NCCPgSOMmks02ibchvZd2Sdjpfh35xx4uoriu3M7/q5nubtuXO17VKoWns7g0Y7OXC/S7b/dYyxHsYrC2I8ZGfcebmtsyuPPUE7/p1FnmAn9PCVyHCwWeKmOoGzH/ehL7okUhc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732796828; c=relaxed/simple;
-	bh=iDedjNuT1t03cX+qFif4FzImN63+HoTSLPNc+6/zLRQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=YG+IBDIrAJUVp+eTw4flKEX7wxTP0C0b3gg7BZ1CzE5Dzzk4Bwa8Et72GrA3C2W1aLYUueisU4qwFwepgZJNGKhCpEqZQXl+DEikDrrDnWMl5hJHREtlNvuhjQS8gMKnOB80KBA9S8lPdFz9w2rUoiSn460BfuK/yfy69HIkiN4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.39.247] (port=33264 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1tGdbp-00FtY7-BT; Thu, 28 Nov 2024 13:27:03 +0100
-Date: Thu, 28 Nov 2024 13:27:00 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Duncan Roe <duncan_roe@optusnet.com.au>
-Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libmnl v2] whitespace: remove spacing irregularities
-Message-ID: <Z0hhlEbfJvqcRgJE@calendula>
-References: <20241112004540.9589-1-duncan_roe@optusnet.com.au>
- <Z0fWnsfypKyFMtzF@slk15.local.net>
+	s=arc-20240116; t=1732796938; c=relaxed/simple;
+	bh=7YyGrl4KoRmc0JeVQNy93UMWTak4tQ4PB7z7wqFR2wU=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=GSzC5nTmYDxW8p+TiFP/zJoFQ2Pt1BcGYqCIpIkgN5Tyl1ibArmkWnt3U5hfX3uurPRM546xFIM5Tzdt5RgHftcrodOIOxTWRiD8Tfoz9crZmh0k8TpXW1VH7WVDFqjUzh/AXrepWi2C676lQ4HV1jJKMrKTwFAYr2/XElSMK/c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=SR+2143n; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="SR+2143n"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1732796934;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ZACMslqIaF7iVtmlx12c8LPoSlN7TzLegXngDuX2z78=;
+	b=SR+2143n/ny/c1ljGZjDnEADm/Ip4JnzZKHEGegX2fSpQuWWcE1/kNzNUvhvIvpffUaami
+	pQnV8KfkLGfnmwFF1tW7gB4vxoTu6M1GGF94HZMZeKWCvFMHdHksmJydcDHl7j7pLyw10t
+	usmZaRSuxFMIGWqNTbACv75cFVGLQL0=
+Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
+ [209.85.221.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-500-8uvXNO8SOIaOWLHDRmZpUA-1; Thu, 28 Nov 2024 07:28:53 -0500
+X-MC-Unique: 8uvXNO8SOIaOWLHDRmZpUA-1
+X-Mimecast-MFC-AGG-ID: 8uvXNO8SOIaOWLHDRmZpUA
+Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-385d6ee042eso94037f8f.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Nov 2024 04:28:53 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1732796932; x=1733401732;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=ZACMslqIaF7iVtmlx12c8LPoSlN7TzLegXngDuX2z78=;
+        b=aF+KANMLU6cFsNDxC69sU9pp260L1E3OiSt5yqcEas3VU+WcqJDAjCD7D453qyAhFT
+         RXZ0Lqxl3MFUyeLQwkLTx/RI0esVZ8NHRq5QzaBYXkOwvpXcuHTB1VdAeIFsDxtbRDUh
+         fKpDQnD2a1WiybIolxrCe1lX8DDVvZOWSi1tcA0gAEY6FnNrYCkTo0GAZbYgtEhV/K0f
+         OC/az68QQPeSbUIaxCqc/foEO0KgnBgPF24VFFwSYxnXfVRHBYPaqzSkluEZtZB4kVG4
+         yibJ3cCYVuMChQaHdbkPf9TPXq40yquFXDXO70oyvE/zfot8IDAWJipo2J7AtaIgJtDU
+         icDw==
+X-Forwarded-Encrypted: i=1; AJvYcCWZwQ7xHMWpz/d4CJblFIJKSttZV4m2yiNmYEUH4EX++i3fDi96igrMRqNivDDRiJaiLlpX8AfAJe4as7TqUd8=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxExvnHE2D8Xwd2nRGPnThKyOLZxhQgC0QdUVyk/Yf3bzJcuXQN
+	XZyg9OC3yJe+ISYLXLorZ6y/eiacMWVFkNLmz9VFfjjb99E2En9AbMNBS/7tXnuwicKj6VR2dxt
+	NutYdjevEnYBpbW/Tvtb54/RvrLOxOFTHxf7zDR7YI64CsSsyUVZ8sVLgk2RixkpTIDEQNpYbbZ
+	KQoFhH+IgLOAStIUyb3vF3Y2pdr7ww/qtaB1znBrwc
+X-Gm-Gg: ASbGncvX5JkRF7DwtPGNhFbmUwhXXDAmgeTUoLWkp9N3EA535KfM3KdkH1mZXYDognW
+	UjeA5ig+geiMkBN+kUzt/Ro+0ivkqh5Q=
+X-Received: by 2002:a05:6000:18ac:b0:382:4a27:1319 with SMTP id ffacd0b85a97d-385c6eb5840mr5776157f8f.6.1732796932007;
+        Thu, 28 Nov 2024 04:28:52 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IGGOqoP8tsZ6KQpRsoqtGa6KHF61EJ3NUmj3Aw3MlprtODTvHQ/TDY7uTpa3Nw0Vy2Is2RlK3QrcXMwzmVV8rU=
+X-Received: by 2002:a05:6000:18ac:b0:382:4a27:1319 with SMTP id
+ ffacd0b85a97d-385c6eb5840mr5776067f8f.6.1732796931576; Thu, 28 Nov 2024
+ 04:28:51 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <Z0fWnsfypKyFMtzF@slk15.local.net>
-X-Spam-Score: -1.8 (-)
+References: <20241115-converge-secs-to-jiffies-v2-0-911fb7595e79@linux.microsoft.com>
+ <20241115-converge-secs-to-jiffies-v2-18-911fb7595e79@linux.microsoft.com>
+In-Reply-To: <20241115-converge-secs-to-jiffies-v2-18-911fb7595e79@linux.microsoft.com>
+From: Alex Markuze <amarkuze@redhat.com>
+Date: Thu, 28 Nov 2024 14:28:40 +0200
+Message-ID: <CAO8a2SgQ-==SjhDFZpi2s3r9FUGA96jwuJL7kTDwE=Hw4UcgUg@mail.gmail.com>
+Subject: Re: [PATCH v2 18/21] ceph: Convert timeouts to secs_to_jiffies()
+To: Easwar Hariharan <eahariha@linux.microsoft.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>, 
+	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
+	Julia Lawall <Julia.Lawall@inria.fr>, Nicolas Palix <nicolas.palix@imag.fr>, 
+	Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, 
+	Robert Jarzmik <robert.jarzmik@free.fr>, Russell King <linux@armlinux.org.uk>, 
+	Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
+	Alexander Gordeev <agordeev@linux.ibm.com>, Christian Borntraeger <borntraeger@linux.ibm.com>, 
+	Sven Schnelle <svens@linux.ibm.com>, Ofir Bitton <obitton@habana.ai>, 
+	Oded Gabbay <ogabbay@kernel.org>, Lucas De Marchi <lucas.demarchi@intel.com>, 
+	=?UTF-8?Q?Thomas_Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>, 
+	Rodrigo Vivi <rodrigo.vivi@intel.com>, 
+	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>, 
+	Thomas Zimmermann <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>, 
+	Jeroen de Borst <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>, 
+	Shailend Chand <shailend@google.com>, Andrew Lunn <andrew+netdev@lunn.ch>, 
+	James Smart <james.smart@broadcom.com>, Dick Kennedy <dick.kennedy@broadcom.com>, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, 
+	"Martin K. Petersen" <martin.petersen@oracle.com>, =?UTF-8?Q?Roger_Pau_Monn=C3=A9?= <roger.pau@citrix.com>, 
+	Jens Axboe <axboe@kernel.dk>, Kalle Valo <kvalo@kernel.org>, Jeff Johnson <jjohnson@kernel.org>, 
+	Catalin Marinas <catalin.marinas@arm.com>, Andrew Morton <akpm@linux-foundation.org>, 
+	Jack Wang <jinpu.wang@cloud.ionos.com>, Marcel Holtmann <marcel@holtmann.org>, 
+	Johan Hedberg <johan.hedberg@gmail.com>, Luiz Augusto von Dentz <luiz.dentz@gmail.com>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Florian Fainelli <florian.fainelli@broadcom.com>, Ray Jui <rjui@broadcom.com>, 
+	Scott Branden <sbranden@broadcom.com>, 
+	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>, Xiubo Li <xiubli@redhat.com>, 
+	Ilya Dryomov <idryomov@gmail.com>, Josh Poimboeuf <jpoimboe@kernel.org>, Jiri Kosina <jikos@kernel.org>, 
+	Miroslav Benes <mbenes@suse.cz>, Petr Mladek <pmladek@suse.com>, 
+	Joe Lawrence <joe.lawrence@redhat.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
+	Lucas Stach <l.stach@pengutronix.de>, Russell King <linux+etnaviv@armlinux.org.uk>, 
+	Christian Gmeiner <christian.gmeiner@gmail.com>, Louis Peens <louis.peens@corigine.com>, 
+	Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, 
+	Christophe Leroy <christophe.leroy@csgroup.eu>, Naveen N Rao <naveen@kernel.org>, 
+	Madhavan Srinivasan <maddy@linux.ibm.com>, netfilter-devel@vger.kernel.org, 
+	coreteam@netfilter.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	cocci@inria.fr, linux-arm-kernel@lists.infradead.org, 
+	linux-s390@vger.kernel.org, dri-devel@lists.freedesktop.org, 
+	intel-xe@lists.freedesktop.org, linux-scsi@vger.kernel.org, 
+	xen-devel@lists.xenproject.org, linux-block@vger.kernel.org, 
+	linux-wireless@vger.kernel.org, ath11k@lists.infradead.org, 
+	linux-mm@kvack.org, linux-bluetooth@vger.kernel.org, 
+	linux-staging@lists.linux.dev, linux-rpi-kernel@lists.infradead.org, 
+	ceph-devel@vger.kernel.org, live-patching@vger.kernel.org, 
+	linux-sound@vger.kernel.org, etnaviv@lists.freedesktop.org, 
+	oss-drivers@corigine.com, linuxppc-dev@lists.ozlabs.org, 
+	Anna-Maria Behnsen <anna-maria@linutronix.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 28, 2024 at 01:34:06PM +1100, Duncan Roe wrote:
-> Hi,
-> 
-> On Tue, Nov 12, 2024 at 11:45:40AM +1100, Duncan Roe wrote:
-> > Two distinct actions:
-> >  1. Remove trailing spaces and tabs.
-> >  2. Remove spaces that are followed by a tab, inserting extra tabs
-> >     as required.
-> > Action 2 is only performed in the indent region of a line.
-> >
-> > Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
-> > ---
-> > v2: Only fix spacing in .c files
-> >  src/callback.c          | 4 ++--
-> >  src/socket.c            | 6 +++---
-> >  2 files changed, 5 insertions(+), 5 deletions(-)
-> >
-> > diff --git a/src/callback.c b/src/callback.c
-> > index f5349c3..703ae80 100644
-> > --- a/src/callback.c
-> > +++ b/src/callback.c
-> > @@ -21,7 +21,7 @@ static int mnl_cb_error(const struct nlmsghdr *nlh, void *data)
-> >  	const struct nlmsgerr *err = mnl_nlmsg_get_payload(nlh);
-> >
-> >  	if (nlh->nlmsg_len < mnl_nlmsg_size(sizeof(struct nlmsgerr))) {
-> > -		errno = EBADMSG;
-> > +		errno = EBADMSG;
-> >  		return MNL_CB_ERROR;
-> >  	}
-> >  	/* Netlink subsystems returns the errno value with different signess */
-> > @@ -73,7 +73,7 @@ static inline int __mnl_cb_run(const void *buf, size_t numbytes,
-> >  		}
-> >
-> >  		/* netlink data message handling */
-> > -		if (nlh->nlmsg_type >= NLMSG_MIN_TYPE) {
-> > +		if (nlh->nlmsg_type >= NLMSG_MIN_TYPE) {
-> >  			if (cb_data){
-> >  				ret = cb_data(nlh, data);
-> >  				if (ret <= MNL_CB_STOP)
-> > diff --git a/src/socket.c b/src/socket.c
-> > index 85b6bcc..60ba2cd 100644
-> > --- a/src/socket.c
-> > +++ b/src/socket.c
-> > @@ -206,7 +206,7 @@ EXPORT_SYMBOL int mnl_socket_bind(struct mnl_socket *nl, unsigned int groups,
-> >
-> >  	addr_len = sizeof(nl->addr);
-> >  	ret = getsockname(nl->fd, (struct sockaddr *) &nl->addr, &addr_len);
-> > -	if (ret < 0)
-> > +	if (ret < 0)
-> >  		return ret;
-> >
-> >  	if (addr_len != sizeof(nl->addr)) {
-> > @@ -226,7 +226,7 @@ EXPORT_SYMBOL int mnl_socket_bind(struct mnl_socket *nl, unsigned int groups,
-> >   * \param buf buffer containing the netlink message to be sent
-> >   * \param len number of bytes in the buffer that you want to send
-> >   *
-> > - * On error, it returns -1 and errno is appropriately set. Otherwise, it
-> > + * On error, it returns -1 and errno is appropriately set. Otherwise, it
-> >   * returns the number of bytes sent.
-> >   */
-> >  EXPORT_SYMBOL ssize_t mnl_socket_sendto(const struct mnl_socket *nl,
-> > @@ -235,7 +235,7 @@ EXPORT_SYMBOL ssize_t mnl_socket_sendto(const struct mnl_socket *nl,
-> >  	static const struct sockaddr_nl snl = {
-> >  		.nl_family = AF_NETLINK
-> >  	};
-> > -	return sendto(nl->fd, buf, len, 0,
-> > +	return sendto(nl->fd, buf, len, 0,
-> >  		      (struct sockaddr *) &snl, sizeof(snl));
-> >  }
-> >
-> > --
-> > 2.46.2
-> >
-> >
-> Can somebody please apply this? I removed the UAPI header patch as Pablo
-> requested.
-> 
-> Cheers ... Duncan.
+looks good
+
+On Sat, Nov 16, 2024 at 12:32=E2=80=AFAM Easwar Hariharan
+<eahariha@linux.microsoft.com> wrote:
+>
+> Changes made with the following Coccinelle rules:
+>
+> @@ constant C; @@
+>
+> - msecs_to_jiffies(C * 1000)
+> + secs_to_jiffies(C)
+>
+> @@ constant C; @@
+>
+> - msecs_to_jiffies(C * MSEC_PER_SEC)
+> + secs_to_jiffies(C)
+>
+> Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
+> ---
+>  fs/ceph/quota.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/fs/ceph/quota.c b/fs/ceph/quota.c
+> index 06ee397e0c3a6172592e62dba95cd267cfff0db1..d90eda19bcc4618f98bfed833=
+c10a6071cf2e2ac 100644
+> --- a/fs/ceph/quota.c
+> +++ b/fs/ceph/quota.c
+> @@ -166,7 +166,7 @@ static struct inode *lookup_quotarealm_inode(struct c=
+eph_mds_client *mdsc,
+>         if (IS_ERR(in)) {
+>                 doutc(cl, "Can't lookup inode %llx (err: %ld)\n", realm->=
+ino,
+>                       PTR_ERR(in));
+> -               qri->timeout =3D jiffies + msecs_to_jiffies(60 * 1000); /=
+* XXX */
+> +               qri->timeout =3D jiffies + secs_to_jiffies(60); /* XXX */
+>         } else {
+>                 qri->timeout =3D 0;
+>                 qri->inode =3D in;
+>
+> --
+> 2.34.1
+>
+>
+
