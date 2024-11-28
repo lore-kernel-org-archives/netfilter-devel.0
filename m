@@ -1,167 +1,91 @@
-Received: from mail-pf1-f171.google.com (mail-pf1-f171.google.com [209.85.210.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from esgaroth.petrovitsch.at (esgaroth.petrovitsch.at [78.47.184.11])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1CB31BD9E3
-	for <netfilter-devel@vger.kernel.org>; Thu, 28 Nov 2024 22:50:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54B0114D6ED;
+	Thu, 28 Nov 2024 23:05:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=78.47.184.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732834226; cv=none; b=AJNdorWDl11Ag0FTKOxoTdtEze+bQt4SThA5rqjeOsjQXHv2XjXowISqguTibAo3rGwUAoH68xyyWI3YEAzEl+5oVGJ+1IL2MvHfkvquLaP+iAs7u7Q1e9tFXzhY7Pxn1gGCxSyAmzeXYRe6jH00ZtCNqwdPhjh+rTgDaDHWPK0=
+	t=1732835146; cv=none; b=R0DPSAjQbn+FY0Wj75Xqy+Dm9ioRYBxHYoJIj+N4zCAVuETOSxmNUgkpiBHh4jjpqOQS6SGxCx6oqTiGkE7pNTBju1cLrzCf80WGrmrmfEzclwkzy4gf14aXHPO182dubjov5FOYDsuEQ8DplKs+IsMXD1JtC6vEsxlVwy9ri40=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732834226; c=relaxed/simple;
-	bh=Xm+uDaAT/a/7MpYBx4/1pEo58+JHZtIMvzwMMf0bZco=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=U0WMVH3P++jmF5MQdryFDh2WPZIUMqfnPxklhSIeKyvqwPNI1fnkQ0i6sk+ye6O3PO0Ku21Xkd1mqSFZGaigUeeYdVDmTC3f6WXQiAZwFcRVvXs7txasdrYjNs6WvU7a9x8XqXuC7nMtr65TBrnkl5SId9mjA8JvHUmcjKI/7x0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=P1Gk0++w; arc=none smtp.client-ip=209.85.210.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1732835146; c=relaxed/simple;
+	bh=KV1kTdPXXjLjR3CJMO+XBokWZbSlYJ+qrQpoPDLuBDg=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Kmj54WwAZ3NiA1Lw84mD2FqKXjcJxZC+xzZ/yrZJt0goGQ8G4EZ3/bpCl21NAGLrISk2IfdD21JJThwPaTs10/ZK+isBA3JivupcJqud0kPxPjnNqisJAorrxXzUp2t2hFJ17CCiEW2Dk/J2Yi4b84n5yLROesAMSHlceKRyAwY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=petrovitsch.priv.at; spf=pass smtp.mailfrom=petrovitsch.priv.at; dkim=pass (1024-bit key) header.d=petrovitsch.priv.at header.i=@petrovitsch.priv.at header.b=wTBYtbxu; arc=none smtp.client-ip=78.47.184.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=petrovitsch.priv.at
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=petrovitsch.priv.at
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="P1Gk0++w"
-Received: by mail-pf1-f171.google.com with SMTP id d2e1a72fcca58-7251331e756so1188907b3a.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Nov 2024 14:50:24 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1732834224; x=1733439024; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=ZFaiyAAeoON2VMdF+sVmZfzBBGTm1s2xOkwvgbWVcTY=;
-        b=P1Gk0++wqofXTGmDBDXYTukNCH6PNcNT+y0UuanT7GRNhGDRIvo6CnzQGooC0tJe95
-         hbuB5RfjqLZpYypD5COxtcIwfwF5RfoNFPTANVyIGhpqzGoN7N/yCAMRIz8eqwMAFQS1
-         E0/kc3e7sl9KbRQ3jUdicvdsueuPOG9bWtH++XjXSVXPl8RemHqXi25Lp6OFBDBDsv1z
-         4Qta8OsBCQFOYHVJBJlEDkWmo1ZVITajh9MxiarUWOfpe3hfgfDuigCXMl3jw/fuo1Vn
-         L06zHnz09xQEIRV4AVwlyGE0zJFPh9boa+TyxN5EowYbVJbnBtY5WzgrXqea8JX1okQ/
-         Ux5w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1732834224; x=1733439024;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=ZFaiyAAeoON2VMdF+sVmZfzBBGTm1s2xOkwvgbWVcTY=;
-        b=QhKC2GX70zat6Dk+st5TZIrjxmJHWb4/ekzdV5Iw9oDCtDKHK6GtZIiI1aG70gl4nK
-         J9fx8jhElzbAK91mqOOANQPGVoJdWyXSQQSFZQFS7B/iVgMvE0nARVT/IHBZsd/HM0ky
-         68VMtRd+SxIbYva8V3RqWo97uNsco2NdS3PcsWPQxRfWJ/2D2dEn1mK54hXUUggMoeCJ
-         1RVUcismJpvsr8+M93/Bn3v+7R0kheTGwLlFI/QxwwEE82GiwgIsj67jpWbpo/shcVc7
-         /pJf/qDkZsZ1ER95ECJAIdQx31LpDw94txi3rYShdBUnVhw90EowlHsJ+JdyNsF6ld0r
-         iYyA==
-X-Gm-Message-State: AOJu0YylvZkJThiI9fnMjdnYkifIFwHoyX63z63/E0fv7RFj9KRBbAKn
-	7uDQpxKGtOPoLYF6ofHv3UuJKrJCRGwk+eWXGoVQkwJk2foOWXq0MgrNww==
-X-Gm-Gg: ASbGnctX5mR6FCiyam5ol0Yr+9kFHeq8q6Y1PL1PyksuGveMMgrUVUgGZkxG6nDDoZr
-	QtVY4IvWWct2uiYCpnoK32bRWdwh9oBlEQXZLYYt4SnGIdV4j8YvAYBoaqY3BL8jXIYSH4IQaXi
-	a0VcC9Qs0p21lTY186lDp0n+ylvPHasVgq+VNydFgt7rUGun9778lYPw7r9hg1Ir8aU2oF4/pAZ
-	gMTwVg4uBggINcV2QzAYRaErVUBjUl8YXKKSKoVC3GKw+CtQPmrFsRBF9sljoakWLWtpCA8CUaL
-	GbL98XFCUE2H/wqSlqI2JNmREqM=
-X-Google-Smtp-Source: AGHT+IFARoaMJfqbZWRiJV6Br8qJIkbb2h84SbVrmR38BV3BwC20Gdx8E9v/HQOP6NRxAzNfJpwZ8w==
-X-Received: by 2002:a05:6a00:179f:b0:724:f1c9:236c with SMTP id d2e1a72fcca58-72530172167mr12016097b3a.23.1732834223772;
-        Thu, 28 Nov 2024 14:50:23 -0800 (PST)
-Received: from slk15.local.net (n175-33-111-144.meb22.vic.optusnet.com.au. [175.33.111.144])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-72541848b36sm2188401b3a.187.2024.11.28.14.50.21
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 28 Nov 2024 14:50:23 -0800 (PST)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From: Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
-Date: Fri, 29 Nov 2024 09:50:19 +1100
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libmnl v2] whitespace: remove spacing irregularities
-Message-ID: <Z0jzq9lDuJx35047@slk15.local.net>
-Reply-To: duncan_roe@optusnet.com.au
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <20241112004540.9589-1-duncan_roe@optusnet.com.au>
- <Z0fWnsfypKyFMtzF@slk15.local.net>
- <Z0hhlEbfJvqcRgJE@calendula>
+	dkim=pass (1024-bit key) header.d=petrovitsch.priv.at header.i=@petrovitsch.priv.at header.b="wTBYtbxu"
+Received: from [172.16.0.14] (84-115-223-47.cable.dynamic.surfer.at [84.115.223.47])
+	(authenticated bits=0)
+	by esgaroth.petrovitsch.at (8.18.1/8.18.1) with ESMTPSA id 4ASMFXwZ2125882
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT);
+	Thu, 28 Nov 2024 23:15:34 +0100
+DKIM-Filter: OpenDKIM Filter v2.11.0 esgaroth.petrovitsch.at 4ASMFXwZ2125882
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=petrovitsch.priv.at;
+	s=default; t=1732832135;
+	bh=h2MqZpEynosisovvFZzTqVcgF9aHF8+XJH8KFujSEFo=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=wTBYtbxugHUHw8M9oUBxafHEcRrVl6DmC+bwh5NDRQXDAxZ99fGbIneDl8eRkAw5/
+	 MYnc0IS1lUBQuUlLN7Q5RxoeFQOrqNDmHllVgLT/+/ObTZTYz+bAg4GySsR+zCIKPj
+	 s1+ARFaVrouPt1VfQ40OmBIW0d+cbsIIk/r1FGjc=
+Message-ID: <4db72181-00f4-467e-9b18-f7b98bc103a3@petrovitsch.priv.at>
+Date: Thu, 28 Nov 2024 23:15:17 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Z0hhlEbfJvqcRgJE@calendula>
+User-Agent: Betterbird (Linux)
+Subject: Re: [PATCH] netfilter: uapi: Fix file names for case-insensitive
+ filesystem.
+To: =?UTF-8?Q?Sz=C5=91ke_Benjamin?= <egyszeregy@freemail.hu>
+Cc: Florian Westphal <fw@strlen.de>, kadlec@netfilter.org, davem@davemloft.net,
+        dsahern@kernel.org, edumazet@google.com, kuba@kernel.org,
+        pabeni@redhat.com, horms@kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>
+References: <20241111163634.1022-1-egyszeregy@freemail.hu>
+ <20241111165606.GA21253@breakpoint.cc> <ZzJORY4eWl4xEiMG@calendula>
+ <5f28d3d4-fa55-425c-9dd2-5616f5d4c0ac@freemail.hu>
+From: Bernd Petrovitsch <bernd@petrovitsch.priv.at>
+Content-Language: en-US
+BIMI-Selector: v=BIMI1; s=default
+In-Reply-To: <5f28d3d4-fa55-425c-9dd2-5616f5d4c0ac@freemail.hu>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-DCC--Metrics: esgaroth.petrovitsch.priv.at 1102; Body=14 Fuz1=14 Fuz2=14
+X-Virus-Scanned: clamav-milter 1.0.7 at smtp.tuxoid.at
+X-Virus-Status: Clean
+X-Spam-Report: 
+	* -1.0 ALL_TRUSTED Passed through trusted hosts only via SMTP
+	* -0.1 DKIM_VALID_EF Message has a valid DKIM or DK signature from
+	*      envelope-from domain
+	* -0.1 DKIM_VALID_AU Message has a valid DKIM or DK signature from author's
+	*       domain
+	* -0.1 DKIM_VALID Message has at least one valid DKIM or DK signature
+	*  0.1 DKIM_SIGNED Message has a DKIM or DK signature, not necessarily
+	*      valid
+	* -1.9 BAYES_00 BODY: Bayes spam probability is 0 to 1%
+	*      [score: 0.0000]
 
-Hi Pablo,
+Hi all!
 
-On Thu, Nov 28, 2024 at 01:27:00PM +0100, Pablo Neira Ayuso wrote:
-> On Thu, Nov 28, 2024 at 01:34:06PM +1100, Duncan Roe wrote:
-> > Hi,
-> >
-> > On Tue, Nov 12, 2024 at 11:45:40AM +1100, Duncan Roe wrote:
-> > > Two distinct actions:
-> > >  1. Remove trailing spaces and tabs.
-> > >  2. Remove spaces that are followed by a tab, inserting extra tabs
-> > >     as required.
-> > > Action 2 is only performed in the indent region of a line.
-> > >
-> > > Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
-> > > ---
-> > > v2: Only fix spacing in .c files
-> > >  src/callback.c          | 4 ++--
-> > >  src/socket.c            | 6 +++---
-> > >  2 files changed, 5 insertions(+), 5 deletions(-)
-> > >
-> > > diff --git a/src/callback.c b/src/callback.c
-> > > index f5349c3..703ae80 100644
-> > > --- a/src/callback.c
-> > > +++ b/src/callback.c
-> > > @@ -21,7 +21,7 @@ static int mnl_cb_error(const struct nlmsghdr *nlh, void *data)
-> > >  	const struct nlmsgerr *err = mnl_nlmsg_get_payload(nlh);
-> > >
-> > >  	if (nlh->nlmsg_len < mnl_nlmsg_size(sizeof(struct nlmsgerr))) {
-> > > -		errno = EBADMSG;
-> > > +		errno = EBADMSG;
-> > >  		return MNL_CB_ERROR;
-> > >  	}
-> > >  	/* Netlink subsystems returns the errno value with different signess */
-> > > @@ -73,7 +73,7 @@ static inline int __mnl_cb_run(const void *buf, size_t numbytes,
-> > >  		}
-> > >
-> > >  		/* netlink data message handling */
-> > > -		if (nlh->nlmsg_type >= NLMSG_MIN_TYPE) {
-> > > +		if (nlh->nlmsg_type >= NLMSG_MIN_TYPE) {
-> > >  			if (cb_data){
-> > >  				ret = cb_data(nlh, data);
-> > >  				if (ret <= MNL_CB_STOP)
-> > > diff --git a/src/socket.c b/src/socket.c
-> > > index 85b6bcc..60ba2cd 100644
-> > > --- a/src/socket.c
-> > > +++ b/src/socket.c
-> > > @@ -206,7 +206,7 @@ EXPORT_SYMBOL int mnl_socket_bind(struct mnl_socket *nl, unsigned int groups,
-> > >
-> > >  	addr_len = sizeof(nl->addr);
-> > >  	ret = getsockname(nl->fd, (struct sockaddr *) &nl->addr, &addr_len);
-> > > -	if (ret < 0)
-> > > +	if (ret < 0)
-> > >  		return ret;
-> > >
-> > >  	if (addr_len != sizeof(nl->addr)) {
-> > > @@ -226,7 +226,7 @@ EXPORT_SYMBOL int mnl_socket_bind(struct mnl_socket *nl, unsigned int groups,
-> > >   * \param buf buffer containing the netlink message to be sent
-> > >   * \param len number of bytes in the buffer that you want to send
-> > >   *
-> > > - * On error, it returns -1 and errno is appropriately set. Otherwise, it
-> > > + * On error, it returns -1 and errno is appropriately set. Otherwise, it
-> > >   * returns the number of bytes sent.
-> > >   */
-> > >  EXPORT_SYMBOL ssize_t mnl_socket_sendto(const struct mnl_socket *nl,
-> > > @@ -235,7 +235,7 @@ EXPORT_SYMBOL ssize_t mnl_socket_sendto(const struct mnl_socket *nl,
-> > >  	static const struct sockaddr_nl snl = {
-> > >  		.nl_family = AF_NETLINK
-> > >  	};
-> > > -	return sendto(nl->fd, buf, len, 0,
-> > > +	return sendto(nl->fd, buf, len, 0,
-> > >  		      (struct sockaddr *) &snl, sizeof(snl));
-> > >  }
-> > >
-> > > --
-> > > 2.46.2
-> > >
-> > >
-> > Can somebody please apply this? I removed the UAPI header patch as Pablo
-> > requested.
-> >
-> > Cheers ... Duncan.
+On 11.11.24 21:28, Szőke Benjamin wrote:
+[...]
+> What is your detailed plans to solve it? 
 
-Did you mean to add something? I see it's still not applied.
+Use a sane filesystem which is thus case-sensitive - case-insensitive
+filesystems are broken by design (e.g. think of upper case/lower case
+situation for non-ASCII-7bit clean languages like German which has
+lower case ä,ö,ü and the upper case equivalents Ä,Ö,Ü including different
+encodings - no you don't want more than 1 encoding on a computer but then
+reality kicks in - and that in a filesystem driver in a kernel ....).
 
-Cheers ... Duncan.
+Kind regards,
+	Bernd
+-- 
+Bernd Petrovitsch                  Email : bernd@petrovitsch.priv.at
+      There is NO CLOUD, just other people's computers. - FSFE
+                      LUGA : http://www.luga.at
