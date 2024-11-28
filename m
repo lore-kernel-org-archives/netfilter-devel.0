@@ -1,262 +1,157 @@
-Received: from smtp-42aa.mail.infomaniak.ch (smtp-42aa.mail.infomaniak.ch [84.16.66.170])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24AA92010F0
-	for <netfilter-devel@vger.kernel.org>; Wed, 27 Nov 2024 18:43:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=84.16.66.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B059717BA5
+	for <netfilter-devel@vger.kernel.org>; Thu, 28 Nov 2024 02:34:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732733043; cv=none; b=jwRAlXs/lLsRmshahRy/wS3QBsO6d7CBUstOCESch6lxJ6nb65ifLbwFFChoiaFcABNulHApY0eTOe/UP3On41xJtV7ZLrDdZtaQ+dSlBydfdlf+P8G8iVskWSB1M1AUuU3MVAtkiscu8NpHjXm7hSXSagl/J0wINNgVkznJWHU=
+	t=1732761253; cv=none; b=ErKdFDYaThUxysKT62xCWhOEXc9KiyLHM3KhbbuDPmHWj5sU1oiVTcwCYlhEQZIS4WVq4mYLw9jfzsKXj//4XQ88zhKVZQWuMDka9GfMlxQGubQVhY/7iVZiIqs7BhbAb0Nb1lSAADCGFLymki1XOrxjyTOmSTQDXsG1Lb3NzUE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732733043; c=relaxed/simple;
-	bh=f29BfYHJPRGYxBtCZcsqHNouOxPw/Q6TEnGFYvrwoBA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=T0VzYIVNUQb+tyulebEXgBjfUT55/rPfahcpyuPhtg70Rjc/B77OOVZ898QRPfBI4bQtH8AWi0LcDu3DZoMCwVXQP9GNlSIbH4crT8gcZtArnDFokig0Kv5I1m2b6+2naxPtTT++Jx1AXOBlDqqUnBKhS1mpgHhbIIh7HvA0+3M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net; spf=pass smtp.mailfrom=digikod.net; dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b=02qH0lI8; arc=none smtp.client-ip=84.16.66.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=digikod.net
+	s=arc-20240116; t=1732761253; c=relaxed/simple;
+	bh=cTNnxe2a3aGLxcCjl+wOyfEr74P3Oqja4+p0TTs3AfY=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=LPS/4/318zjQKNF1eOK9lRf9106dqlAJxBintSL8oO4VYc0UcR5WB/drhdAABXG0MNy2sQ6M9UStWWhejKA6E+wG116kbX4tfGnjGTMlI3v158m/MFFbGEUkljXx0BOGMOk4rN2T209+z5F2ewGBViZmthDxpkvUqcv7+l/DpTE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=OTuOlHjw; arc=none smtp.client-ip=209.85.214.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b="02qH0lI8"
-Received: from smtp-3-0000.mail.infomaniak.ch (smtp-3-0000.mail.infomaniak.ch [10.4.36.107])
-	by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4Xz7d66fDdzR3L;
-	Wed, 27 Nov 2024 19:43:54 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=digikod.net;
-	s=20191114; t=1732733034;
-	bh=cIakuwuB5TwB5ymwL7HjeKJ6VkD/58mW709ZRR8/txo=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=02qH0lI8zHRJy9L0fy6W6EAMWN/dNy/4RF9OSzJ9YAg1kSS8E5mzBXnEz6G8rEZKx
-	 MRRXzhimGVhrFeQERDivP98FSvoLPy5ezSmiXyJl29olEJgk8EOWc/W1+lce+lNAHU
-	 GTyawd5tE/GpyDtMhuyVreLEhrgm5XTKXWXpHqkc=
-Received: from unknown by smtp-3-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4Xz7d62ftXzxmg;
-	Wed, 27 Nov 2024 19:43:54 +0100 (CET)
-Date: Wed, 27 Nov 2024 19:43:53 +0100
-From: =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
-To: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-Cc: =?utf-8?Q?G=C3=BCnther?= Noack <gnoack@google.com>, 
-	willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com, linux-security-module@vger.kernel.org, 
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, yusongping@huawei.com, 
-	artem.kuzin@huawei.com, konstantin.meskhidze@huawei.com
-Subject: Re: [RFC PATCH v3 01/19] landlock: Support socket access-control
-Message-ID: <20241127.oophah4Ueboo@digikod.net>
-References: <20240904104824.1844082-1-ivanov.mikhail1@huawei-partners.com>
- <20240904104824.1844082-2-ivanov.mikhail1@huawei-partners.com>
- <ea026af8-bc29-709c-7e04-e145d01fd825@huawei-partners.com>
- <Z0DDQKACIRRDRZRE@google.com>
- <36ac2fde-1344-9055-42e2-db849abf02e0@huawei-partners.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OTuOlHjw"
+Received: by mail-pl1-f179.google.com with SMTP id d9443c01a7336-21278f3d547so2409565ad.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Nov 2024 18:34:11 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1732761251; x=1733366051; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references
+         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=YrBRYQ/hgtHQtqH0fxZBIQof3jZHhrBSLd70/Na+GGE=;
+        b=OTuOlHjwhvuSQAhc+BAmVP+yERei/Ug1HHfZBdYiofMsZ99mXIEobMziRsX7H2QkMC
+         bE1KNgm8gth5UqbreGhPAJJT9FI251rlZq2luxwRyt/C9aTJwYSOvHrQ0ZdwlooKYpQq
+         csH3DnM8fer828/OhSkOHwwLMCjmH7TcVlwDm6KRy0Hn+j8AL9MhPWdXuIEIVbiGXbl/
+         ibwfBxtSStEXONjk96WIKJfERdlh7mEmUXnTgP4mzuAN3PNTsjqTaSa9vfAVuyAR16/n
+         S36XHUZg/cRqIGyMS/5qS6phGMoXQ8kz89C2P1fjuGDTGJ79HQ6Hg1R3S65N6OtPge/8
+         K1TQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1732761251; x=1733366051;
+        h=in-reply-to:content-disposition:mime-version:references
+         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=YrBRYQ/hgtHQtqH0fxZBIQof3jZHhrBSLd70/Na+GGE=;
+        b=N6SxZd5ni7L3uGL2Vpo9uuWAm3biMlg8gv2QXuj5JUoLW+aswftGTRba1e8UJkNOQa
+         hFohBlg6CSHDyw1hgLe4bDulLv3z4a/TCQd+1vJ+ZmVBDivHweVGCSCXCwiCbMGhUu7+
+         XW9ZDGd9C8ikguEenkOdmw1KlCA+dqxToRtvP+bWOeXQD20IF3YQP1Buq/2Fm4TK8e0Q
+         veC8cHJuf/whPq4rtFC32/qo+EowRqAs75oUau5J8Q4CTeIu6Ie25sF8y8E5xV1uOtFG
+         xzVyT8iPw5Iv4nQOWzQT3kI7rEBgXI/ByaKEu6Pg9w8wO+DT1e8jraCXs+kB1K7R4rae
+         smBA==
+X-Gm-Message-State: AOJu0YylJI5y+8SbyqxT1+iW7X/sh6l5Z/8JMkK0hsK4BKOH+J1B1Efe
+	aiuykY/+smnX/TVi8eEAZo5BQe2ON+CcVrrMW4Jfu9MK6xO8X679/Yjk1A==
+X-Gm-Gg: ASbGncv0OQmDfP9Ak0/1IbPKRuYy7B9am8tqIwwfqyG097GS/kHhUuU5/Ry0PzTs4Kb
+	lhZmNjxPuX2EbT60UlJFYcj5mFRCxMexgBeX2UvF59oChBlEFBnPjxlJnMC3cgdR/vf1yxjCXgH
+	44pwcEhjEEWPZ06BMCE7eG0uJbQ8ynDNQDiad/IDsDBnUgz95oNS0Soe5yg6k0ynkgYh5vegDH0
+	9rMrGY2GrQemYbGUv1H5TH2gLZTyMVEkSpqUedFk0UkWBRlcDthjp6A+5Pb53jwmFBQYnQ0vNsR
+	ofcjQ+0KbF/tJnYN5G3HotdTNO8=
+X-Google-Smtp-Source: AGHT+IFc0yVvnZx0C3vPPz9uDIjumg3dIN2JAS4iDb3AgLQHCM3xB8y5TSc/dxxnuWvud4Ndvtv20w==
+X-Received: by 2002:a17:902:c951:b0:212:48c8:f456 with SMTP id d9443c01a7336-21501b63da4mr68259365ad.36.1732761250834;
+        Wed, 27 Nov 2024 18:34:10 -0800 (PST)
+Received: from slk15.local.net (n175-33-111-144.meb22.vic.optusnet.com.au. [175.33.111.144])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-21521906225sm2692165ad.77.2024.11.27.18.34.08
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 27 Nov 2024 18:34:09 -0800 (PST)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From: Duncan Roe <duncan_roe@optusnet.com.au>
+X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
+Date: Thu, 28 Nov 2024 13:34:06 +1100
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libmnl v2] whitespace: remove spacing irregularities
+Message-ID: <Z0fWnsfypKyFMtzF@slk15.local.net>
+Reply-To: duncan_roe@optusnet.com.au
+Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <20241112004540.9589-1-duncan_roe@optusnet.com.au>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <36ac2fde-1344-9055-42e2-db849abf02e0@huawei-partners.com>
-X-Infomaniak-Routing: alpha
+In-Reply-To: <20241112004540.9589-1-duncan_roe@optusnet.com.au>
 
-On Mon, Nov 25, 2024 at 02:04:09PM +0300, Mikhail Ivanov wrote:
-> On 11/22/2024 8:45 PM, Günther Noack wrote:
-> > Hello Mikhail,
-> > 
-> > sorry for the delayed response;
-> > I am very happy to see activity on this patch set! :)
-> 
-> Hello Günther,
-> No problem, thanks a lot for your feedback!
-> 
-> > 
-> > On Mon, Nov 11, 2024 at 07:29:49PM +0300, Mikhail Ivanov wrote:
-> > > On 9/4/2024 1:48 PM, Mikhail Ivanov wrote:
-> > > > Landlock implements the `LANDLOCK_RULE_NET_PORT` rule type, which provides
-> > > > fine-grained control of actions for a specific protocol. Any action or
-> > > > protocol that is not supported by this rule can not be controlled. As a
-> > > > result, protocols for which fine-grained control is not supported can be
-> > > > used in a sandboxed system and lead to vulnerabilities or unexpected
-> > > > behavior.
-> > > > 
-> > > > Controlling the protocols used will allow to use only those that are
-> > > > necessary for the system and/or which have fine-grained Landlock control
-> > > > through others types of rules (e.g. TCP bind/connect control with
-> > > > `LANDLOCK_RULE_NET_PORT`, UNIX bind control with
-> > > > `LANDLOCK_RULE_PATH_BENEATH`). Consider following examples:
-> > > > 
-> > > > * Server may want to use only TCP sockets for which there is fine-grained
-> > > >     control of bind(2) and connect(2) actions [1].
-> > > > * System that does not need a network or that may want to disable network
-> > > >     for security reasons (e.g. [2]) can achieve this by restricting the use
-> > > >     of all possible protocols.
-> > > > 
-> > > > This patch implements such control by restricting socket creation in a
-> > > > sandboxed process.
-> > > > 
-> > > > Add `LANDLOCK_RULE_SOCKET` rule type that restricts actions on sockets.
-> > > > This rule uses values of address family and socket type (Cf. socket(2))
-> > > > to determine sockets that should be restricted. This is represented in a
-> > > > landlock_socket_attr struct:
-> > > > 
-> > > >     struct landlock_socket_attr {
-> > > >       __u64 allowed_access;
-> > > >       int family; /* same as domain in socket(2) */
-> > > >       int type; /* see socket(2) */
-> > > >     };
-> > > 
-> > > Hello! I'd like to consider another approach to define this structure
-> > > before sending the next version of this patchset.
-> > > 
-> > > Currently, it has following possible issues:
-> > > 
-> > > First of all, there is a lack of protocol granularity. It's impossible
-> > > to (for example) deny creation of ICMP and SCTP sockets and allow TCP
-> > > and UDP. Since the values of address family and socket type do not
-> > > completely define the protocol for the restriction, we may gain
-> > > incomplete control of the network actions. AFAICS, this is limited to
-> > > only a couple of IP protocol cases (e.g. it's impossible to deny SCTP
-> > > and SMC sockets to only allow TCP, deny ICMP and allow UDP).
-> > > 
-> > > But one of the main advantages of socket access rights is the ability to
-> > > allow only those protocols for which there is a fine-grained control
-> > > over their actions (TCP bind/connect). It can be inconvenient
-> > > (and unsafe) for SCTP to be unrestricted, while sandboxed process only
-> > > needs TCP sockets.
-> > 
-> > That is a good observation which I had missed.
-> > 
-> > I agree with your analysis, I also see the main use case of socket()
-> > restrictions in:
-> > 
-> >   (a) restricting socket creating altogether
-> >   (b) only permitting socket types for which there is fine grained control
-> > 
-> > and I also agree that it would be very surprising when the same socket types
-> > that provide fine grained control would also open the door for unrestricted
-> > access to SMC, SCTP or other protocols.  We should instead strive for a
-> > socket() access control with which these additional protocols weren't
-> > accessible.
-> > 
-> > 
-> > > Adding protocol (Cf. socket(2)) field was considered a bit during the
-> > > initial discussion:
-> > > https://lore.kernel.org/all/CABi2SkVWU=Wxb2y3fP702twyHBD3kVoySPGSz2X22VckvcHeXw@mail.gmail.com/
-> > 
-> > So adding "protocol" to the rule attributes would suffice to restrict the use of
-> > SMC and SCTP then?  (Sorry, I lost context on these protocols a bit in the
-> > meantime, I was so far under the impression that these were using different
-> > values for family and type than TCP and UDP do.)
-> 
-> Yeap. Following rule will be enough to allow TCP sockets only:
-> 
-> const struct landlock_socket_attr create_socket_attr = {
-> 	.allowed_access = LANDLOCK_ACCESS_SOCKET_CREATE,
-> 	.family = AF_INET{,6},
-> 	.type = SOCK_STREAM,
-> 	.protocol = 0
-> };
+Hi,
 
-We should indeed include the protocol type in the rule definition.
+On Tue, Nov 12, 2024 at 11:45:40AM +1100, Duncan Roe wrote:
+> Two distinct actions:
+>  1. Remove trailing spaces and tabs.
+>  2. Remove spaces that are followed by a tab, inserting extra tabs
+>     as required.
+> Action 2 is only performed in the indent region of a line.
+>
+> Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+> ---
+> v2: Only fix spacing in .c files
+>  src/callback.c          | 4 ++--
+>  src/socket.c            | 6 +++---
+>  2 files changed, 5 insertions(+), 5 deletions(-)
+>
+> diff --git a/src/callback.c b/src/callback.c
+> index f5349c3..703ae80 100644
+> --- a/src/callback.c
+> +++ b/src/callback.c
+> @@ -21,7 +21,7 @@ static int mnl_cb_error(const struct nlmsghdr *nlh, void *data)
+>  	const struct nlmsgerr *err = mnl_nlmsg_get_payload(nlh);
+>
+>  	if (nlh->nlmsg_len < mnl_nlmsg_size(sizeof(struct nlmsgerr))) {
+> -		errno = EBADMSG;
+> +		errno = EBADMSG;
+>  		return MNL_CB_ERROR;
+>  	}
+>  	/* Netlink subsystems returns the errno value with different signess */
+> @@ -73,7 +73,7 @@ static inline int __mnl_cb_run(const void *buf, size_t numbytes,
+>  		}
+>
+>  		/* netlink data message handling */
+> -		if (nlh->nlmsg_type >= NLMSG_MIN_TYPE) {
+> +		if (nlh->nlmsg_type >= NLMSG_MIN_TYPE) {
+>  			if (cb_data){
+>  				ret = cb_data(nlh, data);
+>  				if (ret <= MNL_CB_STOP)
+> diff --git a/src/socket.c b/src/socket.c
+> index 85b6bcc..60ba2cd 100644
+> --- a/src/socket.c
+> +++ b/src/socket.c
+> @@ -206,7 +206,7 @@ EXPORT_SYMBOL int mnl_socket_bind(struct mnl_socket *nl, unsigned int groups,
+>
+>  	addr_len = sizeof(nl->addr);
+>  	ret = getsockname(nl->fd, (struct sockaddr *) &nl->addr, &addr_len);
+> -	if (ret < 0)
+> +	if (ret < 0)
+>  		return ret;
+>
+>  	if (addr_len != sizeof(nl->addr)) {
+> @@ -226,7 +226,7 @@ EXPORT_SYMBOL int mnl_socket_bind(struct mnl_socket *nl, unsigned int groups,
+>   * \param buf buffer containing the netlink message to be sent
+>   * \param len number of bytes in the buffer that you want to send
+>   *
+> - * On error, it returns -1 and errno is appropriately set. Otherwise, it
+> + * On error, it returns -1 and errno is appropriately set. Otherwise, it
+>   * returns the number of bytes sent.
+>   */
+>  EXPORT_SYMBOL ssize_t mnl_socket_sendto(const struct mnl_socket *nl,
+> @@ -235,7 +235,7 @@ EXPORT_SYMBOL ssize_t mnl_socket_sendto(const struct mnl_socket *nl,
+>  	static const struct sockaddr_nl snl = {
+>  		.nl_family = AF_NETLINK
+>  	};
+> -	return sendto(nl->fd, buf, len, 0,
+> +	return sendto(nl->fd, buf, len, 0,
+>  		      (struct sockaddr *) &snl, sizeof(snl));
+>  }
+>
+> --
+> 2.46.2
+>
+>
+Can somebody please apply this? I removed the UAPI header patch as Pablo
+requested.
 
-> 
-> Btw, creation of SMC sockets via IP stack was added quite recently.
-> So far, creation has been possible only with AF_SMC family.
-> 
-> https://lore.kernel.org/all/1718301630-63692-1-git-send-email-alibuda@linux.alibaba.com/
-> 
-> > 
-> > 
-> > > Secondly, I'm not really sure if socket type granularity is required
-> > > for most of the protocols. It may be more convenient for the end user
-> > > to be able to completely restrict the address family without specifying
-> > > whether restriction is dedicated to stream or dgram sockets (e.g. for
-> > > BLUETOOTH, VSOCK sockets). However, this is not a big issue for the
-> > > current design, since address family can be restricted by specifying
-> > > type = SOCK_TYPE_MASK.
-
-It looks like SOCK_TYPE_MASK is not part of UAPI, which means it could
-change with kernel versions (even while being in UAPI in fact).  This
-new socket creation control should allow to deny any socket creation
-known or unknow at the time of the user space program build, and
-whatever the available C headers.
-
-This also means that Landlock should accept any domain, type, and
-protocols defined in rules.  Indeed, we don't want to reject rules for
-which some protocols are not allowed.
-
-What about using bitmasks for the domain and type fields (renamed to
-"domains" and "types")?  The last protocol is currently 45/MCTP so a
-64-bit field is enough, and 10/SOCK_PACKET also fits for the last socket
-type.
-
-We cannot do the same with the protocol because the higher one is
-262/MPTCP though.  But it looks like a value of 0 (default protocol)
-should be enough for most use cases, and users could specify a protocol
-(but this time as a number, not a bitmask).
-
-To sum up, we could have something like this:
-
-  const struct landlock_socket_attr create_socket_attr = {
-  	.allowed_access = LANDLOCK_ACCESS_SOCKET_CREATE,
-  	.families = 1 << AF_INET | 1 << AF_INET6,
-  	.types = 1 << SOCK_STREAM,
-  	.protocol = IPPROTO_SCTP
-  };
-
-
-> > 
-> > Whether the user is adding one rule to permit AF_INET+*, or whether the user is
-> > adding two rules to permit (1) AF_INET+SOCK_STREAM and (2) AF_INET+SOCK_DGRAM,
-> > that does not seem like a big deal to me as long as the list of such
-> > combinations is so low?
-> 
-> Agreed
-
-I also agree, but this might change if users have to set a combination
-of families, types, and protocols.  This should be OK with the bitmask
-approach though.
-
-> 
-> > 
-> > 
-> > > I suggest implementing something close to selinux socket classes for the
-> > > struct landlock_socket_attr (Cf. socket_type_to_security_class()). This
-> > > will provide protocol granularity and may be simpler and more convenient
-> > > in the terms of determining access rights. WDYT?
-> > 
-> > I see that this is a longer switch statement that maps to this enum, it would be
-> > an additional data table that would have to be documented separately for users.
-> 
-> This table is the general drawback, since it makes API a bit more
-> complex.
-> 
-> > 
-> > Do you have an example for how such a "security class enum" would map to the
-> > combinations of family, type and socket for the protocols discussed above?
-> 
-> I think the socket_type_to_security_class() has a pretty good mapping
-> for UNIX and IP families.
-
-The mapping looks good indeed, and it has been tested for a long time
-with many applications.  However, this would make the kernel
-implementation more complex, and I think this mapping could easily be
-implemented in user space libraries with the bitmask approach, if really
-needed, which I'm not sure.
-
-> 
-> > 
-> > If this is just a matter of actually mapping (family, type, protocol)
-> > combinations in a more flexible way, could we get away by allowing a special
-> > "wildcard" value for the "protocol" field, when it is used within a ruleset?
-> > Then the LSM would have to look up whether there is a rule for (family, type,
-> > protocol) and the only change would be that it now needs to also check whether
-> > there is a rule for (family, type, *)?
-> 
-> Something like this?
-> 
-> const struct landlock_socket_attr create_socket_attr = {
-> 	.allowed_access = LANDLOCK_ACCESS_SOCKET_CREATE,
-> 	.family = AF_INET6,
-> 	.type = SOCK_DGRAM,
-> 	.protocol = LANDLOCK_SOCKET_PROTO_ALL
-> };
-> 
-> > 
-> > —Günther
-> 
+Cheers ... Duncan.
