@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E6118195385;
-	Thu, 28 Nov 2024 12:23:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D24F61993B1;
+	Thu, 28 Nov 2024 12:23:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732796598; cv=none; b=kMRgUoWs5PjYOgQrs3K/1bDOGR8IOP7zQDXN2fGQW2CgcrShHaBOYi/p5Iq2MITu9Yg3jff6fQv2YdC2Nzk3qTfd2ID+N83a3gPRbdWsS4a5fKiB8ef99PMSbqA2eQ48GT1zIPrPzN2FQDUKzU6xUbwqdicwZNAwBMSz8eNxNZM=
+	t=1732796599; cv=none; b=mp4PIrA1Zpdpn+JCzV3k2nbhYHk0Fnz++Kkacd2H5pO85kY7WgPUnOll8MpKcJlTXGICJhDQ1FQ63vbNKUGbMHxnh9fZV7tFohEijfZewL7c5yryVYDhvWKKZFOBUS6wmlFXQuMjCQLge3AIcqylT3N7iGjXNGGJy9xRDtuc0Xo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732796598; c=relaxed/simple;
-	bh=hFk7DcrCWku1f8Amlp053OgJaZqRDekiB+fJXOGIWn4=;
+	s=arc-20240116; t=1732796599; c=relaxed/simple;
+	bh=2vnOCHF5Mvj1Me/7IGHJY7CgntwkHAHgjCeEOAtyTOE=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=if9p3b92g0Wfpb946MJbRwrQz9MjfJLGrEVVIIiAIJ/42c22lquaXG6UeMkpTSGGSSVu6Pn/xIGbNvtRH3JEvT6VtnZw3SG+0uXJ4X6V2oVu7HXShEe5Mqtf/FNgcYbX6Z4J46ov5QEhdG64XZJXQoKtbECT74ksCZRhu5IqgVk=
+	 MIME-Version; b=U1u+98tJXxyRRqmWPfOAsWBNzrGAeINE6Nn5zJfbLXr0/DRUeZMy8Dkr3A64DZI00bCBYVrsaDHg9jdJUmGRP9Sp3B3yzzzA1K5LEx/M3sCiD+UcXx0day5Lz5ILZvtXzVsw5W1FBJE1Yp891LROesbMgUxx1WLZaa2KwMWpZfg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 2/4] netfilter: x_tables: fix LED ID check in led_tg_check()
-Date: Thu, 28 Nov 2024 13:23:03 +0100
-Message-Id: <20241128122305.14091-3-pablo@netfilter.org>
+Subject: [PATCH net 4/4] netfilter: nft_inner: incorrect percpu area handling under softirq
+Date: Thu, 28 Nov 2024 13:23:05 +0100
+Message-Id: <20241128122305.14091-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20241128122305.14091-1-pablo@netfilter.org>
 References: <20241128122305.14091-1-pablo@netfilter.org>
@@ -34,104 +34,145 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Dmitry Antipov <dmantipov@yandex.ru>
+Softirq can interrupt packet from process context which walks over the
+percpu area.
 
-Syzbot has reported the following BUG detected by KASAN:
+Add routines to disable bh while restoring and saving the tunnel parser
+context from percpu area to stack. Add a skbuff owner for this percpu
+area to catch softirq interference to exercise the packet tunnel parser
+again in such case.
 
-BUG: KASAN: slab-out-of-bounds in strlen+0x58/0x70
-Read of size 1 at addr ffff8881022da0c8 by task repro/5879
-...
-Call Trace:
- <TASK>
- dump_stack_lvl+0x241/0x360
- ? __pfx_dump_stack_lvl+0x10/0x10
- ? __pfx__printk+0x10/0x10
- ? _printk+0xd5/0x120
- ? __virt_addr_valid+0x183/0x530
- ? __virt_addr_valid+0x183/0x530
- print_report+0x169/0x550
- ? __virt_addr_valid+0x183/0x530
- ? __virt_addr_valid+0x183/0x530
- ? __virt_addr_valid+0x45f/0x530
- ? __phys_addr+0xba/0x170
- ? strlen+0x58/0x70
- kasan_report+0x143/0x180
- ? strlen+0x58/0x70
- strlen+0x58/0x70
- kstrdup+0x20/0x80
- led_tg_check+0x18b/0x3c0
- xt_check_target+0x3bb/0xa40
- ? __pfx_xt_check_target+0x10/0x10
- ? stack_depot_save_flags+0x6e4/0x830
- ? nft_target_init+0x174/0xc30
- nft_target_init+0x82d/0xc30
- ? __pfx_nft_target_init+0x10/0x10
- ? nf_tables_newrule+0x1609/0x2980
- ? nf_tables_newrule+0x1609/0x2980
- ? rcu_is_watching+0x15/0xb0
- ? nf_tables_newrule+0x1609/0x2980
- ? nf_tables_newrule+0x1609/0x2980
- ? __kmalloc_noprof+0x21a/0x400
- nf_tables_newrule+0x1860/0x2980
- ? __pfx_nf_tables_newrule+0x10/0x10
- ? __nla_parse+0x40/0x60
- nfnetlink_rcv+0x14e5/0x2ab0
- ? __pfx_validate_chain+0x10/0x10
- ? __pfx_nfnetlink_rcv+0x10/0x10
- ? __lock_acquire+0x1384/0x2050
- ? netlink_deliver_tap+0x2e/0x1b0
- ? __pfx_lock_release+0x10/0x10
- ? netlink_deliver_tap+0x2e/0x1b0
- netlink_unicast+0x7f8/0x990
- ? __pfx_netlink_unicast+0x10/0x10
- ? __virt_addr_valid+0x183/0x530
- ? __check_object_size+0x48e/0x900
- netlink_sendmsg+0x8e4/0xcb0
- ? __pfx_netlink_sendmsg+0x10/0x10
- ? aa_sock_msg_perm+0x91/0x160
- ? __pfx_netlink_sendmsg+0x10/0x10
- __sock_sendmsg+0x223/0x270
- ____sys_sendmsg+0x52a/0x7e0
- ? __pfx_____sys_sendmsg+0x10/0x10
- __sys_sendmsg+0x292/0x380
- ? __pfx___sys_sendmsg+0x10/0x10
- ? lockdep_hardirqs_on_prepare+0x43d/0x780
- ? __pfx_lockdep_hardirqs_on_prepare+0x10/0x10
- ? exc_page_fault+0x590/0x8c0
- ? do_syscall_64+0xb6/0x230
- do_syscall_64+0xf3/0x230
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-...
- </TASK>
-
-Since an invalid (without '\0' byte at all) byte sequence may be passed
-from userspace, add an extra check to ensure that such a sequence is
-rejected as possible ID and so never passed to 'kstrdup()' and further.
-
-Reported-by: syzbot+6c8215822f35fdb35667@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=6c8215822f35fdb35667
-Fixes: 268cb38e1802 ("netfilter: x_tables: add LED trigger target")
-Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
+Reported-by: syzbot+84d0441b9860f0d63285@syzkaller.appspotmail.com
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_LED.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/net/netfilter/nf_tables_core.h |  1 +
+ net/netfilter/nft_inner.c              | 56 ++++++++++++++++++++------
+ 2 files changed, 45 insertions(+), 12 deletions(-)
 
-diff --git a/net/netfilter/xt_LED.c b/net/netfilter/xt_LED.c
-index f7b0286d106a..8a80fd76fe45 100644
---- a/net/netfilter/xt_LED.c
-+++ b/net/netfilter/xt_LED.c
-@@ -96,7 +96,9 @@ static int led_tg_check(const struct xt_tgchk_param *par)
- 	struct xt_led_info_internal *ledinternal;
- 	int err;
+diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
+index ff27cb2e1662..dae0e7592934 100644
+--- a/include/net/netfilter/nf_tables_core.h
++++ b/include/net/netfilter/nf_tables_core.h
+@@ -161,6 +161,7 @@ enum {
+ };
  
--	if (ledinfo->id[0] == '\0')
-+	/* Bail out if empty string or not a string at all. */
-+	if (ledinfo->id[0] == '\0' ||
-+	    !memchr(ledinfo->id, '\0', sizeof(ledinfo->id)))
- 		return -EINVAL;
+ struct nft_inner_tun_ctx {
++	struct sk_buff *skb;	/* percpu area owner */
+ 	u16	type;
+ 	u16	inner_tunoff;
+ 	u16	inner_lloff;
+diff --git a/net/netfilter/nft_inner.c b/net/netfilter/nft_inner.c
+index 928312d01eb1..fcaa126ac8da 100644
+--- a/net/netfilter/nft_inner.c
++++ b/net/netfilter/nft_inner.c
+@@ -210,35 +210,65 @@ static int nft_inner_parse(const struct nft_inner *priv,
+ 			   struct nft_pktinfo *pkt,
+ 			   struct nft_inner_tun_ctx *tun_ctx)
+ {
+-	struct nft_inner_tun_ctx ctx = {};
+ 	u32 off = pkt->inneroff;
  
- 	mutex_lock(&xt_led_mutex);
+ 	if (priv->flags & NFT_INNER_HDRSIZE &&
+-	    nft_inner_parse_tunhdr(priv, pkt, &ctx, &off) < 0)
++	    nft_inner_parse_tunhdr(priv, pkt, tun_ctx, &off) < 0)
+ 		return -1;
+ 
+ 	if (priv->flags & (NFT_INNER_LL | NFT_INNER_NH)) {
+-		if (nft_inner_parse_l2l3(priv, pkt, &ctx, off) < 0)
++		if (nft_inner_parse_l2l3(priv, pkt, tun_ctx, off) < 0)
+ 			return -1;
+ 	} else if (priv->flags & NFT_INNER_TH) {
+-		ctx.inner_thoff = off;
+-		ctx.flags |= NFT_PAYLOAD_CTX_INNER_TH;
++		tun_ctx->inner_thoff = off;
++		tun_ctx->flags |= NFT_PAYLOAD_CTX_INNER_TH;
+ 	}
+ 
+-	*tun_ctx = ctx;
+ 	tun_ctx->type = priv->type;
++	tun_ctx->skb = pkt->skb;
+ 	pkt->flags |= NFT_PKTINFO_INNER_FULL;
+ 
+ 	return 0;
+ }
+ 
++static bool nft_inner_restore_tun_ctx(const struct nft_pktinfo *pkt,
++				      struct nft_inner_tun_ctx *tun_ctx)
++{
++	struct nft_inner_tun_ctx *this_cpu_tun_ctx;
++
++	local_bh_disable();
++	this_cpu_tun_ctx = this_cpu_ptr(&nft_pcpu_tun_ctx);
++	if (this_cpu_tun_ctx->skb != pkt->skb) {
++		local_bh_enable();
++		return false;
++	}
++	*tun_ctx = *this_cpu_tun_ctx;
++	local_bh_enable();
++
++	return true;
++}
++
++static void nft_inner_save_tun_ctx(const struct nft_pktinfo *pkt,
++				   const struct nft_inner_tun_ctx *tun_ctx)
++{
++	struct nft_inner_tun_ctx *this_cpu_tun_ctx;
++
++	local_bh_disable();
++	this_cpu_tun_ctx = this_cpu_ptr(&nft_pcpu_tun_ctx);
++	*this_cpu_tun_ctx = *tun_ctx;
++	local_bh_enable();
++}
++
+ static bool nft_inner_parse_needed(const struct nft_inner *priv,
+ 				   const struct nft_pktinfo *pkt,
+-				   const struct nft_inner_tun_ctx *tun_ctx)
++				   struct nft_inner_tun_ctx *tun_ctx)
+ {
+ 	if (!(pkt->flags & NFT_PKTINFO_INNER_FULL))
+ 		return true;
+ 
++	if (!nft_inner_restore_tun_ctx(pkt, tun_ctx))
++		return true;
++
+ 	if (priv->type != tun_ctx->type)
+ 		return true;
+ 
+@@ -248,27 +278,29 @@ static bool nft_inner_parse_needed(const struct nft_inner *priv,
+ static void nft_inner_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 			   const struct nft_pktinfo *pkt)
+ {
+-	struct nft_inner_tun_ctx *tun_ctx = this_cpu_ptr(&nft_pcpu_tun_ctx);
+ 	const struct nft_inner *priv = nft_expr_priv(expr);
++	struct nft_inner_tun_ctx tun_ctx = {};
+ 
+ 	if (nft_payload_inner_offset(pkt) < 0)
+ 		goto err;
+ 
+-	if (nft_inner_parse_needed(priv, pkt, tun_ctx) &&
+-	    nft_inner_parse(priv, (struct nft_pktinfo *)pkt, tun_ctx) < 0)
++	if (nft_inner_parse_needed(priv, pkt, &tun_ctx) &&
++	    nft_inner_parse(priv, (struct nft_pktinfo *)pkt, &tun_ctx) < 0)
+ 		goto err;
+ 
+ 	switch (priv->expr_type) {
+ 	case NFT_INNER_EXPR_PAYLOAD:
+-		nft_payload_inner_eval((struct nft_expr *)&priv->expr, regs, pkt, tun_ctx);
++		nft_payload_inner_eval((struct nft_expr *)&priv->expr, regs, pkt, &tun_ctx);
+ 		break;
+ 	case NFT_INNER_EXPR_META:
+-		nft_meta_inner_eval((struct nft_expr *)&priv->expr, regs, pkt, tun_ctx);
++		nft_meta_inner_eval((struct nft_expr *)&priv->expr, regs, pkt, &tun_ctx);
+ 		break;
+ 	default:
+ 		WARN_ON_ONCE(1);
+ 		goto err;
+ 	}
++	nft_inner_save_tun_ctx(pkt, &tun_ctx);
++
+ 	return;
+ err:
+ 	regs->verdict.code = NFT_BREAK;
 -- 
 2.30.2
 
