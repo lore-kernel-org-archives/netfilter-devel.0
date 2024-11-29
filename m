@@ -1,91 +1,76 @@
-Received: from esgaroth.petrovitsch.at (esgaroth.petrovitsch.at [78.47.184.11])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54B0114D6ED;
-	Thu, 28 Nov 2024 23:05:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=78.47.184.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 674AB1386DA;
+	Fri, 29 Nov 2024 07:08:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732835146; cv=none; b=R0DPSAjQbn+FY0Wj75Xqy+Dm9ioRYBxHYoJIj+N4zCAVuETOSxmNUgkpiBHh4jjpqOQS6SGxCx6oqTiGkE7pNTBju1cLrzCf80WGrmrmfEzclwkzy4gf14aXHPO182dubjov5FOYDsuEQ8DplKs+IsMXD1JtC6vEsxlVwy9ri40=
+	t=1732864099; cv=none; b=KCPGJBdvBWRYdqW0DoO67+vdbeZTQC0qb7XNB0qsUIQT91+nUCSq93KYBOzzWG3vGRpwo6aBvpA9UmlNKiC3qoM5AAlxirmaPrhF/zvwx2jAtazbzi6zPIDBUPiGsJwnXnqlZzzqR/vSNZrEA0N91dlMmSI0/RUcLjzTb4DY2Hs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732835146; c=relaxed/simple;
-	bh=KV1kTdPXXjLjR3CJMO+XBokWZbSlYJ+qrQpoPDLuBDg=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Kmj54WwAZ3NiA1Lw84mD2FqKXjcJxZC+xzZ/yrZJt0goGQ8G4EZ3/bpCl21NAGLrISk2IfdD21JJThwPaTs10/ZK+isBA3JivupcJqud0kPxPjnNqisJAorrxXzUp2t2hFJ17CCiEW2Dk/J2Yi4b84n5yLROesAMSHlceKRyAwY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=petrovitsch.priv.at; spf=pass smtp.mailfrom=petrovitsch.priv.at; dkim=pass (1024-bit key) header.d=petrovitsch.priv.at header.i=@petrovitsch.priv.at header.b=wTBYtbxu; arc=none smtp.client-ip=78.47.184.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=petrovitsch.priv.at
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=petrovitsch.priv.at
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=petrovitsch.priv.at header.i=@petrovitsch.priv.at header.b="wTBYtbxu"
-Received: from [172.16.0.14] (84-115-223-47.cable.dynamic.surfer.at [84.115.223.47])
-	(authenticated bits=0)
-	by esgaroth.petrovitsch.at (8.18.1/8.18.1) with ESMTPSA id 4ASMFXwZ2125882
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT);
-	Thu, 28 Nov 2024 23:15:34 +0100
-DKIM-Filter: OpenDKIM Filter v2.11.0 esgaroth.petrovitsch.at 4ASMFXwZ2125882
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=petrovitsch.priv.at;
-	s=default; t=1732832135;
-	bh=h2MqZpEynosisovvFZzTqVcgF9aHF8+XJH8KFujSEFo=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=wTBYtbxugHUHw8M9oUBxafHEcRrVl6DmC+bwh5NDRQXDAxZ99fGbIneDl8eRkAw5/
-	 MYnc0IS1lUBQuUlLN7Q5RxoeFQOrqNDmHllVgLT/+/ObTZTYz+bAg4GySsR+zCIKPj
-	 s1+ARFaVrouPt1VfQ40OmBIW0d+cbsIIk/r1FGjc=
-Message-ID: <4db72181-00f4-467e-9b18-f7b98bc103a3@petrovitsch.priv.at>
-Date: Thu, 28 Nov 2024 23:15:17 +0100
+	s=arc-20240116; t=1732864099; c=relaxed/simple;
+	bh=0W4gdl3LHtpXQqUcw6Hs+0eg26faz4Iu1fqKfJtsO1Q=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=IHOO5e8KljSU9prUZ8DYm3rHAAMVuYeJLGzwx2bT7DtPFlX39BGex6CbmH+7HL/hyT3OS8gL9oDLhegEAeE7/mUM7Y0h/l2jfoWS5AAe8XN/zQdiLeJM9gwJWJmFtKvhv2Oxu7cQjA9vAAANknVX4unsffomgquHGmzwREKCwgM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1tGv6j-0006q3-6S; Fri, 29 Nov 2024 08:08:05 +0100
+Date: Fri, 29 Nov 2024 08:08:05 +0100
+From: Florian Westphal <fw@strlen.de>
+To: =?utf-8?B?U3rFkWtl?= Benjamin <egyszeregy@freemail.hu>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, kadlec@netfilter.org,
+	davem@davemloft.net, dsahern@kernel.org, edumazet@google.com,
+	kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH] netfilter: uapi: Fix file names for case-insensitive
+ filesystem.
+Message-ID: <20241129070805.GA26153@breakpoint.cc>
+References: <20241111163634.1022-1-egyszeregy@freemail.hu>
+ <20241111165606.GA21253@breakpoint.cc>
+ <ZzJORY4eWl4xEiMG@calendula>
+ <5f28d3d4-fa55-425c-9dd2-5616f5d4c0ac@freemail.hu>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Betterbird (Linux)
-Subject: Re: [PATCH] netfilter: uapi: Fix file names for case-insensitive
- filesystem.
-To: =?UTF-8?Q?Sz=C5=91ke_Benjamin?= <egyszeregy@freemail.hu>
-Cc: Florian Westphal <fw@strlen.de>, kadlec@netfilter.org, davem@davemloft.net,
-        dsahern@kernel.org, edumazet@google.com, kuba@kernel.org,
-        pabeni@redhat.com, horms@kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>
-References: <20241111163634.1022-1-egyszeregy@freemail.hu>
- <20241111165606.GA21253@breakpoint.cc> <ZzJORY4eWl4xEiMG@calendula>
- <5f28d3d4-fa55-425c-9dd2-5616f5d4c0ac@freemail.hu>
-From: Bernd Petrovitsch <bernd@petrovitsch.priv.at>
-Content-Language: en-US
-BIMI-Selector: v=BIMI1; s=default
-In-Reply-To: <5f28d3d4-fa55-425c-9dd2-5616f5d4c0ac@freemail.hu>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-DCC--Metrics: esgaroth.petrovitsch.priv.at 1102; Body=14 Fuz1=14 Fuz2=14
-X-Virus-Scanned: clamav-milter 1.0.7 at smtp.tuxoid.at
-X-Virus-Status: Clean
-X-Spam-Report: 
-	* -1.0 ALL_TRUSTED Passed through trusted hosts only via SMTP
-	* -0.1 DKIM_VALID_EF Message has a valid DKIM or DK signature from
-	*      envelope-from domain
-	* -0.1 DKIM_VALID_AU Message has a valid DKIM or DK signature from author's
-	*       domain
-	* -0.1 DKIM_VALID Message has at least one valid DKIM or DK signature
-	*  0.1 DKIM_SIGNED Message has a DKIM or DK signature, not necessarily
-	*      valid
-	* -1.9 BAYES_00 BODY: Bayes spam probability is 0 to 1%
-	*      [score: 0.0000]
+In-Reply-To: <5f28d3d4-fa55-425c-9dd2-5616f5d4c0ac@freemail.hu>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-Hi all!
+Szőke Benjamin <egyszeregy@freemail.hu> wrote:
+> and lower case *.h files can be merged to a common header files like
+> "xt_dscp_common.h" but what about the *.c sources? For example if xt_DSCP.c
+> removed and its content merged to xt_dscp.c before, what is the plan with
+> kernel config options of CONFIG_NETFILTER_XT_TARGET_DSCP which was made for
+> only xt_DSCP.c source to use in Makefile? Can we remove all of
+> CONFIG_NETFILTER_XT_TARGET* config in the future which will lost their *.c
+> source files?
 
-On 11.11.24 21:28, Szőke Benjamin wrote:
-[...]
-> What is your detailed plans to solve it? 
+Sure.
 
-Use a sane filesystem which is thus case-sensitive - case-insensitive
-filesystems are broken by design (e.g. think of upper case/lower case
-situation for non-ASCII-7bit clean languages like German which has
-lower case ä,ö,ü and the upper case equivalents Ä,Ö,Ü including different
-encodings - no you don't want more than 1 encoding on a computer but then
-reality kicks in - and that in a filesystem driver in a kernel ....).
+> obj-$(CONFIG_NETFILTER_XT_TARGET_DSCP) += xt_DSCP.o
+> ...
 
-Kind regards,
-	Bernd
--- 
-Bernd Petrovitsch                  Email : bernd@petrovitsch.priv.at
-      There is NO CLOUD, just other people's computers. - FSFE
-                      LUGA : http://www.luga.at
+This line goes away.
+
+> obj-$(CONFIG_NETFILTER_XT_MATCH_DSCP) += xt_dscp.o
+
+This line is changed to
+
+obj-$(CONFIG_NETFILTER_XT_DSCP) += xt_dscp.o
+
+Kconfig file NETFILTER_XT_TARGET/MATCH_DSCP are changed to
+select new NETFILTER_XT_MATCH_DSCP.
+
+This has been done before, see e.g.
+28b949885f80 ("netfilter: xtables: merge xt_MARK into xt_mark")
+
+you can follow this almost 1:1.
