@@ -1,61 +1,170 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-il1-f198.google.com (mail-il1-f198.google.com [209.85.166.198])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EDED45BEC
-	for <netfilter-devel@vger.kernel.org>; Fri, 29 Nov 2024 16:27:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9F401A255A
+	for <netfilter-devel@vger.kernel.org>; Sat, 30 Nov 2024 18:05:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.198
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732897623; cv=none; b=dCgIdw8JERbnXn9ZicsdNx15DAkZx6z2iOoIz/fBUjqynrEK2Ymfmou5jSntiWlptee28OpoHc++Ism7HLAR92u5oYhPDqJr9U+GObfSuFN64cBlptn/gOBn+dW/W+PrLVd8NFICZE7pwYH0rxXsSGa/5nP4oWgDraUOQoEzrW8=
+	t=1732989930; cv=none; b=Na7b9BqGd+cWaoTvMqS+V4Lz2ut9TTNBn+qfe9PR/DGQCDZl59UOMR8h07HsK8OpCyRQMmCxOpkgAGXhO6XaGdSfJmZ4QBy9ZFk9qc6ABIyXN3Vs2vvR7kMhCrqBpWNZ7RABvoaGo+NvO8296iU6YsI8jWYcKI6PZBUBeQgd1hU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732897623; c=relaxed/simple;
-	bh=g+IIXjxTCSAbALXPbJOz/oDRVPvHzJCZ/iZrH4aIOjI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SsV6fHDRzq2JD1j3ywOoGoLkmHfP7C85cBmn2BZv7XiIP0SExjPIQnKtNQOu9WJBntC0uzucL7ZxWkNpwfnFzRYTozP+par4g5q7KFGYJck7kyqsRB7MPfDBKuZPZ4gHIRDAP+xtTulCqpykIfRRbsnNI3RO+L/vKVySJLUvTyo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=ebUfrXKd; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="ebUfrXKd"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=hMm96giuTsDvZSARR8TranKP1k5WK+KqD1yfi0wCYx8=; b=ebUfrXKdOwolqhnA0oInA6ZL8f
-	F0g4NNstPk3SphOnlw6nkmx5pdwSLKtvU+TZhObqkHV5p8zT88p48VMjkE2nYgVEYIO35xEBvdtKB
-	mEufTZU45yh0CPtCtZurTa3QHm8Aq2gYVAGzmCA8aAPtrzC0peTLu2/DQyD/FFNwlYC9qfsD9ntmZ
-	aqfDUJ2RsCbxNU4u7KhZcCjidyt8YXlJvY5yGkIWEyhwlKqKRmrr8n8V4NZboePHcBxYMGyrI2Ro1
-	saOD7vkVNzgzW+GEp7ZZiTy9rdqoa+/js5nag7c5My/LywXhlHIcp2y+O2I20CqDFW/5mG8j8+sSg
-	9qSK/3SQ==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1tH3pb-000000002id-15gr;
-	Fri, 29 Nov 2024 17:26:59 +0100
-Date: Fri, 29 Nov 2024 17:26:59 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Donald Yandt <donald.yandt@gmail.com>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] mnl: fix basehook comparison
-Message-ID: <Z0nrU1Hrq51AAvpO@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Donald Yandt <donald.yandt@gmail.com>,
-	netfilter-devel@vger.kernel.org
-References: <20241122220449.63682-1-donald.yandt@gmail.com>
+	s=arc-20240116; t=1732989930; c=relaxed/simple;
+	bh=2C4d7UEKbKI1mAkzDFtYC51rOUqkJDdUDhD2OKE+FbY=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=h+LLAle2iR1j8CFKrfIulNKvLJkL5QpquH0NyvIIAO6IsZfUzM5S3mOkNTpjmj9VvT2CW3W6h5vVKE9t3SJoKtJ9RI73sIEnSRSaGFb9yyz6oboIrPedvfqGt5AfQ0Yo99OrayqMu/CHhFuM7i7nZgfJ7q9rSza1VBm9FaPZq54=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.198
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-il1-f198.google.com with SMTP id e9e14a558f8ab-3a7e39b48a2so7925055ab.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 30 Nov 2024 10:05:28 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1732989928; x=1733594728;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=VRHMMbOM9jVJYYNqroswi5u/gwQteibRbzcIjAytvhM=;
+        b=dJlu0LXrhh4y1HHDCIhrs3bmfsb2e9/h/4VCXt2wd10I1fXEyPvvWExENbpOOiV6WM
+         OEyMzjq4UStHOlMQChxuWajOps+IHQA/2Zw5os2zyllBNI98PCAbG2VYdhunbpvHnEZc
+         lCEzvw31sR7/LCsQjZ/3AHpi2QtliZ9v7KiCbAYtD/70jmIcDkl8xEXqJ4bFxN70vkBa
+         FasHCBNziNU9/zfE1JkB4yV2I7S52e3xgBAlw/TMqgphYxXPrn+Omp42WKNbExn1FtCI
+         sMCDbbDeqRIC7JhqFUlqGjSbfU9fWOPTNHd+vpbVj0elndlV9FJw6rbkuG3PzILGt4aB
+         nb6A==
+X-Forwarded-Encrypted: i=1; AJvYcCUlfIqDZ/2ptDbqY5eaIqivPCMiYm96pYK4GErgnawoGeAHiHQyyOohvRnZBiRTRBaLFYK2VV6wqLmFXmpxUns=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz0Sywx95H8eJSsg011GQ4m8SRazk1s1fNQPJlObelqGRTNB3HS
+	qEt7BZf47LNaZOz2mQ7t4HfCsnBHi95sGDLjEzXKxyg+AR7V+ukMZIl35B6c7DNeFcPPv/BZQEI
+	eeA3opYjJPvE9t3WdHddln5CQLpP0QTw/ZHRVHo24BAFno4SbUT5NHto=
+X-Google-Smtp-Source: AGHT+IEv6YmrCOe0vSZf00GEMUS/16hEGNr7prLtk9Itu6MSY1XWR6kc8bNn8216SRdyU83X52rWfu30sjWxoil4Suf9kjb036JK
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20241122220449.63682-1-donald.yandt@gmail.com>
+X-Received: by 2002:a05:6e02:1569:b0:3a7:c072:c69a with SMTP id
+ e9e14a558f8ab-3a7c5524090mr206778105ab.3.1732989928071; Sat, 30 Nov 2024
+ 10:05:28 -0800 (PST)
+Date: Sat, 30 Nov 2024 10:05:28 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <674b53e8.050a0220.253251.00e0.GAE@google.com>
+Subject: [syzbot] [bpf?] [netfilter?] INFO: rcu detected stall in sys_sendmmsg (7)
+From: syzbot <syzbot+53e660acb94e444b9d63@syzkaller.appspotmail.com>
+To: andrii@kernel.org, anna-maria@linutronix.de, ast@kernel.org, 
+	bpf@vger.kernel.org, daniel@iogearbox.net, frederic@kernel.org, 
+	kadlec@netfilter.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, pablo@netfilter.org, 
+	syzkaller-bugs@googlegroups.com, tglx@linutronix.de
+Content-Type: text/plain; charset="UTF-8"
 
-On Fri, Nov 22, 2024 at 05:04:49PM -0500, Donald Yandt wrote:
-> When comparing two hooks, if both device names are null,
-> the comparison should return true, as they are considered equal.
-> 
-> Signed-off-by: Donald Yandt <donald.yandt@gmail.com>
+Hello,
 
-Patch applied, thanks!
+syzbot found the following issue on:
+
+HEAD commit:    b86545e02e8c Merge tag 'acpi-6.13-rc1-2' of git://git.kern..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=12cd4f78580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=f8e5d0648de624aa
+dashboard link: https://syzkaller.appspot.com/bug?extid=53e660acb94e444b9d63
+compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
+
+Unfortunately, I don't have any reproducer for this issue yet.
+
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/7afd648f7c25/disk-b86545e0.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/40e3ee6c8cc8/vmlinux-b86545e0.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/53bc5977cfb0/bzImage-b86545e0.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+53e660acb94e444b9d63@syzkaller.appspotmail.com
+
+rcu: INFO: rcu_preempt detected stalls on CPUs/tasks:
+rcu: 	1-...0: (6 ticks this GP) idle=545c/1/0x4000000000000000 softirq=161841/161847 fqs=2100
+rcu: 	         hardirqs   softirqs   csw/system
+rcu: 	 number:        0          0            0
+rcu: 	cputime:        0          0            0   ==> 52500(ms)
+rcu: 	(detected by 0, t=10505 jiffies, g=202837, q=172 ncpus=2)
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 UID: 0 PID: 1553 Comm: syz.8.7708 Not tainted 6.12.0-syzkaller-10553-gb86545e02e8c #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/13/2024
+RIP: 0010:advance_sched+0x36/0xca0 net/sched/sch_taprio.c:916
+Code: 54 53 48 81 ec 98 00 00 00 49 89 fe 48 bd 00 00 00 00 00 fc ff df e8 79 e7 c8 f7 49 8d 5e 88 48 89 d8 48 c1 e8 03 80 3c 28 00 <74> 08 48 89 df e8 50 a3 30 f8 48 8b 03 48 89 84 24 88 00 00 00 48
+RSP: 0018:ffffc90000a18c70 EFLAGS: 00000046
+RAX: 1ffff1100c0f9259 RBX: ffff8880607c92c8 RCX: ffff88802d349e00
+RDX: 0000000000010000 RSI: 0000000000000000 RDI: ffff8880607c9340
+RBP: dffffc0000000000 R08: ffffffff8183463f R09: 1ffffffff203a606
+R10: dffffc0000000000 R11: ffffffff89ccfc90 R12: dffffc0000000000
+R13: ffffffff89ccfc90 R14: ffff8880607c9340 R15: ffff88802d34a8c8
+FS:  00007f7bb35f66c0(0000) GS:ffff8880b8700000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000110c32f64a CR3: 0000000070470000 CR4: 00000000003526f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <NMI>
+ </NMI>
+ <IRQ>
+ __run_hrtimer kernel/time/hrtimer.c:1739 [inline]
+ __hrtimer_run_queues+0x59b/0xd50 kernel/time/hrtimer.c:1803
+ hrtimer_interrupt+0x403/0xa40 kernel/time/hrtimer.c:1865
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1038 [inline]
+ __sysvec_apic_timer_interrupt+0x110/0x420 arch/x86/kernel/apic/apic.c:1055
+ instr_sysvec_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1049 [inline]
+ sysvec_apic_timer_interrupt+0xa1/0xc0 arch/x86/kernel/apic/apic.c:1049
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x1a/0x20 arch/x86/include/asm/idtentry.h:702
+RIP: 0010:finish_task_switch+0x1ea/0x870 kernel/sched/core.c:5243
+Code: c9 50 e8 79 07 0c 00 48 83 c4 08 4c 89 f7 e8 9d 39 00 00 e9 de 04 00 00 4c 89 f7 e8 70 2f 6f 0a e8 2b 9a 38 00 fb 48 8b 5d c0 <48> 8d bb f8 15 00 00 48 89 f8 48 c1 e8 03 49 be 00 00 00 00 00 fc
+RSP: 0018:ffffc900033771a8 EFLAGS: 00000286
+RAX: a5530211a14c0a00 RBX: ffff88802d349e00 RCX: ffffffff9a3f7903
+RDX: dffffc0000000000 RSI: ffffffff8c0ad980 RDI: ffffffff8c6083a0
+RBP: ffffc900033771f0 R08: ffffffff901d3037 R09: 1ffffffff203a606
+R10: dffffc0000000000 R11: fffffbfff203a607 R12: 1ffff110170e7eac
+R13: dffffc0000000000 R14: ffff8880b863e740 R15: ffff8880b873f560
+ context_switch kernel/sched/core.c:5372 [inline]
+ __schedule+0x1803/0x4be0 kernel/sched/core.c:6756
+ __schedule_loop kernel/sched/core.c:6833 [inline]
+ schedule+0x14b/0x320 kernel/sched/core.c:6848
+ schedule_timeout+0xb0/0x290 kernel/time/sleep_timeout.c:75
+ unix_wait_for_peer+0x250/0x340 net/unix/af_unix.c:1529
+ unix_dgram_sendmsg+0x127f/0x1f80 net/unix/af_unix.c:2131
+ sock_sendmsg_nosec net/socket.c:711 [inline]
+ __sock_sendmsg+0x221/0x270 net/socket.c:726
+ ____sys_sendmsg+0x52a/0x7e0 net/socket.c:2583
+ ___sys_sendmsg net/socket.c:2637 [inline]
+ __sys_sendmmsg+0x36a/0x720 net/socket.c:2726
+ __do_sys_sendmmsg net/socket.c:2753 [inline]
+ __se_sys_sendmmsg net/socket.c:2750 [inline]
+ __x64_sys_sendmmsg+0xa0/0xb0 net/socket.c:2750
+ do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+ do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7f7bb5780809
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f7bb35f6058 EFLAGS: 00000246 ORIG_RAX: 0000000000000133
+RAX: ffffffffffffffda RBX: 00007f7bb5945fa0 RCX: 00007f7bb5780809
+RDX: 0000000000000651 RSI: 0000000020000000 RDI: 0000000000000007
+RBP: 00007f7bb57f393e R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 0000000000000000 R14: 00007f7bb5945fa0 R15: 00007ffe8b8d0818
+ </TASK>
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
