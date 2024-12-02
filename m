@@ -1,356 +1,402 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B6961FA245;
-	Mon,  2 Dec 2024 11:32:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D2FC70818;
+	Mon,  2 Dec 2024 18:06:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.177.32
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733139175; cv=none; b=lzdrErMxUf5FW473DIksxT0QLf+7JN7e6XYoatGZNM5ZNjQwr4vhxlCey7RszsacVjXhPxA7i5h4aczFw+613yhGFxZ+pvpuoqgCOF+mBxEljIj6a74H4fi5I4TRojMlxtrTXTg0GC6eaXonsHTka6BPWN22Wcg73WoC2qHz4yA=
+	t=1733162766; cv=none; b=Eg6r7+y0mYtxie2GpVTXVYuBcF/UAqfD4qYSDmftlye3fbFhjmLfvxpbOG9RPh0MwI6f/OCAgStksu0fRzplpycbnppkakh4GdsAdYRBXeNz+CBghzQOD/koq3srCSCp6yzym0Aav9zPzEGuhyFXhDdouqpFNM837NESHE8K2Fw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733139175; c=relaxed/simple;
-	bh=q1oTX19RB5TTGmMPwQPIbTWTnp2rfELwgORKeXdNJfo=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=GqxTInc3ZZCo3gBiQ3buBmF7rIeYQfFTvVzsfKcsxtvLTUNySyv1nZLKTbzSuvOFTuMO04OgMBOsc2H8I2EbXGzynPAT2RRGG9JXERKPwb5tBGramSSAPK2KYD276wxykmEusD+xjDp2xBBdFpQ8wCPRkdBeB8QNO+hOyDEzIEA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
-Received: from mail.maildlp.com (unknown [172.18.186.31])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Y21m6713cz6K9Hn;
-	Mon,  2 Dec 2024 19:29:58 +0800 (CST)
-Received: from mscpeml500004.china.huawei.com (unknown [7.188.26.250])
-	by mail.maildlp.com (Postfix) with ESMTPS id BEC7E14034E;
-	Mon,  2 Dec 2024 19:32:49 +0800 (CST)
-Received: from [10.123.123.159] (10.123.123.159) by
- mscpeml500004.china.huawei.com (7.188.26.250) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1258.34; Mon, 2 Dec 2024 14:32:47 +0300
-Message-ID: <af72be74-50c7-d251-5df3-a2c63c73296a@huawei-partners.com>
-Date: Mon, 2 Dec 2024 14:32:45 +0300
+	s=arc-20240116; t=1733162766; c=relaxed/simple;
+	bh=SohDtRB2amvWbKYSjyiIAT7+gtkuiaHkuHOOcBzknVA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Rm+rzeUAlsg44EcTTBJ5X2B09CI0moe1kF/cJygP6mgQVnK6WQgoExX4MtxR6EcraGTOr3KAoBl3e7av0cOoeHN/JHJQXvlT0Hj4LQrui+UaHIS4Wo5ZxjbxJtWnNqkv32A+ZT6nK9tysNVb+llVnyZC7EAVRaUn1PUY0YVPG5g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=IAd9D1Xi; arc=none smtp.client-ip=205.220.177.32
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="IAd9D1Xi"
+Received: from pps.filterd (m0246630.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 4B2Hfe3K014348;
+	Mon, 2 Dec 2024 18:05:11 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=cc
+	:content-transfer-encoding:date:from:message-id:mime-version
+	:subject:to; s=corp-2023-11-20; bh=vZpce4mcEz8PyoN6JDO85pkM1Kepr
+	SPv/e3K+egDxO8=; b=IAd9D1Xiaecpt9eWvvzznsaxiU9U8zhVU0mrPtP1jW21V
+	XH6Y+WVCJu4L4eOD1LqYvNGAGFK+gfGiYa8KPg9qw1Nd0oMmQYb3CJUGEryEgJc3
+	EbIZL6zwy1Eo0XB2lU0HHas7l1IwIvsmLFq+esoMft6oOiEcYvbrrnGyHZREQj4F
+	OCKIpW+fYPWAZ1RNfX2Zge0JlDsy1l6ArzUFtf4YyGinI4SK+c8UFMPegpK2C3+a
+	JtT/upfLPeuQtPj5ZPxHZBGGig8+96UjlDxKvaY29DO3h+vqtEf3i0Ihn1rw24jU
+	OeFzdvdts6SHSdVnQs25Vk5RC+jvKTxt0KbGvW2Ag==
+Received: from iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta01.appoci.oracle.com [130.35.100.223])
+	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 437s4c491n-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 02 Dec 2024 18:05:10 +0000 (GMT)
+Received: from pps.filterd (iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
+	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (8.18.1.2/8.18.1.2) with ESMTP id 4B2I30p9001973;
+	Mon, 2 Dec 2024 18:05:10 GMT
+Received: from pps.reinject (localhost [127.0.0.1])
+	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTPS id 437s56sea7-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 02 Dec 2024 18:05:09 +0000
+Received: from iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 4B2HxeaY005058;
+	Mon, 2 Dec 2024 18:05:09 GMT
+Received: from ca-dev112.us.oracle.com (ca-dev112.us.oracle.com [10.129.136.47])
+	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTP id 437s56se83-1;
+	Mon, 02 Dec 2024 18:05:09 +0000
+From: Saeed Mirzamohammadi <saeed.mirzamohammadi@oracle.com>
+To: 
+Cc: saeed.mirzamohammadi@oracle.com, Florian Westphal <fw@strlen.de>,
+        Eric Dumazet <edumazet@google.com>,
+        xingwei lee <xrivendell7@gmail.com>, yue sun <samsun1006219@gmail.com>,
+        syzbot+e5167d7144a62715044c@syzkaller.appspotmail.com,
+        Paolo Abeni <pabeni@redhat.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: [PATCH 4.19.y 1/1] inet: inet_defrag: prevent sk release while still in use
+Date: Mon,  2 Dec 2024 10:04:58 -0800
+Message-ID: <20241202180503.1099928-1-saeed.mirzamohammadi@oracle.com>
+X-Mailer: git-send-email 2.46.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH v3 01/19] landlock: Support socket access-control
-To: =?UTF-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
-CC: =?UTF-8?Q?G=C3=BCnther_Noack?= <gnoack@google.com>,
-	<willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
-	<linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-	<netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-	<artem.kuzin@huawei.com>, <konstantin.meskhidze@huawei.com>
-References: <20240904104824.1844082-1-ivanov.mikhail1@huawei-partners.com>
- <20240904104824.1844082-2-ivanov.mikhail1@huawei-partners.com>
- <ea026af8-bc29-709c-7e04-e145d01fd825@huawei-partners.com>
- <Z0DDQKACIRRDRZRE@google.com>
- <36ac2fde-1344-9055-42e2-db849abf02e0@huawei-partners.com>
- <20241127.oophah4Ueboo@digikod.net>
- <eafd855d-2681-8dfd-a2be-9c02fc07050d@huawei-partners.com>
- <20241128.um9voo5Woo3I@digikod.net>
-Content-Language: ru
-From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-In-Reply-To: <20241128.um9voo5Woo3I@digikod.net>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: lhrpeml100010.china.huawei.com (7.191.174.197) To
- mscpeml500004.china.huawei.com (7.188.26.250)
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1057,Hydra:6.0.680,FMLib:17.12.68.34
+ definitions=2024-12-02_13,2024-12-02_01,2024-11-22_01
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 mlxlogscore=999
+ adultscore=0 mlxscore=0 spamscore=0 suspectscore=0 malwarescore=0
+ phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2411120000 definitions=main-2412020153
+X-Proofpoint-ORIG-GUID: ioy_Iu373wvvx6Q5kAErRhXCIl2pAOLL
+X-Proofpoint-GUID: ioy_Iu373wvvx6Q5kAErRhXCIl2pAOLL
 
-On 11/28/2024 11:52 PM, Mickaël Salaün wrote:
-> On Thu, Nov 28, 2024 at 03:01:52PM +0300, Mikhail Ivanov wrote:
->> On 11/27/2024 9:43 PM, Mickaël Salaün wrote:
->>> On Mon, Nov 25, 2024 at 02:04:09PM +0300, Mikhail Ivanov wrote:
->>>> On 11/22/2024 8:45 PM, Günther Noack wrote:
->>>>> Hello Mikhail,
->>>>>
->>>>> sorry for the delayed response;
->>>>> I am very happy to see activity on this patch set! :)
->>>>
->>>> Hello Günther,
->>>> No problem, thanks a lot for your feedback!
->>>>
->>>>>
->>>>> On Mon, Nov 11, 2024 at 07:29:49PM +0300, Mikhail Ivanov wrote:
->>>>>> On 9/4/2024 1:48 PM, Mikhail Ivanov wrote:
->>>>>>> Landlock implements the `LANDLOCK_RULE_NET_PORT` rule type, which provides
->>>>>>> fine-grained control of actions for a specific protocol. Any action or
->>>>>>> protocol that is not supported by this rule can not be controlled. As a
->>>>>>> result, protocols for which fine-grained control is not supported can be
->>>>>>> used in a sandboxed system and lead to vulnerabilities or unexpected
->>>>>>> behavior.
->>>>>>>
->>>>>>> Controlling the protocols used will allow to use only those that are
->>>>>>> necessary for the system and/or which have fine-grained Landlock control
->>>>>>> through others types of rules (e.g. TCP bind/connect control with
->>>>>>> `LANDLOCK_RULE_NET_PORT`, UNIX bind control with
->>>>>>> `LANDLOCK_RULE_PATH_BENEATH`). Consider following examples:
->>>>>>>
->>>>>>> * Server may want to use only TCP sockets for which there is fine-grained
->>>>>>>       control of bind(2) and connect(2) actions [1].
->>>>>>> * System that does not need a network or that may want to disable network
->>>>>>>       for security reasons (e.g. [2]) can achieve this by restricting the use
->>>>>>>       of all possible protocols.
->>>>>>>
->>>>>>> This patch implements such control by restricting socket creation in a
->>>>>>> sandboxed process.
->>>>>>>
->>>>>>> Add `LANDLOCK_RULE_SOCKET` rule type that restricts actions on sockets.
->>>>>>> This rule uses values of address family and socket type (Cf. socket(2))
->>>>>>> to determine sockets that should be restricted. This is represented in a
->>>>>>> landlock_socket_attr struct:
->>>>>>>
->>>>>>>       struct landlock_socket_attr {
->>>>>>>         __u64 allowed_access;
->>>>>>>         int family; /* same as domain in socket(2) */
->>>>>>>         int type; /* see socket(2) */
->>>>>>>       };
->>>>>>
->>>>>> Hello! I'd like to consider another approach to define this structure
->>>>>> before sending the next version of this patchset.
->>>>>>
->>>>>> Currently, it has following possible issues:
->>>>>>
->>>>>> First of all, there is a lack of protocol granularity. It's impossible
->>>>>> to (for example) deny creation of ICMP and SCTP sockets and allow TCP
->>>>>> and UDP. Since the values of address family and socket type do not
->>>>>> completely define the protocol for the restriction, we may gain
->>>>>> incomplete control of the network actions. AFAICS, this is limited to
->>>>>> only a couple of IP protocol cases (e.g. it's impossible to deny SCTP
->>>>>> and SMC sockets to only allow TCP, deny ICMP and allow UDP).
->>>>>>
->>>>>> But one of the main advantages of socket access rights is the ability to
->>>>>> allow only those protocols for which there is a fine-grained control
->>>>>> over their actions (TCP bind/connect). It can be inconvenient
->>>>>> (and unsafe) for SCTP to be unrestricted, while sandboxed process only
->>>>>> needs TCP sockets.
->>>>>
->>>>> That is a good observation which I had missed.
->>>>>
->>>>> I agree with your analysis, I also see the main use case of socket()
->>>>> restrictions in:
->>>>>
->>>>>     (a) restricting socket creating altogether
->>>>>     (b) only permitting socket types for which there is fine grained control
->>>>>
->>>>> and I also agree that it would be very surprising when the same socket types
->>>>> that provide fine grained control would also open the door for unrestricted
->>>>> access to SMC, SCTP or other protocols.  We should instead strive for a
->>>>> socket() access control with which these additional protocols weren't
->>>>> accessible.
->>>>>
->>>>>
->>>>>> Adding protocol (Cf. socket(2)) field was considered a bit during the
->>>>>> initial discussion:
->>>>>> https://lore.kernel.org/all/CABi2SkVWU=Wxb2y3fP702twyHBD3kVoySPGSz2X22VckvcHeXw@mail.gmail.com/
->>>>>
->>>>> So adding "protocol" to the rule attributes would suffice to restrict the use of
->>>>> SMC and SCTP then?  (Sorry, I lost context on these protocols a bit in the
->>>>> meantime, I was so far under the impression that these were using different
->>>>> values for family and type than TCP and UDP do.)
->>>>
->>>> Yeap. Following rule will be enough to allow TCP sockets only:
->>>>
->>>> const struct landlock_socket_attr create_socket_attr = {
->>>> 	.allowed_access = LANDLOCK_ACCESS_SOCKET_CREATE,
->>>> 	.family = AF_INET{,6},
->>>> 	.type = SOCK_STREAM,
->>>> 	.protocol = 0
->>>> };
->>>
->>> We should indeed include the protocol type in the rule definition.
->>>
->>>>
->>>> Btw, creation of SMC sockets via IP stack was added quite recently.
->>>> So far, creation has been possible only with AF_SMC family.
->>>>
->>>> https://lore.kernel.org/all/1718301630-63692-1-git-send-email-alibuda@linux.alibaba.com/
->>>>
->>>>>
->>>>>
->>>>>> Secondly, I'm not really sure if socket type granularity is required
->>>>>> for most of the protocols. It may be more convenient for the end user
->>>>>> to be able to completely restrict the address family without specifying
->>>>>> whether restriction is dedicated to stream or dgram sockets (e.g. for
->>>>>> BLUETOOTH, VSOCK sockets). However, this is not a big issue for the
->>>>>> current design, since address family can be restricted by specifying
->>>>>> type = SOCK_TYPE_MASK.
->>>
->>> It looks like SOCK_TYPE_MASK is not part of UAPI, which means it could
->>> change with kernel versions (even while being in UAPI in fact).  This
->>> new socket creation control should allow to deny any socket creation
->>> known or unknow at the time of the user space program build, and
->>> whatever the available C headers.
->>
->> Agreed
->>
->>>
->>> This also means that Landlock should accept any domain, type, and
->>> protocols defined in rules.  Indeed, we don't want to reject rules for
->>> which some protocols are not allowed.
->>
->> Do you mean that Landlock should not make any assumptions about this
->> values during a build time? Currently, patchset provides boundary checks
->> for domain (< AF_MAX) and type (< SOCK_MAX) in landlock_add_rule().
-> 
-> The *running kernel* may not support some socket's domains or types,
-> which may be confusing for users if the rule was tested on a kernel
-> supporting such domains/types. >
-> For the bitmask of domains or types, the issues to keep boundary checks
-> would be when a subset of them is not supported.  Landlock would reject
-> such rule and it would be difficult for users to identify the cause.
+From: Florian Westphal <fw@strlen.de>
 
-Ok, I'll remove these checks.
+commit 18685451fc4e546fc0e718580d32df3c0e5c8272 upstream.
 
-> 
-> I'm still wondering if the landlock_append_net_rule()'s -EAFNOSUPPORT
-> return value for kernels without CONFIG_INET was a good idea.  We should
-> probably return 0 in this case, which would be similar to not checking
-> socket's domains nor types.
+ip_local_out() and other functions can pass skb->sk as function argument.
 
-It seems that returning -EAFNOSUPPORT only complicates error checking
-for landlock_append_net_rule() from the user's perspective. Probably the
-only reason to check the correctness of restricted objects in Landlock
-is to provide errors consistency in hooks.
+If the skb is a fragment and reassembly happens before such function call
+returns, the sk must not be released.
 
-> 
->>
->>>
->>> What about using bitmasks for the domain and type fields (renamed to
->>> "domains" and "types")?  The last protocol is currently 45/MCTP so a
->>> 64-bit field is enough, and 10/SOCK_PACKET also fits for the last socket
->>> type.
->>>
->>> We cannot do the same with the protocol because the higher one is
->>> 262/MPTCP though.  But it looks like a value of 0 (default protocol)
->>> should be enough for most use cases, and users could specify a protocol
->>> (but this time as a number, not a bitmask).
->>>
->>> To sum up, we could have something like this:
->>>
->>>     const struct landlock_socket_attr create_socket_attr = {
->>>     	.allowed_access = LANDLOCK_ACCESS_SOCKET_CREATE,
->>>     	.families = 1 << AF_INET | 1 << AF_INET6,
->>>     	.types = 1 << SOCK_STREAM,
->>>     	.protocol = IPPROTO_SCTP
->>>     };
->>
->> Looks good! I think it's a nice approach which will provide a sufficient
->> level of flexibility to define a single rule for a specific protocol (or
->> for related protocols).
->>
->> But, this adds possibility to define a single rule for the set of
->> unrelated protocols:
->>
->> /* Allows TCP, UDP and UNIX sockets. */
->> const struct landlock_socket_attr create_socket_attr = {
->> 	.allowed_access = LANDLOCK_ACCESS_SOCKET_CREATE,
->> 	.families = 1 << AF_INET | 1 << AF_INET6 | 1 << AF_UNIX,
->> 	.types = 1 << SOCK_STREAM | 1 << SOCK_DGRAM,
->> 	.protocol = 0
->> };
->>
->> Perhaps limiting the addition of one rule to only one address family
->> would be more clear in terms of rule semantics?:
->>
->> /* Allows TCP, UDP, UNIX STREAM, UNIX DGRAM sockets. */
->> const struct landlock_socket_attr create_socket_attrs[] = {
->> 	{
->> 		/* Allows IPv4 TCP and UDP sockets. */
->> 		.allowed_access = LANDLOCK_ACCESS_SOCKET_CREATE,
->> 		.family = AF_INET,
->> 		.types = 1 << SOCK_STREAM | 1 << SOCK_DGRAM,
->> 		.protocol = 0
->> 	},
->> 	{
->> 		/* Allows IPv6 TCP and UDP sockets. */
->> 		.allowed_access = LANDLOCK_ACCESS_SOCKET_CREATE,
->> 		.family = AF_INET6,
->> 		.types = 1 << SOCK_STREAM | 1 << SOCK_DGRAM,
->> 		.protocol = 0
->> 	},
->> 	{
->> 		/* Allows UNIX sockets. */
->> 		.allowed_access = LANDLOCK_ACCESS_SOCKET_CREATE,
->> 		.family = AF_UNIX,
->> 		.types = 1 << SOCK_STREAM | 1 << SOCK_DGRAM,
->> 		.protocol = 0
->> 	},
->> };
-> 
-> Because we are already mixing bitmasks and (protocol) value, I'm not
-> sure it will help much.  I think in most cases the "families" bitmask
-> would handle IPv4 and IPv6 the same (e.g. to only allow TCP with one
-> rule).  I think this is also required to be able to have a 1:1 mapping
-> with SELinux's socket_type_to_security_class().
+This affects skb fragments reassembled via netfilter or similar
+modules, e.g. openvswitch or ct_act.c, when run as part of tx pipeline.
 
-Ok, agreed
+Eric Dumazet made an initial analysis of this bug.  Quoting Eric:
+  Calling ip_defrag() in output path is also implying skb_orphan(),
+  which is buggy because output path relies on sk not disappearing.
 
-> 
->>
->>>
->>>
->>>>>
->>>>> Whether the user is adding one rule to permit AF_INET+*, or whether the user is
->>>>> adding two rules to permit (1) AF_INET+SOCK_STREAM and (2) AF_INET+SOCK_DGRAM,
->>>>> that does not seem like a big deal to me as long as the list of such
->>>>> combinations is so low?
->>>>
->>>> Agreed
->>>
->>> I also agree, but this might change if users have to set a combination
->>> of families, types, and protocols.  This should be OK with the bitmask
->>> approach though.
->>>
->>>>
->>>>>
->>>>>
->>>>>> I suggest implementing something close to selinux socket classes for the
->>>>>> struct landlock_socket_attr (Cf. socket_type_to_security_class()). This
->>>>>> will provide protocol granularity and may be simpler and more convenient
->>>>>> in the terms of determining access rights. WDYT?
->>>>>
->>>>> I see that this is a longer switch statement that maps to this enum, it would be
->>>>> an additional data table that would have to be documented separately for users.
->>>>
->>>> This table is the general drawback, since it makes API a bit more
->>>> complex.
->>>>
->>>>>
->>>>> Do you have an example for how such a "security class enum" would map to the
->>>>> combinations of family, type and socket for the protocols discussed above?
->>>>
->>>> I think the socket_type_to_security_class() has a pretty good mapping
->>>> for UNIX and IP families.
->>>
->>> The mapping looks good indeed, and it has been tested for a long time
->>> with many applications.  However, this would make the kernel
->>> implementation more complex, and I think this mapping could easily be
->>> implemented in user space libraries with the bitmask approach, if really
->>> needed, which I'm not sure.
->>
->> I agree, implementing this in a library is a better approach. Thanks for
->> the catch!
->>
->>>
->>>>
->>>>>
->>>>> If this is just a matter of actually mapping (family, type, protocol)
->>>>> combinations in a more flexible way, could we get away by allowing a special
->>>>> "wildcard" value for the "protocol" field, when it is used within a ruleset?
->>>>> Then the LSM would have to look up whether there is a rule for (family, type,
->>>>> protocol) and the only change would be that it now needs to also check whether
->>>>> there is a rule for (family, type, *)?
->>>>
->>>> Something like this?
->>>>
->>>> const struct landlock_socket_attr create_socket_attr = {
->>>> 	.allowed_access = LANDLOCK_ACCESS_SOCKET_CREATE,
->>>> 	.family = AF_INET6,
->>>> 	.type = SOCK_DGRAM,
->>>> 	.protocol = LANDLOCK_SOCKET_PROTO_ALL
->>>> };
->>>>
->>>>>
->>>>> —Günther
->>>>
->>
+  A relevant old patch about the issue was :
+  8282f27449bf ("inet: frag: Always orphan skbs inside ip_defrag()")
+
+  [..]
+
+  net/ipv4/ip_output.c depends on skb->sk being set, and probably to an
+  inet socket, not an arbitrary one.
+
+  If we orphan the packet in ipvlan, then downstream things like FQ
+  packet scheduler will not work properly.
+
+  We need to change ip_defrag() to only use skb_orphan() when really
+  needed, ie whenever frag_list is going to be used.
+
+Eric suggested to stash sk in fragment queue and made an initial patch.
+However there is a problem with this:
+
+If skb is refragmented again right after, ip_do_fragment() will copy
+head->sk to the new fragments, and sets up destructor to sock_wfree.
+IOW, we have no choice but to fix up sk_wmem accouting to reflect the
+fully reassembled skb, else wmem will underflow.
+
+This change moves the orphan down into the core, to last possible moment.
+As ip_defrag_offset is aliased with sk_buff->sk member, we must move the
+offset into the FRAG_CB, else skb->sk gets clobbered.
+
+This allows to delay the orphaning long enough to learn if the skb has
+to be queued or if the skb is completing the reasm queue.
+
+In the former case, things work as before, skb is orphaned.  This is
+safe because skb gets queued/stolen and won't continue past reasm engine.
+
+In the latter case, we will steal the skb->sk reference, reattach it to
+the head skb, and fix up wmem accouting when inet_frag inflates truesize.
+
+Fixes: 7026b1ddb6b8 ("netfilter: Pass socket pointer down through okfn().")
+Diagnosed-by: Eric Dumazet <edumazet@google.com>
+Reported-by: xingwei lee <xrivendell7@gmail.com>
+Reported-by: yue sun <samsun1006219@gmail.com>
+Reported-by: syzbot+e5167d7144a62715044c@syzkaller.appspotmail.com
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Reviewed-by: Eric Dumazet <edumazet@google.com>
+Link: https://lore.kernel.org/r/20240326101845.30836-1-fw@strlen.de
+Signed-off-by: Paolo Abeni <pabeni@redhat.com>
+Signed-off-by: Saeed Mirzamohammadi <saeed.mirzamohammadi@oracle.com>
+---
+ include/linux/skbuff.h                  |  5 +-
+ net/core/sock_destructor.h              | 12 +++++
+ net/ipv4/inet_fragment.c                | 70 ++++++++++++++++++++-----
+ net/ipv4/ip_fragment.c                  |  2 +-
+ net/ipv6/netfilter/nf_conntrack_reasm.c |  2 +-
+ 5 files changed, 72 insertions(+), 19 deletions(-)
+ create mode 100644 net/core/sock_destructor.h
+
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index f97734f34746..f5f76a04fdac 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -682,10 +682,7 @@ struct sk_buff {
+ 		struct list_head	list;
+ 	};
+ 
+-	union {
+-		struct sock		*sk;
+-		int			ip_defrag_offset;
+-	};
++	struct sock		*sk;
+ 
+ 	union {
+ 		ktime_t		tstamp;
+diff --git a/net/core/sock_destructor.h b/net/core/sock_destructor.h
+new file mode 100644
+index 000000000000..2f396e6bfba5
+--- /dev/null
++++ b/net/core/sock_destructor.h
+@@ -0,0 +1,12 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++#ifndef _NET_CORE_SOCK_DESTRUCTOR_H
++#define _NET_CORE_SOCK_DESTRUCTOR_H
++#include <net/tcp.h>
++
++static inline bool is_skb_wmem(const struct sk_buff *skb)
++{
++	return skb->destructor == sock_wfree ||
++	       skb->destructor == __sock_wfree ||
++	       (IS_ENABLED(CONFIG_INET) && skb->destructor == tcp_wfree);
++}
++#endif
+diff --git a/net/ipv4/inet_fragment.c b/net/ipv4/inet_fragment.c
+index 9f69411251d0..9144c3cf984c 100644
+--- a/net/ipv4/inet_fragment.c
++++ b/net/ipv4/inet_fragment.c
+@@ -28,6 +28,8 @@
+ #include <net/ip.h>
+ #include <net/ipv6.h>
+ 
++#include "../core/sock_destructor.h"
++
+ /* Use skb->cb to track consecutive/adjacent fragments coming at
+  * the end of the queue. Nodes in the rb-tree queue will
+  * contain "runs" of one or more adjacent fragments.
+@@ -43,6 +45,7 @@ struct ipfrag_skb_cb {
+ 	};
+ 	struct sk_buff		*next_frag;
+ 	int			frag_run_len;
++	int			ip_defrag_offset;
+ };
+ 
+ #define FRAG_CB(skb)		((struct ipfrag_skb_cb *)((skb)->cb))
+@@ -319,12 +322,12 @@ int inet_frag_queue_insert(struct inet_frag_queue *q, struct sk_buff *skb,
+ 	 */
+ 	if (!last)
+ 		fragrun_create(q, skb);  /* First fragment. */
+-	else if (last->ip_defrag_offset + last->len < end) {
++	else if (FRAG_CB(last)->ip_defrag_offset + last->len < end) {
+ 		/* This is the common case: skb goes to the end. */
+ 		/* Detect and discard overlaps. */
+-		if (offset < last->ip_defrag_offset + last->len)
++		if (offset < FRAG_CB(last)->ip_defrag_offset + last->len)
+ 			return IPFRAG_OVERLAP;
+-		if (offset == last->ip_defrag_offset + last->len)
++		if (offset == FRAG_CB(last)->ip_defrag_offset + last->len)
+ 			fragrun_append_to_last(q, skb);
+ 		else
+ 			fragrun_create(q, skb);
+@@ -341,13 +344,13 @@ int inet_frag_queue_insert(struct inet_frag_queue *q, struct sk_buff *skb,
+ 
+ 			parent = *rbn;
+ 			curr = rb_to_skb(parent);
+-			curr_run_end = curr->ip_defrag_offset +
++			curr_run_end = FRAG_CB(curr)->ip_defrag_offset +
+ 					FRAG_CB(curr)->frag_run_len;
+-			if (end <= curr->ip_defrag_offset)
++			if (end <= FRAG_CB(curr)->ip_defrag_offset)
+ 				rbn = &parent->rb_left;
+ 			else if (offset >= curr_run_end)
+ 				rbn = &parent->rb_right;
+-			else if (offset >= curr->ip_defrag_offset &&
++			else if (offset >= FRAG_CB(curr)->ip_defrag_offset &&
+ 				 end <= curr_run_end)
+ 				return IPFRAG_DUP;
+ 			else
+@@ -361,7 +364,7 @@ int inet_frag_queue_insert(struct inet_frag_queue *q, struct sk_buff *skb,
+ 		rb_insert_color(&skb->rbnode, &q->rb_fragments);
+ 	}
+ 
+-	skb->ip_defrag_offset = offset;
++	FRAG_CB(skb)->ip_defrag_offset = offset;
+ 
+ 	return IPFRAG_OK;
+ }
+@@ -371,13 +374,28 @@ void *inet_frag_reasm_prepare(struct inet_frag_queue *q, struct sk_buff *skb,
+ 			      struct sk_buff *parent)
+ {
+ 	struct sk_buff *fp, *head = skb_rb_first(&q->rb_fragments);
+-	struct sk_buff **nextp;
++	void (*destructor)(struct sk_buff *);
++	unsigned int orig_truesize = 0;
++	struct sk_buff **nextp = NULL;
++	struct sock *sk = skb->sk;
+ 	int delta;
+ 
++	if (sk && is_skb_wmem(skb)) {
++		/* TX: skb->sk might have been passed as argument to
++		 * dst->output and must remain valid until tx completes.
++		 *
++		 * Move sk to reassembled skb and fix up wmem accounting.
++		 */
++		orig_truesize = skb->truesize;
++		destructor = skb->destructor;
++	}
++
+ 	if (head != skb) {
+ 		fp = skb_clone(skb, GFP_ATOMIC);
+-		if (!fp)
+-			return NULL;
++		if (!fp) {
++			head = skb;
++			goto out_restore_sk;
++		}
+ 		FRAG_CB(fp)->next_frag = FRAG_CB(skb)->next_frag;
+ 		if (RB_EMPTY_NODE(&skb->rbnode))
+ 			FRAG_CB(parent)->next_frag = fp;
+@@ -386,6 +404,12 @@ void *inet_frag_reasm_prepare(struct inet_frag_queue *q, struct sk_buff *skb,
+ 					&q->rb_fragments);
+ 		if (q->fragments_tail == skb)
+ 			q->fragments_tail = fp;
++
++		if (orig_truesize) {
++			/* prevent skb_morph from releasing sk */
++			skb->sk = NULL;
++			skb->destructor = NULL;
++		}
+ 		skb_morph(skb, head);
+ 		FRAG_CB(skb)->next_frag = FRAG_CB(head)->next_frag;
+ 		rb_replace_node(&head->rbnode, &skb->rbnode,
+@@ -393,13 +417,13 @@ void *inet_frag_reasm_prepare(struct inet_frag_queue *q, struct sk_buff *skb,
+ 		consume_skb(head);
+ 		head = skb;
+ 	}
+-	WARN_ON(head->ip_defrag_offset != 0);
++	WARN_ON(FRAG_CB(head)->ip_defrag_offset != 0);
+ 
+ 	delta = -head->truesize;
+ 
+ 	/* Head of list must not be cloned. */
+ 	if (skb_unclone(head, GFP_ATOMIC))
+-		return NULL;
++		goto out_restore_sk;
+ 
+ 	delta += head->truesize;
+ 	if (delta)
+@@ -415,7 +439,7 @@ void *inet_frag_reasm_prepare(struct inet_frag_queue *q, struct sk_buff *skb,
+ 
+ 		clone = alloc_skb(0, GFP_ATOMIC);
+ 		if (!clone)
+-			return NULL;
++			goto out_restore_sk;
+ 		skb_shinfo(clone)->frag_list = skb_shinfo(head)->frag_list;
+ 		skb_frag_list_init(head);
+ 		for (i = 0; i < skb_shinfo(head)->nr_frags; i++)
+@@ -432,6 +456,21 @@ void *inet_frag_reasm_prepare(struct inet_frag_queue *q, struct sk_buff *skb,
+ 		nextp = &skb_shinfo(head)->frag_list;
+ 	}
+ 
++out_restore_sk:
++	if (orig_truesize) {
++		int ts_delta = head->truesize - orig_truesize;
++
++		/* if this reassembled skb is fragmented later,
++		 * fraglist skbs will get skb->sk assigned from head->sk,
++		 * and each frag skb will be released via sock_wfree.
++		 *
++		 * Update sk_wmem_alloc.
++		 */
++		head->sk = sk;
++		head->destructor = destructor;
++		refcount_add(ts_delta, &sk->sk_wmem_alloc);
++	}
++
+ 	return nextp;
+ }
+ EXPORT_SYMBOL(inet_frag_reasm_prepare);
+@@ -439,6 +478,8 @@ EXPORT_SYMBOL(inet_frag_reasm_prepare);
+ void inet_frag_reasm_finish(struct inet_frag_queue *q, struct sk_buff *head,
+ 			    void *reasm_data)
+ {
++	struct sock *sk = is_skb_wmem(head) ? head->sk : NULL;
++	const unsigned int head_truesize = head->truesize;
+ 	struct sk_buff **nextp = (struct sk_buff **)reasm_data;
+ 	struct rb_node *rbn;
+ 	struct sk_buff *fp;
+@@ -484,6 +525,9 @@ void inet_frag_reasm_finish(struct inet_frag_queue *q, struct sk_buff *head,
+ 	skb_mark_not_on_list(head);
+ 	head->prev = NULL;
+ 	head->tstamp = q->stamp;
++
++	if (sk)
++		refcount_add(sum_truesize - head_truesize, &sk->sk_wmem_alloc);
+ }
+ EXPORT_SYMBOL(inet_frag_reasm_finish);
+ 
+diff --git a/net/ipv4/ip_fragment.c b/net/ipv4/ip_fragment.c
+index 5a1d39e32196..84544e5df7fc 100644
+--- a/net/ipv4/ip_fragment.c
++++ b/net/ipv4/ip_fragment.c
+@@ -380,6 +380,7 @@ static int ip_frag_queue(struct ipq *qp, struct sk_buff *skb)
+ 	}
+ 
+ 	skb_dst_drop(skb);
++	skb_orphan(skb);
+ 	return -EINPROGRESS;
+ 
+ insert_error:
+@@ -477,7 +478,6 @@ int ip_defrag(struct net *net, struct sk_buff *skb, u32 user)
+ 	struct ipq *qp;
+ 
+ 	__IP_INC_STATS(net, IPSTATS_MIB_REASMREQDS);
+-	skb_orphan(skb);
+ 
+ 	/* Lookup (or create) queue header */
+ 	qp = ip_find(net, ip_hdr(skb), user, vif);
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 35d5a76867d0..8aab62c330ef 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -307,6 +307,7 @@ static int nf_ct_frag6_queue(struct frag_queue *fq, struct sk_buff *skb,
+ 	}
+ 
+ 	skb_dst_drop(skb);
++	skb_orphan(skb);
+ 	return -EINPROGRESS;
+ 
+ insert_error:
+@@ -473,7 +474,6 @@ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
+ 	hdr = ipv6_hdr(skb);
+ 	fhdr = (struct frag_hdr *)skb_transport_header(skb);
+ 
+-	skb_orphan(skb);
+ 	fq = fq_find(net, fhdr->identification, user, hdr,
+ 		     skb->dev ? skb->dev->ifindex : 0);
+ 	if (fq == NULL) {
+-- 
+2.46.0
+
