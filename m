@@ -1,161 +1,126 @@
-Received: from mail-pj1-f50.google.com (mail-pj1-f50.google.com [209.85.216.50])
+Received: from mail-pf1-f171.google.com (mail-pf1-f171.google.com [209.85.210.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7FC61DE4E6;
-	Mon,  2 Dec 2024 21:17:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDB671DF244;
+	Mon,  2 Dec 2024 23:21:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733174227; cv=none; b=SCnsruMCvLhcpoOl8GsnrS3oX18H653uuB8h2URo3IiRK+ADow3hMAmBhWZCHqiReJSfW7kdW88Fr37CmvOVZ8qkozmJAn0u28KRXrxgl+QHzJXL4/HNIqJF9PrLHLH5xZWU7QiUizAn0blZVksB48HRaqtes4y7CMjOT1BR9mA=
+	t=1733181701; cv=none; b=LUvgldSl47SGciFdLAZHL7LElXiGwGvp/H88txVk7QHK8G4AEewDQ+4CMh15NhxhDe4r3hKQgKZ0cFDwLGDeqI8FVmiqnCs6CS9g9LUEKBafES5ZYwAnYWev8F7vX+EPvPleBTS9M02lx8rqZIDZzM6nvkBp9sFn3UibVIpbrWc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733174227; c=relaxed/simple;
-	bh=c/OpwCh+/t+1IaSytHBg7Vl7CNyrcqGFhU7wyEfSfVM=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=m+wccwUEQ76V5ZFR+JICaxhnujZ2uVj3snLQ5Pu+CJlT1pUTH6oMrEiRmY8sFcwrudFFjSG0oS0X4j5X+zTuv6vMO8xMd/x69XF2sQ+dmPZ2wuYjWYPJc6xq1amKGhzldwEZf3XXzhDc1Tr3fpxDiTE1u0ikYWBzHPYZ1nPDDHU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=bMEYBPPm; arc=none smtp.client-ip=209.85.216.50
+	s=arc-20240116; t=1733181701; c=relaxed/simple;
+	bh=T0fJkNN8lmu0yQW5xDMaUNuwSNQGFIOPmvlds70OAcE=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=lrwZdUX3/VdnL6wp9cm0IChtAgqh5hysh6YrFrSDc3cX74Mprw0qVmkMK06FFmI7pmVDRRzRYRbZWckjrCyw+/+Rh2oP3xMGMkla2IU3MQdQZlTmgoFYXl9eZSx3KIfEmghiFXgISmSsv40sMuDfUgqhR+kM/UR/QIZOPKwEwns=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mb0xsa1x; arc=none smtp.client-ip=209.85.210.171
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bMEYBPPm"
-Received: by mail-pj1-f50.google.com with SMTP id 98e67ed59e1d1-2eeb64f3588so1309034a91.2;
-        Mon, 02 Dec 2024 13:17:05 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mb0xsa1x"
+Received: by mail-pf1-f171.google.com with SMTP id d2e1a72fcca58-7242f559a9fso4749262b3a.1;
+        Mon, 02 Dec 2024 15:21:39 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1733174225; x=1733779025; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=FZHtDSci4mxW9uObrOpyGXF4tVtVRk+OAevn+2+RUUc=;
-        b=bMEYBPPmUSzzFVLj9dAXVxkG7SkFjX0RJ9DXF00gd9JPnqb1y0BE+QqO/OfCo8+9zL
-         E3xw4ZetVenH0ISfG7FI2kNitWbxPHzm8dRWOXJSU2qLIVxHvx0kolgC107d7xGUSKq4
-         v+arcQYsDBBPzxLpFgDjZ4cV53opsDDu4cpOG6tKzRm+4Q/CWr/fdHZXvTkjaO4z6FJw
-         JW8/wFLTPFs3dOcmd/W/XioTSaLtHwLHZCSrBeBu+nFViATugRRwMiabDMaNTfZghJUW
-         CVR3flE3Qzl3NNECSuD/bCnXOPEt9BkqzBXNzEYNH4IhHbD943pFZQ7TEzBlhqCD34uC
-         qGgA==
+        d=gmail.com; s=20230601; t=1733181699; x=1733786499; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=LyFnOYNR7/uDCGGXOyxce2KX24RRI2ramvA/qoNn6Mw=;
+        b=mb0xsa1xL1zLWAMLj9DAEH7IrSW0MrXC93O6mb1xj13XnX4OYEh7XT5vRT319sNf4V
+         Ue0UfZrd7AQCOlfWAIG8H1YPEO0/f9a7TrmAgjegA+JUbBvNw1ZyZP7HpwpvfwCrzlWr
+         RdB8WBgEodsn3TaqKrxxwNVDUNQPWAMEuE6gXTgRq2DhocMCPQgQHBlt9PBZdB/5ryVg
+         MPHVBbc4iyu/mbKFqg7Uv8zogeFfy2MBNTOKbLtWcWyftF6yJ92fq4WLEY5EmCb4OD8Y
+         a03beInn3bbgjN8M5kNvkqVsh+8AUCZs7dAI+gdqFIU3sy7TdsnXOiMMKLyQrCoi9yi4
+         Id3Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1733174225; x=1733779025;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+        d=1e100.net; s=20230601; t=1733181699; x=1733786499;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=FZHtDSci4mxW9uObrOpyGXF4tVtVRk+OAevn+2+RUUc=;
-        b=Qg0iUV6aEDbtErdlOiEJmfERDIcKe8k2PVZ3igqRozFzURvnF0s1nRbZooAVUrqjjv
-         PjL3OurKaWDHgW5dWk3w32O2O1vRkX4VNWMD4VR1vbCBdD50x957FphDQVLtAWHSEHJC
-         8Jmj8XRugz57Z3dFCUS3NBYRFtxQHabiROVSBJZvnhaqI2fACd1+UNU/QRTd1Db6Jy8h
-         1qalxz/uWXYDdP2PY8XSaGm1m1IRHFmXunMqEakwnCOYbtl290Op2ONG/+c6e7OgB43/
-         j/qtMXCu6293zaroFJDzRbslqWPVuxukroppKnnZmyz18ZFUS5qK/7DYlihKyDh/Nm9R
-         CFsw==
-X-Forwarded-Encrypted: i=1; AJvYcCUeSIiWgPUlGzcXhpqF+ZYvjGe8r9nCQiU98EF9WQkhUwaDe787END7bB3EefnJNPBVha00zoKrSL/2vw==@vger.kernel.org, AJvYcCUlpgLldE4AOaELzYpHoJPsJFAn96PIHCf6cTJeZXWuhNQJ0XdxwLT63hfHClcEL3WeJW7w3bgI8HlCx+Q=@vger.kernel.org, AJvYcCUtEu9iWdDWJZ4MBf6HFEqynzaSVPmozu/fuu3UR76i4CDMdx1kQgPTbEsio1IYE1ie96P7g7aoCMOgf+l2zRVk@vger.kernel.org, AJvYcCVAeqE6Gt/HWXKSQKP7UhAfX/XbmFmsUC0RlikhylITWMPqPi85dRGlXy5LCg2h3G/l0LDq2R1CSg8EofRCS/0=@vger.kernel.org, AJvYcCVL6m0HvMGF0gtdcrsLqDJehgFgLSBP9V3FeBkH3OmZpoDcdcMu75wVhqI/lWk57oAPu73znVpWijBI80Y=@vger.kernel.org, AJvYcCVnrIsuMGZoTtv0geGluA8WVEOK9++V3LPUKJ4Yje0r/Hk0UMPQSNoLqAFUudCZQrZ4IH9ejLEJcJULxw==@vger.kernel.org, AJvYcCWoruJmMJHeDyBieTZFO4wD2lEwGBgXFeooR5pIEobKQwWwDsfK9XjihvNHNkj+VnOeEkOu1F7Iyr2yLEf/@vger.kernel.org, AJvYcCX+Iug9e9L896KXYAYQRKzZCZSqwleuIk7bxg5uF+CBDny5kBemu2X64YRRFjzJHiINN/XCg3x1zRKG@vger.kernel.org, AJvYcCX4Sq30BqUje9a7bonyx9qAeEqz1qSmp1THIo5EYauvCRou4qJosyeppNow53OMHujNED1lTa3vgPnR4HDN7uuF@vger.kernel.org, AJvYcCXDtcmbbuEq3ICDfUBDDMq7FI8mIIjTJ/0Om7J36RjzfnSFn+cTmTxOD8cJlIxIjhXD00YRrvAL@vger.kernel.org, AJvYcCXPt1F0JHF7LsQCvlLAkF7VxP9xmVVCcuK3cB7WKUqXEW4mwgy+aOqbehvcadMFvnH6MGwwJ1Yyaq+Xf8IonQ==@vger.kernel.org
-X-Gm-Message-State: AOJu0YxPJZlwK7dPN9pLNRIuHOE2/WA78m3phmhIEdcEjOQuLbKW98ha
-	21Yu3kncqtWbUEXzy1b/gBOqCqPI6BiAIuywOoF/NpMGngvqxj5RlnguoW5005nZffctAs+7cVM
-	hSLN4opAynq3uTZBaJRE1U5tY7kU=
-X-Gm-Gg: ASbGncvWyXY1AAzpsWgNREUsofaF0rtF3wK0vcBy8Kqr37RHZdpEkJwDX1Tgou+u58J
-	clh7aXq3m+4xvqW6reB++a/iQUsDvfA==
-X-Google-Smtp-Source: AGHT+IFDh1yb6d6zM40EzPJelJu2iVMH0WClLwmjysRWgfnYNSB8awfS5UuhO/EqqMc0eH1dffTLKgwFM99xaAmy4L8=
-X-Received: by 2002:a17:90b:1c09:b0:2ee:3cc1:793a with SMTP id
- 98e67ed59e1d1-2ef0124c720mr32029a91.29.1733174224966; Mon, 02 Dec 2024
- 13:17:04 -0800 (PST)
+        bh=LyFnOYNR7/uDCGGXOyxce2KX24RRI2ramvA/qoNn6Mw=;
+        b=QiDzYkdYje4oEwpYj1JfSzg69HleZ0AzBpz95eSl1vnr+pbwN7WuJdaeEBlrvkCKAw
+         vMMtgEgVrUih6Hsdhs03sQTZYU87kFEn1CHVR/0JtqDc0GtR2eQPz1uL7kwdOd4YrLjN
+         VRBaos95QJy21WXifI6xrU9dkAI5T3vCIT9K0yI4mrI7AVyGw7B7YpaAYEbsbikLBKNI
+         ajRLD1MO+XPkeB5ks6ZYITxeUoE1n8r2EyhsubRdqR9u1BKwGOqOeV3ipDIVhWTkaacv
+         x803aiZ1D3JNAj5RPhHcOEgzs9yrA7QgIx6uHgXHHSfe6RxXoSZX+q6YHGQSZYNzm+vQ
+         aJtA==
+X-Forwarded-Encrypted: i=1; AJvYcCU6osT9GONdnk3yCCcqiklwZicvc0bKoEkMOLzqd2+S8oeC2LO2oVQ8EKgiQdmUP7Gmfh9N396ErU6vR1hx@vger.kernel.org, AJvYcCVCKA5/gnpEc89ZcU/jOHl7IYLgPwS1eG0Ek2Kq2dq5WRF35Xatn57AXndrhMCq67qTdVsCWEQ8ww867xKsgCtH@vger.kernel.org, AJvYcCVVIuP5aGDih7gJTWrHBjldwuqdSwllXwLufGNIm71F0cd3EY7g0/gx/BtJsMNJVeld7E5fCxy7lIhO@vger.kernel.org, AJvYcCX0WWAToW8+6VFP53KNH5WymgFd7wJeRIMKQz2tShRZgBGxJ62TO97ya2I9EFNXAyOcdyPYSIkk@vger.kernel.org
+X-Gm-Message-State: AOJu0Yywyyl+feR19dl+b56rD4xBPD3RaiKzKgJIyUoZRBHmKumE0sxE
+	E9oLb8A1MvrQ3OpI7sEnJw7m6oHOPokFy4S5H1ZuPhTz3eYvQMRE
+X-Gm-Gg: ASbGncuPl4tX6wGGmMxJmEtUHQg7EOW+OEZFTFyO03XbM3Jv/nhusxlL2INwoPjKvjJ
+	Ph01V5YV7NRhOJevjwpLyWYv91JhAgGYtGsF8CyNirQUDs9TGr3Cj9sqsndFN1lq62VN1CYUeMJ
+	t+yXKuCqWWFHhAOKXQBriVXhNUYrVCmYV8cUwzoVMGCgSGBj7oFqHlWOg650ETM5Uk9cAUAQHTd
+	4018QtHRCpf/9GObG8ahSlKU0F93PVqy1mL6qzH1OiT9OHryY57yFQX+Ks4k5KRpBr7uijc09LN
+	bN4y1EU3VeqhcTjH+A==
+X-Google-Smtp-Source: AGHT+IEXS03Fw+wgJGBsVZ94KW7dwGXzAeA8iM26jbTjQebKyiUAt9gwXwClHbNDAS7WWsC0K1AuCw==
+X-Received: by 2002:a05:6a00:39a8:b0:725:3fb5:5595 with SMTP id d2e1a72fcca58-7257fa3a10dmr317747b3a.5.1733181699099;
+        Mon, 02 Dec 2024 15:21:39 -0800 (PST)
+Received: from localhost.localdomain ([240d:0:4a45:1d00:4807:3add:383b:ddbc])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7254176fdcbsm9098432b3a.70.2024.12.02.15.21.33
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Mon, 02 Dec 2024 15:21:38 -0800 (PST)
+From: Kenjiro Nakayama <nakayamakenjiro@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Andrea Parri <parri.andrea@gmail.com>,
+	Will Deacon <will@kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Boqun Feng <boqun.feng@gmail.com>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	David Howells <dhowells@redhat.com>,
+	Jade Alglave <j.alglave@ucl.ac.uk>,
+	Luc Maranget <luc.maranget@inria.fr>,
+	"Paul E. McKenney" <paulmck@kernel.org>,
+	Akira Yokosawa <akiyks@gmail.com>,
+	Daniel Lustig <dlustig@nvidia.com>,
+	Joel Fernandes <joel@joelfernandes.org>,
+	Shuah Khan <shuah@kernel.org>
+Cc: netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	linux-arch@vger.kernel.org,
+	lkmm@lists.linux.dev,
+	linux-kselftest@vger.kernel.org,
+	Kenjiro Nakayama <nakayamakenjiro@gmail.com>
+Subject: [PATCH] selftests/net: call sendmmsg via udpgso_bench.sh
+Date: Tue,  3 Dec 2024 08:21:29 +0900
+Message-Id: <20241202232129.7139-1-nakayamakenjiro@gmail.com>
+X-Mailer: git-send-email 2.39.3 (Apple Git-146)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241115-converge-secs-to-jiffies-v2-0-911fb7595e79@linux.microsoft.com>
- <20241115-converge-secs-to-jiffies-v2-9-911fb7595e79@linux.microsoft.com>
-In-Reply-To: <20241115-converge-secs-to-jiffies-v2-9-911fb7595e79@linux.microsoft.com>
-From: Christian Gmeiner <christian.gmeiner@gmail.com>
-Date: Mon, 2 Dec 2024 22:16:53 +0100
-Message-ID: <CAH9NwWdjXKH-AcKa-prwdqj2JqWLYVp1qM+0kxtQYSwo1J1c7g@mail.gmail.com>
-Subject: Re: [PATCH v2 09/21] drm/etnaviv: Convert timeouts to secs_to_jiffies()
-To: Easwar Hariharan <eahariha@linux.microsoft.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>, 
-	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
-	Julia Lawall <Julia.Lawall@inria.fr>, Nicolas Palix <nicolas.palix@imag.fr>, 
-	Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, 
-	Robert Jarzmik <robert.jarzmik@free.fr>, Russell King <linux@armlinux.org.uk>, 
-	Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
-	Alexander Gordeev <agordeev@linux.ibm.com>, Christian Borntraeger <borntraeger@linux.ibm.com>, 
-	Sven Schnelle <svens@linux.ibm.com>, Ofir Bitton <obitton@habana.ai>, 
-	Oded Gabbay <ogabbay@kernel.org>, Lucas De Marchi <lucas.demarchi@intel.com>, 
-	=?UTF-8?Q?Thomas_Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>, 
-	Rodrigo Vivi <rodrigo.vivi@intel.com>, 
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>, 
-	Thomas Zimmermann <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>, 
-	Jeroen de Borst <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>, 
-	Shailend Chand <shailend@google.com>, Andrew Lunn <andrew+netdev@lunn.ch>, 
-	James Smart <james.smart@broadcom.com>, Dick Kennedy <dick.kennedy@broadcom.com>, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, 
-	"Martin K. Petersen" <martin.petersen@oracle.com>, =?UTF-8?Q?Roger_Pau_Monn=C3=A9?= <roger.pau@citrix.com>, 
-	Jens Axboe <axboe@kernel.dk>, Kalle Valo <kvalo@kernel.org>, Jeff Johnson <jjohnson@kernel.org>, 
-	Catalin Marinas <catalin.marinas@arm.com>, Andrew Morton <akpm@linux-foundation.org>, 
-	Jack Wang <jinpu.wang@cloud.ionos.com>, Marcel Holtmann <marcel@holtmann.org>, 
-	Johan Hedberg <johan.hedberg@gmail.com>, Luiz Augusto von Dentz <luiz.dentz@gmail.com>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Florian Fainelli <florian.fainelli@broadcom.com>, Ray Jui <rjui@broadcom.com>, 
-	Scott Branden <sbranden@broadcom.com>, 
-	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>, Xiubo Li <xiubli@redhat.com>, 
-	Ilya Dryomov <idryomov@gmail.com>, Josh Poimboeuf <jpoimboe@kernel.org>, Jiri Kosina <jikos@kernel.org>, 
-	Miroslav Benes <mbenes@suse.cz>, Petr Mladek <pmladek@suse.com>, 
-	Joe Lawrence <joe.lawrence@redhat.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
-	Lucas Stach <l.stach@pengutronix.de>, Russell King <linux+etnaviv@armlinux.org.uk>, 
-	Louis Peens <louis.peens@corigine.com>, Michael Ellerman <mpe@ellerman.id.au>, 
-	Nicholas Piggin <npiggin@gmail.com>, Christophe Leroy <christophe.leroy@csgroup.eu>, 
-	Naveen N Rao <naveen@kernel.org>, Madhavan Srinivasan <maddy@linux.ibm.com>, netfilter-devel@vger.kernel.org, 
-	coreteam@netfilter.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	cocci@inria.fr, linux-arm-kernel@lists.infradead.org, 
-	linux-s390@vger.kernel.org, dri-devel@lists.freedesktop.org, 
-	intel-xe@lists.freedesktop.org, linux-scsi@vger.kernel.org, 
-	xen-devel@lists.xenproject.org, linux-block@vger.kernel.org, 
-	linux-wireless@vger.kernel.org, ath11k@lists.infradead.org, 
-	linux-mm@kvack.org, linux-bluetooth@vger.kernel.org, 
-	linux-staging@lists.linux.dev, linux-rpi-kernel@lists.infradead.org, 
-	ceph-devel@vger.kernel.org, live-patching@vger.kernel.org, 
-	linux-sound@vger.kernel.org, etnaviv@lists.freedesktop.org, 
-	oss-drivers@corigine.com, linuxppc-dev@lists.ozlabs.org, 
-	Anna-Maria Behnsen <anna-maria@linutronix.de>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
->
-> Changes made with the following Coccinelle rules:
->
-> @@ constant C; @@
->
-> - msecs_to_jiffies(C * 1000)
-> + secs_to_jiffies(C)
->
-> @@ constant C; @@
->
-> - msecs_to_jiffies(C * MSEC_PER_SEC)
-> + secs_to_jiffies(C)
->
-> Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
+Currently, sendmmsg is implemented in udpgso_bench_tx.c,
+but it is not called by any test script.
 
-Reviewed-by: Christian Gmeiner <cgmeiner@igalia.com>
+This patch adds a test for sendmmsg in udpgso_bench.sh.
+This allows for basic API testing and benchmarking
+comparisons with GSO.
+---
+ tools/testing/selftests/net/udpgso_bench.sh | 3 +++
+ 1 file changed, 3 insertions(+)
 
-> ---
->  drivers/gpu/drm/etnaviv/etnaviv_cmdbuf.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/gpu/drm/etnaviv/etnaviv_cmdbuf.c b/drivers/gpu/drm/etnaviv/etnaviv_cmdbuf.c
-> index 721d633aece9d4c81f0019e4c55884f26ee61c60..0f5a2c885d0ab7029c7248e15d6ea3c31823b782 100644
-> --- a/drivers/gpu/drm/etnaviv/etnaviv_cmdbuf.c
-> +++ b/drivers/gpu/drm/etnaviv/etnaviv_cmdbuf.c
-> @@ -100,7 +100,7 @@ int etnaviv_cmdbuf_init(struct etnaviv_cmdbuf_suballoc *suballoc,
->                 mutex_unlock(&suballoc->lock);
->                 ret = wait_event_interruptible_timeout(suballoc->free_event,
->                                                        suballoc->free_space,
-> -                                                      msecs_to_jiffies(10 * 1000));
-> +                                                      secs_to_jiffies(10));
->                 if (!ret) {
->                         dev_err(suballoc->dev,
->                                 "Timeout waiting for cmdbuf space\n");
->
-> --
-> 2.34.1
->
-
-
+diff --git a/tools/testing/selftests/net/udpgso_bench.sh b/tools/testing/selftests/net/udpgso_bench.sh
+index 640bc43452fa..88fa1d53ba2b 100755
+--- a/tools/testing/selftests/net/udpgso_bench.sh
++++ b/tools/testing/selftests/net/udpgso_bench.sh
+@@ -92,6 +92,9 @@ run_udp() {
+ 	echo "udp"
+ 	run_in_netns ${args}
+ 
++	echo "udp sendmmsg"
++	run_in_netns ${args} -m
++
+ 	echo "udp gso"
+ 	run_in_netns ${args} -S 0
+ 
 -- 
-greets
---
-Christian Gmeiner, MSc
+2.39.3 (Apple Git-146)
 
-https://christian-gmeiner.info/privacypolicy
