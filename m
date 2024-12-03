@@ -1,231 +1,128 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f171.google.com (mail-pg1-f171.google.com [209.85.215.171])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07DF3207A0F;
-	Tue,  3 Dec 2024 20:22:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B4F7202F84;
+	Tue,  3 Dec 2024 22:29:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733257343; cv=none; b=aZfuHN/2+h3/2tei00TvVAEviH7vz2C2edGL8pFSYdDAxQ/koS4XFRcMHFjYhLIQ6ZZgBwcrpI8Q0giUFaj9R9Hi6Mf96zNn822W8MfpZJ+wblrZHDCaMXcgPpLPJBVjpLaEkG1XHCiO4UKreB405V6hbtNxKfC4Sqyy2ema9Js=
+	t=1733264977; cv=none; b=hXq81poE8MoF4hRF+qeSuIbTOZLXdGunKOiPY+ucPhjm8o6x1q1X8XMBLqeid4+j3Z0ldHputaqr4/VIf2KxF/a8FcMGvyK0CnXaytYr9K0/Nk7QD7SQbiGAyfSgQ4UHlYOYyOk1QDs/9j4DTXrTmFlZ1IUaSS2wfvtTzg01gO8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733257343; c=relaxed/simple;
-	bh=OQbopC9Iq+3uWsPRdL7oJwpiwHgMnnBK9gRn5Vrzj/M=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gfllqvM1E4VaMNCRg2IYt3Jt5Zpgtl5OuNgGad0mR1U7YmhDD43eyRdYmZU+9BntqIiV+f2cifeboEumPmyB1a4Ova8rVtqvbyRBcpR8bXviBQsVxt6vZZJeF+B9oY5Y8T7WVEWa7AimG7jD8gAP78Cv9PoMISe4xoBcX7Y710s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.39.247] (port=55290 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1tIZPK-003CIU-Ht; Tue, 03 Dec 2024 21:22:08 +0100
-Date: Tue, 3 Dec 2024 21:22:05 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Eric Dumazet <edumazet@google.com>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-	fw@strlen.de
-Subject: Re: [PATCH net 4/4] netfilter: nft_inner: incorrect percpu area
- handling under softirq
-Message-ID: <Z09obUXveguG2nOy@calendula>
-References: <20241128123840.49034-1-pablo@netfilter.org>
- <20241128123840.49034-5-pablo@netfilter.org>
- <CANn89iKGUKxLGY4UG9JrAVQR5bahHrUurf7TVwPcE4rf4g3cAQ@mail.gmail.com>
- <Z00MOYmYgmlrrpWN@calendula>
- <CANn89i+G3_0QzdOsoCMOk-Qgd+Vv7hKEtogMNJ00pUGC1wX=ow@mail.gmail.com>
+	s=arc-20240116; t=1733264977; c=relaxed/simple;
+	bh=v1NJNp5Tk7wpwinjGLDTU4LArY+PKjGPBb1DekJ1O6g=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=WAlcCL537VM+zJJ73QSdiGeifHjGx2QL2Fpo6LDnks8TrTarzy1s5SwEKB8Nude1oUtleaykav4ilbsX6OnusNoxNzvUCH83qPfVXmb8yWlk6of4DrI+NrvwOMD5tOswRjGifmAda8gWfx49J8/wvMSk9mVdW0NJLnEk5iPttz4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AJzoTjec; arc=none smtp.client-ip=209.85.215.171
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AJzoTjec"
+Received: by mail-pg1-f171.google.com with SMTP id 41be03b00d2f7-7fc99fc2b16so3640148a12.3;
+        Tue, 03 Dec 2024 14:29:35 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1733264975; x=1733869775; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=kOQqhZdgI8+JB/qh1dFLYIuDBxbHyOD15IWWEIuDAMg=;
+        b=AJzoTjecKLzsoGsVs3OdruKRC90CUVwafnbgu7PrVrxm59H6H8sXzEbWI2r3eosIwD
+         UNZpD83PKMoxrvQH+4tITghcnenoOkEXD+THCVPTNF1W/t4LdYCrYbqG9QRsXgUykQdz
+         5+Z7zfFIkcbUKwOroyUY22bsuw92cp0cXrFAbf7HGMeCW+zDv1wAqK60lwm+2oj5r2mD
+         /uM60E9YFzB7sBhYRhZueLyY95+zbufnaKfYPtYp8Jgw4ol2vzvAFOXYKMVhhYgNBLlA
+         xUPuLEc6weDXNNrhAd5C7uNGGWX08vCnQo+eyV8SN3KLjUVm09gAZYI2Z13YM/xgxghA
+         ZFpA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1733264975; x=1733869775;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=kOQqhZdgI8+JB/qh1dFLYIuDBxbHyOD15IWWEIuDAMg=;
+        b=HmdPbpFZmnL4K5XnsjHDBNDORVEmtP2aSYNSGedha6xb2eu+x8jrZo438Fil40ao8K
+         jDxjSb5WgFLfFlwsWVXmJhkpDSAE31GClOcpuDW160fyD+abqYzX67kUUN5YowM1gw1j
+         dllnG/EDyLglgYeG7WbCJHDlEHPpin93jAZ590PXscg74cbM70brFgGESCSd0ZwrmB3A
+         sztQrtQllxsbg3knzBnfwFCvRJVNOgoUEUn06n8mgQQFiRdDcMDB5gpdL7AWy+ys52IS
+         8JJYo0MJBnqgRwmfhZqHYOUoHkc2nkbdueUZu/vrsUQDXNVk4Hd4DWAifGfG1kvu0FQF
+         h8Hg==
+X-Forwarded-Encrypted: i=1; AJvYcCUXtSiF3PVCzaxON6xIRx1wnoS7/w0NpMHez67cW/HuqRF5N6aLO1FFlQFt17FF0muYX0ZMe40dNR/P@vger.kernel.org, AJvYcCUbDgDtPpO0yc+ahIjRdmxFn8v73RKNqzBnQKHdRdDiv/prKTrzruRPrbxoraDDcm/XOtSqsrb0wLEHoekIWChe@vger.kernel.org, AJvYcCV2FqhGei1GjJOumGFyh4ZAnHS6Gnao6D7nvYNe57r36iXkYMKXA3x2tF0dKGCNXt7o8sEfXB1ODtmmpHkn@vger.kernel.org, AJvYcCWCFE9p2ccbH3B8Ax2ZxTyXLebOm7imzYMEAZmQQz5HCtYx602b9DeD+ln8uOPo3OeUMT/bDQSt@vger.kernel.org
+X-Gm-Message-State: AOJu0YxObALbq1K+oSVTR2eSE5Obic4RqLeZEuJrs4NdUdfeJ57Fl670
+	UfOITO+PVQCci9It0IqwRDJEqjQu0BIqSuZEz9c5w4VglsQPEtQm
+X-Gm-Gg: ASbGnctaik9TedA87IH+Crb3ICGPWTZnMef4uBV+XmWURhejxlNhPrOH45ITQ1ZmxFW
+	gr8M3SVcKUr0OV4DH5ddLqqwux9kGN2ULIK2nbuBzS0YN3XCE9E+MRgn5qymXfwLkrlf7vSEdqw
+	LNFlyB0shn2TT3/wG+nWroZhexnqH9cvgSAFSx8b3rvXA2EJ8PjXshnZij/nuNMwyyehQNZ59CI
+	uqRWrKkEtK7c/HQy37HB9xtTvyQVvMo3KB291Tad3vZ1F2AAO55yuv5HxpSlQAWlK51NKPIUlMW
+	F1Uwjm3wd0Ajh7SRWA==
+X-Google-Smtp-Source: AGHT+IGvaKP6B5Mct/zhxb1Oq+XpVrniUhSuQiZr/lzz3hOewfIePelGBKpMi3jZHY3N98/XDM2qYQ==
+X-Received: by 2002:a05:6a20:841f:b0:1e0:c5d2:f215 with SMTP id adf61e73a8af0-1e1653b7c37mr6146784637.12.1733264975288;
+        Tue, 03 Dec 2024 14:29:35 -0800 (PST)
+Received: from localhost.localdomain ([240d:0:4a45:1d00:61fb:e21e:f97a:dd9c])
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-7fc9c3b6ee3sm10055175a12.85.2024.12.03.14.29.29
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Tue, 03 Dec 2024 14:29:34 -0800 (PST)
+From: Kenjiro Nakayama <nakayamakenjiro@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Andrea Parri <parri.andrea@gmail.com>,
+	Will Deacon <will@kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Boqun Feng <boqun.feng@gmail.com>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	David Howells <dhowells@redhat.com>,
+	Jade Alglave <j.alglave@ucl.ac.uk>,
+	Luc Maranget <luc.maranget@inria.fr>,
+	"Paul E. McKenney" <paulmck@kernel.org>,
+	Akira Yokosawa <akiyks@gmail.com>,
+	Daniel Lustig <dlustig@nvidia.com>,
+	Joel Fernandes <joel@joelfernandes.org>,
+	Shuah Khan <shuah@kernel.org>
+Cc: netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	linux-arch@vger.kernel.org,
+	lkmm@lists.linux.dev,
+	linux-kselftest@vger.kernel.org,
+	Kenjiro Nakayama <nakayamakenjiro@gmail.com>
+Subject: [PATCH net-next v2] selftests/net: call sendmmsg via udpgso_bench.sh
+Date: Wed,  4 Dec 2024 07:28:44 +0900
+Message-Id: <20241203222843.26983-1-nakayamakenjiro@gmail.com>
+X-Mailer: git-send-email 2.39.3 (Apple Git-146)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CANn89i+G3_0QzdOsoCMOk-Qgd+Vv7hKEtogMNJ00pUGC1wX=ow@mail.gmail.com>
-X-Spam-Score: -1.9 (-)
 
-Hi Eric,
+Currently, sendmmsg is implemented in udpgso_bench_tx.c,
+but it is not called by any test script.
 
-On Mon, Dec 02, 2024 at 10:17:10AM +0100, Eric Dumazet wrote:
-> On Mon, Dec 2, 2024 at 2:24 AM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> >
-> > Hi Eric,
-> >
-> > On Fri, Nov 29, 2024 at 10:14:34AM +0100, Eric Dumazet wrote:
-> > > On Thu, Nov 28, 2024 at 1:38 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > >
-> > > > Softirq can interrupt packet from process context which walks over the
-> > > > percpu area.
-> > > >
-> > > > Add routines to disable bh while restoring and saving the tunnel parser
-> > > > context from percpu area to stack. Add a skbuff owner for this percpu
-> > > > area to catch softirq interference to exercise the packet tunnel parser
-> > > > again in such case.
-> > > >
-> > > > Reported-by: syzbot+84d0441b9860f0d63285@syzkaller.appspotmail.com
-> > > > Fixes: 3a07327d10a0 ("netfilter: nft_inner: support for inner tunnel header matching")
-> > > > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > > > ---
-> > > >  include/net/netfilter/nf_tables_core.h |  1 +
-> > > >  net/netfilter/nft_inner.c              | 56 ++++++++++++++++++++------
-> > > >  2 files changed, 45 insertions(+), 12 deletions(-)
-> > > >
-> > > > diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
-> > > > index ff27cb2e1662..dae0e7592934 100644
-> > > > --- a/include/net/netfilter/nf_tables_core.h
-> > > > +++ b/include/net/netfilter/nf_tables_core.h
-> > > > @@ -161,6 +161,7 @@ enum {
-> > > >  };
-> > > >
-> > > >  struct nft_inner_tun_ctx {
-> > > > +       struct sk_buff *skb;    /* percpu area owner */
-> > > >         u16     type;
-> > > >         u16     inner_tunoff;
-> > > >         u16     inner_lloff;
-> > > > diff --git a/net/netfilter/nft_inner.c b/net/netfilter/nft_inner.c
-> > > > index 928312d01eb1..fcaa126ac8da 100644
-> > > > --- a/net/netfilter/nft_inner.c
-> > > > +++ b/net/netfilter/nft_inner.c
-> > > > @@ -210,35 +210,65 @@ static int nft_inner_parse(const struct nft_inner *priv,
-> > > >                            struct nft_pktinfo *pkt,
-> > > >                            struct nft_inner_tun_ctx *tun_ctx)
-> > > >  {
-> > > > -       struct nft_inner_tun_ctx ctx = {};
-> > > >         u32 off = pkt->inneroff;
-> > > >
-> > > >         if (priv->flags & NFT_INNER_HDRSIZE &&
-> > > > -           nft_inner_parse_tunhdr(priv, pkt, &ctx, &off) < 0)
-> > > > +           nft_inner_parse_tunhdr(priv, pkt, tun_ctx, &off) < 0)
-> > > >                 return -1;
-> > > >
-> > > >         if (priv->flags & (NFT_INNER_LL | NFT_INNER_NH)) {
-> > > > -               if (nft_inner_parse_l2l3(priv, pkt, &ctx, off) < 0)
-> > > > +               if (nft_inner_parse_l2l3(priv, pkt, tun_ctx, off) < 0)
-> > > >                         return -1;
-> > > >         } else if (priv->flags & NFT_INNER_TH) {
-> > > > -               ctx.inner_thoff = off;
-> > > > -               ctx.flags |= NFT_PAYLOAD_CTX_INNER_TH;
-> > > > +               tun_ctx->inner_thoff = off;
-> > > > +               tun_ctx->flags |= NFT_PAYLOAD_CTX_INNER_TH;
-> > > >         }
-> > > >
-> > > > -       *tun_ctx = ctx;
-> > > >         tun_ctx->type = priv->type;
-> > > > +       tun_ctx->skb = pkt->skb;
-> > > >         pkt->flags |= NFT_PKTINFO_INNER_FULL;
-> > > >
-> > > >         return 0;
-> > > >  }
-> > > >
-> > > > +static bool nft_inner_restore_tun_ctx(const struct nft_pktinfo *pkt,
-> > > > +                                     struct nft_inner_tun_ctx *tun_ctx)
-> > > > +{
-> > > > +       struct nft_inner_tun_ctx *this_cpu_tun_ctx;
-> > > > +
-> > > > +       local_bh_disable();
-> > > > +       this_cpu_tun_ctx = this_cpu_ptr(&nft_pcpu_tun_ctx);
-> > > > +       if (this_cpu_tun_ctx->skb != pkt->skb) {
-> > >
-> > > I must say I do not understand this patch.
-> > >
-> > > If a context is used by a save/restore more than one time per packet
-> > > traversal, then this means we can not use per-cpu storage,
-> > > or risk flakes.
-> > >
-> > > Also, skb could be freed and re-allocated ?
-> > >
-> > > Perhaps describe a bit more what is going on in the changelog.
-> >
-> > There is an on-stack nft_pktinfo structure with a flags field. This
-> > nft_pktinfo is a wrapper for the sk_buff, containing header offsets
-> > and metainformation. This is initialize when entering this chain.
-> >
-> > If the NFT_PKTINFO_INNER_FULL flag is set on, then the percpu area
-> > could contain information on the inner header offsets (ie. packet was
-> > already parsed in this chain).
-> >
-> > There is a check to validate that the percpu area refers to this
-> > skbuff. If there is a mismatch, then this needs to parse the inner
-> > headers because the data in the percpu area is stale. Otherwise, if
-> > there is a match, the percpu area is copied on-stack.
-> >
-> > After processing (payload/meta fetching), the on-stack copy is stored
-> > back to the percpu area. I can make an improvement on this patch to
-> > check if this skbuff still owns the percpu area in the store/exit
-> > section of this inner evaluation routine, to avoid a unnecessary update.
-> >
-> > So, it is basically the NFT_PKTINFO_INNER_FULL flag that handles the
-> > skbuff reallocation scenario. This is not blindly trusting this percpu
-> > area per-se.
-> >
-> > One comestic change I can apply to this: I can also turn the struct
-> > sk_buff into unsigned long so it clear to the reader this pointer to
-> > skbuff is not meant to be used for being dereferenced.
-> >
-> > If the explaination above is sufficient, I can revamp to extend the
-> > changelog as you suggest and post a new version of this patch.
-> >
-> > Thanks.
-> 
-> The part I do not understand is that tun_ctx->skb is not cleared at
-> the end of processing (or at some point)
-> 
-> That would make clear that a future (tun_ctx->skb == skb) test is not
-> confused by skb reuse (free/alloc).
->
-> If you use it as a cookie, then we need something else than a pointer.
+This patch adds a test for sendmmsg in udpgso_bench.sh.
+This allows for basic API testing and benchmarking
+comparisons with GSO.
 
-Revisiting this...
+Signed-off-by: Kenjiro Nakayama <nakayamakenjiro@gmail.com>
+---
+ tools/testing/selftests/net/udpgso_bench.sh | 3 +++
+ 1 file changed, 3 insertions(+)
 
-This is performing _three checks_ to validate that the percpu area is
-valid for this skbuff:
+diff --git a/tools/testing/selftests/net/udpgso_bench.sh b/tools/testing/selftests/net/udpgso_bench.sh
+index 640bc43452fa..88fa1d53ba2b 100755
+--- a/tools/testing/selftests/net/udpgso_bench.sh
++++ b/tools/testing/selftests/net/udpgso_bench.sh
+@@ -92,6 +92,9 @@ run_udp() {
+ 	echo "udp"
+ 	run_in_netns ${args}
+ 
++	echo "udp sendmmsg"
++	run_in_netns ${args} -m
++
+ 	echo "udp gso"
+ 	run_in_netns ${args} -S 0
+ 
+-- 
+2.39.3 (Apple Git-146)
 
-static bool nft_inner_parse_needed(const struct nft_inner *priv,
-                                   const struct nft_pktinfo *pkt,
-                                   struct nft_inner_tun_ctx *tun_ctx)
-{
-        if (!(pkt->flags & NFT_PKTINFO_INNER_FULL))
-                return true;
-
-1) pkt->flags & NFT_PKTINFO_INNER_FULL tells us this percpu area could
-   contain information for this skbuff already _in this chain_.
-
-        if (!nft_inner_restore_tun_ctx(pkt, tun_ctx))
-                return true;
-
-2) this above checks if (tun_ctx->skb == skb)
-
-        if (priv->type != tun_ctx->type)
-                return true;
-
-3) this also checks if inner header type in percpu area is the same
-   as the type of this match.
-
-But NFT_PKTINFO_INNER_FULL is only set for this packet in the context
-of the chain.
-
-I don't have a way to clear the percpu area, because I don't know what
-would be the last rule that will try to match on inner headers.
-
-As far as I understand, the problematic scenario is this:
-
-   (process context)
-        skb A Rule 1, no NFT_PKTINFO_INNER_FULL flag, initialize percpu area
-        skb A Rule 2, NFT_PKTINFO_INNER_FULL is set, use percpu area ... but softirq comes while evaluating
-        (softirq)
-             skb B Rule 1, no NFT_PKTINFO_INNER_FULL flag, initialize percpu area
-             (this is overriding the percpu and updating the cookie).
-             skb B Rule 2, NFT_PKTINFO_INNER_FULL flag is set, use percpu area
-             skb B Rule 3, NFT_PKTINFO_INNER_FULL flag is set, use percpu area
-             skb B end of processing
-   (resume to process context)
-        skb A Rule 2, override percpu area
-        skb A Rule 3, NFT_PKTINFO_INNER_FULL is set, use percpu area
-
-I think this approach in this patch is sufficient to deal with this.
-
-I can expand commit description and rename variable to _cookie_ to
-make it more obvious to the reader.
-
-Thanks.
