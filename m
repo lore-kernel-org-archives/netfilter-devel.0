@@ -1,172 +1,141 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f178.google.com (mail-qt1-f178.google.com [209.85.160.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DDE12E3EE;
-	Tue,  3 Dec 2024 11:20:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C083D1EF0AE;
+	Tue,  3 Dec 2024 15:21:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733224856; cv=none; b=EYw9x58IX1EDSHJi2KSrCsN2bqI9lpLcIf9RU/PM1fht/pPlNKKWHvxwAPSIvjMtf3pCGIiBQYN2hedPpGUAtfguKFE+okFmtlznUdDLchT6u8oKWrB2iw3j7eg5m5WPtFcMtuXw/rBZOrN8BpfiLbkj0n4v3AE6ZWo7vaTdkeI=
+	t=1733239283; cv=none; b=gjl9YOos7gQQ0ULCgjDXPr7gRJUN9nbLMjCJTndQNGq41x+Ess0tUj5ZLQ6fkNmjQ/6X6rrmdCFCd1G5117QnqevJmLpOV3EVMApnEhN3NNFNrPMyH1voMgHvQchGaT7xFa0CVfebB5KlbiuhBH1r5Qhxdk3wnUNXcm8OyDkc7c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733224856; c=relaxed/simple;
-	bh=mZaCnhhVXLdobmbsL6owS6DX9G3bb+SkPA5Ax5DGX3Q=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=oy4uAxlV0+sLm+ZwfTNHoLTYEIsP+XoIIDcSmqA98CnQ3eIvR6eMz4CxiM+JhveSXxwx9lYdjF2TmyTEezO3BC1ip2x/jq8faKT70aP5gZyg9UzeEIJOBJOYuYBJcW7CdwqsMln11FQN3qMd4gq8/832q/Z6z/mTJDaNMu25ZG8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1tIQxM-0006Cn-Sn; Tue, 03 Dec 2024 12:20:40 +0100
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: horms@verge.net.au,
-	ja@ssi.bg,
-	lvs-devel@vger.kernel.org,
-	Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] ipvs: speed up reads from ip_vs_conn proc file
-Date: Tue,  3 Dec 2024 12:08:30 +0100
-Message-ID: <20241203110840.10411-1-fw@strlen.de>
-X-Mailer: git-send-email 2.45.2
+	s=arc-20240116; t=1733239283; c=relaxed/simple;
+	bh=t8yscXsYjfpe/1tcoMvCTfOcyi3GhvMr0P2NT0AZHzk=;
+	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
+	 Mime-Version:Content-Type; b=NDOTvpYXolAMvRnkODBz9ftwwnokmEUXpBuxvbS6IPchbs0U0sR4z9KRDZh/rmdwxf/ZXpmwy8Y8dJmgBcQh6PItk6N1sWvXmKL05ECSuivB7CmsRwJsKfORn82a+b655/pAmfOrRttyoy0MOtUPi0bQ6xNSa5vpkxJjDaG56TY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=l041LLGt; arc=none smtp.client-ip=209.85.160.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="l041LLGt"
+Received: by mail-qt1-f178.google.com with SMTP id d75a77b69052e-466966d8dbaso45712501cf.3;
+        Tue, 03 Dec 2024 07:21:21 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1733239280; x=1733844080; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:subject:references
+         :in-reply-to:message-id:cc:to:from:date:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=VqsVHmCOaWiBo6waU1R1vraLU/LK0vRFjavrsVUjZLY=;
+        b=l041LLGtQ09D5k9YVBUQuBVvQ8Q6hMoDvDvrGkEdSwkOK8gnKxMD+RTAhmJ8ioGzNS
+         5Iyt9SRcV/JXbqOP96OJGr/UmP5yyTMfsTcJ4Y2xhovpEDW0UErs1gfmgOJC8iUQulan
+         46EP+dxFoM6ZxrL4s5ILxNK/q4tkEUMXTwI7a3K8qhPo6Tzwbmyy8vaKHgPRwI/P3yT/
+         wJXLQulArcn+0E7DskiJCzgdBidYcFVBlA4Py9q2t9ecekhde5Tmy2GVu5wjJ024984M
+         aExkXDxAYhlVvLN06Mzn4H6Jx6YXZHh2I4H0ORIOrkq3IqW3xOgb8BcSjQhD5Qspx4ww
+         ZWOA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1733239280; x=1733844080;
+        h=content-transfer-encoding:mime-version:subject:references
+         :in-reply-to:message-id:cc:to:from:date:x-gm-message-state:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=VqsVHmCOaWiBo6waU1R1vraLU/LK0vRFjavrsVUjZLY=;
+        b=Mexig+DofDUwVTNGN5G8TKshCoajvQvlzcTIFdpDoEbN33+Wpg18Vo4EjbuGXBgIPT
+         3vjRi5E+nnChK9BxdD/WPn6Vlhi/l+YS/cysywCoOF7B3eewDxrcZ4AFhOYaqYXsDgmn
+         aDnIJC7DVrjca0+ooIBQBHLcQr3+maPSI6mPsz1QKeDM/A0YrHAGF3Shps5x7kTOhyUS
+         PFEzmLCLYTURr1lWz7Mr9ZBs47aJjJS/zLdU2NFI+MuUYpFnwJ888vseEkUXy2qO/qeT
+         6oh1ulpQBG84l1gtynB1YVpgigHv/vJCS+1ahx6JI3uZeSt1MseiOy885khYFjYoInLU
+         E83A==
+X-Forwarded-Encrypted: i=1; AJvYcCU5/P+d2WqQgIndwYFoJ8P7ueJ3gqAsO4EYkOgUZIiBgGkAz3rIoipftKar3dD6vhir9iWKTA89@vger.kernel.org, AJvYcCU80hH145bh54fJjVz7ibwQjl/A3ljRFZUdpc5Um6lKDU6LmKFhHmgNGaU5PJSvy2QtfBZtEXAPvAHR5C0O@vger.kernel.org, AJvYcCUKttrQNS2eaPFdJms1IDmY383EE8A1oYSfiAYiiBPTo2mk/LUlfNK3I3/4WRQI9kelh0lM6bs1AUPU@vger.kernel.org, AJvYcCXVNEr2WK+l//1EZ3cnMT2kdAOyvXOClKQwSqHr1HVU3xrwI5Tri7yuYU7vmdpDiBav72p3B0pp7It5+W8m2PIo@vger.kernel.org
+X-Gm-Message-State: AOJu0YxJXIx7Lac+uUo0BHx1Y7QYQU+cyKJqzhpLoFTtuRJEHGDia/HD
+	7grfsPBoHcpBQKHvoxL5aZu0f/tzA9KcxeVHA8H+tofJm/8mylx0
+X-Gm-Gg: ASbGnctU6OSh2uWgz/+vqPFd/lfrqgFGKwu1qQCcyQBAt/qwSUS1rY1T38X/WL55aAj
+	NTxAV4AkeHFbwxuf4KQFdNbldy4lUcIFd0MUHHRqpXoUCtm0IDiLqvsg+ImbOHB1EnO0LAkQfs2
+	D4Bf1p66L5BKUn2gf2wMuYtcc7XPFj6Zc61wRLs4iIP3zYHzccBIAci5QPvuSQVzGFdHavXQ9Px
+	7iyMuNjSta+9Xdoru903ZmR8lL6saX76ZI89RD9MYRx9JenK3jjOtkuNTUUiwKgYLhrQRF+u1Y7
+	tGFft1DxPj6jQkfvJOGf1w==
+X-Google-Smtp-Source: AGHT+IGPHit5+V6UhQpAx4/BlJFXSsgH9I6LPVgBePoc1CSG05dOym+Yqu7WxRzxJcebBY0CylhigA==
+X-Received: by 2002:ad4:5b8f:0:b0:6d8:99cf:d2e3 with SMTP id 6a1803df08f44-6d8b737d8d2mr41162076d6.22.1733239280369;
+        Tue, 03 Dec 2024 07:21:20 -0800 (PST)
+Received: from localhost (250.4.48.34.bc.googleusercontent.com. [34.48.4.250])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-6d875195da6sm61747786d6.57.2024.12.03.07.21.19
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 03 Dec 2024 07:21:19 -0800 (PST)
+Date: Tue, 03 Dec 2024 10:21:19 -0500
+From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
+To: Kenjiro Nakayama <nakayamakenjiro@gmail.com>, 
+ Pablo Neira Ayuso <pablo@netfilter.org>, 
+ Jozsef Kadlecsik <kadlec@netfilter.org>, 
+ "David S. Miller" <davem@davemloft.net>, 
+ Eric Dumazet <edumazet@google.com>, 
+ Jakub Kicinski <kuba@kernel.org>, 
+ Paolo Abeni <pabeni@redhat.com>, 
+ Simon Horman <horms@kernel.org>, 
+ Alan Stern <stern@rowland.harvard.edu>, 
+ Andrea Parri <parri.andrea@gmail.com>, 
+ Will Deacon <will@kernel.org>, 
+ Peter Zijlstra <peterz@infradead.org>, 
+ Boqun Feng <boqun.feng@gmail.com>, 
+ Nicholas Piggin <npiggin@gmail.com>, 
+ David Howells <dhowells@redhat.com>, 
+ Jade Alglave <j.alglave@ucl.ac.uk>, 
+ Luc Maranget <luc.maranget@inria.fr>, 
+ "Paul E. McKenney" <paulmck@kernel.org>, 
+ Akira Yokosawa <akiyks@gmail.com>, 
+ Daniel Lustig <dlustig@nvidia.com>, 
+ Joel Fernandes <joel@joelfernandes.org>, 
+ Shuah Khan <shuah@kernel.org>
+Cc: netfilter-devel@vger.kernel.org, 
+ coreteam@netfilter.org, 
+ linux-kernel@vger.kernel.org, 
+ netdev@vger.kernel.org, 
+ linux-arch@vger.kernel.org, 
+ lkmm@lists.linux.dev, 
+ linux-kselftest@vger.kernel.org, 
+ Kenjiro Nakayama <nakayamakenjiro@gmail.com>
+Message-ID: <674f21ef3048c_19a62294c6@willemb.c.googlers.com.notmuch>
+In-Reply-To: <20241202232129.7139-1-nakayamakenjiro@gmail.com>
+References: <20241202232129.7139-1-nakayamakenjiro@gmail.com>
+Subject: Re: [PATCH] selftests/net: call sendmmsg via udpgso_bench.sh
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: 7bit
 
-Reading is very slow because ->start() performs a linear re-scan of the
-entire hash table until it finds the successor to the last dumped
-element.  The current implementation uses 'pos' as the 'number of
-elements to skip, then does linear iteration until it has skipped
-'pos' entries.
+Kenjiro Nakayama wrote:
+> Currently, sendmmsg is implemented in udpgso_bench_tx.c,
+> but it is not called by any test script.
+> 
+> This patch adds a test for sendmmsg in udpgso_bench.sh.
+> This allows for basic API testing and benchmarking
+> comparisons with GSO.
 
-Store the last bucket and the number of elements to skip in that
-bucket instead, so we can resume from bucket b directly.
+The change looks fine to me, but the commit is missing your
+Signed-off-by.
 
-before this patch, its possible to read ~35k entries in one second, but
-each read() gets slower as the number of entries to skip grows:
+Also, if resubmitting, please mark [PATCH net-next v2].
 
-time timeout 60 cat /proc/net/ip_vs_conn > /tmp/all; wc -l /tmp/all
-real    1m0.007s
-user    0m0.003s
-sys     0m59.956s
-140386 /tmp/all
+> ---
+>  tools/testing/selftests/net/udpgso_bench.sh | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/tools/testing/selftests/net/udpgso_bench.sh b/tools/testing/selftests/net/udpgso_bench.sh
+> index 640bc43452fa..88fa1d53ba2b 100755
+> --- a/tools/testing/selftests/net/udpgso_bench.sh
+> +++ b/tools/testing/selftests/net/udpgso_bench.sh
+> @@ -92,6 +92,9 @@ run_udp() {
+>  	echo "udp"
+>  	run_in_netns ${args}
+>  
+> +	echo "udp sendmmsg"
+> +	run_in_netns ${args} -m
+> +
+>  	echo "udp gso"
+>  	run_in_netns ${args} -S 0
+>  
+> -- 
+> 2.39.3 (Apple Git-146)
+> 
 
-Only ~100k more got read in remaining the remaining 59s, and did not get
-nowhere near the 1m entries that are stored at the time.
-
-after this patch, dump completes very quickly:
-time cat /proc/net/ip_vs_conn > /tmp/all; wc -l /tmp/all
-real    0m2.286s
-user    0m0.004s
-sys     0m2.281s
-1000001 /tmp/all
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/ipvs/ip_vs_conn.c | 50 ++++++++++++++++++---------------
- 1 file changed, 28 insertions(+), 22 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 7aba4760bbff..73f3dac159bb 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -1046,28 +1046,35 @@ ip_vs_conn_new(const struct ip_vs_conn_param *p, int dest_af,
- #ifdef CONFIG_PROC_FS
- struct ip_vs_iter_state {
- 	struct seq_net_private	p;
--	struct hlist_head	*l;
-+	unsigned int		bucket;
-+	unsigned int		skip_elems;
- };
- 
--static void *ip_vs_conn_array(struct seq_file *seq, loff_t pos)
-+static void *ip_vs_conn_array(struct ip_vs_iter_state *iter)
- {
- 	int idx;
- 	struct ip_vs_conn *cp;
--	struct ip_vs_iter_state *iter = seq->private;
- 
--	for (idx = 0; idx < ip_vs_conn_tab_size; idx++) {
-+	for (idx = iter->bucket; idx < ip_vs_conn_tab_size; idx++) {
-+		unsigned int skip = 0;
-+
- 		hlist_for_each_entry_rcu(cp, &ip_vs_conn_tab[idx], c_list) {
- 			/* __ip_vs_conn_get() is not needed by
- 			 * ip_vs_conn_seq_show and ip_vs_conn_sync_seq_show
- 			 */
--			if (pos-- == 0) {
--				iter->l = &ip_vs_conn_tab[idx];
-+			if (skip >= iter->skip_elems) {
-+				iter->bucket = idx;
- 				return cp;
- 			}
-+
-+			++skip;
- 		}
-+
-+		iter->skip_elems = 0;
- 		cond_resched_rcu();
- 	}
- 
-+	iter->bucket = idx;
- 	return NULL;
- }
- 
-@@ -1076,9 +1083,14 @@ static void *ip_vs_conn_seq_start(struct seq_file *seq, loff_t *pos)
- {
- 	struct ip_vs_iter_state *iter = seq->private;
- 
--	iter->l = NULL;
- 	rcu_read_lock();
--	return *pos ? ip_vs_conn_array(seq, *pos - 1) :SEQ_START_TOKEN;
-+	if (*pos == 0) {
-+		iter->skip_elems = 0;
-+		iter->bucket = 0;
-+		return SEQ_START_TOKEN;
-+	}
-+
-+	return ip_vs_conn_array(iter);
- }
- 
- static void *ip_vs_conn_seq_next(struct seq_file *seq, void *v, loff_t *pos)
-@@ -1086,28 +1098,22 @@ static void *ip_vs_conn_seq_next(struct seq_file *seq, void *v, loff_t *pos)
- 	struct ip_vs_conn *cp = v;
- 	struct ip_vs_iter_state *iter = seq->private;
- 	struct hlist_node *e;
--	struct hlist_head *l = iter->l;
--	int idx;
- 
- 	++*pos;
- 	if (v == SEQ_START_TOKEN)
--		return ip_vs_conn_array(seq, 0);
-+		return ip_vs_conn_array(iter);
- 
- 	/* more on same hash chain? */
- 	e = rcu_dereference(hlist_next_rcu(&cp->c_list));
--	if (e)
-+	if (e) {
-+		iter->skip_elems++;
- 		return hlist_entry(e, struct ip_vs_conn, c_list);
--
--	idx = l - ip_vs_conn_tab;
--	while (++idx < ip_vs_conn_tab_size) {
--		hlist_for_each_entry_rcu(cp, &ip_vs_conn_tab[idx], c_list) {
--			iter->l = &ip_vs_conn_tab[idx];
--			return cp;
--		}
--		cond_resched_rcu();
- 	}
--	iter->l = NULL;
--	return NULL;
-+
-+	iter->skip_elems = 0;
-+	iter->bucket++;
-+
-+	return ip_vs_conn_array(iter);
- }
- 
- static void ip_vs_conn_seq_stop(struct seq_file *seq, void *v)
--- 
-2.45.2
 
