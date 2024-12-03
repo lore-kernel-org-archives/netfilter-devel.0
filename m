@@ -1,110 +1,137 @@
-Received: from azazel.net (taras.nevrast.org [35.176.194.208])
+Received: from metis.whiteo.stw.pengutronix.de (metis.whiteo.stw.pengutronix.de [185.203.201.7])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19CFC1FECD5
-	for <netfilter-devel@vger.kernel.org>; Tue,  3 Dec 2024 17:40:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E57A91F9F77
+	for <netfilter-devel@vger.kernel.org>; Tue,  3 Dec 2024 17:47:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.203.201.7
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733247666; cv=none; b=Usk9iLCCpg6S6oRZzyiHtpCzdWgESlqnGBaL+Mnt+WaNLy/RKG5F6OZgczCGlc5azIwZQEw9J09DZwPSFvCdTn7j3lxTEGj5F/ZpijOPnPC2pOvA0EbSiQin/tZ98EyMQj7lGz071wk86vzX+mOUF6AYxhhw8gkrEb3Xbh9wFtM=
+	t=1733248032; cv=none; b=sDP6die6osfmtPmHjO2FflpPXrRE64dOONh50PV1Ul7mLuB3FRg/KjPuYLD5Sw/GfDtwYN+Zw4GVgpHNekNz7BuDMimQ7V4YHQASaS1Zc91iUPxeSgQ2gpKN93KSUW4hF3uhVJaD4B8+21Kx865yVUBKcDX26uiZD2S1jW2KiIE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733247666; c=relaxed/simple;
-	bh=WIkJkytl332izrlZvPK+ne+DemxHft3JFQ3LMMg1eSs=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=Orh+ASsyHxC8IMk5ovr8zOhUFXD7gcKO5fu2JIHa3JAJJcG1vKfL7oTfiHJFdxnFx1yPUARepjm9sbDT5PQK4PMfUiReH6e2g97HmlCUGpEYTZovqABRV9lcnAf0r/KdRatWTlKQagn68iMsO0/76NhAck6WMxw/6Da0n2GY1uk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=pd3cGtxZ; arc=none smtp.client-ip=35.176.194.208
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="pd3cGtxZ"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-	s=20220717; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=sTV9UWPyCzdFGTJtpJnGzn+ZV9lvZAdMqBJM5pPmiT4=; b=pd3cGtxZO7ZOBi81FORt4m7Qmf
-	pA/WyJTgH7SyGBexBUm+nbslemEMosaOeeJLyQF2BQ8mmH0lE0rVHyZ0UAP1odQjS86cR3uluXL35
-	5tnvg+AVaweACwmrwzKtzBOEtk9iq3BorVN5y9paTDsaCx0k2Kz4uBSN4nfbJh1Ssa33m18pao/TN
-	579ZeopmuD6dsExrqT6lMpzYByiI4VFgh5x+gowT73rxR3JOdzRzQKZq5CdSRQqkYSB0YmB9U4qAh
-	IniOGtCadf0GUBr7LcR7QE31KzBFHmZIszvd5l/5RpPQZBxMN5Tz4Th12l4R9gCRWiwGBQUA931q3
-	AMwSMI4w==;
-Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
-	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.96)
-	(envelope-from <jeremy@azazel.net>)
-	id 1tIWiw-0092FB-2H
-	for netfilter-devel@vger.kernel.org;
-	Tue, 03 Dec 2024 17:30:10 +0000
-From: Jeremy Sowden <jeremy@azazel.net>
-To: Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH xtables-addons] build: fix inclusion of Makefile.extra
-Date: Tue,  3 Dec 2024 17:30:01 +0000
-Message-ID: <20241203173001.2575351-1-jeremy@azazel.net>
-X-Mailer: git-send-email 2.45.2
+	s=arc-20240116; t=1733248032; c=relaxed/simple;
+	bh=Q95+gOI7pTAZtpI5+UrdylhdkgXfWijiKSsgRKgGNcI=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=eXWU13mymmbPuvXQOpHd2a3bQYont4W3eeWiavQCpb1+xSDl4YWDtK/3202psNyvMmKJWP+RYb45DRG7WJA6EAJqd4POnJ5GJ2ZUi9l7T7BBNhMchYC43PiBnzy7S2jKiYzZIJ3FvsnjnUR1FmeFzihsUL4KFigdgLvZc+DyOFg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de; spf=pass smtp.mailfrom=pengutronix.de; arc=none smtp.client-ip=185.203.201.7
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=pengutronix.de
+Received: from ptz.office.stw.pengutronix.de ([2a0a:edc0:0:900:1d::77] helo=[IPv6:::1])
+	by metis.whiteo.stw.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+	(Exim 4.92)
+	(envelope-from <l.stach@pengutronix.de>)
+	id 1tIWyE-0003sq-Mm; Tue, 03 Dec 2024 18:45:58 +0100
+Message-ID: <fc624e3fd4a4a38dedf02e31be9e4f1c85fb40a0.camel@pengutronix.de>
+Subject: Re: [PATCH 09/22] drm/etnaviv: Convert timeouts to secs_to_jiffies()
+From: Lucas Stach <l.stach@pengutronix.de>
+To: Easwar Hariharan <eahariha@linux.microsoft.com>, Pablo Neira Ayuso
+ <pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>, "David S.
+ Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub
+ Kicinski <kuba@kernel.org>,  Paolo Abeni <pabeni@redhat.com>, Simon Horman
+ <horms@kernel.org>, Julia Lawall <Julia.Lawall@inria.fr>,  Nicolas Palix
+ <nicolas.palix@imag.fr>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang
+ <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>,
+ Russell King <linux@armlinux.org.uk>, Heiko Carstens <hca@linux.ibm.com>,
+ Vasily Gorbik <gor@linux.ibm.com>, Alexander Gordeev
+ <agordeev@linux.ibm.com>, Christian Borntraeger
+ <borntraeger@linux.ibm.com>, Sven Schnelle <svens@linux.ibm.com>, Ofir
+ Bitton <obitton@habana.ai>, Oded Gabbay <ogabbay@kernel.org>, Lucas De
+ Marchi <lucas.demarchi@intel.com>, Thomas =?ISO-8859-1?Q?Hellstr=F6m?=
+ <thomas.hellstrom@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, 
+ Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard
+ <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, David Airlie
+ <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>, Jeroen de Borst
+ <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>,
+ Shailend Chand <shailend@google.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
+ James Smart <james.smart@broadcom.com>, Dick Kennedy
+ <dick.kennedy@broadcom.com>, "James E.J. Bottomley"
+ <James.Bottomley@HansenPartnership.com>, "Martin K. Petersen"
+ <martin.petersen@oracle.com>, Roger Pau =?ISO-8859-1?Q?Monn=E9?=
+ <roger.pau@citrix.com>, Jens Axboe <axboe@kernel.dk>, Kalle Valo
+ <kvalo@kernel.org>, Jeff Johnson <jjohnson@kernel.org>, Catalin Marinas
+ <catalin.marinas@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Jack
+ Wang <jinpu.wang@cloud.ionos.com>, Marcel Holtmann <marcel@holtmann.org>,
+ Johan Hedberg <johan.hedberg@gmail.com>, Luiz Augusto von Dentz
+ <luiz.dentz@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Florian Fainelli <florian.fainelli@broadcom.com>, Ray Jui
+ <rjui@broadcom.com>, Scott Branden <sbranden@broadcom.com>, Broadcom
+ internal kernel review list <bcm-kernel-feedback-list@broadcom.com>, Xiubo
+ Li <xiubli@redhat.com>, Ilya Dryomov <idryomov@gmail.com>,  Josh Poimboeuf
+ <jpoimboe@kernel.org>, Jiri Kosina <jikos@kernel.org>, Miroslav Benes
+ <mbenes@suse.cz>, Petr Mladek <pmladek@suse.com>, Joe Lawrence
+ <joe.lawrence@redhat.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai
+ <tiwai@suse.com>, Russell King <linux+etnaviv@armlinux.org.uk>, Christian
+ Gmeiner <christian.gmeiner@gmail.com>,  Louis Peens
+ <louis.peens@corigine.com>, Michael Ellerman <mpe@ellerman.id.au>, Nicholas
+ Piggin <npiggin@gmail.com>, Christophe Leroy <christophe.leroy@csgroup.eu>,
+ Naveen N Rao <naveen@kernel.org>, Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+ netdev@vger.kernel.org, linux-kernel@vger.kernel.org, cocci@inria.fr, 
+ linux-arm-kernel@lists.infradead.org, linux-s390@vger.kernel.org, 
+ dri-devel@lists.freedesktop.org, intel-xe@lists.freedesktop.org, 
+ linux-scsi@vger.kernel.org, xen-devel@lists.xenproject.org, 
+ linux-block@vger.kernel.org, linux-wireless@vger.kernel.org, 
+ ath11k@lists.infradead.org, linux-mm@kvack.org,
+ linux-bluetooth@vger.kernel.org,  linux-staging@lists.linux.dev,
+ linux-rpi-kernel@lists.infradead.org,  ceph-devel@vger.kernel.org,
+ live-patching@vger.kernel.org,  linux-sound@vger.kernel.org,
+ etnaviv@lists.freedesktop.org,  oss-drivers@corigine.com,
+ linuxppc-dev@lists.ozlabs.org, Anna-Maria Behnsen <anna-maria@linutronix.de>
+Date: Tue, 03 Dec 2024 18:45:50 +0100
+In-Reply-To: <20241115-converge-secs-to-jiffies-v1-9-19aadc34941b@linux.microsoft.com>
+References: 
+	<20241115-converge-secs-to-jiffies-v1-0-19aadc34941b@linux.microsoft.com>
+	 <20241115-converge-secs-to-jiffies-v1-9-19aadc34941b@linux.microsoft.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.52.4 (3.52.4-2.fc40) 
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
+X-SA-Exim-Connect-IP: 2a0a:edc0:0:900:1d::77
+X-SA-Exim-Mail-From: l.stach@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.whiteo.stw.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: netfilter-devel@vger.kernel.org
 
-Commit 08a16d90ceae ("build: use `$(top_srcdir)` when including Makefile.extra")
-replaces hard-coded relative paths used to include Makefile.extra with
-variables.  However, despite the commit message, the variables are enclosed with
-braces, not parentheses, and it transpires that automake does not support the
-use of braces in this context.  As a result, Makefile.extra is not included, and
-the libxt_ACCOUNT.so and libxt_pknock.so extensions are not built.
+Am Freitag, dem 15.11.2024 um 21:22 +0000 schrieb Easwar Hariharan:
+> Changes made with the following Coccinelle rules:
+>=20
+> @@ constant C; @@
+>=20
+> - msecs_to_jiffies(C * 1000)
+> + secs_to_jiffies(C)
+>=20
+> @@ constant C; @@
+>=20
+> - msecs_to_jiffies(C * MSEC_PER_SEC)
+> + secs_to_jiffies(C)
+>=20
+Thanks, applied to etnaviv/next.
 
-Use parentheses instead.
+Regards,
+Lucas
 
-Link: https://bugs.launchpad.net/ubuntu/+source/xtables-addons/+bug/2080528
-Fixes: 08a16d90ceae ("build: use `$(top_srcdir)` when including Makefile.extra")
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- extensions/ACCOUNT/Makefile.am | 2 +-
- extensions/Makefile.am         | 2 +-
- extensions/pknock/Makefile.am  | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/extensions/ACCOUNT/Makefile.am b/extensions/ACCOUNT/Makefile.am
-index 2514386f00b8..473a739f981a 100644
---- a/extensions/ACCOUNT/Makefile.am
-+++ b/extensions/ACCOUNT/Makefile.am
-@@ -3,7 +3,7 @@
- AM_CPPFLAGS = ${regular_CPPFLAGS} -I${abs_top_srcdir}/extensions
- AM_CFLAGS   = ${regular_CFLAGS} ${libxtables_CFLAGS}
- 
--include ${top_srcdir}/Makefile.extra
-+include $(top_srcdir)/Makefile.extra
- 
- sbin_PROGRAMS = iptaccount
- iptaccount_LDADD = libxt_ACCOUNT_cl.la
-diff --git a/extensions/Makefile.am b/extensions/Makefile.am
-index 8f0aeb5666da..b99712dfcd38 100644
---- a/extensions/Makefile.am
-+++ b/extensions/Makefile.am
-@@ -26,4 +26,4 @@ install-exec-local: modules_install
- 
- clean-local: clean_modules
- 
--include ${top_srcdir}/Makefile.extra
-+include $(top_srcdir)/Makefile.extra
-diff --git a/extensions/pknock/Makefile.am b/extensions/pknock/Makefile.am
-index 1ca5f91025b7..5fcae4794230 100644
---- a/extensions/pknock/Makefile.am
-+++ b/extensions/pknock/Makefile.am
-@@ -3,7 +3,7 @@
- AM_CPPFLAGS = ${regular_CPPFLAGS} -I${abs_top_srcdir}/extensions
- AM_CFLAGS   = ${regular_CFLAGS} ${libxtables_CFLAGS}
- 
--include ${top_srcdir}/Makefile.extra
-+include $(top_srcdir)/Makefile.extra
- 
- sbin_PROGRAMS = pknlusr
- dist_man_MANS = pknlusr.8
--- 
-2.45.2
+> Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
+> ---
+>  drivers/gpu/drm/etnaviv/etnaviv_cmdbuf.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/gpu/drm/etnaviv/etnaviv_cmdbuf.c b/drivers/gpu/drm/e=
+tnaviv/etnaviv_cmdbuf.c
+> index 721d633aece9d4c81f0019e4c55884f26ee61c60..0f5a2c885d0ab7029c7248e15=
+d6ea3c31823b782 100644
+> --- a/drivers/gpu/drm/etnaviv/etnaviv_cmdbuf.c
+> +++ b/drivers/gpu/drm/etnaviv/etnaviv_cmdbuf.c
+> @@ -100,7 +100,7 @@ int etnaviv_cmdbuf_init(struct etnaviv_cmdbuf_suballo=
+c *suballoc,
+>  		mutex_unlock(&suballoc->lock);
+>  		ret =3D wait_event_interruptible_timeout(suballoc->free_event,
+>  						       suballoc->free_space,
+> -						       msecs_to_jiffies(10 * 1000));
+> +						       secs_to_jiffies(10));
+>  		if (!ret) {
+>  			dev_err(suballoc->dev,
+>  				"Timeout waiting for cmdbuf space\n");
+>=20
 
