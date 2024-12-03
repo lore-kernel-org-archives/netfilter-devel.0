@@ -1,141 +1,110 @@
-Received: from mail-qt1-f178.google.com (mail-qt1-f178.google.com [209.85.160.178])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from azazel.net (taras.nevrast.org [35.176.194.208])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C083D1EF0AE;
-	Tue,  3 Dec 2024 15:21:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19CFC1FECD5
+	for <netfilter-devel@vger.kernel.org>; Tue,  3 Dec 2024 17:40:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733239283; cv=none; b=gjl9YOos7gQQ0ULCgjDXPr7gRJUN9nbLMjCJTndQNGq41x+Ess0tUj5ZLQ6fkNmjQ/6X6rrmdCFCd1G5117QnqevJmLpOV3EVMApnEhN3NNFNrPMyH1voMgHvQchGaT7xFa0CVfebB5KlbiuhBH1r5Qhxdk3wnUNXcm8OyDkc7c=
+	t=1733247666; cv=none; b=Usk9iLCCpg6S6oRZzyiHtpCzdWgESlqnGBaL+Mnt+WaNLy/RKG5F6OZgczCGlc5azIwZQEw9J09DZwPSFvCdTn7j3lxTEGj5F/ZpijOPnPC2pOvA0EbSiQin/tZ98EyMQj7lGz071wk86vzX+mOUF6AYxhhw8gkrEb3Xbh9wFtM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733239283; c=relaxed/simple;
-	bh=t8yscXsYjfpe/1tcoMvCTfOcyi3GhvMr0P2NT0AZHzk=;
-	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
-	 Mime-Version:Content-Type; b=NDOTvpYXolAMvRnkODBz9ftwwnokmEUXpBuxvbS6IPchbs0U0sR4z9KRDZh/rmdwxf/ZXpmwy8Y8dJmgBcQh6PItk6N1sWvXmKL05ECSuivB7CmsRwJsKfORn82a+b655/pAmfOrRttyoy0MOtUPi0bQ6xNSa5vpkxJjDaG56TY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=l041LLGt; arc=none smtp.client-ip=209.85.160.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1733247666; c=relaxed/simple;
+	bh=WIkJkytl332izrlZvPK+ne+DemxHft3JFQ3LMMg1eSs=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=Orh+ASsyHxC8IMk5ovr8zOhUFXD7gcKO5fu2JIHa3JAJJcG1vKfL7oTfiHJFdxnFx1yPUARepjm9sbDT5PQK4PMfUiReH6e2g97HmlCUGpEYTZovqABRV9lcnAf0r/KdRatWTlKQagn68iMsO0/76NhAck6WMxw/6Da0n2GY1uk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=pd3cGtxZ; arc=none smtp.client-ip=35.176.194.208
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="l041LLGt"
-Received: by mail-qt1-f178.google.com with SMTP id d75a77b69052e-466966d8dbaso45712501cf.3;
-        Tue, 03 Dec 2024 07:21:21 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1733239280; x=1733844080; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:subject:references
-         :in-reply-to:message-id:cc:to:from:date:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=VqsVHmCOaWiBo6waU1R1vraLU/LK0vRFjavrsVUjZLY=;
-        b=l041LLGtQ09D5k9YVBUQuBVvQ8Q6hMoDvDvrGkEdSwkOK8gnKxMD+RTAhmJ8ioGzNS
-         5Iyt9SRcV/JXbqOP96OJGr/UmP5yyTMfsTcJ4Y2xhovpEDW0UErs1gfmgOJC8iUQulan
-         46EP+dxFoM6ZxrL4s5ILxNK/q4tkEUMXTwI7a3K8qhPo6Tzwbmyy8vaKHgPRwI/P3yT/
-         wJXLQulArcn+0E7DskiJCzgdBidYcFVBlA4Py9q2t9ecekhde5Tmy2GVu5wjJ024984M
-         aExkXDxAYhlVvLN06Mzn4H6Jx6YXZHh2I4H0ORIOrkq3IqW3xOgb8BcSjQhD5Qspx4ww
-         ZWOA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1733239280; x=1733844080;
-        h=content-transfer-encoding:mime-version:subject:references
-         :in-reply-to:message-id:cc:to:from:date:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=VqsVHmCOaWiBo6waU1R1vraLU/LK0vRFjavrsVUjZLY=;
-        b=Mexig+DofDUwVTNGN5G8TKshCoajvQvlzcTIFdpDoEbN33+Wpg18Vo4EjbuGXBgIPT
-         3vjRi5E+nnChK9BxdD/WPn6Vlhi/l+YS/cysywCoOF7B3eewDxrcZ4AFhOYaqYXsDgmn
-         aDnIJC7DVrjca0+ooIBQBHLcQr3+maPSI6mPsz1QKeDM/A0YrHAGF3Shps5x7kTOhyUS
-         PFEzmLCLYTURr1lWz7Mr9ZBs47aJjJS/zLdU2NFI+MuUYpFnwJ888vseEkUXy2qO/qeT
-         6oh1ulpQBG84l1gtynB1YVpgigHv/vJCS+1ahx6JI3uZeSt1MseiOy885khYFjYoInLU
-         E83A==
-X-Forwarded-Encrypted: i=1; AJvYcCU5/P+d2WqQgIndwYFoJ8P7ueJ3gqAsO4EYkOgUZIiBgGkAz3rIoipftKar3dD6vhir9iWKTA89@vger.kernel.org, AJvYcCU80hH145bh54fJjVz7ibwQjl/A3ljRFZUdpc5Um6lKDU6LmKFhHmgNGaU5PJSvy2QtfBZtEXAPvAHR5C0O@vger.kernel.org, AJvYcCUKttrQNS2eaPFdJms1IDmY383EE8A1oYSfiAYiiBPTo2mk/LUlfNK3I3/4WRQI9kelh0lM6bs1AUPU@vger.kernel.org, AJvYcCXVNEr2WK+l//1EZ3cnMT2kdAOyvXOClKQwSqHr1HVU3xrwI5Tri7yuYU7vmdpDiBav72p3B0pp7It5+W8m2PIo@vger.kernel.org
-X-Gm-Message-State: AOJu0YxJXIx7Lac+uUo0BHx1Y7QYQU+cyKJqzhpLoFTtuRJEHGDia/HD
-	7grfsPBoHcpBQKHvoxL5aZu0f/tzA9KcxeVHA8H+tofJm/8mylx0
-X-Gm-Gg: ASbGnctU6OSh2uWgz/+vqPFd/lfrqgFGKwu1qQCcyQBAt/qwSUS1rY1T38X/WL55aAj
-	NTxAV4AkeHFbwxuf4KQFdNbldy4lUcIFd0MUHHRqpXoUCtm0IDiLqvsg+ImbOHB1EnO0LAkQfs2
-	D4Bf1p66L5BKUn2gf2wMuYtcc7XPFj6Zc61wRLs4iIP3zYHzccBIAci5QPvuSQVzGFdHavXQ9Px
-	7iyMuNjSta+9Xdoru903ZmR8lL6saX76ZI89RD9MYRx9JenK3jjOtkuNTUUiwKgYLhrQRF+u1Y7
-	tGFft1DxPj6jQkfvJOGf1w==
-X-Google-Smtp-Source: AGHT+IGPHit5+V6UhQpAx4/BlJFXSsgH9I6LPVgBePoc1CSG05dOym+Yqu7WxRzxJcebBY0CylhigA==
-X-Received: by 2002:ad4:5b8f:0:b0:6d8:99cf:d2e3 with SMTP id 6a1803df08f44-6d8b737d8d2mr41162076d6.22.1733239280369;
-        Tue, 03 Dec 2024 07:21:20 -0800 (PST)
-Received: from localhost (250.4.48.34.bc.googleusercontent.com. [34.48.4.250])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-6d875195da6sm61747786d6.57.2024.12.03.07.21.19
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 03 Dec 2024 07:21:19 -0800 (PST)
-Date: Tue, 03 Dec 2024 10:21:19 -0500
-From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-To: Kenjiro Nakayama <nakayamakenjiro@gmail.com>, 
- Pablo Neira Ayuso <pablo@netfilter.org>, 
- Jozsef Kadlecsik <kadlec@netfilter.org>, 
- "David S. Miller" <davem@davemloft.net>, 
- Eric Dumazet <edumazet@google.com>, 
- Jakub Kicinski <kuba@kernel.org>, 
- Paolo Abeni <pabeni@redhat.com>, 
- Simon Horman <horms@kernel.org>, 
- Alan Stern <stern@rowland.harvard.edu>, 
- Andrea Parri <parri.andrea@gmail.com>, 
- Will Deacon <will@kernel.org>, 
- Peter Zijlstra <peterz@infradead.org>, 
- Boqun Feng <boqun.feng@gmail.com>, 
- Nicholas Piggin <npiggin@gmail.com>, 
- David Howells <dhowells@redhat.com>, 
- Jade Alglave <j.alglave@ucl.ac.uk>, 
- Luc Maranget <luc.maranget@inria.fr>, 
- "Paul E. McKenney" <paulmck@kernel.org>, 
- Akira Yokosawa <akiyks@gmail.com>, 
- Daniel Lustig <dlustig@nvidia.com>, 
- Joel Fernandes <joel@joelfernandes.org>, 
- Shuah Khan <shuah@kernel.org>
-Cc: netfilter-devel@vger.kernel.org, 
- coreteam@netfilter.org, 
- linux-kernel@vger.kernel.org, 
- netdev@vger.kernel.org, 
- linux-arch@vger.kernel.org, 
- lkmm@lists.linux.dev, 
- linux-kselftest@vger.kernel.org, 
- Kenjiro Nakayama <nakayamakenjiro@gmail.com>
-Message-ID: <674f21ef3048c_19a62294c6@willemb.c.googlers.com.notmuch>
-In-Reply-To: <20241202232129.7139-1-nakayamakenjiro@gmail.com>
-References: <20241202232129.7139-1-nakayamakenjiro@gmail.com>
-Subject: Re: [PATCH] selftests/net: call sendmmsg via udpgso_bench.sh
+	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="pd3cGtxZ"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+	s=20220717; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=sTV9UWPyCzdFGTJtpJnGzn+ZV9lvZAdMqBJM5pPmiT4=; b=pd3cGtxZO7ZOBi81FORt4m7Qmf
+	pA/WyJTgH7SyGBexBUm+nbslemEMosaOeeJLyQF2BQ8mmH0lE0rVHyZ0UAP1odQjS86cR3uluXL35
+	5tnvg+AVaweACwmrwzKtzBOEtk9iq3BorVN5y9paTDsaCx0k2Kz4uBSN4nfbJh1Ssa33m18pao/TN
+	579ZeopmuD6dsExrqT6lMpzYByiI4VFgh5x+gowT73rxR3JOdzRzQKZq5CdSRQqkYSB0YmB9U4qAh
+	IniOGtCadf0GUBr7LcR7QE31KzBFHmZIszvd5l/5RpPQZBxMN5Tz4Th12l4R9gCRWiwGBQUA931q3
+	AMwSMI4w==;
+Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
+	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.96)
+	(envelope-from <jeremy@azazel.net>)
+	id 1tIWiw-0092FB-2H
+	for netfilter-devel@vger.kernel.org;
+	Tue, 03 Dec 2024 17:30:10 +0000
+From: Jeremy Sowden <jeremy@azazel.net>
+To: Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH xtables-addons] build: fix inclusion of Makefile.extra
+Date: Tue,  3 Dec 2024 17:30:01 +0000
+Message-ID: <20241203173001.2575351-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.45.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 
-Kenjiro Nakayama wrote:
-> Currently, sendmmsg is implemented in udpgso_bench_tx.c,
-> but it is not called by any test script.
-> 
-> This patch adds a test for sendmmsg in udpgso_bench.sh.
-> This allows for basic API testing and benchmarking
-> comparisons with GSO.
+Commit 08a16d90ceae ("build: use `$(top_srcdir)` when including Makefile.extra")
+replaces hard-coded relative paths used to include Makefile.extra with
+variables.  However, despite the commit message, the variables are enclosed with
+braces, not parentheses, and it transpires that automake does not support the
+use of braces in this context.  As a result, Makefile.extra is not included, and
+the libxt_ACCOUNT.so and libxt_pknock.so extensions are not built.
 
-The change looks fine to me, but the commit is missing your
-Signed-off-by.
+Use parentheses instead.
 
-Also, if resubmitting, please mark [PATCH net-next v2].
+Link: https://bugs.launchpad.net/ubuntu/+source/xtables-addons/+bug/2080528
+Fixes: 08a16d90ceae ("build: use `$(top_srcdir)` when including Makefile.extra")
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ extensions/ACCOUNT/Makefile.am | 2 +-
+ extensions/Makefile.am         | 2 +-
+ extensions/pknock/Makefile.am  | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-> ---
->  tools/testing/selftests/net/udpgso_bench.sh | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/tools/testing/selftests/net/udpgso_bench.sh b/tools/testing/selftests/net/udpgso_bench.sh
-> index 640bc43452fa..88fa1d53ba2b 100755
-> --- a/tools/testing/selftests/net/udpgso_bench.sh
-> +++ b/tools/testing/selftests/net/udpgso_bench.sh
-> @@ -92,6 +92,9 @@ run_udp() {
->  	echo "udp"
->  	run_in_netns ${args}
->  
-> +	echo "udp sendmmsg"
-> +	run_in_netns ${args} -m
-> +
->  	echo "udp gso"
->  	run_in_netns ${args} -S 0
->  
-> -- 
-> 2.39.3 (Apple Git-146)
-> 
-
+diff --git a/extensions/ACCOUNT/Makefile.am b/extensions/ACCOUNT/Makefile.am
+index 2514386f00b8..473a739f981a 100644
+--- a/extensions/ACCOUNT/Makefile.am
++++ b/extensions/ACCOUNT/Makefile.am
+@@ -3,7 +3,7 @@
+ AM_CPPFLAGS = ${regular_CPPFLAGS} -I${abs_top_srcdir}/extensions
+ AM_CFLAGS   = ${regular_CFLAGS} ${libxtables_CFLAGS}
+ 
+-include ${top_srcdir}/Makefile.extra
++include $(top_srcdir)/Makefile.extra
+ 
+ sbin_PROGRAMS = iptaccount
+ iptaccount_LDADD = libxt_ACCOUNT_cl.la
+diff --git a/extensions/Makefile.am b/extensions/Makefile.am
+index 8f0aeb5666da..b99712dfcd38 100644
+--- a/extensions/Makefile.am
++++ b/extensions/Makefile.am
+@@ -26,4 +26,4 @@ install-exec-local: modules_install
+ 
+ clean-local: clean_modules
+ 
+-include ${top_srcdir}/Makefile.extra
++include $(top_srcdir)/Makefile.extra
+diff --git a/extensions/pknock/Makefile.am b/extensions/pknock/Makefile.am
+index 1ca5f91025b7..5fcae4794230 100644
+--- a/extensions/pknock/Makefile.am
++++ b/extensions/pknock/Makefile.am
+@@ -3,7 +3,7 @@
+ AM_CPPFLAGS = ${regular_CPPFLAGS} -I${abs_top_srcdir}/extensions
+ AM_CFLAGS   = ${regular_CFLAGS} ${libxtables_CFLAGS}
+ 
+-include ${top_srcdir}/Makefile.extra
++include $(top_srcdir)/Makefile.extra
+ 
+ sbin_PROGRAMS = pknlusr
+ dist_man_MANS = pknlusr.8
+-- 
+2.45.2
 
