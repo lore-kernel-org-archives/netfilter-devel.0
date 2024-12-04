@@ -1,50 +1,78 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 977B420ADCF
-	for <netfilter-devel@vger.kernel.org>; Wed,  4 Dec 2024 14:44:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C378920B20D
+	for <netfilter-devel@vger.kernel.org>; Wed,  4 Dec 2024 14:45:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733323498; cv=none; b=VCuQ+tn/8/BL4iPdDIemgPCmz3RwVLVPBLPgayAsgBsV3cOdPqYR46WLMFs7fitNU70R30111sHgm6pP7lMH2knSGDSJT7ko/4JH2A83jQUBjb13rox7TPAwuc13oRVpqg0jaWLcDKqvtXtrapWI4Myp1PfeEv2qB/D6M6W4nXs=
+	t=1733323525; cv=none; b=dCsTt7edn3k5ku3YmJC1DJlARA08AkkJ6wODbfhnRSxgIY25IuKa+DxTZrijzu6q1XT9VyCxt3ivy4ot2wLrTQOzLLlbkyj7iu9lO8GZjHgJzaiHgldPC9OSDsuWsnFHIhQu1aNterThSGxQP7kkL45KJnAxIsJbzrK3/78LNh4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733323498; c=relaxed/simple;
-	bh=IlEjRgoA5LVn2cQmEHddw8awqSVoXujSX5tdXEBFNNI=;
+	s=arc-20240116; t=1733323525; c=relaxed/simple;
+	bh=FzBkthNtuGa/QjQYo2xdcAIi9pkafutrldPwvpwu40U=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=OE+L5efAbMlqfHTsbQDPdj+2qiB+R8JaSWaxMrJ+wS4gYO1IoXmkcDOO6FZ1oi1X4BFse2Ck5kuL7TG4OIw8vjk/ui5Y1bhRI2RP7hqQ/+4noUDT/opvbT/zg10MbvLbsMt+DlaO9hykgpuzjYd9I9m4Bc1Gy1kfLMUuqBPveRw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.39.247] (port=58192 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1tIqcT-009Blt-36; Wed, 04 Dec 2024 15:44:51 +0100
-Date: Wed, 4 Dec 2024 15:44:48 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: jeremy@azazel.net
-Subject: Re: [PATCH libnftnl,v2 0/5] bitwise multiregister support
-Message-ID: <Z1Bq4N5p-MJIhv4N@calendula>
-References: <20241119154245.442961-1-pablo@netfilter.org>
+	 Content-Type:Content-Disposition:In-Reply-To; b=FaP7uu6rc4xHl5glgBeQ9g2CvWnGdwCUh5YdK5JGrCmZnC+JRwYQ9NalY2PBax0eA/bS6pCRfbWHqR7EK9EM4xwin9E9Cp9FXLOOwyAPGzOEg3QJkceABglwtZeV+1aUboPmrrV2mEwE+FMC2pRZ12YhF1geUuQvNP4O4gXU3SQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=dW9Ar/IP; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="dW9Ar/IP"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=E4gW3clEzB1YOrp6+ZHPlLwxVuaT3Qdck7GG1GtIe8k=; b=dW9Ar/IPdymeFfhseOLU0WPP+l
+	k1xvlkdx+hqhGqhAe/C30aaA3dRLjswAt6dtJUzDUPmju/cYrsZCeo9oFWB1Tbp4j+4rhOtAnztWI
+	kDeAa5gM3YiRVi42Q1gaG+Bwr4+1qK5A0C9HzU+Tht2hWt1afI5jfeSQ2eJAiNclMSFf8TgfaaSBU
+	fAUoxeo8GVhhJxd3FXyl/blSS8lamBo8p56ZUrbIdXUt6jZnE0ZWrLDtmNgCef9ull94rqycCTze0
+	zj8zFCQghrF8kaj4sJNSgT4Han6YxiNdGW2Y7PxqJHYQUs7tWUJteMl5onTqGHIS0mQGGT8pRrYqy
+	iBJ0M0IA==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1tIqcs-000000003Qz-2KJm;
+	Wed, 04 Dec 2024 15:45:14 +0100
+Date: Wed, 4 Dec 2024 15:45:14 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [libnftnl PATCH 1/3] set: Fix for array overrun when setting
+ NFTNL_SET_DESC_CONCAT
+Message-ID: <Z1Bq-oBCmBjRwOJC@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+References: <20241127180103.15076-1-phil@nwl.cc>
+ <Z1BnoHnLGem-1KFV@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20241119154245.442961-1-pablo@netfilter.org>
-X-Spam-Score: -1.9 (-)
+In-Reply-To: <Z1BnoHnLGem-1KFV@calendula>
 
-Hi,
-
-On Tue, Nov 19, 2024 at 04:42:40PM +0100, Pablo Neira Ayuso wrote:
-> Hi,
+On Wed, Dec 04, 2024 at 03:30:56PM +0100, Pablo Neira Ayuso wrote:
+> Hi Phil,
 > 
-> This is just a rebase and reposting original series from Jeremy.
+> On Wed, Nov 27, 2024 at 07:01:01PM +0100, Phil Sutter wrote:
+> > Assuming max data_len of 16 * 4B and no zero bytes in 'data':
+> > The while loop will increment field_count, use it as index for the
+> > field_len array and afterwards make sure it hasn't increased to
+> > NFT_REG32_COUNT. Thus a value of NFT_REG32_COUNT - 1 (= 15) will pass
+> > the check, get incremented to 16 and used as index to the 16 fields long
+> > array.
+> > Use a less fancy for-loop to avoid the increment vs. check problem.
 > 
-> I removed a userspace check to disallow to combine _DATA and _SREG2
-> which kernel should reject already.
+> for-loop is indeed better.
+> 
+> Patch LGTM, thanks.
+> 
+> > Fixes: 407f616ea5318 ("set: buffer overflow in NFTNL_SET_DESC_CONCAT setter")
+> > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> 
+> Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-I have pushed out this now that 6.13-rc1 is out, so it gets more testing.
+Series applied, thanks!
