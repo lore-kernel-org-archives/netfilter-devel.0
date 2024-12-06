@@ -1,70 +1,110 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [213.95.27.120])
+Received: from eu-smtp-delivery-151.mimecast.com (eu-smtp-delivery-151.mimecast.com [185.58.85.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33C84213245;
-	Fri,  6 Dec 2024 10:18:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.27.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5605A1FCCFB
+	for <netfilter-devel@vger.kernel.org>; Fri,  6 Dec 2024 10:28:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.58.85.151
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733480316; cv=none; b=ihGC0weTZrXgNMiWOTyV28Bfg5AaxuNbi13lQT+CCydXR/scikw+VWGQuyWAKOrh3I8yG2y2Y4ipBbt9tB6gnucmPkWsoTcpJx3Hr5ZCpSojnRLIG3CaVGw2+zuZ2Xax+u6wJrhavbb0VgFYriEIKEd9im8pDpv5ZtjIoQdm6uQ=
+	t=1733480893; cv=none; b=ocN8r3M4nvLbLBsaIIgZ48WaIZhuYX6OTaFMr/mmrFP5E96nxTcS8okYiLVb3yfOgbZwVFCy803cgLuIog5PqFXv+ASlji65UWp64JfQzxD3x+l7GmdgE0VeqmcvkVUqrnL2Hplk2m9QURN33jDPyF3a9Gxn9Lk6aEmUtZs8QJM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733480316; c=relaxed/simple;
-	bh=8SB6tdX0DI5Trz5Fkh+yzJxdlWFNvnxCalYu/COompM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=rUc6O3z7sdwe61JBZNh9zBIGSsBYJg4ysPKrMdZpTlZakWmVAqpT1/5n4+MB+G1YWt8Fd08GgKTmIIHLjyAKiOWNwP/8cWIhhJlHSrLI5jcfOX0velXSr2xZqvkqvDOGpSMvDb+N8Uz18fKQaUagDSIrQGDQxrd6sD5bTxPDyFc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=gnumonks.org; arc=none smtp.client-ip=213.95.27.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnumonks.org
-Received: from [78.30.39.247] (port=51794 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1tJVPf-005uPb-No; Fri, 06 Dec 2024 11:18:21 +0100
-Date: Fri, 6 Dec 2024 11:18:18 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jakub Kicinski <kuba@kernel.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org, edumazet@google.com,
-	pabeni@redhat.com, Johannes Berg <johannes@sipsolutions.net>,
-	Richard Cochran <richardcochran@gmail.com>,
-	Sergey Ryazanov <ryazanov.s.a@gmail.com>,
-	Edward Cree <ecree.xilinx@gmail.com>,
-	Alexandra Winter <wintera@linux.ibm.com>, loic.poulain@linaro.org,
-	dsahern@kernel.org, hawk@kernel.org, ilias.apalodimas@linaro.org,
-	jhs@mojatatu.com, jiri@resnulli.us, przemyslaw.kitszel@intel.com,
-	netfilter-devel@vger.kernel.org, linux-wireless@vger.kernel.org
-Subject: Re: [PATCH net-next v2] net: reformat kdoc return statements
-Message-ID: <Z1LPaoazEajgMhp_@calendula>
-References: <20241205165914.1071102-1-kuba@kernel.org>
+	s=arc-20240116; t=1733480893; c=relaxed/simple;
+	bh=hthJtxRUGovk5V1RqI0hmfgY1tiYoYoWmAR9jCX9OyI=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=mr6Phq9mSMKKI6lWT2GfwpHGpa/lXEzyOPvc8dTIiycGz6ltr8VQOcJOrNuhROYjNqZt5BLgHsnKPzaxsKCigiUn7bnf8tHPZCB8MdLk2RvKFDf9usmMh9TCOV5NIcMMteEG0EglkgxJELIjfoNHfDd2xf1SOZ17oTAXuE4olr8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ACULAB.COM; spf=pass smtp.mailfrom=aculab.com; arc=none smtp.client-ip=185.58.85.151
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ACULAB.COM
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=aculab.com
+Received: from AcuMS.aculab.com (156.67.243.121 [156.67.243.121]) by
+ relay.mimecast.com with ESMTP with both STARTTLS and AUTH (version=TLSv1.2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
+ uk-mta-126-71H4KnOWMoK8Apry69ITrA-1; Fri, 06 Dec 2024 10:28:08 +0000
+X-MC-Unique: 71H4KnOWMoK8Apry69ITrA-1
+X-Mimecast-MFC-AGG-ID: 71H4KnOWMoK8Apry69ITrA
+Received: from AcuMS.Aculab.com (10.202.163.4) by AcuMS.aculab.com
+ (10.202.163.4) with Microsoft SMTP Server (TLS) id 15.0.1497.48; Fri, 6 Dec
+ 2024 10:27:23 +0000
+Received: from AcuMS.Aculab.com ([::1]) by AcuMS.aculab.com ([::1]) with mapi
+ id 15.00.1497.048; Fri, 6 Dec 2024 10:27:23 +0000
+From: David Laight <David.Laight@ACULAB.COM>
+To: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, 'Naresh Kamboju'
+	<naresh.kamboju@linaro.org>, 'Dan Carpenter' <dan.carpenter@linaro.org>,
+	Julian Anastasov <ja@ssi.bg>, "'pablo@netfilter.org'" <pablo@netfilter.org>
+CC: 'open list' <linux-kernel@vger.kernel.org>,
+	"'lkft-triage@lists.linaro.org'" <lkft-triage@lists.linaro.org>, "'Linux
+ Regressions'" <regressions@lists.linux.dev>, 'Linux ARM'
+	<linux-arm-kernel@lists.infradead.org>, "'netfilter-devel@vger.kernel.org'"
+	<netfilter-devel@vger.kernel.org>, 'Arnd Bergmann' <arnd@arndb.de>, "'Anders
+ Roxell'" <anders.roxell@linaro.org>, 'Johannes Berg'
+	<johannes.berg@intel.com>, "'toke@kernel.org'" <toke@kernel.org>, 'Al Viro'
+	<viro@zeniv.linux.org.uk>, "'kernel@jfarr.cc'" <kernel@jfarr.cc>,
+	"'kees@kernel.org'" <kees@kernel.org>
+Subject: [PATCH net] Fix clamp() of ip_vs_conn_tab on small memory systems.
+Thread-Topic: [PATCH net] Fix clamp() of ip_vs_conn_tab on small memory
+ systems.
+Thread-Index: AdtHyTlbE/fm67s0Ria1gsbgnJ6Kcg==
+Date: Fri, 6 Dec 2024 10:27:23 +0000
+Message-ID: <33893212b1cc4a418cec09aeeed0a9fc@AcuMS.aculab.com>
+Accept-Language: en-GB, en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-ms-exchange-transport-fromentityheader: Hosted
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20241205165914.1071102-1-kuba@kernel.org>
-X-Spam-Score: -1.9 (-)
+X-Mimecast-Spam-Score: 0
+X-Mimecast-MFC-PROC-ID: 3P-m-zQy8fBPrprgxVFvlMXQ1IXQM7ItLwnFR9UDjco_1733480887
+X-Mimecast-Originator: aculab.com
+Content-Language: en-US
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Dec 05, 2024 at 08:59:14AM -0800, Jakub Kicinski wrote:
-> kernel-doc -Wall warns about missing Return: statement for non-void
-> functions. We have a number of kdocs in our headers which are missing
-> the colon, IOW they use
->  * Return some value
-> or
->  * Returns some value
-> 
-> Having the colon makes some sense, it should help kdoc parser avoid
-> false positives. So add them. This is mostly done with a sed script,
-> and removing the unnecessary cases (mostly the comments which aren't
-> kdoc).
-> 
-> Acked-by: Johannes Berg <johannes@sipsolutions.net>
-> Acked-by: Richard Cochran <richardcochran@gmail.com>
-> Acked-by: Sergey Ryazanov <ryazanov.s.a@gmail.com>
-> Reviewed-by: Edward Cree <ecree.xilinx@gmail.com>
-> Acked-by: Alexandra Winter <wintera@linux.ibm.com>
-> Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+The intention of the code seems to be that the minimum table
+size should be 256 (1 << min).
+However the code uses max =3D clamp(20, 5, max_avail) which implies
+the author thought max_avail could be less than 5.
+But clamp(val, min, max) is only well defined for max >=3D min.
+If max < min whether is returns min or max depends on the order of
+the comparisons.
 
-For the netfilter chunks:
+Change to clamp(max_avail, 5, 20) which has the expected behaviour.
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Replace the clamp_val() on the line below with clamp().
+clamp_val() is just 'an accident waiting to happen' and not needed here.
+
+Fixes: 4f325e26277b6
+(Although I actually doubt the code is used on small memory systems.)
+
+Detected by compile time checks added to clamp(), specifically:
+minmax.h: use BUILD_BUG_ON_MSG() for the lo < hi test in clamp()
+
+Signed-off-by: David Laight <david.laight@aculab.com>
+---
+ net/netfilter/ipvs/ip_vs_conn.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_con=
+n.c
+index 98d7dbe3d787..c0289f83f96d 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -1495,8 +1495,8 @@ int __init ip_vs_conn_init(void)
+ =09max_avail -=3D 2;=09=09/* ~4 in hash row */
+ =09max_avail -=3D 1;=09=09/* IPVS up to 1/2 of mem */
+ =09max_avail -=3D order_base_2(sizeof(struct ip_vs_conn));
+-=09max =3D clamp(max, min, max_avail);
+-=09ip_vs_conn_tab_bits =3D clamp_val(ip_vs_conn_tab_bits, min, max);
++=09max =3D clamp(max_avail, min, max);
++=09ip_vs_conn_tab_bits =3D clamp(ip_vs_conn_tab_bits, min, max);
+ =09ip_vs_conn_tab_size =3D 1 << ip_vs_conn_tab_bits;
+ =09ip_vs_conn_tab_mask =3D ip_vs_conn_tab_size - 1;
+=20
+--=20
+2.17.1
+
+-
+Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1=
+PT, UK
+Registration No: 1397386 (Wales)
+
