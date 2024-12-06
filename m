@@ -1,159 +1,171 @@
-Received: from eu-smtp-delivery-151.mimecast.com (eu-smtp-delivery-151.mimecast.com [185.58.85.151])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C55D82206B4
-	for <netfilter-devel@vger.kernel.org>; Fri,  6 Dec 2024 17:54:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.58.85.151
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E40202206AA
+	for <netfilter-devel@vger.kernel.org>; Fri,  6 Dec 2024 18:32:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733507655; cv=none; b=P9TL+lfmTYYr87WC4WZ4cojbNjuoN+WqaDIqrQ0oc2w+n4nk9tHt25J8MyWzwBDWgAoo8ySkWaEGMbVd0cDKyVMWrMxWodvxl6aic548oJuzScvX2oQwxy9QLZX5vCEbA3dGgXqNjsiPkV5WYHs7D6cNCga1J9QfIgY5cBItzwg=
+	t=1733509953; cv=none; b=F+PViCkmDx107IkiYdtEkXaxjNDNV1wdPWg3yflXr4/I4aQMIaLX5C9QD4u2+/rvxhLnIzwNXrVJmXfb/hx9craA5vM9DjCOHyBtT/ojKFujyadgFj660sC2c+L/qLoeTqyF6DNapQcla/dlSCO/WSdy07eSsh2rzGkeZiiXxvI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733507655; c=relaxed/simple;
-	bh=CAvPxwbRXQNLTTqGkA10Ah9zjMscuWnJ5epuxY56l/w=;
-	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 MIME-Version:Content-Type; b=UdXFGgWRVyKmybxlXQrVI4c9owYj7X6n66pxGTTXk2F14zsTBQmA4AHcVk5A9D2h10Rbr7AzX3AzAKBT3Y2ltjE7YngWTTVWBaOuA7Jvx/cROqv6rRLoa79fvjg9jw9cBnVRYCkDPlHzMLuv9hOpov4QBrx1HV5Mhlg4N48Gz6o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ACULAB.COM; spf=pass smtp.mailfrom=aculab.com; arc=none smtp.client-ip=185.58.85.151
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ACULAB.COM
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=aculab.com
-Received: from AcuMS.aculab.com (156.67.243.121 [156.67.243.121]) by
- relay.mimecast.com with ESMTP with both STARTTLS and AUTH (version=TLSv1.2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- uk-mta-128-v2x3GVjoN7yhLXzRYoHP7Q-1; Fri, 06 Dec 2024 17:54:11 +0000
-X-MC-Unique: v2x3GVjoN7yhLXzRYoHP7Q-1
-X-Mimecast-MFC-AGG-ID: v2x3GVjoN7yhLXzRYoHP7Q
-Received: from AcuMS.Aculab.com (10.202.163.4) by AcuMS.aculab.com
- (10.202.163.4) with Microsoft SMTP Server (TLS) id 15.0.1497.48; Fri, 6 Dec
- 2024 17:53:24 +0000
-Received: from AcuMS.Aculab.com ([::1]) by AcuMS.aculab.com ([::1]) with mapi
- id 15.00.1497.048; Fri, 6 Dec 2024 17:53:24 +0000
-From: David Laight <David.Laight@ACULAB.COM>
-To: 'Julian Anastasov' <ja@ssi.bg>, 'Andrew Morton'
-	<akpm@linux-foundation.org>
-CC: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, 'Naresh Kamboju'
-	<naresh.kamboju@linaro.org>, 'Dan Carpenter' <dan.carpenter@linaro.org>,
-	"'pablo@netfilter.org'" <pablo@netfilter.org>, 'open list'
-	<linux-kernel@vger.kernel.org>, "'lkft-triage@lists.linaro.org'"
-	<lkft-triage@lists.linaro.org>, 'Linux Regressions'
-	<regressions@lists.linux.dev>, 'Linux ARM'
-	<linux-arm-kernel@lists.infradead.org>, "'netfilter-devel@vger.kernel.org'"
-	<netfilter-devel@vger.kernel.org>, 'Arnd Bergmann' <arnd@arndb.de>, "'Anders
- Roxell'" <anders.roxell@linaro.org>, 'Johannes Berg'
-	<johannes.berg@intel.com>, "'toke@kernel.org'" <toke@kernel.org>, 'Al Viro'
-	<viro@zeniv.linux.org.uk>, "'kernel@jfarr.cc'" <kernel@jfarr.cc>,
-	"'kees@kernel.org'" <kees@kernel.org>
-Subject: RE: [PATCH net] Fix clamp() of ip_vs_conn_tab on small memory
- systems.
-Thread-Topic: [PATCH net] Fix clamp() of ip_vs_conn_tab on small memory
- systems.
-Thread-Index: AdtHyTlbE/fm67s0Ria1gsbgnJ6KcgAD9raAAACnwVAAB9xJgAACKUOg
-Date: Fri, 6 Dec 2024 17:53:24 +0000
-Message-ID: <494a4dc2ba2041dfb9f45d86e972b953@AcuMS.aculab.com>
-References: <33893212b1cc4a418cec09aeeed0a9fc@AcuMS.aculab.com>
- <5ec10e7c-d050-dab8-1f1b-d0ca2d922eef@ssi.bg>
- <2a91ee407ed64d24b82e5fc665971add@AcuMS.aculab.com>
- <c0a2ee53-f6ff-f4d4-e9ab-6a3bf850bec5@ssi.bg>
-In-Reply-To: <c0a2ee53-f6ff-f4d4-e9ab-6a3bf850bec5@ssi.bg>
-Accept-Language: en-GB, en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-exchange-transport-fromentityheader: Hosted
+	s=arc-20240116; t=1733509953; c=relaxed/simple;
+	bh=FkJryXPGr1cB1oo0Px+WOjT7SpbW7BZaKjYgWkJmjb4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=FmdAYoLvNkYi0KgjSJavFYgxRBYAjHfBZYxAswXgD0/TrT22yhlTJfU+5VHw+bLUZruFGnKprzlQ5bGKLHXuY7r3LwVLi7/4rBAKhto17lTBfErXbImBHRkMuijjYEfF8Sd2A9XMJ9hphXqoiOY+zxNv6JCEr6mQ/3R6mMnQ2a8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=PSKtbZso; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="PSKtbZso"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=nxIW1bITNQhu+dvkfdSBexbjXvXPICoEx50ZX6YRzTo=; b=PSKtbZsooPNSu8eVJo76WLgT11
+	E0O8pm8EAADLn1mUX6fbz7RoimMnii1dlus331Cv1gi/m1zKNyvXSKpvEDXPrPG2N+IMK90/N9TwP
+	hy9L3FpWOPrXji+7vDOputoxAZe2rbSrXUE4ChVEdtUsUnv5q8HuPeozH6G51zGc+FiVyLzRMCRAN
+	2m2EcoSf7WN+N926JrCQ521DVlPkVKKJKkdUgAlt5qkMkf7wGdQFAWjQc7Sk2iOG2cIWTQ264j2wU
+	zPVGVAX6+k5LiZp9hkvWB2hNrc3o3tV214t2yBdybLofGKHSvBu2AMq3ErLBKxivPLFxMd4NTGRNk
+	8UUvJdsQ==;
+Authentication-Results: mail.nwl.cc;
+	iprev=pass (localhost) smtp.remote-ip=::1
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1tJd7s-0000000027O-0P0d;
+	Fri, 06 Dec 2024 19:32:28 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>,
+	netfilter-devel@vger.kernel.org
+Subject: [nf PATCH] netfilter: IDLETIMER: Fix for possible ABBA deadlock
+Date: Fri,  6 Dec 2024 19:32:29 +0100
+Message-ID: <20241206183229.2028-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Mimecast-Spam-Score: 0
-X-Mimecast-MFC-PROC-ID: J0Zhs3Jf9XZGp973r5N1Ee8uRyjYhYOV7VWR1eQ5Bck_1733507650
-X-Mimecast-Originator: aculab.com
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-From: Julian Anastasov
-> Sent: 06 December 2024 16:23
-...
-> =09I'm not sure how much memory we can see in small system,
-> IMHO, problem should not be possible in practice:
->=20
-> - nobody expects 0 from totalram_pages() in the code
->=20
-> - order_base_2(sizeof(struct ip_vs_conn)) is probably 8 on 32-bit
+Deletion of the last rule referencing a given idletimer may happen at
+the same time as a read of its file in sysfs:
 
-It is 0x120 bytes on 64bit, so 8 could well be right.
+| ======================================================
+| WARNING: possible circular locking dependency detected
+| 6.12.0-rc7-01692-g5e9a28f41134-dirty #594 Not tainted
+| ------------------------------------------------------
+| iptables/3303 is trying to acquire lock:
+| ffff8881057e04b8 (kn->active#48){++++}-{0:0}, at: __kernfs_remove+0x20
+|
+| but task is already holding lock:
+| ffffffffa0249068 (list_mutex){+.+.}-{3:3}, at: idletimer_tg_destroy_v]
+|
+| which lock already depends on the new lock.
 
-> - PAGE_SHIFT: 12 (for 4KB) or more?
->=20
-> =09So, if totalram_pages() returns below 128 pages (4KB each)
-> max_avail will be below 19 (7 + 12), then 19 is reduced with 2 + 1
-> and becomes 16, finally with 8 (from the 2nd order_base_2) to reach
-> 16-8=3D8. You need a system with less than 512KB (19 bits) to trigger
-> problem in clamp() that will lead to max below 8.
+A simple reproducer is:
 
-Which pretty much won't happen, I think my (dead) sun3 has more than that.
+| #!/bin/bash
+|
+| while true; do
+|         iptables -A INPUT -i foo -j IDLETIMER --timeout 10 --label "testme"
+|         iptables -D INPUT -i foo -j IDLETIMER --timeout 10 --label "testme"
+| done &
+| while true; do
+|         cat /sys/class/xt_idletimer/timers/testme >/dev/null
+| done
 
-> Further, without
-> checks, for ip_vs_conn_tab_bits=3D1 we need totalram_pages() to return 0
-> pages.
->=20
-> > > > Detected by compile time checks added to clamp(), specifically:
-> > > > minmax.h: use BUILD_BUG_ON_MSG() for the lo < hi test in clamp()
-> > >
-> > > =09Existing or new check? Does it happen that max_avail
-> > > is a constant, so that a compile check triggers?
-> >
-> > Is all stems from order_base_2(totalram_pages()).
-> > order_base_2(n) is 'n > 1 ? ilog2(n - 1) + 1 : 0'.
-> > And the compiler generates two copies of the code that follows
-> > for the 'constant zero' and ilog2() values.
-> > And the 'zero' case compiles clamp(20, 8, 0) which is errored.
-> > Note that it is only executed if totalram_pages() is zero,
-> > but it is always compiled 'just in case'.
->=20
-> =09I'm confused with these compiler issues,
+Avoid this by freeing list_mutex right after deleting the element from
+the list, then continuing with the teardown.
 
-The compiler is just doing its job.
-Consider this expression:
-=09(x >=3D 1 ? 2 * x : 1) - 1
-It is likely to get converted to:
-=09(x >=3D 1 ? 2 * x - 1 : 0)
-to avoid the subtract when x < 1.
+Fixes: 0902b469bd25 ("netfilter: xtables: idletimer target implementation")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ net/netfilter/xt_IDLETIMER.c | 52 +++++++++++++++++++-----------------
+ 1 file changed, 28 insertions(+), 24 deletions(-)
 
-The same thing is happening here.
-order_base_2() has a (condition ? fn() : 0) in it.
-All the +/- constants get moved inside, on 64bit that is +12 -2 -1 -9 =3D 0=
-.
-Then the clamp() with constants gets moved inside:
-=09(condition ? clamp(27, 8, fn() + 0) : clamp(27, 8, 0 + 0))
-Now, at runtime, we know that 'condition' is true and (fn() >=3D 8)
-so the first clamp() is valid and the second one never used.
-But this isn't known by the compiler and clamp() detects the invalid
-call and generates a warning.
-
-> if you
-> think we should go with the patch just decide if it is a
-> net or net-next material. Your change is safer for bad
-> max_avail values but I don't expect to see problem while
-> running without the change, except the building bugs.
->=20
-> =09Also, please use nf/nf-next tag to avoid any
-> confusion with upstreaming...
-
-I've copied Andrew M - he's taken the minmax.h change into his mm tree.
-This is one of the build breakages.
-
-It probably only needs to go into next for now (via some route).
-But I can image the minmax.h changes getting backported a bit.
-
-=09David
-
->=20
-> Regards
->=20
-> --
-> Julian Anastasov <ja@ssi.bg>
-
+diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
+index f8b25b6f5da7..9869ef3c2ab3 100644
+--- a/net/netfilter/xt_IDLETIMER.c
++++ b/net/netfilter/xt_IDLETIMER.c
+@@ -409,21 +409,23 @@ static void idletimer_tg_destroy(const struct xt_tgdtor_param *par)
+ 
+ 	mutex_lock(&list_mutex);
+ 
+-	if (--info->timer->refcnt == 0) {
+-		pr_debug("deleting timer %s\n", info->label);
 -
-Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1=
-PT, UK
-Registration No: 1397386 (Wales)
+-		list_del(&info->timer->entry);
+-		timer_shutdown_sync(&info->timer->timer);
+-		cancel_work_sync(&info->timer->work);
+-		sysfs_remove_file(idletimer_tg_kobj, &info->timer->attr.attr);
+-		kfree(info->timer->attr.attr.name);
+-		kfree(info->timer);
+-	} else {
++	if (--info->timer->refcnt > 0) {
+ 		pr_debug("decreased refcnt of timer %s to %u\n",
+ 			 info->label, info->timer->refcnt);
++		mutex_unlock(&list_mutex);
++		return;
+ 	}
+ 
++	pr_debug("deleting timer %s\n", info->label);
++
++	list_del(&info->timer->entry);
+ 	mutex_unlock(&list_mutex);
++
++	timer_shutdown_sync(&info->timer->timer);
++	cancel_work_sync(&info->timer->work);
++	sysfs_remove_file(idletimer_tg_kobj, &info->timer->attr.attr);
++	kfree(info->timer->attr.attr.name);
++	kfree(info->timer);
+ }
+ 
+ static void idletimer_tg_destroy_v1(const struct xt_tgdtor_param *par)
+@@ -434,25 +436,27 @@ static void idletimer_tg_destroy_v1(const struct xt_tgdtor_param *par)
+ 
+ 	mutex_lock(&list_mutex);
+ 
+-	if (--info->timer->refcnt == 0) {
+-		pr_debug("deleting timer %s\n", info->label);
+-
+-		list_del(&info->timer->entry);
+-		if (info->timer->timer_type & XT_IDLETIMER_ALARM) {
+-			alarm_cancel(&info->timer->alarm);
+-		} else {
+-			timer_shutdown_sync(&info->timer->timer);
+-		}
+-		cancel_work_sync(&info->timer->work);
+-		sysfs_remove_file(idletimer_tg_kobj, &info->timer->attr.attr);
+-		kfree(info->timer->attr.attr.name);
+-		kfree(info->timer);
+-	} else {
++	if (--info->timer->refcnt > 0) {
+ 		pr_debug("decreased refcnt of timer %s to %u\n",
+ 			 info->label, info->timer->refcnt);
++		mutex_unlock(&list_mutex);
++		return;
+ 	}
+ 
++	pr_debug("deleting timer %s\n", info->label);
++
++	list_del(&info->timer->entry);
+ 	mutex_unlock(&list_mutex);
++
++	if (info->timer->timer_type & XT_IDLETIMER_ALARM) {
++		alarm_cancel(&info->timer->alarm);
++	} else {
++		timer_shutdown_sync(&info->timer->timer);
++	}
++	cancel_work_sync(&info->timer->work);
++	sysfs_remove_file(idletimer_tg_kobj, &info->timer->attr.attr);
++	kfree(info->timer->attr.attr.name);
++	kfree(info->timer);
+ }
+ 
+ 
+-- 
+2.47.0
 
