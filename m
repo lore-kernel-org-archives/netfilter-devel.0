@@ -1,133 +1,157 @@
-Received: from mail-qt1-f201.google.com (mail-qt1-f201.google.com [209.85.160.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F38421FC10D
-	for <netfilter-devel@vger.kernel.org>; Fri,  6 Dec 2024 11:38:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85B6C200BB5
+	for <netfilter-devel@vger.kernel.org>; Fri,  6 Dec 2024 12:19:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733485124; cv=none; b=L3qRwY7u+F6fO4Mnvr35EpOVaaIx6HIkxT/nmdpmU/hloho336jCglWZSpJPJm1hX+5GQZznvOS/9g0dZKJmBmdReCPnwUTZl5rLvyhqFkA0gXPCDIkdNr0FyoWFQ0ELslAj83WQFewIdL7MPD5CeD/8WVlfHGowfHV8Ee9zvm0=
+	t=1733487599; cv=none; b=IHy/JJEqLJkXT8kOG8FFy67o5XbYEyvlji4RXzJjyPQoN+1KLQGBErU7PG1LTBaYoMzOwrN8X02f8OkroBHyfhtQJM89G77xiNWqWML/JPUwkJB+za/1iN+V1X2uzYjogJjFGjabLvsOfqXEGsTP+cUtTud61q1sQwW3MRf9MJo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733485124; c=relaxed/simple;
-	bh=tVWPt1LONmgtVGv7W0xZ9E6sVw7YqL3Zqfx+lewg0fw=;
-	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=XwpHIj87ylFKRVKRqhJbtpq4d8f3h01uE7MnjQC6JO8kYXDtemnp4ImFV99fYda9AjTFr/y96Kf/ac+qKncWHKimoN/a6wQ56wOk7g7wLvygIu04kGKUp0joSi6jvtUpSzq3zGapE0NqIUVJVdnK/DfGr8TVyiuPf9WY/+dgebE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--edumazet.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=H6p90jAL; arc=none smtp.client-ip=209.85.160.201
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--edumazet.bounces.google.com
+	s=arc-20240116; t=1733487599; c=relaxed/simple;
+	bh=4siyzwtx0SoKFEFM6fcZ0GN4NJVmR4GccRdwKuO/JY4=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=FlLJnbyU5I+lDH9YxExiCl83/NNTBN/hWOjq15jSvVyEpHCd3HOt2kiH/tyf5VqikT5x2WSEB1+4ygx0tMZCwvxRdJIBoBRvhJ6FejXiiHCPe9oPJTlAtnVcy+rszUPg65BT5RlQw3BYND6TKPKcIbR7RqVoAIHpgr5ia/+wlBE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=jTjz4S9w; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="H6p90jAL"
-Received: by mail-qt1-f201.google.com with SMTP id d75a77b69052e-466acb9f16dso32361661cf.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 06 Dec 2024 03:38:42 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1733485122; x=1734089922; darn=vger.kernel.org;
-        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=QQYAJ7nyfL67ze3V69eEUihNUinS17P41S38XPTUTBE=;
-        b=H6p90jALBPKVenGrtSWXKqo73U+1qbuIqL7f5RvXi/VuFzCbFsJKHfigx36x/IyUY0
-         IneGT57KsBNFEFDwbfPZoSoZT7wRBoXXFiDYcNHBsSTcewQh15WV4aBnNLr+2uAy1xQt
-         LBcR/fgopWGS7z1t89Z+Sd4sLYnDvVJu3uMun8plS4lRQMtIcg2fxgn3P8CrrfrQPe9B
-         RwXMnudDKNJ0ahJ+Yt4XR3R2b9OY3xeX2wAAlFt7gmdk3I9VXFEtlTg9i28ryqGzPqm3
-         ujjV1RMW9KRPegLryvQkDE5X9TudiTmz8C1InxmbGfkUmWjZ5GXAgJvEH1Kjfj/TwGnk
-         xUgw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1733485122; x=1734089922;
-        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=QQYAJ7nyfL67ze3V69eEUihNUinS17P41S38XPTUTBE=;
-        b=bpmXU6ALOR0muq9MEQ/rKP7cujbFgb4udqQtJSQq2Kh7QljraHUxeqb9vt9OcIAtuB
-         9FRRsGfqv00PQ1RBJT5y1KBreWDzglIMbDg5ta6BYV4hIwrPu3gLSP6BieYUcfiV8OOq
-         IFOixn3UeYSzcjd9za+GTruEIZu8TRLrhhPE4X5m03faaxgMmZfr6ExHEV+W8Vp4j7ig
-         QNCUfQYSpCibPu1e+EBFmFmyHLPWrxdjSVOEs41VrOV6Cat1/SgUBTfkdCl2pbIkWsoF
-         O7FiVIbp6690D5DCTdrLvfEmFFuIkxhzltwNOn5Qrpf2tJUWktd44pxdLPhV48575/CJ
-         rV1A==
-X-Forwarded-Encrypted: i=1; AJvYcCV6ByVicYqlMQLwAx2vgtSkc1+9Cp/8lvGkyFaCyk46Xpj35aCXz3yLNkan8qEdxKdNEJy5nJFRfCn6xlLltdI=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxp5zYGE5cUMV6zTQH7v5eKSKeo7whEnpjZ1G/QiVZ6WBjJxWJT
-	xaWt11peIpQUH43L2Aplx+oOhcKyux8j55g5sKTGNzLpA2uI1rBP4zwFqIwk5NV4YCUgtcdeJIB
-	37x7IHrjOdw==
-X-Google-Smtp-Source: AGHT+IHkIxtz6Mb4vE3Yzz8m/FhBcsWXGbs+YLaJEA/7H5XkuYcl6TlSjValMUFysgYTORWgUD+SzNWmwjq68A==
-X-Received: from qtbge7.prod.google.com ([2002:a05:622a:5c87:b0:466:9ac4:5a8d])
- (user=edumazet job=prod-delivery.src-stubby-dispatcher) by
- 2002:ac8:58c4:0:b0:461:9d9:15c2 with SMTP id d75a77b69052e-46734c94c38mr47967041cf.1.1733485121968;
- Fri, 06 Dec 2024 03:38:41 -0800 (PST)
-Date: Fri,  6 Dec 2024 11:38:39 +0000
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="jTjz4S9w"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id 1972F21D96;
+	Fri,  6 Dec 2024 14:19:43 +0200 (EET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=QvUxd/vxMw8Bwuy6xT8sVlJO+DjkY4zLPCCgu87quuk=; b=jTjz4S9wmd54
+	L6Dz1c6a27LaRJin11iO1/LuIDOevuvoLPkbtFgX8a9QeF+gk3Ke7ELKws4UM/wI
+	Azo277jpuO6dL16+u6kzaO4XWjIKd2oZko3mhOlnhgqboDkTx+QByVc3J0wxQWGv
+	BPhzSfB2p/spiH5Qlj6JavO65+dbOaxEtpzeJyU7aMrTMdcIoQyI02n9V6EC3cpI
+	OFhTpOfPLOUUwI2aDh4SDcYZ0w7LwI6N69heV52JFXt0MJ52b2z5+DC7G2RUU8Pt
+	47r8bhTmj+hf3eM61bUAnMMvdSFeGvqwDKlGOkP8RhoDx+LjFJKcarqGd+8UAsg3
+	5xgDSC1IMtdCP8OTzIitCsAPE8ev+Accj6IoDPSdL6380Io7pOO54slJach30Lps
+	fen1j9m5NDXNr0HLl3mgSb0FWpvM7lNpn393nmw+1ysq9TVZSrfqlxOomwFMYKY/
+	Ub26103Wle4wX/hGBv0s5fi6Qmf/A/yspu9aSOydu6A7KbW1l8hnVDawyWTd2qXQ
+	osu+i30K3PfiMBclcihy81Km6SmmF7a1FhPlBcgePEEd4KxJxJglyRHgbAFvc2eg
+	MrxupfqsU6xYRI9808PMbE/8HxhmTFbbXG2PKeuDIBpHb78GOEfNaBHZRzdY16En
+	gWsUWiNkgzoxMOsC7bIWmgECURJCLUc=
+Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Fri,  6 Dec 2024 14:19:42 +0200 (EET)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by ink.ssi.bg (Postfix) with ESMTPSA id 4E9EB15F19;
+	Fri,  6 Dec 2024 14:19:31 +0200 (EET)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.1/8.17.1) with ESMTP id 4B6CJLt6022576;
+	Fri, 6 Dec 2024 14:19:22 +0200
+Date: Fri, 6 Dec 2024 14:19:21 +0200 (EET)
+From: Julian Anastasov <ja@ssi.bg>
+To: David Laight <David.Laight@ACULAB.COM>
+cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "'Naresh Kamboju'" <naresh.kamboju@linaro.org>,
+        "'Dan Carpenter'" <dan.carpenter@linaro.org>,
+        "'pablo@netfilter.org'" <pablo@netfilter.org>,
+        "'open list'" <linux-kernel@vger.kernel.org>,
+        "'lkft-triage@lists.linaro.org'" <lkft-triage@lists.linaro.org>,
+        "'Linux Regressions'" <regressions@lists.linux.dev>,
+        "'Linux ARM'" <linux-arm-kernel@lists.infradead.org>,
+        "'netfilter-devel@vger.kernel.org'" <netfilter-devel@vger.kernel.org>,
+        "'Arnd Bergmann'" <arnd@arndb.de>,
+        "'Anders Roxell'" <anders.roxell@linaro.org>,
+        "'Johannes Berg'" <johannes.berg@intel.com>,
+        "'toke@kernel.org'" <toke@kernel.org>,
+        "'Al Viro'" <viro@zeniv.linux.org.uk>,
+        "'kernel@jfarr.cc'" <kernel@jfarr.cc>,
+        "'kees@kernel.org'" <kees@kernel.org>
+Subject: Re: [PATCH net] Fix clamp() of ip_vs_conn_tab on small memory
+ systems.
+In-Reply-To: <33893212b1cc4a418cec09aeeed0a9fc@AcuMS.aculab.com>
+Message-ID: <5ec10e7c-d050-dab8-1f1b-d0ca2d922eef@ssi.bg>
+References: <33893212b1cc4a418cec09aeeed0a9fc@AcuMS.aculab.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-X-Mailer: git-send-email 2.47.0.338.g60cca15819-goog
-Message-ID: <20241206113839.3421469-1-edumazet@google.com>
-Subject: [PATCH nf-next] netfilter: xt_hashlimit: htable_selective_cleanup() optimization
-From: Eric Dumazet <edumazet@google.com>
-To: "David S . Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>, 
-	Paolo Abeni <pabeni@redhat.com>, Pablo Neira Ayuso <pablo@netfilter.org>, 
-	Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
-	coreteam@netfilter.org, eric.dumazet@gmail.com, 
-	Eric Dumazet <edumazet@google.com>
-Content-Type: text/plain; charset="UTF-8"
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 
-I have seen syzbot reports hinting at xt_hashlimit abuse:
 
-[  105.783066][ T4331] xt_hashlimit: max too large, truncated to 1048576
-[  105.811405][ T4331] xt_hashlimit: size too large, truncated to 1048576
+	Hello,
 
-And worker threads using up to 1 second per htable_selective_cleanup() invocation.
+On Fri, 6 Dec 2024, David Laight wrote:
 
-[  269.734496][    C1]  [<ffffffff81547180>] ? __local_bh_enable_ip+0x1a0/0x1a0
-[  269.734513][    C1]  [<ffffffff817d75d0>] ? lockdep_hardirqs_on_prepare+0x740/0x740
-[  269.734533][    C1]  [<ffffffff852e71ff>] ? htable_selective_cleanup+0x25f/0x310
-[  269.734549][    C1]  [<ffffffff817dcd30>] ? __lock_acquire+0x2060/0x2060
-[  269.734567][    C1]  [<ffffffff817f058a>] ? do_raw_spin_lock+0x14a/0x370
-[  269.734583][    C1]  [<ffffffff852e71ff>] ? htable_selective_cleanup+0x25f/0x310
-[  269.734599][    C1]  [<ffffffff81547147>] __local_bh_enable_ip+0x167/0x1a0
-[  269.734616][    C1]  [<ffffffff81546fe0>] ? _local_bh_enable+0xa0/0xa0
-[  269.734634][    C1]  [<ffffffff852e71ff>] ? htable_selective_cleanup+0x25f/0x310
-[  269.734651][    C1]  [<ffffffff852e71ff>] htable_selective_cleanup+0x25f/0x310
-[  269.734670][    C1]  [<ffffffff815b3cc9>] ? process_one_work+0x7a9/0x1170
-[  269.734685][    C1]  [<ffffffff852e57db>] htable_gc+0x1b/0xa0
-[  269.734700][    C1]  [<ffffffff815b3cc9>] ? process_one_work+0x7a9/0x1170
-[  269.734714][    C1]  [<ffffffff815b3dc9>] process_one_work+0x8a9/0x1170
-[  269.734733][    C1]  [<ffffffff815b3520>] ? worker_detach_from_pool+0x260/0x260
-[  269.734749][    C1]  [<ffffffff810201c7>] ? _raw_spin_lock_irq+0xb7/0xf0
-[  269.734763][    C1]  [<ffffffff81020110>] ? _raw_spin_lock_irqsave+0x100/0x100
-[  269.734777][    C1]  [<ffffffff8159d3df>] ? wq_worker_sleeping+0x5f/0x270
-[  269.734800][    C1]  [<ffffffff815b53c7>] worker_thread+0xa47/0x1200
-[  269.734815][    C1]  [<ffffffff81020010>] ? _raw_spin_lock+0x40/0x40
-[  269.734835][    C1]  [<ffffffff815c9f2a>] kthread+0x25a/0x2e0
-[  269.734853][    C1]  [<ffffffff815b4980>] ? worker_clr_flags+0x190/0x190
-[  269.734866][    C1]  [<ffffffff815c9cd0>] ? kthread_blkcg+0xd0/0xd0
-[  269.734885][    C1]  [<ffffffff81027b1a>] ret_from_fork+0x3a/0x50
+> The intention of the code seems to be that the minimum table
+> size should be 256 (1 << min).
+> However the code uses max = clamp(20, 5, max_avail) which implies
 
-We can skip over empty buckets, avoiding the lockdep penalty
-for debug kernels, and avoid atomic operations on non debug ones.
+	Actually, it tries to reduce max=20 (max possible) below
+max_avail: [8 .. max_avail]. Not sure what 5 is here...
 
-Signed-off-by: Eric Dumazet <edumazet@google.com>
----
- net/netfilter/xt_hashlimit.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+> the author thought max_avail could be less than 5.
+> But clamp(val, min, max) is only well defined for max >= min.
+> If max < min whether is returns min or max depends on the order of
+> the comparisons.
 
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 0859b8f767645c7562f1688850e73a199e5608aa..fa02aab567245e6df886ed6626cb556ba0f1e533 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -363,11 +363,15 @@ static void htable_selective_cleanup(struct xt_hashlimit_htable *ht, bool select
- 	unsigned int i;
- 
- 	for (i = 0; i < ht->cfg.size; i++) {
-+		struct hlist_head *head = &ht->hash[i];
- 		struct dsthash_ent *dh;
- 		struct hlist_node *n;
- 
-+		if (hlist_empty(head))
-+			continue;
-+
- 		spin_lock_bh(&ht->lock);
--		hlist_for_each_entry_safe(dh, n, &ht->hash[i], node) {
-+		hlist_for_each_entry_safe(dh, n, head, node) {
- 			if (time_after_eq(jiffies, dh->expires) || select_all)
- 				dsthash_free(ht, dh);
- 		}
--- 
-2.47.0.338.g60cca15819-goog
+	Looks like max_avail goes below 8 ? What value you see
+for such small system?
+
+> Change to clamp(max_avail, 5, 20) which has the expected behaviour.
+
+	It should be clamp(max_avail, 8, 20)
+
+> 
+> Replace the clamp_val() on the line below with clamp().
+> clamp_val() is just 'an accident waiting to happen' and not needed here.
+
+	OK
+
+> Fixes: 4f325e26277b6
+> (Although I actually doubt the code is used on small memory systems.)
+> 
+> Detected by compile time checks added to clamp(), specifically:
+> minmax.h: use BUILD_BUG_ON_MSG() for the lo < hi test in clamp()
+
+	Existing or new check? Does it happen that max_avail
+is a constant, so that a compile check triggers?
+
+> 
+> Signed-off-by: David Laight <david.laight@aculab.com>
+
+	The code below looks ok to me but can you change the
+comments above to more correctly specify the values and if the
+problem is that max_avail goes below 8 (min).
+
+> ---
+>  net/netfilter/ipvs/ip_vs_conn.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+> index 98d7dbe3d787..c0289f83f96d 100644
+> --- a/net/netfilter/ipvs/ip_vs_conn.c
+> +++ b/net/netfilter/ipvs/ip_vs_conn.c
+> @@ -1495,8 +1495,8 @@ int __init ip_vs_conn_init(void)
+>  	max_avail -= 2;		/* ~4 in hash row */
+>  	max_avail -= 1;		/* IPVS up to 1/2 of mem */
+>  	max_avail -= order_base_2(sizeof(struct ip_vs_conn));
+
+	More likely we can additionally clamp max_avail here:
+
+	max_avail = max(min, max_avail);
+
+	But your solution solves the problem with less lines.
+
+> -	max = clamp(max, min, max_avail);
+> -	ip_vs_conn_tab_bits = clamp_val(ip_vs_conn_tab_bits, min, max);
+> +	max = clamp(max_avail, min, max);
+> +	ip_vs_conn_tab_bits = clamp(ip_vs_conn_tab_bits, min, max);
+>  	ip_vs_conn_tab_size = 1 << ip_vs_conn_tab_bits;
+>  	ip_vs_conn_tab_mask = ip_vs_conn_tab_size - 1;
+>  
+> -- 
+> 2.17.1
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
 
