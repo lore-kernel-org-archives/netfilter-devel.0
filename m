@@ -1,254 +1,157 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F106207DF9;
-	Fri,  6 Dec 2024 15:08:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.15
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733497739; cv=fail; b=BSxO0yhiJObs0wDxnb8Jz6lrHF1fFFPRP0zGKvHv91siXJyOQPyav8iuHbTQTLNgidOdE0X2ggf04cn7WBt0l1zvHn9l2AYHp5/XeC73xVGDxxcwRQSq/Lmjbkv25l/FkzZ9RXqvsNT8Af1HaJC4n7NcthUEKFNADlM7YQHy76o=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733497739; c=relaxed/simple;
-	bh=kJJhp8NSR9Y4HqFXlEEb+/lnqr5TPQNKD7XSdnIFyLg=;
-	h=Message-ID:Date:Subject:To:CC:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=TDSIILmMk98SQWm/yRQz2+1URRL0kB73Q/6BY5ZLGSgv1a1PpSDM6K49YactsYVGbjlCz4HJrFk83Ro1k8V6AmP1hfuwEuA/z4I6NNrbVieJcyGZwW1Ij5kZNWhyi50fokqF1yQZ864KszuMTOltnczGy1479TSS5QrIWSlV7Q0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=nQclPDNK; arc=fail smtp.client-ip=198.175.65.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A91620FAAE
+	for <netfilter-devel@vger.kernel.org>; Fri,  6 Dec 2024 16:23:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1733502216; cv=none; b=QZNW9UG/zkWB610ZjPtwoVbJ/VMnLpPlPeQa+8aY2TVuGNLjDCjCgRKeorJw4AqQCcihTrphvJNwpzevjeIGZc0ekoTPNym5IEPyNlkgIcwcu1bzpgnFN/uUTMFnnFJBhv+Cz850GbHvxxVuYFHYonK2LQPH+JbT88MZEbdrAXI=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1733502216; c=relaxed/simple;
+	bh=K3MjHXQZtPWDPl2K6xXNdF3L6j0v60HTDtwhM7VhARo=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=VHpX1isQ/mkt3CakydEdZqJcz5/IcfPfRC3Ra4DtUjKe3e7aRABoHo2P5QT2TcdyTcOMEmBS3mWu0Xq3z5ssXhOKVQ8I857qH8ERZ+b5O9t7/TQacTjE70NHpmF7GJkpn7PoeKC6ZdDveBxSbs3ODwmNze42lhEhZlJ0EQqGYow=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=HQUi70o4; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="nQclPDNK"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1733497737; x=1765033737;
-  h=message-id:date:subject:to:cc:references:from:
-   in-reply-to:content-transfer-encoding:mime-version;
-  bh=kJJhp8NSR9Y4HqFXlEEb+/lnqr5TPQNKD7XSdnIFyLg=;
-  b=nQclPDNKTuPa8E70nMwIVjBSYABZuIg1sCq3cG5HmPKF2XLn56kgv9uk
-   tF7VazOGcuCsQ53qaHKl3intVte88R35JuSn7uCe+kP7WhpIIqfwVf9m+
-   mH+W1Gc8r+OWYSRqovWQ8DOg5FM4BuEFzRFyMJxWLmULd3cXBWAehwXC3
-   MgiYWwhBCI4G5hpbC916yscrfHxfj1BiSkZUEIahbyY+pqokk28prvHUq
-   gP7OV1ptxEUVemVp9UbqwlY9pilEA+yHl+m1uRVF2RznENlulcEafMKko
-   dhfpal063/9G526d3sTPaVrWuSqzBhbp/hA+99oia1XOmwXu0tn6twE5u
-   A==;
-X-CSE-ConnectionGUID: +XjJ/efTQbCaiQYO/HKWhQ==
-X-CSE-MsgGUID: uNqhg66tQVGAkaHht3UHDw==
-X-IronPort-AV: E=McAfee;i="6700,10204,11278"; a="37529593"
-X-IronPort-AV: E=Sophos;i="6.12,213,1728975600"; 
-   d="scan'208";a="37529593"
-Received: from orviesa005.jf.intel.com ([10.64.159.145])
-  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Dec 2024 07:08:55 -0800
-X-CSE-ConnectionGUID: Qwak7uxtSdi2lO7jN1LOug==
-X-CSE-MsgGUID: Swjl1cxjQ6eFgUBOIwxYCQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.12,213,1728975600"; 
-   d="scan'208";a="99380097"
-Received: from fmsmsx603.amr.corp.intel.com ([10.18.126.83])
-  by orviesa005.jf.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 06 Dec 2024 07:08:55 -0800
-Received: from fmsmsx603.amr.corp.intel.com (10.18.126.83) by
- fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39; Fri, 6 Dec 2024 07:08:54 -0800
-Received: from fmsedg602.ED.cps.intel.com (10.1.192.136) by
- fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39 via Frontend Transport; Fri, 6 Dec 2024 07:08:53 -0800
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (104.47.55.173)
- by edgegateway.intel.com (192.55.55.71) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.39; Fri, 6 Dec 2024 07:08:53 -0800
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=mJytUTjXxoWr8BqIO+hOczMjTVsxoAt3P6/XpjNNv1vC+RC6zVrWcT2NnbKRaQwHtXULslT2SAE1r+wrysG2JJn5HVft/YxHGot4i8wUVnjTv8OmhmTMUkN1YWr0R49pJ1Y9d5LmhnI2nE1b6JjtXZse73FUvuHx8qVv5GqRmMhn5tVEJKWCpeecIpNIfRvpuvYQasDc2fQcFBhdVfae2ScjgPmIxfxmiqs+6/TXunkCOVfCLRZ8P3mRrHPDlX9kWjimpIoiaagGJqfnpfW0I7WuD1kaNQufsyy9qgLb1UriUwzj93pY09FRuo3xftTBXKoHupCQZ7M3LOrZqCoX3w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=p3Ieuk9ZmOofqk1fytcY5mZvq4ijay2Ff90TZ7SPLzY=;
- b=Mx99pQloD3SMCFAGkmCdw1LFxpO2iB5theHivlzNhdPWWYlS0m60TkaA3pgH7nHzkMxcx3V6R44u5UVG5hd2vjI4TFbnbkn0Fb8pdabD3ErMXP+2OEAkqjC0C8CkiUyc3ZB4XZOXKBqmwh72v4mctjcjPryy6ktQ4tXVsVUaRCXYoZpmk6o4mQxGSfbUM/35S4rYJ729Jb67/CL2yL6MOkWB9RB7tC2u459+F6Yfx0YBLW752wBUyX/jt1XXqik7gPh/ZRAx9tYuvSLWCmJ4ISh0m+NKhgYgIdtDQZlk5ayI9d3OtqBdtVxaYct5reI4Z6ilCjG59b+Og0Fau9wLGA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from MN6PR11MB8102.namprd11.prod.outlook.com (2603:10b6:208:46d::9)
- by DS0PR11MB7733.namprd11.prod.outlook.com (2603:10b6:8:dc::19) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8207.19; Fri, 6 Dec
- 2024 15:08:50 +0000
-Received: from MN6PR11MB8102.namprd11.prod.outlook.com
- ([fe80::15b2:ee05:2ae7:cfd6]) by MN6PR11MB8102.namprd11.prod.outlook.com
- ([fe80::15b2:ee05:2ae7:cfd6%4]) with mapi id 15.20.8230.010; Fri, 6 Dec 2024
- 15:08:49 +0000
-Message-ID: <a1a7c865-be0a-4071-a50a-7c15d7b8b095@intel.com>
-Date: Fri, 6 Dec 2024 16:08:42 +0100
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next v2] net: reformat kdoc return statements
-To: Jakub Kicinski <kuba@kernel.org>, <davem@davemloft.net>
-CC: <netdev@vger.kernel.org>, <edumazet@google.com>, <pabeni@redhat.com>,
-	Johannes Berg <johannes@sipsolutions.net>, Richard Cochran
-	<richardcochran@gmail.com>, Sergey Ryazanov <ryazanov.s.a@gmail.com>, "Edward
- Cree" <ecree.xilinx@gmail.com>, Alexandra Winter <wintera@linux.ibm.com>,
-	<pablo@netfilter.org>, <loic.poulain@linaro.org>, <dsahern@kernel.org>,
-	<hawk@kernel.org>, <ilias.apalodimas@linaro.org>, <jhs@mojatatu.com>,
-	<jiri@resnulli.us>, <netfilter-devel@vger.kernel.org>,
-	<linux-wireless@vger.kernel.org>, Jonathan Corbet <corbet@lwn.net>
-References: <20241205165914.1071102-1-kuba@kernel.org>
-From: Przemek Kitszel <przemyslaw.kitszel@intel.com>
-Content-Language: en-US
-In-Reply-To: <20241205165914.1071102-1-kuba@kernel.org>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: MI1P293CA0006.ITAP293.PROD.OUTLOOK.COM
- (2603:10a6:290:2::16) To MN6PR11MB8102.namprd11.prod.outlook.com
- (2603:10b6:208:46d::9)
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="HQUi70o4"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id B34A821D94;
+	Fri,  6 Dec 2024 18:23:26 +0200 (EET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=CgMFn6VL5GFx5RytU/0EGmFMlUt3Qngt2zSqkoPE5/Y=; b=HQUi70o4FvhS
+	cYB/jbDWZNy7y7Y0wnXFbM1qfSackMkaIsrqnXlO16IINMJ9dRw5sYmPWzR9fXnC
+	KPGqmxFi/Ym9rQagN9p6nMghefF9h7/8ZAhKu5GNOlC2QxdLuvYrstPODqkXfc6u
+	gXhAukX9GrZdptE4etIdKq4l1PB2nk3/28QZdDczn8vleamPQfevWNnyfZcNwgAz
+	II4GU5JFSVJUwKpG+aJ7fPr3lLYuC5xJmwhvDtPXiAxnCnMqLbfEaNpGIvKIUSDT
+	DIir0w4RQWAIL4flwzjupJ7meqHkbz7ZIuhDyyMFHdHZ+wWpXZywJvGnAzIXitmR
+	7ck2B6tjrUg99kF9vTtbzHcaIh9HvY0juJxHuPcuzZCMy77v/Ifa6Sqdc9Ga9bkP
+	yPR45NwSwtIxFNLuo4Wlm4Z9ACLqzA2kYk0pt/W5/hq1drwzCiggnBY6bBizYRts
+	sKt3/GcJxgEmlBadj752x52QKgCg1+Spe++dmaobPxFk2BRxzNkmqZz6meaypWKU
+	XKZ9T0kSaqOLA+dIN4/kLEZvZ08DYHAEZ/8jwRntDOqQ+48BcOqf/XCooU8WV7a/
+	ubwQHoZvsceIMXOJVDxhY7ZYKNrGPpVJWmscWMFxYa6ZlR4VzPNeypmAFPDDkaH3
+	WFEOG3Snd9faZJsMbczS5ClYFm94/v0=
+Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Fri,  6 Dec 2024 18:23:25 +0200 (EET)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by ink.ssi.bg (Postfix) with ESMTPSA id E617B15F19;
+	Fri,  6 Dec 2024 18:23:14 +0200 (EET)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.1/8.17.1) with ESMTP id 4B6GNBkf041510;
+	Fri, 6 Dec 2024 18:23:12 +0200
+Date: Fri, 6 Dec 2024 18:23:11 +0200 (EET)
+From: Julian Anastasov <ja@ssi.bg>
+To: David Laight <David.Laight@ACULAB.COM>
+cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "'Naresh Kamboju'" <naresh.kamboju@linaro.org>,
+        "'Dan Carpenter'" <dan.carpenter@linaro.org>,
+        "'pablo@netfilter.org'" <pablo@netfilter.org>,
+        "'open list'" <linux-kernel@vger.kernel.org>,
+        "'lkft-triage@lists.linaro.org'" <lkft-triage@lists.linaro.org>,
+        "'Linux Regressions'" <regressions@lists.linux.dev>,
+        "'Linux ARM'" <linux-arm-kernel@lists.infradead.org>,
+        "'netfilter-devel@vger.kernel.org'" <netfilter-devel@vger.kernel.org>,
+        "'Arnd Bergmann'" <arnd@arndb.de>,
+        "'Anders Roxell'" <anders.roxell@linaro.org>,
+        "'Johannes Berg'" <johannes.berg@intel.com>,
+        "'toke@kernel.org'" <toke@kernel.org>,
+        "'Al Viro'" <viro@zeniv.linux.org.uk>,
+        "'kernel@jfarr.cc'" <kernel@jfarr.cc>,
+        "'kees@kernel.org'" <kees@kernel.org>
+Subject: RE: [PATCH net] Fix clamp() of ip_vs_conn_tab on small memory
+ systems.
+In-Reply-To: <2a91ee407ed64d24b82e5fc665971add@AcuMS.aculab.com>
+Message-ID: <c0a2ee53-f6ff-f4d4-e9ab-6a3bf850bec5@ssi.bg>
+References: <33893212b1cc4a418cec09aeeed0a9fc@AcuMS.aculab.com> <5ec10e7c-d050-dab8-1f1b-d0ca2d922eef@ssi.bg> <2a91ee407ed64d24b82e5fc665971add@AcuMS.aculab.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MN6PR11MB8102:EE_|DS0PR11MB7733:EE_
-X-MS-Office365-Filtering-Correlation-Id: e0e42152-47b4-49e2-6803-08dd1607e3a2
-X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|376014|7416014|1800799024|7053199007;
-X-Microsoft-Antispam-Message-Info: =?utf-8?B?WENqL2FBY0ovamJPYVNXZjlWOU1rdkZGNkphSTR0WktTbEFiZkFtN1J4ZVh3?=
- =?utf-8?B?anZCMXA4UUh4OVkyNm9kbG1UZVVRTCtQYzYrdGRjbFlhVGVpZFJhcXNsbHhi?=
- =?utf-8?B?SlVQMDBOM2hQYzhrbFBWcmNqcVV5VE9XOWptYmR4UDd6WmZ5MjVXUzh4WHFB?=
- =?utf-8?B?S3p2dmoydnlaTk05Tml4UHREN0U0SWFXUUFsTkZwMENPT3pDM3ByZDN6ZDN0?=
- =?utf-8?B?eEkyM0FieWw4M2w4SFJPdXFGVGlJeng3NDYxcFBudkVVRXJOUk5kNFdrdGhK?=
- =?utf-8?B?Ri9KS2hacktxdFJHZzl1d1pMVmZaYUR6TmswTmgveE5qYjI0RHQ1bFZYVTdP?=
- =?utf-8?B?dVZ6Z2lYdjAybjRhRjBhWWlIajZYOU1aRXZRdTMzY3NBWTFKVDhpYjJ1a3RJ?=
- =?utf-8?B?RndjVForUVJrcTBjZGhEaTBMa1F3cjBaV25wUFhtZTN1eUJ4VFhWd29EK2tj?=
- =?utf-8?B?Mm1ZV3NiMEtUYllSTStmTDJWMG5Cc2RZbVp4Z0hCbmF0VTAwRDJjaFNMYVh3?=
- =?utf-8?B?TE1SUndCN1hCY1RVRWpiVHF3QzdWVGRaUkRweW5STFFJd1h0RlFqK2I0Q2F3?=
- =?utf-8?B?bjJ4RFk0ZlFJVnYwYjRtSXptVnhkMk4wL21GUVNDL1U5VTFhNzR2QnExVkdM?=
- =?utf-8?B?UkFmbHQxbTBQS0FFc04xb1lqK3JMRkZXV3VPcUROcDYyZnFDZjQ0SUNEYitx?=
- =?utf-8?B?UG5VaFU1OHB0RjZMdjc5MjFtRUtHSGFZOGQ1RXUxTElNMk4vRHR3RERiTDVT?=
- =?utf-8?B?NVgvd2hXNkdjY1lYc0VuSTBaM0czOTI3UnhGem9iZlhLWEZjMVcxUHhINVNB?=
- =?utf-8?B?d25HRGY3TVJOOThMKzQ5WC9pZUpuS3JOaVFjM2ZTV0s3WThHVnVPTk1VZTE2?=
- =?utf-8?B?TDFlcW9TOWFKelJVaWNxWndmN1AzRlN4TVdFOTkxZnYxQkkwMFFWOHR5anBG?=
- =?utf-8?B?bU1oTWFtYVFFMzNJMEh0UzYyd2M0ckdoaXBXVEtnRGJtbm1aTGJ1czB0bVVs?=
- =?utf-8?B?SmNZTFB3R1pHQ0tKL01XVjZqaVZjYXBTaEhVU0FkMXozTlBLaDB1ZjBVWGo5?=
- =?utf-8?B?U0ZydHJTT0ZwSVUwQU56TFdybjRUblJ1UjgvK1I0dXVoLzhhYVkxeGdwbnJU?=
- =?utf-8?B?NWdBRElQaExDMU9va1ZxWUtpbC9LcDgva1hJYi9LdHVSY3VuQ3hUQWFhUEp4?=
- =?utf-8?B?QUtUSTk3NE02ZGQ1aEFQcXRQbEM4M3RCOXlOaHVVT1Z3YXR6bXpJejFoYk5y?=
- =?utf-8?B?bldYb2N0ZzRZb2hKS04wYms5WUdaaGE0aHh4Um8xR1BpS3oybEFDekVrVG9D?=
- =?utf-8?B?Y3BRY25IcHk4eTZlVW9NOUpxZzNrb3phQUJmakFPUXBxMDMyaU5QTDBaYTJT?=
- =?utf-8?B?bHcxQUgra1lGenZMa05mWDJHOU9jOUF3QitsajEvSGtXb3J1ZVU0U3h2dEdL?=
- =?utf-8?B?VXRGMTJYMGtTZ0ZSNGt0S2tjRjdSM1B0aGtpdnRXWnFQaXdENlFTNmRiU1JT?=
- =?utf-8?B?R0ppSkFwU0NrcXdBT2xxcXNGODE3cjdTSllEaUNOeUlhUkpadTVZZnBJRFJj?=
- =?utf-8?B?bEsxRWFiWkpLQzBJUGpQb3AzTHY3L1JEbC9xTkZSYnBwUzBNSFBGSXNyemJN?=
- =?utf-8?B?TmZFMlgrMDdmaDFpU3l2YmtjekNhK0IraTF3MVI2Y2F0VkRtbHhEcmVnRlVY?=
- =?utf-8?B?ckxVRFE3alU0ditnZldMYVI1Q0sraHloQVRxQ2RsVm9LdDZOZE91UE9YWWsv?=
- =?utf-8?B?ck1MZEVLRllmWWFya0dxNHljQWhzL09YYjJQZzhPcHlyUlRYeXJFRElGNkM2?=
- =?utf-8?B?Ry9ueUhrZUFUL3pGanRVUT09?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN6PR11MB8102.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(7416014)(1800799024)(7053199007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?MzFIT1FqeWpOUGU1cWswdWYyd29sTDdBSGM5ZEgvL2Rxd0hWRldjaTZGSTdy?=
- =?utf-8?B?Q2s4TTdjOVJxUkJzRkJSY21mbGpHNTlobWUzaml1ajBETWNMUjgrSDlpeldC?=
- =?utf-8?B?NW1zN2lnZldsZGNWQTkwYXMxUldLdVhBMWVBc3ZyS2NicVBhbisvcElDU3BJ?=
- =?utf-8?B?Q29NSVIrSkJtRW8wbDkrbEtXV05jLzJPT1ZhWUV2STAyRVp0SElNRWFnajZr?=
- =?utf-8?B?blFGT2lMOUVVc0ZFcSt5K0tQNXM3QkdlSWRUUWpma05DZWNGeGJvZytRS2hS?=
- =?utf-8?B?czZnaDRYSHJlTTJJM1BZM3UrTi9xRkV2NG4yWnRIS1V3YXQ3RVlUK0JnNDVi?=
- =?utf-8?B?RFVKTHJEOXB6ekNYUTVYbUZpb3lwOVVMZUhNTm9PK25HOXl6UzBNaTIxVEJj?=
- =?utf-8?B?emhFeUFZZmlGMWtpRkozY0FGNFZsNlJ0dGZ6UHdHa29uMDJhd1ViZ1hzZ1Jl?=
- =?utf-8?B?UjExNW1oWkJQcU8vYUVhanZNZWhjYXZ3dVFQSHpWNTBtcElGQnBMUjdYaXE1?=
- =?utf-8?B?cTJDeW1LOHF1MlVWSklFby9QTGhpTFpIYnB4bjFoS1ExemN5U3k1SnNKVW9t?=
- =?utf-8?B?cms0a0pJRmNqb0VLSkVmS1BSTklyOW81MVRWNFYxa3VjWiszYWtiaStDLzA1?=
- =?utf-8?B?VEdjZ0NSdHArWFFtcEVocjVPb1BNSlY1WWdSbnZPU1RvLzhTcGR2N2p1OWh5?=
- =?utf-8?B?R1MrTFFDbDFoWGZqd3d4dXdiR0JhbzlBL2htVmtQQUthWi8ra2hKT3JURXFX?=
- =?utf-8?B?TWlCU0xSaXh4TVhkL2E2MjQzVDgwTk9FYlNnaW1raUNXNnM3WGNDRUJwY0ta?=
- =?utf-8?B?dE1ualg4RmdJOG9iRTB1NGJHR1BmUlNzWDBONmQwSXZ0TUhBVDNOa0p6d1pD?=
- =?utf-8?B?T0NNN2tMNHk1U1haTDRGT2ZzVldOWWpFc0dqUnlIQ1NxaDZrZUsyR3JQQXFu?=
- =?utf-8?B?bTh2Yyt1ditHL1NnUmREWjZ4cGNwMXZZcnprMUNLSjVRZ1EvTFlBZmhBTU5u?=
- =?utf-8?B?a1hNWXZXdUkxQTl2a2xmT2MrUEhPb2JSN1NCYmJCNEhqVzRsUlppUmx2Y3di?=
- =?utf-8?B?Rm92Q0xwbURPVmpXSFBGaXJIVngwS2NleTl0QUNFeVBLS2hXcjBONFQxWmts?=
- =?utf-8?B?cGFIaklDNlloYnBnUjlhZHJ6cDZBUzFMQ1dXNnhPQUZ3NXYzTE0xWlRNQTho?=
- =?utf-8?B?Z3dYay9LTU5jeXZnL2NEV2I5MG5DRnNhRVNqdTZETjNVcjRFN0JCbUJlY0JU?=
- =?utf-8?B?L1h6ZFRrR3dwNVFZTlh2dy9Cc254TGtCSEI1WENoUnRveHp1cU5QMDFxSW9Z?=
- =?utf-8?B?ZXNibkVMOXl2WXpOMTYxcXhUS05CZ1IwclJiaVU5WTlYTnFHN0ROZ1g4YU5M?=
- =?utf-8?B?YjI2enJRUmNsbk9Id2IxV2ZJYlpqSm5ZelpZTzF1YjBkS2RWNEtxNmYxSlFi?=
- =?utf-8?B?WlhRQWxLZ1orTjNmVUxCS05YZkpRWWpUaElxSU1VODVNZHdUYkh4WTdqQjJP?=
- =?utf-8?B?Vk9naGRJbnJsNk1FVERkKzFRbTd3azFYR3Z1RFJHcGFVSm5rNzk0R2RQSXFj?=
- =?utf-8?B?K0tSU0kxNTNCSzZkWkw0M2d6cGpLUUdud2pzYWF0bmtmVkw4eDd1dHZXZExV?=
- =?utf-8?B?c0ZuS2NVYUNnZlhVR3luNGM2dHR2SjJFbVkzYytoNHpML09sY2tyN0tRTUVW?=
- =?utf-8?B?ZDB1b3I5Vk1ON01CWkdxeS9WSjdxMklGTUgyWXlNT2pQSVJMWE1pampyOGt3?=
- =?utf-8?B?S0Y0cCs0dytuQUlJM3ZodmFZd2RpUGFPTVYxSTcyL3VkeHVPeHdHZ09uem1v?=
- =?utf-8?B?N1drSENabGZlOERDQWVwSTRtUUh3aGtNTGVWYURyQjFEb2JXdDhFTW1hNjNs?=
- =?utf-8?B?LzhiSU5yZGVLeENKbXlhRU1JUWN4RUtsckY2dEI3ZXViOVdwRDE2aGFPaXZN?=
- =?utf-8?B?bnpNOWdPdERXc1NUWU9adWkrWDNuQzBjVTQwV015S0xvcTZOQUlJVEQ2S1VR?=
- =?utf-8?B?a1dCVG1CRXgwWGFIRmN3ZVNFOUVMN05XRlZUV1hHUktkajM3VHEwZkpFU3Rs?=
- =?utf-8?B?N3BiUEhGVUoxZkRVUXQ3UUdEMFlOeldKd2Y3cGx5VTdyRHd6TXRtbXZhUEVN?=
- =?utf-8?B?ZEJydGM3a1dTaktJZzZ3aVM0T05XeHlldXlsc1JpTjIwVUorZGROOUlJKzhs?=
- =?utf-8?B?SHc9PQ==?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: e0e42152-47b4-49e2-6803-08dd1607e3a2
-X-MS-Exchange-CrossTenant-AuthSource: MN6PR11MB8102.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Dec 2024 15:08:49.7228
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: SGUvA6I+c/bdpObY0Du1nU3v0YJHgV8m3gFU8MGVDJzo+bsnUBlG4vI8MwMNhm8/WqSUb8c4DovouenAMJKbzCHdpm8nD07chyRawAW8mzw=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR11MB7733
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset=US-ASCII
 
-On 12/5/24 17:59, Jakub Kicinski wrote:
-> kernel-doc -Wall warns about missing Return: statement for non-void
-> functions. We have a number of kdocs in our headers which are missing
-> the colon, IOW they use
->   * Return some value
-> or
->   * Returns some value
+
+	Hello,
+
+On Fri, 6 Dec 2024, David Laight wrote:
+
+> From: Julian Anastasov
+> > Sent: 06 December 2024 12:19
+> > 
+> > On Fri, 6 Dec 2024, David Laight wrote:
+> > 
+> > > The intention of the code seems to be that the minimum table
+> > > size should be 256 (1 << min).
+> > > However the code uses max = clamp(20, 5, max_avail) which implies
+> > 
+> > 	Actually, it tries to reduce max=20 (max possible) below
+> > max_avail: [8 .. max_avail]. Not sure what 5 is here...
 > 
-> Having the colon makes some sense, it should help kdoc parser avoid
-> false positives. So add them. This is mostly done with a sed script,
-> and removing the unnecessary cases (mostly the comments which aren't
-> kdoc).
+> Me mistyping values between two windows :-)
 > 
-> Acked-by: Johannes Berg <johannes@sipsolutions.net>
-> Acked-by: Richard Cochran <richardcochran@gmail.com>
-> Acked-by: Sergey Ryazanov <ryazanov.s.a@gmail.com>
-> Reviewed-by: Edward Cree <ecree.xilinx@gmail.com>
-> Acked-by: Alexandra Winter <wintera@linux.ibm.com>
-> Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+> Well min(max, max_avail) would be the reduced upper limit.
+> But you'd still fall foul of the compiler propagating the 'n > 1'
+> check in order_base_2() further down the function.
+> 
+> > > the author thought max_avail could be less than 5.
+> > > But clamp(val, min, max) is only well defined for max >= min.
+> > > If max < min whether is returns min or max depends on the order of
+> > > the comparisons.
+> > 
+> > 	Looks like max_avail goes below 8 ? What value you see
+> > for such small system?
+> 
+> I'm not, but clearly you thought the value could be small otherwise
+> the code would only have a 'max' limit.
+> (Apart from a 'sanity' min of maybe 2 to stop the code breaking.)
 
-Thank you!
-I put some comments, but not about your patch, rather a general
-observations
+	I'm not sure how much memory we can see in small system,
+IMHO, problem should not be possible in practice:
 
-> ---
+- nobody expects 0 from totalram_pages() in the code
 
-> - * Return number of phc vclocks
-> + * Return: number of phc vclocks
+- order_base_2(sizeof(struct ip_vs_conn)) is probably 8 on 32-bit
 
-so good that there is no enforcement for the final dot (.)
+- PAGE_SHIFT: 12 (for 4KB) or more?
 
->    */
->   int ethtool_get_phc_vclocks(struct net_device *dev, int **vclock_index);
->   
-> @@ -1253,7 +1253,7 @@ static inline int ethtool_mm_frag_size_min_to_add(u32 val_min, u32 *val_add,
->    * ethtool_get_ts_info_by_layer - Obtains time stamping capabilities from the MAC or PHY layer.
->    * @dev: pointer to net_device structure
->    * @info: buffer to hold the result
-> - * Returns zero on success, non-zero otherwise.
-> + * Returns: zero on success, non-zero otherwise.
+	So, if totalram_pages() returns below 128 pages (4KB each)
+max_avail will be below 19 (7 + 12), then 19 is reduced with 2 + 1
+and becomes 16, finally with 8 (from the 2nd order_base_2) to reach
+16-8=8. You need a system with less than 512KB (19 bits) to trigger 
+problem in clamp() that will lead to max below 8. Further, without
+checks, for ip_vs_conn_tab_bits=1 we need totalram_pages() to return 0
+pages.
 
-As kdoc-warn-free code becomes fashionable, I tend to see more and more
-shortcuts for the obvious cases, like here. To the point of:
-  * Return: zero or errno.
-or even:
-  * Return: errno
+> > > Detected by compile time checks added to clamp(), specifically:
+> > > minmax.h: use BUILD_BUG_ON_MSG() for the lo < hi test in clamp()
+> > 
+> > 	Existing or new check? Does it happen that max_avail
+> > is a constant, so that a compile check triggers?
+> 
+> Is all stems from order_base_2(totalram_pages()).
+> order_base_2(n) is 'n > 1 ? ilog2(n - 1) + 1 : 0'.
+> And the compiler generates two copies of the code that follows
+> for the 'constant zero' and ilog2() values.
+> And the 'zero' case compiles clamp(20, 8, 0) which is errored.
+> Note that it is only executed if totalram_pages() is zero,
+> but it is always compiled 'just in case'.
 
-I have no problem with that, perhaps only that we loose two lines for
-such trivial stuff. I know you could also add a special param:
-* @return: errno
+	I'm confused with these compiler issues, if you
+think we should go with the patch just decide if it is a
+net or net-next material. Your change is safer for bad
+max_avail values but I don't expect to see problem while
+running without the change, except the building bugs.
 
-Would be good to know if anyone have an opinion (that is going
-to enforce at some point) about the boundary on accepted laziness.
+	Also, please use nf/nf-next tag to avoid any
+confusion with upstreaming...
 
->    */
->   int ethtool_get_ts_info_by_layer(struct net_device *dev,
->   				 struct kernel_ethtool_ts_info *info);
+Regards
 
+--
+Julian Anastasov <ja@ssi.bg>
 
