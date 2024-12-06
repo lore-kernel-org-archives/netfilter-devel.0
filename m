@@ -1,38 +1,32 @@
-Received: from bout3.ijzerbout.nl (bout3.ijzerbout.nl [136.144.140.114])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id BFA411C5490;
-	Fri,  6 Dec 2024 20:05:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=136.144.140.114
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5EADF1F236B;
+	Fri,  6 Dec 2024 20:58:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733515559; cv=none; b=fezHinubyyXaRNDAO8BbAGnuIcP4VWje2ZigeQamOX61v5L/NiYSdePPycJ/7YeTa5Hgn0ftBJ0RZDsLbYLj6h3Sec5QNwUE4Khrbg1g2kKkQtri2ENFgigjJEGWNVupJvcbKzZVztqLZnCFrZvT7jmInNvs/HBlaO0/ffGw+L4=
+	t=1733518706; cv=none; b=Y1RwqErzoq6ACEd300/kcYN3oX4EV5lZ9B8De2uIPS4LgjuYgwDRaFZnzklNFrK+KbfurHan5GJVEya2SDUSzvO2Cj6o3jbtAcrZAQP81ZPaXqc+BmjlIq7Z+pkJ5vfl+yMvH4PGkY6m+0W6qTSMCVFYiqXtslZa4KvuT/fso3w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733515559; c=relaxed/simple;
-	bh=ZkAyDHoiZXuUqwRzLPJuGNgHzpQ9dkeWgabZ4ONtDhs=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=f10ReLtH48PgmacPgTKDQGeXJZYaShg4XHOcZzGziyc3GhK7+373SQFDaZU0Z00Uf1bGmZKwRZyn0+b99Ipelnu78g6vBE3HKCTDa1Lz6VwxFfVgTGzadKUN+1dtON29oEecPyX6Gzz4womWSr8l6FlKmOa7heE3AS0Ca646WoA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ijzerbout.nl; spf=pass smtp.mailfrom=ijzerbout.nl; dkim=pass (4096-bit key) header.d=ijzerbout.nl header.i=@ijzerbout.nl header.b=CWCIrYfm; arc=none smtp.client-ip=136.144.140.114
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ijzerbout.nl
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ijzerbout.nl
+	s=arc-20240116; t=1733518706; c=relaxed/simple;
+	bh=AoYJEduDKAfmUXw66punVqpLvMHGpz/t+LVYPT/z7pE=;
+	h=Message-ID:Date:MIME-Version:Cc:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=PTE0LzgcEYhomE5+EfGy48xWLh+cLZxNq/uwTh6WHo6tb9XM1IEmlg6u+0XGOJLMFhShkwNNrnNwypY5CtJyUJCH1WfybwbICchqnIEwswWtdePDXwWQzRero4wKc5NeTVo0coPRFPDKgTxf35um/u/bVOhntIbNICecjFd5/s4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=opdIpAAC; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ijzerbout.nl header.i=@ijzerbout.nl header.b="CWCIrYfm"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ijzerbout.nl; s=key;
-	t=1733515553; bh=ZkAyDHoiZXuUqwRzLPJuGNgHzpQ9dkeWgabZ4ONtDhs=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=CWCIrYfmr4jBC7IfciYLfthTNr3fRCZQuFiQb/5JiI+9MeVtS+CxqdqSpOoyuGKE7
-	 DlVJxMOPjRYLPv6YnBABHRCG2SEWR4hfWWnbVvfMkb2QV+dyOYvdRSVmIhpZGU/qpR
-	 hO+qaD1n98xGGxo1CsojlHhKYNPpddoQmTGX+ldloYg3gd00An3fytXUh1HHQ1MbXy
-	 wcRcCIm+tChRGZwXXEEg8evuUvKGbteKTiAqabQoWmDeRp/s/IrJRJAh75v8pK31PQ
-	 AxoQpd1VvXOyCi9EcJLTqZtQRLw1Hy3un+MZou8Duo6bMnWEVrkur1uiNdN7CDlWtT
-	 7Cx4FjMUpUict119Nk61mgxeFjcuw8uMKJn6U6PQUh6hP4K/+nvWHm1tRrEWeyklfx
-	 0KpOqK0iBXBoaxpc3rEWECr4RZMz0+pgUbVXWdtLEwz1m1BLyFAodQpQ5ZzqX5wFFH
-	 UE8fOEKdTb34c0hXAZJJXX1ymS7XFGNqEdFiu5btb8APtZ9rRJyqWZRTdEhQ6dasgI
-	 LVu2QwED1oxbrXaxP+u3MrpxV671szViq8vPCZUX1GUKDEJ6UC1x9eLsXK1QkawAiP
-	 YRAR9VlJKbNNeKeQtzZY09mX838PgPspseu1w2kv92vvdm0YheiixZP/8Jol2fqaM4
-	 FYPPHN8uRmabUmCVZGhZ91EI=
-Received: from [IPV6:2a10:3781:99:1:1ac0:4dff:fea7:ec3a] (racer.ijzerbout.nl [IPv6:2a10:3781:99:1:1ac0:4dff:fea7:ec3a])
-	by bout3.ijzerbout.nl (Postfix) with ESMTPSA id B604218E22A;
-	Fri,  6 Dec 2024 21:05:52 +0100 (CET)
-Message-ID: <78666cf5-2214-413f-9450-19377a06049e@ijzerbout.nl>
-Date: Fri, 6 Dec 2024 21:05:50 +0100
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="opdIpAAC"
+Received: from [100.65.128.154] (unknown [20.236.11.102])
+	by linux.microsoft.com (Postfix) with ESMTPSA id 8B63620ACD7A;
+	Fri,  6 Dec 2024 12:58:18 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 8B63620ACD7A
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1733518699;
+	bh=M9PuEUd7fHK0twjnpmT4sQ2WiGKSyXN5nPrU+06sRxI=;
+	h=Date:Cc:Subject:To:References:From:In-Reply-To:From;
+	b=opdIpAACnQeStJ33oACe6p52ZM8f0Sws7Fv8oVZEtnJ34oxYkj2Ifncn0UBE7+8VM
+	 /Rer5IHWNKL+Om4cBhthsawIs+kQdevr3ykVw21CBvfVnNLhAZ1lcWLQbVr0aJDoH2
+	 0Lv+tHrW7mbf2ysXMzyMfTT7x/zNVB+cEVkkvmJU=
+Message-ID: <dab77729-682f-4182-9fb2-cd522ac29b5f@linux.microsoft.com>
+Date: Fri, 6 Dec 2024 12:58:17 -0800
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -40,114 +34,69 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 1/5] LSM: Ensure the correct LSM context releaser
-To: Casey Schaufler <casey@schaufler-ca.com>, paul@paul-moore.com,
- linux-security-module@vger.kernel.org
-Cc: jmorris@namei.org, serge@hallyn.com, keescook@chromium.org,
- john.johansen@canonical.com, penguin-kernel@i-love.sakura.ne.jp,
- stephen.smalley.work@gmail.com, linux-kernel@vger.kernel.org,
- selinux@vger.kernel.org, mic@digikod.net, linux-integrity@vger.kernel.org,
- netdev@vger.kernel.org, audit@vger.kernel.org,
- netfilter-devel@vger.kernel.org, linux-nfs@vger.kernel.org,
- Todd Kjos <tkjos@google.com>
-References: <20241023212158.18718-1-casey@schaufler-ca.com>
- <20241023212158.18718-2-casey@schaufler-ca.com>
+Cc: eahariha@linux.microsoft.com, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, cocci@inria.fr,
+ linux-arm-kernel@lists.infradead.org, linux-s390@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, intel-xe@lists.freedesktop.org,
+ linux-scsi@vger.kernel.org, xen-devel@lists.xenproject.org,
+ linux-block@vger.kernel.org, linux-wireless@vger.kernel.org,
+ ath11k@lists.infradead.org, linux-mm@kvack.org,
+ linux-bluetooth@vger.kernel.org, linux-staging@lists.linux.dev,
+ linux-rpi-kernel@lists.infradead.org, ceph-devel@vger.kernel.org,
+ live-patching@vger.kernel.org, linux-sound@vger.kernel.org,
+ etnaviv@lists.freedesktop.org, oss-drivers@corigine.com,
+ linuxppc-dev@lists.ozlabs.org, Anna-Maria Behnsen <anna-maria@linutronix.de>
+Subject: Re: [PATCH v2 00/21] Converge on using secs_to_jiffies()
+To: Przemek Kitszel <przemyslaw.kitszel@intel.com>
+References: <20241115-converge-secs-to-jiffies-v2-0-911fb7595e79@linux.microsoft.com>
+ <b9fcb12a-b7a4-4c33-836e-67109ce07deb@intel.com>
+From: Easwar Hariharan <eahariha@linux.microsoft.com>
 Content-Language: en-US
-From: Kees Bakker <kees@ijzerbout.nl>
-In-Reply-To: <20241023212158.18718-2-casey@schaufler-ca.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+In-Reply-To: <b9fcb12a-b7a4-4c33-836e-67109ce07deb@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-Op 23-10-2024 om 23:21 schreef Casey Schaufler:
-> Add a new lsm_context data structure to hold all the information about a
-> "security context", including the string, its size and which LSM allocated
-> the string. The allocation information is necessary because LSMs have
-> different policies regarding the lifecycle of these strings. SELinux
-> allocates and destroys them on each use, whereas Smack provides a pointer
-> to an entry in a list that never goes away.
->
-> Update security_release_secctx() to use the lsm_context instead of a
-> (char *, len) pair. Change its callers to do likewise.  The LSMs
-> supporting this hook have had comments added to remind the developer
-> that there is more work to be done.
->
-> The BPF security module provides all LSM hooks. While there has yet to
-> be a known instance of a BPF configuration that uses security contexts,
-> the possibility is real. In the existing implementation there is
-> potential for multiple frees in that case.
->
-> Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
-> Cc: linux-integrity@vger.kernel.org
-> Cc: netdev@vger.kernel.org
-> Cc: audit@vger.kernel.org
-> Cc: netfilter-devel@vger.kernel.org
-> To: Pablo Neira Ayuso <pablo@netfilter.org>
-> Cc: linux-nfs@vger.kernel.org
-> Cc: Todd Kjos <tkjos@google.com>
-> ---
->   drivers/android/binder.c                | 24 +++++++--------
->   fs/ceph/xattr.c                         |  6 +++-
->   fs/nfs/nfs4proc.c                       |  8 +++--
->   fs/nfsd/nfs4xdr.c                       |  8 +++--
->   include/linux/lsm_hook_defs.h           |  2 +-
->   include/linux/security.h                | 35 ++++++++++++++++++++--
->   include/net/scm.h                       | 11 +++----
->   kernel/audit.c                          | 30 +++++++++----------
->   kernel/auditsc.c                        | 23 +++++++-------
->   net/ipv4/ip_sockglue.c                  | 10 +++----
->   net/netfilter/nf_conntrack_netlink.c    | 10 +++----
->   net/netfilter/nf_conntrack_standalone.c |  9 +++---
->   net/netfilter/nfnetlink_queue.c         | 13 +++++---
->   net/netlabel/netlabel_unlabeled.c       | 40 +++++++++++--------------
->   net/netlabel/netlabel_user.c            | 11 ++++---
->   security/apparmor/include/secid.h       |  2 +-
->   security/apparmor/secid.c               | 11 +++++--
->   security/security.c                     |  8 ++---
->   security/selinux/hooks.c                | 11 +++++--
->   19 files changed, 165 insertions(+), 107 deletions(-)
->
-> diff --git a/drivers/android/binder.c b/drivers/android/binder.c
-> index 978740537a1a..d4229bf6f789 100644
-> --- a/drivers/android/binder.c
-> +++ b/drivers/android/binder.c
-> @@ -3011,8 +3011,7 @@ static void binder_transaction(struct binder_proc *proc,
->   	struct binder_context *context = proc->context;
->   	int t_debug_id = atomic_inc_return(&binder_last_id);
->   	ktime_t t_start_time = ktime_get();
-> -	char *secctx = NULL;
-> -	u32 secctx_sz = 0;
-> +	struct lsm_context lsmctx;
-Not initialized ?
->   	struct list_head sgc_head;
->   	struct list_head pf_head;
->   	const void __user *user_buffer = (const void __user *)
-> @@ -3291,7 +3290,8 @@ static void binder_transaction(struct binder_proc *proc,
->   		size_t added_size;
->   
->   		security_cred_getsecid(proc->cred, &secid);
-> -		ret = security_secid_to_secctx(secid, &secctx, &secctx_sz);
-> +		ret = security_secid_to_secctx(secid, &lsmctx.context,
-> +					       &lsmctx.len);
->   		if (ret) {
->   			binder_txn_error("%d:%d failed to get security context\n",
->   				thread->pid, proc->pid);
-> @@ -3300,7 +3300,7 @@ static void binder_transaction(struct binder_proc *proc,
->   			return_error_line = __LINE__;
->   			goto err_get_secctx_failed;
->   		}
-> -		added_size = ALIGN(secctx_sz, sizeof(u64));
-> +		added_size = ALIGN(lsmctx.len, sizeof(u64));
->   		extra_buffers_size += added_size;
->   		if (extra_buffers_size < added_size) {
->   			binder_txn_error("%d:%d integer overflow of extra_buffers_size\n",
-> @@ -3334,23 +3334,23 @@ static void binder_transaction(struct binder_proc *proc,
->   		t->buffer = NULL;
->   		goto err_binder_alloc_buf_failed;
->   	}
-> -	if (secctx) {
-> +	if (lsmctx.context) {
- From code inspection it is not immediately obvious. Can you
-guarantee that lsmctx is always initialized when the code
-gets to this point? Perhaps it is safer to just initialize when
-it is defined above (line 3014).
+On 11/29/2024 4:57 AM, Przemek Kitszel wrote:
+> 
+> [removed most non-list recipients, it's just too much]
+> 
+> On 11/15/24 10:26 PM, Easwar Hariharan wrote:
+<snip>
+>>
+>> ---
+>> Changes in v2:
+>> - EDITME: describe what is new in this series revision.
+>> - EDITME: use bulletpoints and terse descriptions.
+>> - Link to v1: https://lore.kernel.org/r/20241115-converge-secs-to-
+>> jiffies-v1-0-19aadc34941b@linux.microsoft.com
+> 
+> that is not a proper changelog, you were supposed to edit those
+> placeholder entries; please look around for examples
+> 
+> There is also just too much recipients. Please split up your patches
+> into smaller pieces. You will also learn the process on a smaller
+> sample.
+> 
+> And definitively please wait for 48h before reposting such big series.
 
+Yes, sorry, I sent out a v2 in a moment of panic on including the
+already accepted patch in v1. I failed to edit the changelog in that
+same panic. I'll try to not panic and do better in the future.
+
+> 
+> Regarding code - you could also convert msecs_to_jiffies(const * HZ),
+> there are 10 that are greppable.
+> 
+
+Those seem to be mistakes. const*HZ is a seconds-denominated timeout,
+being passed to msecs_to_jiffies() which will treat it as a
+millisecond-denominated timeout resulting in an excessively long
+timeout. I suppose that's better than a too-short timeout, and
+apparently it's been working fine all along since hardware responds
+before the too-long timeout expires. Half of them are in
+drivers/scsi/arcmsr/arcmsr_hba.c and the pattern has apparently been
+there since 2010.
+
+Thanks,
+Easwar
