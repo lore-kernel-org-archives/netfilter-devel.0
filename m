@@ -1,171 +1,153 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E40202206AA
-	for <netfilter-devel@vger.kernel.org>; Fri,  6 Dec 2024 18:32:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+Received: from bout3.ijzerbout.nl (bout3.ijzerbout.nl [136.144.140.114])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id BFA411C5490;
+	Fri,  6 Dec 2024 20:05:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=136.144.140.114
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733509953; cv=none; b=F+PViCkmDx107IkiYdtEkXaxjNDNV1wdPWg3yflXr4/I4aQMIaLX5C9QD4u2+/rvxhLnIzwNXrVJmXfb/hx9craA5vM9DjCOHyBtT/ojKFujyadgFj660sC2c+L/qLoeTqyF6DNapQcla/dlSCO/WSdy07eSsh2rzGkeZiiXxvI=
+	t=1733515559; cv=none; b=fezHinubyyXaRNDAO8BbAGnuIcP4VWje2ZigeQamOX61v5L/NiYSdePPycJ/7YeTa5Hgn0ftBJ0RZDsLbYLj6h3Sec5QNwUE4Khrbg1g2kKkQtri2ENFgigjJEGWNVupJvcbKzZVztqLZnCFrZvT7jmInNvs/HBlaO0/ffGw+L4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733509953; c=relaxed/simple;
-	bh=FkJryXPGr1cB1oo0Px+WOjT7SpbW7BZaKjYgWkJmjb4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=FmdAYoLvNkYi0KgjSJavFYgxRBYAjHfBZYxAswXgD0/TrT22yhlTJfU+5VHw+bLUZruFGnKprzlQ5bGKLHXuY7r3LwVLi7/4rBAKhto17lTBfErXbImBHRkMuijjYEfF8Sd2A9XMJ9hphXqoiOY+zxNv6JCEr6mQ/3R6mMnQ2a8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=PSKtbZso; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1733515559; c=relaxed/simple;
+	bh=ZkAyDHoiZXuUqwRzLPJuGNgHzpQ9dkeWgabZ4ONtDhs=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=f10ReLtH48PgmacPgTKDQGeXJZYaShg4XHOcZzGziyc3GhK7+373SQFDaZU0Z00Uf1bGmZKwRZyn0+b99Ipelnu78g6vBE3HKCTDa1Lz6VwxFfVgTGzadKUN+1dtON29oEecPyX6Gzz4womWSr8l6FlKmOa7heE3AS0Ca646WoA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ijzerbout.nl; spf=pass smtp.mailfrom=ijzerbout.nl; dkim=pass (4096-bit key) header.d=ijzerbout.nl header.i=@ijzerbout.nl header.b=CWCIrYfm; arc=none smtp.client-ip=136.144.140.114
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ijzerbout.nl
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ijzerbout.nl
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="PSKtbZso"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=nxIW1bITNQhu+dvkfdSBexbjXvXPICoEx50ZX6YRzTo=; b=PSKtbZsooPNSu8eVJo76WLgT11
-	E0O8pm8EAADLn1mUX6fbz7RoimMnii1dlus331Cv1gi/m1zKNyvXSKpvEDXPrPG2N+IMK90/N9TwP
-	hy9L3FpWOPrXji+7vDOputoxAZe2rbSrXUE4ChVEdtUsUnv5q8HuPeozH6G51zGc+FiVyLzRMCRAN
-	2m2EcoSf7WN+N926JrCQ521DVlPkVKKJKkdUgAlt5qkMkf7wGdQFAWjQc7Sk2iOG2cIWTQ264j2wU
-	zPVGVAX6+k5LiZp9hkvWB2hNrc3o3tV214t2yBdybLofGKHSvBu2AMq3ErLBKxivPLFxMd4NTGRNk
-	8UUvJdsQ==;
-Authentication-Results: mail.nwl.cc;
-	iprev=pass (localhost) smtp.remote-ip=::1
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1tJd7s-0000000027O-0P0d;
-	Fri, 06 Dec 2024 19:32:28 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	netfilter-devel@vger.kernel.org
-Subject: [nf PATCH] netfilter: IDLETIMER: Fix for possible ABBA deadlock
-Date: Fri,  6 Dec 2024 19:32:29 +0100
-Message-ID: <20241206183229.2028-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.47.0
+	dkim=pass (4096-bit key) header.d=ijzerbout.nl header.i=@ijzerbout.nl header.b="CWCIrYfm"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ijzerbout.nl; s=key;
+	t=1733515553; bh=ZkAyDHoiZXuUqwRzLPJuGNgHzpQ9dkeWgabZ4ONtDhs=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=CWCIrYfmr4jBC7IfciYLfthTNr3fRCZQuFiQb/5JiI+9MeVtS+CxqdqSpOoyuGKE7
+	 DlVJxMOPjRYLPv6YnBABHRCG2SEWR4hfWWnbVvfMkb2QV+dyOYvdRSVmIhpZGU/qpR
+	 hO+qaD1n98xGGxo1CsojlHhKYNPpddoQmTGX+ldloYg3gd00An3fytXUh1HHQ1MbXy
+	 wcRcCIm+tChRGZwXXEEg8evuUvKGbteKTiAqabQoWmDeRp/s/IrJRJAh75v8pK31PQ
+	 AxoQpd1VvXOyCi9EcJLTqZtQRLw1Hy3un+MZou8Duo6bMnWEVrkur1uiNdN7CDlWtT
+	 7Cx4FjMUpUict119Nk61mgxeFjcuw8uMKJn6U6PQUh6hP4K/+nvWHm1tRrEWeyklfx
+	 0KpOqK0iBXBoaxpc3rEWECr4RZMz0+pgUbVXWdtLEwz1m1BLyFAodQpQ5ZzqX5wFFH
+	 UE8fOEKdTb34c0hXAZJJXX1ymS7XFGNqEdFiu5btb8APtZ9rRJyqWZRTdEhQ6dasgI
+	 LVu2QwED1oxbrXaxP+u3MrpxV671szViq8vPCZUX1GUKDEJ6UC1x9eLsXK1QkawAiP
+	 YRAR9VlJKbNNeKeQtzZY09mX838PgPspseu1w2kv92vvdm0YheiixZP/8Jol2fqaM4
+	 FYPPHN8uRmabUmCVZGhZ91EI=
+Received: from [IPV6:2a10:3781:99:1:1ac0:4dff:fea7:ec3a] (racer.ijzerbout.nl [IPv6:2a10:3781:99:1:1ac0:4dff:fea7:ec3a])
+	by bout3.ijzerbout.nl (Postfix) with ESMTPSA id B604218E22A;
+	Fri,  6 Dec 2024 21:05:52 +0100 (CET)
+Message-ID: <78666cf5-2214-413f-9450-19377a06049e@ijzerbout.nl>
+Date: Fri, 6 Dec 2024 21:05:50 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 1/5] LSM: Ensure the correct LSM context releaser
+To: Casey Schaufler <casey@schaufler-ca.com>, paul@paul-moore.com,
+ linux-security-module@vger.kernel.org
+Cc: jmorris@namei.org, serge@hallyn.com, keescook@chromium.org,
+ john.johansen@canonical.com, penguin-kernel@i-love.sakura.ne.jp,
+ stephen.smalley.work@gmail.com, linux-kernel@vger.kernel.org,
+ selinux@vger.kernel.org, mic@digikod.net, linux-integrity@vger.kernel.org,
+ netdev@vger.kernel.org, audit@vger.kernel.org,
+ netfilter-devel@vger.kernel.org, linux-nfs@vger.kernel.org,
+ Todd Kjos <tkjos@google.com>
+References: <20241023212158.18718-1-casey@schaufler-ca.com>
+ <20241023212158.18718-2-casey@schaufler-ca.com>
+Content-Language: en-US
+From: Kees Bakker <kees@ijzerbout.nl>
+In-Reply-To: <20241023212158.18718-2-casey@schaufler-ca.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Deletion of the last rule referencing a given idletimer may happen at
-the same time as a read of its file in sysfs:
-
-| ======================================================
-| WARNING: possible circular locking dependency detected
-| 6.12.0-rc7-01692-g5e9a28f41134-dirty #594 Not tainted
-| ------------------------------------------------------
-| iptables/3303 is trying to acquire lock:
-| ffff8881057e04b8 (kn->active#48){++++}-{0:0}, at: __kernfs_remove+0x20
-|
-| but task is already holding lock:
-| ffffffffa0249068 (list_mutex){+.+.}-{3:3}, at: idletimer_tg_destroy_v]
-|
-| which lock already depends on the new lock.
-
-A simple reproducer is:
-
-| #!/bin/bash
-|
-| while true; do
-|         iptables -A INPUT -i foo -j IDLETIMER --timeout 10 --label "testme"
-|         iptables -D INPUT -i foo -j IDLETIMER --timeout 10 --label "testme"
-| done &
-| while true; do
-|         cat /sys/class/xt_idletimer/timers/testme >/dev/null
-| done
-
-Avoid this by freeing list_mutex right after deleting the element from
-the list, then continuing with the teardown.
-
-Fixes: 0902b469bd25 ("netfilter: xtables: idletimer target implementation")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- net/netfilter/xt_IDLETIMER.c | 52 +++++++++++++++++++-----------------
- 1 file changed, 28 insertions(+), 24 deletions(-)
-
-diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
-index f8b25b6f5da7..9869ef3c2ab3 100644
---- a/net/netfilter/xt_IDLETIMER.c
-+++ b/net/netfilter/xt_IDLETIMER.c
-@@ -409,21 +409,23 @@ static void idletimer_tg_destroy(const struct xt_tgdtor_param *par)
- 
- 	mutex_lock(&list_mutex);
- 
--	if (--info->timer->refcnt == 0) {
--		pr_debug("deleting timer %s\n", info->label);
--
--		list_del(&info->timer->entry);
--		timer_shutdown_sync(&info->timer->timer);
--		cancel_work_sync(&info->timer->work);
--		sysfs_remove_file(idletimer_tg_kobj, &info->timer->attr.attr);
--		kfree(info->timer->attr.attr.name);
--		kfree(info->timer);
--	} else {
-+	if (--info->timer->refcnt > 0) {
- 		pr_debug("decreased refcnt of timer %s to %u\n",
- 			 info->label, info->timer->refcnt);
-+		mutex_unlock(&list_mutex);
-+		return;
- 	}
- 
-+	pr_debug("deleting timer %s\n", info->label);
-+
-+	list_del(&info->timer->entry);
- 	mutex_unlock(&list_mutex);
-+
-+	timer_shutdown_sync(&info->timer->timer);
-+	cancel_work_sync(&info->timer->work);
-+	sysfs_remove_file(idletimer_tg_kobj, &info->timer->attr.attr);
-+	kfree(info->timer->attr.attr.name);
-+	kfree(info->timer);
- }
- 
- static void idletimer_tg_destroy_v1(const struct xt_tgdtor_param *par)
-@@ -434,25 +436,27 @@ static void idletimer_tg_destroy_v1(const struct xt_tgdtor_param *par)
- 
- 	mutex_lock(&list_mutex);
- 
--	if (--info->timer->refcnt == 0) {
--		pr_debug("deleting timer %s\n", info->label);
--
--		list_del(&info->timer->entry);
--		if (info->timer->timer_type & XT_IDLETIMER_ALARM) {
--			alarm_cancel(&info->timer->alarm);
--		} else {
--			timer_shutdown_sync(&info->timer->timer);
--		}
--		cancel_work_sync(&info->timer->work);
--		sysfs_remove_file(idletimer_tg_kobj, &info->timer->attr.attr);
--		kfree(info->timer->attr.attr.name);
--		kfree(info->timer);
--	} else {
-+	if (--info->timer->refcnt > 0) {
- 		pr_debug("decreased refcnt of timer %s to %u\n",
- 			 info->label, info->timer->refcnt);
-+		mutex_unlock(&list_mutex);
-+		return;
- 	}
- 
-+	pr_debug("deleting timer %s\n", info->label);
-+
-+	list_del(&info->timer->entry);
- 	mutex_unlock(&list_mutex);
-+
-+	if (info->timer->timer_type & XT_IDLETIMER_ALARM) {
-+		alarm_cancel(&info->timer->alarm);
-+	} else {
-+		timer_shutdown_sync(&info->timer->timer);
-+	}
-+	cancel_work_sync(&info->timer->work);
-+	sysfs_remove_file(idletimer_tg_kobj, &info->timer->attr.attr);
-+	kfree(info->timer->attr.attr.name);
-+	kfree(info->timer);
- }
- 
- 
--- 
-2.47.0
+Op 23-10-2024 om 23:21 schreef Casey Schaufler:
+> Add a new lsm_context data structure to hold all the information about a
+> "security context", including the string, its size and which LSM allocated
+> the string. The allocation information is necessary because LSMs have
+> different policies regarding the lifecycle of these strings. SELinux
+> allocates and destroys them on each use, whereas Smack provides a pointer
+> to an entry in a list that never goes away.
+>
+> Update security_release_secctx() to use the lsm_context instead of a
+> (char *, len) pair. Change its callers to do likewise.  The LSMs
+> supporting this hook have had comments added to remind the developer
+> that there is more work to be done.
+>
+> The BPF security module provides all LSM hooks. While there has yet to
+> be a known instance of a BPF configuration that uses security contexts,
+> the possibility is real. In the existing implementation there is
+> potential for multiple frees in that case.
+>
+> Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
+> Cc: linux-integrity@vger.kernel.org
+> Cc: netdev@vger.kernel.org
+> Cc: audit@vger.kernel.org
+> Cc: netfilter-devel@vger.kernel.org
+> To: Pablo Neira Ayuso <pablo@netfilter.org>
+> Cc: linux-nfs@vger.kernel.org
+> Cc: Todd Kjos <tkjos@google.com>
+> ---
+>   drivers/android/binder.c                | 24 +++++++--------
+>   fs/ceph/xattr.c                         |  6 +++-
+>   fs/nfs/nfs4proc.c                       |  8 +++--
+>   fs/nfsd/nfs4xdr.c                       |  8 +++--
+>   include/linux/lsm_hook_defs.h           |  2 +-
+>   include/linux/security.h                | 35 ++++++++++++++++++++--
+>   include/net/scm.h                       | 11 +++----
+>   kernel/audit.c                          | 30 +++++++++----------
+>   kernel/auditsc.c                        | 23 +++++++-------
+>   net/ipv4/ip_sockglue.c                  | 10 +++----
+>   net/netfilter/nf_conntrack_netlink.c    | 10 +++----
+>   net/netfilter/nf_conntrack_standalone.c |  9 +++---
+>   net/netfilter/nfnetlink_queue.c         | 13 +++++---
+>   net/netlabel/netlabel_unlabeled.c       | 40 +++++++++++--------------
+>   net/netlabel/netlabel_user.c            | 11 ++++---
+>   security/apparmor/include/secid.h       |  2 +-
+>   security/apparmor/secid.c               | 11 +++++--
+>   security/security.c                     |  8 ++---
+>   security/selinux/hooks.c                | 11 +++++--
+>   19 files changed, 165 insertions(+), 107 deletions(-)
+>
+> diff --git a/drivers/android/binder.c b/drivers/android/binder.c
+> index 978740537a1a..d4229bf6f789 100644
+> --- a/drivers/android/binder.c
+> +++ b/drivers/android/binder.c
+> @@ -3011,8 +3011,7 @@ static void binder_transaction(struct binder_proc *proc,
+>   	struct binder_context *context = proc->context;
+>   	int t_debug_id = atomic_inc_return(&binder_last_id);
+>   	ktime_t t_start_time = ktime_get();
+> -	char *secctx = NULL;
+> -	u32 secctx_sz = 0;
+> +	struct lsm_context lsmctx;
+Not initialized ?
+>   	struct list_head sgc_head;
+>   	struct list_head pf_head;
+>   	const void __user *user_buffer = (const void __user *)
+> @@ -3291,7 +3290,8 @@ static void binder_transaction(struct binder_proc *proc,
+>   		size_t added_size;
+>   
+>   		security_cred_getsecid(proc->cred, &secid);
+> -		ret = security_secid_to_secctx(secid, &secctx, &secctx_sz);
+> +		ret = security_secid_to_secctx(secid, &lsmctx.context,
+> +					       &lsmctx.len);
+>   		if (ret) {
+>   			binder_txn_error("%d:%d failed to get security context\n",
+>   				thread->pid, proc->pid);
+> @@ -3300,7 +3300,7 @@ static void binder_transaction(struct binder_proc *proc,
+>   			return_error_line = __LINE__;
+>   			goto err_get_secctx_failed;
+>   		}
+> -		added_size = ALIGN(secctx_sz, sizeof(u64));
+> +		added_size = ALIGN(lsmctx.len, sizeof(u64));
+>   		extra_buffers_size += added_size;
+>   		if (extra_buffers_size < added_size) {
+>   			binder_txn_error("%d:%d integer overflow of extra_buffers_size\n",
+> @@ -3334,23 +3334,23 @@ static void binder_transaction(struct binder_proc *proc,
+>   		t->buffer = NULL;
+>   		goto err_binder_alloc_buf_failed;
+>   	}
+> -	if (secctx) {
+> +	if (lsmctx.context) {
+ From code inspection it is not immediately obvious. Can you
+guarantee that lsmctx is always initialized when the code
+gets to this point? Perhaps it is safer to just initialize when
+it is defined above (line 3014).
 
