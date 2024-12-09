@@ -1,25 +1,22 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id CBFACDDD3
-	for <netfilter-devel@vger.kernel.org>; Mon,  9 Dec 2024 17:33:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1D34C233151
+	for <netfilter-devel@vger.kernel.org>; Mon,  9 Dec 2024 17:33:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733765630; cv=none; b=ORqo69wH8qoyMhLYvu8JJpjYtQztsWYFT2PTTKPuy53EYIdZDz08NvOktL/Axp8BmgX0vhp8oSiqbOQoW4d+LXuPRvEd1MGWsupzqSFGKFwBgnetJhOS9JAtrKUlKk5ldiGpxn57JbLmbDWE3f7jAQ6ufy10lg4ymi/dt1q9Xzo=
+	t=1733765630; cv=none; b=PF0Cr7KDeXA9WJ1qXTAVRRBRHBwQ7IQHIo5yxBV0QFfRbfpLYvdR50zz4FU2bjILn9qYvlY6Jwgj/JuCDCgrA4Kba/QC2/pyIesQ4sWF0wW5t8bRIMWt6DjjPMTHoGx33ivZC3jdzbbDTrrZ2oQ1FMTEep4AfkmNhwv6yfzTU2o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1733765630; c=relaxed/simple;
-	bh=6R7QPz9b++0QYCD0gDXQA4y2J9rBn1TiQjI2TwEXnBw=;
-	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=mY0CnDocVT+qEW59y/Hqh0Bmo0eBNiRLrsm7I4VdYTg2nsSnyYIhgOEFRSA+M64a8VmaLKX1TInjjfEPwlmHNME6fCDolZcm1MqSFJJT3RGkRkbKrDNrjgs66gcZt7XF+FHJBcTuV6bwvRo6q/CDZjHUoKgQnkeQrQa03lWR0hA=
+	bh=+zP3UjAmHUKTkqIhqLcMhAwSnRfhvsauN5615mkUYko=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=H5EribWmO6sPRoHfDI+PiE4tO0Nz3T2wtMXMtsJ4UaVG6mSfDv4PfPiClguhTbXtQ5h6YFu8i6GS6Nw+IaDgJg1jUUQ1Y0vB9+rLRLRqDNu3flSTT2qFGeb1Hd11YIKbFwAZel6fb+5W9cXrDDC+CNZYIgj3hDwICpg2uay6krA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 2/2] src: remove unused token_offset from struct location
-Date: Mon,  9 Dec 2024 18:33:34 +0100
-Message-Id: <20241209173334.512591-2-pablo@netfilter.org>
+Subject: [PATCH nft 1/2] expression: remove elem_flags from EXPR_SET_ELEM to shrink struct expr size
+Date: Mon,  9 Dec 2024 18:33:33 +0100
+Message-Id: <20241209173334.512591-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20241209173334.512591-1-pablo@netfilter.org>
-References: <20241209173334.512591-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -28,64 +25,121 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This saves 8 bytes in x86_64 in struct location which is embedded in
-every expression.
+Move NFTNL_SET_ELEM_F_INTERVAL_OPEN flag to the existing flags field in
+struct expr.
 
-This shrinks struct expr to 120 bytes according to pahole.
+This saves 4 bytes in struct expr, shrinking it to 128 bytes according to
+pahole. This reworks:
+
+6089630f54ce ("segtree: Introduce flag for half-open range elements")
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 low hanging fruit to shrink struct expr.
 
- include/nftables.h | 1 -
- src/parser_bison.y | 2 --
- src/scanner.l      | 1 -
- 3 files changed, 4 deletions(-)
+ include/expression.h |  2 +-
+ src/intervals.c      |  4 ++--
+ src/monitor.c        |  2 +-
+ src/netlink.c        | 15 ++++++++++-----
+ 4 files changed, 14 insertions(+), 9 deletions(-)
 
-diff --git a/include/nftables.h b/include/nftables.h
-index c25deb3676dd..7d891b439a2d 100644
---- a/include/nftables.h
-+++ b/include/nftables.h
-@@ -158,7 +158,6 @@ struct location {
- 	const struct input_descriptor		*indesc;
- 	union {
- 		struct {
--			off_t			token_offset;
- 			off_t			line_offset;
+diff --git a/include/expression.h b/include/expression.h
+index da2f693e72d3..877887ff1978 100644
+--- a/include/expression.h
++++ b/include/expression.h
+@@ -215,6 +215,7 @@ enum expr_flags {
+ 	EXPR_F_INTERVAL		= 0x20,
+ 	EXPR_F_KERNEL		= 0x40,
+ 	EXPR_F_REMOVE		= 0x80,
++	EXPR_F_INTERVAL_OPEN	= 0x100,
+ };
  
- 			unsigned int		first_line;
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 6e6f3cf8335d..6e8b639104fc 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -102,7 +102,6 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ #include <payload.h>
+@@ -301,7 +302,6 @@ struct expr {
+ 			uint64_t		expiration;
+ 			const char		*comment;
+ 			struct list_head	stmt_list;
+-			uint32_t		elem_flags;
+ 		};
+ 		struct {
+ 			/* EXPR_UNARY */
+diff --git a/src/intervals.c b/src/intervals.c
+index a93ceedd5a7a..7fd4a576f604 100644
+--- a/src/intervals.c
++++ b/src/intervals.c
+@@ -740,7 +740,7 @@ int set_to_intervals(const struct set *set, struct expr *init, bool add)
+ 			}
+ 			newelem->flags |= EXPR_F_INTERVAL_END;
+ 		} else {
+-			flags = NFTNL_SET_ELEM_F_INTERVAL_OPEN;
++			flags = EXPR_F_INTERVAL_OPEN;
+ 		}
+ 
+ 		expr = constant_expr_alloc(&elem->key->location, set->key->dtype,
+@@ -752,7 +752,7 @@ int set_to_intervals(const struct set *set, struct expr *init, bool add)
+ 
+ 		expr_free(elem->key);
+ 		elem->key = expr;
+-		i->elem_flags |= flags;
++		i->flags |= flags;
+ 		init->size++;
+ 		list_move_tail(&i->list, &intervals);
+ 
+diff --git a/src/monitor.c b/src/monitor.c
+index a787db8cbf5a..d70bf2957dd3 100644
+--- a/src/monitor.c
++++ b/src/monitor.c
+@@ -376,7 +376,7 @@ static bool set_elem_is_open_interval(struct expr *elem)
  {
- 	if (n) {
- 		loc->indesc       = rhs[n].indesc;
--		loc->token_offset = rhs[1].token_offset;
- 		loc->line_offset  = rhs[1].line_offset;
- 		loc->first_line   = rhs[1].first_line;
- 		loc->first_column = rhs[1].first_column;
-@@ -110,7 +109,6 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- 		loc->last_column  = rhs[n].last_column;
- 	} else {
- 		loc->indesc       = rhs[0].indesc;
--		loc->token_offset = rhs[0].token_offset;
- 		loc->line_offset  = rhs[0].line_offset;
- 		loc->first_line   = loc->last_line   = rhs[0].last_line;
- 		loc->first_column = loc->last_column = rhs[0].last_column;
-diff --git a/src/scanner.l b/src/scanner.l
-index c825fa79cfd9..ecdba404b2cd 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -90,7 +90,6 @@ static void update_offset(struct parser_state *state, struct location *loc,
- 			  unsigned int len)
- {
- 	state->indesc->token_offset	+= len;
--	loc->token_offset		= state->indesc->token_offset;
- 	loc->line_offset		= state->indesc->line_offset;
+ 	switch (elem->etype) {
+ 	case EXPR_SET_ELEM:
+-		return elem->elem_flags & NFTNL_SET_ELEM_F_INTERVAL_OPEN;
++		return elem->flags & EXPR_F_INTERVAL_OPEN;
+ 	case EXPR_MAPPING:
+ 		return set_elem_is_open_interval(elem->left);
+ 	default:
+diff --git a/src/netlink.c b/src/netlink.c
+index 36140fb63d6f..8e6e2066fe2a 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -180,7 +180,7 @@ struct nftnl_set_elem *alloc_nftnl_setelem(const struct expr *set,
+ 						netlink_gen_stmt_stateful(stmt));
+ 		}
+ 	}
+-	if (elem->comment || expr->elem_flags) {
++	if (elem->comment || expr->flags & EXPR_F_INTERVAL_OPEN) {
+ 		udbuf = nftnl_udata_buf_alloc(NFT_USERDATA_MAXLEN);
+ 		if (!udbuf)
+ 			memory_allocation_error();
+@@ -190,9 +190,9 @@ struct nftnl_set_elem *alloc_nftnl_setelem(const struct expr *set,
+ 					  elem->comment))
+ 			memory_allocation_error();
+ 	}
+-	if (expr->elem_flags) {
++	if (expr->flags & EXPR_F_INTERVAL_OPEN) {
+ 		if (!nftnl_udata_put_u32(udbuf, NFTNL_UDATA_SET_ELEM_FLAGS,
+-					 expr->elem_flags))
++					 NFTNL_SET_ELEM_F_INTERVAL_OPEN))
+ 			memory_allocation_error();
+ 	}
+ 	if (udbuf) {
+@@ -1372,9 +1372,14 @@ static void set_elem_parse_udata(struct nftnl_set_elem *nlse,
+ 	if (ud[NFTNL_UDATA_SET_ELEM_COMMENT])
+ 		expr->comment =
+ 			xstrdup(nftnl_udata_get(ud[NFTNL_UDATA_SET_ELEM_COMMENT]));
+-	if (ud[NFTNL_UDATA_SET_ELEM_FLAGS])
+-		expr->elem_flags =
++	if (ud[NFTNL_UDATA_SET_ELEM_FLAGS]) {
++		uint32_t elem_flags;
++
++		elem_flags =
+ 			nftnl_udata_get_u32(ud[NFTNL_UDATA_SET_ELEM_FLAGS]);
++		if (elem_flags & NFTNL_SET_ELEM_F_INTERVAL_OPEN)
++			expr->flags |= EXPR_F_INTERVAL_OPEN;
++	}
  }
  
+ int netlink_delinearize_setelem(struct nftnl_set_elem *nlse,
 -- 
 2.30.2
 
