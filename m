@@ -1,477 +1,126 @@
-Received: from sonic310-14.consmr.mail.bf2.yahoo.com (sonic310-14.consmr.mail.bf2.yahoo.com [74.6.135.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61EE71F602
-	for <netfilter-devel@vger.kernel.org>; Sat,  7 Dec 2024 21:18:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.6.135.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C5CD215F4B;
+	Mon,  9 Dec 2024 10:19:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733606336; cv=none; b=ddAedHwKTndwYUG+vbv+efeyCVKhGBoSTnHt4Ccjj78KC0HuLt1xk3CY+mY/GJq98ouNRNpXplI4tYMlbsOH0igf2xeuwYHoY2EznyzKlzLHV6IxBxkh059O9h+yL3nGCYBQHJdtPFgRZUXoVXFSfcvZkaWV7bBqf4l/xc+8MHE=
+	t=1733739569; cv=none; b=bUiDdnWiM+lXFf8hX4QbTfUjsrWqzJ40SZLV0bKTlSi6uzIgfr8QXkwY1UmUi+aOZ5y1yWDzVdBIbgvEW12j1sp4JYdWybRO8kyP5UGVFGdWq96DxMdAm2c26iNIXD4Kk0m/Aidu552NIL9VnUxWTU4LQ39mZ8wALmOeXx/JlKw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733606336; c=relaxed/simple;
-	bh=p3F+OaeMFvuv2puC3YhG+HI+A2cy/lvFSjQVCY6ij0Q=;
-	h=Date:From:To:Message-ID:Subject:MIME-Version:Content-Type:
-	 References; b=hbjxYmFXTKwyENkARhIiWd1bcHSUh5HcJDH1d/CCM/l3hnl2n+htwHr/dzNtEsRSghpN/TRQIhiMnwGq3ntr5UAuLte982QNZBI9FVjvqz4BbUyQM7ImU0Gb9rnU0SvDHGTCe91UIfDPkZ3Cy3Zek/TwXHrr0bzipPlDhn08/vk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=yahoo.com; spf=pass smtp.mailfrom=yahoo.com; dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b=VWcTzjl1; arc=none smtp.client-ip=74.6.135.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=yahoo.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=yahoo.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b="VWcTzjl1"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1733606325; bh=p3F+OaeMFvuv2puC3YhG+HI+A2cy/lvFSjQVCY6ij0Q=; h=Date:From:To:Subject:References:From:Subject:Reply-To; b=VWcTzjl1dCZqVnsqhf4rBnJ0r8QlHbuba66003P7iRN/JejHyj8WCfobedARDLvxn4UNo6i4//2f0oo2l/56CyGREvWvL1pLqhyDzMrgt5r8jto2i7EVeQA8X9hZcuY0Vag+yEXy0XLfUjHkZiXRCv4vWGwEhi5yMYj7S1+o7K2ElBnJ0ET9YWziqFXgWx/BgHfx3EI38NtVMTsxonBUhpjBocFm2ZsSd3otCGJOLyPLe551itAPAewFvnA9UuQLMNBy4lEgB4hLgZUodqX410jVDAZ1AEZU7nJyWPoKfGs5lznCG2Z26wokqf6wShkNMeL9M8iV32lcFd7fSlYTDA==
-X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1733606325; bh=csJE+B5T3PQGFhOXGf1YsIeKNWvO0smB8+JoNccBjQh=; h=X-Sonic-MF:Date:From:To:Subject:From:Subject; b=fTIpXrHlYGgv0dNCoJJZyyb8eGnTZRozujbiUi72yRNjctLQ0sz+dxpzvBbZZBoLkD9KJACZVEvXuWaTdxAr9tJVpu2GHK3QbZMsbhgksTO/eVgMTOmzXQDG7/en9LIqGqys5qrXkDtYuekQMRaeDz4V37c0rVR94ACJP1q70iX0Pf+zkZDiHdwkEoBqs4Ti05QEBvfrq2yqdonVGURjrpP7v1PxX5EoDl4YlSYIiyrZPCMGJefVsSCy+rh3l7SKOoRAbLCizKM359zn0kvIERHiyokvQ9JKQZAatFCnOZXsgm9fXzXkOIpNIFjL6X/b7ZMEqVANtFZ5tEWwid0vqA==
-X-YMail-OSG: W2Yytf0VM1n_hryYcYAb3K0dVjKlwpSDYT6m.XJtVBYGPEmnWAoFPHMxfiByO2o
- Vxf_.aUUQxog7ifyvVUZVmkugXDByhobiaFtMF5x92GxpBuTMHTkG6DRJLjbYtKJ37HYVsPBWu.A
- xTv7Vv2gNuSaPeDvQ9zhy9LP6mCHKggzUazmWb47SBglYCaFAYzVY7Mf1i5uCiplDUP6vSRZilDT
- 8cFIPraXggOHSsufP5ml0AhZUC.eB1vR5Wqvs59EefA_TEb1atx7ed9nPquHWV5FFYvp4V8hwFdy
- GoBEPgSXRCYZ02Ud8nO7itMkIV4yGDqLEG6dDJKX91.8Wyo29uOLcWZhCHWZyaMMaJQqbK.aF0H4
- V.Ls7caQyAHVahtGHHkb7fQEVrFfTAZulQT5MvgxVmsYgtZlXlOBia6Gu_bwMjlRy6SvBYeIHEXq
- WpsC.gCp9Hj_KrPJvYihJLgk6TEPcKgc5qr1Lbq2Yvoh6tWa2xLEMpsAvmC9.BPI6GA0mPE595QB
- Toi2oEi1c4lvNKHbFGvPEjLQeBUok38pMzwXhpIiXYtZ28tcTFPT2WGqpn7AdhSmTx8JZ821cQAw
- K6NMz0D27Pt2FUggKzWShwLAiwUkz462VCKlcMHCDiwE7Mn7_aLISnX6jRz.3HGLc55AXyLYkdZ_
- qOrijqd9sXZMVRKw49G6cJ4lvz8tAS9l_sU.r3_PTS.ZAE.3es5uX7jHYbbB0qk_a8xFEl2.ql0R
- eD6xVlDfkY_6NKnynujdoKA9S0YesXeqDFrFa3DiazXZYQOmbKP_sTNw1OP1CrNXqoRMhuIjsuP8
- binI8gRhk4aoz6y.h5APo29nEcKQqZ9klA3Yp18YI0Z4vBZh__RrUmVGyEZozYeDi.q0Mg7VGoYj
- FmQQmR3Po8fZNklU_EH.4NHvRj8bmAzqSt4sI8V545nfPgLXnGzarEJ5u0lqqggcF527PCQfsTcz
- aw2VPUIT4C5GHUgUHniLY7EPbrBh1TejkM7y4dJCbBW4Y8ktaYKFfp2BlAzSJJtprTnP_guQGhiG
- OLFvcRmIi4XhPoYwZwU93Z4Tz2kcIOJDuWAoXUQtNq2ar1ssG.XPAYvz7eGmumlREX7zb_PjU1w2
- 2WzpRHCRq9K7SMnklLspqOwmjPjkxTL9OSfaCVVVdzQbBFABJhssCT4ONpHmJ.bDs9RSiyZx_rlV
- koNHY_ddnwcB6gBTY8kixV9nlbNlLfOBlTOOkU9wl15ULE.m0Zl63Ak34X6GP.rbnGhPuWWUKs3H
- QPpGTtCH_e1PWyEI..1GaZSRw2xxK2OiXk4XkuiWAWgMspTec4VU9GlpabA2XnmytsTYDcMCqOHW
- owCUU1TQWITbNQbML15ZIRTCcReCim6Lg32c8.RT6SLkbwq4n.1YqKCgeOJLR0zhN7UN5dJaKnB2
- fDym.FhGILIIZzsYPTxymoLXEFPyDZEVUilkskdcZOW47yjanAqh0F0lkokXwPVS50j84RLE6Cbr
- G5A3FDtUtcoSiLGbNlnXQj08qVxzJeEmGX8QymgCub9.KcGK6V2BoLkSDeMKdjnz8_5V3yiMnJjm
- 4hwBjMRXVRR5t7qV2OFXq7q08Nstm4wv_NR7z2i24ieK47Iw3IG7a7ibXR0MNX2emXKusFtgVuBi
- XOWKVPF9X8yeU4IhueeDDGTnAjbczoN.AJO0U5NigLWSdYebIdcp9XElKko4QSZk9DfLtGu7XnUh
- i4jLT9u.NByn7T2oMYeyluSekMEiZgcrkha2rkOwJ4Qxvx.e1p0wNyojWq7ziZn0eQIOy8DODY2n
- 940Y2vkyhu03.PNz4UXOgLNEwFLv8IqhaZf5ZWC4Sb3PRYRRtVopZgHX7NHxIVOPFzbCHJW_hGUm
- KIZ32Oe.jzQW.wQ9gzShg0c.pAK35l.QTgdjfagDdPWYP47..UBqqYDiist_CW9fG.bP6.8aTcoX
- VfIvD4i_sGJWLkFgRmxdAET5hkihqjwJ_Jl1BcaDY01pcFIViV58foHyGPZpDHwxvh312_nU8hd1
- iS3ldU4mmrqVsgTW8tzSkdh3l.AXOQ36JXGA02FEMCtn7SxZ_r5zzvvLKv49qg14uW5Pn6n62VCx
- k3tASgVwoeouJgR_ti1Q_1Bf6TRUkmZs6ee1QPZB6veQVaa899u4HMM1Zd_Nj30De2b6s6GkolnA
- 8BjOis8BVkSp7NA3e7QPAGvysdKRoFcbKoI1RZDualgnhm4ozJde5..aGxtK5BAjuWgiremMmLUb
- ZVEqj3A--
-X-Sonic-MF: <cpmbmail@yahoo.com>
-X-Sonic-ID: df89cc38-7cf2-4a17-97a4-63af8a442fe0
-Received: from sonic.gate.mail.ne1.yahoo.com by sonic310.consmr.mail.bf2.yahoo.com with HTTP; Sat, 7 Dec 2024 21:18:45 +0000
-Date: Sat, 7 Dec 2024 21:08:33 +0000 (UTC)
-From: Christopher Buckley <cpmbmail@yahoo.com>
-To: netfilter-devel@vger.kernel.org
-Message-ID: <70938534.378100.1733605713150@mail.yahoo.com>
-Subject: Help Building IPT / NFT Extension
+	s=arc-20240116; t=1733739569; c=relaxed/simple;
+	bh=ir0eMn2cU5E1ZYPf41J9jPgI7dgJxqUiO/AYVDz2kdI=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=UtVvxwuehjJeRvRMjHOw6FhoCBCItaURXmR6QrilOWZ/qyPm8TJcUOrLLiGiNVcYUN5HM+hSffuy3Wg57Y434zYMIC3CdE+LSe6saX4lpMksQsX45QEwnBBKWmj53BSuy7x8YmW1R2bMrwhl2Z73PviMSZKpL3aXAn73aK3rMzI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
+Received: from mail.maildlp.com (unknown [172.18.186.31])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Y6Hnn6XVrz6K9NY;
+	Mon,  9 Dec 2024 18:16:13 +0800 (CST)
+Received: from mscpeml500004.china.huawei.com (unknown [7.188.26.250])
+	by mail.maildlp.com (Postfix) with ESMTPS id 38B411403A1;
+	Mon,  9 Dec 2024 18:19:24 +0800 (CST)
+Received: from [10.123.123.159] (10.123.123.159) by
+ mscpeml500004.china.huawei.com (7.188.26.250) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1258.34; Mon, 9 Dec 2024 13:19:21 +0300
+Message-ID: <a24b33c1-57c8-11bb-f3aa-32352b289a5c@huawei-partners.com>
+Date: Mon, 9 Dec 2024 13:19:19 +0300
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; 
-	boundary="----=_Part_378099_598731836.1733605713150"
-References: <70938534.378100.1733605713150.ref@mail.yahoo.com>
-X-Mailer: WebService/1.1.23040 YMailNodin
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH v2 1/8] landlock: Fix non-TCP sockets restriction
+Content-Language: ru
+To: =?UTF-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>, Matthieu Baerts
+	<matttbe@kernel.org>
+CC: <gnoack@google.com>, <willemdebruijn.kernel@gmail.com>,
+	<matthieu@buffet.re>, <linux-security-module@vger.kernel.org>,
+	<netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
+	<yusongping@huawei.com>, <artem.kuzin@huawei.com>,
+	<konstantin.meskhidze@huawei.com>, MPTCP Linux <mptcp@lists.linux.dev>, David
+ Laight <David.Laight@aculab.com>
+References: <20241017110454.265818-1-ivanov.mikhail1@huawei-partners.com>
+ <20241017110454.265818-2-ivanov.mikhail1@huawei-partners.com>
+ <49bc2227-d8e1-4233-8bc4-4c2f0a191b7c@kernel.org>
+ <20241018.Kahdeik0aaCh@digikod.net> <20241204.fahVio7eicim@digikod.net>
+ <20241204.acho8AiGh6ai@digikod.net>
+From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+In-Reply-To: <20241204.acho8AiGh6ai@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: lhrpeml500010.china.huawei.com (7.191.174.240) To
+ mscpeml500004.china.huawei.com (7.188.26.250)
 
-------=_Part_378099_598731836.1733605713150
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+On 12/4/2024 10:35 PM, Mickaël Salaün wrote:
+> On Wed, Dec 04, 2024 at 08:27:58PM +0100, Mickaël Salaün wrote:
+>> On Fri, Oct 18, 2024 at 08:08:12PM +0200, Mickaël Salaün wrote:
+>>> On Thu, Oct 17, 2024 at 02:59:48PM +0200, Matthieu Baerts wrote:
+>>>> Hi Mikhail and Landlock maintainers,
+>>>>
+>>>> +cc MPTCP list.
+>>>
+>>> Thanks, we should include this list in the next series.
+>>>
+>>>>
+>>>> On 17/10/2024 13:04, Mikhail Ivanov wrote:
+>>>>> Do not check TCP access right if socket protocol is not IPPROTO_TCP.
+>>>>> LANDLOCK_ACCESS_NET_BIND_TCP and LANDLOCK_ACCESS_NET_CONNECT_TCP
+>>>>> should not restrict bind(2) and connect(2) for non-TCP protocols
+>>>>> (SCTP, MPTCP, SMC).
+>>>>
+>>>> Thank you for the patch!
+>>>>
+>>>> I'm part of the MPTCP team, and I'm wondering if MPTCP should not be
+>>>> treated like TCP here. MPTCP is an extension to TCP: on the wire, we can
+>>>> see TCP packets with extra TCP options. On Linux, there is indeed a
+>>>> dedicated MPTCP socket (IPPROTO_MPTCP), but that's just internal,
+>>>> because we needed such dedicated socket to talk to the userspace.
+>>>>
+>>>> I don't know Landlock well, but I think it is important to know that an
+>>>> MPTCP socket can be used to discuss with "plain" TCP packets: the kernel
+>>>> will do a fallback to "plain" TCP if MPTCP is not supported by the other
+>>>> peer or by a middlebox. It means that with this patch, if TCP is blocked
+>>>> by Landlock, someone can simply force an application to create an MPTCP
+>>>> socket -- e.g. via LD_PRELOAD -- and bypass the restrictions. It will
+>>>> certainly work, even when connecting to a peer not supporting MPTCP.
+>>>>
+>>>> Please note that I'm not against this modification -- especially here
+>>>> when we remove restrictions around MPTCP sockets :) -- I'm just saying
+>>>> it might be less confusing for users if MPTCP is considered as being
+>>>> part of TCP. A bit similar to what someone would do with a firewall: if
+>>>> TCP is blocked, MPTCP is blocked as well.
+>>>
+>>> Good point!  I don't know well MPTCP but I think you're right.  Given
+>>> it's close relationship with TCP and the fallback mechanism, it would
+>>> make sense for users to not make a difference and it would avoid bypass
+>>> of misleading restrictions.  Moreover the Landlock rules are simple and
+>>> only control TCP ports, not peer addresses, which seems to be the main
+>>> evolution of MPTCP.
+>>
+>> Thinking more about this, this makes sense from the point of view of the
+>> network stack, but looking at external (potentially bogus) firewalls or
+>> malware detection systems, it is something different.  If we don't
+>> provide a way for users to differenciate the control of SCTP from TCP,
+>> malicious use of SCTP could still bypass this kind of bogus security
+>> appliances.  It would then be safer to stick to the protocol semantic by
+>> clearly differenciating TCP from MPTCP (or any other protocol).
 
+You mean that these firewals have protocol granularity (e.g. different
+restrictions for MPTCP and TCP sockets)?
 
-Hello,
+>>
+>> Mikhail, could you please send a new patch series containing one patch
+>> to fix the kernel and another to extend tests?
+> 
+> No need to squash them in one, please keep the current split of the test
+> patches.  However, it would be good to be able to easily backport them,
+> or at least the most relevant for this fix, which means to avoid
+> extended refactoring.
 
-
-I am looking for someone who can help me build an IPTables extension.
-
-I've done a fair bit of initial work, but the information I've acquired doe=
-s not seem specific enough to help me through the next steps.
-
-I would prefer to deal with one person directly instead of through the foru=
-ms.
-
-
-Here is a summary of the history and status of my results to date.
-
-
-I have an application called 'LANDrive' on my Android G7 Play phone. The to=
-ol should allow me to establish a network connection between my phone and c=
-omputer.
-
-I have an application on my computer called 'Backer' which allows me to bac=
-kup my computer to external drives. I want to network to my phone so I can =
-backup or transfer files directly to my phone.
-
-The 'LANDrive' app has a strange configurtion. It uses ports 137, 138, and =
-445 for 'smb/sharing/tcp' but only for a rooted phone. It will use ports 11=
-37, 1138, and 1445 for non-rooted (standard) phones.
-
-The problem is, I need a third app called 'MultiPort Forwarder' which is no=
- longer available for my windows version.
-
-However, the setup information for 'LANDrive' using 'Multiport Forwarder' i=
-ndicates how the forwarder would work.
-
-
-LINK: https://tubecast.webrox.fr/landrive/portmapping2.html
-
-CLICK: Connect with Windows Explorer (All other Windows versions)
-
-
-I have DDWrt installed on my routers, with IPT 1.8.5. I believe the same fo=
-rwarding could be accomplished using IPTables / NFTables. Using IPT was sug=
-gested to me when I posted this topic in the DDWrt forum.
-
-
-LINK: https://forum.dd-wrt.com/phpBB2/viewtopic.php?t=3D337377
-
-
-I tried the suggestions and a whole lot of other ideas with no luck.
-
-After extensive research, including the Netfilter 'HowTo' list, I found inf=
-ormation on 'TEE' which seemed to indicate IPT could solve my problem.
-
-
-I've recently downloaded DDWrt source which has IPT 1.8.5. I've figured out=
- the IPT code philosophy (more or less) and found the 'TEE' sources.
-
-Thus far, I've been able to lay out a 'CLONE' extension to accomplish the l=
-ibrary handler functions.
-
-
-The files I've created include (attached):
-
-=C2=A0=C2=A0=C2=A0 libxt_CLONE.c
-=C2=A0=C2=A0=C2=A0 libxt_ClONE.man
-=C2=A0=C2=A0=C2=A0 libxt_CLONE.t
-=C2=A0=C2=A0=C2=A0 libxt_CLONE.txlate
-
-=C2=A0=C2=A0=C2=A0 xt_CLONE.h=C2=A0=C2=A0=C2=A0 =C2=A0=C2=A0=C2=A0 (include=
-\...netfilter)
-
-
-The 'libxt_CLONE.c' has a 'match' and 'target' code.
-
-
-My idea is to match packets before connection tracking, and create copies i=
-n the 'raw' tables (prerouting/output). These packets may need to be marked=
- for identification as 'clones' for later DNAT translation.
-
-Destination matching would occur in POSTROUTING so that destination ports c=
-an be modified in packets identified as 'clones'. This would allow returnin=
-g packages from target ports to have their translations reversed.
-
-Theoretically, this would accomplish=C2=A0 445 <--> 1445, etc and retain ne=
-twork discovery etc.
-
-
-My current problems are 'next step' issues such as:
-
-
-=C2=A0=C2=A0=C2=A0 1) How do I examine packets to return a 'match' conditio=
-n (i.e. pointers etc.)
-
-=C2=A0=C2=A0=C2=A0 2) How do I implement 'target' code to create copies in =
-the stack (i.e. malloc)
-
-=C2=A0=C2=A0=C2=A0 3) How do I modify packets as 'targets' of a rule match =
-(i.e. pointers again)
-
-
-I get the general ideas of the Kernel vectors, extension loading, netfilter=
- stack, routing tables, routing paths...etc.
-
-More or less, I'm not really sure what functions I need to build, and what =
-functions and pointers I will need to accomplish the physical matching, cop=
-ying, and modifying of packets.
-
-
-Cheers,
-Christopher
-
-
-
-------=_Part_378099_598731836.1733605713150
-Content-Type: text/plain
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="libxt_CLONE.c"
-Content-ID: <YYNgQC35CpXu6LXA0y8u>
-
-LyoqKiBIb3dUbzogQ0xPTkUgTGlicmFyeSBFeHRlbnNpb24gKioqLwovKgogKiBUaGlzIGZpbGUg
-aXMgYm90aCBhbiAnaXB0YWJsZXMnIGFuZCAnbmV0ZmlsdGVyJyBleHRlbnNpb24sIGFzIHdlbGwg
-YXMKICogYSAnbWluaS1Ib3dUbycgZm9yIGJ1aWxkaW5nIHN1Y2ggZXh0ZW5zaW9uLgogKgogKiBU
-aGUgQ0xPTkUgbGlicmFyeSBleHRlbnNpb24gd2lsbCBkdXBsaWNhdGUgbmV0d29yayBwYWNrZXRz
-IGZvciB0aGUKICogcHVycG9zZSBvZiBzZW5kaW5nIHBhY2tldCBjb3BpZXMgdG8gb3RoZXIgZGVz
-dGluYXRpb25zIG9yIHBvcnRzLgogKgogKgogKiBUaGlzIGZpbGUgc2hvdWxkIGJlIGxvY2F0ZWQg
-aW4gc29tZSAnc3JjcGF0aCcgc3VjaCBhczoKICoKICogICAvc3JjL2xpbnV4L25ldC9pcHRhYmxl
-cy9leHRlbnNpb25zL2xpYnh0X0NMT05FLmMKICoKICoKICogVGhpcyBmaWxlIHNob3VsZCBiZSBh
-Y2NvbXBhbmllZCBieSBhIGhlYWRlciBmaWxlIGluIHNvbWUgJ3NyY3BhdGgnOgogKgogKiAgIC9z
-cmMvbGludXgvaW5jbHVkZS9uZXRmaWx0ZXIveHRfQ0xPTkUuaAogKgogKgogKiBUaGlzIGZpbGUg
-c2hvdWxkIGJlIGFjY29tcGFuaWVkIGJ5IHN1cHBvcnRpbmcgZmlsZXMgaW4gc29tZSAnc3JjcGF0
-aCc6CiAqCiAqICAgL3NyYy9saW51eC9uZXQvaXB0YWJsZXMvZXh0ZW5zaW9ucy9saWJ4dF9DTE9O
-RS5tYW4KICogICAvc3JjL2xpbnV4L25ldC9pcHRhYmxlcy9leHRlbnNpb25zL2xpYnh0X0NMT05F
-LnQKICogICAvc3JjL2xpbnV4L25ldC9pcHRhYmxlcy9leHRlbnNpb25zL2xpYnh0X0NMT05FLnhs
-YXRlCiAqCiAqCiAqIFRoaXMgZmlsZSBoYXMgYmVlbiBjcmVhdGVkIGZyb20gc291cmNlIGNvZGUg
-ZXhhbXBsZXMgaW46CiAqCiAqCWxpYnh0X2FkZHJ0eXBlLmMKICoJbGlieHRfVEVFLmMKICoKICoK
-ICogTk9URVM6CiAqCiAqIDEpIFRoaXMgZmlsZSBoYXMgYmVlbiBlbWJlbGxpc2hlZCB3aXRoIGNv
-bW1lbnRzIHRvIGhlbHAgZ3VpZGUgb3RoZXJzCiAqICAgIGluIHRoZSBkZXNpZ24gYW5kIGRldmVs
-b3BtZW50IG9mIG90aGVyIGxpYnJhcmllcy4KICoKICogMikgVGhlICdpcHRhYmxlcycgZXhlY3V0
-YWJsZSBoYXMgYmVlbiByZXBsYWNlZCB3aXRoICduZnRhYmxlcycsIGJ1dAogKiAgICAnbmZ0YWJs
-ZXMnIGlzIHByb3ZpZGVkIGJ5IHRoZSBzYW1lIG1haW50YWluZXJzIGFzICdpcHRhYmxlcycuCiAq
-CiAqLwoKCgovKioqIEhvd1RvOiBFeGNlcnB0IGZyb20gJ2xpYnh0X2FkZHJ0eXBlLmMnICoqKi8K
-Ci8qIFNoYXJlZCBsaWJyYXJ5IGFkZC1vbiB0byBpcHRhYmxlcyB0byBhZGQgYWRkcnR5cGUgbWF0
-Y2hpbmcgc3VwcG9ydAogKgogKiBDb3B5cmlnaHQgKGMpIDIwMDMtMjAxMyBQYXRyaWNrIE1jSGFy
-ZHkgPGthYmVyQHRyYXNoLm5ldD4KICoKICogVGhpcyBwcm9ncmFtIGlzIHJlbGVhc2VkIHVuZGVy
-IHRoZSB0ZXJtcyBvZiBHTlUgR1BMCiAqLwoKCgovKioqIEhvd1RvOiBFeGNlcnB0IGZyb20gJ2xp
-Ynh0X1RFRS5jJyAqKiovCgovKgogKgkiVEVFIiB0YXJnZXQgZXh0ZW5zaW9uIGZvciBpcHRhYmxl
-cwogKglDb3B5cmlnaHQgwqkgU2ViYXN0aWFuIENsYcOfZW4gPHNlYmFzdGlhbi5jbGFzc2VuIFth
-dF0gZnJlZW5ldC5hZz4sIDIwMDcKICoJSmFuIEVuZ2VsaGFyZHQgPGplbmdlbGggW2F0XSBtZWRv
-emFzIGRlPiwgMjAwNyAtIDIwMTAKICoKICoJVGhpcyBwcm9ncmFtIGlzIGZyZWUgc29mdHdhcmU7
-IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0IGFuZC9vcgogKgltb2RpZnkgaXQgdW5kZXIgdGhlIHRl
-cm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZTsgZWl0aGVyCiAqCXZlcnNpb24g
-MiBvZiB0aGUgTGljZW5zZSwgb3IgYW55IGxhdGVyIHZlcnNpb24sIGFzIHB1Ymxpc2hlZCBieSB0
-aGUKICoJRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uLgogKi8KCgoKLyoqKiBIb3dUbzogQ29tbW9u
-IGhlYWRlcnMgKioqLwojaW5jbHVkZSA8c3RkaW8uaD4KI2luY2x1ZGUgPHN0cmluZy5oPgojaW5j
-bHVkZSA8eHRhYmxlcy5oPgojaW5jbHVkZSA8bGludXgvbmV0ZmlsdGVyL3h0X0NMT05FLmg+CgoK
-Ci8qKiogSG93VG86IEhlYWRlcnMgZnJvbSAnbGlieHRfYWRkcnR5cGUuYycgKioqLwovKgojaW5j
-bHVkZSA8c3RyaW5ncy5oPgojaW5jbHVkZSA8bGludXgvbmV0ZmlsdGVyL3h0X2FkZHJ0eXBlLmg+
-CiovCgoKCi8qKiogSG93VG86IEhlYWRlcnMgZnJvbSAnbGlieHRfVEVFLmMnICoqKi8KLyoKI2lu
-Y2x1ZGUgPHN5cy9zb2NrZXQuaD4KI2luY2x1ZGUgPGdldG9wdC5oPgojaW5jbHVkZSA8c3RkYm9v
-bC5oPgojaW5jbHVkZSA8c3RkbGliLmg+CgojaW5jbHVkZSA8YXJwYS9pbmV0Lmg+CiNpbmNsdWRl
-IDxuZXQvaWYuaD4KI2luY2x1ZGUgPG5ldGluZXQvaW4uaD4KCiNpbmNsdWRlIDxsaW51eC9uZXRm
-aWx0ZXIuaD4KI2luY2x1ZGUgPGxpbnV4L25ldGZpbHRlci94X3RhYmxlcy5oPgoqLwoKCgovKioq
-IEhvd1RvOiBQcml2YXRlICdmbGFncycgZm9yIGV4dGVuc2lvbiBpbnRlcm5hbHMgKioqLwoKZW51
-bSB7CiAJT19JU0NQWSwKIAlPX0lTRFVQLAp9OwoKCgoKCgovKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKi8KLyoq
-KiBFTlRFUiAtIENMT05FIGV4dGVuc2lvbiBydWxlICdtYXRjaCcgZnVuY3Rpb25zICoqKi8KLyoq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKiovCgoKCnN0YXRpYyB2b2lkIGNsb25lX2Noa19oZWxwKHZvaWQpCnsKCglw
-cmludGYoCgoJIkNMT05FIGV4dGVuc2lvbiBydWxlIG1hdGNoIHN5bnRheDpcbiIKCSIgICAtLWlz
-Y3B5ICAgICAgICAgICBDb250aW51ZSBpZiBwYWNrZXQgaXMgYSBjbG9uZSwgZWxzZSBmYWlsXG4i
-CgkiICAgLS1pc2NweSBbbm5dICAgICAgQ29udGludWUgaWYgcGFja2V0IGlzIGEgY2xvbmUgbnVt
-YmVyIG5uLCBlbHNlIGZhaWxcbiIKCSIgICAgICAgICAgICAgICAgICAgICAgICBkZWZhdWx0IG5u
-ID0gMVxuIgoJIiAgICAgICAgICAgICAgICAgICAgICAgIHdoZXJlOiBubiA9IDItMTZcbiIKCSJc
-biIpOwoKfTsKCgoKLyoqKiBIb3dUbzogRWFzeSB3YXkgdG8gJ2F1dG9wYXJzZScgdGhlICdtYXRj
-aCcgY29tbWFuZCBvcHRpb25zICoqKi8KLyoKICogVGhlICd4dF9vcHRpb25fZW50cnknIGlzIGRl
-ZmluZWQgaW4gJ3h0YWJsZXMuaCcKICogVGhlICdYVFRZUEVfJyBhbmQgJ1hUT1BUXycgYXJlIGRl
-ZmluZWQgaW4gJ3h0YWJsZXMuaCcKICogVXNlZCBieSBNQVNURVIgcGFyc2luZyBmdW5jdGlvbiAn
-eHRfb3B0aW9uX3BhcnNlKCknIGluICd4dG9wdGlvbnMuYycKICovCgpzdGF0aWMgY29uc3Qgc3Ry
-dWN0IHh0X29wdGlvbl9lbnRyeSBjbG9uZV9jaGtfb3B0c1tdID0gewoKCXsubmFtZSA9ICJpc2Nw
-eSIsIC5pZCA9IE9fSVNDUFksIC50eXBlID0gWFRUWVBFX1NUUklORywKCQkgLmZsYWdzID0gWFRP
-UFRfTUFORH0sCgoJey5uYW1lID0gImlzZHVwIiwgLmlkID0gT19JU0RVUCwgLnR5cGUgPSBYVFRZ
-UEVfVUlOVDh9LAoJIC5taW4gPSAyLCAubWF4ID0gMTZ9LAoKCVhUT1BUX1RBQkxFRU5ELAoKfTsK
-CgoKLyogQ3VycmVudCAnbWF0Y2gnIHN0YXR1cyBkaXNwbGF5IG91dHB1dCAqLwpzdGF0aWMgdm9p
-ZCBjbG9uZV9jaGtfcHJpbnQoY29uc3Qgdm9pZCAqaXAsIGNvbnN0IHN0cnVjdCB4dF9lbnRyeV9t
-YXRjaCAqbWF0Y2gsCiAgICAgICAgICAgICAgICAgICAgICAgICBpbnQgbnVtZXJpYykKewoKCWNv
-bnN0IHN0cnVjdCB4dF9jbG9uZV9vcHNfaW5mbyAqaW5mbyA9IChjb25zdCB2b2lkICopbWF0Y2gt
-PmRhdGE7CgoJaWYgKCppbmZvLT5pc2R1cCA8PSAxKQoJCXByaW50ZigiIGlzY3B5PTEiLCBpbmZv
-LT5pc2NweSkKCWVsc2UKCQlwcmludGYoIiBpc2NweT0ldSIsIGluZm8tPmlzZHVwKTsKCn07CgoK
-Ci8qIEN1cnJlbnQgJ21hdGNoJyBzdGF0dXMgZmlsZSBvdXRwdXQgLS0gSSB0aGluayA/Pz8gKi8K
-c3RhdGljIHZvaWQgY2xvbmVfY2hrX3NhdmUoY29uc3Qgdm9pZCAqaXAsIGNvbnN0IHN0cnVjdCB4
-dF9lbnRyeV9tYXRjaCAqbWF0Y2gsCiAgICAgICAgICAgICAgICAgICAgICAgICBpbnQgbnVtZXJp
-YykKewoKCWNvbnN0IHN0cnVjdCB4dF9jbG9uZV9vcHNfaW5mbyAqaW5mbyA9IChjb25zdCB2b2lk
-ICopbWF0Y2gtPmRhdGE7CgoJaWYgKCppbmZvLT5pc2R1cCA8PSAxKQoJCXByaW50ZigiIGlzY3B5
-PTEiLCBpbmZvLT5pc2NweSkKCWVsc2UKCQlwcmludGYoIiBpc2NweT0ldSIsIGluZm8tPmlzZHVw
-KTsKCn07CgoKCi8qIEN1cnJlbnQgJ21hdGNoJyBzdGF0dXMgdHJhbnNsYXRlIHRvICduZnRhYmxl
-cycgaW5wdXQgZmlsZSAtLSBJIHRoaW5rID8/PyAqLwpzdGF0aWMgaW50IGNsb25lX2Noa194bGF0
-ZShzdHJ1Y3QgeHRfeGxhdGUgKnhsLAoJCQljb25zdCBzdHJ1Y3QgeHRfeGxhdGVfdHJnX3BhcmFt
-cyAqcGFyYW1zKQp7CgoJY29uc3Qgc3RydWN0IHh0X2Nsb25lX29wc19pbmZvICppbmZvID0gKGNv
-bnN0IHZvaWQgKilwYXJhbXMtPm1hdGNoLT5kYXRhOwoKCWlmICgqaW5mby0+aXNkdXAgPD0gMSkK
-CQl4dF94bGF0ZV9hZGQoeGwsICAiIC0taXNjcHkiLCAiIikKCWVsc2UKCQl4dF94bGF0ZV9hZGQo
-eGwsICAiIC0taXNjcHkgJXUiLCBpbmZvLT5pc2R1cCk7CgoJcmV0dXJuIDE7Cgp9OwoKCgovKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKi8KLyoqKiBMRUFWRSAtIENMT05FIGV4dGVuc2lvbiBydWxlICdtYXRjaCcg
-ZnVuY3Rpb25zICoqKi8KLyoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKiovCgoKCgoKLyoqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKiov
-Ci8qKiogRU5URVIgLSBDTE9ORSBleHRlbnNpb24gcnVsZSAndGFyZ2V0JyBmdW5jdGlvbnMgKioq
-LwovKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKi8KCgoKc3RhdGljIHZvaWQgY2xvbmVfdHJnX2hlbHAodm9pZCkK
-ewoKCXByaW50ZigKCgkiQ0xPTkUgZXh0ZW5zaW9uIHJ1bGUgdGFyZ2V0IHN5bnRheDpcbiIKCSIg
-ICBbbm5dICAgICAgICAgICAgICBDcmVhdGUgbm4gY2xvbmVzIG9mIHNlbGVjdGVkIHBhY2tldFxu
-IgoJIiAgICAgICAgICAgICAgICAgICAgICAgIGRlZmF1bHQgbm4gPSAxXG4iCgkiICAgICAgICAg
-ICAgICAgICAgICAgICAgd2hlcmU6IG5uID0gMi0xNlxuIgoJIlxuIik7Cgp9OwoKCgovKioqIEhv
-d1RvOiBFYXN5IHdheSB0byAnYXV0b3BhcnNlJyB0aGUgJ3RhcmdldCcgY29tbWFuZCBvcHRpb25z
-ICoqKi8KLyoKICogVGhlICd4dF9vcHRpb25fZW50cnknIGlzIGRlZmluZWQgaW4gJ3h0YWJsZXMu
-aCcKICogVGhlICdYVFRZUEVfJyBhbmQgJ1hUT1BUXycgYXJlIGRlZmluZWQgaW4gJ3h0YWJsZXMu
-aCcKICogVXNlZCBieSBNQVNURVIgcGFyc2luZyBmdW5jdGlvbiAneHRfb3B0aW9uX3BhcnNlKCkn
-IGluICd4dG9wdGlvbnMuYycKICovCgpzdGF0aWMgY29uc3Qgc3RydWN0IHh0X29wdGlvbl9lbnRy
-eSBjbG9uZV90cmdfb3B0c1tdID0gewoKCXsubmFtZSA9ICJpc2R1cCIsIC5pZCA9IE9fSVNEVVAs
-IC50eXBlID0gWFRUWVBFX1VJTlQ4fSwKCSAubWluID0gMiwgLm1heCA9IDE2fSwKCglYVE9QVF9U
-QUJMRUVORCwKCn07CgoKCi8qIEN1cnJlbnQgJ3RhcmdldCcgc3RhdHVzIGRpc3BsYXkgb3V0cHV0
-ICovCnN0YXRpYyB2b2lkIGNsb25lX3RyZ19wcmludChjb25zdCB2b2lkICppcCwgY29uc3Qgc3Ry
-dWN0IHh0X2VudHJ5X3RhcmdldCAqdGFyZ2V0LAogICAgICAgICAgICAgICAgICAgICAgICAgaW50
-IG51bWVyaWMpCnsKCWNvbnN0IHN0cnVjdCB4dF9jbG9uZV9vcHNfaW5mbyAqaW5mbyA9IChjb25z
-dCB2b2lkICopdGFyZ2V0LT5kYXRhOwoKCWlmICgqaW5mby0+aXNkdXAgPD0gMSkKCQlwcmludGYo
-IiAxIikKCWVsc2UKCQlwcmludGYoIiAldSIsIGluZm8tPmlzZHVwKTsKCn07CgoKCi8qIEN1cnJl
-bnQgJ3RhcmdldCcgc3RhdHVzIGZpbGUgb3V0cHV0IC0tIEkgdGhpbmsgPz8/ICovCnN0YXRpYyB2
-b2lkIGNsb25lX3RyZ19zYXZlKGNvbnN0IHZvaWQgKmlwLCBjb25zdCBzdHJ1Y3QgeHRfZW50cnlf
-dGFyZ2V0ICp0YXJnZXQpCnsKCglpZiAoKmluZm8tPmlzZHVwIDw9IDEpCgkJcHJpbnRmKCIgMSIp
-CgllbHNlCgkJcHJpbnRmKCIgJXUiLCBpbmZvLT5pc2R1cCk7Cgp9OwoKCgovKiBDdXJyZW50ICd0
-YXJnZXQnIHN0YXR1cyB0cmFuc2xhdGUgdG8gJ25mdGFibGVzJyBpbnB1dCBmaWxlIC0tIEkgdGhp
-bmsgPz8/ICovCnN0YXRpYyBpbnQgY2xvbmVfdHJnX3hsYXRlKHN0cnVjdCB4dF94bGF0ZSAqeGws
-CgkJCWNvbnN0IHN0cnVjdCB4dF94bGF0ZV90cmdfcGFyYW1zICpwYXJhbXMpCnsKCgljb25zdCBz
-dHJ1Y3QgeHRfY2xvbmVfb3BzX2luZm8gKmluZm8gPSAoY29uc3Qgdm9pZCAqKXBhcmFtcy0+dGFy
-Z2V0LT5kYXRhOwoKCWlmICgqaW5mby0+aXNkdXAgPD0gMSkKCQl4dF94bGF0ZV9hZGQoeGwsICAi
-IDEiLCAiIikKCWVsc2UKCQl4dF94bGF0ZV9hZGQoeGwsICAiICV1IiwgaW5mby0+aXNkdXApOwoK
-CXJldHVybiAxOwoKfTsKCgoKLyoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKiovCi8qKiogRU5URVIgLSBDTE9ORSBl
-eHRlbnNpb24gcnVsZSAndGFyZ2V0JyBmdW5jdGlvbnMgKioqLwovKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKi8K
-CgoKCgoKLyoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKiovCi8qKiogRU5URVIgLSBDTE9ORSBleHRlbnNpb24gJ3Zl
-Y3RvcicgZnVuY3Rpb24gcmVnaXN0cmF0aW9ucyAqKiovCi8qKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqLwoKCgov
-KioqIEhvd1RvOiBUaGUgJ3h0YWJsZXNfbWF0Y2gnIGlzIGRlZmluZWQgaW4gJ3h0YWJsZXMuaCcg
-KioqLwovKioqIENMT05FOiBTdHJ1Y3R1cmUgb2YgJ3N0cnVjdCB4dGFibGVzX21hdGNoJyBmb3Ig
-J21hdGNoJyBjaGFpbnMgKioqLwovKioqIE1BVENIOiBVc2VkIGJ5ICdjb21tYW5kX21hdGNoKCkn
-IGluICdpcHRhYmxlcy5jJyBmb3IgJy1tJyBvcHRpb24gKioqLwovKioqIE1BVENIOiBVc2VkIGJ5
-ICdjb21tYW5kX21hdGNoKCknIGluICd4dGFibGVzLmMnIGZvciAnLW0nIG9wdGlvbiAqKiovCi8q
-KiogVkVDVE9SOiBVc2VkIGJ5ICd4dGFibGVzX2ZpbmRfbWF0Y2goKScgdmlhICdjb21tYW5kX21h
-dGNoKCknIGluICd4c2hhcmVkLmMnICoqKi8Kc3RhdGljIHN0cnVjdCB4dGFibGVzX21hdGNoIGNs
-b25lX2Noa19yZWdbXSA9IHsKCXsKCQkubmFtZSAgICAgICAgICA9ICJDTE9ORSIsCgkJLnZlcnNp
-b24gICAgICAgPSBYVEFCTEVTX1ZFUlNJT04sCgoKCQkvKioqIENQTUI6IE5vdCBzdXJlIHdoYXQg
-J2ZhbWlseScgc3BlY2lmaWVzICoqKi8KCQkuZmFtaWx5ICAgICAgICA9IE5GUFJPVE9fSVBWNCwK
-CgoJCS5zaXplICAgICAgICAgID0gWFRfQUxJR04oc2l6ZW9mKHN0cnVjdCB4dF9jbG9uZV9vcHNf
-aW5mbykpLAoJCS51c2Vyc3BhY2VzaXplID0gb2Zmc2V0b2Yoc3RydWN0IHh0X2Nsb25lX29wc19p
-bmZvLCBwcml2KSwKCQkvLy5oZWxwICAgICAgICAgID0gY2xvbmVfY2hrX2hlbHAsCgkJLnByaW50
-ICAgICAgICAgPSBjbG9uZV9jaGtfcHJpbnQsCgkJLnNhdmUgICAgICAgICAgPSBjbG9uZV9jaGtf
-c2F2ZSwKCQkueDZfcGFyc2UgICAgICA9IHh0YWJsZXNfb3B0aW9uX3BhcnNlLAoJCS54Nl9mY2hl
-Y2sgICAgID0gY2xvbmVfY2hrX2NoZWNrLAoJCS54Nl9vcHRpb25zICAgID0gY2xvbmVfY2hrX29w
-dHMsCgkJLnhsYXRlICAgICAgICAgPSBjbG9uZV9jaGtfeGxhdGUsCgl9LAoJewoJCS5uYW1lICAg
-ICAgICAgID0gIkNMT05FIiwKCQkudmVyc2lvbiAgICAgICA9IFhUQUJMRVNfVkVSU0lPTiwKCgoJ
-CS8qKiogQ1BNQjogTm90IHN1cmUgd2hhdCAnZmFtaWx5JyBzcGVjaWZpZXMgKioqLwoJCS5mYW1p
-bHkgICAgICAgID0gTkZQUk9UT19VTlNQRUMsCgoKCQkuc2l6ZSAgICAgICAgICA9IFhUX0FMSUdO
-KHNpemVvZihzdHJ1Y3QgeHRfY2xvbmVfb3BzX2luZm8pKSwKCQkudXNlcnNwYWNlc2l6ZSA9IG9m
-ZnNldG9mKHN0cnVjdCB4dF9jbG9uZV9vcHNfaW5mbywgcHJpdiksCgkJLy8uaGVscCAgICAgICAg
-ICA9IGNsb25lX2Noa19oZWxwLAoJCS5wcmludCAgICAgICAgID0gY2xvbmVfY2hrX3ByaW50LAoJ
-CS5zYXZlICAgICAgICAgID0gY2xvbmVfY2hrX3NhdmUsCgkJLng2X3BhcnNlICAgICAgPSB4dGFi
-bGVzX29wdGlvbl9wYXJzZSwKCQkueDZfZmNoZWNrICAgICA9IGNsb25lX2Noa19jaGVjaywKCQku
-eDZfb3B0aW9ucyAgICA9IGNsb25lX2Noa19vcHRzLAoJCS54bGF0ZSAgICAgICAgID0gY2xvbmVf
-Y2hrX3hsYXRlLAoJfSwKfTsKCgoKLyoqKiBIb3dUbzogVGhlICd4dGFibGVzX3RhcmdldCcgaXMg
-ZGVmaW5lZCBpbiAneHRhYmxlcy5oJyAqKiovCi8qKiogQ0xPTkU6IFN0cnVjdHVyZSBvZiAnc3Ry
-dWN0IHh0YWJsZXNfdGFyZ2V0JyBmb3IgJ3RhcmdldCcgY2hhaW5zICoqKi8KLyoqKiBUQVJHRVQ6
-IFVzZWQgYnkgJ2NvbW1hbmRfanVtcCgpJyBpbiAnaXB0YWJsZXMuYycgZm9yICctaicgb3B0aW9u
-ICoqKi8KLyoqKiBUQVJHRVQ6IFVzZWQgYnkgJ2NvbW1hbmRfanVtcCgpJyBpbiAneHRhYmxlcy5j
-JyBmb3IgJy1qJyBvcHRpb24gKioqLwovKioqIFZFQ1RPUjogVXNlZCBieSAneHRhYmxlc19maW5k
-X3RhcmdldCgpJyB2aWEgJ2NvbW1hbmRfanVtcCgpJyBpbiAneHNoYXJlZC5jJyAqKiovCnN0YXRp
-YyBzdHJ1Y3QgeHRhYmxlc190YXJnZXQgY2xvbmVfdHJnX3JlZ1tdID0gewoJewoJCS5uYW1lICAg
-ICAgICAgID0gIkNMT05FIiwKCQkudmVyc2lvbiAgICAgICA9IFhUQUJMRVNfVkVSU0lPTiwKCgoJ
-CS8qKiogQ1BNQjogTm90IHN1cmUgd2hhdCAnZmFtaWx5JyBzcGVjaWZpZXMgKioqLwoJCS5mYW1p
-bHkgICAgICAgID0gTkZQUk9UT19JUFY0LAoKCgkJLnNpemUgICAgICAgICAgPSBYVF9BTElHTihz
-aXplb2Yoc3RydWN0IHh0X2Nsb25lX29wc19pbmZvKSksCgkJLnVzZXJzcGFjZXNpemUgPSBvZmZz
-ZXRvZihzdHJ1Y3QgeHRfY2xvbmVfb3BzX2luZm8sIHByaXYpLAoJCS8vLmhlbHAgICAgICAgICAg
-PSBjbG9uZV90cmdfaGVscCwKCQkucHJpbnQgICAgICAgICA9IGNsb25lX3RyZ19wcmludCwKCQku
-c2F2ZSAgICAgICAgICA9IGNsb25lX3RyZ19zYXZlLAoJCS54Nl9wYXJzZSAgICAgID0geHRhYmxl
-c19vcHRpb25fcGFyc2UsCgkJLng2X29wdGlvbnMgICAgPSBjbG9uZV90cmdfb3B0cywKCQkueGxh
-dGUgICAgICAgICA9IGNsb25lX3RyZ194bGF0ZSwKCX0sCgl7CgkJLm5hbWUgICAgICAgICAgPSAi
-Q0xPTkUiLAoJCS52ZXJzaW9uICAgICAgID0gWFRBQkxFU19WRVJTSU9OLAoKCgkJLyoqKiBDUE1C
-OiBOb3Qgc3VyZSB3aGF0ICdmYW1pbHknIHNwZWNpZmllcyAqKiovCgkJLmZhbWlseSAgICAgICAg
-PSBORlBST1RPX1VOU1BFQywKCgoJCS5zaXplICAgICAgICAgID0gWFRfQUxJR04oc2l6ZW9mKHN0
-cnVjdCB4dF9jbG9uZV9vcHNfaW5mbykpLAoJCS51c2Vyc3BhY2VzaXplID0gb2Zmc2V0b2Yoc3Ry
-dWN0IHh0X2Nsb25lX29wc19pbmZvLCBwcml2KSwKCQkvLy5oZWxwICAgICAgICAgID0gY2xvbmVf
-dHJnX2hlbHAsCgkJLnByaW50ICAgICAgICAgPSBjbG9uZV90cmdfcHJpbnQsCgkJLnNhdmUgICAg
-ICAgICAgPSBjbG9uZV90cmdfc2F2ZSwKCQkueDZfcGFyc2UgICAgICA9IHh0YWJsZXNfb3B0aW9u
-X3BhcnNlLAoJCS54Nl9vcHRpb25zICAgID0gY2xvbmVfdHJnX29wdHMsCgkJLnhsYXRlICAgICAg
-ICAgPSBjbG9uZV90cmdfeGxhdGUsCgl9LAp9OwoKCgp2b2lkIF9pbml0KHZvaWQpCnsKCgkvKioq
-IEhvd1RvOiBGdW5jdGlvbiAneHRhYmxlc19yZWdpc3Rlcl9tYXRjaGVzJyBkZWZpbmVkIGluICds
-aWJ4dGFibGVzXHh0YWJsZXMuYycgKioqLwoJLyoqKiBIb3dUbzogVmFsaWRhdGUgdGhlICdtYXRj
-aCcgc3RydWN0dXJlIGluaXRpYWwgdmFsdWVzICoqKi8KCXh0YWJsZXNfcmVnaXN0ZXJfbWF0Y2hl
-cyhjbG9uZV9jaGtfcmVnLCBBUlJBWV9TSVpFKGNsb25lX2Noa19yZWcpKTsKCgkvKioqIEhvd1Rv
-OiBGdW5jdGlvbiAneHRhYmxlc19yZWdpc3Rlcl90YXJnZXRzJyBkZWZpbmVkIGluICdsaWJ4dGFi
-bGVzXHh0YWJsZXMuYycgKioqLwoJLyoqKiBIb3dUbzogVmFsaWRhdGUgdGhlICd0YXJnZXQnIHN0
-cnVjdHVyZSBpbml0aWFsIHZhbHVlcyAqKiovCgl4dGFibGVzX3JlZ2lzdGVyX3RhcmdldHMoY2xv
-bmVfdHJnX3JlZywgQVJSQVlfU0laRShjbG9uZV90cmdfcmVnKSk7Cgp9CgoKCi8qKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqLwovKioqIExFQVZFIC0gQ0xPTkUgZXh0ZW5zaW9uICd2ZWN0b3InIGZ1bmN0aW9uIHJl
-Z2lzdHJhdGlvbnMgKioqLwovKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKi8KCgoK
-
-------=_Part_378099_598731836.1733605713150
-Content-Type: text/plain
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="libxt_CLONE.man"
-Content-ID: <eWTNZGIXZRjv50vQ0pvF>
-
-VGhlIHB1cnBvc2Ugb2YgXGZCQ0xPTkVcZlAgYXMgYSBydWxlIGFjdGlvbiB0YXJnZXQsIGlzIHRv
-IGNsb25lIGEgc2VsZWN0ZWQKcGFja2V0IGZvciByb3V0aW5nIHRvIG90aGVyIGRlc3RpbmF0aW9u
-cy4gQWxsIGNsb25lZCBwYWNrZXRzIHNob3VsZAp0aGVyZWZvcmUgYmUgaWdub3JlZCB1bmxlc3Mg
-YW5vdGhlciBydWxlIGlzIGFwcGxpZWQgdG8gYWx0ZXIgaXRzIGNvbnRlbnQsCmFuZCB0aGVyZWJ5
-IHZhbGlkYXRlIGl0IGZvciByb3V0aW5nLiBUaGVyZWZvcmUsIFxmQkNMT05FXGZQIGNhbiBvbmx5
-IGJlCnVzZWQgaW4gdHdvIHdheXM6IHRvIGNsb25lIGEgcGFja2V0LCBvciB0byBtb2RpZnkgYSBz
-cGVjaWZpYyBjbG9uZS4KLlBQCkFzIGEgcnVsZSBhY3Rpb24gdGFyZ2V0LCBieSBkZWZhdWx0IFxm
-QkNMT05FXGZQIHdpbGwgb25seSBtYWtlIGEgc2luZ2xlCmNsb25lIG9mIGEgc2VsZWN0ZWQgcGFj
-a2V0LiBIb3dldmVyLCB5b3UgbWF5IHByb3ZpZGUgYW4gb3B0aW9uYWwgcG9zaXRpdmUKZGVjaW1h
-bCB2YWx1ZSBpbmRpY2F0aW5nIHRoZSBudW1iZXIgb2YgY2xvbmVzIHlvdSB3aXNoIHRvIG1ha2Uu
-IFRoZQphbGxvd2FibGUgbWF4aW11bSBudW1iZXIgb2YgY2xvbmVzIGlzIDE2LCBzaW5jZSBhbnkg
-bW9yZSBtYXkgZG8gbm90aGluZwptb3JlIHRoYW4gcHJvZHVjZSBuZXR3b3JrIHByb2JsZW1zLgou
-UFAKV2hlbiBcZkJDTE9ORVxmUCBpcyB1c2VkIGFzIGEgcnVsZSBhY3Rpb24gdGFyZ2V0LCBpdCBt
-dXN0IGJlIHByZWNlZWRlZCBieQp0aGUgLWogdGFyZ2V0IGp1bXAgb3B0aW9uLiBIb3dldmVyLCBc
-ZkJDTE9ORVxmUCBtYXkgb25seSBiZSB1c2VkIHdpdGggdGhlIC0KdCByYXcgdGFibGUgdGFyZ2V0
-cywgYW5kIG9ubHkgaW4gdGhlIFBSRVJPVVRJTkcgb3IgT1VUUFVUIGNoYWlucy4gVGhlc2UKcmVx
-dWlyZW1lbnRzIGVuc3VyZSB0aGF0IGFsbCBjbG9uZXMgd2lsbCBiZSBjcmVhdGVkIGJlZm9yZSBv
-dGhlciBwYWNrZXQKb3BlcmF0aW9ucyBtYXkgb2NjdXIuCi5QUApFWEFNUExFCi5UUAppcHRhYmxl
-cyAtdCByYXcgUFJFUk9VVElORyAtcCB1ZHAgLWQgMTkyLjE2OC4xLjIgLWogXGZCQ0xPTkVcZlAg
-MgouUFAKV2hlbiBcZkJDTE9ORVxmUCBpcyB1c2VkIGluIGEgcnVsZSBtYXRjaCBjb21tYW5kLCBp
-dCBzaG91bGQgb25seSBiZSB1c2VkCndpdGggdGhlIC10IG5hdCB0YWJsZSBvcHRpb24sIGFuZCBt
-dXN0IGluY2x1ZGUgdGhlIC0taXNjcHkgbWF0Y2ggY29tbWFuZApvcHRpb24uCi5QUApUaGlzIC0t
-aXNjcHkgbWF0Y2ggY29tbWFuZCBvcHRpb24gd2lsbCBkaXJlY3QgXGZCQ0xPTkVcZlAgdG8gdGVz
-dCBhIHBhY2tldAp0byBkZXRlcm1pbmUgaWYgaXQgaXMgYSBjbG9uZS4gSWYgdGhlIHBhY2tldCBp
-cyBkZXRlcm1pbmVkIHRvIGJlIGEgY2xvbmUsCnRoZSBtYXRjaCBjb21tYW5kIHdpbGwgcGVybWl0
-IGNvbnRpbnVlZCBydWxlIG1hdGNoIGV2YWx1YXRpb25zLCBvdGhlcndpc2UsCnRoZSBtYXRjaCBj
-b21tYW5kIHdpbGwgdGVybWluYXRlIHRoZSBydWxlIG1hdGNoIGNoYWluLgouUFAKVGhlIC0taXNj
-cHkgbWF0Y2ggY29tbWFuZCBvcHRpb24gbWF5IGFsc28gYmUgZm9sbG93ZWQgYnkgYSBwb3NpdGl2
-ZSBkZWNpbWFsCnZhbHVlIGluZGljYXRpbmcgdGhlIGNsb25lIG51bWJlciB0byBiZSBzZWxlY3Rl
-ZC4gV2hlbiBzdWNoIGEgdmFsdWUgaXMKcHJvdmlkZWQsIHRoZSBjbG9uZSBtYXRjaCBjb21tYW5k
-IHdpbGwgZGV0ZXJtaW5lIGlmIHRoZSBwYWNrZXQgaXMgYSBjbG9uZSwKYW5kIHdoaWNoIGNvcHkg
-b2YgdGhlIG9yaWdpbmFsIHBhY2tldCBpdCBpcy4KLlBQCkVYQU1QTEUKLlRQCmlwdGFibGVzIC10
-IHJhdyAtQSBQUkVST1VUSU5HIC1pIGV0aDAgLWogXGZCQ0xPTkVcZlAgMgouVFAKIyBTZW5kIGZp
-cnN0IGNvcHkgdG8gYW5vdGhlciBsaXN0ZW5lci5UUAppcHRhYmxlcyAtdCBuYXQgLUEgUFJFUk9V
-VElORyBcZkJDTE9ORVxmUCAtLWlzY3B5IC1qIFJFRElSRUNUIC0tdG8tcG9ydHMKMTIzNAouVFAK
-IyBTZW5kIHNlY29uZCBjb3B5IHRvIGEgcmVtb3RlIGRldmljZS5UUAppcHRhYmxlcyAtdCBuYXQg
-LUEgUFJFUk9VVElORyBcZkJDTE9ORVxmUCAtLWlzY3B5IDIgLWogRE5BVCAtLXRvCjE5Mi4xNjgu
-Mi40Mgo=
-
-------=_Part_378099_598731836.1733605713150
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="libxt_CLONE.t"
-Content-ID: <RuHjk2wyvQNG1UKmo7Oy>
-
-Ly8KLy8gVEFSR0VUIFNZTlRBWCBSRVFVSVJFUyBUSEVTRSBSVUxFUwovLwovLyBJbXBsZW1lbnRl
-ZCBmcm9tIGV4YW1wbGVzIGluOgovLwovLwlsaWJ4dF9kY2NwLnQKLy8JbGlieHRfTk9UUkFDSy50
-Ci8vCi8vIE5VTUVSSUMgTElNSVRTIEFTIFBFUiAnbGlieHRfZGNjcC50JyBTQU1QTEUKLy8gVEFC
-TEUgUkVRVUlSRU1FTlRTIEFTIFBFUiAnbGlieHRfTk9UUkFDSy50JyBTQU1QTEUKLy8KOlBSRVJP
-VVRJTkcsT1VUUFVUCipyYXcKLWogQ0xPTkU7PTtPSwotaiBDTE9ORSAyOz07T0sKLWogQ0xPTkUg
-MTY7PTtPSwotaiBDTE9ORSAxNzs7RkFJTAotaiBDTE9ORSAwOztGQUlMCi1qIENMT05FIC0xOztG
-QUlMCgoKCi8vCi8vIE1BVENIIFNZTlRBWCBET0VTIE5PVCBSRVFVSVJFIFRIRVNFIFJVTEVTCi8v
-Ci8vIDpQUkVST1VUSU5HLE9VVFBVVCxQT1NUUk9VVElORwovLyAqbmF0Ci8vIENMT05FIC0taXNj
-cHk7PTtPSwovLyBDTE9ORSAtLWlzY3B5IDI7PTtPSwovLyBDTE9ORSAtLWlzY3B5IDE2Oz07T0sK
-Ly8gQ0xPTkUgLS1pc2NweSAxNzs7RkFJTAovLyBDTE9ORSAtLWlzY3B5IDA7O0ZBSUwKLy8gQ0xP
-TkUgLS1pc2NweSAtMTs7RkFJTAovLwo=
-
-------=_Part_378099_598731836.1733605713150
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="libxt_CLONE.txlate"
-Content-ID: <jbBRbVZ4WxepTdOjsWgz>
-
-CiMgQ1BNQjogQ2xvbmUKIyBCb3Jyb3dlZCBmcm9tIGxpYnh0X1RFRS50eGxhdGUKIyBEdXBsaWNh
-dGUgcGFja2V0cyB0byBhbGwvYW55IGRlc3RpbmF0aW9ucyBvbiBhbGwvYW55IHBvcnRzCgojCiMK
-IyBFWEFNUExFUyBBUyBQRVIgbGlieHRfVEVFLnR4bGF0ZToKIwojIGlwdGFibGVzLXRyYW5zbGF0
-ZSAtdCBtYW5nbGUgLUEgUFJFUk9VVElORyAtaiBURUUgLS1nYXRld2F5IDE5Mi4xNjguMC4yIC0t
-b2lmIGV0aDAKIyBuZnQgYWRkIHJ1bGUgaXAgbWFuZ2xlIFBSRVJPVVRJTkcgY291bnRlciBkdXAg
-dG8gMTkyLjE2OC4wLjIgZGV2aWNlIGV0aDAKIwojIGlwdGFibGVzLXRyYW5zbGF0ZSAtdCBtYW5n
-bGUgLUEgUFJFUk9VVElORyAtaiBURUUgLS1nYXRld2F5IDE5Mi4xNjguMC4yCiMgbmZ0IGFkZCBy
-dWxlIGlwIG1hbmdsZSBQUkVST1VUSU5HIGNvdW50ZXIgZHVwIHRvIDE5Mi4xNjguMC4yCiMKIyBp
-cDZ0YWJsZXMtdHJhbnNsYXRlIC10IG1hbmdsZSAtQSBQUkVST1VUSU5HIC1qIFRFRSAtLWdhdGV3
-YXkgYWIxMjowMGExOjExMTI6YWNiYTo6CiMgbmZ0IGFkZCBydWxlIGlwNiBtYW5nbGUgUFJFUk9V
-VElORyBjb3VudGVyIGR1cCB0byBhYjEyOmExOjExMTI6YWNiYTo6CiMKIyBpcDZ0YWJsZXMtdHJh
-bnNsYXRlIC10IG1hbmdsZSAtQSBQUkVST1VUSU5HIC1qIFRFRSAtLWdhdGV3YXkgYWIxMjowMGEx
-OjExMTI6YWNiYTo6IC0tb2lmIGV0aDAKIyBuZnQgYWRkIHJ1bGUgaXA2IG1hbmdsZSBQUkVST1VU
-SU5HIGNvdW50ZXIgZHVwIHRvIGFiMTI6YTE6MTExMjphY2JhOjogZGV2aWNlIGV0aDAKIwojCiMg
-RVhBTVBMRVMgQVMgUEVSIGxpYnh0X0NMT05FLnR4bGF0ZQojCiMgRVhBTVBMRSAxCiMKIyBpcHRh
-Ymxlcy10cmFuc2xhdGUgLXQgcmF3IC1BIFBSRVJPVVRJTkcgLXAgdWRwIC1kIDE5Mi4xNjguMC4y
-NTUgLS1kcG9ydCAxMzcgLWogQ0xPTkUgLWogUkVESVJFQ1QgLS10by1wb3J0cyAxMTM3CiMgbmZ0
-IGFkZCBydWxlIGlwIHJhdyBQUkVST1VUSU5HIGNvdW50ZXIgZHVwIGJyb2FkY2FzdCAxOTIuMTY4
-LjAuMjU1IHBvcnQgMTM3IGNsb25lIHJlZGlyZWN0IHRvIHBvcnQgMTEzNwojCiMKIyBFWEFNUExF
-IDIKIwojIGlwdGFibGVzLXRyYW5zbGF0ZSAtdCByYXcgLUEgT1VUUFVUIC1wIHVkcCAtZCAxOTIu
-MTY4LjAuMC8yNCAtLWRwb3J0IDEzNyAtaiBDTE9ORSAtaiBSRURJUkVDVCAtLXRvLXBvcnRzIDEx
-MzcKIyBuZnQgYWRkIHJ1bGUgaXAgcmF3IE9VVFBVVCBjb3VudGVyIGR1cCBwYWNrZXRzIDE5Mi4x
-NjguMC5ubm4gcG9ydCAxMzcgY2xvbmUgcmVkaXJlY3QgdG8gcG9ydCAxMTM3CgoK
-
-------=_Part_378099_598731836.1733605713150--
+No problem, I'll remove the fix of error consistency from this patchset.
+BTW, what do you think about second and third commits? Should I send the
+new version of them as well (in separate patch)?
