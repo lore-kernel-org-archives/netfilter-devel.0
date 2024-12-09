@@ -1,70 +1,80 @@
-Received: from mail-pg1-f181.google.com (mail-pg1-f181.google.com [209.85.215.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9902419E97A
-	for <netfilter-devel@vger.kernel.org>; Mon,  9 Dec 2024 23:03:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B1E81F63F3;
+	Mon,  9 Dec 2024 23:20:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733785439; cv=none; b=br/Qoj130t4IiHaZcX6Uxwbs2wR4aSq2r5DyDjLGWB8J77nhhPMFfbb0CiXbGbkCZeUOa4I9Vk9F9aiErkUVtZpyVlt+koZGqcLXowZrB2ha7PoF5n/ViDr/6GR3vJMKa0whrcc2oYfzRXst4B6AWV7WOJPNMfvCh/XyTLxICyk=
+	t=1733786418; cv=none; b=te4PojPfBL2EefKqVrmdBiNc3H7V+ZyS937id0X2qmVPMR0q23fx0miJfzX2yG4jMdrAp7PFE3rB1797/gI1lf/10tnKvYFnR58b54+oxYUdipbByt2Bbgzfs2DUXyNo7Y8okgz6kjMN7yirlEx1IJnmI6Kf5iz0FIuLEw4GHEU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733785439; c=relaxed/simple;
-	bh=t8tNqXkXj9kLWqThwBj8iBEm2ZBFUdSI7kWRrBowNkE=;
-	h=MIME-Version:From:Date:Message-ID:Subject:To:Content-Type; b=Z8N5eyyzGgCaQ8YbFyEOhBrWEvM3ZUOYINoW5RZjj4elWc+K1ZS1SCk2qrG64cJhcJUANHAOpmn5f7FikSgX10T/MI56ywOJ6E2lU5fyfm1S7pI/3riwNFu9akpPlct4tvZ5OBvbROuRZLrjF5xGnj8kPUF3DWZtqdiqPMHQcWI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=tigera.io; spf=pass smtp.mailfrom=tigera.io; dkim=pass (1024-bit key) header.d=tigera.io header.i=@tigera.io header.b=fA4TVFHQ; arc=none smtp.client-ip=209.85.215.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=tigera.io
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=tigera.io
+	s=arc-20240116; t=1733786418; c=relaxed/simple;
+	bh=TBdJqxdHtaaKpiy3fWFoHBNIphhOxmho00SyqChErAw=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=Vd+RrU2oyRq8sYwHNV/oDWmykFh/IYiYZJ9wHjRkytjnpR0vCqHVSEPk4GOnWpwXsTIn13hvoiX1zC90JQB/YtiB8ROPdp0gUv7xOAKGCaIGL7hNYcWUUiZVi3URwSTs7E9wSyy5daFyZWlcAO8BdlP5VbDmfesAHFVCkO8thIY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kosqyZwz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=tigera.io header.i=@tigera.io header.b="fA4TVFHQ"
-Received: by mail-pg1-f181.google.com with SMTP id 41be03b00d2f7-7fc41b4c78bso2898235a12.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 09 Dec 2024 15:03:57 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=tigera.io; s=google; t=1733785437; x=1734390237; darn=vger.kernel.org;
-        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=+VO+mwJyA7brVSWbEhimH6dd9CEWUYczY72vqBidTus=;
-        b=fA4TVFHQqHQcUEOo7bJIBSkG/IVp1IttuhILXc0NtT7EDiDMuQ0OPkp2DaeeYDS3jv
-         X1wRFdxMfnKxwsp905ssebpTr/BZagQvz6+msuoX0PAJgKLxYJdB0v+kDQ8uL06OHnJC
-         WPjIwGMcZQoieZLJlI0ah30/xZa7bV1yzbuUI=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1733785437; x=1734390237;
-        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=+VO+mwJyA7brVSWbEhimH6dd9CEWUYczY72vqBidTus=;
-        b=A+1SeE6wKfUYUJkZ019DHdqNDLIy0Q3enHgUcN/M9MUlBRXmP58l3icaFaOyi9/lQY
-         S3EP6to7GXggPSQr1nasZVPS/4oLjONIhxwswAsBBTJu1NKq3U5dhVOeB/6TpV5K5H1n
-         OF9rbwNM/Pv/RUjQZVQ0lzy/eKI95nnyVbyuk5T4Kgv1XhmFIZSPAH0fvXNGqsK4nmWg
-         Y8amNW1mXtNjeXLOwtIZEt3S+Bdyaxpvy4Do2g7Pi2OiZuf+4b6GOAsDGnHRSgkkRsny
-         L1F34TK9r+FjbTmhgaVOMxidzNCos185vHgQ3n26WNJuEl9T4RYQ5Csg+hQ/onMpuRcd
-         pHUA==
-X-Gm-Message-State: AOJu0Yz0nMa7kLMbiQ0u1mmNb2cQIqHmHGkT7XL7ewJL0tFVYyo0zQ5s
-	OP7fAQ63N+J9JlmPKGoIWJMk7SgiRd6PJn2nO2QLtncVagL922BJDD+Ly6EO3z5D20h4FSL+67e
-	aYqy95gvNuhhlNd3ZuSYiQUOcnx/TfvYDjNOUxvOrM9UAVieTZ3E=
-X-Gm-Gg: ASbGncsEBzWYTtFIdKUCUC+PgBUtFQjC9GtJxy3La8Jsyusx/999XrKSfZJjdOd45Q4
-	9VmEpNrP9LfUa7jPiTeR75SHbFyaANfaIVIQ=
-X-Google-Smtp-Source: AGHT+IEfLdbI0STMzzG947VupcHSkLZYqfuizpkB6V1LVzB6TfQ1jnmTCZ+kH7t6vd2EXoXWa+rwRnkzWFXIhr9NgKA=
-X-Received: by 2002:a17:90b:224f:b0:2ee:d186:fe48 with SMTP id
- 98e67ed59e1d1-2efcf2226bcmr3094869a91.28.1733785436759; Mon, 09 Dec 2024
- 15:03:56 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kosqyZwz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62EC5C4CEDD;
+	Mon,  9 Dec 2024 23:20:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1733786418;
+	bh=TBdJqxdHtaaKpiy3fWFoHBNIphhOxmho00SyqChErAw=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=kosqyZwzIyhGlBQyfrUftGKZJ/azSssdJglNFWkveRh9e7XuIKUS2Oy1GsHwWqFvt
+	 d4oBT73HbniPM4OHQwqpRZXN0FqkFZL2zGhQRf9P6QHdmXsHkdodewI0KHLIxvavNO
+	 6cq3xUL5e4FDfkl2AtuqmnSk14Vn1lywfaLn0zHQtwmRo7964GtbZrWfMRjJm/VVYI
+	 N5YriIrQ5792VIoRcTbDXvWnZGhcLe3tH5j9PSsIogUd4/6W7FcOMP+z7orDjQ9+8c
+	 rgbz77tA9LG9BR7VKVlDjWFDNcDTWWgXxTcsBWM4lPjpeFD4NHlrRLeXE9RZD8L2az
+	 TB8JrO6CgRkyg==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 342DC380A95E;
+	Mon,  9 Dec 2024 23:20:35 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: Sridhar Mahadevan <sridhar@tigera.io>
-Date: Mon, 9 Dec 2024 15:03:46 -0800
-Message-ID: <CABpXueVHKRMXGQk9A6Xs=yfhx4RykFwLPuoEVEpR1Z3pLkZdpQ@mail.gmail.com>
-Subject: Support for xt_bpf in nftables
-To: netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next v2] net: reformat kdoc return statements
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <173378643377.273075.2794294027777185502.git-patchwork-notify@kernel.org>
+Date: Mon, 09 Dec 2024 23:20:33 +0000
+References: <20241205165914.1071102-1-kuba@kernel.org>
+In-Reply-To: <20241205165914.1071102-1-kuba@kernel.org>
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org, edumazet@google.com,
+ pabeni@redhat.com, johannes@sipsolutions.net, richardcochran@gmail.com,
+ ryazanov.s.a@gmail.com, ecree.xilinx@gmail.com, wintera@linux.ibm.com,
+ pablo@netfilter.org, loic.poulain@linaro.org, dsahern@kernel.org,
+ hawk@kernel.org, ilias.apalodimas@linaro.org, jhs@mojatatu.com,
+ jiri@resnulli.us, przemyslaw.kitszel@intel.com,
+ netfilter-devel@vger.kernel.org, linux-wireless@vger.kernel.org
 
-Hi,
+Hello:
 
-I have some policies implemented using iptables and xt_bpf. Looks like
-nftables doesn't have support for xt_bpf.
-Is there any plan to add this feature support to nftables in the future?
+This patch was applied to netdev/net-next.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
 
+On Thu,  5 Dec 2024 08:59:14 -0800 you wrote:
+> kernel-doc -Wall warns about missing Return: statement for non-void
+> functions. We have a number of kdocs in our headers which are missing
+> the colon, IOW they use
+>  * Return some value
+> or
+>  * Returns some value
+> 
+> [...]
 
+Here is the summary with links:
+  - [net-next,v2] net: reformat kdoc return statements
+    https://git.kernel.org/netdev/net-next/c/3f330db30638
+
+You are awesome, thank you!
 -- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-Sridhar  Mahadevan
+
