@@ -1,34 +1,33 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 50FE023FA00;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id E9DA224037A;
 	Tue, 10 Dec 2024 22:02:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733868170; cv=none; b=neI7eMYHLDm27yTPeMITMRA4lPF80qHVyn22UhkLrD0ZsofR2Wskbv5syUorYmiwgoWTIGleijBSji/5tsjkvuUQeovMkvQ9KZLExdbiv1qi7AxjAVKF8ymqoKrn1zQpuFtW7+EP8+qhvzpl7qamOc+eNpp6cNx+biwfSkOTiFQ=
+	t=1733868171; cv=none; b=PkrPoIBLWPhSHkut0Na5Ggol9taF+gOcFSncIi/JdACgqaEHc6MSbsfI+oeny913AbE0WyoTJNRoGwRai4o8+Z/3F55Xg7i8H/3SSW+vgw+81gXNwT24KhI2OtN5UkB1r9WNmlfRo1v5FjWOlc9iMr62ri4vVV1fdISafRSx29g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733868170; c=relaxed/simple;
-	bh=JTtHnl8SBt0ums+WrwYX/WsLEXzsL5v9nTYLAjtwmJg=;
+	s=arc-20240116; t=1733868171; c=relaxed/simple;
+	bh=siPScLtqpZlGpP8htPBFN6m6C31j8AmD1yYypWDBtIs=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=Q0x26eebH1j1ImZWacafj1BruSUt4wywVd0fWHCdpToMyLX3GPd7YI4bsJl18kvwg8dvuDM/aSNgPIw4XnMo+nOrZ6EqtTlK4vvktbg5yDOyDYjOVuN1ibusxLckJJ80M62S1bspKSqh7kmsq2BcZ4XRus/eDZ99pxDi3ZoIsgo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=k1q7WXOx; arc=none smtp.client-ip=13.77.154.182
+	 In-Reply-To:To:Cc; b=XwsJ5kBzIDhZ3KfTC5Xqo2ieVPUdy4frQet2PVSw/H1ExCFfSIS5E/ErJOYoOS6hr7U1+ZrT15Q9EIi4U0I9fxjgRAbRuaAtgbQOk35cdRwotNmC8UqKL2Ag9tRbNqzxIZ2RxBWvFN5cf91KMxP9CRLhwaVAan4WT3b9xC/mBMk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=VsljeNAY; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="k1q7WXOx"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="VsljeNAY"
 Received: from eahariha-devbox.internal.cloudapp.net (unknown [40.91.112.99])
-	by linux.microsoft.com (Postfix) with ESMTPSA id A7DE320BCAEA;
-	Tue, 10 Dec 2024 14:02:37 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com A7DE320BCAEA
+	by linux.microsoft.com (Postfix) with ESMTPSA id 93EFE20ACD6D;
+	Tue, 10 Dec 2024 14:02:39 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 93EFE20ACD6D
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1733868157;
-	bh=WjXR/e+Bt5J36pfaIEwWXUE8wYei/ElgtSssYeLrLS0=;
+	s=default; t=1733868159;
+	bh=2Yxce1Hb0/0P5cE6q+zb1yt8qEYqdCG+5Hx3X7W7CLE=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=k1q7WXOxk1qYLVn196G3sb8s3XVjdPiH9giyU/vMWpK4NQiBox8ErAeTFxnenHayv
-	 1NLSp5g4CPg/qfYp440BlKTVCcToWDafQQXFfUYhXGaNJP4LCGPckmvvkPFrzQ2ykv
-	 8WoFkMMhJxjwt/2RQ+Oo6g69AunqDN5xYmAoTPZY=
+	b=VsljeNAYadFajIAeGJ9FMKFBGspy6ozrhBqU582XvcWkNMj13LfQdRwOadXZG5Pxf
+	 Argps4EtZvFIc7JynbCTgqDrOVF3u5K7Ah2l9+nekqV0coL2L+cEZsIcBHPG5GDao7
+	 B4HNxmwT4io4VbogtubQ+pF0xj14MXNsqvxe10Z0=
 From: Easwar Hariharan <eahariha@linux.microsoft.com>
-Date: Tue, 10 Dec 2024 22:02:38 +0000
-Subject: [PATCH v3 07/19] accel/habanalabs: Convert timeouts to
- secs_to_jiffies()
+Date: Tue, 10 Dec 2024 22:02:48 +0000
+Subject: [PATCH v3 17/19] ceph: Convert timeouts to secs_to_jiffies()
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,7 +36,7 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20241210-converge-secs-to-jiffies-v3-7-ddfefd7e9f2a@linux.microsoft.com>
+Message-Id: <20241210-converge-secs-to-jiffies-v3-17-ddfefd7e9f2a@linux.microsoft.com>
 References: <20241210-converge-secs-to-jiffies-v3-0-ddfefd7e9f2a@linux.microsoft.com>
 In-Reply-To: <20241210-converge-secs-to-jiffies-v3-0-ddfefd7e9f2a@linux.microsoft.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>, 
@@ -122,37 +121,22 @@ the following Coccinelle rules:
 
 Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
 ---
- drivers/accel/habanalabs/common/device.c         | 2 +-
- drivers/accel/habanalabs/common/habanalabs_drv.c | 3 +--
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ fs/ceph/quota.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/accel/habanalabs/common/device.c b/drivers/accel/habanalabs/common/device.c
-index e0cf3b4343bb081638430f2552ed27431b488ff9..30277ae410d4b742ffb7bddc35498564ff96fe62 100644
---- a/drivers/accel/habanalabs/common/device.c
-+++ b/drivers/accel/habanalabs/common/device.c
-@@ -817,7 +817,7 @@ static void device_hard_reset_pending(struct work_struct *work)
- 		}
- 
- 		queue_delayed_work(hdev->reset_wq, &device_reset_work->reset_work,
--					msecs_to_jiffies(HL_PENDING_RESET_PER_SEC * 1000));
-+					secs_to_jiffies(HL_PENDING_RESET_PER_SEC));
- 	}
- }
- 
-diff --git a/drivers/accel/habanalabs/common/habanalabs_drv.c b/drivers/accel/habanalabs/common/habanalabs_drv.c
-index 5409b2c656c803f6d172dd882711357061f30022..596c52e8aa266bf48e2be45e719adb202604577b 100644
---- a/drivers/accel/habanalabs/common/habanalabs_drv.c
-+++ b/drivers/accel/habanalabs/common/habanalabs_drv.c
-@@ -361,8 +361,7 @@ static void fixup_device_params_per_asic(struct hl_device *hdev, int timeout)
- 		 * a different default timeout for Gaudi
- 		 */
- 		if (timeout == HL_DEFAULT_TIMEOUT_LOCKED)
--			hdev->timeout_jiffies = msecs_to_jiffies(GAUDI_DEFAULT_TIMEOUT_LOCKED *
--										MSEC_PER_SEC);
-+			hdev->timeout_jiffies = secs_to_jiffies(GAUDI_DEFAULT_TIMEOUT_LOCKED);
- 
- 		hdev->reset_upon_device_release = 0;
- 		break;
+diff --git a/fs/ceph/quota.c b/fs/ceph/quota.c
+index 06ee397e0c3a6172592e62dba95cd267cfff0db1..d90eda19bcc4618f98bfed833c10a6071cf2e2ac 100644
+--- a/fs/ceph/quota.c
++++ b/fs/ceph/quota.c
+@@ -166,7 +166,7 @@ static struct inode *lookup_quotarealm_inode(struct ceph_mds_client *mdsc,
+ 	if (IS_ERR(in)) {
+ 		doutc(cl, "Can't lookup inode %llx (err: %ld)\n", realm->ino,
+ 		      PTR_ERR(in));
+-		qri->timeout = jiffies + msecs_to_jiffies(60 * 1000); /* XXX */
++		qri->timeout = jiffies + secs_to_jiffies(60); /* XXX */
+ 	} else {
+ 		qri->timeout = 0;
+ 		qri->inode = in;
 
 -- 
 2.43.0
