@@ -1,140 +1,123 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lj1-f173.google.com (mail-lj1-f173.google.com [209.85.208.173])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE7692770B;
-	Wed, 11 Dec 2024 07:45:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA6C623FD27
+	for <netfilter-devel@vger.kernel.org>; Wed, 11 Dec 2024 12:46:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733903144; cv=none; b=GzDdI8hzaLQn2L/XfHrecY7IjZbvhKwZT7Dd5/iy6ywS2PencOYkUYj+LW0z9lwpbb2MoXTwZyVzeUWJtd6Atz4GySrrr1K7+UGKJLSfYQyACJAhWZa3OVEPKqTcJ1JaHdMRW/3zOnMLdJZi73C/OdpF64/gmLG2JA5gWoDb+Xc=
+	t=1733921186; cv=none; b=pd2Y4KQvyYSHRYKwLSWAMwlYFFe4R0NOzIICVUWfiRuYnrFZ7pmKDKg8nAQwS0oULj0OJDDk1KaGp55uD215vGqaI0KFf0Zch7fOuJBaXLWf8ajPy9jR0rT5Vaz8fBmXUHeGE/eyNRSMwFzcfePpivX04ryfxi8OIqmeTbKnj+U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733903144; c=relaxed/simple;
-	bh=KM5Of7mM53fIwBBiaYiiUQ9BfxtVrpykBzubAzmUdlE=;
-	h=From:To:Cc:Subject:References:Date:In-Reply-To:Message-ID:
-	 MIME-Version:Content-Type; b=Re7CwYGk0kjql/dgwi39nC3/6P1g4Qr2/BpXTFBnYXbW45mzbuTXRJbChPY6v+HMXcylNM54cu2dK2BL28fNR/oinvTj/pj273ukDI4ga6KLK3+U6g2qv4nTxIdNUQ57ljUBIBGcxHRuuORmx9AK2bo+r3bGpZiu+0yzceHYVNw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZaN44Yyj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733921186; c=relaxed/simple;
+	bh=ljytafcL4yuL6A3mBTqsDzIsfHaoog36bhny0bY+VLA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=M1Q6qg5HNA4oi4Vt9s97d1I/Vqgx6HB7far7Vo2obKfGnSY4K5f+PjIyQurMFCbGh6BeVb7yUCMaCrPInWPJX6sxxZxKd1OYXkRgJ5Z4JpEtpuoH/TL4bHF+2wUSd6XfkuxA5ETeOX9RRYhJJ7tDtlJ3jsm/4aiLiEAONt7IJCs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=bgdev.pl; spf=none smtp.mailfrom=bgdev.pl; dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b=jLH76Wpd; arc=none smtp.client-ip=209.85.208.173
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=bgdev.pl
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bgdev.pl
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZaN44Yyj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8A77C4CED2;
-	Wed, 11 Dec 2024 07:45:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1733903143;
-	bh=KM5Of7mM53fIwBBiaYiiUQ9BfxtVrpykBzubAzmUdlE=;
-	h=From:To:Cc:Subject:References:Date:In-Reply-To:From;
-	b=ZaN44YyjhRMRn1ZZ+GmTOS40UgIRbhL4wBsfJy8XjSPG4QXarlwE2h8LLmlSyCwwE
-	 mhsyVMxQDuDVaxW28PxQeU8er7lMNhKnh1DPb1k4CbIDr8a5tkumkBV/uTN9xwnFYp
-	 h1HNwJmQE+rv8LC4BNlfDvTcPd5XXQGZmdVG4PmZqn4aLOwa4oWj50GSY3CEXVAf2K
-	 4s9JO62HtV4AyzHzBTTKIyxerUXbJDme/tcsfk9nrdzoiXAN6SWU/JWU3UcTsBRxgt
-	 rxzg89ETMye2AN+BOVUz+OAR29EzCnQNdPIoMqWIY7xMbpGfvp3pWcUv4qGp3pyh75
-	 7MY47GTKlC4gQ==
-From: Kalle Valo <kvalo@kernel.org>
-To: Easwar Hariharan <eahariha@linux.microsoft.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,  Jozsef Kadlecsik
- <kadlec@netfilter.org>,  "David S. Miller" <davem@davemloft.net>,  Eric
- Dumazet <edumazet@google.com>,  Jakub Kicinski <kuba@kernel.org>,  Paolo
- Abeni <pabeni@redhat.com>,  Simon Horman <horms@kernel.org>,  Julia Lawall
- <Julia.Lawall@inria.fr>,  Nicolas Palix <nicolas.palix@imag.fr>,  Daniel
- Mack <daniel@zonque.org>,  Haojian Zhuang <haojian.zhuang@gmail.com>,
-  Robert Jarzmik <robert.jarzmik@free.fr>,  Russell King
- <linux@armlinux.org.uk>,  Heiko Carstens <hca@linux.ibm.com>,  Vasily
- Gorbik <gor@linux.ibm.com>,  Alexander Gordeev <agordeev@linux.ibm.com>,
-  Christian Borntraeger <borntraeger@linux.ibm.com>,  Sven Schnelle
- <svens@linux.ibm.com>,  Ofir Bitton <obitton@habana.ai>,  Oded Gabbay
- <ogabbay@kernel.org>,  Lucas De Marchi <lucas.demarchi@intel.com>,  Thomas
- =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,  Rodrigo
- Vivi
- <rodrigo.vivi@intel.com>,  Maarten Lankhorst
- <maarten.lankhorst@linux.intel.com>,  Maxime Ripard <mripard@kernel.org>,
-  Thomas Zimmermann <tzimmermann@suse.de>,  David Airlie
- <airlied@gmail.com>,  Simona Vetter <simona@ffwll.ch>,  Jeroen de Borst
- <jeroendb@google.com>,  Praveen Kaligineedi <pkaligineedi@google.com>,
-  Shailend Chand <shailend@google.com>,  Andrew Lunn
- <andrew+netdev@lunn.ch>,  James Smart <james.smart@broadcom.com>,  Dick
- Kennedy <dick.kennedy@broadcom.com>,  "James E.J. Bottomley"
- <James.Bottomley@HansenPartnership.com>,  "Martin K. Petersen"
- <martin.petersen@oracle.com>,  Roger Pau =?utf-8?Q?Monn=C3=A9?=
- <roger.pau@citrix.com>,
-  Jens Axboe <axboe@kernel.dk>,  Jeff Johnson <jjohnson@kernel.org>,
-  Catalin Marinas <catalin.marinas@arm.com>,  Andrew Morton
- <akpm@linux-foundation.org>,  Jack Wang <jinpu.wang@cloud.ionos.com>,
-  Marcel Holtmann <marcel@holtmann.org>,  Johan Hedberg
- <johan.hedberg@gmail.com>,  Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
-  Greg Kroah-Hartman <gregkh@linuxfoundation.org>,  Florian Fainelli
- <florian.fainelli@broadcom.com>,  Ray Jui <rjui@broadcom.com>,  Scott
- Branden <sbranden@broadcom.com>,  Broadcom internal kernel review list
- <bcm-kernel-feedback-list@broadcom.com>,  Xiubo Li <xiubli@redhat.com>,
-  Ilya Dryomov <idryomov@gmail.com>,  Josh Poimboeuf <jpoimboe@kernel.org>,
-  Jiri Kosina <jikos@kernel.org>,  Miroslav Benes <mbenes@suse.cz>,  Petr
- Mladek <pmladek@suse.com>,  Joe Lawrence <joe.lawrence@redhat.com>,
-  Jaroslav Kysela <perex@perex.cz>,  Takashi Iwai <tiwai@suse.com>,  Louis
- Peens <louis.peens@corigine.com>,  Michael Ellerman <mpe@ellerman.id.au>,
-  Nicholas Piggin <npiggin@gmail.com>,  Christophe Leroy
- <christophe.leroy@csgroup.eu>,  Naveen N Rao <naveen@kernel.org>,
-  Madhavan Srinivasan <maddy@linux.ibm.com>,
-  netfilter-devel@vger.kernel.org,  coreteam@netfilter.org,
-  netdev@vger.kernel.org,  linux-kernel@vger.kernel.org,  cocci@inria.fr,
-  linux-arm-kernel@lists.infradead.org,  linux-s390@vger.kernel.org,
-  dri-devel@lists.freedesktop.org,  intel-xe@lists.freedesktop.org,
-  linux-scsi@vger.kernel.org,  xen-devel@lists.xenproject.org,
-  linux-block@vger.kernel.org,  linux-wireless@vger.kernel.org,
-  ath11k@lists.infradead.org,  linux-mm@kvack.org,
-  linux-bluetooth@vger.kernel.org,  linux-staging@lists.linux.dev,
-  linux-rpi-kernel@lists.infradead.org,  ceph-devel@vger.kernel.org,
-  live-patching@vger.kernel.org,  linux-sound@vger.kernel.org,
-  oss-drivers@corigine.com,  linuxppc-dev@lists.ozlabs.org,  Anna-Maria
- Behnsen <anna-maria@linutronix.de>,  Jeff Johnson
- <quic_jjohnson@quicinc.com>
-Subject: Re: [PATCH v3 14/19] wifi: ath11k: Convert timeouts to
- secs_to_jiffies()
-References: <20241210-converge-secs-to-jiffies-v3-0-ddfefd7e9f2a@linux.microsoft.com>
-	<20241210-converge-secs-to-jiffies-v3-14-ddfefd7e9f2a@linux.microsoft.com>
-	<87sequr7ho.fsf@kernel.org>
-Date: Wed, 11 Dec 2024 09:45:24 +0200
-In-Reply-To: <87sequr7ho.fsf@kernel.org> (Kalle Valo's message of "Wed, 11 Dec
-	2024 09:42:11 +0200")
-Message-ID: <87o71ir7cb.fsf@kernel.org>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/28.2 (gnu/linux)
+	dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b="jLH76Wpd"
+Received: by mail-lj1-f173.google.com with SMTP id 38308e7fff4ca-30167f4c1deso34630261fa.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 Dec 2024 04:46:24 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1733921183; x=1734525983; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=fMRrLT8PBkUb9uwSo3UZOKSbeLIunajxVCGqM67QreU=;
+        b=jLH76Wpd0C0oMGqzQv4/KNkLyf+MP0zmD+BLvtwo0hYDG57HDm+0OIh/SRbPkjIWDM
+         Y30SOYh2eu9Rham1AE6QsuYzNVJQR4SEiBNwLWa17mDli8DFhtXcALgj+0RyKKSMdgLr
+         CcsDTLiKF95tDavEA59gnrS0fjlCOU0bb2HH9iYQambCbjzWcPMvTtpaNWV2hsB7R5Av
+         SNatHInKJuVN5Op7nXO10fwbDJr/GpcDRivwrIToC3qRA0cL888EFyjlNWQujClQxV31
+         uTxAcuRROaE8Rt70yiwYJUz5/3jq2DT06WSwB8ShrS1wdhPqzDImkk8LpWUlGlmQZnOP
+         QtYw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1733921183; x=1734525983;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=fMRrLT8PBkUb9uwSo3UZOKSbeLIunajxVCGqM67QreU=;
+        b=ACLmUbk//ZBrapWPVlHgrcZjboS3bShhg560vl07x2d1IxFfIea7VOI/mGavTCCfyU
+         rP9rtC190qCafNw2EO5kUae1FAlKsqGtE8OaU36v0rr/5CnSvVQuBfD7EcYZHvKKxdc5
+         QkKccv210TQsYPqWc9jvJdGduSDY0JF6wrZNVhe03Zk2t7bqeAgMlF8aKc5v6LibmTmm
+         8n5JwxC/Df1xhBROBhL5tusqelvFGbxVZvia1xAlSRQOjeBvGT2eq2/khBtlyUomiUET
+         dJCTJU6nEpo/IrPVjAvPkqvETO+RVp1GO3gpfnYsF8UUniWQrCY4weQDNmZC55tEhy6d
+         GGyg==
+X-Forwarded-Encrypted: i=1; AJvYcCVn++8ZA7cIlYK8YsDJnYBwW8lpc4uittn0e9nV+NhF2YVOhuAmx/SX0QlcOPYLjpNQXXIq3oNk5/+8rETkUKw=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzZvVWeFrhq+IviqxWlffuTCZC0I/wKgNVyLAoQvsYiL4ifQtQB
+	a9ly5QkLD+EOfQK7YquoT9nU2xp/YR9np74vaGOjD9EFmEikAsGp89D5Vpb6+rxvP8uS92dK+MT
+	yMIfk1C+3SmjjPUbq7c+aKN8k/PXQ17hVy3y3QA==
+X-Gm-Gg: ASbGncvuTUFWP60zCxfz8X2cBF01pOouRZmEt5daccSuuF2svp8nrERo35rR/PnmWZj
+	SQUOkYi64NMHvY2VtNNkqrUaXuXkkk0lcCI2wjiYY6xnkELMSUYeZ4Y1Vy9isU4ZeXFKXoQ==
+X-Google-Smtp-Source: AGHT+IGSGpq67S3KPhxv0QaGyYpi7Ds7VIRtelTKmN8kUlCb5EZQ5DwEZ8oJuL//LObkvog2EV/g3poagrgtfeFDHng=
+X-Received: by 2002:a2e:9fcb:0:b0:302:2620:ec89 with SMTP id
+ 38308e7fff4ca-30240cfb673mr9672121fa.19.1733921182952; Wed, 11 Dec 2024
+ 04:46:22 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+References: <CA+G9fYsT34UkGFKxus63H6UVpYi5GRZkezT9MRLfAbM3f6ke0g@mail.gmail.com>
+ <8dde5a62-4ce6-4954-86c9-54d961aed6df@stanley.mountain> <CA+G9fYv5gW1gByakU1yyQ__BoAKWkCcg=vGGyNep7+5p9_2uJA@mail.gmail.com>
+ <bd95d7249ff94e31beb11b3f71a64e87@AcuMS.aculab.com>
+In-Reply-To: <bd95d7249ff94e31beb11b3f71a64e87@AcuMS.aculab.com>
+From: Bartosz Golaszewski <brgl@bgdev.pl>
+Date: Wed, 11 Dec 2024 13:46:11 +0100
+Message-ID: <CAMRc=Mf8CmKs-_FddnLFU7aoOAPU6Xv8MqyZo8x9Uv-Eu+hs_g@mail.gmail.com>
+Subject: Re: arm64: include/linux/compiler_types.h:542:38: error: call to
+ '__compiletime_assert_1050' declared with attribute error: clamp() low limit
+ min greater than high limit max_avail
+To: David Laight <David.Laight@aculab.com>
+Cc: Naresh Kamboju <naresh.kamboju@linaro.org>, Dan Carpenter <dan.carpenter@linaro.org>, 
+	open list <linux-kernel@vger.kernel.org>, 
+	"lkft-triage@lists.linaro.org" <lkft-triage@lists.linaro.org>, 
+	Linux Regressions <regressions@lists.linux.dev>, 
+	Linux ARM <linux-arm-kernel@lists.infradead.org>, 
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, 
+	Anders Roxell <anders.roxell@linaro.org>, Johannes Berg <johannes.berg@intel.com>, 
+	"toke@kernel.org" <toke@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, 
+	"kernel@jfarr.cc" <kernel@jfarr.cc>, "kees@kernel.org" <kees@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Kalle Valo <kvalo@kernel.org> writes:
-
-> Easwar Hariharan <eahariha@linux.microsoft.com> writes:
+On Fri, Dec 6, 2024 at 3:20=E2=80=AFAM David Laight <David.Laight@aculab.co=
+m> wrote:
 >
->> Commit b35108a51cf7 ("jiffies: Define secs_to_jiffies()") introduced
->> secs_to_jiffies(). As the value here is a multiple of 1000, use
->> secs_to_jiffies() instead of msecs_to_jiffies to avoid the multiplication.
->>
->> This is converted using scripts/coccinelle/misc/secs_to_jiffies.cocci with
->> the following Coccinelle rules:
->>
->> @@ constant C; @@
->>
->> - msecs_to_jiffies(C * 1000)
->> + secs_to_jiffies(C)
->>
->> @@ constant C; @@
->>
->> - msecs_to_jiffies(C * MSEC_PER_SEC)
->> + secs_to_jiffies(C)
->>
->> Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
->> Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
->> ---
->>  drivers/net/wireless/ath/ath11k/debugfs.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
+> From: Naresh Kamboju
+> > Sent: 05 December 2024 18:42
+> >
+> > On Thu, 5 Dec 2024 at 20:46, Dan Carpenter <dan.carpenter@linaro.org> w=
+rote:
+> > >
+> > > Add David to the CC list.
+> >
+> > Anders bisected this reported issue and found the first bad commit as,
+> >
+> > # first bad commit:
+> >   [ef32b92ac605ba1b7692827330b9c60259f0af49]
+> >   minmax.h: use BUILD_BUG_ON_MSG() for the lo < hi test in clamp()
 >
-> I assume we can take this to our ath.git tree, please let us know if
-> that's not the case.
+> That 'just' changed the test to use __builtin_constant_p() and
+> thus gets checked after the optimiser has run.
+>
+> I can paraphrase the code as:
+> unsigned int fn(unsigned int x)
+> {
+>         return clamp(10, 5, x =3D=3D 0 ? 0 : x - 1);
+> }
+> which is never actually called with x <=3D 5.
+> The compiler converts it to:
+>         return x < 0 ? clamp(10, 5, 0) : clamp(10, 5, x);
+> (Probably because it can see that clamp(10, 5, 0) is constant.)
+> And then the compile-time sanity check in clamp() fires.
+>
+> The order of the arguments to clamp is just wrong!
+>
+>         David
+>
 
-Nevermind, I now saw the discussion in the cover letter and assume that
-this patch will be sent separately.
+The build is still failing with today's next, should the offending
+commit be reverted?
 
--- 
-https://patchwork.kernel.org/project/linux-wireless/list/
-
-https://wireless.wiki.kernel.org/en/developers/documentation/submittingpatches
+Bartosz
