@@ -1,13 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 151F21C07D8;
-	Wed, 11 Dec 2024 23:01:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9D71C1C1F2F;
+	Wed, 11 Dec 2024 23:01:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733958103; cv=none; b=stuUsO1PQVRGpl+4ZaJHYRFs2Ec2m5rXiBKGtnDRCl5dcK2tyEbuop/mGEeeFiNvR6ybLzjdpYw2pnI8qRMcUuGcOCOVF8/qI+Ra0XKdvpAt0YBLqWeZZ3k/c0fAnrLbXRDXm6mlMSUDk6Uc5q0YQXrsCL3VYNfg9K0fUA+haxs=
+	t=1733958104; cv=none; b=OfceAzEtFijQJYu1eNC3g7/2o4pccNNyvqorJcMsr47JfYeaNkqdY46IkUeG4oiuphjCbow7tTr9P+2HWzJMRWfAP7+YYjx66QgsOpejNmWog1/iiJ77XPgIOPpM7X6xls6OjBWcCElGM/Ct47YfnC83wMllBxx81iKLShV1AKk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733958103; c=relaxed/simple;
-	bh=42T/xrKErMOh83l9sTZL+EWwQ1rbLEDjNUpsmsm/yNY=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=lCOupSJ7/z7bSgQbLpBNw6Y9ixSfnlb3ywThPJDclmHZ4lVobOGFzKQnpW2qWs/r0tPgkLjUXw68cAsGrtE5VPQgeH327SyZV8oKuCjHyhQWw/Iltzu01hMFrZqEbq5oqxNmFWjx5VmGwi5MARZfobfw2+6lRl/u8ac1oL2+OwA=
+	s=arc-20240116; t=1733958104; c=relaxed/simple;
+	bh=LR3mbaWIOrSc78aLlgRKjl76IaI/JO0hIskJHCX8kps=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=ZsWVWzxs+JkqdNzv5pUpGhfsnqYO38BzTMsFOwY9Q0Wsbj+IsiciR1eZaF8wK8pSnROT5JcMC5PF7uKjiXwJAKGd8TWERsDvTxchtkajikSlV6PCY1fMZt4/5RERz9WDduCL0iyvScTcfJrgz1M37XE0572Hnq4S+R1XSsA3aWo=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,10 +21,12 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	phil@netfilter.org
-Subject: [PATCH net 0/3] Netfilter fixes for net
-Date: Thu, 12 Dec 2024 00:01:27 +0100
-Message-Id: <20241211230130.176937-1-pablo@netfilter.org>
+Subject: [PATCH net 2/3] netfilter: IDLETIMER: Fix for possible ABBA deadlock
+Date: Thu, 12 Dec 2024 00:01:29 +0100
+Message-Id: <20241211230130.176937-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20241211230130.176937-1-pablo@netfilter.org>
+References: <20241211230130.176937-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -32,55 +35,125 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Phil Sutter <phil@nwl.cc>
 
-The following patchset contains Netfilter fixes for net:
+Deletion of the last rule referencing a given idletimer may happen at
+the same time as a read of its file in sysfs:
 
-1) Fix bogus test reports in rpath.sh selftest by adding permanent
-   neighbor entries, from Phil Sutter.
+| ======================================================
+| WARNING: possible circular locking dependency detected
+| 6.12.0-rc7-01692-g5e9a28f41134-dirty #594 Not tainted
+| ------------------------------------------------------
+| iptables/3303 is trying to acquire lock:
+| ffff8881057e04b8 (kn->active#48){++++}-{0:0}, at: __kernfs_remove+0x20
+|
+| but task is already holding lock:
+| ffffffffa0249068 (list_mutex){+.+.}-{3:3}, at: idletimer_tg_destroy_v]
+|
+| which lock already depends on the new lock.
 
-2) Lockdep reports possible ABBA deadlock in xt_IDLETIMER, fix it by
-   removing sysfs out of the mutex section, also from Phil Sutter.
+A simple reproducer is:
 
-3) It is illegal to release basechain via RCU callback, for several
-   reasons. Keep it simple and safe by calling synchronize_rcu() instead.
-   This is a partially reverting a botched recent attempt of me to fix
-   this basechain release path on netdevice removal.
-   From Florian Westphal.
+| #!/bin/bash
+|
+| while true; do
+|         iptables -A INPUT -i foo -j IDLETIMER --timeout 10 --label "testme"
+|         iptables -D INPUT -i foo -j IDLETIMER --timeout 10 --label "testme"
+| done &
+| while true; do
+|         cat /sys/class/xt_idletimer/timers/testme >/dev/null
+| done
 
-Please, pull these changes from:
+Avoid this by freeing list_mutex right after deleting the element from
+the list, then continuing with the teardown.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-24-12-11
+Fixes: 0902b469bd25 ("netfilter: xtables: idletimer target implementation")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/xt_IDLETIMER.c | 52 +++++++++++++++++++-----------------
+ 1 file changed, 28 insertions(+), 24 deletions(-)
 
-Thanks.
+diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
+index 85f017e37cfc..9f54819eb52c 100644
+--- a/net/netfilter/xt_IDLETIMER.c
++++ b/net/netfilter/xt_IDLETIMER.c
+@@ -407,21 +407,23 @@ static void idletimer_tg_destroy(const struct xt_tgdtor_param *par)
+ 
+ 	mutex_lock(&list_mutex);
+ 
+-	if (--info->timer->refcnt == 0) {
+-		pr_debug("deleting timer %s\n", info->label);
+-
+-		list_del(&info->timer->entry);
+-		timer_shutdown_sync(&info->timer->timer);
+-		cancel_work_sync(&info->timer->work);
+-		sysfs_remove_file(idletimer_tg_kobj, &info->timer->attr.attr);
+-		kfree(info->timer->attr.attr.name);
+-		kfree(info->timer);
+-	} else {
++	if (--info->timer->refcnt > 0) {
+ 		pr_debug("decreased refcnt of timer %s to %u\n",
+ 			 info->label, info->timer->refcnt);
++		mutex_unlock(&list_mutex);
++		return;
+ 	}
+ 
++	pr_debug("deleting timer %s\n", info->label);
++
++	list_del(&info->timer->entry);
+ 	mutex_unlock(&list_mutex);
++
++	timer_shutdown_sync(&info->timer->timer);
++	cancel_work_sync(&info->timer->work);
++	sysfs_remove_file(idletimer_tg_kobj, &info->timer->attr.attr);
++	kfree(info->timer->attr.attr.name);
++	kfree(info->timer);
+ }
+ 
+ static void idletimer_tg_destroy_v1(const struct xt_tgdtor_param *par)
+@@ -432,25 +434,27 @@ static void idletimer_tg_destroy_v1(const struct xt_tgdtor_param *par)
+ 
+ 	mutex_lock(&list_mutex);
+ 
+-	if (--info->timer->refcnt == 0) {
+-		pr_debug("deleting timer %s\n", info->label);
+-
+-		list_del(&info->timer->entry);
+-		if (info->timer->timer_type & XT_IDLETIMER_ALARM) {
+-			alarm_cancel(&info->timer->alarm);
+-		} else {
+-			timer_shutdown_sync(&info->timer->timer);
+-		}
+-		cancel_work_sync(&info->timer->work);
+-		sysfs_remove_file(idletimer_tg_kobj, &info->timer->attr.attr);
+-		kfree(info->timer->attr.attr.name);
+-		kfree(info->timer);
+-	} else {
++	if (--info->timer->refcnt > 0) {
+ 		pr_debug("decreased refcnt of timer %s to %u\n",
+ 			 info->label, info->timer->refcnt);
++		mutex_unlock(&list_mutex);
++		return;
+ 	}
+ 
++	pr_debug("deleting timer %s\n", info->label);
++
++	list_del(&info->timer->entry);
+ 	mutex_unlock(&list_mutex);
++
++	if (info->timer->timer_type & XT_IDLETIMER_ALARM) {
++		alarm_cancel(&info->timer->alarm);
++	} else {
++		timer_shutdown_sync(&info->timer->timer);
++	}
++	cancel_work_sync(&info->timer->work);
++	sysfs_remove_file(idletimer_tg_kobj, &info->timer->attr.attr);
++	kfree(info->timer->attr.attr.name);
++	kfree(info->timer);
+ }
+ 
+ 
+-- 
+2.30.2
 
-----------------------------------------------------------------
-
-The following changes since commit 31f1b55d5d7e531cd827419e5d71c19f24de161c:
-
-  net :mana :Request a V2 response version for MANA_QUERY_GF_STAT (2024-12-05 12:02:15 +0100)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-24-12-11
-
-for you to fetch changes up to b04df3da1b5c6f6dc7cdccc37941740c078c4043:
-
-  netfilter: nf_tables: do not defer rule destruction via call_rcu (2024-12-11 23:27:50 +0100)
-
-----------------------------------------------------------------
-netfilter pull request 24-12-11
-
-----------------------------------------------------------------
-Florian Westphal (1):
-      netfilter: nf_tables: do not defer rule destruction via call_rcu
-
-Phil Sutter (2):
-      selftests: netfilter: Stabilize rpath.sh
-      netfilter: IDLETIMER: Fix for possible ABBA deadlock
-
- include/net/netfilter/nf_tables.h              |  4 --
- net/netfilter/nf_tables_api.c                  | 32 ++++++++--------
- net/netfilter/xt_IDLETIMER.c                   | 52 ++++++++++++++------------
- tools/testing/selftests/net/netfilter/rpath.sh | 18 ++++++++-
- 4 files changed, 59 insertions(+), 47 deletions(-)
