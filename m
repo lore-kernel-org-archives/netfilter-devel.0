@@ -1,265 +1,155 @@
-Received: from smtp-1908.mail.infomaniak.ch (smtp-1908.mail.infomaniak.ch [185.125.25.8])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 427D62101A0
-	for <netfilter-devel@vger.kernel.org>; Thu, 12 Dec 2024 18:43:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.125.25.8
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id F31AB2F2F
+	for <netfilter-devel@vger.kernel.org>; Thu, 12 Dec 2024 22:24:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734029007; cv=none; b=eqXTQc2jDrXOp8MLCcvB3KE+zxne9DiyDMBsN5hE7qTff97HQBVs52MypdML0n+xJ5N6IgmwhvDcGjxITiyhHjqw9TsL7gsqwhNe8dU6fBwGzj6+5DMEofobdteLM/hm5NfBEmsypSFx6c9AciFVwide0wKclAa0e4S256u2aMo=
+	t=1734042287; cv=none; b=X8SzIuLoI8r++NStLGuTRMKtqMJnIMTtrDGpQ8DRlwj7j1QfLGiUW4y6/jVbdoD466B70wvnuJYHtAFoPLv9K8WSy30338FppOBWBEyg7J5LzZY+iSNlJjNmkXTPiorWW1yfkm1fdKONwy3JvIHjPVsGE96f9KnM+QDSiGeNrts=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734029007; c=relaxed/simple;
-	bh=WPeW8EtRRjSbM3Gqryl/zTV+zOBFy8rVXNkNkq6vbaU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=n9qOnMTJmeICnbJ0r4R2yd0NSz50SJ60neGxdfegX/aarjLtTciAwB9vuyradkiTo6SJpFzjK/9QYggSLB3yjXcW0HDkVqgEGHkwV+9gwNTaJ7LmFAfJHqtwZD+4dE99Jkv7hhjXZlHRlzlac4wwt9SErTpPPgtMrpQODOa6Png=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net; spf=pass smtp.mailfrom=digikod.net; dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b=m24QQ47l; arc=none smtp.client-ip=185.125.25.8
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=digikod.net
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b="m24QQ47l"
-Received: from smtp-3-0000.mail.infomaniak.ch (unknown [IPv6:2001:1600:4:17::246b])
-	by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4Y8LvZ4XyDzP0L;
-	Thu, 12 Dec 2024 19:43:22 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=digikod.net;
-	s=20191114; t=1734029002;
-	bh=gi+0AwcCOHahZNLJJenN1xCfRyjgS8Yj9+bAEXIwqeA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=m24QQ47lA21IyeVRO1g4qdx+y3lpapylGxWZ9whxVxCsyAIGPNwY6mrnhqxfOMqly
-	 qBGFHKXIlBrDPDJVf0N05D8184Foax0zykYxSAuIHXRcIXsc4h96gTHjCSSKAv+1Sj
-	 WYBVqGuNPuJ+yxA04OrrbkR9+PEk4PElNJE9eRzY=
-Received: from unknown by smtp-3-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4Y8LvZ0GqRzQyh;
-	Thu, 12 Dec 2024 19:43:22 +0100 (CET)
-Date: Thu, 12 Dec 2024 19:43:18 +0100
-From: =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
-To: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-Cc: Matthieu Baerts <matttbe@kernel.org>, gnoack@google.com, 
-	willemdebruijn.kernel@gmail.com, matthieu@buffet.re, linux-security-module@vger.kernel.org, 
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, yusongping@huawei.com, 
-	artem.kuzin@huawei.com, konstantin.meskhidze@huawei.com, 
-	MPTCP Linux <mptcp@lists.linux.dev>, linux-nfs@vger.kernel.org
-Subject: Re: [RFC PATCH v2 1/8] landlock: Fix non-TCP sockets restriction
-Message-ID: <20241212.qua0Os3sheev@digikod.net>
-References: <20241017110454.265818-1-ivanov.mikhail1@huawei-partners.com>
- <20241017110454.265818-2-ivanov.mikhail1@huawei-partners.com>
- <49bc2227-d8e1-4233-8bc4-4c2f0a191b7c@kernel.org>
- <20241018.Kahdeik0aaCh@digikod.net>
- <62336067-18c2-3493-d0ec-6dd6a6d3a1b5@huawei-partners.com>
+	s=arc-20240116; t=1734042287; c=relaxed/simple;
+	bh=7TNcgXoiSkg0W/BVS79Ngz7lFe82TlmQ0nO0GLfIkR4=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=uOd6fWOEdpQwI8L5Zx62lwuuZGo2gcTV5AZrZ5TayBc+5nAqYVkTDDsk6A213IMKABPRoRoujACRy9rmcwhfFNKhfOqBrGG/1TINvuEUuhY+CkcWr6ngurTJQv1b9a36/j20hzp3i/ROA9WEBo+fFsLn8mww+3g/cu34VCjB9EE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: caskd@redxen.eu
+Subject: [PATCH nft] libnftables: include canonical path to avoid duplicates
+Date: Thu, 12 Dec 2024 23:24:36 +0100
+Message-Id: <20241212222436.179133-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <62336067-18c2-3493-d0ec-6dd6a6d3a1b5@huawei-partners.com>
-X-Infomaniak-Routing: alpha
 
-On Thu, Oct 31, 2024 at 07:21:44PM +0300, Mikhail Ivanov wrote:
-> On 10/18/2024 9:08 PM, Mickaël Salaün wrote:
-> > On Thu, Oct 17, 2024 at 02:59:48PM +0200, Matthieu Baerts wrote:
-> > > Hi Mikhail and Landlock maintainers,
-> > > 
-> > > +cc MPTCP list.
-> > 
-> > Thanks, we should include this list in the next series.
-> > 
-> > > 
-> > > On 17/10/2024 13:04, Mikhail Ivanov wrote:
-> > > > Do not check TCP access right if socket protocol is not IPPROTO_TCP.
-> > > > LANDLOCK_ACCESS_NET_BIND_TCP and LANDLOCK_ACCESS_NET_CONNECT_TCP
-> > > > should not restrict bind(2) and connect(2) for non-TCP protocols
-> > > > (SCTP, MPTCP, SMC).
-> > > 
-> > > Thank you for the patch!
-> > > 
-> > > I'm part of the MPTCP team, and I'm wondering if MPTCP should not be
-> > > treated like TCP here. MPTCP is an extension to TCP: on the wire, we can
-> > > see TCP packets with extra TCP options. On Linux, there is indeed a
-> > > dedicated MPTCP socket (IPPROTO_MPTCP), but that's just internal,
-> > > because we needed such dedicated socket to talk to the userspace.
-> > > 
-> > > I don't know Landlock well, but I think it is important to know that an
-> > > MPTCP socket can be used to discuss with "plain" TCP packets: the kernel
-> > > will do a fallback to "plain" TCP if MPTCP is not supported by the other
-> > > peer or by a middlebox. It means that with this patch, if TCP is blocked
-> > > by Landlock, someone can simply force an application to create an MPTCP
-> > > socket -- e.g. via LD_PRELOAD -- and bypass the restrictions. It will
-> > > certainly work, even when connecting to a peer not supporting MPTCP.
-> > > 
-> > > Please note that I'm not against this modification -- especially here
-> > > when we remove restrictions around MPTCP sockets :) -- I'm just saying
-> > > it might be less confusing for users if MPTCP is considered as being
-> > > part of TCP. A bit similar to what someone would do with a firewall: if
-> > > TCP is blocked, MPTCP is blocked as well.
-> > 
-> > Good point!  I don't know well MPTCP but I think you're right.  Given
-> > it's close relationship with TCP and the fallback mechanism, it would
-> > make sense for users to not make a difference and it would avoid bypass
-> > of misleading restrictions.  Moreover the Landlock rules are simple and
-> > only control TCP ports, not peer addresses, which seems to be the main
-> > evolution of MPTCP. >
-> > > 
-> > > I understand that a future goal might probably be to have dedicated
-> > > restrictions for MPTCP and the other stream protocols (and/or for all
-> > > stream protocols like it was before this patch), but in the meantime, it
-> > > might be less confusing considering MPTCP as being part of TCP (I'm not
-> > > sure about the other stream protocols).
-> > 
-> > We need to take a closer look at the other stream protocols indeed.
-> Hello! Sorry for the late reply, I was on a small business trip.
-> 
-> Thanks a lot for this catch, without doubt MPTCP should be controlled
-> with TCP access rights.
-> 
-> In that case, we should reconsider current semantics of TCP control.
-> 
-> Currently, it looks like this:
-> * LANDLOCK_ACCESS_NET_BIND_TCP: Bind a TCP socket to a local port.
-> * LANDLOCK_ACCESS_NET_CONNECT_TCP: Connect an active TCP socket to a
->   remote port.
-> 
-> According to these definitions only TCP sockets should be restricted and
-> this is already provided by Landlock (considering observing commit)
-> (assuming that "TCP socket" := user space socket of IPPROTO_TCP
-> protocol).
-> 
-> AFAICS the two objectives of TCP access rights are to control
-> (1) which ports can be used for sending or receiving TCP packets
->     (including SYN, ACK or other service packets).
-> (2) which ports can be used to establish TCP connection (performed by
->     kernel network stack on server or client side).
-> 
-> In most cases denying (2) cause denying (1). Sending or receiving TCP
-> packets without initial 3-way handshake is only possible on RAW [1] or
-> PACKET [2] sockets. Usage of such sockets requires root privilligies, so
-> there is no point to control them with Landlock.
+A recent commit adds base directory of -f/--filename to include paths by
+default to address a silly use of -I/--include to make this work:
 
-I agree.
+  # nft -I /path/to -f /path/to/main.nft
 
-> 
-> Therefore Landlock should only take care about case (2). For now
-> (please correct me if I'm wrong), we only considered control of
-> connection performed on user space plain TCP sockets (created with
-> IPPROTO_TCP).
+instead users can simply invoke:
 
-Correct. Landlock is dedicated to sandbox user space processes and the
-related access rights should focus on restricting what is possible
-through syscalls (mainly).
+  # nft -f /path/to/main.nft
 
-> 
-> TCP kernel sockets are generally used in the following ways:
-> * in a couple of other user space protocols (MPTCP, SMC, RDS)
-> * in a few network filesystems (e.g. NFS communication over TCP)
-> 
-> For the second case TCP connection is currently not restricted by
-> Landlock. This approach is may be correct, since NFS should not have
-> access to a plain TCP communication and TCP restriction of NFS may
-> be too implicit. Nevertheless, I think that restriction via current
-> access rights should be considered.
+because /path/to/ is added at the end of the list of include paths.
 
-I'm not sure what you mean here.  I'm not familiar with NFS in the
-kernel.  AFAIK there is no socket type for NFS.
+This example above assumes main.nft includes more files that are
+contained in /path/to/.
 
-> 
-> For the first case, each protocol use TCP differently, so they should
-> be considered separately.
+However, globbing can cause duplicates after this recent update, eg.
 
-Yes, for user-accessible protocols.
+  # cat test/main
+  table inet test {
+        chain test {
+                include "include/*";
+        }
+  }
+  # nft -I /tmp/test/ -f test/main
 
-> 
-> In the case of MPTCP TCP internal sockets are used to establish
-> connection and exchange data between two network interfaces. MPTCP
-> allows to have multiple TCP connections between two MPTCP sockets by
-> connecting different network interfaces (e.g. WIFI and 3G).
-> 
-> Shared Memory Communication is a protocol that allows TCP applications
-> transparently use RDMA for communication [3]. TCP internal socket is
-> used to exchange service CLC messages when establishing SMC connection
-> (which seems harmless for sandboxing) and for communication in the case
-> of fallback. Fallback happens only if RDMA communication became
-> impossible (e.g. if RDMA capable RNIC card went down on host or peer
-> side). So, preventing TCP communication may be achieved by controlling
-> fallback mechanism.
-> 
-> Reliable Datagram Socket is connectionless protocol implemented by
-> Oracle [4]. It uses TCP stack or Infiniband to reliably deliever
-> datagrams. For every sendmsg(2), recvmsg(2) it establishes TCP
-> connection and use it to deliever splitted message.
-> 
-> In comparison with previous protocols, RDS sockets cannot be binded or
-> connected to special TCP ports (e.g. with bind(2), connect(2)). 16385
-> port is assigned to receiving side and sending side is binded to the
-> port allocated by the kernel (by using zero as port number).
-> 
-> It may be useful to restrict RDS-over-TCP with current access rights,
-> since it allows to perform TCP communication from user-space. But it
-> would be only possible to fully allow or deny sending/receiving
-> (since used ports are not controlled from user space).
+because /tmp/test and test/ twice refer to the same directory and both
+are added to the list of include path.
 
-Thanks for these explanations.  The ability to fine-control specific
-protocol operations (e.g. connect, bind) can be useful for widely used
-protocol such as TCP and UDP (or if someone wants to implement it for
-another protocol), but this approach would not scale with all protocols
-because of their own semantic and the development efforts.  The Landlock
-access rights should be explicit, and we should also be able to deny
-access to a whole set of protocols.  This should be partially possible
-with your socket creation patch series.  I guess the remaining cases
-would be to cover transformation of one socket type to another.  I think
-we could control such transformation by building on top of the socket
-creation control foundation: instead of controlling socket creation, add
-a new access right to control socket transformation.  What do you think?
+Use realpath() to canonicalize include paths. Then, search and skip
+duplicated include paths.
 
-> 
-> Restricting any TCP connection in the kernel is probably simplest
-> design, but we should consider above cases to provide the most useful
-> one.
-> 
-> [1] https://man7.org/linux/man-pages/man7/raw.7.html
-> [2] https://man7.org/linux/man-pages/man7/packet.7.html
-> [3] https://datatracker.ietf.org/doc/html/rfc7609
-> [4] https://oss.oracle.com/projects/rds/dist/documentation/rds-3.1-spec.html
-> 
-> > 
-> > > 
-> > > 
-> > > > sk_is_tcp() is used for this to check address family of the socket
-> > > > before doing INET-specific address length validation. This is required
-> > > > for error consistency.
-> > > > 
-> > > > Closes: https://github.com/landlock-lsm/linux/issues/40
-> > > > Fixes: fff69fb03dde ("landlock: Support network rules with TCP bind and connect")
-> > > 
-> > > I don't know how fixes are considered in Landlock, but should this patch
-> > > be considered as a fix? It might be surprising for someone who thought
-> > > all "stream" connections were blocked to have them unblocked when
-> > > updating to a minor kernel version, no?
-> > 
-> > Indeed.  The main issue was with the semantic/definition of
-> > LANDLOCK_ACCESS_FS_NET_{CONNECT,BIND}_TCP.  We need to synchronize the
-> > code with the documentation, one way or the other, preferably following
-> > the principle of least astonishment.
-> > 
-> > > 
-> > > (Personally, I would understand such behaviour change when upgrading to
-> > > a major version, and still, maybe only if there were alternatives to
-> > 
-> > This "fix" needs to be backported, but we're not clear yet on what it
-> > should be. :)
-> > 
-> > > continue having the same behaviour, e.g. a way to restrict all stream
-> > > sockets the same way, or something per stream socket. But that's just me
-> > > :) )
-> > 
-> > The documentation and the initial idea was to control TCP bind and
-> > connect.  The kernel implementation does more than that, so we need to
-> > synthronize somehow.
-> > 
-> > > 
-> > > Cheers,
-> > > Matt
-> > > -- 
-> > > Sponsored by the NGI0 Core fund.
-> > > 
-> > > 
-> 
+Fixes: 302e9f8b3a13 ("libnftables: add base directory of -f/--filename to include path")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/libnftables.c                             | 29 +++++++++++++++++--
+ .../include/dumps/glob_duplicated_include.nft |  6 ++++
+ .../testcases/include/glob_duplicated_include | 19 ++++++++++++
+ 3 files changed, 52 insertions(+), 2 deletions(-)
+ create mode 100644 tests/shell/testcases/include/dumps/glob_duplicated_include.nft
+ create mode 100755 tests/shell/testcases/include/glob_duplicated_include
+
+diff --git a/src/libnftables.c b/src/libnftables.c
+index 1df22b3cb57d..c8293f77677f 100644
+--- a/src/libnftables.c
++++ b/src/libnftables.c
+@@ -167,8 +167,19 @@ void nft_ctx_clear_vars(struct nft_ctx *ctx)
+ 	ctx->vars = NULL;
+ }
+ 
+-EXPORT_SYMBOL(nft_ctx_add_include_path);
+-int nft_ctx_add_include_path(struct nft_ctx *ctx, const char *path)
++static bool nft_ctx_find_include_path(struct nft_ctx *ctx, const char *path)
++{
++	unsigned int i;
++
++	for (i = 0; i < ctx->num_include_paths; i++) {
++		if (!strcmp(ctx->include_paths[i], path))
++			return true;
++	}
++
++	return false;
++}
++
++static int __nft_ctx_add_include_path(struct nft_ctx *ctx, const char *path)
+ {
+ 	char **tmp;
+ 	int pcount = ctx->num_include_paths;
+@@ -184,6 +195,20 @@ int nft_ctx_add_include_path(struct nft_ctx *ctx, const char *path)
+ 	return 0;
+ }
+ 
++EXPORT_SYMBOL(nft_ctx_add_include_path);
++int nft_ctx_add_include_path(struct nft_ctx *ctx, const char *path)
++{
++	char canonical_path[PATH_MAX];
++
++	if (!realpath(path, canonical_path))
++		return -1;
++
++	if (nft_ctx_find_include_path(ctx, canonical_path))
++		return 0;
++
++	return __nft_ctx_add_include_path(ctx, canonical_path);
++}
++
+ EXPORT_SYMBOL(nft_ctx_clear_include_paths);
+ void nft_ctx_clear_include_paths(struct nft_ctx *ctx)
+ {
+diff --git a/tests/shell/testcases/include/dumps/glob_duplicated_include.nft b/tests/shell/testcases/include/dumps/glob_duplicated_include.nft
+new file mode 100644
+index 000000000000..8e316e9dfa49
+--- /dev/null
++++ b/tests/shell/testcases/include/dumps/glob_duplicated_include.nft
+@@ -0,0 +1,6 @@
++table inet test {
++	chain test {
++		tcp dport 22 accept
++		tcp dport 25 accept
++	}
++}
+diff --git a/tests/shell/testcases/include/glob_duplicated_include b/tests/shell/testcases/include/glob_duplicated_include
+new file mode 100755
+index 000000000000..4507f5d937e0
+--- /dev/null
++++ b/tests/shell/testcases/include/glob_duplicated_include
+@@ -0,0 +1,19 @@
++#!/bin/bash
++
++set -e
++
++trap "rm -rf $tmpdir" EXIT
++
++tmpdir=$(mktemp -d)
++mkdir -p $tmpdir/test/include
++cat > $tmpdir/test/main << EOF
++table inet test {
++        chain test {
++                include "include/*";
++        }
++}
++EOF
++echo "tcp dport 22 accept;" > $tmpdir/test/include/one
++echo "tcp dport 25 accept;" > $tmpdir/test/include/two
++
++$NFT -I $tmpdir/test/ -f $tmpdir/test/main
+-- 
+2.30.2
+
