@@ -1,46 +1,46 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB58F178CC8
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB5EA2135CB
 	for <netfilter-devel@vger.kernel.org>; Thu, 12 Dec 2024 12:47:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734007662; cv=none; b=CsUx3CXPZd/TFF2cZSZk4H3aKd36opouROxv3SrPZDESvGvpRLbBUXq0MU9Jt2MmHazkTIYAgVhTE8XhAKanD9Sz4kNL0WIJhLUZSEudUdCUv4SnYtV/Ry/v/fMX0pGa42YC1m7ve6J+Fm0oOe1cjtb6eE0dZDYA1OG0CLftoEs=
+	t=1734007663; cv=none; b=kw0PMIFvZ/PbUxvkY2unL2taQSFlRmzC1wr/2qgoDqrgP4o3ZbYs/WNk4G9RfWE9xmHH26jQIvtK/2O4Memhoy935kShx9K8xl9hLrmY0qkOGI0Yc6v3z2r4666UdgifcCtEV21hx8thE29Dh4riHBFZ+S6DvRVDXD/ynvEDIqw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734007662; c=relaxed/simple;
-	bh=4pQFFfEJyox85f2J8dFF4hal5WFitREZhm53zJRY7m4=;
+	s=arc-20240116; t=1734007663; c=relaxed/simple;
+	bh=Z6aHot+7DVSARi6h1mdbOetavt/XVMvuZOGeaRyY+xw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=mHsT2/OpxOdyCjTc1jhiUC/wLUc/ETyWUj/2mHIh6XQMWlGbOZREOKh5Oj6ZEWmLdr1YiVYFgXqHBTsttVSY3S6fBLlDynClAuJAgLc9M7r5jQDCyIb4LE0Fn4/8ZgpiXOX3l2JWsdfxkDC929HIcLnVhjWT2voWJ0I32qlBVcU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=KiRj95rp; arc=none smtp.client-ip=151.80.46.58
+	 MIME-Version; b=BzZxUvTK6ULWT3GWrTrL8lQS4FcAw4dynOlcisMkwGmvBapSO7/GycOOWBPn2IK7thGiC0FkJflp3d2qMd23EBur0b8Qpi8onVB+u/P/HV4iJktZeGtirA4NJt8YkgNAXQPxvjNM+Ssbilu44Wqq0Zhh/pqs4zTTJBRZpz5SR4k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=XGqf9dcs; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="KiRj95rp"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="XGqf9dcs"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=TptV6C/Vt+5qdrtmzWM7GxLnaWbZiWugD0wAaY1Ocvs=; b=KiRj95rpG6jYqfFZjF5vO5mVZN
-	NFgZcQh1OpUS+GQh5BDOG99rbZfs8GNxpzwTii82JK0o8Z3wX9K2Pn9haO6w62DJDDbquEvu4scid
-	QYSFLIE0iHu3A5cl7wfAMrv5U3O6r3ANeut7r0jwFgFQb7wLdGRTubCO5Bdtr06Xsluho8ARtVEBw
-	2dD8KCW0VU7An3vgLj9vVKXVpNkOb8Ytxr9pyVE0u/ZKQMokMqdwhkr1HPmz2GDwlEMjznLp2pzzk
-	8CtIOW9a3l+DU4TKFWkv//rlzbtLQMlCZ0tI7xgaQPFhhA5LjNBlHqBS/fQI/fVvLB6w2S77cWRvO
-	DYJT0Oxg==;
+	bh=XGw2KrxEecHGpfO2085h7UbdT/9FJgxXqgUezHUtKX8=; b=XGqf9dcs9cFL0e3GJyFJRQ9hm6
+	BvDxPm0Dspmiyd27kCzxpDu7tP9bXBp2Z6YYnjwNIleXsXjaBw3WMBCcew9BF5eCC0EescSk43ySC
+	VD1LFppJ3pGSaw1wen3k9PJg8xs4VFMnDQfOr+ySRdFp4jRJFCnYlNRE5irnXiIP4d9n5NEBiECbY
+	vDSxikGj2XWQwTPI1YSUh/x8vhuT6U5rlUeRq23WaQ8uObyLIKW+O9qaxl1gTd/vEAdnmkSJKl8cA
+	iFq6XrPfItXI/MqxSvvCVEae1+Jo6mSCUT9z1yKLRy+gGi537JMl7SfHnT1g+2lB4Vcs+MEoTpv/z
+	cpHiohNw==;
 Authentication-Results: mail.nwl.cc;
 	iprev=pass (localhost) smtp.remote-ip=::1
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1tLibL-000000000ap-42DR;
-	Thu, 12 Dec 2024 13:47:32 +0100
+	id 1tLibL-000000000ai-1oNF;
+	Thu, 12 Dec 2024 13:47:31 +0100
 From: Phil Sutter <phil@nwl.cc>
 To: Jozsef Kadlecsik <kadlec@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
-Subject: [ipset PATCH 2/3] tests: cidr.sh: Fix for quirks in RHEL's ipcalc
-Date: Thu, 12 Dec 2024 13:47:32 +0100
-Message-ID: <20241212124733.14407-3-phil@nwl.cc>
+Subject: [ipset PATCH 1/3] tests: cidr.sh: Respect IPSET_BIN env var
+Date: Thu, 12 Dec 2024 13:47:31 +0100
+Message-ID: <20241212124733.14407-2-phil@nwl.cc>
 X-Mailer: git-send-email 2.47.0
 In-Reply-To: <20241212124733.14407-1-phil@nwl.cc>
 References: <20241212124733.14407-1-phil@nwl.cc>
@@ -52,63 +52,28 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-RHEL ships a special ipset[1] tool with different output in corner-cases
-than the common one[2]:
+Allow callers to specify the ipset binary to test (with), just like
+runtest.sh itself does, too.
 
-* Reduced output with /32 netmasks:
-
-| # ipcalc 255.255.255.254/32
-| Address:	255.255.255.254
-| Address space:	Reserved
-
-To cover for this, make net_last_addr() fall back to the 'Address:'
-line. Simply adding this keyword is fine as in normal output it appears
-first and thus the other recognized keywords' values take precedence.
-
-* No "Address:" line with all-zero addresses:
-
-| # ipcalc 0.0.0.0/1
-| Network:	0.0.0.0/1
-| Netmask:	128.0.0.0 = 1
-| Broadcast:	127.255.255.255
-|
-| Address space:	This host on this network
-| HostMin:	0.0.0.1
-| HostMax:	127.255.255.254
-| Hosts/Net:	2147483646
-
-Have net_first_addr() fall back to the 'HostMin:' line in this case.
-
-[1] https://gitlab.com/ipcalc/ipcalc
-[2] http://jodies.de/ipcalc
-
-Fixes: e24e7656b3dd9 ("tests: cidr.sh: Add ipcalc fallback")
+Fixes: d05e7e9349bd1 ("Out of bound access in hash:net* types fixed")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- tests/cidr.sh | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ tests/cidr.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/tests/cidr.sh b/tests/cidr.sh
-index ca01f063dee34..abb69b835ffd8 100755
+index 2c4d9399f02dc..ca01f063dee34 100755
 --- a/tests/cidr.sh
 +++ b/tests/cidr.sh
-@@ -46,7 +46,7 @@ if which netmask >/dev/null 2>&1; then
- 	}
- elif which ipcalc >/dev/null 2>&1; then
+@@ -35,7 +35,7 @@ NETS="0.0.0.0/1
+ 255.255.255.252/31
+ 255.255.255.254/32"
+ 
+-ipset="../src/ipset"
++ipset="${IPSET_BIN:-../src/ipset}"
+ 
+ if which netmask >/dev/null 2>&1; then
  	net_first_addr() {
--		ipcalc $1 | awk '/^Address:/{print $2}'
-+		ipcalc $1 | awk '/^(Address|HostMin):/{print $2; exit}'
- 	}
- 	net_last_addr() {
- 		# Netmask tool prints broadcast address as last one, so
-@@ -54,6 +54,7 @@ elif which ipcalc >/dev/null 2>&1; then
- 		# being recognized as special by ipcalc.
- 		ipcalc $1 | awk '/^(Hostroute|HostMax):/{out=$2}
- 				 /^Broadcast:/{out=$2}
-+				 /^Address:/{out=$2}
- 				 END{print out}'
- 	}
- else
 -- 
 2.47.0
 
