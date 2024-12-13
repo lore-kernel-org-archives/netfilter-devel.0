@@ -1,79 +1,73 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id DEF201D7E5F
-	for <netfilter-devel@vger.kernel.org>; Thu, 12 Dec 2024 23:13:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from arara2.ipen.br (arara2.ipen.br [200.136.52.33])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C337192D70
+	for <netfilter-devel@vger.kernel.org>; Fri, 13 Dec 2024 08:12:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=200.136.52.33
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734045240; cv=none; b=VCQwBSocm1WB5QEcMs/XQaPvF+U4iXvfaSD/oCHOxEZE4QMWZZhbPDGqZCRpVGibtRU6EpZWQ7xITQMbvBgyjxmE0ybGhI7gn++XeqLWjC/lv/JHBYmjJ+VU9odF+BCZTWM+j67Tz/wb0qp0M2V732rrFaTUiyrGlpYipTue5ZM=
+	t=1734077573; cv=none; b=me93aja40Pn7VLHCJIjKWpVNdBwu8v5OkBZFCFeZK5mGYvS55pAxuVx5bnP82eoNt7hKu2hEzTuzc0MqVO/RPD9b1s77vCJAyZku1HA9o8sMNcFXqCUFPnxwHgiXubnGClNsSOxISMdbH9d4E28UFFfJYo65XFmxhIJ+pCUSAh4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734045240; c=relaxed/simple;
-	bh=kppPNkM/Z1QG1rEhpqoehsDZO4jMTiILOyTehPYHols=;
-	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=h/tL9jk/g8/EwUKW3RCUZC8KEuO6laKliLTR8HTIdl6lLchObjpsUnAw9qsQNMZNJY4WdRv8pna4c7A6NipdANYAZ2xStxBBlfzQW/TNm2kx2HKFooWFCQ6GUNlUZ9gU7Txau8/dfBO5bB6BkmhvXjC+Bslq/nq/91D7W9KDlSM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+	s=arc-20240116; t=1734077573; c=relaxed/simple;
+	bh=Cgr97JBiSX1QIcd2ZZZsKVChGTY1ZlWJ/4AhaVFA7Wc=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=nMA3DzJVq+yvVL4sJLEWorXnazyGz4q2FSvG0DCZPDml5O4GH1LnOKdRppZXeDArJN3Urn+pBasGUY64n1J+ySCW/UlPz2aC7wxjWTLr8TOvriJi3AjtkMDHBShQVofqRxJB9+T6tAucn04mtf/XCiUW6nykCXRHvZ8f9+Jv8g8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ipen.br; spf=pass smtp.mailfrom=ipen.br; arc=none smtp.client-ip=200.136.52.33
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ipen.br
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ipen.br
+X-ASG-Debug-ID: 1734077525-055fc729eb1498590008-kpcQIA
+Received: from arara.ipen.br (webmail.ipen.br [10.0.10.11]) by arara2.ipen.br with ESMTP id G84sOrzMnR6sa3HC for <netfilter-devel@vger.kernel.org>; Fri, 13 Dec 2024 05:12:43 -0300 (BRT)
+X-Barracuda-Envelope-From: TCWM179700@ipen.br
+X-Barracuda-RBL-Trusted-Forwarder: 10.0.10.11
+Received: from ipen.br (unknown [102.129.145.191])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by arara.ipen.br (Postfix) with ESMTPSA id D4954FBE6BC
+	for <netfilter-devel@vger.kernel.org>; Fri, 13 Dec 2024 01:25:56 -0300 (-03)
+Reply-To: t.mazowieckie@mazowieckie.org
+X-Barracuda-Effective-Source-IP: UNKNOWN[102.129.145.191]
+X-Barracuda-Apparent-Source-IP: 102.129.145.191
+X-Barracuda-RBL-IP: 102.129.145.191
+From: <TCWM179700@ipen.br>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 2/2] src: shrink line_offset in struct location to 4 bytes
-Date: Fri, 13 Dec 2024 00:13:46 +0100
-Message-Id: <20241212231346.181221-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20241212231346.181221-1-pablo@netfilter.org>
-References: <20241212231346.181221-1-pablo@netfilter.org>
+Subject:  I urge you to understand my viewpoint accurately.
+Date: 13 Dec 2024 12:25:56 +0800
+X-ASG-Orig-Subj: I urge you to understand my viewpoint accurately.
+Message-ID: <20241213122556.0F9AEBF65560703E@ipen.br>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+X-Barracuda-Connect: webmail.ipen.br[10.0.10.11]
+X-Barracuda-Start-Time: 1734077563
+X-Barracuda-URL: https://10.40.40.18:443/cgi-mod/mark.cgi
+X-Barracuda-Scan-Msg-Size: 512
+X-Virus-Scanned: by bsmtpd at ipen.br
+X-Barracuda-BRTS-Status: 1
+X-Barracuda-BRTS-Evidence: 34fbb5788938ad5710ad28835fd12206-499-txt
+X-Barracuda-Spam-Score: 1.09
+X-Barracuda-Spam-Status: No, SCORE=1.09 using global scores of TAG_LEVEL=1000.0 QUARANTINE_LEVEL=1000.0 KILL_LEVEL=1000.0 tests=DATE_IN_PAST_03_06, DATE_IN_PAST_03_06_2, NO_REAL_NAME
+X-Barracuda-Spam-Report: Code version 3.2, rules version 3.2.3.45577
+	Rule breakdown below
+	 pts rule name              description
+	---- ---------------------- --------------------------------------------------
+	0.00 NO_REAL_NAME           From: does not include a real name
+	0.01 DATE_IN_PAST_03_06     Date: is 3 to 6 hours before Received: date
+	1.08 DATE_IN_PAST_03_06_2   DATE_IN_PAST_03_06_2
 
-line_offset of 2^32 bytes should be enough.
+I am Tomasz Chmielewski, a Portfolio Manager and Chartered=20
+Financial Analyst affiliated with Iwoca Poland Sp. Z OO in=20
+Poland. I have the privilege of working with distinguished=20
+investors who are eager to support your company's current=20
+initiatives, thereby broadening their investment portfolios. If=20
+this proposal aligns with your interests, I invite you to=20
+respond, and I will gladly share more information to assist you.
 
-This requires the removal of the last_line field (in a previous patch) to
-shrink struct expr to 112 bytes.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/nftables.h | 3 +--
- src/scanner.l      | 9 ++++++++-
- 2 files changed, 9 insertions(+), 3 deletions(-)
-
-diff --git a/include/nftables.h b/include/nftables.h
-index a6f0e6128887..2e0d91486a29 100644
---- a/include/nftables.h
-+++ b/include/nftables.h
-@@ -158,8 +158,7 @@ struct location {
- 	const struct input_descriptor		*indesc;
- 	union {
- 		struct {
--			off_t			line_offset;
--
-+			unsigned int 		line_offset;
- 			unsigned int		first_line;
- 			unsigned int		first_column;
- 			unsigned int		last_column;
-diff --git a/src/scanner.l b/src/scanner.l
-index 4a340b00fdc6..9ccbc22d2120 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -88,8 +88,15 @@ static void update_pos(struct parser_state *state, struct location *loc,
- static void update_offset(struct parser_state *state, struct location *loc,
- 			  unsigned int len)
- {
-+	uint32_t line_offset;
-+
- 	state->indesc->token_offset	+= len;
--	loc->line_offset		= state->indesc->line_offset;
-+	if (state->indesc->line_offset > UINT32_MAX)
-+		line_offset = UINT32_MAX;
-+	else
-+		line_offset = state->indesc->line_offset;
-+
-+	loc->line_offset		= line_offset;
- }
- 
- static void reset_pos(struct parser_state *state, struct location *loc)
--- 
-2.30.2
-
+=20
+Yours sincerely,=20
+Tomasz Chmielewski Warsaw, Mazowieckie,
+=20
+Poland.
