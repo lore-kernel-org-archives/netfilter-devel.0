@@ -1,211 +1,92 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-il1-f198.google.com (mail-il1-f198.google.com [209.85.166.198])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23F49175AB;
-	Fri, 13 Dec 2024 11:42:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8B941DA5F
+	for <netfilter-devel@vger.kernel.org>; Fri, 13 Dec 2024 13:16:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.198
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734090131; cv=none; b=LJSZqicq4SHP5FTIE1U2gomdpQRrc3jf4HfkpMfUmVTPUYF5PRX0O6O9bAqhKH0iFCz5WI7ADOJ56kRO52PyQsuirIB0DsP4fjJmc3HCLS+BUNLUUHFPgKluT0P8iaTj/DIzbk+iZvCggZ0DEB6OtjkVzGknLEhXQvCILQy5jZY=
+	t=1734095793; cv=none; b=kzq316rwaBn4+c2a25ASdG1E6iODJTMerqQnPNNi3xNx1rnsMYOlZL+Sp0fBKEcSZ/uCGHTDHdbTDWRRr4QzMx6TDKezemkqOdu6X0s7YGwwlfyKtzx0XkmdcDZw9LjnaPqK6BRbsoxOJmJccbXKOtom8B73OMPqe+xr6r0Hn4o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734090131; c=relaxed/simple;
-	bh=/oQ6mHJZBMwmw1B1iPGf0C+f2cdxWgpcqUfqGCTkzCY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=Uo8pAoNTmB2y054Ra5+gtSQ9hcieLqtGpK8HbQ5FUVkNzvP1FNbQihfwBKKwFhJF7DUwKgvQfYUC5YXZrWVpwddZ3svQ7COo+Vz4sFfpdaI3P64uuLd8605688mW3j+yE6by/pqaPbEDNG6tVnvVzgO92tHxHltER2Lcn/9Mhi8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
-Received: from mail.maildlp.com (unknown [172.18.186.231])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Y8nR75Hq5z6K5nd;
-	Fri, 13 Dec 2024 19:38:43 +0800 (CST)
-Received: from mscpeml500004.china.huawei.com (unknown [7.188.26.250])
-	by mail.maildlp.com (Postfix) with ESMTPS id 8CDA2140B33;
-	Fri, 13 Dec 2024 19:42:05 +0800 (CST)
-Received: from [10.123.123.159] (10.123.123.159) by
- mscpeml500004.china.huawei.com (7.188.26.250) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1258.34; Fri, 13 Dec 2024 14:42:03 +0300
-Message-ID: <ce8286c2-9ada-84c3-5110-4373a667b93d@huawei-partners.com>
-Date: Fri, 13 Dec 2024 14:42:01 +0300
+	s=arc-20240116; t=1734095793; c=relaxed/simple;
+	bh=MfODUbaKjsDTInyPezTB9iD2+taJp9jMC+mbhYdLpKo=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=KI4axNRNrttDzTq8QxZlUDdU94NParo6IZ2ZssGN547N1VB04YFzGmJLsfXhnEHoztu39MO+o1qr5l/a7Ooax4IOQOfjiTtSnEerQgFRmaPQGgULUE7zSNXElcp9cj3yyu9UwdYH1wuyWzgFBrAjGp9LjNiWE8wd/0N8LVX7QQA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.198
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-il1-f198.google.com with SMTP id e9e14a558f8ab-3a7d85ab308so14532535ab.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Dec 2024 05:16:31 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1734095791; x=1734700591;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=uoBiKipHNLLpHGGGSTJe/jfqJxnRClX1ADVodHH2Ukk=;
+        b=nvjfxHs5E7KTTReMhTI1KevsYH/Zn1KripX+5H2NMtLkoyUsp6VqoN/6RqqjBrTduT
+         4RUc5T3gBTWcZ5oDvdYDrbtUc+C3aKhR+KLaCFJVYc2C58CiU9ZgQ+cDuVj5Xkqu0BCr
+         rzJjT9+KJGAu0VZ5xceTuxnnGx6OlG7dQerSuTqY+pc5uuwUiL6Y6JwrSrFVJ3Gww+S5
+         F2+N07tASuu7cK4oC8RC8jME8kECLky2QJAt3zK1sVD0nucpNtCdCHV9ASGn6cui3c7b
+         ErkaQdg6odl4sOxbjfHklbhDecpcp0jrjVGgVPVxqLSfezeXuPLBaNoWf3LIzQKfvXeB
+         084w==
+X-Forwarded-Encrypted: i=1; AJvYcCXma/hdBnDvbyqdwxEPnMfO+3+4JSj7PYNszfIUm5kZcyRpFI3VS7KBUrQ7GPRWW89UV+BjVLpC454/8NXkjU8=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxB8j1DjYF4s6dMI2VwEdRCa5TyWLBAOmMwBKj8VuiCUSfkrZNF
+	copZmE2g2M/2+2IDZMTLegs/B4A2yrJO06H3em8/T7WflIQQuFfEPHgAyDrYPoOv04bQ50fR7XR
+	DM3Yv34jOyfw2G9Uu97Gdkiq4ZIP1p+6HS1udsH2n9XOuEvTwdjUOyts=
+X-Google-Smtp-Source: AGHT+IE/k0fH2aZWvFpnpJL0Kpg078Jm4gbrIke1NK4w8p393GE7mD5tDe40KwEIlaW3OO2uN7GjbOFMai0o7tHJH4bF+ddEJxL9
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH v2 1/8] landlock: Fix non-TCP sockets restriction
-Content-Language: ru
-To: =?UTF-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
-CC: Matthieu Baerts <matttbe@kernel.org>, <gnoack@google.com>,
-	<willemdebruijn.kernel@gmail.com>, <matthieu@buffet.re>,
-	<linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-	<netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-	<artem.kuzin@huawei.com>, <konstantin.meskhidze@huawei.com>, MPTCP Linux
-	<mptcp@lists.linux.dev>, David Laight <David.Laight@aculab.com>
-References: <20241017110454.265818-1-ivanov.mikhail1@huawei-partners.com>
- <20241017110454.265818-2-ivanov.mikhail1@huawei-partners.com>
- <49bc2227-d8e1-4233-8bc4-4c2f0a191b7c@kernel.org>
- <20241018.Kahdeik0aaCh@digikod.net> <20241204.fahVio7eicim@digikod.net>
- <20241204.acho8AiGh6ai@digikod.net>
- <a24b33c1-57c8-11bb-f3aa-32352b289a5c@huawei-partners.com>
- <20241210.Eenohkipee9f@digikod.net> <20241210.ohC4die2hi8v@digikod.net>
- <b8726b37-8819-2289-40ec-81d875b13eba@huawei-partners.com>
- <20241212.ief4eingaeVa@digikod.net>
-From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-In-Reply-To: <20241212.ief4eingaeVa@digikod.net>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: lhrpeml500009.china.huawei.com (7.191.174.84) To
- mscpeml500004.china.huawei.com (7.188.26.250)
+X-Received: by 2002:a05:6e02:1448:b0:3a7:7811:1101 with SMTP id
+ e9e14a558f8ab-3aff2dd4d49mr35489215ab.20.1734095790862; Fri, 13 Dec 2024
+ 05:16:30 -0800 (PST)
+Date: Fri, 13 Dec 2024 05:16:30 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <675c33ae.050a0220.17d782.0011.GAE@google.com>
+Subject: [syzbot] Monthly netfilter report (Dec 2024)
+From: syzbot <syzbot+listcc55049a3e829aa8f20a@syzkaller.appspotmail.com>
+To: kadlec@netfilter.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, pablo@netfilter.org, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-On 12/12/2024 9:43 PM, Mickaël Salaün wrote:
-> On Wed, Dec 11, 2024 at 06:24:53PM +0300, Mikhail Ivanov wrote:
->> On 12/10/2024 9:05 PM, Mickaël Salaün wrote:
->>> On Tue, Dec 10, 2024 at 07:04:15PM +0100, Mickaël Salaün wrote:
->>>> On Mon, Dec 09, 2024 at 01:19:19PM +0300, Mikhail Ivanov wrote:
->>>>> On 12/4/2024 10:35 PM, Mickaël Salaün wrote:
->>>>>> On Wed, Dec 04, 2024 at 08:27:58PM +0100, Mickaël Salaün wrote:
->>>>>>> On Fri, Oct 18, 2024 at 08:08:12PM +0200, Mickaël Salaün wrote:
->>>>>>>> On Thu, Oct 17, 2024 at 02:59:48PM +0200, Matthieu Baerts wrote:
->>>>>>>>> Hi Mikhail and Landlock maintainers,
->>>>>>>>>
->>>>>>>>> +cc MPTCP list.
->>>>>>>>
->>>>>>>> Thanks, we should include this list in the next series.
->>>>>>>>
->>>>>>>>>
->>>>>>>>> On 17/10/2024 13:04, Mikhail Ivanov wrote:
->>>>>>>>>> Do not check TCP access right if socket protocol is not IPPROTO_TCP.
->>>>>>>>>> LANDLOCK_ACCESS_NET_BIND_TCP and LANDLOCK_ACCESS_NET_CONNECT_TCP
->>>>>>>>>> should not restrict bind(2) and connect(2) for non-TCP protocols
->>>>>>>>>> (SCTP, MPTCP, SMC).
->>>>>>>>>
->>>>>>>>> Thank you for the patch!
->>>>>>>>>
->>>>>>>>> I'm part of the MPTCP team, and I'm wondering if MPTCP should not be
->>>>>>>>> treated like TCP here. MPTCP is an extension to TCP: on the wire, we can
->>>>>>>>> see TCP packets with extra TCP options. On Linux, there is indeed a
->>>>>>>>> dedicated MPTCP socket (IPPROTO_MPTCP), but that's just internal,
->>>>>>>>> because we needed such dedicated socket to talk to the userspace.
->>>>>>>>>
->>>>>>>>> I don't know Landlock well, but I think it is important to know that an
->>>>>>>>> MPTCP socket can be used to discuss with "plain" TCP packets: the kernel
->>>>>>>>> will do a fallback to "plain" TCP if MPTCP is not supported by the other
->>>>>>>>> peer or by a middlebox. It means that with this patch, if TCP is blocked
->>>>>>>>> by Landlock, someone can simply force an application to create an MPTCP
->>>>>>>>> socket -- e.g. via LD_PRELOAD -- and bypass the restrictions. It will
->>>>>>>>> certainly work, even when connecting to a peer not supporting MPTCP.
->>>>>>>>>
->>>>>>>>> Please note that I'm not against this modification -- especially here
->>>>>>>>> when we remove restrictions around MPTCP sockets :) -- I'm just saying
->>>>>>>>> it might be less confusing for users if MPTCP is considered as being
->>>>>>>>> part of TCP. A bit similar to what someone would do with a firewall: if
->>>>>>>>> TCP is blocked, MPTCP is blocked as well.
->>>>>>>>
->>>>>>>> Good point!  I don't know well MPTCP but I think you're right.  Given
->>>>>>>> it's close relationship with TCP and the fallback mechanism, it would
->>>>>>>> make sense for users to not make a difference and it would avoid bypass
->>>>>>>> of misleading restrictions.  Moreover the Landlock rules are simple and
->>>>>>>> only control TCP ports, not peer addresses, which seems to be the main
->>>>>>>> evolution of MPTCP.
->>>>>>>
->>>>>>> Thinking more about this, this makes sense from the point of view of the
->>>>>>> network stack, but looking at external (potentially bogus) firewalls or
->>>>>>> malware detection systems, it is something different.  If we don't
->>>>>>> provide a way for users to differenciate the control of SCTP from TCP,
->>>>>>> malicious use of SCTP could still bypass this kind of bogus security
->>>>>>> appliances.  It would then be safer to stick to the protocol semantic by
->>>>>>> clearly differenciating TCP from MPTCP (or any other protocol).
->>>>>
->>>>> You mean that these firewals have protocol granularity (e.g. different
->>>>> restrictions for MPTCP and TCP sockets)?
->>>>
->>>> Yes, and more importantly they can miss the MTCP semantic and then not
->>>> properly filter such packet, which can be use to escape the network
->>>> policy.  See some issues here:
->>>> https://en.wikipedia.org/wiki/Multipath_TCP
->>>>
->>>> The point is that we cannot assume anything about other networking
->>>> stacks, and if Landlock can properly differentiate between TCP and MTCP
->>>> (e.g. with new LANDLOCK_ACCESS_NET_CONNECT_MTCP) users of such firewalls
->>>> could still limit the impact of their firewall's bugs.  However, if
->>>> Landlock treats TCP and MTCP the same way, we'll not be able to only
->>>> deny MTCP.  In most use cases, the network policy should treat both TCP
->>>> and MTCP the same way though, but we should let users decide according
->>>> to their context.
->>>>
->>>>   From an implementation point of view, adding MTCP support should be
->>>> simple, mainly tests will grow.
->>>
->>> s/MTCP/MPTCP/g of course.
->>
->> That's reasonable, thanks for explanation!
->>
->> We should also consider control of other protocols that use TCP
->> internally [1], since it should be easy to bypass TCP restriction by
->> using them (e.g. provoking a fallback of MPTCP or SMC connection to
->> TCP).
->>
->> The simplest solution is to implement separate access rights for SMC and
->> RDS, as well as for MPTCP. I think we should stick to it.
->>
->> I was worried if there was a case where it would be useful to allow only
->> SMC (and deny TCP). If there are any, it would be more correct to
->> restrict only the fallback SMC -> TCP with TCP access rights. But such
->> logic seems too complicated for the kernel and implicit for SMC
->> applications that can rely on a TCP connection.
->>
->> [1] https://lore.kernel.org/all/62336067-18c2-3493-d0ec-6dd6a6d3a1b5@huawei-partners.com/
-> 
-> Let's continue the discussion on this thread.
-> 
->>
->>>
->>>>
->>>>>
->>>>>>>
->>>>>>> Mikhail, could you please send a new patch series containing one patch
->>>>>>> to fix the kernel and another to extend tests?
->>>>>>
->>>>>> No need to squash them in one, please keep the current split of the test
->>>>>> patches.  However, it would be good to be able to easily backport them,
->>>>>> or at least the most relevant for this fix, which means to avoid
->>>>>> extended refactoring.
->>>>>
->>>>> No problem, I'll remove the fix of error consistency from this patchset.
->>>>> BTW, what do you think about second and third commits? Should I send the
->>>>> new version of them as well (in separate patch)?
->>>>
->>>> According to the description, patch 2 may be included in this series if
->>>> it can be tested with any other LSM, but I cannot read these patches:
->>>> https://lore.kernel.org/all/20241017110454.265818-3-ivanov.mikhail1@huawei-partners.com/
->>
->> Ok I'll do this, since this patch doesn't make any functional changes.
->>
->> About readability, a lot of code blocks were moved in this patch, and
->> because of this, the regular diff file has become too unreadable.
->> So, I decided to re-generate it with --break-rewrites option of git
->> format- patch. Do you have any advice on how best to compose a diff for
->> this patch?
-> 
-> The changes are not clear to me so I don't know.  If a lot of parts are
-> changed, maybe splitting this patch into a few patches would help.  I'm
-> a bit worried that too much parts are changed though.
+Hello netfilter maintainers/developers,
 
-Mostly, there are just bind() and connect() related checks moved to
-hook_socket_{connect, bind}.
+This is a 31-day syzbot report for the netfilter subsystem.
+All related reports/information can be found at:
+https://syzkaller.appspot.com/upstream/s/netfilter
 
-I think I'd better move all refactoring-related fixes to a separate
-patchset.
+During the period, 0 new issues were detected and 4 were fixed.
+In total, 12 issues are still open and 181 have already been fixed.
 
-> 
-> When I try to apply this series I get:
-> 
->    Patch failed at 0002 landlock: Make network stack layer checks explicit
->    for each TCP action
->    error: patch failed: security/landlock/net.c:1
->    error: security/landlock/net.c: patch does not apply
+Some of the still happening issues:
 
-Sorry, it looks like patches created using the --break-rewrites option
-of git format can only be applied manually. I'll try to split this patch
-in v3 so that it can be applied automatically.
+Ref Crashes Repro Title
+<1> 2851    Yes   INFO: rcu detected stall in worker_thread (9)
+                  https://syzkaller.appspot.com/bug?extid=225bfad78b079744fd5e
+<2> 119     Yes   INFO: rcu detected stall in gc_worker (3)
+                  https://syzkaller.appspot.com/bug?extid=eec403943a2a2455adaa
+<3> 52      Yes   INFO: rcu detected stall in NF_HOOK (2)
+                  https://syzkaller.appspot.com/bug?extid=34c2df040c6cfa15fdfe
+<4> 47      No    INFO: rcu detected stall in sys_sendmmsg (7)
+                  https://syzkaller.appspot.com/bug?extid=53e660acb94e444b9d63
+<5> 39      Yes   INFO: rcu detected stall in ip_list_rcv (6)
+                  https://syzkaller.appspot.com/bug?extid=45b67ef6e09a39a2cbcd
+<6> 37      No    INFO: task hung in htable_put (2)
+                  https://syzkaller.appspot.com/bug?extid=013daa7966d4340a8b8f
+<7> 10      Yes   KMSAN: uninit-value in ip6table_mangle_hook (3)
+                  https://syzkaller.appspot.com/bug?extid=6023ea32e206eef7920a
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+To disable reminders for individual bugs, reply with the following command:
+#syz set <Ref> no-reminders
+
+To change bug's subsystems, reply with:
+#syz set <Ref> subsystems: new-subsystem
+
+You may send multiple commands in a single email message.
