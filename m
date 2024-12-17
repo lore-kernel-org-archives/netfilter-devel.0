@@ -1,102 +1,137 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C1F31F8F0C
-	for <netfilter-devel@vger.kernel.org>; Tue, 17 Dec 2024 20:22:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id DB5E11D89EC;
+	Tue, 17 Dec 2024 20:53:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734466942; cv=none; b=hXE9iwKkoHtYTRFYlZUYk31h3ThdV+r7+vzutcQb0Sxy1m2Rxj/6q7QPaL1py2gEZjIGbT7dpmtNJA1wIYR/oM1mBRPVQah+xZqlKNTIa+h+ZmfC3PAZ1kUHMB35bL48/6bLkbTx6iauFjyRsmPi2zKQ9ns255DabCB212xz6AI=
+	t=1734468808; cv=none; b=J6iIu0jP5BI8CPgWTJ9wGjMr0xqdNB+cff313scXxM0ONuMsxvJHghfw6k8BLr2A4WFpJDIGUcLAPgn3bmiDmilYYX+A4A3QwdB3E1oyb/w98C6Sfa5PWnVbCwt3WrnEkD/igj5qk83zJ6gkmXyjuQYzeDqXP0jn6ppHUVVrvSg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734466942; c=relaxed/simple;
-	bh=jwDcYRPDFvtIzRTtG0dYegM4uUjuB5NqBD6sWL0eas4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=morddoB41J0vaDWTggcbCfFzLKb4YIJJRZ2P/3yd3D1diX1MXSff5lAKYpI1Kq/842focf8++e7hLRl2KFLvbz/wJBsPEn2/RIUpmfAUxc9XFjF50rfmWdt88sqsYFMUxQbSeCZTJLea+n7UYR62d7hH0eeXVJewWE74OtcNnto=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=qt/GGUZA; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1734468808; c=relaxed/simple;
+	bh=AZ0CsLKt8J6l6W4VDxSftOcj1gfWEjTLXyKq8DV0roY=;
+	h=Message-ID:Date:MIME-Version:Cc:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=dwDQMpU6mk+Lo8KUOSSXsIzOLy2BKL0l6Wc83FApFCet/kF1R9z2jPo4po/j8cLEwuUqzuKojbuksb7KIOGpNU0a97g1NteXfdtoNSdHbsmJZJxqM6QI+zAbgVSCVQlUF+MEV/GIwXUn5gqKlofdjmdbhU5SqmO7Lj5x83aUlbo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=PN+5X7vl; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="qt/GGUZA"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=uo0jZGFDFyWtHaZ4laEgjG2K5EtHowLXB0YO2ZZz36A=; b=qt/GGUZASLHm9A1p3WGaBufjD3
-	16XnnAk0k/M9iT3ee7HvxF9Cyqx91H6xsP2mX09vJCWrK9vNZfLTr0KekjZ41kxoZHebkxsFuRwWb
-	5HA5tLvwdMvSWb70Xm42kITVo94+GLcykWtOharRjMc1jeuiZbk3VkLekx58lPMjKghi8UGBoNaHu
-	5qIBiK2EkCEw4JyC2uqE/JrnIeAD04NvvLnhDKCVru0hD8898+v5iwhVM2MtXfWPKvP6wZoqnqNzr
-	Vmvs51dnLCMk/wFWvohWqSB3FPvqF1EzU/YxgZe7C6yMjg0t/j3O7Lw/oOsmgkEsnIYfoUez1o0po
-	08Y/9OPw==;
-Authentication-Results: mail.nwl.cc;
-	iprev=pass (localhost) smtp.remote-ip=::1
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1tNdgd-000000008W5-12Fz;
-	Tue, 17 Dec 2024 20:56:55 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-Subject: [nf PATCH] netfilter: ipset: Fix for recursive locking warning
-Date: Tue, 17 Dec 2024 20:56:55 +0100
-Message-ID: <20241217195655.23186-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.47.0
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="PN+5X7vl"
+Received: from [192.168.35.166] (c-73-118-245-227.hsd1.wa.comcast.net [73.118.245.227])
+	by linux.microsoft.com (Postfix) with ESMTPSA id 313DC2171F96;
+	Tue, 17 Dec 2024 12:53:23 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 313DC2171F96
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1734468805;
+	bh=aVc5gziW3F5u0OxTruXlabKnVm24GGvTVYzcdDQRKKI=;
+	h=Date:Cc:Subject:To:References:From:In-Reply-To:From;
+	b=PN+5X7vl8fqADT/aII8zIGfk60UMtxJ9pR+EBirm4pXAa4JZO11zP4etUexy4ZsF1
+	 Hz5jBPkUY126l1G2C1Lf0cgYJmqJpx2Ac/wrr+Dl/I1W058j7FPkFRH8CsABxT6WHb
+	 +lq4b3CWgOR3ojB2J6CV+93O4Hyq14ifZiz9VEy4=
+Message-ID: <14ad0c08-7b3b-47b6-8cc1-8a4179238e5a@linux.microsoft.com>
+Date: Tue, 17 Dec 2024 12:53:22 -0800
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Cc: eahariha@linux.microsoft.com, Pablo Neira Ayuso <pablo@netfilter.org>,
+ Jozsef Kadlecsik <kadlec@netfilter.org>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Simon Horman <horms@kernel.org>, Julia Lawall <Julia.Lawall@inria.fr>,
+ Nicolas Palix <nicolas.palix@imag.fr>, Daniel Mack <daniel@zonque.org>,
+ Haojian Zhuang <haojian.zhuang@gmail.com>,
+ Robert Jarzmik <robert.jarzmik@free.fr>, Russell King
+ <linux@armlinux.org.uk>, Heiko Carstens <hca@linux.ibm.com>,
+ Vasily Gorbik <gor@linux.ibm.com>, Alexander Gordeev
+ <agordeev@linux.ibm.com>, Christian Borntraeger <borntraeger@linux.ibm.com>,
+ Sven Schnelle <svens@linux.ibm.com>, Ofir Bitton <obitton@habana.ai>,
+ Oded Gabbay <ogabbay@kernel.org>, Lucas De Marchi
+ <lucas.demarchi@intel.com>,
+ =?UTF-8?Q?Thomas_Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
+ Rodrigo Vivi <rodrigo.vivi@intel.com>,
+ Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+ Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>,
+ David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
+ Jeroen de Borst <jeroendb@google.com>,
+ Praveen Kaligineedi <pkaligineedi@google.com>,
+ Shailend Chand <shailend@google.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
+ James Smart <james.smart@broadcom.com>,
+ Dick Kennedy <dick.kennedy@broadcom.com>,
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+ "Martin K. Petersen" <martin.petersen@oracle.com>,
+ =?UTF-8?Q?Roger_Pau_Monn=C3=A9?= <roger.pau@citrix.com>,
+ Jens Axboe <axboe@kernel.dk>, Kalle Valo <kvalo@kernel.org>,
+ Jeff Johnson <jjohnson@kernel.org>, Catalin Marinas
+ <catalin.marinas@arm.com>, Jack Wang <jinpu.wang@cloud.ionos.com>,
+ Marcel Holtmann <marcel@holtmann.org>,
+ Johan Hedberg <johan.hedberg@gmail.com>,
+ Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Florian Fainelli <florian.fainelli@broadcom.com>, Ray Jui
+ <rjui@broadcom.com>, Scott Branden <sbranden@broadcom.com>,
+ Broadcom internal kernel review list
+ <bcm-kernel-feedback-list@broadcom.com>, Xiubo Li <xiubli@redhat.com>,
+ Ilya Dryomov <idryomov@gmail.com>, Josh Poimboeuf <jpoimboe@kernel.org>,
+ Jiri Kosina <jikos@kernel.org>, Miroslav Benes <mbenes@suse.cz>,
+ Petr Mladek <pmladek@suse.com>, Joe Lawrence <joe.lawrence@redhat.com>,
+ Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>,
+ Louis Peens <louis.peens@corigine.com>, Michael Ellerman
+ <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>,
+ Naveen N Rao <naveen@kernel.org>, Madhavan Srinivasan <maddy@linux.ibm.com>,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ netdev@vger.kernel.org, linux-kernel@vger.kernel.org, cocci@inria.fr,
+ linux-arm-kernel@lists.infradead.org, linux-s390@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, intel-xe@lists.freedesktop.org,
+ linux-scsi@vger.kernel.org, xen-devel@lists.xenproject.org,
+ linux-block@vger.kernel.org, linux-wireless@vger.kernel.org,
+ ath11k@lists.infradead.org, linux-mm@kvack.org,
+ linux-bluetooth@vger.kernel.org, linux-staging@lists.linux.dev,
+ linux-rpi-kernel@lists.infradead.org, ceph-devel@vger.kernel.org,
+ live-patching@vger.kernel.org, linux-sound@vger.kernel.org,
+ oss-drivers@corigine.com, linuxppc-dev@lists.ozlabs.org,
+ Anna-Maria Behnsen <anna-maria@linutronix.de>,
+ Jeff Johnson <quic_jjohnson@quicinc.com>, paul@paul-moore.com
+Subject: Re: [PATCH v3 00/19] Converge on using secs_to_jiffies()
+To: Andrew Morton <akpm@linux-foundation.org>
+References: <20241210-converge-secs-to-jiffies-v3-0-ddfefd7e9f2a@linux.microsoft.com>
+ <20241210163520.95fa1c8aa83e1915004ed884@linux-foundation.org>
+ <422470cd-84f0-469e-93c2-493c5091391d@linux.microsoft.com>
+From: Easwar Hariharan <eahariha@linux.microsoft.com>
+Content-Language: en-US
+In-Reply-To: <422470cd-84f0-469e-93c2-493c5091391d@linux.microsoft.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-With CONFIG_PROVE_LOCKING, when creating a set of type bitmap:ip, adding
-it to a set of type list:set and populating it from iptables SET target
-triggers a kernel warning:
+On 12/10/2024 5:00 PM, Easwar Hariharan wrote:
+> On 12/10/2024 4:35 PM, Andrew Morton wrote:
+>> On Tue, 10 Dec 2024 22:02:31 +0000 Easwar Hariharan <eahariha@linux.microsoft.com> wrote:
+>>
+>>> This is a series that follows up on my previous series to introduce
+>>> secs_to_jiffies() and convert a few initial users.
+>>
+>> Thanks, I added this to mm.git.  I suppressed the usual added-to-mm
+>> emails because soooo many cc's!
+>>
+>> I'd ask relevant maintainers to send in any acks and I'll paste them
+>> into the relevant changelogs.
+> 
+> Thank you, Andrew!
+> 
+> - Easwar
 
-| WARNING: possible recursive locking detected
-| 6.12.0-rc7-01692-g5e9a28f41134-dirty #594 Not tainted
-| --------------------------------------------
-| ping/4018 is trying to acquire lock:
-| ffff8881094a6848 (&set->lock){+.-.}-{2:2}, at: ip_set_add+0x28c/0x360 [ip_set]
-|
-| but task is already holding lock:
-| ffff88811034c048 (&set->lock){+.-.}-{2:2}, at: ip_set_add+0x28c/0x360 [ip_set]
+Hi Andrew,
 
-This is a false alarm: ipset does not allow nested list:set type, so the
-loop in list_set_kadd() can never encounter the outer set itself. No
-other set type supports embedded sets, so this is the only case to
-consider.
+There have been a couple of comments[1][2] that came in after you queued
+the series to mm. Would you rather I send individual patches addressing
+these, or just send a v4 of the entire series (-netdev of course) so you
+can replace it wholesale?
 
-To avoid the false report, create a distinct lock class for list:set
-type ipset locks.
+Thanks,
+Easwar
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- net/netfilter/ipset/ip_set_list_set.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
-index bfae7066936b..db794fe1300e 100644
---- a/net/netfilter/ipset/ip_set_list_set.c
-+++ b/net/netfilter/ipset/ip_set_list_set.c
-@@ -611,6 +611,8 @@ init_list_set(struct net *net, struct ip_set *set, u32 size)
- 	return true;
- }
- 
-+static struct lock_class_key list_set_lockdep_key;
-+
- static int
- list_set_create(struct net *net, struct ip_set *set, struct nlattr *tb[],
- 		u32 flags)
-@@ -627,6 +629,7 @@ list_set_create(struct net *net, struct ip_set *set, struct nlattr *tb[],
- 	if (size < IP_SET_LIST_MIN_SIZE)
- 		size = IP_SET_LIST_MIN_SIZE;
- 
-+	lockdep_set_class(&set->lock, &list_set_lockdep_key);
- 	set->variant = &set_variant;
- 	set->dsize = ip_set_elem_len(set, tb, sizeof(struct set_elem),
- 				     __alignof__(struct set_elem));
--- 
-2.47.0
-
+[1]
+https://lore.kernel.org/all/07784753-6874-4dda-a080-2d2812f4a10a@csgroup.eu/
+[2]
+https://lore.kernel.org/all/Z2G1ZPL2cAlQOYlF@li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com/
