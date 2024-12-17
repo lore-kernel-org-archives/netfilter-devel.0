@@ -1,106 +1,82 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39FAD148850;
-	Tue, 17 Dec 2024 21:12:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 36D231DD0C7
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 Dec 2024 21:15:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734469945; cv=none; b=BnSzVQoPRnr+ERuP3JjClXumpKL+DwiDGMO0hWqPZg5lBHdhqByHQa6R1CFEbpqrt29sstxSFxsiBecVlN5WNwNug4kQSLbv5nAwITxV6T3CRyzBywI3URTzxRacCQNEx/cq5wqLEN4Unrh+tOHpBCJcoMi40Bqyxolkq1gTHJM=
+	t=1734470130; cv=none; b=VCVUZ3eufyYee56h1irjWmFi8820DwXB8GBUYYsiVAA6miIPd8NFs/IYEDppjz8lks5wUhM1nXM02R+nJBIGFLGk/ikwvfPMbZQEh57CaKS1KfQSOl1HLzQu6xmeq9NigMx4V6aAIVCeDzDVFyw0M2LuywVQfk2QaueECAiLW2c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734469945; c=relaxed/simple;
-	bh=6wrZIip+47/78xZMxlKfy5iKCSXmDm0ozFscqh0XaL0=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=BDxnZIV7DYhFkaZVCqHYVN+Wvrk8lae8Cdw7IXFIe1h5nu+RLs+Nkf0AIbpcIM4nY8BmwhjP+Ux08m1ozuEPlWHBSiCFgR+eUfMF1L6Afb9ttFhXVXQN5UVesoBroT+CLoFcvzIu4fe8bh9Zs8kazZ/jtu2wkt8hswD9FsURX8g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nmF/sQCS; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nmF/sQCS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30F7CC4CED7;
-	Tue, 17 Dec 2024 21:12:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734469944;
-	bh=6wrZIip+47/78xZMxlKfy5iKCSXmDm0ozFscqh0XaL0=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=nmF/sQCS1D3KNHotz6/Uis21dHNJl7nLly6pcknq1IkDIafHawvIl5RaL9/QyQcZn
-	 nyGQz6EdiI98Lm7qeFHMwWswlC3Qfefy9eWeYO8Zhv+gHExXCf5+0KsSm0kSj2kwOJ
-	 8nof/rwPL6N6M8ZNuUmnLRmLS4svJ9udLDC6DdE4=
-Date: Tue, 17 Dec 2024 13:12:21 -0800
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Easwar Hariharan <eahariha@linux.microsoft.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik
- <kadlec@netfilter.org>, "David S. Miller" <davem@davemloft.net>, Eric
- Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo
- Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, Julia Lawall
- <Julia.Lawall@inria.fr>, Nicolas Palix <nicolas.palix@imag.fr>, Daniel Mack
- <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert
- Jarzmik <robert.jarzmik@free.fr>, Russell King <linux@armlinux.org.uk>,
- Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
- Alexander Gordeev <agordeev@linux.ibm.com>, Christian Borntraeger
- <borntraeger@linux.ibm.com>, Sven Schnelle <svens@linux.ibm.com>, Ofir
- Bitton <obitton@habana.ai>, Oded Gabbay <ogabbay@kernel.org>, Lucas De
- Marchi <lucas.demarchi@intel.com>, Thomas =?ISO-8859-1?Q?Hellstr=F6m?=
- <thomas.hellstrom@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>,
- Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard
- <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, David Airlie
- <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>, Jeroen de Borst
- <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>,
- Shailend Chand <shailend@google.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
- James Smart <james.smart@broadcom.com>, Dick Kennedy
- <dick.kennedy@broadcom.com>, "James E.J. Bottomley"
- <James.Bottomley@HansenPartnership.com>, "Martin K. Petersen"
- <martin.petersen@oracle.com>, Roger Pau =?ISO-8859-1?Q?Monn=E9?=
- <roger.pau@citrix.com>, Jens Axboe <axboe@kernel.dk>, Kalle Valo
- <kvalo@kernel.org>, Jeff Johnson <jjohnson@kernel.org>, Catalin Marinas
- <catalin.marinas@arm.com>, Jack Wang <jinpu.wang@cloud.ionos.com>, Marcel
- Holtmann <marcel@holtmann.org>, Johan Hedberg <johan.hedberg@gmail.com>,
- Luiz Augusto von Dentz <luiz.dentz@gmail.com>, Greg Kroah-Hartman
- <gregkh@linuxfoundation.org>, Florian Fainelli
- <florian.fainelli@broadcom.com>, Ray Jui <rjui@broadcom.com>, Scott Branden
- <sbranden@broadcom.com>, Broadcom internal kernel review list
- <bcm-kernel-feedback-list@broadcom.com>, Xiubo Li <xiubli@redhat.com>, Ilya
- Dryomov <idryomov@gmail.com>, Josh Poimboeuf <jpoimboe@kernel.org>, Jiri
- Kosina <jikos@kernel.org>, Miroslav Benes <mbenes@suse.cz>, Petr Mladek
- <pmladek@suse.com>, Joe Lawrence <joe.lawrence@redhat.com>, Jaroslav Kysela
- <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, Louis Peens
- <louis.peens@corigine.com>, Michael Ellerman <mpe@ellerman.id.au>, Nicholas
- Piggin <npiggin@gmail.com>, Christophe Leroy <christophe.leroy@csgroup.eu>,
- Naveen N Rao <naveen@kernel.org>, Madhavan Srinivasan
- <maddy@linux.ibm.com>, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, cocci@inria.fr,
- linux-arm-kernel@lists.infradead.org, linux-s390@vger.kernel.org,
- dri-devel@lists.freedesktop.org, intel-xe@lists.freedesktop.org,
- linux-scsi@vger.kernel.org, xen-devel@lists.xenproject.org,
- linux-block@vger.kernel.org, linux-wireless@vger.kernel.org,
- ath11k@lists.infradead.org, linux-mm@kvack.org,
- linux-bluetooth@vger.kernel.org, linux-staging@lists.linux.dev,
- linux-rpi-kernel@lists.infradead.org, ceph-devel@vger.kernel.org,
- live-patching@vger.kernel.org, linux-sound@vger.kernel.org,
- oss-drivers@corigine.com, linuxppc-dev@lists.ozlabs.org, Anna-Maria Behnsen
- <anna-maria@linutronix.de>, Jeff Johnson <quic_jjohnson@quicinc.com>,
- paul@paul-moore.com
-Subject: Re: [PATCH v3 00/19] Converge on using secs_to_jiffies()
-Message-Id: <20241217131221.e1b1262f97dc6a5d616ca8e7@linux-foundation.org>
-In-Reply-To: <14ad0c08-7b3b-47b6-8cc1-8a4179238e5a@linux.microsoft.com>
-References: <20241210-converge-secs-to-jiffies-v3-0-ddfefd7e9f2a@linux.microsoft.com>
-	<20241210163520.95fa1c8aa83e1915004ed884@linux-foundation.org>
-	<422470cd-84f0-469e-93c2-493c5091391d@linux.microsoft.com>
-	<14ad0c08-7b3b-47b6-8cc1-8a4179238e5a@linux.microsoft.com>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	s=arc-20240116; t=1734470130; c=relaxed/simple;
+	bh=nTcdr8XEYXahW9MEKbBnQZtqQiQ7P9/MwmO4AoucH0U=;
+	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=Y8hLCECFOWIRkruWEolaZJRd5XRS1C5afrhKLzfgEpaHM1Xefe/k9rDajJSaB3WRJ+9gzAtCmcQ10VlqUSRFO7zYYo3XevF0CrPXolG58gQaDJwki1HcvGv7j5TXfWUy5ZvvabCR2dI99Uc5xgRxNpD88FmJDj8g9hRk6BNlYm4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nft 5/6] mnl: rename list of expression in mnl_nft_setelem_batch()
+Date: Tue, 17 Dec 2024 22:15:15 +0100
+Message-Id: <20241217211516.1644623-6-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20241217211516.1644623-1-pablo@netfilter.org>
+References: <20241217211516.1644623-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-On Tue, 17 Dec 2024 12:53:22 -0800 Easwar Hariharan <eahariha@linux.microsoft.com> wrote:
+Rename set to init to prepare to pass struct set to this function in
+the follow up patch. No functional changes are intended.
 
-> There have been a couple of comments[1][2] that came in after you queued
-> the series to mm. Would you rather I send individual patches addressing
-> these, or just send a v4 of the entire series (-netdev of course) so you
-> can replace it wholesale?
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/mnl.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-Individual small fixes would be preferable please.  Mainly to
-preserve the validity of current review efforts.
+diff --git a/src/mnl.c b/src/mnl.c
+index 88fac5bd0393..52085d6d960a 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -1731,7 +1731,7 @@ static int mnl_nft_setelem_batch(const struct nftnl_set *nls, struct cmd *cmd,
+ 				 struct nftnl_batch *batch,
+ 				 enum nf_tables_msg_types msg_type,
+ 				 unsigned int flags, uint32_t *seqnum,
+-				 const struct expr *set,
++				 const struct expr *init,
+ 				 struct netlink_ctx *ctx)
+ {
+ 	struct nlattr *nest1, *nest2;
+@@ -1743,8 +1743,8 @@ static int mnl_nft_setelem_batch(const struct nftnl_set *nls, struct cmd *cmd,
+ 	if (msg_type == NFT_MSG_NEWSETELEM)
+ 		flags |= NLM_F_CREATE;
+ 
+-	if (set)
+-		expr = list_first_entry(&set->expressions, struct expr, list);
++	if (init)
++		expr = list_first_entry(&init->expressions, struct expr, list);
+ 
+ next:
+ 	nlh = nftnl_nlmsg_build_hdr(nftnl_batch_buffer(batch), msg_type,
+@@ -1764,13 +1764,13 @@ next:
+ 				 htonl(nftnl_set_get_u32(nls, NFTNL_SET_ID)));
+ 	}
+ 
+-	if (!set || list_empty(&set->expressions))
++	if (!init || list_empty(&init->expressions))
+ 		return 0;
+ 
+ 	assert(expr);
+ 	nest1 = mnl_attr_nest_start(nlh, NFTA_SET_ELEM_LIST_ELEMENTS);
+-	list_for_each_entry_from(expr, &set->expressions, list) {
+-		nlse = alloc_nftnl_setelem(set, expr);
++	list_for_each_entry_from(expr, &init->expressions, list) {
++		nlse = alloc_nftnl_setelem(init, expr);
+ 
+ 		cmd_add_loc(cmd, nlh, &expr->location);
+ 		nest2 = mnl_attr_nest_start(nlh, ++i);
+-- 
+2.30.2
+
