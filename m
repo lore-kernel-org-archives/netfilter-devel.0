@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id C4D6F1FCFFC;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id C4D211FAC55;
 	Wed, 18 Dec 2024 23:41:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734565313; cv=none; b=IsjeG8T6KxE4/WSx5m/oYiOL6OMx3gBRt969AbAidqGiYCa0HZmSfNvqyewJGzkhRI9ocAwuhaBotc0ThIyUhbtsn9mLjnX7svNiWBsuDrHmW4B1XyOdl7h3KvkauHOQxxbN3SpLQfWxJHJvjH5ALedDcsjhMk+njb7apUMzJOE=
+	t=1734565313; cv=none; b=U2fcP8mknqeEcU5ecb8dNpVpNtawmcD2Tr4QDA7qsRQcYEOq9LE2QTCfLkDKjKURVYQsHx77pyKRCH8XsQW9caopGrtTAZpqYf+LqZhhdRo5bAozhLYsZnxefW+tar/Pob/m1JZo+/4w9aLtkWAODvbuz2rtU78sClC0MwwVN4A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1734565313; c=relaxed/simple;
-	bh=W6Rh9drXZGBhudlE8EIvnNLID+8DxwUsFw/aBZceDzQ=;
+	bh=hlTUwRtcm8X5JqChNop5tLa5z5lb/W4oTXOG4zmP21s=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=iFtFSgJf+8n3Vjiu4nI8a+Df7J+lCFXmWswtNQPeMcB3lavz3VycepLXX8kIJUaisMT0cSknLoLYYjQs6ct9JEgAp7IN+K32UxuPEPpoP+29F0xKb2HksLzXcOjEslzALP8OFxsPvBlZi0e7oKgCJCvZQiSjO7MZR+AdjbaFUio=
+	 MIME-Version; b=hAMGojv4rRNyNeGj7CApysukSeoyiFTZv/InOfAdLz3zuoETzT/prtXxiBevZlTfCe8SJjVGYRNJuTD63TvKIKk938d5ovtQ8j20xUXjA3wonWqsy4Blggth44WCIdhie4Vyhpxxawci5dHg/1gQiH34UrKziAYFx4uLaGm2kFQ=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 2/2] netfilter: ipset: Fix for recursive locking warning
-Date: Thu, 19 Dec 2024 00:41:37 +0100
-Message-Id: <20241218234137.1687288-3-pablo@netfilter.org>
+Subject: [PATCH net 1/2] ipvs: Fix clamp() of ip_vs_conn_tab on small memory systems
+Date: Thu, 19 Dec 2024 00:41:36 +0100
+Message-Id: <20241218234137.1687288-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20241218234137.1687288-1-pablo@netfilter.org>
 References: <20241218234137.1687288-1-pablo@netfilter.org>
@@ -34,57 +34,53 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Phil Sutter <phil@nwl.cc>
+From: David Laight <David.Laight@ACULAB.COM>
 
-With CONFIG_PROVE_LOCKING, when creating a set of type bitmap:ip, adding
-it to a set of type list:set and populating it from iptables SET target
-triggers a kernel warning:
+The 'max_avail' value is calculated from the system memory
+size using order_base_2().
+order_base_2(x) is defined as '(x) ? fn(x) : 0'.
+The compiler generates two copies of the code that follows
+and then expands clamp(max, min, PAGE_SHIFT - 12) (11 on 32bit).
+This triggers a compile-time assert since min is 5.
 
-| WARNING: possible recursive locking detected
-| 6.12.0-rc7-01692-g5e9a28f41134-dirty #594 Not tainted
-| --------------------------------------------
-| ping/4018 is trying to acquire lock:
-| ffff8881094a6848 (&set->lock){+.-.}-{2:2}, at: ip_set_add+0x28c/0x360 [ip_set]
-|
-| but task is already holding lock:
-| ffff88811034c048 (&set->lock){+.-.}-{2:2}, at: ip_set_add+0x28c/0x360 [ip_set]
+In reality a system would have to have less than 512MB memory
+for the bounds passed to clamp to be reversed.
 
-This is a false alarm: ipset does not allow nested list:set type, so the
-loop in list_set_kadd() can never encounter the outer set itself. No
-other set type supports embedded sets, so this is the only case to
-consider.
+Swap the order of the arguments to clamp() to avoid the warning.
 
-To avoid the false report, create a distinct lock class for list:set
-type ipset locks.
+Replace the clamp_val() on the line below with clamp().
+clamp_val() is just 'an accident waiting to happen' and not needed here.
 
-Fixes: f830837f0eed ("netfilter: ipset: list:set set type support")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Detected by compile time checks added to clamp(), specifically:
+minmax.h: use BUILD_BUG_ON_MSG() for the lo < hi test in clamp()
+
+Reported-by: Linux Kernel Functional Testing <lkft@linaro.org>
+Closes: https://lore.kernel.org/all/CA+G9fYsT34UkGFKxus63H6UVpYi5GRZkezT9MRLfAbM3f6ke0g@mail.gmail.com/
+Fixes: 4f325e26277b ("ipvs: dynamically limit the connection hash table")
+Tested-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+Signed-off-by: David Laight <david.laight@aculab.com>
+Acked-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_list_set.c | 3 +++
- 1 file changed, 3 insertions(+)
+ net/netfilter/ipvs/ip_vs_conn.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
-index bfae7066936b..db794fe1300e 100644
---- a/net/netfilter/ipset/ip_set_list_set.c
-+++ b/net/netfilter/ipset/ip_set_list_set.c
-@@ -611,6 +611,8 @@ init_list_set(struct net *net, struct ip_set *set, u32 size)
- 	return true;
- }
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index 98d7dbe3d787..c0289f83f96d 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -1495,8 +1495,8 @@ int __init ip_vs_conn_init(void)
+ 	max_avail -= 2;		/* ~4 in hash row */
+ 	max_avail -= 1;		/* IPVS up to 1/2 of mem */
+ 	max_avail -= order_base_2(sizeof(struct ip_vs_conn));
+-	max = clamp(max, min, max_avail);
+-	ip_vs_conn_tab_bits = clamp_val(ip_vs_conn_tab_bits, min, max);
++	max = clamp(max_avail, min, max);
++	ip_vs_conn_tab_bits = clamp(ip_vs_conn_tab_bits, min, max);
+ 	ip_vs_conn_tab_size = 1 << ip_vs_conn_tab_bits;
+ 	ip_vs_conn_tab_mask = ip_vs_conn_tab_size - 1;
  
-+static struct lock_class_key list_set_lockdep_key;
-+
- static int
- list_set_create(struct net *net, struct ip_set *set, struct nlattr *tb[],
- 		u32 flags)
-@@ -627,6 +629,7 @@ list_set_create(struct net *net, struct ip_set *set, struct nlattr *tb[],
- 	if (size < IP_SET_LIST_MIN_SIZE)
- 		size = IP_SET_LIST_MIN_SIZE;
- 
-+	lockdep_set_class(&set->lock, &list_set_lockdep_key);
- 	set->variant = &set_variant;
- 	set->dsize = ip_set_elem_len(set, tb, sizeof(struct set_elem),
- 				     __alignof__(struct set_elem));
 -- 
 2.30.2
 
