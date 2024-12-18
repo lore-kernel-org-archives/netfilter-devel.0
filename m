@@ -1,13 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 65E081FCFF4;
-	Wed, 18 Dec 2024 23:41:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id C4D6F1FCFFC;
+	Wed, 18 Dec 2024 23:41:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734565312; cv=none; b=AC49P4uBux0XhaLmk1Ro/fVXLi7v1gPi2XYoVNWxiDXSUahC8IwjuBlNy2RVBt88JjxUeGuapoCePywRmJmyDivFbeZs05jcTghWYwpRvPUreeQw2d0OHPitTmK0NYu1Dzj128LabBsGDDkdFTmFxXbMA+NnfxYfQCqlVLrDvbk=
+	t=1734565313; cv=none; b=IsjeG8T6KxE4/WSx5m/oYiOL6OMx3gBRt969AbAidqGiYCa0HZmSfNvqyewJGzkhRI9ocAwuhaBotc0ThIyUhbtsn9mLjnX7svNiWBsuDrHmW4B1XyOdl7h3KvkauHOQxxbN3SpLQfWxJHJvjH5ALedDcsjhMk+njb7apUMzJOE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734565312; c=relaxed/simple;
-	bh=uMSG5ER061vR6o17OJ5d/JzFjjqUwmyqr69/UYhN8E8=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=cqT6D7JLLCX2rfiTqje+YidGLiLp6bO/hplK82Q54kXe0R3hM24PH6z4/O3EMg7ycP4R37xJQX6EuZOa2OHenSAcYkno05QDpEdHHemuqm/Iw9upKUUGYLf+yd7XzEBBgQBLgnJpLjLZpabg9FlzKbK9k91xm8vMcSxEF/nK9qk=
+	s=arc-20240116; t=1734565313; c=relaxed/simple;
+	bh=W6Rh9drXZGBhudlE8EIvnNLID+8DxwUsFw/aBZceDzQ=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=iFtFSgJf+8n3Vjiu4nI8a+Df7J+lCFXmWswtNQPeMcB3lavz3VycepLXX8kIJUaisMT0cSknLoLYYjQs6ct9JEgAp7IN+K32UxuPEPpoP+29F0xKb2HksLzXcOjEslzALP8OFxsPvBlZi0e7oKgCJCvZQiSjO7MZR+AdjbaFUio=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -19,10 +20,12 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 0/2] Netfilter/IPVS fixes for net
-Date: Thu, 19 Dec 2024 00:41:35 +0100
-Message-Id: <20241218234137.1687288-1-pablo@netfilter.org>
+Subject: [PATCH net 2/2] netfilter: ipset: Fix for recursive locking warning
+Date: Thu, 19 Dec 2024 00:41:37 +0100
+Message-Id: <20241218234137.1687288-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20241218234137.1687288-1-pablo@netfilter.org>
+References: <20241218234137.1687288-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,46 +34,57 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Phil Sutter <phil@nwl.cc>
 
-The following series contains two fixes for Netfilter/IPVS:
+With CONFIG_PROVE_LOCKING, when creating a set of type bitmap:ip, adding
+it to a set of type list:set and populating it from iptables SET target
+triggers a kernel warning:
 
-1) Possible build failure in IPVS on systems with less than 512MB
-   memory due to incorrect use of clamp(), from David Laight.
+| WARNING: possible recursive locking detected
+| 6.12.0-rc7-01692-g5e9a28f41134-dirty #594 Not tainted
+| --------------------------------------------
+| ping/4018 is trying to acquire lock:
+| ffff8881094a6848 (&set->lock){+.-.}-{2:2}, at: ip_set_add+0x28c/0x360 [ip_set]
+|
+| but task is already holding lock:
+| ffff88811034c048 (&set->lock){+.-.}-{2:2}, at: ip_set_add+0x28c/0x360 [ip_set]
 
-2) Fix bogus lockdep nesting splat with ipset list:set type,
-   from Phil Sutter.
+This is a false alarm: ipset does not allow nested list:set type, so the
+loop in list_set_kadd() can never encounter the outer set itself. No
+other set type supports embedded sets, so this is the only case to
+consider.
 
-Please, pull these changes from:
+To avoid the false report, create a distinct lock class for list:set
+type ipset locks.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-24-12-19
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 954a2b40719a21e763a1bba2f0da92347e058fce:
-
-  rtnetlink: Try the outer netns attribute in rtnl_get_peer_net(). (2024-12-17 17:54:18 -0800)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-24-12-19
-
-for you to fetch changes up to 70b6f46a4ed8bd56c85ffff22df91e20e8c85e33:
-
-  netfilter: ipset: Fix for recursive locking warning (2024-12-19 00:28:47 +0100)
-
-----------------------------------------------------------------
-netfilter pull request 24-12-19
-
-----------------------------------------------------------------
-David Laight (1):
-      ipvs: Fix clamp() of ip_vs_conn_tab on small memory systems
-
-Phil Sutter (1):
-      netfilter: ipset: Fix for recursive locking warning
-
+Fixes: f830837f0eed ("netfilter: ipset: list:set set type support")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
  net/netfilter/ipset/ip_set_list_set.c | 3 +++
- net/netfilter/ipvs/ip_vs_conn.c       | 4 ++--
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ 1 file changed, 3 insertions(+)
+
+diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+index bfae7066936b..db794fe1300e 100644
+--- a/net/netfilter/ipset/ip_set_list_set.c
++++ b/net/netfilter/ipset/ip_set_list_set.c
+@@ -611,6 +611,8 @@ init_list_set(struct net *net, struct ip_set *set, u32 size)
+ 	return true;
+ }
+ 
++static struct lock_class_key list_set_lockdep_key;
++
+ static int
+ list_set_create(struct net *net, struct ip_set *set, struct nlattr *tb[],
+ 		u32 flags)
+@@ -627,6 +629,7 @@ list_set_create(struct net *net, struct ip_set *set, struct nlattr *tb[],
+ 	if (size < IP_SET_LIST_MIN_SIZE)
+ 		size = IP_SET_LIST_MIN_SIZE;
+ 
++	lockdep_set_class(&set->lock, &list_set_lockdep_key);
+ 	set->variant = &set_variant;
+ 	set->dsize = ip_set_elem_len(set, tb, sizeof(struct set_elem),
+ 				     __alignof__(struct set_elem));
+-- 
+2.30.2
+
