@@ -1,81 +1,88 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7240A149DF4;
-	Thu, 19 Dec 2024 09:10:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDEFB155756
+	for <netfilter-devel@vger.kernel.org>; Thu, 19 Dec 2024 09:22:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734599411; cv=none; b=rCP91GRRVNE+MFaItCz8aA3xswlK8sywwxHIDzop2iEQNhYwu9pvqgmEtrMdVvTnGGcXCao8MG/jgBZHvq0VGtmPXMpUeFEz3YwyAb8A553VnsE6O2U3q+ySfqSTWX8xa2IwO2sNbFjQglnyM4scBj+hk+oFTv4IZkcbRoRYJ24=
+	t=1734600141; cv=none; b=IieypffeZan/eSrR+kBLpQtf6P74TkR9uBJa2NvxFc/zyBxi3LXau3Ul/PlsUR3DCpDFypxXlOe1Bg5KSRDlfLIKs7KXeX7SR5DunqZxR+iptHat3Gr9hJgkGi1AHjhNzAen8SmMvNkeCdpICHWNus2NrUsMdjzjmPCT5OwM2pw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734599411; c=relaxed/simple;
-	bh=VYAOV0DQQggPY2XmjJx09Xty29Hn2skvfDGqACr2QpI=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=MpTCoEnnH76MY7Zcyvwk+X4iUEAQNwyz2ND2CfVNtGGitZ9g6Z2rjkhchsgNAmRKOMYHj7eH68zmsnR7oyT7bKhgOGII7dTrzZUlSEVp9Rgp5yuSABBqoSJa0Q9HjBSmOyKUNuQ3Iy3C1Uz1ltTBp3Szr1b4U8dH0uLaDXwDMwM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=F6/Z/kej; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734600141; c=relaxed/simple;
+	bh=uzg/661+WuFOVfio8nldwkWdeOTqr28aS/NUoSGeHd4=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=mCuFSI21Th+/QFJB/wDg4jkDIOuPbsqpsDp67vmmyYiCLnu/XPQ2xIe8JKLJSKiLeS9tl3nTT+yu5szwygcR9mR5KTFrHuDYgyAva0SAnBv79Rd202L4OY9+BwPv8ESPi9irJ9Y1yWXK8J9BcaMMnkQynJYUHzQSpXjPUbWAAqM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=Q03/9WV+; arc=none smtp.client-ip=148.6.0.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="F6/Z/kej"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5DD4C4CED0;
-	Thu, 19 Dec 2024 09:10:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1734599411;
-	bh=VYAOV0DQQggPY2XmjJx09Xty29Hn2skvfDGqACr2QpI=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=F6/Z/kejTxoCZqW+Mj3gLNbc0+CDeS3X/zdp1MUaJwLB+3zHVxFtIEyA4dHNGRwic
-	 2chdZCJKxsa2UsidXjHByNJHr2CKcq8+/2Q+KELhh6sb5mYCsXa2Bo0a/ESHdkDeBE
-	 eJT2WeeyFcmWWgECKFrx6ygZZF8V50KEzfgaQLcjGF/7vFlmhS16HDxONZmHMkQeOd
-	 I5mRy3zboIyO5IOHZARR+OhcXBaB/kaY7vif4xhnQeFz3HM+lh+PHGFweyX88LDFog
-	 fQ354put+wzCPYAX0fF+HTgH6G/efXiYY3rGi23sj4XAMzL0K12b7N0TGq5xOL24DK
-	 1T//xJm+uOZQQ==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id ADEFF3806656;
-	Thu, 19 Dec 2024 09:10:29 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="Q03/9WV+"
+Received: from localhost (localhost [127.0.0.1])
+	by smtp2.kfki.hu (Postfix) with ESMTP id 0D22E32E0209;
+	Thu, 19 Dec 2024 10:22:09 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	blackhole.kfki.hu; h=mime-version:references:message-id
+	:in-reply-to:from:from:date:date:received:received:received
+	:received; s=20151130; t=1734600126; x=1736414527; bh=/NzK0abqtE
+	R1c9SW2Qrr+NY8oi/CJ51oM8rCGuyFXs0=; b=Q03/9WV+jsRMWs9AIRW40klee1
+	ZTV7VlDRymnuV34B9Tgn6qqNUqBIwtXY4MokAWrIp06YbMybAE2aRm/bhP5P124A
+	f7qiNCbbPwe3GGklACRc2EL84bjq0W+obD9OXebPWE6EAqHZ6+GUC3bNJdS3eJQM
+	c8fAdfiOIqTOeb/eM=
+X-Virus-Scanned: Debian amavis at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+ by localhost (smtp2.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
+ id RqkbLf3oO7KS; Thu, 19 Dec 2024 10:22:06 +0100 (CET)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
+	by smtp2.kfki.hu (Postfix) with ESMTP id D9EB332E0208;
+	Thu, 19 Dec 2024 10:22:06 +0100 (CET)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+	id CE45334316A; Thu, 19 Dec 2024 10:22:06 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by blackhole.kfki.hu (Postfix) with ESMTP id CCEBA343169;
+	Thu, 19 Dec 2024 10:22:06 +0100 (CET)
+Date: Thu, 19 Dec 2024 10:22:06 +0100 (CET)
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: "G.W. Haywood" <ged@jubileegroup.co.uk>
+cc: netfilter-devel@vger.kernel.org
+Subject: Re: Documentation oddity.
+In-Reply-To: <9190a743-e6ac-fa2a-4740-864b62d5fda7@jubileegroup.co.uk>
+Message-ID: <bda3eb41-742f-a3c3-f23e-c535e4e461fd@blackhole.kfki.hu>
+References: <9190a743-e6ac-fa2a-4740-864b62d5fda7@jubileegroup.co.uk>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/2] ipvs: Fix clamp() of ip_vs_conn_tab on small memory
- systems
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <173459942851.2189520.15547045150510561758.git-patchwork-notify@kernel.org>
-Date: Thu, 19 Dec 2024 09:10:28 +0000
-References: <20241218234137.1687288-2-pablo@netfilter.org>
-In-Reply-To: <20241218234137.1687288-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 
-Hello:
+Hi,
 
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+On Wed, 18 Dec 2024, G.W. Haywood wrote:
 
-On Thu, 19 Dec 2024 00:41:36 +0100 you wrote:
-> From: David Laight <David.Laight@ACULAB.COM>
-> 
-> The 'max_avail' value is calculated from the system memory
-> size using order_base_2().
-> order_base_2(x) is defined as '(x) ? fn(x) : 0'.
-> The compiler generates two copies of the code that follows
-> and then expands clamp(max, min, PAGE_SHIFT - 12) (11 on 32bit).
-> This triggers a compile-time assert since min is 5.
-> 
-> [...]
+> In the 'man' pages for 'ipset' on my systems, and at
+>
+> https://ipset.netfilter.org/ipset.man.html
+>
+> one sees
+>
+> [quote]
+> netmask cidr
+>    When the optional netmask parameter specified, network addresses
+>    will be stored in the set instead of IP host addresses. The cidr
+>    prefix value must be between 1-32. [...]
+> [/quote]
+>
+> I've just used a value of 64 for an IPv6 set.  It seems to work. :)
+>
+> Have I missed something, or is the documentation in need of an update?
 
-Here is the summary with links:
-  - [net,1/2] ipvs: Fix clamp() of ip_vs_conn_tab on small memory systems
-    https://git.kernel.org/netdev/net/c/cf2c97423a4f
-  - [net,2/2] netfilter: ipset: Fix for recursive locking warning
-    https://git.kernel.org/netdev/net/c/70b6f46a4ed8
+The manpage is uptodate - the webpage version was not refreshed.
+Now it's done and it reflects the reality :-)
 
-You are awesome, thank you!
+Best regards,
+Jozsef
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+E-mail : kadlec@netfilter.org, kadlec@blackhole.kfki.hu,
+          kadlecsik.jozsef@wigner.hu
+Address: Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
