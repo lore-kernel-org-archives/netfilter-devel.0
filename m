@@ -1,88 +1,139 @@
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.51])
+Received: from fhigh-b8-smtp.messagingengine.com (fhigh-b8-smtp.messagingengine.com [202.12.124.159])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDEFB155756
-	for <netfilter-devel@vger.kernel.org>; Thu, 19 Dec 2024 09:22:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 231971853
+	for <netfilter-devel@vger.kernel.org>; Thu, 19 Dec 2024 23:42:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.159
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734600141; cv=none; b=IieypffeZan/eSrR+kBLpQtf6P74TkR9uBJa2NvxFc/zyBxi3LXau3Ul/PlsUR3DCpDFypxXlOe1Bg5KSRDlfLIKs7KXeX7SR5DunqZxR+iptHat3Gr9hJgkGi1AHjhNzAen8SmMvNkeCdpICHWNus2NrUsMdjzjmPCT5OwM2pw=
+	t=1734651736; cv=none; b=mdUseZtHF2ogByl9GdYTNgyp2x/z0nr4EtIM9WGtEnGP4xjzG+OB5awGYPw4tEwy2Q/V+UvUgROJMCHRnQx6hBzaOU0xJR3yQiZ3zlqGSNpzGdXkhRF2/Te9Q5aSUshzMJWmDYj/7MKbwij8V/8fAlON4KlXKlmxHYz4CQkHtXk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734600141; c=relaxed/simple;
-	bh=uzg/661+WuFOVfio8nldwkWdeOTqr28aS/NUoSGeHd4=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=mCuFSI21Th+/QFJB/wDg4jkDIOuPbsqpsDp67vmmyYiCLnu/XPQ2xIe8JKLJSKiLeS9tl3nTT+yu5szwygcR9mR5KTFrHuDYgyAva0SAnBv79Rd202L4OY9+BwPv8ESPi9irJ9Y1yWXK8J9BcaMMnkQynJYUHzQSpXjPUbWAAqM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=Q03/9WV+; arc=none smtp.client-ip=148.6.0.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
+	s=arc-20240116; t=1734651736; c=relaxed/simple;
+	bh=R+egoJtSZx+LkcVSxQAmTgaTSDNhRQHLw8npln470YI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=W/U/xONWzX3QUL2ETTmUGOzVchIPDYGyzkenNLmU1h4Ui43hSi+RDgbdLA/BlvtL1uEFJ8Cr8c6C5flC1H3eiYptPWLbahV/k7hRs2IRnMCT1mdqI40dqnRRCSB8FyV2X7JX4B9kmTGsX+w3Wk0+7dfl8I4LO4SqleQkbD9ulQM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=alyssa.is; spf=pass smtp.mailfrom=alyssa.is; dkim=pass (2048-bit key) header.d=alyssa.is header.i=@alyssa.is header.b=ET0TH4AI; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=10dls7ey; arc=none smtp.client-ip=202.12.124.159
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=alyssa.is
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alyssa.is
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="Q03/9WV+"
-Received: from localhost (localhost [127.0.0.1])
-	by smtp2.kfki.hu (Postfix) with ESMTP id 0D22E32E0209;
-	Thu, 19 Dec 2024 10:22:09 +0100 (CET)
+	dkim=pass (2048-bit key) header.d=alyssa.is header.i=@alyssa.is header.b="ET0TH4AI";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="10dls7ey"
+Received: from phl-compute-12.internal (phl-compute-12.phl.internal [10.202.2.52])
+	by mailfhigh.stl.internal (Postfix) with ESMTP id 1855125400AD;
+	Thu, 19 Dec 2024 18:14:32 -0500 (EST)
+Received: from phl-mailfrontend-01 ([10.202.2.162])
+  by phl-compute-12.internal (MEProxy); Thu, 19 Dec 2024 18:14:32 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alyssa.is; h=cc
+	:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:message-id:mime-version:reply-to
+	:subject:subject:to:to; s=fm3; t=1734650071; x=1734736471; bh=Dz
+	5bHaVD2UHJoky675Kv+o3jemjmAAczQTnooD/ZsBw=; b=ET0TH4AIxQhOLZOJSV
+	qhuLyqWTqtJasK4EScuqNFnCN49Ei2Yj1MnWuAOCBIjPS46xyJqKxg5cG8snFZ2B
+	QZZ9yY3meknjppz03T3BY7Q1g5Nts0fljmK9xXo5Nl3Q3UKAE5rGNB4f+kb6WLou
+	Qemb8qtLsod33mcM7Zk8sDpNSPLeMaURSLeNc5mQm5wGqCl0CsQLRsXL3FuM4hoU
+	/ph62fB2Ui8vQ318sb7iTb01ZFP3heO1VyHVeMc6GcRPhc+uY/ypERHd7AzzGnoN
+	o3sQ0r6zSsl745qVnmp3zaVRhDSPRRpSrZXKeWeCereIp2cBKMuxXo+efgAAMqWH
+	kHgw==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	blackhole.kfki.hu; h=mime-version:references:message-id
-	:in-reply-to:from:from:date:date:received:received:received
-	:received; s=20151130; t=1734600126; x=1736414527; bh=/NzK0abqtE
-	R1c9SW2Qrr+NY8oi/CJ51oM8rCGuyFXs0=; b=Q03/9WV+jsRMWs9AIRW40klee1
-	ZTV7VlDRymnuV34B9Tgn6qqNUqBIwtXY4MokAWrIp06YbMybAE2aRm/bhP5P124A
-	f7qiNCbbPwe3GGklACRc2EL84bjq0W+obD9OXebPWE6EAqHZ6+GUC3bNJdS3eJQM
-	c8fAdfiOIqTOeb/eM=
-X-Virus-Scanned: Debian amavis at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
- by localhost (smtp2.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
- id RqkbLf3oO7KS; Thu, 19 Dec 2024 10:22:06 +0100 (CET)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-	by smtp2.kfki.hu (Postfix) with ESMTP id D9EB332E0208;
-	Thu, 19 Dec 2024 10:22:06 +0100 (CET)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-	id CE45334316A; Thu, 19 Dec 2024 10:22:06 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-	by blackhole.kfki.hu (Postfix) with ESMTP id CCEBA343169;
-	Thu, 19 Dec 2024 10:22:06 +0100 (CET)
-Date: Thu, 19 Dec 2024 10:22:06 +0100 (CET)
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: "G.W. Haywood" <ged@jubileegroup.co.uk>
-cc: netfilter-devel@vger.kernel.org
-Subject: Re: Documentation oddity.
-In-Reply-To: <9190a743-e6ac-fa2a-4740-864b62d5fda7@jubileegroup.co.uk>
-Message-ID: <bda3eb41-742f-a3c3-f23e-c535e4e461fd@blackhole.kfki.hu>
-References: <9190a743-e6ac-fa2a-4740-864b62d5fda7@jubileegroup.co.uk>
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:message-id:mime-version:reply-to:subject
+	:subject:to:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
+	fm1; t=1734650071; x=1734736471; bh=Dz5bHaVD2UHJoky675Kv+o3jemjm
+	AAczQTnooD/ZsBw=; b=10dls7eyrZXcSCP5cwmUg868kvoaVHNO1gY8ydDW5/hi
+	Mas9pr+jhM53Xdxq8aSQ+J1+TbuUWy9XKzNPKiDDqrXh2BqvV14ld20BqlcKvjnL
+	rU9Eh6TmLmd2T0T18jScmK8ObwW23GoquipcqW6zEafSyAW4idtJ7ebpnKUbgCBs
+	5PHhkdmomuc/ZwdI41HyPcyKcLySXQQ8vRiRf8/M0kOFZxT0YhC4KkyaqyTgsGg1
+	d+ke2r3n1UvWAN04L3bOhuHxut4q4+KOFXV7d1sK3RFiuij7PJXNb9kMvNyADdt3
+	p6rEHskr0Badzbneq2UpOD4pqWj3A8pXPf2ZOcVlAA==
+X-ME-Sender: <xms:1qhkZxC3PJYrQ3QK4-zF_wyCVYX8sGuKZHc5Dz74sdImxo5fytgv9A>
+    <xme:1qhkZ_htCG81m58OFrcLRfSyZ2c3YCrcQ-2ikXCs9sOX8xHRxIDVc6U8bV1ACIgHo
+    7BDo86PpriRrdu3yw>
+X-ME-Received: <xmr:1qhkZ8n6Y0FL9uaRWGde8A9dnL-L5at7kuBR1dZfOdt0o0plot77e9K2LCOLSgbKp66bmNhbczrJpZs2aRPp1Bptqg>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefuddruddtuddgtdejucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdggtfgfnhhsuhgsshgtrhhisggvpdfu
+    rfetoffkrfgpnffqhgenuceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnh
+    htshculddquddttddmnecujfgurhephffvvefufffkofggtgfgsehtkeertdertdejnecu
+    hfhrohhmpeetlhihshhsrgcutfhoshhsuceohhhisegrlhihshhsrgdrihhsqeenucggtf
+    frrghtthgvrhhnpeejfeehffehjeejgfdtffetkedtgfefgfefjeegffekjeejgedtveej
+    leehleelhfenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhroh
+    hmpehhihesrghlhihsshgrrdhishdpnhgspghrtghpthhtohepfedpmhhouggvpehsmhht
+    phhouhhtpdhrtghpthhtohepjhhoshhhuhgrlhgrnhhtsehgohhoghhlvghmrghilhdrtg
+    homhdprhgtphhtthhopehphhhilhesnhiflhdrtggtpdhrtghpthhtohepnhgvthhfihhl
+    thgvrhdquggvvhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrgh
+X-ME-Proxy: <xmx:16hkZ7zJEW9aZncCX3TEI_Xggq6K_KvuHdylnB-ASkf5cboKjuR6aA>
+    <xmx:16hkZ2SRZYMLvxcQmHeCB6FidhHLl7-41cz8g5OhPAEGdykN4HtqJw>
+    <xmx:16hkZ-Zb9XN0y3paa6SMNDShKhwYWlixpR9J1xHxH7DG5C0vRKj3lQ>
+    <xmx:16hkZ3RWrm4CEh2-DiYEINgnOYSrFp-L-dfaNKeCHWOiWBC-1La1jg>
+    <xmx:16hkZ0cYm14Ba7cYXRNJt3_gWRVd04Xi0UGgBKZ0yVvfdafkZuooLjEn>
+Feedback-ID: i12284293:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
+ 19 Dec 2024 18:14:30 -0500 (EST)
+Received: by mbp.qyliss.net (Postfix, from userid 1000)
+	id 29A7BC950; Fri, 20 Dec 2024 00:14:28 +0100 (CET)
+From: Alyssa Ross <hi@alyssa.is>
+To: netfilter-devel@vger.kernel.org
+Cc: Phil Sutter <phil@nwl.cc>,
+	Joshua Lant <joshualant@googlemail.com>
+Subject: [PATCH nftables] include: fix for musl with iptables v1.8.11
+Date: Fri, 20 Dec 2024 00:10:02 +0100
+Message-ID: <20241219231001.1166085-2-hi@alyssa.is>
+X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-Hi,
+Since iptables commit 810f8568 (libxtables: xtoptions: Implement
+XTTYPE_ETHERMACMASK), nftables failed to build for musl libc:
 
-On Wed, 18 Dec 2024, G.W. Haywood wrote:
+	In file included from /nix/store/bvffdqfhyxvx66bqlqqdmjmkyklkafv6-musl-1.2.5-dev/include/netinet/et…
+	                 from /nix/store/kz6fymqpgbrj6330s6wv4idcf9pwsqs4-iptables-1.8.10-de…
+	                 from src/xt.c:30:
+	/nix/store/bvffdqfhyxvx66bqlqqdmjmkyklkafv6-musl-1.2.5-dev/include/netinet/if_ether.h:115:8: error: redefinition of 'struct ethhdr'
+	  115 | struct ethhdr {
+	      |        ^~~~~~
+	In file included from ./include/linux/netfilter_bridge.h:8,
+	                 from ./include/linux/netfilter_bridge/ebtables.h:1,
+	                 from src/xt.c:27:
+	/nix/store/bvffdqfhyxvx66bqlqqdmjmkyklkafv6-musl-1.2.5-dev/include/linux/if_ether.h:173:8: note: originally defined here
+	  173 | struct ethhdr {
+	      |        ^~~~~~
 
-> In the 'man' pages for 'ipset' on my systems, and at
->
-> https://ipset.netfilter.org/ipset.man.html
->
-> one sees
->
-> [quote]
-> netmask cidr
->    When the optional netmask parameter specified, network addresses
->    will be stored in the set instead of IP host addresses. The cidr
->    prefix value must be between 1-32. [...]
-> [/quote]
->
-> I've just used a value of 64 for an IPv6 set.  It seems to work. :)
->
-> Have I missed something, or is the documentation in need of an update?
+The fix is to use libc's version of if_ether.h before any kernel
+headers, which takes care of conflicts with the kernel's struct ethhdr
+definition by defining __UAPI_DEF_ETHHDR, which will tell the kernel's
+header not to define its own version.
 
-The manpage is uptodate - the webpage version was not refreshed.
-Now it's done and it reflects the reality :-)
+Signed-off-by: Alyssa Ross <hi@alyssa.is>
+---
+A similar fix would solve the problem properly in iptables, which was 
+worked around with 76fce228 ("configure: Determine if musl is used for build").
+The __UAPI_DEF_ETHHDR is supposed to be set by netinet/if_ether.h, 
+rather than manually by users.
 
-Best regards,
-Jozsef
+ include/linux/netfilter_bridge.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/include/linux/netfilter_bridge.h b/include/linux/netfilter_bridge.h
+index 6187a558..78ec2cde 100644
+--- a/include/linux/netfilter_bridge.h
++++ b/include/linux/netfilter_bridge.h
+@@ -4,8 +4,9 @@
+ /* bridge-specific defines for netfilter. 
+  */
+ 
++#include <netinet/if_ether.h>
++
+ #include <linux/netfilter.h>
+-#include <linux/if_ether.h>
+ #include <linux/if_vlan.h>
+ #include <linux/if_pppox.h>
+ 
+
+base-commit: 3271d78e70ec75246e8a61a6791fe22b8d89c2c1
 -- 
-E-mail : kadlec@netfilter.org, kadlec@blackhole.kfki.hu,
-          kadlecsik.jozsef@wigner.hu
-Address: Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+2.47.0
+
