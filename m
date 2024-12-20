@@ -1,139 +1,94 @@
-Received: from fhigh-b8-smtp.messagingengine.com (fhigh-b8-smtp.messagingengine.com [202.12.124.159])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 231971853
-	for <netfilter-devel@vger.kernel.org>; Thu, 19 Dec 2024 23:42:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.159
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 352FC182B4
+	for <netfilter-devel@vger.kernel.org>; Fri, 20 Dec 2024 11:50:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734651736; cv=none; b=mdUseZtHF2ogByl9GdYTNgyp2x/z0nr4EtIM9WGtEnGP4xjzG+OB5awGYPw4tEwy2Q/V+UvUgROJMCHRnQx6hBzaOU0xJR3yQiZ3zlqGSNpzGdXkhRF2/Te9Q5aSUshzMJWmDYj/7MKbwij8V/8fAlON4KlXKlmxHYz4CQkHtXk=
+	t=1734695454; cv=none; b=m+BBbVyWLjWveLSBZ7oOkfGNEd6uQP3GCrJJQeJzgb8E7E2YlJl+W74o+y47QESsSR0tmmf6HuWh8eMAO0e1/XjrE51sj30XT3sq8nx1vVqsyhGyEnSGqK2cnmOpqzwE3l0xwcPgrMjfRnfVXupu5eFnAZuADTcXumAXzTi1Inc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734651736; c=relaxed/simple;
-	bh=R+egoJtSZx+LkcVSxQAmTgaTSDNhRQHLw8npln470YI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=W/U/xONWzX3QUL2ETTmUGOzVchIPDYGyzkenNLmU1h4Ui43hSi+RDgbdLA/BlvtL1uEFJ8Cr8c6C5flC1H3eiYptPWLbahV/k7hRs2IRnMCT1mdqI40dqnRRCSB8FyV2X7JX4B9kmTGsX+w3Wk0+7dfl8I4LO4SqleQkbD9ulQM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=alyssa.is; spf=pass smtp.mailfrom=alyssa.is; dkim=pass (2048-bit key) header.d=alyssa.is header.i=@alyssa.is header.b=ET0TH4AI; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=10dls7ey; arc=none smtp.client-ip=202.12.124.159
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=alyssa.is
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alyssa.is
+	s=arc-20240116; t=1734695454; c=relaxed/simple;
+	bh=qbgM0xHwIC7yTMP9DuDp4u+8aT3rYzY9vn7EGdvHL8w=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=rGsKkTO1kwkL9qadf4qGLI5ivrxzdmdWM3jVjEpBycnw8lA/HQASuCUCaMmY4qFQbJCEG9PZkYZVF3HGpSzqDAULQs1SGZScb2Lutrs61EH+OSzib1ujlJE/nIRapUdWPgF1mRH2SHm62FMgrxhXocjvyRpa7Q+f0Apvum0XwxY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=gzym0FK7; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=alyssa.is header.i=@alyssa.is header.b="ET0TH4AI";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="10dls7ey"
-Received: from phl-compute-12.internal (phl-compute-12.phl.internal [10.202.2.52])
-	by mailfhigh.stl.internal (Postfix) with ESMTP id 1855125400AD;
-	Thu, 19 Dec 2024 18:14:32 -0500 (EST)
-Received: from phl-mailfrontend-01 ([10.202.2.162])
-  by phl-compute-12.internal (MEProxy); Thu, 19 Dec 2024 18:14:32 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alyssa.is; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:message-id:mime-version:reply-to
-	:subject:subject:to:to; s=fm3; t=1734650071; x=1734736471; bh=Dz
-	5bHaVD2UHJoky675Kv+o3jemjmAAczQTnooD/ZsBw=; b=ET0TH4AIxQhOLZOJSV
-	qhuLyqWTqtJasK4EScuqNFnCN49Ei2Yj1MnWuAOCBIjPS46xyJqKxg5cG8snFZ2B
-	QZZ9yY3meknjppz03T3BY7Q1g5Nts0fljmK9xXo5Nl3Q3UKAE5rGNB4f+kb6WLou
-	Qemb8qtLsod33mcM7Zk8sDpNSPLeMaURSLeNc5mQm5wGqCl0CsQLRsXL3FuM4hoU
-	/ph62fB2Ui8vQ318sb7iTb01ZFP3heO1VyHVeMc6GcRPhc+uY/ypERHd7AzzGnoN
-	o3sQ0r6zSsl745qVnmp3zaVRhDSPRRpSrZXKeWeCereIp2cBKMuxXo+efgAAMqWH
-	kHgw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:message-id:mime-version:reply-to:subject
-	:subject:to:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
-	fm1; t=1734650071; x=1734736471; bh=Dz5bHaVD2UHJoky675Kv+o3jemjm
-	AAczQTnooD/ZsBw=; b=10dls7eyrZXcSCP5cwmUg868kvoaVHNO1gY8ydDW5/hi
-	Mas9pr+jhM53Xdxq8aSQ+J1+TbuUWy9XKzNPKiDDqrXh2BqvV14ld20BqlcKvjnL
-	rU9Eh6TmLmd2T0T18jScmK8ObwW23GoquipcqW6zEafSyAW4idtJ7ebpnKUbgCBs
-	5PHhkdmomuc/ZwdI41HyPcyKcLySXQQ8vRiRf8/M0kOFZxT0YhC4KkyaqyTgsGg1
-	d+ke2r3n1UvWAN04L3bOhuHxut4q4+KOFXV7d1sK3RFiuij7PJXNb9kMvNyADdt3
-	p6rEHskr0Badzbneq2UpOD4pqWj3A8pXPf2ZOcVlAA==
-X-ME-Sender: <xms:1qhkZxC3PJYrQ3QK4-zF_wyCVYX8sGuKZHc5Dz74sdImxo5fytgv9A>
-    <xme:1qhkZ_htCG81m58OFrcLRfSyZ2c3YCrcQ-2ikXCs9sOX8xHRxIDVc6U8bV1ACIgHo
-    7BDo86PpriRrdu3yw>
-X-ME-Received: <xmr:1qhkZ8n6Y0FL9uaRWGde8A9dnL-L5at7kuBR1dZfOdt0o0plot77e9K2LCOLSgbKp66bmNhbczrJpZs2aRPp1Bptqg>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefuddruddtuddgtdejucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdggtfgfnhhsuhgsshgtrhhisggvpdfu
-    rfetoffkrfgpnffqhgenuceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnh
-    htshculddquddttddmnecujfgurhephffvvefufffkofggtgfgsehtkeertdertdejnecu
-    hfhrohhmpeetlhihshhsrgcutfhoshhsuceohhhisegrlhihshhsrgdrihhsqeenucggtf
-    frrghtthgvrhhnpeejfeehffehjeejgfdtffetkedtgfefgfefjeegffekjeejgedtveej
-    leehleelhfenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhroh
-    hmpehhihesrghlhihsshgrrdhishdpnhgspghrtghpthhtohepfedpmhhouggvpehsmhht
-    phhouhhtpdhrtghpthhtohepjhhoshhhuhgrlhgrnhhtsehgohhoghhlvghmrghilhdrtg
-    homhdprhgtphhtthhopehphhhilhesnhiflhdrtggtpdhrtghpthhtohepnhgvthhfihhl
-    thgvrhdquggvvhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrgh
-X-ME-Proxy: <xmx:16hkZ7zJEW9aZncCX3TEI_Xggq6K_KvuHdylnB-ASkf5cboKjuR6aA>
-    <xmx:16hkZ2SRZYMLvxcQmHeCB6FidhHLl7-41cz8g5OhPAEGdykN4HtqJw>
-    <xmx:16hkZ-Zb9XN0y3paa6SMNDShKhwYWlixpR9J1xHxH7DG5C0vRKj3lQ>
-    <xmx:16hkZ3RWrm4CEh2-DiYEINgnOYSrFp-L-dfaNKeCHWOiWBC-1La1jg>
-    <xmx:16hkZ0cYm14Ba7cYXRNJt3_gWRVd04Xi0UGgBKZ0yVvfdafkZuooLjEn>
-Feedback-ID: i12284293:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
- 19 Dec 2024 18:14:30 -0500 (EST)
-Received: by mbp.qyliss.net (Postfix, from userid 1000)
-	id 29A7BC950; Fri, 20 Dec 2024 00:14:28 +0100 (CET)
-From: Alyssa Ross <hi@alyssa.is>
-To: netfilter-devel@vger.kernel.org
-Cc: Phil Sutter <phil@nwl.cc>,
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="gzym0FK7"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Transfer-Encoding:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=CEp5VvGKaCWz0/FRCUiFNoHQhyvjnzlBPJ17DoEOYBU=; b=gzym0FK7bt3J86+kAvLxXnUzcn
+	rpxgNErE9AzMx6klrNOtty1UAEukiuRa3Oo34TLjqBIF2uIxaKFkWHjolffetQTW2W0DsgPnMrVmR
+	/Aif1BUnknU7yu1hyb31lrz+C8gpGreY+/gKX4MvshzRGyUr6HzmU4gEv7amNs9HNjYowKUvldghF
+	aeHtfhsMuQPRR8qKKKEKipiBqB7MPmWKZ5PyItJkXyZ+9PhjNcra1EbggKqNNvBZEoshw/Mswum1p
+	Yrz2aqFt3SjNLZJaOK8QcTgLTQ7YlT0ck2w+XgKUVTTeSyZSZvi9/9xnXUzggzDP20ogbSkk6kyn5
+	cZhPZ1kg==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1tObWk-000000003VV-2Us4;
+	Fri, 20 Dec 2024 12:50:42 +0100
+Date: Fri, 20 Dec 2024 12:50:42 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Alyssa Ross <hi@alyssa.is>
+Cc: netfilter-devel@vger.kernel.org,
 	Joshua Lant <joshualant@googlemail.com>
-Subject: [PATCH nftables] include: fix for musl with iptables v1.8.11
-Date: Fri, 20 Dec 2024 00:10:02 +0100
-Message-ID: <20241219231001.1166085-2-hi@alyssa.is>
-X-Mailer: git-send-email 2.47.0
+Subject: Re: [PATCH nftables] include: fix for musl with iptables v1.8.11
+Message-ID: <Z2VaEv0u3ZPcWqye@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>, Alyssa Ross <hi@alyssa.is>,
+	netfilter-devel@vger.kernel.org,
+	Joshua Lant <joshualant@googlemail.com>
+References: <20241219231001.1166085-2-hi@alyssa.is>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20241219231001.1166085-2-hi@alyssa.is>
 
-Since iptables commit 810f8568 (libxtables: xtoptions: Implement
-XTTYPE_ETHERMACMASK), nftables failed to build for musl libc:
+Hi Alyssa,
 
-	In file included from /nix/store/bvffdqfhyxvx66bqlqqdmjmkyklkafv6-musl-1.2.5-dev/include/netinet/et…
-	                 from /nix/store/kz6fymqpgbrj6330s6wv4idcf9pwsqs4-iptables-1.8.10-de…
-	                 from src/xt.c:30:
-	/nix/store/bvffdqfhyxvx66bqlqqdmjmkyklkafv6-musl-1.2.5-dev/include/netinet/if_ether.h:115:8: error: redefinition of 'struct ethhdr'
-	  115 | struct ethhdr {
-	      |        ^~~~~~
-	In file included from ./include/linux/netfilter_bridge.h:8,
-	                 from ./include/linux/netfilter_bridge/ebtables.h:1,
-	                 from src/xt.c:27:
-	/nix/store/bvffdqfhyxvx66bqlqqdmjmkyklkafv6-musl-1.2.5-dev/include/linux/if_ether.h:173:8: note: originally defined here
-	  173 | struct ethhdr {
-	      |        ^~~~~~
+On Fri, Dec 20, 2024 at 12:10:02AM +0100, Alyssa Ross wrote:
+> Since iptables commit 810f8568 (libxtables: xtoptions: Implement
+> XTTYPE_ETHERMACMASK), nftables failed to build for musl libc:
+> 
+> 	In file included from /nix/store/bvffdqfhyxvx66bqlqqdmjmkyklkafv6-musl-1.2.5-dev/include/netinet/et…
+> 	                 from /nix/store/kz6fymqpgbrj6330s6wv4idcf9pwsqs4-iptables-1.8.10-de…
+> 	                 from src/xt.c:30:
+> 	/nix/store/bvffdqfhyxvx66bqlqqdmjmkyklkafv6-musl-1.2.5-dev/include/netinet/if_ether.h:115:8: error: redefinition of 'struct ethhdr'
+> 	  115 | struct ethhdr {
+> 	      |        ^~~~~~
+> 	In file included from ./include/linux/netfilter_bridge.h:8,
+> 	                 from ./include/linux/netfilter_bridge/ebtables.h:1,
+> 	                 from src/xt.c:27:
+> 	/nix/store/bvffdqfhyxvx66bqlqqdmjmkyklkafv6-musl-1.2.5-dev/include/linux/if_ether.h:173:8: note: originally defined here
+> 	  173 | struct ethhdr {
+> 	      |        ^~~~~~
+> 
+> The fix is to use libc's version of if_ether.h before any kernel
+> headers, which takes care of conflicts with the kernel's struct ethhdr
+> definition by defining __UAPI_DEF_ETHHDR, which will tell the kernel's
+> header not to define its own version.
 
-The fix is to use libc's version of if_ether.h before any kernel
-headers, which takes care of conflicts with the kernel's struct ethhdr
-definition by defining __UAPI_DEF_ETHHDR, which will tell the kernel's
-header not to define its own version.
+What I don't like about this is how musl tries to force projects to not
+include linux/if_ether.h directly. From the project's view, this is a
+workaround not a fix.
 
-Signed-off-by: Alyssa Ross <hi@alyssa.is>
----
-A similar fix would solve the problem properly in iptables, which was 
-worked around with 76fce228 ("configure: Determine if musl is used for build").
-The __UAPI_DEF_ETHHDR is supposed to be set by netinet/if_ether.h, 
-rather than manually by users.
+> Signed-off-by: Alyssa Ross <hi@alyssa.is>
+> ---
+> A similar fix would solve the problem properly in iptables, which was 
+> worked around with 76fce228 ("configure: Determine if musl is used for build").
+> The __UAPI_DEF_ETHHDR is supposed to be set by netinet/if_ether.h, 
+> rather than manually by users.
 
- include/linux/netfilter_bridge.h | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Why does 76fce228 not work for you?
 
-diff --git a/include/linux/netfilter_bridge.h b/include/linux/netfilter_bridge.h
-index 6187a558..78ec2cde 100644
---- a/include/linux/netfilter_bridge.h
-+++ b/include/linux/netfilter_bridge.h
-@@ -4,8 +4,9 @@
- /* bridge-specific defines for netfilter. 
-  */
- 
-+#include <netinet/if_ether.h>
-+
- #include <linux/netfilter.h>
--#include <linux/if_ether.h>
- #include <linux/if_vlan.h>
- #include <linux/if_pppox.h>
- 
-
-base-commit: 3271d78e70ec75246e8a61a6791fe22b8d89c2c1
--- 
-2.47.0
-
+Cheers, Phil
