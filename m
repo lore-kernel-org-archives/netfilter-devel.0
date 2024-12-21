@@ -1,131 +1,116 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f176.google.com (mail-pl1-f176.google.com [209.85.214.176])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 143572594B2
-	for <netfilter-devel@vger.kernel.org>; Fri, 20 Dec 2024 12:33:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F210686337
+	for <netfilter-devel@vger.kernel.org>; Sat, 21 Dec 2024 03:13:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734698027; cv=none; b=SZ/6buONEyWHhhaBrBKPXEcDrl5LPWpqbv/TrRsD9qoylVOz1QIxVRUVKH/er2uSlnf38yDZ3hIO+Q+52RRC3kkOJfPBjFsEt7HMpt70BpE6bZ1KWbaqgyV4Hq9NYnWeXtdfKPqophITHtLKH6Buo8gTifHr1FVJSqjdw5zM4X8=
+	t=1734750840; cv=none; b=ev0LC/NAfepn7DSxURsYgm5hSz9tpgYbIRZrhgfFH8WTpHpHoscSRU5S68+6ndHOjB4PNi0Rrq9NCXKAFqx8CazFGbaHdzVLpa7x8NdrXnGXAN1I5z/UgbY4ew6vyC3rOovvJqf/OMi10+pfon7eRZxl4bAbiH52nTkIBGyu7o8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734698027; c=relaxed/simple;
-	bh=oGDDXPwilnqURXV2b9+Uf0/SCN0zkaZg4lk0FLdX0W0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=egShgUroVMSNrMEO82Ka46xZISI+dl7IWFvJOEGDK+PQYt24z48dldc+BzqywGmcZvWPhloMitnRKpvfLQGCgraGdQnN8m2fjshVcBOV3mrdMwbWVw8GJQ59Rv7UDl27GhTqVbTLu7t5JeNZXMFfkyCD7OfzEyZHBuKg7zBgGfY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=cv/OfISs; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1734750840; c=relaxed/simple;
+	bh=beMmzsvlY88Vmdqad56PjZkOZKO01bKM3bIMNpW7ujE=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=XOyC6TIV3ZgVxyf1bbCyfRRf2RTn8hb/AlskJERA2pe/tx6IdymEjo1H4BSb7SjgFsIL8zr1Cvx1ArX1YXZ/Lx1VAol+gmzuNf2ocdWmhEhEk8qLuY/J666wQNHeihIxxUKauF11/waf/eEWUdrlTpE466L/Fs5BvSiIqGYBdnw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hrd1P5a8; arc=none smtp.client-ip=209.85.214.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=optusnet.com.au
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="cv/OfISs"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Transfer-Encoding:Content-Type:MIME-Version
-	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=F3v3eo19C9P+FUto3dbfIEsQ5i0HpsWOMvg3O6MjNpQ=; b=cv/OfISsueM6tE3lhFU3REysqh
-	svsfadU+bqD66q+lm7vrcPu+yWdIoBk4FTskSPAHo/JRtbEn61S40WWIybV4DztpPAENS7BedMKQU
-	XmGVNDO4npATjYBJH8ynI4KQi+5qXc0lOp6domadvg4qplZppKg0VDBHIJvyhqhSoeMKqXzpwcz0x
-	WmtLq2/CoWuT/d1H2Qno9gJe1jb9HsArvQc6SiUfeIlOdsnPtowyAwv4FPAhsyQB3oECVw7JsVlqF
-	2O1Plz1Is4gNZa5h0iI1qBqsrDMp2+tsZ3i4WgOgpxhed7f7mbq5KmkFw+Puzxgv9+KcDXBThCYeK
-	XWunoeXQ==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1tOcCM-0000000046b-19wz;
-	Fri, 20 Dec 2024 13:33:42 +0100
-Date: Fri, 20 Dec 2024 13:33:42 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Alyssa Ross <hi@alyssa.is>, Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org,
-	Joshua Lant <joshualant@googlemail.com>
-Subject: Re: [PATCH nftables] include: fix for musl with iptables v1.8.11
-Message-ID: <Z2VkJrkSLRmY9lAE@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>, Alyssa Ross <hi@alyssa.is>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org,
-	Joshua Lant <joshualant@googlemail.com>
-References: <20241219231001.1166085-2-hi@alyssa.is>
- <Z2VaEv0u3ZPcWqye@orbyte.nwl.cc>
- <v654rm6mbtymzhavlbg2fu7irth4mkz4motq7vb7rzjql5ccqa@u7xv7uvdfvsl>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hrd1P5a8"
+Received: by mail-pl1-f176.google.com with SMTP id d9443c01a7336-218c80a97caso22335155ad.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Dec 2024 19:13:58 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1734750838; x=1735355638; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:sender:from:to:cc:subject:date:message-id:reply-to;
+        bh=ezMg6Yf3PUkb59tCV+/dfXyq3O3xlWWSiKUXd/Qn/Go=;
+        b=hrd1P5a8qq5DqsartSRICRTH6SM7qMu8GIQx6OQGUtjp3LkZIyfhYPghTm7bYNs+F/
+         It1Iwdv5ltJdV73laUc8qfTWSQXh/8Hdm9upkrw+FSCFw1aiteAiIaIRvZB0dvW0b5W+
+         EUSUBkfgg0opaFDeOzjQHDSALQduAjUGfst/YI6zySjMQdle9ldF+LCQ/+cs+NIBdMl6
+         IXzZIo+4cR6P05hkOuYcsFg7Es4pteft7OcSwrj/8yzbkjr/HxMC1Sm+h1VF5a8tYn1C
+         Ms4FDwFiN6I+QG63TXAy/IKs08EYBYmu4YaKCPJ9iDOnYq4ASChtH+dID1hS8W4E4Wtk
+         WHEA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1734750838; x=1735355638;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:sender:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ezMg6Yf3PUkb59tCV+/dfXyq3O3xlWWSiKUXd/Qn/Go=;
+        b=BX9LUOXEXmi8NvSWg2NzaygoVpXrsB1rcSyZ4j8CNKJjAw54tYyNW+5QJHmnmB2OXi
+         qADxN/fj0ic+PEsXoxQ9zvrcIJ//77xFUIvuYD0cRYqtLwlCVVEkIzwxCOje2S/z7tfD
+         xLuQ3HQeDrbKjKgrGSpPOyIgG2C2GfHCtXbWOpvt1beYY1GEvNiVZsfnyibQhai1XHiH
+         CRiFAOILBYM4393EDuBsvcqoqL4BPB+sEeaJeC2z/jHGvy6KpFMAAPNK7Csws8AFk8H1
+         PtVoCoFXD4z8Ierzon9PYvbBcxAB1bxgvHHq5yvBU5Vxv7NkdYG2yXWoqz30M2u9r53P
+         Afgw==
+X-Gm-Message-State: AOJu0Yws7Si/2AdQRYowDbIRQdLBHxiwmoe6ozt9uJixa4HYaA3yEH6l
+	QVSeFb3UU6cPANl3XPaQ47zSj02/V3KXlYncGthr2IzGAR55VC7njYV7YA==
+X-Gm-Gg: ASbGncsEwvluaaCQ3ivzZZT+1EnMOXFaFKSaO+aYnwI8FUmqu2+erTRQWiW+b5HvdcJ
+	ENN8rKli3TXJA/dxnhmIqNAwpg5sRnL3dOujwECr5SD2pAzDwWHQtagYPHIEmaS59ptWWtr7dJG
+	UaiIPBecagzw3hanUNUu2BbZfsgeUwZYXmxYlyk3iT/IrfxNM26kbykiNPUqUGCVxaubJC7PuK+
+	vVnskIZL0iwjhsJtOHHJx7EFvF1yA8DoqZ0Gn/+ue5hkxe18Lt74PdhuRLc/T7caiUyMPwcARmK
+	Px7Zq8rMLaRnSqmEeQjZZdNbnlY9lkE71G1e6vPdnA==
+X-Google-Smtp-Source: AGHT+IE969kK6FrkeLpNMRv+k3LJq1JRYaoR6pjNfZQQDY43VjBavGjcbSVyVnmzcrLohHi/rS6+ow==
+X-Received: by 2002:a17:902:e551:b0:216:7ee9:2212 with SMTP id d9443c01a7336-219e6e9fd66mr72104915ad.23.1734750836613;
+        Fri, 20 Dec 2024 19:13:56 -0800 (PST)
+Received: from slk15.local.net (n175-33-111-144.meb22.vic.optusnet.com.au. [175.33.111.144])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-219dc964e92sm35909545ad.18.2024.12.20.19.13.53
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 20 Dec 2024 19:13:54 -0800 (PST)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From: Duncan Roe <duncan_roe@optusnet.com.au>
+To: pablo@netfilter.org,
+	dunc@dimstar.local.net
+Cc: netfilter-devel@vger.kernel.org
+Subject: [PATCH libnetfilter_queue 1/2] build: doc: Only fix rendering of verbatim '\n"' when needed
+Date: Sat, 21 Dec 2024 14:13:48 +1100
+Message-Id: <20241221031349.18922-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.35.8
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <v654rm6mbtymzhavlbg2fu7irth4mkz4motq7vb7rzjql5ccqa@u7xv7uvdfvsl>
 
-On Fri, Dec 20, 2024 at 01:07:56PM +0100, Alyssa Ross wrote:
-> On Fri, Dec 20, 2024 at 12:50:42PM +0100, Phil Sutter wrote:
-> > Hi Alyssa,
-> >
-> > On Fri, Dec 20, 2024 at 12:10:02AM +0100, Alyssa Ross wrote:
-> > > Since iptables commit 810f8568 (libxtables: xtoptions: Implement
-> > > XTTYPE_ETHERMACMASK), nftables failed to build for musl libc:
-> > >
-> > > 	In file included from /nix/store/bvffdqfhyxvx66bqlqqdmjmkyklkafv6-musl-1.2.5-dev/include/netinet/et…
-> > > 	                 from /nix/store/kz6fymqpgbrj6330s6wv4idcf9pwsqs4-iptables-1.8.10-de…
-> > > 	                 from src/xt.c:30:
-> > > 	/nix/store/bvffdqfhyxvx66bqlqqdmjmkyklkafv6-musl-1.2.5-dev/include/netinet/if_ether.h:115:8: error: redefinition of 'struct ethhdr'
-> > > 	  115 | struct ethhdr {
-> > > 	      |        ^~~~~~
-> > > 	In file included from ./include/linux/netfilter_bridge.h:8,
-> > > 	                 from ./include/linux/netfilter_bridge/ebtables.h:1,
-> > > 	                 from src/xt.c:27:
-> > > 	/nix/store/bvffdqfhyxvx66bqlqqdmjmkyklkafv6-musl-1.2.5-dev/include/linux/if_ether.h:173:8: note: originally defined here
-> > > 	  173 | struct ethhdr {
-> > > 	      |        ^~~~~~
-> > >
-> > > The fix is to use libc's version of if_ether.h before any kernel
-> > > headers, which takes care of conflicts with the kernel's struct ethhdr
-> > > definition by defining __UAPI_DEF_ETHHDR, which will tell the kernel's
-> > > header not to define its own version.
-> >
-> > What I don't like about this is how musl tries to force projects to not
-> > include linux/if_ether.h directly. From the project's view, this is a
-> > workaround not a fix.
-> 
-> My understanding is that it's a general principle of using any libc on
-> Linux that if there's both a libc and kernel header for the same thing,
-> the libc header should be used.  libc headers will of course include
-> other libc headers in preference to kernel headers, so if you also
-> include the kernel headers you're likely to end up with conflicts.
-> Whether conflicts occur in any particular case depends on how a
-> particular libc chooses to expose a particular kernel API.  I could be
-> misremembering, but I believe the same thing can happen with Glibc —
-> some headers under sys/ cause conflicts with their corresponding kernel
-> headers if both are included.  While this case is musl specific, I
-> think the principle applies to all libcs.
+commit 9f52afa60839 ("build: doc: Fix rendering of verbatim '\n"' in man
+pages") worked around a doxygen bug which was fixed at doxygen 1.9.
+Applying the workaround to output from a fixed doxygen version reintroduced
+the bug.
+Update build_man.sh to record doxygen version and only apply workaround
+if that version is broken.
 
-While this may be true for the vast majority of user space programs,
-netfilter tools and libraries are a bit special in how close they
-interface with the kernel. Not all netfilter-related kernel API is
-exposed by glibc, for instance. Including (some) kernel headers is
-therefore unavoidable, and (as your patch shows) order of inclusion
-becomes subtly relevant in ways which won't show when compile-testing
-against glibc only.
+Fixes: 9f52afa60839 ("build: doc: Fix rendering of verbatim '\n"' in man pages")
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+---
+ doxygen/build_man.sh | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-> > > Signed-off-by: Alyssa Ross <hi@alyssa.is>
-> > > ---
-> > > A similar fix would solve the problem properly in iptables, which was
-> > > worked around with 76fce228 ("configure: Determine if musl is used for build").
-> > > The __UAPI_DEF_ETHHDR is supposed to be set by netinet/if_ether.h,
-> > > rather than manually by users.
-> >
-> > Why does 76fce228 not work for you?
-> 
-> It does work, but that's a fix for iptables.  This is a fix for
-> nftables.  I could have submitted a copy of the iptables fix, but I
-> don't think it's the best fix due to its reliance on internal macros
-> that are not part of the public interface.
+diff --git a/doxygen/build_man.sh b/doxygen/build_man.sh
+index 95c7569..a6531cb 100755
+--- a/doxygen/build_man.sh
++++ b/doxygen/build_man.sh
+@@ -68,6 +68,13 @@ post_process(){
+   #
+   #keep_me=nfq_icmp_get_hdr.3
+   #do_diagnostics
++
++  # Decide if we need to fix rendering of verbatim "\n"
++  i=$(doxygen --version)
++  doxymajor=$(echo $i|cut -f1 -d.)
++  doxyminor=$(echo $i|cut -f2 -d.)
++  [ $doxymajor -eq 1 -a $doxyminor -lt 9 ] &&
++    fix_newlines=true || fix_newlines=false
+   #
+   # Work through the "real" man pages
+   for target in $(ls -S | head -n$page_count)
+@@ -84,7 +91,7 @@ post_process(){
+       [ $# -ne 2 ] || insert_see_also $@
+ 
+       # Fix rendering of verbatim "\n" (in code snippets)
+-      sed -i 's/\\n/\\\\n/' $target
++      $fix_newlines && sed -i 's/\\n/\\\\n/' $target
+     }&
+ 
+   done
+-- 
+2.46.2
 
-Ah, sorry! Patch subject and description managed to confuse me.
-
-Pablo, what's your opinion? Maybe we should strive for the same solution
-for the problem in all netfilter user space, so either take what we have
-in iptables or adjust iptables to what nftables decides how things
-should be?
-
-Cheers, Phil
