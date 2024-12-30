@@ -1,116 +1,119 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A63C1F8EF7;
-	Fri, 27 Dec 2024 19:30:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6486E1632D9
+	for <netfilter-devel@vger.kernel.org>; Mon, 30 Dec 2024 07:51:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735327814; cv=none; b=lY1YL4YMp+FSLoBN09WAMpaWkX8NpGNosiAdKOma2gPM+HvjcFufyy3P3f27JFTODoyIxhJRrQKB7nPcR8RtDLxGF/YhflfkjS5jQT5sfOmrO379VFqRCQWDemKLQXcE28We3ZyPzjOu8R0dsndkaLT5utUNBjoUVI2kXLauqxY=
+	t=1735545117; cv=none; b=tgZhux+hTPz6zdxsWUsSagzLkOFlVGNHpTqf/xPZn/otfWMK9P+fqBnHhi4Yb8FN7F2YX3UkQ8v4xKmDOLLsLJ3RH52DIRfmOWxFRjel8SzI7dGeTXy/1xmLV7vVL0JoygbOqK3HAIfTHiVLr6bK57xB0Ph1SFVPhd9Q8SSdrgg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735327814; c=relaxed/simple;
-	bh=RLmpCa5uCH37jWy6Jde7G4pkvf5yk45oLbgCIsA4I1I=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=ZKHInnDOmYJip0r3LgSnWwDQfW/3o5eYQY1LB9a7CWk9Cjhe7W396OmNJxEwnCR05zGKotxV77i1+bBFIMHDjVu8/BHtsfLgpQBjvulXf62MiSbOCfZAh2nQKplG8faN7t1wyz1TrWFzRCjER36yVOUN/KSkiH0qKCw/P1dihfE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=njNML299; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735545117; c=relaxed/simple;
+	bh=Ty0odp3SjgUTqexMbjUfQ7REoC5DutDQisZcBKmlUUs=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=hHZxKr1Fvih//d8BcDlyrhOrrDi17H2c+4SJLTDNBKKznG317w+zdF/gl+6e9aLzcW7tlUGOjXQpjKc50U54JcCc4geUoLWOCjFejtQ9gcoCzXN5OLIQcFbwV+KGrWA30ns8YolBqeKh3qU2iKiZnJFRr1ZWr85lG1HRJ2M6ea0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=H0i9Mg4y; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="njNML299"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3FF20C4CED7;
-	Fri, 27 Dec 2024 19:30:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1735327814;
-	bh=RLmpCa5uCH37jWy6Jde7G4pkvf5yk45oLbgCIsA4I1I=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=njNML299h/DKrnYZ0JRXiY5WFN8pBDLU7n9JTvbF1WHrww6aZXwyjBSxwv/0WUn+c
-	 i017vqZgo9RqfL8Zc7Ax80KW9HrTOUtDtPFpPBOuBT9A1Hze7xK4+Ez1OmvcQJ9PyA
-	 Y2kXwN1m8zVqrM4oyeXercKZpIJxnTNCy8i1tQ1RQRSzfmJIHyyyHXkiomshNQt6nA
-	 Hi3bLXxdOxoUM5zOqIXY94ZJQ5v8FSDLKFHiw/uPFd0eIAObPy2oZEnjPRRdY1D3mc
-	 8Hzr5PLBHFe7yQ0Gb9+4IJWfBvV7Zaieafmm9mrvtnNhS2K6VWrzqqHsCAdYPVQpCm
-	 1vZ8befVVFbkg==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id ADF36380A955;
-	Fri, 27 Dec 2024 19:30:34 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="H0i9Mg4y"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1735545115;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=0J0AYhxmNDrE+hV/0WPbQ41cTnDC3xZnCg8iwgLqFn4=;
+	b=H0i9Mg4yA0miPbw3d9UsHgDmZqS2pnMhBqGarKWxGBPc7ZQ1gsramiUjDLtBIcEIzAVVQE
+	iydxYqtcQUaTaxztu29sTxqeWZHzmtHxdyKHmet1NyaPOiC8px7+8q99yaOwkmhT7mVvOA
+	RFGRV6j8pdJGEWMaiatsI1pq7DpX+WU=
+Received: from mail-pj1-f69.google.com (mail-pj1-f69.google.com
+ [209.85.216.69]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-70-VmlKvp6IM9GDfnoNMbDVYw-1; Mon, 30 Dec 2024 02:51:53 -0500
+X-MC-Unique: VmlKvp6IM9GDfnoNMbDVYw-1
+X-Mimecast-MFC-AGG-ID: VmlKvp6IM9GDfnoNMbDVYw
+Received: by mail-pj1-f69.google.com with SMTP id 98e67ed59e1d1-2eeeb5b7022so12379420a91.0
+        for <netfilter-devel@vger.kernel.org>; Sun, 29 Dec 2024 23:51:53 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1735545113; x=1736149913;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=0J0AYhxmNDrE+hV/0WPbQ41cTnDC3xZnCg8iwgLqFn4=;
+        b=R0TyCi0u/UN6x6TO4HOQF/OA8B/ds+zc8/G5Sa+XJ7QzR2PUi98SiOQGMCOsVCnxrD
+         6wuHpDCp/+ZUbB9lK4wmlA/BtosqX/vRY/AjGFSBanuqkRpvA+ZZCl2SGYAXRDBh49QQ
+         gwf6UXNDEPetlQwJcr5vKPFVC+oQp37e8pwv51ZkSWd/Qu5lyft2RDvYzoWpdm1aHynm
+         BH4MCvGXsE1kQ91qYVJZK/3/J6AbrAGaGld58XMF0DQyFFUNk2mAdeSCQ4D93o6LCS1u
+         mMGipKCSGgp6h9oLKi9SMo2H6E2W5+5YpvqvX+YbHYXiuj+JQ9gDzdMH/ILbxhpT/Vo3
+         hvog==
+X-Forwarded-Encrypted: i=1; AJvYcCW3/y3CRNyaNvjylbEkWHwxyn7OPHUfDqzj/3Xr8P+wF2XnaXi65/MyqdgZJgknuvKEeLrI2hE8XFHApAWdnas=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxkJgbZLkXfpRIqfxJc3OoJVFp4Y0vAk13pBjlgQX9cb0otFThv
+	QFqQz4QG7odlpMh+uX2C7Tu95Y/0MnGS1HVsfrDBhf68TBjBIFSkxREGFM96RpPH5sRc3lfN1/b
+	3ax40LFa3AWAoxORM/y9DzCiyzvQCvMUFgs3TcpRWER7yI9Zs9kAPUzxt+SSJwZxneMrN+yU6t6
+	OecXD7FCIEVMkgGuqjt4HeI+eELH7U+ZKUdF3mDNJv
+X-Gm-Gg: ASbGnctJRiFmoGo0h+pId9CfWwE81fDt2gAKlGkIvu0NCercNnakaDgxJ+KanyBvPyW
+	jXekK/OeOe63u+1H5vAABU7dQNzilCNn6e/SH
+X-Received: by 2002:a05:6a00:4391:b0:728:927b:7de2 with SMTP id d2e1a72fcca58-72abdd7cbaemr60529623b3a.8.1735545112960;
+        Sun, 29 Dec 2024 23:51:52 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IGrRn8WcYwv283lLqZw/U9xGQjtM/ypQuHSDfUoQ2eSZRdU4bKS9WRvBDuEhHDV4a2t6IovfqPmrMjsRDPQDxs=
+X-Received: by 2002:a05:6a00:4391:b0:728:927b:7de2 with SMTP id
+ d2e1a72fcca58-72abdd7cbaemr60529579b3a.8.1735545112567; Sun, 29 Dec 2024
+ 23:51:52 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/1] netfilter: nft_set_hash: unaligned atomic read on
- struct nft_set_ext
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <173532783326.575952.10054959797617516458.git-patchwork-notify@kernel.org>
-Date: Fri, 27 Dec 2024 19:30:33 +0000
-References: <20241224233109.361755-2-pablo@netfilter.org>
-In-Reply-To: <20241224233109.361755-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de
+References: <20241227191211.12485-1-chia-yu.chang@nokia-bell-labs.com> <20241227191211.12485-12-chia-yu.chang@nokia-bell-labs.com>
+In-Reply-To: <20241227191211.12485-12-chia-yu.chang@nokia-bell-labs.com>
+From: Jason Wang <jasowang@redhat.com>
+Date: Mon, 30 Dec 2024 15:51:41 +0800
+Message-ID: <CACGkMEu990O+2Sedj+ASv0P5TnZR9THiOdHmx=L0hOxQRXPcsg@mail.gmail.com>
+Subject: Re: [PATCH v6 net-next 11/14] virtio_net: Accurate ECN flag in virtio_net_hdr
+To: chia-yu.chang@nokia-bell-labs.com
+Cc: netdev@vger.kernel.org, dsahern@gmail.com, davem@davemloft.net, 
+	edumazet@google.com, dsahern@kernel.org, pabeni@redhat.com, 
+	joel.granados@kernel.org, kuba@kernel.org, andrew+netdev@lunn.ch, 
+	horms@kernel.org, pablo@netfilter.org, kadlec@netfilter.org, 
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+	shenjian15@huawei.com, salil.mehta@huawei.com, shaojijie@huawei.com, 
+	saeedm@nvidia.com, tariqt@nvidia.com, mst@redhat.com, 
+	xuanzhuo@linux.alibaba.com, eperezma@redhat.com, 
+	virtualization@lists.linux.dev, ij@kernel.org, ncardwell@google.com, 
+	koen.de_schepper@nokia-bell-labs.com, g.white@cablelabs.com, 
+	ingemar.s.johansson@ericsson.com, mirja.kuehlewind@ericsson.com, 
+	cheshire@apple.com, rs.ietf@gmx.at, Jason_Livingood@comcast.com, 
+	vidhi_goel@apple.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hello:
+On Sat, Dec 28, 2024 at 3:13=E2=80=AFAM <chia-yu.chang@nokia-bell-labs.com>=
+ wrote:
+>
+> From: Chia-Yu Chang <chia-yu.chang@nokia-bell-labs.com>
+>
+> Unlike RFC 3168 ECN, accurate ECN uses the CWR flag as part of the ACE
+> field to count new packets with CE mark; however, it will be corrupted
+> by the RFC 3168 ECN-aware TSO. Therefore, fallback shall be applied by
+> seting NETIF_F_GSO_ACCECN to ensure that the CWR flag should not be
+> changed within a super-skb.
+>
+> To apply the aforementieond new AccECN GSO for virtio, new featue bits
+> for host and guest are added for feature negotiation between driver and
+> device. And the translation of Accurate ECN GSO flag between
+> virtio_net_hdr and skb header for NETIF_F_GSO_ACCECN is also added to
+> avoid CWR flag corruption due to RFC3168 ECN TSO.
+>
+> Signed-off-by: Chia-Yu Chang <chia-yu.chang@nokia-bell-labs.com>
+> ---
+>  drivers/net/virtio_net.c        | 14 +++++++++++---
+>  drivers/vdpa/pds/debugfs.c      |  6 ++++++
+>  include/linux/virtio_net.h      | 16 ++++++++++------
+>  include/uapi/linux/virtio_net.h |  5 +++++
+>  4 files changed, 32 insertions(+), 9 deletions(-)
 
-This patch was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+Is there a link to the spec patch? It needs to be accepted first.
 
-On Wed, 25 Dec 2024 00:31:09 +0100 you wrote:
-> Access to genmask field in struct nft_set_ext results in unaligned
-> atomic read:
-> 
-> [   72.130109] Unable to handle kernel paging request at virtual address ffff0000c2bb708c
-> [   72.131036] Mem abort info:
-> [   72.131213]   ESR = 0x0000000096000021
-> [   72.131446]   EC = 0x25: DABT (current EL), IL = 32 bits
-> [   72.132209]   SET = 0, FnV = 0
-> [   72.133216]   EA = 0, S1PTW = 0
-> [   72.134080]   FSC = 0x21: alignment fault
-> [   72.135593] Data abort info:
-> [   72.137194]   ISV = 0, ISS = 0x00000021, ISS2 = 0x00000000
-> [   72.142351]   CM = 0, WnR = 0, TnD = 0, TagAccess = 0
-> [   72.145989]   GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
-> [   72.150115] swapper pgtable: 4k pages, 48-bit VAs, pgdp=0000000237d27000
-> [   72.154893] [ffff0000c2bb708c] pgd=0000000000000000, p4d=180000023ffff403, pud=180000023f84b403, pmd=180000023f835403,
-> +pte=0068000102bb7707
-> [   72.163021] Internal error: Oops: 0000000096000021 [#1] SMP
-> [...]
-> [   72.170041] CPU: 7 UID: 0 PID: 54 Comm: kworker/7:0 Tainted: G            E      6.13.0-rc3+ #2
-> [   72.170509] Tainted: [E]=UNSIGNED_MODULE
-> [   72.170720] Hardware name: QEMU QEMU Virtual Machine, BIOS edk2-stable202302-for-qemu 03/01/2023
-> [   72.171192] Workqueue: events_power_efficient nft_rhash_gc [nf_tables]
-> [   72.171552] pstate: 21400005 (nzCv daif +PAN -UAO -TCO +DIT -SSBS BTYPE=--)
-> [   72.171915] pc : nft_rhash_gc+0x200/0x2d8 [nf_tables]
-> [   72.172166] lr : nft_rhash_gc+0x128/0x2d8 [nf_tables]
-> [   72.172546] sp : ffff800081f2bce0
-> [   72.172724] x29: ffff800081f2bd40 x28: ffff0000c2bb708c x27: 0000000000000038
-> [   72.173078] x26: ffff0000c6780ef0 x25: ffff0000c643df00 x24: ffff0000c6778f78
-> [   72.173431] x23: 000000000000001a x22: ffff0000c4b1f000 x21: ffff0000c6780f78
-> [   72.173782] x20: ffff0000c2bb70dc x19: ffff0000c2bb7080 x18: 0000000000000000
-> [   72.174135] x17: ffff0000c0a4e1c0 x16: 0000000000003000 x15: 0000ac26d173b978
-> [   72.174485] x14: ffffffffffffffff x13: 0000000000000030 x12: ffff0000c6780ef0
-> [   72.174841] x11: 0000000000000000 x10: ffff800081f2bcf8 x9 : ffff0000c3000000
-> [   72.175193] x8 : 00000000000004be x7 : 0000000000000000 x6 : 0000000000000000
-> [   72.175544] x5 : 0000000000000040 x4 : ffff0000c3000010 x3 : 0000000000000000
-> [   72.175871] x2 : 0000000000003a98 x1 : ffff0000c2bb708c x0 : 0000000000000004
-> [   72.176207] Call trace:
-> [   72.176316]  nft_rhash_gc+0x200/0x2d8 [nf_tables] (P)
-> [   72.176653]  process_one_work+0x178/0x3d0
-> [   72.176831]  worker_thread+0x200/0x3f0
-> [   72.176995]  kthread+0xe8/0xf8
-> [   72.177130]  ret_from_fork+0x10/0x20
-> [   72.177289] Code: 54fff984 d503201f d2800080 91003261 (f820303f)
-> [   72.177557] ---[ end trace 0000000000000000 ]---
-> 
-> [...]
-
-Here is the summary with links:
-  - [net,1/1] netfilter: nft_set_hash: unaligned atomic read on struct nft_set_ext
-    https://git.kernel.org/netdev/net/c/542ed8145e6f
-
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+Thanks
 
