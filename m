@@ -1,38 +1,47 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from vps0.lunn.ch (vps0.lunn.ch [156.67.10.101])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70C1E4A18;
-	Thu,  2 Jan 2025 12:36:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B3737462;
+	Thu,  2 Jan 2025 13:34:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=156.67.10.101
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735821377; cv=none; b=fTXWvF28e0wl/x1JlZYNE5qQt2MRYlVd/fgnn/+WA90fgoQp+beLslJE61vP9ijzDEMlVDWawyqmQWzLy+Ib/R8VMADfLc8wjJ1/7xLR6hkHpXRL/4sDyDVT1a1kLSD7Uw0BSh11uhz/zcCXtBcev1mUFfp1ovvH/VKLnDNtB7o=
+	t=1735824898; cv=none; b=bauQFSAYJiGpIAzu7fSyRhbzpMzKlUOe0wGBIXr8acDZCKE1ipEydV6yQfFuibil0gICbzt/chQP/G+kIwsmVQDXGW9VRknuBLRkO8lxZVQNOKkLEF87Zdo6F9d/NZDygG0EBodJ55FQ1VtAB7mBzh5IiKkETXSUFZznUF5MgwA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735821377; c=relaxed/simple;
-	bh=pp6pQk1Pdfs0Vb4mkIADroQb9HTc81pXv5/P4zS9Oss=;
+	s=arc-20240116; t=1735824898; c=relaxed/simple;
+	bh=PSiUZK/dfMsmtDcPBEXOdL2rXKl5+Mlp8gri3v96OIk=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=LtFWVy5HkKJPaLRksAr4kwmT6iS34OZPxz/Y2fMW6iYak2ZnsJUwxXiSEve5m3KKBtsWXCm9NCOWIk7N1xrVBneIQ0UdsGgqmJ8LGhbyLp5Yeb38859+/Yl6r+oGZl0JlVBWPpeXXzhrVCpKjVT5V0+RQF4ZoUFye3a1xMczWJ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1tTKQe-0000x5-UZ; Thu, 02 Jan 2025 13:35:56 +0100
-Date: Thu, 2 Jan 2025 13:35:56 +0100
-From: Florian Westphal <fw@strlen.de>
-To: =?utf-8?B?U3rFkWtl?= Benjamin <egyszeregy@freemail.hu>
-Cc: Florian Westphal <fw@strlen.de>, pablo@netfilter.org,
-	lorenzo@kernel.org, daniel@iogearbox.net, leitao@debian.org,
-	amiculas@cisco.com, kadlec@netfilter.org, davem@davemloft.net,
-	dsahern@kernel.org, edumazet@google.com, kuba@kernel.org,
-	pabeni@redhat.com, horms@kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=fFvIQr8adjNRWKfY4lNn/RIBbc9kv+SBLDVxGGVSYnThsII/6eyyU90M2/NqKI9MWuZzGbhNNujfBPA501VZsqYP6mWvT/A4jV9W4R1QEJrkLDs8CLSDeFLJIcysIP1qAU0k6IatPZwW/lJeiuv3y596zqZQYSua3tQxmw1C0Ps=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch; spf=pass smtp.mailfrom=lunn.ch; dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.b=dGppTydz; arc=none smtp.client-ip=156.67.10.101
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lunn.ch
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.b="dGppTydz"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=lunn.ch;
+	s=20171124; h=In-Reply-To:Content-Transfer-Encoding:Content-Disposition:
+	Content-Type:MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:From:
+	Sender:Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
+	Content-Transfer-Encoding:Content-ID:Content-Description:Content-Disposition:
+	In-Reply-To:References; bh=xzUcEPF4YQJyIJKfKWvHWQHgeh/qSHfSFR3B8gHdetY=; b=dG
+	ppTydzjQltTFjWLccqXx5e6XVUwZztIFyidcP7oYTvnz+mrLXvXLRLNwzzDg3l3fGgbclGmhIXXAx
+	uysq18BUXzQdCx/0vxMQia93JukdV1p56XJugoadg56RbfQMHdh4B31WBZMd7g12nRVHAqwiqR21m
+	jKGFbpnYRvHjk2c=;
+Received: from andrew by vps0.lunn.ch with local (Exim 4.94.2)
+	(envelope-from <andrew@lunn.ch>)
+	id 1tTLLK-000kTv-Co; Thu, 02 Jan 2025 14:34:30 +0100
+Date: Thu, 2 Jan 2025 14:34:30 +0100
+From: Andrew Lunn <andrew@lunn.ch>
+To: egyszeregy@freemail.hu
+Cc: fw@strlen.de, pablo@netfilter.org, lorenzo@kernel.org,
+	daniel@iogearbox.net, leitao@debian.org, amiculas@cisco.com,
+	kadlec@netfilter.org, davem@davemloft.net, dsahern@kernel.org,
+	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+	horms@kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org
 Subject: Re: [PATCH] netfilter: uapi: Merge xt_*.h/c and ipt_*.h which has
  same name.
-Message-ID: <20250102123556.GC3344@breakpoint.cc>
+Message-ID: <b3ddacb6-bb74-4030-aeaf-5d1f7e587310@lunn.ch>
 References: <20250101192015.1577-1-egyszeregy@freemail.hu>
- <20250101224644.GA18527@breakpoint.cc>
- <4ad8fb04-b2d6-493b-978c-7dea46fdc623@freemail.hu>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -42,59 +51,28 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <4ad8fb04-b2d6-493b-978c-7dea46fdc623@freemail.hu>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20250101192015.1577-1-egyszeregy@freemail.hu>
 
-Szőke Benjamin <egyszeregy@freemail.hu> wrote:
-> 2025. 01. 01. 23:46 keltezéssel, Florian Westphal írta:
-> > egyszeregy@freemail.hu <egyszeregy@freemail.hu> wrote:
-> > >   /* match info */
-> > > -struct xt_dscp_info {
-> > > +struct xt_dscp_match_info {
-> > 
-> > To add to what Jan already pointed out, such renames
-> > break UAPI, please don't do this.
-> > 
-> > It could be done with compat ifdef'ry but I think its rather ugly,
-> > better to keep all uapi structure names as-is.
+On Wed, Jan 01, 2025 at 08:20:15PM +0100, egyszeregy@freemail.hu wrote:
+> From: Benjamin Szőke <egyszeregy@freemail.hu>
 > 
-> If i keep the original, maybe one of them will be in conflict between
-> "match" and "target" structs name if i remember well (they go the same
-> text).
-
-Did not find an example.  Can you please point me to one?
-
-> By the way original structs name are absolutely not following any
-> good clean coding, they will be still ugly and they are hard to understand
-> quickly in the code, what goes for "target" and what goes fot "match" codes.
-> Why is it bad to step forward and accept a breaking change to gets a better
-> clean code?
-
-Breaking changes are not acceptable.
-
-> > >   MODULE_LICENSE("GPL");
-> > >   MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
-> > > -MODULE_DESCRIPTION("Xtables: TCP MSS match");
-> > > +MODULE_DESCRIPTION("Xtables: TCP Maximum Segment Size (MSS) adjustment/match");
-> > >   MODULE_ALIAS("ipt_tcpmss");
-> > >   MODULE_ALIAS("ip6t_tcpmss");
-> > > +MODULE_ALIAS("ipt_TCPMSS");
-> > > +MODULE_ALIAS("ip6t_TCPMSS");
-> > 
-> > I think you should add MODULE_ALIAS("xt_TCPMSS") just in case, same
-> > for all other merged (== 'removed') module names, to the respective
-> > match (preserved) modules.
+> Merge and refactoring xt_.h, xt_.c and ipt_*.h files which has the same
+> name in upper and lower case format. Combining these modules should provide
+> some decent memory savings.
 > 
-> Do you mean in all of xt_*.c source, it can be appended by its own
-> MODULE_ALIAS("xt_TCPMSS"), MODULE_ALIAS("xt_RATEEST") ... and so on? Can be
-> kept old MODULE_ALIAS() names  or they can be removed?
+> The goal is to fix Linux repository for case-insensitive filesystem,
+> to able to clone it and editable on any operating systems.
 
-'modprobe xt_FOO' should continue to work, so if xt_FOO was merged into
-xt_foo, then 'modprobe xt_FOO' should load xt_foo.
+Hi Benjamin
 
-Makes sense?
+As pointed out by others, this breaks ABI. It can be very hard to
+change anything in include/uapi/linux without some user space code
+breaking. Also, the use case of case-insensitive filesystem is not
+particularly relevant today, how many are the in active use now? There
+might be a stronger argument for case magic filesystems, but i would
+argue the magic is broken, which is not really Linux's problem.
 
-Same reason as why we have the ipt_tcpmss etc. aliases, it should load
-the xt_ module which does provide the relevant functionality.
+    Andrew
 
-So yes, please keep all existing aliases.
+---
+pw-bot: cr
