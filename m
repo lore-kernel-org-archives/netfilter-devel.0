@@ -1,78 +1,134 @@
-Received: from vps0.lunn.ch (vps0.lunn.ch [156.67.10.101])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B3737462;
-	Thu,  2 Jan 2025 13:34:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=156.67.10.101
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A371D4C9A
+	for <netfilter-devel@vger.kernel.org>; Thu,  2 Jan 2025 15:49:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735824898; cv=none; b=bauQFSAYJiGpIAzu7fSyRhbzpMzKlUOe0wGBIXr8acDZCKE1ipEydV6yQfFuibil0gICbzt/chQP/G+kIwsmVQDXGW9VRknuBLRkO8lxZVQNOKkLEF87Zdo6F9d/NZDygG0EBodJ55FQ1VtAB7mBzh5IiKkETXSUFZznUF5MgwA=
+	t=1735832989; cv=none; b=IKyQEP5XWHeSAl6mc3zFwraGId5Ti+MQLEhDrOauV3pMlmXjdWywrswdx+cLJrRSp7Cp9Wf43RPybtQLqnKHPzSuAHOWUU7Bi0Bl3+OWxzndpTZBpbAO3PnHFGTVnq5uTNj/ncs9N+b21KdGlqsKm0kumiQazi8pgYEWkdAVLLE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735824898; c=relaxed/simple;
-	bh=PSiUZK/dfMsmtDcPBEXOdL2rXKl5+Mlp8gri3v96OIk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fFvIQr8adjNRWKfY4lNn/RIBbc9kv+SBLDVxGGVSYnThsII/6eyyU90M2/NqKI9MWuZzGbhNNujfBPA501VZsqYP6mWvT/A4jV9W4R1QEJrkLDs8CLSDeFLJIcysIP1qAU0k6IatPZwW/lJeiuv3y596zqZQYSua3tQxmw1C0Ps=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch; spf=pass smtp.mailfrom=lunn.ch; dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.b=dGppTydz; arc=none smtp.client-ip=156.67.10.101
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lunn.ch
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.b="dGppTydz"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=lunn.ch;
-	s=20171124; h=In-Reply-To:Content-Transfer-Encoding:Content-Disposition:
-	Content-Type:MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:From:
-	Sender:Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
-	Content-Transfer-Encoding:Content-ID:Content-Description:Content-Disposition:
-	In-Reply-To:References; bh=xzUcEPF4YQJyIJKfKWvHWQHgeh/qSHfSFR3B8gHdetY=; b=dG
-	ppTydzjQltTFjWLccqXx5e6XVUwZztIFyidcP7oYTvnz+mrLXvXLRLNwzzDg3l3fGgbclGmhIXXAx
-	uysq18BUXzQdCx/0vxMQia93JukdV1p56XJugoadg56RbfQMHdh4B31WBZMd7g12nRVHAqwiqR21m
-	jKGFbpnYRvHjk2c=;
-Received: from andrew by vps0.lunn.ch with local (Exim 4.94.2)
-	(envelope-from <andrew@lunn.ch>)
-	id 1tTLLK-000kTv-Co; Thu, 02 Jan 2025 14:34:30 +0100
-Date: Thu, 2 Jan 2025 14:34:30 +0100
-From: Andrew Lunn <andrew@lunn.ch>
-To: egyszeregy@freemail.hu
-Cc: fw@strlen.de, pablo@netfilter.org, lorenzo@kernel.org,
-	daniel@iogearbox.net, leitao@debian.org, amiculas@cisco.com,
-	kadlec@netfilter.org, davem@davemloft.net, dsahern@kernel.org,
-	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-	horms@kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org
-Subject: Re: [PATCH] netfilter: uapi: Merge xt_*.h/c and ipt_*.h which has
- same name.
-Message-ID: <b3ddacb6-bb74-4030-aeaf-5d1f7e587310@lunn.ch>
-References: <20250101192015.1577-1-egyszeregy@freemail.hu>
+	s=arc-20240116; t=1735832989; c=relaxed/simple;
+	bh=GFIozwWLu7oajvUybB8hPvfblGYHdr1bF8Y0IeZnoMU=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=C5UOPUXEWYHtGGqK1V5Yqoc1qdsp4EhtMhFsksdn2XTmZXxojZjp47KgI64Xa1ZEc9s8zVhou9sUnX0b16CHt8TP198pWJGvymNaMitFzV5dpRI4fscNvOwgaeA/u/AcCNnjY92NOVr8qtfmujW88xQfWVm1AYDZJV81ADequ/I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+X-Spam-Level: 
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf] netfilter: nf_tables: imbalance in flowtable binding
+Date: Thu,  2 Jan 2025 16:44:43 +0100
+Message-Id: <20250102154443.2252675-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20250101192015.1577-1-egyszeregy@freemail.hu>
 
-On Wed, Jan 01, 2025 at 08:20:15PM +0100, egyszeregy@freemail.hu wrote:
-> From: Benjamin Szőke <egyszeregy@freemail.hu>
-> 
-> Merge and refactoring xt_.h, xt_.c and ipt_*.h files which has the same
-> name in upper and lower case format. Combining these modules should provide
-> some decent memory savings.
-> 
-> The goal is to fix Linux repository for case-insensitive filesystem,
-> to able to clone it and editable on any operating systems.
+All these cases cause imbalance between BIND and UNBIND calls:
 
-Hi Benjamin
+- Delete an interface from a flowtable with multiple interfaces
 
-As pointed out by others, this breaks ABI. It can be very hard to
-change anything in include/uapi/linux without some user space code
-breaking. Also, the use case of case-insensitive filesystem is not
-particularly relevant today, how many are the in active use now? There
-might be a stronger argument for case magic filesystems, but i would
-argue the magic is broken, which is not really Linux's problem.
+- Add a (device to a) flowtable with --check flag
 
-    Andrew
+- Delete a netns containing a flowtable
 
+- In an interactive nft session, create a table with owner flag and
+  flowtable inside, then quit.
+
+Fix it by calling FLOW_BLOCK_UNBIND when unregistering hooks, then
+remove late FLOW_BLOCK_UNBIND call when destroying flowtable.
+
+Fixes: ff4bf2f42a40 ("netfilter: nf_tables: add nft_unregister_flowtable_hook()")
+Reported-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-pw-bot: cr
+ net/netfilter/nf_tables_api.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 0b9f1e8dfe49..c4af283356e7 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -8822,6 +8822,7 @@ static void nft_unregister_flowtable_hook(struct net *net,
+ }
+ 
+ static void __nft_unregister_flowtable_net_hooks(struct net *net,
++						 struct nft_flowtable *flowtable,
+ 						 struct list_head *hook_list,
+ 					         bool release_netdev)
+ {
+@@ -8829,6 +8830,8 @@ static void __nft_unregister_flowtable_net_hooks(struct net *net,
+ 
+ 	list_for_each_entry_safe(hook, next, hook_list, list) {
+ 		nf_unregister_net_hook(net, &hook->ops);
++		flowtable->data.type->setup(&flowtable->data, hook->ops.dev,
++					    FLOW_BLOCK_UNBIND);
+ 		if (release_netdev) {
+ 			list_del(&hook->list);
+ 			kfree_rcu(hook, rcu);
+@@ -8837,9 +8840,10 @@ static void __nft_unregister_flowtable_net_hooks(struct net *net,
+ }
+ 
+ static void nft_unregister_flowtable_net_hooks(struct net *net,
++					       struct nft_flowtable *flowtable,
+ 					       struct list_head *hook_list)
+ {
+-	__nft_unregister_flowtable_net_hooks(net, hook_list, false);
++	__nft_unregister_flowtable_net_hooks(net, flowtable, hook_list, false);
+ }
+ 
+ static int nft_register_flowtable_net_hooks(struct net *net,
+@@ -9481,8 +9485,6 @@ static void nf_tables_flowtable_destroy(struct nft_flowtable *flowtable)
+ 
+ 	flowtable->data.type->free(&flowtable->data);
+ 	list_for_each_entry_safe(hook, next, &flowtable->hook_list, list) {
+-		flowtable->data.type->setup(&flowtable->data, hook->ops.dev,
+-					    FLOW_BLOCK_UNBIND);
+ 		list_del_rcu(&hook->list);
+ 		kfree_rcu(hook, rcu);
+ 	}
+@@ -10870,6 +10872,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 							   &nft_trans_flowtable_hooks(trans),
+ 							   trans->msg_type);
+ 				nft_unregister_flowtable_net_hooks(net,
++								   nft_trans_flowtable(trans),
+ 								   &nft_trans_flowtable_hooks(trans));
+ 			} else {
+ 				list_del_rcu(&nft_trans_flowtable(trans)->list);
+@@ -10878,6 +10881,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 							   NULL,
+ 							   trans->msg_type);
+ 				nft_unregister_flowtable_net_hooks(net,
++						nft_trans_flowtable(trans),
+ 						&nft_trans_flowtable(trans)->hook_list);
+ 			}
+ 			break;
+@@ -11140,11 +11144,13 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 		case NFT_MSG_NEWFLOWTABLE:
+ 			if (nft_trans_flowtable_update(trans)) {
+ 				nft_unregister_flowtable_net_hooks(net,
++						nft_trans_flowtable(trans),
+ 						&nft_trans_flowtable_hooks(trans));
+ 			} else {
+ 				nft_use_dec_restore(&table->use);
+ 				list_del_rcu(&nft_trans_flowtable(trans)->list);
+ 				nft_unregister_flowtable_net_hooks(net,
++						nft_trans_flowtable(trans),
+ 						&nft_trans_flowtable(trans)->hook_list);
+ 			}
+ 			break;
+@@ -11737,7 +11743,8 @@ static void __nft_release_hook(struct net *net, struct nft_table *table)
+ 	list_for_each_entry(chain, &table->chains, list)
+ 		__nf_tables_unregister_hook(net, table, chain, true);
+ 	list_for_each_entry(flowtable, &table->flowtables, list)
+-		__nft_unregister_flowtable_net_hooks(net, &flowtable->hook_list,
++		__nft_unregister_flowtable_net_hooks(net, flowtable,
++						     &flowtable->hook_list,
+ 						     true);
+ }
+ 
+-- 
+2.30.2
+
