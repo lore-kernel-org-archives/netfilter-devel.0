@@ -1,23 +1,28 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id A371D4C9A
-	for <netfilter-devel@vger.kernel.org>; Thu,  2 Jan 2025 15:49:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 416C5125D6
+	for <netfilter-devel@vger.kernel.org>; Thu,  2 Jan 2025 17:12:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735832989; cv=none; b=IKyQEP5XWHeSAl6mc3zFwraGId5Ti+MQLEhDrOauV3pMlmXjdWywrswdx+cLJrRSp7Cp9Wf43RPybtQLqnKHPzSuAHOWUU7Bi0Bl3+OWxzndpTZBpbAO3PnHFGTVnq5uTNj/ncs9N+b21KdGlqsKm0kumiQazi8pgYEWkdAVLLE=
+	t=1735837940; cv=none; b=WwM6RYQzGYB3abVlaiNQsvA51n5AuhnwnrVQWRTs06EoyT7DXPHOGutYPtQ/UgcYPOwYRFC/WU/tbjQBYFc7zGPcSz4TkvJRin7Nxdx3H+Z+h4JwjdIen9TgDm+Cl3/gOM3G/R7HtlUSp4ljsc6TGf9uRTgDXKoBnJkB83Oj7WM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735832989; c=relaxed/simple;
-	bh=GFIozwWLu7oajvUybB8hPvfblGYHdr1bF8Y0IeZnoMU=;
-	h=From:To:Subject:Date:Message-Id:MIME-Version; b=C5UOPUXEWYHtGGqK1V5Yqoc1qdsp4EhtMhFsksdn2XTmZXxojZjp47KgI64Xa1ZEc9s8zVhou9sUnX0b16CHt8TP198pWJGvymNaMitFzV5dpRI4fscNvOwgaeA/u/AcCNnjY92NOVr8qtfmujW88xQfWVm1AYDZJV81ADequ/I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-X-Spam-Level: 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf] netfilter: nf_tables: imbalance in flowtable binding
-Date: Thu,  2 Jan 2025 16:44:43 +0100
-Message-Id: <20250102154443.2252675-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+	s=arc-20240116; t=1735837940; c=relaxed/simple;
+	bh=Z46N1MLulNDpGXn+9LeqEar8d+rRUDXlaKKmVtzZNwM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ob0TQ76zgEkZp0NPAGHgk8MiK3jSCQJ6JjAbdLKBCoOlWHsglAocu1F04XJYrqgxPMGewiWoXJso0vaR056RxIUFMRTOBr5rTh2qTTWLgbMTr+3hy2fj3+gtdEnAzx2K5+v1+xSmXa1HCNrVve3AL3Oesg3mnOvfJuSELEXI+qA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1tTOk3-0002f2-BN; Thu, 02 Jan 2025 18:12:15 +0100
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] tests: shell: add cgroupv2 socket match test case
+Date: Thu,  2 Jan 2025 18:08:30 +0100
+Message-ID: <20250102170833.18692-1-fw@strlen.de>
+X-Mailer: git-send-email 2.45.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -26,109 +31,176 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-All these cases cause imbalance between BIND and UNBIND calls:
+This is a test case for nft_socket cgroupv2 matching, including
+support for matching inside a cgroupv2 mount space added in kernel
+commit 7f3287db6543 ("netfilter: nft_socket: make cgroupsv2 matching work with namespaces").
 
-- Delete an interface from a flowtable with multiple interfaces
+Test is thus run twice, once in the initial namespace and once with
+a changed cgroupv2 root.
 
-- Add a (device to a) flowtable with --check flag
+In case we can't create a cgroup or the 2nd half (unshared re-run)
+fails, indicate SKIP.
 
-- Delete a netns containing a flowtable
-
-- In an interactive nft session, create a table with owner flag and
-  flowtable inside, then quit.
-
-Fix it by calling FLOW_BLOCK_UNBIND when unregistering hooks, then
-remove late FLOW_BLOCK_UNBIND call when destroying flowtable.
-
-Fixes: ff4bf2f42a40 ("netfilter: nf_tables: add nft_unregister_flowtable_hook()")
-Reported-by: Phil Sutter <phil@nwl.cc>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_tables_api.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ tests/shell/testcases/packetpath/cgroupv2     | 143 ++++++++++++++++++
+ .../packetpath/dumps/cgroupv2.nodump          |   0
+ 2 files changed, 143 insertions(+)
+ create mode 100755 tests/shell/testcases/packetpath/cgroupv2
+ create mode 100644 tests/shell/testcases/packetpath/dumps/cgroupv2.nodump
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 0b9f1e8dfe49..c4af283356e7 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -8822,6 +8822,7 @@ static void nft_unregister_flowtable_hook(struct net *net,
- }
- 
- static void __nft_unregister_flowtable_net_hooks(struct net *net,
-+						 struct nft_flowtable *flowtable,
- 						 struct list_head *hook_list,
- 					         bool release_netdev)
- {
-@@ -8829,6 +8830,8 @@ static void __nft_unregister_flowtable_net_hooks(struct net *net,
- 
- 	list_for_each_entry_safe(hook, next, hook_list, list) {
- 		nf_unregister_net_hook(net, &hook->ops);
-+		flowtable->data.type->setup(&flowtable->data, hook->ops.dev,
-+					    FLOW_BLOCK_UNBIND);
- 		if (release_netdev) {
- 			list_del(&hook->list);
- 			kfree_rcu(hook, rcu);
-@@ -8837,9 +8840,10 @@ static void __nft_unregister_flowtable_net_hooks(struct net *net,
- }
- 
- static void nft_unregister_flowtable_net_hooks(struct net *net,
-+					       struct nft_flowtable *flowtable,
- 					       struct list_head *hook_list)
- {
--	__nft_unregister_flowtable_net_hooks(net, hook_list, false);
-+	__nft_unregister_flowtable_net_hooks(net, flowtable, hook_list, false);
- }
- 
- static int nft_register_flowtable_net_hooks(struct net *net,
-@@ -9481,8 +9485,6 @@ static void nf_tables_flowtable_destroy(struct nft_flowtable *flowtable)
- 
- 	flowtable->data.type->free(&flowtable->data);
- 	list_for_each_entry_safe(hook, next, &flowtable->hook_list, list) {
--		flowtable->data.type->setup(&flowtable->data, hook->ops.dev,
--					    FLOW_BLOCK_UNBIND);
- 		list_del_rcu(&hook->list);
- 		kfree_rcu(hook, rcu);
- 	}
-@@ -10870,6 +10872,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 							   &nft_trans_flowtable_hooks(trans),
- 							   trans->msg_type);
- 				nft_unregister_flowtable_net_hooks(net,
-+								   nft_trans_flowtable(trans),
- 								   &nft_trans_flowtable_hooks(trans));
- 			} else {
- 				list_del_rcu(&nft_trans_flowtable(trans)->list);
-@@ -10878,6 +10881,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 							   NULL,
- 							   trans->msg_type);
- 				nft_unregister_flowtable_net_hooks(net,
-+						nft_trans_flowtable(trans),
- 						&nft_trans_flowtable(trans)->hook_list);
- 			}
- 			break;
-@@ -11140,11 +11144,13 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 		case NFT_MSG_NEWFLOWTABLE:
- 			if (nft_trans_flowtable_update(trans)) {
- 				nft_unregister_flowtable_net_hooks(net,
-+						nft_trans_flowtable(trans),
- 						&nft_trans_flowtable_hooks(trans));
- 			} else {
- 				nft_use_dec_restore(&table->use);
- 				list_del_rcu(&nft_trans_flowtable(trans)->list);
- 				nft_unregister_flowtable_net_hooks(net,
-+						nft_trans_flowtable(trans),
- 						&nft_trans_flowtable(trans)->hook_list);
- 			}
- 			break;
-@@ -11737,7 +11743,8 @@ static void __nft_release_hook(struct net *net, struct nft_table *table)
- 	list_for_each_entry(chain, &table->chains, list)
- 		__nf_tables_unregister_hook(net, table, chain, true);
- 	list_for_each_entry(flowtable, &table->flowtables, list)
--		__nft_unregister_flowtable_net_hooks(net, &flowtable->hook_list,
-+		__nft_unregister_flowtable_net_hooks(net, flowtable,
-+						     &flowtable->hook_list,
- 						     true);
- }
- 
+diff --git a/tests/shell/testcases/packetpath/cgroupv2 b/tests/shell/testcases/packetpath/cgroupv2
+new file mode 100755
+index 000000000000..20bd18ae3b4f
+--- /dev/null
++++ b/tests/shell/testcases/packetpath/cgroupv2
+@@ -0,0 +1,143 @@
++#!/bin/bash
++
++doit="$1"
++rc=0
++
++# Create hierarchy:
++# / -> nft-test1a/nft-test2a
++# |              `nft-test2b
++# `--> nft-test1b/nft-test2a
++# test1b/nft-test2a will remain empty and
++# should never match, it only exists so we
++# can create cgroupv2 match rules.
++
++if ! socat -h > /dev/null ; then
++	echo "socat tool is missing"
++	exit 77
++fi
++
++if [ ! -r /sys/fs/cgroup/cgroup.procs ] ;then
++	echo "cgroup filesystem not available"
++	exit 77
++fi
++
++cleanup()
++{
++	echo $$ > "/sys/fs/cgroup/cgroup.procs"
++
++	rmdir "/sys/fs/cgroup/nft-test1a/nft-test2a"
++	rmdir "/sys/fs/cgroup/nft-test1a/nft-test2b"
++	rmdir "/sys/fs/cgroup/nft-test1b/nft-test2a"
++	rmdir "/sys/fs/cgroup/nft-test1a"
++	rmdir "/sys/fs/cgroup/nft-test1b"
++
++	# nft list is broken after cgroupv2 removal, as nft
++	# can't find the human-readable names anymore.
++	$NFT delete table inet testcgrpv2
++}
++
++do_initial_setup()
++{
++	trap cleanup EXIT
++	ip link set lo up
++
++	mkdir -p "/sys/fs/cgroup/nft-test1a/nft-test2a" || exit 1
++	mkdir -p "/sys/fs/cgroup/nft-test1b/nft-test2a" || exit 1
++
++	mkdir "/sys/fs/cgroup/nft-test1a/nft-test2b" || exit 1
++
++	# After this, we can create cgroupv2 rules for the these cgroups.
++	# test1a and test2a should match while test1b/test2b should not:
++$NFT -f - <<EOF
++table inet testcgrpv2 {
++       counter nft-test1a {}
++       counter nft-test1a2a {}
++       counter nft-test1a2b {}
++       counter nft-test1b {}
++       counter nft-test1b2a {}
++
++       chain output {
++               type filter hook output priority 0;
++
++		socket cgroupv2 level 1 "nft-test1a" counter name "nft-test1a"
++		socket cgroupv2 level 2 "nft-test1a/nft-test2a" counter name "nft-test1a2a"
++
++		# Next must never match
++		socket cgroupv2 level 2 "nft-test1a/nft-test2b" counter name "nft-test1a2b"
++
++		# Must never match
++		socket cgroupv2 level 1 "nft-test1b" counter name "nft-test1b"
++		# Same, must not match.
++		socket cgroupv2 level 2 "nft-test1b/nft-test2a" counter name "nft-test1b2a"
++       }
++}
++EOF
++}
++
++test_counters()
++{
++	local subtest="$1"
++
++	local t1a="$2"
++	local t1a2a="$3"
++
++	$NFT list ruleset
++
++	$NFT reset counter inet testcgrpv2 nft-test1a | grep -q "packets $t1a" || rc=1
++	$NFT reset counter inet testcgrpv2 nft-test1a2a | grep -q "packets $t1a2a" || rc=2
++
++	# dummy cgroup counters, must not match.
++	$NFT reset counter inet testcgrpv2 nft-test1a2b | grep -q 'packets 0' || rc=3
++	$NFT reset counter inet testcgrpv2 nft-test1b   | grep -q 'packets 0' || rc=4
++	$NFT reset counter inet testcgrpv2 nft-test1b2a | grep -q 'packets 0' || rc=5
++
++	if [ $rc -ne 0 ]; then
++		echo "Counters did not match expected values fur subtest $subtest, return $rc"
++		exit $rc
++	fi
++}
++
++run_test()
++{
++	echo $$ > "/sys/fs/cgroup/nft-test1a/nft-test2a/cgroup.procs" || exit 2
++	socat -u STDIN TCP:127.0.0.1:8880,connect-timeout=4 < /dev/null > /dev/null
++
++	test_counters "a1,a2" 1 1
++
++	echo $$ > "/sys/fs/cgroup/nft-test1a/cgroup.procs" || exit 2
++	socat -u STDIN TCP:127.0.0.1:8880,connect-timeout=4 < /dev/null > /dev/null
++	test_counters "a1 only" 1 0
++}
++
++
++if [ "$doit" != "setup-done" ];then
++	mkdir -p "/sys/fs/cgroup/nft-test1a" || exit 77
++
++	do_initial_setup
++	run_test
++
++	if [ $rc -ne 0 ]; then
++		exit $rc
++	fi
++
++	echo "Re-running test with changed cgroup root"
++	echo $$ > "/sys/fs/cgroup/nft-test1a/cgroup.procs" || exit 2
++	unshare --fork --pid --mount -n -C $0 "setup-done"
++	rc=$?
++else
++	want_inode=$(stat --printf=%i "/sys/fs/cgroup/nft-test1a/")
++	mount -t cgroup2 cgroup2 /sys/fs/cgroup
++
++	# /sys/fs/cgroup/  should now match "/sys/fs/cgroup/nft-test1a/cgroup.procs"
++	rootinode=$(stat --printf=%i "/sys/fs/cgroup/")
++
++	if [ $want_inode -ne $rootinode ] ;then
++		echo "Failed to remount cgroupv2 fs, wanted inode $want_inode as root node, but got $rootinode"
++		exit 77
++	fi
++
++	do_initial_setup
++	run_test
++fi
++
++exit $rc
+diff --git a/tests/shell/testcases/packetpath/dumps/cgroupv2.nodump b/tests/shell/testcases/packetpath/dumps/cgroupv2.nodump
+new file mode 100644
+index 000000000000..e69de29bb2d1
 -- 
-2.30.2
+2.45.2
 
