@@ -1,111 +1,130 @@
-Received: from mail-ed1-f48.google.com (mail-ed1-f48.google.com [209.85.208.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp-out.freemail.hu (fmfe07.freemail.hu [46.107.16.200])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 422681B21B9
-	for <netfilter-devel@vger.kernel.org>; Fri,  3 Jan 2025 18:49:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE5ED33DF;
+	Fri,  3 Jan 2025 21:48:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.107.16.200
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735930158; cv=none; b=H9EGHqjZ+Pb75Ufo4ksGDJIeDvsmkJfA4u7ioxwdO3a2bgaGSv/9rULhnDxxjor5VbYEHXWTi+tPH8gWQnhal7UtR0csh205css7hsJL2QgR3OGWxpgm2OfhAyrLuX7feCv7FLFjiGEeXyUfUiJhZF06+qq7JCoCSi8vLRYCiJs=
+	t=1735940890; cv=none; b=gggS0GqAZbVRVZxMk2yuZrPOJQfFYY41VtloUHkb1Q0+IqxbWvNzp1Rt68vKyI/YmmtwJl59CuNpZmuOsPINYu2TKtjI7bO5XkuNSV4EobZna0mi98wIwzJUkSypQerJd76VVkuvYSD94EadATmE6yQcq3sas+VfiFmAP2W3kwE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735930158; c=relaxed/simple;
-	bh=Qm2GI8eKvHzeSTXrz8DN9UOA66LyyHqIPo1x9xMd9d8=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=tkHx80q2eQu+CwFxln9/Fl0XgXnKnIMn6Pq2qZtwLXdv4j26gMUd+0x7Ns+hZ+N4CZMVLiCTaEzFsHufv6yfnVIf5Qva7H+VDI0rECtcizVLEsLrgvbgJrxgSz3N4R4A+pekdTtXVvpgM2GZXWyAfd2TpkjqOltH/VZrQk8Y0DI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=jvp6idgm; arc=none smtp.client-ip=209.85.208.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	s=arc-20240116; t=1735940890; c=relaxed/simple;
+	bh=hR+6zQWBJsXnenEuboEy9Ua3VpOk3gzfeBnbGXrfmQI=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=UzOvdvDEIz15CJ3F6M6/ijLoozN9iPq0AS6lZYfruwqsAGm97JF2wxPWt6Rjw4EnZg4E+OOD4LYa0+Zbvh33cq/WxDD21RbExECZVB83SKUqbfR6e7PGuYCxaLi5TY8mSbhb5mkAzk2P5rVPrrrKNp4+EWnqHyihAq1m5ftvzC8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freemail.hu; spf=pass smtp.mailfrom=freemail.hu; dkim=fail (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b=uZk81Uo/ reason="signature verification failed"; arc=none smtp.client-ip=46.107.16.200
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freemail.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=freemail.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="jvp6idgm"
-Received: by mail-ed1-f48.google.com with SMTP id 4fb4d7f45d1cf-5d3f65844deso20874399a12.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 03 Jan 2025 10:49:15 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1735930154; x=1736534954; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=aTcVLIJ74PxU1fTS0H3rfnT+JSeKqq4DP3qwUoq2k9I=;
-        b=jvp6idgmO6XiFzeyD9zSl2BdJNg6GYco1v41GxhYWs7vCcECHfy+GWhXJfyeDnyJP7
-         LmunMwxnIJZmKUL3/OKZbP69zlgOZ8mgYgzcVuhM6FXrJtaeC7mU3s5TavQQDTDlNMrD
-         wR79INjFWbP66Uynf9B9HV7uH4M362YBoGpzxMUmdvpReN3p2hfDtWRX7WLYwkc0WwZB
-         3LgrZClQeOFft0g85HB0+yEJL9sGZp05ghrFPCAK5i8KruaHbaM3VPHKjYI81w7fSgx9
-         gb2+96Bncicow9S5bDZqr8ej4WE82UvKqzzQ575zGxfQHCAirWAu3384HAxU4wI5pGXY
-         a5pA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1735930154; x=1736534954;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=aTcVLIJ74PxU1fTS0H3rfnT+JSeKqq4DP3qwUoq2k9I=;
-        b=srtcHQ4JWRDvdX5cZO2i0vcJODgTnXd5OKSaxS6Ca5IxWgIA63StywyTcDZjLIX7yr
-         wuDmr8/uRoz0DcCenZbsZej3jRzAyXsZ5FxLEuQIETioFbmJPBjn3iQSgykkCypaKwHz
-         /KLoxjjKiJMi/Jz4/h1fWMJweppMFqiDlAXAUmrSxnYPKYARyMGoVLJ91eCxngihCK6D
-         mwJ+J1MHg+ZUUkyWPegTkV8RwmoDc02AY9u8YIodaIb2zTpwB2FOZfQSWzC+r/LtF1Cz
-         jIjjpKm6FuUnQvSTU1Jz6XVuiw990YC2RK373IGVU7fq+ki2MpjtVtxuVRTFhBm+CKzf
-         J+4Q==
-X-Forwarded-Encrypted: i=1; AJvYcCVTjkmxq/FgjGxL8bPCHt0Bcp+qN47muQEOQfEhF7ZoR72xbn9u1IQYjQyBp44BLSgJ1yU1NOrSUsd3jrPmBr8=@vger.kernel.org
-X-Gm-Message-State: AOJu0YzUVG2prhq/Z1oqGgUiODxuna0M7nemwvDn//+sjXg5AvGYlwhT
-	iq993ZpaXdk4Z07omKlIA+A++gJ3BtToJ8v7F2k1felP1dwRHYK/WONW9ojUGiQE3n8JUAVcv6m
-	27CwIgg6+DyGF+W4P3poMwh+caWRMdaODVMAA
-X-Gm-Gg: ASbGnctcOPDONCalw7YYOjHJZYTt7laaKn1dACDVu0jmLk0yyGT/DdfOA/fl3bkxtj9
-	h/BbNmcZ4NrPmv4cAIJYwtRoNpsX0hk4iD5eMRA==
-X-Google-Smtp-Source: AGHT+IEbLEExJ2JQjtuwLVLY6Di2pqvorwo/QQtScoZJP10Wltqbc2JwCR0qbk8x+mXLv/UejZK5BMwULOGtEfLLQ1U=
-X-Received: by 2002:a50:cc46:0:b0:5d9:a59:854a with SMTP id
- 4fb4d7f45d1cf-5d90a59945bmr4740573a12.13.1735930152985; Fri, 03 Jan 2025
- 10:49:12 -0800 (PST)
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b="uZk81Uo/"
+Received: from [192.168.0.16] (catv-178-48-208-49.catv.fixed.vodafone.hu [178.48.208.49])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp.freemail.hu (Postfix) with ESMTPSA id 4YPxnc5RpvzJwr;
+	Fri, 03 Jan 2025 22:40:20 +0100 (CET)
+Message-ID: <19509642-1bef-4573-a4fe-d3cb16e97fb2@freemail.hu>
+Date: Fri, 3 Jan 2025 22:39:55 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <6742badd.050a0220.1cc393.0034.GAE@google.com> <CANn89iJbfy890gJuqAU-tY76ZSGS0W130KO7=9jvtHYUVzdSmQ@mail.gmail.com>
- <Z3fOdnotJMKWjCNe@calendula>
-In-Reply-To: <Z3fOdnotJMKWjCNe@calendula>
-From: Eric Dumazet <edumazet@google.com>
-Date: Fri, 3 Jan 2025 19:49:02 +0100
-Message-ID: <CANn89i+NNUFqOyFo0M1J=goz_jK7=zVNYh2jo47eUYWFr-ovow@mail.gmail.com>
-Subject: Re: [syzbot] [netfilter?] INFO: task hung in htable_put (2)
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: syzbot <syzbot+013daa7966d4340a8b8f@syzkaller.appspotmail.com>, 
-	coreteam@netfilter.org, davem@davemloft.net, horms@kernel.org, 
-	kadlec@netfilter.org, kuba@kernel.org, linux-kernel@vger.kernel.org, 
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pabeni@redhat.com, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2] netfilter: uapi: Merge xt_*.h/c and ipt_*.h which has
+ same name.
+To: Andrew Lunn <andrew@lunn.ch>
+Cc: fw@strlen.de, pablo@netfilter.org, lorenzo@kernel.org,
+ daniel@iogearbox.net, leitao@debian.org, amiculas@cisco.com,
+ kadlec@netfilter.org, davem@davemloft.net, dsahern@kernel.org,
+ edumazet@google.com, kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ linux-kernel@vger.kernel.org, netdev@vger.kernel.org
+References: <20250102172115.41626-1-egyszeregy@freemail.hu>
+ <6eab8f06-3f65-42cb-b42e-6ba13f209660@lunn.ch>
+ <90b238e6-65d8-4a1d-b59b-e10445e4c61c@freemail.hu>
+ <31331e58-bc0a-427b-8528-52448764a91e@lunn.ch>
+Content-Language: hu
+From: =?UTF-8?Q?Sz=C5=91ke_Benjamin?= <egyszeregy@freemail.hu>
+In-Reply-To: <31331e58-bc0a-427b-8528-52448764a91e@lunn.ch>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=simple/relaxed; t=1735940421;
+	s=20181004; d=freemail.hu;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:In-Reply-To:Content-Type:Content-Transfer-Encoding;
+	l=2813; bh=OzTD4sULtZqsy2WlPu2w6i+mUdi8x06ZYJNkLWquh9M=;
+	b=uZk81Uo/YapNllD2hPVp/y2YX0hK6EU68bhxv72jAoQkqlK/LzV7ilWK7Jr29xFU
+	ilmnyqBdAqOwq6bb325iU/XWeqTwW6M/BBNC05BTArCo/K5KDVr3FPLD6qlmhFf7R2P
+	6yTOGAjjPvrBzruD/nJJWfpV1pfOakOLqT0oQsLnswWhj2xhcUBzv+0y2GrzSDJvLwH
+	ev8Yd+/plsPnQuwIgBkXQIMd/l81Ny4aDDfOVaEfdpHBrZjehTy0Rclks7s8NfiIJK0
+	XwfJ0ULQ443pEUZyZiZReniZgfbBdQ6mp9HaS/5KM0rpEqNSlpfNw7kf52ieYsT1bsr
+	NVo80k7Eag==
 
-On Fri, Jan 3, 2025 at 12:48=E2=80=AFPM Pablo Neira Ayuso <pablo@netfilter.=
-org> wrote:
->
-> Hi Eric,
->
-> On Fri, Jan 03, 2025 at 10:52:54AM +0100, Eric Dumazet wrote:
-> > On Sun, Nov 24, 2024 at 6:34=E2=80=AFAM syzbot
-> > <syzbot+013daa7966d4340a8b8f@syzkaller.appspotmail.com> wrote:
-> > >
-> > > Hello,
-> > >
-> > > syzbot found the following issue on:
-> > >
-> > > HEAD commit:    cfaaa7d010d1 Merge tag 'net-6.12-rc8' of git://git.ke=
-rnel...
-> > > git tree:       upstream
-> > > console output: https://syzkaller.appspot.com/x/log.txt?x=3D13fd6b5f9=
-80000
-> > > kernel config:  https://syzkaller.appspot.com/x/.config?x=3Dd2aeec8c0=
-b2e420c
-> > > dashboard link: https://syzkaller.appspot.com/bug?extid=3D013daa7966d=
-4340a8b8f
-> > > compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for=
- Debian) 2.40
-> > >
-> [...]
-> > I do not think I got any feedback from
-> > https://lore.kernel.org/netdev/20241206113839.3421469-1-edumazet@google=
-.com/T/
-> >
-> > Should  I repost this patch ?
->
-> No need to, I will add this to nf-next now as you requested.
+2025. 01. 02. 21:22 keltezéssel, Andrew Lunn írta:
+> On Thu, Jan 02, 2025 at 07:53:36PM +0100, Szőke Benjamin wrote:
+>> 2025. 01. 02. 18:39 keltezéssel, Andrew Lunn írta:
+>>> On Thu, Jan 02, 2025 at 06:21:15PM +0100, egyszeregy@freemail.hu wrote:
+>>>> From: Benjamin Szőke <egyszeregy@freemail.hu>
+>>>>
+>>>> Merge and refactoring xt_*.h, xt_*.c and ipt_*.h files which has the same
+>>>> name in upper and lower case format. Combining these modules should provide
+>>>> some decent memory savings.
+>>>
+>>> Numbers please. We don't normally accept optimisations without some
+>>> form of benchmark showing there is an improvement.
+>>
+>> Some of you mentioned in a reply e-mail, that is a good benefits in merging
+>> the codes. I do not have test result about it and i will no provide it.
+> 
+> Try looking at the man page of size(1).
+> 
+>>>> The goal is to fix Linux repository for case-insensitive filesystem,
+>>>> to able to clone it and editable on any operating systems.
+>>>
+>>> This needs a much stronger argument, since as i already pointed out,
+>>> how many case-insenstive file systems are still in use? Please give
+>>> real world examples of why this matters.
+>>>
+>>
+>> All of MacOS and Windows platform are case-insensitive.
+> 
+> Windows is generally case magic, not case insensitive. When opening a
+> file it will first try to be case sensitive, if that fails, it tries
+> case insensitive, in order to be backwards compatible with FAT.
+> 
+>>>>    delete mode 100644 include/uapi/linux/netfilter/xt_CONNMARK.h
+>>>>    delete mode 100644 include/uapi/linux/netfilter/xt_DSCP.h
+>>>>    delete mode 100644 include/uapi/linux/netfilter/xt_MARK.h
+>>>>    delete mode 100644 include/uapi/linux/netfilter/xt_RATEEST.h
+>>>>    delete mode 100644 include/uapi/linux/netfilter/xt_TCPMSS.h
+>>>>    delete mode 100644 include/uapi/linux/netfilter_ipv4/ipt_ECN.h
+>>>>    delete mode 100644 include/uapi/linux/netfilter_ipv4/ipt_TTL.h
+>>>>    delete mode 100644 include/uapi/linux/netfilter_ipv6/ip6t_HL.h
+>>>
+>>> How did you verify that there is no user space code using these
+>>> includes?
+>>>
+>>> We take ABI very seriously. You cannot break user space code.
+>>>
+>>>       Andrew
+>>
+>> This is a minimal ABI change, which have to use lower case filenames for
+>> example: xt_DSCP.h -> xt_dscp.h
+> 
+> You are not listening.
+> 
+> You cannot break user space code.
+> 
+> That is the end of it. No exceptions. It does not matter how bad the
+> API is. You cannot break it.
+> 
+>      Andrew
 
-Thanks Pablo !
+It should not break the API:
+[PATCH v3] netfilter: x_tables: Merge xt_*.c source files which has same name.
+https://lore.kernel.org/lkml/20250103140158.69041-1-egyszeregy@freemail.hu/
+
+If you prefere more a human readable format: 
+https://github.com/Livius90/linux/commit/8ff73d36125f9a48eac98fd17b51b11d8f73f5a0
+
+
