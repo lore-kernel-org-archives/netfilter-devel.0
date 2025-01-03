@@ -1,23 +1,23 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5011B1684AC
-	for <netfilter-devel@vger.kernel.org>; Fri,  3 Jan 2025 17:35:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3A9551B9835
+	for <netfilter-devel@vger.kernel.org>; Fri,  3 Jan 2025 17:35:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735925739; cv=none; b=LgJmqQxXnhH24xRb+9zFaxiaLvk5ZZ7KFhvIeNaoE596v6RsUFpE2SrUS2xSGTW4LkvdLqHKoi9h1/bX8yYD9zKumP0p84htyBqo6rrkklp1qoC3n7WFeJurxxhEHAVnOKchi4nsqGItiMZhVoa3BYw44ZznnB71CHxvJc+xOxc=
+	t=1735925740; cv=none; b=HYwO6SAMfB+zJRtP6w/293uyo5iM/NuJtNk55t1T4TclrAC+qZABZhvLds7MUulSPCEEZGvisZaWK2iJCxYtDKrfhbC57QERXeKhDryEvqaLyikdbnImHaStCrbQFgJy1t94C8PoUKEsEFDQ9BrwtpnTBOul/0a+JlvCaUzykJ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735925739; c=relaxed/simple;
-	bh=tkiIfALGT8REp9hTKe6BC+/ywa1LHmnCbTxVON2EwIA=;
+	s=arc-20240116; t=1735925740; c=relaxed/simple;
+	bh=AAgJZox071VwoHpgIBX1ejOm0q5TjC0VpXosIPe5CeE=;
 	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=a2lGSWMh7bSRxMraFLMejAPVCAzNczGq2vgsKXsSU87hUfl9I2rmqYs1BsMdltAvU9jacq9q8VhurL5sFNRYfD9atZudpP4wKNrm1xTHp8WEnBhkGFtcZnV5pvVDqEWGPLqCQw5S+yqzZYFywuSeG6NP+oJtx4+MkVSDwb8oUX4=
+	 MIME-Version; b=D84RrABTYlesuztaWQZmXVJIRQG+NPNflkiuUZBPBuVlFyVJ4kJcGZcVZdwuEwTxZJ64SKOuFC8XzHLsEJe6jH9ZJQfOzdfOfFZiXemUcOmqQi57Nh0mUalu269J6A9JQTki/Vz9p8kQCG2uPzHgWCVWxkyz28801EX/Rqi9fNw=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 X-Spam-Level: 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft,v2 2/7] intervals: do not merge intervals with different timeout
-Date: Fri,  3 Jan 2025 18:35:17 +0100
-Message-Id: <20250103173522.773063-2-pablo@netfilter.org>
+Subject: [PATCH nft,v2 4/7] rule: constify set_is_non_concat_range()
+Date: Fri,  3 Jan 2025 18:35:19 +0100
+Message-Id: <20250103173522.773063-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250103173522.773063-1-pablo@netfilter.org>
 References: <20250103173522.773063-1-pablo@netfilter.org>
@@ -29,41 +29,28 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-If timeout/expiration of contiguous intervals is different, then do not
-merge them.
+This is read-only, constify it.
 
-Fixes: 81e36530fcac ("src: replace interval segment tree overlap and automerge")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: missing forward declaration, otherwise patch breaks bisection.
+v2: no changes
 
- src/intervals.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ include/rule.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/intervals.c b/src/intervals.c
-index 44fdda36e35f..ffd474fd595e 100644
---- a/src/intervals.c
-+++ b/src/intervals.c
-@@ -156,6 +156,8 @@ static void set_prev_elem(struct expr **prev, struct expr *i,
- 	mpz_set(prev_range->high, range->high);
+diff --git a/include/rule.h b/include/rule.h
+index 238be23eca90..86477c709544 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -423,7 +423,7 @@ static inline bool set_is_interval(uint32_t set_flags)
+ 	return set_flags & NFT_SET_INTERVAL;
  }
  
-+static struct expr *interval_expr_key(struct expr *i);
-+
- static void setelem_automerge(struct set_automerge_ctx *ctx)
+-static inline bool set_is_non_concat_range(struct set *s)
++static inline bool set_is_non_concat_range(const struct set *s)
  {
- 	struct expr *i, *next, *prev = NULL;
-@@ -175,7 +177,9 @@ static void setelem_automerge(struct set_automerge_ctx *ctx)
- 		range_expr_value_low(range.low, i);
- 		range_expr_value_high(range.high, i);
- 
--		if (!prev) {
-+		if (!prev ||
-+		    interval_expr_key(prev)->timeout != interval_expr_key(i)->timeout ||
-+		    interval_expr_key(prev)->expiration != interval_expr_key(i)->expiration) {
- 			set_prev_elem(&prev, i, &prev_range, &range);
- 			continue;
- 		}
+ 	return (s->flags & NFT_SET_INTERVAL) && s->desc.field_count <= 1;
+ }
 -- 
 2.30.2
 
