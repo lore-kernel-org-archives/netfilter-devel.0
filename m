@@ -1,133 +1,114 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5B69182CD;
-	Sat,  4 Jan 2025 02:01:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89A4182488;
+	Sat,  4 Jan 2025 04:52:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735956111; cv=none; b=n6JIxZf6LE8IK/NLjsI+Qvw17rzaY+NalFu7ZjqSxq1Y1RcjF+MbO1kt1KCHpbsO9M+cQ7ByCvUPTDi8BQ0dAEdSyUiN/AFSmPjxA4P+DQ6BUdHxMYpEkcknAqj6BBo8hRHPgwuY4XRuukE2sDSQM1HgycozIyluZ7mbyNU9cX4=
+	t=1735966325; cv=none; b=u3lqdmBN1xnjYeM4Tv3A1ZEqo+XCG6nEWeRxv/TjqrFR1mfKOi4PCP8XjU07S+GSJ+e/53XfhJUK8RdAobwS0BdhhSZurJSHGfddPW/CH5zvrg/OjAgre6OOQMj8Eo2KZpUGLIUPguaVe1/oCVd1TO5wSM5wnRaF5+OiuhS/UeU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735956111; c=relaxed/simple;
-	bh=cp3y3UHEtG8IL5FlhkaF54hNlSs0zW2uWc58HvmwFt4=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=iVuf5hVHHYyciRirH7lUO4ULkuVvhoFl9l+443FPlYt2M//KGAcHMa0Rn56Xxk6luCbtBrD7cs3l5Yhy6342Pp5ZH4aZv3TH953pCNurXmgBdYUIzg8oO4czqtxaqGsmjGOXgB4Ie+keI2BQnS2I75GaIkixhK1LYHGC8ISmHU4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eVm4qr3K; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735966325; c=relaxed/simple;
+	bh=XtPmeWVkebOoMdkHg3hOLrL0p5OFrWmqRjAi0s+IH2A=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=MH9YWuDuCoCCexmXFPgqBiwwZPp+llDRXaCiJeqf/ahx/k+u5UPMH7i+h9+mNi83IipkG5niCJVB4gc/JLO0zCt/J7IHeb9ODYr8DWqeYECePUOZFAosarHBaQOs9tfY7C9aymSJe1N9q60W9MArHJpjBs6uHuJctrUltT2/WrM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=J1n1fXfh; arc=none smtp.client-ip=198.175.65.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eVm4qr3K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15479C4CED6;
-	Sat,  4 Jan 2025 02:01:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735956111;
-	bh=cp3y3UHEtG8IL5FlhkaF54hNlSs0zW2uWc58HvmwFt4=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=eVm4qr3KDu2/KTN7kevzV2ArIu65yp6ZWJLcgbvbPry2y2nvWnu4lTgu/Kii/QzzE
-	 OU+pmtfzk2BXEsrZUtTCj/SfCCmah1DU38NhObVizBTMmnFjxtg7neBR82tg7gjOOS
-	 1qGH7+Oh3e7m9Z4ziKcVDTZFtYUPXrM5av5HK/sg=
-Date: Fri, 3 Jan 2025 18:01:50 -0800
-From: Andrew Morton <akpm@linux-foundation.org>
-To: cheung wall <zzqq0103.hey@gmail.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
- netfilter-devel@vger.kernel.org
-Subject: Re: "WARNING in nf_ct_alloc_hashtable" in Linux kernel version
- 6.13.0-rc2
-Message-Id: <20250103180150.4c4d1f30220720ba7f1a133b@linux-foundation.org>
-In-Reply-To: <CAKHoSAtDrR9kkrVZufEYqPoKZpT7WyLC9DH8gCx9cox3oSNPaQ@mail.gmail.com>
-References: <CAKHoSAtDrR9kkrVZufEYqPoKZpT7WyLC9DH8gCx9cox3oSNPaQ@mail.gmail.com>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="J1n1fXfh"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1735966323; x=1767502323;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=XtPmeWVkebOoMdkHg3hOLrL0p5OFrWmqRjAi0s+IH2A=;
+  b=J1n1fXfhJHigBZaGGRr0zHSB4Iopm8nHX3irBAa8hb3n1GKLzGl8fCWz
+   qx9zQUy6iU8VMhNeq1xh02Gi35bu/tXZC8L3ZNVCys4yVOeW7B0I/K0Ao
+   dx2/mUZUyNua04DV1beCf1QyWl9Hmy509h3Zkw2VrGmgcHZTPFcj0ZBdU
+   pvloOB5MN8Dxc3Ogm+qOBNZsj6nmc7fqCBgo/ihnK5kqU73W9zRXXlEbF
+   d+N84uf/twHbk3/kf4wIZa9OVpy8KlRLpF/wL839cqJsaVPLKIIlHrP5/
+   Q4RvBaztirvL6AkQuaT60sV696BGyce7bSGCaJmYGxF6/n6/tmGR4ONbZ
+   Q==;
+X-CSE-ConnectionGUID: mrSAz270RXST2K2qF8xWAw==
+X-CSE-MsgGUID: s0hCtHb8Qg+weP94cMOjxA==
+X-IronPort-AV: E=McAfee;i="6700,10204,11304"; a="46701212"
+X-IronPort-AV: E=Sophos;i="6.12,288,1728975600"; 
+   d="scan'208";a="46701212"
+Received: from orviesa007.jf.intel.com ([10.64.159.147])
+  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Jan 2025 20:52:03 -0800
+X-CSE-ConnectionGUID: Ra75Vt6/RB+Ueyz3adysHw==
+X-CSE-MsgGUID: fs6xALnoT7elwTJ3yN+1YA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.12,224,1728975600"; 
+   d="scan'208";a="102446466"
+Received: from lkp-server01.sh.intel.com (HELO d63d4d77d921) ([10.239.97.150])
+  by orviesa007.jf.intel.com with ESMTP; 03 Jan 2025 20:51:58 -0800
+Received: from kbuild by d63d4d77d921 with local (Exim 4.96)
+	(envelope-from <lkp@intel.com>)
+	id 1tTw8h-000AcV-2u;
+	Sat, 04 Jan 2025 04:51:55 +0000
+Date: Sat, 4 Jan 2025 12:51:48 +0800
+From: kernel test robot <lkp@intel.com>
+To: egyszeregy@freemail.hu, fw@strlen.de, pablo@netfilter.org,
+	lorenzo@kernel.org, daniel@iogearbox.net, leitao@debian.org,
+	amiculas@cisco.com, kadlec@netfilter.org, davem@davemloft.net,
+	dsahern@kernel.org, edumazet@google.com, kuba@kernel.org,
+	pabeni@redhat.com, horms@kernel.org, jengelh@medozas.de,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org
+Cc: Paul Gazzillo <paul@pgazz.com>,
+	Necip Fazil Yildiran <fazilyildiran@gmail.com>,
+	oe-kbuild-all@lists.linux.dev,
+	Benjamin =?utf-8?B?U3rFkWtl?= <egyszeregy@freemail.hu>
+Subject: Re: [PATCH v3] netfilter: x_tables: Merge xt_*.c source files which
+ has same name.
+Message-ID: <202501041223.aaw6sh0q-lkp@intel.com>
+References: <20250103140158.69041-1-egyszeregy@freemail.hu>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250103140158.69041-1-egyszeregy@freemail.hu>
 
-On Fri, 3 Jan 2025 17:12:53 +0800 cheung wall <zzqq0103.hey@gmail.com> wrote:
+Hi,
 
-> Hello,
-> 
-> I am writing to report a potential vulnerability identified in the
-> Linux Kernel version 6.13.0-rc2. This issue was discovered using our
-> custom vulnerability discovery tool.
-> 
-> HEAD commit: fac04efc5c793dccbd07e2d59af9f90b7fc0dca4 (tag: v6.13-rc2)
-> 
-> Affected File: mm/util.c
-> 
-> File: mm/util.c
-> 
-> Function: __kvmalloc_node_noprof
+kernel test robot noticed the following build warnings:
 
-(cc netfilter-devel)
+[auto build test WARNING on netfilter-nf/main]
+[also build test WARNING on linus/master v6.13-rc5 next-20241220]
+[cannot apply to nf-next/master horms-ipvs/master]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-This is
+url:    https://github.com/intel-lab-lkp/linux/commits/egyszeregy-freemail-hu/netfilter-x_tables-Merge-xt_-c-source-files-which-has-same-name/20250103-221402
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
+patch link:    https://lore.kernel.org/r/20250103140158.69041-1-egyszeregy%40freemail.hu
+patch subject: [PATCH v3] netfilter: x_tables: Merge xt_*.c source files which has same name.
+config: nios2-kismet-CONFIG_NETFILTER_XT_DSCP-CONFIG_NETFILTER_XT_MATCH_DSCP-0-0 (https://download.01.org/0day-ci/archive/20250104/202501041223.aaw6sh0q-lkp@intel.com/config)
+reproduce: (https://download.01.org/0day-ci/archive/20250104/202501041223.aaw6sh0q-lkp@intel.com/reproduce)
 
-	/* Don't even allow crazy sizes */
-	if (unlikely(size > INT_MAX)) {
-		WARN_ON_ONCE(!(flags & __GFP_NOWARN));
-		return NULL;
-	}
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202501041223.aaw6sh0q-lkp@intel.com/
 
-in __kvmalloc_node_noprof().
+kismet warnings: (new ones prefixed by >>)
+>> kismet: WARNING: unmet direct dependencies detected for NETFILTER_XT_DSCP when selected by NETFILTER_XT_MATCH_DSCP
+   WARNING: unmet direct dependencies detected for NETFILTER_XT_HL
+     Depends on [n]: NET [=y] && INET [=y] && NETFILTER [=y] && NETFILTER_XTABLES [=y] && (IP_NF_MANGLE [=n] || IP6_NF_MANGLE [=n] || NFT_COMPAT [=n]) && NETFILTER_ADVANCED [=y]
+     Selected by [y]:
+     - NETFILTER_XT_MATCH_HL [=y] && NET [=y] && INET [=y] && NETFILTER [=y] && NETFILTER_XTABLES [=y] && NETFILTER_ADVANCED [=y]
+   
+   WARNING: unmet direct dependencies detected for NETFILTER_XT_DSCP
+     Depends on [n]: NET [=y] && INET [=y] && NETFILTER [=y] && NETFILTER_XTABLES [=y] && (IP_NF_MANGLE [=n] || IP6_NF_MANGLE [=n] || NFT_COMPAT [=n]) && NETFILTER_ADVANCED [=y]
+     Selected by [y]:
+     - NETFILTER_XT_MATCH_DSCP [=y] && NET [=y] && INET [=y] && NETFILTER [=y] && NETFILTER_XTABLES [=y] && NETFILTER_ADVANCED [=y]
 
-> Detailed Call Stack:
-> 
-> ------------[ cut here begin]------------
-> 
-> RIP: 0010:__kvmalloc_node_noprof+0x18d/0x1b0 mm/util.c:662
-> Code: a1 48 c7 c7 28 df 86 a8 e8 90 86 14 00 e9 70 ff ff ff e8 b6 d3
-> e3 ff 41 81 e4 00 20 00 00 0f 85 16 ff ff ff e8 a4 d3 e3 ff 90 <0f> 0b
-> 90 31 db e9 c4 fe ff ff 48 c7 c7 f8 91 e3 a7 e8 5d 86 14 00
-> RSP: 0018:ffff88800f397b38 EFLAGS: 00010293
-> RAX: 0000000000000000 RBX: 0000000000000000 RCX: ffffffffa46327ec
-> RDX: ffff88800fc4d500 RSI: ffffffffa471a1b1 RDI: 0000000000000000
-> RBP: 00000000cbad2000 R08: 0000000000000000 R09: 0a33303939333137
-> loop4: detected capacity change from 0 to 32768
-> R10: ffff88800f397b38 R11: 0000000000032001 R12: 0000000000000000
-> R13: 00000000ffffffff R14: 000000001975a400 R15: ffff88800f397e08
-> SELinux: security_context_str_to_sid (root) failed with errno=-22
-> FS: 00007fc9b1d23580(0000) GS:ffff88811b380000(0000) knlGS:0000000000000000
-> CS: 0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> CR2: 000055c7e2f2b6b8 CR3: 000000000b970000 CR4: 0000000000350ef0
-> Call Trace:
-> <TASK>
-> kvmalloc_array_node_noprof include/linux/slab.h:1063 [inline]
-> nf_ct_alloc_hashtable+0x83/0x110 net/netfilter/nf_conntrack_core.c:2526
-> nf_conntrack_hash_resize+0x91/0x4d0 net/netfilter/nf_conntrack_core.c:2547
-> nf_conntrack_hash_sysctl net/netfilter/nf_conntrack_standalone.c:540 [inline]
-> nf_conntrack_hash_sysctl+0xa9/0x100 net/netfilter/nf_conntrack_standalone.c:527
-> proc_sys_call_handler+0x492/0x5d0 fs/proc/proc_sysctl.c:601
-> new_sync_write fs/read_write.c:586 [inline]
-> vfs_write+0x51e/0xc80 fs/read_write.c:679
-> ksys_write+0x110/0x200 fs/read_write.c:731
-> do_syscall_x64 arch/x86/entry/common.c:52 [inline]
-> do_syscall_64+0xa6/0x1a0 arch/x86/entry/common.c:83
-> entry_SYSCALL_64_after_hwframe+0x77/0x7f
-> 
-> 
-> ------------[ cut here end]------------
-> 
-> Root Cause:
-> 
-> The kernel panic originated within the __kvmalloc_node_noprof function
-> in mm/util.c, triggered during the execution of the Netfilter
-> connection tracking subsystem. Specifically, the
-> nf_conntrack_hash_resize function attempted to allocate memory for
-> resizing the connection tracking hash table from a capacity of 0 to
-> 32,768 entries using kvmalloc_array_node_noprof. This memory
-> allocation likely failed or was mishandled, resulting in an invalid
-> memory access or dereference within __kvmalloc_node_noprof.
-> Additionally, the log indicates a failure in the SELinux security
-> context function security_context_str_to_sid, which returned an EINVAL
-> error (errno=-22). The combination of these factors suggests that the
-> crash was caused by improper handling of memory allocation during a
-> significant capacity change in the connection tracking hash table,
-> possibly due to unhandled allocation failures or logic errors in the
-> resize process.
-> 
-> Thank you for your time and attention.
-> 
-> Best regards
-> 
-> Wall
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
