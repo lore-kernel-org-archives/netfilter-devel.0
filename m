@@ -1,130 +1,133 @@
-Received: from smtp-out.freemail.hu (fmfe07.freemail.hu [46.107.16.200])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE5ED33DF;
-	Fri,  3 Jan 2025 21:48:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.107.16.200
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5B69182CD;
+	Sat,  4 Jan 2025 02:01:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735940890; cv=none; b=gggS0GqAZbVRVZxMk2yuZrPOJQfFYY41VtloUHkb1Q0+IqxbWvNzp1Rt68vKyI/YmmtwJl59CuNpZmuOsPINYu2TKtjI7bO5XkuNSV4EobZna0mi98wIwzJUkSypQerJd76VVkuvYSD94EadATmE6yQcq3sas+VfiFmAP2W3kwE=
+	t=1735956111; cv=none; b=n6JIxZf6LE8IK/NLjsI+Qvw17rzaY+NalFu7ZjqSxq1Y1RcjF+MbO1kt1KCHpbsO9M+cQ7ByCvUPTDi8BQ0dAEdSyUiN/AFSmPjxA4P+DQ6BUdHxMYpEkcknAqj6BBo8hRHPgwuY4XRuukE2sDSQM1HgycozIyluZ7mbyNU9cX4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735940890; c=relaxed/simple;
-	bh=hR+6zQWBJsXnenEuboEy9Ua3VpOk3gzfeBnbGXrfmQI=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=UzOvdvDEIz15CJ3F6M6/ijLoozN9iPq0AS6lZYfruwqsAGm97JF2wxPWt6Rjw4EnZg4E+OOD4LYa0+Zbvh33cq/WxDD21RbExECZVB83SKUqbfR6e7PGuYCxaLi5TY8mSbhb5mkAzk2P5rVPrrrKNp4+EWnqHyihAq1m5ftvzC8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freemail.hu; spf=pass smtp.mailfrom=freemail.hu; dkim=fail (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b=uZk81Uo/ reason="signature verification failed"; arc=none smtp.client-ip=46.107.16.200
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freemail.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=freemail.hu
+	s=arc-20240116; t=1735956111; c=relaxed/simple;
+	bh=cp3y3UHEtG8IL5FlhkaF54hNlSs0zW2uWc58HvmwFt4=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=iVuf5hVHHYyciRirH7lUO4ULkuVvhoFl9l+443FPlYt2M//KGAcHMa0Rn56Xxk6luCbtBrD7cs3l5Yhy6342Pp5ZH4aZv3TH953pCNurXmgBdYUIzg8oO4czqtxaqGsmjGOXgB4Ie+keI2BQnS2I75GaIkixhK1LYHGC8ISmHU4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eVm4qr3K; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b="uZk81Uo/"
-Received: from [192.168.0.16] (catv-178-48-208-49.catv.fixed.vodafone.hu [178.48.208.49])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp.freemail.hu (Postfix) with ESMTPSA id 4YPxnc5RpvzJwr;
-	Fri, 03 Jan 2025 22:40:20 +0100 (CET)
-Message-ID: <19509642-1bef-4573-a4fe-d3cb16e97fb2@freemail.hu>
-Date: Fri, 3 Jan 2025 22:39:55 +0100
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eVm4qr3K"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15479C4CED6;
+	Sat,  4 Jan 2025 02:01:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1735956111;
+	bh=cp3y3UHEtG8IL5FlhkaF54hNlSs0zW2uWc58HvmwFt4=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=eVm4qr3KDu2/KTN7kevzV2ArIu65yp6ZWJLcgbvbPry2y2nvWnu4lTgu/Kii/QzzE
+	 OU+pmtfzk2BXEsrZUtTCj/SfCCmah1DU38NhObVizBTMmnFjxtg7neBR82tg7gjOOS
+	 1qGH7+Oh3e7m9Z4ziKcVDTZFtYUPXrM5av5HK/sg=
+Date: Fri, 3 Jan 2025 18:01:50 -0800
+From: Andrew Morton <akpm@linux-foundation.org>
+To: cheung wall <zzqq0103.hey@gmail.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+ netfilter-devel@vger.kernel.org
+Subject: Re: "WARNING in nf_ct_alloc_hashtable" in Linux kernel version
+ 6.13.0-rc2
+Message-Id: <20250103180150.4c4d1f30220720ba7f1a133b@linux-foundation.org>
+In-Reply-To: <CAKHoSAtDrR9kkrVZufEYqPoKZpT7WyLC9DH8gCx9cox3oSNPaQ@mail.gmail.com>
+References: <CAKHoSAtDrR9kkrVZufEYqPoKZpT7WyLC9DH8gCx9cox3oSNPaQ@mail.gmail.com>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2] netfilter: uapi: Merge xt_*.h/c and ipt_*.h which has
- same name.
-To: Andrew Lunn <andrew@lunn.ch>
-Cc: fw@strlen.de, pablo@netfilter.org, lorenzo@kernel.org,
- daniel@iogearbox.net, leitao@debian.org, amiculas@cisco.com,
- kadlec@netfilter.org, davem@davemloft.net, dsahern@kernel.org,
- edumazet@google.com, kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- linux-kernel@vger.kernel.org, netdev@vger.kernel.org
-References: <20250102172115.41626-1-egyszeregy@freemail.hu>
- <6eab8f06-3f65-42cb-b42e-6ba13f209660@lunn.ch>
- <90b238e6-65d8-4a1d-b59b-e10445e4c61c@freemail.hu>
- <31331e58-bc0a-427b-8528-52448764a91e@lunn.ch>
-Content-Language: hu
-From: =?UTF-8?Q?Sz=C5=91ke_Benjamin?= <egyszeregy@freemail.hu>
-In-Reply-To: <31331e58-bc0a-427b-8528-52448764a91e@lunn.ch>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=simple/relaxed; t=1735940421;
-	s=20181004; d=freemail.hu;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	l=2813; bh=OzTD4sULtZqsy2WlPu2w6i+mUdi8x06ZYJNkLWquh9M=;
-	b=uZk81Uo/YapNllD2hPVp/y2YX0hK6EU68bhxv72jAoQkqlK/LzV7ilWK7Jr29xFU
-	ilmnyqBdAqOwq6bb325iU/XWeqTwW6M/BBNC05BTArCo/K5KDVr3FPLD6qlmhFf7R2P
-	6yTOGAjjPvrBzruD/nJJWfpV1pfOakOLqT0oQsLnswWhj2xhcUBzv+0y2GrzSDJvLwH
-	ev8Yd+/plsPnQuwIgBkXQIMd/l81Ny4aDDfOVaEfdpHBrZjehTy0Rclks7s8NfiIJK0
-	XwfJ0ULQ443pEUZyZiZReniZgfbBdQ6mp9HaS/5KM0rpEqNSlpfNw7kf52ieYsT1bsr
-	NVo80k7Eag==
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-2025. 01. 02. 21:22 keltezéssel, Andrew Lunn írta:
-> On Thu, Jan 02, 2025 at 07:53:36PM +0100, Szőke Benjamin wrote:
->> 2025. 01. 02. 18:39 keltezéssel, Andrew Lunn írta:
->>> On Thu, Jan 02, 2025 at 06:21:15PM +0100, egyszeregy@freemail.hu wrote:
->>>> From: Benjamin Szőke <egyszeregy@freemail.hu>
->>>>
->>>> Merge and refactoring xt_*.h, xt_*.c and ipt_*.h files which has the same
->>>> name in upper and lower case format. Combining these modules should provide
->>>> some decent memory savings.
->>>
->>> Numbers please. We don't normally accept optimisations without some
->>> form of benchmark showing there is an improvement.
->>
->> Some of you mentioned in a reply e-mail, that is a good benefits in merging
->> the codes. I do not have test result about it and i will no provide it.
-> 
-> Try looking at the man page of size(1).
-> 
->>>> The goal is to fix Linux repository for case-insensitive filesystem,
->>>> to able to clone it and editable on any operating systems.
->>>
->>> This needs a much stronger argument, since as i already pointed out,
->>> how many case-insenstive file systems are still in use? Please give
->>> real world examples of why this matters.
->>>
->>
->> All of MacOS and Windows platform are case-insensitive.
-> 
-> Windows is generally case magic, not case insensitive. When opening a
-> file it will first try to be case sensitive, if that fails, it tries
-> case insensitive, in order to be backwards compatible with FAT.
-> 
->>>>    delete mode 100644 include/uapi/linux/netfilter/xt_CONNMARK.h
->>>>    delete mode 100644 include/uapi/linux/netfilter/xt_DSCP.h
->>>>    delete mode 100644 include/uapi/linux/netfilter/xt_MARK.h
->>>>    delete mode 100644 include/uapi/linux/netfilter/xt_RATEEST.h
->>>>    delete mode 100644 include/uapi/linux/netfilter/xt_TCPMSS.h
->>>>    delete mode 100644 include/uapi/linux/netfilter_ipv4/ipt_ECN.h
->>>>    delete mode 100644 include/uapi/linux/netfilter_ipv4/ipt_TTL.h
->>>>    delete mode 100644 include/uapi/linux/netfilter_ipv6/ip6t_HL.h
->>>
->>> How did you verify that there is no user space code using these
->>> includes?
->>>
->>> We take ABI very seriously. You cannot break user space code.
->>>
->>>       Andrew
->>
->> This is a minimal ABI change, which have to use lower case filenames for
->> example: xt_DSCP.h -> xt_dscp.h
-> 
-> You are not listening.
-> 
-> You cannot break user space code.
-> 
-> That is the end of it. No exceptions. It does not matter how bad the
-> API is. You cannot break it.
-> 
->      Andrew
+On Fri, 3 Jan 2025 17:12:53 +0800 cheung wall <zzqq0103.hey@gmail.com> wrote:
 
-It should not break the API:
-[PATCH v3] netfilter: x_tables: Merge xt_*.c source files which has same name.
-https://lore.kernel.org/lkml/20250103140158.69041-1-egyszeregy@freemail.hu/
+> Hello,
+> 
+> I am writing to report a potential vulnerability identified in the
+> Linux Kernel version 6.13.0-rc2. This issue was discovered using our
+> custom vulnerability discovery tool.
+> 
+> HEAD commit: fac04efc5c793dccbd07e2d59af9f90b7fc0dca4 (tag: v6.13-rc2)
+> 
+> Affected File: mm/util.c
+> 
+> File: mm/util.c
+> 
+> Function: __kvmalloc_node_noprof
 
-If you prefere more a human readable format: 
-https://github.com/Livius90/linux/commit/8ff73d36125f9a48eac98fd17b51b11d8f73f5a0
+(cc netfilter-devel)
 
+This is
 
+	/* Don't even allow crazy sizes */
+	if (unlikely(size > INT_MAX)) {
+		WARN_ON_ONCE(!(flags & __GFP_NOWARN));
+		return NULL;
+	}
+
+in __kvmalloc_node_noprof().
+
+> Detailed Call Stack:
+> 
+> ------------[ cut here begin]------------
+> 
+> RIP: 0010:__kvmalloc_node_noprof+0x18d/0x1b0 mm/util.c:662
+> Code: a1 48 c7 c7 28 df 86 a8 e8 90 86 14 00 e9 70 ff ff ff e8 b6 d3
+> e3 ff 41 81 e4 00 20 00 00 0f 85 16 ff ff ff e8 a4 d3 e3 ff 90 <0f> 0b
+> 90 31 db e9 c4 fe ff ff 48 c7 c7 f8 91 e3 a7 e8 5d 86 14 00
+> RSP: 0018:ffff88800f397b38 EFLAGS: 00010293
+> RAX: 0000000000000000 RBX: 0000000000000000 RCX: ffffffffa46327ec
+> RDX: ffff88800fc4d500 RSI: ffffffffa471a1b1 RDI: 0000000000000000
+> RBP: 00000000cbad2000 R08: 0000000000000000 R09: 0a33303939333137
+> loop4: detected capacity change from 0 to 32768
+> R10: ffff88800f397b38 R11: 0000000000032001 R12: 0000000000000000
+> R13: 00000000ffffffff R14: 000000001975a400 R15: ffff88800f397e08
+> SELinux: security_context_str_to_sid (root) failed with errno=-22
+> FS: 00007fc9b1d23580(0000) GS:ffff88811b380000(0000) knlGS:0000000000000000
+> CS: 0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> CR2: 000055c7e2f2b6b8 CR3: 000000000b970000 CR4: 0000000000350ef0
+> Call Trace:
+> <TASK>
+> kvmalloc_array_node_noprof include/linux/slab.h:1063 [inline]
+> nf_ct_alloc_hashtable+0x83/0x110 net/netfilter/nf_conntrack_core.c:2526
+> nf_conntrack_hash_resize+0x91/0x4d0 net/netfilter/nf_conntrack_core.c:2547
+> nf_conntrack_hash_sysctl net/netfilter/nf_conntrack_standalone.c:540 [inline]
+> nf_conntrack_hash_sysctl+0xa9/0x100 net/netfilter/nf_conntrack_standalone.c:527
+> proc_sys_call_handler+0x492/0x5d0 fs/proc/proc_sysctl.c:601
+> new_sync_write fs/read_write.c:586 [inline]
+> vfs_write+0x51e/0xc80 fs/read_write.c:679
+> ksys_write+0x110/0x200 fs/read_write.c:731
+> do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+> do_syscall_64+0xa6/0x1a0 arch/x86/entry/common.c:83
+> entry_SYSCALL_64_after_hwframe+0x77/0x7f
+> 
+> 
+> ------------[ cut here end]------------
+> 
+> Root Cause:
+> 
+> The kernel panic originated within the __kvmalloc_node_noprof function
+> in mm/util.c, triggered during the execution of the Netfilter
+> connection tracking subsystem. Specifically, the
+> nf_conntrack_hash_resize function attempted to allocate memory for
+> resizing the connection tracking hash table from a capacity of 0 to
+> 32,768 entries using kvmalloc_array_node_noprof. This memory
+> allocation likely failed or was mishandled, resulting in an invalid
+> memory access or dereference within __kvmalloc_node_noprof.
+> Additionally, the log indicates a failure in the SELinux security
+> context function security_context_str_to_sid, which returned an EINVAL
+> error (errno=-22). The combination of these factors suggests that the
+> crash was caused by improper handling of memory allocation during a
+> significant capacity change in the connection tracking hash table,
+> possibly due to unhandled allocation failures or logic errors in the
+> resize process.
+> 
+> Thank you for your time and attention.
+> 
+> Best regards
+> 
+> Wall
