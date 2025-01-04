@@ -1,53 +1,53 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89A4182488;
-	Sat,  4 Jan 2025 04:52:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EACCA1531D2;
+	Sat,  4 Jan 2025 06:29:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735966325; cv=none; b=u3lqdmBN1xnjYeM4Tv3A1ZEqo+XCG6nEWeRxv/TjqrFR1mfKOi4PCP8XjU07S+GSJ+e/53XfhJUK8RdAobwS0BdhhSZurJSHGfddPW/CH5zvrg/OjAgre6OOQMj8Eo2KZpUGLIUPguaVe1/oCVd1TO5wSM5wnRaF5+OiuhS/UeU=
+	t=1735972152; cv=none; b=ayTLNT9NSr5JGYi7GkrnZIVuFUhSVliKB+94M68jWfW4yZvB2moXIojaIaMwYzTpI1crMJ0iH0qHaBuZ6BMgRH9y2r8vT1KQPBc6jFY0Ve20ObuEPib5lWQV+a7AAKJi2bZaBIwx1Rdxokc0RcCuZshKz2ZsYbCJhzXy4E3QlPo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735966325; c=relaxed/simple;
-	bh=XtPmeWVkebOoMdkHg3hOLrL0p5OFrWmqRjAi0s+IH2A=;
+	s=arc-20240116; t=1735972152; c=relaxed/simple;
+	bh=AKrpsJA9pjNGHkifNS9e+fzwCwQSmKfocNpN34qppfE=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=MH9YWuDuCoCCexmXFPgqBiwwZPp+llDRXaCiJeqf/ahx/k+u5UPMH7i+h9+mNi83IipkG5niCJVB4gc/JLO0zCt/J7IHeb9ODYr8DWqeYECePUOZFAosarHBaQOs9tfY7C9aymSJe1N9q60W9MArHJpjBs6uHuJctrUltT2/WrM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=J1n1fXfh; arc=none smtp.client-ip=198.175.65.11
+	 Content-Type:Content-Disposition:In-Reply-To; b=aoscgN0/3uaRwZzTTI8OcMavDWLBvUn6tqUH3w8WAEdG50M1etQqiZQiParVUVu4EMS0x0yH6jVo/ClesvkQ7cNExkvpUMKQrLXkwcwDwiNJg6BM6IRvcFENwaq8xQEKcWlJfYwyuN39OCvWoxMX/K/5OLGUTRmWHFs3aNVGkxc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=H+Dj/1nd; arc=none smtp.client-ip=198.175.65.13
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="J1n1fXfh"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="H+Dj/1nd"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1735966323; x=1767502323;
+  t=1735972151; x=1767508151;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=XtPmeWVkebOoMdkHg3hOLrL0p5OFrWmqRjAi0s+IH2A=;
-  b=J1n1fXfhJHigBZaGGRr0zHSB4Iopm8nHX3irBAa8hb3n1GKLzGl8fCWz
-   qx9zQUy6iU8VMhNeq1xh02Gi35bu/tXZC8L3ZNVCys4yVOeW7B0I/K0Ao
-   dx2/mUZUyNua04DV1beCf1QyWl9Hmy509h3Zkw2VrGmgcHZTPFcj0ZBdU
-   pvloOB5MN8Dxc3Ogm+qOBNZsj6nmc7fqCBgo/ihnK5kqU73W9zRXXlEbF
-   d+N84uf/twHbk3/kf4wIZa9OVpy8KlRLpF/wL839cqJsaVPLKIIlHrP5/
-   Q4RvBaztirvL6AkQuaT60sV696BGyce7bSGCaJmYGxF6/n6/tmGR4ONbZ
-   Q==;
-X-CSE-ConnectionGUID: mrSAz270RXST2K2qF8xWAw==
-X-CSE-MsgGUID: s0hCtHb8Qg+weP94cMOjxA==
-X-IronPort-AV: E=McAfee;i="6700,10204,11304"; a="46701212"
+  bh=AKrpsJA9pjNGHkifNS9e+fzwCwQSmKfocNpN34qppfE=;
+  b=H+Dj/1nded/IfMDVJWSzcAzYKH/hBWiz2MlIrgaw2041B8Qtdxe/tn8P
+   QpSrAXzCWaZHr6XzOtDefF0+nK4HtHQrjE8cWSIATleserKfEwATS3ui+
+   OnsikB8tiOWMXI1hUP7friR8iZrwn24QyKvAM2hKDVvsPU2fBGg9iFCNU
+   nDVWcL4m86ECnlpv+ih9ddt4GkVe6rTfZgPE9yTZcyM7IkMPVjYPtIBfO
+   Wz9JrAbmkPaEN1Kb+fLIn0raOFEServpnv8mJciR5IssQwT2UwndbzgJx
+   8uV54S3XJh3AZgVguzfK2AbN1P/cD2wyNKZHhbjX02XAfMhPOnY8fsETp
+   A==;
+X-CSE-ConnectionGUID: PnHmMF++Tz2Q5VOrKbXY3w==
+X-CSE-MsgGUID: OcL1FhQuSHu6PENqqH4+2Q==
+X-IronPort-AV: E=McAfee;i="6700,10204,11304"; a="47191719"
 X-IronPort-AV: E=Sophos;i="6.12,288,1728975600"; 
-   d="scan'208";a="46701212"
-Received: from orviesa007.jf.intel.com ([10.64.159.147])
-  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Jan 2025 20:52:03 -0800
-X-CSE-ConnectionGUID: Ra75Vt6/RB+Ueyz3adysHw==
-X-CSE-MsgGUID: fs6xALnoT7elwTJ3yN+1YA==
+   d="scan'208";a="47191719"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Jan 2025 22:29:11 -0800
+X-CSE-ConnectionGUID: ZcvnWQFhRxOAm6vtoBM3GA==
+X-CSE-MsgGUID: JAVnkUCyTKqYQp1PRMTK8w==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.12,224,1728975600"; 
-   d="scan'208";a="102446466"
+   d="scan'208";a="132879354"
 Received: from lkp-server01.sh.intel.com (HELO d63d4d77d921) ([10.239.97.150])
-  by orviesa007.jf.intel.com with ESMTP; 03 Jan 2025 20:51:58 -0800
+  by fmviesa001.fm.intel.com with ESMTP; 03 Jan 2025 22:29:06 -0800
 Received: from kbuild by d63d4d77d921 with local (Exim 4.96)
 	(envelope-from <lkp@intel.com>)
-	id 1tTw8h-000AcV-2u;
-	Sat, 04 Jan 2025 04:51:55 +0000
-Date: Sat, 4 Jan 2025 12:51:48 +0800
+	id 1tTxei-000Agl-0z;
+	Sat, 04 Jan 2025 06:29:04 +0000
+Date: Sat, 4 Jan 2025 14:28:44 +0800
 From: kernel test robot <lkp@intel.com>
 To: egyszeregy@freemail.hu, fw@strlen.de, pablo@netfilter.org,
 	lorenzo@kernel.org, daniel@iogearbox.net, leitao@debian.org,
@@ -62,7 +62,7 @@ Cc: Paul Gazzillo <paul@pgazz.com>,
 	Benjamin =?utf-8?B?U3rFkWtl?= <egyszeregy@freemail.hu>
 Subject: Re: [PATCH v3] netfilter: x_tables: Merge xt_*.c source files which
  has same name.
-Message-ID: <202501041223.aaw6sh0q-lkp@intel.com>
+Message-ID: <202501041449.OsJd9MHe-lkp@intel.com>
 References: <20250103140158.69041-1-egyszeregy@freemail.hu>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -89,25 +89,20 @@ url:    https://github.com/intel-lab-lkp/linux/commits/egyszeregy-freemail-hu/ne
 base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
 patch link:    https://lore.kernel.org/r/20250103140158.69041-1-egyszeregy%40freemail.hu
 patch subject: [PATCH v3] netfilter: x_tables: Merge xt_*.c source files which has same name.
-config: nios2-kismet-CONFIG_NETFILTER_XT_DSCP-CONFIG_NETFILTER_XT_MATCH_DSCP-0-0 (https://download.01.org/0day-ci/archive/20250104/202501041223.aaw6sh0q-lkp@intel.com/config)
-reproduce: (https://download.01.org/0day-ci/archive/20250104/202501041223.aaw6sh0q-lkp@intel.com/reproduce)
+config: nios2-kismet-CONFIG_NETFILTER_XT_HL-CONFIG_NETFILTER_XT_MATCH_HL-0-0 (https://download.01.org/0day-ci/archive/20250104/202501041449.OsJd9MHe-lkp@intel.com/config)
+reproduce: (https://download.01.org/0day-ci/archive/20250104/202501041449.OsJd9MHe-lkp@intel.com/reproduce)
 
 If you fix the issue in a separate patch/commit (i.e. not just a new version of
 the same patch/commit), kindly add following tags
 | Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202501041223.aaw6sh0q-lkp@intel.com/
+| Closes: https://lore.kernel.org/oe-kbuild-all/202501041449.OsJd9MHe-lkp@intel.com/
 
 kismet warnings: (new ones prefixed by >>)
->> kismet: WARNING: unmet direct dependencies detected for NETFILTER_XT_DSCP when selected by NETFILTER_XT_MATCH_DSCP
+>> kismet: WARNING: unmet direct dependencies detected for NETFILTER_XT_HL when selected by NETFILTER_XT_MATCH_HL
    WARNING: unmet direct dependencies detected for NETFILTER_XT_HL
      Depends on [n]: NET [=y] && INET [=y] && NETFILTER [=y] && NETFILTER_XTABLES [=y] && (IP_NF_MANGLE [=n] || IP6_NF_MANGLE [=n] || NFT_COMPAT [=n]) && NETFILTER_ADVANCED [=y]
      Selected by [y]:
      - NETFILTER_XT_MATCH_HL [=y] && NET [=y] && INET [=y] && NETFILTER [=y] && NETFILTER_XTABLES [=y] && NETFILTER_ADVANCED [=y]
-   
-   WARNING: unmet direct dependencies detected for NETFILTER_XT_DSCP
-     Depends on [n]: NET [=y] && INET [=y] && NETFILTER [=y] && NETFILTER_XTABLES [=y] && (IP_NF_MANGLE [=n] || IP6_NF_MANGLE [=n] || NFT_COMPAT [=n]) && NETFILTER_ADVANCED [=y]
-     Selected by [y]:
-     - NETFILTER_XT_MATCH_DSCP [=y] && NET [=y] && INET [=y] && NETFILTER [=y] && NETFILTER_XTABLES [=y] && NETFILTER_ADVANCED [=y]
 
 -- 
 0-DAY CI Kernel Test Service
