@@ -1,81 +1,239 @@
-Received: from a3.inai.de (a3.inai.de [144.76.212.145])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1F9115665D;
-	Mon,  6 Jan 2025 15:27:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=144.76.212.145
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1A2F21E048D
+	for <netfilter-devel@vger.kernel.org>; Mon,  6 Jan 2025 22:41:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736177281; cv=none; b=rsj+g4b306o2sgpkUF9iwM3KxqzW0+h4O3VUcUYH4enCL10pUD9WmVPerjVUkI8ewgzfwqUU1/EZEKD+0pFq9paly53dvrfauUNc9bHXMhVa46oi+dkyQi4jB7O/ME+8bdxSDCAB333Z4Wv18rpSRXYrogBizDMhjDt3EiCuT7w=
+	t=1736203265; cv=none; b=D3oc46kCwBxb7dVIFtWSiMVAlGYQE+i402aM4oPLBJGk64QaPmqLoZmnYcSJXzLWs5dQGnwHAcqY5gScZ/Ccrljiq3q6b1XbeYrXM8o348HeOJBlMrQ/zxljBDYDU0UYgpdy20EuekzoClwy5XvaytGB8od3Yu6ydRgMOaS/W/4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736177281; c=relaxed/simple;
-	bh=ZpGHfXJzYyi3RZNBlhgNiJe2kBFbc6YPAClKvu+MjAs=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=Gk0BmgptibcvflET+RJnOcqwKAKcDm7rxa1wbDdOhmBsGjxklAqGsV4gZwZR68Y0MbTSWoiVtzvIUW3i9R9Dy3HyF62Zx3wrsh9N4bYwOhS6rxjXG7ctIuL1GMUFmfJRi7cBht2YiXxc8gslDbKjWo1wEhVNZfpnCcoLnMv5+hI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=inai.de; spf=fail smtp.mailfrom=inai.de; arc=none smtp.client-ip=144.76.212.145
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=inai.de
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=inai.de
-Received: by a3.inai.de (Postfix, from userid 25121)
-	id A9A1D1003DFA62; Mon,  6 Jan 2025 16:27:49 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-	by a3.inai.de (Postfix) with ESMTP id A7EF0110073C1D;
-	Mon,  6 Jan 2025 16:27:49 +0100 (CET)
-Date: Mon, 6 Jan 2025 16:27:49 +0100 (CET)
-From: Jan Engelhardt <ej@inai.de>
-To: Andrew Lunn <andrew@lunn.ch>
-cc: egyszeregy@freemail.hu, fw@strlen.de, pablo@netfilter.org, 
-    lorenzo@kernel.org, daniel@iogearbox.net, leitao@debian.org, 
-    amiculas@cisco.com, kadlec@netfilter.org, davem@davemloft.net, 
-    dsahern@kernel.org, edumazet@google.com, kuba@kernel.org, 
-    pabeni@redhat.com, horms@kernel.org, netfilter-devel@vger.kernel.org, 
-    coreteam@netfilter.org, linux-kernel@vger.kernel.org, 
-    netdev@vger.kernel.org
-Subject: Re: [PATCH v7 2/3] netfilter: x_tables: Merge xt_*.c files which
- has same name.
-In-Reply-To: <6f276b2e-de9d-427e-a3a3-aac9ed340357@lunn.ch>
-Message-ID: <7ppss971-6406-82q4-3371-1q8n9299qrq1@vanv.qr>
-References: <20250105233157.6814-1-egyszeregy@freemail.hu> <20250105233157.6814-3-egyszeregy@freemail.hu> <6f276b2e-de9d-427e-a3a3-aac9ed340357@lunn.ch>
-User-Agent: Alpine 2.26 (LSU 649 2022-06-02)
+	s=arc-20240116; t=1736203265; c=relaxed/simple;
+	bh=VOIJ8yNkT7m5gewwLQNWU+gjWtXnzIMz1L8hnGoFtM0=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=GkQksQkmbr9jizRWv22dMm5tGzXUWPuSi8WlEQvKshUSdc1WdHLT1aD3G2ORlzvmVbluf1N8ggBtZvexEvykkHak+D2a/yKaoHxzZYDOL/m1gPQ5eMZ9TK2CEduuZWDRdMwqS/GViuoUOTAIIve4iMuITyfYZY4ifay4nQh3i3U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+X-Spam-Level: 
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de
+Subject: [PATCH nf-next,v2] netfilter: nf_tables: fix set size with rbtree backend
+Date: Mon,  6 Jan 2025 23:40:50 +0100
+Message-Id: <20250106224050.202516-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 
+The existing rbtree implementation uses singleton elements to represent
+ranges, however, userspace provides a set size according to the number
+of ranges in the set.
 
-On Monday 2025-01-06 15:22, Andrew Lunn wrote:
->> x86_64-before:
->> text    data     bss     dec     hex filename
->>  716     432       0    1148     47c xt_dscp.o
->> 1142     432       0    1574     626 xt_DSCP.o
->>  593     224       0     817     331 xt_hl.o
->>  934     224       0    1158     486 xt_HL.o
->> 1099     120       0    1219     4c3 xt_rateest.o
->> 2126     365       4    2495     9bf xt_RATEEST.o
->>  747     224       0     971     3cb xt_tcpmss.o
->> 2824     352       0    3176     c68 xt_TCPMSS.o
->> total data: 2373
->> 
->> x86_64-after:
->> text    data     bss     dec     hex filename
->> 1709     848       0    2557     9fd xt_dscp.o
->> 1352     448       0    1800     708 xt_hl.o
->> 3075     481       4    3560     de8 xt_rateest.o
->> 3423     576       0    3999     f9f xt_tcpmss.o
->> total data: 2353
->
->So you have saved 20 bytes in the data segment. A 0.8% reduction. If i
->was developing this patchset, when i see this number, i would
->immediately think, why am i bothering?
+Adjust provided userspace set size to the number of singleton elements
+in the kernel by multiplying the range by two.
 
-Before:
-$ lsmod
-xt_TCPMSS              12288  0
-xt_tcpmss              12288  0
+Check if the no-match all-zero element is already in the set, in such
+case release one slot in the set size.
 
-After:
-$ lsmod
-xt_tcpmss              12288  0
+Fixes: 0ed6389c483d ("netfilter: nf_tables: rename set implementations")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: make no assumptions on no-match all-zero element which was
+    inconditionally added in the previous patch, check instead if it
+    is present in the set, then adjust the available element slots
+    by one accordingly.
 
-which is a 50% reduction in run-time memory use.
+@Florian: Would you rebase your
+
+  netfilter: nf_tables: export set count and backend name to userspace
+
+on top of this patch? The idea would be to use .usize to expose the
+set size through 'nft list ruleset' as we discussed, instead of only
+displaying this via --debug. Thanks.
+
+ include/net/netfilter/nf_tables.h |  3 ++
+ net/netfilter/nf_tables_api.c     | 49 +++++++++++++++++++++++++++++--
+ net/netfilter/nft_set_rbtree.c    | 43 +++++++++++++++++++++++++++
+ 3 files changed, 93 insertions(+), 2 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 0027beca5cd5..7dcea247f853 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -495,6 +495,9 @@ struct nft_set_ops {
+ 					       const struct nft_set *set,
+ 					       const struct nft_set_elem *elem,
+ 					       unsigned int flags);
++	u32				(*ksize)(u32 size);
++	u32				(*usize)(u32 size);
++	u32				(*adjust_maxsize)(const struct nft_set *set);
+ 	void				(*commit)(struct nft_set *set);
+ 	void				(*abort)(const struct nft_set *set);
+ 	u64				(*privsize)(const struct nlattr * const nla[],
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index f7ca7165e66e..c9a1d1565e89 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4752,6 +4752,14 @@ static int nf_tables_fill_set_concat(struct sk_buff *skb,
+ 	return 0;
+ }
+ 
++static u32 nft_set_userspace_size(const struct nft_set_ops *ops, u32 size)
++{
++	if (ops->usize)
++		return ops->usize(size);
++
++	return size;
++}
++
+ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
+ 			      const struct nft_set *set, u16 event, u16 flags)
+ {
+@@ -4822,7 +4830,8 @@ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
+ 	if (!nest)
+ 		goto nla_put_failure;
+ 	if (set->size &&
+-	    nla_put_be32(skb, NFTA_SET_DESC_SIZE, htonl(set->size)))
++	    nla_put_be32(skb, NFTA_SET_DESC_SIZE,
++			 htonl(nft_set_userspace_size(set->ops, set->size))))
+ 		goto nla_put_failure;
+ 
+ 	if (set->field_count > 1 &&
+@@ -5190,6 +5199,15 @@ static bool nft_set_is_same(const struct nft_set *set,
+ 	return true;
+ }
+ 
++static u32 nft_set_kernel_size(const struct nft_set_ops *ops,
++			       const struct nft_set_desc *desc)
++{
++	if (ops->ksize)
++		return ops->ksize(desc->size);
++
++	return desc->size;
++}
++
+ static int nf_tables_newset(struct sk_buff *skb, const struct nfnl_info *info,
+ 			    const struct nlattr * const nla[])
+ {
+@@ -5372,6 +5390,9 @@ static int nf_tables_newset(struct sk_buff *skb, const struct nfnl_info *info,
+ 		if (err < 0)
+ 			return err;
+ 
++		if (desc.size)
++			desc.size = nft_set_kernel_size(set->ops, &desc);
++
+ 		err = 0;
+ 		if (!nft_set_is_same(set, &desc, exprs, num_exprs, flags)) {
+ 			NL_SET_BAD_ATTR(extack, nla[NFTA_SET_NAME]);
+@@ -5394,6 +5415,9 @@ static int nf_tables_newset(struct sk_buff *skb, const struct nfnl_info *info,
+ 	if (IS_ERR(ops))
+ 		return PTR_ERR(ops);
+ 
++	if (desc.size)
++		desc.size = nft_set_kernel_size(ops, &desc);
++
+ 	udlen = 0;
+ 	if (nla[NFTA_SET_USERDATA])
+ 		udlen = nla_len(nla[NFTA_SET_USERDATA]);
+@@ -7050,6 +7074,27 @@ static bool nft_setelem_valid_key_end(const struct nft_set *set,
+ 	return true;
+ }
+ 
++static u32 nft_set_maxsize(const struct nft_set *set)
++{
++	u32 maxsize, delta;
++
++	if (!set->size)
++		return UINT_MAX;
++
++	if (set->ops->adjust_maxsize)
++		delta = set->ops->adjust_maxsize(set);
++	else
++		delta = 0;
++
++	if (check_add_overflow(set->size, set->ndeact, &maxsize))
++		return UINT_MAX;
++
++	if (check_add_overflow(maxsize, delta, &maxsize))
++		return UINT_MAX;
++
++	return maxsize;
++}
++
+ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 			    const struct nlattr *attr, u32 nlmsg_flags)
+ {
+@@ -7422,7 +7467,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 	}
+ 
+ 	if (!(flags & NFT_SET_ELEM_CATCHALL)) {
+-		unsigned int max = set->size ? set->size + set->ndeact : UINT_MAX;
++		unsigned int max = nft_set_maxsize(set);
+ 
+ 		if (!atomic_add_unless(&set->nelems, 1, max)) {
+ 			err = -ENFILE;
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index b7ea21327549..2e8ef16ff191 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -750,6 +750,46 @@ static void nft_rbtree_gc_init(const struct nft_set *set)
+ 	priv->last_gc = jiffies;
+ }
+ 
++/* rbtree stores ranges as singleton elements, each range is composed of two
++ * elements ...
++ */
++static u32 nft_rbtree_ksize(u32 size)
++{
++	return size * 2;
++}
++
++/* ... hide this detail to userspace. */
++static u32 nft_rbtree_usize(u32 size)
++{
++	if (!size)
++		return 0;
++
++	return size / 2;
++}
++
++static u32 nft_rbtree_adjust_maxsize(const struct nft_set *set)
++{
++	struct nft_rbtree *priv = nft_set_priv(set);
++	struct nft_rbtree_elem *rbe;
++	struct rb_node *node;
++	const void *key;
++
++	node = rb_last(&priv->root);
++	if (!node)
++		return 0;
++
++	rbe = rb_entry(node, struct nft_rbtree_elem, node);
++	if (!nft_rbtree_interval_end(rbe))
++		return 0;
++
++	key = nft_set_ext_key(&rbe->ext);
++	if (memchr(key, 1, set->klen))
++		return 0;
++
++	/* this is the all-zero no-match element. */
++	return 1;
++}
++
+ const struct nft_set_type nft_set_rbtree_type = {
+ 	.features	= NFT_SET_INTERVAL | NFT_SET_MAP | NFT_SET_OBJECT | NFT_SET_TIMEOUT,
+ 	.ops		= {
+@@ -768,5 +808,8 @@ const struct nft_set_type nft_set_rbtree_type = {
+ 		.lookup		= nft_rbtree_lookup,
+ 		.walk		= nft_rbtree_walk,
+ 		.get		= nft_rbtree_get,
++		.ksize		= nft_rbtree_ksize,
++		.usize		= nft_rbtree_usize,
++		.adjust_maxsize = nft_rbtree_adjust_maxsize,
+ 	},
+ };
+-- 
+2.30.2
+
