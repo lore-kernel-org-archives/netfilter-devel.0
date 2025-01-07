@@ -1,27 +1,27 @@
 Received: from smtp-out.freemail.hu (fmfe34.freemail.hu [46.107.16.239])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3C2A1F540C;
-	Tue,  7 Jan 2025 18:47:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA6F31F472F;
+	Tue,  7 Jan 2025 18:48:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.107.16.239
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736275682; cv=none; b=YKLQu+3bBw2FV1FVKUuitk2/8iOaGDBCHRJ8C4NH6ictTuy6LzJLLMf8J5NjgAbxs8N3VhKx/hu75fwYSuaPg1gN6ObpQUmxizKxliKVZqT2nTrFThW9p65v40wYo7ok8pNd2A16/z2zBdc2hRI6IM0gGEmbcHuanIV/OpyRFf0=
+	t=1736275694; cv=none; b=I4V7LFsR16ywJU4AR6f1KCEdkJC2sGeno6fVPe2ofyk3jERCpYnascL56gSolhDl31uaZOZx5I7lU5Q6j+YolOhGU44GfqaheN46UkGAh1HJEb8ePHlSqEhmSTS0r4eOIUZv3sJ7r7+EKs0EjBG6eZCiQCiWGm83tLCBGuI34T8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736275682; c=relaxed/simple;
-	bh=V+fr7GIVrQQm4X9la1BlNUmLzdE6qO65HNVNNQpfauo=;
+	s=arc-20240116; t=1736275694; c=relaxed/simple;
+	bh=+BVeyhg4zJidUQtnhsZ5V34Oa+zzzqnapUeOX+M6s24=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=QxDWOOmMYeNi1zccaaMZ9hUA2kdMOf8auqNLyWobYGYd05xbMH/2VJvdJ0jSCDBBLtLUTymWERrvSCrVk4QgWxIVmcKgG8IUY2aZPxCsm3XGnuJA42LYp1JqmChQIchMdVXN5CUxOPJR/XkdSdNH1OqI/+1Pvvw2oHWPuJO9UB8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freemail.hu; spf=pass smtp.mailfrom=freemail.hu; dkim=fail (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b=eopd5hRB reason="signature verification failed"; arc=none smtp.client-ip=46.107.16.239
+	 MIME-Version:Content-Type; b=Dm0Q+4vh9L6BAvPf6TLhbPj/LjoEYos9kzlWHw4zTMi+EuGiZUioBy/OnpcB9J3GXs7EsKAQaNd83ml1AD7sw/0rm5v50np8K5EBa0XqExQdDcFxWbrUcFA9mN6icZWU9xlQgSbtbgCnyliN+c1ldpksQ8K3oRYbaoZXU2GAIn8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freemail.hu; spf=pass smtp.mailfrom=freemail.hu; dkim=fail (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b=f2xolSup reason="signature verification failed"; arc=none smtp.client-ip=46.107.16.239
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freemail.hu
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=freemail.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b="eopd5hRB"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b="f2xolSup"
 Received: from fizweb.elte.hu (fizweb.elte.hu [157.181.183.248])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.freemail.hu (Postfix) with ESMTPSA id 4YSKmr2zCjz10rx;
-	Tue, 07 Jan 2025 19:47:56 +0100 (CET)
+	by smtp.freemail.hu (Postfix) with ESMTPSA id 4YSKn43Xr7z10V0;
+	Tue, 07 Jan 2025 19:48:08 +0100 (CET)
 From: egyszeregy@freemail.hu
 To: fw@strlen.de,
 	pablo@netfilter.org,
@@ -41,9 +41,9 @@ To: fw@strlen.de,
 	linux-kernel@vger.kernel.org,
 	netdev@vger.kernel.org
 Cc: =?UTF-8?q?Benjamin=20Sz=C5=91ke?= <egyszeregy@freemail.hu>
-Subject: [PATCH 3/6] netfilter: x_tables: Merge xt_HL.c to xt_hl.c
-Date: Tue,  7 Jan 2025 19:47:21 +0100
-Message-ID: <20250107184724.56223-4-egyszeregy@freemail.hu>
+Subject: [PATCH 4/6] netfilter: x_tables: Merge xt_RATEEST.c to xt_rateest.c
+Date: Tue,  7 Jan 2025 19:47:22 +0100
+Message-ID: <20250107184724.56223-5-egyszeregy@freemail.hu>
 X-Mailer: git-send-email 2.43.5
 In-Reply-To: <20250107184724.56223-1-egyszeregy@freemail.hu>
 References: <20250107184724.56223-1-egyszeregy@freemail.hu>
@@ -55,480 +55,642 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=simple/relaxed; t=1736275677;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=simple/relaxed; t=1736275689;
 	s=20181004; d=freemail.hu;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:MIME-Version:Content-Type:Content-Transfer-Encoding;
-	l=12858; bh=5SeJleRUlf06zufvMo4YMnypeY+NN0xgQggiV9ZGVG0=;
-	b=eopd5hRBMyjC4vOa4trwKO+yExNdkCMToZgP3uS6hiHTA1zTlnITnn/sYg22grYj
-	z6/kf3KmjiknqneZFOeGJyXOQnpbBOckQhi2s5sXx3htIXygk0geP1Bhf9BT921rkZI
-	tluT4jls6AOhoUE4AZb5NEqGWAGCIXa3YCWz9RPpHvSLCJSqsRlPu2t5j+TwjtMhEfc
-	tybqkAxnWfXfSLrQV4s+SI5DvMN4akR6x176avv3h24D+gdZcdQvYLpMaux7fXbz4dI
-	2TcLKqTcr2bKi8pRwkGjX6UWVOGhBust2bMubx9draMrO7KsxMRqBh8qZdLlICHiNac
-	QlKbFsGJWA==
+	l=18209; bh=zvBk9tEFlJcU6YRcwwr7UH6SPiB9QwVsgVKuAbHki0c=;
+	b=f2xolSup7rgxoyZdyXb5Jv4CvUuz68TYPzRcwIH5lGw4KcEJPp3fyywIhfNbzYxf
+	vCWCRD+XrD5Ik+RV+3yNrmr5aTyefCBEUTxHKwXoDvVAoWq12m5jNyja1tCnuAymvUt
+	qdtB/jEBLZaGMBdnfGNtd58W1e1q6n0e+JfyvlJ/Zk3nDnAJzIBq2BBAl65/3wkHOIi
+	tAjxVWGRIH//h6bjDjczI9TCRJpjT0JvQGzNwNJIvkU8DMp0woIdB+CHDeasRNLwgkZ
+	Gl0vEI6Eu2eMW9kU/WkCjN6XfJG+qwNjCgvuuQ6UTfFYfpzJxQ/YB+gmrZ9T9/YfQu7
+	nI7iESLZew==
 
 From: Benjamin Szőke <egyszeregy@freemail.hu>
 
-Merge xt_HL.c to xt_hl.c file and remove xt_HL.c.
+Merge xt_RATEEST.c to xt_rateest.c file and remove xt_RATEEST.c.
 
 Signed-off-by: Benjamin Szőke <egyszeregy@freemail.hu>
 ---
- net/netfilter/Kconfig  |  22 ++++++
- net/netfilter/Makefile |   3 +-
- net/netfilter/xt_HL.c  | 158 ---------------------------------------
- net/netfilter/xt_hl.c  | 163 ++++++++++++++++++++++++++++++++++++++---
- 4 files changed, 175 insertions(+), 171 deletions(-)
- delete mode 100644 net/netfilter/xt_HL.c
+ net/netfilter/Kconfig      |  19 +++
+ net/netfilter/Makefile     |   3 +-
+ net/netfilter/xt_RATEEST.c | 249 ------------------------------------
+ net/netfilter/xt_rateest.c | 253 +++++++++++++++++++++++++++++++++++--
+ 4 files changed, 263 insertions(+), 261 deletions(-)
+ delete mode 100644 net/netfilter/xt_RATEEST.c
 
 diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index ae0c30641cec..ca293f9a1db5 100644
+index ca293f9a1db5..1aff3c7c4363 100644
 --- a/net/netfilter/Kconfig
 +++ b/net/netfilter/Kconfig
-@@ -813,6 +813,18 @@ config NETFILTER_XT_DSCP
- 	  The target allows you to manipulate the IPv4/IPv6
- 	  header DSCP field (differentiated services codepoint).
+@@ -825,6 +825,16 @@ config NETFILTER_XT_HL
+ 	  The target allows you to change the hoplimit/time-to-live
+ 	  value of the IP header.
  
-+config NETFILTER_XT_HL
-+	tristate '"HL" hoplimit target and match support'
++config NETFILTER_XT_RATEEST
++	tristate '"RATEEST" target and match support'
 +	depends on NETFILTER_ADVANCED
 +	help
-+	  This option adds the "HL" target and "hl" match.
++	  This option adds the "RATEEST" target and "rateest" match.
 +
-+	  Netfilter hl matching allows you to match packets based on
-+	  the hoplimit in the IPv6 header, or the time-to-live field in
-+	  the IPv4 header of the packet.
-+	  The target allows you to change the hoplimit/time-to-live
-+	  value of the IP header.
++	  Netfilter rateest matching allows you to match on the rate
++	  estimated by the RATEEST target.
++	  The target allows you to measure rates similar to TC estimators.
 +
  # alphabetically ordered list of targets
  
  comment "Xtables targets"
-@@ -914,6 +926,7 @@ config NETFILTER_XT_TARGET_HL
- 	tristate '"HL" hoplimit target support'
- 	depends on IP_NF_MANGLE || IP6_NF_MANGLE || NFT_COMPAT
+@@ -1062,11 +1072,16 @@ config NETFILTER_XT_TARGET_NOTRACK
+ config NETFILTER_XT_TARGET_RATEEST
+ 	tristate '"RATEEST" target support'
  	depends on NETFILTER_ADVANCED
-+	select NETFILTER_XT_HL
++	select NETFILTER_XT_RATEEST
  	help
- 	This option adds the "HL" (for IPv6) and "TTL" (for IPv4)
- 	targets, which enable the user to change the
-@@ -925,6 +938,10 @@ config NETFILTER_XT_TARGET_HL
- 	since you can easily create immortal packets that loop
- 	forever on the network.
+ 	  This option adds a `RATEEST' target, which allows to measure
+ 	  rates similar to TC estimators. The `rateest' match can be
+ 	  used to match on the measured rates.
  
-+	This is a backwards-compat option for the user's convenience
-+	(e.g. when running oldconfig). It selects
-+	CONFIG_NETFILTER_XT_HL (combined hl/HL module).
++	  This is a backwards-compat option for the user's convenience
++	  (e.g. when running oldconfig). It selects
++	  CONFIG_NETFILTER_XT_RATEEST (combined rateest/RATEEST module).
 +
- config NETFILTER_XT_TARGET_HMARK
- 	tristate '"HMARK" target support'
- 	depends on IP6_NF_IPTABLES || IP6_NF_IPTABLES=n
-@@ -1380,11 +1397,16 @@ config NETFILTER_XT_MATCH_HELPER
- config NETFILTER_XT_MATCH_HL
- 	tristate '"hl" hoplimit/TTL match support'
- 	depends on NETFILTER_ADVANCED
-+	select NETFILTER_XT_HL
- 	help
- 	HL matching allows you to match packets based on the hoplimit
- 	in the IPv6 header, or the time-to-live field in the IPv4
- 	header of the packet.
+ 	  To compile it as a module, choose M here.  If unsure, say N.
  
-+	This is a backwards-compat option for the user's convenience
-+	(e.g. when running oldconfig). It selects
-+	CONFIG_NETFILTER_XT_HL (combined hl/HL module).
+ config NETFILTER_XT_TARGET_REDIRECT
+@@ -1576,6 +1591,10 @@ config NETFILTER_XT_MATCH_RATEEST
+ 	  This option adds a `rateest' match, which allows to match on the
+ 	  rate estimated by the RATEEST target.
+ 
++	  This is a backwards-compat option for the user's convenience
++	  (e.g. when running oldconfig). It selects
++	  CONFIG_NETFILTER_XT_RATEEST (combined rateest/RATEEST module).
 +
- config NETFILTER_XT_MATCH_IPCOMP
- 	tristate '"ipcomp" match support'
- 	depends on NETFILTER_ADVANCED
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+ config NETFILTER_XT_MATCH_REALM
 diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 5f9927563b35..381a18ce84d0 100644
+index 381a18ce84d0..923112b0dc1e 100644
 --- a/net/netfilter/Makefile
 +++ b/net/netfilter/Makefile
-@@ -161,6 +161,7 @@ obj-$(CONFIG_NETFILTER_XT_CONNMARK) += xt_connmark.o
- obj-$(CONFIG_NETFILTER_XT_SET) += xt_set.o
+@@ -162,6 +162,7 @@ obj-$(CONFIG_NETFILTER_XT_SET) += xt_set.o
  obj-$(CONFIG_NETFILTER_XT_NAT) += xt_nat.o
  obj-$(CONFIG_NETFILTER_XT_DSCP) += xt_dscp.o
-+obj-$(CONFIG_NETFILTER_XT_HL) += xt_hl.o
+ obj-$(CONFIG_NETFILTER_XT_HL) += xt_hl.o
++obj-$(CONFIG_NETFILTER_XT_RATEEST) += xt_rateest.o
  
  # targets
  obj-$(CONFIG_NETFILTER_XT_TARGET_AUDIT) += xt_AUDIT.o
-@@ -168,7 +169,6 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_CHECKSUM) += xt_CHECKSUM.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_CLASSIFY) += xt_CLASSIFY.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_CONNSECMARK) += xt_CONNSECMARK.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_CT) += xt_CT.o
--obj-$(CONFIG_NETFILTER_XT_TARGET_HL) += xt_HL.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_HMARK) += xt_HMARK.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_LED) += xt_LED.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_LOG) += xt_LOG.o
-@@ -202,7 +202,6 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_ECN) += xt_ecn.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_ESP) += xt_esp.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_HASHLIMIT) += xt_hashlimit.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_HELPER) += xt_helper.o
--obj-$(CONFIG_NETFILTER_XT_MATCH_HL) += xt_hl.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_IPCOMP) += xt_ipcomp.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_IPRANGE) += xt_iprange.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_IPVS) += xt_ipvs.o
-diff --git a/net/netfilter/xt_HL.c b/net/netfilter/xt_HL.c
+@@ -175,7 +176,6 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_LOG) += xt_LOG.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_NETMAP) += xt_NETMAP.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_NFLOG) += xt_NFLOG.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_NFQUEUE) += xt_NFQUEUE.o
+-obj-$(CONFIG_NETFILTER_XT_TARGET_RATEEST) += xt_RATEEST.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_REDIRECT) += xt_REDIRECT.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_MASQUERADE) += xt_MASQUERADE.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_SECMARK) += xt_SECMARK.o
+@@ -218,7 +218,6 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_PHYSDEV) += xt_physdev.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_PKTTYPE) += xt_pkttype.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_POLICY) += xt_policy.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_QUOTA) += xt_quota.o
+-obj-$(CONFIG_NETFILTER_XT_MATCH_RATEEST) += xt_rateest.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_REALM) += xt_realm.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_RECENT) += xt_recent.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_SCTP) += xt_sctp.o
+diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
 deleted file mode 100644
-index 1e1b30b27fef..000000000000
---- a/net/netfilter/xt_HL.c
+index d56276b965fa..000000000000
+--- a/net/netfilter/xt_RATEEST.c
 +++ /dev/null
-@@ -1,158 +0,0 @@
+@@ -1,249 +0,0 @@
 -// SPDX-License-Identifier: GPL-2.0-only
 -/*
-- * TTL modification target for IP tables
-- * (C) 2000,2005 by Harald Welte <laforge@netfilter.org>
-- *
-- * Hop Limit modification target for ip6tables
-- * Maciej Soltysiak <solt@dns.toxicfilms.tv>
+- * (C) 2007 Patrick McHardy <kaber@trash.net>
 - */
--#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 -#include <linux/module.h>
 -#include <linux/skbuff.h>
--#include <linux/ip.h>
--#include <linux/ipv6.h>
--#include <net/checksum.h>
+-#include <linux/gen_stats.h>
+-#include <linux/jhash.h>
+-#include <linux/rtnetlink.h>
+-#include <linux/random.h>
+-#include <linux/slab.h>
+-#include <net/gen_stats.h>
+-#include <net/netlink.h>
+-#include <net/netns/generic.h>
 -
 -#include <linux/netfilter/x_tables.h>
--#include <linux/netfilter_ipv4/ipt_ttl.h>
--#include <linux/netfilter_ipv6/ip6t_hl.h>
+-#include <linux/netfilter/xt_rateest.h>
+-#include <net/netfilter/xt_rateest.h>
 -
--MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
--MODULE_AUTHOR("Maciej Soltysiak <solt@dns.toxicfilms.tv>");
--MODULE_DESCRIPTION("Xtables: Hoplimit/TTL Limit field modification target");
--MODULE_LICENSE("GPL");
+-#define RATEEST_HSIZE	16
 -
--static unsigned int
--ttl_tg(struct sk_buff *skb, const struct xt_action_param *par)
--{
--	struct iphdr *iph;
--	const struct ipt_TTL_info *info = par->targinfo;
--	int new_ttl;
--
--	if (skb_ensure_writable(skb, sizeof(*iph)))
--		return NF_DROP;
--
--	iph = ip_hdr(skb);
--
--	switch (info->mode) {
--	case IPT_TTL_SET:
--		new_ttl = info->ttl;
--		break;
--	case IPT_TTL_INC:
--		new_ttl = iph->ttl + info->ttl;
--		if (new_ttl > 255)
--			new_ttl = 255;
--		break;
--	case IPT_TTL_DEC:
--		new_ttl = iph->ttl - info->ttl;
--		if (new_ttl < 0)
--			new_ttl = 0;
--		break;
--	default:
--		new_ttl = iph->ttl;
--		break;
--	}
--
--	if (new_ttl != iph->ttl) {
--		csum_replace2(&iph->check, htons(iph->ttl << 8), htons(new_ttl << 8));
--		iph->ttl = new_ttl;
--	}
--
--	return XT_CONTINUE;
--}
--
--static unsigned int
--hl_tg6(struct sk_buff *skb, const struct xt_action_param *par)
--{
--	struct ipv6hdr *ip6h;
--	const struct ip6t_HL_info *info = par->targinfo;
--	int new_hl;
--
--	if (skb_ensure_writable(skb, sizeof(*ip6h)))
--		return NF_DROP;
--
--	ip6h = ipv6_hdr(skb);
--
--	switch (info->mode) {
--	case IP6T_HL_SET:
--		new_hl = info->hop_limit;
--		break;
--	case IP6T_HL_INC:
--		new_hl = ip6h->hop_limit + info->hop_limit;
--		if (new_hl > 255)
--			new_hl = 255;
--		break;
--	case IP6T_HL_DEC:
--		new_hl = ip6h->hop_limit - info->hop_limit;
--		if (new_hl < 0)
--			new_hl = 0;
--		break;
--	default:
--		new_hl = ip6h->hop_limit;
--		break;
--	}
--
--	ip6h->hop_limit = new_hl;
--
--	return XT_CONTINUE;
--}
--
--static int ttl_tg_check(const struct xt_tgchk_param *par)
--{
--	const struct ipt_TTL_info *info = par->targinfo;
--
--	if (info->mode > IPT_TTL_MAXMODE)
--		return -EINVAL;
--	if (info->mode != IPT_TTL_SET && info->ttl == 0)
--		return -EINVAL;
--	return 0;
--}
--
--static int hl_tg6_check(const struct xt_tgchk_param *par)
--{
--	const struct ip6t_HL_info *info = par->targinfo;
--
--	if (info->mode > IP6T_HL_MAXMODE)
--		return -EINVAL;
--	if (info->mode != IP6T_HL_SET && info->hop_limit == 0)
--		return -EINVAL;
--	return 0;
--}
--
--static struct xt_target hl_tg_reg[] __read_mostly = {
--	{
--		.name       = "TTL",
--		.revision   = 0,
--		.family     = NFPROTO_IPV4,
--		.target     = ttl_tg,
--		.targetsize = sizeof(struct ipt_TTL_info),
--		.table      = "mangle",
--		.checkentry = ttl_tg_check,
--		.me         = THIS_MODULE,
--	},
--	{
--		.name       = "HL",
--		.revision   = 0,
--		.family     = NFPROTO_IPV6,
--		.target     = hl_tg6,
--		.targetsize = sizeof(struct ip6t_HL_info),
--		.table      = "mangle",
--		.checkentry = hl_tg6_check,
--		.me         = THIS_MODULE,
--	},
+-struct xt_rateest_net {
+-	/* To synchronize concurrent synchronous rate estimator operations. */
+-	struct mutex hash_lock;
+-	struct hlist_head hash[RATEEST_HSIZE];
 -};
 -
--static int __init hl_tg_init(void)
+-static unsigned int xt_rateest_id;
+-
+-static unsigned int jhash_rnd __read_mostly;
+-
+-static unsigned int xt_rateest_hash(const char *name)
 -{
--	return xt_register_targets(hl_tg_reg, ARRAY_SIZE(hl_tg_reg));
+-	return jhash(name, sizeof_field(struct xt_rateest, name), jhash_rnd) &
+-	       (RATEEST_HSIZE - 1);
 -}
 -
--static void __exit hl_tg_exit(void)
+-static void xt_rateest_hash_insert(struct xt_rateest_net *xn,
+-				   struct xt_rateest *est)
 -{
--	xt_unregister_targets(hl_tg_reg, ARRAY_SIZE(hl_tg_reg));
+-	unsigned int h;
+-
+-	h = xt_rateest_hash(est->name);
+-	hlist_add_head(&est->list, &xn->hash[h]);
 -}
 -
--module_init(hl_tg_init);
--module_exit(hl_tg_exit);
--MODULE_ALIAS("ipt_TTL");
--MODULE_ALIAS("ip6t_HL");
-diff --git a/net/netfilter/xt_hl.c b/net/netfilter/xt_hl.c
-index c1a70f8f0441..330951c0dfe2 100644
---- a/net/netfilter/xt_hl.c
-+++ b/net/netfilter/xt_hl.c
-@@ -1,26 +1,36 @@
- // SPDX-License-Identifier: GPL-2.0-only
--/*
-- * IP tables module for matching the value of the TTL
-+/* IP tables module for matching/modifying the value of the TTL
-  * (C) 2000,2001 by Harald Welte <laforge@netfilter.org>
-  *
-  * Hop Limit matching module
-  * (C) 2001-2002 Maciej Soltysiak <solt@dns.toxicfilms.tv>
-+ *
-+ * TTL modification target for IP tables
-+ * (C) 2000,2005 by Harald Welte <laforge@netfilter.org>
-+ *
-+ * Hop Limit modification target for ip6tables
-+ * Maciej Soltysiak <solt@dns.toxicfilms.tv>
-  */
+-static struct xt_rateest *__xt_rateest_lookup(struct xt_rateest_net *xn,
+-					      const char *name)
+-{
+-	struct xt_rateest *est;
+-	unsigned int h;
 -
--#include <linux/ip.h>
--#include <linux/ipv6.h>
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+-	h = xt_rateest_hash(name);
+-	hlist_for_each_entry(est, &xn->hash[h], list) {
+-		if (strcmp(est->name, name) == 0) {
+-			est->refcnt++;
+-			return est;
+-		}
+-	}
+-
+-	return NULL;
+-}
+-
+-struct xt_rateest *xt_rateest_lookup(struct net *net, const char *name)
+-{
+-	struct xt_rateest_net *xn = net_generic(net, xt_rateest_id);
+-	struct xt_rateest *est;
+-
+-	mutex_lock(&xn->hash_lock);
+-	est = __xt_rateest_lookup(xn, name);
+-	mutex_unlock(&xn->hash_lock);
+-	return est;
+-}
+-EXPORT_SYMBOL_GPL(xt_rateest_lookup);
+-
+-void xt_rateest_put(struct net *net, struct xt_rateest *est)
+-{
+-	struct xt_rateest_net *xn = net_generic(net, xt_rateest_id);
+-
+-	mutex_lock(&xn->hash_lock);
+-	if (--est->refcnt == 0) {
+-		hlist_del(&est->list);
+-		gen_kill_estimator(&est->rate_est);
+-		/*
+-		 * gen_estimator est_timer() might access est->lock or bstats,
+-		 * wait a RCU grace period before freeing 'est'
+-		 */
+-		kfree_rcu(est, rcu);
+-	}
+-	mutex_unlock(&xn->hash_lock);
+-}
+-EXPORT_SYMBOL_GPL(xt_rateest_put);
+-
+-static unsigned int
+-xt_rateest_tg(struct sk_buff *skb, const struct xt_action_param *par)
+-{
+-	const struct xt_rateest_target_info *info = par->targinfo;
+-	struct gnet_stats_basic_sync *stats = &info->est->bstats;
+-
+-	spin_lock_bh(&info->est->lock);
+-	u64_stats_add(&stats->bytes, skb->len);
+-	u64_stats_inc(&stats->packets);
+-	spin_unlock_bh(&info->est->lock);
+-
+-	return XT_CONTINUE;
+-}
+-
+-static int xt_rateest_tg_checkentry(const struct xt_tgchk_param *par)
+-{
+-	struct xt_rateest_net *xn = net_generic(par->net, xt_rateest_id);
+-	struct xt_rateest_target_info *info = par->targinfo;
+-	struct xt_rateest *est;
+-	struct {
+-		struct nlattr		opt;
+-		struct gnet_estimator	est;
+-	} cfg;
+-	int ret;
+-
+-	if (strnlen(info->name, sizeof(est->name)) >= sizeof(est->name))
+-		return -ENAMETOOLONG;
+-
+-	net_get_random_once(&jhash_rnd, sizeof(jhash_rnd));
+-
+-	mutex_lock(&xn->hash_lock);
+-	est = __xt_rateest_lookup(xn, info->name);
+-	if (est) {
+-		mutex_unlock(&xn->hash_lock);
+-		/*
+-		 * If estimator parameters are specified, they must match the
+-		 * existing estimator.
+-		 */
+-		if ((!info->interval && !info->ewma_log) ||
+-		    (info->interval != est->params.interval ||
+-		     info->ewma_log != est->params.ewma_log)) {
+-			xt_rateest_put(par->net, est);
+-			return -EINVAL;
+-		}
+-		info->est = est;
+-		return 0;
+-	}
+-
+-	ret = -ENOMEM;
+-	est = kzalloc(sizeof(*est), GFP_KERNEL);
+-	if (!est)
+-		goto err1;
+-
+-	gnet_stats_basic_sync_init(&est->bstats);
+-	strscpy(est->name, info->name, sizeof(est->name));
+-	spin_lock_init(&est->lock);
+-	est->refcnt		= 1;
+-	est->params.interval	= info->interval;
+-	est->params.ewma_log	= info->ewma_log;
+-
+-	cfg.opt.nla_len		= nla_attr_size(sizeof(cfg.est));
+-	cfg.opt.nla_type	= TCA_STATS_RATE_EST;
+-	cfg.est.interval	= info->interval;
+-	cfg.est.ewma_log	= info->ewma_log;
+-
+-	ret = gen_new_estimator(&est->bstats, NULL, &est->rate_est,
+-				&est->lock, NULL, &cfg.opt);
+-	if (ret < 0)
+-		goto err2;
+-
+-	info->est = est;
+-	xt_rateest_hash_insert(xn, est);
+-	mutex_unlock(&xn->hash_lock);
+-	return 0;
+-
+-err2:
+-	kfree(est);
+-err1:
+-	mutex_unlock(&xn->hash_lock);
+-	return ret;
+-}
+-
+-static void xt_rateest_tg_destroy(const struct xt_tgdtor_param *par)
+-{
+-	struct xt_rateest_target_info *info = par->targinfo;
+-
+-	xt_rateest_put(par->net, info->est);
+-}
+-
+-static struct xt_target xt_rateest_tg_reg[] __read_mostly = {
+-	{
+-		.name       = "RATEEST",
+-		.revision   = 0,
+-		.family     = NFPROTO_IPV4,
+-		.target     = xt_rateest_tg,
+-		.checkentry = xt_rateest_tg_checkentry,
+-		.destroy    = xt_rateest_tg_destroy,
+-		.targetsize = sizeof(struct xt_rateest_target_info),
+-		.usersize   = offsetof(struct xt_rateest_target_info, est),
+-		.me         = THIS_MODULE,
+-	},
+-#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+-	{
+-		.name       = "RATEEST",
+-		.revision   = 0,
+-		.family     = NFPROTO_IPV6,
+-		.target     = xt_rateest_tg,
+-		.checkentry = xt_rateest_tg_checkentry,
+-		.destroy    = xt_rateest_tg_destroy,
+-		.targetsize = sizeof(struct xt_rateest_target_info),
+-		.usersize   = offsetof(struct xt_rateest_target_info, est),
+-		.me         = THIS_MODULE,
+-	},
+-#endif
+-};
+-
+-static __net_init int xt_rateest_net_init(struct net *net)
+-{
+-	struct xt_rateest_net *xn = net_generic(net, xt_rateest_id);
+-	int i;
+-
+-	mutex_init(&xn->hash_lock);
+-	for (i = 0; i < ARRAY_SIZE(xn->hash); i++)
+-		INIT_HLIST_HEAD(&xn->hash[i]);
+-	return 0;
+-}
+-
+-static struct pernet_operations xt_rateest_net_ops = {
+-	.init = xt_rateest_net_init,
+-	.id   = &xt_rateest_id,
+-	.size = sizeof(struct xt_rateest_net),
+-};
+-
+-static int __init xt_rateest_tg_init(void)
+-{
+-	int err = register_pernet_subsys(&xt_rateest_net_ops);
+-
+-	if (err)
+-		return err;
+-	return xt_register_targets(xt_rateest_tg_reg, ARRAY_SIZE(xt_rateest_tg_reg));
+-}
+-
+-static void __exit xt_rateest_tg_fini(void)
+-{
+-	xt_unregister_targets(xt_rateest_tg_reg, ARRAY_SIZE(xt_rateest_tg_reg));
+-	unregister_pernet_subsys(&xt_rateest_net_ops);
+-}
+-
+-
+-MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+-MODULE_LICENSE("GPL");
+-MODULE_DESCRIPTION("Xtables: packet rate estimator");
+-MODULE_ALIAS("ipt_RATEEST");
+-MODULE_ALIAS("ip6t_RATEEST");
+-module_init(xt_rateest_tg_init);
+-module_exit(xt_rateest_tg_fini);
+diff --git a/net/netfilter/xt_rateest.c b/net/netfilter/xt_rateest.c
+index 72324bd976af..c0153b5b47a0 100644
+--- a/net/netfilter/xt_rateest.c
++++ b/net/netfilter/xt_rateest.c
+@@ -5,11 +5,28 @@
  #include <linux/module.h>
  #include <linux/skbuff.h>
-+#include <linux/ip.h>
-+#include <linux/ipv6.h>
-+#include <net/checksum.h>
+ #include <linux/gen_stats.h>
++#include <linux/jhash.h>
++#include <linux/rtnetlink.h>
++#include <linux/random.h>
++#include <linux/slab.h>
++#include <net/gen_stats.h>
++#include <net/netlink.h>
++#include <net/netns/generic.h>
  
  #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv4/ipt_ttl.h>
- #include <linux/netfilter_ipv6/ip6t_hl.h>
+ #include <linux/netfilter/xt_rateest.h>
+ #include <net/netfilter/xt_rateest.h>
  
-+MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
- MODULE_AUTHOR("Maciej Soltysiak <solt@dns.toxicfilms.tv>");
--MODULE_DESCRIPTION("Xtables: Hoplimit/TTL field match");
-+MODULE_DESCRIPTION("Xtables: Hoplimit/TTL field match and modification target");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("ipt_ttl");
- MODULE_ALIAS("ip6t_hl");
-+MODULE_ALIAS("ipt_TTL");
-+MODULE_ALIAS("ip6t_HL");
-+MODULE_ALIAS("xt_HL");
++#define RATEEST_HSIZE	16
++
++MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("xtables packet rate estimator");
++MODULE_ALIAS("ipt_rateest");
++MODULE_ALIAS("ip6t_rateest");
++MODULE_ALIAS("ipt_RATEEST");
++MODULE_ALIAS("ip6t_RATEEST");
++MODULE_ALIAS("xt_RATEEST");
  
- static bool ttl_mt(const struct sk_buff *skb, struct xt_action_param *par)
- {
-@@ -79,15 +89,146 @@ static struct xt_match hl_mt_reg[] __read_mostly = {
- 	},
+ static bool
+ xt_rateest_mt(const struct sk_buff *skb, struct xt_action_param *par)
+@@ -134,20 +151,236 @@ static struct xt_match xt_rateest_mt_reg __read_mostly = {
+ 	.me         = THIS_MODULE,
  };
  
--static int __init hl_mt_init(void)
-+static unsigned int
-+ttl_tg(struct sk_buff *skb, const struct xt_action_param *par)
-+{
-+	struct iphdr *iph;
-+	const struct ipt_TTL_info *info = par->targinfo;
-+	int new_ttl;
-+
-+	if (skb_ensure_writable(skb, sizeof(*iph)))
-+		return NF_DROP;
-+
-+	iph = ip_hdr(skb);
-+
-+	switch (info->mode) {
-+	case IPT_TTL_SET:
-+		new_ttl = info->ttl;
-+		break;
-+	case IPT_TTL_INC:
-+		new_ttl = iph->ttl + info->ttl;
-+		if (new_ttl > 255)
-+			new_ttl = 255;
-+		break;
-+	case IPT_TTL_DEC:
-+		new_ttl = iph->ttl - info->ttl;
-+		if (new_ttl < 0)
-+			new_ttl = 0;
-+		break;
-+	default:
-+		new_ttl = iph->ttl;
-+		break;
-+	}
-+
-+	if (new_ttl != iph->ttl) {
-+		csum_replace2(&iph->check, htons(iph->ttl << 8), htons(new_ttl << 8));
-+		iph->ttl = new_ttl;
-+	}
-+
-+	return XT_CONTINUE;
-+}
-+
-+static unsigned int
-+hl_tg6(struct sk_buff *skb, const struct xt_action_param *par)
-+{
-+	struct ipv6hdr *ip6h;
-+	const struct ip6t_HL_info *info = par->targinfo;
-+	int new_hl;
-+
-+	if (skb_ensure_writable(skb, sizeof(*ip6h)))
-+		return NF_DROP;
-+
-+	ip6h = ipv6_hdr(skb);
-+
-+	switch (info->mode) {
-+	case IP6T_HL_SET:
-+		new_hl = info->hop_limit;
-+		break;
-+	case IP6T_HL_INC:
-+		new_hl = ip6h->hop_limit + info->hop_limit;
-+		if (new_hl > 255)
-+			new_hl = 255;
-+		break;
-+	case IP6T_HL_DEC:
-+		new_hl = ip6h->hop_limit - info->hop_limit;
-+		if (new_hl < 0)
-+			new_hl = 0;
-+		break;
-+	default:
-+		new_hl = ip6h->hop_limit;
-+		break;
-+	}
-+
-+	ip6h->hop_limit = new_hl;
-+
-+	return XT_CONTINUE;
-+}
-+
-+static int ttl_tg_check(const struct xt_tgchk_param *par)
-+{
-+	const struct ipt_TTL_info *info = par->targinfo;
-+
-+	if (info->mode > IPT_TTL_MAXMODE)
-+		return -EINVAL;
-+	if (info->mode != IPT_TTL_SET && info->ttl == 0)
-+		return -EINVAL;
-+	return 0;
-+}
-+
-+static int hl_tg6_check(const struct xt_tgchk_param *par)
-+{
-+	const struct ip6t_HL_info *info = par->targinfo;
-+
-+	if (info->mode > IP6T_HL_MAXMODE)
-+		return -EINVAL;
-+	if (info->mode != IP6T_HL_SET && info->hop_limit == 0)
-+		return -EINVAL;
-+	return 0;
-+}
-+
-+static struct xt_target hl_tg_reg[] __read_mostly = {
-+	{
-+		.name       = "TTL",
-+		.revision   = 0,
-+		.family     = NFPROTO_IPV4,
-+		.target     = ttl_tg,
-+		.targetsize = sizeof(struct ipt_TTL_info),
-+		.table      = "mangle",
-+		.checkentry = ttl_tg_check,
-+		.me         = THIS_MODULE,
-+	},
-+	{
-+		.name       = "HL",
-+		.revision   = 0,
-+		.family     = NFPROTO_IPV6,
-+		.target     = hl_tg6,
-+		.targetsize = sizeof(struct ip6t_HL_info),
-+		.table      = "mangle",
-+		.checkentry = hl_tg6_check,
-+		.me         = THIS_MODULE,
-+	},
+-static int __init xt_rateest_mt_init(void)
++struct xt_rateest_net {
++	/* To synchronize concurrent synchronous rate estimator operations. */
++	struct mutex hash_lock;
++	struct hlist_head hash[RATEEST_HSIZE];
 +};
 +
-+static int __init hl_init(void)
++static unsigned int xt_rateest_id;
++
++static unsigned int jhash_rnd __read_mostly;
++
++static unsigned int xt_rateest_hash(const char *name)
++{
++	return jhash(name, sizeof_field(struct xt_rateest, name), jhash_rnd) &
++	       (RATEEST_HSIZE - 1);
++}
++
++static void xt_rateest_hash_insert(struct xt_rateest_net *xn,
++				   struct xt_rateest *est)
++{
++	unsigned int h;
++
++	h = xt_rateest_hash(est->name);
++	hlist_add_head(&est->list, &xn->hash[h]);
++}
++
++static struct xt_rateest *__xt_rateest_lookup(struct xt_rateest_net *xn,
++					      const char *name)
  {
--	return xt_register_matches(hl_mt_reg, ARRAY_SIZE(hl_mt_reg));
+-	return xt_register_match(&xt_rateest_mt_reg);
++	struct xt_rateest *est;
++	unsigned int h;
++
++	h = xt_rateest_hash(name);
++	hlist_for_each_entry(est, &xn->hash[h], list) {
++		if (strcmp(est->name, name) == 0) {
++			est->refcnt++;
++			return est;
++		}
++	}
++
++	return NULL;
+ }
+ 
+-static void __exit xt_rateest_mt_fini(void)
++struct xt_rateest *xt_rateest_lookup(struct net *net, const char *name)
++{
++	struct xt_rateest_net *xn = net_generic(net, xt_rateest_id);
++	struct xt_rateest *est;
++
++	mutex_lock(&xn->hash_lock);
++	est = __xt_rateest_lookup(xn, name);
++	mutex_unlock(&xn->hash_lock);
++	return est;
++}
++EXPORT_SYMBOL_GPL(xt_rateest_lookup);
++
++void xt_rateest_put(struct net *net, struct xt_rateest *est)
++{
++	struct xt_rateest_net *xn = net_generic(net, xt_rateest_id);
++
++	mutex_lock(&xn->hash_lock);
++	if (--est->refcnt == 0) {
++		hlist_del(&est->list);
++		gen_kill_estimator(&est->rate_est);
++		/*
++		 * gen_estimator est_timer() might access est->lock or bstats,
++		 * wait a RCU grace period before freeing 'est'
++		 */
++		kfree_rcu(est, rcu);
++	}
++	mutex_unlock(&xn->hash_lock);
++}
++EXPORT_SYMBOL_GPL(xt_rateest_put);
++
++static unsigned int
++xt_rateest_tg(struct sk_buff *skb, const struct xt_action_param *par)
++{
++	const struct xt_rateest_target_info *info = par->targinfo;
++	struct gnet_stats_basic_sync *stats = &info->est->bstats;
++
++	spin_lock_bh(&info->est->lock);
++	u64_stats_add(&stats->bytes, skb->len);
++	u64_stats_inc(&stats->packets);
++	spin_unlock_bh(&info->est->lock);
++
++	return XT_CONTINUE;
++}
++
++static int xt_rateest_tg_checkentry(const struct xt_tgchk_param *par)
++{
++	struct xt_rateest_net *xn = net_generic(par->net, xt_rateest_id);
++	struct xt_rateest_target_info *info = par->targinfo;
++	struct xt_rateest *est;
++	struct {
++		struct nlattr		opt;
++		struct gnet_estimator	est;
++	} cfg;
 +	int ret;
 +
-+	ret = xt_register_targets(hl_tg_reg, ARRAY_SIZE(hl_tg_reg));
++	if (strnlen(info->name, sizeof(est->name)) >= sizeof(est->name))
++		return -ENAMETOOLONG;
++
++	net_get_random_once(&jhash_rnd, sizeof(jhash_rnd));
++
++	mutex_lock(&xn->hash_lock);
++	est = __xt_rateest_lookup(xn, info->name);
++	if (est) {
++		mutex_unlock(&xn->hash_lock);
++		/*
++		 * If estimator parameters are specified, they must match the
++		 * existing estimator.
++		 */
++		if ((!info->interval && !info->ewma_log) ||
++		    (info->interval != est->params.interval ||
++		     info->ewma_log != est->params.ewma_log)) {
++			xt_rateest_put(par->net, est);
++			return -EINVAL;
++		}
++		info->est = est;
++		return 0;
++	}
++
++	ret = -ENOMEM;
++	est = kzalloc(sizeof(*est), GFP_KERNEL);
++	if (!est)
++		goto err1;
++
++	gnet_stats_basic_sync_init(&est->bstats);
++	strscpy(est->name, info->name, sizeof(est->name));
++	spin_lock_init(&est->lock);
++	est->refcnt		= 1;
++	est->params.interval	= info->interval;
++	est->params.ewma_log	= info->ewma_log;
++
++	cfg.opt.nla_len		= nla_attr_size(sizeof(cfg.est));
++	cfg.opt.nla_type	= TCA_STATS_RATE_EST;
++	cfg.est.interval	= info->interval;
++	cfg.est.ewma_log	= info->ewma_log;
++
++	ret = gen_new_estimator(&est->bstats, NULL, &est->rate_est,
++				&est->lock, NULL, &cfg.opt);
++	if (ret < 0)
++		goto err2;
++
++	info->est = est;
++	xt_rateest_hash_insert(xn, est);
++	mutex_unlock(&xn->hash_lock);
++	return 0;
++
++err2:
++	kfree(est);
++err1:
++	mutex_unlock(&xn->hash_lock);
++	return ret;
++}
++
++static void xt_rateest_tg_destroy(const struct xt_tgdtor_param *par)
++{
++	struct xt_rateest_target_info *info = par->targinfo;
++
++	xt_rateest_put(par->net, info->est);
++}
++
++static struct xt_target xt_rateest_tg_reg[] __read_mostly = {
++	{
++		.name       = "RATEEST",
++		.revision   = 0,
++		.family     = NFPROTO_IPV4,
++		.target     = xt_rateest_tg,
++		.checkentry = xt_rateest_tg_checkentry,
++		.destroy    = xt_rateest_tg_destroy,
++		.targetsize = sizeof(struct xt_rateest_target_info),
++		.usersize   = offsetof(struct xt_rateest_target_info, est),
++		.me         = THIS_MODULE,
++	},
++#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
++	{
++		.name       = "RATEEST",
++		.revision   = 0,
++		.family     = NFPROTO_IPV6,
++		.target     = xt_rateest_tg,
++		.checkentry = xt_rateest_tg_checkentry,
++		.destroy    = xt_rateest_tg_destroy,
++		.targetsize = sizeof(struct xt_rateest_target_info),
++		.usersize   = offsetof(struct xt_rateest_target_info, est),
++		.me         = THIS_MODULE,
++	},
++#endif
++};
++
++static __net_init int xt_rateest_net_init(struct net *net)
++{
++	struct xt_rateest_net *xn = net_generic(net, xt_rateest_id);
++	int i;
++
++	mutex_init(&xn->hash_lock);
++	for (i = 0; i < ARRAY_SIZE(xn->hash); i++)
++		INIT_HLIST_HEAD(&xn->hash[i]);
++	return 0;
++}
++
++static struct pernet_operations xt_rateest_net_ops = {
++	.init = xt_rateest_net_init,
++	.id   = &xt_rateest_id,
++	.size = sizeof(struct xt_rateest_net),
++};
++
++static int __init xt_rateest_init(void)
++{
++	int ret = register_pernet_subsys(&xt_rateest_net_ops);
++
++	if (ret)
++		return ret;
++
++	ret = xt_register_targets(xt_rateest_tg_reg, ARRAY_SIZE(xt_rateest_tg_reg));
 +	if (ret < 0)
 +		return ret;
-+	ret = xt_register_matches(hl_mt_reg, ARRAY_SIZE(hl_mt_reg));
++	ret = xt_register_match(&xt_rateest_mt_reg);
 +	if (ret < 0) {
-+		xt_unregister_targets(hl_tg_reg, ARRAY_SIZE(hl_tg_reg));
++		xt_unregister_targets(xt_rateest_tg_reg, ARRAY_SIZE(xt_rateest_tg_reg));
++		unregister_pernet_subsys(&xt_rateest_net_ops);
 +		return ret;
 +	}
 +	return 0;
- }
- 
--static void __exit hl_mt_exit(void)
-+static void __exit hl_exit(void)
++}
++
++static void __exit xt_rateest_exit(void)
  {
- 	xt_unregister_matches(hl_mt_reg, ARRAY_SIZE(hl_mt_reg));
-+	xt_unregister_targets(hl_tg_reg, ARRAY_SIZE(hl_tg_reg));
+ 	xt_unregister_match(&xt_rateest_mt_reg);
++	xt_unregister_targets(xt_rateest_tg_reg, ARRAY_SIZE(xt_rateest_tg_reg));
++	unregister_pernet_subsys(&xt_rateest_net_ops);
  }
  
--module_init(hl_mt_init);
--module_exit(hl_mt_exit);
-+module_init(hl_init);
-+module_exit(hl_exit);
+-MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+-MODULE_LICENSE("GPL");
+-MODULE_DESCRIPTION("xtables rate estimator match");
+-MODULE_ALIAS("ipt_rateest");
+-MODULE_ALIAS("ip6t_rateest");
+-module_init(xt_rateest_mt_init);
+-module_exit(xt_rateest_mt_fini);
++module_init(xt_rateest_init);
++module_exit(xt_rateest_exit);
 -- 
 2.43.5
 
