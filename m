@@ -1,205 +1,196 @@
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.50])
+Received: from smtp-out.freemail.hu (fmfe06.freemail.hu [46.107.16.199])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E088618C03D;
-	Tue,  7 Jan 2025 19:40:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66FBD56446;
+	Tue,  7 Jan 2025 21:48:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.107.16.199
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736278806; cv=none; b=MYqekL56lkRGC22nFVFeAB4/vDntQ+POWhqlMsNOcwPI6+goOnX3Tz5Qo1J0/y6OkJGLRzyrLZ9nGEpirn7avBeDNy/gF4qNuyVGqyOQNd/opwJRqSr81LJ3quFNKJ5TWNBy4qqQfjtV0Z7OZDHtUngqR6/6ETG9NmAEp1V628Y=
+	t=1736286491; cv=none; b=oCoBvM65Ss5AVMM/99K25mkvH2dDRUMGHzkBIAXgctGxxqwo20LRReXeAsM4Xibcls8h7qUj1X8DwM/SZ36wqiF9AJYcFq1V09RCFL0QvSkYxf5U5itHBwLR7n/YXvThwcdPF4LlZShJ3TuZzU6opjTSY+xUIbhJs/YcWB3o+NE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736278806; c=relaxed/simple;
-	bh=GNoiYGNe3BTzovHNXwUSIFQihH7dzp4B+TK7/4BQUc0=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=D4mDZPtVjp4V8UBmtHDG8ddUlUJJZYKm5C5aAL15Sb8vtdHTqKobOjqqPJff6cxdTvVsaHw00GSHrrA/hDEhBM3cwyNVJa9vf0xNZuLCjD7Zi7WgtcCWi0+Rf5HtQ6t0u60HzFZKsixRvoCbQ7MSdinBH2KPantp6e+qcSLxMOs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=148.6.0.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Received: from localhost (localhost [127.0.0.1])
-	by smtp1.kfki.hu (Postfix) with ESMTP id 06AFC5C001BF;
-	Tue,  7 Jan 2025 20:39:55 +0100 (CET)
-X-Virus-Scanned: Debian amavis at smtp1.kfki.hu
-Received: from smtp1.kfki.hu ([127.0.0.1])
- by localhost (smtp1.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
- id ahva0qRIDM8G; Tue,  7 Jan 2025 20:39:53 +0100 (CET)
-Received: from mentat.rmki.kfki.hu (80-95-82-13.pool.digikabel.hu [80.95.82.13])
-	(Authenticated sender: kadlecsik.jozsef@wigner.hu)
-	by smtp1.kfki.hu (Postfix) with ESMTPSA id F04AD5C001BC;
-	Tue,  7 Jan 2025 20:39:52 +0100 (CET)
-Received: by mentat.rmki.kfki.hu (Postfix, from userid 1000)
-	id D1FDB142729; Tue,  7 Jan 2025 20:39:52 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-	by mentat.rmki.kfki.hu (Postfix) with ESMTP id CFE801421D7;
-	Tue,  7 Jan 2025 20:39:52 +0100 (CET)
-Date: Tue, 7 Jan 2025 20:39:52 +0100 (CET)
-From: Jozsef Kadlecsik <kadlec@netfilter.org>
-To: =?UTF-8?Q?Benjamin_Sz=C5=91ke?= <egyszeregy@freemail.hu>
-cc: fw@strlen.de, pablo@netfilter.org, lorenzo@kernel.org, 
-    daniel@iogearbox.net, leitao@debian.org, amiculas@cisco.com, 
-    davem@davemloft.net, dsahern@kernel.org, edumazet@google.com, 
-    kuba@kernel.org, pabeni@redhat.com, horms@kernel.org, 
-    netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-    linux-kernel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH 09/10] netfilter: Add message pragma for deprecated
- xt_*.h, ipt_*.h.
-In-Reply-To: <20250107024120.98288-10-egyszeregy@freemail.hu>
-Message-ID: <1cd443f7-df1e-20cf-cfe8-f38ac72491e4@netfilter.org>
-References: <20250107024120.98288-1-egyszeregy@freemail.hu> <20250107024120.98288-10-egyszeregy@freemail.hu>
+	s=arc-20240116; t=1736286491; c=relaxed/simple;
+	bh=t+n+dSqcXSh20PF7rGAK11Zx3hEG02JNHuFZ7muGAoU=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=B1GtGSoeUtXONaNBTjloUHGHNz9uSA2ODBXiD7MlGLvxZ3CYVeupUqxG+Kd/vuGW4L0gFCkyhbE/0pNMGU2ifAw5bTvSRKnE0Uq3FXSN8mPSJKYJS9iqQvXejsJzTg7gpyGn87exYZTNsK2FLHMqiTnNu4pp1/SmflOdUlFj6eU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freemail.hu; spf=pass smtp.mailfrom=freemail.hu; dkim=fail (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b=yhz79RQV reason="signature verification failed"; arc=none smtp.client-ip=46.107.16.199
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freemail.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=freemail.hu
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b="yhz79RQV"
+Received: from [192.168.0.16] (catv-178-48-208-49.catv.fixed.vodafone.hu [178.48.208.49])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp.freemail.hu (Postfix) with ESMTPSA id 4YSPZK1nLNzL1m;
+	Tue, 07 Jan 2025 22:39:05 +0100 (CET)
+Message-ID: <98387132-330e-4068-9b71-e98dbcc9cd40@freemail.hu>
+Date: Tue, 7 Jan 2025 22:38:36 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="8323329-1563264698-1736278792=:220661"
-X-deepspam: ham 0%
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 01/10] netfilter: x_tables: Merge xt_DSCP.h to xt_dscp.h
+To: Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc: fw@strlen.de, pablo@netfilter.org, lorenzo@kernel.org,
+ daniel@iogearbox.net, leitao@debian.org, amiculas@cisco.com,
+ davem@davemloft.net, dsahern@kernel.org, edumazet@google.com,
+ kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ linux-kernel@vger.kernel.org, netdev@vger.kernel.org
+References: <20250107024120.98288-1-egyszeregy@freemail.hu>
+ <20250107024120.98288-2-egyszeregy@freemail.hu>
+ <4fab5e14-2782-62d2-a32d-54b673201f26@netfilter.org>
+Content-Language: hu
+From: =?UTF-8?Q?Sz=C5=91ke_Benjamin?= <egyszeregy@freemail.hu>
+In-Reply-To: <4fab5e14-2782-62d2-a32d-54b673201f26@netfilter.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=simple/relaxed; t=1736285946;
+	s=20181004; d=freemail.hu;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:In-Reply-To:Content-Type:Content-Transfer-Encoding;
+	l=4733; bh=eApSBXF5H1/8Qcn5xrAeJwwSbwRStJkvYiXHl0m33kk=;
+	b=yhz79RQVfUCuaC8qcl9EZh4qu4erLPL9TX5jMZejfnA8yJnvKT0kPxA/ffsSvFmJ
+	iI0Zl+R2W05w6Ln/BQ7Rwm2quS4zrv0bNJyY0Lcm+58zboFKXqos1aoFaT54dtXBMsD
+	Bt+uuYIlivZi0Tcxhp7L+L/ZxCDQE1NRoPx3XYDXqCV2bNBM4VXiHCmhYhN/3TqX0nF
+	ab7Ap+jGQEL2PiBMXY/zDRAl66PUVfyDoil0fut9AuOhaS5nVkzxJxKJrRT6aQjF7z/
+	HJ6VsA5wREINN8gY/ZXUwzEb3Ey/p4Tq2IBePivYlpfnrJrh1uB6cdkvAtuvjPHcPSt
+	JMn80knYlg==
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+2025. 01. 07. 20:23 keltezéssel, Jozsef Kadlecsik írta:
+> On Tue, 7 Jan 2025, egyszeregy@freemail.hu wrote:
+> 
+>> From: Benjamin Szőke <egyszeregy@freemail.hu>
+>>
+>> Merge xt_DSCP.h to xt_dscp.h header file.
+> 
+> I think it'd be better worded as "Merge xt_DSCP.h into the xt_dscp.h
+> header file." (and in the other patches as well).
+>   
 
---8323329-1563264698-1736278792=:220661
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+There will be no any new patchset refactoring anymore just of some cosmetics 
+change. If you like to change it, feel free to modify it in my pacthfiles before 
+the final merging. You can do it as a maintainer.
 
-On Tue, 7 Jan 2025, egyszeregy@freemail.hu wrote:
+>> Signed-off-by: Benjamin Szőke <egyszeregy@freemail.hu>
+>> ---
+>>   include/uapi/linux/netfilter/xt_DSCP.h | 22 +---------------------
+>>   include/uapi/linux/netfilter/xt_dscp.h | 20 ++++++++++++++++----
+>>   2 files changed, 17 insertions(+), 25 deletions(-)
+>>
+>> diff --git a/include/uapi/linux/netfilter/xt_DSCP.h b/include/uapi/linux/netfilter/xt_DSCP.h
+>> index 223d635e8b6f..fcff72347256 100644
+>> --- a/include/uapi/linux/netfilter/xt_DSCP.h
+>> +++ b/include/uapi/linux/netfilter/xt_DSCP.h
+>> @@ -1,27 +1,7 @@
+>>   /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+>> -/* x_tables module for setting the IPv4/IPv6 DSCP field
+>> - *
+>> - * (C) 2002 Harald Welte <laforge@gnumonks.org>
+>> - * based on ipt_FTOS.c (C) 2000 by Matthew G. Marsh <mgm@paktronix.com>
+>> - * This software is distributed under GNU GPL v2, 1991
+>> - *
+>> - * See RFC2474 for a description of the DSCP field within the IP Header.
+>> - *
+>> - * xt_DSCP.h,v 1.7 2002/03/14 12:03:13 laforge Exp
+>> -*/
+>>   #ifndef _XT_DSCP_TARGET_H
+>>   #define _XT_DSCP_TARGET_H
+>> -#include <linux/netfilter/xt_dscp.h>
+>> -#include <linux/types.h>
+>> -
+>> -/* target info */
+>> -struct xt_DSCP_info {
+>> -	__u8 dscp;
+>> -};
+>>   
+>> -struct xt_tos_target_info {
+>> -	__u8 tos_value;
+>> -	__u8 tos_mask;
+>> -};
+>> +#include <linux/netfilter/xt_dscp.h>
+>>   
+>>   #endif /* _XT_DSCP_TARGET_H */
+>> diff --git a/include/uapi/linux/netfilter/xt_dscp.h b/include/uapi/linux/netfilter/xt_dscp.h
+>> index 7594e4df8587..bcfe4afa6351 100644
+>> --- a/include/uapi/linux/netfilter/xt_dscp.h
+>> +++ b/include/uapi/linux/netfilter/xt_dscp.h
+>> @@ -1,15 +1,17 @@
+>>   /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+>> -/* x_tables module for matching the IPv4/IPv6 DSCP field
+>> +/* x_tables module for matching/modifying the IPv4/IPv6 DSCP field
+>>    *
+>>    * (C) 2002 Harald Welte <laforge@gnumonks.org>
+>> + * based on ipt_FTOS.c (C) 2000 by Matthew G. Marsh <mgm@paktronix.com>
+>>    * This software is distributed under GNU GPL v2, 1991
+>>    *
+>>    * See RFC2474 for a description of the DSCP field within the IP Header.
+>>    *
+>> + * xt_DSCP.h,v 1.7 2002/03/14 12:03:13 laforge Exp
+>>    * xt_dscp.h,v 1.3 2002/08/05 19:00:21 laforge Exp
+>>   */
+> 
+> For the sake of history it'd worth to prepend the last two lines with
+> something like: "Original version informations before merging the contents
+> of the files:"
+> 
+This was a question a day ago, what do you like to see in each top of header 
+files's comments. You did not care about it, you was not willing to say 
+something which to be implemented, but now you have new ideas, please it is too 
+late.
 
-> From: Benjamin Sz=C5=91ke <egyszeregy@freemail.hu>
->=20
-> Display information about deprecated xt_*.h, ipt_*.h files
-> at compile time. Recommended to use header files with
-> lowercase name format in the future.
+I will not plan to make any new patchset version just for this new thing which 
+is just a cosmetic change not a critical bugfix. If you like to change it, lets 
+do it, feel free to modify it in my pacthfiles before the final merging or apply 
+your a new patch later.
 
-I still don't know whether adding the pragmas to notify about header file
-deprecation is a good idea.
 
-On my part that's all. Thank you the work!
+>> -#ifndef _XT_DSCP_H
+>> -#define _XT_DSCP_H
+>> +#ifndef _UAPI_XT_DSCP_H
+>> +#define _UAPI_XT_DSCP_H
+> 
+> In the first four patches you added the _UAPI_ prefix to the header
+> guards while in the next three ones you kept the original ones. Please
+> use one style consistently.
+> 
 
-Best regards,
-Jozsef
-=20
-> Signed-off-by: Benjamin Sz=C5=91ke <egyszeregy@freemail.hu>
-> ---
->  include/uapi/linux/netfilter/xt_CONNMARK.h  | 2 ++
->  include/uapi/linux/netfilter/xt_DSCP.h      | 2 ++
->  include/uapi/linux/netfilter/xt_MARK.h      | 2 ++
->  include/uapi/linux/netfilter/xt_RATEEST.h   | 2 ++
->  include/uapi/linux/netfilter/xt_TCPMSS.h    | 2 ++
->  include/uapi/linux/netfilter_ipv4/ipt_ECN.h | 2 ++
->  include/uapi/linux/netfilter_ipv4/ipt_TTL.h | 2 ++
->  include/uapi/linux/netfilter_ipv6/ip6t_HL.h | 2 ++
->  8 files changed, 16 insertions(+)
->=20
-> diff --git a/include/uapi/linux/netfilter/xt_CONNMARK.h b/include/uapi/=
-linux/netfilter/xt_CONNMARK.h
-> index 171af24ef679..1bc991fd546a 100644
-> --- a/include/uapi/linux/netfilter/xt_CONNMARK.h
-> +++ b/include/uapi/linux/netfilter/xt_CONNMARK.h
-> @@ -4,4 +4,6 @@
-> =20
->  #include <linux/netfilter/xt_connmark.h>
-> =20
-> +#pragma message("xt_CONNMARK.h header is deprecated. Use xt_connmark.h=
- instead.")
-> +
->  #endif /* _XT_CONNMARK_TARGET_H */
-> diff --git a/include/uapi/linux/netfilter/xt_DSCP.h b/include/uapi/linu=
-x/netfilter/xt_DSCP.h
-> index fcff72347256..bd550292803d 100644
-> --- a/include/uapi/linux/netfilter/xt_DSCP.h
-> +++ b/include/uapi/linux/netfilter/xt_DSCP.h
-> @@ -4,4 +4,6 @@
-> =20
->  #include <linux/netfilter/xt_dscp.h>
-> =20
-> +#pragma message("xt_DSCP.h header is deprecated. Use xt_dscp.h instead=
-.")
-> +
->  #endif /* _XT_DSCP_TARGET_H */
-> diff --git a/include/uapi/linux/netfilter/xt_MARK.h b/include/uapi/linu=
-x/netfilter/xt_MARK.h
-> index cdc12c0954b3..9f6c03e26c96 100644
-> --- a/include/uapi/linux/netfilter/xt_MARK.h
-> +++ b/include/uapi/linux/netfilter/xt_MARK.h
-> @@ -4,4 +4,6 @@
-> =20
->  #include <linux/netfilter/xt_mark.h>
-> =20
-> +#pragma message("xt_MARK.h header is deprecated. Use xt_mark.h instead=
-.")
-> +
->  #endif /* _XT_MARK_H_TARGET_H */
-> diff --git a/include/uapi/linux/netfilter/xt_RATEEST.h b/include/uapi/l=
-inux/netfilter/xt_RATEEST.h
-> index f817b5387164..ec3d68f67b2f 100644
-> --- a/include/uapi/linux/netfilter/xt_RATEEST.h
-> +++ b/include/uapi/linux/netfilter/xt_RATEEST.h
-> @@ -4,4 +4,6 @@
-> =20
->  #include <linux/netfilter/xt_rateest.h>
-> =20
-> +#pragma message("xt_RATEEST.h header is deprecated. Use xt_rateest.h i=
-nstead.")
-> +
->  #endif /* _XT_RATEEST_TARGET_H */
-> diff --git a/include/uapi/linux/netfilter/xt_TCPMSS.h b/include/uapi/li=
-nux/netfilter/xt_TCPMSS.h
-> index 154e88c1de02..826060264766 100644
-> --- a/include/uapi/linux/netfilter/xt_TCPMSS.h
-> +++ b/include/uapi/linux/netfilter/xt_TCPMSS.h
-> @@ -4,4 +4,6 @@
-> =20
->  #include <linux/netfilter/xt_tcpmss.h>
-> =20
-> +#pragma message("xt_TCPMSS.h header is deprecated. Use xt_tcpmss.h ins=
-tead.")
-> +
->  #endif /* _XT_TCPMSS_TARGET_H */
-> diff --git a/include/uapi/linux/netfilter_ipv4/ipt_ECN.h b/include/uapi=
-/linux/netfilter_ipv4/ipt_ECN.h
-> index 6727f5a44512..42317fb3a4e9 100644
-> --- a/include/uapi/linux/netfilter_ipv4/ipt_ECN.h
-> +++ b/include/uapi/linux/netfilter_ipv4/ipt_ECN.h
-> @@ -4,4 +4,6 @@
-> =20
->  #include <linux/netfilter_ipv4/ipt_ecn.h>
-> =20
-> +#pragma message("ipt_ECN.h header is deprecated. Use ipt_ecn.h instead=
-.")
-> +
->  #endif /* _IPT_ECN_TARGET_H */
-> diff --git a/include/uapi/linux/netfilter_ipv4/ipt_TTL.h b/include/uapi=
-/linux/netfilter_ipv4/ipt_TTL.h
-> index 5d989199ed28..1663493e4951 100644
-> --- a/include/uapi/linux/netfilter_ipv4/ipt_TTL.h
-> +++ b/include/uapi/linux/netfilter_ipv4/ipt_TTL.h
-> @@ -4,4 +4,6 @@
-> =20
->  #include <linux/netfilter_ipv4/ipt_ttl.h>
-> =20
-> +#pragma message("ipt_TTL.h header is deprecated. Use ipt_ttl.h instead=
-.")
-> +
->  #endif /* _IPT_TTL_TARGET_H */
-> diff --git a/include/uapi/linux/netfilter_ipv6/ip6t_HL.h b/include/uapi=
-/linux/netfilter_ipv6/ip6t_HL.h
-> index bcf22824b393..55f08e20acd2 100644
-> --- a/include/uapi/linux/netfilter_ipv6/ip6t_HL.h
-> +++ b/include/uapi/linux/netfilter_ipv6/ip6t_HL.h
-> @@ -4,4 +4,6 @@
-> =20
->  #include <linux/netfilter_ipv6/ip6t_hl.h>
-> =20
-> +#pragma message("ip6t_HL.h header is deprecated. Use ip6t_hl.h instead=
-.")
-> +
->  #endif /* _IP6T_HL_TARGET_H */
-> --=20
-> 2.43.5
->=20
->=20
+Style consistently is done in the following files:
 
---=20
-E-mail : kadlec@netfilter.org, kadlec@blackhole.kfki.hu, kadlecsik.jozsef=
-@wigner.hu
-Address: Wigner Research Centre for Physics
-         H-1525 Budapest 114, POB. 49, Hungary
---8323329-1563264698-1736278792=:220661--
+- All of xt_*.h files in uppercase name format (old headers for "target")
+- All of xt_*.h files in lowercase name format (merged header files)
+
+Originally, in these files there was a chaotic state before, it was a painful 
+for my eyes, this is why they got these changes. In ipt_*.h files the original 
+codes got a far enough consistently style before, they was not changed.
+
+In my patchsets, It's not my scope/job to make up for the 
+improvements/refactoring of the last 10 years.
+
+>>   #include <linux/types.h>
+>>   
+>> @@ -29,4 +31,14 @@ struct xt_tos_match_info {
+>>   	__u8 invert;
+>>   };
+>>   
+>> -#endif /* _XT_DSCP_H */
+>> +/* target info */
+>> +struct xt_DSCP_info {
+>> +	__u8 dscp;
+>> +};
+>> +
+>> +struct xt_tos_target_info {
+>> +	__u8 tos_value;
+>> +	__u8 tos_mask;
+>> +};
+>> +
+>> +#endif /* _UAPI_XT_DSCP_H */
+>> -- 
+>> 2.43.5
+>>
+>>
+> 
+> Best regards,
+> Jozsef
+
