@@ -1,27 +1,27 @@
 Received: from smtp-out.freemail.hu (fmfe34.freemail.hu [46.107.16.239])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA6F31F472F;
-	Tue,  7 Jan 2025 18:48:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6857E1F4282;
+	Tue,  7 Jan 2025 18:48:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.107.16.239
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736275694; cv=none; b=I4V7LFsR16ywJU4AR6f1KCEdkJC2sGeno6fVPe2ofyk3jERCpYnascL56gSolhDl31uaZOZx5I7lU5Q6j+YolOhGU44GfqaheN46UkGAh1HJEb8ePHlSqEhmSTS0r4eOIUZv3sJ7r7+EKs0EjBG6eZCiQCiWGm83tLCBGuI34T8=
+	t=1736275723; cv=none; b=aqd3l9v0Uv6Q3CaQMviyt2qKiehzNNnEklNp2xIgRJUjtc/RJx+OXMKBehkagU0E6nnPQU59oI+nWjFLD/fR3L4E5OaNWSGmWO8bQSPCu0WSwMkWvgqa3VxYoEMyOED/VwqPArzt1Mw60mDDfIuPjUTgaRUwTptd6SajB3O5NOk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736275694; c=relaxed/simple;
-	bh=+BVeyhg4zJidUQtnhsZ5V34Oa+zzzqnapUeOX+M6s24=;
+	s=arc-20240116; t=1736275723; c=relaxed/simple;
+	bh=9C0HpMaoBV7meefl43yf2yh0r2jmPFEtgSGgZPdTlUQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Dm0Q+4vh9L6BAvPf6TLhbPj/LjoEYos9kzlWHw4zTMi+EuGiZUioBy/OnpcB9J3GXs7EsKAQaNd83ml1AD7sw/0rm5v50np8K5EBa0XqExQdDcFxWbrUcFA9mN6icZWU9xlQgSbtbgCnyliN+c1ldpksQ8K3oRYbaoZXU2GAIn8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freemail.hu; spf=pass smtp.mailfrom=freemail.hu; dkim=fail (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b=f2xolSup reason="signature verification failed"; arc=none smtp.client-ip=46.107.16.239
+	 MIME-Version:Content-Type; b=o1wX995C0WusDWTdTnQ3sXLPrTDj1r11o2puluTdTHGw/F05fNF7gF5IodIOo8mX41hNQWLmh2rbrPINEcCFF5O2TR7EsrRhcnHqhBWQqE0xNTDUMTrMeBvfibYCM8keTyLut+qJYogivFyqzQEi1XsAmSatPgIhbxNqctjjHxU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freemail.hu; spf=pass smtp.mailfrom=freemail.hu; dkim=fail (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b=CZBaQJVA reason="signature verification failed"; arc=none smtp.client-ip=46.107.16.239
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freemail.hu
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=freemail.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b="f2xolSup"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b="CZBaQJVA"
 Received: from fizweb.elte.hu (fizweb.elte.hu [157.181.183.248])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.freemail.hu (Postfix) with ESMTPSA id 4YSKn43Xr7z10V0;
-	Tue, 07 Jan 2025 19:48:08 +0100 (CET)
+	by smtp.freemail.hu (Postfix) with ESMTPSA id 4YSKnb67l0z100L;
+	Tue, 07 Jan 2025 19:48:35 +0100 (CET)
 From: egyszeregy@freemail.hu
 To: fw@strlen.de,
 	pablo@netfilter.org,
@@ -41,9 +41,9 @@ To: fw@strlen.de,
 	linux-kernel@vger.kernel.org,
 	netdev@vger.kernel.org
 Cc: =?UTF-8?q?Benjamin=20Sz=C5=91ke?= <egyszeregy@freemail.hu>
-Subject: [PATCH 4/6] netfilter: x_tables: Merge xt_RATEEST.c to xt_rateest.c
-Date: Tue,  7 Jan 2025 19:47:22 +0100
-Message-ID: <20250107184724.56223-5-egyszeregy@freemail.hu>
+Subject: [PATCH 5/6] netfilter: x_tables: Merge xt_TCPMSS.c to xt_tcpmss.c
+Date: Tue,  7 Jan 2025 19:47:23 +0100
+Message-ID: <20250107184724.56223-6-egyszeregy@freemail.hu>
 X-Mailer: git-send-email 2.43.5
 In-Reply-To: <20250107184724.56223-1-egyszeregy@freemail.hu>
 References: <20250107184724.56223-1-egyszeregy@freemail.hu>
@@ -55,642 +55,855 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=simple/relaxed; t=1736275689;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=simple/relaxed; t=1736275716;
 	s=20181004; d=freemail.hu;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:MIME-Version:Content-Type:Content-Transfer-Encoding;
-	l=18209; bh=zvBk9tEFlJcU6YRcwwr7UH6SPiB9QwVsgVKuAbHki0c=;
-	b=f2xolSup7rgxoyZdyXb5Jv4CvUuz68TYPzRcwIH5lGw4KcEJPp3fyywIhfNbzYxf
-	vCWCRD+XrD5Ik+RV+3yNrmr5aTyefCBEUTxHKwXoDvVAoWq12m5jNyja1tCnuAymvUt
-	qdtB/jEBLZaGMBdnfGNtd58W1e1q6n0e+JfyvlJ/Zk3nDnAJzIBq2BBAl65/3wkHOIi
-	tAjxVWGRIH//h6bjDjczI9TCRJpjT0JvQGzNwNJIvkU8DMp0woIdB+CHDeasRNLwgkZ
-	Gl0vEI6Eu2eMW9kU/WkCjN6XfJG+qwNjCgvuuQ6UTfFYfpzJxQ/YB+gmrZ9T9/YfQu7
-	nI7iESLZew==
+	l=24371; bh=bEZb0pCTD8jimTwyjH8TZgCfJ7iEMhRBCaNw8hy3ZtA=;
+	b=CZBaQJVASRlBPxXRoJW0ZvQriauQ/ZbVRU/Kmpu6PHTQmhcFl69KF4bq9ZCwgP5m
+	4ru+21iIBdJVMWmn4OTxKHCsXiYYQIQIJDKa0+bkKR//Hq315TT/InlooSnwuK/Qaab
+	+kv0ogk/p03ghK7rPVrKhWdmO15D2uIXkrL3Gss3e/hz3XU12EoArp8dOTrdQfWYBtc
+	viEVADfH+VkZtYaRREqN9UoHiS26rjeE7RQYKYi5Y9hGso7VIdE/7uwEpgS0OpgGbYH
+	WI69BwaV07HZdft7gWj0zjqg5QX4BeTGlKHIQ/rje+Rrkr/pVXe/UVUbCkeZOhKFS+B
+	YMh1k1uNrQ==
 
 From: Benjamin Szőke <egyszeregy@freemail.hu>
 
-Merge xt_RATEEST.c to xt_rateest.c file and remove xt_RATEEST.c.
+Merge xt_TCPMSS.c to xt_tcpmss.c file and remove xt_TCPMSS.c.
 
 Signed-off-by: Benjamin Szőke <egyszeregy@freemail.hu>
 ---
- net/netfilter/Kconfig      |  19 +++
- net/netfilter/Makefile     |   3 +-
- net/netfilter/xt_RATEEST.c | 249 ------------------------------------
- net/netfilter/xt_rateest.c | 253 +++++++++++++++++++++++++++++++++++--
- 4 files changed, 263 insertions(+), 261 deletions(-)
- delete mode 100644 net/netfilter/xt_RATEEST.c
+ net/netfilter/Kconfig     |  22 +++
+ net/netfilter/Makefile    |   3 +-
+ net/netfilter/xt_TCPMSS.c | 347 -------------------------------------
+ net/netfilter/xt_tcpmss.c | 352 ++++++++++++++++++++++++++++++++++++--
+ 4 files changed, 362 insertions(+), 362 deletions(-)
+ delete mode 100644 net/netfilter/xt_TCPMSS.c
 
 diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index ca293f9a1db5..1aff3c7c4363 100644
+index 1aff3c7c4363..34fbdfdbdde9 100644
 --- a/net/netfilter/Kconfig
 +++ b/net/netfilter/Kconfig
-@@ -825,6 +825,16 @@ config NETFILTER_XT_HL
- 	  The target allows you to change the hoplimit/time-to-live
- 	  value of the IP header.
+@@ -835,6 +835,18 @@ config NETFILTER_XT_RATEEST
+ 	  estimated by the RATEEST target.
+ 	  The target allows you to measure rates similar to TC estimators.
  
-+config NETFILTER_XT_RATEEST
-+	tristate '"RATEEST" target and match support'
-+	depends on NETFILTER_ADVANCED
++config NETFILTER_XT_TCPMSS
++	tristate '"TCPMSS" target and match support'
++	depends on IPV6 || IPV6=n
++	default m if NETFILTER_ADVANCED=n
 +	help
-+	  This option adds the "RATEEST" target and "rateest" match.
++	  This option adds the "TCPMSS" target and "tcpmss" match.
 +
-+	  Netfilter rateest matching allows you to match on the rate
-+	  estimated by the RATEEST target.
-+	  The target allows you to measure rates similar to TC estimators.
++	  Netfilter tcpmss matching allows you to examine the MSS value of
++	  TCP SYN packets, which control the maximum packet size for that connection.
++	  The target allows you to alter the MSS value of TCP SYN packets,
++	  to control the maximum size for that connection.
 +
  # alphabetically ordered list of targets
  
  comment "Xtables targets"
-@@ -1062,11 +1072,16 @@ config NETFILTER_XT_TARGET_NOTRACK
- config NETFILTER_XT_TARGET_RATEEST
- 	tristate '"RATEEST" target support'
- 	depends on NETFILTER_ADVANCED
-+	select NETFILTER_XT_RATEEST
+@@ -1170,6 +1182,7 @@ config NETFILTER_XT_TARGET_TCPMSS
+ 	tristate '"TCPMSS" target support'
+ 	depends on IPV6 || IPV6=n
+ 	default m if NETFILTER_ADVANCED=n
++	select NETFILTER_XT_TCPMSS
  	help
- 	  This option adds a `RATEEST' target, which allows to measure
- 	  rates similar to TC estimators. The `rateest' match can be
- 	  used to match on the measured rates.
+ 	  This option adds a `TCPMSS' target, which allows you to alter the
+ 	  MSS value of TCP SYN packets, to control the maximum size for that
+@@ -1191,6 +1204,10 @@ config NETFILTER_XT_TARGET_TCPMSS
+ 	  iptables -A FORWARD -p tcp --tcp-flags SYN,RST SYN \
+ 	                 -j TCPMSS --clamp-mss-to-pmtu
  
 +	  This is a backwards-compat option for the user's convenience
 +	  (e.g. when running oldconfig). It selects
-+	  CONFIG_NETFILTER_XT_RATEEST (combined rateest/RATEEST module).
++	  CONFIG_NETFILTER_XT_TCPMSS (combined tcpmss/TCPMSS module).
 +
  	  To compile it as a module, choose M here.  If unsure, say N.
  
- config NETFILTER_XT_TARGET_REDIRECT
-@@ -1576,6 +1591,10 @@ config NETFILTER_XT_MATCH_RATEEST
- 	  This option adds a `rateest' match, which allows to match on the
- 	  rate estimated by the RATEEST target.
+ config NETFILTER_XT_TARGET_TCPOPTSTRIP
+@@ -1687,11 +1704,16 @@ config NETFILTER_XT_MATCH_STRING
+ config NETFILTER_XT_MATCH_TCPMSS
+ 	tristate '"tcpmss" match support'
+ 	depends on NETFILTER_ADVANCED
++	select NETFILTER_XT_TCPMSS
+ 	help
+ 	  This option adds a `tcpmss' match, which allows you to examine the
+ 	  MSS value of TCP SYN packets, which control the maximum packet size
+ 	  for that connection.
  
 +	  This is a backwards-compat option for the user's convenience
 +	  (e.g. when running oldconfig). It selects
-+	  CONFIG_NETFILTER_XT_RATEEST (combined rateest/RATEEST module).
++	  CONFIG_NETFILTER_XT_TCPMSS (combined tcpmss/TCPMSS module).
 +
  	  To compile it as a module, choose M here.  If unsure, say N.
  
- config NETFILTER_XT_MATCH_REALM
+ config NETFILTER_XT_MATCH_TIME
 diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 381a18ce84d0..923112b0dc1e 100644
+index 923112b0dc1e..df6bfa46e6ab 100644
 --- a/net/netfilter/Makefile
 +++ b/net/netfilter/Makefile
-@@ -162,6 +162,7 @@ obj-$(CONFIG_NETFILTER_XT_SET) += xt_set.o
- obj-$(CONFIG_NETFILTER_XT_NAT) += xt_nat.o
+@@ -163,6 +163,7 @@ obj-$(CONFIG_NETFILTER_XT_NAT) += xt_nat.o
  obj-$(CONFIG_NETFILTER_XT_DSCP) += xt_dscp.o
  obj-$(CONFIG_NETFILTER_XT_HL) += xt_hl.o
-+obj-$(CONFIG_NETFILTER_XT_RATEEST) += xt_rateest.o
+ obj-$(CONFIG_NETFILTER_XT_RATEEST) += xt_rateest.o
++obj-$(CONFIG_NETFILTER_XT_TCPMSS) += xt_tcpmss.o
  
  # targets
  obj-$(CONFIG_NETFILTER_XT_TARGET_AUDIT) += xt_AUDIT.o
-@@ -175,7 +176,6 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_LOG) += xt_LOG.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_NETMAP) += xt_NETMAP.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_NFLOG) += xt_NFLOG.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_NFQUEUE) += xt_NFQUEUE.o
--obj-$(CONFIG_NETFILTER_XT_TARGET_RATEEST) += xt_RATEEST.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_REDIRECT) += xt_REDIRECT.o
+@@ -180,7 +181,6 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_REDIRECT) += xt_REDIRECT.o
  obj-$(CONFIG_NETFILTER_XT_TARGET_MASQUERADE) += xt_MASQUERADE.o
  obj-$(CONFIG_NETFILTER_XT_TARGET_SECMARK) += xt_SECMARK.o
-@@ -218,7 +218,6 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_PHYSDEV) += xt_physdev.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_PKTTYPE) += xt_pkttype.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_POLICY) += xt_policy.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_QUOTA) += xt_quota.o
--obj-$(CONFIG_NETFILTER_XT_MATCH_RATEEST) += xt_rateest.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_REALM) += xt_realm.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_RECENT) += xt_recent.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_SCTP) += xt_sctp.o
-diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TPROXY) += xt_TPROXY.o
+-obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) += xt_TCPMSS.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TCPOPTSTRIP) += xt_TCPOPTSTRIP.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TEE) += xt_TEE.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TRACE) += xt_TRACE.o
+@@ -225,7 +225,6 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_SOCKET) += xt_socket.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_STATE) += xt_state.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_STATISTIC) += xt_statistic.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_STRING) += xt_string.o
+-obj-$(CONFIG_NETFILTER_XT_MATCH_TCPMSS) += xt_tcpmss.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_TIME) += xt_time.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_U32) += xt_u32.o
+ 
+diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
 deleted file mode 100644
-index d56276b965fa..000000000000
---- a/net/netfilter/xt_RATEEST.c
+index 9944ca1eb950..000000000000
+--- a/net/netfilter/xt_TCPMSS.c
 +++ /dev/null
-@@ -1,249 +0,0 @@
+@@ -1,347 +0,0 @@
 -// SPDX-License-Identifier: GPL-2.0-only
 -/*
-- * (C) 2007 Patrick McHardy <kaber@trash.net>
+- * This is a module which is used for setting the MSS option in TCP packets.
+- *
+- * Copyright (C) 2000 Marc Boucher <marc@mbsi.ca>
+- * Copyright (C) 2007 Patrick McHardy <kaber@trash.net>
 - */
+-#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 -#include <linux/module.h>
 -#include <linux/skbuff.h>
--#include <linux/gen_stats.h>
--#include <linux/jhash.h>
--#include <linux/rtnetlink.h>
--#include <linux/random.h>
--#include <linux/slab.h>
--#include <net/gen_stats.h>
--#include <net/netlink.h>
--#include <net/netns/generic.h>
+-#include <linux/ip.h>
+-#include <linux/gfp.h>
+-#include <linux/ipv6.h>
+-#include <linux/tcp.h>
+-#include <net/dst.h>
+-#include <net/flow.h>
+-#include <net/ipv6.h>
+-#include <net/route.h>
+-#include <net/tcp.h>
 -
+-#include <linux/netfilter_ipv4/ip_tables.h>
+-#include <linux/netfilter_ipv6/ip6_tables.h>
 -#include <linux/netfilter/x_tables.h>
--#include <linux/netfilter/xt_rateest.h>
--#include <net/netfilter/xt_rateest.h>
+-#include <linux/netfilter/xt_tcpudp.h>
+-#include <linux/netfilter/xt_tcpmss.h>
 -
--#define RATEEST_HSIZE	16
+-MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
+-MODULE_DESCRIPTION("Xtables: TCP Maximum Segment Size (MSS) adjustment");
+-MODULE_ALIAS("ipt_TCPMSS");
+-MODULE_ALIAS("ip6t_TCPMSS");
 -
--struct xt_rateest_net {
--	/* To synchronize concurrent synchronous rate estimator operations. */
--	struct mutex hash_lock;
--	struct hlist_head hash[RATEEST_HSIZE];
--};
--
--static unsigned int xt_rateest_id;
--
--static unsigned int jhash_rnd __read_mostly;
--
--static unsigned int xt_rateest_hash(const char *name)
+-static inline unsigned int
+-optlen(const u8 *opt, unsigned int offset)
 -{
--	return jhash(name, sizeof_field(struct xt_rateest, name), jhash_rnd) &
--	       (RATEEST_HSIZE - 1);
+-	/* Beware zero-length options: make finite progress */
+-	if (opt[offset] <= TCPOPT_NOP || opt[offset + 1] == 0)
+-		return 1;
+-	else
+-		return opt[offset + 1];
 -}
 -
--static void xt_rateest_hash_insert(struct xt_rateest_net *xn,
--				   struct xt_rateest *est)
+-static u_int32_t tcpmss_reverse_mtu(struct net *net,
+-				    const struct sk_buff *skb,
+-				    unsigned int family)
 -{
--	unsigned int h;
+-	struct flowi fl;
+-	struct rtable *rt = NULL;
+-	u32 mtu     = ~0U;
 -
--	h = xt_rateest_hash(est->name);
--	hlist_add_head(&est->list, &xn->hash[h]);
+-	if (family == PF_INET) {
+-		struct flowi4 *fl4 = &fl.u.ip4;
+-
+-		memset(fl4, 0, sizeof(*fl4));
+-		fl4->daddr = ip_hdr(skb)->saddr;
+-	} else {
+-		struct flowi6 *fl6 = &fl.u.ip6;
+-
+-		memset(fl6, 0, sizeof(*fl6));
+-		fl6->daddr = ipv6_hdr(skb)->saddr;
+-	}
+-
+-	nf_route(net, (struct dst_entry **)&rt, &fl, false, family);
+-	if (rt) {
+-		mtu = dst_mtu(&rt->dst);
+-		dst_release(&rt->dst);
+-	}
+-	return mtu;
 -}
 -
--static struct xt_rateest *__xt_rateest_lookup(struct xt_rateest_net *xn,
--					      const char *name)
+-static int
+-tcpmss_mangle_packet(struct sk_buff *skb,
+-		     const struct xt_action_param *par,
+-		     unsigned int family,
+-		     unsigned int tcphoff,
+-		     unsigned int minlen)
 -{
--	struct xt_rateest *est;
--	unsigned int h;
+-	const struct xt_tcpmss_info *info = par->targinfo;
+-	struct tcphdr *tcph;
+-	int len, tcp_hdrlen;
+-	unsigned int i;
+-	__be16 oldval;
+-	u16 newmss;
+-	u8 *opt;
 -
--	h = xt_rateest_hash(name);
--	hlist_for_each_entry(est, &xn->hash[h], list) {
--		if (strcmp(est->name, name) == 0) {
--			est->refcnt++;
--			return est;
+-	/* This is a fragment, no TCP header is available */
+-	if (par->fragoff != 0)
+-		return 0;
+-
+-	if (skb_ensure_writable(skb, skb->len))
+-		return -1;
+-
+-	len = skb->len - tcphoff;
+-	if (len < (int)sizeof(struct tcphdr))
+-		return -1;
+-
+-	tcph = (struct tcphdr *)(skb_network_header(skb) + tcphoff);
+-	tcp_hdrlen = tcph->doff * 4;
+-
+-	if (len < tcp_hdrlen || tcp_hdrlen < sizeof(struct tcphdr))
+-		return -1;
+-
+-	if (info->mss == XT_TCPMSS_CLAMP_PMTU) {
+-		struct net *net = xt_net(par);
+-		unsigned int in_mtu = tcpmss_reverse_mtu(net, skb, family);
+-		unsigned int min_mtu = min(dst_mtu(skb_dst(skb)), in_mtu);
+-
+-		if (min_mtu <= minlen) {
+-			net_err_ratelimited("unknown or invalid path-MTU (%u)\n",
+-					    min_mtu);
+-			return -1;
+-		}
+-		newmss = min_mtu - minlen;
+-	} else {
+-		newmss = info->mss;
+-	}
+-
+-	opt = (u_int8_t *)tcph;
+-	for (i = sizeof(struct tcphdr); i <= tcp_hdrlen - TCPOLEN_MSS; i += optlen(opt, i)) {
+-		if (opt[i] == TCPOPT_MSS && opt[i + 1] == TCPOLEN_MSS) {
+-			u16 oldmss;
+-
+-			oldmss = (opt[i + 2] << 8) | opt[i + 3];
+-
+-			/* Never increase MSS, even when setting it, as
+-			 * doing so results in problems for hosts that rely
+-			 * on MSS being set correctly.
+-			 */
+-			if (oldmss <= newmss)
+-				return 0;
+-
+-			opt[i + 2] = (newmss & 0xff00) >> 8;
+-			opt[i + 3] = newmss & 0x00ff;
+-
+-			inet_proto_csum_replace2(&tcph->check, skb,
+-						 htons(oldmss), htons(newmss),
+-						 false);
+-			return 0;
 -		}
 -	}
 -
--	return NULL;
--}
+-	/* There is data after the header so the option can't be added
+-	 * without moving it, and doing so may make the SYN packet
+-	 * itself too large. Accept the packet unmodified instead.
+-	 */
+-	if (len > tcp_hdrlen)
+-		return 0;
 -
--struct xt_rateest *xt_rateest_lookup(struct net *net, const char *name)
--{
--	struct xt_rateest_net *xn = net_generic(net, xt_rateest_id);
--	struct xt_rateest *est;
+-	/* tcph->doff has 4 bits, do not wrap it to 0 */
+-	if (tcp_hdrlen >= 15 * 4)
+-		return 0;
 -
--	mutex_lock(&xn->hash_lock);
--	est = __xt_rateest_lookup(xn, name);
--	mutex_unlock(&xn->hash_lock);
--	return est;
--}
--EXPORT_SYMBOL_GPL(xt_rateest_lookup);
--
--void xt_rateest_put(struct net *net, struct xt_rateest *est)
--{
--	struct xt_rateest_net *xn = net_generic(net, xt_rateest_id);
--
--	mutex_lock(&xn->hash_lock);
--	if (--est->refcnt == 0) {
--		hlist_del(&est->list);
--		gen_kill_estimator(&est->rate_est);
--		/*
--		 * gen_estimator est_timer() might access est->lock or bstats,
--		 * wait a RCU grace period before freeing 'est'
--		 */
--		kfree_rcu(est, rcu);
+-	/*
+-	 * MSS Option not found ?! add it..
+-	 */
+-	if (skb_tailroom(skb) < TCPOLEN_MSS) {
+-		if (pskb_expand_head(skb, 0,
+-				     TCPOLEN_MSS - skb_tailroom(skb),
+-				     GFP_ATOMIC))
+-			return -1;
+-		tcph = (struct tcphdr *)(skb_network_header(skb) + tcphoff);
 -	}
--	mutex_unlock(&xn->hash_lock);
+-
+-	skb_put(skb, TCPOLEN_MSS);
+-
+-	/*
+-	 * IPv4: RFC 1122 states "If an MSS option is not received at
+-	 * connection setup, TCP MUST assume a default send MSS of 536".
+-	 * IPv6: RFC 2460 states IPv6 has a minimum MTU of 1280 and a minimum
+-	 * length IPv6 header of 60, ergo the default MSS value is 1220
+-	 * Since no MSS was provided, we must use the default values
+-	 */
+-	if (xt_family(par) == NFPROTO_IPV4)
+-		newmss = min(newmss, (u16)536);
+-	else
+-		newmss = min(newmss, (u16)1220);
+-
+-	opt = (u_int8_t *)tcph + sizeof(struct tcphdr);
+-	memmove(opt + TCPOLEN_MSS, opt, len - sizeof(struct tcphdr));
+-
+-	inet_proto_csum_replace2(&tcph->check, skb,
+-				 htons(len), htons(len + TCPOLEN_MSS), true);
+-	opt[0] = TCPOPT_MSS;
+-	opt[1] = TCPOLEN_MSS;
+-	opt[2] = (newmss & 0xff00) >> 8;
+-	opt[3] = newmss & 0x00ff;
+-
+-	inet_proto_csum_replace4(&tcph->check, skb, 0, *((__be32 *)opt), false);
+-
+-	oldval = ((__be16 *)tcph)[6];
+-	tcph->doff += TCPOLEN_MSS / 4;
+-	inet_proto_csum_replace2(&tcph->check, skb,
+-				 oldval, ((__be16 *)tcph)[6], false);
+-	return TCPOLEN_MSS;
 -}
--EXPORT_SYMBOL_GPL(xt_rateest_put);
 -
 -static unsigned int
--xt_rateest_tg(struct sk_buff *skb, const struct xt_action_param *par)
+-tcpmss_tg4(struct sk_buff *skb, const struct xt_action_param *par)
 -{
--	const struct xt_rateest_target_info *info = par->targinfo;
--	struct gnet_stats_basic_sync *stats = &info->est->bstats;
+-	struct iphdr *iph = ip_hdr(skb);
+-	__be16 newlen;
+-	int ret;
 -
--	spin_lock_bh(&info->est->lock);
--	u64_stats_add(&stats->bytes, skb->len);
--	u64_stats_inc(&stats->packets);
--	spin_unlock_bh(&info->est->lock);
--
+-	ret = tcpmss_mangle_packet(skb, par,
+-				   PF_INET,
+-				   iph->ihl * 4,
+-				   sizeof(*iph) + sizeof(struct tcphdr));
+-	if (ret < 0)
+-		return NF_DROP;
+-	if (ret > 0) {
+-		iph = ip_hdr(skb);
+-		newlen = htons(ntohs(iph->tot_len) + ret);
+-		csum_replace2(&iph->check, iph->tot_len, newlen);
+-		iph->tot_len = newlen;
+-	}
 -	return XT_CONTINUE;
 -}
 -
--static int xt_rateest_tg_checkentry(const struct xt_tgchk_param *par)
+-#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+-static unsigned int
+-tcpmss_tg6(struct sk_buff *skb, const struct xt_action_param *par)
 -{
--	struct xt_rateest_net *xn = net_generic(par->net, xt_rateest_id);
--	struct xt_rateest_target_info *info = par->targinfo;
--	struct xt_rateest *est;
--	struct {
--		struct nlattr		opt;
--		struct gnet_estimator	est;
--	} cfg;
+-	struct ipv6hdr *ipv6h = ipv6_hdr(skb);
+-	u8 nexthdr;
+-	__be16 frag_off, oldlen, newlen;
+-	int tcphoff;
 -	int ret;
 -
--	if (strnlen(info->name, sizeof(est->name)) >= sizeof(est->name))
--		return -ENAMETOOLONG;
--
--	net_get_random_once(&jhash_rnd, sizeof(jhash_rnd));
--
--	mutex_lock(&xn->hash_lock);
--	est = __xt_rateest_lookup(xn, info->name);
--	if (est) {
--		mutex_unlock(&xn->hash_lock);
--		/*
--		 * If estimator parameters are specified, they must match the
--		 * existing estimator.
--		 */
--		if ((!info->interval && !info->ewma_log) ||
--		    (info->interval != est->params.interval ||
--		     info->ewma_log != est->params.ewma_log)) {
--			xt_rateest_put(par->net, est);
--			return -EINVAL;
--		}
--		info->est = est;
--		return 0;
--	}
--
--	ret = -ENOMEM;
--	est = kzalloc(sizeof(*est), GFP_KERNEL);
--	if (!est)
--		goto err1;
--
--	gnet_stats_basic_sync_init(&est->bstats);
--	strscpy(est->name, info->name, sizeof(est->name));
--	spin_lock_init(&est->lock);
--	est->refcnt		= 1;
--	est->params.interval	= info->interval;
--	est->params.ewma_log	= info->ewma_log;
--
--	cfg.opt.nla_len		= nla_attr_size(sizeof(cfg.est));
--	cfg.opt.nla_type	= TCA_STATS_RATE_EST;
--	cfg.est.interval	= info->interval;
--	cfg.est.ewma_log	= info->ewma_log;
--
--	ret = gen_new_estimator(&est->bstats, NULL, &est->rate_est,
--				&est->lock, NULL, &cfg.opt);
+-	nexthdr = ipv6h->nexthdr;
+-	tcphoff = ipv6_skip_exthdr(skb, sizeof(*ipv6h), &nexthdr, &frag_off);
+-	if (tcphoff < 0)
+-		return NF_DROP;
+-	ret = tcpmss_mangle_packet(skb, par,
+-				   PF_INET6,
+-				   tcphoff,
+-				   sizeof(*ipv6h) + sizeof(struct tcphdr));
 -	if (ret < 0)
--		goto err2;
--
--	info->est = est;
--	xt_rateest_hash_insert(xn, est);
--	mutex_unlock(&xn->hash_lock);
--	return 0;
--
--err2:
--	kfree(est);
--err1:
--	mutex_unlock(&xn->hash_lock);
--	return ret;
+-		return NF_DROP;
+-	if (ret > 0) {
+-		ipv6h = ipv6_hdr(skb);
+-		oldlen = ipv6h->payload_len;
+-		newlen = htons(ntohs(oldlen) + ret);
+-		if (skb->ip_summed == CHECKSUM_COMPLETE)
+-			skb->csum = csum_add(csum_sub(skb->csum, (__force __wsum)oldlen),
+-					     (__force __wsum)newlen);
+-		ipv6h->payload_len = newlen;
+-	}
+-	return XT_CONTINUE;
 -}
+-#endif
 -
--static void xt_rateest_tg_destroy(const struct xt_tgdtor_param *par)
+-/* Must specify -p tcp --syn */
+-static inline bool find_syn_match(const struct xt_entry_match *m)
 -{
--	struct xt_rateest_target_info *info = par->targinfo;
+-	const struct xt_tcp *tcpinfo = (const struct xt_tcp *)m->data;
 -
--	xt_rateest_put(par->net, info->est);
+-	if (strcmp(m->u.kernel.match->name, "tcp") == 0 &&
+-	    tcpinfo->flg_cmp & TCPHDR_SYN &&
+-	    !(tcpinfo->invflags & XT_TCP_INV_FLAGS))
+-		return true;
+-
+-	return false;
 -}
 -
--static struct xt_target xt_rateest_tg_reg[] __read_mostly = {
+-static int tcpmss_tg4_check(const struct xt_tgchk_param *par)
+-{
+-	const struct xt_tcpmss_info *info = par->targinfo;
+-	const struct ipt_entry *e = par->entryinfo;
+-	const struct xt_entry_match *ematch;
+-
+-	if (info->mss == XT_TCPMSS_CLAMP_PMTU &&
+-	    (par->hook_mask & ~((1 << NF_INET_FORWARD) |
+-			   (1 << NF_INET_LOCAL_OUT) |
+-			   (1 << NF_INET_POST_ROUTING))) != 0) {
+-		pr_info_ratelimited("path-MTU clamping only supported in FORWARD, OUTPUT and POSTROUTING hooks\n");
+-		return -EINVAL;
+-	}
+-	if (par->nft_compat)
+-		return 0;
+-
+-	xt_ematch_foreach(ematch, e)
+-		if (find_syn_match(ematch))
+-			return 0;
+-	pr_info_ratelimited("Only works on TCP SYN packets\n");
+-	return -EINVAL;
+-}
+-
+-#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+-static int tcpmss_tg6_check(const struct xt_tgchk_param *par)
+-{
+-	const struct xt_tcpmss_info *info = par->targinfo;
+-	const struct ip6t_entry *e = par->entryinfo;
+-	const struct xt_entry_match *ematch;
+-
+-	if (info->mss == XT_TCPMSS_CLAMP_PMTU &&
+-	    (par->hook_mask & ~((1 << NF_INET_FORWARD) |
+-			   (1 << NF_INET_LOCAL_OUT) |
+-			   (1 << NF_INET_POST_ROUTING))) != 0) {
+-		pr_info_ratelimited("path-MTU clamping only supported in FORWARD, OUTPUT and POSTROUTING hooks\n");
+-		return -EINVAL;
+-	}
+-	if (par->nft_compat)
+-		return 0;
+-
+-	xt_ematch_foreach(ematch, e)
+-		if (find_syn_match(ematch))
+-			return 0;
+-	pr_info_ratelimited("Only works on TCP SYN packets\n");
+-	return -EINVAL;
+-}
+-#endif
+-
+-static struct xt_target tcpmss_tg_reg[] __read_mostly = {
 -	{
--		.name       = "RATEEST",
--		.revision   = 0,
--		.family     = NFPROTO_IPV4,
--		.target     = xt_rateest_tg,
--		.checkentry = xt_rateest_tg_checkentry,
--		.destroy    = xt_rateest_tg_destroy,
--		.targetsize = sizeof(struct xt_rateest_target_info),
--		.usersize   = offsetof(struct xt_rateest_target_info, est),
--		.me         = THIS_MODULE,
+-		.family		= NFPROTO_IPV4,
+-		.name		= "TCPMSS",
+-		.checkentry	= tcpmss_tg4_check,
+-		.target		= tcpmss_tg4,
+-		.targetsize	= sizeof(struct xt_tcpmss_info),
+-		.proto		= IPPROTO_TCP,
+-		.me		= THIS_MODULE,
 -	},
 -#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
 -	{
--		.name       = "RATEEST",
--		.revision   = 0,
--		.family     = NFPROTO_IPV6,
--		.target     = xt_rateest_tg,
--		.checkentry = xt_rateest_tg_checkentry,
--		.destroy    = xt_rateest_tg_destroy,
--		.targetsize = sizeof(struct xt_rateest_target_info),
--		.usersize   = offsetof(struct xt_rateest_target_info, est),
--		.me         = THIS_MODULE,
+-		.family		= NFPROTO_IPV6,
+-		.name		= "TCPMSS",
+-		.checkentry	= tcpmss_tg6_check,
+-		.target		= tcpmss_tg6,
+-		.targetsize	= sizeof(struct xt_tcpmss_info),
+-		.proto		= IPPROTO_TCP,
+-		.me		= THIS_MODULE,
 -	},
 -#endif
 -};
 -
--static __net_init int xt_rateest_net_init(struct net *net)
+-static int __init tcpmss_tg_init(void)
 -{
--	struct xt_rateest_net *xn = net_generic(net, xt_rateest_id);
--	int i;
--
--	mutex_init(&xn->hash_lock);
--	for (i = 0; i < ARRAY_SIZE(xn->hash); i++)
--		INIT_HLIST_HEAD(&xn->hash[i]);
--	return 0;
+-	return xt_register_targets(tcpmss_tg_reg, ARRAY_SIZE(tcpmss_tg_reg));
 -}
 -
--static struct pernet_operations xt_rateest_net_ops = {
--	.init = xt_rateest_net_init,
--	.id   = &xt_rateest_id,
--	.size = sizeof(struct xt_rateest_net),
--};
--
--static int __init xt_rateest_tg_init(void)
+-static void __exit tcpmss_tg_exit(void)
 -{
--	int err = register_pernet_subsys(&xt_rateest_net_ops);
--
--	if (err)
--		return err;
--	return xt_register_targets(xt_rateest_tg_reg, ARRAY_SIZE(xt_rateest_tg_reg));
+-	xt_unregister_targets(tcpmss_tg_reg, ARRAY_SIZE(tcpmss_tg_reg));
 -}
 -
--static void __exit xt_rateest_tg_fini(void)
--{
--	xt_unregister_targets(xt_rateest_tg_reg, ARRAY_SIZE(xt_rateest_tg_reg));
--	unregister_pernet_subsys(&xt_rateest_net_ops);
--}
+-module_init(tcpmss_tg_init);
+-module_exit(tcpmss_tg_exit);
+diff --git a/net/netfilter/xt_tcpmss.c b/net/netfilter/xt_tcpmss.c
+index 37704ab01799..9cf627e96226 100644
+--- a/net/netfilter/xt_tcpmss.c
++++ b/net/netfilter/xt_tcpmss.c
+@@ -1,25 +1,37 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-/* Kernel module to match TCP MSS values. */
 -
+-/* Copyright (C) 2000 Marc Boucher <marc@mbsi.ca>
++/* Kernel module for matching/modifying TCP MSS values/packets.
++ *
++ * Copyright (C) 2000 Marc Boucher <marc@mbsi.ca>
+  * Portions (C) 2005 by Harald Welte <laforge@netfilter.org>
++ * Copyright (C) 2007 Patrick McHardy <kaber@trash.net>
+  */
 -
--MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
--MODULE_LICENSE("GPL");
--MODULE_DESCRIPTION("Xtables: packet rate estimator");
--MODULE_ALIAS("ipt_RATEEST");
--MODULE_ALIAS("ip6t_RATEEST");
--module_init(xt_rateest_tg_init);
--module_exit(xt_rateest_tg_fini);
-diff --git a/net/netfilter/xt_rateest.c b/net/netfilter/xt_rateest.c
-index 72324bd976af..c0153b5b47a0 100644
---- a/net/netfilter/xt_rateest.c
-+++ b/net/netfilter/xt_rateest.c
-@@ -5,11 +5,28 @@
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  #include <linux/module.h>
  #include <linux/skbuff.h>
- #include <linux/gen_stats.h>
-+#include <linux/jhash.h>
-+#include <linux/rtnetlink.h>
-+#include <linux/random.h>
-+#include <linux/slab.h>
-+#include <net/gen_stats.h>
-+#include <net/netlink.h>
-+#include <net/netns/generic.h>
++#include <linux/ip.h>
++#include <linux/gfp.h>
++#include <linux/ipv6.h>
++#include <linux/tcp.h>
++#include <net/dst.h>
++#include <net/flow.h>
++#include <net/ipv6.h>
++#include <net/route.h>
+ #include <net/tcp.h>
  
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_rateest.h>
- #include <net/netfilter/xt_rateest.h>
+-#include <linux/netfilter/xt_tcpmss.h>
+-#include <linux/netfilter/x_tables.h>
+-
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <linux/netfilter_ipv6/ip6_tables.h>
++#include <linux/netfilter/x_tables.h>
++#include <linux/netfilter/xt_tcpudp.h>
++#include <linux/netfilter/xt_tcpmss.h>
  
-+#define RATEEST_HSIZE	16
-+
-+MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("xtables packet rate estimator");
-+MODULE_ALIAS("ipt_rateest");
-+MODULE_ALIAS("ip6t_rateest");
-+MODULE_ALIAS("ipt_RATEEST");
-+MODULE_ALIAS("ip6t_RATEEST");
-+MODULE_ALIAS("xt_RATEEST");
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
+-MODULE_DESCRIPTION("Xtables: TCP MSS match");
++MODULE_DESCRIPTION("Xtables: TCP Maximum Segment Size (MSS) adjustment and match");
+ MODULE_ALIAS("ipt_tcpmss");
+ MODULE_ALIAS("ip6t_tcpmss");
++MODULE_ALIAS("ipt_TCPMSS");
++MODULE_ALIAS("ip6t_TCPMSS");
++MODULE_ALIAS("xt_TCPMSS");
  
  static bool
- xt_rateest_mt(const struct sk_buff *skb, struct xt_action_param *par)
-@@ -134,20 +151,236 @@ static struct xt_match xt_rateest_mt_reg __read_mostly = {
- 	.me         = THIS_MODULE,
+ tcpmss_mt(const struct sk_buff *skb, struct xt_action_param *par)
+@@ -93,15 +105,329 @@ static struct xt_match tcpmss_mt_reg[] __read_mostly = {
+ 	},
  };
  
--static int __init xt_rateest_mt_init(void)
-+struct xt_rateest_net {
-+	/* To synchronize concurrent synchronous rate estimator operations. */
-+	struct mutex hash_lock;
-+	struct hlist_head hash[RATEEST_HSIZE];
-+};
-+
-+static unsigned int xt_rateest_id;
-+
-+static unsigned int jhash_rnd __read_mostly;
-+
-+static unsigned int xt_rateest_hash(const char *name)
+-static int __init tcpmss_mt_init(void)
++static inline unsigned int
++optlen(const u8 *opt, unsigned int offset)
 +{
-+	return jhash(name, sizeof_field(struct xt_rateest, name), jhash_rnd) &
-+	       (RATEEST_HSIZE - 1);
++	/* Beware zero-length options: make finite progress */
++	if (opt[offset] <= TCPOPT_NOP || opt[offset + 1] == 0)
++		return 1;
++	else
++		return opt[offset + 1];
 +}
 +
-+static void xt_rateest_hash_insert(struct xt_rateest_net *xn,
-+				   struct xt_rateest *est)
++static u_int32_t tcpmss_reverse_mtu(struct net *net,
++				    const struct sk_buff *skb,
++				    unsigned int family)
 +{
-+	unsigned int h;
++	struct flowi fl;
++	struct rtable *rt = NULL;
++	u32 mtu     = ~0U;
 +
-+	h = xt_rateest_hash(est->name);
-+	hlist_add_head(&est->list, &xn->hash[h]);
++	if (family == PF_INET) {
++		struct flowi4 *fl4 = &fl.u.ip4;
++
++		memset(fl4, 0, sizeof(*fl4));
++		fl4->daddr = ip_hdr(skb)->saddr;
++	} else {
++		struct flowi6 *fl6 = &fl.u.ip6;
++
++		memset(fl6, 0, sizeof(*fl6));
++		fl6->daddr = ipv6_hdr(skb)->saddr;
++	}
++
++	nf_route(net, (struct dst_entry **)&rt, &fl, false, family);
++	if (rt) {
++		mtu = dst_mtu(&rt->dst);
++		dst_release(&rt->dst);
++	}
++	return mtu;
 +}
 +
-+static struct xt_rateest *__xt_rateest_lookup(struct xt_rateest_net *xn,
-+					      const char *name)
- {
--	return xt_register_match(&xt_rateest_mt_reg);
-+	struct xt_rateest *est;
-+	unsigned int h;
++static int
++tcpmss_mangle_packet(struct sk_buff *skb,
++		     const struct xt_action_param *par,
++		     unsigned int family,
++		     unsigned int tcphoff,
++		     unsigned int minlen)
++{
++	const struct xt_tcpmss_info *info = par->targinfo;
++	struct tcphdr *tcph;
++	int len, tcp_hdrlen;
++	unsigned int i;
++	__be16 oldval;
++	u16 newmss;
++	u8 *opt;
 +
-+	h = xt_rateest_hash(name);
-+	hlist_for_each_entry(est, &xn->hash[h], list) {
-+		if (strcmp(est->name, name) == 0) {
-+			est->refcnt++;
-+			return est;
++	/* This is a fragment, no TCP header is available */
++	if (par->fragoff != 0)
++		return 0;
++
++	if (skb_ensure_writable(skb, skb->len))
++		return -1;
++
++	len = skb->len - tcphoff;
++	if (len < (int)sizeof(struct tcphdr))
++		return -1;
++
++	tcph = (struct tcphdr *)(skb_network_header(skb) + tcphoff);
++	tcp_hdrlen = tcph->doff * 4;
++
++	if (len < tcp_hdrlen || tcp_hdrlen < sizeof(struct tcphdr))
++		return -1;
++
++	if (info->mss == XT_TCPMSS_CLAMP_PMTU) {
++		struct net *net = xt_net(par);
++		unsigned int in_mtu = tcpmss_reverse_mtu(net, skb, family);
++		unsigned int min_mtu = min(dst_mtu(skb_dst(skb)), in_mtu);
++
++		if (min_mtu <= minlen) {
++			net_err_ratelimited("unknown or invalid path-MTU (%u)\n",
++					    min_mtu);
++			return -1;
++		}
++		newmss = min_mtu - minlen;
++	} else {
++		newmss = info->mss;
++	}
++
++	opt = (u_int8_t *)tcph;
++	for (i = sizeof(struct tcphdr); i <= tcp_hdrlen - TCPOLEN_MSS; i += optlen(opt, i)) {
++		if (opt[i] == TCPOPT_MSS && opt[i + 1] == TCPOLEN_MSS) {
++			u16 oldmss;
++
++			oldmss = (opt[i + 2] << 8) | opt[i + 3];
++
++			/* Never increase MSS, even when setting it, as
++			 * doing so results in problems for hosts that rely
++			 * on MSS being set correctly.
++			 */
++			if (oldmss <= newmss)
++				return 0;
++
++			opt[i + 2] = (newmss & 0xff00) >> 8;
++			opt[i + 3] = newmss & 0x00ff;
++
++			inet_proto_csum_replace2(&tcph->check, skb,
++						 htons(oldmss), htons(newmss),
++						 false);
++			return 0;
 +		}
 +	}
 +
-+	return NULL;
- }
- 
--static void __exit xt_rateest_mt_fini(void)
-+struct xt_rateest *xt_rateest_lookup(struct net *net, const char *name)
-+{
-+	struct xt_rateest_net *xn = net_generic(net, xt_rateest_id);
-+	struct xt_rateest *est;
++	/* There is data after the header so the option can't be added
++	 * without moving it, and doing so may make the SYN packet
++	 * itself too large. Accept the packet unmodified instead.
++	 */
++	if (len > tcp_hdrlen)
++		return 0;
 +
-+	mutex_lock(&xn->hash_lock);
-+	est = __xt_rateest_lookup(xn, name);
-+	mutex_unlock(&xn->hash_lock);
-+	return est;
-+}
-+EXPORT_SYMBOL_GPL(xt_rateest_lookup);
++	/* tcph->doff has 4 bits, do not wrap it to 0 */
++	if (tcp_hdrlen >= 15 * 4)
++		return 0;
 +
-+void xt_rateest_put(struct net *net, struct xt_rateest *est)
-+{
-+	struct xt_rateest_net *xn = net_generic(net, xt_rateest_id);
-+
-+	mutex_lock(&xn->hash_lock);
-+	if (--est->refcnt == 0) {
-+		hlist_del(&est->list);
-+		gen_kill_estimator(&est->rate_est);
-+		/*
-+		 * gen_estimator est_timer() might access est->lock or bstats,
-+		 * wait a RCU grace period before freeing 'est'
-+		 */
-+		kfree_rcu(est, rcu);
++	/*
++	 * MSS Option not found ?! add it..
++	 */
++	if (skb_tailroom(skb) < TCPOLEN_MSS) {
++		if (pskb_expand_head(skb, 0,
++				     TCPOLEN_MSS - skb_tailroom(skb),
++				     GFP_ATOMIC))
++			return -1;
++		tcph = (struct tcphdr *)(skb_network_header(skb) + tcphoff);
 +	}
-+	mutex_unlock(&xn->hash_lock);
++
++	skb_put(skb, TCPOLEN_MSS);
++
++	/*
++	 * IPv4: RFC 1122 states "If an MSS option is not received at
++	 * connection setup, TCP MUST assume a default send MSS of 536".
++	 * IPv6: RFC 2460 states IPv6 has a minimum MTU of 1280 and a minimum
++	 * length IPv6 header of 60, ergo the default MSS value is 1220
++	 * Since no MSS was provided, we must use the default values
++	 */
++	if (xt_family(par) == NFPROTO_IPV4)
++		newmss = min(newmss, (u16)536);
++	else
++		newmss = min(newmss, (u16)1220);
++
++	opt = (u_int8_t *)tcph + sizeof(struct tcphdr);
++	memmove(opt + TCPOLEN_MSS, opt, len - sizeof(struct tcphdr));
++
++	inet_proto_csum_replace2(&tcph->check, skb,
++				 htons(len), htons(len + TCPOLEN_MSS), true);
++	opt[0] = TCPOPT_MSS;
++	opt[1] = TCPOLEN_MSS;
++	opt[2] = (newmss & 0xff00) >> 8;
++	opt[3] = newmss & 0x00ff;
++
++	inet_proto_csum_replace4(&tcph->check, skb, 0, *((__be32 *)opt), false);
++
++	oldval = ((__be16 *)tcph)[6];
++	tcph->doff += TCPOLEN_MSS / 4;
++	inet_proto_csum_replace2(&tcph->check, skb,
++				 oldval, ((__be16 *)tcph)[6], false);
++	return TCPOLEN_MSS;
 +}
-+EXPORT_SYMBOL_GPL(xt_rateest_put);
 +
 +static unsigned int
-+xt_rateest_tg(struct sk_buff *skb, const struct xt_action_param *par)
++tcpmss_tg4(struct sk_buff *skb, const struct xt_action_param *par)
 +{
-+	const struct xt_rateest_target_info *info = par->targinfo;
-+	struct gnet_stats_basic_sync *stats = &info->est->bstats;
++	struct iphdr *iph = ip_hdr(skb);
++	__be16 newlen;
++	int ret;
 +
-+	spin_lock_bh(&info->est->lock);
-+	u64_stats_add(&stats->bytes, skb->len);
-+	u64_stats_inc(&stats->packets);
-+	spin_unlock_bh(&info->est->lock);
-+
++	ret = tcpmss_mangle_packet(skb, par,
++				   PF_INET,
++				   iph->ihl * 4,
++				   sizeof(*iph) + sizeof(struct tcphdr));
++	if (ret < 0)
++		return NF_DROP;
++	if (ret > 0) {
++		iph = ip_hdr(skb);
++		newlen = htons(ntohs(iph->tot_len) + ret);
++		csum_replace2(&iph->check, iph->tot_len, newlen);
++		iph->tot_len = newlen;
++	}
 +	return XT_CONTINUE;
 +}
 +
-+static int xt_rateest_tg_checkentry(const struct xt_tgchk_param *par)
++#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
++static unsigned int
++tcpmss_tg6(struct sk_buff *skb, const struct xt_action_param *par)
 +{
-+	struct xt_rateest_net *xn = net_generic(par->net, xt_rateest_id);
-+	struct xt_rateest_target_info *info = par->targinfo;
-+	struct xt_rateest *est;
-+	struct {
-+		struct nlattr		opt;
-+		struct gnet_estimator	est;
-+	} cfg;
++	struct ipv6hdr *ipv6h = ipv6_hdr(skb);
++	u8 nexthdr;
++	__be16 frag_off, oldlen, newlen;
++	int tcphoff;
 +	int ret;
 +
-+	if (strnlen(info->name, sizeof(est->name)) >= sizeof(est->name))
-+		return -ENAMETOOLONG;
-+
-+	net_get_random_once(&jhash_rnd, sizeof(jhash_rnd));
-+
-+	mutex_lock(&xn->hash_lock);
-+	est = __xt_rateest_lookup(xn, info->name);
-+	if (est) {
-+		mutex_unlock(&xn->hash_lock);
-+		/*
-+		 * If estimator parameters are specified, they must match the
-+		 * existing estimator.
-+		 */
-+		if ((!info->interval && !info->ewma_log) ||
-+		    (info->interval != est->params.interval ||
-+		     info->ewma_log != est->params.ewma_log)) {
-+			xt_rateest_put(par->net, est);
-+			return -EINVAL;
-+		}
-+		info->est = est;
-+		return 0;
-+	}
-+
-+	ret = -ENOMEM;
-+	est = kzalloc(sizeof(*est), GFP_KERNEL);
-+	if (!est)
-+		goto err1;
-+
-+	gnet_stats_basic_sync_init(&est->bstats);
-+	strscpy(est->name, info->name, sizeof(est->name));
-+	spin_lock_init(&est->lock);
-+	est->refcnt		= 1;
-+	est->params.interval	= info->interval;
-+	est->params.ewma_log	= info->ewma_log;
-+
-+	cfg.opt.nla_len		= nla_attr_size(sizeof(cfg.est));
-+	cfg.opt.nla_type	= TCA_STATS_RATE_EST;
-+	cfg.est.interval	= info->interval;
-+	cfg.est.ewma_log	= info->ewma_log;
-+
-+	ret = gen_new_estimator(&est->bstats, NULL, &est->rate_est,
-+				&est->lock, NULL, &cfg.opt);
++	nexthdr = ipv6h->nexthdr;
++	tcphoff = ipv6_skip_exthdr(skb, sizeof(*ipv6h), &nexthdr, &frag_off);
++	if (tcphoff < 0)
++		return NF_DROP;
++	ret = tcpmss_mangle_packet(skb, par,
++				   PF_INET6,
++				   tcphoff,
++				   sizeof(*ipv6h) + sizeof(struct tcphdr));
 +	if (ret < 0)
-+		goto err2;
-+
-+	info->est = est;
-+	xt_rateest_hash_insert(xn, est);
-+	mutex_unlock(&xn->hash_lock);
-+	return 0;
-+
-+err2:
-+	kfree(est);
-+err1:
-+	mutex_unlock(&xn->hash_lock);
-+	return ret;
++		return NF_DROP;
++	if (ret > 0) {
++		ipv6h = ipv6_hdr(skb);
++		oldlen = ipv6h->payload_len;
++		newlen = htons(ntohs(oldlen) + ret);
++		if (skb->ip_summed == CHECKSUM_COMPLETE)
++			skb->csum = csum_add(csum_sub(skb->csum, (__force __wsum)oldlen),
++					     (__force __wsum)newlen);
++		ipv6h->payload_len = newlen;
++	}
++	return XT_CONTINUE;
 +}
++#endif
 +
-+static void xt_rateest_tg_destroy(const struct xt_tgdtor_param *par)
++/* Must specify -p tcp --syn */
++static inline bool find_syn_match(const struct xt_entry_match *m)
 +{
-+	struct xt_rateest_target_info *info = par->targinfo;
++	const struct xt_tcp *tcpinfo = (const struct xt_tcp *)m->data;
 +
-+	xt_rateest_put(par->net, info->est);
++	if (strcmp(m->u.kernel.match->name, "tcp") == 0 &&
++	    tcpinfo->flg_cmp & TCPHDR_SYN &&
++	    !(tcpinfo->invflags & XT_TCP_INV_FLAGS))
++		return true;
++
++	return false;
 +}
 +
-+static struct xt_target xt_rateest_tg_reg[] __read_mostly = {
++static int tcpmss_tg4_check(const struct xt_tgchk_param *par)
++{
++	const struct xt_tcpmss_info *info = par->targinfo;
++	const struct ipt_entry *e = par->entryinfo;
++	const struct xt_entry_match *ematch;
++
++	if (info->mss == XT_TCPMSS_CLAMP_PMTU &&
++	    (par->hook_mask & ~((1 << NF_INET_FORWARD) |
++			   (1 << NF_INET_LOCAL_OUT) |
++			   (1 << NF_INET_POST_ROUTING))) != 0) {
++		pr_info_ratelimited("path-MTU clamping only supported in FORWARD, OUTPUT and POSTROUTING hooks\n");
++		return -EINVAL;
++	}
++	if (par->nft_compat)
++		return 0;
++
++	xt_ematch_foreach(ematch, e)
++		if (find_syn_match(ematch))
++			return 0;
++	pr_info_ratelimited("Only works on TCP SYN packets\n");
++	return -EINVAL;
++}
++
++#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
++static int tcpmss_tg6_check(const struct xt_tgchk_param *par)
++{
++	const struct xt_tcpmss_info *info = par->targinfo;
++	const struct ip6t_entry *e = par->entryinfo;
++	const struct xt_entry_match *ematch;
++
++	if (info->mss == XT_TCPMSS_CLAMP_PMTU &&
++	    (par->hook_mask & ~((1 << NF_INET_FORWARD) |
++			   (1 << NF_INET_LOCAL_OUT) |
++			   (1 << NF_INET_POST_ROUTING))) != 0) {
++		pr_info_ratelimited("path-MTU clamping only supported in FORWARD, OUTPUT and POSTROUTING hooks\n");
++		return -EINVAL;
++	}
++	if (par->nft_compat)
++		return 0;
++
++	xt_ematch_foreach(ematch, e)
++		if (find_syn_match(ematch))
++			return 0;
++	pr_info_ratelimited("Only works on TCP SYN packets\n");
++	return -EINVAL;
++}
++#endif
++
++static struct xt_target tcpmss_tg_reg[] __read_mostly = {
 +	{
-+		.name       = "RATEEST",
-+		.revision   = 0,
-+		.family     = NFPROTO_IPV4,
-+		.target     = xt_rateest_tg,
-+		.checkentry = xt_rateest_tg_checkentry,
-+		.destroy    = xt_rateest_tg_destroy,
-+		.targetsize = sizeof(struct xt_rateest_target_info),
-+		.usersize   = offsetof(struct xt_rateest_target_info, est),
-+		.me         = THIS_MODULE,
++		.family		= NFPROTO_IPV4,
++		.name		= "TCPMSS",
++		.checkentry	= tcpmss_tg4_check,
++		.target		= tcpmss_tg4,
++		.targetsize	= sizeof(struct xt_tcpmss_info),
++		.proto		= IPPROTO_TCP,
++		.me		= THIS_MODULE,
 +	},
 +#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
 +	{
-+		.name       = "RATEEST",
-+		.revision   = 0,
-+		.family     = NFPROTO_IPV6,
-+		.target     = xt_rateest_tg,
-+		.checkentry = xt_rateest_tg_checkentry,
-+		.destroy    = xt_rateest_tg_destroy,
-+		.targetsize = sizeof(struct xt_rateest_target_info),
-+		.usersize   = offsetof(struct xt_rateest_target_info, est),
-+		.me         = THIS_MODULE,
++		.family		= NFPROTO_IPV6,
++		.name		= "TCPMSS",
++		.checkentry	= tcpmss_tg6_check,
++		.target		= tcpmss_tg6,
++		.targetsize	= sizeof(struct xt_tcpmss_info),
++		.proto		= IPPROTO_TCP,
++		.me		= THIS_MODULE,
 +	},
 +#endif
 +};
 +
-+static __net_init int xt_rateest_net_init(struct net *net)
-+{
-+	struct xt_rateest_net *xn = net_generic(net, xt_rateest_id);
-+	int i;
++static int __init tcpmss_init(void)
+ {
+-	return xt_register_matches(tcpmss_mt_reg, ARRAY_SIZE(tcpmss_mt_reg));
++	int ret;
 +
-+	mutex_init(&xn->hash_lock);
-+	for (i = 0; i < ARRAY_SIZE(xn->hash); i++)
-+		INIT_HLIST_HEAD(&xn->hash[i]);
-+	return 0;
-+}
-+
-+static struct pernet_operations xt_rateest_net_ops = {
-+	.init = xt_rateest_net_init,
-+	.id   = &xt_rateest_id,
-+	.size = sizeof(struct xt_rateest_net),
-+};
-+
-+static int __init xt_rateest_init(void)
-+{
-+	int ret = register_pernet_subsys(&xt_rateest_net_ops);
-+
-+	if (ret)
-+		return ret;
-+
-+	ret = xt_register_targets(xt_rateest_tg_reg, ARRAY_SIZE(xt_rateest_tg_reg));
++	ret = xt_register_targets(tcpmss_tg_reg, ARRAY_SIZE(tcpmss_tg_reg));
 +	if (ret < 0)
 +		return ret;
-+	ret = xt_register_match(&xt_rateest_mt_reg);
++	ret = xt_register_matches(tcpmss_mt_reg, ARRAY_SIZE(tcpmss_mt_reg));
 +	if (ret < 0) {
-+		xt_unregister_targets(xt_rateest_tg_reg, ARRAY_SIZE(xt_rateest_tg_reg));
-+		unregister_pernet_subsys(&xt_rateest_net_ops);
++		xt_unregister_targets(tcpmss_tg_reg, ARRAY_SIZE(tcpmss_tg_reg));
 +		return ret;
 +	}
 +	return 0;
-+}
-+
-+static void __exit xt_rateest_exit(void)
- {
- 	xt_unregister_match(&xt_rateest_mt_reg);
-+	xt_unregister_targets(xt_rateest_tg_reg, ARRAY_SIZE(xt_rateest_tg_reg));
-+	unregister_pernet_subsys(&xt_rateest_net_ops);
  }
  
--MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
--MODULE_LICENSE("GPL");
--MODULE_DESCRIPTION("xtables rate estimator match");
--MODULE_ALIAS("ipt_rateest");
--MODULE_ALIAS("ip6t_rateest");
--module_init(xt_rateest_mt_init);
--module_exit(xt_rateest_mt_fini);
-+module_init(xt_rateest_init);
-+module_exit(xt_rateest_exit);
+-static void __exit tcpmss_mt_exit(void)
++static void __exit tcpmss_exit(void)
+ {
+ 	xt_unregister_matches(tcpmss_mt_reg, ARRAY_SIZE(tcpmss_mt_reg));
++	xt_unregister_targets(tcpmss_tg_reg, ARRAY_SIZE(tcpmss_tg_reg));
+ }
+ 
+-module_init(tcpmss_mt_init);
+-module_exit(tcpmss_mt_exit);
++module_init(tcpmss_init);
++module_exit(tcpmss_exit);
 -- 
 2.43.5
 
