@@ -1,71 +1,131 @@
-Received: from vps0.lunn.ch (vps0.lunn.ch [156.67.10.101])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f49.google.com (mail-ed1-f49.google.com [209.85.208.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3C0B19CC0E;
-	Tue,  7 Jan 2025 13:26:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=156.67.10.101
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17F451F191D;
+	Tue,  7 Jan 2025 14:23:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736256405; cv=none; b=Fq2vJHQNvtLHtc/iEqWiaeWXmUdj3CpdSUtO0AQ5Weggkxy9rfeW44pd3OnCCeetZlAb8IJUsIKM2VBvKo+MmQzdm2SY+whbpuFXPsyPowWwc2Ot9aQdFxbEhObZ7XOa9YcMAtTsar0gTBK/CWDhuY5MMpPdZGLoKhUm2i64VgM=
+	t=1736259803; cv=none; b=d3KfE4tLcBzJfXPgXB3dC9fMOtGLQT6/9A54Zr5YOocynBJ7t+IRsFhPGYda2zfYs7gcRkj/lo2MsIQPdhb4XEcPPJGar+jD8pAxFq+9kkA9e2i6acYYbXf/ZNs9qzSZRZcGd9I1egZWXDZN/XqOiDkX6qPPCzE/CBBE0gKzKkY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736256405; c=relaxed/simple;
-	bh=/m5ZT/WjZM4M4Tl41pBuRBotgmqPd6yqRyqz6qGuWjA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=hpgsKSO9ZxQMWI6ae8Y95hDh4CfU3H9Z8zlNJ8szHTwe8DdWwEPZ3+mAa/s2DnDZR/D0NaE6MxMbtS0jUm0WfAOp/ncdR4QC51K9jctzBu5o47J2NDYLizD74FcdVqYuz4jFHNJe0RufiA4iqUgpI59iV0o85vmjlqQJ38ijt9Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch; spf=pass smtp.mailfrom=lunn.ch; dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.b=EDja036Z; arc=none smtp.client-ip=156.67.10.101
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lunn.ch
+	s=arc-20240116; t=1736259803; c=relaxed/simple;
+	bh=Bm1DtQK3Zmv8psZJ+NOjFV66PEzHEkw6lMPzpKko7Jk=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=iWBF/rwoqAcJnCU918w4XeG89fno6AK2PQUCWIQdoHbw2D7mTkefcJhx6ehsI8N+M/h2bRMJlahA9NMyefmI/p+uCgTUiFtULF6j6Yzz4Umyl61VjI2rio3i9di6mpb5mumup6FhgwEpcp1sB2KjxN3CZAZ1uiTkod1px1xB+2o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=H++drWf+; arc=none smtp.client-ip=209.85.208.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.b="EDja036Z"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=lunn.ch;
-	s=20171124; h=In-Reply-To:Content-Disposition:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:From:Sender:Reply-To:Subject:
-	Date:Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	Content-ID:Content-Description:Content-Disposition:In-Reply-To:References;
-	bh=I3Vv9Ii4oAyb2xBXKP796hUiYRnbIlEgJVRU6r0oeJ4=; b=EDja036ZoNSxV1Bflk1hEMKrwv
-	l0MQhjpbFvH4DGCtNaEnCqBfs6+ja+sdJ1+3MFUfHdGSYEMEM7+COya16k8YkTYHFpea2P28anFtG
-	g4Lm82NEcjog3dGCM5Mq1W8AwefLmTkWSOhDaxRexOJgqBfG0zlG2lox8z8tCa4GCMVc=;
-Received: from andrew by vps0.lunn.ch with local (Exim 4.94.2)
-	(envelope-from <andrew@lunn.ch>)
-	id 1tV9bM-002Est-OJ; Tue, 07 Jan 2025 14:26:32 +0100
-Date: Tue, 7 Jan 2025 14:26:32 +0100
-From: Andrew Lunn <andrew@lunn.ch>
-To: Daniel Golle <daniel@makrotopia.org>
-Cc: "Russell King (Oracle)" <linux@armlinux.org.uk>,
-	Eric Woudstra <ericwouds@gmail.com>,
-	Heiner Kallweit <hkallweit1@gmail.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-	Frank Wunderlich <frank-w@public-files.de>, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, bridge@lists.linux.dev,
-	linux-arm-kernel@lists.infradead.org,
-	linux-mediatek@lists.infradead.org
-Subject: Re: [PATCH RFC net-next] net: phylink: always config mac for
- (delayed) phy
-Message-ID: <a5beb529-5769-4310-b6a4-0ddccd85caf1@lunn.ch>
-References: <20250107123615.161095-1-ericwouds@gmail.com>
- <Z30iUj6DE9-fRp0n@shell.armlinux.org.uk>
- <Z30pMSxDn-R3Cy5S@makrotopia.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="H++drWf+"
+Received: by mail-ed1-f49.google.com with SMTP id 4fb4d7f45d1cf-5d88c355e0dso9050323a12.0;
+        Tue, 07 Jan 2025 06:23:21 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1736259800; x=1736864600; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:content-language:from
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=XE2LBycvBfRVASiRxD8GRnH5rQbRkw6izbBARG4PHOM=;
+        b=H++drWf+KZRlAjecygx2GsGYSFEBHKwGssTH6bf00fH9JXPSFBE0xY9sRtM9GEXhNL
+         FLae73N/Lg/8spjh1b1RJ5qQIcWOelyBBzKjv6EkK3RUd+VGOSjednoz03bxwEDIKrDR
+         BauHvPFgy21ayOcXtTr4crSgru20KUmMwxZwwUxx+nDQZzrHrSQdHXsBfNuloRFc21b/
+         cGe6jzRisCKf60UeAnCRGEM7xvS1VHlaXuCd/+2K72q9Q1IBAEOeuCIIFmFdW3XJx9YO
+         VIevwYOVwPvdjDuby7cjGEROHKde6NwssWsrkQynKC/A/88FHaQqXJZsGRVuVbS+mJ+P
+         trLQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1736259800; x=1736864600;
+        h=content-transfer-encoding:in-reply-to:content-language:from
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=XE2LBycvBfRVASiRxD8GRnH5rQbRkw6izbBARG4PHOM=;
+        b=HPmwZH7uQ6Fgyb2fxKAfwa3ELEMwbKrgp4mgGjnNQRZBwIl6QOz4l/H+dx82enye+R
+         ngBnBG2HFT7FpjlqFMUwepChV9gAD068GcF21XOes3vi8Zg2pr1rvyEoKTevcM2VYiKC
+         c+rkQbOxRa77g3h0QHE+20z670nKA+ukMOYigHk9BnWhE79+Q890J+hWrMTA1b77b2cT
+         Uri4Ku3fU9/mHCvpPeOhyXWidQ0q69YKGO5SyAoWT3qWB/ZgJF3G9ugNWoqaUFGXy9kg
+         LQGKoFVfFWwJFPW0eG5WbW7QziMjqUEt+EnKZ/24bki1fNYXBdlLUvyHhQzvmgMkMW7m
+         2rtA==
+X-Forwarded-Encrypted: i=1; AJvYcCUabPsOqqx9WIovWBih6LoPknJOfRUQ+z632CL8EdDD5FaF3hJ27J0gkTA7bjL5wJbL0PdS4yyi@vger.kernel.org, AJvYcCXBpdPdS9XePfjhxKyEBPSdPxuqJZPr10dZy9E/6dwnTWVPxmu983H10efquS0F2aO7yQ97Mmi5TFvpdV8=@vger.kernel.org, AJvYcCXomBvZAxDm7hKKkiKJAgCjNM+sa4kEMlGBafPOuM2tWYsxSi2p59jLyzTGqrL8OHsq4lg6D/WjhV/T6z8REf3e@vger.kernel.org
+X-Gm-Message-State: AOJu0YwCfv97RQGVHnqmSbacyA2QfkPVs7XWnwlZTVvkeTguOMM1Pzbx
+	gw4az2vsanVRx7/XrFSHiuhAJJPUyWEP5fJMYQgWwn2sc9IEgWhD
+X-Gm-Gg: ASbGncsTcjUP5WoiFlmUo/hmB7c0QZGb4lU6ZH0KGl7rwnPFF0VKWxuJDnMKGm0qka9
+	ahMpLlzaRFroxTPnO43pmdCmW58pV9meo3rNskYVHGHF6ojnj557x7chLNbDPKyTRllEyuq95YJ
+	t8zflARvvMut8dNqZcK6htWT0tc/BO1iUummvk0JxHzMJtJDHJlUWBs7WgMRmJ7n1vZMFUc6zVH
+	69feFN7RsSjc0G1bkBEkv7VxCj1aDJKxpbXJXQTxS8a+ndm+4+dToruRFS60tQlvlsBPk4F/VGQ
+	uOJ2HErZPKBcPa7XF/3x1DZVcf1AmXEyexQH5eXGbRyJCvTHD+9NvE4Cpv9eWR/6gJ2HMWlveNO
+	Sk1g/O+hB6IP6gzKeaDJE5ua6TanMqCk=
+X-Google-Smtp-Source: AGHT+IFTKXq+cflhxmBLnsZ30k5zI/b1GmBG/qIWiM0wUuk9AhpVGKtgpK8+7CvsgQoYKL8T/INBNA==
+X-Received: by 2002:a17:907:d87:b0:aab:71fc:47a3 with SMTP id a640c23a62f3a-aac3379034dmr5727225766b.60.1736259800081;
+        Tue, 07 Jan 2025 06:23:20 -0800 (PST)
+Received: from ?IPV6:2001:1c00:20d:1300:1b1c:4449:176a:89ea? (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-5d806fede4csm25126108a12.63.2025.01.07.06.23.19
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 07 Jan 2025 06:23:19 -0800 (PST)
+Message-ID: <b7705a4e-5559-4fe3-a302-4c60d7224e49@gmail.com>
+Date: Tue, 7 Jan 2025 15:23:18 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Z30pMSxDn-R3Cy5S@makrotopia.org>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH RFC net-next] net: phylink: always config mac for
+ (delayed) phy
+To: Andrew Lunn <andrew@lunn.ch>
+Cc: "Russell King (Oracle)" <linux@armlinux.org.uk>,
+ Heiner Kallweit <hkallweit1@gmail.com>, "David S. Miller"
+ <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Matthias Brugger <matthias.bgg@gmail.com>,
+ AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+ Frank Wunderlich <frank-w@public-files.de>,
+ Daniel Golle <daniel@makrotopia.org>, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, bridge@lists.linux.dev,
+ linux-arm-kernel@lists.infradead.org, linux-mediatek@lists.infradead.org
+References: <20250107123615.161095-1-ericwouds@gmail.com>
+ <Z30iUj6DE9-fRp0n@shell.armlinux.org.uk>
+ <4b9b2a9a-061b-43ad-b402-a49aee317f41@gmail.com>
+ <ed29e632-332b-4af1-bf7f-97498297e731@lunn.ch>
+From: Eric Woudstra <ericwouds@gmail.com>
+Content-Language: en-US
+In-Reply-To: <ed29e632-332b-4af1-bf7f-97498297e731@lunn.ch>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-> The PCS doesn't support in-band status in 2500Base-X mode, or at least
-> the implementation isn't compatible with those RealTek PHYs.
 
-Is one or the other not actually 2500Base-X, but SGMII over clocked?
 
-Overclocked SGMII cannot do in-band signalling. It could well be the
-PCS is 2500BaseX, but the PHY is over clocked SGMII, and so the PCS is
-not seeing the in-band signalling it expects, so never reports link.
+On 1/7/25 2:20 PM, Andrew Lunn wrote:
+>> I think it is because pl->act_link_an_mode stays at MLO_AN_INBAND, but
+>> it needs to be set to MLO_AN_PHY, so that only the phy determines the
+>> link state:
+>>
+>> phylink_resolve() {
+>>     ...
+>> 	} else if (pl->act_link_an_mode == MLO_AN_PHY) {
+>> 		link_state = pl->phy_state;
+>>     ...
+>> }
+> 
+> phylink tries to determine the whole chain is up. As Russell says, it
+> could be the PCS has not got sync with the PHY for some reason. So
+> even if you ignore the PCS state, it might not work. This is actually
+> a useful pieces of information. Does the link actually work end to end
+> if you only look at the media state? If it does, that would indicate
+> the PCS is maybe missing an interrupt, or needs polling for change in
+> state.
+> 
+> 	Andrew
 
-	Andrew
+After phylink_mac_initial_config() is re-triggered with the phy
+attached, either by the patch, or even with:
+
+ethtool -s eth1 advertise 0x28
+(switches to sgmii)
+ethtool -s eth1 advertise 0x800000000028
+(switches mac back to 2500base-x)
+
+mode is set to MLO_AN_PHY in phylink_pcs_neg_mode() and the link works
+end to end.
+
+So the an-mode can be 2 different values, one after link up and another
+after these ethtool commands.
+
