@@ -1,63 +1,63 @@
-Received: from mail-ej1-f49.google.com (mail-ej1-f49.google.com [209.85.218.49])
+Received: from mail-ed1-f41.google.com (mail-ed1-f41.google.com [209.85.208.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 615F11E3DC6;
-	Tue,  7 Jan 2025 09:06:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3B891E378C;
+	Tue,  7 Jan 2025 09:06:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736240770; cv=none; b=eDDJ+czmzcv04ku/xeZIRF2w8clsegBzvk7YoDh3aAt1E/UZTG5Ogkkh0cDfU3pyJRNbMQiSr8L2bCB1Gb4TFbXQjgs9/tEemlA95L4WMndG8v5QAL4VAiSx5uAlXfXgVGwSgYkInlDBq99qVCGSgsVz6X6j0ePlKCl1v3NlQDw=
+	t=1736240771; cv=none; b=g/18M6XZdZWXPTYz7J3PYtlCmuiLmORLE4UWHeaE5tPsVn+sdzvX2EUb51dljGpPA7Qma+xEWMd0vw1C9fGLOht5kL87vWvPUZosUd8bBLb/lpXQdbJ/tSJPWAGmR3Ffcs3ilz2hdC8aMnQgoum+vHZVmVRVDwqoGGyc4rfkRLU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736240770; c=relaxed/simple;
-	bh=mCdJorupZbFaQ3ucEHtHHKn4v/RNMnVY9IhyUnZPOss=;
+	s=arc-20240116; t=1736240771; c=relaxed/simple;
+	bh=EiUlqjqcyycmVQh/cReUaNfMFD5MK6JvPeuoOO/UWjE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=IR9FeRwH70Z6elSBTVwRJ3EOjIhysKXU4JNCk7/hGMPM+0GbuMl6t8eUTgl0WhoRBlXORNewGAMs031MX2tyhKalzWtwA14JHLlSKpdXfP9CWl2jtyx3KfvivU6AKNZvzWRbyxx6L1IktNANl/KLaipbvz5A3UW4AFSkLZmkH20=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=dHs5HuCv; arc=none smtp.client-ip=209.85.218.49
+	 MIME-Version; b=BIKC9xoNZ6SrQsI4vyg6WO8QecJbJHvHnP403f65uDQWbyHOGwstrxU3/DURATGVG4iY3a1rxZWKpIVORAsbuOKuW/mZ2olGdrgkqq1IV3Xry6D2xlOdEH3dH9N7QsyeBaw35idTFCFEOAhf9ED9K9H55Ft+FYohKNgOdsrAbO8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=bciSA5Vf; arc=none smtp.client-ip=209.85.208.41
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dHs5HuCv"
-Received: by mail-ej1-f49.google.com with SMTP id a640c23a62f3a-aa67333f7d2so2236011266b.0;
-        Tue, 07 Jan 2025 01:06:08 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bciSA5Vf"
+Received: by mail-ed1-f41.google.com with SMTP id 4fb4d7f45d1cf-5d647d5df90so11559608a12.2;
+        Tue, 07 Jan 2025 01:06:05 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1736240767; x=1736845567; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1736240764; x=1736845564; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=inK7YfAKbOx/gvsqH8JrlXFRxeSCmPFOnUoO4T3PkD0=;
-        b=dHs5HuCv8s7JFD9zVnl1qkcGjiO0Ks0z2sT/M5EAFcBXt3KqdUk3I8l2lpGJ9Xd2mx
-         WwcU0Npu/pXN9Fbjd0c+uupK19vjUJ3nzXQI7+cxbnNxtFql1xzZcTOTh6Ic7q7DXt9b
-         3H+avUaSClXMUmaU8NBLAsBakUZOy2qEppANgtZpzrzQOEJ9TKSBKOj/OSzdTkDqAu4a
-         di63NxqtauK47iqLa0wUoN/PRrREf6aLjviM5OOkMLU9icVm00nyTlzqMmQ+mjaDfrHc
-         +kr0j+8w8ZesSvukQ4rrqhAcohU5XSa7IUwdMoh1NyhTeQwbt30ZetizvPHd7X7P1ISP
-         qIVQ==
+        bh=k+WwlYEDG0HLvBd8VAnV5F5MIiHlMD5bJhzWof6nBUU=;
+        b=bciSA5Vf8OmUTv3Slz/gpPSUzrgzGdfrh7SaF1ZXAymjOepaRL/u9R2zTzZcKDcmH5
+         MkXm8eSxaU60rj48QJQQNHfbJMTObp9WwKaVlqNUa2ImuuXzNkKsFM+adVZgLHtLWOxn
+         UMp6RzKpT57giI/lfY/hoKV2e6ZsG2BxdyEWziePqtCAL78gmIdP2ePve9/rGg7JWkyw
+         4iQJLulwf3RLqdi02YAWXDQKqyqche00wg9FHotMlwe0f2JJ5a5pOMG7vFXhWdRZZP/Z
+         E1JXnJaSQ2I4lwwYAmIPH0F+yilKKGYZQnB1gHZN9pyhgkqsptnCAuuleVmN+y2H4Z4i
+         N1Cw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1736240767; x=1736845567;
+        d=1e100.net; s=20230601; t=1736240764; x=1736845564;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=inK7YfAKbOx/gvsqH8JrlXFRxeSCmPFOnUoO4T3PkD0=;
-        b=Ne3JpDKNEG+5eXn1EpWeeUjgeRe694FHm/McSiImRjx0XDdO5cMaBA++oy5DvJtqWy
-         Hd3Vz2Z2bwe+mjRUJDzjbROr3op6GsSH8XLrVBcMWA+KprbGVM6anNE2sP+AqJQxpvn2
-         roRiWdK6sHLTfvakWO6IHCXf77sRyWRw0KVmp1XvHYIYt2+PhArl8NgYY6O0mUMqT0LF
-         tNIBaEcF0Syv0+kxo9TpbAfTThUmXK1RcDkDTUh7WJTqusyPg3a9lJl/Sy3Rjqf6kENa
-         t5CoVuUE1MT+HwzsOz3LjrOjK9iGD6ECnhRDjbw10MZAQQd2Z2n79Jwz0dHT1Y/faYfx
-         VyxA==
-X-Forwarded-Encrypted: i=1; AJvYcCWm75z7mOAFg8LdvlObk/6WCNHlzDqmR5VNhtlX4KF2blZwVbFhdBNBQ43ja0LTrCAgC15HWEoP/HWRAoc54wNN@vger.kernel.org, AJvYcCXCjsMi6ScHiG+TXrG4MriGGJ3cyrtr0zt70PH3z2DAa654i5HPELSDtSzIW0xw8NArSblZoP1e3r07pWE=@vger.kernel.org
-X-Gm-Message-State: AOJu0YzlZb9d6uvwkioxmtn0cja2h7DGDGYFBdOB2CJT9rBsB6lYtfAd
-	MtwgX5oaSgWzmNLokvMDWcMl2eJwxC0AR3vV1hs8fhbmfMFFySet
-X-Gm-Gg: ASbGncv0yiyHFyJ4whjTuEGFq8JlMnW5KnEEoOo/Mt9XcZI4CmmKWCAjNHI70erxbXv
-	PTfeFYu0/dJOoz0Y2d4hTb+hzA8wB6R4K4SyLSLeCMGn9FnBdAcWryR4ZrSLJKECqSWmz7ytOgA
-	cLBbGP1OO5BB2+loVGnArCNeANy2fbExa9azqfJklO5Z1h1TwSvZ1lf3NqjJQuKqAgRN0YA02GX
-	qoDVzKEsXs9E3YpzwD6HcbM+S3+DoeSswjWYs+aGZ9Sr7v2pRQJHKQiZxD8ddGz8eX3chcyz8Wx
-	qGOY3LCb2sgoUWewjN+UoAF82kuuTRoYsvtGr3JRqg5iM8UQVKbZlz/Ku+64nhDGTC/R0N0Uog=
+        bh=k+WwlYEDG0HLvBd8VAnV5F5MIiHlMD5bJhzWof6nBUU=;
+        b=fCcujFkdytMtpdcPwzam9588FC4hA2SKO/+aUrrAv6RvSxMq8Rm1KruxkOK+6YcBP2
+         m94m2To4/I+rcuHTAcO3FIo7IKww38q6R01FUpj4S7U9EIBrv7dITzYEpFgmFyvU3xQV
+         1X/5Cl9ia2g0bK2cZWmrtW+r8SY3EE7lM7/XcfIkGlkaYWU7JSd/cF1Z004u3gXACfgV
+         ckSRvfiWsJwZ4ZuMYwHZpVSnATeFqyt5Blt3+wjiCRCIf8ahNTxmrZG/BWsDasAcdOAK
+         gk/oBsPQA4G/WppU85NJe+eVBpfPbUG/yixCYJRyNXbG9SyvHNVUOfU0uaqU9HKw+H2j
+         JMYQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVhExsB70lDHJiozNDS0tO+XR1DDg2XNduGuatEjxHxYvaPtDZsg5hXK3PEevZit31p9uvWkXtu7qh5BL80xyzY@vger.kernel.org, AJvYcCWoRti1W8+IANtmPl7K8WUC8WgXqB67Lbjw7WLiUvB9kF7at3aPTUfzP7Hxz8OEASkInQ4l3KE+B80XeRA=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxXkKvCweOtsq8yQhwlPu8hEJONv0OdKVljfHBmPPIb2HbaGV7e
+	50j2M38/fm/Yr73S06JK89Xns9IDQPihKRlCix2vBrj42+RpytbR
+X-Gm-Gg: ASbGncu2LDA8HH22svaQnWClYRX1Bz5MxQQpfn3q+YZ93yjaFlWIU9ubROYKiIhH8AY
+	qYkwsbm3f3eMLDztuuc1eeWgkDjH8buEDoc7IfHWi0MA7+DFd+xqo6+kIL7C0U6M96fdB6g1W9X
+	uXY0dyrdVZc+LFm1CihqZDeBDw2V2wOReYiWJvqHajM2izo07piQ393ZpQXqxEd63gJgogi5eMx
+	TXx+kFdD5Ksk8HtgMthrBo+cu+9g+3KwCeqouC9ZuokZvpZ8DOQEDoaZmloCkzr5+sATZ3hUAI1
+	YJkIMSo0N/YW/qqtwOsH4CHxVwD68wvw3PSSX5fYlDZhgEsAozVvWLF6/XDxBGhZBNgdVkY8HQ=
 	=
-X-Google-Smtp-Source: AGHT+IHrdDy9A9gTXFzVem5TTKGvqrwcwaAGIG1kmAOtqGfBDbimoZPMTBSrG7qD5IXkUnDJ5cWKBA==
-X-Received: by 2002:a17:907:1c1e:b0:aab:9268:2626 with SMTP id a640c23a62f3a-aac2cf5063fmr6251574966b.25.1736240766425;
-        Tue, 07 Jan 2025 01:06:06 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IE84iozQuTG7YLPXSHPMUD1Jp0Hd82dBIjkAMjnqzFh19j2OWr5/GOeKdXGrKNPV87nRB5Drg==
+X-Received: by 2002:a05:6402:524d:b0:5d2:723c:a57e with SMTP id 4fb4d7f45d1cf-5d81ddacfeemr57802207a12.16.1736240763963;
+        Tue, 07 Jan 2025 01:06:03 -0800 (PST)
 Received: from corebook.localdomain (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-5d80676f3f9sm24005333a12.23.2025.01.07.01.06.05
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-5d80676f3f9sm24005333a12.23.2025.01.07.01.06.02
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 07 Jan 2025 01:06:05 -0800 (PST)
+        Tue, 07 Jan 2025 01:06:03 -0800 (PST)
 From: Eric Woudstra <ericwouds@gmail.com>
 To: "David S. Miller" <davem@davemloft.net>,
 	Eric Dumazet <edumazet@google.com>,
@@ -89,9 +89,9 @@ Cc: netdev@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org,
 	linux-mediatek@lists.infradead.org,
 	Eric Woudstra <ericwouds@gmail.com>
-Subject: [PATCH v4 net-next 04/13] bridge: Add filling forward path from port to port
-Date: Tue,  7 Jan 2025 10:05:21 +0100
-Message-ID: <20250107090530.5035-5-ericwouds@gmail.com>
+Subject: [PATCH v4 net-next 02/13] netfilter: bridge: Add conntrack double vlan and pppoe
+Date: Tue,  7 Jan 2025 10:05:19 +0100
+Message-ID: <20250107090530.5035-3-ericwouds@gmail.com>
 X-Mailer: git-send-email 2.47.1
 In-Reply-To: <20250107090530.5035-1-ericwouds@gmail.com>
 References: <20250107090530.5035-1-ericwouds@gmail.com>
@@ -103,100 +103,150 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-If a port is passed as argument instead of the master, then:
-
-At br_fill_forward_path(): find the master and use it to fill the
-forward path.
-
-At br_vlan_fill_forward_path_pvid(): lookup vlan group from port
-instead.
+This adds the capability to conntrack 802.1ad, QinQ, PPPoE and PPPoE-in-Q
+packets that are passing a bridge.
 
 Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
 ---
- net/bridge/br_device.c  | 19 ++++++++++++++-----
- net/bridge/br_private.h |  2 ++
- net/bridge/br_vlan.c    |  6 +++++-
- 3 files changed, 21 insertions(+), 6 deletions(-)
+ net/bridge/netfilter/nf_conntrack_bridge.c | 88 ++++++++++++++++++----
+ 1 file changed, 75 insertions(+), 13 deletions(-)
 
-diff --git a/net/bridge/br_device.c b/net/bridge/br_device.c
-index 0ab4613aa07a..c7646afc8b96 100644
---- a/net/bridge/br_device.c
-+++ b/net/bridge/br_device.c
-@@ -383,16 +383,25 @@ static int br_del_slave(struct net_device *dev, struct net_device *slave_dev)
- static int br_fill_forward_path(struct net_device_path_ctx *ctx,
- 				struct net_device_path *path)
+diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
+index 816bb0fde718..31e2bcd71735 100644
+--- a/net/bridge/netfilter/nf_conntrack_bridge.c
++++ b/net/bridge/netfilter/nf_conntrack_bridge.c
+@@ -241,56 +241,118 @@ static unsigned int nf_ct_bridge_pre(void *priv, struct sk_buff *skb,
+ 				     const struct nf_hook_state *state)
  {
-+	struct net_bridge_port *src, *dst;
- 	struct net_bridge_fdb_entry *f;
--	struct net_bridge_port *dst;
- 	struct net_bridge *br;
+ 	struct nf_hook_state bridge_state = *state;
++	__be16 outer_proto, inner_proto;
+ 	enum ip_conntrack_info ctinfo;
++	int ret, offset = 0;
+ 	struct nf_conn *ct;
+-	u32 len;
+-	int ret;
++	u32 len, data_len;
  
--	if (netif_is_bridge_port(ctx->dev))
--		return -1;
-+	if (netif_is_bridge_port(ctx->dev)) {
-+		struct net_device *br_dev;
+ 	ct = nf_ct_get(skb, &ctinfo);
+ 	if ((ct && !nf_ct_is_template(ct)) ||
+ 	    ctinfo == IP_CT_UNTRACKED)
+ 		return NF_ACCEPT;
+ 
++	switch (skb->protocol) {
++	case htons(ETH_P_PPP_SES): {
++		struct ppp_hdr {
++			struct pppoe_hdr hdr;
++			__be16 proto;
++		} *ph = (struct ppp_hdr *)(skb->data);
 +
-+		br_dev = netdev_master_upper_dev_get_rcu((struct net_device *)ctx->dev);
-+		if (!br_dev)
-+			return -1;
- 
--	br = netdev_priv(ctx->dev);
-+		src = br_port_get_rcu(ctx->dev);
-+		br = netdev_priv(br_dev);
-+	} else {
-+		src = NULL;
-+		br = netdev_priv(ctx->dev);
++		data_len = ntohs(ph->hdr.length) - 2;
++		offset = PPPOE_SES_HLEN;
++		outer_proto = skb->protocol;
++		switch (ph->proto) {
++		case htons(PPP_IP):
++			inner_proto = htons(ETH_P_IP);
++			break;
++		case htons(PPP_IPV6):
++			inner_proto = htons(ETH_P_IPV6);
++			break;
++		default:
++			return NF_ACCEPT;
++		}
++		break;
 +	}
++	case htons(ETH_P_8021Q): {
++		struct vlan_hdr *vhdr = (struct vlan_hdr *)(skb->data);
++
++		data_len = 0xffffffff;
++		offset = VLAN_HLEN;
++		outer_proto = skb->protocol;
++		inner_proto = vhdr->h_vlan_encapsulated_proto;
++		break;
++	}
++	default:
++		data_len = 0xffffffff;
++		break;
++	}
++
++	if (offset) {
++		switch (inner_proto) {
++		case htons(ETH_P_IP):
++		case htons(ETH_P_IPV6):
++			if (!pskb_may_pull(skb, offset))
++				return NF_ACCEPT;
++			skb_pull_rcsum(skb, offset);
++			skb_reset_network_header(skb);
++			skb->protocol = inner_proto;
++			break;
++		default:
++			return NF_ACCEPT;
++		}
++	}
++
++	ret = NF_ACCEPT;
+ 	switch (skb->protocol) {
+ 	case htons(ETH_P_IP):
+ 		if (!pskb_may_pull(skb, sizeof(struct iphdr)))
+-			return NF_ACCEPT;
++			goto do_not_track;
  
--	br_vlan_fill_forward_path_pvid(br, ctx, path);
-+	br_vlan_fill_forward_path_pvid(br, src, ctx, path);
+ 		len = skb_ip_totlen(skb);
++		if (data_len < len)
++			len = data_len;
+ 		if (pskb_trim_rcsum(skb, len))
+-			return NF_ACCEPT;
++			goto do_not_track;
  
- 	f = br_fdb_find_rcu(br, ctx->daddr, path->bridge.vlan_id);
- 	if (!f)
-diff --git a/net/bridge/br_private.h b/net/bridge/br_private.h
-index 29d6ec45cf41..94603c64fb63 100644
---- a/net/bridge/br_private.h
-+++ b/net/bridge/br_private.h
-@@ -1584,6 +1584,7 @@ bool br_vlan_can_enter_range(const struct net_bridge_vlan *v_curr,
- 			     const struct net_bridge_vlan *range_end);
+ 		if (nf_ct_br_ip_check(skb))
+-			return NF_ACCEPT;
++			goto do_not_track;
  
- void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
-+				    struct net_bridge_port *p,
- 				    struct net_device_path_ctx *ctx,
- 				    struct net_device_path *path);
- int br_vlan_fill_forward_path_mode(struct net_bridge *br,
-@@ -1753,6 +1754,7 @@ static inline int nbp_get_num_vlan_infos(struct net_bridge_port *p,
+ 		bridge_state.pf = NFPROTO_IPV4;
+ 		ret = nf_ct_br_defrag4(skb, &bridge_state);
+ 		break;
+ 	case htons(ETH_P_IPV6):
+ 		if (!pskb_may_pull(skb, sizeof(struct ipv6hdr)))
+-			return NF_ACCEPT;
++			goto do_not_track;
+ 
+ 		len = sizeof(struct ipv6hdr) + ntohs(ipv6_hdr(skb)->payload_len);
++		if (data_len < len)
++			len = data_len;
+ 		if (pskb_trim_rcsum(skb, len))
+-			return NF_ACCEPT;
++			goto do_not_track;
+ 
+ 		if (nf_ct_br_ipv6_check(skb))
+-			return NF_ACCEPT;
++			goto do_not_track;
+ 
+ 		bridge_state.pf = NFPROTO_IPV6;
+ 		ret = nf_ct_br_defrag6(skb, &bridge_state);
+ 		break;
+ 	default:
+ 		nf_ct_set(skb, NULL, IP_CT_UNTRACKED);
+-		return NF_ACCEPT;
++		goto do_not_track;
+ 	}
+ 
+-	if (ret != NF_ACCEPT)
+-		return ret;
++	if (ret == NF_ACCEPT)
++		ret = nf_conntrack_in(skb, &bridge_state);
+ 
+-	return nf_conntrack_in(skb, &bridge_state);
++do_not_track:
++	if (offset) {
++		skb_push_rcsum(skb, offset);
++		skb_reset_network_header(skb);
++		skb->protocol = outer_proto;
++	}
++	return ret;
  }
- 
- static inline void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
-+						  struct net_bridge_port *p,
- 						  struct net_device_path_ctx *ctx,
- 						  struct net_device_path *path)
+-
+ static unsigned int nf_ct_bridge_in(void *priv, struct sk_buff *skb,
+ 				    const struct nf_hook_state *state)
  {
-diff --git a/net/bridge/br_vlan.c b/net/bridge/br_vlan.c
-index d9a69ec9affe..07dae3655c26 100644
---- a/net/bridge/br_vlan.c
-+++ b/net/bridge/br_vlan.c
-@@ -1441,6 +1441,7 @@ int br_vlan_get_pvid_rcu(const struct net_device *dev, u16 *p_pvid)
- EXPORT_SYMBOL_GPL(br_vlan_get_pvid_rcu);
- 
- void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
-+				    struct net_bridge_port *p,
- 				    struct net_device_path_ctx *ctx,
- 				    struct net_device_path *path)
- {
-@@ -1453,7 +1454,10 @@ void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
- 	if (!br_opt_get(br, BROPT_VLAN_ENABLED))
- 		return;
- 
--	vg = br_vlan_group(br);
-+	if (p)
-+		vg = nbp_vlan_group(p);
-+	else
-+		vg = br_vlan_group(br);
- 
- 	if (idx >= 0 &&
- 	    ctx->vlan[idx].proto == br->vlan_proto) {
 -- 
 2.47.1
 
