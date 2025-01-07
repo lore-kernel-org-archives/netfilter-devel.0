@@ -1,29 +1,29 @@
-Received: from smtp-out.freemail.hu (fmfe36.freemail.hu [46.107.16.241])
+Received: from smtp-out.freemail.hu (fmfe15.freemail.hu [46.107.16.208])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24A561802AB;
-	Tue,  7 Jan 2025 21:49:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.107.16.241
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F059D56446;
+	Tue,  7 Jan 2025 21:59:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.107.16.208
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736286572; cv=none; b=jtrEwpwPR1dJJ/LZM15JMYiTEeRaTvluXAuMNcX1OcW4kGQOS22cQWzdgVBG9bQZNNmsnkkxnFJ46HrdqIHEuMXSfZL8N1BaOX8rLvhp2GzHLaSB8rTh5VLeFMmUfQPa1SReRi0Bb5AcPGvT6Gu8dp17QcitToplAkZyFPbjnQI=
+	t=1736287197; cv=none; b=ArbRGYdMZZmDPLSRI805ZRR6qw50ZODY9QmKe6IXHo/W6wp5XsltYfuGA4B6TbOrDV/3yodIstjDKb0KAfLsds1ckQ5+A8CZCH858rqRxTUztBiG/7WHZAuCt1Os8oC1VIkdyi8+wU9rQ4NfVMFEgJ8ZBHb5svLJMcCPyL/mZQg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736286572; c=relaxed/simple;
-	bh=UjzaIZ9cNSABdz4+5geIRAI88q3X1A9hZD0GHn07TYo=;
+	s=arc-20240116; t=1736287197; c=relaxed/simple;
+	bh=dc40KGz2+BKXHaPIXS+D4NSqJ/SIbOZaJoFnr08iHFc=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=FZDpixufaLG0vhvsuWoGGtk34ptzuho4Ve+Geqkl+Ch0kFJwg4tUOQXre7tOR+G76wdzn+FzNiWNT7r/mnr5miZe05lb1RWk8BfhrdUxbFcu7dAAiGFLpPfH79jeVc3zQq9AkIVVNosla+DCe1/mYICYYPhKp/NiH83s7uvTu/4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freemail.hu; spf=pass smtp.mailfrom=freemail.hu; dkim=fail (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b=kUhQYXtH reason="signature verification failed"; arc=none smtp.client-ip=46.107.16.241
+	 In-Reply-To:Content-Type; b=AS/wQvE92kMbWh9HI4QQ/3NyEdkN+UI1isQRrZot2+XhELsjgUHEuSjn/qFezQtZu0FkPqrSbj3URcqTJh5wiPinTj8m7WfDTVeU95/v5/MSzGS6YnUNK/V1bq6a4D6UfhLZDYRmIKfO8EaAILSyiMD4wXwyLScgpznScr3c0Lk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freemail.hu; spf=pass smtp.mailfrom=freemail.hu; dkim=fail (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b=dgzt+tIn reason="signature verification failed"; arc=none smtp.client-ip=46.107.16.208
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freemail.hu
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=freemail.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b="kUhQYXtH"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b="dgzt+tIn"
 Received: from [192.168.0.16] (catv-178-48-208-49.catv.fixed.vodafone.hu [178.48.208.49])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.freemail.hu (Postfix) with ESMTPSA id 4YSPp75QqpzhfK;
-	Tue, 07 Jan 2025 22:49:19 +0100 (CET)
-Message-ID: <f53d51a9-e6d6-4376-8601-420ac756b7af@freemail.hu>
-Date: Tue, 7 Jan 2025 22:48:55 +0100
+	by smtp.freemail.hu (Postfix) with ESMTPSA id 4YSQ2B0c22ztyZ;
+	Tue, 07 Jan 2025 22:59:46 +0100 (CET)
+Message-ID: <4cf2e26b-2727-4b50-9ada-56a6be814dca@freemail.hu>
+Date: Tue, 7 Jan 2025 22:59:21 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,7 +31,8 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 05/10] netfilter: iptables: Merge ipt_ECN.h to ipt_ecn.h
+Subject: Re: [PATCH 08/10] netfilter: Adjust code style of xt_*.h, ipt_*.h
+ files.
 To: Jozsef Kadlecsik <kadlec@netfilter.org>
 Cc: fw@strlen.de, pablo@netfilter.org, lorenzo@kernel.org,
  daniel@iogearbox.net, leitao@debian.org, amiculas@cisco.com,
@@ -40,151 +41,166 @@ Cc: fw@strlen.de, pablo@netfilter.org, lorenzo@kernel.org,
  netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
  linux-kernel@vger.kernel.org, netdev@vger.kernel.org
 References: <20250107024120.98288-1-egyszeregy@freemail.hu>
- <20250107024120.98288-6-egyszeregy@freemail.hu>
- <eb46258b-0fb2-c0be-f1aa-79497f3dc536@netfilter.org>
+ <20250107024120.98288-9-egyszeregy@freemail.hu>
+ <2962ec51-4d32-76d9-4229-99001a437963@netfilter.org>
 Content-Language: hu
 From: =?UTF-8?Q?Sz=C5=91ke_Benjamin?= <egyszeregy@freemail.hu>
-In-Reply-To: <eb46258b-0fb2-c0be-f1aa-79497f3dc536@netfilter.org>
+In-Reply-To: <2962ec51-4d32-76d9-4229-99001a437963@netfilter.org>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=simple/relaxed; t=1736286560;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=simple/relaxed; t=1736287187;
 	s=20181004; d=freemail.hu;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	l=4406; bh=tNUCdlivEY1+/Xn3yNuxvZQNlQe57yfHUbtboowh3HQ=;
-	b=kUhQYXtHJW2eoyg0qiLXV+cb/q3wQKWe3tYkgQv92H1mCQ4lHjrDPp3+RRdKkIXn
-	sk4Ji5IdcLRH7A/zlfROIqO33PCz5fGeN0uNYfjDC2W/3ZIFcipUxeboCmpxE/gB8TU
-	/e7mGVG1fitPU33aCNhX5h3UMkvHAdomPbWZAdk+0NzBFgdMoiul1JCsnKm6vnY0yZR
-	fDdnU7X3AgB5DPDfX3xGluIKdyKtpFcLF6TLQE9lL7vKR9oIsreTkgRGOomVdcvic7i
-	miccOaNFACbfkAUo2yNSU7UywreZaJEDL9eq1uLfAEglmlj3RlJbemq1TOXjw5ngLCS
-	hZBuGhWziw==
+	l=4921; bh=qnv/wkuXnqbCCoZz65HUSrHvJsowhLcrOJUzEb67MSg=;
+	b=dgzt+tInkTT0uzLT58xd+Uif/7nXiOtKuAP7OUkT26wLglhm26ze4DbGI2L9wXK2
+	kd3/iLxJYpatH3Zf89LFGLVZzGCJct5jy85QOzin5WeWgMiwfUvhM6PuAs6C7ULO/6b
+	z8NNyt1WkvJzlD9jlMfclLAgOIs3D/0dVTG9o5HzsQzF5zGv5ogZ7FiUaXVmtYRvXq5
+	T5j/RBpz9o5U9/GTHaRExcAEje+8ZhIC/g3dnPI/JdtJv51dK7sBFyqCemOKDoHcdsp
+	MAtO7K4716LCYT1gKHct0BQpumFvrpO+uEhDM4RgFECoSmDG0HHcXNUsasZzfh+XTj3
+	GIZcZ8ec1A==
 
-2025. 01. 07. 20:26 keltezéssel, Jozsef Kadlecsik írta:
+2025. 01. 07. 20:39 keltezéssel, Jozsef Kadlecsik írta:
 > On Tue, 7 Jan 2025, egyszeregy@freemail.hu wrote:
 > 
 >> From: Benjamin Szőke <egyszeregy@freemail.hu>
 >>
->> Merge ipt_ECN.h to ipt_ecn.h header file.
->>
+>> - Adjust tab indents
+>> - Fix format of #define macros
+> 
+> I don't really understand why it'd be important to use parentheses around
+> plain constant values in macros. The kernel coding style does not list it
+> as a requirement, see 12) 4. in Documentation/process/coding-style.rst.
+> 
+
+If it would be more than just a const value, parentheses is a must have thing 
+for it (now for it, it is not critical to have it but better to get used to 
+this). This is how my hand automatically do it, to avoid the syntax problem in 
+this coding.
+
+> Best regards,
+> Jozsef
+>   
 >> Signed-off-by: Benjamin Szőke <egyszeregy@freemail.hu>
 >> ---
->>   include/uapi/linux/netfilter_ipv4/ipt_ECN.h | 29 +--------------------
->>   include/uapi/linux/netfilter_ipv4/ipt_ecn.h | 26 ++++++++++++++++++
->>   2 files changed, 27 insertions(+), 28 deletions(-)
+>>   include/uapi/linux/netfilter/xt_dscp.h      | 6 +++---
+>>   include/uapi/linux/netfilter/xt_rateest.h   | 4 ++--
+>>   include/uapi/linux/netfilter/xt_tcpmss.h    | 6 +++---
+>>   include/uapi/linux/netfilter_ipv4/ipt_ecn.h | 8 ++++----
+>>   include/uapi/linux/netfilter_ipv4/ipt_ttl.h | 3 +--
+>>   include/uapi/linux/netfilter_ipv6/ip6t_hl.h | 3 +--
+>>   6 files changed, 14 insertions(+), 16 deletions(-)
 >>
->> diff --git a/include/uapi/linux/netfilter_ipv4/ipt_ECN.h b/include/uapi/linux/netfilter_ipv4/ipt_ECN.h
->> index e3630fd045b8..6727f5a44512 100644
->> --- a/include/uapi/linux/netfilter_ipv4/ipt_ECN.h
->> +++ b/include/uapi/linux/netfilter_ipv4/ipt_ECN.h
->> @@ -1,34 +1,7 @@
->>   /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
->> -/* Header file for iptables ipt_ECN target
->> - *
->> - * (C) 2002 by Harald Welte <laforge@gnumonks.org>
->> - *
->> - * This software is distributed under GNU GPL v2, 1991
->> - *
->> - * ipt_ECN.h,v 1.3 2002/05/29 12:17:40 laforge Exp
->> -*/
->>   #ifndef _IPT_ECN_TARGET_H
->>   #define _IPT_ECN_TARGET_H
+>> diff --git a/include/uapi/linux/netfilter/xt_dscp.h b/include/uapi/linux/netfilter/xt_dscp.h
+>> index bcfe4afa6351..22b6488ef2e7 100644
+>> --- a/include/uapi/linux/netfilter/xt_dscp.h
+>> +++ b/include/uapi/linux/netfilter/xt_dscp.h
+>> @@ -15,9 +15,9 @@
 >>   
->> -#include <linux/types.h>
->> -#include <linux/netfilter/xt_DSCP.h>
->> -
->> -#define IPT_ECN_IP_MASK	(~XT_DSCP_MASK)
-> 
-
-If it is not dropped out in the merged header file, it will cause a build error 
-because of the previous bad and duplicated header architects in the UAPI:
-
-In file included from ../net/ipv4/netfilter/ipt_ECN.c:17:
-../include/uapi/linux/netfilter_ipv4/ipt_ecn.h:17:25: error: expected identifier 
-before ‘(’ token
-  #define IPT_ECN_IP_MASK (~XT_DSCP_MASK)
-                          ^
-../include/uapi/linux/netfilter_ipv4/ipt_ecn.h:27:2: note: in expansion of macro 
-‘IPT_ECN_IP_MASK’
-   IPT_ECN_IP_MASK       = XT_ECN_IP_MASK,
-   ^~~~~~~~~~~~~~~
-
-Please spent more time then 10 mins about the reviewing and make some test build 
-and you can see there was a conflict about how mades a fixed constant in the 
-code -> It is a #define vs. enum issue.
-
-Only one style should have been used before, and not mix them.
-
-> The definition above is removed from here but not added to ipt_ecn.h, so
-> it's missing now. Please fix it in the next round of the patchset.
-> 
+>>   #include <linux/types.h>
+>>   
+>> -#define XT_DSCP_MASK	0xfc	/* 11111100 */
+>> -#define XT_DSCP_SHIFT	2
+>> -#define XT_DSCP_MAX	0x3f	/* 00111111 */
+>> +#define XT_DSCP_MASK	(0xfc)	/* 11111100 */
+>> +#define XT_DSCP_SHIFT	(2)
+>> +#define XT_DSCP_MAX		(0x3f)	/* 00111111 */
+>>   
+>>   /* match info */
+>>   struct xt_dscp_info {
+>> diff --git a/include/uapi/linux/netfilter/xt_rateest.h b/include/uapi/linux/netfilter/xt_rateest.h
+>> index da9727fa527b..f719bd501d1a 100644
+>> --- a/include/uapi/linux/netfilter/xt_rateest.h
+>> +++ b/include/uapi/linux/netfilter/xt_rateest.h
+>> @@ -22,8 +22,8 @@ enum xt_rateest_match_mode {
+>>   };
+>>   
+>>   struct xt_rateest_match_info {
+>> -	char			name1[IFNAMSIZ];
+>> -	char			name2[IFNAMSIZ];
+>> +	char		name1[IFNAMSIZ];
+>> +	char		name2[IFNAMSIZ];
+>>   	__u16		flags;
+>>   	__u16		mode;
+>>   	__u32		bps1;
+>> diff --git a/include/uapi/linux/netfilter/xt_tcpmss.h b/include/uapi/linux/netfilter/xt_tcpmss.h
+>> index 3ee4acaa6e03..ad858ae93e6a 100644
+>> --- a/include/uapi/linux/netfilter/xt_tcpmss.h
+>> +++ b/include/uapi/linux/netfilter/xt_tcpmss.h
+>> @@ -4,11 +4,11 @@
+>>   
+>>   #include <linux/types.h>
+>>   
+>> -#define XT_TCPMSS_CLAMP_PMTU	0xffff
+>> +#define XT_TCPMSS_CLAMP_PMTU	(0xffff)
+>>   
+>>   struct xt_tcpmss_match_info {
+>> -    __u16 mss_min, mss_max;
+>> -    __u8 invert;
+>> +	__u16 mss_min, mss_max;
+>> +	__u8 invert;
+>>   };
+>>   
+>>   struct xt_tcpmss_info {
+>> diff --git a/include/uapi/linux/netfilter_ipv4/ipt_ecn.h b/include/uapi/linux/netfilter_ipv4/ipt_ecn.h
+>> index a6d479aece21..0594dd49d13f 100644
+>> --- a/include/uapi/linux/netfilter_ipv4/ipt_ecn.h
+>> +++ b/include/uapi/linux/netfilter_ipv4/ipt_ecn.h
+>> @@ -16,10 +16,10 @@
+>>   
+>>   #define ipt_ecn_info xt_ecn_info
+>>   
 >> -#define IPT_ECN_OP_SET_IP	0x01	/* set ECN bits of IPv4 header */
 >> -#define IPT_ECN_OP_SET_ECE	0x10	/* set ECE bit of TCP header */
 >> -#define IPT_ECN_OP_SET_CWR	0x20	/* set CWR bit of TCP header */
->> -
 >> -#define IPT_ECN_OP_MASK		0xce
->> -
->> -struct ipt_ECN_info {
->> -	__u8 operation;	/* bitset of operations */
->> -	__u8 ip_ect;	/* ECT codepoint of IPv4 header, pre-shifted */
->> -	union {
->> -		struct {
->> -			__u8 ece:1, cwr:1; /* TCP ECT bits */
->> -		} tcp;
->> -	} proto;
->> -};
->> +#include <linux/netfilter_ipv4/ipt_ecn.h>
+>> +#define IPT_ECN_OP_SET_IP	(0x01)	/* set ECN bits of IPv4 header */
+>> +#define IPT_ECN_OP_SET_ECE	(0x10)	/* set ECE bit of TCP header */
+>> +#define IPT_ECN_OP_SET_CWR	(0x20)	/* set CWR bit of TCP header */
+>> +#define IPT_ECN_OP_MASK		(0xce)
 >>   
->>   #endif /* _IPT_ECN_TARGET_H */
->> diff --git a/include/uapi/linux/netfilter_ipv4/ipt_ecn.h b/include/uapi/linux/netfilter_ipv4/ipt_ecn.h
->> index 8121bec47026..a6d479aece21 100644
->> --- a/include/uapi/linux/netfilter_ipv4/ipt_ecn.h
->> +++ b/include/uapi/linux/netfilter_ipv4/ipt_ecn.h
->> @@ -1,10 +1,26 @@
->>   /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
->> +/* Header file for iptables ipt_ECN target and match
->> + *
->> + * (C) 2002 by Harald Welte <laforge@gnumonks.org>
->> + *
->> + * This software is distributed under GNU GPL v2, 1991
->> + *
->> + * ipt_ECN.h,v 1.3 2002/05/29 12:17:40 laforge Exp
->> + */
->>   #ifndef _IPT_ECN_H
->>   #define _IPT_ECN_H
->>   
->> +#include <linux/types.h>
->> +#include <linux/netfilter/xt_dscp.h>
->>   #include <linux/netfilter/xt_ecn.h>
->> +
->>   #define ipt_ecn_info xt_ecn_info
->>   
->> +#define IPT_ECN_OP_SET_IP	0x01	/* set ECN bits of IPv4 header */
->> +#define IPT_ECN_OP_SET_ECE	0x10	/* set ECE bit of TCP header */
->> +#define IPT_ECN_OP_SET_CWR	0x20	/* set CWR bit of TCP header */
->> +#define IPT_ECN_OP_MASK		0xce
->> +
 >>   enum {
 >>   	IPT_ECN_IP_MASK       = XT_ECN_IP_MASK,
->>   	IPT_ECN_OP_MATCH_IP   = XT_ECN_OP_MATCH_IP,
->> @@ -13,4 +29,14 @@ enum {
->>   	IPT_ECN_OP_MATCH_MASK = XT_ECN_OP_MATCH_MASK,
+>> diff --git a/include/uapi/linux/netfilter_ipv4/ipt_ttl.h b/include/uapi/linux/netfilter_ipv4/ipt_ttl.h
+>> index c21eb6651353..15c75a4ba355 100644
+>> --- a/include/uapi/linux/netfilter_ipv4/ipt_ttl.h
+>> +++ b/include/uapi/linux/netfilter_ipv4/ipt_ttl.h
+>> @@ -9,13 +9,12 @@
+>>   #include <linux/types.h>
+>>   
+>>   enum {
+>> -	IPT_TTL_EQ = 0,		/* equals */
+>> +	IPT_TTL_EQ = 0,	/* equals */
+>>   	IPT_TTL_NE,		/* not equals */
+>>   	IPT_TTL_LT,		/* less than */
+>>   	IPT_TTL_GT,		/* greater than */
 >>   };
 >>   
->> +struct ipt_ECN_info {
->> +	__u8 operation;	/* bitset of operations */
->> +	__u8 ip_ect;	/* ECT codepoint of IPv4 header, pre-shifted */
->> +	union {
->> +		struct {
->> +			__u8 ece:1, cwr:1; /* TCP ECT bits */
->> +		} tcp;
->> +	} proto;
->> +};
->> +
->>   #endif /* IPT_ECN_H */
+>> -
+>>   struct ipt_ttl_info {
+>>   	__u8	mode;
+>>   	__u8	ttl;
+>> diff --git a/include/uapi/linux/netfilter_ipv6/ip6t_hl.h b/include/uapi/linux/netfilter_ipv6/ip6t_hl.h
+>> index caef38a63b8f..4af05c86dcd5 100644
+>> --- a/include/uapi/linux/netfilter_ipv6/ip6t_hl.h
+>> +++ b/include/uapi/linux/netfilter_ipv6/ip6t_hl.h
+>> @@ -9,13 +9,12 @@
+>>   #include <linux/types.h>
+>>   
+>>   enum {
+>> -	IP6T_HL_EQ = 0,		/* equals */
+>> +	IP6T_HL_EQ = 0,	/* equals */
+>>   	IP6T_HL_NE,		/* not equals */
+>>   	IP6T_HL_LT,		/* less than */
+>>   	IP6T_HL_GT,		/* greater than */
+>>   };
+>>   
+>> -
+>>   struct ip6t_hl_info {
+>>   	__u8	mode;
+>>   	__u8	hop_limit;
 >> -- 
 >> 2.43.5
 >>
 >>
 > 
-> Best regards,
-> Jozsef
 
