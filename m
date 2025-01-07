@@ -1,27 +1,27 @@
 Received: from smtp-out.freemail.hu (fmfe19.freemail.hu [46.107.16.212])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7829E188583;
-	Tue,  7 Jan 2025 02:42:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84FBC13635B;
+	Tue,  7 Jan 2025 02:42:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.107.16.212
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736217772; cv=none; b=LQggRtucl0Sj7x787eoREvg/owgj1d62Fv2b50W5wfsUkAnT+xYsx1RT5bLdZdEEPyonZaEt7dHHlnBdVtWDRy2u/de7TnhuptVzETr0+DQ2EU+R6Tw2CJBNAXNiBlAD8CiTVzifcQBps5ZPUrpZRKp9TcNaznoq/JIc62TCpoM=
+	t=1736217779; cv=none; b=q29hYCZF92ejhVMFMBc2mxpJ64mGg4S7Wwqcdk9WyiaiGzHuzJTHCon0WW9n74gOz9uMhKSZ2sTBVr2Cs6cclXhtl8ssZickYo1slepTr22eluSvonbbKQ1W6ZJaSW7arB5LQtEWcsPkw3Bfs4CWJ4DLPPiR8st6Cu2fWWFIs10=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736217772; c=relaxed/simple;
-	bh=5KbVOLIEhppSl9eTrCGfOcx2MwanYCgoXHn2E4PjB04=;
+	s=arc-20240116; t=1736217779; c=relaxed/simple;
+	bh=6o+fzAHkRfrjDzPuDP3xQU2KnPQomA+aJMk6e9jB75s=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=umnx1Z/GgpB5Y6vvobjUpTLckODfuPfvQQrz7DQk5wFFnGMKIGS2nK0CUOWHMHpMT4M3uGnKJejvrrAzW8PKCvoza9KrDhbxG+MOZpS7ouxKqpT1A5RbjhSu/ub/i/dHhyjRW2dt3t/cKL4P+2xzKmVYsC7ELz1mD+0n/A0l44g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freemail.hu; spf=pass smtp.mailfrom=freemail.hu; dkim=fail (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b=BVJX+AJt reason="signature verification failed"; arc=none smtp.client-ip=46.107.16.212
+	 MIME-Version:Content-Type; b=dzVJYfKnVlV37neUkQtB2nUFywJGpQzvf5Vf9qZwlriVJLzqTxLTQbF2Pfb9nATRGlT3OjPj/gubLWoMfXJSbmWN8jsKEKRcwC0XO2VKy3jmCa+szi3vjbkLVGJgRrTQXNvPg2WuTK0pfUo27cLz8QDf1OMbzkH6tVq+ilMld5k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freemail.hu; spf=pass smtp.mailfrom=freemail.hu; dkim=fail (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b=HYPrLA3U reason="signature verification failed"; arc=none smtp.client-ip=46.107.16.212
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freemail.hu
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=freemail.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b="BVJX+AJt"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b="HYPrLA3U"
 Received: from fizweb.elte.hu (fizweb.elte.hu [157.181.183.248])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.freemail.hu (Postfix) with ESMTPSA id 4YRwM86c04zSyj;
-	Tue, 07 Jan 2025 03:42:44 +0100 (CET)
+	by smtp.freemail.hu (Postfix) with ESMTPSA id 4YRwMJ45gmzWwl;
+	Tue, 07 Jan 2025 03:42:52 +0100 (CET)
 From: egyszeregy@freemail.hu
 To: fw@strlen.de,
 	pablo@netfilter.org,
@@ -41,9 +41,9 @@ To: fw@strlen.de,
 	linux-kernel@vger.kernel.org,
 	netdev@vger.kernel.org
 Cc: =?UTF-8?q?Benjamin=20Sz=C5=91ke?= <egyszeregy@freemail.hu>
-Subject: [PATCH 05/10] netfilter: iptables: Merge ipt_ECN.h to ipt_ecn.h
-Date: Tue,  7 Jan 2025 03:41:15 +0100
-Message-ID: <20250107024120.98288-6-egyszeregy@freemail.hu>
+Subject: [PATCH 06/10] netfilter: iptables: Merge ipt_TTL.h to ipt_ttl.h
+Date: Tue,  7 Jan 2025 03:41:16 +0100
+Message-ID: <20250107024120.98288-7-egyszeregy@freemail.hu>
 X-Mailer: git-send-email 2.43.5
 In-Reply-To: <20250107024120.98288-1-egyszeregy@freemail.hu>
 References: <20250107024120.98288-1-egyszeregy@freemail.hu>
@@ -55,113 +55,95 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=simple/relaxed; t=1736217765;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=simple/relaxed; t=1736217773;
 	s=20181004; d=freemail.hu;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:MIME-Version:Content-Type:Content-Transfer-Encoding;
-	l=3050; bh=GSA2733TurAqCiFq9AeYa0+zYNzqBVCgCF/412Y5ptk=;
-	b=BVJX+AJtUOXfZXT8bkWXZSYr/dJOq0d1l4/hT5v9GHOVBa52aW9q7dPgRVaM9LX7
-	PjM+WK66eoMTj4vgqpMn6fEIYpyVcPvXm7auQ4YxrW0hB1wYpqnhwm7hxcq8vzxZ2N2
-	pxoAdlY2up9phbh3RF851lsbI4uQxlIv92oKOsiRxZ8IwfGKH2mx+ZtxSDfUrW/AdAC
-	CO3iuSmwuk9f3WyGuaLhAauhoDXQbkWjBYk4OsYFhyupaXAbVinE9i+b0nRR5xJOgss
-	kvOWcxOvwrJ/rzexDTgvTQe74rnvF6SaIaesCLPKPgklnW+dXKMtQUAK/yJmQwhT1cb
-	XeQgNCXYCg==
+	l=2105; bh=nUYN7A4x2UMF+ZwW0f7oaG/E4oRt0yQxOAXub0eMVWs=;
+	b=HYPrLA3U8Rbyw9o5j+TLz09Ahs922/rJmlZ7YIM/uqyo/673h5rviJIyqLufua6g
+	J4TB6ySKuMDBtvghshNIVUrQqtmk8Cwfk4TB5qZGTo2KAdaH5flUIdC2HHEX9dbh7ph
+	ErpmGBP7gKrGMKncHuhh2fWpDbbu+XGq5HaOkxzjQYCoH0RAHEZzMpLbB99wHTMappn
+	IJsK84nXG/WfDQFlc4xQm2BOfevqzLPH+R18lcENxSN0NQJgZujzy3mNOq0GPD2PySi
+	jIji+xoQRsk/r1a1Hq79QNVGA9O+mZyYMMLwrXMTPVjBB7QP94gih59rBmquFdBX/7O
+	t/+6qx0c8w==
 
 From: Benjamin Szőke <egyszeregy@freemail.hu>
 
-Merge ipt_ECN.h to ipt_ecn.h header file.
+Merge ipt_TTL.h to ipt_ttl.h header file.
 
 Signed-off-by: Benjamin Szőke <egyszeregy@freemail.hu>
 ---
- include/uapi/linux/netfilter_ipv4/ipt_ECN.h | 29 +--------------------
- include/uapi/linux/netfilter_ipv4/ipt_ecn.h | 26 ++++++++++++++++++
- 2 files changed, 27 insertions(+), 28 deletions(-)
+ include/uapi/linux/netfilter_ipv4/ipt_TTL.h | 25 ++++-----------------
+ include/uapi/linux/netfilter_ipv4/ipt_ttl.h | 21 +++++++++++++----
+ 2 files changed, 21 insertions(+), 25 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter_ipv4/ipt_ECN.h b/include/uapi/linux/netfilter_ipv4/ipt_ECN.h
-index e3630fd045b8..6727f5a44512 100644
---- a/include/uapi/linux/netfilter_ipv4/ipt_ECN.h
-+++ b/include/uapi/linux/netfilter_ipv4/ipt_ECN.h
-@@ -1,34 +1,7 @@
+diff --git a/include/uapi/linux/netfilter_ipv4/ipt_TTL.h b/include/uapi/linux/netfilter_ipv4/ipt_TTL.h
+index 57d2fc67a943..5d989199ed28 100644
+--- a/include/uapi/linux/netfilter_ipv4/ipt_TTL.h
++++ b/include/uapi/linux/netfilter_ipv4/ipt_TTL.h
+@@ -1,24 +1,7 @@
  /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
--/* Header file for iptables ipt_ECN target
-- *
-- * (C) 2002 by Harald Welte <laforge@gnumonks.org>
-- *
-- * This software is distributed under GNU GPL v2, 1991
-- * 
-- * ipt_ECN.h,v 1.3 2002/05/29 12:17:40 laforge Exp
--*/
- #ifndef _IPT_ECN_TARGET_H
- #define _IPT_ECN_TARGET_H
+-/* TTL modification module for IP tables
+- * (C) 2000 by Harald Welte <laforge@netfilter.org> */
++#ifndef _IPT_TTL_TARGET_H
++#define _IPT_TTL_TARGET_H
+ 
+-#ifndef _IPT_TTL_H
+-#define _IPT_TTL_H
++#include <linux/netfilter_ipv4/ipt_ttl.h>
  
 -#include <linux/types.h>
--#include <linux/netfilter/xt_DSCP.h>
 -
--#define IPT_ECN_IP_MASK	(~XT_DSCP_MASK)
--
--#define IPT_ECN_OP_SET_IP	0x01	/* set ECN bits of IPv4 header */
--#define IPT_ECN_OP_SET_ECE	0x10	/* set ECE bit of TCP header */
--#define IPT_ECN_OP_SET_CWR	0x20	/* set CWR bit of TCP header */
--
--#define IPT_ECN_OP_MASK		0xce
--
--struct ipt_ECN_info {
--	__u8 operation;	/* bitset of operations */
--	__u8 ip_ect;	/* ECT codepoint of IPv4 header, pre-shifted */
--	union {
--		struct {
--			__u8 ece:1, cwr:1; /* TCP ECT bits */
--		} tcp;
--	} proto;
+-enum {
+-	IPT_TTL_SET = 0,
+-	IPT_TTL_INC,
+-	IPT_TTL_DEC
 -};
-+#include <linux/netfilter_ipv4/ipt_ecn.h>
- 
- #endif /* _IPT_ECN_TARGET_H */
-diff --git a/include/uapi/linux/netfilter_ipv4/ipt_ecn.h b/include/uapi/linux/netfilter_ipv4/ipt_ecn.h
-index 8121bec47026..a6d479aece21 100644
---- a/include/uapi/linux/netfilter_ipv4/ipt_ecn.h
-+++ b/include/uapi/linux/netfilter_ipv4/ipt_ecn.h
-@@ -1,10 +1,26 @@
+-
+-#define IPT_TTL_MAXMODE	IPT_TTL_DEC
+-
+-struct ipt_TTL_info {
+-	__u8	mode;
+-	__u8	ttl;
+-};
+-
+-
+-#endif
++#endif /* _IPT_TTL_TARGET_H */
+diff --git a/include/uapi/linux/netfilter_ipv4/ipt_ttl.h b/include/uapi/linux/netfilter_ipv4/ipt_ttl.h
+index ad0226a8629b..c21eb6651353 100644
+--- a/include/uapi/linux/netfilter_ipv4/ipt_ttl.h
++++ b/include/uapi/linux/netfilter_ipv4/ipt_ttl.h
+@@ -1,7 +1,8 @@
  /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
-+/* Header file for iptables ipt_ECN target and match
-+ *
-+ * (C) 2002 by Harald Welte <laforge@gnumonks.org>
-+ *
-+ * This software is distributed under GNU GPL v2, 1991
-+ *
-+ * ipt_ECN.h,v 1.3 2002/05/29 12:17:40 laforge Exp
+-/* IP tables module for matching the value of the TTL
+- * (C) 2000 by Harald Welte <laforge@gnumonks.org> */
+-
++/* iptables module for matching/modifying the TTL value
++ * (C) 2000 by Harald Welte <laforge@gnumonks.org>
++ * (C) 2000 by Harald Welte <laforge@netfilter.org>
 + */
- #ifndef _IPT_ECN_H
- #define _IPT_ECN_H
+ #ifndef _IPT_TTL_H
+ #define _IPT_TTL_H
  
-+#include <linux/types.h>
-+#include <linux/netfilter/xt_dscp.h>
- #include <linux/netfilter/xt_ecn.h>
-+
- #define ipt_ecn_info xt_ecn_info
- 
-+#define IPT_ECN_OP_SET_IP	0x01	/* set ECN bits of IPv4 header */
-+#define IPT_ECN_OP_SET_ECE	0x10	/* set ECE bit of TCP header */
-+#define IPT_ECN_OP_SET_CWR	0x20	/* set CWR bit of TCP header */
-+#define IPT_ECN_OP_MASK		0xce
-+
- enum {
- 	IPT_ECN_IP_MASK       = XT_ECN_IP_MASK,
- 	IPT_ECN_OP_MATCH_IP   = XT_ECN_OP_MATCH_IP,
-@@ -13,4 +29,14 @@ enum {
- 	IPT_ECN_OP_MATCH_MASK = XT_ECN_OP_MATCH_MASK,
+@@ -20,5 +21,17 @@ struct ipt_ttl_info {
+ 	__u8	ttl;
  };
  
-+struct ipt_ECN_info {
-+	__u8 operation;	/* bitset of operations */
-+	__u8 ip_ect;	/* ECT codepoint of IPv4 header, pre-shifted */
-+	union {
-+		struct {
-+			__u8 ece:1, cwr:1; /* TCP ECT bits */
-+		} tcp;
-+	} proto;
++enum {
++	IPT_TTL_SET = 0,
++	IPT_TTL_INC,
++	IPT_TTL_DEC
 +};
 +
- #endif /* IPT_ECN_H */
++#define IPT_TTL_MAXMODE	IPT_TTL_DEC
++
++struct ipt_TTL_info {
++	__u8	mode;
++	__u8	ttl;
++};
+ 
+-#endif
++#endif /* _IPT_TTL_H */
 -- 
 2.43.5
 
