@@ -1,29 +1,29 @@
-Received: from smtp-out.freemail.hu (fmfe17.freemail.hu [46.107.16.210])
+Received: from smtp-out.freemail.hu (fmfe28.freemail.hu [46.107.16.233])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2398C15E8B;
-	Wed,  8 Jan 2025 21:18:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.107.16.210
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12DC6202C58;
+	Wed,  8 Jan 2025 21:39:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.107.16.233
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736371135; cv=none; b=dzCRBlxUC2TQ/1ZX8zlAVh5gccC3Ew7JveVaQRHsAOaUK1jdXmxW6uYFbColO3FYBNcFuGzxvCMb6YYSNzlvw1retpLj68ZijrxIYxMrIE5IywhOGgrH3lo5MW/TK3khSEBhovNBuruoUGO/gLk/SEzbpTxBHKjpJ4b/Bn4OyZY=
+	t=1736372351; cv=none; b=ae1tYb+MdU8t7RiTY+/9K+vWD1a83qj0/BXdneE3AOP6bueKOswLS5Jt2SIJiGOjsFOcGpBvPd4u/8yVsvxBUyT5TjrNOB6F727ijgNzFMI9BNsECda/Qa1uVQMkLuWjIp6gJGWn9uSXd3nypHKj6SpkHPPrMOtmk2AKGa3yDv0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736371135; c=relaxed/simple;
-	bh=XJ+BkLNAiJGNwT8LWDYrGH/GfIxN1GPwJc5rfL/LaiY=;
+	s=arc-20240116; t=1736372351; c=relaxed/simple;
+	bh=msZrxrJ2w2+V2eW8BoxWZCFBMUfeH7jKpq8mo9QvVY8=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Pe2PnZg7iVaSXWM+dmA4tZWMrSJ1fbI8NN3eRmUQXDJ1XJo3+tmucrByU4DlhoYtRsP3bZE49Tk2t3/K8aUngNPVwGM4Oi6Dcw2ANnGFgUZKkUlvbSB2slCSyVS5XjwReEdIzTChRcwZnbUoha/0rZs3+Hu80zchDahGCME1EEo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freemail.hu; spf=pass smtp.mailfrom=freemail.hu; dkim=fail (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b=BDRXmwMV reason="signature verification failed"; arc=none smtp.client-ip=46.107.16.210
+	 In-Reply-To:Content-Type; b=Tg1LuB8F44wt4DxkhzqGKW9U229i5izEq7klsWtg4+/JiDgm0cvfVjHqhjplPRt4Y6jZdHUkjIkUCczpIYevXC7oNyjVp6kzTT8moTGEeLCAlmDjHFP4dRaw49seyRTzcW4PuN9Hktbtq0MGlN92Qj0hYCJUuOQLKVH3ym6p2V0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freemail.hu; spf=pass smtp.mailfrom=freemail.hu; dkim=fail (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b=dVrVHayB reason="signature verification failed"; arc=none smtp.client-ip=46.107.16.233
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freemail.hu
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=freemail.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b="BDRXmwMV"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=freemail.hu header.i=@freemail.hu header.b="dVrVHayB"
 Received: from [192.168.0.16] (catv-178-48-208-49.catv.fixed.vodafone.hu [178.48.208.49])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.freemail.hu (Postfix) with ESMTPSA id 4YT14M4VtSzP6c;
-	Wed, 08 Jan 2025 22:18:43 +0100 (CET)
-Message-ID: <78947796-9eef-4c53-b467-d32a151fcc92@freemail.hu>
-Date: Wed, 8 Jan 2025 22:18:18 +0100
+	by smtp.freemail.hu (Postfix) with ESMTPSA id 4YT1Wm0SJWz166P;
+	Wed, 08 Jan 2025 22:39:00 +0100 (CET)
+Message-ID: <8d25e36a-b598-4b18-896c-d0dcb7233800@freemail.hu>
+Date: Wed, 8 Jan 2025 22:38:34 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,8 +31,8 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 08/10] netfilter: Adjust code style of xt_*.h, ipt_*.h
- files.
+Subject: Re: [PATCH 09/10] netfilter: Add message pragma for deprecated
+ xt_*.h, ipt_*.h.
 To: Jozsef Kadlecsik <kadlec@netfilter.org>
 Cc: fw@strlen.de, pablo@netfilter.org, lorenzo@kernel.org,
  daniel@iogearbox.net, leitao@debian.org, amiculas@cisco.com,
@@ -41,27 +41,27 @@ Cc: fw@strlen.de, pablo@netfilter.org, lorenzo@kernel.org,
  netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
  linux-kernel@vger.kernel.org, netdev@vger.kernel.org
 References: <20250107024120.98288-1-egyszeregy@freemail.hu>
- <20250107024120.98288-9-egyszeregy@freemail.hu>
- <2962ec51-4d32-76d9-4229-99001a437963@netfilter.org>
- <4cf2e26b-2727-4b50-9ada-56a6be814dca@freemail.hu>
- <27838d8f-7664-fdb9-3f8a-5ca812acdf72@netfilter.org>
+ <20250107024120.98288-10-egyszeregy@freemail.hu>
+ <1cd443f7-df1e-20cf-cfe8-f38ac72491e4@netfilter.org>
+ <0e51464d-301d-4b48-ad38-ca04ff7d9151@freemail.hu>
+ <2b9c44e0-4527-db29-4e5e-b7ddd41bda8d@netfilter.org>
 Content-Language: hu
 From: =?UTF-8?Q?Sz=C5=91ke_Benjamin?= <egyszeregy@freemail.hu>
-In-Reply-To: <27838d8f-7664-fdb9-3f8a-5ca812acdf72@netfilter.org>
+In-Reply-To: <2b9c44e0-4527-db29-4e5e-b7ddd41bda8d@netfilter.org>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=simple/relaxed; t=1736371124;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=simple/relaxed; t=1736372340;
 	s=20181004; d=freemail.hu;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	l=1335; bh=bpq+oKwux8IsTKiPuR7ie84o8Ned3POd9DiwKAiebQk=;
-	b=BDRXmwMVoCsVxY3+KMSMPXg2EogN3zWuV29qwe6er2hgLM+6SR3gBczVs4z2yLPj
-	K/LoPOTb9SMbv3XSwwM/HAz+d97PPRnCrd+wNwp4zWGpsC/ORp/uQ1rSCetkLs1GkLS
-	hGKRO/g7VK11cpkajfym/DD4+DGu8v9hfB8K1Jm5nVKBFgsmh2R38N1ohzH7SXFJYXD
-	/Hn7Auy2aeQ84cJHdtZ7zhzQD+g36BMVHsLmX4K6TaEOwmyGp6YdKFVxmJEQ+aJfNwa
-	aE9XzvYCYwfdyU46ByeFNSNCMMndVxkSw6hLtONYDbqa0yNfRbqvErboWaJY7wwifOT
-	UG28JNPPEw==
+	l=2558; bh=j1LCUzCb/lTdPMZPJ2sOeNhrpAI71sLmAcJs4gaJXV8=;
+	b=dVrVHayBVVLNiC+xfzX0mKqQkiy0kZG+Gkiy3MdoWeCQVGYpgWr6A8+GdscMW3s/
+	WglqXjDWFozMq3Khc5aRoR7pnnMwUwALT2B1wQSkxWpwf9qmlr2QwugVaBCW21dAyiB
+	QjTvwGP5kseq/VrmTUjHASHwDTwgQ6y9F2lMDF1aR4aaZP3LszPdzMiSRLOG4a4M6qh
+	mxDq35vCa/JGu47vSPhRMnMsj1zOMMBt+2jnGCkyFvt/C2Hj8DqNQZwuN6up2bMLQoe
+	AYNQ/PfgmdVjJAcId1pW8NOA1KGeQT3x6ZxDm+lodx4+3Rs9WD0X2BMc1DfsEj8ODCO
+	SA15+Z9Cig==
 
-2025. 01. 08. 21:20 keltezéssel, Jozsef Kadlecsik írta:
+2025. 01. 08. 21:51 keltezéssel, Jozsef Kadlecsik írta:
 > On Tue, 7 Jan 2025, Szőke Benjamin wrote:
 > 
 >> 2025. 01. 07. 20:39 keltezéssel, Jozsef Kadlecsik írta:
@@ -69,30 +69,61 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=simple/relaxed; t=1736371124;
 >>>
 >>>> From: Benjamin Szőke <egyszeregy@freemail.hu>
 >>>>
->>>> - Adjust tab indents
->>>> - Fix format of #define macros
+>>>> Display information about deprecated xt_*.h, ipt_*.h files
+>>>> at compile time. Recommended to use header files with
+>>>> lowercase name format in the future.
 >>>
->>> I don't really understand why it'd be important to use parentheses
->>> around plain constant values in macros. The kernel coding style does
->>> not list it as a requirement, see 12) 4. in
->>> Documentation/process/coding-style.rst.
+>>> I still don't know whether adding the pragmas to notify about header
+>>> file deprecation is a good idea.
 >>
->> If it would be more than just a const value, parentheses is a must have
->> thing for it (now for it, it is not critical to have it but better to
->> get used to this). This is how my hand automatically do it, to avoid the
->> syntax problem in this coding.
+>> Do you have any other ideas how can you display this information to the
+>> users/customers, that it is time to stop using the uppercase header
+>> files then they shall to use its merged lowercase named files instead in
+>> their userspace SW?
 > 
-> Are you going to "fix" this "issue" in the whole kernel tree?
+> Honestly, I don't know. What about Jan's clever idea of having the
+> clashing filenames with identical content, i.e.
 > 
-> If yes, then please propose changes to the coding style documentation as
-> well.
+> ipt_ttl.h:
+> #ifndef _IPT_TTL_H
+> #define _IPT_TTL_H
+> #include <linux/netfilter_ipv4/ipt_ttl_common.h>
+> #endif _IPT_TTL_H
 > 
-> If no, then please keep the macros as is because the changes would just
-> introduce more different kind of notations in the source tree.
+> ipt_TTL.h:
+> #ifndef _IPT_TTL_H
+> #define _IPT_TTL_H
+> #include <linux/netfilter_ipv4/ipt_ttl_common.h>
+> #endif _IPT_TTL_H
+> 
+> Would cloning such a repo on a case-insensitive filesystem produce errors
+> or would work just fine?
 > 
 
-I will keep it, sorry. It it not provide any different notation. It is just a 
-parentheses for safe and defensive programming, it is not bad.
+What is this suggestion, in ipt_ttl.h and ipt_TTL.h really? How it can solve and 
+provide in compile or run-time information for the users about the recomendded 
+changes? (It seems to me that you are completely misunderstanding the purpose of 
+this message at this time.)
+
+
+Listen carefully, this are the points/scope.
+
+This patchset provide the following:
+- 1. Merge upper and lowercase named haeder files in UAPI netfilter.
+- 2. Merge upper and lowercase named source files in UAPI netfilter. (uppercase 
+named files can be removed)
+- 3. Keep the backward compatibility, there is no any breaking API changes yet.
+- 4. Keep uppercase header files as just a "wrapper" for include same lowercase 
+header files.
+- 5. Provide a clear message for the UAPI's users that in the future should have 
+to use the lowercase named files instead.
+
+Later, for example when Linux kernel goes to 7.0 version, uppercase header files 
+can be removed. Breaking API possibble when version of a SW is incremented in 
+major field. Before, in first patchset, UAPI users were informed about what is 
+better to use. So it can be a clear and slow roadmap to solve case-insensitive 
+filesystem issue on this files.
+
 
 > Best regards,
 > Jozsef
