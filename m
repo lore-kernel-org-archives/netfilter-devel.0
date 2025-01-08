@@ -1,68 +1,102 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E8B6A1F37C8
-	for <netfilter-devel@vger.kernel.org>; Tue,  7 Jan 2025 23:53:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B9B81F9A9C
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 Jan 2025 11:54:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736294033; cv=none; b=QOi/LgunhmElR3RrdhLqJrdhkqKXMcPWvvN1Hjtk3wlfa7dWgyHP6rg6lj6oR7/7Qkgsm2o8cP1uGh3urTg1Rmypic0ogI3HS4d4TfuuvOWdIvLcFSI8YrbX5l8cEb0VWaNCNlmGpD5UDMiqQYh+tH15nztXPWjdiNwoRz/WSx0=
+	t=1736337276; cv=none; b=gUTvhkObGxNNP6sPCvZI4+SqKw/+6TBX9bqMW10DGnxant2tfLKlZ6ECWV1yymyLlUkRZEF9HBWhiWB+vsWZJXCM/9JhqiI+SsjFT6ldInT/ZxXxQHbxd9Q1HfAHDOV3XI1RJMzEqO1HMT42M/NgirmnyBnlx+FGZ2Rs5kyWrN4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736294033; c=relaxed/simple;
-	bh=R4cvj2ZRHv3Hhn4YuM4lEl+LrZN7OWk8tgBYAv0QC8k=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BHcusgO+YFTV1QeZkq7VdFnuQMnwDADKsAKQrwEFZF9T3AfYEQm9tUOgg+FIV4L9e/Jb+3uucinovZzEmOUX3suDTI+36k+er8g5G95yDdgynu8Gn0x5xsWHn0JtrCUQTxMlNi2cInrYqgftsOZ011SU97hyJSJJJVwKWtAo2RY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Date: Wed, 8 Jan 2025 00:53:48 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] parser_bison: fix UaF when reporting table parse
- error
-Message-ID: <Z32-jODK1oDsAYRp@calendula>
-References: <20250107225509.6539-1-fw@strlen.de>
+	s=arc-20240116; t=1736337276; c=relaxed/simple;
+	bh=a24wMTEyxZQYgVZbVR55G5LMtKnxeOfuA8763lL5Nvc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=ps5J0jDSKo8W3lpHAMlXroXKmTRW/+DnHhok+oHWwmhiDAzvWiOGmDs49BYmKh6lpLgVT5ZHYKzyzFM3rBW3eL51JN7Nrd/5HEIYHcBpeOLltuHg20ruUvYY/2GI5Th+yuplFUuAEmdMT+Y2UcjyrDK2VTVfiidbTY7z2Ny5kFI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1tVUdr-0002kC-Ji; Wed, 08 Jan 2025 12:54:31 +0100
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] rule: make cmd_free(NULL) valid
+Date: Wed,  8 Jan 2025 12:30:15 +0100
+Message-ID: <20250108113022.12499-1-fw@strlen.de>
+X-Mailer: git-send-email 2.45.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250107225509.6539-1-fw@strlen.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Tue, Jan 07, 2025 at 11:55:06PM +0100, Florian Westphal wrote:
-> It passed already-freed memory to erec function.  Found with afl++ and asan.
-> 
-> Fixes: 4955ae1a81b7 ("Add support for table's persist flag")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+bison uses cmd_free($$) as destructor, but base_cmd can
+set it to NULL, e.g.
 
-Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  |       ELEMENT         set_spec        set_block_expr
+  {
+    if (nft_cmd_collapse_elems(CMD_ADD, state->cmds, &$2, $3)) {
+       handle_free(&$2);
+       expr_free($3);
+       $$ = NULL;   // cmd set to NULL
+       break;
+    }
+    $$ = cmd_alloc(CMD_ADD, CMD_OBJ_ELEMENTS, &$2, &@$, $3);
 
-> ---
->  src/parser_bison.y | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/src/parser_bison.y b/src/parser_bison.y
-> index 6e6f3cf8335d..7ab15244be52 100644
-> --- a/src/parser_bison.y
-> +++ b/src/parser_bison.y
-> @@ -1943,12 +1943,14 @@ table_flags		:	table_flag
->  table_flag		:	STRING
->  			{
->  				$$ = parse_table_flag($1);
-> -				free_const($1);
->  				if ($$ == 0) {
->  					erec_queue(error(&@1, "unknown table option %s", $1),
->  						   state->msgs);
-> +					free_const($1);
->  					YYERROR;
->  				}
-> +
-> +				free_const($1);
->  			}
->  			;
->  
-> -- 
-> 2.45.2
-> 
-> 
+expr_free(NULL) is legal, cmd_free() causes crash.  So just allow
+this to avoid cluttering parser_bison.y with "if ($$)".
+
+Also add the afl-generated bogon input to the test files.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/rule.c                                    |  3 +++
+ .../bogons/nft-f/cmd_is_null_on_free          | 20 +++++++++++++++++++
+ 2 files changed, 23 insertions(+)
+ create mode 100644 tests/shell/testcases/bogons/nft-f/cmd_is_null_on_free
+
+diff --git a/src/rule.c b/src/rule.c
+index 151ed531969c..cc43cd18b7c7 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1372,6 +1372,9 @@ void monitor_free(struct monitor *m)
+ 
+ void cmd_free(struct cmd *cmd)
+ {
++	if (cmd == NULL)
++		return;
++
+ 	handle_free(&cmd->handle);
+ 	if (cmd->data != NULL) {
+ 		switch (cmd->obj) {
+diff --git a/tests/shell/testcases/bogons/nft-f/cmd_is_null_on_free b/tests/shell/testcases/bogons/nft-f/cmd_is_null_on_free
+new file mode 100644
+index 000000000000..6a42aa90cd53
+--- /dev/null
++++ b/tests/shell/testcases/bogons/nft-f/cmd_is_null_on_free
+@@ -0,0 +1,20 @@
++nt      rootepep test- {
++* : 1:3 }
++        element root tesip {
++* : 1:3 }
++        elent   rootsel s1 {
++        typ�    elements < { "Linux" }
++        }
++tatlet e t {
++        thataepep test- {
++* : 1:3 }
++        element root tesip {
++* : 1:3 }�      table Cridgents < t {
++list            set y p
++        type i , {
++        sel s1 {
++        typ�    elements < { "Linux" }
++        }
++tatlet e t {
++        thatable Cridgents < t {
++lis
+-- 
+2.45.2
+
