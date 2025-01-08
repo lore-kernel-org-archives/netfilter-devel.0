@@ -1,27 +1,28 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 10CD1203717;
-	Wed,  8 Jan 2025 23:05:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 86693204C36
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 Jan 2025 23:34:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736377511; cv=none; b=fy0TiVuWPP7CDewFlxTJOMqikpVIdHof/PN8lHTo8kYTQizgvp7zGK8Jr35BHjucLxkQNt2h6iSQcEdKPVbdOf7rRbA3tre65+FTWgSEx2+EL9flJB8v7StJ95B91FI06Nwk4OJj7njp6dxX1evrG6C3/cCW+UhklAy3n0cGjLU=
+	t=1736379247; cv=none; b=TCmR0/p8oQjqW6SX6CgAgff8qfrO+17BvoazYIl5h7Lc+XWBR57SLh/XZrdnTkIMj62gWZc2E5Ljs4m1AVScFOmpIEzky1D0BC97S6RRWvTBrylYfK/pzL6tvLoyFOpfVNPefW17gKdtJAfcK2nJ1KKafbQ0TtEP9g5/Un7nJuk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736377511; c=relaxed/simple;
-	bh=P3D7DIwCmlaicnYw33RkNggK3TBUOF58ybdLHsLRvPU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RD+WCxxz+4RzAFmBe+GCwT9GXOKPbFb8VdCrqInFd6YGSZXXQnF4V/ayrmo6OiX+BuOSDa6khcPhDrtXi4VJYgflgRjtNEpMekCv7IwsrJ3KUsNd2/RIxcM3qUV1N3S75qrW6rLz3FjA6dpP/H3LBNmPDht4hCTVauXSVEIj8O0=
+	s=arc-20240116; t=1736379247; c=relaxed/simple;
+	bh=DTIf8XkDkDxofJNkIguYSnbdcGyvEa1gAvnCPjRBYG8=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=fVTGUXJ7OxIgRGskPLWiJfF+X/9VPLnlCE909KczkmoGu/V1lob6ns1sekGnEJ7hrpxxM1egwhcI4NSM3ZJqmujQE1QqSVcCt+b4+KCKjR1bKqHDTsMk1jTlwC0nYSKkRgCvMcDSCny63N0sp860cWPJZqnBSyEKsRN+g4c/ezI=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Date: Thu, 9 Jan 2025 00:05:04 +0100
+Date: Thu, 9 Jan 2025 00:34:01 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: cheung wall <zzqq0103.hey@gmail.com>, linux-mm@kvack.org,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: "WARNING in nf_ct_alloc_hashtable" in Linux kernel version
- 6.13.0-rc2
-Message-ID: <Z38EZXFkWPNSDdZ8@calendula>
-References: <CAKHoSAtDrR9kkrVZufEYqPoKZpT7WyLC9DH8gCx9cox3oSNPaQ@mail.gmail.com>
- <20250103180150.4c4d1f30220720ba7f1a133b@linux-foundation.org>
+To: Phil Sutter <phil@nwl.cc>, Alyssa Ross <hi@alyssa.is>,
+	netfilter-devel@vger.kernel.org,
+	Joshua Lant <joshualant@googlemail.com>
+Subject: Re: [PATCH nftables] include: fix for musl with iptables v1.8.11
+Message-ID: <Z38Ladz49yJcTC8p@calendula>
+References: <20241219231001.1166085-2-hi@alyssa.is>
+ <Z2VaEv0u3ZPcWqye@orbyte.nwl.cc>
+ <v654rm6mbtymzhavlbg2fu7irth4mkz4motq7vb7rzjql5ccqa@u7xv7uvdfvsl>
+ <Z2VkJrkSLRmY9lAE@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -30,105 +31,99 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250103180150.4c4d1f30220720ba7f1a133b@linux-foundation.org>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <Z2VkJrkSLRmY9lAE@orbyte.nwl.cc>
 
 Hi,
 
-On Fri, Jan 03, 2025 at 06:01:50PM -0800, Andrew Morton wrote:
-> On Fri, 3 Jan 2025 17:12:53 +0800 cheung wall <zzqq0103.hey@gmail.com> wrote:
-> 
-> > Hello,
+On Fri, Dec 20, 2024 at 01:33:42PM +0100, Phil Sutter wrote:
+> On Fri, Dec 20, 2024 at 01:07:56PM +0100, Alyssa Ross wrote:
+> > On Fri, Dec 20, 2024 at 12:50:42PM +0100, Phil Sutter wrote:
+> > > Hi Alyssa,
+> > >
+> > > On Fri, Dec 20, 2024 at 12:10:02AM +0100, Alyssa Ross wrote:
+> > > > Since iptables commit 810f8568 (libxtables: xtoptions: Implement
+> > > > XTTYPE_ETHERMACMASK), nftables failed to build for musl libc:
+> > > >
+> > > > 	In file included from /nix/store/bvffdqfhyxvx66bqlqqdmjmkyklkafv6-musl-1.2.5-dev/include/netinet/et…
+> > > > 	                 from /nix/store/kz6fymqpgbrj6330s6wv4idcf9pwsqs4-iptables-1.8.10-de…
+> > > > 	                 from src/xt.c:30:
+> > > > 	/nix/store/bvffdqfhyxvx66bqlqqdmjmkyklkafv6-musl-1.2.5-dev/include/netinet/if_ether.h:115:8: error: redefinition of 'struct ethhdr'
+> > > > 	  115 | struct ethhdr {
+> > > > 	      |        ^~~~~~
+> > > > 	In file included from ./include/linux/netfilter_bridge.h:8,
+> > > > 	                 from ./include/linux/netfilter_bridge/ebtables.h:1,
+> > > > 	                 from src/xt.c:27:
+> > > > 	/nix/store/bvffdqfhyxvx66bqlqqdmjmkyklkafv6-musl-1.2.5-dev/include/linux/if_ether.h:173:8: note: originally defined here
+> > > > 	  173 | struct ethhdr {
+> > > > 	      |        ^~~~~~
+> > > >
+> > > > The fix is to use libc's version of if_ether.h before any kernel
+> > > > headers, which takes care of conflicts with the kernel's struct ethhdr
+> > > > definition by defining __UAPI_DEF_ETHHDR, which will tell the kernel's
+> > > > header not to define its own version.
+> > >
+> > > What I don't like about this is how musl tries to force projects to not
+> > > include linux/if_ether.h directly. From the project's view, this is a
+> > > workaround not a fix.
 > > 
-> > I am writing to report a potential vulnerability identified in the
-> > Linux Kernel version 6.13.0-rc2. This issue was discovered using our
-> > custom vulnerability discovery tool.
-> > 
-> > HEAD commit: fac04efc5c793dccbd07e2d59af9f90b7fc0dca4 (tag: v6.13-rc2)
-> > 
-> > Affected File: mm/util.c
-> > 
-> > File: mm/util.c
-> > 
-> > Function: __kvmalloc_node_noprof
+> > My understanding is that it's a general principle of using any libc on
+> > Linux that if there's both a libc and kernel header for the same thing,
+> > the libc header should be used.  libc headers will of course include
+> > other libc headers in preference to kernel headers, so if you also
+> > include the kernel headers you're likely to end up with conflicts.
+> > Whether conflicts occur in any particular case depends on how a
+> > particular libc chooses to expose a particular kernel API.  I could be
+> > misremembering, but I believe the same thing can happen with Glibc —
+> > some headers under sys/ cause conflicts with their corresponding kernel
+> > headers if both are included.  While this case is musl specific, I
+> > think the principle applies to all libcs.
 > 
-> (cc netfilter-devel)
+> While this may be true for the vast majority of user space programs,
+> netfilter tools and libraries are a bit special in how close they
+> interface with the kernel. Not all netfilter-related kernel API is
+> exposed by glibc, for instance. Including (some) kernel headers is
+> therefore unavoidable, and (as your patch shows) order of inclusion
+> becomes subtly relevant in ways which won't show when compile-testing
+> against glibc only.
 > 
-> This is
+> > > > Signed-off-by: Alyssa Ross <hi@alyssa.is>
+> > > > ---
+> > > > A similar fix would solve the problem properly in iptables, which was
+> > > > worked around with 76fce228 ("configure: Determine if musl is used for build").
+> > > > The __UAPI_DEF_ETHHDR is supposed to be set by netinet/if_ether.h,
+> > > > rather than manually by users.
+> > >
+> > > Why does 76fce228 not work for you?
+> > 
+> > It does work, but that's a fix for iptables.  This is a fix for
+> > nftables.  I could have submitted a copy of the iptables fix, but I
+> > don't think it's the best fix due to its reliance on internal macros
+> > that are not part of the public interface.
 > 
-> 	/* Don't even allow crazy sizes */
-> 	if (unlikely(size > INT_MAX)) {
-> 		WARN_ON_ONCE(!(flags & __GFP_NOWARN));
-> 		return NULL;
-> 	}
+> Ah, sorry! Patch subject and description managed to confuse me.
 > 
-> in __kvmalloc_node_noprof().
+> Pablo, what's your opinion? Maybe we should strive for the same solution
+> for the problem in all netfilter user space, so either take what we have
+> in iptables or adjust iptables to what nftables decides how things
+> should be?
 
-Proposed fix:
+I see, you mean to use this (from iptables):
 
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20250108230157.21484-1-pablo@netfilter.org/
+commit 76fce22826f8e860b5eb5b5a2463040c17ff85da
+Author: Joshua Lant <joshualant@googlemail.com>
+Date:   Wed Aug 28 13:47:31 2024 +0100
 
-Note: hashtable resize is only possible from init_netns.
+    configure: Determine if musl is used for build
+
+and adapt to use it from nftables (and everywhere else).
+
+Alyssa's patch is more simple, but it is mangling a cache kernel
+header.
+
+Is this configure.ac workaround needed everywhere in the netfilter.org
+trees to make musl happy?
+
+I don't see any better option at this stage.
 
 Thanks.
-
-> > Detailed Call Stack:
-> > 
-> > ------------[ cut here begin]------------
-> > 
-> > RIP: 0010:__kvmalloc_node_noprof+0x18d/0x1b0 mm/util.c:662
-> > Code: a1 48 c7 c7 28 df 86 a8 e8 90 86 14 00 e9 70 ff ff ff e8 b6 d3
-> > e3 ff 41 81 e4 00 20 00 00 0f 85 16 ff ff ff e8 a4 d3 e3 ff 90 <0f> 0b
-> > 90 31 db e9 c4 fe ff ff 48 c7 c7 f8 91 e3 a7 e8 5d 86 14 00
-> > RSP: 0018:ffff88800f397b38 EFLAGS: 00010293
-> > RAX: 0000000000000000 RBX: 0000000000000000 RCX: ffffffffa46327ec
-> > RDX: ffff88800fc4d500 RSI: ffffffffa471a1b1 RDI: 0000000000000000
-> > RBP: 00000000cbad2000 R08: 0000000000000000 R09: 0a33303939333137
-> > loop4: detected capacity change from 0 to 32768
-> > R10: ffff88800f397b38 R11: 0000000000032001 R12: 0000000000000000
-> > R13: 00000000ffffffff R14: 000000001975a400 R15: ffff88800f397e08
-> > SELinux: security_context_str_to_sid (root) failed with errno=-22
-> > FS: 00007fc9b1d23580(0000) GS:ffff88811b380000(0000) knlGS:0000000000000000
-> > CS: 0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> > CR2: 000055c7e2f2b6b8 CR3: 000000000b970000 CR4: 0000000000350ef0
-> > Call Trace:
-> > <TASK>
-> > kvmalloc_array_node_noprof include/linux/slab.h:1063 [inline]
-> > nf_ct_alloc_hashtable+0x83/0x110 net/netfilter/nf_conntrack_core.c:2526
-> > nf_conntrack_hash_resize+0x91/0x4d0 net/netfilter/nf_conntrack_core.c:2547
-> > nf_conntrack_hash_sysctl net/netfilter/nf_conntrack_standalone.c:540 [inline]
-> > nf_conntrack_hash_sysctl+0xa9/0x100 net/netfilter/nf_conntrack_standalone.c:527
-> > proc_sys_call_handler+0x492/0x5d0 fs/proc/proc_sysctl.c:601
-> > new_sync_write fs/read_write.c:586 [inline]
-> > vfs_write+0x51e/0xc80 fs/read_write.c:679
-> > ksys_write+0x110/0x200 fs/read_write.c:731
-> > do_syscall_x64 arch/x86/entry/common.c:52 [inline]
-> > do_syscall_64+0xa6/0x1a0 arch/x86/entry/common.c:83
-> > entry_SYSCALL_64_after_hwframe+0x77/0x7f
-> > 
-> > 
-> > ------------[ cut here end]------------
-> > 
-> > Root Cause:
-> > 
-> > The kernel panic originated within the __kvmalloc_node_noprof function
-> > in mm/util.c, triggered during the execution of the Netfilter
-> > connection tracking subsystem. Specifically, the
-> > nf_conntrack_hash_resize function attempted to allocate memory for
-> > resizing the connection tracking hash table from a capacity of 0 to
-> > 32,768 entries using kvmalloc_array_node_noprof. This memory
-> > allocation likely failed or was mishandled, resulting in an invalid
-> > memory access or dereference within __kvmalloc_node_noprof.
-> > Additionally, the log indicates a failure in the SELinux security
-> > context function security_context_str_to_sid, which returned an EINVAL
-> > error (errno=-22). The combination of these factors suggests that the
-> > crash was caused by improper handling of memory allocation during a
-> > significant capacity change in the connection tracking hash table,
-> > possibly due to unhandled allocation failures or logic errors in the
-> > resize process.
-> > 
-> > Thank you for your time and attention.
-> > 
-> > Best regards
-> > 
-> > Wall
-> 
