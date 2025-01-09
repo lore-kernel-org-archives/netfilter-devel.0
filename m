@@ -1,13 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id A223217D2;
-	Thu,  9 Jan 2025 12:35:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2A7B91E515;
+	Thu,  9 Jan 2025 12:35:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736426140; cv=none; b=uzCB9r/ADfQXPCNsv/D7UOaB05nsgY2WBVesEUBA08oK2llnYT5b8eB8JgBGjXoDBnmbwIl8E3q4CsPIxffnIcu1TkEezP0d+Z6MbQJ0RixXyOyWq0MB7HJAL4Kr9bE5W4SaRcVkkdakHEdbvYpD8TcWwngiOy+JS8YsCeaEnzg=
+	t=1736426141; cv=none; b=NzUFp98k81+aez/iW2r6ANH2WDGAO+U9PNjKbh8bBV1cGrkfZlkOR+w2UTe4KyuWYkF6qk75EWlFfkkvpd11ePf2I1wJftXk5WbdimD3f5gfQ8y0jWscxYuKLN/VigRARPd8uNd1ac0DYspEeW04dRRamGMHFDRsr76540KNgaM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736426140; c=relaxed/simple;
-	bh=0FDEW/H3clvcjMVAlZTjLBk+RZQwlF70Pl5M8kyQjhA=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=qam2oiQC6pZOo6S9soBDS19I0nGVWCuxLAvmj+HGQgI5r1hp9oLIi5BqGkFMdDeseQRTEO2llklIrNzHtv4VhuWPRbW4SwNaKj9slz4qCh4epzgK6sGy4xENDISX3MKSaALy4gdIgzbWb/g7y23z7YVbNvBB27HhP4bWvXzBenA=
+	s=arc-20240116; t=1736426141; c=relaxed/simple;
+	bh=VrpoQ52emWyqkUGmWVhGMz5fW6VKRC+kZA4gj8SyEjM=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=NeuyHTOiamvLcZ4jApB9YDRQusntLFr2r/lu5Tk1H1gMWopavucWrjgRlG9upn5G/UWV5tNtTRiP4a3sfiG06B2ZAnRYbwxN/5u9Pv8yx2RNbv6X21l5ehdEXspsdLtXqG1XHGZyPWbAXA09iA9dePiUv34wbicAAHO628ZPS3I=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -19,10 +20,12 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 0/2] Netfilter fixes for net
-Date: Thu,  9 Jan 2025 13:35:29 +0100
-Message-Id: <20250109123532.41768-1-pablo@netfilter.org>
+Subject: [PATCH nf] netfilter: conntrack: clamp maximum hashtable size to INT_MAX
+Date: Thu,  9 Jan 2025 13:35:30 +0100
+Message-Id: <20250109123532.41768-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20250109123532.41768-1-pablo@netfilter.org>
+References: <20250109123532.41768-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,45 +34,40 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+According to 0708a0afe291 ("mm: Consider __GFP_NOWARN flag for oversized
+kvmalloc() calls"), use INT_MAX as maximum size for the conntrack
+hashtable. Otherwise, it is possible to hit WARN_ON_ONCE in
+__kvmalloc_node_noprof() when __GFP_NOWARN flag is unset when resizing.
 
-The following patchset contains Netfilter fixes for net:
+Note: hashtable resize is only possible from init_netns.
 
-1) Fix imbalance between flowtable BIND and UNBIND calls to configure
-   hardware offload, this fixes a possible kmemleak.
+Fixes: 9cc1c73ad666 ("netfilter: conntrack: avoid integer overflow when resizing")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_conntrack_core.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-2) Clamp maximum conntrack hashtable size to INT_MAX to fix a possible
-   WARN_ON_ONCE splat coming from kvmalloc_array(), only possible from
-   init_netns.
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 8666d733b984..7f8b245e287a 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -2510,12 +2510,15 @@ void *nf_ct_alloc_hashtable(unsigned int *sizep, int nulls)
+ 	struct hlist_nulls_head *hash;
+ 	unsigned int nr_slots, i;
+ 
+-	if (*sizep > (UINT_MAX / sizeof(struct hlist_nulls_head)))
++	if (*sizep > (INT_MAX / sizeof(struct hlist_nulls_head)))
+ 		return NULL;
+ 
+ 	BUILD_BUG_ON(sizeof(struct hlist_nulls_head) != sizeof(struct hlist_head));
+ 	nr_slots = *sizep = roundup(*sizep, PAGE_SIZE / sizeof(struct hlist_nulls_head));
+ 
++	if (nr_slots > (INT_MAX / sizeof(struct hlist_nulls_head)))
++		return NULL;
++
+ 	hash = kvcalloc(nr_slots, sizeof(struct hlist_nulls_head), GFP_KERNEL);
+ 
+ 	if (hash && nulls)
+-- 
+2.30.2
 
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-25-01-09
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 4f619d518db9cd1a933c3a095a5f95d0c1584ae8:
-
-  net: wwan: t7xx: Fix FSM command timeout issue (2024-12-30 18:00:32 -0800)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-25-01-09
-
-for you to fetch changes up to b541ba7d1f5a5b7b3e2e22dc9e40e18a7d6dbc13:
-
-  netfilter: conntrack: clamp maximum hashtable size to INT_MAX (2025-01-09 13:29:45 +0100)
-
-----------------------------------------------------------------
-netfilter pull request 25-01-09
-
-----------------------------------------------------------------
-Pablo Neira Ayuso (2):
-      netfilter: nf_tables: imbalance in flowtable binding
-      netfilter: conntrack: clamp maximum hashtable size to INT_MAX
-
- net/netfilter/nf_conntrack_core.c |  5 ++++-
- net/netfilter/nf_tables_api.c     | 15 +++++++++++----
- 2 files changed, 15 insertions(+), 5 deletions(-)
