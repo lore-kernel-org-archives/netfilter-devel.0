@@ -1,98 +1,115 @@
-Received: from pandora.armlinux.org.uk (pandora.armlinux.org.uk [78.32.30.218])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E62682153DE;
-	Thu,  9 Jan 2025 09:16:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=78.32.30.218
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09B4C2153CE;
+	Thu,  9 Jan 2025 09:37:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736414179; cv=none; b=QZEIXIhVBPOM0PL1x+o6NCSBjXL1ZaWX0aK+Ea0Tuyl/SkmOVXbcgIO/Q12Pk7q2tMV8/oebjhOKq6EnRieVnIO9kJVR4F1ntpXUAPANUWxtYalpE63vCwgL+3mrDU4M/Hmh7Vis+4YHZScWexHdzXpMVAgk8GAiQjV51KNBilo=
+	t=1736415435; cv=none; b=bdBvhJZ3m8OVkxEbz/7saI8Zdjg5sTjIEDAxFRvRGvp2NDHxnnno+fGkDF3gvkwjUv58wS5tM4+BbwxpI02VWQlFzkFIHMYT9YmHb6jeRAPgYaCULyFV9cdjLVC3yYmtxCMRrIlJxVxn2Qu58pW/VZEx/HG0tFjAA7xpaVJeqtU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736414179; c=relaxed/simple;
-	bh=kSjWcYtkqH8R+JRDGnB2aLYV7zkmXfylg3X6xMRY4vA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=g4GjYwYMkmPbJDGbBiQEK+2bZg64cmSN2CKDQbTNaDa7XI18YZq6XtSdfDcEI1T+ChnqG2NX8RdyFbvGKNilbG9FsZ3gmjzJpeTQ/V+G1T1Aee7r/jN9NNomNRW7oJ+KPGVr4C1BeleYUJ9Fymdyb86cVVJALXL7xV/6dTxVVKw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=armlinux.org.uk; spf=none smtp.mailfrom=armlinux.org.uk; dkim=pass (2048-bit key) header.d=armlinux.org.uk header.i=@armlinux.org.uk header.b=L4ZB8MDV; arc=none smtp.client-ip=78.32.30.218
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=armlinux.org.uk
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=armlinux.org.uk
+	s=arc-20240116; t=1736415435; c=relaxed/simple;
+	bh=aqJf6bJtcvpupemt4+UV6C4fhRmFmBym9M66ZRrUbZ4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=nivW+sOT7y5fRzttvBGACCuz2alu9E03c3tz9waaj9il1YQ4K27fLE9ILt+FPhhK4eiVDo9dLFI6+UPDbegk9IhKhybRWfjNHL2qR1b4EB1wppuK5MTdTop74AKjatzxce037kadyu9Lu2/VlxhJqdp3qB8Lsn+/yent7ErTyPg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=O61cUJnX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=armlinux.org.uk header.i=@armlinux.org.uk header.b="L4ZB8MDV"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=armlinux.org.uk; s=pandora-2019; h=Sender:In-Reply-To:Content-Type:
-	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
-	Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
-	List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=R2z1ESVuVcDzbxcpb3sc64PCr4c05BAv4LDC9oyfa7s=; b=L4ZB8MDV1RBG7G8NSURC7qZQ3A
-	qvL8HWzbo7iVXe/7oTalE7eJwQfWrWgFE3pE8tn9nD8hHXKq5fkEatoELVfIPL8sh0NwED/hInbgw
-	RCTSNRNKdl9vOn70vjC/Xj8o2afinyk+LuedUBhugETfYryDTX+TJ1OOvQVccDr1qYrTKWCLwCN4X
-	T0Ylh6f72ij58CSbUyfgRJTppxnCwun62Ofytl/7+bU09/16MnSdS7rw/iFdDhJ0YNSvhIYFE280t
-	e1qWDcLPZ3g6/eLHdl0uk218eEKmVH+Q+HrnFRP8yh/TMHd0OwM4nME37G0yKiJ4L16sqxhaOXzmU
-	4kgH/NWw==;
-Received: from shell.armlinux.org.uk ([fd8f:7570:feb6:1:5054:ff:fe00:4ec]:46832)
-	by pandora.armlinux.org.uk with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.96)
-	(envelope-from <linux@armlinux.org.uk>)
-	id 1tVoe3-0001oO-2e;
-	Thu, 09 Jan 2025 09:16:03 +0000
-Received: from linux by shell.armlinux.org.uk with local (Exim 4.96)
-	(envelope-from <linux@shell.armlinux.org.uk>)
-	id 1tVodz-0007Cf-0c;
-	Thu, 09 Jan 2025 09:15:59 +0000
-Date: Thu, 9 Jan 2025 09:15:59 +0000
-From: "Russell King (Oracle)" <linux@armlinux.org.uk>
-To: Eric Woudstra <ericwouds@gmail.com>
-Cc: Andrew Lunn <andrew@lunn.ch>, Heiner Kallweit <hkallweit1@gmail.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-	Frank Wunderlich <frank-w@public-files.de>,
-	Daniel Golle <daniel@makrotopia.org>, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, bridge@lists.linux.dev,
-	linux-arm-kernel@lists.infradead.org,
-	linux-mediatek@lists.infradead.org
-Subject: Re: [PATCH RFC net-next] net: phylink: always config mac for
- (delayed) phy
-Message-ID: <Z3-Tz5WdLCat91vm@shell.armlinux.org.uk>
-References: <20250107123615.161095-1-ericwouds@gmail.com>
- <Z30iUj6DE9-fRp0n@shell.armlinux.org.uk>
- <4b9b2a9a-061b-43ad-b402-a49aee317f41@gmail.com>
- <Z31CJS1YUvPGiEXs@shell.armlinux.org.uk>
- <98234080-946e-4b36-832f-113b185e7bca@gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="O61cUJnX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 829DBC4CED2;
+	Thu,  9 Jan 2025 09:37:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1736415433;
+	bh=aqJf6bJtcvpupemt4+UV6C4fhRmFmBym9M66ZRrUbZ4=;
+	h=From:To:Cc:Subject:Date:From;
+	b=O61cUJnXYsX7To1dvkwt8c4Nd7CJ54k+XHRR7bAjSfv3iF990+fmp0U75gvyQpf0P
+	 cS7+ln1P1Sq93SULHUFkeZD3a1Fhkmc5l7tH09RlqiQ3VsIcgNc9qP0lKl4PmxfD54
+	 CtOK7vvBzkkAkRgpCLA8FktAnQqWKDu+pFgU5v+2mWJKoMuX4RhzczF4V/p3X+hZt0
+	 wGiphn5Yg3Sz8qWCFcsneMMeDHxGAFQjkh2+0Kmj/J9lE8kvb6lFSGqhnLt58+IXDn
+	 FD8i+PXpvF955hlVFC44K5BUHxban49TVa/OllW5Olis+l0YrEMrDEdQZVFVLTW5nK
+	 fIED9p+VtbdTw==
+From: Antoine Tenart <atenart@kernel.org>
+To: pablo@netfilter.org,
+	kadlec@netfilter.org
+Cc: Antoine Tenart <atenart@kernel.org>,
+	dsahern@kernel.org,
+	menglong8.dong@gmail.com,
+	netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+Subject: [PATCH nf-next] netfilter: br_netfilter: remove unused conditional and dead code
+Date: Thu,  9 Jan 2025 10:37:09 +0100
+Message-ID: <20250109093710.494322-1-atenart@kernel.org>
+X-Mailer: git-send-email 2.47.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <98234080-946e-4b36-832f-113b185e7bca@gmail.com>
-Sender: Russell King (Oracle) <linux@armlinux.org.uk>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Jan 09, 2025 at 09:56:17AM +0100, Eric Woudstra wrote:
-> So I've narrowed down the problem a bit:
-> 
-> At first state->link is set to true, while looking at the bmsr.
-> 
-> But because linkmode_test_bit(fd_bit, state->advertising) and
-> linkmode_test_bit(fd_bit, state->lp_advertising) are both false,
-> state->link is set to false after looking at the bmsr.
+The SKB_DROP_REASON_IP_INADDRERRORS drop reason is never returned from
+any function, as such it cannot be returned from the ip_route_input call
+tree. The 'reason != SKB_DROP_REASON_IP_INADDRERRORS' conditional is
+thus always true.
 
-We shouldn't be getting that far if aneg isn't being used. The problem
-is this is no longer sufficient:
+Looking back at history, commit 50038bf38e65 ("net: ip: make
+ip_route_input() return drop reasons") changed the ip_route_input
+returned value check in br_nf_pre_routing_finish from -EHOSTUNREACH to
+SKB_DROP_REASON_IP_INADDRERRORS. It turns out -EHOSTUNREACH could not be
+returned either from the ip_route_input call tree and this since commit
+251da4130115 ("ipv4: Cache ip_error() routes even when not
+forwarding.").
 
-        if (!state->link || !linkmode_test_bit(ETHTOOL_LINK_MODE_Autoneg_BIT,
-                                               state->advertising))
-                return;
+Not a fix as this won't change the behavior. While at it use
+kfree_skb_reason.
 
-since whether we use aneg or not now depends on state other than just
-the Autoneg bit. It isn't going to be a simple fix, because we need
-the PCS neg_mode here, but we don't have it as an argument to the
-.pcs_get_state() method. I'll look at what we can do for this today.
+Signed-off-by: Antoine Tenart <atenart@kernel.org>
+---
+ net/bridge/br_netfilter_hooks.c | 30 +-----------------------------
+ 1 file changed, 1 insertion(+), 29 deletions(-)
 
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index 451e45b9a6a5..94cbe967d1c1 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -393,38 +393,10 @@ static int br_nf_pre_routing_finish(struct net *net, struct sock *sk, struct sk_
+ 		reason = ip_route_input(skb, iph->daddr, iph->saddr,
+ 					ip4h_dscp(iph), dev);
+ 		if (reason) {
+-			struct in_device *in_dev = __in_dev_get_rcu(dev);
+-
+-			/* If err equals -EHOSTUNREACH the error is due to a
+-			 * martian destination or due to the fact that
+-			 * forwarding is disabled. For most martian packets,
+-			 * ip_route_output_key() will fail. It won't fail for 2 types of
+-			 * martian destinations: loopback destinations and destination
+-			 * 0.0.0.0. In both cases the packet will be dropped because the
+-			 * destination is the loopback device and not the bridge. */
+-			if (reason != SKB_DROP_REASON_IP_INADDRERRORS || !in_dev ||
+-			    IN_DEV_FORWARD(in_dev))
+-				goto free_skb;
+-
+-			rt = ip_route_output(net, iph->daddr, 0,
+-					     ip4h_dscp(iph), 0,
+-					     RT_SCOPE_UNIVERSE);
+-			if (!IS_ERR(rt)) {
+-				/* - Bridged-and-DNAT'ed traffic doesn't
+-				 *   require ip_forwarding. */
+-				if (rt->dst.dev == dev) {
+-					skb_dst_drop(skb);
+-					skb_dst_set(skb, &rt->dst);
+-					goto bridged_dnat;
+-				}
+-				ip_rt_put(rt);
+-			}
+-free_skb:
+-			kfree_skb(skb);
++			kfree_skb_reason(skb, reason);
+ 			return 0;
+ 		} else {
+ 			if (skb_dst(skb)->dev == dev) {
+-bridged_dnat:
+ 				skb->dev = br_indev;
+ 				nf_bridge_update_protocol(skb);
+ 				nf_bridge_push_encap_header(skb);
 -- 
-RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
-FTTP is here! 80Mbps down 10Mbps up. Decent connectivity at last!
+2.47.1
+
