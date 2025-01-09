@@ -1,220 +1,283 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61FEF2010FD
-	for <netfilter-devel@vger.kernel.org>; Thu,  9 Jan 2025 10:02:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736416926; cv=none; b=NZRcDG9W8eH6o48ajwagchtxqQ32vKAeK4jKJYeA/6E+RwIWTLve/2YWc6sX1hB9dLi5Eszoz0ezT09j+iWv7j61z/A1xq2AsbRIBlQAlxfbGEMObbr3Vy8bPiZJNvtcMYhIxgMojcnyewQftyFgi0g+escPiAV4G9WoSYc8N78=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736416926; c=relaxed/simple;
-	bh=Fa/qzF2ttLLTJVVbunYCB8pDxEuhor5AnzEoPy1Y7nQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=qQMbhBi7/e0XW0tVGQShS2wOwbpdSJzI6NT5nQM8PZBN1KZGm8MXcW3iMDBIcOACJniEwsXipVYCzWZauerjwnKOIWFYngT/3zkIDAFvI0CNxiPjglqw93ZREE5+6Fx/OsXjSMmh71cG4MmOyKF35aZZA19j0RqDVK9S3YvnFnQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=l2WKNXcE; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C6DC215F56;
+	Thu,  9 Jan 2025 10:23:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.17
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1736418196; cv=fail; b=Bm+Di6NPNLgJggXrkAKqXTg7LqjcnkKdR+THbdUuDBFmECN4+56Wur3MKeLs1B3wDjld2GOYrDiSbz8bnmEiUpElT6Tg+tetbd7RcODwt5eCai8Lqk7f93uo0klCY2l8OXxZZH3uK6apM+peWoum6gS8QUzIYpiLmtlI4+wv+Cc=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1736418196; c=relaxed/simple;
+	bh=6k7zF4TqmtvOadYJX3NEAUXArl+ZqAjioMApR72IESw=;
+	h=Message-ID:Date:Subject:To:CC:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=OGBPFbVPpCx4lu9pLBDWlDy/+ehUN04jQdW0GQjDygI/LgsCfhgnZ21ltm9CkXIN9r+59yB+c55Lvp71gV0vwckTlPY6IMyMVL+NoxG0RPI0+HSbutIHwo+36a8iofiVyrmDWgsuvhher057XnWisA2j8RuQUKEYjkfaelupzfs=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=jSvfl3ol; arc=fail smtp.client-ip=192.198.163.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="l2WKNXcE"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Transfer-Encoding:Content-Type:MIME-Version
-	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=TdM0EE/+KWYlYIBF7FwIyeP+IvYFsNgO6saQ6z6bTZY=; b=l2WKNXcEOAE/tM3v87RQVcCwrs
-	jJPtW3UutNXdu4qV6BbknguM00F7TTyEgh5urlraPJPL14aMOl+y4imoNk4uZ7Uhea4BqgwnOT5A/
-	t/wiSsOc1oqRYFPU5HfLr4x0VM9/f7HPdOgRO8zXUnE549iLhK3cVTekAX5/Chvd/wE14V97F+VyD
-	ZoWHL64UF8elayIdDM8oSOEpfoyDphHpb1ZrvpkmiE6ZBTTGpMpKfeelE8VYROAco1LY9FWZAX4OG
-	RgjXv2saSh8cyWWvQxqTetviEudzYadcRcmtCxuQDj9Irvv07aL6jBkhJmC/yJKucX3omarrWcXLx
-	O5OlUgqA==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1tVpMW-0000000085x-40cb;
-	Thu, 09 Jan 2025 11:02:00 +0100
-Date: Thu, 9 Jan 2025 11:02:00 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Alyssa Ross <hi@alyssa.is>, netfilter-devel@vger.kernel.org,
-	Joshua Lant <joshualant@googlemail.com>
-Subject: Re: [PATCH nftables] include: fix for musl with iptables v1.8.11
-Message-ID: <Z3-emP_FzgGAYGUJ@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>, Alyssa Ross <hi@alyssa.is>,
-	netfilter-devel@vger.kernel.org,
-	Joshua Lant <joshualant@googlemail.com>
-References: <20241219231001.1166085-2-hi@alyssa.is>
- <Z2VaEv0u3ZPcWqye@orbyte.nwl.cc>
- <v654rm6mbtymzhavlbg2fu7irth4mkz4motq7vb7rzjql5ccqa@u7xv7uvdfvsl>
- <Z2VkJrkSLRmY9lAE@orbyte.nwl.cc>
- <Z38Ladz49yJcTC8p@calendula>
- <Z38PIVmu2jAVl1k2@orbyte.nwl.cc>
- <Z38STV2bWSlz4uxo@calendula>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="jSvfl3ol"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1736418195; x=1767954195;
+  h=message-id:date:subject:to:cc:references:from:
+   in-reply-to:content-transfer-encoding:mime-version;
+  bh=6k7zF4TqmtvOadYJX3NEAUXArl+ZqAjioMApR72IESw=;
+  b=jSvfl3olBnU+D2z5Wd78JJYTuSfZYHDceiENsZgAXarQdBxpU+SQTanV
+   UkPnP4dWYDt7Naa51C4AMTV6ZtmhOWD/O2PicQ3XMrkxcii2HPhIQpLa4
+   eWJE5eFseQdFZ8ieeveOABXzt1VVWrYm9QKTsAtj084P6bViFBrYCVjSZ
+   UcE1vYkllYMHO+M5LaeuyHslyU8rEuob3hFKgDNRilBFkO6ovKt+lZmNu
+   wIkwVabwV57ifksxdUl1aEDppxXyN2L4u1k8F64Tk6KonqN0bghpN4lmo
+   uZV9qsaVcuS1lSsw3rENRVf0BubloSV1+EYoOCF7qtWLCUaBRt3EWECGQ
+   A==;
+X-CSE-ConnectionGUID: X51suhlgShGBv5Bf1Ec4qw==
+X-CSE-MsgGUID: Tv9ZLzTFT/ajiomR4pRKQQ==
+X-IronPort-AV: E=McAfee;i="6700,10204,11309"; a="36571927"
+X-IronPort-AV: E=Sophos;i="6.12,301,1728975600"; 
+   d="scan'208";a="36571927"
+Received: from fmviesa006.fm.intel.com ([10.60.135.146])
+  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jan 2025 02:23:14 -0800
+X-CSE-ConnectionGUID: NQn9uUSiSfyfx4LlaC8D2g==
+X-CSE-MsgGUID: Iz7UYXBiQTWX86xHafpPEg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.12,301,1728975600"; 
+   d="scan'208";a="103172088"
+Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
+  by fmviesa006.fm.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 09 Jan 2025 02:23:13 -0800
+Received: from orsmsx601.amr.corp.intel.com (10.22.229.14) by
+ ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.44; Thu, 9 Jan 2025 02:23:12 -0800
+Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
+ orsmsx601.amr.corp.intel.com (10.22.229.14) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.44 via Frontend Transport; Thu, 9 Jan 2025 02:23:12 -0800
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (104.47.57.168)
+ by edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.44; Thu, 9 Jan 2025 02:23:12 -0800
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=MC7VyOpGLcH6UzH6U8UFRAV4nTArH0WTF2EEbilkQLqRtQPRPKiA6S3LGoHziLXOGWS6JOog4X7Q//tFVVu3utlexhzFVrqt1S9lcxxLxfqfFc8iz6XXTeQfqkxJCWNexEWNqgAYLkcNyuvwAjnfzq+yLQxmeXhcp9jlNrviPOlnpPRNUd4u0bq9Rp9JUcgRkd8iAIJjYXnc1b7Jiiq8lW7nKpFYZ4JgiLywxnNuUn0AFiZBTIC93ahuGuNqQ4NZiN/qGOsgwv71uIhzByivdtEhMhX9ryWD6f8okc4c93xkz1AJI6W4Iwf5BVN5xbYwsU4bV8QBXXVVekgAWG90ZA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Wxp+aF2GBm7HdITNkHNXtUTtQhXW/KV2yo5nOHFFU3E=;
+ b=lxWZ6f5VozWHupHTxu9UTfSZwweME10kcl5/0QPuSbJcDuBMQizJW9sDV3LsuBAa7V+GwAdp1xHDPYWZtEaK4ux5ix9RGtEiHnkJHvN7uPicjCX6eObGFVu3j8Ik5hvaDn25+FDq1EFOZULuirqVhwjX6hLEP6vHgZKJZiDtcRkIhiXuOtqb11gx3xYua8vqDLUCauG+zY1aoocenSsUSs28FYIGfZWO2V+7BSIGKZMKM6evlcb3ZYzfQ71wOO5LwTvpfX/ieWle+v+q2dhshpah2yP0C+tAF3pu1M6S+RGK1vq7dSx6c+l7URw2Nj/YrlgwYvtGMYlCCLcmsSf69g==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from MN6PR11MB8102.namprd11.prod.outlook.com (2603:10b6:208:46d::9)
+ by SN7PR11MB8111.namprd11.prod.outlook.com (2603:10b6:806:2e9::18) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8314.18; Thu, 9 Jan
+ 2025 10:22:57 +0000
+Received: from MN6PR11MB8102.namprd11.prod.outlook.com
+ ([fe80::15b2:ee05:2ae7:cfd6]) by MN6PR11MB8102.namprd11.prod.outlook.com
+ ([fe80::15b2:ee05:2ae7:cfd6%6]) with mapi id 15.20.8335.011; Thu, 9 Jan 2025
+ 10:22:56 +0000
+Message-ID: <33fe32ae-44aa-433d-a77f-bb75e8957842@intel.com>
+Date: Thu, 9 Jan 2025 11:22:49 +0100
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 09/10] netfilter: Add message pragma for deprecated
+ xt_*.h, ipt_*.h.
+To: =?UTF-8?Q?Sz=C5=91ke_Benjamin?= <egyszeregy@freemail.hu>, Jozsef Kadlecsik
+	<kadlec@netfilter.org>
+CC: <fw@strlen.de>, <pablo@netfilter.org>, <lorenzo@kernel.org>,
+	<daniel@iogearbox.net>, <leitao@debian.org>, <amiculas@cisco.com>,
+	<davem@davemloft.net>, <dsahern@kernel.org>, <edumazet@google.com>,
+	<kuba@kernel.org>, <pabeni@redhat.com>, <horms@kernel.org>,
+	<netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+	<linux-kernel@vger.kernel.org>, <netdev@vger.kernel.org>
+References: <20250107024120.98288-1-egyszeregy@freemail.hu>
+ <20250107024120.98288-10-egyszeregy@freemail.hu>
+ <1cd443f7-df1e-20cf-cfe8-f38ac72491e4@netfilter.org>
+ <0e51464d-301d-4b48-ad38-ca04ff7d9151@freemail.hu>
+ <2b9c44e0-4527-db29-4e5e-b7ddd41bda8d@netfilter.org>
+ <8d25e36a-b598-4b18-896c-d0dcb7233800@freemail.hu>
+From: Przemek Kitszel <przemyslaw.kitszel@intel.com>
+Content-Language: en-US
+In-Reply-To: <8d25e36a-b598-4b18-896c-d0dcb7233800@freemail.hu>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: VI1PR04CA0097.eurprd04.prod.outlook.com
+ (2603:10a6:803:64::32) To MN6PR11MB8102.namprd11.prod.outlook.com
+ (2603:10b6:208:46d::9)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <Z38STV2bWSlz4uxo@calendula>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: MN6PR11MB8102:EE_|SN7PR11MB8111:EE_
+X-MS-Office365-Filtering-Correlation-Id: 21f065c4-ca11-4861-a87f-08dd309795af
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|7416014|376014|366016|7053199007;
+X-Microsoft-Antispam-Message-Info: =?utf-8?B?RHlaL3lvbWROcjVwN2pSMVhZVmlzQlF0TmdyekRwQ0VlQzdnNEZEY1Z3SUdn?=
+ =?utf-8?B?RFUxaEI4cGM3bXg1MENvcmVpM25oVVBJenRDTmN3cDRQRW90aTJ5bVVqZ2lL?=
+ =?utf-8?B?dnMyT1RJdVY2V1VCcjFLQ2paSjdyUXRwbm5uRXdWaWJEVHpIVDRsNDlUSjRW?=
+ =?utf-8?B?aVZDUGNDelN0T3k2TW1KZ09Sd2x2aGFqM3EwNTV6RDlYNldMZGFnNDVRK2FM?=
+ =?utf-8?B?ck45OHIzUTFzR3piSEl0d1F1NnRpNFFlaWE0L1FEcXo0Nm1LV1MzMExRS3Fw?=
+ =?utf-8?B?OHNiZ0czR0lINVVFUXdON1hSMUlKOTBUek1KUXZ5NUpHVG0zUGgyMkZKeVg4?=
+ =?utf-8?B?UjFUWjhYbnM4akNseDZHcTdYQzFuOERFclJYcFdSeW11N01PQy92SFNzTXRu?=
+ =?utf-8?B?S3JwUjFXU0diV0szOFFLSjduWWQyT1M3eDVSTTNJL1huNGRHL3llWkRjN3ov?=
+ =?utf-8?B?V3J1U2JTS0ZPbC96Vi9iUzZ3aGlrM0xjQzlLdlB5S25kQzY4UEtGTW9PVTc2?=
+ =?utf-8?B?Q05lRGx2YW1RQk1kcUhXSUYrQUNZMDVOaEp0YVY5UTYwUzZWZ2NIUC9uQWxr?=
+ =?utf-8?B?U1BMdWkwVklETDlFazNmalgxMUZqdmRtcyt1UnlYc0hWUlJzdDlUOEVTQUI1?=
+ =?utf-8?B?bzZxaC9mUXNuZCsyOG1aaXNCOEw0L0RoNmpBeWxxUVY5UVJQeloxTEd1dXI1?=
+ =?utf-8?B?clFxL0dGTmZ0enpvYWl0eVAybngwTEtlT3ByY1lkekFUTkdpRFJ6N3RlMjUy?=
+ =?utf-8?B?VUFpR3d1aVRIcWVMYzhJRHMzcFo0Z0FUU0c1aVFkK0JMM0VhUjc1aHRDNUFQ?=
+ =?utf-8?B?N1I3YjlrOVlNdm5KWGFWdlgwckFucWNvbXB3QktMMFBtZTZJMEoxREU2YVBi?=
+ =?utf-8?B?NnBUVjhHSFJqQ0lhM014aDhnTjkxRDdtbjZmNDlFcXA1QVpFUkpEa0dIV2tQ?=
+ =?utf-8?B?amhPS045SFVnWnc0N3N4Qzd0RHJWcStxb3RlOFR6V2pFUUFORVJ2Z0xHWHhi?=
+ =?utf-8?B?dWJoVmZsOE8rZDUvUEhnSEpNUEFsenFLekZDZ3FNUFQ3OWFxbytrMkZITy8z?=
+ =?utf-8?B?dHQ4dHdrdm1uc3NFVlJGeFpLb0tyNjVlTkVPaTZvZi9TRmI3eC9OWEZHVjU0?=
+ =?utf-8?B?MEJNM0VqWFFJeVZCTjlJdFZ3b1dmTTUvL082U0V4Y1JZY0tFQ3JnYkk4UENx?=
+ =?utf-8?B?bTh3dmJjTlNnSzdZaTdJbzZZTXBxZTNCaHBZQmtCRHlCdFVJV1VSQnRXb1hn?=
+ =?utf-8?B?NXBMTWhWaURnclVDS0dKN1haY2QwSWN2Y2M4dkljYTlkakVWamRLODZwUFFB?=
+ =?utf-8?B?NTF2ODYyS0YvaEwzeTFUQ2NnNW5LUHhIeGZwOExlL1hEYStNQld6WTJyZ0x2?=
+ =?utf-8?B?d2ZMVnNGQVhGWThMa1kwL3o3V0d3Q3hRL3h4bVNaWFUzWGdoMUkwSXVleWRR?=
+ =?utf-8?B?VXFFUzBiVm92T3VSUmJGRFlMQnpNNzFtK3I4MG1FeW5jSHhoeXk3QTZ5Zk1i?=
+ =?utf-8?B?RlV0T3RQQTVROW1BWFVzL25OM25EYWlPc2xUdkdiY2xOQ2NSQXRSeHVBditD?=
+ =?utf-8?B?Tis4S3M1Z09YSDZjOEVnOEhxNmg1dFo3VEtNdE9rMjlJRnRXVnhsbXVQczlT?=
+ =?utf-8?B?L3NFWkhSWlpJL2RJTWFiYWFJZ1U5c0NzZGJaTGRQd01EZTQ4S1d1SE0zU2Mx?=
+ =?utf-8?B?ei84cS9DZFdQa3NMZWRQK1RET3M3V2RLWGJtRjM3SHNLQXFvNXdnSUVpcmlv?=
+ =?utf-8?B?WnlLKzJ1MU41c25mcHV2aWNoQWc3ZjFhMGRqSGIzOUZRMWhYYVNFTk9rMVJY?=
+ =?utf-8?B?OXdpVUZ6VGFoUko4VWtMT05jOEMyWHRVekY2RFN3emxlWnBhUTNWcEdpQVlD?=
+ =?utf-8?Q?f5lFycLt28Jhn?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN6PR11MB8102.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(366016)(7053199007);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?dDUxY25QbVdDUm45UktCc3pNV2RrcHAxZVUxTHdLd3F2R3hEMmFJQWlxdW5Y?=
+ =?utf-8?B?cUtsQ1RpeStrTG1sVEhTVE04aDRMS3FiWHE2VHhPY3JhUE5KWkc5WkhIMzhj?=
+ =?utf-8?B?b0REYnltVGtZbStqZjlxKzM2Q0I5WEhaMW9lUmNDVGZvT2E1VElpVmhqK2oz?=
+ =?utf-8?B?QmJoWE1ETmxNd0VnRDhvWnVwaGFrNnVobjd3Z3Y2RkNiV2daN2FHZklHK1My?=
+ =?utf-8?B?aDc5bFdwM2F6dVZHYTI0UDU4MUZuT3ZEYWIzMVpEMjhHZFp1ZTBUWklMMUdZ?=
+ =?utf-8?B?cE1jZWR5YnVub2lXTWdZYlZQb2szeFltWjZUcWhtQ0haUGhWNmk0ZGdqd3VK?=
+ =?utf-8?B?bDF1YThUa0I0eTNhaGU2YlY3YnJoMDc2WEZWMHhzclJDQUkyTHRWU3NLd2ZU?=
+ =?utf-8?B?dG1IZEYyL3orVUw0VGNDRElOQjdpVzBvdUtsdVJtTEhRa0ZodnVia1M0U0JT?=
+ =?utf-8?B?RzNGanVkQkZhVTArSGhaMGhscFpnUEhOZUMvUzRmQkRnMEMrRkFmdE9CcGw5?=
+ =?utf-8?B?NFNLYmZZOUJZcHFmVkExZEJyTVR3ZVdZRDdqMUNDaDhlNnRzU2ZKWHJhcTU4?=
+ =?utf-8?B?Y0VBNk80U1V4MXVYVzRla3dWTWNOSHY0ZVhFaElFZW83dTJpNjVvem9VdWVu?=
+ =?utf-8?B?S2hJa2VyTnFsYXlrZEtHK1lBdFBibWJUQXZXYWhkZGlWRU1HM1U3ZGdFVnNJ?=
+ =?utf-8?B?K1hoeVNaaXVIeFpXOUxvU0dnb05sOHhJR2xsT0ZKZzJuRDEweGFKcjF0UTFo?=
+ =?utf-8?B?SGMvZVh4Q0N3NU1qTnA1VFZyZzd5cjFZVG54MlBKVVhpSmh0azUvSEVLb010?=
+ =?utf-8?B?aEJwMTFZSFhxUVZMNEo3cDhybTZ2UHpPelpzYklwTEhzQUNMSHhXTzN2Q0RC?=
+ =?utf-8?B?T2ZQUzNXYThDTkFyWDh5OE93dWtaeml0YSsyNzV0RUNCSEZ1WHNSUm9vVURs?=
+ =?utf-8?B?aFZ3aVk2NWI2WkdGSFR0V0NSZFBzSldzWkRTZElmcmY5bGpiYlhOWjUxZ1l1?=
+ =?utf-8?B?WU1nQ05Wd3V1c2JDbFNzTDJTdkpqWWxIRXQzci9weE1lSXQvOWhhVnhDSEFB?=
+ =?utf-8?B?ejJZTDNvejBrTXplU3dsWGFSM09sbVFMbjYyQmx4aU14cjM3UmdoNTFRQzBH?=
+ =?utf-8?B?NXZiR3lEUlRkUWNOS0xTSEtHYnlOY3RjQ0J2cHRwL1BpR1poeCtKWUdVMHFM?=
+ =?utf-8?B?RC84enN3K2tNY1ZyQitheVlQa0dBR2JXU3pCN3JTeWdjR1hmL25XaHI3dlB1?=
+ =?utf-8?B?RlA4dlM0MGVxNmxtUS9JbFpNTFdyanNROE9kVEpseEsvT0F3MWZvaWVmd3h1?=
+ =?utf-8?B?SnQrTVVmSWFzRzN3T1RYbW9KbnA2NGxPNzVQcDU2a1Y0NXh2MDgyeXp1V2Rw?=
+ =?utf-8?B?MCtTTmlkajlPN1NLOVhzNjh3eE05Rml2K0xLcHB1cUtoRVBNeGdSTmYyRUti?=
+ =?utf-8?B?cnovaStuZHhTZlo5SEIrS1d5d1Y5Qno3Z1FhNk43N1NLUENuRnh5L21zQWE4?=
+ =?utf-8?B?YTREbHNqTEFnQmVsL3VBV2htU1QvQ1YydHgyQWdLekcyVzE2Uk10d1FOd0tW?=
+ =?utf-8?B?UzRYVS9WZ0hNSnhsS3NLWnpFeGVhb1RpNStFV2crbkhYUG5HZmNJV3JyZTRr?=
+ =?utf-8?B?cWpGZmtpbXdMK2dtV0NyZnh6Mk5RUzNZK3pRME8rMkNYcVphVDlUNVZ5MHhS?=
+ =?utf-8?B?WGdraW5vdG9wZXhUS1hoVndnN1I2bm5BYmEyRTZPa1YyMk5UcE9vYVNjWGhu?=
+ =?utf-8?B?SUxnQmUrcXhvRU9IMWxGdUNRVi81SC9jalRjK0xOWWZDekIxUDMrSjh4bW5H?=
+ =?utf-8?B?VjVlbU90VmtTUmVXRVlWdFlKaWYrMm9KT285Y3FydzVEeDdUN0hGYVBtdlMy?=
+ =?utf-8?B?NjA1TG9ZNHI1MnhuL3grZFdTRy9aWXBWcGxmNzVtR1NYZ0dCa3ljNllZVzZO?=
+ =?utf-8?B?TXdZZW1BZ2pLbGREQ2FpUkErcTVpMjlDSk96VDRMbmhYYnliYUVpOUdMclRI?=
+ =?utf-8?B?ZVNabnExdU5rcUExdDB3TkJDNGFtR1dFZjg0Yno0Y3prejhLUk56NUVMM0Fs?=
+ =?utf-8?B?QmdpV2dLU1RqWFd6UHJJNEVobzZzK1dtUUhHbWg2ckdnUjdLakhOQTlkNVRR?=
+ =?utf-8?B?S3U5S1dIRDd6MkxLVnFFSmxydTFyQmgxZjRxWi81QWREWFRHNWhoeng2cVBo?=
+ =?utf-8?B?K0E9PQ==?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 21f065c4-ca11-4861-a87f-08dd309795af
+X-MS-Exchange-CrossTenant-AuthSource: MN6PR11MB8102.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Jan 2025 10:22:56.7702
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: cr13diC17isGkGHPt46S9smNkchs1EyT97wKZTDXQLRqjYYIioE9+qa/c5GEESvm9YSgSJncAY6HmnpnOdQqJjSj2BYcOVuAt2UcsNpYH4U=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR11MB8111
+X-OriginatorOrg: intel.com
 
-Hi Pablo,
-
-On Thu, Jan 09, 2025 at 01:03:25AM +0100, Pablo Neira Ayuso wrote:
-> On Thu, Jan 09, 2025 at 12:49:53AM +0100, Phil Sutter wrote:
-> > On Thu, Jan 09, 2025 at 12:34:01AM +0100, Pablo Neira Ayuso wrote:
-> > > On Fri, Dec 20, 2024 at 01:33:42PM +0100, Phil Sutter wrote:
-> > > > On Fri, Dec 20, 2024 at 01:07:56PM +0100, Alyssa Ross wrote:
-> > > > > On Fri, Dec 20, 2024 at 12:50:42PM +0100, Phil Sutter wrote:
-> > > > > > Hi Alyssa,
-> > > > > >
-> > > > > > On Fri, Dec 20, 2024 at 12:10:02AM +0100, Alyssa Ross wrote:
-> > > > > > > Since iptables commit 810f8568 (libxtables: xtoptions: Implement
-> > > > > > > XTTYPE_ETHERMACMASK), nftables failed to build for musl libc:
-> > > > > > >
-> > > > > > > 	In file included from /nix/store/bvffdqfhyxvx66bqlqqdmjmkyklkafv6-musl-1.2.5-dev/include/netinet/et…
-> > > > > > > 	                 from /nix/store/kz6fymqpgbrj6330s6wv4idcf9pwsqs4-iptables-1.8.10-de…
-> > > > > > > 	                 from src/xt.c:30:
-> > > > > > > 	/nix/store/bvffdqfhyxvx66bqlqqdmjmkyklkafv6-musl-1.2.5-dev/include/netinet/if_ether.h:115:8: error: redefinition of 'struct ethhdr'
-> > > > > > > 	  115 | struct ethhdr {
-> > > > > > > 	      |        ^~~~~~
-> > > > > > > 	In file included from ./include/linux/netfilter_bridge.h:8,
-> > > > > > > 	                 from ./include/linux/netfilter_bridge/ebtables.h:1,
-> > > > > > > 	                 from src/xt.c:27:
-> > > > > > > 	/nix/store/bvffdqfhyxvx66bqlqqdmjmkyklkafv6-musl-1.2.5-dev/include/linux/if_ether.h:173:8: note: originally defined here
-> > > > > > > 	  173 | struct ethhdr {
-> > > > > > > 	      |        ^~~~~~
-> > > > > > >
-> > > > > > > The fix is to use libc's version of if_ether.h before any kernel
-> > > > > > > headers, which takes care of conflicts with the kernel's struct ethhdr
-> > > > > > > definition by defining __UAPI_DEF_ETHHDR, which will tell the kernel's
-> > > > > > > header not to define its own version.
-> > > > > >
-> > > > > > What I don't like about this is how musl tries to force projects to not
-> > > > > > include linux/if_ether.h directly. From the project's view, this is a
-> > > > > > workaround not a fix.
-> > > > >
-> > > > > My understanding is that it's a general principle of using any libc on
-> > > > > Linux that if there's both a libc and kernel header for the same thing,
-> > > > > the libc header should be used.  libc headers will of course include
-> > > > > other libc headers in preference to kernel headers, so if you also
-> > > > > include the kernel headers you're likely to end up with conflicts.
-> > > > > Whether conflicts occur in any particular case depends on how a
-> > > > > particular libc chooses to expose a particular kernel API.  I could be
-> > > > > misremembering, but I believe the same thing can happen with Glibc —
-> > > > > some headers under sys/ cause conflicts with their corresponding kernel
-> > > > > headers if both are included.  While this case is musl specific, I
-> > > > > think the principle applies to all libcs.
-> > > >
-> > > > While this may be true for the vast majority of user space programs,
-> > > > netfilter tools and libraries are a bit special in how close they
-> > > > interface with the kernel. Not all netfilter-related kernel API is
-> > > > exposed by glibc, for instance. Including (some) kernel headers is
-> > > > therefore unavoidable, and (as your patch shows) order of inclusion
-> > > > becomes subtly relevant in ways which won't show when compile-testing
-> > > > against glibc only.
-> > > >
-> > > > > > > Signed-off-by: Alyssa Ross <hi@alyssa.is>
-> > > > > > > ---
-> > > > > > > A similar fix would solve the problem properly in iptables, which was
-> > > > > > > worked around with 76fce228 ("configure: Determine if musl is used for build").
-> > > > > > > The __UAPI_DEF_ETHHDR is supposed to be set by netinet/if_ether.h,
-> > > > > > > rather than manually by users.
-> > > > > >
-> > > > > > Why does 76fce228 not work for you?
-> > > > >
-> > > > > It does work, but that's a fix for iptables.  This is a fix for
-> > > > > nftables.  I could have submitted a copy of the iptables fix, but I
-> > > > > don't think it's the best fix due to its reliance on internal macros
-> > > > > that are not part of the public interface.
-> > > >
-> > > > Ah, sorry! Patch subject and description managed to confuse me.
-> > > >
-> > > > Pablo, what's your opinion? Maybe we should strive for the same solution
-> > > > for the problem in all netfilter user space, so either take what we have
-> > > > in iptables or adjust iptables to what nftables decides how things
-> > > > should be?
-> > >
-> > > I see, you mean to use this (from iptables):
-> > >
-> > > commit 76fce22826f8e860b5eb5b5a2463040c17ff85da
-> > > Author: Joshua Lant <joshualant@googlemail.com>
-> > > Date:   Wed Aug 28 13:47:31 2024 +0100
-> > >
-> > >     configure: Determine if musl is used for build
-> > >
-> > > and adapt to use it from nftables (and everywhere else).
-> > >
-> > > Alyssa's patch is more simple, but it is mangling a cache kernel
-> > > header.
-> >
-> > Right, so the fixing should start in kernel repo, then update the cached
-> > header in nftables.
-> >
-> > > Is this configure.ac workaround needed everywhere in the netfilter.org
-> > > trees to make musl happy?
-> >
-> > AIUI, only in those including linux/if_ether.h directly. ;)
+On 1/8/25 22:38, Szőke Benjamin wrote:
+> 2025. 01. 08. 21:51 keltezéssel, Jozsef Kadlecsik írta:
+>> On Tue, 7 Jan 2025, Szőke Benjamin wrote:
+>>
+>>> 2025. 01. 07. 20:39 keltezéssel, Jozsef Kadlecsik írta:
+>>>> On Tue, 7 Jan 2025, egyszeregy@freemail.hu wrote:
+>>>>
+>>>>> From: Benjamin Szőke <egyszeregy@freemail.hu>
+>>>>>
+>>>>> Display information about deprecated xt_*.h, ipt_*.h files
+>>>>> at compile time. Recommended to use header files with
+>>>>> lowercase name format in the future.
+>>>>
+>>>> I still don't know whether adding the pragmas to notify about header
+>>>> file deprecation is a good idea.
+>>>
+>>> Do you have any other ideas how can you display this information to the
+>>> users/customers, that it is time to stop using the uppercase header
+>>> files then they shall to use its merged lowercase named files instead in
+>>> their userspace SW?
+>>
+>> Honestly, I don't know. What about Jan's clever idea of having the
+>> clashing filenames with identical content, i.e.
+>>
+>> ipt_ttl.h:
+>> #ifndef _IPT_TTL_H
+>> #define _IPT_TTL_H
+>> #include <linux/netfilter_ipv4/ipt_ttl_common.h>
+>> #endif _IPT_TTL_H
+>>
+>> ipt_TTL.h:
+>> #ifndef _IPT_TTL_H
+>> #define _IPT_TTL_H
+>> #include <linux/netfilter_ipv4/ipt_ttl_common.h>
+>> #endif _IPT_TTL_H
+>>
+>> Would cloning such a repo on a case-insensitive filesystem produce errors
+>> or would work just fine?
+>>
 > 
-> Hm. I am looking at include/uapi/linux/netfilter_bridge.h and...
+> What is this suggestion, in ipt_ttl.h and ipt_TTL.h really? How it can 
+> solve and provide in compile or run-time information for the users about 
+> the recomendded changes? (It seems to me that you are completely 
+> misunderstanding the purpose of this message at this time.)
+
+likely the uppercased names will be with us forever
+
 > 
-> #include <linux/in.h>
-> #include <linux/netfilter.h>
-> #include <linux/if_ether.h>
-> #include <linux/if_vlan.h>
-> #include <linux/if_pppox.h>
 > 
-> I don't understand why all those #include need to be there, this
-> header file contains only defines an enumeration... git annotate takes
-> me to:
+> Listen carefully, this are the points/scope.
 > 
->   607ca46e97a1 ("UAPI: (Scripted) Disintegrate include/linux")
+> This patchset provide the following:
+> - 1. Merge upper and lowercase named haeder files in UAPI netfilter.
+> - 2. Merge upper and lowercase named source files in UAPI netfilter. 
+> (uppercase named files can be removed)
+> - 3. Keep the backward compatibility, there is no any breaking API 
+> changes yet.
+> - 4. Keep uppercase header files as just a "wrapper" for include same 
+> lowercase header files.
+> - 5. Provide a clear message for the UAPI's users that in the future 
+> should have to use the lowercase named files instead.
+
+6. lot's of drama too.
+
+Please remember to add a proper versioning to your next revision, also
+target to net-next.
+
 > 
-> Silly question: Does it break any netfilter userspace software if
-> #include <linux/if_ether.h> is moved from that kernel header file to
-> to the non-uapi netfilter_bridge.h header file.
+> Later, for example when Linux kernel goes to 7.0 version, uppercase 
+> header files can be removed. Breaking API possibble when version of a SW 
+> is incremented in major field. Before, in first patchset, UAPI users 
 
-Silly counter question: Does removing an include statement break UAPI? I
-was once told source files shall directly include everything they need
-and not depend on includes in headers, but "now you need this extra
-header" is not far away from "now you need this other header", right?
+that would be correct for "semantic versioning", not used by the kernel
 
-Even sillier, is Alyssa's change legal regarding UAPI? All of glibc,
-musl and uClibc seem fine, but in theory there might be a libc which has
-odd things in netinet/if_ether.h.
-
-BTW: I see only a single UAPI kernel header include from netinet space
-(include/uapi/linux/mptcp.h) and it's for compat reasons (06e445f740c1
-("mptcp: fix conflict with <netinet/in.h>")). Speaking of which, what if
-we added:
-
-| #ifndef __KERNEL__
-| #include <netinet/if_ether.h>
-| #endif
-
-early into include/uapi/linux/if_ether.h? Aside from any header caches,
-this should fix all of user space at once, no?
-
-> > Though there is such include in nftables' src/payload.c which remains
-> > unchanged by Alyssa's patch. Not sure if intentional, maybe there are
-> > factors which make the include harmless.
+> were informed about what is better to use. So it can be a clear and slow 
+> roadmap to solve case-insensitive filesystem issue on this files.
 > 
-> This is userspace, I guess we can replace it with userspace netinet/
-> header variant.
 > 
-> > > I don't see any better option at this stage.
-> >
-> > According to a quick grep, there are currently six spots including
-> > linux/if_ether.h (including one cached kernel header). I like about the
-> > configure hack that it avoids breaking musl by accident via some
-> > seemingly unrelated patch. Just one less thing to keep in mind, but this
-> > is just me. I appreciate other opinions!
+>> Best regards,
+>> Jozsef
 > 
-> Agreed, avoiding the configure kludge would be good.
+> 
 
-OK! I could probably write some git hooks to support my lossy memory.
-
-Cheers, Phil
