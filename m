@@ -1,28 +1,31 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2399321882B
-	for <netfilter-devel@vger.kernel.org>; Thu,  9 Jan 2025 13:22:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FFFD2040BF
+	for <netfilter-devel@vger.kernel.org>; Thu,  9 Jan 2025 13:22:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736428954; cv=none; b=Wn1HEJ4CNoxzECp+EOJ/YPZ+Y8Wfpx5f9osUues9QmpWj2aIdz5yNIHHSkFCub2nEAhWEUczkZTS0AyoSiqSP6igJTa4AAUqS+0NvSDOZUFR9wIHq4oQT1uHlXY3O686KdkCbath2WK2hCwJgZdxpOZJrW5W7iHJb8loPTf8IW0=
+	t=1736428956; cv=none; b=GfpmMROLUJsrBPkpNK4+fMbek7YFs2T9t86cKRD8gGikh3+dVRUBxUD7tWnqQSV8k5cL4Tbb3V7EQ4QnZw1y2CU4OGhxjJC3CEovVc0aiWxPup+g2581DtpvCgSAyU8dtXy+teSG2MX1GwGZBO/F2bb9cBNbD1JHeTOWnIXN79Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736428954; c=relaxed/simple;
-	bh=mPCIQXzOlUHP40dRBSWANEjb6sPhk7gT13wbA95rG3I=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=D8QdpmAUGoCeLFcbTRWdvNZ5WUUIcI5CgnOxOIkxFGWMDx2eHnBnkJKaglWJi1mLYSRMfIn4bvZZHzvEwDHuY7ODZn0Izlqn/wu3xyHfzHx3cSDGJkPEdRl/pc5aAi1se1TiBqUAZ5oQXDvhNdaXcADUb0mreepEBNOPCaXv3Pg=
+	s=arc-20240116; t=1736428956; c=relaxed/simple;
+	bh=It++sY37SgJ0Vp2+KdOtHB1WaUW9eLyUY1VCb1s4D6c=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=BEaG+9OVLlOk1qpqP37DQUjhsqoQv1lIJ7Ri+3LUjrBFdtQMxwlNSbjgzAyOEILBDAFKFNF1z5pU90lWI8xR6Un6PBfz6pLwBJHAf97oNoHSAniP7c/YZJCkBUrraY4BYOmwJEl1TIFeZOLLfMzmu+3bpEte3okrG2Q5IQqad/A=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1tVsUW-0007aP-5x; Thu, 09 Jan 2025 14:22:28 +0100
+	id 1tVsUa-0007aX-7X; Thu, 09 Jan 2025 14:22:32 +0100
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH libnetfilter_conntrack 1/2] src: add support for CTA_TIMESTAMP_EVENT
-Date: Thu,  9 Jan 2025 14:15:36 +0100
-Message-ID: <20250109131541.5856-1-fw@strlen.de>
+Subject: [PATCH conntrack-tools 2/2] conntrack: prefer kernel-provided event timestamp if it is available
+Date: Thu,  9 Jan 2025 14:15:37 +0100
+Message-ID: <20250109131541.5856-2-fw@strlen.de>
 X-Mailer: git-send-email 2.45.2
+In-Reply-To: <20250109131541.5856-1-fw@strlen.de>
+References: <20250109131541.5856-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,108 +34,61 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Allow libnetfilter_conntrack to parse CTA_TIMESTAMP_EVENT attribute.
-This will be included for all ctnetlink events if the kernel has commit
+If kernel provided the event timestamp, then use it, else fall back
+to gettimeofday.
 
+This needs a recent kernel with
     netfilter: conntrack: add conntrack event timestamp
 
-and net.netfilter.nf_conntrack_timestamp sysctl is set to 1.
+and net.netfilter.nf_conntrack_timestamp sysctl set to 1.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/internal/object.h                              |  1 +
- .../libnetfilter_conntrack/libnetfilter_conntrack.h    |  1 +
- .../libnetfilter_conntrack/linux_nfnetlink_conntrack.h |  1 +
- src/conntrack/getter.c                                 |  6 ++++++
- src/conntrack/parse_mnl.c                              | 10 ++++++++++
- 5 files changed, 19 insertions(+)
+ src/conntrack.c | 24 +++++++++++++++++++++---
+ 1 file changed, 21 insertions(+), 3 deletions(-)
 
-diff --git a/include/internal/object.h b/include/internal/object.h
-index 658e4d270a84..d72b31c740b3 100644
---- a/include/internal/object.h
-+++ b/include/internal/object.h
-@@ -201,6 +201,7 @@ struct nf_conntrack {
- 
- 	struct nfct_bitmask *connlabels;
- 	struct nfct_bitmask *connlabels_mask;
-+	uint64_t timestamp_event;
- };
- 
- /*
-diff --git a/include/libnetfilter_conntrack/libnetfilter_conntrack.h b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-index 27d972d76584..086c81ace0e3 100644
---- a/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-+++ b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-@@ -144,6 +144,7 @@ enum nf_conntrack_attr {
- 	ATTR_SYNPROXY_ISN = 72,			/* u32 bits */
- 	ATTR_SYNPROXY_ITS,			/* u32 bits */
- 	ATTR_SYNPROXY_TSOFF,			/* u32 bits */
-+	ATTR_TIMESTAMP_EVENT,			/* u64 bits */
- 	ATTR_MAX
- };
- 
-diff --git a/include/libnetfilter_conntrack/linux_nfnetlink_conntrack.h b/include/libnetfilter_conntrack/linux_nfnetlink_conntrack.h
-index b8ffe02cba42..88c14c8786c5 100644
---- a/include/libnetfilter_conntrack/linux_nfnetlink_conntrack.h
-+++ b/include/libnetfilter_conntrack/linux_nfnetlink_conntrack.h
-@@ -60,6 +60,7 @@ enum ctattr_type {
- 	CTA_SYNPROXY,
- 	CTA_FILTER,
- 	CTA_STATUS_MASK,
-+	CTA_TIMESTAMP_EVENT,
- 	__CTA_MAX
- };
- #define CTA_MAX (__CTA_MAX - 1)
-diff --git a/src/conntrack/getter.c b/src/conntrack/getter.c
-index d1f9a5ac27ad..c9615d5016b8 100644
---- a/src/conntrack/getter.c
-+++ b/src/conntrack/getter.c
-@@ -384,6 +384,11 @@ static const void *get_attr_synproxy_tsoff(const struct nf_conntrack *ct)
- 	return &ct->synproxy.tsoff;
+diff --git a/src/conntrack.c b/src/conntrack.c
+index 52ba4ac5e44f..22058736b374 100644
+--- a/src/conntrack.c
++++ b/src/conntrack.c
+@@ -1914,6 +1914,26 @@ static char *get_progname(uint32_t portid)
+ 	return NULL;
  }
  
-+static const void *get_attr_timestamp_event(const struct nf_conntrack *ct)
++static void event_print_timestamp(const struct nf_conntrack *ct)
 +{
-+	return &ct->timestamp_event;
-+}
++	struct timeval tv;
 +
- const get_attr get_attr_array[ATTR_MAX] = {
- 	[ATTR_ORIG_IPV4_SRC]		= get_attr_orig_ipv4_src,
- 	[ATTR_ORIG_IPV4_DST] 		= get_attr_orig_ipv4_dst,
-@@ -460,4 +465,5 @@ const get_attr get_attr_array[ATTR_MAX] = {
- 	[ATTR_SYNPROXY_ISN]		= get_attr_synproxy_isn,
- 	[ATTR_SYNPROXY_ITS]		= get_attr_synproxy_its,
- 	[ATTR_SYNPROXY_TSOFF]		= get_attr_synproxy_tsoff,
-+	[ATTR_TIMESTAMP_EVENT]		= get_attr_timestamp_event,
- };
-diff --git a/src/conntrack/parse_mnl.c b/src/conntrack/parse_mnl.c
-index 3cbfc6a6f0ba..0f87f69df287 100644
---- a/src/conntrack/parse_mnl.c
-+++ b/src/conntrack/parse_mnl.c
-@@ -897,6 +897,10 @@ nfct_parse_conntrack_attr_cb(const struct nlattr *attr, void *data)
- 	case CTA_NAT_DST:
- 		/* deprecated */
- 		break;
-+	case CTA_TIMESTAMP_EVENT:
-+		if (mnl_attr_validate(attr, MNL_TYPE_U64) < 0)
-+			abi_breakage();
-+		break;
- 	}
- 	tb[type] = attr;
- 	return MNL_CB_OK;
-@@ -1029,6 +1033,12 @@ nfct_payload_parse(const void *payload, size_t payload_len,
- 			return -1;
- 	}
- 
-+	if (tb[CTA_TIMESTAMP_EVENT]) {
-+		set_bit(ATTR_TIMESTAMP_EVENT, ct->head.set);
-+		ct->timestamp_event =
-+			be64toh(mnl_attr_get_u64(tb[CTA_TIMESTAMP_EVENT]));
++	/* nfct_attr_is_set returns -1 if attr is unknown */
++	if (nfct_attr_is_set(ct, ATTR_TIMESTAMP_EVENT) > 0) {
++		uint64_t event_ts = nfct_get_attr_u64(ct, ATTR_TIMESTAMP_EVENT);
++		static const uint64_t ns_per_s = 1000000000ul;
++		static const uint64_t ns_to_usec = 1000ul;
++
++		tv.tv_sec = event_ts / ns_per_s;
++
++		tv.tv_usec = (event_ts % ns_per_s) / ns_to_usec;
++	} else {
++		gettimeofday(&tv, NULL);
 +	}
 +
- 	return 0;
- }
- 
++	printf("[%-.8ld.%-.6ld]\t", tv.tv_sec, tv.tv_usec);
++}
++
+ static int event_cb(const struct nlmsghdr *nlh, void *data)
+ {
+ 	struct nfgenmsg *nfh = mnl_nlmsg_get_payload(nlh);
+@@ -1969,9 +1989,7 @@ static int event_cb(const struct nlmsghdr *nlh, void *data)
+ 		op_flags = NFCT_OF_SHOW_LAYER3;
+ 	if (output_mask & _O_TMS) {
+ 		if (!(output_mask & _O_XML)) {
+-			struct timeval tv;
+-			gettimeofday(&tv, NULL);
+-			printf("[%-.8ld.%-.6ld]\t", tv.tv_sec, tv.tv_usec);
++			event_print_timestamp(ct);
+ 		} else
+ 			op_flags |= NFCT_OF_TIME;
+ 	}
 -- 
 2.45.2
 
