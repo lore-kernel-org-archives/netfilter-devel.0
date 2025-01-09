@@ -1,35 +1,51 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0FB218EFD4;
-	Thu,  9 Jan 2025 17:00:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C06D418BBB9
+	for <netfilter-devel@vger.kernel.org>; Thu,  9 Jan 2025 17:31:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736442029; cv=none; b=Qgokd+oGwECxHy6uh9S24ExFj1mYoj63cAqcIoIJwmq6jri+EIwHOLmezKKIZ4JW40U1ffeFfjZBirJD1cOsmB223PaARa2vo3x4eVWwUyIIlP3f955U7unfNI1QjOU/T6NA0eomjYnA7eBMkh62zB6mcWapUVxuWIUdSKMZXJ0=
+	t=1736443906; cv=none; b=J0FqJoOcN8LVapdDSSsXNJxB+pJtDnglaD3lwKJKNNJ8vflB6EpuMjC5L6ucIvs4nfosPkUwI5Nw4S1oNLvT366YuxTN2auaUgHwE1cFl2Rpn2tCwIs6W00weu/60lV3Oanv2PVa8PES1NOlVE54s21m6gPDykzVPzpxieMAOEw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736442029; c=relaxed/simple;
-	bh=RGcbmkp5R199fM6Pee+V30xTkmnsrNtH0sOMVIS+t7Q=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=E455j842M44J+yvpfoIAUHzb/1qX784cyioG0ilRXMG1A/x1IfzWROLMry2y3oX9Ojg3XBb80qMFER9GcupdKPeLC575ZFBwg735VOTN7gAuDLAQxoTJd7QyaO0xZLiTXG+0yX1YmOVEVNJX190YzMW0eCFDQPzfd6cFxoXgy7g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=G8Rw+jU0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736443906; c=relaxed/simple;
+	bh=3fokOOolEhT1seYdI6W3DM5DhMwkOF1kRqjuFyoj8EM=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=VaQeybROHMN+BGS1oieXnO83asFq6Wbu9frBKzsE2ABmRa1eyzEkj7evo9iEB5bBmG7X827+nogPHE3ZVTh7/cTYdzLuXt7R10FTb0EifFH4CN8Wuw02+xcVgRGy8AOBvQvcLXZF1LmmM7s7Q8BNexTcsab7vX6nOnFrKPXfjRc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=ZUqJWwJW; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="G8Rw+jU0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2707CC4CED2;
-	Thu,  9 Jan 2025 17:00:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1736442028;
-	bh=RGcbmkp5R199fM6Pee+V30xTkmnsrNtH0sOMVIS+t7Q=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=G8Rw+jU095YC7zTE9+QRDrFVAFsEW9tgxRFuX3yTnSawVEjlZbN29Duomh3ETGRhM
-	 2/TmQUaO7i58x5vGF+xXPWc+TgWSPxfcMaEsp7aAcEMnZDduGq+ig7AQTmH1cDymvq
-	 MYwo48MUDOY/VqunZpCVRXmjq6ZpOvTBh4AnaXLJ1UPAa92VSmffMvjondN5ZV4+Xe
-	 icZefIRaWmlhme7yQ4rqtXfbNCkepimcTm53vWE+C/NbnZUwSBfWVhShjOECDW8sgM
-	 JQaDLsKSwDY++8dNDxfAKEyN53ItrfktCdVS4sRUvUdVnVGuKcm5n/E2du9zkfYqLg
-	 UITHv7DcLb5ig==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 1A3C4380A97E;
-	Thu,  9 Jan 2025 17:00:51 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="ZUqJWwJW"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=bL0FjL3vuFV56LY1TbOkAyqfK/3GoJyfuG609Zejlpc=; b=ZUqJWwJW8LnczKbGkIgq15BN+N
+	4CHSP+FDZhnnuJIUqRisRY2gi58fGlwnvRmtZBKhmphvQ448p59v4de1JGD8LnClEm3voLyImY9Ar
+	QD/ToP3wEvPc/ELplIk325cuQ5WnSieHW64ue8CpCZ6WQLpXAWcr2DUPtwC9kKgRNRoUh4G0rdQk5
+	1hwyVPMfCY5y6jRjkUa13n1wZUwg7JZNihzio1AsDViOCNvhQLNPMNiC7p9k1Z/JfaBE143D8m1rf
+	kyB2aKfTnfmLl2LiVsjB/7i0Im4PhjpmKuGQATsHQFzpc2yh5b/QSVNFlC4AXdxxD77KYid1JMJcS
+	Lo7Hiy+A==;
+Authentication-Results: mail.nwl.cc;
+	iprev=pass (localhost) smtp.remote-ip=::1
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1tVwNi-000000006Mm-3r3P;
+	Thu, 09 Jan 2025 18:31:42 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org,
+	Florian Westphal <fw@strlen.de>,
+	Eric Garver <e@erig.me>
+Subject: [nf-next PATCH v7 4/6] netfilter: nf_tables: Compare netdev hooks based on stored name
+Date: Thu,  9 Jan 2025 18:31:35 +0100
+Message-ID: <20250109173137.17954-5-phil@nwl.cc>
+X-Mailer: git-send-email 2.47.1
+In-Reply-To: <20250109173137.17954-1-phil@nwl.cc>
+References: <20250109173137.17954-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,43 +53,28 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/2] netfilter: nf_tables: imbalance in flowtable binding
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <173644205002.1449021.7734848326971151272.git-patchwork-notify@kernel.org>
-Date: Thu, 09 Jan 2025 17:00:50 +0000
-References: <20250109123806.42021-1-pablo@netfilter.org>
-In-Reply-To: <20250109123806.42021-1-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de
 
-Hello:
+The 1:1 relationship between nft_hook and nf_hook_ops is about to break,
+so choose the stored ifname to uniquely identify hooks.
 
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ net/netfilter/nf_tables_api.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On Thu,  9 Jan 2025 13:38:05 +0100 you wrote:
-> All these cases cause imbalance between BIND and UNBIND calls:
-> 
-> - Delete an interface from a flowtable with multiple interfaces
-> 
-> - Add a (device to a) flowtable with --check flag
-> 
-> - Delete a netns containing a flowtable
-> 
-> [...]
-
-Here is the summary with links:
-  - [net,1/2] netfilter: nf_tables: imbalance in flowtable binding
-    https://git.kernel.org/netdev/net/c/13210fc63f35
-  - [net,2/2] netfilter: conntrack: clamp maximum hashtable size to INT_MAX
-    https://git.kernel.org/netdev/net/c/b541ba7d1f5a
-
-You are awesome, thank you!
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 900b6c7d5fd6..9a14f0e542f3 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2317,7 +2317,7 @@ static struct nft_hook *nft_hook_list_find(struct list_head *hook_list,
+ 	struct nft_hook *hook;
+ 
+ 	list_for_each_entry(hook, hook_list, list) {
+-		if (this->ops.dev == hook->ops.dev)
++		if (!strcmp(hook->ifname, this->ifname))
+ 			return hook;
+ 	}
+ 
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.47.1
 
