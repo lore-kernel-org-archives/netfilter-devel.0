@@ -1,74 +1,46 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id A508021766B;
-	Thu,  9 Jan 2025 12:38:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 077AE217738;
+	Thu,  9 Jan 2025 12:40:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736426295; cv=none; b=r/eLIinIgbWJgLqpbFjADSvK+nzfcb5OIAjvrBirLTBqWFasmrURQvVBcDkdzG0QDqvY3LSS9kYTosUNpAgxNoOfLx46/jQk8iIlC5DmyMzQXmRGslIMscBtvtpI5AkIKaZgZnH6jFwZBPAsvhuv49VgxUx1ZYntH3QKzIQ6jSM=
+	t=1736426429; cv=none; b=eW0uWxyi5Gg0zy70oBfscRuaXabeGWyDUtxaYuwCZAfeMu1DtCWaZsps4sq745h1gCaN2csaEYNENoKzRQFiywGHnOOt1uhu6NhXy3rw7ygYicx5MUJ7bh/GU6495L7jP0ZVRojImduKxSD82gtJJV440+RAdVOu2o1sTo09Xj4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736426295; c=relaxed/simple;
-	bh=/OwQqXXp2bfaRHgGr4/FWni3Rpcn6O14UvA8+jaXfus=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=sMCfNdFlbfCuQ6wVh4gBgyDO7QRqkunFVqQUWPGpwX1tYSQbRwPSigD0CFj2Wrny+ah0phbgPhMEoH5zl2kQax6b9BQ05eU0T9ZAnt9YkO+vuuIqfwYDWf6+InsXxeButZDh7VRY1HXY9KJAUWgk7Z/4vKAQj97TloFJO8MsIWs=
+	s=arc-20240116; t=1736426429; c=relaxed/simple;
+	bh=ca1aQYRAYVg2nybTJXCZNG7yhLWpXlj2vmLSszRn/fM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=LryQX8vXJICNdzJB5T6yN3gM9KdVYwLXzH2iNDYq48onw2W8OQMmZ5/hYtYTjEf6FV195pskTFZt6Fzynsdr76T5f0HoNvJiIlq7/YC348sKiuSV4m9CnAsDAWpmYAfuA42/6sZ7pMO0RE3UGRrSA+WAjuP8pCv/CeNiGx2Ycfg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Date: Thu, 9 Jan 2025 13:40:22 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	fw@strlen.de
-Subject: [PATCH net 2/2] netfilter: conntrack: clamp maximum hashtable size to INT_MAX
-Date: Thu,  9 Jan 2025 13:38:06 +0100
-Message-Id: <20250109123806.42021-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20250109123806.42021-1-pablo@netfilter.org>
-References: <20250109123806.42021-1-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+	pabeni@redhat.com, edumazet@google.com, fw@strlen.de
+Subject: Re: [PATCH nf] netfilter: conntrack: clamp maximum hashtable size to
+ INT_MAX
+Message-ID: <Z3_DtkT6hfSoPn5d@calendula>
+References: <20250109123532.41768-1-pablo@netfilter.org>
+ <20250109123532.41768-2-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20250109123532.41768-2-pablo@netfilter.org>
 
-Use INT_MAX as maximum size for the conntrack hashtable. Otherwise, it
-is possible to hit WARN_ON_ONCE in __kvmalloc_node_noprof() when
-resizing hashtable because __GFP_NOWARN is unset. See:
+On Thu, Jan 09, 2025 at 01:35:30PM +0100, Pablo Neira Ayuso wrote:
+> According to 0708a0afe291 ("mm: Consider __GFP_NOWARN flag for oversized
+> kvmalloc() calls"), use INT_MAX as maximum size for the conntrack
+> hashtable. Otherwise, it is possible to hit WARN_ON_ONCE in
+> __kvmalloc_node_noprof() when __GFP_NOWARN flag is unset when resizing.
+> 
+> Note: hashtable resize is only possible from init_netns.
 
-  0708a0afe291 ("mm: Consider __GFP_NOWARN flag for oversized kvmalloc() calls")
+Please, ignore this duplicated patch with incorrect [nf] tag that
+slipped through this submission. Sorry for the inconvenience.
 
-Note: hashtable resize is only possible from init_netns.
-
-Fixes: 9cc1c73ad666 ("netfilter: conntrack: avoid integer overflow when resizing")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conntrack_core.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 9db3e2b0b1c3..456446d7af20 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -2517,12 +2517,15 @@ void *nf_ct_alloc_hashtable(unsigned int *sizep, int nulls)
- 	struct hlist_nulls_head *hash;
- 	unsigned int nr_slots, i;
- 
--	if (*sizep > (UINT_MAX / sizeof(struct hlist_nulls_head)))
-+	if (*sizep > (INT_MAX / sizeof(struct hlist_nulls_head)))
- 		return NULL;
- 
- 	BUILD_BUG_ON(sizeof(struct hlist_nulls_head) != sizeof(struct hlist_head));
- 	nr_slots = *sizep = roundup(*sizep, PAGE_SIZE / sizeof(struct hlist_nulls_head));
- 
-+	if (nr_slots > (INT_MAX / sizeof(struct hlist_nulls_head)))
-+		return NULL;
-+
- 	hash = kvcalloc(nr_slots, sizeof(struct hlist_nulls_head), GFP_KERNEL);
- 
- 	if (hash && nulls)
--- 
-2.30.2
-
+Thanks.
