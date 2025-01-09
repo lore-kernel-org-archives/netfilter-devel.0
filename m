@@ -1,25 +1,35 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 72E1A21661D;
-	Thu,  9 Jan 2025 15:48:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0FB218EFD4;
+	Thu,  9 Jan 2025 17:00:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736437700; cv=none; b=R61vYsFRulP9c1nQcVPIASpjKkMyWWpk3NnGWjai6Ts8XstkP2GsZ8Tx+I3TT84/yEVf4scioLKaM11XtKCndpppvmaqhTjs2ncxwK/4HIDpoUk/Dqv7JOcuv0MLotAQCoxTRK5QQ3+RTAKy8hmapPrR1ILldNQvQEp3TrKLyxQ=
+	t=1736442029; cv=none; b=Qgokd+oGwECxHy6uh9S24ExFj1mYoj63cAqcIoIJwmq6jri+EIwHOLmezKKIZ4JW40U1ffeFfjZBirJD1cOsmB223PaARa2vo3x4eVWwUyIIlP3f955U7unfNI1QjOU/T6NA0eomjYnA7eBMkh62zB6mcWapUVxuWIUdSKMZXJ0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736437700; c=relaxed/simple;
-	bh=Y2L/9W9mQF+OS3DLscpe9tJDAJ7QTG1cFlGER4uQcEY=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=a0+re0eKUbDe0xfsqcil210fLWytiur2AN8BYZkwsDsT0TvKoTR5np8mwaJcI0rBW8UIGm6X5L2fRk/HOHS5lG0CMSOA1vGXdYYIGXxi3Egym+mhT+IVADk5IWmjNPl7MdmABj1JNCUwjBw1A65SzTvJOCuN1oTL8mpC983YrNM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: gregkh@linuxfoundation.org,
-	sashal@kernel.org,
-	stable@vger.kernel.org
-Subject: [PATCH -stable,5.10 0/1] Netfilter fix for -stable
-Date: Thu,  9 Jan 2025 16:48:13 +0100
-Message-Id: <20250109154813.43869-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+	s=arc-20240116; t=1736442029; c=relaxed/simple;
+	bh=RGcbmkp5R199fM6Pee+V30xTkmnsrNtH0sOMVIS+t7Q=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=E455j842M44J+yvpfoIAUHzb/1qX784cyioG0ilRXMG1A/x1IfzWROLMry2y3oX9Ojg3XBb80qMFER9GcupdKPeLC575ZFBwg735VOTN7gAuDLAQxoTJd7QyaO0xZLiTXG+0yX1YmOVEVNJX190YzMW0eCFDQPzfd6cFxoXgy7g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=G8Rw+jU0; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="G8Rw+jU0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2707CC4CED2;
+	Thu,  9 Jan 2025 17:00:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1736442028;
+	bh=RGcbmkp5R199fM6Pee+V30xTkmnsrNtH0sOMVIS+t7Q=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=G8Rw+jU095YC7zTE9+QRDrFVAFsEW9tgxRFuX3yTnSawVEjlZbN29Duomh3ETGRhM
+	 2/TmQUaO7i58x5vGF+xXPWc+TgWSPxfcMaEsp7aAcEMnZDduGq+ig7AQTmH1cDymvq
+	 MYwo48MUDOY/VqunZpCVRXmjq6ZpOvTBh4AnaXLJ1UPAa92VSmffMvjondN5ZV4+Xe
+	 icZefIRaWmlhme7yQ4rqtXfbNCkepimcTm53vWE+C/NbnZUwSBfWVhShjOECDW8sgM
+	 JQaDLsKSwDY++8dNDxfAKEyN53ItrfktCdVS4sRUvUdVnVGuKcm5n/E2du9zkfYqLg
+	 UITHv7DcLb5ig==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 1A3C4380A97E;
+	Thu,  9 Jan 2025 17:00:51 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -27,30 +37,43 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/2] netfilter: nf_tables: imbalance in flowtable binding
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <173644205002.1449021.7734848326971151272.git-patchwork-notify@kernel.org>
+Date: Thu, 09 Jan 2025 17:00:50 +0000
+References: <20250109123806.42021-1-pablo@netfilter.org>
+In-Reply-To: <20250109123806.42021-1-pablo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, fw@strlen.de
 
-Hi Greg, Sasha,
+Hello:
 
-This batch contains a backport fix for 5.10-stable.
+This series was applied to netdev/net.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-The following list shows the backported patches, I am using original commit
-IDs for reference:
+On Thu,  9 Jan 2025 13:38:05 +0100 you wrote:
+> All these cases cause imbalance between BIND and UNBIND calls:
+> 
+> - Delete an interface from a flowtable with multiple interfaces
+> 
+> - Add a (device to a) flowtable with --check flag
+> 
+> - Delete a netns containing a flowtable
+> 
+> [...]
 
-1) fca05d4d61e6 ("netfilter: nft_dynset: honor stateful expressions in set definition")
+Here is the summary with links:
+  - [net,1/2] netfilter: nf_tables: imbalance in flowtable binding
+    https://git.kernel.org/netdev/net/c/13210fc63f35
+  - [net,2/2] netfilter: conntrack: clamp maximum hashtable size to INT_MAX
+    https://git.kernel.org/netdev/net/c/b541ba7d1f5a
 
-without this fix, the default set expression is silently ignored when
-used from dynamic sets.
-
-Please, apply,
-Thanks
-
-Pablo Neira Ayuso (1):
-  netfilter: nft_dynset: honor stateful expressions in set definition
-
- include/net/netfilter/nf_tables.h |  2 ++
- net/netfilter/nf_tables_api.c     | 23 +++++++++++++++++++++++
- net/netfilter/nft_dynset.c        |  7 ++++++-
- 3 files changed, 31 insertions(+), 1 deletion(-)
-
+You are awesome, thank you!
 -- 
-2.30.2
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
