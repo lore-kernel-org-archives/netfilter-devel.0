@@ -1,13 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 052331E531;
-	Thu,  9 Jan 2025 12:38:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A508021766B;
+	Thu,  9 Jan 2025 12:38:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736426293; cv=none; b=s+qS6HZzcM1/XJdRJoN8DRhW5yISsl+s4GF/oVgKxa3Mz9Xhz6CZL4YGyjaGcV7jCP52anHmXSVbIH25eQbqd14kGTSc6nNhDb0R8R5AwMDiSw3DTqeYF0ei4OWUE++aeFHBwYb496fF88RUoCH1p/sFTne3/pRKvFam8EJXrHE=
+	t=1736426295; cv=none; b=r/eLIinIgbWJgLqpbFjADSvK+nzfcb5OIAjvrBirLTBqWFasmrURQvVBcDkdzG0QDqvY3LSS9kYTosUNpAgxNoOfLx46/jQk8iIlC5DmyMzQXmRGslIMscBtvtpI5AkIKaZgZnH6jFwZBPAsvhuv49VgxUx1ZYntH3QKzIQ6jSM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736426293; c=relaxed/simple;
-	bh=8dbT0vV5DRmTiR01CR9RepFxBPrVOwzWjse1s9CkQfc=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=NU89DERYklXQ2T66Yitcf/NiHQpa7vB0OFAXjrpzH59sYgKN3bJ9UK1hVIaqxHjrOtS3mNAJKmsayEl6+Bc5jN7viNUeB2xr1vxwP3+c5vfUWnGrgmhlmy5vGpJFjvLdaIjo8j48RnpKMR1tO0ACLUDnGIEofVt7rO5CXSJA6sM=
+	s=arc-20240116; t=1736426295; c=relaxed/simple;
+	bh=/OwQqXXp2bfaRHgGr4/FWni3Rpcn6O14UvA8+jaXfus=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=sMCfNdFlbfCuQ6wVh4gBgyDO7QRqkunFVqQUWPGpwX1tYSQbRwPSigD0CFj2Wrny+ah0phbgPhMEoH5zl2kQax6b9BQ05eU0T9ZAnt9YkO+vuuIqfwYDWf6+InsXxeButZDh7VRY1HXY9KJAUWgk7Z/4vKAQj97TloFJO8MsIWs=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -19,10 +20,12 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 1/2] netfilter: nf_tables: imbalance in flowtable binding
-Date: Thu,  9 Jan 2025 13:38:05 +0100
-Message-Id: <20250109123806.42021-1-pablo@netfilter.org>
+Subject: [PATCH net 2/2] netfilter: conntrack: clamp maximum hashtable size to INT_MAX
+Date: Thu,  9 Jan 2025 13:38:06 +0100
+Message-Id: <20250109123806.42021-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20250109123806.42021-1-pablo@netfilter.org>
+References: <20250109123806.42021-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,110 +34,41 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-All these cases cause imbalance between BIND and UNBIND calls:
+Use INT_MAX as maximum size for the conntrack hashtable. Otherwise, it
+is possible to hit WARN_ON_ONCE in __kvmalloc_node_noprof() when
+resizing hashtable because __GFP_NOWARN is unset. See:
 
-- Delete an interface from a flowtable with multiple interfaces
+  0708a0afe291 ("mm: Consider __GFP_NOWARN flag for oversized kvmalloc() calls")
 
-- Add a (device to a) flowtable with --check flag
+Note: hashtable resize is only possible from init_netns.
 
-- Delete a netns containing a flowtable
-
-- In an interactive nft session, create a table with owner flag and
-  flowtable inside, then quit.
-
-Fix it by calling FLOW_BLOCK_UNBIND when unregistering hooks, then
-remove late FLOW_BLOCK_UNBIND call when destroying flowtable.
-
-Fixes: ff4bf2f42a40 ("netfilter: nf_tables: add nft_unregister_flowtable_hook()")
-Reported-by: Phil Sutter <phil@nwl.cc>
-Tested-by: Phil Sutter <phil@nwl.cc>
+Fixes: 9cc1c73ad666 ("netfilter: conntrack: avoid integer overflow when resizing")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 0b9f1e8dfe49..c4af283356e7 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -8822,6 +8822,7 @@ static void nft_unregister_flowtable_hook(struct net *net,
- }
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 9db3e2b0b1c3..456446d7af20 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -2517,12 +2517,15 @@ void *nf_ct_alloc_hashtable(unsigned int *sizep, int nulls)
+ 	struct hlist_nulls_head *hash;
+ 	unsigned int nr_slots, i;
  
- static void __nft_unregister_flowtable_net_hooks(struct net *net,
-+						 struct nft_flowtable *flowtable,
- 						 struct list_head *hook_list,
- 					         bool release_netdev)
- {
-@@ -8829,6 +8830,8 @@ static void __nft_unregister_flowtable_net_hooks(struct net *net,
+-	if (*sizep > (UINT_MAX / sizeof(struct hlist_nulls_head)))
++	if (*sizep > (INT_MAX / sizeof(struct hlist_nulls_head)))
+ 		return NULL;
  
- 	list_for_each_entry_safe(hook, next, hook_list, list) {
- 		nf_unregister_net_hook(net, &hook->ops);
-+		flowtable->data.type->setup(&flowtable->data, hook->ops.dev,
-+					    FLOW_BLOCK_UNBIND);
- 		if (release_netdev) {
- 			list_del(&hook->list);
- 			kfree_rcu(hook, rcu);
-@@ -8837,9 +8840,10 @@ static void __nft_unregister_flowtable_net_hooks(struct net *net,
- }
+ 	BUILD_BUG_ON(sizeof(struct hlist_nulls_head) != sizeof(struct hlist_head));
+ 	nr_slots = *sizep = roundup(*sizep, PAGE_SIZE / sizeof(struct hlist_nulls_head));
  
- static void nft_unregister_flowtable_net_hooks(struct net *net,
-+					       struct nft_flowtable *flowtable,
- 					       struct list_head *hook_list)
- {
--	__nft_unregister_flowtable_net_hooks(net, hook_list, false);
-+	__nft_unregister_flowtable_net_hooks(net, flowtable, hook_list, false);
- }
++	if (nr_slots > (INT_MAX / sizeof(struct hlist_nulls_head)))
++		return NULL;
++
+ 	hash = kvcalloc(nr_slots, sizeof(struct hlist_nulls_head), GFP_KERNEL);
  
- static int nft_register_flowtable_net_hooks(struct net *net,
-@@ -9481,8 +9485,6 @@ static void nf_tables_flowtable_destroy(struct nft_flowtable *flowtable)
- 
- 	flowtable->data.type->free(&flowtable->data);
- 	list_for_each_entry_safe(hook, next, &flowtable->hook_list, list) {
--		flowtable->data.type->setup(&flowtable->data, hook->ops.dev,
--					    FLOW_BLOCK_UNBIND);
- 		list_del_rcu(&hook->list);
- 		kfree_rcu(hook, rcu);
- 	}
-@@ -10870,6 +10872,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 							   &nft_trans_flowtable_hooks(trans),
- 							   trans->msg_type);
- 				nft_unregister_flowtable_net_hooks(net,
-+								   nft_trans_flowtable(trans),
- 								   &nft_trans_flowtable_hooks(trans));
- 			} else {
- 				list_del_rcu(&nft_trans_flowtable(trans)->list);
-@@ -10878,6 +10881,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 							   NULL,
- 							   trans->msg_type);
- 				nft_unregister_flowtable_net_hooks(net,
-+						nft_trans_flowtable(trans),
- 						&nft_trans_flowtable(trans)->hook_list);
- 			}
- 			break;
-@@ -11140,11 +11144,13 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 		case NFT_MSG_NEWFLOWTABLE:
- 			if (nft_trans_flowtable_update(trans)) {
- 				nft_unregister_flowtable_net_hooks(net,
-+						nft_trans_flowtable(trans),
- 						&nft_trans_flowtable_hooks(trans));
- 			} else {
- 				nft_use_dec_restore(&table->use);
- 				list_del_rcu(&nft_trans_flowtable(trans)->list);
- 				nft_unregister_flowtable_net_hooks(net,
-+						nft_trans_flowtable(trans),
- 						&nft_trans_flowtable(trans)->hook_list);
- 			}
- 			break;
-@@ -11737,7 +11743,8 @@ static void __nft_release_hook(struct net *net, struct nft_table *table)
- 	list_for_each_entry(chain, &table->chains, list)
- 		__nf_tables_unregister_hook(net, table, chain, true);
- 	list_for_each_entry(flowtable, &table->flowtables, list)
--		__nft_unregister_flowtable_net_hooks(net, &flowtable->hook_list,
-+		__nft_unregister_flowtable_net_hooks(net, flowtable,
-+						     &flowtable->hook_list,
- 						     true);
- }
- 
+ 	if (hash && nulls)
 -- 
 2.30.2
 
