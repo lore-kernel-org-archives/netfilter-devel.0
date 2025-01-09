@@ -1,181 +1,221 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f45.google.com (mail-ej1-f45.google.com [209.85.218.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6278F2080C9
-	for <netfilter-devel@vger.kernel.org>; Thu,  9 Jan 2025 04:43:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 088591EBA19;
+	Thu,  9 Jan 2025 08:56:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736397803; cv=none; b=M0U2Baxqe6YoEzZ2Wm6doSXI0XHGljB4jijenlFV0BMm5eXh25tth/VmqPaSpeSQC+9C5/LML8zBdjtAqtZowvuIKK7oKsqGWDpLJiplwQqHNvYBJ5ca+kq+dxvIvObKOVDGe6tKcbKXMjhvx7ZgzVx5kUsYxzNExvNLL1az0/U=
+	t=1736412984; cv=none; b=atQJzTAF3SP2U2+DayLN6z3TUdZGTctcjiF1Dp4iO5TI/pUSUvNfExgA26r4W70qIjaNRbyIrnYymYOtMyZyDK6u/jI9Qfl7y2vvMt0O4ZN/vLHmCEq2nB1mwLk0OgtS02470ZEW4TRmao124Fu2gDwy4DaFd2+8yE254dngoik=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736397803; c=relaxed/simple;
-	bh=11KPqA/gxRc//PDrf33m5JdxZGWGXkl/t+XjgvuemDI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=PEp3kCy8/uN9gXwX/+aaqLXIiMFuVav9P1uL+BDWIk2Wn/zXl4Li0CzHF3h9ACt9A5UVQ0EbRnYDyQydIBTgx768GQZSmqNyDuJCLpF8Hs7lccdvtWZLTAqVUdAaaTi1+LCEfqYuuuuTsXNkO1Z1Zby27sTdlgrfWLJ08qwX+QY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=d3RQCN7Q; arc=none smtp.client-ip=192.198.163.18
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1736412984; c=relaxed/simple;
+	bh=wp2CVqXaTLMEhu/P0gxP9vMepAcXofaZ9f1o56WSI8o=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=lWTUiwh0wOk/yNo14JL3YFwMP88B1dt8/b2Q/4hQPtOCAXHOr38gsV24xZ5C0xgLNoQFlFaNX5+kSTH4vS/kZqcEAo92i37H8NmKgR0OihQdn9ifs3xQ3mH4W6Felm6gs357PhTFmhysJxpbD8D6+hGHpBqs55yuPT24NPEMTzM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=F21auoWG; arc=none smtp.client-ip=209.85.218.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="d3RQCN7Q"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1736397801; x=1767933801;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=11KPqA/gxRc//PDrf33m5JdxZGWGXkl/t+XjgvuemDI=;
-  b=d3RQCN7Q5W01h20N4G8JV/ANOFp8XxX2C6lz4fCnn+L26CwUrwlYiRwI
-   XQ9vRXEm3HenIeIwQFS997+yCk5Eti+HOWCBJcujH1zGELEYUTEYmzP5c
-   zxiKD490eNYBhsGjoizKFJdrnk4NrWZf12JXBTTSl2t/dVADKS54VijcE
-   oazMK5iUBJNBQRD4PZN7uppmZOtPHrGh9fnpd6OCF2euRkMoImgpXmcki
-   qTSS0dZ0Wew0rVRblONycxfgVKooqK5shhli6OXrdunDwfaSnmjzAZDzv
-   M3qFWwcQRCQUvr6kKLSXeYDSYF4J/UcRSvKZKf6+kW78h6MxRzWDDLtKj
-   Q==;
-X-CSE-ConnectionGUID: BnT/19EqRYCYlJ8Co9C4Mg==
-X-CSE-MsgGUID: uyQ3wZmJRGWkxisCBfanQg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11309"; a="35929493"
-X-IronPort-AV: E=Sophos;i="6.12,300,1728975600"; 
-   d="scan'208";a="35929493"
-Received: from orviesa010.jf.intel.com ([10.64.159.150])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jan 2025 20:43:20 -0800
-X-CSE-ConnectionGUID: Apeu8x60SI6qssaaxDk7Cg==
-X-CSE-MsgGUID: RCnCRpkdS+Kvbxk61hvrgg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.12,224,1728975600"; 
-   d="scan'208";a="103159219"
-Received: from lkp-server01.sh.intel.com (HELO d63d4d77d921) ([10.239.97.150])
-  by orviesa010.jf.intel.com with ESMTP; 08 Jan 2025 20:43:19 -0800
-Received: from kbuild by d63d4d77d921 with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1tVkO4-000H39-0U;
-	Thu, 09 Jan 2025 04:43:16 +0000
-Date: Thu, 9 Jan 2025 12:42:35 +0800
-From: kernel test robot <lkp@intel.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev, fw@strlen.de
-Subject: Re: [PATCH nf-next,v2 6/6] netfilter: flowtable: add CLOSING state
-Message-ID: <202501091229.n0ldd7t2-lkp@intel.com>
-References: <20250107235038.115651-6-pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="F21auoWG"
+Received: by mail-ej1-f45.google.com with SMTP id a640c23a62f3a-aa69107179cso152561566b.0;
+        Thu, 09 Jan 2025 00:56:22 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1736412981; x=1737017781; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:content-language:from
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=XS6TlRWyTSRfC4D8CM7324D8iXz+6nRl08PCaLYh1SA=;
+        b=F21auoWGLzJ75oTsQNwogo9Q1Z7NQwCDd+jEQZ0bETnBK0Y2aJMGL4pqbb7W54R7Hs
+         F4JOnCTBMKfWvzuwz5Vi6kS5jQPgSpNA7EFlhSC2ZcIk0DQDspvz3b2neMufkaT54pVq
+         58UmRUThCDovoiKWFXbh0vazNP1jmYgXR6VaYEIPJimRPLNJNylmBtqNE2qX2l0nQVbE
+         eSf5ZbtLpq5rdvIUct47BTLDQ+hf7g/yl7HnUfFihidGodFdeRAttHijABU7iv9QVOJ3
+         lPJnXfAsCshA8HmiYlZ++JIgPZBuPHKfLvMi0drjicyPhTD2Zj3WJ6YRCuISR/gQaQGf
+         bddw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1736412981; x=1737017781;
+        h=content-transfer-encoding:in-reply-to:content-language:from
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=XS6TlRWyTSRfC4D8CM7324D8iXz+6nRl08PCaLYh1SA=;
+        b=idcpyyIzeCr1H8HDhSCKkmFlq5dT37sGDzEnYBcwbzL7vxLLAKZl8i6M8EZ8dpMexx
+         VUsRnJRKb+klS1aTp1djw4h4OCpRKAA4JfgrcdB8jJg7LjdRuRbCrKmpf0TXAqDE2YwJ
+         tEdCMWpE83Xf82C4jmwcK3x3odYSAVAuyYn7SwsFYALMdWq8dcCYszNkKsVGRWNtFVrD
+         23/p2QBefGYxz0AHKssdB8fSenwM8+cknhGxahPeZ/z8x4GKkZCWxK/5uDITWTV8YwZC
+         28htqB21lyqMw+7mWdN86manqhXeNdMUjFHxtZH1Du8yZ6VvM/E/+58bSTRXGVFlWUf2
+         LvdQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUFhGPBdSz0V3lQWtMPE0+4sgymWwELv6y4QncVYYmb85ziygv6TGyOPMAmcivQzxFo8U5by3HIwdwkQL8=@vger.kernel.org, AJvYcCUHsE6pES2A/6/tfrqoP5+ekwUcA6YHV1/ofwLrKJQf9c+Tc88ESO4jGi3CWJUUdue0yFoBlqKBbdQDIfRvzhPa@vger.kernel.org, AJvYcCWxXNuklEBV6ATOJngkncuwRyExkvxTLcbNIb+Aif8CCiSW+bxDSGZJ3HUVDS5pNbBsA3hUNR6r@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzv3b3eepqKJR6+lrbQCK3cZRuiXB/sEIf+RRhzaPQODM4dtvJV
+	LgLjlLUYZatBU6/9/OB2nW9rtHNBNYZi3P7KKey6iivC99hvycMH
+X-Gm-Gg: ASbGnctWLfj1Vbs9FdW143Uk3An5e9dEr770wGOav8J/V88FT7RyHWO10U1oC3JPMlE
+	d7uVtNiOpPxFZZgf4dQavEx7rWpyaLXNgephCIodUPhLa+4p3WBikB7mPRVAx0IYN5YQ3RHdfep
+	bEMW+9U1fesZCxn6hsGwbNAtCdPqh9v3rLGcSBKZ6x0chbxblEEDC4hHPbvEIz4xPEdpau7cmtl
+	+KbxdrUxfzSWehiuk7jfBnK3Ahy+0dPkI59qGmsp1MAKh5qHDzRkUDU6wVW0MXn34Q5ELDqJmYP
+	SNOLv36fNtVt6EeHxb+iDpcpQPW40wIHBQbMLdeio+k+w69oJLMOY5vHKsds9mmJKMmczmsLThO
+	yNfHWlAGaAMitm4dwMth+WYAW8f7w60o=
+X-Google-Smtp-Source: AGHT+IH3My3UUh3xFM8ZgIgF0aWMNmsqTttAtJxwpSIcvfI0XILfisWjLOFCeDXh+SXgbl3J8Hxz3A==
+X-Received: by 2002:a17:907:3e24:b0:aac:2298:8960 with SMTP id a640c23a62f3a-ab2ab6fcf7amr446231766b.35.1736412980929;
+        Thu, 09 Jan 2025 00:56:20 -0800 (PST)
+Received: from ?IPV6:2001:1c00:20d:1300:1b1c:4449:176a:89ea? (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ab2c9060a4fsm50179466b.15.2025.01.09.00.56.19
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 09 Jan 2025 00:56:20 -0800 (PST)
+Message-ID: <98234080-946e-4b36-832f-113b185e7bca@gmail.com>
+Date: Thu, 9 Jan 2025 09:56:17 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250107235038.115651-6-pablo@netfilter.org>
-
-Hi Pablo,
-
-kernel test robot noticed the following build warnings:
-
-[auto build test WARNING on netfilter-nf/main]
-[also build test WARNING on linus/master v6.13-rc6 next-20250108]
-[cannot apply to nf-next/master]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
-
-url:    https://github.com/intel-lab-lkp/linux/commits/Pablo-Neira-Ayuso/netfilter-nft_flow_offload-update-tcp-state-flags-under-lock/20250108-075203
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
-patch link:    https://lore.kernel.org/r/20250107235038.115651-6-pablo%40netfilter.org
-patch subject: [PATCH nf-next,v2 6/6] netfilter: flowtable: add CLOSING state
-config: hexagon-allyesconfig (https://download.01.org/0day-ci/archive/20250109/202501091229.n0ldd7t2-lkp@intel.com/config)
-compiler: clang version 18.1.8 (https://github.com/llvm/llvm-project 3b5b5c1ec4a3095ab096dd780e84d7ab81f3d7ff)
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20250109/202501091229.n0ldd7t2-lkp@intel.com/reproduce)
-
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202501091229.n0ldd7t2-lkp@intel.com/
-
-All warnings (new ones prefixed by >>):
-
->> net/netfilter/nf_flow_table_core.c:217:13: warning: variable 'expired' is used uninitialized whenever 'if' condition is true [-Wsometimes-uninitialized]
-     217 |         } else if (l4num == IPPROTO_UDP) {
-         |                    ^~~~~~~~~~~~~~~~~~~~
-   net/netfilter/nf_flow_table_core.c:229:6: note: uninitialized use occurs here
-     229 |         if (expired)
-         |             ^~~~~~~
-   net/netfilter/nf_flow_table_core.c:217:9: note: remove the 'if' if its condition is always false
-     217 |         } else if (l4num == IPPROTO_UDP) {
-         |                ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-     218 |                 const struct nf_udp_net *tn = nf_udp_pernet(net);
-         |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     219 |                 enum udp_conntrack state =
-         |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~
-     220 |                         test_bit(IPS_SEEN_REPLY_BIT, &ct->status) ?
-         |                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     221 |                         UDP_CT_REPLIED : UDP_CT_UNREPLIED;
-         |                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     222 | 
-     223 |                 timeout = READ_ONCE(tn->timeouts[state]);
-         |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     224 |                 offload_timeout = READ_ONCE(tn->offload_timeout);
-         |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     225 |         } else {
-         |         ~~~~~~
-   net/netfilter/nf_flow_table_core.c:194:14: note: initialize the variable 'expired' to silence this warning
-     194 |         bool expired;
-         |                     ^
-         |                      = 0
-   1 warning generated.
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH RFC net-next] net: phylink: always config mac for
+ (delayed) phy
+To: "Russell King (Oracle)" <linux@armlinux.org.uk>
+Cc: Andrew Lunn <andrew@lunn.ch>, Heiner Kallweit <hkallweit1@gmail.com>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Matthias Brugger <matthias.bgg@gmail.com>,
+ AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+ Frank Wunderlich <frank-w@public-files.de>,
+ Daniel Golle <daniel@makrotopia.org>, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, bridge@lists.linux.dev,
+ linux-arm-kernel@lists.infradead.org, linux-mediatek@lists.infradead.org
+References: <20250107123615.161095-1-ericwouds@gmail.com>
+ <Z30iUj6DE9-fRp0n@shell.armlinux.org.uk>
+ <4b9b2a9a-061b-43ad-b402-a49aee317f41@gmail.com>
+ <Z31CJS1YUvPGiEXs@shell.armlinux.org.uk>
+From: Eric Woudstra <ericwouds@gmail.com>
+Content-Language: en-US
+In-Reply-To: <Z31CJS1YUvPGiEXs@shell.armlinux.org.uk>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
 
-vim +217 net/netfilter/nf_flow_table_core.c
 
-da5984e51063a2 Felix Fietkau     2018-02-26  187  
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  188  static void flow_offload_fixup_ct(struct flow_offload *flow)
-da5984e51063a2 Felix Fietkau     2018-02-26  189  {
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  190  	struct nf_conn *ct = flow->ct;
-1d91d2e1a7f767 Oz Shlomo         2021-06-03  191  	struct net *net = nf_ct_net(ct);
-1e5b2471bcc483 Pablo Neira Ayuso 2019-08-09  192  	int l4num = nf_ct_protonum(ct);
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  193  	u32 offload_timeout = 0;
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  194  	bool expired;
-4592ee7f525c46 Florian Westphal  2021-08-04  195  	s32 timeout;
-da5984e51063a2 Felix Fietkau     2018-02-26  196  
-1d91d2e1a7f767 Oz Shlomo         2021-06-03  197  	if (l4num == IPPROTO_TCP) {
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  198  		const struct nf_tcp_net *tn = nf_tcp_pernet(net);
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  199  		u8 tcp_state;
-1d91d2e1a7f767 Oz Shlomo         2021-06-03  200  
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  201  		/* Enter CLOSE state if fin/rst packet has been seen, this
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  202  		 * allows TCP reopen from conntrack. Otherwise, pick up from
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  203  		 * the last seen TCP state.
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  204  		 */
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  205  		if (test_bit(NF_FLOW_CLOSING, &flow->flags)) {
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  206  			flow_offload_fixup_tcp(ct, TCP_CONNTRACK_CLOSE);
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  207  			timeout = READ_ONCE(tn->timeouts[TCP_CONNTRACK_CLOSE]);
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  208  			expired = false;
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  209  		} else {
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  210  			tcp_state = READ_ONCE(ct->proto.tcp.state);
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  211  			flow_offload_fixup_tcp(ct, tcp_state);
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  212  			timeout = READ_ONCE(tn->timeouts[tcp_state]);
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  213  			expired = nf_flow_has_expired(flow);
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  214  		}
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  215  		offload_timeout = READ_ONCE(tn->offload_timeout);
-e5eaac2beb54f0 Pablo Neira Ayuso 2022-05-17  216  
-1d91d2e1a7f767 Oz Shlomo         2021-06-03 @217  	} else if (l4num == IPPROTO_UDP) {
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  218  		const struct nf_udp_net *tn = nf_udp_pernet(net);
-0eb5acb1641889 Vlad Buslov       2023-02-01  219  		enum udp_conntrack state =
-0eb5acb1641889 Vlad Buslov       2023-02-01  220  			test_bit(IPS_SEEN_REPLY_BIT, &ct->status) ?
-0eb5acb1641889 Vlad Buslov       2023-02-01  221  			UDP_CT_REPLIED : UDP_CT_UNREPLIED;
-1d91d2e1a7f767 Oz Shlomo         2021-06-03  222  
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  223  		timeout = READ_ONCE(tn->timeouts[state]);
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  224  		offload_timeout = READ_ONCE(tn->offload_timeout);
-1d91d2e1a7f767 Oz Shlomo         2021-06-03  225  	} else {
-da5984e51063a2 Felix Fietkau     2018-02-26  226  		return;
-1d91d2e1a7f767 Oz Shlomo         2021-06-03  227  	}
-da5984e51063a2 Felix Fietkau     2018-02-26  228  
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  229  	if (expired)
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  230  		timeout -= offload_timeout;
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  231  
-4592ee7f525c46 Florian Westphal  2021-08-04  232  	if (timeout < 0)
-4592ee7f525c46 Florian Westphal  2021-08-04  233  		timeout = 0;
-4592ee7f525c46 Florian Westphal  2021-08-04  234  
-e622d94ec73f66 Pablo Neira Ayuso 2025-01-08  235  	nf_ct_refresh(ct, timeout);
-da5984e51063a2 Felix Fietkau     2018-02-26  236  }
-da5984e51063a2 Felix Fietkau     2018-02-26  237  
+On 1/7/25 4:03 PM, Russell King (Oracle) wrote:
+> On Tue, Jan 07, 2025 at 02:14:03PM +0100, Eric Woudstra wrote:
+>>
+>>
+>> On 1/7/25 1:47 PM, Russell King (Oracle) wrote:
+>>> Going through the log...
+>>>
+>>> On Tue, Jan 07, 2025 at 01:36:15PM +0100, Eric Woudstra wrote:
+>>>> Log before this patch is applied:
+>>>> [root@bpir3 ~]# dmesg | grep eth1
+>>>> [    2.515179] mtk_soc_eth 15100000.ethernet eth1: mediatek frame engine at 0xffff800082380000, irq 123
+>>>> [   38.271431] mtk_soc_eth 15100000.ethernet eth1: configuring for inband/2500base-x link mode
+>>>> [   38.279828] mtk_soc_eth 15100000.ethernet eth1: major config, requested inband/2500base-x
+>>>> [   38.288009] mtk_soc_eth 15100000.ethernet eth1: interface 2500base-x inband modes: pcs=01 phy=00
+>>>> [   38.296800] mtk_soc_eth 15100000.ethernet eth1: major config, active inband/inband,an-disabled/2500base-x
+>>>
+>>> This is indeed without the PHY. We're using inband, although the PCS
+>>> mode is PHYLINK_PCS_NEG_INBAND_DISABLED, meaning inband won't be
+>>> used. As there is no PHY, we can't switch to MLO_AN_PHY.
+>>>
+>>>> [   38.306362] mtk_soc_eth 15100000.ethernet eth1: phylink_mac_config: mode=inband/2500base-x/none adv=00,00000000,00008000,0000e240 pause=04
+>>>> [   39.220149] mtk_soc_eth 15100000.ethernet eth1:  interface 2 (mii) rate match none supports 0-3,6-7,13-14
+>>>> [   39.229758] mtk_soc_eth 15100000.ethernet eth1:  interface 3 (gmii) rate match none supports 0-3,5-7,13-14
+>>>> [   39.239420] mtk_soc_eth 15100000.ethernet eth1:  interface 4 (sgmii) rate match none supports 0-3,5-7,13-14
+>>>> [   39.249173] mtk_soc_eth 15100000.ethernet eth1:  interface 22 (1000base-x) rate match none supports 5-7,13-14
+>>>> [   39.259080] mtk_soc_eth 15100000.ethernet eth1:  interface 23 (2500base-x) rate match none supports 6-7,13-14,47
+>>>> [   39.594676] mtk_soc_eth 15100000.ethernet eth1: PHY i2c:sfp-1:11 uses interfaces 4,23, validating 4,23
+>>>
+>>> The PHY comes along...
+>>>
+>>>> [   39.603992] mtk_soc_eth 15100000.ethernet eth1:  interface 4 (sgmii) rate match none supports 0-3,5-7,13-14
+>>>> [   39.650080] mtk_soc_eth 15100000.ethernet eth1:  interface 23 (2500base-x) rate match none supports 6-7,13-14,47
+>>>> [   39.660266] mtk_soc_eth 15100000.ethernet eth1: PHY [i2c:sfp-1:11] driver [RTL8221B-VB-CG 2.5Gbps PHY (C45)] (irq=POLL)
+>>>> [   39.671037] mtk_soc_eth 15100000.ethernet eth1: phy: 2500base-x setting supported 00,00000000,00008000,000060ef advertising 00,00000000,00008000,000060ef
+>>>> [   39.684761] mtk_soc_eth 15100000.ethernet eth1: requesting link mode inband/2500base-x with support 00,00000000,00008000,000060ef
+>>>
+>>> We decide to use MLO_AN_INBAND and 2500base-X, which we're already using.
+>>>
+>>>> [   40.380076] mtk_soc_eth 15100000.ethernet eth1: phy link down 2500base-x/Unknown/Unknown/none/off
+>>>> [   40.397090] brlan: port 5(eth1) entered blocking state
+>>>> [   40.402223] brlan: port 5(eth1) entered disabled state
+>>>> [   40.407437] mtk_soc_eth 15100000.ethernet eth1: entered allmulticast mode
+>>>> [   40.414400] mtk_soc_eth 15100000.ethernet eth1: entered promiscuous mode
+>>>> [   44.500077] mtk_soc_eth 15100000.ethernet eth1: phy link up 2500base-x/2.5Gbps/Full/none/off
+>>>> [   44.508528] mtk_soc_eth 15100000.ethernet eth1: No phy led trigger registered for speed(2500)
+>>>
+>>> ... but we don't see link-up reported by the PCS after the PHY comes
+>>> up. Why is that - I think that needs investigation before we proceed
+>>> to patch the issue, because that suggests the PCS isn't seeing
+>>> valid 2500base-X from the PHY.
+>>>
+>>
+>> I think it is because pl->act_link_an_mode stays at MLO_AN_INBAND, but
+>> it needs to be set to MLO_AN_PHY, so that only the phy determines the
+>> link state:
+>>
+>> phylink_resolve() {
+>>     ...
+>> 	} else if (pl->act_link_an_mode == MLO_AN_PHY) {
+>> 		link_state = pl->phy_state;
+>>     ...
+>> }
+> 
+> Please see my reply to Daniel. The PCS should still be capable of
+> reporting whether its link is up or down irrespective of whether
+> in-band status is being used or not.
+> 
+> While it is correct that PHY mode needs to be used here, your report
+> has pointed out that the driver is not reporting the PCS link state
+> correctly when in-band is disabled.
+> 
+> Given that the current state of affairs has revealed this other bug,
+> I would like that addressed first while there is a trivial test case
+> here.
+> 
 
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+So I've narrowed down the problem a bit:
+
+At first state->link is set to true, while looking at the bmsr.
+
+But because linkmode_test_bit(fd_bit, state->advertising) and
+linkmode_test_bit(fd_bit, state->lp_advertising) are both false,
+state->link is set to false after looking at the bmsr.
+
+void phylink_mii_c22_pcs_decode_state(struct phylink_link_state *state,
+				      u16 bmsr, u16 lpa)
+{
+	state->link = !!(bmsr & BMSR_LSTATUS);
+	...
+	case PHY_INTERFACE_MODE_2500BASEX:
+		phylink_decode_c37_word(state, lpa, SPEED_2500);
+	...
+}
+
+static void phylink_decode_c37_word(struct phylink_link_state *state,
+				    uint16_t config_reg, int speed)
+{
+	...
+	if (linkmode_test_bit(fd_bit, state->advertising) &&
+	    linkmode_test_bit(fd_bit, state->lp_advertising)) {
+		state->speed = speed;
+		state->duplex = DUPLEX_FULL;
+	} else {
+		/* negotiation failure */
+		state->link = false;
+	}
+	...
+}
+
+And I can confirm, if I change the part above into the part below
+(removing the if statement), the PCS also reports the link is up and the
+connection is functional end-to-end. Not that I'm saying this change is
+the solution, only for narrowing down the problem.
+
+static void phylink_decode_c37_word(struct phylink_link_state *state,
+				    uint16_t config_reg, int speed)
+{
+	...
+	state->speed = speed;
+	state->duplex = DUPLEX_FULL;
+	...
+}
+
+Also worth mentioning, up until v12 of the pcs-mtk-lynxy.c
+mtk_pcs_lynxi_get_state() did not call
+phylink_mii_c22_pcs_decode_state() at all for 2500base-x.
+
