@@ -1,81 +1,96 @@
-Received: from mail-ej1-f45.google.com (mail-ej1-f45.google.com [209.85.218.45])
+Received: from mail-ed1-f41.google.com (mail-ed1-f41.google.com [209.85.208.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 072B1208978
-	for <netfilter-devel@vger.kernel.org>; Fri, 10 Jan 2025 22:20:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFADA208978
+	for <netfilter-devel@vger.kernel.org>; Fri, 10 Jan 2025 22:23:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736547656; cv=none; b=rRM+/vhbQ1MbormbYutS2QoO3iaBkYGl3UDR2HcFiD+hd1srOw3ARh6AOnFZ84O3UOfc/UHe6H0W8UcEVECLw/qlvP12w2oEC4UrwNltftb0Wxhz3ElFsHTcVKTlMqV84Kz0iZiuTJFMPwicQVZJvM0//8GcGPi3RBp5FW+SZx8=
+	t=1736547818; cv=none; b=JgsJxHi+ql6ahd9jPL1mBZqGVpUsjf/5opGhg7zP+hV2gBkEk9JY+sfTYR/2XKT1/Q97llfXhpvKw0IccdXjfltGISBsgcwYrFmjuaGg+h2cJPfp7pzQM8vw3ISt3YWXbEhDiDkYriT94n27unnkZf5g+7IO21E87jlG5qUpCQo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736547656; c=relaxed/simple;
-	bh=P9MFuxDmHg2c1un+TczCnOBEzGtbxnQAe9gvqqjJgDU=;
-	h=MIME-Version:From:Date:Message-ID:Subject:To:Content-Type; b=NKP7r0pZH6UK4KCBprdsh/UYGnVqWcQDVWQk23XuLK4M4f5M3wfludXiyMEe6qOoy6W9is/stUMaqA1w7dOXIm6foGdOXWU6Ytue0AaqO0r9jd4KqyrmT16OGYkv2hQcuZsuG+KDuc4bCzE/VgmBbwjRLv2fz0ljxZTA2t6jZW4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EO9Y/MF7; arc=none smtp.client-ip=209.85.218.45
+	s=arc-20240116; t=1736547818; c=relaxed/simple;
+	bh=RIKXcDmaC3fNvrvbxiEnNzJHYSIrH+lby0DENumEkMs=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Content-Type; b=GM6XmE1GSKNOMcgbTvfSQrGmhrAxRT9jUOcGTD4Uj/m+2Pvc1mWK6XP6Eq1TIRMZ565xs+Mbse9+AcG4rWZthSdmMG+wSKTLHT7Eno9DGSF+VH+8Rqp3wa5c3Z3G6PSAw01r4sywwCYSdnEMX9znopHA70H/8kQtKpjBJ6HvYXQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=VXAnqU8J; arc=none smtp.client-ip=209.85.208.41
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EO9Y/MF7"
-Received: by mail-ej1-f45.google.com with SMTP id a640c23a62f3a-aa684b6d9c7so455594366b.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 10 Jan 2025 14:20:54 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VXAnqU8J"
+Received: by mail-ed1-f41.google.com with SMTP id 4fb4d7f45d1cf-5d3bbb0f09dso4309035a12.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 10 Jan 2025 14:23:36 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1736547653; x=1737152453; darn=vger.kernel.org;
-        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=S/FRGL7pFqiBxXNMKE7s0klBHrsVAiY19xXP9JBQfqE=;
-        b=EO9Y/MF7ElXkk/8VsVlN0fCNX/BsMuC+t0CXI4fh8UceFTXTpvFg/TYjIYxRNjhQIW
-         0ANXo59pfQS1F1YZ7Y5cipD1r4wcjtsKxG2Fwjqsg1f/7IoVmyWiTQYhg5sGGf41iwC3
-         jUSb7EWZ9gVeICR8u+EewlMTUHuSyvU+CG1OXrVKlVnobJWg0aVJH/8XqzK/feJhZGkt
-         wdJB5CgmFKRJhgQSTwGvj2d8GlKMTNJb+7ln+ZfAUTAN9sMLu0bP93AnVB2OgwQDq0ox
-         FxRr8CmIZMurzsQy6lW6diS9KefC2Sv7ITewxulkG72ZPdufhGhE90ORQh/kVYXBkfkB
-         r+Ig==
+        d=gmail.com; s=20230601; t=1736547814; x=1737152614; darn=vger.kernel.org;
+        h=content-transfer-encoding:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=2zvVUoEeneMw4v87L4EhpeNobEFp9p2ngiPEvA8kTE4=;
+        b=VXAnqU8JvBmFbYnmHqvsaWABbyz1i9PiMNkby6cl8xxzl74UXI4xJwSdkoActlg1Pd
+         j88ZIeP+GSgtrFHaQehqOfGY8Uz1kIuD7egOMKkAR1Y7wBN+c0A/1rXH7hkvfOcPdl/6
+         5albyOPRqvhCL0sPiyfWw4wAP5agFlaoJqooEuXRzYuBzxs4mctatkxPmWL7xhURYCUn
+         042N1Ma07okieYmxs1QOFtaWSJK1SQ3Ev63Trny+y7A7kBsmGyHTv+vzMOXORoiKVJXx
+         4uqSIw1J9OkIEJt3HemdA+NhGD6eqTvHR6sKcVkzZy+rpiNpmwENjPBNUQqK7eyKg6GV
+         Acgw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1736547653; x=1737152453;
-        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=S/FRGL7pFqiBxXNMKE7s0klBHrsVAiY19xXP9JBQfqE=;
-        b=bEBMLQrdm372LiaPb6Y+FrzbkynA/0lVoCP1RMu4N29F1Qr4quAmofQ6MKIsUmYc9Y
-         kFnAiEMZ79OOTmqBOBv+k6q8X1iyhokeIdGgsj7UsXnImoaTOpHLr6QJvqi6sN8GpB1h
-         VyWEZbmtxtu28SNvGtIQff4D53+h6htjHlw5lF5Lw7D4D3lOnhFzms8CtXBZf0rRwv/X
-         6sWeGHM3yYjCZhbF00DYDT27VOV+JZk7V9ILifquEXcYC50rv4Wov7zMtoDAedH9zGBc
-         wBEWZEkl5dleJf28ciicZD/h5H+xsORKL0N+C/W6Ct4dTbGiIhrnsic7ec6/tGCWlFy9
-         6c9w==
-X-Gm-Message-State: AOJu0YzbeeaILvbY4hDdMgG5K/U+XEYGgHf7MijYh0w9zSrJeTRip5D9
-	88FTOJ0ZSHOxUuw+k4aydIbBR3rS8HIx+8pRxQMTHO0QYLv9FNCjoSXW52wWeSgXfXO04QGKNjn
-	bgDycdaBJZeFgCL0k/C4RA4HfRlyPFhUl
-X-Gm-Gg: ASbGnctl2IaLqiWM9QdOJryGdR4GrYpJW6QXguKRlLEjD4Jjb/hBMaVWnLlLe9wbb2n
-	jRIK1DDDjhIxs+DNhAj9Bi2tr1sboXvEh/Jeyb4ZuZRD+FTzRTFeSwa8NrhfP7QjBmx7NW01h
-X-Google-Smtp-Source: AGHT+IEJSLkrS/GxVsORlSeEaNxE0mIM0VKxwxYqpzmY9GWA2m7DpkZE+wCJCRVeWttjFYn5a8bELkkXJjbjrW20p9g=
-X-Received: by 2002:a17:907:6d12:b0:aa6:950c:ae18 with SMTP id
- a640c23a62f3a-ab2ab6b5406mr942508466b.22.1736547652313; Fri, 10 Jan 2025
- 14:20:52 -0800 (PST)
+        d=1e100.net; s=20230601; t=1736547814; x=1737152614;
+        h=content-transfer-encoding:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=2zvVUoEeneMw4v87L4EhpeNobEFp9p2ngiPEvA8kTE4=;
+        b=pXPeBUrsKOk1KCRzWhogvb442poNq1w+8lDkbsfY6UM6DFT2BQMyyEagXsRF+sPRCJ
+         H0zL30frXZeQSMi8y+M/ezJlsK2ls03qGeIptromff0NyXk71PKFmGuYOTW0F0tbJ6du
+         1H7OMI3XumCP30X2gSYyuc5rtWmCq5DZBlmyYYHst3K+AsD5LHNpgE1APH20yWcEiD0j
+         Ky8b4FH73VVYTe9yQ78oFIaEHqeXGnK/Z93z3CLB3A2x5bCbovjc4S1wpUzSMmaObuT/
+         hbuh2DTlbG3a+7pUrde43mXdmogK/IR0x5ygJAFJKkZrP+dLt4+UdmMC5Er2xgCN3Rof
+         +6aQ==
+X-Gm-Message-State: AOJu0Yyim7IFPHxgIvOtOCaEWVQoqi1JjGiucmxvyk6HtemDkzQ31oB/
+	af57LjSGR1Sdy8vC8rSRgOvnFK4cGdxjNVdcW/Vnw3Ox1HWbRvH08iXfrVMVvKfAhUjmHO29OWo
+	siNOmErZXOv6aPVO7pKBdy3AxpS0limlH
+X-Gm-Gg: ASbGncvGjtDfcAOlGXSGeGC+HPL4OUbJK8zST+sN4lNNyS/Zw9o6rGEgeLAbZzYAlr4
+	TuWzO+VD7YW1OBRKr9BsIJO1Sf2SjvQCymHGCpLLA7wsC8Hx1ngHj37LlzUYEpo6XpntfKDTR
+X-Google-Smtp-Source: AGHT+IHGLKU4rAgZwCNGg1cYEAueEpU7ndRcvjOnFsk1J/zuLWGLnRmEdIQTEcPxswa4idsXNK8sH2VcI3UVvOPK36Y=
+X-Received: by 2002:a17:907:3f95:b0:aae:b259:ef6c with SMTP id
+ a640c23a62f3a-ab2aacfbb7cmr1226571766b.0.1736547814203; Fri, 10 Jan 2025
+ 14:23:34 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+References: <CAHo-OozVuh4wbTHLxM2Y2+qgQqHTwcmhAfeFOM9W8thqzz6gdg@mail.gmail.com>
+In-Reply-To: <CAHo-OozVuh4wbTHLxM2Y2+qgQqHTwcmhAfeFOM9W8thqzz6gdg@mail.gmail.com>
 From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Date: Fri, 10 Jan 2025 14:20:41 -0800
-X-Gm-Features: AbW1kvbjg-eQzeJnjI212_hqguV6RVMO_FnKNf-1ATp3b_Xn7SIMI4fK6C_2NSI
-Message-ID: <CAHo-OozVuh4wbTHLxM2Y2+qgQqHTwcmhAfeFOM9W8thqzz6gdg@mail.gmail.com>
-Subject: Android boot failure with 6.12
+Date: Fri, 10 Jan 2025 14:23:22 -0800
+X-Gm-Features: AbW1kvb3VsFT31E305QGANKvJyjAq8dKFh6BUOEj8W_XXIYZzxboh4LS-EFvrfw
+Message-ID: <CAHo-OozPA7Z9pwBgEA3whh_e3NBhVi1D7EC4EXjNJdVHYNToKg@mail.gmail.com>
+Subject: Re: Android boot failure with 6.12
 To: Netfilter Development Mailinglist <netfilter-devel@vger.kernel.org>, Florian Westphal <fw@strlen.de>, 
 	Pablo Neira Ayuso <pablo@netfilter.org>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-We've had to:
-  Revert "netfilter: xtables: avoid NFPROTO_UNSPEC where needed"
-  https://android-review.googlesource.com/c/kernel/common/+/3305935/2
+Oh, wait
 
-It seems the failure is (probably related to):
-...
-E IptablesRestoreController: -A bw_INPUT -j MARK --or-mark 0x100000
-...
-E IptablesRestoreController: -------  ERROR -------
-E IptablesRestoreController: Warning: Extension MARK revision 0 not
-supported, missing kernel module?
-E IptablesRestoreController: ip6tables-restore v1.8.10 (legacy): MARK
-target: kernel too old for --or-mark
-E IptablesRestoreController: Error occurred at line: 27
+.family         =3D NFPROTO_IPV4,
 
-But, I don't see an obvious bug in the CL we had to revert...
+in the v6 section
+
+On Fri, Jan 10, 2025 at 2:20=E2=80=AFPM Maciej =C5=BBenczykowski
+<zenczykowski@gmail.com> wrote:
+>
+> We've had to:
+>   Revert "netfilter: xtables: avoid NFPROTO_UNSPEC where needed"
+>   https://android-review.googlesource.com/c/kernel/common/+/3305935/2
+>
+> It seems the failure is (probably related to):
+> ...
+> E IptablesRestoreController: -A bw_INPUT -j MARK --or-mark 0x100000
+> ...
+> E IptablesRestoreController: -------  ERROR -------
+> E IptablesRestoreController: Warning: Extension MARK revision 0 not
+> supported, missing kernel module?
+> E IptablesRestoreController: ip6tables-restore v1.8.10 (legacy): MARK
+> target: kernel too old for --or-mark
+> E IptablesRestoreController: Error occurred at line: 27
+>
+> But, I don't see an obvious bug in the CL we had to revert...
