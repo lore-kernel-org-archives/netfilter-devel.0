@@ -1,173 +1,168 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f45.google.com (mail-wr1-f45.google.com [209.85.221.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 593E62063D9
-	for <netfilter-devel@vger.kernel.org>; Fri, 10 Jan 2025 06:28:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87D12204F93;
+	Fri, 10 Jan 2025 11:12:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736490516; cv=none; b=frjYwgkRdIr3JfPJia1HZnOpuKAWplWOZspEAk4/Ocwo8dsAZj3TuKmnbrOnX779gwWLhAmIidkLH0J2RXTG+3eDNiiOJpgHzPEizN8Ux6NnWMf21z8iQu4+YojtjxgwgS8H4JbgKnaP2V28rC+u+Tt0fio4HGJzhORCobFYHL8=
+	t=1736507572; cv=none; b=owBWu93SNP1DGPFupsSsaaWqXIag6ju5oBJb50RFD5v5bH7y0VyC2rQKZ0RfrewGvn6p+P5I+VCPv7x/Cd5nk/tdEahrXQsB9WeZZFi/N/9xlizYTvF7ejrCrt6l0WdNSkz+mJqJX8sNit8PlVBJ+z2OqEqaIV5Y1Ltm9dlGdro=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736490516; c=relaxed/simple;
-	bh=FMqJ7naQjmlWyErCDh0m1Os/KqRSP9MKroOgTnaF1hc=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=BjydTGuJmxAqlVeAkL2OrKSWN1XMB2y21E5vhIWzPBEsXIuqPuw0/wDiVl9Bah3h4eqnTM1taXfvh+JfiQ2eOcdq06Vwg5yA2O+pnZvCn2cpXZx5mbTd+/JM0pnioQ08+v2IR4W5UnJykF3MGALkGDEt5QfFjutTHLNsx2d0oiI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=GjlAVJSG; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1736507572; c=relaxed/simple;
+	bh=UeOt5R2P5GeHb8nFPEh954S2nl3+3csDNv4eH/iGYgQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=F5DTFc+VboHQudJHdzNFidJHd5kkec7d0J5Kt/Y7U4FocT0gc0COMaapTBbVl7DJ9o02irhmlTp/MZzCtx8PlciUijQdAiw1WBClTwHroVcOuhP7jrvobyPM8TNcE3iaLgqa0ttrMrJEWIEyWIfpVMx012W1c8eGliFbDVS3EMU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QX6MbU4H; arc=none smtp.client-ip=209.85.221.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="GjlAVJSG"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1736490513;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=KidJbubUSbaHzABwf67ALlasvoQwAnREDKg8gDCC2p8=;
-	b=GjlAVJSG82uF97qSjHmNMCuOzoPaOkg2RRRq2PoO6luPNycGSeBOTSr6tkFTcqvoMLgnGw
-	IOadN8h8DCIJYEu35UgTuHXeGADL7rPx2V+pKigrgDwDDPZ55ShflQEHUfrz2/+1/rlDDi
-	nosjfd61eHvvDbP69xSLs6uYBMolVWI=
-Received: from mail-pj1-f72.google.com (mail-pj1-f72.google.com
- [209.85.216.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-605-i06ylfAMO8KiVj3E7Xf_Uw-1; Fri, 10 Jan 2025 01:28:31 -0500
-X-MC-Unique: i06ylfAMO8KiVj3E7Xf_Uw-1
-X-Mimecast-MFC-AGG-ID: i06ylfAMO8KiVj3E7Xf_Uw
-Received: by mail-pj1-f72.google.com with SMTP id 98e67ed59e1d1-2ef775ec883so3105161a91.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 09 Jan 2025 22:28:31 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QX6MbU4H"
+Received: by mail-wr1-f45.google.com with SMTP id ffacd0b85a97d-3863494591bso1070745f8f.1;
+        Fri, 10 Jan 2025 03:12:50 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1736507569; x=1737112369; darn=vger.kernel.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=y+x9FB8gpRu+ny5JZ4ENzOnNmCE2Q/tjr8cqBXheLDU=;
+        b=QX6MbU4HDVaBbMqHG+hWJSmYFgJmeoPSYLDxSSwj+cqH8BPwCcxc0t6+YyRuBEW0gN
+         o3qpXMgA/6ROBEziDgi5aqXJXq5R2CvcVDQIcHnhL8aW2ti54TDM38qJ9GuK0aM0TSRt
+         9y3DMhulU9eaJrcrC1YIPLrI83V/SPaop710lPwSRbY3ylDOUaAytQS08XykQNIPunZO
+         j1/EdEr7Gge851MrpK5HSxtfAKaW0yV5LDYQ4Hi1MSrc/2Qt6m2Wag+Laq7Xx9X335bE
+         s75Vm/mMVjVViLFe0MtkbTEmwQ7IQLPnpR1BYEIWHpUj5wcPoaUZ3RbmAIMHcCMjKYm1
+         62EA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1736490511; x=1737095311;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=KidJbubUSbaHzABwf67ALlasvoQwAnREDKg8gDCC2p8=;
-        b=rA6L5LKPb6SFbrc2ufLbqsl0egdgA1nO8Pnnb6VDdxpxH08tEexIgTS9ki6NZmsNW4
-         37YMHKa5KjUXmd94mBUS4tGLobVr6aP0hDHoXqAKI35tBOERT+CwROVtUI6rLHSE9Fjv
-         hoS5l9r0OnPYZ0YckJOMbkFCRtDuVF2mQhzdBnqv+b0IUAj9uvc7wFFrSCZdGXW7FTmm
-         S4Ag0zWn0/A9aHRpDKbbA/WbMvBcGdKFIvAqQRSS1mj0/KFap8Di1KvmSNLEh0TU/73v
-         45RSENUEsJ+SOYChFViNAlga5aH1iVupyx960+D6OHtRdqsQfiYzh0SsmfTTkfDg4f1o
-         p2dA==
-X-Forwarded-Encrypted: i=1; AJvYcCVyss5ATMQEpj7PmgCDCuQty+piRWQ54Qcbp9g/JGomfqTVDFYlBmClSNhzC+vpkc3KsJkauXl/vYWPdnqbZxI=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yya3WM2TtKYPMhfp1KiUhUcmb1v4kOIzgdI62DlZmvDgtU8+8UL
-	J8Q8YTFtzPnYJ0Nt4zCVqCERBgzsv0BlZK1O9DByRld8DQFBOL0aK/PJKB8HSMz7QTiTd7P7SDC
-	RcqzY3g0F+EjuvbhjFFFNx2O2IqqXpDgPkGWk+7VyGZUkSvQfivSu/TY5zjyPzV8To0fUF6tZFx
-	idOqtn+rKkMzZn2qvgtqtIg1P0X1Mc8K+vDgV/XijC
-X-Gm-Gg: ASbGnctxLRpQsyQt2DPFbCPqa8ncI1DwjARxhLWuci+K2HQJ9pZDBPrgH/AjR+h05as
-	YNZicNlhszYXR6W066SAmzpk16YPPLXI/+Aw5abU=
-X-Received: by 2002:a17:90b:51cb:b0:2ef:3192:d280 with SMTP id 98e67ed59e1d1-2f548f162acmr13802124a91.5.1736490510817;
-        Thu, 09 Jan 2025 22:28:30 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IEp0/BM7o0tEEC723P2ISeuSUTQVVQ33mQotWanfawICGwc51DjRSX4yb/t8dyOagdAuanru9FGx4KAnLdQtHQ=
-X-Received: by 2002:a17:90b:51cb:b0:2ef:3192:d280 with SMTP id
- 98e67ed59e1d1-2f548f162acmr13802075a91.5.1736490510354; Thu, 09 Jan 2025
- 22:28:30 -0800 (PST)
+        d=1e100.net; s=20230601; t=1736507569; x=1737112369;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=y+x9FB8gpRu+ny5JZ4ENzOnNmCE2Q/tjr8cqBXheLDU=;
+        b=o7Xhi1q/pZBTiANLHR2UEij8N49G+eMSCIUGplEG0NRjyKleZOfbwK9lD7ZCJK+6fU
+         xRUCESa25ZHjr3eBj3ObIXkSvDam8gVV1gsGeqaQBPXK8tdMdqHvXPwFK4QQFvniYrak
+         Sq2wxreHMJNfyo4S5lw9acmTzwIU5bRXdZhevHYMyPkBiiC/l8JMR6OdxQZsexsG8mRq
+         AUeVhb/W1bWOEtgVbrN+buPz4+6ff7YlebWSGJDfrQenh/ag+jY4Ba/4LiC65NBoRLXE
+         hCmFX8yoIHtf98bzXgA6yGO6Mkx8yktHtRINJXsIx1Xki8YSa9/yDi77JjRNPi7Kovof
+         19Ow==
+X-Forwarded-Encrypted: i=1; AJvYcCU97ksMh2xRLM0NYIjoWEltEKlGgmI3l2c/Oqu8YS4kOAzDmJ99+J01Fd7e6Z5UlMJQ8cEzsY8m@vger.kernel.org, AJvYcCUomSMONhTmf2J/cJVAZ1rFwP9086dXuSloT61eKlcagVHF8uwKx1CUcrRUN3LSEYnZkI+RW49c4LCV/Xb2wPvxOvcTksU=@vger.kernel.org, AJvYcCWI0twDAxHm/ORiQFgrQAbW0hPxfBUz4PS68j5CvfYWJ03O4mOCrx1LTWhee7Z+auYLmNZjgmdehtYoojyIPp4S@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz8NxCLsL67VeketgYsqZWLJ0hQ0CJS3VJgTzkaWZrwfTAVdMFd
+	hD0ji9I16gqlEH+tZMznCCIequHqZl5RjNam2gcPSpmpHfYawauc
+X-Gm-Gg: ASbGncumUGXzpx3AS4tw6UOr8bBGgSzZn8eLdzyuVMDdj6PtwisKXxTjUdEUr+h5b1+
+	0bVbwu7j1YreBf2ZHZdgOwiZ4QO2AB6f3cC4N9k/WeQRBYBoCt2hH99D8q7UZ13fKGMSZ+cKJvm
+	pCH8XzPk/4xMJu39E9+hxVuMMSjHC92Jb48I/a2JGZN89MgxETzYDNCKdROmQdxsQIKPXywH9cy
+	yjgUQllu8FsqFnT5BczrpUNMzQphMYpQwD9e6CeuJdET7Mx91n47GeROA==
+X-Google-Smtp-Source: AGHT+IEgmiSksMHjPRzswCZRI9x/P5xOUcq0e2x7nHHa8Ps+XDO6PG0n5O7zc0nMyxeBvkMf1N/LTg==
+X-Received: by 2002:a5d:5f85:0:b0:387:86cf:4e87 with SMTP id ffacd0b85a97d-38a872deb33mr10369275f8f.15.1736507568637;
+        Fri, 10 Jan 2025 03:12:48 -0800 (PST)
+Received: from localhost ([2a00:79e1:abd:a201:48ff:95d2:7dab:ae81])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-436e9e6251asm51588845e9.40.2025.01.10.03.12.48
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 10 Jan 2025 03:12:48 -0800 (PST)
+Date: Fri, 10 Jan 2025 12:12:42 +0100
+From: =?iso-8859-1?Q?G=FCnther?= Noack <gnoack3000@gmail.com>
+To: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+Cc: =?iso-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@digikod.net>,
+	=?iso-8859-1?Q?G=FCnther?= Noack <gnoack@google.com>,
+	willemdebruijn.kernel@gmail.com,
+	linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, yusongping@huawei.com,
+	artem.kuzin@huawei.com, konstantin.meskhidze@huawei.com
+Subject: Re: [RFC PATCH v3 01/19] landlock: Support socket access-control
+Message-ID: <20250110.2893966a7649@gnoack.org>
+References: <20240904104824.1844082-1-ivanov.mikhail1@huawei-partners.com>
+ <20240904104824.1844082-2-ivanov.mikhail1@huawei-partners.com>
+ <ea026af8-bc29-709c-7e04-e145d01fd825@huawei-partners.com>
+ <Z0DDQKACIRRDRZRE@google.com>
+ <36ac2fde-1344-9055-42e2-db849abf02e0@huawei-partners.com>
+ <20241127.oophah4Ueboo@digikod.net>
+ <eafd855d-2681-8dfd-a2be-9c02fc07050d@huawei-partners.com>
+ <20241128.um9voo5Woo3I@digikod.net>
+ <af72be74-50c7-d251-5df3-a2c63c73296a@huawei-partners.com>
+ <f6b255c9-5a88-fedd-5d25-dd7d09ddc989@huawei-partners.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241227191211.12485-1-chia-yu.chang@nokia-bell-labs.com>
- <20241227191211.12485-12-chia-yu.chang@nokia-bell-labs.com>
- <CACGkMEu990O+2Sedj+ASv0P5TnZR9THiOdHmx=L0hOxQRXPcsg@mail.gmail.com> <PAXPR07MB79849952690901A50688EFEDA3092@PAXPR07MB7984.eurprd07.prod.outlook.com>
-In-Reply-To: <PAXPR07MB79849952690901A50688EFEDA3092@PAXPR07MB7984.eurprd07.prod.outlook.com>
-From: Jason Wang <jasowang@redhat.com>
-Date: Fri, 10 Jan 2025 14:28:18 +0800
-X-Gm-Features: AbW1kvaTgRZIZgzRWrIQzrtZd7X6glRAsDjE7ywFuxLA5XjNWNs_FA7giy52KJg
-Message-ID: <CACGkMEvNR4rGnC78Mybext7z6jqdBtPfz544_SPXs0t3wUMP8A@mail.gmail.com>
-Subject: Re: [PATCH v6 net-next 11/14] virtio_net: Accurate ECN flag in virtio_net_hdr
-To: "Chia-Yu Chang (Nokia)" <chia-yu.chang@nokia-bell-labs.com>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "dsahern@gmail.com" <dsahern@gmail.com>, 
-	"davem@davemloft.net" <davem@davemloft.net>, "edumazet@google.com" <edumazet@google.com>, 
-	"dsahern@kernel.org" <dsahern@kernel.org>, "pabeni@redhat.com" <pabeni@redhat.com>, 
-	"joel.granados@kernel.org" <joel.granados@kernel.org>, "kuba@kernel.org" <kuba@kernel.org>, 
-	"andrew+netdev@lunn.ch" <andrew+netdev@lunn.ch>, "horms@kernel.org" <horms@kernel.org>, 
-	"pablo@netfilter.org" <pablo@netfilter.org>, "kadlec@netfilter.org" <kadlec@netfilter.org>, 
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>, 
-	"coreteam@netfilter.org" <coreteam@netfilter.org>, "shenjian15@huawei.com" <shenjian15@huawei.com>, 
-	"salil.mehta@huawei.com" <salil.mehta@huawei.com>, "shaojijie@huawei.com" <shaojijie@huawei.com>, 
-	"saeedm@nvidia.com" <saeedm@nvidia.com>, "tariqt@nvidia.com" <tariqt@nvidia.com>, "mst@redhat.com" <mst@redhat.com>, 
-	"xuanzhuo@linux.alibaba.com" <xuanzhuo@linux.alibaba.com>, "eperezma@redhat.com" <eperezma@redhat.com>, 
-	"virtualization@lists.linux.dev" <virtualization@lists.linux.dev>, "ij@kernel.org" <ij@kernel.org>, 
-	"ncardwell@google.com" <ncardwell@google.com>, 
-	"Koen De Schepper (Nokia)" <koen.de_schepper@nokia-bell-labs.com>, 
-	"g.white@cablelabs.com" <g.white@cablelabs.com>, 
-	"ingemar.s.johansson@ericsson.com" <ingemar.s.johansson@ericsson.com>, 
-	"mirja.kuehlewind@ericsson.com" <mirja.kuehlewind@ericsson.com>, "cheshire@apple.com" <cheshire@apple.com>, 
-	"rs.ietf@gmx.at" <rs.ietf@gmx.at>, 
-	"Jason_Livingood@comcast.com" <Jason_Livingood@comcast.com>, "vidhi_goel@apple.com" <vidhi_goel@apple.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <f6b255c9-5a88-fedd-5d25-dd7d09ddc989@huawei-partners.com>
 
-On Mon, Dec 30, 2024 at 5:51=E2=80=AFPM Chia-Yu Chang (Nokia)
-<chia-yu.chang@nokia-bell-labs.com> wrote:
->
-> >From: Jason Wang <jasowang@redhat.com>
-> >Sent: Monday, December 30, 2024 8:52 AM
-> >To: Chia-Yu Chang (Nokia) <chia-yu.chang@nokia-bell-labs.com>
-> >Cc: netdev@vger.kernel.org; dsahern@gmail.com; davem@davemloft.net; edum=
-azet@google.com; dsahern@kernel.org; pabeni@redhat.com; joel.granados@kerne=
-l.org; kuba@kernel.org; andrew+netdev@lunn.ch; horms@kernel.org; pablo@netf=
-ilter.org; kadlec@netfilter.org; netfilter-devel@vger.kernel.org; coreteam@=
-netfilter.org; shenjian15@huawei.com; salil.mehta@huawei.com; shaojijie@hua=
-wei.com; saeedm@nvidia.com; tariqt@nvidia.com; mst@redhat.com; xuanzhuo@lin=
-ux.alibaba.com; eperezma@redhat.com; virtualization@lists.linux.dev; ij@ker=
-nel.org; ncardwell@google.com; Koen De Schepper (Nokia) <koen.de_schepper@n=
-okia-bell-labs.com>; g.white@cablelabs.com; ingemar.s.johansson@ericsson.co=
-m; mirja.kuehlewind@ericsson.com; cheshire@apple.com; rs.ietf@gmx.at; Jason=
-_Livingood@comcast.com; vidhi_goel@apple.com
-> >Subject: Re: [PATCH v6 net-next 11/14] virtio_net: Accurate ECN flag in =
-virtio_net_hdr
-> >
-> >[You don't often get email from jasowang@redhat.com. Learn why this is i=
-mportant at https://aka.ms/LearnAboutSenderIdentification ]
-> >
-> >CAUTION: This is an external email. Please be very careful when clicking=
- links or opening attachments. See the URL nok.it/ext for additional inform=
-ation.
-> >
-> >
-> >
-> >On Sat, Dec 28, 2024 at 3:13=E2=80=AFAM <chia-yu.chang@nokia-bell-labs.c=
-om> wrote:
-> >>
-> >> From: Chia-Yu Chang <chia-yu.chang@nokia-bell-labs.com>
-> >>
-> >> Unlike RFC 3168 ECN, accurate ECN uses the CWR flag as part of the ACE
-> >> field to count new packets with CE mark; however, it will be corrupted
-> >> by the RFC 3168 ECN-aware TSO. Therefore, fallback shall be applied by
-> >> seting NETIF_F_GSO_ACCECN to ensure that the CWR flag should not be
-> >> changed within a super-skb.
-> >>
-> >> To apply the aforementieond new AccECN GSO for virtio, new featue bits
-> >> for host and guest are added for feature negotiation between driver
-> >> and device. And the translation of Accurate ECN GSO flag between
-> >> virtio_net_hdr and skb header for NETIF_F_GSO_ACCECN is also added to
-> >> avoid CWR flag corruption due to RFC3168 ECN TSO.
-> >>
-> >> Signed-off-by: Chia-Yu Chang <chia-yu.chang@nokia-bell-labs.com>
-> >> ---
-> >>  drivers/net/virtio_net.c        | 14 +++++++++++---
-> >>  drivers/vdpa/pds/debugfs.c      |  6 ++++++
-> >>  include/linux/virtio_net.h      | 16 ++++++++++------
-> >>  include/uapi/linux/virtio_net.h |  5 +++++
-> >>  4 files changed, 32 insertions(+), 9 deletions(-)
-> >
-> >Is there a link to the spec patch? It needs to be accepted first.
-> >
-> >Thanks
->
-> Hi Jason,
->
-> Thanks for the feedback, I found the virtio-spec in github: https://githu=
-b.com/oasis-tcs/virtio-spec but not able to find the procedure to propose.
-> Could you help to share the procedure to propose spec patch? Thanks.
+Happy New Year!
 
-Sorry for the late reply.
+On Tue, Dec 24, 2024 at 07:55:01PM +0300, Mikhail Ivanov wrote:
+> The bitmask approach leads to a complete refactoring of socket rule
+> storage. This shouldn't be a big issue, since we're gonna need
+> multiplexer for insert_rule(), find_rule() with a port range feature
+> anyway [1]. But it seems that the best approach of storing rules
+> composed of bitmasks is to store them in linked list and perform
+> linear scan in landlock_find_rule(). Any other approach is likely to
+> be too heavy and complex.
+> 
+> Do you think such refactoring is reasonable?
+> 
+> [1] https://github.com/landlock-lsm/linux/issues/16
 
-You can start by subscribing to virtio-dev and send a spec patch there.
+The way I understood it in your mail from Nov 28th [1], I thought that the
+bitmasks would only exist at the UAPI layer so that users could more
+conveniently specify multiple "types" at the same time.  In other
+words, a rule which is now expressed as
 
-Thanks
+  {
+    .allowed_access = LANDLOCK_ACCESS_SOCKET_CREATE,
+    .family = AF_INET,
+    .types = 1 << SOCK_STREAM | 1 << SOCK_DGRAM,
+    .protocol = 0,
+  },
 
->
-> --
-> Chia-Yu
+used to be expressed like this (without bitmasks):
 
+  {
+    .allowed_access = LANDLOCK_ACCESS_SOCKET_CREATE,
+    .family = AF_INET,
+    .type = SOCK_STREAM,
+    .protocol = 0,
+  },
+  {
+    .allowed_access = LANDLOCK_ACCESS_SOCKET_CREATE,
+    .family = AF_INET,
+    .type = SOCK_DGRAM,
+    .protocol = 0,
+  },
+
+I do not understand why this convenience feature in the UAPI layer
+requires a change to the data structures that Landlock uses
+internally?  As far as I can tell, struct landlock_socket_attr is only
+used in syscalls.c and converted to other data structures already.  I
+would have imagined that we'd "unroll" the specified bitmasks into the
+possible combinations in the add_rule_socket() function and then call
+landlock_append_socket_rule() multiple times with each of these?
+
+
+That being said, I am not a big fan of red-black trees for such simple
+integer lookups either, and I also think there should be something
+better if we make more use of the properties of the input ranges. The
+question is though whether you want to couple that to this socket type
+patch set, or rather do it in a follow up?  (So far we have been doing
+fine with the red black trees, and we are already contemplating the
+possibility of changing these internal structures in [2].  We have
+also used RB trees for the "port" rules with a similar reasoning,
+IIRC.)
+
+Regarding the port range feature, I am also not sure whether the data
+structure for that would even be similar?  Looking for a containment
+in a set of integer ranges is a different task than looking for an
+exact match in a non-contiguous set of integers.
+
+In any case, I feel that for now, an exact look up in the RB tree
+would work fine as a generic solution (especially considering that the
+set of added rules is probably usually small).  IMHO, finding a more
+appropriate data structure might be a can of worms that could further
+delay the patch set and which might better be discussed separately.
+
+WDYT?
+
+–Günther
+
+[1] https://lore.kernel.org/all/eafd855d-2681-8dfd-a2be-9c02fc07050d@huawei-partners.com/
+[2] https://github.com/landlock-lsm/linux/issues/1
