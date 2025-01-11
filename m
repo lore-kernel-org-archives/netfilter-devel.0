@@ -1,106 +1,86 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4B87E1B815
-	for <netfilter-devel@vger.kernel.org>; Sat, 11 Jan 2025 14:17:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D508824B22A
+	for <netfilter-devel@vger.kernel.org>; Sat, 11 Jan 2025 14:38:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736605038; cv=none; b=U3bEExSWp+cwQ1svGfP8R36jBX9EicF2QooYuiywydGBYdAHK7vbHgw04dVlDfU1a8cOr1AU8OplyS+6ZzEJtcB/OHdmSn0yoZ+XEWvXIlvaFR572EeNaW1Gcc2aFTpEmouZJ6I450Aj2CbRv6sUlpY4ZwVZQ6z13g8vkXEupTc=
+	t=1736606285; cv=none; b=qmjgp6cz6oRkmzHWpGhm5o5MrH64E7/fF7LWX6UD3ScEbkblmIynn+ce2IQRHsQAPIyn+YLK2+X13xM5lWzkLwWdTVGjIm9zFS6a/r/oxZLFN4ca/wJdaK9L0N0yD9hmnH9mLa9lgKknZc7YdzkVov2u5OkdnaDarkXd61X5Pqc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736605038; c=relaxed/simple;
-	bh=xO+hzq5KemGnI4/vpiJPJv6s4UYnRMz44r/soEdCmy4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=JMGZB5rTKBNZbW1jvAEdJKqJOBREntlhw9Oj3DjNyYn24wvurrMAvz12cDwOxNzU+pxc7N6hAy68zfnlZ06INV1Bm6M28wC1EsaQZtS/silOp3ZR+gZVkKMlDbQV00X1OJ8pxKAa+9xVG1myLT4QD/CXrMlr0gznXELXCqvL2A0=
+	s=arc-20240116; t=1736606285; c=relaxed/simple;
+	bh=HO9IZiROI0L3ckeFiI8YpyjderWejIOuYWosBlSevnY=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=PPYezIojGM+VO24XpxumxXmUMfEurG/cgBdaGg47J7ktXc058Jth9SpLaLsBhhrTKjOyzqvA5mcPYF1z8ASJlCSe1lXAuqDnrw40nyu2t3kccw8RNAbP8hmk7GabWV1Y/nVqXfeo/neQeOVJWl7StKZ/vVQ6ujGsf7AYQMPfgyU=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Date: Sat, 11 Jan 2025 15:17:12 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>,
-	Netfilter Development Mailinglist <netfilter-devel@vger.kernel.org>,
-	Florian Westphal <fw@strlen.de>
-Subject: Re: Android boot failure with 6.12
-Message-ID: <Z4J9aM40NuYLakiy@calendula>
-References: <CAHo-OozVuh4wbTHLxM2Y2+qgQqHTwcmhAfeFOM9W8thqzz6gdg@mail.gmail.com>
- <CAHo-OozPA7Z9pwBgEA3whh_e3NBhVi1D7EC4EXjNJdVHYNToKg@mail.gmail.com>
- <CAHo-Ooz-_idiFe4RD8DtbojKJFEa1N-pdA8pdwUPLJTp7iwGhw@mail.gmail.com>
- <CAHo-OozUg4UWvaP-FtHL44mygWwsnGO_eeFREhHddf=cc2-+ww@mail.gmail.com>
- <16d951e0-5fce-c227-5f50-10ecf3f16967@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de,
+	linux@slavino.sk
+Subject: [PATCH nft] parser_bison: simplify syntax to list all sets in table
+Date: Sat, 11 Jan 2025 15:37:57 +0100
+Message-Id: <20250111143757.65308-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <16d951e0-5fce-c227-5f50-10ecf3f16967@netfilter.org>
 
-Hi Jozsef,
+Revisit f99ccda252fa ("parser: allow listing sets in one table") to add
+an alias to list all sets in a given table, eg.
 
-On Sat, Jan 11, 2025 at 02:31:18PM +0100, Jozsef Kadlecsik wrote:
-> Hi,
-> 
-> On Fri, 10 Jan 2025, Maciej Żenczykowski wrote:
-> 
-> > nvm - https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/commit/net/netfilter/xt_mark.c?id=306ed1728e8438caed30332e1ab46b28c25fe3d8
-> 
-> Sorry, but I don't understand the patch at all. With it applied now it'd 
-> be not possible to load in the "MARK" target with IPv4. The code segment 
-> after the patch:
-> 
-> static struct xt_target mark_tg_reg[] __read_mostly = {
->         {
->                 .name           = "MARK",
->                 .revision       = 2,
->                 .family         = NFPROTO_IPV6,
->                 .target         = mark_tg,
->                 .targetsize     = sizeof(struct xt_mark_tginfo2),
->                 .me             = THIS_MODULE,
->         },
-> #if IS_ENABLED(CONFIG_IP_NF_ARPTABLES)
->         {
->                 .name           = "MARK",
->                 .revision       = 2,
->                 .family         = NFPROTO_ARP,
->                 .target         = mark_tg,
->                 .targetsize     = sizeof(struct xt_mark_tginfo2),
->                 .me             = THIS_MODULE,
->         },
-> #endif
-> #if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
->         {
->                 .name           = "MARK",
->                 .revision       = 2,
->                 .family         = NFPROTO_IPV6,
->                 .target         = mark_tg,
->                 .targetsize     = sizeof(struct xt_mark_tginfo2),
->                 .me             = THIS_MODULE,
->         },
-> #endif
-> };
-> 
-> How is it supposed to work for IPv4?
-> 
-> Why the "IS_ENABLED(CONFIG_IP6_NF_IPTABLES)" part was not enough for the 
-> IPv6-specific MARK target to be compiled in? Isn't it an issue about 
-> selecting CONFIG_IP6_NF_IPTABLES vs CONFIG_IP6_NF_IPTABLES_LEGACY?
+ # nft list sets ip x
+ table ip x {
+        set s1 {
+                type ipv4_addr
+        }
+        set s2 {
+                type ipv4_addr
+        }
+ }
 
-This was fixed by an incremental patch:
+This is similar to 275989737ec4 ("parser_bison: simplify reset syntax").
 
-  306ed1728e84 ("netfilter: xtables: fix typo causing some targets not to load on IPv6")
+Update nft(8) manpage too.
 
-so there is no two MARK targets for NFPROTO_IPV6.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ doc/nft.txt        | 2 ++
+ src/parser_bison.y | 5 +++++
+ 2 files changed, 7 insertions(+)
 
-> Also, why the "mark" match was not split into NFPROTO_IPV4, NFPROTO_ARP,
-> NFPROTO_IPV6 explicitly (and other matches where the target was split)?
+diff --git a/doc/nft.txt b/doc/nft.txt
+index 846ccfb28b92..12de0181ab91 100644
+--- a/doc/nft.txt
++++ b/doc/nft.txt
+@@ -588,6 +588,8 @@ section describes nft set syntax in more detail.
+ *add set* ['family'] 'table' 'set' *{ type* 'type' | *typeof* 'expression' *;* [*flags* 'flags' *;*] [*timeout* 'timeout' *;*] [*gc-interval* 'gc-interval' *;*] [*elements = {* 'element'[*,* ...] *} ;*] [*size* 'size' *;*] [*comment* 'comment' *;*'] [*policy* 'policy' *;*] [*auto-merge ;*] *}*
+ {*delete* | *destroy* | *list* | *flush* | *reset* } *set* ['family'] 'table' 'set'
+ *list sets* ['family']
++*list sets* ['family'] 'table'
++*list set* ['family'] 'table' 'set'
+ *delete set* ['family'] 'table' *handle* 'handle'
+ {*add* | *delete* | *destroy* } *element* ['family'] 'table' 'set' *{* 'element'[*,* ...] *}*
+ 
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index c8714812532d..ac8de398f8a7 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -1590,8 +1590,13 @@ list_cmd		:	TABLE		table_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_SETS, &$2, &@$, NULL);
+ 			}
++			|	SETS		table_spec
++			{
++				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_SETS, &$2, &@$, NULL);
++			}
+ 			|	SETS		TABLE	table_spec
+ 			{
++				/* alias of previous rule. */
+ 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_SETS, &$3, &@$, NULL);
+ 			}
+ 			|	SET		set_spec
+-- 
+2.30.2
 
-The audit to tighten this interface searched for:
-
-- use of xtables verdicts are incompatible with ebtables.
-- IP header cannot be assumed to be linear on ebtables.
-
-xt_mark match can be restricted too, ebtables uses ebt_mark. But this
-should be safe, so this patch should probably go via nf-next.
-
-Thanks.
