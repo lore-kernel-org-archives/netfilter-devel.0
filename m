@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 652FE1BBBD3;
-	Sat, 11 Jan 2025 23:08:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4FA591BBBC0;
+	Sat, 11 Jan 2025 23:08:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736636891; cv=none; b=lnoJaO1afE1ljeyVRxa1/EkxJWtR0GczEOuhH2MZLobSR02FfvKepdlgxByO9QZZpTxBAIZn0vY8ZhGWtbQj/h28Uo+XWjoH4wPNjXtgU/xpnUGnDfs05m7t31BTQRO9uxIryyvoTJITFpZRzAtnxeboSr2tJxCoZgxNm/JjRJM=
+	t=1736636892; cv=none; b=a5Rxn5lDWGBA1957ZQ/om6XchRHHCg/nfcFbfyau5s0XOI1dBNYXNUeHszBQLW2rqhWQ/Q7NESh778+lZAyAYfBH+Wl2O0vStY13OQS1EgSmmyJPLQ8wMd0OqD08+ywxxqRJkZ7cB4KV/X5qSpk4Nr9JTpf6aHowObOaJa2ba24=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736636891; c=relaxed/simple;
-	bh=5BBujJnzs13bQBzd2BKpJQXOIZnHmbKqBsFueEYWZVk=;
+	s=arc-20240116; t=1736636892; c=relaxed/simple;
+	bh=rh+NXkFkOSCld0emXqgPxXDTnO4nE88OW8sOnUZBH8Y=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=RffjxKVlu/WQC/+xhUax9qz4QzpH2eqZ99fZMn2LxuuYObJ40v1nfx5hJkogPYOkBC8jjDrhH2Ms7Dui/vMwK0DT57ffYjLbCbH151M6SZLV+xQ+N8uReX2bx0XyhRa6onVA2eaJ1RQxu8o6Re554mp4aySdtCFtFWzGmmW4dWw=
+	 MIME-Version; b=CEy5+JZbgcDmKRkdhPT2eUXUEyY4t0zsB+c+6Zm4s/+R+BP9aYz73V7c3iLARYqpAxXO1blJbJPD9AElJkBKPM3lGq4kCmdkTjbP957qMOnthtoswIhYA8VuUvumshREHtTJlwaLJS3KJWYWGenaMbFwo0sh1AaQ8+iVNqPOqIs=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -21,9 +21,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	kadlec@netfilter.org
-Subject: [PATCH net-next 2/4] ipvs: speed up reads from ip_vs_conn proc file
-Date: Sun, 12 Jan 2025 00:07:58 +0100
-Message-Id: <20250111230800.67349-3-pablo@netfilter.org>
+Subject: [PATCH net-next 3/4] netfilter: xt_hashlimit: htable_selective_cleanup() optimization
+Date: Sun, 12 Jan 2025 00:07:59 +0100
+Message-Id: <20250111230800.67349-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250111230800.67349-1-pablo@netfilter.org>
 References: <20250111230800.67349-1-pablo@netfilter.org>
@@ -35,143 +35,70 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+From: Eric Dumazet <edumazet@google.com>
 
-Reading is very slow because ->start() performs a linear re-scan of the
-entire hash table until it finds the successor to the last dumped
-element.  The current implementation uses 'pos' as the 'number of
-elements to skip, then does linear iteration until it has skipped
-'pos' entries.
+I have seen syzbot reports hinting at xt_hashlimit abuse:
 
-Store the last bucket and the number of elements to skip in that
-bucket instead, so we can resume from bucket b directly.
+[  105.783066][ T4331] xt_hashlimit: max too large, truncated to 1048576
+[  105.811405][ T4331] xt_hashlimit: size too large, truncated to 1048576
 
-before this patch, its possible to read ~35k entries in one second, but
-each read() gets slower as the number of entries to skip grows:
+And worker threads using up to 1 second per htable_selective_cleanup() invocation.
 
-time timeout 60 cat /proc/net/ip_vs_conn > /tmp/all; wc -l /tmp/all
-real    1m0.007s
-user    0m0.003s
-sys     0m59.956s
-140386 /tmp/all
+[  269.734496][    C1]  [<ffffffff81547180>] ? __local_bh_enable_ip+0x1a0/0x1a0
+[  269.734513][    C1]  [<ffffffff817d75d0>] ? lockdep_hardirqs_on_prepare+0x740/0x740
+[  269.734533][    C1]  [<ffffffff852e71ff>] ? htable_selective_cleanup+0x25f/0x310
+[  269.734549][    C1]  [<ffffffff817dcd30>] ? __lock_acquire+0x2060/0x2060
+[  269.734567][    C1]  [<ffffffff817f058a>] ? do_raw_spin_lock+0x14a/0x370
+[  269.734583][    C1]  [<ffffffff852e71ff>] ? htable_selective_cleanup+0x25f/0x310
+[  269.734599][    C1]  [<ffffffff81547147>] __local_bh_enable_ip+0x167/0x1a0
+[  269.734616][    C1]  [<ffffffff81546fe0>] ? _local_bh_enable+0xa0/0xa0
+[  269.734634][    C1]  [<ffffffff852e71ff>] ? htable_selective_cleanup+0x25f/0x310
+[  269.734651][    C1]  [<ffffffff852e71ff>] htable_selective_cleanup+0x25f/0x310
+[  269.734670][    C1]  [<ffffffff815b3cc9>] ? process_one_work+0x7a9/0x1170
+[  269.734685][    C1]  [<ffffffff852e57db>] htable_gc+0x1b/0xa0
+[  269.734700][    C1]  [<ffffffff815b3cc9>] ? process_one_work+0x7a9/0x1170
+[  269.734714][    C1]  [<ffffffff815b3dc9>] process_one_work+0x8a9/0x1170
+[  269.734733][    C1]  [<ffffffff815b3520>] ? worker_detach_from_pool+0x260/0x260
+[  269.734749][    C1]  [<ffffffff810201c7>] ? _raw_spin_lock_irq+0xb7/0xf0
+[  269.734763][    C1]  [<ffffffff81020110>] ? _raw_spin_lock_irqsave+0x100/0x100
+[  269.734777][    C1]  [<ffffffff8159d3df>] ? wq_worker_sleeping+0x5f/0x270
+[  269.734800][    C1]  [<ffffffff815b53c7>] worker_thread+0xa47/0x1200
+[  269.734815][    C1]  [<ffffffff81020010>] ? _raw_spin_lock+0x40/0x40
+[  269.734835][    C1]  [<ffffffff815c9f2a>] kthread+0x25a/0x2e0
+[  269.734853][    C1]  [<ffffffff815b4980>] ? worker_clr_flags+0x190/0x190
+[  269.734866][    C1]  [<ffffffff815c9cd0>] ? kthread_blkcg+0xd0/0xd0
+[  269.734885][    C1]  [<ffffffff81027b1a>] ret_from_fork+0x3a/0x50
 
-Only ~100k more got read in remaining the remaining 59s, and did not get
-nowhere near the 1m entries that are stored at the time.
+We can skip over empty buckets, avoiding the lockdep penalty
+for debug kernels, and avoid atomic operations on non debug ones.
 
-after this patch, dump completes very quickly:
-time cat /proc/net/ip_vs_conn > /tmp/all; wc -l /tmp/all
-real    0m2.286s
-user    0m0.004s
-sys     0m2.281s
-1000001 /tmp/all
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Acked-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_conn.c | 50 ++++++++++++++++++---------------
- 1 file changed, 28 insertions(+), 22 deletions(-)
+ net/netfilter/xt_hashlimit.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index c0289f83f96d..20a1727e2457 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -1046,28 +1046,35 @@ ip_vs_conn_new(const struct ip_vs_conn_param *p, int dest_af,
- #ifdef CONFIG_PROC_FS
- struct ip_vs_iter_state {
- 	struct seq_net_private	p;
--	struct hlist_head	*l;
-+	unsigned int		bucket;
-+	unsigned int		skip_elems;
- };
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 0859b8f76764..fa02aab56724 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -363,11 +363,15 @@ static void htable_selective_cleanup(struct xt_hashlimit_htable *ht, bool select
+ 	unsigned int i;
  
--static void *ip_vs_conn_array(struct seq_file *seq, loff_t pos)
-+static void *ip_vs_conn_array(struct ip_vs_iter_state *iter)
- {
- 	int idx;
- 	struct ip_vs_conn *cp;
--	struct ip_vs_iter_state *iter = seq->private;
+ 	for (i = 0; i < ht->cfg.size; i++) {
++		struct hlist_head *head = &ht->hash[i];
+ 		struct dsthash_ent *dh;
+ 		struct hlist_node *n;
  
--	for (idx = 0; idx < ip_vs_conn_tab_size; idx++) {
-+	for (idx = iter->bucket; idx < ip_vs_conn_tab_size; idx++) {
-+		unsigned int skip = 0;
++		if (hlist_empty(head))
++			continue;
 +
- 		hlist_for_each_entry_rcu(cp, &ip_vs_conn_tab[idx], c_list) {
- 			/* __ip_vs_conn_get() is not needed by
- 			 * ip_vs_conn_seq_show and ip_vs_conn_sync_seq_show
- 			 */
--			if (pos-- == 0) {
--				iter->l = &ip_vs_conn_tab[idx];
-+			if (skip >= iter->skip_elems) {
-+				iter->bucket = idx;
- 				return cp;
- 			}
-+
-+			++skip;
+ 		spin_lock_bh(&ht->lock);
+-		hlist_for_each_entry_safe(dh, n, &ht->hash[i], node) {
++		hlist_for_each_entry_safe(dh, n, head, node) {
+ 			if (time_after_eq(jiffies, dh->expires) || select_all)
+ 				dsthash_free(ht, dh);
  		}
-+
-+		iter->skip_elems = 0;
- 		cond_resched_rcu();
- 	}
- 
-+	iter->bucket = idx;
- 	return NULL;
- }
- 
-@@ -1076,9 +1083,14 @@ static void *ip_vs_conn_seq_start(struct seq_file *seq, loff_t *pos)
- {
- 	struct ip_vs_iter_state *iter = seq->private;
- 
--	iter->l = NULL;
- 	rcu_read_lock();
--	return *pos ? ip_vs_conn_array(seq, *pos - 1) :SEQ_START_TOKEN;
-+	if (*pos == 0) {
-+		iter->skip_elems = 0;
-+		iter->bucket = 0;
-+		return SEQ_START_TOKEN;
-+	}
-+
-+	return ip_vs_conn_array(iter);
- }
- 
- static void *ip_vs_conn_seq_next(struct seq_file *seq, void *v, loff_t *pos)
-@@ -1086,28 +1098,22 @@ static void *ip_vs_conn_seq_next(struct seq_file *seq, void *v, loff_t *pos)
- 	struct ip_vs_conn *cp = v;
- 	struct ip_vs_iter_state *iter = seq->private;
- 	struct hlist_node *e;
--	struct hlist_head *l = iter->l;
--	int idx;
- 
- 	++*pos;
- 	if (v == SEQ_START_TOKEN)
--		return ip_vs_conn_array(seq, 0);
-+		return ip_vs_conn_array(iter);
- 
- 	/* more on same hash chain? */
- 	e = rcu_dereference(hlist_next_rcu(&cp->c_list));
--	if (e)
-+	if (e) {
-+		iter->skip_elems++;
- 		return hlist_entry(e, struct ip_vs_conn, c_list);
--
--	idx = l - ip_vs_conn_tab;
--	while (++idx < ip_vs_conn_tab_size) {
--		hlist_for_each_entry_rcu(cp, &ip_vs_conn_tab[idx], c_list) {
--			iter->l = &ip_vs_conn_tab[idx];
--			return cp;
--		}
--		cond_resched_rcu();
- 	}
--	iter->l = NULL;
--	return NULL;
-+
-+	iter->skip_elems = 0;
-+	iter->bucket++;
-+
-+	return ip_vs_conn_array(iter);
- }
- 
- static void ip_vs_conn_seq_stop(struct seq_file *seq, void *v)
 -- 
 2.30.2
 
