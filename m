@@ -1,78 +1,78 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 52F4818A931
-	for <netfilter-devel@vger.kernel.org>; Sat, 11 Jan 2025 22:45:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B06861CFBC;
+	Sat, 11 Jan 2025 23:08:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736635538; cv=none; b=jJr+ZFEb8Pez6GzL5AV3WKZTjLNyoE7sbE47YGI5V5im6lAqvHcWfZ6OPuRebmpUbyVYdQFoEGPIR3ohb84/rOIQ6EGx0WMjEbISBx5lQrnKSacgyhbN8hmxymvoXGAhzsk93obqtA4KP29gAewUzHmC7ehYSo8zUWuBc5AibPc=
+	t=1736636890; cv=none; b=uSocqzRBwuHwOY8TJqxcs8AR925B2/oXP75YfZSqZE0VlsW+sxXpbKOGTsOmf9d/c344iQwU+11Ro9ehSrvlu5DgE+JIPQIBUOvwGBhqwDWEC4/gfWct6++43i6Z7RhAS8AwI8rtup76gf69xLkS9+ag4JWcSfY1lM52o82wb70=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736635538; c=relaxed/simple;
-	bh=RFvhU1jTbVFUjriXXRs5QL/sXrcDuw2SNqtDmIvBROg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=oKwwK1PJP61R7FZdYTQC46pt2D9lP5HuD/woYt06yURyJ36Jo6ZChhFG7mCgef9x9/rmXheAdvRvWJKIT5IRLSl/lZkRWP0V+m6vwzBgLoz1KysVCDN4NuX0aF0PZ6e3Qq3mgh67IYNnJsipEPArrtjoGXsFE7s9rBPg8jdJ5n4=
+	s=arc-20240116; t=1736636890; c=relaxed/simple;
+	bh=92EaKkeevPv19MH0eBUuD5KCmOqEQ8K6HwML4uHUX1M=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=DsoUfGIqHs1J3YWCr8/AVTVJGlnfb18NharXIMiaSwwdjUMipO0m5FCWonOtdktZZ4UM1X5ayeAgo/jdEE6vgQpVRu7yb99oHUny8jhk57qcsf9KgaTxMSEGRmGG7G3WbQ6K5dM3EyXM1Uu+Y42azxajHqlhfIJ+Clx02GVnu3U=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Date: Sat, 11 Jan 2025 23:45:30 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, linux@slavino.sk
-Subject: Re: [PATCH nft] parser_bison: simplify syntax to list all sets in
- table
-Message-ID: <Z4L0g6aZz9EzxTop@calendula>
-References: <20250111143757.65308-1-pablo@netfilter.org>
- <20250111162445.GC14912@breakpoint.cc>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de,
+	kadlec@netfilter.org
+Subject: [PATCH net-next 1/4] netfilter: nf_tables: remove the genmask parameter
+Date: Sun, 12 Jan 2025 00:07:57 +0100
+Message-Id: <20250111230800.67349-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20250111230800.67349-1-pablo@netfilter.org>
+References: <20250111230800.67349-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250111162445.GC14912@breakpoint.cc>
+Content-Transfer-Encoding: 8bit
 
-On Sat, Jan 11, 2025 at 05:24:45PM +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Revisit f99ccda252fa ("parser: allow listing sets in one table") to add
-> > an alias to list all sets in a given table, eg.
-> 
-> [..]
-> 
-> > diff --git a/src/parser_bison.y b/src/parser_bison.y
-> > index c8714812532d..ac8de398f8a7 100644
-> > --- a/src/parser_bison.y
-> > +++ b/src/parser_bison.y
-> > @@ -1590,8 +1590,13 @@ list_cmd		:	TABLE		table_spec
-> >  			{
-> >  				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_SETS, &$2, &@$, NULL);
-> >  			}
-> > +			|	SETS		table_spec
-> > +			{
-> > +				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_SETS, &$2, &@$, NULL);
-> > +			}
-> >  			|	SETS		TABLE	table_spec
-> >  			{
-> > +				/* alias of previous rule. */
-> >  				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_SETS, &$3, &@$, NULL);
-> >  			}
-> 
-> I have concerns wrt. to ever expanding list of aliases, it causes divergence as
-> to what is allowed:
-> 
-> <keyword>
-> <keyword> inet
-> <keyword> inet foo
-> <keyword> table inet foo
-> 
-> In some cases, all of these work  (4 being aliased to 3).
-> In others, e.g. "counters" or "quotas" "inet foo" won't work.
-> 
-> It would be good to at least be consistent.  What about this?
-> 
-> It would be good to compact it further, this is all because of
-> copypastry +slow divergence on later addendums to command subsets.
+From: tuqiang <tu.qiang35@zte.com.cn>
 
-Consolidating aliases is indeed better approach, please go ahead
-submit this patch.
+The genmask parameter is not used within the nf_tables_addchain function
+ body. It should be removed to simplify the function parameter list.
 
-Thanks.
+Signed-off-by: tuqiang <tu.qiang35@zte.com.cn>
+Signed-off-by: Jiang Kun <jiang.kun2@zte.com.cn>
+Reviewed-by: Simon Horman <horms@kernel.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 0b9f1e8dfe49..f7ca7165e66e 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2598,9 +2598,8 @@ int nft_chain_add(struct nft_table *table, struct nft_chain *chain)
+ 
+ static u64 chain_id;
+ 
+-static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+-			      u8 policy, u32 flags,
+-			      struct netlink_ext_ack *extack)
++static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 policy,
++			      u32 flags, struct netlink_ext_ack *extack)
+ {
+ 	const struct nlattr * const *nla = ctx->nla;
+ 	struct nft_table *table = ctx->table;
+@@ -3038,7 +3037,7 @@ static int nf_tables_newchain(struct sk_buff *skb, const struct nfnl_info *info,
+ 					  extack);
+ 	}
+ 
+-	return nf_tables_addchain(&ctx, family, genmask, policy, flags, extack);
++	return nf_tables_addchain(&ctx, family, policy, flags, extack);
+ }
+ 
+ static int nft_delchain_hook(struct nft_ctx *ctx,
+-- 
+2.30.2
+
