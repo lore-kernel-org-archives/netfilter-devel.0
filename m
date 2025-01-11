@@ -1,13 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id A71921B424D;
-	Sat, 11 Jan 2025 23:08:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 652FE1BBBD3;
+	Sat, 11 Jan 2025 23:08:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736636891; cv=none; b=eKGf3CnIlXdOuIqzzun2ECsc0t+1Y3jFZNgAckkaMLGwkJ4mV8c+6iJccOJieAu9z80m1mB2Zt4RkoGpVXmAdgu8AafUIx2d6rgVexuzJFhm4jHw6FJEABQFCbpZ7vOJ6k6V992O6AVjF0eB8gZ/z0Jd+PDi5fTJtq2RZby/WXY=
+	t=1736636891; cv=none; b=lnoJaO1afE1ljeyVRxa1/EkxJWtR0GczEOuhH2MZLobSR02FfvKepdlgxByO9QZZpTxBAIZn0vY8ZhGWtbQj/h28Uo+XWjoH4wPNjXtgU/xpnUGnDfs05m7t31BTQRO9uxIryyvoTJITFpZRzAtnxeboSr2tJxCoZgxNm/JjRJM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1736636891; c=relaxed/simple;
-	bh=T40lurc75oOC0lBeYBBQX0NTUgNENShgCJ4EYp+HLrc=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=TXuoSQ0K9NXEBSAy9TvkzZOU/uWbPz8mYYPSlAa1/m9I5X33jyTK8PwPIvHu1VcjwGzBhnXpA5nF2ZMKElB3H3PxCy23ulCbYTCq/ScF1aGT5BjIS8blvkUSxLoCUDy4FWkBEOnAUq/BCVm31Skwb977odKY5q+7HC6WZ/C8yTk=
+	bh=5BBujJnzs13bQBzd2BKpJQXOIZnHmbKqBsFueEYWZVk=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=RffjxKVlu/WQC/+xhUax9qz4QzpH2eqZ99fZMn2LxuuYObJ40v1nfx5hJkogPYOkBC8jjDrhH2Ms7Dui/vMwK0DT57ffYjLbCbH151M6SZLV+xQ+N8uReX2bx0XyhRa6onVA2eaJ1RQxu8o6Re554mp4aySdtCFtFWzGmmW4dWw=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,10 +21,12 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	kadlec@netfilter.org
-Subject: [PATCH net-next 0/4] Netfilter/IPVS updates for net-next
-Date: Sun, 12 Jan 2025 00:07:56 +0100
-Message-Id: <20250111230800.67349-1-pablo@netfilter.org>
+Subject: [PATCH net-next 2/4] ipvs: speed up reads from ip_vs_conn proc file
+Date: Sun, 12 Jan 2025 00:07:58 +0100
+Message-Id: <20250111230800.67349-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20250111230800.67349-1-pablo@netfilter.org>
+References: <20250111230800.67349-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -32,61 +35,143 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Florian Westphal <fw@strlen.de>
 
-The following patchset contains a small batch of Netfilter/IPVS updates
-for net-next:
+Reading is very slow because ->start() performs a linear re-scan of the
+entire hash table until it finds the successor to the last dumped
+element.  The current implementation uses 'pos' as the 'number of
+elements to skip, then does linear iteration until it has skipped
+'pos' entries.
 
-1) Remove unused genmask parameter in nf_tables_addchain()
+Store the last bucket and the number of elements to skip in that
+bucket instead, so we can resume from bucket b directly.
 
-2) Speed up reads from /proc/net/ip_vs_conn, from Florian Westphal.
+before this patch, its possible to read ~35k entries in one second, but
+each read() gets slower as the number of entries to skip grows:
 
-3) Skip empty buckets in hashlimit to avoid atomic operations that results
-   in false positive reports by syzbot with lockdep enabled, patch from
-   Eric Dumazet.
+time timeout 60 cat /proc/net/ip_vs_conn > /tmp/all; wc -l /tmp/all
+real    1m0.007s
+user    0m0.003s
+sys     0m59.956s
+140386 /tmp/all
 
-4) Add conntrack event timestamps available via ctnetlink,
-   from Florian Westphal.
+Only ~100k more got read in remaining the remaining 59s, and did not get
+nowhere near the 1m entries that are stored at the time.
 
-Please, pull these changes from:
+after this patch, dump completes very quickly:
+time cat /proc/net/ip_vs_conn > /tmp/all; wc -l /tmp/all
+real    0m2.286s
+user    0m0.004s
+sys     0m2.281s
+1000001 /tmp/all
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-25-01-11
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Acked-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/ipvs/ip_vs_conn.c | 50 ++++++++++++++++++---------------
+ 1 file changed, 28 insertions(+), 22 deletions(-)
 
-Thanks.
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index c0289f83f96d..20a1727e2457 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -1046,28 +1046,35 @@ ip_vs_conn_new(const struct ip_vs_conn_param *p, int dest_af,
+ #ifdef CONFIG_PROC_FS
+ struct ip_vs_iter_state {
+ 	struct seq_net_private	p;
+-	struct hlist_head	*l;
++	unsigned int		bucket;
++	unsigned int		skip_elems;
+ };
+ 
+-static void *ip_vs_conn_array(struct seq_file *seq, loff_t pos)
++static void *ip_vs_conn_array(struct ip_vs_iter_state *iter)
+ {
+ 	int idx;
+ 	struct ip_vs_conn *cp;
+-	struct ip_vs_iter_state *iter = seq->private;
+ 
+-	for (idx = 0; idx < ip_vs_conn_tab_size; idx++) {
++	for (idx = iter->bucket; idx < ip_vs_conn_tab_size; idx++) {
++		unsigned int skip = 0;
++
+ 		hlist_for_each_entry_rcu(cp, &ip_vs_conn_tab[idx], c_list) {
+ 			/* __ip_vs_conn_get() is not needed by
+ 			 * ip_vs_conn_seq_show and ip_vs_conn_sync_seq_show
+ 			 */
+-			if (pos-- == 0) {
+-				iter->l = &ip_vs_conn_tab[idx];
++			if (skip >= iter->skip_elems) {
++				iter->bucket = idx;
+ 				return cp;
+ 			}
++
++			++skip;
+ 		}
++
++		iter->skip_elems = 0;
+ 		cond_resched_rcu();
+ 	}
+ 
++	iter->bucket = idx;
+ 	return NULL;
+ }
+ 
+@@ -1076,9 +1083,14 @@ static void *ip_vs_conn_seq_start(struct seq_file *seq, loff_t *pos)
+ {
+ 	struct ip_vs_iter_state *iter = seq->private;
+ 
+-	iter->l = NULL;
+ 	rcu_read_lock();
+-	return *pos ? ip_vs_conn_array(seq, *pos - 1) :SEQ_START_TOKEN;
++	if (*pos == 0) {
++		iter->skip_elems = 0;
++		iter->bucket = 0;
++		return SEQ_START_TOKEN;
++	}
++
++	return ip_vs_conn_array(iter);
+ }
+ 
+ static void *ip_vs_conn_seq_next(struct seq_file *seq, void *v, loff_t *pos)
+@@ -1086,28 +1098,22 @@ static void *ip_vs_conn_seq_next(struct seq_file *seq, void *v, loff_t *pos)
+ 	struct ip_vs_conn *cp = v;
+ 	struct ip_vs_iter_state *iter = seq->private;
+ 	struct hlist_node *e;
+-	struct hlist_head *l = iter->l;
+-	int idx;
+ 
+ 	++*pos;
+ 	if (v == SEQ_START_TOKEN)
+-		return ip_vs_conn_array(seq, 0);
++		return ip_vs_conn_array(iter);
+ 
+ 	/* more on same hash chain? */
+ 	e = rcu_dereference(hlist_next_rcu(&cp->c_list));
+-	if (e)
++	if (e) {
++		iter->skip_elems++;
+ 		return hlist_entry(e, struct ip_vs_conn, c_list);
+-
+-	idx = l - ip_vs_conn_tab;
+-	while (++idx < ip_vs_conn_tab_size) {
+-		hlist_for_each_entry_rcu(cp, &ip_vs_conn_tab[idx], c_list) {
+-			iter->l = &ip_vs_conn_tab[idx];
+-			return cp;
+-		}
+-		cond_resched_rcu();
+ 	}
+-	iter->l = NULL;
+-	return NULL;
++
++	iter->skip_elems = 0;
++	iter->bucket++;
++
++	return ip_vs_conn_array(iter);
+ }
+ 
+ static void ip_vs_conn_seq_stop(struct seq_file *seq, void *v)
+-- 
+2.30.2
 
-----------------------------------------------------------------
-
-The following changes since commit 3e5908172c05ab1511f2a6719b806d6eda6e1715:
-
-  Merge tag 'ieee802154-for-net-next-2025-01-03' of git://git.kernel.org/pub/scm/linux/kernel/git/wpan/wpan-next (2025-01-04 17:02:55 -0800)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-25-01-11
-
-for you to fetch changes up to 601731fc7c6111bbca49ce3c9499c2e4d426079d:
-
-  netfilter: conntrack: add conntrack event timestamp (2025-01-09 14:42:16 +0100)
-
-----------------------------------------------------------------
-netfilter pull request 25-01-11
-
-----------------------------------------------------------------
-Eric Dumazet (1):
-      netfilter: xt_hashlimit: htable_selective_cleanup() optimization
-
-Florian Westphal (2):
-      ipvs: speed up reads from ip_vs_conn proc file
-      netfilter: conntrack: add conntrack event timestamp
-
-tuqiang (1):
-      netfilter: nf_tables: remove the genmask parameter
-
- include/net/netfilter/nf_conntrack_ecache.h        | 12 ++++++
- include/uapi/linux/netfilter/nfnetlink_conntrack.h |  1 +
- net/netfilter/ipvs/ip_vs_conn.c                    | 50 ++++++++++++----------
- net/netfilter/nf_conntrack_ecache.c                | 23 ++++++++++
- net/netfilter/nf_conntrack_netlink.c               | 25 +++++++++++
- net/netfilter/nf_tables_api.c                      |  7 ++-
- net/netfilter/xt_hashlimit.c                       |  6 ++-
- 7 files changed, 97 insertions(+), 27 deletions(-)
