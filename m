@@ -1,76 +1,64 @@
-Received: from mx.nixnet.email (mx.nixnet.email [5.161.67.119])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4826E1F94A
-	for <netfilter-devel@vger.kernel.org>; Mon, 13 Jan 2025 15:23:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=5.161.67.119
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 364E71D0E28
+	for <netfilter-devel@vger.kernel.org>; Mon, 13 Jan 2025 22:23:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736781803; cv=none; b=OnK2yG/TAc1QTXcVBu1TkFi0wlMPuhH1piu2sHywLcVBE+8mRRWyrbdbrqRnu2iw83B89ZIVGdYFnW0ovXAdS8xqubxFppMWTAglgOhW9IcP/MesBu/OJgZ7vT9Dhup0pq54vnZSZotH4wcAj0mOJnNiTMP7tFFX+dCqtqNCnuY=
+	t=1736806991; cv=none; b=uHheT4jNu/zcyqPlPT8YTxaf/AKGjRfieUT8WutEg6IiA6a/INpnw/K6Wt0xBX8tEZlHKf317H9QWF/GP+N72CGden+EOxaz2P8YyH8O0ovZ4jFizPGjhu6T4noLMnZLG/rAzrLDtb3ZPCok1z1DAOwceCQFF7RI8ANI0uor+uQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736781803; c=relaxed/simple;
-	bh=7kltqEQGrEM3aYCciSbMv5Kw0vMsT+euNjj2QwuTrks=;
-	h=Message-Id:To:From:Date:Subject; b=rLr5zdK46qd7SeDEPgfxDw0jMtFdL6SvF33gAOvAXyEEDspszKT6DiJwUA+gEYe/0u0jT5U04J5tL6X3YD8gpmVuQYVYhB9uHYzCWJfaVCT7VCwd65k/bUUIfZ29ifuRF0f3LhXI7x34QmN692T+/vtjQFvWe0+b1nmCO+EbhF8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=pwned.life; spf=pass smtp.mailfrom=pwned.life; dkim=pass (1024-bit key) header.d=pwned.life header.i=@pwned.life header.b=TB719rZA; arc=none smtp.client-ip=5.161.67.119
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=pwned.life
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=pwned.life
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=pwned.life header.i=@pwned.life header.b="TB719rZA"
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by mx.nixnet.email (Postfix) with ESMTPSA id A42227D32E
-	for <netfilter-devel@vger.kernel.org>; Mon, 13 Jan 2025 16:23:20 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=pwned.life; s=202002021149;
-	t=1736781800;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc; bh=zP0nAK2jw36oMStxxT5fm6iQyHCSltZw1YC3i5vUN/4=;
-	b=TB719rZAPjMrIUMbjhRrS38dDH9vVOZJJnRWL9+Nj7iDMgY6wUFa28rIx0EjEIo+gXAoKk
-	hXmEWChLB6Mt9TKmT5klikbGb9sc0wcifpLCnAGc1NhLKwnKIDT4ChoE+fpfVzevvVypd4
-	xy3AqgQW6RocNmEIS4oD8NTQBEdjAUU=
-Message-Id: <D711RJX8FZM8.1ZZRJ5PYBRMID@pwned.life>
-To: <netfilter-devel@vger.kernel.org>
-From: "fossdd" <fossdd@pwned.life>
-Date: Mon, 13 Jan 2025 16:08:34 +0100
-Subject: [PATCH] configure: Avoid addition assignment operators
+	s=arc-20240116; t=1736806991; c=relaxed/simple;
+	bh=QFYa/mP9URxgctiIE1WjTqnnjG/4Plfnxf8cUT/pe5c=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=DE9G8nB5M/m2hO/QVTcdorP5inb0dNK/rjkQoCTAFpaiVLW/6mIgU7sOMjfKY47HgUX1R7tPWvBAigg9tkOOMDVJUfBbRIeh4Sa+tP3L0nxbwj9jfDth3+24UtSz+PQvnMqD9lXl/7br6bq5txF5O1PLYigrOfJZx2/EnG2idKc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Date: Mon, 13 Jan 2025 23:23:01 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: =?utf-8?B?7KGw7ZmN7IudL+yxheyehOyXsOq1rOybkC9TVyBTZWN1cml0eeqwnOuwnA==?=
+	=?utf-8?B?7Iuk?= SW Security TP <hongsik.jo@lge.com>
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	=?utf-8?B?7IaQ7JiB7IStL+yxheyehOyXsOq1rOybkC9TVyBTZWN1cml0eeqwnOuwnA==?=
+	=?utf-8?B?7Iuk?= SW Security TP <loth.son@lge.com>,
+	=?utf-8?B?64Ko7KCV7KO8L+yxheyehOyXsOq1rOybkC9TVyBTZWN1cml0eeqwnOuwnA==?=
+	=?utf-8?B?7Iuk?= SW Security TP <jungjoo.nahm@lge.com>,
+	=?utf-8?B?7KCV7J6s7JykL1Rhc2sgTGVhZGVyL1NXIFBsYXRmb3JtKOyXsCnshKDtlolQ?=
+	=?utf-8?B?bGF0Zm9ybeqwnOuwnOyLpCDsi5zsiqTthZxTVw==?= Task <jaeyoon.jung@lge.com>
+Subject: Re: Symbol Collision between ulogd and jansson
+Message-ID: <Z4WSRVQPmmYfpqvV@calendula>
+References: <SE1P216MB155825DDA1CD5809E1569DDE8F1F2@SE1P216MB1558.KORP216.PROD.OUTLOOK.COM>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <SE1P216MB155825DDA1CD5809E1569DDE8F1F2@SE1P216MB1558.KORP216.PROD.OUTLOOK.COM>
 
-For compatability with other /bin/sh like busybox ash, since they don't
-support the addition assignment operators (+=) and otherwise fail with:
+Hi,
 
-	./configure: line 14174: regular_CFLAGS+= -D__UAPI_DEF_ETHHDR=0: not found
+On Mon, Jan 13, 2025 at 06:41:19AM +0000, 조홍식/책임연구원/SW Security개발실 SW Security TP wrote:
+> The issue I would like to bring to your attention is as follows: We
+> are using the JSON feature in the PACKAGECONFIG of ulogd, and we
+> have discovered that both ulogd and jansson have methods with the
+> same name, which can lead to a symbol reference error resulting in a
+> segmentation fault.  The method in question is hashtable_del().
+> Based on our backtrace analysis, it appears that when ulogd's
+> hashtable_del() is executed instead of jansson's hashtable_del(), it
+> leads to a segmentation fault (SEGV).
+> To avoid this symbol collision, I modified ulogd's hashtable_del()
+> to hashtable_delete(), and I have confirmed that this resolves the
+> issue.
 
-Signed-off-by: fossdd <fossdd@pwned.life>
----
- configure.ac | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+$ nm -D libjansson.so.4 | grep hashtable_del
+$
 
-diff --git a/configure.ac b/configure.ac
-index 2d38a4d4..0106b316 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -202,8 +202,8 @@ fi;
- pkgdatadir='${datadir}/xtables';
- 
- if test "x$enable_profiling" = "xyes"; then
--	regular_CFLAGS+=" -fprofile-arcs -ftest-coverage"
--	regular_LDFLAGS+=" -lgcov --coverage"
-+	regular_CFLAGS="$regular_CFLAGS -fprofile-arcs -ftest-coverage"
-+	regular_LDFLAGS="$regular_LDFLAGS -lgcov --coverage"
- fi
- 
- AC_MSG_CHECKING([whether the build is using musl-libc])
-@@ -222,7 +222,7 @@ AC_COMPILE_IFELSE(
- AC_MSG_RESULT([${enable_musl_build}])
- 
- if test "x$enable_musl_build" = "xyes"; then
--	regular_CFLAGS+=" -D__UAPI_DEF_ETHHDR=0"
-+	regular_CFLAGS="$regular_CFLAGS -D__UAPI_DEF_ETHHDR=0"
- fi
- 
- define([EXPAND_VARIABLE],
+Are you building a static binary? Otherwise, I don't see how the clash
+is going on.
 
-base-commit: b3f3e256c263b9a1db49732696aba0dde084ef5e
--- 
-2.48.0
+I am fine with this patch, would you submit it using git format-patch
+and including Signed-off-by:?
+
+Thanks.
