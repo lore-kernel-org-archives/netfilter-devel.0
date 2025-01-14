@@ -1,44 +1,56 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5466C1F8EF9
-	for <netfilter-devel@vger.kernel.org>; Mon, 13 Jan 2025 22:25:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A78920330
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jan 2025 00:30:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736807115; cv=none; b=CrMGXk40mJexmb5T7dTiZiOG4bxnYn9M91L7L5JytQq2BXdbONKs9iGDk4niU+WpFB8b4sFkZMFHZbwRXEgyze+M+ssfsJChBfIdLB0tVyHuzC0HAHqnnneVUhafzZR6KE7z1zPOIeYGbIS0WaUTCy6Lzk1N6+y+16lKshebCCE=
+	t=1736814608; cv=none; b=spVVAlP++7TzhUfSzEFM9IEGbkAVkt9sdG+M4wztDpO0L91u2OFci0Pc2gAfQESGZJuowhFqqezjj3mEefEyDinFm6vzBTSARCMPkD8jrlEKRpX0k4l+JKVBiRJjGcFf0xWcc6yAoYIlUmFzfMDwNK3W4FAgphMwr7WwqzzlyyU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736807115; c=relaxed/simple;
-	bh=9Ta1Hno1EkBbzNEklHoWBTjGgMtFs+ZuZz7dO+YFljs=;
+	s=arc-20240116; t=1736814608; c=relaxed/simple;
+	bh=hIeyY5zYHEYMvXrwI1lmr+yCc7xFI5/ELGHKeRNLBAQ=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ujrUqz4ensNAJpVzXQEQzVYuGd7xam0xTnBajuL6VzbE+sPEKsv8NPkFO2wp9mYDHDcg11lLQH/Ck1CXXQfxKfrPwLq/2mzGZb5OMWt7yTmFiCAXxduqe12IB3cY5DEXf4xyxPLmlv6yc9Jvt+T/Qv5sID0XypL7DcSk5kL5jP0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Date: Mon, 13 Jan 2025 23:25:10 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: fossdd <fossdd@pwned.life>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] configure: Avoid addition assignment operators
-Message-ID: <Z4WSxlAq0_Ja2o44@calendula>
-References: <D711RJX8FZM8.1ZZRJ5PYBRMID@pwned.life>
+	 Content-Type:Content-Disposition:In-Reply-To; b=QXayb+c1vvIBi4RCwF1xvxuU5NuCh9z4fr7vvRezMbOLpVpXNvcq1uPmC2WeWXkidU1V/B7nuaiUfX/gotXud8ay0gm/TMV4tt6+iK79jcJDZANPrwVssxSoS55sXGJuxZ/7lv/9p7DsVSK5u9XxavWt5d+4uS04v+kSy+/S+bA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1tXUob-00056M-G7; Tue, 14 Jan 2025 01:29:53 +0100
+Date: Tue, 14 Jan 2025 01:29:53 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: James Dingwall <james@dingwall.me.uk>, netfilter-devel@vger.kernel.org
+Subject: Re: bugzilla forbiden issue [was Re: ulogd: out of bounds array
+ access in ulogd_filter_HWHDR]
+Message-ID: <20250114002953.GA16179@breakpoint.cc>
+References: <Z4Tr5p19Uoc1UEcg@dingwall.me.uk>
+ <Z4WSe2kF_FGbOJp4@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <D711RJX8FZM8.1ZZRJ5PYBRMID@pwned.life>
+In-Reply-To: <Z4WSe2kF_FGbOJp4@calendula>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-On Mon, Jan 13, 2025 at 04:08:34PM +0100, fossdd wrote:
-> For compatability with other /bin/sh like busybox ash, since they don't
-> support the addition assignment operators (+=) and otherwise fail with:
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Mon, Jan 13, 2025 at 10:33:10AM +0000, James Dingwall wrote:
+> > Hi,
+> > 
+> > I've been given an account in the bugzilla but on submitting:
+> > 
+> > Forbidden
+> > 
+> > You don't have permission to access this resource.
 > 
-> 	./configure: line 14174: regular_CFLAGS+= -D__UAPI_DEF_ETHHDR=0: not found
-> 
-> Signed-off-by: fossdd <fossdd@pwned.life>
+> This is an issue on the server side, would you please provide some
+> information privately to debug it?
 
-This solution looks OK to address the musl issue that we have
-discussed.
+I can't log in either, just tried.
 
-Unfortunately, we don't take patches that abuse DCO via Signed-off-by:
-that looks clearly made up.
+Its enough to enter my username/password on
+https://bugzilla.netfilter.org/index.cgi?GoAheadAndLogIn=1
