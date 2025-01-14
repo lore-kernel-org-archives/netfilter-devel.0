@@ -1,61 +1,88 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2C2320F998
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jan 2025 13:32:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id C54C91C2DB2
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jan 2025 16:27:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736861533; cv=none; b=I04P/phON0xqogADfUDuLoracKBTS8RmxRE8Z4AEmLh2MR8Zg+UMLoAMRe3gk6tdY6PAHGpqxT/32rKVluTTwngjETBrrVkTUB6cG0XF3xwjc2hJwaKI0iL3OPS0qZ7dKJtbVQ7zTSNH0EuQBP+LCRUx5nXGK1Y2Zwh82DjInWE=
+	t=1736872037; cv=none; b=TKKb78ClgEbRAqX5E+FCYWzarlRKSM3pTrp7R5zl3kQuIdUFoztngODKbqr4+kqhj+hh5ggY8q6F1pNg1RhLWFL4OlbqHGTmJEjX3qd1h3wgNrG3eG7Bbn2ztWxrCGHV5cheTBIpeVoBDjj4MjcOXG08KevaBHD5zGZYNXhLTFc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736861533; c=relaxed/simple;
-	bh=59J08IGJ8iBHJvPxtrDEL4ZpX8FMPXzs+1qmCDFQ9gQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gSy7WWSTbRcGKUfrF1xz41Er6YgSzmGaQWrtnWJTmG2Z2c4GvpfaO7xc20bmaMGpCMslYydOM9zAIAmRlLM1F/tZzrJGLpCqDBGtO6bNzMzj+2aAU+zyM6OCH/KRifzg4FAI1t7s7AcS0I0j/MPwjKRlqvEp1rxxf9f12tEIRxQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1tXh1a-00021q-RE; Tue, 14 Jan 2025 14:32:06 +0100
-Date: Tue, 14 Jan 2025 14:32:06 +0100
-From: Florian Westphal <fw@strlen.de>
-To: =?utf-8?B?7KCV7J6s7JykL1Rhc2sgTGVhZGVyL1NXIFBsYXRmb3JtKOyXsCnshKDtlolQ?=
-	=?utf-8?B?bGF0Zm9ybeqwnOuwnOyLpCDsi5zsiqTthZxTVw==?= Task <jaeyoon.jung@lge.com>
-Cc: Florian Westphal <fw@strlen.de>,
-	=?utf-8?B?7KGw7ZmN7IudL+yxheyehOyXsOq1rOybkC9TVyBTZWN1cml0eeqwnOuwnA==?=
-	=?utf-8?B?7Iuk?= SW Security TP <hongsik.jo@lge.com>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	=?utf-8?B?7IaQ7JiB7IStL+yxheyehOyXsOq1rOybkC9TVyBTZWN1cml0eeqwnOuwnA==?=
-	=?utf-8?B?7Iuk?= SW Security TP <loth.son@lge.com>,
-	=?utf-8?B?64Ko7KCV7KO8L+yxheyehOyXsOq1rOybkC9TVyBTZWN1cml0eeqwnOuwnA==?=
-	=?utf-8?B?7Iuk?= SW Security TP <jungjoo.nahm@lge.com>
-Subject: Re: Symbol Collision between ulogd and jansson
-Message-ID: <20250114133206.GA5817@breakpoint.cc>
-References: <SE1P216MB155825DDA1CD5809E1569DDE8F1F2@SE1P216MB1558.KORP216.PROD.OUTLOOK.COM>
- <20250114104114.GA1924@breakpoint.cc>
- <PU4P216MB15179D0909B9BEB9770F24F09A182@PU4P216MB1517.KORP216.PROD.OUTLOOK.COM>
+	s=arc-20240116; t=1736872037; c=relaxed/simple;
+	bh=tincgim+KKFenhTz0bGQ05TkhtRGJzjf/Solym9XpCk=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=FartZg0qvdifveJJ0g/94GdqRP1xPwLstCWnA//21q+SF86MO/QHTJrbTVhGP5e43ylyiDLAZFtXHfLpoxg7Oigzg1iscA61lf7WlHbmy8++rn0ulGlrZWhloD3shmBnUKLCI/kBdTHWnWOEpiOh9RSLHjfnZhDdh9FIGeYJZ5c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de
+Subject: [PATCH nf-next,v2 2/6] netfilter: nft_flow_offload: update tcp state flags under lock
+Date: Tue, 14 Jan 2025 17:26:58 +0100
+Message-Id: <20250114162702.9128-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20250114162702.9128-1-pablo@netfilter.org>
+References: <20250114162702.9128-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <PU4P216MB15179D0909B9BEB9770F24F09A182@PU4P216MB1517.KORP216.PROD.OUTLOOK.COM>
-User-Agent: Mutt/1.10.1 (2018-07-13)
 
-정재윤/Task Leader/SW Platform(연)선행Platform개발실 시스템SW Task <jaeyoon.jung@lge.com> wrote:
-> Hi,
-> 
-> It's 2.14 being built with CMake.
-> It looks like '-export-symbols-regex' isn't set with CMake.
+From: Florian Westphal <fw@strlen.de>
 
-Can you file a report with jansson? Libraries should not pollute
-the namespace like this.  I can confirm that its fine with autotools
-but cmake generated .so has everyting exported :-(
+The conntrack entry is already public, there is a small chance that another
+CPU is handling a packet in reply direction and racing with the tcp state
+update.
 
-[ I also find it very questionable to have two build systems; it
-makes these bugs harder to find for everyone, but thats a
-different issue ].
+Move this under ct spinlock.
+
+This is done once, when ct is about to be offloaded, so this should
+not result in a noticeable performance hit.
+
+Fixes: 8437a6209f76 ("netfilter: nft_flow_offload: set liberal tracking mode for tcp")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: no changes
+
+ net/netfilter/nft_flow_offload.c | 16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
+
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index 3b474d235663..221d50223018 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -289,6 +289,15 @@ static bool nft_flow_offload_skip(struct sk_buff *skb, int family)
+ 	return false;
+ }
+ 
++static void flow_offload_ct_tcp(struct nf_conn *ct)
++{
++	/* conntrack will not see all packets, disable tcp window validation. */
++	spin_lock_bh(&ct->lock);
++	ct->proto.tcp.seen[0].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
++	ct->proto.tcp.seen[1].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
++	spin_unlock_bh(&ct->lock);
++}
++
+ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 				  struct nft_regs *regs,
+ 				  const struct nft_pktinfo *pkt)
+@@ -356,11 +365,8 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 		goto err_flow_alloc;
+ 
+ 	flow_offload_route_init(flow, &route);
+-
+-	if (tcph) {
+-		ct->proto.tcp.seen[0].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
+-		ct->proto.tcp.seen[1].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
+-	}
++	if (tcph)
++		flow_offload_ct_tcp(ct);
+ 
+ 	__set_bit(NF_FLOW_HW_BIDIRECTIONAL, &flow->flags);
+ 	ret = flow_offload_add(flowtable, flow);
+-- 
+2.30.2
+
