@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (unknown [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 6076B2343BC;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4BD4422D4F7;
 	Thu, 16 Jan 2025 17:19:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737047971; cv=none; b=kvyP6kxxckB5mTsEuNWNS6THm1o2ktOXTBilMXrTC+bcuTenBqDV1Qv0qTBOwyKjjOrTY4qnGmxGLTh5WnPPvIUjJNfjuciK+DJSdotqiNtF9aZ93OYEE5BntN5zogh3eqrqgKkGYGlA1aihyCoBh11S3FAJzwgkaFm75+/BSKQ=
+	t=1737047971; cv=none; b=mTj9zq4kOFeOTNtTulWHMlGbhWydUzXLR+8CscoN1fnxyMwLYhb6CPIDPb84vkBvWyj/bBJKoMKNEZC5faQKgxdgD0czhAc+SLKikSgF8wgbhW0fzxPYxokzFnygcyk8rz4Fmth9x7Fs9h7V+iLr2LKZQgrT3vIs/MNr9zIOiWM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1737047971; c=relaxed/simple;
-	bh=bf4U92hBPyNGdkOqWr/Gm0rDjv1jB2B0iEc2B3V9aSI=;
+	bh=gNmgvJICOtLINI4dsmfOEC95rc76jXxRBTt+IehiqPc=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=cwmgoG+Kpa8ce5+flNnkBJonXUmUD6V1bo/18RVtHEBgGZF7zHx0OeAGDclSt9UqvpD9X5rPNYU6Jmr0XqZ6T9ukE0sai/Xyf/d6NyeJiTj72N96Efgmvn0BJHB3ZJogJAH9O+wjZWeYGsAAzT6/Eon7YzV5z/QciVilkjXMgU8=
+	 MIME-Version; b=pyRizDGf6GEuyOrMezeD1gWZYzncLg4IBiIKHIHkuMCNsiQ0kT6Y3MzSf01p8Euu6i5q27x2ee6e2RIfvUqBkGix2jXyUgBOLjAiprWhw1VRFxtjldglgjFRJI4+k5CnW+CozDQ7oBIuPjfL+Rn7VSuFzsEQrKWNwoFncLrorBU=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net-next 09/14] netfilter: nft_flow_offload: clear tcp MAXACK flag before moving to slowpath
-Date: Thu, 16 Jan 2025 18:18:57 +0100
-Message-Id: <20250116171902.1783620-10-pablo@netfilter.org>
+Subject: [PATCH net-next 10/14] netfilter: nft_flow_offload: update tcp state flags under lock
+Date: Thu, 16 Jan 2025 18:18:58 +0100
+Message-Id: <20250116171902.1783620-11-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250116171902.1783620-1-pablo@netfilter.org>
 References: <20250116171902.1783620-1-pablo@netfilter.org>
@@ -36,56 +36,56 @@ Content-Transfer-Encoding: 8bit
 
 From: Florian Westphal <fw@strlen.de>
 
-This state reset is racy, no locks are held here.
+The conntrack entry is already public, there is a small chance that another
+CPU is handling a packet in reply direction and racing with the tcp state
+update.
 
-Since commit
-8437a6209f76 ("netfilter: nft_flow_offload: set liberal tracking mode for tcp"),
-the window checks are disabled for normal data packets, but MAXACK flag
-is checked when validating TCP resets.
+Move this under ct spinlock.
 
-Clear the flag so tcp reset validation checks are ignored.
+This is done once, when ct is about to be offloaded, so this should
+not result in a noticeable performance hit.
 
+Fixes: 8437a6209f76 ("netfilter: nft_flow_offload: set liberal tracking mode for tcp")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_core.c | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ net/netfilter/nft_flow_offload.c | 16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index df72b0376970..bdde469bbbd1 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -161,10 +161,20 @@ void flow_offload_route_init(struct flow_offload *flow,
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index 3b474d235663..221d50223018 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -289,6 +289,15 @@ static bool nft_flow_offload_skip(struct sk_buff *skb, int family)
+ 	return false;
  }
- EXPORT_SYMBOL_GPL(flow_offload_route_init);
  
--static void flow_offload_fixup_tcp(struct ip_ct_tcp *tcp)
-+static void flow_offload_fixup_tcp(struct nf_conn *ct)
- {
-+	struct ip_ct_tcp *tcp = &ct->proto.tcp;
-+
++static void flow_offload_ct_tcp(struct nf_conn *ct)
++{
++	/* conntrack will not see all packets, disable tcp window validation. */
 +	spin_lock_bh(&ct->lock);
-+	/* Conntrack state is outdated due to offload bypass.
-+	 * Clear IP_CT_TCP_FLAG_MAXACK_SET, otherwise conntracks
-+	 * TCP reset validation will fail.
-+	 */
- 	tcp->seen[0].td_maxwin = 0;
-+	tcp->seen[0].flags &= ~IP_CT_TCP_FLAG_MAXACK_SET;
- 	tcp->seen[1].td_maxwin = 0;
-+	tcp->seen[1].flags &= ~IP_CT_TCP_FLAG_MAXACK_SET;
++	ct->proto.tcp.seen[0].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
++	ct->proto.tcp.seen[1].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
 +	spin_unlock_bh(&ct->lock);
- }
++}
++
+ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 				  struct nft_regs *regs,
+ 				  const struct nft_pktinfo *pkt)
+@@ -356,11 +365,8 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 		goto err_flow_alloc;
  
- static void flow_offload_fixup_ct(struct nf_conn *ct)
-@@ -176,7 +186,7 @@ static void flow_offload_fixup_ct(struct nf_conn *ct)
- 	if (l4num == IPPROTO_TCP) {
- 		struct nf_tcp_net *tn = nf_tcp_pernet(net);
+ 	flow_offload_route_init(flow, &route);
+-
+-	if (tcph) {
+-		ct->proto.tcp.seen[0].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
+-		ct->proto.tcp.seen[1].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
+-	}
++	if (tcph)
++		flow_offload_ct_tcp(ct);
  
--		flow_offload_fixup_tcp(&ct->proto.tcp);
-+		flow_offload_fixup_tcp(ct);
- 
- 		timeout = tn->timeouts[ct->proto.tcp.state];
- 		timeout -= tn->offload_timeout;
+ 	__set_bit(NF_FLOW_HW_BIDIRECTIONAL, &flow->flags);
+ 	ret = flow_offload_add(flowtable, flow);
 -- 
 2.30.2
 
