@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (unknown [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4BD4422D4F7;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 608B9234CE4;
 	Thu, 16 Jan 2025 17:19:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737047971; cv=none; b=mTj9zq4kOFeOTNtTulWHMlGbhWydUzXLR+8CscoN1fnxyMwLYhb6CPIDPb84vkBvWyj/bBJKoMKNEZC5faQKgxdgD0czhAc+SLKikSgF8wgbhW0fzxPYxokzFnygcyk8rz4Fmth9x7Fs9h7V+iLr2LKZQgrT3vIs/MNr9zIOiWM=
+	t=1737047971; cv=none; b=mGkGp3PP/MLRgmDM936KmwDBzF6o3mNQg8tKhoU3ZjfodJF6lPven168yxiImh8TP64Dgbeo+xwwt/UT11xnFezK+ecEjrevx0cKxXxc971B6FVyb+pNuKycAIxLc7wvn6ci6tVwvCFWHu/b2kJvFHG5XPdct/qD2Aw/8IsxT10=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1737047971; c=relaxed/simple;
-	bh=gNmgvJICOtLINI4dsmfOEC95rc76jXxRBTt+IehiqPc=;
+	bh=6/7yjt2BepUE4q73oLbuslXB3cVo7z5uZYuf6bXngTI=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=pyRizDGf6GEuyOrMezeD1gWZYzncLg4IBiIKHIHkuMCNsiQ0kT6Y3MzSf01p8Euu6i5q27x2ee6e2RIfvUqBkGix2jXyUgBOLjAiprWhw1VRFxtjldglgjFRJI4+k5CnW+CozDQ7oBIuPjfL+Rn7VSuFzsEQrKWNwoFncLrorBU=
+	 MIME-Version; b=P20jKA3ocz7x8DFRdoeJEeQlGz6lbMqKUzJyQ7qJs8WfarkdmPgn6Ch6rq811jUeCvqlORMspoJUo/5BdCwJKkVODZHKol1W9OFyqf8OC9g20m/KeG2ZAHCADSklg3Zv6i18m9otjF8ayFEub7lyQ8mijw3yzZe6lqzmZQYq6UE=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net-next 10/14] netfilter: nft_flow_offload: update tcp state flags under lock
-Date: Thu, 16 Jan 2025 18:18:58 +0100
-Message-Id: <20250116171902.1783620-11-pablo@netfilter.org>
+Subject: [PATCH net-next 07/14] netfilter: nf_tables: Tolerate chains with no remaining hooks
+Date: Thu, 16 Jan 2025 18:18:55 +0100
+Message-Id: <20250116171902.1783620-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250116171902.1783620-1-pablo@netfilter.org>
 References: <20250116171902.1783620-1-pablo@netfilter.org>
@@ -34,58 +34,137 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+From: Phil Sutter <phil@nwl.cc>
 
-The conntrack entry is already public, there is a small chance that another
-CPU is handling a packet in reply direction and racing with the tcp state
-update.
+Do not drop a netdev-family chain if the last interface it is registered
+for vanishes. Users dumping and storing the ruleset upon shutdown to
+restore it upon next boot may otherwise lose the chain and all contained
+rules. They will still lose the list of devices, a later patch will fix
+that. For now, this aligns the event handler's behaviour with that for
+flowtables.
+The controversal situation at netns exit should be no problem here:
+event handler will unregister the hooks, core nftables cleanup code will
+drop the chain itself.
 
-Move this under ct spinlock.
-
-This is done once, when ct is about to be offloaded, so this should
-not result in a noticeable performance hit.
-
-Fixes: 8437a6209f76 ("netfilter: nft_flow_offload: set liberal tracking mode for tcp")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_flow_offload.c | 16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ include/net/netfilter/nf_tables.h |  2 --
+ net/netfilter/nf_tables_api.c     | 41 -------------------------------
+ net/netfilter/nft_chain_filter.c  | 29 ++++++----------------
+ 3 files changed, 7 insertions(+), 65 deletions(-)
 
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index 3b474d235663..221d50223018 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -289,6 +289,15 @@ static bool nft_flow_offload_skip(struct sk_buff *skb, int family)
- 	return false;
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index d1f274af5b70..26a65d5a3123 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1235,8 +1235,6 @@ static inline bool nft_is_base_chain(const struct nft_chain *chain)
+ 	return chain->flags & NFT_CHAIN_BASE;
  }
  
-+static void flow_offload_ct_tcp(struct nf_conn *ct)
-+{
-+	/* conntrack will not see all packets, disable tcp window validation. */
-+	spin_lock_bh(&ct->lock);
-+	ct->proto.tcp.seen[0].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
-+	ct->proto.tcp.seen[1].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
-+	spin_unlock_bh(&ct->lock);
-+}
-+
- static void nft_flow_offload_eval(const struct nft_expr *expr,
- 				  struct nft_regs *regs,
- 				  const struct nft_pktinfo *pkt)
-@@ -356,11 +365,8 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
- 		goto err_flow_alloc;
- 
- 	flow_offload_route_init(flow, &route);
+-int __nft_release_basechain(struct nft_ctx *ctx);
 -
--	if (tcph) {
--		ct->proto.tcp.seen[0].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
--		ct->proto.tcp.seen[1].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
--	}
-+	if (tcph)
-+		flow_offload_ct_tcp(ct);
+ unsigned int nft_do_chain(struct nft_pktinfo *pkt, void *priv);
  
- 	__set_bit(NF_FLOW_HW_BIDIRECTIONAL, &flow->flags);
- 	ret = flow_offload_add(flowtable, flow);
+ static inline bool nft_use_inc(u32 *use)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index ed15c52e3c65..667459256e4c 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -11741,47 +11741,6 @@ int nft_data_dump(struct sk_buff *skb, int attr, const struct nft_data *data,
+ }
+ EXPORT_SYMBOL_GPL(nft_data_dump);
+ 
+-static void __nft_release_basechain_now(struct nft_ctx *ctx)
+-{
+-	struct nft_rule *rule, *nr;
+-
+-	list_for_each_entry_safe(rule, nr, &ctx->chain->rules, list) {
+-		list_del(&rule->list);
+-		nf_tables_rule_release(ctx, rule);
+-	}
+-	nf_tables_chain_destroy(ctx->chain);
+-}
+-
+-int __nft_release_basechain(struct nft_ctx *ctx)
+-{
+-	struct nft_rule *rule;
+-
+-	if (WARN_ON_ONCE(!nft_is_base_chain(ctx->chain)))
+-		return 0;
+-
+-	nf_tables_unregister_hook(ctx->net, ctx->chain->table, ctx->chain);
+-	list_for_each_entry(rule, &ctx->chain->rules, list)
+-		nft_use_dec(&ctx->chain->use);
+-
+-	nft_chain_del(ctx->chain);
+-	nft_use_dec(&ctx->table->use);
+-
+-	if (!maybe_get_net(ctx->net)) {
+-		__nft_release_basechain_now(ctx);
+-		return 0;
+-	}
+-
+-	/* wait for ruleset dumps to complete.  Owning chain is no longer in
+-	 * lists, so new dumps can't find any of these rules anymore.
+-	 */
+-	synchronize_rcu();
+-
+-	__nft_release_basechain_now(ctx);
+-	put_net(ctx->net);
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(__nft_release_basechain);
+-
+ static void __nft_release_hook(struct net *net, struct nft_table *table)
+ {
+ 	struct nft_flowtable *flowtable;
+diff --git a/net/netfilter/nft_chain_filter.c b/net/netfilter/nft_chain_filter.c
+index 7010541fcca6..543f258b7c6b 100644
+--- a/net/netfilter/nft_chain_filter.c
++++ b/net/netfilter/nft_chain_filter.c
+@@ -322,34 +322,19 @@ static void nft_netdev_event(unsigned long event, struct net_device *dev,
+ 			     struct nft_ctx *ctx)
+ {
+ 	struct nft_base_chain *basechain = nft_base_chain(ctx->chain);
+-	struct nft_hook *hook, *found = NULL;
+-	int n = 0;
++	struct nft_hook *hook;
+ 
+ 	list_for_each_entry(hook, &basechain->hook_list, list) {
+-		if (hook->ops.dev == dev)
+-			found = hook;
+-
+-		n++;
+-	}
+-	if (!found)
+-		return;
++		if (hook->ops.dev != dev)
++			continue;
+ 
+-	if (n > 1) {
+ 		if (!(ctx->chain->table->flags & NFT_TABLE_F_DORMANT))
+-			nf_unregister_net_hook(ctx->net, &found->ops);
++			nf_unregister_net_hook(ctx->net, &hook->ops);
+ 
+-		list_del_rcu(&found->list);
+-		kfree_rcu(found, rcu);
+-		return;
++		list_del_rcu(&hook->list);
++		kfree_rcu(hook, rcu);
++		break;
+ 	}
+-
+-	/* UNREGISTER events are also happening on netns exit.
+-	 *
+-	 * Although nf_tables core releases all tables/chains, only this event
+-	 * handler provides guarantee that hook->ops.dev is still accessible,
+-	 * so we cannot skip exiting net namespaces.
+-	 */
+-	__nft_release_basechain(ctx);
+ }
+ 
+ static int nf_tables_netdev_event(struct notifier_block *this,
 -- 
 2.30.2
 
