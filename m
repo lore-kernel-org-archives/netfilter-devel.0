@@ -1,61 +1,108 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A74F2BA27;
-	Sun, 19 Jan 2025 01:05:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9B6CB4502A;
+	Sun, 19 Jan 2025 17:21:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737248759; cv=none; b=sls33rjZUYT6CDG1/U2YANl8tBWu4nGSfEBQb6f+Tbra6+15FG47Qkgd3Zx7Ytrhog8BJHWWhqCAfEm8VAMGAbtQnABpE8e6u2rvHKQ2hQRW+ZL/cPnOYF0EWyCLi7YhlkRP0Y+vrFAZlFpKRlTp6Kp9sczNbbxaa+XN68vdsyw=
+	t=1737307266; cv=none; b=SnO5e4HslrPMMBRzBb1shvvYJEn9GmhHPtivxlrg9l53rYms4KFbFC/5OoZybbi/C00VccWWyoUWzfjDSWqw8BMyXwnfn8yszgZvONE7zV8QHXMixc1oAOOTP/kCqMJ6vWAaTULXl84q+pGDgxkCSiQ5gw/OosNkR5jP/Meg7Z0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737248759; c=relaxed/simple;
-	bh=vRRlsD9TmN8rxirfApX/K5soEYyvXnGxyUL7tGwgxco=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=e0+1q/W/Zz6DIhFPCgjFW1wW4ds2rKJpvZo+8JnWZC4t5p1OP/ijfTi7XteieeMKMWRhhtgFR1IQCr34759NtAYO7v6hmT0vY9J8TBj5juVMi9qufmzg1X/ett59ma6XyyPRsdxZFOqFgJYzOLGzRcqGhIC3rSWDhwtUv4ckedY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LUTEudmE; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LUTEudmE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C28F9C4CED1;
-	Sun, 19 Jan 2025 01:05:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1737248759;
-	bh=vRRlsD9TmN8rxirfApX/K5soEYyvXnGxyUL7tGwgxco=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=LUTEudmE+1J9Lg1N3qLdK+f4Sf/zdixF9Uc6ZrdJ0QXj9aq+LOEFtRztBfgfCyg43
-	 lrx/21Bz/0WPeDuLa2GRuqSdoLADtuRKvh5Fkp2WuPHdsoPTMAZ28DSQxdIzYBTcpS
-	 ZFvr+3Ol/bKRR60kbub4QwZacIlTUv95hb9L0HHLzn/bU4im+7Ik2+vB0drWK+kB1o
-	 Mo65eGUUmgBBK5OWfTBumtBmBY0wURvLMovFE+wbZ+HE0qaDrTxnXNfhIM9OZGUZYx
-	 cMUjQ1MPEK/H3Hf71/ingiMGConP3xgFXhSZBDMn2JjZaPM98BIpNxWNE8fik4boJJ
-	 hJOWLOvPBcopw==
-Date: Sat, 18 Jan 2025 17:05:57 -0800
-From: Jakub Kicinski <kuba@kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com,
- fw@strlen.de
-Subject: Re: [PATCH net-next 12/14] netfilter: conntrack: rework offload
- nf_conn timeout extension logic
-Message-ID: <20250118170557.69238151@kernel.org>
-In-Reply-To: <20250116171902.1783620-13-pablo@netfilter.org>
-References: <20250116171902.1783620-1-pablo@netfilter.org>
-	<20250116171902.1783620-13-pablo@netfilter.org>
+	s=arc-20240116; t=1737307266; c=relaxed/simple;
+	bh=x457vClxdXwyX0BUMXFilhpbcmdZI8gmCMn1+4QaMCM=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=htgy/h9kp8wU7IM7n9OUov3g4TlQEl8q4cJEGS4yEdpOCja0tNoloXswM+2S1kEfGvLF/NV5hJPoWseWTROPSBlWPu/WciPAW/7tuPKSAYZbPcECjL5h80ohkktgfps/Ma7Pv15ijJmI8317SO8JbnuGow9k0pHdZVFreB45Zes=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de
+Subject: [PATCH net-next 02/14] netfilter: br_netfilter: remove unused conditional and dead code
+Date: Sun, 19 Jan 2025 18:20:39 +0100
+Message-Id: <20250119172051.8261-3-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20250119172051.8261-1-pablo@netfilter.org>
+References: <20250119172051.8261-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On Thu, 16 Jan 2025 18:19:00 +0100 Pablo Neira Ayuso wrote:
-> +/**
-> + * nf_flow_table_tcp_timeout() - new timeout of offloaded tcp entry
-> + * @ct:		Flowtable offloaded tcp ct
-> + *
-> + * Return number of seconds when ct entry should expire.
-> + */
-> +static u32 nf_flow_table_tcp_timeout(const struct nf_conn *ct)
+From: Antoine Tenart <atenart@kernel.org>
 
-FWIW kernel-doc -Wall wants a : after the word Return:
+The SKB_DROP_REASON_IP_INADDRERRORS drop reason is never returned from
+any function, as such it cannot be returned from the ip_route_input call
+tree. The 'reason != SKB_DROP_REASON_IP_INADDRERRORS' conditional is
+thus always true.
 
-net/netfilter/nf_flow_table_core.c:435: warning: No description found for return value of 'nf_flow_table_tcp_timeout'
+Looking back at history, commit 50038bf38e65 ("net: ip: make
+ip_route_input() return drop reasons") changed the ip_route_input
+returned value check in br_nf_pre_routing_finish from -EHOSTUNREACH to
+SKB_DROP_REASON_IP_INADDRERRORS. It turns out -EHOSTUNREACH could not be
+returned either from the ip_route_input call tree and this since commit
+251da4130115 ("ipv4: Cache ip_error() routes even when not
+forwarding.").
+
+Not a fix as this won't change the behavior. While at it use
+kfree_skb_reason.
+
+Signed-off-by: Antoine Tenart <atenart@kernel.org>
+Reviewed-by: Simon Horman <horms@kernel.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/bridge/br_netfilter_hooks.c | 30 +-----------------------------
+ 1 file changed, 1 insertion(+), 29 deletions(-)
+
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index 451e45b9a6a5..94cbe967d1c1 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -393,38 +393,10 @@ static int br_nf_pre_routing_finish(struct net *net, struct sock *sk, struct sk_
+ 		reason = ip_route_input(skb, iph->daddr, iph->saddr,
+ 					ip4h_dscp(iph), dev);
+ 		if (reason) {
+-			struct in_device *in_dev = __in_dev_get_rcu(dev);
+-
+-			/* If err equals -EHOSTUNREACH the error is due to a
+-			 * martian destination or due to the fact that
+-			 * forwarding is disabled. For most martian packets,
+-			 * ip_route_output_key() will fail. It won't fail for 2 types of
+-			 * martian destinations: loopback destinations and destination
+-			 * 0.0.0.0. In both cases the packet will be dropped because the
+-			 * destination is the loopback device and not the bridge. */
+-			if (reason != SKB_DROP_REASON_IP_INADDRERRORS || !in_dev ||
+-			    IN_DEV_FORWARD(in_dev))
+-				goto free_skb;
+-
+-			rt = ip_route_output(net, iph->daddr, 0,
+-					     ip4h_dscp(iph), 0,
+-					     RT_SCOPE_UNIVERSE);
+-			if (!IS_ERR(rt)) {
+-				/* - Bridged-and-DNAT'ed traffic doesn't
+-				 *   require ip_forwarding. */
+-				if (rt->dst.dev == dev) {
+-					skb_dst_drop(skb);
+-					skb_dst_set(skb, &rt->dst);
+-					goto bridged_dnat;
+-				}
+-				ip_rt_put(rt);
+-			}
+-free_skb:
+-			kfree_skb(skb);
++			kfree_skb_reason(skb, reason);
+ 			return 0;
+ 		} else {
+ 			if (skb_dst(skb)->dev == dev) {
+-bridged_dnat:
+ 				skb->dev = br_indev;
+ 				nf_bridge_update_protocol(skb);
+ 				nf_bridge_push_encap_header(skb);
+-- 
+2.30.2
+
