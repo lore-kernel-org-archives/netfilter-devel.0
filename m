@@ -1,83 +1,54 @@
-Received: from mail.netfilter.org (unknown [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D58AE1F7577;
-	Fri, 17 Jan 2025 11:13:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2E6163CB;
+	Sun, 19 Jan 2025 00:58:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737112388; cv=none; b=KX7GyF51JSO22NhgVUhtBkSg+8eVbPzyg/CPKSfDZ60u6F34dcYM1V8dXaLj8R3rTiapzsXrUAFam8vKss94XJs/9jUt2OjaYmTK7L44FUxWwcyQmiPNwAEvXXV7a2Gi2onP1SsYqwL4wkz11FzsK60ZgG7fXt74sMSSQy57lw4=
+	t=1737248322; cv=none; b=N5v2dEAb/1bYISfw/jwsGnCCrnL6B2kFZltClMdvE0r48O+MJr7WgDGAq+PMmeWAXk3c7VDdpFTU+d20R+zOyDKa580UGV6FBMKkLPoa7nPL3aGEOmdpwS7kH0d1w7j+ABl/w0U+vHWWiFnTuQuNg2RNdwHSUU+ES4OnNjnhfmc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737112388; c=relaxed/simple;
-	bh=XUX+55rtMQoeYlACZI4MM+XpjNlzl2KjWCDqK2xitTo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=P6DlWYdhAMTwPksi9R3itA/B8lDhEVooPblxWECqbcR4BVMQu3q7xV583r+qDVZXpw46ZaxZdKUpn4Z1yWKktt3pdsWfKr7ZJx2GpYLFZbSl8/Ys418LustUXlyi66AvXKXvhrbH412uinh7/37Zeby7lmerVWdThXatJsreVus=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Date: Fri, 17 Jan 2025 12:12:49 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Simon Horman <horms@kernel.org>
+	s=arc-20240116; t=1737248322; c=relaxed/simple;
+	bh=6p2f7n+MTTUwMkcl17RaSp0LJV7WINDRBrzrdT+L+eM=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=X3v/EzZiCdoc29qJZkx7qj8CGbVKCv4PhNWi0ujxgmGNf5qVA480T7CQI0GlI4SBHOmaejmfAQ0+WCxod4lSEB3qrVMECjRAljm2Tnbt3S04TYDb626C4B10DV0Gn95Q/ewrtG8gS/x4gqaLirmo3qIH2eQQWDwcVhqm58LXtwk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=H8Zf+BgV; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="H8Zf+BgV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A9E2C4CED1;
+	Sun, 19 Jan 2025 00:58:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1737248321;
+	bh=6p2f7n+MTTUwMkcl17RaSp0LJV7WINDRBrzrdT+L+eM=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=H8Zf+BgVz4ctqiQ3kuoJx0SlLKbTT/JK31YoV4X6lgFJFEtG0mLJmoW8WF3oPJpyk
+	 p7zH2CfwJgYQgSHfH6fVWFGVORWyRdbKYzodkFnx+3xKANx+BfWErBPO5qgFTxLFTP
+	 1+b5vNBa3aIhmg4qF373OfNTa4ly6AsGUqCylWnP7kKvy+nBJ/1Qrvf+qNS+Dp/ubU
+	 S1lfbGVFetrW6s9D9nKOCwjv79INWBYEHecIWut2+0Tyob/CaqEA2c4NKBkVIOvxkl
+	 0jWr5EumHdkmomygD/kJSSdeCOFNQHcRFGNSuxXwBW3E58x/XEWbFzRfZL9VSawE5A
+	 Tiz/iBD9fMl2Q==
+Date: Sat, 18 Jan 2025 16:58:40 -0800
+From: Jakub Kicinski <kuba@kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-	edumazet@google.com, fw@strlen.de
-Subject: Re: [PATCH net-next 01/14] netfilter: nf_tables: fix set size with
- rbtree backend
-Message-ID: <Z4o6-xme3AbmzrYW@calendula>
+ netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com,
+ fw@strlen.de
+Subject: Re: [PATCH net-next 02/14] netfilter: br_netfilter: remove unused
+ conditional and dead code
+Message-ID: <20250118165840.7a4fb1d0@kernel.org>
+In-Reply-To: <20250116171902.1783620-3-pablo@netfilter.org>
 References: <20250116171902.1783620-1-pablo@netfilter.org>
- <20250116171902.1783620-2-pablo@netfilter.org>
- <20250117104957.GK6206@kernel.org>
+	<20250116171902.1783620-3-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250117104957.GK6206@kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Hi Simon,
+On Thu, 16 Jan 2025 18:18:50 +0100 Pablo Neira Ayuso wrote:
+> Subject: [PATCH net-next 02/14] netfilter: br_netfilter: remove unused conditional and dead code
 
-On Fri, Jan 17, 2025 at 10:49:57AM +0000, Simon Horman wrote:
-> On Thu, Jan 16, 2025 at 06:18:49PM +0100, Pablo Neira Ayuso wrote:
-> > The existing rbtree implementation uses singleton elements to represent
-> > ranges, however, userspace provides a set size according to the number
-> > of ranges in the set.
-> > 
-> > Adjust provided userspace set size to the number of singleton elements
-> > in the kernel by multiplying the range by two.
-> > 
-> > Check if the no-match all-zero element is already in the set, in such
-> > case release one slot in the set size.
-> > 
-> > Fixes: 0ed6389c483d ("netfilter: nf_tables: rename set implementations")
-> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > ---
-> >  include/net/netfilter/nf_tables.h |  3 ++
-> >  net/netfilter/nf_tables_api.c     | 49 +++++++++++++++++++++++++++++--
-> >  net/netfilter/nft_set_rbtree.c    | 43 +++++++++++++++++++++++++++
-> >  3 files changed, 93 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-> > index 0027beca5cd5..7dcea247f853 100644
-> > --- a/include/net/netfilter/nf_tables.h
-> > +++ b/include/net/netfilter/nf_tables.h
-> > @@ -495,6 +495,9 @@ struct nft_set_ops {
-> >  					       const struct nft_set *set,
-> >  					       const struct nft_set_elem *elem,
-> >  					       unsigned int flags);
-> > +	u32				(*ksize)(u32 size);
-> > +	u32				(*usize)(u32 size);
-> > +	u32				(*adjust_maxsize)(const struct nft_set *set);
-> >  	void				(*commit)(struct nft_set *set);
-> >  	void				(*abort)(const struct nft_set *set);
-> >  	u64				(*privsize)(const struct nlattr * const nla[],
-> 
-> Hi Pablo,
-> 
-> As a follow-up could these new fields be added to
-> the Kernel doc for nft_set_ops?
-
-Sure, I can do that.
-
-I can also send a v2 for this pull request if more comments accumulate.
-
-Thanks.
+This one is missing Pablo's SoB. Maybe you could respin with this and
+the kdoc fixed?
