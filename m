@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4BA4A1DF968;
-	Sun, 19 Jan 2025 17:21:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1BE3A1DFD96;
+	Sun, 19 Jan 2025 17:21:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737307268; cv=none; b=Lj13UYKnFw975aKt84NbZLwDtrj2XQXtnGG2xBhL8VAwa9r4Ti8h3vQoGZ2sFHW1o8zf+PvaKxUK6HdGChmp7qHsb5tMjvdTukU8GF6LzR8WJBDlMKJFt9H339ALWyRfOWTyvEqBxboOSkfT5lxixp2oB+U1ujWz8/6DwEHotfc=
+	t=1737307269; cv=none; b=XjowtedDapnLrlVKHue9j4unTkkK0UW4pWKUQQQXVqa7Q4970htkLw/p5/81srB4utC0+/1lt016oqrlsBNUH01TocdV5cnj0BGUqFaZyP5v5l7r1R8vIikt5YQw79BvOF8sdk5McYIxHANk9zuiqc8PwIeFxqD6laZVzVSxRwY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737307268; c=relaxed/simple;
-	bh=Nkd46QEpYCHldISYDFEY+9AVgnHq3zTgxeiRXfhjR1E=;
+	s=arc-20240116; t=1737307269; c=relaxed/simple;
+	bh=6ddK21dq6yMTvfYMZwaXs6sdIX5DTKQsflnlcsiwT3w=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=GkZw3n+YEzcdnUFI1iPuK8iaJ7huBEKolDdCRjReJ0sIBp33Its9g6QYvxx0UC80LpOAR2hBIbnlxVoDfTRy55w0ppmoNiRH0V2RpWtGN9+LzJeUpcPWQOLAX6ohgYFzOBtnqn4nvxz+VVA3JDa/+NLrRZYf/cdFBHQgzHr97co=
+	 MIME-Version; b=Ag4KFSuzcSjIwpL84pbME9T6a3Tp2j1u9HuFN+J/AtLe6DGlNP4TWszzANGF3rjMbQawzDmv/mz65bjfaK6H0gXUcYh0Qg7izh2R+pZgNgJ7/tbxZHWFzTgOki0bUl/T2NNO0VEyJKJ3TnHYAEbV5Tkn2kUY3IloeJdH4WsxDWw=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net-next 05/14] netfilter: nf_tables: Use stored ifname in netdev hook dumps
-Date: Sun, 19 Jan 2025 18:20:42 +0100
-Message-Id: <20250119172051.8261-6-pablo@netfilter.org>
+Subject: [PATCH net-next 08/14] netfilter: nf_tables: Simplify chain netdev notifier
+Date: Sun, 19 Jan 2025 18:20:45 +0100
+Message-Id: <20250119172051.8261-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250119172051.8261-1-pablo@netfilter.org>
 References: <20250119172051.8261-1-pablo@netfilter.org>
@@ -36,51 +36,80 @@ Content-Transfer-Encoding: 8bit
 
 From: Phil Sutter <phil@nwl.cc>
 
-The stored ifname and ops.dev->name may deviate after creation due to
-interface name changes. Prefer the more deterministic stored name in
-dumps which also helps avoiding inadvertent changes to stored ruleset
-dumps.
+With conditional chain deletion gone, callback code simplifies: Instead
+of filling an nft_ctx object, just pass basechain to the per-chain
+function. Also plain list_for_each_entry() is safe now.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ net/netfilter/nft_chain_filter.c | 21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 95d8d33589b1..87175cd1d39b 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1956,15 +1956,16 @@ static int nft_dump_basechain_hook(struct sk_buff *skb,
- 			if (!first)
- 				first = hook;
+diff --git a/net/netfilter/nft_chain_filter.c b/net/netfilter/nft_chain_filter.c
+index 543f258b7c6b..19a553550c76 100644
+--- a/net/netfilter/nft_chain_filter.c
++++ b/net/netfilter/nft_chain_filter.c
+@@ -319,17 +319,16 @@ static const struct nft_chain_type nft_chain_filter_netdev = {
+ };
  
--			if (nla_put_string(skb, NFTA_DEVICE_NAME,
--					   hook->ops.dev->name))
-+			if (nla_put(skb, NFTA_DEVICE_NAME,
-+				    hook->ifnamelen, hook->ifname))
- 				goto nla_put_failure;
- 			n++;
+ static void nft_netdev_event(unsigned long event, struct net_device *dev,
+-			     struct nft_ctx *ctx)
++			     struct nft_base_chain *basechain)
+ {
+-	struct nft_base_chain *basechain = nft_base_chain(ctx->chain);
+ 	struct nft_hook *hook;
+ 
+ 	list_for_each_entry(hook, &basechain->hook_list, list) {
+ 		if (hook->ops.dev != dev)
+ 			continue;
+ 
+-		if (!(ctx->chain->table->flags & NFT_TABLE_F_DORMANT))
+-			nf_unregister_net_hook(ctx->net, &hook->ops);
++		if (!(basechain->chain.table->flags & NFT_TABLE_F_DORMANT))
++			nf_unregister_net_hook(dev_net(dev), &hook->ops);
+ 
+ 		list_del_rcu(&hook->list);
+ 		kfree_rcu(hook, rcu);
+@@ -343,25 +342,20 @@ static int nf_tables_netdev_event(struct notifier_block *this,
+ 	struct net_device *dev = netdev_notifier_info_to_dev(ptr);
+ 	struct nft_base_chain *basechain;
+ 	struct nftables_pernet *nft_net;
+-	struct nft_chain *chain, *nr;
++	struct nft_chain *chain;
+ 	struct nft_table *table;
+-	struct nft_ctx ctx = {
+-		.net	= dev_net(dev),
+-	};
+ 
+ 	if (event != NETDEV_UNREGISTER)
+ 		return NOTIFY_DONE;
+ 
+-	nft_net = nft_pernet(ctx.net);
++	nft_net = nft_pernet(dev_net(dev));
+ 	mutex_lock(&nft_net->commit_mutex);
+ 	list_for_each_entry(table, &nft_net->tables, list) {
+ 		if (table->family != NFPROTO_NETDEV &&
+ 		    table->family != NFPROTO_INET)
+ 			continue;
+ 
+-		ctx.family = table->family;
+-		ctx.table = table;
+-		list_for_each_entry_safe(chain, nr, &table->chains, list) {
++		list_for_each_entry(chain, &table->chains, list) {
+ 			if (!nft_is_base_chain(chain))
+ 				continue;
+ 
+@@ -370,8 +364,7 @@ static int nf_tables_netdev_event(struct notifier_block *this,
+ 			    basechain->ops.hooknum != NF_INET_INGRESS)
+ 				continue;
+ 
+-			ctx.chain = chain;
+-			nft_netdev_event(event, dev, &ctx);
++			nft_netdev_event(event, dev, basechain);
  		}
- 		nla_nest_end(skb, nest_devs);
- 
- 		if (n == 1 &&
--		    nla_put_string(skb, NFTA_HOOK_DEV, first->ops.dev->name))
-+		    nla_put(skb, NFTA_HOOK_DEV,
-+			    first->ifnamelen, first->ifname))
- 			goto nla_put_failure;
  	}
- 	nla_nest_end(skb, nest);
-@@ -9324,7 +9325,8 @@ static int nf_tables_fill_flowtable_info(struct sk_buff *skb, struct net *net,
- 
- 	list_for_each_entry_rcu(hook, hook_list, list,
- 				lockdep_commit_lock_is_held(net)) {
--		if (nla_put_string(skb, NFTA_DEVICE_NAME, hook->ops.dev->name))
-+		if (nla_put(skb, NFTA_DEVICE_NAME,
-+			    hook->ifnamelen, hook->ifname))
- 			goto nla_put_failure;
- 	}
- 	nla_nest_end(skb, nest_devs);
+ 	mutex_unlock(&nft_net->commit_mutex);
 -- 
 2.30.2
 
