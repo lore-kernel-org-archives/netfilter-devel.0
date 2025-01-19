@@ -1,14 +1,14 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 81ACC1DFDA5;
-	Sun, 19 Jan 2025 17:21:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id CA6F886331;
+	Sun, 19 Jan 2025 17:21:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737307270; cv=none; b=iiBUGmTP7j+X5LMQv2eOMen+76jw7xJamehJekvFHjVVc+/fzhIBOKDsb+3Kxy2DF1O8d7nBxA0mC57XMdQriMG0uwePq0kwjLY9yk5z5TCKyg8FBpgjLMidtmySqBxrF782j02diU18T6yhADwim0bYVnn7MvJKML7XUZA9ey4=
+	t=1737307270; cv=none; b=TnPYp/Rcv9eW8l7dO4XkiPebdB2rRjFRRjm3hcy/oiMgeAouhQaDkhunaMhevWGGHlPxcd2YTOMmyyOZhUET7An6rd0m747Dyw51pVStHIlDhwt6fMJk2KCHqQqFb2w4Q3MoZvZrhX4s75OPlP6Hkio4iHpsftRYKy6ojp4CdVs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1737307270; c=relaxed/simple;
-	bh=bf4U92hBPyNGdkOqWr/Gm0rDjv1jB2B0iEc2B3V9aSI=;
+	bh=LWcSmBspHWeka0sHNHkTYxSbwhWDR4iq8THQAIynXuY=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=Hwb9Ltu10I2jdkvVCHE3Dltcij6j3NdvenpQeqZz6sNg86Xp6hTyQTnumwZ1D96wxdrqI8++tM4zL6y75bigiCtb9P3ASFd5rJdBgWr14Al5TdiG3YZRDa3MW1s+99qKvqhBVamMhYREX40xqpVZEnqTX+c67P5/OnCTUP4uruc=
+	 MIME-Version; b=vE5Y/ZmT0M/XhKTBx+9mTJCzIur7FuwA05G6rKomIA6mZKK0JKGdC6cjYuwvxx8omxDJty0nNFGnt4s1BjVa0IyOmKyjFEhPijcazWr6nXYeVQRqZZ66bA5DT6XgjkqMHlH1d+GF7deH7RoLE+wbjflr1KVOpN0Vemd/r0L0xtk=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
@@ -20,9 +20,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net-next 09/14] netfilter: nft_flow_offload: clear tcp MAXACK flag before moving to slowpath
-Date: Sun, 19 Jan 2025 18:20:46 +0100
-Message-Id: <20250119172051.8261-10-pablo@netfilter.org>
+Subject: [PATCH net-next 04/14] netfilter: nf_tables: Store user-defined hook ifname
+Date: Sun, 19 Jan 2025 18:20:41 +0100
+Message-Id: <20250119172051.8261-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250119172051.8261-1-pablo@netfilter.org>
 References: <20250119172051.8261-1-pablo@netfilter.org>
@@ -34,58 +34,64 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+From: Phil Sutter <phil@nwl.cc>
 
-This state reset is racy, no locks are held here.
+Prepare for hooks with NULL ops.dev pointer (due to non-existent device)
+and store the interface name and length as specified by the user upon
+creation. No functional change intended.
 
-Since commit
-8437a6209f76 ("netfilter: nft_flow_offload: set liberal tracking mode for tcp"),
-the window checks are disabled for normal data packets, but MAXACK flag
-is checked when validating TCP resets.
-
-Clear the flag so tcp reset validation checks are ignored.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_core.c | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ include/net/netfilter/nf_tables.h |  2 ++
+ net/netfilter/nf_tables_api.c     | 10 +++++++---
+ 2 files changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index df72b0376970..bdde469bbbd1 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -161,10 +161,20 @@ void flow_offload_route_init(struct flow_offload *flow,
- }
- EXPORT_SYMBOL_GPL(flow_offload_route_init);
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index f6958118986a..bd93d085b6fb 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1201,6 +1201,8 @@ struct nft_hook {
+ 	struct list_head	list;
+ 	struct nf_hook_ops	ops;
+ 	struct rcu_head		rcu;
++	char			ifname[IFNAMSIZ];
++	u8			ifnamelen;
+ };
  
--static void flow_offload_fixup_tcp(struct ip_ct_tcp *tcp)
-+static void flow_offload_fixup_tcp(struct nf_conn *ct)
+ /**
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index e41c77e5eefd..95d8d33589b1 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2276,7 +2276,6 @@ static struct nft_hook *nft_netdev_hook_alloc(struct net *net,
+ 					      const struct nlattr *attr)
  {
-+	struct ip_ct_tcp *tcp = &ct->proto.tcp;
+ 	struct net_device *dev;
+-	char ifname[IFNAMSIZ];
+ 	struct nft_hook *hook;
+ 	int err;
+ 
+@@ -2286,12 +2285,17 @@ static struct nft_hook *nft_netdev_hook_alloc(struct net *net,
+ 		goto err_hook_alloc;
+ 	}
+ 
+-	nla_strscpy(ifname, attr, IFNAMSIZ);
++	err = nla_strscpy(hook->ifname, attr, IFNAMSIZ);
++	if (err < 0)
++		goto err_hook_dev;
 +
-+	spin_lock_bh(&ct->lock);
-+	/* Conntrack state is outdated due to offload bypass.
-+	 * Clear IP_CT_TCP_FLAG_MAXACK_SET, otherwise conntracks
-+	 * TCP reset validation will fail.
-+	 */
- 	tcp->seen[0].td_maxwin = 0;
-+	tcp->seen[0].flags &= ~IP_CT_TCP_FLAG_MAXACK_SET;
- 	tcp->seen[1].td_maxwin = 0;
-+	tcp->seen[1].flags &= ~IP_CT_TCP_FLAG_MAXACK_SET;
-+	spin_unlock_bh(&ct->lock);
- }
- 
- static void flow_offload_fixup_ct(struct nf_conn *ct)
-@@ -176,7 +186,7 @@ static void flow_offload_fixup_ct(struct nf_conn *ct)
- 	if (l4num == IPPROTO_TCP) {
- 		struct nf_tcp_net *tn = nf_tcp_pernet(net);
- 
--		flow_offload_fixup_tcp(&ct->proto.tcp);
-+		flow_offload_fixup_tcp(ct);
- 
- 		timeout = tn->timeouts[ct->proto.tcp.state];
- 		timeout -= tn->offload_timeout;
++	hook->ifnamelen = nla_len(attr);
++
+ 	/* nf_tables_netdev_event() is called under rtnl_mutex, this is
+ 	 * indirectly serializing all the other holders of the commit_mutex with
+ 	 * the rtnl_mutex.
+ 	 */
+-	dev = __dev_get_by_name(net, ifname);
++	dev = __dev_get_by_name(net, hook->ifname);
+ 	if (!dev) {
+ 		err = -ENOENT;
+ 		goto err_hook_dev;
 -- 
 2.30.2
 
