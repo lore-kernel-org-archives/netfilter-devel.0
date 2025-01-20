@@ -1,31 +1,35 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 808201DFE15;
-	Sun, 19 Jan 2025 17:21:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.188.207
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E76C7188A0E;
+	Mon, 20 Jan 2025 20:10:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737307271; cv=none; b=BQmDPjXV0pzBVvYYoYVMo1my7Xie2CQNpx6DGdVBAeD/0MW0xK1VOpryz9iDr6Y8Tt3d5gza2TBPMtIfPermeXgRWTTMtOu/meBXBv34bpmFYt9bwkQkgQVFa+X4z3nPccex7yIHxf+yTuOItwS236sfe7P/3Q6zbVFBVfl1mHc=
+	t=1737403809; cv=none; b=NUIYPQVLelx+oskjAxz5Y3nnp0tkxg7Yr6hKh7iOmTyuWzk6LYYxQ6ZPXAVWeB63cq2DqzvWwj5TArS24GKDZoyaTmz0ZIYNZ02xAiq01miYtqc+Cvq+F8DJ3U0zkVVQasl0qbVRsxgPd8PqFqEmDRHBXs7Gu18POUlyLMlACbI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737307271; c=relaxed/simple;
-	bh=OpB1wcSeP0EBoDeqzXyMQooQEyNmoff0gqsajhtKBUg=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=f2jvjQbCnGRDn8c5pCJBtbSXqjwVTbiaUChfhBx7VKDS6LkaTmm4XQvPuXfYbA9ulRKMJtqdESPYc9K33eoNdSM8kl6QQSQudro7JaP6G3mlQ43dvb0E6iw5ylWDZ9kAz7ZJvX1EPPC5P+ZdU0QCHdOZM6oGIFcCSxoBKOacr+Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=217.70.188.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	fw@strlen.de
-Subject: [PATCH net-next 14/14] netfilter: flowtable: add CLOSING state
-Date: Sun, 19 Jan 2025 18:20:51 +0100
-Message-Id: <20250119172051.8261-15-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20250119172051.8261-1-pablo@netfilter.org>
-References: <20250119172051.8261-1-pablo@netfilter.org>
+	s=arc-20240116; t=1737403809; c=relaxed/simple;
+	bh=cfLnt++NPYwNNYtP3/HMZ/z1M8zT/QZwu+lKb2XBcmo=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=r1eLCEluuDGYPjq1MSJw6WMgtMgvKo2BrUrmBg6gAIAOpYL6UXKR7wRn37Y1u8Bl4P6nYgP81OqtaaxY7Gkje84s8fnQSl1wKJrPocmHHh4SnuOcjGjDBFluMiBi6KhUvi4OZJ+edNiMnFrjoAjqBnPqTN9tb4j27j029o1zuwQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lsixud2D; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lsixud2D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47BC4C4CEDD;
+	Mon, 20 Jan 2025 20:10:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1737403808;
+	bh=cfLnt++NPYwNNYtP3/HMZ/z1M8zT/QZwu+lKb2XBcmo=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=lsixud2Db6TPFlqxHVd7S9USTbDyZKZC7eyNOtpWbASps0BfbfLypKb9MyzKWjyE6
+	 hBCgr2JcKvxSnv5YQj9/JkEsNYqPNV18Na/ysOT0KevAMF3YMjpASTcdV2qLF+AQiE
+	 ipNLJ3f8zdKNev9izn9CPOTy4N2cE46Pg3LmDnbFMCcngMDPT1ajcfXsf1hHmtnGEF
+	 Jkqz8QAgNn5beooZdEH/nW2wGdKmfG1ENd76iUJbzBJLG4ioKlTdw913/om9rHH+JW
+	 sd1B4TrzGATTSQ+/uXNl0TVCGLZ6vclUscf+hp+8e3nxNsoUOeBYgw7gYR587kZa4v
+	 BRnBihvj59VJw==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 711A7380AA62;
+	Mon, 20 Jan 2025 20:10:33 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -33,216 +37,67 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next 01/14] netfilter: nf_tables: fix set size with rbtree
+ backend
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <173740383227.3638218.4903727390571556542.git-patchwork-notify@kernel.org>
+Date: Mon, 20 Jan 2025 20:10:32 +0000
+References: <20250119172051.8261-2-pablo@netfilter.org>
+In-Reply-To: <20250119172051.8261-2-pablo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, fw@strlen.de
 
-tcp rst/fin packet triggers an immediate teardown of the flow which
-results in sending flows back to the classic forwarding path.
+Hello:
 
-This behaviour was introduced by:
+This series was applied to netdev/net-next.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-  da5984e51063 ("netfilter: nf_flow_table: add support for sending flows back to the slow path")
-  b6f27d322a0a ("netfilter: nf_flow_table: tear down TCP flows if RST or FIN was seen")
+On Sun, 19 Jan 2025 18:20:38 +0100 you wrote:
+> The existing rbtree implementation uses singleton elements to represent
+> ranges, however, userspace provides a set size according to the number
+> of ranges in the set.
+> 
+> Adjust provided userspace set size to the number of singleton elements
+> in the kernel by multiplying the range by two.
+> 
+> [...]
 
-whose goal is to expedite removal of flow entries from the hardware
-table. Before these patches, the flow was released after the flow entry
-timed out.
+Here is the summary with links:
+  - [net-next,01/14] netfilter: nf_tables: fix set size with rbtree backend
+    https://git.kernel.org/netdev/net-next/c/8d738c1869f6
+  - [net-next,02/14] netfilter: br_netfilter: remove unused conditional and dead code
+    https://git.kernel.org/netdev/net-next/c/d01ed3240b22
+  - [net-next,03/14] netfilter: nf_tables: Flowtable hook's pf value never varies
+    https://git.kernel.org/netdev/net-next/c/2a67414a143e
+  - [net-next,04/14] netfilter: nf_tables: Store user-defined hook ifname
+    https://git.kernel.org/netdev/net-next/c/b7c2d793c28c
+  - [net-next,05/14] netfilter: nf_tables: Use stored ifname in netdev hook dumps
+    https://git.kernel.org/netdev/net-next/c/880ccec0d02e
+  - [net-next,06/14] netfilter: nf_tables: Compare netdev hooks based on stored name
+    https://git.kernel.org/netdev/net-next/c/bc87b75847d8
+  - [net-next,07/14] netfilter: nf_tables: Tolerate chains with no remaining hooks
+    https://git.kernel.org/netdev/net-next/c/fc0133428e7a
+  - [net-next,08/14] netfilter: nf_tables: Simplify chain netdev notifier
+    https://git.kernel.org/netdev/net-next/c/375f222800bc
+  - [net-next,09/14] netfilter: nft_flow_offload: clear tcp MAXACK flag before moving to slowpath
+    https://git.kernel.org/netdev/net-next/c/d9d7b489416d
+  - [net-next,10/14] netfilter: nft_flow_offload: update tcp state flags under lock
+    https://git.kernel.org/netdev/net-next/c/7a4b61406395
+  - [net-next,11/14] netfilter: conntrack: remove skb argument from nf_ct_refresh
+    https://git.kernel.org/netdev/net-next/c/31768596b15a
+  - [net-next,12/14] netfilter: conntrack: rework offload nf_conn timeout extension logic
+    https://git.kernel.org/netdev/net-next/c/03428ca5cee9
+  - [net-next,13/14] netfilter: flowtable: teardown flow if cached mtu is stale
+    https://git.kernel.org/netdev/net-next/c/b8baac3b9c5c
+  - [net-next,14/14] netfilter: flowtable: add CLOSING state
+    https://git.kernel.org/netdev/net-next/c/fdbaf5163331
 
-However, this approach leads to packet races when restoring the
-conntrack state as well as late flow re-offload situations when the TCP
-connection is ending.
-
-This patch adds a new CLOSING state that is is entered when tcp rst/fin
-packet is seen. This allows for an early removal of the flow entry from
-the hardware table. But the flow entry still remains in software, so tcp
-packets to shut down the flow are not sent back to slow path.
-
-If syn packet is seen from this new CLOSING state, then this flow enters
-teardown state, ct state is set to TCP_CONNTRACK_CLOSE state and packet
-is sent to slow path, so this TCP reopen scenario can be handled by
-conntrack. TCP_CONNTRACK_CLOSE provides a small timeout that aims at
-quickly releasing this stale entry from the conntrack table.
-
-Moreover, skip hardware re-offload from flowtable software packet if the
-flow is in CLOSING state.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_flow_table.h |  1 +
- net/netfilter/nf_flow_table_core.c    | 70 ++++++++++++++++++++-------
- net/netfilter/nf_flow_table_ip.c      |  6 ++-
- 3 files changed, 58 insertions(+), 19 deletions(-)
-
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index b63d53bb9dd6..d711642e78b5 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -163,6 +163,7 @@ struct flow_offload_tuple_rhash {
- enum nf_flow_flags {
- 	NF_FLOW_SNAT,
- 	NF_FLOW_DNAT,
-+	NF_FLOW_CLOSING,
- 	NF_FLOW_TEARDOWN,
- 	NF_FLOW_HW,
- 	NF_FLOW_HW_DYING,
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 35396f568ecd..9d8361526f82 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -161,11 +161,23 @@ void flow_offload_route_init(struct flow_offload *flow,
- }
- EXPORT_SYMBOL_GPL(flow_offload_route_init);
- 
--static void flow_offload_fixup_tcp(struct nf_conn *ct)
-+static inline bool nf_flow_has_expired(const struct flow_offload *flow)
-+{
-+	return nf_flow_timeout_delta(flow->timeout) <= 0;
-+}
-+
-+static void flow_offload_fixup_tcp(struct nf_conn *ct, u8 tcp_state)
- {
- 	struct ip_ct_tcp *tcp = &ct->proto.tcp;
- 
- 	spin_lock_bh(&ct->lock);
-+	if (tcp->state != tcp_state)
-+		tcp->state = tcp_state;
-+
-+	/* syn packet triggers the TCP reopen case from conntrack. */
-+	if (tcp->state == TCP_CONNTRACK_CLOSE)
-+		ct->proto.tcp.seen[0].flags |= IP_CT_TCP_FLAG_CLOSE_INIT;
-+
- 	/* Conntrack state is outdated due to offload bypass.
- 	 * Clear IP_CT_TCP_FLAG_MAXACK_SET, otherwise conntracks
- 	 * TCP reset validation will fail.
-@@ -177,36 +189,58 @@ static void flow_offload_fixup_tcp(struct nf_conn *ct)
- 	spin_unlock_bh(&ct->lock);
- }
- 
--static void flow_offload_fixup_ct(struct nf_conn *ct)
-+static void flow_offload_fixup_ct(struct flow_offload *flow)
- {
-+	struct nf_conn *ct = flow->ct;
- 	struct net *net = nf_ct_net(ct);
- 	int l4num = nf_ct_protonum(ct);
-+	bool expired, closing = false;
-+	u32 offload_timeout = 0;
- 	s32 timeout;
- 
- 	if (l4num == IPPROTO_TCP) {
--		struct nf_tcp_net *tn = nf_tcp_pernet(net);
-+		const struct nf_tcp_net *tn = nf_tcp_pernet(net);
-+		u8 tcp_state;
- 
--		flow_offload_fixup_tcp(ct);
-+		/* Enter CLOSE state if fin/rst packet has been seen, this
-+		 * allows TCP reopen from conntrack. Otherwise, pick up from
-+		 * the last seen TCP state.
-+		 */
-+		closing = test_bit(NF_FLOW_CLOSING, &flow->flags);
-+		if (closing) {
-+			flow_offload_fixup_tcp(ct, TCP_CONNTRACK_CLOSE);
-+			timeout = READ_ONCE(tn->timeouts[TCP_CONNTRACK_CLOSE]);
-+			expired = false;
-+		} else {
-+			tcp_state = READ_ONCE(ct->proto.tcp.state);
-+			flow_offload_fixup_tcp(ct, tcp_state);
-+			timeout = READ_ONCE(tn->timeouts[tcp_state]);
-+			expired = nf_flow_has_expired(flow);
-+		}
-+		offload_timeout = READ_ONCE(tn->offload_timeout);
- 
--		timeout = tn->timeouts[ct->proto.tcp.state];
--		timeout -= tn->offload_timeout;
- 	} else if (l4num == IPPROTO_UDP) {
--		struct nf_udp_net *tn = nf_udp_pernet(net);
-+		const struct nf_udp_net *tn = nf_udp_pernet(net);
- 		enum udp_conntrack state =
- 			test_bit(IPS_SEEN_REPLY_BIT, &ct->status) ?
- 			UDP_CT_REPLIED : UDP_CT_UNREPLIED;
- 
--		timeout = tn->timeouts[state];
--		timeout -= tn->offload_timeout;
-+		timeout = READ_ONCE(tn->timeouts[state]);
-+		expired = nf_flow_has_expired(flow);
-+		offload_timeout = READ_ONCE(tn->offload_timeout);
- 	} else {
- 		return;
- 	}
- 
-+	if (expired)
-+		timeout -= offload_timeout;
-+
- 	if (timeout < 0)
- 		timeout = 0;
- 
--	if (nf_flow_timeout_delta(READ_ONCE(ct->timeout)) > (__s32)timeout)
--		WRITE_ONCE(ct->timeout, nfct_time_stamp + timeout);
-+	if (closing ||
-+	    nf_flow_timeout_delta(READ_ONCE(ct->timeout)) > (__s32)timeout)
-+		nf_ct_refresh(ct, timeout);
- }
- 
- static void flow_offload_route_release(struct flow_offload *flow)
-@@ -326,18 +360,14 @@ void flow_offload_refresh(struct nf_flowtable *flow_table,
- 	else
- 		return;
- 
--	if (likely(!nf_flowtable_hw_offload(flow_table)))
-+	if (likely(!nf_flowtable_hw_offload(flow_table)) ||
-+	    test_bit(NF_FLOW_CLOSING, &flow->flags))
- 		return;
- 
- 	nf_flow_offload_add(flow_table, flow);
- }
- EXPORT_SYMBOL_GPL(flow_offload_refresh);
- 
--static inline bool nf_flow_has_expired(const struct flow_offload *flow)
--{
--	return nf_flow_timeout_delta(flow->timeout) <= 0;
--}
--
- static void flow_offload_del(struct nf_flowtable *flow_table,
- 			     struct flow_offload *flow)
- {
-@@ -354,7 +384,7 @@ void flow_offload_teardown(struct flow_offload *flow)
- {
- 	clear_bit(IPS_OFFLOAD_BIT, &flow->ct->status);
- 	set_bit(NF_FLOW_TEARDOWN, &flow->flags);
--	flow_offload_fixup_ct(flow->ct);
-+	flow_offload_fixup_ct(flow);
- }
- EXPORT_SYMBOL_GPL(flow_offload_teardown);
- 
-@@ -542,6 +572,10 @@ static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
- 		} else {
- 			flow_offload_del(flow_table, flow);
- 		}
-+	} else if (test_bit(NF_FLOW_CLOSING, &flow->flags) &&
-+		   test_bit(NF_FLOW_HW, &flow->flags) &&
-+		   !test_bit(NF_FLOW_HW_DYING, &flow->flags)) {
-+		nf_flow_offload_del(flow_table, flow);
- 	} else if (test_bit(NF_FLOW_HW, &flow->flags)) {
- 		nf_flow_offload_stats(flow_table, flow);
- 	}
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index a22856106383..97c6eb8847a0 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -28,11 +28,15 @@ static int nf_flow_state_check(struct flow_offload *flow, int proto,
- 		return 0;
- 
- 	tcph = (void *)(skb_network_header(skb) + thoff);
--	if (unlikely(tcph->fin || tcph->rst)) {
-+	if (tcph->syn && test_bit(NF_FLOW_CLOSING, &flow->flags)) {
- 		flow_offload_teardown(flow);
- 		return -1;
- 	}
- 
-+	if ((tcph->fin || tcph->rst) &&
-+	    !test_bit(NF_FLOW_CLOSING, &flow->flags))
-+		set_bit(NF_FLOW_CLOSING, &flow->flags);
-+
- 	return 0;
- }
- 
+You are awesome, thank you!
 -- 
-2.30.2
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
