@@ -1,57 +1,88 @@
-Received: from relay0.mail.gandi.net (relay0.mail.gandi.net [217.70.178.220])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f174.google.com (mail-qk1-f174.google.com [209.85.222.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A23E188926;
-	Mon, 27 Jan 2025 14:20:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.178.220
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B264C1607A4
+	for <netfilter-devel@vger.kernel.org>; Mon, 27 Jan 2025 18:05:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737987655; cv=none; b=SqVgPn9vqXweMnMZj7KJM2gBRcnox9+YOEU88/cC8HrwdhCQOiblR+GYhlGVuSLm23Vb0eEF23gx4CRlMqyvPDAOSeGafV1Ub22mOi071ZTVFPGTgQx13Z9SqC0xYYKa2gs7uraed/gWnmaeudfGSX3LQF2mTgS3KFTUVzcz0LM=
+	t=1738001137; cv=none; b=PMkA13vWAXvIGCzP+eHop974NvX5wMvTw33CbL5fA+TJAWcTYuvCNv+9jBfmbMh4S2a0CNle4z8J8gwXiE8UjmSKzEuoK80svqWrKhRBOtgs5i+nzXN3mXEZwvNRz8Een4rBWFB6wuM1TKXRejAnmBCAxVeFgOI9eBEvIh1GN18=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737987655; c=relaxed/simple;
-	bh=s4FGh8+Jt0+W5EtK2lxHVEDvNUFrgHmLElUFdHDZ5wo=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=TQDwoUawxnSE4YKQ4WGEh3ojaqKqiODkcnlOXyZ/K5v7x0OPdm0OY7uOT0ZAj/2D0aXEAC+TmxNzuvwZsEXX9ftmIAE4xpvVVdm5Zij7gx974/4lkKOIi8itpO2AZdlBfOb0HrMKCEfIqIxkuSYH/4J08UabjNYIVB/PT54SYE0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=clip-os.org; spf=pass smtp.mailfrom=clip-os.org; dkim=pass (2048-bit key) header.d=clip-os.org header.i=@clip-os.org header.b=WMJpchMr; arc=none smtp.client-ip=217.70.178.220
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=clip-os.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=clip-os.org
+	s=arc-20240116; t=1738001137; c=relaxed/simple;
+	bh=BEsb6n9siTaP4x7qFV/R66om8n+Tzywea90SydC5C44=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=B6R0wF4gUauK13IuTOnuxhv7s+gNI2n1jezY67ICjJyyzhGihT5jW9R6UChmpUt/Ryv9rCXfz7kB3wHNdWn857xMUgo6Rny5aPhJI+RlVciR7L5ZvYKAcViRlKhkpCewG9X5rlP7zfMkEW7bMW+zv5qpGIGWI6KmAPSlYAKkReo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fastly.com; spf=pass smtp.mailfrom=fastly.com; dkim=pass (1024-bit key) header.d=fastly.com header.i=@fastly.com header.b=DjcEO86d; arc=none smtp.client-ip=209.85.222.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fastly.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fastly.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=clip-os.org header.i=@clip-os.org header.b="WMJpchMr"
-Received: by mail.gandi.net (Postfix) with ESMTPSA id 2D60F440FC;
-	Mon, 27 Jan 2025 14:20:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=clip-os.org; s=gm1;
-	t=1737987651;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=1sxrIc3JChwt94nC6YIZ2Rtxk2QrX9t8Sx5zP8GJlJ8=;
-	b=WMJpchMr/d9IWQ30ZHv8W7O+2o/suSR7o6FzrqGnScIcv/5d77JhXcHXGgp0IKyaC0X+We
-	rwDKUf9qzjgbKvgWK1QnhyzlEVB69oOzUFJlK+1fSwHe1znef1hJSU3tbtRaf+/yMwAYa/
-	8YmAap3vzf5bXjBWUS6vm2iIAbBysahbjEdOuL067dq3/84W/rSTHQOw8LPrfPPsObte0f
-	f+cGA5WvQcfFlU/eYtolXeAKHFtzIjh7VuHPUhGuspwLyvlQW/WBLJeKhwXMaEDDneF1UZ
-	pgo4eMOIgq/taBshBEjX3XO/WNK9k1ixQrwgNLFFB+UqxR+k/dvGI85j7in73Q==
-From: nicolas.bouchinet@clip-os.org
-To: linux-kernel@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	linux-scsi@vger.kernel.org,
-	codalist@coda.cs.cmu.edu,
-	linux-nfs@vger.kernel.org,
-	netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org
-Cc: Nicolas Bouchinet <nicolas.bouchinet@ssi.gouv.fr>,
+	dkim=pass (1024-bit key) header.d=fastly.com header.i=@fastly.com header.b="DjcEO86d"
+Received: by mail-qk1-f174.google.com with SMTP id af79cd13be357-7b6fc3e9e4aso414780885a.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Jan 2025 10:05:35 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=fastly.com; s=google; t=1738001134; x=1738605934; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references
+         :mail-followup-to:message-id:subject:cc:to:from:date:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=AMDn01SWIjmfdhQcwUIs75izjTf9Hnbhitqkx9MGjr8=;
+        b=DjcEO86dDG+nK02pcFEjZRpNhTXqYRYWF0R0TQ/xldO+P9mKnndPEHX1lF4mM471Cr
+         89gAabhK0KjKTQ0xTiekmEGyzVanbzJ9dlJp/gw3ihgSc7Gj79H/Xt1xdF/mHon29PYF
+         OypBAZm2MH7hOXpHogXOIZS6oEm7YoA0j+iBc=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1738001134; x=1738605934;
+        h=in-reply-to:content-disposition:mime-version:references
+         :mail-followup-to:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=AMDn01SWIjmfdhQcwUIs75izjTf9Hnbhitqkx9MGjr8=;
+        b=II4UQ3JC6Lo8D7zSxVdTbhVlZhXjvAhQ4SJGDKTTT5aJdU+VrvNJDUatqRl1OFN1aP
+         /WqaPbJlWdoGuXTIg7Wc9s+yp1AJQ0EJYRpZ+7iXjC5hSRADkp0trGFunmxR4lnCeI9U
+         Ws9ab5zteYKOZkmgyoU15VojNtmPaEEEMAYmufoPk8nyu1A+mP0FZXPzXX3gQYyHKGIF
+         eVNXj0hPfoIuRjbPV60coFAdfpk8yLv3PbB72oX45vU55AKd0ElQVi0Y9kqYpTALfiUn
+         4bxciy7IUz3NsfxgJH0LG6nH+J+EYCLG97O3Fv1mlyLr73ZA9ZbZW9mR2RfqQmUaDb8S
+         WmdA==
+X-Forwarded-Encrypted: i=1; AJvYcCVh8kuC0BLyN+Z8zFIDe2cm3/EvKUqIuz9fdu6Njehs9mWoD9JMrRPqq6UIj07BzB2xr6EFourabnjhAEDnOnI=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzi6HG4n2B0SL4wE+GBTyTuAQt052gDV1wahnLv/HESVHzqKbOo
+	mPx7DnTuqZkSe+jSRYTFvTDTPsVNotBHRVMmdZIdD33UsZu3BvBUszCxrEzg9jw=
+X-Gm-Gg: ASbGncvhd/hAh2hC5x1SAMLlvL08c7ExkhHeZfXU8d2Q8LBLDc5ey/YfZSJiA98R09G
+	WbZxIbuJIuVRH5CnFJw5PCdZjHyxm2S31L+AGVJgQgN1YAROOq8Y1EqcpVw6h0K2/URqcA8G8sv
+	ZuzVLod82cn+HVZyxUUG1Vh/V6rQ4ZxyvL8c6fIsQjIY4WyAsJjlfgygEk/LrLSVOZixU3C6/VS
+	V15Pm1SrMg8HXEL5uRWu6GRuFPVdPzftAiO1Kp+fJyxh+3D1cd4agEpe8eOESNdr0wrIaY5CAPn
+	4BsA2EKPYq9jPvIAsaAmjzbwCr6lgil5KU2dWxVSbbosjQqv
+X-Google-Smtp-Source: AGHT+IGyYeeR4TsA+WdrCQYCr/8+qk1j+5VwubRGe5d2pC8iYUgJlAW0YwezLbYdTJ+RcwEWCyf2Yg==
+X-Received: by 2002:a05:620a:14e:b0:7be:6eb1:f4dc with SMTP id af79cd13be357-7be6eb1f594mr4305704785a.51.1738001134568;
+        Mon, 27 Jan 2025 10:05:34 -0800 (PST)
+Received: from LQ3V64L9R2 (ip-185-104-139-70.ptr.icomera.net. [185.104.139.70])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-7be9aeefd88sm414259285a.77.2025.01.27.10.05.32
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 27 Jan 2025 10:05:34 -0800 (PST)
+Date: Mon, 27 Jan 2025 13:05:30 -0500
+From: Joe Damato <jdamato@fastly.com>
+To: nicolas.bouchinet@clip-os.org
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+	linux-scsi@vger.kernel.org, codalist@coda.cs.cmu.edu,
+	linux-nfs@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	Nicolas Bouchinet <nicolas.bouchinet@ssi.gouv.fr>,
 	Joel Granados <j.granados@samsung.com>,
 	Bart Van Assche <bvanassche@acm.org>,
 	Leon Romanovsky <leon@kernel.org>,
-	Zhu Yanjun <yanjun.zhu@linux.dev>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
+	Zhu Yanjun <yanjun.zhu@linux.dev>, Jason Gunthorpe <jgg@ziepe.ca>,
 	Al Viro <viro@zeniv.linux.org.uk>,
 	Christian Brauner <brauner@kernel.org>
-Subject: [PATCH v1 9/9] sysctl: Fixes max-user-freq bounds
-Date: Mon, 27 Jan 2025 15:20:06 +0100
-Message-ID: <20250127142014.37834-10-nicolas.bouchinet@clip-os.org>
-X-Mailer: git-send-email 2.48.1
-In-Reply-To: <20250127142014.37834-1-nicolas.bouchinet@clip-os.org>
+Subject: Re: [PATCH v1 0/9] Fixes multiple sysctl bound checks
+Message-ID: <Z5fK6jnrjMBDrDJg@LQ3V64L9R2>
+Mail-Followup-To: Joe Damato <jdamato@fastly.com>,
+	nicolas.bouchinet@clip-os.org, linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org,
+	codalist@coda.cs.cmu.edu, linux-nfs@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	Nicolas Bouchinet <nicolas.bouchinet@ssi.gouv.fr>,
+	Joel Granados <j.granados@samsung.com>,
+	Bart Van Assche <bvanassche@acm.org>,
+	Leon Romanovsky <leon@kernel.org>,
+	Zhu Yanjun <yanjun.zhu@linux.dev>, Jason Gunthorpe <jgg@ziepe.ca>,
+	Al Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>
 References: <20250127142014.37834-1-nicolas.bouchinet@clip-os.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -59,40 +90,38 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-GND-State: clean
-X-GND-Score: -60
-X-GND-Cause: gggruggvucftvghtrhhoucdtuddrgeefuddrudejgedgudefgedtucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecuifetpfffkfdpucggtfgfnhhsuhgsshgtrhhisggvnecuuegrihhlohhuthemuceftddunecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenogfuohhrthgvugftvggtihhpvdculdegtddmnecujfgurhephffvvefufffkofgjfhgggfestdekredtredttdenucfhrhhomhepnhhitgholhgrshdrsghouhgthhhinhgvthestghlihhpqdhoshdrohhrghenucggtffrrghtthgvrhhnpeetheefteekueejtefhheeilefhjeefudetjeeileevgeeffeeiueehieettefhveenucfkphepledtrdeifedrvdegiedrudekjeenucevlhhushhtvghrufhiiigvpeehnecurfgrrhgrmhepihhnvghtpeeltddrieefrddvgeeirddukeejpdhhvghloheprghrtghhlhhinhhugidrrddpmhgrihhlfhhrohhmpehnihgtohhlrghsrdgsohhutghhihhnvghtsegtlhhiphdqohhsrdhorhhgpdhnsggprhgtphhtthhopeduiedprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhrughmrgesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhstghsihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopegtohgurghlihhsthestghouggrrdgtshdrtghmuhdrvgguuhdpr
- hgtphhtthhopehlihhnuhigqdhnfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohepnhgvthguvghvsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohepnhgvthhfihhlthgvrhdquggvvhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopegtohhrvghtvggrmhesnhgvthhfihhlthgvrhdrohhrgh
-X-GND-Sasl: nicolas.bouchinet@clip-os.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250127142014.37834-1-nicolas.bouchinet@clip-os.org>
 
-From: Nicolas Bouchinet <nicolas.bouchinet@ssi.gouv.fr>
+On Mon, Jan 27, 2025 at 03:19:57PM +0100, nicolas.bouchinet@clip-os.org wrote:
+> From: Nicolas Bouchinet <nicolas.bouchinet@ssi.gouv.fr>
+> 
+> Hi,
+> 
+> This patchset adds some bound checks to sysctls to avoid negative
+> value writes.
+> 
+> The patched sysctls were storing the result of the proc_dointvec
+> proc_handler into an unsigned int data. proc_dointvec being able to
+> parse negative value, and it return value being a signed int, this could
+> lead to undefined behaviors.
+> This has led to kernel crash in the past as described in commit
+> 3b3376f222e3 ("sysctl.c: fix underflow value setting risk in vm_table")
+> 
+> Most of them are now bounded between SYSCTL_ZERO and SYSCTL_INT_MAX.
+> nf_conntrack_expect_max is bounded between SYSCTL_ONE and SYSCTL_INT_MAX
+> as defined by its documentation.
 
-Bound max-user-freq sysctl writings between SYSCTL_ZERO
-and SYSCTL_INT_MAX.
+I noticed that none of the patches have a Fixes tags. Do any of
+these fix existing crashes or is this just cleanup?
 
-The proc_handler has thus been updated to proc_dointvec_minmax.
+I am asking because if this is cleanup then it would be "net-next"
+material instead of "net" and would need to be resubmit when then
+merge window has passed [1].
 
-Signed-off-by: Nicolas Bouchinet <nicolas.bouchinet@ssi.gouv.fr>
----
- drivers/char/hpet.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+FWIW, I submit a similar change some time ago and it was submit to
+net-next as cleanup [2].
 
-diff --git a/drivers/char/hpet.c b/drivers/char/hpet.c
-index 48fe96ab46490..02d2e76b7ef7e 100644
---- a/drivers/char/hpet.c
-+++ b/drivers/char/hpet.c
-@@ -730,7 +730,9 @@ static struct ctl_table hpet_table[] = {
- 	 .data = &hpet_max_freq,
- 	 .maxlen = sizeof(int),
- 	 .mode = 0644,
--	 .proc_handler = proc_dointvec,
-+	 .proc_handler = proc_dointvec_minmax,
-+	 .extra1 = SYSCTL_ZERO,
-+	 .extra2 = SYSCTL_INT_MAX,
- 	 },
- };
- 
--- 
-2.48.1
-
+[1]: https://lore.kernel.org/netdev/20250117182059.7ce1196f@kernel.org/
+[2]: https://lore.kernel.org/netdev/CANn89i+=HiffVo9iv2NKMC2LFT15xFLG16h7wN3MCrTiKT3zQQ@mail.gmail.com/T/
