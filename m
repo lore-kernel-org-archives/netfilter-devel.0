@@ -1,35 +1,29 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F2311EF082;
-	Thu, 30 Jan 2025 17:10:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BACFC1E503D
+	for <netfilter-devel@vger.kernel.org>; Thu, 30 Jan 2025 17:50:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738257012; cv=none; b=Q5wR9Vatm3B9chMw6qv5Ql2+X1K/Vl+PVD50zNK/sXpkA5r8IKfMKU35RLMPYY3eNFQ4rFqAMM/W646yjFUxdA0aExUoozXH0VPbhllEt1qt3r/d8scjpZ9xzonfW1qV//YD4b7dm5SODJrv6Oc8h7b4a9WJNnDqXVbLzbTs79k=
+	t=1738259429; cv=none; b=YpGNADWg9b2jm0fp9ZJ//uN7GxxdLzoZOYdzoV6Aj3MYikkxtrsb+vHfM82Fm4CII3NZyjFTb7Mcp/hZYWupYh0m4oxxS2qE2uw5v/KwdL5hLAi0FeJp65YbvvBF0Rf0q7dK9RuVa7E6LmGVlfxR7hjcQwvDVBU33ktPRf+Ty7U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738257012; c=relaxed/simple;
-	bh=qMa9+69Qnz4QJkdoaxVsPsN973FZlTe+3qF2RAzybKs=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=YwALvW4vPEzj3a/Q2ebPav9gUnTW29OxMGRa2Mfo2o4qPx0X27hq1EHjAFdAdPgnlr9f/aNdop6m4vv8jPiP42/pvOsK0ahOvBH5OYz3rMfmpMVag295nzVZXQ/4AmuJosXi3KrvI6W0yr6+HFy9UEkRyC+dBkMG0PNjI+CM0Dc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Eo+j/cj+; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Eo+j/cj+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E799BC4CEE2;
-	Thu, 30 Jan 2025 17:10:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1738257011;
-	bh=qMa9+69Qnz4QJkdoaxVsPsN973FZlTe+3qF2RAzybKs=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=Eo+j/cj+OAjzCh6aAROi70K6+6eE4P3D1r3gTM38l1Z1kt3AhKNKEvScx8QKMBSIH
-	 o3L84wgqLOAabwFXE+dhVkP764TZOMR181HfPo7JYhtIqHychoav0Dk5pb2F+RPg/O
-	 mQUIPM3gstj4F7a9Tsy9VJGn+t94nntqJkg0vewC6YEpB2CTN5eTSumuMyGXPRAYDD
-	 XbwpvKviv3Gt0OYe38ylKt40RWcoIXYCx36k8vzS9REbwxqERGLylfIoYYHPkp6EvJ
-	 JLKmceJsRzDPngu5iwNw0A4ok5O6AJr88UuQm1d3Vku+hGc2+TjchKSB2ExxPes2nA
-	 fVr/KY2/GIlqA==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 711FE380AA66;
-	Thu, 30 Jan 2025 17:10:39 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=arc-20240116; t=1738259429; c=relaxed/simple;
+	bh=+yILWXFRMXf2uJpa9nAhny1Lr5Zrdxl8t7bPATK9Oro=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=j9ONyZdybYl226hwRN4iNSQTTfJgLaoQ4kQhcZX0M/VPFzQrIXa5OKrEXUQUN+vm4ULzd41pFeC8+ahhRZNVoIXnyLpW5wOHY0ZxwCP/TOoEC+YK7z9by+cwU3bEKcWaOx+/yeWY/m/nDioqO/e6fUEVrCr/bg4XNpugEfbp8PQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1tdYgE-00018y-PC; Thu, 30 Jan 2025 18:50:18 +0100
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>,
+	Sunny73Cr <Sunny73Cr@protonmail.com>
+Subject: [PATCH nft 1/3] netlink_delinarize: fix bogus munging of mask value
+Date: Thu, 30 Jan 2025 18:47:12 +0100
+Message-ID: <20250130174718.6644-1-fw@strlen.de>
+X-Mailer: git-send-email 2.45.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,43 +31,163 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/1] netfilter: nf_tables: reject mismatching sum of
- field_len with set key length
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <173825703824.1021356.11128421779204214286.git-patchwork-notify@kernel.org>
-Date: Thu, 30 Jan 2025 17:10:38 +0000
-References: <20250130113307.2327470-2-pablo@netfilter.org>
-In-Reply-To: <20250130113307.2327470-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de, horms@kernel.org
 
-Hello:
+Given following input:
+table ip t {
+ chain c {
+  @ih,58,6 set 0 @ih,86,6 set 0 @ih,170,22 set 0
+ }
+}
 
-This patch was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+nft will produce following output:
+chain c {
+ @ih,48,16 set @ih,48,16 & 0x3f @ih,80,16 set @ih,80,16 & 0x3f0 @ih,160,32 set @ih,160,32 & 0x3fffff
+}
 
-On Thu, 30 Jan 2025 12:33:07 +0100 you wrote:
-> The field length description provides the length of each separated key
-> field in the concatenation, each field gets rounded up to 32-bits to
-> calculate the pipapo rule width from pipapo_init(). The set key length
-> provides the total size of the key aligned to 32-bits.
-> 
-> Register-based arithmetics still allows for combining mismatching set
-> key length and field length description, eg. set key length 10 and field
-> description [ 5, 4 ] leading to pipapo width of 12.
-> 
-> [...]
+The input side is correct, the generated expressions sent to kernel are:
 
-Here is the summary with links:
-  - [net,1/1] netfilter: nf_tables: reject mismatching sum of field_len with set key length
-    https://git.kernel.org/netdev/net/c/1b9335a8000f
+1  [ payload load 2b @ inner header + 6 => reg 1 ]
+2  [ bitwise reg 1 = ( reg 1 & 0x0000c0ff ) ^ 0x00000000 ]
+3  [ payload write reg 1 => 2b @ inner header + 6 .. ]
+4  [ payload load 2b @ inner header + 10 => reg 1 ]
+5  [ bitwise reg 1 = ( reg 1 & 0x00000ffc ) ^ 0x00000000 ]
+6  [ payload write reg 1 => 2b @ inner header + 10 .. ]
+7  [ payload load 4b @ inner header + 20 => reg 1 ]
+8  [ bitwise reg 1 = ( reg 1 & 0x0000c0ff ) ^ 0x00000000 ]
+9  [ payload write reg 1 => 4b @ inner header + 20 .. ]
 
-You are awesome, thank you!
+@ih,58,6 set 0 <- Zero 6 bits, starting with bit 58
+
+Changes to inner header mandate a checksum update, which only works for
+even byte counts (except for last byte in the payload).
+
+Thus, we load 2b at offet 6. (16bits, offset 48).
+
+Because we want to zero 6 bits, we need a mask that retains 10 bits and
+clears 6: b1111111111000000 (first 8 bit retains 48-57, last 6 bit clear
+58-63).  The '0xc0ff' is not correct, but thats because debug output comes
+from libnftnl which prints values in host byte order, the value will be
+interpreted as big endian on kernel side, so this will do the right thing.
+
+Next, same problem:
+
+@ih,86,6 set 0 <- Zero 6 bits, starting with bit 86.
+
+nft needs to round down to even-sized byte offset, 10, then retain first
+6 bits (80 + 6 == 86), then clear 6 bits (86-91), then keep 4 more as-is
+(92-95).
+
+So mask is 0xfc0f (in big endian) would be correct (b1111110000001111).
+
+Last expression, @ih,170,22 set 0, asks to clear 22 bits starting with bit
+170, nft correctly rounds this down to a 32 bit read at offset 160.
+
+Required mask keeps first 10 bits, then clears 22
+(b11111111110000000000000000000000).  Required mask would be 0xffc00000,
+which corresponds to the wrong-endian-printed value in line 8 above.
+
+Now that we convinced ourselves that the input side is correct, fix up
+netlink delinearize to undo the mask alterations if we can't find a
+template to print a human-readable payload expression.
+
+With this patch, we get this output:
+
+  @ih,48,16 set @ih,48,16 & 0xffc0 @ih,80,16 set @ih,80,16 & 0xfc0f @ih,160,32 set @ih,160,32 & 0xffc00000
+
+... which isn't ideal.  We should fixup the payload expression to display
+the same output as the input, i.e. adjust payload->len and offset as per
+mask and discard the mask instead.
+
+This will be done in a followup patch.
+
+Fixes: 50ca788ca4d0 ("netlink: decode payload statment")
+Reported-by: Sunny73Cr <Sunny73Cr@protonmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/netlink_delinearize.c | 57 ++++++++++++++++++++++++---------------
+ 1 file changed, 35 insertions(+), 22 deletions(-)
+
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index db8b6bbe13e8..046e7a472b8d 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -3226,41 +3226,54 @@ static void stmt_payload_binop_postprocess(struct rule_pp_ctx *ctx)
+ 		break;
+ 	}
+ 	case EXPR_PAYLOAD: /* II? */
+-		value = expr->right;
+-		if (value->etype != EXPR_VALUE)
++		payload = expr->left;
++		mask = expr->right;
++
++		if (mask->etype != EXPR_VALUE)
++			return;
++
++		if (!payload_expr_cmp(stmt->payload.expr, payload))
+ 			return;
+ 
+ 		switch (expr->op) {
+-		case OP_AND: /* IIa */
+-			payload = expr->left;
++		case OP_AND: { /* IIa */
++			mpz_t tmp;
++
++			mpz_init(tmp);
++			mpz_set(tmp, mask->value);
++
+ 			mpz_init_bitmask(bitmask, payload->len);
+-			mpz_xor(bitmask, bitmask, value->value);
+-			mpz_set(value->value, bitmask);
++			mpz_xor(bitmask, bitmask, mask->value);
++			mpz_set(mask->value, bitmask);
+ 			mpz_clear(bitmask);
+-			break;
+-		case OP_OR: /* IIb */
+-			break;
+-		default: /* No idea */
+-			return;
+-		}
+ 
+-		stmt_payload_binop_pp(ctx, expr);
+-		if (!payload_is_known(expr->left))
+-			return;
++			stmt_payload_binop_pp(ctx, expr);
++			if (!payload_is_known(expr->left)) {
++				mpz_set(mask->value, tmp);
++				mpz_clear(tmp);
++				return;
++			}
+ 
+-		expr_free(stmt->payload.expr);
++			mpz_clear(tmp);
+ 
+-		switch (expr->op) {
+-		case OP_AND:
+-			/* Mask was used to match payload, i.e.
+-			 * user asked to set zero value.
++			/* Mask was used to match payload, i.e. user asked to
++			 * clear the payload expression.
++			 * The "mask" value becomes new stmt->payload.value
++			 * so set this to 0.
+ 			 */
+-			mpz_set_ui(value->value, 0);
++			mpz_set_ui(mask->value, 0);
+ 			break;
+-		default:
++		}
++		case OP_OR:  /* IIb */
++			stmt_payload_binop_pp(ctx, expr);
++			if (!payload_is_known(expr->left))
++				return;
+ 			break;
++		default: /* No idea what to do */
++			return;
+ 		}
+ 
++		expr_free(stmt->payload.expr);
+ 		stmt->payload.expr = expr_get(expr->left);
+ 		stmt->payload.val = expr_get(expr->right);
+ 		expr_free(expr);
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.45.3
 
