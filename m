@@ -1,73 +1,79 @@
-Received: from mail-ed1-f48.google.com (mail-ed1-f48.google.com [209.85.208.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3890F158545;
-	Thu, 30 Jan 2025 15:01:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F2311EF082;
+	Thu, 30 Jan 2025 17:10:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738249321; cv=none; b=t7RrJZ/jl9gVGQ9Dq/qJPizw1rRr0+Ov8plIDg/H4/KLZrVNSbt5Cmi1WuXzNdMPXcHWCHzHSvugaZLNLz6sKlEHb2mhZ5qeraUe4FQhPHDRXtX5BCpnPKnuwM63EcrLo8EnnHGxP54gbDEazfBgkuqWPnC7JsXTtqM9oJCm6BY=
+	t=1738257012; cv=none; b=Q5wR9Vatm3B9chMw6qv5Ql2+X1K/Vl+PVD50zNK/sXpkA5r8IKfMKU35RLMPYY3eNFQ4rFqAMM/W646yjFUxdA0aExUoozXH0VPbhllEt1qt3r/d8scjpZ9xzonfW1qV//YD4b7dm5SODJrv6Oc8h7b4a9WJNnDqXVbLzbTs79k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738249321; c=relaxed/simple;
-	bh=mfCOdbeCX77mBFY/SsE+J1XetqxL5CfcbaLfUlfpX2c=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=d6dT4WeqD8IE8p8d2vOKHtOmB+1VZyRcofJguTtSJXLX7qi4xsgrHakkjtXJRJOJDvz+L6ggiU3WfKugfPoJjO+aXqCcozJJWpzY+L2q7wq3wYNHhBZHHPsqEMbBW+L+gB+xBoG/K/I7Nu3oQ7xNi9d436sh+x0Wy4T06dzcqNI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=bkDBHqYy; arc=none smtp.client-ip=209.85.208.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1738257012; c=relaxed/simple;
+	bh=qMa9+69Qnz4QJkdoaxVsPsN973FZlTe+3qF2RAzybKs=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=YwALvW4vPEzj3a/Q2ebPav9gUnTW29OxMGRa2Mfo2o4qPx0X27hq1EHjAFdAdPgnlr9f/aNdop6m4vv8jPiP42/pvOsK0ahOvBH5OYz3rMfmpMVag295nzVZXQ/4AmuJosXi3KrvI6W0yr6+HFy9UEkRyC+dBkMG0PNjI+CM0Dc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Eo+j/cj+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bkDBHqYy"
-Received: by mail-ed1-f48.google.com with SMTP id 4fb4d7f45d1cf-5d3d0205bd5so1275840a12.3;
-        Thu, 30 Jan 2025 07:01:59 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1738249318; x=1738854118; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=mfCOdbeCX77mBFY/SsE+J1XetqxL5CfcbaLfUlfpX2c=;
-        b=bkDBHqYywU9ws0n+QiubYsaL9TxdrpykMIcldWaiCmT5MU4sfz1+X6wnHurqIrrJgb
-         JsJkrjQYDrVI24bh9usZHRQ8jXB1IrAF9uw168LmLiIpL1Wugg6cOjeVxi2fnGJ0mmqn
-         PARnpzxOwKIxpixmhn23mao7p1KX1se7ZMrtKyfRV1zcCQBoUakbN9kUJ3fHKHamJixC
-         DuJWx6MrZCDeDPQTV0dO/B5Nb90XYZ1zlYRR9wmtlf3cbEm+A8s+ix6K8/g9X0VNgXYy
-         b3J0bAylPhLhoIkKlGGZnxj7BcXWw7r/8yHCS/N0SHtXCdkaSsyzyskQ2h0FNF6+PZMv
-         Y2EQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1738249318; x=1738854118;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=mfCOdbeCX77mBFY/SsE+J1XetqxL5CfcbaLfUlfpX2c=;
-        b=DCcxejX4YQmHkGRJe8bZQeJU5qm4s5F9GttQ9Um2GbyWBWBnL+VZZyJnGt3xszpSkN
-         PqdXvdOwRwlcBDS8XWigPsNl8/UxMYVn0fkujO6ksuFlbLYYI8Gg5oHFCbqQNbnAc4+V
-         FN8FiO3+53gX8duOg68Rc5OUfcnkYyYW5BMGL5q76eT7obbyQbATLPZR5RSimBjzaj7O
-         lKSjjj6OKVRGuG4qi48pbXJMZqqLC3bdroaMyY0E6XTiaWMA1tXBIyOOsO3FkTViobR+
-         mUhUnBkseCrMvdGFsJfseRbkfoj7IzvuzRPqzOTHVWwXx9k5duPBROuGprDd7IpSSTzk
-         2YqA==
-X-Forwarded-Encrypted: i=1; AJvYcCV8K5ComH/EmhvxmilqGAq2Io5AMuGRxgSdKywm1a2vyv6o7k/m0LPoiJ2r8ZTQT9yUxYgnOg0=@vger.kernel.org, AJvYcCVIo8wp21gg9GU+fh/YXwd4zI1Jhoyuzq4CXsS5MEFCxqf5/add037pek4hW+HJRzMnjYPQN/5N41ZoSKkafcrU@vger.kernel.org
-X-Gm-Message-State: AOJu0YzoRqZovZNdPIteMxd+JioRedsuL0O7JKi4wa8ghTnK9jfn3vkM
-	+Un13OWbbGugbBiqeYvTu6/CjztqNqyMxe34CCWj9TGp2EQiC/pfSr+7v+CAS7qyoi76LSWIgc3
-	sPfIgVuWrdb8RzWo6y5DQgJmcTx7javYGI+c=
-X-Gm-Gg: ASbGncu7m5OSSinK1IE7bP7T66MsCVI6tkgjUZJsjArZH2V2LT64cqOv49H5wtXBMHJ
-	91wEPVXNXz+U5C6x1Xi+RNJdmSQpFkZ2afnrUDHlQA9GAetEeCduKhTzw5nRGJCJQDTi0NCc2yw
-	==
-X-Google-Smtp-Source: AGHT+IFatBDTu/hzuprxAFEvE7bmH+4UNeXTKM7tlE76rgonvSHvrp+thtT3SJEyY91gKAzX/+wQ3duh7w35Ec+lyTM=
-X-Received: by 2002:a05:6402:2711:b0:5d3:bc1d:e56d with SMTP id
- 4fb4d7f45d1cf-5dc5f01e7famr6541900a12.31.1738249318165; Thu, 30 Jan 2025
- 07:01:58 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Eo+j/cj+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E799BC4CEE2;
+	Thu, 30 Jan 2025 17:10:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1738257011;
+	bh=qMa9+69Qnz4QJkdoaxVsPsN973FZlTe+3qF2RAzybKs=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=Eo+j/cj+OAjzCh6aAROi70K6+6eE4P3D1r3gTM38l1Z1kt3AhKNKEvScx8QKMBSIH
+	 o3L84wgqLOAabwFXE+dhVkP764TZOMR181HfPo7JYhtIqHychoav0Dk5pb2F+RPg/O
+	 mQUIPM3gstj4F7a9Tsy9VJGn+t94nntqJkg0vewC6YEpB2CTN5eTSumuMyGXPRAYDD
+	 XbwpvKviv3Gt0OYe38ylKt40RWcoIXYCx36k8vzS9REbwxqERGLylfIoYYHPkp6EvJ
+	 JLKmceJsRzDPngu5iwNw0A4ok5O6AJr88UuQm1d3Vku+hGc2+TjchKSB2ExxPes2nA
+	 fVr/KY2/GIlqA==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 711FE380AA66;
+	Thu, 30 Jan 2025 17:10:39 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250130142037.1945-1-kirjanov@gmail.com>
-In-Reply-To: <20250130142037.1945-1-kirjanov@gmail.com>
-From: Denis Kirjanov <kirjanov@gmail.com>
-Date: Thu, 30 Jan 2025 18:01:45 +0300
-X-Gm-Features: AWEUYZk030xIyWlSQIOd8_zd4qI7XJ7QRbWfR325L5LmK5SPMg3xLVE-hBFRzss
-Message-ID: <CAHj3AVn0jADTnuLtGtDmr_-+0==8_=ARJ1V+y8iOPU-Yz=6cEQ@mail.gmail.com>
-Subject: Re: [PATCH nf-next] netfilter: ip6_tables: replace the loop with xt_entry_foreach
-To: pablo@netfilter.org, kadlec@netfilter.org
-Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org, 
-	netdev@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/1] netfilter: nf_tables: reject mismatching sum of
+ field_len with set key length
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <173825703824.1021356.11128421779204214286.git-patchwork-notify@kernel.org>
+Date: Thu, 30 Jan 2025 17:10:38 +0000
+References: <20250130113307.2327470-2-pablo@netfilter.org>
+In-Reply-To: <20250130113307.2327470-2-pablo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, fw@strlen.de, horms@kernel.org
 
-please ignore
+Hello:
+
+This patch was applied to netdev/net.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
+
+On Thu, 30 Jan 2025 12:33:07 +0100 you wrote:
+> The field length description provides the length of each separated key
+> field in the concatenation, each field gets rounded up to 32-bits to
+> calculate the pipapo rule width from pipapo_init(). The set key length
+> provides the total size of the key aligned to 32-bits.
+> 
+> Register-based arithmetics still allows for combining mismatching set
+> key length and field length description, eg. set key length 10 and field
+> description [ 5, 4 ] leading to pipapo width of 12.
+> 
+> [...]
+
+Here is the summary with links:
+  - [net,1/1] netfilter: nf_tables: reject mismatching sum of field_len with set key length
+    https://git.kernel.org/netdev/net/c/1b9335a8000f
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
