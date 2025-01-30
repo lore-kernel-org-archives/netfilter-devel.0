@@ -1,29 +1,31 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BACFC1E503D
-	for <netfilter-devel@vger.kernel.org>; Thu, 30 Jan 2025 17:50:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EC6A1EB9E1
+	for <netfilter-devel@vger.kernel.org>; Thu, 30 Jan 2025 17:50:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738259429; cv=none; b=YpGNADWg9b2jm0fp9ZJ//uN7GxxdLzoZOYdzoV6Aj3MYikkxtrsb+vHfM82Fm4CII3NZyjFTb7Mcp/hZYWupYh0m4oxxS2qE2uw5v/KwdL5hLAi0FeJp65YbvvBF0Rf0q7dK9RuVa7E6LmGVlfxR7hjcQwvDVBU33ktPRf+Ty7U=
+	t=1738259430; cv=none; b=lhwpSLE9puD5B8qg8W1tNjMe28b3oF4ET8Dr40rONPvHM/rx//CeiUPCqCyozT2nVUrWVyQD6WVssP+AtZHqRmcaPItesFSD6lHHHn19nHZfGpZglzCu1GGa62X80eyjZl/451pDner6XJKZXxlfyb7/qZMVlAZ43aG2qRsgBtY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738259429; c=relaxed/simple;
-	bh=+yILWXFRMXf2uJpa9nAhny1Lr5Zrdxl8t7bPATK9Oro=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=j9ONyZdybYl226hwRN4iNSQTTfJgLaoQ4kQhcZX0M/VPFzQrIXa5OKrEXUQUN+vm4ULzd41pFeC8+ahhRZNVoIXnyLpW5wOHY0ZxwCP/TOoEC+YK7z9by+cwU3bEKcWaOx+/yeWY/m/nDioqO/e6fUEVrCr/bg4XNpugEfbp8PQ=
+	s=arc-20240116; t=1738259430; c=relaxed/simple;
+	bh=sYhiIIsGeKrlbXXwobhsIi3J30fwiwhwOv20jAPPGWc=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=qQ32mL/RW57I3IlwupYPUCNEUvW5YN1NjUwGTcl5a5XT0026QRbqmYlXJJrvqgrrEIEG++pS66mc/I3ms+tl0seK1H0kPXgTkw25Q2A/eHFELYxqY4qOh26EPinH3rcqWjPiQrUJ5WsORgO2VKWxczBF9gzbK1pL8t5yyYCshqc=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1tdYgE-00018y-PC; Thu, 30 Jan 2025 18:50:18 +0100
+	id 1tdYgM-00019H-Tt; Thu, 30 Jan 2025 18:50:26 +0100
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	Sunny73Cr <Sunny73Cr@protonmail.com>
-Subject: [PATCH nft 1/3] netlink_delinarize: fix bogus munging of mask value
-Date: Thu, 30 Jan 2025 18:47:12 +0100
-Message-ID: <20250130174718.6644-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft 3/3] tests: py: extend raw payload match tests
+Date: Thu, 30 Jan 2025 18:47:14 +0100
+Message-ID: <20250130174718.6644-3-fw@strlen.de>
 X-Mailer: git-send-email 2.45.3
+In-Reply-To: <20250130174718.6644-1-fw@strlen.de>
+References: <20250130174718.6644-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -32,162 +34,264 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Given following input:
-table ip t {
- chain c {
-  @ih,58,6 set 0 @ih,86,6 set 0 @ih,170,22 set 0
- }
-}
+Add more test cases to exercise binop elimination for raw
+payload matches.
 
-nft will produce following output:
-chain c {
- @ih,48,16 set @ih,48,16 & 0x3f @ih,80,16 set @ih,80,16 & 0x3f0 @ih,160,32 set @ih,160,32 & 0x3fffff
-}
-
-The input side is correct, the generated expressions sent to kernel are:
-
-1  [ payload load 2b @ inner header + 6 => reg 1 ]
-2  [ bitwise reg 1 = ( reg 1 & 0x0000c0ff ) ^ 0x00000000 ]
-3  [ payload write reg 1 => 2b @ inner header + 6 .. ]
-4  [ payload load 2b @ inner header + 10 => reg 1 ]
-5  [ bitwise reg 1 = ( reg 1 & 0x00000ffc ) ^ 0x00000000 ]
-6  [ payload write reg 1 => 2b @ inner header + 10 .. ]
-7  [ payload load 4b @ inner header + 20 => reg 1 ]
-8  [ bitwise reg 1 = ( reg 1 & 0x0000c0ff ) ^ 0x00000000 ]
-9  [ payload write reg 1 => 4b @ inner header + 20 .. ]
-
-@ih,58,6 set 0 <- Zero 6 bits, starting with bit 58
-
-Changes to inner header mandate a checksum update, which only works for
-even byte counts (except for last byte in the payload).
-
-Thus, we load 2b at offet 6. (16bits, offset 48).
-
-Because we want to zero 6 bits, we need a mask that retains 10 bits and
-clears 6: b1111111111000000 (first 8 bit retains 48-57, last 6 bit clear
-58-63).  The '0xc0ff' is not correct, but thats because debug output comes
-from libnftnl which prints values in host byte order, the value will be
-interpreted as big endian on kernel side, so this will do the right thing.
-
-Next, same problem:
-
-@ih,86,6 set 0 <- Zero 6 bits, starting with bit 86.
-
-nft needs to round down to even-sized byte offset, 10, then retain first
-6 bits (80 + 6 == 86), then clear 6 bits (86-91), then keep 4 more as-is
-(92-95).
-
-So mask is 0xfc0f (in big endian) would be correct (b1111110000001111).
-
-Last expression, @ih,170,22 set 0, asks to clear 22 bits starting with bit
-170, nft correctly rounds this down to a 32 bit read at offset 160.
-
-Required mask keeps first 10 bits, then clears 22
-(b11111111110000000000000000000000).  Required mask would be 0xffc00000,
-which corresponds to the wrong-endian-printed value in line 8 above.
-
-Now that we convinced ourselves that the input side is correct, fix up
-netlink delinearize to undo the mask alterations if we can't find a
-template to print a human-readable payload expression.
-
-With this patch, we get this output:
-
-  @ih,48,16 set @ih,48,16 & 0xffc0 @ih,80,16 set @ih,80,16 & 0xfc0f @ih,160,32 set @ih,160,32 & 0xffc00000
-
-... which isn't ideal.  We should fixup the payload expression to display
-the same output as the input, i.e. adjust payload->len and offset as per
-mask and discard the mask instead.
-
-This will be done in a followup patch.
-
-Fixes: 50ca788ca4d0 ("netlink: decode payload statment")
-Reported-by: Sunny73Cr <Sunny73Cr@protonmail.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/netlink_delinearize.c | 57 ++++++++++++++++++++++++---------------
- 1 file changed, 35 insertions(+), 22 deletions(-)
+ tests/py/any/rawpayload.t         |   7 ++
+ tests/py/any/rawpayload.t.json    | 157 ++++++++++++++++++++++++++++++
+ tests/py/any/rawpayload.t.payload |  53 ++++++++++
+ 3 files changed, 217 insertions(+)
 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index db8b6bbe13e8..046e7a472b8d 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -3226,41 +3226,54 @@ static void stmt_payload_binop_postprocess(struct rule_pp_ctx *ctx)
- 		break;
- 	}
- 	case EXPR_PAYLOAD: /* II? */
--		value = expr->right;
--		if (value->etype != EXPR_VALUE)
-+		payload = expr->left;
-+		mask = expr->right;
+diff --git a/tests/py/any/rawpayload.t b/tests/py/any/rawpayload.t
+index 5bc9d35f7465..745b4a615e6c 100644
+--- a/tests/py/any/rawpayload.t
++++ b/tests/py/any/rawpayload.t
+@@ -15,6 +15,7 @@ meta l4proto tcp @th,16,16 { 22, 23, 80};ok;tcp dport { 22, 23, 80}
+ 
+ @ll,0,0 2;fail
+ @ll,0,1;fail
++@ll,1,0 1;fail
+ @ll,0,1 1;ok;@ll,0,8 & 0x80 == 0x80
+ @ll,0,8 & 0x80 == 0x80;ok
+ @ll,0,128 0xfedcba987654321001234567890abcde;ok
+@@ -22,3 +23,9 @@ meta l4proto tcp @th,16,16 { 22, 23, 80};ok;tcp dport { 22, 23, 80}
+ meta l4proto 91 @th,400,16 0x0 accept;ok
+ 
+ @ih,32,32 0x14000000;ok
++@ih,58,6 set 0 @ih,86,6 set 0 @ih,170,22 set 0;ok;@ih,58,6 set 0x0 @ih,86,6 set 0x0 @ih,170,22 set 0x0
++@ih,58,6 set 0x1 @ih,86,6 set 0x2 @ih,170,22 set 0x3;ok
++@ih,58,6 0x0 @ih,86,6 0x0 @ih,170,22 0x0;ok
++@ih,1,1 0x2;fail
++@ih,1,2 0x2;ok
++@ih,35,3 0x2;ok
+diff --git a/tests/py/any/rawpayload.t.json b/tests/py/any/rawpayload.t.json
+index 4cae4d493da3..4a06c5987a7b 100644
+--- a/tests/py/any/rawpayload.t.json
++++ b/tests/py/any/rawpayload.t.json
+@@ -204,3 +204,160 @@
+     }
+ ]
+ 
++# @ih,58,6 set 0 @ih,86,6 set 0 @ih,170,22 set 0
++[
++    {
++        "mangle": {
++            "key": {
++                "payload": {
++                    "base": "ih",
++                    "len": 6,
++                    "offset": 58
++                }
++            },
++            "value": 0
++        }
++    },
++    {
++        "mangle": {
++            "key": {
++                "payload": {
++                    "base": "ih",
++                    "len": 6,
++                    "offset": 86
++                }
++            },
++            "value": 0
++        }
++    },
++    {
++        "mangle": {
++            "key": {
++                "payload": {
++                    "base": "ih",
++                    "len": 22,
++                    "offset": 170
++                }
++            },
++            "value": 0
++        }
++    }
++]
 +
-+		if (mask->etype != EXPR_VALUE)
-+			return;
++# @ih,58,6 set 0x1 @ih,86,6 set 0x2 @ih,170,22 set 0x3
++[
++    {
++        "mangle": {
++            "key": {
++                "payload": {
++                    "base": "ih",
++                    "len": 6,
++                    "offset": 58
++                }
++            },
++            "value": 1
++        }
++    },
++    {
++        "mangle": {
++            "key": {
++                "payload": {
++                    "base": "ih",
++                    "len": 6,
++                    "offset": 86
++                }
++            },
++            "value": 2
++        }
++    },
++    {
++        "mangle": {
++            "key": {
++                "payload": {
++                    "base": "ih",
++                    "len": 22,
++                    "offset": 170
++                }
++            },
++            "value": 3
++        }
++    }
++]
 +
-+		if (!payload_expr_cmp(stmt->payload.expr, payload))
- 			return;
- 
- 		switch (expr->op) {
--		case OP_AND: /* IIa */
--			payload = expr->left;
-+		case OP_AND: { /* IIa */
-+			mpz_t tmp;
++# @ih,58,6 0x0 @ih,86,6 0x0 @ih,170,22 0x0
++[
++    {
++        "match": {
++            "left": {
++                "payload": {
++                    "base": "ih",
++                    "len": 6,
++                    "offset": 58
++                }
++            },
++            "op": "==",
++            "right": 0
++        }
++    },
++    {
++        "match": {
++            "left": {
++                "payload": {
++                    "base": "ih",
++                    "len": 6,
++                    "offset": 86
++                }
++            },
++            "op": "==",
++            "right": 0
++        }
++    },
++    {
++        "match": {
++            "left": {
++                "payload": {
++                    "base": "ih",
++                    "len": 22,
++                    "offset": 170
++                }
++            },
++            "op": "==",
++            "right": 0
++        }
++    }
++]
 +
-+			mpz_init(tmp);
-+			mpz_set(tmp, mask->value);
++# @ih,1,2 0x2
++[
++    {
++        "match": {
++            "left": {
++                "payload": {
++                    "base": "ih",
++                    "len": 2,
++                    "offset": 1
++                }
++            },
++            "op": "==",
++            "right": 2
++        }
++    }
++]
 +
- 			mpz_init_bitmask(bitmask, payload->len);
--			mpz_xor(bitmask, bitmask, value->value);
--			mpz_set(value->value, bitmask);
-+			mpz_xor(bitmask, bitmask, mask->value);
-+			mpz_set(mask->value, bitmask);
- 			mpz_clear(bitmask);
--			break;
--		case OP_OR: /* IIb */
--			break;
--		default: /* No idea */
--			return;
--		}
++# @ih,35,3 0x2
++[
++    {
++        "match": {
++            "left": {
++                "payload": {
++                    "base": "ih",
++                    "len": 3,
++                    "offset": 35
++                }
++            },
++            "op": "==",
++            "right": 2
++        }
++    }
++]
++
+diff --git a/tests/py/any/rawpayload.t.payload b/tests/py/any/rawpayload.t.payload
+index fe2377e65a77..8984eef6a481 100644
+--- a/tests/py/any/rawpayload.t.payload
++++ b/tests/py/any/rawpayload.t.payload
+@@ -61,3 +61,56 @@ inet test-inet input
+   [ payload load 4b @ inner header + 4 => reg 1 ]
+   [ cmp eq reg 1 0x00000014 ]
  
--		stmt_payload_binop_pp(ctx, expr);
--		if (!payload_is_known(expr->left))
--			return;
-+			stmt_payload_binop_pp(ctx, expr);
-+			if (!payload_is_known(expr->left)) {
-+				mpz_set(mask->value, tmp);
-+				mpz_clear(tmp);
-+				return;
-+			}
- 
--		expr_free(stmt->payload.expr);
-+			mpz_clear(tmp);
- 
--		switch (expr->op) {
--		case OP_AND:
--			/* Mask was used to match payload, i.e.
--			 * user asked to set zero value.
-+			/* Mask was used to match payload, i.e. user asked to
-+			 * clear the payload expression.
-+			 * The "mask" value becomes new stmt->payload.value
-+			 * so set this to 0.
- 			 */
--			mpz_set_ui(value->value, 0);
-+			mpz_set_ui(mask->value, 0);
- 			break;
--		default:
-+		}
-+		case OP_OR:  /* IIb */
-+			stmt_payload_binop_pp(ctx, expr);
-+			if (!payload_is_known(expr->left))
-+				return;
- 			break;
-+		default: /* No idea what to do */
-+			return;
- 		}
- 
-+		expr_free(stmt->payload.expr);
- 		stmt->payload.expr = expr_get(expr->left);
- 		stmt->payload.val = expr_get(expr->right);
- 		expr_free(expr);
++# @ih,58,6 set 0 @ih,86,6 set 0 @ih,170,22 set 0
++inet test-inet input
++  [ payload load 2b @ inner header + 6 => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0x0000c0ff ) ^ 0x00000000 ]
++  [ payload write reg 1 => 2b @ inner header + 6 csum_type 0 csum_off 0 csum_flags 0x1 ]
++  [ payload load 2b @ inner header + 10 => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0x00000ffc ) ^ 0x00000000 ]
++  [ payload write reg 1 => 2b @ inner header + 10 csum_type 0 csum_off 0 csum_flags 0x1 ]
++  [ payload load 4b @ inner header + 20 => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0x0000c0ff ) ^ 0x00000000 ]
++  [ payload write reg 1 => 4b @ inner header + 20 csum_type 0 csum_off 0 csum_flags 0x1 ]
++
++# @ih,58,6 set 0x1 @ih,86,6 set 0x2 @ih,170,22 set 0x3
++inet test-inet input
++  [ payload load 2b @ inner header + 6 => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0x0000c0ff ) ^ 0x00000100 ]
++  [ payload write reg 1 => 2b @ inner header + 6 csum_type 0 csum_off 0 csum_flags 0x1 ]
++  [ payload load 2b @ inner header + 10 => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0x00000ffc ) ^ 0x00002000 ]
++  [ payload write reg 1 => 2b @ inner header + 10 csum_type 0 csum_off 0 csum_flags 0x1 ]
++  [ payload load 4b @ inner header + 20 => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0x0000c0ff ) ^ 0x03000000 ]
++  [ payload write reg 1 => 4b @ inner header + 20 csum_type 0 csum_off 0 csum_flags 0x1 ]
++
++# @ih,58,6 0x0 @ih,86,6 0x0 @ih,170,22 0x0
++inet test-inet input
++  [ payload load 1b @ inner header + 7 => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0x0000003f ) ^ 0x00000000 ]
++  [ cmp eq reg 1 0x00000000 ]
++  [ payload load 2b @ inner header + 10 => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0x0000f003 ) ^ 0x00000000 ]
++  [ cmp eq reg 1 0x00000000 ]
++  [ payload load 3b @ inner header + 21 => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0x00ffff3f ) ^ 0x00000000 ]
++  [ cmp eq reg 1 0x00000000 ]
++
++# @ih,1,2 0x2
++inet test-inet input
++  [ payload load 1b @ inner header + 0 => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0x00000060 ) ^ 0x00000000 ]
++  [ cmp eq reg 1 0x00000040 ]
++
++# @ih,2,1 0x1
++inet test-inet input
++  [ payload load 1b @ inner header + 0 => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0x00000020 ) ^ 0x00000000 ]
++  [ cmp eq reg 1 0x00000020 ]
++
++# @ih,35,3 0x2
++inet test-inet input
++  [ payload load 1b @ inner header + 4 => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0x0000001c ) ^ 0x00000000 ]
++  [ cmp eq reg 1 0x00000008 ]
 -- 
 2.45.3
 
