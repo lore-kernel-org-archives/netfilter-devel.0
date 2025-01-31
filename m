@@ -1,123 +1,113 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52E8D13A3ED
-	for <netfilter-devel@vger.kernel.org>; Fri, 31 Jan 2025 10:47:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC0A31BBBF4;
+	Fri, 31 Jan 2025 11:04:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738320450; cv=none; b=Hm7jOHgkYNlf/zviPd5cz1DZvt6drXlZi+4H8T0BGCB59UBP/6thl0B95UKPZrAkwqOZ5fh9lu47xJx9nuJi5qfWCV46w+FGvawCBzxe/n6RMznO1FH05kD6jDdscvaMHyJbmCjvr6R3K/6UrWO6hzyKXFEUePVSyOWczifClXw=
+	t=1738321500; cv=none; b=B6WIMx/vXpe697SeSLGWdOfNhWG09j3yIkVnhFLYzNvXGJqbeJs/bELtlb3WSZSfNyfIblAy6KKAm7P5Er81rVSm5VmfO3POHbRuI71PAPrSZPThN0FEShMNVE1h3+fbG3mtWUNYAHUytKidEREBuIG4RzOtQZpI+VBHnaG/7DA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738320450; c=relaxed/simple;
-	bh=yv/Ccw2YX+5HWfqI5pUJp2/zFa16qcYmks81nQPPDw4=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=bMt3syD3nDV4uzVkSdUQtG27YqtfL861yg7BuXYbP1wmvOVturJSDsRb36gxss1GNSMRPJoOHMPadpl2E/rmLKkTt+Oaj3dOkuMIqWPXbagcdcEYTPUsAKJvSeSBLuknG9EzX1OJMQJzq8MFNriZ0jTWZZpqWaQCx2+WnZfg/sA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=jq1EBcLx; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=TZQjsRiP; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="jq1EBcLx";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="TZQjsRiP"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 127A260287; Fri, 31 Jan 2025 11:47:24 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1738320445;
-	bh=YHcTeiBB2sTuV+mqupoOxJTSiFT8BjR0jvFS5S3IopM=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=jq1EBcLxDDGxLSzy/5trHxBREmYqf0WTPu2VJOlAfftpOrl3j6CTbhtJjuV6HRmk+
-	 3a12EKh998Q7iAptz7Oogm1Vg77Cri5oDRGwq5CKbOpmjFS1NBBfDiqRagCQsj7SDG
-	 ocGBhRS0sk7o4/PbHlM64eUV+NR+jEGKTxm0E/cMf5a4srIzhh4xlKBNGLidCFU65x
-	 fv7cbTBfdWtCjlSA/Xe9hrVAI6fhogySjEk4Y0eAIflKoFpko+ihrGDtWGkZJHmTrG
-	 N+1pPqWF+X+AeFdVbvoEFO2oKr6byjDTZGYelpdViEKH7FzGZbK5L89yqk+e/C5h9K
-	 ziS+J2m8imW4Q==
-X-Spam-Level: 
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 6E63C60289;
-	Fri, 31 Jan 2025 11:47:24 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1738320444;
-	bh=YHcTeiBB2sTuV+mqupoOxJTSiFT8BjR0jvFS5S3IopM=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=TZQjsRiP5+mi53ODRzVfgS0uRmz2sMotnPwNiAffd+IauilriiEmu5nD4Pe0CJjZM
-	 x7/dV2VSKfDwLOnxD5/PkNylwBYVUj6PQfcclt5ucWEuwzvqRB6qE5zBJF+Y3kmkwM
-	 5IqDkN9Y7Lpf46SVJMiahJopmJvRVOY3sW+/sWWTPJokzdZbsivQVvTsDVzrfkMh/H
-	 nkeEPZRurnzl4HuEPBm6wZMVzx8/A/jIeUsixEjW74ytHsHFmeBe6eZrxop1lfq2z/
-	 FuJBS8ygKZjNlO2gMBJEYgR2zSQqRc0DzfIZkXcoHiTHQ+88EBILh0F3ZW7viwIb/p
-	 2smSoKWXnilXg==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: akashavkin@gmail.com
-Subject: [PATCH nft 2/2] parser_bison: turn redudant ip option type field match into boolean
-Date: Fri, 31 Jan 2025 11:47:16 +0100
-Message-Id: <20250131104716.492246-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20250131104716.492246-1-pablo@netfilter.org>
-References: <20250131104716.492246-1-pablo@netfilter.org>
+	s=arc-20240116; t=1738321500; c=relaxed/simple;
+	bh=74zBxMbZtOF6IzL5eYn1BT1WP7txMHcRiO9uVjesNWg=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=VTNDZgPBzRAaoI3/yuYnBK05P1eRIoYq34s2UF9tjT7ABjvkyQe/IQkmMR/nqNswxyVrJvVWVi+ktezVgSavLUKnoOQg85DcXHIxkmWbYfRW2eksED/Lccu+nzc3YbG6rgcrRpDJG/lfGhdsVWMaSHXfbPclDmDgp4MAzROtgNY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
+Received: from mail.maildlp.com (unknown [172.18.186.231])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4YktJn3zRrz6G90H;
+	Fri, 31 Jan 2025 19:02:33 +0800 (CST)
+Received: from mscpeml500004.china.huawei.com (unknown [7.188.26.250])
+	by mail.maildlp.com (Postfix) with ESMTPS id 5B5E21400DB;
+	Fri, 31 Jan 2025 19:04:55 +0800 (CST)
+Received: from [10.123.123.159] (10.123.123.159) by
+ mscpeml500004.china.huawei.com (7.188.26.250) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1258.34; Fri, 31 Jan 2025 14:04:53 +0300
+Message-ID: <9f7f282b-95c2-8849-7b71-e77213558fd4@huawei-partners.com>
+Date: Fri, 31 Jan 2025 14:04:51 +0300
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH v2 1/8] landlock: Fix non-TCP sockets restriction
+Content-Language: ru
+To: =?UTF-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
+CC: Matthieu Baerts <matttbe@kernel.org>, <gnoack@google.com>,
+	<willemdebruijn.kernel@gmail.com>, <matthieu@buffet.re>,
+	<linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+	<netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+	<artem.kuzin@huawei.com>, <konstantin.meskhidze@huawei.com>, MPTCP Linux
+	<mptcp@lists.linux.dev>, <linux-nfs@vger.kernel.org>, Paul Moore
+	<paul@paul-moore.com>
+References: <20250124.gaegoo0Ayahn@digikod.net>
+ <2f970b00-7648-1865-858a-214c5c6af0c4@huawei-partners.com>
+ <20250127.Uph4aiph9jae@digikod.net>
+ <d3d589c3-a70b-fc6e-e1bb-d221833dfef5@huawei-partners.com>
+ <594263fc-f4e7-43ce-a613-d3f8ebb7f874@kernel.org>
+ <f6e72e71-c5ed-8a9c-f33e-f190a47b8c27@huawei-partners.com>
+ <2e727df0-c981-4e0c-8d0d-09109cf27d6f@kernel.org>
+ <103de503-be0e-2eb2-b6f0-88567d765148@huawei-partners.com>
+ <1d1d58b3-2516-4fc8-9f9a-b10604bbe05b@kernel.org>
+ <b9823ff1-2f66-3992-b389-b8e631ec03ba@huawei-partners.com>
+ <20250129.Oo1xou8ieche@digikod.net>
+From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+In-Reply-To: <20250129.Oo1xou8ieche@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: lhrpeml100012.china.huawei.com (7.191.174.184) To
+ mscpeml500004.china.huawei.com (7.188.26.250)
 
-The ip option expression allows for non-sense matching like:
+On 1/29/2025 5:51 PM, Mickaël Salaün wrote:>>>>>>> On 28/01/2025 11:56, 
+Mikhail Ivanov wrote:
 
-	ip option lsrr type 1
+[...]
 
-because 'lsrr' already provides the type field, this never results in a
-matching.
+>>>>>>>> * IPv6 -> IPv4 transformation for TCP and UDP sockets withon
+>>>>>>>>       IPV6_ADDRFORM. Can be controlled with setsockopt() security hook.
+> 
+> According to the man page: "It is allowed only for IPv6 sockets that are
+> connected and bound to a v4-mapped-on-v6 address."
+> 
+> This compatibility feature makes sense from user space point of view and
+> should not result in an error because of Landlock.
 
-Turn this expression into:
+IPV6_ADDRFORM is useful to pass IPv6 sockets binded and connected to
+v4-mapped-on-v6 addresses to pure IPv4 applications [1].
 
-	ip option lsrr exists
+I just realized we first need to consider restriction of IPv4 access
+for IPv4/v6 dual stack. It's possible to communicate with IPv4 peer
+using IPv6 socket (on client or server side) that is mapped on
+v4-mapped-on-v6 address (RFC 3493 [2]). If socket access rights provide
+separate control over IPv6 and IPv4, v4-mapped-on-v6 looks like possible
+bypass of IPv4 restriction and violation of the least astonishment
+principle.
 
-And update documentation to hide this redundant type field.
+This can be controlled with IPV6_V6ONLY socket option or with
+net.ipv6.bindv6only sysctl knob. Restriction with sysctl knob is applied
+globally and may break some dual-stack dependent applications.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- doc/payload-expression.txt | 8 ++++----
- src/parser_bison.y         | 3 +++
- 2 files changed, 7 insertions(+), 4 deletions(-)
+I'm currently trying to collect real-world examples in which user may
+want to allow IPv6-only communication in a sandboxed environment.
+Theoretically, this can be seen as unprivileged reduction of attack
+surface for IPv6-only programs in dual-stack network (disallow to open
+IPv4 connections and communicate with loopback via IPv4 stack).
 
-diff --git a/doc/payload-expression.txt b/doc/payload-expression.txt
-index 7bc24a8a6502..2a155aa87b6f 100644
---- a/doc/payload-expression.txt
-+++ b/doc/payload-expression.txt
-@@ -808,16 +808,16 @@ TCP option matching also supports raw expression syntax to access arbitrary opti
- |Keyword| Description | IP option fields
- |lsrr|
- Loose Source Route |
--type, length, ptr, addr
-+length, ptr, addr
- |ra|
- Router Alert |
--type, length, value
-+length, value
- |rr|
- Record Route |
--type, length, ptr, addr
-+length, ptr, addr
- |ssrr|
- Strict Source Route |
--type, length, ptr, addr
-+length, ptr, addr
- |============================
- 
- .finding TCP options
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index c8714812532d..d15bf212489d 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -5698,6 +5698,9 @@ ip_hdr_expr		:	IP	ip_hdr_field	close_scope_ip
- 					erec_queue(error(&@1, "unknown ip option type/field"), state->msgs);
- 					YYERROR;
- 				}
-+
-+				if ($4 == IPOPT_FIELD_TYPE)
-+					$$->exthdr.flags = NFT_EXTHDR_F_PRESENT;
- 			}
- 			|	IP	OPTION	ip_option_type close_scope_ip
- 			{
--- 
-2.30.2
+Earlier, it was also discussed about possible security issues on the
+userland side related to different address representation and address
+filtering [3]. But, I don't really think these are the good examples for
+the motivation.
+
+If the v4-mapped-on-v6 addressing control is deemed reasonable, it
+should be better implemented with a new access right for
+LANDLOCK_RULE_NET_PORT rather than a part of socket creation control.
+
+[1] https://man7.org/linux/man-pages/man7/ipv6.7.html
+[2] https://datatracker.ietf.org/doc/html/rfc3493#section-3.7
+[3] https://lwn.net/Articles/688462/
+
+
 
