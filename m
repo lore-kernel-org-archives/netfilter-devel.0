@@ -1,63 +1,63 @@
-Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
+Received: from mail-ej1-f54.google.com (mail-ej1-f54.google.com [209.85.218.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F1B9221DA8;
-	Tue,  4 Feb 2025 19:50:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67756218EA2;
+	Tue,  4 Feb 2025 19:50:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738698610; cv=none; b=n+huP2P5Ky5i8YUBn+ejxprNFOx9rGTisROsr23iZ3NpGQL2JwrBWyXpT4Ta2I3EBC+sYjkQoLoUBV9wBcv6P7gqRHDrzAltQ36IiLSDe9fxc21bjPpp961Czq1GkfWVZPqhaQbtKb3r4SyOXw78JeLStZ26PvTErRyhpdNPqDc=
+	t=1738698613; cv=none; b=DyLF8ThiOSEg0YSZgU5kGNp1q91Hd3ZO2iRl3cS2AwHMVov0e9RlDoP0uN4Si21QUz9RVkGlfqiT4+QJWc6RqlkcKw/8+iWa6cuOTDEwC6nZ+QmefRKE5Ge21lzy6O00bx0i1YDbku7VbX/SgB0Iz9Ob1A6INOIKrYukACgqBlg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738698610; c=relaxed/simple;
-	bh=39VIFP4D9IbEeeXq8mnl1kvP9hcTbyFYvum8SqlkFMw=;
+	s=arc-20240116; t=1738698613; c=relaxed/simple;
+	bh=EMFBUpkmd5COgfTIlW8tvi9/f+9voyjto4Z8+2IBLWU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=cpur3tUPKM3g54BQdxlsfr5DxIZ6DQOb95W+BOmKQ0FOcwitOrw0CiTtO15IAM7lrC+i27y/Is0RN7HdWduDi/vdLN+pXxpTd/iVC+UcDbcItmQ3vzHewG6taCuBuGTustnXoZd4wgKbBOUDJDik2wpwYlekEpwm8fDKBstGT7c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=nmEQyiEV; arc=none smtp.client-ip=209.85.218.42
+	 MIME-Version; b=ejynbUvHJ8kqoWuvp1E/hPc4Ez923qbHgY5ZBnBL5ky90/poYPv3X3JKrBjkOpfaVJBFCkyG36waY/B7a04oxgglU1+NtoQDjvz09/gqW6j3Knd836a2lxkj3mWcM+WM+zf5dKRTEZvlGxS0dFXSBkWmruIZjcjhuRBEJaPFVjc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=lN6w6bnp; arc=none smtp.client-ip=209.85.218.54
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nmEQyiEV"
-Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-ab6ed8a5a04so1003160366b.3;
-        Tue, 04 Feb 2025 11:50:08 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lN6w6bnp"
+Received: by mail-ej1-f54.google.com with SMTP id a640c23a62f3a-ab74ecfdae4so142944966b.2;
+        Tue, 04 Feb 2025 11:50:10 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1738698607; x=1739303407; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1738698609; x=1739303409; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=ywfhqy65gecHUZNjOnVj4qWLVObwqyLJf6dZ8Q6nRgU=;
-        b=nmEQyiEVxU/wIYPv8a0nxpSiOfeSvqBs5DFl0OHWCfOOVu1pUGf8XYZvOP1uUX6mVi
-         J8W1i4omx5Rao1tJgnUl4YkZEAHu9Z4xm3nFVjJj3tqYsu5/Bcm4XsS+eMT7DnBOKDsl
-         fRKgN4oBCgrknNavSFi/WkV1GS/jZmLcpmKpo+Z4smVjAw/BJdnZwCbI82d4ZqpTd7O5
-         S/K3KLdjOKlygU1upAkPuKDJudsZFhHzwP5a1mMMdoHVvM8uqTUD9jwGAdZZhUZAtwuA
-         UGlelPtEWwT6PQRBZJ0/77KUvDVXbsB80ikfhxJocyRCvn68hzJxI3WfSYiItKHeZq+x
-         l5lg==
+        bh=//RthvClo4JzPeEnG1PywSOoZnVfBt6m8pYgKggGTpU=;
+        b=lN6w6bnpjqKCBdet/OSaB8z/osYrgNGaFGmSkHo3I6vzvS3RP89P+PoKN0hfMZ+eaM
+         lT/1/JFg8di+ob2RdHYDZW+YjfrbjcI23f/BOyC89vX5OzvOsaYMD8Ur4uwONuqcGI+z
+         ZzhAeX0y6xetFGMAahoLn8289O607oSIPHthbFWHuJIj047Kbe04LkXj+d0Kq2o9B5AS
+         7Bo9dTnXfP3ZL8EJz4bq9KScRCcRGgYTl7YRH7jrKUavFpS+vmiPL5fDHMlbLStE31FM
+         oy4PhUXsgwm5BBHfE8tlJ2Sq1315CUAfXNHJaoo76x4867fPSEMBEHhJ7LTkXMCQ2Vk+
+         Qq/Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1738698607; x=1739303407;
+        d=1e100.net; s=20230601; t=1738698609; x=1739303409;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=ywfhqy65gecHUZNjOnVj4qWLVObwqyLJf6dZ8Q6nRgU=;
-        b=BJmCUY6E+iFL3lXdTnLxmJtNuP29Tzg+wCYDFCIc30EUsv+FftbNiDvcVsi5dsnoyO
-         EXM/SRFgNpCM8RD0prVCgBphibbxK7P5NpJLcRHKGaDDEiuFID26dX2NY9P2NRSr/xYe
-         ReSgLy2IzLE6CQoVsrkRQvr9fWODnYEzOHkFLK1BgKWtr0voWKBiHycOV7ZTGPRkzuv0
-         ygHoAM1Acnqqd2pxSZZS1zlLIv9aYTjfOgt34Aa2X2EP3VVfrCGU4WNwqBVE+lOLH80r
-         oq0ALIbU8X+JVrfRGO/koZmp5rizdXYHpU4IaMk3aEKt5z5AWqIjSf0jn9DGyIrHIe6H
-         2HZg==
-X-Forwarded-Encrypted: i=1; AJvYcCXwzC0viviI18tLdC4iPF1NXBFLDKArHvqrIfmM6mejlmJuUpkP9khSW/ZI3JPAOYOMN4+6zRBq7EE161d9UwFN@vger.kernel.org, AJvYcCXzV5aezMFihce5aWfgIvyC+RyBoCe34i1Zu/k6gTGiq4S1pJ0Ihn6IVJa9Tyk3Z5UKLvQTmBJM+vOlzCQ=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxQKlG0pSnO2xZJh90+hKa9ZJsxwr4vv0G0yZ8CvhPhzfkHPWBF
-	YevafuGTH1/eFvUrbLcdRM+LLMiy5cGxFV2SziNGrOJlWbnDNWwK
-X-Gm-Gg: ASbGncsmfHL1tp70AMZoIig6l31+3WR5GxeH6ipbhLswUoveeXsGjFbFdu5x6L/ch1B
-	BjYMAjX6W80nxJnVSbKZVjNMV8gj66sOXYA6QHW4A5wTn3vVYJRIO1ce7DIQ/6IkxX+bV/68nm8
-	cLCDJdtk/yDUOc3iqI+QIEQDwz4R/FgT1qj5tAfkxd8gZtm5WZBiktiYpVwrivCb04wZAeZZDLP
-	MqNDskLkg/90InDP1bSUWdiK35C5BS5SdbiW4dGuucoEFZsJcrRlFrXay6i2s4gmLnL7+MMX/ax
-	hfBhwA/sankiY0mPdPTKVgXQvTKSk21FrZjcFCqMziFVYaoctXN60NamXo82LvheVIFzOKZULl8
-	8GEZ0kxIegqIspVTx1LbHBc4IzSx//MNg
-X-Google-Smtp-Source: AGHT+IGsgydU2KJZsQJKjW2M6pU0tBQARxBwA2aC5NBjQPJ77IzmtjFUycypBk8vhFGyrZ07vWPvDQ==
-X-Received: by 2002:a17:907:94d5:b0:ab7:590a:7759 with SMTP id a640c23a62f3a-ab7590a7769mr193968666b.33.1738698606582;
-        Tue, 04 Feb 2025 11:50:06 -0800 (PST)
+        bh=//RthvClo4JzPeEnG1PywSOoZnVfBt6m8pYgKggGTpU=;
+        b=QS1xkQRRRsLGpaj2GDnpyxIFL/ujTT5tLtCCmSO76w4IhcU3JJm5aYt8G4MSjSCme5
+         nCXml6wB4joKXD+1e251gyiWQync4Ui5MfCgRZURnvQzzQVM1DPIAgBmoan1IGm/OZEz
+         tnBD895hpLgp446YHeYgcm5zFo58z3/0sVDaihgZkDBC1u5wOoJ8iSiCwXN5lukzsnBw
+         YIP/brWkBgjBYCpwm2eZE6N6dxFJqQdhXp6JGy3wY9YjB1ttM+NyEXtACMc/uTuyvulI
+         39JGKcvlRwv1DlB543Uc+PGgZFSlK4umIvk6f7ekUh0gVrt5+gMiR70Bhrq9FoYAKMjy
+         p/MA==
+X-Forwarded-Encrypted: i=1; AJvYcCUpq3c0AN0KVv5qdFli6TdlDYdd7BrOB9MiSxY2j+U0gpkogZl2nSuOEuo8vu7JFpOEkVM+gP7iwvLZwZXcld4W@vger.kernel.org, AJvYcCVvsHSxEC2Q8fnsHUglbEeDq8LQL7J6nCEumSbQzneUg3ZeyBTJYhHUeUUjZLcdzyWi1Kui3/GLaqsZnQA=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxp++EMZ5JUhrRaLpv837V9hCwvKe/o9zy6x6f5/SWcLXer2dQc
+	yyFOVA6MRazqK0YdxeCg1Hjsdrj0b9AufQ2vb1/2jr7uw3PgWD8q
+X-Gm-Gg: ASbGncsd8hNW0qielPNokFq9Npvxr5DkRnhd3hxX8oiga+2+HXfmN1kANqxNXEFNW5d
+	U29Rgt9gWA92p/6eR6LCSftHS5mKStX0wjhVQ/4vpfCclJIwS/pY/DBH5gC0DWCokbWv/MBoRW7
+	2WTaKjsOA8icXVTEg5h2d2CxHtjaVkKxjTmx0zZ7rPS17GhvX0SG8a01qIrpGIklH8Vq2olTyHB
+	t1L3GgZoC3QrkEj2ZSwbWOZ7i8TjY/3qtegq5hUwf3FljmU+KoxcfbsOnJV7cP4M1sP6OsCZg9p
+	zMxy2HFsJtonunz3IvFiEVhKtjv4hzxcoAq5UyOSppE9v0KWxRGT9uBaQ/wyVmgtJlK8ZKovf4C
+	pB3MIqBa9z5NUDww5RywNyESojNSXLiWt
+X-Google-Smtp-Source: AGHT+IGt/6VgWu/uR4UpsMkru0toFiQ+1d3xhaiHmAvPsdOeeBceqic1mQLjOAWdzpkUw3jzvfdFrQ==
+X-Received: by 2002:a17:907:9714:b0:ab6:621e:7587 with SMTP id a640c23a62f3a-ab6cfcb3a0amr3155424666b.4.1738698608664;
+        Tue, 04 Feb 2025 11:50:08 -0800 (PST)
 Received: from corebook.localdomain (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ab6e4a5635bsm964684466b.164.2025.02.04.11.50.05
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ab6e4a5635bsm964684466b.164.2025.02.04.11.50.07
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 04 Feb 2025 11:50:06 -0800 (PST)
+        Tue, 04 Feb 2025 11:50:08 -0800 (PST)
 From: Eric Woudstra <ericwouds@gmail.com>
 To: Andrew Lunn <andrew+netdev@lunn.ch>,
 	"David S. Miller" <davem@davemloft.net>,
@@ -89,9 +89,9 @@ Cc: netdev@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org,
 	linux-mediatek@lists.infradead.org,
 	Eric Woudstra <ericwouds@gmail.com>
-Subject: [PATCH v5 net-next 12/14] bridge: No DEV_PATH_BR_VLAN_UNTAG_HW for dsa foreign
-Date: Tue,  4 Feb 2025 20:49:19 +0100
-Message-ID: <20250204194921.46692-13-ericwouds@gmail.com>
+Subject: [PATCH v5 net-next 13/14] bridge: Introduce DEV_PATH_BR_VLAN_KEEP_HW for bridge-fastpath
+Date: Tue,  4 Feb 2025 20:49:20 +0100
+Message-ID: <20250204194921.46692-14-ericwouds@gmail.com>
 X-Mailer: git-send-email 2.47.1
 In-Reply-To: <20250204194921.46692-1-ericwouds@gmail.com>
 References: <20250204194921.46692-1-ericwouds@gmail.com>
@@ -103,169 +103,92 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-In network setup as below:
+This patch introduces DEV_PATH_BR_VLAN_KEEP_HW. It is needed in the
+bridge fastpath for switchdevs supporting SWITCHDEV_OBJ_ID_PORT_VLAN.
 
-             fastpath bypass
- .----------------------------------------.
-/                                          \
-|                        IP - forwarding    |
-|                       /                \  v
-|                      /                  wan ...
-|                     /
-|                     |
-|                     |
-|                   brlan.1
-|                     |
-|    +-------------------------------+
-|    |           vlan 1              |
-|    |                               |
-|    |     brlan (vlan-filtering)    |
-|    |               +---------------+
-|    |               |  DSA-SWITCH   |
-|    |    vlan 1     |               |
-|    |      to       |               |
-|    |   untagged    1     vlan 1    |
-|    +---------------+---------------+
-.         /                   \
- ----->wlan1                 lan0
-       .                       .
-       .                       ^
-       ^                     vlan 1 tagged packets
-     untagged packets
+It is similar to DEV_PATH_BR_VLAN_TAG, with the correcponding bit in
+ingress_vlans set.
 
-br_vlan_fill_forward_path_mode() sets DEV_PATH_BR_VLAN_UNTAG_HW when
-filling in from brlan.1 towards wlan1. But it should be set to
-DEV_PATH_BR_VLAN_UNTAG in this case. Using BR_VLFLAG_ADDED_BY_SWITCHDEV
-is not correct. The dsa switchdev adds it as a foreign port.
-
-The same problem for all foreignly added dsa vlans on the bridge.
-
-First add the vlan, trying only native devices.
-If this fails, we know this may be a vlan from a foreign device.
-
-Use BR_VLFLAG_TAGGING_BY_SWITCHDEV to make sure DEV_PATH_BR_VLAN_UNTAG_HW
-is set only when there if no foreign device involved.
+In the forward fastpath it is not needed.
 
 Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
 ---
- include/net/switchdev.h   |  1 +
- net/bridge/br_private.h   | 10 ++++++++++
- net/bridge/br_switchdev.c | 15 +++++++++++++++
- net/bridge/br_vlan.c      |  7 ++++++-
- net/switchdev/switchdev.c |  2 +-
- 5 files changed, 33 insertions(+), 2 deletions(-)
+ include/linux/netdevice.h        |  1 +
+ net/bridge/br_device.c           |  4 ++++
+ net/bridge/br_vlan.c             | 18 +++++++++++-------
+ net/netfilter/nft_flow_offload.c |  3 +++
+ 4 files changed, 19 insertions(+), 7 deletions(-)
 
-diff --git a/include/net/switchdev.h b/include/net/switchdev.h
-index 8346b0d29542..ee500706496b 100644
---- a/include/net/switchdev.h
-+++ b/include/net/switchdev.h
-@@ -15,6 +15,7 @@
- #define SWITCHDEV_F_NO_RECURSE		BIT(0)
- #define SWITCHDEV_F_SKIP_EOPNOTSUPP	BIT(1)
- #define SWITCHDEV_F_DEFER		BIT(2)
-+#define SWITCHDEV_F_NO_FOREIGN		BIT(3)
- 
- enum switchdev_attr_id {
- 	SWITCHDEV_ATTR_ID_UNDEFINED,
-diff --git a/net/bridge/br_private.h b/net/bridge/br_private.h
-index a0b950390a16..b950db453d8d 100644
---- a/net/bridge/br_private.h
-+++ b/net/bridge/br_private.h
-@@ -180,6 +180,7 @@ enum {
- 	BR_VLFLAG_MCAST_ENABLED = BIT(2),
- 	BR_VLFLAG_GLOBAL_MCAST_ENABLED = BIT(3),
- 	BR_VLFLAG_NEIGH_SUPPRESS_ENABLED = BIT(4),
-+	BR_VLFLAG_TAGGING_BY_SWITCHDEV = BIT(5),
- };
- 
- /**
-@@ -2184,6 +2185,8 @@ void br_switchdev_mdb_notify(struct net_device *dev,
- 			     int type);
- int br_switchdev_port_vlan_add(struct net_device *dev, u16 vid, u16 flags,
- 			       bool changed, struct netlink_ext_ack *extack);
-+int br_switchdev_port_vlan_no_foreign_add(struct net_device *dev, u16 vid, u16 flags,
-+					  bool changed, struct netlink_ext_ack *extack);
- int br_switchdev_port_vlan_del(struct net_device *dev, u16 vid);
- void br_switchdev_init(struct net_bridge *br);
- 
-@@ -2267,6 +2270,13 @@ static inline int br_switchdev_port_vlan_add(struct net_device *dev, u16 vid,
- 	return -EOPNOTSUPP;
- }
- 
-+static inline int br_switchdev_port_vlan_no_foreign_add(struct net_device *dev, u16 vid,
-+							u16 flags, bool changed,
-+							struct netlink_ext_ack *extack)
-+{
-+	return -EOPNOTSUPP;
-+}
-+
- static inline int br_switchdev_port_vlan_del(struct net_device *dev, u16 vid)
- {
- 	return -EOPNOTSUPP;
-diff --git a/net/bridge/br_switchdev.c b/net/bridge/br_switchdev.c
-index 7b41ee8740cb..efa7a055b8f9 100644
---- a/net/bridge/br_switchdev.c
-+++ b/net/bridge/br_switchdev.c
-@@ -187,6 +187,21 @@ int br_switchdev_port_vlan_add(struct net_device *dev, u16 vid, u16 flags,
- 	return switchdev_port_obj_add(dev, &v.obj, extack);
- }
- 
-+int br_switchdev_port_vlan_no_foreign_add(struct net_device *dev, u16 vid, u16 flags,
-+					  bool changed, struct netlink_ext_ack *extack)
-+{
-+	struct switchdev_obj_port_vlan v = {
-+		.obj.orig_dev = dev,
-+		.obj.id = SWITCHDEV_OBJ_ID_PORT_VLAN,
-+		.obj.flags = SWITCHDEV_F_NO_FOREIGN,
-+		.flags = flags,
-+		.vid = vid,
-+		.changed = changed,
-+	};
-+
-+	return switchdev_port_obj_add(dev, &v.obj, extack);
-+}
-+
- int br_switchdev_port_vlan_del(struct net_device *dev, u16 vid)
- {
- 	struct switchdev_obj_port_vlan v = {
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index 872235e30629..5a7b0843dfad 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -868,6 +868,7 @@ struct net_device_path {
+ 				DEV_PATH_BR_VLAN_TAG,
+ 				DEV_PATH_BR_VLAN_UNTAG,
+ 				DEV_PATH_BR_VLAN_UNTAG_HW,
++				DEV_PATH_BR_VLAN_KEEP_HW,
+ 			}		vlan_mode;
+ 			u16		vlan_id;
+ 			__be16		vlan_proto;
+diff --git a/net/bridge/br_device.c b/net/bridge/br_device.c
+index c7646afc8b96..112fd8556217 100644
+--- a/net/bridge/br_device.c
++++ b/net/bridge/br_device.c
+@@ -430,6 +430,10 @@ static int br_fill_forward_path(struct net_device_path_ctx *ctx,
+ 	case DEV_PATH_BR_VLAN_UNTAG:
+ 		ctx->num_vlans--;
+ 		break;
++	case DEV_PATH_BR_VLAN_KEEP_HW:
++		if (!src)
++			path->bridge.vlan_mode = DEV_PATH_BR_VLAN_KEEP;
++		break;
+ 	case DEV_PATH_BR_VLAN_KEEP:
+ 		break;
+ 	}
 diff --git a/net/bridge/br_vlan.c b/net/bridge/br_vlan.c
-index 07dae3655c26..3e50adaf8e1b 100644
+index 3e50adaf8e1b..8ac1a7a22b2e 100644
 --- a/net/bridge/br_vlan.c
 +++ b/net/bridge/br_vlan.c
-@@ -109,6 +109,11 @@ static int __vlan_vid_add(struct net_device *dev, struct net_bridge *br,
- 	/* Try switchdev op first. In case it is not supported, fallback to
- 	 * 8021q add.
- 	 */
-+	err = br_switchdev_port_vlan_no_foreign_add(dev, v->vid, flags, false, extack);
-+	if (err != -EOPNOTSUPP) {
-+		v->priv_flags |= BR_VLFLAG_ADDED_BY_SWITCHDEV | BR_VLFLAG_TAGGING_BY_SWITCHDEV;
-+		return err;
+@@ -1494,13 +1494,17 @@ int br_vlan_fill_forward_path_mode(struct net_bridge *br,
+ 	if (!(v->flags & BRIDGE_VLAN_INFO_UNTAGGED))
+ 		return 0;
+ 
+-	if (path->bridge.vlan_mode == DEV_PATH_BR_VLAN_TAG)
+-		path->bridge.vlan_mode = DEV_PATH_BR_VLAN_KEEP;
+-	else if (v->priv_flags & BR_VLFLAG_TAGGING_BY_SWITCHDEV)
+-		path->bridge.vlan_mode = DEV_PATH_BR_VLAN_UNTAG_HW;
+-	else
+-		path->bridge.vlan_mode = DEV_PATH_BR_VLAN_UNTAG;
+-
++	if (path->bridge.vlan_mode == DEV_PATH_BR_VLAN_TAG) {
++		if (v->priv_flags & BR_VLFLAG_TAGGING_BY_SWITCHDEV)
++			path->bridge.vlan_mode = DEV_PATH_BR_VLAN_KEEP_HW;
++		else
++			path->bridge.vlan_mode = DEV_PATH_BR_VLAN_KEEP;
++	} else {
++		if (v->priv_flags & BR_VLFLAG_TAGGING_BY_SWITCHDEV)
++			path->bridge.vlan_mode = DEV_PATH_BR_VLAN_UNTAG_HW;
++		else
++			path->bridge.vlan_mode = DEV_PATH_BR_VLAN_UNTAG;
 +	}
- 	err = br_switchdev_port_vlan_add(dev, v->vid, flags, false, extack);
- 	if (err == -EOPNOTSUPP)
- 		return vlan_vid_add(dev, br->vlan_proto, v->vid);
-@@ -1491,7 +1496,7 @@ int br_vlan_fill_forward_path_mode(struct net_bridge *br,
+ 	return 0;
+ }
  
- 	if (path->bridge.vlan_mode == DEV_PATH_BR_VLAN_TAG)
- 		path->bridge.vlan_mode = DEV_PATH_BR_VLAN_KEEP;
--	else if (v->priv_flags & BR_VLFLAG_ADDED_BY_SWITCHDEV)
-+	else if (v->priv_flags & BR_VLFLAG_TAGGING_BY_SWITCHDEV)
- 		path->bridge.vlan_mode = DEV_PATH_BR_VLAN_UNTAG_HW;
- 	else
- 		path->bridge.vlan_mode = DEV_PATH_BR_VLAN_UNTAG;
-diff --git a/net/switchdev/switchdev.c b/net/switchdev/switchdev.c
-index 6488ead9e464..c48f66643e99 100644
---- a/net/switchdev/switchdev.c
-+++ b/net/switchdev/switchdev.c
-@@ -749,7 +749,7 @@ static int __switchdev_handle_port_obj_add(struct net_device *dev,
- 	/* Event is neither on a bridge nor a LAG. Check whether it is on an
- 	 * interface that is in a bridge with us.
- 	 */
--	if (!foreign_dev_check_cb)
-+	if (!foreign_dev_check_cb || port_obj_info->obj->flags & SWITCHDEV_F_NO_FOREIGN)
- 		return err;
- 
- 	br = netdev_master_upper_dev_get(dev);
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index c95fad495460..c0c310c569cd 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -148,6 +148,9 @@ static void nft_dev_path_info(const struct net_device_path_stack *stack,
+ 			case DEV_PATH_BR_VLAN_UNTAG_HW:
+ 				info->ingress_vlans |= BIT(info->num_encaps - 1);
+ 				break;
++			case DEV_PATH_BR_VLAN_KEEP_HW:
++				info->ingress_vlans |= BIT(info->num_encaps);
++				fallthrough;
+ 			case DEV_PATH_BR_VLAN_TAG:
+ 				info->encap[info->num_encaps].id = path->bridge.vlan_id;
+ 				info->encap[info->num_encaps].proto = path->bridge.vlan_proto;
 -- 
 2.47.1
 
