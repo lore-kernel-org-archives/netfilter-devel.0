@@ -1,89 +1,92 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f41.google.com (mail-lf1-f41.google.com [209.85.167.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AEF021506E
-	for <netfilter-devel@vger.kernel.org>; Thu,  6 Feb 2025 11:55:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE07A18B477
+	for <netfilter-devel@vger.kernel.org>; Thu,  6 Feb 2025 12:02:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738842925; cv=none; b=qNwhJCsKDYDLlKDFdVooB2O2HBy+G4fwjEEkgzQILYfAEusH2qBQkavOisPUInTmtJg6ozjOMxAZc/lHQ8Ov/Fd2N57qFOeEkNnRN49HZea2ejKcOY1IPv+QrDaWM9DeATsPIQI0wqBigs9XQEyg4IpFoTiyCnGcOqVBkI9W3do=
+	t=1738843372; cv=none; b=H8E50ARWt6wGaRPzxaxHW5t9ZAG2ZOkXBb2+RpS2xkDEpbIfsVknRC0zCHwuDQKrVaBAcXNvHBxwKFtG3NK+6VoLl3qUyMKGNb4vDf4/NkyuKJFCrHE6muvipQM53DjhjR0YvDTNpsK6X1UqqCVVxlzQyXj/qzrlBiC9DEoI83s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738842925; c=relaxed/simple;
-	bh=ui3lBP1N07GVITAe5HQ0VCfa8wl5/IBNkN2kSAcA0ZA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Cn8UmJxvL98jp/cFHLnYtoey1Dcy/HMG/bttCiH0ByzzLHkv3tdzXtroq+UGceZYt2S3ISWXPn9m1SVq/xEA7VyjnlbHX/LQxhs/jLVcT1sjb3HX9dTlUll6SDW4xXXd3gkNVzBxoDr2mlO/1b4WtI3Jxi20tY8cHyVZX6bsdbw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=DV5+adnY; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=DV5+adnY; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1738843372; c=relaxed/simple;
+	bh=vWTC+nlqlVbeeyYDH5W7ranj/auVVsmaJdOmLpc0i04=;
+	h=Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:
+	 Message-Id:References:To; b=pM3prilLui/Cr7gzFb3S7PkIx7cqngzecjJDtzDFNxtvKZUVSW97dkK6/XqpFpHjN6yK5XrOKjpU60RqX5lJLM+v/DapXdE0lsa4YwEOl3Ea34pZM8h7FyC9vtsHcrcfbCa/nasW7s/91Y2LC+cEnDvY23cMH+vAdB+DhLtcR9s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hDVeVWEb; arc=none smtp.client-ip=209.85.167.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="DV5+adnY";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="DV5+adnY"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id D2F7F6058D; Thu,  6 Feb 2025 12:55:15 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1738842915;
-	bh=fTiD4+QkpctvT0bx5WnkBDmayvik9uZDAYCNRgfDcxg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=DV5+adnYyg7Aui35J9nCRj36Zb9IKHgGSuVd/+ECO/f/9BDxEo7tKvbscvYIe9a/c
-	 Cgz6AZ4RQnTgfO6Hfc0ZOs7+7xAjQJzJI3bTMktO2ftbN9cxcOPMU3u6vmQ49HqYoe
-	 XqgHlXKvw8FYjyKEs8aJQW8OCs+fmBcT9yS6EtKPdQjZHP/K+LedQs1yhhgcXydT4D
-	 Hxu6G4JyOdpke/5LP8f0BqUAwWZ+BzDRRV+x3u0a2l2hVE38rkrFKXKC5JnQEKDQcj
-	 6ekXJRyPZE+xo9KONY0nFNILVxKsSoqCqKwcPNMtKITe2T0tUD5HMMdaPdkt/pC8tD
-	 DBkHhagU/VBMQ==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 453CB6058D;
-	Thu,  6 Feb 2025 12:55:15 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1738842915;
-	bh=fTiD4+QkpctvT0bx5WnkBDmayvik9uZDAYCNRgfDcxg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=DV5+adnYyg7Aui35J9nCRj36Zb9IKHgGSuVd/+ECO/f/9BDxEo7tKvbscvYIe9a/c
-	 Cgz6AZ4RQnTgfO6Hfc0ZOs7+7xAjQJzJI3bTMktO2ftbN9cxcOPMU3u6vmQ49HqYoe
-	 XqgHlXKvw8FYjyKEs8aJQW8OCs+fmBcT9yS6EtKPdQjZHP/K+LedQs1yhhgcXydT4D
-	 Hxu6G4JyOdpke/5LP8f0BqUAwWZ+BzDRRV+x3u0a2l2hVE38rkrFKXKC5JnQEKDQcj
-	 6ekXJRyPZE+xo9KONY0nFNILVxKsSoqCqKwcPNMtKITe2T0tUD5HMMdaPdkt/pC8tD
-	 DBkHhagU/VBMQ==
-Date: Thu, 6 Feb 2025 12:55:12 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Alexey Kashavkin <akashavkin@gmail.com>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft 2/2] parser_bison: turn redudant ip option type field
- match into boolean
-Message-ID: <Z6SjIEKagIkqvo57@calendula>
-References: <20250131104716.492246-1-pablo@netfilter.org>
- <20250131104716.492246-2-pablo@netfilter.org>
- <D068290E-A9A3-4CD3-9C75-413626D540D6@gmail.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hDVeVWEb"
+Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-5439e331cceso1044701e87.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 06 Feb 2025 04:02:50 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1738843369; x=1739448169; darn=vger.kernel.org;
+        h=to:references:message-id:content-transfer-encoding:cc:date
+         :in-reply-to:from:subject:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=vWTC+nlqlVbeeyYDH5W7ranj/auVVsmaJdOmLpc0i04=;
+        b=hDVeVWEbOPM79t0qjeuDusOh3hcYbZAQwwbjjxOpHOxghiouACdAzQ6IzSHaRg0wLK
+         Cb4A9lfJnTIgy+xT3vbgdT0X38/Ak8tSVJboaWKRloJFVrK/xj4ZaKEfzgZDU1sdMnu7
+         bkXDh9K3bUJ7yg4gfCihmnzdr+0GzUchbmXeLUe4UfVmSIYNX1zSpGRt4xnqiYMt3ADw
+         Jy9PhqKQG2X/0xfXbOUA3TeTntYkXVKl0pReR0FR6eW2wRSLtaTq8lzGQktqyYA7ddr4
+         GNFETz9rzM8+oJw8e9+aGNesllFyRw8oPS7pu2jpMHFoA2MouDXaUo5Nxrulv3E0tsVl
+         nEAw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1738843369; x=1739448169;
+        h=to:references:message-id:content-transfer-encoding:cc:date
+         :in-reply-to:from:subject:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=vWTC+nlqlVbeeyYDH5W7ranj/auVVsmaJdOmLpc0i04=;
+        b=boMXk086Fg6lcFr9S11xFtUCIGitscMk7mR1zqucjUID86N+SD4BwhyF/2oWcbIGTU
+         0rDz5wFgsbTKGyWHpetWtLNj1lYjiL90ButK7Q0eFc65cGDz6H46xibWYcon5T1p6osQ
+         wUV5mnZeeFncdgZdqdBU2DcgLWj+HbenmuwlLpLjNTsCeqxZvtJDVI7Yw7tBxo4SXnFm
+         ceij+zadIFhDG2uXsgSYshpt4eybpIWodltyposZ01xjctv9/95nuYOZScrJySATOohE
+         KyBrv+G2/8HyTuONslOkYzuOHeY8W8Kwkee4I9e7axVLGYoB2sXF5rqxjCtpUvlBSJSK
+         pFjw==
+X-Gm-Message-State: AOJu0Yx5Thg/XVYbnvrfp/l0emCXwMeU2gqZa+RelwQ5pbknVlGBeU5c
+	jDW5h0Rzi8jg+P41vEfA7y0JTZqnxkO7AWgRZt6Lt3QInYRGWVnyDLL/Js9m
+X-Gm-Gg: ASbGncusGqacdVJj8VcP5edHeYszs++86iZhqouOU7kbUPFeVEgSw9C31sNoI9QaLvq
+	gIeUvF346TbE5tlGo0Rb6u13AcKAeCRBO4AOLwKqP7KO+Fkhey8maXA0pmLG4gGDZ8/rQXKRRS7
+	sIcaISt6s/4RUFUhq6dPLfV/bHrhqVxWDqtCczbNDi+Uc2V6x9hhJJcfyjEuf91fEemidY3m1V6
+	PBr25/8HyOxv5kn9s8uyRb3RyPagqYJje8Iy+FJPXBLtkONE7P9S82cO7EZlK7kDvsDQiu3oecM
+	bhli16UGJJPqrpMnDSMPrriQFf8E6MSAcTsO
+X-Google-Smtp-Source: AGHT+IFZ3J6FEug8FIBRIwRFfdSq5i6IPUaGHRCOl+tsmLmd/e5n6pYC+nuipuOkrrXfk0jjR3HpQQ==
+X-Received: by 2002:a05:6512:3a95:b0:543:e406:6367 with SMTP id 2adb3069b0e04-544059f9c87mr2288748e87.4.1738843368703;
+        Thu, 06 Feb 2025 04:02:48 -0800 (PST)
+Received: from smtpclient.apple ([195.16.41.104])
+        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-544105bf6e4sm114590e87.155.2025.02.06.04.02.48
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 06 Feb 2025 04:02:48 -0800 (PST)
+Content-Type: text/plain;
+	charset=us-ascii
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <D068290E-A9A3-4CD3-9C75-413626D540D6@gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3776.700.51\))
+Subject: Re: [PATCH nft 2/2] parser_bison: turn redudant ip option type field
+ match into boolean
+From: Alexey Kashavkin <akashavkin@gmail.com>
+In-Reply-To: <Z6SjIEKagIkqvo57@calendula>
+Date: Thu, 6 Feb 2025 15:02:38 +0300
+Cc: netfilter-devel@vger.kernel.org
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <5A90BD87-D18D-44FE-B504-FCDB279BB252@gmail.com>
+References: <20250131104716.492246-1-pablo@netfilter.org>
+ <20250131104716.492246-2-pablo@netfilter.org>
+ <D068290E-A9A3-4CD3-9C75-413626D540D6@gmail.com> <Z6SjIEKagIkqvo57@calendula>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+X-Mailer: Apple Mail (2.3776.700.51)
 
-Hi,
+Hi Pablo,
 
-On Wed, Feb 05, 2025 at 03:29:10PM +0300, Alexey Kashavkin wrote:
-> I suggest adding the following note about the addr field.
-> 
-> diff --git a/doc/payload-expression.txt b/doc/payload-expression.txt
-> index 7bc24a8a..9a7ac396 100644
-> --- a/doc/payload-expression.txt
-> +++ b/doc/payload-expression.txt
-> @@ -820,6 +820,8 @@ Strict Source Route |
->  type, length, ptr, addr
->  |============================
->  
-> +Note: Only the first IP address is specified in the addr field.
+Yes, I agree. If a template field like IPOPT_FIELD_ADDR_N with the =
+required offset will be added.
 
-It should be not too complicated to extend this to match on any
-address.
+> On 6 Feb 2025, at 14:55, Pablo Neira Ayuso <pablo@netfilter.org> =
+wrote:
+>=20
+> It should be not too complicated to extend this to match on any
+> address.
 
-> +
->  .finding TCP options
->  --------------------
->  filter input tcp option sack-perm exists counter
-> 
-> 
+
