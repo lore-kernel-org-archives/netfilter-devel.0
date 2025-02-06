@@ -1,64 +1,64 @@
-Received: from mail-ej1-f49.google.com (mail-ej1-f49.google.com [209.85.218.49])
+Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02D264F5E0
-	for <netfilter-devel@vger.kernel.org>; Thu,  6 Feb 2025 14:21:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE6B11C700C
+	for <netfilter-devel@vger.kernel.org>; Thu,  6 Feb 2025 14:22:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738851709; cv=none; b=Go+4g47QqcqjQ5BixaNViZhr+xcoCttCrST7MYGAAdLQUmHc4IQg06r/0uFbeUHFbi6rFRRja1K+MZWAUb8ugx+iWoxgK41VNSHfZ7F4ANBQgO5wrTAnUux9Fin6t0UBfU7YI4lpvPOdCF0hfBSF4FQiuUrsbe6zCXR+jS5uR7Q=
+	t=1738851725; cv=none; b=bwo5TBRaSJuTWkY5optOPftAWJ/M7MBMoJ9xalZ8FlhMveoc46M3Y+CroFRZGSysVs3nX3gfdDUh1Rtncd+iWDWThXvZZbs37jCNtDB0F0abOXoj/ZZyeFfi4jvF0ySWtMJZqQcbKg/pbFnLDLmp8rg2vW+hIT8H/fYW2Kn/wv0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738851709; c=relaxed/simple;
-	bh=/TJhMhlC9yfWlzDzdRKnoTLdE7CVcxNUHvoHyyqOcac=;
+	s=arc-20240116; t=1738851725; c=relaxed/simple;
+	bh=Qaii/4wx+f4RmmjpA6Oq2TvM5/xDsmQW0adSKnoxq2E=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=LoaDTXhYy0O58SBpK08sjkmEjlFLCD5x4KXffaFt0FuMNq+9VqTI+azjpajqJsCXiTe4BQYjBgguFCsVY0JZdaGBH1ptZf0nh60aKHii3qZKK7Yepc8Mx6f+o+Br1g5xnEb/lIRQxxKTGn9AlusTcav8/UdRV4+kRWWlGjScPlU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=blackwall.org; spf=none smtp.mailfrom=blackwall.org; dkim=pass (2048-bit key) header.d=blackwall-org.20230601.gappssmtp.com header.i=@blackwall-org.20230601.gappssmtp.com header.b=esM5+Wbz; arc=none smtp.client-ip=209.85.218.49
+	 In-Reply-To:Content-Type; b=CsHGLkT6r0huumcHKFp21Rtg9ThI0c20iH9fzl8+Zf74s0LGWhsw+aB2U9EhhDoxta5s4n6YSHDdT+RqTKVMPw7KiwcQGE2zDVa+b2G6mam0uvUxXmX0vtRau41qOT9r0PL+1svnWW8MYVaAgX9AeGo61NceO90B2pXym9Q2vYs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=blackwall.org; spf=none smtp.mailfrom=blackwall.org; dkim=pass (2048-bit key) header.d=blackwall-org.20230601.gappssmtp.com header.i=@blackwall-org.20230601.gappssmtp.com header.b=MO050eGm; arc=none smtp.client-ip=209.85.208.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=blackwall.org
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=blackwall.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=blackwall-org.20230601.gappssmtp.com header.i=@blackwall-org.20230601.gappssmtp.com header.b="esM5+Wbz"
-Received: by mail-ej1-f49.google.com with SMTP id a640c23a62f3a-ab6f636d821so175578266b.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 06 Feb 2025 06:21:46 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=blackwall-org.20230601.gappssmtp.com header.i=@blackwall-org.20230601.gappssmtp.com header.b="MO050eGm"
+Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-5de3c29ebaeso211144a12.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 06 Feb 2025 06:22:03 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=blackwall-org.20230601.gappssmtp.com; s=20230601; t=1738851705; x=1739456505; darn=vger.kernel.org;
+        d=blackwall-org.20230601.gappssmtp.com; s=20230601; t=1738851722; x=1739456522; darn=vger.kernel.org;
         h=content-transfer-encoding:in-reply-to:from:content-language
          :references:cc:to:subject:user-agent:mime-version:date:message-id
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=qzREIBb+bKP5i/Ck51DCfeo3RpAWV5APsV60x0FMqs4=;
-        b=esM5+WbzOkLXd84M4aNxR/9+gAtddG4eZ5otCj0Q6vC2mEP8QnUTcVsAG7KU0VKMOr
-         TMGEiddouSjPve9lC67WCOeL7bbAQCxAUJCIc+BlqymgcLYsFDtmErtpcNKGvOX5ac+B
-         PRnvgnGf5V+q2U9dAKqP9xe9D/W2gxVM4MjKdXpuqgzlMUyEaSKCkNJsQcmQcRN3UngP
-         LbaQBI2YhVs9SY5xUzXFUKkMLLnzKmw+2AoopfFNbc206YsRHt8WOGMmiXu/fRRT1gWi
-         UA0QHd7BoxeR5dyMgagkv127PqjRNH9TEyHWUGxCSx7jwFOBgNDkljKlynKGgogzlsN4
-         71vA==
+        bh=AtE/V7UyaqCUm/jEvMcWRgFAvov74MHFiHvUqv3+ay4=;
+        b=MO050eGmjK/sLxg+xPlq38AlkYnYkbbKteI/rJ0aqIRCdPLKnY2rMuCebzO6HhcGzB
+         D8ews4ueLmM0QiITwODmLDz/PjSwMEi076XIe9NIkH/e9AMjpSmc0Ug63G8Jj7OZ9dNn
+         e3N2VbEFys4pdIpZ2TB+HwMT+6Q8ADiK5iTlWeAYlJCt+eDKrfKy2tW5B/aaWOcce0lJ
+         dAzr56scpiMlO41OqLg3wuIcDOo1yku3CcVAx83AzgtTdQLRb5euOk1iVmissu8QH6oY
+         iFymGu0QkWAZsBepxsRZ1gG+rmOSl//AZ2rPiasiPYLRZVyaRcOWPbo2XH/HrdgJgDbt
+         IaMw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1738851705; x=1739456505;
+        d=1e100.net; s=20230601; t=1738851722; x=1739456522;
         h=content-transfer-encoding:in-reply-to:from:content-language
          :references:cc:to:subject:user-agent:mime-version:date:message-id
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=qzREIBb+bKP5i/Ck51DCfeo3RpAWV5APsV60x0FMqs4=;
-        b=BEbEVC8OrXOAKFx7ogQZBIayHpWDGI+4h8aOFI+ukDsWN/Fq3hVk58Z/Iv8Q92neTr
-         0OhqfaIG3ak7nC48h6u3EGQuTc3ae5o0rL7dNZyuIIgV1fH9NLw0Gk99H+AAM4KbXRYy
-         I24uxzOVaBKVYIF3q+rV6aIxxdnrQwU+EYu8YNnp1oqvfOiZyMJnpgOz/iasLDIo0xE+
-         pCvbwXDq7GmfTZcoSS0uc7+LuLxCDBi9KtXX7RyD+iu0g0S4FYnQV30mn6A8M9Gu9kuV
-         O7gnwWJ1Hirp+rsgP1X5uD5drNOdg3TSiTZKTUUIyacxFNHDqzBOWWrECcDhpKmnefxf
-         x0lQ==
-X-Forwarded-Encrypted: i=1; AJvYcCWnRNBrZtxifoAiI+rzIdMK9VEkx3dHoX1b/RnNo6ZCqOwub5WEYnUAomod1TyA23oB0JVR7igZuENpD1Qlk1A=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz12NxzNHKjOaaEiqFDLXcdV80dvdrQaHtakxM8LvDScsTxhPn2
-	hcmEeP8U+r1+/I4gRhCZfb4ffNcStjRpuZRRIcue08E2AsPMbnGBCVmDMNU1P4I=
-X-Gm-Gg: ASbGncv6y4dIHXpDrQl8VKgkCV+IUzzWPxhzBOK11adLzTbbrMLuqqBWEiKxiwLdwkW
-	Xl7JOcTm4b/U3nDDkJH8drTO2f5fUA2e/J0qzt4aXhsPcMH6fXInBtF+C2ahXK9gYFnEs6S58D6
-	XQp93AGLu4Ltyw4mMrGqsK0Scv3fxaNFH0BSLRK/ZZPhJLThNeCWFeVvCi2Pzz+9/OR2hYCsROw
-	mxyVpR+F3awIYCEWaciHKQyFZDD5J4KOzXTB68rQOaB516POFaoALOkpxweoelQKv8Uv1TBFeFR
-	rRvWRv6k9oB48V78OgFqpiYJmPV27wX9f4CVAIcTVEnL71g=
-X-Google-Smtp-Source: AGHT+IHYDakGj/X5YiewxYiKiang3LLrhidWY47Oe3DTivu/rcwezti/yOY3bxt3zD/zpLuTb7KrqA==
-X-Received: by 2002:a17:906:6a16:b0:ab6:f59e:8737 with SMTP id a640c23a62f3a-ab75e262320mr699358866b.27.1738851705010;
-        Thu, 06 Feb 2025 06:21:45 -0800 (PST)
+        bh=AtE/V7UyaqCUm/jEvMcWRgFAvov74MHFiHvUqv3+ay4=;
+        b=ZqvS+9hOhjBz/5fx/bWOOtsY0zhfqcyq1jgpLUEF5ymu8o5Nc+Olh5jU/qCeoikK/k
+         eawqaAiozPblSUdM8kQyI6vgsltiJk9wBxim7hKhnrVNnGduj6X5Qi9BBqPtFFDgaQrD
+         WtHpUZYSyAdZl15pPORSt2KcwnyLHFVMKetsKdVdaQ6zCyggMxhuiT2/il1HwrJg+kUI
+         YtDP2UAJC2Ya5WQYyGfscdkztHHI+H3T/CLNx3+0PFdZXBTp9QCxeUC9UIg/3KNOI9Cy
+         Z+aPBKNTR1ei4hjGGFcp8+bXZx+L4U3ByRMWtAl2qxr27JI1RB3yrz4CrlCm8FbYbdD/
+         WDRQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVyPW5QkBxtm7IsAXc+jKLlDJBLTQMtm6Dd+80PdZn7ZG3Xt1FUl4sLU3TQOJcPwlJvluxF4+MnTLOw89GRMXs=@vger.kernel.org
+X-Gm-Message-State: AOJu0YwOYRYzzCYlnyqkTkxqZKU79foC1oZSiHVWjth3d93CYBtivagO
+	YzkZqzA1wAeMnj8+9dOlLevTk0O0Y6dHCmVTjyHjOhAVbKjYpmKf7wuNqGEuX9s=
+X-Gm-Gg: ASbGnctWuT0eXtsZtJRArabyXOyAVz3U5nmg8g2HQHZBzRBOaeve9mcU/aMgpkUaa7K
+	QDGdfd7MXydw2DSy3x4FOU/+Nd5gEWr570bE09YT3ES7inQMTbF/YZDJDrsJ1Qyr2WD+OEnMnKK
+	0XkqZI4+tHE6Ob0lwWkEAhGYaaKO6VYVtA3LuLU9XlSLQULiMz+v9dFlYuqJjpOdaTu2JqNjH4W
+	Nsh5skJoWWH7+gxpuWb8dh1hjEiuIjqPgSYUMTSlYyf/VYzBmRWuB5nYcpkPcT35C1sfKAG5WWV
+	OYUiuB/FnobU3G0pY1cBavXyXKba0FkKu2N37crnGlBFtJo=
+X-Google-Smtp-Source: AGHT+IEe7WdSsNkjgnty/HyvHskjlhljY6wt44W4IMiUaDBB3MI2H2nfwFKZUIVfpj7A/eSHa7SXrA==
+X-Received: by 2002:a05:6402:4486:b0:5db:f423:19b9 with SMTP id 4fb4d7f45d1cf-5dcdb72958cmr8121194a12.16.1738851721184;
+        Thu, 06 Feb 2025 06:22:01 -0800 (PST)
 Received: from [192.168.0.205] (78-154-15-142.ip.btc-net.bg. [78.154.15.142])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ab7732e70bfsm106144666b.104.2025.02.06.06.21.43
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-5dcf1b85a3fsm941354a12.46.2025.02.06.06.21.59
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 06 Feb 2025 06:21:44 -0800 (PST)
-Message-ID: <fef59299-aac3-41b1-9783-3a3f35dbb7ac@blackwall.org>
-Date: Thu, 6 Feb 2025 16:21:42 +0200
+        Thu, 06 Feb 2025 06:22:00 -0800 (PST)
+Message-ID: <cd2926cf-b32b-4de7-851e-97a3ce2118af@blackwall.org>
+Date: Thu, 6 Feb 2025 16:21:58 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -66,8 +66,8 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5 net-next 05/14] bridge: Add filling forward path from
- port to port
+Subject: Re: [PATCH v5 net-next 12/14] bridge: No DEV_PATH_BR_VLAN_UNTAG_HW
+ for dsa foreign
 To: Eric Woudstra <ericwouds@gmail.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
  "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
  Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
@@ -88,28 +88,65 @@ Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
  bridge@lists.linux.dev, linux-arm-kernel@lists.infradead.org,
  linux-mediatek@lists.infradead.org
 References: <20250204194921.46692-1-ericwouds@gmail.com>
- <20250204194921.46692-6-ericwouds@gmail.com>
+ <20250204194921.46692-13-ericwouds@gmail.com>
 Content-Language: en-US
 From: Nikolay Aleksandrov <razor@blackwall.org>
-In-Reply-To: <20250204194921.46692-6-ericwouds@gmail.com>
+In-Reply-To: <20250204194921.46692-13-ericwouds@gmail.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 2/4/25 21:49, Eric Woudstra wrote:
-> If a port is passed as argument instead of the master, then:
+> In network setup as below:
 > 
-> At br_fill_forward_path(): find the master and use it to fill the
-> forward path.
+>              fastpath bypass
+>  .----------------------------------------.
+> /                                          \
+> |                        IP - forwarding    |
+> |                       /                \  v
+> |                      /                  wan ...
+> |                     /
+> |                     |
+> |                     |
+> |                   brlan.1
+> |                     |
+> |    +-------------------------------+
+> |    |           vlan 1              |
+> |    |                               |
+> |    |     brlan (vlan-filtering)    |
+> |    |               +---------------+
+> |    |               |  DSA-SWITCH   |
+> |    |    vlan 1     |               |
+> |    |      to       |               |
+> |    |   untagged    1     vlan 1    |
+> |    +---------------+---------------+
+> .         /                   \
+>  ----->wlan1                 lan0
+>        .                       .
+>        .                       ^
+>        ^                     vlan 1 tagged packets
+>      untagged packets
 > 
-> At br_vlan_fill_forward_path_pvid(): lookup vlan group from port
-> instead.
+> br_vlan_fill_forward_path_mode() sets DEV_PATH_BR_VLAN_UNTAG_HW when
+> filling in from brlan.1 towards wlan1. But it should be set to
+> DEV_PATH_BR_VLAN_UNTAG in this case. Using BR_VLFLAG_ADDED_BY_SWITCHDEV
+> is not correct. The dsa switchdev adds it as a foreign port.
+> 
+> The same problem for all foreignly added dsa vlans on the bridge.
+> 
+> First add the vlan, trying only native devices.
+> If this fails, we know this may be a vlan from a foreign device.
+> 
+> Use BR_VLFLAG_TAGGING_BY_SWITCHDEV to make sure DEV_PATH_BR_VLAN_UNTAG_HW
+> is set only when there if no foreign device involved.
 > 
 > Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
 > ---
->  net/bridge/br_device.c  | 19 ++++++++++++++-----
->  net/bridge/br_private.h |  2 ++
->  net/bridge/br_vlan.c    |  6 +++++-
->  3 files changed, 21 insertions(+), 6 deletions(-)
+>  include/net/switchdev.h   |  1 +
+>  net/bridge/br_private.h   | 10 ++++++++++
+>  net/bridge/br_switchdev.c | 15 +++++++++++++++
+>  net/bridge/br_vlan.c      |  7 ++++++-
+>  net/switchdev/switchdev.c |  2 +-
+>  5 files changed, 33 insertions(+), 2 deletions(-)
 > 
 
 Acked-by: Nikolay Aleksandrov <razor@blackwall.org>
