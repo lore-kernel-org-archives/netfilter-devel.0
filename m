@@ -1,56 +1,56 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90CD132C8B
-	for <netfilter-devel@vger.kernel.org>; Fri,  7 Feb 2025 09:54:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 454DB185B5F
+	for <netfilter-devel@vger.kernel.org>; Fri,  7 Feb 2025 09:54:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738922070; cv=none; b=sP+aZ/mmloBceGs/td2RGBBC/fhIBvdpv88XvgZoFEEqKj0G7ZOzbG4ngLx0uB8f+3s32fEmYNv65/99NmGpq0TzWgM2xWWTD8lQbpImgP0LmIET6YdYxgPMv1PO2yBUdUIJWd2guK2qGC7mgKsPJJ2Ll6FLp63F/rDmLJQeTAI=
+	t=1738922073; cv=none; b=NaK2au3nYvuUdaTgXQTEMcypRfweMXyfGe70WRGHCXKDaQGMxLwTxxokykJ0VrcZPy+JEKhqy8XHpt2Gp0l0Ajr5iXjnvpmzdXPdobsQ3PzohMllGLboLYD9z2JPE0G4gOfmzYf+uTN8feWYVBCugGkN/jwUiyd7k4LndC0ynl4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738922070; c=relaxed/simple;
-	bh=7UfNAcWlNNP2kUR42CqrbcLpxObvZW1AB3ZpYf1NOdU=;
+	s=arc-20240116; t=1738922073; c=relaxed/simple;
+	bh=PMPOBQ2A+rbMFFP+cVTgDGnexDDDC8+yWvF8hilbBAw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=OcmRXqB10WiJq49+CgpqagWb6wUZ2i65Ke59/+CwXGsD14hGT72nhoIM4TTbysTsLWZOf9ypIL36BaHvDS+8SDuxtHKNS6VICzBqI7wTtHBZsQ1H95Ha0QsII9GMJW6tlP8MnNw4XkACYeb8nEktTxGkhcl95E33pAJOp0rqfSs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=LTHw4Ljj; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=LTHw4Ljj; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=lamJzGJcOoeQOPshbuTtM0TsIAKXivIOC08j/fUbjORWDtNhubYijCuBSSiZEkc3TDVaCixI1SugZQg0RfKZBPYfReJ6m/1/a4nsAV4zAEzHURAcn/0j+io1ZX5iE9G/60Pyuhkq88stb+JqmHayG2CoDVQhCKkPFLSPGk4vLFo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ryAFtCg1; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=rKqFMU3T; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="LTHw4Ljj";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="LTHw4Ljj"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ryAFtCg1";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="rKqFMU3T"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id F027B6058E; Fri,  7 Feb 2025 10:54:16 +0100 (CET)
+	id 6808F60594; Fri,  7 Feb 2025 10:54:28 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1738922056;
-	bh=jye69p3AG4xnT9kAHTBJoAP7Dp1tU8adp5YTVgywKW0=;
+	s=2025; t=1738922068;
+	bh=rORJNuOKp+qE4c/CHmNh/v5BSORPtVYaqlb88zdlRXY=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=LTHw4LjjsGMhWtyE7svTRW5SQUbjcCu9Jz/KrfJge33E8NRb0c6idjdC2KFqeXBk+
-	 dni+51Yc+z3AZxV3xsPsQwucbaMwqAewdTBceIsIAlharAaLVuDkHjh200abst2JTV
-	 SzYWFUSXKFIfMoi9dMTJ+L+wfpGXSf1LAPfxo75yiSnr/lKJqgALW5sGLVxX6DJnTP
-	 +KlOdh4QU5tPKId4OG6Tc5DNUv+93gntnEamnys7U6DsABzbdTYWpB/qtCXBhs94Gi
-	 9qJRB5TiSTzrfy1ACmOu6uX4JyKeXkl7doI0vjjy2kKh7ZMierTclUHzIcHaeML3bQ
-	 MI7jTGHBlylnQ==
+	b=ryAFtCg1YK3j/qR3e42T3DrGyrUjELykdt+oTHUXvCBpaJOW1z/8s1XiXy7T9imu+
+	 1vo+xouDm28NM3g+uLgZaGx3KwdwS9U8NL4st+fJbu/g9aw4CbDdqql363v5UYlR5S
+	 76s9bslK3w6CceShBi26sHytgepzBLfjHVVpp37l4OLQ/IrWTk5E1aTWqFXbOI1ujW
+	 LkYnvriy+r95Rf46S/bv6efJeu0FC/Fo14pHISmWGdXIEaQdd7QJh2TUW1gRMrmaU/
+	 n6L3bVGXLpKtaUxHcevhlpxinoh16jvR3OfVu3J9FJLB35IeY6KPaT9h+5UNiNIEKi
+	 VihD066/tMA5A==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id D99826058E;
-	Fri,  7 Feb 2025 10:54:15 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id BFAFC60590;
+	Fri,  7 Feb 2025 10:54:27 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1738922056;
-	bh=jye69p3AG4xnT9kAHTBJoAP7Dp1tU8adp5YTVgywKW0=;
+	s=2025; t=1738922067;
+	bh=rORJNuOKp+qE4c/CHmNh/v5BSORPtVYaqlb88zdlRXY=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=LTHw4LjjsGMhWtyE7svTRW5SQUbjcCu9Jz/KrfJge33E8NRb0c6idjdC2KFqeXBk+
-	 dni+51Yc+z3AZxV3xsPsQwucbaMwqAewdTBceIsIAlharAaLVuDkHjh200abst2JTV
-	 SzYWFUSXKFIfMoi9dMTJ+L+wfpGXSf1LAPfxo75yiSnr/lKJqgALW5sGLVxX6DJnTP
-	 +KlOdh4QU5tPKId4OG6Tc5DNUv+93gntnEamnys7U6DsABzbdTYWpB/qtCXBhs94Gi
-	 9qJRB5TiSTzrfy1ACmOu6uX4JyKeXkl7doI0vjjy2kKh7ZMierTclUHzIcHaeML3bQ
-	 MI7jTGHBlylnQ==
-Date: Fri, 7 Feb 2025 10:54:13 +0100
+	b=rKqFMU3T1s1mMQ72ccneFUpgei6ogd2C8Fm/qM3Zepwk9H5LsWSix8J5NgO5ArgPk
+	 TCrE0E6rz8rDml29Acp1P5G/tzhOoXmsVRSHj52L9N+cpduHeMA2VZjHnY7SCHjRfL
+	 8Q51MX1dwr7dKJyCvzzrO8E0qPNGnD6YijUnnwy6w751x/gJ7seRstVGiS7vhtLYaq
+	 BkfIWOPrfB16j5YfsrhfiqWdOa+QBmY1mmtCqn3dLcagvZBomDXZDj9Fl9suWGjqhs
+	 7Wd8H9VqDkJxpXO1AJtu/xVV25UC5lYDF7gOAZIWA2LuF98O1HnyjbBnk7vu1QSygM
+	 hlbO/vqB6beiA==
+Date: Fri, 7 Feb 2025 10:54:24 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, Sunny73Cr <Sunny73Cr@protonmail.com>
-Subject: Re: [PATCH nft 1/3] netlink_delinarize: fix bogus munging of mask
- value
-Message-ID: <Z6XYRU-KObYW-w3M@calendula>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft 2/3] src: add and use payload_expr_trim_force
+Message-ID: <Z6XYULCcpB0ZoFPO@calendula>
 References: <20250130174718.6644-1-fw@strlen.de>
+ <20250130174718.6644-2-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -59,79 +59,37 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250130174718.6644-1-fw@strlen.de>
+In-Reply-To: <20250130174718.6644-2-fw@strlen.de>
 
-On Thu, Jan 30, 2025 at 06:47:12PM +0100, Florian Westphal wrote:
-> Given following input:
-> table ip t {
->  chain c {
->   @ih,58,6 set 0 @ih,86,6 set 0 @ih,170,22 set 0
->  }
-> }
+On Thu, Jan 30, 2025 at 06:47:13PM +0100, Florian Westphal wrote:
+> Previous commit fixed erroneous handling of raw expressions when RHS sets
+> a zero value.
 > 
-> nft will produce following output:
-> chain c {
->  @ih,48,16 set @ih,48,16 & 0x3f @ih,80,16 set @ih,80,16 & 0x3f0 @ih,160,32 set @ih,160,32 & 0x3fffff
-> }
+> Input: @ih,58,6 set 0 @ih,86,6 set 0 @ih,170,22 set 0
+> Output:@ih,48,16 set @ih,48,16 & 0xffc0 @ih,80,16 set \
+> 	@ih,80,16 & 0xfc0f @ih,160,32 set @ih,160,32 & 0xffc00000
 > 
-> The input side is correct, the generated expressions sent to kernel are:
+> After this patch, this will instead display:
 > 
-> 1  [ payload load 2b @ inner header + 6 => reg 1 ]
-> 2  [ bitwise reg 1 = ( reg 1 & 0x0000c0ff ) ^ 0x00000000 ]
-> 3  [ payload write reg 1 => 2b @ inner header + 6 .. ]
-> 4  [ payload load 2b @ inner header + 10 => reg 1 ]
-> 5  [ bitwise reg 1 = ( reg 1 & 0x00000ffc ) ^ 0x00000000 ]
-> 6  [ payload write reg 1 => 2b @ inner header + 10 .. ]
-> 7  [ payload load 4b @ inner header + 20 => reg 1 ]
-> 8  [ bitwise reg 1 = ( reg 1 & 0x0000c0ff ) ^ 0x00000000 ]
-> 9  [ payload write reg 1 => 4b @ inner header + 20 .. ]
+> @ih,58,6 set 0x0 @ih,86,6 set 0x0 @ih,170,22 set 0x0
 > 
-> @ih,58,6 set 0 <- Zero 6 bits, starting with bit 58
+> payload_expr_trim_force() only works when the payload has no known
+> protocol (template) attached, i.e. will be printed as raw payload syntax.
 > 
-> Changes to inner header mandate a checksum update, which only works for
-> even byte counts (except for last byte in the payload).
+> It performs sanity checks on @mask and then adjusts the payload expression
+> length and offset according to the mask.
 > 
-> Thus, we load 2b at offet 6. (16bits, offset 48).
+> Also add this check in __binop_postprocess() so we can also discard masks
+> when matching, e.g.
 > 
-> Because we want to zero 6 bits, we need a mask that retains 10 bits and
-> clears 6: b1111111111000000 (first 8 bit retains 48-57, last 6 bit clear
-> 58-63).  The '0xc0ff' is not correct, but thats because debug output comes
-> from libnftnl which prints values in host byte order, the value will be
-> interpreted as big endian on kernel side, so this will do the right thing.
+> '@ih,7,5 2' becomes '@ih,7,5 0x2', not '@ih,0,16 & 0xffc0 == 0x20'.
 > 
-> Next, same problem:
+> binop_postprocess now returns if it performed an action or not; if this
+> returns true then arguments might have been freed so callers must no longer
+> refer to any of the expressions attached to the binop.
 > 
-> @ih,86,6 set 0 <- Zero 6 bits, starting with bit 86.
+> Next patch adds test cases for this.
 > 
-> nft needs to round down to even-sized byte offset, 10, then retain first
-> 6 bits (80 + 6 == 86), then clear 6 bits (86-91), then keep 4 more as-is
-> (92-95).
-> 
-> So mask is 0xfc0f (in big endian) would be correct (b1111110000001111).
-> 
-> Last expression, @ih,170,22 set 0, asks to clear 22 bits starting with bit
-> 170, nft correctly rounds this down to a 32 bit read at offset 160.
-> 
-> Required mask keeps first 10 bits, then clears 22
-> (b11111111110000000000000000000000).  Required mask would be 0xffc00000,
-> which corresponds to the wrong-endian-printed value in line 8 above.
-> 
-> Now that we convinced ourselves that the input side is correct, fix up
-> netlink delinearize to undo the mask alterations if we can't find a
-> template to print a human-readable payload expression.
-> 
-> With this patch, we get this output:
-> 
->   @ih,48,16 set @ih,48,16 & 0xffc0 @ih,80,16 set @ih,80,16 & 0xfc0f @ih,160,32 set @ih,160,32 & 0xffc00000
-> 
-> ... which isn't ideal.  We should fixup the payload expression to display
-> the same output as the input, i.e. adjust payload->len and offset as per
-> mask and discard the mask instead.
-> 
-> This will be done in a followup patch.
-> 
-> Fixes: 50ca788ca4d0 ("netlink: decode payload statment")
-> Reported-by: Sunny73Cr <Sunny73Cr@protonmail.com>
 > Signed-off-by: Florian Westphal <fw@strlen.de>
 
-Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org> 
