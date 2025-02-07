@@ -1,110 +1,137 @@
-Received: from mail-ej1-f53.google.com (mail-ej1-f53.google.com [209.85.218.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B710223642D
-	for <netfilter-devel@vger.kernel.org>; Thu,  6 Feb 2025 14:41:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90CD132C8B
+	for <netfilter-devel@vger.kernel.org>; Fri,  7 Feb 2025 09:54:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738852913; cv=none; b=PGhEXp9A23Ssn5hPtqcAw2njIQDD6JUtHA/XQTcTJ10dDqMS2Z+rvAwjGSy2idWKwUX9pkFstG82Tyow4S8dtljInhcUuwSyUPY9R7/qvh0KEGE2HrUG1c2HECnGEL+BvH2e68JKeYvbSnfN9GO7pzbSkspCV4/jHUNNSyIh+Vw=
+	t=1738922070; cv=none; b=sP+aZ/mmloBceGs/td2RGBBC/fhIBvdpv88XvgZoFEEqKj0G7ZOzbG4ngLx0uB8f+3s32fEmYNv65/99NmGpq0TzWgM2xWWTD8lQbpImgP0LmIET6YdYxgPMv1PO2yBUdUIJWd2guK2qGC7mgKsPJJ2Ll6FLp63F/rDmLJQeTAI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738852913; c=relaxed/simple;
-	bh=S9K6uTA8VvFJVDz2rVYNypE/HkViC5gyXPCZe+4fWCY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=L9IEO8H019fTr8fpQ3eb37WsoIbM6p4mPp/djrj36FPKRt4gsU8ARFNutTkQqlMiht72XzLI1CE7aZS9F0Ph29oYTwdv9B1QLiJn0URb+KkZMn+t92ShgWfThF77eMgKTANJ6OUS468RpoCAxZhd47tnO0Xz5/0ZhpNA5H1/mBU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=blackwall.org; spf=none smtp.mailfrom=blackwall.org; dkim=pass (2048-bit key) header.d=blackwall-org.20230601.gappssmtp.com header.i=@blackwall-org.20230601.gappssmtp.com header.b=JOBP/0KZ; arc=none smtp.client-ip=209.85.218.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=blackwall.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=blackwall.org
+	s=arc-20240116; t=1738922070; c=relaxed/simple;
+	bh=7UfNAcWlNNP2kUR42CqrbcLpxObvZW1AB3ZpYf1NOdU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=OcmRXqB10WiJq49+CgpqagWb6wUZ2i65Ke59/+CwXGsD14hGT72nhoIM4TTbysTsLWZOf9ypIL36BaHvDS+8SDuxtHKNS6VICzBqI7wTtHBZsQ1H95Ha0QsII9GMJW6tlP8MnNw4XkACYeb8nEktTxGkhcl95E33pAJOp0rqfSs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=LTHw4Ljj; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=LTHw4Ljj; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=blackwall-org.20230601.gappssmtp.com header.i=@blackwall-org.20230601.gappssmtp.com header.b="JOBP/0KZ"
-Received: by mail-ej1-f53.google.com with SMTP id a640c23a62f3a-aaf0f1adef8so202621066b.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 06 Feb 2025 06:41:50 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=blackwall-org.20230601.gappssmtp.com; s=20230601; t=1738852909; x=1739457709; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=8rlKArYVbbfkMOQLEil2R2SAvQ0afSCP1rUmme1+B8A=;
-        b=JOBP/0KZwJTL4OAEzcMMzeYVdD9Fn7PboeocOe7uLQvvolYpUOsop6tmOXVHcYY7Kl
-         O8Ti8vXT/WDgfevii2bBizGUNgwvrxHpck4HewmDIaTsofCK+tjL/PW+bAtDJQJNLkY8
-         qlydJ8Qf0eMU5OIMwKhFogbQLAPaQ8124us+XO6kE1J1MnchsoEJa9Dy4rB+xCPxh/NP
-         SIGrBp0ZvQ3PCQeZWuEzsOLpcBLN797PM4dfId/yxqSPKwdkuR8Yk7+AEQqurXWmM3Yc
-         U8K0bJolFHaP9vWzcbJWOBaqjoiipFW8jZOavQHJl4xGAOTl30jEAw28hGbitcQ4Gzc+
-         P6ng==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1738852909; x=1739457709;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=8rlKArYVbbfkMOQLEil2R2SAvQ0afSCP1rUmme1+B8A=;
-        b=STFIXfUIwD4BPH9NF4eF2FGvPi895iFD0qIeDfbdYe6toMg6b8AKQJonRYqU2xTcWr
-         aB1pmSprD6T3+CMNlWuBWRsyqASOcgqb5KI44l7mf0Ow7AhYw81ovvysVPRYP6Vh/2Ka
-         jwcg+w+ob3dM5PWtM8ehO9j/7YNveZcIhwiNqOXNWBcU278BM80mDijbhhqD4SGu+uKI
-         5sXOoGW0lQrH1yEmS6avoeA3kAD6kXzpEeqEeLfkfGrjrnezoXXWvqwSguQL0mBKsVWB
-         udOrc8SKLGajadu62H/GNiU5xPhI8K+B/E0OmY0Ohq5H/mK2tuF4E0hAItR2vnDceUwP
-         y46g==
-X-Forwarded-Encrypted: i=1; AJvYcCUdSxl4hTFziE14I773b4sY0s0F6EVUJPEkH7A7jIyvhuJzgu7vSdZ0HFyKLpKKXmORvIrUy/hhMUFvWzVpfic=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yzcoy6LEKj2520VAiFI4BbXnO188VXUFrHjyEOBi+X1z/Uwpqyq
-	hflOw4vCdy2jrJExb0Vs+CeSJFNoBivxBzq57jXrqPqjkWkIj/9u+m7qUW+7mtM=
-X-Gm-Gg: ASbGncstObOmn5dR5pq9jYVWSZlQvpgEZBxjMJl71TpHhJtY+a8strI0r2eLikMIGkw
-	+JpXzQLlKp49DZNTD6YIvuwsKRB9zvXjotfGs6CLEr/BXnlKFrq0kETd8qk3IDRDKlpA/qi+jsl
-	taSZ86dbzjBEEegPWhO7Ajsj7Nr7lpeIe5mGJJCZMCyTQTLlsrHHqnIbpoe/Z4gsBHnk/onHqBx
-	onBElUDbznAhu2osHiGsL+cFTKKFZ+faNkd6VP7ZuXLwcQ+UksCOpbtjYm38VNkYzaagqpuoHHe
-	tfW8UmSeTgktfnbsHAwzRw/ixSTHYsYa9mNGLoo5gjvbZ7c=
-X-Google-Smtp-Source: AGHT+IGYS6d4HsD5MEqTfuQgUgTGOYMkujVYUnjTnyeKJRhPZPj1m191dnJjgGKyqlpsKlnGfxYIDA==
-X-Received: by 2002:a17:907:c23:b0:aa6:a7ef:7f1f with SMTP id a640c23a62f3a-ab75e233e41mr751067866b.11.1738852909025;
-        Thu, 06 Feb 2025 06:41:49 -0800 (PST)
-Received: from [192.168.0.205] (78-154-15-142.ip.btc-net.bg. [78.154.15.142])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ab772f484acsm109660266b.11.2025.02.06.06.41.47
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 06 Feb 2025 06:41:48 -0800 (PST)
-Message-ID: <ffcafced-51a2-4a09-ba45-1aafc8f39081@blackwall.org>
-Date: Thu, 6 Feb 2025 16:41:46 +0200
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="LTHw4Ljj";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="LTHw4Ljj"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id F027B6058E; Fri,  7 Feb 2025 10:54:16 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1738922056;
+	bh=jye69p3AG4xnT9kAHTBJoAP7Dp1tU8adp5YTVgywKW0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=LTHw4LjjsGMhWtyE7svTRW5SQUbjcCu9Jz/KrfJge33E8NRb0c6idjdC2KFqeXBk+
+	 dni+51Yc+z3AZxV3xsPsQwucbaMwqAewdTBceIsIAlharAaLVuDkHjh200abst2JTV
+	 SzYWFUSXKFIfMoi9dMTJ+L+wfpGXSf1LAPfxo75yiSnr/lKJqgALW5sGLVxX6DJnTP
+	 +KlOdh4QU5tPKId4OG6Tc5DNUv+93gntnEamnys7U6DsABzbdTYWpB/qtCXBhs94Gi
+	 9qJRB5TiSTzrfy1ACmOu6uX4JyKeXkl7doI0vjjy2kKh7ZMierTclUHzIcHaeML3bQ
+	 MI7jTGHBlylnQ==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id D99826058E;
+	Fri,  7 Feb 2025 10:54:15 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1738922056;
+	bh=jye69p3AG4xnT9kAHTBJoAP7Dp1tU8adp5YTVgywKW0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=LTHw4LjjsGMhWtyE7svTRW5SQUbjcCu9Jz/KrfJge33E8NRb0c6idjdC2KFqeXBk+
+	 dni+51Yc+z3AZxV3xsPsQwucbaMwqAewdTBceIsIAlharAaLVuDkHjh200abst2JTV
+	 SzYWFUSXKFIfMoi9dMTJ+L+wfpGXSf1LAPfxo75yiSnr/lKJqgALW5sGLVxX6DJnTP
+	 +KlOdh4QU5tPKId4OG6Tc5DNUv+93gntnEamnys7U6DsABzbdTYWpB/qtCXBhs94Gi
+	 9qJRB5TiSTzrfy1ACmOu6uX4JyKeXkl7doI0vjjy2kKh7ZMierTclUHzIcHaeML3bQ
+	 MI7jTGHBlylnQ==
+Date: Fri, 7 Feb 2025 10:54:13 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, Sunny73Cr <Sunny73Cr@protonmail.com>
+Subject: Re: [PATCH nft 1/3] netlink_delinarize: fix bogus munging of mask
+ value
+Message-ID: <Z6XYRU-KObYW-w3M@calendula>
+References: <20250130174718.6644-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5 net-next 11/14] netfilter: nft_flow_offload: No
- ingress_vlan forward info for dsa user port
-To: Eric Woudstra <ericwouds@gmail.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Simon Horman <horms@kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>,
- Jozsef Kadlecsik <kadlec@netfilter.org>, Jiri Pirko <jiri@resnulli.us>,
- Ivan Vecera <ivecera@redhat.com>, Roopa Prabhu <roopa@nvidia.com>,
- Matthias Brugger <matthias.bgg@gmail.com>,
- AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
- Kuniyuki Iwashima <kuniyu@amazon.com>,
- Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
- Lorenzo Bianconi <lorenzo@kernel.org>, Joe Damato <jdamato@fastly.com>,
- Alexander Lobakin <aleksander.lobakin@intel.com>,
- Vladimir Oltean <olteanv@gmail.com>,
- Frank Wunderlich <frank-w@public-files.de>,
- Daniel Golle <daniel@makrotopia.org>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- bridge@lists.linux.dev, linux-arm-kernel@lists.infradead.org,
- linux-mediatek@lists.infradead.org
-References: <20250204194921.46692-1-ericwouds@gmail.com>
- <20250204194921.46692-12-ericwouds@gmail.com>
-Content-Language: en-US
-From: Nikolay Aleksandrov <razor@blackwall.org>
-In-Reply-To: <20250204194921.46692-12-ericwouds@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20250130174718.6644-1-fw@strlen.de>
 
-On 2/4/25 21:49, Eric Woudstra wrote:
-> The bitfield info->ingress_vlans and correcponding vlan encap are used for
-> a switchdev user port. However, they should not be set for a dsa user port.
+On Thu, Jan 30, 2025 at 06:47:12PM +0100, Florian Westphal wrote:
+> Given following input:
+> table ip t {
+>  chain c {
+>   @ih,58,6 set 0 @ih,86,6 set 0 @ih,170,22 set 0
+>  }
+> }
 > 
-> Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
-> ---
->  net/netfilter/nft_flow_offload.c | 5 +++++
->  1 file changed, 5 insertions(+)
+> nft will produce following output:
+> chain c {
+>  @ih,48,16 set @ih,48,16 & 0x3f @ih,80,16 set @ih,80,16 & 0x3f0 @ih,160,32 set @ih,160,32 & 0x3fffff
+> }
 > 
+> The input side is correct, the generated expressions sent to kernel are:
+> 
+> 1  [ payload load 2b @ inner header + 6 => reg 1 ]
+> 2  [ bitwise reg 1 = ( reg 1 & 0x0000c0ff ) ^ 0x00000000 ]
+> 3  [ payload write reg 1 => 2b @ inner header + 6 .. ]
+> 4  [ payload load 2b @ inner header + 10 => reg 1 ]
+> 5  [ bitwise reg 1 = ( reg 1 & 0x00000ffc ) ^ 0x00000000 ]
+> 6  [ payload write reg 1 => 2b @ inner header + 10 .. ]
+> 7  [ payload load 4b @ inner header + 20 => reg 1 ]
+> 8  [ bitwise reg 1 = ( reg 1 & 0x0000c0ff ) ^ 0x00000000 ]
+> 9  [ payload write reg 1 => 4b @ inner header + 20 .. ]
+> 
+> @ih,58,6 set 0 <- Zero 6 bits, starting with bit 58
+> 
+> Changes to inner header mandate a checksum update, which only works for
+> even byte counts (except for last byte in the payload).
+> 
+> Thus, we load 2b at offet 6. (16bits, offset 48).
+> 
+> Because we want to zero 6 bits, we need a mask that retains 10 bits and
+> clears 6: b1111111111000000 (first 8 bit retains 48-57, last 6 bit clear
+> 58-63).  The '0xc0ff' is not correct, but thats because debug output comes
+> from libnftnl which prints values in host byte order, the value will be
+> interpreted as big endian on kernel side, so this will do the right thing.
+> 
+> Next, same problem:
+> 
+> @ih,86,6 set 0 <- Zero 6 bits, starting with bit 86.
+> 
+> nft needs to round down to even-sized byte offset, 10, then retain first
+> 6 bits (80 + 6 == 86), then clear 6 bits (86-91), then keep 4 more as-is
+> (92-95).
+> 
+> So mask is 0xfc0f (in big endian) would be correct (b1111110000001111).
+> 
+> Last expression, @ih,170,22 set 0, asks to clear 22 bits starting with bit
+> 170, nft correctly rounds this down to a 32 bit read at offset 160.
+> 
+> Required mask keeps first 10 bits, then clears 22
+> (b11111111110000000000000000000000).  Required mask would be 0xffc00000,
+> which corresponds to the wrong-endian-printed value in line 8 above.
+> 
+> Now that we convinced ourselves that the input side is correct, fix up
+> netlink delinearize to undo the mask alterations if we can't find a
+> template to print a human-readable payload expression.
+> 
+> With this patch, we get this output:
+> 
+>   @ih,48,16 set @ih,48,16 & 0xffc0 @ih,80,16 set @ih,80,16 & 0xfc0f @ih,160,32 set @ih,160,32 & 0xffc00000
+> 
+> ... which isn't ideal.  We should fixup the payload expression to display
+> the same output as the input, i.e. adjust payload->len and offset as per
+> mask and discard the mask instead.
+> 
+> This will be done in a followup patch.
+> 
+> Fixes: 50ca788ca4d0 ("netlink: decode payload statment")
+> Reported-by: Sunny73Cr <Sunny73Cr@protonmail.com>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-Reviewed-by: Nikolay Aleksandrov <razor@blackwall.org>
-
-
+Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
