@@ -1,39 +1,40 @@
-Received: from mout.gmx.net (mout.gmx.net [212.227.17.22])
+Received: from mout.gmx.net (mout.gmx.net [212.227.17.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6529F9DA
-	for <netfilter-devel@vger.kernel.org>; Sat,  8 Feb 2025 13:46:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.22
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5B91F9DA
+	for <netfilter-devel@vger.kernel.org>; Sat,  8 Feb 2025 13:48:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.20
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739022411; cv=none; b=PmYtacPseoYUhqYcUbDOE2TeKJ/Z4eCpPjJ1wrmmFj/gTWO2EwNkfb98EJtFUQfYG6V8Sr0B0naKM57iOBdoBN+e5Z3JGtSTLhSkIg7veDynq52kMoGroRFR0eW+HHjxujovqQGuglwhn4kQ5/9Xx+i4bSrqWT4FmUEGJBmwrZI=
+	t=1739022541; cv=none; b=Eb9FscuDeto70z/4lCAGki87F05QOgVpJCaMZZUCaZDVrcAEYJckZFA2Yty+w+ynB4nqUFmWht0mbliVKIHhoHSBzPEkksUpk7Cx1quBcGpOTnPBE0/RPPMem3TZMuriqdgszdDMVHqoJbag/wz5cTxRSFFbZ5MYU8jMCvWfhiY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739022411; c=relaxed/simple;
-	bh=KyGnZOLtGsZvXUZ5F/+gyc2V4bIh39o2C7MehqYnbG0=;
-	h=Message-ID:Date:MIME-Version:From:Subject:To:Content-Type; b=VyoT96eObSdsvh8rR8mX/93YYaBWFBisKHbMs/57LHJg0i3jWxKH622fHH5LYdHhk3WGYNUqxSjUmuRfZhUw85tUoSy+9e8Es3mUl9KXS2mtm/Cxz2lJwf08fNVwg0azH9NgHVAHsdfZ0WorNHvWwhBSZIvbaX109fqYTIHyrrU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b=kv5Y1ro7; arc=none smtp.client-ip=212.227.17.22
+	s=arc-20240116; t=1739022541; c=relaxed/simple;
+	bh=X0EyMgSqUCzChH1F7+va9tJWcUywb1K9S+Gkp7C2g8M=;
+	h=Message-ID:Date:MIME-Version:Subject:From:To:References:
+	 In-Reply-To:Content-Type; b=k2h7II5bRcwoHctkd8C55UF0G9PQJ71329vNNnqxP7M3JFDVjis3BR60myVTFiJGFikNDSkVfz54P7hYdn3jWXxphaqNghv/srsSCSgArvcyJphFw6QYWHIlDV28jNTa+SPzSYD7TmbOpNJVskhHYjXUBMmQD2afzivYAGXrvEs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b=Jll24lGW; arc=none smtp.client-ip=212.227.17.20
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b="kv5Y1ro7"
+	dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b="Jll24lGW"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
-	s=s31663417; t=1739022407; x=1739627207; i=corubba@gmx.de;
-	bh=pz6ebX/T0ReqTxEzliA5xwhinAd8cFd9disN8aWR90A=;
-	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:From:Subject:To:
-	 Content-Type:Content-Transfer-Encoding:cc:
+	s=s31663417; t=1739022537; x=1739627337; i=corubba@gmx.de;
+	bh=xk5PgUXKt4yALLAJG4QtS6t7LqIDER652rGlMDTU+zw=;
+	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:From:To:
+	 References:In-Reply-To:Content-Type:Content-Transfer-Encoding:cc:
 	 content-transfer-encoding:content-type:date:from:message-id:
 	 mime-version:reply-to:subject:to;
-	b=kv5Y1ro7uQ7maU3Qcw/7n4n8WLDXLyOFuNvK82NBS3WDspqLBcI9xH5U/b/1FxdI
-	 lnR7IcwhK38vkkKjOZ+d3uaG9PushA4lijC7pShUGexo8fTMfEPoXBSjX+XfZf0BS
-	 pEzjZpOHFaL3RNKvq/jGoSQWj6nSSjdI6mj9ZtJq9UIFqlWuvQX5/CiEn+/NYI3nc
-	 PrQ+qttHseXPsLWl9Zw4fvHHcGqOQJOS11CL/8wlw10EI+ZHZFO40kKbMWmDqSONm
-	 5xw2dXxqmlK/+0swsTGVD1Tnk69a8Q54e/BitLA2Pnnwvo7PdhjMrZx/k0IahhtII
-	 evMNrdLMTC+vRkK4iw==
+	b=Jll24lGWvb4H0T54UVl3GDSXa/VSjubpB7VNvHL1ftWFOc4Pi1SV/urORAuMsc18
+	 POmPhOF5CKrhN19VM13umlguPhxE4myXGBalnvVqNkm/KtLj7SHCYuGIz1Joa5Fnu
+	 urJ/QkNgqESf+Z9eZuO7k9GXzoOLKlwvYWtzjA/stUM2En+cZzIyvrOxS8150+U3k
+	 HCCJq//IaNBZDppihpE2m+PakcW927UahhNV7XD+Tac3cyiZvFsOSd6xu8pomUfCN
+	 V1C7LOaejBoL55dGp1FItrGqr57eQihhDcs3Q8bN/4s+8Xz9BEp0sGXeLXAO681w7
+	 ST2xD34o8eKMsODwDg==
 X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
-Received: from [192.168.44.3] ([83.135.91.92]) by mail.gmx.net (mrgmx105
- [212.227.17.168]) with ESMTPSA (Nemesis) id 1Mq2nK-1t2jfI4B6o-00ZkgI for
- <netfilter-devel@vger.kernel.org>; Sat, 08 Feb 2025 14:46:47 +0100
-Message-ID: <0a983b51-9a51-47a7-bbdc-9bf163a88bbd@gmx.de>
-Date: Sat, 8 Feb 2025 14:46:46 +0100
+Received: from [192.168.44.3] ([83.135.91.92]) by mail.gmx.net (mrgmx104
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 1MqaxU-1t3Hb73Qgq-00fEo5 for
+ <netfilter-devel@vger.kernel.org>; Sat, 08 Feb 2025 14:48:57 +0100
+Message-ID: <0d239601-00a1-45df-9ebf-1e31c33ff45f@gmx.de>
+Date: Sat, 8 Feb 2025 14:48:57 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -41,73 +42,64 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Content-Language: de-CH, en-GB
+Subject: [PATCH ulogd2 1/3] nfct: add newline to reliable log message
 From: corubba <corubba@gmx.de>
-Subject: [PATCH ulogd2 0/3] Three small bugfixes
 To: netfilter-devel@vger.kernel.org
+References: <0a983b51-9a51-47a7-bbdc-9bf163a88bbd@gmx.de>
+Content-Language: de-CH
+In-Reply-To: <0a983b51-9a51-47a7-bbdc-9bf163a88bbd@gmx.de>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:tR4pD8ll1X3ybZGczhcMbUGBVh45T+w8/PL5LNxRIXhalDgKWM1
- +mmiJvy+44XA/Hx27fbU7d3oy/rlrIFQdPXAwVwZtSbiEhLia81zr6MUk6Y3gkzAninzSeZ
- hhPuqeY8WUWC7fOq1YcUItPDMgvUkX3PYoZnbnFJdRt5ezeejozJCvjLz7tEGP/XlZFOPb/
- oH6idsbclVK6kWVs4wR8g==
+X-Provags-ID: V03:K1:2IqMzFfTo2zAHUxgANKE4dqzZutfzcvHtuQWRfxuJJHEaxSf2Hr
+ oFG/ocT15I50UeCFKgWQ1vav99+9j2K8qty5tbut6AKoDgvSSw4DBvaTCErBog4fqOhgVhM
+ K2WP5A7bRwcmTI79WGyGvmlqLVyozNxzLO1l5G3SOUqTfkIe25GrzR4Z0q7efve6+eHqOki
+ oRDEG2amYNWc2YXxgkNOg==
 X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:Z016DyB/m5M=;cBN6HnTQO4xPBrw7bOYPiQ84NXm
- Ew7faIZNpba1k8AzaYpmtmu9jqkYfsRoVsG3L8146HBUUa4yjTAXS1rydzs0tA/bTt8QAK6nF
- mxoJ3WkiPcaP8BK4jIp6LDSe0r0HIIXaIBpt9ld3XvND0CaHATzxeU3Ct+znXIAp2qXJZjMsn
- WyipA5rHYg1HgNSU49Y7FGOE/ArpXSYwNUWBsH5CQ1rMcdZIkrPS4a6D2/uAEmoqUo0JzthMT
- vK/Rws3SxF3jdlxCM9rFvNSiLZyNrlYqQjgTRIDmttSeRT8QIUTjbRzzHHpnmkFGByU+WX2x8
- 7kQzKSHTe+d0eFF0CTtmJ7Gnb9pcfVU0trPxKlofi/hok7TQoohDWayQJcSGkaLoHz2VPxh8B
- Wd8f71I3Vrhtj8gDVQ2Z8I651KFUL8eS4PRfPqLy+Y4SZS7gYAaHtl7p5hUDab+vOkMe9NBCR
- meRyuw73k6VTtmgCq7k/+b26sIfuJTPb/z9Qkj+H6E4bzFTatdl+xF5R4niiCicCzu5GhJBHl
- m/3ahlsSHc0vSo2S35L/qCCNMAzJ+7ghkg22ZaO+Qg3l5r54LJFXhgbU6gs4ZLdg2RX9FK5Ll
- FKlQcgRKEHRn/jJIqSkv9BNcx3KgXVkWG6ZIoNQuEEtMEl2tRR2VtBj+XsaeAWk59VQE7rV0D
- 6NankQ1d9iHzs+ZCIiSdWGybfJrGi4mmhQiZoEjUxAlTPcoG0trSzeQ66nKlyBG7+jXLucItu
- mHopnsRyYvhi2pmS1xYfadx1/aeo88nDwTljRHuiDm+d1sDu+Ci+C18VbdmqkUfhHJNYqVikQ
- BAt77e0ek2ju2pjRDPvlapW4D5husNCHXWNBxM5Rq3pEBcLWSmhKXpxx6G+ACuXoK2FsHN2WU
- vjwPuU2erz6/9ggolUsuEZPKjhIpPwrgta03fIG3DKQGytaJIQXaGOYRqBu4kScfDIb5bVnpE
- t1C7Af+mwi9HutKVqRSyDmh9YmYKVnVfdieiBGGaB0Pxl26VSeiVx6Kkf1tAx4seDmJjA7zMe
- X1rN3zxID9JK4NvobPcqzHPcMk8pk4s+jHcEkmEm0TRsg0OZxgpWmS/OZ++REr/oxXoEUytvK
- 3yWGT66VqTsYlgvFIyN6T5N/pggHpLziKNzL5faPX30BUBUhzMx+/XA505z8Hmz9vieq259H9
- S+cZgpWj76k5o255XYweKGY+hrKeMghIPrTHLMxkF6fJTrYG/UZ3XkDUyrYq7NcHiE3unuZ0y
- dTm017hVtToLBCq7NPxHShnr+5Utog5u4PN8UqAhWnSR+VMo2VBoVNIrVRNeqPo1jfrqhSy4I
- bcp3gbOxMOdNLtdGI6KownJ8H09uDOmC+s6bbd/hc5B+sAQbori8NVhmZ+FWF6zZNCYD7fWXK
- sUosyK7yD5V5prj0Bft57aSlJkk0zv5JLKmBsmZ6CL3k6KIYD1IV90EzRQt2wVVMFgPak15zH
- KysUqag==
+UI-OutboundReport: notjunk:1;M01:P0:aq/Qd4koAH0=;aFYbQZzfHuM1zFAPd0thiPQaVCJ
+ P1EiCUK70l0i5Al0YoYA+bqhsyF2LvVs9YltCbvxoPiAL6k8RYiPd+CsfoOVBIHEIgRv3F0vM
+ uIo8EXGD1stXGgA9tHgMSu/oPUaxlTY98E36yEJDH5RukU7Q5tjBYQ0XQqVFctWnFRWR1Oh0G
+ r0S0YPzuhQmD7MkohWMHsEa03CKeWemrTx5eY0kM5LiF18knC6m2ksaszGepkTj7IQh13kbSI
+ jFOvKdFAhRzig2b+1tsrFETaWDp2lm/5O4Rc09Tj4ZONisIzyiOaGfbCryYZatGTrQCejUX41
+ XWBiunWU1rG9VZtJQZF+F/5gfyy4P4DED2UlBTnPp5UyNn9gvHyPrfiSE2BjguGikRu/9Fx2m
+ Zaw6pQhCWK4WJngxrSsnZpqpbF8i+lXOBkv9GOOqE4zGacBxgHxNvPlzLVd/yhQd4q4ai16Cv
+ NLIqjMCgo11luqv5hWCOAqQBiJsGKD8NuWqCXlyk+chmjPmvxeZffqZSF9DWDpYyGBxSw4G9e
+ HPDpC/YRzT1iQfS/Jaj6ZZ52XT8uTme6FVDmnhIrDFD+SGlRzG9l5cEfjeW4ufsuAqYEopXur
+ GHlSewOUpdkTu+VXhHDZYh/MzkQdnfWf7+ActIvjoNET7hAK2SUSFFpuPsnqEdEhWqazH3F4q
+ Uznry+fpH427flpC2NsH9OEkWiee8h+XgblzIzmKbC9Vp9r1PZ9xDa+T07lzIpch++lqeX7eh
+ MFbaaor+CmWcTbU9z2rBP1nLdj839aVs4GJ/a2l91nWNPSa0pnfP/184v1cxWZyAfnYEa67dP
+ JwE6Ga40lO4umRqx8vUAJbffBgYRM+KngWm09ytm5EdMirUXF3AGygs2Pb9WeSt5WJptZlHul
+ RsS18Vk5ALU2pyiZhKomySUmqy+gw2rPnMFfvrGFExuv8CSSubzCHCG2NdCq/AM2KiDF4DJz3
+ AKNQo+x8ZvOH7eyDerOqsK70hH7CzGMdMNnTebQvVlpi9lxuykYxiavyxeSfQ8Wi/y7fLp0hq
+ DV88jH5YzDPh2Xki4/fbAexWXHLAM26fRWsBEZF5dL6hDKmNB4aLlNxN6zhbLUrYRDq7dXII+
+ 5+NSHQM6hODLFPPuoPh76cKeaYDkqBBI4EVYF18m8kq3alO6rPJ+573VJ1iDDkN3xVjhI/s8Z
+ SUOcAd57Zv6Kw9uya1IQKumk7egHfNwezec03/275VzRFs3UTM9d13djishKqqvVYa/WZpG5I
+ zPM6lqPAiQGrBIkJ9C5naiZcSSy1rVvKylbwymhUecc/5U68tDnvmOEqM/+yFJ2r9SThDnVVV
+ hQvgp412x6C/58aHLDMf2o5WSLO/3aRaCRFk/9jKb1/5YYBgBdV5VjuWNPJrNT8X1sbzCW3hY
+ ++t3NNepi9GYdYtucxeTYRemroAlBEBQnaGcZVxpCZiHkmn32r4WBHxkddUSuyeKOIb89rX1v
+ 7VtUpBg==
 
-This patchset contains three small bugfixes for the NFCT, GPRINT and
-IPFIX plugins of ulogd2.
+Missing since 4bc3b22e.
 
-The first patch adds a missing newline to a log message of the NFCT
-input plugin. The seconds patch adds the missing comma separator after
-an ip address in the output of the GRPINT output plugin. The third patch
-fixes the timer in the IPFIX output plugin, which (I assume) is meant to
-ensure the messages are sent out in a timely manner.
+Signed-off-by: Corubba Smith <corubba@gmx.de>
+=2D--
+ input/flow/ulogd_inpflow_NFCT.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-The first two patches are pretty trivial and self-explanatory. The third
-patch is based on my interpretation of how the plugin is supposed to
-work, because this architectural detail isn't explained in the original
-patchset nor discussed in their mailinglist-threads [0] [1]. I was also
-unable to locate the original 2009 code from Holger Eitzenberger that
-this is based on for comparison. I may have drawn the wrong conclusion,
-so please feel free to form your own opinion if it is correct.
-
-
-[0] https://lore.kernel.org/netfilter-devel/523542b5-d629-54d9-2a90-468a9c=
-b3aba7@juaristi.eus/
-[1] https://lore.kernel.org/netfilter-devel/20190426075807.7528-1-a@juaris=
-ti.eus/
-
-
-Corubba Smith (3):
-  nfct: add newline to reliable log message
-  gprint: fix comma after ip addresses
-  ipfix: re-arm send timer
-
- input/flow/ulogd_inpflow_NFCT.c   | 2 +-
- output/ipfix/ulogd_output_IPFIX.c | 8 ++++++--
- output/ulogd_output_GPRINT.c      | 6 ++++++
- 3 files changed, 13 insertions(+), 3 deletions(-)
-
+diff --git a/input/flow/ulogd_inpflow_NFCT.c b/input/flow/ulogd_inpflow_NF=
+CT.c
+index 899b7e3..983c8d6 100644
+=2D-- a/input/flow/ulogd_inpflow_NFCT.c
++++ b/input/flow/ulogd_inpflow_NFCT.c
+@@ -1327,7 +1327,7 @@ static int constructor_nfct_events(struct ulogd_plug=
+instance *upi)
+ 		setsockopt(nfct_fd(cpi->cth), SOL_NETLINK,
+ 				NETLINK_NO_ENOBUFS, &on, sizeof(int));
+ 		ulogd_log(ULOGD_NOTICE, "NFCT reliable logging "
+-					"has been enabled.");
++					"has been enabled.\n");
+ 	}
+ 	cpi->nfct_fd.fd =3D nfct_fd(cpi->cth);
+ 	cpi->nfct_fd.cb =3D &read_cb_nfct;
 =2D-
 2.48.1
+
