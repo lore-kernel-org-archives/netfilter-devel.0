@@ -1,40 +1,40 @@
-Received: from mout.gmx.net (mout.gmx.net [212.227.17.20])
+Received: from mout.gmx.net (mout.gmx.net [212.227.17.22])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5B91F9DA
-	for <netfilter-devel@vger.kernel.org>; Sat,  8 Feb 2025 13:48:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.20
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF727F9DA
+	for <netfilter-devel@vger.kernel.org>; Sat,  8 Feb 2025 13:49:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.22
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739022541; cv=none; b=Eb9FscuDeto70z/4lCAGki87F05QOgVpJCaMZZUCaZDVrcAEYJckZFA2Yty+w+ynB4nqUFmWht0mbliVKIHhoHSBzPEkksUpk7Cx1quBcGpOTnPBE0/RPPMem3TZMuriqdgszdDMVHqoJbag/wz5cTxRSFFbZ5MYU8jMCvWfhiY=
+	t=1739022593; cv=none; b=om2eTQS4K4VKkGvxgKw6hH6I66v0JyXQGNqDzY7TetpvTlkL8u1Khd/G893TwDFdg87t0/38ky1xX0MMe7h+CPTQ2rHeGnPdB0c9BnISRfZLF7e/1vef8Xx+7rV1lTPWpOkquRbpfnQr6k/XuRsi3P5T7kW8D48ysXi7j7SLoWA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739022541; c=relaxed/simple;
-	bh=X0EyMgSqUCzChH1F7+va9tJWcUywb1K9S+Gkp7C2g8M=;
+	s=arc-20240116; t=1739022593; c=relaxed/simple;
+	bh=+DRWduvKP6b0I875ajpjC8g9Tg98E6HKN9RFilk/qvc=;
 	h=Message-ID:Date:MIME-Version:Subject:From:To:References:
-	 In-Reply-To:Content-Type; b=k2h7II5bRcwoHctkd8C55UF0G9PQJ71329vNNnqxP7M3JFDVjis3BR60myVTFiJGFikNDSkVfz54P7hYdn3jWXxphaqNghv/srsSCSgArvcyJphFw6QYWHIlDV28jNTa+SPzSYD7TmbOpNJVskhHYjXUBMmQD2afzivYAGXrvEs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b=Jll24lGW; arc=none smtp.client-ip=212.227.17.20
+	 In-Reply-To:Content-Type; b=Ajj+kgQHfHg2BPliB2H/MSKxfYo/j4xmNZjUaWRlVt4nTFQ6yiIARC1IeYHJN0qAD1S9/STrM7usNv/2qY4bQWq3xW0l56C1D5rAdsRrAceHSLHB16039swXzkzAP3uCFral8QpV/VNAKYAnduDiFao0ok0koxikT4M/LVGywAM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b=Llyed3Fp; arc=none smtp.client-ip=212.227.17.22
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b="Jll24lGW"
+	dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b="Llyed3Fp"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
-	s=s31663417; t=1739022537; x=1739627337; i=corubba@gmx.de;
-	bh=xk5PgUXKt4yALLAJG4QtS6t7LqIDER652rGlMDTU+zw=;
+	s=s31663417; t=1739022589; x=1739627389; i=corubba@gmx.de;
+	bh=hjLgHcxLXs4eQXID5xNDlf0QVafsOiyqXfgGRvE1ZFQ=;
 	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:From:To:
 	 References:In-Reply-To:Content-Type:Content-Transfer-Encoding:cc:
 	 content-transfer-encoding:content-type:date:from:message-id:
 	 mime-version:reply-to:subject:to;
-	b=Jll24lGWvb4H0T54UVl3GDSXa/VSjubpB7VNvHL1ftWFOc4Pi1SV/urORAuMsc18
-	 POmPhOF5CKrhN19VM13umlguPhxE4myXGBalnvVqNkm/KtLj7SHCYuGIz1Joa5Fnu
-	 urJ/QkNgqESf+Z9eZuO7k9GXzoOLKlwvYWtzjA/stUM2En+cZzIyvrOxS8150+U3k
-	 HCCJq//IaNBZDppihpE2m+PakcW927UahhNV7XD+Tac3cyiZvFsOSd6xu8pomUfCN
-	 V1C7LOaejBoL55dGp1FItrGqr57eQihhDcs3Q8bN/4s+8Xz9BEp0sGXeLXAO681w7
-	 ST2xD34o8eKMsODwDg==
+	b=Llyed3Fp+HKQWZb0akMj0T9GkcrNmfdmw0DfomCyNX68U5yXMeT4D424m728aYpU
+	 6m0Dan9budFGSUccQsPw5PQx+8AHwW+fi1QOgY+AljEfOROzzZbtTn97ff6bMkNUK
+	 CgAZSns7BqMdjcrQrBteE2pH1bAvmdtCIq5nkUHAqZ+tAStzFR2eISe/iAjwOefzT
+	 ZRp3RGNsvy4Dbf2xrKFP2J4dwSykANWkeZZLz6xjoHVh9lWdM2spa8JeVxzcHXp9I
+	 gZW2A+VMkYWoc9dlWAzHH1fOVzJoSsSw+59AArUYqH+sqRudxA9OF1oxU5IzVerHb
+	 QdOH91sFLcL7Su1JPw==
 X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
 Received: from [192.168.44.3] ([83.135.91.92]) by mail.gmx.net (mrgmx104
- [212.227.17.168]) with ESMTPSA (Nemesis) id 1MqaxU-1t3Hb73Qgq-00fEo5 for
- <netfilter-devel@vger.kernel.org>; Sat, 08 Feb 2025 14:48:57 +0100
-Message-ID: <0d239601-00a1-45df-9ebf-1e31c33ff45f@gmx.de>
-Date: Sat, 8 Feb 2025 14:48:57 +0100
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 1MN5if-1twv9c359R-00QPWX for
+ <netfilter-devel@vger.kernel.org>; Sat, 08 Feb 2025 14:49:49 +0100
+Message-ID: <2e047e50-e689-4fbb-ae58-bc522a758e40@gmx.de>
+Date: Sat, 8 Feb 2025 14:49:49 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -42,7 +42,7 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: [PATCH ulogd2 1/3] nfct: add newline to reliable log message
+Subject: [PATCH ulogd2 2/3] gprint: fix comma after ip addresses
 From: corubba <corubba@gmx.de>
 To: netfilter-devel@vger.kernel.org
 References: <0a983b51-9a51-47a7-bbdc-9bf163a88bbd@gmx.de>
@@ -50,56 +50,61 @@ Content-Language: de-CH
 In-Reply-To: <0a983b51-9a51-47a7-bbdc-9bf163a88bbd@gmx.de>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:2IqMzFfTo2zAHUxgANKE4dqzZutfzcvHtuQWRfxuJJHEaxSf2Hr
- oFG/ocT15I50UeCFKgWQ1vav99+9j2K8qty5tbut6AKoDgvSSw4DBvaTCErBog4fqOhgVhM
- K2WP5A7bRwcmTI79WGyGvmlqLVyozNxzLO1l5G3SOUqTfkIe25GrzR4Z0q7efve6+eHqOki
- oRDEG2amYNWc2YXxgkNOg==
+X-Provags-ID: V03:K1:nU2Jv3gH7oze5/Yo/gswy2JJb+oFkzy7J3FXXkwlLbakZuZDmcj
+ qUosgmGpkWawq+M5h9OjVSvOtNXa8ue4Y8lJT/Pab/FTXXfGpmlw/co3Y1CZTW9YUK11RC+
+ SCuDYLBNMXWVDGKJFxdv7evwmeJl0Aj8uLTpONgpehSE9ru4VAPAirL6/1FPItVZpWE/ohm
+ NgxxkIMCYzmHbbQ2bJrWg==
 X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:aq/Qd4koAH0=;aFYbQZzfHuM1zFAPd0thiPQaVCJ
- P1EiCUK70l0i5Al0YoYA+bqhsyF2LvVs9YltCbvxoPiAL6k8RYiPd+CsfoOVBIHEIgRv3F0vM
- uIo8EXGD1stXGgA9tHgMSu/oPUaxlTY98E36yEJDH5RukU7Q5tjBYQ0XQqVFctWnFRWR1Oh0G
- r0S0YPzuhQmD7MkohWMHsEa03CKeWemrTx5eY0kM5LiF18knC6m2ksaszGepkTj7IQh13kbSI
- jFOvKdFAhRzig2b+1tsrFETaWDp2lm/5O4Rc09Tj4ZONisIzyiOaGfbCryYZatGTrQCejUX41
- XWBiunWU1rG9VZtJQZF+F/5gfyy4P4DED2UlBTnPp5UyNn9gvHyPrfiSE2BjguGikRu/9Fx2m
- Zaw6pQhCWK4WJngxrSsnZpqpbF8i+lXOBkv9GOOqE4zGacBxgHxNvPlzLVd/yhQd4q4ai16Cv
- NLIqjMCgo11luqv5hWCOAqQBiJsGKD8NuWqCXlyk+chmjPmvxeZffqZSF9DWDpYyGBxSw4G9e
- HPDpC/YRzT1iQfS/Jaj6ZZ52XT8uTme6FVDmnhIrDFD+SGlRzG9l5cEfjeW4ufsuAqYEopXur
- GHlSewOUpdkTu+VXhHDZYh/MzkQdnfWf7+ActIvjoNET7hAK2SUSFFpuPsnqEdEhWqazH3F4q
- Uznry+fpH427flpC2NsH9OEkWiee8h+XgblzIzmKbC9Vp9r1PZ9xDa+T07lzIpch++lqeX7eh
- MFbaaor+CmWcTbU9z2rBP1nLdj839aVs4GJ/a2l91nWNPSa0pnfP/184v1cxWZyAfnYEa67dP
- JwE6Ga40lO4umRqx8vUAJbffBgYRM+KngWm09ytm5EdMirUXF3AGygs2Pb9WeSt5WJptZlHul
- RsS18Vk5ALU2pyiZhKomySUmqy+gw2rPnMFfvrGFExuv8CSSubzCHCG2NdCq/AM2KiDF4DJz3
- AKNQo+x8ZvOH7eyDerOqsK70hH7CzGMdMNnTebQvVlpi9lxuykYxiavyxeSfQ8Wi/y7fLp0hq
- DV88jH5YzDPh2Xki4/fbAexWXHLAM26fRWsBEZF5dL6hDKmNB4aLlNxN6zhbLUrYRDq7dXII+
- 5+NSHQM6hODLFPPuoPh76cKeaYDkqBBI4EVYF18m8kq3alO6rPJ+573VJ1iDDkN3xVjhI/s8Z
- SUOcAd57Zv6Kw9uya1IQKumk7egHfNwezec03/275VzRFs3UTM9d13djishKqqvVYa/WZpG5I
- zPM6lqPAiQGrBIkJ9C5naiZcSSy1rVvKylbwymhUecc/5U68tDnvmOEqM/+yFJ2r9SThDnVVV
- hQvgp412x6C/58aHLDMf2o5WSLO/3aRaCRFk/9jKb1/5YYBgBdV5VjuWNPJrNT8X1sbzCW3hY
- ++t3NNepi9GYdYtucxeTYRemroAlBEBQnaGcZVxpCZiHkmn32r4WBHxkddUSuyeKOIb89rX1v
- 7VtUpBg==
+UI-OutboundReport: notjunk:1;M01:P0:p+TbJ3hYczQ=;Dqug3MFpn9TpippyHBJyE5TH97e
+ TqImTHocBghDeYdrGbkLU8mdpWLloQsxOQC/ZQjCLCQ5vYw/M2+kQzgoXRGPfPPl62aJ4Imo6
+ SK4gihbhozGdx1PctRz+mbU05mQXdn85Q/0uMBskgCi60mS5ClhScqlB+rpYiVocz5KH+dnxi
+ bwehWEWEIoLLxZ06eIvNKohyu9zlxrfz3wknlbXIN2Wu0wSYLWK8giCv3ENtZaGRZ6BaVViAP
+ qOngAkKxU4dixPcoX3saBtczACLRm9g0R7kvHebeREjba3IRp8FHOdfxMQJtJPcHEttp/5uvA
+ RcUxPM+QfOPOSSaC56aTQAsGVMfbZsMMyA5/usObETskekWYNhOfcLFS4rscZcw/YnCYk9Rut
+ 7Wc8bRgVfY0iUhMBkX3970Ke4OMwMI+7SkwMACHieT5XHgFmTQjpuVuuuXxrmYRjUAOfm2O8E
+ paTlkJRqyQ508kQFncNVtAxLJouSIAwfjFsAFppR5NEtc4VRj3Vo5LYeV1WvYTxZFXxYXesuw
+ TMhXbMeHjR/wct4EK7GDmuUbKWa7QnJ2qN/zeMJP3j0+mdYePxZyxLsWjP1awS9vKhAMt2NH6
+ RoDGCaztLurnq8JDKOOIN/wrp5ZZFgJOTM0BgN22uoLbo2/lMxYHw713dcUExbi9QzvvtK6Fp
+ 1L96xzfsvyhEqH73lFDzfO5k3nkaHC02Ws6vNfiRACuRm4hJf6aALsdoYNPxvCzEnrRTFcMD6
+ /bA7FwXyUQS7iODjEo7fZWYk2Lt2ZAKUb9/yXpZp9fOduV2p+NO14RyTLteT6rKq6xZiQoknh
+ M/tfaGMpXRzmAUl9XXVFnHMiFilKOJZ/UuobkRW53WnYKq1L8ZeZha3X+sdPQl4rB4Pawr0PB
+ Ld79fcT2w6FeBT2bDANEy5bHMr+R2PUxwILbDkeNEMpoWeQgofYVUDt/5se5VBiyC+KhZtQvs
+ JOjniNzl5VXBcY16p5bd12dpsNERitoBfDBYnkfJvhWUssgeq9OQg4jwrnElCz1R5ZDyvghOC
+ K08/sWppAjH+qKqYL+wXsn2CqHY2wO4D6buNoz/6VpoQhDqTZFJ/L4TPVkuRBrPNM1k5t8Hea
+ ca8/Ok/xKs4AT7aL9KbaMFyNY7tuZkLA/rQz7EN1r0pXW7xIwxq1pMelTtX2QJxSddaMUh3fY
+ 0Bm2RyCWllbUWbbIngKla3Fbwn79igRxXDYxxmZx7m8Oq932tu6Uxjx0kumXQ30IBf+YflZY+
+ Wq2f4tLunh0PHgd9TACpsdBikK2lkxWTd/Z+f3mMZm3tsG5Q3txMvaVkIZ/p3E3IrtCyEv/8c
+ Jwc2wGaAptJxY0mHG4zXwFzlrLh5jffPIjppe50WIrUulhXOmsz76Q0+/UPqZ7GtqKbF0eVBI
+ uh4Y0a6Oo72R0pn7cKyN4+M/Ddmic3MnDGOIEBpklIflxQnwpN82tk/3/y
 
-Missing since 4bc3b22e.
+Gone missing in f04bf679.
 
 Signed-off-by: Corubba Smith <corubba@gmx.de>
 =2D--
- input/flow/ulogd_inpflow_NFCT.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ output/ulogd_output_GPRINT.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/input/flow/ulogd_inpflow_NFCT.c b/input/flow/ulogd_inpflow_NF=
-CT.c
-index 899b7e3..983c8d6 100644
-=2D-- a/input/flow/ulogd_inpflow_NFCT.c
-+++ b/input/flow/ulogd_inpflow_NFCT.c
-@@ -1327,7 +1327,7 @@ static int constructor_nfct_events(struct ulogd_plug=
-instance *upi)
- 		setsockopt(nfct_fd(cpi->cth), SOL_NETLINK,
- 				NETLINK_NO_ENOBUFS, &on, sizeof(int));
- 		ulogd_log(ULOGD_NOTICE, "NFCT reliable logging "
--					"has been enabled.");
-+					"has been enabled.\n");
- 	}
- 	cpi->nfct_fd.fd =3D nfct_fd(cpi->cth);
- 	cpi->nfct_fd.cb =3D &read_cb_nfct;
+diff --git a/output/ulogd_output_GPRINT.c b/output/ulogd_output_GPRINT.c
+index 37829fa..d95ca9d 100644
+=2D-- a/output/ulogd_output_GPRINT.c
++++ b/output/ulogd_output_GPRINT.c
+@@ -179,9 +179,15 @@ static int gprint_interp(struct ulogd_pluginstance *u=
+pi)
+ 			if (!inet_ntop(family, addr, buf + size, rem))
+ 				break;
+ 			ret =3D strlen(buf + size);
++			rem -=3D ret;
++			size +=3D ret;
+
++			ret =3D snprintf(buf+size, rem, ",");
++			if (ret < 0)
++				break;
+ 			rem -=3D ret;
+ 			size +=3D ret;
++
+ 			break;
+ 		}
+ 		default:
 =2D-
 2.48.1
 
