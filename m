@@ -1,158 +1,272 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07787236A7C
-	for <netfilter-devel@vger.kernel.org>; Tue, 11 Feb 2025 13:32:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFF91230D0E
+	for <netfilter-devel@vger.kernel.org>; Tue, 11 Feb 2025 13:55:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739280754; cv=none; b=tgSPYJZ5L8OXOTqetzvFK27Tx49jYkHoEG4wNGMZFbrpNCjOU09YZiPwWNpneOwokZmdQ7Jy+EEkRFm/yrr/AaQflFbJz+oQKNlIah+4Buf1Xr3mnRSOYtu7T8fZkY5kBX1c8csqBwqpri7sPEs8cWIKKOJzUsbxw6huL3NJ1ls=
+	t=1739282144; cv=none; b=i3O2cra8/RZ/J68EX4JuE4kspT2EQc+VXxmS6OwodZUwXz5/OVTNJxIoQ4B1tBry55yy2n7RiPpdVExk+CGmbBYaNnEPguC/FkIppZYIgJzMe66thIcjoqtxDl4c/TfkyL+HnMgTzMUJBzCPl2MJ4uvHsoMOv+ID6j0uyXGduTM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739280754; c=relaxed/simple;
-	bh=ih//v6mL88R00Zl8z9xOoTcVurl5bLY+F5jKlIIdISQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=EcD18NJwePbR2UG9c9zENpNEFg4cxy+6/LhY9i84HXK640eqzrD4tdKF0NJ1eyQEU5/PpeDHqy/xlGEfKVSbU+RucaPhIwkjhfMqhykRrSEKVng46WNJIrkbNIHHJbVQgTmG8OfXr71of/y/CMuw37H5G+51+/2xBnkShBaA8UM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1thqNJ-0003gQ-1S; Tue, 11 Feb 2025 14:32:29 +0100
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: nf_conntrack: speed up reads from nf_conntrack proc file
-Date: Tue, 11 Feb 2025 14:03:06 +0100
-Message-ID: <20250211130313.31433-1-fw@strlen.de>
-X-Mailer: git-send-email 2.45.3
+	s=arc-20240116; t=1739282144; c=relaxed/simple;
+	bh=tL9O+uEh0ILH739lliOo8AMi2wqhWQL+dKG8bMas4mc=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=REhO4U7PB6/9sho9KjGNDzCJeVOpAah50PQ/2yoofhc5bLKqeWr9ca1rwzVFxZBHEuURIsSlHPovD5h4xlFM3MDkcTL/WeVxyVxMUzOR6xyS1tA8P/D0xCc4hI2q1G9vYHZRTqT11O+Hy9cihqYOLrA7kdAnkhLmA5Q6/hy1zL4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=RUhRtJvE; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="RUhRtJvE"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id 03E34234F1
+	for <netfilter-devel@vger.kernel.org>; Tue, 11 Feb 2025 15:55:30 +0200 (EET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=g2Omdx+gC2VgWT+qBhjHWyxng8Qdk36CSx5aBDN/WYc=; b=RUhRtJvEltA0
+	kGC14MNbugq34P1kIz+l/q108own4UKmGAlom7ntH9q2ahzzp9+mQypRjEcAaBs3
+	YrKlYgdmsLbpQDSW2x8kI5RiqJR1cLj5nflAvEmTVVMiPHMXm5xpAm7ZGwvFlGnB
+	Fn88I6JA/vvrv2YAZ3SqgxDR7NVtn50mTn22UDKp9bYL3+e8Tf0VzlDsRFI0i7oe
+	YMVv4JfQfnaiE7hR4KFMPupN0R0wfSRRBPECJJm5m2OvHaCktUZkT38uWNtRuDK2
+	PTqan5qRWA5IRSlLYfi+9UpR7TJemmxooYhs+6wvsCTLrw9Vs7Ef9bkazr25hTB/
+	IeCcdpeBla5F+lO8u72kd2WSOSFc4e8jvumN1/aQeo6tUQfVStIjE1k9LEiUYVq1
+	r2WSqUbvdR2G27ND5tIPsmZhaxY9lV4z2f+nbnT7eR0EoM+ZCgyBkG5IrRlh0Cak
+	zuYUopMoaYxM8toiWFoZYL/kyrckHPE7jWWXVRtq1LL5KA6fdTAt62orESJNvEp6
+	n+e++iXeeDlnbAYbbmVph9ZbBtCAFFcSVJ02J1TAJKei+Z4zcUF5kLGl7hFaK1jU
+	h9ZqvlztB5lx3ct7qaEGfrAfbr2S6KVGakgpWjAcmA6DwF+Ei/rIWN9R9tJ4Ihyi
+	CCphLm3TDUPW1uobQ6YBX0unICHq5O4=
+Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
+	by mx.ssi.bg (Potsfix) with ESMTPS
+	for <netfilter-devel@vger.kernel.org>; Tue, 11 Feb 2025 15:55:28 +0200 (EET)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by ink.ssi.bg (Postfix) with ESMTPSA id 615C117093;
+	Tue, 11 Feb 2025 15:55:18 +0200 (EET)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.1/8.17.1) with ESMTP id 51BDt7l9025873;
+	Tue, 11 Feb 2025 15:55:10 +0200
+Date: Tue, 11 Feb 2025 15:55:07 +0200 (EET)
+From: Julian Anastasov <ja@ssi.bg>
+To: mengkanglai <mengkanglai2@huawei.com>
+cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "coreteam@netfilter.org" <coreteam@netfilter.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "Yanan (Euler)" <yanan@huawei.com>,
+        "Fengtao (fengtao, Euler)" <fengtao40@huawei.com>,
+        "gaoxingwang (A)" <gaoxingwang1@huawei.com>, lvs-devel@vger.kernel.org
+Subject: Re: ftp ipvs connect failed in ipv6
+In-Reply-To: <e1527ca5f8f84be09022859f5e33b584@huawei.com>
+Message-ID: <7a1903c5-f7e3-4480-2a07-ae94e4d6a895@ssi.bg>
+References: <e1527ca5f8f84be09022859f5e33b584@huawei.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 
-Dumping all conntrack entries via proc interface can take hours due to
-linear search to skip entries dumped so far in each cycle.
 
-Apply same strategy used to speed up ipvs proc reading done in
-commit 178883fd039d ("ipvs: speed up reads from ip_vs_conn proc file")
-to nf_conntrack.
+	Hello,
 
-Note that the ctnetlink interface doesn't suffer from this problem.
+On Mon, 10 Feb 2025, mengkanglai wrote:
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+> Hello:
+> I found a problem with ftp ipvs.
+> I create 3 virtual machine in one host. One is the FTP client, the other is the ipvs transition host, and the other is the FTP server.
+> The ftp connection is successful in ipv4 address,but failed in ipv6 address.
+> The failure is tcp6 checksum error in tcp_dnat_handler(tcp_dnat_handler-> tcp_csum_check->csum_ipv6_magic),
+> I trace back where skb->csum is assigned and found skb->csum is assigned in nf_ip6_checksum in case CHECKSUM_NONE(ipv6_conntrack_in=> nf_conntrack_in => nf_conntrack_tcp_packet => nf_ip6_checksum).
+> I don't know much about ipv6 checksums,why ipv6 nf_conntrack assign skb->csum but check error in ipvs tcp_dnat_handler?
+
+	Looks like the checksum validation does not use correct
+offset for the protocol header in the case with IPv6. Do you
+see extension headers before the final IPv6 header that
+points to TCP header? If that is the case, the following patch
+can help. If you prefer, you can apply just the TCP part for
+the FTP test. Let me know if this solves the problem, thanks!
+
+[PATCH] ipvs: provide correct ipv6 proto offset for csum checks
+
+Protocol checksum validation fails if there are multiple IPv6 headers
+before the protocol header. iph->len already contains its offset, so
+use it to fix the problem.
+
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
 ---
- net/netfilter/nf_conntrack_standalone.c | 73 +++++++++++++------------
- 1 file changed, 38 insertions(+), 35 deletions(-)
+ net/netfilter/ipvs/ip_vs_proto_sctp.c | 18 ++++++------------
+ net/netfilter/ipvs/ip_vs_proto_tcp.c  | 19 ++++++-------------
+ net/netfilter/ipvs/ip_vs_proto_udp.c  | 18 ++++++------------
+ 3 files changed, 18 insertions(+), 37 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 502cf10aab41..2a79e690470a 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -98,51 +98,34 @@ struct ct_iter_state {
- 	struct seq_net_private p;
- 	struct hlist_nulls_head *hash;
- 	unsigned int htable_size;
-+	unsigned int skip_elems;
- 	unsigned int bucket;
- 	u_int64_t time_now;
- };
+diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+index 83e452916403..63c78a1f3918 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+@@ -10,7 +10,8 @@
+ #include <net/ip_vs.h>
  
--static struct hlist_nulls_node *ct_get_first(struct seq_file *seq)
-+static struct nf_conntrack_tuple_hash *ct_get_next(struct ct_iter_state *st)
+ static int
+-sctp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp);
++sctp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp,
++		unsigned int sctphoff);
+ 
+ static int
+ sctp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+@@ -108,7 +109,7 @@ sctp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 		int ret;
+ 
+ 		/* Some checks before mangling */
+-		if (!sctp_csum_check(cp->af, skb, pp))
++		if (!sctp_csum_check(cp->af, skb, pp, sctphoff))
+ 			return 0;
+ 
+ 		/* Call application helper if needed */
+@@ -156,7 +157,7 @@ sctp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 		int ret;
+ 
+ 		/* Some checks before mangling */
+-		if (!sctp_csum_check(cp->af, skb, pp))
++		if (!sctp_csum_check(cp->af, skb, pp, sctphoff))
+ 			return 0;
+ 
+ 		/* Call application helper if needed */
+@@ -185,19 +186,12 @@ sctp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ }
+ 
+ static int
+-sctp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp)
++sctp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp,
++		unsigned int sctphoff)
  {
--	struct ct_iter_state *st = seq->private;
-+	struct nf_conntrack_tuple_hash *h;
- 	struct hlist_nulls_node *n;
-+	unsigned int i;
+-	unsigned int sctphoff;
+ 	struct sctphdr *sh;
+ 	__le32 cmp, val;
  
--	for (st->bucket = 0;
--	     st->bucket < st->htable_size;
--	     st->bucket++) {
--		n = rcu_dereference(
--			hlist_nulls_first_rcu(&st->hash[st->bucket]));
--		if (!is_a_nulls(n))
--			return n;
--	}
--	return NULL;
--}
-+	for (i = st->bucket; i < st->htable_size; i++) {
-+		unsigned int skip = 0;
+-#ifdef CONFIG_IP_VS_IPV6
+-	if (af == AF_INET6)
+-		sctphoff = sizeof(struct ipv6hdr);
+-	else
+-#endif
+-		sctphoff = ip_hdrlen(skb);
+-
+ 	sh = (struct sctphdr *)(skb->data + sctphoff);
+ 	cmp = sh->checksum;
+ 	val = sctp_compute_cksum(skb, sctphoff);
+diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+index 7da51390cea6..dabdb9d3b479 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+@@ -29,7 +29,8 @@
+ #include <net/ip_vs.h>
  
--static struct hlist_nulls_node *ct_get_next(struct seq_file *seq,
--				      struct hlist_nulls_node *head)
--{
--	struct ct_iter_state *st = seq->private;
-+		hlist_nulls_for_each_entry(h, n, &st->hash[i], hnnode) {
-+			if (skip >= st->skip_elems) {
-+				st->bucket = i;
-+				return h;
-+			}
+ static int
+-tcp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp);
++tcp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp,
++	       unsigned int tcphoff);
  
--	head = rcu_dereference(hlist_nulls_next_rcu(head));
--	while (is_a_nulls(head)) {
--		if (likely(get_nulls_value(head) == st->bucket)) {
--			if (++st->bucket >= st->htable_size)
--				return NULL;
-+			++skip;
- 		}
--		head = rcu_dereference(
--			hlist_nulls_first_rcu(&st->hash[st->bucket]));
--	}
--	return head;
--}
+ static int
+ tcp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+@@ -166,7 +167,7 @@ tcp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 		int ret;
  
--static struct hlist_nulls_node *ct_get_idx(struct seq_file *seq, loff_t pos)
--{
--	struct hlist_nulls_node *head = ct_get_first(seq);
-+		st->skip_elems = 0;
-+	}
+ 		/* Some checks before mangling */
+-		if (!tcp_csum_check(cp->af, skb, pp))
++		if (!tcp_csum_check(cp->af, skb, pp, tcphoff))
+ 			return 0;
  
--	if (head)
--		while (pos && (head = ct_get_next(seq, head)))
--			pos--;
--	return pos ? NULL : head;
-+	st->bucket = i;
-+	return NULL;
- }
+ 		/* Call application helper if needed */
+@@ -244,7 +245,7 @@ tcp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 		int ret;
  
- static void *ct_seq_start(struct seq_file *seq, loff_t *pos)
-@@ -154,13 +137,33 @@ static void *ct_seq_start(struct seq_file *seq, loff_t *pos)
- 	rcu_read_lock();
+ 		/* Some checks before mangling */
+-		if (!tcp_csum_check(cp->af, skb, pp))
++		if (!tcp_csum_check(cp->af, skb, pp, tcphoff))
+ 			return 0;
  
- 	nf_conntrack_get_ht(&st->hash, &st->htable_size);
--	return ct_get_idx(seq, *pos);
-+
-+	if (*pos == 0) {
-+		st->skip_elems = 0;
-+		st->bucket = 0;
-+	}
-+
-+	return ct_get_next(st);
- }
+ 		/*
+@@ -301,17 +302,9 @@ tcp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
  
- static void *ct_seq_next(struct seq_file *s, void *v, loff_t *pos)
+ 
+ static int
+-tcp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp)
++tcp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp,
++	       unsigned int tcphoff)
  {
-+	struct nf_conntrack_tuple_hash *h = v;
-+	struct ct_iter_state *st = s->private;
-+	struct hlist_nulls_node *n;
-+
- 	(*pos)++;
--	return ct_get_next(s, v);
-+
-+	/* more on same hash chain? */
-+	n = rcu_dereference(hlist_nulls_next_rcu(&h->hnnode));
-+	if (n && !is_a_nulls(n)) {
-+		st->skip_elems++;
-+		return hlist_nulls_entry(n, struct nf_conntrack_tuple_hash, hnnode);
-+	}
-+
-+	st->skip_elems = 0;
-+	st->bucket++;
-+	return ct_get_next(st);
- }
+-	unsigned int tcphoff;
+-
+-#ifdef CONFIG_IP_VS_IPV6
+-	if (af == AF_INET6)
+-		tcphoff = sizeof(struct ipv6hdr);
+-	else
+-#endif
+-		tcphoff = ip_hdrlen(skb);
+-
+ 	switch (skb->ip_summed) {
+ 	case CHECKSUM_NONE:
+ 		skb->csum = skb_checksum(skb, tcphoff, skb->len - tcphoff, 0);
+diff --git a/net/netfilter/ipvs/ip_vs_proto_udp.c b/net/netfilter/ipvs/ip_vs_proto_udp.c
+index 68260d91c988..e99e7c5df869 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_udp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_udp.c
+@@ -25,7 +25,8 @@
+ #include <net/ip6_checksum.h>
  
- static void ct_seq_stop(struct seq_file *s, void *v)
+ static int
+-udp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp);
++udp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp,
++	       unsigned int udphoff);
+ 
+ static int
+ udp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+@@ -155,7 +156,7 @@ udp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 		int ret;
+ 
+ 		/* Some checks before mangling */
+-		if (!udp_csum_check(cp->af, skb, pp))
++		if (!udp_csum_check(cp->af, skb, pp, udphoff))
+ 			return 0;
+ 
+ 		/*
+@@ -238,7 +239,7 @@ udp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 		int ret;
+ 
+ 		/* Some checks before mangling */
+-		if (!udp_csum_check(cp->af, skb, pp))
++		if (!udp_csum_check(cp->af, skb, pp, udphoff))
+ 			return 0;
+ 
+ 		/*
+@@ -297,17 +298,10 @@ udp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 
+ 
+ static int
+-udp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp)
++udp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp,
++	       unsigned int udphoff)
+ {
+ 	struct udphdr _udph, *uh;
+-	unsigned int udphoff;
+-
+-#ifdef CONFIG_IP_VS_IPV6
+-	if (af == AF_INET6)
+-		udphoff = sizeof(struct ipv6hdr);
+-	else
+-#endif
+-		udphoff = ip_hdrlen(skb);
+ 
+ 	uh = skb_header_pointer(skb, udphoff, sizeof(_udph), &_udph);
+ 	if (uh == NULL)
 -- 
-2.45.3
+2.48.1
+
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
 
