@@ -1,272 +1,188 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f48.google.com (mail-ej1-f48.google.com [209.85.218.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFF91230D0E
-	for <netfilter-devel@vger.kernel.org>; Tue, 11 Feb 2025 13:55:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25FBE1F12FC;
+	Tue, 11 Feb 2025 14:43:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739282144; cv=none; b=i3O2cra8/RZ/J68EX4JuE4kspT2EQc+VXxmS6OwodZUwXz5/OVTNJxIoQ4B1tBry55yy2n7RiPpdVExk+CGmbBYaNnEPguC/FkIppZYIgJzMe66thIcjoqtxDl4c/TfkyL+HnMgTzMUJBzCPl2MJ4uvHsoMOv+ID6j0uyXGduTM=
+	t=1739285008; cv=none; b=kBxYonr1SW/STYKHzmznQBQJi6iZEJTibk72gLtPqD5r0mRV7J3kH/DCSo3u2dwB1AB93VjpnN8F0Wdav3VpsqFyP23d9l84t3XRT2ThyJP4nlx+K6dC+SJRgPQjffWPJWjOAI5llN+7J8aT+GmKPPrWXLg8KzK2SKQCfXqH29M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739282144; c=relaxed/simple;
-	bh=tL9O+uEh0ILH739lliOo8AMi2wqhWQL+dKG8bMas4mc=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=REhO4U7PB6/9sho9KjGNDzCJeVOpAah50PQ/2yoofhc5bLKqeWr9ca1rwzVFxZBHEuURIsSlHPovD5h4xlFM3MDkcTL/WeVxyVxMUzOR6xyS1tA8P/D0xCc4hI2q1G9vYHZRTqT11O+Hy9cihqYOLrA7kdAnkhLmA5Q6/hy1zL4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=RUhRtJvE; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	s=arc-20240116; t=1739285008; c=relaxed/simple;
+	bh=tQt2YViAGNRUcLLNMB6hphKc7NudM5eIWN91tXZ0fI0=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=CvNXrN/3IImDxpKcf/tR3thHFVKyQ2XBTUb686JUY8Xc7iP6xF0JvOLyyKkYKQTZDWifFRvV0hiMqHJaplyiQtcIg0iWRvfb6NDMRhklq2Q7XUU6PL4PtAOacS5Ciec+LBl8chdAA3DvovTdJRvOZ1bA9oFGfxgChH0Kf0J0/Tg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=RViKGNih; arc=none smtp.client-ip=209.85.218.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="RUhRtJvE"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id 03E34234F1
-	for <netfilter-devel@vger.kernel.org>; Tue, 11 Feb 2025 15:55:30 +0200 (EET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=g2Omdx+gC2VgWT+qBhjHWyxng8Qdk36CSx5aBDN/WYc=; b=RUhRtJvEltA0
-	kGC14MNbugq34P1kIz+l/q108own4UKmGAlom7ntH9q2ahzzp9+mQypRjEcAaBs3
-	YrKlYgdmsLbpQDSW2x8kI5RiqJR1cLj5nflAvEmTVVMiPHMXm5xpAm7ZGwvFlGnB
-	Fn88I6JA/vvrv2YAZ3SqgxDR7NVtn50mTn22UDKp9bYL3+e8Tf0VzlDsRFI0i7oe
-	YMVv4JfQfnaiE7hR4KFMPupN0R0wfSRRBPECJJm5m2OvHaCktUZkT38uWNtRuDK2
-	PTqan5qRWA5IRSlLYfi+9UpR7TJemmxooYhs+6wvsCTLrw9Vs7Ef9bkazr25hTB/
-	IeCcdpeBla5F+lO8u72kd2WSOSFc4e8jvumN1/aQeo6tUQfVStIjE1k9LEiUYVq1
-	r2WSqUbvdR2G27ND5tIPsmZhaxY9lV4z2f+nbnT7eR0EoM+ZCgyBkG5IrRlh0Cak
-	zuYUopMoaYxM8toiWFoZYL/kyrckHPE7jWWXVRtq1LL5KA6fdTAt62orESJNvEp6
-	n+e++iXeeDlnbAYbbmVph9ZbBtCAFFcSVJ02J1TAJKei+Z4zcUF5kLGl7hFaK1jU
-	h9ZqvlztB5lx3ct7qaEGfrAfbr2S6KVGakgpWjAcmA6DwF+Ei/rIWN9R9tJ4Ihyi
-	CCphLm3TDUPW1uobQ6YBX0unICHq5O4=
-Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
-	by mx.ssi.bg (Potsfix) with ESMTPS
-	for <netfilter-devel@vger.kernel.org>; Tue, 11 Feb 2025 15:55:28 +0200 (EET)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by ink.ssi.bg (Postfix) with ESMTPSA id 615C117093;
-	Tue, 11 Feb 2025 15:55:18 +0200 (EET)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.1/8.17.1) with ESMTP id 51BDt7l9025873;
-	Tue, 11 Feb 2025 15:55:10 +0200
-Date: Tue, 11 Feb 2025 15:55:07 +0200 (EET)
-From: Julian Anastasov <ja@ssi.bg>
-To: mengkanglai <mengkanglai2@huawei.com>
-cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "coreteam@netfilter.org" <coreteam@netfilter.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "Yanan (Euler)" <yanan@huawei.com>,
-        "Fengtao (fengtao, Euler)" <fengtao40@huawei.com>,
-        "gaoxingwang (A)" <gaoxingwang1@huawei.com>, lvs-devel@vger.kernel.org
-Subject: Re: ftp ipvs connect failed in ipv6
-In-Reply-To: <e1527ca5f8f84be09022859f5e33b584@huawei.com>
-Message-ID: <7a1903c5-f7e3-4480-2a07-ae94e4d6a895@ssi.bg>
-References: <e1527ca5f8f84be09022859f5e33b584@huawei.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RViKGNih"
+Received: by mail-ej1-f48.google.com with SMTP id a640c23a62f3a-ab7d451f7c4so205379066b.0;
+        Tue, 11 Feb 2025 06:43:25 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1739285004; x=1739889804; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=V+syQltWy2iShpV3VhhxV37TML7DelsfUgKCvN307fw=;
+        b=RViKGNihGemvHScsUoIWlqB4F8Y+Vv1Ll+mXlyZmMio0D1p2u4j4Q2xTSPKRBpXnfP
+         A5EDvKo5ZhN244bGIi6l89/8c46bPMELWHZu2xcVOZTQH1SzDmVKu1JPw7zy+zoJ9Qos
+         HBDA5Zfb/2DWN8OCmJmA3SqfqmvbdGcUECyWrXGgRUxbwCXdliAkDKUgaX0hK9mAMZAg
+         PlWokNyUcQO8A4HStBpJ9eV5mAMkbC7CB23HQ1DnpDNTFIgYh8DtDyaRmHK6N1LvE6MD
+         KpEoH6fK6nD4HdYSo8Szb7AAQvfWGfKRrPrIj5KQRrrS/EQ6aB/RWRGFiHdTIH5JkEZM
+         NnzA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1739285004; x=1739889804;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=V+syQltWy2iShpV3VhhxV37TML7DelsfUgKCvN307fw=;
+        b=Hbcv90ga96aZV5Rh+BBNZ1vy5QYmFqTpktipJ/OYpSkPYDIiRlGo3AkMTqVSP8jagN
+         Kjf4CR2TQAU9T8JYV4efFpUhQeowxJ6It3q4Hlu96Q6d92McziQidFTl7O2vU1GGPEe9
+         6yJ0sBZjVTVXtmKo6J4584YcISViEYi/88YGaHN1uakJo4yNG4jVzKh6JUJTxoN/METZ
+         HLzaa1Gg/VAbv/LL7TwOyG9EW9xPXucbUsByHPBV+LCTdKvpyH73y2N6Qs4nEU8fPZD9
+         MyqT8Zwym3jezxLi6orv9aMd7uWsyp2HseSJTvRUVhEn3rEFCg8fWG0zaGUHkNaWgQy1
+         WLxA==
+X-Forwarded-Encrypted: i=1; AJvYcCUt3228LRqTXUjeXbD3y8GtkNsdvgIWtalqpoUACcYm1iS9uWrm08Zv7vks9nT6MDTf2PgJt/6XLTjXVz7wObsT@vger.kernel.org, AJvYcCWhPgsQTAFYsuX0K2PyetOI187egoCP/iCzkPSgL6hGEfLCKCsVQTsRjrEYT7yXZJReUyj6gNSo@vger.kernel.org, AJvYcCWkp10P11GKEs+Rafc+8FNnjja7eEj3FnQH2zsZ31cx8wZGqjf34ihUND6sit8o6ztNCMyMxvn95Ufdot0=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxHMt5CXxJG33mqMJGn0EAAu/En6SphaPnDIPErmDfmk1Tz202f
+	VLuwrzkktNkLb5dpDN1dwe099DDLAucNQ4ycHKayMTMGkGKEzW4h
+X-Gm-Gg: ASbGnctVkzHakti597bAJmfiWF8EuPlmHBQeyI10jIzKMJxH58rN0L5SZ0GWicGxF+N
+	oa7rJVcTMfnll52RbKYmvLfdkvI5XQJwSBQhuMub4ENs+WQvpLZQEijuR9Pj0npAZo4+ffJ4IUt
+	c7/VgQvy8VypMCSgIza8JFH+AmBy/c9ZFZt90eIFyWRUGKe2CsQqy5uGqG+hrmuINOx094vVkTs
+	amFtMnSboaFbPAE0BoqEFs+8QgK5YTtlhr/FdNtiqCPUkdCq3Zh8nUAKu3mkmgkvMEIet0zRi2D
+	xW7FHjAc6MemYY2MXSz9RHIJNWZ7X+zMapjb6SlJVr767XgO3nrTPWVeU0TrMPbJHzUKnPSasKA
+	wwWCYnaIhvz5ywo0WO1ryU0oDUwCq0CnYhsJ1SyKyAzyRXie74AuHLxca9w3AsHDDPA==
+X-Google-Smtp-Source: AGHT+IF9jmcJFJFbEK49xdcz+FAYc5JFQf9JpzthNkFP4VwxwCFQdCkq660UzRh31VnMKEshFSn0QQ==
+X-Received: by 2002:a17:907:6e86:b0:aa6:9eac:4b8e with SMTP id a640c23a62f3a-ab789bfc7d9mr2013030966b.41.1739285004009;
+        Tue, 11 Feb 2025 06:43:24 -0800 (PST)
+Received: from ?IPV6:2001:1c00:20d:1300:1b1c:4449:176a:89ea? (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ab7c4a50e73sm394025366b.36.2025.02.11.06.43.22
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 11 Feb 2025 06:43:23 -0800 (PST)
+Message-ID: <9ae3548a-844e-4449-9c00-5dd79e804922@gmail.com>
+Date: Tue, 11 Feb 2025 15:43:22 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v6 net-next 05/14] bridge: Add filling forward path from
+ port to port
+To: Vladimir Oltean <olteanv@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+ Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
+ Andrew Lunn <andrew+netdev@lunn.ch>, Pablo Neira Ayuso
+ <pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>,
+ Jiri Pirko <jiri@resnulli.us>, Ivan Vecera <ivecera@redhat.com>,
+ Roopa Prabhu <roopa@nvidia.com>, Nikolay Aleksandrov <razor@blackwall.org>,
+ Matthias Brugger <matthias.bgg@gmail.com>,
+ AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+ Kuniyuki Iwashima <kuniyu@amazon.com>,
+ Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+ Lorenzo Bianconi <lorenzo@kernel.org>, Joe Damato <jdamato@fastly.com>,
+ Alexander Lobakin <aleksander.lobakin@intel.com>,
+ Frank Wunderlich <frank-w@public-files.de>,
+ Daniel Golle <daniel@makrotopia.org>, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, bridge@lists.linux.dev,
+ linux-arm-kernel@lists.infradead.org, linux-mediatek@lists.infradead.org
+References: <20250209111034.241571-1-ericwouds@gmail.com>
+ <20250209111034.241571-6-ericwouds@gmail.com>
+ <20250211132832.aiy6ocvqppoqkd65@skbuf>
+Content-Language: en-US
+From: Eric Woudstra <ericwouds@gmail.com>
+In-Reply-To: <20250211132832.aiy6ocvqppoqkd65@skbuf>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
 
-	Hello,
 
-On Mon, 10 Feb 2025, mengkanglai wrote:
+On 2/11/25 2:28 PM, Vladimir Oltean wrote:
+> On Sun, Feb 09, 2025 at 12:10:25PM +0100, Eric Woudstra wrote:
+>> @@ -1453,7 +1454,10 @@ void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
+>>  	if (!br_opt_get(br, BROPT_VLAN_ENABLED))
+>>  		return;
+>>  
+>> -	vg = br_vlan_group(br);
+>> +	if (p)
+>> +		vg = nbp_vlan_group(p);
+>> +	else
+>> +		vg = br_vlan_group(br);
+>>  
+>>  	if (idx >= 0 &&
+>>  	    ctx->vlan[idx].proto == br->vlan_proto) {
+> 
+> I think the original usage of br_vlan_group() here was incorrect, and so
+> is the new usage of nbp_vlan_group(). They should be br_vlan_group_rcu()
+> and nbp_vlan_group_rcu().
+> 
+> The lockdep annotation is important, otherwise I get this with CONFIG_PROVE_LOCKING=y:
+> [ 1140.931869] =============================
+> [ 1140.935996] WARNING: suspicious RCU usage
+> [ 1140.940094] 6.14.0-rc1-00224-gda8926a49ba1-dirty #2666 Not tainted
+> [ 1140.946371] -----------------------------
+> [ 1140.950520] net/bridge/br_private.h:1604 suspicious rcu_dereference_protected() usage!
+> [ 1140.958622]
+> [ 1140.958622] other info that might help us debug this:
+> [ 1140.958622]
+> [ 1140.966752]
+> [ 1140.966752] rcu_scheduler_active = 2, debug_locks = 1
+> [ 1140.973435] 2 locks held by swapper/0/0:
+> [ 1140.977521]  #0: ffffd9f646c333b0 (rcu_read_lock){....}-{1:3}, at: rcu_lock_acquire+0x4/0x40
+> [ 1140.986404]  #1: ffffd9f646c333b0 (rcu_read_lock){....}-{1:3}, at: rcu_lock_acquire+0x4/0x48
+> [ 1140.995170]
+> [ 1140.995170] stack backtrace:
+> [ 1140.999636] CPU: 0 UID: 0 PID: 0 Comm: swapper/0 Not tainted 6.14.0-rc1-00224-gda8926a49ba1-dirty #2666
+> [ 1140.999650] Hardware name: LS1028A RDB Board (DT)
+> [ 1140.999656] Call trace:
+> [ 1140.999660]  show_stack+0x24/0x38 (C)
+> [ 1140.999683]  dump_stack_lvl+0x40/0xa0
+> [ 1140.999698]  dump_stack+0x18/0x24
+> [ 1140.999711]  lockdep_rcu_suspicious+0x174/0x218
+> [ 1140.999723]  br_vlan_fill_forward_path_pvid+0x90/0x150
+> [ 1140.999735]  br_fill_forward_path+0x54/0x1b0
+> [ 1140.999751]  dev_fill_bridge_path+0x9c/0x188
+> [ 1140.999766]  nft_dev_fill_bridge_path+0x2ac/0x418
+> [ 1140.999785]  nft_flow_offload_bridge_init+0x188/0x1c8
+> [ 1140.999801]  nft_flow_offload_eval+0x18c/0x300
+> [ 1140.999816]  nft_do_chain+0x1c8/0x538
+> [ 1140.999831]  nft_do_chain_bridge+0x15c/0x210
+> [ 1140.999846]  nf_hook_slow+0x80/0x130
+> [ 1140.999862]  NF_HOOK+0xd8/0x1d0
+> [ 1140.999871]  __br_forward+0x138/0x1a0
+> [ 1140.999880]  br_forward+0xd8/0x160
+> [ 1140.999889]  br_handle_frame_finish+0x3bc/0x5a8
+> [ 1140.999900]  br_nf_pre_routing_finish+0x538/0x608
+> [ 1140.999917]  NF_HOOK+0x254/0x298
+> [ 1140.999933]  br_nf_pre_routing+0x3e8/0x428
+> [ 1140.999949]  br_handle_frame+0x264/0x490
+> [ 1140.999959]  __netif_receive_skb_core+0x13c/0x1128
+> [ 1140.999975]  __netif_receive_skb_list_core+0xd4/0x1e8
+> [ 1140.999989]  netif_receive_skb_list_internal+0x224/0x338
+> [ 1141.000000]  napi_complete_done+0xb4/0x1d8
+> [ 1141.000012]  gro_cell_poll+0x94/0xb8
+> [ 1141.000025]  __napi_poll+0x58/0x258
+> [ 1141.000040]  net_rx_action+0x1f4/0x3e0
+> [ 1141.000055]  handle_softirqs+0x184/0x458
+> [ 1141.000070]  __do_softirq+0x20/0x2c
+> [ 1141.000079]  ____do_softirq+0x1c/0x30
+> [ 1141.000095]  call_on_irq_stack+0x24/0x58
+> [ 1141.000111]  do_softirq_own_stack+0x28/0x40
+> [ 1141.000127]  __irq_exit_rcu+0xd4/0x1a0
+> [ 1141.000139]  irq_exit_rcu+0x1c/0x40
+> [ 1141.000152]  el1_interrupt+0x8c/0xc0
+> [ 1141.000170]  el1h_64_irq_handler+0x18/0x28
+> [ 1141.000186]  el1h_64_irq+0x6c/0x70
+> [ 1141.000195]  arch_local_irq_enable+0x8/0x10 (P)
+> [ 1141.000213]  cpuidle_enter+0x44/0x68
+> [ 1141.000228]  do_idle+0x1e8/0x280
+> [ 1141.000238]  cpu_startup_entry+0x40/0x50
+> [ 1141.000248]  rest_init+0x1c4/0x1d0
+> [ 1141.000260]  start_kernel+0x324/0x3e8
+> [ 1141.000272]  __primary_switched+0x88/0x98
+> [ 1141.197568] ------------[ cut here ]------------
 
-> Hello:
-> I found a problem with ftp ipvs.
-> I create 3 virtual machine in one host. One is the FTP client, the other is the ipvs transition host, and the other is the FTP server.
-> The ftp connection is successful in ipv4 address,but failed in ipv6 address.
-> The failure is tcp6 checksum error in tcp_dnat_handler(tcp_dnat_handler-> tcp_csum_check->csum_ipv6_magic),
-> I trace back where skb->csum is assigned and found skb->csum is assigned in nf_ip6_checksum in case CHECKSUM_NONE(ipv6_conntrack_in=> nf_conntrack_in => nf_conntrack_tcp_packet => nf_ip6_checksum).
-> I don't know much about ipv6 checksums,why ipv6 nf_conntrack assign skb->csum but check error in ipvs tcp_dnat_handler?
-
-	Looks like the checksum validation does not use correct
-offset for the protocol header in the case with IPv6. Do you
-see extension headers before the final IPv6 header that
-points to TCP header? If that is the case, the following patch
-can help. If you prefer, you can apply just the TCP part for
-the FTP test. Let me know if this solves the problem, thanks!
-
-[PATCH] ipvs: provide correct ipv6 proto offset for csum checks
-
-Protocol checksum validation fails if there are multiple IPv6 headers
-before the protocol header. iph->len already contains its offset, so
-use it to fix the problem.
-
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
----
- net/netfilter/ipvs/ip_vs_proto_sctp.c | 18 ++++++------------
- net/netfilter/ipvs/ip_vs_proto_tcp.c  | 19 ++++++-------------
- net/netfilter/ipvs/ip_vs_proto_udp.c  | 18 ++++++------------
- 3 files changed, 18 insertions(+), 37 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-index 83e452916403..63c78a1f3918 100644
---- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-@@ -10,7 +10,8 @@
- #include <net/ip_vs.h>
- 
- static int
--sctp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp);
-+sctp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp,
-+		unsigned int sctphoff);
- 
- static int
- sctp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
-@@ -108,7 +109,7 @@ sctp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 		int ret;
- 
- 		/* Some checks before mangling */
--		if (!sctp_csum_check(cp->af, skb, pp))
-+		if (!sctp_csum_check(cp->af, skb, pp, sctphoff))
- 			return 0;
- 
- 		/* Call application helper if needed */
-@@ -156,7 +157,7 @@ sctp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 		int ret;
- 
- 		/* Some checks before mangling */
--		if (!sctp_csum_check(cp->af, skb, pp))
-+		if (!sctp_csum_check(cp->af, skb, pp, sctphoff))
- 			return 0;
- 
- 		/* Call application helper if needed */
-@@ -185,19 +186,12 @@ sctp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- }
- 
- static int
--sctp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp)
-+sctp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp,
-+		unsigned int sctphoff)
- {
--	unsigned int sctphoff;
- 	struct sctphdr *sh;
- 	__le32 cmp, val;
- 
--#ifdef CONFIG_IP_VS_IPV6
--	if (af == AF_INET6)
--		sctphoff = sizeof(struct ipv6hdr);
--	else
--#endif
--		sctphoff = ip_hdrlen(skb);
--
- 	sh = (struct sctphdr *)(skb->data + sctphoff);
- 	cmp = sh->checksum;
- 	val = sctp_compute_cksum(skb, sctphoff);
-diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-index 7da51390cea6..dabdb9d3b479 100644
---- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-@@ -29,7 +29,8 @@
- #include <net/ip_vs.h>
- 
- static int
--tcp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp);
-+tcp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp,
-+	       unsigned int tcphoff);
- 
- static int
- tcp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
-@@ -166,7 +167,7 @@ tcp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 		int ret;
- 
- 		/* Some checks before mangling */
--		if (!tcp_csum_check(cp->af, skb, pp))
-+		if (!tcp_csum_check(cp->af, skb, pp, tcphoff))
- 			return 0;
- 
- 		/* Call application helper if needed */
-@@ -244,7 +245,7 @@ tcp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 		int ret;
- 
- 		/* Some checks before mangling */
--		if (!tcp_csum_check(cp->af, skb, pp))
-+		if (!tcp_csum_check(cp->af, skb, pp, tcphoff))
- 			return 0;
- 
- 		/*
-@@ -301,17 +302,9 @@ tcp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 
- 
- static int
--tcp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp)
-+tcp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp,
-+	       unsigned int tcphoff)
- {
--	unsigned int tcphoff;
--
--#ifdef CONFIG_IP_VS_IPV6
--	if (af == AF_INET6)
--		tcphoff = sizeof(struct ipv6hdr);
--	else
--#endif
--		tcphoff = ip_hdrlen(skb);
--
- 	switch (skb->ip_summed) {
- 	case CHECKSUM_NONE:
- 		skb->csum = skb_checksum(skb, tcphoff, skb->len - tcphoff, 0);
-diff --git a/net/netfilter/ipvs/ip_vs_proto_udp.c b/net/netfilter/ipvs/ip_vs_proto_udp.c
-index 68260d91c988..e99e7c5df869 100644
---- a/net/netfilter/ipvs/ip_vs_proto_udp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_udp.c
-@@ -25,7 +25,8 @@
- #include <net/ip6_checksum.h>
- 
- static int
--udp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp);
-+udp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp,
-+	       unsigned int udphoff);
- 
- static int
- udp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
-@@ -155,7 +156,7 @@ udp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 		int ret;
- 
- 		/* Some checks before mangling */
--		if (!udp_csum_check(cp->af, skb, pp))
-+		if (!udp_csum_check(cp->af, skb, pp, udphoff))
- 			return 0;
- 
- 		/*
-@@ -238,7 +239,7 @@ udp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 		int ret;
- 
- 		/* Some checks before mangling */
--		if (!udp_csum_check(cp->af, skb, pp))
-+		if (!udp_csum_check(cp->af, skb, pp, udphoff))
- 			return 0;
- 
- 		/*
-@@ -297,17 +298,10 @@ udp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 
- 
- static int
--udp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp)
-+udp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp,
-+	       unsigned int udphoff)
- {
- 	struct udphdr _udph, *uh;
--	unsigned int udphoff;
--
--#ifdef CONFIG_IP_VS_IPV6
--	if (af == AF_INET6)
--		udphoff = sizeof(struct ipv6hdr);
--	else
--#endif
--		udphoff = ip_hdrlen(skb);
- 
- 	uh = skb_header_pointer(skb, udphoff, sizeof(_udph), &_udph);
- 	if (uh == NULL)
--- 
-2.48.1
-
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+Thanks. I will correct both in v7.
 
