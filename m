@@ -1,87 +1,152 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f49.google.com (mail-wr1-f49.google.com [209.85.221.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 294C5218ADD
-	for <netfilter-devel@vger.kernel.org>; Mon, 31 Mar 2025 22:36:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51A871E5B78;
+	Tue,  1 Apr 2025 08:28:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743460598; cv=none; b=u/znqBiKVIaTrcVp5w+sPyvVs8cDYXBpgxPOohAVEB6WdsBSIw/+vKObPrrZl12S2ZEzeWQuPBTCUXYrapfNsbdHtKjUMgATXnoUABHslB+9xOsYfiD2njd+VeFQm2tqoao+vibrRHbEgyhYcNbw65Eky0TkvFPyjPfZyptGueg=
+	t=1743496120; cv=none; b=c2TJ5JP7FRxKnhVMoBEvYbKf6ijsULfc6OHgzQSR8mrXCEHKTEMXE12wUy7FnUOA5EdqswpLlhwNheCJh48WwalDyHzurBNMBgv62HnQh+Q9K11fhRzYXZsHaj6G51f/+7Caddr9Hqu6WDC9rL7LPIz4vKwvs04xzZmvxZT4yPk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743460598; c=relaxed/simple;
-	bh=zXS6522BQ+GAfllW2yQfWzw89hrKyagB54ip3HTZE5A=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=dw0PGm9hIrWnXKxkC171y/gPkXCz53u+4d8lARvlDMQdnQviagVMud2ST+cJ9L/L9NR8nt3j82n/4TECdzH1A9m9iGSamR0AiYVLd3z6Y4W++9pcx3xgg0MHr9C3TWNRu52JE20+KEM+97tNUMcqmr8ZWNYr3EzUcSnpXk2K+s8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=bI9beu/f; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=iaa/scJk; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1743496120; c=relaxed/simple;
+	bh=FIQRNqALScV1BSz3+stZ9gXajjKm+lKccjTA9d7LlrU=;
+	h=From:To:Cc:Subject:In-Reply-To:Date:Message-ID:References:
+	 MIME-Version:Content-Type; b=KJj6jAqYnczkKQTO635wnUgTGUKxzqcMUOqetQBSyOgICJKbqL3brd3mgavwPMOacH7ZbPACrIAMQjRxH/I7DwyCY6a+ySEK0bO1KDInYQKSy69hZTg9EzZhIcoI7UIDnXnJx1QFkoNlMGgK0sxyWhor9SPQdCvlWIQyxg06XXE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=V3y6K5FF; arc=none smtp.client-ip=209.85.221.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="bI9beu/f";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="iaa/scJk"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 07D6060389; Tue,  1 Apr 2025 00:36:32 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1743460592;
-	bh=/BoqFHYUqliljFUKwAJ0I3CyD43VyDAFczgd16D+390=;
-	h=From:To:Cc:Subject:Date:From;
-	b=bI9beu/fLe/OeA17T80+DymFduV074AENL6gnjIbmFqZQBIpmAJVQzQoTgf08L0BB
-	 SkwgCakHpfiozVS0+O3CjTZnUTO3OwXkyGVdZwakU+xc733ZZ0yM/TJ/e16chlwJI/
-	 kZESb23jDjRtfujiUULUE20NGFaizoVDnP9MzCu+2LiK8hcR6sNKM4MwMBNR4ZrPcG
-	 xnj+Ipf8G6E/AofNJhOQ+JMrbpCbDXbK9z6fW+ia2ir3H7pIG5klIKvI4w7thpv0NA
-	 vy463JzkW5uIMuAYKIiX6elR5anigI/31tlaQogm0mBbR5OzthOygHJjqGJ0Lg3/aG
-	 PDYt7P1xibJ2g==
-X-Spam-Level: 
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 704E56037D;
-	Tue,  1 Apr 2025 00:36:31 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1743460591;
-	bh=/BoqFHYUqliljFUKwAJ0I3CyD43VyDAFczgd16D+390=;
-	h=From:To:Cc:Subject:Date:From;
-	b=iaa/scJkWJZdm20OenKz+NYx3jzjtSoVE22LB9gqgaEks5Q0jX5LEL4LkCvyUbWWa
-	 ZTQeYX9mzGsj35Yz2IzQe4y7svpb2xoW77+xxjcAvKWgrxvS2VqKDyyTxbGT+7zB9o
-	 1CZduSS7hT5uKpYm/gnJuMkhfdTs2crcpJGsEw8Mmn+Vgk/bs5L20CGBH9a+z2s/0E
-	 zEQOCv5pcTQDnjQK/LU54gNnHOsmufWtCfAQXI/gXOuR85oGInUnqttv2UEamRj2tG
-	 u8JDAG79m/tCJHbf/vRAAUupJrBSA4o3g1+wRm1xjcHiDPRq6wMxYmCRLCxt22kMMN
-	 Z8s9nXKh9XTDg==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de
-Subject: [PATCH nft] expression: incorrect assert() list_expr_to_binop
-Date: Tue,  1 Apr 2025 00:36:27 +0200
-Message-Id: <20250331223627.931508-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="V3y6K5FF"
+Received: by mail-wr1-f49.google.com with SMTP id ffacd0b85a97d-39bf44be22fso2664068f8f.0;
+        Tue, 01 Apr 2025 01:28:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1743496116; x=1744100916; darn=vger.kernel.org;
+        h=mime-version:user-agent:references:message-id:date:in-reply-to
+         :subject:cc:to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=Ooc6+DVp9r7uPavCnUFRGj00nf3JAwQAzWilPBr2i+o=;
+        b=V3y6K5FFyg5ldAyBMFfmvMWsTHrrbX2j0rRmhKHqTEKzzsJPxeUv/uQFx12e/A3Ty/
+         8zdKoAVHDFva4b4GDx2qmkLQuRiQUBJmymt3lsolb3Sny8yViAjcHwRncsYaOaQnUkXc
+         ouKQv+DF/Q1GFFzMQClisJEvuUh23xl2Gr9z6BogsM82Rt/n0hGG4F39lmdh+2xbZ6NT
+         nso9BrSTUHO1MEBL4AoCGPgfZD6uhsqbie4gnQuDPhXlpZJq9onPHS6u6+ql7vcVq1Xp
+         V+gQRaEgaGAKCO74v5pKBNKFAE+Zidx2JoWWPAxy3+v6WNoWm6J3eKGcbRblsMi6jrNP
+         3KOg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1743496116; x=1744100916;
+        h=mime-version:user-agent:references:message-id:date:in-reply-to
+         :subject:cc:to:from:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Ooc6+DVp9r7uPavCnUFRGj00nf3JAwQAzWilPBr2i+o=;
+        b=eYwSu3f469Nw2mghTRJV1wAw7I7plBfVi88im34le9GEs15ppqCt4ezNN351vMqpZg
+         Jy8QfvNgcfUDYVTcOk9cEMzF5sfAxLxJTtVczqjEaMDRORosLPblUkP93WKRwnkNemsb
+         KC9melXOrRmPqcqSmKnn7oiP8XGLdfVnGOmSjiIkWOMXnINQdu+4oY/uoTsqhY7wlCAh
+         NKKcEBeFIpKXXiNShwxvC1nqVyVTDhID9dWuZPo/zbjdgypXnpBwzKUPur5u6YhK8Kj/
+         juE3xYvWVQ2BI1vqLeIntl9Rcnyla/HzyREMKD1nRgF1sh0ZOdtRq+WR7fOJMzK0lwj9
+         VuTQ==
+X-Forwarded-Encrypted: i=1; AJvYcCX6b1LIoeCwjG3adFeUQroTtE2K9ZvZgbqmwH3nGATH2B2P4ehPuDPBy4C3WvYpV6N4rCOmoQdDOSA3SffQGI0=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzX2arWEaRru5eYu3yUDspAW3HNE5HmAunpAwNbai+tmIeSzN7w
+	gRO7x2Jjh/tfM6xqMPBCxwpjwi4PJORbTpggfRbxdkmESnSp6peLtBdEdg==
+X-Gm-Gg: ASbGncuj0CqQ+1P1V4JeN8aL5JR8Jn67xqFQYwShJhINVwmq4lzRZbyFVLMsQmn1NcF
+	HHDvK8stscIca9rnFLtmvuDTbXLVOK7D9VezHzpwuF0ACw47mRzm1Qkf0L2uV0CIPU2nmFIK2pR
+	H1bv+2vvJUdwAQA3vRtTo2x0/UJL3eWvTMULJXL3JUFEpOlcr9rWR0SX37DcrVkoDreDP1m8aWg
+	EkZIXw8ihL+LbMBXHtNedhEsoa3PSAk7scj6flL/lqGokoDYsgVl1JcGDd6Cz3r3NN/J7pjVAAj
+	BNxLl00N0qSKIHz94JsgEQ8d0otSW7XlDJ5gunHrGPwrt9wwfRJKS8fBWQ==
+X-Google-Smtp-Source: AGHT+IFlADYGu9ICOy4oPXjYef5zwTnWdLYJSejuZX6zIuMPuQyc+Ja2ETKwKDkCwW23gvk1OmNaRg==
+X-Received: by 2002:a5d:47c7:0:b0:39a:ca0c:fc90 with SMTP id ffacd0b85a97d-39c120de403mr8997314f8f.14.1743496116177;
+        Tue, 01 Apr 2025 01:28:36 -0700 (PDT)
+Received: from imac ([2a02:8010:60a0:0:d018:a09f:82bc:eb27])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-39c0b6656afsm13320225f8f.40.2025.04.01.01.28.35
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 01 Apr 2025 01:28:35 -0700 (PDT)
+From: Donald Hunter <donald.hunter@gmail.com>
+To: Florian Westphal <fw@strlen.de>
+Cc: <netdev@vger.kernel.org>,  <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH v2 net-next] netlink: specs: add conntrack dump and
+ stats dump support
+In-Reply-To: <20250210152159.41077-1-fw@strlen.de> (Florian Westphal's message
+	of "Mon, 10 Feb 2025 16:21:52 +0100")
+Date: Tue, 11 Feb 2025 11:11:13 +0000
+Message-ID: <m2cyfoohwu.fsf@gmail.com>
+References: <20250210152159.41077-1-fw@strlen.de>
+User-Agent: Gnus/5.13 (Gnus v5.13)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 
-assert() logic is reversed, all expressions in the list are handled,
-including the first.
+Florian Westphal <fw@strlen.de> writes:
 
-  src/expression.c:1285: list_expr_to_binop: Assertion `first' failed.
+> This adds support to dump the connection tracking table
+> ("conntrack -L") and the conntrack statistics, ("conntrack -S").
+>
+> Example conntrack dump:
+> tools/net/ynl/pyynl/cli.py --spec Documentation/netlink/specs/conntrack.yaml --dump get
 
-Fixes: 53d6bb992445 ("expression: initialize list of expression to silence gcc compile warning")
-Reported-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/expression.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hi Florian,
 
-diff --git a/src/expression.c b/src/expression.c
-index 228754fc2067..cc693b10d759 100644
---- a/src/expression.c
-+++ b/src/expression.c
-@@ -1282,7 +1282,7 @@ struct expr *list_expr_to_binop(struct expr *expr)
- 		}
- 	}
- 	/* list with one single item only, this should not happen. */
--	assert(first);
-+	assert(!first);
- 
- 	/* zap list expressions, they have been moved to binop expression. */
- 	init_list_head(&expr->expressions);
--- 
-2.30.2
+Updates all look good, with one minor new point below.
 
+Reviewed-by: Donald Hunter <donald.hunter@gmail.com>
+
+> +operations:
+> +  enum-model: directional
+> +  list:
+> +    -
+> +      name: get
+> +      doc: get / dump entries
+> +      attribute-set: conntrack-attrs
+> +      fixed-header: nfgenmsg
+> +      do:
+> +        request:
+> +          value: 0x101
+> +          attributes:
+> +            - tuple-orig
+> +            - tuple-reply
+> +            - zone
+> +        reply:
+> +          value: 0x100
+> +          attributes:
+
+To avoid duplicating the attribute list in the dump reply, you can
+reference this definition:
+
+@@ -565,7 +565,7 @@ operations:
+             - zone
+         reply:
+           value: 0x100
+-          attributes:
++          attributes: &entries-attrs
+             - tuple-orig
+             - tuple-reply
+             - status
+@@ -598,28 +598,7 @@ operations:
+             - zone
+         reply:
+           value: 0x100
+-          attributes:
+-            - tuple-orig
+-            - tuple-reply
+-            - status
+-            - protoinfo
+-            - help
+-            - nat-src
+-            - nat-dst
+-            - timeout
+-            - mark
+-            - counter-orig
+-            - counter-reply
+-            - use
+-            - id
+-            - nat-dst
+-            - tuple-master
+-            - seq-adj-orig
+-            - seq-adj-reply
+-            - zone
+-            - secctx
+-            - labels
+-            - synproxy
++          attributes: *entries-attrs
+     -
+       name: get-stats
+       doc: dump pcpu conntrack stats
