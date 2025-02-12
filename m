@@ -1,133 +1,75 @@
-Received: from mail-ej1-f45.google.com (mail-ej1-f45.google.com [209.85.218.45])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF1F4254B05
-	for <netfilter-devel@vger.kernel.org>; Tue, 11 Feb 2025 17:02:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B983426280A;
+	Wed, 12 Feb 2025 18:20:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739293373; cv=none; b=orBxC9h2YcS7hN2N+NLFJmGA+gRx8nEuCFdcz6XtSttAf6DuhU8b1Wh7yqyMemBf/htBOtcmfnb5pULnffEIbyQ4uwbNnL6oTIZqDIUCPEFavgp1mg5OqzaUFYBguChLpNluWy5PutA3NV1Ryxs2QTnLygJ+nV9/HDcgMwWWeeo=
+	t=1739384411; cv=none; b=ngfyuOrh0YREC3C2i8r0w+JQClaTMrlvGIalKJGbOHBUyy1I8+6P3NnJCty9mrSkeokh3gGNT1DVyr+xCFaV6WRVYzHaPWIK8wlo/UfRyJZWNiw4BwkQXRFyCJ+mNoQpg30o1+Bc9pWWa73nLb/jmJOm87j1UUdOlfctyGbpvQQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739293373; c=relaxed/simple;
-	bh=cl5VRTIaQVhnhX7Mp5CHjRfQCdJZoCwXZgpTFNL919I=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=R8BnHYF5/c1JnrA30Pv5pqRKlHw0xnVyjL1fppfhXloffcw9+eIXHyKxDAkq9yCZyJfaaTpz7WJWXTSeCaSYeURz3emID6ceWDl0jqYG3R+5Lkc25oSj9Gb4zGBG4XlTLGn9g5uehBoalJXJAlJgY7l4SlMMCdbOzE5f2tYjiXw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=blackwall.org; spf=none smtp.mailfrom=blackwall.org; dkim=pass (2048-bit key) header.d=blackwall-org.20230601.gappssmtp.com header.i=@blackwall-org.20230601.gappssmtp.com header.b=OjLotQ+E; arc=none smtp.client-ip=209.85.218.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=blackwall.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=blackwall.org
+	s=arc-20240116; t=1739384411; c=relaxed/simple;
+	bh=bBrlvhhsK4uf6bIj8vDNlyMSkiGOHPpL78n6ONS5GMc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=F6ZCEExf1omuegylOVU5trz+anFisqQnRMb/XyvbcrVWZmdGl7piK5tGilfmf6+upiBtpuQuFpEEpvVtHAkekYbgz2eup2qUZ+84VCIDJnhXMi0qWYxkGSemeRD9Hd+U6kmvQ3b4TCg3AUYyO/STvA2ZKWiFik768NH8cUDCP2s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kdnAv84M; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=blackwall-org.20230601.gappssmtp.com header.i=@blackwall-org.20230601.gappssmtp.com header.b="OjLotQ+E"
-Received: by mail-ej1-f45.google.com with SMTP id a640c23a62f3a-ab744d5e567so1127974666b.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Feb 2025 09:02:50 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=blackwall-org.20230601.gappssmtp.com; s=20230601; t=1739293369; x=1739898169; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=b/56BFQCA/x0+5Zxz4AvQg+9pW1+xObkEyrqUGNwQiI=;
-        b=OjLotQ+EkgIV5vISUancQJtc0eeKOZMXVXSwgZe1m02PQqh3xxy0+mjYejvNijgYIV
-         HXVtilq0D0SNYs8MA+VdjeVP1kmJ7sbs2MMPHKGHTwvrLKPnQXdAujeq1TBvdzIMzXLT
-         W39uk+w4ZO8v5FCohIufqK28hcPTo3akvGGxH4c+39LgmS6HAMvJ5Rve8ep9cmIdjfVJ
-         Zui4M562F11y15q9kICaksgfb6p+Br1A1Ue0kyW37GS8ZTkTdeTHmQjGs/mKTM8reVUY
-         GWFxw+Jvw4ae1cS8RUVunFgMHKQvuBZv8n8AMfMMBY3MR8YR1nGIBRWbB+NYognomjUa
-         JYyQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1739293369; x=1739898169;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=b/56BFQCA/x0+5Zxz4AvQg+9pW1+xObkEyrqUGNwQiI=;
-        b=Ia4MHRthw76V4PKdZEik2ILo+y4RLPVlLjKoyStbL8xUijHmoNU+8j6wW3yIt9k7Wx
-         n2f125kCHwY8qpsd88rIdFhruxpsGm7DytcVLcwuJ+PPpQUolAkYjy0DE/mGE9/VI5Lh
-         Ez8ifF7hi20GHk0x5LEx8nsj2zpylKj9MEamHh64y2jhYx3t4cV2poQcqMHlepQARt9i
-         eE2U3rZHvUsqCZud17cmM7oisy5ZCK7M5dry+987agFZXy1zYCtQztGhhmUvio56btoD
-         FumK6M383nqL212dU6W+HyRPARZvw26DDHveTsWnp/sdxrKjQtvbnNemAYUDBy94HBxl
-         i4mQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUftKFYfIX7rdqB+A9eutoQDCufq/cDQM/8K/xttM2O3rn7MjffXsHXDvuNxEwr3KWZyoVS7vHGe9IBvZmemUM=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxKqt1Gvaqcz4QWAm1rTtu1vfRPmxUFYnH6oQTpkxyVwQDpmXsz
-	aS1fD/rVcmboU6l/+Kj5TZbRFot68oBwlsnTplQDY3nOt9KhFKXgh4MIL7sR3Us=
-X-Gm-Gg: ASbGncv94fnjchSZFwNgMpcubVe6ANnWxCDdleLWyQj1iittfcMvtWHfsawcMfEri8Z
-	2MU+PDmN+IGisfSY7LBUCOMPq+ckWg7O2j0QhT9aRoEQyIMi7OnrCrerxRJhVFgtCGUQVj+Hi34
-	jEScYQX06+FWvF27XWztYlDBznztJdG0zNkNVYU2csidMaxBrGBnaI8CRwcRO+XHmMX2tOQlkOl
-	koh6gJuUz3Ie1xe2N5+WkF75gSOnAo+HvMX010XclpMBUY6ZAFfBuRAhYfD7CjRG3hs2Ae9gvI+
-	MHL2I/gM9iqn6IGQS7C1KWD+xoCEo1C0e0pJGLyHYhBulx4=
-X-Google-Smtp-Source: AGHT+IGAPbzjetBMyKn9xpkEx6mNiLaz6Iu+7FJStrC2CQYkHtGpuLCTUuKU+eMJA/ubyZG+xRvimw==
-X-Received: by 2002:a17:907:7fac:b0:ab7:cd14:2472 with SMTP id a640c23a62f3a-ab7dafca27emr340636066b.23.1739293367291;
-        Tue, 11 Feb 2025 09:02:47 -0800 (PST)
-Received: from [192.168.0.205] (78-154-15-142.ip.btc-net.bg. [78.154.15.142])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ab7b4e96185sm543848166b.86.2025.02.11.09.02.45
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 11 Feb 2025 09:02:46 -0800 (PST)
-Message-ID: <2609939e-fce9-42ff-93ee-890598437f25@blackwall.org>
-Date: Tue, 11 Feb 2025 19:02:45 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kdnAv84M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19D60C4CEDF;
+	Wed, 12 Feb 2025 18:20:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1739384411;
+	bh=bBrlvhhsK4uf6bIj8vDNlyMSkiGOHPpL78n6ONS5GMc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=kdnAv84MiQQyAccio1JoQaYgk6QSvonwHPvNFoUQuOgo6NapD+0PtawRqUUqlyIwm
+	 FI3vzqYgoj5bsrwet3a/+n8e+0vMgZMPuN7OVaoKxRbxnZeehOTOMrme1DM0/bxic0
+	 JTy9K0DCAAAgVu6skzKrrOmW4vifRIQ6Z0v0lSNarQ0g5IFkivcE2BOpKgxUDpPq+9
+	 QERCfX7/WvGQuKzYD32pASje/KldsbJL8v3JPBoJjBkbw2v+AwsqS/9i3LrmVVWqce
+	 CMCuPskUSZQFZW6SiWJRq+1Z21UGf3smcEBzONESiilWj0d42rIGDsbNGFNQJCQ0Z1
+	 f1/VoCWmunHuA==
+Date: Wed, 12 Feb 2025 18:20:07 +0000
+From: Simon Horman <horms@kernel.org>
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, donald.hunter@gmail.com
+Subject: Re: [PATCH v2 net-next] netlink: specs: add conntrack dump and stats
+ dump support
+Message-ID: <20250212182007.GG1615191@kernel.org>
+References: <20250210152159.41077-1-fw@strlen.de>
+ <20250210103926.3ec4e377@kernel.org>
+ <20250210202703.GA12476@breakpoint.cc>
+ <20250210125438.48560003@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v6 net-next 05/14] bridge: Add filling forward path from
- port to port
-To: Eric Woudstra <ericwouds@gmail.com>, Vladimir Oltean <olteanv@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
- Andrew Lunn <andrew+netdev@lunn.ch>, Pablo Neira Ayuso
- <pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>,
- Jiri Pirko <jiri@resnulli.us>, Ivan Vecera <ivecera@redhat.com>,
- Roopa Prabhu <roopa@nvidia.com>, Matthias Brugger <matthias.bgg@gmail.com>,
- AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
- Kuniyuki Iwashima <kuniyu@amazon.com>,
- Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
- Lorenzo Bianconi <lorenzo@kernel.org>, Joe Damato <jdamato@fastly.com>,
- Alexander Lobakin <aleksander.lobakin@intel.com>,
- Frank Wunderlich <frank-w@public-files.de>,
- Daniel Golle <daniel@makrotopia.org>, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org, bridge@lists.linux.dev,
- linux-arm-kernel@lists.infradead.org, linux-mediatek@lists.infradead.org
-References: <20250209111034.241571-1-ericwouds@gmail.com>
- <20250209111034.241571-6-ericwouds@gmail.com>
- <20250211132832.aiy6ocvqppoqkd65@skbuf>
- <91d709aa-2414-4fb4-b3e1-94e0e330d33c@blackwall.org>
- <1aa60578-ba4c-458b-b020-cff59b119bdc@gmail.com>
-Content-Language: en-US
-From: Nikolay Aleksandrov <razor@blackwall.org>
-In-Reply-To: <1aa60578-ba4c-458b-b020-cff59b119bdc@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20250210125438.48560003@kernel.org>
 
-On 2/11/25 18:35, Eric Woudstra wrote:
+On Mon, Feb 10, 2025 at 12:54:38PM -0800, Jakub Kicinski wrote:
+> On Mon, 10 Feb 2025 21:27:03 +0100 Florian Westphal wrote:
+> > Jakub Kicinski <kuba@kernel.org> wrote:
+> > > On Mon, 10 Feb 2025 16:21:52 +0100 Florian Westphal wrote:  
+> > > > This adds support to dump the connection tracking table
+> > > > ("conntrack -L") and the conntrack statistics, ("conntrack -S").  
+> > > 
+> > > Hi Florian!
+> > > 
+> > > Some unhappiness in the HTML doc generation coming from this spec:
+> > > 
+> > > /home/doc-build/testing/Documentation/networking/netlink_spec/ctnetlink.rst:68: WARNING: duplicate label conntrack-definition-nfgenmsg, other instance in /home/doc-build/testing/Documentation/networking/netlink_spec/conntrack.rst  
+> > 
+> > Looks like the tree has both v1 and v2 appliedto it.
+> > 
+> > v1 added 'ctnetlink.yaml', I renamed it to 'conntrack.yaml' in v2 as
+> > thats what Donald requested.
 > 
-> 
-> On 2/11/25 5:00 PM, Nikolay Aleksandrov wrote:
->> On 2/11/25 15:28, Vladimir Oltean wrote:
->>> On Sun, Feb 09, 2025 at 12:10:25PM +0100, Eric Woudstra wrote:
->>>> @@ -1453,7 +1454,10 @@ void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
->>>>  	if (!br_opt_get(br, BROPT_VLAN_ENABLED))
->>>>  		return;
->>>>  
->>>> -	vg = br_vlan_group(br);
->>>> +	if (p)
->>>> +		vg = nbp_vlan_group(p);
->>>> +	else
->>>> +		vg = br_vlan_group(br);
->>>>  
->>>>  	if (idx >= 0 &&
->>>>  	    ctx->vlan[idx].proto == br->vlan_proto) {
->>>
->>> I think the original usage of br_vlan_group() here was incorrect, and so
->>> is the new usage of nbp_vlan_group(). They should be br_vlan_group_rcu()
->>> and nbp_vlan_group_rcu().
->>>
->>
->> Oops, right. Nice catch!
->>
-> 
-> Hi Nikolay,
-> 
-> I gather that I can include your Acked-by also in the corrected patch.
-> 
+> I see. We need to clean the HTML output more thoroughly in the CI 🤔️
+> I brought the patch back, let's see what happens on next run.
 
-Yes, thanks.
+It seems happy now.
 
+Should I work on a fix for NIPA?
