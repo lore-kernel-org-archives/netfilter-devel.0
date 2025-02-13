@@ -1,35 +1,63 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A161E2066C7;
-	Thu, 13 Feb 2025 04:10:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFBC72135A6;
+	Thu, 13 Feb 2025 10:05:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739419811; cv=none; b=Ga+Z7SlTBLKMlxHxpRqX0HuLSFLTQYZfG7KqcbaAJDZjzjTfTqAyRC9AuAPTs5TR2pMzTxAjfu9lw1Q7qGTaaTQiTtjVhZ6lsww1c0Jh+xA7unSRdxBqeA0uu9SKU4kR/jrioPT0WVvFbQvBsaTUloU13fNlaQbHpqGQUNevdlg=
+	t=1739441125; cv=none; b=EwMPZyCkZI4VosWFng/nkZ4X7GefUjHUdNihp/xQoCeFzy7pIJBez1lmiCVaoF+1l0mQlcTWxDhYwLZFwzQKeaBpxv5K+BB8gaIbkIwX46uxeYELHrMOfR8jMhsqmQD5mJx1YilV46kTjwr3lJxSDiJ9dO4Yw3Jc11pb7Rf00jE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739419811; c=relaxed/simple;
-	bh=vBzPi+le8yHNaQQfyJswqWZw30/rpF7MDxZ2rLyouKg=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=W2KzKIejq6dpINyqiwryRMQSXx3Y4tDsAgS5cE0EkmBTuIUV30DvQUrijjvHjjaNPpmA+WViLn4APaWDcVl2997J72doldvE+4HOIegvWh+HkpvIq4za51I3cXDtn1tu5A5mlaoKYd/18Ntnm6FhtHIu9MY+ep6pTqgzP6W84nA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=V2Ia6qfF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739441125; c=relaxed/simple;
+	bh=WmsomkJ100p7pSf7xL38z54aaFNpB7l8QlDbE8kCpLQ=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=uN+jVFIgK5DPCwQE70u/T/faJliwKKt2P+/J/w0bqhOkfAPt7atPyJc9bfzDkze9Ws+qUqw4Ezm12k/TFajuWI0r5xXjse/TVpfifUGjXUqNijUWwfRiguggPiVbI/UWOr9Nfj6UQgHDn01PzIUaDWN140RbhCUIck+MQISz5Ac=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=TEZxhGFy; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=XPYHNgOn; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="V2Ia6qfF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B7FEC4CEE6;
-	Thu, 13 Feb 2025 04:10:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1739419811;
-	bh=vBzPi+le8yHNaQQfyJswqWZw30/rpF7MDxZ2rLyouKg=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=V2Ia6qfFgjt36bW7eKuZFf7GO3Eu4tr7mMKngVAf5p74yKD/D+LWTkFTtg3CN70IG
-	 q9Pr7QlRJdxb2fnPCbON9f619V4MSPHNd/6aHFCB3xgF7qoVOFAEYzs/h67PR5ogwE
-	 f+h54L8zn9UAwjsbWoZksGXTOdXhUW3R9zIZIx9Ht7qHrr+4WUUpv06zAuC3Ub9KuU
-	 0ywSSDjYE1JoEBqHjXbWIs0uHXtj7Nhqa2RbR+GiBWusM3KbNfrXRq72cettzRTNFb
-	 X/aJqC3QtyWGfnk86iDpvTO6wGwEeuH6Sn1+/4uGWUYPUHKfyg0jf8zqdz/R1rBiPR
-	 Qh+11lyGLJPAw==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 70E89380CEDC;
-	Thu, 13 Feb 2025 04:10:41 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="TEZxhGFy";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="XPYHNgOn"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 442D66056C; Thu, 13 Feb 2025 11:05:16 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1739441116;
+	bh=0FjhRGzxaA/4a6gzXP9+0Iz4nUTyuEMmSJ2bbQBb32o=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=TEZxhGFye5Wp67UjZL4Ev8PWK9/jpSO7asoomZQdsGqScKi22OMwg5Kk4Ye1J4i+G
+	 MqqkIBkpv+BPSxfX14Sf34Dmp6ScfcjnFp+3hSYp7IIuaAreA32boInIV2OLf3mGFD
+	 bg5kh9MqLYfhfijdcfEokzVZd+hlpIxENxS6NEmPYgNiX+net/gZm+xrpGnlwsjmCx
+	 sIsB7UObYPeZDyUw3d6qKfVbEDmc3lTbsSozpmxjyerpVHtc55IQt8sz8R1oG6jqsx
+	 VqGiyXmlTPBh10UHf2wjflimfk0rXisfGACEfB2e94agdd/CusHJvTZqJJulXnn59i
+	 u2SHdP5DUuNPA==
+X-Spam-Level: 
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id A399160568;
+	Thu, 13 Feb 2025 11:05:14 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1739441115;
+	bh=0FjhRGzxaA/4a6gzXP9+0Iz4nUTyuEMmSJ2bbQBb32o=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=XPYHNgOnpkLeUGd7aG78UzgcHGdUZrSdNrzLEOX8dyWn0KnjTJ4MDqrkP+2QUHx6n
+	 5tvU19tg8MAeVHYG35eFpzMrTdLSXkdnpqH+KHPvxJBifZ52fTSkyJnzdi6wGBReqR
+	 T5oPWacsEjIFn7IvYJsYXoiojv9n2m5SPAIk98FSg5OscxhkWNUZiHbjeVCafGhspM
+	 ZI2Wl37yudRcZ71Thj/ebXcBxu0TSZa8vQu4/VTD4fkTnEIP7dY9zgBpMUhiJSJWbY
+	 pnXBV1bn/bOmqL6jACq5OMPSQgJ3ffChnBjXgKxJbXtdv19iodabbrkKHtzJVsUN6C
+	 LpuVoxENZu5ug==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de,
+	horms@kernel.org
+Subject: [PATCH net 1/1] Revert "netfilter: flowtable: teardown flow if cached mtu is stale"
+Date: Thu, 13 Feb 2025 11:05:02 +0100
+Message-Id: <20250213100502.3983-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20250213100502.3983-1-pablo@netfilter.org>
+References: <20250213100502.3983-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,74 +65,51 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH v2 net-next] netlink: specs: add conntrack dump and stats dump
- support
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <173941983999.756055.3251715310058890855.git-patchwork-notify@kernel.org>
-Date: Thu, 13 Feb 2025 04:10:39 +0000
-References: <20250210152159.41077-1-fw@strlen.de>
-In-Reply-To: <20250210152159.41077-1-fw@strlen.de>
-To: Florian Westphal <fw@strlen.de>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
- donald.hunter@gmail.com
 
-Hello:
+This reverts commit b8baac3b9c5cc4b261454ff87d75ae8306016ffd.
 
-This patch was applied to netdev/net-next.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
+IPv4 packets with no DF flag set on result in frequent flow entry
+teardown cycles, this is visible in the network topology that is used in
+the nft_flowtable.sh test.
 
-On Mon, 10 Feb 2025 16:21:52 +0100 you wrote:
-> This adds support to dump the connection tracking table
-> ("conntrack -L") and the conntrack statistics, ("conntrack -S").
-> 
-> Example conntrack dump:
-> tools/net/ynl/pyynl/cli.py --spec Documentation/netlink/specs/conntrack.yaml --dump get
-> [{'id': 59489769,
->   'mark': 0,
->   'nfgen-family': 2,
->   'protoinfo': {'protoinfo-tcp': {'tcp-flags-original': {'flags': {'maxack',
->                                                                    'sack-perm',
->                                                                    'window-scale'},
->                                                          'mask': set()},
->                                   'tcp-flags-reply': {'flags': {'maxack',
->                                                                 'sack-perm',
->                                                                 'window-scale'},
->                                                       'mask': set()},
->                                   'tcp-state': 'established',
->                                   'tcp-wscale-original': 7,
->                                   'tcp-wscale-reply': 8}},
->   'res-id': 0,
->   'secctx': {'secctx-name': 'system_u:object_r:unlabeled_t:s0'},
->   'status': {'assured',
->              'confirmed',
->              'dst-nat-done',
->              'seen-reply',
->              'src-nat-done'},
->   'timeout': 431949,
->   'tuple-orig': {'tuple-ip': {'ip-v4-dst': '34.107.243.93',
->                               'ip-v4-src': '192.168.0.114'},
->                  'tuple-proto': {'proto-dst-port': 443,
->                                  'proto-num': 6,
->                                  'proto-src-port': 37104}},
->   'tuple-reply': {'tuple-ip': {'ip-v4-dst': '192.168.0.114',
->                                'ip-v4-src': '34.107.243.93'},
->                   'tuple-proto': {'proto-dst-port': 37104,
->                                   'proto-num': 6,
->                                   'proto-src-port': 443}},
->   'use': 1,
->   'version': 0},
->  {'id': 3402229480,
-> 
-> [...]
+nft_flowtable.sh test ocassionally fails reporting that the dscp_fwd
+test sees no packets going through the flowtable path.
 
-Here is the summary with links:
-  - [v2,net-next] netlink: specs: add conntrack dump and stats dump support
-    https://git.kernel.org/netdev/net-next/c/23fc9311a526
+Fixes: b8baac3b9c5c ("netfilter: flowtable: teardown flow if cached mtu is stale")
+Reported-by: Jakub Kicinski <kuba@kernel.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_flow_table_ip.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-You are awesome, thank you!
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index 97c6eb8847a0..8cd4cf7ae211 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -381,10 +381,8 @@ static int nf_flow_offload_forward(struct nf_flowtable_ctx *ctx,
+ 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
+ 
+ 	mtu = flow->tuplehash[dir].tuple.mtu + ctx->offset;
+-	if (unlikely(nf_flow_exceeds_mtu(skb, mtu))) {
+-		flow_offload_teardown(flow);
++	if (unlikely(nf_flow_exceeds_mtu(skb, mtu)))
+ 		return 0;
+-	}
+ 
+ 	iph = (struct iphdr *)(skb_network_header(skb) + ctx->offset);
+ 	thoff = (iph->ihl * 4) + ctx->offset;
+@@ -662,10 +660,8 @@ static int nf_flow_offload_ipv6_forward(struct nf_flowtable_ctx *ctx,
+ 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
+ 
+ 	mtu = flow->tuplehash[dir].tuple.mtu + ctx->offset;
+-	if (unlikely(nf_flow_exceeds_mtu(skb, mtu))) {
+-		flow_offload_teardown(flow);
++	if (unlikely(nf_flow_exceeds_mtu(skb, mtu)))
+ 		return 0;
+-	}
+ 
+ 	ip6h = (struct ipv6hdr *)(skb_network_header(skb) + ctx->offset);
+ 	thoff = sizeof(*ip6h) + ctx->offset;
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.30.2
 
