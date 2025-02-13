@@ -1,102 +1,84 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-il1-f198.google.com (mail-il1-f198.google.com [209.85.166.198])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0BBA213244;
-	Thu, 13 Feb 2025 10:05:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F1E31E86E
+	for <netfilter-devel@vger.kernel.org>; Thu, 13 Feb 2025 12:34:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.198
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739441125; cv=none; b=cjh8CRsES4j5qscElW/kqknAPNfgWPk8RTxPGKRmn0PvrFUgN/UaYuaeQaB/LcKcScjv0RN1Of8NjIfOxntYuifHwd449j5IGtjcyc0sXXvowuOKDMW+lCgueBXvBxXPp2ruLB4tENUaLIxM4cK0ebbaAnGmQct4Niaa2NvR9/0=
+	t=1739450065; cv=none; b=JQTdduOJH2T6QD/HZFaZNV97ggj8cehjiLgXkzRfwBrU9bJIekIzUh4QAKREiVxvAWO5JYXAHi0roT6D1rNIajZRh2nUCn/BdzRT3Elyrqm55EvOrb5rMSsGkXnCkF8xxN7kp14O2pn84nxfvaRW7A14TL/FQfg+lVvNlAfY4aQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739441125; c=relaxed/simple;
-	bh=knOoCyqKBam6Pf0TCdS+SFILRF2xIiNlVO7MLrcfpCI=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=ddA2oESHPjN5/BqXxfHwNwik+LzpLdCAZNrHTkT+keuDgpz1KG00CyGnqV57Aeag4vjUeOA+NgMvbtN+h2DtE+t28Yf99svPGXwVxSXB+OK1TgU8FkltS3p1ZzEFJr1sKtLrkHIiQ0pCmV8OlGuM+0lxULboI1jr8eIjJiysFsg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=nJqs8vBA; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=nUg2jIhN; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="nJqs8vBA";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="nUg2jIhN"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id F2283603AA; Thu, 13 Feb 2025 11:05:14 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1739441115;
-	bh=swm0n+eXf4Aw19LZqJrL1ixb0Ye++eEGcYlKWWhEWrU=;
-	h=From:To:Cc:Subject:Date:From;
-	b=nJqs8vBA00Onmi2Yp0/N1e7WgGMITiQiZWBJDixxSazGynmBE7nnkpvMZ5q+vtgFw
-	 F9NkB/qo78maSJK75wl6zfO0OYAggoh6DzfKc4EmUVW+jf9E2NtjAVrDDAPjlSPqDv
-	 J5+G22YkMGCyUqAcGi9OOmmt/XZG+piPwDnoPBuNdh73aB8x6XU9PsX3JB99PHK14S
-	 Bw8kjevVPmE/SEaEN4Nm9+oYO7co0QP1E6rTGi1n3klol8VU6BCjwqnj1A1gK8GGEo
-	 tEEHnwqOIhSozZxVhz79q156kDvaoD1JCeLmbelwuQvfKhuA1gVWlodY1W9BDhEKBr
-	 wX0UiWgS0CErw==
-X-Spam-Level: 
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 05B8C603AA;
-	Thu, 13 Feb 2025 11:05:12 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1739441113;
-	bh=swm0n+eXf4Aw19LZqJrL1ixb0Ye++eEGcYlKWWhEWrU=;
-	h=From:To:Cc:Subject:Date:From;
-	b=nUg2jIhNLmjEXvfp88oF++rB/L4SRyAkSO2RG0h/BU8ShEyPvuBWgIMvIwrrvYdYN
-	 30iAb1sRGCt7MiR7M6yeksqWFZ4K3ih6wMo40caFeOh5wmybEi/405P/9CvBaa8XDz
-	 ws7VPeoiDaXiAkpfVZbeNI5sCQkce5bq5Pd+bR47welAqVNiMDpnFxhheqy9BOpuSl
-	 tVnPz0ounh1G6lzBrTXyOgeZLnbfGIdIJHOeKchclvnETHQJNmYzrxQ/fFdMANPciO
-	 oqpL/QwQWer+DT0eat2RMPHCRyOd07HWrV0XTaKjOJxcb1AIaouiDiDM6pp2X42gLY
-	 gSI3tnTky6Mgg==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	fw@strlen.de,
-	horms@kernel.org
-Subject: [PATCH net 0/1] Netfilter fixes for net
-Date: Thu, 13 Feb 2025 11:05:01 +0100
-Message-Id: <20250213100502.3983-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+	s=arc-20240116; t=1739450065; c=relaxed/simple;
+	bh=sD5mXAs0RA1YhX4PpW9ed8iq/PD4N4vdb5CxzL1bD0A=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=m1ZTWE8dmUfi8p5W1/WQ4/5ZNd5hmIh4nxIbK6saNqDpwk6kL1x0je+Wmf4xkVCcn5E8AVZ9rcny/LLD4ZyNK7nfR2+J3svV3nU4dfdzQx7GeEEHbDplTyAGU7+XYBe5AikQn9q8Odjn3/ybjIfXqeyqs88gpBX5wEhIl3Rq9Io=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.198
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-il1-f198.google.com with SMTP id e9e14a558f8ab-3ce8dadfb67so6381495ab.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Feb 2025 04:34:23 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1739450063; x=1740054863;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=iOsijhvCigFjzeUnrAKfzrHq02qk08wDCDqZc+XWjnk=;
+        b=eNCTKnqYJhsQkyktcY98Wp3yhMpiXMlXY7unAX4IcWSaBsR98TF0c/vr2vwiD1TZe6
+         oOOPssPGY+MsEHQNW1vUcrku3UnIygZfx4AHHGBZkyltQ2zXhZipQO7Tmgtna1Mo8OBy
+         gAVWJQszFwJ2N+gCrN9UBVKUDi/uf8em7dKf51oKWCtZ7kCfUuji17QnSNgqlaf46LGU
+         AG76/ci+Bh5O1rBGeuIUwkYDOyPeocP30ltiem/sSB/UA93Z1dqA6tMtTpRdmJzNzLYy
+         3ka0GGZDvqUI6JK3wnNeCJ5FxOnqfca+nA176g6/U4Jj3svxaU7ELlr1kYGLMaxCo8VP
+         D43A==
+X-Forwarded-Encrypted: i=1; AJvYcCX0gZoCzGhIdeqWOPvyJZ8IoqOrKkJTzeWZ092KVu01xTy5b2JXCoSFDn45tvS3ekot1ct3zvRcz8ky87tcv5o=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxichLHo90ndIfR82BH29bPhdXO0NNoKG+yBIaG3oSdSjVoQfkt
+	1grCgnCvOjnuYrvpvwyxDo5nW2JgYRNlUAp83Y+yqaRgDvVmjbwXu8g7yr27DnHVbU15ylG8ZaF
+	PC6hiZy2eOTJ3KbmzosJa19AqtFdJkCaQPeVcUev1B0+qnIVUHz9Spq0=
+X-Google-Smtp-Source: AGHT+IGxqZHI1riEKhbV8ypBp5pEp0wgedke4FH5wNKfZsx2F6WsH05HnMBiuuS/DdikDfJQVcg41QmB4I8m6WTWMEWCGOaRQ/w7
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Received: by 2002:a05:6e02:1ca4:b0:3cf:bc71:94ee with SMTP id
+ e9e14a558f8ab-3d17bfe4532mr51179275ab.14.1739450063243; Thu, 13 Feb 2025
+ 04:34:23 -0800 (PST)
+Date: Thu, 13 Feb 2025 04:34:23 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <67ade6cf.050a0220.110943.005b.GAE@google.com>
+Subject: [syzbot] Monthly netfilter report (Feb 2025)
+From: syzbot <syzbot+lista9445699986af9d74946@syzkaller.appspotmail.com>
+To: kadlec@netfilter.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, pablo@netfilter.org, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-Hi,
+Hello netfilter maintainers/developers,
 
-The following batch contains one revert for:
+This is a 31-day syzbot report for the netfilter subsystem.
+All related reports/information can be found at:
+https://syzkaller.appspot.com/upstream/s/netfilter
 
-1) Revert flowtable entry teardown cycle when skbuff exceeds mtu to
-   deal with DF flag unset scenarios. This is reverts a patch coming
-   in the previous merge window (available in 6.14-rc releases).
+During the period, 0 new issues were detected and 0 were fixed.
+In total, 9 issues are still open and 181 have already been fixed.
 
-Please, pull these changes from:
+Some of the still happening issues:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-25-02-13
+Ref Crashes Repro Title
+<1> 128     Yes   INFO: rcu detected stall in gc_worker (3)
+                  https://syzkaller.appspot.com/bug?extid=eec403943a2a2455adaa
+<2> 11      Yes   KMSAN: uninit-value in ip6table_mangle_hook (3)
+                  https://syzkaller.appspot.com/bug?extid=6023ea32e206eef7920a
+<3> 4       Yes   INFO: rcu detected stall in tcp_setsockopt
+                  https://syzkaller.appspot.com/bug?extid=1a11c39caf29450eac9f
 
-Thanks.
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-----------------------------------------------------------------
+To disable reminders for individual bugs, reply with the following command:
+#syz set <Ref> no-reminders
 
-The following changes since commit e589adf5b70c07b1ab974d077046fdbf583b2f36:
+To change bug's subsystems, reply with:
+#syz set <Ref> subsystems: new-subsystem
 
-  iavf: Fix a locking bug in an error path (2025-02-11 18:02:04 -0800)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-25-02-13
-
-for you to fetch changes up to cf56aa8dd26328a9af4ffe7fb0bd8fcfa9407112:
-
-  Revert "netfilter: flowtable: teardown flow if cached mtu is stale" (2025-02-12 10:35:20 +0100)
-
-----------------------------------------------------------------
-netfilter pull request 25-02-13
-
-----------------------------------------------------------------
-Pablo Neira Ayuso (1):
-      Revert "netfilter: flowtable: teardown flow if cached mtu is stale"
-
- net/netfilter/nf_flow_table_ip.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+You may send multiple commands in a single email message.
