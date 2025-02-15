@@ -1,68 +1,52 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail-4316.protonmail.ch (mail-4316.protonmail.ch [185.70.43.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73EE627540E
-	for <netfilter-devel@vger.kernel.org>; Fri, 14 Feb 2025 07:20:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3ED3155308
+	for <netfilter-devel@vger.kernel.org>; Sat, 15 Feb 2025 04:03:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.70.43.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739517624; cv=none; b=s4YeApjhv+8yr6fAn+27Xvik+qYtER8MXHxjwdQPM4zO9fGa9etSM0aAWi/q8WJc6LKVwxBO0co8HSa9QCLXXY4wwDAjZWvxTom8L1sWnJwMhnsqSRUFqPsU+4ZyxZ4WTIwuSHm151Yyi0wToFczZZgMkgrQZu88fIVOlX8m9E0=
+	t=1739592240; cv=none; b=koAo8P2Z+hvQA95yXvWPpizswQk1faarXsjr//R4abraq+CRlyAyv2nVwNdrL3RBsWa+NmI9kDEFOfBm917YZmJqZ3xWV4VA20FM7/9wlzBIyGLD6MapnKmxV9tz2Fkdo5dMKYURzzMgX43JipyP9x1XteCL5fWYp20g8P1yC3U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739517624; c=relaxed/simple;
-	bh=IAnSPXHE+mKJ5EcqZCRDg1W4WQtBtYl46AXPnvt+uts=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=eoitCukbbRxaSqavR0bIX34pJ3q2Dr8lYBolpBSFEXQ28AhYRw1N/xhkcKc4U+Sz9RkhAkfTJls+nSQucq+g1yUmYDLpnwSXYlyxl1p9xX9FAsL/RWqBbLA5pmeJNSL9H8vzPE9hLa5ChGgu0QBn/uiNuhoPG2M1al70WjblI6o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1tipzo-0002dz-K9; Fri, 14 Feb 2025 08:20:20 +0100
-Date: Fri, 14 Feb 2025 08:20:20 +0100
-From: Florian Westphal <fw@strlen.de>
-To: Sunny73Cr <Sunny73Cr@protonmail.com>
+	s=arc-20240116; t=1739592240; c=relaxed/simple;
+	bh=+gSG5mFD2ImCICOouk7U66CMCQtDPy3WgautKb65Xpg=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=DaSGpx44e4JmMxSHKnNEgrK/6tc8lZOjkIBExSe+Wxj9FePUdWAkpM3ofyqTRSQPM18BVPWX/GqxShV/S6k6iIu+0mzef4YdBO3V+AecKorSdsV9ePP7SW3YieiP+qtZ3kaEZA0DCHaSvfoaLMbv+J8KcCociwGvFn0+M4HKdPs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com; spf=pass smtp.mailfrom=protonmail.com; dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b=Tz2R0scx; arc=none smtp.client-ip=185.70.43.16
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="Tz2R0scx"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
+	s=protonmail3; t=1739592236; x=1739851436;
+	bh=+gSG5mFD2ImCICOouk7U66CMCQtDPy3WgautKb65Xpg=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
+	 Message-ID:BIMI-Selector:List-Unsubscribe:List-Unsubscribe-Post;
+	b=Tz2R0scxsdKEhYRdTAD88wnAvJBH0dygemq/3oUTrhQS8XTG24385vgo9fzR2siWl
+	 5TviiZ3sDDdIv7YmX933/JwmgbTEmGaosI/Y/F11HHc9geUUC1jDJSpZGJLSEZUT7e
+	 LF/LyHNbg/YunwYu3iDx5eCicyMQjlPItph8YcB63LiuUs1bOUEbVunJ/WX9+nDYF5
+	 8yQip7I90zDGAhk0ef+AY4j07g/gLiEFxHvNhQXM2ry2HfZh8rBHn+dL1gO2hQ+3Zp
+	 P9xWzcMavaHJSv+C4jK24/vUjb2+sn7DKzjssQPFcgf4HunPLp+LPq7auQt1g8zvPB
+	 alXRt7jA4QPVw==
+Date: Sat, 15 Feb 2025 04:03:52 +0000
+To: Florian Westphal <fw@strlen.de>
+From: Sunny73Cr <Sunny73Cr@protonmail.com>
 Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Subject: Re: payload expressions, netlink debug output
-Message-ID: <20250214072020.GB9861@breakpoint.cc>
-References: <iUf9BfY67Kl_ry63O6gOxJ2YHKmO-OFslzCRzfWVOxIe15iVlUV2G07XiT0qu5bsF9vvyrDRT4TQODjt2ksTfpiv1-nYlhgG5ryzcidhdug=@protonmail.com>
+Subject: Re: payload expressions, evaluate.c, expr_evaluate_bits
+Message-ID: <FmZlnYqaRkZyHfgzvEHUVm4wh1XXZbioIgmvSOHDRX1eb6SRZW-MvnEhIxvgWn7RBaY_iC_ohZN2q5XVehN4zPtXtVkMetAih-a2xZ5fNtA=@protonmail.com>
+In-Reply-To: <20250214071816.GA9861@breakpoint.cc>
+References: <pEHO7WvK0prMNgZ-F5ykdLmclh4sY_7_tM7aC-AkyCPTDU6izTFwHj0tJsLHGONPYZKM3zt7B2wVJihfd0Vdxv71PjrpxtuRKY1AlVmcyBc=@protonmail.com> <20250214071816.GA9861@breakpoint.cc>
+Feedback-ID: 13811339:user:proton
+X-Pm-Message-ID: 46312e03178de31f61e69a1a3fe5c4ff9baf269b
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <iUf9BfY67Kl_ry63O6gOxJ2YHKmO-OFslzCRzfWVOxIe15iVlUV2G07XiT0qu5bsF9vvyrDRT4TQODjt2ksTfpiv1-nYlhgG5ryzcidhdug=@protonmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Sunny73Cr <Sunny73Cr@protonmail.com> wrote:
-> It appears that the incorrect register is accepted when data is modified.
-> 
-> Running Debian 12.9.
-> 
-> /etc/nftables.conf:
-> 
-> #!/usr/sbin/nft -f
-> flush ruleset
-> table inet filter {
->  chain output {
->   type filter hook output priority filter;
-> 
->   @ih,0,128 set 0 \
->   accept;
->  }
-> }
-> 
-> output (viewable with /usr/sbin/nft -d all -f /etc/nftables.conf):
-> 
-> [ immediate reg 1 0x00000000 0x00000000 0x00000000 0x00000000 ]
-> [ payload write reg 1 => 16b @ inner header + 0 csum_type 0 csum_off 0 csum_flags 0x1 ]
-> [ immediate reg 0 accept ]
-> 
-> If reg 1 was modified, I believe it should be reg 1 that is accepted.
+> Fixed last year:
 
-No, never.  reg0 is the verdict register.
-"immediate reg 1 0x0000...." means we store 0 in reg 1.
-"immediate reg 0 accept" means we store "accept" in reg 0.
-
-Those are stores, not loads.
+Apologies, thank you for the information.
