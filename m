@@ -1,238 +1,93 @@
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E334418F2DF;
-	Sat, 15 Feb 2025 11:10:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6D68170A37;
+	Sat, 15 Feb 2025 21:36:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739617863; cv=none; b=IwIiH4TqNlczlSJed7nfxSY4A4GtPPN5SMmRQWRa3ZEifcBt+x537Yle/PkA/Acc4BPUtrnvQG/rOhvr0OdTTwWMvZ2iqvX4N4/CNYDST+0iKuEmrEWnz05iRz53CWsSz0BnLjnQ7RQ0oKinpkFYcZfwnTXOAbsdgy5PcbW38tk=
+	t=1739655391; cv=none; b=QqfbMuz56sE2y8VaplKVeh2erLTGTyAgm6TbhjlActnMUIhuQXmwFeSoJSPPJjlQYpf7/qNsxW7ahX3P/Yo/zKLplGR1IM6Jqg2YRyLo8tcrEoWB3Y1yukPkJrNkFnNN1wdUP4NfcxDyTyQsry/c2Dcz89HD1jhVnrt+hcLP9PM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739617863; c=relaxed/simple;
-	bh=sPpAxcr8OEPeF6nDrBH1XyqrEsoo2vFroxJiGi2FJUc=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ScDvp8Ceu4LVSZLtAoLi5pWTqeFBdvW8RbtfmP3IWat0Rb1G4N8NqSgDbuRnn/Ip0iyVdzTlNnbnttsVcd++HuF3i5moE14NIYwEdQv06qe8QBw08QnhOonqfsi+/LItycxkET5j9kt4tpw83UOh5a/P3Ml2QYBa6ZJE5KvHjus=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.187
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.19.163.252])
-	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4Yw5hC54Fnz11Q89;
-	Sat, 15 Feb 2025 19:06:19 +0800 (CST)
-Received: from kwepemo500008.china.huawei.com (unknown [7.202.195.163])
-	by mail.maildlp.com (Postfix) with ESMTPS id D92901800D9;
-	Sat, 15 Feb 2025 19:10:50 +0800 (CST)
-Received: from localhost.localdomain (10.175.124.27) by
- kwepemo500008.china.huawei.com (7.202.195.163) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Sat, 15 Feb 2025 19:10:49 +0800
-From: m30030393 <mengkanglai2@huawei.com>
-To: <ja@ssi.bg>
-CC: <pablo@netfilter.org>, <kadlec@netfilter.org>, <davem@davemloft.net>,
-	<edumazet@google.com>, <kuba@kernel.org>, <pabeni@redhat.com>,
-	<horms@kernel.org>, <netfilter-devel@vger.kernel.org>,
-	<coreteam@netfilter.org>, <netdev@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <yanan@huawei.com>, <fengtao40@huawei.com>,
-	<gaoxingwang1@huawei.com>, <lvs-devel@vger.kernel.org>
-Subject: Re: ftp ipvs connect failed in ipv6
-Date: Sat, 15 Feb 2025 19:09:59 +0800
-Message-ID: <20250215110959.2557589-1-mengkanglai2@huawei.com>
-X-Mailer: git-send-email 2.33.0
-In-Reply-To: <7a1903c5-f7e3-4480-2a07-ae94e4d6a895@ssi.bg>
-References: <7a1903c5-f7e3-4480-2a07-ae94e4d6a895@ssi.bg>
+	s=arc-20240116; t=1739655391; c=relaxed/simple;
+	bh=JDi0g6omxQd+IKSkcA6lJe9mXVfeSl4N342oHTRkfPQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=j2nXGEqa/I7HfiO5Bg1/OoKKNr0JaSUZD/vDverdBUpZN8g12CvGk/T6V9uv+Cpjd7Hk6XDcTk8O3bew8epz2ZpibHItglXJbGWnagGKIUpUy/sb5atqb10VtOL/zCzJ4zawtHO9M1Q/aZ03HrIKxuEifEbVX2nqWVwc/GfCcWg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Zc1gej31; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=jPDatS4A; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Zc1gej31";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="jPDatS4A"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 80A3160305; Sat, 15 Feb 2025 22:36:18 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1739655378;
+	bh=IrOWNb052GzH1naxDxpdpOIqRG3ktl2xQkD48Z6xJ4Q=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Zc1gej31QLfGAa+/savVfMdcKI/NjhFTDjKLZ3ZxeowaC1IuKvmf/IehCHbaUujJ5
+	 CMcCw56jENruI9UB9SJsFRosDhcEnnWUFn+uYLbZyfV5XfE43lCzLPjvCitAtBw59b
+	 Mxffwb4NH2V+CmnCfqEpTPLrKAC0cg6rJasNR0jUdpwbWTPy2pwMG8DMN5+pUlff2t
+	 AGUvXE+Vi4icJh77/zoHo5YAf4UvF1Lq2D+QYSWY8uQcDZrXSqH5JnMe0xCmigsEXT
+	 ciO6QfytiTePDHp7dSJ0HZp29se6AvZ3XWgpxr8XFshV0xuNdYbf6VN+nD0Rgyi5Cd
+	 mID5Fk6RLSQuQ==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 36FB0602C1;
+	Sat, 15 Feb 2025 22:36:17 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1739655377;
+	bh=IrOWNb052GzH1naxDxpdpOIqRG3ktl2xQkD48Z6xJ4Q=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=jPDatS4AHTupQiI76ipm/ryW3ULe1lu663zDIVKKWkURSNrRJfXjF0VUSWCr5jVDt
+	 EPhP3QLKZjlpw3vxYnzebt+jvyIRCvwmaRBW+UQqkAWgmy8V7+QPbOiwKYzH2LHxXn
+	 pw4Scu/QDjXNIcBvsWWmiNsdGP4Hi+zCGiAoraRiKUoy8RU2bIWisRj8X8BOq7njqX
+	 4kZg6VJZuLytakAekHKn2sKkpJRnHOE++uqkny3bxNR6aKOIZrhykNkyeyz7nbYP6I
+	 l1VZLj7FhuPzdiMmYOCr+9ZCWMsh11gSYlkzEz9tdudiGFRhOqNAgMIfc8FIWYSh6R
+	 EOh754/r9GktQ==
+Date: Sat, 15 Feb 2025 22:36:14 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Marcelo Moreira <marcelomoreira1905@gmail.com>
+Cc: skhan@linuxfoundation.org,
+	linux-kernel-mentees@lists.linuxfoundation.org,
+	linux-kselftest@vger.kernel.org, ~lkcamp/patches@lists.sr.ht,
+	netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] selftests: netfilter: Fix typo in
+ conntrack_icmp_related.sh comment
+Message-ID: <Z7EIzrGhBKmJwK1H@calendula>
+References: <20250215003802.1466786-1-marcelomoreira1905@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: dggems706-chm.china.huawei.com (10.3.19.183) To
- kwepemo500008.china.huawei.com (7.202.195.163)
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20250215003802.1466786-1-marcelomoreira1905@gmail.com>
 
-Tue, 11 Feb 2025, Julian Anastasov wrote:
->>
->>
->>	Hello,
->>
->>On Mon, 10 Feb 2025, mengkanglai wrote:
->>
->>> Hello:
->>> I found a problem with ftp ipvs.
->>> I create 3 virtual machine in one host. One is the FTP client, the other is the ipvs transition host, and the other is the FTP server.
->>> The ftp connection is successful in ipv4 address,but failed in ipv6 address.
->>> The failure is tcp6 checksum error in 
->>> tcp_dnat_handler(tcp_dnat_handler-> tcp_csum_check->csum_ipv6_magic), I trace back where skb->csum is assigned and found skb->csum is assigned in nf_ip6_checksum in case CHECKSUM_NONE(ipv6_conntrack_in=> nf_conntrack_in => nf_conntrack_tcp_packet => nf_ip6_checksum).
->>> I don't know much about ipv6 checksums,why ipv6 nf_conntrack assign skb->csum but check error in ipvs tcp_dnat_handler?
->>
->>	Looks like the checksum validation does not use correct offset for the protocol header in the case with IPv6. Do you see extension headers before the final IPv6 header that points to TCP header? If that is the case, the following patch can help. If you prefer, you can apply just the TCP part for the FTP test. Let me know if this solves the problem, thanks!
+Cc'ing netfilter-devel.
 
-    Thanks for your help, but the following patch can't help. see extension headers before the IPv6 header, it’s just the common first SYN packet of the IPv6 three-way handshake but csum check failed in tcp_csum_check. 
-	I tried different offsets for the protocol header but doesn't work.
-
->>[PATCH] ipvs: provide correct ipv6 proto offset for csum checks
->>
->>Protocol checksum validation fails if there are multiple IPv6 headers before the protocol header. iph->len already contains its offset, so use it to fix the problem.
->>
->>Signed-off-by: Julian Anastasov <ja@ssi.bg>
->>---
->> net/netfilter/ipvs/ip_vs_proto_sctp.c | 18 ++++++------------  net/netfilter/ipvs/ip_vs_proto_tcp.c  | 19 ++++++-------------  net/netfilter/ipvs/ip_vs_proto_udp.c  | 18 ++++++------------
->> 3 files changed, 18 insertions(+), 37 deletions(-)
->>
->>diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
->>index 83e452916403..63c78a1f3918 100644
->>--- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
->>+++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
->>@@ -10,7 +10,8 @@
->> #include <net/ip_vs.h>
->> 
->> static int
->>-sctp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp);
->>+sctp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp,
->>+		unsigned int sctphoff);
->> 
->> static int
->> sctp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb, @@ -108,7 +109,7 @@ sctp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
->> 		int ret;
->> 
->> 		/* Some checks before mangling */
->>-		if (!sctp_csum_check(cp->af, skb, pp))
->>+		if (!sctp_csum_check(cp->af, skb, pp, sctphoff))
->> 			return 0;
->> 
->> 		/* Call application helper if needed */ @@ -156,7 +157,7 @@ sctp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
->> 		int ret;
->> 
->> 		/* Some checks before mangling */
->>-		if (!sctp_csum_check(cp->af, skb, pp))
->>+		if (!sctp_csum_check(cp->af, skb, pp, sctphoff))
->> 			return 0;
->> 
->> 		/* Call application helper if needed */ @@ -185,19 +186,12 @@ sctp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,  }
->> 
->> static int
->>-sctp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp)
->>+sctp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp,
->>+		unsigned int sctphoff)
->> {
->>-	unsigned int sctphoff;
->> 	struct sctphdr *sh;
->> 	__le32 cmp, val;
->> 
->>-#ifdef CONFIG_IP_VS_IPV6
->>-	if (af == AF_INET6)
->>-		sctphoff = sizeof(struct ipv6hdr);
->>-	else
->>-#endif
->>-		sctphoff = ip_hdrlen(skb);
->>-
->> 	sh = (struct sctphdr *)(skb->data + sctphoff);
->> 	cmp = sh->checksum;
->> 	val = sctp_compute_cksum(skb, sctphoff); diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
->>index 7da51390cea6..dabdb9d3b479 100644
->>--- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
->>+++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
->>@@ -29,7 +29,8 @@
->> #include <net/ip_vs.h>
->> 
->> static int
->>-tcp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp);
->>+tcp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp,
->>+	       unsigned int tcphoff);
->> 
->> static int
->> tcp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb, @@ -166,7 +167,7 @@ tcp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
->> 		int ret;
->> 
->> 		/* Some checks before mangling */
->>-		if (!tcp_csum_check(cp->af, skb, pp))
->>+		if (!tcp_csum_check(cp->af, skb, pp, tcphoff))
->> 			return 0;
->> 
->> 		/* Call application helper if needed */ @@ -244,7 +245,7 @@ tcp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
->> 		int ret;
->> 
->> 		/* Some checks before mangling */
->>-		if (!tcp_csum_check(cp->af, skb, pp))
->>+		if (!tcp_csum_check(cp->af, skb, pp, tcphoff))
->> 			return 0;
->> 
->> 		/*
->>@@ -301,17 +302,9 @@ tcp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
->> 
->> 
->> static int
->>-tcp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp)
->>+tcp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp,
->>+	       unsigned int tcphoff)
->> {
->>-	unsigned int tcphoff;
->>-
->>-#ifdef CONFIG_IP_VS_IPV6
->>-	if (af == AF_INET6)
->>-		tcphoff = sizeof(struct ipv6hdr);
->>-	else
->>-#endif
->>-		tcphoff = ip_hdrlen(skb);
->>-
->> 	switch (skb->ip_summed) {
->> 	case CHECKSUM_NONE:
->> 		skb->csum = skb_checksum(skb, tcphoff, skb->len - tcphoff, 0); diff --git a/net/netfilter/ipvs/ip_vs_proto_udp.c b/net/netfilter/ipvs/ip_vs_proto_udp.c
->>index 68260d91c988..e99e7c5df869 100644
->>--- a/net/netfilter/ipvs/ip_vs_proto_udp.c
->>+++ b/net/netfilter/ipvs/ip_vs_proto_udp.c
->>@@ -25,7 +25,8 @@
->> #include <net/ip6_checksum.h>
->> 
->> static int
->>-udp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp);
->>+udp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp,
->>+	       unsigned int udphoff);
->> 
->> static int
->> udp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb, @@ -155,7 +156,7 @@ udp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
->> 		int ret;
->> 
->> 		/* Some checks before mangling */
->>-		if (!udp_csum_check(cp->af, skb, pp))
->>+		if (!udp_csum_check(cp->af, skb, pp, udphoff))
->> 			return 0;
->> 
->> 		/*
->>@@ -238,7 +239,7 @@ udp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
->> 		int ret;
->> 
->> 		/* Some checks before mangling */
->>-		if (!udp_csum_check(cp->af, skb, pp))
->>+		if (!udp_csum_check(cp->af, skb, pp, udphoff))
->> 			return 0;
->> 
->> 		/*
->>@@ -297,17 +298,10 @@ udp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
->> 
->> 
->> static int
->>-udp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp)
->>+udp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp,
->>+	       unsigned int udphoff)
->> {
->> 	struct udphdr _udph, *uh;
->>-	unsigned int udphoff;
->>-
->>-#ifdef CONFIG_IP_VS_IPV6
->>-	if (af == AF_INET6)
->>-		udphoff = sizeof(struct ipv6hdr);
->>-	else
->>-#endif
->>-		udphoff = ip_hdrlen(skb);
->> 
->> 	uh = skb_header_pointer(skb, udphoff, sizeof(_udph), &_udph);
->> 	if (uh == NULL)
->>--
->>2.48.1
->>
->>
->>Regards
->>
->>--
->>Julian Anastasov <ja@ssi.bg>
-
+On Fri, Feb 14, 2025 at 09:37:25PM -0300, Marcelo Moreira wrote:
+> Correct the typo "adress" to "address" in a comment in conntrack_icmp_related.sh
+> to improve clarity.
+> 
+> Signed-off-by: Marcelo Moreira <marcelomoreira1905@gmail.com>
+> ---
+>  tools/testing/selftests/net/netfilter/conntrack_icmp_related.sh | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/tools/testing/selftests/net/netfilter/conntrack_icmp_related.sh b/tools/testing/selftests/net/netfilter/conntrack_icmp_related.sh
+> index c63d840ead61..f63b7f12b36a 100755
+> --- a/tools/testing/selftests/net/netfilter/conntrack_icmp_related.sh
+> +++ b/tools/testing/selftests/net/netfilter/conntrack_icmp_related.sh
+> @@ -171,7 +171,7 @@ table inet filter {
+>  }
+>  EOF
+>  
+> -# make sure NAT core rewrites adress of icmp error if nat is used according to
+> +# make sure NAT core rewrites address of icmp error if nat is used according to
+>  # conntrack nat information (icmp error will be directed at nsrouter1 address,
+>  # but it needs to be routed to nsclient1 address).
+>  ip netns exec "$nsrouter1" nft -f - <<EOF
+> -- 
+> 2.48.1
+> 
