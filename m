@@ -1,40 +1,40 @@
-Received: from mout.gmx.net (mout.gmx.net [212.227.17.22])
+Received: from mout.gmx.net (mout.gmx.net [212.227.17.21])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B324F18DB2A
-	for <netfilter-devel@vger.kernel.org>; Sun, 16 Feb 2025 14:03:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.22
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE363186287
+	for <netfilter-devel@vger.kernel.org>; Sun, 16 Feb 2025 14:05:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739714637; cv=none; b=FcLu2KZ2p4I95RwxS8gY8U5coZ0MbTB8YqRRTRdj4BlrcjVUEObrKN0ZgYQi1IBQIdXHMawOh9UGdKENjuDYTyI6WUMuWNnN4vqahaye1h/rkhDWsmmFVJDv1yGJd6BzeeLGuYNnjaCN0ILEeo0J2j2G6SBjOu5soFnk/S1x0is=
+	t=1739714706; cv=none; b=NoPv6YR+46NbUohLHL4QUGDKOowypUb3iKf5pDlp757QHDB+DAMTHGBk2gJ7DHB6bEScPIlxHmGjfRIA8bT6AZLVPofnWhEDrguFXrVbLsFVDntYhrR+SerejkpIK31sADkrR95oPc/N+nHFFEC2XZ56GuXHZqvW/pI0wOZs+/s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739714637; c=relaxed/simple;
-	bh=suiZDPybn+fk+nZrEX7tYpg7NOdXlLjoDzcoGAx2mYU=;
+	s=arc-20240116; t=1739714706; c=relaxed/simple;
+	bh=mGtly71Myr5PWeq4SdKxTakJQcqbEftSqaxPTsy/N8w=;
 	h=Message-ID:Date:MIME-Version:Subject:From:To:References:
-	 In-Reply-To:Content-Type; b=R7WCtBh/OQWKLBPmOHECp6EP/tI8suUIWAxnKbPRU3lAzWWooPrcVP/LrKSAeP17AU1xLYaMLKKrMXBBFtfog2E01LFHvIxW1yuEhQgozpWCkLbz1Z9duhsLaWedZ9DaabidmNeGMYMIojCIrh3zbdZ9koxpSp0LmTmDXyzDjoo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b=GFxWRLKh; arc=none smtp.client-ip=212.227.17.22
+	 In-Reply-To:Content-Type; b=AbYnZX/hDJtnvHuzKt2CU8LMB7kxizXaYqBIYGhyszosghSnJILei0iHcVydC/zLQm9Qj/DJL4EtGIEIYPkLLaSQs9wDdhGBBiovAhkHkn6sLpnKuz/TqepUJAw5qBAOjHvCctj4Ac5BoFfUF7Qu0dZ+k0UeLhz5I/JASsjThto=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b=oTFDJ29+; arc=none smtp.client-ip=212.227.17.21
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b="GFxWRLKh"
+	dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b="oTFDJ29+"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
-	s=s31663417; t=1739714631; x=1740319431; i=corubba@gmx.de;
-	bh=SJ3Pbs/8fvnTnLRi25fsvsKqsiIGyrxGmxoYrU2JZFk=;
+	s=s31663417; t=1739714702; x=1740319502; i=corubba@gmx.de;
+	bh=T7zLWzK2NJDz/LmUt7vNcfkNoyneR1yVtEPBnoH+zQk=;
 	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:From:To:
 	 References:In-Reply-To:Content-Type:Content-Transfer-Encoding:cc:
 	 content-transfer-encoding:content-type:date:from:message-id:
 	 mime-version:reply-to:subject:to;
-	b=GFxWRLKhlhhbcnYvEoclHuHFMawbd65X4o1c6zGNNGsMmpYVoruGbO36euOebMl3
-	 nb1ZyjpRbqjjQZvB/xsIreiKlUdbPWCf8F07/2ZyBZuL2xqKGMCejBq5KGAqM7xaM
-	 mpa4eECCox8oA7t/rc7eLiOuSEKYuLY1fGpN1Z9r64W1XOgaH+IfaoD4LSS/wam9g
-	 xxNQ3GwfdK/9nrqcLL1x2hKq+yvm1qM1d6meiOhtO74L//2yb8iG5KTzx0gKVXoOH
-	 TKY27NqEyKBCkZsi35QKU9drvjL0aAgEXZEvW1irYcEutWaf9JnfWvVrP9W6/XrgD
-	 oDS5s2z7y/PR7A/gTw==
+	b=oTFDJ29++Dyc11SdYPuCrKX1CbgqbWaPe0NxeOkbwZFeUdmp5GcJy13S34p6cIvN
+	 hROCCCktK+5LEBvtXQ/8rxQdlv7FWjh0UVX3VyNDGbqcAafTX33PDm4f2tzUsQQgJ
+	 IrZRxST0np+pPwUuuPDgbYmQ+ZAxkCeWZ9KYRswEfmlP2n/JvgojWWQI5dFa8Nx6M
+	 BvqHPFtbDiLwMLfWeGKayO3YV2JTL2tiSAP3Kci6qmzYDthw7zlpaExXfz06KqOHe
+	 JDNibJttI/nLlPvHPUQnuQ5Yk4ixEbpGtpoHdbJUIJLCqujEkCe+KPHI+/Awf5bbV
+	 dfCxMdYOmJP2sAJNOQ==
 X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
-Received: from [192.168.44.3] ([83.135.91.182]) by mail.gmx.net (mrgmx105
- [212.227.17.168]) with ESMTPSA (Nemesis) id 1Mirng-1t717535VM-00j91N for
- <netfilter-devel@vger.kernel.org>; Sun, 16 Feb 2025 15:03:51 +0100
-Message-ID: <99ab0ced-78e9-434a-9807-8f39f9c37ad6@gmx.de>
-Date: Sun, 16 Feb 2025 15:03:51 +0100
+Received: from [192.168.44.3] ([83.135.91.182]) by mail.gmx.net (mrgmx104
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 1MD9XF-1taYb10Hr7-001zO8 for
+ <netfilter-devel@vger.kernel.org>; Sun, 16 Feb 2025 15:05:02 +0100
+Message-ID: <c1966494-383b-4003-ac1a-aa566fb428a8@gmx.de>
+Date: Sun, 16 Feb 2025 15:05:01 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -42,7 +42,7 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: [PATCH ulogd2 v2 2/3] gprint: fix comma after ip addresses
+Subject: [PATCH ulogd2 v2 3/3] ipfix: re-arm send timer
 From: Corubba Smith <corubba@gmx.de>
 To: netfilter-devel@vger.kernel.org
 References: <6b8f641d-7ed2-4e1a-8ecc-c77488f71f00@gmx.de>
@@ -50,74 +50,92 @@ Content-Language: de-CH
 In-Reply-To: <6b8f641d-7ed2-4e1a-8ecc-c77488f71f00@gmx.de>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:qM81YfOSoPZIclpOUK03YHIzGwhMYeYXpACN3nFIGuAWl8gWWLR
- IzdWwxMI2b9I+1LwwYEbL/oexyZsuXBi56zkwkNaxvA8IsfxxGvDtkxtZkxRgm0x2qLhf1P
- jdg2f0T/wiYpvgw4l7kq50s/REI1Ae9nh2+uNbZ2K6knjOXwk1Qca8tm8mVevitzvFXjh0S
- w7imECUlOLLsS+YWHSeRQ==
+X-Provags-ID: V03:K1:gj8i7vJaEqhQcu9t8iImraoF1t1bGUbaEVx4fhNkfosYOQUV8VO
+ YcIVOvZshy4jMthxj5SuMgveb0H+OLt1brUBxr9nXIUe9a+A8JOeONyn8S15PG1eaCxnWzL
+ pA5Wzb7VvTLadm767uJyxa1yuKLHmej3NpACU0AVTNgM7qxxitHNt+V9rTLvjV2fazhOIJ4
+ 2y+rWUlX+cRtHA3FJ3pvg==
 X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:E//p5rVmpbQ=;dCtM3rSpiygvqZWpAbtawsWjJiZ
- 6WTJhq8/ONSi08FFYnP9kE7cwHA2Yn8JmO2WrE9Ke70/MpyOO/UVBMc3PvF8Qw3QcA8yDZy0e
- xS3MvOTsmkrojOIebALEh+aQhji+qCbppGkt5PgJKW1o5YACE2tKaEH0fA4te3xxiILke0vWq
- 7yrQ3F8CIlHMe9mfmTwDyX1qXwF/T0rQvcpV81mGnjdAj+sq0MGco8bObE/vCYrXIoQMU4kAs
- Y+dF/ByJ73hl2O/y96V2JRDgHU/To4sxw94TpGX31b7GHhOeZCmfW4tBK48lTyy6FA08d78Lw
- WR/guSA8tVUUUYC8V+IsA2OB8TEffAhAXJssHmWRJGBkMGkZvgbai6S9A1oXXNzBNbsd33IP+
- yaEuntVxuAYArYA8l9xU/QhcDepcXb67rTQVkJmZkgokLOQaN0Sr7BPC/RHpOnd3Ntlc5gzQG
- b7bcPpVYCUPKTG7io46TQBNUCVavmTOSELmme0oi/Ipnh5lQBe3mE3CtEhO7fTPb/MS6k9j4E
- APIzaXGPmlDEqb3bD/k2Wb5StbnBcglbL8oX8fjtWygcQFBXzlw0HssQ2RphcQJnOVQ+0BVzs
- TtFpWzg4SazKzqzE2DterOtZTQmfpGiFYIEZBijjemNySCRqTenOz6KscpdzsHCVJ2Yv9jb9r
- 1LX1KLHV6HT929vFvb/CoXGP4vFCA4SyQJPuVciC1jq3Xw9tvMEeOgyAffonxNhRoj6C/wRCO
- yDbFpojbl9tgB9qeN/wUOQxn9zNj34xzHdVVVTt5sjgzX7KG2AVQgLexISfeiVQcPC+tDOh0r
- GUdsNvcWdC3viA2zh8gwLRRd9e1CL8/lrP3DWJVOaopJiow5S5jz4qIvcMY3hjUZct0QR9T6R
- ok0ep0D00n/WCigPUqJFeInYEEAJeHKHIDFG1soz3nxW9LswdGMwe8a2b8D37QSiu/8YVfNAd
- 39mF0HEUOIJyJ/R0GdjFD/uvWVxrBG6/WT25BBY0fdizs+ut9QY3ryJ8yhjEiosDQpt3rXKaL
- cDhTI4f9WCotO0zTLclFR20mhYQVr8FdHDiNrJxvZ8s6jxJTZDVbjm/B0UgvewLeLYdT0HmIx
- k+/hiNJOnFoAsKBNk5/G12vJJcX2D5QV++fv1rc5j95/3PxSnf9Zxua9TP/2Pk464FstDdtOy
- Q0G3JMXC8nK2XNxpDzqJcWjSKoYjnN6gXIWym0eWIWbH3YyTNYmu07SF6mc8gmL9/oRIhkGB8
- Xx/WJ27EQofu3oDEq5FcV8SLTxxUegIlZbkhFgbHSZCHQafqL4Mv2aIss2zmKi6wHHb/s0Xy9
- RhZC09/YoEdwUma8Pm4ocMkMn7CqaES3Mckos4JgjkAYoCzoT2AyTi3BumqL6kceJrvdXnIfg
- +RthzG55qhC+ZaOFpCD0Ra1sJQs++BUkZ6fngzkzQXp7m4sTHVc4axIHFeyClOaovz7iO9j7V
- k7ecguA==
+UI-OutboundReport: notjunk:1;M01:P0:STvhOf/oWgM=;jr10hE/sZ19xd3pzJmnxLn2/qhG
+ N7Eb++Gyadh3Nys6m33zmVLPgYUJCnPbUECxemsK3X79PoEwjmq6BJ0VeS+aAff3/PkYcb7eV
+ YclQa/zyf2d9CBK28hoLcykO66vpuVsr0Y50uLRVpTslXR8QSlYYK+d9A7e/xEIH57zabGi8n
+ c/5BvLx6zlJUN3caqgOSt+hiiaPvw+Xx32qAYa5Fnu0nRpevwweLVx17fNRwzmbLH0veWPNP2
+ 1HW/2jXD+oAIoTHy2tHFYzlNvK0DJ619lvdfHUNjCtaayom0sM6EezxAXG0BiQ9nemTLfaHYA
+ nXjYL5IIqzRAq5ljE3kGZLsDJ79w6tHaqO5Qb3omLJ7nUQvHWe8ToFEq8F2MQf6e6i57sMxUz
+ MNYCx3lS1q5JptnxmLJb43tIOtLCnMkCA/MLJXtGYUuXhiVRVqaxVQCDHAgSgoDKmUQ0sJPTy
+ ydTWOSw71bZtTcU7HKZiHnLFSZiYRWNXciQiJUsM0kpFgCYpQQ+6WKF1ErgvWCVeRrq4hHJte
+ oJTt3zIFQWjHcCdtxeid7ef8fWV6LpViJRdqImZnNWG/E7OOYsBigsRd/RIKi4QSLuWNbc2cb
+ 6SFpzWhmLyP/ZDOqNmVtQxFfJDDFTW1DL/jwYLMAGsXxU2o66JT7g5vp2oK43jNAV2c1zx4Cl
+ Pj3eYfOsuvjv27l1/KZ39hD01cz04PHalD8h1OGzcvDgbbqIjglQYPYv2nWYSpfBrz/z88YuC
+ Y6i8jDZnCdDyIQFRHdEmfdAzYrpYGtUFSHSP7MDea3CNlsH1jYLYnjMDOGH1ie6oZYCMdE5Lx
+ GCiKI7yTC9ARsQiCm2dpSq98WqPj/wmFGYQGNP5GnMASlv5eVpr7Af5iQ2+a4UIrWcjihh1XH
+ 21JmTGiyqrkWLdhj5mFvVINmu8mcRHrFVn5hH9WyQOU2pZ6hrBItyw9VcqczKZslvY7EKlmGA
+ d2u7W1W8WCSxuZkQO8qQa8DG7CMDZ25GH9ZY3ta6kcsxEQFI4YaqzJxJ7GLeUh0OHQ27KAhI0
+ YfhydbZWzyn4JPwWIc/vq0MPt4/L3XLXJaTN2C7aeBb++xw2MWraj6Yphdll6Cqua4czNSNfK
+ csXIZKlkUbOg0WZYz4hZYv7VT5loFtps03x+2esEVBb44tOzPjCseMZFlknH35kKCzIu4NhMI
+ WNor8jVU3mukYFq6nyoSrWthWgkAV0D35vQRTkIDpKPo9xrwlqtm00qaxvay0pKuC9I29VHYE
+ QnER+bjrOYB7un2e6/YNb1UyVBTpYJtloWNLyNSb61JPx/oWdmxsRLGMC1FmoxUA9kyPnW4dM
+ TLLS7NSaRLFOo3A2YUx4OTwsL5pCM0w+ohLM4lbD7NfefgWH2O5aUMlekWzBp4OehgUiLe0m5
+ gSpf1S5Bm0Q2QoaFcC7wYTg4xZBWo0/3ciI2gz7Q4y1J3JIwCB6zHvCFH1tgFZ38vlltc38Tx
+ 1PFQ+jA==
 
-Do the same as the oprint plugin: let inet_ntop() write to a temporary
-buffer, and then write that buffer content and the trailing comma to the
-actual output buffer in one go.
+I am not sure what this timer was meant to do. My best guess is to send
+an ipfix message every second if there is data, as to make sure reports
+go out in a timely manner. Otherwise a message is only sent when adding
+another flow would go past the max mtu, which may take a while if there
+isn't much (filtered) traffic.
 
-Fixes: f04bf6794d11 ("gprint, oprint: use inet_ntop to format ip addresses=
-")
+Timers in ulogd only fire once; if they should fire repeatedly (which I
+guess was the intention here), they need to be re-armed in the callback.
+Because that wasn't done, the timer only fired once 1 second after
+starting the plugin (when there is unlikely any data yet), and then
+never again.
+
+The timer is now re-armed in the callback to make it fire repeatedly
+every second(ish). A macro is used to make sure the initial and re-arm
+time interval is the same.
+
+Fixes: 4f639231c83b ("IPFIX: Add IPFIX output plugin")
 Signed-off-by: Corubba Smith <corubba@gmx.de>
 =2D--
- output/ulogd_output_GPRINT.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ output/ipfix/ulogd_output_IPFIX.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/output/ulogd_output_GPRINT.c b/output/ulogd_output_GPRINT.c
-index 37829fa..20dd308 100644
-=2D-- a/output/ulogd_output_GPRINT.c
-+++ b/output/ulogd_output_GPRINT.c
-@@ -155,6 +155,7 @@ static int gprint_interp(struct ulogd_pluginstance *up=
-i)
- 			size +=3D ret;
- 			break;
- 		case ULOGD_RET_IPADDR: {
-+			char addrbuf[INET6_ADDRSTRLEN + 1] =3D "";
- 			struct in6_addr ipv6addr;
- 			struct in_addr ipv4addr;
- 			int family;
-@@ -176,10 +177,12 @@ static int gprint_interp(struct ulogd_pluginstance *=
-upi)
- 				addr =3D &ipv4addr;
- 				family =3D AF_INET;
- 			}
--			if (!inet_ntop(family, addr, buf + size, rem))
-+			if (!inet_ntop(family, addr, addrbuf, sizeof(addrbuf)))
- 				break;
--			ret =3D strlen(buf + size);
+diff --git a/output/ipfix/ulogd_output_IPFIX.c b/output/ipfix/ulogd_output=
+_IPFIX.c
+index 1c0f730..88e0035 100644
+=2D-- a/output/ipfix/ulogd_output_IPFIX.c
++++ b/output/ipfix/ulogd_output_IPFIX.c
+@@ -83,6 +83,8 @@ static const struct config_keyset ipfix_kset =3D {
+ 	}
+ };
 
-+			ret =3D snprintf(buf+size, rem, "%s,", addrbuf);
-+			if (ret < 0)
-+				break;
- 			rem -=3D ret;
- 			size +=3D ret;
- 			break;
++#define SEND_TIMER_INTERVAL_SEC	1
++
+ struct ipfix_priv {
+ 	struct ulogd_fd ufd;
+ 	uint32_t seqno;
+@@ -259,6 +261,8 @@ static void ipfix_timer_cb(struct ulogd_timer *t, void=
+ *data)
+ 		priv->msg =3D NULL;
+ 		send_msgs(pi);
+ 	}
++
++	ulogd_add_timer(&priv->timer, SEND_TIMER_INTERVAL_SEC);
+ }
+
+ static int ipfix_configure(struct ulogd_pluginstance *pi, struct ulogd_pl=
+uginstance_stack *stack)
+@@ -394,8 +398,8 @@ static int ipfix_start(struct ulogd_pluginstance *pi)
+ 	if (ulogd_register_fd(&priv->ufd) < 0)
+ 		return ULOGD_IRET_ERR;
+
+-	/* Add a 1 second timer */
+-	ulogd_add_timer(&priv->timer, 1);
++	/* Start the repeating send timer */
++	ulogd_add_timer(&priv->timer, SEND_TIMER_INTERVAL_SEC);
+
+ 	return ULOGD_IRET_OK;
+ }
 =2D-
 2.48.1
 
