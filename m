@@ -1,44 +1,44 @@
 Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02257197A67
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08896198831
 	for <netfilter-devel@vger.kernel.org>; Sun, 16 Feb 2025 12:59:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739710768; cv=none; b=WaLBvEKVH9swRe4vGxFEP2j8+ZGRUOFiKbHwu+tBxdSIMJ2AZrWN8Rq6CmLj319BjMOU8/x/TEuoONzkAMjozL08xQ/Kr1Cmw2T+lZEey22bDBoc6NXPkN4qdjbeIBcNIH9peG/MJG6f8P79REgBpmaqwROFLrQ8wA46DXnIZVo=
+	t=1739710768; cv=none; b=m3OisC3rsXhGNEU06M9+PviUfMnPxyHKRsWY7VqzWtwCKj3iy9iQ9HSEi+SBS01sV7UShmyTiKb7ILh2AJ75p7ikurjz6n/9MmB8/Wcqb7Adk55kNoQfdIH6ok43TGZh2r0iXam3EFCvzNuExYR5KWQ69dGj9VNJF31HI4mVYh4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1739710768; c=relaxed/simple;
-	bh=thCb4GEN7ociup/FSD6Ka7gobGnuFiYk6GGgKi+7BIs=;
+	bh=0okZqDXAj6OWKFae//my5TaBQ3Xx3rkDO9GO4MLEc/Y=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=YWRp9CNs/imIqaUmz8Z+sAdP12PqHC3I24Bxqwugv5dFYMHDogtH/idArk2WbjtLTf50rAuROLU1Ja7RPRjY87CzBrCEoSyQ973iBBFgHq8fBUCUpZPgmEjvEKstk3Ol5yKoM9GVjxhQy6XWM0U+cufwwnbd+mKO+m67+4SXecw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=KYcsgBhS; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=sWLMmVQr; arc=none smtp.client-ip=193.142.43.55
+	 MIME-Version; b=D99Dkoq8yreu3VHshIwy+4TCkhUpa6N+clBdy75Z+rvfTxhBFZT2Puy14RZNHR6tGO0ZYLWK113BkHm6GfVy3NJ3mMMhlnTa36hwccI4XdcyFw6as/bwgMkW1bVnRbIVtKYFvi9zUkaUr+gFzZcdCWvgYRgzGLUFYuWEG9N25X8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=cZfWKDcF; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=MxTHdpNT; arc=none smtp.client-ip=193.142.43.55
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="KYcsgBhS";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="sWLMmVQr"
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="cZfWKDcF";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="MxTHdpNT"
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1739710302;
+	s=2020; t=1739710301;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=HKaZnR07XoQPY5vketSAVHit4PEfWw2yK9/rBe2OLpg=;
-	b=KYcsgBhSwAED6MAipZAnUjOWAnb+5j4o8oSNI/I55q+xG0gfQhn/yBT6eQ3eWND1WJKay1
-	z9tQ9OPfzvOw9cxJd/y9nH9pV8DkVZ1EYVhm+QFj8sedEGEbtCe1OoqrlA4kfFmfV1yPsP
-	pn++fw78HKb1KEX+tax3lNQ9Vu0SXb4fVlLM6suzng02tbm7mElZgaRl21N467o/hrkMMw
-	o8xRRg2FGBzoXOHO9XdwAomUSQmZ0/w2tV6wIiYHjDOrjR56VjwqwI4YxQiLxe9FG2uKbD
-	pBpSFgKkHiQMpZDaQNElPGqQfRdSM+RvKmcS/P2+8ws2Wh0/vE2rV7ENfaGlvA==
+	bh=SlYtlPYwn8A2wfbRst1mve1bNY3Vm3u3sn5X+0h3fa8=;
+	b=cZfWKDcF3NmSBYL9xRx+T6RzKvTZOp1irBwvQW7c8tWb6xNUUBSfU1bW5NsQAyFlJYIm78
+	Ve42aLXHOJk13DwX7mU+dPOJ8ZcZnMNk7Bc7n7HG+eh1/xJJO6GkUXy2bMngmQ6QAqqEcC
+	2psN6cKxZ32iwASmqUK+j3O2qMAgh3KnMFJPQAthh2kYC516DKSUnFg5uOwgmpe9BOE6YS
+	JolfhXSGUbYWt2ebN5SZwMJXRYHGvk5gFW8hGjmx94fa7ZCKsR/8cpQNviYibVgfOFfLLE
+	jhPXCqQdiCDEVNN6DF9Na0x1gmR14vJY0+NE5RFtR/t4j9aYqnpV2zNZEuECzg==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1739710302;
+	s=2020e; t=1739710301;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=HKaZnR07XoQPY5vketSAVHit4PEfWw2yK9/rBe2OLpg=;
-	b=sWLMmVQrNbzy4Ch5QvhTKsV3iC/XJPrCk5iY/HXwp75Xkbcy3N1P6hDL0FgaCrjR8D03Rp
-	elexCDLDfXGq0EAw==
+	bh=SlYtlPYwn8A2wfbRst1mve1bNY3Vm3u3sn5X+0h3fa8=;
+	b=MxTHdpNTogM5M8txIjWQZUmPjkhVr0KCT+hsJDH+JMZelIBUQSWYuB5CqodJqcvuBORzd6
+	rZRf+nLDH5d7IFBQ==
 To: netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org,
 	linux-rt-devel@lists.linux.dev
@@ -46,9 +46,9 @@ Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Jozsef Kadlecsik <kadlec@netfilter.org>,
 	Thomas Gleixner <tglx@linutronix.de>,
 	Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH net-next 3/3] netfilter: Use u64_stats for counters in xt_counters_k.
-Date: Sun, 16 Feb 2025 13:51:35 +0100
-Message-ID: <20250216125135.3037967-4-bigeasy@linutronix.de>
+Subject: [PATCH net-next 1/3] netfilter: Make xt_table::private RCU protected.
+Date: Sun, 16 Feb 2025 13:51:33 +0100
+Message-ID: <20250216125135.3037967-2-bigeasy@linutronix.de>
 In-Reply-To: <20250216125135.3037967-1-bigeasy@linutronix.de>
 References: <20250216125135.3037967-1-bigeasy@linutronix.de>
 Precedence: bulk
@@ -59,452 +59,494 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 
-Using u64_stats for statistics has the advantage that the seqcount_t
-synchronisation can be reduced to 32bit architectures only. On 64bit
-architectures the update can happen lockless given there is only one
-writter.
+The seqcount xt_recseq is used to synchronize the replacement of
+xt_table::private in xt_replace_table() against all readers such as
+ipt_do_table(). After the pointer is replaced, xt_register_target()
+iterates over all per-CPU xt_recseq to ensure that none of CPUs is
+within the critical section.
+Once this is done, the old pointer can be examined and deallocated
+safely.
 
-The critical section (xt_write_recseq_begin() - xt_write_recseq_end())
-can be reduced to just the update of the value since the reader and its
-xt_table_info::private access is RCU protected.
+This can also be achieved with RCU: Each reader of the private pointer
+will be with in an RCU read section. The new pointer will be published
+with rcu_assign_pointer() and synchronize_rcu() is used to wait until
+each reader left its critical section.
 
-Use u64_stats_t in xt_counters_k for statistics. Add xt_counter_add() as
-a helper to update counters within the critical section.
+Use RCU to assign xt_table::private and synchronise against reader.
 
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- include/linux/netfilter/x_tables.h | 71 ++++++------------------------
- net/ipv4/netfilter/arp_tables.c    | 23 ++++------
- net/ipv4/netfilter/ip_tables.c     | 23 ++++------
- net/ipv6/netfilter/ip6_tables.c    | 23 ++++------
- net/netfilter/x_tables.c           |  6 +--
- 5 files changed, 43 insertions(+), 103 deletions(-)
+ include/linux/netfilter/x_tables.h |  8 ++++-
+ net/ipv4/netfilter/arp_tables.c    | 20 +++++++-----
+ net/ipv4/netfilter/ip_tables.c     | 20 +++++++-----
+ net/ipv6/netfilter/ip6_tables.c    | 20 +++++++-----
+ net/netfilter/x_tables.c           | 50 ++++++++++++------------------
+ 5 files changed, 62 insertions(+), 56 deletions(-)
 
 diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x=
 _tables.h
-index fc52a2ba90f6b..df429d0198c92 100644
+index f39f688d72852..b9cd82e845d08 100644
 --- a/include/linux/netfilter/x_tables.h
 +++ b/include/linux/netfilter/x_tables.h
-@@ -269,10 +269,21 @@ struct xt_table_info {
+@@ -227,7 +227,7 @@ struct xt_table {
+ 	unsigned int valid_hooks;
 =20
- struct xt_counters_k {
- 	/* Packet and byte counter */
--	__u64 pcnt;
--	__u64 bcnt;
-+	u64_stats_t pcnt;
-+	u64_stats_t bcnt;
- };
+ 	/* Man behind the curtain... */
+-	struct xt_table_info *private;
++	struct xt_table_info __rcu *priv_info;
 =20
-+DECLARE_PER_CPU(struct u64_stats_sync, xt_syncp);
-+
-+static inline void xt_counter_add(struct xt_counters_k *xt_counter,
-+				  unsigned int bytes, unsigned int packets)
+ 	/* hook ops that register the table with the netfilter core */
+ 	struct nf_hook_ops *ops;
+@@ -345,6 +345,12 @@ void xt_free_table_info(struct xt_table_info *info);
+  */
+ DECLARE_PER_CPU(seqcount_t, xt_recseq);
+=20
++bool xt_af_lock_held(u_int8_t af);
++static inline struct xt_table_info *nf_table_private(const struct xt_table=
+ *table)
 +{
-+	u64_stats_update_begin(this_cpu_ptr(&xt_syncp));
-+	u64_stats_add(&xt_counter->pcnt, packets);
-+	u64_stats_add(&xt_counter->bcnt, bytes);
-+	u64_stats_update_end(this_cpu_ptr(&xt_syncp));
++	return rcu_dereference_check(table->priv_info, xt_af_lock_held(table->af)=
+);
 +}
 +
- union xt_counter_k {
- 	struct xt_counters_k __percpu *pcpu;
- 	struct xt_counters_k local;
-@@ -346,16 +357,6 @@ void xt_proto_fini(struct net *net, u_int8_t af);
- struct xt_table_info *xt_alloc_table_info(unsigned int size);
- void xt_free_table_info(struct xt_table_info *info);
-=20
--/**
-- * xt_recseq - recursive seqcount for netfilter use
-- *
-- * Packet processing changes the seqcount only if no recursion happened
-- * get_counters() can use read_seqcount_begin()/read_seqcount_retry(),
-- * because we use the normal seqcount convention :
-- * Low order bit set to 1 if a writer is active.
-- */
--DECLARE_PER_CPU(seqcount_t, xt_recseq);
--
- bool xt_af_lock_held(u_int8_t af);
- static inline struct xt_table_info *nf_table_private(const struct xt_table=
- *table)
- {
-@@ -368,52 +369,6 @@ static inline struct xt_table_info *nf_table_private(c=
-onst struct xt_table *tabl
-  */
- extern struct static_key xt_tee_enabled;
-=20
--/**
-- * xt_write_recseq_begin - start of a write section
-- *
-- * Begin packet processing : all readers must wait the end
-- * 1) Must be called with preemption disabled
-- * 2) softirqs must be disabled too (or we should use this_cpu_add())
-- * Returns:
-- *  1 if no recursion on this cpu
-- *  0 if recursion detected
-- */
--static inline unsigned int xt_write_recseq_begin(void)
--{
--	unsigned int addend;
--
--	/*
--	 * Low order bit of sequence is set if we already
--	 * called xt_write_recseq_begin().
--	 */
--	addend =3D (__this_cpu_read(xt_recseq.sequence) + 1) & 1;
--
--	/*
--	 * This is kind of a write_seqcount_begin(), but addend is 0 or 1
--	 * We dont check addend value to avoid a test and conditional jump,
--	 * since addend is most likely 1
--	 */
--	__this_cpu_add(xt_recseq.sequence, addend);
--	smp_mb();
--
--	return addend;
--}
--
--/**
-- * xt_write_recseq_end - end of a write section
-- * @addend: return value from previous xt_write_recseq_begin()
-- *
-- * End packet processing : all readers can proceed
-- * 1) Must be called with preemption disabled
-- * 2) softirqs must be disabled too (or we should use this_cpu_add())
-- */
--static inline void xt_write_recseq_end(unsigned int addend)
--{
--	/* this is kind of a write_seqcount_end(), but addend is 0 or 1 */
--	smp_wmb();
--	__this_cpu_add(xt_recseq.sequence, addend);
--}
--
- /*
-  * This helper is performance critical and must be inlined
-  */
+ /* xt_tee_enabled - true if x_tables needs to handle reentrancy
+  *
+  * Enabled if current ip(6)tables ruleset has at least one -j TEE rule.
 diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_table=
 s.c
-index ce3d73155ca9b..6b957de58d2cf 100644
+index 1cdd9c28ab2da..0628e68910f7f 100644
 --- a/net/ipv4/netfilter/arp_tables.c
 +++ b/net/ipv4/netfilter/arp_tables.c
-@@ -194,7 +194,6 @@ unsigned int arpt_do_table(void *priv,
- 	unsigned int cpu, stackidx =3D 0;
- 	const struct xt_table_info *private;
- 	struct xt_action_param acpar;
--	unsigned int addend;
-=20
- 	if (!pskb_may_pull(skb, arp_hdr_len(skb->dev)))
- 		return NF_DROP;
-@@ -204,7 +203,6 @@ unsigned int arpt_do_table(void *priv,
+@@ -203,8 +203,9 @@ unsigned int arpt_do_table(void *priv,
+ 	outdev =3D state->out ? state->out->name : nulldevname;
 =20
  	local_bh_disable();
- 	rcu_read_lock();
--	addend =3D xt_write_recseq_begin();
- 	private =3D rcu_dereference(table->priv_info);
++	rcu_read_lock();
+ 	addend =3D xt_write_recseq_begin();
+-	private =3D READ_ONCE(table->private); /* Address dependency. */
++	private =3D rcu_dereference(table->priv_info);
  	cpu     =3D smp_processor_id();
  	table_base =3D private->entries;
-@@ -229,7 +227,7 @@ unsigned int arpt_do_table(void *priv,
- 		}
-=20
- 		counter =3D xt_get_this_cpu_counter(&e->counter_pad);
--		ADD_COUNTER(*counter, arp_hdr_len(skb->dev), 1);
-+		xt_counter_add(counter, arp_hdr_len(skb->dev), 1);
-=20
- 		t =3D arpt_get_target_c(e);
-=20
-@@ -279,7 +277,6 @@ unsigned int arpt_do_table(void *priv,
- 			break;
+ 	jumpstack  =3D (struct arpt_entry **)private->jumpstack[cpu];
+@@ -279,6 +280,7 @@ unsigned int arpt_do_table(void *priv,
  		}
  	} while (!acpar.hotdrop);
--	xt_write_recseq_end(addend);
- 	rcu_read_unlock();
+ 	xt_write_recseq_end(addend);
++	rcu_read_unlock();
  	local_bh_enable();
 =20
-@@ -607,7 +604,7 @@ static void get_counters(const struct xt_table_info *t,
- 	unsigned int i;
-=20
- 	for_each_possible_cpu(cpu) {
--		seqcount_t *s =3D &per_cpu(xt_recseq, cpu);
-+		struct u64_stats_sync *syncp =3D &per_cpu(xt_syncp, cpu);
-=20
- 		i =3D 0;
- 		xt_entry_foreach(iter, t->entries, t->size) {
-@@ -617,10 +614,10 @@ static void get_counters(const struct xt_table_info *=
-t,
-=20
- 			tmp =3D xt_get_per_cpu_counter(&iter->counter_pad, cpu);
- 			do {
--				start =3D read_seqcount_begin(s);
--				bcnt =3D tmp->bcnt;
--				pcnt =3D tmp->pcnt;
--			} while (read_seqcount_retry(s, start));
-+				start =3D u64_stats_fetch_begin(syncp);
-+				bcnt =3D u64_stats_read(&tmp->bcnt);
-+				pcnt =3D u64_stats_read(&tmp->pcnt);
-+			} while (u64_stats_fetch_retry(syncp, start));
-=20
- 			ADD_COUNTER(counters[i], bcnt, pcnt);
- 			++i;
-@@ -641,7 +638,8 @@ static void get_old_counters(const struct xt_table_info=
+ 	if (acpar.hotdrop)
+@@ -648,9 +650,9 @@ static void get_old_counters(const struct xt_table_info=
  *t,
- 			struct xt_counters_k *tmp;
 =20
- 			tmp =3D xt_get_per_cpu_counter(&iter->counter_pad, cpu);
--			ADD_COUNTER(counters[i], tmp->bcnt, tmp->pcnt);
-+			ADD_COUNTER(counters[i], u64_stats_read(&tmp->bcnt),
-+				    u64_stats_read(&tmp->pcnt));
- 			++i;
- 		}
- 		cond_resched();
-@@ -1011,7 +1009,6 @@ static int do_add_counters(struct net *net, sockptr_t=
- arg, unsigned int len)
- 	const struct xt_table_info *private;
+ static struct xt_counters *alloc_counters(const struct xt_table *table)
+ {
++	const struct xt_table_info *private =3D nf_table_private(table);
+ 	unsigned int countersize;
+ 	struct xt_counters *counters;
+-	const struct xt_table_info *private =3D table->private;
+=20
+ 	/* We need atomic snapshot of counters: rest doesn't change
+ 	 * (other than comefrom, which userspace doesn't care
+@@ -671,10 +673,10 @@ static int copy_entries_to_user(unsigned int total_si=
+ze,
+ 				const struct xt_table *table,
+ 				void __user *userptr)
+ {
++	struct xt_table_info *private =3D nf_table_private(table);
+ 	unsigned int off, num;
+ 	const struct arpt_entry *e;
+ 	struct xt_counters *counters;
+-	struct xt_table_info *private =3D table->private;
  	int ret =3D 0;
- 	struct arpt_entry *iter;
--	unsigned int addend;
+ 	void *loc_cpu_entry;
 =20
- 	paddc =3D xt_copy_counters(arg, len, &tmp);
- 	if (IS_ERR(paddc))
-@@ -1033,15 +1030,13 @@ static int do_add_counters(struct net *net, sockptr=
-_t arg, unsigned int len)
+@@ -808,7 +810,7 @@ static int get_info(struct net *net, void __user *user,=
+ const int *len)
+ 	t =3D xt_request_find_table_lock(net, NFPROTO_ARP, name);
+ 	if (!IS_ERR(t)) {
+ 		struct arpt_getinfo info;
+-		const struct xt_table_info *private =3D t->private;
++		const struct xt_table_info *private =3D nf_table_private(t);
+ #ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 		struct xt_table_info tmp;
 =20
- 	i =3D 0;
+@@ -861,7 +863,7 @@ static int get_entries(struct net *net, struct arpt_get=
+_entries __user *uptr,
 =20
--	addend =3D xt_write_recseq_begin();
- 	xt_entry_foreach(iter,  private->entries, private->size) {
- 		struct xt_counters_k *tmp;
+ 	t =3D xt_find_table_lock(net, NFPROTO_ARP, get.name);
+ 	if (!IS_ERR(t)) {
+-		const struct xt_table_info *private =3D t->private;
++		const struct xt_table_info *private =3D nf_table_private(t);
 =20
- 		tmp =3D xt_get_this_cpu_counter(&iter->counter_pad);
--		ADD_COUNTER(*tmp, paddc[i].bcnt, paddc[i].pcnt);
-+		xt_counter_add(tmp, paddc[i].bcnt, paddc[i].pcnt);
- 		++i;
+ 		if (get.size =3D=3D private->size)
+ 			ret =3D copy_entries_to_user(private->size,
+@@ -1022,7 +1024,8 @@ static int do_add_counters(struct net *net, sockptr_t=
+ arg, unsigned int len)
  	}
--	xt_write_recseq_end(addend);
+=20
+ 	local_bh_disable();
+-	private =3D t->private;
++	rcu_read_lock();
++	private =3D rcu_dereference(t->priv_info);
+ 	if (private->number !=3D tmp.num_counters) {
+ 		ret =3D -EINVAL;
+ 		goto unlock_up_free;
+@@ -1040,6 +1043,7 @@ static int do_add_counters(struct net *net, sockptr_t=
+ arg, unsigned int len)
+ 	}
+ 	xt_write_recseq_end(addend);
   unlock_up_free:
- 	rcu_read_unlock();
++	rcu_read_unlock();
  	local_bh_enable();
+ 	xt_table_unlock(t);
+ 	module_put(t->me);
+@@ -1340,8 +1344,8 @@ static int compat_copy_entries_to_user(unsigned int t=
+otal_size,
+ 				       struct xt_table *table,
+ 				       void __user *userptr)
+ {
++	const struct xt_table_info *private =3D nf_table_private(table);
+ 	struct xt_counters *counters;
+-	const struct xt_table_info *private =3D table->private;
+ 	void __user *pos;
+ 	unsigned int size;
+ 	int ret =3D 0;
+@@ -1390,7 +1394,7 @@ static int compat_get_entries(struct net *net,
+ 	xt_compat_lock(NFPROTO_ARP);
+ 	t =3D xt_find_table_lock(net, NFPROTO_ARP, get.name);
+ 	if (!IS_ERR(t)) {
+-		const struct xt_table_info *private =3D t->private;
++		const struct xt_table_info *private =3D nf_table_private(t);
+ 		struct xt_table_info info;
+=20
+ 		ret =3D compat_table_info(private, &info);
 diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 95f917f5bceef..c5c90e2f724ba 100644
+index 3d101613f27fa..20e8b46af8876 100644
 --- a/net/ipv4/netfilter/ip_tables.c
 +++ b/net/ipv4/netfilter/ip_tables.c
-@@ -236,7 +236,6 @@ ipt_do_table(void *priv,
- 	unsigned int stackidx, cpu;
- 	const struct xt_table_info *private;
- 	struct xt_action_param acpar;
--	unsigned int addend;
+@@ -256,8 +256,9 @@ ipt_do_table(void *priv,
 =20
- 	/* Initialization */
- 	stackidx =3D 0;
-@@ -258,7 +257,6 @@ ipt_do_table(void *priv,
+ 	WARN_ON(!(table->valid_hooks & (1 << hook)));
  	local_bh_disable();
- 	rcu_read_lock();
- 	private =3D rcu_dereference(table->priv_info);
--	addend =3D xt_write_recseq_begin();
++	rcu_read_lock();
++	private =3D rcu_dereference(table->priv_info);
+ 	addend =3D xt_write_recseq_begin();
+-	private =3D READ_ONCE(table->private); /* Address dependency. */
  	cpu        =3D smp_processor_id();
  	table_base =3D private->entries;
  	jumpstack  =3D (struct ipt_entry **)private->jumpstack[cpu];
-@@ -296,7 +294,7 @@ ipt_do_table(void *priv,
- 		}
-=20
- 		counter =3D xt_get_this_cpu_counter(&e->counter_pad);
--		ADD_COUNTER(*counter, skb->len, 1);
-+		xt_counter_add(counter, skb->len, 1);
-=20
- 		t =3D ipt_get_target_c(e);
- 		WARN_ON(!t->u.kernel.target);
-@@ -354,7 +352,6 @@ ipt_do_table(void *priv,
- 		}
+@@ -354,6 +355,7 @@ ipt_do_table(void *priv,
  	} while (!acpar.hotdrop);
 =20
--	xt_write_recseq_end(addend);
- 	rcu_read_unlock();
+ 	xt_write_recseq_end(addend);
++	rcu_read_unlock();
  	local_bh_enable();
 =20
-@@ -746,7 +743,7 @@ get_counters(const struct xt_table_info *t,
- 	unsigned int i;
-=20
- 	for_each_possible_cpu(cpu) {
--		seqcount_t *s =3D &per_cpu(xt_recseq, cpu);
-+		struct u64_stats_sync *syncp =3D &per_cpu(xt_syncp, cpu);
-=20
- 		i =3D 0;
- 		xt_entry_foreach(iter, t->entries, t->size) {
-@@ -756,10 +753,10 @@ get_counters(const struct xt_table_info *t,
-=20
- 			tmp =3D xt_get_per_cpu_counter(&iter->counter_pad, cpu);
- 			do {
--				start =3D read_seqcount_begin(s);
--				bcnt =3D tmp->bcnt;
--				pcnt =3D tmp->pcnt;
--			} while (read_seqcount_retry(s, start));
-+				start =3D u64_stats_fetch_begin(syncp);
-+				bcnt =3D u64_stats_read(&tmp->bcnt);
-+				pcnt =3D u64_stats_read(&tmp->pcnt);
-+			} while (u64_stats_fetch_retry(syncp, start));
-=20
- 			ADD_COUNTER(counters[i], bcnt, pcnt);
- 			++i; /* macro does multi eval of i */
-@@ -780,7 +777,8 @@ static void get_old_counters(const struct xt_table_info=
+ 	if (acpar.hotdrop)
+@@ -788,9 +790,9 @@ static void get_old_counters(const struct xt_table_info=
  *t,
- 			const struct xt_counters_k *tmp;
 =20
- 			tmp =3D xt_get_per_cpu_counter(&iter->counter_pad, cpu);
--			ADD_COUNTER(counters[i], tmp->bcnt, tmp->pcnt);
-+			ADD_COUNTER(counters[i], u64_stats_read(&tmp->bcnt),
-+				    u64_stats_read(&tmp->pcnt));
- 			++i; /* macro does multi eval of i */
- 		}
+ static struct xt_counters *alloc_counters(const struct xt_table *table)
+ {
++	const struct xt_table_info *private =3D nf_table_private(table);
+ 	unsigned int countersize;
+ 	struct xt_counters *counters;
+-	const struct xt_table_info *private =3D table->private;
 =20
-@@ -1164,7 +1162,6 @@ do_add_counters(struct net *net, sockptr_t arg, unsig=
-ned int len)
- 	const struct xt_table_info *private;
+ 	/* We need atomic snapshot of counters: rest doesn't change
+ 	   (other than comefrom, which userspace doesn't care
+@@ -811,10 +813,10 @@ copy_entries_to_user(unsigned int total_size,
+ 		     const struct xt_table *table,
+ 		     void __user *userptr)
+ {
++	const struct xt_table_info *private =3D nf_table_private(table);
+ 	unsigned int off, num;
+ 	const struct ipt_entry *e;
+ 	struct xt_counters *counters;
+-	const struct xt_table_info *private =3D table->private;
  	int ret =3D 0;
- 	struct ipt_entry *iter;
--	unsigned int addend;
+ 	const void *loc_cpu_entry;
 =20
- 	paddc =3D xt_copy_counters(arg, len, &tmp);
- 	if (IS_ERR(paddc))
-@@ -1185,15 +1182,13 @@ do_add_counters(struct net *net, sockptr_t arg, uns=
-igned int len)
+@@ -963,7 +965,7 @@ static int get_info(struct net *net, void __user *user,=
+ const int *len)
+ 	t =3D xt_request_find_table_lock(net, AF_INET, name);
+ 	if (!IS_ERR(t)) {
+ 		struct ipt_getinfo info;
+-		const struct xt_table_info *private =3D t->private;
++		const struct xt_table_info *private =3D nf_table_private(t);
+ #ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 		struct xt_table_info tmp;
+=20
+@@ -1017,7 +1019,7 @@ get_entries(struct net *net, struct ipt_get_entries _=
+_user *uptr,
+=20
+ 	t =3D xt_find_table_lock(net, AF_INET, get.name);
+ 	if (!IS_ERR(t)) {
+-		const struct xt_table_info *private =3D t->private;
++		const struct xt_table_info *private =3D nf_table_private(t);
+ 		if (get.size =3D=3D private->size)
+ 			ret =3D copy_entries_to_user(private->size,
+ 						   t, uptr->entrytable);
+@@ -1175,7 +1177,8 @@ do_add_counters(struct net *net, sockptr_t arg, unsig=
+ned int len)
  	}
 =20
- 	i =3D 0;
--	addend =3D xt_write_recseq_begin();
- 	xt_entry_foreach(iter, private->entries, private->size) {
- 		struct xt_counters_k *tmp;
-=20
- 		tmp =3D xt_get_this_cpu_counter(&iter->counter_pad);
--		ADD_COUNTER(*tmp, paddc[i].bcnt, paddc[i].pcnt);
-+		xt_counter_add(tmp, paddc[i].bcnt, paddc[i].pcnt);
- 		++i;
+ 	local_bh_disable();
+-	private =3D t->private;
++	rcu_read_lock();
++	private =3D rcu_dereference(t->priv_info);
+ 	if (private->number !=3D tmp.num_counters) {
+ 		ret =3D -EINVAL;
+ 		goto unlock_up_free;
+@@ -1192,6 +1195,7 @@ do_add_counters(struct net *net, sockptr_t arg, unsig=
+ned int len)
  	}
--	xt_write_recseq_end(addend);
+ 	xt_write_recseq_end(addend);
   unlock_up_free:
- 	rcu_read_unlock();
++	rcu_read_unlock();
  	local_bh_enable();
+ 	xt_table_unlock(t);
+ 	module_put(t->me);
+@@ -1550,8 +1554,8 @@ static int
+ compat_copy_entries_to_user(unsigned int total_size, struct xt_table *tabl=
+e,
+ 			    void __user *userptr)
+ {
++	const struct xt_table_info *private =3D nf_table_private(table);
+ 	struct xt_counters *counters;
+-	const struct xt_table_info *private =3D table->private;
+ 	void __user *pos;
+ 	unsigned int size;
+ 	int ret =3D 0;
+@@ -1597,7 +1601,7 @@ compat_get_entries(struct net *net, struct compat_ipt=
+_get_entries __user *uptr,
+ 	xt_compat_lock(AF_INET);
+ 	t =3D xt_find_table_lock(net, AF_INET, get.name);
+ 	if (!IS_ERR(t)) {
+-		const struct xt_table_info *private =3D t->private;
++		const struct xt_table_info *private =3D nf_table_private(t);
+ 		struct xt_table_info info;
+ 		ret =3D compat_table_info(private, &info);
+ 		if (!ret && get.size =3D=3D info.size)
 diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_table=
 s.c
-index f4877b1b2463e..5a6a592cd53dc 100644
+index 7d5602950ae72..c12d489a09840 100644
 --- a/net/ipv6/netfilter/ip6_tables.c
 +++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -259,7 +259,6 @@ ip6t_do_table(void *priv, struct sk_buff *skb,
- 	unsigned int stackidx, cpu;
- 	const struct xt_table_info *private;
- 	struct xt_action_param acpar;
--	unsigned int addend;
+@@ -278,8 +278,9 @@ ip6t_do_table(void *priv, struct sk_buff *skb,
+ 	WARN_ON(!(table->valid_hooks & (1 << hook)));
 =20
- 	/* Initialization */
- 	stackidx =3D 0;
-@@ -280,7 +279,6 @@ ip6t_do_table(void *priv, struct sk_buff *skb,
  	local_bh_disable();
- 	rcu_read_lock();
- 	private =3D rcu_dereference(table->priv_info);
--	addend =3D xt_write_recseq_begin();
++	rcu_read_lock();
++	private =3D rcu_dereference(table->priv_info);
+ 	addend =3D xt_write_recseq_begin();
+-	private =3D READ_ONCE(table->private); /* Address dependency. */
  	cpu        =3D smp_processor_id();
  	table_base =3D private->entries;
  	jumpstack  =3D (struct ip6t_entry **)private->jumpstack[cpu];
-@@ -319,7 +317,7 @@ ip6t_do_table(void *priv, struct sk_buff *skb,
- 		}
-=20
- 		counter =3D xt_get_this_cpu_counter(&e->counter_pad);
--		ADD_COUNTER(*counter, skb->len, 1);
-+		xt_counter_add(counter, skb->len, 1);
-=20
- 		t =3D ip6t_get_target_c(e);
- 		WARN_ON(!t->u.kernel.target);
-@@ -372,7 +370,6 @@ ip6t_do_table(void *priv, struct sk_buff *skb,
- 			break;
+@@ -372,6 +373,7 @@ ip6t_do_table(void *priv, struct sk_buff *skb,
  	} while (!acpar.hotdrop);
 =20
--	xt_write_recseq_end(addend);
- 	rcu_read_unlock();
+ 	xt_write_recseq_end(addend);
++	rcu_read_unlock();
  	local_bh_enable();
 =20
-@@ -763,7 +760,7 @@ get_counters(const struct xt_table_info *t,
- 	unsigned int i;
-=20
- 	for_each_possible_cpu(cpu) {
--		seqcount_t *s =3D &per_cpu(xt_recseq, cpu);
-+		struct u64_stats_sync *syncp =3D &per_cpu(xt_syncp, cpu);
-=20
- 		i =3D 0;
- 		xt_entry_foreach(iter, t->entries, t->size) {
-@@ -773,10 +770,10 @@ get_counters(const struct xt_table_info *t,
-=20
- 			tmp =3D xt_get_per_cpu_counter(&iter->counter_pad, cpu);
- 			do {
--				start =3D read_seqcount_begin(s);
--				bcnt =3D tmp->bcnt;
--				pcnt =3D tmp->pcnt;
--			} while (read_seqcount_retry(s, start));
-+				start =3D u64_stats_fetch_begin(syncp);
-+				bcnt =3D u64_stats_read(&tmp->bcnt);
-+				pcnt =3D u64_stats_read(&tmp->pcnt);
-+			} while (u64_stats_fetch_retry(syncp, start));
-=20
- 			ADD_COUNTER(counters[i], bcnt, pcnt);
- 			++i;
-@@ -797,7 +794,8 @@ static void get_old_counters(const struct xt_table_info=
+ 	if (acpar.hotdrop)
+@@ -804,9 +806,9 @@ static void get_old_counters(const struct xt_table_info=
  *t,
- 			const struct xt_counters_k *tmp;
 =20
- 			tmp =3D xt_get_per_cpu_counter(&iter->counter_pad, cpu);
--			ADD_COUNTER(counters[i], tmp->bcnt, tmp->pcnt);
-+			ADD_COUNTER(counters[i], u64_stats_read(&tmp->bcnt),
-+				    u64_stats_read(&tmp->pcnt));
- 			++i;
- 		}
- 		cond_resched();
-@@ -1181,7 +1179,6 @@ do_add_counters(struct net *net, sockptr_t arg, unsig=
-ned int len)
- 	const struct xt_table_info *private;
+ static struct xt_counters *alloc_counters(const struct xt_table *table)
+ {
++	const struct xt_table_info *private =3D nf_table_private(table);
+ 	unsigned int countersize;
+ 	struct xt_counters *counters;
+-	const struct xt_table_info *private =3D table->private;
+=20
+ 	/* We need atomic snapshot of counters: rest doesn't change
+ 	   (other than comefrom, which userspace doesn't care
+@@ -827,10 +829,10 @@ copy_entries_to_user(unsigned int total_size,
+ 		     const struct xt_table *table,
+ 		     void __user *userptr)
+ {
++	const struct xt_table_info *private =3D nf_table_private(table);
+ 	unsigned int off, num;
+ 	const struct ip6t_entry *e;
+ 	struct xt_counters *counters;
+-	const struct xt_table_info *private =3D table->private;
  	int ret =3D 0;
- 	struct ip6t_entry *iter;
--	unsigned int addend;
+ 	const void *loc_cpu_entry;
 =20
- 	paddc =3D xt_copy_counters(arg, len, &tmp);
- 	if (IS_ERR(paddc))
-@@ -1201,15 +1198,13 @@ do_add_counters(struct net *net, sockptr_t arg, uns=
-igned int len)
+@@ -979,7 +981,7 @@ static int get_info(struct net *net, void __user *user,=
+ const int *len)
+ 	t =3D xt_request_find_table_lock(net, AF_INET6, name);
+ 	if (!IS_ERR(t)) {
+ 		struct ip6t_getinfo info;
+-		const struct xt_table_info *private =3D t->private;
++		const struct xt_table_info *private =3D nf_table_private(t);
+ #ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+ 		struct xt_table_info tmp;
+=20
+@@ -1034,7 +1036,7 @@ get_entries(struct net *net, struct ip6t_get_entries =
+__user *uptr,
+=20
+ 	t =3D xt_find_table_lock(net, AF_INET6, get.name);
+ 	if (!IS_ERR(t)) {
+-		struct xt_table_info *private =3D t->private;
++		struct xt_table_info *private =3D nf_table_private(t);
+ 		if (get.size =3D=3D private->size)
+ 			ret =3D copy_entries_to_user(private->size,
+ 						   t, uptr->entrytable);
+@@ -1191,7 +1193,8 @@ do_add_counters(struct net *net, sockptr_t arg, unsig=
+ned int len)
  	}
 =20
- 	i =3D 0;
--	addend =3D xt_write_recseq_begin();
- 	xt_entry_foreach(iter, private->entries, private->size) {
- 		struct xt_counters_k *tmp;
-=20
- 		tmp =3D xt_get_this_cpu_counter(&iter->counter_pad);
--		ADD_COUNTER(*tmp, paddc[i].bcnt, paddc[i].pcnt);
-+		xt_counter_add(tmp, paddc[i].bcnt, paddc[i].pcnt);
- 		++i;
+ 	local_bh_disable();
+-	private =3D t->private;
++	rcu_read_lock();
++	private =3D rcu_dereference(t->priv_info);
+ 	if (private->number !=3D tmp.num_counters) {
+ 		ret =3D -EINVAL;
+ 		goto unlock_up_free;
+@@ -1208,6 +1211,7 @@ do_add_counters(struct net *net, sockptr_t arg, unsig=
+ned int len)
  	}
--	xt_write_recseq_end(addend);
+ 	xt_write_recseq_end(addend);
   unlock_up_free:
- 	rcu_read_unlock();
++	rcu_read_unlock();
  	local_bh_enable();
+ 	xt_table_unlock(t);
+ 	module_put(t->me);
+@@ -1559,8 +1563,8 @@ static int
+ compat_copy_entries_to_user(unsigned int total_size, struct xt_table *tabl=
+e,
+ 			    void __user *userptr)
+ {
++	const struct xt_table_info *private =3D nf_table_private(table);
+ 	struct xt_counters *counters;
+-	const struct xt_table_info *private =3D table->private;
+ 	void __user *pos;
+ 	unsigned int size;
+ 	int ret =3D 0;
+@@ -1606,7 +1610,7 @@ compat_get_entries(struct net *net, struct compat_ip6=
+t_get_entries __user *uptr,
+ 	xt_compat_lock(AF_INET6);
+ 	t =3D xt_find_table_lock(net, AF_INET6, get.name);
+ 	if (!IS_ERR(t)) {
+-		const struct xt_table_info *private =3D t->private;
++		const struct xt_table_info *private =3D nf_table_private(t);
+ 		struct xt_table_info info;
+ 		ret =3D compat_table_info(private, &info);
+ 		if (!ret && get.size =3D=3D info.size)
 diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index e3f48539f81d6..d9a31ee920fc0 100644
+index 709840612f0df..ee38272cca562 100644
 --- a/net/netfilter/x_tables.c
 +++ b/net/netfilter/x_tables.c
-@@ -1330,8 +1330,8 @@ void xt_compat_unlock(u_int8_t af)
- EXPORT_SYMBOL_GPL(xt_compat_unlock);
- #endif
+@@ -85,6 +85,19 @@ static const char *const xt_prefix[NFPROTO_NUMPROTO] =3D=
+ {
+ 	[NFPROTO_IPV6]   =3D "ip6",
+ };
 =20
--DEFINE_PER_CPU(seqcount_t, xt_recseq);
--EXPORT_PER_CPU_SYMBOL_GPL(xt_recseq);
-+DEFINE_PER_CPU(struct u64_stats_sync, xt_syncp);
-+EXPORT_PER_CPU_SYMBOL_GPL(xt_syncp);
++#ifdef CONFIG_LOCKDEP
++bool xt_af_lock_held(u_int8_t af)
++{
++	return lockdep_is_held(&xt[af].mutex) ||
++#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
++		lockdep_is_held(&xt[af].compat_mutex);
++#else
++		false;
++#endif
++}
++EXPORT_SYMBOL_GPL(xt_af_lock_held);
++#endif
++
+ /* Registration hooks for targets. */
+ int xt_register_target(struct xt_target *target)
+ {
+@@ -1388,7 +1401,6 @@ xt_replace_table(struct xt_table *table,
+ 	      int *error)
+ {
+ 	struct xt_table_info *private;
+-	unsigned int cpu;
+ 	int ret;
 =20
- struct static_key xt_tee_enabled __read_mostly;
- EXPORT_SYMBOL_GPL(xt_tee_enabled);
-@@ -1977,7 +1977,7 @@ static int __init xt_init(void)
- 	int rv;
-=20
- 	for_each_possible_cpu(i) {
--		seqcount_init(&per_cpu(xt_recseq, i));
-+		u64_stats_init(&per_cpu(xt_syncp, i));
+ 	ret =3D xt_jumpstack_alloc(newinfo);
+@@ -1397,48 +1409,24 @@ xt_replace_table(struct xt_table *table,
+ 		return NULL;
  	}
 =20
- 	xt =3D kcalloc(NFPROTO_NUMPROTO, sizeof(struct xt_af), GFP_KERNEL);
+-	/* Do the substitution. */
+-	local_bh_disable();
+-	private =3D table->private;
++	private =3D nf_table_private(table);
+=20
+ 	/* Check inside lock: is the old number correct? */
+ 	if (num_counters !=3D private->number) {
+ 		pr_debug("num_counters !=3D table->private->number (%u/%u)\n",
+ 			 num_counters, private->number);
+-		local_bh_enable();
+ 		*error =3D -EAGAIN;
+ 		return NULL;
+ 	}
+=20
+ 	newinfo->initial_entries =3D private->initial_entries;
+-	/*
+-	 * Ensure contents of newinfo are visible before assigning to
+-	 * private.
+-	 */
+-	smp_wmb();
+-	table->private =3D newinfo;
+-
+-	/* make sure all cpus see new ->private value */
+-	smp_mb();
+=20
++	rcu_assign_pointer(table->priv_info, newinfo);
+ 	/*
+ 	 * Even though table entries have now been swapped, other CPU's
+ 	 * may still be using the old entries...
+ 	 */
+-	local_bh_enable();
+-
+-	/* ... so wait for even xt_recseq on all cpus */
+-	for_each_possible_cpu(cpu) {
+-		seqcount_t *s =3D &per_cpu(xt_recseq, cpu);
+-		u32 seq =3D raw_read_seqcount(s);
+-
+-		if (seq & 1) {
+-			do {
+-				cond_resched();
+-				cpu_relax();
+-			} while (seq =3D=3D raw_read_seqcount(s));
+-		}
+-	}
++	synchronize_rcu();
+=20
+ 	audit_log_nfcfg(table->name, table->af, private->number,
+ 			!private->number ? AUDIT_XT_OP_REGISTER :
+@@ -1475,12 +1463,12 @@ struct xt_table *xt_register_table(struct net *net,
+ 	}
+=20
+ 	/* Simplifies replace_table code. */
+-	table->private =3D bootstrap;
++	rcu_assign_pointer(table->priv_info, bootstrap);
+=20
+ 	if (!xt_replace_table(table, 0, newinfo, &ret))
+ 		goto unlock;
+=20
+-	private =3D table->private;
++	private =3D nf_table_private(table);
+ 	pr_debug("table->private->number =3D %u\n", private->number);
+=20
+ 	/* save number of initial entries */
+@@ -1503,7 +1491,7 @@ void *xt_unregister_table(struct xt_table *table)
+ 	struct xt_table_info *private;
+=20
+ 	mutex_lock(&xt[table->af].mutex);
+-	private =3D table->private;
++	private =3D nf_table_private(table);
+ 	list_del(&table->list);
+ 	mutex_unlock(&xt[table->af].mutex);
+ 	audit_log_nfcfg(table->name, table->af, private->number,
 --=20
 2.47.2
 
