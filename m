@@ -1,141 +1,154 @@
-Received: from mout.gmx.net (mout.gmx.net [212.227.17.21])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE363186287
-	for <netfilter-devel@vger.kernel.org>; Sun, 16 Feb 2025 14:05:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67AE1192D9A
+	for <netfilter-devel@vger.kernel.org>; Sun, 16 Feb 2025 15:23:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739714706; cv=none; b=NoPv6YR+46NbUohLHL4QUGDKOowypUb3iKf5pDlp757QHDB+DAMTHGBk2gJ7DHB6bEScPIlxHmGjfRIA8bT6AZLVPofnWhEDrguFXrVbLsFVDntYhrR+SerejkpIK31sADkrR95oPc/N+nHFFEC2XZ56GuXHZqvW/pI0wOZs+/s=
+	t=1739719405; cv=none; b=FWnmWMZRPaKM82QVFWwm/WaTVQ3LR92Nw/ATTYK1ix22RU64GnyDLD3W4cDmsMEzQC/AuUOndZhMSo6F3eekLBSluEGdLaISfnxG2To23anCYUzVbAhvoyIkHvPzryhiOTJRqRe3BLKQkKXZEhnVh+kgEUwafGv0vm0OZFVsR7U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739714706; c=relaxed/simple;
-	bh=mGtly71Myr5PWeq4SdKxTakJQcqbEftSqaxPTsy/N8w=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:References:
-	 In-Reply-To:Content-Type; b=AbYnZX/hDJtnvHuzKt2CU8LMB7kxizXaYqBIYGhyszosghSnJILei0iHcVydC/zLQm9Qj/DJL4EtGIEIYPkLLaSQs9wDdhGBBiovAhkHkn6sLpnKuz/TqepUJAw5qBAOjHvCctj4Ac5BoFfUF7Qu0dZ+k0UeLhz5I/JASsjThto=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b=oTFDJ29+; arc=none smtp.client-ip=212.227.17.21
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
+	s=arc-20240116; t=1739719405; c=relaxed/simple;
+	bh=po62Jc1XMG8GWgLcWzL9t2XBsDzkbQQSYDMWB4lIbB8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=gn6R4/PqrF4lY6d7PogkJgfKcnRGJ/hScJVZF9uaqSfIxbzqBbpYHC1k44geDzWdTghsaif3IQumnQ7JJnn0A8IPd2KwzDprrLhQil8KGzQdRe2Z9/k491FyPAWBdP9OyFA6uPaG5uA7xY55bDS8mrpskMFIU83k4BGKZzglCCE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Xa09SWnL; arc=none smtp.client-ip=192.198.163.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b="oTFDJ29+"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
-	s=s31663417; t=1739714702; x=1740319502; i=corubba@gmx.de;
-	bh=T7zLWzK2NJDz/LmUt7vNcfkNoyneR1yVtEPBnoH+zQk=;
-	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:From:To:
-	 References:In-Reply-To:Content-Type:Content-Transfer-Encoding:cc:
-	 content-transfer-encoding:content-type:date:from:message-id:
-	 mime-version:reply-to:subject:to;
-	b=oTFDJ29++Dyc11SdYPuCrKX1CbgqbWaPe0NxeOkbwZFeUdmp5GcJy13S34p6cIvN
-	 hROCCCktK+5LEBvtXQ/8rxQdlv7FWjh0UVX3VyNDGbqcAafTX33PDm4f2tzUsQQgJ
-	 IrZRxST0np+pPwUuuPDgbYmQ+ZAxkCeWZ9KYRswEfmlP2n/JvgojWWQI5dFa8Nx6M
-	 BvqHPFtbDiLwMLfWeGKayO3YV2JTL2tiSAP3Kci6qmzYDthw7zlpaExXfz06KqOHe
-	 JDNibJttI/nLlPvHPUQnuQ5Yk4ixEbpGtpoHdbJUIJLCqujEkCe+KPHI+/Awf5bbV
-	 dfCxMdYOmJP2sAJNOQ==
-X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
-Received: from [192.168.44.3] ([83.135.91.182]) by mail.gmx.net (mrgmx104
- [212.227.17.168]) with ESMTPSA (Nemesis) id 1MD9XF-1taYb10Hr7-001zO8 for
- <netfilter-devel@vger.kernel.org>; Sun, 16 Feb 2025 15:05:02 +0100
-Message-ID: <c1966494-383b-4003-ac1a-aa566fb428a8@gmx.de>
-Date: Sun, 16 Feb 2025 15:05:01 +0100
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Xa09SWnL"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1739719403; x=1771255403;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=po62Jc1XMG8GWgLcWzL9t2XBsDzkbQQSYDMWB4lIbB8=;
+  b=Xa09SWnLS6OiwktNQoUeH48TXsesBGUF6CyNCneGXylgcB04N5awq+1C
+   KUhAnPakZfaeMnNrVs6h0pP2fNMFifb102wm2pQbKS2fOQgNcFF/6Jon3
+   fi+zW0C/32TLtVtgsE3QLm+bpcAqIDg8zcaiL4v9ZDO8Pk/J/DVEugS5p
+   UQVd4wUXbP/ewlygzKw2Zg0w/j0t5+SBS/Elvpx/O0vbe6oJYAApEnWG1
+   R6evenr7jiQf1UTSc7pyY2q7EInttG+IqQkMZDnT7Bon5ZqE+2AwP9Ed2
+   AxoKJH/Aaxm/YZaXH3GX6DnGJyWuL82bd11a0qUIBlauttsnE6XHq+q9w
+   A==;
+X-CSE-ConnectionGUID: oy2iV2qBSWOeGrs00lZK8w==
+X-CSE-MsgGUID: nxwnE87cTH+VvBHR+GA6lg==
+X-IronPort-AV: E=McAfee;i="6700,10204,11347"; a="51035121"
+X-IronPort-AV: E=Sophos;i="6.13,291,1732608000"; 
+   d="scan'208";a="51035121"
+Received: from fmviesa006.fm.intel.com ([10.60.135.146])
+  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Feb 2025 07:23:23 -0800
+X-CSE-ConnectionGUID: yiOXorRESNWuSBgtzbggww==
+X-CSE-MsgGUID: wHTmw9t8TzGZAMTX7DcqPQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.13,291,1732608000"; 
+   d="scan'208";a="113783009"
+Received: from lkp-server01.sh.intel.com (HELO d63d4d77d921) ([10.239.97.150])
+  by fmviesa006.fm.intel.com with ESMTP; 16 Feb 2025 07:23:21 -0800
+Received: from kbuild by d63d4d77d921 with local (Exim 4.96)
+	(envelope-from <lkp@intel.com>)
+	id 1tjgUI-001C1D-2n;
+	Sun, 16 Feb 2025 15:23:18 +0000
+Date: Sun, 16 Feb 2025 23:22:32 +0800
+From: kernel test robot <lkp@intel.com>
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	linux-rt-devel@lists.linux.dev
+Cc: oe-kbuild-all@lists.linux.dev, Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH net-next 2/3] netfilter: Split the xt_counters type
+ between kernel and user.
+Message-ID: <202502162342.iQ248XrR-lkp@intel.com>
+References: <20250216125135.3037967-3-bigeasy@linutronix.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: [PATCH ulogd2 v2 3/3] ipfix: re-arm send timer
-From: Corubba Smith <corubba@gmx.de>
-To: netfilter-devel@vger.kernel.org
-References: <6b8f641d-7ed2-4e1a-8ecc-c77488f71f00@gmx.de>
-Content-Language: de-CH
-In-Reply-To: <6b8f641d-7ed2-4e1a-8ecc-c77488f71f00@gmx.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:gj8i7vJaEqhQcu9t8iImraoF1t1bGUbaEVx4fhNkfosYOQUV8VO
- YcIVOvZshy4jMthxj5SuMgveb0H+OLt1brUBxr9nXIUe9a+A8JOeONyn8S15PG1eaCxnWzL
- pA5Wzb7VvTLadm767uJyxa1yuKLHmej3NpACU0AVTNgM7qxxitHNt+V9rTLvjV2fazhOIJ4
- 2y+rWUlX+cRtHA3FJ3pvg==
-X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:STvhOf/oWgM=;jr10hE/sZ19xd3pzJmnxLn2/qhG
- N7Eb++Gyadh3Nys6m33zmVLPgYUJCnPbUECxemsK3X79PoEwjmq6BJ0VeS+aAff3/PkYcb7eV
- YclQa/zyf2d9CBK28hoLcykO66vpuVsr0Y50uLRVpTslXR8QSlYYK+d9A7e/xEIH57zabGi8n
- c/5BvLx6zlJUN3caqgOSt+hiiaPvw+Xx32qAYa5Fnu0nRpevwweLVx17fNRwzmbLH0veWPNP2
- 1HW/2jXD+oAIoTHy2tHFYzlNvK0DJ619lvdfHUNjCtaayom0sM6EezxAXG0BiQ9nemTLfaHYA
- nXjYL5IIqzRAq5ljE3kGZLsDJ79w6tHaqO5Qb3omLJ7nUQvHWe8ToFEq8F2MQf6e6i57sMxUz
- MNYCx3lS1q5JptnxmLJb43tIOtLCnMkCA/MLJXtGYUuXhiVRVqaxVQCDHAgSgoDKmUQ0sJPTy
- ydTWOSw71bZtTcU7HKZiHnLFSZiYRWNXciQiJUsM0kpFgCYpQQ+6WKF1ErgvWCVeRrq4hHJte
- oJTt3zIFQWjHcCdtxeid7ef8fWV6LpViJRdqImZnNWG/E7OOYsBigsRd/RIKi4QSLuWNbc2cb
- 6SFpzWhmLyP/ZDOqNmVtQxFfJDDFTW1DL/jwYLMAGsXxU2o66JT7g5vp2oK43jNAV2c1zx4Cl
- Pj3eYfOsuvjv27l1/KZ39hD01cz04PHalD8h1OGzcvDgbbqIjglQYPYv2nWYSpfBrz/z88YuC
- Y6i8jDZnCdDyIQFRHdEmfdAzYrpYGtUFSHSP7MDea3CNlsH1jYLYnjMDOGH1ie6oZYCMdE5Lx
- GCiKI7yTC9ARsQiCm2dpSq98WqPj/wmFGYQGNP5GnMASlv5eVpr7Af5iQ2+a4UIrWcjihh1XH
- 21JmTGiyqrkWLdhj5mFvVINmu8mcRHrFVn5hH9WyQOU2pZ6hrBItyw9VcqczKZslvY7EKlmGA
- d2u7W1W8WCSxuZkQO8qQa8DG7CMDZ25GH9ZY3ta6kcsxEQFI4YaqzJxJ7GLeUh0OHQ27KAhI0
- YfhydbZWzyn4JPwWIc/vq0MPt4/L3XLXJaTN2C7aeBb++xw2MWraj6Yphdll6Cqua4czNSNfK
- csXIZKlkUbOg0WZYz4hZYv7VT5loFtps03x+2esEVBb44tOzPjCseMZFlknH35kKCzIu4NhMI
- WNor8jVU3mukYFq6nyoSrWthWgkAV0D35vQRTkIDpKPo9xrwlqtm00qaxvay0pKuC9I29VHYE
- QnER+bjrOYB7un2e6/YNb1UyVBTpYJtloWNLyNSb61JPx/oWdmxsRLGMC1FmoxUA9kyPnW4dM
- TLLS7NSaRLFOo3A2YUx4OTwsL5pCM0w+ohLM4lbD7NfefgWH2O5aUMlekWzBp4OehgUiLe0m5
- gSpf1S5Bm0Q2QoaFcC7wYTg4xZBWo0/3ciI2gz7Q4y1J3JIwCB6zHvCFH1tgFZ38vlltc38Tx
- 1PFQ+jA==
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250216125135.3037967-3-bigeasy@linutronix.de>
 
-I am not sure what this timer was meant to do. My best guess is to send
-an ipfix message every second if there is data, as to make sure reports
-go out in a timely manner. Otherwise a message is only sent when adding
-another flow would go past the max mtu, which may take a while if there
-isn't much (filtered) traffic.
+Hi Sebastian,
 
-Timers in ulogd only fire once; if they should fire repeatedly (which I
-guess was the intention here), they need to be re-armed in the callback.
-Because that wasn't done, the timer only fired once 1 second after
-starting the plugin (when there is unlikely any data yet), and then
-never again.
+kernel test robot noticed the following build warnings:
 
-The timer is now re-armed in the callback to make it fire repeatedly
-every second(ish). A macro is used to make sure the initial and re-arm
-time interval is the same.
+[auto build test WARNING on net-next/main]
 
-Fixes: 4f639231c83b ("IPFIX: Add IPFIX output plugin")
-Signed-off-by: Corubba Smith <corubba@gmx.de>
-=2D--
- output/ipfix/ulogd_output_IPFIX.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+url:    https://github.com/intel-lab-lkp/linux/commits/Sebastian-Andrzej-Siewior/netfilter-Make-xt_table-private-RCU-protected/20250216-210418
+base:   net-next/main
+patch link:    https://lore.kernel.org/r/20250216125135.3037967-3-bigeasy%40linutronix.de
+patch subject: [PATCH net-next 2/3] netfilter: Split the xt_counters type between kernel and user.
+config: i386-buildonly-randconfig-001-20250216 (https://download.01.org/0day-ci/archive/20250216/202502162342.iQ248XrR-lkp@intel.com/config)
+compiler: gcc-12 (Debian 12.2.0-14) 12.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20250216/202502162342.iQ248XrR-lkp@intel.com/reproduce)
 
-diff --git a/output/ipfix/ulogd_output_IPFIX.c b/output/ipfix/ulogd_output=
-_IPFIX.c
-index 1c0f730..88e0035 100644
-=2D-- a/output/ipfix/ulogd_output_IPFIX.c
-+++ b/output/ipfix/ulogd_output_IPFIX.c
-@@ -83,6 +83,8 @@ static const struct config_keyset ipfix_kset =3D {
- 	}
- };
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202502162342.iQ248XrR-lkp@intel.com/
 
-+#define SEND_TIMER_INTERVAL_SEC	1
-+
- struct ipfix_priv {
- 	struct ulogd_fd ufd;
- 	uint32_t seqno;
-@@ -259,6 +261,8 @@ static void ipfix_timer_cb(struct ulogd_timer *t, void=
- *data)
- 		priv->msg =3D NULL;
- 		send_msgs(pi);
- 	}
-+
-+	ulogd_add_timer(&priv->timer, SEND_TIMER_INTERVAL_SEC);
- }
+All warnings (new ones prefixed by >>):
 
- static int ipfix_configure(struct ulogd_pluginstance *pi, struct ulogd_pl=
-uginstance_stack *stack)
-@@ -394,8 +398,8 @@ static int ipfix_start(struct ulogd_pluginstance *pi)
- 	if (ulogd_register_fd(&priv->ufd) < 0)
- 		return ULOGD_IRET_ERR;
+>> net/netfilter/x_tables.c:1912: warning: Function parameter or struct member 'xt_pad' not described in 'xt_percpu_counter_alloc'
+>> net/netfilter/x_tables.c:1912: warning: Excess function parameter 'counter' description in 'xt_percpu_counter_alloc'
 
--	/* Add a 1 second timer */
--	ulogd_add_timer(&priv->timer, 1);
-+	/* Start the repeating send timer */
-+	ulogd_add_timer(&priv->timer, SEND_TIMER_INTERVAL_SEC);
 
- 	return ULOGD_IRET_OK;
- }
-=2D-
-2.48.1
+vim +1912 net/netfilter/x_tables.c
 
+2e4e6a17af35be Harald Welte              2006-01-12  1887  
+f28e15bacedd44 Florian Westphal          2016-11-22  1888  /**
+f28e15bacedd44 Florian Westphal          2016-11-22  1889   * xt_percpu_counter_alloc - allocate x_tables rule counter
+f28e15bacedd44 Florian Westphal          2016-11-22  1890   *
+ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1891   * @state: pointer to xt_percpu allocation state
+f28e15bacedd44 Florian Westphal          2016-11-22  1892   * @counter: pointer to counter struct inside the ip(6)/arpt_entry struct
+f28e15bacedd44 Florian Westphal          2016-11-22  1893   *
+f28e15bacedd44 Florian Westphal          2016-11-22  1894   * On SMP, the packet counter [ ip(6)t_entry->counters.pcnt ] will then
+f28e15bacedd44 Florian Westphal          2016-11-22  1895   * contain the address of the real (percpu) counter.
+f28e15bacedd44 Florian Westphal          2016-11-22  1896   *
+f28e15bacedd44 Florian Westphal          2016-11-22  1897   * Rule evaluation needs to use xt_get_this_cpu_counter() helper
+f28e15bacedd44 Florian Westphal          2016-11-22  1898   * to fetch the real percpu counter.
+f28e15bacedd44 Florian Westphal          2016-11-22  1899   *
+ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1900   * To speed up allocation and improve data locality, a 4kb block is
+9ba5c404bf1d62 Ben Hutchings             2018-03-29  1901   * allocated.  Freeing any counter may free an entire block, so all
+9ba5c404bf1d62 Ben Hutchings             2018-03-29  1902   * counters allocated using the same state must be freed at the same
+9ba5c404bf1d62 Ben Hutchings             2018-03-29  1903   * time.
+ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1904   *
+ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1905   * xt_percpu_counter_alloc_state contains the base address of the
+ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1906   * allocated page and the current sub-offset.
+ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1907   *
+f28e15bacedd44 Florian Westphal          2016-11-22  1908   * returns false on error.
+f28e15bacedd44 Florian Westphal          2016-11-22  1909   */
+ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1910  bool xt_percpu_counter_alloc(struct xt_percpu_counter_alloc_state *state,
+e99ca3c3e3ed04 Sebastian Andrzej Siewior 2025-02-16  1911  			     struct xt_counter_pad *xt_pad)
+f28e15bacedd44 Florian Westphal          2016-11-22 @1912  {
+e99ca3c3e3ed04 Sebastian Andrzej Siewior 2025-02-16  1913  	union xt_counter_k *xt_cnt = (union xt_counter_k *)xt_pad;
+e99ca3c3e3ed04 Sebastian Andrzej Siewior 2025-02-16  1914  
+e99ca3c3e3ed04 Sebastian Andrzej Siewior 2025-02-16  1915  	BUILD_BUG_ON(XT_PCPU_BLOCK_SIZE < (sizeof(struct xt_counters_k) * 2));
+e99ca3c3e3ed04 Sebastian Andrzej Siewior 2025-02-16  1916  	BUILD_BUG_ON(sizeof(struct xt_counters_k) != sizeof(struct xt_counters));
+e99ca3c3e3ed04 Sebastian Andrzej Siewior 2025-02-16  1917  	BUILD_BUG_ON(sizeof(struct xt_counters_k) != sizeof(struct xt_counter_pad));
+f28e15bacedd44 Florian Westphal          2016-11-22  1918  
+f28e15bacedd44 Florian Westphal          2016-11-22  1919  	if (nr_cpu_ids <= 1)
+f28e15bacedd44 Florian Westphal          2016-11-22  1920  		return true;
+f28e15bacedd44 Florian Westphal          2016-11-22  1921  
+ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1922  	if (!state->mem) {
+ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1923  		state->mem = __alloc_percpu(XT_PCPU_BLOCK_SIZE,
+ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1924  					    XT_PCPU_BLOCK_SIZE);
+ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1925  		if (!state->mem)
+f28e15bacedd44 Florian Westphal          2016-11-22  1926  			return false;
+ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1927  	}
+e99ca3c3e3ed04 Sebastian Andrzej Siewior 2025-02-16  1928  	xt_cnt->pcpu = state->mem + state->off;
+e99ca3c3e3ed04 Sebastian Andrzej Siewior 2025-02-16  1929  	state->off += sizeof(struct xt_counters_k);
+e99ca3c3e3ed04 Sebastian Andrzej Siewior 2025-02-16  1930  	if (state->off > (XT_PCPU_BLOCK_SIZE - sizeof(struct xt_counters_k))) {
+ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1931  		state->mem = NULL;
+ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1932  		state->off = 0;
+ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1933  	}
+f28e15bacedd44 Florian Westphal          2016-11-22  1934  	return true;
+f28e15bacedd44 Florian Westphal          2016-11-22  1935  }
+f28e15bacedd44 Florian Westphal          2016-11-22  1936  EXPORT_SYMBOL_GPL(xt_percpu_counter_alloc);
+f28e15bacedd44 Florian Westphal          2016-11-22  1937  
+
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
