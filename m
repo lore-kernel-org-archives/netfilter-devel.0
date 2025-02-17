@@ -1,154 +1,117 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f171.google.com (mail-yw1-f171.google.com [209.85.128.171])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67AE1192D9A
-	for <netfilter-devel@vger.kernel.org>; Sun, 16 Feb 2025 15:23:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 738A77E1;
+	Mon, 17 Feb 2025 00:15:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739719405; cv=none; b=FWnmWMZRPaKM82QVFWwm/WaTVQ3LR92Nw/ATTYK1ix22RU64GnyDLD3W4cDmsMEzQC/AuUOndZhMSo6F3eekLBSluEGdLaISfnxG2To23anCYUzVbAhvoyIkHvPzryhiOTJRqRe3BLKQkKXZEhnVh+kgEUwafGv0vm0OZFVsR7U=
+	t=1739751311; cv=none; b=pITc2OZSeeJ6HrEVCHa93stQbqF881osj8M/4sHKSpdTd6sVwrsW4nGnFr4wdl2KLacuezY8RpcnpzxGSQ80Liah+WofJzBZLORkMxefutcoYEHh9jKYQLWWblkIDLUTeooODiXzWy8dgNRf2RD3osmZxhRHodvDIQRLI+wZiFU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739719405; c=relaxed/simple;
-	bh=po62Jc1XMG8GWgLcWzL9t2XBsDzkbQQSYDMWB4lIbB8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gn6R4/PqrF4lY6d7PogkJgfKcnRGJ/hScJVZF9uaqSfIxbzqBbpYHC1k44geDzWdTghsaif3IQumnQ7JJnn0A8IPd2KwzDprrLhQil8KGzQdRe2Z9/k491FyPAWBdP9OyFA6uPaG5uA7xY55bDS8mrpskMFIU83k4BGKZzglCCE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Xa09SWnL; arc=none smtp.client-ip=192.198.163.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1739751311; c=relaxed/simple;
+	bh=qYMV2ZvPOOQ1i4HZ7Hj50NCQSQmHDQ0fRzzPgQ7dF4s=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=T6GkfFzWGlnRTQd2+Dqr1ddgJXtYJc+YzQtehb1qVDArxHKz60B7tx+LbMICHEaA61UU01br61vLMcC5I/8SDMsKNUcuEUxb93y7TRTm3ZCnJ1hStlHVLqwOCyzP2n9BmN0hSZb5muGyXTr/N7QCRO3LzfKNXhgn5F51Wi/nRWw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=T06On/O1; arc=none smtp.client-ip=209.85.128.171
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Xa09SWnL"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1739719403; x=1771255403;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=po62Jc1XMG8GWgLcWzL9t2XBsDzkbQQSYDMWB4lIbB8=;
-  b=Xa09SWnLS6OiwktNQoUeH48TXsesBGUF6CyNCneGXylgcB04N5awq+1C
-   KUhAnPakZfaeMnNrVs6h0pP2fNMFifb102wm2pQbKS2fOQgNcFF/6Jon3
-   fi+zW0C/32TLtVtgsE3QLm+bpcAqIDg8zcaiL4v9ZDO8Pk/J/DVEugS5p
-   UQVd4wUXbP/ewlygzKw2Zg0w/j0t5+SBS/Elvpx/O0vbe6oJYAApEnWG1
-   R6evenr7jiQf1UTSc7pyY2q7EInttG+IqQkMZDnT7Bon5ZqE+2AwP9Ed2
-   AxoKJH/Aaxm/YZaXH3GX6DnGJyWuL82bd11a0qUIBlauttsnE6XHq+q9w
-   A==;
-X-CSE-ConnectionGUID: oy2iV2qBSWOeGrs00lZK8w==
-X-CSE-MsgGUID: nxwnE87cTH+VvBHR+GA6lg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11347"; a="51035121"
-X-IronPort-AV: E=Sophos;i="6.13,291,1732608000"; 
-   d="scan'208";a="51035121"
-Received: from fmviesa006.fm.intel.com ([10.60.135.146])
-  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Feb 2025 07:23:23 -0800
-X-CSE-ConnectionGUID: yiOXorRESNWuSBgtzbggww==
-X-CSE-MsgGUID: wHTmw9t8TzGZAMTX7DcqPQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.13,291,1732608000"; 
-   d="scan'208";a="113783009"
-Received: from lkp-server01.sh.intel.com (HELO d63d4d77d921) ([10.239.97.150])
-  by fmviesa006.fm.intel.com with ESMTP; 16 Feb 2025 07:23:21 -0800
-Received: from kbuild by d63d4d77d921 with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1tjgUI-001C1D-2n;
-	Sun, 16 Feb 2025 15:23:18 +0000
-Date: Sun, 16 Feb 2025 23:22:32 +0800
-From: kernel test robot <lkp@intel.com>
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	linux-rt-devel@lists.linux.dev
-Cc: oe-kbuild-all@lists.linux.dev, Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH net-next 2/3] netfilter: Split the xt_counters type
- between kernel and user.
-Message-ID: <202502162342.iQ248XrR-lkp@intel.com>
-References: <20250216125135.3037967-3-bigeasy@linutronix.de>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="T06On/O1"
+Received: by mail-yw1-f171.google.com with SMTP id 00721157ae682-6ef9b8b4f13so32618267b3.2;
+        Sun, 16 Feb 2025 16:15:10 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1739751309; x=1740356109; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=KliuYWTy5fHmrSLbuJtksd9qAx3y57Psdagf2PMtLNY=;
+        b=T06On/O19J5rO/MbH9JXHiTfYOPXelfPNVk4ImGWKOaPTJJHDNBXWetJzZq0qF2xSb
+         6RIKwvX5FwHVVuRVs4oUBQW7NfpH/u7fIChI5PCedo1YIdgY5b1qrHNxpd+upl84laYA
+         zi9GKBSPX85nig50PETpZViLuJQ6zYWcPbzbcmASwCSBlBOdCbFtKBfd0QXLOI61+OmT
+         7h1BcJTiGXYKlXp4HvnvEpbdqodtaIB+UxU5+jLjl9PkiOOq2tmy4FJeKPZsPpHrX95O
+         AnKvzbEzzRF47Bnudf26bK0iRuxp2o5NtWEsWj6zHzB2bJRtnCz2HNVat7B4AnmqS4FR
+         J9KA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1739751309; x=1740356109;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=KliuYWTy5fHmrSLbuJtksd9qAx3y57Psdagf2PMtLNY=;
+        b=ATB9HqMXWSOGmm3iXXdXdWXeXl0npR34lvnJgW9/6zvfW21zV4T2EgGsRKAxTth3wR
+         VatTU1m6pj623kXeorZw21dAFkKPvsl4mAX+BZJPahpAyDitjwU5oosvIJrgdDLuIgJM
+         r4tJkhD1UWHjB+ID+CBxsTHmWev4hlMtdvMGe4jXdJKZc9t3O9afAfz0r48OMP/jPPH2
+         7BNAwOJzryX1oBP7S3OGdufCytHlhPz5HXhA9caLRLXxW6xCY5cW8sybaDkVEWFQvmfa
+         YoRcKJplxkPLh6usieJSO+OSOhI5pSdjDMqN7E+tasrHmbushm0HXxK84jH1XbMMtoz6
+         ouMA==
+X-Forwarded-Encrypted: i=1; AJvYcCUek8Cq1rSai/1W3LHN6YyPY8dvFsOrLzcLTi5jhYALeFMEw2SC6PTWagkBgZcghTCpHoHb0enoGMHjBwcTxX0b@vger.kernel.org, AJvYcCVk9fxUVlX3T9KQljNR86QkAr8ockFnHwBQTDpHLryHjcDBE+fsOPLNRkubCHonn3OmaXZQFXl5OnC/KvJO0Uw=@vger.kernel.org, AJvYcCXY+eDnI39T8vbiE4L9DoZYR2/iCxoFYXYtH9zXVI5Oqa4t+sI0JfuLtNoQunmePXbN4KjWbnaI@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx4+EOxtwaDh3mYg8cAd3Z2d19n/XYC8ekzEwV8NYtN/LySWrQG
+	lN+vuj2FLLWCmROsHT+MkQE/qWMvcLrnWBKC51R/jzATX3tEhj3D
+X-Gm-Gg: ASbGncus/CzP/TbhNGrHVhPqSujwRaI9En9oZYfaUWBnN+VkDRhwn3CJSsjCSvQmcnK
+	3Kurvn04sAl5aGZPwprWic57D62kOBLTl1gONTlVTR6Kr5hz4fQEJlb58teXzfAEyKTWSRjh6Ud
+	TSxdDY4EcezRfNlsRt+Ty+Wx2G6Ro+ywP/xRTnTU8I6MwnmSfi92kx5KDdztrLjaOxjz0mHazZp
+	K2kHMk/Yv/8IWw5Db5nkSCv9RKIQBvD1ShXat3T9tTh9QGBDn2tRjkheqvY6o0i5L5YU52cjGMe
+	MHm0N2F6o9MdS/1A
+X-Google-Smtp-Source: AGHT+IHbQZVUG3MMQr8+UQELHnaR0LEb5NGnJI/JDwskOCdeJ1/A9SAvdthvgTeCrHkzvYOlYs/tOA==
+X-Received: by 2002:a05:690c:74c2:b0:6f9:ad48:a3c7 with SMTP id 00721157ae682-6fb582bb260mr60893877b3.21.1739751309357;
+        Sun, 16 Feb 2025 16:15:09 -0800 (PST)
+Received: from velo.. ([152.203.197.137])
+        by smtp.gmail.com with ESMTPSA id 00721157ae682-6fb3619cabcsm18413577b3.74.2025.02.16.16.15.02
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 16 Feb 2025 16:15:09 -0800 (PST)
+From: Andres Urian Florez <andres.emb.sys@gmail.com>
+To: pablo@netfilter.org,
+	kadlec@netfilter.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	horms@kernel.org,
+	skhan@linuxfoundation.org
+Cc: Andres Urian Florez <andres.emb.sys@gmail.com>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kselftest@vger.kernel.org,
+	linux-kernel-mentees@lists.linux.dev
+Subject: [PATCH net-next] selftest:net: fixed spelling mistakes
+Date: Sun, 16 Feb 2025 19:14:50 -0500
+Message-ID: <20250217001452.29578-1-andres.emb.sys@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250216125135.3037967-3-bigeasy@linutronix.de>
+Content-Transfer-Encoding: 8bit
 
-Hi Sebastian,
+Fixed spelling errors in test_redirect6() error message and
+test_port_shadowing() comments
 
-kernel test robot noticed the following build warnings:
+Signed-off-by: Andres Urian Florez <andres.emb.sys@gmail.com>
+---
+ tools/testing/selftests/net/netfilter/nft_nat.sh | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-[auto build test WARNING on net-next/main]
-
-url:    https://github.com/intel-lab-lkp/linux/commits/Sebastian-Andrzej-Siewior/netfilter-Make-xt_table-private-RCU-protected/20250216-210418
-base:   net-next/main
-patch link:    https://lore.kernel.org/r/20250216125135.3037967-3-bigeasy%40linutronix.de
-patch subject: [PATCH net-next 2/3] netfilter: Split the xt_counters type between kernel and user.
-config: i386-buildonly-randconfig-001-20250216 (https://download.01.org/0day-ci/archive/20250216/202502162342.iQ248XrR-lkp@intel.com/config)
-compiler: gcc-12 (Debian 12.2.0-14) 12.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20250216/202502162342.iQ248XrR-lkp@intel.com/reproduce)
-
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202502162342.iQ248XrR-lkp@intel.com/
-
-All warnings (new ones prefixed by >>):
-
->> net/netfilter/x_tables.c:1912: warning: Function parameter or struct member 'xt_pad' not described in 'xt_percpu_counter_alloc'
->> net/netfilter/x_tables.c:1912: warning: Excess function parameter 'counter' description in 'xt_percpu_counter_alloc'
-
-
-vim +1912 net/netfilter/x_tables.c
-
-2e4e6a17af35be Harald Welte              2006-01-12  1887  
-f28e15bacedd44 Florian Westphal          2016-11-22  1888  /**
-f28e15bacedd44 Florian Westphal          2016-11-22  1889   * xt_percpu_counter_alloc - allocate x_tables rule counter
-f28e15bacedd44 Florian Westphal          2016-11-22  1890   *
-ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1891   * @state: pointer to xt_percpu allocation state
-f28e15bacedd44 Florian Westphal          2016-11-22  1892   * @counter: pointer to counter struct inside the ip(6)/arpt_entry struct
-f28e15bacedd44 Florian Westphal          2016-11-22  1893   *
-f28e15bacedd44 Florian Westphal          2016-11-22  1894   * On SMP, the packet counter [ ip(6)t_entry->counters.pcnt ] will then
-f28e15bacedd44 Florian Westphal          2016-11-22  1895   * contain the address of the real (percpu) counter.
-f28e15bacedd44 Florian Westphal          2016-11-22  1896   *
-f28e15bacedd44 Florian Westphal          2016-11-22  1897   * Rule evaluation needs to use xt_get_this_cpu_counter() helper
-f28e15bacedd44 Florian Westphal          2016-11-22  1898   * to fetch the real percpu counter.
-f28e15bacedd44 Florian Westphal          2016-11-22  1899   *
-ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1900   * To speed up allocation and improve data locality, a 4kb block is
-9ba5c404bf1d62 Ben Hutchings             2018-03-29  1901   * allocated.  Freeing any counter may free an entire block, so all
-9ba5c404bf1d62 Ben Hutchings             2018-03-29  1902   * counters allocated using the same state must be freed at the same
-9ba5c404bf1d62 Ben Hutchings             2018-03-29  1903   * time.
-ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1904   *
-ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1905   * xt_percpu_counter_alloc_state contains the base address of the
-ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1906   * allocated page and the current sub-offset.
-ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1907   *
-f28e15bacedd44 Florian Westphal          2016-11-22  1908   * returns false on error.
-f28e15bacedd44 Florian Westphal          2016-11-22  1909   */
-ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1910  bool xt_percpu_counter_alloc(struct xt_percpu_counter_alloc_state *state,
-e99ca3c3e3ed04 Sebastian Andrzej Siewior 2025-02-16  1911  			     struct xt_counter_pad *xt_pad)
-f28e15bacedd44 Florian Westphal          2016-11-22 @1912  {
-e99ca3c3e3ed04 Sebastian Andrzej Siewior 2025-02-16  1913  	union xt_counter_k *xt_cnt = (union xt_counter_k *)xt_pad;
-e99ca3c3e3ed04 Sebastian Andrzej Siewior 2025-02-16  1914  
-e99ca3c3e3ed04 Sebastian Andrzej Siewior 2025-02-16  1915  	BUILD_BUG_ON(XT_PCPU_BLOCK_SIZE < (sizeof(struct xt_counters_k) * 2));
-e99ca3c3e3ed04 Sebastian Andrzej Siewior 2025-02-16  1916  	BUILD_BUG_ON(sizeof(struct xt_counters_k) != sizeof(struct xt_counters));
-e99ca3c3e3ed04 Sebastian Andrzej Siewior 2025-02-16  1917  	BUILD_BUG_ON(sizeof(struct xt_counters_k) != sizeof(struct xt_counter_pad));
-f28e15bacedd44 Florian Westphal          2016-11-22  1918  
-f28e15bacedd44 Florian Westphal          2016-11-22  1919  	if (nr_cpu_ids <= 1)
-f28e15bacedd44 Florian Westphal          2016-11-22  1920  		return true;
-f28e15bacedd44 Florian Westphal          2016-11-22  1921  
-ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1922  	if (!state->mem) {
-ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1923  		state->mem = __alloc_percpu(XT_PCPU_BLOCK_SIZE,
-ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1924  					    XT_PCPU_BLOCK_SIZE);
-ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1925  		if (!state->mem)
-f28e15bacedd44 Florian Westphal          2016-11-22  1926  			return false;
-ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1927  	}
-e99ca3c3e3ed04 Sebastian Andrzej Siewior 2025-02-16  1928  	xt_cnt->pcpu = state->mem + state->off;
-e99ca3c3e3ed04 Sebastian Andrzej Siewior 2025-02-16  1929  	state->off += sizeof(struct xt_counters_k);
-e99ca3c3e3ed04 Sebastian Andrzej Siewior 2025-02-16  1930  	if (state->off > (XT_PCPU_BLOCK_SIZE - sizeof(struct xt_counters_k))) {
-ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1931  		state->mem = NULL;
-ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1932  		state->off = 0;
-ae0ac0ed6fcf5a Florian Westphal          2016-11-22  1933  	}
-f28e15bacedd44 Florian Westphal          2016-11-22  1934  	return true;
-f28e15bacedd44 Florian Westphal          2016-11-22  1935  }
-f28e15bacedd44 Florian Westphal          2016-11-22  1936  EXPORT_SYMBOL_GPL(xt_percpu_counter_alloc);
-f28e15bacedd44 Florian Westphal          2016-11-22  1937  
-
+diff --git a/tools/testing/selftests/net/netfilter/nft_nat.sh b/tools/testing/selftests/net/netfilter/nft_nat.sh
+index 9e39de26455f..8143b877ae7d 100755
+--- a/tools/testing/selftests/net/netfilter/nft_nat.sh
++++ b/tools/testing/selftests/net/netfilter/nft_nat.sh
+@@ -569,7 +569,7 @@ test_redirect6()
+ 	ip netns exec "$ns0" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
+ 
+ 	if ! ip netns exec "$ns2" ping -q -c 1 dead:1::99 > /dev/null;then
+-		echo "ERROR: cannnot ping $ns1 from $ns2 via ipv6"
++		echo "ERROR: cannot ping $ns1 from $ns2 via ipv6"
+ 		lret=1
+ 	fi
+ 
+@@ -859,7 +859,7 @@ EOF
+ 	# from router:service bypass connection tracking.
+ 	test_port_shadow_notrack "$family"
+ 
+-	# test nat based mitigation: fowarded packets coming from service port
++	# test nat based mitigation: forwarded packets coming from service port
+ 	# are masqueraded with random highport.
+ 	test_port_shadow_pat "$family"
+ 
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+2.43.0
+
