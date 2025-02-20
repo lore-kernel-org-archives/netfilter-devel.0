@@ -1,139 +1,80 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 721781B393D;
-	Wed, 19 Feb 2025 20:30:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from mail-ej1-f41.google.com (mail-ej1-f41.google.com [209.85.218.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38113A920
+	for <netfilter-devel@vger.kernel.org>; Thu, 20 Feb 2025 06:03:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739997040; cv=none; b=pWe8rIxpICRFDjIb6B1QWyTC9BP/lyoy98GQRvSodSsu2D8F4eegZ7fRB5SEJsWv8dftOGlXjQ4WrVqoe0cttmjCvBLueWMXKJA4X3soUwmP+yLhgxkMmDylALdd6pMYEEPLySfbqnLLw2jbP5Y55RAQwAxEsT35lXVlK64lyB8=
+	t=1740031415; cv=none; b=lYok8FTJkrYIBblrh0UGRT1mCqSq+SZUwuOgUzj/6IDcshHik19ICMJ/V7aZ5Xinphlo37kOuqh5vHN9wjeP615uwSvcz/OVrepxHmtRuUd3CFwTPOqOm46X9CiMjnctufR9kI3lenpBWwo8osfDHi9GI8srzDUcgMYPl52/xMQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739997040; c=relaxed/simple;
-	bh=DQPWMVuUQIr0IxHiIYQ/n4uOkjrc8H0ifaBmg6YK+gM=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=KZgD/fqwA4IPLI6S9j5oY7jnG+qMu0x4vWY6CJSuBbU+RYQUdj43Gq6UR3a0djKVP1xWC+5ivcU5KvPVHLO4/4RIwRtqDLzdCj7/Kl3CWfS3fsFeyC1v9hlHjoSP5fbcy1lIUsZy7vlLtcx+aOpRdxF2Zg6wYF8E3ujGkARIsKI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=gHI/szIr; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	s=arc-20240116; t=1740031415; c=relaxed/simple;
+	bh=XFW86dtLpApkK/L2hp5HTTVLm5XULc+RLfDzbkVQSBw=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Content-Type; b=ICT90ioGQcnFNI7OtASBSzeke96dNYDCd6S4nMiCdXbJc7wvM3UmlJCPE/PAbKrxTTGuGh/Kz0egVlDof48lPV2Dh+RvxGn1x+ZNRk8ie5OymvlD2z7S6umA4SRhc8g08bEsCz0yuzUk/VRTilhdhh/tO6koT1X1xLTM0A4E2/k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=RT5N5TE+; arc=none smtp.client-ip=209.85.218.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="gHI/szIr"
-Received: from eahariha-devbox.internal.cloudapp.net (unknown [40.91.112.99])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 1CAA02043E1D;
-	Wed, 19 Feb 2025 12:30:38 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 1CAA02043E1D
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1739997038;
-	bh=90UV+JP+XbwbcCJgflCYjTDRG9AqL4zRGYQK3ZIz7DU=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=gHI/szIreKPPS8CxgVZkOrmds1yXBXX+RfhyiAWEF7PcU8TVQ0OV06loHmtB3AUfI
-	 58ImeFrYtjThwlYVfIYTdDyP5hnERUBNdU7qo7iuGhbT+d3WAuLF2z7gsLiCHbK/jt
-	 twqPKca7sGyepZzdk8+yUGqjwgkcEGptijcqgwI4=
-From: Easwar Hariharan <eahariha@linux.microsoft.com>
-Date: Wed, 19 Feb 2025 20:30:37 +0000
-Subject: [PATCH net-next 2/3] netfilter: xt_IDLETIMER: convert timeouts to
- secs_to_jiffies()
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RT5N5TE+"
+Received: by mail-ej1-f41.google.com with SMTP id a640c23a62f3a-abb892fe379so99021566b.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Feb 2025 22:03:33 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1740031411; x=1740636211; darn=vger.kernel.org;
+        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=XFW86dtLpApkK/L2hp5HTTVLm5XULc+RLfDzbkVQSBw=;
+        b=RT5N5TE+akBQMV+n/ugfH0BlVzu4flavojDp/5d7GseCfpLuVkUcfT6F8syuANK9sn
+         Eddcd/DQZ3wrPl/YKquzHz/pYW0w4zM4uIXcNPR+rTYdFpzwG3f2yg1S8e3ac7MUtlEV
+         oemX+z3Qh3gPkccZSp0UcXd1fhZl8whCFfobJOymGMq6nDS1w1cBQa+BUutKH061ykgj
+         sG6/6I5Ut6O1pQAL7i5SUktXwDJ06gNgGSl2WARRLnqR/tbBQaZknnKt9YZbpDaq48ul
+         tg1SB1muNtWRuA3wgF8RAJAY6fTYLCkpxcc2pkkUHMjlDVXWcoIarXdGSsJINBmmtVD2
+         hvEw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1740031411; x=1740636211;
+        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=XFW86dtLpApkK/L2hp5HTTVLm5XULc+RLfDzbkVQSBw=;
+        b=Yv97ktThL+vClpxqYiUyWLXNnU38ugmKm8rElXi2ZUh5sXvwYUWlpi0dE2KRhh2Vmp
+         bzYifD0KRY8DxKzCRchyOJqIN/6S8QVXsHeNnPPvM+8I2SaDEL7zRXuY8Why4QKGclOM
+         TubTzy4S/5nCZngBrHT3gO7HmPUqLJxexmoiSkJfYfi6t2g+iXpgqKPqgzq/Fo/H7dVC
+         Nh9MwDb+jv7WJMLdKTh1bYSMPYMQDcixXnyCbhr88VhRrt9rtG6xl66o3fv3Mq08Cdz5
+         Kesx7wPYxtbelJaKvj1QL99HEJP/DxEN7wBJTJzP/mKvJU6D36RH5uLiW9E1BDdeEZdf
+         oNfw==
+X-Gm-Message-State: AOJu0YzW5dA0TYq76zpjAOdEV+4k60YXRdUJX3N583cM2juAUKj5VXgP
+	Ezoi3VBBRO+uTy5a1upFFOJMzEQjteK8Z0GW+2f+4I+7X9pI8QW5jcvn1H5OQeXAT1RcRelTcP5
+	IzFRj0o149DDDpy3f0yVQ6rJUwqsbZlaw
+X-Gm-Gg: ASbGncsfUnHP4/9kTp4sKm6wXzjN480fsop7cdBJiIHM6fGMNLPjItNwqN/w4IfolOQ
+	br4j9lyEmmAx7anJZiswybuUOwbCz7Vo3VUAIHe/NEFbqVJVv5RpXybY0GX9U3eINcM4+BuqcAA
+	==
+X-Google-Smtp-Source: AGHT+IFSNGANoyfae4+WXuXRvmoXf33u+bzXeTiP0bYdG5eNZ76tBhxdt3wKQ2OVaR14HzyZPAc4rAiEfeYZQBH5VWY=
+X-Received: by 2002:a05:6402:34cd:b0:5e0:82a0:50ce with SMTP id
+ 4fb4d7f45d1cf-5e082a05915mr16705748a12.27.1740031411524; Wed, 19 Feb 2025
+ 22:03:31 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20250219-netdev-secs-to-jiffies-part-2-v1-2-c484cc63611b@linux.microsoft.com>
-References: <20250219-netdev-secs-to-jiffies-part-2-v1-0-c484cc63611b@linux.microsoft.com>
-In-Reply-To: <20250219-netdev-secs-to-jiffies-part-2-v1-0-c484cc63611b@linux.microsoft.com>
-To: Wenjia Zhang <wenjia@linux.ibm.com>, Jan Karcher <jaka@linux.ibm.com>, 
- "D. Wythe" <alibuda@linux.alibaba.com>, Tony Lu <tonylu@linux.alibaba.com>, 
- Wen Gu <guwen@linux.alibaba.com>, "David S. Miller" <davem@davemloft.net>, 
- Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
- Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
- Pablo Neira Ayuso <pablo@netfilter.org>, 
- Jozsef Kadlecsik <kadlec@netfilter.org>, David Ahern <dsahern@kernel.org>
-Cc: linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, 
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
- Easwar Hariharan <eahariha@linux.microsoft.com>
-X-Mailer: b4 0.14.2
+From: Vimal Agrawal <avimalin@gmail.com>
+Date: Thu, 20 Feb 2025 11:33:20 +0530
+X-Gm-Features: AWEUYZkcAxGtBNHIklNx1FsT213xXN7p4WX1fLl7wg_JRUzhXYkn3DleASKK6Qg
+Message-ID: <CALkUMdRzOt48g3hk3Lhr5RuY_vTi7RGjn8B3FyssHGTkhjagxw@mail.gmail.com>
+Subject: Byte order for conntrack fields over netlink
+To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-Commit b35108a51cf7 ("jiffies: Define secs_to_jiffies()") introduced
-secs_to_jiffies().  As the value here is a multiple of 1000, use
-secs_to_jiffies() instead of msecs_to_jiffies to avoid the multiplication.
+Hi netfilter team,
 
-This is converted using scripts/coccinelle/misc/secs_to_jiffies.cocci with
-the following Coccinelle rules:
+Why are all conntrack related fields converted from host to network
+byte order by kernel before sending it to userspace over netlink and
+again from network to host by
+conntrack tools ( even though most fields are not related to network)?
+I am referring to packet exchange during commands e.g. conntrack -L
+etc.
 
-@depends on patch@
-expression E;
-@@
+Is there any good reason for these conversions?
 
--msecs_to_jiffies(E * 1000)
-+secs_to_jiffies(E)
+I was assuming that the kernel will send all non network related
+fields in host byte order but that is not the case here.
 
--msecs_to_jiffies(E * MSEC_PER_SEC)
-+secs_to_jiffies(E)
-
-Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
----
- net/netfilter/xt_IDLETIMER.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
-
-diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
-index 9f54819eb52ca28a6ef6544249e864f17ca3de7a..9082155ee558933c640f51f1a6fec8ccdc1f0fa2 100644
---- a/net/netfilter/xt_IDLETIMER.c
-+++ b/net/netfilter/xt_IDLETIMER.c
-@@ -168,7 +168,7 @@ static int idletimer_tg_create(struct idletimer_tg_info *info)
- 	INIT_WORK(&info->timer->work, idletimer_tg_work);
- 
- 	mod_timer(&info->timer->timer,
--		  msecs_to_jiffies(info->timeout * 1000) + jiffies);
-+		  secs_to_jiffies(info->timeout) + jiffies);
- 
- 	return 0;
- 
-@@ -229,7 +229,7 @@ static int idletimer_tg_create_v1(struct idletimer_tg_info_v1 *info)
- 	} else {
- 		timer_setup(&info->timer->timer, idletimer_tg_expired, 0);
- 		mod_timer(&info->timer->timer,
--				msecs_to_jiffies(info->timeout * 1000) + jiffies);
-+				secs_to_jiffies(info->timeout) + jiffies);
- 	}
- 
- 	return 0;
-@@ -254,7 +254,7 @@ static unsigned int idletimer_tg_target(struct sk_buff *skb,
- 		 info->label, info->timeout);
- 
- 	mod_timer(&info->timer->timer,
--		  msecs_to_jiffies(info->timeout * 1000) + jiffies);
-+		  secs_to_jiffies(info->timeout) + jiffies);
- 
- 	return XT_CONTINUE;
- }
-@@ -275,7 +275,7 @@ static unsigned int idletimer_tg_target_v1(struct sk_buff *skb,
- 		alarm_start_relative(&info->timer->alarm, tout);
- 	} else {
- 		mod_timer(&info->timer->timer,
--				msecs_to_jiffies(info->timeout * 1000) + jiffies);
-+				secs_to_jiffies(info->timeout) + jiffies);
- 	}
- 
- 	return XT_CONTINUE;
-@@ -320,7 +320,7 @@ static int idletimer_tg_checkentry(const struct xt_tgchk_param *par)
- 	if (info->timer) {
- 		info->timer->refcnt++;
- 		mod_timer(&info->timer->timer,
--			  msecs_to_jiffies(info->timeout * 1000) + jiffies);
-+			  secs_to_jiffies(info->timeout) + jiffies);
- 
- 		pr_debug("increased refcnt of timer %s to %u\n",
- 			 info->label, info->timer->refcnt);
-@@ -382,7 +382,7 @@ static int idletimer_tg_checkentry_v1(const struct xt_tgchk_param *par)
- 			}
- 		} else {
- 				mod_timer(&info->timer->timer,
--					msecs_to_jiffies(info->timeout * 1000) + jiffies);
-+					secs_to_jiffies(info->timeout) + jiffies);
- 		}
- 		pr_debug("increased refcnt of timer %s to %u\n",
- 			 info->label, info->timer->refcnt);
-
--- 
-2.43.0
-
+Vimal
