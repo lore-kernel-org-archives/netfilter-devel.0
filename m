@@ -1,89 +1,153 @@
-Received: from smtp-42ad.mail.infomaniak.ch (smtp-42ad.mail.infomaniak.ch [84.16.66.173])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A1CB212D8A
-	for <netfilter-devel@vger.kernel.org>; Fri, 21 Feb 2025 16:09:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=84.16.66.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F3831B0406
+	for <netfilter-devel@vger.kernel.org>; Fri, 21 Feb 2025 23:55:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740154181; cv=none; b=p1Sr0h6mWcMC3cqM5Y2pDf1Gb4+7ObT/0UmhD7ggepjhmGlPCPi6FSG+9VKtQaRMWJsaJplzADKtBdb1u1Rsz1SU/BTfYvcJp0wcBLLOeVS8H/BLHY4oPHbF3D1mQCcLeRC7sI+Q8Ocdu7yPbF/drV7TVtFhbYwOGgvolJKR+os=
+	t=1740182111; cv=none; b=GqGahs+/CB04mo5jF7Ywy16r1dx9kVjdouKQx22sxiskkB5bkXP5xUSWef7r92bKAzHdsyIdMZy7Yokv6/Iryks+hEwiGQccs9xDwu98241qWnvgd0cRA6UGtIXSIwMMVrFvwcnwifzZRPSmy5NMmK7HnllaDmKnTB6Auuygr5w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740154181; c=relaxed/simple;
-	bh=7OlRJG02e4MjVQGvLWIkfzHlMS56A+sC61fT8RGXD04=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=NoI5lICC4rV9mYgHWMMJ+rosx22sAAxe2WLtdHSdAJBp4fm/m+DlQjaKrKYcIkd8bxdzBMWCWtd2pmUrrsB/dMbkMCuLwrufbUSz319wzelQmZb2ZCxSoCtOAuguEylgaAOq59sTHO18UjP2xeP1G/6727wMxP0HAnNxKUVdeLo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net; spf=pass smtp.mailfrom=digikod.net; dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b=DpIzh2tH; arc=none smtp.client-ip=84.16.66.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=digikod.net
+	s=arc-20240116; t=1740182111; c=relaxed/simple;
+	bh=l2ZdU6kaWPXg1JXVb0+XVSQ1gKc9KJyVhdeshQjZD9c=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=RqADoJKUZZoa2covbVrLd+mKkD9zZ1NgfPbf+h/hRgsK/g2R5EQbHuuB7CP6qOXc7Jrf12yKLFE6IE/UUm2buUfUdI9G2Ez43o7A301e8f17pD/J4ZFIkPd19qxUby+QiMIuT1W6bsFxBbtV8v0EOAOu2fa98FoFuA5AXEPN9vk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=DZ6CiL0V; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=DZ6CiL0V; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b="DpIzh2tH"
-Received: from smtp-4-0000.mail.infomaniak.ch (smtp-4-0000.mail.infomaniak.ch [10.7.10.107])
-	by smtp-4-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4Yzw7N4lbJzmDM;
-	Fri, 21 Feb 2025 17:09:36 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=digikod.net;
-	s=20191114; t=1740154176;
-	bh=am3mS88qb0aUbz/powxHvGIkVv9GbvnKoerku9NQmK8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=DpIzh2tHNwuvQ88Qe/YKJ1R0qS3OMp9PWbicHX02KIPPhTw0xdq5GEfUVjg4rSZnX
-	 7cVvK33EJk0ZY76TnAhP8pdQXhUB3b0EZjjLKnwKIPXPT/oDRXIQpjK4WXvzJTwpk5
-	 tGwvZCg5dnhLKpwLhyuPswKKLN7MDBlKHhvx1Jvg=
-Received: from unknown by smtp-4-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4Yzw7N0ChRzPQY;
-	Fri, 21 Feb 2025 17:09:35 +0100 (CET)
-Date: Fri, 21 Feb 2025 17:09:35 +0100
-From: =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
-To: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-Cc: gnoack@google.com, willemdebruijn.kernel@gmail.com, matthieu@buffet.re, 
-	linux-security-module@vger.kernel.org, netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
-	yusongping@huawei.com, artem.kuzin@huawei.com, konstantin.meskhidze@huawei.com
-Subject: Re: [RFC PATCH v3 0/3] Fix non-TCP sockets restriction
-Message-ID: <20250221.yie2Naiquea0@digikod.net>
-References: <20250205093651.1424339-1-ivanov.mikhail1@huawei-partners.com>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="DZ6CiL0V";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="DZ6CiL0V"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 7C5DA602D3; Sat, 22 Feb 2025 00:54:58 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1740182098;
+	bh=M4vS5M0im0M2J+RAFsfSpKFdMNQzq7LFy0345l9yA/8=;
+	h=From:To:Subject:Date:From;
+	b=DZ6CiL0V7EqH1Mri/a24MVhIfaUNcizCIw3704lkxQ9Ari26UOnVq8ElsRWHLupPS
+	 5je2L238X3NbRF1lSd7HZQ1gefj910h/mkMHU1zJbgqlw6UOPR4id3UdkLAmwxzHNs
+	 xGMtXE62k55PKfYV9JG4ztwuFrGGJk3wIUcHcv19APiN2q9j42ToJj5H6+seICbr5N
+	 Z2RIKNCkIgCNE2iNWysDK4iEJNtpZYZLcDUKb9ftehuyrQKZJnjI3nYLfqWQpac/P2
+	 1YaZnEmpc9E1lLFYkMGV97agKfJZ83M+8nS2fsu2un3uSYlWXFajzA/zh7Lj1ePO2t
+	 Plvm43d3ebUJA==
+X-Spam-Level: 
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 199F7602C8
+	for <netfilter-devel@vger.kernel.org>; Sat, 22 Feb 2025 00:54:58 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1740182098;
+	bh=M4vS5M0im0M2J+RAFsfSpKFdMNQzq7LFy0345l9yA/8=;
+	h=From:To:Subject:Date:From;
+	b=DZ6CiL0V7EqH1Mri/a24MVhIfaUNcizCIw3704lkxQ9Ari26UOnVq8ElsRWHLupPS
+	 5je2L238X3NbRF1lSd7HZQ1gefj910h/mkMHU1zJbgqlw6UOPR4id3UdkLAmwxzHNs
+	 xGMtXE62k55PKfYV9JG4ztwuFrGGJk3wIUcHcv19APiN2q9j42ToJj5H6+seICbr5N
+	 Z2RIKNCkIgCNE2iNWysDK4iEJNtpZYZLcDUKb9ftehuyrQKZJnjI3nYLfqWQpac/P2
+	 1YaZnEmpc9E1lLFYkMGV97agKfJZ83M+8nS2fsu2un3uSYlWXFajzA/zh7Lj1ePO2t
+	 Plvm43d3ebUJA==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] evaluate: consolidate evaluation of symbol range expression
+Date: Sat, 22 Feb 2025 00:54:54 +0100
+Message-Id: <20250221235454.503140-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250205093651.1424339-1-ivanov.mikhail1@huawei-partners.com>
-X-Infomaniak-Routing: alpha
+Content-Transfer-Encoding: 8bit
 
-Thanks Mikhail, it's been in my tree for more than 10 days, I'll include
-it in a fix PR next week.
+Expand symbol_range to range expression to consolidate evaluation.
 
-On Wed, Feb 05, 2025 at 05:36:48PM +0800, Mikhail Ivanov wrote:
-> Hello!
-> 
-> This patch fixes incorrect restriction of non-TCP bind/connect actions.
-> There is two commits that extend TCP tests with MPTCP test suits and
-> IPPROTO_TCP test suits.
-> 
-> Closes: https://github.com/landlock-lsm/linux/issues/40
-> 
-> General changes after v2
-> ========================
->  * Rebases on current linux-mic/next
->  * Extracts non-TCP restriction fix into separate patchset
-> 
-> Previous versions
-> =================
-> v2: https://lore.kernel.org/all/20241017110454.265818-1-ivanov.mikhail1@huawei-partners.com/
-> v1: https://lore.kernel.org/all/20241003143932.2431249-1-ivanov.mikhail1@huawei-partners.com/
-> 
-> Mikhail Ivanov (3):
->   landlock: Fix non-TCP sockets restriction
->   selftests/landlock: Test TCP accesses with protocol=IPPROTO_TCP
->   selftests/landlock: Test that MPTCP actions are not restricted
-> 
->  security/landlock/net.c                     |   3 +-
->  tools/testing/selftests/landlock/common.h   |   1 +
->  tools/testing/selftests/landlock/config     |   2 +
->  tools/testing/selftests/landlock/net_test.c | 124 +++++++++++++++++---
->  4 files changed, 114 insertions(+), 16 deletions(-)
-> 
-> 
-> base-commit: 24a8e44deae4b549b0fe5fbb271fe8d169f0933f
-> -- 
-> 2.34.1
-> 
-> 
+I found a bug when testing for negative ranges:
+
+  test.nft:5:16-30: Error: Could not process rule: File exists
+                  elements = { 1.1.1.1-1.1.1.0 }
+                               ^^^^^^^^^^^^^^^
+
+after this patch, error reporting has been restored:
+
+  test.nft:5:16-30: Error: Range negative size
+                  elements = { 1.1.1.1-1.1.1.0 }
+                               ^^^^^^^^^^^^^^^
+
+Fixes: 347039f64509 ("src: add symbol range expression to further compact intervals")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/evaluate.c | 43 +++++++++++++++++++++----------------------
+ 1 file changed, 21 insertions(+), 22 deletions(-)
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index ddc46754fc67..5b98c0beea45 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -2321,46 +2321,45 @@ static int expr_evaluate_mapping(struct eval_ctx *ctx, struct expr **expr)
+ 
+ static int expr_evaluate_symbol_range(struct eval_ctx *ctx, struct expr **exprp)
+ {
+-	struct expr *left, *right, *range;
++	struct expr *left, *right, *range, *constant_range;
+ 	struct expr *expr = *exprp;
+ 
+-	left = symbol_expr_alloc(&expr->location, expr->symtype, (struct scope *)expr->scope, expr->identifier_range[0]);
+-	if (expr_evaluate_symbol(ctx, &left) < 0) {
+-		expr_free(left);
+-		return -1;
+-	}
++	/* expand to symbol and range expressions to consolidate evaluation. */
++	left = symbol_expr_alloc(&expr->location, expr->symtype,
++				 (struct scope *)expr->scope,
++				 expr->identifier_range[0]);
++	right = symbol_expr_alloc(&expr->location, expr->symtype,
++				  (struct scope *)expr->scope,
++				  expr->identifier_range[1]);
++	range = range_expr_alloc(&expr->location, left, right);
+ 
+-	right = symbol_expr_alloc(&expr->location, expr->symtype, (struct scope *)expr->scope, expr->identifier_range[1]);
+-	if (expr_evaluate_symbol(ctx, &right) < 0) {
+-		expr_free(left);
+-		expr_free(right);
++	if (expr_evaluate(ctx, &range) < 0) {
++		expr_free(range);
+ 		return -1;
+ 	}
++	left = range->left;
++	right = range->right;
+ 
+ 	/* concatenation and maps need more work to use constant_range_expr. */
+ 	if (ctx->set && !set_is_map(ctx->set->flags) &&
+ 	    set_is_non_concat_range(ctx->set) &&
+ 	    left->etype == EXPR_VALUE &&
+ 	    right->etype == EXPR_VALUE) {
+-		range = constant_range_expr_alloc(&expr->location, left->dtype,
+-						  left->byteorder,
+-						  left->len,
+-						  left->value,
+-						  right->value);
+-		expr_free(left);
+-		expr_free(right);
++		constant_range = constant_range_expr_alloc(&expr->location,
++							   left->dtype,
++							   left->byteorder,
++							   left->len,
++							   left->value,
++							   right->value);
++		expr_free(range);
+ 		expr_free(expr);
+-		*exprp = range;
++		*exprp = constant_range;
+ 		return 0;
+ 	}
+ 
+-	range = range_expr_alloc(&expr->location, left, right);
+ 	expr_free(expr);
+ 	*exprp = range;
+ 
+-	if (expr_evaluate(ctx, exprp) < 0)
+-		return -1;
+-
+ 	return 0;
+ }
+ 
+-- 
+2.30.2
+
