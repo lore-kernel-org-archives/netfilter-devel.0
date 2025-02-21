@@ -1,84 +1,119 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 612742F852
-	for <netfilter-devel@vger.kernel.org>; Thu, 20 Feb 2025 17:20:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75BE22AEF1;
+	Fri, 21 Feb 2025 08:23:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740072036; cv=none; b=dVoRps1Hg3ZPCnL6DdzyBfXmEKcxWJOImthTXe/MO6BPN3jaWYfj/Wx7K97xfCaEnbyNV+M0wJDCXdhLg2+OEKj91emCh8/Znp65panw/yeZoDtqwg6uif8/ITMRopQyeriS1sIlSVhFe3Rajuf7DU09WRgr3UhXvJdZ8+ZDhrE=
+	t=1740126200; cv=none; b=GHt4KwOFOeguwBV1IwaW4v3G8ys6lZP79kMI8d4azgDiR0Fx5vYF6Ieip50DgVpLYe8Bdk+PLvNiN7BzaESE8PeRW2dfRGV2/Ejj84GlAaaW++PmBQMhCFgHb47fbbyisDphoR+k3R2WBn8pTeH+1ZBNVxe6k2D7DYeRAJVbcNg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740072036; c=relaxed/simple;
-	bh=Ormfdj+I5kMReFgYKRngEDP72+BOfrJXpkIfM6Gn92I=;
-	h=From:To:Subject:Date:Message-Id:MIME-Version; b=JOaTqCjEZcxvitiG2wSSOQDYwYb15iaKD38fCmwiW1DsSu4hCuXKmALhuOVEQW6krjfKp3eQiYDLixZW6ylxtvpJBKIND0nFnR0VnqUtIhkah3ggr+DSw5bomHYxc31b+wD8tfWPk0MMS0VRG+whEh5aXsyfc1DRic4l7Z5OxnA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Bzs1KQmD; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Bzs1KQmD; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1740126200; c=relaxed/simple;
+	bh=rfDIIQH5mrDRATR5TGl8kCDlcFHPJIwo/TE0dNwgcqw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=eQi1RRS8V23kWquzhUzu+heRA2x8ic+m6J0SgqzDkf1V3HcKMdLoqnW9xP53qzPIMyEeMY5uRs8mDl7Wdz44BNHXyIb4Ka6YdBZQdEEtJRZivXdpuQLHO9HIBGes2mUN/vJ8Lc+JNuzMTDO5nkuHc11LW8APPA/tdMs+8nJ2Opw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=m0LSJYU5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Bzs1KQmD";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Bzs1KQmD"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 79248602F6; Thu, 20 Feb 2025 18:20:32 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1740072032;
-	bh=18Kokfm6Elft0mPFKyuXWzYo7J4010jlDRXibIuYrRs=;
-	h=From:To:Subject:Date:From;
-	b=Bzs1KQmD48qrNhaIXIY0XguYZJIqvDiBFHiEHj7yyIIcdQHMDv+fgB3Hccp6t6Exp
-	 YjuAq/rvRaMh/dmFh9liFVnBIHL055uYe9ZwGHyi/MgDqIHTEJYdxlxYN2vs2Y3S/+
-	 gRZEuBLev1Tp97EA3HPoBWWjsORmsG4ppLxP2+vhBWIj6xFi8apcH3FX1NWpAvkRDD
-	 LHPJcbYXEt173sWB5qDSUuKk0fFfazbQFp4IRCT8KYPFuMk+PI+0X5eseEip/bZlpI
-	 vuIMFo1jsVikSwE4/HRHyRsxxgDn1tAvQRw/spmEbGdumboJHoRKSDycdyrFIkWlAt
-	 y/GaXrWIb3SOQ==
-X-Spam-Level: 
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 279F4602F4
-	for <netfilter-devel@vger.kernel.org>; Thu, 20 Feb 2025 18:20:32 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1740072032;
-	bh=18Kokfm6Elft0mPFKyuXWzYo7J4010jlDRXibIuYrRs=;
-	h=From:To:Subject:Date:From;
-	b=Bzs1KQmD48qrNhaIXIY0XguYZJIqvDiBFHiEHj7yyIIcdQHMDv+fgB3Hccp6t6Exp
-	 YjuAq/rvRaMh/dmFh9liFVnBIHL055uYe9ZwGHyi/MgDqIHTEJYdxlxYN2vs2Y3S/+
-	 gRZEuBLev1Tp97EA3HPoBWWjsORmsG4ppLxP2+vhBWIj6xFi8apcH3FX1NWpAvkRDD
-	 LHPJcbYXEt173sWB5qDSUuKk0fFfazbQFp4IRCT8KYPFuMk+PI+0X5eseEip/bZlpI
-	 vuIMFo1jsVikSwE4/HRHyRsxxgDn1tAvQRw/spmEbGdumboJHoRKSDycdyrFIkWlAt
-	 y/GaXrWIb3SOQ==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf] evaluate: auto-merge is only available for singleton interval sets
-Date: Thu, 20 Feb 2025 18:20:29 +0100
-Message-Id: <20250220172029.869691-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="m0LSJYU5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B689C4CED6;
+	Fri, 21 Feb 2025 08:23:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1740126199;
+	bh=rfDIIQH5mrDRATR5TGl8kCDlcFHPJIwo/TE0dNwgcqw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=m0LSJYU5KyWZzwrQDlUAUR1+8PdJD+JaUQ+RLHCwHnImb/aTfszjDTaUmt201JjQq
+	 3NSxzfU1CmNjl0LDjhcjrM1Rrwm/4QMYSfHwN0G/QTNX89WIPkfon9hKuX6Ht7F5Mm
+	 zaYOVfJcV2g0J8ojXaojC2FZrHA/SkmbWC4d1Y3C+C3RjCIno5WK6acxsxs6MX02qS
+	 JRqXk9WvCkGis8RAaDwX7YXG+B+rFn3G86rUyzPhJyzUx4jhoEOvIUf6KFH48J/CZz
+	 Hmctg7CCe/8hgZINR8gwlxcOqQnb13s8DsCpP3TVIeFJ1onvx9Kt5NSk2yCKY/VU5U
+	 FuL78IkEAbnaA==
+Date: Fri, 21 Feb 2025 09:23:14 +0100
+From: Joel Granados <joel.granados@kernel.org>
+To: nicolas.bouchinet@clip-os.org
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, 
+	linux-scsi@vger.kernel.org, codalist@coda.cs.cmu.edu, linux-nfs@vger.kernel.org, 
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+	Nicolas Bouchinet <nicolas.bouchinet@ssi.gouv.fr>, Joel Granados <j.granados@samsung.com>, 
+	Bart Van Assche <bvanassche@acm.org>, Leon Romanovsky <leon@kernel.org>, 
+	Zhu Yanjun <yanjun.zhu@linux.dev>, Jason Gunthorpe <jgg@ziepe.ca>, 
+	Al Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>
+Subject: Re: [PATCH v1 0/9] Fixes multiple sysctl bound checks
+Message-ID: <d56pptdshudhgubqmgcag5gwfadwzntg2tz3av6wfijn77lvui@dxtbse27guev>
+References: <20250127142014.37834-1-nicolas.bouchinet@clip-os.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250127142014.37834-1-nicolas.bouchinet@clip-os.org>
 
-auto-merge is only available to interval sets with one value only,
-untoggle this flag. Later, this can be hardened to reject it.
+On Mon, Jan 27, 2025 at 03:19:57PM +0100, nicolas.bouchinet@clip-os.org wrote:
+> From: Nicolas Bouchinet <nicolas.bouchinet@ssi.gouv.fr>
+> 
+> Hi,
+> 
+> This patchset adds some bound checks to sysctls to avoid negative
+> value writes.
+> 
+> The patched sysctls were storing the result of the proc_dointvec
+> proc_handler into an unsigned int data. proc_dointvec being able to
+> parse negative value, and it return value being a signed int, this could
+> lead to undefined behaviors.
+> This has led to kernel crash in the past as described in commit
+> 3b3376f222e3 ("sysctl.c: fix underflow value setting risk in vm_table")
+> 
+> Most of them are now bounded between SYSCTL_ZERO and SYSCTL_INT_MAX.
+> nf_conntrack_expect_max is bounded between SYSCTL_ONE and SYSCTL_INT_MAX
+> as defined by its documentation.
+> 
+> This patchset has been written over sysctl-testing branch [1].
+> See [2] for similar sysctl fixes currently in review.
+> 
+> [1]: https://git.kernel.org/pub/scm/linux/kernel/git/sysctl/sysctl.git/log/?h=sysctl-testing
+> [2]: https://lore.kernel.org/all/20250115132211.25400-1-nicolas.bouchinet@clip-os.org/
+> 
+> Best regards,
+> 
+> Nicolas
+I see that you have received several reviews suggesting that you post
+some of the patches in this series separately. Please remove these for
+your V2 so we do not duplicate efforts.
 
-Fixes: 30f667920601 ("src: add 'auto-merge' option to sets")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/evaluate.c | 3 +++
- 1 file changed, 3 insertions(+)
+Thx
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 812505868dd1..f5838df650b5 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -5041,6 +5041,9 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
- 		       sizeof(set->desc.field_len));
- 		set->desc.field_count = set->key->field_count;
- 		set->flags |= NFT_SET_CONCAT;
-+
-+		if (set->automerge)
-+			set->automerge = false;
- 	}
- 
- 	if (set_is_anonymous(set->flags) && set->key->etype == EXPR_CONCAT) {
+> 
+> ---
+> 
+> Nicolas Bouchinet (9):
+>   sysctl: Fixes nf_conntrack_max bounds
+>   sysctl: Fixes nf_conntrack_expect_max bounds
+>   sysctl: Fixes gc_thresh bounds
+>   sysctl: Fixes idmap_cache_timeout bounds
+>   sysctl: Fixes nsm_local_state bounds
+>   sysctl/coda: Fixes timeout bounds
+>   sysctl: Fixes scsi_logging_level bounds
+>   sysctl/infiniband: Fixes infiniband sysctl bounds
+>   sysctl: Fixes max-user-freq bounds
+> 
+>  drivers/char/hpet.c                     |  4 +++-
+>  drivers/infiniband/core/iwcm.c          |  4 +++-
+>  drivers/infiniband/core/ucma.c          |  4 +++-
+>  drivers/scsi/scsi_sysctl.c              |  4 +++-
+>  fs/coda/sysctl.c                        |  4 +++-
+>  fs/lockd/svc.c                          |  4 +++-
+>  fs/nfs/nfs4sysctl.c                     |  4 +++-
+>  net/ipv4/route.c                        |  4 +++-
+>  net/ipv6/route.c                        |  4 +++-
+>  net/ipv6/xfrm6_policy.c                 |  4 +++-
+>  net/netfilter/nf_conntrack_standalone.c | 12 +++++++++---
+>  11 files changed, 39 insertions(+), 13 deletions(-)
+> 
+> -- 
+> 2.48.1
+> 
+
 -- 
-2.30.2
 
+Joel Granados
