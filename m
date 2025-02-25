@@ -1,63 +1,63 @@
-Received: from mail-ej1-f43.google.com (mail-ej1-f43.google.com [209.85.218.43])
+Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9027921325B;
-	Tue, 25 Feb 2025 20:16:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C852211A20;
+	Tue, 25 Feb 2025 20:16:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740514596; cv=none; b=kIYEqZvuHR3o5Hj3/ezK0PsCxniGovbTbU8V7WhJiRuiK5kzEPU4G+plVvFWYO5ZKroHVyqUhpUsHKbKe16R2eKWw6/slLguSiK6mU1zBekyubEsTuDKXUUqsTqvUoYAZhNHa/wzVg2NRtamzjboZkg5zZeMcQPpXXibW4V7uMA=
+	t=1740514596; cv=none; b=Th+jPc78TvSz3yzQVURNgrQdFKL7bvdfehBNcheraoGJyb2LtiiOe5GXpZXcE6wraao/fhfJGrw+34DIH2FUzaJH/d51ygX/XAs33PhvKxmcUcr38Gz7GqPNNEfb81mdBvEVmMMxhKNBH1CSyy1p+ytJs4JASLFnRGH+2CQtt8s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1740514596; c=relaxed/simple;
-	bh=QIhn2y3kyisjmJYCyWM38qUrYkbqfd1KGtAA3NxVqc0=;
+	bh=sq5lC5Lgg2lgUcbphMYliAhopUKVFEXA0PcFARtTXys=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=PI2/8yKz5TYPHKMTAawmsnYA1c6Jc9vP4c61vkTBX13R4kYDDGjHqBF2YpCwNvAhUnFeVwVP/Et0/B117vE9Pc14u6Kr2ufUak6NcXddEZX6pNrMFQXyAIdVJmRLkpQD6LTc+WD016rM2W4B+7JH7mRT6a/0YiMF/IvrzTooQIc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=U8HQmIQX; arc=none smtp.client-ip=209.85.218.43
+	 MIME-Version; b=O8yxNkESyTyIU7AHD93u9FDL0RM+RL99gY6+HW1PNcVe8D8CkxyXTIcXOZw+0OIZ7p8+v5D+MwemHAE3u/v8CAAIQdJu+tx16vREX7wW8Y8GHkYTwBC1QXQFhHavXCuV78zL8QQjesSefgxeVXK5yTOnvjA+EMpOPlSuWz+QwYE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=a7LniAQI; arc=none smtp.client-ip=209.85.218.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="U8HQmIQX"
-Received: by mail-ej1-f43.google.com with SMTP id a640c23a62f3a-abec925a135so231014266b.0;
-        Tue, 25 Feb 2025 12:16:34 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="a7LniAQI"
+Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-abbec6a0bfeso943884466b.2;
+        Tue, 25 Feb 2025 12:16:33 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1740514593; x=1741119393; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1740514592; x=1741119392; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=vgvvO4mRAt67HclOcho5/or4Z9zLgPRzxsVdNZtTjYg=;
-        b=U8HQmIQXVQAPKJLfHM9Y7V3rqufBDBNcUlA9ecqcC6bwGEvvQjB+TDbrME/xqbG61o
-         HqY4waeRJSDnSU2Zr2/clvmpn+uiILSAMmwd5HGHA8+DijM8fOqs/i4mVgZddXmwvL/p
-         CTv25fXzLsBh//Nyw1qGTnbomOdEYJS0ldN8G+HfC7PcHWzi2DXSv596JJPV/q0tmWDp
-         r5p1FRFMXN8rxJbqOliR0wz3Nbib3pC80tWS3PnevH2S8HySNThmup1yP2lO1RiT3z7D
-         fsWeFAuarmoIMH4pYR4mjNEKcqTIvIwpF593VHn3kpfAVOo1qXApN7fdQxRMqvZWoP+M
-         1HFQ==
+        bh=glD7coNk2GO9/l1adKLN+uo1Xfh2D3YWudU7CjoMsSA=;
+        b=a7LniAQIIErUHfo75Vh2GH0GOCy+lZe73c/HsxGDO6TOTUegqzm2cqU2BOwN3UwbU1
+         lVJbTnlGD+edpal7mO8rC5nICggD2m9sfrTMgWG2pxqnsRc8OaY+6GpaKAVk2EreH33N
+         K0pHZLOSMizQuTHauxOz91nMkGEC41Hg+MLGCkN86UXma/0f1rTG324uzcbhKFQ88IZx
+         cCpDCsFbQG1bM1OBalMByWLtU49Z2tIIDyLb+6cKQrPsf3yKijE81KeMajJn4rcQqDkE
+         paQpfYeiG7yormEb2P6cC0ciyXOJxFAcIeF/UP5jkKT95odXbmiPF/nTUjX97jdkdGbp
+         Q5ZQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1740514593; x=1741119393;
+        d=1e100.net; s=20230601; t=1740514592; x=1741119392;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=vgvvO4mRAt67HclOcho5/or4Z9zLgPRzxsVdNZtTjYg=;
-        b=vpun+HKi/3DydUK3tRqaeA/xMw7gTa84hmm4YtWEWssIMwD2bx83FRdePw9pUmfM1d
-         1GXDvFXqxAWcA3LpNlPZcfq4hfKOifE6ZcnF3+mrONy4h4V43/rVusT0ejzUSDhwmsqh
-         PvCa+E3WNTGiYUmHEawRH7a7RGXmZ/gzu55t2csz4lmkTqWKsx1KidHsuXvMNqBF9afL
-         NI8KA0jP3Ge0F4atwb6sgoeeoVTzXueKGNx2+YmPl8qXvzJ/cURRqMW6T5PVGgf42ddX
-         pQP7y/YcS5vnxr/m89UWKTdM43IQ4tC5+eToZpAgvQqgC6wU9jbDOTX/8frag+02B+HZ
-         ELUw==
-X-Forwarded-Encrypted: i=1; AJvYcCUQGzJyYeQXeEltfdPP8N98hWOJqMSgyhgwRi8P2YP1ypFnpaePFUCg0cD60uNrZ2xHi0jpFWLr7uP0ll8=@vger.kernel.org, AJvYcCUqvJlt6SF4e3J4P7F4KnBziWRerjZOfqrQ5pjfmJhaPIJ0u2m02xAro+/1YzV/nCDPaeYjl0uQsFbxH/wrfVoU@vger.kernel.org
-X-Gm-Message-State: AOJu0YyqIWlUaAGGtLUoVGYQksVsbI8mtM8ZrI/hyL+ooE6kf0TVTDq0
-	tYfhYoCIkdoa0Kr57yKBJxPX6WP6bO7r1SrMEj87z4+XIeexsE8K
-X-Gm-Gg: ASbGnctHSD2/jLVpw3VBwVBWbM/YgAwiw5BGBdYK803UZvRi3OVvHQRK/gi6Hb6Kj4A
-	DaZgkabG9MuJAuJnJjd7hZ0zCS6STSg7QNBUK6/EtGcNYzJamHvzvsHSemUK3UI0bkI02TTQayY
-	ADRrS9x4KWcw/NbQvywUPKVMI8RfTAMFhSvr/dUIEsX2cnTIR7J4He4v0uk6jaoOeoI9ZFJ/azO
-	VxvWzixL2pjs7qA1C3vU2F1F1G3ecKW6iwHX7HT6O5+9EnsFpoNW/ltwPn0gIbkVLqRHKSZuvB5
-	PfX1NkmdC69dVqmJKr68qbrgKhlATz+ChMPX3EtuBE+63dYvfz2zLVkhYtBXpT58Q1h33porp+N
-	w9d7FNVEgA3DXm/2S6NnbP2bIelSDl/LgUGiAo3/fxLE=
-X-Google-Smtp-Source: AGHT+IHYa/rnJMcG6bw4DaLIqU4PpMQ2X1tUCpndBeXitg+IOobUcH2l24ISv9vbXMdXY/Di07mP4g==
-X-Received: by 2002:a17:906:31d1:b0:abb:e95e:f2c3 with SMTP id a640c23a62f3a-abeeef4216amr55910166b.41.1740514592646;
-        Tue, 25 Feb 2025 12:16:32 -0800 (PST)
+        bh=glD7coNk2GO9/l1adKLN+uo1Xfh2D3YWudU7CjoMsSA=;
+        b=C5fz6AEfiCNJbQ4vB/BzB88L54Ysu3dJOlhQPZVdlmeyef9qTMIo4t09aCpy2wOaFH
+         B4S1OyBWgUznObQePD5yMr7dSnG+tEM0yADPLwvKM3nJX2UvOqUNW8EKHnR9RzqM2cKc
+         dk+3R//RCFcypFDpzDnLZZjvTsK/3qPJNGrO9WdDslzt4QBwYR4KBu6ZZZWTS9UJHi7a
+         QrIZt/Jpq4kgOrb1l8mkbpvi3kwsXEWuxF0Jy7i8+WImR6pOo860LaIZhVW2dOs/sUkP
+         JMjyxvB2nBbQyapaVP7pu0LhtMnZ7TJQ3gMCIohJbdQ4/lqmPN24y1Fd1BQ2BvypCw+n
+         ++6g==
+X-Forwarded-Encrypted: i=1; AJvYcCW4eQsFfnyb25QwHwiiFmZLa6Us6h+39W45OahFIvvlzjTLqwhhpHvKjVh5NT8fTjnGa+wea7GCm+XJXfk=@vger.kernel.org, AJvYcCXDp5aP6lQ41I+laz3YckvRZ+b+ggJMxCP48pMzvuHrwqzzhASqQ3FrBNltPqMiorC/GfQrPUDxbiF6NzaJinNw@vger.kernel.org
+X-Gm-Message-State: AOJu0YxJhONtj3XU1a8kTf1MtV6terqjEmZK/1V+lqCDOJ1lz58Nvd96
+	cvAbMcwxknYAHpyR8RaiFfYcTantr6d4BJ2yXn2k4v24YX5x8pzU
+X-Gm-Gg: ASbGncvjL7w2D2CyB0P8gfxZk8d4Gy7XSaYQkZDDqtLR0rfSdeURyAIY/mboU3qGgi/
+	cs/Pgr1XIMU5V8q+XgD9BPQZRO0A+wVOTBQprF5NcASXnjIa+14GLR8GJkTWdkRpmr+icd+YPgH
+	Tft4YHkQJuNoilnwIO/+1z25Sb8JcGaixDg3cZBMX5dvclkxTt+ZVPU7TLPT/sm3HfsdYZ9pkPW
+	d4fK1H5w9L7Gkw1Vu3fTIaxkudaRkABSGB9Q72WitSTWgb5HsfuZulZqwugd44tkFioW1AzVLCF
+	mA2Ty2zViVBPrlI0YbJPfR98Nq5TDsbkQ9ZEMxhm0P9PpTbb/ooal7n7cSRJeBPM7YnFV2Qy8nS
+	MJIItqZ6GAGw/Q22F6zRhiBOW2GinEtd5EGLzUA6i2yk=
+X-Google-Smtp-Source: AGHT+IEjvw2ycbh6O1a2xVehSVYNCqn405b5ejvhuSsYBKJJvxe4gk715VpktRuefN5csP8lyNYY2Q==
+X-Received: by 2002:a17:907:3da7:b0:ab7:98e8:dcd4 with SMTP id a640c23a62f3a-abc09a097c7mr1694058566b.20.1740514591509;
+        Tue, 25 Feb 2025 12:16:31 -0800 (PST)
 Received: from corebook.localdomain (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-abed201218fsm194319666b.104.2025.02.25.12.16.31
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-abed201218fsm194319666b.104.2025.02.25.12.16.30
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 25 Feb 2025 12:16:32 -0800 (PST)
+        Tue, 25 Feb 2025 12:16:31 -0800 (PST)
 From: Eric Woudstra <ericwouds@gmail.com>
 To: Andrew Lunn <andrew+netdev@lunn.ch>,
 	"David S. Miller" <davem@davemloft.net>,
@@ -88,9 +88,9 @@ Cc: netdev@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org,
 	linux-mediatek@lists.infradead.org,
 	Eric Woudstra <ericwouds@gmail.com>
-Subject: [PATCH v7 net-next 06/14] net: core: dev: Add dev_fill_bridge_path()
-Date: Tue, 25 Feb 2025 21:16:08 +0100
-Message-ID: <20250225201616.21114-7-ericwouds@gmail.com>
+Subject: [PATCH v7 net-next 05/14] bridge: Add filling forward path from port to port
+Date: Tue, 25 Feb 2025 21:16:07 +0100
+Message-ID: <20250225201616.21114-6-ericwouds@gmail.com>
 X-Mailer: git-send-email 2.47.1
 In-Reply-To: <20250225201616.21114-1-ericwouds@gmail.com>
 References: <20250225201616.21114-1-ericwouds@gmail.com>
@@ -102,133 +102,103 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-New function dev_fill_bridge_path(), similar to dev_fill_forward_path().
-It handles starting from a bridge port instead of the bridge master.
-The structures ctx and nft_forward_info need to be already filled in with
-the (vlan) encaps.
+If a port is passed as argument instead of the master, then:
 
-Reviewed-by: Nikolay Aleksandrov <razor@blackwall.org>
+At br_fill_forward_path(): find the master and use it to fill the
+forward path.
+
+At br_vlan_fill_forward_path_pvid(): lookup vlan group from port
+instead.
+
+Changed call to br_vlan_group() into br_vlan_group_rcu() while at it.
+
+Acked-by: Nikolay Aleksandrov <razor@blackwall.org>
 Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
 ---
- include/linux/netdevice.h |  2 ++
- net/core/dev.c            | 66 +++++++++++++++++++++++++++++++--------
- 2 files changed, 55 insertions(+), 13 deletions(-)
+ net/bridge/br_device.c  | 19 ++++++++++++++-----
+ net/bridge/br_private.h |  2 ++
+ net/bridge/br_vlan.c    |  6 +++++-
+ 3 files changed, 21 insertions(+), 6 deletions(-)
 
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index 9a387d456592..695445927598 100644
---- a/include/linux/netdevice.h
-+++ b/include/linux/netdevice.h
-@@ -3289,6 +3289,8 @@ void dev_remove_offload(struct packet_offload *po);
- 
- int dev_get_iflink(const struct net_device *dev);
- int dev_fill_metadata_dst(struct net_device *dev, struct sk_buff *skb);
-+int dev_fill_bridge_path(struct net_device_path_ctx *ctx,
-+			 struct net_device_path_stack *stack);
- int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
- 			  struct net_device_path_stack *stack);
- struct net_device *__dev_get_by_flags(struct net *net, unsigned short flags,
-diff --git a/net/core/dev.c b/net/core/dev.c
-index 18064be6cf3e..d5f4fae840a2 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -714,44 +714,84 @@ static struct net_device_path *dev_fwd_path(struct net_device_path_stack *stack)
- 	return &stack->path[k];
- }
- 
--int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
--			  struct net_device_path_stack *stack)
-+static int dev_fill_forward_path_common(struct net_device_path_ctx *ctx,
-+					struct net_device_path_stack *stack)
+diff --git a/net/bridge/br_device.c b/net/bridge/br_device.c
+index 0ab4613aa07a..c7646afc8b96 100644
+--- a/net/bridge/br_device.c
++++ b/net/bridge/br_device.c
+@@ -383,16 +383,25 @@ static int br_del_slave(struct net_device *dev, struct net_device *slave_dev)
+ static int br_fill_forward_path(struct net_device_path_ctx *ctx,
+ 				struct net_device_path *path)
  {
- 	const struct net_device *last_dev;
--	struct net_device_path_ctx ctx = {
--		.dev	= dev,
--	};
- 	struct net_device_path *path;
- 	int ret = 0;
++	struct net_bridge_port *src, *dst;
+ 	struct net_bridge_fdb_entry *f;
+-	struct net_bridge_port *dst;
+ 	struct net_bridge *br;
  
--	memcpy(ctx.daddr, daddr, sizeof(ctx.daddr));
--	stack->num_paths = 0;
--	while (ctx.dev && ctx.dev->netdev_ops->ndo_fill_forward_path) {
--		last_dev = ctx.dev;
-+	while (ctx->dev && ctx->dev->netdev_ops->ndo_fill_forward_path) {
-+		last_dev = ctx->dev;
- 		path = dev_fwd_path(stack);
- 		if (!path)
- 			return -1;
+-	if (netif_is_bridge_port(ctx->dev))
+-		return -1;
++	if (netif_is_bridge_port(ctx->dev)) {
++		struct net_device *br_dev;
++
++		br_dev = netdev_master_upper_dev_get_rcu((struct net_device *)ctx->dev);
++		if (!br_dev)
++			return -1;
  
- 		memset(path, 0, sizeof(struct net_device_path));
--		ret = ctx.dev->netdev_ops->ndo_fill_forward_path(&ctx, path);
-+		ret = ctx->dev->netdev_ops->ndo_fill_forward_path(ctx, path);
- 		if (ret < 0)
- 			return -1;
+-	br = netdev_priv(ctx->dev);
++		src = br_port_get_rcu(ctx->dev);
++		br = netdev_priv(br_dev);
++	} else {
++		src = NULL;
++		br = netdev_priv(ctx->dev);
++	}
  
--		if (WARN_ON_ONCE(last_dev == ctx.dev))
-+		if (WARN_ON_ONCE(last_dev == ctx->dev))
- 			return -1;
- 	}
+-	br_vlan_fill_forward_path_pvid(br, ctx, path);
++	br_vlan_fill_forward_path_pvid(br, src, ctx, path);
  
--	if (!ctx.dev)
-+	if (!ctx->dev)
- 		return ret;
+ 	f = br_fdb_find_rcu(br, ctx->daddr, path->bridge.vlan_id);
+ 	if (!f)
+diff --git a/net/bridge/br_private.h b/net/bridge/br_private.h
+index 1054b8a88edc..a0b950390a16 100644
+--- a/net/bridge/br_private.h
++++ b/net/bridge/br_private.h
+@@ -1584,6 +1584,7 @@ bool br_vlan_can_enter_range(const struct net_bridge_vlan *v_curr,
+ 			     const struct net_bridge_vlan *range_end);
  
- 	path = dev_fwd_path(stack);
- 	if (!path)
- 		return -1;
- 	path->type = DEV_PATH_ETHERNET;
--	path->dev = ctx.dev;
-+	path->dev = ctx->dev;
- 
- 	return ret;
+ void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
++				    struct net_bridge_port *p,
+ 				    struct net_device_path_ctx *ctx,
+ 				    struct net_device_path *path);
+ int br_vlan_fill_forward_path_mode(struct net_bridge *br,
+@@ -1753,6 +1754,7 @@ static inline int nbp_get_num_vlan_infos(struct net_bridge_port *p,
  }
-+
-+int dev_fill_bridge_path(struct net_device_path_ctx *ctx,
-+			 struct net_device_path_stack *stack)
-+{
-+	const struct net_device *last_dev, *br_dev;
-+	struct net_device_path *path;
-+
-+	stack->num_paths = 0;
-+
-+	if (!ctx->dev || !netif_is_bridge_port(ctx->dev))
-+		return -1;
-+
-+	br_dev = netdev_master_upper_dev_get_rcu((struct net_device *)ctx->dev);
-+	if (!br_dev || !br_dev->netdev_ops->ndo_fill_forward_path)
-+		return -1;
-+
-+	last_dev = ctx->dev;
-+	path = dev_fwd_path(stack);
-+	if (!path)
-+		return -1;
-+
-+	memset(path, 0, sizeof(struct net_device_path));
-+	if (br_dev->netdev_ops->ndo_fill_forward_path(ctx, path) < 0)
-+		return -1;
-+
-+	if (!ctx->dev || WARN_ON_ONCE(last_dev == ctx->dev))
-+		return -1;
-+
-+	return dev_fill_forward_path_common(ctx, stack);
-+}
-+EXPORT_SYMBOL_GPL(dev_fill_bridge_path);
-+
-+int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
-+			  struct net_device_path_stack *stack)
-+{
-+	struct net_device_path_ctx ctx = {
-+		.dev	= dev,
-+	};
-+
-+	memcpy(ctx.daddr, daddr, sizeof(ctx.daddr));
-+
-+	stack->num_paths = 0;
-+
-+	return dev_fill_forward_path_common(&ctx, stack);
-+}
- EXPORT_SYMBOL_GPL(dev_fill_forward_path);
  
- /* must be called under rcu_read_lock(), as we dont take a reference */
+ static inline void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
++						  struct net_bridge_port *p,
+ 						  struct net_device_path_ctx *ctx,
+ 						  struct net_device_path *path)
+ {
+diff --git a/net/bridge/br_vlan.c b/net/bridge/br_vlan.c
+index d9a69ec9affe..a18c7da12ebd 100644
+--- a/net/bridge/br_vlan.c
++++ b/net/bridge/br_vlan.c
+@@ -1441,6 +1441,7 @@ int br_vlan_get_pvid_rcu(const struct net_device *dev, u16 *p_pvid)
+ EXPORT_SYMBOL_GPL(br_vlan_get_pvid_rcu);
+ 
+ void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
++				    struct net_bridge_port *p,
+ 				    struct net_device_path_ctx *ctx,
+ 				    struct net_device_path *path)
+ {
+@@ -1453,7 +1454,10 @@ void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
+ 	if (!br_opt_get(br, BROPT_VLAN_ENABLED))
+ 		return;
+ 
+-	vg = br_vlan_group(br);
++	if (p)
++		vg = nbp_vlan_group_rcu(p);
++	else
++		vg = br_vlan_group_rcu(br);
+ 
+ 	if (idx >= 0 &&
+ 	    ctx->vlan[idx].proto == br->vlan_proto) {
 -- 
 2.47.1
 
