@@ -1,27 +1,27 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D21521325A
-	for <netfilter-devel@vger.kernel.org>; Tue, 25 Feb 2025 20:37:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 926361632D9
+	for <netfilter-devel@vger.kernel.org>; Tue, 25 Feb 2025 20:37:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740515845; cv=none; b=I2yEG6eRQZ87Huhm5bLx0EoJrjrXESywfuIwQiJNROkBCkIYTlcX3V2C/n7pEghPlMqIilX0thAc6Vqvsernudzg7wAGiZOd+hu5JwHqVaPAgnbpJq7tjVFYB5Qv/J89rlWrrvRJtQsEhMXymMf8yvHEMwoqtaokBkoAlcqv5UI=
+	t=1740515867; cv=none; b=K3DhqpTi1RArWj6kYT9kCinF4ncufsW69BB+1L8vmBAyHXieNZ/UR5FnvL+FUn2vnGXInAaODjjCl4ES6RxnC+76DF9AR0qQnhwzS3cZ0q/EmazPiotB4n4bZJNVdQJtMXwnBRS6jT2f3RSOy55s6thptPx7uHVkd1e4VVbwaTU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740515845; c=relaxed/simple;
-	bh=xdyDe1dyPqzbFpyj3sxWDbT0IchMYy+NJ7QrqtZi2h4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=gXjiDgpPdKGwn/9B7YoDYQ0wUvOi9TElzXrDy9F/rbSf7271ftV8z3VN/tScnu3U0LXm1C2X4ddt5dvhYNhzQQWdO7+8gzgWHNoo4ky4GdtoTZVFfcecB08pCT4yZF0ZaA8n8vvis17pg3FZruhaHA7dHkLwwwry/SG+a4/cbGk=
+	s=arc-20240116; t=1740515867; c=relaxed/simple;
+	bh=OnjqBvUgEgIFZv9HHvrE3q1QyEe7bCbc6Pm26M7udo4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=FNNOMI0RSNPnwhvrYufZyIL8IdTqiQEL1LIiv7Mv0BQPeG0YKPeb4NV0rcnMs5Jk88IQwVaQejGy4VIPUL/tFtnY0uFKEQwxXODroqoVrXHdxJPQAOuuULGvDCXFvjYGXWMM/0lMmajQ0p5Q7z5QRuQ6/LePmQxqip5IqOSQuaY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1tn1g9-00088K-Ax; Tue, 25 Feb 2025 21:37:21 +0100
+	id 1tn1gU-00088i-DP; Tue, 25 Feb 2025 21:37:42 +0100
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] payload: remove double-store
-Date: Tue, 25 Feb 2025 21:33:30 +0100
-Message-ID: <20250225203334.28465-1-fw@strlen.de>
+Subject: [PATCH nft] payload: return early if dependency is not a payload expression
+Date: Tue, 25 Feb 2025 21:33:57 +0100
+Message-ID: <20250225203400.28709-1-fw@strlen.de>
 X-Mailer: git-send-email 2.45.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -31,25 +31,34 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This assignment was duplicated.
+ if (dep->left->payload.base != PROTO_BASE_TRANSPORT_HDR)
+
+is legal only after checking that ->left points to an
+EXPR_PAYLOAD expression. The dependency store can also contain
+EXPR_META, in this case we access a bogus part of the union.
+
+The payload_may_dependency_kill_icmp helper can't handle a META
+dep either, so return early.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/payload.c | 1 -
- 1 file changed, 1 deletion(-)
+ src/payload.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/src/payload.c b/src/payload.c
-index f8b192b5f2fa..eadc92efc0d7 100644
+index eadc92efc0d7..866cd9bc2b05 100644
 --- a/src/payload.c
 +++ b/src/payload.c
-@@ -353,7 +353,6 @@ void payload_init_raw(struct expr *expr, enum proto_bases base,
- 		expr->payload.tmpl = &proto_th.templates[thf];
- 		expr->payload.desc = &proto_th;
- 		expr->dtype = &inet_service_type;
--		expr->payload.desc = &proto_th;
- 		break;
- 	default:
- 		break;
+@@ -893,7 +893,8 @@ static bool payload_may_dependency_kill(struct payload_dep_ctx *ctx,
+ 	if (expr->payload.base != PROTO_BASE_TRANSPORT_HDR)
+ 		return true;
+ 
+-	if (dep->left->payload.base != PROTO_BASE_TRANSPORT_HDR)
++	if (dep->left->etype != EXPR_PAYLOAD ||
++	    dep->left->payload.base != PROTO_BASE_TRANSPORT_HDR)
+ 		return true;
+ 
+ 	if (dep->left->payload.desc == &proto_icmp)
 -- 
 2.45.3
 
