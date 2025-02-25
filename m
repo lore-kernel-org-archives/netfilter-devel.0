@@ -1,63 +1,63 @@
-Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
+Received: from mail-ej1-f43.google.com (mail-ej1-f43.google.com [209.85.218.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F44C1EA7E5;
-	Tue, 25 Feb 2025 20:16:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02E95216E19;
+	Tue, 25 Feb 2025 20:16:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740514599; cv=none; b=PeVcgkQsplMESYc+RfMtkxAamYg0KUzg4BDfdbkmor6/XbcP9bNK2BB8m4XaO8OzeO09fM9TeAFHhSTYCAJ7C53SID0bNRMSJhVK22ej+OUkn9Fazx2nEFZe7aap7540Wlt/9L5OlngN+s1FpnQZt8P03E6QUrS/V0F69JFdiEE=
+	t=1740514601; cv=none; b=XRh+mWWQ477nmrGjmCd6CpeqWciOWE28qCm5Uf/2FUa6jn2eNW+WLBFvc4IPB3vVRuS+N+ipTVxT0WPdEJWSsbF4uIN8S9/AOlUGg6mIgdlxhR0DA9LXMJdG81J5ExvAINrEAe5+kTMqC6ghXkGlNmfmJY5z1Vef0nNyXjg+mw0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740514599; c=relaxed/simple;
-	bh=AihhYJGwJTJyObdFZSI/rxytC55wEnFe8EzDy7l8A+0=;
+	s=arc-20240116; t=1740514601; c=relaxed/simple;
+	bh=8dcYAV0MonhKL6O5x+ptHAAw+fbiOOhKssEKku03mBc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=sYyyHC21iYDppyzjPow99tJOkq8HLRFMF+iBy3nWuvze1aMevyi6LvYYNOG7DIHaxoDpoqIErxc/NFQtkJ9/Uz/2KgGW0qamYvyNuOTunMfMa1xZWYKdFetuFUEWg/d1v6JAiSuJr9DFc1BqdFJOwapxjF7yh0FzpSoG1P8IS1M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=lD+zungb; arc=none smtp.client-ip=209.85.218.51
+	 MIME-Version; b=dOPX083GIbswfNpXOemS4WyonKS9EXgdDOckprl8RPTatgHCpSXPPcbnY6W5tRk+7RYHagrVsMUjgIEc1gPu/ejog/hjlyT5TJsh/q8ccCv/Anoe9KFkJBJvQhslkz5Uqst3koglV2kRrkV1xnMZV6Yh5T7bNAfGGIxnMlRmLg8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=T3K+Lcfz; arc=none smtp.client-ip=209.85.218.43
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lD+zungb"
-Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-abb7f539c35so1171742666b.1;
-        Tue, 25 Feb 2025 12:16:36 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="T3K+Lcfz"
+Received: by mail-ej1-f43.google.com with SMTP id a640c23a62f3a-abb7f539c35so1171754166b.1;
+        Tue, 25 Feb 2025 12:16:39 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1740514595; x=1741119395; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1740514598; x=1741119398; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=6/OfFtkDCpNUsNNnB4udxCcQxzWSEZIHYYoj3YjYWKw=;
-        b=lD+zungbhxNk7qDmVyyHtMprmtekP8uw7HK0kouHUl0WX9wOghALmj+Dy0kTk7zAnK
-         8rM5ec1bFlP+KCfSiH0gymvYvDRkNaAXFwFxAODr2yW55NUr3Boc5kuE/G/z1vRhybOF
-         wBD00XxAlFBJId15mg20DFb/MXTDwJSJ6AzO9nl6yNvGcCAZsi4vqrytNaAnY3d0extw
-         KPswjU4hvDxQY6UAgLtlndKRCv8yAXBERI5gOhOLORuolrzDa0GhDfTTrK5D0nfvNaqG
-         M8wxpP5mAgmZkkfUmlRLePs/AvSaWSqjqVISfxvFUsDgwM5ZaQ1ZHcjjPyuObXs8zYOW
-         yB5w==
+        bh=BVAkTZii1Gy4XRugZsnKaWDIV+1UdUIxS1E1wVQkwnU=;
+        b=T3K+Lcfzq+mAH1mKU3oTt/XVqp6whIVz00Mlv0eU3f8xkYIH6zpQSCxHEGhD9jVy2D
+         sXpIQeRQ+v0YKBrlER0eWbYOhdGklOJSl++lOQopRQRcAzPoRs80RZaOAZBPQOmXXh8P
+         aBPqQSaERhIls3X2AJBaeptKldkQyM7qm0DCgqHgO8GRo2wVgAJrgZFyvCl6h1Gni5IN
+         hqLs151iz8DDoD9B58hRnKyISNocbfOdwWk74lRVz5q/fuMoJCyqZhu53b+LizEVOtvT
+         ABtHow/XZUA3PeZE7KGB9x8PINaZFEKcRtzxpv7kf/mT7fSafZfk/x1+6ruXSOhao5hE
+         vZPA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1740514595; x=1741119395;
+        d=1e100.net; s=20230601; t=1740514598; x=1741119398;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=6/OfFtkDCpNUsNNnB4udxCcQxzWSEZIHYYoj3YjYWKw=;
-        b=WmvzmBfbX3rAY/Jwuu0qSEpzGOFMvztjp7E7o3kDUAhoeVKJJIT2miFnUZuaEZMevh
-         XxmRmBx2Tezs1iM40tag3LBFvZFt1KndYby1VPj0xIxU+Y0hKBEN1lkjnUf5SQK3g8qv
-         yGuzN5kBc0D0wI4kuXvuPAJTXYw9PUlE+lynckEi/6CeyHO3CMIp9zAkCKCJ2JVF1tw8
-         zPH92EDqeV3YaRjdcRudyUim4OtmdCJ75QqNZ7hJmPvqwQO2rBPZI/lqigAyDbZ76Mz0
-         zBlHmAHL0uKOA1HZMYod6JelfdR3GEoAqFopHOtJV61EkthP1121pKVHEiv/MTrWY1yT
-         hA/A==
-X-Forwarded-Encrypted: i=1; AJvYcCVMWfWAx+fMYOQVbDDmvCq8BVfanKzFiXbvC0WSWtc25XLntIlld6VERaHqgKl5754K00f/MwRAczJmU+QZGE+a@vger.kernel.org, AJvYcCWgu1PG8kQfXwstEtF+s1qvp+xSa1nPM+H628yaroTXhvEf0BSH0b/PmP0E2i3CcAFSOnj+EguQUYGCWAg=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwBASvugI4hSJhpnCmxXwkZ+QLGEqIfQSqOHQ4qHe/kVpmIZpd1
-	uR4dfM0+VWmVt5uPEzlGn6Mx+K6oL/ey2NjZ3NxeAPrjuYV3vuy7
-X-Gm-Gg: ASbGnctEfYqLMDtR57yzIGsXJyO9nBvxAyCiLWcyEoZCo4dBTHk/U4TEh14tMOU2tww
-	MlLDN69KWP9biVbYpZrVUf/7H44lMnlmfOwV546OuaanNFDseIJDYbwxt/yeqJcEiLqE1ArKV3g
-	JjrXIQRfpdK1axlwjfRA0SViouizLy9wOwW8gz6Low90tX1CI8Ax9BoHGng+DxfXjdBThxBmPIw
-	hBGi7w/vGS6fg/J11Mq1nFH5G6QzVtPBhKpNmw23/rpAuUZD7l8lwEjjNKmcveHaqCCS3J8QsYA
-	+nq5hF9QSzpYNEMeIWkV3OHIkTS0liXqHdLDB6T3zJZYKVdtiK/3mqI2bi4w6SBIaNuq4/rhvII
-	abu60VTWuqoD6Rve+4ScK0LJie/2q6QGWOhwxgpoIhrQ=
-X-Google-Smtp-Source: AGHT+IGqtwnhdQCtSmqLRlPPBdMfue3nuq7Am6Qo/bcDgts/ZRrpNQ6gtoEj1aOcPx9OCd4I+DxgEQ==
-X-Received: by 2002:a17:907:1ca4:b0:ab6:d575:9540 with SMTP id a640c23a62f3a-abed1076c86mr522915866b.50.1740514594765;
-        Tue, 25 Feb 2025 12:16:34 -0800 (PST)
+        bh=BVAkTZii1Gy4XRugZsnKaWDIV+1UdUIxS1E1wVQkwnU=;
+        b=kRcV6glHqQxXVI2N6jTIWaA9KDRt6xJ5rw8P5uv+684zOhcUwzmb175ZBw5f4uq8tP
+         FEtDOhukXyQnXxyYtd68Ma8s4yfVI3cJXxMmamBu5ydWlJ+eDPr/SSa2ck8HfAg9H5UE
+         dbjBl234bXbvBV/a+8QKbLSiqVyj5YDt9W/tsIkpu3twSQlu0vvEZj9GxGATxnmsTxVG
+         IMURPU7gYMH6GFdPeUNj21s/ACBJMEhCR1Jwam8yZpQjdmFg6nDQvjU2DNNE3GHHaHrs
+         7kQGWS/Q0RK5Wpd5DRHrQfgtsIEgo608ZQYfaLj4N33mGmnrwK8bUwbREc442c6I4XJ+
+         FWbg==
+X-Forwarded-Encrypted: i=1; AJvYcCVNLjL1fJRhhEHsZl2KheQo9y8zGVYjnQGDjKmn+0al5pGsm2tJqVhxIyNgqgiVMhxGxTFyQcG0Y3ZW6OjZ5Hwu@vger.kernel.org, AJvYcCW9cpj/KKL4X8mE9vEy/aYpEEvFFV6PyKxbR6qIjYGxwZjycyWSH/dgNqg5RgCFcHfaCG4Hc1+Rkbu8o3Q=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzNRxAvtGNkBkK1SwmjGTIhiL/68RHyjFLBzreZ7AFoNKpm76KE
+	0aJyoJQXIVsB0rlJQ62zZ9afFoLdeZvRyi35g+TJZGrzg7ljYejC
+X-Gm-Gg: ASbGncuN0ISWQYAEX+Op0ISjKbYDMa/RJMzQl6LcAfVd2Nd8u8p3jG2mOBRXXK8O7fy
+	RceQikOMd+Md2t6SeKbhqh/xJy2BPWMpilKKxjNAYIJ0/G3JLZPj9Fv/pIL8bOayqN3+hnryqAH
+	IMPBF6AI/F7GCumr5BDYyhDlSoPrQagDPZsjdwkq4uxZxdW3MqWGPbouf5kLUJ3v9kByiGiDTuI
+	K3eIUctYrmmElx6YR+1r0oJS1zI6zZegdt4VEfKj+gHk/xvuOtEtOCkMZm6uUhbydbKpoF+NX4+
+	qtrMcCQLQgLyHyVBQ8XEt0n2AINjHdHMEZDDXVbCnmRpNpfhLnmBdxwgI6smNElNpdXf2lCH11f
+	f+I0a9nZFRb2S7sOJhPl7rwp93pKU3R3cW0gtMe4RgzM=
+X-Google-Smtp-Source: AGHT+IFK/xb0AH8q2XIcdgGFCG2/1S/vlx3qUjtu2T+2XCeJrxRROpGepkKKWsPoi8GIWtQoo7ZUrw==
+X-Received: by 2002:a17:906:a952:b0:abe:eebf:ae54 with SMTP id a640c23a62f3a-abeeebfc352mr51844866b.20.1740514598236;
+        Tue, 25 Feb 2025 12:16:38 -0800 (PST)
 Received: from corebook.localdomain (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-abed201218fsm194319666b.104.2025.02.25.12.16.33
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-abed201218fsm194319666b.104.2025.02.25.12.16.37
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 25 Feb 2025 12:16:34 -0800 (PST)
+        Tue, 25 Feb 2025 12:16:37 -0800 (PST)
 From: Eric Woudstra <ericwouds@gmail.com>
 To: Andrew Lunn <andrew+netdev@lunn.ch>,
 	"David S. Miller" <davem@davemloft.net>,
@@ -88,9 +88,9 @@ Cc: netdev@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org,
 	linux-mediatek@lists.infradead.org,
 	Eric Woudstra <ericwouds@gmail.com>
-Subject: [PATCH v7 net-next 08/14] netfilter: nf_flow_table_inet: Add nf_flowtable_type flowtable_bridge
-Date: Tue, 25 Feb 2025 21:16:10 +0100
-Message-ID: <20250225201616.21114-9-ericwouds@gmail.com>
+Subject: [PATCH v7 net-next 11/14] netfilter: nft_flow_offload: No ingress_vlan forward info for dsa user port
+Date: Tue, 25 Feb 2025 21:16:13 +0100
+Message-ID: <20250225201616.21114-12-ericwouds@gmail.com>
 X-Mailer: git-send-email 2.47.1
 In-Reply-To: <20250225201616.21114-1-ericwouds@gmail.com>
 References: <20250225201616.21114-1-ericwouds@gmail.com>
@@ -102,58 +102,31 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This will allow a flowtable to be added to the nft bridge family.
+The bitfield info->ingress_vlans and corresponding vlan encap are used for
+a switchdev user port. However, they should not be set for a dsa user port.
 
 Reviewed-by: Nikolay Aleksandrov <razor@blackwall.org>
 Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
 ---
- net/netfilter/nf_flow_table_inet.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ net/netfilter/nft_flow_offload.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/net/netfilter/nf_flow_table_inet.c b/net/netfilter/nf_flow_table_inet.c
-index b0f199171932..80b238196f29 100644
---- a/net/netfilter/nf_flow_table_inet.c
-+++ b/net/netfilter/nf_flow_table_inet.c
-@@ -65,6 +65,16 @@ static int nf_flow_rule_route_inet(struct net *net,
- 	return err;
- }
- 
-+static struct nf_flowtable_type flowtable_bridge = {
-+	.family		= NFPROTO_BRIDGE,
-+	.init		= nf_flow_table_init,
-+	.setup		= nf_flow_table_offload_setup,
-+	.action		= nf_flow_rule_bridge,
-+	.free		= nf_flow_table_free,
-+	.hook		= nf_flow_offload_inet_hook,
-+	.owner		= THIS_MODULE,
-+};
-+
- static struct nf_flowtable_type flowtable_inet = {
- 	.family		= NFPROTO_INET,
- 	.init		= nf_flow_table_init,
-@@ -97,6 +107,7 @@ static struct nf_flowtable_type flowtable_ipv6 = {
- 
- static int __init nf_flow_inet_module_init(void)
- {
-+	nft_register_flowtable_type(&flowtable_bridge);
- 	nft_register_flowtable_type(&flowtable_ipv4);
- 	nft_register_flowtable_type(&flowtable_ipv6);
- 	nft_register_flowtable_type(&flowtable_inet);
-@@ -109,6 +120,7 @@ static void __exit nf_flow_inet_module_exit(void)
- 	nft_unregister_flowtable_type(&flowtable_inet);
- 	nft_unregister_flowtable_type(&flowtable_ipv6);
- 	nft_unregister_flowtable_type(&flowtable_ipv4);
-+	nft_unregister_flowtable_type(&flowtable_bridge);
- }
- 
- module_init(nf_flow_inet_module_init);
-@@ -118,5 +130,6 @@ MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
- MODULE_ALIAS_NF_FLOWTABLE(AF_INET);
- MODULE_ALIAS_NF_FLOWTABLE(AF_INET6);
-+MODULE_ALIAS_NF_FLOWTABLE(AF_BRIDGE);
- MODULE_ALIAS_NF_FLOWTABLE(1); /* NFPROTO_INET */
- MODULE_DESCRIPTION("Netfilter flow table mixed IPv4/IPv6 module");
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index b9e6d9e6df66..c95fad495460 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -116,6 +116,11 @@ static void nft_dev_path_info(const struct net_device_path_stack *stack,
+ 				break;
+ 			if (path->type == DEV_PATH_DSA) {
+ 				i = stack->num_paths;
++				if (!info->num_encaps ||
++				    !(info->ingress_vlans & BIT(info->num_encaps - 1)))
++					break;
++				info->num_encaps--;
++				info->ingress_vlans &= ~BIT(info->num_encaps - 1);
+ 				break;
+ 			}
+ 			if (path->type == DEV_PATH_MTK_WDMA) {
 -- 
 2.47.1
 
