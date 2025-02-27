@@ -1,195 +1,181 @@
-Received: from mail-wm1-f50.google.com (mail-wm1-f50.google.com [209.85.128.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED36C26773B
-	for <netfilter-devel@vger.kernel.org>; Wed, 26 Feb 2025 06:37:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADAFB22ACF3
+	for <netfilter-devel@vger.kernel.org>; Thu, 27 Feb 2025 10:47:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740551856; cv=none; b=g7+bM1D0em9aGBtJInwj/A0EXa7YS0O+Nbt3Pf91j+PNDi1WJoPc8/4RUZBPU9WvHkxnLvMipHASdef9dma6Z0WynAe33O53YV7BWFZidDFKdJlfl5HEoTgw6RgkIlPHQHbghJxlhSNVb2+0v6Kwx+9e6d8NdFO8+C2FU1az6qk=
+	t=1740653266; cv=none; b=TaS65xvxwMJJt62h3BCCPWfAKRuKffkYC+ZlAMrZB+vX1JlJLTJYbKkyGQRgo1ql23ucWr/XbjaQKN3+oUE02RRMafc3DEmOjLYB2Jncl73PelRLVtrKn/BJBd2qyW6M0xztKGPTQOQo81yvoVf+tiGL1P7/MCRfRBk8cu0Pesg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740551856; c=relaxed/simple;
-	bh=lkTuLuczT0O92/0WTk3hbfX/h7x3DBVglemZBS1HxoM=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=XCFBNAXeqJnctVJiHdI+2LzgQ4hiw0Q+9glPmvrvnfO6rCWfBjiR+CSJX8B83IEG2rp0qPWWVuJ7cZ9C88jG+Cuij3ZvB4nfyI9RiMCJDfVev7VkY1SR03nrgtADNvo0s1ddfqJ3QaeGXvU2hsfd8JrJUQuGTiGnUfIh8tLlEV8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=LDQD2JPW; arc=none smtp.client-ip=209.85.128.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LDQD2JPW"
-Received: by mail-wm1-f50.google.com with SMTP id 5b1f17b1804b1-43948f77f1aso39488825e9.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Feb 2025 22:37:34 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1740551853; x=1741156653; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=TyNNbIK61cHYBw3j7+C3OAVBe4vRKwxQKHunqu8wKfY=;
-        b=LDQD2JPWGC7NjRQDO9y1WPhrmZtTxjjMdx28xnz2orpuRfT6ROAz19DBRaGti7mH0r
-         0ObU7q35PHBb5VO69hpnkzM7NOBhZ1NAZ+UT0CD1ogFdSufBmRZreOcuLGVAt6da3oeH
-         5PKzomZLC7/3XvB1B5mvlp/W/u40pUUaXzYsEyXCBCdxa6QaSPyysA/WmbDAb8Fbh6lA
-         3wvzUX9fH4Au/GWzQAZdx9MOMifkEkc/x4XOGgjO0bn2p6xS4Ux1Hqzse4dGh+5Rc0R/
-         TdIiC2f6EzcIb62cpMunQDy8vLhkGTufr90JIVgiIvjj7Xfw0JUFJ9Y9XkbtBKSPb1Co
-         c+5w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1740551853; x=1741156653;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=TyNNbIK61cHYBw3j7+C3OAVBe4vRKwxQKHunqu8wKfY=;
-        b=GvNJaZqHBZ64+qvh8ioMwYG9Hqga7AU8yaVMWh0LuHJOpWuXjg2YelC0/2E6MqK/Ui
-         zNpe8mphQycdSSD4Z8iXcP/4n2XCbYgMLhxNTrYToG0NE0RdAAiyBgIlg4O9S7N3lCOf
-         8DA+wBf+jGWkeEzmJ/H+9tO2xidTBstUfZCEeKBUdPo2Vxuf+miveQFmV0jXWIWcn0MI
-         E0QW6B/UJk3Q3hJF2mQmhvExbZ4DZW+iOq9tTptQuJ/6tNwgZSJiHoiIf4BxQD3PjizL
-         i6VXAuNoGqEhxHzy6XaPQwjzGrCFI9wMDHwq8ZrNtxHCFKBDKwat3L8Nmqm4z2JTmXu6
-         KBLw==
-X-Gm-Message-State: AOJu0YwfarAxKP0ybMJrzB92tCz4UBf55A5Rop31rXI1kNtSZKalIViS
-	9++DJJXWRvrqQa9yboWwHfiDCpAMrrv4ifgcJwHkgtfMlSwFddwEs8d7BGNewQdoWU6dZRuqWwN
-	1xoUF90/wxDBntUCOCRWNZeoFOjKin4DpSWQ=
-X-Gm-Gg: ASbGncuqMM9oSYXM55kaLyWy0PUBvOijYiFF+O7IrERqvH/b9ClfxbXOqggFghFl+hX
-	M/aWxrkhsbnS2h090QgcIxuSZmT9E8v1lmqElVPzEmNw+SbwGZPtqaujrkIIFmkoL2Yi/GtjCY4
-	dh5RfthQ==
-X-Google-Smtp-Source: AGHT+IGpf2tGMqzvllEIm90ExVT252WBp8CyKHG2ZFoVRZeJVbs7oE+3OtSyWPawRBqNOOl+BiO/Yk2CWlxZYCnKCzM=
-X-Received: by 2002:a05:600c:4fcc:b0:439:9ac3:a8b3 with SMTP id
- 5b1f17b1804b1-43ab0f426d2mr53073555e9.18.1740551852998; Tue, 25 Feb 2025
- 22:37:32 -0800 (PST)
+	s=arc-20240116; t=1740653266; c=relaxed/simple;
+	bh=Kr4ptLEQ/y58tsTSHTeT3fReazKd3qjZe2EknapJE74=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Dc9erqKE7bGsrTxvaiuzQYWKGYUw/K2oEh3uA1SyDT+rylWp2/6tkiWqU2twTfUYye41mYbdC6IKQ5znz4uWCyUWlpaiEJfD73DNOit2tsjM8Zuw+r8e1DntqCdJs/HPTkgSI8jw1+FyKZsOqXpO+0u97XVy6Ihvj8GvggO/Y/8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1tnbQV-00009n-Tw; Thu, 27 Feb 2025 11:47:35 +0100
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>,
+	Xiao Liang <shaw.leon@gmail.com>
+Subject: [PATCH nft] payload: don't kill dependency for proto_th
+Date: Thu, 27 Feb 2025 11:47:02 +0100
+Message-ID: <20250227104705.9283-1-fw@strlen.de>
+X-Mailer: git-send-email 2.45.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250225100319.18978-1-shaw.leon@gmail.com> <Z74pePZKnP1QcJBm@strlen.de>
-In-Reply-To: <Z74pePZKnP1QcJBm@strlen.de>
-From: Xiao Liang <shaw.leon@gmail.com>
-Date: Wed, 26 Feb 2025 14:36:56 +0800
-X-Gm-Features: AQ5f1JolQxOZt8yndI_TplOSKqUuVPvTwlQXl3Oxf87yU0CKlzAcVdUJ4vQneLg
-Message-ID: <CABAhCORJmkJ=W17LM8m+Qtif2LuQmb-Jm2jAQqOg_xtwtgk3mw@mail.gmail.com>
-Subject: Re: [RFC PATCH nft] payload: Don't kill dependency for proto_th
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Wed, Feb 26, 2025 at 4:38=E2=80=AFAM Florian Westphal <fw@strlen.de> wro=
-te:
->
-> Xiao Liang <shaw.leon@gmail.com> wrote:
-> > Since proto_th carries no information about the proto number, we need t=
-o
-> > preserve the L4 protocol expression.
-> >
-> > For example, if "meta l4proto 91 @th,0,16 0" is simplified to
-> > "th sport 0", the information of protocol number is lost. This patch
-> > changes it to "meta l4proto 91 th sport 0".
-> >
-> > Signed-off-by: Xiao Liang <shaw.leon@gmail.com>
-> > ---
-> >
-> > Technically, if port is not defined for the L4 protocol, it's better to
-> > keep "@th,0,16" as raw payload expressions rather than "th sport". But
-> > it's not easy to figure out the context.
->
-> Yes, this is also because we don't store dependencies like
-> 'meta l4proto { tcp, udp }', so we don't have access to this info when
-> we see the @th,0,16 load.
->
-> What do you make of this (it will display @th syntax for your test case)?
+proto_th carries no information about the proto number, we need to
+preserve the L4 protocol expression unless we can be sure that
 
-Looks good. I think this can cover most of the use cases. We don't
-usually mix protocols when matching L4 header fields other than ports.
-Thanks!
+For example, if "meta l4proto 91 @th,0,16 0" is simplified to
+"th sport 0", the information of protocol number is lost.
 
->
-> diff --git a/src/payload.c b/src/payload.c
-> --- a/src/payload.c
-> +++ b/src/payload.c
-> @@ -851,6 +851,58 @@ static bool payload_may_dependency_kill_ll(struct pa=
-yload_dep_ctx *ctx, struct e
->         return true;
->  }
->
-> +static bool l4proto_has_ports(struct payload_dep_ctx *ctx, struct expr *=
-expr)
-> +{
-> +       uint8_t v;
-> +
-> +       assert(expr->etype =3D=3D EXPR_VALUE);
-> +
-> +       if (expr->len !=3D 8)
-> +               return false;
-> +
-> +       v =3D mpz_get_uint8(expr->value);
-> +
-> +       switch (v) {
-> +       case IPPROTO_UDPLITE:
-> +       case IPPROTO_UDP:
-> +       case IPPROTO_TCP:
-> +       case IPPROTO_DCCP:
-> +       case IPPROTO_SCTP:
-> +               return true;
-> +       }
-> +
-> +       return false;
-> +}
-> +
-> +static bool payload_may_dependency_kill_th(struct payload_dep_ctx *ctx, =
-struct expr *expr)
-> +{
-> +       struct expr *dep =3D payload_dependency_get(ctx, expr->payload.ba=
-se);
-> +       enum proto_bases b;
-> +
-> +       switch (dep->left->etype) {
-> +       case EXPR_PAYLOAD:
-> +               b =3D dep->left->payload.base;
-> +               break;
-> +       case EXPR_META:
-> +               b =3D dep->left->meta.base;
-> +               break;
-> +       default:
-> +               return false;
-> +       }
-> +
-> +       if (b !=3D PROTO_BASE_NETWORK_HDR)
-> +               return false;
-> +
-> +       switch (dep->right->etype) {
-> +       case EXPR_VALUE:
-> +               return l4proto_has_ports(ctx, dep->right);
-> +       default:
-> +               break;
-> +       }
-> +
-> +       return false;
-> +}
-> +
->  static bool payload_may_dependency_kill(struct payload_dep_ctx *ctx,
->                                         unsigned int family, struct expr =
-*expr)
->  {
-> @@ -893,6 +945,15 @@ static bool payload_may_dependency_kill(struct paylo=
-ad_dep_ctx *ctx,
->         if (expr->payload.base !=3D PROTO_BASE_TRANSPORT_HDR)
->                 return true;
->
-> +       if (expr->payload.desc =3D=3D &proto_th) {
-> +               if (payload_may_dependency_kill_th(ctx, expr))
-> +                       return true;
-> +
-> +               /* prefer @th syntax, we don't have a 'source/destination=
- port' protocol */
-> +               expr->payload.desc =3D &proto_unknown;
-> +               return false;
-> +       }
-> +
->         if (dep->left->etype !=3D EXPR_PAYLOAD ||
->             dep->left->payload.base !=3D PROTO_BASE_TRANSPORT_HDR)
->                 return true;
->
->
-> It would make sense to NOT set &proto_th from payload_init_raw(), but
-> that would place significant burden on netlink_delinearize to
-> pretty-print the typical use case for this, i.e.
->
-> 'meta l4proto { tcp, udp } th dport 53 accept'
->
+Based on initial patch from Xiao Liang.
+
+Signed-off-by: Xiao Liang <shaw.leon@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/netlink_delinearize.c         |  1 +
+ src/payload.c                     | 16 ++++++++++++++--
+ tests/py/any/rawpayload.t         |  1 +
+ tests/py/any/rawpayload.t.json    | 31 +++++++++++++++++++++++++++++++
+ tests/py/any/rawpayload.t.payload |  8 ++++++++
+ 5 files changed, 55 insertions(+), 2 deletions(-)
+
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 86c8602860f6..b629916ebff8 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -2102,6 +2102,7 @@ static void payload_match_expand(struct rule_pp_ctx *ctx,
+ 		 */
+ 		payload_dependency_kill(&dl->pdctx, nexpr->left,
+ 					dl->pctx.family);
++		expr_set_type(tmp, nexpr->left->dtype, nexpr->byteorder);
+ 		if (expr->op == OP_EQ && left->flags & EXPR_F_PROTOCOL)
+ 			payload_dependency_store(&dl->pdctx, nstmt, base);
+ 	}
+diff --git a/src/payload.c b/src/payload.c
+index ee6b39a34cb4..018719751103 100644
+--- a/src/payload.c
++++ b/src/payload.c
+@@ -812,7 +812,7 @@ static bool icmp_dep_type_match(enum icmp_hdr_field_type t, uint8_t type)
+ 	BUG("Missing icmp type mapping");
+ }
+ 
+-static bool payload_may_dependency_kill_icmp(struct payload_dep_ctx *ctx, struct expr *expr)
++static bool payload_may_dependency_kill_icmp(struct payload_dep_ctx *ctx, const struct expr *expr)
+ {
+ 	const struct expr *dep = payload_dependency_get(ctx, expr->payload.base);
+ 	enum icmp_hdr_field_type icmp_dep;
+@@ -832,7 +832,7 @@ static bool payload_may_dependency_kill_icmp(struct payload_dep_ctx *ctx, struct
+ 	return ctx->icmp_type == icmp_dep_to_type(icmp_dep);
+ }
+ 
+-static bool payload_may_dependency_kill_ll(struct payload_dep_ctx *ctx, struct expr *expr)
++static bool payload_may_dependency_kill_ll(struct payload_dep_ctx *ctx, const struct expr *expr)
+ {
+ 	const struct expr *dep = payload_dependency_get(ctx, expr->payload.base);
+ 
+@@ -894,6 +894,18 @@ static bool payload_may_dependency_kill(struct payload_dep_ctx *ctx,
+ 	if (expr->payload.base != PROTO_BASE_TRANSPORT_HDR)
+ 		return true;
+ 
++	if (expr->payload.desc == &proto_th) {
++		/* &proto_th could mean any of udp, tcp, dccp, ... so we
++		 * cannot remove the dependency.
++		 *
++		 * Also prefer raw payload @th syntax, there is no
++		 * 'source/destination port' protocol here.
++		 */
++		expr->payload.desc = &proto_unknown;
++		expr->dtype = &xinteger_type;
++		return false;
++	}
++
+ 	if (dep->left->etype != EXPR_PAYLOAD ||
+ 	    dep->left->payload.base != PROTO_BASE_TRANSPORT_HDR)
+ 		return true;
+diff --git a/tests/py/any/rawpayload.t b/tests/py/any/rawpayload.t
+index 745b4a615e6c..118f58fd0f75 100644
+--- a/tests/py/any/rawpayload.t
++++ b/tests/py/any/rawpayload.t
+@@ -21,6 +21,7 @@ meta l4proto tcp @th,16,16 { 22, 23, 80};ok;tcp dport { 22, 23, 80}
+ @ll,0,128 0xfedcba987654321001234567890abcde;ok
+ 
+ meta l4proto 91 @th,400,16 0x0 accept;ok
++meta l4proto 91 @th,0,16 0x0 accept;ok
+ 
+ @ih,32,32 0x14000000;ok
+ @ih,58,6 set 0 @ih,86,6 set 0 @ih,170,22 set 0;ok;@ih,58,6 set 0x0 @ih,86,6 set 0x0 @ih,170,22 set 0x0
+diff --git a/tests/py/any/rawpayload.t.json b/tests/py/any/rawpayload.t.json
+index 4a06c5987a7b..04ed0acf1ed0 100644
+--- a/tests/py/any/rawpayload.t.json
++++ b/tests/py/any/rawpayload.t.json
+@@ -187,6 +187,37 @@
+     }
+ ]
+ 
++# meta l4proto 91 @th,0,16 0x0 accept
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "l4proto"
++                }
++            },
++            "op": "==",
++            "right": 91
++        }
++    },
++    {
++        "match": {
++            "left": {
++                "payload": {
++                    "base": "th",
++                    "len": 16,
++                    "offset": 0
++                }
++            },
++            "op": "==",
++            "right": 0
++        }
++    },
++    {
++        "accept": null
++    }
++]
++
+ # @ih,32,32 0x14000000
+ [
+     {
+diff --git a/tests/py/any/rawpayload.t.payload b/tests/py/any/rawpayload.t.payload
+index 8984eef6a481..c093d5d8932f 100644
+--- a/tests/py/any/rawpayload.t.payload
++++ b/tests/py/any/rawpayload.t.payload
+@@ -56,6 +56,14 @@ inet test-inet input
+   [ cmp eq reg 1 0x00000000 ]
+   [ immediate reg 0 accept ]
+ 
++# meta l4proto 91 @th,0,16 0x0 accept
++inet test-inet input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x0000005b ]
++  [ payload load 2b @ transport header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x00000000 ]
++  [ immediate reg 0 accept ]
++
+ # @ih,32,32 0x14000000
+ inet test-inet input
+   [ payload load 4b @ inner header + 4 => reg 1 ]
+-- 
+2.45.3
+
