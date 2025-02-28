@@ -1,119 +1,169 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f65.google.com (mail-ej1-f65.google.com [209.85.218.65])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7381B140E5F;
-	Fri, 28 Feb 2025 02:09:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F7C326F444
+	for <netfilter-devel@vger.kernel.org>; Fri, 28 Feb 2025 16:52:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.65
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740708555; cv=none; b=qFUHn6APUVBPjX8C7PeW6WmrmIBfA55Th3uLxp2hTywbCIlqRgsjFHbQLudDWZT7bzkbY+yZr37ciAJKo9rwHJUEzYGF+vdmsP/knKODx2CE393int7tJ+yJOqKtgHJYEtXl2zDJDv7LU87QKwt1UYJsF3a5zZv6LvEI0IopRUU=
+	t=1740761542; cv=none; b=R6TttuTLD6mgWtRih9CIq0YviWcoNL4yRFnYmeEfuYeAycJwJjWKZ1OT7rIkuqsIASgNryObyK7P6eSStuAqDW7Way/A/wm/O94aZ5N2LPk0aeqPo1249Su74gCZzuJVvsCp3lFZq6PvTdoGWDqtCcxkbkNVQYL+C2/KBBdOPdo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740708555; c=relaxed/simple;
-	bh=7aXQGxqBnGBVomTgWjndFPyhUKxp6YcF8yQM4y03MzE=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=EqJ9MOUDsDRhiZqizPuAgOzg1KFjoIIQStpvcQAR1uR592jsREKRhFXc570/Y/ybspCq82qJ9LsFDOT8OU0QLN0Ax/ruyQgbG59yl7/cBvlg8DjjHCFsMgBq/Qylll7Y5uiOKflIEzjTc2jb8xkoa0mQmT6mjqSVKNbER6quRXQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=L0th/sWW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740761542; c=relaxed/simple;
+	bh=NsYtIP9Mw2b/nhaNRRDG6qj+beqFgzVf9yFx5qbgPTQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=gfhUQVZJQWmK1EZhquGnbz1SkXfIRqzeno8JA1X1Nw2czyzOq/YJ9dJYR9dw2UIElNka55sJzJFf3alN7uhVNS7mCcyh3UGzQFeTnzpceviD6UaxQ2BC0qqc5lPeGNhj0c3A7b7baVNXq522LtgAoKk+nXLIQroJASRzffpk6Vo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=YTkDYpJS; arc=none smtp.client-ip=209.85.218.65
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="L0th/sWW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDFDDC4CEDD;
-	Fri, 28 Feb 2025 02:09:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1740708555;
-	bh=7aXQGxqBnGBVomTgWjndFPyhUKxp6YcF8yQM4y03MzE=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=L0th/sWWHGU3L3ZB4L4y9cOzD8ByR6pb7+el6BvGsXLUQ8iqm6AEhKVmCMM0SSSbk
-	 yxRLSqd/t3znZTsdxXcUSj3O1jq9dUnMd1m/OcuNnJ3Ke107rfyH8mwXjNpJoIcV7W
-	 Iml0gPtdfeIFLn9DFnTYhtlj+UsFUcezC77UgAQ12XwIZOzmL7TG/KQfGrJVv+MS/T
-	 CUWT8KIb6lSF7c+Uc2JF3DugJOodiS/lWvBJXFxpza2vn5ZXDMb9xszU4d58GZPuTN
-	 FAepguvrmXrScWdc3m25CSbbATulrU+oy5Gd0w9ngI3XOqjq+uvIR4O8xV4AjXuzID
-	 Dym3U7UP3jeGA==
-Date: Thu, 27 Feb 2025 18:09:13 -0800
-From: Jakub Kicinski <kuba@kernel.org>
-To: Eric Woudstra <ericwouds@gmail.com>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
- <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Paolo Abeni
- <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, Pablo Neira Ayuso
- <pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>, Jiri Pirko
- <jiri@resnulli.us>, Ivan Vecera <ivecera@redhat.com>, Roopa Prabhu
- <roopa@nvidia.com>, Nikolay Aleksandrov <razor@blackwall.org>, Matthias
- Brugger <matthias.bgg@gmail.com>, AngeloGioacchino Del Regno
- <angelogioacchino.delregno@collabora.com>, Kuniyuki Iwashima
- <kuniyu@amazon.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Joe
- Damato <jdamato@fastly.com>, Alexander Lobakin
- <aleksander.lobakin@intel.com>, Vladimir Oltean <olteanv@gmail.com>, "Frank
- Wunderlich" <frank-w@public-files.de>, Daniel Golle
- <daniel@makrotopia.org>, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org, bridge@lists.linux.dev,
- linux-arm-kernel@lists.infradead.org, linux-mediatek@lists.infradead.org
-Subject: Re: [PATCH v7 net-next 03/14] netfilter: bridge: Add conntrack
- double vlan and pppoe
-Message-ID: <20250227180913.6248bbd3@kernel.org>
-In-Reply-To: <20250225201616.21114-4-ericwouds@gmail.com>
-References: <20250225201616.21114-1-ericwouds@gmail.com>
-	<20250225201616.21114-4-ericwouds@gmail.com>
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="YTkDYpJS"
+Received: by mail-ej1-f65.google.com with SMTP id a640c23a62f3a-abf3d64849dso83815766b.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Feb 2025 08:52:20 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=suse.com; s=google; t=1740761538; x=1741366338; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=DMEGjq6WjEVsV0tBdx2rpYvL0pVPJ8Xct6E1Q4Bt1js=;
+        b=YTkDYpJS9a21ha422hVk0M8FVi/r7w5KDTgauOPejHxA01oz21EZNje4EDQpBVgejx
+         G3uvmDgSjBjnPvTWQsCnaqX2miIy2PwJL+Wo6rqlHmcWfe9dha4dtAaPp7Uj0ixE4nK6
+         IovPR0tWI2cyyilIJNq32XUiwoEtmmaNOTbWYfo+czwwuM234dNhSYgGYot0QW5JvCXN
+         C9dV/Uy8A08m623K5emrCA6nu19+2NwAOxsipR/93D8rrujFYQZOPbPTvC3yGgvpyvtw
+         qRsHLUbM+eAjLjb4g+kck3HAgMjOziYyQag1o+3lMyZ7bqlfUB6SMMndfb1lOoWrbUsY
+         B10g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1740761538; x=1741366338;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=DMEGjq6WjEVsV0tBdx2rpYvL0pVPJ8Xct6E1Q4Bt1js=;
+        b=SriT5RExLG0k2tS5KBQbrNvOFFrXK5WtarQeMMak/Fh9azmHkdlv7DcxAXgUXLdkq+
+         F/r7Z1f0PES92B0XOf2S/1laAK0rhtzhhXxNdp4qhaBERwh555NuxEUiSIUDVvgWa8MD
+         Xxl1o1zq9n+tkkHjbP6gXmSmFmmJ9/loM6yaDRZU8RAPiPh4zCsaKfYnMXbt41huUV8P
+         61vPAOhgm7Ao+Oq6ELRm5XnfkSae/WiH/gmHEN7jVVQwwYaX9aC7PJOQ01qqGCLE4E+L
+         /3qy5bp0KHpMIsJceROmnssLO7jf/TUJOfvTKaHnaOyS/0meqlsANTII0RJKMvnQyza2
+         J/Sw==
+X-Gm-Message-State: AOJu0YwIzYd65dDW/mlA+T9+8ntAQKfagmRa5gv5NYMVK+y1jn5MzAdS
+	weQkbLDDo0khNI1zm9A+Sgz/myNJabEnaK4MaWi1bFN0p5nY1zCFG++7Yc2dVOT3W7WUDJWM/lz
+	bp/MhVw==
+X-Gm-Gg: ASbGncsDbyzf9wr1prvhXXnSuApXoZAzvqoTmAv2dlJANC3fEzuOswrCAr2YZ5YNrpk
+	wbdY5ISmBXxjYRkzFooxHNqUcR+wTFlZKAqxMMjXJ9w+taD1nYHwyWK+4Wpue4DXGiqnMCyox+n
+	v0xlSTRAllZDnMAno639VfyaDo7wKMe4aAz8qLW9SLBP5CB5T0XN8o9lnUew+hrVa9NWbzorIk3
+	GSm5hX0Mwbkt+bg4U4f3qg8qvfFSR9oUk3vs7KogZW81jitd6Lw3uSfgtn2PeLC2QhFEyNdlSg4
+	fvZO6B+kJZkMi79ekeQk7nedbVqQ
+X-Google-Smtp-Source: AGHT+IEs+LalzKtbPFpkKQgFWFd0Lu/RhKgnHSlViKu4ecCAJmjCZ0T6cL/fwlL89/H2Lwl2Cv9zFw==
+X-Received: by 2002:a05:6402:2790:b0:5df:6a:54ea with SMTP id 4fb4d7f45d1cf-5e4d6adc7a0mr7561214a12.11.1740761538383;
+        Fri, 28 Feb 2025 08:52:18 -0800 (PST)
+Received: from blackdock.suse.cz ([193.86.92.181])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-5e4c3b6d252sm2764784a12.26.2025.02.28.08.52.17
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 28 Feb 2025 08:52:17 -0800 (PST)
+From: =?UTF-8?q?Michal=20Koutn=C3=BD?= <mkoutny@suse.com>
+To: netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	cgroups@vger.kernel.org
+Subject: [PATCH] netfilter: Make xt_cgroup independent from net_cls
+Date: Fri, 28 Feb 2025 17:52:16 +0100
+Message-ID: <20250228165216.339407-1-mkoutny@suse.com>
+X-Mailer: git-send-email 2.48.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Tue, 25 Feb 2025 21:16:05 +0100 Eric Woudstra wrote:
-> +		struct ppp_hdr {
-> +			struct pppoe_hdr hdr;
-> +			__be16 proto;
-> +		} *ph;
+The xt_group matching supports the default hierarchy since commit
+c38c4597e4bf3 ("netfilter: implement xt_cgroup cgroup2 path match").
+The cgroup v1 matching (based on clsid) and cgroup v2 matching (based on
+path) are rather independent. Adjust Kconfig so that xt_group can be
+built even without CONFIG_NET_CLS_CGROUP for path matching. Also add a
+message for users when they attempt to specify any non-trivial clsid.
 
-W=1 C=1 GCC build gives us:
+Link: https://lists.opensuse.org/archives/list/kernel@lists.opensuse.org/thread/S23NOILB7MUIRHSKPBOQKJHVSK26GP6X/
+Signed-off-by: Michal Koutný <mkoutny@suse.com>
+---
+ net/netfilter/Kconfig     |  1 -
+ net/netfilter/xt_cgroup.c | 23 +++++++++++++++++++++++
+ 2 files changed, 23 insertions(+), 1 deletion(-)
 
-net/bridge/netfilter/nf_conntrack_bridge.c: note: in included file (through ../include/linux/if_pppox.h, ../include/uapi/linux/netfilter_bridge.h, ../include/linux/netfilter_bridge.h):
-include/uapi/linux/if_pppox.h:153:29: warning: array of flexible structures
-
-I'm guessing it doesn't like that hdr has a zero-length array which
-overlaps proto.
-
-Looks like kernel code doesn't current need those arrays.
-Could you submit something like the diff below first, and then rebase on top?
-CC hardening folks on the submission.
-
-diff --git a/drivers/net/ppp/pppoe.c b/drivers/net/ppp/pppoe.c
-index 2ea4f4890d23..3a800af4e987 100644
---- a/drivers/net/ppp/pppoe.c
-+++ b/drivers/net/ppp/pppoe.c
-@@ -881,7 +881,7 @@ static int pppoe_sendmsg(struct socket *sock, struct msghdr *m,
-        skb->protocol = cpu_to_be16(ETH_P_PPP_SES);
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index df2dc21304efb..af9350386033e 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -1180,7 +1180,6 @@ config NETFILTER_XT_MATCH_CGROUP
+ 	tristate '"control group" match support'
+ 	depends on NETFILTER_ADVANCED
+ 	depends on CGROUPS
+-	select CGROUP_NET_CLASSID
+ 	help
+ 	Socket/process control group matching allows you to match locally
+ 	generated packets based on which net_cls control group processes
+diff --git a/net/netfilter/xt_cgroup.c b/net/netfilter/xt_cgroup.c
+index c0f5e9a4f3c65..f30a62e803d22 100644
+--- a/net/netfilter/xt_cgroup.c
++++ b/net/netfilter/xt_cgroup.c
+@@ -23,6 +23,14 @@ MODULE_DESCRIPTION("Xtables: process control group matching");
+ MODULE_ALIAS("ipt_cgroup");
+ MODULE_ALIAS("ip6t_cgroup");
  
-        ph = skb_put(skb, total_len + sizeof(struct pppoe_hdr));
--       start = (char *)&ph->tag[0];
-+       start = (char *)ph + sizeof(*ph);
++static bool possible_classid(u32 classid)
++{
++	if (!IS_ENABLED(CONFIG_CGROUP_NET_CLASSID) && classid > 0)
++		return false;
++	else
++		return true;
++}
++
+ static int cgroup_mt_check_v0(const struct xt_mtchk_param *par)
+ {
+ 	struct xt_cgroup_info_v0 *info = par->matchinfo;
+@@ -30,6 +38,11 @@ static int cgroup_mt_check_v0(const struct xt_mtchk_param *par)
+ 	if (info->invert & ~1)
+ 		return -EINVAL;
  
-        error = memcpy_from_msg(start, m, total_len);
-        if (error < 0) {
-diff --git a/include/uapi/linux/if_pppox.h b/include/uapi/linux/if_pppox.h
-index 9abd80dcc46f..29b804aa7474 100644
---- a/include/uapi/linux/if_pppox.h
-+++ b/include/uapi/linux/if_pppox.h
-@@ -122,7 +122,9 @@ struct sockaddr_pppol2tpv3in6 {
- struct pppoe_tag {
-        __be16 tag_type;
-        __be16 tag_len;
-+#ifndef __KERNEL__
-        char tag_data[];
-+#endif
- } __attribute__ ((packed));
++	if (!possible_classid(info->id)) {
++		pr_info("xt_cgroup: invalid classid\n");
++		return -EINVAL;
++	}
++
+ 	return 0;
+ }
  
- /* Tag identifiers */
-@@ -150,7 +152,9 @@ struct pppoe_hdr {
-        __u8 code;
-        __be16 sid;
-        __be16 length;
-+#ifndef __KERNEL__
-        struct pppoe_tag tag[];
-+#endif
- } __packed;
+@@ -51,6 +64,11 @@ static int cgroup_mt_check_v1(const struct xt_mtchk_param *par)
+ 		return -EINVAL;
+ 	}
  
- /* Length of entire PPPoE + PPP header */
++	if (!possible_classid(info->classid)) {
++		pr_info("xt_cgroup: invalid classid\n");
++		return -EINVAL;
++	}
++
+ 	info->priv = NULL;
+ 	if (info->has_path) {
+ 		cgrp = cgroup_get_from_path(info->path);
+@@ -83,6 +101,11 @@ static int cgroup_mt_check_v2(const struct xt_mtchk_param *par)
+ 		return -EINVAL;
+ 	}
+ 
++	if (info->has_classid && !possible_classid(info->classid)) {
++		pr_info("xt_cgroup: invalid classid\n");
++		return -EINVAL;
++	}
++
+ 	info->priv = NULL;
+ 	if (info->has_path) {
+ 		cgrp = cgroup_get_from_path(info->path);
+
+base-commit: dd83757f6e686a2188997cb58b5975f744bb7786
 -- 
-pw-bot: cr
+2.48.1
+
