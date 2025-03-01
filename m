@@ -1,132 +1,107 @@
-Received: from mail-lj1-f173.google.com (mail-lj1-f173.google.com [209.85.208.173])
+Received: from mail-lf1-f52.google.com (mail-lf1-f52.google.com [209.85.167.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B80981C5F09
-	for <netfilter-devel@vger.kernel.org>; Sat,  1 Mar 2025 21:14:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E7521C5D7A
+	for <netfilter-devel@vger.kernel.org>; Sat,  1 Mar 2025 22:04:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740863682; cv=none; b=YNLJspPzHZQJcD0OVDkRGRuDH38zspW46ux4a5KGwpNRjNgnnMMpnqtVFHkUQEF325MhOx54kjGjMYDvB98DRBMlY7+ygKuazcRd7hV1t8D9JMTRWTftWcHUgtBSlhBuX6e/ImbwFJ9LIAv9eFwMcNkxgPyH8/qL8tKUa600m4o=
+	t=1740866687; cv=none; b=XZjHEwK4ZsFQ+N5HPbWrZ35G84TOE5Rfjy6cPadTJVPq0fIfG0b0gSpcyDL8lMGdXeqRbAVcQBw7gTnuVPhEqJurGwoQBPtRU5P4Yl0kylCzC/9ebBzHx5neCP4ggGdUEwnNDzjAjSf64XqnYxxaFOCtJGV84NANMQXzQqxVSso=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740863682; c=relaxed/simple;
-	bh=oJ5p5QNS4jew4KO7TmIataiu70/Zb6lcTB4h/tqJ7Oc=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=um7TYxVs+ISjjm97vYdfP/f9JKhhX0pomO3aE3hej10rj/cBH+e56PXnO9H0zw8yT72/9z+HwLxKg2tEaHx2jCZVrYn/syLazIesFrf9pPhMua7KWcAYL62kOzm8orehcJk4ONk5mzMNXNqNOXCuOfSjY8FPqTHBlbAO/KtWUEo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XzAUDWKj; arc=none smtp.client-ip=209.85.208.173
+	s=arc-20240116; t=1740866687; c=relaxed/simple;
+	bh=CzY6viouTmFtrht2CZWVyaEAKbKkDvDGOa6Xu/gAov0=;
+	h=Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:
+	 Message-Id:References:To; b=NNSEPIWeeiFlEuifmr0KKH40Lh2bicXWjTvRNIp6fAz1vOYrHI/W8x61i94kMtAqAbFOFGBMn4fPsas2xKTjbkJC/VlaSLBF/nxZwJGzlrNOUCagM6pHpE4mT7N45/1CpmYSnGkD11ZhUDicM1faQWSmmmac1YhR5iuInfUzzLQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=RV1O/90a; arc=none smtp.client-ip=209.85.167.52
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XzAUDWKj"
-Received: by mail-lj1-f173.google.com with SMTP id 38308e7fff4ca-30ba92c846eso5371051fa.3
-        for <netfilter-devel@vger.kernel.org>; Sat, 01 Mar 2025 13:14:40 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RV1O/90a"
+Received: by mail-lf1-f52.google.com with SMTP id 2adb3069b0e04-5494cb8c2e7so2241169e87.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 01 Mar 2025 14:04:45 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1740863679; x=1741468479; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=vnbs3xiYiim0CNCB0BgOFmgWWANpZ5m4sFJVTBEgo2M=;
-        b=XzAUDWKjIPSzWPsOzFWUiTOwWpl8P94/guahbbdmeJM6giCveN+PdvQCpFpbYe+1qW
-         ovdlOQxD6XYl4d8vATEY2VaWcwp/Spq68VeD9SwZIxoC/HTRqaYBERPBaijsd7+tAbOa
-         DZRCvt83zfEE81Hbb1BXjiwLbSOkiTTTj0Do7HNkvWtYgy7FLqMSlL6cd0Rx7VioRd6j
-         XO6dMLSf9zX4JIl4LFBQ2F4VNx+fOB135l/+LhR2WCvyJLUPrgl8eZGstCUmt8CPxdYU
-         UNOl3oLz50JudYWT+AQtIoJk/YCGaZKhsCRQq4lN0nwBnvV19L24uz7q8DotHQl5D5io
-         Eb6w==
+        d=gmail.com; s=20230601; t=1740866683; x=1741471483; darn=vger.kernel.org;
+        h=to:references:message-id:content-transfer-encoding:cc:date
+         :in-reply-to:from:subject:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=CzY6viouTmFtrht2CZWVyaEAKbKkDvDGOa6Xu/gAov0=;
+        b=RV1O/90aC/7NjdMqHFlFWWtResAbNrlKzL+gIg1ZtN+90Q03VneHdDJIHWlde8Xgm9
+         NsQzXl0r1UxLCA8+xClOlyqdI/3YPXzyMDNMfjTTfd1/pnucU75f1pylW+gAX/FG2qCt
+         0sKNZF4NHe05mt1wFRMEpfZq3WxAefm5L6VozzSGVRSNYNQe8r1xMAZIPNz0FV84okCd
+         txJZGpnB4I20zVAR1aS8P1so28X+Vvm/Zgsgtoke4pYaDUYn51UUOIyYX/ldEpPy3+oa
+         8DcNXiS3xswsXx6u9LDsq9Jng+VplKemxA6U6/uSMjf77DktPMjgEvF5Gl6oMxXgGKWY
+         ASjA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1740863679; x=1741468479;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=vnbs3xiYiim0CNCB0BgOFmgWWANpZ5m4sFJVTBEgo2M=;
-        b=MCM262Y3lGQkoDXKeGO1M7oDQ7pIM45Tx8GLCewS10K0tFi0x0rH4iOJLHUAfjNYpx
-         HzifyYOWM6A+GN2pjFyAgcBf8a7NWxpK5DiVDximsKaCdRIA6OpnJrIPzW1P2H2Rityc
-         Pi54hXPQT55bu4SxGc94u7VXxsLpFDiY8fGc9fTtR5CPcTonI/7vmfbI069xoK+TUInq
-         G4H2bsDScKP/AJWYGQy8YF6eA78u4ttIMtFly4kFyg6u7V0CT921zzRJ/XK5tCUCAkbs
-         M99e8oANdjfb7gt161iFZsfjVDGo3Z8USCjf/4RnI9CDYK6XlKEot4h+oMPb86Oheujz
-         H7pQ==
-X-Gm-Message-State: AOJu0Yyybvm00jt6iFWQMAqD5kRRoNSMpfOCaufA3E5yH0Im9HofCVaA
-	cBHR3anzMg9cqWtrmbgLK9diiTrxeRPWgxqh7SUYSfY6uXcWV9arDKnJMA2F
-X-Gm-Gg: ASbGncsaiVIIThQMJC/UeDEwkllVTIbr8OrB8NC5t8oxVLS4/PIUJ6ISafzZnqhJHPj
-	5Jx3uhNCn3tp2aB9bm4Hifv6WycmsKTGGN+if8de3om5HzMVnBDHrCypfX2aX16/Mw3FEs0H3wK
-	oxJLf8UWln94++Q4DdijABFc8IOAkbv/F6Vq68IMe0vb4eYmCYcO+W13pXnpk1CpK6Ub+x+W2kU
-	tWRom/02aXsAujPGIOAjnMmD6LdIq9vBGoWtEat9dAa0RfE+Jsq2VawGkVQAakKqJ4mr/zKqHgA
-	rcNGKKvbpjBC7krLKVIpLWtPH4irHC7dSUmcbdr8kFjTuQYsRn8RMRC1
-X-Google-Smtp-Source: AGHT+IErJJ4RMeB9RQx5lt4idpIcQBDcLOrgAwwFQ6XqsHJbcWgeeenZ+yteL5K2xMNuc7aHFTwsOw==
-X-Received: by 2002:a2e:bea2:0:b0:308:f75f:440 with SMTP id 38308e7fff4ca-30b932215d2mr34806881fa.9.1740863678279;
-        Sat, 01 Mar 2025 13:14:38 -0800 (PST)
-Received: from localhost.localdomain ([195.16.41.104])
-        by smtp.gmail.com with ESMTPSA id 38308e7fff4ca-30b8f2964cbsm7071291fa.28.2025.03.01.13.14.37
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 01 Mar 2025 13:14:37 -0800 (PST)
-From: Alexey Kashavkin <akashavkin@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Cc: Alexey Kashavkin <akashavkin@gmail.com>
-Subject: [PATCH] netfilter: nft_exthdr: fix offset with ipv4_find_option()
-Date: Sun,  2 Mar 2025 00:14:36 +0300
-Message-Id: <20250301211436.2207-1-akashavkin@gmail.com>
-X-Mailer: git-send-email 2.39.2
+        d=1e100.net; s=20230601; t=1740866683; x=1741471483;
+        h=to:references:message-id:content-transfer-encoding:cc:date
+         :in-reply-to:from:subject:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=CzY6viouTmFtrht2CZWVyaEAKbKkDvDGOa6Xu/gAov0=;
+        b=pDu5tLhAlvPqSwm31y5VHsQLlBZCCz4Aa6tROaSBeBUKlj+Kb6lFEy+eo3ukEBgcXJ
+         jBGCAaD14aJ+v9ZOw6l2X3nvp9lUS88IbQx75XbmEJYtk87M76UtBK0F2UFABLOEGkk9
+         WPHVzfDuWdBOqlFZQHib/xc73TK/1ADYC2QaD8MxrB+2veN+imy5QmqVsCsVg/ACsuae
+         08CG7tZY0ZV18IsqcYnqxFkh0QUMiGHiKN8kBXGdguLW0B7kJjKlL6BDoS27ebzO2etS
+         6Y3cg5kDFk0ou9QD6nXY3AV1ad+QKXhO53vfXNQj30pHJH6hDK6KuFyxa1zzLRr/3V85
+         zHhA==
+X-Gm-Message-State: AOJu0YzErufEIRdcgiT+h8MptrxmVj9egZXMBsMHe5lmtrcZdNNBx+WP
+	DIqa3jXViKTbVYjhBnhuGP2OY/cEksGZD2l5Vrxcmc/LbAn3uKOfuQMLzm/C
+X-Gm-Gg: ASbGnctoGMM3cpoARSSlxRqHkfOjvSgO/jkUDJ5B5dqi7CALMo4QHbufZNKyac2QRNe
+	lMcBt8Voo6HQyw0CF5LO9GwrwB9iK/6tcxXl5FZH4Oq+Q4wU3/dNvrTx7AO3xDtf7OHRpwEMZYT
+	11mPkBIjbWQ7kxbsVRm4MsFikXIiudbEhTu003/PoIwGjfxyDvYEd4lN6faqN3W5NrF+HVQThaJ
+	UmbwfvX6eb8R6YIGuDBFY8NT0++mrZBwEZwPRJAg0ALcBGvz0ndPif7j5XAOg4OkyPJh5En9a9P
+	bRSHqIZWzY+RUEFT+4eD6Dq3KLI4+aFH8c4rBRoO4T2mxG7Vjdkv3WX4vYId06s=
+X-Google-Smtp-Source: AGHT+IGuPciK5gBBoYsrQ5YDbah5SEuiJ6+SzZj4HbR7gIaO2HLl7+ZseKVZqMXinNrUki3FmNAbTw==
+X-Received: by 2002:a05:6512:3406:b0:545:c89:2bb4 with SMTP id 2adb3069b0e04-5494c330ab6mr3264936e87.23.1740866683119;
+        Sat, 01 Mar 2025 14:04:43 -0800 (PST)
+Received: from smtpclient.apple ([213.87.159.115])
+        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-5495d268a42sm157116e87.175.2025.03.01.14.04.41
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Sat, 01 Mar 2025 14:04:42 -0800 (PST)
+Content-Type: text/plain;
+	charset=utf-8
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3776.700.51\))
+Subject: Re: [PATCH] netfilter: nft_exthdr: fix offset with ipv4_find_option()
+From: Alexey Kashavkin <akashavkin@gmail.com>
+In-Reply-To: <20250301211436.2207-1-akashavkin@gmail.com>
+Date: Sun, 2 Mar 2025 01:04:31 +0300
+Cc: Alexey Kashavkin <akashavkin@gmail.com>
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <B89DC7E1-9DA1-4B38-96EF-F2AB021F62C9@gmail.com>
+References: <20250301211436.2207-1-akashavkin@gmail.com>
+To: netfilter-devel@vger.kernel.org
+X-Mailer: Apple Mail (2.3776.700.51)
 
-There is an incorrect calculation in the offset variable which causes the nft_skb_copy_to_reg() function to always return -EFAULT. Adding the start variable is redundant. In the __ip_options_compile() function the correct offset is specified when finding the function. There is no need to add the size of the iphdr structure to the offset.
+Rules such as the following will always result in the NFT_BREAK verdict =
+code:
 
-Signed-off-by: Alexey Kashavkin <akashavkin@gmail.com>
----
- net/netfilter/nft_exthdr.c | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+# filter input ip option rr ptr 4 counter
 
-diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-index b8d03364566c..c74012c99125 100644
---- a/net/netfilter/nft_exthdr.c
-+++ b/net/netfilter/nft_exthdr.c
-@@ -85,7 +85,6 @@ static int ipv4_find_option(struct net *net, struct sk_buff *skb,
- 	unsigned char optbuf[sizeof(struct ip_options) + 40];
- 	struct ip_options *opt = (struct ip_options *)optbuf;
- 	struct iphdr *iph, _iph;
--	unsigned int start;
- 	bool found = false;
- 	__be32 info;
- 	int optlen;
-@@ -93,7 +92,6 @@ static int ipv4_find_option(struct net *net, struct sk_buff *skb,
- 	iph = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
- 	if (!iph)
- 		return -EBADMSG;
--	start = sizeof(struct iphdr);
- 
- 	optlen = iph->ihl * 4 - (int)sizeof(struct iphdr);
- 	if (optlen <= 0)
-@@ -103,7 +101,7 @@ static int ipv4_find_option(struct net *net, struct sk_buff *skb,
- 	/* Copy the options since __ip_options_compile() modifies
- 	 * the options.
- 	 */
--	if (skb_copy_bits(skb, start, opt->__data, optlen))
-+	if (skb_copy_bits(skb, sizeof(struct iphdr), opt->__data, optlen))
- 		return -EBADMSG;
- 	opt->optlen = optlen;
- 
-@@ -118,18 +116,18 @@ static int ipv4_find_option(struct net *net, struct sk_buff *skb,
- 		found = target == IPOPT_SSRR ? opt->is_strictroute :
- 					       !opt->is_strictroute;
- 		if (found)
--			*offset = opt->srr + start;
-+			*offset = opt->srr;
- 		break;
- 	case IPOPT_RR:
- 		if (!opt->rr)
- 			break;
--		*offset = opt->rr + start;
-+		*offset = opt->rr;
- 		found = true;
- 		break;
- 	case IPOPT_RA:
- 		if (!opt->router_alert)
- 			break;
--		*offset = opt->router_alert + start;
-+		*offset = opt->router_alert;
- 		found = true;
- 		break;
- 	default:
--- 
-2.39.2
+Because the function nft_skb_copy_to_reg() returns -EFAULT. This happens =
+because in the skb_copy_bits() function the 'offset > (int)skb->len - =
+len' condition causes a jump to the fault part of the code.
 
+You can verify this with two virtual machines and the python scapy =
+library.
+
+Configure the nftables rule on some virtual machine. =46rom another =
+virtual machine, use scapy to send packet with IP option:
+
+# python3 -m scapy
+# >>> send(IP(dst=3D'x.x.x.x', options=3DIPOption_RR())/ICMP())
+# .
+# Sent 1 packets.
+
+The 'rr exists counter' rule will show the receiving of one packet, and =
+the 'rr ptr 4 counter' rule will not increment the counter. After =
+applying the patch from the previous email, the 'rr ptr 4 counter' rule =
+will increment the counter. This will happen with other options as well. =
+But for lsrr and ssrr, you must send the packet with the routers =
+parameter filled in. This is due to checks in __ip_options_compile() =
+function.
+
+# send(IP(dst=3D=E2=80=98x.x.x.x', =
+options=3DIPOption_LSRR(routers=3D[=E2=80=98x.x.x.x']))/ICMP())=
