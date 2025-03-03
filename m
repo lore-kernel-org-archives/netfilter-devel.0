@@ -1,130 +1,75 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EF2B2144D5
-	for <netfilter-devel@vger.kernel.org>; Mon,  3 Mar 2025 19:38:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7EA3A11CA9;
+	Mon,  3 Mar 2025 20:57:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741030720; cv=none; b=un3FocZ6gJ2+nF3bzaAE8l5Ms3fskKxDqv0cSavpQKCQozLK5woAMudmNxKKRfQKy6CqYSIorJhGg7B76X/cHKG/dsGkpGkJOdzd1YyHcJ5+R03uVe36YRJVVKhnu0qME3vgIkvHEyZzEKjJu63EKkNcbiWeCnOrZJvUTGLAeyM=
+	t=1741035426; cv=none; b=jeYpJ0liGmJ1vE4D5caevM3EhV/8OGY8pUMPITOb5hRDGKCVGl6YwZpj4iqJTbe3sB0+vT5G2SFBdnyw9NLRF+rC0xjOZvav6a0r9ir/gc/aUpyIpGOODCxzYOZklZSXifHG1Fs4OkKAhafCoBF5k5hvhGZbd/AxcKi9SKaoBi0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741030720; c=relaxed/simple;
-	bh=2t53YoyawXVqCyQdfu7V8nyUHTji0AISTQRD/0eZAZ0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=i+NmImckIUANqT/u6E4Sti5TVu9d+YUgto4x5RLSLTmU5yGjzCQKTudL/Nza18XdofGv9sm5jrNe8Mos7yz4WwcE6B0HruLwWXaYxAD6byVMEP4u0RigSiQimNJVpA5PvTKY5RMcsblkLkTXS4JkakWyLemm3+DT83KKxwRoz+E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1tpBcY-0004U5-Bz; Mon, 03 Mar 2025 20:38:34 +0100
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] tests: add atomic chain replace test
-Date: Mon,  3 Mar 2025 20:38:20 +0100
-Message-ID: <20250303193829.570630-1-fw@strlen.de>
-X-Mailer: git-send-email 2.48.1
+	s=arc-20240116; t=1741035426; c=relaxed/simple;
+	bh=wkPrI5PI4gOi80WWVhId6dzA8Q9owv5JCghvbzkIVPM=;
+	h=Message-ID:Date:MIME-Version:Cc:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=n3JG0wtFH7R04RvBbbe2Lan+zeQvGgYpxE6cf61o7ycytzdSj80DvaQNBGewJLGpDbW5Ai8XJpHgedJ29J+KA+kDstjKoza3UENdFAuXvnEXN9Ozapd4lZSc67ZngS6Uh1WwN026hXZX+QNTRSA5bhmBfmTrswRnrjjiUhGldrU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=WFd+7kVM; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="WFd+7kVM"
+Received: from [192.168.35.166] (c-24-22-154-137.hsd1.wa.comcast.net [24.22.154.137])
+	by linux.microsoft.com (Postfix) with ESMTPSA id 860C12110483;
+	Mon,  3 Mar 2025 12:57:04 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 860C12110483
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1741035424;
+	bh=3qh+61wOXo3xnM/WVr1EaxpXDMg9Qc5SkS1wS9/KCaA=;
+	h=Date:Cc:Subject:To:References:From:In-Reply-To:From;
+	b=WFd+7kVMwb8m/yRhGu82uGV6e/HKaH3YScqYDNg3VqULYlWwhYN1W/EwkQ+KpHk2M
+	 B+UrWMeoRFcHhvu9/IkXdfvLFS9RIsO/J8jsCs0ntQiYwMGh95feOKPx7lgiJPPiC7
+	 /EfD2TyFRiTmU900qpo0PnuB9Rpe0/+ft8U6VJfk=
+Message-ID: <f0fa9bc3-159a-413f-a957-0298a55cf728@linux.microsoft.com>
+Date: Mon, 3 Mar 2025 12:57:09 -0800
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Cc: eahariha@linux.microsoft.com, Wenjia Zhang <wenjia@linux.ibm.com>,
+ Jan Karcher <jaka@linux.ibm.com>, "D. Wythe" <alibuda@linux.alibaba.com>,
+ Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
+ Pablo Neira Ayuso <pablo@netfilter.org>,
+ Jozsef Kadlecsik <kadlec@netfilter.org>, David Ahern <dsahern@kernel.org>,
+ linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
+ netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [PATCH net-next 0/3] Converge on using secs_to_jiffies() part two
+To: Jakub Kicinski <kuba@kernel.org>
+References: <20250219-netdev-secs-to-jiffies-part-2-v1-0-c484cc63611b@linux.microsoft.com>
+ <20250221162107.409ae333@kernel.org>
+From: Easwar Hariharan <eahariha@linux.microsoft.com>
+Content-Language: en-US
+In-Reply-To: <20250221162107.409ae333@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Add a test that replaces one base chain and check that no
-filtered packets make it through, i.e. that the 'old chain'
-doesn't disappear before new one is active.
+On 2/21/2025 4:21 PM, Jakub Kicinski wrote:
+> On Wed, 19 Feb 2025 20:30:35 +0000 Easwar Hariharan wrote:
+>> The conversion is made with Coccinelle with the secs_to_jiffies() script
+>> in scripts/coccinelle/misc. Attention is paid to what the best change
+>> can be rather than restricting to what the tool provides.
+>>
+>> The non-netdev patches that include the update to secs_to_jiffies.cocci to address
+>> expressions are here: https://lore.kernel.org/all/20250203-converge-secs-to-jiffies-part-two-v2-0-d7058a01fd0e@linux.microsoft.com
+> 
+> Can the secs_to_jiffies cocci check script finally run in report mode?
+> 
+> I think that needs to be fixed first, before we start "cleaning up"
+> existing code under net.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- .../testcases/transactions/atomic_replace.sh  | 73 +++++++++++++++++++
- .../dumps/atomic_replace.sh.nodump            |  0
- 2 files changed, 73 insertions(+)
- create mode 100755 tests/shell/testcases/transactions/atomic_replace.sh
- create mode 100644 tests/shell/testcases/transactions/dumps/atomic_replace.sh.nodump
+It does not, yet. I'm not ignoring this feedback, it's just taking a bit
+of wall clock time between commercial commitments. :) 
 
-diff --git a/tests/shell/testcases/transactions/atomic_replace.sh b/tests/shell/testcases/transactions/atomic_replace.sh
-new file mode 100755
-index 000000000000..dce178602a6f
---- /dev/null
-+++ b/tests/shell/testcases/transactions/atomic_replace.sh
-@@ -0,0 +1,73 @@
-+#!/bin/bash
-+
-+set -e
-+
-+rnd=$(mktemp -u XXXXXXXX)
-+ns="nft-atomic-$rnd"
-+pid1=""
-+pid2=""
-+duration=8
-+
-+cleanup()
-+{
-+	kill "$pid1" "$pid2"
-+	ip netns del "$ns"
-+}
-+
-+trap cleanup EXIT
-+
-+ip netns add "$ns" || exit 111
-+ip -net "$ns" link set lo up
-+
-+ip netns exec "$ns" ping 127.0.0.1 -q -c 1
-+
-+ip netns exec "$ns" $NFT -f - <<EOF
-+table ip t {
-+	set s {
-+		type ipv4_addr
-+		elements = { 127.0.0.1 }
-+	}
-+
-+	chain input {
-+		type filter hook input priority 0; policy accept;
-+		ip protocol icmp counter
-+	}
-+
-+	chain output {
-+		type filter hook output priority 0; policy accept;
-+		ip protocol icmp ip daddr @s drop
-+	}
-+}
-+EOF
-+
-+ip netns exec "$ns" ping -f 127.0.0.1 &
-+pid1=$!
-+ip netns exec "$ns" ping -f 127.0.0.1 &
-+pid2=$!
-+
-+time_now=$(date +%s)
-+time_stop=$((time_now + duration))
-+repl=0
-+
-+while [ $time_now -lt $time_stop ]; do
-+ip netns exec "$ns" $NFT -f - <<EOF
-+flush chain ip t output
-+table ip t {
-+	chain output {
-+		type filter hook output priority 0; policy accept;
-+		ip protocol icmp ip daddr @s drop
-+	}
-+}
-+EOF
-+	repl=$((repl+1))
-+
-+	# do at least 100 replaces and stop after $duration seconds.
-+	if [ $((repl % 101)) -eq 100 ];then
-+		time_now=$(date +%s)
-+	fi
-+done
-+
-+# must match, all icmp packets dropped in output.
-+ip netns exec "$ns" $NFT list chain ip t input | grep "counter packets 0"
-+
-+echo "Completed $repl chain replacements"
-diff --git a/tests/shell/testcases/transactions/dumps/atomic_replace.sh.nodump b/tests/shell/testcases/transactions/dumps/atomic_replace.sh.nodump
-new file mode 100644
-index 000000000000..e69de29bb2d1
--- 
-2.48.1
-
+Thanks,
+Easwar (he/him)
