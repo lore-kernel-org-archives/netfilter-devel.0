@@ -1,64 +1,130 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E204239066;
-	Mon,  3 Mar 2025 16:36:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EF2B2144D5
+	for <netfilter-devel@vger.kernel.org>; Mon,  3 Mar 2025 19:38:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741019820; cv=none; b=GxCJ3fWOHIaVAbc3uJLrgwVd/W99cscDKHsRNHfmeQJX+7UPLXq+A40/qHu9N/6xa/5fyvmFJDEXwz5/yswa8bG/hC4dG8i/Rvzay3ac5RKBGefYzxFsevR4PdFnFOr2qrd3I+xotwXK+Z4mYqATdI8pe5wxhF48QTXUPMS0/Bs=
+	t=1741030720; cv=none; b=un3FocZ6gJ2+nF3bzaAE8l5Ms3fskKxDqv0cSavpQKCQozLK5woAMudmNxKKRfQKy6CqYSIorJhGg7B76X/cHKG/dsGkpGkJOdzd1YyHcJ5+R03uVe36YRJVVKhnu0qME3vgIkvHEyZzEKjJu63EKkNcbiWeCnOrZJvUTGLAeyM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741019820; c=relaxed/simple;
-	bh=9Tn6ZJxazYelS7ar0EVO4F61cExUt63mO2bhh3RodEk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jZ+x18dyVWBvRY5Vh0L134Cwm7u7MWV+wOCXDf3CYIZxOBGGueXq/BCIMhPhw0u3hjKo6C22FPv5Kx1LnoGOqUPA/mcxUgzLnLPtniP++/apfpV7q/5+QcnQfqHSYDmCnto9gQI+5AM76yZRVGZ988W//R15nFQAMP9JjUxCJok=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=f3Kc51Zy; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="f3Kc51Zy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BFE4C4CED6;
-	Mon,  3 Mar 2025 16:36:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1741019819;
-	bh=9Tn6ZJxazYelS7ar0EVO4F61cExUt63mO2bhh3RodEk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=f3Kc51ZyLI5Xo+k3ge9buTOOmAQWjATIRyW6xzVH8/eZWUOUQnRmD3W2cx7Wlrpl/
-	 UnNJNEj0c9TMwhAqjhloRQnq736nOrtTnEzlhC/ylrbTcqd/4dUWv+x3lW0X+BCAAP
-	 6TnVrw3sogPVjs7S603KYPGDv28uGVfh8f0S9h1Gy4gncv8hWH4rvkE5SZME6LmndQ
-	 gWCeABUcfIZE0Wqxf8WF7d7hH6iOxDqVnlL72fyaGv8RMFE1lfUpXf0FoHvhEbLyEx
-	 Vois01LR7lmijDy8LOV74/Ws53qqyQlMnWSo9FhS/3JOJdP2onTAl8XzT2tDYZcyej
-	 G20uPoWtSmICw==
-Date: Mon, 3 Mar 2025 16:36:55 +0000
-From: Simon Horman <horms@kernel.org>
-To: Colin Ian King <colin.i.king@gmail.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	"David S . Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, kernel-janitors@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH][next] [NETFILTER]: nf_conntrack_h323: Fix spelling
- mistake "authenticaton" -> "authentication"
-Message-ID: <20250303163655.GV1615191@kernel.org>
-References: <20250227225928.661471-1-colin.i.king@gmail.com>
+	s=arc-20240116; t=1741030720; c=relaxed/simple;
+	bh=2t53YoyawXVqCyQdfu7V8nyUHTji0AISTQRD/0eZAZ0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=i+NmImckIUANqT/u6E4Sti5TVu9d+YUgto4x5RLSLTmU5yGjzCQKTudL/Nza18XdofGv9sm5jrNe8Mos7yz4WwcE6B0HruLwWXaYxAD6byVMEP4u0RigSiQimNJVpA5PvTKY5RMcsblkLkTXS4JkakWyLemm3+DT83KKxwRoz+E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1tpBcY-0004U5-Bz; Mon, 03 Mar 2025 20:38:34 +0100
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] tests: add atomic chain replace test
+Date: Mon,  3 Mar 2025 20:38:20 +0100
+Message-ID: <20250303193829.570630-1-fw@strlen.de>
+X-Mailer: git-send-email 2.48.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250227225928.661471-1-colin.i.king@gmail.com>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Feb 27, 2025 at 10:59:28PM +0000, Colin Ian King wrote:
-> There is a spelling mistake in a literal string. Fix it.
-> 
-> Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+Add a test that replaces one base chain and check that no
+filtered packets make it through, i.e. that the 'old chain'
+doesn't disappear before new one is active.
 
-Thanks Colin,
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ .../testcases/transactions/atomic_replace.sh  | 73 +++++++++++++++++++
+ .../dumps/atomic_replace.sh.nodump            |  0
+ 2 files changed, 73 insertions(+)
+ create mode 100755 tests/shell/testcases/transactions/atomic_replace.sh
+ create mode 100644 tests/shell/testcases/transactions/dumps/atomic_replace.sh.nodump
 
-I checked and with this patch in place codespell doesn't flag
-any spelling errors in this file.
+diff --git a/tests/shell/testcases/transactions/atomic_replace.sh b/tests/shell/testcases/transactions/atomic_replace.sh
+new file mode 100755
+index 000000000000..dce178602a6f
+--- /dev/null
++++ b/tests/shell/testcases/transactions/atomic_replace.sh
+@@ -0,0 +1,73 @@
++#!/bin/bash
++
++set -e
++
++rnd=$(mktemp -u XXXXXXXX)
++ns="nft-atomic-$rnd"
++pid1=""
++pid2=""
++duration=8
++
++cleanup()
++{
++	kill "$pid1" "$pid2"
++	ip netns del "$ns"
++}
++
++trap cleanup EXIT
++
++ip netns add "$ns" || exit 111
++ip -net "$ns" link set lo up
++
++ip netns exec "$ns" ping 127.0.0.1 -q -c 1
++
++ip netns exec "$ns" $NFT -f - <<EOF
++table ip t {
++	set s {
++		type ipv4_addr
++		elements = { 127.0.0.1 }
++	}
++
++	chain input {
++		type filter hook input priority 0; policy accept;
++		ip protocol icmp counter
++	}
++
++	chain output {
++		type filter hook output priority 0; policy accept;
++		ip protocol icmp ip daddr @s drop
++	}
++}
++EOF
++
++ip netns exec "$ns" ping -f 127.0.0.1 &
++pid1=$!
++ip netns exec "$ns" ping -f 127.0.0.1 &
++pid2=$!
++
++time_now=$(date +%s)
++time_stop=$((time_now + duration))
++repl=0
++
++while [ $time_now -lt $time_stop ]; do
++ip netns exec "$ns" $NFT -f - <<EOF
++flush chain ip t output
++table ip t {
++	chain output {
++		type filter hook output priority 0; policy accept;
++		ip protocol icmp ip daddr @s drop
++	}
++}
++EOF
++	repl=$((repl+1))
++
++	# do at least 100 replaces and stop after $duration seconds.
++	if [ $((repl % 101)) -eq 100 ];then
++		time_now=$(date +%s)
++	fi
++done
++
++# must match, all icmp packets dropped in output.
++ip netns exec "$ns" $NFT list chain ip t input | grep "counter packets 0"
++
++echo "Completed $repl chain replacements"
+diff --git a/tests/shell/testcases/transactions/dumps/atomic_replace.sh.nodump b/tests/shell/testcases/transactions/dumps/atomic_replace.sh.nodump
+new file mode 100644
+index 000000000000..e69de29bb2d1
+-- 
+2.48.1
 
-Reviewed-by: Simon Horman <horms@kernel.org>
