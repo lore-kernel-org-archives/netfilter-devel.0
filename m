@@ -1,29 +1,46 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E96AB2C181
-	for <netfilter-devel@vger.kernel.org>; Mon,  3 Mar 2025 01:45:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E204239066;
+	Mon,  3 Mar 2025 16:36:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740966339; cv=none; b=l2K/6f3OmBkFw88Oax31sj/u+LYAOdsqLd6Asv/rqtBC2K3+Dty6tDhD4MbR5S4+M2nmWHGbvYsBX1mQhlSz98cGzyi2aP1D5uwXqX+uCQRJFz79Ugf1C0ycbe+C/dSCJTT69tc7gp4rgLDjJ2bFMaOqmLmQTFJDf/lrjpPYkhA=
+	t=1741019820; cv=none; b=GxCJ3fWOHIaVAbc3uJLrgwVd/W99cscDKHsRNHfmeQJX+7UPLXq+A40/qHu9N/6xa/5fyvmFJDEXwz5/yswa8bG/hC4dG8i/Rvzay3ac5RKBGefYzxFsevR4PdFnFOr2qrd3I+xotwXK+Z4mYqATdI8pe5wxhF48QTXUPMS0/Bs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740966339; c=relaxed/simple;
-	bh=CLewMQAgbYVDnIProV9VYg3K5rXFn7tbZ3iOiTaPX9g=;
+	s=arc-20240116; t=1741019820; c=relaxed/simple;
+	bh=9Tn6ZJxazYelS7ar0EVO4F61cExUt63mO2bhh3RodEk=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=IPkSevkn9itRIi9FfODX/Wzua6h65e86b2lFEPx3Rj+HlUHiZ0DVKXHKAJ75FU6Y6G92L586033tMZ21U/Y6KS5zrS+HLfNJFogx4rTla3Rk13P4OTquJUPEVaDWYaP8qg6ctgjWzqMN9Kf3D7C0liqC0waubmzcAtAEQAq1rdk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1tous3-0004y6-9B; Mon, 03 Mar 2025 02:45:27 +0100
-Date: Mon, 3 Mar 2025 02:45:27 +0100
-From: Florian Westphal <fw@strlen.de>
-To: Anton Moryakov <ant.v.moryakov@gmail.com>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] src: fix deref of null.ret in rule.c
-Message-ID: <20250303014527.GA18770@breakpoint.cc>
-References: <20250302194435.666393-1-ant.v.moryakov@gmail.com>
+	 Content-Type:Content-Disposition:In-Reply-To; b=jZ+x18dyVWBvRY5Vh0L134Cwm7u7MWV+wOCXDf3CYIZxOBGGueXq/BCIMhPhw0u3hjKo6C22FPv5Kx1LnoGOqUPA/mcxUgzLnLPtniP++/apfpV7q/5+QcnQfqHSYDmCnto9gQI+5AM76yZRVGZ988W//R15nFQAMP9JjUxCJok=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=f3Kc51Zy; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="f3Kc51Zy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BFE4C4CED6;
+	Mon,  3 Mar 2025 16:36:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1741019819;
+	bh=9Tn6ZJxazYelS7ar0EVO4F61cExUt63mO2bhh3RodEk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=f3Kc51ZyLI5Xo+k3ge9buTOOmAQWjATIRyW6xzVH8/eZWUOUQnRmD3W2cx7Wlrpl/
+	 UnNJNEj0c9TMwhAqjhloRQnq736nOrtTnEzlhC/ylrbTcqd/4dUWv+x3lW0X+BCAAP
+	 6TnVrw3sogPVjs7S603KYPGDv28uGVfh8f0S9h1Gy4gncv8hWH4rvkE5SZME6LmndQ
+	 gWCeABUcfIZE0Wqxf8WF7d7hH6iOxDqVnlL72fyaGv8RMFE1lfUpXf0FoHvhEbLyEx
+	 Vois01LR7lmijDy8LOV74/Ws53qqyQlMnWSo9FhS/3JOJdP2onTAl8XzT2tDYZcyej
+	 G20uPoWtSmICw==
+Date: Mon, 3 Mar 2025 16:36:55 +0000
+From: Simon Horman <horms@kernel.org>
+To: Colin Ian King <colin.i.king@gmail.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, kernel-janitors@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH][next] [NETFILTER]: nf_conntrack_h323: Fix spelling
+ mistake "authenticaton" -> "authentication"
+Message-ID: <20250303163655.GV1615191@kernel.org>
+References: <20250227225928.661471-1-colin.i.king@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -32,35 +49,16 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250302194435.666393-1-ant.v.moryakov@gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20250227225928.661471-1-colin.i.king@gmail.com>
 
-Anton Moryakov <ant.v.moryakov@gmail.com> wrote:
-> Fix potential null pointer dereference in `do_list_flowtable`.
+On Thu, Feb 27, 2025 at 10:59:28PM +0000, Colin Ian King wrote:
+> There is a spelling mistake in a literal string. Fix it.
 > 
-> The pointer `table` is initialized to NULL and passed to `do_list_flowtable`,
-> where it may be dereferenced. This can lead to a crash if `table` remains NULL.
-> 
-> Changes:
-> - Added a NULL check for the `table` pointer before calling `do_list_flowtable`.
-> - Return an error code (-1) if `table` is NULL to handle the case where the table is not found.
+> Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
 
-This changelog doesn't match the patch.
+Thanks Colin,
 
-> index f7582914..59d3f3ac 100644
-> --- a/src/rule.c
-> +++ b/src/rule.c
-> @@ -1556,7 +1556,7 @@ static int do_delete_setelems(struct netlink_ctx *ctx, struct cmd *cmd)
->  	const struct set *set = cmd->elem.set;
->  	struct expr *expr = cmd->elem.expr;
->  
-> -	if (set_is_non_concat_range(set) &&
-> +	if (set && set_is_non_concat_range(set) &&
->  	    set_to_intervals(set, expr, false) < 0)
->  		return -1;
+I checked and with this patch in place codespell doesn't flag
+any spelling errors in this file.
 
-You need to explain how "set" can be NULL here.
-
-This gets allocated in nft_cmd_expand, where set was
-already dereferenced.
-
+Reviewed-by: Simon Horman <horms@kernel.org>
