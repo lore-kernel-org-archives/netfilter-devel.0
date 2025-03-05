@@ -1,155 +1,179 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f65.google.com (mail-wm1-f65.google.com [209.85.128.65])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5CA415746E
-	for <netfilter-devel@vger.kernel.org>; Wed,  5 Mar 2025 15:06:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 817EE1A5BB7
+	for <netfilter-devel@vger.kernel.org>; Wed,  5 Mar 2025 17:09:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.65
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741187219; cv=none; b=Oj6ySilblM+AExLcBUekOx9RsjMovps2McTA1JclqVoAFd0WxWtjbDeO4WR+s+HAYeRpXxqh3z4txtFQBHpxkStaGNvZCmPxO2GneJAGiBDajKU8Xa4aw3dCuWN/ilV3QDMs8YTlBzsb/UXcNdGqsQeO4EUOQgOLwodqPKMOFRw=
+	t=1741194584; cv=none; b=dr4ovUROyclWg3HrrpWDdQGUQkOgVkLYbESBg6N69UKOhKLd5SL70ZmXRbNd32JscR3LwfiaPxM4C6GHw8B3zxqBJq/49fR0YpaspyjBoY3y/3CnHtxn3aHIu3IAVMbEG3L26RaYL7KddKQZrr0HPg0WewYsnfKPnblxYCk7qIQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741187219; c=relaxed/simple;
-	bh=MzzjJGLqVQ3QwPRM74iB+H5LkBJ3Id8/KBPkKbKmUqI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=CdiL5wnozTwXKpS7jD/g8R1vB0U/TQbmrjLAtO4oWQJJoMQRxUYknChjBE6TlfApIF2eKqVlrKn5KNs97Dy5xHgTCUi6+lj9MRP6HsTb06MHG6voRshPXZsfDf6dmMy4vHSzcqhySn0+AtRS/yDPi6UPxP4VhRWTFQbXS9+zmLs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1tpqKf-0008UJ-6r; Wed, 05 Mar 2025 16:06:49 +0100
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] segtree: fix string data initialisation
-Date: Wed,  5 Mar 2025 16:01:48 +0100
-Message-ID: <20250305150154.19494-1-fw@strlen.de>
-X-Mailer: git-send-email 2.45.3
+	s=arc-20240116; t=1741194584; c=relaxed/simple;
+	bh=irFcCVMJ+YoW6k8byXnRJIVW9wTUS4yGDTwhsoaB6Ak=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=HC89aS4MyyK0qOx+5rO5csPyNPei8FowBaP85b97Z8D+6MeJdd0oIYw4yWZ7CN6C1/ugm3Z4a/Wa0nkBngnG6C1pe6gekERxbwBLUxowmI8+o9riUusVs5QgsbIPhHA9y0lLIdxZDqt5/ri3NE+t/q+K7pMcQNhUd1sTXGLAmGs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=P1p3UOO0; arc=none smtp.client-ip=209.85.128.65
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="P1p3UOO0"
+Received: by mail-wm1-f65.google.com with SMTP id 5b1f17b1804b1-43bbb440520so41616285e9.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 05 Mar 2025 09:09:40 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=suse.com; s=google; t=1741194579; x=1741799379; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=8Xwduz/qNPiyy4RhwG9d9PScJsmgmVdCqCQSC6jOGw4=;
+        b=P1p3UOO0b9YDJTFpWR4YE+ZSKZf6Xcn52yudVG+sPHwyBxBtardW009r9baCZcBeB4
+         4YrBwUNx2JnWKUZCwE8P5GXIHIEPQ0jNvCevdy2YOChbqBHkzpHt/1wzFn5RYouw4lg7
+         Ubnyj/AmJTt084JQMIhTcWp0jpVFjR0Xndt2RDe864mTy2ddPAAr0onst3U6rKkFxD45
+         H0M4bgWyKxC98MlJmxb9oAlG/J9F2VNQt4FJxc+tUtjyiDfKCDHtPn8v130bldZUxkdd
+         1L/Pie03mBgGdJDVfupW8ScDCv5mNHuWB5VmdaSSZ68xZEXatoTBkzENiNCy/KsCr8T5
+         oqQw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1741194579; x=1741799379;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=8Xwduz/qNPiyy4RhwG9d9PScJsmgmVdCqCQSC6jOGw4=;
+        b=IlEKFQwT6FTbsHlgoq99Lu+s4kdrf9AUyqlj10dirkITk/jpPrEQP82Bx1ALWvHMCG
+         JSyOXcQCzVPx3zPGHUA2H7YO6EhYebHDBtoLfBwvJv/MhjjXB2wyCJrxfwIQUczyrqND
+         tfhZMYc+fvGQYqYTmn8QA/p2NqhSOqnExj7GzU80QOBmx4mAlpqDG5iSn0adJSpJDp7f
+         bt0BexHfwbviKQq0Xlm68f15iMRFRJWYb4zu6wiO8O26QEE2mDMTUvUEIlp4hSLrcjHE
+         /doKJfFfPrrXmUgooBUMwePL/wFFOOiyCK4jxSEyMEy2zJmzRgOKxQ/Fvzqsddq97YpC
+         Lktw==
+X-Gm-Message-State: AOJu0Yzc1ob8yJAenSGQotr1R+WWoYvX4sLBH/6mUJ99VH7dRd7Fq83J
+	HrLHehGKMveEz863ZTC2jrNDi4TIof1gC1AkUC0OFYyg0JfVssCNCDUNAEhHMu++okqX8OMiz6m
+	roimiCA==
+X-Gm-Gg: ASbGnct6F3ZbKM1NV0ecy3r4sCMarbSDSVcoXfaIkZzbBshNMAV7HFIOH0G9azYI0rf
+	qn4DEIr8FL1yiPncMHxxcwoNuybjcNR9QgLKEfiW1k9JaxlMQKe5xV7IEgXW6nLuJsxPM+rex68
+	lQRQ3QpYL3pgTVkdLsKRAzzXWjzEIdBEEMLcWvwWZ0TFbkBylVsJiumvR+PtygD1rpkbGHXMbPy
+	6V7w57Yai7vSk54Y4VfQQpdLji5RnbcEvhEzI0+owqAkqI8SAAAk3DYUhBnv+URLEeckUUWtVxL
+	OMDf86FzcCWW9soYtvt/TlGYD/eY764kXW7qySqDskgjoWg=
+X-Google-Smtp-Source: AGHT+IHtALOlZRY8OEkAfMy/8LP4eO3WEczzKfPhSQDmbP+zhNlJTZUTR0mJ/R+5FMnzK/l5vhD0mw==
+X-Received: by 2002:a05:600c:1d01:b0:43b:cf12:2ca6 with SMTP id 5b1f17b1804b1-43bd292e1cemr28484335e9.1.1741194578635;
+        Wed, 05 Mar 2025 09:09:38 -0800 (PST)
+Received: from blackdock.suse.cz ([193.86.92.181])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-390e47b6ceesm21323862f8f.45.2025.03.05.09.09.38
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 05 Mar 2025 09:09:38 -0800 (PST)
+From: =?UTF-8?q?Michal=20Koutn=C3=BD?= <mkoutny@suse.com>
+To: netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	cgroups@vger.kernel.org,
+	Jan Engelhardt <ej@inai.de>,
+	Florian Westphal <fw@strlen.de>,
+	=?UTF-8?q?Michal=20Koutn=C3=BD?= <mkoutny@suse.com>
+Subject: [PATCH v2] netfilter: Make xt_cgroup independent from net_cls
+Date: Wed,  5 Mar 2025 18:09:35 +0100
+Message-ID: <20250305170935.80558-1-mkoutny@suse.com>
+X-Mailer: git-send-email 2.48.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-This uses the wrong length.  This must re-use the length of the datatype,
-not the string length.
+The xt_group matching supports the default hierarchy since commit
+c38c4597e4bf3 ("netfilter: implement xt_cgroup cgroup2 path match").
+The cgroup v1 matching (based on clsid) and cgroup v2 matching (based on
+path) are rather independent. Downgrade the Kconfig dependency to
+mere CONFIG_SOCK_GROUP_DATA so that xt_group can be built even without
+CONFIG_NET_CLS_CGROUP for path matching.
+Also add a message for users when they attempt to specify any
+non-trivial clsid.
 
-The added test cases will fail without the fix due to erroneous
-overlap detection, which in itself is due to incorrect sorting of
-the elements.
-
-Example error:
- netlink: Error: interval overlaps with an existing one
- add element inet testifsets simple_wild {  "2-1" } failed.
- table inet testifsets {
-      ...       elements = { "1-1", "abcdef*", "othername", "ppp0" }
-
-... but clearly "2-1" doesn't overlap with any existing members.
-The false detection is because of the "acvdef*" wildcard getting sorted
-at the beginning of the list which is because its erronously initialised
-as a 64bit number instead of 128 bits (16 bytes / IFNAMSIZ).
-
-Fixes: 5e393ea1fc0a ("segtree: add string "range" reversal support")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Link: https://lists.opensuse.org/archives/list/kernel@lists.opensuse.org/thread/S23NOILB7MUIRHSKPBOQKJHVSK26GP6X/
+Signed-off-by: Michal Koutný <mkoutny@suse.com>
 ---
- src/segtree.c                                |  2 +-
- tests/shell/testcases/sets/sets_with_ifnames | 62 ++++++++++++++++++++
- 2 files changed, 63 insertions(+), 1 deletion(-)
+ net/netfilter/Kconfig     |  2 +-
+ net/netfilter/xt_cgroup.c | 22 ++++++++++++++++++++++
+ 2 files changed, 23 insertions(+), 1 deletion(-)
 
-diff --git a/src/segtree.c b/src/segtree.c
-index 2e32a3291979..11cf27c55dcb 100644
---- a/src/segtree.c
-+++ b/src/segtree.c
-@@ -471,7 +471,7 @@ static struct expr *interval_to_string(struct expr *low, struct expr *i, const m
+Changes from v1 (https://lore.kernel.org/r/20250228165216.339407-1-mkoutny@suse.com)
+- terser guard (Jan)
+- verboser message (Florian)
+- better select !CGROUP_BPF (kernel test robot)
+
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index df2dc21304efb..346ac2152fa18 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -1180,7 +1180,7 @@ config NETFILTER_XT_MATCH_CGROUP
+ 	tristate '"control group" match support'
+ 	depends on NETFILTER_ADVANCED
+ 	depends on CGROUPS
+-	select CGROUP_NET_CLASSID
++	select SOCK_CGROUP_DATA
+ 	help
+ 	Socket/process control group matching allows you to match locally
+ 	generated packets based on which net_cls control group processes
+diff --git a/net/netfilter/xt_cgroup.c b/net/netfilter/xt_cgroup.c
+index c0f5e9a4f3c65..c3055e74aa0ea 100644
+--- a/net/netfilter/xt_cgroup.c
++++ b/net/netfilter/xt_cgroup.c
+@@ -23,6 +23,13 @@ MODULE_DESCRIPTION("Xtables: process control group matching");
+ MODULE_ALIAS("ipt_cgroup");
+ MODULE_ALIAS("ip6t_cgroup");
  
- 	expr = constant_expr_alloc(&low->location, low->dtype,
- 				   BYTEORDER_HOST_ENDIAN,
--				   (str_len + 1) * BITS_PER_BYTE, data);
-+				   len * BITS_PER_BYTE, data);
++#define NET_CLS_CLASSID_INVALID_MSG "xt_cgroup: classid invalid without net_cls cgroups\n"
++
++static bool possible_classid(u32 classid)
++{
++	return IS_ENABLED(CONFIG_CGROUP_NET_CLASSID) || classid == 0;
++}
++
+ static int cgroup_mt_check_v0(const struct xt_mtchk_param *par)
+ {
+ 	struct xt_cgroup_info_v0 *info = par->matchinfo;
+@@ -30,6 +37,11 @@ static int cgroup_mt_check_v0(const struct xt_mtchk_param *par)
+ 	if (info->invert & ~1)
+ 		return -EINVAL;
  
- 	return __expr_to_set_elem(low, expr);
++	if (!possible_classid(info->id)) {
++		pr_info(NET_CLS_CLASSID_INVALID_MSG);
++		return -EINVAL;
++	}
++
+ 	return 0;
  }
-diff --git a/tests/shell/testcases/sets/sets_with_ifnames b/tests/shell/testcases/sets/sets_with_ifnames
-index a4bc5072938e..c65499b76bc5 100755
---- a/tests/shell/testcases/sets/sets_with_ifnames
-+++ b/tests/shell/testcases/sets/sets_with_ifnames
-@@ -105,10 +105,67 @@ check_matching_icmp_ppp()
- 	fi
- }
  
-+check_add_del_ifnames()
-+{
-+	local what="$1"
-+	local setname="$2"
-+	local prefix="$3"
-+	local data="$4"
-+	local i=0
-+
-+	for i in $(seq 1 5);do
-+		local cmd="element inet testifsets $setname { "
-+		local to_batch=16
-+
-+		for j in $(seq 1 $to_batch);do
-+			local name=$(printf '"%x-%d"' $i $j)
-+
-+			[ -n "$prefix" ] && cmd="$cmd $prefix . "
-+
-+			cmd="$cmd $name"
-+
-+			[ -n "$data" ] && cmd="$cmd : $data"
-+
-+			if [ $j -lt $to_batch ] ; then
-+				cmd="$cmd, "
-+			fi
-+		done
-+
-+		cmd="$cmd }"
-+
-+		if ! $NFT "$what" "$cmd"; then
-+			echo "$what $cmd failed."
-+			$NFT list set inet testifsets $setname
-+			exit 1
-+		fi
-+
-+		if ! ip netns exec "$ns1" $NFT "$what" "$cmd"; then
-+			echo "$ns1 $what $cmd failed."
-+			ip netns exec "$ns1" $NFT list set inet testifsets $setname
-+			exit 1
-+		fi
-+	done
-+}
-+
-+check_add_ifnames()
-+{
-+	check_add_del_ifnames "add" "$1" "$2" "$3"
-+}
-+
-+check_del_ifnames()
-+{
-+	check_add_del_ifnames "delete" "$1" "$2" "$3"
-+}
-+
- ip netns add "$ns1" || exit 111
- ip netns add "$ns2" || exit 111
- ip netns exec "$ns1" $NFT -f "$dumpfile" || exit 3
+@@ -51,6 +63,11 @@ static int cgroup_mt_check_v1(const struct xt_mtchk_param *par)
+ 		return -EINVAL;
+ 	}
  
-+check_add_ifnames "simple" "" ""
-+check_add_ifnames "simple_wild" "" ""
-+check_add_ifnames "concat" "10.1.2.2" ""
-+check_add_ifnames "map_wild" "" "drop"
++	if (!possible_classid(info->classid)) {
++		pr_info(NET_CLS_CLASSID_INVALID_MSG);
++		return -EINVAL;
++	}
 +
- for n in abcdef0 abcdef1 othername;do
- 	check_elem simple $n
- done
-@@ -150,3 +207,8 @@ ip -net "$ns2" addr add 10.1.2.2/24 dev veth0
- ip -net "$ns2" addr add 10.2.2.2/24 dev veth1
+ 	info->priv = NULL;
+ 	if (info->has_path) {
+ 		cgrp = cgroup_get_from_path(info->path);
+@@ -83,6 +100,11 @@ static int cgroup_mt_check_v2(const struct xt_mtchk_param *par)
+ 		return -EINVAL;
+ 	}
  
- check_matching_icmp_ppp
++	if (info->has_classid && !possible_classid(info->classid)) {
++		pr_info(NET_CLS_CLASSID_INVALID_MSG);
++		return -EINVAL;
++	}
 +
-+check_del_ifnames "simple" "" ""
-+check_del_ifnames "simple_wild" "" ""
-+check_del_ifnames "concat" "10.1.2.2" ""
-+check_del_ifnames "map_wild" "" "drop"
+ 	info->priv = NULL;
+ 	if (info->has_path) {
+ 		cgrp = cgroup_get_from_path(info->path);
+
+base-commit: dd83757f6e686a2188997cb58b5975f744bb7786
 -- 
 2.48.1
 
