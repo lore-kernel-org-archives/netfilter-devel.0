@@ -1,56 +1,59 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD10A263C6D
-	for <netfilter-devel@vger.kernel.org>; Wed,  5 Mar 2025 21:49:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4772C25DAE4
+	for <netfilter-devel@vger.kernel.org>; Wed,  5 Mar 2025 21:54:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741211383; cv=none; b=aTA1+dFhnii7n6S2k1jmL2Jdd7LY65o9KZFA6ukJcz++ggTVaabLLcWTlyaSsWDmOHdUFzqxdmEce70eK3LSbAOeK+F4yVaQb9H7LGa+Ig3lB3a0gvtH8ls9HdTg0YQqCDTeKwkAGtsiRitl3lS5FwNQi3rpb0hA6HKdUN6vr4w=
+	t=1741211693; cv=none; b=hggq78mfD/e2LwF6+zYoU0eaaPr0MSbrdb43m5e/+IVBNyxEZ+lS7/TMCjE2WVX0HRxz6Pt79O74ycMxoV1NeyPRmPiHDYtG6XSyny5eyB224iQeEYPcSiQpArkAr0FsAD0DH97H9bL6CbFM4+yD9l4bdf4rbuCgR1Zea3ktbw4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741211383; c=relaxed/simple;
-	bh=N/d+09OqNMApDTniiKasZDzPfS3qTjZZiDW1HLKVaeA=;
+	s=arc-20240116; t=1741211693; c=relaxed/simple;
+	bh=ln8a6fw+K26qsyFg1cY5POQQajfhG0nJ8KO4TBNTJ6Y=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=G/wUkhCdO+E9Pti+JUQfkknG+qPal+X/tjDYuaZ6qQRtmMq4WFPkU7cia6YdwexhC8bEdf+pDjYE66UHt2sUoSbXJBXUc+6bWxwl6lsbcG+ypk9Oai2JbxUd4Zb1HuP2wllzZu1HnLTez+1mFSWjLGN5xzWdG2UJ/kwbHcOyujw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=rNNFcG/r; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=gF9grhWo; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=r2xe1DT5X6ch/gGUKkwP2wnIunExu1pxX8nTyDuwoGxDsxUYReFrYEAtn+0xoj/zcazHtzDEDzihut221vUWjovovXKxWHyYLemxPQc3XcGsyE0webM4Hjd0cCeSLfwolo7wFKXtPJxSlh7wHFGtMpaBM+BKlEfen1lNDAqnTno=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=uU8Arbdj; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=HxN75pNR; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="rNNFcG/r";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="gF9grhWo"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="uU8Arbdj";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="HxN75pNR"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 51CF360277; Wed,  5 Mar 2025 22:49:38 +0100 (CET)
+	id CB38D602A4; Wed,  5 Mar 2025 22:54:50 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1741211378;
-	bh=kFaBsHIZECtMwbWys9L9/FAAgFUkjJs2q/9hTMDPMgA=;
+	s=2025; t=1741211690;
+	bh=cHyGHqwQEkwv3VIvBLsxi5GQOOoeh3sSairXD5woem0=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=rNNFcG/rqilpTn8PRxU3H3odCnTcSZygCaG02/vasIjuO18vyy8IJmKCnOqycIrpo
-	 JZpKNVJzjQpolNYrRu6F6CsBGvzB1c7cablFf/8PimX9lM5Re9LPKhFRU+1/3JxsOj
-	 CQXwVru0gwCQpy9PsdzspCGvBshPYPOeJ9ap01xL9aAJb2JxWOZQOD17Ebi3JA++Pw
-	 QU/tc8gq3dk/np1PDToBrVwXkvQm8/4pr1mfUaV2MTF3StNpuqX791sDlVTcKgOJMD
-	 93giIxirJgCtc55rZGzyiEOukY010l+XoRKBH04XPJwtM5j82GzJ/lxr8hHomQDCWn
-	 lE3xBiBTWwmBQ==
+	b=uU8ArbdjP2ewyPVapb04jGY7Ti/jDZMqLo39Sdp92kuSe/CcPHdKxH67iSYe8mv2E
+	 IV5e6Oohom7WEK4rXXWq9Xl8T1abz8aBgXm36Oy7abGymynACaFYi0js3HWr6pxyNv
+	 87tl8TenFf0VCfPrU3DtIrHlOff2c3M9DChrugVfwrJTersqiH28S6uSAibJGcr3dz
+	 rqtegkBmYVa81z8j6mrSmVyKddAPVE5mmIA2su02uFLhTTS+dWXRJr+uizvACWnynx
+	 P/yFlXHdCkl+nur8eEixC+fe13IRAENbpCx5VxOq96QjvaSJ3p4CxsUNR+gMxC0mUB
+	 i5n19EaS4+8PQ==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id B40EF60277;
-	Wed,  5 Mar 2025 22:49:37 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 9C80060298;
+	Wed,  5 Mar 2025 22:54:49 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1741211377;
-	bh=kFaBsHIZECtMwbWys9L9/FAAgFUkjJs2q/9hTMDPMgA=;
+	s=2025; t=1741211689;
+	bh=cHyGHqwQEkwv3VIvBLsxi5GQOOoeh3sSairXD5woem0=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=gF9grhWop086NEK462JE4Roy9ODuLDBuQYd7xngspIWfq03p8Ijg8LDcW9jup6DGN
-	 FYi4xB/ymVdxWKcYCX6ONgtqZJF+xBKlQpZeD108LBxyXMbkDzsVWFXV/jRS7xCC1m
-	 BL1xTpnLgGABORfNcwxXhyLoi0VxifopqsLSNqnbCv+Zmhv1eRQ3dXq6dTsp/qEWtV
-	 t2jbP7a51t2hM737JrT51XM1+TXQoKNveFIVz2dKrcZxPs+HTtRx2On4OM6JohLK7e
-	 Kr+Ppvcb+tI/+rnAVVJ6tD/VVCOIa7gzhFoacqkN2Rw0BdwSqc0AViKW7s39GxC/tx
-	 AOYwTXx/2sKFA==
-Date: Wed, 5 Mar 2025 22:49:35 +0100
+	b=HxN75pNRerSpwWhogyZ03qqHmTH0TTKPV9kZ+9/6bkRyMMbGM/3If98CDQd/yZvpB
+	 qpUsyo73ac55QZyGLaWPQ8zeNAV9nLEf5iNKRelzIBSmWi506P0hY9uERRwWeJqxpj
+	 JtUS7DTDC9okAGh/awJfuMcMBJo80N7Cf3Coczb6KtL8xq+SAQtoYVqfUu3nv1rV0u
+	 IOWk7vmtGYGqSmZFxFmol3PYDXXl9w74Rr1IIgt9dM5/g0UTJfusXGaopRPtTuoXMD
+	 39MSVS77NQUo0u6S6Y1Q897XAPLj0uFbJIX7KXAWRVcKG2zsPqjFhS7hNVKRDdLvEx
+	 w6BcZEgrc6rJw==
+Date: Wed, 5 Mar 2025 22:54:47 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: "Jensen, Nicklas Bo" <njensen@akamai.com>
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH] Fix bug where garbage collection for nf_conncount is not
- skipped when jiffies wrap around
-Message-ID: <Z8jG7xeL0Nm7HZam@calendula>
-References: <EC4CB996-F5A1-4368-AAB7-F77E1B2E6A4D@akamai.com>
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	linux-rt-devel@lists.linux.dev,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH] netfilter: nft_ct: Use __refcount_inc() for per-CPU
+ nft_ct_pcpu_template.
+Message-ID: <Z8jIJyB0KpTpZ-yK@calendula>
+References: <20250217160242.kpk1dR3-@linutronix.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -59,15 +62,22 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <EC4CB996-F5A1-4368-AAB7-F77E1B2E6A4D@akamai.com>
+In-Reply-To: <20250217160242.kpk1dR3-@linutronix.de>
 
-On Thu, Feb 27, 2025 at 01:32:34PM +0000, Jensen, Nicklas Bo wrote:
-> nf_conncount is supposed to skip garbage collection if it has already run garbage collection in the same jiffy. Unfortunately, this is broken when jiffies wrap around which this patch fixes.
+On Mon, Feb 17, 2025 at 05:02:42PM +0100, Sebastian Andrzej Siewior wrote:
+> nft_ct_pcpu_template is a per-CPU variable and relies on disabled BH for its
+> locking. The refcounter is read and if its value is set to one then the
+> refcounter is incremented and variable is used - otherwise it is already
+> in use and left untouched.
 > 
-> The problem is that last_gc in the nf_conncount_list struct is an u32, but jiffies is an unsigned long which is 8 bytes on my systems. When those two are compared it only works until last_gc wraps around.
+> Without per-CPU locking in local_bh_disable() on PREEMPT_RT the
+> read-then-increment operation is not atomic and therefore racy.
 > 
-> See bug report https://bugzilla.netfilter.org/show_bug.cgi?id=1778 for more details.
+> This can be avoided by using unconditionally __refcount_inc() which will
+> increment counter and return the old value as an atomic operation.
+> In case the returned counter is not one, the variable is in use and we
+> need to decrement counter. Otherwise we can use it.
+> 
+> Use __refcount_inc() instead of read and a conditional increment.
 
-Applied as:
-
-        ("netfilter: nf_conncount: garbage collection is not skipped when jiffies wrap around")
+Applied nf.git, thanks and sorry for taking a while to collect this.
