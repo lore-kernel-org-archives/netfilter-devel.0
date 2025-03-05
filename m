@@ -1,63 +1,63 @@
-Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
+Received: from mail-ed1-f41.google.com (mail-ed1-f41.google.com [209.85.208.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A1D820C013;
-	Wed,  5 Mar 2025 10:30:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68ECE20B202;
+	Wed,  5 Mar 2025 10:30:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741170618; cv=none; b=s88gnREYe3KNrZTDzjpfz1/H8+nD4F5lZafnwhImWV4Xw/+RIaMgB90Gn5TGMpFMFwXoJ9Xn8VHGhTdILdqtGLDtCOawa8wwBQZdqVB9pu3NpzjU4YdziYyRcFU3yJSOk0GTTRDaUIFmBGoleKVD8NinICAqEU7v39xKjQHULvQ=
+	t=1741170618; cv=none; b=ajiVZ8nMaDJsBjm7UIlRaMvon7bo5xhImn3ZGC7FFrRImwNJ9yrlVQOM7iDPgfjRns7AU3MgNwHBA24Thlpa8BcE3rxV79FSbBYmYyt7dYaCRQSyIRRYUBCVKh0+UJvR1xH20GxQmYi2A1wAbIqkCECWqfxl4kVp1CJHw9TkEtQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1741170618; c=relaxed/simple;
-	bh=AihhYJGwJTJyObdFZSI/rxytC55wEnFe8EzDy7l8A+0=;
+	bh=p1IsKiAxwq12F2MM7ABxyO6mLj6RlYFe8Yg33MCLfXU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=kI0IQ7L0qCBuATOF/ewrUnYtgLE+Af7fAnwMzAS+k0kdUxKdflWw5xZkjVQSwRujyDIQrc2Cn0N59qBYLou4yZxRxUJznkQIT8+K2SRarhxWcqutz8/AZVdnG8LwOExD24JBZ9kR7PQHdZKcqybyaM3GRSj2cvN4XY7C3FEIZqo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Jp9LZkJu; arc=none smtp.client-ip=209.85.208.42
+	 MIME-Version; b=cF8vJtIwdYtgvqv1eiFR2Kyg/OEuHBvUYIS3CmP4z2tmq78fQKs2fBgClImGDwvN+tbLcht2e32ttnJAmWucXVV3xZJXUbfCqHnKuCWHFgr62qOUwtaEwbpL5teKLj05VUhwVCT88FXQQ9sT+mnd6p6oooE8/bUgGRWzmWSyjHM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=VLsL4snA; arc=none smtp.client-ip=209.85.208.41
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Jp9LZkJu"
-Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-5e0b70fb1daso11538419a12.1;
-        Wed, 05 Mar 2025 02:30:16 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VLsL4snA"
+Received: by mail-ed1-f41.google.com with SMTP id 4fb4d7f45d1cf-5e058ca6806so10953166a12.3;
+        Wed, 05 Mar 2025 02:30:15 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1741170615; x=1741775415; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1741170613; x=1741775413; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=6/OfFtkDCpNUsNNnB4udxCcQxzWSEZIHYYoj3YjYWKw=;
-        b=Jp9LZkJukQPoHRa/P7gi9+r1Y02ughjN3PjyGAkaMo60lvzgnpmW0KMvI1qMBmNa9n
-         KwDi2lZIEcwEZ3nfFtEmOUHfMaR9YcqmO3ivzy43Sm4SSt/ldD+i3nR7tBDk3UYN8ADm
-         134KHnIVCwB7h9KjWRVViqaap/APS3/SaXJa9V3B7leC0mirudluxdkcIhpWK3/yGcQS
-         WdYaQPdzW0jKkzlYt2rq0dW6h6d62Goc6sdHS5rxYWMfMK/QDscKZwQCt0rjMjQ3dyyE
-         BqNVEUhJ4Qccb5/mmpbgiTgQ4EWLQfyVqphGqomlVkpNbQh3PvhFeJ04QJRmiIeUyNgk
-         8uvA==
+        bh=MAJ1+kbz8lZ4YwPg+OV3VOfAm0Jd01XhEIX1QeYwh3U=;
+        b=VLsL4snANM+SFravaItV2e9WEjP7wxKChRvyYTZ48DWCM2crmWxTiUej6pD2ys7BaY
+         6evDDLkt+OFhRoBR5zJVm1NhtJwRetV78N+Af3IecWHYv8yGLDgLJMb8aImtSUsygB8S
+         S/LJVNlQBP5wXMzWZndtjUnm9N1L3YsLfXa1zjqD3lisEU4vYHfNMYY/2zynnl+2TyIc
+         Uj9s2XnhtIFhg8FhlpkahhGiYmObH6KskzjrcYP5VnBcXl/x9ypeA2HkPxMCG9yVhb/U
+         OGh1H06ILAaECs5JQRu3pTkMaQ2qOc9acw+WZtuIZFZPBRSJ8IQtbsLPfXo8PL5XYykh
+         wDgg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1741170615; x=1741775415;
+        d=1e100.net; s=20230601; t=1741170613; x=1741775413;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=6/OfFtkDCpNUsNNnB4udxCcQxzWSEZIHYYoj3YjYWKw=;
-        b=j9yZADQ4JOAd3R7rXmtLUjA0E+ciYUL63xfi5PdrOWblTIETo2oecuO51rY6fostSM
-         LeDiXK3qFzdhxZeRGQYZDP7mb/xztL2hk+Q8Ako3+tS6vEPec7tWMtE14ghE2nEDgEvV
-         ZH0V2OqW0lY+qDL/dlpJSOmCzecxic2k7m9Ly/rKxh3iuLwAc9yWPq4n/PPQy27zv4nV
-         w9FbmvOlpAExtVPgBBLfW+Ngji6ZOGzkTI3GKPeAlj2kpwy0slA1bvz9A5JMsJDVo/tl
-         rEgngL24ZNaV34huoTpQD97/ejPCk4EDVfYncZPm4g30/npsIa06nAjo68CGQLnPv5F/
-         4+tg==
-X-Forwarded-Encrypted: i=1; AJvYcCU6obe1WWCjzh9OOeXZeYgVXby5igtllm6cM9Zf8J6q2cnJunZy6k9ONkr7wo10aAQ58AUQcA7iqNLJLdUx@vger.kernel.org, AJvYcCVvsbGKZPdUBX//KydpeJIVnnAuABQsVlTSzVR6pga2QAmzIdAus/ddvqmS0S1xU5i93egdJH9ucO12oJUBV+vY@vger.kernel.org, AJvYcCWEwk7PElHWQWOCL80xY3otAyuftFEnJrxnoJ8MFK1cXQc6IHso3Cuy2B8I+XfJ0A/rHqSDuHzqvOCRgE58WVU=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwiaTNIcfWDJPhN3V74sGIoJfo/SRMDbzMfZAxvtjNNpQRc6mXE
-	iLbAanmAqUQvPuEJZbiUh3uGHR4T7LJHK2Z3isVxSovIO0jDuAok
-X-Gm-Gg: ASbGncvf/J/NPnQjqAxf6x3dqAi8G7YhsWeUtibal2d61E4bgU5vApL0rMZ/W2vHLha
-	EPAoigr7qfCIINt55Nv4KgQCGvfXVX8UugX39szBcqmH4nwyDhkgefw3e0DeERFKQYDOBRUM2E+
-	Wj8Aw/RoifNK/Zd0p5W50O9XgN4dw6qGVTrkku+0v/EY+QXZC2S1ASs8jvDkX4ykHN93KdRYi8o
-	dsicEsv+utkWkncUHTeeI/HufNGNZLtP7A6v3DVlvBpGV09ON+8VevKlKAO77vGesbyHs2qlaL7
-	FOZgTgJbPjbKEhQeEf5ykGMLExwBW4NZL4b99JfRGkOJa2TdVSsKN+awyD7eN3UhpQ+e7XlOH3j
-	5JWLri3dUr8L4aheEDnVMNQXbOGDg2oChF98XZJ6A58vZFxauWDm176FtJS4dGA==
-X-Google-Smtp-Source: AGHT+IE4FBEQwtKjza4fXvfpF7ocHLI/77Iaa2ed5/2y+GnUe2UR6+/DugyKaB64GhmbWBt7MA+dgw==
-X-Received: by 2002:a17:907:9726:b0:ac1:da09:5d32 with SMTP id a640c23a62f3a-ac20d84621cmr283526366b.6.1741170614628;
-        Wed, 05 Mar 2025 02:30:14 -0800 (PST)
+        bh=MAJ1+kbz8lZ4YwPg+OV3VOfAm0Jd01XhEIX1QeYwh3U=;
+        b=N6p7emeDOf1mFxUNkiFvwRYxrh1/vU+zKnfth0eFX3WMGuEGFZYJyIK5Iiil666ohO
+         1JM2ln+qgNRxRi8sZnpChZmsCmn/tRU+bDw6MItziNAWRsBxA34eKHWlXorzYvA2+BDL
+         Sc0rXR1oRppblib5jYbuQ10xFEQNfnBENmgjftjuCOjrnqSGUwO5jdcRgwqgIpPB4CyN
+         I26z+uyuV7cyoJ7muIiIowY9g1luD28tM3W/K+0eJHGSxHIAG8oD6gp6nbc4k60wWSor
+         ZUJ5LvUNU3E9EGrEblIu2SZlZPizIgs6kT7+w5WgExJDswMS48WR4GOwXkqIfzrvA9hd
+         HBUQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWMLzSAcLc7FW8ZG/8+8YEKKFfJSzrufrCvIbg7sDb5reP+3evJZf0ah/fYl0fT5wiaemT+7ENiaoVNifT/VZ10@vger.kernel.org, AJvYcCWStb6dVXCcIbfl0wHs+DiT0SUM7HNqSM69ohiUFWyeMazT5dTvaHGNChfqJyXDFD7m7GPmkWHHjm9ca6tc@vger.kernel.org, AJvYcCWVPzb81S0RlG0MgmprBm1qvx6HBmcCnbzdctyopc6sSWmIo93gapY04/J4/pfVV3J1BN/cg9hdHnYHbQy250c=@vger.kernel.org
+X-Gm-Message-State: AOJu0YwiNUxM4LOEKQod2WTRw4tvW3xJIPj9YKLAhGsAlOXJV7kBP88N
+	bO2yImJJeDpeNoYshcG4iSnCj6bBY5xgUeIQxN/crv8RQdA6y6BY
+X-Gm-Gg: ASbGnct/xhQ1R4hqiAuZfMy9RpEniHG9O00uCitxCBiLTcyTlopliP6sM0sOQ4O8/Cr
+	cxlje9xsxsu3Kfqp/JAg1TLhk+BM0gKl/IEeU/c4A7oIBXFpdrNQ+fXWgAuc1l4+8hww9k6GfBy
+	KR6bg7HlnmN5RTEJ6Hb4BBD3sKDCgRtsspMPYtrcJl7vwT1fXUvbVMjMUO0enHBelR39oR2BpqA
+	GEHl3DgH3ZBLSJcIsuS4JrYFOo5tKYKK0rqHsT67aVkuoitFyj2MQaUzly504F3Xeqg9liXekN9
+	v9xCe3jv1kPet28QtyswxcKrsJZ4LODzc8psyGKJhXSs5gW5VgiFrLqizbZWozsJmSiXPUW+fJl
+	5XdU5+6tomDCVDqx9IAVrT5noqejJIHT3A9NVp0t7w6eBde0RVG/Kt3/atpRCZg==
+X-Google-Smtp-Source: AGHT+IHkGwcjTfVbXx6eVRlSW1bPJWg7ABfB6LE3pcI1ePV03v0+a0Kiykk4HhykJH2czK6vrMyHQg==
+X-Received: by 2002:a17:907:8b9a:b0:ac2:c1e:dff0 with SMTP id a640c23a62f3a-ac20dac2643mr219805866b.19.1741170613297;
+        Wed, 05 Mar 2025 02:30:13 -0800 (PST)
 Received: from corebook.localdomain (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ac1f7161a4esm247154266b.161.2025.03.05.02.30.13
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ac1f7161a4esm247154266b.161.2025.03.05.02.30.12
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 05 Mar 2025 02:30:14 -0800 (PST)
+        Wed, 05 Mar 2025 02:30:12 -0800 (PST)
 From: Eric Woudstra <ericwouds@gmail.com>
 To: Andrew Lunn <andrew+netdev@lunn.ch>,
 	"David S. Miller" <davem@davemloft.net>,
@@ -91,9 +91,9 @@ Cc: netdev@vger.kernel.org,
 	Kees Cook <kees@kernel.org>,
 	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
 	Eric Woudstra <ericwouds@gmail.com>
-Subject: [PATCH v9 nf 09/15] netfilter: nf_flow_table_inet: Add nf_flowtable_type flowtable_bridge
-Date: Wed,  5 Mar 2025 11:29:43 +0100
-Message-ID: <20250305102949.16370-10-ericwouds@gmail.com>
+Subject: [PATCH v9 nf 08/15] netfilter :nf_flow_table_offload: Add nf_flow_rule_bridge()
+Date: Wed,  5 Mar 2025 11:29:42 +0100
+Message-ID: <20250305102949.16370-9-ericwouds@gmail.com>
 X-Mailer: git-send-email 2.47.1
 In-Reply-To: <20250305102949.16370-1-ericwouds@gmail.com>
 References: <20250305102949.16370-1-ericwouds@gmail.com>
@@ -105,58 +105,55 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This will allow a flowtable to be added to the nft bridge family.
+Add nf_flow_rule_bridge().
+
+It only calls the common rule and adds the redirect.
 
 Reviewed-by: Nikolay Aleksandrov <razor@blackwall.org>
 Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
 ---
- net/netfilter/nf_flow_table_inet.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ include/net/netfilter/nf_flow_table.h |  3 +++
+ net/netfilter/nf_flow_table_offload.c | 13 +++++++++++++
+ 2 files changed, 16 insertions(+)
 
-diff --git a/net/netfilter/nf_flow_table_inet.c b/net/netfilter/nf_flow_table_inet.c
-index b0f199171932..80b238196f29 100644
---- a/net/netfilter/nf_flow_table_inet.c
-+++ b/net/netfilter/nf_flow_table_inet.c
-@@ -65,6 +65,16 @@ static int nf_flow_rule_route_inet(struct net *net,
- 	return err;
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index 4ab32fb61865..a7f5d6166088 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -340,6 +340,9 @@ void nf_flow_table_offload_flush_cleanup(struct nf_flowtable *flowtable);
+ int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
+ 				struct net_device *dev,
+ 				enum flow_block_command cmd);
++int nf_flow_rule_bridge(struct net *net, struct flow_offload *flow,
++			enum flow_offload_tuple_dir dir,
++			struct nf_flow_rule *flow_rule);
+ int nf_flow_rule_route_ipv4(struct net *net, struct flow_offload *flow,
+ 			    enum flow_offload_tuple_dir dir,
+ 			    struct nf_flow_rule *flow_rule);
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index d8f7bfd60ac6..3cc30ebfa6ff 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -679,6 +679,19 @@ nf_flow_rule_route_common(struct net *net, const struct flow_offload *flow,
+ 	return 0;
  }
  
-+static struct nf_flowtable_type flowtable_bridge = {
-+	.family		= NFPROTO_BRIDGE,
-+	.init		= nf_flow_table_init,
-+	.setup		= nf_flow_table_offload_setup,
-+	.action		= nf_flow_rule_bridge,
-+	.free		= nf_flow_table_free,
-+	.hook		= nf_flow_offload_inet_hook,
-+	.owner		= THIS_MODULE,
-+};
++int nf_flow_rule_bridge(struct net *net, struct flow_offload *flow,
++			enum flow_offload_tuple_dir dir,
++			struct nf_flow_rule *flow_rule)
++{
++	if (nf_flow_rule_route_common(net, flow, dir, flow_rule) < 0)
++		return -1;
 +
- static struct nf_flowtable_type flowtable_inet = {
- 	.family		= NFPROTO_INET,
- 	.init		= nf_flow_table_init,
-@@ -97,6 +107,7 @@ static struct nf_flowtable_type flowtable_ipv6 = {
- 
- static int __init nf_flow_inet_module_init(void)
- {
-+	nft_register_flowtable_type(&flowtable_bridge);
- 	nft_register_flowtable_type(&flowtable_ipv4);
- 	nft_register_flowtable_type(&flowtable_ipv6);
- 	nft_register_flowtable_type(&flowtable_inet);
-@@ -109,6 +120,7 @@ static void __exit nf_flow_inet_module_exit(void)
- 	nft_unregister_flowtable_type(&flowtable_inet);
- 	nft_unregister_flowtable_type(&flowtable_ipv6);
- 	nft_unregister_flowtable_type(&flowtable_ipv4);
-+	nft_unregister_flowtable_type(&flowtable_bridge);
- }
- 
- module_init(nf_flow_inet_module_init);
-@@ -118,5 +130,6 @@ MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
- MODULE_ALIAS_NF_FLOWTABLE(AF_INET);
- MODULE_ALIAS_NF_FLOWTABLE(AF_INET6);
-+MODULE_ALIAS_NF_FLOWTABLE(AF_BRIDGE);
- MODULE_ALIAS_NF_FLOWTABLE(1); /* NFPROTO_INET */
- MODULE_DESCRIPTION("Netfilter flow table mixed IPv4/IPv6 module");
++	flow_offload_redirect(net, flow, dir, flow_rule);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(nf_flow_rule_bridge);
++
+ int nf_flow_rule_route_ipv4(struct net *net, struct flow_offload *flow,
+ 			    enum flow_offload_tuple_dir dir,
+ 			    struct nf_flow_rule *flow_rule)
 -- 
 2.47.1
 
