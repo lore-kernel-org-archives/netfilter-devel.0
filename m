@@ -1,57 +1,55 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D9922E3373
-	for <netfilter-devel@vger.kernel.org>; Wed,  5 Mar 2025 22:08:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 068FF2661BB
+	for <netfilter-devel@vger.kernel.org>; Wed,  5 Mar 2025 22:12:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741212527; cv=none; b=P2Wq6U0PJw3Ipbj+lNER8O13o2WvsLzR69h1pW3NSEhMkCiA7zqMyff8xx5nZ+0p3FFl51O2pbsoO/GEdN3ux9D7mWLuZ9Pcj/vs1YRynfjozynGo9FFrkYMFl91nlBkg/umGLfPJRgNBOjEPoZPUs4N7HHW4it6LyBRJgOji4o=
+	t=1741212774; cv=none; b=qxZLgFNs5E+P3g7tIV5mFZxHtcFS4VgYDocG84jZ717Rzpb+2vNPoa3Vsr8Nm+wMRLSTgfDrvCPxqo2rJWF3kLia0sqLskIqdovu0EDuGR+Q57zTOGDZzC7jo13Xw+1n9mkucLlnrZyqSUL103Mi2uql/jeupN3Gd5xsnFNPcXo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741212527; c=relaxed/simple;
-	bh=YjYsxYkncRbWFFi0uD61Odr4vunHAa4NywCUO31BlUs=;
+	s=arc-20240116; t=1741212774; c=relaxed/simple;
+	bh=3LkyGvKbEoUt02V/ByGtGWiB96hI5UgODoL2OhkHJIQ=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=odmrTs9AQshLXFqixXAPvCY3aUg3IWikft807k99AcDDgV6pAY6bhuXv2bBX1jbZxGC63urxk1U7Vfxhc8p9FDYJwja7cG8xzB6pqm7ZyPPagFr5F1hP6PQLCGxLHht3ORJbmSQ+Eb/n6DIBoTRt4V9kk0RcwXcJgMHZFbTjxjk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=nbBPhmTQ; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=QZRqSasw; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=J5akTA6i6XcEM5ugwkGvYc7K+4i8BJz6BxbwjC+WLCjNJuiSci+PBBJdlaZuUuO1VJD4UhAj5GdgsZGJQX1r4/kLu/hLICHVGWoJ1qD2gImoUh1XuvsniIpxphcnP35TNgoITJ9uOmBDEIeihV8yMYXkCR3tzya9Y/ApD88NR2g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=e8FodICh; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=pLdJah1v; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="nbBPhmTQ";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="QZRqSasw"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="e8FodICh";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="pLdJah1v"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id BEE3A6028B; Wed,  5 Mar 2025 23:08:42 +0100 (CET)
+	id 1FEC960291; Wed,  5 Mar 2025 23:12:50 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1741212522;
-	bh=zC3I9WSYvNYvTkta53ad6cupHkvlc1MQQGTTVlzXeBw=;
+	s=2025; t=1741212770;
+	bh=d4bU3i4j1zp9JBbeNl7amMUr0hSSaPZ4WPNcc4T4UWg=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=nbBPhmTQdPlKZIatZO+sy8V46a0p4qQ9x3pB3zt4YI2X/YWWzWiWaRtAvpnGF9mD+
-	 9ukWyMSZPSxy9rwLACdPB1Vbc463O2rFH+lNVqpHQp7CDYfyhOzYPXoQWA0yHKjr0e
-	 2u1Vds/vWpvND37GfGOyegSV5bgyPQ8bO65tno2501nqly5ax1Cnrt2JDB5ziAYTfk
-	 g8v2V1dFmcXlvjOXTmgXbyrbMPZPJEUVypidi+ohCXxpBzTmD95rza4R7BTauw/2Fm
-	 VIHxWQ/g0duJbxT45sppVmxQLpVz2G2RRISULSC9j9PWY1585nKfvJ8QESP1PqXrZ1
-	 arZkYxqB1Luvw==
+	b=e8FodIChJe8JvM7bwfYtYVxiMteOkTclyLFYuRdwIMTcqswNZsa3R4xEzNX+TL5/H
+	 E7moVhUEdW9ToUtoq3ptCb2FoGeqXjGOvOPAK31k5Lt6y+D0nfNwWPvHMaRRFVZSNq
+	 AET3PkFtwvXZiKKJn67DMBlRj+A139p0fxtzmJ0+DYh9BQXuVvZCspT+Po+LfAZSkG
+	 wpkpXdaY9fHXxancd6uwvveRTzNzvCzjxSDXVzgcKQstQf64GizCgumym1tgC74UZ+
+	 oOLlfwGBzRp3BkVZhoq+eGC9yZGUfhM1tznEBcWEB9uusPgkwX3GseA870NXTfAbko
+	 qSn0lAM6uJK6w==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id AC42560277;
-	Wed,  5 Mar 2025 23:08:40 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 5003C6028D;
+	Wed,  5 Mar 2025 23:12:49 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1741212520;
-	bh=zC3I9WSYvNYvTkta53ad6cupHkvlc1MQQGTTVlzXeBw=;
+	s=2025; t=1741212769;
+	bh=d4bU3i4j1zp9JBbeNl7amMUr0hSSaPZ4WPNcc4T4UWg=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=QZRqSasw/6m4vEX5KO6NiAIQv889HfkFx84Vcn7YjgOLWeiRHVWDn6FoCYRhDDsUx
-	 kkCcC9exx8khV6T/oDn/D7yoPeI4Qx3VSEEPs7ct2ZzvVqyqf+qrHaYQC15AA8/wJm
-	 9svYyOz+7VELxaBt7z5RORFjN50OdjxU8BOKLGP23WyqDDGtFvK6A7XDdtMpGM/Z1y
-	 SibUIHaX3MPNMoY/XHr1oU1kUkAeW7NbY74ZNc1s+f+LAYzxQwlXBAKxWTOqv3s58R
-	 rG0r1NBeRzGJmY4wyawmCgomUK8KuH95QxHLY/s/oYj7K0X3r5gO+SsudXcD1JdWEI
-	 B7z1iYc7rVrow==
-Date: Wed, 5 Mar 2025 23:08:38 +0100
+	b=pLdJah1vsgBM8yemy3OrD1ZHZSTmR9gvfD46mrJb1YdC39YHGyg0GX1zJUDzacoGT
+	 eogQ76R3un6KgsT9V7bQY4jmr/8Fxm6AI+GKzUrY+W2xgPhpyWZm7uTs9mkc/4cmwP
+	 oaTXE72XKBzg5EYL+S/xCI10xGVhX93Mlb7dvviBuEwkYue0GY5hTRwVDbPc8X3B6Y
+	 5qt6Imk4e9ngkusFCcsba/APPVbVqi3gQ7Cf6IPO5tqbo0HeMKqSUfc1DRC0OjgiLN
+	 nsfPW7Ac5VATXvAqYk8Xx+oXz7grDsZRjfq7yqmJSqACB0Uz/Bt3ledc/T/PSFfl2L
+	 303GvIJvPCZLQ==
+Date: Wed, 5 Mar 2025 23:12:46 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, syzkaller-bugs@googlegroups.com,
-	syzbot+5d8c5789c8cb076b2c25@syzkaller.appspotmail.com
-Subject: Re: [PATCH nf] netfilter: nf_tables: make destruction work queue
- pernet
-Message-ID: <Z8jLZv6asBnqrniC@calendula>
-References: <20250304115706.2566960-1-fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] segtree: fix string data initialisation
+Message-ID: <Z8jMXkcOOKzsyELF@calendula>
+References: <20250305150154.19494-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -60,237 +58,148 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250304115706.2566960-1-fw@strlen.de>
+In-Reply-To: <20250305150154.19494-1-fw@strlen.de>
 
-Hi Florian,
+On Wed, Mar 05, 2025 at 04:01:48PM +0100, Florian Westphal wrote:
+> This uses the wrong length.  This must re-use the length of the datatype,
+> not the string length.
+> 
+> The added test cases will fail without the fix due to erroneous
+> overlap detection, which in itself is due to incorrect sorting of
+> the elements.
+> 
+> Example error:
+>  netlink: Error: interval overlaps with an existing one
+>  add element inet testifsets simple_wild {  "2-1" } failed.
+>  table inet testifsets {
+>       ...       elements = { "1-1", "abcdef*", "othername", "ppp0" }
+> 
+> ... but clearly "2-1" doesn't overlap with any existing members.
+> The false detection is because of the "acvdef*" wildcard getting sorted
+> at the beginning of the list which is because its erronously initialised
+> as a 64bit number instead of 128 bits (16 bytes / IFNAMSIZ).
 
-On Tue, Mar 04, 2025 at 12:55:53PM +0100, Florian Westphal wrote:
-> The call to flush_work before tearing down a table from the netlink
-> notifier was supposed to make sure that all earlier updates (e.g. rule
-> add) that might reference that table have been processed.
-> 
-> Unfortunately, flush_work() waits for the last queued instance.
-> This could be an instance that is different from the one that we must
-> wait for.
-> 
-> This is because transactions are protected with a pernet mutex, but the
-> work item is global, so holding the transaction mutex doesn't prevent
-> another netns from queueing more work.
-> 
-> Make the work item pernet so that flush_work() will wait for all
-> transactions queued from this netns.
-> 
-> A welcome side effect is that we no longer need to wait for transaction
-> objects from other network namespaces.
-> 
-> The gc work queue is still global.  This seems to be ok because nft_set
-> structures are reference counted and each container structure owns a
-> reference on the net namespace.
-> 
-> The destroy_list is still protected by a global spinlock rather than
-> pernet one but the hold time is very short anyway.
+One question here.
 
-A few questions below.
-
-> Fixes: 9f6958ba2e90 ("netfilter: nf_tables: unconditionally flush pending work before notifier")
-> Reported-by: syzbot+5d8c5789c8cb076b2c25@syzkaller.appspotmail.com
-> Closes: https://syzkaller.appspot.com/bug?extid=5d8c5789c8cb076b2c25
+> Fixes: 5e393ea1fc0a ("segtree: add string "range" reversal support")
 > Signed-off-by: Florian Westphal <fw@strlen.de>
 > ---
->  include/net/netfilter/nf_tables.h |  4 +++-
->  net/netfilter/nf_tables_api.c     | 25 +++++++++++++++----------
->  net/netfilter/nft_compat.c        |  8 ++++----
->  3 files changed, 22 insertions(+), 15 deletions(-)
+>  src/segtree.c                                |  2 +-
+>  tests/shell/testcases/sets/sets_with_ifnames | 62 ++++++++++++++++++++
+>  2 files changed, 63 insertions(+), 1 deletion(-)
 > 
-> diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-> index 60d5dcdb289c..803d5f1601f9 100644
-> --- a/include/net/netfilter/nf_tables.h
-> +++ b/include/net/netfilter/nf_tables.h
-> @@ -1891,7 +1891,7 @@ void nft_chain_filter_fini(void);
->  void __init nft_chain_route_init(void);
->  void nft_chain_route_fini(void);
+> diff --git a/src/segtree.c b/src/segtree.c
+> index 2e32a3291979..11cf27c55dcb 100644
+> --- a/src/segtree.c
+> +++ b/src/segtree.c
+> @@ -471,7 +471,7 @@ static struct expr *interval_to_string(struct expr *low, struct expr *i, const m
 >  
-> -void nf_tables_trans_destroy_flush_work(void);
-> +void nf_tables_trans_destroy_flush_work(struct net *net);
->  
->  int nf_msecs_to_jiffies64(const struct nlattr *nla, u64 *result);
->  __be64 nf_jiffies64_to_msecs(u64 input);
-> @@ -1905,6 +1905,7 @@ static inline int nft_request_module(struct net *net, const char *fmt, ...) { re
->  struct nftables_pernet {
->  	struct list_head	tables;
->  	struct list_head	commit_list;
-> +	struct list_head	destroy_list;
->  	struct list_head	commit_set_list;
->  	struct list_head	binding_list;
->  	struct list_head	module_list;
-> @@ -1915,6 +1916,7 @@ struct nftables_pernet {
->  	unsigned int		base_seq;
->  	unsigned int		gc_seq;
->  	u8			validate_state;
-> +	struct work_struct	destroy_work;
->  };
->  
->  extern unsigned int nf_tables_net_id;
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index a34de9c17cf1..adf8b2b37fc3 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -34,7 +34,6 @@ unsigned int nf_tables_net_id __read_mostly;
->  static LIST_HEAD(nf_tables_expressions);
->  static LIST_HEAD(nf_tables_objects);
->  static LIST_HEAD(nf_tables_flowtables);
-> -static LIST_HEAD(nf_tables_destroy_list);
->  static LIST_HEAD(nf_tables_gc_list);
->  static DEFINE_SPINLOCK(nf_tables_destroy_list_lock);
->  static DEFINE_SPINLOCK(nf_tables_gc_list_lock);
-> @@ -125,7 +124,6 @@ static void nft_validate_state_update(struct nft_table *table, u8 new_validate_s
->  	table->validate_state = new_validate_state;
+>  	expr = constant_expr_alloc(&low->location, low->dtype,
+>  				   BYTEORDER_HOST_ENDIAN,
+> -				   (str_len + 1) * BITS_PER_BYTE, data);
+> +				   len * BITS_PER_BYTE, data);
+
+BTW, is this also needed?
+
+diff --git a/src/segtree.c b/src/segtree.c
+index 2e32a3291979..b7a89383fae0 100644
+--- a/src/segtree.c
++++ b/src/segtree.c
+@@ -453,7 +453,7 @@ static struct expr *interval_to_string(struct expr *low, struct expr *i, const m
+ {
+        unsigned int len = div_round_up(i->len, BITS_PER_BYTE);
+        unsigned int prefix_len, str_len;
+-       char data[len + 2];
++       char data[len + 2] = {};
+        struct expr *expr;
+ 
+        prefix_len = expr_value(i)->len - mpz_scan0(range, 0);
+
+otherwise uninitialized data could be send to the kernel?
+
+>  	return __expr_to_set_elem(low, expr);
 >  }
->  static void nf_tables_trans_destroy_work(struct work_struct *w);
-> -static DECLARE_WORK(trans_destroy_work, nf_tables_trans_destroy_work);
->  
->  static void nft_trans_gc_work(struct work_struct *work);
->  static DECLARE_WORK(trans_gc_work, nft_trans_gc_work);
-> @@ -10006,11 +10004,12 @@ static void nft_commit_release(struct nft_trans *trans)
->  
->  static void nf_tables_trans_destroy_work(struct work_struct *w)
->  {
-> +	struct nftables_pernet *nft_net = container_of(w, struct nftables_pernet, destroy_work);
->  	struct nft_trans *trans, *next;
->  	LIST_HEAD(head);
->  
->  	spin_lock(&nf_tables_destroy_list_lock);
-> -	list_splice_init(&nf_tables_destroy_list, &head);
-> +	list_splice_init(&nft_net->destroy_list, &head);
->  	spin_unlock(&nf_tables_destroy_list_lock);
->  
->  	if (list_empty(&head))
-> @@ -10024,9 +10023,11 @@ static void nf_tables_trans_destroy_work(struct work_struct *w)
->  	}
+> diff --git a/tests/shell/testcases/sets/sets_with_ifnames b/tests/shell/testcases/sets/sets_with_ifnames
+> index a4bc5072938e..c65499b76bc5 100755
+> --- a/tests/shell/testcases/sets/sets_with_ifnames
+> +++ b/tests/shell/testcases/sets/sets_with_ifnames
+> @@ -105,10 +105,67 @@ check_matching_icmp_ppp()
+>  	fi
 >  }
 >  
-> -void nf_tables_trans_destroy_flush_work(void)
-> +void nf_tables_trans_destroy_flush_work(struct net *net)
->  {
-> -	flush_work(&trans_destroy_work);
-> +	struct nftables_pernet *nft_net = nft_pernet(net);
+> +check_add_del_ifnames()
+> +{
+> +	local what="$1"
+> +	local setname="$2"
+> +	local prefix="$3"
+> +	local data="$4"
+> +	local i=0
 > +
-> +	flush_work(&nft_net->destroy_work);
->  }
->  EXPORT_SYMBOL_GPL(nf_tables_trans_destroy_flush_work);
->  
-> @@ -10484,11 +10485,11 @@ static void nf_tables_commit_release(struct net *net)
->  
->  	trans->put_net = true;
->  	spin_lock(&nf_tables_destroy_list_lock);
-> -	list_splice_tail_init(&nft_net->commit_list, &nf_tables_destroy_list);
-> +	list_splice_tail_init(&nft_net->commit_list, &nft_net->destroy_list);
->  	spin_unlock(&nf_tables_destroy_list_lock);
->  
->  	nf_tables_module_autoload_cleanup(net);
-> -	schedule_work(&trans_destroy_work);
-> +	schedule_work(&nft_net->destroy_work);
->  
->  	mutex_unlock(&nft_net->commit_mutex);
->  }
-> @@ -11853,7 +11854,7 @@ static int nft_rcv_nl_event(struct notifier_block *this, unsigned long event,
->  
->  	gc_seq = nft_gc_seq_begin(nft_net);
->  
-> -	nf_tables_trans_destroy_flush_work();
-> +	nf_tables_trans_destroy_flush_work(net);
->  again:
->  	list_for_each_entry(table, &nft_net->tables, list) {
->  		if (nft_table_has_owner(table) &&
-> @@ -11895,6 +11896,7 @@ static int __net_init nf_tables_init_net(struct net *net)
->  
->  	INIT_LIST_HEAD(&nft_net->tables);
->  	INIT_LIST_HEAD(&nft_net->commit_list);
-> +	INIT_LIST_HEAD(&nft_net->destroy_list);
->  	INIT_LIST_HEAD(&nft_net->commit_set_list);
->  	INIT_LIST_HEAD(&nft_net->binding_list);
->  	INIT_LIST_HEAD(&nft_net->module_list);
-> @@ -11903,6 +11905,7 @@ static int __net_init nf_tables_init_net(struct net *net)
->  	nft_net->base_seq = 1;
->  	nft_net->gc_seq = 0;
->  	nft_net->validate_state = NFT_VALIDATE_SKIP;
-> +	INIT_WORK(&nft_net->destroy_work, nf_tables_trans_destroy_work);
->  
->  	return 0;
->  }
-> @@ -11936,9 +11939,13 @@ static void __net_exit nf_tables_exit_net(struct net *net)
->  	nft_gc_seq_end(nft_net, gc_seq);
->  
->  	mutex_unlock(&nft_net->commit_mutex);
+> +	for i in $(seq 1 5);do
+> +		local cmd="element inet testifsets $setname { "
+> +		local to_batch=16
 > +
-> +	cancel_work_sync(&nft_net->destroy_work);
-
-__nft_release_tables() is called in this nf_tables_exit_net()
-function, cancel_work_sync() needs to be called before it?
-
+> +		for j in $(seq 1 $to_batch);do
+> +			local name=$(printf '"%x-%d"' $i $j)
 > +
->  	WARN_ON_ONCE(!list_empty(&nft_net->tables));
->  	WARN_ON_ONCE(!list_empty(&nft_net->module_list));
->  	WARN_ON_ONCE(!list_empty(&nft_net->notify_list));
-> +	WARN_ON_ONCE(!list_empty(&nft_net->destroy_list));
->  }
+> +			[ -n "$prefix" ] && cmd="$cmd $prefix . "
+> +
+> +			cmd="$cmd $name"
+> +
+> +			[ -n "$data" ] && cmd="$cmd : $data"
+> +
+> +			if [ $j -lt $to_batch ] ; then
+> +				cmd="$cmd, "
+> +			fi
+> +		done
+> +
+> +		cmd="$cmd }"
+> +
+> +		if ! $NFT "$what" "$cmd"; then
+> +			echo "$what $cmd failed."
+> +			$NFT list set inet testifsets $setname
+> +			exit 1
+> +		fi
+> +
+> +		if ! ip netns exec "$ns1" $NFT "$what" "$cmd"; then
+> +			echo "$ns1 $what $cmd failed."
+> +			ip netns exec "$ns1" $NFT list set inet testifsets $setname
+> +			exit 1
+> +		fi
+> +	done
+> +}
+> +
+> +check_add_ifnames()
+> +{
+> +	check_add_del_ifnames "add" "$1" "$2" "$3"
+> +}
+> +
+> +check_del_ifnames()
+> +{
+> +	check_add_del_ifnames "delete" "$1" "$2" "$3"
+> +}
+> +
+>  ip netns add "$ns1" || exit 111
+>  ip netns add "$ns2" || exit 111
+>  ip netns exec "$ns1" $NFT -f "$dumpfile" || exit 3
 >  
->  static void nf_tables_exit_batch(struct list_head *net_exit_list)
-> @@ -12029,10 +12036,8 @@ static void __exit nf_tables_module_exit(void)
->  	unregister_netdevice_notifier(&nf_tables_flowtable_notifier);
->  	nft_chain_filter_fini();
->  	nft_chain_route_fini();
-> -	nf_tables_trans_destroy_flush_work();
-
-My understanding is that this is not required anymore because of the
-new cancel_work_sync() in the exit_net() path?
-
->  	unregister_pernet_subsys(&nf_tables_net_ops);
->  	cancel_work_sync(&trans_gc_work);
-> -	cancel_work_sync(&trans_destroy_work);
->  	rcu_barrier();
->  	rhltable_destroy(&nft_objname_ht);
->  	nf_tables_core_module_exit();
-> diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-> index 7ca4f0d21fe2..72711d62fddf 100644
-> --- a/net/netfilter/nft_compat.c
-> +++ b/net/netfilter/nft_compat.c
-> @@ -228,7 +228,7 @@ static int nft_parse_compat(const struct nlattr *attr, u16 *proto, bool *inv)
->  	return 0;
->  }
+> +check_add_ifnames "simple" "" ""
+> +check_add_ifnames "simple_wild" "" ""
+> +check_add_ifnames "concat" "10.1.2.2" ""
+> +check_add_ifnames "map_wild" "" "drop"
+> +
+>  for n in abcdef0 abcdef1 othername;do
+>  	check_elem simple $n
+>  done
+> @@ -150,3 +207,8 @@ ip -net "$ns2" addr add 10.1.2.2/24 dev veth0
+>  ip -net "$ns2" addr add 10.2.2.2/24 dev veth1
 >  
-> -static void nft_compat_wait_for_destructors(void)
-> +static void nft_compat_wait_for_destructors(struct net *net)
->  {
->  	/* xtables matches or targets can have side effects, e.g.
->  	 * creation/destruction of /proc files.
-> @@ -236,7 +236,7 @@ static void nft_compat_wait_for_destructors(void)
->  	 * work queue.  If we have pending invocations we thus
->  	 * need to wait for those to finish.
->  	 */
-> -	nf_tables_trans_destroy_flush_work();
-> +	nf_tables_trans_destroy_flush_work(net);
->  }
->  
->  static int
-> @@ -262,7 +262,7 @@ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
->  
->  	nft_target_set_tgchk_param(&par, ctx, target, info, &e, proto, inv);
->  
-> -	nft_compat_wait_for_destructors();
-> +	nft_compat_wait_for_destructors(ctx->net);
->  
->  	ret = xt_check_target(&par, size, proto, inv);
->  	if (ret < 0) {
-> @@ -515,7 +515,7 @@ __nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
->  
->  	nft_match_set_mtchk_param(&par, ctx, match, info, &e, proto, inv);
->  
-> -	nft_compat_wait_for_destructors();
-> +	nft_compat_wait_for_destructors(ctx->net);
->  
->  	return xt_check_match(&par, size, proto, inv);
->  }
+>  check_matching_icmp_ppp
+> +
+> +check_del_ifnames "simple" "" ""
+> +check_del_ifnames "simple_wild" "" ""
+> +check_del_ifnames "concat" "10.1.2.2" ""
+> +check_del_ifnames "map_wild" "" "drop"
 > -- 
 > 2.48.1
 > 
