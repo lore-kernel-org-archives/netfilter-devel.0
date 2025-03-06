@@ -1,48 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87DE71990D9;
-	Thu,  6 Mar 2025 15:34:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF3141A08A6;
+	Thu,  6 Mar 2025 15:34:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741275302; cv=none; b=D+LqyqOptIpcL+oG/r3A35EWK331ORacSOhbO+eg5+WgpmzClc7cP29NbAVkEVw/5vrA3yRsNo9/DsJhrLjCYDQ2RWHP5bcGypZJEFRUMFtkbpl6PeVV8nlCvWN7rzdap11sVH1sb/P/tCJ9wV5g5/Po5vQKYAMk72aW+7Ac5tY=
+	t=1741275302; cv=none; b=Xoa6UjMfYP4O4U+vzHTLxb54b/lVsp67in8iTcgbj8mFXEjYpt+niPVM9kE59vFSNW0OiWvj4RSUM3PEHFOC35W38TYkoeq51reIiO7o3zYG/xfdb8Dqg6bjU6RCguZq+PgsicGrClAdLZgNSMhhx7bphe0JoyYN4763OZmqUzM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1741275302; c=relaxed/simple;
-	bh=vpy/1a0310/A6O1uLdZCzoCsT6lCRgdx6V5eVdwIgV4=;
+	bh=3eBta4NdUVZpRQY7Rd3tvYxIeT60lB9yGt8iGAOE7UE=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=gdtF9R6SWsJOUjsuNvR3q6sDFz01wHFPfphQr4AHB8jY99XWvH8Ge8oFqGNC2iZ51XJehYTFhMcPafpDU/enPyINy2vUkZ+3lZFfsS76Lf2yz4mQh8fJvNQ6HSutZAbEH+BI+vVIGPdixpEJ5KVBlhslqWZHDnEGlRYHQ+M+YLc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=uGb8HMU6; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=tf0YzabV; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=I3gYWzkC9A0T3S0j0s+DZ6/mrI81X7ZMwn0xYAxVacQ0tmvme6Qk2aTgtO2fte4ogPf2w16DRhZHYUPuIZ7lmHsstRGCAmRdmSaPqgSXW/q+njkv0fZcnc95B3vcy6qWec8koq/uCXt5fE0e/rgrid5G28BssA5tuRELC7LT3x0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=XqVnGBrV; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=DuoMAnnd; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="uGb8HMU6";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="tf0YzabV"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="XqVnGBrV";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="DuoMAnnd"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 002C760308; Thu,  6 Mar 2025 16:34:53 +0100 (CET)
+	id DDC1560303; Thu,  6 Mar 2025 16:34:55 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1741275294;
-	bh=mkon9fs8xRiDE8tH3lMwSu4uXP3e+5V3rBY5SY2y3MA=;
+	s=2025; t=1741275295;
+	bh=AUsdUETtDieRadQMe+F2JvPGgnSvRnKzF1g3M1QVQD4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=uGb8HMU6nujod37W1e0HX3vaPb3rWfygpCXXDOHhqJclAo4WG9quilzMarqf08zgp
-	 4ILITLtfDZU6nmrKCX//T0ETdBgTvjKC7rIC6lvhfTN0RxIQsjW8nIjUQKJtktyYEQ
-	 IzggAdExTdFVfzC3o7t82sIAKDT0upg2yHjtPkvKqtLsuhA35hq1EsaCi46EFVJEvs
-	 wLdH8esL+CLtkPCzfOOU97JNGXi7+WVmD3V4d8j34F/l4HHitkeIvT6oQntNNEE/so
-	 mC7ZwHh7+KI/TwiEEibl6OddCIotf2wFtT1BnPKCDSkgDc7qLxqd/W+Pl+m9sUju1y
-	 Svm5K1EtLmG5A==
+	b=XqVnGBrVjCX+1ihlLNuRlTLc/9CYNByPnwaxx5Qabg4pc3G4yGenBgVM6Rcjii2ID
+	 2m9xGL5Dbe7KCyT9Q+NOQoPEvsfsdxnjqOpn54ZvKtOfvc9fjYc/d1SWQmfKb8NpZb
+	 2GLJAmZxAb7BekXJwIh0CS4iKDyGl7ZrG2DVbBYUPCsMCeiWcxeNa1thG+hHSmPaqS
+	 GmUVKXQpCXi/II4yCOnEGPd06i+X6m+vZ0XHNTaFsi/HeJO4ZH9fp8tlmLYjuO7tYE
+	 oCMHB5durRErkh0N4VqBUb6PUQISrIaDR1tlN45s15f7K9nCVE2n4jjattrLGU1I0B
+	 mEE4/Uky4tvxA==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 186E960306;
+	by mail.netfilter.org (Postfix) with ESMTPSA id DC2E860307;
 	Thu,  6 Mar 2025 16:34:52 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1741275292;
-	bh=mkon9fs8xRiDE8tH3lMwSu4uXP3e+5V3rBY5SY2y3MA=;
+	s=2025; t=1741275293;
+	bh=AUsdUETtDieRadQMe+F2JvPGgnSvRnKzF1g3M1QVQD4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=tf0YzabVdE4fScL4S/sPpwfNhWNULcF2izUhQxWwd+Go3hEoCEthYfJv9pSPtdXKH
-	 yn01icir5Hu6BNk2Q+oT9H6ofqU7i1PmS7hpVCy5VI1TL5xGcRNVcI+7ApZWTFHH0f
-	 KZ0RbH2PLwprSxk19qyvMPswNzbJJK/bhbXOQM6NLBDSqZGW1lMnGvaev1yQ1P2ihk
-	 ECYeYSeoVj5VH6/R3y6ZNeYnB35TryUl+KhI4+BYf6yHwS5gM5/AyVuLfykUc4AJ19
-	 jr1/53/Av6dbQ8nNKkfRCdh0b4+mAGlyyHTNCdI6sdEExZyK24YkuvrgTVpxLXI5aS
-	 6uJHieKqzNUow==
+	b=DuoMAnndoZP/7x6XZoK0Czte1bWmUCS1lCrv2iLMPIz4gnxEchZR7vh6RxJ4GaC0s
+	 SYIssdQfkW3TwVcySUvTQ0akjIOFEa/FvC4tW2ckh5lZPpcG+ZiXAvLWqBH5MDDF/j
+	 4ovNN1afCD6+pfxI2mZy9nAOab2tq8Ia/xeMymyjiMbWtq8jP1p5ixRrBq0vAWWZqC
+	 nRBDScMzTqwwyQ7ZwyopxwKylBLkGAETRA9tkzFHUi8wt3j+iRctCBqLHoKjSy/cuX
+	 cI1F8KKBzYQ06Mp/GzFpaR9E48htQBLXH6KADT6AlHXTHmF/5N0jGVdS63HrJUnBj3
+	 nrRcRMgmQMRvQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -52,9 +52,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 1/3] netfilter: nft_ct: Use __refcount_inc() for per-CPU nft_ct_pcpu_template.
-Date: Thu,  6 Mar 2025 16:34:44 +0100
-Message-Id: <20250306153446.46712-2-pablo@netfilter.org>
+Subject: [PATCH net 2/3] netfilter: nf_conncount: garbage collection is not skipped when jiffies wrap around
+Date: Thu,  6 Mar 2025 16:34:45 +0100
+Message-Id: <20250306153446.46712-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250306153446.46712-1-pablo@netfilter.org>
 References: <20250306153446.46712-1-pablo@netfilter.org>
@@ -66,57 +66,49 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+From: Nicklas Bo Jensen <njensen@akamai.com>
 
-nft_ct_pcpu_template is a per-CPU variable and relies on disabled BH for its
-locking. The refcounter is read and if its value is set to one then the
-refcounter is incremented and variable is used - otherwise it is already
-in use and left untouched.
+nf_conncount is supposed to skip garbage collection if it has already
+run garbage collection in the same jiffy. Unfortunately, this is broken
+when jiffies wrap around which this patch fixes.
 
-Without per-CPU locking in local_bh_disable() on PREEMPT_RT the
-read-then-increment operation is not atomic and therefore racy.
+The problem is that last_gc in the nf_conncount_list struct is an u32,
+but jiffies is an unsigned long which is 8 bytes on my systems. When
+those two are compared it only works until last_gc wraps around.
 
-This can be avoided by using unconditionally __refcount_inc() which will
-increment counter and return the old value as an atomic operation.
-In case the returned counter is not one, the variable is in use and we
-need to decrement counter. Otherwise we can use it.
+See bug report: https://bugzilla.netfilter.org/show_bug.cgi?id=1778
+for more details.
 
-Use __refcount_inc() instead of read and a conditional increment.
-
-Fixes: edee4f1e9245 ("netfilter: nft_ct: add zone id set support")
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Fixes: d265929930e2 ("netfilter: nf_conncount: reduce unnecessary GC")
+Signed-off-by: Nicklas Bo Jensen <njensen@akamai.com>
 Reviewed-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_ct.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ net/netfilter/nf_conncount.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index 2e59aba681a1..d526e69a2a2b 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -230,6 +230,7 @@ static void nft_ct_set_zone_eval(const struct nft_expr *expr,
- 	enum ip_conntrack_info ctinfo;
- 	u16 value = nft_reg_load16(&regs->data[priv->sreg]);
- 	struct nf_conn *ct;
-+	int oldcnt;
+diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
+index 4890af4dc263..ebe38ed2e6f4 100644
+--- a/net/netfilter/nf_conncount.c
++++ b/net/netfilter/nf_conncount.c
+@@ -132,7 +132,7 @@ static int __nf_conncount_add(struct net *net,
+ 	struct nf_conn *found_ct;
+ 	unsigned int collect = 0;
  
- 	ct = nf_ct_get(skb, &ctinfo);
- 	if (ct) /* already tracked */
-@@ -250,10 +251,11 @@ static void nft_ct_set_zone_eval(const struct nft_expr *expr,
+-	if (time_is_after_eq_jiffies((unsigned long)list->last_gc))
++	if ((u32)jiffies == list->last_gc)
+ 		goto add_new_node;
  
- 	ct = this_cpu_read(nft_ct_pcpu_template);
+ 	/* check the saved connections */
+@@ -234,7 +234,7 @@ bool nf_conncount_gc_list(struct net *net,
+ 	bool ret = false;
  
--	if (likely(refcount_read(&ct->ct_general.use) == 1)) {
--		refcount_inc(&ct->ct_general.use);
-+	__refcount_inc(&ct->ct_general.use, &oldcnt);
-+	if (likely(oldcnt == 1)) {
- 		nf_ct_zone_add(ct, &zone);
- 	} else {
-+		refcount_dec(&ct->ct_general.use);
- 		/* previous skb got queued to userspace, allocate temporary
- 		 * one until percpu template can be reused.
- 		 */
+ 	/* don't bother if we just did GC */
+-	if (time_is_after_eq_jiffies((unsigned long)READ_ONCE(list->last_gc)))
++	if ((u32)jiffies == READ_ONCE(list->last_gc))
+ 		return false;
+ 
+ 	/* don't bother if other cpu is already doing GC */
 -- 
 2.30.2
 
