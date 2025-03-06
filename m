@@ -1,54 +1,57 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28E4D13D897
-	for <netfilter-devel@vger.kernel.org>; Thu,  6 Mar 2025 18:28:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 379BE1A01B9
+	for <netfilter-devel@vger.kernel.org>; Thu,  6 Mar 2025 18:28:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741285707; cv=none; b=YbGVhxTZZu4P6dE6j02QTJ+tAvyBsZrTZ9Fmqfww19JhflCLlt8BFIl17ApbcnqToxLz6b2VAyWKUZyldlNOMVysmcWaW9oC6L3rSkVnO3ZzD2RPj9b3M5dMiH/nrYzfT3xrY/fKtsEZR5AC3Yr7OnIqF2G+8TeTPtBWamjS59g=
+	t=1741285707; cv=none; b=ffrHQl6h4cHy8KG/6XPJ1Dz13OspX+9H/L8Ok9tbjWrHA8tby6ykFjIO63aVZCf8ZnrCJZRi+iEBSbgL62dd3qRMoNbfCVGaaPFy1uOdENbH7KsuPcZ7Phy+RoHir3IhYGgGUueeHwWCxcry+DaGTv6egfoVw97rZzaPI/HxAx4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1741285707; c=relaxed/simple;
-	bh=bDe05PbCeAtaRkGzwJEe++8HD6aQ+D8NRITTRTL226A=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=IlTugCsHABuWP0g7vwezYaTkrSIDEwB8r5eJfGV/Y/1ehMkvCoy6D7VLrWH3RCUMnFF6IInGiYSgfWyxUsAffY4PKaz6XDF35IPtAYPSKuj9eXRi+qCk2bNUWUCKnHbhJsIJSOCyAf9eQRw7y8oo3zA1BX4Nb9HXoilTU1H5mrI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=skFhtnhb; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=pq+7URvH; arc=none smtp.client-ip=217.70.190.124
+	bh=rZj1Ke1FxLojBUVMaHFaoZUZ9N17NVvFmOeNSi/WNLM=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=fC7blOfwjkd/yjcRuHQ/L/HIWHCq0u0+5eXCx5HKHPLjDQTXg+arwL5B3mmom099P7K51z9+MD9//zZ8lVQyaOnhmwnjeAuwgNb2MJwdIswGr1w2DN3LE3rgQA1EmlBgO8JPE35TkBZGFT7PNMkIlYpYafTi1bSn1FvBtNzUh0o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=jSN2NH/i; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=sTQDOCyL; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="skFhtnhb";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="pq+7URvH"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="jSN2NH/i";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="sTQDOCyL"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 52F236028D; Thu,  6 Mar 2025 19:28:22 +0100 (CET)
+	id 4BBBC60290; Thu,  6 Mar 2025 19:28:23 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1741285702;
-	bh=c3BgnfB0j5xKVqHiaBQ+tTxLzV/hUfhSMLuvc3RdOfA=;
-	h=From:To:Cc:Subject:Date:From;
-	b=skFhtnhbke4L4ICTEGXvahjVNg2GGrDFPqLhh1PAitE3AawPNjGkprg5dma5GYj92
-	 4BErkIuQgnRRxJY188+Jv/M5arcCECq8eV3MC5Gmf3y6W4W/37c3fnmPr1XVXK+4uc
-	 4slkcon9nMLKGuvtJvACQICWbYnqwBA2nEtuz47NQPZXHIiAXWlt5y3mSKckIQBuOi
-	 GpYH93J6RL5ZfCO/nguKRHIC4YV+77PZJhfxE+adXp8Ko3SW6z18Q+9yb0YZRL9cDY
-	 osUWpwjQENGRibeTPqsvLHsUVxBfuMC+TwRpe1HOCMNzzh4TVRfuSA1VbYGJEikGEm
-	 FYFMbR72YyfXQ==
+	s=2025; t=1741285703;
+	bh=V+LWjehDWkI6mPTmTmDDdvs3jy6zCv5I4rMZAver/rE=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=jSN2NH/ibnBf10wS4scM0hD3SMpFsmaoA37fMD0lLcqJBYOxL3m+jjWoZnN80PGw1
+	 yF2x1GZpqkCjwUEX3phmK+0HFVHip/1Wn9GxR0FXvv0UuZFZjbIVc7zR4YqDvOyNom
+	 NX+kDDBVXgLAyW+BbdQe0T9vaSM9rJcmHs81B+UP3RoIf/ezIb7jaIyZGQWtDIlQtj
+	 oLYhlbjNdCX0XhkCEye3gKpmkjWwSJOCKqX6XCN2bA+z9lfQud9VQWmmI/Alv/e8ta
+	 Onq6Pimc39MGdG5b/N7efW/8XUAQ68lCS8/PuEWpnoLUiaKKCqPGuyw1whCi9Bwa5C
+	 lqLivUz6YylaQ==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 86A2D6028D;
-	Thu,  6 Mar 2025 19:28:21 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 9989760290;
+	Thu,  6 Mar 2025 19:28:22 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1741285701;
-	bh=c3BgnfB0j5xKVqHiaBQ+tTxLzV/hUfhSMLuvc3RdOfA=;
-	h=From:To:Cc:Subject:Date:From;
-	b=pq+7URvHaGa02qJE7dyz+TvrgCJwA5jX7DHf2hX0uBfkH2/iUK9kzVI1Rao/lgLzo
-	 6AMvg/Ha21gGz/Rm+VQuXuLNukqjZiZPyS+I0i8Stx/L2T96N++9fu/OrrrEKs6v7g
-	 SU3s/r6rxmwEFOxRB3deRS7+1Avy3v/rFUbzlmnBYUBlhG4RMH/9eIsg/arkxnE6wk
-	 PNpwynjZnHQaM3i7T/4z6e2wjBBCvmUBkawd6K05xaESsZraOWR4sgRDIL5DcoiFhz
-	 yS+A2sAwbDJndk0FAv9rxjmV89LqoOq/BbBQYHF0Sf03843k/4OBvIORYlVE4niW2O
-	 w5KzgjWs4URjQ==
+	s=2025; t=1741285702;
+	bh=V+LWjehDWkI6mPTmTmDDdvs3jy6zCv5I4rMZAver/rE=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=sTQDOCyL8M4p3CEqDFFrKzlJ/2D3xR8kMrptE2k4yFCl3ExuenZjxVga7sLIErcgA
+	 etknBKUF2e2xSZqgsrydzH5HMYyNfcktmgruY1TYVyiLTlgalEsvPqAtr4sfpa5K5X
+	 bLxTWw7NWaYXSXomJYtfXXUsxIgcegOSOCQQGOdCsr8nyqGCs6eCLIeHBW+JWeVnGG
+	 6KiUTgRkwpURQJRemYBFvp1hY4TPOxpdhT2bZrw+Qrv8BgSPIY+4Re09MPuOxoq/+x
+	 sgMG767cj7v0gEbvysNZv9DjHxsTwc4ry2sdpE2AABlsqDba/1JTU/7s0T6HLHjSE/
+	 S5nzwiZL+HaEg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: fw@strlen.de
-Subject: [PATCH nft,v2 1/3] src: fix reset element support for interval set type
-Date: Thu,  6 Mar 2025 19:28:10 +0100
-Message-Id: <20250306182812.330871-1-pablo@netfilter.org>
+Subject: [PATCH nft,v2 2/3] segtree: incomplete output in get element command with maps
+Date: Thu,  6 Mar 2025 19:28:11 +0100
+Message-Id: <20250306182812.330871-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20250306182812.330871-1-pablo@netfilter.org>
+References: <20250306182812.330871-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -57,126 +60,120 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+get element command displays an incomplete range:
 
-Running reset command yields on an interval (rbtree) set yields:
-nft reset element inet filter rbtreeset {1.2.3.4}
-BUG: unhandled op 8
+ # nft get element x y { 1.1.1.2 }
 
-This is easy to fix, CMD_RESET doesn't add or remove so it should be
-treated like CMD_GET.
+Before:
 
-Unfortunately, this still doesn't work properly:
+ table ip x {
+        map y {
+                type ipv4_addr : mark
+                flags interval,timeout
+                elements = { 1.1.1.1 counter packets 0 bytes 0 timeout 10m expires 1m24s160ms : 0x00000014 }
+        }
+ }
 
-nft get element inet filter rbset {1.2.3.4}
-returns:
- ... elements = { 1.2.3.4 }
+Note that it displays 1.1.1.1, instead of 1.1.1.1-1.1.1.10.
 
-but its expected that "get" and "reset" also return stateful objects
-associated with the element.  This works for other set types, but for
-rbtree, the list of statements gets lost during segtree processing.
+After this fix:
 
-After fix, get/reset returns:
-  elements = { 1.2.3.4 counter packets 10 ...
+ table ip x {
+        map y {
+                type ipv4_addr : mark
+                flags interval,timeout
+                elements = { 1.1.1.1-1.1.1.10 counter packets 0 bytes 0 timeout 10m expires 1m24s160ms : 0x00000014 }
+        }
+ }
 
-A follow up patch will add a test case.
-
-Fixes: 83e0f4402fb7 ("Implement 'reset {set,map,element}' commands")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: a43cc8d53096 ("src: support for get element command")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: while at this, fix maps too.
+v2: new in this series
 
-@Florian: This is a follow-up on top of your series.
+ src/segtree.c | 39 ++++++++++++++++++++-------------------
+ 1 file changed, 20 insertions(+), 19 deletions(-)
 
- src/evaluate.c |  1 +
- src/segtree.c  | 36 ++++++++++++++++++++++++++++++------
- 2 files changed, 31 insertions(+), 6 deletions(-)
-
-diff --git a/src/evaluate.c b/src/evaluate.c
-index c9c56588cee4..e27d08ce7ef8 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1953,6 +1953,7 @@ static int interval_set_eval(struct eval_ctx *ctx, struct set *set,
- 				 ctx->nft->debug_mask);
- 		break;
- 	case CMD_GET:
-+	case CMD_RESET:
- 		break;
- 	default:
- 		BUG("unhandled op %d\n", ctx->cmd->op);
 diff --git a/src/segtree.c b/src/segtree.c
-index 2e32a3291979..bce38eef293c 100644
+index bce38eef293c..e785fc25b5a2 100644
 --- a/src/segtree.c
 +++ b/src/segtree.c
-@@ -206,6 +206,27 @@ static struct expr *expr_to_set_elem(struct expr *e)
- 	return __expr_to_set_elem(e, expr);
+@@ -110,19 +110,34 @@ struct expr *get_set_intervals(const struct set *set, const struct expr *init)
+ 	return new_init;
  }
  
-+static void set_compound_expr_add(struct expr *compound, struct expr *expr, struct expr *orig)
++static struct expr *expr_value(struct expr *expr)
 +{
-+	struct expr *elem;
-+
 +	switch (expr->etype) {
-+	case EXPR_SET_ELEM:
-+		list_splice_init(&orig->stmt_list, &expr->stmt_list);
-+		compound_expr_add(compound, expr);
-+		break;
 +	case EXPR_MAPPING:
-+		list_splice_init(&orig->left->stmt_list, &expr->left->stmt_list);
-+		compound_expr_add(compound, expr);
-+		break;
++		return expr->left->key;
++	case EXPR_SET_ELEM:
++		return expr->key;
++	case EXPR_VALUE:
++		return expr;
 +	default:
-+		elem = set_elem_expr_alloc(&orig->location, expr);
-+		list_splice_init(&orig->stmt_list, &elem->stmt_list);
-+		compound_expr_add(compound, elem);
-+		break;
++		BUG("invalid expression type %s\n", expr_name(expr));
 +	}
 +}
 +
- int get_set_decompose(struct set *cache_set, struct set *set)
+ static struct expr *get_set_interval_find(const struct set *cache_set,
+ 					  struct expr *left,
+ 					  struct expr *right)
  {
- 	struct expr *i, *next, *range;
-@@ -227,20 +248,23 @@ int get_set_decompose(struct set *cache_set, struct set *set)
- 				errno = ENOENT;
- 				return -1;
- 			}
-+
-+			set_compound_expr_add(new_init, range, left);
-+
- 			expr_free(left);
- 			expr_free(i);
+ 	const struct set *set = cache_set;
+ 	struct expr *range = NULL;
+-	struct expr *i;
++	struct expr *i, *key;
+ 	mpz_t val;
  
--			compound_expr_add(new_init, range);
- 			left = NULL;
- 		} else {
- 			if (left) {
- 				range = get_set_interval_find(cache_set,
- 							      left, NULL);
-+
- 				if (range)
--					compound_expr_add(new_init, range);
-+					set_compound_expr_add(new_init, range, left);
- 				else
--					compound_expr_add(new_init,
--							  expr_to_set_elem(left));
-+					set_compound_expr_add(new_init,
-+							      expr_to_set_elem(left), left);
- 			}
- 			left = i;
- 		}
-@@ -248,9 +272,9 @@ int get_set_decompose(struct set *cache_set, struct set *set)
- 	if (left) {
- 		range = get_set_interval_find(cache_set, left, NULL);
- 		if (range)
--			compound_expr_add(new_init, range);
-+			set_compound_expr_add(new_init, range, left);
- 		else
--			compound_expr_add(new_init, expr_to_set_elem(left));
-+			set_compound_expr_add(new_init, expr_to_set_elem(left), left);
- 	}
+ 	mpz_init2(val, set->key->len);
  
- 	expr_free(set->init);
+ 	list_for_each_entry(i, &set->init->expressions, list) {
+-		switch (i->key->etype) {
++		key = expr_value(i);
++		switch (key->etype) {
+ 		case EXPR_VALUE:
+ 			if (expr_basetype(i->key)->type != TYPE_STRING)
+ 				break;
+@@ -131,14 +146,14 @@ static struct expr *get_set_interval_find(const struct set *cache_set,
+ 		case EXPR_PREFIX:
+ 		case EXPR_RANGE:
+ 			range_expr_value_low(val, i);
+-			if (left && mpz_cmp(left->key->value, val))
++			if (left && mpz_cmp(expr_value(left)->value, val))
+ 				break;
+ 
+ 			range_expr_value_high(val, i);
+-			if (right && mpz_cmp(right->key->value, val))
++			if (right && mpz_cmp(expr_value(right)->value, val))
+ 				break;
+ 
+-			range = expr_clone(i->key);
++			range = expr_clone(i);
+ 			goto out;
+ 		default:
+ 			break;
+@@ -150,20 +165,6 @@ out:
+ 	return range;
+ }
+ 
+-static struct expr *expr_value(struct expr *expr)
+-{
+-	switch (expr->etype) {
+-	case EXPR_MAPPING:
+-		return expr->left->key;
+-	case EXPR_SET_ELEM:
+-		return expr->key;
+-	case EXPR_VALUE:
+-		return expr;
+-	default:
+-		BUG("invalid expression type %s\n", expr_name(expr));
+-	}
+-}
+-
+ static struct expr *__expr_to_set_elem(struct expr *low, struct expr *expr)
+ {
+ 	struct expr *elem = set_elem_expr_alloc(&low->location, expr);
 -- 
 2.30.2
 
