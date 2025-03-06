@@ -1,28 +1,31 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3905F20297E
-	for <netfilter-devel@vger.kernel.org>; Thu,  6 Mar 2025 13:29:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B9D520297E
+	for <netfilter-devel@vger.kernel.org>; Thu,  6 Mar 2025 13:29:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741267752; cv=none; b=CPdYQI9QGikeAATg/WqmKldaPNKYO8hcrRjJWqaom32+F1OL6l/oUFjd2tTFvMDQWz5FDnQ3rg+URmt2yf1GjX7EoxMGRK2NRZZxEKuNjMBRmiLuteh7qvJ8uNv/cdwImCsq8Dh7IW6T78kjtheNSR6NhukYkJVgVTqoLXggo9U=
+	t=1741267756; cv=none; b=QK/defkxY3z5r8CscKpWJOhZ5/JILmG2roGBH2wQgw7f1UOe5T7NAkNps0IeqqZxU8Cuc0SDVLJoA3o2Ik7JixZn6ENmD2SMWQ4M4UcZlAwiCGQ+RSwq5MxC9JjzK3+q8ONQGoGhYdR6h12122T2mL1KU3eWsI7yadOhcPy1a/4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741267752; c=relaxed/simple;
-	bh=c7yTYFTxdaghwCg1/l7qP34j1jjxurf6uY+7ClKF1Zs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=MFk0vMZmaazJZ9Axanh/+5pQcrzMT3myuWb4VfT2JkVjk4S/UWkOquYKBranBKEU1VsZfuENnp6CbU8nFotXwzB8yrH7sS+D+Vvp3ZvyxCzaGKTEqe1+ROhgPlNsgJoROdyJlmaWQtYvwY0IqPc6z0kYy5MLetsQFz0Fi6XVwTA=
+	s=arc-20240116; t=1741267756; c=relaxed/simple;
+	bh=2X8fUXCSWonBFDgFY+4nH5jnOR4gu1o9SwuuWOqmocw=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=SJTFhGlSbQdwLUKdEMxg3fym+yGKDSwXgMzTI8aufy9Y7UmvbFdgLjaQcovA8fPO1jmv1wgPHDu9baNsxb0CnYUuj9kDA29pueVvUP16ny7QTQjOMZH7fTCf8WOzVKQ9vLlB19C0dxwx/JdoyrJC7ggY57gRoqGEXwam13Y7LY4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1tqBHf-00045J-Um; Thu, 06 Mar 2025 14:29:07 +0100
+	id 1tqBHk-00045V-1b; Thu, 06 Mar 2025 14:29:12 +0100
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 1/2] src: fix reset element support for rbree set type
-Date: Thu,  6 Mar 2025 14:23:30 +0100
-Message-ID: <20250306132336.17675-1-fw@strlen.de>
+Subject: [PATCH nft 2/2] tests: extend reset test case to cover rbtree set type
+Date: Thu,  6 Mar 2025 14:23:31 +0100
+Message-ID: <20250306132336.17675-2-fw@strlen.de>
 X-Mailer: git-send-email 2.45.3
+In-Reply-To: <20250306132336.17675-1-fw@strlen.de>
+References: <20250306132336.17675-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,113 +34,79 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Running reset command yields on an interval (rbtree) set yields:
-nft reset element inet filter rbtreeset {1.2.3.4}
-BUG: unhandled op 8
-
-This is easy to fix, CMD_RESET doesn't add or remove so it should be
-treated like CMD_GET.
-
-Unfortunately, this still doesn't work properly:
-
-nft get element inet filter rbset {1.2.3.4}
-returns:
- ... elements = { 1.2.3.4 }
-
-but its expected that "get" and "reset" also return stateful objects
-associated with the element.  This works for other set types, but for
-rbtree, the list of statements gets lost during segtree processing.
-
-After fix, get/reset returns:
-  elements = { 1.2.3.4 counter packets 10 ...
-
-Next patch will add a test case.
+Make sure segtree processing doesn't drop associated stateful elements.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/evaluate.c |  1 +
- src/segtree.c  | 31 +++++++++++++++++++++++++------
- 2 files changed, 26 insertions(+), 6 deletions(-)
+ tests/shell/testcases/sets/reset_command_0 | 47 +++++++++++++++++-----
+ 1 file changed, 37 insertions(+), 10 deletions(-)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 25c07d90695b..1be09cb23a5d 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1946,6 +1946,7 @@ static int interval_set_eval(struct eval_ctx *ctx, struct set *set,
- 				 ctx->nft->debug_mask);
- 		break;
- 	case CMD_GET:
-+	case CMD_RESET:
- 		break;
- 	default:
- 		BUG("unhandled op %d\n", ctx->cmd->op);
-diff --git a/src/segtree.c b/src/segtree.c
-index 11cf27c55dcb..0fde39df7940 100644
---- a/src/segtree.c
-+++ b/src/segtree.c
-@@ -206,6 +206,22 @@ static struct expr *expr_to_set_elem(struct expr *e)
- 	return __expr_to_set_elem(e, expr);
- }
- 
-+static void set_compound_expr_add(struct expr *compound, struct expr *expr, struct expr *orig)
-+{
-+	struct expr *elem;
+diff --git a/tests/shell/testcases/sets/reset_command_0 b/tests/shell/testcases/sets/reset_command_0
+index d38ddb3ffeeb..f3c1102b4b41 100755
+--- a/tests/shell/testcases/sets/reset_command_0
++++ b/tests/shell/testcases/sets/reset_command_0
+@@ -17,6 +17,19 @@ RULESET="table t {
+ 			2.0.0.2 . tcp . 22 counter packets 10 bytes 100 timeout 15m expires 10m
+ 		}
+ 	}
 +
-+	if (expr->etype == EXPR_SET_ELEM) {
-+		list_splice_init(&orig->stmt_list, &expr->stmt_list);
-+		compound_expr_add(compound, expr);
-+		return;
++	set s2 {
++		type ipv4_addr
++		flags interval, timeout
++		counter
++		timeout 30m
++		elements = {
++			1.0.0.1 counter packets 5 bytes 30 expires 20m,
++			1.0.1.1-1.0.1.10 counter packets 5 bytes 30 expires 20m,
++			2.0.0.2 counter packets 10 bytes 100 timeout 15m expires 10m
++		}
 +	}
 +
-+	elem = set_elem_expr_alloc(&orig->location, expr);
+ 	map m {
+ 		type ipv4_addr : ipv4_addr
+ 		quota 50 bytes
+@@ -38,17 +51,31 @@ expires_minutes() {
+ 	sed -n 's/.*expires \([0-9]*\)m.*/\1/p'
+ }
+ 
+-echo -n "get set elem matches reset set elem: "
+-elem='element t s { 1.0.0.1 . udp . 53 }'
+-[[ $($NFT "get $elem ; reset $elem" | \
+-	grep 'elements = ' | drop_seconds | uniq | wc -l) == 1 ]]
+-echo OK
++get_and_reset()
++{
++	local setname="$1"
++	local key="$2"
+ 
+-echo -n "counters are reset, expiry left alone: "
+-NEW=$($NFT "get $elem")
+-grep -q 'counter packets 0 bytes 0' <<< "$NEW"
+-[[ $(expires_minutes <<< "$NEW") -lt 20 ]]
+-echo OK
++	echo -n "get set elem matches reset set elem in set $setname: "
 +
-+	list_splice_init(&orig->stmt_list, &elem->stmt_list);
-+	compound_expr_add(compound, elem);
++	elem="element t $setname { $key }"
++	echo $NFT get $elem
++	$NFT get $elem
++	[[ $($NFT "get $elem ; reset $elem" | \
++		grep 'elements = ' | drop_seconds | uniq | wc -l) == 1 ]]
++	echo OK
++
++	echo -n "counters are reset, expiry left alone in set $setname: "
++	NEW=$($NFT "get $elem")
++	echo NEW $NEW
++	grep -q 'counter packets 0 bytes 0' <<< "$NEW"
++	[[ $(expires_minutes <<< "$NEW") -lt 20 ]]
++	echo OK
 +}
 +
- int get_set_decompose(struct set *cache_set, struct set *set)
- {
- 	struct expr *i, *next, *range;
-@@ -227,20 +243,23 @@ int get_set_decompose(struct set *cache_set, struct set *set)
- 				errno = ENOENT;
- 				return -1;
- 			}
-+
-+			set_compound_expr_add(new_init, range, left);
-+
- 			expr_free(left);
- 			expr_free(i);
++get_and_reset "s" "1.0.0.1 . udp . 53"
++get_and_reset "s2" "1.0.0.1"
++get_and_reset "s2" "1.0.1.1-1.0.1.10"
  
--			compound_expr_add(new_init, range);
- 			left = NULL;
- 		} else {
- 			if (left) {
- 				range = get_set_interval_find(cache_set,
- 							      left, NULL);
-+
- 				if (range)
--					compound_expr_add(new_init, range);
-+					set_compound_expr_add(new_init, range, left);
- 				else
--					compound_expr_add(new_init,
--							  expr_to_set_elem(left));
-+					set_compound_expr_add(new_init,
-+							      expr_to_set_elem(left), left);
- 			}
- 			left = i;
- 		}
-@@ -248,9 +267,9 @@ int get_set_decompose(struct set *cache_set, struct set *set)
- 	if (left) {
- 		range = get_set_interval_find(cache_set, left, NULL);
- 		if (range)
--			compound_expr_add(new_init, range);
-+			set_compound_expr_add(new_init, range, left);
- 		else
--			compound_expr_add(new_init, expr_to_set_elem(left));
-+			set_compound_expr_add(new_init, expr_to_set_elem(left), left);
- 	}
- 
- 	expr_free(set->init);
+ echo -n "get map elem matches reset map elem: "
+ elem='element t m { 1.2.3.4 }'
 -- 
 2.45.3
 
