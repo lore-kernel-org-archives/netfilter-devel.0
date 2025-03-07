@@ -1,58 +1,100 @@
-Received: from smtpdh20-2.aruba.it (smtpdh20-2.aruba.it [62.149.155.165])
+Received: from azazel.net (taras.nevrast.org [35.176.194.208])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5772223F40D
-	for <netfilter-devel@vger.kernel.org>; Fri,  7 Mar 2025 16:40:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.149.155.165
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34B9723C8B5
+	for <netfilter-devel@vger.kernel.org>; Fri,  7 Mar 2025 16:49:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741365609; cv=none; b=D8PNuedP0qYfWe/dqB4sC1EU7fsxtKLsFRxHf/GR08k31VdjdeoffnkS25wXGnWsKNjOUuYu5B4paNoU9qR4zhWMid5PpHEKSxN6nNckD2uMouN/o554UOE722wEm7U1TCED8p1ozlcqBGnnEq3gr8KIXn/Pm+hQ41AencfWDJk=
+	t=1741366208; cv=none; b=KO9zxuuxzkRDHv5a+UhKXna12RB7t6MXGs9d1b5DaNo+gMEwsem0PxU+2R4KCkOYa77pZEn+oTpaVZGObDJ/j1Hyd+ERKx2UlNkstLPgaQdoWGaTicoEwyNoYUryL3rqsLTDfDfsNgt8OoBqlwxM+gl6fMX6+k3nTcM1D2j0PCU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741365609; c=relaxed/simple;
-	bh=fs9J5RxC60LTsgGuc4cKLp0EqH10cwNpdC9q1N655TY=;
-	h=Message-ID:Subject:From:To:Date:Content-Type:Mime-Version; b=tUTHYCRTRDwmAg4Q9oxB3z32xD3QZrnlIqyZyXkth0kQlbIm0aOiS+BXVgYNELzO5tVkmYbyRJEMtJqJs9GtUnuAQiY/zxPizmpWmc167OzysrGKZo8iDN8VPigYXVDgfnB9SCVraxaMGyohozORqXyjtHi2YArLDH76IyOjZdQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=trentalancia.com; spf=pass smtp.mailfrom=trentalancia.com; dkim=temperror (0-bit key) header.d=aruba.it header.i=@aruba.it header.b=U84cIpd4; arc=none smtp.client-ip=62.149.155.165
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=trentalancia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=trentalancia.com
+	s=arc-20240116; t=1741366208; c=relaxed/simple;
+	bh=OZjOB4m1IrgcG+D6TGzSVbWFTQ0zs/aNF97j6Wu+ueU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=EG1ql46k1SUDSKvIfIA5lqVG3FtSXPxbiFPWkIkmINgC7KNUfVBW8bs4pOZsD2hRK4dPCNgGIXUmJLY0nrWq8691Hogzvc9Ui3w1094Dg+KjYXHpruB+GyuXHO1ZSuXB871IwfGgrXcyik3x4T//VOlMcI6OlVx/DNIslwcUqqs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=f+U0QfRJ; arc=none smtp.client-ip=35.176.194.208
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=temperror (0-bit key) header.d=aruba.it header.i=@aruba.it header.b="U84cIpd4"
-Received: from [192.168.43.2] ([109.54.139.178])
-	by Aruba SMTP with ESMTPSA
-	id qajyto8Ppqg4pqajytM4W3; Fri, 07 Mar 2025 17:40:02 +0100
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=aruba.it; s=a1;
-	t=1741365602; bh=fs9J5RxC60LTsgGuc4cKLp0EqH10cwNpdC9q1N655TY=;
-	h=Subject:From:To:Date:Content-Type:Mime-Version;
-	b=U84cIpd4jG3b4gpWDDQbRdv01pyG3brg28VdHqnTsa5XenG9Fvt2QZxpCg2NXDXcw
-	 YttV3h/HFRPfBax4kVCd6bk9/7m6ew/+xRsKhx78oyivcIrEQCoduClFaPF35gEo8Y
-	 A1faE1ukaoO7x8mWO5cykShIC18vt7x3JGB15EwYv4t38WLa76eiwEZo7Wj/IEvbNf
-	 APe9SF+zM+E2soBlEtaiUvRO53oR5R9Rg5BxkZL+DZMSOv1UO9qQ0fo6kgcRVqNc9M
-	 BNvLuCbUzRqNzkkfHenTecfZK2SAtcGpvV0ad+Kb7aJ9CUFt9Pw3LqqLr2GNr/pk3r
-	 3VMSSvzlWHNqw==
-Message-ID: <1741365601.5380.19.camel@trentalancia.com>
-Subject: Signature for newly released iptables-1.8.11 package
-From: Guido Trentalancia <guido@trentalancia.com>
-To: netfilter-devel@vger.kernel.org
-Date: Fri, 07 Mar 2025 17:40:01 +0100
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.26.6 
+	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="f+U0QfRJ"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+	s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=OZjOB4m1IrgcG+D6TGzSVbWFTQ0zs/aNF97j6Wu+ueU=; b=f+U0QfRJqg1QE9OeoLqYbhyq0B
+	FyoKinntAu1VMy9f6tvWDz4akKzHSkF2cdXwI5uyWBoOFi4kEGFUcbGRP+MuwQhhngW2gczmzwY4y
+	OQeGZPBWAi+lfMwY1xmrOsTU56HzHHDjjawCG7//TXSszgbmlMl3zNt5u89B4bFn5hweDxKVgP7TA
+	6wz6YXRU0K9c2wiESeJ/FhrihCdkYPsHITPXXF/LvAp1A82ZECpBsCwUwKW/3xyTFUU5uY0PhAXXP
+	MyUYQs+rTcebB3nOqnDHF8DxP+Spk2jDhITUh2kLTfQylM6WiEv3v5Ch+XeFiY6yz5T6/dzT2cYEF
+	AXqeaJNg==;
+Received: from celephais.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] helo=celephais.dreamlands)
+	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.96)
+	(envelope-from <jeremy@azazel.net>)
+	id 1tqatR-00Em1P-0k;
+	Fri, 07 Mar 2025 16:49:49 +0000
+Date: Fri, 7 Mar 2025 16:49:48 +0000
+From: Jeremy Sowden <jeremy@azazel.net>
+To: Guido Trentalancia <guido@trentalancia.com>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: Signature for newly released iptables-1.8.11 package
+Message-ID: <20250307164948.GB255870@celephais.dreamlands>
+References: <1741365601.5380.19.camel@trentalancia.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4xfEawtGGCT2VMLnTN4fBROl7POaZ6zX4LNLPnznJ+xskeytbBCG34esRfMEUcIBBjrFVAj4o+3xw8J+6SHQOsRqr+cLka1UUeRNw+1PHoWpCClJqKXYMF
- SYWqFNDMuhQAkR0qbkuwdPDhKyroUmx2J1IcRnczvR8Dmsvi8A3Hr30ccBv5lE++tw2BXybfghSZz8i/a6BMGw0YaUnBw6C/Zr4=
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="4rfCZDhP201AJmyF"
+Content-Disposition: inline
+In-Reply-To: <1741365601.5380.19.camel@trentalancia.com>
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 
-The newly released iptables version 1.8.11 source package has been
-signed using a new gpg key 8C5F7146A1757A65E2422A94D70D1A666ACF2B21.
 
-Unfortunately it seems that such key has not been published yet on
-public keyservers.
+--4rfCZDhP201AJmyF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Can someone please publish the new gpg key used to sign newer iptables
-releases ?
+On 2025-03-07, at 17:40:01 +0100, Guido Trentalancia wrote:
+> The newly released iptables version 1.8.11 source package has been
+> signed using a new gpg key 8C5F7146A1757A65E2422A94D70D1A666ACF2B21.
+>=20
+> Unfortunately it seems that such key has not been published yet on
+> public keyservers.
+>=20
+> Can someone please publish the new gpg key used to sign newer iptables
+> releases ?
 
-Thanks,
+It's here: https://netfilter.org/about.html#gpg.
 
-Guido
+J.
+
+--4rfCZDhP201AJmyF
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+wsG7BAABCgBvBYJnyyOaCRAphqwKvfEEDUcUAAAAAAAeACBzYWx0QG5vdGF0aW9u
+cy5zZXF1b2lhLXBncC5vcmcGXxVMkgBTbKiPBsHzMqVbsDBBDCEZqwLNYFRmHrPq
+thYhBGwdtFNj70A3vVbVFymGrAq98QQNAADYxQ//ctFNxXGtwS3NAFCcO0UUT+aB
+2mH7La3ploqtNdQv7Lh869aBUHmtTbq1OA+ssO8faDeDKjay4q812IoKYpkbOh/3
+dwz10q2T07Dmqttc2vy6svFoHKi+W6WTfcJ4dtCKvlNUFu309ohZ14noD54jhvQa
+Q8U4QuCHH5ym0r8Tig8Fe6h5+jZECELOI4xHFLmvPsOgkqs/E0z521B76MyiWQLc
+Zyi53q5T/cBbOXQZOQqPmTheupOF6J3TXSQTz95Kyna+8EFnqh+Wmk0WgASAA/CC
+zjta60xooDnJ3VhQtQdjdskGf+lqiUjcusjSp53J6aUKL9GWlr2Ktj3St7r7c417
+jzaofRcGAJdty8n28MUWE113qfYw//UyrhzKXcNL878YiFM9+/uUN603nool2nD6
+aAtmRbrRqnruycOU+5ZxJCO1C6enfH2rUrv8BM67yEYvLAeGizU+2J8RWSv+ALRn
+EZzIvDFdSviAOy+g5QbabTLlRJRMQBNE8X1MwFNEhuUZp2zjKKeOSegd8Mi7qzBI
+Owx6btUsfbZ02MT/2wDizFjpEoWN9CRwGXmEzIoBV6VDpixtyaT1z6s+lbceTDeK
++JDTnBT6/4Dq5Vk6UYZIf5NYyU1fJXEVHaeltgtNiUWudO/SCAFBq43+nhdz1B62
+c9lAyICcUKrPmyr6AQs=
+=V05x
+-----END PGP SIGNATURE-----
+
+--4rfCZDhP201AJmyF--
