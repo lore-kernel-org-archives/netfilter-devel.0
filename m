@@ -1,43 +1,43 @@
-Received: from smtpdh20-1.aruba.it (smtpdh20-1.aruba.it [62.149.155.164])
+Received: from smtpdh20-2.aruba.it (smtpdh20-2.aruba.it [62.149.155.165])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5812C217F31
-	for <netfilter-devel@vger.kernel.org>; Fri,  7 Mar 2025 15:31:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.149.155.164
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A65F821CA1A
+	for <netfilter-devel@vger.kernel.org>; Fri,  7 Mar 2025 15:46:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.149.155.165
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741361514; cv=none; b=T2Y9HDashsQoCW6ss37MJ3ZKikwUTOqoqv7gyXNWBsVqEsb+cEUAxpeA1cDOzYbhf4wChlNXV94kVdFcyPZzpB+J6qcip05UO4sW+dyJ81LAHIr3geKA1LrW63ec+roPn7fj1Lrx/195yEnuHY15Kchd7SIffgBhTrhmeW57SqM=
+	t=1741362382; cv=none; b=D2tUEexJ84gAJNyoKvFtMMAKISLyMmfKWLgMxXV5AHRIKWUgj9oi9XEvaGpIKJoXhePM++5lL+WHaRGeBjeP4hcybfXbAjspG9ncMmriHwlM7/ERfOxpPHyALc8Q66/GumtmQpD4mtQmj5rRE0kfzOIgMFg0Xzhed/pYVgWNsOc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741361514; c=relaxed/simple;
-	bh=QVcK9jSQ7mTy6qLNXTYNHcm0ovO5q99KjSqr/Gh05M0=;
+	s=arc-20240116; t=1741362382; c=relaxed/simple;
+	bh=PEjop6FEYoeXQgYKy0v1FCV6QlpQUQl20FOw+fLij38=;
 	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:Mime-Version; b=AWmqe8PYCxKyQk7rNFOPghn5qJIKg/Ax4Efem9nSuvcfBo2fbC4I6IyNIkch+2WFOwPSBFsVyakwHTL4+LmLaqo0ZnfNk08DAusa4ctxwsFBtJlJe7TcFnw61G4FWnatVd/vTErRiKS7plm2YNnFIq3ldtoOEJY418YUwpLBnuM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=trentalancia.com; spf=pass smtp.mailfrom=trentalancia.com; dkim=temperror (0-bit key) header.d=aruba.it header.i=@aruba.it header.b=Ut7+G2yl; arc=none smtp.client-ip=62.149.155.164
+	 Content-Type:Mime-Version; b=fnwFqkSL1eh6ZbideOwsrHd3Bmt45KDWDMuQ3hygkyDYtUQyHXNn+pz+P777ONRaYEV8br/1x3I4/hzDHiCNUO8108nmTiT0crCsqdBvJRNEi2vuRRdYCoDCgHkvQdgwOeY+sLV/+Nqn5slP68H4QNQFHZ2LbBYlnoIpX3D0sOw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=trentalancia.com; spf=pass smtp.mailfrom=trentalancia.com; dkim=temperror (0-bit key) header.d=aruba.it header.i=@aruba.it header.b=PPcuMIIe; arc=none smtp.client-ip=62.149.155.165
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=trentalancia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=trentalancia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=temperror (0-bit key) header.d=aruba.it header.i=@aruba.it header.b="Ut7+G2yl"
+	dkim=temperror (0-bit key) header.d=aruba.it header.i=@aruba.it header.b="PPcuMIIe"
 Received: from [192.168.43.2] ([109.54.139.178])
 	by Aruba SMTP with ESMTPSA
-	id qZfvtn5WBqg4pqZfvtLXaI; Fri, 07 Mar 2025 16:31:48 +0100
+	id qZtwtnJQtqg4pqZtxtLffd; Fri, 07 Mar 2025 16:46:17 +0100
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=aruba.it; s=a1;
-	t=1741361508; bh=QVcK9jSQ7mTy6qLNXTYNHcm0ovO5q99KjSqr/Gh05M0=;
+	t=1741362377; bh=PEjop6FEYoeXQgYKy0v1FCV6QlpQUQl20FOw+fLij38=;
 	h=Subject:From:To:Date:Content-Type:Mime-Version;
-	b=Ut7+G2ylpgSSu2EbNzvfJlMnyZDZP7XkCuqfrtAsMTJpVS/gAEEflu8FbZMl0+Uwp
-	 wOPmLCzM84WxZ9eGEIsc8PM+MHEgiZ4XUg6zwmCOtMKH7aeVAPyx8tOZK6TBDrajQh
-	 NkgMwL5Y0I9Tx/XKXexlWs20P66Zk1M1HgESohcXkP4Rnow1cnKcQdeoFEnNFUvO/L
-	 5l2ZI5QHxK32CaJnTpcxZ2toAqcElnQ9BUnTi2AnZLFNzrDQT6wi40fL3bk2gLUb4O
-	 DYCgBUSQGqrEtHQSsCVoXrDlOQ6TjU1j9+iKJYP+Fo5lqaMHGkD+tCIZA/F+Zqj1AM
-	 FP5BUVhY/pJdg==
-Message-ID: <1741361507.5380.11.camel@trentalancia.com>
+	b=PPcuMIIePEvu80evjTxi5Hk2wvFHaaz6QXZep3pk/AeE+L8ZFFc4eqDBaT+ylOvq5
+	 c3YjKtzoz+WY1Fzx3ITZUachDFEsC5BQdyqO6ZKx7jcX+VsxfxMgMLvFr+GruSu8S/
+	 azC2mvl8+lxnTjqo6/zd7TJj04YG5IstOwWa23cCPZumi2G/QHJognmpe3bVHh3OeJ
+	 EyCL5a/YaKR+uqRBg9bspOACprNyc20DRYU8hniWANCgmJnlL16ZHER6Nktt5Yzwgq
+	 N3+KBH19lJLNeqW3GRmaA1R3ZfVsviQ3UyLsIYzaW++EGF6IC6bzdKSrFd+aPQo1hz
+	 go7SLSBcfiIJQ==
+Message-ID: <1741362376.5380.16.camel@trentalancia.com>
 Subject: Re: [PATCH iptables]: xtables: tolerate DNS lookup failures
 From: Guido Trentalancia <guido@trentalancia.com>
-To: Reindl Harald <h.reindl@thelounge.net>, Jan Engelhardt <ej@inai.de>
+To: Jan Engelhardt <ej@inai.de>
 Cc: netfilter-devel@vger.kernel.org
-Date: Fri, 07 Mar 2025 16:31:47 +0100
-In-Reply-To: <d8ad3f9f-715f-436d-a73b-4b701ae96cc7@thelounge.net>
+Date: Fri, 07 Mar 2025 16:46:16 +0100
+In-Reply-To: <1741361076.5380.3.camel@trentalancia.com>
 References: <1741354928.22595.4.camel@trentalancia.com>
 	 <qn655027-4830-ps48-87po-r61npps888s5@vanv.qr>
-	 <d8ad3f9f-715f-436d-a73b-4b701ae96cc7@thelounge.net>
+	 <1741361076.5380.3.camel@trentalancia.com>
 Content-Type: text/plain; charset="UTF-8"
 X-Mailer: Evolution 3.26.6 
 Precedence: bulk
@@ -47,24 +47,50 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4xfO/cfWa3jlPEjef5T2m1Im+1Jxodsyt+8uOSylJwQZjvAA57sa4Sb7JDtCtiEXl5L8W3sLKA0JrLgsC88yxH+Uk36qBY+QcZlf3lMQsHuTK3wi7k/Wbo
- 2Ei2UYtYbD6Gzq0UZn4E3Dm8l+9sauOAWrZu0t2ppS+0P4ErAcimJN8FzN6gEoYHw4PbEjknHkdb6IclQ5/lvpgNZp9/NaSNKi33ysZeIM5+HdQHftQyo1Zw
- lBg28MxMDBzmiTqbXhQj/0uqaEi8gBOirALdxOKyVGo=
+X-CMAE-Envelope: MS4xfCIfIXi7aPFb+5smV6gxaglv1tNSfDawKhKqtd2PipGkMaqpH3Kx1lXOaP1wqyDaQCIKuWJH1rUErd+CatwQvEvEMBjmAtIzKm757zNMCP8tPdbq0rAM
+ 4GMpDVWQIJf1ub4SRxySkPSCkaoYqm2QcJHAo+qw5F9i3xxnMWG+Hp/2eVqVQ/uu0oceM0rvbbSL67QPVGsKr+gVYuszZTjUhmO0kBBQmdhkEAE9MSoc13dD
 
-Nowadays FQDN hostnames are very often unavoidable, because in many
-cases their IP addresses are allocated dynamically by the DNS...
+I can give you quick example of an hostname which is allocated
+dynamically in DNS: www.google.com.
 
-The patch is very useful for a desktop computer which, for example,
-connects to a wireless network only occasionally and not necessarily at
-system bootup and which needs rules for IPs dynamically allocated to
-FQDNs.
+If you perform:
+
+  # nslookup www.google.com
+
+then you will obtain a different IP address (or different multiple IP
+addresses) each time you run the command.
+
+Given the above, any iptables rule for such kind of host will need to
+use its FQDN instead of a statically allocated numeric IP address.
+
+I hope this clarifies the matter.
+
+Regards,
 
 Guido
 
-On Fri, 07/03/2025 at 15.48 +0100, Reindl Harald wrote:
+On Fri, 07/03/2025 at 16.24 +0100, Guido Trentalancia wrote:
+> Of course, if the DNS is not available the "evil hacker" rule is
+> skipped when this patch is merged.
 > 
-> Am 07.03.25 um 15:07 schrieb Jan Engelhardt:
-> > 
+> However the drawbacks of not applying this patch are far worse,
+> because
+>  if the DNS is not available and some rules in the table contain
+> domain
+> names, then all rules are skipped and the operation is aborted even
+> for
+> numeric IP addresses and resolvable names.
+> 
+> Finally, consider that nowadays many host names are allocated
+> dynamically and therefore for several hosts it is not possible to
+> enter
+> their numeric IP address.
+> 
+> I hope this helps...
+> 
+> Guido
+> 
+> On Fri, 07/03/2025 at 15.07 +0100, Jan Engelhardt wrote:
 > > On Friday 2025-03-07 14:42, Guido Trentalancia wrote:
 > > 
 > > > libxtables: tolerate DNS lookup failures
@@ -86,7 +112,6 @@ On Fri, 07/03/2025 at 15.48 +0100, Reindl Harald wrote:
 > > 
 > > if you skip the rule, you now have a questionable hole in your
 > > security.
+> > 
 > 
-> just don't use hostnames in stuff which is required to be upo
-> *before* 
-> the network to work properly at all
+> 
