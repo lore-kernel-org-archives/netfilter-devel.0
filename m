@@ -1,120 +1,133 @@
-Received: from smtpdh20-2.aruba.it (smtpdh20-2.aruba.it [62.149.155.165])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f42.google.com (mail-wm1-f42.google.com [209.85.128.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67E7C219EB8
-	for <netfilter-devel@vger.kernel.org>; Fri,  7 Mar 2025 13:42:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.149.155.165
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B33F921A928
+	for <netfilter-devel@vger.kernel.org>; Fri,  7 Mar 2025 13:44:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741354935; cv=none; b=dvLh8CqzcmpI8MhwYPxIidGPNhm4MjiPoi+ZCW6XBChvsw9sq23oT3Q3qQp/v7U1RS2mTRcDFFsBLswvtTnTCLBtBIkJ7ROJ4a3xjbI9WtUzJfz3/zdtDlYl9+a0lFehOcPRVtfUJbgPLfe0o+zP55eAYrdKvTXifFDEEpCgiz8=
+	t=1741355051; cv=none; b=cwkaWqdkr+fWBuKBaoFVKBTLjK5aEDaWFtI9jQivv+Uz5qbKpxNgpAFdnHTtPHVRR8pI+6NHsD+kZXMZzbwuqPvgXg4/weCU7k0kPUiZDs1krB7Yx0cU9f84W1soewStcdDntuyY6v/NqiDo/I1AlAAUmE5VCtGvKJiX0H5RfzQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741354935; c=relaxed/simple;
-	bh=Wy8mIN84K72GMSXdhAypeO+6QNUYHqt6ip8SIAkdv8w=;
-	h=Message-ID:Subject:From:To:Date:Content-Type:Mime-Version; b=hNsV/aH5QE3GOccmC6cZ/5a28vOBb/fsfNS+5PIvFNvAgkaAeSbMLq9udmmr//BsObgScV2pSWzWPegGyxHOe+IaLS3YdiRDmTgETqK9wJhenhgL09JFbNKduMczP+TDO73Z8Jh5uyQ/a+sSfgbdRZIZvUR9qT/zEqDShQ3W/Oc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=trentalancia.com; spf=pass smtp.mailfrom=trentalancia.com; dkim=temperror (0-bit key) header.d=aruba.it header.i=@aruba.it header.b=PN/Y9acN; arc=none smtp.client-ip=62.149.155.165
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=trentalancia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=trentalancia.com
+	s=arc-20240116; t=1741355051; c=relaxed/simple;
+	bh=gCKy6Z6IWQUo4NVubERjekOLQ8tO2OPPYqCEFVEa+7Y=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=RsS8UHtGPEKz8L+Og3fBrP+poYkRWMkx24XnFsrfUtFewsqkmHESSGs0zV7z8K4L7x/FZs/sbs2qscaqWykxvq8YTGnP1I4/wwtjGGHm7hGB+qPS1G5kDMmH/uBdOYuixfZZd0OTlQJqTJVseObgX7jp336QA2Q4nxQ9S1Bbj7g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=oQim2+LC; arc=none smtp.client-ip=209.85.128.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=temperror (0-bit key) header.d=aruba.it header.i=@aruba.it header.b="PN/Y9acN"
-Received: from [192.168.43.2] ([109.54.139.178])
-	by Aruba SMTP with ESMTPSA
-	id qXxotlBWMqg4pqXxotKZhK; Fri, 07 Mar 2025 14:42:09 +0100
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=aruba.it; s=a1;
-	t=1741354929; bh=Wy8mIN84K72GMSXdhAypeO+6QNUYHqt6ip8SIAkdv8w=;
-	h=Subject:From:To:Date:Content-Type:Mime-Version;
-	b=PN/Y9acNzdwQnNv2ADBu4Zq5SqoWAGtmJHIu/XCHWj+d6IsPu++zKtp6QKGBPbRYr
-	 iP4I5dbU6/om2q5RETFEgejvdC9a4l+yxJSIGv13/ufEib9SCysb/z7G52L6G8Mj1u
-	 629rrVWHPG64o9Tlx8dOT8JsDIaj2/XUGyzeZRHYhq6V6siyPwo1g1ifVwbrSPDySX
-	 jOC/xORjCU0hP92tVcz+oWFqDUaXuG1JBsgsf0ChRkgXiVb9RBl62ZtnmBVfNVpjay
-	 epNU3lAvbeIzmchSedo8vIIsxwbKJj8TuJlsEX8JWbbWcqbNXCykHIVV9ewBa6UZbd
-	 VjZFIjTZUBcow==
-Message-ID: <1741354928.22595.4.camel@trentalancia.com>
-Subject: [PATCH iptables]: xtables: tolerate DNS lookup failures
-From: Guido Trentalancia <guido@trentalancia.com>
-To: netfilter-devel@vger.kernel.org
-Date: Fri, 07 Mar 2025 14:42:08 +0100
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.26.6 
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="oQim2+LC"
+Received: by mail-wm1-f42.google.com with SMTP id 5b1f17b1804b1-43bcc04d4fcso11436505e9.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 07 Mar 2025 05:44:08 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1741355047; x=1741959847; darn=vger.kernel.org;
+        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=HKa+tQTLZjzXmIzy+CrH4sUBisOXOqgtBvJQGN22yDs=;
+        b=oQim2+LCLRfTmtd6zEOlGS6EGN4zQu2iGCQ4ks5rZT6WQBb4rO6CkM+0XC+16PUpAB
+         iTfImXdnBmzmyDQkmllG4mIOBNPNeApdB5OyZNeN9RU9WDGBMdnT7gb5BKHsNQn4yg8r
+         fq3MdkB7DVq8GPgvndZMKVNJU3EEmB0npichZlDvAqvs02EI6p+Xx7KUhlM57tI2iXsi
+         WhtpmomlbstYWS+R3V+42MrUl0GUq+BK1nCxqUDXv3UEAct56aEVGC1yaIXLXTIMll+T
+         cg/rxV5bha2T1F/YkPZu/tZLzri2FP+6JCl7ywPcwqsiCyDNf4b5e3OSkOZP4X8nnBC8
+         Kf4w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1741355047; x=1741959847;
+        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=HKa+tQTLZjzXmIzy+CrH4sUBisOXOqgtBvJQGN22yDs=;
+        b=ojnejAYXCbCoITCJ2+kUgYlnNlIjkEqjlLopeEmRoM9OBG1V5BFa9nXx/LPeONFL2C
+         NbaG5m9U3Su4xUo8DOw0BCu/YQLF0jFZJxTf9PHEAzksffCksxmvPMOOud2eFHfQsIq4
+         XVyU8OepzyNIr50M1037MWdhicSLjymQkrSNLFq73NEcJ+M18g/Z99omrJoYJNQS7gju
+         g6/bW1oPhEXODLUQSbc1D5A2fa0Zxpkmf8Ow7l91kIp/yGBHEXqO80WpbL6UBuP4vmNZ
+         EboWEVjYHR+rEfEhISz0mqrQGi4Z9xU83Nxutdrh7I/b6SyjDWH55EQJAd7Kac6t8cnA
+         rrUA==
+X-Forwarded-Encrypted: i=1; AJvYcCV2ffD+dpxBXEfXgTWvfrIs+bx12fm/y7/23pdk1XglqOR+ltw1b3sKZY9lN6QVS+ocqstwjF63l0/TyhSqzI0=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz0YHM5qSTmM5i3mqB6S+TgQ1hi1lzE5dcnD1+6D4xoyf9i+cNa
+	Eh0roFoShJYPnbPjqjTMOfoBwTx3PA9RQUjkICj4m55RBV/gJmHC68/DllKjDU8=
+X-Gm-Gg: ASbGncu43zmymGt8E+OzjtChDTotay5LnrexmlFrsC+W/OKpiVOQpZB491nZC2TiITE
+	kC9s7EvuTObOE8OV9/8wNu5p+J3Xl4JBrWhJVQJFDlGmm1QThvybUStAzzXkREIMPzUyhMyqlsh
+	X4WDVDR3W5Z6yj2ltKwiTo5rbRHa9ESJjzDCypgftodZ1MtYieLfI8Dgq6OrJ87dmn+jrn1rvDw
+	xi8Q3wvkBxcgeP47YxCXQeYqxDC7qt2G9vzrXHzWmWmkKZDNhXEksluO1Gfq/l2Cvuu4JTa7neV
+	XjNE615z8syjwAzq2FyyPyF6iW3i0a4pix4MOzdoyvCYtAGerg==
+X-Google-Smtp-Source: AGHT+IFsPIR6Knj/ewMaXqXh6YdH08dtxvFyv6VA9rK7sxf3+pKbD8o9J6/llsPPYAyuvcsP8pwyQw==
+X-Received: by 2002:a05:600c:1c10:b0:43b:cb96:3cda with SMTP id 5b1f17b1804b1-43c68703f84mr21047775e9.28.1741355047048;
+        Fri, 07 Mar 2025 05:44:07 -0800 (PST)
+Received: from localhost ([196.207.164.177])
+        by smtp.gmail.com with UTF8SMTPSA id 5b1f17b1804b1-43bd41c7cc7sm86543445e9.0.2025.03.07.05.44.05
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 07 Mar 2025 05:44:06 -0800 (PST)
+Date: Fri, 7 Mar 2025 16:44:02 +0300
+From: Dan Carpenter <dan.carpenter@linaro.org>
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Cc: Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [PATCH net] ipvs: prevent integer overflow in do_ip_vs_get_ctl()
+Message-ID: <6dddcc45-78db-4659-80a2-3a2758f491a6@stanley.mountain>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4xfHGFxZ2pZUIwE3/c88FSoosDSWzA7FNtEzKv9q/vDtDVSZC4OrQy9n2f62K+n/KZjzJvATshbr1HJK2oqctC5UmatUwtXtqZmYhgiVVCJ792T73gvLyl
- zfT13HXkCvMbRrft1NBNviv6I05YCpdSJgfmmdzRKysReftTuPU4jl4rPv1uSZFHRRdue8dVr+TJOT4kqdYvkeqEPGT4MAyOrNo=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+X-Mailer: git-send-email haha only kidding
 
-libxtables: tolerate DNS lookup failures
+The get->num_services variable is an unsigned int which is controlled by
+the user.  The struct_size() function ensures that the size calculation
+does not overflow an unsigned long, however, we are saving the result to
+an int so the calculation can overflow.
 
-Do not abort on DNS lookup failure, just skip the
-rule and keep processing the rest of the rules.
+Save the result from struct_size() type size_t to fix this integer
+overflow bug.
 
-This is particularly useful, for example, when
-iptables-restore is called at system bootup
-before the network is up and the DNS can be
-reached.
-
-Signed-off-by: Guido Trentalancia <guido@trentalancia.com>
+Cc: stable@vger.kernel.org
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
 ---
- libxtables/xtables.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ net/netfilter/ipvs/ip_vs_ctl.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -pru iptables-1.8.9-orig/libxtables/xtables.c iptables-1.8.9-new/libxtables/xtables.c
---- iptables-1.8.9-orig/libxtables/xtables.c	2023-01-12 11:27:35.000000000 +0100
-+++ iptables-1.8.9-new/libxtables/xtables.c	2025-03-07 14:03:35.907011754 +0100
-@@ -1710,7 +1710,8 @@ ipparse_hostnetwork(const char *name, un
- 	if ((addrptmp = host_to_ipaddr(name, naddrs)) != NULL)
- 		return addrptmp;
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 7d13110ce188..801d65fd8a81 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -3091,12 +3091,12 @@ do_ip_vs_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
+ 	case IP_VS_SO_GET_SERVICES:
+ 	{
+ 		struct ip_vs_get_services *get;
+-		int size;
++		size_t size;
  
--	xt_params->exit_err(PARAMETER_PROBLEM, "host/network `%s' not found", name);
-+	fprintf(stderr, "host/network `%s' not found - skipping rule\n", name);
-+	return NULL;
- }
+ 		get = (struct ip_vs_get_services *)arg;
+ 		size = struct_size(get, entrytable, get->num_services);
+ 		if (*len != size) {
+-			pr_err("length: %u != %u\n", *len, size);
++			pr_err("length: %u != %lu\n", *len, size);
+ 			ret = -EINVAL;
+ 			goto out;
+ 		}
+@@ -3132,12 +3132,12 @@ do_ip_vs_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
+ 	case IP_VS_SO_GET_DESTS:
+ 	{
+ 		struct ip_vs_get_dests *get;
+-		int size;
++		size_t size;
  
- static struct in_addr *parse_ipmask(const char *mask)
-@@ -1788,6 +1789,8 @@ void xtables_ipparse_multiple(const char
- 			strcpy(buf, "0.0.0.0");
- 
- 		addrp = ipparse_hostnetwork(buf, &n);
-+		if (addrp == NULL)
-+			continue;
- 		if (n > 1) {
- 			count += n - 1;
- 			*addrpp = xtables_realloc(*addrpp,
-@@ -1847,6 +1850,8 @@ void xtables_ipparse_any(const char *nam
- 		strcpy(buf, "0.0.0.0");
- 
- 	addrp = *addrpp = ipparse_hostnetwork(buf, naddrs);
-+	if (addrp == NULL)
-+		return;
- 	n = *naddrs;
- 	for (i = 0, j = 0; i < n; ++i) {
- 		addrp[j++].s_addr &= maskp->s_addr;
-@@ -2005,7 +2010,8 @@ ip6parse_hostnetwork(const char *name, u
- 	if ((addrp = host_to_ip6addr(name, naddrs)) != NULL)
- 		return addrp;
- 
--	xt_params->exit_err(PARAMETER_PROBLEM, "host/network `%s' not found", name);
-+	fprintf(stderr, "host/network `%s' not found - skipping rule\n", name);
-+	return NULL;
- }
- 
- static struct in6_addr *parse_ip6mask(char *mask)
-@@ -2084,6 +2090,8 @@ xtables_ip6parse_multiple(const char *na
- 			strcpy(buf, "::");
- 
- 		addrp = ip6parse_hostnetwork(buf, &n);
-+		if (addrp == NULL)
-+			continue;
- 		if (n > 1) {
- 			count += n - 1;
- 			*addrpp = xtables_realloc(*addrpp,
-@@ -2137,6 +2145,8 @@ void xtables_ip6parse_any(const char *na
- 		strcpy(buf, "::");
- 
- 	addrp = *addrpp = ip6parse_hostnetwork(buf, naddrs);
-+	if (addrp == NULL)
-+		return;
- 	n = *naddrs;
- 	for (i = 0, j = 0; i < n; ++i) {
- 		for (k = 0; k < 4; ++k)
+ 		get = (struct ip_vs_get_dests *)arg;
+ 		size = struct_size(get, entrytable, get->num_dests);
+ 		if (*len != size) {
+-			pr_err("length: %u != %u\n", *len, size);
++			pr_err("length: %u != %lu\n", *len, size);
+ 			ret = -EINVAL;
+ 			goto out;
+ 		}
+-- 
+2.47.2
+
