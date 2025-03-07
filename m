@@ -1,77 +1,71 @@
-Received: from smtpcmd03116.aruba.it (smtpcmd03116.aruba.it [62.149.158.116])
+Received: from a3.inai.de (a3.inai.de [144.76.212.145])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F8FA23E338
-	for <netfilter-devel@vger.kernel.org>; Fri,  7 Mar 2025 16:59:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.149.158.116
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED0D023E226
+	for <netfilter-devel@vger.kernel.org>; Fri,  7 Mar 2025 17:03:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=144.76.212.145
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741366771; cv=none; b=kiAuMqAbRKmcEPD3sv8HtIHG2l4fsAoPHid2C9TLSuh3k/iQ7AjrORwLxTcIxNSzN0/uom445Pg8Qs8HfIVJ+uDmFH7cDVtN0lZWmVGeU+qPkOKPSLs2v2GDLjn9toLaIZsW9HXuEskTeDTjJbk1fkiwJMF3qlY96Fl5qyi9oug=
+	t=1741366988; cv=none; b=K1SbNPSCL6ghT2ggG0klBOgBjouWESrrmgEugNcyyDui0q+hG9Q1oB5OeUz0hfGei1Hu6qlJVr8rOzoygX3uaN87pI0E3GLlfjaAlfEcAm8gm/uGkh1cIZ6kq704YQhVGQhr5RPDd0aG0e95HYfPDgCV5159vt4QZiZ5s89HroY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741366771; c=relaxed/simple;
-	bh=Lj0s33zchuZjo4LIT2AOCPUcPlsY6eRShwf5LqI3bF0=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:Mime-Version; b=qzATjtuhgxaHGOBVs0Fj0fPsQbNtNrXpKbaRhojCEQSLeNFfSkLdxJbsQoiZA1D00+F+M9yOt/Vvj9/QeHCIngSzel3r6umayBpn1mxW7Fw5gkjUvwnYGIs2Qi+L8Ja+z2ynSpwseWvpNvGsklX1R4wtmAwjVzD2D8AlPRyv/7c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=trentalancia.com; spf=pass smtp.mailfrom=trentalancia.com; dkim=temperror (0-bit key) header.d=aruba.it header.i=@aruba.it header.b=b27fCrbB; arc=none smtp.client-ip=62.149.158.116
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=trentalancia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=trentalancia.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=temperror (0-bit key) header.d=aruba.it header.i=@aruba.it header.b="b27fCrbB"
-Received: from [192.168.43.2] ([109.54.139.178])
-	by Aruba SMTP with ESMTPSA
-	id qazhtOirsmHkSqazitVo84; Fri, 07 Mar 2025 17:56:18 +0100
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=aruba.it; s=a1;
-	t=1741366578; bh=Lj0s33zchuZjo4LIT2AOCPUcPlsY6eRShwf5LqI3bF0=;
-	h=Subject:From:To:Date:Content-Type:Mime-Version;
-	b=b27fCrbBj+jdseve1ScPCvjn11eIrj22Ro9t1Uv/7ebJtOe5RmBdBwXv+CS4im/lh
-	 O9y8KgKYbDe3q/qJc433Ez0UAy6/L3XHx4WNEMFQoFoPt+hiSGHGnHmZcY2RRalDlK
-	 Zz79UvESVQw4yz38mgzt3cDyYG7jyKoMRftpWqfUwbxCBtT1U6uIJ8QU26ERKqyC96
-	 U+OeNtXcZ1l9gP5MUL6QK+do6ZF7ZLTol0gXjxKQtlaIRSmIn/dLu1baJMZeNwJ9U5
-	 sR+tI+PYzKDmD+Ezch1W6gwirmBp1RM1eAqsFJoutQewHYG/EucQYiQSt8tl0JYYlk
-	 DS3HcjQv87VSQ==
-Message-ID: <1741366577.5380.21.camel@trentalancia.com>
-Subject: Re: Signature for newly released iptables-1.8.11 package
-From: Guido Trentalancia <guido@trentalancia.com>
-To: Jeremy Sowden <jeremy@azazel.net>
-Cc: netfilter-devel@vger.kernel.org
-Date: Fri, 07 Mar 2025 17:56:17 +0100
-In-Reply-To: <20250307164948.GB255870@celephais.dreamlands>
-References: <1741365601.5380.19.camel@trentalancia.com>
-	 <20250307164948.GB255870@celephais.dreamlands>
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.26.6 
+	s=arc-20240116; t=1741366988; c=relaxed/simple;
+	bh=SED5wK2xAVUXLgG6aFzMhIa0z2czpChtT7p8JtfSGPQ=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=GypV29d7Ec4K04lvp4g1xAsq3/RRclVx8TKLpoxEzBy+4IorXgp3V5HMCRkn5MaY6i3SCjQWg+oemPmvu8HtlGLqCB8ZvXvgNRjDUfrprinNwRidu16uF63zYOVQgpFDGb17WAyIYutrAQnbYrUWC6p33slxu8aAeq6Toy1iQTg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=inai.de; spf=pass smtp.mailfrom=inai.de; arc=none smtp.client-ip=144.76.212.145
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=inai.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=inai.de
+Received: by a3.inai.de (Postfix, from userid 25121)
+	id D62A31003BB141; Fri,  7 Mar 2025 18:02:58 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by a3.inai.de (Postfix) with ESMTP id D5F081100AD650;
+	Fri,  7 Mar 2025 18:02:58 +0100 (CET)
+Date: Fri, 7 Mar 2025 18:02:58 +0100 (CET)
+From: Jan Engelhardt <ej@inai.de>
+To: Guido Trentalancia <guido@trentalancia.com>
+cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH iptables]: xtables: tolerate DNS lookup failures
+In-Reply-To: <1741362376.5380.16.camel@trentalancia.com>
+Message-ID: <9rp402o4-92ss-non1-o0rq-467r79spnn42@vanv.qr>
+References: <1741354928.22595.4.camel@trentalancia.com>  <qn655027-4830-ps48-87po-r61npps888s5@vanv.qr>  <1741361076.5380.3.camel@trentalancia.com> <1741362376.5380.16.camel@trentalancia.com>
+User-Agent: Alpine 2.26 (LSU 649 2022-06-02)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4xfBD2uYBXWRBmEux9QyJkthqaQl5sx4VpGjoMs78uGm2/dGu/wESDR0gJkUj1lnBKYl2CAYSu1MNgBuIedtw//etFnLs2UJVZLs9iG+CSt9iBufHyOBP7
- tIVAGTnBeQ+Ms/TkX7hUFqwlMsyVP+EIYtGn1EUTgqgZr/zJPvcX2tTss6uS2zLnwnnnUaoRCaFwbuHK6hKdr0gLWnq1Aom14F7YvNg4S4hxyDaqBflxCnMa
- /d2LzKjzxXkGjBfocjQXww==
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 
-Thanks Jeremy.
 
-Ideally the key should be also published on public keyserver for
-maximum efficacy and security.
+On Friday 2025-03-07 16:46, Guido Trentalancia wrote:
 
-Regards,
+>I can give you quick example of an hostname which is allocated
+>dynamically in DNS: www.google.com.
+>
+>If you perform:
+>
+>  # nslookup www.google.com
+>
+>then you will obtain a different IP address (or different multiple IP
+>addresses) each time you run the command.
+>
+>Given the above, any iptables rule for such kind of host will need to
+>use its FQDN instead of a statically allocated numeric IP address.
 
-Guido
+In that case of multiple queries returning multiple results (DNS
+roundrobing), using hostnames in firewall rules (with or without
+ignoring lookup errors) is even more wrong than before!
 
-On Fri, 07/03/2025 at 16.49 +0000, Jeremy Sowden wrote:
-> On 2025-03-07, at 17:40:01 +0100, Guido Trentalancia wrote:
-> > The newly released iptables version 1.8.11 source package has been
-> > signed using a new gpg key
-> > 8C5F7146A1757A65E2422A94D70D1A666ACF2B21.
-> > 
-> > Unfortunately it seems that such key has not been published yet on
-> > public keyservers.
-> > 
-> > Can someone please publish the new gpg key used to sign newer
-> > iptables
-> > releases ?
-> 
-> It's here: https://netfilter.org/about.html#gpg.
-> 
-> J.
+Because
+
+	-s google.com -j ACCEPT/REJECT
+
+only performs one lookup, it leads to
+
+* accepting _too few_ hosts, meaning you erroneously reject some
+  google.com connections in subsequent rules,
+* or rejecting *too few* hosts, meaning you erroneously let some
+  connections through in subsequent rules.
+
+So now we've gone from 100% of the time google.com is not reachable
+to randomly failing half the time attempting to load a search page.
