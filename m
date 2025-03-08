@@ -1,39 +1,39 @@
 Received: from mout.gmx.net (mout.gmx.net [212.227.17.21])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FDD21A5B99
-	for <netfilter-devel@vger.kernel.org>; Sat,  8 Mar 2025 21:37:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72F5E52F88
+	for <netfilter-devel@vger.kernel.org>; Sat,  8 Mar 2025 22:32:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741469852; cv=none; b=D7U9e/5L0Kt++/t7KtQMPr3FmLp8Aj3qh/LHJ5hb1BPzdSggHaIfL2ak59LGDThTdD/5fHOsWjDvbQdt8FNI1AswICZ9tXAnmHCoxj1RMrMzbQ8LaDQ+Bld3gnDNgRRpOSfDtJMfqrZeHwcpLYH6/E/sSsPxhDMttvN6EPQhNmY=
+	t=1741473154; cv=none; b=gNyOeyxDemxO54hzmK4naVnmV7MTwLLF6iIzTqLbgeUZKOqTtGS5xFqLBCSeCC2JaQJr5VsHnYaG/FAGw5/6Z+bsWK31OiDUOhFRNGRgRn633JfRGx1soCvzQ8BuPzSYtPHiWK0KA681neyJbq1BjjUHQjqax3eNmhKh6OQV9Ok=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741469852; c=relaxed/simple;
-	bh=mlaUFxVYvS/U3YzLo/tSeS1c7FMUlP6L6K2rjxPH+GE=;
-	h=Message-ID:Date:MIME-Version:To:From:Subject:Content-Type; b=cZcq5BtYXK3IYWZzRruOvlW0MOhLb/PD/9v0+F2IlgnpNfDE8L49o6fTXBI9tuUPINLogmd8kNUcIV+7wmG3Uo6qbwFIXuq3/8SEAI+OjHsMvTNBuZlKjRn4WpyTo1GCB7OgVu1l/JeJIXxtqrokCe9HAom2PdJAlGs5m/DFdqY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b=lxI2nuOO; arc=none smtp.client-ip=212.227.17.21
+	s=arc-20240116; t=1741473154; c=relaxed/simple;
+	bh=J7V87TJ/DrDLNhu9uuZqUq5UrfBfO+a/EH4DtXf5uXY=;
+	h=Message-ID:Date:MIME-Version:To:From:Subject:Content-Type; b=Ud9WKjf26EPB86LRJ+ERziA6O4AfCqHtNj1fZlMmn9U+Gp82bl8DhHayTy7TTM7SEFOQSsJ9RjXTj/HU6ILJHlOLO/AThRXtZA3Myjut6TFPR14nfLjNu4UdFnqHRaZFCdrY2BoXZIywPbOudhzb4ygFroD97qqL2FLt7CTlfw0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b=AuYebpec; arc=none smtp.client-ip=212.227.17.21
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b="lxI2nuOO"
+	dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b="AuYebpec"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
-	s=s31663417; t=1741469848; x=1742074648; i=corubba@gmx.de;
-	bh=zGoeafttijh6c0nP0Tt5gJ/sCj9Rx7r82WTyH3j9Ngg=;
+	s=s31663417; t=1741473149; x=1742077949; i=corubba@gmx.de;
+	bh=6d2TacHA6AQKjWfvGr3+sNNgQpVHbJ7eTzU0Ucv/jN8=;
 	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:To:From:Subject:
 	 Content-Type:Content-Transfer-Encoding:cc:
 	 content-transfer-encoding:content-type:date:from:message-id:
 	 mime-version:reply-to:subject:to;
-	b=lxI2nuOOxT4qAN+saf8JoZDvVV6PCbhdhQMuLI3MelceinpsH/1+PrHfcpqPm6zg
-	 vcmLdoEMz0AktcqDV1luy4kanhRGuH7xdf4SH1HDEPwHnTFEN0BPdB2QXB4XIdULT
-	 v4h8nlG2TqfB4BoQP+WtRxYYYxpHLXJPqRDs9Cp+8C1BSaS3Sl8xwu+PJfNlVL1UX
-	 ipQpDB84TSvkqdNxqAikuTHzOKXuMwabsqdoCdk8gCxx4dZSImTD1uGnJPZ7njcrz
-	 C997xTwU0PW0Cv5Em3h5dHUBZZ93dzD+sMBzf7coVK0OHq+Hi2SaWGj2vTR6DASZu
-	 GLgkKv8JAAhQreRxYA==
+	b=AuYebpec5W40CRexkGbolEe2V/UrZKwveHFDP3YaMo61BWoIhoB/PZEp7lVmsC4H
+	 DKQxMDgvIxWsrN/bh0IqdrWLrhigkSFk/Wd1345viBNImvJvsP7ae9p7w8tZAFFPW
+	 n9PERXQLR0kjxbg2ypcG8adu6wAU+hdOijJsnWootTdYxgS8tULJAmDJy3FTGM/Mg
+	 d0yW8Ze35R/wxh7vc26R30Mze1lRoA0XCw/MlKgrnmiqKESNlbujrM5pku9TJu3Me
+	 gCd0FiBZpVa1jFTwWnRR0auz0aBFbCcCSzG3G6zWKu+s22Y5kY9LmSjApF6lsQciZ
+	 YiOoFrW45aEsDTK6KA==
 X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
-Received: from [192.168.44.3] ([83.135.91.164]) by mail.gmx.net (mrgmx105
- [212.227.17.168]) with ESMTPSA (Nemesis) id 1M5QFB-1tqD2z1UyD-00ElSk for
- <netfilter-devel@vger.kernel.org>; Sat, 08 Mar 2025 22:37:28 +0100
-Message-ID: <21e4d476-8ad2-4b28-bb2f-ddb5c5b44ece@gmx.de>
-Date: Sat, 8 Mar 2025 22:37:28 +0100
+Received: from [192.168.44.3] ([83.135.91.164]) by mail.gmx.net (mrgmx104
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 1N3se8-1t8sFJ1m4m-012cJu for
+ <netfilter-devel@vger.kernel.org>; Sat, 08 Mar 2025 23:32:29 +0100
+Message-ID: <ca5581f5-5e54-47f5-97c8-bcc788c77781@gmx.de>
+Date: Sat, 8 Mar 2025 23:32:29 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -44,68 +44,81 @@ User-Agent: Mozilla Thunderbird
 Content-Language: de-CH
 To: netfilter-devel@vger.kernel.org
 From: Corubba Smith <corubba@gmx.de>
-Subject: [PATCH ulogd2] ulogd: ignore private data on plugin stop
+Subject: [PATCH ulogd2 1/8] ulogd: fix config file fd leak
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:PZO8pSXCFBe9q7jE+C+Fdx/eeq461inz6jbandyhn3tMZ5coCLV
- QzJj72U2m+FLtfbjonmAnWpt5nwSjrDPfBbcZunYdRaytD0zNqNATbxtEurs5XC7r1KgFRy
- VbHhWz1hTwfD7Fmt4y8VtRfEHO694uzDPysLtGwkLwLMy9m1f5Ev4ltsUITIR7V9MbIcVDI
- WbSB0HtY2Gfeg5YCsij4w==
+X-Provags-ID: V03:K1:8am+BlJZDmLA9Pk8V/r9XvmctT9QFV/WeMAOv3ml5zEaLM+gyH0
+ vrnBZwHIExArA7rPmUjETQ8tEQbdmrpdLLI4wNifmXWIaGaU/FrW/6QVh6caPVJIddOOSwH
+ 6qOh3rnTjP+lB3TFGPT0f4w0HyBq7L9u2O7njNDV7QWlSpTFosCCcbdwr45mzhWl4Rmc4LF
+ yROO4CmcrZEuoduu5bqIg==
 X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:oDoluiap3bw=;g4i4iNPYZ0FmvMKMfByJo0AMTSN
- Yui8gsd7ng/xV9mS/Ac3MSc+nEwLGd5ZWrOlt/41c5MpFzJiYmpe0o8geXrjGX8HDJnkBwQPq
- 4sJ4P8Ye4qw+lFJ5+arU3/59hEMZAJca8oGc2whIaiRsjaEGxcvsowDkv/KhfNcydMm3dEYdn
- dLPJt+bw5COpMHsWPvVMhVaYLkvbFYVT+4sZgtfrv2p1cYk/g66cj+cn/jx/P4efoJVOtY705
- FKDY6Ck7E7eJ7k0g6PdUpuN5tGCGLjnnBj1K6gp03eaiTXR51l/P4ljfB8ueKaDxgivYuGn4C
- RjSuWQBUVcSTB4aWYcJJYXCWXi8hekOPU0tTZPBdQFdZNm34YvTMf6Ky0L1CwvPT0fe9JPHwm
- LGjCPh3Lpvj1ATm2B09mAuJM7WukEsDUYjFZtpzBHOfVBA8yxry/e3iXuBN1SSsb6iFPmWGjR
- aGciOoTB4re7MnzglpdIYH9kiDI7kPBa4ZIT9BqoI8IqLmpcVtWV8dSfL99peyHZk2o/hgxHc
- IJVs41m1LtDZfuKtf8aDSH2TDkiW6lnxbLi+sMmS93mvvIHJJZUJ3gbYM9WeogKWzPOxUU22f
- rKFA7P7+zpvjOg3vOR9KDTKnbgK1UNa3SM9r98rLOAyCn6F4MnKAwhGQZCALeXEaPJQG3PotF
- I4bBCnz173eo5g9fb5T/c5vz0CagCfexVH1MG8iIp/SatzWHwuE4hrLLOcrqLSzd7ekwJSV1h
- LfSf0JBmMO5SFS5KevgVoUaT9yiz/MoF4i/DADcWUJ4rx1ycBkoR6lTMN9MXKkmEKGeh9iFVN
- 3FM5DU9Qjxy28maXOlEICyOWdhVWiWIG2EsOZsP2+EkWSG15J6jfivrCWiYdibAb8nPJJf4Ns
- zWwjI7zIGOYORo9Yz4pE8ftBgY+qytEdCj+nCXUaScPilXqq1/gRDehzImJiwFAFFwugTcX2u
- VjRCadGO5oJ2SDEO+ZwqnWVTb5b8k4uGAPnGtQof6XLFvaKKKKAaaDzImTo/0SsIn7LuPgbMp
- qO3ylCxCXUXhQuBuNb52cE6Z9IqJF+yebii3mthR79Hat8hIM7epfjsrU3POdhcDt8WaEEAxg
- V4vCu1vJpVAhQKQeonWP7g8pPmrBK0bgruW/0HEGprPgi7qctE9RO5XvqHMyO1o5EsJtla8ml
- yjR2rvAZebm+3uXaQnb3dLPWB1HBvn/tOWJrFngeYEg+6o3QT8YUxVcZ42pPvizuzt4Ns60Nk
- gnCtclFw94KwrhugJ6V6r9vJefouqNwfqRInFUvTnMth90B8qQDTKTDuguNdOvLI9Ow3+c++A
- RODnncFlvYcSOvPC/7f8tP9qgfOsTbXRQBnBusgZgRiUsJCuvxV1rhsuPbjePZd1R54ugPhEB
- 2ogCLsdKie0GMUO3RsVb9L8Lsp2VJocwYMVUTy4/gRFPhTnTdE5/XnN7Al
+UI-OutboundReport: notjunk:1;M01:P0:yiMxHul5CNA=;Je0bhST1Ekqmf5DRyZBpiivZUyj
+ DeMXUVDmDhqj2BQhN/emfznNu6uBxNrMq4uj+UCI8udWu+I/iMNYWNssUNZM249eYPBA+ZdOy
+ bjnctl2IdZXOHx6ut2agnUR4gM1UVwwCDLwIyk2hb9rriQRFRtInG6RObRiK78uKyIJiBBBpV
+ sU57ml7FrSGdOmDT3O+kPqhi620P8vMLUBk9n4JYNHHJbwP6PKIbn3CG2vREj3mHOJaIzMtVq
+ VToADGyLSn44p0rnsSPWhWFv7VUvfhFw4FtDTVVsxZP/n9loHHa0I/jFLVPFCjNp27+n52Ixd
+ ojwQUQ9kIXmOWn69ER9RuqevYYdTuIyPwMSjfXUsvNgFFH2RVZqeflh8nuKHcxD2lvoEOKKFj
+ er892HAMkWC5a+GA8uqfhtNSNyr8tSpSCM6rvWJB2RmijaOEzA28Mjuov5Zedr2B1RdSPDYvv
+ vt74K/l/P26o10577bi1Hb9JBysr52QIKiXyeFSJMIqAoNiBnW9pptu84pbt6eCR5FbYEUM3t
+ ObbUVfKdkrRHvHdenxTuqs/KfTb8hOnjG+ObSJpvKMkz53GKsIwNL7f3KIM5RYFepTqHH2TFZ
+ vMrOqbXCT00IUtqZ3hBdJDajGo6vL8naG07ALjloobHLT8dHbkpfrly02Tn/bVqgn38mKpufj
+ seNVZ8siPbkHuHS8MZchiLjEYTGGIVRNIG+C3r9kIxsc19+CmpWikIdPiQs9kvTnXVbcVamOC
+ q2dV+A3l8AWNglAw7qQN19Fzzg4R9VwmwLIb6VVYRmDYMnnspf2w7RlF8TnWi8Hpp8TQnEecZ
+ v4C30p+7tu/lseMbmm5D3qd5aZT9oRHa+BN+aufYtAt37ZRhvMyLeboZ/uRWc2LpOdGfHrlCL
+ cAulyxB3qePJEDBQjyDCxjh5Atkjpwt/vRgX466xVSwAuXC8pTfibEHIJjvrSACPnQp0s3Db6
+ cYcCu5eZjsjgZI7eO8CvYlWJ8iWIURDxO+94kpm8oao9MucLb5QH6f2TPgeJCUtFy2wAm8+TC
+ jLprVLS4q9wRxEgxchCNg6zgFmlUV3ti8Ho+wC0o+K/IPnLhfm1e5fxmss4qClv/i6P4dY5Hd
+ shOF7XZFoFMUKLd1QXO9pcQNmaj7gKcYBCqOMlSfCy7odfDjCk70pdkoRjVm3bFFj1+4aU7Nv
+ 1wfRD+agyrrZ1wZ7J1NkqEXV8GGXnXTLyHUPeiBayaPNVBALBXO1EvDi5ICOQDPtvKwP2ivHV
+ ErRkVzwJeyny2rndWUDRA4ZU1iIWnjUFWijsXfeZCPXeY6ovynMnjJxZBZ4Fr8ZMvtW2s8Yd3
+ DsOBDx8kycyICzGssNYUYXp2veYfLj3Vqv8qfQdHRoYh8WNX60Ime0ApTKPpr9yiIQp2WZH2G
+ w5aWgyh3NWE9eHk6J/cx3TEa1wGvSYAynMt573D9Ded2v6i/1ODoPh0VIc
 
-When deciding whether to call the stop hook of a plugin instance, only
-two things are relevant: If the plugin actually has a stop hook defined,
-and if the plugin instance is still used in a different stack. The
-private data of a plugin instance is opaque to ulogd, so its size or
-content are irrelevant to the stop-hook decision. And in the same vein
-should ulogd never write to it.
-
-The one-null-byte write could previously lead to an out-of-bounds write
-on plugins with a stop hook and zero-size private data.
+Consistently use the return jump to close the config file descriptor if
+opened, to prevent it from leaking.
 
 Signed-off-by: Corubba Smith <corubba@gmx.de>
 =2D--
- src/ulogd.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ src/conffile.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/src/ulogd.c b/src/ulogd.c
-index 6c5ff9a..9a0060d 100644
-=2D-- a/src/ulogd.c
-+++ b/src/ulogd.c
-@@ -1327,12 +1327,10 @@ static void stop_pluginstances()
+diff --git a/src/conffile.c b/src/conffile.c
+index 66769de..5b7f834 100644
+=2D-- a/src/conffile.c
++++ b/src/conffile.c
+@@ -143,7 +143,8 @@ int config_parse_file(const char *section, struct conf=
+ig_keyset *kset)
+ 		/* if line was fetch completely, string ends with '\n' */
+ 		if (! strchr(line, '\n')) {
+ 			ulogd_log(ULOGD_ERROR, "line %d too long.\n", linenum);
+-			return -ERRTOOLONG;
++			err =3D -ERRTOOLONG;
++			goto cpf_error;
+ 		}
 
- 	llist_for_each_entry(stack, &ulogd_pi_stacks, stack_list) {
- 		llist_for_each_entry_safe(pi, npi, &stack->list, list) {
--			if ((pi->plugin->priv_size > 0 || *pi->plugin->stop) &&
--			    pluginstance_stop(pi)) {
-+			if (*pi->plugin->stop && pluginstance_stop(pi)) {
- 				ulogd_log(ULOGD_DEBUG, "calling stop for %s\n",
- 					  pi->plugin->name);
- 				(*pi->plugin->stop)(pi);
--				pi->private[0] =3D 0;
- 			}
+ 		if (!(wordend =3D get_word(line, " \t\n\r[]", (char *) wordbuf)))
+@@ -156,8 +157,8 @@ int config_parse_file(const char *section, struct conf=
+ig_keyset *kset)
+ 	}
 
- 			/* NB: plugin->stop() might access other plugin instances,
+ 	if (!found) {
+-		fclose(cfile);
+-		return -ERRSECTION;
++		err =3D -ERRSECTION;
++		goto cpf_error;
+ 	}
+
+ 	/* Parse this section until next section */
+@@ -175,7 +176,8 @@ int config_parse_file(const char *section, struct conf=
+ig_keyset *kset)
+ 		/* if line was fetch completely, string ends with '\n' */
+ 		if (! strchr(line, '\n')) {
+ 			ulogd_log(ULOGD_ERROR, "line %d too long.\n", linenum);
+-			return -ERRTOOLONG;
++			err =3D -ERRTOOLONG;
++			goto cpf_error;
+ 		}
+
+ 		if (!(wordend =3D get_word(line, " =3D\t\n\r", (char *) &wordbuf)))
 =2D-
 2.48.1
