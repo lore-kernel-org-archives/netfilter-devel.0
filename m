@@ -1,40 +1,39 @@
-Received: from mout.gmx.net (mout.gmx.net [212.227.17.21])
+Received: from mout.gmx.net (mout.gmx.net [212.227.17.22])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14B1D1DB951
-	for <netfilter-devel@vger.kernel.org>; Sat,  8 Mar 2025 22:39:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A833C14A8B
+	for <netfilter-devel@vger.kernel.org>; Sat,  8 Mar 2025 23:14:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.22
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741473559; cv=none; b=NWivm5OP4mT9woirSR18pcaJvP81yrfaosKj+gItQTKXnkt5O1K43rCuhjNOgPOhMc3XZRYCvTTkNsirjUA2vVYJFaTuFf9H8tAv7UtU6/czbYE7Zz6vAYcyJJPZfZ+oMHLVtnRE3nxV2otOJ2+YKSElJ2WXHmLD9F/qVZ2pxmI=
+	t=1741475701; cv=none; b=hjWl+YFR7p4PmZUTplQfELe0WKWOJqD5gLNfBYn9Pm/Eg/o7vt/7B/ix2YF5Rza3BgNgjgU70MrOWa56irIUy0MXhKCVd7bjXgz01kO/XY4Z84e5DSu7fZ+7bx8k8iPqFa2e4xex5Y6emEmnTbYuXkvxw4kva/SSOUci+oZ1O3s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741473559; c=relaxed/simple;
-	bh=8fKNwo3KtLU86B3wpcCt9Kh/jwsoMHbgfbM+WlqOGzs=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:References:
-	 In-Reply-To:Content-Type; b=uM8uRSduSrkPLec/pJokb+Q6jHdfC0PYBapIMK3QOsR83whbXIMuhVOq1IFxkTT36skEOhylpDyDv7/oBIKANlUEDsqzTwV+ctdifqsvlEsLqkML/k8BkDUg32IGcyOrVOsOj9iqu9s8o09z3412SDprRKRMvWl5StL62W1oq+4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b=LZKZFxr4; arc=none smtp.client-ip=212.227.17.21
+	s=arc-20240116; t=1741475701; c=relaxed/simple;
+	bh=PY2zzZgo1OhGiQf7s1v5LP2XN0ALarkcRvlaaklT9C0=;
+	h=Message-ID:Date:MIME-Version:To:From:Subject:Content-Type; b=ir6pBQuf8LZZuULj17xf+/n7BLeF4L8zrGNbHWIfiySnNBy3ATl5o3wto3+WJCSxMCnfROyCiyfJBCZLaBpKH5yEpnvxNMC1PA0HnPV8TFfMIVZv6/aBJn3A8gesIyfbtHVS0mwNDrBXOc89GOPSSrFBU5ZpRyYSja3B/ZSLcv0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b=QnrdxGii; arc=none smtp.client-ip=212.227.17.22
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b="LZKZFxr4"
+	dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b="QnrdxGii"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
-	s=s31663417; t=1741473555; x=1742078355; i=corubba@gmx.de;
-	bh=qPikGOyeOQeesui8k/UOYVKJ9tFwdQWGDXP/R5VZFIU=;
-	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:From:To:
-	 References:In-Reply-To:Content-Type:Content-Transfer-Encoding:cc:
+	s=s31663417; t=1741475696; x=1742080496; i=corubba@gmx.de;
+	bh=aRkEqYj+Djzco8shv8YirkTqCQm58po97p+s/6dNotM=;
+	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:To:From:Subject:
+	 Content-Type:Content-Transfer-Encoding:cc:
 	 content-transfer-encoding:content-type:date:from:message-id:
 	 mime-version:reply-to:subject:to;
-	b=LZKZFxr4jdI6uYedXcMMXJyM7nB3tKUEehuSSO3/gwOQabzS+V2bjNaqe/OaIfTh
-	 egHu4TP3VxlPMFPBOolN6sc8D1i/JICeJn+NTrKGlz3mkEHfA1NdQdjEj+rOCh4U4
-	 UmtdEZhhpP8/GEgQxxYR29zIUiyVbMLl9yJ1Y8fQ4rXzVwBj+4YK98J51NwIQOQUh
-	 F33R9+rX8J/c8lJLK+2ovQZdk1hPYd6n+H7H70YcZCMfiupCSB2mi8xkHFHO4WxlH
-	 jWUo80oS4UlxVhEXHfmoKCcrK3NB6V2XpNSV6DI/8ieF9j7mM4SFLAcb4kMkwHuPG
-	 xyzVMe5PSYGAnqNNKQ==
+	b=QnrdxGiiic0VTXVIwnLMMmhkrA0yRc7yl7XiUfDEzz9U1T9ipCJW6lwOI3BU0iO3
+	 anZc0pVtFy0AKE/aCs0E0cJJZOYiYmRpphg0cdUkUNYsErnb1J9a/ekszOSKDJcoj
+	 aWQeqtWxIwLuutjjqJAN6TG6WOXpCRdc91HYbhHY7AfMJjzDmwbEz3uCOv7uoDvfE
+	 0zDg6tOt5JWX3PVZkH40Pa0NQ0ie1j4wf4P6BtpFLbEdJOCcIJbLje0rTwdtXSjKo
+	 y1M9pFuLCULLBQMG9zHQeMgBXVYL2K5iieuYpPgi1pWbNwGSSwHnCAm0anYAtLoXD
+	 yKkxvm5lLb54pIc/yQ==
 X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
-Received: from [192.168.44.3] ([83.135.91.164]) by mail.gmx.net (mrgmx104
- [212.227.17.168]) with ESMTPSA (Nemesis) id 1N5GE1-1t82vH47vR-013zfP for
- <netfilter-devel@vger.kernel.org>; Sat, 08 Mar 2025 23:39:15 +0100
-Message-ID: <f01d26d9-0cb3-4095-8414-280d3c156a2e@gmx.de>
-Date: Sat, 8 Mar 2025 23:39:14 +0100
+Received: from [192.168.44.3] ([83.135.91.164]) by mail.gmx.net (mrgmx105
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 1M9Wyy-1tuMlQ37Ku-00A5Ir for
+ <netfilter-devel@vger.kernel.org>; Sun, 09 Mar 2025 00:14:56 +0100
+Message-ID: <7d1478b6-ec25-4286-a365-ce28293f4a40@gmx.de>
+Date: Sun, 9 Mar 2025 00:14:56 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -42,349 +41,284 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: [PATCH ulogd2 8/8] all: remove trivial configure hooks
-From: Corubba Smith <corubba@gmx.de>
-To: netfilter-devel@vger.kernel.org
-References: <ca5581f5-5e54-47f5-97c8-bcc788c77781@gmx.de>
 Content-Language: de-CH
-In-Reply-To: <ca5581f5-5e54-47f5-97c8-bcc788c77781@gmx.de>
+To: netfilter-devel@vger.kernel.org
+From: Corubba Smith <corubba@gmx.de>
+Subject: [PATCH ulogd2] nfct: add network namespace support
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:6HOmspAgn+9hUcpx1zs0o2GviM+pcOkBGx6zlwPTRgEG57zlevK
- DLAjLix86ZhwJVJ4Twd+rFQCIenTunuT1Fx3KpA7fk1vWPCcL2/CPt+G+ct4W5bZndiwqNk
- i1t+iSD+oWqWIf+ASkdJUsCLpwEC8DQDGBzdI3x5KNZprLvY6orXKKqGoQQgL0smflET5HW
- px5qBk55POdMEQQ6vrJhA==
+X-Provags-ID: V03:K1:6sRnzRqsnI6YmneKqssbWskyShLR14y/feNN2P8twFr2p3tsl5H
+ x76lh8vzlLoF7FtC7qg9C6721iavybswxoq2aSTIFASdcCFjjRZoQxczB+Sb2rdxnZPc7wE
+ fZstgVagdpembGPOTYfGj0l8sD5SQ3WWP10pyAyjoRpPXVRvzqwu9dDlqJTrlc5GdIVELgx
+ HZuJ+w8Z2KUX8RO9+SIxA==
 X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:YTEeUtfF7XA=;f6LOWE32lpG+4mUQ5fivSwtqL7b
- BB1mCerepAeDYKPGt45NmCYQwGiUe9Icpova0H4Ja4Yq6vxgtUQz4dy6/ybQ1H7bWToUAJiXc
- /b3N283XFHB9Qn6Xu/NjIy3pcJRWTj4b1nD7s8SGlGQTyN9EojFVmFVfz1DOjZk9DoktQ/jJ+
- tF2P37f5DZIhdGplSTaoRMv/YZ47p7UmOV28YN9bLgHL8Je8WJt1P97S/kUpgKM0wvbxzif/E
- ZJDIdpUAM6/KVQB8OVFzi/2XyISrX41VaXfm1yFp1dTQVL4o3c2CdJARJuTaXdFg9BJ00zJUN
- 3Vcqx/KtqSYXDXcfqxNaXwAnMr/UipLoS9Sj6o4wWBOg1fTc/biRu7Xq6R+5k6D9BBM0FGSDS
- hdYc8BfFFHFk2syH4UpC3zSwKwm7PzW+Bcux2j3YaHL1dcCbwEyRT3kwNFhwAkxkvJGisXltB
- 7EHlFWv/x7IHfQpz6xpx7xMQiW+KH/O1XKx21jTInRqyFJfgiSv99qc1zSUIswbBqwLY8U83N
- EAyOCGxvzLAdKJ1nFUJodHJbOYyEFMiMhyaWqFDDj9tETewfCgZLpDvQ09vtU4S/1F8ov0nDZ
- Us3qBByOzdAQ4vVE+xErwQxe4HjrBvmgVagLmgalxVKhZP+tg0h5I6Zc5F9mAEihsYQVcBltI
- ZHWwvcvQReWPliLE1TtlnLHoTGMuHDdi3Kzzfkoe3GIdb6xHHhax9+GZZZgy8efTsC5QUh2qZ
- vrGRAEQilSA1Usr0gwms1NbWGrlBCxTpxLxAc21PwjQsVQ5theYw3Ss9YUktk4vUBre49ve8y
- UrgkJzrU78ZZVHGY4bFSkPoNm6/wbfvsuHgAC+UnpVzWcoUr2Xf83pSUsPdpBig1Z4dx5/3X1
- YjGqBDlfGAbvdy/TosLBmGQkR/tEqXyT7RW6NoMXxxCQNmvCbpM8VTps5jbKGSMJWsf2hoDx7
- 5E+0MPLWVqSJFrhWSjCuS/xrG+c4X/ECeslWcTUr7RK7elkP6NAfBaY6MIi0b1GnxpMI7Vu+f
- PWDZ9hUjaQDlyBoYAp5i/+htMTeUlZ6nf4k9tUDJgrrAo3AYSarU27n+aFAdt4wJG1t9YY1It
- hSzQ9YsJHJBl2xZxZvDqvNMj96vOVQk9SoQrJ38ItswyBQrHN4dZZpTH4ULvIUBSDEIRDBSFa
- A3rnhfa+QjG+rrX1x2UKcxNAJRVPd/bnSNUncxlEiiV9NYNnWNrsfJFfkJdPP2PD5yfs2jUFp
- K0pqmajvtW0V/7Kd77Gmy9rcLysbDRZKexKaswzXH8V11ypdYCYDZtZn+gFRa/fSFWoo/gDqp
- zu1GNUFcimvayjsSdPGFTdhQPUFqeXcM2q3FrFK67vKlHQ0noCmRKwnXpeyqFQ2LRbltxmdHj
- q6+iRH7UvztzE8oJrOOX3zwjcCsEf7A2ZBhzERPGsvrJmwA36HRgi+pex6
+UI-OutboundReport: notjunk:1;M01:P0:2H6LYnB4Mcw=;XF+Owghiv1xGVN/dgQMCCzcbGx9
+ d5YON22H7B4YVTtfYVQLic+E/MlLGeCHg64nTJX9UDTIhe9uBr0o8DXl9yx0bmRjfaEqgm9vo
+ pe/lyRvOabIshc5cVaSzG6Q9h0a9VBIUU+sjUVuPEZOLFcZLdfM1FMMAFn7YzspHbf5VISfIf
+ JXufGxRvZrUheBhDPFyBgKYjCGYL41Hul/6UNnQtwFU9joFnrmq25lwXnH1X2ECo5QpiyIjR4
+ Ky+qzHK1slRcFYxETG3BDX8oReTS6yofZXH9JUcRUzWE0QI2osVdkIluzydSkennqCF9kLmsh
+ H0X5C+E4pL/C4lNc/dmHuAxbVqskbWVQXig2HzHswsnPvcgtRgkW2g8KVVMeqSzvJbMCjscFE
+ wesfmEgApUdEX5VVGWxOEANfowO2NDJTp10YPVfyJqTVBFWRktMLxfTnkdE8A4JoLe2GWvJYz
+ D/+pDK1cpKh3XkJU9LY4uzkKNl2qyNRZPJvFRYP5Gj6p8oo+1raEJxJcvxHFhA9U94sQVWCl/
+ Ri+fEyTKtjlVHusKB6QuXGQ97ATNUQA7e0AlSSSuxdJget29fr/CqDFaxBaKbRB9JZ66tHMQ+
+ 5qTB/8P1b8tXSvNIVLeZnrsBd+WRRuNRHs8GjAEssXh6Gt2PPfO4ZV4O0PPh6+ECEfRfKbXxo
+ FFw8JuWD2/aS4K5e3w9pwtvZ06+8M0c5icJu1Nmwftz2SxorqFzpbwE1tnymBND+u8hKIhajv
+ 2vM1rhPZGLL9zyihU9VYxLyEDMWu5ZJYEBCtzoW5f8cWfLg/yfYQ/pidjNJrRqeOzJ+cB5BiG
+ PgkooSOkm7qOL0YrIYhz+G4woWYte6RxFwrjD7JgRrFqWxZF8uVwx+78yZgpGdH05cECtrebJ
+ yep+7bso0ITDRAbtIHkQjcggwXF90Q1Xz/oja/AGkeX2oduYHah/53WZ0hKl4h0uJLf6uXdkW
+ Pw22h8lRjAjTBX7d7E7uXQhEZ2DS119K0fAEV1OftCTEu/k/1D79djfOw/CIaki4PWHJUitx4
+ QBA0dF3peXihmpub+0Km96hL0E/o+PDy/HqszcV/FRPWvd7KyAGS2Rjip7TM3hxqYKtUGPMuQ
+ XyiUw0iJbCcIb+GRTvfl2w88BFtwdcty/YAVxwY2uhuRD1zY97dEpfuMFlDOF2ZHALKYi9S61
+ +e6pW456igROBGTb/KHCTwT6GzxQzDfSm2yn9X9RfXlv7V1a8ZT6YfnRQuRgUSXMf/d9Jqk4V
+ J/j0qRczRshk5YG45HaUfaXNt1fu6D0O/l1TAPLsUxJtlJNBistsSxI3h2VYoKDkwOcK7wGbI
+ I+Uo2raSF2zgYOeJrfsCQmIgZTSP/9NH/zOBLQNfhWtwrzXYcCwU5stY62fbx+bP5GL86FwSv
+ cK4btbjbDu5sx1Tygz0fOSrp94GNGh4yciDzQy3s+MyM0o2yfCWmVpONa6
 
-These are now covered by the default implementation.
+Add a new option which allows opening the netlink socket in a different
+network namespace. This way you can run ulogd in one (management)
+network namespace which is able to talk with your export target (e.g.
+database or IPFIX collector), and import flows from multiple (customer)
+network namespaces.
+
+The config option is a path and not just a name so you can also use
+anonymous network namespaces (e.g. `/proc/20/ns/net`)
 
 Signed-off-by: Corubba Smith <corubba@gmx.de>
 =2D--
- filter/ulogd_filter_MARK.c           | 10 ----------
- input/flow/ulogd_inpflow_NFCT.c      | 13 -------------
- input/packet/ulogd_inppkt_NFLOG.c    | 10 ----------
- input/packet/ulogd_inppkt_ULOG.c     |  6 ------
- input/packet/ulogd_inppkt_UNIXSOCK.c | 10 ----------
- output/pcap/ulogd_output_PCAP.c      |  7 -------
- output/ulogd_output_GRAPHITE.c       |  8 --------
- output/ulogd_output_LOGEMU.c         |  8 --------
- output/ulogd_output_NACCT.c          | 13 -------------
- output/ulogd_output_XML.c            | 13 -------------
- 10 files changed, 98 deletions(-)
+Since the required `setns()` syscall is part of the libc GNU extension,
+`_GNU_SOURCE` needs to be defined before importing the headers. Even
+after reading about it, I am still unsure about the ramifications of
+that with regard to compatibility. That is why I maybe went a bit
+overboard with the autoconf feature toggle, autodetection and
+conditional compilation. Any feedback is appreciated.
 
-diff --git a/filter/ulogd_filter_MARK.c b/filter/ulogd_filter_MARK.c
-index d5a8181..b977780 100644
-=2D-- a/filter/ulogd_filter_MARK.c
-+++ b/filter/ulogd_filter_MARK.c
-@@ -88,15 +88,6 @@ static int interp_mark(struct ulogd_pluginstance *pi)
- 	return ULOGD_IRET_OK;
- }
+Also tested to compile and run against musl.
 
--static int configure(struct ulogd_pluginstance *upi,
--		     struct ulogd_pluginstance_stack *stack)
--{
--	ulogd_log(ULOGD_DEBUG, "parsing config file section `%s', "
--		  "plugin `%s'\n", upi->id, upi->plugin->name);
--
--	return ulogd_parse_configfile(upi->id, upi->config_kset);
--}
--
- static struct ulogd_plugin mark_pluging =3D {
- 	.name =3D "MARK",
- 	.input =3D {
-@@ -109,7 +100,6 @@ static struct ulogd_plugin mark_pluging =3D {
- 		},
- 	.interp =3D &interp_mark,
- 	.config_kset =3D &libulog_kset,
--	.configure =3D &configure,
- 	.version =3D VERSION,
- };
+This commit only implements it for NFCT. I wanted to gather some
+feedback before also implementing it for the other netlink-based
+plugins.
 
+
+ configure.ac                    | 39 ++++++++++++++++++
+ input/flow/ulogd_inpflow_NFCT.c | 72 ++++++++++++++++++++++++++++++++-
+ 2 files changed, 109 insertions(+), 2 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 3c9249e..70aa1d7 100644
+=2D-- a/configure.ac
++++ b/configure.ac
+@@ -243,6 +243,44 @@ AS_IF([test "x$enable_json" !=3D "xno"],
+ AS_IF([test "x$libjansson_LIBS" !=3D "x"], [enable_json=3Dyes], [enable_j=
+son=3Dno])
+ AM_CONDITIONAL([HAVE_JANSSON], [test "x$libjansson_LIBS" !=3D "x"])
+
++AC_ARG_ENABLE([netns],
++              [AS_HELP_STRING([--enable-netns], [Enable network namespace=
+ support for netlink-based plugins [default=3Dtest]])])
++AS_IF([test "x$enable_netns" !=3D "xno"], [
++  AC_CHECK_DECLS([setns, CLONE_NEWNET], [
++    enable_netns=3Dyes
++  ], [], [[#include <fcntl.h>], [#include <sched.h>]])
++])
++AS_IF([test "x$enable_netns" !=3D "xno"], [
++  AC_MSG_CHECKING([whether setns and CLONE_NEWNET are declared using _GNU=
+_SOURCE])
++  AC_LINK_IFELSE([
++    AC_LANG_SOURCE([
++      #define _GNU_SOURCE
++      #include <fcntl.h>
++      #include <sched.h>
++      int main() {
++        setns(0, CLONE_NEWNET);
++        return 0;
++      }
++    ])
++  ],[
++    AC_MSG_RESULT([yes])
++    enable_netns=3Dyes
++    AC_DEFINE([HAVE_DECL_SETNS], [1], [])
++    AC_DEFINE([HAVE_DECL_CLONE_NEWNET], [1], [])
++    AC_DEFINE([NETNS_REQUIRES_GNUSOURCE], [1], [Define if network namespa=
+ce functionality requires _GNU_SOURCE])
++  ],[
++    AC_MSG_RESULT([no])
++    AS_IF([test "x$enable_netns" =3D "xyes"], [
++      AC_MSG_ERROR([network namespace support enabled, but required symbo=
+ls not available])
++    ], [
++      enable_netns=3Dno
++    ])
++  ])
++])
++AS_IF([test "x$enable_netns" =3D "xyes"], [
++  AC_DEFINE([NETNS_SUPPORT], [1], [Define if network namespace support is=
+ enabled])
++], [])
++
+ AC_ARG_WITH([ulogd2libdir],
+             [AS_HELP_STRING([--with-ulogd2libdir=3DPATH], [Default direct=
+ory to load ulogd2 plugin from [[LIBDIR/ulogd]]])],
+             [ulogd2libdir=3D"$withval"],
+@@ -293,6 +331,7 @@ EXPAND_VARIABLE(ulogd2libdir, e_ulogd2libdir)
+ echo "
+ Ulogd configuration:
+   Default plugins directory:		${e_ulogd2libdir}
++  Network namespace support:		${enable_netns}
+   Input plugins:
+     NFLOG plugin:			${enable_nflog}
+     NFCT plugin:			${enable_nfct}
 diff --git a/input/flow/ulogd_inpflow_NFCT.c b/input/flow/ulogd_inpflow_NF=
 CT.c
-index ec3dff6..31457de 100644
+index 899b7e3..61f9f71 100644
 =2D-- a/input/flow/ulogd_inpflow_NFCT.c
 +++ b/input/flow/ulogd_inpflow_NFCT.c
-@@ -1023,18 +1023,6 @@ static void polling_timer_cb(struct ulogd_timer *t,=
- void *data)
- 	ulogd_add_timer(&cpi->timer, pollint_ce(upi->config_kset).u.value);
- }
+@@ -29,6 +29,12 @@
+  * 	  network wide connection hash table.
+  */
 
--static int configure_nfct(struct ulogd_pluginstance *upi,
--			  struct ulogd_pluginstance_stack *stack)
--{
--	int ret;
--
--	ret =3D ulogd_parse_configfile(upi->id, upi->config_kset);
--	if (ret < 0)
--		return ret;
--
--	return 0;
--}
--
- static void overrun_timeout(struct ulogd_timer *a, void *data)
- {
- 	int family =3D AF_UNSPEC;
-@@ -1551,7 +1539,6 @@ static struct ulogd_plugin nfct_plugin =3D {
- 	},
- 	.config_kset 	=3D &nfct_kset,
- 	.interp 	=3D NULL,
--	.configure	=3D &configure_nfct,
- 	.start		=3D &constructor_nfct,
- 	.stop		=3D &destructor_nfct,
- 	.signal		=3D &signal_nfct,
-diff --git a/input/packet/ulogd_inppkt_NFLOG.c b/input/packet/ulogd_inppkt=
-_NFLOG.c
-index f716136..62b3963 100644
-=2D-- a/input/packet/ulogd_inppkt_NFLOG.c
-+++ b/input/packet/ulogd_inppkt_NFLOG.c
-@@ -551,15 +551,6 @@ release_ct:
- 	return ret;
- }
++#include "config.h"
++
++#ifdef NETNS_REQUIRES_GNUSOURCE
++#define _GNU_SOURCE
++#endif /* NETNS_REQUIRES_GNUSOURCE */
++
+ #include <stdlib.h>
+ #include <string.h>
+ #include <errno.h>
+@@ -37,6 +43,8 @@
+ #include <time.h>
+ #include <netinet/in.h>
+ #include <netdb.h>
++#include <fcntl.h>
++#include <sched.h>
+ #include <ulogd/linuxlist.h>
+ #include <ulogd/jhash.h>
+ #include <ulogd/hash.h>
+@@ -78,7 +86,7 @@ struct nfct_pluginstance {
+ #define EVENT_MASK	NF_NETLINK_CONNTRACK_NEW | NF_NETLINK_CONNTRACK_DESTRO=
+Y
 
--static int configure(struct ulogd_pluginstance *upi,
--		     struct ulogd_pluginstance_stack *stack)
--{
--	ulogd_log(ULOGD_DEBUG, "parsing config file section `%s', "
--		  "plugin `%s'\n", upi->id, upi->plugin->name);
--
--	return ulogd_parse_configfile(upi->id, upi->config_kset);
--}
--
- static int become_system_logging(struct ulogd_pluginstance *upi, uint8_t =
-pf)
- {
- 	struct nflog_input *ui =3D (struct nflog_input *) upi->private;
-@@ -723,7 +714,6 @@ struct ulogd_plugin libulog_plugin =3D {
- 		.num_keys =3D ARRAY_SIZE(output_keys),
+ static struct config_keyset nfct_kset =3D {
+-	.num_ces =3D 12,
++	.num_ces =3D 13,
+ 	.ces =3D {
+ 		{
+ 			.key	 =3D "pollinterval",
+@@ -149,6 +157,11 @@ static struct config_keyset nfct_kset =3D {
+ 			.type	 =3D CONFIG_TYPE_STRING,
+ 			.options =3D CONFIG_OPT_NONE,
+ 		},
++		{
++			.key     =3D "network_namespace_path",
++			.type    =3D CONFIG_TYPE_STRING,
++			.options =3D CONFIG_OPT_NONE,
++		},
  	},
- 	.priv_size 	=3D sizeof(struct nflog_input),
--	.configure 	=3D &configure,
- 	.start 		=3D &start,
- 	.stop 		=3D &stop,
- 	.config_kset 	=3D &libulog_kset,
-diff --git a/input/packet/ulogd_inppkt_ULOG.c b/input/packet/ulogd_inppkt_=
-ULOG.c
-index 44bc71d..2eb994c 100644
-=2D-- a/input/packet/ulogd_inppkt_ULOG.c
-+++ b/input/packet/ulogd_inppkt_ULOG.c
-@@ -266,11 +266,6 @@ static int ulog_read_cb(int fd, unsigned int what, vo=
-id *param)
- 	return 0;
- }
+ };
+ #define pollint_ce(x)	(x->ces[0])
+@@ -163,6 +176,7 @@ static struct config_keyset nfct_kset =3D {
+ #define src_filter_ce(x)	((x)->ces[9])
+ #define dst_filter_ce(x)	((x)->ces[10])
+ #define proto_filter_ce(x)	((x)->ces[11])
++#define network_namespace_path_ce(x)	((x)->ces[12])
 
--static int configure(struct ulogd_pluginstance *upi,
--		     struct ulogd_pluginstance_stack *stack)
--{
--	return ulogd_parse_configfile(upi->id, upi->config_kset);
--}
- static int init(struct ulogd_pluginstance *upi)
- {
- 	struct ulog_input *ui =3D (struct ulog_input *) &upi->private;
-@@ -325,7 +320,6 @@ struct ulogd_plugin libulog_plugin =3D {
- 		.keys =3D output_keys,
- 		.num_keys =3D ARRAY_SIZE(output_keys),
- 	},
--	.configure =3D &configure,
- 	.start =3D &init,
- 	.stop =3D &fini,
- 	.config_kset =3D &libulog_kset,
-diff --git a/input/packet/ulogd_inppkt_UNIXSOCK.c b/input/packet/ulogd_inp=
-pkt_UNIXSOCK.c
-index b328500..0d9ba60 100644
-=2D-- a/input/packet/ulogd_inppkt_UNIXSOCK.c
-+++ b/input/packet/ulogd_inppkt_UNIXSOCK.c
-@@ -713,15 +713,6 @@ static int unixsock_server_read_cb(int fd, unsigned i=
-nt what, void *param)
- 	return 0;
- }
+ enum nfct_keys {
+ 	NFCT_ORIG_IP_SADDR =3D 0,
+@@ -1286,6 +1300,40 @@ static int constructor_nfct_events(struct ulogd_plu=
+ginstance *upi)
+ 	struct nfct_pluginstance *cpi =3D
+ 			(struct nfct_pluginstance *)upi->private;
 
--static int configure(struct ulogd_pluginstance *upi,
--		     struct ulogd_pluginstance_stack *stack)
--{
--	ulogd_log(ULOGD_DEBUG, "parsing config file section `%s', "
--		  "plugin `%s'\n", upi->id, upi->plugin->name);
--
--	return ulogd_parse_configfile(upi->id, upi->config_kset);
--}
--
- static int start(struct ulogd_pluginstance *upi)
- {
- 	struct unixsock_input *ui =3D (struct unixsock_input *) upi->private;
-@@ -809,7 +800,6 @@ struct ulogd_plugin libunixsock_plugin =3D {
- 		.num_keys =3D ARRAY_SIZE(output_keys),
- 	},
- 	.priv_size 	=3D sizeof(struct unixsock_input),
--	.configure 	=3D &configure,
- 	.start 		=3D &start,
- 	.stop 		=3D &stop,
- 	.config_kset 	=3D &libunixsock_kset,
-diff --git a/output/pcap/ulogd_output_PCAP.c b/output/pcap/ulogd_output_PC=
-AP.c
-index 474992e..ec29a9e 100644
-=2D-- a/output/pcap/ulogd_output_PCAP.c
-+++ b/output/pcap/ulogd_output_PCAP.c
-@@ -257,12 +257,6 @@ static void signal_pcap(struct ulogd_pluginstance *up=
-i, int signal)
++	const char *const target_netns_path =3D network_namespace_path_ce(upi->c=
+onfig_kset).u.string;
++	int original_netns_fd =3D -1, target_netns_fd =3D -1;
++
++#ifdef NETNS_SUPPORT
++	if (strlen(target_netns_path) > 0) {
++		errno =3D 0;
++		original_netns_fd =3D open("/proc/self/ns/net", O_RDONLY | O_CLOEXEC);
++		if (original_netns_fd < 0) {
++			ulogd_log(ULOGD_FATAL, "error opening original network namespace: %s\n=
+", strerror(errno));
++			goto err_ons;
++		}
++
++		target_netns_fd =3D open(target_netns_path, O_RDONLY | O_CLOEXEC);
++		if (target_netns_fd < 0) {
++			ulogd_log(ULOGD_FATAL, "error opening target network namespace: %s\n",=
+ strerror(errno));
++			goto err_tns;
++		}
++
++		if (setns(target_netns_fd, CLONE_NEWNET) < 0) {
++			ulogd_log(ULOGD_FATAL, "error joining target network namespace: %s\n",=
+ strerror(errno));
++			goto err_cth;
++		}
++
++		if (close(target_netns_fd) < 0) {
++			ulogd_log(ULOGD_NOTICE, "error closing target network namespace: %s\n"=
+, strerror(errno));
++		}
++		target_netns_fd =3D -1;
++	}
++#else
++	if (strlen(target_netns_path) > 0) {
++		ulogd_log(ULOGD_FATAL, "network namespace support is not compiled in.\n=
+");
++		goto err_ons;
++	}
++#endif /* NETNS_SUPPORT */
+
+ 	cpi->cth =3D nfct_open(NFNL_SUBSYS_CTNETLINK,
+ 			     eventmask_ce(upi->config_kset).u.value);
+@@ -1294,13 +1342,28 @@ static int constructor_nfct_events(struct ulogd_pl=
+uginstance *upi)
+ 		goto err_cth;
  	}
- }
 
--static int configure_pcap(struct ulogd_pluginstance *upi,
--			  struct ulogd_pluginstance_stack *stack)
--{
--	return ulogd_parse_configfile(upi->id, upi->config_kset);
--}
--
- static int start_pcap(struct ulogd_pluginstance *upi)
- {
- 	return append_create_outfile(upi);
-@@ -291,7 +285,6 @@ static struct ulogd_plugin pcap_plugin =3D {
- 	.config_kset	=3D &pcap_kset,
- 	.priv_size	=3D sizeof(struct pcap_instance),
-
--	.configure	=3D &configure_pcap,
- 	.start		=3D &start_pcap,
- 	.stop		=3D &stop_pcap,
- 	.signal		=3D &signal_pcap,
-diff --git a/output/ulogd_output_GRAPHITE.c b/output/ulogd_output_GRAPHITE=
-.c
-index e54b24d..6942123 100644
-=2D-- a/output/ulogd_output_GRAPHITE.c
-+++ b/output/ulogd_output_GRAPHITE.c
-@@ -210,13 +210,6 @@ static int fini_graphite(struct ulogd_pluginstance *p=
-i) {
- 	return 0;
- }
-
--static int configure_graphite(struct ulogd_pluginstance *pi,
--			    struct ulogd_pluginstance_stack *stack)
--{
--	ulogd_log(ULOGD_DEBUG, "parsing config file section %s\n", pi->id);
--	return ulogd_parse_configfile(pi->id, pi->config_kset);
--}
--
- static struct ulogd_plugin graphite_plugin =3D {
- 	.name =3D "GRAPHITE",
- 	.input =3D {
-@@ -230,7 +223,6 @@ static struct ulogd_plugin graphite_plugin =3D {
- 	.config_kset 	=3D &graphite_kset,
- 	.priv_size 	=3D sizeof(struct graphite_instance),
-
--	.configure	=3D &configure_graphite,
- 	.start	 	=3D &start_graphite,
- 	.stop	 	=3D &fini_graphite,
-
-diff --git a/output/ulogd_output_LOGEMU.c b/output/ulogd_output_LOGEMU.c
-index f5d1def..372cac3 100644
-=2D-- a/output/ulogd_output_LOGEMU.c
-+++ b/output/ulogd_output_LOGEMU.c
-@@ -174,13 +174,6 @@ static int fini_logemu(struct ulogd_pluginstance *pi)=
- {
- 	return 0;
- }
-
--static int configure_logemu(struct ulogd_pluginstance *pi,
--			    struct ulogd_pluginstance_stack *stack)
--{
--	ulogd_log(ULOGD_DEBUG, "parsing config file section %s\n", pi->id);
--	return ulogd_parse_configfile(pi->id, pi->config_kset);
--}
--
- static struct ulogd_plugin logemu_plugin =3D {
- 	.name =3D "LOGEMU",
- 	.input =3D {
-@@ -194,7 +187,6 @@ static struct ulogd_plugin logemu_plugin =3D {
- 	.config_kset 	=3D &logemu_kset,
- 	.priv_size 	=3D sizeof(struct logemu_instance),
-
--	.configure	=3D &configure_logemu,
- 	.start	 	=3D &start_logemu,
- 	.stop	 	=3D &fini_logemu,
-
-diff --git a/output/ulogd_output_NACCT.c b/output/ulogd_output_NACCT.c
-index 080a576..fa7c501 100644
-=2D-- a/output/ulogd_output_NACCT.c
-+++ b/output/ulogd_output_NACCT.c
-@@ -197,18 +197,6 @@ sighup_handler_print(struct ulogd_pluginstance *pi, i=
-nt signal)
++#ifdef NETNS_SUPPORT
++	if (strlen(target_netns_path) > 0) {
++		errno =3D 0;
++		if (setns(original_netns_fd, CLONE_NEWNET) < 0) {
++			ulogd_log(ULOGD_FATAL, "error joining original network namespace: %s\n=
+", strerror(errno));
++			goto err_nsr;
++		}
++
++		if (close(original_netns_fd) < 0) {
++			ulogd_log(ULOGD_NOTICE, "error closing original network namespace: %s\=
+n", strerror(errno));
++		}
++		original_netns_fd =3D -1;
++	}
++#endif /* NETNS_SUPPORT */
++
+ 	if ((strlen(src_filter_ce(upi->config_kset).u.string) !=3D 0) ||
+ 		(strlen(dst_filter_ce(upi->config_kset).u.string) !=3D 0) ||
+ 		(strlen(proto_filter_ce(upi->config_kset).u.string) !=3D 0)
+ 	   ) {
+ 		if (build_nfct_filter(upi) !=3D 0) {
+ 			ulogd_log(ULOGD_FATAL, "error creating NFCT filter\n");
+-			goto err_cth;
++			goto err_nsr;
+ 		}
  	}
+
+@@ -1408,8 +1471,13 @@ err_hashtable:
+ 	nfct_destroy(cpi->ct);
+ err_nfctobj:
+ 	ulogd_unregister_fd(&cpi->nfct_fd);
++err_nsr:
+ 	nfct_close(cpi->cth);
+ err_cth:
++	if (target_netns_fd >=3D 0) close(target_netns_fd);
++err_tns:
++	if (original_netns_fd >=3D 0) close(original_netns_fd);
++err_ons:
+ 	return -1;
  }
 
--static int
--nacct_conf(struct ulogd_pluginstance *pi,
--		   struct ulogd_pluginstance_stack *stack)
--{
--	int ret;
--
--	if ((ret =3D ulogd_parse_configfile(pi->id, pi->config_kset)) < 0)
--		return ret;
--
--	return 0;
--}
--
- static int
- nacct_init(struct ulogd_pluginstance *pi)
- {
-@@ -243,7 +231,6 @@ static struct ulogd_plugin nacct_plugin =3D {
- 	.output =3D {
- 		.type =3D ULOGD_DTYPE_SINK,
- 	},
--	.configure =3D &nacct_conf,
- 	.interp	=3D &nacct_interp,
- 	.start 	=3D &nacct_init,
- 	.stop	=3D &nacct_fini,
-diff --git a/output/ulogd_output_XML.c b/output/ulogd_output_XML.c
-index 55c7a7c..b657436 100644
-=2D-- a/output/ulogd_output_XML.c
-+++ b/output/ulogd_output_XML.c
-@@ -185,18 +185,6 @@ static int xml_output(struct ulogd_pluginstance *upi)
- 	return ULOGD_IRET_OK;
- }
-
--static int xml_configure(struct ulogd_pluginstance *upi,
--			 struct ulogd_pluginstance_stack *stack)
--{
--	int ret;
--
--	ret =3D ulogd_parse_configfile(upi->id, upi->config_kset);
--	if (ret < 0)
--		return ret;
--
--	return 0;
--}
--
- static int xml_fini(struct ulogd_pluginstance *pi)
- {
- 	struct xml_priv *op =3D (struct xml_priv *) &pi->private;
-@@ -333,7 +321,6 @@ static struct ulogd_plugin xml_plugin =3D {
- 	.config_kset	=3D &xml_kset,
- 	.priv_size	=3D sizeof(struct xml_priv),
-
--	.configure	=3D &xml_configure,
- 	.start		=3D &xml_start,
- 	.stop		=3D &xml_fini,
- 	.interp		=3D &xml_output,
 =2D-
 2.48.1
 
