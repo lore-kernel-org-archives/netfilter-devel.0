@@ -1,39 +1,40 @@
-Received: from mout.gmx.net (mout.gmx.net [212.227.17.21])
+Received: from mout.gmx.net (mout.gmx.net [212.227.17.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72F5E52F88
-	for <netfilter-devel@vger.kernel.org>; Sat,  8 Mar 2025 22:32:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 966BE19EEBD
+	for <netfilter-devel@vger.kernel.org>; Sat,  8 Mar 2025 22:33:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.20
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741473154; cv=none; b=gNyOeyxDemxO54hzmK4naVnmV7MTwLLF6iIzTqLbgeUZKOqTtGS5xFqLBCSeCC2JaQJr5VsHnYaG/FAGw5/6Z+bsWK31OiDUOhFRNGRgRn633JfRGx1soCvzQ8BuPzSYtPHiWK0KA681neyJbq1BjjUHQjqax3eNmhKh6OQV9Ok=
+	t=1741473234; cv=none; b=Tg+Ig3veVjxaAUa3lfnjeLmOZkNbvvP7kjsl7/fQ44G0TGgcy8Ggqi/GmBsMtrUM5cS3sMH1lkjQWZHR/c2B/+jR3N52JkO6//MGp9rV7I+Cc9XNG+WFHIazf2Nhc984oXef41wLxJgXvFKi/QoYAq13JbmEf1CQZeSn+UNGyHA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741473154; c=relaxed/simple;
-	bh=J7V87TJ/DrDLNhu9uuZqUq5UrfBfO+a/EH4DtXf5uXY=;
-	h=Message-ID:Date:MIME-Version:To:From:Subject:Content-Type; b=Ud9WKjf26EPB86LRJ+ERziA6O4AfCqHtNj1fZlMmn9U+Gp82bl8DhHayTy7TTM7SEFOQSsJ9RjXTj/HU6ILJHlOLO/AThRXtZA3Myjut6TFPR14nfLjNu4UdFnqHRaZFCdrY2BoXZIywPbOudhzb4ygFroD97qqL2FLt7CTlfw0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b=AuYebpec; arc=none smtp.client-ip=212.227.17.21
+	s=arc-20240116; t=1741473234; c=relaxed/simple;
+	bh=7bwtM2jLJpk9CjFET0AHY2MmbwNjt12JTmsZrFlW8UE=;
+	h=Message-ID:Date:MIME-Version:Subject:From:To:References:
+	 In-Reply-To:Content-Type; b=icDpARVpNjhEhg9ROQZp/YV3q8+KKUvjJVsg6nOw8pXOugZ0/U/dxpeuEinB7EpIw+Tm8rsd4tketTkeALpzni9bUj7e8KP+gWUyRraDSqE9hH31u5Uh+GgEN8sGOANDVJzCFVR1B8Hie5OrP8Yiv9prw85mrHg4ksOmOmiN6a8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b=iMvHNNMK; arc=none smtp.client-ip=212.227.17.20
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b="AuYebpec"
+	dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b="iMvHNNMK"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
-	s=s31663417; t=1741473149; x=1742077949; i=corubba@gmx.de;
-	bh=6d2TacHA6AQKjWfvGr3+sNNgQpVHbJ7eTzU0Ucv/jN8=;
-	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:To:From:Subject:
-	 Content-Type:Content-Transfer-Encoding:cc:
+	s=s31663417; t=1741473229; x=1742078029; i=corubba@gmx.de;
+	bh=6BDTTxnt4ksFC8/JSayVR+0ZoYUJeQgPxnH0tpkvcp4=;
+	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:From:To:
+	 References:In-Reply-To:Content-Type:Content-Transfer-Encoding:cc:
 	 content-transfer-encoding:content-type:date:from:message-id:
 	 mime-version:reply-to:subject:to;
-	b=AuYebpec5W40CRexkGbolEe2V/UrZKwveHFDP3YaMo61BWoIhoB/PZEp7lVmsC4H
-	 DKQxMDgvIxWsrN/bh0IqdrWLrhigkSFk/Wd1345viBNImvJvsP7ae9p7w8tZAFFPW
-	 n9PERXQLR0kjxbg2ypcG8adu6wAU+hdOijJsnWootTdYxgS8tULJAmDJy3FTGM/Mg
-	 d0yW8Ze35R/wxh7vc26R30Mze1lRoA0XCw/MlKgrnmiqKESNlbujrM5pku9TJu3Me
-	 gCd0FiBZpVa1jFTwWnRR0auz0aBFbCcCSzG3G6zWKu+s22Y5kY9LmSjApF6lsQciZ
-	 YiOoFrW45aEsDTK6KA==
+	b=iMvHNNMKpX/uDtMQolrL1OVbbOnL+3xT/R2Tchcbd1GN6QLdUUGGNaiAgA+5brxH
+	 MZvwaMhaNOGL5a2WSbqlD/msjBQRiEriDgZfjOIgO3UWOr9/CMO6ZtGchV1YfFOdp
+	 Ug5pVZacPjvKrmK3rCPTHMTA0sOfr19jcxyAYuuQ0FlSukpwMU8r2k5AdNlWFnYIX
+	 dWOWqilHIDO1eiJNH6UfJHD6QlI0P6SP7zdD9NhjNYlVhWcm4I7TREbZ4ORvPP3kt
+	 a8ArSifLWWjdufMRQn81RsMRsH1SY+Nmxpd+76HQltr20gorPoV9OBBCLD/SZGBAO
+	 Ls5PJxiB4hVh/THhfw==
 X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
 Received: from [192.168.44.3] ([83.135.91.164]) by mail.gmx.net (mrgmx104
- [212.227.17.168]) with ESMTPSA (Nemesis) id 1N3se8-1t8sFJ1m4m-012cJu for
- <netfilter-devel@vger.kernel.org>; Sat, 08 Mar 2025 23:32:29 +0100
-Message-ID: <ca5581f5-5e54-47f5-97c8-bcc788c77781@gmx.de>
-Date: Sat, 8 Mar 2025 23:32:29 +0100
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 1MS3mt-1tgqO62Ibz-00Qne2 for
+ <netfilter-devel@vger.kernel.org>; Sat, 08 Mar 2025 23:33:49 +0100
+Message-ID: <4d7fe1dc-73ee-4e9e-b418-8f5fb87c1e4c@gmx.de>
+Date: Sat, 8 Mar 2025 23:33:49 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -41,84 +42,204 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Content-Language: de-CH
-To: netfilter-devel@vger.kernel.org
+Subject: [PATCH ulogd2 2/8] ulogd: add ulogd_parse_configfile public function
 From: Corubba Smith <corubba@gmx.de>
-Subject: [PATCH ulogd2 1/8] ulogd: fix config file fd leak
+To: netfilter-devel@vger.kernel.org
+References: <ca5581f5-5e54-47f5-97c8-bcc788c77781@gmx.de>
+Content-Language: de-CH
+In-Reply-To: <ca5581f5-5e54-47f5-97c8-bcc788c77781@gmx.de>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:8am+BlJZDmLA9Pk8V/r9XvmctT9QFV/WeMAOv3ml5zEaLM+gyH0
- vrnBZwHIExArA7rPmUjETQ8tEQbdmrpdLLI4wNifmXWIaGaU/FrW/6QVh6caPVJIddOOSwH
- 6qOh3rnTjP+lB3TFGPT0f4w0HyBq7L9u2O7njNDV7QWlSpTFosCCcbdwr45mzhWl4Rmc4LF
- yROO4CmcrZEuoduu5bqIg==
+X-Provags-ID: V03:K1:Y4Hce4OH7nVGA20BSagYggsDtuU2SnsmESaHiLNusuhH6zx9brK
+ c+7YCj5H1C0gf/QslEd22u/2WDlgoAE4emXQ+7TEsMt+8/KHZML9gDMMVq/zV7zMfMyVu6L
+ wYRjR0Yda4DQF1kTz3kLmLdLV95kDZirYT6HO+PeNpGi0484DkUVQHlefAjaOkyryjlaohX
+ EfiaiGU/0jw88JkH4DiYg==
 X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:yiMxHul5CNA=;Je0bhST1Ekqmf5DRyZBpiivZUyj
- DeMXUVDmDhqj2BQhN/emfznNu6uBxNrMq4uj+UCI8udWu+I/iMNYWNssUNZM249eYPBA+ZdOy
- bjnctl2IdZXOHx6ut2agnUR4gM1UVwwCDLwIyk2hb9rriQRFRtInG6RObRiK78uKyIJiBBBpV
- sU57ml7FrSGdOmDT3O+kPqhi620P8vMLUBk9n4JYNHHJbwP6PKIbn3CG2vREj3mHOJaIzMtVq
- VToADGyLSn44p0rnsSPWhWFv7VUvfhFw4FtDTVVsxZP/n9loHHa0I/jFLVPFCjNp27+n52Ixd
- ojwQUQ9kIXmOWn69ER9RuqevYYdTuIyPwMSjfXUsvNgFFH2RVZqeflh8nuKHcxD2lvoEOKKFj
- er892HAMkWC5a+GA8uqfhtNSNyr8tSpSCM6rvWJB2RmijaOEzA28Mjuov5Zedr2B1RdSPDYvv
- vt74K/l/P26o10577bi1Hb9JBysr52QIKiXyeFSJMIqAoNiBnW9pptu84pbt6eCR5FbYEUM3t
- ObbUVfKdkrRHvHdenxTuqs/KfTb8hOnjG+ObSJpvKMkz53GKsIwNL7f3KIM5RYFepTqHH2TFZ
- vMrOqbXCT00IUtqZ3hBdJDajGo6vL8naG07ALjloobHLT8dHbkpfrly02Tn/bVqgn38mKpufj
- seNVZ8siPbkHuHS8MZchiLjEYTGGIVRNIG+C3r9kIxsc19+CmpWikIdPiQs9kvTnXVbcVamOC
- q2dV+A3l8AWNglAw7qQN19Fzzg4R9VwmwLIb6VVYRmDYMnnspf2w7RlF8TnWi8Hpp8TQnEecZ
- v4C30p+7tu/lseMbmm5D3qd5aZT9oRHa+BN+aufYtAt37ZRhvMyLeboZ/uRWc2LpOdGfHrlCL
- cAulyxB3qePJEDBQjyDCxjh5Atkjpwt/vRgX466xVSwAuXC8pTfibEHIJjvrSACPnQp0s3Db6
- cYcCu5eZjsjgZI7eO8CvYlWJ8iWIURDxO+94kpm8oao9MucLb5QH6f2TPgeJCUtFy2wAm8+TC
- jLprVLS4q9wRxEgxchCNg6zgFmlUV3ti8Ho+wC0o+K/IPnLhfm1e5fxmss4qClv/i6P4dY5Hd
- shOF7XZFoFMUKLd1QXO9pcQNmaj7gKcYBCqOMlSfCy7odfDjCk70pdkoRjVm3bFFj1+4aU7Nv
- 1wfRD+agyrrZ1wZ7J1NkqEXV8GGXnXTLyHUPeiBayaPNVBALBXO1EvDi5ICOQDPtvKwP2ivHV
- ErRkVzwJeyny2rndWUDRA4ZU1iIWnjUFWijsXfeZCPXeY6ovynMnjJxZBZ4Fr8ZMvtW2s8Yd3
- DsOBDx8kycyICzGssNYUYXp2veYfLj3Vqv8qfQdHRoYh8WNX60Ime0ApTKPpr9yiIQp2WZH2G
- w5aWgyh3NWE9eHk6J/cx3TEa1wGvSYAynMt573D9Ded2v6i/1ODoPh0VIc
+UI-OutboundReport: notjunk:1;M01:P0:fJ/a4/ctse8=;nnXpsPcMpusqpGEJb45EBMxvWgt
+ dfmmM3IP2ZRwMKp5h7gvJqXOEkoaQ9R6h9X8o1+7kri9aXPPmoxplljE65T52gUFe3G2S+aXJ
+ vo8c1TQKo+Gt3jfWbSYxkAHz4ZEyuRh1lWZJ/VFEXvDJPxTR+nUedJWD37BfIiIVxiaB4wrxh
+ JOa8CBywDvcyU/My4e2o1XupU8utN9k4wv0MQJgUBjW0SV0ltvmygo4DQValfaHOcEM9L6GGr
+ 1tQt3wcObnevdv3l9ZciiyMeATXsyjHV6bOkICenYV5GZPCekXO7jq83Wr9SZNI957ClEMl9L
+ YJafqqFCJUjYUCJYqmEM3l5NPggzEWHURMdTS4QOZyjeptkpCEdOSxbiDszRtTKKa7vpzXjjP
+ ATiFHLaO0D1BF+m6bShHKJXolDKnqAroSR0IMJay+KI+HH/Pp6vJ6K5yY2wfWTeIDvnyw8iWe
+ buUKcHlZNo4eB40PhrY0P6jsy3u5+2tOzCBCFn6xaQkbPdu4wIHRYI3oCzzMNBOrvRX4+a9Kz
+ JPCl7MSNqJwjNxU5hjknQalLCb50af73Csakv9Z3v9n0O+73ZFzgAZY4lrhOxnuFUAABO0969
+ wkjrJ4PspRAagHIXzlb/j6TwwdcmZAo4IxTGOq2sN1ZMqOjHX9Z2HXAai/N87n3lNKB1B0Dk3
+ xYrEMqyqCVZhYttbJE7Rnkq+Y9sw7TaZCBMQATjTQVGHtrGnnPpcZseiFchmN6YbuookVlohB
+ RyBYiogFyrfx5tAHUEFmyCGeqP8r20HAmfzac15RTNJm8ea+17AMTRJTzgm8gH5osHl9DdrZS
+ Q6b2ZTidga414iFEddgubW5ZTUE9FWIKfLP4LmJZAOt74GV1Ggg2p94aLECYlL0xClgL7wDTv
+ ce+9sofRGXY8EO1IMehqCzZlfhUCDFr9osYvpv83uZPCBLsuAptkQ3hRWKW9nf4ST2QWMcULS
+ OgwPXme741fUOwTqs9hnUvUQBkNKeI1viTYjFZeqLmokt7Tg8PBza6huf1dmgBStJJNT/LusX
+ CxyAYzFN+DuBMFl7yneEaF+x7D98miAK29L1WMCfN9zh57BWigF8h5hlyqHm+9zB78upRZdF/
+ ryccBa1N7b22JkEkTPm4EAe8MT6h161ZkCP03JNvYpVMKSAzKPJOIqdM2ymX+eR4zoi0U13QM
+ 2YXRkAni6gSkDrJKs7qeDlxOVy2io4k3CHKYxCGnCpil0gAJHxFjMh/dv/Hh3RsBYHHqTY+Of
+ /J7Auh6Op/P7D+zbzOVjAKmpeh4RFqAdV1cC236D21jyF3vQotukVQ/LIg37t+NUsWyxl9vEB
+ ymnr0BeaeUnhkOUgBoRSffeJIQ0zZoz5G3DHaqH+VruPceWFh8Rtjgo16sVmWaw2lhwtyJSCk
+ lbdygjlOaQG/fVP0atEDmRIa5XnOKZEfs1mlYFsJ1UZ3Noa7Cz6D8HOMkT
 
-Consistently use the return jump to close the config file descriptor if
-opened, to prevent it from leaking.
+Provide a new function `ulogd_parse_configfile()` in the public
+interface, which wraps `parse_config_file()` to parse a section of the
+config file and communicates found errors to the user. It can be used
+as a drop-in replacement because arguments and return value are
+compatible.
+
+This relieves plugins of the need to translate the individual error
+codes to human readable messages, and plugins are mostly interested if
+there is any error, not what specific error.
+
+This reuses the existing `parse_conffile()` function with slight
+adjustments.
 
 Signed-off-by: Corubba Smith <corubba@gmx.de>
 =2D--
- src/conffile.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ include/ulogd/ulogd.h |   1 +
+ src/ulogd.c           | 104 ++++++++++++++++++++++--------------------
+ 2 files changed, 56 insertions(+), 49 deletions(-)
 
-diff --git a/src/conffile.c b/src/conffile.c
-index 66769de..5b7f834 100644
-=2D-- a/src/conffile.c
-+++ b/src/conffile.c
-@@ -143,7 +143,8 @@ int config_parse_file(const char *section, struct conf=
-ig_keyset *kset)
- 		/* if line was fetch completely, string ends with '\n' */
- 		if (! strchr(line, '\n')) {
- 			ulogd_log(ULOGD_ERROR, "line %d too long.\n", linenum);
--			return -ERRTOOLONG;
-+			err =3D -ERRTOOLONG;
-+			goto cpf_error;
- 		}
+diff --git a/include/ulogd/ulogd.h b/include/ulogd/ulogd.h
+index c7cf402..088d85d 100644
+=2D-- a/include/ulogd/ulogd.h
++++ b/include/ulogd/ulogd.h
+@@ -362,6 +362,7 @@ void __ulogd_log(int level, char *file, int line, cons=
+t char *message, ...)
 
- 		if (!(wordend =3D get_word(line, " \t\n\r[]", (char *) wordbuf)))
-@@ -156,8 +157,8 @@ int config_parse_file(const char *section, struct conf=
-ig_keyset *kset)
+ int ulogd_key_size(struct ulogd_key *key);
+ int ulogd_wildcard_inputkeys(struct ulogd_pluginstance *upi);
++int ulogd_parse_configfile(const char *section, struct config_keyset *ce)=
+;
+
+ /***********************************************************************
+  * file descriptor handling
+diff --git a/src/ulogd.c b/src/ulogd.c
+index 6c5ff9a..80e1ac0 100644
+=2D-- a/src/ulogd.c
++++ b/src/ulogd.c
+@@ -251,6 +251,60 @@ int ulogd_wildcard_inputkeys(struct ulogd_pluginstanc=
+e *upi)
+ 	return 0;
+ }
+
++/**
++ * Parse the given section in the config file into the given keyset.
++ * Returns ULOGD_IRET_OK on success, ULOGD_IRET_ERR on error.
++ * If an error occurs, writes a descriptive message to the log.
++ */
++int ulogd_parse_configfile(const char *section, struct config_keyset *ce)
++{
++	int err;
++
++	err =3D config_parse_file(section, ce);
++
++	switch(err) {
++		case 0:
++			return ULOGD_IRET_OK;
++			break;
++		case -ERROPEN:
++			ulogd_log(ULOGD_ERROR,
++			          "unable to open configfile: %s\n",
++			          ulogd_configfile);
++			break;
++		case -ERRMAND:
++			ulogd_log(ULOGD_ERROR,
++			          "mandatory option \"%s\" not found\n",
++			          config_errce->key);
++			break;
++		case -ERRMULT:
++			ulogd_log(ULOGD_ERROR,
++			          "option \"%s\" occurred more than once\n",
++			          config_errce->key);
++			break;
++		case -ERRUNKN:
++			ulogd_log(ULOGD_ERROR,
++			          "unknown config key \"%s\"\n",
++			          config_errce->key);
++			break;
++		case -ERRSECTION:
++			ulogd_log(ULOGD_ERROR,
++			          "section \"%s\" not found\n",
++			          section);
++			break;
++		case -ERRTOOLONG:
++			if (config_errce !=3D NULL)
++				ulogd_log(ULOGD_ERROR,
++				          "string value too long for key \"%s\"\n",
++				          config_errce->key);
++			else
++				ulogd_log(ULOGD_ERROR,
++				          "string value is too long\n");
++			break;
++	}
++
++	return ULOGD_IRET_ERR;
++}
++
+
+ /***********************************************************************
+  * PLUGIN MANAGEMENT
+@@ -1098,54 +1152,6 @@ static int logfile_open(const char *name)
+ 	return 0;
+ }
+
+-/* wrapper to handle conffile error codes */
+-static int parse_conffile(const char *section, struct config_keyset *ce)
+-{
+-	int err;
+-
+-	err =3D config_parse_file(section, ce);
+-
+-	switch(err) {
+-		case 0:
+-			return 0;
+-			break;
+-		case -ERROPEN:
+-			ulogd_log(ULOGD_ERROR,
+-				"unable to open configfile: %s\n",
+-				ulogd_configfile);
+-			break;
+-		case -ERRMAND:
+-			ulogd_log(ULOGD_ERROR,
+-				"mandatory option \"%s\" not found\n",
+-				config_errce->key);
+-			break;
+-		case -ERRMULT:
+-			ulogd_log(ULOGD_ERROR,
+-				"option \"%s\" occurred more than once\n",
+-				config_errce->key);
+-			break;
+-		case -ERRUNKN:
+-			ulogd_log(ULOGD_ERROR,
+-				"unknown config key \"%s\"\n",
+-				config_errce->key);
+-			break;
+-		case -ERRSECTION:
+-			ulogd_log(ULOGD_ERROR,
+-				"section \"%s\" not found\n", section);
+-			break;
+-		case -ERRTOOLONG:
+-			if (config_errce)
+-				ulogd_log(ULOGD_ERROR,
+-					  "string value too long for key \"%s\"\n",
+-					  config_errce->key);
+-			else
+-				ulogd_log(ULOGD_ERROR,
+-					  "string value is too long\n");
+-			break;
+-	}
+-	return 1;
+-}
+-
+ /*
+  * Apply F_WRLCK to fd using fcntl().
+  *
+@@ -1594,7 +1600,7 @@ int main(int argc, char* argv[])
  	}
 
- 	if (!found) {
--		fclose(cfile);
--		return -ERRSECTION;
-+		err =3D -ERRSECTION;
-+		goto cpf_error;
+ 	/* parse config file */
+-	if (parse_conffile("global", &ulogd_kset)) {
++	if (ulogd_parse_configfile("global", &ulogd_kset)) {
+ 		ulogd_log(ULOGD_FATAL, "unable to parse config file\n");
+ 		warn_and_exit(daemonize);
  	}
-
- 	/* Parse this section until next section */
-@@ -175,7 +176,8 @@ int config_parse_file(const char *section, struct conf=
-ig_keyset *kset)
- 		/* if line was fetch completely, string ends with '\n' */
- 		if (! strchr(line, '\n')) {
- 			ulogd_log(ULOGD_ERROR, "line %d too long.\n", linenum);
--			return -ERRTOOLONG;
-+			err =3D -ERRTOOLONG;
-+			goto cpf_error;
- 		}
-
- 		if (!(wordend =3D get_word(line, " =3D\t\n\r", (char *) &wordbuf)))
 =2D-
 2.48.1
+
