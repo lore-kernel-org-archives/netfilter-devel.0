@@ -1,142 +1,72 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+Received: from azazel.net (taras.nevrast.org [35.176.194.208])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F0691DED7B;
-	Sun,  9 Mar 2025 14:47:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8339B1A2C0E
+	for <netfilter-devel@vger.kernel.org>; Sun,  9 Mar 2025 16:41:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741531634; cv=none; b=Mw5YUltuLA66HWa2DC88Uet8vRf15t14nG28gpUsHoVvWigFw5jhJb4+cHH+QVwTCppya1l7YPmwQc6BqL+R9MEgmhsceLOlvmtFahI5psXor/oByHEtP1+O4OO40T/xdAhjCDPjfgRE/EAMu8q1pYtRGZWrPxX9nHTYCbE8Rzo=
+	t=1741538521; cv=none; b=DxpwCZ3KqxgWfQJFpmIeSZTwlA4AOZcWt0xZaQ22d5hoON/gjPOk47uQMLflv0hVXh2kwEgBmPR1bZGYKwR/Ti6LSCInFUzZeJTIIEd+h+gKcizR5SBeiPGccRz5mY8OgUMxaObBD1vyKPRRYnSzjW6bfarj5PiWdnpSM+MvjR8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741531634; c=relaxed/simple;
-	bh=F1kbwpgJmR1zHtLiC9koc5ViAJJGL+nwkPx/E48SIGo=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=nL6bLBXgtD0ixcVAZ4W7TLeK9SCfNCSysJcuEUSjlwBL835L1+naxtdH4G30pdWsQxqc/o8Bj6fS2/AcddyEEFjkKBP8eQ3QxTliaUVX3uhJ74f9tHGZ+dZMe0Of3v9dpUGDlcbo0jJEwyu5TOF7GEKFZY5XPXWRup/OM4p4MtU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=Xm3j+Syp; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=8h6gbpWm; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+	s=arc-20240116; t=1741538521; c=relaxed/simple;
+	bh=EGKFhWt75NWGl6gZMu3kETj2MTb2uDUgVO7URR2jvU8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=X23UnDcmuylJ6vNiHCpeuizKd9WsejBVDCGrNqWFtRmYtw7vtbiwAM0vfwJzsgtzmyaPjLWS6EWpL/Kyc4SEMneHtpFj7lOzoapGRbD7z4aqWx5Nw5Qjnx+4USlGvvPLpEr28bgPRD5GQniHPjQs3s1Cd3eZ4km99a6ae/sMF/0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=ZqxUEqkC; arc=none smtp.client-ip=35.176.194.208
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="Xm3j+Syp";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="8h6gbpWm"
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1741531629;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=A2ZfTOQ7bazBpuxxNL69TQ5pB9eD/ZAtsuHrg3a9Qco=;
-	b=Xm3j+SypjJFItlmGqocigdv3RPKz+Oyb9oJhhvh5PMRhY3f+NjgiKQjwArQuwAg9eezEPq
-	fU2FB32NGkz3VFrZmKgja7JgKjopwptw7zIC4ZE4J4ID/+2BnhXBYYme4HjFqQDrL99Hc/
-	2k85VpoJVDK6WPchEseXN98CskN/NOzjzneyHw8kKEBczEJl5VX2Snk6Y4e/bCQa/maxL7
-	cng7rPhpgkSJgX+HNvrj1VIa83UHnV3q1Iw7IAjoimGlHQRyC7h8USoZo1le5qcFKWa2Ta
-	XrUrF1vEh02+DDspFuCZYls3weRdEZrii1IGmy+zLXIBy7OvcOPD+/YXNyvOCQ==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1741531629;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=A2ZfTOQ7bazBpuxxNL69TQ5pB9eD/ZAtsuHrg3a9Qco=;
-	b=8h6gbpWmuCXxzaW1c20Zme6bPt03oxUMzD7a/PaOvmVF+f3taCic5r/Jr4eEr+S2L+cwrr
-	F24N+X5AptOWZrDw==
-To: netdev@vger.kernel.org,
-	linux-rt-devel@lists.linux.dev
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org
-Subject: [PATCH net-next 07/18] netfilter: nft_inner: Use nested-BH locking for nft_pcpu_tun_ctx.
-Date: Sun,  9 Mar 2025 15:46:42 +0100
-Message-ID: <20250309144653.825351-8-bigeasy@linutronix.de>
-In-Reply-To: <20250309144653.825351-1-bigeasy@linutronix.de>
-References: <20250309144653.825351-1-bigeasy@linutronix.de>
+	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="ZqxUEqkC"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+	s=20220717; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=oW4FK1kpyaVUAbNtcFUDUTwWNpXnf7nFt9T6s8O6BzM=; b=ZqxUEqkCGTDe8SUbCokK1kDAgk
+	h10DkpPBsIHzRKer4zVqT3m3rCQOckpcXKVUxLD3MUESanEpZSOk5uXwcMfeULqpVLBr6zbBUDDp7
+	VIddLzEKyDOCTjj7af1qLSwCimMdVdihCzo5vLSBQ0B4i91kPmuiiG85Nzxc0b11wx+If1jE2yETk
+	D37wMqErQRdqqgO8XpLCWWN23DyNdTyNPG+zuFI4wJE0WGCUPjnAPVcXFwjvoNbTY314NQzxy2Wpn
+	Lr7xUBVfhqJ2BMi5C4gMccdHNYmV6toZZ+By7Pv2e912YqW4WkuRm1uLwT0E7uyuTPFcW3lN8UGKl
+	66bH9Miw==;
+Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
+	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.96)
+	(envelope-from <jeremy@azazel.net>)
+	id 1trJip-00GJEH-1B;
+	Sun, 09 Mar 2025 16:41:51 +0000
+From: Jeremy Sowden <jeremy@azazel.net>
+To: Jan Engelhardt <jengelh@inai.de>
+Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH xtables-addons 0/2] A couple of build fixes
+Date: Sun,  9 Mar 2025 16:41:26 +0000
+Message-ID: <20250309164131.1890225-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.47.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 
-nft_pcpu_tun_ctx is a per-CPU variable and relies on disabled BH for its
-locking. Without per-CPU locking in local_bh_disable() on PREEMPT_RT
-this data structure requires explicit locking.
+The first of these fixes the building of libxt_ACCOUNT.so and libxt_pknock.so.
+I sent this once before, at the beginning of December, but it did not elicit a
+response.
 
-Make a struct with a nft_inner_tun_ctx member (original
-nft_pcpu_tun_ctx) and a local_lock_t and use local_lock_nested_bh() for
-locking. This change adds only lockdep coverage and does not alter the
-functional behaviour for !PREEMPT_RT.
+The second updates Makefile.iptrules.in to clean up some cpp dependency files.
 
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
----
- net/netfilter/nft_inner.c | 18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+Jeremy Sowden (2):
+  build: fix inclusion of Makefile.extra
+  build: clean `.*.oo.d` cpp dependency files
 
-diff --git a/net/netfilter/nft_inner.c b/net/netfilter/nft_inner.c
-index 817ab978d24a1..c4569d4b92285 100644
---- a/net/netfilter/nft_inner.c
-+++ b/net/netfilter/nft_inner.c
-@@ -23,7 +23,14 @@
- #include <linux/ip.h>
- #include <linux/ipv6.h>
-=20
--static DEFINE_PER_CPU(struct nft_inner_tun_ctx, nft_pcpu_tun_ctx);
-+struct nft_inner_tun_ctx_locked {
-+	struct nft_inner_tun_ctx ctx;
-+	local_lock_t bh_lock;
-+};
-+
-+static DEFINE_PER_CPU(struct nft_inner_tun_ctx_locked, nft_pcpu_tun_ctx) =
-=3D {
-+	.bh_lock =3D INIT_LOCAL_LOCK(bh_lock),
-+};
-=20
- /* Same layout as nft_expr but it embeds the private expression data area.=
- */
- struct __nft_expr {
-@@ -237,12 +244,15 @@ static bool nft_inner_restore_tun_ctx(const struct nf=
-t_pktinfo *pkt,
- 	struct nft_inner_tun_ctx *this_cpu_tun_ctx;
-=20
- 	local_bh_disable();
--	this_cpu_tun_ctx =3D this_cpu_ptr(&nft_pcpu_tun_ctx);
-+	local_lock_nested_bh(&nft_pcpu_tun_ctx.bh_lock);
-+	this_cpu_tun_ctx =3D this_cpu_ptr(&nft_pcpu_tun_ctx.ctx);
- 	if (this_cpu_tun_ctx->cookie !=3D (unsigned long)pkt->skb) {
- 		local_bh_enable();
-+		local_unlock_nested_bh(&nft_pcpu_tun_ctx.bh_lock);
- 		return false;
- 	}
- 	*tun_ctx =3D *this_cpu_tun_ctx;
-+	local_unlock_nested_bh(&nft_pcpu_tun_ctx.bh_lock);
- 	local_bh_enable();
-=20
- 	return true;
-@@ -254,9 +264,11 @@ static void nft_inner_save_tun_ctx(const struct nft_pk=
-tinfo *pkt,
- 	struct nft_inner_tun_ctx *this_cpu_tun_ctx;
-=20
- 	local_bh_disable();
--	this_cpu_tun_ctx =3D this_cpu_ptr(&nft_pcpu_tun_ctx);
-+	local_lock_nested_bh(&nft_pcpu_tun_ctx.bh_lock);
-+	this_cpu_tun_ctx =3D this_cpu_ptr(&nft_pcpu_tun_ctx.ctx);
- 	if (this_cpu_tun_ctx->cookie !=3D tun_ctx->cookie)
- 		*this_cpu_tun_ctx =3D *tun_ctx;
-+	local_unlock_nested_bh(&nft_pcpu_tun_ctx.bh_lock);
- 	local_bh_enable();
- }
-=20
---=20
+ Makefile.iptrules.in           | 2 +-
+ extensions/ACCOUNT/Makefile.am | 2 +-
+ extensions/Makefile.am         | 2 +-
+ extensions/pknock/Makefile.am  | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
+
+-- 
 2.47.2
 
