@@ -1,59 +1,64 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 692961A2399;
-	Sun,  9 Mar 2025 09:43:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B475118FC86
+	for <netfilter-devel@vger.kernel.org>; Sun,  9 Mar 2025 10:55:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741513388; cv=none; b=eO+MhBUldylHMSlV6reQyYLpP6N72mD0/PCEwL0tlG5vPg02tf2UsS6JbZugdF3YqnxHt3TZj+X1uHPRiXhWCyRZIt70skTWSHDc3N45CyJYwVsV5D/8PG+DnW7dyJhATDgeFfCuwh0su/dtKrIw+zVD8oWLMTXbJNdbtoxtDJ8=
+	t=1741517740; cv=none; b=JRQbvHlafVQjGB+2NmxtAbocqG5A1SG4r6XTZ455mEPp7DhpN9vqn/WfhIePKjJf7b7RS+NzlwMAkBJNtemsttrpjhuIMcCyOmviLbHKSST5NVuBWN8fBqZTvaOYl/Bxvv0h983eyLLE3KynnENPNb4fegFfTURhbBWgZtdHC8M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741513388; c=relaxed/simple;
-	bh=4jvXtCiBGGzihH3212h9WgJUU9eBgKW9QxvkQL2DjS8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=L8nm64TqN1eEklsOMxQX8Hhb7GeDpKYAsw9hAvmcicCMaXXcSts43V7z1KXqhIv2vOQIJQllGWiC/uEHtEujj9ldK+IgRjzcU+tiDAeITPQ826FmyHlKbWsHDRiVzRdHYNubo8XY9EiL7YkFoVRunfu3RkiUAwNG+cw4WO0Uq1M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+	s=arc-20240116; t=1741517740; c=relaxed/simple;
+	bh=eGKjkvSHpvhfquKyI5mmE9BH68+JRU3D6rt5uvCRqJo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=gfAbhXArxlVjf48qpFDmgF3mjiFBZP9CdieEZ0CPIvwtIj/yc9YCObmPdgnwwOAPFowAeCNEnkHLq/oWdgGs2aj7VEuhbPGCZhllHa7Ro+S6wm88HHXfbDsEfxR2xlzS3IlX50cxr9+HtAjcoiU+tTP2Cxfj4xbeN32FnZjmdj0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1trDBP-00020x-AW; Sun, 09 Mar 2025 10:42:55 +0100
-Date: Sun, 9 Mar 2025 10:42:55 +0100
+	(envelope-from <fw@breakpoint.cc>)
+	id 1trEJk-0002jt-Ko; Sun, 09 Mar 2025 11:55:36 +0100
 From: Florian Westphal <fw@strlen.de>
-To: Kohei Enju <enjuk@amazon.com>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	bpf@vger.kernel.org,
-	syzbot+83fed965338b573115f7@syzkaller.appspotmail.com,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	"David S . Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Alexei Starovoitov <ast@kernel.org>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	Jesper Dangaard Brouer <hawk@kernel.org>,
-	John Fastabend <john.fastabend@gmail.com>,
-	Yi-Hung Wei <yihung.wei@gmail.com>, Florian Westphal <fw@strlen.de>,
-	kohei.enju@gmail.com
-Subject: Re: [PATCH net v1] netfilter: nf_conncount: Fully initialize struct
- nf_conncount_tuple in insert_tree()
-Message-ID: <20250309094255.GA7435@breakpoint.cc>
-References: <20250309080816.87224-2-enjuk@amazon.com>
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH libnetfilter_log] autoconf: don't curl build script
+Date: Sun,  9 Mar 2025 11:55:19 +0100
+Message-ID: <20250309105529.42132-1-fw@strlen.de>
+X-Mailer: git-send-email 2.48.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250309080816.87224-2-enjuk@amazon.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 
-Kohei Enju <enjuk@amazon.com> wrote:
-> Since commit b36e4523d4d5 ("netfilter: nf_conncount: fix garbage
-> collection confirm race"), `cpu` and `jiffies32` were introduced to
-> the struct nf_conncount_tuple.
+This is a bad idea; cloning repo followed by "./autogen.sh" brings
+repository into a changed state.
 
-Reviewed-by: Florian Westphal <fw@strlen.de>
+Partial revert of 74576db959cb
+("build: doc: `make` generates requested documentation")
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ autogen.sh | 8 --------
+ 1 file changed, 8 deletions(-)
+
+diff --git a/autogen.sh b/autogen.sh
+index 93e2a23135d4..5e1344a85402 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -1,12 +1,4 @@
+ #!/bin/sh -e
+ 
+-BUILD_MAN=doxygen/build_man.sh
+-
+-# Allow to override build_man.sh url for local testing
+-# E.g. export NFQ_URL=file:///usr/src/libnetfilter_queue
+-curl ${NFQ_URL:-https://git.netfilter.org/libnetfilter_queue/plain}/$BUILD_MAN\
+-  -o$BUILD_MAN
+-chmod a+x $BUILD_MAN
+-
+ autoreconf -fi
+ rm -Rf autom4te.cache
+-- 
+2.48.1
+
