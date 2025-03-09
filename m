@@ -1,81 +1,87 @@
-Received: from mail-il1-f208.google.com (mail-il1-f208.google.com [209.85.166.208])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp-fw-80006.amazon.com (smtp-fw-80006.amazon.com [99.78.197.217])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FA8C3209
-	for <netfilter-devel@vger.kernel.org>; Sun,  9 Mar 2025 03:03:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.208
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C0B014A4E7;
+	Sun,  9 Mar 2025 08:08:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=99.78.197.217
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741489404; cv=none; b=RB27nbhMt0jSwZhzyJcbiLsWjMPCnpaENhunrkzXrW0VjuDxOJfNqdMqNSqITG3RyUbUl8zycaz1u/K2/PB3XeIUVjy9rHrP2HHs+bQYMnqJSaSktZ7K9BTCm+q26unnqS0Gj4g2xvpI1EBK1AdRQevDe/eMet80dXaVSxMKwLU=
+	t=1741507739; cv=none; b=UZzs9xzbCQWe/Rd6Y0gMJ33xAJrdvIz9O2R4+PwIOPbNHiG12FWRdCQfi03ubpqK15dk7xIlwkEBHm2luKJjya4Bu72VMoaAp69Mmq01u3sFOm2xilaWTHb5DmV0Qxi52ajgpvfxQkyzd3Zx77cbwkp2dolbqUIGEumz2u8ctWU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741489404; c=relaxed/simple;
-	bh=n0y9uXzRp4nd2UEuB/QpG5DfKUfIZlVoT2ko8vRMXtQ=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=IO99Ki2cHVVU9DFVbySWMPh1x3KkltxMaYMc5kn+oopU/vOrFr6cS5I2p0JnD/3SC2d6X7qwjr4pCv0GEk8PZTx0LrSpin3tynDXVOz6dPO2mj/z0mxZN7H2oJxfzRE07mEYhc+Xo84JzJK0Apt88sctiyfa+4lyygQc3Jd2Gzg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.208
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-il1-f208.google.com with SMTP id e9e14a558f8ab-3d2a63dc62aso23418295ab.2
-        for <netfilter-devel@vger.kernel.org>; Sat, 08 Mar 2025 19:03:22 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1741489401; x=1742094201;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=W7lI9vq0dCiuVwqTWFXCoyyGJs3SP4CmmE1ZX50lz3Q=;
-        b=UjVbEBrSxLY5wX/U/htXqgiTI4+5lx4o7elZkboWP2dJx0ZRpAcJycld3vQhewIpUP
-         vsmu1c3n/fh4zIawZgx9Dd7hE1ptLlo5NpXntQidM/dY2hchZcUY2G3KZwOQ5I6wyhOQ
-         rhR9veDn4QXfr5ZGf8HaHpg5kALLIpabYhkC4yVVILo8/S7LKZyZJG5NsvsgXGnUvfuK
-         opACntlsyZVkQIjFrtpw1fj05y21md+1JgaiOrcLzDGP7OQZlRYtrliqoZCDBPkj7twy
-         tV+UOhGNURHV4Uj7GnF8zo+qn+OEnD0SpVcTs0EMq6ngVpPOUn3ANU3azrIWMEpRJ+i6
-         fZOA==
-X-Forwarded-Encrypted: i=1; AJvYcCWv5mCOHxDO7JVEfLpiZgxP3KqxPWE4JBYSvOGXugh/VV7STGS87OFKwllkmbARz8MYXBnba4wgwlY3Hwq1s2Y=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxS7TxNztztSe7DVnzoELBEymvAEbwIrOLltWpYhGTsRHM331Po
-	MAPM48G9qT9ufVIpdIYTG5wwGI41F+GtzD9q9PEI4VMD8ziO5h91PdrQcqh11BrMMUkvyfxvi5l
-	1oxnvpog2+30dvQwPBO33Z2z1+77OUKG8+0NkZbwspQn6kDxnZEEqoM0=
-X-Google-Smtp-Source: AGHT+IG867GCeldxqxyB1InYkZ1OBi1osD2Tik2lnZoVzU4Xgi45W3Oz0WkqfyHunVkvAFKAMJAxoOR3M3Fnhirt4SMnNljpgZNz
+	s=arc-20240116; t=1741507739; c=relaxed/simple;
+	bh=mVGo6cZizCxBMHTz6A8TFTXzta23bxReakaQRj6g5n4=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=hlYbIEc/TJyaQW5KKMP/Okz8hKUnXCnc7cU/s4vnvNzbY2yWUSizWmAHtAKMbd7Ce++4fOFkybo9gl4Z9Z6ig26XgXf9pnfkrmefhzW8LeyQSO9MZSWGndxyVRbiT0xrQfQazc2Krl3y55UqT7owBTga5QRkYRXrBgAjJFSbS/w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.co.jp; dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b=AL/PJjho; arc=none smtp.client-ip=99.78.197.217
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.co.jp
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="AL/PJjho"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1741507737; x=1773043737;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=DycMLRtBjeeykWMU7bu/+eHYSnqYqv4lVfemfVZdWgo=;
+  b=AL/PJjhoJ76vNz7OV/d+Sjy3yDBDvUNjJ2Yak0mRGGTZmslyXmkCgwsX
+   zLCDCZU7GkKBCfchQSR9ECy1KP2TsCuXsHTLRn7W7mydxXqiGU5rN6/2K
+   D3nXoWRwvgn+gOovYfWCI/T6TDnJdpSEb8kmCMCMqKXOq2cvo16TOt3qT
+   4=;
+X-IronPort-AV: E=Sophos;i="6.14,233,1736812800"; 
+   d="scan'208";a="30072758"
+Received: from pdx4-co-svc-p1-lb2-vlan3.amazon.com (HELO smtpout.prod.us-west-2.prod.farcaster.email.amazon.dev) ([10.25.36.214])
+  by smtp-border-fw-80006.pdx80.corp.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Mar 2025 08:08:56 +0000
+Received: from EX19MTAUWB001.ant.amazon.com [10.0.7.35:36675]
+ by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.62.245:2525] with esmtp (Farcaster)
+ id fac3bf64-0b79-435d-a327-294bd6fc7f01; Sun, 9 Mar 2025 08:08:55 +0000 (UTC)
+X-Farcaster-Flow-ID: fac3bf64-0b79-435d-a327-294bd6fc7f01
+Received: from EX19D003ANC003.ant.amazon.com (10.37.240.197) by
+ EX19MTAUWB001.ant.amazon.com (10.250.64.248) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.1544.14;
+ Sun, 9 Mar 2025 08:08:55 +0000
+Received: from b0be8375a521.amazon.com (10.118.253.182) by
+ EX19D003ANC003.ant.amazon.com (10.37.240.197) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.1544.14;
+ Sun, 9 Mar 2025 08:08:48 +0000
+From: Kohei Enju <enjuk@amazon.com>
+To: <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+	<netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<bpf@vger.kernel.org>
+CC: <syzbot+83fed965338b573115f7@syzkaller.appspotmail.com>, Pablo Neira Ayuso
+	<pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>, "David S .
+ Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, "Jakub
+ Kicinski" <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman
+	<horms@kernel.org>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann
+	<daniel@iogearbox.net>, Jesper Dangaard Brouer <hawk@kernel.org>, "John
+ Fastabend" <john.fastabend@gmail.com>, Yi-Hung Wei <yihung.wei@gmail.com>,
+	Florian Westphal <fw@strlen.de>, <kohei.enju@gmail.com>, Kohei Enju
+	<enjuk@amazon.com>
+Subject: [PATCH net v1] netfilter: nf_conncount: Fully initialize struct nf_conncount_tuple in insert_tree()
+Date: Sun, 9 Mar 2025 17:07:38 +0900
+Message-ID: <20250309080816.87224-2-enjuk@amazon.com>
+X-Mailer: git-send-email 2.48.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:11:b0:3cf:b87b:8fd4 with SMTP id
- e9e14a558f8ab-3d441a00284mr120387625ab.15.1741489401571; Sat, 08 Mar 2025
- 19:03:21 -0800 (PST)
-Date: Sat, 08 Mar 2025 19:03:21 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <67cd04f9.050a0220.14db68.006e.GAE@google.com>
-Subject: [syzbot] [netfilter?] KMSAN: uninit-value in __nf_conncount_add
-From: syzbot <syzbot+83fed965338b573115f7@syzkaller.appspotmail.com>
-To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
-	horms@kernel.org, kadlec@netfilter.org, kuba@kernel.org, 
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: EX19D032UWA001.ant.amazon.com (10.13.139.62) To
+ EX19D003ANC003.ant.amazon.com (10.37.240.197)
 
-Hello,
+Since commit b36e4523d4d5 ("netfilter: nf_conncount: fix garbage
+collection confirm race"), `cpu` and `jiffies32` were introduced to
+the struct nf_conncount_tuple.
 
-syzbot found the following issue on:
+The commit made nf_conncount_add() initialize `conn->cpu` and
+`conn->jiffies32` when allocating the struct.
+In contrast, count_tree() was not changed to initialize them.
 
-HEAD commit:    48a5eed9ad58 Merge tag 'devicetree-fixes-for-6.14-2' of gi..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=174d8078580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=1d47ea4b9912d894
-dashboard link: https://syzkaller.appspot.com/bug?extid=83fed965338b573115f7
-compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
-userspace arch: i386
+By commit 34848d5c896e ("netfilter: nf_conncount: Split insert and
+traversal"), count_tree() was split and the relevant allocation
+code now resides in insert_tree().
+Initialize `conn->cpu` and `conn->jiffies32` in insert_tree().
 
-Unfortunately, I don't have any reproducer for this issue yet.
-
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/e13258230ff9/disk-48a5eed9.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/b84f07fdcdb7/vmlinux-48a5eed9.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/9860005c79df/bzImage-48a5eed9.xz
-
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+83fed965338b573115f7@syzkaller.appspotmail.com
-
-=====================================================
 BUG: KMSAN: uninit-value in find_or_evict net/netfilter/nf_conncount.c:117 [inline]
 BUG: KMSAN: uninit-value in __nf_conncount_add+0xd9c/0x2850 net/netfilter/nf_conncount.c:143
  find_or_evict net/netfilter/nf_conncount.c:117 [inline]
@@ -155,29 +161,27 @@ Uninit was created at:
  do_SYSENTER_32+0x1f/0x30 arch/x86/entry/common.c:450
  entry_SYSENTER_compat_after_hwframe+0x84/0x8e
 
-CPU: 0 UID: 0 PID: 15694 Comm: syz.1.15735 Tainted: G        W          6.14.0-rc5-syzkaller-00016-g48a5eed9ad58 #0
-Tainted: [W]=WARN
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 02/12/2025
-=====================================================
-
-
+Reported-by: syzbot+83fed965338b573115f7@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=83fed965338b573115f7
+Fixes: b36e4523d4d5 ("netfilter: nf_conncount: fix garbage collection confirm race")
+Signed-off-by: Kohei Enju <enjuk@amazon.com>
 ---
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+ net/netfilter/nf_conncount.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
+index 4890af4dc263..4d7cc94cb151 100644
+--- a/net/netfilter/nf_conncount.c
++++ b/net/netfilter/nf_conncount.c
+@@ -377,6 +377,8 @@ insert_tree(struct net *net,
+ 
+ 	conn->tuple = *tuple;
+ 	conn->zone = *zone;
++	conn->cpu = raw_smp_processor_id();
++	conn->jiffies32 = (u32)jiffies;
+ 	memcpy(rbconn->key, key, sizeof(u32) * data->keylen);
+ 
+ 	nf_conncount_list_init(&rbconn->list);
+-- 
+2.48.1
 
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
