@@ -1,76 +1,77 @@
-Received: from mail-pl1-f173.google.com (mail-pl1-f173.google.com [209.85.214.173])
+Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB3A5288A5
-	for <netfilter-devel@vger.kernel.org>; Mon, 10 Mar 2025 10:13:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D344B1A7046
+	for <netfilter-devel@vger.kernel.org>; Mon, 10 Mar 2025 10:27:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741601636; cv=none; b=jzulsuT5Yf8iFPoiSTqm5Mm8HGRmg/kxXuz/eTCSqnf0mnXkQsbQi4zzJXuuISyR6IJTySz8dKNartIht2deZD4pl5g44oM91B5rxFIfkfKQLeEiEqUQxobrUGR92b8pOaQb1Ghslm6s8+xThpIPNu1Bt3iQ9fty++rehE8xJko=
+	t=1741602466; cv=none; b=Xtb+Xq+NSm5nTrH6kpPFOCWhCiKpGQqzhuuHHtxQ79Q7v32uLojna910ugkJ1GamUzVhGlD1ygQIIq1oEgDiPUTcaS1tdDubIvtSub5jA5UUpQQ8FDYI2tsRICeohe1/MMg0UyNeZbF8/bQ+scN6wvjoaPrr44grkBUoX1jfwdI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741601636; c=relaxed/simple;
-	bh=xqjeg88g4YY+rfU7UR0/QK0cy8MsaHBWobw9Fuxu0yI=;
+	s=arc-20240116; t=1741602466; c=relaxed/simple;
+	bh=Y7IPoU5/0Je2hcfwlJi7TnLUlwrdD8Fc/CtSVrvEp9Q=;
 	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ZfnBW490KhZePEcm2XyQQE89pVECRe/AbSlMa621ZfH+5egvWizp3bMSY1QoCkbfCqG1BPNbyVazYiKwA3Kbnmwd5Ix4koEIeEWFXP/Fl/129HD8AgI2VaIiiQjn938NP3vsRHNzM4waG3CvZSWSFWtKswN+plqxRgXd/FmmeeY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KjJMiHJe; arc=none smtp.client-ip=209.85.214.173
+	 Content-Type:Content-Disposition:In-Reply-To; b=Uqchd2ANCK9Lhf4zxSh3i/xIWsniK879OcRl2C4ymyhHSlZ8lCib0JYaleAEVCeynLAzhT6OmMNsd759Iu1/rjyAbLSC+DaZ3XJnarq9os8Udf3LB94MnhnSV8YJuTMDxDEc+q3cwWLqDrqDTw2iQ1B6ikXR4ZQfychucx0HLSk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=IkFOlY1c; arc=none smtp.client-ip=209.85.216.52
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=optusnet.com.au
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KjJMiHJe"
-Received: by mail-pl1-f173.google.com with SMTP id d9443c01a7336-224341bbc1dso39408905ad.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Mar 2025 03:13:53 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IkFOlY1c"
+Received: by mail-pj1-f52.google.com with SMTP id 98e67ed59e1d1-2fec13a4067so6068764a91.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Mar 2025 03:27:43 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1741601633; x=1742206433; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1741602463; x=1742207263; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:mime-version:references
          :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=xqjeg88g4YY+rfU7UR0/QK0cy8MsaHBWobw9Fuxu0yI=;
-        b=KjJMiHJeBRR6sqCCXxSg8/riXBmbXTUTRmsdmqv0qz2vWbjcw7Zu3GJblL2wS2mxK5
-         Vn8//Kfgqr6L+lUhOtHSbyD4FULsxNfaUrNE5OftrFduKh6dShRrsbQDYSr09KCz4W5J
-         w72edvvv0SwCXnq6961is8tZ6/aPuIKaZraRyDq2zfPnvNjzuUVBOMxF4H7O8TZZD5Y3
-         Pfqa5PfKRd45xzwTTNdcs4PAKFoD6AqOzluYYrRpm3TqQiYsdlnJ+svKnTp4dNiNYtlk
-         J49SUrI3fr9CfUMhrYTwjb7jrtOyHPGTBEyKOv4OsrmtdDWM91cz+TDYKKnRmTrO2TSd
-         h31g==
+        bh=p2E3BagLfXhN8DNmJmX8Z1E8Otbru9o703qCNEwjPwU=;
+        b=IkFOlY1c4uA9xofmhJGbUFVFWMnSpFpT+gc/fd7VavNzhIeoEXNWjyNSCklrmwmBRW
+         c14o5vNrA3hmqluV1ATbOYPAt0T/rxauRlzudTB3rgYxVoRXKN9CJW0SdZTAJBoId2F6
+         0t9tfEqo/LfAigO//1rV+pPyH7S7gYymO5sfhDiOXnRQCzQKGvSgk1UtCiX1cBL/NTYl
+         UniAUPUm7pYhdLVF8Nc4aNzF97g0lLz//FCprtryV6uVuqhQYuQa2BJ7Zw0X3uconolg
+         jo2d5hm1/LeCboIaWl+DC9dia9PSVWlFXNUkBYi2Ug/Z9CuXOaNxOwqHfSly5VhRFSy/
+         y2KA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1741601633; x=1742206433;
+        d=1e100.net; s=20230601; t=1741602463; x=1742207263;
         h=in-reply-to:content-disposition:mime-version:references
          :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=xqjeg88g4YY+rfU7UR0/QK0cy8MsaHBWobw9Fuxu0yI=;
-        b=HHX6HiB9hFiMa63epF4ZCSo1PbNPix1ES+J71irfUCWetPDI4PqDCqylg6Y0rN3q03
-         ObuJcBU3uNDriSNjC55gH/dB9rK9o4Kv3r3Uorl5uVoUN7SdmXCuszL8+SHEBWk6EuVI
-         UuMQl862J2cYKA/Jxe9l9aAnRPjSq6xXuQF14TgkELkz8slRT57kPH19E4RS/5xGcHrF
-         7a9zcCqZkRi/+7hYzP5O3yOZuzNlQFIYqRxJaBqiY8saX+TbCxr6AQjSs+7kAl+bN9pE
-         Deq/veUTC4aAf6HmP9K1kgIs0CzPEgK7x2h31kxJpveWP0KCUvSpvCptZuTgLIINYeSt
-         kTMw==
-X-Gm-Message-State: AOJu0Ywaml6lcm6D05VWZ7PtWJ2xSCX7sN9Hwg+2VvBEoWFwqlyvIdLs
-	fvNIWRYHg9SBkqP8ftYCEcUPqGe6ZvYK990tfqzlScUNp6rfR4Dp
-X-Gm-Gg: ASbGncsGpSyF7H9AfEBTKvD1wTqM/SICdvAwjsBlGVmfVAeh9S17GSEg9XjTzB/5WXG
-	AqSBC8lecNq4LAdy9Jcqh0pRvA3t8XGC4/j9LaeZFGHRro7vprV13iiP5DKxe2UZdJzZWEzt6KX
-	JazsAmg75MJrLn8q25ntGzTBkjq667Y0p9QrZ5voeq1wtFSvemhd6HPUE1ILXsKOZzSHy/HD1DR
-	k0yODwRctr+SvX4G6GUVNZH4gSpPqpJP8SIAek848jn6Jh0DXWzdX8DuEyYIr926vL59rkpAu/x
-	MIKYca2cPPV6SuP9FebzLC/ky6rLHR+ZHVAd2qLboGdEv32zrUqT/K1NGqQPqFoMQ8ainiR6H4Y
-	FOcRGCunX/G0ggIFn5HDTwg==
-X-Google-Smtp-Source: AGHT+IFrcpvWJ7gfXXRxRC4zbUaPr1RsYTGvk4vbbEpSB+ihw0Ajcvx3slC41d0Z1CX67WWBap+q7g==
-X-Received: by 2002:a17:902:d48c:b0:224:1c1:4aba with SMTP id d9443c01a7336-22428bd4341mr182052485ad.50.1741601632852;
-        Mon, 10 Mar 2025 03:13:52 -0700 (PDT)
+        bh=p2E3BagLfXhN8DNmJmX8Z1E8Otbru9o703qCNEwjPwU=;
+        b=rDbsjpw8u8fT4pEmMYHA0CRiu081rp7PZVI0zEje9jBWenYsvnvkpRtIPv+wbE1scC
+         cGM784aSdLDLEsaeSy/ruxUZ5eS5F3ZUMvEhl9r3NekqPqlS2/m+9+2RyY5SBRNm2HWW
+         WCZ4RGVnUeXPuMVztlw+2W0SbWCRLpGZNieiW+nsAZkmRe6ExXUV8tHkAlALjnhWPUoW
+         vPlnss2idEvCSciG0bweWe42LaUUsaE1F6TigaJReuLM3MBOukMCYqW99d/T4s0A1vDD
+         isgNBYJP5UfZTsYzfKxag4OhMHfvypQSeOrMyCI7VQJHoTADvHQzk9dIMJFLo5j9ZC4/
+         s6VQ==
+X-Gm-Message-State: AOJu0YyTKF3EOlvOH0+N0kKPCt1ESDqKP+/Ka9127PafFfNqWHbrRdMn
+	STi5bc0FS2G0zesJ3Qrh56ZgzNYfmhWp8bDkXksjHMrxTbooMhGp5Q9wGA==
+X-Gm-Gg: ASbGncvSR9ccntHrkPTMTyYQLUQJ6PhtpqbZrgVcWV21yxgaWbT8msM0GKpBbtyDBwY
+	cpUViqWxKPXrUW+H9idHId3rIx/Y/bWymt/yaGktajOWtrMfAIBM4WBCBPkTejBx7zuGBkQyVwa
+	UCcgbLtcSyGMDf1USNJggNySVXSWhjnSfxHQYxDT9tb0j99LS1Mqhk0zYxnKBaWIax4Xm9JE3p1
+	LQfyRY9CpfuLfunHTZuZzKxyzMibSHSZiaqS8ZaKkPHrr9vupeMF2/BJwSrWDoKeus/0mrVGmLp
+	+C5x4BXX9Dla85Xfeu3CuhkqAWQxb4erqdr6GDGhbIfpgI8jbnuIOwssexI0WafU4t6kod+Pfee
+	weToHqk9/oXZboaNbJabHlA==
+X-Google-Smtp-Source: AGHT+IGa9e5vnkzSQ8C2uhrBP5h9Z6I2L+3idpmUWwhIUr2xBF9EZ8Agl+HIJ23htWWWMDkrpwLtFw==
+X-Received: by 2002:a17:90a:d605:b0:2ff:6ac2:c5a6 with SMTP id 98e67ed59e1d1-2ff7cf31844mr19192880a91.31.1741602462325;
+        Mon, 10 Mar 2025 03:27:42 -0700 (PDT)
 Received: from slk15.local.net (n175-33-111-144.meb22.vic.optusnet.com.au. [175.33.111.144])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-22410a93fe5sm73587255ad.206.2025.03.10.03.13.50
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-2ff69374622sm8531064a91.23.2025.03.10.03.27.40
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 10 Mar 2025 03:13:52 -0700 (PDT)
+        Mon, 10 Mar 2025 03:27:41 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From: Duncan Roe <duncan_roe@optusnet.com.au>
 X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
-Date: Mon, 10 Mar 2025 21:13:48 +1100
-To: Florian Westphal <fw@strlen.de>
-Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libnetfilter_log] autoconf: don't curl build script
-Message-ID: <Z867XDT/eEA2prdX@slk15.local.net>
+Date: Mon, 10 Mar 2025 21:27:38 +1100
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Netfilter Development <netfilter-devel@vger.kernel.org>,
+	Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH libnetfilter_log] build: doc: Avoid autogen.sh
+ contaminating the repository
+Message-ID: <Z86+ml15+fqSVypD@slk15.local.net>
 Reply-To: duncan_roe@optusnet.com.au
-Mail-Followup-To: Florian Westphal <fw@strlen.de>,
-	Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <20250309105529.42132-1-fw@strlen.de>
- <Z85FG/1qImu3tiSS@slk15.local.net>
- <20250310083446.GA8451@breakpoint.cc>
+Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Development <netfilter-devel@vger.kernel.org>,
+	Florian Westphal <fw@strlen.de>
+References: <20250310014658.9363-1-duncan_roe@optusnet.com.au>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -79,18 +80,21 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250310083446.GA8451@breakpoint.cc>
+In-Reply-To: <20250310014658.9363-1-duncan_roe@optusnet.com.au>
 
-On Mon, Mar 10, 2025 at 09:34:46AM +0100, Florian Westphal wrote:
->
-> I absolutely hate the idea of fetching stuff at build time.
-> And in this case, we fetch an exectuable shell script from
-> untrusted location.
->
-Ok in future I'll send build_man patches to libnetfilter_log once they're
-applied to libnetfilter_queue.
+Hi Pablo,
 
-Have just found an error in the latest update :( so will wait for the fix
-to be accepted.
+On Mon, Mar 10, 2025 at 12:46:58PM +1100, Duncan Roe wrote:
+> After autogen.sh fetched doxygen/build_man.sh from the
+> libnetfilter_queue project, git log would show
+> > Changes not staged for commit:
+> >         modified:   doxygen/build_man.sh
+> The fetched file has had fixes, workarounds and speedups
+> since the local copy was comitted, so get rid of the local copy.
+>
+> Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+> ---
+
+Please ignore this patch.
 
 Cheers ... Duncan.
