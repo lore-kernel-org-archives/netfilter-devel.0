@@ -1,101 +1,86 @@
-Received: from azazel.net (taras.nevrast.org [35.176.194.208])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7391218FDAB
-	for <netfilter-devel@vger.kernel.org>; Mon, 10 Mar 2025 11:44:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 093D821E0AE
+	for <netfilter-devel@vger.kernel.org>; Mon, 10 Mar 2025 13:03:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741607089; cv=none; b=Mxn+aq9qtbT/iUCjmsdyElLjgk7CB/ixEFQqoXe+cbySFKqnPFXcXtfRm1j81+ZfQqPC/Q7UiLXgoGhgq4CvcqBRTCB9Gz69etwH17+uBphu/McwxzpECLncTqhKZbFVHuwPFCN04QD04p0y3lkzAUc85cclqDyb5dhfGNIHsg0=
+	t=1741611824; cv=none; b=brpu+0CJIHJgA01ppfhDRpLqptvQBsROT31BNJTng8UEVXVaRDXC9o3QEN+Y+INxf2Fg4DVcc8NVRa/OhTSwgNHUXqdt3fuH/m7D3FhkFwq54NOBJ9kDiPNnvm/0fCAS31RE/56skUOxvBmLbLwQIRibUbFtycNZBE9/TCdS7b4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741607089; c=relaxed/simple;
-	bh=dLa6J+wKY3GtV3NqM/hAMtlbh7vDDcpwMIsoedltdcM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=HxXKiQHklvUQydyeu/39q9voQoiWcZJUWD2hcBZ4K8Ip8EPOTBtF5qPBQlugxLPOAvPdkkeVKo4KBOOy+urhT60Cn61nQZn4ORwp5IpDiLkTCiRsmIVNUoloNd0QhavgX3A6E0IB2bNust/MDlRIBMN0A1ZBm/ANMMto1Bt3xfU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=LNtNYjAD; arc=none smtp.client-ip=35.176.194.208
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="LNtNYjAD"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-	s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=RCprU64P0Ia6QOMGfJ7nuIYxr1qzn69vLtszVFU9ErQ=; b=LNtNYjADRSKwGr/6iW2VcP3nIm
-	EEVGS6iMErTb6LoAggMIKziOy6uf2V1o7p3FAKdNpjBlq8ip6a4xPfiYQIWInQ/kJ3Abusyl3nF3c
-	vw4+NRqE0xBz06QeWwgOPn0d5QczGuK3FpaCNCJc6ac5km4hRqzvpjRjQnn/DRd/YLpC9gEuyPUlX
-	dh8+EnAgSucj6KlzsCGc5In7F2igCtbGsoc+oA6yLM38vQW7AIyMKtbLyers82Hsd1fjegwadbSU4
-	wJGn2J4wndoVH4TVW71s8TLpGBEMbOFRCp+bkOk4Kjb9fCjGZeTzzzodS+k3rKo196HcCbR6NpKjj
-	xPn6Sb7g==;
-Received: from celephais.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] helo=celephais.dreamlands)
-	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.96)
-	(envelope-from <jeremy@azazel.net>)
-	id 1trbYo-00H2DB-19;
-	Mon, 10 Mar 2025 11:44:42 +0000
-Date: Mon, 10 Mar 2025 11:44:41 +0000
-From: Jeremy Sowden <jeremy@azazel.net>
-To: Jan Engelhardt <ej@inai.de>
-Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH xtables-addons 0/2] A couple of build fixes
-Message-ID: <20250310114441.GB1263845@celephais.dreamlands>
-References: <20250309164131.1890225-1-jeremy@azazel.net>
- <s4922o5r-568s-ss65-14n2-7r9o60957s45@vanv.qr>
+	s=arc-20240116; t=1741611824; c=relaxed/simple;
+	bh=B5XJnCEE/+RBWtlCi48KkNzrOkkKAIdMJt2/IEKu8ds=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ZcTvSNpfE2CaaxkGVTh61gd1cQsuW9+8vAEoTtovexJW7/BQDBptRcvs+XK37wHLUMzks1oMCPfN3NcfNB7zIHK9WTj3KnkVznQBBZ7rHFtso7SiEJ0PQIyX5qOFs6u5hi6euJa72dBUgx316/4tbOrftPgRdiKS98SGM06uTTk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1trcn7-00065w-Kk; Mon, 10 Mar 2025 14:03:33 +0100
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] tests: shell: skip interval size tests on kernel that lack rbtree size fix
+Date: Mon, 10 Mar 2025 13:42:29 +0100
+Message-ID: <20250310124232.11796-1-fw@strlen.de>
+X-Mailer: git-send-email 2.45.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="QuhhkWaU0Ndtxlbg"
-Content-Disposition: inline
-In-Reply-To: <s4922o5r-568s-ss65-14n2-7r9o60957s45@vanv.qr>
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
+Content-Transfer-Encoding: 8bit
 
+Skip these tests for older kernels.
 
---QuhhkWaU0Ndtxlbg
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ tests/shell/features/rbtree_size_limit.nft      | 10 ++++++++++
+ tests/shell/testcases/sets/interval_size        |  2 ++
+ tests/shell/testcases/sets/interval_size_random |  2 ++
+ 3 files changed, 14 insertions(+)
+ create mode 100644 tests/shell/features/rbtree_size_limit.nft
 
-On 2025-03-09, at 18:09:40 +0100, Jan Engelhardt wrote:
-> On Sunday 2025-03-09 17:41, Jeremy Sowden wrote:
-> > The first of these fixes the building of libxt_ACCOUNT.so and
-> > libxt_pknock.so.  I sent this once before, at the beginning of
-> > December
->
-> Indeed you did, and I wanted to investigate why automake would not
-> accept {} in that spot, but I guess I got distracted.
->
-> Applied now.
+diff --git a/tests/shell/features/rbtree_size_limit.nft b/tests/shell/features/rbtree_size_limit.nft
+new file mode 100644
+index 000000000000..7eb44face077
+--- /dev/null
++++ b/tests/shell/features/rbtree_size_limit.nft
+@@ -0,0 +1,10 @@
++# 8d738c1869f6 ("netfilter: nf_tables: fix set size with rbtree backend")
++# v6.14-rc1~162^2~7^2~13
++table inet x {
++        set y {
++                typeof ip saddr
++                flags interval
++                size 1
++                elements = { 10.1.1.0/24 }
++        }
++}
+diff --git a/tests/shell/testcases/sets/interval_size b/tests/shell/testcases/sets/interval_size
+index 6d0759672999..55a6cd4948e2 100755
+--- a/tests/shell/testcases/sets/interval_size
++++ b/tests/shell/testcases/sets/interval_size
+@@ -1,5 +1,7 @@
+ #!/bin/bash
+ 
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_rbtree_size_limit)
++
+ RULESET="table inet x {
+ 	set x {
+ 		typeof ip saddr
+diff --git a/tests/shell/testcases/sets/interval_size_random b/tests/shell/testcases/sets/interval_size_random
+index 701a1e73956c..3320b51245db 100755
+--- a/tests/shell/testcases/sets/interval_size_random
++++ b/tests/shell/testcases/sets/interval_size_random
+@@ -1,5 +1,7 @@
+ #!/bin/bash
+ 
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_rbtree_size_limit)
++
+ generate_ip() {
+ 	local first=($1)
+ 	echo -n "$first.$((RANDOM % 256)).$((RANDOM % 256)).$((RANDOM % 256))"
+-- 
+2.45.3
 
-Thanks!
-
-J.
-
---QuhhkWaU0Ndtxlbg
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-wsG7BAABCgBvBYJnztCbCRAphqwKvfEEDUcUAAAAAAAeACBzYWx0QG5vdGF0aW9u
-cy5zZXF1b2lhLXBncC5vcmeUKy4zgRGzxGCMkI8Ed5Rc1BjTEJgU9GgSsYGOBruF
-FhYhBGwdtFNj70A3vVbVFymGrAq98QQNAACQxA/7B9DOlgT5P49JxNBV99ctkOTr
-70Z9D9qU8G4E0ADeBysNQFQBU4MS81HIHwx//NtJrBlZdxIjPypmBEwWVK18fGCf
-uD7o22PSWjRVCEfI/0YgcmEbs0mpUHu435UPzmh60DfevSzG8Gkp3/4KkXoW8x7X
-UfQH2NRWsKGd6RDErsQZj45H/2LRZsT6NvZJ/dBpRWDYtYypGuvdt/5lFraZ/lai
-FlDYUvWD9gDXevfUoS7xanR1bdKh6TfT6tQhfuaNycIHprpir+5wbYtjWoSAp8e1
-0mbgGjPigDES63j+Q+JIVpMXgVLSlAYfzjZYFFFw3jQo7FDSpNuu0Tuh2vzLBqUu
-nQSS++ZxBnP8+9ZjWEIRq9s+AK2XbJjpcqgQl2Y0As2ubqR3oe5df4j7AAYfkzc1
-vuU/0vhG/DpjiTazSwm6NIWW/XL+0oEe/cfFyGQ1fs4FdkOmYPiEOojgzqmK1ZS5
-KlPDaMyHIZ79eMIc/NgUkGXEy5wtqMsgXqxjcEXIayC4Xa4tErWd82ib4MH9RIGR
-fpe1GHZI2lDAkolCy+S++o1f9MTJZ45fAjUiS7zpbm/lEDwjLOhIEioJ5CMWZeXE
-BFTT4r2zKhL57ITtJsJ1gFipHmrb7pM062Ld5/KvsWJya2IuJsTicxxGVK7tq9lu
-5fQPVJl69WnZhNnoR+w=
-=LK+R
------END PGP SIGNATURE-----
-
---QuhhkWaU0Ndtxlbg--
