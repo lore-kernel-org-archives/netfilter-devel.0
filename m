@@ -1,122 +1,201 @@
-Received: from mail-ed1-f45.google.com (mail-ed1-f45.google.com [209.85.208.45])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0ACB31C5D7A;
-	Wed, 12 Mar 2025 16:21:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FA531CB501
+	for <netfilter-devel@vger.kernel.org>; Wed, 12 Mar 2025 16:54:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741796495; cv=none; b=rQoJxBw0K7ZtyWehQ3gRnNlnJDlXtUhm77xFYO+PRy4W5e4hl7Npb7GkY8Uq7a4gdbv9ktTP1ooKtML2EpOvM+KbX+bxX63dQKnKRNpWagQgHSsTUdDMxmihJ6UE2GA3ytzbB16TjhVf/FptxJ2A+vj35rzvnTGI0/ywZnawrXg=
+	t=1741798491; cv=none; b=ZT8ibPUcv8xgMhe9d6VKvKfmrPWPCGV5JraRRQw9m04guzc3vhZGbUDZHMQt0GbCy+MN0iFTUWPkzaWQ8a4kXmNFl2bsumxixG9iCbFm8V+wLuC47ns1dE811BayG2AMTmeND/bUw0WTIvzJMCUMJ9UEHeUQg6TBtchNBqvPIBw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741796495; c=relaxed/simple;
-	bh=AA0MJOsn9jCYm6rQxqAqvA15NsJHoc5M1iB3UxZTL80=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=UWE+rfQ/xajbWE83aBPog+LL+4f2rztVTMykh6Bq1xorRDA29H/V/EaFLp0KfDkIsYSPM8G99WDPTblKdaV2gmiwEcmcTwn7xVC5cGA5PY3MPzpaNYRbbelTqQfT+EDouCxiHUkpzRstuBPq638R+V5BZdVHCK+a5Ex6FZM37wM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SikGBZGs; arc=none smtp.client-ip=209.85.208.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1741798491; c=relaxed/simple;
+	bh=vZSyateFS+e1iETeIRpV7aKf0KTIhiP/2jQE6F7KEsQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=rRC5g2I/LjeKt+ipuOi53YcvRXVEgwyTWJ05a8FD5oClzjvqqo8X3Z09z1dfhPiQwf/cv8ekptQnmpwlcZktLgK2HZYam76BmqGmdGR0DJqjK7LSlEOd1NL5yy1z1Pc6z/k5K6M0oYu0JuCV9iZ/7pwAXzlvgirPeUUvIofxwxg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=MzQaqE2V; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=mptvZDfh; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SikGBZGs"
-Received: by mail-ed1-f45.google.com with SMTP id 4fb4d7f45d1cf-5e6c18e2c7dso7455159a12.3;
-        Wed, 12 Mar 2025 09:21:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1741796492; x=1742401292; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:content-language:from
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=g+vFr6C40IK/QoHRZZXYgKsZ4IfXSOBUm8PFsyPbVxQ=;
-        b=SikGBZGsJTyCQ/bohuS/YB9oL5R1dIS2E3CoMcmo8z7DnvoSveRq5bAI/3VhXDWVvy
-         lyBKoX9hY5Y9kscHXteN21lTdMzQKMk08Vxqga2A6iclUoXFMvHEpNxlQxP/+68Sdq+U
-         kJ186cRPEJEuXhFeW3//D/UQBR1iNNpq3u99ILwlRpHPebMBG+eTlHho73ADmwH3Fva/
-         eIPoUBsBz6o2tly0n5ghKuE7csmIJOH/WhiHs1yy8/feciMMhs+3Y4fICyn/vNAzCRoT
-         5hOLTXmeLXgTiUCIAuFN7x48N2kPzMqXicdJGoVCaKSh/ORIkQlVkz0yBoPP9sb8OuSh
-         XM7A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1741796492; x=1742401292;
-        h=content-transfer-encoding:in-reply-to:content-language:from
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=g+vFr6C40IK/QoHRZZXYgKsZ4IfXSOBUm8PFsyPbVxQ=;
-        b=R+RcGwncLiY3lJQ3lpEA3Qg8pTy/PX1qfWCLza3XRxurVSdGE2eCp51u5ihdRH7Mc2
-         OtO87wzLSdwVW/n30r04qQA0ykYGEhQV1LP0KEc5/Hi+4QuMvqsbA8ogk23ciJ6S+Ip/
-         wM7l/5YNHOap4FZExVVovhgnBIDyvYWUL5KpWNnQoQw0wbkVnCUamwBNAb6/xi2nBShk
-         Q22NnTtyVe/+vFDItsd5QOJX9RztRB0HVznTL1ft1PcvyEP70nFUO9eDQxt93b9DAp8J
-         04VD+kNCBSQA5e2iRU2D5i8wwRgPXYaGDHw/q9wovN2v2G+ZwLxeQGrhD9iSf6uMZSb0
-         2WZw==
-X-Forwarded-Encrypted: i=1; AJvYcCV7JV9HBlE2Yxt/QEbcGm/l0WyxkbABvfT8f5bNopu8y+Gob4M1+WmT87ZTZxjFrn3L6NCQ4suh@vger.kernel.org, AJvYcCV8MIBn6C+Z3T/ivCAEGee9zT6zfRJFI36NC1Z7BlSh20IXiL3LJOXeTlScOVZ7RjrGBllffb/njsdl9N1/zDAR@vger.kernel.org, AJvYcCWVYgiLxpap4dFXxOZ9XMU2zztNJvT/5wxaEjJ0G/LWMWK1jaixyxGky6FEP+6xisP1hdIHGAgr2f96QbN6yVw=@vger.kernel.org, AJvYcCWdLt77Kc+JMoqu2/TOSCsq4ofEj889Ev/Ky6uSYBUHU9Uj+fGGAVb0J3pNGcGQWxbH1q/c4oGcGKVQoBoj@vger.kernel.org
-X-Gm-Message-State: AOJu0YwCDaPSFSEgFWudtbkk00OLAR+VKefqfa/wD2W3VF/9Zv6/dKNi
-	BJrQXn9MHqGmILNjFv889HP69DkTKqYL8sNJSJdXdQFh7ehwzVq4
-X-Gm-Gg: ASbGncvTxHFfrJDX+0eL3dbyKzs+CjqdptRPHW4maUQkcd5ZiHpnXN01sDzld5onoaU
-	2waFRrJvZAl7/QLWqLtSrUs+AewaONncWjXcdq0lg0qUuEf0aFRU7KMq63LeXmd3dcZhqcTCd28
-	ty9PH+y+nJpNKs4/CzY49Ob1YnfNj9dkmtwMaSaFF8P431o6ZPZ0eD2MnJtafmcW4JFX/qDGhkZ
-	8Eyi4fpJ5it2mF7X4/rrvK1I7pTQDqpvcSZxAWRYAf0DN0olr0ce3Mc9bMRrXf+DzahuazMPKDh
-	UAmPq33jmhf9tK4yFmNodcOVLSV/SOMd0YX4SoXoUFd8AHGCD1cVQbwiQbyHAqbvNMzoyKZadtj
-	lq8OPOBgpq1ZXAYAmoF4du//akk7KpXO9g5kX1P2aB3e7Opdq7Jrc/ga9bFu5E5/js9uIVdj0Pa
-	eiMUlVkVKbN6nVkkqYkTDqzTwkU1Vy9A==
-X-Google-Smtp-Source: AGHT+IEaEC38X6pFHkhcOdl/BcwH+TXUrXY3YHVZyCJc94P4HbdEGDzPYfpH7BevKXGOFc1f9RUFvg==
-X-Received: by 2002:a17:907:1b16:b0:abf:607b:d0d with SMTP id a640c23a62f3a-ac252a884cfmr2996838866b.16.1741796492007;
-        Wed, 12 Mar 2025 09:21:32 -0700 (PDT)
-Received: from ?IPV6:2001:1c00:20d:1300:1b1c:4449:176a:89ea? (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ac23943945asm1081554266b.22.2025.03.12.09.21.30
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 12 Mar 2025 09:21:31 -0700 (PDT)
-Message-ID: <58cbe875-80e7-4a44-950b-b836b97f3259@gmail.com>
-Date: Wed, 12 Mar 2025 17:21:29 +0100
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="MzQaqE2V";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="mptvZDfh"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 5185D60293; Wed, 12 Mar 2025 17:54:41 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1741798481;
+	bh=KZ5JqLSA+kDM/cREBJHbv3iNGijVSKgjHqGJ36VpQNc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=MzQaqE2V802RAr75cHQbb7HMGegppL1n5d2rTYLa/DpPyVMDRlcnrX49qFIzIQemL
+	 0RXGRT6tBkZ9toT0IC4jYuMOhL96Kdh6b+B4wyXe1xrfrvQQn47hav+AuHBQ7XqpsA
+	 CCKIdhq3ng67dPQZyV0QZytgnrL8y6mMfn/5dd4du/nluR9FWLhO8VM/MmViAozj0H
+	 +98rJ2oRVYPMNXEBZ1tJR0TXXxHmUz7JNJUt5n/Zpfwbt0izW/tGq8JayMN7DQZiA4
+	 vW22X/Dt0tKxdymVrnOn8//jNEWc+wuoyiyV186mK/NSjTR60hnPp+XlHaAHnRX4JM
+	 9tkEsXtarNenw==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 728B560293;
+	Wed, 12 Mar 2025 17:54:40 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1741798480;
+	bh=KZ5JqLSA+kDM/cREBJHbv3iNGijVSKgjHqGJ36VpQNc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=mptvZDfhSNV4Hh0aRB1sjYzxFCxQlMvm2GkGseXcZESql8j+RtdYxn5ha7mtYekHB
+	 3FEPqllHXL/lmaD6XQ3cGd5l+8J8v2GvbrJgtarkkSzYqRRfxIfGwfN9aZE0wXAmDM
+	 bV6GXngqKkb2nZqkvT96obJr4R369a6YyjBDl6PrejdIU+ZI47pSzUEMrr/rcc0yMc
+	 BDN4iV89VraPSpbqeGEYXRwyJb2KYFONUmUYS1LrZJuasGJGGAUBDhuSMS641/FXM1
+	 W3hugLpyCn3LFZxlXrEPJn0BHMFcP2WWY6x+aBvieUUVupSmOsUSIxZA8aU+9Vz3cH
+	 olQK/2rxgk+Jw==
+Date: Wed, 12 Mar 2025 17:54:37 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next] netfilter: nf_conntrack: speed up reads from
+ nf_conntrack proc file
+Message-ID: <Z9G8TcHOTdn7LBsj@calendula>
+References: <20250211130313.31433-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v9 nf 00/15] bridge-fastpath and related improvements
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
- Kuniyuki Iwashima <kuniyu@amazon.com>,
- AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
- Matthias Brugger <matthias.bgg@gmail.com>,
- Nikolay Aleksandrov <razor@blackwall.org>, Roopa Prabhu <roopa@nvidia.com>,
- Ivan Vecera <ivecera@redhat.com>, Jiri Pirko <jiri@resnulli.us>,
- Jozsef Kadlecsik <kadlec@netfilter.org>, Simon Horman <horms@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>, Jakub Kicinski <kuba@kernel.org>,
- Eric Dumazet <edumazet@google.com>, "David S. Miller" <davem@davemloft.net>,
- Andrew Lunn <andrew+netdev@lunn.ch>, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org, bridge@lists.linux.dev,
- linux-arm-kernel@lists.infradead.org, linux-mediatek@lists.infradead.org,
- linux-hardening@vger.kernel.org, Kees Cook <kees@kernel.org>,
- "Gustavo A. R. Silva" <gustavoars@kernel.org>,
- Alexander Lobakin <aleksander.lobakin@intel.com>,
- Ahmed Zaki <ahmed.zaki@intel.com>, Vladimir Oltean <olteanv@gmail.com>,
- Frank Wunderlich <frank-w@public-files.de>,
- Daniel Golle <daniel@makrotopia.org>
-References: <20250305102949.16370-1-ericwouds@gmail.com>
- <897ade0e-a4d0-47d0-8bf7-e5888ef45a61@gmail.com> <Z9DKxOnxr1fSv0On@calendula>
-From: Eric Woudstra <ericwouds@gmail.com>
-Content-Language: en-US
-In-Reply-To: <Z9DKxOnxr1fSv0On@calendula>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20250211130313.31433-1-fw@strlen.de>
 
+Hi Florian,
 
+a few comments below.
 
-On 3/12/25 12:44 AM, Pablo Neira Ayuso wrote:
-> Therefore, I suggest you start with a much smaller series with a
-> carefully selected subset including preparatory patches. I suggest you
-> start with the software enhancements only. Please, add datapath tests.
+On Tue, Feb 11, 2025 at 02:03:06PM +0100, Florian Westphal wrote:
+> Dumping all conntrack entries via proc interface can take hours due to
+> linear search to skip entries dumped so far in each cycle.
+> 
+> Apply same strategy used to speed up ipvs proc reading done in
+> commit 178883fd039d ("ipvs: speed up reads from ip_vs_conn proc file")
+> to nf_conntrack.
+> 
+> Note that the ctnetlink interface doesn't suffer from this problem.
+> 
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  net/netfilter/nf_conntrack_standalone.c | 73 +++++++++++++------------
+>  1 file changed, 38 insertions(+), 35 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+> index 502cf10aab41..2a79e690470a 100644
+> --- a/net/netfilter/nf_conntrack_standalone.c
+> +++ b/net/netfilter/nf_conntrack_standalone.c
+> @@ -98,51 +98,34 @@ struct ct_iter_state {
+>  	struct seq_net_private p;
+>  	struct hlist_nulls_head *hash;
+>  	unsigned int htable_size;
+> +	unsigned int skip_elems;
+>  	unsigned int bucket;
+>  	u_int64_t time_now;
+>  };
+>  
+> -static struct hlist_nulls_node *ct_get_first(struct seq_file *seq)
+> +static struct nf_conntrack_tuple_hash *ct_get_next(struct ct_iter_state *st)
+>  {
+> -	struct ct_iter_state *st = seq->private;
+> +	struct nf_conntrack_tuple_hash *h;
+>  	struct hlist_nulls_node *n;
+> +	unsigned int i;
+>  
+> -	for (st->bucket = 0;
+> -	     st->bucket < st->htable_size;
+> -	     st->bucket++) {
+> -		n = rcu_dereference(
+> -			hlist_nulls_first_rcu(&st->hash[st->bucket]));
+> -		if (!is_a_nulls(n))
+> -			return n;
+> -	}
+> -	return NULL;
+> -}
+> +	for (i = st->bucket; i < st->htable_size; i++) {
+> +		unsigned int skip = 0;
+>  
+> -static struct hlist_nulls_node *ct_get_next(struct seq_file *seq,
+> -				      struct hlist_nulls_node *head)
+> -{
+> -	struct ct_iter_state *st = seq->private;
+> +		hlist_nulls_for_each_entry(h, n, &st->hash[i], hnnode) {
 
-Then I will split it in:
-1. Separate preparatory patches and small patch-sets that apply
-     to the forward-fastpath already.
-2. One patch-set that brings the bridge-fastpath with datapath tests.
+                hlist_nulls_for_each_entry_rcu ?
 
-> P.S: You work is important, very important, but maybe there is no need
-> to Cc so many mailing lists and people, maybe netdev@,
-> netfilter-devel@ and bridge@ is sufficient.
+> +			if (skip >= st->skip_elems) {
+> +				st->bucket = i;
+> +				return h;
+> +			}
+>  
+> -	head = rcu_dereference(hlist_nulls_next_rcu(head));
+> -	while (is_a_nulls(head)) {
+> -		if (likely(get_nulls_value(head) == st->bucket)) {
+> -			if (++st->bucket >= st->htable_size)
+> -				return NULL;
+> +			++skip;
+>  		}
+> -		head = rcu_dereference(
+> -			hlist_nulls_first_rcu(&st->hash[st->bucket]));
 
-Ok, but my main question then is which tree should I work in, and
-therefore which tag should I give my patches, [nf] or [net-next].
-I think it will get more complicated if I split my patch-set and half of
-the patches go to [nf] and another half to [net-next].
+This does not rewind if get_nulls_value(head) != st->bucket),
+not needed anymore?
 
-What do you suggest?
-
+> -	}
+> -	return head;
+> -}
+>  
+> -static struct hlist_nulls_node *ct_get_idx(struct seq_file *seq, loff_t pos)
+> -{
+> -	struct hlist_nulls_node *head = ct_get_first(seq);
+> +		st->skip_elems = 0;
+> +	}
+>  
+> -	if (head)
+> -		while (pos && (head = ct_get_next(seq, head)))
+> -			pos--;
+> -	return pos ? NULL : head;
+> +	st->bucket = i;
+> +	return NULL;
+>  }
+>  
+>  static void *ct_seq_start(struct seq_file *seq, loff_t *pos)
+> @@ -154,13 +137,33 @@ static void *ct_seq_start(struct seq_file *seq, loff_t *pos)
+>  	rcu_read_lock();
+>  
+>  	nf_conntrack_get_ht(&st->hash, &st->htable_size);
+> -	return ct_get_idx(seq, *pos);
+> +
+> +	if (*pos == 0) {
+> +		st->skip_elems = 0;
+> +		st->bucket = 0;
+> +	}
+> +
+> +	return ct_get_next(st);
+>  }
+>  
+>  static void *ct_seq_next(struct seq_file *s, void *v, loff_t *pos)
+>  {
+> +	struct nf_conntrack_tuple_hash *h = v;
+> +	struct ct_iter_state *st = s->private;
+> +	struct hlist_nulls_node *n;
+> +
+>  	(*pos)++;
+> -	return ct_get_next(s, v);
+> +
+> +	/* more on same hash chain? */
+> +	n = rcu_dereference(hlist_nulls_next_rcu(&h->hnnode));
+> +	if (n && !is_a_nulls(n)) {
+> +		st->skip_elems++;
+> +		return hlist_nulls_entry(n, struct nf_conntrack_tuple_hash, hnnode);
+> +	}
+> +
+> +	st->skip_elems = 0;
+> +	st->bucket++;
+> +	return ct_get_next(st);
+>  }
+>  
+>  static void ct_seq_stop(struct seq_file *s, void *v)
+> -- 
+> 2.45.3
+> 
+> 
