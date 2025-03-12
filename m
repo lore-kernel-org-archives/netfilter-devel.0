@@ -1,151 +1,208 @@
-Received: from mout.gmx.net (mout.gmx.net [212.227.17.21])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9711A1E5B71
-	for <netfilter-devel@vger.kernel.org>; Wed, 12 Mar 2025 19:09:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80BE71E4929
+	for <netfilter-devel@vger.kernel.org>; Wed, 12 Mar 2025 19:15:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741806582; cv=none; b=M5ec/9uOym0Py7jmAKS7axxVkphF3mAi6l0wSTRzMA0kXTRxy4pKS8CSduOBrpxJLQXbwMn7zjVbMVLu3H8eYvLNiLCuroJbvWGgUn7d0rHl3wgP0GkzXDx9/JuKt3/3giqKMWupIf3Vz/eSdOiw1uS6w2+3U/171ghadI/AglY=
+	t=1741806918; cv=none; b=aXugK9MZYNQHvxCntGe0X5/ad4zToj0xi2xDAkFg3v1bM2cmWiwUcX34zbIPEjhkjt+77ZoB6cGg0aHryUylcywua07HOw4ZZkIoUP7bz6shScGpnhI1S8ZcPHoDN563s07QfGGLqIR3ckTrXfQTAbxCZgLkeWcMJ0Lbbx7EvzI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741806582; c=relaxed/simple;
-	bh=vQCuQ5v6h99qhak+EIo1KB1O9bDLf8ss6Wi+vERTJak=;
-	h=Message-ID:Date:MIME-Version:To:From:Subject:Content-Type; b=MRDs6GzBtUMMurNzTBX/Fqf5k+oBVdJG5WradpcCnGlLrHTJAvwoEDdW0zr9ts0GGB0E17T8KfZ92hcQFhQAjq0WNjwDA70M2gw954eKZ6P258IVbXuUbdhfss6dZtCQi7bLd4fJme4UGDcbUafalpV7J2g8yNOTWNYicT0BkWc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b=Nsrh/PLv; arc=none smtp.client-ip=212.227.17.21
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
+	s=arc-20240116; t=1741806918; c=relaxed/simple;
+	bh=ZbgVDTITSJRO8C5jN26WxAgwTErYLfWW3bSRT6Qkq3s=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=l7zCN1DW7r6/mubuaDMKhHemMmJyMwDK+fQLNz65FoZROaaUWDPJwj34rxYdpn3Nl0ANHkA/d8Nh32Z4w7t+5IgS+2mLebQ1mvoI0+p2uqJ89Qm25DPQyOXFwNsWx95hPO5DuBJk1q0ScnCRuDGuaiLfY+OOqqCxE9sG1u8Ietc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=TsQxFZao; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=wKYeM44C; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b="Nsrh/PLv"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
-	s=s31663417; t=1741806577; x=1742411377; i=corubba@gmx.de;
-	bh=Xfv+BBwe29CfZKO0oB4++Bg5KSYrduHmosdcdCZdzHg=;
-	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:To:From:Subject:
-	 Content-Type:Content-Transfer-Encoding:cc:
-	 content-transfer-encoding:content-type:date:from:message-id:
-	 mime-version:reply-to:subject:to;
-	b=Nsrh/PLvB7bxEdNXxOMKB6gRGlEiXyuArBT41Kd1ISVlemIzRe/AmZ0LYdrQ0RUx
-	 QmIMSNUbtRuXajKXQ6BBBphMNCntOhmZZ5GznRtq8bn/zP+ztDRvYvgHb4spEej7P
-	 7v0whPxXPcJbglJRD5HMDbQyy3fkyV9cGntINcPU0uz4JnvkXf8IjkWpFWBYABFne
-	 Mq1HBavJFJ8mqUHzvnYCqI9x1l0PZ2S4gVCs3e09JufvAKWAd541DjjkfNEaWAGl8
-	 5gaNgSTKaZj+toPNXXxyvWCV/pgJXjSmmp/JXT8E0Q7rmpemTaGjnP4kwtOb9t9Od
-	 WDAYo0Pj8M00TFzl6w==
-X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
-Received: from [192.168.44.3] ([83.135.91.254]) by mail.gmx.net (mrgmx105
- [212.227.17.168]) with ESMTPSA (Nemesis) id 1MtfJX-1t50P82Pd9-016s4B for
- <netfilter-devel@vger.kernel.org>; Wed, 12 Mar 2025 20:09:37 +0100
-Message-ID: <24c4bb1f-35a6-4595-bba6-40eb9f38da37@gmx.de>
-Date: Wed, 12 Mar 2025 20:09:36 +0100
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="TsQxFZao";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="wKYeM44C"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 03094602A8; Wed, 12 Mar 2025 20:15:11 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1741806911;
+	bh=cE8BTBUnvzmsX/+EZUvdlZ1JMX7YXe1Fg7G2JjvC3P0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=TsQxFZaoYmnu5YDqVR/JO78Xo+kHZGXFNUfOpAHB3DZUaYf5I+/uMVL1ORsm0Hn5f
+	 LmO8vtXQi8Wi7hQRukIuKYh+OWhITsOf82QJHT4p19/wG4yZosiPL823l2TR5fno4/
+	 eEFpAgfF2CwCyLUFOgGB9J6U1q8eiTDabF+hLwv4OA687j1lZXfj8HNaZVEKCSkcQA
+	 moGFtAZdi2dKIHyUDpLV7NIbrY4LNkePv30RX4VE4B7hCPCh3t5A7AOqNngJBcg6yL
+	 7E3QT3qihcBFmBcOKTLng+WEYpPLVayqWZ43HM0LZ7CrDc5ocb3ZR5HD+/AGfGNB46
+	 Iu0+9hfrSB+WQ==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 2BBAD6029C;
+	Wed, 12 Mar 2025 20:15:10 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1741806910;
+	bh=cE8BTBUnvzmsX/+EZUvdlZ1JMX7YXe1Fg7G2JjvC3P0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=wKYeM44CwcMwWOJpxi8aQ/a2nwWFKHLRUgMHnFd7O/p6+VlTrHIbuiawJxu9OoUkj
+	 DJqLz65RHzQsTctGylBVCtI3JNMjtn9KErZuPZcgblM4eyTtZ+6w5tJqNuPXFGpNUK
+	 VRWF6nxFAiGfF1jnNI47BD3ZPPhwcsfRTlTbS4ffwv4bblORjQFMYNs8NLZMiUxkFk
+	 HM4ERG/FpWEIkt1PTIiXztO6zS5K6wx11WTJsRL+I3mLz2GFirlw0dhXGenU2vtzjo
+	 C+ODCO+wNlr4cbm+MNK65g8CZXGLUVdZjMg3tQM8Sewrd1raNaRNdKD5orRTN7JjTu
+	 LC7BL+yaCLNwQ==
+Date: Wed, 12 Mar 2025 20:15:07 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next] netfilter: fib: avoid lookup if socket is
+ available
+Message-ID: <Z9HdO_7XgQBbxcg1@calendula>
+References: <20250220130703.2043-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Content-Language: de-CH
-To: netfilter-devel@vger.kernel.org
-From: Corubba Smith <corubba@gmx.de>
-Subject: [PATCH ulogd2,v3] ulogd: raise error on unknown config key
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:pkTCruJotNG26avHRTtgy99Rj+In1i2ST3r2cnptyPsrhBLGU8t
- IZfKWO2O3i+d8Z/leytM5QzgOO1XGUIsdwoseCvw7HGw6vcFXlvJOxvqDhK5Y9s/M6W9mwm
- uP38y9RWNrBuaiFkzonx7nMXMou94EX7b39UbicUoTGt4jZ6AXnllZowzvDVwJFxmvezJDo
- ik7733udxo4WlRCDB13Bg==
-X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:/o3WpV5iOpA=;7iRYa/GYspetS3SIcBPcLKyMgED
- 1yjL3VRkaGFkJ8lfYWxXFgHlvEjg7qLI9Yg2KBFmamFAn8rivqeVC2ozaP3QJBNl4d5EZetJ2
- 8YfXSWGZDXfzkGQJhA/MXuARMcTVsNbjk2b9EU4Ksos3GOZzuemqX/c+tw7x4zHio6VCaLAar
- sqDk47wmsOVtg0AaOUhr8IH43+q68R1HWpdz+PW7Ty73Dmn0V/TXokqdVuV4Ulw20HXs5ikQ4
- Fts7HAGvvYcSLJ/WCkqNYLVv8KiJz/mh5paarPQhfMjKoYrxgm1EHob6/xlquqg6be8O1nkkZ
- 9s7rf1T7YBVU9MzNGqXXKPaVA6qQUSFJ9+xN9jPNuklwyzGdJe5QX5u95Ep4xWBFgM4W5T1bx
- OvLmXjv3iztvKiyyxJgC/rfXkLupVnoO922Uf4s9q6O8VT+q7RPS8LHdnfvvbeMsTsOyV1FfM
- 12IKkDhXCmpsU7Z88mydzxCH/ep654T/95GGP9aq+eHuuwPMyfUdNMjFjRDJxenQ0XkibuwgI
- Ubr4iiRyFfOuzhSfaUbUCIoHcVbvCMi1BuOBOkiJUedfBbgZJOwvqgmgsWBf3UGh4DC2nJGJh
- 3N4NuFepNnKzlPLog0LGQte90f7BvDbqoewIEr/FjuxKzz+rgLWYFK8gtdDQ1M5ZDAepKYFyK
- pmQX+l7lDAuM7Fh58roRyUxbL05lLvbeHociSt1auj+sRdAmk/pyX9eqt+2WUqTlTa+/evsC6
- sPcsfHj4CuTIgAK2Vf13KYM+Bs+cM5xj7mp51T0tEkNVqKx3mW/gBgUdz2MfzHvMnSKhF0QIJ
- xEGgo4AFv3Zzwy5vFJhxaT2aPMH7Z+LzF6tUhvz4mZwSs9mqjzjpO3oeFIJ/BF7cePgsPsJ7t
- 46i/ut9dgkRqvjKU+p3Y4Es7d9/jkltc7Mecj6D2P5WESzirUWDUhRRTIuhwRa6V4eNr78KEn
- V8lCpNP/M2jg2L8d4FZVV9GHxYZkyBH6ttDjXhtuKZXNCYluFYJrAkLzwvdmQdF2RMuYyPtTz
- fjCvBrVsa+dA0GC5mUU/mEIata9dpzo/g432+XA02R2JJN9vzyqjnPZYzmWxL3VwoeYZL9mxA
- ap+yiQnRPdc1VEk9bUkVvy2+oR9jzliZOzD0pd9awhOzkLCythGN9rmDR+C5mu9F8yc7RbMQE
- r0JtM2B4xU75weiULr2F5Tg0bL4V+6oqv1jb8U4mWy4hweY7gG6mQjbSUP/VpniH6kVySI8bk
- z1zZ8qBCqwmXAKnSmeLhQpkAohvIj1+DhE1SmDbTqOhyduVYD4Cixf8tIzXq4r20Wi+FwxcXv
- MiqeWxwpVfqJ9cHrxIGFjLN25hdrqwvHTwTil3fd0BR8/YeWUpCl1lr6BjJrez6rNZk0JxP+f
- 1cwgMcElU6qf7/VHqQN9zYMYYQqimtqgIbicNw/fn+gKq9MB9ZJRuOUXCxrJ3WnhKK0jT5tnu
- TW4s1Pq4HCZRtaXesuM0qocb9Dlo=
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20250220130703.2043-1-fw@strlen.de>
 
-Until a6fbeb96e889 ("new configuration file syntax (Magnus Boden)")
-this was already caught, and the enum member is still present.
+On Thu, Feb 20, 2025 at 02:07:01PM +0100, Florian Westphal wrote:
+> In case the fib match is used from the input hook we can avoid the fib
+> lookup if early demux assigned a socket for us: check that the input
+> interface matches sk-cached one.
+> 
+> Rework the existing 'lo bypass' logic to first check sk, then
+> for loopback interface type to elide the fib lookup.
+> 
+> This speeds up fib matching a little, before:
+> 93.08 GBit/s (no rules at all)
+> 75.1  GBit/s ("fib saddr . iif oif missing drop" in prerouting)
+> 75.62 GBit/s ("fib saddr . iif oif missing drop" in input)
+> 
+> After:
+> 92.48 GBit/s (no rules at all)
+> 75.62 GBit/s (fib rule in prerouting)
+> 90.37 GBit/s (fib rule in input).
+> 
+> Numbers for the 'no rules' and 'prerouting' are expected to
+> closely match in-between runs, the 3rd/input test case exercises the
+> the 'avoid lookup if cached ifindex in sk matches' case.
+> 
+> Test used iperf3 via veth interface, lo can't be used due to existing
+> loopback test.
 
-Check if the for loop worked throught the whole array without hitting a
-matching config option, and return with the unknown key error code.
-Because there is no existing config_entry struct with that unknwon key
-to use with the established config_errce pointer, allocate a new struct.
-This potentially creates a memory leak if that config_entry is never
-freed again, but for me that is acceptable in this rare case.
+A few questions below.
 
-Since the memory allocation for the struct can fail, also reuse the old
-out-of-memory error to indicate that.
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  include/net/netfilter/nft_fib.h   | 21 +++++++++++++++++++++
+>  net/ipv4/netfilter/nft_fib_ipv4.c | 11 +++++------
+>  net/ipv6/netfilter/nft_fib_ipv6.c | 19 ++++++++++---------
+>  3 files changed, 36 insertions(+), 15 deletions(-)
+> 
+> diff --git a/include/net/netfilter/nft_fib.h b/include/net/netfilter/nft_fib.h
+> index 38cae7113de4..6e202ed5e63f 100644
+> --- a/include/net/netfilter/nft_fib.h
+> +++ b/include/net/netfilter/nft_fib.h
+> @@ -18,6 +18,27 @@ nft_fib_is_loopback(const struct sk_buff *skb, const struct net_device *in)
+>  	return skb->pkt_type == PACKET_LOOPBACK || in->flags & IFF_LOOPBACK;
+>  }
+>  
+> +static inline bool nft_fib_can_skip(const struct nft_pktinfo *pkt)
+> +{
+> +	const struct net_device *indev = nft_in(pkt);
+> +	const struct sock *sk;
+> +
+> +	switch (nft_hook(pkt)) {
+> +	case NF_INET_PRE_ROUTING:
+> +	case NF_INET_INGRESS:
 
-Signed-off-by: Corubba Smith <corubba@gmx.de>
-=2D--
-Changes in v3:
-  - Rebase onto master branch (15b89e41a536 ("all: remove trivial configur=
-e hooks"))
-  - All other patches from v2 are already applied
-  - Fix string-truncate compiler warning (Florian Westphal)
-  - Link to v2: https://lore.kernel.org/netfilter-devel/1a5fff4d-4cef-48e3=
--a77c-bb4f7098f35b@gmx.de/
+Not an issue in your patch itself, it seems nft_fib_validate() was
+never updated to support NF_INET_INGRESS.
 
-Changes in v2:
-  - Rebase onto master branch (b9f931e2f30e ("nfct: add icmpv6"))
-  - Renumber the patchset since v1 patch #1 and #5 are already applied
-  - Reduce indentation of case statements (Florian Westphal)
-  - Link to v1: https://lore.kernel.org/netfilter-devel/ca5581f5-5e54-47f5=
--97c8-bcc788c77781@gmx.de/
+> +	case NF_INET_LOCAL_IN:
+> +		break;
+> +	default:
+> +		return false;
+> +	}
+> +
+> +	sk = pkt->skb->sk;
+> +	if (sk && sk_fullsock(sk))
+> +	       return sk->sk_rx_dst_ifindex == indev->ifindex;
+> +
+> +	return nft_fib_is_loopback(pkt->skb, indev);
+> +}
+> +
+>  int nft_fib_dump(struct sk_buff *skb, const struct nft_expr *expr, bool reset);
+>  int nft_fib_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+>  		 const struct nlattr * const tb[]);
+> diff --git a/net/ipv4/netfilter/nft_fib_ipv4.c b/net/ipv4/netfilter/nft_fib_ipv4.c
+> index 625adbc42037..9082ca17e845 100644
+> --- a/net/ipv4/netfilter/nft_fib_ipv4.c
+> +++ b/net/ipv4/netfilter/nft_fib_ipv4.c
+> @@ -71,6 +71,11 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
+>  	const struct net_device *oif;
+>  	const struct net_device *found;
+>  
+> +	if (nft_fib_can_skip(pkt)) {
+> +		nft_fib_store_result(dest, priv, nft_in(pkt));
+> +		return;
+> +	}
 
- src/conffile.c | 12 ++++++++++++
- src/ulogd.c    |  2 ++
- 2 files changed, 14 insertions(+)
+Silly question: Does this optimization work for all cases?
+NFTA_FIB_F_MARK and NFTA_FIB_F_DADDR.
 
-diff --git a/src/conffile.c b/src/conffile.c
-index e55ff30..f84fcf5 100644
-=2D-- a/src/conffile.c
-+++ b/src/conffile.c
-@@ -256,6 +256,18 @@ int config_parse_file(const char *section, struct con=
-fig_keyset *kset)
- 			break;
- 		}
- 		pr_debug("parse_file: exiting main loop\n");
-+
-+		if (i =3D=3D kset->num_ces) {
-+			config_errce =3D calloc(1, sizeof(struct config_entry));
-+			if (config_errce =3D=3D NULL) {
-+				err =3D -ERROOM;
-+				goto cpf_error;
-+			}
-+			memcpy(&config_errce->key[0], wordbuf,
-+			       sizeof(config_errce->key) - 1);
-+			err =3D -ERRUNKN;
-+			goto cpf_error;
-+		}
- 	}
-
-
-diff --git a/src/ulogd.c b/src/ulogd.c
-index b146f94..917ae3a 100644
-=2D-- a/src/ulogd.c
-+++ b/src/ulogd.c
-@@ -281,6 +281,8 @@ int ulogd_parse_configfile(const char *section, struct=
- config_keyset *ce)
- 	case -ERRUNKN:
- 		ulogd_log(ULOGD_ERROR, "unknown config key \"%s\"\n",
- 		          config_errce->key);
-+		free(config_errce);
-+		config_errce =3D NULL;
- 		break;
- 	case -ERRSECTION:
- 		ulogd_log(ULOGD_ERROR, "section \"%s\" not found\n", section);
-=2D-
-2.48.1
+>  	/*
+>  	 * Do not set flowi4_oif, it restricts results (for example, asking
+>  	 * for oif 3 will get RTN_UNICAST result even if the daddr exits
+> @@ -85,12 +90,6 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
+>  	else
+>  		oif = NULL;
+>  
+> -	if (nft_hook(pkt) == NF_INET_PRE_ROUTING &&
+> -	    nft_fib_is_loopback(pkt->skb, nft_in(pkt))) {
+> -		nft_fib_store_result(dest, priv, nft_in(pkt));
+> -		return;
+> -	}
+> -
+>  	iph = skb_header_pointer(pkt->skb, noff, sizeof(_iph), &_iph);
+>  	if (!iph) {
+>  		regs->verdict.code = NFT_BREAK;
+> diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
+> index c9f1634b3838..7fd9d7b21cd4 100644
+> --- a/net/ipv6/netfilter/nft_fib_ipv6.c
+> +++ b/net/ipv6/netfilter/nft_fib_ipv6.c
+> @@ -170,6 +170,11 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
+>  	struct rt6_info *rt;
+>  	int lookup_flags;
+>  
+> +	if (nft_fib_can_skip(pkt)) {
+> +		nft_fib_store_result(dest, priv, nft_in(pkt));
+> +		return;
+> +	}
+> +
+>  	if (priv->flags & NFTA_FIB_F_IIF)
+>  		oif = nft_in(pkt);
+>  	else if (priv->flags & NFTA_FIB_F_OIF)
+> @@ -181,17 +186,13 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
+>  		return;
+>  	}
+>  
+> -	lookup_flags = nft_fib6_flowi_init(&fl6, priv, pkt, oif, iph);
+> -
+> -	if (nft_hook(pkt) == NF_INET_PRE_ROUTING ||
+> -	    nft_hook(pkt) == NF_INET_INGRESS) {
+> -		if (nft_fib_is_loopback(pkt->skb, nft_in(pkt)) ||
+> -		    nft_fib_v6_skip_icmpv6(pkt->skb, pkt->tprot, iph)) {
+> -			nft_fib_store_result(dest, priv, nft_in(pkt));
+> -			return;
+> -		}
+> +	if (nft_fib_v6_skip_icmpv6(pkt->skb, pkt->tprot, iph)) {
+> +		nft_fib_store_result(dest, priv, nft_in(pkt));
+> +		return;
+>  	}
+>  
+> +	lookup_flags = nft_fib6_flowi_init(&fl6, priv, pkt, oif, iph);
+> +
+>  	*dest = 0;
+>  	rt = (void *)ip6_route_lookup(nft_net(pkt), &fl6, pkt->skb,
+>  				      lookup_flags);
+> -- 
+> 2.45.3
+> 
+> 
