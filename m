@@ -1,87 +1,101 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 234A9255E23
-	for <netfilter-devel@vger.kernel.org>; Wed, 12 Mar 2025 15:21:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5051523E33E;
+	Wed, 12 Mar 2025 15:37:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741792918; cv=none; b=EVgpcT7PYuLgKpxEt2vMdouBB5GXb7rJuSvTcJWst2EroppVrXoEeDbE+z96SlfldddKPuZWK2IDhhm9HYzoK5Eyw43DaKr/8inZY0PZwWojlqkO8RyGJMBZ+o9r7zEaBp9nLqfHO88/GDh9qs71gu2FuC94Epl5pxOxZ0eclho=
+	t=1741793861; cv=none; b=O5r1ZfhkQyexgWJjcXOGcCN6NJ+dwWA5iA0CjKHOb5vd7aC+ljvp8b5U3pIPexUGoatlz8erv5WuUEy4Y6DFpy61hfHVr41h7diGfJ7icdkHSIjaigdeNh7+f8IpS/shPsCoLp8Hv1A3qu5wzJGl82NDmCCy9VIMznsk9CVQkFA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741792918; c=relaxed/simple;
-	bh=lP+uHbGbMws3xQ6lw3icAdgVfLMNR8R1mga3R+hadWs=;
+	s=arc-20240116; t=1741793861; c=relaxed/simple;
+	bh=MIMRJHeLqPj9YK2SqWO3AWK7QuqZO5t8gr5q7INTS+Q=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=VJlHHM2wp6I8TRJtNRAbwu0g6aiAO5lEhA1JHSV5P3xAVYocR/an+Ig4i1191ru/uLdX6m0aaHKKobiRGt5K8XFTfC6psMYyoTXzt0h5nwsHhWEkqbH0vztkP4u/bUswXSImuYtbqAKsQ/SFAlhDwHTICCUgKm34h1q+kz0g6Qo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1tsNu6-0007Yy-0u; Wed, 12 Mar 2025 16:21:54 +0100
-Date: Wed, 12 Mar 2025 16:21:54 +0100
-From: Florian Westphal <fw@strlen.de>
-To: Corubba Smith <corubba@gmx.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH ulogd2,v2 3/6] ulogd: raise error on unknown config key
-Message-ID: <20250312152154.GA28069@breakpoint.cc>
-References: <1a5fff4d-4cef-48e3-a77c-bb4f7098f35b@gmx.de>
- <e3965ebb-b9f9-46ce-87e5-4960405dbe35@gmx.de>
+	 Content-Type:Content-Disposition:In-Reply-To; b=VHXnpii22w4wmJdKp+Nbf3d4Q4t6rOclXOGh34owBqsV/x3ksS8x7+leUe6JMrmvM1bM/pMFEB2HYaDf47vTymrwX0e0SIDt832Lw6oXy4/t6vnVuNOyrwYHi3ukrreGQmtwVqji/UHTwvVBfNACaKoBsq0ZoXRZOEWByYtDlwo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=g8U7nk3l; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Y3lEvQj3; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="g8U7nk3l";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Y3lEvQj3"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 3211660295; Wed, 12 Mar 2025 16:37:35 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1741793855;
+	bh=FFGSVd9gGUh4YEdCjnzb9tDocLTTagr5nr1xrAINXfs=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=g8U7nk3l7+PlPWj3Y3kbM+KcfToxIMW0QfzCgbuMvpSiNuZ3JEBUgj5Y+DM3MkUMA
+	 i9LKun7J9GJBr5neIP7cgo7KBPRQVPuovERyTnU9A8OedA3YhVLRc4Av63lECu9w9o
+	 SIdZbSnQig/foI3voT4r971rihBb9N19XCdiPzXYP28NGPU0XHNlUVBFG6Y4S9peqR
+	 1KuKKHVDTxxdDXY1Egvz2LP1gKyhtMGMHNItIAcokEUuk5CelQhB2uSp2/SCbZNQtu
+	 mVQ5qJFrx47LM9/U6/PwbSl8uisV8d6a+vHeJmnvg3iUp0qprVXI7pCRNxcLemAqHn
+	 0L3s3tS30DoWg==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id DA7D260295;
+	Wed, 12 Mar 2025 16:37:32 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1741793853;
+	bh=FFGSVd9gGUh4YEdCjnzb9tDocLTTagr5nr1xrAINXfs=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Y3lEvQj3MV1oWWuwr8fyXOUyEH6/kmp8PieZncTgWBwfrjIPbZQHJXyjEgv7lsLZN
+	 0i4OUMNV//AA0vqTHO7PV+PZMXzE9uVubXRPz6QdGQgSSTOgdRw+f5l0Tqc2i3svcS
+	 dTFDGGPVhZD6v4ucMrGjX1cBwvudf/NqQ2keGC9dms1rnEhsq4ptomZ+r7rHgRnbYV
+	 UcRMQg9kK2jTiL7Cfgc6X28xG5rgmSIeBR0fKKVvhfl2w8KVOnd3ghHUdOmeSELhjk
+	 nUWmU1jz3pYHT+Gv6jF1g3em1J3cTVjZWPBiV6z4AVBPuFnJ35QNqpkcotQ0xsknbd
+	 iY/GMLfRY6Wsg==
+Date: Wed, 12 Mar 2025 16:37:29 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: lirongqing <lirongqing@baidu.com>
+Cc: kadlec@netfilter.org, davem@davemloft.net, edumazet@google.com,
+	kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org
+Subject: Re: [PATCH] net/netfilter: use kvfree_rcu to simplify the code
+Message-ID: <Z9GqOZIlyVPj0eNl@calendula>
+References: <20250122074450.3185-1-lirongqing@baidu.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <e3965ebb-b9f9-46ce-87e5-4960405dbe35@gmx.de>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20250122074450.3185-1-lirongqing@baidu.com>
 
-Corubba Smith <corubba@gmx.de> wrote:
-> Until a6fbeb96e889 ("new configuration file syntax (Magnus Boden)")
-> this was already caught, and the enum member is still present.
-> 
-> Check if the for loop worked throught the whole array without hitting a
-> matching config option, and return with the unknown key error code.
-> Because there is no existing config_entry struct with that unknwon key
-> to use with the established config_errce pointer, allocate a new struct.
-> This potentially creates a memory leak if that config_entry is never
-> freed again, but for me that is acceptable is this rare case.
-> 
-> Since the memory allocation for the struct can fail, also reuse the old
-> out-of-memory error to indicate that.
-> 
-> Signed-off-by: Corubba Smith <corubba@gmx.de>
-> ---
-> Changes in v2:
->   - Reduce indentation of case statements (Florian Westphal)
-> 
->  src/conffile.c | 11 +++++++++++
->  src/ulogd.c    |  2 ++
->  2 files changed, 13 insertions(+)
-> 
-> diff --git a/src/conffile.c b/src/conffile.c
-> index cc5552c..7b9fb0f 100644
-> --- a/src/conffile.c
-> +++ b/src/conffile.c
-> @@ -236,6 +236,17 @@ int config_parse_file(const char *section, struct config_keyset *kset)
->  			break;
->  		}
->  		pr_debug("parse_file: exiting main loop\n");
-> +
-> +		if (i == kset->num_ces) {
-> +			config_errce = calloc(1, sizeof(struct config_entry));
-> +			if (config_errce == NULL) {
-> +				err = -ERROOM;
-> +				goto cpf_error;
-> +			}
-> +			strncpy(&config_errce->key[0], wordbuf, CONFIG_KEY_LEN - 1);
+> diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+> index 2b8aac2..c751b0a 100644
+> --- a/include/linux/netfilter.h
+> +++ b/include/linux/netfilter.h
+> @@ -111,28 +111,17 @@ struct nf_hook_entry {
+>  	void				*priv;
+>  };
+>  
+> -struct nf_hook_entries_rcu_head {
+> -	struct rcu_head head;
+> -	void	*allocation;
+> -};
+> -
+>  struct nf_hook_entries {
+>  	u16				num_hook_entries;
+> +	struct rcu_head rcu;
 
-This raises a bogus compiler warning for me:
-conffile.c:246:25: warning: '__builtin_strncpy' output may be truncated copying 30 bytes from a string of length 254 [-Wstringop-truncation]
-  246 |                         strncpy(config_errce->key, wordbuf, sizeof(config_errce->key));
+This structure is accessed from the packet path.
 
-What do you make of this?
+>  	/* padding */
+>  	struct nf_hook_entry		hooks[];
+>  
+>  	/* trailer: pointers to original orig_ops of each hook,
+> -	 * followed by rcu_head and scratch space used for freeing
+> -	 * the structure via call_rcu.
+>  	 *
+>  	 *   This is not part of struct nf_hook_entry since its only
+>  	 *   needed in slow path (hook register/unregister):
+>  	 * const struct nf_hook_ops     *orig_ops[]
+> -	 *
+> -	 *   For the same reason, we store this at end -- its
+> -	 *   only needed when a hook is deleted, not during
+> -	 *   packet path processing:
+> -	 * struct nf_hook_entries_rcu_head     head
 
--                       strncpy(&config_errce->key[0], wordbuf, CONFIG_KEY_LEN - 1);
-+                       snprintf(config_errce->key, sizeof(config_errce->key), "%s", wordbuf);
-
+I think it is convenient to keep struct rcu_head at the end of it.
